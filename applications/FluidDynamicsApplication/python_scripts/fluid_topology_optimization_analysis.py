@@ -414,25 +414,41 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         fluid_functional_weights[2] = functional_weights_parameters["vorticity"]["weight"].GetDouble()
         # normalize weights
         self.normalized_fluid_functional_weights = self._NormalizeFunctionalWeights(np.asarray(fluid_functional_weights))
-    
+        
     def _SetInitialFunctionals(self):
+        self._SetInitialPhysicsFunctionals()
+
+    def _SetInitialPhysicsFunctionals(self):
+        self._SetInitialFluidFunctionals()
+    
+    def _SetInitialFluidFunctionals(self):
         self.initial_fluid_functional = np.dot(self.normalized_fluid_functional_weights, self.initial_fluid_functionals_values)
         if (abs(self.initial_fluid_functional) < 1e-10):
             self.MpiPrint("[WARNING] Initial fluid functional is zero")
 
     def _SetNormalizationFunctionals(self):
+        self._SetNormalizationPhysicsFunctionals()
+
+    def _SetNormalizationPhysicsFunctionals(self):
+        self._SetNormalizationFluidFunctionals()
+
+    def _SetNormalizationFluidFunctionals(self):
         if self.fluid_functional_normalization_strategy == "initial":
             self.fluid_functional_normalization_value = self.initial_fluid_functional
         else: # custom value, already defined
             pass
-        
-    def _RescaleFunctionalWeightsByNormalizationValues(self):
+
+    def _RescaleFluidFunctionalWeightsByNormalizationValues(self):
         if (np.sum(np.abs(self.normalized_fluid_functional_weights)) < 1e-10):
             fluid_functional_weights = np.zeros(self.normalized_fluid_functional_weights.size)
         else:
             fluid_functional_weights  = self.normalized_fluid_functional_weights.copy()
             if (abs(self.initial_fluid_functional) > 1e-15):
                 fluid_functional_weights /= abs(self.fluid_functional_normalization_value)
+        return fluid_functional_weights
+        
+    def _RescaleFunctionalWeightsByNormalizationValues(self):
+        fluid_functional_weights = self._RescaleFluidFunctionalWeightsByNormalizationValues()
         return np.concatenate((fluid_functional_weights, np.zeros(self.n_functionals-self.n_fluid_functionals)))
 
     def _NormalizeFunctionalWeights(self, weights):
@@ -475,10 +491,10 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
             self.end_time = self.project_parameters["problem_data"]["end_time"].GetDouble()
             self.simulation_time = self.end_time-self.start_time
             self.time_integral_normalization_factor = self.end_time-self.start_time
-            self.time_step_base = self._GetSolver().settings["time_stepping"]["time_step"].GetDouble()
+            self.time_step_base = self._GetSolver()._GetTimeSteppingSettings()["time_step"].GetDouble()
             if self.time_step_base > (self.time_integral_normalization_factor):
                 self.time_step_base = self.time_integral_normalization_factor
-                self._GetSolver().settings["time_stepping"]["time_step"].SetDouble(self.time_step_base)
+            self.SetPhysicsAndAdjointSolversTimeStep(self.time_step_base)
             self.n_time_steps = max(int(np.ceil(self.time_integral_normalization_factor / self.time_step_base)), 1)
             self.simulation_times = np.zeros(self.n_time_steps+1)
             self.time_steps = np.zeros(self.n_time_steps)
@@ -502,15 +518,18 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
             self.end_time = self.start_time + 1e16
             self.simulation_time = 1e16
             self.time_integral_normalization_factor = 1.0 # use to normalize the time integration with 1 to get the steady solution integrals
-            self.time_step_base = 1.0000000001*1e16
-            self._GetSolver().settings["time_stepping"]["time_step"].SetDouble(self.time_step_base)
+            self.time_step_base = 1.00000000001*1e16
+            self.SetPhysicsAndAdjointSolversTimeStep(self.time_step_base)
             self.n_time_steps = 1
             self.time_steps = np.zeros(self.n_time_steps)
             self.time_steps_integration_weights = np.zeros(self.n_time_steps) # weight to each time step to perform fast time integration of functionals
             self.time_steps[0] = self.time_step_base
             self.time_steps_integration_weights[0] = 1.0
-            
 
+    def SetPhysicsAndAdjointSolversTimeStep(self, time_step):
+        self._GetPhysicsSolver()._SetTimeStep(time_step)
+        self._GetAdjointSolver()._SetTimeStep(time_step)
+            
     def Check(self):
         """This method checks the AnalysisStage
         Keyword arguments:
@@ -547,7 +566,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         self.first_iteration = True
         while (not end_solution):
             self.opt_it = self.opt_it+1
-            self._GetSolver().main_model_part.ProcessInfo[KratosMultiphysics.STEP] = self.opt_it
+            self._GetSolver().GetMainModelPart().ProcessInfo[KratosMultiphysics.STEP] = self.opt_it
             self.MpiPrint("\n------------------------------------------------------------------------------")
             self.MpiPrint("--| " + self.topology_optimization_name + " TOPOLOGY OPTIMIZATION SOLUTION LOOP. IT: " +  str(self.opt_it))
             self.MpiPrint("------------------------------------------------------------------------------")
@@ -644,6 +663,12 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         self._InitializeRemeshing()
 
     def SetTimeSolutionStorage(self):
+        self._SetTimePhysicsSolutionStorage()
+
+    def _SetTimePhysicsSolutionStorage(self):
+        self._SetTimeFluidSolutionStorage()
+
+    def _SetTimeFluidSolutionStorage(self):
         # velocity
         self.velocity_solutions         = np.zeros((self.n_time_steps, self.n_nodes, self.dim))
         self.adjoint_velocity_solutions = np.zeros((self.n_time_steps, self.n_nodes, self.dim))
@@ -832,9 +857,13 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
     def _InitializeDomainDesign(self):
         self.MpiPrint("--|" + self.topology_optimization_stage_str + "| INITIALIZE DOMAIN DESIGN")
         self._InitializeDomainDesignParameter()
+        self.MpiPrint("--|" + self.topology_optimization_stage_str + "| INITIALIZE PHYSICS PARAMETERS")
         self._InitializePhysicsParameters()
 
     def _InitializePhysicsParameters(self):
+        self._InitializeFluidPhysicsParameters()
+
+    def _InitializeFluidPhysicsParameters(self):
         self._InitializeResistance()
     
     def _SetMaxDomainVolumeFraction(self):
@@ -1015,9 +1044,15 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         self._UpdatePhysicsParameters()
     
     def _UpdatePhysicsParameters(self):
+        self._UpdateFluidPhysicsParameters()
+
+    def _UpdateFluidPhysicsParameters(self):
         self._UpdateResistance()
 
-    def UpdatePhysicsParametersVariables(self):
+    def _UpdatePhysicsParametersVariables(self):
+        self._UpdateFluidPhysicsParametersVariables()
+
+    def _UpdateFluidPhysicsParametersVariables(self):
         self._UpdateResistanceVariable()
 
     def _UpdateDesignParameter(self, design_parameter):
@@ -1036,6 +1071,9 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
             node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, distance)
 
     def _ResetPhysicsParameters(self):
+        self._ResetFluidPhysicsParameters()
+
+    def _ResetFluidPhysicsParameters(self):
         self._ResetResistance()
 
     def _InitializeResistance(self):
@@ -1228,9 +1266,9 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
     
     def _ResetFluidTimeStepVariables(self):
         if (self.IsPhysicsStage()):
-            self._GetPhysicsSolver().main_model_part.ProcessInfo[KratosCFD.FLUID_TOP_OPT_NS_STEP] = 0
+            self._GetPhysicsSolver().GetMainModelPart().ProcessInfo[KratosCFD.FLUID_TOP_OPT_NS_STEP] = 0
         elif (self.IsAdjointStage()):
-            self._GetAdjointSolver().main_model_part.ProcessInfo[KratosCFD.FLUID_TOP_OPT_ADJ_NS_STEP] = 0
+            self._GetAdjointSolver().GetMainModelPart().ProcessInfo[KratosCFD.FLUID_TOP_OPT_ADJ_NS_STEP] = 0
 
     def _InitializeAdjointPhysicsSolutionLoopStabilization(self):
         self._InitializeAdjointFluidSolutionLoopStabilization()
@@ -1260,7 +1298,9 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         """
         state =  (abs(self.end_time-self.time) > 1e-9*self.end_time)
         if (self.time_step_counter > self.n_time_steps):
-            raise RuntimeError("Advancing in Solution Loop with: (self.time_step_counter > self.n_time_steps")
+            err_msg = "Advancing in Solution Loop with: (self.time_step_counter (" + str(self.time_step_counter) + ")  > self.n_time_steps (" + str(self.n_time_steps) + ")"
+            err_msg += "\n Moreover: " + (self._GetSolver()._GetTimeSteppingSettings()["time_step"].PrettyPrintJsonString())
+            raise RuntimeError(err_msg)
         return state
 
     def _AdvanceTime(self):
@@ -1322,8 +1362,11 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         if self.IsPhysicsStage():
             self.EvaluateFunctionalsInDeltaTime(self.time_step_counter-1)
         self.StoreTimeStepSolution()
-    
+
     def StoreTimeStepSolution(self):
+        self.StoreTimeStepFluidSolution()
+    
+    def StoreTimeStepFluidSolution(self):
         if self.IsPhysicsStage():
             velocity = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(self._GetLocalMeshNodes(), KratosMultiphysics.VELOCITY, 0, self.dim)).reshape(self.n_nodes, self.dim)
             pressure = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(self._GetLocalMeshNodes(), KratosMultiphysics.PRESSURE, 0))
@@ -1583,7 +1626,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
     def IsUnsteadySolution(self):
         return self._GetSolver()._IsUnsteady()
     
-    def IssteadySolution(self):
+    def IsSteadySolution(self):
         return not self.IsUnsteadySolution()
     
     def _GetComputingModelPart(self):
@@ -1682,11 +1725,14 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
     
     def _PrintFunctionals(self):
         self._PrintTotalFunctional()
-        self._PrintFluidFunctionals()
+        self._PrintPhysicsFunctionals()
 
     def _PrintTotalFunctional(self):
         self.MpiPrint("--|" + self.topology_optimization_stage_str + "| TOTAL FUNCTIONAL  : " +  str(self.functional), min_echo=0)
         self.MpiPrint("--|" + self.topology_optimization_stage_str + "| INITIAL FUNCTIONAL: " +  str(self.initial_functional), min_echo=0)
+
+    def _PrintPhysicsFunctionals(self):
+        self._PrintFluidFunctionals()
         
     def _PrintFluidFunctionals(self):
         if (abs(self.functional_weights[0]) > 1e-10):
@@ -2110,7 +2156,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         self._PreprocessDerivatives() 
 
     def _GetPhysicsMainModelPartsList(self):
-        return [self._GetPhysicsSolver().main_model_part]
+        return [self._GetPhysicsSolver().GetMainModelPart()]
     
     def EvaluateFunctionals(self, print_functional):
         self.EvaluateOptimizationRequiredGradients()
@@ -2154,16 +2200,26 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
             self._GetSolver()._CheckMaterialProperties()
 
     def _UpdateRelevantPhysicsVariables(self):
+        self._UpdateRelevantFluidPhysicsVariables()
+
+    def _UpdateRelevantFluidPhysicsVariables(self):
         pass
 
     def _UpdateRelevantAdjointVariables(self):
+        self._UpdateRelevantFluidAdjointVariables()
+
+    def _UpdateRelevantFluidAdjointVariables(self):
         pass
 
     def EvaluateOptimizationRequiredGradients(self):
-        # evaluate gradients used for functional and constraints evaluation and their derivatives
-        self._EvaluateVelocityGradient()
-        # WSS constraint
+        self._EvaluateDesignParameterGradient()
+        self._EvaluateOptimizationPhysicsRequiredGradients()
+
+    def _EvaluateDesignParameterGradient(self):
         self._ComputeScalarVariableNodalGradient(KratosMultiphysics.DESIGN_PARAMETER, KratosMultiphysics.DESIGN_PARAMETER_GRADIENT)
+
+    def _EvaluateOptimizationPhysicsRequiredGradients(self):
+        self._EvaluateVelocityGradient()
 
     def _EvaluateVelocityGradient(self):
         self._ComputeScalarVariableNodalGradient(KratosMultiphysics.VELOCITY_X, KratosMultiphysics.VELOCITY_X_GRADIENT)
@@ -2447,7 +2503,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
 
     def HandleAdjointSolverAddVariables(self):
         self._GetAdjointSolver().AddVariables()
-        KratosMultiphysics.MergeVariableListsUtility().Merge(self._GetPhysicsSolver().main_model_part, self._GetAdjointSolver().main_model_part)
+        KratosMultiphysics.MergeVariableListsUtility().Merge(self._GetPhysicsSolver().GetMainModelPart(), self._GetAdjointSolver().GetMainModelPart())
 
     def InitializeDataCommunicator(self):
         self.data_communicator = DataCommunicator.GetDefault()
@@ -2665,10 +2721,13 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         return total_value
 
     def UpdatePhysicsParametersVariablesAndSynchronize(self):
-        self.UpdatePhysicsParametersVariables()
+        self._UpdatePhysicsParametersVariables()
         self._SynchronizePhysicsParametersVariables()
         
     def _SynchronizePhysicsParametersVariables(self):
+        self._SynchronizeFluidPhysicsParametersVariables()
+
+    def _SynchronizeFluidPhysicsParametersVariables(self):
         self._GetMainModelPart().GetCommunicator().SynchronizeNonHistoricalVariable(KratosCFD.RESISTANCE)
 
     def _SolveMMA(self, design_parameter, n_opt_variables, n_opt_constraints, min_value, max_value, max_outer_it, kkt_tolerance):

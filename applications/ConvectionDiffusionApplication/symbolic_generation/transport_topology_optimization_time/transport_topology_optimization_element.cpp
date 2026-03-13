@@ -1383,7 +1383,7 @@ void TransportTopologyOptimizationElement< TransportTopologyOptimizationElementD
     constexpr double stab_c2 = 2.0;
     constexpr double stab_c3 = 2.0;
 
-    const BoundedMatrix<double,2,3> vconv_adj = rData.ConvectionVelocity - rData.MeshVelocity;
+    const BoundedMatrix<double,2,3> vconv_adj = rData.ConvectionVelocity_adj - rData.MeshVelocity;
 
     // Assemble LHS contribution
     const double gauss_weight = rData.Weight;
@@ -1475,7 +1475,7 @@ void TransportTopologyOptimizationElement< TransportTopologyOptimizationElementD
     constexpr double stab_c2 = 2.0;
     constexpr double stab_c3 = 2.0;
 
-    const BoundedMatrix<double,2,4> vconv_adj = rData.ConvectionVelocity - rData.MeshVelocity;
+    const BoundedMatrix<double,2,4> vconv_adj = rData.ConvectionVelocity_adj - rData.MeshVelocity;
 
     // Assemble LHS contribution
     const double gauss_weight = rData.Weight;
@@ -1589,7 +1589,7 @@ void TransportTopologyOptimizationElement<TransportTopologyOptimizationElementDa
     constexpr double stab_c2 = 2.0;
     constexpr double stab_c3 = 2.0;
 
-    const BoundedMatrix<double,3,4> vconv_adj = rData.ConvectionVelocity - rData.MeshVelocity;
+    const BoundedMatrix<double,3,4> vconv_adj = rData.ConvectionVelocity_adj - rData.MeshVelocity;
 
     // Assemble LHS contribution
     const double gauss_weight = rData.Weight;
@@ -1717,7 +1717,7 @@ void TransportTopologyOptimizationElement<TransportTopologyOptimizationElementDa
     const array_1d<double,3>& t_adj = rData.Temperature_adj;
     const array_1d<double,3>& tn_adj = rData.Temperature_adj_OldStep1;
     const BoundedMatrix<double,2,3>& vmesh = rData.MeshVelocity;
-    const BoundedMatrix<double,2,3> vconv_adj = rData.ConvectionVelocity - rData.MeshVelocity;
+    const BoundedMatrix<double,2,3> vconv_adj = rData.ConvectionVelocity_adj - rData.MeshVelocity;
     const array_1d<double,3>& source_adj = rData.SourceTerm_adj;
     const array_1d<double,3>& sourcen_adj = rData.SourceTerm_adj_OldStep1;
     const array_1d<double,3>& opt_t = rData.Optimization_Temperature;
@@ -1807,7 +1807,7 @@ void TransportTopologyOptimizationElement<TransportTopologyOptimizationElementDa
     const array_1d<double,4>& t_adj = rData.Temperature_adj;
     const array_1d<double,4>& tn_adj = rData.Temperature_adj_OldStep1;
     const BoundedMatrix<double,2,4>& vmesh = rData.MeshVelocity;
-    const BoundedMatrix<double,2,4> vconv_adj = rData.ConvectionVelocity - rData.MeshVelocity;
+    const BoundedMatrix<double,2,4> vconv_adj = rData.ConvectionVelocity_adj - rData.MeshVelocity;
     const array_1d<double,4>& source_adj = rData.SourceTerm_adj;
     const array_1d<double,4>& sourcen_adj = rData.SourceTerm_adj_OldStep1;
     const array_1d<double,4>& opt_t = rData.Optimization_Temperature;
@@ -1901,7 +1901,7 @@ void TransportTopologyOptimizationElement<TransportTopologyOptimizationElementDa
     const array_1d<double,4>& t_adj = rData.Temperature_adj;
     const array_1d<double,4>& tn_adj = rData.Temperature_adj_OldStep1;
     const BoundedMatrix<double,3,4>& vmesh = rData.MeshVelocity;
-    const BoundedMatrix<double,3,4> vconv_adj = rData.ConvectionVelocity - rData.MeshVelocity;
+    const BoundedMatrix<double,3,4> vconv_adj = rData.ConvectionVelocity_adj - rData.MeshVelocity;
     const array_1d<double,4>& source_adj = rData.SourceTerm_adj;
     const array_1d<double,4>& sourcen_adj = rData.SourceTerm_adj_OldStep1;
     const array_1d<double,4>& opt_t = rData.Optimization_Temperature;

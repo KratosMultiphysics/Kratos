@@ -325,7 +325,19 @@ class FluidTopologyOptimizationSolver(NavierStokesMonolithicSolver):
             return self.GetMainModelPart().GetCommunicator().LocalMesh().Nodes
         else:
             return mp.GetCommunicator().LocalMesh().Nodes
-        
+    
+    def _IsUnsteady(self):
+        return self.is_unsteady
+    
+    def _IsSteady(self):
+        return not self._IsUnsteady()
+
+    def _GetTimeSteppingSettings(self):
+        return self.settings["time_stepping"]
+    
+    def _SetTimeStep(self, time_step):
+        self._GetTimeSteppingSettings()["time_step"].SetDouble(time_step)
+
     def __GetElementAndConditionNames(self):
         base_element_name = self.element_name
         base_condition_name = self.condition_name
@@ -355,12 +367,6 @@ class FluidTopologyOptimizationSolver(NavierStokesMonolithicSolver):
             num_nodes_conditions = domain_size
         condition_name = f"{base_condition_name}{domain_size}D{num_nodes_conditions}N" 
         return element_name, condition_name
-    
-    def _IsUnsteady(self):
-        return self.is_unsteady
-    
-    def _IsSteady(self):
-        return not self._IsUnsteady()
         
 
 

@@ -103,21 +103,25 @@ void FluidTopologyOptimizationElementData<TDim, TNumNodes, TElementIntegratesInT
     // this->FillFromHistoricalNodalData(Pressure_OldStep2,PRESSURE,r_geometry,2);
 
     // ADJOINT NAVIER-STOKES VARIABLES
+    // non historical
     this->FillFromNonHistoricalNodalData(Convection_velocity_adj,CONVECTION_VELOCITY,r_geometry);
     this->FillFromNonHistoricalNodalData(Functional_derivative_velocity,FUNCTIONAL_DERIVATIVE_VELOCITY,r_geometry);
     this->FillFromNonHistoricalNodalData(Functional_derivative_transport_scalar,FUNCTIONAL_DERIVATIVE_TRANSPORT_SCALAR,r_geometry);
-    this->FillFromNonHistoricalNodalData(Functional_derivative_transport_scalar_adj,FUNCTIONAL_DERIVATIVE_TRANSPORT_SCALAR_ADJ,r_geometry);
+    // this->FillFromNonHistoricalNodalData(Functional_derivative_transport_scalar_adj,FUNCTIONAL_DERIVATIVE_TRANSPORT_SCALAR_ADJ,r_geometry);
     
+    // historical
     this->FillFromHistoricalNodalData(Velocity_adj,VELOCITY_ADJ,r_geometry);
     this->FillFromHistoricalNodalData(MeshVelocity_adj,MESH_VELOCITY_ADJ,r_geometry);
     this->FillFromHistoricalNodalData(BodyForce_adj,BODY_FORCE_ADJ,r_geometry);
     this->FillFromHistoricalNodalData(Pressure_adj,PRESSURE_ADJ,r_geometry);
+    this->FillFromHistoricalNodalData(Functional_derivative_transport_scalar_adj,TEMPERATURE_ADJ,r_geometry);
     
-    // TIME DEPENDENT PROBLEMS NOT YET IMPLEMENTED
+    // time dependent
     this->FillFromHistoricalNodalData(Velocity_adj_OldStep1,VELOCITY_ADJ,r_geometry,1);
     this->FillFromHistoricalNodalData(Velocity_adj_OldStep2,VELOCITY_ADJ,r_geometry,2);
     // this->FillFromHistoricalNodalData(Pressure_adj_OldStep1,PRESSURE_ADJ,r_geometry,1);
     // this->FillFromHistoricalNodalData(Pressure_adj_OldStep2,PRESSURE_ADJ,r_geometry,2);
+    
 }
 
 template <size_t TDim, size_t TNumNodes, bool TElementIntegratesInTime>

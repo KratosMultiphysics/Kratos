@@ -92,6 +92,7 @@ public:
     // ADJOINT TRANSPORT VARIABLES
     NodalScalarData Temperature_adj;
     NodalScalarData Temperature_adj_OldStep1;
+    NodalVectorData ConvectionVelocity_adj;
     NodalScalarData SourceTerm_adj;
     NodalScalarData SourceTerm_adj_OldStep1;
     NodalVectorData Functional_derivative_velocity;

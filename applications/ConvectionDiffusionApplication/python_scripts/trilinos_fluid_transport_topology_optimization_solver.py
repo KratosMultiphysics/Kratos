@@ -123,10 +123,11 @@ class TrilinosFluidTransportTopologyOptimizationSolver(PythonSolver):
 
     def ImportModelPart(self, model_parts=None, physics_solver_distributed_model_part_importer=None):
         if (self.IsPhysics()):
+            # FLUID
             self.fluid_solver.ImportModelPart()
+            #TRANSPORT
             # Save the convection diffusion settings
             convection_diffusion_settings = self.transport_solver.main_model_part.ProcessInfo.GetValue(KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS)
-
             # Here the fluid model part is cloned to be transport model part so that the nodes are shared
             transport_element_name, transport_condition_name = self.__GetElementAndConditionNames(physics="transport")
             modeler = KratosMultiphysics.ConnectivityPreserveModeler()
@@ -140,13 +141,24 @@ class TrilinosFluidTransportTopologyOptimizationSolver(PythonSolver):
                 self.transport_solver.distributed_model_part_importer = self.fluid_solver.distributed_model_part_importer
                 self.distributed_model_part_importer = self.fluid_solver.distributed_model_part_importer
         else:
+            # FLUID
             fluid_mp = model_parts[0]
+            modeler = KratosMultiphysics.ConnectivityPreserveModeler()
+            element_name, condition_name = self.__GetElementAndConditionNames(physics="fluid")
+            modeler.GenerateModelPart(fluid_mp, self.fluid_solver.main_model_part, element_name, condition_name)
+            if _CheckIsDistributed():
+                self.comm = KratosMultiphysics.ParallelEnvironment.GetDefaultDataCommunicator()
+                ParallelFillCommunicator = KratosMPI.ParallelFillCommunicator(self.fluid_solver.main_model_part.GetRootModelPart(), self.comm)
+                ParallelFillCommunicator.Execute()
+                self.fluid_solver.distributed_model_part_importer = physics_solver_distributed_model_part_importer
+            # TRANSPORT
             transport_mp = model_parts[1]
             self.fluid_solver.main_model_part = fluid_mp
             self.transport_solver.main_model_part = transport_mp
             if _CheckIsDistributed():
-                self.fluid_solver.distributed_model_part_importer     = physics_solver_distributed_model_part_importer
                 self.transport_solver.distributed_model_part_importer = physics_solver_distributed_model_part_importer
+            # GENERAL
+            if _CheckIsDistributed():
                 self.distributed_model_part_importer = physics_solver_distributed_model_part_importer
 
     def ValidateSettings(self):
@@ -158,6 +170,10 @@ class TrilinosFluidTransportTopologyOptimizationSolver(PythonSolver):
     def PrepareModelPart(self):
         self.fluid_solver.PrepareModelPart()
         self.transport_solver.PrepareModelPart()
+
+    def _SetAnalysisTimeCoefficient(self):
+        self.fluid_solver._SetAnalysisTimeCoefficient()
+        self.transport_solver._SetAnalysisTimeCoefficient()
 
     def AddDofs(self):
         self.fluid_solver.AddDofs()
@@ -219,15 +235,36 @@ class TrilinosFluidTransportTopologyOptimizationSolver(PythonSolver):
 
     def SolveSolutionStep(self):
         if (self.IsPhysics()):
+            self.MpiPrint("--|PHY| --|NS| ---> Top. Opt. solution: Solve Fluid Physics", min_echo=0)
             fluid_is_converged = self.fluid_solver.SolveSolutionStep()
+            self.MpiPrint("--|PHY| --|T| ---> Top. Opt. solution: Solve Transport Physics", min_echo=0)
+            self._SaveVelocityForTransportSolution()
             transport_is_converged = self.transport_solver.SolveSolutionStep()
         elif (self.IsAdjoint()):
+            self.MpiPrint("--|PHY| --|ADJ-T| ---> Top. Opt. solution: Solve Transport Adjoint", min_echo=0)
             transport_is_converged = self.transport_solver.SolveSolutionStep()
+            self.MpiPrint("--|PHY| --|ADJ_NS| ---> Top. Opt. solution: Solve Fluid Adjoint", min_echo=0)
+            self._SaveAdjointTransportScalarForAdjointFluidSolution()
             fluid_is_converged = self.fluid_solver.SolveSolutionStep()
         else:
             KratosMultiphysics.Logger.PrintError("WRONG TOPOLOGY OPTIMIZATION STAGE", "Running 'SolveSolutionStep' during the wrong topopology optimization stage.")
-            
         return (fluid_is_converged and transport_is_converged)
+    
+    def _SaveVelocityForTransportSolution(self):
+        KratosMultiphysics.VariableUtils().CopyModelPartNodalVarToNonHistoricalVar(
+                KratosMultiphysics.VELOCITY,
+                KratosCD.CONVECTION_VELOCITY,
+                self._GetFluidSolver().GetMainModelPart(),
+                self._GetTransportSolver().GetMainModelPart(),
+                0)
+        
+    def _SaveAdjointTransportScalarForAdjointFluidSolution(self):
+        KratosMultiphysics.VariableUtils().CopyModelPartNodalVarToNonHistoricalVar(
+                KratosMultiphysics.TEMPERATURE_ADJ,
+                KratosMultiphysics.FUNCTIONAL_DERIVATIVE_TRANSPORT_SCALAR_ADJ,
+                self._GetTransportSolver().GetMainModelPart(),
+                self._GetFluidSolver().GetMainModelPart(),
+                0)
 
     def FinalizeSolutionStep(self):
         self.fluid_solver.FinalizeSolutionStep()
@@ -266,6 +303,9 @@ class TrilinosFluidTransportTopologyOptimizationSolver(PythonSolver):
             num_nodes_conditions = domain_size
         condition_name = f"{base_condition_name}{domain_size}D{num_nodes_conditions}N" 
         return element_name, condition_name
+    
+    def _GetLocalMeshNodes(self):
+        return self._GetFluidSolver()._GetLocalMeshNodes()
     
     def _GetFluidSolver(self):
         return self.fluid_solver
@@ -318,6 +358,22 @@ class TrilinosFluidTransportTopologyOptimizationSolver(PythonSolver):
     def _UpdateTransportSourceVariable(self, transport_source):
         self._GetTransportSolver()._UpdateTransportSourceVariable(transport_source)
 
+    def _UpdateConvectionVelocityVariable(self, convection_velocity):
+        self._GetFluidSolver()._UpdateConvectionVelocityVariable(convection_velocity)
+        self._GetTransportSolver()._UpdateConvectionVelocityVariable(convection_velocity)
+
+    def _UpdateFunctionalDerivativeVelocityVariable(self, convection_velocity):
+        self._GetFluidSolver()._UpdateFunctionalDerivativeVelocityVariable(convection_velocity)
+        self._GetTransportSolver()._UpdateFunctionalDerivativeVelocityVariable(convection_velocity)
+
+    def _UpdateFunctionalDerivativeTransportScalarVariable(self, transport_scalar):
+        self._GetTransportSolver()._UpdateFunctionalDerivativeTransportScalarVariable(transport_scalar)
+
+    def _UpdateFunctionalDerivativeTransportScalarAdjointVariable(self, transport_scalar_adj):
+        for node in self._GetLocalMeshNodes():
+            nodal_functional_derivative_transport_scalar_adj = transport_scalar_adj[self.nodes_ids_global_to_local_partition_dictionary[node.Id]]
+            node.SetValue(KratosMultiphysics.FUNCTIONAL_DERIVATIVE_TRANSPORT_SCALAR_ADJ, nodal_functional_derivative_transport_scalar_adj)
+
     def SetNodesIdsGlobalToLocalDictionary(self, dict):
         self.nodes_ids_global_to_local_partition_dictionary = dict
         self.fluid_solver.SetNodesIdsGlobalToLocalDictionary(dict)
@@ -325,5 +381,56 @@ class TrilinosFluidTransportTopologyOptimizationSolver(PythonSolver):
 
     def IsNodesIdsGlobalToLocalDictionaryEmpty(self):
         return self.nodes_ids_global_to_local_partition_dictionary == {}
+    
+    def _IsUnsteady(self):
+        return self.fluid_solver._IsUnsteady()
+    
+    def _IsSteady(self):
+        return not self._IsUnsteady()
+    
+    def _GetTimeSteppingSettings(self):
+        return self.fluid_solver._GetTimeSteppingSettings()
+
+    def _SetStartingTime(self, start_time):
+        self.fluid_solver.GetComputingModelPart().ProcessInfo.SetValue(KratosMultiphysics.TIME, start_time)
+        self.transport_solver.GetComputingModelPart().ProcessInfo.SetValue(KratosMultiphysics.TIME, start_time)
+
+    def _SetTimeStep(self, time_step):
+        self.fluid_solver._GetTimeSteppingSettings()["time_step"].SetDouble(time_step)
+        self.transport_solver._GetTimeSteppingSettings()["time_step"].SetDouble(time_step)
+
+    def MpiCheck(self, text="before solving step", rank=-1):
+            if (rank == -1): # print for all ranks
+                self.MpiPrint("--|" + str(self.data_communicator.Rank()) + "| Checkpoint reached: " + text)
+            elif (self.data_communicator.Rank() == rank): # print only for a specific rank
+                self.MpiPrint("--|" + str(rank) + "| Checkpoint reached: " + text)
+
+    def MpiBarrier(self):
+        self.data_communicator.Barrier()
+
+    def MpiPrint(self, text_to_print="", rank=0, set_barrier=False, min_echo=1):
+        if self.settings["echo_level"].GetInt() >= min_echo:
+            if (not _CheckIsDistributed()):
+                print(text_to_print)
+            else:
+                if (set_barrier):
+                    self.MpiBarrier()
+                if (self.MpiRunOnlyRank(rank)):
+                    print(text_to_print)
+                if (set_barrier):
+                    self.MpiBarrier()    
+        else:
+            pass 
+
+    def MpiRunOnlyRank(self, rank=0):
+        """
+        Returns: True if the simulation is not distributed or if it is running on a specified data_communicator rank
+        """
+        if (not _CheckIsDistributed()):
+            return True
+        elif (self.data_communicator.Rank() == rank):
+            return True
+        else:
+            return False
 
     

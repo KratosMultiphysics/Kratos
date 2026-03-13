@@ -458,6 +458,12 @@ class TrilinosFluidTopologyOptimizationSolver(TrilinosNavierStokesMonolithicSolv
     
     def _IsSteady(self):
         return not self._IsUnsteady()
+
+    def _GetTimeSteppingSettings(self):
+        return self.settings["time_stepping"]
+
+    def _SetTimeStep(self, time_step):
+        self._GetTimeSteppingSettings()["time_step"].SetDouble(time_step)
         
 
 

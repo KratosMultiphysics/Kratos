@@ -27,9 +27,6 @@ void TransportTopologyOptimizationElementData<TDim, TNumNodes, TElementIntegrate
     this->FillFromNonHistoricalNodalData(Conductivity,CONDUCTIVITY,r_geometry); 
     this->FillFromNonHistoricalNodalData(Decay,DECAY,r_geometry); 
     this->FillFromNonHistoricalNodalData(ConvectionCoefficient,CONVECTION_COEFFICIENT,r_geometry); 
-    this->FillFromNonHistoricalNodalData(ConvectionVelocity,CONVECTION_VELOCITY,r_geometry);
-    this->FillFromNonHistoricalNodalData(Functional_derivative_velocity,FUNCTIONAL_DERIVATIVE_VELOCITY,r_geometry);
-    this->FillFromNonHistoricalNodalData(Functional_derivative_transport_scalar,FUNCTIONAL_DERIVATIVE_TRANSPORT_SCALAR,r_geometry);
 
     this->FillFromProcessInfo(DeltaTime,DELTA_TIME,rProcessInfo);
     // Calculate element characteristic size
@@ -54,19 +51,31 @@ void TransportTopologyOptimizationElementData<TDim, TNumNodes, TElementIntegrate
     this->FillFromProcessInfo(Functional_Weights,FUNCTIONAL_WEIGHTS,rProcessInfo);
     this->FillFromHistoricalNodalData(Optimization_Temperature,OPTIMIZATION_TEMPERATURE,r_geometry);
 
-    // NAVIER-STOKES VARIABLES
+    // TRANSPORT VARIABLES
+    // non historical updates
+    this->FillFromHistoricalNodalData(ConvectionVelocity,VELOCITY,r_geometry);
+
     this->FillFromHistoricalNodalData(Temperature,TEMPERATURE,r_geometry);
     // this->FillFromHistoricalNodalData(ConvectiveVelocity,CONVECTION_VELOCITY,r_geometry);
     this->FillFromHistoricalNodalData(MeshVelocity,MESH_VELOCITY,r_geometry);
     this->FillFromHistoricalNodalData(SourceTerm, HEAT_FLUX,r_geometry);
-    this->FillFromHistoricalNodalData(Temperature_OldStep1,TEMPERATURE,r_geometry,1);
-    this->FillFromHistoricalNodalData(SourceTerm_OldStep1,HEAT_FLUX,r_geometry,1);
 
-    // ADJOINT NAVIER-STOKES VARIABLES
+    //time dependent
+    this->FillFromHistoricalNodalData(Temperature_OldStep1,TEMPERATURE,r_geometry,1);
+    this->FillFromHistoricalNodalData(SourceTerm_OldStep1,HEAT_FLUX,r_geometry,1);    
+
+    // ADJOINT TRANSPORT VARIABLES
     this->FillFromHistoricalNodalData(Temperature_adj,TEMPERATURE_ADJ,r_geometry);
     this->FillFromHistoricalNodalData(SourceTerm_adj, HEAT_FLUX_ADJ,r_geometry);
+
+    // time dependent
     this->FillFromHistoricalNodalData(Temperature_adj_OldStep1,TEMPERATURE_ADJ,r_geometry,1);
     this->FillFromHistoricalNodalData(SourceTerm_adj_OldStep1, HEAT_FLUX_ADJ,r_geometry,1);
+    
+    // non historical
+    this->FillFromNonHistoricalNodalData(ConvectionVelocity_adj,CONVECTION_VELOCITY,r_geometry);
+    this->FillFromNonHistoricalNodalData(Functional_derivative_velocity,FUNCTIONAL_DERIVATIVE_VELOCITY,r_geometry);
+    this->FillFromNonHistoricalNodalData(Functional_derivative_transport_scalar,FUNCTIONAL_DERIVATIVE_TRANSPORT_SCALAR,r_geometry);
 }
 
 template <size_t TDim, size_t TNumNodes, bool TElementIntegratesInTime>

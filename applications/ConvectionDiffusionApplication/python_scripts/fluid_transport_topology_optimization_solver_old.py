@@ -99,11 +99,10 @@ class FluidTransportTopologyOptimizationSolver(PythonSolver):
 
     def ImportModelPart(self, model_parts=None, physics_solver_distributed_model_part_importer=None):
         if (self.IsPhysics()):
-            # FLUID
             self.fluid_solver.ImportModelPart()
-            # TRANSPORT
             # Save the convection diffusion settings
             convection_diffusion_settings = self.transport_solver.main_model_part.ProcessInfo.GetValue(KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS)
+
             # Here the fluid model part is cloned to be transport model part so that the nodes are shared
             transport_element_name, transport_condition_name = self.__GetElementAndConditionNames(physics="transport")
             modeler = KratosMultiphysics.ConnectivityPreserveModeler()
@@ -111,28 +110,22 @@ class FluidTransportTopologyOptimizationSolver(PythonSolver):
             # Set the saved convection diffusion settings to the new transport model part
             self.transport_solver.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS, convection_diffusion_settings)
         else:
-            # FLUID
             fluid_mp = model_parts[0]
-            modeler = KratosMultiphysics.ConnectivityPreserveModeler()
-            element_name, condition_name = self.__GetElementAndConditionNames(physics="fluid")
-            modeler.GenerateModelPart(fluid_mp, self.fluid_solver.main_model_part, element_name, condition_name)
-            # TRANSPORT
             transport_mp = model_parts[1]
+            self.fluid_solver.main_model_part = fluid_mp
             self.transport_solver.main_model_part = transport_mp
 
     def ValidateSettings(self):
         """This function validates the settings of the solver
         """
         default_settings = self.GetDefaultParameters()
+        # print(default_settings.PrettyPrintJsonString())
+        # print(self.settings.PrettyPrintJsonString())
         self.settings.ValidateAndAssignDefaults(default_settings)
     
     def PrepareModelPart(self):
         self.fluid_solver.PrepareModelPart()
         self.transport_solver.PrepareModelPart()
-
-    def _SetAnalysisTimeCoefficient(self):
-        self.fluid_solver._SetAnalysisTimeCoefficient()
-        self.transport_solver._SetAnalysisTimeCoefficient()
 
     def AddDofs(self):
         self.fluid_solver.AddDofs()
@@ -194,38 +187,15 @@ class FluidTransportTopologyOptimizationSolver(PythonSolver):
 
     def SolveSolutionStep(self):
         if (self.IsPhysics()):
-            KratosMultiphysics.Logger.PrintInfo("--|PHY|--|NS| ---> Top. Opt. solution: Solve Fluid Physics")
             fluid_is_converged = self.fluid_solver.SolveSolutionStep()
-            KratosMultiphysics.Logger.PrintInfo("--|PHY|--|T| ---> Top. Opt. solution: Solve Transport Physics")
-            self._SaveVelocityForTransportSolution()
             transport_is_converged = self.transport_solver.SolveSolutionStep()
         elif (self.IsAdjoint()):
-            KratosMultiphysics.Logger.PrintInfo("--|PHY|--|ADJ-T| ---> Top. Opt. solution: Solve Transport Adjoint")
             transport_is_converged = self.transport_solver.SolveSolutionStep()
-            KratosMultiphysics.Logger.PrintInfo("--|PHY|--|ADJ_NS| ---> Top. Opt. solution: Solve Fluid Adjoint")
-            self._SaveAdjointTransportScalarForAdjointFluidSolution()
             fluid_is_converged = self.fluid_solver.SolveSolutionStep()
         else:
             KratosMultiphysics.Logger.PrintError("WRONG TOPOLOGY OPTIMIZATION STAGE", "Running 'SolveSolutionStep' during the wrong topopology optimization stage.")
+            
         return (fluid_is_converged and transport_is_converged)
-
-    def _SaveVelocityForTransportSolution(self):
-        # KratosMultiphysics.VariableUtils().CopyModelPartNodalVarToNonHistoricalVar(
-        #         KratosMultiphysics.VELOCITY,
-        #         KratosCD.CONVECTION_VELOCITY,
-        #         self._GetFluidSolver().GetMainModelPart(),
-        #         self._GetTransportSolver().GetMainModelPart(),
-        #         0)
-        pass
-        
-    def _SaveAdjointTransportScalarForAdjointFluidSolution(self):
-        # KratosMultiphysics.VariableUtils().CopyModelPartNodalVarToNonHistoricalVar(
-        #         KratosMultiphysics.TEMPERATURE_ADJ,
-        #         KratosMultiphysics.FUNCTIONAL_DERIVATIVE_TRANSPORT_SCALAR_ADJ,
-        #         self._GetTransportSolver().GetMainModelPart(),
-        #         self._GetFluidSolver().GetMainModelPart(),
-        #         0)
-        pass
 
     def FinalizeSolutionStep(self):
         self.fluid_solver.FinalizeSolutionStep()
@@ -264,9 +234,6 @@ class FluidTransportTopologyOptimizationSolver(PythonSolver):
             num_nodes_conditions = domain_size
         condition_name = f"{base_condition_name}{domain_size}D{num_nodes_conditions}N" 
         return element_name, condition_name
-    
-    def _GetLocalMeshNodes(self):
-        return self._GetFluidSolver()._GetLocalMeshNodes()
     
     def _GetFluidSolver(self):
         return self.fluid_solver
@@ -319,22 +286,6 @@ class FluidTransportTopologyOptimizationSolver(PythonSolver):
     def _UpdateTransportSourceVariable(self, transport_source):
         self._GetTransportSolver()._UpdateTransportSourceVariable(transport_source)
 
-    def _UpdateConvectionVelocityVariable(self, convection_velocity):
-        self._GetFluidSolver()._UpdateConvectionVelocityVariable(convection_velocity)
-        self._GetTransportSolver()._UpdateConvectionVelocityVariable(convection_velocity)
-
-    def _UpdateFunctionalDerivativeVelocityVariable(self, convection_velocity):
-        self._GetFluidSolver()._UpdateFunctionalDerivativeVelocityVariable(convection_velocity)
-        self._GetTransportSolver()._UpdateFunctionalDerivativeVelocityVariable(convection_velocity)
-
-    def _UpdateFunctionalDerivativeTransportScalarVariable(self, transport_Scalar):
-        self._GetTransportSolver()._UpdateFunctionalDerivativeTransportScalarVariable(transport_Scalar)
-
-    # def _UpdateFunctionalDerivativeTransportScalarAdjointVariable(self, transport_scalar_adj):
-    #     for node in self._GetLocalMeshNodes():
-    #         nodal_functional_derivative_transport_scalar_adj = transport_scalar_adj[self.nodes_ids_global_to_local_partition_dictionary[node.Id]]
-    #         node.SetValue(KratosMultiphysics.FUNCTIONAL_DERIVATIVE_TRANSPORT_SCALAR_ADJ, nodal_functional_derivative_transport_scalar_adj)
-
     def SetNodesIdsGlobalToLocalDictionary(self, dict):
         self.nodes_ids_global_to_local_partition_dictionary = dict
         self.fluid_solver.SetNodesIdsGlobalToLocalDictionary(dict)
@@ -342,22 +293,5 @@ class FluidTransportTopologyOptimizationSolver(PythonSolver):
 
     def IsNodesIdsGlobalToLocalDictionaryEmpty(self):
         return self.nodes_ids_global_to_local_partition_dictionary == {}
-    
-    def _IsUnsteady(self):
-        return self.fluid_solver._IsUnsteady()
-    
-    def _IsSteady(self):
-        return not self._IsUnsteady()
-    
-    def _GetTimeSteppingSettings(self):
-        return self.fluid_solver._GetTimeSteppingSettings()
-
-    def _SetStartingTime(self, start_time):
-        self.fluid_solver.GetComputingModelPart().ProcessInfo.SetValue(KratosMultiphysics.TIME, start_time)
-        self.transport_solver.GetComputingModelPart().ProcessInfo.SetValue(KratosMultiphysics.TIME, start_time)
-
-    def _SetTimeStep(self, time_step):
-        self.fluid_solver._GetTimeSteppingSettings()["time_step"].SetDouble(time_step)
-        self.transport_solver._GetTimeSteppingSettings()["time_step"].SetDouble(time_step)
 
     

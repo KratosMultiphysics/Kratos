@@ -36,9 +36,9 @@ import KratosMultiphysics.FluidDynamicsApplication
 
 def CreateSolver(model, custom_settings, isAdjointSolver = False):
     solver_settings = custom_settings["solver_settings"]
-    return TrilinosTransportTopologyOptimizationSolverTime(model, solver_settings, is_adjoint_solver=isAdjointSolver)
+    return TrilinosTransportTopologyOptimizationSolver(model, solver_settings, is_adjoint_solver=isAdjointSolver)
 
-class TrilinosTransportTopologyOptimizationSolverTime(ConvectionDiffusionTransientSolver):
+class TrilinosTransportTopologyOptimizationSolver(ConvectionDiffusionTransientSolver):
 
     @classmethod
     def GetDefaultParameters(cls):
@@ -62,7 +62,6 @@ class TrilinosTransportTopologyOptimizationSolverTime(ConvectionDiffusionTransie
         self._InitializeModelPartImporter()
         self.InitializeDataCommunicator()
         super().__init__(model,custom_settings)
-        self._SetTimeIntegrationMethodBufferSize()
         self._DefineAdjointSolver(is_adjoint_solver)
         self._DefineElementsAndConditions()
         # self._InitializePhysicsParameters()
@@ -164,25 +163,9 @@ class TrilinosTransportTopologyOptimizationSolverTime(ConvectionDiffusionTransie
             self.MpiPrint("--|--> Convection Coefficient: " + str(node.GetValue(KratosMultiphysics.CONVECTION_COEFFICIENT)))
             break
     
-    def _SetTimeIntegrationMethodBufferSize(self):
-        self.is_unsteady = True
-        self.time_integration_method = self.settings["time_integration_method"].GetString()
-        if self.time_integration_method == "implicit":
-            self.min_buffer_size = 3
-        elif self.time_integration_method == "steady":
-            self.settings["time_integration_method"].SetString("implicit")
-            self.is_unsteady = False
-            self.min_buffer_size = 3
-        else:
-            KratosMultiphysics.Logger.PrintWarning("[WARNING] " + self.__class__.__name__ + " time_integration_method type: \' " + self.time_integration_method + " \' is not compatible with the current implementation. Its value has been reset to default value: \' implicit \'")
-            self.settings["time_integration_method"].SetString("implicit")
-            self.min_buffer_size = 3
-
-    def _SetAnalysisTimeCoefficient(self):
-        if self._IsUnsteady():
-            self.main_model_part.ProcessInfo[KratosMultiphysics.TOP_OPT_TIME_COEFFICIENT] = 1.0
-        else:
-            self.main_model_part.ProcessInfo[KratosMultiphysics.TOP_OPT_TIME_COEFFICIENT] = 0.0
+    def _SetTimeSchemeBufferSize(self):
+        self.settings["time_scheme"].SetString("bdf2")
+        self.min_buffer_size = 1
 
     def PrepareModelPart(self):
         KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosMultiphysics.CONDUCTIVITY, 0.0, self._GetLocalMeshNodes())
@@ -238,7 +221,7 @@ class TrilinosTransportTopologyOptimizationSolverTime(ConvectionDiffusionTransie
             for node in self._GetLocalMeshNodes():
                 node.SetValue(KratosMultiphysics.CONVECTION_COEFFICIENT, convection_coefficient[self.nodes_ids_global_to_local_partition_dictionary[node.Id]])
         else:
-            raise TypeError(f"Unsupported input type in '_UpdateConvectionCoefficientVariable' : {type(convection_coefficient)}")
+            raise TypeError(f"Unsupported input type in '_UpdateResistanceVariable' : {type(convection_coefficient)}")
         
     def _UpdateTransportSourceVariable(self, transport_source):
         self.is_transport_source_updated = True
@@ -249,30 +232,22 @@ class TrilinosTransportTopologyOptimizationSolverTime(ConvectionDiffusionTransie
             for node in self._GetLocalMeshNodes():
                 node.SetSolutionStepValue(KratosMultiphysics.HEAT_FLUX, transport_source[self.nodes_ids_global_to_local_partition_dictionary[node.Id]])
         else:
-            raise TypeError(f"Unsupported input type in '_UpdateTransportSourceVariable' : {type(transport_source)}")
-        
-    def _UpdateConvectionVelocityVariable(self, convection_velocity):
-        dim = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
-        for node in self._GetLocalMeshNodes():
-            nodal_convection_velocity = convection_velocity[self.nodes_ids_global_to_local_partition_dictionary[node.Id]]
-            node.SetValue(KratosCD.CONVECTION_VELOCITY_X, nodal_convection_velocity[0])
-            node.SetValue(KratosCD.CONVECTION_VELOCITY_Y, nodal_convection_velocity[1])
-            if (dim == 3):
-                node.SetValue(KratosCD.CONVECTION_VELOCITY_Z, nodal_convection_velocity[2])
+            raise TypeError(f"Unsupported input type in '_UpdateDecayVariable' : {type(transport_source)}")
 
-    def _UpdateFunctionalDerivativeVelocityVariable(self, convection_velocity):
-        dim = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+    def _SetConvectiveVelocity(self, is_constant_velocity, vel):
+        self.is_constant_velocity = is_constant_velocity
+        self.constant_velocity = vel
+        if (self.is_constant_velocity):
+            self._SetConstantConvectiveVelocity(self.constant_velocity)
+        else:
+            self._SetNonConstantConvectiveVelocity()
+    
+    def _SetConstantConvectiveVelocity(self, velocity):
         for node in self._GetLocalMeshNodes():
-            nodal_functional_derivative_velocity = convection_velocity[self.nodes_ids_global_to_local_partition_dictionary[node.Id]]
-            node.SetValue(KratosMultiphysics.FUNCTIONAL_DERIVATIVE_VELOCITY_X, nodal_functional_derivative_velocity[0])
-            node.SetValue(KratosMultiphysics.FUNCTIONAL_DERIVATIVE_VELOCITY_Y, nodal_functional_derivative_velocity[1])
-            if (dim == 3):
-                node.SetValue(KratosMultiphysics.FUNCTIONAL_DERIVATIVE_VELOCITY_Z, nodal_functional_derivative_velocity[2])
+            node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, 0, KratosMultiphysics.Vector(velocity))
 
-    def _UpdateFunctionalDerivativeTransportScalarVariable(self, transport_Scalar):
-        for node in self._GetLocalMeshNodes():
-            nodal_functional_derivative_transport_Scalar = transport_Scalar[self.nodes_ids_global_to_local_partition_dictionary[node.Id]]
-            node.SetValue(KratosMultiphysics.FUNCTIONAL_DERIVATIVE_TRANSPORT_SCALAR, nodal_functional_derivative_transport_Scalar)
+    def _SetNonConstantConvectiveVelocity(self):
+        pass
     
     def AddDofs(self):
         dofs_and_reactions_to_add = []
@@ -287,12 +262,9 @@ class TrilinosTransportTopologyOptimizationSolverTime(ConvectionDiffusionTransie
 
     def _CreateScheme(self):
         # Variable defining the temporal scheme (0: Forward Euler, 1: Backward Euler, 0.5: Crank-Nicolson)
-        if self._IsUnsteady():
-            self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME_INTEGRATION_THETA] = self.settings["transient_parameters"]["theta"].GetDouble()
-            self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.DYNAMIC_TAU] = self.settings["transient_parameters"]["dynamic_tau"].GetDouble()
-        else:
-            self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME_INTEGRATION_THETA] = 1.0
-            self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.DYNAMIC_TAU] = 0.0
+        self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME_INTEGRATION_THETA] = self.settings["transient_parameters"]["theta"].GetDouble()
+        self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.DYNAMIC_TAU] = self.settings["transient_parameters"]["dynamic_tau"].GetDouble()
+
         # As the time integration is managed by the element, we set a "fake" scheme to perform the solution update
         if not _CheckIsDistributed():
             transport_top_opt_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
@@ -318,17 +290,19 @@ class TrilinosTransportTopologyOptimizationSolverTime(ConvectionDiffusionTransie
         return is_converged
     
     def AdvanceInTime(self, current_time):
-        dt = self.ComputeDeltaTime()
-        new_time = current_time + dt
-        self.main_model_part.CloneTimeStep(new_time)
-        if (not self.IsAdjoint()): # NS
+        if (not self.IsAdjoint()): # T
             self.main_model_part.ProcessInfo[KratosCD.TRANSPORT_TOP_OPT_T_STEP] += 1
-        else: 
+            new_time =  super().AdvanceInTime(current_time)
+        else: #ADJ
+            self.MpiPrint("[WARNING] The Adjoint problem should go backward buth this has not yet been implemented. Since for now it is steady, we advance in time even if it is unnecessary.")
+            dt = self.ComputeDeltaTime()
+            # new_time = current_time - dt
+            new_time = current_time + dt
+            self.main_model_part.CloneTimeStep(new_time)
+            # self.MpiPrint("\nASK HOW TO HANDLE THIS!!!\n")
+            # self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] += 1
             self.main_model_part.ProcessInfo[KratosCD.TRANSPORT_TOP_OPT_ADJ_T_STEP] += 1
         return new_time
-    
-    def _SetStartingTime(self, start_time):
-        self.GetComputingModelPart().ProcessInfo.SetValue(KratosMultiphysics.TIME, start_time)
     
     def IsAdjoint(self):
         return self.is_adjoint
@@ -422,12 +396,6 @@ class TrilinosTransportTopologyOptimizationSolverTime(ConvectionDiffusionTransie
             return self.GetMainModelPart().GetCommunicator().LocalMesh().Nodes
         else:
             return mp.GetCommunicator().LocalMesh().Nodes
-        
-    def _IsUnsteady(self):
-        return self.is_unsteady
-    
-    def _IsSteady(self):
-        return not self._IsUnsteady()
 
                 
             
