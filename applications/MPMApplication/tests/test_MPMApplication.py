@@ -70,6 +70,7 @@ from test_material_point_erase_process      import TestMaterialPointEraseProcess
 from test_search_material_point_element     import TestSearchMaterialPointElement     as TTestSearchMPElement
 from test_search_material_point_condition   import TestSearchMaterialPointCondition   as TTestSearchMPCondition
 from test_mpm_vtk_output_process            import TestMPMVtkOutputProcess            as TTestMPMVtkOutputProcess
+from test_mpm_write_energy_output_process   import TestMPMWriteEnergyOutputProcess    as TTestMPMWriteEnergyOutputProcess
 from test_static_loading_conditions_point   import TestStaticLoadingConditionsPoint   as TTestStaticLoadingConditionsPoint
 from test_static_loading_conditions_line    import TestStaticLoadingConditionsLine    as TTestStaticLoadingConditionsLine
 from test_static_loading_conditions_surface import TestStaticLoadingConditionsSurface as TTestStaticLoadingConditionsSurface
@@ -103,6 +104,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestSearchMPElement]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestSearchMPCondition]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestMPMVtkOutputProcess]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestMPMWriteEnergyOutputProcess]))
 
     # TODO: Look further into these three tests as they are still failing for AMatrix
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestStaticLoadingConditionsPoint]))    # FIXME:
