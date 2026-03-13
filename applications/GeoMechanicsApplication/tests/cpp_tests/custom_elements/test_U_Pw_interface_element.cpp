@@ -1685,8 +1685,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_6Plus6NodedElement_Returns
     AssertPBlockVectorIsNear(actual_right_hand_side, expected_p_block_vector, number_of_u_dofs, number_of_pw_dofs);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(UPwInterfaceElement_CheckDoesNotThrowWhenElementIsNotInitialized,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(UPwInterfaceElement_CheckThrowsWhenElementIsNotInitialized, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     constexpr auto normal_stiffness = 20.0;
     constexpr auto shear_stiffness  = 10.0;
@@ -1698,7 +1697,9 @@ KRATOS_TEST_CASE_IN_SUITE(UPwInterfaceElement_CheckDoesNotThrowWhenElementIsNotI
         model, p_properties, IsDiffOrderElement::No, {CalculationContribution::Stiffness});
 
     const auto dummy_process_info = ProcessInfo{};
-    KRATOS_EXPECT_EQ(element.Check(dummy_process_info), 0);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        element.Check(dummy_process_info),
+        "Number of integration points (3) and constitutive laws (0) do not match.\n")
 
     element.Initialize(dummy_process_info);
 
