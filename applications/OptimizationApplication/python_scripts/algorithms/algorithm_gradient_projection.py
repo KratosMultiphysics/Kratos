@@ -1,5 +1,5 @@
+import numpy
 import KratosMultiphysics as Kratos
-import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.algorithms.standardized_objective import StandardizedObjective
 from KratosMultiphysics.OptimizationApplication.controls.master_control import MasterControl
@@ -11,8 +11,6 @@ from KratosMultiphysics.LinearSolversApplication.dense_linear_solver_factory imp
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import CallOnAll
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import time_decorator
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import OptimizationAlgorithmTimeLogger
-from KratosMultiphysics.OptimizationApplication.utilities.list_collective_expression_utilities import CollectiveListCollectiveProduct
-from KratosMultiphysics.OptimizationApplication.utilities.list_collective_expression_utilities import CollectiveListVectorProduct
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem_utilities import OutputGradientFields
 from KratosMultiphysics.OptimizationApplication.convergence_criteria.convergence_criterion import ConvergenceCriterion
 from KratosMultiphysics.OptimizationApplication.convergence_criteria.constraint_conv_criterion import ConstraintConvCriterion
@@ -119,12 +117,16 @@ class AlgorithmGradientProjection(Algorithm):
         self._convergence_criteria.Finalize()
 
     @time_decorator()
-    def ComputeSearchDirection(self, obj_grad: KratosOA.CollectiveExpression, constr_grad: 'list[KratosOA.CollectiveExpression]') -> KratosOA.CollectiveExpression:
+    def ComputeSearchDirection(self, obj_grad: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor, constr_grad: 'list[Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor]') -> Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor:
         active_constraints_list = [self._constraints_list[i] for i in range(len(self._constraints_list)) if self.__constr_value[i] >= 0.0]
         number_of_active_constraints = len(active_constraints_list)
+
+        search_direction = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(obj_grad, perform_collect_data_recursively=False, perform_store_data_recursively=False)
+        correction = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(obj_grad, perform_collect_data_recursively=False, perform_store_data_recursively=False)
+
         if not number_of_active_constraints:
-            search_direction = obj_grad * -1.0
-            correction = obj_grad * 0.0
+            search_direction.data[:] *= -1.0
+            correction.data[:] = 0.0
         else:
             constraint_violations = Kratos.Vector(number_of_active_constraints)
             for i, active_constraint in enumerate(active_constraints_list):
@@ -134,7 +136,7 @@ class AlgorithmGradientProjection(Algorithm):
             ntn = Kratos.Matrix(number_of_active_constraints, number_of_active_constraints)
             for i in range(number_of_active_constraints):
                 for j in range(i, number_of_active_constraints):
-                    ntn[i, j] = KratosOA.ExpressionUtils.InnerProduct(constr_grad[i], constr_grad[j])
+                    ntn[i, j] = numpy.dot(constr_grad[i].data.ravel(), constr_grad[j].data.ravel())
                     ntn[j, i] = ntn[i, j]
 
             # get the inverse of ntn
@@ -148,25 +150,33 @@ class AlgorithmGradientProjection(Algorithm):
             # solve for inverse of ntn
             self.linear_solver.Solve(ntn, ntn_inverse, identity_matrix)
 
-            search_direction = - (obj_grad - CollectiveListVectorProduct(constr_grad, ntn_inverse * CollectiveListCollectiveProduct(constr_grad, obj_grad)))
-            correction = - CollectiveListVectorProduct(constr_grad, ntn_inverse * constraint_violations)
-        correction_norm = KratosOA.ExpressionUtils.NormInf(correction)
+            search_direction.data[:] = - (obj_grad.data[:] - self._CollectiveListVectorProduct(constr_grad, ntn_inverse * self._CollectiveListCollectiveProduct(constr_grad, obj_grad)).data)
+            correction.data[:] = - self._CollectiveListVectorProduct(constr_grad, ntn_inverse * constraint_violations).data
+
+        correction_norm = numpy.linalg.norm(correction.data.ravel())
         if correction_norm > self.correction_size:
-            correction *= self.correction_size / correction_norm
-        self.algorithm_data.GetBufferedData()["search_direction"] = search_direction.Clone()
-        self.algorithm_data.GetBufferedData()["correction"] = correction.Clone()
+            correction.data[:] *= self.correction_size / correction_norm
+
+        search_direction.StoreData()
+        correction.StoreData()
+
+        self.algorithm_data.GetBufferedData()["search_direction"] = search_direction
+        self.algorithm_data.GetBufferedData()["correction"] = correction
 
     @time_decorator()
-    def ComputeControlUpdate(self, alpha: float) -> KratosOA.CollectiveExpression:
-        search_direction = self.algorithm_data.GetBufferedData()["search_direction"]
-        update = KratosOA.ExpressionUtils.Scale(search_direction, alpha) + self.algorithm_data.GetBufferedData()["correction"]
-        self.algorithm_data.GetBufferedData()["control_field_update"] = update.Clone()
+    def ComputeControlUpdate(self, alpha: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor) -> Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor:
+        search_direction: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor = self.algorithm_data.GetBufferedData()["search_direction"]
+        update = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(search_direction, perform_collect_data_recursively=False, perform_store_data_recursively=False)
+        update.data[:] = search_direction.data * alpha.data + self.algorithm_data.GetBufferedData()["correction"].data
+        Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(update, perform_store_data_recursively=False, copy=False).StoreData()
+        self.algorithm_data.GetBufferedData()["control_field_update"] = update
         return update
 
     @time_decorator()
-    def UpdateControl(self) -> KratosOA.CollectiveExpression:
-        update = self.algorithm_data.GetBufferedData()["control_field_update"]
-        self._control_field = KratosOA.ExpressionUtils.Collapse(self._control_field + update)
+    def UpdateControl(self) -> Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor:
+        update: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor = self.algorithm_data.GetBufferedData()["control_field_update"]
+        self._control_field.data[:] += update.data
+        Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(self._control_field, perform_store_data_recursively=False, copy=False).StoreData()
 
     @time_decorator()
     def GetCurrentObjValue(self) -> float:
@@ -177,8 +187,8 @@ class AlgorithmGradientProjection(Algorithm):
         return self._control_field
 
     @time_decorator()
-    def Output(self) -> KratosOA.CollectiveExpression:
-        self.algorithm_data.GetBufferedData()["control_field"] = self._control_field.Clone()
+    def Output(self) -> Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor:
+        self.algorithm_data.GetBufferedData()["control_field"] = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(self._control_field)
         OutputGradientFields(self._objective, self._optimization_problem, True)
         for constraint in self._constraints_list:
             OutputGradientFields(constraint, self._optimization_problem, constraint.IsActive())
@@ -319,3 +329,26 @@ class AlgorithmGradientProjection(Algorithm):
             or_combined_conv_criteria.Add(max_iter_conv_criterion)
             or_combined_conv_criteria.Add(and_combined_conv_criteria)
             return or_combined_conv_criteria
+
+
+    @staticmethod
+    def _CollectiveListCollectiveProduct(collective_list: 'list[Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor]', other_collective: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor) -> Kratos.Vector:
+        result = Kratos.Vector(len(collective_list))
+        for i, collective_list_item in enumerate(collective_list):
+            result[i] = numpy.dot(collective_list_item.data.ravel(), other_collective.data.ravel())
+        return result
+
+    @staticmethod
+    def _CollectiveListVectorProduct(collective_list: 'list[Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor]', vector: Kratos.Vector) -> Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor:
+        if len(collective_list) != vector.Size():
+            raise RuntimeError(f"Collective list size and vector size mismatch. [ Collective list size = {len(collective_list)}, vector size = {vector.Size()}]")
+        if len(collective_list) == 0:
+            raise RuntimeError("Collective lists cannot be empty.")
+
+        result = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(collective_list[0], perform_collect_data_recursively=False, perform_store_data_recursively=False)
+        result.data[:] = 0.0
+        for i, collective_list_item in enumerate(collective_list):
+            result.data[:] += collective_list_item.data * vector[i]
+
+        result.StoreData()
+        return result
