@@ -43,14 +43,15 @@ namespace Kratos {
 
 namespace {
 
-std::string GetEndianness()
+constexpr std::string GetEndianness()
 {
-    int i = 0x0001;
-
-    if (*reinterpret_cast<char*>(&i) != 0) {
+    if constexpr(std::endian::native == std::endian::little) {
         return "LittleEndian";
-    } else {
+    } else if constexpr(std::endian::native == std::endian::big) {
         return "BigEndian";
+    } else {
+        KRATOS_ERROR << "Unsupported endianess.";
+        return "";
     }
 }
 
@@ -750,7 +751,7 @@ std::string WritePartitionedUnstructuredGridData(
 }
 
 template<class TMapType>
-void PrintDataLocationData(
+void PrintLocationData(
     std::ostream& rOStream,
     const std::string& rMapType,
     const VtuOutput::DataList<TMapType>& rList)
@@ -1677,11 +1678,11 @@ void VtuOutput::PrintInfo(std::ostream& rOStream) const
 
 void VtuOutput::PrintData(std::ostream& rOStream) const
 {
-    PrintDataLocationData(rOStream, "flag", mFlags);
+    PrintLocationData(rOStream, "flag", mFlags);
     rOStream << "\n";
-    PrintDataLocationData(rOStream, "variable", mVariables);
+    PrintLocationData(rOStream, "variable", mVariables);
     rOStream << "\n";
-    PrintDataLocationData(rOStream, "integration variable", mIntegrationPointVariables);
+    PrintLocationData(rOStream, "integration variable", mIntegrationPointVariables);
     rOStream << "\n";
 
     rOStream << "List of model part info:";
