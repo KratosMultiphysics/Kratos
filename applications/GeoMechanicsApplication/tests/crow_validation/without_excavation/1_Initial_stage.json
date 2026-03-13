@@ -1,6 +1,6 @@
 {
     "problem_data": {
-        "problem_name": "crow_validation",
+        "problem_name": "1_Initial_stage",
         "parallel_type": "OpenMP",
         "echo_level": 1,
         "start_time": -2.0,
@@ -210,7 +210,7 @@
                             ]
                         }
                     },
-                    "output_name": "gid_output/crow_validation_gid_Stage_1"
+                    "output_name": "gid_output/1_Initial_stage"
                 }
             }
         ]

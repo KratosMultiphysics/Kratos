@@ -1,6 +1,6 @@
 {
     "problem_data": {
-        "problem_name": "crow_validation_gid",
+        "problem_name": "5_Anchor_installation",
         "parallel_type": "OpenMP",
         "echo_level": 1,
         "start_time": 2.0,
@@ -255,7 +255,7 @@
                             ]
                         }
                     },
-                    "output_name": "gid_output/crow_validation_gid_Stage_5"
+                    "output_name": "gid_output/5_Anchor_installation"
                 }
             }
         ]

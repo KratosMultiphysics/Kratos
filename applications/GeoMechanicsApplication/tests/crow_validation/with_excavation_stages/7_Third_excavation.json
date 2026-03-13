@@ -1,6 +1,6 @@
 {
     "problem_data": {
-        "problem_name": "crow_validation_gid",
+        "problem_name": "7_Third_excavation",
         "parallel_type": "OpenMP",
         "echo_level": 1,
         "start_time": 4.0,
@@ -260,7 +260,7 @@
                             ]
                         }
                     },
-                    "output_name": "gid_output/crow_validation_gid_Stage_7"
+                    "output_name": "gid_output/7_Third_excavation"
                 }
             }
         ]

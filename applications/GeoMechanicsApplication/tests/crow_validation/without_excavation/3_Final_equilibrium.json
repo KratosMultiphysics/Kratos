@@ -1,6 +1,6 @@
 {
     "problem_data": {
-        "problem_name": "crow_validation",
+        "problem_name": "3_Final_equilibrium",
         "parallel_type": "OpenMP",
         "echo_level": 1,
         "start_time": 0.0,
@@ -241,7 +241,7 @@
                             ]
                         }
                     },
-                    "output_name": "gid_output/crow_validation_Stage_3"
+                    "output_name": "gid_output/3_Final_equilibrium"
                 }
             }
         ]
