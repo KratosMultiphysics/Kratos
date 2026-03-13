@@ -515,7 +515,7 @@ std::vector<TensorAdaptor<double>::Pointer> MaskUtils::SmoothenMasks(
 
                 IndexPartition<IndexType>(r_container.size()).for_each(k_d_tree_thread_local_storage(), [&k_d_tree_index, &r_container, &mask_data_view, &result_data_view, &clamper, radius_square](const IndexType Index, auto& rTLS){
                     // search for entities within radius
-                    k_d_tree_index.radiusSearch(OptimizationUtils::GetEntityPosition(*(r_container.begin() + Index)).data().begin(), radius_square + std::numeric_limits<double>::epsilon(), rTLS.mNeighbourIndicesAndSquaredDistances, nanoflann::SearchParameters());
+                    k_d_tree_index.radiusSearch(&OptimizationUtils::GetEntityPosition(*(r_container.begin() + Index))[0], radius_square + std::numeric_limits<double>::epsilon(), rTLS.mNeighbourIndicesAndSquaredDistances, nanoflann::SearchParameters());
 
                     auto& r_value = result_data_view[Index];
                     r_value = 1.0;

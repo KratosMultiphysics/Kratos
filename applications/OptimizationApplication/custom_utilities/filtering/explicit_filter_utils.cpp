@@ -323,7 +323,7 @@ TensorAdaptor<double>::Pointer ExplicitFilterUtils<TContainerType>::GenericForwa
         const double radius = r_filter_radius_data_view[Index];
 
         // search for entities within radius
-        mpKDTreeIndex->radiusSearch(OptimizationUtils::GetEntityPosition(*(r_container.begin() + Index)).data().begin(), radius * radius, rTLS.mNeighbourIndicesAndSquaredDistances, nanoflann::SearchParameters());
+        mpKDTreeIndex->radiusSearch(&OptimizationUtils::GetEntityPosition(*(r_container.begin() + Index))[0], radius * radius, rTLS.mNeighbourIndicesAndSquaredDistances, nanoflann::SearchParameters());
 
         // update the neighbour entities from found indices
         const IndexType number_of_neighbors = rTLS.mNeighbourIndicesAndSquaredDistances.size();
@@ -382,7 +382,7 @@ TensorAdaptor<double>::Pointer ExplicitFilterUtils<TContainerType>::GenericBackw
         const double radius = r_filter_radius_data_view[Index];
 
         // search for entities within radius
-        mpKDTreeIndex->radiusSearch(OptimizationUtils::GetEntityPosition(*(r_container.begin() + Index)).data().begin(), radius * radius, rTLS.mNeighbourIndicesAndSquaredDistances, nanoflann::SearchParameters());
+        mpKDTreeIndex->radiusSearch(&OptimizationUtils::GetEntityPosition(*(r_container.begin() + Index))[0], radius * radius, rTLS.mNeighbourIndicesAndSquaredDistances, nanoflann::SearchParameters());
 
         // update the neighbour entities from found indices
         const IndexType number_of_neighbors = rTLS.mNeighbourIndicesAndSquaredDistances.size();
@@ -520,7 +520,7 @@ void ExplicitFilterUtils<TContainerType>::CalculateMatrix(Matrix& rOutput) const
         const double radius = r_filter_radius_data_view[Index];
 
         // search for entities within radius
-        mpKDTreeIndex->radiusSearch(OptimizationUtils::GetEntityPosition(*(r_container.begin() + Index)).data().begin(), radius * radius, rTLS.mNeighbourIndicesAndSquaredDistances, nanoflann::SearchParameters());
+        mpKDTreeIndex->radiusSearch(&OptimizationUtils::GetEntityPosition(*(r_container.begin() + Index))[0], radius * radius, rTLS.mNeighbourIndicesAndSquaredDistances, nanoflann::SearchParameters());
 
         // update the neighbour entities from found indices
         const IndexType number_of_neighbors = rTLS.mNeighbourIndicesAndSquaredDistances.size();

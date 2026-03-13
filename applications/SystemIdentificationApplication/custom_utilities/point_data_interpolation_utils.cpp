@@ -103,28 +103,28 @@ void PointDataInterpolationUtils<TEntity>::UpdatePoints(const std::vector<Point>
 }
 
 // template instantiations
-template class PointDataInterpolationUtils<ModelPart::ElementType>;
-template void PointDataInterpolationUtils<ModelPart::ElementType>::CalculateInterpolatedNodalValues(std::vector<double>&, const Variable<double>&) const;
-template void PointDataInterpolationUtils<ModelPart::ElementType>::CalculateInterpolatedNodalValues(std::vector<array_1d<double, 3>>&, const Variable<array_1d<double, 3>>&) const;
-template void PointDataInterpolationUtils<ModelPart::ElementType>::CalculateInterpolatedNodalValues(std::vector<array_1d<double, 4>>&, const Variable<array_1d<double, 4>>&) const;
-template void PointDataInterpolationUtils<ModelPart::ElementType>::CalculateInterpolatedNodalValues(std::vector<array_1d<double, 6>>&, const Variable<array_1d<double, 6>>&) const;
-template void PointDataInterpolationUtils<ModelPart::ElementType>::CalculateInterpolatedNodalValues(std::vector<array_1d<double, 9>>&, const Variable<array_1d<double, 9>>&) const;
-template void PointDataInterpolationUtils<ModelPart::ElementType>::CalculateInterpolatedEntityValues(std::vector<double>&, const Variable<double>&) const;
-template void PointDataInterpolationUtils<ModelPart::ElementType>::CalculateInterpolatedEntityValues(std::vector<array_1d<double, 3>>&, const Variable<array_1d<double, 3>>&) const;
-template void PointDataInterpolationUtils<ModelPart::ElementType>::CalculateInterpolatedEntityValues(std::vector<array_1d<double, 4>>&, const Variable<array_1d<double, 4>>&) const;
-template void PointDataInterpolationUtils<ModelPart::ElementType>::CalculateInterpolatedEntityValues(std::vector<array_1d<double, 6>>&, const Variable<array_1d<double, 6>>&) const;
-template void PointDataInterpolationUtils<ModelPart::ElementType>::CalculateInterpolatedEntityValues(std::vector<array_1d<double, 9>>&, const Variable<array_1d<double, 9>>&) const;
+template class KRATOS_API(SYSTEM_IDENTIFICATION_APPLICATION) PointDataInterpolationUtils<ModelPart::ElementType>;
+template void KRATOS_API(SYSTEM_IDENTIFICATION_APPLICATION) PointDataInterpolationUtils<ModelPart::ElementType>::CalculateInterpolatedNodalValues(std::vector<double>&, const Variable<double>&) const;
+template void KRATOS_API(SYSTEM_IDENTIFICATION_APPLICATION) PointDataInterpolationUtils<ModelPart::ElementType>::CalculateInterpolatedNodalValues(std::vector<array_1d<double, 3>>&, const Variable<array_1d<double, 3>>&) const;
+template void KRATOS_API(SYSTEM_IDENTIFICATION_APPLICATION) PointDataInterpolationUtils<ModelPart::ElementType>::CalculateInterpolatedNodalValues(std::vector<array_1d<double, 4>>&, const Variable<array_1d<double, 4>>&) const;
+template void KRATOS_API(SYSTEM_IDENTIFICATION_APPLICATION) PointDataInterpolationUtils<ModelPart::ElementType>::CalculateInterpolatedNodalValues(std::vector<array_1d<double, 6>>&, const Variable<array_1d<double, 6>>&) const;
+template void KRATOS_API(SYSTEM_IDENTIFICATION_APPLICATION) PointDataInterpolationUtils<ModelPart::ElementType>::CalculateInterpolatedNodalValues(std::vector<array_1d<double, 9>>&, const Variable<array_1d<double, 9>>&) const;
+template void KRATOS_API(SYSTEM_IDENTIFICATION_APPLICATION) PointDataInterpolationUtils<ModelPart::ElementType>::CalculateInterpolatedEntityValues(std::vector<double>&, const Variable<double>&) const;
+template void KRATOS_API(SYSTEM_IDENTIFICATION_APPLICATION) PointDataInterpolationUtils<ModelPart::ElementType>::CalculateInterpolatedEntityValues(std::vector<array_1d<double, 3>>&, const Variable<array_1d<double, 3>>&) const;
+template void KRATOS_API(SYSTEM_IDENTIFICATION_APPLICATION) PointDataInterpolationUtils<ModelPart::ElementType>::CalculateInterpolatedEntityValues(std::vector<array_1d<double, 4>>&, const Variable<array_1d<double, 4>>&) const;
+template void KRATOS_API(SYSTEM_IDENTIFICATION_APPLICATION) PointDataInterpolationUtils<ModelPart::ElementType>::CalculateInterpolatedEntityValues(std::vector<array_1d<double, 6>>&, const Variable<array_1d<double, 6>>&) const;
+template void KRATOS_API(SYSTEM_IDENTIFICATION_APPLICATION) PointDataInterpolationUtils<ModelPart::ElementType>::CalculateInterpolatedEntityValues(std::vector<array_1d<double, 9>>&, const Variable<array_1d<double, 9>>&) const;
 
-template class PointDataInterpolationUtils<ModelPart::ConditionType>;
-template void PointDataInterpolationUtils<ModelPart::ConditionType>::CalculateInterpolatedNodalValues(std::vector<double>&, const Variable<double>&) const;
-template void PointDataInterpolationUtils<ModelPart::ConditionType>::CalculateInterpolatedNodalValues(std::vector<array_1d<double, 3>>&, const Variable<array_1d<double, 3>>&) const;
-template void PointDataInterpolationUtils<ModelPart::ConditionType>::CalculateInterpolatedNodalValues(std::vector<array_1d<double, 4>>&, const Variable<array_1d<double, 4>>&) const;
-template void PointDataInterpolationUtils<ModelPart::ConditionType>::CalculateInterpolatedNodalValues(std::vector<array_1d<double, 6>>&, const Variable<array_1d<double, 6>>&) const;
-template void PointDataInterpolationUtils<ModelPart::ConditionType>::CalculateInterpolatedNodalValues(std::vector<array_1d<double, 9>>&, const Variable<array_1d<double, 9>>&) const;
-template void PointDataInterpolationUtils<ModelPart::ConditionType>::CalculateInterpolatedEntityValues(std::vector<double>&, const Variable<double>&) const;
-template void PointDataInterpolationUtils<ModelPart::ConditionType>::CalculateInterpolatedEntityValues(std::vector<array_1d<double, 3>>&, const Variable<array_1d<double, 3>>&) const;
-template void PointDataInterpolationUtils<ModelPart::ConditionType>::CalculateInterpolatedEntityValues(std::vector<array_1d<double, 4>>&, const Variable<array_1d<double, 4>>&) const;
-template void PointDataInterpolationUtils<ModelPart::ConditionType>::CalculateInterpolatedEntityValues(std::vector<array_1d<double, 6>>&, const Variable<array_1d<double, 6>>&) const;
-template void PointDataInterpolationUtils<ModelPart::ConditionType>::CalculateInterpolatedEntityValues(std::vector<array_1d<double, 9>>&, const Variable<array_1d<double, 9>>&) const;
+template class KRATOS_API(SYSTEM_IDENTIFICATION_APPLICATION) PointDataInterpolationUtils<ModelPart::ConditionType>;
+template void KRATOS_API(SYSTEM_IDENTIFICATION_APPLICATION) PointDataInterpolationUtils<ModelPart::ConditionType>::CalculateInterpolatedNodalValues(std::vector<double>&, const Variable<double>&) const;
+template void KRATOS_API(SYSTEM_IDENTIFICATION_APPLICATION) PointDataInterpolationUtils<ModelPart::ConditionType>::CalculateInterpolatedNodalValues(std::vector<array_1d<double, 3>>&, const Variable<array_1d<double, 3>>&) const;
+template void KRATOS_API(SYSTEM_IDENTIFICATION_APPLICATION) PointDataInterpolationUtils<ModelPart::ConditionType>::CalculateInterpolatedNodalValues(std::vector<array_1d<double, 4>>&, const Variable<array_1d<double, 4>>&) const;
+template void KRATOS_API(SYSTEM_IDENTIFICATION_APPLICATION) PointDataInterpolationUtils<ModelPart::ConditionType>::CalculateInterpolatedNodalValues(std::vector<array_1d<double, 6>>&, const Variable<array_1d<double, 6>>&) const;
+template void KRATOS_API(SYSTEM_IDENTIFICATION_APPLICATION) PointDataInterpolationUtils<ModelPart::ConditionType>::CalculateInterpolatedNodalValues(std::vector<array_1d<double, 9>>&, const Variable<array_1d<double, 9>>&) const;
+template void KRATOS_API(SYSTEM_IDENTIFICATION_APPLICATION) PointDataInterpolationUtils<ModelPart::ConditionType>::CalculateInterpolatedEntityValues(std::vector<double>&, const Variable<double>&) const;
+template void KRATOS_API(SYSTEM_IDENTIFICATION_APPLICATION) PointDataInterpolationUtils<ModelPart::ConditionType>::CalculateInterpolatedEntityValues(std::vector<array_1d<double, 3>>&, const Variable<array_1d<double, 3>>&) const;
+template void KRATOS_API(SYSTEM_IDENTIFICATION_APPLICATION) PointDataInterpolationUtils<ModelPart::ConditionType>::CalculateInterpolatedEntityValues(std::vector<array_1d<double, 4>>&, const Variable<array_1d<double, 4>>&) const;
+template void KRATOS_API(SYSTEM_IDENTIFICATION_APPLICATION) PointDataInterpolationUtils<ModelPart::ConditionType>::CalculateInterpolatedEntityValues(std::vector<array_1d<double, 6>>&, const Variable<array_1d<double, 6>>&) const;
+template void KRATOS_API(SYSTEM_IDENTIFICATION_APPLICATION) PointDataInterpolationUtils<ModelPart::ConditionType>::CalculateInterpolatedEntityValues(std::vector<array_1d<double, 9>>&, const Variable<array_1d<double, 9>>&) const;
 
 }

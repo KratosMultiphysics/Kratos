@@ -151,7 +151,7 @@ void IntegratedNearestEntityExplicitDamping<TContainerType>::IntegratedNearestEn
 
                 double squared_distance;
                 unsigned int global_index;
-                mComponentWiseKDTrees[i_comp]->knnSearch(OptimizationUtils::GetEntityPosition(*rNeighbours[i_neighbour]).data().begin(), 1, &global_index, &squared_distance);
+                mComponentWiseKDTrees[i_comp]->knnSearch(&OptimizationUtils::GetEntityPosition(*rNeighbours[i_neighbour])[0], 1, &global_index, &squared_distance);
 
                 r_damped_weights[i_neighbour] = rWeights[i_neighbour] * mpKernelFunction->ComputeWeight(radius, std::sqrt(squared_distance));
             }
@@ -213,7 +213,7 @@ void IntegratedNearestEntityExplicitDamping<TContainerType>::IntegratedNearestEn
             const auto radius = radius_view[Index];
 
             // search for entities within radius
-            search_tree.radiusSearch(OptimizationUtils::GetEntityPosition(*(r_container.begin() + Index)).data().begin(), radius * radius, rTLS.mNeighbourIndicesAndSquaredDistances, nanoflann::SearchParameters());
+            search_tree.radiusSearch(&OptimizationUtils::GetEntityPosition(*(r_container.begin() + Index))[0], radius * radius, rTLS.mNeighbourIndicesAndSquaredDistances, nanoflann::SearchParameters());
 
             // update the neighbour entities from found indices
             const IndexType number_of_neighbors = rTLS.mNeighbourIndicesAndSquaredDistances.size();
@@ -224,7 +224,7 @@ void IntegratedNearestEntityExplicitDamping<TContainerType>::IntegratedNearestEn
 
                 double squared_distance;
                 unsigned int global_index;
-                comp_search_tree.knnSearch(OptimizationUtils::GetEntityPosition(r_neighbour_point).data().begin(), 1, &global_index, &squared_distance);
+                comp_search_tree.knnSearch(&OptimizationUtils::GetEntityPosition(r_neighbour_point)[0], 1, &global_index, &squared_distance);
 
                 const double weight = kernel_function.ComputeWeight(radius, std::sqrt(squared_distance));
 

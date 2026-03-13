@@ -26,7 +26,7 @@ namespace Kratos {
 ///@name Kratos Classes
 ///@{
 
-class BoltzmannOperator
+class KRATOS_API(OPTIMIZATION_APPLICATION) BoltzmannOperator
 {
 public:
     ///@name Life cycle

@@ -129,7 +129,7 @@ void NearestEntityExplicitDamping<TContainerType>::Update()
 
                 double squared_distance;
                 unsigned int global_index;
-                kd_tree_index.knnSearch(OptimizationUtils::GetEntityPosition(*(r_container.begin() + Index)).data().begin(), 1, &global_index, &squared_distance);
+                kd_tree_index.knnSearch(&OptimizationUtils::GetEntityPosition(*(r_container.begin() + Index))[0], 1, &global_index, &squared_distance);
 
                 double& value = *(damping_coefficient_data.begin() + data_begin_index + i_comp);
                 value = 1.0 - kernel_function.ComputeWeight(radius, std::sqrt(squared_distance));
