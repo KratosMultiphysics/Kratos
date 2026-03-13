@@ -71,7 +71,6 @@ private:
     Vector                                    mRelativeDisplacementVectorFinalized;
     CoulombWithTensionCutOffImpl              mCoulombWithTensionCutOffImpl;
     bool                                      mIsModelInitialized = false;
-    PlasticityStatus                          mPlasticStatus      = PlasticityStatus::ELASTIC;
 
     [[nodiscard]] Geo::SigmaTau CalculateTrialTractionVector(const Vector& rRelativeDisplacementVector,
                                                              double NormalStiffness,

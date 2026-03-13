@@ -32,8 +32,7 @@ InterfaceCoulombWithTensionCutOff::InterfaceCoulombWithTensionCutOff(std::unique
     : mpConstitutiveDimension(std::move(pConstitutiveDimension)),
       mTractionVector(ZeroVector(mpConstitutiveDimension->GetStrainSize())),
       mTractionVectorFinalized(ZeroVector(mpConstitutiveDimension->GetStrainSize())),
-      mRelativeDisplacementVectorFinalized(ZeroVector(mpConstitutiveDimension->GetStrainSize())),
-      mPlasticStatus(PlasticityStatus::ELASTIC)
+      mRelativeDisplacementVectorFinalized(ZeroVector(mpConstitutiveDimension->GetStrainSize()))
 {
 }
 
@@ -45,7 +44,6 @@ ConstitutiveLaw::Pointer InterfaceCoulombWithTensionCutOff::Clone() const
     p_result->mRelativeDisplacementVectorFinalized = mRelativeDisplacementVectorFinalized;
     p_result->mCoulombWithTensionCutOffImpl        = mCoulombWithTensionCutOffImpl;
     p_result->mIsModelInitialized                  = mIsModelInitialized;
-    p_result->mPlasticStatus                       = mPlasticStatus;
     return p_result;
 }
 
@@ -62,7 +60,7 @@ Vector& InterfaceCoulombWithTensionCutOff::GetValue(const Variable<Vector>& rVar
 int& InterfaceCoulombWithTensionCutOff::GetValue(const Variable<int>& rVariable, int& rValue)
 {
     if (rVariable == GEO_PLASTICITY_STATUS) {
-        rValue = static_cast<int>(mPlasticStatus);
+        rValue = static_cast<int>(mCoulombWithTensionCutOffImpl.GetPlasticityStatus());
     }
     return rValue;
 }
@@ -157,14 +155,11 @@ void InterfaceCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(Paramete
     const auto negative   = std::signbit(trial_sigma_tau.Tau());
     trial_sigma_tau.Tau() = std::abs(trial_sigma_tau.Tau());
 
-    if (mCoulombWithTensionCutOffImpl.IsAdmissibleStressState(trial_sigma_tau)) {
-        mPlasticStatus = PlasticityStatus::ELASTIC;
-    } else {
+    if (!mCoulombWithTensionCutOffImpl.IsAdmissibleStressState(trial_sigma_tau)) {
         mapped_sigma_tau = mCoulombWithTensionCutOffImpl.DoReturnMapping(
             trial_sigma_tau, mpConstitutiveDimension->CalculateElasticMatrix(r_properties),
             Geo::PrincipalStresses::AveragingType::NO_AVERAGING);
         if (negative) mapped_sigma_tau.Tau() *= -1.0;
-        mPlasticStatus = mCoulombWithTensionCutOffImpl.GetPlasticityStatus();
     }
 
     mTractionVector                              = mapped_sigma_tau.CopyTo<Vector>();
@@ -214,7 +209,6 @@ void InterfaceCoulombWithTensionCutOff::save(Serializer& rSerializer) const
     rSerializer.save("RelativeDisplacementVectorFinalized", mRelativeDisplacementVectorFinalized);
     rSerializer.save("CoulombWithTensionCutOffImpl", mCoulombWithTensionCutOffImpl);
     rSerializer.save("IsModelInitialized", mIsModelInitialized);
-    rSerializer.save("PlasticStatus", static_cast<int>(mPlasticStatus));
 }
 
 void InterfaceCoulombWithTensionCutOff::load(Serializer& rSerializer)
@@ -226,9 +220,6 @@ void InterfaceCoulombWithTensionCutOff::load(Serializer& rSerializer)
     rSerializer.load("RelativeDisplacementVectorFinalized", mRelativeDisplacementVectorFinalized);
     rSerializer.load("CoulombWithTensionCutOffImpl", mCoulombWithTensionCutOffImpl);
     rSerializer.load("IsModelInitialized", mIsModelInitialized);
-    int int_plasticity_status;
-    rSerializer.load("PlasticStatus", int_plasticity_status);
-    mPlasticStatus = static_cast<PlasticityStatus>(int_plasticity_status);
 }
 
 } // Namespace Kratos
