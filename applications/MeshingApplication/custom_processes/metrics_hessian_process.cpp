@@ -50,7 +50,7 @@ ComputeHessianSolMetricProcess::ComputeHessianSolMetricProcess(
 
 ComputeHessianSolMetricProcess::ComputeHessianSolMetricProcess(
     ModelPart& rThisModelPart,
-    Variable<double>& rVariable,
+    const Variable<double>& rVariable,
     Parameters ThisParameters
     ) : mrModelPart(rThisModelPart),
         mpOriginVariable(&rVariable)
