@@ -363,6 +363,191 @@ class KratosGeoMechanicsUPwInterfaceTests(KratosUnittest.TestCase):
 
         return side_a_node_ids, side_b_node_ids
 
+    def _assert_displacement_match_at_time(
+        self,
+        interface_output,
+        soil_output,
+        interface_time,
+        soil_time,
+        interface_node_ids,
+        soil_node_ids,
+        time_index,
+        displacement_tolerance,
+    ):
+        interface_displacements = GiDOutputFileReader.nodal_values_at_time(
+            "TOTAL_DISPLACEMENT",
+            interface_time,
+            interface_output,
+            interface_node_ids,
+        )
+        soil_displacements = GiDOutputFileReader.nodal_values_at_time(
+            "TOTAL_DISPLACEMENT", soil_time, soil_output, soil_node_ids
+        )
+        top_displacement_differences = self._top_vector_component_differences(
+            interface_displacements,
+            soil_displacements,
+            interface_node_ids,
+            soil_node_ids,
+            component_index=1,
+        )
+        max_displacement_difference_y = (
+            top_displacement_differences[0][0] if top_displacement_differences else 0.0
+        )
+        self.assertLess(
+            max_displacement_difference_y,
+            displacement_tolerance,
+            msg=(
+                f"TOTAL_DISPLACEMENT_Y mismatch at time index {time_index} "
+                f"(time={interface_time:.12g}). Top nodal differences: "
+                f"{self._format_nodal_difference_summary(top_displacement_differences)}"
+            ),
+        )
+
+    def _assert_pressure_match_at_time(
+        self,
+        interface_output,
+        soil_output,
+        interface_time,
+        soil_time,
+        interface_node_ids,
+        soil_node_ids,
+        time_index,
+        pressure_tolerance,
+    ):
+        interface_pressures = GiDOutputFileReader.nodal_values_at_time(
+            "WATER_PRESSURE", interface_time, interface_output, interface_node_ids
+        )
+        soil_pressures = GiDOutputFileReader.nodal_values_at_time(
+            "WATER_PRESSURE", soil_time, soil_output, soil_node_ids
+        )
+        top_pressure_differences = self._top_scalar_differences(
+            interface_pressures,
+            soil_pressures,
+            interface_node_ids,
+            soil_node_ids,
+        )
+        max_pressure_difference = (
+            top_pressure_differences[0][0] if top_pressure_differences else 0.0
+        )
+        self.assertLess(
+            max_pressure_difference,
+            pressure_tolerance,
+            msg=(
+                f"WATER_PRESSURE mismatch at time index {time_index} "
+                f"(time={interface_time:.12g}). Top nodal differences: "
+                f"{self._format_nodal_difference_summary(top_pressure_differences)}"
+            ),
+        )
+
+    def _assert_flux_match_at_time(
+        self,
+        interface_output,
+        soil_output,
+        interface_time,
+        soil_time,
+        time_index,
+        flux_tolerance,
+    ):
+        interface_flux_items = self._result_items_at_time(
+            "FLUID_FLUX_VECTOR", interface_time, interface_output
+        )
+        soil_flux_items = self._result_items_at_time(
+            "FLUID_FLUX_VECTOR", soil_time, soil_output
+        )
+
+        self.assertTrue(
+            interface_flux_items,
+            msg=(
+                f"No interface FLUID_FLUX_VECTOR values found at "
+                f"time index {time_index} (time={interface_time:.12g})"
+            ),
+        )
+        self.assertTrue(
+            soil_flux_items,
+            msg=(
+                f"No soil FLUID_FLUX_VECTOR values found at "
+                f"time index {time_index} (time={soil_time:.12g})"
+            ),
+        )
+
+        # The interface output can contain both line-interface and bulk-element
+        # FLUID_FLUX_VECTOR blocks at the same time. Select the pair sharing
+        # the largest set of element IDs (the bulk domain overlap).
+        soil_flux_item = max(soil_flux_items, key=lambda item: len(item["values"]))
+        soil_flux_by_element = self._element_id_to_integration_values_map(soil_flux_item)
+        soil_element_ids = set(soil_flux_by_element.keys())
+
+        def _overlap_with_soil(item):
+            interface_element_ids = {value["element"] for value in item["values"]}
+            return len(interface_element_ids.intersection(soil_element_ids))
+
+        interface_flux_item = max(
+            interface_flux_items,
+            key=lambda item, overlap_with_soil=_overlap_with_soil: (
+                overlap_with_soil(item),
+                len(item["values"]),
+            ),
+        )
+        interface_flux_by_element = self._element_id_to_integration_values_map(
+            interface_flux_item
+        )
+
+        common_element_ids = sorted(
+            set(interface_flux_by_element.keys()).intersection(soil_element_ids)
+        )
+        self.assertTrue(
+            common_element_ids,
+            msg=(
+                f"No overlapping flux elements found at time index {time_index} "
+                f"(time={interface_time:.12g})"
+            ),
+        )
+
+        flux_component_differences = []
+        for element_id in common_element_ids:
+            interface_integration_values = interface_flux_by_element[element_id]
+            soil_integration_values = soil_flux_by_element[element_id]
+
+            self.assertEqual(len(interface_integration_values), len(soil_integration_values))
+
+            for integration_point_index, (
+                interface_vector,
+                soil_vector,
+            ) in enumerate(zip(interface_integration_values, soil_integration_values)):
+                self.assertEqual(len(interface_vector), len(soil_vector))
+                for component_index, (
+                    interface_component,
+                    soil_component,
+                ) in enumerate(zip(interface_vector, soil_vector)):
+                    flux_component_differences.append(
+                        (
+                            abs(interface_component - soil_component),
+                            element_id,
+                            integration_point_index,
+                            component_index,
+                            interface_component,
+                            soil_component,
+                        )
+                    )
+
+        top_flux_differences = sorted(
+            flux_component_differences,
+            key=lambda item: item[0],
+            reverse=True,
+        )[:5]
+        max_flux_component_difference = (
+            top_flux_differences[0][0] if top_flux_differences else 0.0
+        )
+        self.assertLess(
+            max_flux_component_difference,
+            flux_tolerance,
+            msg=(
+                f"FLUID_FLUX_VECTOR mismatch at time index {time_index} "
+                f"(time={interface_time:.12g}). Top component differences: "
+                f"{self._format_flux_difference_summary(top_flux_differences)}"
+            ),
+        )
+
     def _assert_nodal_match(
         self,
         interface_output,
@@ -395,161 +580,33 @@ class KratosGeoMechanicsUPwInterfaceTests(KratosUnittest.TestCase):
                 ),
             )
 
-            interface_displacements = GiDOutputFileReader.nodal_values_at_time(
-                "TOTAL_DISPLACEMENT",
-                interface_time,
+            self._assert_displacement_match_at_time(
                 interface_output,
-                interface_node_ids,
-            )
-            soil_displacements = GiDOutputFileReader.nodal_values_at_time(
-                "TOTAL_DISPLACEMENT", soil_time, soil_output, soil_node_ids
-            )
-            top_displacement_differences = self._top_vector_component_differences(
-                interface_displacements,
-                soil_displacements,
+                soil_output,
+                interface_time,
+                soil_time,
                 interface_node_ids,
                 soil_node_ids,
-                component_index=1,
-            )
-            max_displacement_difference_y = (
-                top_displacement_differences[0][0]
-                if top_displacement_differences
-                else 0.0
-            )
-            self.assertLess(
-                max_displacement_difference_y,
+                time_index,
                 displacement_tolerance,
-                msg=(
-                    f"TOTAL_DISPLACEMENT_Y mismatch at time index {time_index} "
-                    f"(time={interface_time:.12g}). Top nodal differences: "
-                    f"{self._format_nodal_difference_summary(top_displacement_differences)}"
-                ),
             )
-
-            interface_pressures = GiDOutputFileReader.nodal_values_at_time(
-                "WATER_PRESSURE", interface_time, interface_output, interface_node_ids
-            )
-            soil_pressures = GiDOutputFileReader.nodal_values_at_time(
-                "WATER_PRESSURE", soil_time, soil_output, soil_node_ids
-            )
-            top_pressure_differences = self._top_scalar_differences(
-                interface_pressures,
-                soil_pressures,
+            self._assert_pressure_match_at_time(
+                interface_output,
+                soil_output,
+                interface_time,
+                soil_time,
                 interface_node_ids,
                 soil_node_ids,
-            )
-            max_pressure_difference = (
-                top_pressure_differences[0][0] if top_pressure_differences else 0.0
-            )
-            self.assertLess(
-                max_pressure_difference,
+                time_index,
                 pressure_tolerance,
-                msg=(
-                    f"WATER_PRESSURE mismatch at time index {time_index} "
-                    f"(time={interface_time:.12g}). Top nodal differences: "
-                    f"{self._format_nodal_difference_summary(top_pressure_differences)}"
-                ),
             )
-
-            interface_flux_items = self._result_items_at_time(
-                "FLUID_FLUX_VECTOR", interface_time, interface_output
-            )
-            soil_flux_items = self._result_items_at_time(
-                "FLUID_FLUX_VECTOR", soil_time, soil_output
-            )
-
-            self.assertTrue(
-                interface_flux_items,
-                msg=(
-                    f"No interface FLUID_FLUX_VECTOR values found at "
-                    f"time index {time_index} (time={interface_time:.12g})"
-                ),
-            )
-            self.assertTrue(
-                soil_flux_items,
-                msg=(
-                    f"No soil FLUID_FLUX_VECTOR values found at "
-                    f"time index {time_index} (time={soil_time:.12g})"
-                ),
-            )
-
-            # The interface output can contain both line-interface and bulk-element
-            # FLUID_FLUX_VECTOR blocks at the same time. Select the pair sharing
-            # the largest set of element IDs (the bulk domain overlap).
-            soil_flux_item = max(soil_flux_items, key=lambda item: len(item["values"]))
-            soil_flux_by_element = self._element_id_to_integration_values_map(
-                soil_flux_item
-            )
-            soil_element_ids = set(soil_flux_by_element.keys())
-
-            def _overlap_with_soil(item):
-                interface_element_ids = {value["element"] for value in item["values"]}
-                return len(interface_element_ids.intersection(soil_element_ids))
-
-            interface_flux_item = max(
-                interface_flux_items,
-                key=lambda item: (_overlap_with_soil(item), len(item["values"])),
-            )
-            interface_flux_by_element = self._element_id_to_integration_values_map(
-                interface_flux_item
-            )
-
-            common_element_ids = sorted(
-                set(interface_flux_by_element.keys()).intersection(soil_element_ids)
-            )
-            self.assertTrue(
-                common_element_ids,
-                msg=(
-                    f"No overlapping flux elements found at time index {time_index} "
-                    f"(time={interface_time:.12g})"
-                ),
-            )
-
-            flux_component_differences = []
-            for element_id in common_element_ids:
-                interface_integration_values = interface_flux_by_element[element_id]
-                soil_integration_values = soil_flux_by_element[element_id]
-
-                self.assertEqual(
-                    len(interface_integration_values), len(soil_integration_values)
-                )
-
-                for integration_point_index, (
-                    interface_vector,
-                    soil_vector,
-                ) in enumerate(zip(interface_integration_values, soil_integration_values)):
-                    self.assertEqual(len(interface_vector), len(soil_vector))
-                    for component_index, (
-                        interface_component,
-                        soil_component,
-                    ) in enumerate(zip(interface_vector, soil_vector)):
-                        flux_component_differences.append(
-                            (
-                                abs(interface_component - soil_component),
-                                element_id,
-                                integration_point_index,
-                                component_index,
-                                interface_component,
-                                soil_component,
-                            )
-                        )
-
-            top_flux_differences = sorted(
-                flux_component_differences,
-                key=lambda item: item[0],
-                reverse=True,
-            )[:5]
-            max_flux_component_difference = (
-                top_flux_differences[0][0] if top_flux_differences else 0.0
-            )
-            self.assertLess(
-                max_flux_component_difference,
+            self._assert_flux_match_at_time(
+                interface_output,
+                soil_output,
+                interface_time,
+                soil_time,
+                time_index,
                 flux_tolerance,
-                msg=(
-                    f"FLUID_FLUX_VECTOR mismatch at time index {time_index} "
-                    f"(time={interface_time:.12g}). Top component differences: "
-                    f"{self._format_flux_difference_summary(top_flux_differences)}"
-                ),
             )
 
     def _assert_non_zero_displacement_jump(
