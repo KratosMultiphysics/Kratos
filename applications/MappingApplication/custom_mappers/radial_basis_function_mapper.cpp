@@ -634,23 +634,43 @@ void RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::CalculateMappingMatri
         // IGA origin: one center per interface integration point (condition)
         n_support = mpCouplingInterfaceOrigin->NumberOfConditions();
     }
+    
+    // Temporary RHS and solution vectors
+    typename TSparseSpace::VectorType rhs;
+    typename TSparseSpace::VectorType sol;
 
-    // Allocate dense RHS and solution matrices
-    DenseMatrixType rhs_mat(system_size, n_support, 0.0);
-    DenseMatrixType sol_mat(system_size, n_support, 0.0);
+    TSparseSpace::Resize(rhs, system_size);
+    TSparseSpace::Resize(sol, system_size);
 
-    // Build RHS matrix with identity in the RBF part and zeros in the polynomial part
-    for (IndexType j = 0; j < n_support; ++j) {
-        rhs_mat(j, j) = 1.0;
-    }
+    TSparseSpace::SetToZero(rhs);
+    TSparseSpace::SetToZero(sol);
 
-    // This requires that the concrete linear solver supports
-    // Solve(SparseMatrixType, DenseMatrixType, DenseMatrixType)
-    mpLinearSolver->Solve(*mpOriginInterpolationMatrix, sol_mat, rhs_mat);
-
+    // Mapping matrix
     auto pMappingMatrixGP = Kratos::make_unique<MappingMatrixType>(n_dest, n_support);
     DenseMatrixType mapping_dense(n_dest, n_support, 0.0);
-    noalias(mapping_dense) = prod(*mpDestinationEvaluationMatrix, sol_mat);
+
+    // Factorize LHS once
+    mpLinearSolver->InitializeSolutionStep(*mpOriginInterpolationMatrix, sol, rhs);
+
+    // Solve A x = e_j for each column
+    for (IndexType j = 0; j < n_support; ++j) {
+
+        TSparseSpace::SetToZero(rhs);
+        rhs[j] = 1.0;
+
+        mpLinearSolver->PerformSolutionStep(*mpOriginInterpolationMatrix, sol, rhs);
+
+        // Compute column j of mapping matrix: B * sol
+        for (IndexType i = 0; i < n_dest; ++i) {
+            double value = 0.0;
+            for (IndexType k = 0; k < system_size; ++k) {
+                value += (*mpDestinationEvaluationMatrix)(i, k) * sol[k];
+            }
+            mapping_dense(i, j) = value;
+        }
+    }
+
+    mpLinearSolver->FinalizeSolutionStep(*mpOriginInterpolationMatrix, sol, rhs);
 
     for (IndexType i = 0; i < n_dest; ++i) {
         for (IndexType j = 0; j < n_support; ++j) {
