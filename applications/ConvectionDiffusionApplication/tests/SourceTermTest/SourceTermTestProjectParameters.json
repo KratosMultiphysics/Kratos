@@ -45,7 +45,8 @@
         },
         "transient_parameters" : {
             "dynamic_tau": 1.0,
-            "theta"    : 1.0
+            "theta"    : 1.0,
+            "cross_wind_stabilization_factor": 0.0
         }
     },
     "processes"        : {
