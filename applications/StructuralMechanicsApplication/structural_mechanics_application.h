@@ -56,12 +56,11 @@
 #include "custom_elements/shell_elements/isotropic_shell_element.hpp"
 #include "custom_elements/membrane_elements/membrane_element.hpp"
 #include "custom_elements/membrane_elements/membrane_element_2D2N.h"
-#include "custom_elements/shell_elements/shell_thick_element_3D4N.hpp"
+#include "custom_elements/shell_elements/mitc_thick_shell_element_3D4N.hpp"
 #include "custom_elements/shell_elements/shell_thin_element_3D4N.hpp"
 #include "custom_elements/shell_elements/shell_thin_element_3D3N.hpp"
 #include "custom_elements/shell_elements/shell_thick_element_3D3N.hpp"
 #include "custom_elements/shell_elements/cs_dsg3_thick_shell_element_3D3N.h"
-
 
 /* Adding the bushing element */
 #include "custom_elements/nodal_elements/bushing_element.h"
@@ -302,12 +301,13 @@ private:
 
     // Adding the shells elements
     const IsotropicShellElement mIsotropicShellElement3D3N;
-    const ShellThickElement3D4N<ShellKinematics::LINEAR>                 mShellThickElement3D4N;
-    const ShellThickElement3D4N<ShellKinematics::NONLINEAR_COROTATIONAL> mShellThickCorotationalElement3D4N;
-    const ShellThinElement3D4N<ShellKinematics::NONLINEAR_COROTATIONAL>  mShellThinCorotationalElement3D4N;
-    const ShellThinElement3D3N<ShellKinematics::LINEAR>                  mShellThinElement3D3N;
-    const ShellThinElement3D3N<ShellKinematics::NONLINEAR_COROTATIONAL>  mShellThinCorotationalElement3D3N;
+    const MITCThickShellElement3D4N<ShellKinematics::LINEAR> mMITCThickShellElement3D4N;
+    const MITCThickShellElement3D4N<ShellKinematics::NONLINEAR_COROTATIONAL> mMITCThickShellCorotationalElement3D4N;
+    const ShellThinElement3D4N<ShellKinematics::NONLINEAR_COROTATIONAL> mShellThinCorotationalElement3D4N;
+    const ShellThinElement3D3N<ShellKinematics::LINEAR> mShellThinElement3D3N;
+    const ShellThinElement3D3N<ShellKinematics::NONLINEAR_COROTATIONAL> mShellThinCorotationalElement3D3N;
     const ShellThickElement3D3N<ShellKinematics::NONLINEAR_COROTATIONAL> mShellThickCorotationalElement3D3N;
+
     const CSDSG3ThickShellElement3D3N<false> mCSDSG3ThickShellLinearElement3D3N;
     const CSDSG3ThickShellElement3D3N<true> mCSDSG3ThickShellCorotationalElement3D3N;
 

@@ -93,7 +93,7 @@ class TestLocalAxisVisualization(KratosUnittest.TestCase):
         kratos_utils.DeleteFileIfExisting(output_file_name) # usually this is deleted by the check process but not if it fails
 
     def test_ThickQuadShellElement(self):
-        self.element_name = "ShellThickElementCorotational3D4N"
+        self.element_name = "MITCThickShellCorotationalElement3D4N"
         self.__ExecuteShellTest()
 
     def test_ThinQuadShellElement(self):
@@ -151,7 +151,7 @@ class TestLocalAxisVisualization(KratosUnittest.TestCase):
         #create Element
         for i in range(nr_elements):
             model_part.CreateNewElement(self.element_name, i+1, [i+1,i+2],
-             model_part.GetProperties()[0])
+            model_part.GetProperties()[0])
 
         for i, elem in enumerate(model_part.Elements):
             if i > (nr_elements/2 -1): # prescribing only half of the elements with LOCAL_AXIS_2!
