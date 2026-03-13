@@ -23,7 +23,7 @@
 
 namespace Kratos
 {
-KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Geometry<Node>>;
+KRATOS_API_EXTERN template class  KratosComponents<Geometry<Node>>;
 
 void KRATOS_API(KRATOS_CORE) AddKratosComponent(std::string const& Name, Geometry<Node> const& ThisComponent);
 

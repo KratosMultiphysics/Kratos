@@ -570,7 +570,7 @@ namespace Kratos
         mExtraRayOffset = 2.0 * mRelativeTolerance * mCharacteristicLength;
     }
 
-    template class KRATOS_API(KRATOS_CORE) Kratos::ApplyRayCastingProcess<2>;
-    template class KRATOS_API(KRATOS_CORE) Kratos::ApplyRayCastingProcess<3>;
+    template class Kratos::ApplyRayCastingProcess<2>;
+    template class Kratos::ApplyRayCastingProcess<3>;
 
 }  // namespace Kratos.

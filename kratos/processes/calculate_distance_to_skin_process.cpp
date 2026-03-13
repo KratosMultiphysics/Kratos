@@ -316,7 +316,7 @@ namespace Kratos
     {
     }
 
-    template class KRATOS_API(KRATOS_CORE) Kratos::CalculateDistanceToSkinProcess<2>;
-    template class KRATOS_API(KRATOS_CORE) Kratos::CalculateDistanceToSkinProcess<3>;
+    template class Kratos::CalculateDistanceToSkinProcess<2>;
+    template class Kratos::CalculateDistanceToSkinProcess<3>;
 
 }  // namespace Kratos.

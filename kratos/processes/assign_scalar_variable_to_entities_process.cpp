@@ -253,10 +253,10 @@ template void AssignScalarVariableToEntitiesProcess<MasterSlaveConstraint>::Inte
 /***********************************************************************************/
 /***********************************************************************************/
 
-template class KRATOS_API(KRATOS_CORE) AssignScalarVariableToEntitiesProcess<Node, AssignScalarVariableToEntitiesProcessSettings::SaveAsNonHistoricalVariable>;
-template class KRATOS_API(KRATOS_CORE) AssignScalarVariableToEntitiesProcess<Node, AssignScalarVariableToEntitiesProcessSettings::SaveAsHistoricalVariable>;
-template class KRATOS_API(KRATOS_CORE) AssignScalarVariableToEntitiesProcess<Condition>;
-template class KRATOS_API(KRATOS_CORE) AssignScalarVariableToEntitiesProcess<Element>;
-template class KRATOS_API(KRATOS_CORE) AssignScalarVariableToEntitiesProcess<MasterSlaveConstraint>;
+template class AssignScalarVariableToEntitiesProcess<Node, AssignScalarVariableToEntitiesProcessSettings::SaveAsNonHistoricalVariable>;
+template class AssignScalarVariableToEntitiesProcess<Node, AssignScalarVariableToEntitiesProcessSettings::SaveAsHistoricalVariable>;
+template class AssignScalarVariableToEntitiesProcess<Condition>;
+template class AssignScalarVariableToEntitiesProcess<Element>;
+template class AssignScalarVariableToEntitiesProcess<MasterSlaveConstraint>;
 
 }  // namespace Kratos.

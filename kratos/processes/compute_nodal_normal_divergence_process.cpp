@@ -336,7 +336,7 @@ array_1d<double,3> ComputeNodalNormalDivergenceProcess<THistorical>::GetNonHisto
 /***********************************************************************************/
 /***********************************************************************************/
 
-template class KRATOS_API(KRATOS_CORE) ComputeNodalNormalDivergenceProcess<ComputeNodalDivergenceProcessSettings::SaveAsHistoricalVariable>;
-template class KRATOS_API(KRATOS_CORE) ComputeNodalNormalDivergenceProcess<ComputeNodalDivergenceProcessSettings::SaveAsNonHistoricalVariable>;
+template class ComputeNodalNormalDivergenceProcess<ComputeNodalDivergenceProcessSettings::SaveAsHistoricalVariable>;
+template class ComputeNodalNormalDivergenceProcess<ComputeNodalDivergenceProcessSettings::SaveAsNonHistoricalVariable>;
 
 } /* namespace Kratos.*/

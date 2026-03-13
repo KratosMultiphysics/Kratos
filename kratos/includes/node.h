@@ -1588,9 +1588,6 @@ private:
 
 ///@}
 
-// template class KRATOS_API(KRATOS_CORE) KratosComponents<Node >;
-// template class KRATOS_API(KRATOS_CORE) KratosComponents<Node::Pointer >;
-
 ///@name Type Definitions
 ///@{
 

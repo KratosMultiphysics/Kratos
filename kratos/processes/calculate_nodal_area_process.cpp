@@ -185,8 +185,8 @@ double& CalculateNodalAreaProcess<false>::GetAreaValue(Node& rNode)
 /***********************************************************************************/
 /***********************************************************************************/
 
-template class KRATOS_API(KRATOS_CORE) CalculateNodalAreaProcess<true>;
-template class KRATOS_API(KRATOS_CORE) CalculateNodalAreaProcess<false>;
+template class CalculateNodalAreaProcess<true>;
+template class CalculateNodalAreaProcess<false>;
 
 }  // namespace Kratos.
 

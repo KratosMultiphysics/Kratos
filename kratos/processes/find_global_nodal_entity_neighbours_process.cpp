@@ -256,7 +256,7 @@ typename FindGlobalNodalEntityNeighboursProcess<TContainerType>::IdMapType FindG
 }
 
 // template instantiations
-template class KRATOS_API(KRATOS_CORE) FindGlobalNodalEntityNeighboursProcess<ModelPart::ConditionsContainerType>;
-template class KRATOS_API(KRATOS_CORE) FindGlobalNodalEntityNeighboursProcess<ModelPart::ElementsContainerType>;
+template class FindGlobalNodalEntityNeighboursProcess<ModelPart::ConditionsContainerType>;
+template class FindGlobalNodalEntityNeighboursProcess<ModelPart::ElementsContainerType>;
 
 }  // namespace Kratos.

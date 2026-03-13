@@ -1009,7 +1009,7 @@ namespace Kratos
         KRATOS_CATCH(" ");
     }
 
-    template class KRATOS_API(KRATOS_CORE) Kratos::CalculateDiscontinuousDistanceToSkinProcess<2>;
-    template class KRATOS_API(KRATOS_CORE) Kratos::CalculateDiscontinuousDistanceToSkinProcess<3>;
+    template class Kratos::CalculateDiscontinuousDistanceToSkinProcess<2>;
+    template class Kratos::CalculateDiscontinuousDistanceToSkinProcess<3>;
 
 }  // namespace Kratos.
