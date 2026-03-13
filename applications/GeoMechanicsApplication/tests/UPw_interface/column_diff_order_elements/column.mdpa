@@ -87,20 +87,14 @@ Begin SubModelPart RightSide
     End SubModelPartNodes
 End SubModelPart
 
-Begin Table 1 X LINE_LOAD_Y
-    0.0000000000 -2000000.0000000000 
-    1.0000000000 -2000000.0000000000 
-End Table
-
-Begin Table 2 TIME WATER_PRESSURE
+Begin Table 1 TIME WATER_PRESSURE
     0.0000000000 0.0000000000
-    1.0000000000 1000.0000000000
+    1.0000000000 10000.000000
 End Table
 
 Begin SubModelPart Top
   Begin SubModelPartTables
     1
-    2
   End SubModelPartTables
   Begin SubModelPartNodes
     5

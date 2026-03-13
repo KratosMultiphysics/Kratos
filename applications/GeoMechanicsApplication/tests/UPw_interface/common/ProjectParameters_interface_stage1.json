@@ -134,7 +134,7 @@
                 "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
                 "process_name": "ApplyVectorConstraintTableProcess",
                 "Parameters": {
-                    "model_part_name": "PorousDomain.settlement_computational_model_part",
+                    "model_part_name": "PorousDomain.Soil",
                     "variable_name": "VOLUME_ACCELERATION",
                     "active": [false, true, false],
                     "value": [0.0, -9.81, 0.0],
@@ -148,7 +148,7 @@
                 "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
                 "process_name": "ApplyK0ProcedureProcess",
                 "Parameters": {
-                    "model_part_name": "PorousDomain.settlement_computational_model_part"
+                    "model_part_name": "PorousDomain.Soil"
                 }
             }
         ]
