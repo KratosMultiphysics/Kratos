@@ -6,10 +6,31 @@ import KratosMultiphysics.analysis_stage as analysis_stage
 import KratosMultiphysics.FluidDynamicsApplication.cfd_utils as cfd_utils
 import KratosMultiphysics.scipy_conversion_tools as scipy_conversion_tools
 import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
+from cupyx.scipy.sparse.linalg import LinearOperator
 
 xp = cfd_utils.xp
 USE_CUPY = cfd_utils.USE_CUPY
 USE_AMGX = cfd_utils.USE_AMGX if USE_CUPY else None
+
+class JacobiPreconditioner(LinearOperator):
+    def __init__(self, A):
+        """
+        Computes and stores the inverse diagonal of A just once upon initialization.
+        """
+        self.shape = A.shape
+        self.dtype = A.dtype
+        
+        # Store the inverse diagonal as a class attribute
+        self.inv_diag = 1.0 / A.diagonal()
+
+    def _matvec(self, v):
+        """
+        Applies the preconditioner to vector v. 
+        CuPy's solver automatically calls this method.
+        """
+        return self.inv_diag * v
+        
+
 
 class VectorizedCFDStage(analysis_stage.AnalysisStage):
     def __init__(self, model, project_parameters):
@@ -54,7 +75,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         self.convection_integration_order = 2 # TODO: think on exposing this to the json
 
         self.pressure_max_iteration = 500 # TODO: think on exposing this to the json
-        self.pressure_tolerance = 1.0e-6 # TODO: think on exposing this to the json
+        self.pressure_tolerance = 1.0e-9 # TODO: think on exposing this to the json
 
     def ComputeLumpedMass(self):
         Mscalar = xp.zeros(len(self.model_part.Nodes), dtype=cfd_utils.PRECISION)
@@ -86,11 +107,22 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
     def ComputeTau(self,h,v_elemental,viscosity,dt,rho):
         c_1 = 4.0
-        c_2 = 2.0
-        vavg=xp.sum(v_elemental,axis=1) / (self.dim+1.0)
-        vnorms = xp.linalg.norm(vavg,axis=1)
-        tau_1 = 1.0/(0.01*rho/dt + c_2*rho*vnorms/h + c_1*viscosity/h**2)
+        c_2 = 2.0      
+
+        v_el_mean = xp.mean(v_elemental, axis=1)
+
+        # Calculate the advective projection v · ∇N_i for each node in each element representing the discrete convective operator
+        # For linear (P1) elements, shape function gradients are constant inside the element and scale like 1/h
+        # Since |∇N| ~ 1/h, this term scales like |v|/h and determines the CFL limit
+        advective_projection = xp.einsum('ek, enk -> en', v_el_mean, self.DN)
+
+        # Compute the convective spectral radius (inverse time scale)
+        # Note that the summation over the element nodes is a consistent upper bound of the local discrete convective operator magnitude (Gershgorin-type estimate)
+        v_on_h = xp.sum(xp.abs(advective_projection), axis=1)/self.n_in_el
+
+        tau_1 = 1.0/(rho/dt + c_2*rho*v_on_h + c_1*viscosity/h**2)
         tau_2 = h**2/(c_1 * tau_1)
+        
         return tau_1, tau_2
 
     def PrepareModelPart(self):
@@ -528,7 +560,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         #     p, info = cfd_utils.sparse_linalg.cg(A_cu, rhs, rtol=1e-9)
         # else:
         #     p, info = self._SolvePressure(rhs)
-        p, is_converged = self._SolvePressure(rhs)
+        p, is_converged = self._SolvePressure(rhs,p)
         if not is_converged:
             print("CG failed to converge.")
 
@@ -655,8 +687,8 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         res += self.cfd_utils.Compute_DN_N(self.N, DN, p_elemental)
 
         #-(∇·w,tau_2·∇·v) + (∇·w,tau_2·Pi_div)
-        # div_div_stab = self.cfd_utils.ComputeDivDivStabilization(N, DN, v_elemental, proj_div_el)
-        # res -= div_div_stab * self.tau_2[:,np.newaxis,np.newaxis]
+        div_div_stab = self.cfd_utils.ComputeDivDivStabilization(self.N, DN, v_elemental, proj_div_el)
+        res -= div_div_stab * self.tau_2[:,np.newaxis,np.newaxis]
 
         # Multiply by volume
         # Note that the convective term already includes the corresponding weighting factor to emulate the Jacobian determinant, so we just need to apply the volume here)
@@ -830,7 +862,10 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
             # x = KM.SystemVector(self.L.Size1()) #FIXME: fake arrays to match the interface
             # self.linear_solver.Initialize(self.L, b, x)
 
-    def _SolvePressure(self, rhs):
+    
+
+
+    def _SolvePressure(self, rhs, previous_p):
         if USE_CUPY:
             if USE_AMGX:
                 # Update matrix coefficients only
@@ -841,7 +876,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
                 self.b_amgx.upload(rhs)
 
                 # Optional initial guess
-                self.x_amgx.upload(xp.zeros_like(rhs))
+                self.x_amgx.upload(xp.zeros_like(rhs)) #FIXME: here we should pass p
 
                 # Solve and get convergence status
                 self.A_amgx.upload_CSR(self.L)
@@ -851,10 +886,13 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
                 return self.x_amgx.download(), is_converged
             else:
+                precond = JacobiPreconditioner(self.L)
+                
                 # Solve and get convergence status
-                sol, status = cfd_utils.sparse_linalg.cg(self.L, rhs, rtol=self.pressure_tolerance)
+                sol, status = cfd_utils.sparse_linalg.cg(self.L, rhs, x0=previous_p, rtol=self.pressure_tolerance, M=precond)
                 is_converged = status == 0 # Note that the status is 0 if the solver converged
-
+                if not is_converged:
+                    print("CG failed to converge.")
                 return sol, is_converged
         else:
 
