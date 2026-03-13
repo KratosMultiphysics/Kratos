@@ -223,7 +223,7 @@ void EdgeBasedGradientRecoveryElement<3>::GetDofList(
     }
 }
 
-template class EdgeBasedGradientRecoveryElement<2>;
-template class EdgeBasedGradientRecoveryElement<3>;
+template class KRATOS_API(KRATOS_CORE) EdgeBasedGradientRecoveryElement<2>;
+template class KRATOS_API(KRATOS_CORE) EdgeBasedGradientRecoveryElement<3>;
 
 } // namespace Kratos.

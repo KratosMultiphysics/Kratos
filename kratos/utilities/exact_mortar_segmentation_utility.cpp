@@ -1611,16 +1611,16 @@ inline bool ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong, TNumNodesMas
 /***********************************************************************************/
 /***********************************************************************************/
 
-template class ExactMortarIntegrationUtility<2, 2, false>;
-template class ExactMortarIntegrationUtility<3, 3, false>;
-template class ExactMortarIntegrationUtility<3, 4, false>;
-template class ExactMortarIntegrationUtility<3, 3, false, 4>;
-template class ExactMortarIntegrationUtility<3, 4, false, 3>;
+template class KRATOS_API(KRATOS_CORE) ExactMortarIntegrationUtility<2, 2, false>;
+template class KRATOS_API(KRATOS_CORE) ExactMortarIntegrationUtility<3, 3, false>;
+template class KRATOS_API(KRATOS_CORE) ExactMortarIntegrationUtility<3, 4, false>;
+template class KRATOS_API(KRATOS_CORE) ExactMortarIntegrationUtility<3, 3, false, 4>;
+template class KRATOS_API(KRATOS_CORE) ExactMortarIntegrationUtility<3, 4, false, 3>;
 
-template class ExactMortarIntegrationUtility<2, 2, true>;
-template class ExactMortarIntegrationUtility<3, 3, true>;
-template class ExactMortarIntegrationUtility<3, 4, true>;
-template class ExactMortarIntegrationUtility<3, 3, true, 4>;
-template class ExactMortarIntegrationUtility<3, 4, true, 3>;
+template class KRATOS_API(KRATOS_CORE) ExactMortarIntegrationUtility<2, 2, true>;
+template class KRATOS_API(KRATOS_CORE) ExactMortarIntegrationUtility<3, 3, true>;
+template class KRATOS_API(KRATOS_CORE) ExactMortarIntegrationUtility<3, 4, true>;
+template class KRATOS_API(KRATOS_CORE) ExactMortarIntegrationUtility<3, 3, true, 4>;
+template class KRATOS_API(KRATOS_CORE) ExactMortarIntegrationUtility<3, 4, true, 3>;
 
 }  // namespace Kratos.
