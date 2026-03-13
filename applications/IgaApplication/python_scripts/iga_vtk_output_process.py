@@ -52,6 +52,10 @@ class IgaVTKOutputProcess(KratosMultiphysics.Process):
         self.output_file_name = self.params["output_file_name"].GetString()
         if not self.output_file_name.endswith(".vtkhdf"):
             self.output_file_name += ".vtkhdf"
+        
+        # The geometries are not stored in the model part, but they are in the model
+        self.brep_surface = self.model_part.GetGeometry(self.brep_surface_ids[0])
+        print(self.brep_surface)
 
         # self.nodal_results_scalar, self.nodal_results_vector = \
         #     CreateVariablesListFromInput(self.params["nodal_results"])
