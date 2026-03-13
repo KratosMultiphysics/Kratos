@@ -224,7 +224,7 @@ void AMGCLSolve(
     }
 }
 
-template class KRATOS_API(TRILINOS_APPLICATION) AmgclSolver<
+template class KRATOS_API(KRATOS_CORE) AmgclSolver<
     TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>,
     UblasSpace<double, Matrix, Vector>
 >;
