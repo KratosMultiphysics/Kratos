@@ -651,25 +651,28 @@ void RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::CalculateMappingMatri
 
     // Factorize LHS once
     mpLinearSolver->InitializeSolutionStep(*mpOriginInterpolationMatrix, sol, rhs);
-
-    // Solve A x = e_j for each column
+    
+    typename TSparseSpace::VectorType column_values(n_dest);
+    TSparseSpace::Resize(column_values, n_dest);
+    
     for (IndexType j = 0; j < n_support; ++j) {
-
+    
         TSparseSpace::SetToZero(rhs);
         rhs[j] = 1.0;
-
+    
+        // Solve A x = e_j
         mpLinearSolver->PerformSolutionStep(*mpOriginInterpolationMatrix, sol, rhs);
-
-        // Compute column j of mapping matrix: B * sol
+    
+        // Compute column j of mapping matrix: column_values = B * sol
+        TSparseSpace::SetToZero(column_values);
+        TSparseSpace::Mult(*mpDestinationEvaluationMatrix, sol, column_values);
+    
+        // Store result into dense mapping matrix
         for (IndexType i = 0; i < n_dest; ++i) {
-            double value = 0.0;
-            for (IndexType k = 0; k < system_size; ++k) {
-                value += (*mpDestinationEvaluationMatrix)(i, k) * sol[k];
-            }
-            mapping_dense(i, j) = value;
+            mapping_dense(i, j) = column_values[i];
         }
     }
-
+    
     mpLinearSolver->FinalizeSolutionStep(*mpOriginInterpolationMatrix, sol, rhs);
 
     for (IndexType i = 0; i < n_dest; ++i) {
