@@ -1,0 +1,340 @@
+{
+    "properties": [
+        {
+            "model_part_name": "PorousDomain.Excavated_Soil_1",
+            "properties_id": 1,
+            "Material": {
+                "constitutive_law": {
+                    "name": "GeoLinearElasticPlaneStrain2DLaw"
+                },
+                "Variables": {
+                    "IGNORE_UNDRAINED": true,
+                    "DENSITY_SOLID": 2.65035e+03,
+                    "DENSITY_WATER": 1.01937e+03,
+                    "POROSITY": 0.5,
+                    "BULK_MODULUS_SOLID": 1e+09,
+                    "BULK_MODULUS_FLUID": 2e+06,
+                    "PERMEABILITY_XX": 1.02e-11,
+                    "PERMEABILITY_YY": 1.02e-11,
+                    "PERMEABILITY_XY": 0.0,
+                    "DYNAMIC_VISCOSITY": 1e-03,
+                    "YOUNG_MODULUS": 1.2e+07,
+                    "POISSON_RATIO": 0.3,
+                    "BIOT_COEFFICIENT": 1.0,
+                    "RETENTION_LAW": "SaturatedBelowPhreaticLevelLaw",
+                    "SATURATED_SATURATION": 1.0,
+                    "RESIDUAL_SATURATION": 1e-10,
+                    "MINIMUM_RELATIVE_PERMEABILITY": 1e-04,
+                    "K0_MAIN_DIRECTION": 1,
+                    "K0_NC": 0.62
+                }
+            }
+        },
+        {
+            "model_part_name": "PorousDomain.Excavated_Soil_2",
+            "properties_id": 2,
+            "Material": {
+                "constitutive_law": {
+                    "name": "GeoLinearElasticPlaneStrain2DLaw"
+                },
+                "Variables": {
+                    "IGNORE_UNDRAINED": true,
+                    "DENSITY_SOLID": 2.65035e+03,
+                    "DENSITY_WATER": 1.01937e+03,
+                    "POROSITY": 0.5,
+                    "BULK_MODULUS_SOLID": 1e+09,
+                    "BULK_MODULUS_FLUID": 2e+06,
+                    "PERMEABILITY_XX": 1.02e-11,
+                    "PERMEABILITY_YY": 1.02e-11,
+                    "PERMEABILITY_XY": 0.0,
+                    "DYNAMIC_VISCOSITY": 1e-03,
+                    "YOUNG_MODULUS": 1.2e+07,
+                    "POISSON_RATIO": 0.3,
+                    "BIOT_COEFFICIENT": 1.0,
+                    "RETENTION_LAW": "SaturatedBelowPhreaticLevelLaw",
+                    "SATURATED_SATURATION": 1.0,
+                    "RESIDUAL_SATURATION": 1e-10,
+                    "MINIMUM_RELATIVE_PERMEABILITY": 1e-04,
+                    "K0_MAIN_DIRECTION": 1,
+                    "K0_NC": 0.62
+                }
+            }
+        },
+        {
+            "model_part_name": "PorousDomain.Excavated_Soil_3",
+            "properties_id": 3,
+            "Material": {
+                "constitutive_law": {
+                    "name": "GeoLinearElasticPlaneStrain2DLaw"
+                },
+                "Variables": {
+                    "IGNORE_UNDRAINED": true,
+                    "DENSITY_SOLID": 2.65035e+03,
+                    "DENSITY_WATER": 1.01937e+03,
+                    "POROSITY": 0.5,
+                    "BULK_MODULUS_SOLID": 1e+09,
+                    "BULK_MODULUS_FLUID": 2e+06,
+                    "PERMEABILITY_XX": 1.02e-11,
+                    "PERMEABILITY_YY": 1.02e-11,
+                    "PERMEABILITY_XY": 0.0,
+                    "DYNAMIC_VISCOSITY": 1e-03,
+                    "YOUNG_MODULUS": 1.2e+07,
+                    "POISSON_RATIO": 0.3,
+                    "BIOT_COEFFICIENT": 1.0,
+                    "RETENTION_LAW": "SaturatedBelowPhreaticLevelLaw",
+                    "SATURATED_SATURATION": 1.0,
+                    "RESIDUAL_SATURATION": 1e-10,
+                    "MINIMUM_RELATIVE_PERMEABILITY": 1e-04,
+                    "K0_MAIN_DIRECTION": 1,
+                    "K0_NC": 0.62
+                }
+            }
+        },
+        {
+            "model_part_name": "PorousDomain.Soil_Below_Pit",
+            "properties_id": 4,
+            "Material": {
+                "constitutive_law": {
+                    "name": "GeoLinearElasticPlaneStrain2DLaw"
+                },
+                "Variables": {
+                    "IGNORE_UNDRAINED": true,
+                    "DENSITY_SOLID": 2.65035e+03,
+                    "DENSITY_WATER": 1.01937e+03,
+                    "POROSITY": 0.5,
+                    "BULK_MODULUS_SOLID": 1e+09,
+                    "BULK_MODULUS_FLUID": 2e+06,
+                    "PERMEABILITY_XX": 1.02e-11,
+                    "PERMEABILITY_YY": 1.02e-11,
+                    "PERMEABILITY_XY": 0.0,
+                    "DYNAMIC_VISCOSITY": 1e-03,
+                    "YOUNG_MODULUS": 1.2e+07,
+                    "POISSON_RATIO": 0.3,
+                    "BIOT_COEFFICIENT": 1.0,
+                    "RETENTION_LAW": "SaturatedBelowPhreaticLevelLaw",
+                    "SATURATED_SATURATION": 1.0,
+                    "RESIDUAL_SATURATION": 1e-10,
+                    "MINIMUM_RELATIVE_PERMEABILITY": 1e-04,
+                    "K0_MAIN_DIRECTION": 1,
+                    "K0_NC": 0.62
+                }
+            }
+        },
+        {
+            "model_part_name": "PorousDomain.Soil_Bottom_Left",
+            "properties_id": 5,
+            "Material": {
+                "constitutive_law": {
+                    "name": "GeoLinearElasticPlaneStrain2DLaw"
+                },
+                "Variables": {
+                    "IGNORE_UNDRAINED": true,
+                    "DENSITY_SOLID": 2.47561e+03,
+                    "DENSITY_WATER": 1.01937e+03,
+                    "POROSITY": 0.3,
+                    "BULK_MODULUS_SOLID": 1e+09,
+                    "BULK_MODULUS_FLUID": 2e+06,
+                    "PERMEABILITY_XX": 1.02e-11,
+                    "PERMEABILITY_YY": 1.02e-11,
+                    "PERMEABILITY_XY": 0.0,
+                    "DYNAMIC_VISCOSITY": 1e-03,
+                    "YOUNG_MODULUS": 3e+07,
+                    "POISSON_RATIO": 0.3,
+                    "BIOT_COEFFICIENT": 1.0,
+                    "RETENTION_LAW": "SaturatedBelowPhreaticLevelLaw",
+                    "SATURATED_SATURATION": 1.0,
+                    "RESIDUAL_SATURATION": 1e-10,
+                    "MINIMUM_RELATIVE_PERMEABILITY": 1e-04,
+                    "K0_MAIN_DIRECTION": 1,
+                    "K0_NC": 0.46
+                }
+            }
+        },
+        {
+            "model_part_name": "PorousDomain.Soil_Bottom_Right",
+            "properties_id": 6,
+            "Material": {
+                "constitutive_law": {
+                    "name": "GeoLinearElasticPlaneStrain2DLaw"
+                },
+                "Variables": {
+                    "IGNORE_UNDRAINED": true,
+                    "DENSITY_SOLID": 2.47561e+03,
+                    "DENSITY_WATER": 1.01937e+03,
+                    "POROSITY": 0.3,
+                    "BULK_MODULUS_SOLID": 1e+09,
+                    "BULK_MODULUS_FLUID": 2e+06,
+                    "PERMEABILITY_XX": 1.02e-11,
+                    "PERMEABILITY_YY": 1.02e-11,
+                    "PERMEABILITY_XY": 0.0,
+                    "DYNAMIC_VISCOSITY": 1e-03,
+                    "YOUNG_MODULUS": 3e+07,
+                    "POISSON_RATIO": 0.3,
+                    "BIOT_COEFFICIENT": 1.0,
+                    "RETENTION_LAW": "SaturatedBelowPhreaticLevelLaw",
+                    "SATURATED_SATURATION": 1.0,
+                    "RESIDUAL_SATURATION": 1e-10,
+                    "MINIMUM_RELATIVE_PERMEABILITY": 1e-04,
+                    "K0_MAIN_DIRECTION": 1,
+                    "K0_NC": 0.46
+                }
+            }
+        },
+        {
+            "model_part_name": "PorousDomain.Soil_Middle_Right",
+            "properties_id": 7,
+            "Material": {
+                "constitutive_law": {
+                    "name": "GeoLinearElasticPlaneStrain2DLaw"
+                },
+                "Variables": {
+                    "IGNORE_UNDRAINED": true,
+                    "DENSITY_SOLID": 2.65035e+03,
+                    "DENSITY_WATER": 1.01937e+03,
+                    "POROSITY": 0.5,
+                    "BULK_MODULUS_SOLID": 1e+09,
+                    "BULK_MODULUS_FLUID": 2e+06,
+                    "PERMEABILITY_XX": 1.02e-11,
+                    "PERMEABILITY_YY": 1.02e-11,
+                    "PERMEABILITY_XY": 0.0,
+                    "DYNAMIC_VISCOSITY": 1e-03,
+                    "YOUNG_MODULUS": 1.2e+07,
+                    "POISSON_RATIO": 0.3,
+                    "BIOT_COEFFICIENT": 1.0,
+                    "RETENTION_LAW": "SaturatedBelowPhreaticLevelLaw",
+                    "SATURATED_SATURATION": 1.0,
+                    "RESIDUAL_SATURATION": 1e-10,
+                    "MINIMUM_RELATIVE_PERMEABILITY": 1e-04,
+                    "K0_MAIN_DIRECTION": 1,
+                    "K0_NC": 0.62
+                }
+            }
+        },
+        {
+            "model_part_name": "PorousDomain.Soil_Top_Right",
+            "properties_id": 8,
+            "Material": {
+                "constitutive_law": {
+                    "name": "GeoLinearElasticPlaneStrain2DLaw"
+                },
+                "Variables": {
+                    "IGNORE_UNDRAINED": true,
+                    "DENSITY_SOLID": 2.65035e+03,
+                    "DENSITY_WATER": 1.01937e+03,
+                    "POROSITY": 0.5,
+                    "BULK_MODULUS_SOLID": 1e+09,
+                    "BULK_MODULUS_FLUID": 2e+06,
+                    "PERMEABILITY_XX": 1.02e-11,
+                    "PERMEABILITY_YY": 1.02e-11,
+                    "PERMEABILITY_XY": 0.0,
+                    "DYNAMIC_VISCOSITY": 1e-03,
+                    "YOUNG_MODULUS": 1.2e+07,
+                    "POISSON_RATIO": 0.3,
+                    "BIOT_COEFFICIENT": 1.0,
+                    "RETENTION_LAW": "SaturatedBelowPhreaticLevelLaw",
+                    "SATURATED_SATURATION": 1.0,
+                    "RESIDUAL_SATURATION": 1e-10,
+                    "MINIMUM_RELATIVE_PERMEABILITY": 1e-04,
+                    "K0_MAIN_DIRECTION": 1,
+                    "K0_NC": 0.62
+                }
+            }
+        },
+        {
+            "model_part_name": "PorousDomain.Interfaces_Right",
+            "properties_id": 9,
+            "Material": {
+                "constitutive_law": {
+                    "name": "GeoIncrementalLinearElasticInterfaceLaw"
+                },
+                "Variables": {
+                    "INTERFACE_NORMAL_STIFFNESS": 4.615e+07,
+                    "INTERFACE_SHEAR_STIFFNESS": 4.615e+06
+                }
+            }
+        },
+        {
+            "model_part_name": "PorousDomain.Interface_Excavated_Soil_1",
+            "properties_id": 10,
+            "Material": {
+                "constitutive_law": {
+                    "name": "GeoIncrementalLinearElasticInterfaceLaw"
+                },
+                "Variables": {
+                    "INTERFACE_NORMAL_STIFFNESS": 4.615e+07,
+                    "INTERFACE_SHEAR_STIFFNESS": 4.615e+06
+                }
+            }
+        },
+        {
+            "model_part_name": "PorousDomain.Interface_Excavated_Soil_2",
+            "properties_id": 11,
+            "Material": {
+                "constitutive_law": {
+                    "name": "GeoIncrementalLinearElasticInterfaceLaw"
+                },
+                "Variables": {
+                    "INTERFACE_NORMAL_STIFFNESS": 4.615e+07,
+                    "INTERFACE_SHEAR_STIFFNESS": 4.615e+06
+                }
+            }
+        },
+        {
+            "model_part_name": "PorousDomain.Interface_Excavated_Soil_3",
+            "properties_id": 12,
+            "Material": {
+                "constitutive_law": {
+                    "name": "GeoIncrementalLinearElasticInterfaceLaw"
+                },
+                "Variables": {
+                    "INTERFACE_NORMAL_STIFFNESS": 4.615e+07,
+                    "INTERFACE_SHEAR_STIFFNESS": 4.615e+06
+                }
+            }
+        },
+        {
+            "model_part_name": "PorousDomain.Interfaces_Bottom_Left",
+            "properties_id": 13,
+            "Material": {
+                "constitutive_law": {
+                    "name": "GeoIncrementalLinearElasticInterfaceLaw"
+                },
+                "Variables": {
+                    "INTERFACE_NORMAL_STIFFNESS": 4.615e+07,
+                    "INTERFACE_SHEAR_STIFFNESS": 4.615e+06
+                }
+            }
+        },
+        {
+            "model_part_name": "PorousDomain.Beam",
+            "properties_id": 14,
+            "Material": {
+                "constitutive_law": {
+                    "name": "TimoshenkoBeamPlaneStrainElasticConstitutiveLaw"
+                },
+                "Variables": {
+                    "YOUNG_MODULUS": 2.1e+11,
+                    "POISSON_RATIO": 0.0,
+                    "THICKNESS": 1.265,
+                    "THICKNESS_EFFECTIVE_Y": 2.5e-02,
+                    "DENSITY": 805.82
+                }
+            }
+        },
+        {
+            "model_part_name": "PorousDomain.Anchor",
+            "properties_id": 15,
+            "Material": {
+                "constitutive_law": {
+                    "name": "TrussConstitutiveLaw"
+                },
+                "Variables": {
+                    "YOUNG_MODULUS": 2e+09,
+                    "DENSITY": 0.0,
+                    "CROSS_AREA": 4.76e-03,
+                    "TRUSS_PRESTRESS_PK2": 0.0
+                }
+            }
+        }
+    ]
+}
