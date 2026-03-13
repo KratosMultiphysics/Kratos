@@ -319,11 +319,17 @@ namespace Kratos
                 // Initialize strain and stress
                 std::vector<array_1d<double, 6>> strain_cau_cart(mGaussIntegrationThickness.num_GP_thickness);
                 std::vector<array_1d<double, 6>> stress_cau_cart(mGaussIntegrationThickness.num_GP_thickness);
+                std::vector<array_1d<double, 1>> drill_strain(mGaussIntegrationThickness.num_GP_thickness);
+                std::vector<array_1d<double, 1>> drill_stress(mGaussIntegrationThickness.num_GP_thickness);
                 Vector current_displacement = ZeroVector(6*number_of_nodes);
                 GetValuesVector(current_displacement,0);
 
                 strain_cau_cart[Gauss_index] = prod(B, current_displacement);
                 stress_cau_cart[Gauss_index] = prod(constitutive_variables.ConstitutiveMatrix,strain_cau_cart[Gauss_index]);
+
+                drill_strain[Gauss_index] = prod(B_Drill, current_displacement);
+                double E = this->GetProperties().GetValue(YOUNG_MODULUS);
+                drill_stress[Gauss_index] = drill_strain[Gauss_index] * E * 0.05;
 
                 CalculateStressMatrix(stress_cau_cart[Gauss_index],stress_matrix);
                 
@@ -350,7 +356,11 @@ namespace Kratos
                 if (CalculateResidualVectorFlag == true) //calculation of the matrix is required
                 {
                     // operation performed: rRightHandSideVector -= Weight*IntForce
-                    noalias(rRightHandSideVector) -= integration_weight * prod(trans(B), stress_cau_cart[Gauss_index]);
+                    noalias(rRightHandSideVector) -= integration_weight * prod(trans(B), stress_cau_cart[Gauss_index]) * 
+                                                mGaussIntegrationThickness.integration_weight_thickness(Gauss_index);
+
+                    noalias(rRightHandSideVector) -= integration_weight * prod(trans(B_Drill), drill_stress[Gauss_index]) * 
+                            mGaussIntegrationThickness.integration_weight_thickness(Gauss_index);
                 }
 
             } 
@@ -778,18 +788,21 @@ namespace Kratos
         array_1d<double, 3> da1_d2; //da1_d2 = da2_d1
         array_1d<double, 3> da2_d2;
 
+        Vector current_displacement = ZeroVector(6 * number_of_control_points);
+        GetValuesVector(current_displacement, 0);
+
         for (std::size_t i=0;i<number_of_control_points;++i){
-            da1_d1[0] += (GetGeometry().GetPoint( i ).X0()) * r_DDN_DDe(i, 0);
-            da1_d1[1] += (GetGeometry().GetPoint( i ).Y0()) * r_DDN_DDe(i, 0);
-            da1_d1[2] += (GetGeometry().GetPoint( i ).Z0()) * r_DDN_DDe(i, 0);
+            da1_d1[0] += (GetGeometry()[i].Coordinates()[0]) * r_DDN_DDe(i, 0);
+            da1_d1[1] += (GetGeometry()[i].Coordinates()[1]) * r_DDN_DDe(i, 0);
+            da1_d1[2] += (GetGeometry()[i].Coordinates()[2]) * r_DDN_DDe(i, 0);
 
-            da1_d2[0] += (GetGeometry().GetPoint( i ).X0()) * r_DDN_DDe(i, 1);
-            da1_d2[1] += (GetGeometry().GetPoint( i ).Y0()) * r_DDN_DDe(i, 1);
-            da1_d2[2] += (GetGeometry().GetPoint( i ).Z0()) * r_DDN_DDe(i, 1);
+            da1_d2[0] += (GetGeometry()[i].Coordinates()[0]) * r_DDN_DDe(i, 1);
+            da1_d2[1] += (GetGeometry()[i].Coordinates()[1]) * r_DDN_DDe(i, 1);
+            da1_d2[2] += (GetGeometry()[i].Coordinates()[2]) * r_DDN_DDe(i, 1);
 
-            da2_d2[0] += (GetGeometry().GetPoint( i ).X0()) * r_DDN_DDe(i, 2);
-            da2_d2[1] += (GetGeometry().GetPoint( i ).Y0()) * r_DDN_DDe(i, 2);
-            da2_d2[2] += (GetGeometry().GetPoint( i ).Z0()) * r_DDN_DDe(i, 2);
+            da2_d2[0] += (GetGeometry()[i].Coordinates()[0]) * r_DDN_DDe(i, 2);
+            da2_d2[1] += (GetGeometry()[i].Coordinates()[1]) * r_DDN_DDe(i, 2);
+            da2_d2[2] += (GetGeometry()[i].Coordinates()[2]) * r_DDN_DDe(i, 2);
         }
 
         array_1d<double, 3> da3_tilde_d1;
