@@ -69,6 +69,15 @@ public:
     static void AddGeometriesFromElements(
         ModelPart& rModelPart);
 
+    static void AddGeometriesFromConditions(
+        ModelPart& rModelPart);
+
+    static void AddGeometriesFromElementsAndConditions(
+        ModelPart& rModelPart);
+
+    static void AddGeometriesFromElementsAndConditionsAllLevels(
+        ModelPart& rModelPart);
+
     static double ComputeLength(const ModelPart& rModelPart);
 
     static double ComputeArea(const ModelPart& rModelPart);
