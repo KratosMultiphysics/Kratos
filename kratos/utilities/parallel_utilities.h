@@ -216,6 +216,9 @@ public:
             static_assert(TPartitioningScheme == ChunkPartitioningScheme::DIVIDE_BY_CHUNK_SIZE || TPartitioningScheme == ChunkPartitioningScheme::DIVIDE_BY_NUMBER_OF_CHUNKS, "Unsupported partitioning scheme");
         }
 
+        // We need to check that N is positive, otherwise we would end up with a negative number of chunks which would lead to undefined behavior in the parallelization
+        N = std::max(1, N);
+
         static_assert(
             std::is_same_v<typename std::iterator_traits<TIterator>::iterator_category, std::random_access_iterator_tag>,
             "BlockPartition requires random access iterators to divide the input range into partitions"
@@ -237,6 +240,9 @@ public:
         } else {
             static_assert(TPartitioningScheme == ChunkPartitioningScheme::DIVIDE_BY_CHUNK_SIZE || TPartitioningScheme == ChunkPartitioningScheme::DIVIDE_BY_NUMBER_OF_CHUNKS, "Unsupported partitioning scheme");
         }
+
+        // We need to check that the number of chunks is positive, otherwise we would end up with a negative number of chunks which would lead to undefined behavior in the parallelization
+        mNchunks = std::max(1, mNchunks);
 
         // We resize the partition vector to hold the partition indices. We need mNchunks+1 entries to store the start and end indices of each chunk.
         mBlockPartition.resize(mNchunks + 1);
@@ -558,7 +564,10 @@ public:
             N = N > 0 ? N : ParallelUtilities::GetMaxNumberOfChunks();
         } else {
             static_assert(TPartitioningScheme == ChunkPartitioningScheme::DIVIDE_BY_CHUNK_SIZE || TPartitioningScheme == ChunkPartitioningScheme::DIVIDE_BY_NUMBER_OF_CHUNKS, "Unsupported partitioning scheme");
-        }
+        }        
+        
+        // We need to check that N is positive, otherwise we would end up with a negative number of chunks which would lead to undefined behavior in the parallelization
+        N = std::max(1, N);
 
         // We determine the number of chunks based on the chunk size or the number of chunks requested, but we also need to check that we do not create too many chunks which can lead to overhead in the parallelization
         if constexpr (TPartitioningScheme == ChunkPartitioningScheme::DIVIDE_BY_CHUNK_SIZE) { // Determine the number of chunks based on the requested chunk size, but check that it is not larger than the maximum allowed number of chunks
@@ -573,6 +582,9 @@ public:
         } else {
             static_assert(TPartitioningScheme == ChunkPartitioningScheme::DIVIDE_BY_CHUNK_SIZE || TPartitioningScheme == ChunkPartitioningScheme::DIVIDE_BY_NUMBER_OF_CHUNKS, "Unsupported partitioning scheme");
         }
+
+        // We need to check that the number of chunks is positive, otherwise we would end up with a negative number of chunks which would lead to undefined behavior in the parallelization
+        mNchunks = std::max(1, mNchunks);
 
         // We resize the partition vector to hold the partition indices. We need mNchunks+1 entries to store the start and end indices of each chunk.
         mBlockPartition.resize(mNchunks + 1);
