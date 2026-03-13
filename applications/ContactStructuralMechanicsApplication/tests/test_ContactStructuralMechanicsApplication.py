@@ -249,7 +249,6 @@ def AssembleTestSuites():
         smallSuite.addTest(TPenaltyPerfectStickHyperSimplePatchFrictionalTestContact('test_execution'))
         smallSuite.addTest(TPenaltyThresholdSlipHyperSimplePatchFrictionalTestContact('test_execution'))
         smallSuite.addTest(TPenaltyHyperSimplePatchFrictionalSlipTestContact('test_execution'))
-        smallSuite.addTest(TPenaltyHyperSimplePatchFrictionalStickTestContact('test_execution'))
 
         # MPC contact test
         smallSuite.addTest(TTwoDSimplestPatchMatchingTestContact('test_execution'))
@@ -325,6 +324,9 @@ def AssembleTestSuites():
         nightlySuite.addTest(TALMPureFrictionalTestContact('test_execution'))
         nightlySuite.addTest(TALMBasicFrictionTestContact('test_execution'))
         nightlySuite.addTest(TALMStaticEvolutionLoadFrictionTestContact('test_execution'))
+
+        # Penalty frictional tests
+        nightlySuite.addTest(TPenaltyHyperSimplePatchFrictionalStickTestContact('test_execution'))
 
         # MPC contact test
         nightlySuite.addTest(TBeamAxilSimpleContactTest('test_execution'))
