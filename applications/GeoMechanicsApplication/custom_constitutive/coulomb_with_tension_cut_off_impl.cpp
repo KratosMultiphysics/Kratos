@@ -16,7 +16,6 @@
 #include "custom_constitutive/coulomb_with_tension_cut_off_impl.h"
 #include "custom_constitutive/principal_stresses.hpp"
 #include "custom_constitutive/sigma_tau.hpp"
-#include "custom_utilities/constitutive_law_utilities.h"
 #include "custom_utilities/stress_strain_utilities.h"
 #include "custom_utilities/ublas_utilities.h"
 #include "geo_mechanics_application_variables.h"
@@ -317,16 +316,16 @@ void CoulombWithTensionCutOffImpl::save(Serializer& rSerializer) const
 {
     rSerializer.save("CoulombYieldSurface", mCoulombYieldSurface);
     rSerializer.save("TensionCutOff", mTensionCutOff);
-    rSerializer.save("PlasticStatus", static_cast<int>(mPlasticityStatus));
+    rSerializer.save("PlasticityStatus", static_cast<int>(mPlasticityStatus));
 }
 
 void CoulombWithTensionCutOffImpl::load(Serializer& rSerializer)
 {
     rSerializer.load("CoulombYieldSurface", mCoulombYieldSurface);
     rSerializer.load("TensionCutOff", mTensionCutOff);
-    int int_plasticity_status;
-    rSerializer.load("PlasticStatus", int_plasticity_status);
-    mPlasticityStatus = static_cast<PlasticityStatus>(int_plasticity_status);
+    int plasticity_status;
+    rSerializer.load("PlasticityStatus", plasticity_status);
+    mPlasticityStatus = static_cast<PlasticityStatus>(plasticity_status);
 }
 
 } // namespace Kratos

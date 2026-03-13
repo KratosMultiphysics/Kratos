@@ -108,7 +108,7 @@ public:
 
     void CalculateOnIntegrationPoints(const Variable<int>& rVariable,
                                       std::vector<int>&    rValues,
-                                      const ProcessInfo&   rCurrentProcessInfo) override;
+                                      const ProcessInfo&) override;
 
     using UPwBaseElement::CalculateOnIntegrationPoints;
 

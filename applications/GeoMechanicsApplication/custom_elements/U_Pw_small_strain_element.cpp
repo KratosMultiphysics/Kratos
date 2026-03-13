@@ -632,10 +632,8 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const 
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const Variable<int>& rVariable,
                                                                           std::vector<int>& rValues,
-                                                                          const ProcessInfo& rCurrentProcessInfo)
+                                                                          const ProcessInfo&)
 {
-    KRATOS_TRY
-
     const auto number_of_integration_points =
         GetGeometry().IntegrationPointsNumber(this->GetIntegrationMethod());
 
@@ -643,8 +641,6 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const 
     for (auto i = SizeType{0}; i < number_of_integration_points; ++i) {
         rValues[i] = mConstitutiveLawVector[i]->GetValue(rVariable, rValues[i]);
     }
-
-    KRATOS_CATCH("")
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>

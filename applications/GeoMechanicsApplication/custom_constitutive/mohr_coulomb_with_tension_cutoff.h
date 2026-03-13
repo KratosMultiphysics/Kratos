@@ -15,7 +15,6 @@
 #pragma once
 
 #include "custom_constitutive/coulomb_with_tension_cut_off_impl.h"
-#include "geo_mechanics_application_constants.h"
 #include "includes/constitutive_law.h"
 
 namespace Kratos
