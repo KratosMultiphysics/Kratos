@@ -25,6 +25,7 @@
 #include "includes/variables.h"
 #include "includes/node.h"
 #include "includes/properties.h"
+#include "includes/adjoint_interface.hpp"
 #include "geometries/geometry.h"
 #include "utilities/math_utils.h"
 #include "includes/process_info.h"
@@ -41,8 +42,7 @@ namespace Kratos
 /**
  * Base class of constitutive laws.
  */
-class KRATOS_API(KRATOS_CORE) ConstitutiveLaw : public Flags
-{
+class KRATOS_API(KRATOS_CORE) ConstitutiveLaw : public Flags, public IAdjointElement {
 public:
 
 

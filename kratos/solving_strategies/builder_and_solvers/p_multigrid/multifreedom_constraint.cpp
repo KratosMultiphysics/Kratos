@@ -16,6 +16,7 @@
 
 // System includes
 #include <algorithm> // std::copy, std::transform
+#include <format> // std::format
 
 
 namespace Kratos {
@@ -40,9 +41,10 @@ void MultifreedomConstraint::GetDofList(DofPointerVectorType& rSlaveDofs,
 {
     rSlaveDofs.clear();
     rMasterDofs.resize(mDofs.size());
-    std::copy(mDofs.begin(),
-              mDofs.end(),
-              rMasterDofs.begin());
+    std::copy(
+        mDofs.begin(),
+        mDofs.end(),
+        rMasterDofs.begin());
 }
 
 
@@ -51,12 +53,14 @@ void MultifreedomConstraint::SetDofList(const DofPointerVectorType& rSlaveDofs,
                                         const ProcessInfo&)
 {
     mDofs.resize(rSlaveDofs.size() + rMasterDofs.size());
-    std::copy(rSlaveDofs.begin(),
-              rSlaveDofs.end(),
-              mDofs.begin());
-    std::copy(rMasterDofs.begin(),
-              rMasterDofs.end(),
-              mDofs.begin() + rSlaveDofs.size());
+    std::copy(
+        rSlaveDofs.begin(),
+        rSlaveDofs.end(),
+        mDofs.begin());
+    std::copy(
+        rMasterDofs.begin(),
+        rMasterDofs.end(),
+        mDofs.begin() + rSlaveDofs.size());
 }
 
 
@@ -66,10 +70,26 @@ void MultifreedomConstraint::EquationIdVector(EquationIdVectorType& rSlaveDofs,
 {
     rSlaveDofs.clear();
     rMasterDofs.resize(mDofs.size());
-    std::transform(mDofs.begin(),
-                   mDofs.end(),
-                   rMasterDofs.begin(),
-                   [](const Dof<double>* p_dof) {return p_dof->EquationId();});
+    std::transform(
+        mDofs.begin(),
+        mDofs.end(),
+        rMasterDofs.begin(),
+        [](const Dof<double>* p_dof) {return p_dof->EquationId();});
+}
+
+
+std::size_t MultifreedomConstraint::DofCount() const noexcept {
+    return mDofs.size();
+}
+
+
+void MultifreedomConstraint::GetDofs(std::vector<const Dof<IAdjoint::Scalar>*>& rOutput) const {
+    rOutput.clear();
+    rOutput.reserve(mDofs.size());
+    std::copy(
+        mDofs.begin(),
+        mDofs.end(),
+        std::back_inserter(rOutput));
 }
 
 

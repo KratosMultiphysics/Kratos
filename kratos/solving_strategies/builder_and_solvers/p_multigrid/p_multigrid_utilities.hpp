@@ -503,7 +503,13 @@ void MakePRestrictionOperator(ModelPart& rModelPart,
     for (const auto& r_variable_data : rModelPart.GetNodalSolutionStepVariablesList()) {
         const std::string& r_name = r_variable_data.Name();
 
-        if (r_variable_data.IsNotComponent()) {
+        if (KratosComponents<Variable<double>>::Has(r_name)) {
+            const Variable<double>& r_variable = KratosComponents<Variable<double>>::Get(r_name);
+            const auto key = r_variable_data.Key();
+            solution_step_variable_map.emplace(key, &r_variable);
+        }
+
+        if (!r_variable_data.IsComponent()) {
             for (auto suffix : {"_X", "_Y", "_Z", "_XX", "_YY", "_ZZ", "_XY", "_YZ", "_XZ"}) {
                 const std::string component_name = r_name + suffix;
                 if (KratosComponents<Variable<double>>::Has(component_name)) {
@@ -512,12 +518,6 @@ void MakePRestrictionOperator(ModelPart& rModelPart,
                     solution_step_variable_map.emplace(key, &r_variable);
                 }
             }
-        } else {
-            const auto key = r_variable_data.Key();
-            KRATOS_ERROR_IF_NOT(KratosComponents<Variable<double>>::Has(r_name))
-                << r_name << " is not a registered variable";
-            const Variable<double>& r_variable = KratosComponents<Variable<double>>::Get(r_name);
-            solution_step_variable_map.emplace(key, &r_variable);
         }
     } // for r_variable_data in rModelPart.GetNodalSolutionStepVariablesList
 
