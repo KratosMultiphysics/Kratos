@@ -248,18 +248,8 @@ def AssembleTestSuites():
         smallSuite.addTest(TPenaltyNoFrictionHyperSimplePatchFrictionalTestContact('test_execution'))
         smallSuite.addTest(TPenaltyPerfectStickHyperSimplePatchFrictionalTestContact('test_execution'))
         smallSuite.addTest(TPenaltyThresholdSlipHyperSimplePatchFrictionalTestContact('test_execution'))
-        smallSuite.addTest(TPenaltyHyperSimplePatchFrictionalSlipTestContact('test_execution'))
-        smallSuite.addTest(TPenaltyHyperSimplePatchFrictionalStickTestContact('test_execution'))
 
         # MPC contact test
-        smallSuite.addTest(TTwoDSimplestPatchMatchingTestContact('test_execution'))
-        smallSuite.addTest(TTwoDSimplestWithFrictionPatchMatchingTestContact('test_execution'))
-        if has_CL_application:
-            smallSuite.addTest(TThreeDSimplestPatchMatchingTestContact('test_execution'))
-            smallSuite.addTest(TThreeDSimplestWithFrictionPatchMatchingTestContact('test_execution'))
-        smallSuite.addTest(TThreeDSimplestPatchMatchingSlopeTestContact('test_execution'))
-        smallSuite.addTest(TThreeDPatchMatchingTestContact('test_execution'))
-        smallSuite.addTest(TThreeDPatchNotMatchingTestContact('test_execution'))
 
         ### END SMALL SUITE ###
 
@@ -326,7 +316,19 @@ def AssembleTestSuites():
         nightlySuite.addTest(TALMBasicFrictionTestContact('test_execution'))
         nightlySuite.addTest(TALMStaticEvolutionLoadFrictionTestContact('test_execution'))
 
+        # Penalty frictional tests
+        nightlySuite.addTest(TPenaltyHyperSimplePatchFrictionalSlipTestContact('test_execution'))
+        nightlySuite.addTest(TPenaltyHyperSimplePatchFrictionalStickTestContact('test_execution'))
+
         # MPC contact test
+        nightlySuite.addTest(TTwoDSimplestPatchMatchingTestContact('test_execution'))
+        nightlySuite.addTest(TTwoDSimplestWithFrictionPatchMatchingTestContact('test_execution'))
+        if has_CL_application:
+            nightlySuite.addTest(TThreeDSimplestPatchMatchingTestContact('test_execution'))
+            nightlySuite.addTest(TThreeDSimplestWithFrictionPatchMatchingTestContact('test_execution'))
+        nightlySuite.addTest(TThreeDSimplestPatchMatchingSlopeTestContact('test_execution'))
+        nightlySuite.addTest(TThreeDPatchMatchingTestContact('test_execution'))
+        nightlySuite.addTest(TThreeDPatchNotMatchingTestContact('test_execution'))
         nightlySuite.addTest(TBeamAxilSimpleContactTest('test_execution'))
         nightlySuite.addTest(TBeamContactTest('test_execution'))
         nightlySuite.addTest(TBeamContactWithTyingTest('test_execution'))
