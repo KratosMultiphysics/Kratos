@@ -284,7 +284,7 @@ public:
         return true;
     }
 
-    const virtual GeometryType::IntegrationPointsArrayType  IntegrationPoints() const 
+    const virtual GeometryType::IntegrationPointsArrayType  IntegrationPoints() const
     {
         return GetGeometry().IntegrationPoints();
     }
@@ -628,14 +628,14 @@ public:
     ///@}
     ///@name Input and output
     ///@{
-    
+
     /**
      * @brief This method provides the specifications/requirements of the element
      * @details This can be used to enhance solvers and analysis
      * @return specifications The required specifications/requirements
      */
     const Parameters GetSpecifications() const override;
-    
+
     /// Turn back information as a string.
     std::string Info() const override
     {
@@ -669,8 +669,13 @@ public:
     }
 
     ///@}
-    ///@name Friends
-    ///@{
+    /// @name Adjoint Interface
+    /// @{
+
+    /// @copydoc IAdjointElement::GetDofs
+    void GetDofs(std::vector<const Dof<IAdjoint::Scalar>*>& rOutput) const override;
+
+    /// @}
 
 protected:
 
@@ -957,8 +962,18 @@ protected:
     ///@{
 
     ///@}
-    ///@name Protected LifeCycle
-    ///@{
+    /// @name Adjoint Interface (protected)
+    /// @{
+
+
+    /// @copydoc IAdjointElement::GetMassInfluencingVariables
+    void GetMassInfluencingVariables(std::vector<IAdjoint::VARIABLE>& rOutput) const override;
+
+
+    /// @copydoc IAdjointElement::GetDampingInfluencingVariables
+    void GetDampingInfluencingVariables(std::vector<IAdjoint::VARIABLE>& rOutput) const override;
+
+    /// @}
 
 private:
     ///@name Static Member Variables

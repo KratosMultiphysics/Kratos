@@ -17,8 +17,52 @@
 #include "finite_difference_utility.h"
 #include "utilities/openmp_utils.h"
 
-namespace Kratos
-{
+namespace Kratos {
+
+
+template <IAdjoint::ResidualTerm Term, class TEntity>
+requires (std::is_same_v<TEntity,Element> || std::is_same_v<TEntity,Condition>)
+void FiniteDifferenceUtility::ComputeDerivative(
+    const TEntity& rEntity,
+    const std::conditional_t<
+        Term == IAdjoint::ResidualTerm::Load,
+        Vector,
+        Matrix
+    >& rValue,
+    const IAdjoint::VARIABLE& rVariable,
+    Matrix& rOutput,
+    double Perturbation,
+    const ProcessInfo& rProcessInfo) {
+        KRATOS_TRY
+
+        KRATOS_CATCH("")
+}
+
+
+#define KRATOS_INSTANTIATE_FINITE_DIFFERENCE_UTILITY(Term, TEntity)         \
+    template void FiniteDifferenceUtility::ComputeDerivative<Term,TEntity>( \
+        const TEntity&,                                                     \
+        const std::conditional_t<                                           \
+            Term == IAdjoint::ResidualTerm::Load,                           \
+            Vector,                                                         \
+            Matrix                                                          \
+        >&,                                                                 \
+        const IAdjoint::VARIABLE&,                                          \
+        Matrix&,                                                            \
+        double,                                                             \
+        const ProcessInfo&);
+
+KRATOS_INSTANTIATE_FINITE_DIFFERENCE_UTILITY(IAdjoint::ResidualTerm::Load, Element)
+KRATOS_INSTANTIATE_FINITE_DIFFERENCE_UTILITY(IAdjoint::ResidualTerm::Mass, Element)
+KRATOS_INSTANTIATE_FINITE_DIFFERENCE_UTILITY(IAdjoint::ResidualTerm::Damping, Element)
+KRATOS_INSTANTIATE_FINITE_DIFFERENCE_UTILITY(IAdjoint::ResidualTerm::Stiffness, Element)
+KRATOS_INSTANTIATE_FINITE_DIFFERENCE_UTILITY(IAdjoint::ResidualTerm::Load, Condition)
+KRATOS_INSTANTIATE_FINITE_DIFFERENCE_UTILITY(IAdjoint::ResidualTerm::Mass, Condition)
+KRATOS_INSTANTIATE_FINITE_DIFFERENCE_UTILITY(IAdjoint::ResidualTerm::Damping, Condition)
+KRATOS_INSTANTIATE_FINITE_DIFFERENCE_UTILITY(IAdjoint::ResidualTerm::Stiffness, Condition)
+#undef KRATOS_INSTANTIATE_FINITE_DIFFERENCE_UTILITY
+
+
     void FiniteDifferenceUtility::CalculateRightHandSideDerivative(Element& rElement,
                                                 const Vector& rRHS,
                                                 const Variable<double>& rDesignVariable,

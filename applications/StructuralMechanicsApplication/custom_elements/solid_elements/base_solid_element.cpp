@@ -26,6 +26,9 @@
 #include "custom_utilities/structural_mechanics_element_utilities.h"
 #include "custom_utilities/constitutive_law_utilities.h"
 
+// --- STL Includes ---
+#include <format> // std::format
+
 namespace Kratos
 {
 
@@ -1134,7 +1137,7 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
         } else {
             CalculateOnConstitutiveLaw(rVariable, rOutput, rCurrentProcessInfo);
         }
-        
+
 
     }
 }
@@ -1670,6 +1673,87 @@ void BaseSolidElement::RotateToGlobalAxes(
         rValues.SetDeformationGradientF(rThisKinematicVariables.F);
     }
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+
+void BaseSolidElement::GetDofs(std::vector<const Dof<IAdjoint::Scalar>*>& rOutput) const {
+    KRATOS_TRY
+        DofsVectorType dof_list;
+        ProcessInfo process_info;
+        this->GetDofList(dof_list, process_info);
+        rOutput.clear();
+        rOutput.reserve(dof_list.size());
+        std::copy(
+            dof_list.begin(),
+            dof_list.end(),
+            std::back_inserter(rOutput));
+    KRATOS_CATCH("")
+}
+
+
+void BaseSolidElement::GetMassInfluencingVariables(std::vector<IAdjoint::VARIABLE>& rOutput) const {
+    // This function must be consistent with BaseSolidElement::CalculateMassMatrix
+    KRATOS_TRY
+        rOutput.clear();
+        rOutput.reserve(6);
+
+        // Density-related variables.
+        // The element reroutes calls to StructuralMechanicsElementUtilities::GetDensityForMassMatrixComputation,
+        // and the following bits should reflect the behavior of that function.
+        const Properties& r_properties = this->GetProperties();
+        rOutput.push_back(DENSITY);
+        if (this->Has(MASS_FACTOR) || r_properties.Has(MASS_FACTOR)) rOutput.push_back(MASS_FACTOR);
+
+        // Thickness for solids???
+        if (this->GetGeometry().WorkingSpaceDimension() == 2 && r_properties.Has(THICKNESS)) rOutput.push_back(THICKNESS);
+
+        // Geometry.
+        rOutput.push_back(SHAPE_X);
+        rOutput.push_back(SHAPE_Y);
+        rOutput.push_back(SHAPE_Z);
+    KRATOS_CATCH("")
+}
+
+
+void BaseSolidElement::GetDampingInfluencingVariables(std::vector<IAdjoint::VARIABLE>& rOutput) const {
+    // This function must be consistent with BaseSolidElement::CalculateDampingMatrix
+    KRATOS_TRY
+        rOutput.clear();
+        rOutput.reserve(6);
+
+        // Rayleigh damping as a linear combination of stiffness and mass matrices.
+        std::vector<IAdjoint::VARIABLE> buffer;
+        this->GetMassInfluencingVariables(buffer);
+        rOutput.insert(
+            rOutput.end(),
+            buffer.begin(),
+            buffer.end());
+
+        this->GetStiffnessInfluencingVariables(buffer);
+        rOutput.insert(
+            rOutput.end(),
+            buffer.begin(),
+            buffer.end());
+
+        std::sort(
+            rOutput.begin(),
+            rOutput.end(),
+            [] (const IAdjoint::VARIABLE& r_left, const IAdjoint::VARIABLE& r_right) -> bool {
+                return r_left.Key() < r_right.Key();
+            });
+        rOutput.erase(
+            std::unique(
+                rOutput.begin(),
+                rOutput.end(),
+                [] (const IAdjoint::VARIABLE& r_left, const IAdjoint::VARIABLE& r_right) -> bool {
+                    return r_left.Key() == r_right.Key();
+                }),
+            rOutput.end());
+    KRATOS_CATCH("")
+}
+
 
 /***********************************************************************************/
 /***********************************************************************************/

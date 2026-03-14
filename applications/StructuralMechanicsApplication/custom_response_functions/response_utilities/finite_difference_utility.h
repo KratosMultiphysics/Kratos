@@ -20,6 +20,7 @@
 #include "includes/element.h"
 #include "includes/condition.h"
 #include "structural_mechanics_application_variables.h"
+#include "includes/adjoint_interface.hpp"
 
 namespace Kratos
 {
@@ -38,6 +39,20 @@ public:
     typedef Variable<double> array_1d_component_type;
     typedef std::size_t IndexType;
     typedef std::size_t SizeType;
+
+    template <IAdjoint::ResidualTerm Term, class TEntity>
+    requires (std::is_same_v<TEntity,Element> || std::is_same_v<TEntity,Condition>)
+    static void ComputeDerivative(
+        const TEntity& rEntity,
+        const std::conditional_t<
+            Term == IAdjoint::ResidualTerm::Load,
+            Vector,
+            Matrix
+        >& rValue,
+        const IAdjoint::VARIABLE& rVariable,
+        Matrix& rOutput,
+        double Perturbation,
+        const ProcessInfo& rProcessInfo);
 
     static void CalculateRightHandSideDerivative(Element& rElement,
                                                 const Vector& rRHS,
