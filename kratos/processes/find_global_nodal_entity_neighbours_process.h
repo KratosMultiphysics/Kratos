@@ -173,4 +173,7 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }
 ///@}
 
+KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) FindGlobalNodalEntityNeighboursProcess<ModelPart::ConditionsContainerType>;
+KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) FindGlobalNodalEntityNeighboursProcess<ModelPart::ElementsContainerType>;
+
 }  // namespace Kratos.

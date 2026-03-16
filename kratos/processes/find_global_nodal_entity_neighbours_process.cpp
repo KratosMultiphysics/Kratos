@@ -79,30 +79,21 @@ FindGlobalNodalEntityNeighboursProcess<TContainerType>::FindGlobalNodalEntityNei
     mModelPartName = Params["model_part_name"].GetString();
 }
 
-template<>
-FindGlobalNodalEntityNeighboursProcess<ModelPart::ConditionsContainerType>::FindGlobalNodalEntityNeighboursProcess(
-    ModelPart& rModelPart)
-    : mrModel(rModelPart.GetModel()),
-      mrOutputVariable(NEIGHBOUR_CONDITIONS)
-{
-    mModelPartName = rModelPart.FullName();
-}
-
-template<>
-FindGlobalNodalEntityNeighboursProcess<ModelPart::ElementsContainerType>::FindGlobalNodalEntityNeighboursProcess(
-    ModelPart& rModelPart)
-    : mrModel(rModelPart.GetModel()),
-      mrOutputVariable(NEIGHBOUR_ELEMENTS)
-{
-    mModelPartName = rModelPart.FullName();
-}
-
 template<class TContainerType>
 FindGlobalNodalEntityNeighboursProcess<TContainerType>::FindGlobalNodalEntityNeighboursProcess(
     ModelPart& rModelPart)
-    : mrModel(rModelPart.GetModel())
+    : mrModel(rModelPart.GetModel()),
+      mrOutputVariable([&]() -> Variable<typename FindGlobalNodalEntityNeighboursProcess<TContainerType>::GlobalEntityPointersVectorType>& {
+        if constexpr (std::is_same_v<TContainerType, ModelPart::ElementsContainerType>) {
+            return NEIGHBOUR_ELEMENTS;
+        } else if constexpr (std::is_same_v<TContainerType, ModelPart::ConditionsContainerType>) {
+            return NEIGHBOUR_CONDITIONS;
+        } else {
+            KRATOS_ERROR << "Unsupported container type" << std::endl;
+        }
+      }())
 {
-    KRATOS_ERROR << "Invalid Container" << std::endl;
+    mModelPartName = rModelPart.FullName();
 }
 
 template<class TContainerType>
