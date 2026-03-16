@@ -21,7 +21,7 @@ class TensorAdaptorOutput(abc.ABC):
     def WriteOutput(self):
         pass
 
-class OptimizationProblemFieldOutput(Kratos.OutputProcess):
+class OptimizationProblemFieldOutputProcess(Kratos.OutputProcess):
     def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem) -> None:
         super().__init__()
         parameters.ValidateAndAssignDefaults(self.GetDefaultParameters())

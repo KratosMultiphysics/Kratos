@@ -3,7 +3,7 @@ import KratosMultiphysics.HDF5Application as KratosHDF5
 from KratosMultiphysics.HDF5Application.core.file_io import OpenHDF5File
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem_utilities import TensorAdaptorData
-from KratosMultiphysics.OptimizationApplication.processes.optimization_problem_field_output import TensorAdaptorOutput, OptimizationProblemFieldOutput
+from KratosMultiphysics.OptimizationApplication.processes.optimization_problem_field_output_process import TensorAdaptorOutput, OptimizationProblemFieldOutputProcess
 
 def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem) -> Kratos.OutputProcess:
     if not parameters.Has("settings"):
@@ -59,7 +59,7 @@ class TensorAdaptorHDF5Output(TensorAdaptorOutput):
                     raise RuntimeError(f"Unsupported container type used in the tensor adaptor [ tensor adaptor name  = {tensor_adaptor_data.GetTensorAdaptorName()}, tensor_adaptor = {ta} ].")
                 tensor_io.Write(f"{prefix}/{tensor_adaptor_data.GetTensorAdaptorName()}", ta)
 
-class OptimizationProblemHDF5OutputProcess(OptimizationProblemFieldOutput):
+class OptimizationProblemHDF5OutputProcess(OptimizationProblemFieldOutputProcess):
     def GetDefaultParameters(self):
         return Kratos.Parameters(
             """

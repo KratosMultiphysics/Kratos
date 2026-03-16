@@ -4,7 +4,7 @@ import KratosMultiphysics as Kratos
 import KratosMultiphysics.kratos_utilities as kratos_utils
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem_utilities import TensorAdaptorData
-from KratosMultiphysics.OptimizationApplication.processes.optimization_problem_field_output import TensorAdaptorOutput, OptimizationProblemFieldOutput
+from KratosMultiphysics.OptimizationApplication.processes.optimization_problem_field_output_process import TensorAdaptorOutput, OptimizationProblemFieldOutputProcess
 
 def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem) -> Kratos.OutputProcess:
     if not parameters.Has("settings"):
@@ -65,7 +65,7 @@ class TensorAdaptorVtuOutput(TensorAdaptorOutput):
         output_file_name = output_file_name.replace("<model_part_name>", self.model_part.Name)
         self.vtu_output.PrintOutput(str(self.output_path / output_file_name))
 
-class OptimizationProblemVtuOutputProcess(OptimizationProblemFieldOutput):
+class OptimizationProblemVtuOutputProcess(OptimizationProblemFieldOutputProcess):
     def GetDefaultParameters(self):
         return Kratos.Parameters(
             """

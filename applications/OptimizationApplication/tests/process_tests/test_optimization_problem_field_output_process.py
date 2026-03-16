@@ -8,7 +8,7 @@ from KratosMultiphysics.OptimizationApplication.responses.response_function impo
 from KratosMultiphysics.OptimizationApplication.controls.control import Control
 from KratosMultiphysics.OptimizationApplication.execution_policies.execution_policy import ExecutionPolicy
 from KratosMultiphysics.OptimizationApplication.processes.optimization_problem_vtu_output_process import OptimizationProblemVtuOutputProcess
-from KratosMultiphysics.OptimizationApplication.processes.optimization_problem_hdf5_output import OptimizationProblemHDF5OutputProcess
+from KratosMultiphysics.OptimizationApplication.processes.optimization_problem_hdf5_output_process import OptimizationProblemHDF5OutputProcess
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 from KratosMultiphysics.OptimizationApplication.utilities.buffered_dict import BufferedDict
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
@@ -16,7 +16,7 @@ from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import
 from KratosMultiphysics.compare_two_files_check_process import CompareTwoFilesCheckProcess
 
 
-class TestOptimizationProblemOutputProcess(kratos_unittest.TestCase):
+class TestOptimizationProblemFieldOutputProcess(kratos_unittest.TestCase):
     class DummyResponseFunction(ResponseFunction):
         def __init__(self, response_name: str, model_part: Kratos.ModelPart) -> None:
             super().__init__(response_name)
@@ -106,15 +106,15 @@ class TestOptimizationProblemOutputProcess(kratos_unittest.TestCase):
         self.optimization_problem = OptimizationProblem()
         self.components_list = []
 
-        self.components_list.append(TestOptimizationProblemOutputProcess.DummyResponseFunction("resp_1", self.model_part1))
-        self.components_list.append(TestOptimizationProblemOutputProcess.DummyResponseFunction("resp_2", self.model_part2))
-        self.components_list.append(TestOptimizationProblemOutputProcess.DummyResponseFunction("resp_3", self.model_part1))
-        self.components_list.append(TestOptimizationProblemOutputProcess.DummyControl("control_1", self.model_part1))
-        self.components_list.append(TestOptimizationProblemOutputProcess.DummyControl("control_2", self.model_part2))
-        self.components_list.append(TestOptimizationProblemOutputProcess.DummyControl("control_3", self.model_part1))
-        self.components_list.append(TestOptimizationProblemOutputProcess.DummyExecutionPolicy("policy_1", self.model_part1))
-        self.components_list.append(TestOptimizationProblemOutputProcess.DummyExecutionPolicy("policy_2", self.model_part2))
-        self.components_list.append(TestOptimizationProblemOutputProcess.DummyExecutionPolicy("policy_3", self.model_part1))
+        self.components_list.append(TestOptimizationProblemFieldOutputProcess.DummyResponseFunction("resp_1", self.model_part1))
+        self.components_list.append(TestOptimizationProblemFieldOutputProcess.DummyResponseFunction("resp_2", self.model_part2))
+        self.components_list.append(TestOptimizationProblemFieldOutputProcess.DummyResponseFunction("resp_3", self.model_part1))
+        self.components_list.append(TestOptimizationProblemFieldOutputProcess.DummyControl("control_1", self.model_part1))
+        self.components_list.append(TestOptimizationProblemFieldOutputProcess.DummyControl("control_2", self.model_part2))
+        self.components_list.append(TestOptimizationProblemFieldOutputProcess.DummyControl("control_3", self.model_part1))
+        self.components_list.append(TestOptimizationProblemFieldOutputProcess.DummyExecutionPolicy("policy_1", self.model_part1))
+        self.components_list.append(TestOptimizationProblemFieldOutputProcess.DummyExecutionPolicy("policy_2", self.model_part2))
+        self.components_list.append(TestOptimizationProblemFieldOutputProcess.DummyExecutionPolicy("policy_3", self.model_part1))
 
         for component in self.components_list:
             self.optimization_problem.AddComponent(component)
@@ -236,7 +236,6 @@ class TestOptimizationProblemOutputProcess(kratos_unittest.TestCase):
             process.ExecuteFinalize()
 
             # now checking the hdf5 output
-            import KratosMultiphysics.HDF5Application as KratosHDF5
             from KratosMultiphysics.HDF5Application.core.file_io import OpenHDF5File
             for i in range(number_of_steps):
                 h5_parameters = Kratos.Parameters("""{
