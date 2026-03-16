@@ -144,6 +144,7 @@ class TestOptimizationProblemOutputProcess(kratos_unittest.TestCase):
         Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(combined_data, perform_store_data_recursively=False, copy=False).StoreData()
         buffered_dict[f"{component.GetName()}_combined_element_{is_buffered_data}"] = combined_data
 
+    @kratos_unittest.skipIfApplicationsNotAvailable("HDF5Application")
     def test_OptimizationProblemVtuOutputProcess(self):
         parameters = Kratos.Parameters(
             """
@@ -205,7 +206,7 @@ class TestOptimizationProblemOutputProcess(kratos_unittest.TestCase):
                 "output_interval"          : 1,
                 "echo_level"               : 0,
                 "output_file_settings"     : {
-                    "file_name"       : "output.h5",
+                    "file_name"       : "Optimization_Results/output.h5",
                     "file_access_mode": "read_write",
                     "echo_level"      : 0
                 }
@@ -233,6 +234,25 @@ class TestOptimizationProblemOutputProcess(kratos_unittest.TestCase):
                     self.optimization_problem.AdvanceStep()
 
             process.ExecuteFinalize()
+
+            # now checking the hdf5 output
+            import KratosMultiphysics.HDF5Application as KratosHDF5
+            from KratosMultiphysics.HDF5Application.core.file_io import OpenHDF5File
+            for i in range(number_of_steps):
+                h5_parameters = Kratos.Parameters("""{
+                    "file_name"       : "Optimization_Results/output.h5",
+                    "file_access_mode": "read_only"
+                }""")
+                with OpenHDF5File(h5_parameters, self.model_part1) as h5_file:
+                    for i in range(number_of_steps):
+                        for j in range(3):
+                            for k in range(2):
+                                if k % 2 == 0:
+                                    k_text = "True"
+                                else:
+                                    k_text = "False"
+                                self.assertTrue(h5_file.IsDataSet(f"/Optimization_Results/{i}/Elements/control_{j + 1}_combined_element_{k_text}"))
+                                self.assertTrue(h5_file.IsDataSet(f"/Optimization_Results/{i}/Nodal/control_{j + 1}_combined_element_{k_text}"))
 
     @classmethod
     def tearDownClass(cls):
