@@ -31,7 +31,7 @@
 #include "utilities/variable_utils.h"
 
 // Include base h
-#include "find_global_nodal_neighbours_for_entities_process.h"
+#include "find_nodal_neighbours_for_entities_process.h"
 
 namespace Kratos
 {
