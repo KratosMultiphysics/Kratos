@@ -53,6 +53,8 @@ public:
     /// Counted pointer of AxisymPointLoadCondition
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(AxisymPointLoadCondition);
 
+    using PointLoadCondition::AddExplicitContribution;
+
     ///@}
     ///@name Life Cycle
     ///@{
