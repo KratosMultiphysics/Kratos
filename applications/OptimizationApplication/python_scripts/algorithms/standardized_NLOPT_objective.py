@@ -94,13 +94,13 @@ class StandardizedNLOPTObjective(ResponseRoutine):
 
                 # compute gradients
                 if gradient_field.size > 0:
-                    self.gradient_collective_expression = self.CalculateGradient()
+                    self.gradient_combined_tensor_adaptor = self.CalculateGradient()
                     # save gradients
                     if save_value:
                         self.LogGradientFields()
 
         if gradient_field.size > 0:
-            gradient_field[:] = self.standardization_factor * self.gradient_collective_expression.Evaluate().reshape(-1)
+            gradient_field[:] = self.standardization_factor * self.gradient_combined_tensor_adaptor.data.reshape(-1)
 
         return self.standardized_response_value
 
@@ -143,19 +143,19 @@ class StandardizedNLOPTObjective(ResponseRoutine):
         # save the physical gradients for post processing in unbuffered data container.
         for physical_var, physical_gradient in self.GetRequiredPhysicalGradients().items():
             variable_name = f"d{self.GetReponse().GetName()}_d{physical_var.Name()}"
-            for physical_gradient_expression in physical_gradient.GetContainerExpressions():
+            for physical_gradient_ta in physical_gradient.GetTensorAdaptors():
                 if self.__unbuffered_data.HasValue(variable_name): del self.__unbuffered_data[variable_name]
                 # cloning is a cheap operation, it only moves underlying pointers
                 # does not create additional memory.
-                self.__unbuffered_data[variable_name] = physical_gradient_expression.Clone()
+                self.__unbuffered_data[variable_name] = physical_gradient_ta.Clone()
 
         # save the filtered gradients for post processing in unbuffered data container.
-        for gradient_container_expression, control in zip(self.gradient_collective_expression.GetContainerExpressions(), self.GetMasterControl().GetListOfControls()):
+        for gradient_ta, control in zip(self.gradient_combined_tensor_adaptor.GetTensorAdaptors(), self.GetMasterControl().GetListOfControls()):
             variable_name = f"d{self.GetReponse().GetName()}_d{control.GetName()}"
             if self.__unbuffered_data.HasValue(variable_name): del self.__unbuffered_data[variable_name]
             # cloning is a cheap operation, it only moves underlying pointers
             # does not create additional memory.
-            self.__unbuffered_data[variable_name] = gradient_container_expression.Clone()
+            self.__unbuffered_data[variable_name] = gradient_ta.Clone()
 
     def LogOptimizationStep(self) -> None:
         now = datetime.datetime.now()
@@ -175,15 +175,17 @@ class StandardizedNLOPTObjective(ResponseRoutine):
             CallOnAll(self.__optimization_problem.GetListOfProcesses("output_processes"), Kratos.OutputProcess.PrintOutput)
             self.LogOptimizationStep()
             self.__optimization_problem.AdvanceStep()
-            # convert numpy array to expression
-            new_control_field_exp = master_control.GetEmptyField()
+            # convert numpy array to tensor adaptor
+            new_control_field_cta = master_control.GetEmptyField()
             number_of_entities = []
             shapes = []
             for control in master_control.GetListOfControls():
                 number_of_entities.append(len(control.GetControlField().GetContainer()))
                 shapes.append(control.GetControlField().GetItemShape())
-            KratosOA.CollectiveExpressionIO.Read(new_control_field_exp,new_control_field,shapes)
+
+            new_control_field_cta.data[:] = new_control_field
+            Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(new_control_field_cta, perform_store_data_recursively=False, copy=False).StoreData()
             # now update the master control
-            master_control.Update(new_control_field_exp)
+            master_control.Update(new_control_field_cta)
             master_control_updated = True
         return master_control_updated

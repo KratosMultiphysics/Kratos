@@ -17,8 +17,6 @@
 #include "includes/ublas_interface.h"
 
 #include <algorithm>
-#include <initializer_list>
-#include <iterator>
 
 namespace Kratos::Geo
 {
@@ -35,35 +33,32 @@ public:
     using InternalVectorType                  = BoundedVector<double, msVectorSize>;
 
     PrincipalStresses() = default;
+    PrincipalStresses(double Sigma1, double Sigma2, double Sigma3);
 
     template <typename VectorType>
-    explicit PrincipalStresses(const VectorType& rStressVector)
-        : PrincipalStresses{std::begin(rStressVector), std::end(rStressVector)}
+    explicit PrincipalStresses(const VectorType& rValues)
     {
-    }
-
-    template <std::forward_iterator InputIt>
-    PrincipalStresses(InputIt First, InputIt Last)
-    {
-        KRATOS_DEBUG_ERROR_IF(std::distance(First, Last) != msVectorSize)
+        // For some reason, the `std::ranges` versions of the below algorithms don't play nicely
+        // with UBlas vector expressions. Therefore, we're using the iterator-style algorithms.
+        auto first = std::begin(rValues);
+        auto last  = std::end(rValues);
+        KRATOS_DEBUG_ERROR_IF(std::distance(first, last) != msVectorSize)
             << "Cannot construct a PrincipalStresses instance: expected " << msVectorSize
-            << " values, but got " << std::distance(First, Last) << " value(s)\n";
+            << " values, but got " << std::distance(first, last) << " value(s)\n";
 
-        std::copy(First, Last, mValues.begin());
+        std::copy(first, last, mValues.begin());
     }
 
-    explicit PrincipalStresses(const std::initializer_list<double>& rValues);
+    [[nodiscard]] const InternalVectorType& Values() const noexcept;
+    [[nodiscard]] InternalVectorType&       Values() noexcept;
 
     template <typename VectorType>
-    VectorType CopyTo()
+    VectorType CopyTo() const
     {
         VectorType result(msVectorSize);
         std::ranges::copy(mValues, result.begin());
         return result;
     }
-
-    [[nodiscard]] const InternalVectorType& Values() const;
-    [[nodiscard]] InternalVectorType&       Values();
 
     PrincipalStresses& operator+=(const PrincipalStresses& rRhs);
     KRATOS_API(GEO_MECHANICS_APPLICATION)

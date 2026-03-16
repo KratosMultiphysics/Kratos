@@ -7,7 +7,6 @@
 //
 //  License:         geo_mechanics_application/license.txt
 //
-//
 //  Main authors:    Anne van de Graaf
 //
 
@@ -58,6 +57,10 @@ public:
         std::ranges::copy(mValues, result.begin());
         return result;
     }
+
+    PQ& operator+=(const PQ& rRhs);
+    KRATOS_API(GEO_MECHANICS_APPLICATION)
+    friend PQ operator+(PQ Lhs, const PQ& rRhs);
 
 private:
     InternalVectorType mValues = ZeroVector{msVectorSize};
