@@ -47,7 +47,17 @@ class TensorAdaptorHDF5Output(TensorAdaptorOutput):
         with OpenHDF5File(current_output_parameters, self.model_part) as hdf5_file:
             tensor_io = KratosHDF5.TensorAdaptorIO(tensor_io_settings, hdf5_file)
             for tensor_adaptor_data in self.list_of_tensor_adaptor_data:
-                tensor_io.Write(tensor_adaptor_data.GetTensorAdaptorName(), tensor_adaptor_data.GetTensorAdaptor(self.optimization_problem))
+                ta =  tensor_adaptor_data.GetTensorAdaptor(self.optimization_problem)
+                prefix = ""
+                if isinstance(ta.GetContainer(), Kratos.NodesArray):
+                    prefix = "Nodal"
+                elif isinstance(ta.GetContainer(), Kratos.ConditionsArray):
+                    prefix = "Conditions"
+                elif isinstance(ta.GetContainer(), Kratos.ElementsArray):
+                    prefix = "Elements"
+                else:
+                    raise RuntimeError(f"Unsupported container type used in the tensor adaptor [ tensor adaptor name  = {tensor_adaptor_data.GetTensorAdaptorName()}, tensor_adaptor = {ta} ].")
+                tensor_io.Write(f"{prefix}/{tensor_adaptor_data.GetTensorAdaptorName()}", ta)
 
 class OptimizationProblemHDF5OutputProcess(OptimizationProblemFieldOutput):
     def GetDefaultParameters(self):
