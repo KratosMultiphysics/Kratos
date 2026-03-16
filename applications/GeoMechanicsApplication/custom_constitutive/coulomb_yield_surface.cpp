@@ -143,9 +143,9 @@ double CoulombYieldSurface::YieldFunctionValue(const Geo::PrincipalStresses& rPr
 
 double CoulombYieldSurface::YieldFunctionValue(const Geo::PQ& rPQ) const
 {
-    const auto c1 = 6.0 / (3.0 - std::sin(GetFrictionAngleInRadians()));
-    return rPQ.Q() + c1 * (rPQ.P() * std::sin(GetFrictionAngleInRadians()) -
-                           GetCohesion() * std::cos(GetFrictionAngleInRadians()));
+    const auto sin_phi = std::sin(GetFrictionAngleInRadians());
+    const auto cos_phi = std::cos(GetFrictionAngleInRadians());
+    return rPQ.Q() + 6.0 / (3.0 - sin_phi) * (rPQ.P() * sin_phi - GetCohesion() * cos_phi);
 }
 
 Vector CoulombYieldSurface::DerivativeOfFlowFunction(const Geo::SigmaTau&,
@@ -184,8 +184,7 @@ Vector CoulombYieldSurface::DerivativeOfFlowFunction(const Geo::PrincipalStresse
     }
 }
 
-Vector CoulombYieldSurface::DerivativeOfFlowFunction(const Geo::PQ& rPQ,
-                                                     Geo::PrincipalStresses::AveragingType AveragingType) const
+Vector CoulombYieldSurface::DerivativeOfFlowFunction(const Geo::PQ&, Geo::PrincipalStresses::AveragingType AveragingType) const
 {
     const auto sin_psi = std::sin(GetDilatancyAngleInRadians());
     return UblasUtilities::CreateVector({6.0 * sin_psi / (3.0 - sin_psi), 1.0});

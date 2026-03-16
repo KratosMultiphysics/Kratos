@@ -20,6 +20,7 @@
 #include "custom_constitutive/principal_stresses.hpp"
 #include "geo_mechanics_application_constants.h"
 #include "tension_cutoff.h"
+
 #include <optional>
 
 namespace Kratos
@@ -56,7 +57,7 @@ public:
 private:
     CoulombYieldSurface                       mCoulombYieldSurface;
     TensionCutoff                             mTensionCutOff;
-    std::optional<CompressionCapYieldSurface> mCompressionCapYieldSurface;
+    std::optional<CompressionCapYieldSurface> mOptionalCompressionCap;
     double                                    mSavedKappaOfCoulombYieldSurface{0.0};
     double                                    mAbsoluteYieldFunctionValueTolerance{1.0e-8};
     std::size_t                               mMaxNumberOfPlasticIterations{100};

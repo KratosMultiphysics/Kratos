@@ -122,8 +122,7 @@ double CompressionCapYieldSurface::YieldFunctionValue(const Geo::PQ& rPQ) const
 
 double CompressionCapYieldSurface::YieldFunctionValue(const Geo::PrincipalStresses& rPrincipalStresses) const
 {
-    const auto p_q = StressStrainUtilities::TransformPrincipalStressesToPandQ(rPrincipalStresses);
-    return YieldFunctionValue(p_q);
+    return YieldFunctionValue(StressStrainUtilities::TransformPrincipalStressesToPandQ(rPrincipalStresses));
 }
 
 double CompressionCapYieldSurface::YieldFunctionValue(const Geo::SigmaTau&) const
@@ -178,13 +177,13 @@ void CompressionCapYieldSurface::CheckMaterialProperties() const
 
 double CompressionCapYieldSurface::CalculatePlasticMultiplier(const Geo::PrincipalStresses& rPrincipalStresses,
                                                               const Vector& rDerivativeOfFlowFunction,
-                                                              const Matrix& rElasticMatrix) const
+                                                              const Matrix& rElasticConstitutiveTensor) const
 {
     const auto principals =
         UblasUtilities::CreateVector({rPrincipalStresses.Values()[0] - rPrincipalStresses.Values()[1],
                                       rPrincipalStresses.Values()[1] - rPrincipalStresses.Values()[2],
                                       rPrincipalStresses.Values()[2] - rPrincipalStresses.Values()[0]});
-    const auto elastic_matrix    = subrange(rElasticMatrix, 0, 3, 0, 3);
+    const auto elastic_matrix    = subrange(rElasticConstitutiveTensor, 0, 3, 0, 3);
     const auto stress_correction = Vector{prod(elastic_matrix, rDerivativeOfFlowFunction)};
     const auto temp = UblasUtilities::CreateVector({stress_correction[0] - stress_correction[1],
                                                     stress_correction[1] - stress_correction[2],
