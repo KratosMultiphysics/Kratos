@@ -2041,20 +2041,6 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates3D(
             CreateSurrogateBuondaryFromSnakeInner3D(id_inner_loop, r_skin_sub_model_part, points_bin, n_knot_spans_uvw, 
                                                     knot_vector_u, knot_vector_v, knot_vector_w, starting_pos_uvw,
                                                     knot_spans_available, r_surrogate_sub_model_part);
-            
-            std::ofstream outputFile("surrogate_condition_nodes_coordinates.txt", std::ios::app);
-            outputFile << std::setprecision(16);
-            for (auto& cond : r_surrogate_sub_model_part.Conditions()) {
-                auto geometry = cond.GetGeometry();
-                outputFile << "Condition ID: " << cond.Id() << std::endl;
-                for (std::size_t i = 0; i < geometry.PointsNumber(); ++i) {
-                    const auto& node = geometry[i];
-                    outputFile << "Node ID: " << node.Id() << "  "
-                                << node.X() << " " << node.Y() << " " << node.Z() << std::endl;
-                }
-                outputFile << std::endl;
-            }
-            outputFile.close();
                                                                 
             if (EchoLevel >  0)
                 KRATOS_INFO("::[SnakeSbmProcess]::") << "Inner :: Snake process has finished" << std::endl;
@@ -2063,21 +2049,7 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates3D(
             CreateSurrogateBuondaryFromSnakeOuter3D(id_inner_loop, r_skin_sub_model_part, points_bin, n_knot_spans_uvw, 
                                                     knot_vector_u, knot_vector_v, knot_vector_w, starting_pos_uvw, 
                                                     knot_spans_available, r_surrogate_sub_model_part);
-                                                    
-            
-            std::ofstream outputFile("surrogate_condition_nodes_coordinates.txt", std::ios::app);
-            outputFile << std::setprecision(16);
-            for (auto& cond : r_surrogate_sub_model_part.Conditions()) {
-                auto geometry = cond.GetGeometry();
-                outputFile << "Condition ID: " << cond.Id() << std::endl;
-                for (std::size_t i = 0; i < geometry.PointsNumber(); ++i) {
-                    const auto& node = geometry[i];
-                    outputFile << "Node ID: " << node.Id() << "  "
-                                << node.X() << " " << node.Y() << " " << node.Z() << std::endl;
-                }
-                outputFile << std::endl;
-            }
-            outputFile.close();                                       
+                                                                                         
             if (EchoLevel >  0)
                 KRATOS_INFO("::[SnakeSbmProcess]::") << "Outer :: Snake process has finished" << std::endl;
         }
