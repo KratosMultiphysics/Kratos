@@ -15,15 +15,12 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "includes/variables.h"
 #include "includes/kernel.h"
 #include "includes/convection_diffusion_settings.h"
 #include "includes/radiation_settings.h"
 
 namespace Kratos {
-typedef Node NodeType;
-typedef array_1d<double, 3> Vector3;
 
 //Create Variables by type:
 
