@@ -30,30 +30,28 @@ namespace Kratos
     /* Public functions *******************************************************/
 
     std::tuple<array_1d<double,3>, array_1d<double,3>> FlowForcesAndMomentsUtilities::CalculateBodyFittedFlowForcesAndMoments(ModelPart& rModelPart, const array_1d<double,3>& rReferencePoint){
-        // Sum the reactions in the model part of interest.
-        // Note that the reactions are assumed to be already computed.
-        VariableUtils variable_utils;
-
-        array_1d<double,3> flow_force =variable_utils.SumHistoricalVariable<array_1d<double,3>>(REACTION, rModelPart, 0);
-
-        flow_force *= -1.0;
-
+        array_1d<double,3> flow_force = ZeroVector(3);
         array_1d<double,3> flow_moment = ZeroVector(3);
 
-        for (auto& r_node : rModelPart.Nodes()) {
+        block_for_each(rModelPart.Nodes(), [&](Node& rNode){
 
-            const auto& r_reaction = r_node.FastGetSolutionStepValue(REACTION);
+            const auto& r_reaction = rNode.FastGetSolutionStepValue(REACTION);
 
-            // position vector from reference point
+            array_1d<double,3> force = -r_reaction;
+
             array_1d<double,3> r;
-            noalias(r) = r_node.Coordinates() - rReferencePoint;
+            noalias(r) = rNode.Coordinates() - rReferencePoint;
 
-            // moment = r x F
-            array_1d<double,3> nodal_moment;
-            MathUtils<double>::CrossProduct(nodal_moment, r, -r_reaction);
+            array_1d<double,3> moment;
+            MathUtils<double>::CrossProduct(moment, r, force);
 
-            flow_moment += nodal_moment;
-        }
+            AtomicAdd(flow_force, force);
+            AtomicAdd(flow_moment, moment);
+
+        });
+
+        flow_force  = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(flow_force);
+        flow_moment = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(flow_moment);
 
         return std::make_tuple(flow_force, flow_moment);
     }
