@@ -16,8 +16,8 @@ From D-Sheet Piling, the following soil properties are given for the clay and sa
 | Property                               | Clay                 | Sand                 | Unit                       |
 |:---------------------------------------|:---------------------|:---------------------|:---------------------------|
 | Unsaturated total unit weight          | 18                   | 20                   | $\mathrm{kN}/\mathrm{m}^3$ |
-| Saturated total unit weight            | 18                   | 20                   | $\mathrm{kg}/\mathrm{m}^3$ |
-| Cohesion                               | 3.0                  | 0.0                  | $\mathrm{kg}/\mathrm{m}^2$ |
+| Saturated total unit weight            | 18                   | 20                   | $\mathrm{kN}/\mathrm{m}^3$ |
+| Cohesion                               | 3.0                  | 0.0                  | $\mathrm{kN}/\mathrm{m}^2$ |
 | Friction angle                         | 22.5                 | 32.5                 | $degree$                   |
 | Delta friction angle                   | 11.25                | 20                   | $degree$                   |
 | OCR                                    | 1.0                  | 1.0                  | $-$                        |
@@ -358,7 +358,7 @@ The spring support is represented by a truss element such that:
 |----------------------|------------------------|----------------------:|----------------------------|
 | Young's modulus      | `YOUNG_MODULUS`        |   $2.0 \times 10^{9}$ | $\mathrm{Pa}$              |
 | Density              | `DENSITY`              |                   0.0 | $\mathrm{kg}/\mathrm{m}^3$ |
-| Cross-sectional area | `CROSS_AREA`           | $4.76 \times 10^{-3}$ | $\mathrm{m}^2$             |
+| Cross-sectional area | `CROSS_AREA`           | $5.0 \times 10^{-3}$ | $\mathrm{m}^2$             |
 | Prestress            | `TRUSS_PRESTRESS_PK2`  |                   0.0 | $\mathrm{Pa}$              |
 
 ## Staged analysis
