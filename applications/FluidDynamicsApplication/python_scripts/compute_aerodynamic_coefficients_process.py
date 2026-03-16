@@ -3,19 +3,13 @@ import KratosMultiphysics
 
 # other imports
 from KratosMultiphysics.time_based_ascii_file_writer_utility import TimeBasedAsciiFileWriterUtility
-
-try:
-    from KratosMultiphysics.FluidDynamicsApplication import FlowForcesAndMomentsUtilities
-except ImportError:
-    FlowForcesAndMomentsUtilities = KratosMultiphysics.FlowForcesAndMomentsUtilities
-
+from KratosMultiphysics.FluidDynamicsApplication import FlowForcesAndMomentsUtilities
 
 def Factory(settings, model):
     if type(settings) != KratosMultiphysics.Parameters:
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
 
     return ComputeAerodynamicCoefficientsProcess(model, settings["Parameters"])
-
 
 class ComputeAerodynamicCoefficientsProcess(KratosMultiphysics.Process):
     """
