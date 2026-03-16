@@ -73,10 +73,10 @@ class OptimizationProblemFieldOutput(Kratos.OutputProcess):
                      isinstance(global_v, Kratos.TensorAdaptors.BoolTensorAdaptor):
                     self.__AddTensorAdaptor(TensorAdaptorData(global_k, global_v))
 
-    def _GetRootModelPart(self, container) -> Kratos.ModelPart:
+    def _GetModelPart(self, container) -> Kratos.ModelPart:
         def get_model_part(container, model_part: Kratos.ModelPart):
             if container in [model_part.Nodes, model_part.Conditions, model_part.Elements]:
-                return model_part.GetRootModelPart()
+                return model_part
 
             for sub_model_part_name in model_part.GetSubModelPartNames():
                 root_model_part = get_model_part(container, model_part.GetSubModelPart(sub_model_part_name))
