@@ -38,7 +38,8 @@ class IgaVTKOutputProcess(KratosMultiphysics.Process):
             "model_part_name"           : "",
             "file_label"                : "step",
             "output_control_type"       : "step",
-            "output_frequency"          : 1.0
+            "output_frequency"          : 1.0,
+            "output_refinement"         : []
         }""")
 
         ## Overwrite the default settings with user-provided parameters
@@ -52,6 +53,13 @@ class IgaVTKOutputProcess(KratosMultiphysics.Process):
         self.brep_surface_ids = [
             self.params["brep_surface_ids"][i].GetInt()
             for i in range(self.params["brep_surface_ids"].size())
+        ]
+
+        ## Get the output refinement
+        ## Knot insertion per knot span for grid point output
+        self.output_refinement = [
+            self.params["output_refinement"][i].GetInt()
+            for i in range(self.params["output_refinement"].size())
         ]
 
         self.output_file_name = self.params["output_file_name"].GetString()
@@ -151,15 +159,19 @@ class IgaVTKOutputProcess(KratosMultiphysics.Process):
         knots_u = brep_surface.KnotsU()
         knots_v = brep_surface.KnotsV()
 
-        num_u = len(knots_u)
-        num_v = len(knots_v)
+        # Output refinement
+        knots_u_refined = self.__get_refined_knots_u(knots_u)
+        knots_v_refined = self.__get_refined_knots_v(knots_v)
+        
+        num_u = len(knots_u_refined)
+        num_v = len(knots_v_refined)
         num_cells = (num_u-1) * (num_v-1)
         num_points = num_u * num_v
 
         # get the Points
         grid_points = KM.Matrix(num_points, 3)
-        for j, v in enumerate(knots_v):
-            for i, u in enumerate(knots_u):
+        for j, v in enumerate(knots_v_refined):
+            for i, u in enumerate(knots_u_refined):
                 X = KM.Array3()
                 X[0] = 0.0; X[1] = 0.0; X[2] = 0.0
                 local_coord = KM.Array3()
@@ -167,7 +179,7 @@ class IgaVTKOutputProcess(KratosMultiphysics.Process):
                 X = brep_surface.GlobalCoordinates(local_coord)
 
                 # Column-major indexing
-                idx = i + j * len(knots_u)
+                idx = i + j * len(knots_u_refined)
                 grid_points[idx, 0] = X[0]
                 grid_points[idx, 1] = X[1]
                 grid_points[idx, 2] = X[2]
@@ -208,6 +220,63 @@ class IgaVTKOutputProcess(KratosMultiphysics.Process):
         surface_group.create_dataset("NumberOfPoints", data=(num_points,), dtype="i8")
         surface_group.create_dataset("NumberOfCells", data=(num_cells,), dtype="i8")
         surface_group.create_dataset("NumberOfConnectivityIds", data=(len(connectivity),), dtype="i8")
+
+    def __get_refined_knots_u(self, knots_original) -> KM.Vector:
+        if self.output_refinement[0] is 0:
+            knots_refined = KM.Vector(len(knots_original))
+            knots_refined = knots_original
+            return knots_refined
+        else:
+            num_knots_original = len(knots_original)
+            num_spans_original = len(knots_original) - 1
+            insert_per_span = self.output_refinement[0]
+            num_knots_inserted = num_spans_original * insert_per_span
+            knots_refined = KM.Vector(num_knots_original + num_knots_inserted)
+
+            idx = 0
+            for span in range(num_spans_original):
+                start = knots_original[span]
+                end = knots_original[span + 1]
+
+                # Insert knots inside the span
+                for i in range(insert_per_span + 1):
+                    delta = i / (insert_per_span + 1)
+                    knots_refined[idx] = start * (1 - delta) + end * delta
+                    idx += 1
+
+            # Make sure the last knot is exactly the last original knot
+            knots_refined[len(knots_refined) - 1] = knots_original[-1]
+
+            return knots_refined
+    
+    def __get_refined_knots_v(self, knots_original) -> KM.Vector:
+        if self.output_refinement[1] is 0:
+            knots_refined = KM.Vector(len(knots_original))
+            knots_refined = knots_original
+            return knots_refined
+        else:
+            num_knots_original = len(knots_original)
+            num_spans_original = len(knots_original) - 1
+            insert_per_span = self.output_refinement[1]
+            num_knots_inserted = num_spans_original * insert_per_span
+            knots_refined = KM.Vector(num_knots_original + num_knots_inserted)
+
+            idx = 0
+            for span in range(num_spans_original):
+                start = knots_original[span]
+                end = knots_original[span + 1]
+
+                # Insert knots inside the span
+                for i in range(insert_per_span + 1):
+                    delta = i / (insert_per_span + 1)
+                    knots_refined[idx] = start * (1 - delta) + end * delta
+                    idx += 1
+
+            # Make sure the last knot is exactly the last original knot
+            knots_refined[len(knots_refined) - 1] = knots_original[-1]
+
+            return knots_refined
+
 
 def GetPrettyTime(time):
     pretty_time = "{0:.12g}".format(time)
