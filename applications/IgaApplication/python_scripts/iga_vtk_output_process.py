@@ -127,9 +127,9 @@ class IgaVTKOutputProcess(KratosMultiphysics.Process):
             assem_group = assembly.create_group(f"brep_{brep_id}", track_order=True)
             assem_group.attrs['Index'] = index
             assem_group[group_name] = h5.SoftLink(f"/VTKHDF/{group_name}")
-            assem_group[group_name].attrs['Index'] = index + 1
+            assem_group[group_name].attrs['Index'] = index
 
-            index += 3
+            index += 1
 
         # Schedule next output
         if self.output_frequency > 0.0: # Note: if == 0, we'll just always print
@@ -161,17 +161,16 @@ class IgaVTKOutputProcess(KratosMultiphysics.Process):
         for j, v in enumerate(knots_v):
             for i, u in enumerate(knots_u):
                 X = KM.Array3()
-                X[0] = 0; X[1] = 0; X[2] = 0
+                X[0] = 0.0; X[1] = 0.0; X[2] = 0.0
                 local_coord = KM.Array3()
                 local_coord[0] = u; local_coord[1] = v; local_coord[2] = 0.0
                 X = brep_surface.GlobalCoordinates(local_coord)
-                print(X)
 
                 # Column-major indexing
                 idx = i + j * len(knots_u)
-                grid_points[idx, 0] = local_coord[0]
-                grid_points[idx, 1] = local_coord[1]
-                grid_points[idx, 2] = local_coord[2]
+                grid_points[idx, 0] = X[0]
+                grid_points[idx, 1] = X[1]
+                grid_points[idx, 2] = X[2]
 
         # get the Types
         cell_types = [VTK_QUAD] * num_cells
