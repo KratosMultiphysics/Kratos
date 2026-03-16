@@ -948,8 +948,8 @@ class ResidualBasedNewtonRaphsonStrategy
             TSparseSpace::SetToZero(rA);
             TSparseSpace::SetToZero(rDx);
             TSparseSpace::SetToZero(rb);
-
-            if (mUseOldStiffnessInFirstIteration){
+            KRATOS_INFO("STEP") << r_model_part.GetProcessInfo()[STEP] << " - INITIAL ITERATION: " << iteration_number << std::endl;
+            if (mUseOldStiffnessInFirstIteration && r_model_part.GetProcessInfo()[STEP] > 1){
                 p_builder_and_solver->BuildAndSolveLinearizedOnPreviousIteration(p_scheme, r_model_part, rA, rDx, rb,BaseType::MoveMeshFlag());
             } else {
                 p_builder_and_solver->BuildAndSolve(p_scheme, r_model_part, rA, rDx, rb);

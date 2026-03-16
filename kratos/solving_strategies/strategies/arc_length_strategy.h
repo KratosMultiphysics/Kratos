@@ -130,7 +130,7 @@ class ArcLengthStrategy
 
             const auto& r_sub_model_parts_names = ThisParameters["loads_sub_model_part_list"].GetStringArray();
             for (std::size_t i = 0; i < mVariableNames.size(); i++) {
-                mSubModelPartList[i] = &( r_model_part.GetSubModelPart(r_sub_model_parts_names[i]));
+                mSubModelPartList[i] = &r_model_part;
                 mVariableNames[i] = ThisParameters["loads_variable_list"][i].GetString();
             }
         }

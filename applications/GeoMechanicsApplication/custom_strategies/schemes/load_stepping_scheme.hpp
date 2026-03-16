@@ -54,7 +54,8 @@ public:
         Vector internal_forces;
         rCurrentElement.Calculate(INTERNAL_FORCES_VECTOR, internal_forces, rCurrentProcessInfo);
 
-        const auto load_fraction = CalculateLoadFraction(rCurrentProcessInfo);
+        // const auto load_fraction = CalculateLoadFraction(rCurrentProcessInfo);
+        const auto load_fraction = rCurrentElement.GetGeometry()[0].FastGetSolutionStepValue(GEO_LOAD_FACTOR);
         rRHS_Contribution =
             mInternalForcesAtStartByElementId.at(rCurrentElement.GetId()) +
             load_fraction * (mExternalForcesAtStartByElementId.at(rCurrentElement.GetId()) -
@@ -72,7 +73,9 @@ public:
     {
         GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>::CalculateSystemContributions(
             rCurrentCondition, rLHS_Contribution, rRHS_Contribution, rEquationId, rCurrentProcessInfo);
-        rRHS_Contribution *= CalculateLoadFraction(rCurrentProcessInfo);
+        const auto load_fraction = rCurrentCondition.GetGeometry()[0].FastGetSolutionStepValue(GEO_LOAD_FACTOR);
+
+        rRHS_Contribution *= load_fraction;
     }
 
     void CalculateRHSContribution(Condition&                     rCurrentCondition,
@@ -83,7 +86,9 @@ public:
         GeoMechanicsTimeIntegrationScheme<TSparseSpace, TDenseSpace>::CalculateRHSContribution(
             rCurrentCondition, rRHS_Contribution, rEquationId, rCurrentProcessInfo);
 
-        rRHS_Contribution *= CalculateLoadFraction(rCurrentProcessInfo);
+        const auto load_fraction = rCurrentCondition.GetGeometry()[0].FastGetSolutionStepValue(GEO_LOAD_FACTOR);
+
+        rRHS_Contribution *= load_fraction;
     }
 
     void InitializeSolutionStep(ModelPart& rModelPart, TSystemMatrixType& rA, TSystemVectorType& rDx, TSystemVectorType& rB) override
@@ -106,7 +111,7 @@ public:
     {
         GeoMechanicsStaticScheme<TSparseSpace, TDenseSpace>::FinalizeSolutionStep(rModelPart, rA, rDx, rb);
         KRATOS_INFO("Load stepping")
-            << "Fraction of unbalance: " << CalculateLoadFraction(rModelPart.GetProcessInfo()) << "\n";
+            << "Fraction of unbalance: " << rModelPart.GetNode(1).FastGetSolutionStepValue(GEO_LOAD_FACTOR) << "\n";
     }
 
 private:

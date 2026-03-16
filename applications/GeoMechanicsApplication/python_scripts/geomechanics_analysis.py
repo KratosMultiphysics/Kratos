@@ -92,7 +92,7 @@ class GeoMechanicsAnalysis(AnalysisStage):
         """
         self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.START_TIME] = self.start_time
         self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.END_TIME]   = self.end_time
-
+        KratosMultiphysics.VariableUtils().SetVariable(KratosGeo.GEO_LOAD_FACTOR, 1.0, self._GetSolver().GetComputingModelPart().Nodes)
         self._GetSolver().solving_strategy.SetRebuildLevel(self.rebuild_level)
 
         while self.KeepAdvancingSolutionLoop():

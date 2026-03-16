@@ -600,6 +600,7 @@ void KratosGeoMechanicsApplication::Register()
 
     KRATOS_REGISTER_VARIABLE(GEO_SHEAR_CAPACITY)
     KRATOS_REGISTER_VARIABLE(GEO_PLASTIC_STATUS)
+    KRATOS_REGISTER_VARIABLE(GEO_LOAD_FACTOR)
 
     Serializer::Register("PlaneStrain", PlaneStrain{});
     Serializer::Register("PlaneStrainStressState", PlaneStrainStressState{});

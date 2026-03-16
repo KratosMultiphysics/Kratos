@@ -88,6 +88,13 @@ class GeoMechanicalSolver(PythonSolver):
             "rayleigh_m": 0.0,
             "rayleigh_k": 0.0,
             "strategy_type": "newton_raphson",
+            "advanced_settings" : {
+                        "desired_iterations"        : 4,
+                        "max_radius_factor"         : 1.0,
+                        "min_radius_factor"         : 0.05,
+                        "loads_sub_model_part_list" : ["porous_computational_model_part"],
+                        "loads_variable_list"       : ["GEO_LOAD_FACTOR"]
+            },
             "max_piping_iterations": 50,
             "convergence_criterion": "Displacement_criterion",
             "water_pressure_relative_tolerance": 1.0e-4,
@@ -179,6 +186,8 @@ class GeoMechanicalSolver(PythonSolver):
                 variable_name = self.settings["auxiliary_variables_list"][i].GetString()
                 variable = KratosMultiphysics.KratosGlobals.GetVariable(variable_name)
                 self.main_model_part.AddNodalSolutionStepVariable(variable)
+
+        self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.GEO_LOAD_FACTOR)
 
         KratosMultiphysics.Logger.PrintInfo(self.geo_info_label, "Variables ADDED")
 
@@ -532,7 +541,17 @@ class GeoMechanicalSolver(PythonSolver):
                                                                               reform_step_dofs,
                                                                               False,
                                                                               move_mesh_flag)
-
+        elif strategy_type.lower() == "arc_length":
+            settings = self.settings["advanced_settings"]
+            settings.AddValue("max_iteration", self.settings["max_iteration"])
+            settings.AddValue("compute_reactions", self.settings["compute_reactions"])
+            settings.AddValue("reform_dofs_at_each_step", self.settings["reform_dofs_at_each_step"])
+            settings.AddValue("move_mesh_flag", self.settings["move_mesh_flag"])
+            solving_strategy = KratosMultiphysics.ArcLengthStrategy(self.GetComputingModelPart(),
+                                                                    self.scheme,
+                                                                    self.convergence_criterion,
+                                                                    builder_and_solver,
+                                                                    settings)
         else:
             raise RuntimeError(f"Undefined strategy type '{strategy_type}'")
 
