@@ -168,21 +168,40 @@ class IgaVTKOutputProcess(KratosMultiphysics.Process):
         num_cells = (num_u-1) * (num_v-1)
         num_points = num_u * num_v
 
-        # get the Points
+        # Initialization
         grid_points = KM.Matrix(num_points, 3)
+        solution_disp = KM.Matrix(num_points, 3)
+
         for j, v in enumerate(knots_v_refined):
             for i, u in enumerate(knots_u_refined):
+                # get the Points
                 X = KM.Array3()
                 X[0] = 0.0; X[1] = 0.0; X[2] = 0.0
                 local_coord = KM.Array3()
                 local_coord[0] = u; local_coord[1] = v; local_coord[2] = 0.0
                 X = brep_surface.GlobalCoordinates(local_coord)
 
-                # Column-major indexing
+                ## Column-major indexing
                 idx = i + j * len(knots_u_refined)
                 grid_points[idx, 0] = X[0]
                 grid_points[idx, 1] = X[1]
                 grid_points[idx, 2] = X[2]
+
+                # Reconstruct the solution
+                cp_ids, shape_func_val = brep_surface.EvaluateShapeFunctionsAtLocalCoordinates(local_coord, derivative_order=0)
+                grid_disp_x = 0.0
+                grid_disp_y = 0.0
+                grid_disp_z = 0.0
+                cp_idx = 0
+                for id in cp_ids:
+                    node = self.model_part.GetNode(id+1)
+                    grid_disp_x += node.GetSolutionStepValue(KM.DISPLACEMENT_X) * shape_func_val[cp_idx]
+                    grid_disp_y += node.GetSolutionStepValue(KM.DISPLACEMENT_Y) * shape_func_val[cp_idx]
+                    grid_disp_z += node.GetSolutionStepValue(KM.DISPLACEMENT_Z) * shape_func_val[cp_idx]
+                    cp_idx += 1
+                solution_disp[idx, 0] = grid_disp_x
+                solution_disp[idx, 1] = grid_disp_y
+                solution_disp[idx, 2] = grid_disp_z
 
         # get the Types
         cell_types = [VTK_QUAD] * num_cells
@@ -213,6 +232,7 @@ class IgaVTKOutputProcess(KratosMultiphysics.Process):
         offsets[cell_idx] = conn_idx
 
         # write to hdf5 group
+        ## write geometries
         surface_group.create_dataset("Points", data=grid_points, dtype="f")
         surface_group.create_dataset("Connectivity", data=connectivity, dtype="i8")
         surface_group.create_dataset("Offsets", data=offsets, dtype="i8")
@@ -221,8 +241,12 @@ class IgaVTKOutputProcess(KratosMultiphysics.Process):
         surface_group.create_dataset("NumberOfCells", data=(num_cells,), dtype="i8")
         surface_group.create_dataset("NumberOfConnectivityIds", data=(len(connectivity),), dtype="i8")
 
+        ## write displacement
+        point_data_group = surface_group.create_group('PointData', track_order=True)
+        point_data_group.create_dataset("Displacement", data=solution_disp, dtype="f")
+
     def __get_refined_knots_u(self, knots_original) -> KM.Vector:
-        if self.output_refinement[0] is 0:
+        if self.output_refinement[0] == 0:
             knots_refined = KM.Vector(len(knots_original))
             knots_refined = knots_original
             return knots_refined
@@ -250,7 +274,7 @@ class IgaVTKOutputProcess(KratosMultiphysics.Process):
             return knots_refined
     
     def __get_refined_knots_v(self, knots_original) -> KM.Vector:
-        if self.output_refinement[1] is 0:
+        if self.output_refinement[1] == 0:
             knots_refined = KM.Vector(len(knots_original))
             knots_refined = knots_original
             return knots_refined
