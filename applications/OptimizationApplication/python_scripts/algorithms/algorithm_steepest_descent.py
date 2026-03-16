@@ -154,7 +154,8 @@ class AlgorithmSteepestDescent(Algorithm):
 
                 ListLogger("Convergence info", self._convergence_criteria.GetInfo())
 
-                self._optimization_problem.AdvanceStep()
+                if not self.converged:
+                    self._optimization_problem.AdvanceStep()
 
         return self.converged
 
