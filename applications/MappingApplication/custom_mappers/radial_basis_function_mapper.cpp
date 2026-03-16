@@ -668,6 +668,8 @@ void RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::CalculateMappingMatri
     
         // Store result into dense mapping matrix
         for (IndexType i = 0; i < n_dest; ++i) {
+           const double value = column_values[i];
+            
            if (std::abs(value) > 1e-15) {
                 (*pMappingMatrixGP)(i, j) = value;
             }
