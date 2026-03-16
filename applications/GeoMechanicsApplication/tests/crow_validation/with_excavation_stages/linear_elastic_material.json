@@ -331,7 +331,7 @@
                 "Variables": {
                     "YOUNG_MODULUS": 2e+09,
                     "DENSITY": 0.0,
-                    "CROSS_AREA": 4.76e-03,
+                    "CROSS_AREA": 5.0e-03,
                     "TRUSS_PRESTRESS_PK2": 0.0
                 }
             }
