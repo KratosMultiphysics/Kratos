@@ -128,9 +128,16 @@ def print_summary_table(df: pd.DataFrame, contexts: dict, divisor: float, unit: 
 
     print("═" * 70 + "\n")
 
-def plot_benchmarks(df: pd.DataFrame, filenames: list[str],
-                    contexts: dict, divisor: float, unit: str,
-                    output: str | None = None):
+def plot_benchmarks(
+    df: pd.DataFrame,
+    filenames: list[str],
+    contexts: dict,
+    divisor: float,
+    unit: str,
+    output: str | None = None,
+    legend_loc: str = "upper right",
+    context_pos: tuple[float, float] = (0.01, 0.01),
+):
     """
     Render a grouped bar chart with:
       - CPU Time & Real Time bars per file
@@ -231,7 +238,7 @@ def plot_benchmarks(df: pd.DataFrame, filenames: list[str],
 
     # ── Legend ─────────────────────────────────────────────────────────
     ax.legend(
-        loc="upper right",
+        loc=legend_loc,
         fontsize=8,
         framealpha=0.9,
         edgecolor="#CCCCCC",
@@ -239,7 +246,7 @@ def plot_benchmarks(df: pd.DataFrame, filenames: list[str],
         title_fontsize=8,
     )
 
-    # ── Context info box (bottom-left) ─────────────────────────────────
+    # ── Context info box  ──────────────────────────────────────────────
     info_lines = [f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"]
     for filename, ctx in contexts.items():
         short = os.path.basename(filename)
@@ -247,6 +254,16 @@ def plot_benchmarks(df: pd.DataFrame, filenames: list[str],
             f"{short}: {ctx['num_cpus']} CPUs @ {ctx['mhz_per_cpu']} MHz | "
             f"Host: {ctx['host']} | Build: {ctx['library_build']}"
         )
+
+    cx, cy = context_pos
+    ax.text(
+        cx, cy, "\n".join(info_lines),
+        transform=ax.transAxes,
+        fontsize=6.5, color="#555555",
+        verticalalignment="bottom",
+        bbox=dict(boxstyle="round,pad=0.4", facecolor="white",
+                  edgecolor="#CCCCCC", alpha=0.8),
+    )
 
     ax.text(
         0.01, 0.01, "\n".join(info_lines),
@@ -265,7 +282,12 @@ def plot_benchmarks(df: pd.DataFrame, filenames: list[str],
     else:
         plt.show()
 
-def main(filenames: list[str], output: str | None = None):
+def main(
+    filenames: list[str],
+    output: str | None = None,
+    legend_loc: str = "upper right",
+    context_pos: tuple[float, float] = (0.01, 0.01),
+):
     """
     Orchestrate loading, processing, reporting, and plotting
     of Google Benchmark JSON results.
@@ -277,7 +299,12 @@ def main(filenames: list[str], output: str | None = None):
     divisor, unit = smart_time_unit(max_ns)
 
     print_summary_table(df, contexts, divisor, unit)
-    plot_benchmarks(df, filenames, contexts, divisor, unit, output)
+    plot_benchmarks(
+        df, filenames, contexts, divisor, unit,
+        output=output,
+        legend_loc=legend_loc,
+        context_pos=context_pos,
+    )
 
 if __name__ == "__main__":
     """
@@ -306,5 +333,26 @@ if __name__ == "__main__":
         help="Optional path to save the plot (e.g. chart.png). "
              "If omitted, the plot is displayed interactively."
     )
+    parser.add_argument(
+        "--legend-loc", type=str, default="upper right",
+        help=(
+            "Legend location (matplotlib style), e.g. "
+            "'upper right', 'upper left', 'lower right', 'best'."
+        ),
+    )
+    parser.add_argument(
+        "--context-pos", nargs=2, type=float, metavar=("X", "Y"),
+        default=[0.01, 0.01],
+        help=(
+            "Context info box position in axes coordinates (0..1, 0..1). "
+            "Example: --context-pos 0.02 0.95"
+        ),
+    )
+
     args = parser.parse_args()
-    main(args.filenames, args.output)
+    main(
+        args.filenames,
+        args.output,
+        args.legend_loc,
+        (args.context_pos[0], args.context_pos[1]),
+    )
