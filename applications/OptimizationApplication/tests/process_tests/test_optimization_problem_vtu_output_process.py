@@ -166,13 +166,15 @@ class TestOptimizationProblemVtuOutputProcess(kratos_unittest.TestCase):
 
         with kratos_unittest.WorkFolderScope(".", __file__):
             number_of_steps = 10
-            for _ in range(number_of_steps):
+            for i in range(number_of_steps):
                 # initialize the buffered data
                 for component in self.components_list:
                     self.__AddData(ComponentDataView(component, self.optimization_problem).GetBufferedData(), True, component)
 
                 process.PrintOutput()
-                self.optimization_problem.AdvanceStep()
+
+                if i != number_of_steps - 1:
+                    self.optimization_problem.AdvanceStep()
 
             process.ExecuteFinalize()
 

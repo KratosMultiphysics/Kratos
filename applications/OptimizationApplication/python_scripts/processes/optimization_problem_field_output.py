@@ -32,9 +32,14 @@ class OptimizationProblemFieldOutput(Kratos.OutputProcess):
 
         self.list_of_component_names = parameters["list_of_output_components"].GetStringArray()
         self.echo_level = parameters["echo_level"].GetInt()
+        self.output_interval = parameters["output_interval"].GetInt()
 
         self.list_of_tensor_adaptor_outputs: 'list[TensorAdaptorOutput]' = []
         self.initialized_vtu_outputs = False
+        self.last_step_written = -1
+
+    def IsOutputStep(self) -> bool:
+        return self.optimization_problem.GetStep() % self.output_interval == 0
 
     def PrintOutput(self) -> None:
         if not self.initialized_vtu_outputs:
@@ -43,6 +48,13 @@ class OptimizationProblemFieldOutput(Kratos.OutputProcess):
 
         for tensor_adaptor_vtu_output in self.list_of_tensor_adaptor_outputs:
             tensor_adaptor_vtu_output.WriteOutput()
+
+        self.last_step_written = self.optimization_problem.GetStep()
+
+    def ExecuteFinalize(self) -> None:
+        if self.last_step_written != self.optimization_problem.GetStep():
+            # force the last step be written if it is not already written by normal interval based writing.
+            self.PrintOutput()
 
     def InitializeVtuOutputIO(self) -> None:
         # get all the component names at the first writing point
