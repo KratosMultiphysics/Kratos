@@ -614,9 +614,6 @@ void RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::MapInternalTranspose(
 template<class TSparseSpace, class TDenseSpace>
 void RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::CalculateMappingMatrix()
 {
-    // Dense matrix type for multi-RHS solve
-    using DenseMatrixType = boost::numeric::ublas::matrix<double>;
-
     KRATOS_DEBUG_ERROR_IF_NOT(mpOriginInterpolationMatrix)
         << "CalculateMappingMatrix: mpOriginInterpolationMatrix is nullptr." << std::endl;
     KRATOS_DEBUG_ERROR_IF_NOT(mpDestinationEvaluationMatrix)
