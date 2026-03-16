@@ -8,6 +8,7 @@ from KratosMultiphysics.OptimizationApplication.responses.response_function impo
 from KratosMultiphysics.OptimizationApplication.controls.control import Control
 from KratosMultiphysics.OptimizationApplication.execution_policies.execution_policy import ExecutionPolicy
 from KratosMultiphysics.OptimizationApplication.processes.optimization_problem_vtu_output_process import OptimizationProblemVtuOutputProcess
+from KratosMultiphysics.OptimizationApplication.processes.optimization_problem_hdf5_output_process import OptimizationProblemHDF5OutputProcess
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 from KratosMultiphysics.OptimizationApplication.utilities.buffered_dict import BufferedDict
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
@@ -15,7 +16,7 @@ from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import
 from KratosMultiphysics.compare_two_files_check_process import CompareTwoFilesCheckProcess
 
 
-class TestOptimizationProblemVtuOutputProcess(kratos_unittest.TestCase):
+class TestOptimizationProblemFieldOutputProcess(kratos_unittest.TestCase):
     class DummyResponseFunction(ResponseFunction):
         def __init__(self, response_name: str, model_part: Kratos.ModelPart) -> None:
             super().__init__(response_name)
@@ -101,22 +102,23 @@ class TestOptimizationProblemVtuOutputProcess(kratos_unittest.TestCase):
         for element in cls.model_part2.Elements:
             element.SetValue(Kratos.ACCELERATION, Kratos.Array3([element.Id + 1, element.Id + 2, element.Id + 3]))
 
-        cls.optimization_problem = OptimizationProblem()
-        cls.components_list = []
+    def setUp(self):
+        self.optimization_problem = OptimizationProblem()
+        self.components_list = []
 
-        cls.components_list.append(TestOptimizationProblemVtuOutputProcess.DummyResponseFunction("resp_1", cls.model_part1))
-        cls.components_list.append(TestOptimizationProblemVtuOutputProcess.DummyResponseFunction("resp_2", cls.model_part2))
-        cls.components_list.append(TestOptimizationProblemVtuOutputProcess.DummyResponseFunction("resp_3", cls.model_part1))
-        cls.components_list.append(TestOptimizationProblemVtuOutputProcess.DummyControl("control_1", cls.model_part1))
-        cls.components_list.append(TestOptimizationProblemVtuOutputProcess.DummyControl("control_2", cls.model_part2))
-        cls.components_list.append(TestOptimizationProblemVtuOutputProcess.DummyControl("control_3", cls.model_part1))
-        cls.components_list.append(TestOptimizationProblemVtuOutputProcess.DummyExecutionPolicy("policy_1", cls.model_part1))
-        cls.components_list.append(TestOptimizationProblemVtuOutputProcess.DummyExecutionPolicy("policy_2", cls.model_part2))
-        cls.components_list.append(TestOptimizationProblemVtuOutputProcess.DummyExecutionPolicy("policy_3", cls.model_part1))
+        self.components_list.append(TestOptimizationProblemFieldOutputProcess.DummyResponseFunction("resp_1", self.model_part1))
+        self.components_list.append(TestOptimizationProblemFieldOutputProcess.DummyResponseFunction("resp_2", self.model_part2))
+        self.components_list.append(TestOptimizationProblemFieldOutputProcess.DummyResponseFunction("resp_3", self.model_part1))
+        self.components_list.append(TestOptimizationProblemFieldOutputProcess.DummyControl("control_1", self.model_part1))
+        self.components_list.append(TestOptimizationProblemFieldOutputProcess.DummyControl("control_2", self.model_part2))
+        self.components_list.append(TestOptimizationProblemFieldOutputProcess.DummyControl("control_3", self.model_part1))
+        self.components_list.append(TestOptimizationProblemFieldOutputProcess.DummyExecutionPolicy("policy_1", self.model_part1))
+        self.components_list.append(TestOptimizationProblemFieldOutputProcess.DummyExecutionPolicy("policy_2", self.model_part2))
+        self.components_list.append(TestOptimizationProblemFieldOutputProcess.DummyExecutionPolicy("policy_3", self.model_part1))
 
-        for component in cls.components_list:
-            cls.optimization_problem.AddComponent(component)
-            ComponentDataView(component, cls.optimization_problem).SetDataBuffer(2)
+        for component in self.components_list:
+            self.optimization_problem.AddComponent(component)
+            ComponentDataView(component, self.optimization_problem).SetDataBuffer(2)
 
     def __AddData(self, buffered_dict: BufferedDict, is_buffered_data: bool, component):
         step_v = self.optimization_problem.GetStep() + 1
@@ -142,6 +144,7 @@ class TestOptimizationProblemVtuOutputProcess(kratos_unittest.TestCase):
         Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(combined_data, perform_store_data_recursively=False, copy=False).StoreData()
         buffered_dict[f"{component.GetName()}_combined_element_{is_buffered_data}"] = combined_data
 
+    @kratos_unittest.skipIfApplicationsNotAvailable("HDF5Application")
     def test_OptimizationProblemVtuOutputProcess(self):
         parameters = Kratos.Parameters(
             """
@@ -166,13 +169,15 @@ class TestOptimizationProblemVtuOutputProcess(kratos_unittest.TestCase):
 
         with kratos_unittest.WorkFolderScope(".", __file__):
             number_of_steps = 10
-            for _ in range(number_of_steps):
+            for i in range(number_of_steps):
                 # initialize the buffered data
                 for component in self.components_list:
                     self.__AddData(ComponentDataView(component, self.optimization_problem).GetBufferedData(), True, component)
 
                 process.PrintOutput()
-                self.optimization_problem.AdvanceStep()
+
+                if i != number_of_steps - 1:
+                    self.optimization_problem.AdvanceStep()
 
             process.ExecuteFinalize()
 
@@ -191,6 +196,62 @@ class TestOptimizationProblemVtuOutputProcess(kratos_unittest.TestCase):
                 "remove_output_file"    : true,
                 "comparison_type"       : "vtu"
             }""")).Execute()
+
+    def test_OptimizationProblemHDF5OutputProcess(self):
+        parameters = Kratos.Parameters(
+            """
+            {
+                "list_of_output_components": ["all"],
+                "hdf5_output_path_prefix"  : "/Optimization_Results/<step>/",
+                "output_interval"          : 1,
+                "echo_level"               : 0,
+                "output_file_settings"     : {
+                    "file_name"       : "Optimization_Results/output.h5",
+                    "file_access_mode": "read_write",
+                    "echo_level"      : 0
+                }
+            }
+            """
+        )
+
+        process = OptimizationProblemHDF5OutputProcess(self.model, parameters, self.optimization_problem)
+        process.ExecuteInitialize()
+
+        # initialize unbuffered data
+        for component in self.components_list:
+            self.__AddData(ComponentDataView(component, self.optimization_problem).GetUnBufferedData(), False, component)
+
+        with kratos_unittest.WorkFolderScope(".", __file__):
+            number_of_steps = 10
+            for i in range(number_of_steps):
+                # initialize the buffered data
+                for component in self.components_list:
+                    self.__AddData(ComponentDataView(component, self.optimization_problem).GetBufferedData(), True, component)
+
+                process.PrintOutput()
+
+                if i != number_of_steps - 1:
+                    self.optimization_problem.AdvanceStep()
+
+            process.ExecuteFinalize()
+
+            # now checking the hdf5 output
+            from KratosMultiphysics.HDF5Application.core.file_io import OpenHDF5File
+            for i in range(number_of_steps):
+                h5_parameters = Kratos.Parameters("""{
+                    "file_name"       : "Optimization_Results/output.h5",
+                    "file_access_mode": "read_only"
+                }""")
+                with OpenHDF5File(h5_parameters, self.model_part1) as h5_file:
+                    for i in range(number_of_steps):
+                        for j in range(3):
+                            for k in range(2):
+                                if k % 2 == 0:
+                                    k_text = "True"
+                                else:
+                                    k_text = "False"
+                                self.assertTrue(h5_file.IsDataSet(f"/Optimization_Results/{i}/Elements/control_{j + 1}_combined_element_{k_text}"))
+                                self.assertTrue(h5_file.IsDataSet(f"/Optimization_Results/{i}/Nodal/control_{j + 1}_combined_element_{k_text}"))
 
     @classmethod
     def tearDownClass(cls):
