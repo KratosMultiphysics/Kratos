@@ -31,8 +31,8 @@ class ComputeFlowForcesAndMomentsProcess(KratosMultiphysics.Process):
                 "interval"                  : [0.0, 1e30],
                 "print_to_screen"      : false,
                 "print_format"              : ".8f",
-                "write_flow_forces_output_file"    : true,
-                "write_flow_moments_output_file": false,
+                "write_forces_output_file"    : true,
+                "write_moments_output_file": false,
                 "output_file_settings": {},
                 "reference_point"           : [0.0, 0.0, 0.0]
             }
