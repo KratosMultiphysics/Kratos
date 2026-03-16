@@ -29,7 +29,7 @@ class ComputeFlowForcesAndMomentsProcess(KratosMultiphysics.Process):
             {
                 "model_part_name"           : "",
                 "interval"                  : [0.0, 1e30],
-                "print_flow_forces_and_moments_to_screen"      : false,
+                "print_to_screen"      : false,
                 "print_format"              : ".8f",
                 "write_flow_forces_output_file"    : true,
                 "write_flow_moments_output_file": false,
