@@ -647,7 +647,6 @@ void RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::CalculateMappingMatri
 
     // Mapping matrix
     auto pMappingMatrixGP = Kratos::make_unique<MappingMatrixType>(n_dest, n_support);
-    DenseMatrixType mapping_dense(n_dest, n_support, 0.0);
 
     // Factorize LHS once
     mpLinearSolver->InitializeSolutionStep(*mpOriginInterpolationMatrix, sol, rhs);
@@ -669,20 +668,13 @@ void RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::CalculateMappingMatri
     
         // Store result into dense mapping matrix
         for (IndexType i = 0; i < n_dest; ++i) {
-            mapping_dense(i, j) = column_values[i];
-        }
-    }
-    
-    mpLinearSolver->FinalizeSolutionStep(*mpOriginInterpolationMatrix, sol, rhs);
-
-    for (IndexType i = 0; i < n_dest; ++i) {
-        for (IndexType j = 0; j < n_support; ++j) {
-            const double value = mapping_dense(i, j);
-            if (std::abs(value) > 1e-16) {
+           if (std::abs(value) > 1e-15) {
                 (*pMappingMatrixGP)(i, j) = value;
             }
         }
     }
+    
+    mpLinearSolver->FinalizeSolutionStep(*mpOriginInterpolationMatrix, sol, rhs);
     
     // If IGA origin, project from GP-based to CP-based mapping:
     // M = M_tilde * N_reduced
