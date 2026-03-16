@@ -177,7 +177,7 @@ void FindContactsInSkinModelPart::GetClosestContactColorFromNeighbours(
         const int neigh_color = *(neighbor_colors_iterator++);
         array_1d<double,3> dist = cell_center - rConditionCenter;
         double dist_modulus = norm_2(dist);
-        array_1d<double,3> unit_dist;
+        array_1d<double,3> unit_dist = ZeroVector(3);
         if(dist_modulus > 1e-9) {
             unit_dist = dist/dist_modulus;
         }

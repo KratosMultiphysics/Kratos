@@ -31,6 +31,7 @@
 #include "includes/define.h"
 #include "utilities/counter.h"
 #include "includes/serializer.h"
+#include "includes/fnv_1a_hash.h"
 
 
 namespace Kratos
@@ -62,12 +63,37 @@ public:
 
     VariableData() noexcept = default;
 
-    /// Copy constructor
-    VariableData(const VariableData& rOtherVariable);
+    constexpr VariableData(const VariableData& rOtherVariable)
+        : mName(rOtherVariable.mName),
+          mKey(rOtherVariable.mKey),
+          mSize(rOtherVariable.mSize),
+          mpSourceVariable(rOtherVariable.mpSourceVariable) ,
+          mIsComponent(rOtherVariable.mIsComponent)
+    {}
 
-    /// Destructor.
-    virtual ~VariableData() {}
+    constexpr VariableData(
+        const std::string_view& NewName,
+        const std::size_t NewSize)
+        : mName(NewName),
+          mKey(GenerateKey(mName, NewSize, false, 0)),
+          mSize(NewSize),
+          mpSourceVariable(this),
+          mIsComponent(false)
+    {}
 
+    constexpr VariableData(
+        const std::string_view& NewName,
+        const std::size_t NewSize,
+        const VariableData* pSourceVariable,
+        const char ComponentIndex)
+        : mName(NewName),
+          mKey(GenerateKey(pSourceVariable->mName, NewSize, true, ComponentIndex)),
+          mSize(NewSize),
+          mpSourceVariable(pSourceVariable),
+          mIsComponent(true)
+    {}
+
+    constexpr virtual ~VariableData() = default;
 
     ///@}
     ///@name Operators
@@ -188,7 +214,7 @@ public:
         return key;
     }
 
-    KeyType Key() const
+    constexpr KeyType Key() const noexcept
     {
         return mKey;
     }
@@ -202,22 +228,22 @@ public:
     /// to change arbitrary any variable's key
    void SetKey(KeyType NewKey);
 
-    const std::string& Name() const
+    std::string Name() const noexcept
     {
-        return mName;
+        return std::string(mName);
     }
 
-    std::size_t Size() const
+    constexpr std::size_t Size() const noexcept
     {
         return mSize;
     }
 
-    bool IsComponent() const
+    constexpr bool IsComponent() const noexcept
     {
         return mIsComponent;
     }
 
-    bool IsNotComponent() const
+    constexpr bool IsNotComponent() const noexcept
     {
         return !mIsComponent;
     }
@@ -228,7 +254,7 @@ public:
      * Component index can be from 0 to 127 at most, because 7 bits are used to store it.
      * So in case of normal variables it returns 0 (like being the first componet)
      **/
-    KeyType GetComponentIndex() const {
+    constexpr KeyType GetComponentIndex() const noexcept {
         constexpr KeyType first_7_bits=127;
         return (mKey & first_7_bits);
     }
@@ -277,7 +303,23 @@ public:
     64           size         32-bit hash                comp. index 0
         |-----------|----|---------------------------------------------|-|
     */
-    static KeyType GenerateKey(const std::string& Name, std::size_t Size, bool IsComponent, char ComponentIndex);
+    static constexpr KeyType GenerateKey(
+        const std::string_view& Name,
+        const std::size_t Size,
+        const bool IsComponent,
+        const char ComponentIndex)
+    {
+        std::uint64_t key = Size;
+        key <<= 32;
+        key += FNV1a32Hash::CalculateHash(Name);
+
+        key <<= 1;
+        key += IsComponent;
+        key <<= 7;
+        key += ComponentIndex;
+
+		return key;
+    }
 
     ///@}
     ///@name Friends
@@ -289,29 +331,11 @@ public:
     }
 
     ///@}
-
-protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-    /// Constructor for variables.
-    VariableData(const std::string& NewName, std::size_t NewSize);
-
-    /// Constructor for variables components.
-    VariableData(const std::string& NewName, std::size_t NewSize, const VariableData* pSourceVariable, char ComponentIndex);
-
-    ///@}
-
 private:
     ///@name Member Variables
     ///@{
 
-    std::string mName;
+    std::string_view mName;
 
     /** Key value of this variable. Each variable will be locate by this
     value in each data structure. Variable constructor will initialize it. */

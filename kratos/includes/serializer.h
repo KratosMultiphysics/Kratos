@@ -1124,7 +1124,7 @@ private:
         }
     }
 
-    VariableData* GetVariableData(std::string const & VariableName);
+    const VariableData* GetVariableData(std::string const & VariableName);
 
     template<class TMapType>
     void load_associative_container(std::string const & rTag, TMapType& rObject)
