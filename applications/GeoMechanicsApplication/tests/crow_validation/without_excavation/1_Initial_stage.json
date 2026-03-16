@@ -46,18 +46,38 @@
         "newmark_gamma": 0.5,
         "newmark_theta": 0.5,
         "problem_domain_sub_model_part_list": [
+            "Excavated_Soil_1",
+            "Excavated_Soil_2",
+            "Excavated_Soil_3",
             "Soil_Below_Pit",
             "Soil_Bottom_Left",
             "Soil_Bottom_Right",
             "Soil_Middle_Right",
-            "Soil_Top_Right"
+            "Soil_Top_Right",
+            "Interfaces_Right",
+            "Interface_Excavated_Soil_1",
+            "Interface_Excavated_Soil_2",
+            "Interface_Excavated_Soil_3",
+            "Interfaces_Bottom_Left",
+            "Beam",
+            "Anchor"
         ],
         "body_domain_sub_model_part_list": [
+            "Excavated_Soil_1",
+            "Excavated_Soil_2",
+            "Excavated_Soil_3",
             "Soil_Below_Pit",
             "Soil_Bottom_Left",
             "Soil_Bottom_Right",
             "Soil_Middle_Right",
-            "Soil_Top_Right"
+            "Soil_Top_Right",
+            "Interfaces_Right",
+            "Interface_Excavated_Soil_1",
+            "Interface_Excavated_Soil_2",
+            "Interface_Excavated_Soil_3",
+            "Interfaces_Bottom_Left",
+            "Beam",
+            "Anchor"
         ],
         "linear_solver_settings": {
             "solver_type": "LinearSolversApplication.sparse_lu",
@@ -143,9 +163,6 @@
                 "process_name": "ApplyExcavationProcess",
                 "Parameters": {
                     "model_part_name_list": [
-                        "PorousDomain.Excavated_Soil_1",
-                        "PorousDomain.Excavated_Soil_2",
-                        "PorousDomain.Excavated_Soil_3",
                         "PorousDomain.Interfaces_Right",
                         "PorousDomain.Interface_Excavated_Soil_1",
                         "PorousDomain.Interface_Excavated_Soil_2",
@@ -163,6 +180,9 @@
                 "process_name": "apply_k0_procedure_process",
                 "Parameters": {
                     "model_part_name_list": [
+                        "PorousDomain.Excavated_Soil_1",
+                        "PorousDomain.Excavated_Soil_2",
+                        "PorousDomain.Excavated_Soil_3",
                         "PorousDomain.Soil_Below_Pit",
                         "PorousDomain.Soil_Bottom_Left",
                         "PorousDomain.Soil_Bottom_Right",

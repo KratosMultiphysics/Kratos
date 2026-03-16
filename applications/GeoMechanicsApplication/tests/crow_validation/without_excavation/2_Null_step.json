@@ -45,6 +45,9 @@
         "newmark_gamma": 0.5,
         "newmark_theta": 0.5,
         "problem_domain_sub_model_part_list": [
+            "Excavated_Soil_1",
+            "Excavated_Soil_2",
+            "Excavated_Soil_3",
             "Soil_Below_Pit",
             "Soil_Bottom_Left",
             "Soil_Bottom_Right",
@@ -59,6 +62,9 @@
             "Anchor"
         ],
         "body_domain_sub_model_part_list": [
+            "Excavated_Soil_1",
+            "Excavated_Soil_2",
+            "Excavated_Soil_3",
             "Soil_Below_Pit",
             "Soil_Bottom_Left",
             "Soil_Bottom_Right",
@@ -156,9 +162,6 @@
                 "process_name": "ApplyExcavationProcess",
                 "Parameters": {
                     "model_part_name_list": [
-                        "PorousDomain.Excavated_Soil_1",
-                        "PorousDomain.Excavated_Soil_2",
-                        "PorousDomain.Excavated_Soil_3",
                         "PorousDomain.Interfaces_Right",
                         "PorousDomain.Interface_Excavated_Soil_1",
                         "PorousDomain.Interface_Excavated_Soil_2",
