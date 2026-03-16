@@ -415,14 +415,14 @@ namespace Kratos
         {
             if (rRHSVariable == RESIDUAL_VECTOR && rDestinationVariable == FORCE_RESIDUAL) {
 
-                Vector damping_residual_contribution = ZeroVector(nb_dofs);
-                Vector current_nodal_velocities = ZeroVector(nb_dofs);
-                GetFirstDerivativesVector(current_nodal_velocities, 0);
-                Matrix damping_matrix;
-                ProcessInfo temp_process_information; // cant pass const ProcessInfo
-                CalculateDampingMatrix(damping_matrix, temp_process_information);
-                // current residual contribution due to damping
-                noalias(damping_residual_contribution) = prod(damping_matrix, current_nodal_velocities);
+                // Vector damping_residual_contribution = ZeroVector(nb_dofs);
+                // Vector current_nodal_velocities = ZeroVector(nb_dofs);
+                // GetFirstDerivativesVector(current_nodal_velocities, 0);
+                // Matrix damping_matrix;
+                // ProcessInfo temp_process_information; // cant pass const ProcessInfo
+                // CalculateDampingMatrix(damping_matrix, temp_process_information);
+                // // current residual contribution due to damping
+                // noalias(damping_residual_contribution) = prod(damping_matrix, current_nodal_velocities);
 
                 for (IndexType i = 0; i < nb_nodes; ++i) {
                     IndexType index = 6 * i;
@@ -430,20 +430,20 @@ namespace Kratos
 
                     for (IndexType j = 0; j < 3; ++j) {
                     #pragma omp atomic
-                        r_force_residual[j] += rRHSVector[index + j] - damping_residual_contribution[index + j];
+                        r_force_residual[j] += rRHSVector[index + j];// - damping_residual_contribution[index + j];
                     }
                 }
             }
             else if (rRHSVariable == RESIDUAL_VECTOR && rDestinationVariable == MOMENT_RESIDUAL) {
 
-                Vector damping_residual_contribution = ZeroVector(nb_dofs);
-                Vector current_nodal_velocities = ZeroVector(nb_dofs);
-                GetFirstDerivativesVector(current_nodal_velocities, 0);
-                Matrix damping_matrix;
-                ProcessInfo temp_process_information; // cant pass const ProcessInfo
-                CalculateDampingMatrix(damping_matrix, temp_process_information);
-                // current residual contribution due to damping
-                noalias(damping_residual_contribution) = prod(damping_matrix, current_nodal_velocities);
+                // Vector damping_residual_contribution = ZeroVector(nb_dofs);
+                // Vector current_nodal_velocities = ZeroVector(nb_dofs);
+                // GetFirstDerivativesVector(current_nodal_velocities, 0);
+                // Matrix damping_matrix;
+                // ProcessInfo temp_process_information; // cant pass const ProcessInfo
+                // CalculateDampingMatrix(damping_matrix, temp_process_information);
+                // // current residual contribution due to damping
+                // noalias(damping_residual_contribution) = prod(damping_matrix, current_nodal_velocities);
 
                 for (IndexType i = 0; i < nb_nodes; ++i) {
                     IndexType index = 6 * i;
@@ -451,7 +451,7 @@ namespace Kratos
 
                     for (IndexType j = 0; j < 3; ++j) {
                     #pragma omp atomic
-                        r_moment_residual[j] += rRHSVector[index + j + 3] - damping_residual_contribution[index + j + 3];
+                        r_moment_residual[j] += rRHSVector[index + j + 3];// - damping_residual_contribution[index + j + 3];
                     }
                 }
             }
@@ -784,9 +784,9 @@ namespace Kratos
         double inv_dA3 = 1 / std::pow(rKinematicVariables.dA, 3);
 
         //compute da3
-        array_1d<double, 3> da1_d1;
-        array_1d<double, 3> da1_d2; //da1_d2 = da2_d1
-        array_1d<double, 3> da2_d2;
+        array_1d<double, 3> da1_d1 = ZeroVector(3);
+        array_1d<double, 3> da1_d2 = ZeroVector(3); //da1_d2 = da2_d1
+        array_1d<double, 3> da2_d2 = ZeroVector(3);
 
         Vector current_displacement = ZeroVector(6 * number_of_control_points);
         GetValuesVector(current_displacement, 0);
