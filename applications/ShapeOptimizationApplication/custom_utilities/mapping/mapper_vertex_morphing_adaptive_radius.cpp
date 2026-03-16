@@ -21,7 +21,7 @@
 #include "includes/define.h"
 #include "includes/global_pointer_variables.h"
 #include "includes/model_part.h"
-#include "processes/find_global_nodal_neighbours_for_entities_process.h"
+#include "processes/find_nodal_neighbours_for_entities_process.h"
 #include "processes/find_global_nodal_entity_neighbours_process.h"
 #include "shape_optimization_application.h"
 #include "utilities/builtin_timer.h"
