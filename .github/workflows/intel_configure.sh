@@ -18,35 +18,6 @@ export KRATOS_BUILD="${KRATOS_SOURCE}/build"
 export KRATOS_APP_DIR="${KRATOS_SOURCE}/applications"
 export KRATOS_INSTALL_PYTHON_USING_LINKS=ON
 
-# Set applications to compile
-# add_app ${KRATOS_APP_DIR}/ConvectionDiffusionApplication;
-# add_app ${KRATOS_APP_DIR}/LinearSolversApplication;
-# add_app ${KRATOS_APP_DIR}/StructuralMechanicsApplication;
-# add_app ${KRATOS_APP_DIR}/FluidDynamicsApplication;
-# add_app ${KRATOS_APP_DIR}/FluidDynamicsBiomedicalApplication;
-# add_app ${KRATOS_APP_DIR}/MeshMovingApplication;
-# add_app ${KRATOS_APP_DIR}/DEMApplication;
-# add_app ${KRATOS_APP_DIR}/CSharpWrapperApplication;
-# add_app ${KRATOS_APP_DIR}/MetisApplication;
-# add_app ${KRATOS_APP_DIR}/TrilinosApplication;
-# add_app ${KRATOS_APP_DIR}/ShapeOptimizationApplication;
-# add_app ${KRATOS_APP_DIR}/CoSimulationApplication;
-# add_app ${KRATOS_APP_DIR}/CableNetApplication;
-# add_app ${KRATOS_APP_DIR}/RANSApplication;
-# add_app ${KRATOS_APP_DIR}/MappingApplication;
-# add_app ${KRATOS_APP_DIR}/FSIApplication;
-# add_app ${KRATOS_APP_DIR}/MeshingApplication;
-# add_app ${KRATOS_APP_DIR}/CompressiblePotentialFlowApplication;
-# add_app ${KRATOS_APP_DIR}/HDF5Application;
-# add_app ${KRATOS_APP_DIR}/ContactStructuralMechanicsApplication;
-# add_app ${KRATOS_APP_DIR}/IgaApplication;
-# add_app ${KRATOS_APP_DIR}/MPMApplication;
-# add_app ${KRATOS_APP_DIR}/ChimeraApplication;
-# add_app ${KRATOS_APP_DIR}/MultilevelMonteCarloApplication;
-# add_app ${KRATOS_APP_DIR}/StatisticsApplication;
-# add_app ${KRATOS_APP_DIR}/SwimmingDEMApplication;
-# add_app ${KRATOS_APP_DIR}/ConstitutiveLawsApplication;
-
 # Clean
 clear
 rm -rf "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}/cmake_install.cmake"
@@ -61,6 +32,8 @@ ${KRATOS_CMAKE_OPTIONS_FLAGS} \
 -DUSE_MPI=ON \
 -DPYTHON_EXECUTABLE="/usr/bin/python3.10" \
 -DBOOST_ROOT="/workspace/boost/boost_1_87_0" \
+-DKRATOS_USE_FUTURE=ON                                              \
+-DKRATOS_USE_LEGACY=OFF                                             \
 -DBoost_NO_SYSTEM_PATHS=ON \
 -DCMAKE_CXX_FLAGS="${KRATOS_CMAKE_CXX_FLAGS} -O3 -Wall -Werror-all -diag-disable 1478 -diag-disable 1786" \
 -DTRILINOS_INCLUDE_DIR="/usr/include/trilinos" \
