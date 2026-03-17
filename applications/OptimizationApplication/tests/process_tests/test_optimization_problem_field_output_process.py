@@ -8,7 +8,6 @@ from KratosMultiphysics.OptimizationApplication.responses.response_function impo
 from KratosMultiphysics.OptimizationApplication.controls.control import Control
 from KratosMultiphysics.OptimizationApplication.execution_policies.execution_policy import ExecutionPolicy
 from KratosMultiphysics.OptimizationApplication.processes.optimization_problem_vtu_output_process import OptimizationProblemVtuOutputProcess
-from KratosMultiphysics.OptimizationApplication.processes.optimization_problem_hdf5_output_process import OptimizationProblemHDF5OutputProcess
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 from KratosMultiphysics.OptimizationApplication.utilities.buffered_dict import BufferedDict
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
@@ -144,7 +143,6 @@ class TestOptimizationProblemFieldOutputProcess(kratos_unittest.TestCase):
         Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(combined_data, perform_store_data_recursively=False, copy=False).StoreData()
         buffered_dict[f"{component.GetName()}_combined_element_{is_buffered_data}"] = combined_data
 
-    @kratos_unittest.skipIfApplicationsNotAvailable("HDF5Application")
     def test_OptimizationProblemVtuOutputProcess(self):
         parameters = Kratos.Parameters(
             """
@@ -197,7 +195,9 @@ class TestOptimizationProblemFieldOutputProcess(kratos_unittest.TestCase):
                 "comparison_type"       : "vtu"
             }""")).Execute()
 
+    @kratos_unittest.skipIfApplicationsNotAvailable("HDF5Application")
     def test_OptimizationProblemHDF5OutputProcess(self):
+        from KratosMultiphysics.OptimizationApplication.processes.optimization_problem_hdf5_output_process import OptimizationProblemHDF5OutputProcess
         parameters = Kratos.Parameters(
             """
             {
