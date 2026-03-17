@@ -791,7 +791,7 @@ class KratosGeoMechanicsBuildingPit(KratosUnittest.TestCase):
 
         # Stress-free installation of the strut has no impact on the results with respect to the previous stage
         # However for mohr coulomb we still define the results, due to some local differences
-        if not "strut_installation" in expected_results:
+        if "strut_installation" not in expected_results:
             expected_results["strut_installation"] = expected_results["first_excavation"]
 
         reader = GiDOutputFileReader()
