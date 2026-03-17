@@ -169,6 +169,24 @@ namespace Testing {
 
         auto brep_surface = BrepSurface<PointerVector<NodeType>, false, PointerVector<Point>>(
             p_surface, outer_loops, inner_loops);
+        
+        // Check the knot spans
+        auto spans_u = brep_surface.KnotsU();
+        auto spans_v = brep_surface.KnotsV();
+
+        std::vector<double> expected_spans_u = {0.0, 15.707963267948966, 31.415926535897931};
+        std::vector<double> expected_spans_v = {0.0, 10.0};
+
+        KRATOS_EXPECT_EQ(spans_u.size(), expected_spans_u.size());
+        KRATOS_EXPECT_EQ(spans_v.size(), expected_spans_v.size());
+
+        for (std::size_t i = 0; i < spans_u.size(); ++i) {
+            KRATOS_EXPECT_NEAR(spans_u[i], expected_spans_u[i], 1e-12);
+        }
+
+        for (std::size_t i = 0; i < spans_v.size(); ++i) {
+            KRATOS_EXPECT_NEAR(spans_v[i], expected_spans_v[i], 1e-12);
+        }
 
         //// Check general information, input to ouput
         KRATOS_EXPECT_EQ(brep_surface.WorkingSpaceDimension(), 3);
@@ -178,22 +196,6 @@ namespace Testing {
         const auto geometry_type = GeometryData::KratosGeometryType::Kratos_Brep_Surface;
         KRATOS_EXPECT_EQ(brep_surface.GetGeometryFamily(), geometry_family);
         KRATOS_EXPECT_EQ(brep_surface.GetGeometryType(), geometry_type);
-        //array_1d<double, 3> coords(3, 0.0);
-        //coords[0] = 1.0;
-        //Vector N;
-
-        //p_brep_curve_on_surface.ShapeFunctionsValues(N, coords);
-        //KRATOS_WATCH(N)
-        //Matrix DN_De;
-        //p_brep_curve_on_surface.ShapeFunctionsLocalGradients(DN_De, coords);
-        //KRATOS_WATCH(DN_De)
-
-        //array_1d<double, 3> result(3, 0.0);
-        //p_brep_curve_on_surface.GlobalCoordinates(result, coords);
-        //KRATOS_WATCH(result)
-
-        //auto results = p_brep_curve_on_surface.GlobalDerivatives(coords, 3);
-        //KRATOS_WATCH(results[0])
     }
 
     KRATOS_TEST_CASE_IN_SUITE(NurbsBrepSurfaceSurrogate, KratosCoreGeometriesFastSuite)

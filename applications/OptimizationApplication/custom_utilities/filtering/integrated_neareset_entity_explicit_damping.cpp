@@ -16,7 +16,6 @@
 
 // Project includes
 #include "includes/model_part.h"
-#include "expression/literal_flat_expression.h"
 #include "utilities/model_part_utils.h"
 
 // Application includes
@@ -67,13 +66,21 @@ IntegratedNearestEntityExplicitDamping<TContainerType>::IntegratedNearestEntityE
 }
 
 template <class TContainerType>
-void IntegratedNearestEntityExplicitDamping<TContainerType>::SetRadius(const ContainerExpression<TContainerType>& rDampingRadiusExpression)
+void IntegratedNearestEntityExplicitDamping<TContainerType>::SetRadius(TensorAdaptor<double>::Pointer pDampingRadiusTensorAdaptor)
 {
-    mpDampingRadius = rDampingRadiusExpression.Clone();
+    KRATOS_TRY
+
+    KRATOS_ERROR_IF_NOT(std::holds_alternative<typename TContainerType::Pointer>(pDampingRadiusTensorAdaptor->GetContainer()))
+        << "Radius container type and the explicit damping type container mismatch [ "
+        << "tensor adaptor = " << *pDampingRadiusTensorAdaptor << " ].\n";
+
+    mpDampingRadius = pDampingRadiusTensorAdaptor;
+
+    KRATOS_CATCH("");
 }
 
 template <class TContainerType>
-typename ContainerExpression<TContainerType>::Pointer IntegratedNearestEntityExplicitDamping<TContainerType>::GetRadius() const
+TensorAdaptor<double>::Pointer IntegratedNearestEntityExplicitDamping<TContainerType>::GetRadius() const
 {
     return mpDampingRadius;
 }
@@ -135,7 +142,7 @@ void IntegratedNearestEntityExplicitDamping<TContainerType>::IntegratedNearestEn
 {
     KRATOS_TRY
 
-    const auto radius = mpDampingRadius->GetExpression().Evaluate(Index, Index, 0);
+    const auto radius = mpDampingRadius->ViewData()[Index];
 
     for (IndexType i_comp = 0; i_comp < this->GetStride(); ++i_comp) {
         auto& r_damped_weights = rDampedWeights[i_comp];
@@ -166,8 +173,8 @@ void IntegratedNearestEntityExplicitDamping<TContainerType>::IntegratedNearestEn
     using tls = OptimizationUtils::KDTreeThreadLocalStorage<typename EntityPointType::Pointer>;
 
     const auto stride = this->GetStride();
-    const auto& r_radius_exp = mpDampingRadius->GetExpression();
-    const auto& r_container = mpDampingRadius->GetContainer();
+    const auto& radius_view = mpDampingRadius->ViewData();
+    const auto& r_container = *(std::get<typename TContainerType::Pointer>(mpDampingRadius->GetContainer()));
     const auto number_of_entities = r_container.size();
 
     KRATOS_ERROR_IF_NOT(ComponentIndex < stride)
@@ -198,8 +205,8 @@ void IntegratedNearestEntityExplicitDamping<TContainerType>::IntegratedNearestEn
         auto& comp_search_tree = *mComponentWiseKDTrees[ComponentIndex];
         auto& kernel_function = *mpKernelFunction;
 
-        IndexPartition<IndexType>(number_of_entities).for_each(tls(1000, 1), [&rOutput, &r_container, &r_radius_exp, &search_tree, &comp_search_tree, &kernel_function, number_of_entities](const auto Index, auto& rTLS) {
-            const auto radius = r_radius_exp.Evaluate(Index, Index, 0);
+        IndexPartition<IndexType>(number_of_entities).for_each(tls(1000, 1), [&rOutput, &r_container, &radius_view, &search_tree, &comp_search_tree, &kernel_function, number_of_entities](const auto Index, auto& rTLS) {
+            const auto radius = radius_view[Index];
             EntityPoint<EntityType> entity_point(*(r_container.begin() + Index), Index);
             const auto number_of_neighbors = search_tree.SearchInRadius(
                                                 entity_point,
