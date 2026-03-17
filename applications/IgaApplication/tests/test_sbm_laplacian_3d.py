@@ -78,7 +78,7 @@ def _create_outer_support_model_part():
                     "lower_point_uvw": [0.0, 0.0, 0.0],
                     "upper_point_uvw": [2.0, 2.0, 2.0],
                     "polynomial_order" : [1, 1, 1],
-                    "number_of_knot_spans" : [2, 2, 2],
+                    "number_of_knot_spans" : [4, 4, 4],
                     "lambda_outer": 0.5,
                     "number_of_inner_loops": 0,
                     "skin_model_part_outer_initial_name": "skin_model_part_outer_initial",
@@ -208,25 +208,40 @@ class TestSbmLaplacian3D(KratosUnittest.TestCase):
         current_model, support_model_part = _create_outer_support_model_part()
         self.assertTrue(current_model.HasModelPart("IgaModelPart.SBM_Support_outer"))
 
-        self.assertEqual(support_model_part.NumberOfConditions(), 48)
+        self.assertEqual(support_model_part.NumberOfConditions(), 288)
 
         tolerance = 1.0e-12
         for condition in support_model_part.Conditions:
             center = condition.GetGeometry().Center()
             normal = condition.GetGeometry().Calculate(KM.NORMAL)
+            self.assertAlmostEqual(normal.norm_2(), 1.0, delta=tolerance)
 
             if abs(center[0]) < tolerance:
+                expected_normal = (-1.0, 0.0, 0.0)
+            elif abs(center[0] - 0.5) < tolerance:
+                expected_normal = (1.0, 0.0, 0.0)
+            elif abs(center[0] - 1.5) < tolerance:
                 expected_normal = (-1.0, 0.0, 0.0)
             elif abs(center[0] - 2.0) < tolerance:
                 expected_normal = (1.0, 0.0, 0.0)
             elif abs(center[1]) < tolerance:
                 expected_normal = (0.0, -1.0, 0.0)
+            elif abs(center[1] - 0.5) < tolerance:
+                expected_normal = (0.0, 1.0, 0.0)
+            elif abs(center[1] - 1.5) < tolerance:
+                expected_normal = (0.0, -1.0, 0.0)
             elif abs(center[1] - 2.0) < tolerance:
                 expected_normal = (0.0, 1.0, 0.0)
             elif abs(center[2]) < tolerance:
                 expected_normal = (0.0, 0.0, -1.0)
-            else:
+            elif abs(center[2] - 0.5) < tolerance:
                 expected_normal = (0.0, 0.0, 1.0)
+            elif abs(center[2] - 1.5) < tolerance:
+                expected_normal = (0.0, 0.0, -1.0)
+            elif abs(center[2] - 2.0) < tolerance:
+                expected_normal = (0.0, 0.0, 1.0)
+            else:
+                self.fail(f"Unexpected support-condition center: ({center[0]}, {center[1]}, {center[2]})")
 
             self.assertAlmostEqual(normal[0], expected_normal[0], delta=tolerance)
             self.assertAlmostEqual(normal[1], expected_normal[1], delta=tolerance)
