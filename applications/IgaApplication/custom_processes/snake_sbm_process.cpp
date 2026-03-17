@@ -1236,6 +1236,35 @@ void SnakeSbmProcess::MarkKnotSpansAvailable(
     }
 }
 
+void SnakeSbmProcess::RetrieveOrCreateNodeInModelPart(
+    ModelPart& rModelPart,
+    const IndexType NodeId,
+    const int NodeI,
+    const int NodeJ,
+    const Vector& rKnotVectorU,
+    const Vector& rKnotVectorV)
+{
+    if (!rModelPart.HasNode(NodeId)) {
+        rModelPart.CreateNewNode(
+            NodeId,
+            rKnotVectorU[NodeI],
+            rKnotVectorV[NodeJ],
+            0.0);
+        return;
+    }
+
+    const auto& r_node = rModelPart.GetNode(NodeId);
+    const double expected_x = rKnotVectorU[NodeI];
+    const double expected_y = rKnotVectorV[NodeJ];
+    if (std::abs(r_node.X() - expected_x) > 1e-8 ||
+        std::abs(r_node.Y() - expected_y) > 1e-8) {
+        KRATOS_ERROR << "Existing surrogate node has unexpected coordinates. "
+                     << "NodeId: " << NodeId
+                     << " Expected: (" << expected_x << ", " << expected_y << ")"
+                     << " Actual: (" << r_node.X() << ", " << r_node.Y() << ")";
+    }
+}
+
 /**
     * summary of knot_spans_available:
         " 1"  -> interior knot spans                                  
@@ -1273,17 +1302,6 @@ void SnakeSbmProcess::MarkKnotSpansAvailable(
     }
     id_surrogate_first_node = max_id + 1;
 
-    // checks if the node exists in the surrogate model part otherwise create it
-    auto ensure_surrogate_node = [&](IndexType node_id, int node_i, int node_j) {
-        if (!rSurrogateModelPartInner.HasNode(node_id)) {
-            auto p_new_node = rSurrogateModelPartInner.CreateNewNode(
-                node_id,
-                rKnotVectorU[node_i],
-                rKnotVectorV[node_j],
-                0.0);
-        }
-    };
-    
     auto p_cond_prop = rSurrogateModelPartInner.pGetProperties(0);
     
     // Direction parallel to x
@@ -1324,8 +1342,8 @@ void SnakeSbmProcess::MarkKnotSpansAvailable(
 
                     IndexType id_node_1 = id_surrogate_first_node + node1_i + node1_j*rNumberKnotSpans[0];
                     IndexType id_node_2 = id_surrogate_first_node + node2_i + node2_j*rNumberKnotSpans[0];
-                    ensure_surrogate_node(id_node_1, node1_i, node1_j);
-                    ensure_surrogate_node(id_node_2, node2_i, node2_j);
+                    RetrieveOrCreateNodeInModelPart(rSurrogateModelPartInner, id_node_1, node1_i, node1_j, rKnotVectorU, rKnotVectorV);
+                    RetrieveOrCreateNodeInModelPart(rSurrogateModelPartInner, id_node_2, node2_i, node2_j, rKnotVectorU, rKnotVectorV);
                     auto p_condition = rSurrogateModelPartInner.CreateNewCondition("LineCondition2D2N", id_surrogate_condition, {{id_node_2, id_node_1}}, p_cond_prop );
 
                     // BOUNDARY true means that the condition (i.e. the sbm face) is entering looking from x,y,z positive
@@ -1344,8 +1362,8 @@ void SnakeSbmProcess::MarkKnotSpansAvailable(
 
                 IndexType id_node_1 = id_surrogate_first_node + node1_i + node1_j*rNumberKnotSpans[0];
                 IndexType id_node_2 = id_surrogate_first_node + node2_i + node2_j*rNumberKnotSpans[0];
-                ensure_surrogate_node(id_node_1, node1_i, node1_j);
-                ensure_surrogate_node(id_node_2, node2_i, node2_j);
+                RetrieveOrCreateNodeInModelPart(rSurrogateModelPartInner, id_node_1, node1_i, node1_j, rKnotVectorU, rKnotVectorV);
+                RetrieveOrCreateNodeInModelPart(rSurrogateModelPartInner, id_node_2, node2_i, node2_j, rKnotVectorU, rKnotVectorV);
                 auto p_condition = rSurrogateModelPartInner.CreateNewCondition("LineCondition2D2N", id_surrogate_condition, {{id_node_2, id_node_1}}, p_cond_prop );
                 id_surrogate_condition++;
                 check_next_point = true;
@@ -1375,8 +1393,8 @@ void SnakeSbmProcess::MarkKnotSpansAvailable(
 
                     IndexType id_node_1 = id_surrogate_first_node + node1_i + node1_j*rNumberKnotSpans[0];
                     IndexType id_node_2 = id_surrogate_first_node + node2_i + node2_j*rNumberKnotSpans[0];
-                    ensure_surrogate_node(id_node_1, node1_i, node1_j);
-                    ensure_surrogate_node(id_node_2, node2_i, node2_j);
+                    RetrieveOrCreateNodeInModelPart(rSurrogateModelPartInner, id_node_1, node1_i, node1_j, rKnotVectorU, rKnotVectorV);
+                    RetrieveOrCreateNodeInModelPart(rSurrogateModelPartInner, id_node_2, node2_i, node2_j, rKnotVectorU, rKnotVectorV);
   
                     auto p_condition = rSurrogateModelPartInner.CreateNewCondition("LineCondition2D2N", id_surrogate_condition, {{id_node_1, id_node_2}}, p_cond_prop );
                     // BOUNDARY true means that the condition (i.e. the sbm face) is entering looking from x,y,z positive
@@ -1394,8 +1412,8 @@ void SnakeSbmProcess::MarkKnotSpansAvailable(
 
                 IndexType id_node_1 = id_surrogate_first_node + node1_i + node1_j*(rNumberKnotSpans[0]);
                 IndexType id_node_2 = id_surrogate_first_node + node2_i + node2_j*(rNumberKnotSpans[0]);
-                ensure_surrogate_node(id_node_1, node1_i, node1_j);
-                ensure_surrogate_node(id_node_2, node2_i, node2_j);
+                RetrieveOrCreateNodeInModelPart(rSurrogateModelPartInner, id_node_1, node1_i, node1_j, rKnotVectorU, rKnotVectorV);
+                RetrieveOrCreateNodeInModelPart(rSurrogateModelPartInner, id_node_2, node2_i, node2_j, rKnotVectorU, rKnotVectorV);
                 auto p_condition = rSurrogateModelPartInner.CreateNewCondition("LineCondition2D2N", id_surrogate_condition, {{id_node_1, id_node_2}}, p_cond_prop );
                 // surrogate_model_part_inner.AddCondition(p_cond);
                 id_surrogate_condition++;
@@ -1505,29 +1523,6 @@ void SnakeSbmProcess::CreateSurrogateBuondaryFromSnakeOuter(
         KRATOS_ERROR << "::[SnakeSbmProcess]:: Multiple outer loops are not implemented \n";
     }
 
-    // checks if the node exists in the surrogate model part otherwise create it
-    auto ensure_surrogate_node = [&](IndexType node_id, int node_i, int node_j) {
-        if (!rSurrogateModelPartOuter.HasNode(node_id)) {
-            rSurrogateModelPartOuter.CreateNewNode(
-                node_id,
-                rKnotVectorU[node_i],
-                rKnotVectorV[node_j],
-                0.0);
-        }
-        else {
-            const auto& r_node = rSurrogateModelPartOuter.GetNode(node_id);
-            const double expected_x = rKnotVectorU[node_i];
-            const double expected_y = rKnotVectorV[node_j];
-            if (std::abs(r_node.X() - expected_x) > 1e-8 ||
-                std::abs(r_node.Y() - expected_y) > 1e-8) {
-                KRATOS_ERROR << "Existing surrogate node has unexpected coordinates. "
-                             << "NodeId: " << node_id
-                             << " Expected: (" << expected_x << ", " << expected_y << ")"
-                             << " Actual: (" << r_node.X() << ", " << r_node.Y() << ")";
-            }
-        }
-    };
-    
     // Direction parallel to x
     
     IndexType id_surrogate_condition = rSurrogateModelPartOuter.GetRootModelPart().NumberOfConditions() + 1;
@@ -1574,8 +1569,8 @@ void SnakeSbmProcess::CreateSurrogateBuondaryFromSnakeOuter(
 
                     IndexType id_node_1 = id_surrogate_first_node + node1_i + node1_j*(rNumberKnotSpans[0]+1);
                     IndexType id_node_2 = id_surrogate_first_node + node2_i + node2_j*(rNumberKnotSpans[0]+1);
-                    ensure_surrogate_node(id_node_1, node1_i, node1_j);
-                    ensure_surrogate_node(id_node_2, node2_i, node2_j);
+                    RetrieveOrCreateNodeInModelPart(rSurrogateModelPartOuter, id_node_1, node1_i, node1_j, rKnotVectorU, rKnotVectorV);
+                    RetrieveOrCreateNodeInModelPart(rSurrogateModelPartOuter, id_node_2, node2_i, node2_j, rKnotVectorU, rKnotVectorV);
                         
                     auto p_condition = rSurrogateModelPartOuter.CreateNewCondition("LineCondition2D2N", id_surrogate_condition, {{id_node_1, id_node_2}}, p_cond_prop );
 
@@ -1594,8 +1589,8 @@ void SnakeSbmProcess::CreateSurrogateBuondaryFromSnakeOuter(
 
                 IndexType id_node_1 = id_surrogate_first_node + node1_i + node1_j*(rNumberKnotSpans[0]+1);
                 IndexType id_node_2 = id_surrogate_first_node + node2_i + node2_j*(rNumberKnotSpans[0]+1);
-                ensure_surrogate_node(id_node_1, node1_i, node1_j);
-                ensure_surrogate_node(id_node_2, node2_i, node2_j);
+                RetrieveOrCreateNodeInModelPart(rSurrogateModelPartOuter, id_node_1, node1_i, node1_j, rKnotVectorU, rKnotVectorV);
+                RetrieveOrCreateNodeInModelPart(rSurrogateModelPartOuter, id_node_2, node2_i, node2_j, rKnotVectorU, rKnotVectorV);
                     
                 auto p_condition = rSurrogateModelPartOuter.CreateNewCondition("LineCondition2D2N", id_surrogate_condition, {{id_node_1, id_node_2}}, p_cond_prop );
                 id_surrogate_condition++;
@@ -1613,8 +1608,8 @@ void SnakeSbmProcess::CreateSurrogateBuondaryFromSnakeOuter(
 
                 IndexType id_node_1 = id_surrogate_first_node + node1_i + node1_j*(rNumberKnotSpans[0]+1);
                 IndexType id_node_2 = id_surrogate_first_node + node2_i + node2_j*(rNumberKnotSpans[0]+1);
-                ensure_surrogate_node(id_node_1, node1_i, node1_j);
-                ensure_surrogate_node(id_node_2, node2_i, node2_j);
+                RetrieveOrCreateNodeInModelPart(rSurrogateModelPartOuter, id_node_1, node1_i, node1_j, rKnotVectorU, rKnotVectorV);
+                RetrieveOrCreateNodeInModelPart(rSurrogateModelPartOuter, id_node_2, node2_i, node2_j, rKnotVectorU, rKnotVectorV);
                     
                 auto p_condition = rSurrogateModelPartOuter.CreateNewCondition("LineCondition2D2N", id_surrogate_condition, {{id_node_1, id_node_2}}, p_cond_prop );
                 // BOUNDARY true means that the condition (i.e. the sbm face) is entering looking from x,y,z positive
@@ -1646,8 +1641,8 @@ void SnakeSbmProcess::CreateSurrogateBuondaryFromSnakeOuter(
 
                     IndexType id_node_1 = id_surrogate_first_node + node1_i + node1_j*(rNumberKnotSpans[0]+1);
                     IndexType id_node_2 = id_surrogate_first_node + node2_i + node2_j*(rNumberKnotSpans[0]+1);
-                    ensure_surrogate_node(id_node_1, node1_i, node1_j);
-                    ensure_surrogate_node(id_node_2, node2_i, node2_j);
+                    RetrieveOrCreateNodeInModelPart(rSurrogateModelPartOuter, id_node_1, node1_i, node1_j, rKnotVectorU, rKnotVectorV);
+                    RetrieveOrCreateNodeInModelPart(rSurrogateModelPartOuter, id_node_2, node2_i, node2_j, rKnotVectorU, rKnotVectorV);
                         
                     auto p_condition = rSurrogateModelPartOuter.CreateNewCondition("LineCondition2D2N", id_surrogate_condition, {{id_node_2, id_node_1}}, p_cond_prop );
                     // BOUNDARY true means that the condition (i.e. the sbm face) is entering looking from x,y,z positive
@@ -1663,8 +1658,8 @@ void SnakeSbmProcess::CreateSurrogateBuondaryFromSnakeOuter(
 
                 IndexType id_node_1 = id_surrogate_first_node + node1_i + node1_j*(rNumberKnotSpans[0]+1);
                 IndexType id_node_2 = id_surrogate_first_node + node2_i + node2_j*(rNumberKnotSpans[0]+1);
-                ensure_surrogate_node(id_node_1, node1_i, node1_j);
-                ensure_surrogate_node(id_node_2, node2_i, node2_j);
+                RetrieveOrCreateNodeInModelPart(rSurrogateModelPartOuter, id_node_1, node1_i, node1_j, rKnotVectorU, rKnotVectorV);
+                RetrieveOrCreateNodeInModelPart(rSurrogateModelPartOuter, id_node_2, node2_i, node2_j, rKnotVectorU, rKnotVectorV);
                 auto p_condition = rSurrogateModelPartOuter.CreateNewCondition("LineCondition2D2N", id_surrogate_condition, {{id_node_2, id_node_1}}, p_cond_prop );
                 id_surrogate_condition++;
                 check_next_point = true;
@@ -1681,8 +1676,8 @@ void SnakeSbmProcess::CreateSurrogateBuondaryFromSnakeOuter(
 
                 IndexType id_node_1 = id_surrogate_first_node + node1_i + node1_j*(rNumberKnotSpans[0]+1);
                 IndexType id_node_2 = id_surrogate_first_node + node2_i + node2_j*(rNumberKnotSpans[0]+1);
-                ensure_surrogate_node(id_node_1, node1_i, node1_j);
-                ensure_surrogate_node(id_node_2, node2_i, node2_j);
+                RetrieveOrCreateNodeInModelPart(rSurrogateModelPartOuter, id_node_1, node1_i, node1_j, rKnotVectorU, rKnotVectorV);
+                RetrieveOrCreateNodeInModelPart(rSurrogateModelPartOuter, id_node_2, node2_i, node2_j, rKnotVectorU, rKnotVectorV);
                     
                 auto p_condition = rSurrogateModelPartOuter.CreateNewCondition("LineCondition2D2N", id_surrogate_condition, {{id_node_2, id_node_1}}, p_cond_prop );
                 // BOUNDARY true means that the condition (i.e. the sbm face) is entering looking from x,y,z positive
