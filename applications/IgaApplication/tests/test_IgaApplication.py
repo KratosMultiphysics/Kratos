@@ -55,6 +55,7 @@ from test_modelers import TestModelers as TTestModelers
 from test_modelers_sbm import TestModelersSbm as TTestModelersSbm
 from test_import_nurbs_modeler import TestImportNurbsModeler as TTestImportNurbsModeler
 from test_nurbs_geometry_modeler_gap_sbm import TestNurbsGeometryModelerGapSbm as TTestNurbsGeometryModelerGapSbm
+from test_sbm_laplacian_3d import TestSbmLaplacian3D as TTestSbmLaplacian3D
 # Processes tests
 from test_map_nurbs_volume_results_to_embedded_geometry_process import TestMapNurbsVolumeResultsToEmbeddedGeometryProcess as TTestMapNurbsVolumeResultsToEmbeddedGeometryProcess
 # Fluid Element and Conditions tests
@@ -114,6 +115,7 @@ def AssembleTestSuites():
         TTestModelers,
         TTestModelersSbm,
         TTestNurbsGeometryModelerGapSbm,
+        TTestSbmLaplacian3D,
         TTestMapNurbsVolumeResultsToEmbeddedGeometryProcess,
         # Fluids
         TTestFluid,
