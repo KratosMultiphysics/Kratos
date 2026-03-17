@@ -423,6 +423,14 @@ private:
         const std::vector<int> &rNumberKnotSpansUV
         ); 
 
+    /**
+     * @brief Removes isolated active cells from the 3D knot-span grids.
+     * @param rKnotSpansAvailable 3D knot-span availability matrices for all loops.
+     */
+    static void RemoveIslands3D(
+        std::vector<std::vector<std::vector<std::vector<int>>>>& rKnotSpansAvailable
+        );
+
     
     /**
      * @brief Performs a single step in the snake algorithm for 3D models.
