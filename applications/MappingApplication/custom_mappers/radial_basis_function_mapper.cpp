@@ -147,7 +147,7 @@ void RadialBasisFunctionMapperLocalSystem::CalculateAll(MatrixType& rLocalMappin
             rLocalMappingMatrix(0, j) = phi;
         }   
 
-        const std::vector<double> polynomial = EvaluatePolynomialBasis(this->Coordinates(), mPolynomialDegree, 2);
+        const std::vector<double> polynomial = EvaluatePolynomialBasis(this->Coordinates(), mPolynomialDegree, mDimension);
 
         for (IndexType k = 0; k < mNumberOfPolynomialTerms; ++k) {
             rLocalMappingMatrix(0, rbf_support_points_number + k) = polynomial[k];
@@ -210,7 +210,7 @@ void RadialBasisFunctionMapperLocalSystem::CalculateAll(MatrixType& rLocalMappin
             rLocalMappingMatrix(0, j) = phi;
         }
 
-        const std::vector<double> polynomial = EvaluatePolynomialBasis(this->Coordinates(), mPolynomialDegree, 2);
+        const std::vector<double> polynomial = EvaluatePolynomialBasis(this->Coordinates(), mPolynomialDegree, mDimension);
 
         for (IndexType k = 0; k < mNumberOfPolynomialTerms; ++k) {
             rLocalMappingMatrix(0, rbf_support_points_number + k) = polynomial[k];
@@ -246,7 +246,7 @@ void RadialBasisFunctionMapperLocalSystem::CalculateAll(MatrixType& rLocalMappin
 std::vector<double> RadialBasisFunctionMapperLocalSystem::EvaluatePolynomialBasis(
     const CoordinatesArrayType& rCoords,
     unsigned int degree,
-    unsigned int dimension) const
+    const IndexType dimension) const
 {
     std::vector<double> polynomial_values;
 
@@ -339,8 +339,11 @@ void RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::InitializeInterface(K
 
     // Obtain the polynomial degree and calculate number of polynomial terms
     mPolynomialDegree = mMapperSettings["additional_polynomial_degree"].GetInt();
-    IndexType dimension = 2;
-    if (dimension == 2){
+    mDimension = mMapperSettings["global_space_dimension"].GetInt();
+    KRATOS_ERROR_IF(mDimension > 3) << "global_space_dimension cannot be greater than 3" << std::endl;
+
+    // Calculate the number of polynomial terms depending on the dimension
+     if (mDimension == 2){
         mNumberOfPolynomialTerms = (mPolynomialDegree + 2) * (mPolynomialDegree + 1) / 2;
     } else {
         mNumberOfPolynomialTerms = (mPolynomialDegree + 3) * (mPolynomialDegree + 2) * (mPolynomialDegree + 1) / 6;
@@ -397,8 +400,8 @@ void RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::InitializeInterface(K
     }
 
     // Create dummy local systems for the origin and destination domains
-    RadialBasisFunctionMapperLocalSystem origin_local_system{nullptr, nullptr, true, mOriginIsIga, mRBFTypeEnum, mPolynomialDegree, &mPolynomialEquationIdsOrigin};
-    RadialBasisFunctionMapperLocalSystem destination_local_system{nullptr, nullptr, false, mOriginIsIga, mRBFTypeEnum, mPolynomialDegree, &mPolynomialEquationIdsOrigin};
+    RadialBasisFunctionMapperLocalSystem origin_local_system{nullptr, nullptr, true, mOriginIsIga, mRBFTypeEnum, mPolynomialDegree, mDimension, &mPolynomialEquationIdsOrigin};
+    RadialBasisFunctionMapperLocalSystem destination_local_system{nullptr, nullptr, false, mOriginIsIga, mRBFTypeEnum, mPolynomialDegree, mDimension, &mPolynomialEquationIdsOrigin};
 
     // Create the local systems for the origin and destination domains
     if (mOriginIsIga) {
@@ -1148,13 +1151,41 @@ RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::ComputeMappingMatrixIgaOnC
 template<class TSparseSpace, class TDenseSpace>
 void RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::CreateLinearSolver()
 {
+    // Create the linear solver factory
+    LinearSolverFactory<TSparseSpace, TDenseSpace> solver_factory;
+
     if (mMapperSettings["linear_solver_settings"].Has("solver_type")) {
-        mpLinearSolver = LinearSolverFactory<TSparseSpace, TDenseSpace>().Create(mMapperSettings["linear_solver_settings"]);
+        const std::string solver_type =
+            mMapperSettings["linear_solver_settings"]["solver_type"].GetString();
+
+        KRATOS_INFO("Radial Basis Functions Mapper")
+            << "Using specified linear solver: " << solver_type << std::endl;
+
+        mpLinearSolver = solver_factory.Create(mMapperSettings["linear_solver_settings"]);
     }
     else {
-        // TODO - replicate 'get fastest solver'
-        mMapperSettings.AddString("solver_type", "pardiso_lu");
-        mpLinearSolver = LinearSolverFactory<TSparseSpace, TDenseSpace>().Create(mMapperSettings);
+        if (solver_factory.Has("pardiso_lu")) {
+            KRATOS_INFO("Radial Basis Functions Mapper")
+                << "No linear solver specified. Using PardisoLU." << std::endl;
+
+            Parameters default_settings(R"(
+            {
+                "solver_type": "pardiso_lu"
+            })");
+
+            mpLinearSolver = solver_factory.Create(default_settings);
+        }
+        else {
+            KRATOS_WARNING("Radial Basis Functions Mapper")
+                << "PardisoLU not available. Falling back to skyline_lu_factorization." << std::endl;
+
+            Parameters default_settings(R"(
+            {
+                "solver_type": "skyline_lu_factorization"
+            })");
+
+            mpLinearSolver = solver_factory.Create(default_settings);
+        }
     }
 }
 
