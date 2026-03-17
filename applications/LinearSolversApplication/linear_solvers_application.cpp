@@ -14,6 +14,7 @@
 #include "includes/define.h"
 #include "includes/registry.h"
 #include "linear_solvers_application.h"
+#include "factories/standard_preconditioner_factory.h"
 #include "custom_factories/dense_linear_solver_factory.h"
 
 #include "custom_solvers/eigen_sparse_cg_solver.h"
@@ -23,6 +24,7 @@
 #include "custom_solvers/eigen_cholmod_solver.hpp" // EigenCholmodSolver
 #include "custom_solvers/eigen_spqr_solver.hpp" // EigenSPQRSolver
 #include "custom_solvers/eigen_umfpack_solver.hpp" // EigenUmfPackSolver
+#include "custom_solvers/substitution_preconditioner.hpp" // SubstitutionPreconditioner
 
 #if defined USE_EIGEN_MKL
 #include "custom_solvers/eigen_pardiso_lu_solver.h"
@@ -176,6 +178,16 @@ void KratosLinearSolversApplication::Register()
         KRATOS_REGISTER_COMPLEX_LINEAR_SOLVER("umfpack_complex", factory);
     }
 #endif // KRATOS_USE_EIGEN_SUITESPARSE
+
+    {
+        static auto factory = StandardPreconditionerFactory<
+            TUblasSparseSpace<double>,
+            TUblasDenseSpace<double>,
+            SubstitutionPreconditioner<
+                TUblasSparseSpace<double>,
+                TUblasDenseSpace<double>>>();
+        KratosComponents<decltype(factory)>::Add("substitution", factory);
+    }
 }
 
 } // namespace Kratos
