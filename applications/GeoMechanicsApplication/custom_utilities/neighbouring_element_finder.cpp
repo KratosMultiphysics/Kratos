@@ -82,7 +82,9 @@ void NeighbouringElementFinder::SetElementAsNeighbourOfAllEntitiesWithIdenticalN
     for (auto it = start; it != end; ++it) {
         const auto& r_entities = it->second;
         for (auto& rp_entity : r_entities) {
-            if (rp_entity->GetGeometry().Id() == pElement->GetGeometry().Id()) continue;
+            if (GeometricalObject::HasSameType(*rp_entity, *pElement) && rp_entity->Id() == pElement->Id()) {
+                continue; // An entity should not be a neighbour of itself
+            }
             rp_entity->GetValue(NEIGHBOUR_ELEMENTS).push_back(Element::WeakPointer{pElement});
         }
     }
