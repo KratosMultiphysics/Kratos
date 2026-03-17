@@ -17,7 +17,7 @@
 
 namespace Kratos
 {
-/* Contants used in GeoMechanicsApplication */
+/* Constants used in GeoMechanicsApplication */
 // The size type definition
 using SizeType = std::size_t;
 
@@ -101,5 +101,13 @@ enum indexDOF2DBeam : int { INDEX_2D_BEAM_X, INDEX_2D_BEAM_Y, INDEX_2D_BEAM_T };
 enum class indexThermalFlux : int { X, Y, Z };
 
 enum class IsDiffOrderElement : int { Yes, No };
+
+enum class PlasticityStatus : int {
+    ELASTIC,
+    TENSION_APEX,
+    TENSION_CUT_OFF,
+    TENSION_MOHR_COULOMB_CORNER,
+    MOHR_COULOMB_FAILURE
+};
 
 } // namespace Kratos

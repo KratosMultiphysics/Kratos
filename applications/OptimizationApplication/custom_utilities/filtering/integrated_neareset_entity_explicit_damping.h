@@ -18,8 +18,7 @@
 
 // Project includes
 #include "containers/model.h"
-#include "expression/container_expression.h"
-#include "expression/expression.h"
+#include "tensor_adaptors/tensor_adaptor.h"
 #include "includes/define.h"
 #include "spatial_containers/spatial_containers.h"
 
@@ -78,9 +77,9 @@ class KRATOS_API(OPTIMIZATION_APPLICATION) IntegratedNearestEntityExplicitDampin
     ///@name Operations
     ///@{
 
-    void SetRadius(const ContainerExpression<TContainerType>& rDampingRadiusExpression) override;
+    void SetRadius(TensorAdaptor<double>::Pointer pDampingRadiusTensorAdaptor) override;
 
-    typename ContainerExpression<TContainerType>::Pointer GetRadius() const override;
+    TensorAdaptor<double>::Pointer GetRadius() const override;
 
     IndexType GetStride() const override;
 
@@ -111,7 +110,7 @@ private:
 
     DampingFunction::UniquePointer mpKernelFunction;
 
-    typename ContainerExpression<TContainerType>::Pointer mpDampingRadius;
+    TensorAdaptor<double>::Pointer mpDampingRadius;
 
     std::vector<std::vector<ModelPart*>> mComponentWiseDampedModelParts;
 

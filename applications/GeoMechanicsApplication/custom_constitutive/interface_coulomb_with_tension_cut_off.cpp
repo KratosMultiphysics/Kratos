@@ -14,6 +14,8 @@
 
 // Application includes
 #include "custom_constitutive/interface_coulomb_with_tension_cut_off.h"
+#include "custom_constitutive/constitutive_law_dimension.h"
+#include "custom_constitutive/sigma_tau.hpp"
 #include "custom_utilities/check_utilities.hpp"
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "custom_utilities/math_utilities.hpp"
@@ -26,11 +28,19 @@
 namespace Kratos
 {
 
+InterfaceCoulombWithTensionCutOff::InterfaceCoulombWithTensionCutOff(std::unique_ptr<ConstitutiveLawDimension> pConstitutiveDimension)
+    : mpConstitutiveDimension(std::move(pConstitutiveDimension)),
+      mTractionVector(ZeroVector(mpConstitutiveDimension->GetStrainSize())),
+      mTractionVectorFinalized(ZeroVector(mpConstitutiveDimension->GetStrainSize())),
+      mRelativeDisplacementVectorFinalized(ZeroVector(mpConstitutiveDimension->GetStrainSize()))
+{
+}
+
 ConstitutiveLaw::Pointer InterfaceCoulombWithTensionCutOff::Clone() const
 {
-    auto p_result                      = std::make_shared<InterfaceCoulombWithTensionCutOff>(*this);
-    p_result->mTractionVector          = mTractionVector;
-    p_result->mTractionVectorFinalized = mTractionVectorFinalized;
+    auto p_result = std::make_shared<InterfaceCoulombWithTensionCutOff>(mpConstitutiveDimension->Clone());
+    p_result->mTractionVector                      = mTractionVector;
+    p_result->mTractionVectorFinalized             = mTractionVectorFinalized;
     p_result->mRelativeDisplacementVectorFinalized = mRelativeDisplacementVectorFinalized;
     p_result->mCoulombWithTensionCutOffImpl        = mCoulombWithTensionCutOffImpl;
     p_result->mIsModelInitialized                  = mIsModelInitialized;
@@ -43,6 +53,14 @@ Vector& InterfaceCoulombWithTensionCutOff::GetValue(const Variable<Vector>& rVar
         rValue = mTractionVector;
     } else {
         rValue = ConstitutiveLaw::GetValue(rVariable, rValue);
+    }
+    return rValue;
+}
+
+int& InterfaceCoulombWithTensionCutOff::GetValue(const Variable<int>& rVariable, int& rValue)
+{
+    if (rVariable == GEO_PLASTICITY_STATUS) {
+        rValue = static_cast<int>(mCoulombWithTensionCutOffImpl.GetPlasticityStatus());
     }
     return rValue;
 }
@@ -134,28 +152,29 @@ void InterfaceCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(Paramete
                                                         r_properties[INTERFACE_SHEAR_STIFFNESS]);
     auto mapped_sigma_tau = trial_sigma_tau;
 
-    const auto negative = std::signbit(trial_sigma_tau[1]);
-    trial_sigma_tau[1]  = std::abs(trial_sigma_tau[1]);
+    const auto negative   = std::signbit(trial_sigma_tau.Tau());
+    trial_sigma_tau.Tau() = std::abs(trial_sigma_tau.Tau());
 
-    if (!mCoulombWithTensionCutOffImpl.IsAdmissibleSigmaTau(trial_sigma_tau)) {
+    if (!mCoulombWithTensionCutOffImpl.IsAdmissibleStressState(trial_sigma_tau)) {
         mapped_sigma_tau = mCoulombWithTensionCutOffImpl.DoReturnMapping(
-            trial_sigma_tau, CoulombYieldSurface::CoulombAveragingType::NO_AVERAGING);
-        if (negative) mapped_sigma_tau[1] *= -1.0;
+            trial_sigma_tau, mpConstitutiveDimension->CalculateElasticMatrix(r_properties),
+            Geo::PrincipalStresses::AveragingType::NO_AVERAGING);
+        if (negative) mapped_sigma_tau.Tau() *= -1.0;
     }
 
-    mTractionVector                              = mapped_sigma_tau;
+    mTractionVector                              = mapped_sigma_tau.CopyTo<Vector>();
     rConstitutiveLawParameters.GetStressVector() = mTractionVector;
 }
 
-Vector InterfaceCoulombWithTensionCutOff::CalculateTrialTractionVector(const Vector& rRelativeDisplacementVector,
-                                                                       double NormalStiffness,
-                                                                       double ShearStiffness) const
+Geo::SigmaTau InterfaceCoulombWithTensionCutOff::CalculateTrialTractionVector(const Vector& rRelativeDisplacementVector,
+                                                                              double NormalStiffness,
+                                                                              double ShearStiffness) const
 {
     constexpr auto number_of_normal_components = std::size_t{1};
-    return mTractionVectorFinalized +
-           prod(ConstitutiveLawUtilities::MakeInterfaceConstitutiveMatrix(
-                    NormalStiffness, ShearStiffness, GetStrainSize(), number_of_normal_components),
-                rRelativeDisplacementVector - mRelativeDisplacementVectorFinalized);
+    return Geo::SigmaTau{mTractionVectorFinalized +
+                         prod(ConstitutiveLawUtilities::MakeInterfaceConstitutiveMatrix(
+                                  NormalStiffness, ShearStiffness, GetStrainSize(), number_of_normal_components),
+                              rRelativeDisplacementVector - mRelativeDisplacementVectorFinalized)};
 }
 
 void InterfaceCoulombWithTensionCutOff::FinalizeMaterialResponseCauchy(Parameters& rConstitutiveLawParameters)
@@ -184,6 +203,7 @@ Matrix& InterfaceCoulombWithTensionCutOff::CalculateValue(Parameters& rConstitut
 void InterfaceCoulombWithTensionCutOff::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw)
+    rSerializer.save("ConstitutiveDimension", mpConstitutiveDimension);
     rSerializer.save("TractionVector", mTractionVector);
     rSerializer.save("TractionVectorFinalized", mTractionVectorFinalized);
     rSerializer.save("RelativeDisplacementVectorFinalized", mRelativeDisplacementVectorFinalized);
@@ -194,6 +214,7 @@ void InterfaceCoulombWithTensionCutOff::save(Serializer& rSerializer) const
 void InterfaceCoulombWithTensionCutOff::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw)
+    rSerializer.load("ConstitutiveDimension", mpConstitutiveDimension);
     rSerializer.load("TractionVector", mTractionVector);
     rSerializer.load("TractionVectorFinalized", mTractionVectorFinalized);
     rSerializer.load("RelativeDisplacementVectorFinalized", mRelativeDisplacementVectorFinalized);

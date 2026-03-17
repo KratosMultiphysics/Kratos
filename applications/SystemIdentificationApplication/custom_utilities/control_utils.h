@@ -17,7 +17,6 @@
 
 // Project includes
 #include "includes/model_part.h"
-#include "expression/container_expression.h"
 
 // Application includes
 
@@ -35,12 +34,6 @@ public:
     static void AssignEquivalentProperties(
         TContainerType& rSourceContainer,
         TContainerType& rDestinationContainer);
-
-    template<class TContainerType>
-    static void ClipContainerExpression(
-        ContainerExpression<TContainerType>& rContainerExpression,
-        const double Min,
-        const double Max);
 
     ///@}
 };

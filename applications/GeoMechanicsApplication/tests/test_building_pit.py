@@ -261,6 +261,7 @@ def get_wall_node_ids():
         8988,
     ]
 
+
 def get_soil_side_node_ids_of_left_interfaces():
     return [
         9424,
@@ -506,6 +507,7 @@ def get_soil_side_node_ids_of_left_interfaces():
         9511,
         9508,
     ]
+
 
 def _extract_x_and_y_from_line(line, index_of_x=0, index_of_y=1, x_transform=None):
     words = line.split(",")
@@ -770,17 +772,60 @@ class KratosGeoMechanicsBuildingPit(KratosUnittest.TestCase):
             expected_total_vertical_reaction,
         )
 
-        expected_total_weight -= self.calculate_weight_of_excavated_clay_lower_right()
-        expected_total_vertical_reaction = (
-            expected_total_weight
-            + self.calculate_total_vertical_surface_load()
-            + self.calculate_weight_of_water_after_third_excavation()
-        )
-        self.check_vertical_reaction(
-            project_path,
-            self.stages_info["third_excavation"],
-            expected_total_vertical_reaction,
-        )
+        if "third_excavation" in self.stages_info:
+            expected_total_weight -= self.calculate_weight_of_excavated_clay_lower_right()
+            expected_total_vertical_reaction = (
+                expected_total_weight
+                + self.calculate_total_vertical_surface_load()
+                + self.calculate_weight_of_water_after_third_excavation()
+            )
+            self.check_vertical_reaction(
+                project_path,
+                self.stages_info["third_excavation"],
+                expected_total_vertical_reaction,
+            )
+
+        # Check some more expected results
+        with open(Path(project_path) / "expected_results.json") as f:
+            expected_results = json.load(f)["expected_results"]
+
+        # Stress-free installation of the strut has no impact on the results with respect to the previous stage
+        # However for mohr coulomb we still define the results, due to some local differences
+        if not "strut_installation" in expected_results:
+            expected_results["strut_installation"] = expected_results["first_excavation"]
+
+        reader = GiDOutputFileReader()
+        rel_tolerance = 0.07
+        abs_tolerance_map = {
+            "BENDING_MOMENT": 200.0,
+            "SHEAR_FORCE": 500.0,
+            "AXIAL_FORCE": 2.0e3,
+        }
+        for stage_tag, expected_stage_results in expected_results.items():
+            stage_base_name = self.stages_info[stage_tag]["base_name"]
+            stage_output = reader.read_output_from(
+                Path(project_path) / f"{stage_base_name}.post.res"
+            )
+            end_time = self.stages_info[stage_tag]["end_time"]
+
+            for (
+                result_item_name,
+                node_ids_and_expected_values,
+            ) in expected_stage_results.items():
+                abs_tolerance = abs_tolerance_map[result_item_name]
+                for item in node_ids_and_expected_values:
+                    node_id = item["node"]
+                    expected_value = item["value"]
+                    actual_value = reader.nodal_values_at_time(
+                        result_item_name, end_time, stage_output, node_ids=[node_id]
+                    )[0]
+                    self.assertAlmostEqual(
+                        actual_value,
+                        expected_value,
+                        places=None,
+                        delta=max(rel_tolerance * abs(expected_value), abs_tolerance),
+                        msg=f"{stage_tag} (time = {end_time}): {result_item_name} at node {node_id}",
+                    )
 
     def get_structural_stages(self):
         return [
@@ -811,7 +856,7 @@ class KratosGeoMechanicsBuildingPit(KratosUnittest.TestCase):
             titles=plot_titles,
             xlabel=r"Normal Traction [$\mathrm{kN} / \mathrm{m}^2$]",
             ylabel="y [m]",
-            )
+        )
 
         shear_traction_plot_label = "Shear traction"
         shear_traction_kratos_label = "GEO_EFFECTIVE_TRACTION_VECTOR"
@@ -830,7 +875,7 @@ class KratosGeoMechanicsBuildingPit(KratosUnittest.TestCase):
             titles=plot_titles,
             xlabel=r"Shear Traction [$\mathrm{kN} / \mathrm{m}^2$]",
             ylabel="y [m]",
-            )
+        )
 
     def create_wall_plots(self, project_path):
         structural_stages = self.get_structural_stages()
@@ -901,7 +946,11 @@ class KratosGeoMechanicsBuildingPit(KratosUnittest.TestCase):
         object_name,
         data_point_extractor,
     ):
-        node_ids = get_wall_node_ids() if object_name == "wall" else get_soil_side_node_ids_of_left_interfaces()
+        node_ids = (
+            get_wall_node_ids()
+            if object_name == "wall"
+            else get_soil_side_node_ids_of_left_interfaces()
+        )
 
         # Since the coordinates do not change between stages, we base them on the first stage
         y_coords = self.get_y_coords(
@@ -925,7 +974,9 @@ class KratosGeoMechanicsBuildingPit(KratosUnittest.TestCase):
                 variable_kratos_data = []
                 index = 0 if variable_plot_label == "Normal traction" else 1
                 for node_label in [f"NODE_{node_id}" for node_id in node_ids]:
-                    variable_kratos_data.append(json_data[node_label][kratos_variable_label][0][index])
+                    variable_kratos_data.append(
+                        json_data[node_label][kratos_variable_label][0][index]
+                    )
 
             variable_kratos_data = [
                 unit_to_k_unit(value) for value in variable_kratos_data
@@ -960,7 +1011,8 @@ class KratosGeoMechanicsBuildingPit(KratosUnittest.TestCase):
 
     def read_json_output(self, project_path, stage):
         with open(
-                os.path.join(project_path, f"{stage['base_name']}_interface_output.json"), "r"
+            os.path.join(project_path, f"{stage['base_name']}_interface_output.json"),
+            "r",
         ) as output_file:
             return json.load(output_file)
 
@@ -973,6 +1025,9 @@ class KratosGeoMechanicsBuildingPit(KratosUnittest.TestCase):
     def test_simulation_with_linear_elastic_materials(self):
         self.run_simulation_and_checks("linear_elastic")
 
+    def test_simulation_with_mohr_coulomb_materials(self):
+        self.stages_info.pop("third_excavation") # The third excavation stage does not converge yet with Mohr-Coulomb materials, so we remove it from the test
+        self.run_simulation_and_checks("mohr_coulomb")
 
 if __name__ == "__main__":
     KratosUnittest.main()

@@ -12,11 +12,11 @@
 
 #include "containers/model.h"
 #include "custom_elements/transient_thermal_element.h"
+#include "custom_utilities/ublas_utilities.h"
 #include "geo_mechanics_application_variables.h"
 #include "geometries/triangle_2d_10.h"
 #include "geometries/triangle_2d_15.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
-#include <boost/numeric/ublas/assignment.hpp>
 
 using namespace Kratos;
 
@@ -253,18 +253,12 @@ KRATOS_TEST_CASE_IN_SUITE(ThermalElement_ReturnsExpectedMatrixAndVector_WhenCalc
     Vector right_hand_side;
     p_element->CalculateLocalSystem(left_hand_side_matrix, right_hand_side, r_current_process_info);
 
-    Matrix expected_matrix(3, 3);
-    // clang-format off
-    expected_matrix <<=  5, -5,    0,
-                        -5,  5.5, -0.5,
-                         0, -0.5,  0.5;
-    // clang-format on
+    const auto expected_matrix = UblasUtilities::CreateMatrix({{5, -5, 0}, {-5, 5.5, -0.5}, {0, -0.5, 0.5}});
     ExpectDoubleMatrixEqual(expected_matrix, left_hand_side_matrix);
 
     // Calculated by hand (matrix multiplication between the
     // lhs and the temperature vector, which is 0.0, 1.0, 2.0)
-    Vector expected_vector(3);
-    expected_vector <<= 5, -4.5, -0.5;
+    const auto expected_vector = UblasUtilities::CreateVector({5, -4.5, -0.5});
     ExpectDoubleVectorEqual(expected_vector, right_hand_side);
 }
 
