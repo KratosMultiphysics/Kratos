@@ -14,6 +14,18 @@
 #include "geometry_utilities.h"
 #include <algorithm>
 
+namespace
+{
+using namespace Kratos;
+
+bool isSameEntity(const GeometricalObject& rFirstEntity, const GeometricalObject& rSecondEntity)
+{
+    return GeometricalObject::HasSameType(rFirstEntity, rSecondEntity) &&
+           rFirstEntity.Id() == rSecondEntity.Id();
+}
+
+} // namespace
+
 namespace Kratos
 {
 
@@ -82,9 +94,7 @@ void NeighbouringElementFinder::SetElementAsNeighbourOfAllEntitiesWithIdenticalN
     for (auto it = start; it != end; ++it) {
         const auto& r_entities = it->second;
         for (auto& rp_entity : r_entities) {
-            if (GeometricalObject::HasSameType(*rp_entity, *pElement) && rp_entity->Id() == pElement->Id()) {
-                continue; // An entity should not be a neighbour of itself
-            }
+            if (isSameEntity(*pElement, *rp_entity)) continue;
             rp_entity->GetValue(NEIGHBOUR_ELEMENTS).push_back(Element::WeakPointer{pElement});
         }
     }

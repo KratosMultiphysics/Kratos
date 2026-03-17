@@ -251,27 +251,25 @@ KRATOS_TEST_CASE_IN_SUITE(NeighbouringElementFinder_FindsNeighboursBetweenQuadra
 KRATOS_TEST_CASE_IN_SUITE(NeighbouringElementFinder_FindsNeighbourElementOfConditionWithTheSameGeometry,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
+    // Arrange
     Model model;
+    auto& r_model_part = model.CreateModelPart("main");
+    auto  nodes        = Testing::ModelSetupUtilities::CreateNodes(
+        r_model_part, {{1, {0.0, 0.0, 0.0}}, {2, {1.0, 0.0, 0.0}}});
+    auto geometry = Kratos::make_shared<Line2D2<Node>>(nodes);
 
-    auto& r_model_part_for_entities_for_finding = model.CreateModelPart("main");
-    auto  nodes                                 = Testing::ModelSetupUtilities::CreateNodes(
-        r_model_part_for_entities_for_finding, {{1, {0.0, 0.0, 0.0}}, {2, {1.0, 0.0, 0.0}}});
-    auto r_node_definitions = ElementSetupUtilities::CreatePointsFor2D2NElement();
-    auto geometry           = Kratos::make_shared<Line2D2<Node>>(nodes);
-
-    auto p_element   = Kratos::make_intrusive<Element>(1, geometry);
-    auto p_condition = Kratos::make_intrusive<Condition>(1, geometry);
-
-    r_model_part_for_entities_for_finding.AddCondition(p_condition);
-    r_model_part_for_entities_for_finding.AddElement(p_element);
+    r_model_part.AddElement(Kratos::make_intrusive<Element>(1, geometry));
+    r_model_part.AddCondition(Kratos::make_intrusive<Condition>(1, geometry));
 
     NeighbouringElementFinder::BoundaryGeneratorByLocalDim boundary_generators;
     boundary_generators[std::size_t{1}] = std::make_unique<EdgesGenerator>();
     NeighbouringElementFinder finder;
-    finder.FindEntityNeighbours(r_model_part_for_entities_for_finding.Conditions(),
-                                r_model_part_for_entities_for_finding.Elements(), boundary_generators);
 
-    EXPECT_EQ(r_model_part_for_entities_for_finding.GetCondition(1).GetValue(NEIGHBOUR_ELEMENTS).size(), 1);
+    // Act
+    finder.FindEntityNeighbours(r_model_part.Conditions(), r_model_part.Elements(), boundary_generators);
+
+    // Assert
+    EXPECT_EQ(r_model_part.GetCondition(1).GetValue(NEIGHBOUR_ELEMENTS).size(), 1);
 }
 
 } // namespace Kratos::Testing
