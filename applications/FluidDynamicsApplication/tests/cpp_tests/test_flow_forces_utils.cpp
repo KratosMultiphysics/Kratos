@@ -23,7 +23,7 @@
 
 // Application includes
 #include "custom_elements/navier_stokes.h"
-#include "custom_utilities/drag_utilities.h"
+#include "custom_utilities/flow_forces_and_moments_utilities.h"
 #include "custom_constitutive/newtonian_2d_law.h"
 #include "fluid_dynamics_application_variables.h"
 #include "tests/cpp_tests/fluid_dynamics_fast_suite.h"
@@ -150,9 +150,9 @@ namespace Kratos {
         }
 
 	    /**
-	     * Checks the body fitted drag computation utility.
+	     * Checks the body fitted force and moment computation utility.
 	     */
-	    KRATOS_TEST_CASE_IN_SUITE(ComputeBodyFittedDrag, FluidDynamicsApplicationFastSuite)
+	    KRATOS_TEST_CASE_IN_SUITE(ComputeBodyFittedFlowForcesAndMoments, FluidDynamicsApplicationFastSuite)
 		{
             // Create a test element inside a modelpart
             Model model;
@@ -173,19 +173,29 @@ namespace Kratos {
             model_part.GetNode(2).FastGetSolutionStepValue(REACTION_Y) = -40.0;
 
             // Call the body fitted drag utility
-            DragUtilities drag_utilities;
-            array_1d<double, 3> drag_force = drag_utilities.CalculateBodyFittedDrag(model_part.GetSubModelPart("DragModelPart"));
+            FlowForcesAndMomentsUtilities flow_force_utilities;
+            array_1d<double,3> moment_reference_point;
+            moment_reference_point(0) = 0.0;
+            moment_reference_point(1) = 0.0;
+            moment_reference_point(2) = 0.0;
+            auto [flow_force, flow_moment] = flow_force_utilities.CalculateBodyFittedFlowForcesAndMoments(model_part.GetSubModelPart("DragModelPart"), moment_reference_point);
 
-            // Check computed values
-            KRATOS_EXPECT_NEAR(drag_force[0], 15.0, 1e-6);
-            KRATOS_EXPECT_NEAR(drag_force[1], 30.0, 1e-6);
-            KRATOS_EXPECT_NEAR(drag_force[2], 0.0, 1e-6);
+            // Check computed values (forces)
+            KRATOS_EXPECT_NEAR(flow_force[0], 15.0, 1e-6);
+            KRATOS_EXPECT_NEAR(flow_force[1], 30.0, 1e-6);
+            KRATOS_EXPECT_NEAR(flow_force[2], 0.0, 1e-6);
+
+
+            // Check computed values (moment about origin)
+            KRATOS_EXPECT_NEAR(flow_moment[0], 0.0, 1e-6);
+            KRATOS_EXPECT_NEAR(flow_moment[1], 0.0, 1e-6);
+            KRATOS_EXPECT_NEAR(flow_moment[2], 40.0, 1e-6);
 	    }
 
 	    /**
-	     * Checks the embedded drag computation utility.
+	     * Checks the embedded force and moment computation utility.
 	     */
-	    KRATOS_TEST_CASE_IN_SUITE(ComputeEmbeddedDrag, FluidDynamicsApplicationFastSuite)
+	    KRATOS_TEST_CASE_IN_SUITE(ComputeEmbeddedFlowForcesAndMoments, FluidDynamicsApplicationFastSuite)
 		{
             bool is_embedded = true;
 
@@ -201,19 +211,28 @@ namespace Kratos {
             }
 
             // Call the embedded drag utility
-            DragUtilities drag_utilities;
-            array_1d<double, 3> drag_force = drag_utilities.CalculateEmbeddedDrag(model_part);
+            FlowForcesAndMomentsUtilities flow_force_utilities;
+            array_1d<double,3> moment_reference_point;
+            moment_reference_point(0) = 0.0;
+            moment_reference_point(1) = 0.0;
+            moment_reference_point(2) = 0.0;
+            auto [flow_force, flow_moment] = flow_force_utilities.CalculateEmbeddedFlowForcesAndMoments(model_part, moment_reference_point);
 
-            // Check computed values
-            KRATOS_EXPECT_NEAR(drag_force[0], 6.72, 1e-2);
-            KRATOS_EXPECT_NEAR(drag_force[1], 0.8325, 1e-4);
-            KRATOS_EXPECT_NEAR(drag_force[2], 0.0, 1e-6);
+            // Check computed values (force)
+            KRATOS_EXPECT_NEAR(flow_force[0], 6.72, 1e-2);
+            KRATOS_EXPECT_NEAR(flow_force[1], 0.8325, 1e-4);
+            KRATOS_EXPECT_NEAR(flow_force[2], 0.0, 1e-6);
+
+            // Check computed values (moment about origin)
+            KRATOS_EXPECT_NEAR(flow_moment[0], 0.0,     1e-10);
+            KRATOS_EXPECT_NEAR(flow_moment[1], 0.0,     1e-10);
+            KRATOS_EXPECT_NEAR(flow_moment[2], -1.9625, 1e-2);
 	    }
 
 	    /**
 	     * Checks the embedded drag center computation utility.
 	     */
-	    KRATOS_TEST_CASE_IN_SUITE(ComputeEmbeddedDragCenter, FluidDynamicsApplicationFastSuite)
+	    KRATOS_TEST_CASE_IN_SUITE(ComputeEmbeddedFlowForceCenter, FluidDynamicsApplicationFastSuite)
 		{
             bool is_embedded = true;
 
@@ -229,13 +248,13 @@ namespace Kratos {
             }
 
             // Call the embedded drag utility
-            DragUtilities drag_utilities;
-            array_1d<double, 3> drag_force_center = drag_utilities.CalculateEmbeddedDragCenter(model_part);
+            FlowForcesAndMomentsUtilities flow_force_utilities;
+            array_1d<double, 3> flow_force_center = flow_force_utilities.CalculateEmbeddedFlowForceCenter(model_part);
 
             // Check computed values
-            KRATOS_EXPECT_NEAR(drag_force_center[0], 0.25, 1e-2);
-            KRATOS_EXPECT_NEAR(drag_force_center[1], 0.5, 1e-4);
-            KRATOS_EXPECT_NEAR(drag_force_center[2], 0.0, 1e-6);
+            KRATOS_EXPECT_NEAR(flow_force_center[0], 0.25, 1e-2);
+            KRATOS_EXPECT_NEAR(flow_force_center[1], 0.5, 1e-4);
+            KRATOS_EXPECT_NEAR(flow_force_center[2], 0.0, 1e-6);
 	    }
 
 
