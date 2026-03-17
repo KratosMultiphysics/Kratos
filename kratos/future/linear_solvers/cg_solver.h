@@ -88,9 +88,12 @@ public:
         // Assign the validated settings
         this->AssignSettings(Settings);
 
-        // Create and set preconditioner
-        PreconditionerPointerType p_preconditioner = Kratos::make_shared<Preconditioner<TLinearAlgebra>>(); // TODO: implement preconditioner by leveraging the registry
-        this->SetPreconditioner(p_preconditioner);
+        // Create and set left preconditioner
+        PreconditionerPointerType p_left_preconditioner = Kratos::make_shared<Preconditioner<TLinearAlgebra>>(); // TODO: implement preconditioner by leveraging the settings and the registry
+        this->SetLeftPreconditioner(p_left_preconditioner);
+
+        // Set the right preconditioner to nullptr
+        this->SetRightPreconditioner(nullptr);
     }
 
     /// Copy constructor.
@@ -138,7 +141,7 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "Conjugate gradient linear solver with " << BaseType::GetPreconditioner()->Info();
+        buffer << "Conjugate gradient linear solver with left preconditioner " << BaseType::GetLeftPreconditioner()->Info();
         return  buffer.str();
     }
 
@@ -196,7 +199,7 @@ protected:
         // z = M^{-1} * r
         VectorType z(size);
         z.SetValue(0.0);
-        this->GetPreconditioner()->Apply(r, z);
+        this->GetLeftPreconditioner()->Apply(r, z);
 
         // Initialize iteration variables
         VectorType p(z);
@@ -236,7 +239,7 @@ protected:
 
             // z = M^{-1} * r
             z.SetValue(0.0);
-            this->GetPreconditioner()->Apply(r, z);
+            this->GetLeftPreconditioner()->Apply(r, z);
 
             // rho_1 = r^{T} * z
             rho_1 = r.Dot(z);

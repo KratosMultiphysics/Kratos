@@ -111,18 +111,38 @@ public:
 
     void Initialize(LinearSystem<TLinearAlgebra>& rLinearSystem) override
     {
-        // Call the preconditioner initialize
+        // Get left hand side matrix operator
         const auto lhs_tag = LinearSystemTags::SparseMatrixTagFromString(BaseType::mLhsTagString);
         const auto& rp_lhs_lin_op = rLinearSystem.pGetLinearOperator(lhs_tag);
-        this->GetPreconditioner()->Initialize(rp_lhs_lin_op);
+
+        // Initialize preconditioners
+        auto p_left_prec = this->GetLeftPreconditioner();
+        if (p_left_prec) {
+            p_left_prec->Initialize(rp_lhs_lin_op);
+        }
+
+        auto p_right_prec = this->GetRightPreconditioner();
+        if (p_right_prec) {
+            p_right_prec->Initialize(rp_lhs_lin_op);
+        }
     }
 
     void InitializeSolutionStep(LinearSystem<TLinearAlgebra>& rLinearSystem) override
     {
-        // Call the preconditioner initialize solution step
+        // Get left hand side matrix operator
         const auto lhs_tag = LinearSystemTags::SparseMatrixTagFromString(BaseType::mLhsTagString);
         const auto& rp_lhs_lin_op = rLinearSystem.pGetLinearOperator(lhs_tag);
-        this->GetPreconditioner()->InitializeSolutionStep(rp_lhs_lin_op);
+
+        // Initialize solution step of preconditioners
+        auto p_left_prec = this->GetLeftPreconditioner();
+        if (p_left_prec) {
+            p_left_prec->InitializeSolutionStep(rp_lhs_lin_op);
+        }
+
+        auto p_right_prec = this->GetRightPreconditioner();
+        if (p_right_prec) {
+            p_right_prec->InitializeSolutionStep(rp_lhs_lin_op);
+        }
     }
 
     bool PerformSolutionStep(LinearSystem<TLinearAlgebra>& rLinearSystem) override
@@ -172,8 +192,6 @@ public:
             VectorType aux_rhs(r_rhs.size1()); // Auxiliary residual vector
             const std::size_t n_problems = r_rhs.size2();
 
-            KRATOS_WATCH(r_rhs.size1())
-            KRATOS_WATCH(r_rhs.size2())
             for (std::size_t i = 0; i < n_problems; ++i) {
                 // Get current residual column
                 IndexPartition<IndexType>(aux_rhs.size()).for_each([i, &r_rhs, &aux_rhs](const IndexType Index) {
@@ -197,36 +215,68 @@ public:
 
     void FinalizeSolutionStep(LinearSystem<TLinearAlgebra>& rLinearSystem) override
     {
-        // Call the preconditioner finalize solution step
+        // Get left hand side matrix operator
         const auto lhs_tag = LinearSystemTags::SparseMatrixTagFromString(BaseType::mLhsTagString);
         const auto& rp_lhs_lin_op = rLinearSystem.pGetLinearOperator(lhs_tag);
-        this->GetPreconditioner()->FinalizeSolutionStep(rp_lhs_lin_op);
+
+        // Finalize solution step of preconditioners
+        auto p_left_prec = this->GetLeftPreconditioner();
+        if (p_left_prec) {
+            p_left_prec->FinalizeSolutionStep(rp_lhs_lin_op);
+        }
+
+        auto p_right_prec = this->GetRightPreconditioner();
+        if (p_right_prec) {
+            p_right_prec->FinalizeSolutionStep(rp_lhs_lin_op);
+        }
     }
 
     void Clear() override
     {
-        this->GetPreconditioner()->Clear();
+        // Clear preconditioners
+        auto p_left_prec = this->GetLeftPreconditioner();
+        if (p_left_prec) {
+            p_left_prec->Clear();
+        }
+
+        auto p_right_prec = this->GetRightPreconditioner();
+        if (p_right_prec) {
+            p_right_prec->Clear();
+        }
     }
 
     ///@}
     ///@name Access
     ///@{
 
-    virtual PreconditionerPointerType GetPreconditioner()
+    virtual PreconditionerPointerType GetRightPreconditioner()
     {
-        KRATOS_ERROR_IF_NOT(mpPreconditioner) << "Preconditioner not set" << std::endl;
-        return mpPreconditioner;
+        return mpRightPreconditioner;
     }
 
-    virtual const PreconditionerPointerType GetPreconditioner() const
+    virtual const PreconditionerPointerType GetRightPreconditioner() const
     {
-        KRATOS_ERROR_IF_NOT(mpPreconditioner) << "Preconditioner not set" << std::endl;
-        return mpPreconditioner;
+        return mpRightPreconditioner;
     }
 
-    virtual void SetPreconditioner(PreconditionerPointerType pNewPreconditioner)
+    virtual PreconditionerPointerType GetLeftPreconditioner()
     {
-        mpPreconditioner = pNewPreconditioner;
+        return mpLeftPreconditioner;
+    }
+
+    virtual const PreconditionerPointerType GetLeftPreconditioner() const
+    {
+        return mpLeftPreconditioner;
+    }
+
+    virtual void SetRightPreconditioner(PreconditionerPointerType pNewPreconditioner)
+    {
+        mpRightPreconditioner = pNewPreconditioner;
+    }
+
+    virtual void SetLeftPreconditioner(PreconditionerPointerType pNewPreconditioner)
+    {
+        mpLeftPreconditioner = pNewPreconditioner;
     }
 
     virtual void SetMaxIterationsNumber(unsigned int NewMaxIterationsNumber)
@@ -277,7 +327,8 @@ public:
             "solver_type" : "iterative_solver",
             "tolerance" : 1e-6,
             "max_iteration" : 100,
-            "preconditioner_type" : "none"
+            "left_preconditioner_type" : "none",
+            "right_preconditioner_type" : "none"
         })");
         default_parameters.AddMissingParameters(BaseType::GetDefaultParameters());
 
@@ -300,10 +351,14 @@ public:
 
     bool RequiresAdditionalData() const override
     {
-        if (GetPreconditioner()->RequiresAdditionalData())
-            return true;
-        else
-            return false;
+        // Check if preconditioners require additional data
+        if (GetLeftPreconditioner() || GetRightPreconditioner()) {
+            const bool left_requires = GetLeftPreconditioner() ? GetLeftPreconditioner()->RequiresAdditionalData() : false;
+            const bool right_requires = GetRightPreconditioner() ? GetRightPreconditioner()->RequiresAdditionalData() : false;
+            return  left_requires || right_requires;
+        }
+
+        return false;
     }
 
     ///@}
@@ -314,7 +369,7 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "Iterative solver with " << GetPreconditioner()->Info();
+        buffer << "Iterative solver with left preconditioner: " << GetLeftPreconditioner()->Info() << " and right preconditioner: " << GetRightPreconditioner()->Info();
         return  buffer.str();
     }
 
@@ -429,7 +484,9 @@ private:
 
     IndexType mMaxIterationsNumber = 0;
 
-    PreconditionerPointerType mpPreconditioner = nullptr;
+    PreconditionerPointerType mpLeftPreconditioner = nullptr;
+
+    PreconditionerPointerType mpRightPreconditioner = nullptr;
 
     ///@}
     ///@name Private Operators
