@@ -118,17 +118,17 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 //
 //-----------------------------------------------------------------
 
-#undef CAT_
-#define CAT_(a, b) a##_##b
+#undef KRATOS_CAT_
+#define KRATOS_CAT_(a, b) a##_##b
 
-#undef STR_
-#define STR_(x) #x
+#undef KRATOS_STR_
+#define KRATOS_STR_(x) #x
 
-#undef STR
-#define STR(x) STR_(x)
+#undef KRATOS_STR
+#define KRATOS_STR(x) KRATOS_STR_(x)
 
-#undef CAT_STR
-#define CAT_STR(a, b) STR(CAT_(a, b))
+#undef KRATOS_CAT_STR
+#define KRATOS_CAT_STR(a, b) KRATOS_STR(KRATOS_CAT_(a, b))
 
 //-----------------------------------------------------------------
 //
@@ -149,9 +149,9 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 #undef KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS
 #define KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(name) \
     inline constexpr Variable<Kratos::array_1d<double, 3>> name = Variable<Kratos::array_1d<double, 3>>(#name); \
-    inline constexpr Variable<double> CAT_(name, X) = Variable<double>(CAT_STR(name, X), &name, 0); \
-    inline constexpr Variable<double> CAT_(name, Y) = Variable<double>(CAT_STR(name, Y), &name, 1); \
-    inline constexpr Variable<double> CAT_(name, Z) = Variable<double>(CAT_STR(name, Z), &name, 2);
+    inline constexpr Variable<double> KRATOS_CAT_(name, X) = Variable<double>(KRATOS_CAT_STR(name, X), &name, 0); \
+    inline constexpr Variable<double> KRATOS_CAT_(name, Y) = Variable<double>(KRATOS_CAT_STR(name, Y), &name, 1); \
+    inline constexpr Variable<double> KRATOS_CAT_(name, Z) = Variable<double>(KRATOS_CAT_STR(name, Z), &name, 2);
 
 #undef KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS
 #define KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS(application, name) \
@@ -160,9 +160,9 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 #undef KRATOS_DEFINE_SYMMETRIC_2D_TENSOR_VARIABLE_WITH_COMPONENTS
 #define KRATOS_DEFINE_SYMMETRIC_2D_TENSOR_VARIABLE_WITH_COMPONENTS(name) \
     inline constexpr Variable<Kratos::array_1d<double, 3>> name = Variable<Kratos::array_1d<double, 3>>(#name); \
-    inline constexpr Variable<double> CAT_(name, XX) = Variable<double>(CAT_STR(name, XX), &name, 0); \
-    inline constexpr Variable<double> CAT_(name, YY) = Variable<double>(CAT_STR(name, YY), &name, 1); \
-    inline constexpr Variable<double> CAT_(name, XY) = Variable<double>(CAT_STR(name, XY), &name, 2);
+    inline constexpr Variable<double> KRATOS_CAT_(name, XX) = Variable<double>(KRATOS_CAT_STR(name, XX), &name, 0); \
+    inline constexpr Variable<double> KRATOS_CAT_(name, YY) = Variable<double>(KRATOS_CAT_STR(name, YY), &name, 1); \
+    inline constexpr Variable<double> KRATOS_CAT_(name, XY) = Variable<double>(KRATOS_CAT_STR(name, XY), &name, 2);
 
 #undef KRATOS_DEFINE_SYMMETRIC_2D_TENSOR_APPLICATION_VARIABLE_WITH_COMPONENTS
 #define KRATOS_DEFINE_SYMMETRIC_2D_TENSOR_APPLICATION_VARIABLE_WITH_COMPONENTS(application, name) \
@@ -171,12 +171,12 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 #undef KRATOS_DEFINE_SYMMETRIC_3D_TENSOR_VARIABLE_WITH_COMPONENTS
 #define KRATOS_DEFINE_SYMMETRIC_3D_TENSOR_VARIABLE_WITH_COMPONENTS(name) \
     inline constexpr Variable<Kratos::array_1d<double, 6>> name = Variable<Kratos::array_1d<double, 6>>(#name); \
-    inline constexpr Variable<double> CAT_(name, XX) = Variable<double>(CAT_STR(name, XX), &name, 0); \
-    inline constexpr Variable<double> CAT_(name, YY) = Variable<double>(CAT_STR(name, YY), &name, 1); \
-    inline constexpr Variable<double> CAT_(name, ZZ) = Variable<double>(CAT_STR(name, ZZ), &name, 2); \
-    inline constexpr Variable<double> CAT_(name, XY) = Variable<double>(CAT_STR(name, XY), &name, 3); \
-    inline constexpr Variable<double> CAT_(name, YZ) = Variable<double>(CAT_STR(name, YZ), &name, 4); \
-    inline constexpr Variable<double> CAT_(name, XZ) = Variable<double>(CAT_STR(name, XZ), &name, 5);
+    inline constexpr Variable<double> KRATOS_CAT_(name, XX) = Variable<double>(KRATOS_CAT_STR(name, XX), &name, 0); \
+    inline constexpr Variable<double> KRATOS_CAT_(name, YY) = Variable<double>(KRATOS_CAT_STR(name, YY), &name, 1); \
+    inline constexpr Variable<double> KRATOS_CAT_(name, ZZ) = Variable<double>(KRATOS_CAT_STR(name, ZZ), &name, 2); \
+    inline constexpr Variable<double> KRATOS_CAT_(name, XY) = Variable<double>(KRATOS_CAT_STR(name, XY), &name, 3); \
+    inline constexpr Variable<double> KRATOS_CAT_(name, YZ) = Variable<double>(KRATOS_CAT_STR(name, YZ), &name, 4); \
+    inline constexpr Variable<double> KRATOS_CAT_(name, XZ) = Variable<double>(KRATOS_CAT_STR(name, XZ), &name, 5);
 
 #undef KRATOS_DEFINE_SYMMETRIC_3D_TENSOR_APPLICATION_VARIABLE_WITH_COMPONENTS
 #define KRATOS_DEFINE_SYMMETRIC_3D_TENSOR_APPLICATION_VARIABLE_WITH_COMPONENTS(application, name) \
@@ -185,10 +185,10 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 #undef KRATOS_DEFINE_2D_TENSOR_VARIABLE_WITH_COMPONENTS
 #define KRATOS_DEFINE_2D_TENSOR_VARIABLE_WITH_COMPONENTS(name) \
     inline constexpr Variable<Kratos::array_1d<double, 4>> name = Variable<Kratos::array_1d<double, 4>>(#name); \
-    inline constexpr Variable<double> CAT_(name, XX) = Variable<double>(CAT_STR(name, XX), &name, 0); \
-    inline constexpr Variable<double> CAT_(name, XY) = Variable<double>(CAT_STR(name, YY), &name, 1); \
-    inline constexpr Variable<double> CAT_(name, YX) = Variable<double>(CAT_STR(name, ZZ), &name, 2); \
-    inline constexpr Variable<double> CAT_(name, YY) = Variable<double>(CAT_STR(name, XY), &name, 3);
+    inline constexpr Variable<double> KRATOS_CAT_(name, XX) = Variable<double>(KRATOS_CAT_STR(name, XX), &name, 0); \
+    inline constexpr Variable<double> KRATOS_CAT_(name, XY) = Variable<double>(KRATOS_CAT_STR(name, YY), &name, 1); \
+    inline constexpr Variable<double> KRATOS_CAT_(name, YX) = Variable<double>(KRATOS_CAT_STR(name, ZZ), &name, 2); \
+    inline constexpr Variable<double> KRATOS_CAT_(name, YY) = Variable<double>(KRATOS_CAT_STR(name, XY), &name, 3);
 
 #undef KRATOS_DEFINE_2D_TENSOR_APPLICATION_VARIABLE_WITH_COMPONENTS
 #define KRATOS_DEFINE_2D_TENSOR_APPLICATION_VARIABLE_WITH_COMPONENTS(application, name) \
@@ -197,15 +197,15 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 #undef KRATOS_DEFINE_3D_TENSOR_VARIABLE_WITH_COMPONENTS
 #define KRATOS_DEFINE_3D_TENSOR_VARIABLE_WITH_COMPONENTS(name) \
     inline constexpr Variable<Kratos::array_1d<double, 9>> name = Variable<Kratos::array_1d<double, 9>>(#name); \
-    inline constexpr Variable<double> CAT_(name, XX) = Variable<double>(CAT_STR(name, XX), &name, 0); \
-    inline constexpr Variable<double> CAT_(name, XY) = Variable<double>(CAT_STR(name, XY), &name, 1); \
-    inline constexpr Variable<double> CAT_(name, XZ) = Variable<double>(CAT_STR(name, XZ), &name, 2); \
-    inline constexpr Variable<double> CAT_(name, YX) = Variable<double>(CAT_STR(name, YX), &name, 3); \
-    inline constexpr Variable<double> CAT_(name, YY) = Variable<double>(CAT_STR(name, YY), &name, 4); \
-    inline constexpr Variable<double> CAT_(name, YZ) = Variable<double>(CAT_STR(name, YZ), &name, 5); \
-    inline constexpr Variable<double> CAT_(name, ZX) = Variable<double>(CAT_STR(name, ZX), &name, 6); \
-    inline constexpr Variable<double> CAT_(name, ZY) = Variable<double>(CAT_STR(name, ZY), &name, 7); \
-    inline constexpr Variable<double> CAT_(name, ZZ) = Variable<double>(CAT_STR(name, ZZ), &name, 8);
+    inline constexpr Variable<double> KRATOS_CAT_(name, XX) = Variable<double>(KRATOS_CAT_STR(name, XX), &name, 0); \
+    inline constexpr Variable<double> KRATOS_CAT_(name, XY) = Variable<double>(KRATOS_CAT_STR(name, XY), &name, 1); \
+    inline constexpr Variable<double> KRATOS_CAT_(name, XZ) = Variable<double>(KRATOS_CAT_STR(name, XZ), &name, 2); \
+    inline constexpr Variable<double> KRATOS_CAT_(name, YX) = Variable<double>(KRATOS_CAT_STR(name, YX), &name, 3); \
+    inline constexpr Variable<double> KRATOS_CAT_(name, YY) = Variable<double>(KRATOS_CAT_STR(name, YY), &name, 4); \
+    inline constexpr Variable<double> KRATOS_CAT_(name, YZ) = Variable<double>(KRATOS_CAT_STR(name, YZ), &name, 5); \
+    inline constexpr Variable<double> KRATOS_CAT_(name, ZX) = Variable<double>(KRATOS_CAT_STR(name, ZX), &name, 6); \
+    inline constexpr Variable<double> KRATOS_CAT_(name, ZY) = Variable<double>(KRATOS_CAT_STR(name, ZY), &name, 7); \
+    inline constexpr Variable<double> KRATOS_CAT_(name, ZZ) = Variable<double>(KRATOS_CAT_STR(name, ZZ), &name, 8);
 
 #undef KRATOS_DEFINE_3D_TENSOR_APPLICATION_VARIABLE_WITH_COMPONENTS
 #define KRATOS_DEFINE_3D_TENSOR_APPLICATION_VARIABLE_WITH_COMPONENTS(application, name) \
@@ -329,9 +329,9 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 #undef KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS_WITH_TIME_DERIVATIVE
 #define KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS_WITH_TIME_DERIVATIVE(name, variable_derivative) \
     inline constexpr Variable<Kratos::array_1d<double, 3>> name = Variable<Kratos::array_1d<double, 3>>(#name, &variable_derivative); \
-    inline constexpr Variable<double> CAT_(name, X) = Variable<double>(CAT_STR(name, X), &name, 0, &CAT_(variable_derivative, X)); \
-    inline constexpr Variable<double> CAT_(name, Y) = Variable<double>(CAT_STR(name, Y), &name, 1, &CAT_(variable_derivative, Y)); \
-    inline constexpr Variable<double> CAT_(name, Z) = Variable<double>(CAT_STR(name, Z), &name, 2, &CAT_(variable_derivative, Z));
+    inline constexpr Variable<double> KRATOS_CAT_(name, X) = Variable<double>(KRATOS_CAT_STR(name, X), &name, 0, &KRATOS_CAT_(variable_derivative, X)); \
+    inline constexpr Variable<double> KRATOS_CAT_(name, Y) = Variable<double>(KRATOS_CAT_STR(name, Y), &name, 1, &KRATOS_CAT_(variable_derivative, Y)); \
+    inline constexpr Variable<double> KRATOS_CAT_(name, Z) = Variable<double>(KRATOS_CAT_STR(name, Z), &name, 2, &KRATOS_CAT_(variable_derivative, Z));
 
 #undef KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS_WITH_TIME_DERIVATIVE
 #define KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS_WITH_TIME_DERIVATIVE(application, name, variable_derivative) \
@@ -340,9 +340,9 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 #undef KRATOS_DEFINE_SYMMETRIC_2D_TENSOR_VARIABLE_WITH_COMPONENTS_WITH_TIME_DERIVATIVE
 #define KRATOS_DEFINE_SYMMETRIC_2D_TENSOR_VARIABLE_WITH_COMPONENTS_WITH_TIME_DERIVATIVE(name, variable_derivative) \
     inline constexpr Variable<Kratos::array_1d<double, 3>> name = Variable<Kratos::array_1d<double, 3>>(#name, &variable_derivative); \
-    inline constexpr Variable<double> CAT_(name, XX) = Variable<double>(CAT_STR(name, XX), &name, 0, &CAT_(variable_derivative, XX)); \
-    inline constexpr Variable<double> CAT_(name, YY) = Variable<double>(CAT_STR(name, YY), &name, 1, &CAT_(variable_derivative, YY)); \
-    inline constexpr Variable<double> CAT_(name, XY) = Variable<double>(CAT_STR(name, XY), &name, 2, &CAT_(variable_derivative, XY));
+    inline constexpr Variable<double> KRATOS_CAT_(name, XX) = Variable<double>(KRATOS_CAT_STR(name, XX), &name, 0, &KRATOS_CAT_(variable_derivative, XX)); \
+    inline constexpr Variable<double> KRATOS_CAT_(name, YY) = Variable<double>(KRATOS_CAT_STR(name, YY), &name, 1, &KRATOS_CAT_(variable_derivative, YY)); \
+    inline constexpr Variable<double> KRATOS_CAT_(name, XY) = Variable<double>(KRATOS_CAT_STR(name, XY), &name, 2, &KRATOS_CAT_(variable_derivative, XY));
 
 #undef KRATOS_DEFINE_SYMMETRIC_2D_TENSOR_APPLICATION_VARIABLE_WITH_COMPONENTS_WITH_TIME_DERIVATIVE
 #define KRATOS_DEFINE_SYMMETRIC_2D_TENSOR_APPLICATION_VARIABLE_WITH_COMPONENTS_WITH_TIME_DERIVATIVE(application, name, variable_derivative) \
@@ -351,12 +351,12 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 #undef KRATOS_DEFINE_SYMMETRIC_3D_TENSOR_VARIABLE_WITH_COMPONENTS_WITH_TIME_DERIVATIVE
 #define KRATOS_DEFINE_SYMMETRIC_3D_TENSOR_VARIABLE_WITH_COMPONENTS_WITH_TIME_DERIVATIVE(name, variable_derivative) \
     inline constexpr Variable<Kratos::array_1d<double, 6>> name = Variable<Kratos::array_1d<double, 6>>(#name, &variable_derivative); \
-    inline constexpr Variable<double> CAT_(name, XX) = Variable<double>(CAT_STR(name, XX), &name, 0, &CAT_(variable_derivative, XX)); \
-    inline constexpr Variable<double> CAT_(name, YY) = Variable<double>(CAT_STR(name, YY), &name, 1, &CAT_(variable_derivative, YY)); \
-    inline constexpr Variable<double> CAT_(name, ZZ) = Variable<double>(CAT_STR(name, ZZ), &name, 2, &CAT_(variable_derivative, ZZ)); \
-    inline constexpr Variable<double> CAT_(name, XY) = Variable<double>(CAT_STR(name, XY), &name, 3, &CAT_(variable_derivative, XY)); \
-    inline constexpr Variable<double> CAT_(name, YZ) = Variable<double>(CAT_STR(name, YZ), &name, 4, &CAT_(variable_derivative, YZ)); \
-    inline constexpr Variable<double> CAT_(name, XZ) = Variable<double>(CAT_STR(name, XZ), &name, 5, &CAT_(variable_derivative, XZ));
+    inline constexpr Variable<double> KRATOS_CAT_(name, XX) = Variable<double>(KRATOS_CAT_STR(name, XX), &name, 0, &KRATOS_CAT_(variable_derivative, XX)); \
+    inline constexpr Variable<double> KRATOS_CAT_(name, YY) = Variable<double>(KRATOS_CAT_STR(name, YY), &name, 1, &KRATOS_CAT_(variable_derivative, YY)); \
+    inline constexpr Variable<double> KRATOS_CAT_(name, ZZ) = Variable<double>(KRATOS_CAT_STR(name, ZZ), &name, 2, &KRATOS_CAT_(variable_derivative, ZZ)); \
+    inline constexpr Variable<double> KRATOS_CAT_(name, XY) = Variable<double>(KRATOS_CAT_STR(name, XY), &name, 3, &KRATOS_CAT_(variable_derivative, XY)); \
+    inline constexpr Variable<double> KRATOS_CAT_(name, YZ) = Variable<double>(KRATOS_CAT_STR(name, YZ), &name, 4, &KRATOS_CAT_(variable_derivative, YZ)); \
+    inline constexpr Variable<double> KRATOS_CAT_(name, XZ) = Variable<double>(KRATOS_CAT_STR(name, XZ), &name, 5, &KRATOS_CAT_(variable_derivative, XZ));
 
 #undef KRATOS_DEFINE_SYMMETRIC_3D_TENSOR_APPLICATION_VARIABLE_WITH_COMPONENTS_WITH_TIME_DERIVATIVE
 #define KRATOS_DEFINE_SYMMETRIC_3D_TENSOR_APPLICATION_VARIABLE_WITH_COMPONENTS_WITH_TIME_DERIVATIVE(application, name, variable_derivative) \
@@ -365,10 +365,10 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 #undef KRATOS_DEFINE_2D_TENSOR_VARIABLE_WITH_COMPONENTS_WITH_TIME_DERIVATIVE
 #define KRATOS_DEFINE_2D_TENSOR_VARIABLE_WITH_COMPONENTS_WITH_TIME_DERIVATIVE(name, variable_derivative) \
     inline constexpr Variable<Kratos::array_1d<double, 4>> name = Variable<Kratos::array_1d<double, 4>>(#name, &variable_derivative); \
-    inline constexpr Variable<double> CAT_(name, XX) = Variable<double>(CAT_STR(name, XX), &name, 0, &CAT_(variable_derivative, XX)); \
-    inline constexpr Variable<double> CAT_(name, XY) = Variable<double>(CAT_STR(name, XY), &name, 1, &CAT_(variable_derivative, XY)); \
-    inline constexpr Variable<double> CAT_(name, YX) = Variable<double>(CAT_STR(name, YX), &name, 2, &CAT_(variable_derivative, YX)); \
-    inline constexpr Variable<double> CAT_(name, YY) = Variable<double>(CAT_STR(name, YY), &name, 3, &CAT_(variable_derivative, YY));
+    inline constexpr Variable<double> KRATOS_CAT_(name, XX) = Variable<double>(KRATOS_CAT_STR(name, XX), &name, 0, &KRATOS_CAT_(variable_derivative, XX)); \
+    inline constexpr Variable<double> KRATOS_CAT_(name, XY) = Variable<double>(KRATOS_CAT_STR(name, XY), &name, 1, &KRATOS_CAT_(variable_derivative, XY)); \
+    inline constexpr Variable<double> KRATOS_CAT_(name, YX) = Variable<double>(KRATOS_CAT_STR(name, YX), &name, 2, &KRATOS_CAT_(variable_derivative, YX)); \
+    inline constexpr Variable<double> KRATOS_CAT_(name, YY) = Variable<double>(KRATOS_CAT_STR(name, YY), &name, 3, &KRATOS_CAT_(variable_derivative, YY));
 
 #undef KRATOS_DEFINE_2D_TENSOR_APPLICATION_VARIABLE_WITH_COMPONENTS_WITH_TIME_DERIVATIVE
 #define KRATOS_DEFINE_2D_TENSOR_APPLICATION_VARIABLE_WITH_COMPONENTS_WITH_TIME_DERIVATIVE(application, name, variable_derivative) \
@@ -377,15 +377,15 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 #undef KRATOS_DEFINE_3D_TENSOR_VARIABLE_WITH_COMPONENTS_WITH_TIME_DERIVATIVE
 #define KRATOS_DEFINE_3D_TENSOR_VARIABLE_WITH_COMPONENTS_WITH_TIME_DERIVATIVE(name, variable_derivative) \
     inline constexpr Variable<Kratos::array_1d<double, 9>> name = Variable<Kratos::array_1d<double, 9>>(#name, &variable_derivative); \
-    inline constexpr Variable<double> CAT_(name, XX) = Variable<double>(CAT_STR(name, XX), &name, 0, &CAT_(variable_derivative, XX)); \
-    inline constexpr Variable<double> CAT_(name, XY) = Variable<double>(CAT_STR(name, XY), &name, 1, &CAT_(variable_derivative, XY)); \
-    inline constexpr Variable<double> CAT_(name, XY) = Variable<double>(CAT_STR(name, XY), &name, 2, &CAT_(variable_derivative, XY)); \
-    inline constexpr Variable<double> CAT_(name, YX) = Variable<double>(CAT_STR(name, YX), &name, 3, &CAT_(variable_derivative, YX)); \
-    inline constexpr Variable<double> CAT_(name, YY) = Variable<double>(CAT_STR(name, YY), &name, 4, &CAT_(variable_derivative, YY)); \
-    inline constexpr Variable<double> CAT_(name, YZ) = Variable<double>(CAT_STR(name, YZ), &name, 5, &CAT_(variable_derivative, YZ)); \
-    inline constexpr Variable<double> CAT_(name, ZX) = Variable<double>(CAT_STR(name, ZX), &name, 6, &CAT_(variable_derivative, ZX)); \
-    inline constexpr Variable<double> CAT_(name, ZY) = Variable<double>(CAT_STR(name, ZY), &name, 7, &CAT_(variable_derivative, ZY)); \
-    inline constexpr Variable<double> CAT_(name, ZZ) = Variable<double>(CAT_STR(name, ZZ), &name, 8, &CAT_(variable_derivative, ZZ)); \
+    inline constexpr Variable<double> KRATOS_CAT_(name, XX) = Variable<double>(KRATOS_CAT_STR(name, XX), &name, 0, &KRATOS_CAT_(variable_derivative, XX)); \
+    inline constexpr Variable<double> KRATOS_CAT_(name, XY) = Variable<double>(KRATOS_CAT_STR(name, XY), &name, 1, &KRATOS_CAT_(variable_derivative, XY)); \
+    inline constexpr Variable<double> KRATOS_CAT_(name, XY) = Variable<double>(KRATOS_CAT_STR(name, XY), &name, 2, &KRATOS_CAT_(variable_derivative, XY)); \
+    inline constexpr Variable<double> KRATOS_CAT_(name, YX) = Variable<double>(KRATOS_CAT_STR(name, YX), &name, 3, &KRATOS_CAT_(variable_derivative, YX)); \
+    inline constexpr Variable<double> KRATOS_CAT_(name, YY) = Variable<double>(KRATOS_CAT_STR(name, YY), &name, 4, &KRATOS_CAT_(variable_derivative, YY)); \
+    inline constexpr Variable<double> KRATOS_CAT_(name, YZ) = Variable<double>(KRATOS_CAT_STR(name, YZ), &name, 5, &KRATOS_CAT_(variable_derivative, YZ)); \
+    inline constexpr Variable<double> KRATOS_CAT_(name, ZX) = Variable<double>(KRATOS_CAT_STR(name, ZX), &name, 6, &KRATOS_CAT_(variable_derivative, ZX)); \
+    inline constexpr Variable<double> KRATOS_CAT_(name, ZY) = Variable<double>(KRATOS_CAT_STR(name, ZY), &name, 7, &KRATOS_CAT_(variable_derivative, ZY)); \
+    inline constexpr Variable<double> KRATOS_CAT_(name, ZZ) = Variable<double>(KRATOS_CAT_STR(name, ZZ), &name, 8, &KRATOS_CAT_(variable_derivative, ZZ)); \
 
 #undef KRATOS_DEFINE_3D_TENSOR_APPLICATION_VARIABLE_WITH_COMPONENTS_WITH_TIME_DERIVATIVE
 #define KRATOS_DEFINE_3D_TENSOR_APPLICATION_VARIABLE_WITH_COMPONENTS_WITH_TIME_DERIVATIVE(application, name, variable_derivative) \
