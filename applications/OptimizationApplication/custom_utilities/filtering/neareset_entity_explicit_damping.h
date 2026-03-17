@@ -16,7 +16,7 @@
 #include <vector>
 
 // External includes
-#include "nanoflann.hpp"
+#include "nanoflann/include/nanoflann.hpp"
 
 // Project includes
 #include "containers/model.h"
@@ -123,3 +123,4 @@ private:
 ///@}
 
 } // namespace Kratos.
+

@@ -20,7 +20,6 @@
 #include "containers/model.h"
 #include "tensor_adaptors/tensor_adaptor.h"
 #include "includes/define.h"
-#include "spatial_containers/spatial_containers.h"
 
 // Application includes
 #include "damping_function.h"
@@ -125,3 +124,4 @@ private:
 ///@}
 
 } // namespace Kratos.
+

@@ -16,7 +16,7 @@
 #include <vector>
 
 // External includes
-#include "nanoflann.hpp"
+#include "nanoflann/include/nanoflann.hpp"
 
 // Project includes
 #include "includes/define.h"
@@ -37,7 +37,7 @@ public:
     ///@name Type definitions
     ///@{
 
-    using ResultType = std::pair<unsigned int, double>;
+    using ResultType = nanoflann::ResultItem<unsigned int, double>;
 
     using ResultVectorType = std::vector<ResultType>;
 
@@ -110,7 +110,7 @@ public:
     ///@name Type definitions
     ///@{
 
-    using ResultType = std::pair<unsigned int, double>;
+    using ResultType = nanoflann::ResultItem<unsigned int, double>;
 
     using ResultVectorType = std::vector<ResultType>;
 
@@ -198,7 +198,7 @@ template<class TPointerVector>
 struct NanoFlannKDTreeThreadLocalStorage
 {
     // used to store the neighbour indices and squared distances
-    typename std::vector<std::pair<unsigned int, double>> mNeighbourIndicesAndSquaredDistances;
+    typename std::vector<nanoflann::ResultItem<unsigned int, double>> mNeighbourIndicesAndSquaredDistances;
 
     // used to store the list of neighbour entity pointers
     TPointerVector mNeighbourEntityPoints;
