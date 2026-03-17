@@ -18,7 +18,7 @@ namespace
 {
 using namespace Kratos;
 
-bool isSameEntity(const GeometricalObject& rFirstEntity, const GeometricalObject& rSecondEntity)
+bool IsSameEntity(const GeometricalObject& rFirstEntity, const GeometricalObject& rSecondEntity)
 {
     return GeometricalObject::HasSameType(rFirstEntity, rSecondEntity) &&
            rFirstEntity.Id() == rSecondEntity.Id();
@@ -94,7 +94,7 @@ void NeighbouringElementFinder::SetElementAsNeighbourOfAllEntitiesWithIdenticalN
     for (auto it = start; it != end; ++it) {
         const auto& r_entities = it->second;
         for (auto& rp_entity : r_entities) {
-            if (isSameEntity(*pElement, *rp_entity)) continue;
+            if (IsSameEntity(*pElement, *rp_entity)) continue;
             rp_entity->GetValue(NEIGHBOUR_ELEMENTS).push_back(Element::WeakPointer{pElement});
         }
     }
