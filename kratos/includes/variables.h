@@ -28,6 +28,7 @@
 #include "containers/periodic_variables_container.h"
 #include "utilities/table_stream_utility.h"
 #include "utilities/adjoint_extensions.h"
+#include "includes/geometrical_object.h"
 
 #undef  KRATOS_EXPORT_MACRO
 #define KRATOS_EXPORT_MACRO KRATOS_API
