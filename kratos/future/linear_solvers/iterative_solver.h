@@ -116,15 +116,8 @@ public:
         const auto& rp_lhs_lin_op = rLinearSystem.pGetLinearOperator(lhs_tag);
 
         // Initialize preconditioners
-        auto p_left_prec = this->GetLeftPreconditioner();
-        if (p_left_prec) {
-            p_left_prec->Initialize(rp_lhs_lin_op);
-        }
-
-        auto p_right_prec = this->GetRightPreconditioner();
-        if (p_right_prec) {
-            p_right_prec->Initialize(rp_lhs_lin_op);
-        }
+        this->GetLeftPreconditioner()->Initialize(rp_lhs_lin_op);
+        this->GetRightPreconditioner()->Initialize(rp_lhs_lin_op);
     }
 
     void InitializeSolutionStep(LinearSystem<TLinearAlgebra>& rLinearSystem) override
@@ -134,15 +127,8 @@ public:
         const auto& rp_lhs_lin_op = rLinearSystem.pGetLinearOperator(lhs_tag);
 
         // Initialize solution step of preconditioners
-        auto p_left_prec = this->GetLeftPreconditioner();
-        if (p_left_prec) {
-            p_left_prec->InitializeSolutionStep(rp_lhs_lin_op);
-        }
-
-        auto p_right_prec = this->GetRightPreconditioner();
-        if (p_right_prec) {
-            p_right_prec->InitializeSolutionStep(rp_lhs_lin_op);
-        }
+        this->GetLeftPreconditioner()->InitializeSolutionStep(rp_lhs_lin_op);
+        this->GetRightPreconditioner()->InitializeSolutionStep(rp_lhs_lin_op);
     }
 
     bool PerformSolutionStep(LinearSystem<TLinearAlgebra>& rLinearSystem) override
@@ -220,29 +206,15 @@ public:
         const auto& rp_lhs_lin_op = rLinearSystem.pGetLinearOperator(lhs_tag);
 
         // Finalize solution step of preconditioners
-        auto p_left_prec = this->GetLeftPreconditioner();
-        if (p_left_prec) {
-            p_left_prec->FinalizeSolutionStep(rp_lhs_lin_op);
-        }
-
-        auto p_right_prec = this->GetRightPreconditioner();
-        if (p_right_prec) {
-            p_right_prec->FinalizeSolutionStep(rp_lhs_lin_op);
-        }
+        this->GetLeftPreconditioner()->FinalizeSolutionStep(rp_lhs_lin_op);
+        this->GetRightPreconditioner()->FinalizeSolutionStep(rp_lhs_lin_op);
     }
 
     void Clear() override
     {
         // Clear preconditioners
-        auto p_left_prec = this->GetLeftPreconditioner();
-        if (p_left_prec) {
-            p_left_prec->Clear();
-        }
-
-        auto p_right_prec = this->GetRightPreconditioner();
-        if (p_right_prec) {
-            p_right_prec->Clear();
-        }
+        this->GetLeftPreconditioner()->Clear();
+        this->GetRightPreconditioner()->Clear();
     }
 
     ///@}
@@ -251,21 +223,25 @@ public:
 
     virtual PreconditionerPointerType GetRightPreconditioner()
     {
+        KRATOS_ERROR_IF_NOT(mpRightPreconditioner) << "Right preconditioner not set." << std::endl;
         return mpRightPreconditioner;
     }
 
     virtual const PreconditionerPointerType GetRightPreconditioner() const
     {
+        KRATOS_ERROR_IF_NOT(mpRightPreconditioner) << "Right preconditioner not set." << std::endl;
         return mpRightPreconditioner;
     }
 
     virtual PreconditionerPointerType GetLeftPreconditioner()
     {
+        KRATOS_ERROR_IF_NOT(mpLeftPreconditioner) << "Left preconditioner not set." << std::endl;
         return mpLeftPreconditioner;
     }
 
     virtual const PreconditionerPointerType GetLeftPreconditioner() const
     {
+        KRATOS_ERROR_IF_NOT(mpLeftPreconditioner) << "Left preconditioner not set." << std::endl;
         return mpLeftPreconditioner;
     }
 
@@ -327,8 +303,8 @@ public:
             "solver_type" : "iterative_solver",
             "tolerance" : 1e-6,
             "max_iteration" : 100,
-            "left_preconditioner_type" : "none",
-            "right_preconditioner_type" : "none"
+            "left_preconditioner_type" : "identity",
+            "right_preconditioner_type" : "identity"
         })");
         default_parameters.AddMissingParameters(BaseType::GetDefaultParameters());
 
@@ -352,13 +328,9 @@ public:
     bool RequiresAdditionalData() const override
     {
         // Check if preconditioners require additional data
-        if (GetLeftPreconditioner() || GetRightPreconditioner()) {
-            const bool left_requires = GetLeftPreconditioner() ? GetLeftPreconditioner()->RequiresAdditionalData() : false;
-            const bool right_requires = GetRightPreconditioner() ? GetRightPreconditioner()->RequiresAdditionalData() : false;
-            return  left_requires || right_requires;
-        }
-
-        return false;
+        const bool left_requires = this->GetLeftPreconditioner()->RequiresAdditionalData();
+        const bool right_requires = this->GetRightPreconditioner()->RequiresAdditionalData();
+        return  left_requires || right_requires;
     }
 
     ///@}
@@ -484,9 +456,9 @@ private:
 
     IndexType mMaxIterationsNumber = 0;
 
-    PreconditionerPointerType mpLeftPreconditioner = nullptr;
+    PreconditionerPointerType mpLeftPreconditioner = Kratos::make_shared<Preconditioner<TLinearAlgebra>>();
 
-    PreconditionerPointerType mpRightPreconditioner = nullptr;
+    PreconditionerPointerType mpRightPreconditioner = Kratos::make_shared<Preconditioner<TLinearAlgebra>>();
 
     ///@}
     ///@name Private Operators

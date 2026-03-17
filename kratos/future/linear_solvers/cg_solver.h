@@ -88,12 +88,12 @@ public:
         // Assign the validated settings
         this->AssignSettings(Settings);
 
+        // Check that right preconditioner is not provided
+        KRATOS_ERROR_IF(Settings["right_preconditioner_type"].GetString() != "identity") << "Right preconditioner is not supported for CG solver." << std::endl;
+
         // Create and set left preconditioner
         PreconditionerPointerType p_left_preconditioner = Kratos::make_shared<Preconditioner<TLinearAlgebra>>(); // TODO: implement preconditioner by leveraging the settings and the registry
         this->SetLeftPreconditioner(p_left_preconditioner);
-
-        // Set the right preconditioner to nullptr
-        this->SetRightPreconditioner(nullptr);
     }
 
     /// Copy constructor.
@@ -116,7 +116,8 @@ public:
     Parameters GetDefaultParameters() const override
     {
         Parameters default_parameters( R"({
-            "solver_type" : "cg_solver"
+            "solver_type" : "cg_solver",
+            "right_preconditioner_type" : "identity"
         })");
         default_parameters.AddMissingParameters(BaseType::GetDefaultParameters());
 
