@@ -65,6 +65,9 @@ class TensorAdaptorVtuOutput(TensorAdaptorOutput):
         output_file_name = output_file_name.replace("<model_part_name>", self.model_part.Name)
         self.vtu_output.PrintOutput(str(self.output_path / output_file_name))
 
+    def __str__(self) -> str:
+        return f"TensorAdaptorVtuOutput with \"{self.vtu_output.GetModelPart().FullName()}\""
+
 class OptimizationProblemVtuOutputProcess(OptimizationProblemFieldOutputProcess):
     def GetDefaultParameters(self):
         return Kratos.Parameters(

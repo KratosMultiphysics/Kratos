@@ -59,6 +59,9 @@ class TensorAdaptorHDF5Output(TensorAdaptorOutput):
                     raise RuntimeError(f"Unsupported container type used in the tensor adaptor [ tensor adaptor name  = {tensor_adaptor_data.GetTensorAdaptorName()}, tensor_adaptor = {ta} ].")
                 tensor_io.Write(f"{prefix}/{tensor_adaptor_data.GetTensorAdaptorName()}", ta)
 
+    def __str__(self) -> str:
+        return f"TensorAdaptorHDF5Output with \"{self.model_part.FullName()}\""
+
 class OptimizationProblemHDF5OutputProcess(OptimizationProblemFieldOutputProcess):
     def GetDefaultParameters(self):
         return Kratos.Parameters(
