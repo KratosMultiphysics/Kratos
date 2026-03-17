@@ -107,12 +107,12 @@ private:
 }; // struct AMGCLAdaptor
 
 
-template class  AMGCLSolver<
+template class KRATOS_API(KRATOS_CORE) AMGCLSolver<
     TUblasSparseSpace<double>,
     TUblasDenseSpace<double>
 >;
 
-template class  AMGCLSolver<
+template class KRATOS_API(KRATOS_CORE) AMGCLSolver<
     TUblasSparseSpace<float>,
     TUblasDenseSpace<double>
 >;
