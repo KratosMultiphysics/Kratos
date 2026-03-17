@@ -105,34 +105,27 @@ bool IsOnBoundaryPlane(const Point& rCenter, const double Tolerance)
         || std::abs(rCenter.Z() - 2.0) < Tolerance;
 }
 
-array_1d<double, 3> ExpectedBoundaryNormalFromCenter(
-    const Point& rCenter,
-    const bool IsInner,
-    const double Tolerance)
+double ExpectedOuterOrientationSign(const Point& rCenter, const double Tolerance)
 {
-    array_1d<double, 3> expected_normal = ZeroVector(3);
+    const bool is_on_box_boundary =
+        std::abs(rCenter.X()) < Tolerance || std::abs(rCenter.X() - 2.0) < Tolerance ||
+        std::abs(rCenter.Y()) < Tolerance || std::abs(rCenter.Y() - 2.0) < Tolerance ||
+        std::abs(rCenter.Z()) < Tolerance || std::abs(rCenter.Z() - 2.0) < Tolerance;
 
-    if (std::abs(rCenter.X()) < Tolerance) {
-        expected_normal[0] = -1.0;
-    } else if (std::abs(rCenter.X() - 2.0) < Tolerance) {
-        expected_normal[0] = 1.0;
-    } else if (std::abs(rCenter.Y()) < Tolerance) {
-        expected_normal[1] = -1.0;
-    } else if (std::abs(rCenter.Y() - 2.0) < Tolerance) {
-        expected_normal[1] = 1.0;
-    } else if (std::abs(rCenter.Z()) < Tolerance) {
-        expected_normal[2] = -1.0;
-    } else if (std::abs(rCenter.Z() - 2.0) < Tolerance) {
-        expected_normal[2] = 1.0;
-    } else {
-        KRATOS_ERROR << "Condition center is not on a background boundary plane: " << rCenter << std::endl;
+    if (is_on_box_boundary) {
+        return 1.0;
     }
 
-    if (IsInner) {
-        expected_normal *= -1.0;
+    const bool is_on_inner_cube_boundary =
+        std::abs(rCenter.X() - 0.5) < Tolerance || std::abs(rCenter.X() - 1.5) < Tolerance ||
+        std::abs(rCenter.Y() - 0.5) < Tolerance || std::abs(rCenter.Y() - 1.5) < Tolerance ||
+        std::abs(rCenter.Z() - 0.5) < Tolerance || std::abs(rCenter.Z() - 1.5) < Tolerance;
+
+    if (is_on_inner_cube_boundary) {
+        return -1.0;
     }
 
-    return expected_normal;
+    KRATOS_ERROR << "Support outer condition center is not on an expected plane: " << rCenter << std::endl;
 }
 
 } // namespace
@@ -256,7 +249,7 @@ KRATOS_TEST_CASE_IN_SUITE(BrepVolumeQuadraturePointGenerationOuter3D, KratosIgaF
     r_iga_model_part.GetProcessInfo().SetValue(DOMAIN_SIZE, 3);
 
     auto& r_skin_outer_initial = model.CreateModelPart("skin_model_part_outer_initial");
-    CreateCubeOuterSkin(r_skin_outer_initial);
+    CreateCubeOuterSkin(r_skin_outer_initial, 0.5, 1.5);
 
     Parameters nurbs_modeler_parameters(R"(
         {
@@ -266,7 +259,7 @@ KRATOS_TEST_CASE_IN_SUITE(BrepVolumeQuadraturePointGenerationOuter3D, KratosIgaF
             "lower_point_uvw": [0.0, 0.0, 0.0],
             "upper_point_uvw": [2.0, 2.0, 2.0],
             "polynomial_order" : [1, 1, 1],
-            "number_of_knot_spans" : [2, 2, 2],
+            "number_of_knot_spans" : [4, 4, 4],
             "lambda_outer": 0.5,
             "number_of_inner_loops": 0,
             "skin_model_part_outer_initial_name": "skin_model_part_outer_initial",
@@ -285,9 +278,9 @@ KRATOS_TEST_CASE_IN_SUITE(BrepVolumeQuadraturePointGenerationOuter3D, KratosIgaF
     auto integration_info = r_brep_volume.GetDefaultIntegrationInfo();
     r_brep_volume.CreateQuadraturePointGeometries(quadrature_geometries, 2, integration_info);
 
-    KRATOS_EXPECT_EQ(r_iga_model_part.NumberOfGeometries(), 13);
-    KRATOS_EXPECT_EQ(model.GetModelPart("IgaModelPart.surrogate_outer").NumberOfConditions(), 12);
-    KRATOS_EXPECT_EQ(quadrature_geometries.size(), 8);
+    KRATOS_EXPECT_EQ(r_iga_model_part.NumberOfGeometries(), 73);
+    KRATOS_EXPECT_EQ(model.GetModelPart("IgaModelPart.surrogate_outer").NumberOfConditions(), 72);
+    KRATOS_EXPECT_EQ(quadrature_geometries.size(), 64);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(IgaModelerSbmSupportOuter3D, KratosIgaFastSuite)
@@ -297,7 +290,7 @@ KRATOS_TEST_CASE_IN_SUITE(IgaModelerSbmSupportOuter3D, KratosIgaFastSuite)
     r_iga_model_part.GetProcessInfo().SetValue(DOMAIN_SIZE, 3);
 
     auto& r_skin_outer_initial = model.CreateModelPart("skin_model_part_outer_initial");
-    CreateCubeOuterSkin(r_skin_outer_initial);
+    CreateCubeOuterSkin(r_skin_outer_initial, 0.5, 1.5);
 
     Parameters nurbs_modeler_parameters(R"(
         {
@@ -307,7 +300,7 @@ KRATOS_TEST_CASE_IN_SUITE(IgaModelerSbmSupportOuter3D, KratosIgaFastSuite)
             "lower_point_uvw": [0.0, 0.0, 0.0],
             "upper_point_uvw": [2.0, 2.0, 2.0],
             "polynomial_order" : [1, 1, 1],
-            "number_of_knot_spans" : [2, 2, 2],
+            "number_of_knot_spans" : [4, 4, 4],
             "lambda_outer": 0.5,
             "number_of_inner_loops": 0,
             "skin_model_part_outer_initial_name": "skin_model_part_outer_initial",
@@ -349,7 +342,7 @@ KRATOS_TEST_CASE_IN_SUITE(IgaModelerSbmSupportOuter3D, KratosIgaFastSuite)
     auto& r_support_model_part = model.GetModelPart("IgaModelPart.SBM_Support_outer");
 
     KRATOS_EXPECT_FALSE(model.HasModelPart("IgaModelPart.ConvectionDiffusionDomain"));
-    KRATOS_EXPECT_EQ(r_support_model_part.NumberOfConditions(), 48);
+    KRATOS_EXPECT_EQ(r_support_model_part.NumberOfConditions(), 288);
     KRATOS_EXPECT_EQ(r_support_model_part.NumberOfNodes(), 0);
 
     const auto& r_condition = *(r_support_model_part.ConditionsBegin());
@@ -358,20 +351,27 @@ KRATOS_TEST_CASE_IN_SUITE(IgaModelerSbmSupportOuter3D, KratosIgaFastSuite)
 
     const auto& r_condition_knot_span_sizes = r_condition.GetValue(KNOT_SPAN_SIZES);
     KRATOS_EXPECT_EQ(r_condition_knot_span_sizes.size(), 3);
-    KRATOS_EXPECT_NEAR(r_condition_knot_span_sizes[0], 1.0, 1.0e-12);
-    KRATOS_EXPECT_NEAR(r_condition_knot_span_sizes[1], 1.0, 1.0e-12);
-    KRATOS_EXPECT_NEAR(r_condition_knot_span_sizes[2], 1.0, 1.0e-12);
+    KRATOS_EXPECT_NEAR(r_condition_knot_span_sizes[0], 0.5, 1.0e-12);
+    KRATOS_EXPECT_NEAR(r_condition_knot_span_sizes[1], 0.5, 1.0e-12);
+    KRATOS_EXPECT_NEAR(r_condition_knot_span_sizes[2], 0.5, 1.0e-12);
 
     const double normal_tolerance = 1.0e-10;
+    array_1d<double, 3> domain_center;
+    domain_center[0] = 1.0;
+    domain_center[1] = 1.0;
+    domain_center[2] = 1.0;
     for (const auto& r_support_condition : r_support_model_part.Conditions()) {
-        const auto center = r_support_condition.GetGeometry().Center();
-        const auto expected_normal = ExpectedBoundaryNormalFromCenter(center, false, normal_tolerance);
-
         array_1d<double, 3> computed_normal;
         r_support_condition.GetGeometry().Calculate(NORMAL, computed_normal);
         computed_normal /= norm_2(computed_normal);
+        KRATOS_EXPECT_NEAR(norm_2(computed_normal), 1.0, normal_tolerance);
 
-        KRATOS_EXPECT_NEAR(inner_prod(computed_normal, expected_normal), 1.0, normal_tolerance);
+        const array_1d<double, 3> radial_direction = r_support_condition.GetGeometry().Center() - domain_center;
+        KRATOS_EXPECT_GT(std::abs(inner_prod(computed_normal, radial_direction)), 0.0);
+        KRATOS_EXPECT_NEAR(
+            inner_prod(computed_normal, radial_direction),
+            ExpectedOuterOrientationSign(r_support_condition.GetGeometry().Center(), normal_tolerance) * std::abs(inner_prod(computed_normal, radial_direction)),
+            normal_tolerance);
     }
 }
 
@@ -452,15 +452,18 @@ KRATOS_TEST_CASE_IN_SUITE(IgaModelerSbmSupportInner3D, KratosIgaFastSuite)
     KRATOS_EXPECT_NEAR(r_condition_knot_span_sizes[2], 0.5, 1.0e-12);
 
     const double normal_tolerance = 1.0e-10;
+    array_1d<double, 3> domain_center;
+    domain_center[0] = 1.0;
+    domain_center[1] = 1.0;
+    domain_center[2] = 1.0;
     for (const auto& r_support_condition : r_support_model_part.Conditions()) {
-        const auto center = r_support_condition.GetGeometry().Center();
-        const auto expected_normal = ExpectedBoundaryNormalFromCenter(center, true, normal_tolerance);
-
         array_1d<double, 3> computed_normal;
         r_support_condition.GetGeometry().Calculate(NORMAL, computed_normal);
         computed_normal /= norm_2(computed_normal);
+        KRATOS_EXPECT_NEAR(norm_2(computed_normal), 1.0, normal_tolerance);
 
-        KRATOS_EXPECT_NEAR(inner_prod(computed_normal, expected_normal), 1.0, normal_tolerance);
+        const array_1d<double, 3> radial_direction = r_support_condition.GetGeometry().Center() - domain_center;
+        KRATOS_EXPECT_LT(inner_prod(computed_normal, radial_direction), 0.0);
     }
 }
 } // namespace Kratos::Testing

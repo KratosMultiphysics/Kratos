@@ -1986,51 +1986,8 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates3D(
         // Mark the knot_spans_available's for inner and outer loops
         MarkKnotSpansAvailable3D(id_inner_loop, points_bin, r_skin_sub_model_part, Lambda,
                                 n_knot_spans_uvw, knot_step_uvw, starting_pos_uvw, knot_spans_available);  
-    
 
-        // Make a copy of the original knot spans to safely modify
-        auto cleaned_knot_spans = knot_spans_available;
-        for (std::size_t loop = 0; loop < knot_spans_available.size(); ++loop) {
-            auto& grid = knot_spans_available[loop]; // 3D grid for the current loop
-            for (std::size_t k = 0; k < grid.size(); ++k) {
-                for (std::size_t j = 0; j < grid[k].size(); ++j) {
-                    for (std::size_t i = 0; i < grid[k][j].size(); ++i) {
-                        // Process only cells with value 1
-                        if (grid[k][j][i] == 1) {
-                            bool has_neighbor = false;
-                            // Check the 6 direct neighbors: ±x, ±y, ±z
-                            const std::vector<std::tuple<int, int, int>> directions = {
-                                {1, 0, 0}, {-1, 0, 0},   // x+ and x-
-                                {0, 1, 0}, {0, -1, 0},   // y+ and y-
-                                {0, 0, 1}, {0, 0, -1}    // z+ and z-
-                            };
-                            // Loop through all 6 directions to find at least one neighbor with value 1
-                            for (const auto& [dx, dy, dz] : directions) {
-                                int ni = static_cast<int>(i) + dx;
-                                int nj = static_cast<int>(j) + dy;
-                                int nk = static_cast<int>(k) + dz;
-
-                                // Ensure neighbor indices are within bounds
-                                if (nk >= 0 && nk < static_cast<int>(grid.size()) &&
-                                    nj >= 0 && nj < static_cast<int>(grid[nk].size()) &&
-                                    ni >= 0 && ni < static_cast<int>(grid[nk][nj].size())) {
-                                    if (grid[nk][nj][ni] == 1) {
-                                        has_neighbor = true;
-                                        break; // No need to check further if a neighbor is found
-                                    }
-                                }
-                            }
-                            // If no neighbor is found, set this cell to 0 in the cleaned grid
-                            if (!has_neighbor) {
-                                cleaned_knot_spans[loop][k][j][i] = 0;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        // Update the original grid with the cleaned one
-        knot_spans_available = cleaned_knot_spans;
+        RemoveIslands3D(knot_spans_available);
     
         if (EchoLevel >  0) {
             KRATOS_INFO_IF("::[SnakeSbmProcess]::", is_inner) << "Inner :: Ending MarkKnotSpansAvailable" << std::endl;
@@ -2078,6 +2035,55 @@ bool SnakeSbmProcess::IsInside3D(
     return false;  // All nodes are inside
 }
 
+void SnakeSbmProcess::RemoveIslands3D(
+    std::vector<std::vector<std::vector<std::vector<int>>>>& rKnotSpansAvailable)
+{
+    const std::array<std::array<int, 3>, 6> directions{{
+        {{1, 0, 0}},
+        {{-1, 0, 0}},
+        {{0, 1, 0}},
+        {{0, -1, 0}},
+        {{0, 0, 1}},
+        {{0, 0, -1}}
+    }};
+
+    auto cleaned_knot_spans = rKnotSpansAvailable;
+
+    for (std::size_t loop = 0; loop < rKnotSpansAvailable.size(); ++loop) {
+        const auto& r_grid = rKnotSpansAvailable[loop];
+        for (std::size_t k = 0; k < r_grid.size(); ++k) {
+            for (std::size_t j = 0; j < r_grid[k].size(); ++j) {
+                for (std::size_t i = 0; i < r_grid[k][j].size(); ++i) {
+                    if (r_grid[k][j][i] != 1) {
+                        continue;
+                    }
+
+                    bool has_neighbor = false;
+                    for (const auto& r_direction : directions) {
+                        const int ni = static_cast<int>(i) + r_direction[0];
+                        const int nj = static_cast<int>(j) + r_direction[1];
+                        const int nk = static_cast<int>(k) + r_direction[2];
+
+                        if (nk >= 0 && nk < static_cast<int>(r_grid.size()) &&
+                            nj >= 0 && nj < static_cast<int>(r_grid[nk].size()) &&
+                            ni >= 0 && ni < static_cast<int>(r_grid[nk][nj].size()) &&
+                            r_grid[nk][nj][ni] == 1) {
+                            has_neighbor = true;
+                            break;
+                        }
+                    }
+
+                    if (!has_neighbor) {
+                        cleaned_knot_spans[loop][k][j][i] = 0;
+                    }
+                }
+            }
+        }
+    }
+
+    rKnotSpansAvailable = std::move(cleaned_knot_spans);
+}
+
 
 void SnakeSbmProcess::SnakeStep3D(
     const int IdMatrix, 
@@ -2109,7 +2115,7 @@ void SnakeSbmProcess::SnakeStep3D(
         )
         {
             isSplitted = true;
-            // KRATOS_INFO("::[SnakeSBMUtilities]::") << "SnakeStep :: Splitting a 3D condition" << std::endl;
+            KRATOS_INFO("::[SnakeSBMUtilities]::") << "SnakeStep :: Splitting a 3D condition" << std::endl;
 
             // Midpoints
             double x12 = (rConditionCoord[0][0] + rConditionCoord[0][1]) / 2.0;

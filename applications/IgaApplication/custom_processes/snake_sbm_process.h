@@ -234,7 +234,7 @@ private:
      * 
      * @param IdMatrixKnotSpansAvailable ID of the matrix tracking available knot spans.
      * @param rKnotSpansUV Knot spans in UV coordinates.
-     * @param ConditionCoords XY coordinates of control points.
+     * @param rConditionCoords XY coordinates of control points.
      * @param KnotStepUV Step size in UV space.
      * @param StartingPositionUV Starting position in UV space.
      * @param rSkinModelPart The skin model part to be updated.
@@ -314,7 +314,7 @@ private:
      * @brief Create a Surrogate Buondary From Snake Inner object
      * 
      * @param IdMatrix 
-     * @param SkinModelPartInner 
+     * @param rSkinModelPartInner 
      * @param rPointsBinInner 
      * @param rNumberKnotSpans 
      * @param rKnotVectorU 
@@ -339,7 +339,7 @@ private:
      * @brief Create a Surrogate Buondary From Snake Outer object
      * 
      * @param IdMatrix 
-     * @param SkinModelPartOuter 
+     * @param rSkinModelPartOuter 
      * @param rPointsBinOuter 
      * @param rNumberKnotSpans 
      * @param rKnotVectorU 
@@ -423,13 +423,21 @@ private:
         const std::vector<int> &rNumberKnotSpansUV
         ); 
 
+    /**
+     * @brief Removes isolated active cells from the 3D knot-span grids.
+     * @param rKnotSpansAvailable 3D knot-span availability matrices for all loops.
+     */
+    static void RemoveIslands3D(
+        std::vector<std::vector<std::vector<std::vector<int>>>>& rKnotSpansAvailable
+        );
+
     
     /**
      * @brief Performs a single step in the snake algorithm for 3D models.
      * 
      * @param IdMatrixKnotSpansAvailable ID of the matrix tracking available knot spans.
      * @param rKnotSpansUV Knot spans in UV coordinates.
-     * @param ConditionCoords XY coordinates of control points.
+     * @param rConditionCoords XY coordinates of control points.
      * @param KnotStepUV Step size in UV space.
      * @param StartingPositionUV Starting position in UV space.
      * @param rSkinModelPart The skin model part to be updated.
@@ -438,7 +446,7 @@ private:
     static void SnakeStep3D(
         const int IdMatrixKnotSpansAvailable, 
         const std::vector<std::vector<int>>& rKnotSpansUV, 
-        const std::vector<std::vector<double>>& ConditionCoords, 
+        const std::vector<std::vector<double>>& rConditionCoords, 
         const Vector KnotStepUV, 
         const Vector StartingPositionUV,
         ModelPart& rSkinModelPart, 
@@ -486,7 +494,7 @@ private:
      * @brief Create a Surrogate Buondary From Snake Inner 3 D object
      * 
      * @param IdMatrix 
-     * @param SkinModelPartInner 
+     * @param rSkinModelPartInner 
      * @param rPointsBinInner 
      * @param rNumberKnotSpans 
      * @param rKnotVectorU 
@@ -497,7 +505,7 @@ private:
      */
     static void CreateSurrogateBuondaryFromSnakeInner3D(
         const int IdMatrix,
-        const ModelPart& SkinModelPartInner,
+        const ModelPart& rSkinModelPartInner,
         DynamicBins& rPointsBinInner,
         const std::vector<int>& rNumberKnotSpans,
         const Vector& rKnotVectorU,
@@ -512,7 +520,7 @@ private:
      * @brief Create a Surrogate Buondary From Snake Outer 3 D object
      * 
      * @param IdMatrix 
-     * @param SkinModelPartOuter 
+     * @param rSkinModelPartOuter 
      * @param rPointsBinOuter 
      * @param rNumberKnotSpans 
      * @param rKnotVectorU 
@@ -524,7 +532,7 @@ private:
      */
     static void CreateSurrogateBuondaryFromSnakeOuter3D(
         const int IdMatrix,
-        const ModelPart& SkinModelPartOuter,
+        const ModelPart& rSkinModelPartOuter,
         DynamicBins& rPointsBinOuter,
         const std::vector<int>& rNumberKnotSpans,
         const Vector& rKnotVectorU,

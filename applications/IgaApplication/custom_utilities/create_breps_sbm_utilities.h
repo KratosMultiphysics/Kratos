@@ -29,7 +29,6 @@
 #include "geometries/brep_volume.h"
 #include "geometries/brep_curve.h"
 #include "geometries/brep_curve_on_surface.h"
-#include "geometries/brep_surface_on_volume.h"
 
 #include "includes/io.h"
 
@@ -141,7 +140,7 @@ class CreateBrepsSbmUtilities : public IO
      * @param rCoordsB 
      * @param rModelPart 
      */
-    void CreateSurrogateBoundary(NurbsVolumeGeometryPointerType& pVolume, 
+    void CreateSurrogateBoundary(NurbsVolumeGeometryPointerType pVolume, 
         const ModelPart& rSurrogateModelPartInner, 
         const ModelPart& rSurrogateModelPartOuter, 
         const Point& rCoordsA, 
@@ -161,7 +160,7 @@ class CreateBrepsSbmUtilities : public IO
      * @param rModelPart 
      */
     void CreateSurrogateBoundary(
-        NurbsVolumeGeometryPointerType& pVolume, 
+        NurbsVolumeGeometryPointerType pVolume, 
         const Point& rCoordsA, 
         const Point& rCoordsB,
         ModelPart& rModelPart)

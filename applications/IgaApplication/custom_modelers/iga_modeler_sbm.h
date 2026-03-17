@@ -148,14 +148,14 @@ private:
         GeometriesArrayType& rQuadraturePointGeometryList,
         ModelPart& rModelPart,
         const Parameters rParameters,
-        std::string geometry_type) const;
+        std::string GeometryType) const;
     
     /// Creates list of rQuadraturePointGeometryList for Sbm
     void CreateQuadraturePointGeometriesSbm(
         GeometriesArrayType& rQuadraturePointGeometryList,
         ModelPart& rModelPart,
         const Parameters rParameters,
-        std::string geometry_type) const;
+        std::string GeometryType) const;
 
     
     /// Creates list of rQuadraturePointGeometryList for Sbm 
@@ -164,7 +164,7 @@ private:
         GeometriesArrayType& rQuadraturePointGeometryList,
         ModelPart& rModelPart,
         const Parameters rParameters,
-        std::string geometry_type) const;
+        std::string GeometryType) const;
 
     /// Creates list of rQuadraturePointGeometryList for Sbm 
     /// using a fixed condition name for the whole surrogate boundary loop
@@ -172,7 +172,7 @@ private:
         GeometriesArrayType& rQuadraturePointGeometryList,
         ModelPart& rModelPart,
         const Parameters rParameters,
-        std::string geometry_type,
+        std::string GeometryType,
         std::string ConditionName) const;
 
     ///@}

@@ -106,6 +106,14 @@ Vector& MohrCoulombWithTensionCutOff::GetValue(const Variable<Vector>& rVariable
     return rValue;
 }
 
+int& MohrCoulombWithTensionCutOff::GetValue(const Variable<int>& rVariable, int& rValue)
+{
+    if (rVariable == GEO_PLASTICITY_STATUS) {
+        rValue = static_cast<int>(mCoulombWithTensionCutOffImpl.GetPlasticityStatus());
+    }
+    return rValue;
+}
+
 void MohrCoulombWithTensionCutOff::SetValue(const Variable<Vector>& rVariable,
                                             const Vector&           rValue,
                                             const ProcessInfo&      rCurrentProcessInfo)
@@ -223,7 +231,6 @@ void MohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(ConstitutiveL
             mapped_principal_stresses.CopyTo<Vector>(), rotation_matrix,
             mpConstitutiveDimension->GetStrainSize());
     }
-
     rParameters.GetStressVector() = mStressVector;
 }
 
