@@ -194,7 +194,7 @@ class IgaVTKOutputProcess(KratosMultiphysics.Process):
                 grid_disp_z = 0.0
                 cp_idx = 0
                 for id in cp_ids:
-                    node = self.model_part.GetNode(id+1)
+                    node = self.model_part.GetNode(id)
                     grid_disp_x += node.GetSolutionStepValue(KM.DISPLACEMENT_X) * shape_func_val[cp_idx]
                     grid_disp_y += node.GetSolutionStepValue(KM.DISPLACEMENT_Y) * shape_func_val[cp_idx]
                     grid_disp_z += node.GetSolutionStepValue(KM.DISPLACEMENT_Z) * shape_func_val[cp_idx]
