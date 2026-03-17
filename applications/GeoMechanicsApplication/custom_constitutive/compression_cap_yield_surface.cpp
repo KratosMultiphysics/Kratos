@@ -17,6 +17,7 @@
 #include "custom_utilities/check_utilities.hpp"
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "custom_utilities/function_object_utilities.h"
+#include "custom_utilities/math_utilities.hpp"
 #include "custom_utilities/stress_strain_utilities.h"
 #include "custom_utilities/string_utilities.h"
 #include "custom_utilities/ublas_utilities.h"
@@ -194,9 +195,12 @@ double CompressionCapYieldSurface::CalculatePlasticMultiplier(const Geo::Princip
         inner_prod(principals, temp) / std::pow(GetCapSize(), 2) +
         (rPrincipalStresses.Values()[0] + rPrincipalStresses.Values()[1] + rPrincipalStresses.Values()[2]) *
             (stress_correction[0] + stress_correction[1] + stress_correction[2]) * 2.0 / 9.0;
-    const auto C     = YieldFunctionValue(rPrincipalStresses);
-    const auto delta = std::sqrt(B * B - 4.0 * A * C);
-    return std::max((-B + delta) / (2.0 * A), (-B - delta) / (2.0 * A));
+    const auto C = YieldFunctionValue(rPrincipalStresses);
+
+    const auto roots = GeoMechanicsMathUtilities::RootsOfSecondOrderEquation(A, B, C);
+    KRATOS_DEBUG_ERROR_IF(roots.size() == 0)
+        << "Failed to calculate the plastic multiplier for the cap.\n";
+    return *std::ranges::max_element(roots);
 }
 
 void CompressionCapYieldSurface::save(Serializer& rSerializer) const

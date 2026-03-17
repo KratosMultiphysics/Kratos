@@ -16,12 +16,15 @@
 #include "custom_constitutive/coulomb_with_tension_cut_off_impl.h"
 #include "custom_constitutive/principal_stresses.hpp"
 #include "custom_constitutive/sigma_tau.hpp"
+#include "custom_utilities/math_utilities.hpp"
 #include "custom_utilities/stress_strain_utilities.h"
 #include "custom_utilities/ublas_utilities.h"
 #include "geo_mechanics_application_variables.h"
 #include "includes/properties.h"
 #include "includes/serializer.h"
 #include "utilities/math_utils.h"
+
+#include <algorithm>
 
 namespace
 {
@@ -207,22 +210,24 @@ Geo::SigmaTau CoulombWithTensionCutOffImpl::CalculateCornerPoint() const
 
 Geo::PQ CoulombWithTensionCutOffImpl::CalculateCapCornerPoint() const
 {
-    auto       result       = Vector(2);
-    const auto b1           = 1.0 / std::pow(mOptionalCompressionCap->GetCapSize(), 2);
-    const auto c1           = std::pow(mOptionalCompressionCap->GetPreconsolidationStress(), 2);
-    const auto sin_phi      = std::sin(mCoulombYieldSurface.GetFrictionAngleInRadians());
-    const auto cos_phi      = std::cos(mCoulombYieldSurface.GetFrictionAngleInRadians());
-    const auto a2           = 6.0 * sin_phi / (3.0 - sin_phi);
-    const auto c2           = 6.0 * mCoulombYieldSurface.GetCohesion() * cos_phi / (3.0 - sin_phi);
-    const auto A            = 1.0 + b1 * a2 * a2;
-    const auto B            = -2.0 * b1 * a2 * c2;
-    const auto C            = b1 * c2 * c2 - c1;
-    const auto discriminant = B * B - 4.0 * A * C;
-    if (discriminant > 0.0) {
-        result[0] = (-B - std::sqrt(discriminant)) / (2.0 * A);
+    auto       result  = Vector(2);
+    const auto b1      = 1.0 / std::pow(mOptionalCompressionCap->GetCapSize(), 2);
+    const auto c1      = std::pow(mOptionalCompressionCap->GetPreconsolidationStress(), 2);
+    const auto sin_phi = std::sin(mCoulombYieldSurface.GetFrictionAngleInRadians());
+    const auto cos_phi = std::cos(mCoulombYieldSurface.GetFrictionAngleInRadians());
+    const auto a2      = 6.0 * sin_phi / (3.0 - sin_phi);
+    const auto c2      = 6.0 * mCoulombYieldSurface.GetCohesion() * cos_phi / (3.0 - sin_phi);
+    const auto A       = 1.0 + b1 * a2 * a2;
+    const auto B       = -2.0 * b1 * a2 * c2;
+    const auto C       = b1 * c2 * c2 - c1;
+
+    const auto roots = GeoMechanicsMathUtilities::RootsOfSecondOrderEquation(A, B, C);
+    if (roots.size() > 0) {
+        result[0] = *std::ranges::min_element(roots);
         result[1] = -a2 * result[0] + c2;
         return Geo::PQ{result};
     }
+
     KRATOS_ERROR << "Failed to calculate the cap corner point. No intersection with Coulomb yield "
                     "surface was found.\n ";
 }
@@ -443,12 +448,13 @@ Geo::PrincipalStresses CoulombWithTensionCutOffImpl::ReturnStressAtCapCornerZone
     const auto B = (-2.0 * c2 * c3 * c4 / c1 - c2 * c6 + c3 * c8) / c1 + c7;
     const auto C = (c3 * c4 / c1 + c6) * c3 / c1 - c9;
 
-    const auto delta      = B * B - 4.0 * A * C;
-    auto       lambda_cap = 0.0;
-    if (delta > 0.0) {
-        lambda_cap = (-B + std::sqrt(delta)) / (2.0 * A);
-    }
-    auto lambda_Coulomb = (c3 - c2 * lambda_cap) / c1;
+    const auto roots = GeoMechanicsMathUtilities::RootsOfSecondOrderEquation(A, B, C);
+
+    KRATOS_DEBUG_ERROR_IF(roots.size() == 0)
+        << "Failed to calculate the plastic multiplier for cap return.\n";
+
+    const auto lambda_cap     = *std::ranges::max_element(roots);
+    const auto lambda_Coulomb = (c3 - c2 * lambda_cap) / c1;
 
     return rTrialPrincipalStresses +
            Geo::PrincipalStresses{lambda_Coulomb * principal_stress_correction_Coulomb.Values() +
@@ -472,6 +478,8 @@ void CoulombWithTensionCutOffImpl::save(Serializer& rSerializer) const
     rSerializer.save("CoulombYieldSurface", mCoulombYieldSurface);
     rSerializer.save("TensionCutOff", mTensionCutOff);
     rSerializer.save("PlasticityStatus", static_cast<int>(mPlasticityStatus));
+    rSerializer.save("HasOptionalCompressionCap", mOptionalCompressionCap.has_value());
+    if (mOptionalCompressionCap) rSerializer.save("CompressionCap", *mOptionalCompressionCap);
 }
 
 void CoulombWithTensionCutOffImpl::load(Serializer& rSerializer)
@@ -480,7 +488,14 @@ void CoulombWithTensionCutOffImpl::load(Serializer& rSerializer)
     rSerializer.load("TensionCutOff", mTensionCutOff);
     int plasticity_status;
     rSerializer.load("PlasticityStatus", plasticity_status);
-    mPlasticityStatus = static_cast<PlasticityStatus>(plasticity_status);
+    mPlasticityStatus        = static_cast<PlasticityStatus>(plasticity_status);
+    auto has_compression_cap = false;
+    rSerializer.load("HasOptionalCompressionCap", has_compression_cap);
+    if (has_compression_cap) {
+        auto compression_cap = CompressionCapYieldSurface{};
+        rSerializer.load("CompressionCap", compression_cap);
+        mOptionalCompressionCap = std::make_optional<CompressionCapYieldSurface>(compression_cap);
+    }
 }
 
 } // namespace Kratos
