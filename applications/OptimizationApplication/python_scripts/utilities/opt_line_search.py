@@ -86,15 +86,16 @@ class BBStep(ConstStep):
         self._max_step = parameters["max_step"].GetDouble()
         self._optimization_problem = optimization_problem
         self._gradient_scaling = parameters["gradient_scaling"].GetString()
+        self.norm = 1.0
 
     @time_decorator()
     def ComputeStep(self) -> KratosOA.CollectiveExpression:
         algorithm_buffered_data = ComponentDataView("algorithm", self._optimization_problem).GetBufferedData()
-        norm = self.ComputeScaleFactor()
-        if math.isclose(norm, 0.0, abs_tol=1e-16):
-            norm = 1.0
+        self.norm = self.ComputeScaleFactor()
+        if math.isclose(self.norm, 0.0, abs_tol=1e-16):
+            self.norm = 1.0
         if self._optimization_problem.GetStep() == 0:
-            self.step = self._init_step / norm
+            self.step = self._init_step / self.norm
         else:
             current_search_direction = algorithm_buffered_data.GetValue("search_direction", 0)
             previous_search_direction = algorithm_buffered_data.GetValue("search_direction", 1)
@@ -103,22 +104,25 @@ class BBStep(ConstStep):
             dy = KratosOA.ExpressionUtils.InnerProduct(d,y)
             dd = KratosOA.ExpressionUtils.InnerProduct(d,d)
             if math.isclose(dy, 0.0, abs_tol=1e-16):
-                self.step = self._max_step / norm
+                self.step = self._max_step / self.norm
             else:
                 self.step = abs( dd / dy )
 
-            if self.step > self._max_step / norm:
-                self.step = self._max_step / norm
+            if self.step > self._max_step / self.norm:
+                self.step = self._max_step / self.norm
 
+        self.update_norm = KratosOA.ExpressionUtils.NormInf(algorithm_buffered_data["search_direction"] * self.step)
         DictLogger("Line Search info",self.GetInfo())
 
         return self.step
 
     def GetInfo(self) -> dict:
         info = {'type': 'BB_step',
-                'step': self.step,
-                'max_step': self._max_step,
-                'init_step': self._init_step}
+                'abs_step': self.step,
+                'rel_step': self.step * self.norm,
+                'max_step': self._max_step ,
+                'init_step': self._init_step,
+                'update_norm': self.update_norm }
 
         return info
 

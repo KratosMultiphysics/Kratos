@@ -73,6 +73,8 @@ class SensorOutputProcess(Kratos.OutputProcess):
         # calculate and assign values for each sensor
         if self.compute_sensor_value:
             for sensor in self.list_of_sensors:
+                # print(sensor.CalculateValue(self.model_part))
+                # raise RuntimeError("Stop here")
                 sensor.SetSensorValue(sensor.CalculateValue(self.model_part))
 
         PrintSensorListToCSV(Path(s_name), self.list_of_sensors, self.properties_list)
