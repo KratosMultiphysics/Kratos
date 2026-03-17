@@ -24,6 +24,7 @@ if USE_CUPY:
         except ImportError:
             print("PyAMGx not found. Falling back to CuPy sparse_linalg.")
             USE_AMGX = False
+        USE_AMGX = False
     except ImportError:
         print("CuPy not found. Falling back to NumPy.")
         import numpy as xp

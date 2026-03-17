@@ -1,3 +1,4 @@
+import math
 import time
 import numpy as np
 
@@ -63,14 +64,18 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
         self.AddVariables()
 
-        self.automatic_dt = settings["time_stepping"]["automatic_time_step"].GetBool()
-        if self.automatic_dt:
-            self.target_cfl = settings["time_stepping"]["CFL_number"].GetDouble() # CFL number from which the DT will be computed
-            self.target_fourier = settings["time_stepping"]["Viscous_Fourier_number"].GetDouble() # Viscous Fourier number from which the DT will be computed
-            self.dt_max = settings["time_stepping"]["maximum_delta_time"].GetDouble() # Maximum value of the automatically computed time step
-            self.dt = self.dt_max # Initialize dt to the maximum value
-        else:
-            self.dt = settings["time_stepping"]["time_step"].GetDouble()
+        # self.automatic_dt = settings["time_stepping"]["automatic_time_step"].GetBool()
+        # if self.automatic_dt:
+        #     self.target_cfl = settings["time_stepping"]["CFL_number"].GetDouble() # CFL number from which the DT will be computed
+        #     self.target_fourier = settings["time_stepping"]["Viscous_Fourier_number"].GetDouble() # Viscous Fourier number from which the DT will be computed
+        #     self.dt_max = settings["time_stepping"]["maximum_delta_time"].GetDouble() # Maximum value of the automatically computed time step
+        #     self.dt = self.dt_max # Initialize dt to the maximum value
+        # else:
+        #     self.dt = settings["time_stepping"]["time_step"].GetDouble()
+
+        self.dt = settings["time_stepping"]["time_step"].GetDouble()
+        self.max_cfl = settings["time_stepping"]["max_cfl_number"].GetDouble()
+        self.max_fourier = settings["time_stepping"]["max_fourier_number"].GetDouble()
 
         self.convection_integration_order = 2 # TODO: think on exposing this to the json
 
@@ -105,25 +110,52 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         h = 1.0/inverse_h
         return h
 
-    def ComputeTau(self,h,v_elemental,viscosity,dt,rho):
+    # def ComputeTau(self,h,v_elemental,viscosity,dt,rho):
+    #     c_1 = 4.0
+    #     c_2 = 2.0      
+
+    #     v_el_mean = xp.mean(v_elemental, axis=1)
+
+    #     # Calculate the advective projection v · ∇N_i for each node in each element representing the discrete convective operator
+    #     # For linear (P1) elements, shape function gradients are constant inside the element and scale like 1/h
+    #     # Since |∇N| ~ 1/h, this term scales like |v|/h and determines the CFL limit
+    #     advective_projection = xp.einsum('ek, enk -> en', v_el_mean, self.DN)
+
+    #     # Compute the convective spectral radius (inverse time scale)
+    #     # Note that the summation over the element nodes is a consistent upper bound of the local discrete convective operator magnitude (Gershgorin-type estimate)
+    #     v_on_h = xp.sum(xp.abs(advective_projection), axis=1)/self.n_in_el
+
+    #     tau_1 = 1.0/(rho/dt + c_2*rho*v_on_h + c_1*viscosity/h**2)
+    #     tau_2 = h**2/(c_1 * tau_1)
+        
+    #     return tau_1, tau_2
+
+    def ComputeTau(self, h, rho_conv , viscosity, dt, rho):
         c_1 = 4.0
         c_2 = 2.0      
-
-        v_el_mean = xp.mean(v_elemental, axis=1)
-
-        # Calculate the advective projection v · ∇N_i for each node in each element representing the discrete convective operator
-        # For linear (P1) elements, shape function gradients are constant inside the element and scale like 1/h
-        # Since |∇N| ~ 1/h, this term scales like |v|/h and determines the CFL limit
-        advective_projection = xp.einsum('ek, enk -> en', v_el_mean, self.DN)
-
-        # Compute the convective spectral radius (inverse time scale)
-        # Note that the summation over the element nodes is a consistent upper bound of the local discrete convective operator magnitude (Gershgorin-type estimate)
-        v_on_h = xp.sum(xp.abs(advective_projection), axis=1)/self.n_in_el
-
-        tau_1 = 1.0/(rho/dt + c_2*rho*v_on_h + c_1*viscosity/h**2)
+   
+        tau_1 = 1.0/(rho/dt + c_2*rho*rho_conv + c_1*viscosity/h**2)
         tau_2 = h**2/(c_1 * tau_1)
         
         return tau_1, tau_2
+
+    def ComputeElementalConvectiveOperatorSpectralRadius(self, v):
+        # Get the average velocity at each element
+        v_elemental = self.ElemData(v, self.connectivity)
+        v_el_mean = xp.sum(v_elemental, axis=1) / self.n_in_el #FIXME: check mean,average and sum performance
+
+        # Calculate the advective projection v · ∇N_i for each node in each element representing the discrete convective operator
+        # For linear (P1) elements, shape function gradients are constant inside the element and scale like 1/h (i.e., |∇N_i| ~ 1/h_i)
+        # In consequence, this term scales like |v|/h_i
+        advective_projection = xp.einsum('ek, enk -> en', v_el_mean, self.DN)
+
+        # Get the convective spectral radius (inverse time scale) as the average of the values in each direction 
+        # Note that this is an approximation of the elemental convective operator spectral radius
+        return xp.sum(xp.abs(advective_projection), axis=1) / self.n_in_el 
+
+        # # Get the convective spectral radius (inverse time scale) as the maximum value in each nodal direction
+        # # This is equivalent to get the maximum eigenvalue of the elemental convective operator
+        # return xp.max(xp.abs(advective_projection), axis=1)
 
     def PrepareModelPart(self):
         super().PrepareModelPart()
@@ -212,7 +244,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
     def AdvanceInTime(self):
         # Get time step and advance in time
-        self.time += self.dt # Note that the time step is computed after the previous solve
+        self.time += self.dt # Note that this is the user defined time
         self.model_part.CloneTimeStep(self.time)
         self.model_part.ProcessInfo[KM.STEP] += 1
 
@@ -304,13 +336,11 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         self.csr_diag_indices = None
 
         # Compute the Fourier number time step restriction (constant as h, rho and mu are constant in time)
-        if self.automatic_dt:
-            aux = self.target_fourier * self.rho / self.nu
-            self.dt_fourier = np.min(aux * self.h**2)
-
-        # Initialize delta time for the very first time step
-        # Note that we pass None velocity data as in this point we have zeros in the database
-        self.dt = self._ComputeDeltaTime(None) #TODO: discuss if how we initialize dt (should we directly ask for the first one in the json?)
+        # if self.automatic_dt:
+        #     aux = self.target_fourier * self.rho / self.nu
+        #     self.dt_fourier = np.min(aux * self.h**2)
+        aux = self.max_fourier * self.rho / self.nu
+        self.dt_fourier = np.min(aux * self.h**2)
 
         #FIXME: remove after developing
         self.step_1_total_time = 0.0
@@ -453,14 +483,11 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
             slip_node_ids = xp.where(slip_adaptor_data > 0)[0] # Get the ids of the nodes with SLIP flag
             self.slip_vel_indices = (slip_node_ids[:, None] * self.dim + xp.arange(self.dim)).ravel() # Broadcast with dimension to get the component indices
 
-    def SolveStep1(self,v,vold,p,b,dt):
+    def SolveStep1(self,vold,p,b,dt):
         # Gather elemental data from the database
         pel = self.ElemData(p, self.connectivity)
         vel = self.ElemData(vold, self.connectivity)
         b_el = self.ElemData(b, self.connectivity)  #FIXME: This is only valid for b constant in time...
-
-        # Compute stabilization constants
-        self.tau_1, self.tau_2 = self.ComputeTau(self.h, vel, self.nu, dt, self.rho)
 
         # Compute convective projection
         conv_proj = self.ComputeVelocityProjection(vel)
@@ -536,7 +563,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         # -tau*(∇q,Pi_pressure)
         aux_scalar = self.cfd_utils.ComputePressureStabilization_ProjectionTerm(self.N, self.DN, pres_proj_el)
         aux_scalar *= self.tau_1[:,xp.newaxis]
-        rhs_el -= aux_scalar
+        rhs_el -= aux_scalar #FIXME: Try +/-
 
         # scale RHS elemental contributions by elemental volumes (integration)
         rhs_el *= self.elemental_volumes[:,xp.newaxis]
@@ -571,7 +598,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
         return p
 
-    def SolveStep3(self, v, vfrac, delta_p, dt):
+    def SolveStep3(self, vfrac, delta_p, dt):
         # Gather elemental pressure increments from the nodal values
         delta_p_el = self.ElemData(delta_p, self.connectivity)
 
@@ -580,10 +607,11 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         grad_dp_el *= self.elemental_volumes[:,xp.newaxis,xp.newaxis]
 
         # Assemble the gradient contributions at the nodes
-        grad_dp_nodal = xp.zeros(v.shape, dtype=cfd_utils.PRECISION)
+        grad_dp_nodal = xp.zeros(vfrac.shape, dtype=cfd_utils.PRECISION)
         self.cfd_utils.AssembleVector(self.connectivity, grad_dp_el, grad_dp_nodal)
 
         # Update the fractional velocity with the pressure gradient contribution
+        v = xp.empty(vfrac.shape, dtype=cfd_utils.PRECISION)
         v.ravel()[:] = vfrac.ravel() + (dt/self.rho) * self.Minv * grad_dp_nodal.ravel()
         self.ApplyVelocitySlipConditions(v, self.normals)
         self.ApplyVelocityDirichletConditions(vfrac, self.v_end_of_step_dirichlet, 1.0, v)
@@ -600,9 +628,6 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
             self.csr_data_indices, self.csr_diag_indices = self.cfd_utils.GetScalarMatrixDirichletIndices(self.fix_pres_indices, self.L)
 
         # Obtain nodal data from Kratos
-        self.v_adaptor.CollectData() #new vel
-        v = xp.asarray(self.v_adaptor.data.reshape((len(self.model_part.Nodes),self.dim)), dtype=cfd_utils.PRECISION)
-
         self.v_adaptor_n.CollectData() #old
         vold = xp.asarray(self.v_adaptor_n.data.reshape((len(self.model_part.Nodes),self.dim)), dtype=cfd_utils.PRECISION)
 
@@ -612,32 +637,46 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         self.b_adaptor.CollectData() #body force
         b = xp.asarray(self.b_adaptor.data.reshape((len(self.model_part.Nodes),self.dim)), dtype=cfd_utils.PRECISION)
 
-        dt = self.model_part.ProcessInfo[KM.DELTA_TIME]
-
         # Get Dirichlet velocity values to be enforced
-        # Note that we require a copy here as the original array is modified in the fractional step
-        self.v_end_of_step_dirichlet = v.ravel()[self.fix_vel_indices].copy()
+        self.v_adaptor.CollectData() #new vel
+        v = xp.asarray(self.v_adaptor.data.reshape((len(self.model_part.Nodes),self.dim)), dtype=cfd_utils.PRECISION)
+        self.v_end_of_step_dirichlet = v.ravel()[self.fix_vel_indices]
 
-        # Perform fractional step
-        t1 = time.perf_counter()
-        vfrac = self.SolveStep1(v, vold, pold, b, dt)
-        self.step_1_total_time += time.perf_counter() - t1
+        # Perform substepping
+        dt = self.model_part.ProcessInfo[KM.DELTA_TIME]
+        current_time = self.time - self.dt
+        while (self.time - current_time > 1.0e-12):
+            # Compute convective operator spectral radius
+            rho_conv = self.ComputeElementalConvectiveOperatorSpectralRadius(vold)
 
-        t2 = time.perf_counter()
-        p = self.SolveStep2(vfrac, pold, dt)
-        delta_p = p - pold #TODO: most probably we could modify p in place
-        self.step_2_total_time += time.perf_counter() - t2
+            # Get maximum allowed time step with previous substep velocity
+            max_dt = self._ComputeDeltaTime(rho_conv)
 
-        t3 = time.perf_counter()
-        v = self.SolveStep3(v, vfrac, delta_p, dt)
-        self.step_3_total_time += time.perf_counter() - t3
+            # Compute current substep time step
+            n_substeps = math.ceil((self.time - current_time) / max_dt)
+            substep_dt = (self.time - current_time) / n_substeps
+            current_time += substep_dt
+            print(f"\tsubstep_dt: {substep_dt}")
 
-        # Calculate the next step delta time
-        # Note that this is done in here to avoid the overhead of collecting and copying the velocity data at the beginning of next step
-        self.dt = self._ComputeDeltaTime(v)
+            # Compute stabilization constants
+            self.tau_1, self.tau_2 = self.ComputeTau(self.h, rho_conv, self.nu, substep_dt, self.rho)
+
+            # Perform fractional step
+            t1 = time.perf_counter()
+            vfrac = self.SolveStep1(vold, pold, b, substep_dt)
+            self.step_1_total_time += time.perf_counter() - t1
+
+            t2 = time.perf_counter()
+            p = self.SolveStep2(vfrac, pold, substep_dt)
+            delta_p = p - pold #TODO: most probably we could modify p in place
+            self.step_2_total_time += time.perf_counter() - t2
+
+            t3 = time.perf_counter()
+            vold = self.SolveStep3(vfrac, delta_p, substep_dt)
+            self.step_3_total_time += time.perf_counter() - t3
 
         # Update Kratos database
-        self.v_adaptor.data = cfd_utils.asnumpy(v)
+        self.v_adaptor.data = cfd_utils.asnumpy(vold)
         self.v_adaptor.StoreData()
         self.p_adaptor.data = cfd_utils.asnumpy(p)
         self.p_adaptor.StoreData()
@@ -720,33 +759,41 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
     def _ComputeFourier(self, dt):
         return xp.max(dt * self.nu / self.rho / self.h**2)
 
-    def _ComputeDeltaTime(self, v):
-        if self.automatic_dt:
-            if self.model_part.ProcessInfo[KM.STEP] >= 1:
-                # Calculate the velocity at the midpoint (i.e. mean) of all elements
-                v_el = self.ElemData(v, self.connectivity)
-                v_el_mean = xp.mean(v_el, axis=1)
+    # def _ComputeDeltaTime(self, v):
+    #     if self.automatic_dt:
+    #         if self.model_part.ProcessInfo[KM.STEP] >= 1:
+    #             # Calculate the velocity at the midpoint (i.e. mean) of all elements
+    #             v_el = self.ElemData(v, self.connectivity)
+    #             v_el_mean = xp.mean(v_el, axis=1)
 
-                # Calculate the advective projection v · ∇N_i for each node in each element representing the discrete convective operator
-                # For linear (P1) elements, shape function gradients are constant inside the element and scale like 1/h
-                # Since |∇N| ~ 1/h, this term scales like |v|/h and determines the CFL limit
-                advective_projection = xp.einsum('ek, enk -> en', v_el_mean, self.DN)
+    #             # Calculate the advective projection v · ∇N_i for each node in each element representing the discrete convective operator
+    #             # For linear (P1) elements, shape function gradients are constant inside the element and scale like 1/h
+    #             # Since |∇N| ~ 1/h, this term scales like |v|/h and determines the CFL limit
+    #             advective_projection = xp.einsum('ek, enk -> en', v_el_mean, self.DN)
 
-                # Compute the convective spectral radius (inverse time scale)
-                # Note that the summation over the element nodes is a consistent upper bound of the local discrete convective operator magnitude (Gershgorin-type estimate)
-                inv_dt_conv = xp.sum(xp.abs(advective_projection), axis=1)
+    #             # Compute the convective spectral radius (inverse time scale)
+    #             # Note that the summation over the element nodes is a consistent upper bound of the local discrete convective operator magnitude (Gershgorin-type estimate)
+    #             inv_dt_conv = xp.sum(xp.abs(advective_projection), axis=1)
 
-                # Compute local time step
-                # Note that we divide by the number of nodes here in order to account for the elemental averaging of the 1/h coming from the gradients
-                dt_cfl = xp.min(self.target_cfl / (inv_dt_conv + 1.0e-15)) / self.n_in_el
+    #             # Compute local time step
+    #             # Note that we divide by the number of nodes here in order to account for the elemental averaging of the 1/h coming from the gradients
+    #             dt_cfl = xp.min(self.target_cfl / (inv_dt_conv + 1.0e-15)) / self.n_in_el
 
-                # Return the most restrictive time step
-                return min(min(dt_cfl, self.dt_fourier), self.dt_max)
-            else:
-                init_dt_factor = 1.0e-3
-                return init_dt_factor * self.dt_max
-        else:
-            return self.dt
+    #             # Return the most restrictive time step
+    #             return min(min(dt_cfl, self.dt_fourier), self.dt_max)
+    #         else:
+    #             init_dt_factor = 1.0e-3
+    #             return init_dt_factor * self.dt_max
+    #     else:
+    #         return self.dt
+
+    def _ComputeDeltaTime(self, rho_conv):
+
+        # Compute local time step from the convective operator spectral radius approximation
+        dt_cfl = xp.min(self.max_cfl / (rho_conv + 1.0e-15))
+
+        # Return the most restrictive time step among the CFL, viscous Fourier and user-defined conditions
+        return min(min(dt_cfl, self.dt_fourier), self.dt)
 
     def _InitializePressureLinearSolver(self):
         if USE_CUPY:
