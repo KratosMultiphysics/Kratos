@@ -661,3 +661,11 @@ tests/building_pit/common/6_Second_excavation.json
 tests/building_pit/common/7_Third_excavation.json
 tests/building_pit/common/Linear_Elastic_Materials.json
 tests/building_pit/linear_elastic/MaterialParameters.json
+tests/C-Phi_reduction_process/Mohr_Coulomb_model/MaterialParameters_stage2.json
+tests/C-Phi_reduction_process/Mohr_Coulomb_model64/MaterialParameters_stage2.json
+tests/C-Phi_reduction_process/common/MaterialParameters_stage1.json
+tests/C-Phi_reduction_process/common/ProjectParameters_stage1.json
+tests/C-Phi_reduction_process/common/ProjectParameters_stage2.json
+tests/building_pit/linear_elastic/expected_results.json
+tests/building_pit/mohr_coulomb/MaterialParameters.json
+tests/test_mohr_coulomb_with_tension_cutoff/test_dirichlet_tension_apex_return_zone_2d/MaterialParameters2D.json
