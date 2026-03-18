@@ -733,9 +733,6 @@ void IgaModelerSbm::CreateElements(
         new_element_list.push_back(
             rReferenceElement.Create(rIdCounter, (*it), pProperties));
 
-        for (SizeType i = 0; i < (*it)->size(); ++i) {
-            rModelPart.Nodes().push_back((*it)->pGetPoint(i));
-        }
 
         // Set knot span sizes to the condition
         new_element_list.GetContainer()[count]->SetValue(KNOT_SPAN_SIZES, KnotSpanSizes);
