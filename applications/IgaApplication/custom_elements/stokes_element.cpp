@@ -130,14 +130,14 @@ void StokesElement::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix, Vector
     const ShapeDerivativesType& DN_DX = DN_De[0];
     const double GaussWeight = integration_points[0].Weight();
 
-    const SizeType strain_size = (mDim == 3) ? 6 : 3;
     // Calculate the B matrix
-    Matrix B = ZeroMatrix(strain_size, number_of_points * mDim);
+    const unsigned int voigt_size = (mDim == 3) ? 6 : 3;
+    Matrix B = ZeroMatrix(voigt_size, number_of_points * mDim);
     CalculateB(B, DN_DX);
 
     // constitutive law
     ConstitutiveLaw::Parameters Values(r_geometry, GetProperties(), rCurrentProcessInfo);
-    ConstitutiveVariables constitutive_variables(strain_size);
+    ConstitutiveVariables constitutive_variables(voigt_size);
     ApplyConstitutiveLaw(B, Values, constitutive_variables);
     Vector& r_stress_vector = Values.GetStressVector();
     const Matrix& r_D = Values.GetConstitutiveMatrix();
@@ -155,23 +155,18 @@ void StokesElement::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix, Vector
     body_force = this->GetValue(BODY_FORCE);
 
     // Calculate stabilization constants
-    CalculateTau(mu_effective);
+    double TauOne = 0.0;
+    double TauTwo = 0.0;
+    CalculateTau(TauOne,TauTwo, mu_effective);
 
     // Add velocity terms in momentum equation
-    this->AddMomentumTerms(rLeftHandSideMatrix,rRightHandSideVector,body_force,mTauTwo,rN,DN_DX,GaussWeight, r_D, r_stress_vector);
+    this->AddMomentumTerms(rLeftHandSideMatrix,rRightHandSideVector,body_force,TauTwo,rN,DN_DX,GaussWeight, r_D, r_stress_vector);
 
     // Add velocity-pressure terms
-    this->AddContinuityTerms(rLeftHandSideMatrix,rRightHandSideVector,body_force,mTauOne,rN,DN_DX,GaussWeight);
+    this->AddContinuityTerms(rLeftHandSideMatrix,rRightHandSideVector,body_force,TauOne,rN,DN_DX,GaussWeight);
 
     // Add Second-Order stabilization terms from VMS
-    this->AddSecondOrderStabilizationTerms(rLeftHandSideMatrix,rRightHandSideVector,body_force,mTauOne,rN,DN_DX,GaussWeight,r_D);
-
-    // // Add corresponding RHS: -K * [u;p] (previous iteration values)
-    // {
-    //     VectorType current_values;
-    //     GetFirstDerivativesVector(current_values, 0); // VELOCITY_X, VELOCITY_Y, PRESSURE per node
-    //     noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, current_values);
-    // }
+    this->AddSecondOrderStabilizationTerms(rLeftHandSideMatrix,rRightHandSideVector,body_force,TauOne,rN,DN_DX,GaussWeight,r_D);
 
 }
 
@@ -187,7 +182,7 @@ void StokesElement::CalculateRightHandSide(VectorType& rRightHandSideVector, con
     CalculateLocalSystem(temp, rRightHandSideVector, rCurrentProcessInfo);
 }
 
-void StokesElement::CalculateTau(double MuEffective)
+void StokesElement::CalculateTau(double &TauOne, double &TauTwo, double MuEffective)
 {   
     // // Estimate element size
     double h = ElementSize();
@@ -195,9 +190,9 @@ void StokesElement::CalculateTau(double MuEffective)
     // The stabilization parameters from: 
     // https://www.researchgate.net/profile/Ramon-Codina-2/publication/222977355
 
-    mTauOne = std::pow(h, 2) / ( 4.0 * MuEffective ); 
+    TauOne = std::pow(h, 2) / ( 4.0 * MuEffective ); 
 
-    mTauTwo = MuEffective;
+    TauTwo = MuEffective;
 }
 
 double StokesElement::ElementSize()
@@ -223,8 +218,7 @@ void StokesElement::AddMomentumTerms(MatrixType &rLHS,
     const unsigned int block_size = mDim+1;
     auto &r_geometry = GetGeometry();
 
-    const SizeType strain_size = (mDim == 3) ? 6 : 3;
-    Matrix B = ZeroMatrix(strain_size, number_of_nodes * mDim);
+    Matrix B = ZeroMatrix(3,number_of_nodes*mDim);
     CalculateB(B, rDN_DX);
     Matrix diffusion_term_matrix = Weight * prod(trans(B), Matrix(prod(rD, B)));
     for (IndexType i = 0; i < number_of_nodes; ++i)
@@ -365,97 +359,6 @@ void StokesElement::AddContinuityTerms(MatrixType &rLHS,
 }
 
 
-// void StokesElement::AddSecondOrderStabilizationTerms(MatrixType &rLeftHandSideMatrix,
-//         VectorType &rRightHandSideVector,
-//         const array_1d<double,3> &rBodyForce,
-//         const double TauOne,
-//         const ShapeFunctionsType &rN,
-//         const ShapeDerivativesType &rDN_DX,
-//         const double GaussWeight,
-//         const Matrix& rD)
-// {
-//     const unsigned int number_of_points = this->GetGeometry().PointsNumber();
-//     const unsigned int block_size = mDim+1;
-//     auto &r_geometry = GetGeometry();
-
-//     // Add third order term of the stabilization
-//     // Second-order stabilization is only implemented for 2D.
-//     if (mBasisFunctionsOrder > 1 && mDim == 2) {
-
-//         Matrix B = ZeroMatrix(3,number_of_points*mDim);
-//         CalculateB(B, rDN_DX);
-//         const Matrix& DDN_DDe = GetGeometry().ShapeFunctionDerivatives(2, 0, GetGeometry().GetDefaultIntegrationMethod());
-        
-//         Matrix B_derivative_x;
-//         Matrix B_derivative_y;
-//         CalculateBDerivativeDx(B_derivative_x, DDN_DDe);
-//         CalculateBDerivativeDy(B_derivative_y, DDN_DDe);
-
-//         // Computed using the Gauss Points in the same knot span
-//         Vector divergence_of_sigma = this->GetValue(RECOVERED_STRESS);
-
-//         // initilize the div(sigma) matrix 2x(2n)
-//         Vector div_sigma_1 = ZeroVector(mDim*number_of_points);
-//         Vector div_sigma_2 = ZeroVector(mDim*number_of_points);
-
-//         Vector r_D_0(3); Vector r_D_1(3); Vector r_D_2(3);
-//         for (std::size_t i = 0; i < 3; ++i) {
-//             r_D_0(i) = rD(0, i); 
-//             r_D_1(i) = rD(1, i); 
-//             r_D_2(i) = rD(2, i);
-//         }
-//         div_sigma_1 = prod(trans(B_derivative_x), r_D_0) + prod(trans(B_derivative_y), r_D_2);
-//         div_sigma_2 = prod(trans(B_derivative_y), r_D_1) + prod(trans(B_derivative_x), r_D_2);
-        
-//         // NEW FORMULATION___________________________________________________________________________________________
-//         Matrix div_sigma = ZeroMatrix(2, mDim * number_of_points);
-//         for (std::size_t i = 0; i < mDim * number_of_points; ++i) {
-//             div_sigma(0, i) = div_sigma_1(i);
-//             div_sigma(1, i) = div_sigma_2(i);
-//         }
-
-//         Vector DN_DX_vector_1 = ZeroVector(number_of_points);
-//         Vector DN_DX_vector_2 = ZeroVector(number_of_points);
-//         for (std::size_t i = 0; i < number_of_points; ++i) {
-//             DN_DX_vector_1(i) = rDN_DX(i, 0); 
-//             DN_DX_vector_2(i) = rDN_DX(i, 1); 
-//         }
-//         Matrix tempMatrix_pressure_term = TauOne * GaussWeight * (outer_prod(div_sigma_1, DN_DX_vector_1) + outer_prod(div_sigma_2, DN_DX_vector_2));
-
-//         for (IndexType i = 0; i < number_of_points; ++i)
-//         {
-//             for (IndexType j = 0; j < number_of_points; ++j)
-//             {
-//                 for (IndexType dim2 = 0; dim2 < mDim; ++dim2) 
-//                 {
-//                     // Assemble 2nd order stabilization term -> gradQ-sigma // this one
-//                     rLeftHandSideMatrix(j * block_size + mDim, i * block_size + dim2) -= tempMatrix_pressure_term(i * mDim + dim2, j);
-//                 }
-//             }
-//         }
-
-//         // --- RHS corresponding term ---
-//         Vector velocity_previous = ZeroVector(mDim*number_of_points);
-//         Vector pressure_previous = ZeroVector(number_of_points);
-//         IndexType index = 0;
-//         for (IndexType i = 0; i < number_of_points; ++i) { 
-//             const auto& r_velocity = r_geometry[i].GetSolutionStepValue(VELOCITY);
-//             for (IndexType d = 0; d < mDim; ++d) {
-//                 velocity_previous[index++] = r_velocity[d];
-//             }
-//             pressure_previous[i] = r_geometry[i].GetSolutionStepValue(PRESSURE);
-//         }
-
-//         // --- RHS corresponding term ---
-//         for (IndexType i = 0; i < number_of_points; ++i) {   
-//             for (IndexType dim1 = 0; dim1 < mDim; ++dim1) {
-//                 // Assemble 2nd order stabilization term -> gradQ-sigma_u 
-//                 rRightHandSideVector(i * block_size + mDim) += GaussWeight * TauOne * rDN_DX(i,dim1) * divergence_of_sigma[dim1];
-//             }
-//         }
-//     } 
-// }
-
 void StokesElement::AddSecondOrderStabilizationTerms(
     MatrixType &rLeftHandSideMatrix,
     VectorType &rRightHandSideVector,
@@ -468,12 +371,10 @@ void StokesElement::AddSecondOrderStabilizationTerms(
 {
     const unsigned int number_of_points = this->GetGeometry().PointsNumber();
     const unsigned int block_size = mDim + 1;
-    auto &r_geometry = GetGeometry();
-
     // Second-order stabilization: implement for 2D and 3D when basis order > 1
     if (mBasisFunctionsOrder > 1) {
         // ---------------------------------------------------------------------
-        // RECOVERED_STRESS stores the recovered divergence of viscous stress:
+        // DIVERGENCE_STRESS stores the recovered divergence of viscous stress:
         // 2D: size 2 -> [div_tau_x, div_tau_y]
         // 3D: size 3 -> [div_tau_x, div_tau_y, div_tau_z]
 
@@ -482,7 +383,7 @@ void StokesElement::AddSecondOrderStabilizationTerms(
         // KRATOS_WATCH(divergence_of_sigma)
 
         KRATOS_ERROR_IF(divergence_of_sigma.size() != mDim)
-            << "RECOVERED_STRESS must store div(tau) of size " << mDim
+            << "DIVERGENCE_STRESS must store div(tau) of size " << mDim
             << " but has size " << divergence_of_sigma.size() << std::endl;
 
         // Get 2nd derivatives of shape functions in physical space (as provided by the geometry)
@@ -512,8 +413,6 @@ void StokesElement::AddSecondOrderStabilizationTerms(
         Vector div_sigma_1 = ZeroVector(mDim * number_of_points);
         Vector div_sigma_2 = ZeroVector(mDim * number_of_points);
         Vector div_sigma_3; // only used in 3D
-
-        const unsigned int strain_size = (mDim == 3) ? 6 : 3;
 
         if (mDim == 2) {
             // 2D Voigt: [xx, yy, xy]
@@ -626,79 +525,6 @@ void StokesElement::AddSecondOrderStabilizationTerms(
             }
             rRightHandSideVector(i * block_size + mDim) += GaussWeight * TauOne * contrib;
         }
-    }
-}
-
-
-void StokesElement::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
-{
-    auto r_geometry = GetGeometry();
-    const unsigned int NumNodes = r_geometry.PointsNumber();
-    const unsigned int BlockSize = mDim+1;
-    
-    const int num_dofs_per_node = NumNodes * (mDim + 1);
-    const Matrix& N_gausspoint = r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod());
-    const ShapeFunctionsType& N = row(N_gausspoint,0);
-    const GeometryType::ShapeFunctionsGradientsType& DN_De = r_geometry.ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
-    const ShapeDerivativesType& DN_DX = DN_De[0];
-    const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints(this->GetIntegrationMethod());
-
-    if(rMassMatrix.size1() != num_dofs_per_node)
-        rMassMatrix.resize(num_dofs_per_node,num_dofs_per_node,false);
-    noalias(rMassMatrix) = ZeroMatrix(num_dofs_per_node, num_dofs_per_node);
-    
-    const Properties& r_properties = GetProperties();
-    double density = r_properties[DENSITY];
-    if (density == 0.0) {
-        KRATOS_ERROR << "Density must be non-zero. Provided: " << density << std::endl;
-    }
-
-    // Define mass matrix and previous velocity vector
-    Matrix mass_matrix = ZeroMatrix(num_dofs_per_node, num_dofs_per_node);
-    
-    // Build mass matrix for velocity DOFs
-    for (std::size_t i = 0; i < NumNodes; ++i) {
-        for (std::size_t j = 0; j < NumNodes; ++j) {
-            for (std::size_t dim = 0; dim < mDim; ++dim) {
-                mass_matrix(i * BlockSize + dim, j * BlockSize + dim) += density * N[i] * N[j] * integration_points[0].Weight();
-            }
-        }
-    }
-    // Add transient term to LHS
-    noalias(rMassMatrix) += mass_matrix;
-
-    // Add the VMS term with du/dt
-    for (unsigned int i = 0; i < NumNodes; ++i)
-    {
-        for (unsigned int j = 0; j < NumNodes; ++j)
-        {
-            for (unsigned int d = 0; d < mDim; ++d) {
-                // Stabilization-time (grad q, u^n+1)/delta_t
-                rMassMatrix(i*BlockSize+mDim, j*BlockSize + d) += density * integration_points[0].Weight() * mTauOne * DN_DX(i, d) * N[j] ;
-            }
-        }
-    }
-}
-
-void StokesElement::GetFirstDerivativesVector(Vector &rValues, int Step) const
-{
-    const GeometryType& rGeom = this->GetGeometry();
-    const unsigned int NumNodes = rGeom.PointsNumber();
-    const unsigned int LocalSize = (mDim + 1) * NumNodes;
-
-    if (rValues.size() != LocalSize)
-        rValues.resize(LocalSize);
-
-    unsigned int Index = 0;
-
-    for (unsigned int i = 0; i < NumNodes; i++)
-    {
-        rValues[Index++] = rGeom[i].FastGetSolutionStepValue(VELOCITY_X,Step);
-        rValues[Index++] = rGeom[i].FastGetSolutionStepValue(VELOCITY_Y,Step);
-        if (mDim == 3) {
-            rValues[Index++] = rGeom[i].FastGetSolutionStepValue(VELOCITY_Z,Step);
-        }
-        rValues[Index++] = rGeom[i].FastGetSolutionStepValue(PRESSURE,Step);
     }
 }
 

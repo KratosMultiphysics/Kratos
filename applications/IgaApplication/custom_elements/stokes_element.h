@@ -112,8 +112,6 @@ public:
 
     void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override;
-
     void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
 
     void GetDofList(DofsVectorType& ElementalDofList, const ProcessInfo& CurrentProcessInfo) const override;
@@ -139,8 +137,6 @@ public:
         const Variable<Vector>& rVariable,
         std::vector<Vector>& rOutput,
         const ProcessInfo& rCurrentProcessInfo) override;
-
-    void GetFirstDerivativesVector(Vector &rValues, int Step) const override;
 
     ///@}
     ///@name Input and output
@@ -172,7 +168,9 @@ protected:
         }
     }
 
-    virtual void CalculateTau(double MuEffective);
+    virtual void CalculateTau(double& TauOne,
+                              double& TauTwo,
+                              double MuEffective);
 
     double ElementSize();
 
@@ -326,9 +324,6 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-
-    double mTauOne = 0; ///< Stabilization parameter for momentum equation
-    double mTauTwo = 0; ///< Stabilization parameter for continuity equation
 
     ///@}
     ///@name Serialization
