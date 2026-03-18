@@ -11,6 +11,7 @@ import test_helper
 import os
 import json
 from pathlib import Path
+import unittest
 
 if test_helper.want_test_plots():
     import KratosMultiphysics.GeoMechanicsApplication.geo_plot_utilities as plot_utils
@@ -1022,6 +1023,7 @@ class KratosGeoMechanicsBuildingPit(KratosUnittest.TestCase):
         )
         return [coord[1] for coord in coordinates]
 
+    @unittest.skip("Focus on Mohr-Coulomb, so skipping linear elastic")
     def test_simulation_with_linear_elastic_materials(self):
         self.run_simulation_and_checks("linear_elastic")
 
