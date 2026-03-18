@@ -146,6 +146,10 @@ void  AddLinearSolversToPython(pybind11::module& m)
     py::class_<IterativeSolverType, IterativeSolverType::Pointer, LinearSolverType>(m,"IterativeSolver")
     .def(py::init< >() )
     .def("__str__", PrintObject<IterativeSolverType>)
+    .def_property(
+        "Preconditioner",
+        [](IterativeSolverType& rThis){return rThis.GetPreconditioner();},
+        [](IterativeSolverType& rThis, PreconditionerType::Pointer pPreconditioner){rThis.SetPreconditioner(pPreconditioner);})
     ;
 
     py::class_<CGSolverType, CGSolverType::Pointer,IterativeSolverType>(m,"CGSolver")

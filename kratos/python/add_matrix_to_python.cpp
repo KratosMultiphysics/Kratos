@@ -70,7 +70,7 @@ namespace Kratos::Python
     {
         using Space = TUblasSparseSpace<double>;
 
-        pybind11::class_<Space::MatrixType::index_array_type>(
+        pybind11::class_<Space::MatrixType::index_array_type,pybind11::smart_holder>(
                 m,
                 "UblasIndexArray",
                 pybind11::buffer_protocol())
@@ -89,14 +89,39 @@ namespace Kratos::Python
                 pybind11::buffer Rhs) {
                     pybind11::buffer_info info = Rhs.request();
                     KRATOS_ERROR_IF_NOT(info.ndim == 1);
-                    KRATOS_ERROR_IF_NOT(info.item_type_is_equivalent_to<Space::MatrixType::index_array_type::value_type>());
                     KRATOS_ERROR_IF_NOT(info.size == rThis.size());
-                    IndexPartition<std::size_t>(rThis.size()).for_each([&] (std::size_t i_entry) {
-                        rThis[i_entry] = static_cast<const Space::MatrixType::index_array_type::value_type*>(info.ptr)[i_entry];
-                    });})
+                    auto copy_functor = [] (auto* p_source, Space::MatrixType::index_array_type::value_type* p_destination, std::size_t count) {
+                        IndexPartition<std::size_t>(count).for_each([&] (std::size_t i_entry) {
+                            p_destination[i_entry] = p_source[i_entry];
+                        });
+                    };
+                    if (info.item_type_is_equivalent_to<std::uint64_t>()) {
+                        copy_functor(
+                            static_cast<const std::uint64_t*>(info.ptr),
+                            &rThis[0],
+                            rThis.size());
+                    } else if (info.item_type_is_equivalent_to<std::int64_t>()) {
+                        copy_functor(
+                            static_cast<const std::int64_t*>(info.ptr),
+                            &rThis[0],
+                            rThis.size());
+                    } else if (info.item_type_is_equivalent_to<std::uint32_t>()) {
+                        copy_functor(
+                            static_cast<const std::uint32_t*>(info.ptr),
+                            &rThis[0],
+                            rThis.size());
+                    } else if (info.item_type_is_equivalent_to<std::int32_t>()) {
+                        copy_functor(
+                            static_cast<const std::int32_t*>(info.ptr),
+                            &rThis[0],
+                            rThis.size());
+                    } else {
+                        KRATOS_ERROR << "unsupported item type ";
+                    }
+                })
             ;
 
-        pybind11::class_<Space::MatrixType::value_array_type>(
+        pybind11::class_<Space::MatrixType::value_array_type,pybind11::smart_holder>(
                 m,
                 "UblasValueArray",
                 pybind11::buffer_protocol())
@@ -115,11 +140,26 @@ namespace Kratos::Python
                 pybind11::buffer Rhs) {
                     pybind11::buffer_info info = Rhs.request();
                     KRATOS_ERROR_IF_NOT(info.ndim == 1);
-                    KRATOS_ERROR_IF_NOT(info.item_type_is_equivalent_to<Space::MatrixType::value_array_type::value_type>());
                     KRATOS_ERROR_IF_NOT(info.size == rThis.size());
-                    IndexPartition<std::size_t>(rThis.size()).for_each([&] (std::size_t i_entry) {
-                        rThis[i_entry] = static_cast<const Space::MatrixType::value_array_type::value_type*>(info.ptr)[i_entry];
-                    });})
+                    auto copy_functor = [] (auto* p_source, Space::MatrixType::value_array_type::value_type* p_destination, std::size_t count) {
+                        IndexPartition<std::size_t>(count).for_each([&] (std::size_t i_entry) {
+                            p_destination[i_entry] = p_source[i_entry];
+                        });
+                    };
+                    if (info.item_type_is_equivalent_to<float>()) {
+                        copy_functor(
+                            static_cast<const float*>(info.ptr),
+                            &rThis[0],
+                            rThis.size());
+                    } else if (info.item_type_is_equivalent_to<double>()) {
+                        copy_functor(
+                            static_cast<const double*>(info.ptr),
+                            &rThis[0],
+                            rThis.size());
+                    } else {
+                        KRATOS_ERROR << "unsupported item type ";
+                    }
+                })
             ;
 
         //here we add the dense matrix
@@ -191,9 +231,18 @@ namespace Kratos::Python
             const CompressedMatrix::size_type,
             const CompressedMatrix::size_type>());
         compressed_matrix_binder.def(py::init<const CompressedMatrix& >());
-        compressed_matrix_binder.def("index1_data", [](Space::MatrixType& rThis) -> Space::MatrixType::index_array_type& {return rThis.index1_data();});
-        compressed_matrix_binder.def("index2_data", [](Space::MatrixType& rThis) -> Space::MatrixType::index_array_type& {return rThis.index2_data();});
-        compressed_matrix_binder.def("value_data", [](Space::MatrixType& rThis) -> Space::MatrixType::value_array_type& {return rThis.value_data();});
+        compressed_matrix_binder.def(
+            "index1_data",
+            [](Space::MatrixType& rThis) -> Space::MatrixType::index_array_type* {return &rThis.index1_data();},
+            pybind11::return_value_policy::reference_internal);
+        compressed_matrix_binder.def(
+            "index2_data",
+            [](Space::MatrixType& rThis) -> Space::MatrixType::index_array_type* {return &rThis.index2_data();},
+            pybind11::return_value_policy::reference_internal);
+        compressed_matrix_binder.def(
+            "value_data",
+            [](Space::MatrixType& rThis) -> Space::MatrixType::value_array_type* {return &rThis.value_data();},
+            pybind11::return_value_policy::reference_internal);
 
         //here we add the complex dense matrix
         auto cplx_matrix_binder = CreateMatrixInterface< ComplexMatrix >(m,"ComplexMatrix");
