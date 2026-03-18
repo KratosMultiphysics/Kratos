@@ -652,10 +652,10 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
     def _InitializeOptimization(self):  
         self.MpiPrint("--|" + self.topology_optimization_stage_str + "| INITIALIZE OPTIMIZATION")
         self.SetTimeSolutionStorage()
+        self._SetDesignParameterChangeTolerance()
         self._ComputeDesignParameterFilterUtilities()
         self._InitializeOptimizationSolutionStabilization()
         self.opt_it = 0
-        self._SetDesignParameterChangeTolerance()
         self.n_optimization_constraints = 0  
         self._InitializeOptimizerSettings()
         self._InitializeConstraints()
@@ -1846,9 +1846,19 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         self.projective_filter_max_mean = self.projective_filter_settings["min_max_mean"][1].GetDouble()
         self.projective_filter_min_projection_slope = self.projective_filter_settings["min_max_projection_slope"][0].GetDouble()
         self.projective_filter_max_projection_slope = self.projective_filter_settings["min_max_projection_slope"][1].GetDouble()
-        self.projective_filter_activation_change = self.projective_filter_settings["activation_change"].GetDouble()
+        self._InitializeProjectiveFilterActivation()
         self.projective_filter_slope = self.projective_filter_min_projection_slope
 
+    def _InitializeProjectiveFilterActivation(self):
+        activation_settings = self.projective_filter_settings["activation_settings"]
+        self.projective_filter_activation_type = activation_settings["type"].GetString()
+        if (self.projective_filter_activation_type not in ["design", "iteration", "both"]):
+            self.projective_filter_activation_type = "both"
+        self.projective_filter_activation_design_change_interval = [activation_settings["design_change_interval"][0].GetDouble(), activation_settings["design_change_interval"][1].GetDouble()]
+        self.projective_filter_activation_design_change_interval = np.clip(self.projective_filter_activation_design_change_interval, self.design_parameter_change_toll, 1.0).tolist().sort(reverse=True)
+        self.projective_filter_activation_iteration_fraction_interval = [activation_settings["iteration_fraction_interval"][0].GetDouble(), activation_settings["iteration_fraction_interval"][1].GetDouble()]
+        self.projective_filter_activation_iteration_fraction_interval = np.clip(self.projective_filter_activation_iteration_fraction_interval, 0.0, 1.0).tolist().sort()
+        
     def _InitializeDiscreteDiffusiveFilter(self):
         if (self.diffusive_filter_radius < 1e-10): #ensures that if no filter is imposed, at least the node itself is in neighboring nodes
             self.diffusive_filter_radius = 1e-10
@@ -1935,16 +1945,16 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         design_parameter = np.clip(design_parameter, a_min=0.0, a_max=1.0)
         self.design_parameter_projected = design_parameter
         self.design_parameter_projected_derivatives = np.ones(self.n_nodes)
-        if ((self.opt_it > 10) and (self.apply_projective_filter)):
-            design_change_ratio = 1.0-min(1.0, max(0.0, self.design_parameter_change-self.design_parameter_change_toll)/(self.projective_filter_activation_change-self.design_parameter_change_toll))
-            if (abs(design_change_ratio) < 1e-15): # design_change_ratio == 0
+        if (self.apply_projective_filter):
+            projection_slope_ratio = self._EvaluateProjectiveFilterSlopeRatio()
+            if ((abs(projection_slope_ratio) < 1e-15)): # (projection_slope_ratio == 0)
                 new_projection_slope = self.projective_filter_min_projection_slope
             else:
                 self.MpiPrint("--|" + self.topology_optimization_stage_str + "| --> Apply Projective Filter: ---> APPLY PROJECTION")
-                if ((abs(1-design_change_ratio) < 1e-15)): # design_change_ratio == 1
+                if ((abs(1.0-projection_slope_ratio) < 1e-15)): # projection_slope_ratio == 1
                     new_projection_slope = self.projective_filter_max_projection_slope
-                else: # design_change_ratio \in (0,1)
-                    new_projection_slope = self.projective_filter_min_projection_slope + (self.projective_filter_max_projection_slope-self.projective_filter_min_projection_slope)*design_change_ratio    
+                else: # projection_slope_ratio \in (0,1)
+                    new_projection_slope = self.projective_filter_min_projection_slope + (self.projective_filter_max_projection_slope-self.projective_filter_min_projection_slope)*projection_slope_ratio    
             if (new_projection_slope > self.projective_filter_slope):
                 self.projective_filter_slope = new_projection_slope
             design_parameter_mean = min(max(self.projective_filter_min_mean,1.0-self.volume_fraction),self.projective_filter_max_mean)
@@ -1954,8 +1964,31 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
             self.design_parameter_projected[mask] = ((constant + np.tanh(projection_argument)) / factor)[mask]
             self.design_parameter_projected_derivatives[mask] = ((self.projective_filter_slope / factor) / (np.cosh(projection_argument)**2))[mask]
         else:
-            self.design_parameter_projected = np.clip(self.design_parameter_projected, a_min=0.0, a_max=1.0)
-                
+            self.design_parameter_projected = np.clip(self.design_parameter_projected, 0.0, 1.0)
+
+    def _EvaluateProjectiveFilterSlopeRatio(self):
+        if (self.projective_filter_activation_type == "design"):
+            return self._EvaluateProjectiveFilterSlopeActivationDesignChangeRatio()
+        elif (self.projective_filter_activation_type == "iteration"):
+            return self._EvaluateProjectiveFilterSlopeActivationIterationFractionRatio()
+        return max(self._EvaluateProjectiveFilterSlopeActivationDesignChangeRatio(), self._EvaluateProjectiveFilterSlopeActivationIterationFractionRatio())
+
+    def _EvaluateProjectiveFilterSlopeActivationDesignChangeRatio(self):
+        start_change = self.projective_filter_activation_design_change_interval[0]
+        end_change = self.projective_filter_activation_design_change_interval[1]
+        if (start_change == end_change):
+            return 0.0
+        ratio = (start_change-self.design_parameter_change) / (start_change-end_change)
+        return np.clip(ratio, 0.0, 1.0)
+
+    def _EvaluateProjectiveFilterSlopeActivationIterationFractionRatio(self):
+        start_it = int(np.ceil(self.projective_filter_activation_design_change_interval[0] * self.max_it))
+        end_it = int(np.ceil(self.projective_filter_activation_design_change_interval[1] * self.max_it))
+        if (start_it == end_it):
+            return 0.0
+        ratio = (self.opt_it-start_it) / (end_it-start_it)
+        return np.clip(ratio, 0.0, 1.0)
+     
     def _ApplyDiffusiveFilter(self, scalar_variable):
         scalar_variable_in_opt_domain = scalar_variable[self._GetOptimizationDomainNodesMask()]
         if self.apply_diffusive_filter:
@@ -2310,15 +2343,19 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
             },
             "diffusive_filter_settings": {
                 "use_filter" : false,
-                "filter_type": "discrete" ,
+                "filter_type": "pde" ,
                 "radius"     : 0.01,
                 "type_settings": {}
             },
             "projective_filter_settings": {
-                "use_filter"              : false,
-                "min_max_mean"            : [0.2,0.5],
-                "min_max_projection_slope": [1e-10, 2],
-                "activation_change"       : 1e-2
+                "use_filter"                             : false,
+                "min_max_mean"                           : [0.2,0.5],
+                "min_max_projection_slope"               : [1e-10, 2],
+                "activation_settings"                    : {
+                    "type"                        : "both",
+                    "design_change_interval"      : [1e-2, 1e-5],
+                    "iteration_fraction_interval" : [0.1, 1.0]
+                }
             },
             "solution_stabilization_settings": {
                 "adjoint_viscosity_adaptation_settings": {
