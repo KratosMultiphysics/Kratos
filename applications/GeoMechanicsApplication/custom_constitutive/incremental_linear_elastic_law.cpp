@@ -198,23 +198,23 @@ void GeoIncrementalLinearElasticLaw::ResetMaterial(const Properties&, const Geom
 void GeoIncrementalLinearElasticLaw::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, GeoLinearElasticLaw)
+    rSerializer.save("ConstitutiveDimension", mpConstitutiveDimension);
     rSerializer.save("StressVector", mStressVector);
     rSerializer.save("StressVectorFinalized", mStressVectorFinalized);
     rSerializer.save("DeltaStrainVector", mDeltaStrainVector);
     rSerializer.save("StrainVectorFinalized", mStrainVectorFinalized);
     rSerializer.save("IsModelInitialized", mIsModelInitialized);
-    rSerializer.save("ConstitutiveDimension", mpConstitutiveDimension);
 }
 
 void GeoIncrementalLinearElasticLaw::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, GeoLinearElasticLaw)
+    rSerializer.load("ConstitutiveDimension", mpConstitutiveDimension);
     rSerializer.load("StressVector", mStressVector);
     rSerializer.load("StressVectorFinalized", mStressVectorFinalized);
     rSerializer.load("DeltaStrainVector", mDeltaStrainVector);
     rSerializer.load("StrainVectorFinalized", mStrainVectorFinalized);
     rSerializer.load("IsModelInitialized", mIsModelInitialized);
-    rSerializer.load("ConstitutiveDimension", mpConstitutiveDimension);
 }
 
 } // Namespace Kratos
