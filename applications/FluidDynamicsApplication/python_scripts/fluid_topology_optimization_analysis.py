@@ -1855,9 +1855,9 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         if (self.projective_filter_activation_type not in ["design", "iteration", "both"]):
             self.projective_filter_activation_type = "both"
         self.projective_filter_activation_design_change_interval = [activation_settings["design_change_interval"][0].GetDouble(), activation_settings["design_change_interval"][1].GetDouble()]
-        self.projective_filter_activation_design_change_interval = np.clip(self.projective_filter_activation_design_change_interval, self.design_parameter_change_toll, 1.0).tolist().sort(reverse=True)
+        self.projective_filter_activation_design_change_interval = sorted(np.clip(self.projective_filter_activation_design_change_interval, self.design_parameter_change_toll, 1.0).tolist(), reverse=True)
         self.projective_filter_activation_iteration_fraction_interval = [activation_settings["iteration_fraction_interval"][0].GetDouble(), activation_settings["iteration_fraction_interval"][1].GetDouble()]
-        self.projective_filter_activation_iteration_fraction_interval = np.clip(self.projective_filter_activation_iteration_fraction_interval, 0.0, 1.0).tolist().sort()
+        self.projective_filter_activation_iteration_fraction_interval = sorted(np.clip(self.projective_filter_activation_iteration_fraction_interval, 0.0, 1.0).tolist())
         
     def _InitializeDiscreteDiffusiveFilter(self):
         if (self.diffusive_filter_radius < 1e-10): #ensures that if no filter is imposed, at least the node itself is in neighboring nodes
@@ -1982,8 +1982,8 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         return np.clip(ratio, 0.0, 1.0)
 
     def _EvaluateProjectiveFilterSlopeActivationIterationFractionRatio(self):
-        start_it = int(np.ceil(self.projective_filter_activation_design_change_interval[0] * self.max_it))
-        end_it = int(np.ceil(self.projective_filter_activation_design_change_interval[1] * self.max_it))
+        start_it = int(np.ceil(self.projective_filter_activation_iteration_fraction_interval[0] * self.max_it))
+        end_it = int(np.ceil(self.projective_filter_activation_iteration_fraction_interval[1] * self.max_it))
         if (start_it == end_it):
             return 0.0
         ratio = (self.opt_it-start_it) / (end_it-start_it)
