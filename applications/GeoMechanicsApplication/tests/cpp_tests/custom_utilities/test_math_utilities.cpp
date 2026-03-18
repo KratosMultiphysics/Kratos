@@ -102,4 +102,42 @@ KRATOS_TEST_CASE_IN_SUITE(CheckDiagonalMatrixToVector, KratosGeoMechanicsFastSui
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         [[maybe_unused]] const auto unused = GeoMechanicsMathUtilities::DiagonalOfMatrixToVector(Matrix(3, 2)), "Error: Attempting to convert diagonal of matrix to vector, but matrix has fewer columns than rows");
 }
+
+KRATOS_TEST_CASE_IN_SUITE(CheckRootsOfSecondOrderEquation, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto A = 1.0;
+    auto B = -0.9;
+    auto C = -3.22;
+
+    // Act & assert
+    auto expected_result = UblasUtilities::CreateVector({-1.4, 2.3});
+    KRATOS_EXPECT_VECTOR_NEAR(GeoMechanicsMathUtilities::RootsOfSecondOrderEquation(A, B, C), expected_result, 1.0e-12);
+
+    // Arrange
+    A = 1.0;
+    B = -2.4;
+    C = 1.44;
+
+    // Act & assert
+    expected_result = UblasUtilities::CreateVector({1.2});
+    KRATOS_EXPECT_VECTOR_NEAR(GeoMechanicsMathUtilities::RootsOfSecondOrderEquation(A, B, C), expected_result, 1.0e-12);
+
+    // Arrange
+    A = 1.0;
+    B = 2.0;
+    C = 3.0;
+
+    // Act & assert
+    expected_result = UblasUtilities::CreateVector({});
+    KRATOS_EXPECT_VECTOR_NEAR(GeoMechanicsMathUtilities::RootsOfSecondOrderEquation(A, B, C), expected_result, 1.0e-12);
+
+    // Arrange
+    A = 0.0;
+
+    // Act & assert
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        [[maybe_unused]] const auto unused = GeoMechanicsMathUtilities::RootsOfSecondOrderEquation(A, B, C), "A == 0 does not define a second order equation.");
+}
+
 } // namespace Kratos::Testing
