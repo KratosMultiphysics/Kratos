@@ -169,5 +169,15 @@ class TestOptimizationUtils(kratos_unittest.TestCase):
         for element in model_part.Elements:
             check_properties_value_recursively(element.Properties, element.Id - 1)
 
+    @kratos_unittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
+    def test_VariablesFromDifferentApplications(self):
+        import KratosMultiphysics.StructuralMechanicsApplication as KratosSA
+
+        struct_YOUNG_MODULUS_SENSITIVITY = KratosSA.YOUNG_MODULUS_SENSITIVITY
+        optapp_YOUNG_MODULUS_SENSITIVITY = KratosOA.YOUNG_MODULUS_SENSITIVITY
+
+        self.assertEqual(struct_YOUNG_MODULUS_SENSITIVITY, optapp_YOUNG_MODULUS_SENSITIVITY)
+        self.assertEqual(hash(struct_YOUNG_MODULUS_SENSITIVITY), hash(optapp_YOUNG_MODULUS_SENSITIVITY))
+
 if __name__ == "__main__":
     kratos_unittest.main()
