@@ -108,7 +108,8 @@ class TestModelersSbm(KratosUnittest.TestCase):
         self.assertEqual(computational_model_part.GetElements()[13].Info(), "LaplacianElement #13")
         self.assertEqual(computational_model_part.GetElements()[40].Info(), "LaplacianElement #40")
 
-    
+        self.assertEqual(iga_model_part.NumberOfElements(), 100)
+
     def test_iga_modeler_inner_outer_sbm(self):
         current_model = KratosMultiphysics.Model()
         # Create Inner skin boundary
@@ -224,7 +225,7 @@ class TestModelersSbm(KratosUnittest.TestCase):
         self.assertEqual(support_model_part_outer.GetConditions()[301].Info(), "\"SbmLaplacianConditionNeumann\" #301")
         self.assertEqual(computational_model_part.GetElements()[13].Info(), "LaplacianElement #13")
         self.assertEqual(computational_model_part.GetElements()[40].Info(), "LaplacianElement #40")
-
+        self.assertEqual(iga_model_part.NumberOfElements(), 811)
     
     # test the call to the nurbs_geometry_modeler_sbm to create a rectangle + the breps
     def test_nurbs_geometry_2d_modeler_control_points(self):
@@ -797,6 +798,7 @@ class TestModelersSbm(KratosUnittest.TestCase):
 
         self.assertEqual(support_model_part.GetConditions()[55].Info(), "\"SbmLaplacianConditionDirichlet\" #55")
         self.assertEqual(support_model_part.GetConditions()[28].Info(), "\"SbmLaplacianConditionNeumann\" #28")
+        self.assertEqual(iga_model_part.NumberOfElements(), 64)
 
     def test_iga_modeler_outer_sbm_layers_unordered_curves(self):
         current_model = KratosMultiphysics.Model()
@@ -889,6 +891,7 @@ class TestModelersSbm(KratosUnittest.TestCase):
         # Spot-check two conditions types to ensure mapping still holds
         self.assertEqual(support_model_part.GetConditions()[55].Info(), "\"SbmLaplacianConditionDirichlet\" #55")
         self.assertEqual(support_model_part.GetConditions()[28].Info(), "\"SbmLaplacianConditionNeumann\" #28")
+        self.assertEqual(iga_model_part.NumberOfElements(), 64)
 
 
 if __name__ == '__main__':
