@@ -48,11 +48,11 @@ Geo::PrincipalStresses AveragePrincipalStressComponents(const Geo::PrincipalStre
     switch (AveragingType) {
         using enum Geo::PrincipalStresses::AveragingType;
     case LOWEST_PRINCIPAL_STRESSES:
-        std::fill(result.Values().begin(), result.Values().begin() + 1,
+        std::fill(result.Values().begin(), result.Values().begin() + std::ptrdiff_t{2},
                   (rPrincipalStressVector.Values()[0] + rPrincipalStressVector.Values()[1]) * 0.5);
         break;
     case HIGHEST_PRINCIPAL_STRESSES:
-        std::fill(result.Values().begin() + 1, result.Values().begin() + 2,
+        std::fill(result.Values().end() - std::ptrdiff_t{2}, result.Values().end(),
                   (rPrincipalStressVector.Values()[1] + rPrincipalStressVector.Values()[2]) * 0.5);
         break;
     default:
@@ -102,6 +102,14 @@ Vector& MohrCoulombWithTensionCutOff::GetValue(const Variable<Vector>& rVariable
         rValue = mStressVector;
     } else {
         rValue = ConstitutiveLaw::GetValue(rVariable, rValue);
+    }
+    return rValue;
+}
+
+int& MohrCoulombWithTensionCutOff::GetValue(const Variable<int>& rVariable, int& rValue)
+{
+    if (rVariable == GEO_PLASTICITY_STATUS) {
+        rValue = static_cast<int>(mCoulombWithTensionCutOffImpl.GetPlasticityStatus());
     }
     return rValue;
 }
@@ -223,7 +231,6 @@ void MohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(ConstitutiveL
             mapped_principal_stresses.CopyTo<Vector>(), rotation_matrix,
             mpConstitutiveDimension->GetStrainSize());
     }
-
     rParameters.GetStressVector() = mStressVector;
 }
 
