@@ -175,11 +175,12 @@ protected:
     virtual void CalculateTau(
         const double MuEffective,
         const double Density,
-        const double AdvectiveNorm);
+        const double AdvectiveNorm,
+        const ProcessInfo& rCurrentProcessInfo);
 
     void CalculateAdvectiveNorm(
         const ShapeFunctionsType &rN,
-        double& adv_norm);
+        double& rAdvectiveNorm);
 
     double ElementSize();
 
@@ -212,13 +213,10 @@ protected:
     
     void AddConvectiveTerms(MatrixType &rLHS,
             VectorType &rRHS,
-            const array_1d<double,3>& rBodyForce,
             const double Density,
-            const double TauOne,
             const ShapeFunctionsType &rN,
             const ShapeDerivativesType &rDN_DX,
-            const double Weight,
-            const Matrix& rD);
+            const double Weight);
     
     Vector CalculateStressAtIntegrationPoint(const ProcessInfo& rCurrentProcessInfo);
     

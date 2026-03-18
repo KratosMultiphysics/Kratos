@@ -15,6 +15,7 @@
 // External includes
 
 // Project includes
+#include "includes/cfd_variables.h"
 #include "includes/checks.h"
 #include "includes/define.h"
 #include "includes/variables.h"
@@ -130,19 +131,17 @@ void NavierStokesElement::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix, 
     const ShapeDerivativesType& DN_DX = DN_De[0];
     const double GaussWeight = integration_points[0].Weight();
 
-    const SizeType strain_size = (mDim == 3) ? 6 : 3;
-
     // Calculate the B matrix
-    Matrix B = ZeroMatrix(strain_size, number_of_points * mDim);
+    const unsigned int voigt_size = (mDim == 3) ? 6 : 3;
+    Matrix B = ZeroMatrix(voigt_size, number_of_points * mDim);
     CalculateB(B, DN_DX);
 
     // constitutive law
     ConstitutiveLaw::Parameters Values(r_geometry, GetProperties(), rCurrentProcessInfo);
-    ConstitutiveVariables constitutive_variables(strain_size);
+    ConstitutiveVariables constitutive_variables(voigt_size);
     ApplyConstitutiveLaw(B, Values, constitutive_variables);
     Vector& r_stress_vector = Values.GetStressVector();
     const Matrix& r_D = Values.GetConstitutiveMatrix();
-    Matrix DB_voigt = Matrix(prod(r_D, B));
 
     double mu_effective;
     mpConstitutiveLaw->CalculateValue(Values, MU, mu_effective);
@@ -154,16 +153,13 @@ void NavierStokesElement::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix, 
 
     array_1d<double,3> body_force = ZeroVector(3);
     body_force = this->GetValue(BODY_FORCE);
-    double viscosity = mu_effective;
-    const Properties& r_properties = GetProperties();
-    double density = r_properties[DENSITY];
+    const double density = GetProperties()[DENSITY];
 
-    double adv_norm;
-    // Calculate the advective norm
-    CalculateAdvectiveNorm(rN, adv_norm);
+    double advective_norm = 0.0;
+    CalculateAdvectiveNorm(rN, advective_norm);
 
     // Calculate stabilization constants
-    CalculateTau(mu_effective, density, adv_norm);
+    CalculateTau(mu_effective, density, advective_norm, rCurrentProcessInfo);
 
     // Add velocity terms in momentum equation
     this->AddMomentumTerms(rLeftHandSideMatrix,rRightHandSideVector,body_force,mTauTwo,rN,DN_DX,GaussWeight, r_D, r_stress_vector);
@@ -175,7 +171,7 @@ void NavierStokesElement::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix, 
     this->AddSecondOrderStabilizationTerms(rLeftHandSideMatrix,rRightHandSideVector,mTauOne,rN,DN_DX,GaussWeight,r_D);
 
     // Add Convective terms [D terms] 
-    this->AddConvectiveTerms(rLeftHandSideMatrix,rRightHandSideVector,body_force,density,mTauOne,rN,DN_DX,GaussWeight,r_D);
+    this->AddConvectiveTerms(rLeftHandSideMatrix,rRightHandSideVector,density,rN,DN_DX,GaussWeight);
 
 }
 
@@ -193,60 +189,57 @@ void NavierStokesElement::CalculateRightHandSide(VectorType& rRightHandSideVecto
 
 void NavierStokesElement::CalculateAdvectiveNorm(
     const ShapeFunctionsType &rN,
-    double& adv_norm)   
+    double& rAdvectiveNorm)
 {
-    auto r_geometry = this->GetGeometry();
-    const unsigned int number_of_points = r_geometry.PointsNumber();
-
-    // Compute advective velocity: a = sum_j N_j * u_j
+    GeometryType& r_geometry = this->GetGeometry();
+    const unsigned int number_of_nodes = r_geometry.PointsNumber();
     array_1d<double, 3> advective_velocity = ZeroVector(3);
-    for (unsigned int j = 0; j < number_of_points; ++j)
+    for (unsigned int j = 0; j < number_of_nodes; ++j)
     {
         const array_1d<double, 3>& u_j = r_geometry[j].FastGetSolutionStepValue(VELOCITY);
-        for (unsigned int d = 0; d < mDim; ++d)
+        for (unsigned int d = 0; d < mDim; ++d) {
             advective_velocity[d] += rN[j] * u_j[d];
+        }
     }
 
-    // Compute ||a||
-    adv_norm = norm_2(advective_velocity);
+    rAdvectiveNorm = norm_2(advective_velocity);
 }
 
 void NavierStokesElement::CalculateTau(
     const double MuEffective, 
     const double Density, 
-    const double AdvectiveNorm)
+    const double AdvectiveNorm,
+    const ProcessInfo& rCurrentProcessInfo)
 {   
-    // // Estimate element size
-    double h = ElementSize();
+    const double h = ElementSize();
 
     // The stabilization parameters from: 
     // https://www.researchgate.net/profile/Ramon-Codina-2/publication/222977355
-
-    // mTauOne = std::pow(h, 2) / ( 4.0 * MuEffective ); ///mBasisFunctionsOrder; 
-    // mTauTwo = MuEffective;
-
-
-    // Vector mesh_size_uv = this->GetValue(KNOT_SPAN_SIZES);
-    // double h = std::min(mesh_size_uv[0], mesh_size_uv[1]);
     constexpr double c1 = 4.0;
     constexpr double c2 = 2.0;
 
-    double TauDynamic = 1.0;
-    double DeltaTime = 1e20;
-    double Viscosity = MuEffective; // correct?
+    KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(DYNAMIC_TAU))
+        << "Missing DYNAMIC_TAU in ProcessInfo for NavierStokesElement " << Id() << std::endl;
+    KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(DELTA_TIME))
+        << "Missing DELTA_TIME in ProcessInfo for NavierStokesElement " << Id() << std::endl;
+
+    const double tau_dynamic = rCurrentProcessInfo[DYNAMIC_TAU];
+    const double delta_time = rCurrentProcessInfo[DELTA_TIME];
+    const double viscosity = MuEffective;
+
+    KRATOS_ERROR_IF(delta_time <= 0.0)
+        << "DELTA_TIME must be positive for NavierStokesElement " << Id()
+        << ". Provided value: " << delta_time << std::endl;
 
     // Compute tau1
     mTauOne = 1.0 / (
-        (Density * TauDynamic / DeltaTime) +
-        (c2 * Density * AdvectiveNorm / (h)) +
-        (c1 * Viscosity / (h * h))
+        (Density * tau_dynamic / delta_time) +
+        (c2 * Density * AdvectiveNorm / h) +
+        (c1 * viscosity / (h * h))
     );
 
     // Compute tau2
     mTauTwo = h * h / (c2 * mTauOne);
-
-    // mTauOne = 0;
-    // mTauTwo = 0;
 }
 
 double NavierStokesElement::ElementSize()
@@ -270,12 +263,11 @@ void NavierStokesElement::AddMomentumTerms(MatrixType &rLHS,
 {
     const unsigned int number_of_nodes = this->GetGeometry().PointsNumber();
     const unsigned int block_size = mDim+1;
-    auto r_geometry = GetGeometry();
+    auto& r_geometry = GetGeometry();
 
-    const SizeType strain_size = (mDim == 3) ? 6 : 3;
-    Matrix B = ZeroMatrix(strain_size, number_of_nodes * mDim);
+    const unsigned int voigt_size = (mDim == 3) ? 6 : 3;
+    Matrix B = ZeroMatrix(voigt_size, number_of_nodes * mDim);
     CalculateB(B, rDN_DX);
-    // Dynamic viscosity already included in rD
     Matrix diffusion_term_matrix = Weight * prod(trans(B), Matrix(prod(rD, B)));
     for (IndexType i = 0; i < number_of_nodes; ++i)
     {
@@ -356,7 +348,7 @@ void NavierStokesElement::AddContinuityTerms(MatrixType &rLHS,
 {
     const unsigned int number_of_nodes = this->GetGeometry().PointsNumber();
     const unsigned int block_size = mDim+1;
-    auto r_geometry = GetGeometry();
+    auto& r_geometry = GetGeometry();
 
     unsigned int first_row = 0;
     unsigned int first_col = 0;
@@ -416,12 +408,8 @@ void NavierStokesElement::AddContinuityTerms(MatrixType &rLHS,
         first_row += block_size;
     }
 
-
-
-    // // NAVIER-STOKES Stabilization grad(q) * (a * grad(u)) -> [B5]
     first_row = 0;
     first_col = 0;
-    // --- Compute advective velocity at integration point: a = sum_j N_j * u_j ---
     array_1d<double, 3> advective_velocity = ZeroVector(3);
     for (unsigned int j = 0; j < number_of_nodes; ++j) {
         const array_1d<double, 3>& u_j = r_geometry[j].FastGetSolutionStepValue(VELOCITY);
@@ -429,30 +417,21 @@ void NavierStokesElement::AddContinuityTerms(MatrixType &rLHS,
             advective_velocity[d] += rN[j] * u_j[d];
         }
     }
-    // --- Stabilization term: grad(q) * (a · grad(u)) [B5] ---
+
     for (unsigned int i = 0; i < number_of_nodes; ++i)
     {
         for (unsigned int j = 0; j < number_of_nodes; ++j)
         {
-            const auto& grad_u_j = row(rDN_DX, j); // ∇(u_j)
+            double adv_dot_grad_nj = 0.0;
+            for (unsigned int k = 0; k < mDim; ++k) {
+                adv_dot_grad_nj += advective_velocity[k] * rDN_DX(j, k);
+            }
 
             for (unsigned int d = 0; d < mDim; ++d)
             {
-                // Compute (a · ∇u_j^d)
-                double adv_grad_u = 0.0;
-                for (unsigned int k = 0; k < mDim; ++k)
-                    adv_grad_u += advective_velocity[k] * grad_u_j[k];
-
-                // LHS contribution
-                rLHS(first_row + mDim, first_col + d) += Density * Weight * TauOne * rDN_DX(i, d) * adv_grad_u;
-
-                // RHS contribution: a · ∇(u^d) using u_j^d coefficient
-                const double u_jd = r_geometry[j].FastGetSolutionStepValue(VELOCITY)[d];
-                double adv_u = 0.0;
-                for (unsigned int k = 0; k < mDim; ++k)
-                    adv_u += advective_velocity[k] * u_jd * rDN_DX(j, k);
-
-                rRHS[first_row + mDim] -= Density * Weight * TauOne * rDN_DX(i, d) * adv_u;
+                const double velocity_component = r_geometry[j].FastGetSolutionStepValue(VELOCITY)[d];
+                rLHS(first_row + mDim, first_col + d) += Density * Weight * TauOne * rDN_DX(i, d) * adv_dot_grad_nj;
+                rRHS[first_row + mDim] -= Density * Weight * TauOne * rDN_DX(i, d) * velocity_component * adv_dot_grad_nj;
             }
 
             first_col += block_size;
@@ -460,95 +439,6 @@ void NavierStokesElement::AddContinuityTerms(MatrixType &rLHS,
         first_col = 0;
         first_row += block_size;
     }
-
-
-    // // CHATGPT VERSION OF THE [B5] TERM
-    // // [B5]  rho * tau1 * (grad q, (a · grad) u)
-    // {
-    //     const unsigned int block_size = mDim + 1;
-
-    //     // 1) advective velocity a at GP (Picard: take it from previous iteration/step ideally)
-    //     array_1d<double,3> a = ZeroVector(3);
-    //     for (unsigned int j = 0; j < number_of_nodes; ++j) {
-    //         const auto& u_j = r_geometry[j].FastGetSolutionStepValue(VELOCITY);
-    //         for (unsigned int k = 0; k < mDim; ++k) {
-    //             a[k] += rN[j] * u_j[k];
-    //         }
-    //     }
-
-    //     // 2) precompute a · grad(N_j)
-    //     Vector a_dot_gradN(number_of_nodes, 0.0);
-    //     for (unsigned int j = 0; j < number_of_nodes; ++j) {
-    //         double val = 0.0;
-    //         for (unsigned int k = 0; k < mDim; ++k) {
-    //             val += a[k] * rDN_DX(j, k);
-    //         }
-    //         a_dot_gradN[j] = val;
-    //     }
-
-    //     // 3) LHS: K(q_i, u_{j,d}) += rho * w * tau1 * dN_i/dx_d * (a · grad N_j)
-    //     for (unsigned int i = 0; i < number_of_nodes; ++i) {
-    //         const unsigned int row_q = i * block_size + mDim;
-
-    //         for (unsigned int j = 0; j < number_of_nodes; ++j) {
-    //             const unsigned int col_u = j * block_size;
-
-    //             const double a_dot_gradNj = a_dot_gradN[j];
-
-    //             for (unsigned int d = 0; d < mDim; ++d) {
-    //                 rLHS(row_q, col_u + d) += Density * Weight * TauOne * rDN_DX(i, d) * a_dot_gradNj;
-    //             }
-    //         }
-    //     }
-
-    //     // 4) RHS: - rho * w * tau1 * grad(N_i) · ((a · grad)u)
-    //     // compute (a·grad)u at GP: component-wise
-    //     array_1d<double,3> a_dot_grad_u = ZeroVector(3);
-    //     for (unsigned int j = 0; j < number_of_nodes; ++j) {
-    //         const auto& u_j = r_geometry[j].FastGetSolutionStepValue(VELOCITY);
-    //         const double a_dot_gradNj = a_dot_gradN[j];
-    //         for (unsigned int d = 0; d < mDim; ++d) {
-    //             a_dot_grad_u[d] += u_j[d] * a_dot_gradNj;
-    //         }
-    //     }
-
-    //     for (unsigned int i = 0; i < number_of_nodes; ++i) {
-    //         const unsigned int row_q = i * block_size + mDim;
-
-    //         double gradNi_dot_a_grad_u = 0.0;
-    //         for (unsigned int d = 0; d < mDim; ++d) {
-    //             gradNi_dot_a_grad_u += rDN_DX(i, d) * a_dot_grad_u[d];
-    //         }
-
-    //         rRHS(row_q) -= Density * Weight * TauOne * gradNi_dot_a_grad_u;
-    //     }
-    // }
-
-
-
-    // // TO BE DELETED
-    // // === Penalty per media-zero "morbida" ===
-    // const double alpha_p = 1e2;
-
-    // if (alpha_p > 0.0) {
-    //     // contribuisce a LHS (p,p)
-    //     for (unsigned int i = 0; i < number_of_nodes; ++i) {
-    //         for (unsigned int j = 0; j < number_of_nodes; ++j) {
-    //             rLHS(i*block_size + mDim, j*block_size + mDim) += alpha_p * Weight * rN[i] * rN[j];
-    //         }
-    //     }
-
-    //     // contribuisce anche al RHS (residuo) con p alla iterazione corrente (o "previous" come fai tu)
-    //     for (unsigned int i = 0; i < number_of_nodes; ++i) {
-    //         rRHS(i*block_size + mDim) -= alpha_p * Weight * rN[i] * pressure_previous_iteration;
-    //         // Se preferisci essere totalmente "consistenti" con l’unknown attuale, valuta p_i dei nodi direttamente:
-    //         // double p_i = r_geometry[i].FastGetSolutionStepValue(PRESSURE);
-    //         // rRHS(i*block_size + mDim) -= alpha_p * Weight * rN[i] * p_i;
-    //     }
-    // }
-
-
-
 }
 
 
@@ -562,7 +452,6 @@ void NavierStokesElement::AddSecondOrderStabilizationTerms(MatrixType &rLeftHand
 {
     const unsigned int number_of_points = this->GetGeometry().PointsNumber();
     const unsigned int block_size = mDim + 1;
-    auto &r_geometry = GetGeometry();
 
     // Second-order stabilization: implement for 2D and 3D when basis order > 1
     if (mBasisFunctionsOrder > 1) {
@@ -606,8 +495,6 @@ void NavierStokesElement::AddSecondOrderStabilizationTerms(MatrixType &rLeftHand
         Vector div_sigma_1 = ZeroVector(mDim * number_of_points);
         Vector div_sigma_2 = ZeroVector(mDim * number_of_points);
         Vector div_sigma_3; // only used in 3D
-
-        const unsigned int strain_size = (mDim == 3) ? 6 : 3;
 
         if (mDim == 2) {
             // 2D Voigt: [xx, yy, xy]
@@ -725,32 +612,28 @@ void NavierStokesElement::AddSecondOrderStabilizationTerms(MatrixType &rLeftHand
 
 void NavierStokesElement::AddConvectiveTerms(MatrixType &rLeftHandSideMatrix,
         VectorType &rRightHandSideVector,
-        const array_1d<double,3> &rBodyForce,
         const double Density,
-        const double TauOne,
         const ShapeFunctionsType &rN,
         const ShapeDerivativesType &rDN_DX,
-        const double GaussWeight,
-        const Matrix& rD)
+        const double GaussWeight)
 {
-    const unsigned int number_of_points = this->GetGeometry().PointsNumber();
+    const unsigned int number_of_nodes = this->GetGeometry().PointsNumber();
     const unsigned int block_size = mDim+1;
-    auto r_geometry = GetGeometry();
+    auto& r_geometry = GetGeometry();
     
-    // Compute advective velocity a = sum_j N_j * u_j
     array_1d<double, 3> advective_velocity = ZeroVector(3);
-    for (unsigned int j = 0; j < number_of_points; ++j)
+    for (unsigned int j = 0; j < number_of_nodes; ++j)
     {
         const array_1d<double, 3>& u_j = r_geometry[j].FastGetSolutionStepValue(VELOCITY);
-        for (unsigned int d = 0; d < mDim; ++d)
+        for (unsigned int d = 0; d < mDim; ++d) {
             advective_velocity[d] += rN[j] * u_j[d];
+        }
     }
 
-    // Convective term: (a · ∇u) · v = (a · ∇φ_j) φ_i
-    for (unsigned int i = 0; i < number_of_points; ++i)
+    for (unsigned int i = 0; i < number_of_nodes; ++i)
     {
         unsigned int row_index = i * block_size;
-        for (unsigned int j = 0; j < number_of_points; ++j)
+        for (unsigned int j = 0; j < number_of_nodes; ++j)
         {
             unsigned int col_index = j * block_size;
             for (unsigned int d = 0; d < mDim; ++d)
@@ -758,216 +641,79 @@ void NavierStokesElement::AddConvectiveTerms(MatrixType &rLeftHandSideMatrix,
                 double adv_grad_phi_j = 0.0;
                 for (unsigned int k = 0; k < mDim; ++k)
                 {
-                    adv_grad_phi_j += advective_velocity[k] * rDN_DX(j, k); // (a · ∇φ_j^d)
+                    adv_grad_phi_j += advective_velocity[k] * rDN_DX(j, k);
                 }
-                // Add convective term [No Stabilization]
                 rLeftHandSideMatrix(row_index + d, col_index + d) += Density * GaussWeight * rN[i] * adv_grad_phi_j;
             }
         }
     }
 
-    // Compute grad(u^d) = sum_j ∂N_j/∂x_k * u_j^d
-    array_1d<double, 3> adv_grad_u = ZeroVector(3); // one per velocity component
-    for (unsigned int d = 0; d < mDim; ++d) // for each component of velocity
+    array_1d<double, 3> adv_grad_u = ZeroVector(3);
+    for (unsigned int d = 0; d < mDim; ++d)
     {
         double component_adv_grad = 0.0;
-        for (unsigned int j = 0; j < number_of_points; ++j)
+        for (unsigned int j = 0; j < number_of_nodes; ++j)
         {
             const double u_jd = r_geometry[j].FastGetSolutionStepValue(VELOCITY)[d];
             for (unsigned int k = 0; k < mDim; ++k)
             {
-                // a_k * ∂u_j^d / ∂x_k = a_k * u_j^d * ∂N_j/∂x_k
                 component_adv_grad += advective_velocity[k] * u_jd * rDN_DX(j, k);
             }
         }
         adv_grad_u[d] = component_adv_grad;
     }
-    // Assemble RHS: (a · grad u) * v = adv_grad_u[d] * N_i
-    for (unsigned int i = 0; i < number_of_points; ++i)
+
+    for (unsigned int i = 0; i < number_of_nodes; ++i)
     {
         unsigned int row_index = i * block_size;
 
         for (unsigned int d = 0; d < mDim; ++d)
         {
-            // Corresponding RHS term: (a · ∇u) · v
             rRightHandSideVector[row_index + d] -= Density * GaussWeight * rN[i] * adv_grad_u[d];
         }
     }
-
-    // STABILIZATION TERMS [D1, D2, D3, D5]
-
-    // // [D1] Stabilization: grad(v) · a * f => (a · ∇v_i) * f
-    // for (unsigned int i = 0; i < number_of_points; ++i)
-    // {
-    //     unsigned int row_index = i * block_size;
-    //     for (unsigned int d = 0; d < mDim; ++d) // for each velocity component
-    //     {
-    //         double a_dot_grad_vi = 0.0;
-    //         for (unsigned int k = 0; k < mDim; ++k)
-    //         {
-    //             a_dot_grad_vi += advective_velocity[k] * rDN_DX(i, k);
-    //         }
-    //         rRightHandSideVector[row_index + d] += GaussWeight * TauOne * a_dot_grad_vi * rBodyForce[d];
-    //     }
-    // }
-    // // [D2] Stabilization: grad(v) · a * div(sigma) → τ₁ (a · ∇v_i) · div(σ)
-    // if (mBasisFunctionsOrder > 1) {
-    //     Vector divergence_of_sigma = this->GetValue(RECOVERED_STRESS);
-    //     for (IndexType i = 0; i < number_of_points; ++i)
-    //     {
-    //         unsigned int row_index = i * block_size;
-    //         double a_dot_grad_vi = 0.0;
-    //         for (IndexType dim1 = 0; dim1 < mDim; ++dim1)
-    //         {
-    //             a_dot_grad_vi += advective_velocity[dim1] * rDN_DX(i, dim1);
-    //         }
-    //         for (IndexType dim2 = 0; dim2 < mDim; ++dim2)
-    //         {
-    //             // For this term we omit the LHS contribution
-    //             rRightHandSideVector(row_index + dim2) += GaussWeight * TauOne * a_dot_grad_vi * divergence_of_sigma[dim2];
-    //         }
-    //     }
-    // }
-    // // [D3] Stabilization: grad(v) · a * grad(p) → τ₁ (a · ∇v_i) · grad(p)_j
-    // for (IndexType i = 0; i < number_of_points; ++i)
-    // {
-    //     unsigned int row_index = i * block_size;
-    //     // Compute directional derivative: (a · ∇phi_i)
-    //     double a_dot_grad_vi = 0.0;
-    //     for (IndexType d = 0; d < mDim; ++d)
-    //     {
-    //         a_dot_grad_vi += advective_velocity[d] * rDN_DX(i, d);
-    //     }
-
-    //     for (IndexType j = 0; j < number_of_points; ++j)
-    //     {
-    //         unsigned int col_index = j * block_size;
-    //         for (IndexType d = 0; d < mDim; ++d)
-    //         {
-    //             // Assemble into LHS
-    //             rLeftHandSideMatrix(row_index + d, col_index + mDim) += GaussWeight * TauOne * a_dot_grad_vi * rDN_DX(j, d);
-    //         }
-    //     }
-    // }
-    // // Corresponding RHS term: τ₁ (a · ∇v_i) · grad(p)_j
-    // array_1d<double, 3> grad_p = ZeroVector(3);
-    // for (IndexType j = 0; j < number_of_points; ++j)
-    // {
-    //     double p_j = r_geometry[j].FastGetSolutionStepValue(PRESSURE);
-    //     for (IndexType d = 0; d < mDim; ++d)
-    //     {
-    //         grad_p[d] += p_j * rDN_DX(j, d); // ∇p ≈ ∑_j p_j ∇φ_j
-    //     }
-    // }
-    // for (IndexType i = 0; i < number_of_points; ++i)
-    // {
-    //     unsigned int row_index = i * block_size;
-    //     double a_dot_grad_vi = 0.0;
-    //     for (IndexType d = 0; d < mDim; ++d)
-    //     {
-    //         a_dot_grad_vi += advective_velocity[d] * rDN_DX(i, d); // a · ∇φ_i
-    //     }
-
-    //     for (IndexType d = 0; d < mDim; ++d)
-    //     {
-    //         rRightHandSideVector[row_index + d] -= GaussWeight * TauOne * a_dot_grad_vi * grad_p[d];
-    //     }
-    // }
-
-    // // [D5] Stabilization: (a · grad v) * (a · grad u) → τ₁ (a · ∇φ_i) * (a · ∇φ_j)
-    // for (IndexType i = 0; i < number_of_points; ++i)
-    // {
-    //     unsigned int row_index = i * block_size;
-    //     double a_dot_grad_vi = 0.0;
-    //     for (IndexType d = 0; d < mDim; ++d)
-    //         a_dot_grad_vi += advective_velocity[d] * rDN_DX(i, d);
-    //     for (IndexType j = 0; j < number_of_points; ++j)
-    //     {
-    //         unsigned int col_index = j * block_size;
-    //         double a_dot_grad_phi_j = 0.0;
-    //         for (IndexType d = 0; d < mDim; ++d)
-    //             a_dot_grad_phi_j += advective_velocity[d] * rDN_DX(j, d);
-    //         for (IndexType d = 0; d < mDim; ++d)
-    //         {
-    //             rLeftHandSideMatrix(row_index + d, col_index + d) += GaussWeight * TauOne * a_dot_grad_vi * a_dot_grad_vi;
-    //         }
-    //     }
-    // }
-    // // Corresponding RHS term
-    // array_1d<double, 3> a_dot_grad_u = ZeroVector(3); // Compute (a · grad u) at the Gauss point
-    // for (IndexType d = 0; d < mDim; ++d)
-    // {
-    //     double component = 0.0;
-    //     for (IndexType j = 0; j < number_of_points; ++j)
-    //     {
-    //         double u_jd = r_geometry[j].FastGetSolutionStepValue(VELOCITY)[d];
-    //         for (IndexType k = 0; k < mDim; ++k)
-    //         {
-    //             component += advective_velocity[k] * u_jd * rDN_DX(j, k); // a_k * ∂u_j^d/∂x_k
-    //         }
-    //     }
-    //     a_dot_grad_u[d] = component;
-    // }
-    // // Assemble D5 RHS: - τ₁ * (a · ∇φ_i) * (a · ∇u)
-    // for (IndexType i = 0; i < number_of_points; ++i)
-    // {
-    //     unsigned int row_index = i * block_size;
-    //     double a_dot_grad_phi_i = 0.0;
-    //     for (IndexType d = 0; d < mDim; ++d)
-    //         a_dot_grad_phi_i += advective_velocity[d] * rDN_DX(i, d);
-
-    //     for (IndexType d = 0; d < mDim; ++d)
-    //     {
-    //         rRightHandSideVector[row_index + d] -= GaussWeight * TauOne * a_dot_grad_phi_i * a_dot_grad_u[d];
-    //     }
-    // }
 }
 
 void NavierStokesElement::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
-    auto r_geometry = GetGeometry();
-    const unsigned int NumNodes = r_geometry.PointsNumber();
-    const unsigned int BlockSize = mDim+1;
+    auto& r_geometry = GetGeometry();
+    const unsigned int number_of_points = r_geometry.PointsNumber();
+    const unsigned int block_size = mDim + 1;
     
-    const SizeType num_dofs_per_node = NumNodes * (mDim + 1);
+    const SizeType num_dofs_per_node = number_of_points * (mDim + 1);
     const Matrix& N_gausspoint = r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod());
-    const ShapeFunctionsType& N = row(N_gausspoint,0);
+    const ShapeFunctionsType& rN = row(N_gausspoint,0);
     const GeometryType::ShapeFunctionsGradientsType& DN_De = r_geometry.ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
     const ShapeDerivativesType& DN_DX = DN_De[0];
     const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints(this->GetIntegrationMethod());
+    const double GaussWeight = integration_points[0].Weight();
 
     if(rMassMatrix.size1() != num_dofs_per_node)
         rMassMatrix.resize(num_dofs_per_node,num_dofs_per_node,false);
     noalias(rMassMatrix) = ZeroMatrix(num_dofs_per_node, num_dofs_per_node);
     
-    const Properties& r_properties = GetProperties();
-    double density = r_properties[DENSITY];
+    const double density = GetProperties()[DENSITY];
     if (density == 0.0) {
         KRATOS_ERROR << "Density must be non-zero. Provided: " << density << std::endl;
     }
 
-    // Define mass matrix and previous velocity vector
     Matrix mass_matrix = ZeroMatrix(num_dofs_per_node, num_dofs_per_node);
     
-    // Build mass matrix for velocity DOFs
-    for (std::size_t i = 0; i < NumNodes; ++i) {
-        for (std::size_t j = 0; j < NumNodes; ++j) {
+    for (std::size_t i = 0; i < number_of_points; ++i) {
+        for (std::size_t j = 0; j < number_of_points; ++j) {
             for (std::size_t dim = 0; dim < mDim; ++dim) {
-                mass_matrix(i * BlockSize + dim, j * BlockSize + dim) += density * N[i] * N[j] * integration_points[0].Weight();
+                mass_matrix(i * block_size + dim, j * block_size + dim) += density * rN[i] * rN[j] * GaussWeight;
             }
         }
     }
-    // Add transient term to LHS
     noalias(rMassMatrix) += mass_matrix;
 
-    // Add the VMS term with du/dt
-    for (unsigned int i = 0; i < NumNodes; ++i)
+    for (unsigned int i = 0; i < number_of_points; ++i)
     {
-        for (unsigned int j = 0; j < NumNodes; ++j)
+        for (unsigned int j = 0; j < number_of_points; ++j)
         {
             for (unsigned int d = 0; d < mDim; ++d) {
-                // Stabilization-time (grad q, u^n+1)/delta_t
-                rMassMatrix(i*BlockSize+mDim, j*BlockSize + d) += density * integration_points[0].Weight() * mTauOne * DN_DX(i, d) * N[j] ;
+                rMassMatrix(i * block_size + mDim, j * block_size + d) += density * GaussWeight * mTauOne * DN_DX(i, d) * rN[j];
             }
         }
     }
@@ -976,22 +722,22 @@ void NavierStokesElement::CalculateMassMatrix(MatrixType& rMassMatrix, const Pro
 void NavierStokesElement::GetFirstDerivativesVector(Vector &rValues, int Step) const
 {
     const GeometryType& rGeom = this->GetGeometry();
-    const unsigned int NumNodes = rGeom.PointsNumber();
-    const unsigned int LocalSize = (mDim + 1) * NumNodes;
+    const unsigned int number_of_control_points = rGeom.PointsNumber();
+    const unsigned int local_size = (mDim + 1) * number_of_control_points;
 
-    if (rValues.size() != LocalSize)
-        rValues.resize(LocalSize);
+    if (rValues.size() != local_size)
+        rValues.resize(local_size);
 
-    unsigned int Index = 0;
+    unsigned int index = 0;
 
-    for (unsigned int i = 0; i < NumNodes; i++)
+    for (unsigned int i = 0; i < number_of_control_points; i++)
     {
-        rValues[Index++] = rGeom[i].FastGetSolutionStepValue(VELOCITY_X,Step);
-        rValues[Index++] = rGeom[i].FastGetSolutionStepValue(VELOCITY_Y,Step);
+        rValues[index++] = rGeom[i].FastGetSolutionStepValue(VELOCITY_X,Step);
+        rValues[index++] = rGeom[i].FastGetSolutionStepValue(VELOCITY_Y,Step);
         if (mDim == 3) {
-            rValues[Index++] = rGeom[i].FastGetSolutionStepValue(VELOCITY_Z,Step);
+            rValues[index++] = rGeom[i].FastGetSolutionStepValue(VELOCITY_Z,Step);
         }
-        rValues[Index++] = rGeom[i].FastGetSolutionStepValue(PRESSURE,Step);
+        rValues[index++] = rGeom[i].FastGetSolutionStepValue(PRESSURE,Step);
     }
 }
 
@@ -1066,6 +812,11 @@ void NavierStokesElement::GetDofList(
 int NavierStokesElement::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     int Result = Element::Check(rCurrentProcessInfo);
+
+    KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(DYNAMIC_TAU))
+        << "Missing DYNAMIC_TAU in ProcessInfo for NavierStokesElement " << Id() << std::endl;
+    KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(DELTA_TIME))
+        << "Missing DELTA_TIME in ProcessInfo for NavierStokesElement " << Id() << std::endl;
 
     // Checks on nodes
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
