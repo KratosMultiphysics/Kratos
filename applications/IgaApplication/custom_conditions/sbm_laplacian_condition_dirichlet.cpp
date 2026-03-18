@@ -102,7 +102,7 @@ void SbmLaplacianConditionDirichlet::InitializeSbmMemberVariables()
     // Retrieve projection
     Condition candidate_closest_skin_segment_1 = this->GetValue(NEIGHBOUR_CONDITIONS)[0] ;
     // Find the closest node in condition
-    int closestNodeId;
+    int closestNodeId = 0;
     if (mDim > 2) {
         double incumbent_dist = 1e16;
         // Loop over the three nodes of the closest skin element
@@ -148,36 +148,7 @@ void SbmLaplacianConditionDirichlet::CalculateLeftHandSide(
     // Calculating the PHYSICAL SPACE derivatives (it is avoided storing them to minimize storage)
     noalias(DN_DX) = r_DN_De[0]; // prod(r_DN_De[0],InvJ0);
 
-    GeometryType::JacobiansType J0;
-    r_geometry.Jacobian(J0,r_geometry.GetDefaultIntegrationMethod());
-    // Jacobian matrix cause J0 is  3x2 and we need 3x3
-    Matrix jacobian_matrix = ZeroMatrix(3,3);
-    jacobian_matrix(0,0) = J0[0](0,0);
-    jacobian_matrix(0,1) = J0[0](0,1);
-    jacobian_matrix(1,0) = J0[0](1,0);
-    jacobian_matrix(1,1) = J0[0](1,1);
-    jacobian_matrix(2,2) = 1.0; // 2D case
-
-    array_1d<double, 3> tangent_parameter_space;
-    r_geometry.Calculate(LOCAL_TANGENT, tangent_parameter_space); // Gives the result in the parameter space !!
-    Vector determinant_factor = prod(jacobian_matrix, tangent_parameter_space);
-    determinant_factor[2] = 0.0; // 2D case
-
-    double det_J0 = norm_2(determinant_factor);
-    if (mDim == 3) {
-        Matrix tangent_matrix;
-        r_geometry.Calculate(LOCAL_TANGENT_MATRIX, tangent_matrix);  // 3x2
-        
-        array_1d<double,3> t1, t2;
-        for (std::size_t i = 0; i < 3; ++i) {
-            t1[i] = tangent_matrix(i, 0);
-            t2[i] = tangent_matrix(i, 1);
-        }
-        // Cross product of the two tangents
-        array_1d<double, 3> det_vector = MathUtils<double>::CrossProduct(t1, t2);
-        // Norm gives the surface integration factor
-        det_J0 = norm_2(det_vector);
-    }
+    const double det_J0 = std::abs(r_geometry.DeterminantOfJacobian(0, r_geometry.GetDefaultIntegrationMethod()));
 
 
     Matrix DN_dot_n = ZeroMatrix(1, number_of_nodes);
@@ -201,11 +172,11 @@ void SbmLaplacianConditionDirichlet::CalculateLeftHandSide(
 
     // Assembly
     // -(GRAD_w * n, u + GRAD_u * d + ...)
-    noalias(rLeftHandSideMatrix) -= mNitschePenalty * prod(trans(DN_dot_n), H_sum)  * r_integration_points[0].Weight() * std::abs(det_J0) ;
+    noalias(rLeftHandSideMatrix) -= mNitschePenalty * prod(trans(DN_dot_n), H_sum)  * r_integration_points[0].Weight() * det_J0 ;
     // -(w,GRAD_u * n) from integration by parts -> Fundamental !! 
-    noalias(rLeftHandSideMatrix) -= prod(trans(H), DN_dot_n)                        * r_integration_points[0].Weight() * std::abs(det_J0) ;
+    noalias(rLeftHandSideMatrix) -= prod(trans(H), DN_dot_n)                        * r_integration_points[0].Weight() * det_J0 ;
     // SBM terms (Taylor Expansion) + alpha * (w + GRAD_w * d + ..., u + GRAD_u * d + ...)
-    noalias(rLeftHandSideMatrix) += prod(trans(H_sum), H_sum) * penalty_integration * std::abs(det_J0);
+    noalias(rLeftHandSideMatrix) += prod(trans(H_sum), H_sum) * penalty_integration * det_J0;
 }
 
 
@@ -230,36 +201,7 @@ void SbmLaplacianConditionDirichlet::CalculateRightHandSide(
     // Initialize DN_DX
     Matrix DN_DX(number_of_nodes,mDim);
 
-    GeometryType::JacobiansType J0;
-    r_geometry.Jacobian(J0,r_geometry.GetDefaultIntegrationMethod());
-    // Jacobian matrix cause J0 is  3x2 and we need 3x3
-    Matrix jacobian_matrix = ZeroMatrix(3,3);
-    jacobian_matrix(0,0) = J0[0](0,0);
-    jacobian_matrix(0,1) = J0[0](0,1);
-    jacobian_matrix(1,0) = J0[0](1,0);
-    jacobian_matrix(1,1) = J0[0](1,1);
-    jacobian_matrix(2,2) = 1.0; // 2D case
-
-    array_1d<double, 3> tangent_parameter_space;
-    r_geometry.Calculate(LOCAL_TANGENT, tangent_parameter_space); // Gives the result in the parameter space !!
-    Vector determinant_factor = prod(jacobian_matrix, tangent_parameter_space);
-    determinant_factor[2] = 0.0; // 2D case
-    
-    double det_J0 = norm_2(determinant_factor);
-    if (mDim == 3) {
-        Matrix tangent_matrix;
-        r_geometry.Calculate(LOCAL_TANGENT_MATRIX, tangent_matrix);  // 3x2
-
-        array_1d<double,3> t1, t2;
-        for (std::size_t i = 0; i < 3; ++i) {
-            t1[i] = tangent_matrix(i, 0);
-            t2[i] = tangent_matrix(i, 1);
-        }
-        // Cross product of the two tangents
-        array_1d<double, 3> det_vector = MathUtils<double>::CrossProduct(t1, t2);
-        // Norm gives the surface integration factor
-        det_J0 = norm_2(det_vector);
-    }
+    const double det_J0 = std::abs(r_geometry.DeterminantOfJacobian(0, r_geometry.GetDefaultIntegrationMethod()));
     
 
     // Differential area
@@ -290,9 +232,9 @@ void SbmLaplacianConditionDirichlet::CalculateRightHandSide(
     // Assembly
     const double u_D_scalar = mpProjectionNode->GetValue(r_unknown_var);
 
-    noalias(rRightHandSideVector) += H_sum_vec * u_D_scalar * penalty_integration * std::abs(det_J0);
+    noalias(rRightHandSideVector) += H_sum_vec * u_D_scalar * penalty_integration * det_J0;
     // Dirichlet BCs
-    noalias(rRightHandSideVector) -= mNitschePenalty * DN_dot_n_vec * u_D_scalar * r_integration_points[0].Weight() * std::abs(det_J0) ;
+    noalias(rRightHandSideVector) -= mNitschePenalty * DN_dot_n_vec * u_D_scalar * r_integration_points[0].Weight() * det_J0 ;
 
 
     Vector temperature_old_iteration(number_of_nodes);
@@ -300,10 +242,10 @@ void SbmLaplacianConditionDirichlet::CalculateRightHandSide(
         temperature_old_iteration[i] = r_geometry[i].GetSolutionStepValue(r_unknown_var);
     }
     // Corresponding RHS
-    noalias(rRightHandSideVector) += mNitschePenalty * DN_dot_n_vec * inner_prod(H_sum_vec,temperature_old_iteration)  * r_integration_points[0].Weight() * std::abs(det_J0);
+    noalias(rRightHandSideVector) += mNitschePenalty * DN_dot_n_vec * inner_prod(H_sum_vec,temperature_old_iteration)  * r_integration_points[0].Weight() * det_J0;
     // Assembly of the integration by parts term -(w,GRAD_u * n) -> Fundamental !!
-    noalias(rRightHandSideVector) += H_vec * inner_prod(DN_dot_n_vec,temperature_old_iteration) * r_integration_points[0].Weight() * std::abs(det_J0) ;
-    noalias(rRightHandSideVector) -= H_sum_vec * inner_prod(H_sum_vec,temperature_old_iteration) * penalty_integration * std::abs(det_J0) ;
+    noalias(rRightHandSideVector) += H_vec * inner_prod(DN_dot_n_vec,temperature_old_iteration) * r_integration_points[0].Weight() * det_J0 ;
+    noalias(rRightHandSideVector) -= H_sum_vec * inner_prod(H_sum_vec,temperature_old_iteration) * penalty_integration * det_J0 ;
 
 }
 
