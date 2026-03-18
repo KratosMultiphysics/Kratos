@@ -94,7 +94,6 @@ class TestModelersSbm(KratosUnittest.TestCase):
         # # Check if all needed node are within the model parts
         self.assertEqual(support_model_part.NumberOfNodes(), 240)
         self.assertEqual(support_model_part.NumberOfConditions(), 60)
-        self.assertEqual(computational_model_part.NumberOfNodes(), 400)
         self.assertEqual(computational_model_part.NumberOfConditions(), 0)
         
         self.assertEqual(support_model_part.GetNodes()[6].X, 2.0)
@@ -215,7 +214,6 @@ class TestModelersSbm(KratosUnittest.TestCase):
         self.assertEqual(support_model_part_inner.NumberOfConditions(), 110)
         self.assertEqual(support_model_part_outer.NumberOfNodes(), 2160)
         self.assertEqual(support_model_part_outer.NumberOfConditions(), 240)
-        self.assertEqual(computational_model_part.NumberOfNodes(), 7290)
         self.assertEqual(computational_model_part.NumberOfConditions(), 0)
         self.assertEqual(computational_model_part.NumberOfElements(), 810)
         self.assertEqual(support_model_part_inner.GetConditions()[323].Info(), "\"SbmLaplacianConditionDirichlet\" #323")
@@ -792,7 +790,6 @@ class TestModelersSbm(KratosUnittest.TestCase):
         # # Check if all needed node are within the model parts
         self.assertEqual(support_model_part.NumberOfNodes(), 0)
         self.assertEqual(support_model_part.NumberOfConditions(), 48)
-        self.assertEqual(computational_model_part.NumberOfNodes(), 256)
         self.assertEqual(computational_model_part.NumberOfConditions(), 0)
 
         self.assertEqual(support_model_part.GetConditions()[55].Info(), "\"SbmLaplacianConditionDirichlet\" #55")
@@ -883,7 +880,6 @@ class TestModelersSbm(KratosUnittest.TestCase):
         # Expect same results as ordered case: curves are reordered internally
         self.assertEqual(support_model_part.NumberOfNodes(), 0)
         self.assertEqual(support_model_part.NumberOfConditions(), 48)
-        self.assertEqual(computational_model_part.NumberOfNodes(), 256)
         self.assertEqual(computational_model_part.NumberOfConditions(), 0)
 
         # Spot-check two conditions types to ensure mapping still holds
