@@ -2184,7 +2184,6 @@ void SnakeSbmProcess::SnakeStep3D(
         )
         {
             isSplitted = true;
-            KRATOS_INFO("::[SnakeSBMUtilities]::") << "SnakeStep :: Splitting a 3D condition" << std::endl;
 
             // Midpoints
             double x12 = (rConditionCoord[0][0] + rConditionCoord[0][1]) / 2.0;

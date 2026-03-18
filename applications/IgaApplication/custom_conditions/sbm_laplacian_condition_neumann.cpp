@@ -85,7 +85,7 @@ void SbmLaplacianConditionNeumann::InitializeSbmMemberVariables()
     // Retrieve projection
     Condition candidate_closest_skin_segment_1 = this->GetValue(NEIGHBOUR_CONDITIONS)[0] ;
     // Find the closest node in condition
-    int closestNodeId;
+    int closestNodeId = 0;
     if (mDim > 2) {
         double incumbent_dist = 1e16;
         // Loop over the three nodes of the closest skin element
