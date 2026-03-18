@@ -20,7 +20,6 @@
 // Project includes
 #include "builder.h"
 #include "future/containers/linear_system.h"
-#include "includes/define.h"
 #include "includes/model_part.h"
 #include "utilities/amgcl_csr_conversion_utilities.h"
 #include "utilities/amgcl_csr_spmm_utilities.h"

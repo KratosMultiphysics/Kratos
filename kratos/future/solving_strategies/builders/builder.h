@@ -18,7 +18,6 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "includes/model_part.h"
 #include "utilities/builtin_timer.h"
 #include "utilities/dof_utilities/dof_array_utilities.h"

@@ -16,7 +16,6 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "includes/kratos_parameters.h"
 #include "future/containers/linear_system.h"
 #include "future/linear_operators/linear_operator.h"
