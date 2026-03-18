@@ -134,7 +134,8 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         c_1 = 4.0
         c_2 = 2.0      
    
-        tau_1 = 1.0/(rho/dt + c_2*rho*rho_conv + c_1*viscosity/h**2)
+        tau_1 = 1.0/(rho/dt + c_2*rho*rho_conv + c_1*viscosity/h**2) # Use this if the maximum or average is used as spectral radius estimate
+        # tau_1 = 1.0/(rho/dt + c_2*rho*rho_conv/self.n_in_el + c_1*viscosity/h**2) # Use this if the row-sum upper bound is used as spectral radius estimate
         tau_2 = h**2/(c_1 * tau_1)
         
         return tau_1, tau_2
@@ -149,13 +150,18 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         # In consequence, this term scales like |v|/h_i
         advective_projection = xp.einsum('ek, enk -> en', v_el_mean, self.DN)
 
-        # Get the convective spectral radius (inverse time scale) as the average of the values in each direction 
-        # Note that this is an approximation of the elemental convective operator spectral radius
-        return xp.sum(xp.abs(advective_projection), axis=1) / self.n_in_el 
+        # # Get the convective spectral radius (inverse time scale) as the average of the values in each direction 
+        # # Note that this is an approximation of the elemental convective operator spectral radius
+        # return xp.sum(xp.abs(advective_projection), axis=1) / self.n_in_el 
 
-        # # Get the convective spectral radius (inverse time scale) as the maximum value in each nodal direction
-        # # This is equivalent to get the maximum eigenvalue of the elemental convective operator
-        # return xp.max(xp.abs(advective_projection), axis=1)
+        # # Get the convective operator row-sum as an upper bound of its spectral radius (inverse time scale)
+        # # Note that using this as an approximation of the spectral radius results in a conservative estimation of the time increment when computing the CFL 
+        # # On the contrary, when using it in the subscale stabilization factor calculation (tau_1) results in a smaller contribution of the subscales
+        # return xp.sum(xp.abs(advective_projection), axis=1)
+
+        # Get the convective spectral radius (inverse time scale) as the maximum value in each nodal direction
+        # This is equivalent to get the maximum eigenvalue of the elemental convective operator
+        return xp.max(xp.abs(advective_projection), axis=1)
 
     def PrepareModelPart(self):
         super().PrepareModelPart()
@@ -548,16 +554,16 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
         # Assemble pressure LHS (set to zero is done internally)
         L_el = self.cfd_utils.ComputeLaplacianMatrix(self.DN) # elemental laplacian contributions as L_IJ := (∇N_I,∇N_J)
-        coef = (dt / self.rho + self.tau_1) * self.elemental_volumes
+        coef = (dt / self.rho / 2.0 + self.tau_1) * self.elemental_volumes
         L_el *= coef[:, None, None] # scale LHS elemental contributions
         self.cfd_utils.AssembleScalarMatrixByCSRIndices(L_el, self.L_assembly_indices, self.L) # assemble the scaled elemental contributions
 
         # -(q,∇·ufrac)
         rhs_el = -self.cfd_utils.ComputeElementwiseNodalDivergence(self.N, self.DN, vel_frac)
 
-        # (dt/rho + tau)*(∇q,∇pold) = (dt/rho + tau)*Lij*pj
+        # (dt/rho/2 + tau)*(∇q,∇pold) = (dt/rho/2 + tau)*Lij*pj
         aux_scalar = self.cfd_utils.ApplyLaplacian(self.DN, pel)
-        aux_scalar *= (dt / self.rho)
+        aux_scalar *= (dt / self.rho / 2.0)
         rhs_el += aux_scalar
 
         # -tau*(∇q,Pi_pressure)
