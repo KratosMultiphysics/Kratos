@@ -33,8 +33,6 @@
 
 #include "includes/io.h"
 
-#include "geometries/quadrilateral_3d_4.h"
-
 namespace Kratos
 {
 
@@ -511,14 +509,11 @@ private:
         const SizeType EchoLevel)
     {
 
-        auto p_nurbs_cube = Kratos::make_shared<NurbsVolumeGeometry<PointerVector<NodeType>>>(*pVolume);
-        
         KRATOS_INFO_IF("ReadBrepVolume", (EchoLevel > 3))
             << "Creating BrepVolume \""<< std::endl;
 
         BrepSurfaceOnVolumeLoopArrayType outer_loops, inner_loops;
 
-        KRATOS_WATCH("we are setting false--> BodyFitted")
         auto p_brep_volume =
             Kratos::make_shared<BrepVolumeType>(
                 pVolume, 
@@ -622,7 +617,6 @@ private:
         normal = ZeroVector(3);
         normal[2] = -1;
         auto p_surface_1 = Kratos::make_shared<NurbsSurfaceGeometry<3, PointerVector<NodeType>>>(points_lower, p, q, knot_vector_u, knot_vector_v);
-        auto brep_p_surface_1 = Kratos::make_shared<BrepSurface<PointerVector<NodeType>,  false, PointerVector<Point>>>(p_surface_1);
         auto p_brep_surface_on_volume_1 = Kratos::make_shared<BrepSurfaceOnVolume< PointerVector<NodeType>, false, PointerVector<NodeType>>>(pVolumeGeometry, p_surface_1);
         p_brep_surface_on_volume_1->SetId(rLastGeometryId);
         p_brep_surface_on_volume_1->SetNormalSbm(normal);
@@ -639,7 +633,6 @@ private:
         normal = ZeroVector(3);
         normal[2] = 1;
         auto p_surface_2 = Kratos::make_shared<NurbsSurfaceGeometry<3, PointerVector<NodeType>>>(points_upper, p, q, knot_vector_u, knot_vector_v);
-        auto brep_p_surface_2 = Kratos::make_shared<BrepSurface<PointerVector<NodeType>,  false, PointerVector<Point>>>(p_surface_2);
         auto p_brep_surface_on_volume_2 = Kratos::make_shared<BrepSurfaceOnVolume< PointerVector<NodeType>, false, PointerVector<NodeType>>>(pVolumeGeometry, p_surface_2);
         p_brep_surface_on_volume_2->SetId(++rLastGeometryId);
         p_brep_surface_on_volume_2->SetNormalSbm(normal);
@@ -656,7 +649,6 @@ private:
         normal = ZeroVector(3);
         normal[1] = -1;
         auto p_surface_3 = Kratos::make_shared<NurbsSurfaceGeometry<3, PointerVector<NodeType>>>(points_front, p, q, knot_vector_u, knot_vector_v);
-        auto brep_p_surface_3 = Kratos::make_shared<BrepSurface<PointerVector<NodeType>,  false, PointerVector<Point>>>(p_surface_3);
         auto p_brep_surface_on_volume_3 = Kratos::make_shared<BrepSurfaceOnVolume< PointerVector<NodeType>, false, PointerVector<NodeType>>>(pVolumeGeometry, p_surface_3);
         p_brep_surface_on_volume_3->SetId(++rLastGeometryId);
         p_brep_surface_on_volume_3->SetNormalSbm(normal);
@@ -673,7 +665,6 @@ private:
         normal = ZeroVector(3);
         normal[1] = 1;
         auto p_surface_4 = Kratos::make_shared<NurbsSurfaceGeometry<3, PointerVector<NodeType>>>(points_back, p, q, knot_vector_u, knot_vector_v);
-        auto brep_p_surface_4 = Kratos::make_shared<BrepSurface<PointerVector<NodeType>,  false, PointerVector<Point>>>(p_surface_4);
         auto p_brep_surface_on_volume_4 = Kratos::make_shared<BrepSurfaceOnVolume< PointerVector<NodeType>, false, PointerVector<NodeType>>>(pVolumeGeometry, p_surface_4);
         p_brep_surface_on_volume_4->SetId(++rLastGeometryId);
         p_brep_surface_on_volume_4->SetNormalSbm(normal);
@@ -690,7 +681,6 @@ private:
         normal = ZeroVector(3);
         normal[0] = -1;
         auto p_surface_5 = Kratos::make_shared<NurbsSurfaceGeometry<3, PointerVector<NodeType>>>(points_left, p, q, knot_vector_u, knot_vector_v);
-        auto brep_p_surface_5 = Kratos::make_shared<BrepSurface<PointerVector<NodeType>,  false, PointerVector<Point>>>(p_surface_5);
         auto p_brep_surface_on_volume_5 = Kratos::make_shared<BrepSurfaceOnVolume< PointerVector<NodeType>, false, PointerVector<NodeType>>>(pVolumeGeometry, p_surface_5);
         // auto p_brep_surface_on_volume = Kratos::make_shared<BrepSurfaceOnVolumeType>(pVolumeGeometry, brep_p_surface_1);
         p_brep_surface_on_volume_5->SetId(++rLastGeometryId);
@@ -708,7 +698,6 @@ private:
         normal = ZeroVector(3);
         normal[0] = 1;
         auto p_surface_6 = Kratos::make_shared<NurbsSurfaceGeometry<3, PointerVector<NodeType>>>(points_right, p, q, knot_vector_u, knot_vector_v);
-        auto brep_p_surface_6 = Kratos::make_shared<BrepSurface<PointerVector<NodeType>,  false, PointerVector<Point>>>(p_surface_6);
         auto p_brep_surface_on_volume_6 = Kratos::make_shared<BrepSurfaceOnVolume< PointerVector<NodeType>, false, PointerVector<NodeType>>>(pVolumeGeometry, p_surface_6);
         p_brep_surface_on_volume_6->SetId(++rLastGeometryId);
         p_brep_surface_on_volume_6->SetNormalSbm(normal);

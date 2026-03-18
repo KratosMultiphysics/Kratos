@@ -72,6 +72,9 @@ void SbmLaplacianConditionNeumann::InitializeMemberVariables()
     } else {
         mBasisFunctionsOrder = std::sqrt(r_DN_De[0].size1()) - 1;
     }
+    if (mBasisFunctionsOrder != 2 && mBasisFunctionsOrder != 4) {
+        mBasisFunctionsOrder *= 2; // We need to compute the Taylor expansion up to order 2 for the Neumann case
+    }
 
     // Compute the normals
     mNormalParameterSpace = - r_geometry.Normal(0, GetIntegrationMethod());
@@ -99,6 +102,7 @@ void SbmLaplacianConditionNeumann::InitializeSbmMemberVariables()
         closestNodeId = 0;
     }
     mpProjectionNode = &candidate_closest_skin_segment_1.GetGeometry()[closestNodeId] ;
+    this->SetValue(PROJECTION_NODE_COORDINATES, mpProjectionNode->Coordinates());
 
     mDistanceVector.resize(3);
     noalias(mDistanceVector) = mpProjectionNode->Coordinates() - r_geometry.Center().Coordinates();

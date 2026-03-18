@@ -101,6 +101,8 @@ class CheckAndPrepareModelProcessFluid(KratosMultiphysics.Process):
                 flags |= tmoc.ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS
             else:
                 flags |= (tmoc.ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS).AsFalse()
+            # Allow repeated (duplicate) condition geometries
+            flags |= tmoc.ALLOW_REPEATED_CONDITIONS
             KratosMultiphysics.TetrahedralMeshOrientationCheck(fluid_computational_model_part, throw_errors, flags).Execute()
         else:
             check_repeated_conditions = True

@@ -1936,16 +1936,11 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates3D(
     ModelPart& r_surrogate_sub_model_part = rIgaModelPart.GetSubModelPart(surrogate_sub_model_part_name);
 
     array_1d<double, 3> knot_step_uvw;
-    KRATOS_WATCH(knot_vector_u)
     knot_step_uvw[0] = std::abs(knot_vector_u[std::ceil(knot_vector_u.size()/2) + 1] - knot_vector_u[std::ceil(knot_vector_u.size()/2)]);
-    KRATOS_WATCH(knot_vector_v)
     knot_step_uvw[1] = std::abs(knot_vector_v[std::ceil(knot_vector_v.size()/2) + 1] - knot_vector_v[std::ceil(knot_vector_v.size()/2)]);
-    KRATOS_WATCH(knot_vector_w)
     knot_step_uvw[2] = std::abs(knot_vector_w[std::ceil(knot_vector_w.size()/2) + 1] - knot_vector_w[std::ceil(knot_vector_w.size()/2)]);
 
-    KRATOS_WATCH(knot_step_uvw)
 
-    KRATOS_WATCH("1")
 
     // Set KNOT_SPAN_SIZES
     Vector mesh_sizes_uvw(3);
@@ -1961,7 +1956,6 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates3D(
     starting_pos_uvw[0] = knot_vector_u[0];
     starting_pos_uvw[1] = knot_vector_v[0];
     starting_pos_uvw[2] = knot_vector_w[0];
-    KRATOS_WATCH(starting_pos_uvw)
 
     // Set PARAMETER_SPACE_CORNERS
     std::vector<Vector> parameter_external_coordinates(3);
@@ -1978,7 +1972,6 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates3D(
 
     surrogate_model_part.GetParentModelPart().SetValue(PARAMETER_SPACE_CORNERS, parameter_external_coordinates);
 
-    KRATOS_WATCH("2")
 
     // Create the matrix of active/inactive knot spans, one for inner and one for outer loop
     std::vector<int> n_knot_spans_uvw(3);
@@ -2012,7 +2005,6 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates3D(
     KRATOS_WARNING_IF("::[SnakeSbmProcess]::", rSkinModelPartInitial.NumberOfConditions() == 0) 
                     << "Reference Skin model part for SBM has no conditions." << std::endl;
     
-    KRATOS_WATCH("3")
     if (rSkinModelPartInitial.NumberOfConditions()> 0) {
         
         // Copy all the nodes of the initial_skin_model_part to the skin_model_part
@@ -2094,13 +2086,10 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates3D(
             ordered_ids[1] = i_cond.GetGeometry()[1].Id();
             ordered_ids[2] = i_cond.GetGeometry()[2].Id();
 
-            // KRATOS_WATCH("\n \n \n")
-            // KRATOS_WATCH("SnakeStep3D")
 
             SnakeStep3D(id_matrix_knot_spans_available, knot_span_uvw, xyz_coord_i_cond, knot_step_uvw, starting_pos_uvw, 
                         r_skin_sub_model_part, knot_spans_available, ordered_ids);
             
-            // KRATOS_WATCH("SnakeStep3D -> end")
             // if (i_cond.GetGeometry()[1].Id() == id_first_node) {
             //     id_matrix_knot_spans_available++;
             //     new_inner_loop = true;
@@ -2108,8 +2097,6 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates3D(
         }
     }
 
-    KRATOS_WATCH("end snake step")
-    KRATOS_WATCH(r_skin_sub_model_part)
 
     PointVector points;
     for (auto &i_cond : r_skin_sub_model_part.Conditions()) {
@@ -2352,7 +2339,6 @@ void SnakeSbmProcess::SnakeStep3D(
         {
             isSplitted = true;
             // KRATOS_INFO("::[SnakeSBMUtilities]::") << "SnakeStep :: Splitting a 3D condition" << std::endl;
-            // KRATOS_WATCH(rConditionCoord)
 
             // Midpoints
             double x12 = (rConditionCoord[0][0] + rConditionCoord[0][1]) / 2.0;
@@ -2406,7 +2392,6 @@ void SnakeSbmProcess::SnakeStep3D(
             ordered_ids_4[1] = idNode_23;
             ordered_ids_4[2] = idNode_31;
 
-            // KRATOS_WATCH("TRIANGLES DIVISION")
 
             // const double tol = 1e-7;
             // if (std::abs(rConditionCoord[0][0] - rConditionCoord[0][1]) < tol &&
@@ -2422,7 +2407,6 @@ void SnakeSbmProcess::SnakeStep3D(
 
             // We do it recursively for all the new 4 tringular conditions
             // First subtriangle 
-            // KRATOS_WATCH("first_subtriangle")
             SnakeStep3D(
                 IdMatrix,
                 {{rKnotSpansUVW[0][0], ku12, ku31},{rKnotSpansUVW[1][0], kv12, kv31},{rKnotSpansUVW[2][0], kw12, kw31}},
@@ -2435,7 +2419,6 @@ void SnakeSbmProcess::SnakeStep3D(
             );
 
             // Second subtriangle
-            // KRATOS_WATCH("second_subtriangle")
             SnakeStep3D(
                 IdMatrix,
                 {{rKnotSpansUVW[0][1],  ku23, ku12},{rKnotSpansUVW[1][1], kv23, kv12},{rKnotSpansUVW[2][1], kw23, kw12}},
@@ -2448,7 +2431,6 @@ void SnakeSbmProcess::SnakeStep3D(
             );
 
             // Third subtriangle
-            // KRATOS_WATCH("third_subtriangle")
             SnakeStep3D(
                 IdMatrix,
                 {{rKnotSpansUVW[0][2], ku31, ku23},{rKnotSpansUVW[1][2], kv31, kv23},{rKnotSpansUVW[2][2], kw31, kw23}},
@@ -2461,7 +2443,6 @@ void SnakeSbmProcess::SnakeStep3D(
             );
 
             // Central subtriangle --> Is it necessary?
-            // KRATOS_WATCH("fourth_subtriangle")
             SnakeStep3D(
                 IdMatrix,
                 {{ku12, ku23, ku31},{kv12, kv23, kv31},{kw12, kw23, kw31}},
@@ -2520,7 +2501,6 @@ void SnakeSbmProcess::SnakeStep3D(
         }
         else {
             // TODO: delete this
-            KRATOS_WATCH("Something went wrong");
             exit(0);
         }
 
@@ -2533,8 +2513,6 @@ void SnakeSbmProcess::SnakeStep3D(
         //// Create 1 new conditions for each skin condition 
         Properties::Pointer p_cond_prop = rSkinModelPart.pGetProperties(0);
 
-        // KRATOS_WATCH("SnakeStep3D -> create new condition")
-        // KRATOS_WATCH("\n")
 
         IndexType last_condition_id;
         if (rSkinModelPart.NumberOfConditions() == 0) {
@@ -2546,7 +2524,6 @@ void SnakeSbmProcess::SnakeStep3D(
         Condition::Pointer p_cond1 = rSkinModelPart.CreateNewCondition("SurfaceCondition3D3N", last_condition_id+1, 
                                                                         {{ordered_ids[0], ordered_ids[1], ordered_ids[2]}}, p_cond_prop );
         
-        // KRATOS_WATCH("SnakeStep3D -> create END condition")
     }
 }
 
@@ -2661,7 +2638,6 @@ bool SnakeSbmProcess::IsPointInsideSkinBoundary3D(
     // Get the closest Condition
     IndexType id_1 = p_nearest_point->Id();
     auto nearest_condition = rSkinModelPart.GetCondition(id_1);
-    // KRATOS_WATCH(nearest_condition)
 
     // Point0 -> pointToSearch
     Point point_1 = nearest_condition.GetGeometry()[0]; // FIRST POINT IN TRUE GEOM
@@ -3111,11 +3087,8 @@ void SnakeSbmProcess::CreateSurrogateBuondaryFromSnakeOuter3D(
     // Sweep along u-direction
     for (int k = 0; k < rNumberKnotSpans[2]; ++k) {
         for (int j = 0; j < rNumberKnotSpans[1]; ++j) {
-            // KRATOS_WATCH("\n")
-            // KRATOS_WATCH(rKnotSpansAvailable[IdMatrix][k][j])
             bool check_next_point = false;
             for (int i = 0; i < rNumberKnotSpans[0]; ++i) {
-                // KRATOS_WATCH(rKnotSpansAvailable[IdMatrix][k][j][i])
                 Point center_point(
                     (i + 0.5) * knot_step_u + rStartingPositionUVW[0],
                     (j + 0.5) * knot_step_v + rStartingPositionUVW[1],
@@ -3123,26 +3096,20 @@ void SnakeSbmProcess::CreateSurrogateBuondaryFromSnakeOuter3D(
                 );
 
                 if (check_next_point) {
-                    // KRATOS_WATCH("check_next_point true")
                     bool is_exiting = false;
                     int& current_value = rKnotSpansAvailable[IdMatrix][k][j][i];
 
                     if (current_value == 1) {
-                        // KRATOS_WATCH("current_value == 1")
                         // Already active, OK
                     } else {
                         if (current_value == -1) {
-                            // KRATOS_WATCH("current_value == -1")
                             // Already -1, exit
                             is_exiting = true;
                         } else {
                             // current_value == 0
-                            // KRATOS_WATCH("current_value == 0")
                             bool is_inside = IsPointInsideSkinBoundary3D(center_point, rPointsBinOuter, rSkinModelPartOuter);
-                            // KRATOS_WATCH(is_inside)
                             if (is_inside) { // ??????
                                 rKnotSpansAvailable[IdMatrix][k][j][i] = 1; // <-- IMPORTANT!! Inside I want to have all 1's
-                                // KRATOS_WATCH(center_point)
                                 // exit(0);
                             } else {
                                 // exit(0);
@@ -3152,7 +3119,6 @@ void SnakeSbmProcess::CreateSurrogateBuondaryFromSnakeOuter3D(
                     }
 
                     if (is_exiting) {
-                        // KRATOS_WATCH(" save exit")
                         int node1_i = i; int node1_j = j;   int node1_k = k;
                         int node2_i = i; int node2_j = j+1; int node2_k = k;
                         int node3_i = i; int node3_j = j+1; int node3_k = k+1; 
@@ -3168,7 +3134,6 @@ void SnakeSbmProcess::CreateSurrogateBuondaryFromSnakeOuter3D(
                         check_next_point = false; // Exit surface
                     }
                 } else if (rKnotSpansAvailable[IdMatrix][k][j][i] == 1) {
-                    // KRATOS_WATCH(" save entry")
                     int node1_i = i; int node1_j = j;   int node1_k = k;
                     int node2_i = i; int node2_j = j+1; int node2_k = k;
                     int node3_i = i; int node3_j = j+1; int node3_k = k+1; 
@@ -3184,7 +3149,6 @@ void SnakeSbmProcess::CreateSurrogateBuondaryFromSnakeOuter3D(
                     check_next_point = true; // Enter surface
                 }
             }
-            // KRATOS_WATCH(rKnotSpansAvailable[IdMatrix][k][j])
         }
     }
 
