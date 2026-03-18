@@ -839,6 +839,10 @@ public:
         const double Tolerance = std::numeric_limits<double>::epsilon()
         ) const override
     {
+        const double distance = this->CalculateDistance(rPoint, Tolerance);
+        if (distance > std::max(Tolerance, 1.0e-6 * Length())) {
+            return false;
+        }
         PointLocalCoordinates( rResult, rPoint );
 
         if ( std::abs( rResult[0] ) <= (1.0 + Tolerance) ) {
@@ -873,22 +877,33 @@ public:
         const CoordinatesArrayType& rPoint
         ) const override
     {
-        rResult = ZeroVector(3);
+        rResult.clear();
 
         const TPointType& r_first_point  = BaseType::GetPoint(0);
         const TPointType& r_second_point = BaseType::GetPoint(1);
 
-        const array_1d<double, 3> line_direction = r_second_point - r_first_point;
-        const double length_squared = inner_prod(line_direction, line_direction);
-        KRATOS_ERROR_IF(length_squared <= std::numeric_limits<double>::epsilon())
-            << "PointLocalCoordinates called on a line geometry with zero length.";
+        // Project point
+        const double tolerance = 1e-14; // Tolerance
 
-        const array_1d<double, 3> vector_from_first_point_to_input = rPoint - r_first_point;
-        const double projection_parameter = inner_prod(vector_from_first_point_to_input, line_direction) / length_squared;
+        const double length = Length();
 
-        rResult[0] = 2.0 * projection_parameter - 1.0;
+        const double length_1 = std::sqrt( std::pow(rPoint[0] - r_first_point[0], 2)
+                    + std::pow(rPoint[1] - r_first_point[1], 2) + std::pow(rPoint[2] - r_first_point[2], 2));
 
-        return rResult;
+        const double length_2 = std::sqrt( std::pow(rPoint[0] - r_second_point[0], 2)
+                    + std::pow(rPoint[1] - r_second_point[1], 2) + std::pow(rPoint[2] - r_second_point[2], 2));
+
+        if (length_1 <= (length + tolerance) && length_2 <= (length + tolerance)) {
+            rResult[0] = 2.0 * length_1/(length + tolerance) - 1.0;
+        } else if (length_1 > (length + tolerance)) {
+            rResult[0] = 2.0 * length_1/(length + tolerance) - 1.0; // NOTE: The same value as before, but it will be > than 1
+        } else if (length_2 > (length + tolerance)) {
+            rResult[0] = 1.0 - 2.0 * length_2/(length + tolerance);
+        } else {
+            rResult[0] = 2.0; // Out of the line!!!
+        }
+
+        return rResult ;
     }
 
     ///@}
