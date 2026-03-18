@@ -37,7 +37,8 @@ void IgaModelerSbm::SetupModelPart()
     CreateIntegrationDomain(
         analysis_model_part,
         iga_physics_parameters);
-
+    
+    ActivateNodesInElementsAndCleanRoot(analysis_model_part);
 }
 
 ///@}
@@ -1018,6 +1019,34 @@ void IgaModelerSbm::CreateConditions(
     }
     
     r_layer_model_part.AddConditions(new_condition_list.begin(), new_condition_list.end());
+}
+
+void IgaModelerSbm::ActivateNodesInElementsAndCleanRoot(ModelPart& rAnalysisModelPart) const
+{
+    for (auto& r_node : rAnalysisModelPart.Nodes()) {
+        r_node.Set(ACTIVE, false);
+    }
+
+    for (auto& r_elem : rAnalysisModelPart.Elements()) {
+        auto& r_geom = r_elem.GetGeometry();
+        for (auto& r_node : r_geom) {
+            r_node.Set(ACTIVE, true);
+        }
+    }
+
+    ModelPart& r_root = rAnalysisModelPart.GetRootModelPart();
+    std::vector<ModelPart::IndexType> node_ids_to_remove;
+    node_ids_to_remove.reserve(r_root.NumberOfNodes());
+
+    for (auto& r_node : r_root.Nodes()) {
+        if (r_node.IsDefined(ACTIVE) && r_node.IsNot(ACTIVE)) {
+            node_ids_to_remove.push_back(r_node.Id());
+        }
+    }
+
+    for (const auto node_id : node_ids_to_remove) {
+        r_root.RemoveNode(node_id);
+    }
 }
 
 ///@}

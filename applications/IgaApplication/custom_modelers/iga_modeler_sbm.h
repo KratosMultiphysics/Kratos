@@ -238,6 +238,14 @@ private:
     ///@}
     ///@name Utility
     ///@{
+    
+    /**
+     * @brief Activate all nodes in elements and clean the root model part.
+     *
+     * @param rAnalysisModelPart The model part to modify.
+     */
+    void ActivateNodesInElementsAndCleanRoot(ModelPart& rAnalysisModelPart) const;
+
 
 
     ///@}
