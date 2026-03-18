@@ -7,7 +7,8 @@ from KratosMultiphysics.GeoMechanicsApplication.gid_output_file_reader import (
 )
 from KratosMultiphysics.GeoMechanicsApplication.unit_conversions import unit_to_k_unit
 import test_helper
-
+from KratosMultiphysics.project import Project
+import importlib
 import os
 import json
 from pathlib import Path
@@ -712,13 +713,14 @@ class KratosGeoMechanicsBuildingPit(KratosUnittest.TestCase):
         )
 
         with context_managers.set_cwd_to(project_path):
-            model = Kratos.Model()
-            for stage in self.stages_info.values():
-                with open(
-                    Path("..") / "common" / f"{stage['base_name']}.json", "r"
-                ) as f:
-                    stage_parameters = Kratos.Parameters(f.read())
-                analysis.GeoMechanicsAnalysis(model, stage_parameters).Run()
+            with open(Path("..") / "common" / "orchestrator_stages.json", 'r') as parameter_file:
+                project_parameters = Kratos.Parameters(parameter_file.read())
+                project = Project(project_parameters)
+                orchestrator_reg_entry = Kratos.Registry[project.GetSettings()["orchestrator"]["name"].GetString()]
+                orchestrator_module = importlib.import_module(orchestrator_reg_entry["ModuleName"])
+                orchestrator_class = getattr(orchestrator_module, orchestrator_reg_entry["ClassName"])
+                orchestrator_instance = orchestrator_class(project)
+                orchestrator_instance.Run()
 
         if test_helper.want_test_plots():
             self.create_wall_plots(project_path)
