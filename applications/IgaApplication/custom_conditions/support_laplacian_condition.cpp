@@ -88,36 +88,7 @@ void SupportLaplacianCondition::CalculateLeftHandSide(
     // Calculating the cartesian derivatives
     noalias(DN_DX) = r_DN_De[0]; // prod(r_DN_De[point_number],InvJ0);
 
-    GeometryType::JacobiansType J0;
-    r_geometry.Jacobian(J0,r_geometry.GetDefaultIntegrationMethod());
-    // Jacobian matrix cause J0 is  3x2 and we need 3x3
-    Matrix Jacobian = ZeroMatrix(3,3);
-    Jacobian(0,0) = J0[0](0,0);
-    Jacobian(0,1) = J0[0](0,1);
-    Jacobian(1,0) = J0[0](1,0);
-    Jacobian(1,1) = J0[0](1,1);
-    Jacobian(2,2) = 1.0; // 2D case
-
-    array_1d<double, 3> tangent_parameter_space;
-    r_geometry.Calculate(LOCAL_TANGENT, tangent_parameter_space); // Gives the result in the parameter space !!
-    Vector determinant_factor = prod(Jacobian, tangent_parameter_space);
-    determinant_factor[2] = 0.0; // 2D case
-    double det_J0 = norm_2(determinant_factor);
-
-    if (dim == 3) {
-        Matrix tangent_matrix;
-        r_geometry.Calculate(LOCAL_TANGENT_MATRIX, tangent_matrix);  // 3x2
-        
-        array_1d<double,3> t1, t2;
-        for (std::size_t i = 0; i < 3; ++i) {
-            t1[i] = tangent_matrix(i, 0);
-            t2[i] = tangent_matrix(i, 1);
-        }
-        // Cross product of the two tangents
-        array_1d<double, 3> det_vector = MathUtils<double>::CrossProduct(t1, t2);
-        // Norm gives the surface integration factor
-        det_J0 = norm_2(det_vector);
-    }
+    const double det_J0 = std::abs(r_geometry.DeterminantOfJacobian(0, r_geometry.GetDefaultIntegrationMethod()));
     
     Matrix H = ZeroMatrix(1, number_of_nodes);
     Matrix DN_dot_n = ZeroMatrix(1, number_of_nodes);
@@ -140,12 +111,12 @@ void SupportLaplacianCondition::CalculateLeftHandSide(
     }
     
     // Assembly
-    noalias(rLeftHandSideMatrix) -= prod(trans(H), H) * penalty_integration * std::abs(det_J0);
+    noalias(rLeftHandSideMatrix) -= prod(trans(H), H) * penalty_integration * det_J0;
     // Assembly of the integration by parts term -(w,GRAD_u * n) -> Fundamental !!
-    noalias(rLeftHandSideMatrix) -= prod(trans(H), DN_dot_n) * integration_points[0].Weight() * std::abs(det_J0);
+    noalias(rLeftHandSideMatrix) -= prod(trans(H), DN_dot_n) * integration_points[0].Weight() * det_J0;
 
     // Assembly Dirichlet BCs -(GRAD_w* n,u) 
-    noalias(rLeftHandSideMatrix) -= nitsche_penalty * prod(trans(DN_dot_n), H) * integration_points[0].Weight() * std::abs(det_J0);
+    noalias(rLeftHandSideMatrix) -= nitsche_penalty * prod(trans(DN_dot_n), H) * integration_points[0].Weight() * det_J0;
         
 }
 
@@ -190,36 +161,7 @@ void SupportLaplacianCondition::CalculateRightHandSide(
     // Calculating the cartesian derivatives
     noalias(DN_DX) = r_DN_De[0]; // prod(r_DN_De[point_number],InvJ0);
 
-    GeometryType::JacobiansType J0;
-    r_geometry.Jacobian(J0,r_geometry.GetDefaultIntegrationMethod());
-    // Jacobian matrix cause J0 is  3x2 and we need 3x3
-    Matrix Jacobian = ZeroMatrix(3,3);
-    Jacobian(0,0) = J0[0](0,0);
-    Jacobian(0,1) = J0[0](0,1);
-    Jacobian(1,0) = J0[0](1,0);
-    Jacobian(1,1) = J0[0](1,1);
-    Jacobian(2,2) = 1.0; // 2D case
-
-    array_1d<double, 3> tangent_parameter_space;
-    r_geometry.Calculate(LOCAL_TANGENT, tangent_parameter_space); // Gives the result in the parameter space !!
-    Vector determinant_factor = prod(Jacobian, tangent_parameter_space);
-    determinant_factor[2] = 0.0; // 2D case
-    double det_J0 = norm_2(determinant_factor);
-
-    if (dim == 3) {
-        Matrix tangent_matrix;
-        r_geometry.Calculate(LOCAL_TANGENT_MATRIX, tangent_matrix);  // 3x2
-
-        array_1d<double,3> t1, t2;
-        for (std::size_t i = 0; i < 3; ++i) {
-            t1[i] = tangent_matrix(i, 0);
-            t2[i] = tangent_matrix(i, 1);
-        }
-        // Cross product of the two tangents
-        array_1d<double, 3> det_vector = MathUtils<double>::CrossProduct(t1, t2);
-        // Norm gives the surface integration factor
-        det_J0 = norm_2(det_vector);
-    }
+    const double det_J0 = std::abs(r_geometry.DeterminantOfJacobian(0, r_geometry.GetDefaultIntegrationMethod()));
     
     Vector DN_dot_n_vec = ZeroVector(number_of_nodes);
     Vector H_vector = ZeroVector(number_of_nodes);
@@ -244,19 +186,19 @@ void SupportLaplacianCondition::CalculateRightHandSide(
         
     const double u_D_scalar = this->GetValue(r_unknown_var);
 
-    noalias(rRightHandSideVector) -=  H_vector * u_D_scalar * penalty_integration * std::abs(det_J0);
-    noalias(rRightHandSideVector) -= nitsche_penalty * DN_dot_n_vec * u_D_scalar * integration_points[0].Weight() * std::abs(det_J0);
+    noalias(rRightHandSideVector) -=  H_vector * u_D_scalar * penalty_integration * det_J0;
+    noalias(rRightHandSideVector) -= nitsche_penalty * DN_dot_n_vec * u_D_scalar * integration_points[0].Weight() * det_J0;
 
     Vector temperature_old_iteration(number_of_nodes);
     for (IndexType i = 0; i < number_of_nodes; i++) {
         temperature_old_iteration[i] = r_geometry[i].GetSolutionStepValue(r_unknown_var);
     }
     // Corresponding RHS
-    noalias(rRightHandSideVector) += H_vector * inner_prod(H_vector, temperature_old_iteration) * penalty_integration * std::abs(det_J0);
+    noalias(rRightHandSideVector) += H_vector * inner_prod(H_vector, temperature_old_iteration) * penalty_integration * det_J0;
     // Assembly of the integration by parts term -(w,GRAD_u * n) -> Fundamental !!
-    noalias(rRightHandSideVector) += H_vector * inner_prod(DN_dot_n_vec, temperature_old_iteration) * integration_points[0].Weight() * std::abs(det_J0) ;
+    noalias(rRightHandSideVector) += H_vector * inner_prod(DN_dot_n_vec, temperature_old_iteration) * integration_points[0].Weight() * det_J0 ;
     // Assembly Dirichlet BCs -(GRAD_w* n,u) 
-    noalias(rRightHandSideVector) += nitsche_penalty * DN_dot_n_vec * inner_prod(H_vector,temperature_old_iteration) * integration_points[0].Weight() * std::abs(det_J0) ;
+    noalias(rRightHandSideVector) += nitsche_penalty * DN_dot_n_vec * inner_prod(H_vector,temperature_old_iteration) * integration_points[0].Weight() * det_J0 ;
 
 }
 
