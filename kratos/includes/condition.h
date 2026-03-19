@@ -54,7 +54,7 @@ namespace Kratos
  * not all of them have to be implemented if they are not needed for
  * the actual problem
  */
-class Condition : public GeometricalObject
+class KRATOS_EXPOSE Condition : public GeometricalObject
 {
 public:
     ///@name Type Definitions

@@ -62,7 +62,7 @@ namespace Kratos
  * @author Pooyan Dadvand
  * @author Riccardo Rossi
  */
-class Node final
+class KRATOS_EXPOSE Node final
     : public Point, public Flags
 {
 public:

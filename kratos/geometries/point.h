@@ -55,7 +55,7 @@ namespace Kratos
 @see Node
 @see IntegrationPoint
 */
-class Point : public array_1d<double, 3>
+class KRATOS_EXPOSE Point : public array_1d<double, 3>
 {
     static constexpr std::size_t mDimension = 3;
 

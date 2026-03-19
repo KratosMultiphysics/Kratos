@@ -50,7 +50,7 @@ namespace Kratos
  * @details It is used as base of any class which must be indexed
  * @author Riccardo Rossi
  */
-class IndexedObject
+class KRATOS_EXPOSE IndexedObject
 {
 public:
     ///@name Type Definitions

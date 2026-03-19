@@ -33,6 +33,17 @@
     #define KRATOS_API_IMPORT __attribute__((visibility("default")))
 #endif
 
+#undef KRATOS_EXPOSE
+#if defined(_WIN32) || defined(_WIN64)
+    #if defined(__MINGW32__) || defined(__MINGW64__) || defined(__INTEL_LLVM_COMPILER )
+        #define KRATOS_EXPOSE __attribute__((visibility("default")))
+    #else
+        #define KRATOS_EXPOSE
+    #endif
+#else
+    #define KRATOS_EXPOSE __attribute__((visibility("default")))
+#endif
+
 // Fixes MSVC not expanding __VA_ARGS__ as defined in the C99 standard
 #define KRATOS_EXPAND(A) A
 
