@@ -4,10 +4,10 @@ from importlib import import_module
 import KratosMultiphysics
 # import KratosMultiphysics.FluidDynamicsApplication
 
-from KratosMultiphysics.analysis_stage import AnalysisStage
+from KratosMultiphysics.analysis_stage_with_solver import AnalysisStageWithSolver
 # from KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis import FluidDynamicsAnalysis
 
-class DropletDynamicsAnalysis(AnalysisStage): #FluidDynamicsAnalysis):
+class DropletDynamicsAnalysis(AnalysisStageWithSolver): #FluidDynamicsAnalysis):
 
     # __init__ function can be defined specifically here to set deprecation warnings; using the template project parameters, there is no need for that
 

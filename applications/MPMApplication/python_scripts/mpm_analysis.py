@@ -3,14 +3,14 @@
 import KratosMultiphysics
 
 # Importing the base class
-from KratosMultiphysics.analysis_stage import AnalysisStage
+from KratosMultiphysics.analysis_stage_with_solver import AnalysisStageWithSolver
 from KratosMultiphysics.MPMApplication.python_solvers_wrapper_mpm import CreateSolver
 
 # Import utilities
 import itertools
 from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
 
-class MpmAnalysis(AnalysisStage):
+class MpmAnalysis(AnalysisStageWithSolver):
     """
     This class is the main-script of the MPMApplication put in a class
     """

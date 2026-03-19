@@ -6,7 +6,7 @@ import math
 import numpy as np
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
-from KratosMultiphysics.analysis_stage import AnalysisStage
+from KratosMultiphysics.analysis_stage_with_solver import AnalysisStageWithSolver
 from KratosMultiphysics.DEMApplication.DEM_restart_utility import DEMRestartUtility
 import KratosMultiphysics.DEMApplication.dem_default_input_parameters
 from KratosMultiphysics.DEMApplication.analytic_tools import analytic_data_procedures
@@ -30,7 +30,7 @@ else:
     Logger.PrintInfo("DEM", "Running under OpenMP........")
     import KratosMultiphysics.DEMApplication.DEM_procedures as DEM_procedures
 
-class DEMAnalysisStage(AnalysisStage):
+class DEMAnalysisStage(AnalysisStageWithSolver):
 
     def GetParametersFileName(self):
         return "ProjectParametersDEM.json"
