@@ -227,11 +227,18 @@ void ExplicitFilterUtils<TContainerType>::ExplicitFilterUtils::Update()
 
     mpAdapter = Kratos::make_unique<PositionAdapter>(&r_container);
 
+    #if defined(_WIN32) || defined(_WIN64)
+        // The MSVC compiler does not support std::unique_lock<std::mutex> lock(mutex);
+        // in the case the mutex is passed by reference. [See https://stackoverflow.com/questions/78598141/first-stdmutexlock-crashes-in-application-built-with-latest-visual-studio ]
+        const unsigned int number_of_threads = 1;
+        KRATOS_WARNING("ExplicitFilterUtils") << "The nanoflann will construct the KD tree in serial mode in Windows.";
+    #else
+        const unsigned int number_of_threads = 0;
+    #endif
+
     mpKDTreeIndex = Kratos::make_unique<KDTreeIndexType>(
         3, *mpAdapter,
-        nanoflann::KDTreeSingleIndexAdaptorParams(mLeafMaxSize, nanoflann::KDTreeSingleIndexAdaptorFlags::None, 0));
-
-    mpKDTreeIndex->buildIndex();
+        nanoflann::KDTreeSingleIndexAdaptorParams(mLeafMaxSize, nanoflann::KDTreeSingleIndexAdaptorFlags::None, number_of_threads));
 
     if constexpr(std::is_same_v<TContainerType, ModelPart::NodesContainerType>) {
         if (!mNodeCloudMesh) {

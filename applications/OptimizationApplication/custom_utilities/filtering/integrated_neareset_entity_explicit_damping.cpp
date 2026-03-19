@@ -107,6 +107,15 @@ void IntegratedNearestEntityExplicitDamping<TContainerType>::Update()
 {
     KRATOS_TRY
 
+    #if defined(_WIN32) || defined(_WIN64)
+        // The MSVC compiler does not support std::unique_lock<std::mutex> lock(mutex);
+        // in the case the mutex is passed by reference. [See https://stackoverflow.com/questions/78598141/first-stdmutexlock-crashes-in-application-built-with-latest-visual-studio ]
+        const unsigned int number_of_threads = 1;
+        KRATOS_WARNING("IntegratedNearestEntityExplicitDamping") << "The nanoflann will construct the KD tree in serial mode in Windows.";
+    #else
+        const unsigned int number_of_threads = 0;
+    #endif
+
     const auto stride = this->GetStride();
 
     for (IndexType i_comp = 0; i_comp < stride; ++i_comp) {
@@ -119,8 +128,7 @@ void IntegratedNearestEntityExplicitDamping<TContainerType>::Update()
             mComponentWiseKDTrees[i_comp] =  Kratos::make_shared<KDTreeIndexType>(
                 3, *mComponentWisePositionAdapters[i_comp],
                 nanoflann::KDTreeSingleIndexAdaptorParams(
-                mLeafMaxSize, nanoflann::KDTreeSingleIndexAdaptorFlags::None, 0));
-            mComponentWiseKDTrees[i_comp]->buildIndex();
+                mLeafMaxSize, nanoflann::KDTreeSingleIndexAdaptorFlags::None, number_of_threads));
         }
     }
 
@@ -170,6 +178,15 @@ void IntegratedNearestEntityExplicitDamping<TContainerType>::IntegratedNearestEn
 {
     KRATOS_TRY
 
+    #if defined(_WIN32) || defined(_WIN64)
+        // The MSVC compiler does not support std::unique_lock<std::mutex> lock(mutex);
+        // in the case the mutex is passed by reference. [See https://stackoverflow.com/questions/78598141/first-stdmutexlock-crashes-in-application-built-with-latest-visual-studio ]
+        const unsigned int number_of_threads = 1;
+        KRATOS_WARNING("ExplicitFilterUtils") << "The nanoflann will construct the KD tree in serial mode in Windows.";
+    #else
+        const unsigned int number_of_threads = 0;
+    #endif
+
     const auto stride = this->GetStride();
     const auto& radius_view = mpDampingRadius->ViewData();
     const auto& r_container = *(std::get<typename TContainerType::Pointer>(mpDampingRadius->GetContainer()));
@@ -203,7 +220,7 @@ void IntegratedNearestEntityExplicitDamping<TContainerType>::IntegratedNearestEn
         search_adapter_type adapter(&r_container);
 
         // create domain search tree
-        search_tree_type search_tree(3, adapter, nanoflann::KDTreeSingleIndexAdaptorParams(mLeafMaxSize, nanoflann::KDTreeSingleIndexAdaptorFlags::None, 0));
+        search_tree_type search_tree(3, adapter, nanoflann::KDTreeSingleIndexAdaptorParams(mLeafMaxSize, nanoflann::KDTreeSingleIndexAdaptorFlags::None, number_of_threads));
         search_tree.buildIndex();
 
         auto& comp_search_tree = *mComponentWiseKDTrees[ComponentIndex];
