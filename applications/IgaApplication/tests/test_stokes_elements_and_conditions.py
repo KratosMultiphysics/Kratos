@@ -21,7 +21,58 @@ class FluidTests(KratosUnittest.TestCase):
         bf[1] = 0.0
         bf[2] = 0.0
         element.SetValue(KM.BODY_FORCE, bf)
-        divergence_stress = [0.1, 100.0, -0.43]
+        divergence_stress = KM.Vector(2)
+        divergence_stress[0] = 0.1
+        divergence_stress[1] = 100.0
+        element.SetValue(IGA.DIVERGENCE_STRESS, divergence_stress)
+
+        model_part.AddElement(element)
+        return element
+
+    @staticmethod
+    def create_navier_stokes_element_3d(model_part, integration_point):
+        props = model_part.CreateNewProperties(1)
+        props.SetValue(KM.DENSITY, 2.5)
+        props.SetValue(KM.DYNAMIC_VISCOSITY, 0.8)
+        props.SetValue(KM.CONSTITUTIVE_LAW, DFA.Newtonian3DLaw())
+
+        geometry = TestCreationUtility.GetQuadraturePointGeometryFromRectangularVolumeP2(model_part, integration_point)
+        element = model_part.CreateNewElement("NavierStokesElement", 1, geometry, props)
+
+        bf = KM.Vector(3)
+        bf[0] = 1.1
+        bf[1] = -0.7
+        bf[2] = 0.25
+        element.SetValue(KM.BODY_FORCE, bf)
+
+        divergence_stress = KM.Vector(3)
+        divergence_stress[0] = 0.2
+        divergence_stress[1] = -0.15
+        divergence_stress[2] = 0.05
+        element.SetValue(IGA.DIVERGENCE_STRESS, divergence_stress)
+
+        model_part.AddElement(element)
+        return element
+
+    @staticmethod
+    def create_stokes_element_3d(model_part, integration_point):
+        props = model_part.CreateNewProperties(1)
+        props.SetValue(KM.DYNAMIC_VISCOSITY, 0.8)
+        props.SetValue(KM.CONSTITUTIVE_LAW, DFA.Newtonian3DLaw())
+
+        geometry = TestCreationUtility.GetQuadraturePointGeometryFromRectangularVolumeP2(model_part, integration_point)
+        element = model_part.CreateNewElement("StokesElement", 1, geometry, props)
+
+        bf = KM.Vector(3)
+        bf[0] = 1.1
+        bf[1] = -0.7
+        bf[2] = 0.25
+        element.SetValue(KM.BODY_FORCE, bf)
+
+        divergence_stress = KM.Vector(3)
+        divergence_stress[0] = 0.2
+        divergence_stress[1] = -0.15
+        divergence_stress[2] = 0.05
         element.SetValue(IGA.DIVERGENCE_STRESS, divergence_stress)
 
         model_part.AddElement(element)
@@ -85,6 +136,61 @@ class FluidTests(KratosUnittest.TestCase):
         for i in range(rhs.Size()):
             self.assertAlmostEqual(rhs[i], expected_RHS[i], delta=tolerance)
 
+    def test_StokesElement3DRectangularP2(self):
+        model = KM.Model()
+        model_part = model.CreateModelPart("ModelPart")
+        model_part.SetBufferSize(2)
+
+        model_part.AddNodalSolutionStepVariable(KM.VELOCITY)
+        model_part.AddNodalSolutionStepVariable(KM.PRESSURE)
+
+        ipt = [0.23, 0.61, 0.37, 0.42]
+        element = self.create_stokes_element_3d(model_part, ipt)
+
+        for node in model_part.Nodes:
+            node.AddDof(KM.VELOCITY_X)
+            node.AddDof(KM.VELOCITY_Y)
+            node.AddDof(KM.VELOCITY_Z)
+            node.AddDof(KM.PRESSURE)
+
+            velocity = node.GetSolutionStepValue(KM.VELOCITY)
+            velocity[0] = 0.1 + 0.01 * node.X - 0.02 * node.Y
+            velocity[1] = -0.05 + 0.03 * node.Y + 0.01 * node.Z
+            velocity[2] = 0.02 + 0.02 * node.X - 0.01 * node.Z
+            node.SetSolutionStepValue(KM.PRESSURE, 1.0 + 0.2 * node.X - 0.1 * node.Y + 0.05 * node.Z)
+
+        process_info = model_part.ProcessInfo
+        element.Initialize(process_info)
+
+        lhs = KM.Matrix()
+        rhs = KM.Vector()
+        element.CalculateLocalSystem(lhs, rhs, process_info)
+
+        geometry = element.GetGeometry()
+        self.assertEqual(geometry.WorkingSpaceDimension(), 3)
+        self.assertEqual(geometry.LocalSpaceDimension(), 3)
+        self.assertEqual(geometry.PointsNumber(), 27)
+        self.assertGreater(geometry.DomainSize(), 0.0)
+        self.assertEqual(lhs.Size1(), 108)
+        self.assertEqual(lhs.Size2(), 108)
+        self.assertEqual(rhs.Size(), 108)
+
+        tolerance = 1e-10
+        expected_lhs = [
+            8.9900319974901654e-02, 2.7661636915354355e-02, 2.7661636915354365e-02, 1.1505058297442602e-02,
+           -3.1718793944655044e-02,-1.6354366987248646e-02,-1.6354366987248650e-02, 2.9226680132595053e-03,
+           -5.4791976390410994e-03,-2.5235485295714630e-03,-2.5235485295714635e-03, 1.8561375559541957e-04]
+        expected_rhs = [
+           -1.2934143575736417e-02,-3.1761225011348601e-02,-2.1824709809219953e-02,-3.7191100322717335e-04,
+            2.4258112912556050e-02,-8.0684090425895944e-03,-5.5442032199225657e-03, 7.9313375873266733e-04,
+            3.2898538470421090e-03,-5.1241115900977463e-04,-3.5210307047031452e-04, 1.0674132192544911e-04]
+
+        for i, expected_value in enumerate(expected_lhs):
+            self.assertAlmostEqual(lhs[0, i], expected_value, delta=tolerance)
+
+        for i, expected_value in enumerate(expected_rhs):
+            self.assertAlmostEqual(rhs[i], expected_value, delta=tolerance)
+
     # test for support fluid condition (body-fitted)
     def test_SupportFluidConditionP3(self):
         model = KM.Model()
@@ -138,6 +244,64 @@ class FluidTests(KratosUnittest.TestCase):
         self.assertEqual(rhs.Size(), len(expected_RHS))
         for i in range(rhs.Size()):
             self.assertAlmostEqual(rhs[i], expected_RHS[i], delta=tolerance)
+
+    def test_NavierStokesElement3DRectangularP2(self):
+        model = KM.Model()
+        model_part = model.CreateModelPart("ModelPart")
+        model_part.SetBufferSize(2)
+
+        model_part.AddNodalSolutionStepVariable(KM.VELOCITY)
+        model_part.AddNodalSolutionStepVariable(KM.PRESSURE)
+        model_part.ProcessInfo.SetValue(KM.DOMAIN_SIZE, 3)
+        model_part.ProcessInfo.SetValue(KM.DYNAMIC_TAU, 1.0)
+        model_part.ProcessInfo.SetValue(KM.DELTA_TIME, 0.1)
+
+        ipt = [0.23, 0.61, 0.37, 0.42]
+        element = self.create_navier_stokes_element_3d(model_part, ipt)
+
+        for node in model_part.Nodes:
+            node.AddDof(KM.VELOCITY_X)
+            node.AddDof(KM.VELOCITY_Y)
+            node.AddDof(KM.VELOCITY_Z)
+            node.AddDof(KM.PRESSURE)
+
+            velocity = node.GetSolutionStepValue(KM.VELOCITY)
+            velocity[0] = 0.1 + 0.01 * node.X - 0.02 * node.Y
+            velocity[1] = -0.05 + 0.03 * node.Y + 0.01 * node.Z
+            velocity[2] = 0.02 + 0.02 * node.X - 0.01 * node.Z
+            node.SetSolutionStepValue(KM.PRESSURE, 1.0 + 0.2 * node.X - 0.1 * node.Y + 0.05 * node.Z)
+
+        process_info = model_part.ProcessInfo
+        element.Initialize(process_info)
+        lhs = KM.Matrix()
+        rhs = KM.Vector()
+        element.CalculateLocalSystem(lhs, rhs, process_info)
+
+        geometry = element.GetGeometry()
+        self.assertEqual(geometry.WorkingSpaceDimension(), 3)
+        self.assertEqual(geometry.LocalSpaceDimension(), 3)
+        self.assertEqual(geometry.PointsNumber(), 27)
+        self.assertGreater(geometry.DomainSize(), 0.0)
+        self.assertEqual(lhs.Size1(), 108)
+        self.assertEqual(lhs.Size2(), 108)
+        self.assertEqual(rhs.Size(), 108)
+
+        tolerance = 1e-10
+        expected_lhs = [
+            1.4914900216177548e-01, 8.691031910222818e-02, 8.691031910222821e-02, 1.1505058297442602e-02,
+           -8.344190677853194e-02,-1.3032282812547660e-03,-1.3032282812547695e-03, 2.9226680132595053e-03,
+           -1.3004766992038040e-02,-1.5676758924697773e-03,-1.5676758924697777e-03, 1.8561375559541957e-04]
+        expected_rhs = [
+           -1.2934143575736417e-02,-3.1761225011348601e-02,-2.1824709809219953e-02,-1.9290603275341875e-04,
+            2.4258112912556050e-02,-8.0684090425895944e-03,-5.5442032199225657e-03, 4.1138951392215021e-04,
+            3.2898538470421090e-03,-5.1241115900977463e-04,-3.5210307047031452e-04, 5.5365516924263562e-05]
+
+        for i, expected_value in enumerate(expected_lhs):
+            self.assertAlmostEqual(lhs[0, i], expected_value, delta=tolerance)
+
+        for i, expected_value in enumerate(expected_rhs):
+            self.assertAlmostEqual(rhs[i], expected_value, delta=tolerance)
+
 
 
 if __name__ == '__main__':
