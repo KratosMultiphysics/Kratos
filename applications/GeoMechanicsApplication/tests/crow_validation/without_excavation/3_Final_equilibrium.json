@@ -195,6 +195,18 @@
                     ],
                     "deactivate_soil_part": false
                 }
+            },{
+                "python_module": "geo_extrapolate_integration_point_values_to_nodes_process",
+                "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+                "process_name": "GeoExtrapolateIntegrationPointValuesToNodesProcess",
+                "Parameters": {
+                    "model_part_name": "PorousDomain.Beam",
+                    "list_of_variables": [
+                        "AXIAL_FORCE",
+                        "BENDING_MOMENT",
+                        "SHEAR_FORCE"
+                    ]
+                }
             }
         ]
     },
