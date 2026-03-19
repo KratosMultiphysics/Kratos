@@ -31,61 +31,66 @@ class MPMSolver(PythonSolver):
     def GetDefaultParameters(cls):
         this_defaults = KratosMultiphysics.Parameters("""
         {
-            "model_part_name" : "MPM_Material",
-            "domain_size"     : -1,
-            "echo_level"      : 0,
-            "time_stepping"   : { },
-            "time_integration_method"   : "implicit",
-            "analysis_type"   : "non_linear",
-            "grid_model_import_settings" : {
-                "input_type"     : "mdpa",
-                "input_filename" : "unknown_name_Grid"
+            "model_part_name"                       : "MPM_Material",
+            "domain_size"                           : -1,
+            "echo_level"                            : 0,
+            "time_stepping"                         : { },
+            "solver_type"                           : "dynamic",
+            "time_integration_method"               : "implicit",
+            "analysis_type"                         : "non_linear",
+            "particle_mapping_settings"             : {
+                "scheme"            : "FLIP",
+                "echo_level"        : 0
             },
-            "model_import_settings" : {
+            "grid_model_import_settings"            : {
+                "input_type"        : "mdpa",
+                "input_filename"    : "unknown_name_Grid"
+            },
+            "model_import_settings"                 : {
                 "input_type"        : "mdpa",
                 "input_filename"    : "unknown_name_Body"
             },
-            "material_import_settings" : {
-                "materials_filename" : ""
+            "material_import_settings"              : {
+                "materials_filename": ""
             },
-            "compute_reactions"                  : false,
-            "convergence_criterion"              : "Residual_criteria",
-            "displacement_relative_tolerance"    : 1.0E-4,
-            "displacement_absolute_tolerance"    : 1.0E-9,
-            "residual_relative_tolerance"        : 1.0E-4,
-            "residual_absolute_tolerance"        : 1.0E-9,
-            "max_iteration"                      : 20,
-            "pressure_dofs"                      : false,
-            "stabilization"                      : "ppp",
-            "compressible"                       : true,
-            "axis_symmetric_flag"                : false,
-            "consistent_mass_matrix"             : false,
-            "block_builder"                      : true,
-            "move_mesh_flag"                     : false,
-            "problem_domain_sub_model_part_list" : [],
-            "processes_sub_model_part_list"      : [],
-            "auxiliary_variables_list"           : [],
-            "auxiliary_dofs_list"                : [],
-            "auxiliary_reaction_list"            : [],
-            "element_search_settings"            : {
-                "search_algorithm_type"          : "bin_based",
-                "max_number_of_results"          : 1000,
-                "searching_tolerance"            : 1.0E-5,
-                "remove_entities_not_found"      : true
+            "compute_reactions"                     : false,
+            "convergence_criterion"                 : "Residual_criteria",
+            "displacement_relative_tolerance"       : 1.0E-4,
+            "displacement_absolute_tolerance"       : 1.0E-9,
+            "residual_relative_tolerance"           : 1.0E-4,
+            "residual_absolute_tolerance"           : 1.0E-9,
+            "max_iteration"                         : 20,
+            "pressure_dofs"                         : false,
+            "stabilization"                         : "ppp",
+            "compressible"                          : true,
+            "axis_symmetric_flag"                   : false,
+            "consistent_mass_matrix"                : false,
+            "block_builder"                         : true,
+            "move_mesh_flag"                        : false,
+            "problem_domain_sub_model_part_list"    : [],
+            "processes_sub_model_part_list"         : [],
+            "auxiliary_variables_list"              : [],
+            "auxiliary_dofs_list"                   : [],
+            "auxiliary_reaction_list"               : [],
+            "element_search_settings"               : {
+                "search_algorithm_type"             : "bin_based",
+                "max_number_of_results"             : 1000,
+                "searching_tolerance"               : 1.0E-5,
+                "remove_entities_not_found"         : true
             },
-            "linear_solver_settings"             : {
-                "solver_type" : "amgcl",
-                "smoother_type":"damped_jacobi",
-                "krylov_type": "cg",
-                "coarsening_type": "aggregation",
-                "max_iteration": 200,
+            "linear_solver_settings"                : {
+                "solver_type"       : "amgcl",
+                "smoother_type"     :"damped_jacobi",
+                "krylov_type"       : "cg",
+                "coarsening_type"   : "aggregation",
+                "max_iteration"     : 200,
                 "provide_coordinates": false,
                 "gmres_krylov_space_dimension": 100,
-                "verbosity" : 0,
-                "tolerance": 1e-7,
-                "scaling": false,
+                "verbosity"         : 0,
+                "tolerance"         : 1e-7,
+                "scaling"           : false,
                 "use_block_matrices_if_possible" : true,
-                "coarse_enough" : 50
+                "coarse_enough"     : 50
             }
         }""")
         this_defaults.AddMissingParameters(super(MPMSolver, cls).GetDefaultParameters())
@@ -141,6 +146,7 @@ class MPMSolver(PythonSolver):
         # Generate material points
         self._GenerateMaterialPoint()
         self._GetSolutionStrategy().Initialize()
+        self._GetParticleMappingScheme().Initialize()
 
         KratosMultiphysics.Logger.PrintInfo("::[MPMSolver]:: ","Solver is initialized correctly.")
 
@@ -158,7 +164,11 @@ class MPMSolver(PythonSolver):
 
     def Predict(self):
         self._SearchElement()
-        #clean nodal values and map from MPs to nodes
+        # clean nodal values and map from MPs to nodes
+        if self._IsDynamicImplicit(): # temp
+            # temp: if implicit, use this insted
+            self._GetParticleMappingScheme().RunP2GMapping()
+        # else, use the old one
         self._GetSolutionStrategy().Predict()
 
     def SolveSolutionStep(self):
@@ -454,6 +464,50 @@ class MPMSolver(PythonSolver):
             required_buffer_size = self.material_point_model_part.GetBufferSize()
             auxiliary_solver_utilities.SetAndFillBuffer(self.grid_model_part, required_buffer_size, delta_time)
 
+    def _GetParticleMappingScheme(self):
+        if not hasattr(self, '_particle_mapping_scheme'):
+            self._particle_mapping_scheme = self._CreateParticleMappingScheme()
+
+        return self._particle_mapping_scheme
+
+    def _CreateParticleMappingScheme(self):
+        if self.settings.Has("particle_mapping_settings"):
+            mapping_scheme = self.settings["particle_mapping_settings"]["scheme"].GetString()
+            mpm_model_part = self.GetComputingModelPart()
+            grid_model_part = self.GetGridModelPart()
+            mapping_echo_level = self.settings["particle_mapping_settings"]["echo_level"].GetInt()
+
+            if mapping_scheme == "FLIP":
+                return KratosMPM.MPMFlipParticleMappingUtility(mpm_model_part, grid_model_part, mapping_echo_level)
+
+            # elif mapping_scheme == "PIC":
+            #     raise Exception("PIC particle mapping scheme is not implemented yet.")
+
+            # elif mapping_scheme == "PIC":
+            #     raise Exception("PIC particle mapping scheme is not implemented yet.")
+
+            # elif mapping_scheme == "TPIC":
+            #     raise Exception("TPIC particle mapping scheme is not implemented yet.")
+
+            # elif mapping_scheme == "APIC":
+            #     raise Exception("APIC particle mapping scheme is not implemented yet.")
+
+            else:
+                err_msg  = "The requested particle mapping scheme \"" + mapping_scheme
+                err_msg += "\" is not available in MPMApplication!\n"
+                err_msg += "Available options are:\n\"FLIP\"\n"
+                raise Exception(err_msg)
+
+        else:
+            raise Exception("Particle mapping scheme has not been defined in project parameters")
+
+    # temp
+    def _IsDynamicImplicit(self):
+        solver_type = self.settings["solver_type"].GetString()
+        is_dynamic = (solver_type.lower() == "dynamic")
+        is_implicit = (self.settings["time_integration_method"].GetString() == "implicit")
+        return (is_dynamic & is_implicit)
+    
     ### Solver private functions
 
     def __ComputeDeltaTime(self):

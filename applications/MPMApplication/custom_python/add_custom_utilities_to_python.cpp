@@ -24,10 +24,45 @@
 #include "linear_solvers/linear_solver.h"
 #include "custom_utilities/material_point_search_utility.h"
 #include "custom_utilities/material_point_generator_utility.cpp"
+#include "custom_utilities/mapping_utilities/mpm_base_particle_mapping_utility.hpp"
+#include "custom_utilities/mapping_utilities/mpm_flip_particle_mapping_utility.hpp"
 
 
 namespace Kratos{
 namespace Python{
+
+    class MPMBaseParticleMappingUtilityTrampoline : public MPMBaseParticleMappingUtility
+    {
+    public:
+        //Inherit the constructors
+
+        void P2GMomentum(Element& rElement, Node& rNode, const double& rN_i,  const ProcessInfo& rCurrentProcessInfo) override
+        {
+            using ReturnType = void;
+            using BaseType = MPMBaseParticleMappingUtility;
+            PYBIND11_OVERRIDE_PURE(
+                ReturnType,
+                BaseType,
+                P2GMomentum,
+                rElement,
+                rNode,
+                rN_i,
+                rCurrentProcessInfo);
+        }
+        void P2GInertia(Element& rElement, Node& rNode, const double& rN_i,  const ProcessInfo& rCurrentProcessInfo) override
+        {
+            using ReturnType = void;
+            using BaseType = MPMBaseParticleMappingUtility;
+            PYBIND11_OVERRIDE_PURE(
+                ReturnType,
+                BaseType,
+                P2GInertia,
+                rElement,
+                rNode,
+                rN_i,
+                rCurrentProcessInfo);
+        }
+    }; // class ControllerTrampoline
 
     void SearchElementAccordingToDimension(
         ModelPart& rBackgroundGridModelPart,
@@ -71,6 +106,26 @@ namespace Python{
         m.def("GenerateMaterialPointElement", GenerateMaterialPointElementAccordingToDimension);
         m.def("GenerateMaterialPointCondition", GenerateMaterialPointConditionAccordingToDimension);
         m.def("GenerateLagrangeNodes", MaterialPointGeneratorUtility::GenerateLagrangeNodes);
+
+
+        // // MPM Residual Based Newton Raphson Strategy Type
+        // pybind11::class_< MPMFlipParticleMappingUtility,typename MPMResidualBasedNewtonRaphsonStrategyType::Pointer, BaseSolvingStrategyType >(m,"MPMResidualBasedNewtonRaphsonStrategy")
+        //     .def(pybind11::init< ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, int, bool, bool, bool >() )
+        //     .def(pybind11::init< ModelPart&, BaseSchemeType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, int, bool, bool, bool >() )
+        //     ;
+        pybind11::class_<MPMBaseParticleMappingUtility, MPMBaseParticleMappingUtility::Pointer, MPMBaseParticleMappingUtilityTrampoline>(m, "MPMBaseParticleMappingUtility")
+            .def("ResetBackgroundGrid", &MPMBaseParticleMappingUtility::ResetBackgroundGrid)
+            .def("RunP2GMapping", &MPMBaseParticleMappingUtility::RunP2GMapping)
+            .def("RunG2PMapping", &MPMBaseParticleMappingUtility::RunG2PMapping)
+            ;
+
+        pybind11::class_<MPMFlipParticleMappingUtility, MPMFlipParticleMappingUtility::Pointer, MPMBaseParticleMappingUtility>(m, "MPMFlipParticleMappingUtility")
+            .def(pybind11::init<ModelPart&, ModelPart&, const unsigned int>(), pybind11::arg("material_point_model_part"), pybind11::arg("grid_model_part"), pybind11::arg("echo_level"))
+            .def("Initialize", &MPMFlipParticleMappingUtility::Initialize)
+            .def("RunP2GMapping", &MPMFlipParticleMappingUtility::RunP2GMapping)
+            .def("RunG2PMapping", &MPMFlipParticleMappingUtility::RunG2PMapping)
+            ;
+
     }
 
 }  // namespace Python.
