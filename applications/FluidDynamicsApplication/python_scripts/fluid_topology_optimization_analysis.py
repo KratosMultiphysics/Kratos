@@ -2060,9 +2060,10 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         if (print_time_step):
             self.MpiPrint("\n--| PRINT TIME SOLUTION OUTPUT TO FILES")
             for istep in range(self.n_time_steps):
-                self.SetTimeOutputSolutionStepPhysicsVariables(istep)
-                for output_process in self._GetListOfTimeOutputProcesses():
-                    self.PrintTimeOutputProcess(output_process, istep+1)
+                if len(self._GetListOfTimeOutputProcesses()) > 0:
+                    self.SetTimeOutputSolutionStepPhysicsVariables(istep)
+                    for output_process in self._GetListOfTimeOutputProcesses():
+                        self.PrintTimeOutputProcess(output_process, istep+1)
 
     def SetTimeOutputSolutionStepPhysicsVariables(self, time_step_id):
         self._SetTimeOutputSolutionStepFluidVariables(time_step_id)
