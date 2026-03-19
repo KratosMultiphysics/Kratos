@@ -223,11 +223,15 @@ public:
         // Assemble all elements
         const auto timer = BuiltinTimer();
 
+        KRATOS_PREPARE_CATCH_THREAD_EXCEPTION
+
         #pragma omp parallel firstprivate(nelements,nconditions, LHS_Contribution, RHS_Contribution, EquationId )
         {
             # pragma omp for  schedule(guided, 512) nowait
-            for (int k = 0; k < nelements; k++) {
-                auto it_elem = el_begin + k;
+            for (int i = 0; i < nelements; i++) {
+                KRATOS_TRY
+
+                auto it_elem = el_begin + i;
 
                 if (it_elem->IsActive()) {
                     // Calculate elemental contribution
@@ -237,11 +241,14 @@ public:
                     Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId);
                 }
 
+                KRATOS_CATCH_THREAD_EXCEPTION
             }
 
             #pragma omp for  schedule(guided, 512)
-            for (int k = 0; k < nconditions; k++) {
-                auto it_cond = cond_begin + k;
+            for (int i = 0; i < nconditions; i++) {
+                KRATOS_TRY
+
+                auto it_cond = cond_begin + i;
 
                 if (it_cond->IsActive()) {
                     // Calculate elemental contribution
@@ -250,8 +257,12 @@ public:
                     // Assemble the elemental contribution
                     Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId);
                 }
+                KRATOS_CATCH_THREAD_EXCEPTION
+
             }
         }
+
+        KRATOS_CHECK_AND_THROW_THREAD_EXCEPTION
 
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() >= 1) << "Build time: " << timer << std::endl;
 
@@ -297,11 +308,15 @@ public:
         // Assemble all elements
         const auto timer = BuiltinTimer();
 
+        KRATOS_PREPARE_CATCH_THREAD_EXCEPTION
+
         #pragma omp parallel firstprivate(nelements, nconditions, lhs_contribution, equation_id )
         {
             # pragma omp for  schedule(guided, 512) nowait
-            for (int k = 0; k < nelements; ++k) {
-                auto it_elem = it_elem_begin + k;
+            for (int i = 0; i < nelements; ++i) {
+                KRATOS_TRY
+
+                auto it_elem = it_elem_begin + i;
 
                 // Detect if the element is active or not. If the user did not make any choice the element is active by default
                 if (it_elem->IsActive()) {
@@ -311,11 +326,15 @@ public:
                     // Assemble the elemental contribution
                     AssembleLHS(rA, lhs_contribution, equation_id);
                 }
+
+                KRATOS_CATCH_THREAD_EXCEPTION
             }
 
             #pragma omp for  schedule(guided, 512)
-            for (int k = 0; k < nconditions; ++k) {
-                auto it_cond = it_cond_begin + k;
+            for (int i = 0; i < nconditions; ++i) {
+                KRATOS_TRY
+
+                auto it_cond = it_cond_begin + i;
 
                 // Detect if the element is active or not. If the user did not make any choice the element is active by default
                 if (it_cond->IsActive()) {
@@ -325,8 +344,12 @@ public:
                     // Assemble the elemental contribution
                     AssembleLHS(rA, lhs_contribution, equation_id);
                 }
+
+                KRATOS_CATCH_THREAD_EXCEPTION
             }
         }
+
+        KRATOS_CHECK_AND_THROW_THREAD_EXCEPTION
 
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() >= 1) << "Build time LHS: " << timer << std::endl;
 
