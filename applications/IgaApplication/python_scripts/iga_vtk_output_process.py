@@ -1,328 +1,470 @@
-# --- Kratos Imports --
+# Importing the Kratos Library
 import KratosMultiphysics as KM
 import KratosMultiphysics.IgaApplication
-import KratosMultiphysics.kratos_utilities
-
-# --- STD Imports ---
-import typing
+import numpy as np
 
 VTK_QUAD = 9
+VTK_TRIANGLE = 5
 VERSION = (2, 4)
-GLOBAL_TYPE = 'PartitionedDataSetCollection'
-SUB_TYPE = "UnstructuredGrid"
+GLOBAL_TYPE = 'UnstructuredGrid'
 
 try:
     import h5py as h5
 except ImportError as e:
-    raise ImportError(
-        "h5py is required for this functionality but it is not installed. "
-        "Please install it with: pip install h5py"
-    ) from e
+    raise ImportError("pip install h5py") from e
 
 def Factory(settings, model):
-    if not (isinstance(settings, KratosMultiphysics.Parameters)):
-        raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
     return IgaVTKOutputProcess(model, settings["Parameters"])
 
-class IgaVTKOutputProcess(KratosMultiphysics.Process):
+class IgaVTKOutputProcess(KM.Process):
 
-    def __init__(self,
-                 model: KratosMultiphysics.Model,
-                 params: KratosMultiphysics.Parameters):
-        KratosMultiphysics.Process.__init__(self)
+    def __init__(self, model, params):
+        super().__init__()
 
-        ## Settings string in json format
-        default_parameters = KratosMultiphysics.Parameters("""{
-            "output_file_name"          : "",
-            "brep_surface_ids"          : [],
-            "model_part_name"           : "",
-            "file_label"                : "step",
-            "output_control_type"       : "step",
-            "output_frequency"          : 1.0,
-            "output_refinement"         : []
+        # Default parameters for the process
+        default_parameters = KM.Parameters("""{
+            "output_file_name"     : "",
+            "brep_surface_ids"     : [],
+            "model_part_name"      : "",
+            "nodal_solution_step_data_variables" : [],
+            "output_refinement"    : [],
+            "output_control_type"  : "none",
+            "output_frequency"     : 1,
+            "output_interval"      : 0.0
         }""")
 
-        ## Overwrite the default settings with user-provided parameters
-        self.params = params
-        self.params.ValidateAndAssignDefaults(default_parameters)
+        params.ValidateAndAssignDefaults(default_parameters)
 
-        ## Get the model part
-        self.model_part = model[self.params["model_part_name"].GetString()]
+        self.model_part = model[params["model_part_name"].GetString()]
+        self.output_file_name = params["output_file_name"].GetString()
 
-        ## Get the geometry
-        self.brep_surface_ids = [
-            self.params["brep_surface_ids"][i].GetInt()
-            for i in range(self.params["brep_surface_ids"].size())
-        ]
-
-        ## Get the output refinement
-        ## Knot insertion per knot span for grid point output
-        self.output_refinement = [
-            self.params["output_refinement"][i].GetInt()
-            for i in range(self.params["output_refinement"].size())
-        ]
-
-        self.output_file_name = self.params["output_file_name"].GetString()
+        # Ensure correct file extension
         if not self.output_file_name.endswith(".vtkhdf"):
             self.output_file_name += ".vtkhdf"
 
-        # self.nodal_results_scalar, self.nodal_results_vector = \
-        #     CreateVariablesListFromInput(self.params["nodal_results"])
+        # IDs of Brep surfaces to be exported
+        self.brep_surface_ids = [
+            params["brep_surface_ids"][i].GetInt()
+            for i in range(params["brep_surface_ids"].size())
+        ]
 
-        # self.integration_point_results_scalar, self.integration_point_results_vector = \
-        #     CreateVariablesListFromInput(self.params["integration_point_results"])
+        # Refinement level per parametric direction
+        self.output_refinement = [
+            params["output_refinement"][i].GetInt()
+            for i in range(params["output_refinement"].size())
+        ]
 
-        # Set up output frequency and format
-        output_file_label = self.params["file_label"].GetString()
-        if output_file_label == "time":
-            self.output_label_is_time = True
-        elif output_file_label == "step":
-            self.output_label_is_time = False
+        self.printed_step_count = 0
+
+        # Variables to export (nodal solution step data)
+        self.nodal_variables = []
+        for i in range(params["nodal_solution_step_data_variables"].size()):
+            var_name = params["nodal_solution_step_data_variables"][i].GetString()
+            self.nodal_variables.append(KM.KratosGlobals.GetVariable(var_name))
+        
+        for var in self.nodal_variables:
+            if not self.model_part.HasNodalSolutionStepVariable(var):
+                raise Exception(
+                    f"Variable '{var.Name()}' is not in the model part. "
+                    f"Make sure to call AddNodalSolutionStepVariable."
+                )
+
+        # Output control settings
+        self.output_control_type = params["output_control_type"].GetString()
+
+        if self.output_control_type == "none":
+            pass
+
+        elif self.output_control_type == "step":
+            self.output_frequency = params["output_frequency"].GetInt()
+            self.step_counter = -1  # ensures first output at step 0
+
+        elif self.output_control_type == "time":
+            self.output_interval = params["output_interval"].GetDouble()
+            self.next_output_time = self.model_part.ProcessInfo[KM.TIME]
+
         else:
-            msg = '{} Error: Unknown value "{}" read for parameter "file_label"'.format(self.__class__.__name__,output_file_label)
-            raise Exception(msg)
-
-        output_control_type = self.params["output_control_type"].GetString()
-        if output_control_type == "time":
-            self.output_control_is_time = True
-        elif output_control_type == "step":
-            self.output_control_is_time = False
-        else:
-            err_msg  = 'The requested "output_control_type" "' + output_control_type
+            err_msg  = 'The requested "output_control_type" "' + self.output_control_type
             err_msg += '" is not available!\nAvailable options are: "time", "step"'
             raise Exception(err_msg)
 
-        self.output_frequency = self.params["output_frequency"].GetDouble()
+        # Cached parametric sampling (shared across time steps)
+        self.cached_uv = None
 
-        self.step_count = 0
-        self.printed_step_count = 0
-        self.next_output = 0.0
+        KM.Logger.PrintWarning(
+            "IgaVTKOutputProcess",
+            "VTKHDF requires ParaView 5.11 or newer. Older versions may not support it reliably."
+        )
 
-    def ExecuteBeforeSolutionLoop(self):
-        with open(self.output_file_name, 'w') as output_file:
-            output_file.write("Post Results File 1.0\n")
-
-    def PrintOutput(self):
-        time = GetPrettyTime(self.model_part.ProcessInfo[KratosMultiphysics.TIME])
-        self.printed_step_count += 1
-        self.model_part.ProcessInfo[KratosMultiphysics.PRINTED_STEP] = self.printed_step_count
-        label: typing.Union[int,str,float]
-        if self.output_label_is_time:
-            label = time
-        else:
-            label = self.printed_step_count
-
-        #TODO: write vtkhdf output
-        file: h5.File = h5.File(self.output_file_name, "w")
-        root: h5.Group = file.create_group("VTKHDF", track_order=True)
-        root.attrs["Version"] = VERSION
-        root.attrs["Type"] = GLOBAL_TYPE
-
-        assembly: h5.Group = root.create_group("Assembly", track_order=True)
-
-        # Output subgroup for each brep
-        index = 0
-
-        for brep_id in self.brep_surface_ids:
-            brep_surface: KratosMultiphysics.Geometry = self.model_part.GetGeometry(brep_id)
-            group_name = f"brep_surface_{brep_id}"
-            surface_group = root.create_group(group_name)
-            surface_group.attrs["Version"] = VERSION
-            surface_group.attrs["Type"] = SUB_TYPE
-            self.__write_out_surface(surface_group, brep_surface)
-
-            # ---- Assembly ----
-            assem_group = assembly.create_group(f"brep_{brep_id}", track_order=True)
-            assem_group.attrs['Index'] = index
-            assem_group[group_name] = h5.SoftLink(f"/VTKHDF/{group_name}")
-            assem_group[group_name].attrs['Index'] = index
-
-            index += 1
-
-        # Schedule next output
-        if self.output_frequency > 0.0: # Note: if == 0, we'll just always print
-            if self.output_control_is_time:
-                while GetPrettyTime(self.next_output) <= time:
-                    self.next_output += self.output_frequency
-            else:
-                while self.next_output <= self.step_count:
-                    self.next_output += self.output_frequency
-
+    # Decide whether to output or not a time
     def IsOutputStep(self):
-        if self.output_control_is_time:
-            time = GetPrettyTime(self.model_part.ProcessInfo[KratosMultiphysics.TIME])
-            return (time >= GetPrettyTime(self.next_output))
-        else:
-            return ( self.step_count >= self.next_output )
+        if self.output_control_type == "none":
+            return self.printed_step_count == 0
 
-    def __write_out_surface(self, surface_group:h5.Group, brep_surface:KM.BrepSurface):
+        elif self.output_control_type == "step":
+            return (self.step_counter % self.output_frequency) == 0
+
+        elif self.output_control_type == "time":
+            time = self.model_part.ProcessInfo[KM.TIME]
+
+            if time >= self.next_output_time:
+                while time >= self.next_output_time:
+                    self.next_output_time += self.output_interval
+                return True
+
+            return False
+
+        return False
+
+    # Print the output in the HDFVTK file
+    def PrintOutput(self):
+        time = float(self.model_part.ProcessInfo[KM.TIME])
+
+        with h5.File(self.output_file_name, "a") as file:
+            # Create or retrieve root group
+            if "VTKHDF" not in file:
+                root = file.create_group("VTKHDF")
+                root.attrs["Version"] = VERSION
+                root.attrs["Type"] = GLOBAL_TYPE
+            else:
+                root = file["VTKHDF"]
+
+            # Rebuild UV sampling if needed (when reopening file)
+            if self.cached_uv is None and "Points" in root:
+                all_uv = []
+                self.cached_uv_sizes = []
+
+                for brep_id in self.brep_surface_ids:
+                    brep_surface = self.model_part.GetGeometry(brep_id)
+                    _, _, _, _, uv = self.__compute_full_grid(brep_surface)
+                    all_uv.extend(uv)
+                    self.cached_uv_sizes.append(len(uv))
+
+                self.cached_uv = all_uv
+
+            # Geometry is written only once
+            if "Points" not in root:
+                self.cached_uv_sizes = []
+                all_pts = []
+                all_conn = []
+                all_offsets = []
+                all_types = []
+                all_uv = []
+
+                point_shift = 0
+                conn_shift = 0
+
+                for brep_id in self.brep_surface_ids:
+                    brep_surface = self.model_part.GetGeometry(brep_id)
+
+                    pts, conn, offs, types, uv = self.__compute_full_grid(brep_surface)
+
+                    self.cached_uv_sizes.append(len(uv))
+
+                    # Shift indices for global assembly
+                    conn_shifted = conn + point_shift
+                    offs_shifted = offs[:-1] + conn_shift
+
+                    all_pts.append(pts)
+                    all_conn.append(conn_shifted)
+                    all_offsets.append(offs_shifted)
+                    all_types.append(types)
+                    all_uv.extend(uv)
+
+                    point_shift += len(pts)
+                    conn_shift += len(conn)
+
+                # Assemble global arrays
+                points = np.vstack(all_pts)
+                conn = np.concatenate(all_conn)
+                offsets_geom = np.concatenate(all_offsets)
+                offsets_geom = np.append(offsets_geom, conn_shift)
+                types = np.concatenate(all_types)
+
+                self.cached_uv = all_uv
+
+                # Write geometry
+                root.create_dataset("Points", data=points)
+                root.create_dataset("Connectivity", data=conn)
+                root.create_dataset("Offsets", data=offsets_geom)
+                root.create_dataset("Types", data=types)
+
+                root.create_dataset("NumberOfPoints", data=(len(points),))
+                root.create_dataset("NumberOfCells", data=(len(types),))
+                root.create_dataset("NumberOfConnectivityIds", data=(len(conn),))
+
+                pd = root.create_group("PointData")
+
+                # Initial write of nodal variables
+                for var in self.nodal_variables:
+                    data = []
+                    uv_counter = 0
+
+                    for patch_index, brep_id in enumerate(self.brep_surface_ids):
+                        brep_surface = self.model_part.GetGeometry(brep_id)
+                        n_local = self.cached_uv_sizes[patch_index]
+
+                        local_uv = self.cached_uv[uv_counter:uv_counter + n_local]
+
+                        for u, v in local_uv:
+                            val = self.__eval_variable(brep_surface, u, v, var)
+                            data.append(val)
+
+                        uv_counter += n_local
+
+                    data = np.array(data)
+
+                    # Ensure 2D array (scalar → (n,1))
+                    if data.ndim == 1:
+                        data = data[:, np.newaxis]
+
+                    pd.create_dataset(var.Name(), data=data, maxshape=(None, data.shape[1]))
+
+                n_pts = len(points)
+
+            else:
+                # Append new time step data
+                pd = root["PointData"]
+                n_pts = int(root["NumberOfPoints"][0])
+
+                for var in self.nodal_variables:
+
+                    data = []
+                    uv_counter = 0
+
+                    for patch_index, brep_id in enumerate(self.brep_surface_ids):
+                        brep_surface = self.model_part.GetGeometry(brep_id)
+                        n_local = self.cached_uv_sizes[patch_index]
+
+                        local_uv = self.cached_uv[uv_counter:uv_counter + n_local]
+
+                        for u, v in local_uv:
+                            val = self.__eval_variable(brep_surface, u, v, var)
+                            data.append(val)
+
+                        uv_counter += n_local
+
+                    data = np.array(data)
+
+                    if data.ndim == 1:
+                        data = data[:, np.newaxis]
+
+                    if data.shape[0] != n_pts:
+                        raise RuntimeError("Non-constant number of points across time steps!")
+
+                    ds = pd[var.Name()]
+
+                    old = ds.shape[0]
+                    ds.resize((old + n_pts, data.shape[1]))
+                    ds[old:] = data
+
+            # Time step bookkeeping
+            steps = root.require_group("Steps")
+
+            def create_ds(name):
+                if name not in steps:
+                    steps.create_dataset(name, (0,), maxshape=(None,), dtype='i8')
+
+            if "Values" not in steps:
+                steps.create_dataset("Values", (0,), maxshape=(None,), dtype='f8')
+
+            pdo = steps.require_group("PointDataOffsets")
+            for var in self.nodal_variables:
+                name = var.Name()
+                if name not in pdo:
+                    pdo.create_dataset(name, (0,), maxshape=(None,), dtype='i8')
+
+            create_ds("PartOffsets")
+            create_ds("NumberOfParts")
+            create_ds("PointOffsets")
+            create_ds("CellOffsets")
+            create_ds("ConnectivityIdOffsets")
+
+            values = steps["Values"]
+
+            offsets_dict = {}
+            for var in self.nodal_variables:
+                offsets_dict[var.Name()] = pdo[var.Name()]
+
+            part_offsets = steps["PartOffsets"]
+            num_parts = steps["NumberOfParts"]
+            point_offsets = steps["PointOffsets"]
+            cell_offsets = steps["CellOffsets"]
+            conn_offsets = steps["ConnectivityIdOffsets"]
+
+            n_steps = values.shape[0]
+
+            # Resize datasets for new step
+            values.resize((n_steps + 1,))
+            for var in self.nodal_variables:
+                offsets_dict[var.Name()].resize((n_steps + 1,))
+            part_offsets.resize((n_steps + 1,))
+            num_parts.resize((n_steps + 1,))
+            point_offsets.resize((n_steps + 1,))
+            cell_offsets.resize((n_steps + 1,))
+            conn_offsets.resize((n_steps + 1,))
+
+            values[n_steps] = time
+
+            # Offsets mark start of each step block in flattened arrays
+            for var in self.nodal_variables:
+                offsets = offsets_dict[var.Name()]
+
+                if n_steps == 0:
+                    offsets[n_steps] = 0
+                else:
+                    offsets[n_steps] = offsets[n_steps - 1] + n_pts
+
+            # Geometry is static
+            part_offsets[n_steps] = 0
+            point_offsets[n_steps] = 0
+            cell_offsets[n_steps] = 0
+            conn_offsets[n_steps] = 0
+            num_parts[n_steps] = 1
+
+            self.printed_step_count += 1
+            steps.attrs["NSteps"] = self.printed_step_count
+
+    def ExecuteFinalizeSolutionStep(self):
+        if self.output_control_type == "step":
+            self.step_counter += 1
+
+    # Compute the visualization grid 
+    def __compute_full_grid(self, brep_surface):
         knots_u = brep_surface.KnotsU()
         knots_v = brep_surface.KnotsV()
 
-        # Output refinement
-        knots_u_refined = self.__get_refined_knots_u(knots_u)
-        knots_v_refined = self.__get_refined_knots_v(knots_v)
-        
-        num_u = len(knots_u_refined)
-        num_v = len(knots_v_refined)
-        num_cells = (num_u-1) * (num_v-1)
-        num_points = num_u * num_v
+        u_min, u_max = knots_u[0], knots_u[-1]
+        v_min, v_max = knots_v[0], knots_v[-1]
 
-        # Initialization
-        grid_points = KM.Matrix(num_points, 3)
-        solution_disp = KM.Matrix(num_points, 3)
+        ku = self.__refine(knots_u, self.output_refinement[0])
+        kv = self.__refine(knots_v, self.output_refinement[1])
 
-        for j, v in enumerate(knots_v_refined):
-            for i, u in enumerate(knots_u_refined):
-                # get the Points
-                X = KM.Array3()
-                X[0] = 0.0; X[1] = 0.0; X[2] = 0.0
-                local_coord = KM.Array3()
-                local_coord[0] = u; local_coord[1] = v; local_coord[2] = 0.0
-                X = brep_surface.GlobalCoordinates(local_coord)
+        pts, conn, offs, types = [], [], [], []
+        uv_coords = []
 
-                ## Column-major indexing
-                idx = i + j * len(knots_u_refined)
-                grid_points[idx, 0] = X[0]
-                grid_points[idx, 1] = X[1]
-                grid_points[idx, 2] = X[2]
+        pid = 0
+        c = 0
 
-                # Reconstruct the solution
-                cp_ids, shape_func_val = brep_surface.EvaluateShapeFunctionsAtLocalCoordinates(local_coord, derivative_order=0)
-                grid_disp_x = 0.0
-                grid_disp_y = 0.0
-                grid_disp_z = 0.0
-                cp_idx = 0
-                for id in cp_ids:
-                    node = self.model_part.GetNode(id)
-                    grid_disp_x += node.GetSolutionStepValue(KM.DISPLACEMENT_X) * shape_func_val[cp_idx]
-                    grid_disp_y += node.GetSolutionStepValue(KM.DISPLACEMENT_Y) * shape_func_val[cp_idx]
-                    grid_disp_z += node.GetSolutionStepValue(KM.DISPLACEMENT_Z) * shape_func_val[cp_idx]
-                    cp_idx += 1
-                solution_disp[idx, 0] = grid_disp_x
-                solution_disp[idx, 1] = grid_disp_y
-                solution_disp[idx, 2] = grid_disp_z
+        # Loop over knot spans and triangulate each parametric cell
+        for j in range(len(kv) - 1):
+            for i in range(len(ku) - 1):
 
-        # get the Types
-        cell_types = [VTK_QUAD] * num_cells
+                u0, u1 = ku[i], ku[i + 1]
+                v0, v1 = kv[j], kv[j + 1]
 
-        # get the Connectivity & Offsets
-        connectivity = KM.Vector(num_cells * 4)  # 4 nodes per quad
-        offsets = KM.Vector(num_cells+1)
-        cell_idx = 0
-        conn_idx = 0
-        for j in range(num_v - 1):
-            for i in range(num_u - 1):
-                # Column-major indices
-                n0 = i     + j * num_u
-                n1 = (i+1) + j * num_u
-                n2 = (i+1) + (j+1) * num_u
-                n3 = i     + (j+1) * num_u
+                if abs(u1 - u0) < 1e-12 or abs(v1 - v0) < 1e-12:
+                    continue
 
-                # Fill connectivity
-                connectivity[conn_idx    ] = n0
-                connectivity[conn_idx + 1] = n1
-                connectivity[conn_idx + 2] = n2
-                connectivity[conn_idx + 3] = n3
+                trimmed, tris = brep_surface.ComputeSpanTriangulationLocalSpace(u0, u1, v0, v1)
 
-                offsets[cell_idx] = conn_idx
-                conn_idx += 4
-                cell_idx += 1
+                if not trimmed:
+                    coords = [(u0,v0),(u1,v0),(u1,v1),(u0,v1)]
+                    ids = []
 
-        offsets[cell_idx] = conn_idx
+                    for u,v in coords:
+                        u = max(u_min, min(u_max, u))
+                        v = max(v_min, min(v_max, v))
 
-        # write to hdf5 group
-        ## write geometries
-        surface_group.create_dataset("Points", data=grid_points, dtype="f")
-        surface_group.create_dataset("Connectivity", data=connectivity, dtype="i8")
-        surface_group.create_dataset("Offsets", data=offsets, dtype="i8")
-        surface_group.create_dataset("Types", data=cell_types, dtype="uint8")
-        surface_group.create_dataset("NumberOfPoints", data=(num_points,), dtype="i8")
-        surface_group.create_dataset("NumberOfCells", data=(num_cells,), dtype="i8")
-        surface_group.create_dataset("NumberOfConnectivityIds", data=(len(connectivity),), dtype="i8")
+                        if not np.isfinite(u) or not np.isfinite(v):
+                            continue
 
-        ## write displacement
-        point_data_group = surface_group.create_group('PointData', track_order=True)
-        point_data_group.create_dataset("Displacement", data=solution_disp, dtype="f")
+                        lc = KM.Array3()
+                        lc[0], lc[1], lc[2] = u, v, 0.0
 
-    def __get_refined_knots_u(self, knots_original) -> KM.Vector:
-        if self.output_refinement[0] == 0:
-            knots_refined = KM.Vector(len(knots_original))
-            knots_refined = knots_original
-            return knots_refined
+                        try:
+                            X = brep_surface.GlobalCoordinates(lc)
+                        except:
+                            print("BAD UV:", u, v)
+                            continue
+
+                        pts.append([X[0], X[1], X[2]])
+                        uv_coords.append((u,v))
+                        ids.append(pid)
+                        pid += 1
+
+                    conn.extend(ids)
+                    offs.append(c)
+                    c += 4
+                    types.append(VTK_QUAD)
+
+                else:
+                    for tri in tris:
+                        ids = []
+                        for k in range(3):
+                            u = tri[k, 0]
+                            v = tri[k, 1]
+
+                            u = max(u_min, min(u_max, u))
+                            v = max(v_min, min(v_max, v))
+
+                            if not np.isfinite(u) or not np.isfinite(v):
+                                continue
+
+                            lc = KM.Array3()
+                            lc[0], lc[1], lc[2] = u, v, 0.0
+
+                            try:
+                                X = brep_surface.GlobalCoordinates(lc)
+                            except:
+                                print("BAD UV:", u, v)
+                                continue
+
+                            pts.append([X[0], X[1], X[2]])
+                            uv_coords.append((u,v))
+                            ids.append(pid)
+                            pid += 1
+
+                        conn.extend(ids)
+                        offs.append(c)
+                        c += 3
+                        types.append(VTK_TRIANGLE)
+
+        offs.append(c)
+
+        return (
+            np.array(pts,float),
+            np.array(conn,np.int64),
+            np.array(offs,np.int64),
+            np.array(types,np.uint8),
+            uv_coords
+        )
+
+    # Evaluate the desired variable at a local coordinate position (u, v, 0)
+    def __eval_variable(self, brep, u, v, variable):
+        lc = KM.Array3()
+        lc[0], lc[1], lc[2] = u, v, 0.0
+
+        ids, N = brep.EvaluateShapeFunctionsAtLocalCoordinates(lc, 0)
+
+        sample_node = self.model_part.GetNode(ids[0])
+        value = sample_node.GetSolutionStepValue(variable)
+
+        if hasattr(value, "__len__"):
+            result = np.zeros(len(value))
+            for i, id in enumerate(ids):
+                node = self.model_part.GetNode(id)
+                result += N[i] * np.array(node.GetSolutionStepValue(variable))
         else:
-            num_knots_original = len(knots_original)
-            num_spans_original = len(knots_original) - 1
-            insert_per_span = self.output_refinement[0]
-            num_knots_inserted = num_spans_original * insert_per_span
-            knots_refined = KM.Vector(num_knots_original + num_knots_inserted)
+            result = 0.0
+            for i, id in enumerate(ids):
+                node = self.model_part.GetNode(id)
+                result += N[i] * node.GetSolutionStepValue(variable)
 
-            idx = 0
-            for span in range(num_spans_original):
-                start = knots_original[span]
-                end = knots_original[span + 1]
+        return result
 
-                # Insert knots inside the span
-                for i in range(insert_per_span + 1):
-                    delta = i / (insert_per_span + 1)
-                    knots_refined[idx] = start * (1 - delta) + end * delta
-                    idx += 1
+    # Uniform subdivision of knot spans
+    def __refine(self, knots, n):
+        if n == 0:
+            return knots
 
-            # Make sure the last knot is exactly the last original knot
-            knots_refined[len(knots_refined) - 1] = knots_original[-1]
+        out = []
 
-            return knots_refined
-    
-    def __get_refined_knots_v(self, knots_original) -> KM.Vector:
-        if self.output_refinement[1] == 0:
-            knots_refined = KM.Vector(len(knots_original))
-            knots_refined = knots_original
-            return knots_refined
-        else:
-            num_knots_original = len(knots_original)
-            num_spans_original = len(knots_original) - 1
-            insert_per_span = self.output_refinement[1]
-            num_knots_inserted = num_spans_original * insert_per_span
-            knots_refined = KM.Vector(num_knots_original + num_knots_inserted)
+        for i in range(len(knots)-1):
+            a,b = knots[i], knots[i+1]
+            for j in range(n+1):
+                t = j/(n+1)
+                out.append((1-t)*a + t*b)
 
-            idx = 0
-            for span in range(num_spans_original):
-                start = knots_original[span]
-                end = knots_original[span + 1]
-
-                # Insert knots inside the span
-                for i in range(insert_per_span + 1):
-                    delta = i / (insert_per_span + 1)
-                    knots_refined[idx] = start * (1 - delta) + end * delta
-                    idx += 1
-
-            # Make sure the last knot is exactly the last original knot
-            knots_refined[len(knots_refined) - 1] = knots_original[-1]
-
-            return knots_refined
-
-
-def GetPrettyTime(time):
-    pretty_time = "{0:.12g}".format(time)
-    pretty_time = float(pretty_time)
-    return pretty_time
-
-def CreateVariablesListFromInput(param):
-    '''Parse a list of variables from input.'''
-    scalar_variables = []
-    vector_variables = []
-    admissible_scalar_types = ["Bool", "Integer", "Unsigned Integer", "Double"]
-    admissible_vector_types = ["Array", "Vector"]
-
-    variable_list = KratosMultiphysics.kratos_utilities.GenerateVariableListFromInput(param)
-
-    # Retrieve variable name from input (a string) and request the corresponding C++ object to the kernel
-    for variable in variable_list:
-        if KratosMultiphysics.KratosGlobals.GetVariableType(variable.Name()) in admissible_scalar_types:
-            scalar_variables.append(variable)
-        elif KratosMultiphysics.KratosGlobals.GetVariableType(variable.Name()) in admissible_vector_types:
-            vector_variables.append(variable)
-        else:
-            raise Exception("unsupported variables type: " + str(type(variable)))
-
-    return scalar_variables, vector_variables
+        out.append(knots[-1])
+        return out
