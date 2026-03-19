@@ -53,14 +53,7 @@
             "Soil_Bottom_Left",
             "Soil_Bottom_Right",
             "Soil_Middle_Right",
-            "Soil_Top_Right",
-            "Interfaces_Right",
-            "Interface_Excavated_Soil_1",
-            "Interface_Excavated_Soil_2",
-            "Interface_Excavated_Soil_3",
-            "Interfaces_Bottom_Left",
-            "Beam",
-            "Anchor"
+            "Soil_Top_Right"
         ],
         "body_domain_sub_model_part_list": [
             "Excavated_Soil_1",
@@ -70,14 +63,7 @@
             "Soil_Bottom_Left",
             "Soil_Bottom_Right",
             "Soil_Middle_Right",
-            "Soil_Top_Right",
-            "Interfaces_Right",
-            "Interface_Excavated_Soil_1",
-            "Interface_Excavated_Soil_2",
-            "Interface_Excavated_Soil_3",
-            "Interfaces_Bottom_Left",
-            "Beam",
-            "Anchor"
+            "Soil_Top_Right"
         ],
         "linear_solver_settings": {
             "solver_type": "LinearSolversApplication.sparse_lu",
@@ -216,7 +202,6 @@
                             "body_output": true,
                             "node_output": false,
                             "skin_output": false,
-                            "plane_output": [],
                             "nodal_results": [
                                 "DISPLACEMENT",
                                 "TOTAL_DISPLACEMENT",
