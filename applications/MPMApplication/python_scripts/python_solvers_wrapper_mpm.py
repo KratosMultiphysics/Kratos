@@ -33,9 +33,12 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
         raise Exception(err_msg)
 
     # Remove settings that are not needed any more
-    solver_settings.RemoveValue("solver_type")
-    solver_settings.RemoveValue("time_integration_method") # does not throw even if the value is not existing
-
+    # solver_settings.RemoveValue("solver_type")
+    # solver_settings.RemoveValue("time_integration_method") # does not throw even if the value is not existing
+    # because "time_integration_method" is added again by default params during parameter check
+    # overall, this is a weird behaviour that we lost some info about which solver type that we are using
+    # and can lead to inconsistensies.
+    # For example, printing "time_integration_method" in the parameter of mpm static solver will print out implicit, since during parameter check, it is readded with default params of mpm_solver
     module_full = 'KratosMultiphysics.MPMApplication.' + solver_module_name
     solver = import_module(module_full).CreateSolver(model, solver_settings)
 
