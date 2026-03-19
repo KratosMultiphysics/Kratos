@@ -22,67 +22,40 @@
 namespace Kratos
 {
 
-template<>
-ModelPart::NodesContainerType& SubModelPartEntitiesBooleanOperationUtility<
-    Node,ModelPart::NodesContainerType>::GetContainer(ModelPart& rModelPart)
+template<class TEntityType, class TContainerType>
+TContainerType& SubModelPartEntitiesBooleanOperationUtility<
+    TEntityType,TContainerType>::GetContainer(ModelPart& rModelPart)
 {
-    return rModelPart.Nodes();
+    if constexpr (std::is_same_v<TEntityType, Node>) {
+        return rModelPart.Nodes();
+    } else if constexpr (std::is_same_v<TEntityType, Element>) {
+        return rModelPart.Elements();
+    } else if constexpr (std::is_same_v<TEntityType, Condition>) {
+        return rModelPart.Conditions();
+    } else if constexpr (std::is_same_v<TEntityType, MasterSlaveConstraint>) {
+        return rModelPart.MasterSlaveConstraints();
+    } else {
+        static_assert(!std::is_same_v<TEntityType, TEntityType>, "Unsupported TEntityType");
+    }
 }
 
-template<>
-ModelPart::ElementsContainerType& SubModelPartEntitiesBooleanOperationUtility<
-    Element,ModelPart::ElementsContainerType>::GetContainer(ModelPart& rModelPart)
-{
-    return rModelPart.Elements();
-}
-
-template<>
-ModelPart::ConditionsContainerType& SubModelPartEntitiesBooleanOperationUtility<
-    Condition,ModelPart::ConditionsContainerType>::GetContainer(ModelPart& rModelPart)
-{
-    return rModelPart.Conditions();
-}
-
-template<>
-ModelPart::MasterSlaveConstraintContainerType& SubModelPartEntitiesBooleanOperationUtility<
-    MasterSlaveConstraint,ModelPart::MasterSlaveConstraintContainerType>::GetContainer(ModelPart& rModelPart)
-{
-    return rModelPart.MasterSlaveConstraints();
-}
-
-template<>
+template<class TEntityType, class TContainerType>
 void SubModelPartEntitiesBooleanOperationUtility<
-    Node,ModelPart::NodesContainerType>::AddEntities(
-        const std::vector<IndexType>& rIds,ModelPart& rModelPart)
-{
-    rModelPart.AddNodes(rIds);
-}
-
-template<>
-void SubModelPartEntitiesBooleanOperationUtility<
-    Element,ModelPart::ElementsContainerType>::AddEntities(
+    TEntityType,TContainerType>::AddEntities(
         const std::vector<IndexType>& rIds,
         ModelPart& rModelPart)
 {
-    rModelPart.AddElements(rIds);
-}
-
-template<>
-void SubModelPartEntitiesBooleanOperationUtility<
-    Condition,ModelPart::ConditionsContainerType>::AddEntities(
-        const std::vector<IndexType>& rIds,
-        ModelPart& rModelPart)
-{
-    rModelPart.AddConditions(rIds);
-}
-
-template<>
-void SubModelPartEntitiesBooleanOperationUtility<
-    MasterSlaveConstraint,ModelPart::MasterSlaveConstraintContainerType>::AddEntities(
-        const std::vector<IndexType>& rIds,
-        ModelPart& rModelPart)
-{
-    rModelPart.AddMasterSlaveConstraints(rIds);
+    if constexpr (std::is_same_v<TEntityType, Node>) {
+        rModelPart.AddElements(rIds);
+    } else if constexpr (std::is_same_v<TEntityType, Element>) {
+        rModelPart.AddMasterSlaveConstraints(rIds);
+    } else if constexpr (std::is_same_v<TEntityType, Condition>) {
+        rModelPart.AddConditions(rIds);
+    } else if constexpr (std::is_same_v<TEntityType, MasterSlaveConstraint>) {
+        rModelPart.AddMasterSlaveConstraints(rIds);
+    } else {
+        static_assert(!std::is_same_v<TEntityType, TEntityType>, "Unsupported TEntityType");
+    }
 }
 
 template<class TEntityType, class TContainerType>
