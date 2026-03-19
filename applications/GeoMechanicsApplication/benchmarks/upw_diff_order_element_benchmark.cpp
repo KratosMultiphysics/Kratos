@@ -12,6 +12,7 @@
 
 #include "custom_constitutive/incremental_linear_elastic_law.h"
 #include "custom_constitutive/plane_strain.h"
+#include "custom_elements/updated_lagrangian_U_Pw_diff_order_element.h"
 #include "geo_mechanics_application_variables.h"
 #include "includes/cfd_variables.h"
 #include "test_setup_utilities/element_setup_utilities.hpp"
@@ -64,7 +65,7 @@ void SetSolutionStepValuesForGeneralCheck(const Element::Pointer& rElement)
     rElement->GetGeometry()[2].FastGetSolutionStepValue(DISPLACEMENT) = array_1d<double, 3>{0.0, 0.015, 0.0};
 }
 
-auto CreateSmallStrainUPwDiffOrderElementWithUPwDofs(const Properties::Pointer& rProperties)
+PointerVector<Node> CreateNodesForUPwDiffOrderElementBenchmark()
 {
     PointerVector<Node> nodes;
     nodes.push_back(make_intrusive<Node>(1, 0.0, 0.0, 0.0));
@@ -74,7 +75,11 @@ auto CreateSmallStrainUPwDiffOrderElementWithUPwDofs(const Properties::Pointer& 
     nodes.push_back(make_intrusive<Node>(5, 0.5, -0.5, 0.0));
     nodes.push_back(make_intrusive<Node>(6, 0.5, 0.05, 0.0));
 
-    auto result = Testing::ElementSetupUtilities::Create2D6NDiffOrderElement(nodes, rProperties);
+    return nodes;
+}
+
+void AddUPwDofsAndVariables(const Element::Pointer& rElement)
+{
     const auto solution_step_variables = Geo::ConstVariableDataRefs{
         std::cref(WATER_PRESSURE),     std::cref(DT_WATER_PRESSURE), std::cref(DISPLACEMENT),
         std::cref(VELOCITY),           std::cref(ACCELERATION),      std::cref(VOLUME_ACCELERATION),
@@ -82,12 +87,51 @@ auto CreateSmallStrainUPwDiffOrderElementWithUPwDofs(const Properties::Pointer& 
     const auto degrees_of_freedom =
         Geo::ConstVariableRefs{std::cref(WATER_PRESSURE), std::cref(DISPLACEMENT_X),
                                std::cref(DISPLACEMENT_Y), std::cref(DISPLACEMENT_Z)};
-    Testing::ElementSetupUtilities::AddVariablesToEntity(result, solution_step_variables, degrees_of_freedom);
+    Testing::ElementSetupUtilities::AddVariablesToEntity(rElement, solution_step_variables, degrees_of_freedom);
 
-    for (auto& r_node : nodes) {
+    for (auto& r_node : rElement->GetGeometry()) {
         r_node.SetBufferSize(2);
     }
+}
+
+auto CreateSmallStrainUPwDiffOrderElementWithUPwDofs(const Properties::Pointer& rProperties)
+{
+    auto nodes = CreateNodesForUPwDiffOrderElementBenchmark();
+
+    auto result = Testing::ElementSetupUtilities::Create2D6NDiffOrderElement(nodes, rProperties);
+    AddUPwDofsAndVariables(result);
+
     return result;
+}
+
+auto CreateUpdatedLagrangianUPwDiffOrderElementWithUPwDofs(const Properties::Pointer& rProperties)
+{
+    auto nodes = CreateNodesForUPwDiffOrderElementBenchmark();
+
+    Element::Pointer result = make_intrusive<UpdatedLagrangianUPwDiffOrderElement<2, 6>>(
+        1, std::make_shared<Triangle2D6<Node>>(nodes), rProperties,
+        std::make_unique<PlaneStrainStressState>(), nullptr);
+    AddUPwDofsAndVariables(result);
+
+    return result;
+}
+
+template <class TCreateElement, class TBenchmarkCall>
+void RunUPwDiffOrderBenchmark(benchmark::State& rState,
+                              TCreateElement&&    rCreateElement,
+                              TBenchmarkCall&&    rBenchmarkCall)
+{
+    const auto p_properties = CreatePropertiesForUPwDiffOrderElementBenchmark();
+    auto       p_element    = rCreateElement(p_properties);
+
+    SetSolutionStepValuesForGeneralCheck(p_element);
+
+    const auto dummy_process_info = ProcessInfo{};
+    p_element->Initialize(dummy_process_info);
+
+    for (auto _ : rState) {
+        rBenchmarkCall(p_element, dummy_process_info);
+    }
 }
 
 } // namespace
@@ -97,56 +141,72 @@ namespace Kratos
 
 void benchmarkUPwDiffOrderLocalSystemCalculation(benchmark::State& rState)
 {
-    const auto p_properties = CreatePropertiesForUPwDiffOrderElementBenchmark();
-    auto       p_element    = CreateSmallStrainUPwDiffOrderElementWithUPwDofs(p_properties);
-
-    SetSolutionStepValuesForGeneralCheck(p_element);
-
-    const auto dummy_process_info = ProcessInfo{};
-    p_element->Initialize(dummy_process_info);
-
-    for (auto _ : rState) {
-        auto left_hand_side  = Matrix{};
-        auto right_hand_side = Vector{};
-        p_element->CalculateLocalSystem(left_hand_side, right_hand_side, dummy_process_info);
-    }
+    RunUPwDiffOrderBenchmark(
+        rState, CreateSmallStrainUPwDiffOrderElementWithUPwDofs,
+        [](const Element::Pointer& pElement, const ProcessInfo& rProcessInfo) {
+            auto left_hand_side  = Matrix{};
+            auto right_hand_side = Vector{};
+            pElement->CalculateLocalSystem(left_hand_side, right_hand_side, rProcessInfo);
+        });
 }
 
 void benchmarkUPwDiffOrderRHSCalculation(benchmark::State& rState)
 {
-    const auto p_properties = CreatePropertiesForUPwDiffOrderElementBenchmark();
-    auto       p_element    = CreateSmallStrainUPwDiffOrderElementWithUPwDofs(p_properties);
-
-    SetSolutionStepValuesForGeneralCheck(p_element);
-
-    const auto dummy_process_info = ProcessInfo{};
-    p_element->Initialize(dummy_process_info);
-
-    for (auto _ : rState) {
-        auto right_hand_side = Vector{};
-        p_element->CalculateRightHandSide(right_hand_side, dummy_process_info);
-    }
+    RunUPwDiffOrderBenchmark(
+        rState, CreateSmallStrainUPwDiffOrderElementWithUPwDofs,
+        [](const Element::Pointer& pElement, const ProcessInfo& rProcessInfo) {
+            auto right_hand_side = Vector{};
+            pElement->CalculateRightHandSide(right_hand_side, rProcessInfo);
+        });
 }
 
 void benchmarkUPwDiffOrderLHSCalculation(benchmark::State& rState)
 {
-    const auto p_properties = CreatePropertiesForUPwDiffOrderElementBenchmark();
-    auto       p_element    = CreateSmallStrainUPwDiffOrderElementWithUPwDofs(p_properties);
+    RunUPwDiffOrderBenchmark(
+        rState, CreateSmallStrainUPwDiffOrderElementWithUPwDofs,
+        [](const Element::Pointer& pElement, const ProcessInfo& rProcessInfo) {
+            auto left_hand_side = Matrix{};
+            pElement->CalculateLeftHandSide(left_hand_side, rProcessInfo);
+        });
+}
 
-    SetSolutionStepValuesForGeneralCheck(p_element);
+void benchmarkUpdatedLagrangianUPwDiffOrderLocalSystemCalculation(benchmark::State& rState)
+{
+    RunUPwDiffOrderBenchmark(
+        rState, CreateUpdatedLagrangianUPwDiffOrderElementWithUPwDofs,
+        [](const Element::Pointer& pElement, const ProcessInfo& rProcessInfo) {
+            auto left_hand_side  = Matrix{};
+            auto right_hand_side = Vector{};
+            pElement->CalculateLocalSystem(left_hand_side, right_hand_side, rProcessInfo);
+        });
+}
 
-    const auto dummy_process_info = ProcessInfo{};
-    p_element->Initialize(dummy_process_info);
+void benchmarkUpdatedLagrangianUPwDiffOrderRHSCalculation(benchmark::State& rState)
+{
+    RunUPwDiffOrderBenchmark(
+        rState, CreateUpdatedLagrangianUPwDiffOrderElementWithUPwDofs,
+        [](const Element::Pointer& pElement, const ProcessInfo& rProcessInfo) {
+            auto right_hand_side = Vector{};
+            pElement->CalculateRightHandSide(right_hand_side, rProcessInfo);
+        });
+}
 
-    for (auto _ : rState) {
-        auto left_hand_side = Matrix{};
-        p_element->CalculateLeftHandSide(left_hand_side, dummy_process_info);
-    }
+void benchmarkUpdatedLagrangianUPwDiffOrderLHSCalculation(benchmark::State& rState)
+{
+    RunUPwDiffOrderBenchmark(
+        rState, CreateUpdatedLagrangianUPwDiffOrderElementWithUPwDofs,
+        [](const Element::Pointer& pElement, const ProcessInfo& rProcessInfo) {
+            auto left_hand_side = Matrix{};
+            pElement->CalculateLeftHandSide(left_hand_side, rProcessInfo);
+        });
 }
 
 BENCHMARK(benchmarkUPwDiffOrderLocalSystemCalculation);
 BENCHMARK(benchmarkUPwDiffOrderRHSCalculation);
 BENCHMARK(benchmarkUPwDiffOrderLHSCalculation);
+BENCHMARK(benchmarkUpdatedLagrangianUPwDiffOrderLocalSystemCalculation);
+BENCHMARK(benchmarkUpdatedLagrangianUPwDiffOrderRHSCalculation);
+BENCHMARK(benchmarkUpdatedLagrangianUPwDiffOrderLHSCalculation);
 
 } // namespace Kratos
 
