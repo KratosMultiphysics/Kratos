@@ -44,7 +44,7 @@ class SPHAnalysis(AnalysisStage):
 		params = KM.Parameters("""
 		{
 			"model_part_name" : "Structure",
-			"coefficient"     : 0.4
+			"coefficient"     : 0.5
 		}
 		""");
 		neighbours_process = SPH.NeighboursSearchProcess(model_part, params)

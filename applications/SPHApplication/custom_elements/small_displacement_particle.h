@@ -10,6 +10,8 @@
 #include "custom_utilities/custom_kernels/kernel_factory.h"
 #include "custom_utilities/compute_kernel_correction_utilities.h"
 #include "custom_utilities/sph_element_utilities.h"
+#include "custom_utilities/structural_mechanics_element_utilities.h"
+#include "structural_mechanics_application_variables.h"
 
 namespace Kratos
 {
@@ -17,32 +19,32 @@ namespace Kratos
 using SizeType = std::size_t;
 
 template<class TKernelType>
-class KRATOS_API(SPH_APPLICATION) LagrangianParticle : public Element
+class KRATOS_API(SPH_APPLICATION) SmallDisplacementParticle : public Element
 {
 public: 
 
     using BaseType = Element;
 
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(LagrangianParticle);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SmallDisplacementParticle);
 
     // Constructor void 
-    LagrangianParticle()
+    SmallDisplacementParticle()
     {
     }
 
     // Constructor using an array of nodes 
-    LagrangianParticle(IndexType NewId, GeometryType::Pointer pGeometry) : BaseType(NewId, pGeometry)
+    SmallDisplacementParticle(IndexType NewId, GeometryType::Pointer pGeometry) : BaseType(NewId, pGeometry)
     {
     }
 
     // Constructor using an array of nodes with properties 
-    LagrangianParticle(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
+    SmallDisplacementParticle(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
         : BaseType(NewId, pGeometry, pProperties)
     { 
     }
 
     // Copy constructor
-    LagrangianParticle(LagrangianParticle const& rOther)
+    SmallDisplacementParticle(SmallDisplacementParticle const& rOther)
         : BaseType(rOther),
         mThisConstitutiveLaw(rOther.mThisConstitutiveLaw)
     {
@@ -51,21 +53,13 @@ public:
     // Create method
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_intrusive<LagrangianParticle>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+        return Kratos::make_intrusive<SmallDisplacementParticle>(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
     }
 
     // Create method
     Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_intrusive<LagrangianParticle>(NewId, pGeom, pProperties);
-    }
-
-    /**
-     * @brief Indicates the amount of DoFs per node (v_x, v_y, J)
-     */
-    virtual IndexType GetDoFsPerNode() const 
-    {
-        return 2; // Understand if the particle stays 2D or ca be both 2D and 3D, at monent only 2D
+        return Kratos::make_intrusive<SmallDisplacementParticle>(NewId, pGeom, pProperties);
     }
 
     /**
@@ -119,7 +113,7 @@ public:
         IndexType i
     )
     {
-        IndexType dofs_per_node = GetDoFsPerNode();
+        IndexType dofs_per_node = rLocalVector.size();
         rLocalVector.clear();
         rLocalVector[0] = rNodalValue[dofs_per_node * i];
         rLocalVector[1] = rNodalValue[dofs_per_node * i + 1];
@@ -143,12 +137,6 @@ public:
         const VectorType& rNodalValues,
         const double volume
     );
-    
-    /**
-     * @brief This function reads and computes the value of body forces from a neighbouring node
-     * @param rElement neighbouring particle 
-     */
-    virtual array_1d<double, 2> GetLocalBodyForces() const; 
 
     /**
      * @brief This is called during the assembling process in order to calculate the local system

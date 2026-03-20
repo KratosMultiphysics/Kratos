@@ -22,13 +22,8 @@ public:
     using MatrixType = Matrix;
     using VectorType = Vector;
 
-    /**
-     * @brief These following function are copied from structural mechanics application
-     * @details For more info go to structural_mechanics/custom_utilities/structural_mechanical_element_utilities.h
-     */
-    static double GetRayleighAlpha(const Properties& rProperties, const ProcessInfo& rProcessInfo);
-    static double GetRayleighBeta(const Properties& rProperties, const ProcessInfo& rProcessInfo);
-    static void CalculateRayleighDampingMatrix(Element& rElement, MatrixType& rDampingMatrix, const ProcessInfo& rProcessInfo, const SizeType mat_size);
+    static void GetLocalBodyForces(Element& rElement, VectorType& body_force);
+
 
 };
 

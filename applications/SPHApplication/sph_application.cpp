@@ -34,7 +34,8 @@ namespace Kratos {
 KratosSPHApplication::KratosSPHApplication():
     KratosApplication("SPHApplication"),
     /* ELEMENTS */
-    mLagrangianCubicParticle2D(0, Element::GeometryType::Pointer(new Point2D<NodeType >(Element::GeometryType::PointsArrayType(1))))
+    
+    mSmallDisplacementCubicParticle2D(0, Element::GeometryType::Pointer(new Point2D<NodeType >(Element::GeometryType::PointsArrayType(1))))
 
     /* CONDITION */
     //mFixedDirectionCondition(0, Condition::GeometryType::Pointer(new Point2D<NodeType>(Condition::GeometryType::PointsArrayType(1))))
@@ -46,8 +47,7 @@ void KratosSPHApplication::Register()
     KRATOS_INFO("") << "Initializing KratosSPHApplication..." << std::endl;
 
 
-    KRATOS_REGISTER_ELEMENT("LagrangianCubicParticle2D", mLagrangianCubicParticle2D)
-    //KRATOS_REGISTER_ELEMENT("LagrangianQuinticParticle", mLagrangianQuinticParticle)
+    KRATOS_REGISTER_ELEMENT("SmallDisplacementCubicParticle2D", mSmallDisplacementCubicParticle2D)
 
     KRATOS_REGISTER_CONSTITUTIVE_LAW("VolumetricLinearElastic2DLaw", mVolumetricLinearElastic2DLaw)
 

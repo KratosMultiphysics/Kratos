@@ -6,6 +6,7 @@ message("**** configuring KratosSPHApplication ****")
 include(pybind11Tools)
 
 include_directories( ${KRATOS_SOURCE_DIR}/kratos )
+include_directories( ${KRATOS_SOURCE_DIR}/applications/StructuralMechanicsApplication )
 
 ## SPH Core sources
 file(GLOB_RECURSE KRATOS_SPH_APPLICATION_CORE
@@ -29,6 +30,7 @@ file(GLOB_RECURSE KRATOS_SPH_APPLICATION_PYTHON_INTERFACE ${CMAKE_CURRENT_SOURCE
 
 add_library(KratosSPHCore SHARED ${KRATOS_SPH_APPLICATION_CORE} ${KRATOS_SPH_APPLICATION_TESTING_SOURCES})
 target_link_libraries(KratosSPHCore PUBLIC KratosCore)
+target_link_libraries(KratosSPHCore PUBLIC KratosCore KratosStructuralMechanicsCore)
 set_target_properties(KratosSPHCore PROPERTIES COMPILE_DEFINITIONS "SPH_APPLICATION=EXPORT,API")
 
 ###############################################################
@@ -36,6 +38,7 @@ set_target_properties(KratosSPHCore PROPERTIES COMPILE_DEFINITIONS "SPH_APPLICAT
 pybind11_add_module(KratosSPHApplication MODULE THIN_LTO ${KRATOS_SPH_APPLICATION_PYTHON_INTERFACE})
 target_link_libraries(KratosSPHApplication PRIVATE KratosSPHCore)
 set_target_properties(KratosSPHApplication PROPERTIES PREFIX "")
+
 
 # changing the .dll suffix to .pyd (Windows)
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")

@@ -28,7 +28,7 @@ rem Set applications to compile
 set KRATOS_APP_DIR=applications
 set KRATOS_APPLICATIONS=
 CALL :add_app %KRATOS_APP_DIR%\LinearSolversApplication;
-rem CALL :add_app %KRATOS_APP_DIR%\StructuralMechanicsApplication;
+CALL :add_app %KRATOS_APP_DIR%\StructuralMechanicsApplication;
 CALL :add_app %KRATOS_APP_DIR%\SPHApplication;
 
 rem Clean
