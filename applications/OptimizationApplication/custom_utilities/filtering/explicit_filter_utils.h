@@ -23,6 +23,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
+#include "includes/ublas_interface.h"
 #include "tensor_adaptors/tensor_adaptor.h"
 
 // Application includes
@@ -70,7 +71,8 @@ public:
         const std::string& rKernelFunctionType,
         const IndexType MaxLeafSize = 10,
         const IndexType EchoLevel = 0,
-        const bool NodeCloudMesh = false);
+        const bool NodeCloudMesh = false,
+        const bool StoreFilterMatrix = false);
 
     ///@}
     ///@name Public operations
@@ -166,6 +168,10 @@ private:
     std::unique_ptr<KDTreeIndexType> mpKDTreeIndex;
 
     bool mNodeCloudMesh;
+
+    bool mStoreFilteringMatrix;
+
+    DenseVector<DenseVector<std::pair<unsigned int, double>>> mFilteringMatrix;
 
     ///@}
     ///@name Private operations
