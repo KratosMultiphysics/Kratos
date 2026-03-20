@@ -2,6 +2,7 @@
 import KratosMultiphysics as KM
 import KratosMultiphysics.IgaApplication
 import numpy as np
+from pathlib import Path
 
 VTK_QUAD = 9
 VTK_TRIANGLE = 5
@@ -36,11 +37,10 @@ class IgaVTKOutputProcess(KM.Process):
         params.ValidateAndAssignDefaults(default_parameters)
 
         self.model_part = model[params["model_part_name"].GetString()]
-        self.output_file_name = params["output_file_name"].GetString()
+        self.output_file_name = Path(params["output_file_name"].GetString())
 
         # Ensure correct file extension
-        if not self.output_file_name.endswith(".vtkhdf"):
-            self.output_file_name += ".vtkhdf"
+        self.output_file_name = self.output_file_name.with_suffix(".vtkhdf")
 
         # IDs of Brep surfaces to be exported
         self.brep_surface_ids = [
