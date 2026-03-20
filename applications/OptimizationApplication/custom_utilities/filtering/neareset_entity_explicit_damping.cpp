@@ -98,6 +98,15 @@ void NearestEntityExplicitDamping<TContainerType>::Update()
 {
     KRATOS_TRY
 
+    #if defined(_WIN32) || defined(_WIN64)
+        // The MSVC compiler does not support std::unique_lock<std::mutex> lock(mutex);
+        // in the case the mutex is passed by reference. [See https://stackoverflow.com/questions/78598141/first-stdmutexlock-crashes-in-application-built-with-latest-visual-studio ]
+        const unsigned int number_of_threads = 1;
+        KRATOS_WARNING("NearestEntityExplicitDamping") << "The nanoflann will construct the KD tree in serial mode in Windows.";
+    #else
+        const unsigned int number_of_threads = 0;
+    #endif
+
     const auto stride = this->GetStride();
     auto& r_container = *(std::get<typename TContainerType::Pointer>(mpDampingRadius->GetContainer()));
     const auto radius_view = mpDampingRadius->ViewData();
@@ -117,8 +126,7 @@ void NearestEntityExplicitDamping<TContainerType>::Update()
             KDTreeIndexType kd_tree_index(
                 3, adapter,
                 nanoflann::KDTreeSingleIndexAdaptorParams(
-                    mLeafMaxSize, nanoflann::KDTreeSingleIndexAdaptorFlags::None, 0));
-            kd_tree_index.buildIndex();
+                    mLeafMaxSize, nanoflann::KDTreeSingleIndexAdaptorFlags::None, number_of_threads));
 
             const auto& kernel_function = *mpKernelFunction;
 

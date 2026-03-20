@@ -20,6 +20,7 @@ class ExplicitFilter(Filter):
             "filter_function_type"      : "linear",
             "max_items_in_bucket"       : 10,
             "echo_level"                : 0,
+            "store_filter_matrix"       : false,
             "filter_radius_settings":{
                 "filter_radius_type": "constant",
                 "filter_radius"     : 0.2
@@ -68,12 +69,17 @@ class ExplicitFilter(Filter):
         max_items_in_bucket = self.parameters["max_items_in_bucket"].GetInt()
         echo_level = self.parameters["echo_level"].GetInt()
         node_cloud_mesh = self.parameters["node_cloud_mesh"].GetBool()
+        store_filter_matrix = self.parameters["store_filter_matrix"].GetBool()
         if self.data_location in [Kratos.Globals.DataLocation.NodeHistorical, Kratos.Globals.DataLocation.NodeNonHistorical]:
-            self.filter_utils = KratosOA.NodeExplicitFilterUtils(self.model_part, filter_function_type, max_items_in_bucket, echo_level, node_cloud_mesh)
+            self.filter_utils = KratosOA.NodeExplicitFilterUtils(self.model_part, filter_function_type, max_items_in_bucket, echo_level, node_cloud_mesh, store_filter_matrix)
         elif self.data_location == Kratos.Globals.DataLocation.Condition:
-            self.filter_utils = KratosOA.ConditionExplicitFilterUtils(self.model_part, filter_function_type, max_items_in_bucket, echo_level)
+            if node_cloud_mesh:
+                raise RuntimeError("\"node_cloud_mesh\" flag can be only used for filtering meshes with nodes.")
+            self.filter_utils = KratosOA.ConditionExplicitFilterUtils(self.model_part, filter_function_type, max_items_in_bucket, echo_level, store_filter_matrix)
         elif self.data_location == Kratos.Globals.DataLocation.Element:
-            self.filter_utils = KratosOA.ElementExplicitFilterUtils(self.model_part, filter_function_type, max_items_in_bucket, echo_level)
+            if node_cloud_mesh:
+                raise RuntimeError("\"node_cloud_mesh\" flag can be only used for filtering meshes with nodes.")
+            self.filter_utils = KratosOA.ElementExplicitFilterUtils(self.model_part, filter_function_type, max_items_in_bucket, echo_level, store_filter_matrix)
 
         self.Update()
 
