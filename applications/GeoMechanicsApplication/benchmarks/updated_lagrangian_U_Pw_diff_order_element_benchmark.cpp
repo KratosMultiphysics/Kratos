@@ -109,9 +109,7 @@ auto CreateUpdatedLagrangianUPwDiffOrderElementWithUPwDofs(const Properties::Poi
 }
 
 template <class TCreateElement, class TBenchmarkCall>
-void RunUPwDiffOrderBenchmark(benchmark::State& rState,
-                              TCreateElement&&    rCreateElement,
-                              TBenchmarkCall&&    rBenchmarkCall)
+void RunUPwDiffOrderBenchmark(benchmark::State& rState, TCreateElement&& rCreateElement, TBenchmarkCall&& rBenchmarkCall)
 {
     const auto p_properties = CreatePropertiesForUPwDiffOrderElementBenchmark();
     auto       p_element    = rCreateElement(p_properties);
@@ -133,33 +131,30 @@ namespace Kratos
 
 void benchmarkUpdatedLagrangianUPwDiffOrderLocalSystemCalculation(benchmark::State& rState)
 {
-    RunUPwDiffOrderBenchmark(
-        rState, CreateUpdatedLagrangianUPwDiffOrderElementWithUPwDofs,
-        [](const Element::Pointer& pElement, const ProcessInfo& rProcessInfo) {
-            auto left_hand_side  = Matrix{};
-            auto right_hand_side = Vector{};
-            pElement->CalculateLocalSystem(left_hand_side, right_hand_side, rProcessInfo);
-        });
+    RunUPwDiffOrderBenchmark(rState, CreateUpdatedLagrangianUPwDiffOrderElementWithUPwDofs,
+                             [](const Element::Pointer& pElement, const ProcessInfo& rProcessInfo) {
+        auto left_hand_side  = Matrix{};
+        auto right_hand_side = Vector{};
+        pElement->CalculateLocalSystem(left_hand_side, right_hand_side, rProcessInfo);
+    });
 }
 
 void benchmarkUpdatedLagrangianUPwDiffOrderRHSCalculation(benchmark::State& rState)
 {
-    RunUPwDiffOrderBenchmark(
-        rState, CreateUpdatedLagrangianUPwDiffOrderElementWithUPwDofs,
-        [](const Element::Pointer& pElement, const ProcessInfo& rProcessInfo) {
-            auto right_hand_side = Vector{};
-            pElement->CalculateRightHandSide(right_hand_side, rProcessInfo);
-        });
+    RunUPwDiffOrderBenchmark(rState, CreateUpdatedLagrangianUPwDiffOrderElementWithUPwDofs,
+                             [](const Element::Pointer& pElement, const ProcessInfo& rProcessInfo) {
+        auto right_hand_side = Vector{};
+        pElement->CalculateRightHandSide(right_hand_side, rProcessInfo);
+    });
 }
 
 void benchmarkUpdatedLagrangianUPwDiffOrderLHSCalculation(benchmark::State& rState)
 {
-    RunUPwDiffOrderBenchmark(
-        rState, CreateUpdatedLagrangianUPwDiffOrderElementWithUPwDofs,
-        [](const Element::Pointer& pElement, const ProcessInfo& rProcessInfo) {
-            auto left_hand_side = Matrix{};
-            pElement->CalculateLeftHandSide(left_hand_side, rProcessInfo);
-        });
+    RunUPwDiffOrderBenchmark(rState, CreateUpdatedLagrangianUPwDiffOrderElementWithUPwDofs,
+                             [](const Element::Pointer& pElement, const ProcessInfo& rProcessInfo) {
+        auto left_hand_side = Matrix{};
+        pElement->CalculateLeftHandSide(left_hand_side, rProcessInfo);
+    });
 }
 
 BENCHMARK(benchmarkUpdatedLagrangianUPwDiffOrderLocalSystemCalculation);

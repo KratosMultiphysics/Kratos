@@ -33,10 +33,10 @@
 #include "includes/ublas_interface.h"
 #include "stress_state_policy.h"
 
-#include <iosfwd>
 #include <algorithm>
 #include <array>
 #include <functional>
+#include <iosfwd>
 #include <limits>
 #include <memory>
 #include <numeric>
@@ -76,6 +76,34 @@ public:
         return 0;
     }();
 
+    static constexpr std::size_t TNumGPoints = []() constexpr {
+        if constexpr (TDim == 2) {
+            if constexpr (TNumNodes == 6) return 3;   // 2D T6 (GI_GAUSS_2)
+            if constexpr (TNumNodes == 8) return 4;   // 2D Q8 (GI_GAUSS_2)
+            if constexpr (TNumNodes == 9) return 4;   // 2D Q9 (GI_GAUSS_2)
+            if constexpr (TNumNodes == 10) return 6;  // 2D T10 (GI_GAUSS_4)
+            if constexpr (TNumNodes == 15) return 12; // 2D T15 (GI_GAUSS_5)
+        } else if constexpr (TDim == 3) {
+            if constexpr (TNumNodes == 10) return 4; // 3D T10 (GI_GAUSS_2)
+            if constexpr (TNumNodes == 20) return 8; // 3D H20 (GI_GAUSS_2)
+            if constexpr (TNumNodes == 27) return 8; // 3D H27 (GI_GAUSS_2)
+        } else {
+            static_assert(dependent_false<std::integral_constant<std::size_t, TDim>>,
+                          "The number of integration points for the given element is not defined.");
+        }
+        return 0;
+    }();
+
+    static constexpr std::size_t TVoigtSize = []() constexpr -> std::size_t {
+        if constexpr (TDim == 2) return VOIGT_SIZE_2D_PLANE_STRAIN;
+        else if constexpr (TDim == 3)
+            return VOIGT_SIZE_3D;
+        else
+            static_assert(dependent_false<std::integral_constant<std::size_t, TDim>>,
+                          "The Voigt size for the given element is not defined.");
+        return 0;
+    }();
+
     static constexpr std::size_t TNumberOfDOF = TNumNodes * TDim + TNumPNodes;
 
     SmallStrainUPwDiffOrderElement(IndexType                          NewId,
@@ -89,6 +117,17 @@ public:
             KRATOS_ERROR << "The number of pressure nodes is not correct. Expected: " << TNumPNodes
                          << " - Given: " << mpPressureGeometry->PointsNumber() << std::endl;
         }
+
+        const auto number_of_integration_points =
+            GetGeometry().IntegrationPointsNumber(this->GetIntegrationMethod());
+        KRATOS_ERROR_IF(TNumGPoints != number_of_integration_points)
+            << "The number of integration points is not correct. Expected: " << TNumGPoints
+            << " - Given: " << number_of_integration_points << std::endl;
+
+        const auto voigt_size = this->GetStressStatePolicy().GetVoigtSize();
+        KRATOS_ERROR_IF(voigt_size != TVoigtSize)
+            << "The Voigt size of the stress state policy is not correct. Expected: " << TVoigtSize
+            << " - Given: " << voigt_size << std::endl;
     }
 
     SmallStrainUPwDiffOrderElement(IndexType                          NewId,
@@ -103,6 +142,17 @@ public:
             KRATOS_ERROR << "The number of pressure nodes is not correct. Expected: " << TNumPNodes
                          << " - Given: " << mpPressureGeometry->PointsNumber() << std::endl;
         }
+
+        const auto number_of_integration_points =
+            GetGeometry().IntegrationPointsNumber(this->GetIntegrationMethod());
+        KRATOS_ERROR_IF(TNumGPoints != number_of_integration_points)
+            << "The number of integration points is not correct. Expected: " << TNumGPoints
+            << " - Given: " << number_of_integration_points << std::endl;
+
+        const auto voigt_size = this->GetStressStatePolicy().GetVoigtSize();
+        KRATOS_ERROR_IF(voigt_size != TVoigtSize)
+            << "The Voigt size of the stress state policy is not correct. Expected: " << TVoigtSize
+            << " - Given: " << voigt_size << std::endl;
     }
 
     ~SmallStrainUPwDiffOrderElement() override = default;
@@ -137,13 +187,11 @@ public:
         const CheckProperties check_properties(r_prop, "parameter list", element_Id,
                                                CheckProperties::Bounds::AllExclusive);
         check_properties.CheckAvailability(IGNORE_UNDRAINED);
-        if (!r_prop[IGNORE_UNDRAINED])
-            check_properties.CheckPermeabilityProperties(GetGeometry().WorkingSpaceDimension());
+        if (!r_prop[IGNORE_UNDRAINED]) check_properties.CheckPermeabilityProperties(TDim);
 
         check_properties.CheckAvailabilityAndSpecified(CONSTITUTIVE_LAW);
         r_prop[CONSTITUTIVE_LAW]->Check(r_prop, r_geom, rCurrentProcessInfo);
-        const auto expected_size = this->GetStressStatePolicy().GetVoigtSize();
-        ConstitutiveLawUtilities::CheckStrainSize(r_prop, expected_size, element_Id);
+        ConstitutiveLawUtilities::CheckStrainSize(r_prop, TVoigtSize, element_Id);
         ConstitutiveLawUtilities::CheckHasStrainMeasure_Infinitesimal(r_prop, element_Id);
 
         return RetentionLaw::Check(mRetentionLawVector, r_prop, rCurrentProcessInfo);
@@ -167,7 +215,7 @@ public:
             GeoMechanicsMathUtilities::CalculateDeterminants(deformation_gradients);
         const auto strain_vectors = StressStrainUtilities::CalculateStrains(
             deformation_gradients, b_matrices, variables.DisplacementVector,
-            variables.UseHenckyStrain, GetStressStatePolicy().GetVoigtSize());
+            variables.UseHenckyStrain, TVoigtSize);
 
         const auto number_of_integration_points =
             GetGeometry().IntegrationPointsNumber(GetIntegrationMethod());
@@ -177,15 +225,18 @@ public:
             variables.B            = b_matrices[integration_point];
             variables.F            = deformation_gradients[integration_point];
             variables.StrainVector = strain_vectors[integration_point];
+            Vector strain_vector   = variables.StrainVector;
+            Matrix constitutive_matrix = variables.ConstitutiveMatrix;
 
             ConstitutiveLawUtilities::SetConstitutiveParameters(
-                ConstitutiveParameters, variables.StrainVector, variables.ConstitutiveMatrix,
+                ConstitutiveParameters, strain_vector, constitutive_matrix,
                 variables.Nu, variables.DNu_DX, variables.F,
                 determinants_of_deformation_gradients[integration_point]);
 
             // Compute constitutive tensor and/or stresses
             noalias(variables.StressVector) = mStressVector[integration_point];
-            ConstitutiveParameters.SetStressVector(variables.StressVector);
+            Vector stress_vector = variables.StressVector;
+            ConstitutiveParameters.SetStressVector(stress_vector);
             mConstitutiveLawVector[integration_point]->FinalizeMaterialResponseCauchy(ConstitutiveParameters);
             mStateVariablesFinalized[integration_point] = mConstitutiveLawVector[integration_point]->GetValue(
                 STATE_VARIABLES, mStateVariablesFinalized[integration_point]);
@@ -409,7 +460,7 @@ public:
             const auto deformation_gradients = CalculateDeformationGradients();
             auto       strain_vectors        = StressStrainUtilities::CalculateStrains(
                 deformation_gradients, b_matrices, variables.DisplacementVector,
-                variables.UseHenckyStrain, this->GetStressStatePolicy().GetVoigtSize());
+                variables.UseHenckyStrain, TVoigtSize);
 
             ConstitutiveLaw::Parameters constitutive_parameters(r_geom, r_properties, rCurrentProcessInfo);
             constitutive_parameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
@@ -476,7 +527,7 @@ public:
             const auto deformation_gradients = CalculateDeformationGradients();
             auto       strain_vectors        = StressStrainUtilities::CalculateStrains(
                 deformation_gradients, b_matrices, variables.DisplacementVector,
-                variables.UseHenckyStrain, GetStressStatePolicy().GetVoigtSize());
+                variables.UseHenckyStrain, TVoigtSize);
             std::vector<Matrix> constitutive_matrices;
             this->CalculateAnyOfMaterialResponse(deformation_gradients, ConstitutiveParameters,
                                                  variables.NuContainer, variables.DNu_DXContainer,
@@ -530,7 +581,7 @@ public:
             const auto deformation_gradients = CalculateDeformationGradients();
             rOutput                          = StressStrainUtilities::CalculateStrains(
                 deformation_gradients, b_matrices, variables.DisplacementVector,
-                variables.UseHenckyStrain, GetStressStatePolicy().GetVoigtSize());
+                variables.UseHenckyStrain, TVoigtSize);
         } else {
             for (unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i)
                 rOutput[i] = mConstitutiveLawVector[i]->GetValue(rVariable, rOutput[i]);
@@ -557,7 +608,7 @@ public:
             const auto deformation_gradients = CalculateDeformationGradients();
             const auto strain_vectors        = StressStrainUtilities::CalculateStrains(
                 deformation_gradients, b_matrices, variables.DisplacementVector,
-                variables.UseHenckyStrain, GetStressStatePolicy().GetVoigtSize());
+                variables.UseHenckyStrain, TVoigtSize);
             auto relative_permeability_values = RetentionLaw::CalculateRelativePermeabilityValues(
                 mRetentionLawVector, this->GetProperties(),
                 GeoTransportEquationUtilities::CalculateFluidPressures(variables.NpContainer,
@@ -671,27 +722,27 @@ protected:
 
     struct ElementVariables {
         // variables at all integration points
-        Matrix                                    NuContainer;
-        Matrix                                    NpContainer;
-        GeometryType::ShapeFunctionsGradientsType DNu_DXContainer;
-        GeometryType::ShapeFunctionsGradientsType DNp_DXContainer;
-        Vector                                    detJuContainer;
+        BoundedMatrix<double, TNumGPoints, TNumNodes>  NuContainer;
+        BoundedMatrix<double, TNumGPoints, TNumPNodes> NpContainer;
+        GeometryType::ShapeFunctionsGradientsType      DNu_DXContainer;
+        GeometryType::ShapeFunctionsGradientsType      DNp_DXContainer;
+        BoundedVector<double, TNumGPoints>             detJuContainer;
 
         // variables at each integration point
-        Vector Nu;     // Contains the displacement shape functions at every node
-        Vector Np;     // Contains the pressure shape functions at every node
-        Matrix DNu_DX; // Contains the global derivatives of the displacement shape functions
+        BoundedVector<double, TNumNodes> Nu; // Contains the displacement shape functions at every node
+        BoundedVector<double, TNumPNodes> Np; // Contains the pressure shape functions at every node
+        BoundedMatrix<double, TNumNodes, TDim> DNu_DX; // Contains the global derivatives of the displacement shape functions
 
-        Matrix DNp_DX; // Contains the global derivatives of the pressure shape functions
-        Matrix B;
+        BoundedMatrix<double, TNumPNodes, TDim> DNp_DX; // Contains the global derivatives of the pressure shape functions
+        BoundedMatrix<double, TVoigtSize, TNumNodes * TDim> B;
         double IntegrationCoefficient;
         double IntegrationCoefficientInitialConfiguration;
-        Vector StrainVector;
-        Vector StressVector;
-        Matrix ConstitutiveMatrix;
+        BoundedVector<double, TVoigtSize> StrainVector;
+        BoundedVector<double, TVoigtSize> StressVector;
+        BoundedMatrix<double, TVoigtSize, TVoigtSize> ConstitutiveMatrix;
 
         // variables needed for consistency with the general constitutive law
-        Matrix F;
+        BoundedMatrix<double, TDim, TDim> F;
 
         // needed for updated Lagrangian:
         double detJ;
@@ -747,13 +798,13 @@ protected:
         const auto deformation_gradients = CalculateDeformationGradients();
         auto       strain_vectors        = StressStrainUtilities::CalculateStrains(
             deformation_gradients, b_matrices, variables.DisplacementVector,
-            variables.UseHenckyStrain, this->GetStressStatePolicy().GetVoigtSize());
+            variables.UseHenckyStrain, TVoigtSize);
         std::vector<Matrix> constitutive_matrices;
         this->CalculateAnyOfMaterialResponse(deformation_gradients, ConstitutiveParameters,
                                              variables.NuContainer, variables.DNu_DXContainer,
                                              strain_vectors, mStressVector, constitutive_matrices);
-        const auto integration_coefficients =
-            this->CalculateIntegrationCoefficients(r_integration_points, variables.detJuContainer);
+        const auto integration_coefficients = this->CalculateIntegrationCoefficientsFromBoundedDetJ(
+            r_integration_points, variables.detJuContainer);
 
         const auto stiffness_matrix = GeoEquationOfMotionUtilities::CalculateStiffnessMatrix(
             b_matrices, constitutive_matrices, integration_coefficients);
@@ -788,8 +839,8 @@ protected:
         this->InitializeElementVariables(variables, rCurrentProcessInfo);
 
         const auto b_matrices = CalculateBMatrices(variables.DNu_DXContainer, variables.NuContainer);
-        const auto integration_coefficients =
-            this->CalculateIntegrationCoefficients(r_integration_points, variables.detJuContainer);
+        const auto integration_coefficients = this->CalculateIntegrationCoefficientsFromBoundedDetJ(
+            r_integration_points, variables.detJuContainer);
 
         const auto det_Js_initial_configuration = GeoEquationOfMotionUtilities::CalculateDetJsInitialConfiguration(
             r_geom, this->GetIntegrationMethod());
@@ -800,7 +851,7 @@ protected:
         const auto deformation_gradients = CalculateDeformationGradients();
         auto       strain_vectors        = StressStrainUtilities::CalculateStrains(
             deformation_gradients, b_matrices, variables.DisplacementVector,
-            variables.UseHenckyStrain, GetStressStatePolicy().GetVoigtSize());
+            variables.UseHenckyStrain, TVoigtSize);
         std::vector<Matrix> constitutive_matrices;
         this->CalculateAnyOfMaterialResponse(deformation_gradients, ConstitutiveParameters,
                                              variables.NuContainer, variables.DNu_DXContainer,
@@ -881,8 +932,8 @@ protected:
         this->InitializeElementVariables(variables, rCurrentProcessInfo);
 
         const auto b_matrices = CalculateBMatrices(variables.DNu_DXContainer, variables.NuContainer);
-        const auto integration_coefficients =
-            this->CalculateIntegrationCoefficients(r_integration_points, variables.detJuContainer);
+        const auto integration_coefficients = this->CalculateIntegrationCoefficientsFromBoundedDetJ(
+            r_integration_points, variables.detJuContainer);
 
         const auto det_Js_initial_configuration = GeoEquationOfMotionUtilities::CalculateDetJsInitialConfiguration(
             r_geom, this->GetIntegrationMethod());
@@ -890,7 +941,7 @@ protected:
         const auto deformation_gradients = CalculateDeformationGradients();
         auto       strain_vectors        = StressStrainUtilities::CalculateStrains(
             deformation_gradients, b_matrices, variables.DisplacementVector,
-            variables.UseHenckyStrain, GetStressStatePolicy().GetVoigtSize());
+            variables.UseHenckyStrain, TVoigtSize);
         std::vector<Matrix> constitutive_matrices;
         this->CalculateAnyOfMaterialResponse(deformation_gradients, ConstitutiveParameters,
                                              variables.NuContainer, variables.DNu_DXContainer,
@@ -1015,46 +1066,41 @@ protected:
 
         const auto&    r_geom       = GetGeometry();
         const SizeType num_g_points = r_geom.IntegrationPointsNumber(this->GetIntegrationMethod());
+        KRATOS_ERROR_IF(num_g_points != TNumGPoints)
+            << "Unexpected integration points count for element " << this->Id()
+            << ". Expected: " << TNumGPoints << " - Given: " << num_g_points << std::endl;
 
         // variables at all integration points
-        rVariables.NuContainer.resize(num_g_points, TNumNodes, false);
         rVariables.NuContainer = r_geom.ShapeFunctionsValues(this->GetIntegrationMethod());
 
-        rVariables.NpContainer.resize(num_g_points, TNumPNodes, false);
         rVariables.NpContainer = mpPressureGeometry->ShapeFunctionsValues(this->GetIntegrationMethod());
 
-        rVariables.Nu.resize(TNumNodes, false);
-        rVariables.Np.resize(TNumPNodes, false);
-
-        rVariables.DNu_DXContainer.resize(num_g_points, false);
-        for (SizeType i = 0; i < num_g_points; ++i)
-            ((rVariables.DNu_DXContainer)[i]).resize(TNumNodes, TDim, false);
-        rVariables.DNu_DX.resize(TNumNodes, TDim, false);
-        rVariables.detJuContainer.resize(num_g_points, false);
+        if (rVariables.DNu_DXContainer.size() != TNumGPoints)
+            rVariables.DNu_DXContainer.resize(TNumGPoints, false);
+        for (SizeType i = 0; i < TNumGPoints; ++i)
+            if (((rVariables.DNu_DXContainer)[i]).size1() != TNumNodes ||
+                ((rVariables.DNu_DXContainer)[i]).size2() != TDim)
+                ((rVariables.DNu_DXContainer)[i]).resize(TNumNodes, TDim, false);
+        Vector det_ju_container(TNumGPoints);
         r_geom.ShapeFunctionsIntegrationPointsGradients(
-            rVariables.DNu_DXContainer, rVariables.detJuContainer, this->GetIntegrationMethod());
+            rVariables.DNu_DXContainer, det_ju_container, this->GetIntegrationMethod());
+        noalias(rVariables.detJuContainer) = det_ju_container;
 
-        (rVariables.DNp_DXContainer).resize(num_g_points, false);
-        for (SizeType i = 0; i < num_g_points; ++i)
-            ((rVariables.DNp_DXContainer)[i]).resize(TNumPNodes, TDim, false);
-        (rVariables.DNp_DX).resize(TNumPNodes, TDim, false);
-        Vector detJpContainer = ZeroVector(num_g_points);
-        mpPressureGeometry->ShapeFunctionsIntegrationPointsGradients(
-            rVariables.DNp_DXContainer, detJpContainer, this->GetIntegrationMethod());
+        if ((rVariables.DNp_DXContainer).size() != TNumGPoints)
+            (rVariables.DNp_DXContainer).resize(TNumGPoints, false);
+        for (SizeType i = 0; i < TNumGPoints; ++i)
+            if (((rVariables.DNp_DXContainer)[i]).size1() != TNumPNodes ||
+                ((rVariables.DNp_DXContainer)[i]).size2() != TDim)
+                ((rVariables.DNp_DXContainer)[i]).resize(TNumPNodes, TDim, false);
+        mpPressureGeometry->ShapeFunctionsIntegrationPointsGradients(rVariables.DNp_DXContainer,
+                                                                     this->GetIntegrationMethod());
 
         // variables computed at each integration point
-        const SizeType voigt_size = this->GetStressStatePolicy().GetVoigtSize();
+        noalias(rVariables.B) = ZeroMatrix(TVoigtSize, TNumNodes * TDim);
 
-        rVariables.B.resize(voigt_size, TNumNodes * TDim, false);
-        noalias(rVariables.B) = ZeroMatrix(voigt_size, TNumNodes * TDim);
-
-        rVariables.StrainVector.resize(voigt_size, false);
-        rVariables.ConstitutiveMatrix.resize(voigt_size, voigt_size, false);
-
-        rVariables.StressVector.resize(voigt_size, false);
+        noalias(rVariables.ConstitutiveMatrix) = ZeroMatrix(TVoigtSize, TVoigtSize);
 
         // Needed parameters for consistency with the general constitutive law
-        rVariables.F.resize(TDim, TDim, false);
         noalias(rVariables.F) = identity_matrix<double>(TDim);
 
         // Nodal variables
@@ -1082,9 +1128,12 @@ protected:
         const auto& r_geom = GetGeometry();
 
         Vector BodyAccelerationAux = ZeroVector(3);
-        rVariables.BodyAcceleration.resize(TNumNodes * TDim, false);
-        rVariables.DisplacementVector.resize(TNumNodes * TDim, false);
-        rVariables.VelocityVector.resize(TNumNodes * TDim, false);
+        if (rVariables.BodyAcceleration.size() != TNumNodes * TDim)
+            rVariables.BodyAcceleration.resize(TNumNodes * TDim, false);
+        if (rVariables.DisplacementVector.size() != TNumNodes * TDim)
+            rVariables.DisplacementVector.resize(TNumNodes * TDim, false);
+        if (rVariables.VelocityVector.size() != TNumNodes * TDim)
+            rVariables.VelocityVector.resize(TNumNodes * TDim, false);
 
         for (SizeType i = 0; i < TNumNodes; ++i) {
             SizeType Local_i    = i * TDim;
@@ -1105,9 +1154,12 @@ protected:
             }
         }
 
-        rVariables.PressureVector.resize(TNumPNodes, false);
-        rVariables.PressureDtVector.resize(TNumPNodes, false);
-        rVariables.DeltaPressureVector.resize(TNumPNodes, false);
+        if (rVariables.PressureVector.size() != TNumPNodes)
+            rVariables.PressureVector.resize(TNumPNodes, false);
+        if (rVariables.PressureDtVector.size() != TNumPNodes)
+            rVariables.PressureDtVector.resize(TNumPNodes, false);
+        if (rVariables.DeltaPressureVector.size() != TNumPNodes)
+            rVariables.DeltaPressureVector.resize(TNumPNodes, false);
         const auto& r_p_geometry = *mpPressureGeometry;
         for (SizeType i = 0; i < TNumPNodes; ++i) {
             rVariables.PressureVector[i] = r_p_geometry[i].FastGetSolutionStepValue(WATER_PRESSURE);
@@ -1195,14 +1247,15 @@ protected:
         KRATOS_TRY
 
         BoundedMatrix<double, TDim * TNumNodes, TNumPNodes> coupling_matrix;
+        const Vector np = rVariables.Np;
         GeoTransportEquationUtilities::CalculateCouplingMatrix(
-            coupling_matrix, rVariables.B, GetStressStatePolicy().GetVoigtVector(), rVariables.Np,
+            coupling_matrix, rVariables.B, GetStressStatePolicy().GetVoigtVector(), np,
             rVariables.BiotCoefficient, rVariables.BishopCoefficient, rVariables.IntegrationCoefficient);
         GeoElementUtilities::AssembleUPBlockMatrix(rLeftHandSideMatrix, coupling_matrix);
 
         if (!rVariables.IgnoreUndrained) {
             GeoTransportEquationUtilities::CalculateCouplingMatrix(
-                coupling_matrix, rVariables.B, GetStressStatePolicy().GetVoigtVector(), rVariables.Np,
+                coupling_matrix, rVariables.B, GetStressStatePolicy().GetVoigtVector(), np,
                 rVariables.BiotCoefficient, rVariables.DegreeOfSaturation, rVariables.IntegrationCoefficient);
             GeoElementUtilities::AssemblePUBlockMatrix(
                 rLeftHandSideMatrix,
@@ -1216,8 +1269,9 @@ protected:
     {
         KRATOS_TRY
 
+        const Vector np = rVariables.Np;
         const auto compressibility_matrix = GeoTransportEquationUtilities::CalculateCompressibilityMatrix(
-            rVariables.Np, rVariables.BiotModulusInverse, rVariables.IntegrationCoefficient);
+            np, rVariables.BiotModulusInverse, rVariables.IntegrationCoefficient);
 
         GeoElementUtilities::AssemblePPBlockMatrix(
             rLeftHandSideMatrix, compressibility_matrix * rVariables.DtPressureCoefficient);
@@ -1264,15 +1318,16 @@ protected:
         KRATOS_TRY
 
         BoundedMatrix<double, TDim * TNumNodes, TNumPNodes> coupling_matrix;
+        const Vector np = rVariables.Np;
         GeoTransportEquationUtilities::CalculateCouplingMatrix(
-            coupling_matrix, rVariables.B, GetStressStatePolicy().GetVoigtVector(), rVariables.Np,
+            coupling_matrix, rVariables.B, GetStressStatePolicy().GetVoigtVector(), np,
             rVariables.BiotCoefficient, rVariables.BishopCoefficient, rVariables.IntegrationCoefficient);
         const Vector coupling_force = prod(coupling_matrix, rVariables.PressureVector);
         GeoElementUtilities::AssembleUBlockVector(rRightHandSideVector, coupling_force);
 
         if (!rVariables.IgnoreUndrained) {
             GeoTransportEquationUtilities::CalculateCouplingMatrix(
-                coupling_matrix, rVariables.B, GetStressStatePolicy().GetVoigtVector(), rVariables.Np,
+                coupling_matrix, rVariables.B, GetStressStatePolicy().GetVoigtVector(), np,
                 rVariables.BiotCoefficient, rVariables.DegreeOfSaturation, rVariables.IntegrationCoefficient);
             const Vector coupling_flow =
                 PORE_PRESSURE_SIGN_FACTOR * prod(trans(coupling_matrix), rVariables.VelocityVector);
@@ -1286,8 +1341,9 @@ protected:
     {
         KRATOS_TRY
 
+        const Vector np = rVariables.Np;
         Matrix compressibility_matrix = GeoTransportEquationUtilities::CalculateCompressibilityMatrix(
-            rVariables.Np, rVariables.BiotModulusInverse, rVariables.IntegrationCoefficient);
+            np, rVariables.BiotModulusInverse, rVariables.IntegrationCoefficient);
         Vector compressibility_flow = prod(compressibility_matrix, rVariables.PressureDtVector);
         GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector, compressibility_flow);
 
@@ -1354,8 +1410,9 @@ protected:
         return this->GetStressStatePolicy().CalculateBMatrix(rDN_DX, rN, this->GetGeometry());
     }
 
+    template <class TShapeFunctionContainer>
     std::vector<Matrix> CalculateBMatrices(const GeometryType::ShapeFunctionsGradientsType& rDN_DXContainer,
-                                           const Matrix& rNContainer) const
+                                           const TShapeFunctionContainer& rNContainer) const
     {
         std::vector<Matrix> result;
         result.reserve(rDN_DXContainer.size());
@@ -1365,6 +1422,14 @@ protected:
         }
 
         return result;
+    }
+
+    std::vector<double> CalculateIntegrationCoefficientsFromBoundedDetJ(
+        const GeometryType::IntegrationPointsArrayType& rIntegrationPoints,
+        const BoundedVector<double, TNumGPoints>&       rDetJs) const
+    {
+        const Vector det_js{rDetJs};
+        return this->CalculateIntegrationCoefficients(rIntegrationPoints, det_js);
     }
 
     void AssignPressureToIntermediateNodes();
@@ -1421,15 +1486,16 @@ protected:
     ///        the function could calculate the stress, the constitutive matrix, the strains, or a combination.
     ///        In our elements we generally always calculate the constitutive matrix and sometimes the stress.
     ///
-    void CalculateAnyOfMaterialResponse(const std::vector<Matrix>&   rDeformationGradients,
-                                        ConstitutiveLaw::Parameters& rConstitutiveParameters,
-                                        const Matrix&                rNuContainer,
+    template <class TShapeFunctionContainer>
+    void CalculateAnyOfMaterialResponse(const std::vector<Matrix>&     rDeformationGradients,
+                                        ConstitutiveLaw::Parameters&   rConstitutiveParameters,
+                                        const TShapeFunctionContainer& rNuContainer,
                                         const GeometryType::ShapeFunctionsGradientsType& rDNu_DXContainer,
                                         std::vector<Vector>& rStrainVectors,
                                         std::vector<Vector>& rStressVectors,
                                         std::vector<Matrix>& rConstitutiveMatrices)
     {
-        const SizeType voigt_size = TDim == 3 ? VOIGT_SIZE_3D : VOIGT_SIZE_2D_PLANE_STRAIN;
+        constexpr SizeType voigt_size = TVoigtSize;
 
         if (rStrainVectors.size() != rDeformationGradients.size()) {
             rStrainVectors.resize(rDeformationGradients.size());
@@ -1546,7 +1612,7 @@ private:
     }
 
     // Private Operations
-    Vector CalculateBodyAcceleration(Vector& rNu, Vector rBodyAcceleration) const
+    Vector CalculateBodyAcceleration(const BoundedVector<double, TNumNodes>& rNu, const Vector& rBodyAcceleration) const
     {
         Vector body_acceleration = ZeroVector(TDim);
         for (SizeType i = 0; i < TNumNodes; ++i) {
