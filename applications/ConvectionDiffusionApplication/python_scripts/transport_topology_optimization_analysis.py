@@ -197,15 +197,14 @@ class TransportTopologyOptimizationAnalysis(FluidTopologyOptimizationAnalysis):
     def _GetPhysicsMainModelPartsList(self):
         return [self._GetPhysicsSolver().main_model_part]
 
-    def PrintAnalysisStageProgressInformation(self):
-        KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "TOTAL STEP: ", self._GetComputingModelPart().ProcessInfo[KratosMultiphysics.STEP])
-        if self.IsPhysicsStage(): # NS
+    def PrintAnalysisStagePhysicsStepProgressInformation(self):
+        self._PrintAnalysisStageTransportStepProgressInformation()
+
+    def _PrintAnalysisStageTransportStepProgressInformation(self):
+        if self.IsPhysicsStage(): # T
             KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "T STEP: ", self._GetComputingModelPart().ProcessInfo[KratosCD.TRANSPORT_TOP_OPT_T_STEP])
-        elif self.IsAdjointStage(): # ADJ
+        elif self.IsAdjointStage(): # ADJ T
             KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "ADJ T STEP: ", self._GetComputingModelPart().ProcessInfo[KratosCD.TRANSPORT_TOP_OPT_ADJ_T_STEP])
-        else:
-            KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Invalid Value of the Topology Optimization Stage. TOP_OPT_STAGE: ", self.topology_optimization_stage)
-        KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "TIME: ", self.time) 
 
     def _SetTransportSurfaceSourceFromFunctional(self):
         process = self._FindAdjointSurfaceSourceProcess()

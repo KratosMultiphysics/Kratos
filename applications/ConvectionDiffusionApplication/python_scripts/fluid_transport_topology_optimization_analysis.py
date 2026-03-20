@@ -85,17 +85,9 @@ class FluidTransportTopologyOptimizationAnalysis(TransportTopologyOptimizationAn
     def _GetPhysicsMainModelPartsList(self):
         return [self._GetFluidSolver().main_model_part, self._GetTransportSolver().main_model_part]
 
-    def PrintAnalysisStageProgressInformation(self):
-        KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "TOTAL STEP: ", self._GetComputingModelPart().ProcessInfo[KratosMultiphysics.STEP])
-        if self.IsPhysicsStage(): # NS
-            KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "NS STEP: ", self._GetComputingModelPart().ProcessInfo[KratosCFD.FLUID_TOP_OPT_NS_STEP])
-            KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), " T STEP: ", self._GetComputingModelPart().ProcessInfo[KratosCD.TRANSPORT_TOP_OPT_T_STEP])
-        elif self.IsAdjointStage(): # ADJ
-            KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "ADJ NS STEP: ", self._GetComputingModelPart().ProcessInfo[KratosCFD.FLUID_TOP_OPT_ADJ_NS_STEP])
-            KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "ADJ  T STEP: ", self._GetComputingModelPart().ProcessInfo[KratosCD.TRANSPORT_TOP_OPT_ADJ_T_STEP])
-        else:
-            KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Invalid Value of the Topology Optimization Stage. TOP_OPT_STAGE: ", self.topology_optimization_stage)
-        KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "TIME: ", self.time) 
+    def PrintAnalysisStagePhysicsStepProgressInformation(self):
+        self._PrintAnalysisStageFluidStepProgressInformation()
+        self._PrintAnalysisStageTransportStepProgressInformation()
 
     def _PrintPhysicsFunctionals(self):
         self._PrintFluidFunctionals()

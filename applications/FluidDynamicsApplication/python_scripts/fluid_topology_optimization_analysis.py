@@ -1803,15 +1803,28 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> WSS Constraint: " + str(self.wss_constraint), min_echo=0)
 
     def PrintAnalysisStageProgressInformation(self):
+        self.PrintAnalysisStageTotalStepProgressInformation()
+        self.PrintAnalysisStagePhysicsStepProgressInformation()
+        self.PrintAnalysisStageTimeProgressInformation()
+
+    def PrintAnalysisStageTotalStepProgressInformation(self):
         KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "TOTAL STEP: ", self._GetComputingModelPart().ProcessInfo[KratosMultiphysics.STEP])
+
+    def PrintAnalysisStagePhysicsStepProgressInformation(self):
+        self._PrintAnalysisStageFluidStepProgressInformation()
+
+    def _PrintAnalysisStageFluidStepProgressInformation(self):
         if self.IsPhysicsStage(): # NS
             KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "NS STEP: ", self._GetComputingModelPart().ProcessInfo[KratosCFD.FLUID_TOP_OPT_NS_STEP])
-        elif self.IsAdjointStage(): # ADJ
+        elif self.IsAdjointStage(): # ADJ NS
             KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "ADJ NS STEP: ", self._GetComputingModelPart().ProcessInfo[KratosCFD.FLUID_TOP_OPT_ADJ_NS_STEP])
-        else:
-            KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Invalid Value of the Topology Optimization Stage. TOP_OPT_STAGE: ", self.topology_optimization_stage)
-        KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "TIME: ", self.time)
 
+    def PrintAnalysisStageTimeProgressInformation(self):
+        if (self.IsSteadySolution):
+            KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "TIME: ", "steady-state (", self.time, ")")
+        else:
+            KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "TIME: ", self.time)
+    
     def _ComputeDesignParameterDiffusiveFilterUtilities(self):
         self._InitializeDiffusiveFilter()
         self.design_parameter_filtered = np.zeros(self.n_nodes)
@@ -1928,13 +1941,13 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
                             self.nodes_connectivity_matrix_for_derivatives.data[idx] *= 2.0
         
     def _ApplyDesignParameterDiffusiveFilter(self, design_parameter):
-        self.MpiPrint("--|" + self.topology_optimization_stage_str + "| --> Apply Diffusive Filter: " + str(self.apply_diffusive_filter))
+        self.MpiPrint("--|" + self.topology_optimization_stage_str + "| --> Apply Diffusive Filter: " + str(self.apply_diffusive_filter), min_echo=0)
         self.design_parameter_filtered = design_parameter
         mask = self._GetOptimizationDomainNodesMask()
         self.design_parameter_filtered[mask] = self._ApplyDiffusiveFilter(design_parameter)
 
     def _ApplyDesignParameterProjectiveFilter(self, design_parameter):
-        self.MpiPrint("--|" + self.topology_optimization_stage_str + "| --> Apply Projective Filter: " + str(self.apply_projective_filter))
+        self.MpiPrint("--|" + self.topology_optimization_stage_str + "| --> Apply Projective Filter: " + str(self.apply_projective_filter), min_echo=0)
         mask = self._GetOptimizationDomainNodesMask()
         design_parameter = np.clip(design_parameter, 0.0, 1.0)
         self.design_parameter_projected = design_parameter
