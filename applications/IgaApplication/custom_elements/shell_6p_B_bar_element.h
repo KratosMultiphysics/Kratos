@@ -463,7 +463,7 @@ private:
         const KinematicVariables& rActualKinematic) const;
     void CalculateM(
         const double IntegrationWeight,
-        const double IntegrationWeight_zeta,
+        
         Matrix& rN_sigma_A,
         Matrix& rN_sigma_B,
         Matrix& rM) const;
@@ -536,7 +536,10 @@ private:
      void CalculateAndAddKm(
         MatrixType& rKm,
         const Matrix& rD,
-        const Matrix& rBbar  ) const;
+        const Matrix& rB,
+        const Matrix& rMID,
+        const Matrix& rMID_bar
+  ) const;
     
      void CalculateAndAddKmBd(                                             
         MatrixType& rKd,
