@@ -17,10 +17,10 @@ except ImportError as e:
 def Factory(settings, model):
     return IgaVTKOutputProcess(model, settings["Parameters"])
 
-class IgaVTKOutputProcess(KM.Process):
+class IgaVTKOutputProcess(KM.OutputProcess):
 
     def __init__(self, model, params):
-        super().__init__()
+        KM.OutputProcess.__init__(self)
 
         # Default parameters for the process
         default_parameters = KM.Parameters("""{
@@ -31,10 +31,12 @@ class IgaVTKOutputProcess(KM.Process):
             "output_refinement"    : [],
             "output_control_type"  : "none",
             "output_frequency"     : 1,
-            "output_interval"      : 0.0
+            "output_interval"      : 0.0,
+            "interval"               : [0.0, "End"]
         }""")
 
         params.ValidateAndAssignDefaults(default_parameters)
+        self.interval_utility = KM.IntervalUtility(params)
 
         self.model_part = model[params["model_part_name"].GetString()]
         self.output_file_name = Path(params["output_file_name"].GetString())
@@ -81,7 +83,9 @@ class IgaVTKOutputProcess(KM.Process):
 
         elif self.output_control_type == "time":
             self.output_interval = params["output_interval"].GetDouble()
-            self.next_output_time = self.model_part.ProcessInfo[KM.TIME]
+            if self.output_interval <= 0.0:
+                raise Exception('"output_interval" must be > 0.0 for "time" control.')
+            self.next_output_time = self.interval_utility.GetIntervalBegin()
 
         else:
             err_msg  = 'The requested "output_control_type" "' + self.output_control_type
@@ -102,13 +106,16 @@ class IgaVTKOutputProcess(KM.Process):
             return self.printed_step_count == 0
 
         elif self.output_control_type == "step":
-            return (self.step_counter % self.output_frequency) == 0
+            return (self.step_counter % int(self.output_frequency)) == 0
 
         elif self.output_control_type == "time":
-            time = self.model_part.ProcessInfo[KM.TIME]
+            current_time = self.model_part.ProcessInfo[KM.TIME]
 
-            if time >= self.next_output_time:
-                while time >= self.next_output_time:
+            if not self.interval_utility.IsInInterval(current_time):
+                return False
+
+            if current_time >= self.next_output_time:
+                while current_time >= self.next_output_time:
                     self.next_output_time += self.output_interval
                 return True
 
@@ -374,9 +381,11 @@ class IgaVTKOutputProcess(KM.Process):
 
                         try:
                             X = brep_surface.GlobalCoordinates(lc)
-                        except:
-                            print("BAD UV:", u, v)
-                            continue
+                        except Exception as e:
+                            raise RuntimeError(
+                                f"Failed to compute global coordinates for BRep surface {brep_surface.Id} "
+                                f"at local coordinates (u, v)=({u}, {v})."
+                            ) from e
 
                         pts.append([X[0], X[1], X[2]])
                         uv_coords.append((u,v))
@@ -406,9 +415,11 @@ class IgaVTKOutputProcess(KM.Process):
 
                             try:
                                 X = brep_surface.GlobalCoordinates(lc)
-                            except:
-                                print("BAD UV:", u, v)
-                                continue
+                            except Exception as e:
+                                raise RuntimeError(
+                                    f"Failed to compute global coordinates for BRep surface {brep_surface.Id} "
+                                    f"at local coordinates (u, v)=({u}, {v})."
+                                ) from e
 
                             pts.append([X[0], X[1], X[2]])
                             uv_coords.append((u,v))
