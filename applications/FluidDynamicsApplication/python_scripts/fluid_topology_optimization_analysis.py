@@ -1380,11 +1380,11 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         self.time = self.start_time
         self._GetSolver()._SetStartingTime(self.start_time)
 
-    def _EvaluateOptimizationProblem(self, design_parameter = [], print_results = False):
+    def _EvaluateOptimizationProblem(self, design_parameter = [], print_results = False, compute_gradients=True):
         self.MpiPrint("\n--|EVALUATE OPTIMIZATION PROBLEM|")
         if (len(design_parameter) != 0):
             self._UpdateDesignParameterAndPhysicsParameters(design_parameter)
-            self.EvaluateOptimizationRequiredGradients()
+            self.EvaluateOptimizationRequiredGradients(compute_design_gradient=True, compute_physics_gradients=compute_gradients)
         self._EvaluateFunctionalAndDerivatives(print_results)
         self._EvaluateConstraintsAndDerivatives()
         if (print_results):
@@ -1392,7 +1392,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
     
     def _UpdateOptimizationProblem(self, optimization_domain_design_parameter):
         design_parameter = self._InsertDesignParameterFromOptimizationDomain(optimization_domain_design_parameter)
-        self._EvaluateOptimizationProblem(design_parameter, print_results=False)
+        self._EvaluateOptimizationProblem(design_parameter, print_results=False, compute_gradients=False)
         return self.functional, self._ExtractVariableInOptimizationDomain(self.functional_derivatives_wrt_design), self.constraints, self.constraints_derivatives_wrt_design
     
     def _EvaluateConstraintsAndDerivatives(self):
@@ -2021,12 +2021,11 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         else:
             return scalar_variable_derivative_in_opt_domain
         
-
-    def _UpdateOptimizationProblemPhysics(self, optimization_domain_design_parameter):
-        self.design_parameter = self._InsertDesignParameterFromOptimizationDomain(optimization_domain_design_parameter)
-        self._SolveTopologyOptimizationStepPhysics()
-        self._EvaluateOptimizationProblem(print_results=True)
-        return self.functional, self._ExtractVariableInOptimizationDomain(self.functional_derivatives_wrt_design), self.constraints, self.constraints_derivatives_wrt_design
+    # def _UpdateOptimizationProblemPhysics(self, optimization_domain_design_parameter):
+    #     self.design_parameter = self._InsertDesignParameterFromOptimizationDomain(optimization_domain_design_parameter)
+    #     self._SolveTopologyOptimizationStepPhysics()
+    #     self._EvaluateOptimizationProblem(print_results=True)
+    #     return self.functional, self._ExtractVariableInOptimizationDomain(self.functional_derivatives_wrt_design), self.constraints, self.constraints_derivatives_wrt_design
         
     def _GetDesignParameterVariable(self):
         design_parameter = np.zeros(self.n_nodes)
@@ -2191,7 +2190,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         return [self._GetPhysicsSolver().GetMainModelPart()]
     
     def EvaluateFunctionals(self, print_functional):
-        self.EvaluateOptimizationRequiredGradients()
+        # self.EvaluateOptimizationRequiredGradients()
         self.EvaluatePhysicsFunctionals(print_functional)        
 
     def EvaluatePhysicsFunctionals(self, print_functional):
@@ -2243,9 +2242,11 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
     def _UpdateRelevantFluidAdjointVariables(self):
         pass
 
-    def EvaluateOptimizationRequiredGradients(self):
-        self._EvaluateDesignParameterGradient()
-        self._EvaluateOptimizationPhysicsRequiredGradients()
+    def EvaluateOptimizationRequiredGradients(self, compute_design_gradient=True, compute_physics_gradients=True):
+        if (compute_design_gradient): 
+            self._EvaluateDesignParameterGradient()
+        if (compute_physics_gradients):
+            self._EvaluateOptimizationPhysicsRequiredGradients()
 
     def _EvaluateDesignParameterGradient(self):
         self._ComputeScalarVariableNodalGradient(KratosMultiphysics.DESIGN_PARAMETER, KratosMultiphysics.DESIGN_PARAMETER_GRADIENT)
@@ -2794,7 +2795,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         - In serial execution, the gather operations are trivial: `N == n_opt_variables` and the offsets are [0, N].
         - `min_value` and `max_value` define the global bounds applied to all design variables.
         """
-        self.MpiPrint("--|" + self.topology_optimization_stage_str + "| SOLVE MMA")
+        self.MpiPrint("--|" + self.topology_optimization_stage_str + "| SOLVE MMA", min_echo=0)
         # MMA PARAMETERS INITIALIZATION
         rank = self.data_communicator.Rank()
         n_opt_variables_in_rank = self.data_communicator.AllGatherInts([n_opt_variables])
