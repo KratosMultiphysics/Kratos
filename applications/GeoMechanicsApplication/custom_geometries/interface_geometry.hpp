@@ -16,6 +16,7 @@
 #include "custom_utilities/geometry_utilities.h"
 #include "geometries/geometry.h"
 #include "includes/node.h"
+#include "includes/serializer.h"
 
 #include <algorithm>
 
@@ -300,7 +301,10 @@ private:
         auto begin_of_first_side  = points.ptr_begin();
         auto begin_of_second_side = begin_of_first_side + number_of_mid_geometry_nodes;
         auto make_mid_point       = [](const auto& pPoint1, const auto& pPoint2) {
-            return make_intrusive<Node>(pPoint1->Id(), Point{(*pPoint1 + *pPoint2) / 2});
+            auto p_result = make_intrusive<Node>(pPoint1->Id(), Point{(*pPoint1 + *pPoint2) / 2});
+            // Serialization of the mid-geometry requires the nodes to have a non-empty variables list
+            p_result->SetSolutionStepVariablesList(pPoint1->pGetVariablesList());
+            return p_result;
         };
         std::transform(begin_of_first_side, begin_of_second_side, begin_of_second_side,
                        result.ptr_begin(), make_mid_point);
@@ -331,6 +335,22 @@ private:
     {
         return "This Geometry type does not support functionality related to integration "
                "schemes.\n";
+    }
+
+    friend Serializer;
+
+    void save(Serializer& rSerializer) const override
+    {
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType)
+        rSerializer.save("MidGeometry", mpMidGeometry);
+    }
+
+    void load(Serializer& rSerializer) override
+    {
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType)
+        rSerializer.load("MidGeometry", mpMidGeometry);
+
+        this->SetGeometryData(&mpMidGeometry->GetGeometryData());
     }
 
     std::shared_ptr<BaseType> mpMidGeometry;
