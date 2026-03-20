@@ -772,24 +772,27 @@ class KratosGeoMechanicsBuildingPit(KratosUnittest.TestCase):
             expected_total_vertical_reaction,
         )
 
-        expected_total_weight -= self.calculate_weight_of_excavated_clay_lower_right()
-        expected_total_vertical_reaction = (
-            expected_total_weight
-            + self.calculate_total_vertical_surface_load()
-            + self.calculate_weight_of_water_after_third_excavation()
-        )
-        self.check_vertical_reaction(
-            project_path,
-            self.stages_info["third_excavation"],
-            expected_total_vertical_reaction,
-        )
+        if "third_excavation" in self.stages_info:
+            expected_total_weight -= self.calculate_weight_of_excavated_clay_lower_right()
+            expected_total_vertical_reaction = (
+                expected_total_weight
+                + self.calculate_total_vertical_surface_load()
+                + self.calculate_weight_of_water_after_third_excavation()
+            )
+            self.check_vertical_reaction(
+                project_path,
+                self.stages_info["third_excavation"],
+                expected_total_vertical_reaction,
+            )
 
         # Check some more expected results
         with open(Path(project_path) / "expected_results.json") as f:
             expected_results = json.load(f)["expected_results"]
 
         # Stress-free installation of the strut has no impact on the results with respect to the previous stage
-        expected_results["strut_installation"] = expected_results["first_excavation"]
+        # However for mohr coulomb we still define the results, due to some local differences
+        if "strut_installation" not in expected_results:
+            expected_results["strut_installation"] = expected_results["first_excavation"]
 
         reader = GiDOutputFileReader()
         rel_tolerance = 0.07
@@ -1022,6 +1025,9 @@ class KratosGeoMechanicsBuildingPit(KratosUnittest.TestCase):
     def test_simulation_with_linear_elastic_materials(self):
         self.run_simulation_and_checks("linear_elastic")
 
+    def test_simulation_with_mohr_coulomb_materials(self):
+        self.stages_info.pop("third_excavation") # The third excavation stage does not converge yet with Mohr-Coulomb materials, so we remove it from the test
+        self.run_simulation_and_checks("mohr_coulomb")
 
 if __name__ == "__main__":
     KratosUnittest.main()
