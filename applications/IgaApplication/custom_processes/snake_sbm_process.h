@@ -227,6 +227,24 @@ protected:
         return false;
     }
 
+    /**
+     * @brief Retrieves or creates a node in the specified model part.
+     * 
+     * @param rModelPart The model part to search in.
+     * @param NodeId The ID of the node to retrieve or create.
+     * @param NodeI The I coordinate of the node.
+     * @param NodeJ The J coordinate of the node.
+     * @param rKnotVectorU The U knot vector.
+     * @param rKnotVectorV The V knot vector.
+     */
+    static void RetrieveOrCreateNodeInModelPart(
+        ModelPart& rModelPart,
+        const IndexType NodeId,
+        const int NodeI,
+        const int NodeJ,
+        const Vector& rKnotVectorU,
+        const Vector& rKnotVectorV);
+
 private:
 
     /**
