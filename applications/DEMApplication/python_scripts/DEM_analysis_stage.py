@@ -903,6 +903,9 @@ class DEMAnalysisStage(AnalysisStage):
         Ly = self.BoundingBoxMaxY_update - self.BoundingBoxMinY_update
         Lz = self.BoundingBoxMaxZ_update - self.BoundingBoxMinZ_update
         return self.DEMPropertiesMeasureUtility.MeasureGlobalConductivityTensor(Lx, Ly, Lz)
+    
+    def MeasureGlobalMeanCoordinationNumber(self):
+        return self.DEMPropertiesMeasureUtility.MeasureGlobalMeanCoordinationNumber()
 
 if __name__ == "__main__":
     with open("ProjectParametersDEM.json",'r') as parameter_file:

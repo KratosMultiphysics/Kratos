@@ -247,6 +247,7 @@ class DEMPropertiesMeasureUtility:
     def RemoveRigidBodyMotion(self):
         self.SphericElementGlobalPhysicsCalculator.RemoveRigidBodyMotion(self.spheres_model_part)
 
+    ##TODO: move to C++
     def MeasureGlobalConductivityTensor(self, Lx, Ly, Lz):
         if self.DEM_parameters["ContactMeshOption"].GetBool():
             bounding_box_volume = Lx * Ly * Lz
@@ -306,3 +307,13 @@ class DEMPropertiesMeasureUtility:
             return [measured_non_homogenized_conductivity_tensor[0][0],measured_non_homogenized_conductivity_tensor[1][1],measured_non_homogenized_conductivity_tensor[2][2]], conductivity_tensor_trace
         else:
             raise Exception('The \"PostStressStrainOption\" and \"ContactMeshOption\" in the [ProjectParametersDEM.json] should be [True].')
+
+    def MeasureGlobalMeanCoordinationNumber(self):
+        if self.DEM_parameters["ContactMeshOption"].GetBool():
+            total_particle_number = len(self.spheres_model_part.Nodes)
+            total_contact_number = len(self.contact_model_part.Elements)
+            if total_particle_number == 0:
+                return 0.0
+            return 2 * total_contact_number / total_particle_number
+        else:
+            raise Exception('The \"ContactMeshOption\" in the [ProjectParametersDEM.json] should be [True].')
