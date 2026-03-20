@@ -14,6 +14,8 @@
 
 // Application includes
 #include "geo_mechanics_application.h"
+#include "custom_elements/lobatto_integration_scheme.h"
+#include "custom_elements/lumped_integration_scheme.h"
 #include "custom_retention/saturated_below_phreatic_level_law.h"
 
 namespace Kratos
@@ -37,6 +39,10 @@ void KratosGeoMechanicsApplication::Register()
                     << "  //    / / //       //   / /          \n"
                     << " ((____/ / ((____   ((___/ /  MECHANICS\n"
                     << " Initializing KratosGeoMechanicsApplication..." << std::endl;
+
+    // Register custom geometries
+    KRATOS_REGISTER_GEOMETRY("LineInterfaceGeometryInPlaneStrain2Plus2N", mLineInterfaceGeometryInPlaneStrain2Plus2N)
+    KRATOS_REGISTER_GEOMETRY("LineInterfaceGeometryInPlaneStrain3Plus3N", mLineInterfaceGeometryInPlaneStrain3Plus3N)
 
     // Register Elements
     //  transient one-phase flow elements:
@@ -603,6 +609,11 @@ void KratosGeoMechanicsApplication::Register()
 
     Serializer::Register("PlaneStrain", PlaneStrain{});
     Serializer::Register("PlaneStrainStressState", PlaneStrainStressState{});
+    Serializer::Register("Line2DInterfaceStressState", Line2DInterfaceStressState{});
+    Serializer::Register("InterfacePlaneStrain", InterfacePlaneStrain{});
     Serializer::Register("SaturatedBelowPhreaticLevelLaw", SaturatedBelowPhreaticLevelLaw{});
+
+    Serializer::Register("LobattoIntegrationScheme", LobattoIntegrationScheme{});
+    Serializer::Register("LumpedIntegrationScheme", LumpedIntegrationScheme{});
 }
 } // namespace Kratos.
