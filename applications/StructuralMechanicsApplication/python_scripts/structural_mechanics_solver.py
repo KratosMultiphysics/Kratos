@@ -256,11 +256,6 @@ class MechanicalSolver(PythonSolver):
         # The mechanical solution strategy is created here if it does not already exist.
         if self.settings["clear_storage"].GetBool():
             self.Clear()
-
-        computing_model_part = self.GetComputingModelPart()
-        #KratosMultiphysics.StructuralMechanicsApplication.SectionPropertiesUtility.InterpretSections(
-        #    computing_model_part)
-        KratosMultiphysics.StructuralMechanicsApplication.CrossSectionInterpretationUtility.AssignSectionProperties(computing_model_part)
         
         mechanical_solution_strategy = self._GetSolutionStrategy()
         mechanical_solution_strategy.SetEchoLevel(self.settings["echo_level"].GetInt())
@@ -400,6 +395,7 @@ class MechanicalSolver(PythonSolver):
         # Import constitutive laws.
         materials_imported = self.import_constitutive_laws()
         if materials_imported:
+            StructuralMechanicsApplication.CrossSectionPropertiesUtility.CalculateBeamProperties(self.main_model_part)
             KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]:: ", "Constitutive law was successfully imported.")
         else:
             KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]:: ", "Constitutive law was not imported.")

@@ -69,6 +69,7 @@
 #include "utilities/string_utilities.h"
 #include "utilities/model_part_operation_utilities.h"
 #include "utilities/model_part_utils.h"
+#include "utilities/beam_section_properties_utility.h"
 
 namespace Kratos::Python {
 
@@ -215,6 +216,20 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
     py::class_<PythonGenericFunctionUtility,  PythonGenericFunctionUtility::Pointer, GenericFunctionUtility>(m,"PythonGenericFunctionUtility")
         .def(py::init<const std::string&>() )
         .def(py::init<const std::string&, Parameters>())
+        ;
+
+    py::class_<BeamSectionPropertiesUtility::SectionProperties>(m, "BeamSectionProperties")
+        .def(py::init<>())
+        .def_readwrite("Area", &BeamSectionPropertiesUtility::SectionProperties::Area)
+        .def_readwrite("I22", &BeamSectionPropertiesUtility::SectionProperties::I22)
+        .def_readwrite("I33", &BeamSectionPropertiesUtility::SectionProperties::I33)
+        .def_readwrite("TorsionalInertia", &BeamSectionPropertiesUtility::SectionProperties::TorsionalInertia)
+        .def_readwrite("ShearFactorY", &BeamSectionPropertiesUtility::SectionProperties::ShearFactorY)
+        .def_readwrite("ShearFactorZ", &BeamSectionPropertiesUtility::SectionProperties::ShearFactorZ)
+        ;
+
+    py::class_<BeamSectionPropertiesUtility>(m, "BeamSectionPropertiesUtility")
+        .def_static("CalculateProperties", &BeamSectionPropertiesUtility::CalculateProperties)
         ;
 
     py::class_<ApplyFunctionToNodesUtility >(m,"ApplyFunctionToNodesUtility")

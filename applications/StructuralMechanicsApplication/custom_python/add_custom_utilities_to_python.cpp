@@ -23,9 +23,7 @@
 #include "custom_utilities/project_vector_on_surface_utility.h"
 #include "custom_utilities/perturb_geometry_sparse_utility.h"
 #include "custom_utilities/perturb_geometry_subgrid_utility.h"
-//#include "custom_utilities/section_properties_utility.h"
-#include "custom_utilities/cross_section_interpretation_utility.h"
-
+#include "custom_utilities/cross_section_properties_utility.h"
 
 namespace Kratos::Python {
 
@@ -64,12 +62,8 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
         .def("ApplyRandomFieldVectorsToGeometry", &PerturbGeometrySubgridUtility::ApplyRandomFieldVectorsToGeometry)
         ;
 
-    py::class_<CrossSectionInterpretationUtility>(m, "CrossSectionInterpretationUtility")
-    .def_static(
-        "AssignSectionProperties",
-        &CrossSectionInterpretationUtility::AssignSectionProperties
-    );
+    py::class_<CrossSectionPropertiesUtility>(m,"CrossSectionPropertiesUtility")
+        .def_static("CalculateBeamProperties", &CrossSectionPropertiesUtility::CalculateBeamProperties);
 }
 
 }  // namespace Kratos::Python.
-
