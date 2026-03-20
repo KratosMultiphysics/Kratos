@@ -142,6 +142,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         self.max_it = iterations_settings[1].GetInt()
         if (self.min_it > self.max_it):
             self.MpiPrint("\n!!!WARNING: wrong initialization of the min & max number of iterations\n")
+            self.min_it = 1
         
     def _CreateProcesses(self, parameter_name, initialization_order):
         """Create a list of Processes
@@ -562,20 +563,20 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
 
     def SolveTopologyOptimization(self):
         self.design_parameter_change = self.design_parameter_change_toll + 10
-        end_solution = False
+        self.end_solution = False
         self.first_iteration = True
-        while (not end_solution):
+        while (not self.end_solution):
             self.opt_it = self.opt_it+1
             self._GetSolver().GetMainModelPart().ProcessInfo[KratosMultiphysics.STEP] = self.opt_it
-            self.MpiPrint("\n------------------------------------------------------------------------------")
-            self.MpiPrint("--| " + self.topology_optimization_name + " TOPOLOGY OPTIMIZATION SOLUTION LOOP. IT: " +  str(self.opt_it))
-            self.MpiPrint("------------------------------------------------------------------------------")
+            self.MpiPrint("\n------------------------------------------------------------------------------", min_echo=0)
+            self.MpiPrint("--| " + self.topology_optimization_name + " TOPOLOGY OPTIMIZATION SOLUTION LOOP. IT: " +  str(self.opt_it), min_echo=0)
+            self.MpiPrint("------------------------------------------------------------------------------", min_echo=0)
             self.old_design_parameter = self.design_parameter
             self._SolveOptimizer()
             self._SolveTopologyOptimizationStepPhysics()
             self._EvaluateOptimizationProblem(print_results=True)
-            end_solution = self._IsTopologyOptimizationSolutionEnd()
-            if (end_solution):
+            self.end_solution = self._IsTopologyOptimizationSolutionEnd()
+            if (self.end_solution):
                 self.MpiPrint("\n------------------------------------------------------------------------------")
                 self.MpiPrint("--| ENDING " + self.topology_optimization_name + " TOPOLOGY OPTIMIZATION SOLUTION LOOP")
                 if (self.converged):
@@ -594,11 +595,11 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         design_parameter_converged = self._EvaluateDesignParameterChange()
         volume_constraint_valid = not (self.volume_constraint > 0.0)
         self.converged = design_parameter_converged and volume_constraint_valid
-        # return not (((self.opt_it < self.max_it) and (not self.converged)) or (self.opt_it < self.min_it))
-        return (self.opt_it >= self.max_it)
+        return not (((self.opt_it < self.max_it) and (not self.converged)) or (self.opt_it < self.min_it))
+        # return (self.opt_it >= self.max_it)
 
     def _SolveOptimizer(self):
-        self.MpiPrint("\n--|OPTIMIZER|")
+        self.MpiPrint("\n--|OPTIMIZER|", min_echo=0)
         self._SetTopologyOptimizationStage(3)
         if (self.first_iteration):
             self.MpiPrint("--|" + self.topology_optimization_stage_str + "| First Iteration: DO NOTHING")
@@ -1210,6 +1211,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         This method executes a single NS solution of the Topology Optimization problem loop
         """
         self._SetTopologyOptimizationStage(1)# PHYSICS PROBLEM SOLUTION 
+        self.MpiPrint("\n--|PHYSICS SOLUTION|", min_echo=0)
         self._RunStageSolutionLoop()  
     
     def _SolveAdjointProblem(self):  
@@ -1218,6 +1220,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         """
         self._SetTopologyOptimizationStage(2) # ADJOINT PROBLEM SOLUTION
         self._InitializeAdjointPhysicsSolutionLoopStabilization()
+        self.MpiPrint("\n--|ADJOINT SOLUTION|", min_echo=0)
         self._RunStageSolutionLoop() 
         self._FinalizeAdjointPhysicsSolutionLoopStabilization()
 
@@ -1225,16 +1228,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         """
         This method executes a single physics solution of the Topology Optimization problem loop
         N.B.: must be called after the creation of the fluid-transport model part
-        problem_stage = 1: Navier Stokes solution
-        problem_stage = 2: Adjoint Navier-Stokes solution
         """
-        problem_stage = self.GetTopologyOptimizationStage()
-        if ((problem_stage == 1)): 
-            self.MpiPrint("\n--|PHYSICS SOLUTION|")
-        elif (problem_stage == 2):
-            self.MpiPrint("\n--|ADJOINT SOLUTION|")
-        else:   
-            self.MpiPrint("--| UNKNOWN SOLUTION |")
         top_opt_stage_str = self.topology_optimization_stage_str
         self.SetupStageSolutionLoopTimeSettings()
         self.MpiPrint("--|" + top_opt_stage_str + "| START SOLUTION LOOP")
@@ -1774,7 +1768,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
                     design_parameter_converged = False
             design_parameter_converged = self.data_communicator.Broadcast(design_parameter_converged, source_rank=0)
             self.design_parameter_change = self.data_communicator.Broadcast(self.design_parameter_change, source_rank=0)
-            self.MpiPrint("--|" + self.topology_optimization_stage_str + "| DESIGN PARAMETER CHANGE: " + str(self.design_parameter_change))
+            self.MpiPrint("--|" + self.topology_optimization_stage_str + "| DESIGN PARAMETER CHANGE: " + str(self.design_parameter_change), min_echo=0)
             return design_parameter_converged       
 
     def _ResetFunctionalOutput(self):
@@ -1942,7 +1936,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
     def _ApplyDesignParameterProjectiveFilter(self, design_parameter):
         self.MpiPrint("--|" + self.topology_optimization_stage_str + "| --> Apply Projective Filter: " + str(self.apply_projective_filter))
         mask = self._GetOptimizationDomainNodesMask()
-        design_parameter = np.clip(design_parameter, a_min=0.0, a_max=1.0)
+        design_parameter = np.clip(design_parameter, 0.0, 1.0)
         self.design_parameter_projected = design_parameter
         self.design_parameter_projected_derivatives = np.ones(self.n_nodes)
         if (self.apply_projective_filter):
@@ -1967,19 +1961,23 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
             self.design_parameter_projected = np.clip(self.design_parameter_projected, 0.0, 1.0)
 
     def _EvaluateProjectiveFilterSlopeRatio(self):
-        if (self.projective_filter_activation_type == "design"):
-            return self._EvaluateProjectiveFilterSlopeActivationDesignChangeRatio()
-        elif (self.projective_filter_activation_type == "iteration"):
-            return self._EvaluateProjectiveFilterSlopeActivationIterationFractionRatio()
-        return max(self._EvaluateProjectiveFilterSlopeActivationDesignChangeRatio(), self._EvaluateProjectiveFilterSlopeActivationIterationFractionRatio())
+        if (self.opt_it > 1):
+            if (self.projective_filter_activation_type == "design"):
+                return self._EvaluateProjectiveFilterSlopeActivationDesignChangeRatio()
+            elif (self.projective_filter_activation_type == "iteration"):
+                return self._EvaluateProjectiveFilterSlopeActivationIterationFractionRatio()
+            return max(self._EvaluateProjectiveFilterSlopeActivationDesignChangeRatio(), self._EvaluateProjectiveFilterSlopeActivationIterationFractionRatio())
+        return 0.0
 
     def _EvaluateProjectiveFilterSlopeActivationDesignChangeRatio(self):
-        start_change = self.projective_filter_activation_design_change_interval[0]
-        end_change = self.projective_filter_activation_design_change_interval[1]
-        if (start_change == end_change):
-            return 0.0
-        ratio = (start_change-self.design_parameter_change) / (start_change-end_change)
-        return np.clip(ratio, 0.0, 1.0)
+        if (self.opt_it > 2):
+            start_change = self.projective_filter_activation_design_change_interval[0]
+            end_change = self.projective_filter_activation_design_change_interval[1]
+            if (start_change == end_change):
+                return 0.0
+            ratio = (start_change-self.design_parameter_change) / (start_change-end_change)
+            return np.clip(ratio, 0.0, 1.0)
+        return 0.0
 
     def _EvaluateProjectiveFilterSlopeActivationIterationFractionRatio(self):
         start_it = int(np.ceil(self.projective_filter_activation_iteration_fraction_interval[0] * self.max_it))
@@ -2100,7 +2098,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
     def _PrintOptimizationSolution(self):
         self.OptimizationOutputSolutionStep()
         self._CorrectPvtuFilesInOptimizationVtuOutput()
-        if self._IsTopologyOptimizationSolutionEnd():
+        if (self.end_solution):
             self.TimeOutputSolutionStep()
             self._CorrectPvtuFilesInTimeVtuOutput()
         self._PrintFunctionalsToFile()
