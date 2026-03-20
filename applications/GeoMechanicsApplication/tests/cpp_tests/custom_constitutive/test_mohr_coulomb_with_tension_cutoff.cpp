@@ -12,9 +12,11 @@
 //
 
 #include "custom_constitutive/mohr_coulomb_with_tension_cutoff.h"
+#include "custom_constitutive/p_q.hpp"
 #include "custom_constitutive/plane_strain.h"
 #include "custom_constitutive/three_dimensional.h"
 #include "custom_utilities/registration_utilities.hpp"
+#include "custom_utilities/stress_strain_utilities.h"
 #include "custom_utilities/ublas_utilities.h"
 #include "geo_mechanics_application_variables.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
@@ -909,7 +911,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     properties.SetValue(GEO_FRICTION_ANGLE, 30.0);
     properties.SetValue(GEO_COHESION, 5.0);
     properties.SetValue(YOUNG_MODULUS, 1.0);
-    properties.SetValue(POISSON_RATIO, 0.0);
+    properties.SetValue(POISSON_RATIO, 0.35);
     properties.SetValue(GEO_ENABLE_COMPRESSION_CAP, true);
     properties.SetValue(GEO_COMPRESSION_CAP_SIZE, 1.0);
     properties.SetValue(GEO_PRECONSOLIDATION_STRESS, 20.0);
@@ -923,13 +925,12 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
 
     // Act and Assert
     auto cauchy_stress_vector =
-        UblasUtilities::CreateVector({-19.834494905518027796261932699488, -26.30497103308104685498440364009,
-                                      -26.30497103308104685498440364009, 0.0});
-    const auto expected_cauchy_stress_vector =
-        UblasUtilities::CreateVector({-15.867595924414422237, 0.0, -11.338673315592010089, 0.0});
-    const auto resulting_cauchy_stress_vector =
-        CalculateMappedStressVector(cauchy_stress_vector, parameters, law);
-    KRATOS_EXPECT_VECTOR_NEAR(resulting_cauchy_stress_vector, expected_cauchy_stress_vector,
+        UblasUtilities::CreateVector({-20.0, -25.1973512697524, -27.2470857019277, 0.0});
+    const auto expected_pq = Geo::PQ(-19.318516525781365734994863994578, 5.176380902050415246977976752481);
+    const auto resulting_stress_vector = CalculateMappedStressVector(cauchy_stress_vector, parameters, law);
+    const auto resulting_pq = StressStrainUtilities::TransformPrincipalStressesToPandQ(Geo::PrincipalStresses(
+        resulting_stress_vector[0], resulting_stress_vector[1], resulting_stress_vector[2]));
+    KRATOS_EXPECT_VECTOR_NEAR(Vector{resulting_pq.Values()}, Vector{expected_pq.Values()},
                               Defaults::absolute_tolerance);
 }
 
@@ -942,7 +943,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     properties.SetValue(GEO_FRICTION_ANGLE, 30.0);
     properties.SetValue(GEO_COHESION, 5.0);
     properties.SetValue(YOUNG_MODULUS, 1.0e6);
-    properties.SetValue(POISSON_RATIO, 0.0);
+    properties.SetValue(POISSON_RATIO, 0.35);
     properties.SetValue(GEO_ENABLE_COMPRESSION_CAP, true);
     properties.SetValue(GEO_COMPRESSION_CAP_SIZE, 1.0);
     properties.SetValue(GEO_PRECONSOLIDATION_STRESS, 20.0);
@@ -955,12 +956,12 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     law.InitializeMaterial(properties, dummy_element_geometry, dummy_shape_function_values);
 
     // Act and Assert
-    auto       cauchy_stress_vector = UblasUtilities::CreateVector({8.5, -16, -30, 0.0});
-    const auto expected_cauchy_stress_vector =
-        UblasUtilities::CreateVector({-15.867595924414422237, 0.0, -11.338673315592010089, 0.0});
-    const auto resulting_cauchy_stress_vector =
-        CalculateMappedStressVector(cauchy_stress_vector, parameters, law);
-    KRATOS_EXPECT_VECTOR_NEAR(resulting_cauchy_stress_vector, expected_cauchy_stress_vector,
+    auto       cauchy_stress_vector = UblasUtilities::CreateVector({8.0, -8.0, -28, 0.0});
+    const auto expected_pq          = Geo::PQ(-6.96355, 18.7486);
+    const auto resulting_stress_vector = CalculateMappedStressVector(cauchy_stress_vector, parameters, law);
+    const auto resulting_pq = StressStrainUtilities::TransformPrincipalStressesToPandQ(Geo::PrincipalStresses(
+        resulting_stress_vector[0], resulting_stress_vector[1], resulting_stress_vector[2]));
+    KRATOS_EXPECT_VECTOR_NEAR(Vector{resulting_pq.Values()}, Vector{expected_pq.Values()},
                               Defaults::absolute_tolerance);
 }
 

@@ -107,7 +107,9 @@ enum class PlasticityStatus : int {
     TENSION_APEX,
     TENSION_CUT_OFF,
     TENSION_MOHR_COULOMB_CORNER,
-    MOHR_COULOMB_FAILURE
+    MOHR_COULOMB_FAILURE,
+    CAP_MOHR_COULOMB_CORNER,
+    COMPRESSION_CAP
 };
 
 } // namespace Kratos

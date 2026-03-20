@@ -168,9 +168,11 @@ StressStateType CoulombWithTensionCutOffImpl::DoReturnMapping(const StressStateT
         if (mOptionalCompressionCap) {
             const auto trial_pq = rStressStateToPQ(rTrialStressState);
             if (IsStressAtCompressionCapReturnZone(trial_pq)) {
+                mPlasticityStatus = PlasticityStatus::COMPRESSION_CAP;
                 return ReturnStressAtCompressionCapZone(rTrialStressState, rElasticConstitutiveTensor);
             }
             if (IsStressAtCapCornerReturnZone(trial_pq, AveragingType)) {
+                mPlasticityStatus = PlasticityStatus::CAP_MOHR_COULOMB_CORNER;
                 return ReturnStressAtCapCornerZone(rTrialStressState, rElasticConstitutiveTensor, AveragingType);
             }
         }
@@ -251,7 +253,7 @@ bool CoulombWithTensionCutOffImpl::IsStressAtCornerReturnZone(const Geo::SigmaTa
 {
     const auto corner_point = CalculateCornerPoint();
     const auto derivative_of_flow_function =
-        mCoulombYieldSurface.DerivativeOfFlowFunction(rTrialTraction, AveragingType);
+        mCoulombYieldSurface.DerivativeOfFlowFunction(corner_point, AveragingType);
     return (rTrialTraction.Sigma() - corner_point.Sigma()) * derivative_of_flow_function[1] -
                (rTrialTraction.Tau() - corner_point.Tau()) * derivative_of_flow_function[0] >=
            0.0;
@@ -270,7 +272,7 @@ bool CoulombWithTensionCutOffImpl::IsStressAtCapCornerReturnZone(const Geo::PQ& 
 {
     const auto cap_corner_point = CalculateCapCornerPoint();
     const auto derivative_of_mc_flow_function =
-        mCoulombYieldSurface.DerivativeOfFlowFunction(rTrialPQ, AveragingType);
+        mCoulombYieldSurface.DerivativeOfFlowFunction(cap_corner_point, AveragingType);
     const auto cof = derivative_of_mc_flow_function[0] / derivative_of_mc_flow_function[1];
     return rTrialPQ.P() - cap_corner_point.P() - cof * (rTrialPQ.Q() - cap_corner_point.Q()) < 0.0;
 }

@@ -142,14 +142,11 @@ Vector CompressionCapYieldSurface::DerivativeOfFlowFunction(const Geo::Principal
     const auto p_q = StressStrainUtilities::TransformPrincipalStressesToPandQ(rPrincipalStresses);
     auto       derivative_pq = DerivativeOfFlowFunction(p_q);
     const auto c1            = derivative_pq[0] / 3.0;
-    const auto c2            = derivative_pq[1] / (2.0 * p_q.Q());
+    const auto c2            = 3.0 * derivative_pq[1] / (2.0 * p_q.Q());
     Vector     result        = Vector(3, 0.0);
-    result[0] = c1 + c2 * (2.0 * rPrincipalStresses.Values()[0] - rPrincipalStresses.Values()[1] -
-                           rPrincipalStresses.Values()[2]);
-    result[1] = c1 + c2 * (2.0 * rPrincipalStresses.Values()[1] - rPrincipalStresses.Values()[2] -
-                           rPrincipalStresses.Values()[0]);
-    result[2] = c1 + c2 * (2.0 * rPrincipalStresses.Values()[2] - rPrincipalStresses.Values()[0] -
-                           rPrincipalStresses.Values()[1]);
+    result[0]                = c1 + c2 * (rPrincipalStresses.Values()[0] - p_q.P());
+    result[1]                = c1 + c2 * (rPrincipalStresses.Values()[1] - p_q.P());
+    result[2]                = c1 + c2 * (rPrincipalStresses.Values()[2] - p_q.P());
     return result;
 }
 

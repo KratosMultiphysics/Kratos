@@ -112,7 +112,8 @@ KRATOS_TEST_CASE_IN_SUITE(CheckRootsOfSecondOrderEquation, KratosGeoMechanicsFas
 
     // Act & assert
     auto expected_result = UblasUtilities::CreateVector({-1.4, 2.3});
-    KRATOS_EXPECT_VECTOR_NEAR(GeoMechanicsMathUtilities::RootsOfSecondOrderEquation(A, B, C), expected_result, 1.0e-12);
+    KRATOS_EXPECT_VECTOR_NEAR(GeoMechanicsMathUtilities::RootsOfSecondOrderEquation(A, B, C),
+                              expected_result, Defaults::absolute_tolerance);
 
     // Arrange
     A = 1.0;
@@ -121,7 +122,8 @@ KRATOS_TEST_CASE_IN_SUITE(CheckRootsOfSecondOrderEquation, KratosGeoMechanicsFas
 
     // Act & assert
     expected_result = UblasUtilities::CreateVector({1.2});
-    KRATOS_EXPECT_VECTOR_NEAR(GeoMechanicsMathUtilities::RootsOfSecondOrderEquation(A, B, C), expected_result, 1.0e-12);
+    KRATOS_EXPECT_VECTOR_NEAR(GeoMechanicsMathUtilities::RootsOfSecondOrderEquation(A, B, C),
+                              expected_result, Defaults::absolute_tolerance);
 
     // Arrange
     A = 1.0;
@@ -130,14 +132,16 @@ KRATOS_TEST_CASE_IN_SUITE(CheckRootsOfSecondOrderEquation, KratosGeoMechanicsFas
 
     // Act & assert
     expected_result = UblasUtilities::CreateVector({});
-    KRATOS_EXPECT_VECTOR_NEAR(GeoMechanicsMathUtilities::RootsOfSecondOrderEquation(A, B, C), expected_result, 1.0e-12);
+    KRATOS_EXPECT_VECTOR_NEAR(GeoMechanicsMathUtilities::RootsOfSecondOrderEquation(A, B, C),
+                              expected_result, Defaults::absolute_tolerance);
 
     // Arrange
     A = 0.0;
 
     // Act & assert
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        [[maybe_unused]] const auto unused = GeoMechanicsMathUtilities::RootsOfSecondOrderEquation(A, B, C), "A == 0 does not define a second order equation.");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN([[maybe_unused]] const auto unused =
+                                          GeoMechanicsMathUtilities::RootsOfSecondOrderEquation(A, B, C),
+                                      "A == 0 does not define a second order equation.");
 }
 
 } // namespace Kratos::Testing
