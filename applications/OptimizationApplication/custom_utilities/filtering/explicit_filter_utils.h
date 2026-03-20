@@ -171,7 +171,12 @@ private:
 
     bool mStoreFilteringMatrix;
 
-    DenseVector<DenseVector<std::pair<unsigned int, double>>> mFilteringMatrix;
+    // The storage of the filtering matrix mFilteringMatrix.
+    //      number of rows of first dense vector -> number of items in the container of interest in mrModelPart
+    //      number of rows of second dense vector -> number of neighbours for each item of each row of the first dense vector
+    //      std::get<0>(unsigned int) -> neighbour index
+    //      std::get<1>(DenseVector)  -> filter matrix coefficient corresponding to the component in stride.
+    DenseVector<DenseVector<std::pair<unsigned int, DenseVector<double>>>> mFilteringMatrix;
 
     ///@}
     ///@name Private operations
@@ -180,12 +185,15 @@ private:
     void CheckField(const TensorAdaptor<double>& rTensorAdaptor) const;
 
     template<class TMeshDependencyType>
+    void ComputeForwardFilteringMatrix();
+
+    template<class TMeshDependencyType>
     void GenericGetIntegrationWeights(TensorAdaptor<double>& rTensorAdapto) const;
 
-    template<class TMeshDependencyType>
+    template<class TMeshDependencyType, bool TUseFilterMatrix = false>
     TensorAdaptor<double>::Pointer GenericForwardFilterField(const TensorAdaptor<double>& rTensorAdaptor) const;
 
-    template<class TMeshDependencyType>
+    template<class TMeshDependencyType, bool TUseFilterMatrix = false>
     TensorAdaptor<double>::Pointer GenericBackwardFilterField(const TensorAdaptor<double>& rTensorAdaptor) const;
 
     ///@}

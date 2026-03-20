@@ -283,6 +283,18 @@ void ExplicitFilterUtils<TContainerType>::ExplicitFilterUtils::Update()
         }
     }
 
+    if (mStoreFilteringMatrix) {
+        if (mNodeCloudMesh) {
+            ComputeForwardFilteringMatrix<ExplicitFilterUtilsHelperUtilities::NodeCloudsType>();
+        } else {
+            ComputeForwardFilteringMatrix<ExplicitFilterUtilsHelperUtilities::MeshIndependentType>();
+        }
+
+        // release the memory of the kd trees.
+        mpKDTreeIndex.reset();
+        mpAdapter.reset();
+    }
+
     KRATOS_INFO_IF("ExplicitFilterUtils", mEchoLevel > 0) << "Updated filter in: " << timer.ElapsedSeconds() << " s" << std::endl;
 
     KRATOS_CATCH("");
@@ -331,6 +343,50 @@ void ExplicitFilterUtils<TContainerType>::CheckField(const TensorAdaptor<double>
 
 template<class TContainerType>
 template<class TMeshDependencyType>
+void ExplicitFilterUtils<TContainerType>::ComputeForwardFilteringMatrix()
+{
+    KRATOS_TRY
+
+    const auto& r_container = ModelPartUtils::GetContainer<TContainerType>(mrModelPart);
+    const IndexType stride = mpDamping->GetStride();
+    const auto& r_filter_radius_data_view = mpFilterRadiusTensorAdaptor->ViewData();
+
+    mFilteringMatrix.resize(r_container.size(), false);
+
+    IndexPartition<IndexType>(r_container.size()).for_each(KDTreeThreadLocalStorage(), [&](const IndexType Index, auto& rTLS){
+        const double sum_of_weights = ExplicitFilterUtilsHelperUtilities::ComputeWeights<TMeshDependencyType, TContainerType>(
+                rTLS.mListOfDampedWeights, rTLS.mNeighbourIndicesAndSquaredDistances,
+                rTLS.mListOfWeights, rTLS.mNeighbourEntityPoints,
+                *mpKernelFunction, *mpAdapter, *mpKDTreeIndex, *mpDamping, r_filter_radius_data_view[Index],
+                OptimizationUtils::GetEntityPosition(*(r_container.begin() + Index)),
+                Index, this->mNodalDomainSizes, this->mrModelPart.Nodes());
+
+        const auto number_of_neighbours = rTLS.mNeighbourIndicesAndSquaredDistances.size();
+
+        auto& filtering_matrix_row_data = mFilteringMatrix[Index];
+        filtering_matrix_row_data.resize(number_of_neighbours);
+
+        for(IndexType neighbour_index = 0 ; neighbour_index < rTLS.mNeighbourIndicesAndSquaredDistances.size(); ++neighbour_index) {
+            const IndexType neighbour_id = rTLS.mNeighbourIndicesAndSquaredDistances[neighbour_index].first;
+
+            auto& neighbour_data = filtering_matrix_row_data[neighbour_index];
+            std::get<0>(neighbour_data) = neighbour_id;
+
+            auto& coefficients = std::get<1>(neighbour_data);
+            coefficients.resize(stride, false);
+            for (IndexType j = 0; j < stride; ++j) {
+                coefficients[j] = rTLS.mListOfDampedWeights[j][neighbour_index] / sum_of_weights;
+            }
+        }
+    });
+
+    KRATOS_INFO_IF("ExplicitFilterUtils", mEchoLevel > 1) << "Computed filtering matrix." << std::endl;
+
+    KRATOS_CATCH("");
+}
+
+template<class TContainerType>
+template<class TMeshDependencyType, bool TUseFilterMatrix>
 TensorAdaptor<double>::Pointer ExplicitFilterUtils<TContainerType>::GenericForwardFilterField(const TensorAdaptor<double>& rTensorAdaptor) const
 {
     KRATOS_TRY
@@ -350,22 +406,35 @@ TensorAdaptor<double>::Pointer ExplicitFilterUtils<TContainerType>::GenericForwa
     auto result_data_view = p_result_tensor_adaptor->ViewData();
 
     IndexPartition<IndexType>(r_container.size()).for_each(KDTreeThreadLocalStorage(), [&](const IndexType Index, auto& rTLS){
-        const double sum_of_weights = ExplicitFilterUtilsHelperUtilities::ComputeWeights<TMeshDependencyType, TContainerType>(
-                rTLS.mListOfDampedWeights, rTLS.mNeighbourIndicesAndSquaredDistances,
-                rTLS.mListOfWeights, rTLS.mNeighbourEntityPoints,
-                *mpKernelFunction, *mpAdapter, *mpKDTreeIndex, *mpDamping, r_filter_radius_data_view[Index],
-                OptimizationUtils::GetEntityPosition(*(r_container.begin() + Index)),
-                Index, this->mNodalDomainSizes, this->mrModelPart.Nodes());
-
-        for (IndexType j = 0; j < stride; ++j) {
-            const auto& r_damped_weights = rTLS.mListOfDampedWeights[j];
-            double& current_index_value = result_data_view[Index * stride + j];
-            current_index_value = 0.0;
-            for(IndexType neighbour_index = 0 ; neighbour_index < rTLS.mNeighbourIndicesAndSquaredDistances.size(); ++neighbour_index) {
-                const IndexType neighbour_id = rTLS.mNeighbourIndicesAndSquaredDistances[neighbour_index].first;
-                const double weight = r_damped_weights[neighbour_index] / sum_of_weights;
-                const double origin_value = r_origin_data_view[neighbour_id * stride + j];
-                current_index_value +=  weight * origin_value;
+        if constexpr(!TUseFilterMatrix) {
+            const double sum_of_weights = ExplicitFilterUtilsHelperUtilities::ComputeWeights<TMeshDependencyType, TContainerType>(
+                    rTLS.mListOfDampedWeights, rTLS.mNeighbourIndicesAndSquaredDistances,
+                    rTLS.mListOfWeights, rTLS.mNeighbourEntityPoints,
+                    *mpKernelFunction, *mpAdapter, *mpKDTreeIndex, *mpDamping, r_filter_radius_data_view[Index],
+                    OptimizationUtils::GetEntityPosition(*(r_container.begin() + Index)),
+                    Index, this->mNodalDomainSizes, this->mrModelPart.Nodes());
+            for (IndexType j = 0; j < stride; ++j) {
+                const auto& r_damped_weights = rTLS.mListOfDampedWeights[j];
+                double& current_index_value = result_data_view[Index * stride + j];
+                current_index_value = 0.0;
+                for(IndexType neighbour_index = 0 ; neighbour_index < rTLS.mNeighbourIndicesAndSquaredDistances.size(); ++neighbour_index) {
+                    const IndexType neighbour_id = rTLS.mNeighbourIndicesAndSquaredDistances[neighbour_index].first;
+                    const double weight = r_damped_weights[neighbour_index] / sum_of_weights;
+                    const double origin_value = r_origin_data_view[neighbour_id * stride + j];
+                    current_index_value +=  weight * origin_value;
+                }
+            }
+        } else {
+            const auto& filter_matrix_row_data = mFilteringMatrix[Index];
+            for (IndexType j = 0; j < stride; ++j) {
+                double& current_index_value = result_data_view[Index * stride + j];
+                current_index_value = 0.0;
+                for(IndexType neighbour_index = 0 ; neighbour_index < filter_matrix_row_data.size(); ++neighbour_index) {
+                    const auto neighbour_id = std::get<0>(filter_matrix_row_data[neighbour_index]);
+                    const auto weight = std::get<1>(filter_matrix_row_data[neighbour_index])[j];
+                    const double origin_value = r_origin_data_view[neighbour_id * stride + j];
+                    current_index_value +=  weight * origin_value;
+                }
             }
         }
     });
@@ -378,7 +447,7 @@ TensorAdaptor<double>::Pointer ExplicitFilterUtils<TContainerType>::GenericForwa
 }
 
 template<class TContainerType>
-template<class TMeshDependencyType>
+template<class TMeshDependencyType, bool TUseFilterMatrix>
 TensorAdaptor<double>::Pointer ExplicitFilterUtils<TContainerType>::GenericBackwardFilterField(const TensorAdaptor<double>& rTensorAdaptor) const
 {
     KRATOS_TRY
@@ -400,28 +469,39 @@ TensorAdaptor<double>::Pointer ExplicitFilterUtils<TContainerType>::GenericBackw
     std::fill(result_data_view.begin(), result_data_view.end(), 0.0);
 
     IndexPartition<IndexType>(r_container.size()).for_each(KDTreeThreadLocalStorage(), [&](const IndexType Index, auto& rTLS){
-        const double sum_of_weights = ExplicitFilterUtilsHelperUtilities::ComputeWeights<TMeshDependencyType, TContainerType>(
-                rTLS.mListOfDampedWeights, rTLS.mNeighbourIndicesAndSquaredDistances,
-                rTLS.mListOfWeights, rTLS.mNeighbourEntityPoints,
-                *mpKernelFunction, *mpAdapter, *mpKDTreeIndex, *mpDamping, r_filter_radius_data_view[Index],
-                OptimizationUtils::GetEntityPosition(*(r_container.begin() + Index)),
-                Index, this->mNodalDomainSizes, this->mrModelPart.Nodes());
-
+        const double domain_size = TMeshDependencyType::GetDomainSize(*(r_container.begin() + Index), mNodalDomainSizes, mrModelPart.Nodes());
         const IndexType current_data_begin = Index * stride;
 
-        const double domain_size = TMeshDependencyType::GetDomainSize(*(r_container.begin() + Index), mNodalDomainSizes, mrModelPart.Nodes());
+        if constexpr(!TUseFilterMatrix) {
+            const double sum_of_weights = ExplicitFilterUtilsHelperUtilities::ComputeWeights<TMeshDependencyType, TContainerType>(
+                    rTLS.mListOfDampedWeights, rTLS.mNeighbourIndicesAndSquaredDistances,
+                    rTLS.mListOfWeights, rTLS.mNeighbourEntityPoints,
+                    *mpKernelFunction, *mpAdapter, *mpKDTreeIndex, *mpDamping, r_filter_radius_data_view[Index],
+                    OptimizationUtils::GetEntityPosition(*(r_container.begin() + Index)),
+                    Index, this->mNodalDomainSizes, this->mrModelPart.Nodes());
 
-        for (IndexType j = 0; j < stride; ++j) {
-            const auto& r_damped_weights = rTLS.mListOfDampedWeights[j];
-            const double origin_value = TMeshDependencyType::Compute(r_origin_data_view[current_data_begin + j], domain_size);
+            for (IndexType j = 0; j < stride; ++j) {
+                const auto& r_damped_weights = rTLS.mListOfDampedWeights[j];
+                const double origin_value = TMeshDependencyType::Compute(r_origin_data_view[current_data_begin + j], domain_size);
 
-            for(IndexType neighbour_index = 0; neighbour_index < rTLS.mNeighbourIndicesAndSquaredDistances.size(); ++neighbour_index) {
-                const double weight = r_damped_weights[neighbour_index] / sum_of_weights;
+                for(IndexType neighbour_index = 0; neighbour_index < rTLS.mNeighbourIndicesAndSquaredDistances.size(); ++neighbour_index) {
+                    const double weight = r_damped_weights[neighbour_index] / sum_of_weights;
 
-                const IndexType neighbour_id = rTLS.mNeighbourIndicesAndSquaredDistances[neighbour_index].first;
-                const IndexType neighbour_data_begin_index = neighbour_id * stride;
+                    const IndexType neighbour_id = rTLS.mNeighbourIndicesAndSquaredDistances[neighbour_index].first;
+                    const IndexType neighbour_data_begin_index = neighbour_id * stride;
 
-                AtomicAdd<double>(result_data_view[neighbour_data_begin_index + j], origin_value * weight);
+                    AtomicAdd<double>(result_data_view[neighbour_data_begin_index + j], origin_value * weight);
+                }
+            }
+        } else {
+            const auto& filter_matrix_row_data = mFilteringMatrix[Index];
+            for (IndexType j = 0; j < stride; ++j) {
+                const double origin_value = TMeshDependencyType::Compute(r_origin_data_view[current_data_begin + j], domain_size);
+                for(IndexType neighbour_index = 0 ; neighbour_index < filter_matrix_row_data.size(); ++neighbour_index) {
+                    const auto neighbour_id = std::get<0>(filter_matrix_row_data[neighbour_index]);
+                    const auto weight = std::get<1>(filter_matrix_row_data[neighbour_index])[j];
+                    AtomicAdd<double>(result_data_view[neighbour_id * stride + j], origin_value * weight);
+                }
             }
         }
     });
@@ -455,30 +535,54 @@ void ExplicitFilterUtils<TContainerType>::GenericGetIntegrationWeights(TensorAda
 template<class TContainerType>
 TensorAdaptor<double>::Pointer ExplicitFilterUtils<TContainerType>::ForwardFilterField(const TensorAdaptor<double>& rTensorAdaptor) const
 {
-    if (mNodeCloudMesh) {
-        return GenericForwardFilterField<ExplicitFilterUtilsHelperUtilities::NodeCloudsType>(rTensorAdaptor);
+    if (mStoreFilteringMatrix) {
+        if (mNodeCloudMesh) {
+            return GenericForwardFilterField<ExplicitFilterUtilsHelperUtilities::NodeCloudsType, true>(rTensorAdaptor);
+        } else {
+            return GenericForwardFilterField<ExplicitFilterUtilsHelperUtilities::MeshIndependentType, true>(rTensorAdaptor);
+        }
     } else {
-        return GenericForwardFilterField<ExplicitFilterUtilsHelperUtilities::MeshIndependentType>(rTensorAdaptor);
+        if (mNodeCloudMesh) {
+            return GenericForwardFilterField<ExplicitFilterUtilsHelperUtilities::NodeCloudsType>(rTensorAdaptor);
+        } else {
+            return GenericForwardFilterField<ExplicitFilterUtilsHelperUtilities::MeshIndependentType>(rTensorAdaptor);
+        }
     }
 }
 
 template<class TContainerType>
 TensorAdaptor<double>::Pointer ExplicitFilterUtils<TContainerType>::BackwardFilterField(const TensorAdaptor<double>& rTensorAdaptor) const
 {
-    if (mNodeCloudMesh) {
-        return GenericBackwardFilterField<ExplicitFilterUtilsHelperUtilities::NodeCloudsType>(rTensorAdaptor);
+    if (mStoreFilteringMatrix) {
+        if (mNodeCloudMesh) {
+            return GenericBackwardFilterField<ExplicitFilterUtilsHelperUtilities::NodeCloudsType, true>(rTensorAdaptor);
+        } else {
+            return GenericBackwardFilterField<ExplicitFilterUtilsHelperUtilities::MeshIndependentType, true>(rTensorAdaptor);
+        }
     } else {
-        return GenericBackwardFilterField<ExplicitFilterUtilsHelperUtilities::MeshIndependentType>(rTensorAdaptor);
+        if (mNodeCloudMesh) {
+            return GenericBackwardFilterField<ExplicitFilterUtilsHelperUtilities::NodeCloudsType>(rTensorAdaptor);
+        } else {
+            return GenericBackwardFilterField<ExplicitFilterUtilsHelperUtilities::MeshIndependentType>(rTensorAdaptor);
+        }
     }
 }
 
 template<class TContainerType>
 TensorAdaptor<double>::Pointer ExplicitFilterUtils<TContainerType>::BackwardFilterIntegratedField(const TensorAdaptor<double>& rTensorAdaptor) const
 {
-    if (mNodeCloudMesh) {
-        return GenericBackwardFilterField<ExplicitFilterUtilsHelperUtilities::NodeCloudsType>(rTensorAdaptor);
+    if (mStoreFilteringMatrix) {
+        if (mNodeCloudMesh) {
+            return GenericBackwardFilterField<ExplicitFilterUtilsHelperUtilities::NodeCloudsType, true>(rTensorAdaptor);
+        } else {
+            return GenericBackwardFilterField<ExplicitFilterUtilsHelperUtilities::MeshDependentType, true>(rTensorAdaptor);
+        }
     } else {
-        return GenericBackwardFilterField<ExplicitFilterUtilsHelperUtilities::MeshDependentType>(rTensorAdaptor);
+        if (mNodeCloudMesh) {
+            return GenericBackwardFilterField<ExplicitFilterUtilsHelperUtilities::NodeCloudsType>(rTensorAdaptor);
+        } else {
+            return GenericBackwardFilterField<ExplicitFilterUtilsHelperUtilities::MeshDependentType>(rTensorAdaptor);
+        }
     }
 }
 
