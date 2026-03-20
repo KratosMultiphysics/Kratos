@@ -1941,13 +1941,13 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
                             self.nodes_connectivity_matrix_for_derivatives.data[idx] *= 2.0
         
     def _ApplyDesignParameterDiffusiveFilter(self, design_parameter):
-        self.MpiPrint("--|" + self.topology_optimization_stage_str + "| --> Apply Diffusive Filter: " + str(self.apply_diffusive_filter), min_echo=0)
+        self.MpiPrint("--|" + self.topology_optimization_stage_str + "| --> Apply Diffusive Filter: " + str(self.apply_diffusive_filter))
         self.design_parameter_filtered = design_parameter
         mask = self._GetOptimizationDomainNodesMask()
         self.design_parameter_filtered[mask] = self._ApplyDiffusiveFilter(design_parameter)
 
     def _ApplyDesignParameterProjectiveFilter(self, design_parameter):
-        self.MpiPrint("--|" + self.topology_optimization_stage_str + "| --> Apply Projective Filter: " + str(self.apply_projective_filter), min_echo=0)
+        self.MpiPrint("--|" + self.topology_optimization_stage_str + "| --> Apply Projective Filter: " + str(self.apply_projective_filter))
         mask = self._GetOptimizationDomainNodesMask()
         design_parameter = np.clip(design_parameter, 0.0, 1.0)
         self.design_parameter_projected = design_parameter
