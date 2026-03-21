@@ -96,8 +96,7 @@ public:
 
     static constexpr std::size_t TVoigtSize = []() constexpr -> std::size_t {
         if constexpr (TDim == 2) return VOIGT_SIZE_2D_PLANE_STRAIN;
-        else if constexpr (TDim == 3)
-            return VOIGT_SIZE_3D;
+        else if constexpr (TDim == 3) return VOIGT_SIZE_3D;
         else
             static_assert(dependent_false<std::integral_constant<std::size_t, TDim>>,
                           "The Voigt size for the given element is not defined.");
@@ -110,7 +109,8 @@ public:
                                    GeometryType::Pointer              pGeometry,
                                    std::unique_ptr<StressStatePolicy> pStressStatePolicy,
                                    std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr)
-        : SmallStrainUPwDiffOrderElement(NewId, pGeometry, nullptr, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
+        : SmallStrainUPwDiffOrderElement(
+              NewId, pGeometry, nullptr, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
     {
     }
 
@@ -196,28 +196,26 @@ public:
         const auto determinants_of_deformation_gradients =
             GeoMechanicsMathUtilities::CalculateDeterminants(deformation_gradients);
         const auto strain_vectors = StressStrainUtilities::CalculateStrains(
-            deformation_gradients, b_matrices, variables.DisplacementVector,
-            variables.UseHenckyStrain, TVoigtSize);
+            deformation_gradients, b_matrices, variables.DisplacementVector, variables.UseHenckyStrain, TVoigtSize);
 
         const auto number_of_integration_points =
             GetGeometry().IntegrationPointsNumber(GetIntegrationMethod());
         for (unsigned int integration_point = 0; integration_point < number_of_integration_points;
              ++integration_point) {
             this->ExtractShapeFunctionDataAtIntegrationPoint(variables, integration_point);
-            variables.B            = b_matrices[integration_point];
-            variables.F            = deformation_gradients[integration_point];
-            variables.StrainVector = strain_vectors[integration_point];
-            Vector strain_vector   = variables.StrainVector;
+            variables.B                = b_matrices[integration_point];
+            variables.F                = deformation_gradients[integration_point];
+            variables.StrainVector     = strain_vectors[integration_point];
+            Vector strain_vector       = variables.StrainVector;
             Matrix constitutive_matrix = variables.ConstitutiveMatrix;
 
             ConstitutiveLawUtilities::SetConstitutiveParameters(
-                ConstitutiveParameters, strain_vector, constitutive_matrix,
-                variables.Nu, variables.DNu_DX, variables.F,
-                determinants_of_deformation_gradients[integration_point]);
+                ConstitutiveParameters, strain_vector, constitutive_matrix, variables.Nu, variables.DNu_DX,
+                variables.F, determinants_of_deformation_gradients[integration_point]);
 
             // Compute constitutive tensor and/or stresses
             noalias(variables.StressVector) = mStressVector[integration_point];
-            Vector stress_vector = variables.StressVector;
+            Vector stress_vector            = variables.StressVector;
             ConstitutiveParameters.SetStressVector(stress_vector);
             mConstitutiveLawVector[integration_point]->FinalizeMaterialResponseCauchy(ConstitutiveParameters);
             mStateVariablesFinalized[integration_point] = mConstitutiveLawVector[integration_point]->GetValue(
@@ -561,9 +559,9 @@ public:
 
             const auto b_matrices = CalculateBMatrices(variables.DNu_DXContainer, variables.NuContainer);
             const auto deformation_gradients = CalculateDeformationGradients();
-            rOutput                          = StressStrainUtilities::CalculateStrains(
-                deformation_gradients, b_matrices, variables.DisplacementVector,
-                variables.UseHenckyStrain, TVoigtSize);
+            rOutput = StressStrainUtilities::CalculateStrains(deformation_gradients, b_matrices,
+                                                              variables.DisplacementVector,
+                                                              variables.UseHenckyStrain, TVoigtSize);
         } else {
             for (unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i)
                 rOutput[i] = mConstitutiveLawVector[i]->GetValue(rVariable, rOutput[i]);
@@ -717,10 +715,10 @@ protected:
 
         BoundedMatrix<double, TNumPNodes, TDim> DNp_DX; // Contains the global derivatives of the pressure shape functions
         BoundedMatrix<double, TVoigtSize, TNumNodes * TDim> B;
-        double IntegrationCoefficient;
-        double IntegrationCoefficientInitialConfiguration;
-        BoundedVector<double, TVoigtSize> StrainVector;
-        BoundedVector<double, TVoigtSize> StressVector;
+        double                                              IntegrationCoefficient;
+        double                                        IntegrationCoefficientInitialConfiguration;
+        BoundedVector<double, TVoigtSize>             StrainVector;
+        BoundedVector<double, TVoigtSize>             StressVector;
         BoundedMatrix<double, TVoigtSize, TVoigtSize> ConstitutiveMatrix;
 
         // variables needed for consistency with the general constitutive law
@@ -779,8 +777,7 @@ protected:
         const auto b_matrices = CalculateBMatrices(variables.DNu_DXContainer, variables.NuContainer);
         const auto deformation_gradients = CalculateDeformationGradients();
         auto       strain_vectors        = StressStrainUtilities::CalculateStrains(
-            deformation_gradients, b_matrices, variables.DisplacementVector,
-            variables.UseHenckyStrain, TVoigtSize);
+            deformation_gradients, b_matrices, variables.DisplacementVector, variables.UseHenckyStrain, TVoigtSize);
         std::vector<Matrix> constitutive_matrices;
         this->CalculateAnyOfMaterialResponse(deformation_gradients, ConstitutiveParameters,
                                              variables.NuContainer, variables.DNu_DXContainer,
@@ -832,8 +829,7 @@ protected:
 
         const auto deformation_gradients = CalculateDeformationGradients();
         auto       strain_vectors        = StressStrainUtilities::CalculateStrains(
-            deformation_gradients, b_matrices, variables.DisplacementVector,
-            variables.UseHenckyStrain, TVoigtSize);
+            deformation_gradients, b_matrices, variables.DisplacementVector, variables.UseHenckyStrain, TVoigtSize);
         std::vector<Matrix> constitutive_matrices;
         this->CalculateAnyOfMaterialResponse(deformation_gradients, ConstitutiveParameters,
                                              variables.NuContainer, variables.DNu_DXContainer,
@@ -922,8 +918,7 @@ protected:
 
         const auto deformation_gradients = CalculateDeformationGradients();
         auto       strain_vectors        = StressStrainUtilities::CalculateStrains(
-            deformation_gradients, b_matrices, variables.DisplacementVector,
-            variables.UseHenckyStrain, TVoigtSize);
+            deformation_gradients, b_matrices, variables.DisplacementVector, variables.UseHenckyStrain, TVoigtSize);
         std::vector<Matrix> constitutive_matrices;
         this->CalculateAnyOfMaterialResponse(deformation_gradients, ConstitutiveParameters,
                                              variables.NuContainer, variables.DNu_DXContainer,
@@ -1229,7 +1224,7 @@ protected:
         KRATOS_TRY
 
         BoundedMatrix<double, TDim * TNumNodes, TNumPNodes> coupling_matrix;
-        const Vector np = rVariables.Np;
+        const Vector                                        np = rVariables.Np;
         GeoTransportEquationUtilities::CalculateCouplingMatrix(
             coupling_matrix, rVariables.B, GetStressStatePolicy().GetVoigtVector(), np,
             rVariables.BiotCoefficient, rVariables.BishopCoefficient, rVariables.IntegrationCoefficient);
@@ -1300,7 +1295,7 @@ protected:
         KRATOS_TRY
 
         BoundedMatrix<double, TDim * TNumNodes, TNumPNodes> coupling_matrix;
-        const Vector np = rVariables.Np;
+        const Vector                                        np = rVariables.Np;
         GeoTransportEquationUtilities::CalculateCouplingMatrix(
             coupling_matrix, rVariables.B, GetStressStatePolicy().GetVoigtVector(), np,
             rVariables.BiotCoefficient, rVariables.BishopCoefficient, rVariables.IntegrationCoefficient);
