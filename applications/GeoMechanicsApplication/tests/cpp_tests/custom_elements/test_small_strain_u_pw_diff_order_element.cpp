@@ -14,16 +14,21 @@
 #include "custom_constitutive/plane_strain.h"
 #include "custom_elements/plane_strain_stress_state.h"
 #include "custom_elements/small_strain_U_Pw_diff_order_element.h"
+#include "custom_elements/three_dimensional_stress_state.h"
 #include "custom_retention/saturated_law.h"
 #include "custom_utilities/registration_utilities.hpp"
 #include "custom_utilities/ublas_utilities.h"
 #include "geo_mechanics_application_variables.h"
+#include "geometries/triangle_2d_10.h"
+#include "geometries/triangle_2d_15.h"
 #include "test_setup_utilities/element_setup_utilities.hpp"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/stub_constitutive_law.h"
 #include "tests/cpp_tests/test_utilities.h"
 
 #include <string>
+#include <tuple>
+#include <vector>
 
 namespace
 {
@@ -293,4 +298,284 @@ KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculateThrowsDebugErr
         "Variable CAUCHY_STRAIN_VECTOR is unknown for element with Id 1.");
 }
 
+KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CheckThrowsOnFaultyInput, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    const auto p_properties = std::make_shared<Properties>();
+    p_properties->SetValue(RETENTION_LAW, "SaturatedLaw");
+    p_properties->SetValue(SATURATED_SATURATION, 1.000000e+00);
+
+    // Zero domain size (all nodes coincident)
+    PointerVector<Node> coincident_nodes;
+    for (int i = 0; i < 6; ++i)
+        coincident_nodes.push_back(make_intrusive<Node>(i + 1, 0.0, 0.0, 0.0));
+    auto p_element = Testing::ElementSetupUtilities::Create2D6NDiffOrderElement(coincident_nodes, p_properties);
+    const auto dummy_process_info = ProcessInfo{};
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
+                                      "Element 1 has non-positive size 0");
+
+    PointerVector<Node> nodes;
+    nodes.push_back(make_intrusive<Node>(1, 0.0, 0.0, 0.0));
+    nodes.push_back(make_intrusive<Node>(2, 1.0, 0.0, 0.0));
+    nodes.push_back(make_intrusive<Node>(3, 0.0, 1.0, 0.0));
+    nodes.push_back(make_intrusive<Node>(4, 0.5, 0.0, 0.0));
+    nodes.push_back(make_intrusive<Node>(5, 0.5, 0.5, 0.0));
+    nodes.push_back(make_intrusive<Node>(6, 0.0, 0.5, 0.0));
+    p_element = Testing::ElementSetupUtilities::Create2D6NDiffOrderElement(nodes, p_properties);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
+                                      "Missing variable DISPLACEMENT on nodes 1 2 3 4 5 6");
+
+    auto solution_step_variables = Geo::ConstVariableDataRefs{std::cref(DISPLACEMENT)};
+    Testing::ElementSetupUtilities::AddVariablesToEntity(p_element, solution_step_variables);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
+                                      "Missing variable VELOCITY on nodes 1 2 3 4 5 6");
+
+    solution_step_variables = Geo::ConstVariableDataRefs{std::cref(DISPLACEMENT), std::cref(VELOCITY)};
+    Testing::ElementSetupUtilities::AddVariablesToEntity(p_element, solution_step_variables);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
+                                      "Missing variable ACCELERATION on nodes 1 2 3 4 5 6");
+
+    solution_step_variables =
+        Geo::ConstVariableDataRefs{std::cref(DISPLACEMENT), std::cref(VELOCITY), std::cref(ACCELERATION)};
+    Testing::ElementSetupUtilities::AddVariablesToEntity(p_element, solution_step_variables);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
+                                      "Missing variable WATER_PRESSURE on nodes 1 2 3 4 5 6");
+
+    solution_step_variables = Geo::ConstVariableDataRefs{
+        std::cref(DISPLACEMENT), std::cref(VELOCITY), std::cref(ACCELERATION), std::cref(WATER_PRESSURE)};
+    Testing::ElementSetupUtilities::AddVariablesToEntity(p_element, solution_step_variables);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
+                                      "Missing variable DT_WATER_PRESSURE on nodes 1 2 3 4 5 6");
+
+    solution_step_variables =
+        Geo::ConstVariableDataRefs{std::cref(DISPLACEMENT), std::cref(VELOCITY), std::cref(ACCELERATION),
+                                   std::cref(WATER_PRESSURE), std::cref(DT_WATER_PRESSURE)};
+    Testing::ElementSetupUtilities::AddVariablesToEntity(p_element, solution_step_variables);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
+                                      "Missing variable VOLUME_ACCELERATION on nodes 1 2 3 4 5 6");
+
+    solution_step_variables = Geo::ConstVariableDataRefs{
+        std::cref(DISPLACEMENT),   std::cref(VELOCITY),          std::cref(ACCELERATION),
+        std::cref(WATER_PRESSURE), std::cref(DT_WATER_PRESSURE), std::cref(VOLUME_ACCELERATION)};
+    Testing::ElementSetupUtilities::AddVariablesToEntity(p_element, solution_step_variables);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        p_element->Check(dummy_process_info),
+        "Missing the DoF for the variable DISPLACEMENT_X on nodes 1 2 3 4 5 6");
+
+    const auto degrees_of_freedom =
+        Geo::ConstVariableRefs{std::cref(DISPLACEMENT_X), std::cref(DISPLACEMENT_Y),
+                               std::cref(DISPLACEMENT_Z), std::cref(WATER_PRESSURE)};
+    Testing::ElementSetupUtilities::AddVariablesToEntity(p_element, solution_step_variables, degrees_of_freedom);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        p_element->Check(dummy_process_info),
+        "DENSITY_SOLID does not exist in the material properties with Id 0 at element with Id 1.");
+
+    p_properties->SetValue(DENSITY_SOLID, 2.650000e+03);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        p_element->Check(dummy_process_info),
+        "DENSITY_WATER does not exist in the material properties with Id 0 at element with Id 1.");
+
+    p_properties->SetValue(DENSITY_WATER, 1.000000e+03);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
+                                      "BULK_MODULUS_SOLID does not exist in the material "
+                                      "properties with Id 0 at element with Id 1.");
+
+    p_properties->SetValue(BULK_MODULUS_SOLID, 1.000000e+12);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        p_element->Check(dummy_process_info),
+        "POROSITY does not exist in the material properties with Id 0 at element with Id 1.");
+
+    p_properties->SetValue(POROSITY, 1.000000e-01);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        p_element->Check(dummy_process_info),
+        "IGNORE_UNDRAINED does not exist in the parameter list with Id 0 at element with Id 1.");
+
+    p_properties->SetValue(IGNORE_UNDRAINED, false);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        p_element->Check(dummy_process_info),
+        "PERMEABILITY_XX does not exist in the parameter list with Id 0 at element with Id 1.");
+
+    p_properties->SetValue(PERMEABILITY_XX, 9.084000e-06);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        p_element->Check(dummy_process_info),
+        "PERMEABILITY_YY does not exist in the parameter list with Id 0 at element with Id 1.");
+
+    p_properties->SetValue(PERMEABILITY_YY, 9.084000e-06);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        p_element->Check(dummy_process_info),
+        "PERMEABILITY_XY does not exist in the parameter list with Id 0 at element with Id 1.");
+
+    p_properties->SetValue(PERMEABILITY_XY, 0.000000e+00);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        p_element->Check(dummy_process_info),
+        "CONSTITUTIVE_LAW does not exist in the parameter list with Id 0 at element with Id 1.");
+
+    p_properties->SetValue(CONSTITUTIVE_LAW, std::make_shared<StubConstitutiveLaw>());
+    p_element->Initialize(dummy_process_info);
+    KRATOS_EXPECT_EQ(p_element->Check(dummy_process_info), 0);
+}
+
 } // namespace Kratos::Testing
+
+using namespace Kratos;
+
+namespace
+{
+
+struct DiffOrderElementTestParam {
+    std::string                                                             name;
+    std::function<Element::Pointer(ModelPart&, const Properties::Pointer&)> create_element;
+    std::vector<std::size_t>                                                intermediate_indices;
+    std::vector<double> expected_intermediate_pressures;
+};
+
+// Helper functions for each element type
+Element::Pointer Create2D6(ModelPart& rModelPart, const Properties::Pointer& rProperties)
+{
+    PointerVector<Node> nodes;
+    nodes.push_back(rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0));
+    nodes.push_back(rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0));
+    nodes.push_back(rModelPart.CreateNewNode(3, 0.0, 1.0, 0.0));
+    nodes.push_back(rModelPart.CreateNewNode(4, 0.5, 0.0, 0.0));
+    nodes.push_back(rModelPart.CreateNewNode(5, 0.5, 0.5, 0.0));
+    nodes.push_back(rModelPart.CreateNewNode(6, 0.0, 0.5, 0.0));
+    return Testing::ElementSetupUtilities::Create2D6NDiffOrderElement(nodes, rProperties);
+}
+
+Element::Pointer Create2D8(ModelPart& rModelPart, const Properties::Pointer& rProperties)
+{
+    PointerVector<Node> nodes;
+    for (int i = 0; i < 8; ++i)
+        nodes.push_back(rModelPart.CreateNewNode(i + 1, 0.0, 0.0, 0.0));
+    return make_intrusive<SmallStrainUPwDiffOrderElement<2, 8>>(
+        1, Geometry<Node>::Pointer(new Quadrilateral2D8<Node>(nodes)), rProperties,
+        std::make_unique<PlaneStrainStressState>());
+}
+
+Element::Pointer Create2D9(ModelPart& rModelPart, const Properties::Pointer& rProperties)
+{
+    PointerVector<Node> nodes;
+    for (int i = 0; i < 9; ++i)
+        nodes.push_back(rModelPart.CreateNewNode(i + 1, 0.0, 0.0, 0.0));
+    return make_intrusive<SmallStrainUPwDiffOrderElement<2, 9>>(
+        1, Geometry<Node>::Pointer(new Quadrilateral2D9<Node>(nodes)), rProperties,
+        std::make_unique<PlaneStrainStressState>());
+}
+
+Element::Pointer Create2D10(ModelPart& rModelPart, const Properties::Pointer& rProperties)
+{
+    PointerVector<Node> nodes;
+    for (int i = 0; i < 10; ++i)
+        nodes.push_back(rModelPart.CreateNewNode(i + 1, 0.0, 0.0, 0.0));
+    return make_intrusive<SmallStrainUPwDiffOrderElement<2, 10>>(
+        1, Geometry<Node>::Pointer(new Triangle2D10<Node>(nodes)), rProperties,
+        std::make_unique<PlaneStrainStressState>());
+}
+
+Element::Pointer Create2D15(ModelPart& rModelPart, const Properties::Pointer& rProperties)
+{
+    PointerVector<Node> nodes;
+    for (int i = 0; i < 15; ++i)
+        nodes.push_back(rModelPart.CreateNewNode(i + 1, 0.0, 0.0, 0.0));
+    return make_intrusive<SmallStrainUPwDiffOrderElement<2, 15>>(
+        1, Geometry<Node>::Pointer(new Triangle2D15<Node>(nodes)), rProperties,
+        std::make_unique<PlaneStrainStressState>());
+}
+
+Element::Pointer Create3D10(ModelPart& rModelPart, const Properties::Pointer& rProperties)
+{
+    PointerVector<Node> nodes;
+    for (int i = 0; i < 10; ++i)
+        nodes.push_back(rModelPart.CreateNewNode(i + 1, 0.0, 0.0, 0.0));
+    return make_intrusive<SmallStrainUPwDiffOrderElement<3, 10>>(
+        1, Geometry<Node>::Pointer(new Tetrahedra3D10<Node>(nodes)), rProperties,
+        std::make_unique<ThreeDimensionalStressState>());
+}
+
+Element::Pointer Create3D20(ModelPart& rModelPart, const Properties::Pointer& rProperties)
+{
+    PointerVector<Node> nodes;
+    for (int i = 0; i < 20; ++i)
+        nodes.push_back(rModelPart.CreateNewNode(i + 1, 0.0, 0.0, 0.0));
+    return make_intrusive<SmallStrainUPwDiffOrderElement<3, 20>>(
+        1, Geometry<Node>::Pointer(new Hexahedra3D20<Node>(nodes)), rProperties,
+        std::make_unique<ThreeDimensionalStressState>());
+}
+
+Element::Pointer Create3D27(ModelPart& rModelPart, const Properties::Pointer& rProperties)
+{
+    PointerVector<Node> nodes;
+    for (int i = 0; i < 27; ++i)
+        nodes.push_back(rModelPart.CreateNewNode(i + 1, 0.0, 0.0, 0.0));
+    return make_intrusive<SmallStrainUPwDiffOrderElement<3, 27>>(
+        1, Geometry<Node>::Pointer(new Hexahedra3D27<Node>(nodes)), rProperties,
+        std::make_unique<ThreeDimensionalStressState>());
+}
+
+// Parameter set for each instantiation (for brevity, only 2D6 and 2D8 are fully filled; others can be extended similarly)
+const std::vector<DiffOrderElementTestParam> diff_order_element_params = {
+    {"2D6", Create2D6, {3, 4, 5}, {5.0, 15.0, 10.0}},
+    {"2D8", Create2D8, {4, 5, 6, 7}, {5.0, 15.0, 25.0, 15.0}},
+    {"2D9", Create2D9, {4, 5, 6, 7, 8}, {5.0, 15.0, 25.0, 15.0, 15.0}},
+    {"2D10", Create2D10, {3, 4, 5, 6, 7, 8, 9}, {25.5556, 28.8889, 35.5556, 38.8889, 48.8889, 42.2222, 50.0}},
+    {"2D15",
+     Create2D15,
+     {3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14},
+     {23.5938, 38.75, 37.0312, 42.0312, 60.0, 55.4688, 59.2969, 83.125, 70.3906, 84.8438, 78.2031, 88.4375}},
+    {"3D10", Create3D10, {4, 5, 6, 7, 8, 9}, {5.0, 15.0, 10.0, 15.0, 20.0, 25.0}},
+    {"3D20",
+     Create3D20,
+     {8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19},
+     {5.0, 15.0, 25.0, 15.0, 20.0, 30.0, 40.0, 50.0, 45.0, 55.0, 65.0, 55.0}},
+    {"3D27",
+     Create3D27,
+     {8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26},
+     {5.0, 15.0, 25.0, 15.0, 20.0, 30.0, 40.0, 50.0, 45.0, 55.0, 65.0, 35.0, 15.0, 25.0, 35.0, 45.0,
+      35.0, 55.0, 35.0}},
+};
+
+} // namespace
+
+class FinalizeSolutionStep : public ::testing::TestWithParam<DiffOrderElementTestParam>
+{
+};
+
+TEST_P(FinalizeSolutionStep, ReturnsIntermediateNodePressures)
+{
+    const auto& param = GetParam();
+    Model       model;
+    ModelPart&  r_model_part = model.CreateModelPart("Test");
+    r_model_part.AddNodalSolutionStepVariable(WATER_PRESSURE);
+    r_model_part.AddNodalSolutionStepVariable(DT_WATER_PRESSURE);
+    r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+    r_model_part.AddNodalSolutionStepVariable(VELOCITY);
+    r_model_part.AddNodalSolutionStepVariable(ACCELERATION);
+    r_model_part.AddNodalSolutionStepVariable(VOLUME_ACCELERATION);
+    r_model_part.AddNodalSolutionStepVariable(HYDRAULIC_DISCHARGE);
+    auto  properties = CreatePropertiesForUPwDiffOrderElementTest();
+    auto  p_element  = param.create_element(r_model_part, properties);
+    auto& r_geometry = p_element->GetGeometry();
+    // Set input pressures: 10 * index
+    for (std::size_t i = 0; i < r_geometry.size(); ++i) {
+        r_geometry[i].SetBufferSize(2); // or higher if your test needs more steps
+        r_geometry[i].FastGetSolutionStepValue(WATER_PRESSURE)    = static_cast<double>(10 * i);
+        r_geometry[i].FastGetSolutionStepValue(WATER_PRESSURE, 1) = 0.0;
+    }
+    // Act: use public API
+    p_element->Initialize(ProcessInfo{});
+    p_element->FinalizeSolutionStep(ProcessInfo{});
+    // Assert
+    constexpr auto tolerance = 0.0001;
+    for (std::size_t i = 0; i < param.intermediate_indices.size(); ++i) {
+        EXPECT_NEAR(r_geometry[param.intermediate_indices[i]].FastGetSolutionStepValue(WATER_PRESSURE),
+                    param.expected_intermediate_pressures[i], tolerance)
+            << "Failed for " << param.name << " at node " << param.intermediate_indices[i];
+    }
+}
+
+INSTANTIATE_TEST_SUITE_P(AllDiffOrderElementTypes,
+                         FinalizeSolutionStep,
+                         ::testing::ValuesIn(diff_order_element_params),
+                         [](const ::testing::TestParamInfo<FinalizeSolutionStep::ParamType>& info) {
+                             return info.param.name;
+                         });
