@@ -575,13 +575,33 @@ KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculateOnIntegrationP
     for (std::size_t i = 0; i < strain_vectors.size(); i++)
         KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(strain_vectors[i], expected_strain_vectors[i],
                                            Defaults::relative_tolerance);
+
+    // Act & Assert: TOTAL_STRESS_VECTOR
+    std::vector<Vector> total_stress_vectors;
+    p_element->CalculateOnIntegrationPoints(TOTAL_STRESS_VECTOR, total_stress_vectors, dummy_process_info);
+    const auto expected_total_stress_vector = UblasUtilities::CreateVector({-1.5, 0, 1.5, 0});
+    for (std::size_t i = 0; i < total_stress_vectors.size(); i++)
+        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(total_stress_vectors[i], expected_total_stress_vector,
+                                           Defaults::relative_tolerance);
+
+    // Act & Assert: GREEN_LAGRANGE_STRAIN_VECTOR
+    std::vector<Vector> green_lagrange_strain_vectors;
+    p_element->CalculateOnIntegrationPoints(GREEN_LAGRANGE_STRAIN_VECTOR,
+                                            green_lagrange_strain_vectors, dummy_process_info);
+    std::vector<Vector> expected_green_lagrange_strain_vectors;
+    expected_green_lagrange_strain_vectors.push_back(
+        UblasUtilities::CreateVector({0.026935483871, 0, 0, -0.0243548387097}));
+    expected_green_lagrange_strain_vectors.push_back(
+        UblasUtilities::CreateVector({-0.005, 0, 0, -0.0243548387097}));
+    expected_green_lagrange_strain_vectors.push_back(
+        UblasUtilities::CreateVector({-0.00411764705882, 0, 0, 0.0338235294118}));
+    for (std::size_t i = 0; i < green_lagrange_strain_vectors.size(); i++)
+        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(green_lagrange_strain_vectors[i],
+                                           expected_green_lagrange_strain_vectors[i],
+                                           Defaults::relative_tolerance);
+
+    // Add more vector variable tests here as needed
 }
-} // namespace Kratos::Testing
-
-using namespace Kratos;
-
-namespace
-{
 
 struct DiffOrderElementTestParam {
     std::string                                                             name;
@@ -695,13 +715,11 @@ const std::vector<DiffOrderElementTestParam> diff_order_element_params = {
       35.0, 55.0, 35.0}},
 };
 
-} // namespace
-
-class FinalizeSolutionStep : public ::testing::TestWithParam<DiffOrderElementTestParam>
+class DiffOrderElementTests : public ::testing::TestWithParam<DiffOrderElementTestParam>
 {
 };
 
-TEST_P(FinalizeSolutionStep, ReturnsIntermediateNodePressures)
+TEST_P(DiffOrderElementTests, FinalizeSolutionStepReturnsIntermediateNodePressures)
 {
     const auto& param = GetParam();
     Model       model;
@@ -735,8 +753,10 @@ TEST_P(FinalizeSolutionStep, ReturnsIntermediateNodePressures)
 }
 
 INSTANTIATE_TEST_SUITE_P(AllDiffOrderElementTypes,
-                         FinalizeSolutionStep,
+                         DiffOrderElementTests,
                          ::testing::ValuesIn(diff_order_element_params),
-                         [](const ::testing::TestParamInfo<FinalizeSolutionStep::ParamType>& info) {
+                         [](const ::testing::TestParamInfo<DiffOrderElementTests::ParamType>& info) {
                              return info.param.name;
                          });
+
+} // namespace Kratos::Testing
