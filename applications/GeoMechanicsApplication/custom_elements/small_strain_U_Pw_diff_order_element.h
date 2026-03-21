@@ -110,9 +110,8 @@ public:
                                    GeometryType::Pointer              pGeometry,
                                    std::unique_ptr<StressStatePolicy> pStressStatePolicy,
                                    std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr)
-        : UPwBaseElement(NewId, pGeometry, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
+        : SmallStrainUPwDiffOrderElement(NewId, pGeometry, nullptr, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
     {
-        ValidateConstructorArguments();
     }
 
     SmallStrainUPwDiffOrderElement(IndexType                          NewId,
@@ -122,10 +121,23 @@ public:
                                    std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr)
         : UPwBaseElement(NewId, pGeometry, pProperties, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
     {
-        ValidateConstructorArguments();
-    }
+        SetUpPressureGeometryPointer();
+        if (TNumPNodes != mpPressureGeometry->PointsNumber()) {
+            KRATOS_ERROR << "The number of pressure nodes is not correct. Expected: " << TNumPNodes
+                         << " - Given: " << mpPressureGeometry->PointsNumber() << std::endl;
+        }
 
-    ~SmallStrainUPwDiffOrderElement() override = default;
+        const auto number_of_integration_points =
+            GetGeometry().IntegrationPointsNumber(UPwBaseElement::GetIntegrationMethod());
+        KRATOS_ERROR_IF(TNumGPoints != number_of_integration_points)
+            << "The number of integration points is not correct. Expected: " << TNumGPoints
+            << " - Given: " << number_of_integration_points << std::endl;
+
+        const auto voigt_size = this->GetStressStatePolicy().GetVoigtSize();
+        KRATOS_ERROR_IF(voigt_size != TVoigtSize)
+            << "The Voigt size of the stress state policy is not correct. Expected: " << TVoigtSize
+            << " - Given: " << voigt_size << std::endl;
+    }
 
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override
     {
@@ -1582,26 +1594,6 @@ private:
     }
 
     // Private Operations
-    void ValidateConstructorArguments()
-    {
-        SetUpPressureGeometryPointer();
-        if (TNumPNodes != mpPressureGeometry->PointsNumber()) {
-            KRATOS_ERROR << "The number of pressure nodes is not correct. Expected: " << TNumPNodes
-                         << " - Given: " << mpPressureGeometry->PointsNumber() << std::endl;
-        }
-
-        const auto number_of_integration_points =
-            GetGeometry().IntegrationPointsNumber(UPwBaseElement::GetIntegrationMethod());
-        KRATOS_ERROR_IF(TNumGPoints != number_of_integration_points)
-            << "The number of integration points is not correct. Expected: " << TNumGPoints
-            << " - Given: " << number_of_integration_points << std::endl;
-
-        const auto voigt_size = this->GetStressStatePolicy().GetVoigtSize();
-        KRATOS_ERROR_IF(voigt_size != TVoigtSize)
-            << "The Voigt size of the stress state policy is not correct. Expected: " << TVoigtSize
-            << " - Given: " << voigt_size << std::endl;
-    }
-
     Vector CalculateBodyAcceleration(const BoundedVector<double, TNumNodes>& rNu, const Vector& rBodyAcceleration) const
     {
         Vector body_acceleration = ZeroVector(TDim);
