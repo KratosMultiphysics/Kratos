@@ -415,6 +415,167 @@ KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CheckThrowsOnFaultyInpu
     KRATOS_EXPECT_EQ(p_element->Check(dummy_process_info), 0);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculateOnIntegrationPoints_double,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto p_element =
+        CreateSmallStrainUPwDiffOrderElementWithUPwDofs(CreatePropertiesForUPwDiffOrderElementTest());
+    SetSolutionStepValuesForGeneralCheck(p_element);
+    const auto dummy_process_info = ProcessInfo{};
+    p_element->Initialize(dummy_process_info);
+
+    const auto stress_vector = UblasUtilities::CreateVector({-1.5, 0.0, 1.5, 0.0});
+    p_element->SetValuesOnIntegrationPoints(
+        CAUCHY_STRESS_VECTOR, std::vector<Vector>{3, stress_vector}, dummy_process_info);
+
+    // VON_MISES_STRESS
+    std::vector<double> von_mises;
+    p_element->CalculateOnIntegrationPoints(VON_MISES_STRESS, von_mises, dummy_process_info);
+    const auto expected_von_mises =
+        UblasUtilities::CreateVector({2.59807621135, 2.59807621135, 2.59807621135});
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(von_mises, expected_von_mises, Defaults::relative_tolerance);
+
+    // MEAN_EFFECTIVE_STRESS
+    std::vector<double> mean_effective_stress;
+    p_element->CalculateOnIntegrationPoints(MEAN_EFFECTIVE_STRESS, mean_effective_stress, dummy_process_info);
+    const auto expected_mean_effective_stress = UblasUtilities::CreateVector({0, 0, 0});
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(mean_effective_stress, expected_mean_effective_stress,
+                                       Defaults::relative_tolerance);
+
+    // MEAN_STRESS
+    std::vector<double> mean_stress;
+    p_element->CalculateOnIntegrationPoints(MEAN_STRESS, mean_stress, dummy_process_info);
+    const auto expected_mean_stress = UblasUtilities::CreateVector({0, 0, 0});
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(mean_stress, expected_mean_stress, Defaults::relative_tolerance);
+
+    // ENGINEERING_VON_MISES_STRAIN
+    std::vector<double> engineering_von_mises;
+    p_element->CalculateOnIntegrationPoints(ENGINEERING_VON_MISES_STRAIN, engineering_von_mises, dummy_process_info);
+    const auto expected_engineering_von_mises =
+        UblasUtilities::CreateVector({0.0333666, 0.0283194, 0.0391524});
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(engineering_von_mises, expected_engineering_von_mises,
+                                       Defaults::relative_tolerance);
+
+    // ENGINEERING_VOLUMETRIC_STRAIN
+    std::vector<double> engineering_volumetric_strain;
+    p_element->CalculateOnIntegrationPoints(ENGINEERING_VOLUMETRIC_STRAIN,
+                                            engineering_volumetric_strain, dummy_process_info);
+    const auto expected_engineering_volumetric_strain =
+        UblasUtilities::CreateVector({0.0269355, -0.005, -0.00411765});
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(engineering_volumetric_strain, expected_engineering_volumetric_strain,
+                                       Defaults::relative_tolerance);
+
+    // GREEN_LAGRANGE_VON_MISES_STRAIN
+    std::vector<double> green_lagrange_von_mises_strain;
+    p_element->CalculateOnIntegrationPoints(GREEN_LAGRANGE_VON_MISES_STRAIN,
+                                            green_lagrange_von_mises_strain, dummy_process_info);
+    const auto expected_green_lagrange_von_mises_strain =
+        UblasUtilities::CreateVector({0.0333666, 0.0283194, 0.0391524});
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(green_lagrange_von_mises_strain, expected_green_lagrange_von_mises_strain,
+                                       Defaults::relative_tolerance);
+
+    // GREEN_LAGRANGE_VOLUMETRIC_STRAIN
+    std::vector<double> green_lagrange_volumetric_strain;
+    p_element->CalculateOnIntegrationPoints(GREEN_LAGRANGE_VOLUMETRIC_STRAIN,
+                                            green_lagrange_volumetric_strain, dummy_process_info);
+    const auto expected_green_lagrange_volumetric_strain =
+        UblasUtilities::CreateVector({0.0269355, -0.005, -0.00411765});
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(green_lagrange_volumetric_strain, expected_green_lagrange_volumetric_strain,
+                                       Defaults::relative_tolerance);
+
+    // DEGREE_OF_SATURATION
+    std::vector<double> degree_of_saturation;
+    p_element->CalculateOnIntegrationPoints(DEGREE_OF_SATURATION, degree_of_saturation, dummy_process_info);
+    const auto expected_degree_of_saturation = UblasUtilities::CreateVector({1, 1, 1});
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(degree_of_saturation, expected_degree_of_saturation,
+                                       Defaults::relative_tolerance);
+
+    // EFFECTIVE_SATURATION
+    std::vector<double> effective_saturation;
+    p_element->CalculateOnIntegrationPoints(EFFECTIVE_SATURATION, effective_saturation, dummy_process_info);
+    const auto expected_effective_saturation = UblasUtilities::CreateVector({1, 1, 1});
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(effective_saturation, expected_effective_saturation,
+                                       Defaults::relative_tolerance);
+
+    // BISHOP_COEFFICIENT
+    std::vector<double> bishop_coefficient;
+    p_element->CalculateOnIntegrationPoints(BISHOP_COEFFICIENT, bishop_coefficient, dummy_process_info);
+    const auto expected_bishop_coefficient = UblasUtilities::CreateVector({1, 1, 1});
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(bishop_coefficient, expected_bishop_coefficient, Defaults::relative_tolerance);
+
+    // DERIVATIVE_OF_SATURATION
+    std::vector<double> derivative_of_saturation;
+    p_element->CalculateOnIntegrationPoints(DERIVATIVE_OF_SATURATION, derivative_of_saturation, dummy_process_info);
+    const auto expected_derivative_of_saturation = UblasUtilities::CreateVector({0, 0, 0});
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(derivative_of_saturation, expected_derivative_of_saturation,
+                                       Defaults::relative_tolerance);
+
+    // RELATIVE_PERMEABILITY
+    std::vector<double> relative_permeability;
+    p_element->CalculateOnIntegrationPoints(RELATIVE_PERMEABILITY, relative_permeability, dummy_process_info);
+    const auto expected_relative_permeability = UblasUtilities::CreateVector({1, 1, 1});
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(relative_permeability, expected_relative_permeability,
+                                       Defaults::relative_tolerance);
+
+    // HYDRAULIC_HEAD
+    std::vector<double> hydraulic_head;
+    p_element->CalculateOnIntegrationPoints(HYDRAULIC_HEAD, hydraulic_head, dummy_process_info);
+    const auto expected_hydraulic_head =
+        UblasUtilities::CreateVector({-1.14444444444, -1.66111111111, -1.14444444444});
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(hydraulic_head, expected_hydraulic_head, Defaults::relative_tolerance);
+
+    // CONFINED_STIFFNESS
+    std::vector<double> confined_stiffness;
+    p_element->CalculateOnIntegrationPoints(CONFINED_STIFFNESS, confined_stiffness, dummy_process_info);
+    const auto expected_confined_stiffness = UblasUtilities::CreateVector({1e+07, 1e+07, 1e+07});
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(confined_stiffness, expected_confined_stiffness, Defaults::relative_tolerance);
+
+    // SHEAR_STIFFNESS
+    std::vector<double> shear_stiffness;
+    p_element->CalculateOnIntegrationPoints(SHEAR_STIFFNESS, shear_stiffness, dummy_process_info);
+    const auto expected_shear_stiffness = UblasUtilities::CreateVector({5e+06, 5e+06, 5e+06});
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(shear_stiffness, expected_shear_stiffness, Defaults::relative_tolerance);
+
+    // YOUNG_MODULUS (property variable)
+    std::vector<double> young_modulus;
+    p_element->CalculateOnIntegrationPoints(YOUNG_MODULUS, young_modulus, dummy_process_info);
+    KRATOS_EXPECT_EQ(young_modulus.size(), 3);
+    for (const auto& value : young_modulus)
+        KRATOS_EXPECT_DOUBLE_EQ(value, 1.0e7);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculateOnIntegrationPoints_Vector,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto p_element =
+        CreateSmallStrainUPwDiffOrderElementWithUPwDofs(CreatePropertiesForUPwDiffOrderElementTest());
+    SetSolutionStepValuesForGeneralCheck(p_element);
+    const auto dummy_process_info = ProcessInfo{};
+    p_element->Initialize(dummy_process_info);
+
+    const auto stress_vector = UblasUtilities::CreateVector({-1.5, 0.0, 1.5, 0.0});
+    p_element->SetValuesOnIntegrationPoints(
+        CAUCHY_STRESS_VECTOR, std::vector<Vector>{3, stress_vector}, dummy_process_info);
+
+    // Act & Assert: CAUCHY_STRESS_VECTOR
+    std::vector<Vector> stress_vectors;
+    p_element->CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, stress_vectors, dummy_process_info);
+    for (const auto& actual_stress_vector : stress_vectors)
+        KRATOS_EXPECT_VECTOR_NEAR(actual_stress_vector, stress_vector, Defaults::absolute_tolerance);
+
+    // Act & Assert: ENGINEERING_STRAIN_VECTOR
+    std::vector<Vector> strain_vectors;
+    p_element->CalculateOnIntegrationPoints(ENGINEERING_STRAIN_VECTOR, strain_vectors, dummy_process_info);
+    std::vector<Vector> expected_strain_vectors;
+    expected_strain_vectors.push_back(UblasUtilities::CreateVector({0.026935483871, 0, 0, -0.0243548387097}));
+    expected_strain_vectors.push_back(UblasUtilities::CreateVector({-0.005, 0, 0, -0.0243548387097}));
+    expected_strain_vectors.push_back(UblasUtilities::CreateVector({-0.00411764705882, 0, 0, 0.0338235294118}));
+    for (std::size_t i = 0; i < strain_vectors.size(); i++)
+        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(strain_vectors[i], expected_strain_vectors[i],
+                                           Defaults::relative_tolerance);
+}
 } // namespace Kratos::Testing
 
 using namespace Kratos;
@@ -448,7 +609,7 @@ Element::Pointer Create2D8(ModelPart& rModelPart, const Properties::Pointer& rPr
     for (int i = 0; i < 8; ++i)
         nodes.push_back(rModelPart.CreateNewNode(i + 1, 0.0, 0.0, 0.0));
     return make_intrusive<SmallStrainUPwDiffOrderElement<2, 8>>(
-        1, Geometry<Node>::Pointer(new Quadrilateral2D8<Node>(nodes)), rProperties,
+        1, Geometry<Node>::Pointer(std::make_shared<Quadrilateral2D8<Node>>(nodes)), rProperties,
         std::make_unique<PlaneStrainStressState>());
 }
 
@@ -458,7 +619,7 @@ Element::Pointer Create2D9(ModelPart& rModelPart, const Properties::Pointer& rPr
     for (int i = 0; i < 9; ++i)
         nodes.push_back(rModelPart.CreateNewNode(i + 1, 0.0, 0.0, 0.0));
     return make_intrusive<SmallStrainUPwDiffOrderElement<2, 9>>(
-        1, Geometry<Node>::Pointer(new Quadrilateral2D9<Node>(nodes)), rProperties,
+        1, Geometry<Node>::Pointer(std::make_shared<Quadrilateral2D9<Node>>(nodes)), rProperties,
         std::make_unique<PlaneStrainStressState>());
 }
 
@@ -468,7 +629,7 @@ Element::Pointer Create2D10(ModelPart& rModelPart, const Properties::Pointer& rP
     for (int i = 0; i < 10; ++i)
         nodes.push_back(rModelPart.CreateNewNode(i + 1, 0.0, 0.0, 0.0));
     return make_intrusive<SmallStrainUPwDiffOrderElement<2, 10>>(
-        1, Geometry<Node>::Pointer(new Triangle2D10<Node>(nodes)), rProperties,
+        1, Geometry<Node>::Pointer(std::make_shared<Triangle2D10<Node>>(nodes)), rProperties,
         std::make_unique<PlaneStrainStressState>());
 }
 
@@ -478,7 +639,7 @@ Element::Pointer Create2D15(ModelPart& rModelPart, const Properties::Pointer& rP
     for (int i = 0; i < 15; ++i)
         nodes.push_back(rModelPart.CreateNewNode(i + 1, 0.0, 0.0, 0.0));
     return make_intrusive<SmallStrainUPwDiffOrderElement<2, 15>>(
-        1, Geometry<Node>::Pointer(new Triangle2D15<Node>(nodes)), rProperties,
+        1, Geometry<Node>::Pointer(std::make_shared<Triangle2D15<Node>>(nodes)), rProperties,
         std::make_unique<PlaneStrainStressState>());
 }
 
@@ -488,7 +649,7 @@ Element::Pointer Create3D10(ModelPart& rModelPart, const Properties::Pointer& rP
     for (int i = 0; i < 10; ++i)
         nodes.push_back(rModelPart.CreateNewNode(i + 1, 0.0, 0.0, 0.0));
     return make_intrusive<SmallStrainUPwDiffOrderElement<3, 10>>(
-        1, Geometry<Node>::Pointer(new Tetrahedra3D10<Node>(nodes)), rProperties,
+        1, Geometry<Node>::Pointer(std::make_shared<Tetrahedra3D10<Node>>(nodes)), rProperties,
         std::make_unique<ThreeDimensionalStressState>());
 }
 
@@ -498,7 +659,7 @@ Element::Pointer Create3D20(ModelPart& rModelPart, const Properties::Pointer& rP
     for (int i = 0; i < 20; ++i)
         nodes.push_back(rModelPart.CreateNewNode(i + 1, 0.0, 0.0, 0.0));
     return make_intrusive<SmallStrainUPwDiffOrderElement<3, 20>>(
-        1, Geometry<Node>::Pointer(new Hexahedra3D20<Node>(nodes)), rProperties,
+        1, Geometry<Node>::Pointer(std::make_shared<Hexahedra3D20<Node>>(nodes)), rProperties,
         std::make_unique<ThreeDimensionalStressState>());
 }
 
@@ -508,7 +669,7 @@ Element::Pointer Create3D27(ModelPart& rModelPart, const Properties::Pointer& rP
     for (int i = 0; i < 27; ++i)
         nodes.push_back(rModelPart.CreateNewNode(i + 1, 0.0, 0.0, 0.0));
     return make_intrusive<SmallStrainUPwDiffOrderElement<3, 27>>(
-        1, Geometry<Node>::Pointer(new Hexahedra3D27<Node>(nodes)), rProperties,
+        1, Geometry<Node>::Pointer(std::make_shared<Hexahedra3D27<Node>>(nodes)), rProperties,
         std::make_unique<ThreeDimensionalStressState>());
 }
 
