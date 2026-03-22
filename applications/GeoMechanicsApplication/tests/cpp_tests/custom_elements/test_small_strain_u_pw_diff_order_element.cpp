@@ -580,8 +580,8 @@ KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculateOnIntegrationP
     std::vector<Vector> total_stress_vectors;
     p_element->CalculateOnIntegrationPoints(TOTAL_STRESS_VECTOR, total_stress_vectors, dummy_process_info);
     const auto expected_total_stress_vector = UblasUtilities::CreateVector({-1.5, 0, 1.5, 0});
-    for (std::size_t i = 0; i < total_stress_vectors.size(); i++)
-        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(total_stress_vectors[i], expected_total_stress_vector,
+    for (const auto& total_stress_vector : total_stress_vectors)
+        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(total_stress_vector, expected_total_stress_vector,
                                            Defaults::relative_tolerance);
 
     // Act & Assert: GREEN_LAGRANGE_STRAIN_VECTOR
