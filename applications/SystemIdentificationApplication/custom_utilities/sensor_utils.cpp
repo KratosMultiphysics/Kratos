@@ -31,27 +31,6 @@ bool SensorUtils::IsPointInGeometry(
     return rGeometry.IsInside(rPoint, result);
 }
 
-SensorUtils::SensorViewType SensorUtils::CreateSensorView(
-    Sensor::Pointer pSensor,
-    const std::string& rExpressionName)
-{
-    KRATOS_TRY
-
-    auto p_expression = pSensor->GetContainerExpression(rExpressionName);
-    if (std::holds_alternative<ContainerExpression<ModelPart::NodesContainerType>::Pointer>(p_expression)) {
-        return std::make_shared<SensorView<ModelPart::NodesContainerType>>(pSensor, rExpressionName);
-    } else if (std::holds_alternative<ContainerExpression<ModelPart::ConditionsContainerType>::Pointer>(p_expression)) {
-        return std::make_shared<SensorView<ModelPart::ConditionsContainerType>>(pSensor, rExpressionName);
-    } else if (std::holds_alternative<ContainerExpression<ModelPart::ElementsContainerType>::Pointer>(p_expression)) {
-        return std::make_shared<SensorView<ModelPart::ElementsContainerType>>(pSensor, rExpressionName);
-    } else {
-        KRATOS_ERROR << "Unsupported expression type.";
-        return std::make_shared<SensorView<ModelPart::ElementsContainerType>>(pSensor, rExpressionName);
-    }
-
-    KRATOS_CATCH("");
-}
-
 void SensorUtils::ReadVariableData(
     DataValueContainer& rDataValueContainer,
     Parameters VariableDataParameters)
