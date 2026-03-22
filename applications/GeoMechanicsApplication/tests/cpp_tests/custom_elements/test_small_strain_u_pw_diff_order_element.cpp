@@ -695,7 +695,7 @@ Element::Pointer Create3D27(ModelPart& rModelPart, const Properties::Pointer& rP
 
 // Parameter set for each instantiation (for brevity, only 2D6 and 2D8 are fully filled; others can be extended similarly)
 const std::vector<DiffOrderElementTestParam> diff_order_element_params = {
-    {"2D6", Create2D6, {3, 4, 5}, {5.0, 15.0, 10.0}},
+    {"2D6", Create2D6, {3, 4, 5}, {15.0, 15.0, 10.0}},
     {"2D8", Create2D8, {4, 5, 6, 7}, {5.0, 15.0, 25.0, 15.0}},
     {"2D9", Create2D9, {4, 5, 6, 7, 8}, {5.0, 15.0, 25.0, 15.0, 15.0}},
     {"2D10", Create2D10, {3, 4, 5, 6, 7, 8, 9}, {25.5556, 28.8889, 35.5556, 38.8889, 48.8889, 42.2222, 50.0}},
