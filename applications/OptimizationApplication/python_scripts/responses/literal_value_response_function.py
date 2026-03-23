@@ -1,7 +1,5 @@
 import KratosMultiphysics as Kratos
-import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.responses.response_function import ResponseFunction
-from KratosMultiphysics.OptimizationApplication.responses.response_function import SupportedSensitivityFieldVariableTypes
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
 
 class LiteralValueResponseFunction(ResponseFunction):
@@ -28,7 +26,7 @@ class LiteralValueResponseFunction(ResponseFunction):
     def CalculateValue(self) -> float:
         return self.value
 
-    def CalculateGradient(self, _: 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.CollectiveExpression]') -> None:
+    def CalculateGradient(self, _: 'dict[SupportedSensitivityFieldVariableTypes, Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor]') -> None:
         raise RuntimeError(f"The literal value response function does not depend on any variable, hence no gradients.")
 
     def __str__(self) -> str:

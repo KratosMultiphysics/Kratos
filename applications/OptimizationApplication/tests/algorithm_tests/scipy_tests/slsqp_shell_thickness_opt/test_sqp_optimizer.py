@@ -3,9 +3,6 @@ import KratosMultiphysics.KratosUnittest as kratos_unittest
 
 from KratosMultiphysics.OptimizationApplication.optimization_analysis import OptimizationAnalysis
 from KratosMultiphysics.compare_two_files_check_process import CompareTwoFilesCheckProcess
-
-import csv, os
-
 try:
     import scipy
 except ImportError:

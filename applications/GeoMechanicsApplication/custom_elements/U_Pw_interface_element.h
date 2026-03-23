@@ -14,6 +14,8 @@
 #pragma once
 
 #include "contribution_calculators/calculation_contribution.h"
+#include "contribution_calculators/fluid_body_flow_calculator.hpp"
+#include "contribution_calculators/permeability_calculator.hpp"
 #include "contribution_calculators/stiffness_calculator.hpp"
 #include "custom_elements/contribution_calculators/pu_coupling_calculator.hpp"
 #include "custom_elements/contribution_calculators/up_coupling_calculator.hpp"
@@ -30,8 +32,6 @@
 
 namespace Kratos
 {
-class RetentionLaw;
-
 class KRATOS_API(GEO_MECHANICS_APPLICATION) UPwInterfaceElement : public Element
 {
 public:
@@ -65,6 +65,7 @@ public:
 
     void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const override;
     void CalculateAndAssignStiffnessMatrix(Element::MatrixType& rLeftHandSideMatrix, const ProcessInfo& rProcessInfo);
+    void CalculateAndAssignPermeabilityMatrix(Element::MatrixType& rLeftHandSideMatrix);
     void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo&) override;
     void CalculateAndAssembleStiffnessForceVector(Element::VectorType& rRightHandSideVector,
                                                   const ProcessInfo&   rProcessInfo);
@@ -72,6 +73,8 @@ public:
     void CalculateAndAssignPUCouplingMatrix(MatrixType& rLeftHandSideMatrix) const;
     void CalculateAndAssembleUPCouplingForceVector(Element::VectorType& rRightHandSideVector) const;
     void CalculateAndAssemblePUCouplingForceVector(Element::VectorType& rRightHandSideVector) const;
+    void CalculateAndAssemblePermeabilityFlowVector(Element::VectorType& rRightHandSideVector);
+    void CalculateAndAssembleFluidBodyFlowVector(Element::VectorType& rRightHandSideVector);
     void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo&) override;
     void CalculateLocalSystem(MatrixType&        rLeftHandSideMatrix,
                               VectorType&        rRightHandSideVector,
@@ -117,6 +120,10 @@ private:
     Matrix RotateStressToLocalCoordinates(const Geo::IntegrationPointType& rIntegrationPoint,
                                           const Vector& rGlobalStressVector) const;
     Vector ConvertLocalStressToTraction(const Matrix& rLocalStress) const;
+    Matrix CalculatePwBMatrix(const Geo::IntegrationPointType& rIntegrationPoint) const;
+    Geometry<Node>::ShapeFunctionsGradientsType CalculateLocalPwBMatricesAtIntegrationPoints() const;
+    std::vector<double> CalculateIntegrationPointFluidPressures() const;
+    std::vector<Vector> CalculateProjectedGravity() const;
 
     Geo::BMatricesGetter                 CreateBMatricesGetter() const;
     Geo::StrainVectorsGetter             CreateRelativeDisplacementsGetter() const;
@@ -127,29 +134,34 @@ private:
     std::function<Vector()>              CreateVoigtVectorGetter() const;
     std::function<std::vector<double>()> CreateBiotCoefficientsGetter() const;
     std::function<std::vector<double>()> CreateBishopCoefficientsGetter() const;
-    std::function<Vector()>              CreateNodalPressuresGetter() const;
+    Geo::NodalValuesGetter               CreateWaterPressureGeometryNodalVariableGetter() const;
     std::function<Vector()>              CreateNodalVelocitiesGetter() const;
     std::function<std::vector<double>()> CreateDegreesOfSaturationGetter() const;
 
-    std::vector<double> CalculateBiotCoefficients() const;
-    std::vector<double> CalculateBishopCoefficients() const;
-    Vector              CalculateIntegrationPointFluidPressures() const;
-    Vector              GetWaterPressureGeometryNodalVariable() const;
-    Vector              GetGeometryVelocityValues() const;
-    Matrix              GetNpContainer() const;
-    std::vector<double> GetDegreesOfSaturationValues() const;
+    std::vector<double>                   CalculateBiotCoefficients() const;
+    std::vector<double>                   CalculateBishopCoefficients() const;
+    Vector                                GetWaterPressureGeometryNodalVariable() const;
+    Vector                                GetGeometryVelocityValues() const;
+    Matrix                                GetNpContainer() const;
+    std::vector<double>                   GetDegreesOfSaturationValues() const;
+    Geo::RetentionLawsGetter              CreateRetentionLawsGetter() const;
+    Geo::MaterialPermeabilityMatrixGetter CreateMaterialPermeabilityGetter() const;
+    Geo::ShapeFunctionGradientsGetter     CreatePwBMatricesGetter() const;
+    Geo::IntegrationPointValuesGetter     CreateFluidPressureCalculator() const;
+    std::function<std::vector<Vector>()>  CreateProjectedGravityCalculator() const;
 
     template <unsigned int MatrixSize>
-    typename StiffnessCalculator<MatrixSize>::InputProvider CreateStiffnessInputProvider(const ProcessInfo& rProcessInfo);
+    typename StiffnessCalculator<MatrixSize>::InputProvider CreateStiffnessInputProvider(const ProcessInfo& rProcessInfo) const;
 
     template <unsigned int MatrixSize>
-    auto CreateStiffnessCalculator(const ProcessInfo& rProcessInfo);
+    auto CreateStiffnessCalculator(const ProcessInfo& rProcessInfo) const;
 
     template <unsigned int MatrixSize>
-    void CalculateAndAssignStiffnessMatrix(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rProcessInfo);
+    void CalculateAndAssignStiffnessMatrix(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rProcessInfo) const;
 
     template <unsigned int MatrixSize>
-    void CalculateAndAssembleStiffnessForceVector(VectorType& rRightHandSideVector, const ProcessInfo& rProcessInfo);
+    void CalculateAndAssembleStiffnessForceVector(VectorType&        rRightHandSideVector,
+                                                  const ProcessInfo& rProcessInfo) const;
 
     template <unsigned int NumberOfRows, unsigned int NumberOfColumns>
     typename UPCouplingCalculator<NumberOfRows, NumberOfColumns>::InputProvider CreateUPCouplingInputProvider() const;
@@ -175,15 +187,36 @@ private:
     template <unsigned int NumberOfRows, unsigned int NumberOfColumns>
     void CalculateAndAssemblePUCouplingForceVector(VectorType& rRightHandSideVector) const;
 
+    template <unsigned int TNumNodes>
+    typename PermeabilityCalculator<TNumNodes>::InputProvider CreatePermeabilityInputProvider() const;
+
+    template <unsigned int TNumNodes>
+    auto CreatePermeabilityCalculator() const;
+
+    template <unsigned int TnumNodes>
+    void CalculateAndAssignPermeabilityMatrix(MatrixType& rLeftHandSideMatrix) const;
+
+    template <unsigned int TnumNodes>
+    void CalculateAndAssemblePermeabilityFlowVector(VectorType& rRightHandSideVector) const;
+
+    template <unsigned int TNumNodes>
+    typename FluidBodyFlowCalculator<TNumNodes>::InputProvider CreateFluidBodyFlowInputProvider() const;
+
+    template <unsigned int TNumNodes>
+    auto CreateFluidBodyFlowCalculator() const;
+
+    template <unsigned int TnumNodes>
+    void CalculateAndAssembleFluidBodyFlowVector(VectorType& rRightHandSideVector) const;
+
     std::function<Matrix(const Geometry<Node>&, const array_1d<double, 3>&)> mfpCalculateRotationMatrix;
 
     std::unique_ptr<IntegrationScheme>    mpIntegrationScheme;
     std::unique_ptr<StressStatePolicy>    mpStressStatePolicy;
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLaws;
+    std::vector<RetentionLaw::Pointer>    mRetentionLaws;
     IntegrationCoefficientsCalculator     mIntegrationCoefficientsCalculator;
     Geo::GeometryUniquePtr                mpOptionalPressureGeometry;
     std::vector<CalculationContribution>  mContributions;
-    std::vector<RetentionLaw::Pointer>    mRetentionLawVector;
 
     friend class Serializer;
 };
