@@ -7078,7 +7078,7 @@ Begin Elements Geo_ULineInterfacePlaneStrainElement3Plus3N// GUI group identifie
      12418          0  3996  4024  4010
 End Elements
 
-Begin Elements Geo_ULineInterfacePlaneStrainElement3Plus3N// GUI group identifier: Beam
+Begin Elements LinearTimoshenkoCurvedBeamElement2D3N// GUI group identifier: Beam
      2417          0  3966  3996  3981 
      2418          0  3996  4024  4010 
      2419          0  4024  4052  4036 
@@ -7107,8 +7107,8 @@ Begin Elements Geo_ULineInterfacePlaneStrainElement3Plus3N// GUI group identifie
      2466          0  4586  4564  4575 
 End Elements
 
-Begin Elements Geo_ULineInterfacePlaneStrainElement3Plus3N// GUI group identifier: Anchor
-     2467          0  4586  4638  4614 
+Begin Elements LinearTrussElement2D2N // GUI group identifier: Anchor
+     2467          0  4586  4638
 End Elements
 
 Begin Elements Geo_ULineInterfacePlaneStrainElement3Plus3N// GUI group identifier: Interface_Middle_Right
@@ -15051,7 +15051,6 @@ End SubModelPart
 Begin SubModelPart Anchor // Group Anchor // Subtree Parts_Interface
     Begin SubModelPartNodes
          4586
-         4614
          4638
     End SubModelPartNodes
     Begin SubModelPartElements
