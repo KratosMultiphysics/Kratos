@@ -890,7 +890,7 @@ void MedModelPartIO::WriteModelPart(const ModelPart& rThisModelPart)
 
     for (const auto* r_smp : all_sub_modelparts) {
 
-        // MODIFIED: use FullName() to encode hierarchy (SubModelPart.SubSubModelPart...)
+        // Use FullName() to encode hierarchy (SubModelPart.SubSubModelPart...)
         std::string group_name = r_smp->FullName();
 
         // Remove root ModelPart name to keep MED groups clean and consistent
