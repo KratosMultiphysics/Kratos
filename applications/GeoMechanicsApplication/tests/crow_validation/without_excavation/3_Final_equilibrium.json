@@ -50,13 +50,15 @@
             "Soil_Bottom_Right",
             "Soil_Middle_Right",
             "Soil_Top_Right",
-            "Interfaces_Right",
+            "Interface_Top_Right",
+            "Interface_Middle_Right",
+            "Interface_Bottom_Right",
             "Interface_Excavated_Soil_1",
             "Interface_Excavated_Soil_2",
             "Interface_Excavated_Soil_3",
-            "Interfaces_Bottom_Left",
-            "Beam",
-            "Anchor"
+            "Interface_Middle_Left",
+            "Interface_Bottom_Left",
+            "Beam"
         ],
         "body_domain_sub_model_part_list": [
             "Soil_Below_Pit",
@@ -64,13 +66,15 @@
             "Soil_Bottom_Right",
             "Soil_Middle_Right",
             "Soil_Top_Right",
-            "Interfaces_Right",
+            "Interface_Top_Right",
+            "Interface_Middle_Right",
+            "Interface_Bottom_Right",
             "Interface_Excavated_Soil_1",
             "Interface_Excavated_Soil_2",
             "Interface_Excavated_Soil_3",
-            "Interfaces_Bottom_Left",
-            "Beam",
-            "Anchor"
+            "Interface_Middle_Left",
+            "Interface_Bottom_Left",
+            "Beam"
         ],
         "linear_solver_settings": {
             "solver_type": "LinearSolversApplication.sparse_lu",
@@ -188,10 +192,14 @@
                 "process_name": "ApplyExcavationProcess",
                 "Parameters": {
                     "model_part_name_list": [
-                        "PorousDomain.Interfaces_Right",
-                        "PorousDomain.Interfaces_Bottom_Left",
-                        "PorousDomain.Beam",
-                        "PorousDomain.Anchor"
+                        "PorousDomain.Interface_Top_Right",
+                        "PorousDomain.Interface_Middle_Right",
+                        "PorousDomain.Interface_Bottom_Right",
+                        "PorousDomain.Interface_Excavated_Soil_2",
+                        "PorousDomain.Interface_Excavated_Soil_3",
+                        "PorousDomain.Interface_Middle_Left",
+                        "PorousDomain.Interface_Bottom_Left",
+                        "PorousDomain.Beam"
                     ],
                     "deactivate_soil_part": false
                 }
@@ -201,11 +209,16 @@
                 "process_name": "GeoExtrapolateIntegrationPointValuesToNodesProcess",
                 "Parameters": {
                     "model_part_name": "PorousDomain.Beam",
-                    "list_of_variables": [
-                        "AXIAL_FORCE",
-                        "BENDING_MOMENT",
-                        "SHEAR_FORCE"
-                    ]
+                    "list_of_variables": ["AXIAL_FORCE", "BENDING_MOMENT", "SHEAR_FORCE"]
+                }
+            },
+            {
+                "python_module": "geo_extrapolate_integration_point_values_to_nodes_process",
+                "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+                "process_name": "GeoExtrapolateIntegrationPointValuesToNodesProcess",
+                "Parameters": {
+                    "model_part_name_list": ["PorousDomain.Interface_Top_Right", "PorousDomain.Interface_Middle_Right", "PorousDomain.Interface_Bottom_Right"],
+                    "list_of_variables": ["GEO_EFFECTIVE_TRACTION_VECTOR"]
                 }
             }
         ]
