@@ -204,7 +204,8 @@
                         "PorousDomain.Interface_Excavated_Soil_3",
                         "PorousDomain.Interface_Middle_Left",
                         "PorousDomain.Interface_Bottom_Left",
-                        "PorousDomain.Beam"
+                        "PorousDomain.Beam",
+                        "PorousDomain.Anchor"
                     ]
                 }
             },
