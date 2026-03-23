@@ -36,7 +36,7 @@ ApplyFinalStressesOfPreviousStageToInitialState::ApplyFinalStressesOfPreviousSta
 void ApplyFinalStressesOfPreviousStageToInitialState::ExecuteInitialize()
 {
     for (const auto& r_model_part : mrModelParts) {
-        block_for_each(r_model_part.get().Elements(), [&r_model_part, this](Element& rElement) {
+        for (auto& rElement : r_model_part.get().Elements()) {
             std::vector<Vector> stresses_on_integration_points;
             rElement.CalculateOnIntegrationPoints(PK2_STRESS_VECTOR, stresses_on_integration_points,
                                                   r_model_part.get().GetProcessInfo());
@@ -50,7 +50,7 @@ void ApplyFinalStressesOfPreviousStageToInitialState::ExecuteInitialize()
 
             CheckRetrievedElementData(constitutive_laws, stresses_on_integration_points, rElement.GetId());
             mStressesByElementId[rElement.GetId()] = stresses_on_integration_points;
-        });
+        }
     }
 }
 
