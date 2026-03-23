@@ -7243,7 +7243,7 @@ Begin Conditions LineNormalLoadDiffOrderCondition2D3N
   42 0 4561 4591 4579
   43 0 4591 4621 4609
   44 0 4621 4777 4635
-  45 0 4564 4592 4582
+  45 0 4717 4592 4582
   46 0 4592 4626 4612
   47 0 4626 4658 4641
   48 0 4658 4676 4667
@@ -15538,6 +15538,7 @@ Begin SubModelPart Normal_Load_After_Last_Excavation
     4564
     4575
     4586
+    4717
   End SubModelPartNodes
   Begin SubModelPartConditions
     84
