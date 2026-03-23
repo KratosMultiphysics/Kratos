@@ -241,7 +241,33 @@
             }
         },
         {
-            "model_part_name": "PorousDomain.Interfaces_Right",
+            "model_part_name": "PorousDomain.Interface_Top_Right",
+            "properties_id": 9,
+            "Material": {
+                "constitutive_law": {
+                    "name": "GeoIncrementalLinearElasticInterfaceLaw"
+                },
+                "Variables": {
+                    "INTERFACE_NORMAL_STIFFNESS": 4.615e+07,
+                    "INTERFACE_SHEAR_STIFFNESS": 4.615e+06
+                }
+            }
+        },
+        {
+            "model_part_name": "PorousDomain.Interface_Middle_Right",
+            "properties_id": 9,
+            "Material": {
+                "constitutive_law": {
+                    "name": "GeoIncrementalLinearElasticInterfaceLaw"
+                },
+                "Variables": {
+                    "INTERFACE_NORMAL_STIFFNESS": 4.615e+07,
+                    "INTERFACE_SHEAR_STIFFNESS": 4.615e+06
+                }
+            }
+        },
+        {
+            "model_part_name": "PorousDomain.Interface_Bottom_Right",
             "properties_id": 9,
             "Material": {
                 "constitutive_law": {
@@ -293,7 +319,20 @@
             }
         },
         {
-            "model_part_name": "PorousDomain.Interfaces_Bottom_Left",
+            "model_part_name": "PorousDomain.Interface_Middle_Left",
+            "properties_id": 13,
+            "Material": {
+                "constitutive_law": {
+                    "name": "GeoIncrementalLinearElasticInterfaceLaw"
+                },
+                "Variables": {
+                    "INTERFACE_NORMAL_STIFFNESS": 4.615e+07,
+                    "INTERFACE_SHEAR_STIFFNESS": 4.615e+06
+                }
+            }
+        },
+        {
+            "model_part_name": "PorousDomain.Interface_Bottom_Left",
             "properties_id": 13,
             "Material": {
                 "constitutive_law": {

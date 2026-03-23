@@ -53,11 +53,14 @@
             "Soil_Bottom_Right",
             "Soil_Middle_Right",
             "Soil_Top_Right",
-            "Interfaces_Right",
+            "Interface_Top_Right",
+            "Interface_Middle_Right",
+            "Interface_Bottom_Right",
             "Interface_Excavated_Soil_1",
             "Interface_Excavated_Soil_2",
             "Interface_Excavated_Soil_3",
-            "Interfaces_Bottom_Left",
+            "Interface_Middle_Left",
+            "Interface_Bottom_Left",
             "Beam"
         ],
         "body_domain_sub_model_part_list": [
@@ -69,11 +72,14 @@
             "Soil_Bottom_Right",
             "Soil_Middle_Right",
             "Soil_Top_Right",
-            "Interfaces_Right",
+            "Interface_Top_Right",
+            "Interface_Middle_Right",
+            "Interface_Bottom_Right",
             "Interface_Excavated_Soil_1",
             "Interface_Excavated_Soil_2",
             "Interface_Excavated_Soil_3",
-            "Interfaces_Bottom_Left",
+            "Interface_Middle_Left",
+            "Interface_Bottom_Left",
             "Beam"
         ],
         "linear_solver_settings": {
@@ -186,10 +192,13 @@
                 "process_name": "ApplyFinalStressesOfPreviousStageToInitialState",
                 "Parameters": {
                     "model_part_name_list": [
-                        "PorousDomain.Interfaces_Right",
+                        "PorousDomain.Interface_Top_Right",
+                        "PorousDomain.Interface_Middle_Right",
+                        "PorousDomain.Interface_Bottom_Right",
                         "PorousDomain.Interface_Excavated_Soil_2",
                         "PorousDomain.Interface_Excavated_Soil_3",
-                        "PorousDomain.Interfaces_Bottom_Left",
+                        "PorousDomain.Interface_Middle_Left",
+                        "PorousDomain.Interface_Bottom_Left",
                         "PorousDomain.Beam"
                     ]
                 }
@@ -208,7 +217,7 @@
                 "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
                 "process_name": "GeoExtrapolateIntegrationPointValuesToNodesProcess",
                 "Parameters": {
-                    "model_part_name_list": ["PorousDomain.Interfaces_Right"],
+                    "model_part_name_list": ["PorousDomain.Interface_Top_Right", "PorousDomain.Interface_Middle_Right", "PorousDomain.Interface_Bottom_Right"],
                     "list_of_variables": ["GEO_EFFECTIVE_TRACTION_VECTOR"]
                 }
             }

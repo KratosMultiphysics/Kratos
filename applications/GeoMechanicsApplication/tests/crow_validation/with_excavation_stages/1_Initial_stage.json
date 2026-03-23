@@ -149,11 +149,14 @@
                 "process_name": "ApplyExcavationProcess",
                 "Parameters": {
                     "model_part_name_list": [
-                        "PorousDomain.Interfaces_Right",
+                        "PorousDomain.Interface_Top_Right",
+                        "PorousDomain.Interface_Middle_Right",
+                        "PorousDomain.Interface_Bottom_Right",
                         "PorousDomain.Interface_Excavated_Soil_1",
                         "PorousDomain.Interface_Excavated_Soil_2",
                         "PorousDomain.Interface_Excavated_Soil_3",
-                        "PorousDomain.Interfaces_Bottom_Left",
+                        "PorousDomain.Interface_Middle_Left",
+                        "PorousDomain.Interface_Bottom_Left",
                         "PorousDomain.Beam",
                         "PorousDomain.Anchor"
                     ],
