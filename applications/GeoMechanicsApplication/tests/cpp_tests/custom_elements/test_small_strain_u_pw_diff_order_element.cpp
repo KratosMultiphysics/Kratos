@@ -624,6 +624,61 @@ KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculateOnIntegrationP
     // Add more vector variable tests here as needed
 }
 
+KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculateOnIntegrationPoints_Matrix,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto p_element =
+        CreateSmallStrainUPwDiffOrderElementWithUPwDofs(CreatePropertiesForUPwDiffOrderElementTest());
+    SetSolutionStepValuesForGeneralCheck(p_element);
+    const auto dummy_process_info = ProcessInfo{};
+    p_element->Initialize(dummy_process_info);
+
+    const auto stress_vector = UblasUtilities::CreateVector({-1.5, 0.0, 1.5, 0.0});
+    p_element->SetValuesOnIntegrationPoints(
+        CAUCHY_STRESS_VECTOR, std::vector<Vector>{3, stress_vector}, dummy_process_info);
+
+    // Act & Assert: CAUCHY_STRESS_TENSOR
+    std::vector<Matrix> stress_matrices;
+    p_element->CalculateOnIntegrationPoints(CAUCHY_STRESS_TENSOR, stress_matrices, dummy_process_info);
+    std::cout << "CAUCHY_STRESS_TENSOR" << stress_matrices << std::endl;
+    const auto expected_stress_matrix = UblasUtilities::CreateMatrix({{-1.5, 0, 0}, {0, 0, 0}, {0, 0, 1.5}});
+    for (const auto& stress_matrix : stress_matrices)
+        KRATOS_EXPECT_MATRIX_NEAR(stress_matrix, expected_stress_matrix, Defaults::absolute_tolerance);
+
+    // Act & Assert: TOTAL_STRESS_TENSOR
+    p_element->CalculateOnIntegrationPoints(TOTAL_STRESS_TENSOR, stress_matrices, dummy_process_info);
+    std::cout << "TOTAL_STRESS_TENSOR" << stress_matrices << std::endl;
+    for (const auto& stress_matrix : stress_matrices)
+        KRATOS_EXPECT_MATRIX_NEAR(stress_matrix, expected_stress_matrix, Defaults::absolute_tolerance)
+
+    // Act & Assert: ENGINEERING_STRAIN_TENSOR
+    std::vector<Matrix> strain_matrices;
+    p_element->CalculateOnIntegrationPoints(ENGINEERING_STRAIN_TENSOR, strain_matrices, dummy_process_info);
+    std::cout << "ENGINEERING_STRAIN_TENSOR" << strain_matrices << std::endl;
+    std::vector<Matrix> expected_strain_matrices;
+    expected_strain_matrices.push_back(UblasUtilities::CreateMatrix(
+        {{0.026935483870967739, -0.012177419354838709, 0}, {-0.012177419354838709, 0, 0}, {0, 0, 0}}));
+    expected_strain_matrices.push_back(UblasUtilities::CreateMatrix(
+        {{-0.0049999999999999966, -0.012177419354838711, 0}, {-0.012177419354838711, 0, 0}, {0, 0, 0}}));
+    expected_strain_matrices.push_back(UblasUtilities::CreateMatrix(
+        {{-0.0041176470588235262, 0.016911764705882348, 0}, {0.016911764705882348, 0, 0}, {0, 0, 0}}));
+    for (auto i = std::size_t{0}; i < strain_matrices.size(); i++)
+        KRATOS_EXPECT_MATRIX_NEAR(strain_matrices[i], expected_strain_matrices[i], Defaults::absolute_tolerance);
+
+    // Act & Assert: GREEN_LAGRANGE_STRAIN_TENSOR
+    p_element->CalculateOnIntegrationPoints(GREEN_LAGRANGE_STRAIN_TENSOR, strain_matrices, dummy_process_info);
+    std::cout << "GREEN_LAGRANGE_STRAIN_TENSOR" << strain_matrices << std::endl;
+    for (auto i = std::size_t{0}; i < strain_matrices.size(); i++)
+        KRATOS_EXPECT_MATRIX_NEAR(strain_matrices[i], expected_strain_matrices[i], Defaults::absolute_tolerance);
+
+    // Act & Assert: PK2_STRESS_TENSOR
+    p_element->CalculateOnIntegrationPoints(PK2_STRESS_TENSOR, stress_matrices, dummy_process_info);
+    std::cout << "PK2_STRESS_TENSOR" << stress_matrices << std::endl;
+    for (const auto& stress_matrix : stress_matrices)
+        KRATOS_EXPECT_MATRIX_NEAR(stress_matrix, expected_stress_matrix, Defaults::absolute_tolerance);
+}
+
 struct DiffOrderElementTestParam {
     std::string                                                             name;
     std::function<Element::Pointer(ModelPart&, const Properties::Pointer&)> create_element;
