@@ -15,17 +15,18 @@
 // External includes
 
 // Project includes
+#include "includes/cfd_variables.h"
 #include "includes/checks.h"
 #include "includes/define.h"
 #include "includes/variables.h"
 
 // Application includes
-#include "custom_elements/stokes_element.h"
+#include "custom_elements/navier_stokes_element.h"
 
 namespace Kratos
 {
 
-StokesElement::StokesElement(
+NavierStokesElement::NavierStokesElement(
     IndexType NewId,
     GeometryType::Pointer pGeometry)
     : Element(
@@ -34,7 +35,7 @@ StokesElement::StokesElement(
 {
 }
 
-StokesElement::StokesElement(
+NavierStokesElement::NavierStokesElement(
     IndexType NewId,
     GeometryType::Pointer pGeometry,
     PropertiesType::Pointer pProperties)
@@ -45,29 +46,29 @@ StokesElement::StokesElement(
 {
 }
 
-Element::Pointer StokesElement::Create(
+Element::Pointer NavierStokesElement::Create(
     IndexType NewId,
     NodesArrayType const& ThisNodes,
     PropertiesType::Pointer pProperties) const
 {
-    return Kratos::make_intrusive<StokesElement>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+    return Kratos::make_intrusive<NavierStokesElement>(NewId, GetGeometry().Create(ThisNodes), pProperties);
 }
 
-Element::Pointer StokesElement::Create(
+Element::Pointer NavierStokesElement::Create(
     IndexType NewId,
     GeometryType::Pointer pGeom,
     PropertiesType::Pointer pProperties) const
 {
-    return Kratos::make_intrusive<StokesElement>(NewId, pGeom, pProperties);
+    return Kratos::make_intrusive<NavierStokesElement>(NewId, pGeom, pProperties);
 }
 
 // Deconstructor
 
-StokesElement::~StokesElement()
+NavierStokesElement::~NavierStokesElement()
 {
 }
 
-void StokesElement:: Initialize(const ProcessInfo& rCurrentProcessInfo)
+void NavierStokesElement:: Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     InitializeMaterial();
     GeometryType& r_geometry = this->GetGeometry();
@@ -81,7 +82,7 @@ void StokesElement:: Initialize(const ProcessInfo& rCurrentProcessInfo)
 }
 
 
-void StokesElement::InitializeMaterial()
+void NavierStokesElement::InitializeMaterial()
 {
     KRATOS_TRY
     if ( GetProperties()[CONSTITUTIVE_LAW] != nullptr ) {
@@ -99,7 +100,7 @@ void StokesElement::InitializeMaterial()
 }
 
 
-void StokesElement::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix, VectorType &rRightHandSideVector, const ProcessInfo &rCurrentProcessInfo)
+void NavierStokesElement::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix, VectorType &rRightHandSideVector, const ProcessInfo &rCurrentProcessInfo)
 {
     // Obtain required constants
     GeometryType& r_geometry = this->GetGeometry();
@@ -141,7 +142,6 @@ void StokesElement::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix, Vector
     ApplyConstitutiveLaw(B, Values, constitutive_variables);
     Vector& r_stress_vector = Values.GetStressVector();
     const Matrix& r_D = Values.GetConstitutiveMatrix();
-    Matrix DB_voigt = Matrix(prod(r_D, B));
 
     double mu_effective;
     mpConstitutiveLaw->CalculateValue(Values, MU, mu_effective);
@@ -153,49 +153,96 @@ void StokesElement::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix, Vector
 
     array_1d<double,3> body_force = ZeroVector(3);
     body_force = this->GetValue(BODY_FORCE);
+    const double density = GetProperties()[DENSITY];
+
+    double advective_norm = 0.0;
+    CalculateAdvectiveNorm(rN, advective_norm);
 
     // Calculate stabilization constants
-    double TauOne = 0.0;
-    double TauTwo = 0.0;
-    CalculateTau(TauOne,TauTwo, mu_effective);
+    CalculateTau(mu_effective, density, advective_norm, rCurrentProcessInfo);
 
     // Add velocity terms in momentum equation
-    this->AddMomentumTerms(rLeftHandSideMatrix,rRightHandSideVector,body_force,TauTwo,rN,DN_DX,GaussWeight, r_D, r_stress_vector);
+    this->AddMomentumTerms(rLeftHandSideMatrix,rRightHandSideVector,body_force,mTauTwo,rN,DN_DX,GaussWeight, r_D, r_stress_vector);
 
     // Add velocity-pressure terms
-    this->AddContinuityTerms(rLeftHandSideMatrix,rRightHandSideVector,body_force,TauOne,rN,DN_DX,GaussWeight);
+    this->AddContinuityTerms(rLeftHandSideMatrix,rRightHandSideVector,body_force,density,mTauOne,rN,DN_DX,GaussWeight);
 
     // Add Second-Order stabilization terms from VMS
-    this->AddSecondOrderStabilizationTerms(rLeftHandSideMatrix,rRightHandSideVector,body_force,TauOne,rN,DN_DX,GaussWeight,r_D);
+    this->AddSecondOrderStabilizationTerms(rLeftHandSideMatrix,rRightHandSideVector,mTauOne,rN,DN_DX,GaussWeight,r_D);
+
+    // Add Convective terms [D terms] 
+    this->AddConvectiveTerms(rLeftHandSideMatrix,rRightHandSideVector,density,rN,DN_DX,GaussWeight);
 
 }
 
-void StokesElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
+void NavierStokesElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
 {   
     VectorType temp(0);
     CalculateLocalSystem(rLeftHandSideMatrix, temp, rCurrentProcessInfo);
 }
 
-void StokesElement::CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
+void NavierStokesElement::CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     MatrixType temp(0,0);
     CalculateLocalSystem(temp, rRightHandSideVector, rCurrentProcessInfo);
 }
 
-void StokesElement::CalculateTau(double &TauOne, double &TauTwo, double MuEffective)
+void NavierStokesElement::CalculateAdvectiveNorm(
+    const ShapeFunctionsType &rN,
+    double& rAdvectiveNorm)
+{
+    GeometryType& r_geometry = this->GetGeometry();
+    const unsigned int number_of_nodes = r_geometry.PointsNumber();
+    array_1d<double, 3> advective_velocity = ZeroVector(3);
+    for (unsigned int j = 0; j < number_of_nodes; ++j)
+    {
+        const array_1d<double, 3>& u_j = r_geometry[j].FastGetSolutionStepValue(VELOCITY);
+        for (unsigned int d = 0; d < mDim; ++d) {
+            advective_velocity[d] += rN[j] * u_j[d];
+        }
+    }
+
+    rAdvectiveNorm = norm_2(advective_velocity);
+}
+
+void NavierStokesElement::CalculateTau(
+    const double MuEffective, 
+    const double Density, 
+    const double AdvectiveNorm,
+    const ProcessInfo& rCurrentProcessInfo)
 {   
-    // // Estimate element size
-    double h = ElementSize();
+    const double h = ElementSize();
 
     // The stabilization parameters from: 
     // https://www.researchgate.net/profile/Ramon-Codina-2/publication/222977355
+    constexpr double c1 = 4.0;
+    constexpr double c2 = 2.0;
 
-    TauOne = std::pow(h, 2) / ( 4.0 * MuEffective ); 
+    KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(DYNAMIC_TAU))
+        << "Missing DYNAMIC_TAU in ProcessInfo for NavierStokesElement " << Id() << std::endl;
+    KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(DELTA_TIME))
+        << "Missing DELTA_TIME in ProcessInfo for NavierStokesElement " << Id() << std::endl;
 
-    TauTwo = MuEffective;
+    const double tau_dynamic = rCurrentProcessInfo[DYNAMIC_TAU];
+    const double delta_time = rCurrentProcessInfo[DELTA_TIME];
+    const double viscosity = MuEffective;
+
+    KRATOS_ERROR_IF(delta_time <= 0.0)
+        << "DELTA_TIME must be positive for NavierStokesElement " << Id()
+        << ". Provided value: " << delta_time << std::endl;
+
+    // Compute tau1
+    mTauOne = 1.0 / (
+        (Density * tau_dynamic / delta_time) +
+        (c2 * Density * AdvectiveNorm / h) +
+        (c1 * viscosity / (h * h))
+    );
+
+    // Compute tau2
+    mTauTwo = h * h / (c2 * mTauOne);
 }
 
-double StokesElement::ElementSize()
+double NavierStokesElement::ElementSize()
 {
     const double domain_size = this->GetGeometry().DomainSize();
     if (mDim == 3) {
@@ -204,7 +251,7 @@ double StokesElement::ElementSize()
     return 1.128379167 * std::sqrt(domain_size);
 }
 
-void StokesElement::AddMomentumTerms(MatrixType &rLHS,
+void NavierStokesElement::AddMomentumTerms(MatrixType &rLHS,
         VectorType &rRHS,
         const array_1d<double,3> &rBodyForce,
         const double TauTwo,
@@ -216,9 +263,10 @@ void StokesElement::AddMomentumTerms(MatrixType &rLHS,
 {
     const unsigned int number_of_nodes = this->GetGeometry().PointsNumber();
     const unsigned int block_size = mDim+1;
-    auto &r_geometry = GetGeometry();
+    auto& r_geometry = GetGeometry();
 
-    Matrix B = ZeroMatrix(3,number_of_nodes*mDim);
+    const unsigned int voigt_size = (mDim == 3) ? 6 : 3;
+    Matrix B = ZeroMatrix(voigt_size, number_of_nodes * mDim);
     CalculateB(B, rDN_DX);
     Matrix diffusion_term_matrix = Weight * prod(trans(B), Matrix(prod(rD, B)));
     for (IndexType i = 0; i < number_of_nodes; ++i)
@@ -236,7 +284,7 @@ void StokesElement::AddMomentumTerms(MatrixType &rLHS,
             }
         }
     }
-    // RHS corresponding term
+    // RHS corresponding term (diffusion term)
     Vector internal_forces = Weight * prod(trans(B), rStressVector);
     for (IndexType i = 0; i < number_of_nodes; ++i)
     {
@@ -260,7 +308,7 @@ void StokesElement::AddMomentumTerms(MatrixType &rLHS,
 
         for(unsigned int j = 0; j < number_of_nodes; ++j)
         {
-            // Stabilization
+            // Stabilization div(u) div(v)
             for (unsigned int m = 0; m < mDim; ++m) {
                 for (unsigned int n = 0; n < mDim; ++n) {
                     rLHS(first_row+m,first_col+n) += TauTwo * Weight * rDN_DX(i,m) * rDN_DX(j,n);
@@ -270,7 +318,7 @@ void StokesElement::AddMomentumTerms(MatrixType &rLHS,
             // Update column index
             first_col += block_size;
         }
-        // RHS corresponding term
+        // RHS corresponding term: Stabilization div(u) div(v)
         double div_u_current = 0.0;
         for(unsigned int j = 0; j < number_of_nodes; ++j) {
             const auto& r_velocity = r_geometry[j].FastGetSolutionStepValue(VELOCITY);
@@ -289,9 +337,10 @@ void StokesElement::AddMomentumTerms(MatrixType &rLHS,
 }
 
 
-void StokesElement::AddContinuityTerms(MatrixType &rLHS,
+void NavierStokesElement::AddContinuityTerms(MatrixType &rLHS,
         VectorType &rRHS,
         const array_1d<double,3> &rBodyForce,
+        const double Density,
         const double TauOne,
         const ShapeFunctionsType &rN,
         const ShapeDerivativesType &rDN_DX,
@@ -299,7 +348,7 @@ void StokesElement::AddContinuityTerms(MatrixType &rLHS,
 {
     const unsigned int number_of_nodes = this->GetGeometry().PointsNumber();
     const unsigned int block_size = mDim+1;
-    auto &r_geometry = GetGeometry();
+    auto& r_geometry = GetGeometry();
 
     unsigned int first_row = 0;
     unsigned int first_col = 0;
@@ -324,7 +373,7 @@ void StokesElement::AddContinuityTerms(MatrixType &rLHS,
         for (unsigned int d = 0; d < mDim; ++d) {
             Qi += rDN_DX(i,d) * rBodyForce[d];
         }
-
+        // Stabilization term: grad(q) * f  -> [B1]
         rRHS[first_row + mDim] += Weight * TauOne * Qi;
 
         for (unsigned int j = 0; j < number_of_nodes; ++j)
@@ -334,10 +383,12 @@ void StokesElement::AddContinuityTerms(MatrixType &rLHS,
             {
                 l_ij += rDN_DX(i,d) * rDN_DX(j,d);
                 div_term = Weight * rN[i] * rDN_DX(j,d);
+                // div(u) * q
                 rLHS(first_row+mDim,first_col + d) += div_term; // Divergence term
+                // div(v) * p
                 rLHS(first_col + d,first_row+mDim) -= div_term; // Gradient term
             }
-            // Stabilization (grad p, grad q)
+            // Stabilization (grad p, grad q) -> [B3]
             rLHS(first_row+mDim,first_col+mDim) += Weight * TauOne * l_ij;
 
             // Update column index
@@ -347,34 +398,65 @@ void StokesElement::AddContinuityTerms(MatrixType &rLHS,
         // --- RHS corresponding term ---
         rRHS(first_row+mDim) -= Weight * rN[i] * div_u_current ; // q div(u)
         for (unsigned int m = 0; m < mDim; ++m) {
+            // div(v) * p
             rRHS(first_row+m) += Weight * rDN_DX(i,m) * pressure_previous_iteration ;
-            // Stabilization
+            // Stabilization (grad p, grad q) -> [B3]
             rRHS(first_row+mDim) -= Weight * TauOne * rDN_DX(i,m) * grad_p_previous_iteration[m];
         }
-
         // Update matrix indices
+        first_col = 0;
+        first_row += block_size;
+    }
+
+    first_row = 0;
+    first_col = 0;
+    array_1d<double, 3> advective_velocity = ZeroVector(3);
+    for (unsigned int j = 0; j < number_of_nodes; ++j) {
+        const array_1d<double, 3>& u_j = r_geometry[j].FastGetSolutionStepValue(VELOCITY);
+        for (unsigned int d = 0; d < mDim; ++d) {
+            advective_velocity[d] += rN[j] * u_j[d];
+        }
+    }
+
+    for (unsigned int i = 0; i < number_of_nodes; ++i)
+    {
+        for (unsigned int j = 0; j < number_of_nodes; ++j)
+        {
+            double adv_dot_grad_nj = 0.0;
+            for (unsigned int k = 0; k < mDim; ++k) {
+                adv_dot_grad_nj += advective_velocity[k] * rDN_DX(j, k);
+            }
+
+            for (unsigned int d = 0; d < mDim; ++d)
+            {
+                const double velocity_component = r_geometry[j].FastGetSolutionStepValue(VELOCITY)[d];
+                rLHS(first_row + mDim, first_col + d) += Density * Weight * TauOne * rDN_DX(i, d) * adv_dot_grad_nj;
+                rRHS[first_row + mDim] -= Density * Weight * TauOne * rDN_DX(i, d) * velocity_component * adv_dot_grad_nj;
+            }
+
+            first_col += block_size;
+        }
         first_col = 0;
         first_row += block_size;
     }
 }
 
 
-void StokesElement::AddSecondOrderStabilizationTerms(
-    MatrixType &rLeftHandSideMatrix,
-    VectorType &rRightHandSideVector,
-    const array_1d<double,3> &rBodyForce,
-    const double TauOne,
-    const ShapeFunctionsType &rN,
-    const ShapeDerivativesType &rDN_DX,
-    const double GaussWeight,
-    const Matrix& rD)
+void NavierStokesElement::AddSecondOrderStabilizationTerms(MatrixType &rLeftHandSideMatrix,
+        VectorType &rRightHandSideVector,
+        const double TauOne,
+        const ShapeFunctionsType &rN,
+        const ShapeDerivativesType &rDN_DX,
+        const double GaussWeight,
+        const Matrix& rD)
 {
     const unsigned int number_of_points = this->GetGeometry().PointsNumber();
     const unsigned int block_size = mDim + 1;
+
     // Second-order stabilization: implement for 2D and 3D when basis order > 1
     if (mBasisFunctionsOrder > 1) {
         // ---------------------------------------------------------------------
-        // DIVERGENCE_STRESS stores the recovered divergence of viscous stress:
+        // RECOVERED_STRESS stores the recovered divergence of viscous stress:
         // 2D: size 2 -> [div_tau_x, div_tau_y]
         // 3D: size 3 -> [div_tau_x, div_tau_y, div_tau_z]
 
@@ -382,7 +464,7 @@ void StokesElement::AddSecondOrderStabilizationTerms(
         const Vector divergence_of_sigma = this->GetValue(DIVERGENCE_STRESS);
 
         KRATOS_ERROR_IF(divergence_of_sigma.size() != mDim)
-            << "DIVERGENCE_STRESS must store div(tau) of size " << mDim
+            << "RECOVERED_STRESS must store div(tau) of size " << mDim
             << " but has size " << divergence_of_sigma.size() << std::endl;
 
         // Get 2nd derivatives of shape functions in physical space (as provided by the geometry)
@@ -390,6 +472,16 @@ void StokesElement::AddSecondOrderStabilizationTerms(
         // For 3D, it is expected to contain 6 components per shape function: [xx, xy, xz, yy, yz, zz] (or equivalent)
         const Matrix& DDN_DDe = GetGeometry().ShapeFunctionDerivatives(
             2, 0, GetGeometry().GetDefaultIntegrationMethod());
+
+        KRATOS_ERROR_IF(mDim == 2 && DDN_DDe.size2() != 3)
+            << "Expected 3 second-derivative entries in 2D, got " << DDN_DDe.size2() << std::endl;
+        KRATOS_ERROR_IF(mDim == 3 && DDN_DDe.size2() != 6)
+            << "Expected 6 second-derivative entries in 3D, got " << DDN_DDe.size2() << std::endl;
+
+        const SizeType expected_voigt_size = (mDim == 3) ? 6 : 3;
+        KRATOS_ERROR_IF(rD.size1() != expected_voigt_size || rD.size2() != expected_voigt_size)
+            << "Constitutive matrix size mismatch. Expected " << expected_voigt_size << "x"
+            << expected_voigt_size << ", got " << rD.size1() << "x" << rD.size2() << std::endl;
 
         // Build derivative B-matrices: B_derivative_x/y/z are of size (strain_size x (mDim*n))
         Matrix B_derivative_x;
@@ -404,6 +496,16 @@ void StokesElement::AddSecondOrderStabilizationTerms(
             CalculateBDerivativeDy3D(B_derivative_y, DDN_DDe);
             CalculateBDerivativeDz3D(B_derivative_z, DDN_DDe);
         }
+
+        KRATOS_ERROR_IF(B_derivative_x.size1() != expected_voigt_size || B_derivative_x.size2() != mDim * number_of_points)
+            << "Unexpected B_derivative_x size " << B_derivative_x.size1() << "x" << B_derivative_x.size2()
+            << ". Expected " << expected_voigt_size << "x" << (mDim * number_of_points) << std::endl;
+        KRATOS_ERROR_IF(B_derivative_y.size1() != expected_voigt_size || B_derivative_y.size2() != mDim * number_of_points)
+            << "Unexpected B_derivative_y size " << B_derivative_y.size1() << "x" << B_derivative_y.size2()
+            << ". Expected " << expected_voigt_size << "x" << (mDim * number_of_points) << std::endl;
+        KRATOS_ERROR_IF(mDim == 3 && (B_derivative_z.size1() != expected_voigt_size || B_derivative_z.size2() != mDim * number_of_points))
+            << "Unexpected B_derivative_z size " << B_derivative_z.size1() << "x" << B_derivative_z.size2()
+            << ". Expected " << expected_voigt_size << "x" << (mDim * number_of_points) << std::endl;
 
         // ---------------------------------------------------------------------
         // Build div_sigma_k vectors mapping velocity dofs -> (div tau)_k at the GP
@@ -527,7 +629,138 @@ void StokesElement::AddSecondOrderStabilizationTerms(
     }
 }
 
-void StokesElement::ApplyConstitutiveLaw(
+void NavierStokesElement::AddConvectiveTerms(MatrixType &rLeftHandSideMatrix,
+        VectorType &rRightHandSideVector,
+        const double Density,
+        const ShapeFunctionsType &rN,
+        const ShapeDerivativesType &rDN_DX,
+        const double GaussWeight)
+{
+    const unsigned int number_of_nodes = this->GetGeometry().PointsNumber();
+    const unsigned int block_size = mDim+1;
+    auto& r_geometry = GetGeometry();
+    
+    array_1d<double, 3> advective_velocity = ZeroVector(3);
+    for (unsigned int j = 0; j < number_of_nodes; ++j)
+    {
+        const array_1d<double, 3>& u_j = r_geometry[j].FastGetSolutionStepValue(VELOCITY);
+        for (unsigned int d = 0; d < mDim; ++d) {
+            advective_velocity[d] += rN[j] * u_j[d];
+        }
+    }
+
+    for (unsigned int i = 0; i < number_of_nodes; ++i)
+    {
+        unsigned int row_index = i * block_size;
+        for (unsigned int j = 0; j < number_of_nodes; ++j)
+        {
+            unsigned int col_index = j * block_size;
+            for (unsigned int d = 0; d < mDim; ++d)
+            {
+                double adv_grad_phi_j = 0.0;
+                for (unsigned int k = 0; k < mDim; ++k)
+                {
+                    adv_grad_phi_j += advective_velocity[k] * rDN_DX(j, k);
+                }
+                rLeftHandSideMatrix(row_index + d, col_index + d) += Density * GaussWeight * rN[i] * adv_grad_phi_j;
+            }
+        }
+    }
+
+    array_1d<double, 3> adv_grad_u = ZeroVector(3);
+    for (unsigned int d = 0; d < mDim; ++d)
+    {
+        double component_adv_grad = 0.0;
+        for (unsigned int j = 0; j < number_of_nodes; ++j)
+        {
+            const double u_jd = r_geometry[j].FastGetSolutionStepValue(VELOCITY)[d];
+            for (unsigned int k = 0; k < mDim; ++k)
+            {
+                component_adv_grad += advective_velocity[k] * u_jd * rDN_DX(j, k);
+            }
+        }
+        adv_grad_u[d] = component_adv_grad;
+    }
+
+    for (unsigned int i = 0; i < number_of_nodes; ++i)
+    {
+        unsigned int row_index = i * block_size;
+
+        for (unsigned int d = 0; d < mDim; ++d)
+        {
+            rRightHandSideVector[row_index + d] -= Density * GaussWeight * rN[i] * adv_grad_u[d];
+        }
+    }
+}
+
+void NavierStokesElement::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
+{
+    auto& r_geometry = GetGeometry();
+    const unsigned int number_of_points = r_geometry.PointsNumber();
+    const unsigned int block_size = mDim + 1;
+    
+    const SizeType num_dofs_per_node = number_of_points * (mDim + 1);
+    const Matrix& N_gausspoint = r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod());
+    const ShapeFunctionsType& rN = row(N_gausspoint,0);
+    const GeometryType::ShapeFunctionsGradientsType& DN_De = r_geometry.ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
+    const ShapeDerivativesType& DN_DX = DN_De[0];
+    const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints(this->GetIntegrationMethod());
+    const double GaussWeight = integration_points[0].Weight();
+
+    if(rMassMatrix.size1() != num_dofs_per_node)
+        rMassMatrix.resize(num_dofs_per_node,num_dofs_per_node,false);
+    noalias(rMassMatrix) = ZeroMatrix(num_dofs_per_node, num_dofs_per_node);
+    
+    const double density = GetProperties()[DENSITY];
+    if (density == 0.0) {
+        KRATOS_ERROR << "Density must be non-zero. Provided: " << density << std::endl;
+    }
+
+    Matrix mass_matrix = ZeroMatrix(num_dofs_per_node, num_dofs_per_node);
+    
+    for (std::size_t i = 0; i < number_of_points; ++i) {
+        for (std::size_t j = 0; j < number_of_points; ++j) {
+            for (std::size_t dim = 0; dim < mDim; ++dim) {
+                mass_matrix(i * block_size + dim, j * block_size + dim) += density * rN[i] * rN[j] * GaussWeight;
+            }
+        }
+    }
+    noalias(rMassMatrix) += mass_matrix;
+
+    for (unsigned int i = 0; i < number_of_points; ++i)
+    {
+        for (unsigned int j = 0; j < number_of_points; ++j)
+        {
+            for (unsigned int d = 0; d < mDim; ++d) {
+                rMassMatrix(i * block_size + mDim, j * block_size + d) += density * GaussWeight * mTauOne * DN_DX(i, d) * rN[j];
+            }
+        }
+    }
+}
+
+void NavierStokesElement::GetFirstDerivativesVector(Vector &rValues, int Step) const
+{
+    const GeometryType& rGeom = this->GetGeometry();
+    const unsigned int number_of_control_points = rGeom.PointsNumber();
+    const unsigned int local_size = (mDim + 1) * number_of_control_points;
+
+    if (rValues.size() != local_size)
+        rValues.resize(local_size);
+
+    unsigned int index = 0;
+
+    for (unsigned int i = 0; i < number_of_control_points; i++)
+    {
+        rValues[index++] = rGeom[i].FastGetSolutionStepValue(VELOCITY_X,Step);
+        rValues[index++] = rGeom[i].FastGetSolutionStepValue(VELOCITY_Y,Step);
+        if (mDim == 3) {
+            rValues[index++] = rGeom[i].FastGetSolutionStepValue(VELOCITY_Z,Step);
+        }
+        rValues[index++] = rGeom[i].FastGetSolutionStepValue(PRESSURE,Step);
+    }
+}
+
+void NavierStokesElement::ApplyConstitutiveLaw(
         const Matrix& rB, 
         ConstitutiveLaw::Parameters& rValues,
         ConstitutiveVariables& rConstitutiveVariables) const
@@ -549,7 +782,7 @@ void StokesElement::ApplyConstitutiveLaw(
     mpConstitutiveLaw->CalculateMaterialResponseCauchy(rValues);
 }
 
-void StokesElement::EquationIdVector(Element::EquationIdVectorType &rResult, const ProcessInfo &rCurrentProcessInfo) const
+void NavierStokesElement::EquationIdVector(Element::EquationIdVectorType &rResult, const ProcessInfo &rCurrentProcessInfo) const
 {
     const GeometryType& rGeom = this->GetGeometry();
     const SizeType number_of_control_points = GetGeometry().size();
@@ -569,7 +802,7 @@ void StokesElement::EquationIdVector(Element::EquationIdVectorType &rResult, con
 }
 
 
-void StokesElement::GetDofList(
+void NavierStokesElement::GetDofList(
     DofsVectorType& rElementalDofList,
     const ProcessInfo& rCurrentProcessInfo
 ) const
@@ -595,9 +828,14 @@ void StokesElement::GetDofList(
 
 
 
-int StokesElement::Check(const ProcessInfo& rCurrentProcessInfo) const
+int NavierStokesElement::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     int Result = Element::Check(rCurrentProcessInfo);
+
+    KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(DYNAMIC_TAU))
+        << "Missing DYNAMIC_TAU in ProcessInfo for NavierStokesElement " << Id() << std::endl;
+    KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(DELTA_TIME))
+        << "Missing DELTA_TIME in ProcessInfo for NavierStokesElement " << Id() << std::endl;
 
     // Checks on nodes
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
@@ -628,12 +866,12 @@ int StokesElement::Check(const ProcessInfo& rCurrentProcessInfo) const
     return Result;
 }
 
-Element::IntegrationMethod StokesElement::GetIntegrationMethod() const
+Element::IntegrationMethod NavierStokesElement::GetIntegrationMethod() const
 {
     return GeometryData::IntegrationMethod::GI_GAUSS_1;
 }
 
-void StokesElement::CalculateB(
+void NavierStokesElement::CalculateB(
         Matrix& rB, 
         const ShapeDerivativesType& r_DN_DX) const
 {
@@ -672,14 +910,14 @@ void StokesElement::CalculateB(
     }
 }
 
-void StokesElement::CalculateBDerivativeDx(
+void NavierStokesElement::CalculateBDerivativeDx(
         Matrix& BDerivativeDx, 
         const ShapeDerivativesType& r_DDN_DDX) const
 {
     const SizeType number_of_control_points = GetGeometry().size();
-    const SizeType mat_size = number_of_control_points * mDim; // Only 2 DOFs per node in 2D
+    const SizeType mat_size = number_of_control_points * mDim;
 
-    // Resize B matrix to 3 rows (strain vector size) and appropriate number of columns
+    // Resize B matrix to 3 rows (2D strain vector size) and appropriate number of columns.
     if (BDerivativeDx.size1() != 3 || BDerivativeDx.size2() != mat_size)
         BDerivativeDx.resize(3, mat_size);
 
@@ -687,21 +925,21 @@ void StokesElement::CalculateBDerivativeDx(
 
     for (IndexType i = 0; i < number_of_control_points; ++i)
     {
-        BDerivativeDx(0, 2 * i)     = r_DDN_DDX(i, 0); // ∂²N_i / ∂x²
-        BDerivativeDx(1, 2 * i + 1) = r_DDN_DDX(i, 1); // ∂²N_i / ∂y∂x
-        BDerivativeDx(2, 2 * i)     = r_DDN_DDX(i, 1); // ∂²N_i / ∂y∂x
-        BDerivativeDx(2, 2 * i + 1) = r_DDN_DDX(i, 0); // ∂²N_i / ∂x²
+        BDerivativeDx(0, 2 * i)     = r_DDN_DDX(i, 0);
+        BDerivativeDx(1, 2 * i + 1) = r_DDN_DDX(i, 1);
+        BDerivativeDx(2, 2 * i)     = r_DDN_DDX(i, 1);
+        BDerivativeDx(2, 2 * i + 1) = r_DDN_DDX(i, 0);
     }
 }
 
-void StokesElement::CalculateBDerivativeDy(
+void NavierStokesElement::CalculateBDerivativeDy(
         Matrix& BDerivativeDy, 
         const ShapeDerivativesType& r_DDN_DDX) const
 {
     const SizeType number_of_control_points = GetGeometry().size();
-    const SizeType mat_size = number_of_control_points * 2; // Only 2 DOFs per node in 2D
+    const SizeType mat_size = number_of_control_points * mDim;
 
-    // Resize B matrix to 3 rows (strain vector size) and appropriate number of columns
+    // Resize B matrix to 3 rows (2D strain vector size) and appropriate number of columns.
     if (BDerivativeDy.size1() != 3 || BDerivativeDy.size2() != mat_size)
         BDerivativeDy.resize(3, mat_size);
 
@@ -709,21 +947,20 @@ void StokesElement::CalculateBDerivativeDy(
 
     for (IndexType i = 0; i < number_of_control_points; ++i)
     {
-        BDerivativeDy(0, 2 * i)     = r_DDN_DDX(i, 1); // ∂²N_i / ∂x∂y
-        BDerivativeDy(1, 2 * i + 1) = r_DDN_DDX(i, 2); // ∂²N_i / ∂y²
-        BDerivativeDy(2, 2 * i)     = r_DDN_DDX(i, 2); // ∂²N_i / ∂y²
-        BDerivativeDy(2, 2 * i + 1) = r_DDN_DDX(i, 1); // ∂²N_i / ∂x∂y
+        BDerivativeDy(0, 2 * i)     = r_DDN_DDX(i, 1);
+        BDerivativeDy(1, 2 * i + 1) = r_DDN_DDX(i, 2);
+        BDerivativeDy(2, 2 * i)     = r_DDN_DDX(i, 2);
+        BDerivativeDy(2, 2 * i + 1) = r_DDN_DDX(i, 1);
     }
 }
 
-void StokesElement::CalculateBDerivativeDx3D(
+void NavierStokesElement::CalculateBDerivativeDx3D(
     Matrix& BDerivativeDx,
     const ShapeDerivativesType& r_DDN_DDX) const
 {
     const SizeType number_of_control_points = GetGeometry().size();
-    const SizeType mat_size = number_of_control_points * 3; // 3 dofs per node
+    const SizeType mat_size = number_of_control_points * 3;
 
-    // Voigt size = 6 in 3D
     if (BDerivativeDx.size1() != 6 || BDerivativeDx.size2() != mat_size)
         BDerivativeDx.resize(6, mat_size);
 
@@ -737,31 +974,19 @@ void StokesElement::CalculateBDerivativeDx3D(
 
         const IndexType col = 3 * i;
 
-        // ε_xx,x
         BDerivativeDx(0, col    ) = dxx;
-
-        // ε_yy,x
         BDerivativeDx(1, col + 1) = dxy;
-
-        // ε_zz,x
         BDerivativeDx(2, col + 2) = dxz;
-
-        // ε_xy,x
         BDerivativeDx(3, col    ) = dxy;
         BDerivativeDx(3, col + 1) = dxx;
-
-        // ε_yz,x
         BDerivativeDx(4, col + 1) = dxz;
         BDerivativeDx(4, col + 2) = dxy;
-
-        // ε_xz,x
         BDerivativeDx(5, col    ) = dxz;
         BDerivativeDx(5, col + 2) = dxx;
     }
 }
 
-
-void StokesElement::CalculateBDerivativeDy3D(
+void NavierStokesElement::CalculateBDerivativeDy3D(
     Matrix& BDerivativeDy,
     const ShapeDerivativesType& r_DDN_DDX) const
 {
@@ -781,30 +1006,19 @@ void StokesElement::CalculateBDerivativeDy3D(
 
         const IndexType col = 3 * i;
 
-        // ε_xx,y
         BDerivativeDy(0, col    ) = dxy;
-
-        // ε_yy,y
         BDerivativeDy(1, col + 1) = dyy;
-
-        // ε_zz,y
         BDerivativeDy(2, col + 2) = dyz;
-
-        // ε_xy,y
         BDerivativeDy(3, col    ) = dyy;
         BDerivativeDy(3, col + 1) = dxy;
-
-        // ε_yz,y
         BDerivativeDy(4, col + 1) = dyz;
         BDerivativeDy(4, col + 2) = dyy;
-
-        // ε_xz,y
         BDerivativeDy(5, col    ) = dyz;
         BDerivativeDy(5, col + 2) = dxy;
     }
 }
 
-void StokesElement::CalculateBDerivativeDz3D(
+void NavierStokesElement::CalculateBDerivativeDz3D(
     Matrix& BDerivativeDz,
     const ShapeDerivativesType& r_DDN_DDX) const
 {
@@ -824,32 +1038,20 @@ void StokesElement::CalculateBDerivativeDz3D(
 
         const IndexType col = 3 * i;
 
-        // ε_xx,z
         BDerivativeDz(0, col    ) = dxz;
-
-        // ε_yy,z
         BDerivativeDz(1, col + 1) = dyz;
-
-        // ε_zz,z
         BDerivativeDz(2, col + 2) = dzz;
-
-        // ε_xy,z
         BDerivativeDz(3, col    ) = dyz;
         BDerivativeDz(3, col + 1) = dxz;
-
-        // ε_yz,z
         BDerivativeDz(4, col + 1) = dzz;
         BDerivativeDz(4, col + 2) = dyz;
-
-        // ε_xz,z
         BDerivativeDz(5, col    ) = dzz;
         BDerivativeDz(5, col + 2) = dxz;
     }
 }
 
 
-
-void StokesElement::CalculateOnIntegrationPoints(
+void NavierStokesElement::CalculateOnIntegrationPoints(
     const Variable<Vector>& rVariable,
     std::vector<Vector>& rOutput,
     const ProcessInfo& rCurrentProcessInfo)
@@ -868,7 +1070,7 @@ void StokesElement::CalculateOnIntegrationPoints(
 }
 
 
-Vector StokesElement::CalculateStressAtIntegrationPoint(
+Vector NavierStokesElement::CalculateStressAtIntegrationPoint(
     const ProcessInfo& rCurrentProcessInfo)
 {
     Vector stress_voigt((mDim == 3) ? 6 : 3);
@@ -893,7 +1095,7 @@ Vector StokesElement::CalculateStressAtIntegrationPoint(
 }
 
 
-void StokesElement::GetSolutionCoefficientVector(
+void NavierStokesElement::GetSolutionCoefficientVector(
         Vector& rValues) const
 {
     const SizeType number_of_control_points = GetGeometry().size();
