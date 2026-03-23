@@ -183,6 +183,27 @@ KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculateShearCapacity,
                               Defaults::absolute_tolerance);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_SetValuesOnIntegrationPoints, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto p_element =
+        CreateSmallStrainUPwDiffOrderElementWithUPwDofs(CreatePropertiesForUPwDiffOrderElementTest());
+    const auto dummy_process_info = ProcessInfo{};
+    p_element->Initialize(dummy_process_info);
+
+    auto stress_vector = UblasUtilities::CreateVector({-1.5, 0.0, 1.5, 0.0});
+    p_element->SetValuesOnIntegrationPoints(
+        PK2_STRESS_VECTOR, std::vector<Vector>{3, stress_vector}, dummy_process_info);
+
+    // Act
+    auto actual_pk2_stress_vectors = std::vector<Vector>{};
+    p_element->CalculateOnIntegrationPoints(PK2_STRESS_VECTOR, actual_pk2_stress_vectors, dummy_process_info);
+
+    // Assert
+    for (const auto& vector : actual_pk2_stress_vectors)
+        KRATOS_EXPECT_EQ(vector.size(), 0);
+}
+
 KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculateLHS, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
