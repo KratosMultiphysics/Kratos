@@ -7261,7 +7261,7 @@ Begin Conditions LineNormalLoadDiffOrderCondition2D3N
   60 0 4590 4541 4566
   61 0 4541 4489 4515
   62 0 4489 4446 4467
-  63 0 4446 4407 4427
+  63 0 4446 4730 4427
   64 0 4586 4564 4575
   65 0 4245 4275 4260
   66 0 4275 4301 4284
@@ -7275,7 +7275,7 @@ Begin Conditions LineNormalLoadDiffOrderCondition2D3N
   74 0 4487 4513 4501
   75 0 4513 4540 4526
   76 0 4540 4564 4551
-  77 0 4245 4285 4270
+  77 0 4740 4285 4270
   78 0 4285 4333 4308
   79 0 4333 4389 4361
   80 0 4389 4453 4417
@@ -15600,6 +15600,7 @@ Begin SubModelPart Normal_Load_After_Second_Excavation
     4645
     4666
     4679
+    4730
   End SubModelPartNodes
   Begin SubModelPartConditions
     52
@@ -15659,6 +15660,7 @@ Begin SubModelPart Normal_Load_After_Third_Excavation
     4575
     4586
     4607
+    4740
   End SubModelPartNodes
   Begin SubModelPartConditions
     65
@@ -15799,3 +15801,8 @@ Begin SubModelPart Slave_side_1
   End SubModelPartNodes
 End SubModelPart
 
+Begin SubModelPart Strut_Support
+  Begin SubModelPartNodes
+    4638
+  End SubModelPartNodes
+End SubModelPart
