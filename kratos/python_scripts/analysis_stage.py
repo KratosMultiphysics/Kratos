@@ -134,7 +134,9 @@ class AnalysisStage(object):
         KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Analysis -START- ")
 
     def ImportModelPart(self):
-        raise Exception("ImportModelPart function has to be implemented in the derived analysis_stages")
+        """This function imports the model part if modelers are not used
+        """
+        pass
 
     def PrepareModelPart(self):
         """This function prepares the model part
