@@ -422,8 +422,8 @@ public:
                 //     continue;
                 // }
                 // // // FIXME:
-                // if (i_cond->GetGeometry().GetGeometryPart(0).Center().X() <= 0.4305620486218446) //47165709287164087
-                // if (i_cond->GetValue(SKIN_MASTER_COORDINATES)[0] < 0.27085)
+                // if (std::abs(i_cond->GetGeometry().GetGeometryPart(0).Center().X()) <= 0.4305620486218446) //47165709287164087
+                // // if (i_cond->GetValue(SKIN_MASTER_COORDINATES)[0] < 0.27085)
                 // {
                 //     if (i_cond->GetValue(ACTIVATION_LEVEL) != 3)
                 //     {
@@ -431,10 +431,12 @@ public:
                 //         n_changes++;
                 //     }
                 //     n_active ++;
+
+                //     KRATOS_WATCH(check_value_master)
                 // }
-                // else 
-                // // if (i_cond->GetGeometry().GetGeometryPart(0).Center().X() > 0.4305620486218446)
-                // if (i_cond->GetValue(SKIN_MASTER_COORDINATES)[0] > 0.27085)
+                // else
+                // // if (std::abs(i_cond->GetGeometry().GetGeometryPart(0).Center().X()) > 0.4305620486218446)
+                // // if (i_cond->GetValue(SKIN_MASTER_COORDINATES)[0] > 0.27085)
                 // {
                 //     if (i_cond->GetValue(ACTIVATION_LEVEL) != 0)
                 //     {
@@ -442,6 +444,10 @@ public:
                 //         n_changes++;
                 //     }
                 // }
+                // continue;
+
+
+
                 if (check_value_master >= toll_gap)// && tangent_gap_master < toll_tangent_distance) //FIXME
                 {
                     if (check_value_slave >= toll_gap)// && tangent_gap_slave < toll_tangent_distance) //BOTH ACTIVE
@@ -461,8 +467,8 @@ public:
                         }
                     }
                 } 
-                // else if (sigma_nn_master/young_modulus_master > 0)
-                else if (normal_gap_master*2E5 < -1e-1)
+                else if (sigma_nn_master/young_modulus_master > 0)
+                // else if (normal_gap_master*2E5 < -1e-1)
                 {
                     // if (check_value_slave >= toll_gap && tangent_gap_slave < toll_tangent_distance) //ONLY SLAVE ACTIVE
                     // {

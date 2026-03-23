@@ -168,6 +168,8 @@ void NurbsGeometryModelerSbm::CreateAndAddRegularGrid2D(
     // Create the breps for the outer sbm boundary
     CreateBrepsSbmUtilities<Node, Point, true> CreateBrepsSbmUtilities(mEchoLevel);
     CreateBrepsSbmUtilities.CreateSurrogateBoundary(mpSurface, surrogate_sub_model_part_inner, surrogate_sub_model_part_outer, A_uvw, B_uvw, r_iga_model_part);
+
+
 }
 
 // 3D 

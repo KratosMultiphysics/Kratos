@@ -200,8 +200,6 @@ private:
     const GapSbmLoadSolidCondition mGapSbmLoadSolidCondition;
     const GapSbmContactCondition mGapSbmContactCondition;
     const SbmContact2DCondition mSbmContact2DCondition;
-    const GapSbmLoadSolidCondition mGapSbmLoadSolidCondition;
-    const GapSbmSolidCondition mGapSbmSolidCondition;
     const GapSbmSolidInterfaceCondition mGapSbmSolidInterfaceCondition;
     const GapSbmLaplacianInterfaceCondition mGapSbmLaplacianInterfaceCondition;
 

@@ -157,6 +157,8 @@ private:
         const Parameters rParameters,
         std::string geometry_type) const;
 
+    void ActivateNodesInElementsAndCleanRoot(ModelPart& rAnalysisModelPart) const;
+
     
     /// Creates list of rQuadraturePointGeometryList for Sbm 
     /// using the condition name of the associated projection on the skin boundary layer
@@ -221,8 +223,6 @@ private:
         PropertiesPointerType pProperties,
         bool IsInner,
         const Vector KnotSpanSizes) const;
-
-    void PrepareIntegrationOnTrueBoundary(ModelPart& analysis_model_part) const;
     
     /// Creates conditions from geometries (from skin projection)
     void CreateConditions(

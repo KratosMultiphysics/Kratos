@@ -1466,12 +1466,12 @@ void SbmContact2DCondition::CalculateLocalSystem(
                 const double h = std::min(mMasterCharacteristicLength, mSlaveCharacteristicLength);
 
                 // Modify the penalty factor: p^2 * penalty / h (NITSCHE APPROACH)
-                penalty_master = penalty_master / h * mMasterBasisFunctionsOrder *mMasterBasisFunctionsOrder;
-                if (normal_gap < 0.0) {
-                    normal_stress = penalty_master * normal_gap;
-                } else {
-                    normal_stress = 0;
-                }
+                // penalty_master = penalty_master / h * mMasterBasisFunctionsOrder *mMasterBasisFunctionsOrder;
+                // if (normal_gap < 0.0) {
+                //     normal_stress = penalty_master * normal_gap;
+                // } else {
+                //     normal_stress = 0;
+                // }
 
                 values_on_true_boundary_master(i, 0) = integration_weight;
                 values_on_true_boundary_master(i, 1) = r_integration_point.size() > 0 ? r_integration_point[0] : 0.0;
@@ -1527,12 +1527,12 @@ void SbmContact2DCondition::CalculateLocalSystem(
                 const double h = std::min(mMasterCharacteristicLength, mSlaveCharacteristicLength);
 
                 // Modify the penalty factor: p^2 * penalty / h (NITSCHE APPROACH)
-                penalty_master = penalty_master / h * mMasterBasisFunctionsOrder *mMasterBasisFunctionsOrder;
-                if (normal_gap < 0.0) {
-                    normal_stress = penalty_master * normal_gap;
-                } else {
-                    normal_stress = 0;
-                }
+                // penalty_master = penalty_master / h * mMasterBasisFunctionsOrder *mMasterBasisFunctionsOrder;
+                // if (normal_gap < 0.0) {
+                //     normal_stress = penalty_master * normal_gap;
+                // } else {
+                //     normal_stress = 0;
+                // }
                 values_on_true_boundary_slave(i, 0) = integration_weight;
                 values_on_true_boundary_slave(i, 1) = r_integration_point.size() > 0 ? r_integration_point[0] : 0.0;
                 values_on_true_boundary_slave(i, 2) = r_integration_point.size() > 1 ? r_integration_point[1] : 0.0;

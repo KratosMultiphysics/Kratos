@@ -2504,7 +2504,8 @@ void SnakeGapSbmProcess::SetSurrogateToSkinProjections(
         }
         // If empty
         if (candidate_ids.empty()) {
-            KRATOS_ERROR << "GapSBMProcess:: Empty point list in normal span search.\n";
+            KRATOS_ERROR << "GapSBMProcess:: Empty point list in normal span search for the point " << rSurrogateNode 
+                         << ".\n";
         }
 
         std::sort(candidate_ids.begin(), candidate_ids.end());

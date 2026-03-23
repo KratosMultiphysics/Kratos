@@ -380,6 +380,7 @@ private:
         const std::vector<int>& rNumberKnotSpans,
         const Vector& rKnotVectorU,
         const Vector& rKnotVectorV,
+        const Vector& rStartingPositionUV,
         std::vector<std::vector<int>>& rKnotSpansAvailable,
         ModelPart& rSurrogateModelPartOuter
         );
@@ -392,6 +393,7 @@ private:
         const std::vector<int>& rNumberKnotSpans,
         const Vector& rKnotVectorU,
         const Vector& rKnotVectorV,
+        const Vector& rStartingPositionUV,
         const std::vector<std::vector<int>>& rKnotSpansAvailable,
         ModelPart& rSurrogateModelPartInner
         );

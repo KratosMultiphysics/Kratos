@@ -576,108 +576,108 @@ void SbmFluidConditionDirichlet::FinalizeSolutionStep(const ProcessInfo& rCurren
         const SizeType mat_size = number_of_nodes * mDim;
         const Matrix& r_N = r_geometry.ShapeFunctionsValues();
 
-        const Matrix integration_point_list_on_true_boundary  = this->GetValue(INTEGRATION_POINTS);
-        const Vector integration_weight_list_on_true_boundary = this->GetValue(INTEGRATION_WEIGHTS);
-        const Matrix normals_on_true = this->GetValue(INTEGRATION_NORMALS);
+        // const Matrix integration_point_list_on_true_boundary  = this->GetValue(INTEGRATION_POINTS);
+        // const Vector integration_weight_list_on_true_boundary = this->GetValue(INTEGRATION_WEIGHTS);
+        // const Matrix normals_on_true = this->GetValue(INTEGRATION_NORMALS);
         
-        // Create a matrix with the same schema used in other IGA fluid conditions
-        // [0] w, [1] fx_tot, [2] fy_tot, [3] fx_visc, [4] fy_visc, [5] fx_pres, [6] fy_pres,
-        // [7] nx, [8] ny, [9] x_gp, [10] y_gp
-        const std::size_t num_results = integration_weight_list_on_true_boundary.size();
-        Matrix integration_results(num_results, 11, 0.0);
+        // // Create a matrix with the same schema used in other IGA fluid conditions
+        // // [0] w, [1] fx_tot, [2] fy_tot, [3] fx_visc, [4] fy_visc, [5] fx_pres, [6] fy_pres,
+        // // [7] nx, [8] ny, [9] x_gp, [10] y_gp
+        // const std::size_t num_results = integration_weight_list_on_true_boundary.size();
+        // Matrix integration_results(num_results, 11, 0.0);
 
-        double pressure_max_min = 0.0;
+        // double pressure_max_min = 0.0;
 
-        // if (integration_weight_list_on_true_boundary.size() == 0) {
-        //     std::cout << "No integration points on true boundary found for condition with ID " << this->Id() << std::endl;
+        // // if (integration_weight_list_on_true_boundary.size() == 0) {
+        // //     std::cout << "No integration points on true boundary found for condition with ID " << this->Id() << std::endl;
+        // // }
+
+        // for (int i_gauss = 0; i_gauss < integration_weight_list_on_true_boundary.size(); ++i_gauss) 
+        // {
+        //     const Vector& gp = row(integration_point_list_on_true_boundary, i_gauss);
+        //     const double weight = integration_weight_list_on_true_boundary[i_gauss];
+        //     Vector d = gp - r_geometry.Center();
+
+        //     // normals
+        //     array_1d<double,3> true_normal;
+        //     true_normal[0] = normals_on_true(i_gauss,0);
+        //     true_normal[1] = normals_on_true(i_gauss,1);
+        //     true_normal[2] = normals_on_true(i_gauss,2);
+
+        //     // === 1. Pressure at true boundary ===
+        //     double p_true = 0.0;
+        //     for (IndexType i = 0; i < r_geometry.size(); ++i) {
+        //         double p_i = r_geometry[i].GetSolutionStepValue(PRESSURE);
+
+        //         double H_taylor = 0.0;
+        //         for (int n = 1; n <= mBasisFunctionsOrder; ++n) {
+        //             Matrix& p_derivatives = mShapeFunctionDerivatives[n - 1];
+        //             for (int k = 0; k <= n; ++k) {
+        //                 int n_k = n - k;
+        //                 double deriv = p_derivatives(i, k);
+        //                 H_taylor += ComputeTaylorTerm(deriv, d[0], n_k, d[1], k);
+        //             }
+        //         }
+        //         p_true += (r_N(0, i) + H_taylor) * p_i;
+        //     }
+
+        //     // Andrea's version of the code
+        //     Matrix grad_H_sum_transposed = ZeroMatrix(3, number_of_nodes);
+        //     ComputeGradientTaylorExpansionContribution(grad_H_sum_transposed);
+        //     Matrix grad_H_sum = trans(grad_H_sum_transposed);
+        //     Matrix B_sum = ZeroMatrix(mDim,mat_size);
+        //     CalculateB(B_sum, grad_H_sum);
+        //     Vector old_displacement_coefficient_vector(mat_size);
+        //     GetSolutionCoefficientVector(old_displacement_coefficient_vector);
+        //     // obtain the old stress vector on the true boundary (on the projection node)
+        //     ConstitutiveLaw::Parameters values_true(r_geometry, GetProperties(), rCurrentProcessInfo);
+        //     Vector old_strain_on_true = prod(B_sum,old_displacement_coefficient_vector);
+
+        //     const SizeType strain_size_true = mpConstitutiveLaw->GetStrainSize();
+        //     ConstitutiveVariables this_constitutive_variables_true(strain_size_true);
+        //     ApplyConstitutiveLawTrue(mat_size, old_strain_on_true, values_true, this_constitutive_variables_true);
+        //     const Vector& r_stress_vector_on_true = values_true.GetStressVector();
+            
+        //     // === 4. Compute traction = σ · n ===
+        //     Vector normal_stress_true_old = ZeroVector(3);
+        //     normal_stress_true_old[0] = (r_stress_vector_on_true[0] * true_normal[0] + r_stress_vector_on_true[2] * true_normal[1]);
+        //     normal_stress_true_old[1] = (r_stress_vector_on_true[2] * true_normal[0] + r_stress_vector_on_true[1] * true_normal[1]);
+            
+        //     // === 5. Compute traction contributions ===
+        //     array_1d<double,2> t_visc = ZeroVector(2);
+        //     t_visc[0] = normal_stress_true_old[0];
+        //     t_visc[1] = normal_stress_true_old[1];
+
+        //     array_1d<double,2> t_pres = ZeroVector(2);
+        //     t_pres[0] = -p_true * true_normal[0];
+        //     t_pres[1] = -p_true * true_normal[1];
+
+        //     array_1d<double,2> t_tot = t_visc + t_pres;
+
+        //     // === 6. Output in standard 11-column layout ===
+        //     integration_results(i_gauss, 0)  = weight;
+        //     integration_results(i_gauss, 1)  = t_tot[0];
+        //     integration_results(i_gauss, 2)  = t_tot[1];
+        //     integration_results(i_gauss, 3)  = t_visc[0];
+        //     integration_results(i_gauss, 4)  = t_visc[1];
+        //     integration_results(i_gauss, 5)  = t_pres[0];
+        //     integration_results(i_gauss, 6)  = t_pres[1];
+        //     integration_results(i_gauss, 7)  = true_normal[0];
+        //     integration_results(i_gauss, 8)  = true_normal[1];
+        //     integration_results(i_gauss, 9)  = gp[0];
+        //     integration_results(i_gauss, 10) = gp[1];
+
+        //     if (gp[0]>0.2499968 || gp[0]<0.15001)
+        //     {
+        //         // KRATOS_WATCH("First or Last point on true boundary");
+        //         pressure_max_min = p_true;
+        //     }
+
         // }
 
-        for (int i_gauss = 0; i_gauss < integration_weight_list_on_true_boundary.size(); ++i_gauss) 
-        {
-            const Vector& gp = row(integration_point_list_on_true_boundary, i_gauss);
-            const double weight = integration_weight_list_on_true_boundary[i_gauss];
-            Vector d = gp - r_geometry.Center();
-
-            // normals
-            array_1d<double,3> true_normal;
-            true_normal[0] = normals_on_true(i_gauss,0);
-            true_normal[1] = normals_on_true(i_gauss,1);
-            true_normal[2] = normals_on_true(i_gauss,2);
-
-            // === 1. Pressure at true boundary ===
-            double p_true = 0.0;
-            for (IndexType i = 0; i < r_geometry.size(); ++i) {
-                double p_i = r_geometry[i].GetSolutionStepValue(PRESSURE);
-
-                double H_taylor = 0.0;
-                for (int n = 1; n <= mBasisFunctionsOrder; ++n) {
-                    Matrix& p_derivatives = mShapeFunctionDerivatives[n - 1];
-                    for (int k = 0; k <= n; ++k) {
-                        int n_k = n - k;
-                        double deriv = p_derivatives(i, k);
-                        H_taylor += ComputeTaylorTerm(deriv, d[0], n_k, d[1], k);
-                    }
-                }
-                p_true += (r_N(0, i) + H_taylor) * p_i;
-            }
-
-            // Andrea's version of the code
-            Matrix grad_H_sum_transposed = ZeroMatrix(3, number_of_nodes);
-            ComputeGradientTaylorExpansionContribution(grad_H_sum_transposed);
-            Matrix grad_H_sum = trans(grad_H_sum_transposed);
-            Matrix B_sum = ZeroMatrix(mDim,mat_size);
-            CalculateB(B_sum, grad_H_sum);
-            Vector old_displacement_coefficient_vector(mat_size);
-            GetSolutionCoefficientVector(old_displacement_coefficient_vector);
-            // obtain the old stress vector on the true boundary (on the projection node)
-            ConstitutiveLaw::Parameters values_true(r_geometry, GetProperties(), rCurrentProcessInfo);
-            Vector old_strain_on_true = prod(B_sum,old_displacement_coefficient_vector);
-
-            const SizeType strain_size_true = mpConstitutiveLaw->GetStrainSize();
-            ConstitutiveVariables this_constitutive_variables_true(strain_size_true);
-            ApplyConstitutiveLawTrue(mat_size, old_strain_on_true, values_true, this_constitutive_variables_true);
-            const Vector& r_stress_vector_on_true = values_true.GetStressVector();
-            
-            // === 4. Compute traction = σ · n ===
-            Vector normal_stress_true_old = ZeroVector(3);
-            normal_stress_true_old[0] = (r_stress_vector_on_true[0] * true_normal[0] + r_stress_vector_on_true[2] * true_normal[1]);
-            normal_stress_true_old[1] = (r_stress_vector_on_true[2] * true_normal[0] + r_stress_vector_on_true[1] * true_normal[1]);
-            
-            // === 5. Compute traction contributions ===
-            array_1d<double,2> t_visc = ZeroVector(2);
-            t_visc[0] = normal_stress_true_old[0];
-            t_visc[1] = normal_stress_true_old[1];
-
-            array_1d<double,2> t_pres = ZeroVector(2);
-            t_pres[0] = -p_true * true_normal[0];
-            t_pres[1] = -p_true * true_normal[1];
-
-            array_1d<double,2> t_tot = t_visc + t_pres;
-
-            // === 6. Output in standard 11-column layout ===
-            integration_results(i_gauss, 0)  = weight;
-            integration_results(i_gauss, 1)  = t_tot[0];
-            integration_results(i_gauss, 2)  = t_tot[1];
-            integration_results(i_gauss, 3)  = t_visc[0];
-            integration_results(i_gauss, 4)  = t_visc[1];
-            integration_results(i_gauss, 5)  = t_pres[0];
-            integration_results(i_gauss, 6)  = t_pres[1];
-            integration_results(i_gauss, 7)  = true_normal[0];
-            integration_results(i_gauss, 8)  = true_normal[1];
-            integration_results(i_gauss, 9)  = gp[0];
-            integration_results(i_gauss, 10) = gp[1];
-
-            if (gp[0]>0.2499968 || gp[0]<0.15001)
-            {
-                // KRATOS_WATCH("First or Last point on true boundary");
-                pressure_max_min = p_true;
-            }
-
-        }
-
-        // Save to condition as a matrix
-        this->SetValue(RESULTS_ON_TRUE_BOUNDARY, integration_results);
-        this->SetValue(PRESSURE, pressure_max_min);
+        // // Save to condition as a matrix
+        // this->SetValue(RESULTS_ON_TRUE_BOUNDARY, integration_results);
+        // this->SetValue(PRESSURE, pressure_max_min);
     }  
 }
 

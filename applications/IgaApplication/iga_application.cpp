@@ -90,12 +90,6 @@ KratosIgaApplication::KratosIgaApplication()
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
     , mSbmLoadSolidCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
-    , mCutSbmSolidCondition(0, Condition::GeometryType::Pointer(
-        new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
-    , mCutSbmLoadSolidCondition(0, Condition::GeometryType::Pointer(
-        new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
-    , mCutSbmSolidInterfaceCondition(0, Condition::GeometryType::Pointer(
-        new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
     , mGapSbmSolidCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
     , mGapSbmLoadSolidCondition(0, Condition::GeometryType::Pointer(
@@ -103,9 +97,6 @@ KratosIgaApplication::KratosIgaApplication()
     , mGapSbmContactCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
     , mSbmContact2DCondition(0, Condition::GeometryType::Pointer(
-    , mGapSbmLoadSolidCondition(0, Condition::GeometryType::Pointer(
-        new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
-    , mGapSbmSolidCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
     , mGapSbmSolidInterfaceCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
@@ -164,9 +155,6 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_CONDITION("LoadSolidCondition", mLoadSolidCondition)
     KRATOS_REGISTER_CONDITION("SbmSolidCondition", mSbmSolidCondition)
     KRATOS_REGISTER_CONDITION("SbmLoadSolidCondition", mSbmLoadSolidCondition)
-    KRATOS_REGISTER_CONDITION("CutSbmSolidCondition", mCutSbmSolidCondition)
-    KRATOS_REGISTER_CONDITION("CutSbmLoadSolidCondition", mCutSbmLoadSolidCondition)
-    KRATOS_REGISTER_CONDITION("CutSbmSolidInterfaceCondition", mCutSbmSolidInterfaceCondition)
     KRATOS_REGISTER_CONDITION("GapSbmSolidCondition", mGapSbmSolidCondition)
     KRATOS_REGISTER_CONDITION("GapSbmLoadSolidCondition", mGapSbmLoadSolidCondition)
     KRATOS_REGISTER_CONDITION("GapSbmContactCondition", mGapSbmContactCondition)
@@ -260,9 +248,6 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     // SBM Variables 
     // KRATOS_REGISTER_VARIABLE(INTEGRATION_POINTS)
     // KRATOS_REGISTER_VARIABLE(INTEGRATION_WEIGHTS)
-    KRATOS_REGISTER_VARIABLE(INTEGRATION_POINTS)
-    KRATOS_REGISTER_VARIABLE(INTEGRATION_WEIGHTS)
-    KRATOS_REGISTER_VARIABLE(INTEGRATION_NORMALS)
     KRATOS_REGISTER_VARIABLE(BOUNDARY_CONDITION_TYPE)
     KRATOS_REGISTER_VARIABLE(CONDITION_NAME)
     KRATOS_REGISTER_VARIABLE(LAYER_NAME)

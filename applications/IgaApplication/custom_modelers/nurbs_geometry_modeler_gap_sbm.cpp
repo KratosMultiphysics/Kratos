@@ -110,6 +110,12 @@ void NurbsGeometryModelerGapSbm::CreateAndAddRegularGrid2D(
     }
 
     // Create the surrogate sub model parts inner and outer
+    KRATOS_ERROR_IF(r_iga_model_part.HasSubModelPart("surrogate_inner"))
+        << "NurbsGeometryModelerGapSbm: submodelpart 'surrogate_inner' already exists in '"
+        << r_iga_model_part.FullName() << "'." << std::endl;
+    KRATOS_ERROR_IF(r_iga_model_part.HasSubModelPart("surrogate_outer"))
+        << "NurbsGeometryModelerGapSbm: submodelpart 'surrogate_outer' already exists in '"
+        << r_iga_model_part.FullName() << "'." << std::endl;
     ModelPart& r_surrogate_sub_model_part_inner = r_iga_model_part.CreateSubModelPart("surrogate_inner");
     ModelPart& r_surrogate_sub_model_part_outer = r_iga_model_part.CreateSubModelPart("surrogate_outer");
     
@@ -128,7 +134,16 @@ void NurbsGeometryModelerGapSbm::CreateAndAddRegularGrid2D(
         : mpModel->CreateModelPart(skin_model_part_outer_initial_name);
     
     // Skin model part refined after Snake Process
+    KRATOS_ERROR_IF(mpModel->HasModelPart(skin_model_part_name))
+        << "NurbsGeometryModelerGapSbm: model part '" << skin_model_part_name
+        << "' already exists. Refusing to overwrite." << std::endl;
     ModelPart& r_skin_model_part = mpModel->CreateModelPart(skin_model_part_name);
+    KRATOS_ERROR_IF(r_skin_model_part.HasSubModelPart("inner"))
+        << "NurbsGeometryModelerGapSbm: submodelpart 'inner' already exists in '"
+        << r_skin_model_part.FullName() << "'." << std::endl;
+    KRATOS_ERROR_IF(r_skin_model_part.HasSubModelPart("outer"))
+        << "NurbsGeometryModelerGapSbm: submodelpart 'outer' already exists in '"
+        << r_skin_model_part.FullName() << "'." << std::endl;
     r_skin_model_part.CreateSubModelPart("inner");
     r_skin_model_part.CreateSubModelPart("outer");
 
