@@ -178,6 +178,21 @@ public:
         }
     }
 
+    /// Calculate with array_1d<double,3>
+    void Calculate(
+        const Variable<array_1d<double, 3>>& rVariable,
+        array_1d<double, 3>& rOutput) const override
+    {
+        if (rVariable == NORMAL) {
+            if (mNormal.size() == 0) {
+                KRATOS_ERROR << "[QUADRATURE_POINT_SURFACE_IN_VOLUME_GEOMETRY] Normal not defined" << std::endl;
+            }
+            rOutput[0] = mNormal[0];
+            rOutput[1] = mNormal[1];
+            rOutput[2] = mNormal[2];
+        }
+    }
+
     ///@}
     ///@name Normal
     ///@{

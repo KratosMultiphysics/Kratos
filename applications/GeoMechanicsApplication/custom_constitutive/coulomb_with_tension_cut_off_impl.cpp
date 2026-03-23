@@ -16,7 +16,6 @@
 #include "custom_constitutive/coulomb_with_tension_cut_off_impl.h"
 #include "custom_constitutive/principal_stresses.hpp"
 #include "custom_constitutive/sigma_tau.hpp"
-#include "custom_utilities/constitutive_law_utilities.h"
 #include "custom_utilities/stress_strain_utilities.h"
 #include "custom_utilities/ublas_utilities.h"
 #include "geo_mechanics_application_variables.h"
@@ -56,12 +55,12 @@ CoulombWithTensionCutOffImpl::CoulombWithTensionCutOffImpl(const Properties& rMa
     }
 }
 
-bool CoulombWithTensionCutOffImpl::IsAdmissibleStressState(const Geo::SigmaTau& rTrialTraction) const
+bool CoulombWithTensionCutOffImpl::IsAdmissibleStressState(const Geo::SigmaTau& rTrialTraction)
 {
     return IsAdmissibleStressState<>(rTrialTraction);
 }
 
-bool CoulombWithTensionCutOffImpl::IsAdmissibleStressState(const Geo::PrincipalStresses& rTrialPrincipalStresses) const
+bool CoulombWithTensionCutOffImpl::IsAdmissibleStressState(const Geo::PrincipalStresses& rTrialPrincipalStresses)
 {
     return IsAdmissibleStressState<>(rTrialPrincipalStresses);
 }
@@ -96,14 +95,18 @@ void CoulombWithTensionCutOffImpl::RestoreKappaOfCoulombYieldSurface()
 }
 
 template <typename StressStateType>
-bool CoulombWithTensionCutOffImpl::IsAdmissibleStressState(const StressStateType& rTrialStressState) const
+bool CoulombWithTensionCutOffImpl::IsAdmissibleStressState(const StressStateType& rTrialStressState)
 {
     const auto coulomb_yield_function_value = mCoulombYieldSurface.YieldFunctionValue(rTrialStressState);
     const auto tension_yield_function_value = mTensionCutOff.YieldFunctionValue(rTrialStressState);
     constexpr auto tolerance                = 1.0e-10;
     const auto     coulomb_tolerance = tolerance * (1.0 + std::abs(coulomb_yield_function_value));
     const auto     tension_tolerance = tolerance * (1.0 + std::abs(tension_yield_function_value));
-    return coulomb_yield_function_value < coulomb_tolerance && tension_yield_function_value < tension_tolerance;
+
+    const auto admissible_state = coulomb_yield_function_value < coulomb_tolerance &&
+                                  tension_yield_function_value < tension_tolerance;
+    if (admissible_state) mPlasticityStatus = PlasticityStatus::ELASTIC;
+    return admissible_state;
 }
 
 template <typename StressStateType, typename StressStateToSigmaTauFunctionType>
@@ -119,17 +122,21 @@ StressStateType CoulombWithTensionCutOffImpl::DoReturnMapping(const StressStateT
     auto kappa_start = mCoulombYieldSurface.GetKappa();
     for (auto counter = std::size_t{0}; counter < mMaxNumberOfPlasticIterations; ++counter) {
         if (IsStressAtTensionApexReturnZone(trial_traction)) {
+            mPlasticityStatus = PlasticityStatus::TENSION_APEX;
             return ReturnStressAtTensionApexReturnZone(rTrialStressState);
         }
 
         if (IsStressAtTensionCutoffReturnZone(trial_traction)) {
+            mPlasticityStatus = PlasticityStatus::TENSION_CUT_OFF;
             return ReturnStressAtTensionCutoffReturnZone(rTrialStressState,
                                                          rElasticConstitutiveTensor, AveragingType);
         }
 
         if (IsStressAtCornerReturnZone(trial_traction, AveragingType)) {
+            mPlasticityStatus = PlasticityStatus::TENSION_MOHR_COULOMB_CORNER;
             result = ReturnStressAtCornerPoint(rTrialStressState, rElasticConstitutiveTensor, AveragingType);
         } else { // Regular failure region
+            mPlasticityStatus = PlasticityStatus::MOHR_COULOMB_FAILURE;
             result = ReturnStressAtRegularFailureZone(rTrialStressState, rElasticConstitutiveTensor, AveragingType);
         }
 
@@ -300,16 +307,25 @@ Geo::SigmaTau CoulombWithTensionCutOffImpl::ReturnStressAtCornerPoint(
     return CalculateCornerPoint();
 }
 
+PlasticityStatus CoulombWithTensionCutOffImpl::GetPlasticityStatus() const
+{
+    return mPlasticityStatus;
+}
+
 void CoulombWithTensionCutOffImpl::save(Serializer& rSerializer) const
 {
     rSerializer.save("CoulombYieldSurface", mCoulombYieldSurface);
     rSerializer.save("TensionCutOff", mTensionCutOff);
+    rSerializer.save("PlasticityStatus", static_cast<int>(mPlasticityStatus));
 }
 
 void CoulombWithTensionCutOffImpl::load(Serializer& rSerializer)
 {
     rSerializer.load("CoulombYieldSurface", mCoulombYieldSurface);
     rSerializer.load("TensionCutOff", mTensionCutOff);
+    int plasticity_status;
+    rSerializer.load("PlasticityStatus", plasticity_status);
+    mPlasticityStatus = static_cast<PlasticityStatus>(plasticity_status);
 }
 
 } // namespace Kratos
