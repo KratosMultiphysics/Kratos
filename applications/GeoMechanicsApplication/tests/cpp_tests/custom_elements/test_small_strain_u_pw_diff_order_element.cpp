@@ -641,21 +641,18 @@ KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculateOnIntegrationP
     // Act & Assert: CAUCHY_STRESS_TENSOR
     std::vector<Matrix> stress_matrices;
     p_element->CalculateOnIntegrationPoints(CAUCHY_STRESS_TENSOR, stress_matrices, dummy_process_info);
-    std::cout << "CAUCHY_STRESS_TENSOR" << stress_matrices << std::endl;
     const auto expected_stress_matrix = UblasUtilities::CreateMatrix({{-1.5, 0, 0}, {0, 0, 0}, {0, 0, 1.5}});
     for (const auto& stress_matrix : stress_matrices)
         KRATOS_EXPECT_MATRIX_NEAR(stress_matrix, expected_stress_matrix, Defaults::absolute_tolerance);
 
     // Act & Assert: TOTAL_STRESS_TENSOR
     p_element->CalculateOnIntegrationPoints(TOTAL_STRESS_TENSOR, stress_matrices, dummy_process_info);
-    std::cout << "TOTAL_STRESS_TENSOR" << stress_matrices << std::endl;
     for (const auto& stress_matrix : stress_matrices)
         KRATOS_EXPECT_MATRIX_NEAR(stress_matrix, expected_stress_matrix, Defaults::absolute_tolerance)
 
     // Act & Assert: ENGINEERING_STRAIN_TENSOR
     std::vector<Matrix> strain_matrices;
     p_element->CalculateOnIntegrationPoints(ENGINEERING_STRAIN_TENSOR, strain_matrices, dummy_process_info);
-    std::cout << "ENGINEERING_STRAIN_TENSOR" << strain_matrices << std::endl;
     std::vector<Matrix> expected_strain_matrices;
     expected_strain_matrices.push_back(UblasUtilities::CreateMatrix(
         {{0.026935483870967739, -0.012177419354838709, 0}, {-0.012177419354838709, 0, 0}, {0, 0, 0}}));
@@ -668,15 +665,55 @@ KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculateOnIntegrationP
 
     // Act & Assert: GREEN_LAGRANGE_STRAIN_TENSOR
     p_element->CalculateOnIntegrationPoints(GREEN_LAGRANGE_STRAIN_TENSOR, strain_matrices, dummy_process_info);
-    std::cout << "GREEN_LAGRANGE_STRAIN_TENSOR" << strain_matrices << std::endl;
     for (auto i = std::size_t{0}; i < strain_matrices.size(); i++)
         KRATOS_EXPECT_MATRIX_NEAR(strain_matrices[i], expected_strain_matrices[i], Defaults::absolute_tolerance);
 
     // Act & Assert: PK2_STRESS_TENSOR
     p_element->CalculateOnIntegrationPoints(PK2_STRESS_TENSOR, stress_matrices, dummy_process_info);
-    std::cout << "PK2_STRESS_TENSOR" << stress_matrices << std::endl;
     for (const auto& stress_matrix : stress_matrices)
         KRATOS_EXPECT_MATRIX_NEAR(stress_matrix, expected_stress_matrix, Defaults::absolute_tolerance);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculateDampingMatrix, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto p_element =
+        CreateSmallStrainUPwDiffOrderElementWithUPwDofs(CreatePropertiesForUPwDiffOrderElementTest());
+    auto& r_properties = p_element->GetProperties();
+    r_properties.SetValue(RAYLEIGH_ALPHA, 1.0);
+    r_properties.SetValue(RAYLEIGH_BETA, 1.0);
+    SetSolutionStepValuesForGeneralCheck(p_element);
+    const auto dummy_process_info = ProcessInfo{};
+    p_element->Initialize(dummy_process_info);
+
+    const auto stress_vector = UblasUtilities::CreateVector({-1.5, 0.0, 1.5, 0.0});
+    p_element->SetValuesOnIntegrationPoints(
+        CAUCHY_STRESS_VECTOR, std::vector<Vector>{3, stress_vector}, dummy_process_info);
+
+    // Act
+    Matrix dumping_matrix;
+    p_element->CalculateDampingMatrix(dumping_matrix, dummy_process_info);
+
+    // Assert
+    // clang-format off
+    const auto expected_dumping_matrix = UblasUtilities::CreateMatrix({
+        {8531991.5916965343,-2715844.4022770403,932780.35941855819,-52972.802024035424,1814797.9413580243,-833333.33333333302,-3649924.9233373138,268817.20430107455,-586652.62385504041,154965.21189120878,-7042996.9471326172,3178368.1214421256,0,0,0},
+        {-2715844.4022770403,7883184.5778515702,-886306.13535736862,1687919.5118537254,0,907390.53395061707,3602150.537634409,-6663664.4693349246,154965.21189120901,-388219.84572586743,-154965.21189120901,-3426614.910446974,0,0,0},
+        {932780.35941855819,-886306.13535736862,2414906.7649342883,-790.63883617966258,111094.23765432095,833333.33333333314,-3236543.8002787721,3387096.7741935472,46608.787634408502,-3380771.6635041102,-268850.9512146553,47438.330170777976,0,0,0},
+        {-52972.802024035424,1687919.5118537254,-790.63883617966258,4824642.1644704454,0,55538.682098765414,53763.440860215087,-6456973.9078056524,-47438.330170777976,118187.95693653758,47438.330170777976,-229319.00940567328,0,0,0},
+        {1814797.9413580243,0,111094.23765432095,0,5629663.3765432099,0,-296326.97530864138,0,-592572.6512345681,0,-6666646.7253086418,0,0,0,0},
+        {-833333.33333333302,907390.53395061707,833333.33333333314,55538.682098765414,0,2814848.5617283951,-1.1334696144634405e-10,-148178.82716049353,-3333333.3333333326,-296276.35493827169,3333333.3333333326,-3333313.3919753083,0,0,0},
+        {-3649924.9233373138,3602150.537634409,-3236543.8002787721,53763.440860215087,-296326.97530864208,-1.1334696144634405e-10,19923711.31003584,-3655913.9784946213,-13385773.179211468,3225806.4516129009,645290.14217442914,-3225806.4516129037,0,0,0},
+        {268817.20430107467,-6663664.4693349246,3387096.7741935472,-6456973.9078056524,0,-148178.82716049388,-3655913.9784946213,19639362.445041809,3225806.4516129023,-6692822.1636798065,-3225806.4516129023,322709.49701313901,0,0,0},
+        {-586652.62385503971,154965.21189120889,46608.787634408502,-47438.330170777976,-592572.65123456763,-3333333.3333333326,-13385773.179211464,3225806.4516129023,19464937.617781755,-2846299.810246679,-4946101.5714854607,2846299.8102466771,0,0,0},
+        {154965.21189120878,-388219.84572586673,-3380771.6635041102,118187.95693653758,0,-296276.35493827146,3225806.4516129009,-6692822.1636798065,-2846299.8102466785,18650966.151058864,2846299.8102466785,-11391389.364021828,0,0,0},
+        {-7042996.9471326154,-154965.21189120889,-268850.9512146553,47438.330170777976,-6666646.7253086418,3333333.3333333326,645290.14217442891,-3225806.4516129023,-4946101.5714854607,2846299.810246679,18279752.432596572,-2846299.8102466771,0,0,0},
+        {3178368.1214421256,-3426614.9104469731,47438.330170777976,-229319.00940567328,0,-3333313.3919753083,-3225806.4516129037,322709.49701313855,2846299.8102466771,-11391389.364021828,-2846299.8102466771,18058373.558466271,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}});
+    // clang-format on
+    KRATOS_EXPECT_MATRIX_NEAR(dumping_matrix, expected_dumping_matrix, Defaults::absolute_tolerance);
 }
 
 struct DiffOrderElementTestParam {
