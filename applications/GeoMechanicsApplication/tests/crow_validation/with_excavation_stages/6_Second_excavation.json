@@ -61,7 +61,8 @@
             "Interface_Excavated_Soil_3",
             "Interface_Middle_Left",
             "Interface_Bottom_Left",
-            "Beam"
+            "Beam",
+            "Anchor"
         ],
         "body_domain_sub_model_part_list": [
             "Excavated_Soil_1",
@@ -80,7 +81,8 @@
             "Interface_Excavated_Soil_3",
             "Interface_Middle_Left",
             "Interface_Bottom_Left",
-            "Beam"
+            "Beam",
+            "Anchor"
         ],
         "linear_solver_settings": {
             "solver_type": "LinearSolversApplication.sparse_lu",

@@ -7110,7 +7110,7 @@ Begin Elements SmallStrainUPwDiffOrderElement2D6N
   2286 0 3206 3305 3374 3255 3337 3287
 End Elements
 
-Begin Elements Geo_ULineInterfacePlaneStrainElement3Plus3N
+Begin Elements Geo_UPwLineInterfacePlaneStrainDiffOrderElement3Plus3N
   22427 0 4275 4245 4260 4780 4771 4776
   22428 0 4301 4275 4284 4786 4780 4783
   22429 0 4326 4301 4312 4792 4786 4789
