@@ -9,9 +9,9 @@ import KratosMultiphysics.scipy_conversion_tools as scipy_conversion_tools
 import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
 from cupyx.scipy.sparse.linalg import LinearOperator
 
-xp = cfd_utils.xp
-USE_CUPY = cfd_utils.USE_CUPY
-USE_AMGX = cfd_utils.USE_AMGX if USE_CUPY else None
+xp = None
+USE_CUPY = None
+USE_AMGX = None
 
 class JacobiPreconditioner(LinearOperator):
     def __init__(self, A):
@@ -37,50 +37,60 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
     def __init__(self, model, project_parameters):
         super().__init__(model,project_parameters)
 
+        # Get configuration from problem data settings
+        problem_data = self.project_parameters["problem_data"]
+        precision = problem_data["precision"].GetString() if problem_data.Has("precision") else "float64"
+        parallel_type = problem_data["parallel_type"].GetString() if problem_data.Has("parallel_type") else "open_mp"
+
+        # Set the backend environment
+        # Note that this imports the modules corresponding to the parallelism (i.e., CuPy, SciPy, ...)
+        cfd_utils.configure(parallel_type, precision)
+        global xp, USE_CUPY, USE_AMGX
+        xp = cfd_utils.xp
+        USE_CUPY = cfd_utils.USE_CUPY
+        USE_AMGX = cfd_utils.USE_AMGX
+
+        # Create CFDUtils instance
         self.cfd_utils = cfd_utils.CFDUtils()
 
-        # Either retrieve the model part from the model or create a new one
+        # Get and validate the solving settings
+        # Note that these are encapsulated within the customary "solver_settings" block
         settings = self.project_parameters["solver_settings"]
-        model_part_name = settings["model_part_name"].GetString()
+        settings.ValidateAndAssignDefaults(self._GetDefaultSolvingSettings())
 
+        # Either retrieve the model part from the model or create a new one
+        model_part_name = settings["model_part_name"].GetString()       
         if model_part_name == "":
-            raise Exception('Please provide the model part name as the "model_part_name" (string) parameter!')
+            raise ValueError('Please provide the model part name as the "model_part_name" (string) parameter!')
 
         if self.model.HasModelPart(model_part_name):
             self.model_part = self.model.GetModelPart(model_part_name)
         else:
             self.model_part = self.model.CreateModelPart(model_part_name)
 
+        # Set the problem dimension
         self.dim = settings["domain_size"].GetInt()
-        if(self.dim==2):
-            self.n_in_el = 3
-        else:
-            self.n_in_el = 4
-
-        if self.dim == -1:
-            raise Exception('Please provide the domain size as the "domain_size" (int) parameter!')
-
+        if self.dim not in (2,3):
+            raise ValueError(f"Provided domain size is '{self.dim}'. Only 2 or 3 are supported.")
         self.model_part.ProcessInfo.SetValue(KM.DOMAIN_SIZE, self.dim)
 
+        # Set the number of nodes in element
+        # Note that only linear simplicial elements are supported (i.e., linear triangle and tetrahedron)
+        self.n_in_el = 3 if self.dim == 2 else 4
+
+        # Add Kratos variables to the historical database
         self.AddVariables()
 
-        # self.automatic_dt = settings["time_stepping"]["automatic_time_step"].GetBool()
-        # if self.automatic_dt:
-        #     self.target_cfl = settings["time_stepping"]["CFL_number"].GetDouble() # CFL number from which the DT will be computed
-        #     self.target_fourier = settings["time_stepping"]["Viscous_Fourier_number"].GetDouble() # Viscous Fourier number from which the DT will be computed
-        #     self.dt_max = settings["time_stepping"]["maximum_delta_time"].GetDouble() # Maximum value of the automatically computed time step
-        #     self.dt = self.dt_max # Initialize dt to the maximum value
-        # else:
-        #     self.dt = settings["time_stepping"]["time_step"].GetDouble()
-
+        # Set time integration parameters for RK4
         self.dt = settings["time_stepping"]["time_step"].GetDouble()
         self.max_cfl = settings["time_stepping"]["max_cfl_number"].GetDouble()
         self.max_fourier = settings["time_stepping"]["max_fourier_number"].GetDouble()
 
-        self.clear_divergence = 2 # TODO: think on exposing this to the json
-        self.convection_integration_order = 2 # TODO: think on exposing this to the json
-        self.pressure_max_iteration = 500 # TODO: think on exposing this to the json
-        self.pressure_tolerance = 1.0e-9 # TODO: think on exposing this to the json
+        # Set problem solving parameters
+        self.clear_divergence_steps = settings["clear_divergence_steps"].GetInt()
+        self.convection_integration_order = settings["convection_integration_order"].GetInt()
+        self.pressure_max_iteration = settings["linear_solver_settings"]["max_iterations"].GetInt()
+        self.pressure_tolerance = settings["linear_solver_settings"]["tolerance"].GetDouble()
 
     def ComputeLumpedMass(self):
         Mscalar = xp.zeros(len(self.model_part.Nodes), dtype=cfd_utils.PRECISION)
@@ -133,7 +143,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         tau_1 = 1.0 / denom
         tau_2 = h**2/(c_1 * tau_1)
 
-        if self.clear_divergence > 0:
+        if self.clear_divergence_steps > 0:
             tau_1.fill(0.0)
             tau_2.fill(0.0)
         
@@ -677,8 +687,8 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
             self.step_3_total_time += time.perf_counter() - t3
 
             # First time clear divergence
-            if self.clear_divergence > 0:
-                self.clear_divergence -= 1
+            if self.clear_divergence_steps > 0:
+                self.clear_divergence_steps -= 1
                 p.fill(0.0)
 
         # Update Kratos database
@@ -744,9 +754,6 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         self.cfd_utils.AssembleVector(self.connectivity, res, res_assembled)
         return res_assembled
 
-    def ImportModelPart(self):
-        pass
-
     def GetStep(self):
         return self.model_part.ProcessInfo[KM.STEP]
 
@@ -761,6 +768,33 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
     #     v_el_mean = xp.mean(v_el, axis=1)
     #     advective_projection = xp.einsum('ek, enk -> en', v_el_mean, DN)
     #     return xp.max(xp.sum(xp.abs(advective_projection), axis=1) * dt) #FIXME: do the same as we did in computedeltatime
+
+    @classmethod
+    def _GetDefaultSolvingSettings(self):
+
+        default_settings = KM.Parameters("""{
+            "solver_type": "none",
+            "model_part_name": "",
+            "domain_size": -1,
+            "material_import_settings": {
+                "materials_filename": ""
+            },
+            "echo_level": 0,
+            "compute_reactions": false,
+            "linear_solver_settings": {
+                "max_iteration" : 200,
+                "tolerance" : 1e-6
+            },
+            "clear_divergence_steps" : 1,
+            "convection_integration_order" : 2,
+            "time_stepping" : {
+                "time_step" : 0.1,
+                "max_cfl_number" : 0.5,
+                "max_fourier_number" : 0.5
+            }
+        }""")
+        return default_settings
+
 
     def _ComputeFourier(self, dt):
         return xp.max(dt * self.dyn_visc / self.rho / self.h**2)

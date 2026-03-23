@@ -12,35 +12,105 @@ PRECISION = np.float64
 # Einsum optimization configuration
 opt_type = "greedy"
 
-if USE_CUPY:
-    try:
-        import cupy as xp
-        import cupyx.scipy.sparse as sparse
-        import cupyx.scipy.sparse.linalg as sparse_linalg
-        asnumpy = xp.asnumpy
-        try:
-            import pyamgx as linear_solver
-            USE_AMGX = True
-        except ImportError:
-            print("PyAMGx not found. Falling back to CuPy sparse_linalg.")
-            USE_AMGX = False
-        USE_AMGX = False
-    except ImportError:
-        print("CuPy not found. Falling back to NumPy.")
-        import numpy as xp
-        import scipy.sparse as sparse
-        import scipy.sparse.linalg as sparse_linalg
-        def asnumpy(x):
-            return np.asarray(x)
+# if USE_CUPY:
+#     try:
+#         import cupy as xp
+#         import cupyx.scipy.sparse as sparse
+#         import cupyx.scipy.sparse.linalg as sparse_linalg
+#         asnumpy = xp.asnumpy
+#         try:
+#             import pyamgx as linear_solver
+#             USE_AMGX = True
+#         except ImportError:
+#             print("PyAMGx not found. Falling back to CuPy sparse_linalg.")
+#             USE_AMGX = False
+#         USE_AMGX = False
+#     except ImportError:
+#         print("CuPy not found. Falling back to NumPy.")
+#         import numpy as xp
+#         import scipy.sparse as sparse
+#         import scipy.sparse.linalg as sparse_linalg
+#         def asnumpy(x):
+#             return np.asarray(x)
+#         USE_CUPY = False
+# else:
+#     import numpy as xp
+#     import scipy.sparse as sparse
+#     import scipy.sparse.linalg as sparse_linalg
+#     def asnumpy(x):
+#         return np.asarray(x)
+
+xp = None
+sparse = None
+sparse_linalg = None
+asnumpy = None
+
+USE_CUPY = None
+PRECISION = None
+
+_configured = False
+
+USE_AMGX = False #TODO: auxiliary solution to activate/deactivate AMGX until we have a final implementation
+
+def configure(parallel_type : str, precision : str):
+    """
+    Auxiliary function to be executed once to set the environment
+    """
+
+    # Specify the global variables in the module
+    global xp, sparse, sparse_linalg, asnumpy
+    global USE_CUPY, PRECISION, _configured
+
+    # Check if the environment has been already configured
+    if _configured:
+        raise RuntimeError("Environment is already configured.")
+
+    # Backend selection
+    if parallel_type == "OpenMP" or parallel_type == "open_mp":
+        import numpy as np
+        import scipy.sparse as sp
+        import scipy.sparse.linalg as sp_linalg
+
+        xp = np
+        sparse = sp
+        sparse_linalg = sp_linalg
+        def _asnumpy(x): return np.asarray(x)
+        asnumpy = _asnumpy
         USE_CUPY = False
-else:
-    import numpy as xp
-    import scipy.sparse as sparse
-    import scipy.sparse.linalg as sparse_linalg
-    def asnumpy(x):
-        return np.asarray(x)
+
+    elif parallel_type == "GPU" or parallel_type == "gpu":
+        import cupy as cp
+        import cupyx.scipy.sparse as sp
+        import cupyx.scipy.sparse.linalg as sp_linalg
+        
+        xp = cp
+        sparse = sp
+        sparse_linalg = sp_linalg
+        asnumpy = cp.asnumpy
+        USE_CUPY = True
+
+    elif parallel_type == "MPI" or parallel_type == "mpi":
+        raise ValueError("MPI parallelism is not supported yet.")
+
+    else:
+        raise ValueError(f"Unknown parallel type '{parallel_type}'.")
+
+    # Set the floating point precision
+    if precision == "float64":
+        PRECISION = xp.float64
+    elif precision == "float32":
+        PRECISION = xp.float32
+    else:
+        raise ValueError(f"Unknown floating point precision value '{precision}'.")
+
+    # Flag to prevent configure to be performed again
+    _configured = True
 
 class CFDUtils:
+
+    def __init__(self):
+        if not _configured:
+            raise RuntimeError("Backend not set. Call 'configure()' first.")
 
     def GetShapeFunctionsOnGaussPoints(self, dim: int, integration_order: int):
         if integration_order == 1:
