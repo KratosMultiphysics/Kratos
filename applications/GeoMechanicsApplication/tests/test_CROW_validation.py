@@ -73,6 +73,30 @@ def get_sheetpile_node_ids():
     ]
 
 
+def _extract_x_and_y_from_line(line, index_of_x=0, index_of_y=1, x_transform=None):
+    words = line.split(",")
+    x_ = float(words[index_of_x])
+    if x_transform:
+        x_ = x_transform(x_)
+    y_ = float(words[index_of_y])
+
+    return x_, y_
+
+
+def extract_bending_moment_and_y_from_line(line):
+    return _extract_x_and_y_from_line(line, index_of_x=1, index_of_y=0)
+
+
+def extract_horizontal_displacements_from_line(line):
+    return _extract_x_and_y_from_line(line, index_of_x=3, index_of_y=0, x_transform=lambda x: x / 1000.0)
+
+
+def extract_shear_force_and_y_from_line(line):
+    # The shear force sign in the comparison data is opposite to the Kratos sign
+    return _extract_x_and_y_from_line(
+        line, index_of_x=2, index_of_y=0, x_transform=lambda x: -x
+    )
+
 class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
     def setUp(self):
         super().setUp()
@@ -112,6 +136,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             variable_plot_label,
             project_path,
             plot_stages,
+            data_extractor
     ):
         node_ids = get_sheetpile_node_ids()
 
@@ -144,6 +169,18 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
                     marker=".",
                 )
             ]
+
+            if (Path(project_path) / f"{stage['base_name']}_comparison.csv").exists():
+                comparison_variable = test_helper.get_data_points_from_file(
+                    Path(project_path) / f"{stage['base_name']}_comparison.csv", data_extractor
+                )
+                data_series_collection.append(
+                    plot_utils.DataSeries(
+                        comparison_variable,
+                        f"{variable_plot_label} [Comparison]",
+                        marker="1",
+                    )
+                )
             variable_data_collections.append(data_series_collection)
 
         return variable_data_collections
@@ -152,6 +189,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             self,
             project_path,
             plot_stages,
+            data_extractor
     ):
         node_ids = get_sheetpile_node_ids()
 
@@ -184,6 +222,19 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
                     marker=".",
                 )
             ]
+
+            if (Path(project_path) / f"{stage['base_name']}_comparison.csv").exists():
+                comparison_variable = test_helper.get_data_points_from_file(
+                    Path(project_path) / f"{stage['base_name']}_comparison.csv", data_extractor
+                )
+                data_series_collection.append(
+                    plot_utils.DataSeries(
+                        comparison_variable,
+                        "Horizontal displacement [Comparison]",
+                        marker="1",
+                    )
+                )
+
             variable_data_collections.append(data_series_collection)
 
         return variable_data_collections
@@ -197,6 +248,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             "Bending moment",
             project_path,
             plot_stages,
+            extract_bending_moment_and_y_from_line
         )
         plot_utils.make_sub_plots(
             bending_moment_collections,
@@ -204,6 +256,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             titles=plot_titles,
             xlabel="Bending moment [kNm/m]",
             ylabel="y [m]",
+            figsize=(4, 6),
             )
 
         shear_force_collections = self.get_wall_variable_collections_per_stage(
@@ -211,6 +264,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             "Shear force",
             project_path,
             plot_stages,
+            extract_shear_force_and_y_from_line
         )
         plot_utils.make_sub_plots(
             shear_force_collections,
@@ -218,12 +272,14 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             titles=plot_titles,
             xlabel="Shear force [kN/m]",
             ylabel="y [m]",
+            figsize=(4, 6),
             )
 
         horizontal_displacement_collections = (
             self.get_wall_horizontal_displacement_collections_per_stage(
                 project_path,
                 plot_stages,
+                extract_horizontal_displacements_from_line
             )
         )
         plot_utils.make_sub_plots(
@@ -232,7 +288,8 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             titles=plot_titles,
             xlabel="Horizontal displacement [m]",
             ylabel="y [m]",
-            )
+            figsize=(4, 6),
+        )
 
     def test_simulation_without_excavation(self):
         self.run_simulation_and_checks("without_excavation")
