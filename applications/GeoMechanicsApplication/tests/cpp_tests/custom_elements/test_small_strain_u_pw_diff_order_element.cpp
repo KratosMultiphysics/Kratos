@@ -674,6 +674,24 @@ KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculateOnIntegrationP
         KRATOS_EXPECT_MATRIX_NEAR(stress_matrix, expected_stress_matrix, Defaults::absolute_tolerance);
 }
 
+    KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculateOnIntegrationPoints_Int,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto p_element =
+        CreateSmallStrainUPwDiffOrderElementWithUPwDofs(CreatePropertiesForUPwDiffOrderElementTest());
+    SetSolutionStepValuesForGeneralCheck(p_element);
+    const auto dummy_process_info = ProcessInfo{};
+    p_element->Initialize(dummy_process_info);
+
+    // Act & Assert
+    auto direction_vector = std::vector({1,2,3,4,5,6});
+    p_element->CalculateOnIntegrationPoints(K0_MAIN_DIRECTION, direction_vector, dummy_process_info);
+    KRATOS_EXPECT_EQ(direction_vector.size(),3);
+    for (auto i = 0; i<  direction_vector.size(); i++)
+        KRATOS_EXPECT_EQ(direction_vector[i], i+1);
+}
+
 KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculateDampingMatrix, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
