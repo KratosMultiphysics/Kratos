@@ -564,6 +564,13 @@ KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculateOnIntegrationP
     KRATOS_EXPECT_EQ(young_modulus.size(), 3);
     for (const auto& value : young_modulus)
         KRATOS_EXPECT_DOUBLE_EQ(value, 1.0e7);
+
+    // STATE_VARIABLE as an example of a not-used variable
+    std::vector<double> state_variables;
+    p_element->CalculateOnIntegrationPoints(STATE_VARIABLE, state_variables, dummy_process_info);
+    KRATOS_EXPECT_EQ(state_variables.size(), 3);
+    for (const auto& value : state_variables)
+        KRATOS_EXPECT_DOUBLE_EQ(value, 0);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculateOnIntegrationPoints_Vector,
