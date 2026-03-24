@@ -48,9 +48,9 @@
 #include "geometries/nurbs_volume_geometry.h"
 #include "geometries/nurbs_surface_geometry.h"
 #include "geometries/nurbs_curve_geometry.h"
+#include "geometries/nurbs_curve_on_surface_geometry.h"
 #include "geometries/surface_in_nurbs_volume_geometry.h"
 #include "geometries/brep_surface.h" 
-#include "geometries/nurbs_curve_on_surface_geometry.h"
 
 namespace Kratos::Python
 {
@@ -155,11 +155,6 @@ void  AddGeometriesToPython(pybind11::module& m)
     // Integration
     .def("IntegrationPointsNumber", [](GeometryType& self)
         { return(self.IntegrationPointsNumber()); })
-    // Convenience: "parent geometry" as BACKGROUND_GEOMETRY_INDEX (common IGA convention)
-    .def("GetGeometryParent", [](GeometryType& self)
-    {
-        return self.GetGeometryPart(GeometryType::BACKGROUND_GEOMETRY_INDEX);
-    }, py::return_value_policy::reference_internal)
     // Quadrature points
     .def("CreateQuadraturePointGeometries", [](GeometryType& self,
         GeometriesArrayType& rResultGeometries, IndexType NumberOfShapeFunctionDerivatives)
@@ -203,28 +198,13 @@ void  AddGeometriesToPython(pybind11::module& m)
      // Jacobian
     .def("Jacobian", [](GeometryType& self, IndexType IntegrationPointIndex)
         { Matrix results; return(self.Jacobian(results, IntegrationPointIndex)); })
-    .def("Jacobian", [](GeometryType& self, const CoordinatesArrayType& rCoordinates)
-        { Matrix results; return(self.Jacobian(results, rCoordinates)); }) 
-    .def("Jacobian", [](GeometryType& self, Matrix& rResult, const CoordinatesArrayType& rCoordinates)
-        { return(self.Jacobian(rResult, rCoordinates)); }) 
     .def("DeterminantOfJacobian", [](GeometryType& self)
         { Vector results; return(self.DeterminantOfJacobian(results)); })
     .def("DeterminantOfJacobian", [](GeometryType& self, IndexType IntegrationPointIndex)
         { return(self.DeterminantOfJacobian(IntegrationPointIndex)); })
-    .def("DeterminantOfJacobian", [](GeometryType& self, const CoordinatesArrayType& rPoint)
-        { return(self.DeterminantOfJacobian(rPoint)); })
     // ShapeFunctionsValues
     .def("ShapeFunctionsValues", [](GeometryType& self)
         { return(self.ShapeFunctionsValues()); })
-    .def("VectorShapeFunctionsValues", [](GeometryType& self, Vector &rResult, CoordinatesArrayType& rCoordinates)
-        { return(self.ShapeFunctionsValues(rResult, rCoordinates)); })
-    .def("ShapeFunctionValue",  [](GeometryType& self, IndexType ShapeFunctionIndex, CoordinatesArrayType& rCoordinates)
-        { return(self.ShapeFunctionValue(ShapeFunctionIndex, rCoordinates)); })
-    .def("ShapeFunctionsLocalGradients",  [](GeometryType& self, Matrix& rResult, CoordinatesArrayType& rCoordinates)
-        { return(self.ShapeFunctionsLocalGradients(rResult, rCoordinates)); })
-    .def("ShapeFunctionLocalGradient",  [](GeometryType& self, IndexType IntegrationPointIndex)
-        { return(self.ShapeFunctionLocalGradient(IntegrationPointIndex)); })
-    .def("PointLocalCoordinates", &GeometryType::PointLocalCoordinates)
     .def("ShapeFunctionDerivatives", [](GeometryType& self, IndexType DerivativeOrderIndex,
         IndexType IntegrationPointIndex)
         { return(self.ShapeFunctionDerivatives(DerivativeOrderIndex, IntegrationPointIndex, self.GetDefaultIntegrationMethod())); })
@@ -238,8 +218,6 @@ void  AddGeometriesToPython(pybind11::module& m)
     .def("Length",&GeometryType::Length)
     .def("Area",&GeometryType::Area)
     .def("Volume",&GeometryType::Volume)
-    .def("MaxEdgeLength",&GeometryType::MaxEdgeLength)
-    .def("Circumradius",&GeometryType::Circumradius)
     // Assign
     .def("Assign", Assign<bool>)
     .def("Assign", Assign<int>)
@@ -267,33 +245,6 @@ void  AddGeometriesToPython(pybind11::module& m)
     .def("__iter__",    [](GeometryType& self){return py::make_iterator(self.begin(), self.end());},  py::keep_alive<0,1>())
     .def("__len__",     [](GeometryType& self){return self.PointsNumber();} )
     ;
-
-    using PointContainerType = Kratos::PointerVector<Kratos::Point>;
-    using BrepSurfaceType = Kratos::BrepSurface<NodeContainerType, false, PointContainerType>;
-
-    py::class_<BrepSurfaceType, typename BrepSurfaceType::Pointer, GeometryType>(m, "BrepSurface")
-        .def("ProjectionPointGlobalToLocalSpace",
-            [](const BrepSurfaceType& self,
-            const CoordinatesArrayType& rGlobal,
-            CoordinatesArrayType& rLocal,
-            const double Tolerance)
-            {
-                return self.ProjectionPointGlobalToLocalSpace(rGlobal, rLocal, Tolerance);
-            },
-            py::arg("rPointGlobalCoordinates"),
-            py::arg("rProjectedPointLocalCoordinates"),
-            py::arg("Tolerance") = std::numeric_limits<double>::epsilon()
-        )
-        .def("EvaluateShapeFunctionsAtLocalCoordinates",
-            [](const BrepSurfaceType& self, const CoordinatesArrayType& rLocal)
-            {
-                std::vector<typename GeometryType::IndexType> cp_ids;
-                Vector N;
-                self.EvaluateShapeFunctionsAtLocalCoordinates(rLocal, cp_ids, N, 0, nullptr);
-                return py::make_tuple(cp_ids, N);
-            },
-            py::arg("local_coordinates")
-        );
 
     // 2D
     py::class_<Line2D2<NodeType>, Line2D2<NodeType>::Pointer,  GeometryType  >(m,"Line2D2").def(py::init<pNodeType, pNodeType>())
@@ -409,14 +360,59 @@ void  AddGeometriesToPython(pybind11::module& m)
         .def("IsRational", &NurbsCurveGeometry<2, NodeContainerType>::IsRational)
         .def("Weights", &NurbsCurveGeometry<2, NodeContainerType>::Weights)
         ;
-    
-    //  // BrepSurface
-    // using PointContainerType = Kratos::PointerVector<Kratos::Point>;
-    // using BrepSurfaceType = Kratos::BrepSurface<NodeContainerType, false, PointContainerType>;
-    // py::class_<BrepSurfaceType, typename BrepSurfaceType::Pointer, GeometryType>(m, "BrepSurface")
-    //     .def("KnotsU", &BrepSurfaceType::KnotsU)
-    //     .def("KnotsV", &BrepSurfaceType::KnotsV)
-    //     ;
+
+    // NurbsCurveOnSurface3D
+    using NurbsCurveOnSurfaceGeometry3DType = Kratos::NurbsCurveOnSurfaceGeometry<3, NodeContainerType, NodeContainerType>;
+    py::class_<NurbsCurveOnSurfaceGeometry3DType, NurbsCurveOnSurfaceGeometry3DType::Pointer, GeometryType>(m, "NurbsCurveOnSurfaceGeometry3D")
+        .def(py::init<
+            NurbsCurveOnSurfaceGeometry3DType::NurbsSurfaceType::Pointer,
+            NurbsCurveOnSurfaceGeometry3DType::NurbsCurveType::Pointer>())
+        ;
+
+    // BrepSurface
+    using PointContainerType = Kratos::PointerVector<Kratos::Point>;
+    using BrepSurfaceType = Kratos::BrepSurface<NodeContainerType, false, PointContainerType>;
+    py::class_<BrepSurfaceType, typename BrepSurfaceType::Pointer, GeometryType>(m, "BrepSurface")
+        .def("EvaluateShapeFunctionsAtLocalCoordinates",
+            [](const BrepSurfaceType& self, const CoordinatesArrayType& rLocal, const IndexType derivative_order)
+            {
+                std::vector<IndexType> cp_ids;
+                Vector shape_functions_values;
+                self.ShapeFunctionsValuesAndCPIndices(rLocal, cp_ids, shape_functions_values, derivative_order, nullptr);
+                return py::make_tuple(cp_ids, shape_functions_values);
+            },
+            py::arg("local_coordinates"),
+            py::arg("derivative_order") = 0
+        )
+        .def("KnotsU", [](const BrepSurfaceType& self)
+            {
+                return self.KnotsU();
+            }
+        )
+        .def("KnotsV", [](const BrepSurfaceType& self)
+        {
+            return self.KnotsV();
+        }
+        )
+        .def("ComputeSpanTriangulationLocalSpace",
+            [](const BrepSurfaceType& self,
+            const double u0,
+            const double u1,
+            const double v0,
+            const double v1)
+            {
+                std::vector<Matrix> triangles;
+
+                const bool is_trimmed =
+                    self.ComputeSpanTriangulationLocalSpace(u0, u1, v0, v1, triangles);
+
+                return py::make_tuple(is_trimmed, triangles);
+            },
+            py::arg("u0"),
+            py::arg("u1"),
+            py::arg("v0"),
+            py::arg("v1")
+        );
 
     py::class_<SurfaceInNurbsVolumeGeometry<3, NodeContainerType>, SurfaceInNurbsVolumeGeometry<3, NodeContainerType>::Pointer, GeometryType>(m, "SurfaceInNurbsVolumeGeometry")
         .def(py::init<NurbsVolumeGeometry<NodeContainerType>::Pointer, GeometryType::Pointer>())

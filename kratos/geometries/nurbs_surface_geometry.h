@@ -853,22 +853,29 @@ public:
         return rResult;
     }
 
-    using IndexVectorType = std::vector<IndexType>;
-    using VectorType = Vector; // Kratos Vector (ublas)
-
-    void EvaluateShapeFunctionsAtLocalCoordinates(
-        const CoordinatesArrayType& rLocalCoordinates,   // (u,v,0) or (u,v)
-        IndexVectorType& rControlPointIndices,           // output: global CP ids/indices
-        VectorType& rN,                                  // output: N (size = num_nonzero_cps)
-        const IndexType DerivativeOrder = 0,             // 0=only N, 1=first derivs, ...
-        Matrix* pDN_De = nullptr                         // optional output
+    void ShapeFunctionsValuesAndCPIndices(
+        const CoordinatesArrayType& rCoordinates,
+        std::vector<IndexType>& rControlPointIndices,
+        Vector& rShapeFunctionsValues,
+        const IndexType DerivativeOrder = 0,
+        DenseVector<Matrix>* pShapeFunctionDerivatives = nullptr
     ) const
     {
-        const double u = rLocalCoordinates[0];
-        const double v = rLocalCoordinates[1];
+        const double u = rCoordinates[0];
+        const double v = rCoordinates[1];
+
+        const IndexType max_supported_order = std::min(mPolynomialDegreeU, mPolynomialDegreeV);
+
+        KRATOS_WARNING_IF("ShapeFunctionsValuesAndCPIndices",
+            DerivativeOrder > max_supported_order)
+            << "Requested derivative order (" << DerivativeOrder
+            << ") exceeds polynomial degree limit (" << max_supported_order
+            << "). Higher derivatives may be zero or undefined." << std::endl;
 
         NurbsSurfaceShapeFunction shape_function_container(
-            mPolynomialDegreeU, mPolynomialDegreeV, DerivativeOrder + 1);
+            mPolynomialDegreeU,
+            mPolynomialDegreeV,
+            DerivativeOrder + 1);
 
         if (mIsRational) {
             shape_function_container.ComputeNurbsShapeFunctionValues(
@@ -880,27 +887,47 @@ public:
 
         const SizeType num_nonzero_cps = shape_function_container.NumberOfNonzeroControlPoints();
 
-        // Indices
-        const auto cp_indices_int = shape_function_container.ControlPointIndices(
-                    NumberOfControlPointsU(), NumberOfControlPointsV());
+        // CP indices 
+        const auto cp_indices = shape_function_container.ControlPointIndices(
+            NumberOfControlPointsU(), NumberOfControlPointsV());
 
-        rControlPointIndices.resize(cp_indices_int.size());
-        for (IndexType i = 0; i < cp_indices_int.size(); ++i) {
-            rControlPointIndices[i] = static_cast<IndexType>(cp_indices_int[i]);
+        rControlPointIndices.resize(cp_indices.size());
+        for (IndexType i = 0; i < cp_indices.size(); ++i) {
+            rControlPointIndices[i] = pGetPoint(cp_indices[i])->Id();
         }
 
-        // Values
-        if (rN.size() != num_nonzero_cps) rN.resize(num_nonzero_cps, false);
+        // Shape Functions
+        if (rShapeFunctionsValues.size() != num_nonzero_cps) {
+            rShapeFunctionsValues.resize(num_nonzero_cps, false);
+        }
         for (IndexType j = 0; j < num_nonzero_cps; ++j) {
-            rN[j] = shape_function_container(j, 0);
+            rShapeFunctionsValues[j] = shape_function_container(j, 0);
         }
 
-        // Optional first derivatives (example for 2D param space: dN/du, dN/dv)
-        if (pDN_De && DerivativeOrder >= 1) {
-            pDN_De->resize(num_nonzero_cps, 2, false);
-            for (IndexType j = 0; j < num_nonzero_cps; ++j) {
-                (*pDN_De)(j, 0) = shape_function_container(j, 1); // dN/du
-                (*pDN_De)(j, 1) = shape_function_container(j, 2); // dN/dv
+        // Derivatives 
+        if (!pShapeFunctionDerivatives || DerivativeOrder == 0) {
+            return;
+        }
+
+        if (DerivativeOrder > 0) {
+
+            pShapeFunctionDerivatives->resize(DerivativeOrder);
+
+            IndexType shape_derivative_index = 1; // first derivative block starts after values
+
+            for (IndexType n = 0; n < DerivativeOrder; ++n) {
+                const IndexType n_terms = n + 2;
+
+                (*pShapeFunctionDerivatives)[n].resize(num_nonzero_cps, n_terms, false);
+
+                for (IndexType k = 0; k < n_terms; ++k) {
+                    for (IndexType j = 0; j < num_nonzero_cps; ++j) {
+                        (*pShapeFunctionDerivatives)[n](j, k) =
+                            shape_function_container(j, shape_derivative_index + k);
+                    }
+                }
+
+                shape_derivative_index += n_terms;
             }
         }
     }

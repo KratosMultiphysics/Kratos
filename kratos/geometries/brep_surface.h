@@ -509,6 +509,26 @@ public:
         }
     }
 
+    bool ComputeSpanTriangulationLocalSpace(
+        const double u0,
+        const double u1,
+        const double v0,
+        const double v1,
+        std::vector<Matrix>& rTrianglesLocalSpace) const
+    {
+        bool is_trimmed = false;
+
+        BrepTrimmingUtilitiesType::ComputeSpanTriangulation(
+            mOuterLoopArray,
+            mInnerLoopArray,
+            u0, u1,
+            v0, v1,
+            is_trimmed,
+            rTrianglesLocalSpace);
+
+        return is_trimmed;
+    }
+
     ///@}
     ///@name Quadrature Point Geometries
     ///@{
@@ -557,6 +577,18 @@ public:
         mpNurbsSurface->ShapeFunctionsLocalGradients(rResult, rCoordinates);
 
         return rResult;
+    }
+
+    void ShapeFunctionsValuesAndCPIndices(
+        const CoordinatesArrayType& rCoordinates,
+        std::vector<IndexType>& rControlPointIndices,
+        Vector& rShapeFunctionsValues,
+        const IndexType DerivativeOrder = 0,
+        DenseVector<Matrix>* pShapeFunctionDerivatives = nullptr
+    ) const
+    {
+        mpNurbsSurface->ShapeFunctionsValuesAndCPIndices(
+            rCoordinates, rControlPointIndices, rShapeFunctionsValues, DerivativeOrder, pShapeFunctionDerivatives);
     }
 
     ///@}
