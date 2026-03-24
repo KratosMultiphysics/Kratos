@@ -169,68 +169,68 @@ void MPMUpdatedLagrangianUP::UpdateGaussPoint( GeneralVariables & rVariables, co
 {
     KRATOS_TRY
 
-    rVariables.CurrentDisp = CalculateCurrentDisp(rVariables.CurrentDisp, rCurrentProcessInfo);
-    GeometryType& r_geometry = GetGeometry();
-    const unsigned int number_of_nodes = r_geometry.PointsNumber();
-    unsigned int dimension = r_geometry.WorkingSpaceDimension();
+    // rVariables.CurrentDisp = CalculateCurrentDisp(rVariables.CurrentDisp, rCurrentProcessInfo);
+    // GeometryType& r_geometry = GetGeometry();
+    // const unsigned int number_of_nodes = r_geometry.PointsNumber();
+    // unsigned int dimension = r_geometry.WorkingSpaceDimension();
 
-    array_1d<double,3> delta_xg = ZeroVector(3);
-    array_1d<double,3> MP_acceleration = ZeroVector(3);
-    array_1d<double,3> MP_velocity = ZeroVector(3);
-    double MP_pressure = 0.0;
-    const double delta_time = rCurrentProcessInfo[DELTA_TIME];
+    // array_1d<double,3> delta_xg = ZeroVector(3);
+    // array_1d<double,3> MP_acceleration = ZeroVector(3);
+    // array_1d<double,3> MP_velocity = ZeroVector(3);
+    // double MP_pressure = 0.0;
+    // const double delta_time = rCurrentProcessInfo[DELTA_TIME];
 
-    const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
+    // const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
 
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-    {
-        if (r_N(0, i) > std::numeric_limits<double>::epsilon())
-        {
-            auto r_geometry = GetGeometry();
-            array_1d<double, 3 > nodal_acceleration = ZeroVector(3);
-            if (r_geometry[i].SolutionStepsDataHas(ACCELERATION))
-                nodal_acceleration = r_geometry[i].FastGetSolutionStepValue(ACCELERATION);
+    // for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    // {
+    //     if (r_N(0, i) > std::numeric_limits<double>::epsilon())
+    //     {
+    //         auto r_geometry = GetGeometry();
+    //         array_1d<double, 3 > nodal_acceleration = ZeroVector(3);
+    //         if (r_geometry[i].SolutionStepsDataHas(ACCELERATION))
+    //             nodal_acceleration = r_geometry[i].FastGetSolutionStepValue(ACCELERATION);
 
-            const double& nodal_pressure = r_geometry[i].FastGetSolutionStepValue(PRESSURE, 0);
-            MP_pressure += r_N(0, i) * nodal_pressure;
+    //         const double& nodal_pressure = r_geometry[i].FastGetSolutionStepValue(PRESSURE, 0);
+    //         MP_pressure += r_N(0, i) * nodal_pressure;
 
-            for ( unsigned int j = 0; j < dimension; j++ )
-            {
-                delta_xg[j] += r_N(0, i) * rVariables.CurrentDisp(i,j);
-                MP_acceleration[j] += r_N(0, i) * nodal_acceleration[j];
+    //         for ( unsigned int j = 0; j < dimension; j++ )
+    //         {
+    //             delta_xg[j] += r_N(0, i) * rVariables.CurrentDisp(i,j);
+    //             MP_acceleration[j] += r_N(0, i) * nodal_acceleration[j];
 
-                /* NOTE: The following interpolation techniques have been tried:
-                    MP_velocity[j]      += rVariables.N[i] * nodal_velocity[j];
-                    MP_acceleration[j]  += nodal_inertia[j]/(rVariables.N[i] * MP_mass * MP_number);
-                    MP_velocity[j]      += nodal_momentum[j]/(rVariables.N[i] * MP_mass * MP_number);
-                    MP_velocity[j]      += delta_time * rVariables.N[i] * nodal_acceleration[j];
-                */
-            }
-        }
+    //             /* NOTE: The following interpolation techniques have been tried:
+    //                 MP_velocity[j]      += rVariables.N[i] * nodal_velocity[j];
+    //                 MP_acceleration[j]  += nodal_inertia[j]/(rVariables.N[i] * MP_mass * MP_number);
+    //                 MP_velocity[j]      += nodal_momentum[j]/(rVariables.N[i] * MP_mass * MP_number);
+    //                 MP_velocity[j]      += delta_time * rVariables.N[i] * nodal_acceleration[j];
+    //             */
+    //         }
+    //     }
 
-    }
+    // }
 
-    /* NOTE:
-    Another way to update the MP velocity (see paper Guilkey and Weiss, 2003).
-    This assume newmark (or trapezoidal, since n.gamma=0.5) rule of integration*/
-    mMP.velocity = mMP.velocity + 0.5 * delta_time * (MP_acceleration + mMP.acceleration);
+    // /* NOTE:
+    // Another way to update the MP velocity (see paper Guilkey and Weiss, 2003).
+    // This assume newmark (or trapezoidal, since n.gamma=0.5) rule of integration*/
+    // mMP.velocity = mMP.velocity + 0.5 * delta_time * (MP_acceleration + mMP.acceleration);
 
-    /* NOTE: The following interpolation techniques have been tried:
-        MP_acceleration = 4/(delta_time * delta_time) * delta_xg - 4/delta_time * MP_PreviousVelocity;
-        MP_velocity = 2.0/delta_time * delta_xg - MP_PreviousVelocity;
-    */
+    // /* NOTE: The following interpolation techniques have been tried:
+    //     MP_acceleration = 4/(delta_time * delta_time) * delta_xg - 4/delta_time * MP_PreviousVelocity;
+    //     MP_velocity = 2.0/delta_time * delta_xg - MP_PreviousVelocity;
+    // */
 
-    // Update the MP Pressure
-    m_mp_pressure = MP_pressure;
+    // // Update the MP Pressure
+    // m_mp_pressure = MP_pressure;
 
-    // Update the MP Position
-    mMP.xg += delta_xg ;
+    // // Update the MP Position
+    // mMP.xg += delta_xg ;
 
-    //Update the MP Acceleration
-    mMP.acceleration = MP_acceleration;
+    // //Update the MP Acceleration
+    // mMP.acceleration = MP_acceleration;
 
-    // Update the MP total displacement
-    mMP.displacement += delta_xg;
+    // // Update the MP total displacement
+    // mMP.displacement += delta_xg;
 
     KRATOS_CATCH( "" )
 }

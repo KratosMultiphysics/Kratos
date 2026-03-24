@@ -118,6 +118,7 @@ namespace Kratos
 
     void G2PAdditionalVariables(Element& rElement, const ProcessInfo& rCurrentProcessInfo) override
     {
+        MPMBaseParticleMappingUtility::G2PAdditionalVariables(rElement, rCurrentProcessInfo);
         // Flip requires no additional variables
     }
 

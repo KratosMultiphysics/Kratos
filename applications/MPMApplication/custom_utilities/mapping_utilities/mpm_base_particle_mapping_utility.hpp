@@ -384,6 +384,7 @@ namespace Kratos
                     r_nodal_acceleration = r_node.FastGetSolutionStepValue(ACCELERATION);
                 }
                 new_mp_acceleration += rN[node_index] * r_nodal_acceleration;
+                ++node_index;
             }
 
             // Update MP total displacement and coordinate
@@ -405,46 +406,13 @@ namespace Kratos
             mp_acceleration[0] = new_mp_acceleration;
             r_element.SetValuesOnIntegrationPoints(MP_ACCELERATION, mp_acceleration, r_current_process_info);
 
+            this->G2PAdditionalVariables(r_element, r_current_process_info);
 		});
 
         // Assign nodal variables after extrapolation
         KRATOS_INFO_IF("MPMBaseParticleMappingUtility", this->GetEchoLevel() >= 1) << "Finished G2P mapping." << std::endl;
      }
 
-
-    // void CalculateG2PMapping(Element& rElement, Node& rNode, const double& rN_i, const ProcessInfo& rCurrentProcessInfo)
-    // {
-    //     this->G2PDisplacement(rElement, rNode, rN_i, rCurrentProcessInfo);
-    //     this->G2PVelocity(rElement, rNode, rN_i, rCurrentProcessInfo);
-    //     this->G2PDisplacement(rElement, rNode, rN_i, rCurrentProcessInfo);
-    // }
-
-    // /**
-    //  * Do Grid to particle mapping for displacement.
-    //  */
-    // virtual void G2PDisplacement(Element& rElement, Node& rNode, const double& rN_i, const ProcessInfo& rCurrentProcessInfo)
-    // {
-    //     // const unsigned int dimension = rElement.GetGeometry().WorkingSpaceDimension();
-    //     array_1d<double,3> displacement_i = ZeroVector(3);
-
-    //     displacement_i = rN_i * rNode.FastGetSolutionStepValue(DISPLACEMENT);
-
-    //     std::vector<array_1d<double, 3 > > mp_coord;
-    //     std::vector<array_1d<double, 3 > > mp_displacement;
-    //     rElement.CalculateOnIntegrationPoints(MP_COORD, mp_coord, rCurrentProcessInfo);
-    //     rElement.CalculateOnIntegrationPoints(MP_DISPLACEMENT, mp_displacement, rCurrentProcessInfo);
-
-    //     // Add nodal contribution in updating the MP position and displacement
-    //     mp_coord[0] += displacement_i;
-    //     mp_displacement[0] += displacement_i;
-
-    //     rElement.SetValuesOnIntegrationPoints(MP_COORD, mp_coord, rCurrentProcessInfo);
-    //     rElement.SetValuesOnIntegrationPoints(MP_DISPLACEMENT, mp_displacement, rCurrentProcessInfo);
-
-    //     // rElement.GetValue(MP_COORD) += delta_xg;
-    //     // // Update the MP total displacement
-    //     // rElement.GetValue(MP_DISPLACEMENT) += delta_xg;
-    // }
 
     /**
      * @brief Grid to particle mapping of velocity
@@ -474,13 +442,38 @@ namespace Kratos
     virtual void G2PAdditionalVariables(Element& rElement, const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY;
-
-        KRATOS_ERROR << "Calling G2PAdditionalVariables from base particle mapping utility instead of the derived class" << std::endl;
-
+        const bool is_mixed_formulation = (rCurrentProcessInfo.Has(IS_MIXED_FORMULATION))
+            ? rCurrentProcessInfo.GetValue(IS_MIXED_FORMULATION)
+            : false;
+        if (is_mixed_formulation){
+            this->G2PPressure(rElement, rCurrentProcessInfo);
+        }
         KRATOS_CATCH("")
     }
 
+    void G2PPressure(Element& rElement, const ProcessInfo& rCurrentProcessInfo)
+    {
+        KRATOS_TRY;
+        
+        const Vector& rN = row(rElement.GetGeometry().ShapeFunctionsValues(), 0);
+        double new_mp_pressure = 0.0;
+        // Calculate MP pressure
+        IndexType node_index = 0;
+        for (auto& r_node : rElement.GetGeometry())
+        {
+            double nodal_pressure;
+            if (r_node.SolutionStepsDataHas(PRESSURE)){
+                nodal_pressure = r_node.FastGetSolutionStepValue(PRESSURE, 0);
+            }
+            new_mp_pressure += rN[node_index] * nodal_pressure;
+            KRATOS_WATCH(rN)
+            KRATOS_WATCH(rN[node_index])
+            ++node_index;
+        }
+        rElement.SetValuesOnIntegrationPoints(MP_PRESSURE, {new_mp_pressure}, rCurrentProcessInfo);
 
+        KRATOS_CATCH("")
+    }
     // void ThisIsJustCopyPastedForReference( GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo)
     // {
     //     KRATOS_TRY

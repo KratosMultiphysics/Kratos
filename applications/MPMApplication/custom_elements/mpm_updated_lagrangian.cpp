@@ -972,64 +972,64 @@ void MPMUpdatedLagrangian::UpdateGaussPoint( GeneralVariables & rVariables, cons
 {
     KRATOS_TRY
 
-    rVariables.CurrentDisp = CalculateCurrentDisp(rVariables.CurrentDisp, rCurrentProcessInfo);
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    // rVariables.CurrentDisp = CalculateCurrentDisp(rVariables.CurrentDisp, rCurrentProcessInfo);
+    // const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+    // const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
-    const array_1d<double,3> & MP_PreviousAcceleration = mMP.acceleration;
-    const array_1d<double,3> & MP_PreviousVelocity = mMP.velocity;
+    // const array_1d<double,3> & MP_PreviousAcceleration = mMP.acceleration;
+    // const array_1d<double,3> & MP_PreviousVelocity = mMP.velocity;
 
-    array_1d<double,3> delta_xg = ZeroVector(3);
-    array_1d<double,3> MP_acceleration = ZeroVector(3);
-    array_1d<double,3> MP_velocity = ZeroVector(3);
-    const double delta_time = rCurrentProcessInfo[DELTA_TIME];
+    // array_1d<double,3> delta_xg = ZeroVector(3);
+    // array_1d<double,3> MP_acceleration = ZeroVector(3);
+    // array_1d<double,3> MP_velocity = ZeroVector(3);
+    // const double delta_time = rCurrentProcessInfo[DELTA_TIME];
 
-    const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
+    // const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
 
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-    {
-        if (r_N(0, i) > std::numeric_limits<double>::epsilon())
-        {
-            auto r_geometry = GetGeometry();
-            array_1d<double, 3 > nodal_acceleration = ZeroVector(3);
-            if (r_geometry[i].SolutionStepsDataHas(ACCELERATION))
-                nodal_acceleration = r_geometry[i].FastGetSolutionStepValue(ACCELERATION);
+    // for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    // {
+    //     if (r_N(0, i) > std::numeric_limits<double>::epsilon())
+    //     {
+    //         auto r_geometry = GetGeometry();
+    //         array_1d<double, 3 > nodal_acceleration = ZeroVector(3);
+    //         if (r_geometry[i].SolutionStepsDataHas(ACCELERATION))
+    //             nodal_acceleration = r_geometry[i].FastGetSolutionStepValue(ACCELERATION);
 
-            for ( unsigned int j = 0; j < dimension; j++ )
-            {
-                delta_xg[j] += r_N(0, i) * rVariables.CurrentDisp(i,j);
-                MP_acceleration[j] += r_N(0, i) * nodal_acceleration[j];
+    //         for ( unsigned int j = 0; j < dimension; j++ )
+    //         {
+    //             delta_xg[j] += r_N(0, i) * rVariables.CurrentDisp(i,j);
+    //             MP_acceleration[j] += r_N(0, i) * nodal_acceleration[j];
 
-                /* NOTE: The following interpolation techniques have been tried:
-                    MP_velocity[j]      += rVariables.N[i] * nodal_velocity[j];
-                    MP_acceleration[j]  += nodal_inertia[j]/(rVariables.N[i] * MP_mass * MP_number);
-                    MP_velocity[j]      += nodal_momentum[j]/(rVariables.N[i] * MP_mass * MP_number);
-                    MP_velocity[j]      += delta_time * rVariables.N[i] * nodal_acceleration[j];
-                */
-            }
-        }
+    //             /* NOTE: The following interpolation techniques have been tried:
+    //                 MP_velocity[j]      += rVariables.N[i] * nodal_velocity[j];
+    //                 MP_acceleration[j]  += nodal_inertia[j]/(rVariables.N[i] * MP_mass * MP_number);
+    //                 MP_velocity[j]      += nodal_momentum[j]/(rVariables.N[i] * MP_mass * MP_number);
+    //                 MP_velocity[j]      += delta_time * rVariables.N[i] * nodal_acceleration[j];
+    //             */
+    //         }
+    //     }
 
-    }
+    // }
 
-    /* NOTE:
-    Another way to update the MP velocity (see paper Guilkey and Weiss, 2003).
-    This assume newmark (or trapezoidal, since n.gamma=0.5) rule of integration*/
-    mMP.velocity = MP_PreviousVelocity + 0.5 * delta_time * (MP_acceleration + MP_PreviousAcceleration);
+    // /* NOTE:
+    // Another way to update the MP velocity (see paper Guilkey and Weiss, 2003).
+    // This assume newmark (or trapezoidal, since n.gamma=0.5) rule of integration*/
+    // mMP.velocity = MP_PreviousVelocity + 0.5 * delta_time * (MP_acceleration + MP_PreviousAcceleration);
 
-    /* NOTE: The following interpolation techniques have been tried:
-        MP_acceleration = 4/(delta_time * delta_time) * delta_xg - 4/delta_time * MP_PreviousVelocity;
-        MP_velocity = 2.0/delta_time * delta_xg - MP_PreviousVelocity;
-    */
+    // /* NOTE: The following interpolation techniques have been tried:
+    //     MP_acceleration = 4/(delta_time * delta_time) * delta_xg - 4/delta_time * MP_PreviousVelocity;
+    //     MP_velocity = 2.0/delta_time * delta_xg - MP_PreviousVelocity;
+    // */
 
-    // Update the MP Position
-    const array_1d<double,3>& new_xg = mMP.xg + delta_xg ;
-    mMP.xg = new_xg;
+    // // Update the MP Position
+    // const array_1d<double,3>& new_xg = mMP.xg + delta_xg ;
+    // mMP.xg = new_xg;
 
-    // Update the MP Acceleration
-    mMP.acceleration = MP_acceleration;
+    // // Update the MP Acceleration
+    // mMP.acceleration = MP_acceleration;
 
-    // Update the MP total displacement
-    mMP.displacement += delta_xg;
+    // // Update the MP total displacement
+    // mMP.displacement += delta_xg;
 
     KRATOS_CATCH( "" )
 }

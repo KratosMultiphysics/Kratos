@@ -323,6 +323,22 @@ namespace Kratos::Testing
         SetVelocityAndAccelerationToCoordinate(rModelPart);
     }
 
+    template<class TVariable>
+    void AssertMaterialPointVariables(ModelPart& rModelPart,
+                                      const TVariable& MPVariable,
+                                      const std::vector<TVariable>& rReferenceValues,
+                                      const double tolerance)
+    {
+        ProcessInfo& rProcessInfo = rModelPart.GetProcessInfo();
+        size_t i = 0;
+        for (auto& material_point_i : rModelPart.Elements())
+        {
+            std::vector<TVariable> mp_variable_value;
+            material_point_i.CalculateOnIntegrationPoints(MPVariable, mp_variable_value, rProcessInfo);
+            KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(mp_variable_value[0], rReferenceValues[i], tolerance);
+            ++i;
+        }
+    }
     /**
     * 
     */
@@ -355,10 +371,8 @@ namespace Kratos::Testing
         MPMSearchElementUtility::SearchElement<dimension>(
             r_background_model_part, r_mpm_model_part, 1000, 1e-6);
         
-        // const ProcessInfo& r_current_process_info = r_mpm_model_part.GetProcessInfo();
         
-
-        // Run Flip P2G Mapping
+        // ------------------------------------------------------------------------------------------ P2G Test ------------------------------------------------------------------------------------------ //
         unsigned int echo_level = 0;
         MPMFlipParticleMappingUtility flip_mapping(r_mpm_model_part, r_background_model_part, echo_level);
         flip_mapping.RunP2GMapping();
@@ -381,10 +395,10 @@ namespace Kratos::Testing
         KRATOS_EXPECT_NEAR(r_node_4_mass, 2.5, 1e-6);
 
         // Check mapped velocity_x
-        array_1d<double,3>& r_node_1_velocity_previous = r_node_1.FastGetSolutionStepValue(VELOCITY, 1);
-        array_1d<double,3>& r_node_2_velocity_previous = r_node_2.FastGetSolutionStepValue(VELOCITY, 1);
-        array_1d<double,3>& r_node_3_velocity_previous = r_node_3.FastGetSolutionStepValue(VELOCITY, 1);
-        array_1d<double,3>& r_node_4_velocity_previous = r_node_4.FastGetSolutionStepValue(VELOCITY, 1);
+        const array_1d<double,3>& r_node_1_velocity_previous = r_node_1.FastGetSolutionStepValue(VELOCITY, 1);
+        const array_1d<double,3>& r_node_2_velocity_previous = r_node_2.FastGetSolutionStepValue(VELOCITY, 1);
+        const array_1d<double,3>& r_node_3_velocity_previous = r_node_3.FastGetSolutionStepValue(VELOCITY, 1);
+        const array_1d<double,3>& r_node_4_velocity_previous = r_node_4.FastGetSolutionStepValue(VELOCITY, 1);
 
         KRATOS_EXPECT_NEAR(r_node_1_velocity_previous[0], 1.333333333, 1e-6);
         KRATOS_EXPECT_NEAR(r_node_2_velocity_previous[0], 1.666666666, 1e-6);
@@ -392,18 +406,191 @@ namespace Kratos::Testing
         KRATOS_EXPECT_NEAR(r_node_4_velocity_previous[0], 1.333333333, 1e-6);
 
         // Check mapped acceleration_x
-        array_1d<double,3>& r_node_1_acceleration_previous = r_node_1.FastGetSolutionStepValue(ACCELERATION, 1);
-        array_1d<double,3>& r_node_2_acceleration_previous = r_node_2.FastGetSolutionStepValue(ACCELERATION, 1);
-        array_1d<double,3>& r_node_3_acceleration_previous = r_node_3.FastGetSolutionStepValue(ACCELERATION, 1);
-        array_1d<double,3>& r_node_4_acceleration_previous = r_node_4.FastGetSolutionStepValue(ACCELERATION, 1);
+        const array_1d<double,3>& r_node_1_acceleration_previous = r_node_1.FastGetSolutionStepValue(ACCELERATION, 1);
+        const array_1d<double,3>& r_node_2_acceleration_previous = r_node_2.FastGetSolutionStepValue(ACCELERATION, 1);
+        const array_1d<double,3>& r_node_3_acceleration_previous = r_node_3.FastGetSolutionStepValue(ACCELERATION, 1);
+        const array_1d<double,3>& r_node_4_acceleration_previous = r_node_4.FastGetSolutionStepValue(ACCELERATION, 1);
 
         KRATOS_EXPECT_NEAR(r_node_1_acceleration_previous[0], 2.333333333, 1e-6);
         KRATOS_EXPECT_NEAR(r_node_2_acceleration_previous[0], 2.666666666, 1e-6);
         KRATOS_EXPECT_NEAR(r_node_3_acceleration_previous[0], 2.666666666, 1e-6);
         KRATOS_EXPECT_NEAR(r_node_4_acceleration_previous[0], 2.333333333, 1e-6);
 
+        // ------------------------------------------------------------------------------------------ G2P Test ------------------------------------------------------------------------------------------ //
+        // Setting values for current nodal velocity and acceleration
+        array_1d<double,3>& r_node_1_velocity_current = r_node_1.FastGetSolutionStepValue(VELOCITY, 0);
+        array_1d<double,3>& r_node_2_velocity_current = r_node_2.FastGetSolutionStepValue(VELOCITY, 0);
+        array_1d<double,3>& r_node_3_velocity_current = r_node_3.FastGetSolutionStepValue(VELOCITY, 0);
+        array_1d<double,3>& r_node_4_velocity_current = r_node_4.FastGetSolutionStepValue(VELOCITY, 0);
+
+        r_node_1_velocity_current = array_1d<double,3>{ 1.1,  0.1};
+        r_node_2_velocity_current = array_1d<double,3>{ 0.1, -0.1};
+        r_node_3_velocity_current = array_1d<double,3>{-0.1, -0.1};
+        r_node_4_velocity_current = array_1d<double,3>{ 0.1,  1.1};
+
+        array_1d<double,3>& r_node_1_acceleration_current = r_node_1.FastGetSolutionStepValue(ACCELERATION, 0);
+        array_1d<double,3>& r_node_2_acceleration_current = r_node_2.FastGetSolutionStepValue(ACCELERATION, 0);
+        array_1d<double,3>& r_node_3_acceleration_current = r_node_3.FastGetSolutionStepValue(ACCELERATION, 0);
+        array_1d<double,3>& r_node_4_acceleration_current = r_node_4.FastGetSolutionStepValue(ACCELERATION, 0);
+
+        r_node_1_acceleration_current = array_1d<double,3>{ 1.1,  0.1};
+        r_node_2_acceleration_current = array_1d<double,3>{ 0.1, -0.1};
+        r_node_3_acceleration_current = array_1d<double,3>{-0.1, -0.1};
+        r_node_4_acceleration_current = array_1d<double,3>{ 0.1,  1.1};
+      
+        // r_node_1_acceleration_current = array_1d<double,3> {0.1, 0.2, 0.0};
+        // r_node_2_acceleration_current = array_1d<double,3> {0.1, 0.2, 0.0};
+        // r_node_3_acceleration_current = array_1d<double,3> {0.1, 0.2, 0.0};
+        // r_node_4_acceleration_current = array_1d<double,3> {0.1, 0.2, 0.0};
+        
+        // Adding current displacement at grid nodes to be mapped back to MP
+        array_1d<double,3>& r_displacement_1 = r_node_1.FastGetSolutionStepValue(DISPLACEMENT, 0);        
+        array_1d<double,3>& r_displacement_2 = r_node_2.FastGetSolutionStepValue(DISPLACEMENT, 0);
+        array_1d<double,3>& r_displacement_3 = r_node_3.FastGetSolutionStepValue(DISPLACEMENT, 0);
+        array_1d<double,3>& r_displacement_4 = r_node_4.FastGetSolutionStepValue(DISPLACEMENT, 0);
+
+        r_displacement_1 = array_1d<double,3> {0.0, 0.0, 0.0};
+        r_displacement_2 = array_1d<double,3> {0.15, 0.0, 0.0};
+        r_displacement_3 = array_1d<double,3> {0.1, 0.1, 0.0};
+        r_displacement_4 = array_1d<double,3> {0.0, 0.05, 0.0};
+
+        // r_displacement_1 = array_1d<double,3> {0.1, 0.2, 0.0};
+        // r_displacement_2 = array_1d<double,3> {0.1, 0.2, 0.0};
+        // r_displacement_3 = array_1d<double,3> {0.1, 0.2, 0.0};
+        // r_displacement_4 = array_1d<double,3> {0.1, 0.2, 0.0};
+
+
+        // Adding initial MP displacement
+        const ProcessInfo& rProcessInfo = r_mpm_model_part.GetProcessInfo();
+        auto& r_element_1 = r_mpm_model_part.GetElement(1);
+        auto& r_element_2 = r_mpm_model_part.GetElement(2);
+        auto& r_element_3 = r_mpm_model_part.GetElement(3);
+        auto& r_element_4 = r_mpm_model_part.GetElement(4);
+
+        r_element_1.SetValuesOnIntegrationPoints(MP_DISPLACEMENT, {array_1d<double, 3> {0.1, 0.2, 0.0}}, rProcessInfo);
+        r_element_2.SetValuesOnIntegrationPoints(MP_DISPLACEMENT, {array_1d<double, 3> {0.3, 0.4, 0.0}}, rProcessInfo);
+        r_element_3.SetValuesOnIntegrationPoints(MP_DISPLACEMENT, {array_1d<double, 3> {0.5, 0.6, 0.0}}, rProcessInfo);
+        r_element_4.SetValuesOnIntegrationPoints(MP_DISPLACEMENT, {array_1d<double, 3> {0.7, 0.8, 0.0}}, rProcessInfo);
+
+        // r_element_1.SetValuesOnIntegrationPoints(MP_DISPLACEMENT, {array_1d<double, 3> {0.0, 0.0, 0.0}}, rProcessInfo);
+        // r_element_2.SetValuesOnIntegrationPoints(MP_DISPLACEMENT, {array_1d<double, 3> {0.0, 0.0, 0.0}}, rProcessInfo);
+        // r_element_3.SetValuesOnIntegrationPoints(MP_DISPLACEMENT, {array_1d<double, 3> {0.0, 0.0, 0.0}}, rProcessInfo);
+        // r_element_4.SetValuesOnIntegrationPoints(MP_DISPLACEMENT, {array_1d<double, 3> {0.0, 0.0, 0.0}}, rProcessInfo);
+
+        flip_mapping.RunG2PMapping();
+
+        // Material points checks
+
+        // Check MP acceleration
+        std::vector<array_1d<double, 3>> mp_acceleration_1{};
+        std::vector<array_1d<double, 3>> mp_acceleration_2{};
+        std::vector<array_1d<double, 3>> mp_acceleration_3{};
+        std::vector<array_1d<double, 3>> mp_acceleration_4{};
+
+        r_element_1.CalculateOnIntegrationPoints(MP_ACCELERATION, mp_acceleration_1, rProcessInfo);
+        r_element_2.CalculateOnIntegrationPoints(MP_ACCELERATION, mp_acceleration_2, rProcessInfo);
+        r_element_3.CalculateOnIntegrationPoints(MP_ACCELERATION, mp_acceleration_3, rProcessInfo);
+        r_element_4.CalculateOnIntegrationPoints(MP_ACCELERATION, mp_acceleration_4, rProcessInfo);
+
+        array_1d<double, 3> ref_mp_acceleration_1 { 0.713076828853815,  0.224401693432732, 0.0};
+        array_1d<double, 3> ref_mp_acceleration_2 { 0.233333333146185, -0.013076828432732, 0.0};
+        array_1d<double, 3> ref_mp_acceleration_3 { 0.020256504853815,  0.108931639432732, 0.0};
+        array_1d<double, 3> ref_mp_acceleration_4 { 0.233333333146185,  0.679743495567268, 0.0};
+
+        KRATOS_WATCH(mp_acceleration_1)
+        KRATOS_WATCH(mp_acceleration_2)
+        KRATOS_WATCH(mp_acceleration_3)
+        KRATOS_WATCH(mp_acceleration_4)
+
+        // KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(mp_acceleration_1[0], ref_mp_acceleration_1, 1e-6);
+        // KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(mp_acceleration_2[0], ref_mp_acceleration_2, 1e-6);
+        // KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(mp_acceleration_3[0], ref_mp_acceleration_3, 1e-6);
+        // KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(mp_acceleration_4[0], ref_mp_acceleration_4, 1e-6);
+
+        // Check MP displacement
+        std::vector<array_1d<double, 3>> mp_displacement_1{};
+        std::vector<array_1d<double, 3>> mp_displacement_2{};
+        std::vector<array_1d<double, 3>> mp_displacement_3{};
+        std::vector<array_1d<double, 3>> mp_displacement_4{};
+
+        r_element_1.CalculateOnIntegrationPoints(MP_DISPLACEMENT, mp_displacement_1, rProcessInfo);
+        r_element_2.CalculateOnIntegrationPoints(MP_DISPLACEMENT, mp_displacement_2, rProcessInfo);
+        r_element_3.CalculateOnIntegrationPoints(MP_DISPLACEMENT, mp_displacement_3, rProcessInfo);
+        r_element_4.CalculateOnIntegrationPoints(MP_DISPLACEMENT, mp_displacement_4, rProcessInfo);
+
+        array_1d<double, 3> ref_mp_displacement_1 {0.129465819821637, 0.212799153178363, 0.0};
+        array_1d<double, 3> ref_mp_displacement_2 {0.409967936928363, 0.418899576571637, 0.0};
+        array_1d<double, 3> ref_mp_displacement_3 {0.587200846821637, 0.670534180178363, 0.0};
+        array_1d<double, 3> ref_mp_displacement_4 {0.723365396428363, 0.847767090071637, 0.0};
+
+        KRATOS_WATCH(mp_displacement_1)
+        KRATOS_WATCH(mp_displacement_2)
+        KRATOS_WATCH(mp_displacement_3)
+        KRATOS_WATCH(mp_displacement_4)
+
+        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(mp_displacement_1[0], ref_mp_displacement_1, 1e-6);
+        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(mp_displacement_2[0], ref_mp_displacement_2, 1e-6);
+        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(mp_displacement_3[0], ref_mp_displacement_3, 1e-6);
+        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(mp_displacement_4[0], ref_mp_displacement_4, 1e-6);
+
+
+        // Check MP coordinate
+        std::vector<array_1d<double, 3>> mp_coordinate_1{};
+        std::vector<array_1d<double, 3>> mp_coordinate_2{};
+        std::vector<array_1d<double, 3>> mp_coordinate_3{};
+        std::vector<array_1d<double, 3>> mp_coordinate_4{};
+
+        r_element_1.CalculateOnIntegrationPoints(MP_COORD, mp_coordinate_1, rProcessInfo);
+        r_element_2.CalculateOnIntegrationPoints(MP_COORD, mp_coordinate_2, rProcessInfo);
+        r_element_3.CalculateOnIntegrationPoints(MP_COORD, mp_coordinate_3, rProcessInfo);
+        r_element_4.CalculateOnIntegrationPoints(MP_COORD, mp_coordinate_4, rProcessInfo);
+
+        array_1d<double, 3> ref_mp_coordinate_1 {0.0, 0.0, 0.0};
+        array_1d<double, 3> ref_mp_coordinate_2 {0.0, 0.0, 0.0};
+        array_1d<double, 3> ref_mp_coordinate_3 {0.0, 0.0, 0.0};
+        array_1d<double, 3> ref_mp_coordinate_4 {0.0, 0.0, 0.0};
+
+        KRATOS_WATCH(mp_coordinate_1)
+        KRATOS_WATCH(mp_coordinate_2)
+        KRATOS_WATCH(mp_coordinate_3)
+        KRATOS_WATCH(mp_coordinate_4)
+
+        // KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(mp_coordinate_1[0], ref_mp_coordinate_1, 1e-6);
+        // KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(mp_coordinate_2[0], ref_mp_coordinate_2, 1e-6);
+        // KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(mp_coordinate_3[0], ref_mp_coordinate_3, 1e-6);
+        // KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(mp_coordinate_4[0], ref_mp_coordinate_4, 1e-6);
+
+        // Check MP velocity
+        std::vector<array_1d<double, 3>> mp_velocity_1{};
+        std::vector<array_1d<double, 3>> mp_velocity_2{};
+        std::vector<array_1d<double, 3>> mp_velocity_3{};
+        std::vector<array_1d<double, 3>> mp_velocity_4{};
+
+        r_element_1.CalculateOnIntegrationPoints(MP_VELOCITY, mp_velocity_1, rProcessInfo);
+        r_element_2.CalculateOnIntegrationPoints(MP_VELOCITY, mp_velocity_2, rProcessInfo);
+        r_element_3.CalculateOnIntegrationPoints(MP_VELOCITY, mp_velocity_3, rProcessInfo);
+        r_element_4.CalculateOnIntegrationPoints(MP_VELOCITY, mp_velocity_4, rProcessInfo);
+
+        array_1d<double, 3> ref_mp_velocity_1 {0.0, 0.0, 0.0};
+        array_1d<double, 3> ref_mp_velocity_2 {0.0, 0.0, 0.0};
+        array_1d<double, 3> ref_mp_velocity_3 {0.0, 0.0, 0.0};
+        array_1d<double, 3> ref_mp_velocity_4 {0.0, 0.0, 0.0};
+
+        KRATOS_WATCH(mp_velocity_1)
+        KRATOS_WATCH(mp_velocity_2)
+        KRATOS_WATCH(mp_velocity_3)
+        KRATOS_WATCH(mp_velocity_4)
+
+        // KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(mp_velocity_1[0], ref_mp_velocity_1, 1e-6);
+        // KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(mp_velocity_2[0], ref_mp_velocity_2, 1e-6);
+        // KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(mp_velocity_3[0], ref_mp_velocity_3, 1e-6);
+        // KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(mp_velocity_4[0], ref_mp_velocity_4, 1e-6);
+
+
         KRATOS_CATCH("")
-    } 
+    }
+
+
     // end of MPMFlipParticleMappingUtilityOneGridElement2D
 
     // KRATOS_TEST_CASE_IN_SUITE(MPMFlipParticleMappingUtilityNineGridElement2D, KratosMPMFastSuite)

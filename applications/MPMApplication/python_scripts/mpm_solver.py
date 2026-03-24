@@ -165,8 +165,8 @@ class MPMSolver(PythonSolver):
     def Predict(self):
         self._SearchElement()
         # clean nodal values and map from MPs to nodes
-        if self._IsDynamicImplicit(): # temp
-            # temp: if implicit, use this insted
+        if self._IsDynamicImplicit() or self._IsQuasiStatic(): # temp
+            # temp: if implicit or quasi-static, use this insted
             self._GetParticleMappingScheme().RunP2GMapping()
         # else, use the old one
         self._GetSolutionStrategy().Predict()
@@ -178,7 +178,11 @@ class MPMSolver(PythonSolver):
 
     def FinalizeSolutionStep(self):
         self._GetSolutionStrategy().FinalizeSolutionStep()
-
+        # should be after finalize sol step for irreducible but before for UP
+        if self._IsDynamicImplicit() or self._IsQuasiStatic(): # temp
+            # temp: if implicit or quasi-static, use this instead
+            self._GetParticleMappingScheme().RunG2PMapping()
+        
         self._GetSolutionStrategy().Clear()
 
         if self.is_restarted():
@@ -508,6 +512,10 @@ class MPMSolver(PythonSolver):
         is_implicit = (self.settings["time_integration_method"].GetString() == "implicit")
         return (is_dynamic & is_implicit)
     
+    def _IsQuasiStatic(self):
+        solver_type = self.settings["solver_type"].GetString()
+        is_quasi_static = (solver_type == "quasi_static" or solver_type == "Quasi-static")
+        return is_quasi_static
     ### Solver private functions
 
     def __ComputeDeltaTime(self):
