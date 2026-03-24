@@ -453,7 +453,8 @@ private:
             }
             case RadialBasisFunctionsUtilities::RBFType::Gaussian:
             {
-                const double h = RBFShapeFunctionsUtility::CalculateInverseMultiquadricShapeParameter(coords);
+                double h = RBFShapeFunctionsUtility::CalculateInverseMultiquadricShapeParameter(coords);
+                h = 1.0/h;
                 mRBFKernel = RadialBasisFunctionsUtilities::Gaussian{h};
                 break;
             }
@@ -852,6 +853,7 @@ private:
         return Parameters(R"({
             "echo_level"                     : 0,
             "radial_basis_function_type"     : "thin_plate_spline",
+            "global_space_dimension"         : 3,
             "additional_polynomial_degree"   : 0,
             "origin_is_iga"                  : false,
             "destination_is_iga"             : false,
