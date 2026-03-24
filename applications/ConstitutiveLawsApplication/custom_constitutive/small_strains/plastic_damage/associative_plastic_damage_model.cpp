@@ -1268,9 +1268,9 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateTangentTensor(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template classAssociativePlasticDamageModel<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>;
-template classAssociativePlasticDamageModel<DruckerPragerYieldSurface<DruckerPragerPlasticPotential<6>>>;
-template classAssociativePlasticDamageModel<ModifiedMohrCoulombYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>;
-template classAssociativePlasticDamageModel<RankineYieldSurface<RankinePlasticPotential<6>>>;
+template class AssociativePlasticDamageModel<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>;
+template class AssociativePlasticDamageModel<DruckerPragerYieldSurface<DruckerPragerPlasticPotential<6>>>;
+template class AssociativePlasticDamageModel<ModifiedMohrCoulombYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>;
+template class AssociativePlasticDamageModel<RankineYieldSurface<RankinePlasticPotential<6>>>;
 
 } // Namespace Kratos
