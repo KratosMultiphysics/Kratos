@@ -384,6 +384,24 @@ void  AddGeometriesToPython(pybind11::module& m)
             py::arg("local_coordinates"),
             py::arg("derivative_order") = 0
         )
+        .def("ProjectionPointGlobalToLocalSpace",
+            [](const BrepSurfaceType& self,
+            const CoordinatesArrayType& rPointGlobalCoordinates,
+            const double Tolerance)
+            {
+                CoordinatesArrayType projected_local_coordinates;
+                noalias(projected_local_coordinates) = ZeroVector(3);
+
+                const int status = self.ProjectionPointGlobalToLocalSpace(
+                    rPointGlobalCoordinates,
+                    projected_local_coordinates,
+                    Tolerance);
+
+                return py::make_tuple(status, projected_local_coordinates);
+            },
+            py::arg("global_coordinates"),
+            py::arg("tolerance") = std::numeric_limits<double>::epsilon()
+        )
         .def("KnotsU", [](const BrepSurfaceType& self)
             {
                 return self.KnotsU();
