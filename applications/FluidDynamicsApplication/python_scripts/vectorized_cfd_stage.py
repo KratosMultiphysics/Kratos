@@ -275,6 +275,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         self.p_adaptor = KM.TensorAdaptors.HistoricalVariableTensorAdaptor(self.model_part.Nodes,KM.PRESSURE,0)
         self.p_adaptor_n = KM.TensorAdaptors.HistoricalVariableTensorAdaptor(self.model_part.Nodes, KM.PRESSURE, 1) #TODO: most probably this is not required and we can just copy current step data (but just in case while debugging)
         self.b_adaptor = KM.TensorAdaptors.HistoricalVariableTensorAdaptor(self.model_part.Nodes, KM.BODY_FORCE, data_shape=[self.dim], step_index=0)
+        self.b_adaptor_n = KM.TensorAdaptors.HistoricalVariableTensorAdaptor(self.model_part.Nodes, KM.BODY_FORCE, data_shape=[self.dim], step_index=1)
         self.normals_adaptor = KM.TensorAdaptors.HistoricalVariableTensorAdaptor(self.model_part.Nodes, KM.NORMAL, data_shape=[self.dim], step_index=0)
 
         self.v_adaptor.CollectData()
@@ -494,11 +495,11 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
             slip_node_ids = xp.where(slip_adaptor_data > 0)[0] # Get the ids of the nodes with SLIP flag
             self.slip_vel_indices = (slip_node_ids[:, None] * self.dim + xp.arange(self.dim)).ravel() # Broadcast with dimension to get the component indices
 
-    def SolveStep1(self,vold,p,b,dt):
+    def SolveStep1(self,vold,v_dirichlet,p,b,dt):
         # Gather elemental data from the database
         pel = self.ElemData(p, self.connectivity)
         vel = self.ElemData(vold, self.connectivity)
-        b_el = self.ElemData(b, self.connectivity)  #FIXME: This is only valid for b constant in time...
+        b_el = self.ElemData(b, self.connectivity)
 
         # Compute convective projection
         conv_proj = self.ComputeVelocityProjection(vel)
@@ -517,7 +518,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         # --- k2 ---
         v2 = vold + 0.5 * dt * k1
         self.ApplyVelocitySlipConditions(v2, self.normals)
-        self.ApplyVelocityDirichletConditions(vold,self.v_end_of_step_dirichlet,0.5,v2)
+        self.ApplyVelocityDirichletConditions(vold,v_dirichlet,0.5,v2)
 
         vel = self.ElemData(v2, self.connectivity)
         k2 = self.ComputeVelocityResidual(vel, pel, b_el, conv_proj_el, div_proj_el, self.DN,self.tau_1)
@@ -526,7 +527,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         # --- k3 ---
         v3 = vold + 0.5 * dt * k2
         self.ApplyVelocitySlipConditions(v3, self.normals)
-        self.ApplyVelocityDirichletConditions(vold,self.v_end_of_step_dirichlet,0.5,v3)
+        self.ApplyVelocityDirichletConditions(vold,v_dirichlet,0.5,v3)
 
         vel = self.ElemData(v3, self.connectivity)
         k3 = self.ComputeVelocityResidual(vel, pel, b_el, conv_proj_el, div_proj_el, self.DN,self.tau_1)
@@ -535,7 +536,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         # --- k4 ---
         v4 = vold + dt * k3
         self.ApplyVelocitySlipConditions(v4, self.normals)
-        self.ApplyVelocityDirichletConditions(vold,self.v_end_of_step_dirichlet,1.0,v4)
+        self.ApplyVelocityDirichletConditions(vold,v_dirichlet,1.0,v4)
 
         vel = self.ElemData(v4, self.connectivity)
         k4 = self.ComputeVelocityResidual(vel, pel, b_el, conv_proj_el, div_proj_el, self.DN,self.tau_1)
@@ -544,7 +545,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         # --- final RK4 update ---
         vnew = vold + (dt/6.0) * (k1 + 2*k2 + 2*k3 + k4)
         self.ApplyVelocitySlipConditions(vnew, self.normals)
-        self.ApplyVelocityDirichletConditions(vold, self.v_end_of_step_dirichlet,1.0,vnew)
+        self.ApplyVelocityDirichletConditions(vold, v_dirichlet,1.0,vnew)
 
         return vnew
 
@@ -609,7 +610,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
         return p
 
-    def SolveStep3(self, vfrac, delta_p, dt):
+    def SolveStep3(self, vfrac, v_dirichlet, delta_p, dt):
         # Gather elemental pressure increments from the nodal values
         delta_p_el = self.ElemData(delta_p, self.connectivity)
 
@@ -625,7 +626,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         v = xp.empty(vfrac.shape, dtype=cfd_utils.PRECISION)
         v.ravel()[:] = vfrac.ravel() + (dt/self.rho) * self.Minv * grad_dp_nodal.ravel()
         self.ApplyVelocitySlipConditions(v, self.normals)
-        self.ApplyVelocityDirichletConditions(vfrac, self.v_end_of_step_dirichlet, 1.0, v)
+        self.ApplyVelocityDirichletConditions(vfrac, v_dirichlet, 1.0, v)
 
         return v
 
@@ -639,24 +640,29 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
             self.csr_data_indices, self.csr_diag_indices = self.cfd_utils.GetScalarMatrixDirichletIndices(self.fix_pres_indices, self.L)
 
         # Obtain nodal data from Kratos
-        self.v_adaptor_n.CollectData() #old
-        vold = xp.asarray(self.v_adaptor_n.data.reshape((len(self.model_part.Nodes),self.dim)), dtype=cfd_utils.PRECISION)
-
-        self.p_adaptor_n.CollectData() # Previous step pressure
-        pold = xp.asarray(self.p_adaptor_n.data, dtype=cfd_utils.PRECISION)
-
-        self.b_adaptor.CollectData() #body force
-        b = xp.asarray(self.b_adaptor.data.reshape((len(self.model_part.Nodes),self.dim)), dtype=cfd_utils.PRECISION)
-
-        # Get Dirichlet velocity values to be enforced
         self.v_adaptor.CollectData() #new vel
         v = xp.asarray(self.v_adaptor.data.reshape((len(self.model_part.Nodes),self.dim)), dtype=cfd_utils.PRECISION)
-        self.v_end_of_step_dirichlet = v.ravel()[self.fix_vel_indices]
+
+        self.v_adaptor_n.CollectData() #old vel
+        vold = xp.asarray(self.v_adaptor_n.data.reshape((len(self.model_part.Nodes),self.dim)), dtype=cfd_utils.PRECISION)
+
+        self.p_adaptor_n.CollectData() #old pressure
+        pold = xp.asarray(self.p_adaptor_n.data, dtype=cfd_utils.PRECISION)
+
+        self.b_adaptor.CollectData() #current body force
+        b_new = xp.asarray(self.b_adaptor.data.reshape((len(self.model_part.Nodes),self.dim)), dtype=cfd_utils.PRECISION)
+
+        self.b_adaptor_n.CollectData() #old body force
+        b_old = xp.asarray(self.b_adaptor_n.data.reshape((len(self.model_part.Nodes),self.dim)), dtype=cfd_utils.PRECISION)
+
+        # Get Dirichlet velocity values to be enforced
+        v_new_dirichlet = v.ravel()[self.fix_vel_indices]
+        v_old_dirichlet = vold.ravel()[self.fix_vel_indices]
 
         # Perform substepping
         dt = self.model_part.ProcessInfo[KM.DELTA_TIME]
         current_time = self.time - self.dt
-        while (self.time - current_time > 1.0e-12): #FIXME: we need to do the linear interpolation of Dirichlet BCs
+        while (self.time - current_time > 1.0e-12):
             # Compute convective operator spectral radius
             rho_conv = self.ComputeElementalConvectiveOperatorSpectralRadius(vold)
 
@@ -667,14 +673,20 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
             n_substeps = math.ceil((self.time - current_time) / max_dt)
             substep_dt = (self.time - current_time) / n_substeps
             current_time += substep_dt
-            print(f"\tsubstep_dt: {substep_dt}")
+
+            # Compute current substep Dirichlet velocity and body force values
+            # Note that we assume a linear interpolation within the step
+            substep_dt_factor = 1.0 - (self.time - current_time) / self.dt
+            # print(f"\ttime: {self.time} - current_time: {current_time} - substep_dt: {substep_dt} - substep_dt_factor: {substep_dt_factor}")
+            b = (1.0 - substep_dt_factor) * b_old + substep_dt_factor * b_new
+            v_dirichlet = (1.0 - substep_dt_factor) * v_old_dirichlet + substep_dt_factor * v_new_dirichlet
 
             # Compute stabilization constants
             self.tau_1, self.tau_2 = self.ComputeTau(self.h, rho_conv, self.dyn_visc, self.rho, substep_dt)
 
             # Perform fractional step
             t1 = time.perf_counter()
-            vfrac = self.SolveStep1(vold, pold, b, substep_dt)
+            vfrac = self.SolveStep1(vold, v_dirichlet, pold, b, substep_dt)
             self.step_1_total_time += time.perf_counter() - t1
 
             t2 = time.perf_counter()
@@ -683,7 +695,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
             self.step_2_total_time += time.perf_counter() - t2
 
             t3 = time.perf_counter()
-            vold = self.SolveStep3(vfrac, delta_p, substep_dt) # Note that vnew is assigned to vold in here for the next substep
+            vold = self.SolveStep3(vfrac, v_dirichlet, delta_p, substep_dt) # Note that vnew is assigned to vold in here for the next substep
             self.step_3_total_time += time.perf_counter() - t3
 
             # First time clear divergence
