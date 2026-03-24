@@ -304,7 +304,7 @@ class DEMPropertiesMeasureUtility:
 
             conductivity_tensor_trace = (measured_non_homogenized_conductivity_tensor[0][0] + measured_non_homogenized_conductivity_tensor[1][1] + measured_non_homogenized_conductivity_tensor[2][2])/3
 
-            return [measured_non_homogenized_conductivity_tensor[0][0],measured_non_homogenized_conductivity_tensor[1][1],measured_non_homogenized_conductivity_tensor[2][2]], conductivity_tensor_trace
+            return measured_non_homogenized_conductivity_tensor, conductivity_tensor_trace
         else:
             raise Exception('The \"PostStressStrainOption\" and \"ContactMeshOption\" in the [ProjectParametersDEM.json] should be [True].')
 
