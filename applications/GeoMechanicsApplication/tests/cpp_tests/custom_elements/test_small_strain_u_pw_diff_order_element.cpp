@@ -828,11 +828,11 @@ const std::vector<DiffOrderElementTestParam> diff_order_element_params = {
       35.0, 55.0, 35.0}},
 };
 
-class DiffOrderElementTests : public ::testing::TestWithParam<DiffOrderElementTestParam>
+class DiffOrderElementFastSuiteTests : public ::testing::TestWithParam<DiffOrderElementTestParam>
 {
 };
 
-TEST_P(DiffOrderElementTests, FinalizeSolutionStepReturnsIntermediateNodePressures)
+TEST_P(DiffOrderElementFastSuiteTests, FinalizeSolutionStepReturnsIntermediateNodePressures)
 {
     const auto& param = GetParam();
     Model       model;
@@ -866,9 +866,9 @@ TEST_P(DiffOrderElementTests, FinalizeSolutionStepReturnsIntermediateNodePressur
 }
 
 INSTANTIATE_TEST_SUITE_P(AllDiffOrderElementTypes,
-                         DiffOrderElementTests,
+                         DiffOrderElementFastSuiteTests,
                          ::testing::ValuesIn(diff_order_element_params),
-                         [](const ::testing::TestParamInfo<DiffOrderElementTests::ParamType>& info) {
+                         [](const ::testing::TestParamInfo<DiffOrderElementFastSuiteTests::ParamType>& info) {
                              return info.param.name;
                          });
 
