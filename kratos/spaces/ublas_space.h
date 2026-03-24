@@ -81,7 +81,7 @@ public:
 ///@{
 
 template <class TDataType, class TMatrixType, class TVectorType>
-class UblasSpace;
+class KRATOS_EXPOSE UblasSpace;
 
 template <class TDataType>
 using TUblasSparseSpace =
