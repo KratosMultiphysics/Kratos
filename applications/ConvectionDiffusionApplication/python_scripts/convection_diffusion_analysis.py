@@ -46,6 +46,7 @@ class ConvectionDiffusionAnalysis(AnalysisStage):
             self._GetSolver().Predict()
             self._GetSolver().SolveSolutionStep()
             self.FinalizeSolutionStep()
+            super(ConvectionDiffusionAnalysis, self).OutputSolutionStep()
 
             end_step = time.perf_counter()
             print(f"[Step @ t={self.time:.4f}] Time: {end_step - start_step:.6f} seconds")
