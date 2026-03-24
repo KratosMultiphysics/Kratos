@@ -1012,6 +1012,35 @@ void RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::CalculateMappingMatri
     // Solve(SparseMatrixType, DenseMatrixType, DenseMatrixType)
     mpLinearSolver->Solve(*mpOriginInterpolationMatrix, sol_mat, rhs_mat);
 
+    // -----------------------------------------------------------------
+    using SparseMatrixType = boost::numeric::ublas::compressed_matrix<double>;
+    using DenseMatrixType  = boost::numeric::ublas::matrix<double>;
+
+    const SparseMatrixType& A_sparse = *mpOriginInterpolationMatrix;
+
+    KRATOS_ERROR_IF(A_sparse.size1() != A_sparse.size2())
+        << "Interpolation matrix is not square! "
+        << A_sparse.size1() << " x " << A_sparse.size2() << std::endl;
+
+    DenseMatrixType A(A_sparse.size1(), A_sparse.size2(), 0.0);
+
+    for (auto it1 = A_sparse.begin1(); it1 != A_sparse.end1(); ++it1) {
+        for (auto it2 = it1.begin(); it2 != it1.end(); ++it2) {
+            A(it2.index1(), it2.index2()) = *it2;
+        }
+    }
+
+    DenseMatrixType A_inv(A.size1(), A.size2());
+    double det = 0.0;
+
+    MathUtils<double>::InvertMatrix(A, A_inv, det);
+
+    const double cond_est = norm_frobenius(A) * norm_frobenius(A_inv);
+
+    KRATOS_INFO("RBF Mapper") << "det(A)    = " << det << std::endl;
+    KRATOS_INFO("RBF Mapper") << "cond_F(A) = " << cond_est << std::endl;
+    //---------------------------------------------------------------
+
     auto t5 = Clock::now();
     solve_time = Duration(t5 - t4).count();
 
@@ -1044,7 +1073,6 @@ void RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::CalculateMappingMatri
             }
         }
     }
-    KRATOS_WATCH(*pMappingMatrixGP)
 
     auto t9 = Clock::now();
     convert_time = Duration(t9 - t8).count();
