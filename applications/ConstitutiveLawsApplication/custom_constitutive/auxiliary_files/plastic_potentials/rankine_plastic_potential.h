@@ -48,7 +48,7 @@ namespace Kratos
  * @author Alejandro Cornejo
  */
 template <SizeType TVoigtSize = 6>
-class RankinePlasticPotential
+class KRATOS_EXPOSE RankinePlasticPotential
 {
   public:
     ///@name Type Definitions

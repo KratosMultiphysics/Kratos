@@ -55,7 +55,7 @@ namespace Kratos
  * @author Alejandro Cornejo & Lucia Barbu
  */
 template <class TPlasticPotentialType>
-class VonMisesYieldSurface
+class KRATOS_EXPOSE VonMisesYieldSurface
 {
 public:
     ///@name Type Definitions

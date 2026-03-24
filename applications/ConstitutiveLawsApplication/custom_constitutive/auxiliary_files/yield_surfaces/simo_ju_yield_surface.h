@@ -52,7 +52,7 @@ namespace Kratos
  * @author Alejandro Cornejo & Lucia Barbu
  */
 template <class TPlasticPotentialType>
-class SimoJuYieldSurface
+class KRATOS_EXPOSE SimoJuYieldSurface
 {
   public:
     ///@name Type Definitions
