@@ -615,9 +615,9 @@ public:
 
                 // Compute fluid flux vector q [L/T]
                 rOutput[integration_point].clear();
-                const auto fluid_flux = PORE_PRESSURE_SIGN_FACTOR *
-                                        variables.DynamicViscosityInverse * relative_permeability *
-                                        prod(variables.IntrinsicPermeability, grad_pressure_term);
+                const Vector fluid_flux = PORE_PRESSURE_SIGN_FACTOR *
+                                          variables.DynamicViscosityInverse * relative_permeability *
+                                          prod(variables.IntrinsicPermeability, grad_pressure_term);
                 std::copy_n(fluid_flux.begin(), TDim, rOutput[integration_point].begin());
             }
         }

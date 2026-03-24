@@ -674,7 +674,7 @@ KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculateOnIntegrationP
         KRATOS_EXPECT_MATRIX_NEAR(stress_matrix, expected_stress_matrix, Defaults::absolute_tolerance);
 }
 
-    KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculateOnIntegrationPoints_Int,
+KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculateOnIntegrationPoints_Int,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
@@ -685,11 +685,11 @@ KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculateOnIntegrationP
     p_element->Initialize(dummy_process_info);
 
     // Act & Assert
-    auto direction_vector = std::vector({1,2,3,4,5,6});
+    auto direction_vector = std::vector({1, 2, 3, 4, 5, 6});
     p_element->CalculateOnIntegrationPoints(K0_MAIN_DIRECTION, direction_vector, dummy_process_info);
-    KRATOS_EXPECT_EQ(direction_vector.size(),3);
-    for (auto i = 0; i<  direction_vector.size(); i++)
-        KRATOS_EXPECT_EQ(direction_vector[i], i+1);
+    KRATOS_EXPECT_EQ(direction_vector.size(), 3);
+    for (auto i = 0; i < direction_vector.size(); i++)
+        KRATOS_EXPECT_EQ(direction_vector[i], i + 1);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculateDampingMatrix, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -732,6 +732,27 @@ KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculateDampingMatrix,
         {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}});
     // clang-format on
     KRATOS_EXPECT_MATRIX_NEAR(dumping_matrix, expected_dumping_matrix, Defaults::absolute_tolerance);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculatesFluidFluxVector, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto p_element =
+        CreateSmallStrainUPwDiffOrderElementWithUPwDofs(CreatePropertiesForUPwDiffOrderElementTest());
+    SetSolutionStepValuesForGeneralCheck(p_element); // uniform pressure + gravity
+    const ProcessInfo process_info{};
+    p_element->Initialize(process_info);
+
+    // Act
+    std::vector<array_1d<double, 3>> fluid_fluxes;
+    p_element->CalculateOnIntegrationPoints(FLUID_FLUX_VECTOR, fluid_fluxes, process_info);
+
+    // Assert
+    // With uniform pressure (∇p = 0) and gravity [0,-10,0]:
+    // q_y = (1/μ) * k_yy * (0 + ρ_w * g_y) = (1/0.01) * 9.084e-6 * 1000 * (-10) = -9.084
+    const array_1d<double, 3> expected_fluid_flux{0., -9.084, 0.}; // sign follows PORE_PRESSURE_SIGN_FACTOR
+    for (const auto& fluid_flux : fluid_fluxes)
+        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(fluid_flux, expected_fluid_flux, Defaults::relative_tolerance);
 }
 
 struct DiffOrderElementTestParam {
@@ -846,11 +867,11 @@ const std::vector<DiffOrderElementTestParam> diff_order_element_params = {
       35.0, 55.0, 35.0}},
 };
 
-class DiffOrderElementFastSuiteTests : public ::testing::TestWithParam<DiffOrderElementTestParam>
+class DiffOrderElementTests : public ::testing::TestWithParam<DiffOrderElementTestParam>
 {
 };
 
-TEST_P(DiffOrderElementFastSuiteTests, FinalizeSolutionStepReturnsIntermediateNodePressures)
+TEST_P(DiffOrderElementTests, FinalizeSolutionStepReturnsIntermediateNodePressures)
 {
     const auto& param = GetParam();
     Model       model;
@@ -884,9 +905,9 @@ TEST_P(DiffOrderElementFastSuiteTests, FinalizeSolutionStepReturnsIntermediateNo
 }
 
 INSTANTIATE_TEST_SUITE_P(AllDiffOrderElementTypes,
-                         DiffOrderElementFastSuiteTests,
+                         DiffOrderElementTests,
                          ::testing::ValuesIn(diff_order_element_params),
-                         [](const ::testing::TestParamInfo<DiffOrderElementFastSuiteTests::ParamType>& info) {
+                         [](const ::testing::TestParamInfo<DiffOrderElementTests::ParamType>& info) {
                              return info.param.name;
                          });
 
