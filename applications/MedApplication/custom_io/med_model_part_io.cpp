@@ -876,6 +876,23 @@ void MedModelPartIO::WriteModelPart(const ModelPart& rThisModelPart)
         };
     collect_subparts(rThisModelPart);
 
+    std::unordered_map<std::string, int> smp_max_dim;
+    for (const auto* r_smp : all_sub_modelparts) {
+        std::string name = r_smp->FullName();
+        const std::string root_prefix = rThisModelPart.Name() + ".";
+        if (name.rfind(root_prefix, 0) == 0) {
+            name = name.substr(root_prefix.size());
+        }
+        int max_dim = -1;
+        for (const auto& g : r_smp->Geometries()) {
+            max_dim = std::max(max_dim, static_cast<int>(g.LocalSpaceDimension()));
+        }
+        if (r_smp->NumberOfNodes() > 0)
+        {
+            smp_max_dim[name] = max_dim;
+        }
+    }
+
     // =========================================================================
     // 4. PRECOMPUTE GROUP MEMBERSHIPS
     // =========================================================================
@@ -933,6 +950,9 @@ void MedModelPartIO::WriteModelPart(const ModelPart& rThisModelPart)
         }
         return buffer;
     };
+    auto GetDepth = [](const std::string& name) -> int {
+        return static_cast<int>(std::count(name.begin(), name.end(), '.'));
+    };
 
     // =========================================================================
     // 6. NODE FAMILY ASSIGNMENT
@@ -953,9 +973,37 @@ void MedModelPartIO::WriteModelPart(const ModelPart& rThisModelPart)
     for (const auto& r_node : r_nodes) {
 
         // Convert vector → ordered set (required for deterministic grouping)
-        std::set<std::string> groups(
+        std::set<std::string> raw_groups(
             node_groups[r_node.Id()].begin(),
             node_groups[r_node.Id()].end());
+
+        std::set<std::string> groups;
+        if (!raw_groups.empty()) {
+            // 1. Find leaf groups (max depth)
+            int max_depth = -1;
+            for (const auto& g : raw_groups) {
+                max_depth = std::max(max_depth, GetDepth(g));
+            }
+            std::set<std::string> leaf_groups;
+            for (const auto& g : raw_groups) {
+                if (GetDepth(g) == max_depth) {
+                    leaf_groups.insert(g);
+                }
+            }
+            // 2. Expand hierarchy upwards
+            for (const auto& leaf : leaf_groups) {
+                std::string current = leaf;
+                while (true) {
+                    auto it_dim = smp_max_dim.find(current);
+                    if (it_dim != smp_max_dim.end() && it_dim->second == -1) {
+                        groups.insert(current);
+                    }
+                    auto pos = current.find_last_of('.');
+                    if (pos == std::string::npos) break;
+                    current = current.substr(0, pos);
+                }
+            }
+        }
 
         // No groups → family 0 (MED convention: "no family")
         if (groups.empty()) {
@@ -1000,9 +1048,38 @@ void MedModelPartIO::WriteModelPart(const ModelPart& rThisModelPart)
         np_map[geom_type] = r_geom.PointsNumber();
 
         // Get group membership of this geometry
-        std::set<std::string> groups(
+        std::set<std::string> raw_groups(
             geom_groups[r_geom.Id()].begin(),
             geom_groups[r_geom.Id()].end());
+
+        std::set<std::string> groups;
+        if (!raw_groups.empty()) {
+            // 1. Find leaf groups (max depth)
+            int max_depth = -1;
+            for (const auto& g : raw_groups) {
+                max_depth = std::max(max_depth, GetDepth(g));
+            }
+            std::set<std::string> leaf_groups;
+            for (const auto& g : raw_groups) {
+                if (GetDepth(g) == max_depth) {
+                    leaf_groups.insert(g);
+                }
+            }
+            // 2. Expand hierarchy upwards
+            for (const auto& leaf : leaf_groups) {
+                std::string current = leaf;
+                const int geom_dim = r_geom.LocalSpaceDimension();
+                while (true) {
+                    auto it_dim = smp_max_dim.find(current);
+                    if (it_dim != smp_max_dim.end() && it_dim->second == geom_dim) {
+                        groups.insert(current);
+                    }
+                    auto pos = current.find_last_of('.');
+                    if (pos == std::string::npos) break;
+                    current = current.substr(0, pos);
+                }
+            }
+        }
 
         // No groups → family 0 (MED convention: "no family")
         if (groups.empty()) {
@@ -1103,7 +1180,6 @@ void MedModelPartIO::WriteModelPart(const ModelPart& rThisModelPart)
         std::vector<med_int> geom_global_ids;
         geom_global_ids.reserve(conn.size());
 
-        // IMPORTANT:
         // Must follow SAME ordering used in conn_map
         // (i.e. iteration over rThisModelPart.Geometries())
         for (const auto& r_geom : rThisModelPart.Geometries()) {
