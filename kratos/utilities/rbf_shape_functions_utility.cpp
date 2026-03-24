@@ -172,7 +172,7 @@ namespace Kratos
         }
         d /= n_points;
         KRATOS_ERROR_IF(d < 1.0e-12) << "Nearest neighbours distance is close to zero. Check that the cloud points are not overlapping." << std::endl;
-        return 1/(0.815*d);// Shape parameter (Only for inverted multiquadratic)
+        return 0.5/(0.815*d);// Shape parameter (Only for inverted multiquadratic)
     }
 
 }  // namespace Kratos.
