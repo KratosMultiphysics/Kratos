@@ -51,7 +51,7 @@ namespace Kratos
  * @author Alejandro Cornejo
  */
 template<class TPlasticPotentialType>
-class ThermalDruckerPragerYieldSurface
+class KRATOS_EXPOSE ThermalDruckerPragerYieldSurface
 {
 public:
     ///@name Type Definitions
