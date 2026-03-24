@@ -1,7 +1,6 @@
 # Importing Kratos
 import KratosMultiphysics
 from KratosMultiphysics.process_factory import KratosProcessFactory
-from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
 from KratosMultiphysics.model_parameters_factory import KratosModelParametersFactory
 from KratosMultiphysics.python_null_solver import PYTHON_NULL_SOLVER
 
@@ -438,16 +437,6 @@ class AnalysisStage(object):
         """
         return []
 
-    def _CheckDeprecatedOutputProcesses(self, list_of_processes):
-        deprecated_output_processes = []
-        for process in list_of_processes:
-            if issubclass(type(process), KratosMultiphysics.OutputProcess):
-                deprecated_output_processes.append(process)
-                msg  = "{} is an OutputProcess. However, it has been constructed as a regular process.\n"
-                msg += "Please, define it as an 'output_processes' in the ProjectParameters."
-                IssueDeprecationWarning("AnalysisStage", msg.format(process.__class__.__name__))
-        return deprecated_output_processes
-
     def _GetSimulationName(self):
         """Returns the name of the Simulation
         """
@@ -458,8 +447,6 @@ class AnalysisStage(object):
         """
         order_processes_initialization = self._GetOrderOfProcessesInitialization()
         self._list_of_processes        = self._CreateProcesses("processes", order_processes_initialization)
-        deprecated_output_processes    = self._CheckDeprecatedOutputProcesses(self._list_of_processes)
         order_processes_initialization = self._GetOrderOfOutputProcessesInitialization()
         self._list_of_output_processes = self._CreateProcesses("output_processes", order_processes_initialization)
         self._list_of_processes.extend(self._list_of_output_processes) # Adding the output processes to the regular processes
-        self._list_of_output_processes.extend(deprecated_output_processes)
