@@ -168,7 +168,7 @@ class MPMSolver(PythonSolver):
         if self._IsDynamicImplicit() or self._IsQuasiStatic(): # temp
             # temp: if implicit or quasi-static, use this insted
             self._GetParticleMappingScheme().RunP2GMapping()
-        # else, use the old one
+        # else, use the old one (disabled by removing mapping in implicit scheme)
         self._GetSolutionStrategy().Predict()
 
     def SolveSolutionStep(self):

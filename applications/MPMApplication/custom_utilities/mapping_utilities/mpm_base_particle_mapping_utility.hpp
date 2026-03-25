@@ -190,21 +190,16 @@ namespace Kratos
             // KRATOS_WATCH(r_element.Id())
             // KRATOS_WATCH(rN)
 
-            IndexType i = 0;
+            IndexType node_index = 0;
             for (auto& r_node : r_material_point_element.GetGeometry())
             {
                 // ... use 'i' as the unsigned iterator
                 // ToDo: This (manually locking and unlocking) turns out to be dangerous. Should be replaced with AtomicAdd or something similar
                 // Example: when something in between crashed, there is break, etc, the node will never be unlocked. Should use some techniques that automatically unlocks it when goes out of scope (like AtomicAdd). -----------------------------------------------------------------------------------------------------------
                 // r_node.SetLock();
-                CalculateP2GMapping(r_material_point_element, r_node, rN[i], r_current_process_info);
+                CalculateP2GMapping(r_material_point_element, r_node, rN[node_index], r_current_process_info);
                 // r_node.UnSetLock();
-                ++i;
-                if (r_material_point_element.Id() == 4)
-                {
-                    // KRATOS_WATCH(r_node.Id())
-                    // KRATOS_WATCH(r_node.FastGetSolutionStepValue(NODAL_MASS))
-                }
+                ++node_index;
             }
 		});
         // for (auto& r_node : r_model_part.Nodes())
@@ -228,7 +223,40 @@ namespace Kratos
         this->P2GMass(rElement, rNode, rN_i, rCurrentProcessInfo);
         this->P2GMomentum(rElement, rNode, rN_i, rCurrentProcessInfo);
         this->P2GInertia(rElement, rNode, rN_i, rCurrentProcessInfo);
-        // RunP2GMappingMassPressure(); // To be implemented in derived class
+        
+        this->P2GAdditionalVariables(rElement, rNode, rN_i, rCurrentProcessInfo); // may be better implemented in derived class
+    }
+
+    virtual void P2GAdditionalVariables(Element& rElement, Node& rNode, const double& rN_i,  const ProcessInfo& rCurrentProcessInfo)
+    {
+        KRATOS_TRY;
+
+        // Do Mass-Pressure P2G mapping for mixed formulation 
+        const bool is_mixed_formulation = (rCurrentProcessInfo.Has(IS_MIXED_FORMULATION))
+            ? rCurrentProcessInfo.GetValue(IS_MIXED_FORMULATION)
+            : false;
+        if (is_mixed_formulation){
+            this->P2GMassPressure(rElement, rNode, rN_i, rCurrentProcessInfo);
+        }
+
+        KRATOS_CATCH("")
+    }
+
+    void P2GMassPressure(Element& rElement, Node& rNode, const double& rN_i,  const ProcessInfo& rCurrentProcessInfo)
+    {
+        KRATOS_TRY;
+
+        std::vector<double> mp_pressure;
+        std::vector<double> mp_mass;
+        rElement.CalculateOnIntegrationPoints(MP_PRESSURE, mp_pressure, rCurrentProcessInfo);
+        rElement.CalculateOnIntegrationPoints(MP_MASS, mp_mass, rCurrentProcessInfo);
+        if (rCurrentProcessInfo[STEP] > 1)
+            KRATOS_WATCH("HELLO ANDI")
+
+        const double nodal_mass_pressure = rN_i * mp_pressure[0] * mp_mass[0];
+        rNode.FastGetSolutionStepValue(NODAL_MPRESSURE, 0) += nodal_mass_pressure;
+        
+        KRATOS_CATCH("")
     }
 
     /**
@@ -242,14 +270,6 @@ namespace Kratos
 
         rElement.CalculateOnIntegrationPoints(MP_MASS, mp_mass, rCurrentProcessInfo);
         AtomicAdd(rNode.FastGetSolutionStepValue(NODAL_MASS), rN_i * mp_mass[0]);
-        // rNode.FastGetSolutionStepValue(NODAL_MASS) += rN_i * mp_mass[0];
-        // KRATOS_WATCH(rElement.Id())
-        // KRATOS_WATCH(rNode.Id())
-        // KRATOS_WATCH(rN_i)
-        // KRATOS_WATCH(mp_mass[0])
-        // KRATOS_WATCH(rN_i * mp_mass[0])
-        // KRATOS_WATCH(rNode.FastGetSolutionStepValue(NODAL_MASS))
-
 
         // // ToDo: Adjust MP_MASS in elements into data value container
         // rNode.FastGetSolutionStepValue(NODAL_MASS, 0) += r_N(0, i) * rElement.GetValue(MP_MASS);
@@ -259,13 +279,7 @@ namespace Kratos
      * Do Particle to Grid mapping for nodal momentum.
      */
     virtual void P2GMomentum(Element& rElement, Node& rNode, const double& rN_i,  const ProcessInfo& rCurrentProcessInfo) = 0;
-    // {
-    //     KRATOS_TRY;
 
-    //     KRATOS_ERROR << "Calling P2GMomentum from base particle mapping utility instead of the derived class" << std::endl;
-
-    //     KRATOS_CATCH("")
-    // }
 
     /**
      * Do Particle to Grid mapping for nodal inertia.
