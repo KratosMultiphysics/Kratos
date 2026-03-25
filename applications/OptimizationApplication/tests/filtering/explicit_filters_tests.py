@@ -32,17 +32,35 @@ class TestExplicitFilterConsistency(kratos_unittest.TestCase):
         vm_filter = KratosOA.NodeExplicitFilterUtils(model_part, "linear", 1000, 0)
         self.__RunConsistencyTest(vm_filter, model_part.Nodes, model_part)
 
+    def test_NodalExplicitMatrixBasedFilterConditionConsistency(self):
+        model_part = self.model_part.GetSubModelPart("design")
+        vm_filter = KratosOA.NodeExplicitFilterUtils(model_part, "linear", 1000, 0, store_filter_matrix=True)
+        self.__RunConsistencyTest(vm_filter, model_part.Nodes, model_part)
+
     def test_NodalExplicitFilterElementConsistency(self):
         model_part = self.model_part.GetSubModelPart("structure")
         vm_filter = KratosOA.NodeExplicitFilterUtils(model_part, "linear", 1000, 0)
+        self.__RunConsistencyTest(vm_filter, model_part.Nodes, model_part)
+
+    def test_NodalExplicitMatrixBasedFilterElementConsistency(self):
+        model_part = self.model_part.GetSubModelPart("structure")
+        vm_filter = KratosOA.NodeExplicitFilterUtils(model_part, "linear", 1000, 0, store_filter_matrix=True)
         self.__RunConsistencyTest(vm_filter, model_part.Nodes, model_part)
 
     def test_ConditionExplicitFilterConsistency(self):
         vm_filter = KratosOA.ConditionExplicitFilterUtils(self.model_part, "linear", 1000, 0)
         self.__RunConsistencyTest(vm_filter, self.model_part.Conditions, self.model_part)
 
+    def test_ConditionExplicitMatrixBasedFilterConsistency(self):
+        vm_filter = KratosOA.ConditionExplicitFilterUtils(self.model_part, "linear", 1000, 0, store_filter_matrix=True)
+        self.__RunConsistencyTest(vm_filter, self.model_part.Conditions, self.model_part)
+
     def test_ElementExplicitFilterConsistency(self):
         vm_filter = KratosOA.ElementExplicitFilterUtils(self.model_part, "linear", 1000, 0)
+        self.__RunConsistencyTest(vm_filter, self.model_part.Elements, self.model_part)
+
+    def test_ElementExplicitMatrixBasedFilterConsistency(self):
+        vm_filter = KratosOA.ElementExplicitFilterUtils(self.model_part, "linear", 1000, 0, store_filter_matrix=True)
         self.__RunConsistencyTest(vm_filter, self.model_part.Elements, self.model_part)
 
     def test_NearestEntityDamping(self):
@@ -208,12 +226,16 @@ class TestExplicitFilterReference(kratos_unittest.TestCase):
     def test_FilterSigmoidalNodeCloudMesh(self):
         self.__RunTestCase("sigmoidal", "cosine", "explicit_filter_reference_sigmoidal_cloud_mesh.vtu", True)
 
-    def __RunTestCase(self, filter_function_type: str, damping_function_type: str, ref_file: str, node_cloud_mesh=False) -> None:
+    def test_FilterSigmoidalMatrixBased(self):
+        self.__RunTestCase("sigmoidal", "cosine", "explicit_filter_reference_sigmoidal.vtu", store_filter_matrix=True)
+
+    def __RunTestCase(self, filter_function_type: str, damping_function_type: str, ref_file: str, node_cloud_mesh=False, store_filter_matrix = False) -> None:
         settings = Kratos.Parameters("""{
             "filter_type"               : "explicit_filter",
             "filter_function_type"      : "linear",
             "max_items_in_bucket"       : 10,
             "node_cloud_mesh"           : false,
+            "store_filter_matrix"       : false,
             "echo_level"                : 0,
             "filter_radius_settings":{
                 "filter_radius_type": "constant",
@@ -233,6 +255,7 @@ class TestExplicitFilterReference(kratos_unittest.TestCase):
         settings["filter_function_type"].SetString(filter_function_type)
         settings["filtering_boundary_conditions"]["damping_function_type"].SetString(damping_function_type)
         settings["node_cloud_mesh"].SetBool(node_cloud_mesh)
+        settings["store_filter_matrix"].SetBool(store_filter_matrix)
         vm_filter = FilterFactory(self.model, "test", KratosOA.SHAPE, Kratos.Globals.DataLocation.NodeHistorical, settings)
         vm_filter.SetComponentDataView(ComponentDataView("test", self.optimization_problem))
         vm_filter.Initialize()
