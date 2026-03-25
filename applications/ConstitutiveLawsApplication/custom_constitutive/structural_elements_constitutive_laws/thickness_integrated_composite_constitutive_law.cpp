@@ -43,10 +43,17 @@ ThicknessIntegratedCompositeConstitutiveLaw::ThicknessIntegratedCompositeConstit
     const Vector& rThicknesses
     ) : ConstitutiveLaw()
 {
-    // KRATOS_ERROR_IF(rThicknessIntegrationPoints <= 0) << "Wrong number of integration points through the thickness... " << std::endl;
+    const SizeType num_layers = rZCoordinates.size();
 
-    // if (rThicknessIntegrationPoints != 5) // 5 is the default
-    //     mThicknessIntegrationPoints = rThicknessIntegrationPoints;
+    mZCoordinates.resize(num_layers);
+    mThicknesses.resize(num_layers);
+    mEulerAngles.resize(num_layers);
+
+    for (IndexType i_layer = 0; i_layer < rZCoordinates.size(); ++i_layer) {
+        mZCoordinates[i_layer] = rZCoordinates[i_layer];
+        mThicknesses[i_layer] = rThicknesses[i_layer];
+        mEulerAngles[i_layer] = rEulerAngles[i_layer];
+    }
 }
 
 /******************************COPY CONSTRUCTOR*************************************/
@@ -60,7 +67,6 @@ ThicknessIntegratedCompositeConstitutiveLaw::ThicknessIntegratedCompositeConstit
       mEulerAngles(rOther.mEulerAngles),
       mThicknesses(rOther.mThicknesses)
 {
-    // TODO
 }
 
 /********************************CLONE**********************************************/
@@ -78,16 +84,25 @@ ConstitutiveLaw::Pointer ThicknessIntegratedCompositeConstitutiveLaw::Create(
     Kratos::Parameters NewParameters
 ) const
 {
-    // IndexType thickness_integration_points = 5; // Default value
-    // // We check if the user has defined a different value
-    // if (NewParameters.Has("thickness_integration_points")) {
-    //     thickness_integration_points = NewParameters["thickness_integration_points"].GetInt();
-    //     KRATOS_ERROR_IF(thickness_integration_points <= 0) << "Wrong number of integration points through the thickness... " << std::endl;
-    // }
+    // We do some checks
+    KRATOS_ERROR_IF_NOT(NewParameters.Has("z_layer_coordinate_vector")) << "ThicknessIntegratedCompositeConstitutiveLaw: 
+        Please define z_layer_coordinates in the StructuralMaterials.json" << std::endl;
 
-    // // We create the law
-    // return Kratos::make_shared<ThicknessIntegratedCompositeConstitutiveLaw>(thickness_integration_points);
-    return 
+    KRATOS_ERROR_IF_NOT(NewParameters.Has("Euler_angle_layer_vector")) << "ThicknessIntegratedCompositeConstitutiveLaw: 
+        Please define Euler_angle_layer_vector in the StructuralMaterials.json" << std::endl;
+
+    KRATOS_ERROR_IF_NOT(NewParameters.Has("thickness_layer_vector")) << "ThicknessIntegratedCompositeConstitutiveLaw: 
+        Please define thickness_layer_vector in the StructuralMaterials.json" << std::endl;
+
+
+    const SizeType number_of_layers = NewParameters["thickness_layer_vector"].size();
+
+    std::vector<double> z_layer_coordinate_vector(number_of_layers);
+    std::vector<double> Euler_angle_layer_vector(number_of_layers);
+    std::vector<double> thickness_layer_vector(number_of_layers);
+
+
+    return Kratos::make_shared<ThicknessIntegratedCompositeConstitutiveLaw>(z_layer_coordinate_vector, Euler_angle_layer_vector, thickness_layer_vector);
 }
 
 //*******************************DESTRUCTOR*******************************************
