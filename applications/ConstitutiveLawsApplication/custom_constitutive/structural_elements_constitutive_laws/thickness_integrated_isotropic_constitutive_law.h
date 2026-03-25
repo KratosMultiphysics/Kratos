@@ -44,9 +44,9 @@ namespace Kratos
 /**
  * @class ThicknessIntegratedIsotropicConstitutiveLaw
  * @ingroup StructuralMechanicsApplication
- * @brief This constitutive law is implemented to be used together with the CSDSG3ThickShellElement3D3N element
- * It computes the constitutive matrix and stress vector by integrating over the thickness using a set of
- * sub-properties, each one with its own subproperty, constitutive model (isotropic plane stress).
+ * @brief This constitutive law is implemented to be used together with the CSDSG3ThickShellElement3D3N and MITCThickShellElement3D4N element
+ * It computes the constitutive matrix and stress vector by integrating over the thickness using a
+ * sub-property, and constitutive model (MUST be isotropic and plane stress).
  * Input: the Generalized strain vector of 8 components (3 membrane + 3 bending + 2 shear)
  * Output: the Generalized stress vector of 8 components (3 membrane + 3 bending + 2 shear) and 8x8 generalized
  * constitutive matrix.
