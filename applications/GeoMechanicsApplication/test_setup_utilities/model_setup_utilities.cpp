@@ -11,8 +11,6 @@
 //
 #include "model_setup_utilities.h"
 #include "containers/model.h"
-#include "includes/model_part.h"
-
 #include "custom_elements/plane_strain_stress_state.h"
 #include "custom_elements/small_strain_U_Pw_diff_order_element.h"
 #include "custom_elements/three_dimensional_stress_state.h"
@@ -21,6 +19,9 @@
 #include "geometries/tetrahedra_3d_4.h"
 #include "geometries/triangle_2d_3.h"
 #include "geometries/triangle_2d_6.h"
+#include "includes/model_part.h"
+
+#include <iterator>
 
 namespace
 {
@@ -46,7 +47,7 @@ PointerVector<Node> CreateNewNodes(ModelPart& rModelPart, const std::vector<Poin
     return nodes;
 }
 
-template <typename InputIt>
+template <std::input_iterator InputIt>
 void AddDofsToNodes(InputIt NodeRangeBegin, InputIt NodeRangeEnd, const Geo::ConstVariableRefs& rNodalVariables)
 {
     for (const auto& r_variable : rNodalVariables) {
