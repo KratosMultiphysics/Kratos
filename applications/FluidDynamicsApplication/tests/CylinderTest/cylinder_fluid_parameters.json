@@ -100,38 +100,6 @@
             }
         }],
         "auxiliar_process_list"            : [{
-            "kratos_module"   : "KratosMultiphysics",
-            "python_module"   : "point_output_process",
-            "help"            : "",
-            "process_name"    : "PointOutputProcess",
-            "Parameters" : {
-                "position"         : [3.150768, 4.043068, 0.0],
-                "model_part_name"  : "MainModelPart.Parts_Fluid",
-                "output_file_settings": {
-                    "file_name"  : "cylinder_test_probe1.dat"
-                },
-                "output_variables" : [
-                    "VELOCITY_X",
-                    "VELOCITY_Y",
-                    "PRESSURE"]
-            }
-        },{
-            "kratos_module"   : "KratosMultiphysics",
-            "python_module"   : "point_output_process",
-            "help"            : "",
-            "process_name"    : "PointOutputProcess",
-            "Parameters" : {
-                "position"         : [4.849232,4.043068, 0.0],
-                "model_part_name"  : "MainModelPart.Parts_Fluid",
-                "output_file_settings": {
-                    "file_name"  : "cylinder_test_probe2.dat"
-                },
-                "output_variables" : [
-                    "VELOCITY_X",
-                    "VELOCITY_Y",
-                    "PRESSURE"]
-            }
-        },{
             "python_module" : "compute_body_fitted_flow_forces_and_moments_process",
             "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
             "process_name"  : "ComputeBodyFittedFlowForcesAndMomentsProcess",
@@ -141,8 +109,7 @@
                 "print_to_screen"   : true,
                 "interval"               : [0.0,"End"]
             }
-        },
-        {
+        },{
             "python_module"   : "compare_two_files_check_process",
             "kratos_module"   : "KratosMultiphysics",
             "help"            : "",
@@ -177,6 +144,41 @@
                 "comparison_type"     : "dat_file",
                 "remove_output_file"  : true,
                 "tolerance"           : 1e-5
+            }
+        }]
+    },
+    "output_processes" : {
+        "point_output" : [{
+            "kratos_module"   : "KratosMultiphysics",
+            "python_module"   : "point_output_process",
+            "help"            : "",
+            "process_name"    : "PointOutputProcess",
+            "Parameters" : {
+                "position"         : [3.150768, 4.043068, 0.0],
+                "model_part_name"  : "MainModelPart.Parts_Fluid",
+                "output_file_settings": {
+                    "file_name"  : "cylinder_test_probe1.dat"
+                },
+                "output_variables" : [
+                    "VELOCITY_X",
+                    "VELOCITY_Y",
+                    "PRESSURE"]
+            }
+        },{
+            "kratos_module"   : "KratosMultiphysics",
+            "python_module"   : "point_output_process",
+            "help"            : "",
+            "process_name"    : "PointOutputProcess",
+            "Parameters" : {
+                "position"         : [4.849232,4.043068, 0.0],
+                "model_part_name"  : "MainModelPart.Parts_Fluid",
+                "output_file_settings": {
+                    "file_name"  : "cylinder_test_probe2.dat"
+                },
+                "output_variables" : [
+                    "VELOCITY_X",
+                    "VELOCITY_Y",
+                    "PRESSURE"]
             }
         }]
     }
