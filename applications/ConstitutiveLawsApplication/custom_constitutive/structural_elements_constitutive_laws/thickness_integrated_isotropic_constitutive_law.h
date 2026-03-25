@@ -421,16 +421,22 @@ public:
     {
         double max_length = 0.0;
 
-        const auto& r_coord_1 = rGeometry[0].GetInitialPosition();
-        const auto& r_coord_2 = rGeometry[1].GetInitialPosition();
-        const auto& r_coord_3 = rGeometry[2].GetInitialPosition();
+        if (rGeometry.PointsNumber() == 3) {
+            const auto& r_coord_1 = rGeometry[0].GetInitialPosition();
+            const auto& r_coord_2 = rGeometry[1].GetInitialPosition();
+            const auto& r_coord_3 = rGeometry[2].GetInitialPosition();
+    
+            const double length_12 = norm_2(r_coord_2 - r_coord_1);
+            const double length_23 = norm_2(r_coord_3 - r_coord_2);
+            const double length_31 = norm_2(r_coord_1 - r_coord_3);
 
-        const double length_12 = norm_2(r_coord_2 - r_coord_1);
-        const double length_23 = norm_2(r_coord_3 - r_coord_2);
-        const double length_31 = norm_2(r_coord_1 - r_coord_3);
+            max_length = std::max({length_12, length_23, length_31});
 
-        max_length = std::max(length_12, length_23);
-        max_length = std::max(max_length, length_31);
+        } else if (rGeometry.PointsNumber() == 4) {
+
+        } else {
+            KRATOS_ERROR << "This shell constitutive law is compatible with elements of 3 and 4 nodes only..." << std::endl;
+        }
 
         return max_length;
     }

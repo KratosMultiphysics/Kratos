@@ -157,8 +157,11 @@ public:
      */
     bool RequiresInitializeMaterialResponse() override
     {
-        return true;
-        // return mConstitutiveLaws[0]->RequiresInitializeMaterialResponse(); // TODO
+        for (IndexType i_layer = 0; i_layer < mConstitutiveLaws.size(); ++i_layer) {
+            if (mConstitutiveLaws[i_layer]->RequiresInitializeMaterialResponse())
+                return true;
+        }
+        return false;
     }
 
     /**
@@ -166,8 +169,11 @@ public:
      */
     bool RequiresFinalizeMaterialResponse() override
     {
-        return true;
-        // return mConstitutiveLaws[0]->RequiresFinalizeMaterialResponse(); // TODO
+        for (IndexType i_layer = 0; i_layer < mConstitutiveLaws.size(); ++i_layer) {
+            if (mConstitutiveLaws[i_layer]->RequiresFinalizeMaterialResponse())
+                return true;
+        }
+        return false;
     }
 
     /**
@@ -178,7 +184,10 @@ public:
     template<class TDataType>
     bool THas(const Variable<TDataType>& rThisVariable)
     {
-        // return mConstitutiveLaws[0]->Has(rThisVariable); // TODO
+        for (IndexType i_layer = 0; i_layer < mConstitutiveLaws.size(); ++i_layer) {
+            if (mConstitutiveLaws[i_layer]->Has(rThisVariable))
+                return true;
+        }
         return false;
     }
 

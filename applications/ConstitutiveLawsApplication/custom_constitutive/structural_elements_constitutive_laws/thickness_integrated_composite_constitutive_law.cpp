@@ -769,10 +769,11 @@ void ThicknessIntegratedCompositeConstitutiveLaw::ResetMaterial(
     KRATOS_TRY
 
     // We perform the reset in each layer
-    // const auto& r_sub_prop = *(rMaterialProperties.GetSubProperties().begin());
-    // for (IndexType i_layer = 0; i_layer < mConstitutiveLaws.size(); ++i_layer) {
-    //     mConstitutiveLaws[i_layer]->ResetMaterial(r_sub_prop, rElementGeometry, rShapeFunctionsValues);
-    // }
+    const auto it_cl_begin = rMaterialProperties.GetSubProperties().begin();
+    for (IndexType i_layer = 0; i_layer < mConstitutiveLaws.size(); ++i_layer) {
+        auto& r_subprop = *(it_cl_begin + i_layer);
+        mConstitutiveLaws[i_layer]->ResetMaterial(r_subprop, rElementGeometry, rShapeFunctionsValues);
+    }
 
     KRATOS_CATCH("ResetMaterial")
 }
