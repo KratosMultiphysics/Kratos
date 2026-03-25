@@ -46,8 +46,8 @@ class LegacyFromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittes
             "entity_type"          : "Element",
             "check_for_flag"       : "",
             "historical_value"     : true,
-            "tolerance"            : 1e-3,
-            "relative_tolerance"   : 1e-6,
+            "tolerance"            : 1e-7,
+            "relative_tolerance"   : 1e-7,
             "time_frequency"       : 1.00,
             "use_node_coordinates" : false,
             "check_only_local_entities" : false
