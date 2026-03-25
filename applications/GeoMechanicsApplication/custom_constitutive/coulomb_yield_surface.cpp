@@ -176,9 +176,9 @@ Vector CoulombYieldSurface::DerivativeOfFlowFunction(const Geo::PrincipalStresse
     }
 }
 
-double CoulombYieldSurface::CalculateApex() const
+Geo::SigmaTau CoulombYieldSurface::CalculateApex() const
 {
-    return GetCohesion() / std::tan(GetFrictionAngleInRadians());
+    return Geo::SigmaTau{GetCohesion() / std::tan(GetFrictionAngleInRadians()), 0.0};
 }
 
 void CoulombYieldSurface::InitializeKappaDependentFunctions()
