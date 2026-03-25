@@ -71,7 +71,62 @@ def get_sheetpile_node_ids():
         4637,
         4644,
     ]
-
+def get_soil_side_node_ids_of_right_interfaces():
+    return [
+        4765,
+        4766,
+        4767,
+        4768,
+        4769,
+        4770,
+        4771,
+        4772,
+        4773,
+        4774,
+        4775,
+        4776,
+        4777,
+        4778,
+        4779,
+        4780,
+        4781,
+        4782,
+        4783,
+        4784,
+        4785,
+        4786,
+        4787,
+        4788,
+        4789,
+        4790,
+        4791,
+        4792,
+        4793,
+        4794,
+        4795,
+        4796,
+        4797,
+        4798,
+        4799,
+        4800,
+        4801,
+        4802,
+        4803,
+        4804,
+        4805,
+        4806,
+        4807,
+        4808,
+        4809,
+        4810,
+        4811,
+        4812,
+        4813,
+        4814,
+        4815,
+        4816,
+        4817,
+    ]
 
 def _extract_x_and_y_from_line(line, index_of_x=0, index_of_y=1, x_transform=None):
     words = line.split(",")
@@ -84,7 +139,7 @@ def _extract_x_and_y_from_line(line, index_of_x=0, index_of_y=1, x_transform=Non
 
 
 def extract_bending_moment_and_y_from_line(line):
-    return _extract_x_and_y_from_line(line, index_of_x=1, index_of_y=0)
+    return _extract_x_and_y_from_line(line, index_of_x=1, index_of_y=0, x_transform=lambda x: -x)
 
 
 def extract_horizontal_displacements_from_line(line):
@@ -120,6 +175,98 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
                 analysis.GeoMechanicsAnalysis(model, stage_parameters).Run()
 
         self.create_sheetpile_plots(project_path)
+        self.create_interface_plots(project_path)
+
+    def read_json_output(self, project_path, stage):
+        with open(
+                os.path.join(project_path, f"{stage['base_name']}_interface_output.json"),
+                "r",
+        ) as output_file:
+            return json.load(output_file)
+
+    def get_variable_collections_per_stage(
+            self,
+            kratos_variable_label,
+            variable_plot_label,
+            project_path,
+            structural_stages,
+            object_name
+    ):
+        node_ids = get_soil_side_node_ids_of_right_interfaces()
+
+
+        # Since the coordinates do not change between stages, we base them on the first stage
+        y_coords = self.get_y_coords(
+            project_path, structural_stages[0]["base_name"], node_ids
+        )
+
+        variable_data_collections = []
+        for stage in structural_stages:
+            json_data = self.read_json_output(project_path, stage)
+            variable_kratos_data = []
+            index = 0 if variable_plot_label == "Normal traction" else 1
+            for node_label in [f"NODE_{node_id}" for node_id in node_ids]:
+                variable_kratos_data.append(
+                    json_data[node_label][kratos_variable_label][0][index]
+                )
+
+            variable_kratos_data = [
+                unit_to_k_unit(value) for value in variable_kratos_data
+            ]
+            sorted_y, sorted_data = zip(*sorted(zip(y_coords, variable_kratos_data)))
+            data_series_collection = []
+            data_series_collection.append(
+                plot_utils.DataSeries(
+                    zip(sorted_data, sorted_y),
+                    f"{variable_plot_label} [Kratos]",
+                    line_style="-",
+                    marker=".",
+                )
+            )
+            variable_data_collections.append(data_series_collection)
+        return variable_data_collections
+
+    def create_interface_plots(self, project_path):
+        structural_stages = [self.stages_info["final_equilibrium"]]
+
+        normal_traction_kratos_label = "GEO_EFFECTIVE_TRACTION_VECTOR"
+        normal_traction_plot_label = "Normal traction"
+        normal_traction_collections = self.get_variable_collections_per_stage(
+            normal_traction_kratos_label,
+            normal_traction_plot_label,
+            project_path,
+            structural_stages,
+            "right_interface"
+        )
+
+        plot_titles = [stage["base_name"] for stage in structural_stages]
+        plot_utils.make_sub_plots(
+            normal_traction_collections,
+            Path(project_path) / "normal_tractions_all_stages.svg",
+            titles=plot_titles,
+            xlabel=r"Normal Traction [$\mathrm{kN} / \mathrm{m}^2$]",
+            ylabel="y [m]",
+            figsize=(4, 6),
+        )
+
+        shear_traction_plot_label = "Shear traction"
+        shear_traction_kratos_label = "GEO_EFFECTIVE_TRACTION_VECTOR"
+        shear_traction_collections = self.get_variable_collections_per_stage(
+            shear_traction_kratos_label,
+            shear_traction_plot_label,
+            project_path,
+            structural_stages,
+            "left_interface",
+        )
+
+        plot_utils.make_sub_plots(
+            shear_traction_collections,
+            Path(project_path) / "shear_tractions_all_stages.svg",
+            titles=plot_titles,
+            xlabel=r"Shear Traction [$\mathrm{kN} / \mathrm{m}^2$]",
+            ylabel="y [m]",
+            figsize=(4, 6),
+            )
 
     def get_plot_stages(self):
         return [self.stages_info["final_equilibrium"]]
