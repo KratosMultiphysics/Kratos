@@ -98,6 +98,41 @@ void ComputeKernelCorrectionUtilities::ComputeGradientCorrection(ModelPart& rThi
     }
 }
 
+void ComputeKernelCorrectionUtilities::ComputeIntegrationCorrectionVector(ModelPart& rThisModelPart)
+{
+    KRATOS_TRY
+
+    //using LinearSolverType = SkylineLUFactorizationSolver<MatrixType, VectorType>;
+    //auto p_solver = Kratos::make_shared<LinearSolverType>();
+
+    auto& rElem = rThisModelPart.Elements();
+    SizeType number_of_elements = rElem.size();
+    int dimension = 2;
+
+    VectorType gamma_vector(number_of_elements);
+    noalias(gamma_vector) = ZeroVector(number_of_elements);
+
+    const SizeType mat_size = number_of_elements * dimension;
+
+    MatrixType rLHS(mat_size, mat_size);
+    noalias(rLHS) = ZeroMatrix(mat_size, mat_size);
+
+    VectorType rRHS(mat_size);
+    noalias(rRHS) = ZeroVector(mat_size);
+
+    VectorType solution(mat_size);
+    noalias(solution) = ZeroVector(mat_size);
+
+    ComputeKernelCorrectionUtilities::CalculateLinearSystemForCorrection(rThisModelPart, rLHS, rRHS);
+
+    //p_solver->Solve(rLHS, solution, rRHS);
+
+    //elem.SetValue(INTEGRATION_CORRECTION, solution[i]);
+
+
+    KRATOS_CATCH("")
+}
+
 bool ComputeKernelCorrectionUtilities::VerifyKernelCorrection(ModelPart& rThisModelPart, Parameters& rThisParameters)
 {
     KRATOS_TRY 
@@ -171,6 +206,16 @@ bool ComputeKernelCorrectionUtilities::VerifyKernelCorrection(ModelPart& rThisMo
 
     KRATOS_CATCH("")
 }
+
+void ComputeKernelCorrectionUtilities::CalculateLinearSystemForCorrection(ModelPart& rThisModelPart, MatrixType& rLHS, VectorType& rRHS)
+{
+    SizeType mat_size = rRHS.size();
+    noalias(rLHS) = IdentityMatrix(mat_size);
+    for (IndexType i = 0; i < mat_size; ++i){
+        rRHS[i] = 1.0;
+    }
+}
+
 
 void ComputeKernelCorrectionUtilities::ApplyKernelCorrection(Element& IP, double& kernel_target)
 {

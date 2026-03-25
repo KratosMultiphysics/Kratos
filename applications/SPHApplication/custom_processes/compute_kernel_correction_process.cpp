@@ -20,6 +20,8 @@ namespace Kratos
 
         ComputeKernelCorrectionUtilities::ComputeGradientCorrection(mrThisModelPart);
 
+        ComputeKernelCorrectionUtilities::ComputeIntegrationCorrectionVector(mrThisModelPart);
+
         KRATOS_CATCH("")
     }
 

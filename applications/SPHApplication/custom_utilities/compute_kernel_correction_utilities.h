@@ -6,6 +6,8 @@
 #include "includes/ublas_interface.h"
 #include "sph_application_variables.h"
 #include "custom_utilities/custom_kernels/kernel_factory.h"
+#include "linear_solvers/linear_solver.h"
+#include "linear_solvers/skyline_lu_factorization_solver.h"
 
 /**
  * @class ComputeKernelCorrectionUtilities
@@ -26,6 +28,14 @@ public:
     static void ComputeWeightedSums(ModelPart& rThisModelPart);
 
     static void ComputeGradientCorrection(ModelPart& rThisModelPart);
+
+    static void ComputeIntegrationCorrectionVector(ModelPart& rThisModelPart);
+
+    static void CalculateLinearSystemForCorrection(
+        ModelPart& rThisModelPart, 
+        MatrixType& rLHS,
+        VectorType& rRHS
+    );
 
     static bool VerifyKernelCorrection(ModelPart& rThisModelPart, Parameters& rThisParameters);
 

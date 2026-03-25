@@ -10,6 +10,8 @@
 #include "processes/process.h"
 #include "includes/model_part.h"
 #include "sph_application_variables.h"
+#include "geometries/geometry.h"
+#include "custom_utilities/compute_volume_utilities.h"
 
 /**
  * @class ComputeVolumeProcess
@@ -22,6 +24,9 @@ class KRATOS_API(SPH_APPLICATION) ComputeVolumeProcess
     : public Process
 {
 public:
+    
+    using VectorType = Vector;
+    using SizeType = size_t;
 
     KRATOS_CLASS_POINTER_DEFINITION(ComputeVolumeProcess);
 
