@@ -14,16 +14,21 @@
 #include "custom_constitutive/plane_strain.h"
 #include "custom_elements/plane_strain_stress_state.h"
 #include "custom_elements/small_strain_U_Pw_diff_order_element.h"
+#include "custom_elements/three_dimensional_stress_state.h"
 #include "custom_retention/saturated_law.h"
 #include "custom_utilities/registration_utilities.hpp"
 #include "custom_utilities/ublas_utilities.h"
 #include "geo_mechanics_application_variables.h"
+#include "geometries/triangle_2d_10.h"
+#include "geometries/triangle_2d_15.h"
 #include "test_setup_utilities/element_setup_utilities.hpp"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/stub_constitutive_law.h"
 #include "tests/cpp_tests/test_utilities.h"
 
 #include <string>
+#include <tuple>
+#include <vector>
 
 namespace
 {
@@ -178,6 +183,27 @@ KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculateShearCapacity,
                               Defaults::absolute_tolerance);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_SetValuesOnIntegrationPoints, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto p_element =
+        CreateSmallStrainUPwDiffOrderElementWithUPwDofs(CreatePropertiesForUPwDiffOrderElementTest());
+    const auto dummy_process_info = ProcessInfo{};
+    p_element->Initialize(dummy_process_info);
+
+    auto stress_vector = UblasUtilities::CreateVector({-1.5, 0.0, 1.5, 0.0});
+    p_element->SetValuesOnIntegrationPoints(
+        PK2_STRESS_VECTOR, std::vector<Vector>{3, stress_vector}, dummy_process_info);
+
+    // Act
+    auto actual_pk2_stress_vectors = std::vector<Vector>{};
+    p_element->CalculateOnIntegrationPoints(PK2_STRESS_VECTOR, actual_pk2_stress_vectors, dummy_process_info);
+
+    // Assert
+    for (const auto& vector : actual_pk2_stress_vectors)
+        KRATOS_EXPECT_EQ(vector.size(), 0);
+}
+
 KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculateLHS, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
@@ -214,7 +240,7 @@ KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculateLHS_WithSaveAn
     serializer.save("test_tag", p_element);
 
     // Act
-    auto p_loaded_element = make_intrusive<SmallStrainUPwDiffOrderElement>();
+    auto p_loaded_element = make_intrusive<SmallStrainUPwDiffOrderElement<2, 6>>();
     serializer.load("test_tag", p_loaded_element);
     auto actual_lhs_values = Matrix{};
     p_loaded_element->CalculateLeftHandSide(actual_lhs_values, dummy_process_info);
@@ -292,5 +318,604 @@ KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculateThrowsDebugErr
         p_element->Calculate(CAUCHY_STRAIN_VECTOR, output, ProcessInfo{}),
         "Variable CAUCHY_STRAIN_VECTOR is unknown for element with Id 1.");
 }
+
+KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CheckThrowsOnFaultyInput, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    const auto p_properties = std::make_shared<Properties>();
+    p_properties->SetValue(RETENTION_LAW, "SaturatedLaw");
+    p_properties->SetValue(SATURATED_SATURATION, 1.000000e+00);
+
+    // Zero domain size (all nodes coincident)
+    PointerVector<Node> coincident_nodes;
+    for (int i = 0; i < 6; ++i)
+        coincident_nodes.push_back(make_intrusive<Node>(i + 1, 0.0, 0.0, 0.0));
+    auto p_element = Testing::ElementSetupUtilities::Create2D6NDiffOrderElement(coincident_nodes, p_properties);
+    const auto dummy_process_info = ProcessInfo{};
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
+                                      "Element 1 has non-positive size 0");
+
+    PointerVector<Node> nodes;
+    nodes.push_back(make_intrusive<Node>(1, 0.0, 0.0, 0.0));
+    nodes.push_back(make_intrusive<Node>(2, 1.0, 0.0, 0.0));
+    nodes.push_back(make_intrusive<Node>(3, 0.0, 1.0, 0.0));
+    nodes.push_back(make_intrusive<Node>(4, 0.5, 0.0, 0.0));
+    nodes.push_back(make_intrusive<Node>(5, 0.5, 0.5, 0.0));
+    nodes.push_back(make_intrusive<Node>(6, 0.0, 0.5, 0.0));
+    p_element = Testing::ElementSetupUtilities::Create2D6NDiffOrderElement(nodes, p_properties);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
+                                      "Missing variable DISPLACEMENT on nodes 1 2 3 4 5 6");
+
+    auto solution_step_variables = Geo::ConstVariableDataRefs{std::cref(DISPLACEMENT)};
+    Testing::ElementSetupUtilities::AddVariablesToEntity(p_element, solution_step_variables);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
+                                      "Missing variable VELOCITY on nodes 1 2 3 4 5 6");
+
+    solution_step_variables = Geo::ConstVariableDataRefs{std::cref(DISPLACEMENT), std::cref(VELOCITY)};
+    Testing::ElementSetupUtilities::AddVariablesToEntity(p_element, solution_step_variables);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
+                                      "Missing variable ACCELERATION on nodes 1 2 3 4 5 6");
+
+    solution_step_variables =
+        Geo::ConstVariableDataRefs{std::cref(DISPLACEMENT), std::cref(VELOCITY), std::cref(ACCELERATION)};
+    Testing::ElementSetupUtilities::AddVariablesToEntity(p_element, solution_step_variables);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
+                                      "Missing variable WATER_PRESSURE on nodes 1 2 3 4 5 6");
+
+    solution_step_variables = Geo::ConstVariableDataRefs{
+        std::cref(DISPLACEMENT), std::cref(VELOCITY), std::cref(ACCELERATION), std::cref(WATER_PRESSURE)};
+    Testing::ElementSetupUtilities::AddVariablesToEntity(p_element, solution_step_variables);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
+                                      "Missing variable DT_WATER_PRESSURE on nodes 1 2 3 4 5 6");
+
+    solution_step_variables =
+        Geo::ConstVariableDataRefs{std::cref(DISPLACEMENT), std::cref(VELOCITY), std::cref(ACCELERATION),
+                                   std::cref(WATER_PRESSURE), std::cref(DT_WATER_PRESSURE)};
+    Testing::ElementSetupUtilities::AddVariablesToEntity(p_element, solution_step_variables);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
+                                      "Missing variable VOLUME_ACCELERATION on nodes 1 2 3 4 5 6");
+
+    solution_step_variables = Geo::ConstVariableDataRefs{
+        std::cref(DISPLACEMENT),   std::cref(VELOCITY),          std::cref(ACCELERATION),
+        std::cref(WATER_PRESSURE), std::cref(DT_WATER_PRESSURE), std::cref(VOLUME_ACCELERATION)};
+    Testing::ElementSetupUtilities::AddVariablesToEntity(p_element, solution_step_variables);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        p_element->Check(dummy_process_info),
+        "Missing the DoF for the variable DISPLACEMENT_X on nodes 1 2 3 4 5 6");
+
+    const auto degrees_of_freedom =
+        Geo::ConstVariableRefs{std::cref(DISPLACEMENT_X), std::cref(DISPLACEMENT_Y),
+                               std::cref(DISPLACEMENT_Z), std::cref(WATER_PRESSURE)};
+    Testing::ElementSetupUtilities::AddVariablesToEntity(p_element, solution_step_variables, degrees_of_freedom);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        p_element->Check(dummy_process_info),
+        "DENSITY_SOLID does not exist in the material properties with Id 0 at element with Id 1.");
+
+    p_properties->SetValue(DENSITY_SOLID, 2.650000e+03);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        p_element->Check(dummy_process_info),
+        "DENSITY_WATER does not exist in the material properties with Id 0 at element with Id 1.");
+
+    p_properties->SetValue(DENSITY_WATER, 1.000000e+03);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(dummy_process_info),
+                                      "BULK_MODULUS_SOLID does not exist in the material "
+                                      "properties with Id 0 at element with Id 1.");
+
+    p_properties->SetValue(BULK_MODULUS_SOLID, 1.000000e+12);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        p_element->Check(dummy_process_info),
+        "POROSITY does not exist in the material properties with Id 0 at element with Id 1.");
+
+    p_properties->SetValue(POROSITY, 1.000000e-01);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        p_element->Check(dummy_process_info),
+        "IGNORE_UNDRAINED does not exist in the parameter list with Id 0 at element with Id 1.");
+
+    p_properties->SetValue(IGNORE_UNDRAINED, false);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        p_element->Check(dummy_process_info),
+        "PERMEABILITY_XX does not exist in the parameter list with Id 0 at element with Id 1.");
+
+    p_properties->SetValue(PERMEABILITY_XX, 9.084000e-06);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        p_element->Check(dummy_process_info),
+        "PERMEABILITY_YY does not exist in the parameter list with Id 0 at element with Id 1.");
+
+    p_properties->SetValue(PERMEABILITY_YY, 9.084000e-06);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        p_element->Check(dummy_process_info),
+        "PERMEABILITY_XY does not exist in the parameter list with Id 0 at element with Id 1.");
+
+    p_properties->SetValue(PERMEABILITY_XY, 0.000000e+00);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        p_element->Check(dummy_process_info),
+        "CONSTITUTIVE_LAW does not exist in the parameter list with Id 0 at element with Id 1.");
+
+    p_properties->SetValue(CONSTITUTIVE_LAW, std::make_shared<StubConstitutiveLaw>());
+    p_element->Initialize(dummy_process_info);
+    KRATOS_EXPECT_EQ(p_element->Check(dummy_process_info), 0);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculateOnIntegrationPoints_double,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto p_element =
+        CreateSmallStrainUPwDiffOrderElementWithUPwDofs(CreatePropertiesForUPwDiffOrderElementTest());
+    SetSolutionStepValuesForGeneralCheck(p_element);
+    const auto dummy_process_info = ProcessInfo{};
+    p_element->Initialize(dummy_process_info);
+
+    const auto stress_vector = UblasUtilities::CreateVector({-1.5, 0.0, 1.5, 0.0});
+    p_element->SetValuesOnIntegrationPoints(
+        CAUCHY_STRESS_VECTOR, std::vector<Vector>{3, stress_vector}, dummy_process_info);
+
+    // VON_MISES_STRESS
+    std::vector<double> von_mises;
+    p_element->CalculateOnIntegrationPoints(VON_MISES_STRESS, von_mises, dummy_process_info);
+    const auto expected_von_mises =
+        UblasUtilities::CreateVector({2.59807621135, 2.59807621135, 2.59807621135});
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(von_mises, expected_von_mises, Defaults::relative_tolerance);
+
+    // MEAN_EFFECTIVE_STRESS
+    std::vector<double> mean_effective_stress;
+    p_element->CalculateOnIntegrationPoints(MEAN_EFFECTIVE_STRESS, mean_effective_stress, dummy_process_info);
+    const auto expected_mean_effective_stress = UblasUtilities::CreateVector({0, 0, 0});
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(mean_effective_stress, expected_mean_effective_stress,
+                                       Defaults::relative_tolerance);
+
+    // MEAN_STRESS
+    std::vector<double> mean_stress;
+    p_element->CalculateOnIntegrationPoints(MEAN_STRESS, mean_stress, dummy_process_info);
+    const auto expected_mean_stress = UblasUtilities::CreateVector({0, 0, 0});
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(mean_stress, expected_mean_stress, Defaults::relative_tolerance);
+
+    // ENGINEERING_VON_MISES_STRAIN
+    std::vector<double> engineering_von_mises;
+    p_element->CalculateOnIntegrationPoints(ENGINEERING_VON_MISES_STRAIN, engineering_von_mises, dummy_process_info);
+    const auto expected_engineering_von_mises =
+        UblasUtilities::CreateVector({0.0333666, 0.0283194, 0.0391524});
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(engineering_von_mises, expected_engineering_von_mises,
+                                       Defaults::relative_tolerance);
+
+    // ENGINEERING_VOLUMETRIC_STRAIN
+    std::vector<double> engineering_volumetric_strain;
+    p_element->CalculateOnIntegrationPoints(ENGINEERING_VOLUMETRIC_STRAIN,
+                                            engineering_volumetric_strain, dummy_process_info);
+    const auto expected_engineering_volumetric_strain =
+        UblasUtilities::CreateVector({0.0269355, -0.005, -0.00411765});
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(engineering_volumetric_strain, expected_engineering_volumetric_strain,
+                                       Defaults::relative_tolerance);
+
+    // GREEN_LAGRANGE_VON_MISES_STRAIN
+    std::vector<double> green_lagrange_von_mises_strain;
+    p_element->CalculateOnIntegrationPoints(GREEN_LAGRANGE_VON_MISES_STRAIN,
+                                            green_lagrange_von_mises_strain, dummy_process_info);
+    const auto expected_green_lagrange_von_mises_strain =
+        UblasUtilities::CreateVector({0.0333666, 0.0283194, 0.0391524});
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(green_lagrange_von_mises_strain, expected_green_lagrange_von_mises_strain,
+                                       Defaults::relative_tolerance);
+
+    // GREEN_LAGRANGE_VOLUMETRIC_STRAIN
+    std::vector<double> green_lagrange_volumetric_strain;
+    p_element->CalculateOnIntegrationPoints(GREEN_LAGRANGE_VOLUMETRIC_STRAIN,
+                                            green_lagrange_volumetric_strain, dummy_process_info);
+    const auto expected_green_lagrange_volumetric_strain =
+        UblasUtilities::CreateVector({0.0269355, -0.005, -0.00411765});
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(green_lagrange_volumetric_strain, expected_green_lagrange_volumetric_strain,
+                                       Defaults::relative_tolerance);
+
+    // DEGREE_OF_SATURATION
+    std::vector<double> degree_of_saturation;
+    p_element->CalculateOnIntegrationPoints(DEGREE_OF_SATURATION, degree_of_saturation, dummy_process_info);
+    const auto expected_degree_of_saturation = UblasUtilities::CreateVector({1, 1, 1});
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(degree_of_saturation, expected_degree_of_saturation,
+                                       Defaults::relative_tolerance);
+
+    // EFFECTIVE_SATURATION
+    std::vector<double> effective_saturation;
+    p_element->CalculateOnIntegrationPoints(EFFECTIVE_SATURATION, effective_saturation, dummy_process_info);
+    const auto expected_effective_saturation = UblasUtilities::CreateVector({1, 1, 1});
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(effective_saturation, expected_effective_saturation,
+                                       Defaults::relative_tolerance);
+
+    // BISHOP_COEFFICIENT
+    std::vector<double> bishop_coefficient;
+    p_element->CalculateOnIntegrationPoints(BISHOP_COEFFICIENT, bishop_coefficient, dummy_process_info);
+    const auto expected_bishop_coefficient = UblasUtilities::CreateVector({1, 1, 1});
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(bishop_coefficient, expected_bishop_coefficient, Defaults::relative_tolerance);
+
+    // DERIVATIVE_OF_SATURATION
+    std::vector<double> derivative_of_saturation;
+    p_element->CalculateOnIntegrationPoints(DERIVATIVE_OF_SATURATION, derivative_of_saturation, dummy_process_info);
+    const auto expected_derivative_of_saturation = UblasUtilities::CreateVector({0, 0, 0});
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(derivative_of_saturation, expected_derivative_of_saturation,
+                                       Defaults::relative_tolerance);
+
+    // RELATIVE_PERMEABILITY
+    std::vector<double> relative_permeability;
+    p_element->CalculateOnIntegrationPoints(RELATIVE_PERMEABILITY, relative_permeability, dummy_process_info);
+    const auto expected_relative_permeability = UblasUtilities::CreateVector({1, 1, 1});
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(relative_permeability, expected_relative_permeability,
+                                       Defaults::relative_tolerance);
+
+    // HYDRAULIC_HEAD
+    std::vector<double> hydraulic_head;
+    p_element->CalculateOnIntegrationPoints(HYDRAULIC_HEAD, hydraulic_head, dummy_process_info);
+    const auto expected_hydraulic_head =
+        UblasUtilities::CreateVector({-1.14444444444, -1.66111111111, -1.14444444444});
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(hydraulic_head, expected_hydraulic_head, Defaults::relative_tolerance);
+
+    // CONFINED_STIFFNESS
+    std::vector<double> confined_stiffness;
+    p_element->CalculateOnIntegrationPoints(CONFINED_STIFFNESS, confined_stiffness, dummy_process_info);
+    const auto expected_confined_stiffness = UblasUtilities::CreateVector({1e+07, 1e+07, 1e+07});
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(confined_stiffness, expected_confined_stiffness, Defaults::relative_tolerance);
+
+    // SHEAR_STIFFNESS
+    std::vector<double> shear_stiffness;
+    p_element->CalculateOnIntegrationPoints(SHEAR_STIFFNESS, shear_stiffness, dummy_process_info);
+    const auto expected_shear_stiffness = UblasUtilities::CreateVector({5e+06, 5e+06, 5e+06});
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(shear_stiffness, expected_shear_stiffness, Defaults::relative_tolerance);
+
+    // YOUNG_MODULUS (property variable)
+    std::vector<double> young_modulus;
+    p_element->CalculateOnIntegrationPoints(YOUNG_MODULUS, young_modulus, dummy_process_info);
+    KRATOS_EXPECT_EQ(young_modulus.size(), 3);
+    for (const auto& value : young_modulus)
+        KRATOS_EXPECT_DOUBLE_EQ(value, 1.0e7);
+
+    // STATE_VARIABLE as an example of a not-used variable
+    std::vector<double> state_variables;
+    p_element->CalculateOnIntegrationPoints(STATE_VARIABLE, state_variables, dummy_process_info);
+    KRATOS_EXPECT_EQ(state_variables.size(), 3);
+    for (const auto& value : state_variables)
+        KRATOS_EXPECT_DOUBLE_EQ(value, 0);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculateOnIntegrationPoints_Vector,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto p_element =
+        CreateSmallStrainUPwDiffOrderElementWithUPwDofs(CreatePropertiesForUPwDiffOrderElementTest());
+    SetSolutionStepValuesForGeneralCheck(p_element);
+    const auto dummy_process_info = ProcessInfo{};
+    p_element->Initialize(dummy_process_info);
+
+    const auto stress_vector = UblasUtilities::CreateVector({-1.5, 0.0, 1.5, 0.0});
+    p_element->SetValuesOnIntegrationPoints(
+        CAUCHY_STRESS_VECTOR, std::vector<Vector>{3, stress_vector}, dummy_process_info);
+
+    // Act & Assert: CAUCHY_STRESS_VECTOR
+    std::vector<Vector> stress_vectors;
+    p_element->CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, stress_vectors, dummy_process_info);
+    for (const auto& actual_stress_vector : stress_vectors)
+        KRATOS_EXPECT_VECTOR_NEAR(actual_stress_vector, stress_vector, Defaults::absolute_tolerance);
+
+    // Act & Assert: ENGINEERING_STRAIN_VECTOR
+    std::vector<Vector> strain_vectors;
+    p_element->CalculateOnIntegrationPoints(ENGINEERING_STRAIN_VECTOR, strain_vectors, dummy_process_info);
+    std::vector<Vector> expected_strain_vectors;
+    expected_strain_vectors.push_back(UblasUtilities::CreateVector({0.026935483871, 0, 0, -0.0243548387097}));
+    expected_strain_vectors.push_back(UblasUtilities::CreateVector({-0.005, 0, 0, -0.0243548387097}));
+    expected_strain_vectors.push_back(UblasUtilities::CreateVector({-0.00411764705882, 0, 0, 0.0338235294118}));
+    for (std::size_t i = 0; i < strain_vectors.size(); i++)
+        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(strain_vectors[i], expected_strain_vectors[i],
+                                           Defaults::relative_tolerance);
+
+    // Act & Assert: TOTAL_STRESS_VECTOR
+    std::vector<Vector> total_stress_vectors;
+    p_element->CalculateOnIntegrationPoints(TOTAL_STRESS_VECTOR, total_stress_vectors, dummy_process_info);
+    const auto expected_total_stress_vector = UblasUtilities::CreateVector({-1.5, 0, 1.5, 0});
+    for (const auto& total_stress_vector : total_stress_vectors)
+        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(total_stress_vector, expected_total_stress_vector,
+                                           Defaults::relative_tolerance);
+
+    // Act & Assert: GREEN_LAGRANGE_STRAIN_VECTOR
+    std::vector<Vector> green_lagrange_strain_vectors;
+    p_element->CalculateOnIntegrationPoints(GREEN_LAGRANGE_STRAIN_VECTOR,
+                                            green_lagrange_strain_vectors, dummy_process_info);
+    std::vector<Vector> expected_green_lagrange_strain_vectors;
+    expected_green_lagrange_strain_vectors.push_back(
+        UblasUtilities::CreateVector({0.026935483871, 0, 0, -0.0243548387097}));
+    expected_green_lagrange_strain_vectors.push_back(
+        UblasUtilities::CreateVector({-0.005, 0, 0, -0.0243548387097}));
+    expected_green_lagrange_strain_vectors.push_back(
+        UblasUtilities::CreateVector({-0.00411764705882, 0, 0, 0.0338235294118}));
+    for (std::size_t i = 0; i < green_lagrange_strain_vectors.size(); i++)
+        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(green_lagrange_strain_vectors[i],
+                                           expected_green_lagrange_strain_vectors[i],
+                                           Defaults::relative_tolerance);
+
+    // Add more vector variable tests here as needed
+}
+
+KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculateOnIntegrationPoints_Matrix,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto p_element =
+        CreateSmallStrainUPwDiffOrderElementWithUPwDofs(CreatePropertiesForUPwDiffOrderElementTest());
+    SetSolutionStepValuesForGeneralCheck(p_element);
+    const auto dummy_process_info = ProcessInfo{};
+    p_element->Initialize(dummy_process_info);
+
+    const auto stress_vector = UblasUtilities::CreateVector({-1.5, 0.0, 1.5, 0.0});
+    p_element->SetValuesOnIntegrationPoints(
+        CAUCHY_STRESS_VECTOR, std::vector<Vector>{3, stress_vector}, dummy_process_info);
+
+    // Act & Assert: CAUCHY_STRESS_TENSOR
+    std::vector<Matrix> stress_matrices;
+    p_element->CalculateOnIntegrationPoints(CAUCHY_STRESS_TENSOR, stress_matrices, dummy_process_info);
+    const auto expected_stress_matrix = UblasUtilities::CreateMatrix({{-1.5, 0, 0}, {0, 0, 0}, {0, 0, 1.5}});
+    for (const auto& stress_matrix : stress_matrices)
+        KRATOS_EXPECT_MATRIX_NEAR(stress_matrix, expected_stress_matrix, Defaults::absolute_tolerance);
+
+    // Act & Assert: TOTAL_STRESS_TENSOR
+    p_element->CalculateOnIntegrationPoints(TOTAL_STRESS_TENSOR, stress_matrices, dummy_process_info);
+    for (const auto& stress_matrix : stress_matrices)
+        KRATOS_EXPECT_MATRIX_NEAR(stress_matrix, expected_stress_matrix, Defaults::absolute_tolerance)
+
+    // Act & Assert: ENGINEERING_STRAIN_TENSOR
+    std::vector<Matrix> strain_matrices;
+    p_element->CalculateOnIntegrationPoints(ENGINEERING_STRAIN_TENSOR, strain_matrices, dummy_process_info);
+    std::vector<Matrix> expected_strain_matrices;
+    expected_strain_matrices.push_back(UblasUtilities::CreateMatrix(
+        {{0.026935483870967739, -0.012177419354838709, 0}, {-0.012177419354838709, 0, 0}, {0, 0, 0}}));
+    expected_strain_matrices.push_back(UblasUtilities::CreateMatrix(
+        {{-0.0049999999999999966, -0.012177419354838711, 0}, {-0.012177419354838711, 0, 0}, {0, 0, 0}}));
+    expected_strain_matrices.push_back(UblasUtilities::CreateMatrix(
+        {{-0.0041176470588235262, 0.016911764705882348, 0}, {0.016911764705882348, 0, 0}, {0, 0, 0}}));
+    for (auto i = std::size_t{0}; i < strain_matrices.size(); i++)
+        KRATOS_EXPECT_MATRIX_NEAR(strain_matrices[i], expected_strain_matrices[i], Defaults::absolute_tolerance);
+
+    // Act & Assert: GREEN_LAGRANGE_STRAIN_TENSOR
+    p_element->CalculateOnIntegrationPoints(GREEN_LAGRANGE_STRAIN_TENSOR, strain_matrices, dummy_process_info);
+    for (auto i = std::size_t{0}; i < strain_matrices.size(); i++)
+        KRATOS_EXPECT_MATRIX_NEAR(strain_matrices[i], expected_strain_matrices[i], Defaults::absolute_tolerance);
+
+    // Act & Assert: PK2_STRESS_TENSOR
+    p_element->CalculateOnIntegrationPoints(PK2_STRESS_TENSOR, stress_matrices, dummy_process_info);
+    for (const auto& stress_matrix : stress_matrices)
+        KRATOS_EXPECT_MATRIX_NEAR(stress_matrix, expected_stress_matrix, Defaults::absolute_tolerance);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculateOnIntegrationPoints_Int,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto p_element =
+        CreateSmallStrainUPwDiffOrderElementWithUPwDofs(CreatePropertiesForUPwDiffOrderElementTest());
+    SetSolutionStepValuesForGeneralCheck(p_element);
+    const auto dummy_process_info = ProcessInfo{};
+    p_element->Initialize(dummy_process_info);
+
+    // Act & Assert
+    auto direction_vector = std::vector({1, 2, 3, 4, 5, 6});
+    p_element->CalculateOnIntegrationPoints(K0_MAIN_DIRECTION, direction_vector, dummy_process_info);
+    KRATOS_EXPECT_EQ(direction_vector.size(), 3);
+    for (auto i = std::size_t{0}; i < direction_vector.size(); i++)
+        KRATOS_EXPECT_EQ(direction_vector[i], static_cast<int>(i + 1));
+}
+
+KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculateDampingMatrix, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto p_element =
+        CreateSmallStrainUPwDiffOrderElementWithUPwDofs(CreatePropertiesForUPwDiffOrderElementTest());
+    auto& r_properties = p_element->GetProperties();
+    r_properties.SetValue(RAYLEIGH_ALPHA, 1.0);
+    r_properties.SetValue(RAYLEIGH_BETA, 1.0);
+    SetSolutionStepValuesForGeneralCheck(p_element);
+    const auto dummy_process_info = ProcessInfo{};
+    p_element->Initialize(dummy_process_info);
+
+    const auto stress_vector = UblasUtilities::CreateVector({-1.5, 0.0, 1.5, 0.0});
+    p_element->SetValuesOnIntegrationPoints(
+        CAUCHY_STRESS_VECTOR, std::vector<Vector>{3, stress_vector}, dummy_process_info);
+
+    // Act
+    Matrix dumping_matrix;
+    p_element->CalculateDampingMatrix(dumping_matrix, dummy_process_info);
+
+    // Assert
+    // clang-format off
+    const auto expected_dumping_matrix = UblasUtilities::CreateMatrix({
+        {8531991.5916965343,-2715844.4022770403,932780.35941855819,-52972.802024035424,1814797.9413580243,-833333.33333333302,-3649924.9233373138,268817.20430107455,-586652.62385504041,154965.21189120878,-7042996.9471326172,3178368.1214421256,0,0,0},
+        {-2715844.4022770403,7883184.5778515702,-886306.13535736862,1687919.5118537254,0,907390.53395061707,3602150.537634409,-6663664.4693349246,154965.21189120901,-388219.84572586743,-154965.21189120901,-3426614.910446974,0,0,0},
+        {932780.35941855819,-886306.13535736862,2414906.7649342883,-790.63883617966258,111094.23765432095,833333.33333333314,-3236543.8002787721,3387096.7741935472,46608.787634408502,-3380771.6635041102,-268850.9512146553,47438.330170777976,0,0,0},
+        {-52972.802024035424,1687919.5118537254,-790.63883617966258,4824642.1644704454,0,55538.682098765414,53763.440860215087,-6456973.9078056524,-47438.330170777976,118187.95693653758,47438.330170777976,-229319.00940567328,0,0,0},
+        {1814797.9413580243,0,111094.23765432095,0,5629663.3765432099,0,-296326.97530864138,0,-592572.6512345681,0,-6666646.7253086418,0,0,0,0},
+        {-833333.33333333302,907390.53395061707,833333.33333333314,55538.682098765414,0,2814848.5617283951,-1.1334696144634405e-10,-148178.82716049353,-3333333.3333333326,-296276.35493827169,3333333.3333333326,-3333313.3919753083,0,0,0},
+        {-3649924.9233373138,3602150.537634409,-3236543.8002787721,53763.440860215087,-296326.97530864208,-1.1334696144634405e-10,19923711.31003584,-3655913.9784946213,-13385773.179211468,3225806.4516129009,645290.14217442914,-3225806.4516129037,0,0,0},
+        {268817.20430107467,-6663664.4693349246,3387096.7741935472,-6456973.9078056524,0,-148178.82716049388,-3655913.9784946213,19639362.445041809,3225806.4516129023,-6692822.1636798065,-3225806.4516129023,322709.49701313901,0,0,0},
+        {-586652.62385503971,154965.21189120889,46608.787634408502,-47438.330170777976,-592572.65123456763,-3333333.3333333326,-13385773.179211464,3225806.4516129023,19464937.617781755,-2846299.810246679,-4946101.5714854607,2846299.8102466771,0,0,0},
+        {154965.21189120878,-388219.84572586673,-3380771.6635041102,118187.95693653758,0,-296276.35493827146,3225806.4516129009,-6692822.1636798065,-2846299.8102466785,18650966.151058864,2846299.8102466785,-11391389.364021828,0,0,0},
+        {-7042996.9471326154,-154965.21189120889,-268850.9512146553,47438.330170777976,-6666646.7253086418,3333333.3333333326,645290.14217442891,-3225806.4516129023,-4946101.5714854607,2846299.810246679,18279752.432596572,-2846299.8102466771,0,0,0},
+        {3178368.1214421256,-3426614.9104469731,47438.330170777976,-229319.00940567328,0,-3333313.3919753083,-3225806.4516129037,322709.49701313855,2846299.8102466771,-11391389.364021828,-2846299.8102466771,18058373.558466271,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}});
+    // clang-format on
+    KRATOS_EXPECT_MATRIX_NEAR(dumping_matrix, expected_dumping_matrix, Defaults::absolute_tolerance);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculatesFluidFluxVector, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto p_element =
+        CreateSmallStrainUPwDiffOrderElementWithUPwDofs(CreatePropertiesForUPwDiffOrderElementTest());
+    SetSolutionStepValuesForGeneralCheck(p_element); // uniform pressure + gravity
+    const ProcessInfo process_info{};
+    p_element->Initialize(process_info);
+
+    // Act
+    std::vector<array_1d<double, 3>> fluid_fluxes;
+    p_element->CalculateOnIntegrationPoints(FLUID_FLUX_VECTOR, fluid_fluxes, process_info);
+
+    // Assert
+    // With uniform pressure (∇p = 0) and gravity [0,-10,0]:
+    // q_y = (1/μ) * k_yy * (0 + ρ_w * g_y) = (1/0.01) * 9.084e-6 * 1000 * (-10) = -9.084
+    const array_1d<double, 3> expected_fluid_flux{0., -9.084, 0.}; // sign follows PORE_PRESSURE_SIGN_FACTOR
+    for (const auto& fluid_flux : fluid_fluxes)
+        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(fluid_flux, expected_fluid_flux, Defaults::relative_tolerance);
+}
+
+struct DiffOrderElementTestParam {
+    std::string                                                             name;
+    std::function<Element::Pointer(ModelPart&, const Properties::Pointer&)> create_element;
+    std::vector<std::size_t>                                                intermediate_indices;
+    std::vector<double> expected_intermediate_pressures;
+};
+
+// Helper functions for each element type
+Element::Pointer Create2D6(ModelPart& rModelPart, const Properties::Pointer& rProperties)
+{
+    PointerVector<Node> nodes;
+    nodes.push_back(rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0));
+    nodes.push_back(rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0));
+    nodes.push_back(rModelPart.CreateNewNode(3, 0.0, 1.0, 0.0));
+    nodes.push_back(rModelPart.CreateNewNode(4, 0.5, 0.0, 0.0));
+    nodes.push_back(rModelPart.CreateNewNode(5, 0.5, 0.5, 0.0));
+    nodes.push_back(rModelPart.CreateNewNode(6, 0.0, 0.5, 0.0));
+    return Testing::ElementSetupUtilities::Create2D6NDiffOrderElement(nodes, rProperties);
+}
+
+Element::Pointer Create2D8(ModelPart& rModelPart, const Properties::Pointer& rProperties)
+{
+    PointerVector<Node> nodes;
+    for (int i = 0; i < 8; ++i)
+        nodes.push_back(rModelPart.CreateNewNode(i + 1, 0.0, 0.0, 0.0));
+    return make_intrusive<SmallStrainUPwDiffOrderElement<2, 8>>(
+        1, Geometry<Node>::Pointer(std::make_shared<Quadrilateral2D8<Node>>(nodes)), rProperties,
+        std::make_unique<PlaneStrainStressState>());
+}
+
+Element::Pointer Create2D9(ModelPart& rModelPart, const Properties::Pointer& rProperties)
+{
+    PointerVector<Node> nodes;
+    for (int i = 0; i < 9; ++i)
+        nodes.push_back(rModelPart.CreateNewNode(i + 1, 0.0, 0.0, 0.0));
+    return make_intrusive<SmallStrainUPwDiffOrderElement<2, 9>>(
+        1, Geometry<Node>::Pointer(std::make_shared<Quadrilateral2D9<Node>>(nodes)), rProperties,
+        std::make_unique<PlaneStrainStressState>());
+}
+
+Element::Pointer Create2D10(ModelPart& rModelPart, const Properties::Pointer& rProperties)
+{
+    PointerVector<Node> nodes;
+    for (int i = 0; i < 10; ++i)
+        nodes.push_back(rModelPart.CreateNewNode(i + 1, 0.0, 0.0, 0.0));
+    return make_intrusive<SmallStrainUPwDiffOrderElement<2, 10>>(
+        1, Geometry<Node>::Pointer(std::make_shared<Triangle2D10<Node>>(nodes)), rProperties,
+        std::make_unique<PlaneStrainStressState>());
+}
+
+Element::Pointer Create2D15(ModelPart& rModelPart, const Properties::Pointer& rProperties)
+{
+    PointerVector<Node> nodes;
+    for (int i = 0; i < 15; ++i)
+        nodes.push_back(rModelPart.CreateNewNode(i + 1, 0.0, 0.0, 0.0));
+    return make_intrusive<SmallStrainUPwDiffOrderElement<2, 15>>(
+        1, Geometry<Node>::Pointer(std::make_shared<Triangle2D15<Node>>(nodes)), rProperties,
+        std::make_unique<PlaneStrainStressState>());
+}
+
+Element::Pointer Create3D10(ModelPart& rModelPart, const Properties::Pointer& rProperties)
+{
+    PointerVector<Node> nodes;
+    for (int i = 0; i < 10; ++i)
+        nodes.push_back(rModelPart.CreateNewNode(i + 1, 0.0, 0.0, 0.0));
+    return make_intrusive<SmallStrainUPwDiffOrderElement<3, 10>>(
+        1, Geometry<Node>::Pointer(std::make_shared<Tetrahedra3D10<Node>>(nodes)), rProperties,
+        std::make_unique<ThreeDimensionalStressState>());
+}
+
+Element::Pointer Create3D20(ModelPart& rModelPart, const Properties::Pointer& rProperties)
+{
+    PointerVector<Node> nodes;
+    for (int i = 0; i < 20; ++i)
+        nodes.push_back(rModelPart.CreateNewNode(i + 1, 0.0, 0.0, 0.0));
+    return make_intrusive<SmallStrainUPwDiffOrderElement<3, 20>>(
+        1, Geometry<Node>::Pointer(std::make_shared<Hexahedra3D20<Node>>(nodes)), rProperties,
+        std::make_unique<ThreeDimensionalStressState>());
+}
+
+Element::Pointer Create3D27(ModelPart& rModelPart, const Properties::Pointer& rProperties)
+{
+    PointerVector<Node> nodes;
+    for (int i = 0; i < 27; ++i)
+        nodes.push_back(rModelPart.CreateNewNode(i + 1, 0.0, 0.0, 0.0));
+    return make_intrusive<SmallStrainUPwDiffOrderElement<3, 27>>(
+        1, Geometry<Node>::Pointer(std::make_shared<Hexahedra3D27<Node>>(nodes)), rProperties,
+        std::make_unique<ThreeDimensionalStressState>());
+}
+
+// Parameter set for each instantiation (for brevity, only 2D6 and 2D8 are fully filled; others can be extended similarly)
+const std::vector<DiffOrderElementTestParam> diff_order_element_params = {
+    {"2D6", Create2D6, {3, 4, 5}, {5.0, 15.0, 10.0}},
+    {"2D8", Create2D8, {4, 5, 6, 7}, {5.0, 15.0, 25.0, 15.0}},
+    {"2D9", Create2D9, {4, 5, 6, 7, 8}, {5.0, 15.0, 25.0, 15.0, 15.0}},
+    {"2D10", Create2D10, {3, 4, 5, 6, 7, 8, 9}, {25.5556, 28.8889, 35.5556, 38.8889, 48.8889, 42.2222, 50.0}},
+    {"2D15",
+     Create2D15,
+     {3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14},
+     {23.5938, 38.75, 37.0312, 42.0312, 60.0, 55.4688, 59.2969, 83.125, 70.3906, 84.8438, 78.2031, 88.4375}},
+    {"3D10", Create3D10, {4, 5, 6, 7, 8, 9}, {5.0, 15.0, 10.0, 15.0, 20.0, 25.0}},
+    {"3D20",
+     Create3D20,
+     {8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19},
+     {5.0, 15.0, 25.0, 15.0, 20.0, 30.0, 40.0, 50.0, 45.0, 55.0, 65.0, 55.0}},
+    {"3D27",
+     Create3D27,
+     {8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26},
+     {5.0, 15.0, 25.0, 15.0, 20.0, 30.0, 40.0, 50.0, 45.0, 55.0, 65.0, 35.0, 15.0, 25.0, 35.0, 45.0,
+      35.0, 55.0, 35.0}},
+};
+
+class DiffOrderElementTests : public ::testing::TestWithParam<DiffOrderElementTestParam>
+{
+};
+
+TEST_P(DiffOrderElementTests, FinalizeSolutionStepReturnsIntermediateNodePressures)
+{
+    const auto& param = GetParam();
+    Model       model;
+    ModelPart&  r_model_part = model.CreateModelPart("Test");
+    r_model_part.AddNodalSolutionStepVariable(WATER_PRESSURE);
+    r_model_part.AddNodalSolutionStepVariable(DT_WATER_PRESSURE);
+    r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+    r_model_part.AddNodalSolutionStepVariable(VELOCITY);
+    r_model_part.AddNodalSolutionStepVariable(ACCELERATION);
+    r_model_part.AddNodalSolutionStepVariable(VOLUME_ACCELERATION);
+    r_model_part.AddNodalSolutionStepVariable(HYDRAULIC_DISCHARGE);
+    auto  properties = CreatePropertiesForUPwDiffOrderElementTest();
+    auto  p_element  = param.create_element(r_model_part, properties);
+    auto& r_geometry = p_element->GetGeometry();
+    // Set input pressures: 10 * index
+    for (std::size_t i = 0; i < r_geometry.size(); ++i) {
+        r_geometry[i].SetBufferSize(2); // or higher if your test needs more steps
+        r_geometry[i].FastGetSolutionStepValue(WATER_PRESSURE)    = static_cast<double>(10 * i);
+        r_geometry[i].FastGetSolutionStepValue(WATER_PRESSURE, 1) = 0.0;
+    }
+    // Act: use public API
+    p_element->Initialize(ProcessInfo{});
+    p_element->FinalizeSolutionStep(ProcessInfo{});
+    // Assert
+    constexpr auto tolerance = 0.0001;
+    for (std::size_t i = 0; i < param.intermediate_indices.size(); ++i) {
+        EXPECT_NEAR(r_geometry[param.intermediate_indices[i]].FastGetSolutionStepValue(WATER_PRESSURE),
+                    param.expected_intermediate_pressures[i], tolerance)
+            << "Failed for " << param.name << " at node " << param.intermediate_indices[i];
+    }
+}
+
+INSTANTIATE_TEST_SUITE_P(AllDiffOrderElementTypes,
+                         DiffOrderElementTests,
+                         ::testing::ValuesIn(diff_order_element_params),
+                         [](const ::testing::TestParamInfo<DiffOrderElementTests::ParamType>& info) {
+                             return info.param.name;
+                         });
 
 } // namespace Kratos::Testing
