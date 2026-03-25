@@ -105,7 +105,10 @@ public:
      * @brief Constructor with values
      * @param rThicknessIntegrationPoints The amount of thickness integration points
      */
-    ThicknessIntegratedCompositeConstitutiveLaw(const IndexType rThicknessIntegrationPoints);
+    ThicknessIntegratedCompositeConstitutiveLaw(
+        const Vector& rZCoordinates,
+        const Vector& rEulerAngles,
+        const Vector& rThicknesses);
 
     /**
      * @brief Copy constructor.
@@ -173,7 +176,7 @@ public:
      * @return true if the variable is defined in the constitutive law
      */
     template<class TDataType>
-    bool Has(const Variable<TDataType>& rThisVariable)
+    bool THas(const Variable<TDataType>& rThisVariable)
     {
         // return mConstitutiveLaws[0]->Has(rThisVariable); // TODO
         return false;
