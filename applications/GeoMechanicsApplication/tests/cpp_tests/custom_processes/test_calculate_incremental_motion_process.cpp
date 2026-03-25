@@ -33,10 +33,10 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateIncrementalMotionProcessDisplacement, KratosG
 
     std::vector<intrusive_ptr<Node>> nodes = {p_node_1, p_node_2};
 
-    for (auto p_node : nodes) {
-        p_node->AddDof(DISPLACEMENT_X);
-        p_node->AddDof(DISPLACEMENT_Y);
-        p_node->AddDof(DISPLACEMENT_Z);
+    for (auto& rp_node : nodes) {
+        rp_node->AddDof(DISPLACEMENT_X);
+        rp_node->AddDof(DISPLACEMENT_Y);
+        rp_node->AddDof(DISPLACEMENT_Z);
     }
 
     // set up displacement values
@@ -73,10 +73,10 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateIncrementalMotionProcessRotation, KratosGeoMe
 
     std::vector<intrusive_ptr<Node>> nodes = {p_node_1, p_node_2};
 
-    for (auto p_node : nodes) {
-        p_node->AddDof(ROTATION_X);
-        p_node->AddDof(ROTATION_Y);
-        p_node->AddDof(ROTATION_Z);
+    for (auto& rp_node : nodes) {
+        rp_node->AddDof(ROTATION_X);
+        rp_node->AddDof(ROTATION_Y);
+        rp_node->AddDof(ROTATION_Z);
     }
 
     p_node_1->FastGetSolutionStepValue(ROTATION, 0) = Kratos::array_1d<double, 3>{1.0, 2.0, 3.0};
