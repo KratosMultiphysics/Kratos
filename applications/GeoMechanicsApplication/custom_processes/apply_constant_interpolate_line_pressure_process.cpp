@@ -267,7 +267,7 @@ void ApplyConstantInterpolateLinePressureProcess::FindTwoClosestNodeOnBoundaryNo
 }
 
 Node* ApplyConstantInterpolateLinePressureProcess::FindClosestNodeOnBoundaryNodes(
-    const Node& rNode, const std::vector<Node*>& BoundaryNodes, const bool isBottom)
+    const Node& rNode, const std::vector<Node*>& BoundaryNodes, const bool isBottom) const
 {
     const double       HorizontalCoordinate = rNode.Coordinates()[mHorizontalDirection];
     std::vector<Node*> FoundNodes;
