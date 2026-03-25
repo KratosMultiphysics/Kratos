@@ -1178,7 +1178,7 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::InitializeElementVariables(InterfaceElementVariables& rVariables,
                                                                                  const GeometryType& rGeometry,
                                                                                  const PropertiesType& rProperties,
-                                                                                 const ProcessInfo& CurrentProcessInfo)
+                                                                                 const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -1188,8 +1188,8 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::InitializeElementVariables
     rVariables.DynamicViscosityInverse = 1.0 / rProperties[DYNAMIC_VISCOSITY];
 
     // ProcessInfo variables
-    rVariables.VelocityCoefficient   = CurrentProcessInfo[VELOCITY_COEFFICIENT];
-    rVariables.DtPressureCoefficient = CurrentProcessInfo[DT_PRESSURE_COEFFICIENT];
+    rVariables.VelocityCoefficient   = rCurrentProcessInfo[VELOCITY_COEFFICIENT];
+    rVariables.DtPressureCoefficient = rCurrentProcessInfo[DT_PRESSURE_COEFFICIENT];
 
     // Nodal Variables
     for (unsigned int i = 0; i < TNumNodes; ++i) {
