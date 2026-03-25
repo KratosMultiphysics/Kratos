@@ -985,7 +985,6 @@ void RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::CalculateMappingMatri
     // This requires that the concrete linear solver supports
     // Solve(SparseMatrixType, DenseMatrixType, DenseMatrixType)
     mpLinearSolver->Solve(*mpOriginInterpolationMatrix, sol_mat, rhs_mat);
-    KRATOS_WATCH("SOLVE DONE")
 
     // // -----------------------------------------------------------------
     // using SparseMatrixType = boost::numeric::ublas::compressed_matrix<double>;
