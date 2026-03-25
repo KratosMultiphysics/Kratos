@@ -204,6 +204,11 @@ public:
         return mRBFSupportAccumulator;
     }
 
+    RBFSupportAccumulator& GetRBFSupportAccumulator()
+    {
+        return mRBFSupportAccumulator;
+    }
+
     void GetValue(IndexType& rValue,
                   const InfoType ValueType) const override
     {
@@ -277,6 +282,11 @@ public:
     void ProcessSearchResult(const InterfaceObject& rInterfaceObject) override;
 
     const RBFSupportAccumulator& GetRBFSupportAccumulator() const
+    {
+        return mRBFSupportAccumulator;
+    }
+
+    RBFSupportAccumulator& GetRBFSupportAccumulator()
     {
         return mRBFSupportAccumulator;
     }
@@ -769,6 +779,7 @@ private:
     bool mOriginIsIga = false;
     IndexType mRequiredRBFSupportPoints;
     IndexType mDimension = 0;
+    MappingMatrixUniquePointerType mpNReduced;
 
     ModelPart* mpCouplingMP = nullptr;
     ModelPart* mpCouplingInterfaceOrigin = nullptr;
@@ -808,6 +819,8 @@ private:
     }
 
     void InitializeInterface(Kratos::Flags MappingOptions = Kratos::Flags());
+
+    std::unique_ptr<MappingMatrixType> ComputeNReduced(const ModelPart& rOriginModelPart) const;
 
     void AssignInterfaceEquationIds()
     {
