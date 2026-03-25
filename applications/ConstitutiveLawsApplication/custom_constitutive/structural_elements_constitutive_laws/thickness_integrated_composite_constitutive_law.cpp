@@ -38,22 +38,25 @@ ThicknessIntegratedCompositeConstitutiveLaw::ThicknessIntegratedCompositeConstit
 /***********************************************************************************/
 
 ThicknessIntegratedCompositeConstitutiveLaw::ThicknessIntegratedCompositeConstitutiveLaw(
-    const Vector& rZCoordinates,
-    const Vector& rEulerAngles,
-    const Vector& rThicknesses
+    const std::vector<double>& rZCoordinates,
+    const std::vector<double>& rEulerAngles,
+    const std::vector<double>& rThicknesses
     ) : ConstitutiveLaw()
 {
+    KRATOS_TRY
     const SizeType num_layers = rZCoordinates.size();
 
     mZCoordinates.resize(num_layers);
     mThicknesses.resize(num_layers);
     mEulerAngles.resize(num_layers);
 
-    for (IndexType i_layer = 0; i_layer < rZCoordinates.size(); ++i_layer) {
+    // We fill the stored vectors
+    for (IndexType i_layer = 0; i_layer < num_layers; ++i_layer) {
         mZCoordinates[i_layer] = rZCoordinates[i_layer];
         mThicknesses[i_layer] = rThicknesses[i_layer];
         mEulerAngles[i_layer] = rEulerAngles[i_layer];
     }
+    KRATOS_CATCH("ThicknessIntegratedCompositeConstitutiveLaw")
 }
 
 /******************************COPY CONSTRUCTOR*************************************/
@@ -85,15 +88,9 @@ ConstitutiveLaw::Pointer ThicknessIntegratedCompositeConstitutiveLaw::Create(
 ) const
 {
     // We do some checks
-    KRATOS_ERROR_IF_NOT(NewParameters.Has("z_layer_coordinate_vector")) << "ThicknessIntegratedCompositeConstitutiveLaw: 
-        Please define z_layer_coordinates in the StructuralMaterials.json" << std::endl;
-
-    KRATOS_ERROR_IF_NOT(NewParameters.Has("Euler_angle_layer_vector")) << "ThicknessIntegratedCompositeConstitutiveLaw: 
-        Please define Euler_angle_layer_vector in the StructuralMaterials.json" << std::endl;
-
-    KRATOS_ERROR_IF_NOT(NewParameters.Has("thickness_layer_vector")) << "ThicknessIntegratedCompositeConstitutiveLaw: 
-        Please define thickness_layer_vector in the StructuralMaterials.json" << std::endl;
-
+    KRATOS_ERROR_IF_NOT(NewParameters.Has("z_layer_coordinate_vector")) << "ThicknessIntegratedCompositeConstitutiveLaw: Please define z_layer_coordinates in the StructuralMaterials.json" << std::endl;
+    KRATOS_ERROR_IF_NOT(NewParameters.Has("Euler_angle_layer_vector")) << "ThicknessIntegratedCompositeConstitutiveLaw: Please define Euler_angle_layer_vector in the StructuralMaterials.json" << std::endl;
+    KRATOS_ERROR_IF_NOT(NewParameters.Has("thickness_layer_vector")) << "ThicknessIntegratedCompositeConstitutiveLaw: Please define thickness_layer_vector in the StructuralMaterials.json" << std::endl;
 
     const SizeType number_of_layers = NewParameters["thickness_layer_vector"].size();
 
@@ -101,8 +98,16 @@ ConstitutiveLaw::Pointer ThicknessIntegratedCompositeConstitutiveLaw::Create(
     std::vector<double> Euler_angle_layer_vector(number_of_layers);
     std::vector<double> thickness_layer_vector(number_of_layers);
 
+    for (IndexType i_layer = 0; i_layer < number_of_layers; ++i_layer) {
+        z_layer_coordinate_vector[i_layer] = NewParameters["z_layer_coordinate_vector"][i_layer].GetDouble();
+        Euler_angle_layer_vector[i_layer] = NewParameters["Euler_angle_layer_vector"][i_layer].GetDouble();
+        thickness_layer_vector[i_layer] = NewParameters["thickness_layer_vector"][i_layer].GetDouble();
+    }
 
-    return Kratos::make_shared<ThicknessIntegratedCompositeConstitutiveLaw>(z_layer_coordinate_vector, Euler_angle_layer_vector, thickness_layer_vector);
+    return Kratos::make_shared<ThicknessIntegratedCompositeConstitutiveLaw>(
+                            z_layer_coordinate_vector,
+                            Euler_angle_layer_vector,
+                            thickness_layer_vector);
 }
 
 //*******************************DESTRUCTOR*******************************************

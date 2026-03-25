@@ -106,9 +106,9 @@ public:
      * @param rThicknessIntegrationPoints The amount of thickness integration points
      */
     ThicknessIntegratedCompositeConstitutiveLaw(
-        const Vector& rZCoordinates,
-        const Vector& rEulerAngles,
-        const Vector& rThicknesses);
+        const std::vector<double>& rZCoordinates,
+        const std::vector<double>& rEulerAngles,
+        const std::vector<double>& rThicknesses);
 
     /**
      * @brief Copy constructor.
