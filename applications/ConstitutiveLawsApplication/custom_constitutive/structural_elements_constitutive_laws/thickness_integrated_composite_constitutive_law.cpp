@@ -363,19 +363,19 @@ void ThicknessIntegratedCompositeConstitutiveLaw::InitializeMaterial(
     KRATOS_TRY
 
     // Resizing first
-    // mConstitutiveLaws.resize(mThicknessIntegrationPoints);
+    mConstitutiveLaws.resize(mZCoordinates.size());
 
-    // // We create the inner constitutive laws
-    // const auto it_cl_begin = rMaterialProperties.GetSubProperties().begin();
-    // auto& r_sub_prop = *(it_cl_begin);
+    // We create the inner constitutive laws
+    const auto it_cl_begin = rMaterialProperties.GetSubProperties().begin();
 
-    // for (IndexType i_layer = 0; i_layer < mConstitutiveLaws.size(); ++i_layer) {
-    //     KRATOS_ERROR_IF_NOT(r_sub_prop.Has(CONSTITUTIVE_LAW)) << "No constitutive law set" << std::endl;
-    //     mConstitutiveLaws[i_layer] = r_sub_prop[CONSTITUTIVE_LAW]->Clone();
-    //     mConstitutiveLaws[i_layer]->InitializeMaterial(r_sub_prop, rElementGeometry, rShapeFunctionsValues);
-    // }
+    for (IndexType i_layer = 0; i_layer < mConstitutiveLaws.size(); ++i_layer) {
+        auto& r_sub_prop = *(it_cl_begin + i_layer);
+        KRATOS_ERROR_IF_NOT(r_sub_prop.Has(CONSTITUTIVE_LAW)) << "No constitutive law set in layer: " << i_layer << std::endl;
+        mConstitutiveLaws[i_layer] = r_sub_prop[CONSTITUTIVE_LAW]->Clone();
+        mConstitutiveLaws[i_layer]->InitializeMaterial(r_sub_prop, rElementGeometry, rShapeFunctionsValues);
+    }
 
-    // KRATOS_DEBUG_ERROR_IF(mConstitutiveLaws.size() == 0) << "ThicknessIntegratedCompositeConstitutiveLaw: No CL defined" << std::endl;
+    KRATOS_DEBUG_ERROR_IF(mConstitutiveLaws.size() == 0) << "ThicknessIntegratedCompositeConstitutiveLaw: the vector of constitutive laws is empty..." << std::endl;
 
     KRATOS_CATCH("InitializeMaterial")
 }
@@ -806,11 +806,15 @@ int ThicknessIntegratedCompositeConstitutiveLaw::Check(
     KRATOS_ERROR_IF(mConstitutiveLaws.size() == 0) << "ThicknessIntegratedCompositeConstitutiveLaw: No constitutive laws defined" << std::endl;
     KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(THICKNESS)) << "The THICKNESS is not defined in the Material Properties..." << std::endl;
 
-    // Properties& r_subprop = *(rMaterialProperties.GetSubProperties().begin());
-    // // We perform the check in each layer
-    // for (IndexType i_layer = 0; i_layer < mConstitutiveLaws.size(); ++i_layer) {
-    //     aux_out += mConstitutiveLaws[i_layer]->Check(r_subprop, rElementGeometry, rCurrentProcessInfo);
-    // }
+    const auto it_cl_begin = rMaterialProperties.GetSubProperties().begin();
+    // We perform the check in each layer
+    for (IndexType i_layer = 0; i_layer < mConstitutiveLaws.size(); ++i_layer) {
+        auto& r_subprop = *(it_cl_begin + i_layer);
+        aux_out += mConstitutiveLaws[i_layer]->Check(r_subprop, rElementGeometry, rCurrentProcessInfo);
+
+        KRATOS_ERROR_IF(mConstitutiveLaws[i_layer]->GetStrainSize() != 3) << "The constitutive laws must have a strain size of 3..." << std::endl;
+        KRATOS_ERROR_IF(mConstitutiveLaws[i_layer]->WorkingSpaceDimension() != 2) << "The constitutive laws must have a Dimension of 2.." << std::endl;
+    }
 
     return aux_out;
 }
