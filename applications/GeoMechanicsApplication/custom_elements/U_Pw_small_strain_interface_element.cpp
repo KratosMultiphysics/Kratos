@@ -321,18 +321,16 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateOnIntegrationPoin
     if (rVariable == VON_MISES_STRESS) {
         // Loop over integration points
         for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
-            StressStrainUtilities EquivalentStress;
             Vector full_stress_vector = this->SetFullStressVector(mStressVector[GPoint]);
-            GPValues[GPoint] = EquivalentStress.CalculateVonMisesStress(full_stress_vector);
+            GPValues[GPoint] = StressStrainUtilities::CalculateVonMisesStress(full_stress_vector);
         }
 
         this->InterpolateOutputDoubles(rValues, GPValues);
     } else if (rVariable == MEAN_EFFECTIVE_STRESS) {
         // Loop over integration points
         for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
-            StressStrainUtilities EquivalentStress;
             Vector full_stress_vector = this->SetFullStressVector(mStressVector[GPoint]);
-            GPValues[GPoint]          = EquivalentStress.CalculateMeanStress(full_stress_vector);
+            GPValues[GPoint] = StressStrainUtilities::CalculateMeanStress(full_stress_vector);
         }
         this->InterpolateOutputDoubles(rValues, GPValues);
     } else if (rVariable == MEAN_STRESS) {
@@ -341,9 +339,8 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateOnIntegrationPoin
 
         // loop integration points
         for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
-            StressStrainUtilities EquivalentStress;
             Vector full_stress_vector = this->SetFullStressVector(StressVector[GPoint]);
-            GPValues[GPoint]          = EquivalentStress.CalculateMeanStress(full_stress_vector);
+            GPValues[GPoint] = StressStrainUtilities::CalculateMeanStress(full_stress_vector);
         }
         this->InterpolateOutputDoubles(rValues, GPValues);
     } else if (rVariable == ENGINEERING_VON_MISES_STRAIN || rVariable == ENGINEERING_VOLUMETRIC_STRAIN ||
