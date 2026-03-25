@@ -695,8 +695,8 @@ KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculateOnIntegrationP
     auto direction_vector = std::vector({1, 2, 3, 4, 5, 6});
     p_element->CalculateOnIntegrationPoints(K0_MAIN_DIRECTION, direction_vector, dummy_process_info);
     KRATOS_EXPECT_EQ(direction_vector.size(), 3);
-    for (auto i = 0; i < direction_vector.size(); i++)
-        KRATOS_EXPECT_EQ(direction_vector[i], i + 1);
+    for (auto i = std::size_t{0}; i < direction_vector.size(); i++)
+        KRATOS_EXPECT_EQ(direction_vector[i], static_cast<int>(i + 1));
 }
 
 KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculateDampingMatrix, KratosGeoMechanicsFastSuiteWithoutKernel)
