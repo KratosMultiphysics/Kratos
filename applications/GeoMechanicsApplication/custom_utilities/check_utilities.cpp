@@ -39,9 +39,9 @@ CheckProperties::CheckProperties(const Properties&       rProperties,
 CheckProperties CheckProperties::SingleUseBounds(CheckProperties::Bounds RangeBoundsType) const
 {
     if (mElementId) {
-        return CheckProperties(mrProperties, mrPrintName, *mElementId, RangeBoundsType);
+        return {mrProperties, mrPrintName, *mElementId, RangeBoundsType};
     }
-    return CheckProperties(mrProperties, mrPrintName, RangeBoundsType);
+    return {mrProperties, mrPrintName, RangeBoundsType};
 }
 
 void CheckProperties::SetNewRangeBounds(CheckProperties::Bounds RangeBoundsType) const
