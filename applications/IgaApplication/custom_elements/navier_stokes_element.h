@@ -46,14 +46,14 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-class StokesElement : public Element
+class NavierStokesElement : public Element
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Counted pointer of StokesElement
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(StokesElement);
+    /// Counted pointer of NavierStokesElement
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(NavierStokesElement);
 
     typedef Element BaseType;
 
@@ -72,17 +72,17 @@ public:
     ///@{
 
     /// Default constructor.
-    StokesElement(
+    NavierStokesElement(
         IndexType NewId,
         GeometryType::Pointer pGeometry);
 
-    StokesElement(
+    NavierStokesElement(
         IndexType NewId,
         GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties);
 
     /// Destructor.
-    virtual ~StokesElement();
+    virtual ~NavierStokesElement();
 
     ///@}
     ///@name Operators
@@ -112,13 +112,15 @@ public:
 
     void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
+    void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override;
+
     void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
 
     void GetDofList(DofsVectorType& ElementalDofList, const ProcessInfo& CurrentProcessInfo) const override;
 
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
-    StokesElement() : Element()
+    NavierStokesElement() : Element()
     {
     }
 
@@ -137,6 +139,8 @@ public:
         const Variable<Vector>& rVariable,
         std::vector<Vector>& rOutput,
         const ProcessInfo& rCurrentProcessInfo) override;
+
+    void GetFirstDerivativesVector(Vector &rValues, int Step) const override;
 
     ///@}
     ///@name Input and output
@@ -168,9 +172,15 @@ protected:
         }
     }
 
-    virtual void CalculateTau(double& TauOne,
-                              double& TauTwo,
-                              double MuEffective);
+    virtual void CalculateTau(
+        const double MuEffective,
+        const double Density,
+        const double AdvectiveNorm,
+        const ProcessInfo& rCurrentProcessInfo);
+
+    void CalculateAdvectiveNorm(
+        const ShapeFunctionsType &rN,
+        double& rAdvectiveNorm);
 
     double ElementSize();
 
@@ -187,6 +197,7 @@ protected:
     void AddContinuityTerms(MatrixType &rLHS,
             VectorType &rRHS,
             const array_1d<double,3>& rBodyForce,
+            const double Density,
             const double TauOne,
             const ShapeFunctionsType &rN,
             const ShapeDerivativesType &rDN_DX,
@@ -194,12 +205,18 @@ protected:
 
     void AddSecondOrderStabilizationTerms(MatrixType &rLHS,
             VectorType &rRHS,
-            const array_1d<double,3>& rBodyForce,
             const double TauOne,
             const ShapeFunctionsType &rN,
             const ShapeDerivativesType &rDN_DX,
             const double Weight,
             const Matrix& rD);
+    
+    void AddConvectiveTerms(MatrixType &rLHS,
+            VectorType &rRHS,
+            const double Density,
+            const ShapeFunctionsType &rN,
+            const ShapeDerivativesType &rDN_DX,
+            const double Weight);
     
     Vector CalculateStressAtIntegrationPoint(const ProcessInfo& rCurrentProcessInfo);
     
@@ -325,6 +342,9 @@ private:
     ///@name Member Variables
     ///@{
 
+    double mTauOne = 0; ///< Stabilization parameter for momentum equation
+    double mTauTwo = 0; ///< Stabilization parameter for continuity equation
+
     ///@}
     ///@name Serialization
     ///@{
@@ -366,7 +386,7 @@ private:
     ///@name Un accessible methods
     ///@{
 
-}; // Class StokesElement
+}; // Class NavierStokesElement
 
 ///@}
 
