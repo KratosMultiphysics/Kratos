@@ -317,8 +317,6 @@ namespace Kratos
         // Interpolate from Nodes to Particle (P2G Mapping)
         block_for_each(r_model_part.Elements(), [&](Element& r_element)
 		{
-            const Vector& rN = row(r_element.GetGeometry().ShapeFunctionsValues(), 0);
-
             array_1d<double,3> new_mp_displacement = ZeroVector(3);
             array_1d<double,3> new_mp_velocity     = ZeroVector(3);
             array_1d<double,3> new_mp_acceleration = ZeroVector(3);
@@ -344,10 +342,7 @@ namespace Kratos
             this->G2PVelocity(r_element, new_mp_acceleration, r_current_process_info);
 
             // Update MP acceleration
-            std::vector<array_1d<double, 3 > > mp_acceleration;
-            r_element.CalculateOnIntegrationPoints(MP_ACCELERATION, mp_acceleration, r_current_process_info);
-            mp_acceleration[0] = new_mp_acceleration;
-            r_element.SetValuesOnIntegrationPoints(MP_ACCELERATION, mp_acceleration, r_current_process_info);
+            r_element.SetValuesOnIntegrationPoints(MP_ACCELERATION, {new_mp_acceleration}, r_current_process_info);
 
             this->G2PAdditionalVariables(r_element, r_current_process_info);
 		});
