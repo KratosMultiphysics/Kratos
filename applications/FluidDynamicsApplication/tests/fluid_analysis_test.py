@@ -55,37 +55,36 @@ class FluidAnalysisTest(UnitTest.TestCase):
 
         # to check the results: add output settings block if needed
         if self.print_output:
-            settings.AddValue("output_processes", km.Parameters(r'''{
-                "gid_output" : [{
-                    "python_module" : "gid_output_process",
-                    "kratos_module" : "KratosMultiphysics",
-                    "process_name"  : "GiDOutputProcess",
-                    "help"          : "This process writes postprocessing files for GiD",
-                    "Parameters"    : {
-                        "model_part_name"        : "fluid_computational_model_part",
-                        "output_name"            : "interface_test",
-                        "postprocess_parameters" : {
-                            "result_file_configuration" : {
-                                "gidpost_flags" : {
-                                    "GiDPostMode"           : "GiD_PostBinary",
-                                    "WriteDeformedMeshFlag" : "WriteUndeformed",
-                                    "WriteConditionsFlag"   : "WriteElementsOnly",
-                                    "MultiFileFlag"         : "SingleFile"
-                                },
-                                "file_label"          : "time",
-                                "output_control_type" : "step",
-                                "output_interval"     : 1,
-                                "body_output"         : true,
-                                "node_output"         : false,
-                                "skin_output"         : false,
-                                "plane_output"        : [],
-                                "nodal_results"       : ["VELOCITY","PRESSURE"],
-                                "gauss_point_results" : []
+            settings["output_processes"].AddEmptyArray("gid_output")
+            settings["output_processes"]["gid_output"].Append(km.Parameters(r'''{
+                "python_module" : "gid_output_process",
+                "kratos_module" : "KratosMultiphysics",
+                "process_name"  : "GiDOutputProcess",
+                "help"          : "This process writes postprocessing files for GiD",
+                "Parameters"    : {
+                    "model_part_name"        : "MainModelPart",
+                    "output_name"            : "interface_test",
+                    "postprocess_parameters" : {
+                        "result_file_configuration" : {
+                            "gidpost_flags" : {
+                                "GiDPostMode"           : "GiD_PostBinary",
+                                "WriteDeformedMeshFlag" : "WriteUndeformed",
+                                "WriteConditionsFlag"   : "WriteElementsOnly",
+                                "MultiFileFlag"         : "SingleFile"
                             },
-                            "point_data_configuration"  : []
-                        }
+                            "file_label"          : "time",
+                            "output_control_type" : "step",
+                            "output_interval"     : 1,
+                            "body_output"         : true,
+                            "node_output"         : false,
+                            "skin_output"         : false,
+                            "plane_output"        : [],
+                            "nodal_results"       : ["VELOCITY","PRESSURE"],
+                            "gauss_point_results" : []
+                        },
+                        "point_data_configuration"  : []
                     }
-                }]
+                }
             }'''))
 
         analysis = FluidDynamicsAnalysis(model,settings)
