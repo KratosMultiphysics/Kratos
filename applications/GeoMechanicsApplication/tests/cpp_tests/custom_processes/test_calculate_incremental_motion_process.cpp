@@ -33,7 +33,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateIncrementalMotionProcessDisplacement, KratosG
 
     std::vector<intrusive_ptr<Node>> nodes = {p_node_1, p_node_2};
 
-    for (auto& rp_node : nodes) {
+    for (const auto& rp_node : nodes) {
         rp_node->AddDof(DISPLACEMENT_X);
         rp_node->AddDof(DISPLACEMENT_Y);
         rp_node->AddDof(DISPLACEMENT_Z);
@@ -73,7 +73,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateIncrementalMotionProcessRotation, KratosGeoMe
 
     std::vector<intrusive_ptr<Node>> nodes = {p_node_1, p_node_2};
 
-    for (auto& rp_node : nodes) {
+    for (const auto& rp_node : nodes) {
         rp_node->AddDof(ROTATION_X);
         rp_node->AddDof(ROTATION_Y);
         rp_node->AddDof(ROTATION_Z);
