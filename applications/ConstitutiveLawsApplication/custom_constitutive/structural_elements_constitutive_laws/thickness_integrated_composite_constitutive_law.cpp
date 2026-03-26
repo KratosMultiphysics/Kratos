@@ -418,132 +418,153 @@ void ThicknessIntegratedCompositeConstitutiveLaw::CalculateMaterialResponseCauch
     KRATOS_TRY
 
     // Get Values to compute the constitutive law:
-    // Flags& r_flags = rValues.GetOptions();
-    // const auto& r_material_properties = rValues.GetMaterialProperties();
-    // const IndexType number_of_laws = mConstitutiveLaws.size();
-    // const auto subprop_strain_size = mConstitutiveLaws[0]->GetStrainSize(); // 3
-    // const auto subprop_dimension = mConstitutiveLaws[0]->WorkingSpaceDimension(); // 2
+    Flags& r_flags = rValues.GetOptions();
+    const auto& r_material_properties = rValues.GetMaterialProperties();
+    const IndexType number_of_laws = mConstitutiveLaws.size();
+    const auto subprop_strain_size = mConstitutiveLaws[0]->GetStrainSize(); // 3
+    const auto subprop_dimension = mConstitutiveLaws[0]->WorkingSpaceDimension(); // 2
 
-    // // Previous flags saved
-    // const bool flag_compute_constitutive_tensor = r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
-    // const bool flag_compute_stress = r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS);
+    // Previous flags saved
+    const bool flag_compute_constitutive_tensor = r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+    const bool flag_compute_stress = r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS);
 
     // std::vector<double> coordinates;
     // std::vector<double> weights;
 
     // CalculateCoordinatesAndWeights(coordinates, weights, mThicknessIntegrationPoints, r_material_properties);
 
-    // // The generalized strain vector, constant
-    // const Vector generalized_strain_vector = rValues.GetStrainVector(); // size 8
-    // Vector generalized_stress_vector(VoigtSize); // size 8
-    // Matrix generalized_constitutive_matrix(VoigtSize, VoigtSize); // 8x8
-    // generalized_constitutive_matrix.clear();
-    // generalized_stress_vector.clear();
+    // The generalized strain vector, constant
+    const Vector generalized_strain_vector = rValues.GetStrainVector(); // size 8
+    Vector generalized_stress_vector(VoigtSize); // size 8
+    Matrix generalized_constitutive_matrix(VoigtSize, VoigtSize); // 8x8
+    generalized_constitutive_matrix.clear();
+    generalized_stress_vector.clear();
 
-    // const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
-    // Properties &r_subprop = *(it_prop_begin);
+    
+    if (flag_compute_stress || flag_compute_constitutive_tensor) {
+        
+        // Auxiliary stress vector
+        Vector& r_stress_vector = rValues.GetStressVector(); // size 3
+        Vector& r_strain_vector = rValues.GetStrainVector(); // size 3
+        Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix(); // size 3x3
+        r_strain_vector.resize(subprop_strain_size, false);
+        r_stress_vector.resize(subprop_strain_size, false);
+        r_constitutive_matrix.resize(subprop_strain_size, subprop_strain_size, false);
+        r_strain_vector.clear();
+        r_stress_vector.clear();
+        r_constitutive_matrix.clear();
+        
+        Matrix F(subprop_dimension, subprop_dimension); // 2x2
+        double weight, z_coord, z_coord2, aux_weight, aux_weight2, detF, Euler_angle;
+        
+        const double h_max = GetMaxReferenceEdgeLength(rValues.GetElementGeometry());
+        const double alpha = 0.1;
+        const double thickness = r_material_properties[THICKNESS];
+        const double t_square = thickness * thickness;
+        const double stenberg_stabilization = (5.0 / 6.0) * t_square / (t_square + alpha * h_max * h_max);
+        
+        // const double Gyz = r_subprop.Has(SHEAR_MODULUS_YZ) ? r_subprop[SHEAR_MODULUS_YZ] : r_subprop[YOUNG_MODULUS] / (2.0 * (1.0 + r_subprop[POISSON_RATIO]));
+        // const double Gxz = r_subprop.Has(SHEAR_MODULUS_XZ) ? r_subprop[SHEAR_MODULUS_XZ] : r_subprop[YOUNG_MODULUS] / (2.0 * (1.0 + r_subprop[POISSON_RATIO]));
 
-    // if (flag_compute_stress || flag_compute_constitutive_tensor) {
+        const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
 
-    //     // Auxiliary stress vector
-    //     Vector& r_stress_vector = rValues.GetStressVector(); // size 3
-    //     Vector& r_strain_vector = rValues.GetStrainVector(); // size 3
-    //     Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix(); // size 3x3
-    //     r_strain_vector.resize(subprop_strain_size, false);
-    //     r_stress_vector.resize(subprop_strain_size, false);
-    //     r_constitutive_matrix.resize(subprop_strain_size, subprop_strain_size, false);
-    //     r_strain_vector.clear();
-    //     r_stress_vector.clear();
-    //     r_constitutive_matrix.clear();
+        // Rotation and strain-rotation matrices
+        BoundedMatrix<double, 2, 2> T;
+        BoundedMatrix<double, 3, 3> Tvoigt;
 
-    //     Matrix F(subprop_dimension, subprop_dimension); // 2x2
-    //     double weight, z_coord, z_coord2, aux_weight, aux_weight2, detF;
+        // We perform the integration through the thickness
+        for (IndexType i_layer = 0; i_layer < number_of_laws; ++i_layer) {
+            // Assign subprops of the layer
+            Properties &r_subprop = *(it_prop_begin + i_layer);
+            rValues.SetMaterialProperties(r_subprop);
 
-    //     const double h_max = GetMaxReferenceEdgeLength(rValues.GetElementGeometry());
-    //     const double alpha = 0.1;
-    //     const double thickness = r_material_properties[THICKNESS];
-    //     const double t_square = thickness * thickness;
-    //     const double stenberg_stabilization = (5.0 / 6.0) * t_square / (t_square + alpha * h_max * h_max);
-    //     rValues.SetMaterialProperties(r_subprop);
+            // We retrieve the layer info
+            weight = mThicknesses[i_layer];
+            z_coord = mZCoordinates[i_layer];
+            Euler_angle = mEulerAngles[i_layer];
 
-    //     const double Gyz = r_subprop.Has(SHEAR_MODULUS_YZ) ? r_subprop[SHEAR_MODULUS_YZ] : r_subprop[YOUNG_MODULUS] / (2.0 * (1.0 + r_subprop[POISSON_RATIO]));
-    //     const double Gxz = r_subprop.Has(SHEAR_MODULUS_XZ) ? r_subprop[SHEAR_MODULUS_XZ] : r_subprop[YOUNG_MODULUS] / (2.0 * (1.0 + r_subprop[POISSON_RATIO]));
+            z_coord2 = z_coord * z_coord;
+            aux_weight = weight * z_coord;
+            aux_weight2 = weight * z_coord2;
 
-    //     // We perform the integration through the thickness
-    //     for (IndexType i_layer = 0; i_layer < number_of_laws; ++i_layer) {
+            r_strain_vector[0] = generalized_strain_vector[0] + z_coord * generalized_strain_vector[3]; // xx
+            r_strain_vector[1] = generalized_strain_vector[1] + z_coord * generalized_strain_vector[4]; // yy
+            r_strain_vector[2] = generalized_strain_vector[2] + z_coord * generalized_strain_vector[5]; // xy
 
-    //         weight = weights[i_layer];
-    //         z_coord = coordinates[i_layer];
-    //         z_coord2 = z_coord * z_coord;
-    //         aux_weight = weight * z_coord;
-    //         aux_weight2 = weight * z_coord2;
+            // We rotate the strain to layer local axes
+            AdvancedConstitutiveLawUtilities<3>::CalculateRotationOperatorEuler1(Euler_angle, T);
+            ConstitutiveLawUtilities<3>::CalculateRotationOperatorVoigt(T, Tvoigt);
+            r_strain_vector = prod(Tvoigt, r_strain_vector);
 
-    //         r_strain_vector[0] = generalized_strain_vector[0] + z_coord * generalized_strain_vector[3]; // xx
-    //         r_strain_vector[1] = generalized_strain_vector[1] + z_coord * generalized_strain_vector[4]; // yy
-    //         r_strain_vector[2] = generalized_strain_vector[2] + z_coord * generalized_strain_vector[5]; // xy
+            // In case the 2D Cls work in finite strain
+            noalias(F) = AdvancedConstitutiveLawUtilities<3>::ComputeEquivalentSmallDeformationDeformationGradient(r_strain_vector);
+            detF = MathUtils<double>::Det2(F);
+            rValues.SetDeterminantF(detF);
+            rValues.SetDeformationGradientF(F);
 
-    //         // In case the 2D Cls work in finite strain
-    //         noalias(F) = AdvancedConstitutiveLawUtilities<3>::ComputeEquivalentSmallDeformationDeformationGradient(r_strain_vector);
-    //         detF = MathUtils<double>::Det2(F);
-    //         rValues.SetDeterminantF(detF);
-    //         rValues.SetDeformationGradientF(F);
+            // This fills stress and D in local axes of the layer
+            mConstitutiveLaws[i_layer]->CalculateMaterialResponseCauchy(rValues);
 
-    //         // This fills stress and D
-    //         mConstitutiveLaws[i_layer]->CalculateMaterialResponseCauchy(rValues);
+            if (flag_compute_stress) {
+                // We rotate the stress to the local axes of the shell
+                r_stress_vector = prod(trans(Tvoigt), r_stress_vector);
 
-    //         if (flag_compute_stress) {
-    //             generalized_stress_vector[0] += r_stress_vector[0] * weight; // membrane xx
-    //             generalized_stress_vector[1] += r_stress_vector[1] * weight; // membrane yy
-    //             generalized_stress_vector[2] += r_stress_vector[2] * weight; // membrane xy
-    //             generalized_stress_vector[3] += r_stress_vector[0] * aux_weight; // bending xx
-    //             generalized_stress_vector[4] += r_stress_vector[1] * aux_weight; // bending yy
-    //             generalized_stress_vector[5] += r_stress_vector[2] * aux_weight; // bending xy
+                generalized_stress_vector[0] += r_stress_vector[0] * weight; // membrane xx
+                generalized_stress_vector[1] += r_stress_vector[1] * weight; // membrane yy
+                generalized_stress_vector[2] += r_stress_vector[2] * weight; // membrane xy
+                generalized_stress_vector[3] += r_stress_vector[0] * aux_weight; // bending xx
+                generalized_stress_vector[4] += r_stress_vector[1] * aux_weight; // bending yy
+                generalized_stress_vector[5] += r_stress_vector[2] * aux_weight; // bending xy
 
-    //             // Elastic behaviour in shear
-    //             generalized_stress_vector[6] += stenberg_stabilization * Gyz * (generalized_strain_vector[6]) * weight; // shear YZ
-    //             generalized_stress_vector[7] += stenberg_stabilization * Gxz * (generalized_strain_vector[7]) * weight; // shear XZ
-    //         }
+                // Elastic behaviour in shear
+                // generalized_stress_vector[6] += stenberg_stabilization * Gyz * (generalized_strain_vector[6]) * weight; // shear YZ
+                // generalized_stress_vector[7] += stenberg_stabilization * Gxz * (generalized_strain_vector[7]) * weight; // shear XZ
+            }
 
-    //         if (flag_compute_constitutive_tensor) {
-    //             // membrane part
-    //             noalias(project(generalized_constitutive_matrix, range(0, 3), range(0, 3))) += weight * r_constitutive_matrix;
+            if (flag_compute_constitutive_tensor) {
+                // We rotate the constitutive matrix to the local axes of the shell
+                r_constitutive_matrix = prod(trans(Tvoigt), Matrix(prod(r_constitutive_matrix, Tvoigt)));
 
-    //             // bending part
-    //             noalias(project(generalized_constitutive_matrix, range(3, 6), range(3, 6))) += aux_weight2 * r_constitutive_matrix;
+                // membrane part
+                noalias(project(generalized_constitutive_matrix, range(0, 3), range(0, 3))) += weight * r_constitutive_matrix;
 
-    //             // membrane-bending part
-    //             noalias(project(generalized_constitutive_matrix, range(0, 3), range(3, 6))) += aux_weight * r_constitutive_matrix;
+                // bending part
+                noalias(project(generalized_constitutive_matrix, range(3, 6), range(3, 6))) += aux_weight2 * r_constitutive_matrix;
 
-    //             // bending-membrane part (transposed)
-    //             generalized_constitutive_matrix(3, 0) = generalized_constitutive_matrix(0, 3);
-    //             generalized_constitutive_matrix(4, 0) = generalized_constitutive_matrix(0, 4);
-    //             generalized_constitutive_matrix(5, 0) = generalized_constitutive_matrix(0, 5);
-    //             generalized_constitutive_matrix(3, 1) = generalized_constitutive_matrix(1, 3);
-    //             generalized_constitutive_matrix(4, 1) = generalized_constitutive_matrix(1, 4);
-    //             generalized_constitutive_matrix(5, 1) = generalized_constitutive_matrix(1, 5);
-    //             generalized_constitutive_matrix(3, 2) = generalized_constitutive_matrix(2, 3);
-    //             generalized_constitutive_matrix(4, 2) = generalized_constitutive_matrix(2, 4);
-    //             generalized_constitutive_matrix(5, 2) = generalized_constitutive_matrix(2, 5);
+                // membrane-bending part
+                noalias(project(generalized_constitutive_matrix, range(0, 3), range(3, 6))) += aux_weight * r_constitutive_matrix;
 
-    //             generalized_constitutive_matrix(6, 6) += weight * stenberg_stabilization * Gyz;
-    //             generalized_constitutive_matrix(7, 7) += weight * stenberg_stabilization * Gxz;
-    //         }
-    //     }
-    //     // Reset some values
-    //     rValues.SetMaterialProperties(r_material_properties);
-    //     r_strain_vector.resize(VoigtSize, false);
-    //     noalias(r_strain_vector) = generalized_strain_vector;
+                // bending-membrane part (transposed)
+                generalized_constitutive_matrix(3, 0) = generalized_constitutive_matrix(0, 3);
+                generalized_constitutive_matrix(4, 0) = generalized_constitutive_matrix(0, 4);
+                generalized_constitutive_matrix(5, 0) = generalized_constitutive_matrix(0, 5);
+                generalized_constitutive_matrix(3, 1) = generalized_constitutive_matrix(1, 3);
+                generalized_constitutive_matrix(4, 1) = generalized_constitutive_matrix(1, 4);
+                generalized_constitutive_matrix(5, 1) = generalized_constitutive_matrix(1, 5);
+                generalized_constitutive_matrix(3, 2) = generalized_constitutive_matrix(2, 3);
+                generalized_constitutive_matrix(4, 2) = generalized_constitutive_matrix(2, 4);
+                generalized_constitutive_matrix(5, 2) = generalized_constitutive_matrix(2, 5);
 
-    //     if (flag_compute_stress) {
-    //         r_stress_vector.resize(VoigtSize, false);
-    //         noalias(r_stress_vector) = generalized_stress_vector;
-    //     }
+                // generalized_constitutive_matrix(6, 6) += weight * stenberg_stabilization * Gyz;
+                // generalized_constitutive_matrix(7, 7) += weight * stenberg_stabilization * Gxz;
+            }
+        }
 
-    //     if (flag_compute_constitutive_tensor) {
-    //         r_constitutive_matrix.resize(VoigtSize, VoigtSize, false);
-    //         noalias(r_constitutive_matrix) = generalized_constitutive_matrix;
-    //     }
-    // }
+        // Reset some values
+        rValues.SetMaterialProperties(r_material_properties);
+        r_strain_vector.resize(VoigtSize, false);
+        noalias(r_strain_vector) = generalized_strain_vector;
+
+        if (flag_compute_stress) {
+            r_stress_vector.resize(VoigtSize, false);
+            noalias(r_stress_vector) = generalized_stress_vector;
+        }
+
+        if (flag_compute_constitutive_tensor) {
+            r_constitutive_matrix.resize(VoigtSize, VoigtSize, false);
+            noalias(r_constitutive_matrix) = generalized_constitutive_matrix;
+        }
+    }
     KRATOS_CATCH("CalculateMaterialResponseCauchy")
 }
 
