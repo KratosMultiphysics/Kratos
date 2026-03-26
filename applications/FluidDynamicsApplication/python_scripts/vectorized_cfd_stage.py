@@ -308,6 +308,12 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         geometry_adaptor_DN.CollectData()
         self.DN = xp.squeeze(geometry_adaptor_DN.data).copy() #this has shape nel*1*nnodes_in_el*dim - the copy is important as we need to own the data
 
+        # Allocation of shape functions and weights for the convective term calculation
+        # Note that these cannot be integrated with the first order shape functions above
+        det_J_volume_factor = 2.0 if self.dim == 2 else 6.0
+        self.w_int_order = det_J_volume_factor * self.cfd_utils.GetGaussIntegrationWeights(self.dim, self.convection_integration_order)
+        self.N_int_order = self.cfd_utils.GetShapeFunctionsOnGaussPoints(self.dim, self.convection_integration_order)
+
         # Obtain elemental volumes #TODO: an adaptor should be available for these
         vols = []
         for geom in self.vol_mp.Geometries:
@@ -404,19 +410,12 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         convective = xp.zeros(v_elemental.shape, dtype=cfd_utils.PRECISION)
         tmp = xp.zeros_like(convective)
         grad_v = self.cfd_utils.ComputeElementalGradient(self.DN, v_elemental)
-        det_J_volume_factor = 2.0 if self.dim == 2 else 6.0
-        w_gauss_convective = self.cfd_utils.GetGaussIntegrationWeights(self.dim, self.convection_integration_order)
-        N_gauss_convective = self.cfd_utils.GetShapeFunctionsOnGaussPoints(self.dim, self.convection_integration_order)
-        for i_gauss in range(w_gauss_convective.size):
-            # Get elemental velocities at current integration point
-            v_gauss = self.cfd_utils.InterpolateValue(N_gauss_convective[i_gauss,:], v_elemental)
+        v_el_gauss = self.cfd_utils.InterpolateValue(self.N_int_order, v_elemental)
 
-            # Compute convective contribution at current integration point (w,rho·a·∇u)
-            tmp = self.cfd_utils.ComputeConvectiveContribution(N_gauss_convective[i_gauss,:], grad_v, v_gauss, self.rho)
-
-            # Scale with current integration weight (Jacobian determinant is applied at the end to the entire residual)
-            convective += det_J_volume_factor * w_gauss_convective[i_gauss] * tmp
-        convective *= self.elemental_volumes[:,xp.newaxis,xp.newaxis]
+        # Compute convective contribution at integration points (w,rho·a·∇u)
+        tmp = self.rho * self.cfd_utils.ComputeConvectiveContribution(self.N_int_order, grad_v, v_el_gauss) # Calculate the elemental convective contributions at each integration point
+        convective = xp.tensordot(tmp, self.w_int_order, axes=(1, 0)) # Scale with integration weights and do the integration points summation
+        convective *= self.elemental_volumes[:, None, None] # Apply Jacobian determinant to the entire residual
 
         # Do the nodal assembly of the projection elemental contributions
         pi_conv = xp.zeros((self.nnodes,self.dim), dtype=cfd_utils.PRECISION)
@@ -709,41 +708,35 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         self.p_adaptor.data = cfd_utils.asnumpy(p)
         self.p_adaptor.StoreData()
 
-    def ComputeVelocityResidual(self, v_elemental, p_elemental, b_elemental, proj_el, proj_div_el, DN, tau):
+    def ComputeVelocityResidual(self, v_elemental, p_elemental, b_elemental, proj_elemental, proj_div_el, DN, tau):
 
         # Initialize residual
         res = xp.zeros(v_elemental.shape, dtype=cfd_utils.PRECISION)
 
-        #(w,b) #TODO: we are assuming it constant (put it in the Gauss points loop in the future)
-        b_gauss = self.cfd_utils.InterpolateValue(self.N, b_elemental) # TODO: most probably we can do this inside ComputeBodyForceContribution
-        res += self.rho * self.cfd_utils.ComputeBodyForceContribution(self.N, b_gauss)
+        #(w,b)
+        res += self.rho * self.cfd_utils.ComputeBodyForceContribution(self.N_int_order, b_elemental)
 
         #-(w,rho·a·∇u) - (rho·a·∇w,tau_1·rho·a·∇u) + (rho·a·∇w,tau_1·Pi_conv)
-        convective = xp.zeros_like(res)
-        convective_stab = xp.zeros_like(res)
-        det_J_volume_factor = 2.0 if self.dim == 2 else 6.0
         grad_v = self.cfd_utils.ComputeElementalGradient(DN, v_elemental)
-        w_gauss_convective = self.cfd_utils.GetGaussIntegrationWeights(self.dim, self.convection_integration_order)
-        N_gauss_convective = self.cfd_utils.GetShapeFunctionsOnGaussPoints(self.dim, self.convection_integration_order)
-        for i_gauss in range(w_gauss_convective.size):
-            # Get elemental velocities at current integration point
-            v_gauss = self.cfd_utils.InterpolateValue(N_gauss_convective[i_gauss,:], v_elemental)
+        v_el_gauss = self.cfd_utils.InterpolateValue(self.N_int_order, v_elemental)
+        proj_el_gauss = self.cfd_utils.InterpolateValue(self.N_int_order, proj_elemental)
 
-            # Compute convective contribution at current integration point (w,rho·a·∇u)
-            tmp = self.cfd_utils.ComputeConvectiveContribution(N_gauss_convective[i_gauss,:], grad_v, v_gauss, self.rho)
-
-            # Compute convective stabilization contribution at current integration point (rho·a·∇w,rho·a·∇u) - (rho·a·∇w,Pi_conv)
-            tmp_stab = self.cfd_utils.ComputeMomentumStabilization(N_gauss_convective[i_gauss,:], DN, v_gauss, v_elemental, proj_el, self.rho)
-
-            # Scale with current integration weight (Jacobian determinant is applied at the end to the entire residual)
-            aux_w = w_gauss_convective[i_gauss] * det_J_volume_factor
-            convective -= aux_w * tmp
-            convective_stab -= aux_w * tmp_stab
-
-        res += convective
-        res += convective_stab * self.tau_1[:,xp.newaxis,xp.newaxis]
+        tmp = self.rho * self.cfd_utils.ComputeConvectiveContribution(self.N_int_order, grad_v, v_el_gauss) #(w,rho·a·∇u)
+        tmp_stab = self.cfd_utils.ComputeMomentumStabilization(self.N_int_order, DN, v_elemental, v_el_gauss, proj_el_gauss, self.rho) #(rho·a·∇w,rho·a·∇u) - (rho·a·∇w,Pi_conv)
 
         del grad_v
+        del v_el_gauss
+        del proj_el_gauss
+
+        convective = xp.tensordot(tmp, self.w_int_order, axes=(1, 0)) #weighted integration over Gauss points (Jacobian determinant is applied at the end)
+        convective_stab = xp.tensordot(tmp_stab, self.w_int_order, axes=(1, 0)) #weighted integration over Gauss points (Jacobian determinant is applied at the end)
+
+        del tmp
+        del tmp_stab
+
+        res -= convective #assemble convective contribution
+        res -= convective_stab * self.tau_1[:, None, None] #assemble convective stabilization contribution
+
         del convective
         del convective_stab
 

@@ -114,7 +114,7 @@ class CFDUtils:
 
     def GetShapeFunctionsOnGaussPoints(self, dim: int, integration_order: int):
         if integration_order == 1:
-            N = xp.array([xp.ones(dim+1) / (dim+1)])
+            N = xp.array([[xp.ones(dim+1) / (dim+1)]])
         elif integration_order == 2:
             if dim == 2:
                 N = xp.array([
@@ -292,28 +292,36 @@ class CFDUtils:
 
         raise ValueError("Field must have shape (nelem,nnode) or (nelem,nnode,dim)")
 
-    def InterpolateValue(self, N: np.ndarray, field: np.ndarray):
+    def InterpolateValue(self, N, field):
         """
-        Computes:
-            pgauss[e]     = sum_k N[k] * pel[e,k]
-            vgauss[e,i]   = sum_k N[k] * vel[e,k,i]
-        depending on the shape of 'field'.
+        Interpolates field values at Gauss points.
 
         Parameters
         ----------
-        N : (nnode,)
-            Shape function values at the Gauss point.
+        N : (nnode,) or (ngauss, nnode)
         field : (nelem, nnode) or (nelem, nnode, dim)
-            Element field to project (pel or vel).
+
+        Returns
+        -------
+        scalar:
+            (nelem, ngauss)
+        vector:
+            (nelem, ngauss, dim)
         """
 
-        # Scalar case: pel[e,k] → pgauss[e]
-        if field.ndim == 2:
-            return xp.einsum("k,ek->e", N, field, optimize=opt_type)
+        # Ensure Gauss dimension exists
+        if N.ndim == 1:
+            N = N[None, :]   # (1, nnode)
 
-        # Vector case: vel[e,k,i] → vgauss[e,i]
+        # Scalar field
+        if field.ndim == 2:
+            # (ngauss, nnode) x (nelem, nnode) -> (nelem, ngauss)
+            return xp.einsum("gn,en->eg", N, field, optimize=opt_type)
+
+        # Vector field
         if field.ndim == 3:
-            return xp.einsum("k,eki->ei", N, field, optimize=opt_type)
+            # (ngauss, nnode) x (nelem, nnode, dim) -> (nelem, ngauss, dim)
+            return xp.einsum("gn,end->egd", N, field, optimize=opt_type)
 
         raise ValueError("Field must have shape (nelem,nnode) or (nelem,nnode,dim)")
 
@@ -387,58 +395,93 @@ class CFDUtils:
         # ------------------------------
         raise ValueError("field must have 2 dims (scalar) or 3 dims (vector), Current shape of field is:",field.shape)
 
-    def ComputeBodyForceContribution(self, N: np.ndarray, b: np.ndarray):
+    def ComputeBodyForceContribution(self, N, b_elemental):
         """
-        Compute the contribution of the body force to the RHS, that is (w,b)
-
-        this corresponds in einstain notation to N_i b_k on every element
+        Compute (w, b) contribution for multiple Gauss points.
 
         Parameters
         ----------
-        N : (nelem, n_in_el)
-            shape function values at the gauss point
+        N : (ngauss, nnode)
+            shape function values at Gauss points
 
-        b: (nelem,ndim)
-            body force on the gauss point
+        b : (nelem, nnode, dim)
+            body force at Gauss points
 
+        Returns
+        -------
+        (nelem, ngauss, dim)
         """
-        return xp.einsum('i, ek->eik', N, b, optimize=opt_type)
 
-    def ComputeConvectiveContribution(self, N: np.ndarray, grad_u: np.ndarray, a: np.ndarray, rho: float):
+        return xp.einsum("gn,end->egd", N, b_elemental, optimize=opt_type)
+
+    def ComputeConvectiveContribution(self, N, grad_u, a_gauss):
         """
         Compute (w,a·∇u) although with the definition we employ for ∇u this is actually (w,∇u·a)
-
-        this corresponds in einstain notation to
-        out[i,k] = sum_l N_I ∇u_kl a_l
-        on every element
+        Note that this function assumes ∇u to be constant within the element
 
         Parameters
         ----------
-        N : (nelem, n_in_el)
-            shape function values at the gauss point
+        N : (ngauss, nnode)
+        grad_u : (nelem, ndim, ndim) or (nelem, ndim)
+        a_gauss : (nelem, ngauss, ndim)
 
-        grad_u : (nelem, ndim, ndim) in the vector case or (nelem, ndim) in the scalar case
-            gradient of the velocity at the gauss point
-
-        a: (nelem,ndim)
-            convective velocity on the gauss point
+        Returns
+        -------
+        vector case: (nelem, ngauss, nnode, ndim) and (nelem, ngauss, ndim)
+        scalar case: (nelem, ngauss, nnode) and (nelem, ngauss, ndim)
         """
-        if grad_u.ndim == 3: #gradient of a vector function
-            out = xp.einsum('i,ekl,el->eik', N, grad_u, a, optimize=opt_type)
-        elif grad_u.ndim == 2: #gradient of a scalar function
-            out = xp.einsum('i,el,el->ei', N, grad_u, a, optimize=opt_type)
+
+        if grad_u.ndim == 3:
+            
+            conv = xp.einsum('ekl,egl->egk', grad_u, a_gauss, optimize=opt_type) #a·∇u
+            out = N[None, :, :, None] * conv[:, :, None, :] #w,a·∇u
+
+        elif grad_u.ndim == 2:
+            conv = xp.einsum('el,egl->eg', grad_u, a_gauss, optimize=opt_type) #a·∇u
+            out = N[None, :, :] * conv[:, :, None] #w,a·∇u
+
         else:
             raise ValueError("grad_u must have 2 dims (scalar) or 3 dims (vector)")
-        out *= rho
+
         return out
 
-    def ComputeMomentumStabilization(self, N: np.ndarray, DN: np.ndarray, a: np.ndarray, u_elemental: np.ndarray, Pi_elemental: np.ndarray, rho: float):
-        ##TODO: avoid temporaries!
-        rho_a_DN = xp.einsum("el,eil->ei", a, DN, optimize=opt_type) #TODO: reuse an auxiliary array
-        rho_a_DN *= rho
-        out = xp.einsum("eI,eJ,eJk->eIk",rho_a_DN, rho_a_DN, u_elemental, optimize=opt_type)
-        PiContrib = xp.einsum("eI,J,eJk->eIk",rho_a_DN, N, Pi_elemental, optimize=opt_type)
-        out -= PiContrib
+    def ComputeMomentumStabilization(self, N, DN, u_elemental, a_gauss, pi_gauss, rho):
+        """
+        Compute convection + convective stabilization in a single pass.
+
+        (w, a·∇u) + (ρ a·∇w, ρ a·∇u) - (ρ a·∇w, Π)
+
+        Parameters
+        ----------
+        N : (ngauss, nnode)
+        DN : (nelem, nnode, ndim)
+        u_elemental : (nelem, nnode, ndim)
+        a_gauss : (nelem, ngauss, ndim)
+        pi_gauss : (nelem, ngauss, ndim)
+        rho : float
+
+        Returns
+        -------
+        out : (nelem, ngauss, nnode, ndim)
+            Total convective contribution (Galerkin + stabilization)
+        """
+
+        # --- discrete operator: a · ∇N ---
+        adv = xp.einsum("egd,end->egn", a_gauss, DN, optimize=opt_type)  # (E,G,nnode)
+
+        # --- a·∇u = Σ_J adv_J u_J ---
+        conv = xp.einsum("egn,end->egd", adv, u_elemental, optimize=opt_type)  # (E,G,dim)
+
+        # --- Galerkin term ---
+        out = N[None, :, :, None] * conv[:, :, None, :]  # (E,G,nnode,dim)
+
+        # --- stabilization ---
+        beta = rho * adv                                # (E,G,nnode)
+
+        tmp = xp.einsum("egn,end->egd", beta, u_elemental, optimize=opt_type)
+
+        out += beta[:, :, :, None] * (tmp[:, :, None, :] - pi_gauss[:, :, None, :])
+
         return out
 
     def ComputeDivDivStabilization(self, N: np.array, DN: np.ndarray, u_elemental : np.ndarray, Pi_div_elemental: np.ndarray):
