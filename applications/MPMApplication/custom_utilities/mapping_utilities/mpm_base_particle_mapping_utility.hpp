@@ -171,8 +171,6 @@ namespace Kratos
     {
         ModelPart& r_mpm_model_part = GetMPMModelPart();
         const ProcessInfo& r_current_process_info = r_mpm_model_part.GetProcessInfo();
-        // IndexType dimension = rElement.GetGeometry().WorkingSpaceDimension();
-
         // Question: Since there are a couple of things needed to be reset that has nothing to do with the Mapping scheme, but their specific needs (example NODAL_AREA, STICK_FORCE),
         //           maybe this reset should be outside of RunP2GMapping and called somewhere in mpm_solver, together with these other variables that ideally should be in their own process ---------------------------------------------------------------------------------------------------------------------
         KRATOS_INFO_IF("MPMBaseParticleMappingUtility", this->GetEchoLevel() >= 1) << "Resetting background grid..." << std::endl;
@@ -188,12 +186,8 @@ namespace Kratos
             IndexType node_index = 0;
             for (auto& r_node : r_material_point_element.GetGeometry())
             {
-                // ... use 'i' as the unsigned iterator
-                // ToDo: This (manually locking and unlocking) turns out to be dangerous. Should be replaced with AtomicAdd or something similar
-                // Example: when something in between crashed, there is break, etc, the node will never be unlocked. Should use some techniques that automatically unlocks it when goes out of scope (like AtomicAdd). -----------------------------------------------------------------------------------------------------------
-                // r_node.SetLock();
                 CalculateP2GMapping(r_material_point_element, r_node, rN[node_index], r_current_process_info);
-                // r_node.UnSetLock();
+
                 ++node_index;
             }
 		});
@@ -246,14 +240,11 @@ namespace Kratos
     /**
      * Do Particle to Grid mapping for nodal mass.
      */
-    void P2GMass(Element& rElement, Node& rNode, const double& rN_i,  const ProcessInfo& rCurrentProcessInfo)
+    void P2GMass(Element& rElement, Node& rNode, const double& rN_i, const ProcessInfo& rCurrentProcessInfo)
     {
         std::vector<double> mp_mass;
         rElement.CalculateOnIntegrationPoints(MP_MASS, mp_mass, rCurrentProcessInfo);
         AtomicAdd(rNode.FastGetSolutionStepValue(NODAL_MASS), rN_i * mp_mass[0]);
-
-        // // ToDo: Adjust MP_MASS in elements into data value container
-        // rNode.FastGetSolutionStepValue(NODAL_MASS, 0) += r_N(0, i) * rElement.GetValue(MP_MASS);
     }
 
     /**
@@ -319,34 +310,6 @@ namespace Kratos
     // end of P2G Mapping
 
     #pragma region Grid to Particle Mapping (G2P)
-
-    // new way
-    // void RunG2PMapping()
-    // {
-    //     ModelPart& r_model_part = GetModelPart();
-    //     const ProcessInfo& r_current_process_info = r_model_part.GetProcessInfo();
-    //     // Interpolate from Nodes to Particle (P2G Mapping)
-    //     block_for_each(r_model_part.Elements(), [&](Element& r_element)
-	// 	{
-    //         const Vector& rN = row(r_element.GetGeometry().ShapeFunctionsValues(), 0);
-
-    //         IndexType i = 0;
-    //         for (auto& r_node : r_element.GetGeometry())
-    //         {
-    //             // ToDo: This (manually locking and unlocking) turns out to be dangerous. Should be replaced with AtomicAdd or something similar
-    //             // Example: when something in between crashed, there is break, etc, the node will never be unlocked. Should use some techniques that automatically unlocks it when goes out of scope (like AtomicAdd). -----------------------------------------------------------------------------------------------------------
-    //             // r_node.SetLock();
-    //             this->CalculateG2PMapping(r_element, r_node, rN[i], r_current_process_info);
-    //             // r_node.UnSetLock();
-    //             ++i;
-    //         }
-	// 	});
-
-    //     // Assign nodal variables after extrapolation
-    //     this->P2GCalculateNodalVariable();
-    //     KRATOS_INFO_IF("MPMBaseParticleMappingUtility", this->GetEchoLevel() >= 1) << "Finished P2G mapping." << std::endl;
-    //  }
-
     void RunG2PMapping()
     {
         ModelPart& r_model_part = GetMPMModelPart();
@@ -383,10 +346,13 @@ namespace Kratos
             // Update MP total displacement and coordinate
             std::vector<array_1d<double, 3 > > mp_coord;
             std::vector<array_1d<double, 3 > > mp_displacement;
+
             r_element.CalculateOnIntegrationPoints(MP_COORD, mp_coord, r_current_process_info);
             r_element.CalculateOnIntegrationPoints(MP_DISPLACEMENT, mp_displacement, r_current_process_info);
+
             mp_coord[0] += new_mp_displacement;
             mp_displacement[0] += new_mp_displacement;
+            
             r_element.SetValuesOnIntegrationPoints(MP_COORD, mp_coord, r_current_process_info);
             r_element.SetValuesOnIntegrationPoints(MP_DISPLACEMENT, mp_displacement, r_current_process_info);
 
@@ -424,14 +390,6 @@ namespace Kratos
     }
 
 
-    // virtual void G2PAcceleration(Element& rElement, Node& rNode, const double& rN_i, const ProcessInfo& rCurrentProcessInfo)
-    // {
-    //     // rNode.FastGetSolutionStepValue(ACCELERATION);
-    //     // rElement.CalculateOnIntegrationPoints(MP_ACCELERATION, mp_displacement, rCurrentProcessInfo);
-
-    // }
-
-
     virtual void G2PAdditionalVariables(Element& rElement, const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY;
@@ -466,69 +424,6 @@ namespace Kratos
 
         KRATOS_CATCH("")
     }
-    // void ThisIsJustCopyPastedForReference( GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo)
-    // {
-    //     KRATOS_TRY
-
-    //     rVariables.CurrentDisp = CalculateCurrentDisp(rVariables.CurrentDisp, rCurrentProcessInfo);
-    //     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    //     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-
-    //     const array_1d<double,3> & MP_PreviousAcceleration = mMP.acceleration;
-    //     const array_1d<double,3> & MP_PreviousVelocity = mMP.velocity;
-
-
-    //     array_1d<double,3> MP_acceleration = ZeroVector(3);
-    //     array_1d<double,3> MP_velocity = ZeroVector(3);
-    //     const double delta_time = rCurrentProcessInfo[DELTA_TIME];
-
-    //     const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
-
-    //     for ( unsigned int i = 0; i < number_of_nodes; i++ )
-    //     {
-    //         if (r_N(0, i) > std::numeric_limits<double>::epsilon())
-    //         {
-    //             auto r_geometry = GetGeometry();
-    //             array_1d<double, 3 > nodal_acceleration = ZeroVector(3);
-    //             if (r_geometry[i].SolutionStepsDataHas(ACCELERATION))
-    //                 nodal_acceleration = r_geometry[i].FastGetSolutionStepValue(ACCELERATION);
-
-    //             for ( unsigned int j = 0; j < dimension; j++ )
-    //             {
-
-    //                 MP_acceleration[j] += r_N(0, i) * nodal_acceleration[j];
-
-    //                 /* NOTE: The following interpolation techniques have been tried:
-    //                     MP_velocity[j]      += rVariables.N[i] * nodal_velocity[j];
-    //                     MP_acceleration[j]  += nodal_inertia[j]/(rVariables.N[i] * MP_mass * MP_number);
-    //                     MP_velocity[j]      += nodal_momentum[j]/(rVariables.N[i] * MP_mass * MP_number);
-    //                     MP_velocity[j]      += delta_time * rVariables.N[i] * nodal_acceleration[j];
-    //                 */
-    //             }
-    //         }
-
-    //     }
-
-    //     /* NOTE:
-    //     Another way to update the MP velocity (see paper Guilkey and Weiss, 2003).
-    //     This assume newmark (or trapezoidal, since n.gamma=0.5) rule of integration*/
-    //     mMP.velocity = MP_PreviousVelocity + 0.5 * delta_time * (MP_acceleration + MP_PreviousAcceleration);
-
-    //     /* NOTE: The following interpolation techniques have been tried:
-    //         MP_acceleration = 4/(delta_time * delta_time) * delta_xg - 4/delta_time * MP_PreviousVelocity;
-    //         MP_velocity = 2.0/delta_time * delta_xg - MP_PreviousVelocity;
-    //     */
-
-
-
-
-    //     // Update the MP Acceleration
-    //     mMP.acceleration = MP_acceleration;
-
-    //     KRATOS_CATCH( "" )
-    // }
-
-
     #pragma endregion
     // end of G2P Mapping
 
