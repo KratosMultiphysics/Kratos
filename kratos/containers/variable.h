@@ -244,6 +244,17 @@ public:
     }
 
     /**
+     * @brief The save operation which backups the data of the class
+     * @param rSerializer The serializer used to preserve the information
+     * @param pData A pointer to the data to be saved
+     */
+    void Save(Serializer& rSerializer, void* pData) const override
+    {
+        // I'm saving by the value, it can be done by the pointer to detect shared data. Pooyan.
+        rSerializer.save("Data",*static_cast<TDataType* >(pData));
+    }
+
+    /**
      * @brief This method allocates the data of the variable
      * @param pData A pointer to the data to be allocated
      */
