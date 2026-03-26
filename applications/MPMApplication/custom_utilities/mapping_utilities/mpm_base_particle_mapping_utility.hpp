@@ -182,13 +182,8 @@ namespace Kratos
         // Extrapolate from Material Point Elements and Conditions (P2G Mapping)
         block_for_each(r_mpm_model_part.Elements(), [&](Element& r_material_point_element)
 		{
-            InitializeSolutionStep(r_material_point_element);
-
-
+            this->InitializeSolutionStep(r_material_point_element);
             const Vector& rN = row(r_material_point_element.GetGeometry().ShapeFunctionsValues(), 0);
-
-            // KRATOS_WATCH(r_element.Id())
-            // KRATOS_WATCH(rN)
 
             IndexType node_index = 0;
             for (auto& r_node : r_material_point_element.GetGeometry())
@@ -202,19 +197,10 @@ namespace Kratos
                 ++node_index;
             }
 		});
-        // for (auto& r_node : r_model_part.Nodes())
-        // {
-        //     KRATOS_WATCH(r_node.Id())
-        //     KRATOS_WATCH(r_node.FastGetSolutionStepValue(NODAL_MASS))
-        // }
+
         // Assign nodal variables after extrapolation
         this->P2GCalculateNodalVariable();
         KRATOS_INFO_IF("MPMBaseParticleMappingUtility", this->GetEchoLevel() >= 1) << "Finished P2G mapping." << std::endl;
-        // for (auto& r_node : r_model_part.Nodes())
-        // {
-        //     KRATOS_WATCH(r_node.Id())
-        //     KRATOS_WATCH(r_node.FastGetSolutionStepValue(NODAL_MASS))
-        // }
     }
 
 
@@ -250,8 +236,6 @@ namespace Kratos
         std::vector<double> mp_mass;
         rElement.CalculateOnIntegrationPoints(MP_PRESSURE, mp_pressure, rCurrentProcessInfo);
         rElement.CalculateOnIntegrationPoints(MP_MASS, mp_mass, rCurrentProcessInfo);
-        if (rCurrentProcessInfo[STEP] > 1)
-            KRATOS_WATCH("HELLO ANDI")
 
         const double nodal_mass_pressure = rN_i * mp_pressure[0] * mp_mass[0];
         rNode.FastGetSolutionStepValue(NODAL_MPRESSURE, 0) += nodal_mass_pressure;
@@ -265,9 +249,6 @@ namespace Kratos
     void P2GMass(Element& rElement, Node& rNode, const double& rN_i,  const ProcessInfo& rCurrentProcessInfo)
     {
         std::vector<double> mp_mass;
-
-        // KRATOS_WATCH(rNode.FastGetSolutionStepValue(NODAL_MASS))
-
         rElement.CalculateOnIntegrationPoints(MP_MASS, mp_mass, rCurrentProcessInfo);
         AtomicAdd(rNode.FastGetSolutionStepValue(NODAL_MASS), rN_i * mp_mass[0]);
 
@@ -296,7 +277,6 @@ namespace Kratos
         for (auto& rNode : r_mpm_model_part.Nodes())
         {
             const double& r_nodal_mass = rNode.FastGetSolutionStepValue(NODAL_MASS);
-            // KRATOS_WATCH(r_nodal_mass)
 
             if (r_nodal_mass > std::numeric_limits<double>::epsilon())
             {
@@ -331,7 +311,6 @@ namespace Kratos
                 //     rNode.SetValue(HAS_INITIAL_MOMENTUM, has_initial_momentum);
                 // }
             }
-            // KRATOS_WATCH(r_nodal_mass)
 
         }//);
     }
@@ -480,8 +459,7 @@ namespace Kratos
                 nodal_pressure = r_node.FastGetSolutionStepValue(PRESSURE, 0);
             }
             new_mp_pressure += rN[node_index] * nodal_pressure;
-            KRATOS_WATCH(rN)
-            KRATOS_WATCH(rN[node_index])
+
             ++node_index;
         }
         rElement.SetValuesOnIntegrationPoints(MP_PRESSURE, {new_mp_pressure}, rCurrentProcessInfo);
