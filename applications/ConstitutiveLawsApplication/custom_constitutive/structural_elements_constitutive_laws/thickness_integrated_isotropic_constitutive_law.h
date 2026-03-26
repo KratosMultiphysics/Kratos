@@ -20,6 +20,7 @@
 // Project includes
 #include "includes/constitutive_law.h"
 
+#include "custom_utilities/advanced_constitutive_law_utilities.h"
 
 namespace Kratos
 {
@@ -417,30 +418,18 @@ public:
         mThicknessIntegrationPoints = NumberOfPoints;
     }
 
+    /**
+     * @brief This method computes the maximum edge length of
+     * a shell of 3 and 4 nodes
+     */
     double GetMaxReferenceEdgeLength(const GeometryType& rGeometry) const
     {
-        double max_length = 0.0;
-
-        if (rGeometry.PointsNumber() == 3) {
-            const auto& r_coord_1 = rGeometry[0].GetInitialPosition();
-            const auto& r_coord_2 = rGeometry[1].GetInitialPosition();
-            const auto& r_coord_3 = rGeometry[2].GetInitialPosition();
-    
-            const double length_12 = norm_2(r_coord_2 - r_coord_1);
-            const double length_23 = norm_2(r_coord_3 - r_coord_2);
-            const double length_31 = norm_2(r_coord_1 - r_coord_3);
-
-            max_length = std::max({length_12, length_23, length_31});
-
-        } else if (rGeometry.PointsNumber() == 4) {
-
-        } else {
-            KRATOS_ERROR << "This shell constitutive law is compatible with elements of 3 and 4 nodes only..." << std::endl;
-        }
-
-        return max_length;
+        return AdvancedConstitutiveLawUtilities<3>::GetMaxReferenceEdgeLengthForShell(rGeometry);
     }
 
+    /**
+     * @brief Computes a lists of z-coordinates and weigths to perform the integration through the thickness
+     */
     void CalculateCoordinatesAndWeights(
         std::vector<double> &rCoordinates,
         std::vector<double> &rWeights,

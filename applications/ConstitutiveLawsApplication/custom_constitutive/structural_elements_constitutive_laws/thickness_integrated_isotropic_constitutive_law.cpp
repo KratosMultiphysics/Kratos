@@ -18,7 +18,6 @@
 
 // Project includes
 #include "thickness_integrated_isotropic_constitutive_law.h"
-#include "custom_utilities/advanced_constitutive_law_utilities.h"
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "structural_mechanics_application_variables.h"
 #include "constitutive_laws_application_variables.h"

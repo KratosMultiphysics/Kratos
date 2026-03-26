@@ -18,7 +18,6 @@
 
 // Project includes
 #include "thickness_integrated_composite_constitutive_law.h"
-#include "custom_utilities/advanced_constitutive_law_utilities.h"
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "structural_mechanics_application_variables.h"
 #include "constitutive_laws_application_variables.h"
@@ -100,8 +99,8 @@ ConstitutiveLaw::Pointer ThicknessIntegratedCompositeConstitutiveLaw::Create(
 
     for (IndexType i_layer = 0; i_layer < number_of_layers; ++i_layer) {
         z_layer_coordinate_vector[i_layer] = NewParameters["z_layer_coordinate_vector"][i_layer].GetDouble();
-        Euler_angle_layer_vector[i_layer] = NewParameters["Euler_angle_layer_vector"][i_layer].GetDouble();
-        thickness_layer_vector[i_layer] = NewParameters["thickness_layer_vector"][i_layer].GetDouble();
+        Euler_angle_layer_vector[i_layer]  = NewParameters["Euler_angle_layer_vector"][i_layer].GetDouble();
+        thickness_layer_vector[i_layer]    = NewParameters["thickness_layer_vector"][i_layer].GetDouble();
     }
 
     return Kratos::make_shared<ThicknessIntegratedCompositeConstitutiveLaw>(
