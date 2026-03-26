@@ -321,18 +321,16 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateOnIntegrationPoin
     if (rVariable == VON_MISES_STRESS) {
         // Loop over integration points
         for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
-            StressStrainUtilities EquivalentStress;
             Vector full_stress_vector = this->SetFullStressVector(mStressVector[GPoint]);
-            GPValues[GPoint] = EquivalentStress.CalculateVonMisesStress(full_stress_vector);
+            GPValues[GPoint] = StressStrainUtilities::CalculateVonMisesStress(full_stress_vector);
         }
 
         this->InterpolateOutputDoubles(rValues, GPValues);
     } else if (rVariable == MEAN_EFFECTIVE_STRESS) {
         // Loop over integration points
         for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
-            StressStrainUtilities EquivalentStress;
             Vector full_stress_vector = this->SetFullStressVector(mStressVector[GPoint]);
-            GPValues[GPoint]          = EquivalentStress.CalculateMeanStress(full_stress_vector);
+            GPValues[GPoint] = StressStrainUtilities::CalculateMeanStress(full_stress_vector);
         }
         this->InterpolateOutputDoubles(rValues, GPValues);
     } else if (rVariable == MEAN_STRESS) {
@@ -341,9 +339,8 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateOnIntegrationPoin
 
         // loop integration points
         for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
-            StressStrainUtilities EquivalentStress;
             Vector full_stress_vector = this->SetFullStressVector(StressVector[GPoint]);
-            GPValues[GPoint]          = EquivalentStress.CalculateMeanStress(full_stress_vector);
+            GPValues[GPoint] = StressStrainUtilities::CalculateMeanStress(full_stress_vector);
         }
         this->InterpolateOutputDoubles(rValues, GPValues);
     } else if (rVariable == ENGINEERING_VON_MISES_STRAIN || rVariable == ENGINEERING_VOLUMETRIC_STRAIN ||
@@ -1181,7 +1178,7 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::InitializeElementVariables(InterfaceElementVariables& rVariables,
                                                                                  const GeometryType& rGeometry,
                                                                                  const PropertiesType& rProperties,
-                                                                                 const ProcessInfo& CurrentProcessInfo)
+                                                                                 const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -1191,8 +1188,8 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::InitializeElementVariables
     rVariables.DynamicViscosityInverse = 1.0 / rProperties[DYNAMIC_VISCOSITY];
 
     // ProcessInfo variables
-    rVariables.VelocityCoefficient   = CurrentProcessInfo[VELOCITY_COEFFICIENT];
-    rVariables.DtPressureCoefficient = CurrentProcessInfo[DT_PRESSURE_COEFFICIENT];
+    rVariables.VelocityCoefficient   = rCurrentProcessInfo[VELOCITY_COEFFICIENT];
+    rVariables.DtPressureCoefficient = rCurrentProcessInfo[DT_PRESSURE_COEFFICIENT];
 
     // Nodal Variables
     for (unsigned int i = 0; i < TNumNodes; ++i) {
