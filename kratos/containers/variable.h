@@ -82,10 +82,8 @@ public:
      * @param NewName The name to be assigned to the new variable
      * @param pTimeDerivativeVariable Pointer to the time derivative variable
      */
-    template <typename T>
-    requires std::convertible_to<T, std::string_view> && IsNotStdString<T>
     constexpr explicit Variable(
-        T&& NewName,
+        const std::string_view& NewName,
         const VariableType* pTimeDerivativeVariable = nullptr)
         : VariableData(NewName, sizeof(TDataType)),
           mpTimeDerivativeVariable(pTimeDerivativeVariable)
@@ -95,10 +93,9 @@ public:
      * @brief Constructor for creating a component of other variable
      * @param rNewName The name to be assigned to the compoenent
      */
-    template <typename TSourceVariableType, typename T>
-    requires std::convertible_to<T, std::string_view> && IsNotStdString<T>
+    template <typename TSourceVariableType>
     constexpr explicit Variable(
-        T&& NewName,
+        const std::string_view& NewName,
         const TSourceVariableType* pSourceVariable,
         char ComponentIndex)
         : VariableData(NewName, sizeof(TDataType), pSourceVariable, ComponentIndex)
@@ -110,10 +107,9 @@ public:
      * @param pTimeDerivativeVariable Pointer to the time derivative variable
      * @param Zero The value to be assigned to the variable as zero. In case of not definition will take the value given by the constructor of the time
      */
-    template <typename TSourceVariableType, typename T>
-    requires std::convertible_to<T, std::string_view> && IsNotStdString<T>
+    template <typename TSourceVariableType>
     constexpr explicit Variable(
-        T&& NewName,
+        const std::string_view& NewName,
         TSourceVariableType* pSourceVariable,
         char ComponentIndex,
         const VariableType* pTimeDerivativeVariable)
