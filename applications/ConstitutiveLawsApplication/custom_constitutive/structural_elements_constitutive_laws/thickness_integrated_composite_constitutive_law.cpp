@@ -168,7 +168,7 @@ int& ThicknessIntegratedCompositeConstitutiveLaw::GetValue(
     int& rValue
     )
 {
-    return ThicknessIntegratedCompositeConstitutiveLaw::TGetValue<int>(rThisVariable, rValue);
+    return TGetValue<int>(rThisVariable, rValue);
 }
 
 /***********************************************************************************/
@@ -179,7 +179,7 @@ double& ThicknessIntegratedCompositeConstitutiveLaw::GetValue(
     double& rValue
     )
 {
-    return ThicknessIntegratedCompositeConstitutiveLaw::TGetValue<double>(rThisVariable, rValue);
+    return TGetValue<double>(rThisVariable, rValue);
 }
 
 /***********************************************************************************/
@@ -201,7 +201,7 @@ Vector& ThicknessIntegratedCompositeConstitutiveLaw::GetValue(
     //         }
     //         return mConstitutiveLaws[layer]->GetValue(PLASTIC_STRAIN_VECTOR, rValue);
     // }
-    return ThicknessIntegratedCompositeConstitutiveLaw::TGetValue<Vector>(rThisVariable, rValue);
+    return TGetValue<Vector>(rThisVariable, rValue);
 }
 
 /***********************************************************************************/
@@ -213,7 +213,7 @@ void ThicknessIntegratedCompositeConstitutiveLaw::SetValue(
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-    ThicknessIntegratedCompositeConstitutiveLaw::TSetValue<int>(rThisVariable, rValue, rCurrentProcessInfo);
+    TSetValue<int>(rThisVariable, rValue, rCurrentProcessInfo);
 }
 
 /***********************************************************************************/
@@ -225,7 +225,7 @@ void ThicknessIntegratedCompositeConstitutiveLaw::SetValue(
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-    ThicknessIntegratedCompositeConstitutiveLaw::TSetValue<double>(rThisVariable, rValue, rCurrentProcessInfo);
+    TSetValue<double>(rThisVariable, rValue, rCurrentProcessInfo);
 }
 
 /***********************************************************************************/
@@ -237,7 +237,7 @@ void ThicknessIntegratedCompositeConstitutiveLaw::SetValue(
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-    ThicknessIntegratedCompositeConstitutiveLaw::TSetValue<Vector>(rThisVariable, rValue, rCurrentProcessInfo);
+    TSetValue<Vector>(rThisVariable, rValue, rCurrentProcessInfo);
 }
 
 /***********************************************************************************/
@@ -376,7 +376,7 @@ void ThicknessIntegratedCompositeConstitutiveLaw::InitializeMaterial(
 
     KRATOS_DEBUG_ERROR_IF(mConstitutiveLaws.size() == 0) << "ThicknessIntegratedCompositeConstitutiveLaw: the vector of constitutive laws is empty..." << std::endl;
 
-    KRATOS_CATCH("InitializeMaterial")
+    KRATOS_CATCH("ThicknessIntegratedCompositeConstitutiveLaw::InitializeMaterial")
 }
 
 /***********************************************************************************/
