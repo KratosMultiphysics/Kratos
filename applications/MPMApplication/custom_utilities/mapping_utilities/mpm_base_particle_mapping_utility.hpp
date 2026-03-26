@@ -324,24 +324,8 @@ namespace Kratos
             array_1d<double,3> new_mp_acceleration = ZeroVector(3);
 
             // Calculate MP delta displacement and acceleration
-            IndexType node_index = 0;
-            for (auto& r_node : r_element.GetGeometry())
-            {
-                // Delta displacement
-                array_1d<double,3> r_nodal_displacement;
-                if (r_node.SolutionStepsDataHas(DISPLACEMENT)){
-                    r_nodal_displacement = r_node.FastGetSolutionStepValue(DISPLACEMENT);
-                }
-                new_mp_displacement += rN[node_index] * r_nodal_displacement;
-
-                // Acceleration
-                array_1d<double, 3 > r_nodal_acceleration = ZeroVector(3);
-                if (r_node.SolutionStepsDataHas(ACCELERATION)){
-                    r_nodal_acceleration = r_node.FastGetSolutionStepValue(ACCELERATION);
-                }
-                new_mp_acceleration += rN[node_index] * r_nodal_acceleration;
-                ++node_index;
-            }
+            this->EvaluateVariableOnMaterialPoint(r_element, DISPLACEMENT, new_mp_displacement);
+            this->EvaluateVariableOnMaterialPoint(r_element, ACCELERATION, new_mp_acceleration);
 
             // Update MP total displacement and coordinate
             std::vector<array_1d<double, 3 > > mp_coord;
@@ -409,17 +393,8 @@ namespace Kratos
         const Vector& rN = row(rElement.GetGeometry().ShapeFunctionsValues(), 0);
         double new_mp_pressure = 0.0;
         // Calculate MP pressure
-        IndexType node_index = 0;
-        for (auto& r_node : rElement.GetGeometry())
-        {
-            double nodal_pressure;
-            if (r_node.SolutionStepsDataHas(PRESSURE)){
-                nodal_pressure = r_node.FastGetSolutionStepValue(PRESSURE, 0);
-            }
-            new_mp_pressure += rN[node_index] * nodal_pressure;
+        this->EvaluateVariableOnMaterialPoint(rElement, PRESSURE, new_mp_pressure);
 
-            ++node_index;
-        }
         rElement.SetValuesOnIntegrationPoints(MP_PRESSURE, {new_mp_pressure}, rCurrentProcessInfo);
 
         KRATOS_CATCH("")
@@ -485,6 +460,36 @@ protected:
     ///@name Protected LifeCycle
     ///@{
     ///@}
+    
+    /**
+     * @brief Evaluate the given variable at the material point.
+     * @details
+     * {
+     * Interpolate the given variable and evaluate it at the material point.
+     * Loops through the nodes to retrieve the given variable.
+     * return type is based on rVariable type.
+     * }
+     * @param rElement: material point element
+     * @param rVariable: variable to be interpolated from corresponding grid nodes to material point
+     * @param rEvaluatedVariable: the result of variable evaluated at material point location.
+     */
+    template<class TVar>
+    void EvaluateVariableOnMaterialPoint(const Element& rElement, const TVar& rVariable, typename TVar::Type& rEvaluatedVariable)
+    {
+        const Vector& rN = row(rElement.GetGeometry().ShapeFunctionsValues(), 0);
+
+        IndexType node_index = 0;
+        for (const auto& r_node : rElement.GetGeometry())
+        {
+            typename TVar::Type r_nodal_variable;
+            if (r_node.SolutionStepsDataHas(rVariable)){
+                r_nodal_variable = r_node.FastGetSolutionStepValue(rVariable);
+            }
+            rEvaluatedVariable += rN[node_index] * r_nodal_variable;
+            
+            ++node_index;
+        }
+    }
 
 private:
     ///@name Static Member Variables
