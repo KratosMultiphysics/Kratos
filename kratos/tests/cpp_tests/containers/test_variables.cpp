@@ -117,6 +117,15 @@ KRATOS_TEST_CASE_IN_SUITE(VariablesKeyConstexpr, KratosCoreFastSuite) {
     KRATOS_EXPECT_EQ(func_variable_data(TEMPERATURE), 3);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(VariablesNameStdString, KratosCoreFastSuite) {
+    static_assert(std::is_constructible_v<Variable<double>, const char *>);
+    static_assert(std::is_constructible_v<Variable<double>, std::string_view>);
+    static_assert(!std::is_constructible_v<Variable<double>, std::string>);
+
+    // declaring non constexpr var
+    Variable<double> new_var("Test_var");
+    KRATOS_EXPECT_EQ(new_var.Name(), "Test_var");
+}
 
 
 }

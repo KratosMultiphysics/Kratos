@@ -22,6 +22,7 @@
 #include <string>
 #include <iostream>
 #include <cstddef>
+#include <concepts>
 
 
 // External includes
@@ -38,6 +39,9 @@ namespace Kratos
 {
 ///@addtogroup Kratos
 ///@{
+
+template <typename T>
+concept IsNotStdString = !std::same_as<std::remove_cvref_t<T>, std::string>;
 
 ///@name Kratos Classes
 ///@{
@@ -335,8 +339,10 @@ protected:
     ///@{
 
     /// Constructor for variables.
+    template <typename T>
+    requires std::convertible_to<T, std::string_view> && IsNotStdString<T>
     constexpr VariableData(
-        const std::string_view& NewName,
+        T&& NewName,
         const std::size_t NewSize)
         : mName(NewName),
           mKey(GenerateKey(mName, NewSize, false, 0)),
@@ -346,8 +352,10 @@ protected:
     {}
 
     /// Constructor for variables components.
+    template <typename T>
+    requires std::convertible_to<T, std::string_view> && IsNotStdString<T>
     constexpr VariableData(
-        const std::string_view& NewName,
+        T&& NewName,
         const std::size_t NewSize,
         const VariableData* pSourceVariable,
         const char ComponentIndex)
