@@ -32,9 +32,9 @@ namespace Kratos
     class MPMFlipParticleMappingUtility
         : public MPMBaseParticleMappingUtility
     {
-        
+
     public:
-        
+
     typedef std::size_t IndexType;
     KRATOS_CLASS_POINTER_DEFINITION(MPMFlipParticleMappingUtility);
 
@@ -58,7 +58,7 @@ namespace Kratos
     ///@name Operations
     ///@{
 
-    
+
     #pragma region Particle to Grid Mapping (P2G)
     /**
      * Do Particle to Grid mapping for nodal mass.
@@ -67,7 +67,7 @@ namespace Kratos
     {
         std::vector<array_1d<double, 3 >> mp_velocity;
         std::vector<double> mp_mass;
-        
+
         rElement.CalculateOnIntegrationPoints(MP_VELOCITY, mp_velocity, rCurrentProcessInfo);
         rElement.CalculateOnIntegrationPoints(MP_MASS, mp_mass, rCurrentProcessInfo);
 
@@ -88,16 +88,16 @@ namespace Kratos
 
 
         array_1d<double,3> r_nodal_inertia = mp_acceleration[0] * rN_i * mp_mass[0];
-        
+
         AtomicAdd(rNode.FastGetSolutionStepValue(NODAL_INERTIA, 0), r_nodal_inertia);
     }
 
     #pragma endregion
     // end of P2G Mapping
-    
+
     #pragma region Grid to Particle Mapping (G2P)
 
-    void G2PVelocity(Element& rElement, array_1d<double, 3>& rNewMPAcceleration, const ProcessInfo& rCurrentProcessInfo) override
+    void G2PVelocity(Element& rElement, const array_1d<double, 3>& rNewMPAcceleration, const ProcessInfo& rCurrentProcessInfo) override
     {
         // array_1d<double,3> mp_previous_velocity;
         std::vector<array_1d<double, 3 >> mp_new_velocity;
@@ -105,7 +105,7 @@ namespace Kratos
         std::vector<array_1d<double, 3 >> mp_previous_acceleration;
         rElement.CalculateOnIntegrationPoints(MP_ACCELERATION, mp_previous_acceleration, rCurrentProcessInfo);
 
-        
+
         /* NOTE:
         Another way to update the MP velocity (see paper Guilkey and Weiss, 2003).
         This assume newmark (or trapezoidal, since n.gamma=0.5) rule of integration*/

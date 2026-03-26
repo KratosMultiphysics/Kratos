@@ -62,6 +62,18 @@ namespace Python{
                 rN_i,
                 rCurrentProcessInfo);
         }
+        void G2PVelocity(Element& rElement, const array_1d<double, 3>& rNewMPAcceleration, const ProcessInfo& rCurrentProcessInfo) override
+        {
+            using ReturnType = void;
+            using BaseType = MPMBaseParticleMappingUtility;
+            PYBIND11_OVERRIDE_PURE(
+                ReturnType,
+                BaseType,
+                G2PVelocity,
+                rElement,
+                rNewMPAcceleration,
+                rCurrentProcessInfo);
+        }
     }; // class ControllerTrampoline
 
     void SearchElementAccordingToDimension(

@@ -106,7 +106,7 @@ namespace Kratos
         ModelPart& r_grid_model_part = GetGridModelPart();
 
         // Loop over the grid nodes performed to clear all nodal information
-        for (Node& r_node : r_grid_model_part.Nodes()) // yes.. i know it is confusing. 
+        for (Node& r_node : r_grid_model_part.Nodes()) // yes.. i know it is confusing.
         {
         // block_for_each(r_mpm_model_part.Nodes(), [&](Node& r_node)
 		// {
@@ -203,7 +203,7 @@ namespace Kratos
         this->P2GMass(rElement, rNode, rN_i, rCurrentProcessInfo);
         this->P2GMomentum(rElement, rNode, rN_i, rCurrentProcessInfo);
         this->P2GInertia(rElement, rNode, rN_i, rCurrentProcessInfo);
-        
+
         this->P2GAdditionalVariables(rElement, rNode, rN_i, rCurrentProcessInfo); // may be better implemented in derived class
     }
 
@@ -211,7 +211,7 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        // Do Mass-Pressure P2G mapping for mixed formulation 
+        // Do Mass-Pressure P2G mapping for mixed formulation
         const bool is_mixed_formulation = (rCurrentProcessInfo.Has(IS_MIXED_FORMULATION))
             ? rCurrentProcessInfo.GetValue(IS_MIXED_FORMULATION)
             : false;
@@ -233,7 +233,7 @@ namespace Kratos
 
         const double nodal_mass_pressure = rN_i * mp_pressure[0] * mp_mass[0];
         rNode.FastGetSolutionStepValue(NODAL_MPRESSURE, 0) += nodal_mass_pressure;
-        
+
         KRATOS_CATCH("")
     }
 
@@ -336,7 +336,7 @@ namespace Kratos
 
             mp_coord[0] += new_mp_displacement;
             mp_displacement[0] += new_mp_displacement;
-            
+
             r_element.SetValuesOnIntegrationPoints(MP_COORD, mp_coord, r_current_process_info);
             r_element.SetValuesOnIntegrationPoints(MP_DISPLACEMENT, mp_displacement, r_current_process_info);
 
@@ -363,15 +363,7 @@ namespace Kratos
      * @param rNewMPAcceleration updated acceleration of the material point
      * @param rCurrentProcessInfo process info
      */
-    virtual void G2PVelocity(Element& rElement, array_1d<double, 3>& rNewMPAcceleration, const ProcessInfo& rCurrentProcessInfo)
-    {
-        KRATOS_TRY;
-
-        KRATOS_ERROR << "Calling G2PVelocity from base particle mapping utility instead of the derived class" << std::endl;
-
-        KRATOS_CATCH("")
-
-    }
+    virtual void G2PVelocity(Element& rElement, const array_1d<double, 3>& rNewMPAcceleration, const ProcessInfo& rCurrentProcessInfo) = 0;
 
 
     virtual void G2PAdditionalVariables(Element& rElement, const ProcessInfo& rCurrentProcessInfo)
@@ -389,7 +381,7 @@ namespace Kratos
     void G2PPressure(Element& rElement, const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY;
-        
+
         const Vector& rN = row(rElement.GetGeometry().ShapeFunctionsValues(), 0);
         double new_mp_pressure = 0.0;
         // Calculate MP pressure
@@ -460,7 +452,7 @@ protected:
     ///@name Protected LifeCycle
     ///@{
     ///@}
-    
+
     /**
      * @brief Evaluate the given variable at the material point.
      * @details
@@ -486,7 +478,7 @@ protected:
                 r_nodal_variable = r_node.FastGetSolutionStepValue(rVariable);
             }
             rEvaluatedVariable += rN[node_index] * r_nodal_variable;
-            
+
             ++node_index;
         }
     }
