@@ -517,6 +517,7 @@ void ThicknessIntegratedCompositeConstitutiveLaw::CalculateMaterialResponseCauch
                 generalized_stress_vector[5] += r_stress_vector[2] * aux_weight; // bending xy
 
                 // Elastic behaviour in shear
+                // TODO pg 399 book oñate we need to compute shear correction factors
                 // generalized_stress_vector[6] += stenberg_stabilization * Gyz * (generalized_strain_vector[6]) * weight; // shear YZ
                 // generalized_stress_vector[7] += stenberg_stabilization * Gxz * (generalized_strain_vector[7]) * weight; // shear XZ
             }
