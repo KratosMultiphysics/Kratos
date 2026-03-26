@@ -332,6 +332,11 @@ namespace Kratos
             Matrix& rB,
             const ShapeDerivativesType& r_DN_DX) const;
 
+        void BuildStressFromVoigtColumn(
+            Matrix& rSigma,
+            const Matrix& rDBVoigt,
+            const IndexType Column) const;
+
         // member variables
         unsigned int mDim;
         double mPenalty;

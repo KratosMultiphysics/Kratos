@@ -77,37 +77,7 @@ void SbmFluidConditionDirichlet::CalculateAll(
     const Matrix& H = r_geometry.ShapeFunctionsValues();
     
     // Use geometry Jacobian determinant to get the correct measure (length/area).
-    double det_J0;
-    if (mDim == 2) {
-        GeometryType::JacobiansType J0;
-        r_geometry.Jacobian(J0, r_geometry.GetDefaultIntegrationMethod());
-        // Jacobian matrix cause J0 is 3x2 and we need 3x3
-        Matrix Jacobian = ZeroMatrix(3, 3);
-        Jacobian(0, 0) = J0[0](0, 0);
-        Jacobian(0, 1) = J0[0](0, 1);
-        Jacobian(1, 0) = J0[0](1, 0);
-        Jacobian(1, 1) = J0[0](1, 1);
-        Jacobian(2, 2) = 1.0; // 2D case
-
-        array_1d<double, 3> tangent_parameter_space;
-        r_geometry.Calculate(LOCAL_TANGENT, tangent_parameter_space); // Gives the result in the parameter space !!
-        Vector determinant_factor = prod(Jacobian, tangent_parameter_space);
-        determinant_factor[2] = 0.0; // 2D case
-        det_J0 = norm_2(determinant_factor);
-    } else {
-        Matrix tangent_matrix;
-        r_geometry.Calculate(LOCAL_TANGENT_MATRIX, tangent_matrix);  // 3x2
-
-        array_1d<double,3> t1, t2;
-        for (std::size_t i = 0; i < 3; ++i) {
-            t1[i] = tangent_matrix(i, 0);
-            t2[i] = tangent_matrix(i, 1);
-        }
-        // Cross product of the two tangents
-        array_1d<double, 3> det_vector = MathUtils<double>::CrossProduct(t1, t2);
-        // Norm gives the surface integration factor
-        det_J0 = norm_2(det_vector);
-    }
+    const double det_J0 = std::abs(r_geometry.DeterminantOfJacobian(0, r_geometry.GetDefaultIntegrationMethod()));
 
     const double penalty_integration = mPenalty * r_integration_points[0].Weight() * std::abs(det_J0);
     const double integration_weight = r_integration_points[0].Weight() * std::abs(det_J0);
@@ -152,31 +122,10 @@ void SbmFluidConditionDirichlet::CalculateAll(
     Matrix DB_contribution_w = ZeroMatrix(mDim, mDim);
     Matrix DB_contribution = ZeroMatrix(mDim, mDim);
 
-    const auto BuildStressFromVoigtColumn = [&](Matrix& rSigma, const IndexType Column) {
-        noalias(rSigma) = ZeroMatrix(mDim, mDim);
-        if (mDim == 2) {
-            rSigma(0, 0) = DB_voigt(0, Column);
-            rSigma(1, 1) = DB_voigt(1, Column);
-            rSigma(0, 1) = DB_voigt(2, Column);
-            rSigma(1, 0) = DB_voigt(2, Column);
-        } else {
-            // 3D Voigt order: xx, yy, zz, xy, yz, xz.
-            rSigma(0, 0) = DB_voigt(0, Column);
-            rSigma(1, 1) = DB_voigt(1, Column);
-            rSigma(2, 2) = DB_voigt(2, Column);
-            rSigma(0, 1) = DB_voigt(3, Column);
-            rSigma(1, 0) = DB_voigt(3, Column);
-            rSigma(1, 2) = DB_voigt(4, Column);
-            rSigma(2, 1) = DB_voigt(4, Column);
-            rSigma(0, 2) = DB_voigt(5, Column);
-            rSigma(2, 0) = DB_voigt(5, Column);
-        }
-    };
-
     for (IndexType i = 0; i < number_of_nodes; i++) {
         for (IndexType idim = 0; idim < mDim; idim++) {
             const IndexType col_w = i * mDim + idim;
-            BuildStressFromVoigtColumn(DB_contribution_w, col_w);
+            BuildStressFromVoigtColumn(DB_contribution_w, DB_voigt, col_w);
 
             for (IndexType j = 0; j < number_of_nodes; j++) {
                 // Compute the traction vector: sigma * n.
@@ -188,7 +137,7 @@ void SbmFluidConditionDirichlet::CalculateAll(
                 
                 for (IndexType jdim = 0; jdim < mDim; jdim++) {
                     const IndexType col = j * mDim + jdim;
-                    BuildStressFromVoigtColumn(DB_contribution, col);
+                    BuildStressFromVoigtColumn(DB_contribution, DB_voigt, col);
                     Vector traction = prod(DB_contribution, n_tensor);
 
                     // integration by parts velocity < v cdot (DB cdot n) >
@@ -225,7 +174,7 @@ void SbmFluidConditionDirichlet::CalculateAll(
                 pressure_old_iteration * ( H(0,i) * mNormalParameterSpace[idim] ) * integration_weight;
         
             // skew-symmetric Nitsche term
-            BuildStressFromVoigtColumn(DB_contribution, i * mDim + idim);
+            BuildStressFromVoigtColumn(DB_contribution, DB_voigt, i * mDim + idim);
             Vector traction = prod(DB_contribution, n_tensor);
             for (IndexType jdim = 0; jdim < mDim; jdim++) {
                 rRightHandSideVector(i * block_size + idim) -=
@@ -251,7 +200,7 @@ void SbmFluidConditionDirichlet::CalculateAll(
 
             // Extract the 2x2 block for the control point i from the sigma matrix.
             Matrix sigma_block = ZeroMatrix(mDim, mDim);
-            BuildStressFromVoigtColumn(sigma_block, i * mDim + idim);
+            BuildStressFromVoigtColumn(sigma_block, DB_voigt, i * mDim + idim);
             Vector traction = prod(sigma_block, n_tensor);
             // skew-symmetric Nitsche term
             for (IndexType jdim = 0; jdim < mDim; jdim++) {
@@ -419,6 +368,32 @@ void SbmFluidConditionDirichlet::CalculateB(
             rB(5, 3 * i)     = r_DN_DX(i, 2);
             rB(5, 3 * i + 2) = r_DN_DX(i, 0);
         }
+    }
+}
+
+void SbmFluidConditionDirichlet::BuildStressFromVoigtColumn(
+    Matrix& rSigma,
+    const Matrix& rDBVoigt,
+    const IndexType Column) const
+{
+    noalias(rSigma) = ZeroMatrix(mDim, mDim);
+
+    if (mDim == 2) {
+        rSigma(0, 0) = rDBVoigt(0, Column);
+        rSigma(1, 1) = rDBVoigt(1, Column);
+        rSigma(0, 1) = rDBVoigt(2, Column);
+        rSigma(1, 0) = rDBVoigt(2, Column);
+    } else {
+        // 3D Voigt order: xx, yy, zz, xy, yz, xz.
+        rSigma(0, 0) = rDBVoigt(0, Column);
+        rSigma(1, 1) = rDBVoigt(1, Column);
+        rSigma(2, 2) = rDBVoigt(2, Column);
+        rSigma(0, 1) = rDBVoigt(3, Column);
+        rSigma(1, 0) = rDBVoigt(3, Column);
+        rSigma(1, 2) = rDBVoigt(4, Column);
+        rSigma(2, 1) = rDBVoigt(4, Column);
+        rSigma(0, 2) = rDBVoigt(5, Column);
+        rSigma(2, 0) = rDBVoigt(5, Column);
     }
 }
 

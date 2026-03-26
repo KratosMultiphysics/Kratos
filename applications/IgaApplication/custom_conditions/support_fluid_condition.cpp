@@ -71,7 +71,6 @@ void SupportFluidCondition::CalculateAll(
     ApplyConstitutiveLaw(B, Values, constitutive_variables);
     Vector& r_stress_vector = Values.GetStressVector();
     const Matrix& r_D = Values.GetConstitutiveMatrix();
-
     Matrix DB_voigt = Matrix(prod(r_D, B));
 
     // Compute the normals
@@ -85,36 +84,7 @@ void SupportFluidCondition::CalculateAll(
 
     const Matrix& H = r_geometry.ShapeFunctionsValues();
 
-    GeometryType::JacobiansType J0;
-    r_geometry.Jacobian(J0, r_geometry.GetDefaultIntegrationMethod());
-    // Jacobian matrix cause J0 is 3x2 and we need 3x3
-    Matrix Jacobian = ZeroMatrix(3, 3);
-    Jacobian(0, 0) = J0[0](0, 0);
-    Jacobian(0, 1) = J0[0](0, 1);
-    Jacobian(1, 0) = J0[0](1, 0);
-    Jacobian(1, 1) = J0[0](1, 1);
-    Jacobian(2, 2) = 1.0; // 2D case
-
-    array_1d<double, 3> tangent_parameter_space;
-    r_geometry.Calculate(LOCAL_TANGENT, tangent_parameter_space); // Gives the result in the parameter space !!
-    Vector determinant_factor = prod(Jacobian, tangent_parameter_space);
-    determinant_factor[2] = 0.0; // 2D case
-    double det_J0 = norm_2(determinant_factor);
-
-    if (mDim == 3) {
-        Matrix tangent_matrix;
-        r_geometry.Calculate(LOCAL_TANGENT_MATRIX, tangent_matrix);  // 3x2
-
-        array_1d<double,3> t1, t2;
-        for (std::size_t i = 0; i < 3; ++i) {
-            t1[i] = tangent_matrix(i, 0);
-            t2[i] = tangent_matrix(i, 1);
-        }
-        // Cross product of the two tangents
-        array_1d<double, 3> det_vector = MathUtils<double>::CrossProduct(t1, t2);
-        // Norm gives the surface integration factor
-        det_J0 = norm_2(det_vector);
-    }
+    const double det_J0 = std::abs(r_geometry.DeterminantOfJacobian(0, r_geometry.GetDefaultIntegrationMethod()));
 
     double penalty_integration = mPenalty * r_integration_points[0].Weight() * std::abs(det_J0);
     const double integration_weight = r_integration_points[0].Weight() * std::abs(det_J0);
@@ -137,53 +107,16 @@ void SupportFluidCondition::CalculateAll(
 
     // Compute the traction vector: sigma * n using r_stress_vector
     Matrix stress_old = ZeroMatrix(mDim, mDim);
-    if (mDim == 2) {
-        stress_old(0, 0) = r_stress_vector[0];
-        stress_old(1, 1) = r_stress_vector[1];
-        stress_old(0, 1) = r_stress_vector[2];
-        stress_old(1, 0) = r_stress_vector[2];
-    } else {
-        // 3D Voigt order: xx, yy, zz, xy, yz, xz.
-        stress_old(0, 0) = r_stress_vector[0];
-        stress_old(1, 1) = r_stress_vector[1];
-        stress_old(2, 2) = r_stress_vector[2];
-        stress_old(0, 1) = r_stress_vector[3];
-        stress_old(1, 0) = r_stress_vector[3];
-        stress_old(1, 2) = r_stress_vector[4];
-        stress_old(2, 1) = r_stress_vector[4];
-        stress_old(0, 2) = r_stress_vector[5];
-        stress_old(2, 0) = r_stress_vector[5];
-    }
+    BuildStressMatrixFromVoigt(stress_old, r_stress_vector);
     Vector traction_current_iteration = prod(stress_old, n_tensor); 
 
     Matrix DB_contribution_w = ZeroMatrix(mDim, mDim);
     Matrix DB_contribution = ZeroMatrix(mDim, mDim);
-
-    const auto BuildStressFromVoigtColumn = [&](Matrix& rSigma, const IndexType Column) {
-        noalias(rSigma) = ZeroMatrix(mDim, mDim);
-        if (mDim == 2) {
-            rSigma(0, 0) = DB_voigt(0, Column);
-            rSigma(1, 1) = DB_voigt(1, Column);
-            rSigma(0, 1) = DB_voigt(2, Column);
-            rSigma(1, 0) = DB_voigt(2, Column);
-        } else {
-            // 3D Voigt order: xx, yy, zz, xy, yz, xz.
-            rSigma(0, 0) = DB_voigt(0, Column);
-            rSigma(1, 1) = DB_voigt(1, Column);
-            rSigma(2, 2) = DB_voigt(2, Column);
-            rSigma(0, 1) = DB_voigt(3, Column);
-            rSigma(1, 0) = DB_voigt(3, Column);
-            rSigma(1, 2) = DB_voigt(4, Column);
-            rSigma(2, 1) = DB_voigt(4, Column);
-            rSigma(0, 2) = DB_voigt(5, Column);
-            rSigma(2, 0) = DB_voigt(5, Column);
-        }
-    };
     
     for (IndexType i = 0; i < number_of_nodes; i++) {
         for (IndexType idim = 0; idim < mDim; idim++) {
             const IndexType col_w = i * mDim + idim;
-            BuildStressFromVoigtColumn(DB_contribution_w, col_w);
+            BuildStressMatrixFromVoigt(DB_contribution_w, DB_voigt, col_w);
             Vector traction_nitsche_w = prod(DB_contribution_w, n_tensor);
 
             for (IndexType j = 0; j < number_of_nodes; j++) {  
@@ -193,7 +126,7 @@ void SupportFluidCondition::CalculateAll(
                 
                 for (IndexType jdim = 0; jdim < mDim; jdim++) {
                     const IndexType col = j * mDim + jdim;
-                    BuildStressFromVoigtColumn(DB_contribution, col);
+                    BuildStressMatrixFromVoigt(DB_contribution, DB_voigt, col);
                     Vector traction = prod(DB_contribution, n_tensor);
 
                     // integration by parts velocity --> With Constitutive law  < v cdot (DB cdot n) >
@@ -232,7 +165,7 @@ void SupportFluidCondition::CalculateAll(
             
             // Nitsche term --> With Constitutive law
             Matrix DB_contribution = ZeroMatrix(mDim, mDim);
-            BuildStressFromVoigtColumn(DB_contribution, i * mDim + idim);
+            BuildStressMatrixFromVoigt(DB_contribution, DB_voigt, i * mDim + idim);
             Vector traction = prod(DB_contribution, n_tensor);
             for (IndexType jdim = 0; jdim < mDim; jdim++) {
                 rRightHandSideVector(i * block_size + idim) -=
@@ -276,7 +209,7 @@ void SupportFluidCondition::CalculateAll(
 
             // Extract the 2x2 block for the control point i from the sigma matrix.
             Matrix sigma_block = ZeroMatrix(mDim, mDim);
-            BuildStressFromVoigtColumn(sigma_block, i * mDim + idim);
+            BuildStressMatrixFromVoigt(sigma_block, DB_voigt, i * mDim + idim);
             Vector traction = prod(sigma_block, n_tensor); // This results in a 2x1 vector.
             // Nitsche term --> With Constitutive law
             for (IndexType jdim = 0; jdim < mDim; jdim++) {
@@ -360,6 +293,65 @@ void SupportFluidCondition::CalculateB(
             rB(5, 3 * i)     = r_DN_DX(i, 2);
             rB(5, 3 * i + 2) = r_DN_DX(i, 0);
         }
+    }
+}
+
+void SupportFluidCondition::BuildStressMatrixFromVoigt(
+    Matrix& rStressMatrix,
+    const Vector& rVoigtVector) const
+{
+    if (rStressMatrix.size1() != mDim || rStressMatrix.size2() != mDim) {
+        rStressMatrix.resize(mDim, mDim, false);
+    }
+
+    noalias(rStressMatrix) = ZeroMatrix(mDim, mDim);
+
+    if (mDim == 2) {
+        rStressMatrix(0, 0) = rVoigtVector[0];
+        rStressMatrix(1, 1) = rVoigtVector[1];
+        rStressMatrix(0, 1) = rVoigtVector[2];
+        rStressMatrix(1, 0) = rVoigtVector[2];
+    } else {
+        // 3D small-strain Voigt order: xx, yy, zz, xy, yz, xz.
+        rStressMatrix(0, 0) = rVoigtVector[0];
+        rStressMatrix(1, 1) = rVoigtVector[1];
+        rStressMatrix(2, 2) = rVoigtVector[2];
+        rStressMatrix(0, 1) = rVoigtVector[3];
+        rStressMatrix(1, 0) = rVoigtVector[3];
+        rStressMatrix(1, 2) = rVoigtVector[4];
+        rStressMatrix(2, 1) = rVoigtVector[4];
+        rStressMatrix(0, 2) = rVoigtVector[5];
+        rStressMatrix(2, 0) = rVoigtVector[5];
+    }
+}
+
+void SupportFluidCondition::BuildStressMatrixFromVoigt(
+    Matrix& rStressMatrix,
+    const Matrix& rVoigtMatrix,
+    const IndexType Column) const
+{
+    if (rStressMatrix.size1() != mDim || rStressMatrix.size2() != mDim) {
+        rStressMatrix.resize(mDim, mDim, false);
+    }
+
+    noalias(rStressMatrix) = ZeroMatrix(mDim, mDim);
+
+    if (mDim == 2) {
+        rStressMatrix(0, 0) = rVoigtMatrix(0, Column);
+        rStressMatrix(1, 1) = rVoigtMatrix(1, Column);
+        rStressMatrix(0, 1) = rVoigtMatrix(2, Column);
+        rStressMatrix(1, 0) = rVoigtMatrix(2, Column);
+    } else {
+        // 3D small-strain Voigt order: xx, yy, zz, xy, yz, xz.
+        rStressMatrix(0, 0) = rVoigtMatrix(0, Column);
+        rStressMatrix(1, 1) = rVoigtMatrix(1, Column);
+        rStressMatrix(2, 2) = rVoigtMatrix(2, Column);
+        rStressMatrix(0, 1) = rVoigtMatrix(3, Column);
+        rStressMatrix(1, 0) = rVoigtMatrix(3, Column);
+        rStressMatrix(1, 2) = rVoigtMatrix(4, Column);
+        rStressMatrix(2, 1) = rVoigtMatrix(4, Column);
+        rStressMatrix(0, 2) = rVoigtMatrix(5, Column);
+        rStressMatrix(2, 0) = rVoigtMatrix(5, Column);
     }
 }
 
