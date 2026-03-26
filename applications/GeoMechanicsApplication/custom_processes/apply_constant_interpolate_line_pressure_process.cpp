@@ -127,8 +127,11 @@ double ApplyConstantInterpolateLinePressureProcess::CalculatePressure(const Node
     }
 }
 
-void ApplyConstantInterpolateLinePressureProcess::CalculateBoundaryPressure(
-    const Node& rNode, const std::vector<Node*>& BoundaryNodes, double& pressure, double& coordinate, bool isBottom)
+void ApplyConstantInterpolateLinePressureProcess::CalculateBoundaryPressure(const Node& rNode,
+                                                                            const std::vector<Node*>& BoundaryNodes,
+                                                                            double& pressure,
+                                                                            double& coordinate,
+                                                                            bool    isBottom) const
 {
     // find top boundary
     std::vector<Node*> LeftBoundaryNodes;
@@ -142,15 +145,10 @@ void ApplyConstantInterpolateLinePressureProcess::CalculateBoundaryPressure(
         const Node* RightNode = FindClosestNodeOnBoundaryNodes(rNode, RightBoundaryNodes, isBottom);
 
         InterpolateBoundaryPressure(rNode, LeftNode, RightNode, pressure, coordinate);
-        return;
-
     } else if (!LeftBoundaryNodes.empty()) {
         InterpolateBoundaryPressureWithOneContainer(rNode, LeftBoundaryNodes, pressure, coordinate);
-        return;
-
     } else if (!RightBoundaryNodes.empty()) {
         InterpolateBoundaryPressureWithOneContainer(rNode, RightBoundaryNodes, pressure, coordinate);
-        return;
 
     } else {
         KRATOS_ERROR << "There is not enough points around interpolation, node Id" << rNode.Id() << std::endl;

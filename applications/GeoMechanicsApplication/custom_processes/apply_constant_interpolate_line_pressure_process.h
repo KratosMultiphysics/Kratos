@@ -62,7 +62,7 @@ private:
                                    const std::vector<Node*>& BoundaryNodes,
                                    double&                   pressure,
                                    double&                   coordinate,
-                                   bool                      isBottom = false);
+                                   bool                      isBottom = false) const;
     void InterpolateBoundaryPressureWithOneContainer(const Node&               rNode,
                                                      const std::vector<Node*>& rBoundaryNodes,
                                                      double&                   rPressure,
