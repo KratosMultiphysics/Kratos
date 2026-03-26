@@ -56,6 +56,8 @@ KratosIgaApplication::KratosIgaApplication()
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
     , mSupportPenaltyCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
+    , mStabilizationPenaltyCondition(0, Condition::GeometryType::Pointer(
+        new Geometry<Node>()))
     , mSupportLagrangeCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
     , mSupportNitscheCondition(0, Condition::GeometryType::Pointer(
@@ -114,6 +116,7 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_CONDITION("CouplingNitscheCondition", mCouplingNitscheCondition)
     KRATOS_REGISTER_CONDITION("CouplingNonSymmetricNitscheCondition", mCouplingNonSymmetricNitscheCondition)
     KRATOS_REGISTER_CONDITION("SupportPenaltyCondition", mSupportPenaltyCondition)
+    KRATOS_REGISTER_CONDITION("StabilizationPenaltyCondition", mStabilizationPenaltyCondition)
     KRATOS_REGISTER_CONDITION("SupportLagrangeCondition", mSupportLagrangeCondition)
     KRATOS_REGISTER_CONDITION("SupportNitscheCondition", mSupportNitscheCondition)
     KRATOS_REGISTER_CONDITION("SupportNonSymmetricNitscheCondition", mSupportNonSymmetricNitscheCondition)
@@ -221,6 +224,12 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_VARIABLE(PROJECTION_NODE_ID)
     KRATOS_REGISTER_VARIABLE(CONNECTED_LAYERS)
     KRATOS_REGISTER_VARIABLE(CONNECTED_CONDITIONS)
+
+    //Explicit Stabilization Variables
+    KRATOS_REGISTER_VARIABLE(STABILIZATION_TRANSLATION_FACTOR)
+    KRATOS_REGISTER_VARIABLE(STABILIZATION_ROTATION_FACTOR)
+    KRATOS_REGISTER_VARIABLE(INITIAL_DISTANCE_TO_FIRST_STABLE_POINT)
+    KRATOS_REGISTER_VARIABLE(INITIAL_DISTANCE_FIRST_TO_SECOND_STABLE_POINT)
 }
 
 }  // namespace Kratos

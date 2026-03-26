@@ -39,6 +39,7 @@
 #include "custom_conditions/coupling_nitsche_condition.h"
 #include "custom_conditions/coupling_non_symmetric_nitsche_condition.h"
 #include "custom_conditions/support_penalty_condition.h"
+#include "custom_conditions/stabilization_penalty_condition.h"
 #include "custom_conditions/support_lagrange_condition.h"
 #include "custom_conditions/support_non_symmetric_nitsche_condition.h"
 #include "custom_conditions/support_nitsche_condition.h"
@@ -156,6 +157,7 @@ private:
     const CouplingNitscheCondition mCouplingNitscheCondition;
     const CouplingNonSymmetricNitscheCondition mCouplingNonSymmetricNitscheCondition;
     const SupportPenaltyCondition mSupportPenaltyCondition;
+    const StabilizationPenaltyCondition mStabilizationPenaltyCondition;
     const SupportLagrangeCondition mSupportLagrangeCondition;
     const SupportNitscheCondition mSupportNitscheCondition;
     const SupportNonSymmetricNitscheCondition mSupportNonSymmetricNitscheCondition;

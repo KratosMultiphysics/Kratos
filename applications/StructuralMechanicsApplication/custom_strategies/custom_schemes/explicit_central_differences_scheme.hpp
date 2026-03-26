@@ -414,8 +414,12 @@ public:
         const SizeType DomainSize = 3
         )
     {
-
-        const double nodal_mass = itCurrentNode->GetValue(NODAL_MASS);
+        double nodal_mass = itCurrentNode->GetValue(NODAL_MASS); 
+        if (itCurrentNode->GetValue(STABILIZED_CONTROL_POINT))
+        {
+            nodal_mass = nodal_mass *itCurrentNode->GetValue(SCALING_TRANSLATION_MASS);
+            
+        }
         const double nodal_displacement_damping = itCurrentNode->GetValue(NODAL_DISPLACEMENT_DAMPING);
         const array_1d<double, 3>& r_current_residual = itCurrentNode->FastGetSolutionStepValue(FORCE_RESIDUAL);
 
@@ -466,7 +470,7 @@ public:
         )
     {
         ////// ROTATION DEGRESS OF FREEDOM
-        const array_1d<double, 3>& nodal_inertia = itCurrentNode->GetValue(NODAL_INERTIA);
+        array_1d<double, 3>& nodal_inertia = itCurrentNode->GetValue(NODAL_INERTIA);
         const array_1d<double, 3>& nodal_rotational_damping = itCurrentNode->GetValue(NODAL_ROTATION_DAMPING);
         const array_1d<double, 3>& r_current_residual_moment = itCurrentNode->FastGetSolutionStepValue(MOMENT_RESIDUAL);
         array_1d<double, 3>& r_current_angular_velocity = itCurrentNode->FastGetSolutionStepValue(ANGULAR_VELOCITY);
@@ -474,6 +478,10 @@ public:
         array_1d<double, 3>& r_middle_angular_velocity = itCurrentNode->FastGetSolutionStepValue(MIDDLE_ANGULAR_VELOCITY);
         array_1d<double, 3>& r_current_angular_acceleration = itCurrentNode->FastGetSolutionStepValue(ANGULAR_ACCELERATION);
 
+        if (itCurrentNode->GetValue(STABILIZED_CONTROL_POINT))
+        {
+            nodal_inertia = nodal_inertia * itCurrentNode->GetValue(SCALING_ROTATION_MASS);
+        }
 
         const array_1d<double, 3>& r_previous_rotation = itCurrentNode->FastGetSolutionStepValue(ROTATION, 1);
         const array_1d<double, 3>& r_previous_middle_angular_velocity = itCurrentNode->FastGetSolutionStepValue(MIDDLE_ANGULAR_VELOCITY, 1);
