@@ -311,15 +311,18 @@ void StlBvhTree::Build(std::vector<TriangleData>& rRawTris)
 
     // If using GCC, to use parallel execution policy we need to compile with TBB
 #if defined(KRATOS_USE_TBB) || !defined(__GNUC__)
-    #define STL_BVH_SORT_POLICY std::execution::par
-#else
-    #define STL_BVH_SORT_POLICY std::execution::seq
-#endif
-
-    std::sort(STL_BVH_SORT_POLICY, rRawTris.begin(), rRawTris.end(),
+    // #define STL_BVH_SORT_POLICY std::execution::par
+    std::sort(std::execution::par, rRawTris.begin(), rRawTris.end(),
         [&](const TriangleData& a, const TriangleData& b) {
             return morton_key(a) < morton_key(b);
     });
+#else
+    // #define STL_BVH_SORT_POLICY std::execution::seq
+    std::sort(rRawTris.begin(), rRawTris.end(),
+        [&](const TriangleData& a, const TriangleData& b) {
+            return morton_key(a) < morton_key(b);
+    });
+#endif
 
     // --- 3. Pack triangles into groups of 4 (SOA layout) ---
     const int n_tris  = static_cast<int>(rRawTris.size());
