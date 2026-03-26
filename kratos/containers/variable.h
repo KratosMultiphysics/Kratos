@@ -244,17 +244,6 @@ public:
     }
 
     /**
-     * @brief The save operation which backups the data of the class
-     * @param rSerializer The serializer used to preserve the information
-     * @param pData A pointer to the data to be saved
-     */
-    void Save(Serializer& rSerializer, void* pData) const override
-    {
-        // I'm saving by the value, it can be done by the pointer to detect shared data. Pooyan.
-        rSerializer.save("Data",*static_cast<TDataType* >(pData));
-    }
-
-    /**
      * @brief This method allocates the data of the variable
      * @param pData A pointer to the data to be allocated
      */
@@ -448,32 +437,6 @@ private:
     const TDataType& GetValueByIndex(const TValueType* pValue, std::size_t index) const
     {
         return *static_cast<const TDataType*>(pValue + index);
-    }
-
-    ///@}
-    ///@name Serialization
-    ///@{
-
-    friend class Serializer;
-
-    /**
-     * The save operation which copies the database of the class
-     * @param rSerializer The serializer used to preserve the information
-     */
-    void save(Serializer& rSerializer) const override
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, VariableData );
-        rSerializer.save("TimeDerivativeVariable",mpTimeDerivativeVariable);
-    }
-
-    /**
-     * The load operation which restores the database of the class
-     * @param rSerializer The serializer used to preserve the information
-     */
-    void load(Serializer& rSerializer) override
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, VariableData );
-        rSerializer.load("TimeDerivativeVariable",mpTimeDerivativeVariable);
     }
 
     ///@}

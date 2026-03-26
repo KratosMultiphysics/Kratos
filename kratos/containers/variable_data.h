@@ -389,16 +389,6 @@ private:
     bool mIsComponent;
 
     ///@}
-    ///@name Private Operations
-    ///@{
-
-    friend class Serializer;
-
-    virtual void save(Serializer& rSerializer) const;
-
-    virtual void load(Serializer& rSerializer);
-
-    ///@}
 
 }; // Class VariableData
 
