@@ -230,7 +230,7 @@ class AdjointFluidTest(UnitTest.TestCase):
         }
         ''')
 
-        parameters["output_processes"]["primal_output"].Append(process_parameters)
+        parameters["output_processes"].AddValue("primal_output", process_parameters)
 
     @staticmethod
     def _AddHDF5PrimalSlipOutputProcess(parameters):
@@ -273,7 +273,7 @@ class AdjointFluidTest(UnitTest.TestCase):
         }
         ''')
 
-        parameters["output_processes"]["primal_output"].Append(process_parameters)
+        parameters["output_processes"].AddValue("primal_output", process_parameters)
 
     @classmethod
     def tearDownClass(_):
