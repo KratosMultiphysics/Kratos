@@ -13,8 +13,10 @@
 // System includes
 #include <cstring>    // memset
 #include <cfloat>     // FLT_MAX
-#include <execution>
 
+#if defined(KRATOS_USE_TBB) || !defined(__GNUC__)
+#include <execution>  // std::execution::par for parallel sorting (GCC needs TBB to use parallel execution policy)
+#endif
 
 // Project includes
 #include "includes/geometrical_object.h"
@@ -22,7 +24,6 @@
 
 namespace Kratos
 {
-
 
 ///@name StlBvhTree Public Methods
 ///@{
@@ -309,19 +310,16 @@ void StlBvhTree::Build(std::vector<TriangleData>& rRawTris)
         return EncodeMorton3(x, y, z);
     };
 
+    // Morton code sorting is a significant portion of build time, so we use parallel execution if available.
+    const auto morton_less = [&](const TriangleData& a, const TriangleData& b) {
+        return morton_key(a) < morton_key(b);
+    };
+
     // If using GCC, to use parallel execution policy we need to compile with TBB
 #if defined(KRATOS_USE_TBB) || !defined(__GNUC__)
-    // #define STL_BVH_SORT_POLICY std::execution::par
-    std::sort(std::execution::par, rRawTris.begin(), rRawTris.end(),
-        [&](const TriangleData& a, const TriangleData& b) {
-            return morton_key(a) < morton_key(b);
-    });
+    std::sort(std::execution::par, rRawTris.begin(), rRawTris.end(), morton_less);
 #else
-    // #define STL_BVH_SORT_POLICY std::execution::seq
-    std::sort(rRawTris.begin(), rRawTris.end(),
-        [&](const TriangleData& a, const TriangleData& b) {
-            return morton_key(a) < morton_key(b);
-    });
+    std::sort(rRawTris.begin(), rRawTris.end(), morton_less);
 #endif
 
     // --- 3. Pack triangles into groups of 4 (SOA layout) ---
