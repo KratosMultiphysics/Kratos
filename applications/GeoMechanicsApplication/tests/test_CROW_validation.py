@@ -129,7 +129,9 @@ def get_soil_side_node_ids_of_right_interfaces():
     ]
 
 def _extract_x_and_y_from_line(line, index_of_x=0, index_of_y=1, x_transform=None):
-    words = line.split(",")
+    line = line.strip().lstrip("\ufeff").replace("ï»¿", "")
+    words = [word.strip() for word in (line.split(",") if "," in line else line.split())]
+
     x_ = float(words[index_of_x])
     if x_transform:
         x_ = x_transform(x_)
@@ -137,9 +139,8 @@ def _extract_x_and_y_from_line(line, index_of_x=0, index_of_y=1, x_transform=Non
 
     return x_, y_
 
-
 def extract_bending_moment_and_y_from_line(line):
-    return _extract_x_and_y_from_line(line, index_of_x=1, index_of_y=0, x_transform=lambda x: -x)
+    return _extract_x_and_y_from_line(line, index_of_x=1, index_of_y=0)
 
 
 def extract_horizontal_displacements_from_line(line):
@@ -147,9 +148,8 @@ def extract_horizontal_displacements_from_line(line):
 
 
 def extract_shear_force_and_y_from_line(line):
-    # The shear force sign in the comparison data is opposite to the Kratos sign
     return _extract_x_and_y_from_line(
-        line, index_of_x=2, index_of_y=0, x_transform=lambda x: -x
+        line, index_of_x=2, index_of_y=0
     )
 
 class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
@@ -246,7 +246,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             titles=plot_titles,
             xlabel=r"Normal Traction [$\mathrm{kN} / \mathrm{m}^2$]",
             ylabel="y [m]",
-            figsize=(4, 6),
+            # figsize=(4, 6),
         )
 
         shear_traction_plot_label = "Shear traction"
@@ -265,7 +265,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             titles=plot_titles,
             xlabel=r"Shear Traction [$\mathrm{kN} / \mathrm{m}^2$]",
             ylabel="y [m]",
-            figsize=(4, 6),
+            # figsize=(4, 6),
             )
 
     def get_plot_stages(self):
@@ -328,6 +328,20 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
                         marker="1",
                     )
                 )
+
+            fem_comparison_csv = Path(project_path) / f"{stage['base_name']}_comparison_FEM.csv"
+            if fem_comparison_csv.exists():
+                fem_comparison_variable = test_helper.get_data_points_from_file(
+                    fem_comparison_csv, data_extractor
+                )
+                data_series_collection.append(
+                    plot_utils.DataSeries(
+                        fem_comparison_variable,
+                        f"{variable_plot_label} [FEM Comparison]",
+                        marker="2",
+                    )
+                )
+
             variable_data_collections.append(data_series_collection)
 
         return variable_data_collections
@@ -382,6 +396,18 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
                     )
                 )
 
+            if (Path(project_path) / f"{stage['base_name']}_comparison_FEM.csv").exists():
+                comparison_variable = test_helper.get_data_points_from_file(
+                    Path(project_path) / f"{stage['base_name']}_comparison_FEM.csv", data_extractor
+                )
+                data_series_collection.append(
+                    plot_utils.DataSeries(
+                        comparison_variable,
+                        "Horizontal displacement [FEM Comparison]",
+                        marker="2",
+                    )
+                )
+
             variable_data_collections.append(data_series_collection)
 
         return variable_data_collections
@@ -403,7 +429,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             titles=plot_titles,
             xlabel="Bending moment [kNm/m]",
             ylabel="y [m]",
-            figsize=(4, 6),
+            # figsize=(4, 6),
             )
 
         shear_force_collections = self.get_wall_variable_collections_per_stage(
@@ -419,7 +445,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             titles=plot_titles,
             xlabel="Shear force [kN/m]",
             ylabel="y [m]",
-            figsize=(4, 6),
+            # figsize=(4, 6),
             )
 
         horizontal_displacement_collections = (
@@ -435,7 +461,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             titles=plot_titles,
             xlabel="Horizontal displacement [m]",
             ylabel="y [m]",
-            figsize=(4, 6),
+            # figsize=(4, 6),
         )
 
     def test_simulation_without_excavation(self):
