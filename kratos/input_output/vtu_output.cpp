@@ -43,7 +43,7 @@ namespace Kratos {
 
 namespace {
 
-constexpr bool IsBigEndian()
+constexpr std::string GetEndianness()
 {
     // from: https://stackoverflow.com/a/1001373
     union {
@@ -51,12 +51,7 @@ constexpr bool IsBigEndian()
         char c[4];
     } bint = {0x01020304};
 
-    return bint.c[0] == 1;
-}
-
-constexpr std::string GetEndianness()
-{
-    return IsBigEndian() ? "BigEndian" : "LittleEndian";
+    return bint.c[0] == 1 ? "BigEndian" : "LittleEndian";
 }
 
 template<class T>
