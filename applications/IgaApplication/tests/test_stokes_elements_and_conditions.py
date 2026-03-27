@@ -317,6 +317,63 @@ class FluidTests(KratosUnittest.TestCase):
         for i, expected_value in enumerate(expected_rhs):
             self.assertAlmostEqual(rhs[i], expected_value, delta=tolerance)
 
+    def test_SupportPressureCondition3DRectangularP2(self):
+        model = KM.Model()
+        model_part = model.CreateModelPart("ModelPart")
+        model_part.SetBufferSize(2)
+
+        model_part.AddNodalSolutionStepVariable(KM.VELOCITY)
+        model_part.AddNodalSolutionStepVariable(KM.PRESSURE)
+        model_part.ProcessInfo.SetValue(KM.DOMAIN_SIZE, 3)
+
+        props = model_part.CreateNewProperties(1)
+
+        ipt = [0.23, 0.61, 0.0, 0.42]
+        condition = self.create_condition_3d(model_part, ipt, "SupportPressureCondition", props)
+        condition.SetValue(KM.PRESSURE, 2.5)
+        condition.SetValue(IGA.KNOT_SPAN_SIZES, [0.1, 0.1, 0.1])
+
+        normal_stress = KM.Vector(3)
+        normal_stress[0] = 0.3
+        normal_stress[1] = -0.4
+        normal_stress[2] = 0.2
+        condition.SetValue(KM.NORMAL_STRESS, normal_stress)
+
+        for node in model_part.Nodes:
+            node.AddDof(KM.VELOCITY_X)
+            node.AddDof(KM.VELOCITY_Y)
+            node.AddDof(KM.VELOCITY_Z)
+            node.AddDof(KM.PRESSURE)
+
+        process_info = model_part.ProcessInfo
+        condition.Initialize(process_info)
+
+        lhs = KM.Matrix()
+        rhs = KM.Vector()
+        condition.CalculateLocalSystem(lhs, rhs, process_info)
+
+        self.assertEqual(lhs.Size1(), 108)
+        self.assertEqual(lhs.Size2(), 108)
+        self.assertEqual(rhs.Size(), 108)
+
+        tolerance = 1e-12
+        expected_lhs = [
+            0.0, 0.0, 0.0, 0.0,
+            0.0, 0.0, 0.0, 0.0,
+            0.0, 0.0, 0.0, 0.0,
+            0.0, 0.0, 0.0, 0.0]
+        expected_rhs = [
+            3.5508410437500020e-04, -4.7344547250000030e-04, 3.1957569393750020e-03, 0.0,
+            1.1344245412500005e-03, -1.5125660550000010e-03, 1.0209820871250006e-02, 0.0,
+            9.0606635437500060e-04, -1.2080884725000007e-03, 8.1545971893750050e-03, 0.0,
+            2.9317200412500000e-03, -3.9089600550000010e-03, 2.6385480371250002e-02, 0.0]
+
+        for i, expected_value in enumerate(expected_lhs):
+            self.assertAlmostEqual(lhs[0, i], expected_value, delta=tolerance)
+
+        for i, expected_value in enumerate(expected_rhs):
+            self.assertAlmostEqual(rhs[i], expected_value, delta=tolerance)
+
     def test_NavierStokesElement3DRectangularP2(self):
         model = KM.Model()
         model_part = model.CreateModelPart("ModelPart")
