@@ -15,6 +15,7 @@
 #include <filesystem>
 #include <numeric>
 #include <type_traits>
+#include <cstdint>
 
 // External includes
 
@@ -43,15 +44,20 @@ namespace Kratos {
 
 namespace {
 
-constexpr std::string GetEndianness()
+bool IsBigEndian()
 {
     // from: https://stackoverflow.com/a/1001373
     union {
         uint32_t i;
-        char c[4];
+        unsigned char c[4];
     } bint = {0x01020304};
 
-    return bint.c[0] == 1 ? "BigEndian" : "LittleEndian";
+    return bint.c[0] == 1;
+}
+
+std::string GetEndianness()
+{
+    return IsBigEndian() ? "BigEndian" : "LittleEndian";
 }
 
 template<class T>
