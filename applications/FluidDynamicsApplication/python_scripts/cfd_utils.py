@@ -2,53 +2,19 @@ from numpy import double
 import numpy as np
 import KratosMultiphysics as KM
 
-# Configuration flag for backend selection
-# This can be changed to True to use CuPy if available
-USE_CUPY = True 
-
-# Precision configuration
-PRECISION = np.float64
-
 # Einsum optimization configuration
 opt_type = "greedy"
 
-# if USE_CUPY:
-#     try:
-#         import cupy as xp
-#         import cupyx.scipy.sparse as sparse
-#         import cupyx.scipy.sparse.linalg as sparse_linalg
-#         asnumpy = xp.asnumpy
-#         try:
-#             import pyamgx as linear_solver
-#             USE_AMGX = True
-#         except ImportError:
-#             print("PyAMGx not found. Falling back to CuPy sparse_linalg.")
-#             USE_AMGX = False
-#         USE_AMGX = False
-#     except ImportError:
-#         print("CuPy not found. Falling back to NumPy.")
-#         import numpy as xp
-#         import scipy.sparse as sparse
-#         import scipy.sparse.linalg as sparse_linalg
-#         def asnumpy(x):
-#             return np.asarray(x)
-#         USE_CUPY = False
-# else:
-#     import numpy as xp
-#     import scipy.sparse as sparse
-#     import scipy.sparse.linalg as sparse_linalg
-#     def asnumpy(x):
-#         return np.asarray(x)
-
+# Backend modules to be defined
 xp = None
 sparse = None
 sparse_linalg = None
 asnumpy = None
 
+# Configuration flags
 USE_CUPY = None
 PRECISION = None
-
-_configured = False
+_configured = False # Auxiliary flag to ensure that backend is configured once
 
 USE_AMGX = False #TODO: auxiliary solution to activate/deactivate AMGX until we have a final implementation
 

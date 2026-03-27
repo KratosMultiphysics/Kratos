@@ -956,7 +956,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
                     print("CG failed to converge.")
                 return sol, is_converged
         else:
-
+            #FIXME: USE AMGCL FROM FUTURE NAMESPACE HERE!
             A_np = cfd_utils.sparse.csr_matrix((
                 xp.asarray(self.L.value_data(), dtype=cfd_utils.PRECISION),
                 xp.asarray(self.L.index2_data()),
