@@ -2,7 +2,10 @@ import KratosMultiphysics as KM
 import KratosMultiphysics.FluidDynamicsApplication as DFA
 import KratosMultiphysics.IgaApplication as IGA
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-from test_creation_utility import TestCreationUtility
+try:
+    from .test_creation_utility import TestCreationUtility
+except ImportError:
+    from test_creation_utility import TestCreationUtility
 
 class FluidTests(KratosUnittest.TestCase):
 
@@ -26,7 +29,6 @@ class FluidTests(KratosUnittest.TestCase):
         divergence_stress[1] = 100.0
         element.SetValue(IGA.DIVERGENCE_STRESS, divergence_stress)
 
-        model_part.AddElement(element)
         return element
 
     @staticmethod
@@ -51,7 +53,6 @@ class FluidTests(KratosUnittest.TestCase):
         divergence_stress[2] = 0.05
         element.SetValue(IGA.DIVERGENCE_STRESS, divergence_stress)
 
-        model_part.AddElement(element)
         return element
 
     @staticmethod
@@ -75,7 +76,6 @@ class FluidTests(KratosUnittest.TestCase):
         divergence_stress[2] = 0.05
         element.SetValue(IGA.DIVERGENCE_STRESS, divergence_stress)
 
-        model_part.AddElement(element)
         return element
 
     def create_condition(self, model_part, integration_point, name_condition):
@@ -92,9 +92,28 @@ class FluidTests(KratosUnittest.TestCase):
 
         # Create the condition and add it to the model part
         condition = model_part.CreateNewCondition(name_condition, 1, geometry, props)
-        model_part.AddCondition(condition)
 
         return condition
+
+    @staticmethod
+    def create_condition_3d(model_part, integration_point, name_condition, properties):
+        geometry = TestCreationUtility.GetQuadraturePointGeometryOnVolumeSurfaceP2(model_part, integration_point)
+        condition = model_part.CreateNewCondition(name_condition, 1, geometry, properties)
+        return condition
+
+    @staticmethod
+    def add_fluid_dofs_and_set_3d_state(model_part):
+        for node in model_part.Nodes:
+            node.AddDof(KM.VELOCITY_X)
+            node.AddDof(KM.VELOCITY_Y)
+            node.AddDof(KM.VELOCITY_Z)
+            node.AddDof(KM.PRESSURE)
+
+            velocity = node.GetSolutionStepValue(KM.VELOCITY)
+            velocity[0] = 0.1 + 0.01 * node.X - 0.02 * node.Y + 0.03 * node.Z
+            velocity[1] = -0.05 - 0.02 * node.X + 0.03 * node.Y + 0.01 * node.Z
+            velocity[2] = 0.02 + 0.02 * node.X + 0.01 * node.Y - 0.01 * node.Z
+            node.SetSolutionStepValue(KM.PRESSURE, 1.0 + 0.2 * node.X - 0.1 * node.Y + 0.05 * node.Z)
 
     # test for stokes element
     def test_StokesElementP3(self):
@@ -213,7 +232,8 @@ class FluidTests(KratosUnittest.TestCase):
         u_D[0] = 0.1
         u_D[1] = -0.5
         u_D[2] = 0.0
-        condition.SetValue(KM.VELOCITY, u_D)
+        condition.SetValue(KM.VELOCITY_X, u_D[0])
+        condition.SetValue(KM.VELOCITY_Y, u_D[1])
         mesh_size = [0.1, 0.1]
         condition.SetValue(IGA.KNOT_SPAN_SIZES, mesh_size)
 
@@ -244,6 +264,58 @@ class FluidTests(KratosUnittest.TestCase):
         self.assertEqual(rhs.Size(), len(expected_RHS))
         for i in range(rhs.Size()):
             self.assertAlmostEqual(rhs[i], expected_RHS[i], delta=tolerance)
+
+    def test_SupportFluidCondition3DRectangularP2(self):
+        model = KM.Model()
+        model_part = model.CreateModelPart("ModelPart")
+        model_part.SetBufferSize(2)
+
+        model_part.AddNodalSolutionStepVariable(KM.VELOCITY)
+        model_part.AddNodalSolutionStepVariable(KM.PRESSURE)
+        model_part.ProcessInfo.SetValue(KM.DOMAIN_SIZE, 3)
+
+        props = model_part.CreateNewProperties(1)
+        props.SetValue(IGA.PENALTY_FACTOR, 100.0)
+        props.SetValue(KM.DYNAMIC_VISCOSITY, 0.8)
+        props.SetValue(KM.CONSTITUTIVE_LAW, DFA.Newtonian3DLaw())
+
+        ipt = [0.23, 0.61, 0.0, 0.42]
+        condition = self.create_condition_3d(model_part, ipt, "SupportFluidCondition", props)
+        condition.SetValue(KM.VELOCITY_X, 0.1)
+        condition.SetValue(KM.VELOCITY_Y, -0.5)
+        condition.SetValue(KM.VELOCITY_Z, 0.2)
+        condition.SetValue(IGA.KNOT_SPAN_SIZES, [0.1, 0.1, 0.1])
+
+        self.add_fluid_dofs_and_set_3d_state(model_part)
+
+        process_info = model_part.ProcessInfo
+        condition.Initialize(process_info)
+
+        lhs = KM.Matrix()
+        rhs = KM.Vector()
+        condition.CalculateLocalSystem(lhs, rhs, process_info)
+
+        self.assertEqual(lhs.Size1(), 108)
+        self.assertEqual(lhs.Size2(), 108)
+        self.assertEqual(rhs.Size(), 108)
+
+        tolerance = 1e-10
+        expected_lhs = [
+            2.6684597075089113e-02, 0.0, -4.6207094502318810e-05, 0.0,
+            8.5252089356778207e-02, 0.0, -7.5611609185612600e-05, 0.0,
+            6.8090954486257920e-02, 0.0, -2.8757662120687565e-06, 0.0,
+            2.2031898097894076e-01, 0.0, -3.8150472896786286e-04, 0.0]
+        expected_rhs = [
+            4.7297899548900030e-01, -2.3694691470450016e+00, 9.4441149564949760e-01, 2.3672273625000015e-04,
+            1.5127792718220012e+00, -7.5699923399100050e+00, 3.0159331123347590e+00, 7.5628302750000050e-04,
+            1.2096193726890008e+00, -6.0461627130450030e+00, 2.4078092408907485e+00, 6.0404423625000030e-04,
+            3.9051086294220010e+00, -1.9556668887910003e+01, 7.8223505589522590e+00, 1.9544800275000003e-03]
+
+        for i, expected_value in enumerate(expected_lhs):
+            self.assertAlmostEqual(lhs[0, i], expected_value, delta=tolerance)
+
+        for i, expected_value in enumerate(expected_rhs):
+            self.assertAlmostEqual(rhs[i], expected_value, delta=tolerance)
 
     def test_NavierStokesElement3DRectangularP2(self):
         model = KM.Model()
