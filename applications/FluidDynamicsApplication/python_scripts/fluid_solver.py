@@ -46,6 +46,11 @@ class FluidSolver(PythonSolver):
         self.condition_name = None
         self.min_buffer_size = 3
         self._enforce_element_and_conditions_replacement = self.settings["enforce_element_and_conditions_replacement"].GetBool() #TODO: Remove once we remove the I/O from the solver
+        self._skip_entities_replace_and_check = (
+            self.settings["skip_entities_replace_and_check"].GetBool()
+            if self.settings.Has("skip_entities_replace_and_check")
+            else False
+        )
 
         # Either retrieve the model part from the model or create a new one
         model_part_name = self.settings["model_part_name"].GetString()
@@ -100,7 +105,8 @@ class FluidSolver(PythonSolver):
             self._SetAndFillBuffer()
 
         ## Executes the check and prepare model process. Always executed as it also assigns neighbors which are not saved in a restart
-        # self._ExecuteCheckAndPrepare()
+        if not self._skip_entities_replace_and_check:
+            self._ExecuteCheckAndPrepare()
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Model reading finished.")
 
@@ -127,17 +133,6 @@ class FluidSolver(PythonSolver):
         return new_time
 
     def InitializeSolutionStep(self):
-        # main_model_part = self.GetComputingModelPart()
-        # numero = 0
-        # for node in main_model_part.Nodes :
-        #     # print(node.X, node.Y)
-        #     numero = numero + 1
-        #     # node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Y , 0 , 0.0)
-        #     # node.Fix(KratosMultiphysics.VELOCITY_Y)
-        #     if (node.X==0.0 and node.Y==0.0):
-        #         node.SetSolutionStepValue(KratosMultiphysics.PRESSURE , 0 , 2000)
-        #         node.Fix(KratosMultiphysics.PRESSURE)
-
         self._GetSolutionStrategy().InitializeSolutionStep()
 
     def Predict(self):
@@ -161,10 +156,11 @@ class FluidSolver(PythonSolver):
         self._GetSolutionStrategy().Clear()
 
     def GetComputingModelPart(self):
-        # if not self.main_model_part.HasSubModelPart("fluid_computational_model_part"):
-        #     raise Exception("The ComputingModelPart was not created yet!")
-        # return self.main_model_part.GetSubModelPart("fluid_computational_model_part")
-        return self.main_model_part
+        if self._skip_entities_replace_and_check:
+            return self.main_model_part
+        if not self.main_model_part.HasSubModelPart("fluid_computational_model_part"):
+            raise Exception("The ComputingModelPart was not created yet!")
+        return self.main_model_part.GetSubModelPart("fluid_computational_model_part")
 
     ## FluidSolver specific methods.
     def _ReplaceElementsAndConditions(self):
@@ -321,9 +317,17 @@ class FluidSolver(PythonSolver):
         if self.element_integrates_in_time:
             # "Fake" scheme for those cases in where the element manages the time integration
             # It is required to perform the nodal update once the current time step is solved
-            scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticSchemeSlip(
-                domain_size,
-                domain_size + 1)
+            scheme_settings = KratosMultiphysics.Parameters("""{
+                "block_size" : 0,
+                "domain_size" : 0,
+                "rotation_dof_position" : 0,
+                "rotation_flag_name" : "SLIP"
+            }""")
+            domain_size = self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+            scheme_settings["domain_size"].SetInt(domain_size)
+            scheme_settings["block_size"].SetInt(domain_size + 1)
+            scheme = KratosCFD.IncrementalUpdateRotationScheme(scheme_settings)
+
             # In case the BDF2 scheme is used inside the element, the BDF time discretization utility is required to update the BDF coefficients
             if (self.settings["time_scheme"].GetString() == "bdf2"):
                 time_order = 2
