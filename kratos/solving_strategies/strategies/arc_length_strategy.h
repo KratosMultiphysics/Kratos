@@ -317,14 +317,16 @@ class ArcLengthStrategy
 
         // Now we compute Dxf
         this->mpBuilderAndSolver->Build(this->mpScheme, r_model_part, r_A, r_b);
+        KRATOS_INFO("Na Build r_b") << r_b << std::endl;
         this->mpBuilderAndSolver->ApplyConstraints(this->mpScheme, r_model_part, r_A, r_b);
         this->mpBuilderAndSolver->ApplyDirichletConditions(this->mpScheme, r_model_part, r_A, r_Dx, r_b);
         KRATOS_INFO("Na constraints en Dirichlet r_b") << r_b << std::endl;
 
         KRATOS_INFO("r_f?") << r_f << std::endl;
         TSparseSpace::Assign(r_b, 1.0, r_f);
-        KRATOS_INFO("r_b overschreven met r_f?") << r_b << std::endl;
+        KRATOS_INFO("r_b overschreven met r_f") << r_b << std::endl;
         this->mpBuilderAndSolver->SystemSolve(r_A, r_Dxf, r_b);
+        KRATOS_INFO("r_b na SystemSolve") << r_b << std::endl;
         KRATOS_INFO("0_e Iteratie oplossing r_Dxf?") << r_Dxf << std::endl;
         double lambda_increment = mRadius / TSparseSpace::TwoNorm(r_Dxf);
         KRATOS_INFO("mRadius ") << mRadius << " sqrt(du1F*du1F) " << TSparseSpace::TwoNorm(r_Dxf) << " dLambda^1 " << lambda_increment << std::endl;
@@ -341,21 +343,27 @@ class ArcLengthStrategy
         TSparseSpace::Assign(r_DxStep, 1.0, r_DxPred);
         // TSparseSpace::InplaceMult(r_Dxf, 1.0 / lambda_increment);
         UpdateDatabase(r_A, r_DxPred, r_b, BaseType::MoveMeshFlag());
+        // nog geen UpdateExternalLoad
+        KRATOS_INFO("r_b na UpdateDataBase") << r_b << std::endl;
 
         this->mpScheme->FinalizeNonLinIteration(r_model_part, r_A, r_DxPred, r_b);
+        KRATOS_INFO("r_b na mpScheme->FinalizeNonLinIteration") << r_b << std::endl;
         // this->mpConvergenceCriteria->FinalizeNonLinearIteration(r_model_part, r_dof_set, r_A, r_Dx, r_b);
         this->mpConvergenceCriteria->FinalizeNonLinearIteration(r_model_part, r_dof_set, r_A, r_DxPred, r_b);
+        KRATOS_INFO("r_b na mpConvergenceCriteria->FinalizeNonLinIteration") << r_b << std::endl;
 
         if (is_converged) {
             if (this->mpConvergenceCriteria->GetActualizeRHSflag()) {
                 TSparseSpace::SetToZero(r_b);
                 this->mpBuilderAndSolver->BuildRHS(this->mpScheme, r_model_part, r_b);
+                KRATOS_INFO("r_b na mpBuilderAndSolver->BuildRHS") << r_b << std::endl;
             }
 
             // is_converged = this->mpConvergenceCriteria->PostCriteria(r_model_part, r_dof_set, r_A, r_Dxf, r_b);
             is_converged = this->mpConvergenceCriteria->PostCriteria(r_model_part, r_dof_set, r_A, r_DxPred, r_b);
+            KRATOS_INFO("r_b na mpConvergenceCriteria->PostCriteria") << r_b << std::endl;
         }
-        is_converged = false;
+        // is_converged = false;
         while (!is_converged && iteration_number++ < BaseType::mMaxIterationNumber)
         {
             mInsideIterationLoop = true;
@@ -673,7 +681,7 @@ class ArcLengthStrategy
         const bool MoveMesh) override
     {
         BaseType::UpdateDatabase(rA, rDx, rb, MoveMesh);
-        UpdateExternalLoads();
+        // UpdateExternalLoads();
     }
 
 
