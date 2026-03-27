@@ -109,7 +109,7 @@ class AdjointFluidTest(UnitTest.TestCase):
         }''')
         process_settings["Parameters"]["output_file_name"].SetString(
             output_file_name)
-        kratos_parameters["processes"]["auxiliar_process_list"].Append(
+        kratos_parameters["output_processes"]["json_output"].Append(
             process_settings)
 
     @staticmethod
@@ -181,7 +181,7 @@ class AdjointFluidTest(UnitTest.TestCase):
             output_file_name)
         point_output_process["Parameters"]["output_variables"].SetStringArray(
             output_variables_list)
-        kratos_parameters["processes"]["auxiliar_process_list"].Append(
+        kratos_parameters["output_processes"]["point_output"].Append(
             point_output_process)
 
 
@@ -230,7 +230,7 @@ class AdjointFluidTest(UnitTest.TestCase):
         }
         ''')
 
-        parameters["processes"]["auxiliar_process_list"].Append(process_parameters)
+        parameters["output_processes"]["primal_output"].Append(process_parameters)
 
     @staticmethod
     def _AddHDF5PrimalSlipOutputProcess(parameters):
@@ -273,7 +273,7 @@ class AdjointFluidTest(UnitTest.TestCase):
         }
         ''')
 
-        parameters["processes"]["auxiliar_process_list"].Append(process_parameters)
+        parameters["output_processes"]["primal_output"].Append(process_parameters)
 
     @classmethod
     def tearDownClass(_):
