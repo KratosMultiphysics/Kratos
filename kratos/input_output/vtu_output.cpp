@@ -45,6 +45,8 @@ namespace {
 
 constexpr std::string GetEndianness()
 {
+    // If GCC is lower than 13, full C++20 support is not guaranteed, hence we do manual endianness detection. If GCC is 13 or higher, we can use std::endian from C++20.
+#if defined(__GNUC__) && (__GNUC__ < 13)
     // Manual endianness detection compatible with C++17
     #if defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
         return "LittleEndian";
@@ -54,6 +56,16 @@ constexpr std::string GetEndianness()
         static_assert(false, "Unsupported endianness.");
         return "";
     #endif
+#else // If C++20 is supported, we can use std::endian
+    if constexpr(std::endian::native == std::endian::little) {
+        return "LittleEndian";
+    } else if constexpr(std::endian::native == std::endian::big) {
+        return "BigEndian";
+    } else {
+        KRATOS_ERROR << "Unsupported endianess.";
+        return "";
+    }
+#endif
 }
 
 template<class T>
