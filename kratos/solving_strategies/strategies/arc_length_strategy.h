@@ -207,10 +207,16 @@ class ArcLengthStrategy
 
             this->mpBuilderAndSolver->InitializeSolutionStep(r_model_part, rA, rDx, rb);
             this->mpScheme->InitializeSolutionStep(r_model_part, rA, rDx, rb);
+            KRATOS_INFO("Arclength initialization RHS ") << rb << std::endl;
 
             this->mpBuilderAndSolver->BuildAndSolve(this->mpScheme, r_model_part, rA, rDx, rb);
+            KRATOS_INFO("Arclength initialization RHS ") << rb << std::endl;
+            KRATOS_INFO("Arclength initialization rDx ") << rDx << std::endl;
 
             mRadius_0 = TSparseSpace::TwoNorm(rDx);
+            KRATOS_INFO("Arclength initialization S0 ") << mRadius_0 << std::endl;
+            // mRadius_0 = 1.502;
+            // KRATOS_INFO("Arclength initialization overruled S0 ") << mRadius_0 << std::endl;
             mRadius = mRadius_0;
 
             // Compute vector of reference external force (mf)
@@ -226,7 +232,7 @@ class ArcLengthStrategy
             mLambda_old = 1.0;
 
             // Initialize Norm of solution
-            mNormxEquilibrium = 0.0;
+            // mNormxEquilibrium = 0.0;
 
             mInitializeArcLengthWasPerformed = true;
 
@@ -262,7 +268,7 @@ class ArcLengthStrategy
         } else if (mRadius < mMinRadiusFactor*mRadius_0) {
             mRadius = mMinRadiusFactor*mRadius_0;
         }
-
+        KRATOS_INFO_IF("ArcLengthStrategy", BaseType::GetEchoLevel() > 0) << "Updated Arc-Length radius: " << mRadius << std::endl;
         BaseType::FinalizeSolutionStep();
 
         KRATOS_CATCH("");
@@ -292,6 +298,10 @@ class ArcLengthStrategy
         TSystemVectorType& r_DxPred = *mpDxPred;
         TSystemVectorType& r_DxStep = *mpDxStep;
 
+        KRATOS_INFO("eerst r_b") << r_b << std::endl;
+        KRATOS_INFO("eerst r_f") << r_f << std::endl;
+        KRATOS_INFO("eerst r_Dxb") << r_Dxb << std::endl;
+        KRATOS_INFO("eerst r_Dxf") << r_Dxf << std::endl;
         // Initialize iterations info
         unsigned int iteration_number = 1;
         r_model_part.GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
@@ -299,6 +309,7 @@ class ArcLengthStrategy
         this->mpScheme->InitializeNonLinIteration(r_model_part, r_A, r_Dx, r_b);
         this->mpConvergenceCriteria->InitializeNonLinearIteration(r_model_part, r_dof_set, r_A, r_Dx, r_b);
         bool is_converged = this->mpConvergenceCriteria->PreCriteria(r_model_part, r_dof_set, r_A, r_Dx, r_b);
+        KRATOS_INFO("2de r_b") << r_b << std::endl;
 
         TSparseSpace::SetToZero(r_A);
         TSparseSpace::SetToZero(r_b);
@@ -308,22 +319,32 @@ class ArcLengthStrategy
         this->mpBuilderAndSolver->Build(this->mpScheme, r_model_part, r_A, r_b);
         this->mpBuilderAndSolver->ApplyConstraints(this->mpScheme, r_model_part, r_A, r_b);
         this->mpBuilderAndSolver->ApplyDirichletConditions(this->mpScheme, r_model_part, r_A, r_Dx, r_b);
+        KRATOS_INFO("Na constraints en Dirichlet r_b") << r_b << std::endl;
+
+        KRATOS_INFO("r_f?") << r_f << std::endl;
         TSparseSpace::Assign(r_b, 1.0, r_f);
+        KRATOS_INFO("r_b overschreven met r_f?") << r_b << std::endl;
         this->mpBuilderAndSolver->SystemSolve(r_A, r_Dxf, r_b);
+        KRATOS_INFO("0_e Iteratie oplossing r_Dxf?") << r_Dxf << std::endl;
         double lambda_increment = mRadius / TSparseSpace::TwoNorm(r_Dxf);
-        mDLambdaStep = lambda_increment;
+        KRATOS_INFO("mRadius ") << mRadius << " sqrt(du1F*du1F) " << TSparseSpace::TwoNorm(r_Dxf) << " dLambda^1 " << lambda_increment << std::endl;
+
+        // mDLambdaStep = lambda_increment;
         mLambda += lambda_increment;
 
-        KRATOS_INFO_IF("ArcLengthStrategy", BaseType::GetEchoLevel() > 0) << "ARC-LENGTH LAMBDA: " << mLambda << std::endl;
+        KRATOS_INFO_IF("ArcLengthStrategy", BaseType::GetEchoLevel() > 0) << "ARC-LENGTH dLAMBDA: " << lambda_increment << " ARC-LENGTH LAMBDA: " << mLambda << std::endl;
 
-        TSparseSpace::InplaceMult(r_Dxf, lambda_increment);
-        TSparseSpace::Assign(r_DxPred, 1.0, r_Dxf);
+        // waarom schalen we r_Dxf heen en terug? kan niet in 1x r_dxPred = lambda_increment * r_Dxf
+        // TSparseSpace::InplaceMult(r_Dxf, lambda_increment);
+        // TSparseSpace::Assign(r_DxPred, 1.0, r_Dxf);
+        TSparseSpace::Assign(r_DxPred, lambda_increment, r_Dxf);
         TSparseSpace::Assign(r_DxStep, 1.0, r_DxPred);
-        TSparseSpace::InplaceMult(r_Dxf, 1.0 / lambda_increment);
+        // TSparseSpace::InplaceMult(r_Dxf, 1.0 / lambda_increment);
         UpdateDatabase(r_A, r_DxPred, r_b, BaseType::MoveMeshFlag());
 
         this->mpScheme->FinalizeNonLinIteration(r_model_part, r_A, r_DxPred, r_b);
-        this->mpConvergenceCriteria->FinalizeNonLinearIteration(r_model_part, r_dof_set, r_A, r_Dx, r_b);
+        // this->mpConvergenceCriteria->FinalizeNonLinearIteration(r_model_part, r_dof_set, r_A, r_Dx, r_b);
+        this->mpConvergenceCriteria->FinalizeNonLinearIteration(r_model_part, r_dof_set, r_A, r_DxPred, r_b);
 
         if (is_converged) {
             if (this->mpConvergenceCriteria->GetActualizeRHSflag()) {
@@ -331,13 +352,16 @@ class ArcLengthStrategy
                 this->mpBuilderAndSolver->BuildRHS(this->mpScheme, r_model_part, r_b);
             }
 
-            is_converged = this->mpConvergenceCriteria->PostCriteria(r_model_part, r_dof_set, r_A, r_Dxf, r_b);
+            // is_converged = this->mpConvergenceCriteria->PostCriteria(r_model_part, r_dof_set, r_A, r_Dxf, r_b);
+            is_converged = this->mpConvergenceCriteria->PostCriteria(r_model_part, r_dof_set, r_A, r_DxPred, r_b);
         }
-
-        while (!is_converged && iteration_number++ < BaseType::mMaxIterationNumber) {
+        is_converged = false;
+        while (!is_converged && iteration_number++ < BaseType::mMaxIterationNumber)
+        {
             mInsideIterationLoop = true;
             //setting the number of iteration
             r_model_part.GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
+            KRATOS_INFO("Iteration number: ") << iteration_number << std::endl;
 
             this->mpScheme->InitializeNonLinIteration(r_model_part, r_A, r_Dx, r_b);
             this->mpConvergenceCriteria->InitializeNonLinearIteration(r_model_part, r_dof_set, r_A, r_Dx, r_b);
@@ -351,21 +375,44 @@ class ArcLengthStrategy
             this->mpBuilderAndSolver->Build(this->mpScheme, r_model_part, r_A, r_b);
             this->mpBuilderAndSolver->ApplyConstraints(this->mpScheme, r_model_part, r_A, r_b);
             this->mpBuilderAndSolver->ApplyDirichletConditions(this->mpScheme, r_model_part, r_A, r_Dxf, r_b);
-            TSparseSpace::Assign(r_b, 1.0, r_f);
-            this->mpBuilderAndSolver->SystemSolve(r_A, r_Dxf, r_b);
+            // why don't we solve for r_Dxb first.
+            this->mpBuilderAndSolver->SystemSolve(r_A, r_Dxb, r_b);
+            // TSparseSpace::Assign(r_b, 1.0, r_f);
+            this->mpBuilderAndSolver->SystemSolve(r_A, r_Dxf, r_f);
+            KRATOS_INFO("i_e Iteratie oplossing r_Dxf?") << r_Dxf << std::endl;
 
-            TSparseSpace::SetToZero(r_A);
-            TSparseSpace::SetToZero(r_b);
-            TSparseSpace::SetToZero(r_Dxb);
+            // TSparseSpace::SetToZero(r_A);
+            // TSparseSpace::SetToZero(r_b);
+            // TSparseSpace::SetToZero(r_Dxb);
+            //
+            // this->mpBuilderAndSolver->BuildAndSolve(this->mpScheme, r_model_part, r_A, r_Dxb, r_b);
+            KRATOS_INFO("i_e Iteratie oplossing r_Dxb?") << r_Dxb << std::endl;
+            auto arc_length_type = "UpdatedNormalPlane";
+            if ( arc_length_type == "Ramm" ) {
+                lambda_increment = -TSparseSpace::Dot(r_DxPred, r_Dxb) / TSparseSpace::Dot(r_DxPred, r_Dxf);
+            } else if ( arc_length_type == "Crisfield" ) {
 
-            this->mpBuilderAndSolver->BuildAndSolve(this->mpScheme, r_model_part, r_A, r_Dxb, r_b);
-            lambda_increment = -TSparseSpace::Dot(r_DxPred, r_Dxb) / TSparseSpace::Dot(r_DxPred, r_Dxf);
-            TSparseSpace::Assign(r_Dx, 1.0, r_Dxb + lambda_increment*r_Dxf);
+            } else if (arc_length_type == "UpdatedNormalPlane") {
+                lambda_increment = -TSparseSpace::Dot(r_DxStep, r_Dxb) / TSparseSpace::Dot(r_DxStep, r_Dxf);
+            };
+            KRATOS_INFO("teller r_DxPred * r_Dxb") << TSparseSpace::Dot(r_DxPred, r_Dxb) << " noemer r_DxPred * r_Dxf " << TSparseSpace::Dot(r_DxPred, r_Dxf) << " dLambda^i " << lambda_increment << std::endl;
+            //TSparseSpace::Assign(r_Dx, 1.0, r_Dxb + lambda_increment*r_Dxf); // wtf this lijkt wel heel hybride
+            TSparseSpace::Assign(r_Dx, 1.0, r_Dxb);
+            TSparseSpace::UnaliasedAdd(r_Dx, lambda_increment, r_Dxf);
+            KRATOS_INFO("i_e Iteratie oplossing r_Dxb + lambda_increment*r_Dxf)?") << r_Dx <<std::endl;
+
 
             // Update results
-            mDLambdaStep += lambda_increment;
+            // mDLambdaStep += lambda_increment;
             mLambda += lambda_increment;
+            // update step increment
             TSparseSpace::UnaliasedAdd(r_DxStep, 1.0, r_Dx);
+            KRATOS_INFO_IF("ArcLengthStrategy", BaseType::GetEchoLevel() > 0) << "ARC-LENGTH dLAMBDA: " << lambda_increment << " ARC-LENGTH LAMBDA: " << mLambda << std::endl;
+
+            if (arc_length_type == "MCR") {
+                // equations 46-48
+                auto alpha = mRadius_0 / TSparseSpace::TwoNorm(r_DxStep);
+            };
             UpdateDatabase(r_A, r_Dx, r_b, BaseType::MoveMeshFlag());
 
             this->mpScheme->FinalizeNonLinIteration(r_model_part, r_A, r_Dx, r_b);
@@ -388,6 +435,7 @@ class ArcLengthStrategy
                 << BaseType::mMaxIterationNumber << " iterations" << std::endl;
         }
         //calculate reactions if required
+        KRATOS_INFO_IF("ArcLengthStrategy", BaseType::GetEchoLevel() > 0) << "BaseType::mCalculateReactionsFlag: " << BaseType::mCalculateReactionsFlag << std::endl;
         if (BaseType::mCalculateReactionsFlag)
             this->mpBuilderAndSolver->CalculateReactions(this->mpScheme, r_model_part, r_A, r_Dx, r_b);
         return is_converged;
@@ -404,13 +452,18 @@ class ArcLengthStrategy
         for (unsigned int i = 0; i < mVariableNames.size(); i++) {
             ModelPart& r_sub_model_part = *(mSubModelPartList[i]);
             const std::string& r_variable_name = mVariableNames[i];
-
+            KRATOS_INFO_IF("Arc-Length Strategy", this->GetEchoLevel() > 0)
+                                << "Try Update load for " << r_variable_name << std::endl;
             if (KratosComponents<Variable<double>>::Has(r_variable_name)) {
+                KRATOS_INFO_IF("Arc-Length Strategy", this->GetEchoLevel() > 0)
+                    << "Update load for Variable<double> " << r_variable_name << std::endl;
                 const Variable<double>& var = KratosComponents<Variable<double>>::Get(r_variable_name);
                 block_for_each(r_sub_model_part.Nodes(), [&](Node& r_node){
-                    r_node.FastGetSolutionStepValue(var) *= (mLambda/mLambda_old);
+                    r_node.FastGetSolutionStepValue(var) *= mLambda / mLambda_old;
                 });
             } else if (KratosComponents<Variable<array_1d<double,3>>>::Has(r_variable_name)) {
+                KRATOS_INFO_IF("Arc-Length Strategy", this->GetEchoLevel() > 0)
+                    << "Update load for Variable<array_1d<double,3>> " << r_variable_name << std::endl;
                 typedef Variable<array_1d<double,3>> array_type;
                 const array_type& r_var = KratosComponents<array_type>::Get(r_variable_name);
 
@@ -422,6 +475,7 @@ class ArcLengthStrategy
                         r_condition.GetValue(r_var) *= mLambda / mLambda_old;
                     else
                         r_condition.GetValue(r_var) *= mLambda;
+                    KRATOS_INFO("New load ") << r_condition.GetValue(r_var) << std::endl;
                 });
 
                 // TODO-> add for node loads
@@ -594,8 +648,8 @@ class ArcLengthStrategy
     double mMaxRadiusFactor, mMinRadiusFactor; /// Used to limit the radius of the arc length strategy
     double mRadius, mRadius_0;                 /// Radius of the arc length strategy
     double mLambda, mLambda_old;               /// current and old loading factor
-    double mNormxEquilibrium;                  /// Norm of the solution vector in equilibrium
-    double mDLambdaStep;                       /// Delta lambda of the current step
+    // double mNormxEquilibrium;                  /// Norm of the solution vector in equilibrium
+    // double mDLambdaStep;                       /// Delta lambda of the current step
 
     std::vector<ModelPart*> mSubModelPartList; /// List of  SubModelParts associated to an external load
     std::vector<std::string> mVariableNames;   /// Name of the nodal variable associated to each SubModelPart
