@@ -43,29 +43,20 @@ namespace Kratos {
 
 namespace {
 
+constexpr bool IsBigEndian()
+{
+    // from: https://stackoverflow.com/a/1001373
+    union {
+        uint32_t i;
+        char c[4];
+    } bint = {0x01020304};
+
+    return bint.c[0] == 1;
+}
+
 constexpr std::string GetEndianness()
 {
-    // If GCC is lower than 13, full C++20 support is not guaranteed, hence we do manual endianness detection. If GCC is 13 or higher, we can use std::endian from C++20.
-#if defined(__GNUC__) && (__GNUC__ < 13)
-    // Manual endianness detection compatible with C++17
-    #if defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
-        return "LittleEndian";
-    #elif defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
-        return "BigEndian";
-    #else
-        static_assert(false, "Unsupported endianness.");
-        return "";
-    #endif
-#else // If C++20 is supported, we can use std::endian
-    if constexpr(std::endian::native == std::endian::little) {
-        return "LittleEndian";
-    } else if constexpr(std::endian::native == std::endian::big) {
-        return "BigEndian";
-    } else {
-        KRATOS_ERROR << "Unsupported endianess.";
-        return "";
-    }
-#endif
+    return IsBigEndian() ? "BigEndian" : "LittleEndian";
 }
 
 template<class T>
