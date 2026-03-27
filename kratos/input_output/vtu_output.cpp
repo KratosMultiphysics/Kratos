@@ -45,14 +45,15 @@ namespace {
 
 constexpr std::string GetEndianness()
 {
-    if constexpr(std::endian::native == std::endian::little) {
+    // Manual endianness detection compatible with C++17
+    #if defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
         return "LittleEndian";
-    } else if constexpr(std::endian::native == std::endian::big) {
+    #elif defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
         return "BigEndian";
-    } else {
-        KRATOS_ERROR << "Unsupported endianess.";
+    #else
+        static_assert(false, "Unsupported endianness.");
         return "";
-    }
+    #endif
 }
 
 template<class T>
