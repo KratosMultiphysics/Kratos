@@ -535,7 +535,6 @@ void MITCThickShellElement3D4N<TKinematics>::InitializeSolutionStep(
         const auto& r_props = GetProperties();
         const auto& r_geom = GetGeometry();
         const Matrix& shapeFunctions = r_geom.ShapeFunctionsValues();
-        const double thickness = r_props[THICKNESS];
         Vector iN(shapeFunctions.size2());
 
         // Compute the local coordinate system.
@@ -640,7 +639,6 @@ void MITCThickShellElement3D4N<TKinematics>::FinalizeSolutionStep(
         const auto& r_props = GetProperties();
         const auto& r_geom = GetGeometry();
         const Matrix& shapeFunctions = r_geom.ShapeFunctionsValues();
-        const double thickness = r_props[THICKNESS];
         Vector iN(shapeFunctions.size2());
 
         // Compute the local coordinate system.
@@ -938,7 +936,6 @@ void MITCThickShellElement3D4N<TKinematics>::CalculateAll(
     const auto& r_props = GetProperties();
     const auto& r_geom = GetGeometry();
     const Matrix& shapeFunctions = r_geom.ShapeFunctionsValues();
-    const double thickness = r_props[THICKNESS];
     Vector iN(shapeFunctions.size2());
 
     // Compute the local coordinate system.
