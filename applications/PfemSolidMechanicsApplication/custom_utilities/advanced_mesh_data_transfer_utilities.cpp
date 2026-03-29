@@ -27,7 +27,7 @@ namespace Kratos
       ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
 
 
-      std::cout << " [ ADVANCED MESH INTERPOLATION: Beggin " << std::endl;
+      std::cout << " [ ADVANCED MESH INTERPOLATION: Begin " << std::endl;
       struct triangulateio Mesh1; 
       std::vector< std::vector<int> > EdgeNeigh1;
       ConvertAnElementContainerToTriangulate( rTemporal_elements, Mesh1, EdgeNeigh1);
@@ -677,7 +677,7 @@ namespace Kratos
       }
       catch (int64_t error_Code) {
          if (error_Code != 0) {
-            std::cout << "       In tHE CATCH. Correct. I THink We are here and falied" << std::endl;
+            std::cout << "       In tHE CATCH. Correct. I THink We are here and failed" << std::endl;
             failed = true;
             return failed;
          }
@@ -772,7 +772,7 @@ namespace Kratos
       }  // POTSER EL PROBLEMA ÉS AQUEST, PERÒ NO CREC
 
 
-      // 3. Write the Edges (requiered) and Neighbours (why?)
+      // 3. Write the Edges (required) and Neighbours (why?)
       std::vector<std::vector<int > > Edges;
       rEdNeigh.clear();
 
@@ -839,17 +839,17 @@ namespace Kratos
    void MeshDataTransferUtilities::WriteAMesh( struct triangulateio& rMesh)
    {
 
-      std::cout << " WRITTING A MESH. Nodes " << std::endl;
+      std::cout << " WRITING A MESH. Nodes " << std::endl;
       for (int i = 0; i != rMesh.numberofpoints; i++)
          std::cout << i << " POINT " << rMesh.pointlist[2*i] << " , " << rMesh.pointlist[2*i+1] << std::endl;
 
-      std::cout << " WRITTING A MESH. Elems " << std::endl;
+      std::cout << " WRITING A MESH. Elems " << std::endl;
       for (int i = 0; i != rMesh.numberoftriangles; i++) {
          std::cout << i << " ELEM " << rMesh.trianglelist[3*i] << " , " <<  rMesh.trianglelist[3*i+1] << " , " <<
             rMesh.trianglelist[3*i +2] << std::endl;
       }
 
-      std::cout << " WRITTING A MESH. Eges " << std::endl;
+      std::cout << " WRITING A MESH. Eges " << std::endl;
       for (int i = 0; i != rMesh.numberofedges; i++)
       {
          std::cout << i  << " SEGMENT " << rMesh.edgelist[2*i] << " , " << rMesh.edgelist[2*i+1] << std::endl;
