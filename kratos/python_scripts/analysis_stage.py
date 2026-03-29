@@ -1,8 +1,8 @@
 # Importing Kratos
 import KratosMultiphysics
 from KratosMultiphysics.process_factory import KratosProcessFactory
-from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
 from KratosMultiphysics.model_parameters_factory import KratosModelParametersFactory
+from KratosMultiphysics.python_null_solver import PYTHON_NULL_SOLVER
 
 class AnalysisStage(object):
     """The base class for the AnalysisStage-classes in the applications
@@ -242,14 +242,27 @@ class AnalysisStage(object):
         pass
 
     def _GetSolver(self):
+        """Returns the solver instance (real or null-object)."""
         if not hasattr(self, '_solver'):
             self._solver = self._CreateSolver()
         return self._solver
 
     def _CreateSolver(self):
-        """Create the solver
+        """Create the solver.
+
+        Returns:
+            A solver instance. By default, a null-object solver is returned,
+            allowing stages to run without requiring a concrete solver.
         """
-        raise Exception("Creation of the solver must be implemented in the derived class.")
+        return PYTHON_NULL_SOLVER # Default: use a null-object solver (no-op) for solver-less stages
+
+    def _HasSolver(self):
+        """Return whether this stage uses a real solver.
+
+        Returns:
+            bool: True if a concrete solver is used, False if the null solver is used.
+        """
+        return hasattr(self, '_solver') and self._solver is not PYTHON_NULL_SOLVER
 
     def _AdvanceTime(self):
         """ Computes the following time
@@ -384,16 +397,6 @@ class AnalysisStage(object):
         """
         return []
 
-    def _CheckDeprecatedOutputProcesses(self, list_of_processes):
-        deprecated_output_processes = []
-        for process in list_of_processes:
-            if issubclass(type(process), KratosMultiphysics.OutputProcess):
-                deprecated_output_processes.append(process)
-                msg  = "{} is an OutputProcess. However, it has been constructed as a regular process.\n"
-                msg += "Please, define it as an 'output_processes' in the ProjectParameters."
-                IssueDeprecationWarning("AnalysisStage", msg.format(process.__class__.__name__))
-        return deprecated_output_processes
-
     def _GetSimulationName(self):
         """Returns the name of the Simulation
         """
@@ -404,8 +407,6 @@ class AnalysisStage(object):
         """
         order_processes_initialization = self._GetOrderOfProcessesInitialization()
         self._list_of_processes        = self._CreateProcesses("processes", order_processes_initialization)
-        deprecated_output_processes    = self._CheckDeprecatedOutputProcesses(self._list_of_processes)
         order_processes_initialization = self._GetOrderOfOutputProcessesInitialization()
         self._list_of_output_processes = self._CreateProcesses("output_processes", order_processes_initialization)
         self._list_of_processes.extend(self._list_of_output_processes) # Adding the output processes to the regular processes
-        self._list_of_output_processes.extend(deprecated_output_processes)
