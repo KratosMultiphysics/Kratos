@@ -181,9 +181,8 @@ class AdjointFluidTest(UnitTest.TestCase):
             output_file_name)
         point_output_process["Parameters"]["output_variables"].SetStringArray(
             output_variables_list)
-        kratos_parameters["output_processes"]["point_output"].Append(
-            point_output_process)
-
+        kratos_parameters["output_processes"].AddEmptyList("point_output")
+        kratos_parameters["output_processes"]["point_output"].Append(point_output_process)
 
     @staticmethod
     def _AddCompareTwoFilesCheckProcess(kratos_parameters, output_file_name, reference_file_name, tolerance):
@@ -230,7 +229,8 @@ class AdjointFluidTest(UnitTest.TestCase):
         }
         ''')
 
-        parameters["output_processes"].AddValue("primal_output", process_parameters)
+        parameters["output_processes"].AddEmptyList("primal_output")
+        parameters["output_processes"]["primal_output"].Append(process_parameters)
 
     @staticmethod
     def _AddHDF5PrimalSlipOutputProcess(parameters):
@@ -273,7 +273,8 @@ class AdjointFluidTest(UnitTest.TestCase):
         }
         ''')
 
-        parameters["output_processes"].AddValue("primal_output", process_parameters)
+        parameters["output_processes"].AddEmptyList("primal_output")
+        parameters["output_processes"]["primal_output"].Append(process_parameters)
 
     @classmethod
     def tearDownClass(_):
