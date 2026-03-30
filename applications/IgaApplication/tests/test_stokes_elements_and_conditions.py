@@ -2,10 +2,124 @@ import KratosMultiphysics as KM
 import KratosMultiphysics.FluidDynamicsApplication as DFA
 import KratosMultiphysics.IgaApplication as IGA
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+from KratosMultiphysics.modeler_factory import KratosModelerFactory
 try:
     from .test_creation_utility import TestCreationUtility
 except ImportError:
     from test_creation_utility import TestCreationUtility
+
+
+def _run_modelers(current_model, modelers_list):
+    factory = KratosModelerFactory()
+    list_of_modelers = factory.ConstructListOfModelers(current_model, modelers_list)
+
+    for modeler in list_of_modelers:
+        modeler.SetupGeometryModel()
+
+    for modeler in list_of_modelers:
+        modeler.PrepareGeometryModel()
+
+    for modeler in list_of_modelers:
+        modeler.SetupModelPart()
+
+
+def _create_cube_outer_skin(model_part, min_coord=0.25, max_coord=1.75):
+    model_part.CreateNewProperties(1)
+    prop = model_part.GetProperties()[1]
+
+    coords = {
+        1: (min_coord, min_coord, min_coord),
+        2: (max_coord, min_coord, min_coord),
+        3: (max_coord, max_coord, min_coord),
+        4: (min_coord, max_coord, min_coord),
+        5: (min_coord, min_coord, max_coord),
+        6: (max_coord, min_coord, max_coord),
+        7: (max_coord, max_coord, max_coord),
+        8: (min_coord, max_coord, max_coord),
+    }
+
+    for node_id, (x, y, z) in coords.items():
+        model_part.CreateNewNode(node_id, x, y, z)
+
+    triangles = {
+        1: [1, 3, 2],
+        2: [1, 4, 3],
+        3: [5, 6, 7],
+        4: [5, 7, 8],
+        5: [1, 2, 6],
+        6: [1, 6, 5],
+        7: [4, 8, 7],
+        8: [4, 7, 3],
+        9: [1, 5, 8],
+        10: [1, 8, 4],
+        11: [2, 7, 6],
+        12: [2, 3, 7],
+    }
+
+    for cond_id, node_ids in triangles.items():
+        model_part.CreateNewCondition("SurfaceCondition3D3N", cond_id, node_ids, prop)
+
+
+def _create_support_condition_model_part_3d(condition_name):
+    current_model = KM.Model()
+    iga_model_part = current_model.CreateModelPart("IgaModelPart")
+    iga_model_part.SetBufferSize(2)
+    iga_model_part.AddNodalSolutionStepVariable(KM.VELOCITY)
+    iga_model_part.AddNodalSolutionStepVariable(KM.PRESSURE)
+    iga_model_part.ProcessInfo.SetValue(KM.DOMAIN_SIZE, 3)
+
+    skin_model_part_outer_initial = current_model.CreateModelPart("skin_model_part_outer_initial")
+    skin_model_part_outer_initial.AddNodalSolutionStepVariable(KM.VELOCITY)
+    _create_cube_outer_skin(skin_model_part_outer_initial)
+
+    modeler_settings = KM.Parameters(
+        f"""
+        [
+            {{
+                "modeler_name": "NurbsGeometryModelerSbm",
+                "Parameters": {{
+                    "model_part_name" : "IgaModelPart",
+                    "lower_point_xyz": [0.0, 0.0, 0.0],
+                    "upper_point_xyz": [2.0, 2.0, 2.0],
+                    "lower_point_uvw": [0.0, 0.0, 0.0],
+                    "upper_point_uvw": [2.0, 2.0, 2.0],
+                    "polynomial_order" : [1, 1, 1],
+                    "number_of_knot_spans" : [4, 4, 4],
+                    "lambda_outer": 0.5,
+                    "number_of_inner_loops": 0,
+                    "skin_model_part_outer_initial_name": "skin_model_part_outer_initial",
+                    "skin_model_part_name": "skin_model_part",
+                    "echo_level": 0
+                }}
+            }},
+            {{
+                "modeler_name": "IgaModelerSbm",
+                "Parameters": {{
+                    "echo_level": 0,
+                    "skin_model_part_name": "skin_model_part",
+                    "analysis_model_part_name": "IgaModelPart",
+                    "element_condition_list": [
+                        {{
+                            "geometry_type": "SurfaceEdge",
+                            "iga_model_part": "Support_outer",
+                            "type": "condition",
+                            "name": "{condition_name}",
+                            "shape_function_derivatives_order": 3,
+                            "sbm_parameters": {{
+                                "is_inner" : false
+                            }}
+                        }}
+                    ]
+                }}
+            }}
+        ]
+        """
+    )
+
+    _run_modelers(current_model, modeler_settings)
+    support_model_part = current_model.GetModelPart("IgaModelPart.Support_outer")
+    return current_model, support_model_part, next(iter(support_model_part.Conditions))
+
 
 class FluidTests(KratosUnittest.TestCase):
 
@@ -114,6 +228,30 @@ class FluidTests(KratosUnittest.TestCase):
             velocity[1] = -0.05 - 0.02 * node.X + 0.03 * node.Y + 0.01 * node.Z
             velocity[2] = 0.02 + 0.02 * node.X + 0.01 * node.Y - 0.01 * node.Z
             node.SetSolutionStepValue(KM.PRESSURE, 1.0 + 0.2 * node.X - 0.1 * node.Y + 0.05 * node.Z)
+
+    @staticmethod
+    def add_fluid_dofs_and_set_3d_state_on_geometry(geometry):
+        for i in range(geometry.PointsNumber()):
+            node = geometry[i]
+            node.AddDof(KM.VELOCITY_X)
+            node.AddDof(KM.VELOCITY_Y)
+            node.AddDof(KM.VELOCITY_Z)
+            node.AddDof(KM.PRESSURE)
+
+            velocity = node.GetSolutionStepValue(KM.VELOCITY)
+            velocity[0] = 0.1 + 0.01 * node.X - 0.02 * node.Y + 0.03 * node.Z
+            velocity[1] = -0.05 - 0.02 * node.X + 0.03 * node.Y + 0.01 * node.Z
+            velocity[2] = 0.02 + 0.02 * node.X + 0.01 * node.Y - 0.01 * node.Z
+            node.SetSolutionStepValue(KM.PRESSURE, 1.0 + 0.2 * node.X - 0.1 * node.Y + 0.05 * node.Z)
+
+    @staticmethod
+    def add_fluid_dofs_on_geometry(geometry):
+        for i in range(geometry.PointsNumber()):
+            node = geometry[i]
+            node.AddDof(KM.VELOCITY_X)
+            node.AddDof(KM.VELOCITY_Y)
+            node.AddDof(KM.VELOCITY_Z)
+            node.AddDof(KM.PRESSURE)
 
     # test for stokes element
     def test_StokesElementP3(self):
@@ -266,50 +404,51 @@ class FluidTests(KratosUnittest.TestCase):
             self.assertAlmostEqual(rhs[i], expected_RHS[i], delta=tolerance)
 
     def test_SupportFluidCondition3DRectangularP2(self):
-        model = KM.Model()
-        model_part = model.CreateModelPart("ModelPart")
-        model_part.SetBufferSize(2)
+        current_model, support_model_part, condition = _create_support_condition_model_part_3d("SupportFluidCondition")
+        iga_model_part = current_model.GetModelPart("IgaModelPart")
 
-        model_part.AddNodalSolutionStepVariable(KM.VELOCITY)
-        model_part.AddNodalSolutionStepVariable(KM.PRESSURE)
-        model_part.ProcessInfo.SetValue(KM.DOMAIN_SIZE, 3)
-
-        props = model_part.CreateNewProperties(1)
+        props = support_model_part.CreateNewProperties(1)
         props.SetValue(IGA.PENALTY_FACTOR, 100.0)
         props.SetValue(KM.DYNAMIC_VISCOSITY, 0.8)
         props.SetValue(KM.CONSTITUTIVE_LAW, DFA.Newtonian3DLaw())
+        for existing_condition in support_model_part.Conditions:
+            existing_condition.Properties = props
 
-        ipt = [0.23, 0.61, 0.0, 0.42]
-        condition = self.create_condition_3d(model_part, ipt, "SupportFluidCondition", props)
+        geometry = condition.GetGeometry()
+        normal = geometry.Calculate(KM.NORMAL)
+        self.assertAlmostEqual(normal[0], -1.0)
+        self.assertAlmostEqual(normal[1], 0.0)
+        self.assertAlmostEqual(normal[2], 0.0)
+
         condition.SetValue(KM.VELOCITY_X, 0.1)
         condition.SetValue(KM.VELOCITY_Y, -0.5)
         condition.SetValue(KM.VELOCITY_Z, 0.2)
         condition.SetValue(IGA.KNOT_SPAN_SIZES, [0.1, 0.1, 0.1])
 
-        self.add_fluid_dofs_and_set_3d_state(model_part)
+        self.add_fluid_dofs_and_set_3d_state_on_geometry(geometry)
 
-        process_info = model_part.ProcessInfo
+        process_info = iga_model_part.ProcessInfo
         condition.Initialize(process_info)
 
         lhs = KM.Matrix()
         rhs = KM.Vector()
         condition.CalculateLocalSystem(lhs, rhs, process_info)
 
-        self.assertEqual(lhs.Size1(), 108)
-        self.assertEqual(lhs.Size2(), 108)
-        self.assertEqual(rhs.Size(), 108)
+        self.assertEqual(lhs.Size1(), 32)
+        self.assertEqual(lhs.Size2(), 32)
+        self.assertEqual(rhs.Size(), 32)
 
         tolerance = 1e-10
         expected_lhs = [
-            2.6684597075089113e-02, 0.0, -4.6207094502318810e-05, 0.0,
-            8.5252089356778207e-02, 0.0, -7.5611609185612600e-05, 0.0,
-            6.8090954486257920e-02, 0.0, -2.8757662120687565e-06, 0.0,
-            2.2031898097894076e-01, 0.0, -3.8150472896786286e-04, 0.0]
+            9.6723633543579935e+01, 3.2704174144156270e-01, 3.2704174144156270e-01, -9.6723633543579930e-02,
+           -4.8310230833900063e+01,-1.6352087072078136e-01,-1.6352087072078136e-01, 4.8361816771789970e-02,
+            2.5917019497006095e+01,-7.8238354270304230e-02, 8.7630570510534767e-02,-2.5917019497006095e-02,
+           -1.2944687338104643e+01, 3.9119177135152120e-02,-4.3815285255267387e-02, 1.2958509748503048e-02]
         expected_rhs = [
-            4.7297899548900030e-01, -2.3694691470450016e+00, 9.4441149564949760e-01, 2.3672273625000015e-04,
-            1.5127792718220012e+00, -7.5699923399100050e+00, 3.0159331123347590e+00, 7.5628302750000050e-04,
-            1.2096193726890008e+00, -6.0461627130450030e+00, 2.4078092408907485e+00, 6.0404423625000030e-04,
-            3.9051086294220010e+00, -1.9556668887910003e+01, 7.8223505589522590e+00, 1.9544800275000003e-03]
+            7.8134190774569320e+00,-3.8917145337366820e+01, 1.5552136199100953e+01, 7.7751058491018281e-03,
+           -3.9108562618479867e+00, 1.9474122880381610e+01,-7.7822881842297582e+00,-3.8875529245509141e-03,
+            2.1935993319305127e+00,-1.0414484331538736e+01, 4.1671823351279317e+00, 2.0833333333333337e-03,
+           -1.0979107770763674e+00, 5.2114088324360348e+00,-2.0852578342306332e+00,-1.0416666666666669e-03]
 
         for i, expected_value in enumerate(expected_lhs):
             self.assertAlmostEqual(lhs[0, i], expected_value, delta=tolerance)
@@ -318,18 +457,15 @@ class FluidTests(KratosUnittest.TestCase):
             self.assertAlmostEqual(rhs[i], expected_value, delta=tolerance)
 
     def test_SupportPressureCondition3DRectangularP2(self):
-        model = KM.Model()
-        model_part = model.CreateModelPart("ModelPart")
-        model_part.SetBufferSize(2)
+        current_model, support_model_part, condition = _create_support_condition_model_part_3d("SupportPressureCondition")
+        iga_model_part = current_model.GetModelPart("IgaModelPart")
 
-        model_part.AddNodalSolutionStepVariable(KM.VELOCITY)
-        model_part.AddNodalSolutionStepVariable(KM.PRESSURE)
-        model_part.ProcessInfo.SetValue(KM.DOMAIN_SIZE, 3)
+        geometry = condition.GetGeometry()
+        normal = geometry.Calculate(KM.NORMAL)
+        self.assertAlmostEqual(normal[0], -1.0)
+        self.assertAlmostEqual(normal[1], 0.0)
+        self.assertAlmostEqual(normal[2], 0.0)
 
-        props = model_part.CreateNewProperties(1)
-
-        ipt = [0.23, 0.61, 0.0, 0.42]
-        condition = self.create_condition_3d(model_part, ipt, "SupportPressureCondition", props)
         condition.SetValue(KM.PRESSURE, 2.5)
         condition.SetValue(IGA.KNOT_SPAN_SIZES, [0.1, 0.1, 0.1])
 
@@ -339,22 +475,18 @@ class FluidTests(KratosUnittest.TestCase):
         normal_stress[2] = 0.2
         condition.SetValue(KM.NORMAL_STRESS, normal_stress)
 
-        for node in model_part.Nodes:
-            node.AddDof(KM.VELOCITY_X)
-            node.AddDof(KM.VELOCITY_Y)
-            node.AddDof(KM.VELOCITY_Z)
-            node.AddDof(KM.PRESSURE)
+        self.add_fluid_dofs_on_geometry(geometry)
 
-        process_info = model_part.ProcessInfo
+        process_info = iga_model_part.ProcessInfo
         condition.Initialize(process_info)
 
         lhs = KM.Matrix()
         rhs = KM.Vector()
         condition.CalculateLocalSystem(lhs, rhs, process_info)
 
-        self.assertEqual(lhs.Size1(), 108)
-        self.assertEqual(lhs.Size2(), 108)
-        self.assertEqual(rhs.Size(), 108)
+        self.assertEqual(lhs.Size1(), 32)
+        self.assertEqual(lhs.Size2(), 32)
+        self.assertEqual(rhs.Size(), 32)
 
         tolerance = 1e-12
         expected_lhs = [
@@ -363,10 +495,10 @@ class FluidTests(KratosUnittest.TestCase):
             0.0, 0.0, 0.0, 0.0,
             0.0, 0.0, 0.0, 0.0]
         expected_rhs = [
-            3.5508410437500020e-04, -4.7344547250000030e-04, 3.1957569393750020e-03, 0.0,
-            1.1344245412500005e-03, -1.5125660550000010e-03, 1.0209820871250006e-02, 0.0,
-            9.0606635437500060e-04, -1.2080884725000007e-03, 8.1545971893750050e-03, 0.0,
-            2.9317200412500000e-03, -3.9089600550000010e-03, 2.6385480371250002e-02, 0.0]
+            2.1770296377485118e-01,-3.1100423396407312e-02, 1.5550211698203656e-02, 0.0,
+           -1.0885148188742559e-01, 1.5550211698203656e-02,-7.7751058491018281e-03, 0.0,
+            5.8333333333333337e-02,-8.3333333333333350e-03, 4.1666666666666675e-03, 0.0,
+           -2.9166666666666670e-02, 4.1666666666666675e-03,-2.0833333333333337e-03, 0.0]
 
         for i, expected_value in enumerate(expected_lhs):
             self.assertAlmostEqual(lhs[0, i], expected_value, delta=tolerance)
