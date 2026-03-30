@@ -40,13 +40,7 @@ class AnalysisStage(object):
         if self.parallel_type == "MPI" and not is_distributed_run:
             KratosMultiphysics.Logger.PrintWarning("Parallel Type", '"MPI" is specified as "parallel_type", but Kratos is not running distributed!')
 
-        self.AddVariables()
-
-    def AddVariables(self):
-        """This function creates the solver by lazy instantiation and adds the required variables to the model part.
-        It can be overridden by derived classes
-        """
-        self._GetSolver().AddVariables()
+        self._AddVariables()
 
     def Run(self):
         """This function executes the entire AnalysisStage
@@ -84,8 +78,8 @@ class AnalysisStage(object):
         self._ModelersPrepareGeometryModel()
         self._ModelersSetupModelPart()
 
-        self.PrepareModelPart()
-        self.AddDofs()
+        self._PrepareModelPart()
+        self._AddDofs()
 
         self.ModifyInitialProperties()
         self.ModifyInitialGeometry()
@@ -95,10 +89,10 @@ class AnalysisStage(object):
         for process in self._GetListOfProcesses():
             process.ExecuteInitialize()
 
-        self.InitializeInternals()
+        self._InitializeInternals()
         self.Check()
 
-        self.ModifyAfterInitializeInternals()
+        self.ModifyBeforeSolutionLoop()
 
         for process in self._GetListOfProcesses():
             process.ExecuteBeforeSolutionLoop()
@@ -118,20 +112,6 @@ class AnalysisStage(object):
                 parameter_output_file.write(self.project_parameters.PrettyPrintJsonString())
 
         KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Analysis -START- ")
-
-    def AddDofs(self):
-        """This function calls the solver to adds the DOFs to the model part
-        It can be overridden by derived classes
-        """
-        self._GetSolver().AddDofs()
-
-    def PrepareModelPart(self):
-        """This function calls the solver to prepare the model part
-        Note that it also calls the solver to import the model part if not already imported by a modeler
-        It can be overridden by derived classes
-        """
-        self._GetSolver().ImportModelPart()
-        self._GetSolver().PrepareModelPart()
 
     def Finalize(self):
         """This function finalizes the AnalysisStage
@@ -240,20 +220,13 @@ class AnalysisStage(object):
         """this is the place to eventually modify geometry (for example moving nodes) in the stage """
         pass
 
-    def InitializeInternals(self):
-        """This is the place to eventually do any initialization of the solution strategy that
-        requires the model part, DOFS, properties and processes to be already initialized
-        By default, it simply calls the solver's Initialize method, but it can be overridden by derived classes if needed.
-        """
-        self._GetSolver().Initialize()
-
-    def ModifyAfterInitializeInternals(self):
-        """this is the place to eventually do any modification that requires the solver to be initialized """
+    def ModifyBeforeSolutionLoop(self):
+        """This is the place to eventually do any modification that requires the stage to be initialized """
         self.ModifyAfterSolverInitialize()
 
     def ModifyAfterSolverInitialize(self):
         """this is the place to eventually do any modification that requires the solver to be initialized """
-        IssueDeprecationWarning("AnalysisStage", "ModifyAfterSolverInitialize is deprecated. Please, use ModifyAfterInitializeInternals instead.")
+        IssueDeprecationWarning("AnalysisStage", "ModifyAfterSolverInitialize is deprecated. Please, use ModifyBeforeSolutionLoop instead.")
         pass
 
     def ApplyBoundaryConditions(self):
@@ -310,6 +283,33 @@ class AnalysisStage(object):
             The default method simply calls the solver
         """
         return self._GetSolver().AdvanceInTime(self.time)
+
+    def _AddVariables(self):
+        """This function creates the solver by lazy instantiation and adds the required variables to the model part.
+        It can be overridden by derived classes
+        """
+        self._GetSolver().AddVariables()
+
+    def _PrepareModelPart(self):
+        """This function calls the solver to prepare the model part
+        Note that it also calls the solver to import the model part if not already imported by a modeler
+        It can be overridden by derived classes
+        """
+        self._GetSolver().ImportModelPart()
+        self._GetSolver().PrepareModelPart()
+
+    def _AddDofs(self):
+        """This function calls the solver to adds the DOFs to the model part
+        It can be overridden by derived classes
+        """
+        self._GetSolver().AddDofs()
+
+    def _InitializeInternals(self):
+        """This is the place to eventually do any initialization of the solution strategy that
+        requires the model part, DOFS, properties and processes to be already initialized
+        By default, it simply calls the solver's Initialize method, but it can be overridden by derived classes if needed.
+        """
+        self._GetSolver().Initialize()
 
     ### Modelers
     def _ModelersSetupGeometryModel(self):
