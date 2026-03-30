@@ -1,6 +1,7 @@
 # Importing Kratos
 import KratosMultiphysics
 from KratosMultiphysics.process_factory import KratosProcessFactory
+from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
 from KratosMultiphysics.model_parameters_factory import KratosModelParametersFactory
 from KratosMultiphysics.python_null_solver import PYTHON_NULL_SOLVER
 
@@ -397,7 +398,7 @@ class AnalysisStage(object):
         """
         return []
 
- def _CheckDeprecatedOutputProcesses(self, list_of_processes):
+    def _CheckDeprecatedOutputProcesses(self, list_of_processes):
         deprecated_output_processes = []
         for process in list_of_processes:
             if issubclass(type(process), KratosMultiphysics.OutputProcess):
