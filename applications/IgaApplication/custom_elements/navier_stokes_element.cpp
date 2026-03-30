@@ -80,6 +80,30 @@ void NavierStokesElement:: Initialize(const ProcessInfo& rCurrentProcessInfo)
     SetValue(INTEGRATION_WEIGHT, integration_points[0].Weight());
 }
 
+void NavierStokesElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    static_cast<void>(rCurrentProcessInfo);
+
+    GeometryType& r_geometry = this->GetGeometry();
+    const Matrix& r_n_values = r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod());
+    const ShapeFunctionsType& rN = row(r_n_values, 0);
+
+    array_1d<double, 3> velocity = ZeroVector(3);
+    double pressure = 0.0;
+
+    this->EvaluateInPoint(velocity, VELOCITY, rN, r_geometry);
+    this->EvaluateInPoint(pressure, PRESSURE, rN, r_geometry);
+
+    this->SetValue(VELOCITY_X, velocity[0]);
+    this->SetValue(VELOCITY_Y, velocity[1]);
+    this->SetValue(VELOCITY_Z, velocity[2]);
+    this->SetValue(PRESSURE, pressure);
+
+    KRATOS_CATCH("");
+}
+
 
 void NavierStokesElement::InitializeMaterial()
 {

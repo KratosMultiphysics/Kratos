@@ -576,6 +576,23 @@ void SbmFluidConditionDirichlet::FinalizeSolutionStep(const ProcessInfo& rCurren
         const SizeType mat_size = number_of_nodes * mDim;
         const Matrix& r_N = r_geometry.ShapeFunctionsValues();
 
+        double pressure_on_surrogate = 0.0;
+        array_1d<double, 3> velocity_on_surrogate = ZeroVector(3);
+        for (IndexType i = 0; i < number_of_nodes; ++i) {
+            const double N_i = r_N(0, i);
+            pressure_on_surrogate += N_i * r_geometry[i].GetSolutionStepValue(PRESSURE);
+
+            const array_1d<double, 3>& r_velocity_i = r_geometry[i].GetSolutionStepValue(VELOCITY);
+            for (IndexType d = 0; d < mDim; ++d) {
+                velocity_on_surrogate[d] += N_i * r_velocity_i[d];
+            }
+        }
+
+        this->SetValue(VELOCITY_X, velocity_on_surrogate[0]);
+        this->SetValue(VELOCITY_Y, velocity_on_surrogate[1]);
+        this->SetValue(VELOCITY_Z, velocity_on_surrogate[2]);
+        this->SetValue(PRESSURE, pressure_on_surrogate);
+
         const Matrix integration_point_list_on_true_boundary  = this->GetValue(INTEGRATION_POINTS);
         const Vector integration_weight_list_on_true_boundary = this->GetValue(INTEGRATION_WEIGHTS);
         const Matrix normals_on_true = this->GetValue(INTEGRATION_NORMALS);
@@ -586,8 +603,6 @@ void SbmFluidConditionDirichlet::FinalizeSolutionStep(const ProcessInfo& rCurren
         // [14] z_gp, [15] p_true
         const std::size_t num_results = integration_weight_list_on_true_boundary.size();
         Matrix integration_results(num_results, 16, 0.0);
-
-        double pressure_max_min = 0.0;
 
         // if (integration_weight_list_on_true_boundary.size() == 0) {
         //     std::cout << "No integration points on true boundary found for condition with ID " << this->Id() << std::endl;
@@ -697,17 +712,10 @@ void SbmFluidConditionDirichlet::FinalizeSolutionStep(const ProcessInfo& rCurren
             integration_results(i_gauss, 14) = (gp.size() > 2) ? gp[2] : 0.0;
             integration_results(i_gauss, 15) = p_true;
 
-            if (gp[0]>0.2499968 || gp[0]<0.15001)
-            {
-                // KRATOS_WATCH("First or Last point on true boundary");
-                pressure_max_min = p_true;
-            }
-
         }
 
         // Save to condition as a matrix
         this->SetValue(RESULTS_ON_TRUE_BOUNDARY, integration_results);
-        this->SetValue(PRESSURE, pressure_max_min);
     }  
 }
 

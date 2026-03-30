@@ -106,6 +106,8 @@ public:
 
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
+    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
+
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo) override;
