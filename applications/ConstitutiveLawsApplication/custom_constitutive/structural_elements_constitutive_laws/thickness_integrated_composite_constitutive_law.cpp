@@ -93,6 +93,9 @@ ConstitutiveLaw::Pointer ThicknessIntegratedCompositeConstitutiveLaw::Create(
 
     const SizeType number_of_layers = NewParameters["thickness_layer_vector"].size();
 
+    KRATOS_ERROR_IF_NOT(NewParameters["z_layer_coordinate_vector"].size() == number_of_layers) << "ThicknessIntegratedCompositeConstitutiveLaw: The size of z_layer_coordinate_vector and thickness_layer_vector should be the same" << std::endl;
+    KRATOS_ERROR_IF_NOT(NewParameters["Euler_angle_layer_vector"].size() == number_of_layers) << "ThicknessIntegratedCompositeConstitutiveLaw: The size of Euler_angle_layer_vector and thickness_layer_vector should be the same" << std::endl;
+
     std::vector<double> z_layer_coordinate_vector(number_of_layers);
     std::vector<double> Euler_angle_layer_vector(number_of_layers);
     std::vector<double> thickness_layer_vector(number_of_layers);
@@ -864,14 +867,17 @@ int ThicknessIntegratedCompositeConstitutiveLaw::Check(
     KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(THICKNESS)) << "The THICKNESS is not defined in the Material Properties..." << std::endl;
 
     const auto it_cl_begin = rMaterialProperties.GetSubProperties().begin();
+    double thickness_sum = 0.0;
     // We perform the check in each layer
     for (IndexType i_layer = 0; i_layer < mConstitutiveLaws.size(); ++i_layer) {
+        thickness_sum += mThicknesses[i_layer];
         auto& r_subprop = *(it_cl_begin + i_layer);
         aux_out += mConstitutiveLaws[i_layer]->Check(r_subprop, rElementGeometry, rCurrentProcessInfo);
 
         KRATOS_ERROR_IF(mConstitutiveLaws[i_layer]->GetStrainSize() != 3) << "The constitutive laws must have a strain size of 3..." << std::endl;
         KRATOS_ERROR_IF(mConstitutiveLaws[i_layer]->WorkingSpaceDimension() != 2) << "The constitutive laws must have a Dimension of 2.." << std::endl;
     }
+    KRATOS_ERROR_IF(std::abs(thickness_sum - rMaterialProperties[THICKNESS]) > 1.0e-8) << "The sum of the layer thicknesses must be equal to the total thickness defined in the material properties..." << std::endl;
 
     return aux_out;
 }
