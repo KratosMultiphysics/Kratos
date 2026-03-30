@@ -387,8 +387,11 @@ void ThicknessIntegratedCompositeConstitutiveLaw::CalculateShearModulus(
     double &Gxz,
     Parameters &rValues)
 {
+    KRATOS_TRY
     const auto& r_material_properties = rValues.GetMaterialProperties();
+
     if (r_material_properties.Has(ORTHOTROPIC_ELASTIC_CONSTANTS)) {
+        const Vector& r_ortho_elastic_constants = r_material_properties[ORTHOTROPIC_ELASTIC_CONSTANTS];
         const double Ex  = r_ortho_elastic_constants[0];
         const double Ey  = r_ortho_elastic_constants[1];
         const double Ez  = r_ortho_elastic_constants[2];
@@ -404,14 +407,15 @@ void ThicknessIntegratedCompositeConstitutiveLaw::CalculateShearModulus(
         KRATOS_ERROR_IF(vzx > 0.5) << "The Poisson_zx is greater than 0.5." << std::endl;
         KRATOS_ERROR_IF(vzy > 0.5) << "The Poisson_zy is greater than 0.5." << std::endl;
 
-        Gyz = (rMaterialProperties.Has(SHEAR_MODULUS_YZ)) ? rMaterialProperties[SHEAR_MODULUS_YZ] : 1.0 / ((1.0 + vzy) / Ey + (1.0 + vyz) / Ez);
-        Gxz = (rMaterialProperties.Has(SHEAR_MODULUS_XZ)) ? rMaterialProperties[SHEAR_MODULUS_XZ] : 1.0 / ((1.0 + vzx) / Ex + (1.0 + vxz) / Ez);
+        Gyz = (r_material_properties.Has(SHEAR_MODULUS_YZ)) ? r_material_properties[SHEAR_MODULUS_YZ] : 1.0 / ((1.0 + vzy) / Ey + (1.0 + vyz) / Ez);
+        Gxz = (r_material_properties.Has(SHEAR_MODULUS_XZ)) ? r_material_properties[SHEAR_MODULUS_XZ] : 1.0 / ((1.0 + vzx) / Ex + (1.0 + vxz) / Ez);
     } else {
         const double E = r_material_properties[YOUNG_MODULUS];
         const double v = r_material_properties[POISSON_RATIO];
-        Gyz = (rMaterialProperties.Has(SHEAR_MODULUS)) ? rMaterialProperties[SHEAR_MODULUS] : E / (2.0 * (1.0 + v));
+        Gyz = (r_material_properties.Has(SHEAR_MODULUS)) ? r_material_properties[SHEAR_MODULUS] : E / (2.0 * (1.0 + v));
         Gxz = Gyz;
     }
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -463,11 +467,6 @@ void ThicknessIntegratedCompositeConstitutiveLaw::CalculateMaterialResponseCauch
     const bool flag_compute_constitutive_tensor = r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
     const bool flag_compute_stress = r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS);
 
-    // std::vector<double> coordinates;
-    // std::vector<double> weights;
-
-    // CalculateCoordinatesAndWeights(coordinates, weights, mThicknessIntegrationPoints, r_material_properties);
-
     // The generalized strain vector, constant
     const Vector generalized_strain_vector = rValues.GetStrainVector(); // size 8
     Vector generalized_stress_vector(VoigtSize); // size 8
@@ -488,7 +487,7 @@ void ThicknessIntegratedCompositeConstitutiveLaw::CalculateMaterialResponseCauch
         r_strain_vector.clear();
         r_stress_vector.clear();
         r_constitutive_matrix.clear();
-        
+
         Matrix F(subprop_dimension, subprop_dimension); // 2x2
         double weight, z_coord, z_coord2, aux_weight, aux_weight2, detF, Euler_angle;
         
@@ -496,10 +495,10 @@ void ThicknessIntegratedCompositeConstitutiveLaw::CalculateMaterialResponseCauch
         const double alpha = 0.1;
         const double thickness = r_material_properties[THICKNESS];
         const double t_square = thickness * thickness;
-        const double stenberg_stabilization = (5.0 / 6.0) * t_square / (t_square + alpha * h_max * h_max);
+        const double stenberg_stabilization = (5.0 / 6.0) * t_square / (t_square + alpha * h_max * h_max); // TODO 5/6 already in...
 
-        // const double Gyz = r_subprop.Has(SHEAR_MODULUS_YZ) ? r_subprop[SHEAR_MODULUS_YZ] : r_subprop[YOUNG_MODULUS] / (2.0 * (1.0 + r_subprop[POISSON_RATIO]));
-        // const double Gxz = r_subprop.Has(SHEAR_MODULUS_XZ) ? r_subprop[SHEAR_MODULUS_XZ] : r_subprop[YOUNG_MODULUS] / (2.0 * (1.0 + r_subprop[POISSON_RATIO]));
+        double Gyz = 0.0;
+        double Gxz = 0.0;
 
         const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
 
@@ -512,6 +511,8 @@ void ThicknessIntegratedCompositeConstitutiveLaw::CalculateMaterialResponseCauch
             // Assign subprops of the layer
             Properties &r_subprop = *(it_prop_begin + i_layer);
             rValues.SetMaterialProperties(r_subprop);
+
+            CalculateShearModulus(Gyz, Gxz, rValues);
 
             // We retrieve the layer info
             weight = mThicknesses[i_layer];
@@ -552,9 +553,8 @@ void ThicknessIntegratedCompositeConstitutiveLaw::CalculateMaterialResponseCauch
                 generalized_stress_vector[5] += r_stress_vector[2] * aux_weight; // bending xy
 
                 // Elastic behaviour in shear
-                // TODO pg 399 book oñate we need to compute shear correction factors
-                // generalized_stress_vector[6] += stenberg_stabilization * Gyz * (generalized_strain_vector[6]) * weight; // shear YZ
-                // generalized_stress_vector[7] += stenberg_stabilization * Gxz * (generalized_strain_vector[7]) * weight; // shear XZ
+                generalized_stress_vector[6] += stenberg_stabilization * Gyz * (generalized_strain_vector[6]) * weight; // shear YZ
+                generalized_stress_vector[7] += stenberg_stabilization * Gxz * (generalized_strain_vector[7]) * weight; // shear XZ
             }
 
             if (flag_compute_constitutive_tensor) {
@@ -581,8 +581,8 @@ void ThicknessIntegratedCompositeConstitutiveLaw::CalculateMaterialResponseCauch
                 generalized_constitutive_matrix(4, 2) = generalized_constitutive_matrix(2, 4);
                 generalized_constitutive_matrix(5, 2) = generalized_constitutive_matrix(2, 5);
 
-                // generalized_constitutive_matrix(6, 6) += weight * stenberg_stabilization * Gyz;
-                // generalized_constitutive_matrix(7, 7) += weight * stenberg_stabilization * Gxz;
+                generalized_constitutive_matrix(6, 6) += weight * stenberg_stabilization * Gyz;
+                generalized_constitutive_matrix(7, 7) += weight * stenberg_stabilization * Gxz;
             }
         }
 
