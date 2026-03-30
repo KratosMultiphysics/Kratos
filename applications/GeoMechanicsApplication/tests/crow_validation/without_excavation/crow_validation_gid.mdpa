@@ -7198,7 +7198,7 @@ Begin Elements LinearTrussElement2D2N
   2467 0 4586 4638
 End Elements
 
-Begin Conditions LineNormalLoadDiffOrderCondition2D3N
+Begin Conditions LineLoadDiffOrderCondition2D3N
   1 0 2082 2087 2083
   2 0 2087 2103 2098
   3 0 2103 2119 2111
@@ -7243,6 +7243,9 @@ Begin Conditions LineNormalLoadDiffOrderCondition2D3N
   42 0 4561 4591 4579
   43 0 4591 4621 4609
   44 0 4621 4777 4635
+End Conditions
+
+Begin Conditions LineNormalLoadDiffOrderCondition2D3N
   45 0 4717 4592 4582
   46 0 4592 4626 4612
   47 0 4626 4658 4641
