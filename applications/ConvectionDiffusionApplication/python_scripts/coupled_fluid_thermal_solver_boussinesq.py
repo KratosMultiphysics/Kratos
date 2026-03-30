@@ -161,13 +161,17 @@ class CoupledFluidThermalSolverBoussinesq(CoupledFluidThermalSolver):
         phi_var = conv_diff_settings.GetUnknownVariable()
 
         # φ^0 = current concentration on nodes (from previous step / initial condition)
-        phi_old = self._store_concentration(phi_var)
+        # Store securely inside non-historical variable AUX_TEMPERATURE
+        aux_phi_var = ConvectionDiffusionApplication.AUX_TEMPERATURE
+        KratosMultiphysics.VariableUtils().CopyModelPartNodalVarToNonHistoricalVar(
+            phi_var, aux_phi_var, self.thermal_solver.main_model_part, self.thermal_solver.main_model_part, 0)
 
         fluid_converged   = True
         thermal_converged = True
         is_coupling_converged = False
         rel_res = 0.0
 
+        self._boussinesq_process.ExecuteInitializeSolutionStep()
         for it in range(1, self._max_coupling_it + 1):
 
             # --- Step 1: update body force from current φ -------------------
@@ -182,19 +186,20 @@ class CoupledFluidThermalSolverBoussinesq(CoupledFluidThermalSolver):
             thermal_converged = self.thermal_solver.SolveSolutionStep()
 
             # --- Step 4: relaxation (only if ω < 1) -------------------------
-            phi_new = self._store_concentration(phi_var)
             if self._omega < 1.0:
-                self._apply_relaxation(phi_var, phi_old, phi_new, self._omega)
-                phi_new = self._store_concentration(phi_var)
+                ConvectionDiffusionApplication.BoussinesqCouplingUtilities.ApplyRelaxation(
+                    self.thermal_solver.main_model_part, phi_var, aux_phi_var, self._omega)
 
             # --- Step 5: coupling convergence check -------------------------
-            rel_res = self._compute_residual(phi_old, phi_new)
+            rel_res = ConvectionDiffusionApplication.BoussinesqCouplingUtilities.ComputeRelativeResidual(
+                self.thermal_solver.main_model_part, phi_var, aux_phi_var)
             KratosMultiphysics.Logger.PrintInfo(
                 "::[CoupledFluidThermalSolverBoussinesq]::",
                 "Picard it={0:3d} | |Δφ|/|φ| = {1:.3e}".format(it, rel_res))
 
             # φ^{k+1} becomes φ^k for the next iteration
-            phi_old = phi_new
+            KratosMultiphysics.VariableUtils().CopyModelPartNodalVarToNonHistoricalVar(
+                phi_var, aux_phi_var, self.thermal_solver.main_model_part, self.thermal_solver.main_model_part, 0)
 
             if rel_res <= self._coupling_tol:
                 is_coupling_converged = True
@@ -202,6 +207,7 @@ class CoupledFluidThermalSolverBoussinesq(CoupledFluidThermalSolver):
                     "::[CoupledFluidThermalSolverBoussinesq]::",
                     "Coupling converged in {0} Picard iteration(s).".format(it))
                 break
+        self._boussinesq_process.ExecuteFinalizeSolutionStep()
 
         if not is_coupling_converged:
             KratosMultiphysics.Logger.PrintWarning(
@@ -211,59 +217,4 @@ class CoupledFluidThermalSolverBoussinesq(CoupledFluidThermalSolver):
 
         return fluid_converged and thermal_converged
 
-    # ------------------------------------------------------------------
-    # Private helpers
-    # ------------------------------------------------------------------
 
-    def _store_concentration(self, phi_var):
-        """Return a Python list containing the current nodal φ values (step 0).
-
-        Iterates over the thermal model part nodes. Because the thermal and
-        fluid model parts share the same node objects, this represents the
-        concentration on the full mesh.
-        """
-        return [node.GetSolutionStepValue(phi_var)
-                for node in self.thermal_solver.main_model_part.Nodes]
-
-    def _compute_residual(self, phi_old, phi_new):
-        """Compute the relative L2 norm of the coupling residual.
-
-        residual = ‖φ_new − φ_old‖_L2 / max(‖φ_old‖_L2, 1e-10)
-
-        Parameters
-        ----------
-        phi_old : list[float]
-            Nodal φ values from the previous Picard iteration.
-        phi_new : list[float]
-            Nodal φ values from the current Picard iteration.
-
-        Returns
-        -------
-        float
-            Relative coupling residual.
-        """
-        diff_norm_sq = sum((a - b) ** 2 for a, b in zip(phi_new, phi_old))
-        old_norm_sq  = sum(a ** 2 for a in phi_old)
-        return diff_norm_sq ** 0.5 / max(old_norm_sq ** 0.5, 1.0e-10)
-
-    def _apply_relaxation(self, phi_var, phi_old, phi_new, omega):
-        """Apply under-relaxation to the concentration field on all nodes.
-
-        Sets each node's φ ← ω·φ_new + (1−ω)·φ_old.
-
-        Parameters
-        ----------
-        phi_var : Variable[double]
-            The nodal scalar unknown variable (e.g. TEMPERATURE / CONCENTRATION).
-        phi_old : list[float]
-            Nodal values before this Picard iteration.
-        phi_new : list[float]
-            Nodal values after the C-D solve of this Picard iteration.
-        omega : float
-            Relaxation factor in (0, 1]. omega = 1.0 → no relaxation.
-        """
-        one_minus_omega = 1.0 - omega
-        for node, f_old, f_new in zip(
-                self.thermal_solver.main_model_part.Nodes, phi_old, phi_new):
-            node.SetSolutionStepValue(
-                phi_var, 0, omega * f_new + one_minus_omega * f_old)

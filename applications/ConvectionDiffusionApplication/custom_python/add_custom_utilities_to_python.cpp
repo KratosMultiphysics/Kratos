@@ -29,6 +29,7 @@
 #include "custom_utilities/embedded_mls_constraint_process.h"
 #include "custom_utilities/surface_integral.h"
 #include "custom_utilities/blurriness_calculator.h"
+#include "custom_utilities/boussinesq_coupling_utilities.h"
 
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
@@ -175,6 +176,11 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     .def(py::init<ModelPart&, const std::vector<ModelPart*>&, const std::vector<double>&, const std::vector<double>&, const Variable<double>&, const double&, const double&>())
     .def("ComputeBlurriness", &BlurrinessCalculator::ComputeBlurriness)
     .def("GetBlurriness", &BlurrinessCalculator::GetBlurriness)
+    ;
+
+    py::class_<BoussinesqCouplingUtilities>(m, "BoussinesqCouplingUtilities")
+    .def_static("ComputeRelativeResidual", &BoussinesqCouplingUtilities::ComputeRelativeResidual)
+    .def_static("ApplyRelaxation", &BoussinesqCouplingUtilities::ApplyRelaxation)
     ;
 
 }

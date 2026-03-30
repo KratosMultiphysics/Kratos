@@ -105,6 +105,8 @@ namespace Kratos
 
       void ExecuteInitializeSolutionStep() override;
 
+      void ExecuteFinalizeSolutionStep() override;
+
       ///@}
       ///@name Access
       ///@{

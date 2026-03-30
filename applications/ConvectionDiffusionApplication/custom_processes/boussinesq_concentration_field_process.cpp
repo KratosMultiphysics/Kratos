@@ -1,6 +1,7 @@
 #include "boussinesq_concentration_field_process.h"
 
 #include "convection_diffusion_application.h"
+#include "includes/variables.h"
 
 namespace Kratos
 {
@@ -93,7 +94,51 @@ namespace Kratos
 
     void BoussinesqConcentrationFieldProcess::ExecuteInitializeSolutionStep()
     {
-        this->AssignBoussinesqForce();
+        // Remove hydrostatic contribution
+        if(mModifyPressure) 
+        {
+            int num_nodes = mrModelPart.NumberOfNodes();
+            #pragma omp parallel for firstprivate(num_nodes)
+            for (int i = 0; i < num_nodes; ++i)
+            {
+                ModelPart::NodeIterator iNode = mrModelPart.NodesBegin() + i;
+
+                double gravity_field_potential = 0.0;
+                Vector node_coords = iNode->Coordinates();
+                for(unsigned d = 0; d < node_coords.size(); d++)
+                {
+                    gravity_field_potential += mrGravity[d] * (node_coords[d] - mrR0[d]);
+                }
+
+                iNode->FastGetSolutionStepValue(PRESSURE) -= gravity_field_potential;
+            }
+        }
+        // this->AssignBoussinesqForce();
+    }
+
+    void BoussinesqConcentrationFieldProcess::ExecuteFinalizeSolutionStep()
+    {
+        // Add hydrostatic contribution
+        if(mModifyPressure) 
+        {
+            int num_nodes = mrModelPart.NumberOfNodes();
+            #pragma omp parallel for firstprivate(num_nodes)
+            for (int i = 0; i < num_nodes; ++i)
+            {
+                ModelPart::NodeIterator iNode = mrModelPart.NodesBegin() + i;
+
+                double gravity_field_potential = 0.0;
+                Vector node_coords = iNode->Coordinates();
+                for(unsigned d = 0; d < node_coords.size(); d++)
+                {
+                    gravity_field_potential += mrGravity[d] * (node_coords[d] - mrR0[d]);
+                }
+
+                iNode->FastGetSolutionStepValue(PRESSURE) += gravity_field_potential;
+                iNode->FastGetSolutionStepValue(BODY_FORCE) += mrGravity;
+            }
+        }
+        // this->AssignBoussinesqForce();
     }
 
     std::string BoussinesqConcentrationFieldProcess::Info() const
@@ -139,19 +184,18 @@ namespace Kratos
             double phi = iNode->FastGetSolutionStepValue(CONCENTRATION_VAR);
             double delta_rho = mRhoMax - mRho0;
 
-            array_1d<double,3> delta_rho_gravity_term = (1.0 / delta_rho) * phi * mrGravity;
+            // double gravity_field_potential = 0.0;
+            // Vector node_coords = iNode->Coordinates();
+            // for(unsigned d = 0; d < node_coords.size(); d++)
+            // {
+            //     gravity_field_potential += (mrGravity[d] * (node_coords[d] - mrR0[d]));
+            // }
+
+            array_1d<double,3> delta_rho_gravity_term = delta_rho / mRho0 * phi * mrGravity;
             if(mModifyPressure)
             {
-                // p -> p - rho_0 * g_i * (r - r0)_i
-                array_1d<double, 3> r_vec = iNode->Coordinates();
-                double gravity_field_potential = 0.0;
-                for(unsigned d = 0; d < 3; d++)
-                {
-                    gravity_field_potential += (r_vec[d] - mrR0[d]) * mrGravity[d];
-                }
-
                 iNode->FastGetSolutionStepValue(BODY_FORCE) = delta_rho_gravity_term;
-                iNode->FastGetSolutionStepValue(PRESSURE) -= (1.0 * mRho0 / delta_rho) * gravity_field_potential;
+                // iNode->FastGetSolutionStepValue(PRESSURE) -= (1.0 * mRho0 / delta_rho) * gravity_field_potential;
 
             } else {
                 iNode->FastGetSolutionStepValue(BODY_FORCE) += mrGravity + delta_rho_gravity_term;

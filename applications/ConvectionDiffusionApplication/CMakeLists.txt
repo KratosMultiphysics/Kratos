@@ -33,6 +33,7 @@ set( KRATOS_CONVECTION_DIFFUSION_APPLICATION_CORE_SOURCES
 
     # Utilities
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/embedded_mls_constraint_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/boussinesq_coupling_utilities.cpp
 
     # Process
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/boussinesq_concentration_field_process.cpp
