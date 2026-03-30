@@ -8,8 +8,8 @@ from KratosMultiphysics.FluidDynamicsApplication import compute_flow_forces_and_
 class ComputeFlowForcesAndMomentsProcessTest(KratosUnittest.TestCase):
 
     def tearDown(self):
-        if os.path.exists("main_flow_force.dat"):
-            os.remove("main_flow_force.dat")
+        if os.path.exists("main_drag.dat"):
+            os.remove("main_drag.dat")
 
     class DummyFlowForcesAndMomentsProcess(compute_flow_forces_and_moments_process.ComputeFlowForcesAndMomentsProcess):
         def _GetFileHeader(self):

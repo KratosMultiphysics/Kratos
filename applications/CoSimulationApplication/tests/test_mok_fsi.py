@@ -141,30 +141,6 @@ class TestMokFSI(co_simulation_test_case.CoSimulationTestCase):
         fluid_ref_file_name = "fsi_mok/fsi_mok_cfd_results_fluid_ref_{}.dat".format(self.accelerator_type)
 
         self.cfd_parameters["processes"].AddValue("testing_processes", KM.Parameters("""[{
-            "python_module"   : "compare_two_files_check_process",
-            "kratos_module"   : "KratosMultiphysics",
-            "process_name"    : "CompareTwoFilesCheckProcess",
-            "Parameters" :{
-                "output_file_name"    : "fsi_mok/fsi_mok_cfd_results_fluid.dat",
-                "reference_file_name" : \""""+fluid_ref_file_name.replace("\\", "\\\\")+"""\",
-                "comparison_type"     : "dat_file_variables_time_history",
-                "tolerance"           : """+self.err_tol+"""
-            }
-        },{
-            "python_module"   : "compare_two_files_check_process",
-            "kratos_module"   : "KratosMultiphysics",
-            "process_name"    : "CompareTwoFilesCheckProcess",
-            "Parameters" :{
-                "output_file_name"    : "fsi_mok/fsi_mok_cfd_results_disp.dat",
-                "reference_file_name" : \""""+disp_ref_file_name.replace("\\", "\\\\")+"""\",
-                "comparison_type"     : "dat_file_variables_time_history",
-                "relative_tolerance"  : """+self.relative_err_tol+""",
-                "tolerance"           : """+self.err_tol+"""
-            }
-        }]"""))
-
-        self.cfd_parameters.AddEmptyValue("output_processes")
-        self.cfd_parameters["output_processes"].AddValue("point_output", KM.Parameters("""[{
             "kratos_module"   : "KratosMultiphysics",
             "python_module"   : "point_output_process",
             "process_name"    : "PointOutputProcess",
@@ -181,8 +157,19 @@ class TestMokFSI(co_simulation_test_case.CoSimulationTestCase):
                     "MESH_DISPLACEMENT_Y",
                     "MESH_VELOCITY_X",
                     "MESH_VELOCITY_Y"]
-            }
-        },{
+                }
+            },{
+                "python_module"   : "compare_two_files_check_process",
+                "kratos_module"   : "KratosMultiphysics",
+                "process_name"    : "CompareTwoFilesCheckProcess",
+                "Parameters" :{
+                    "output_file_name"    : "fsi_mok/fsi_mok_cfd_results_disp.dat",
+                    "reference_file_name" : \""""+disp_ref_file_name.replace("\\", "\\\\")+"""\",
+                    "comparison_type"     : "dat_file_variables_time_history",
+                    "relative_tolerance"  : """+self.relative_err_tol+""",
+                    "tolerance"           : """+self.err_tol+"""
+                }
+            },{
             "kratos_module"   : "KratosMultiphysics",
             "python_module"   : "point_output_process",
             "help"            : "",
@@ -201,8 +188,19 @@ class TestMokFSI(co_simulation_test_case.CoSimulationTestCase):
                     "MESH_DISPLACEMENT_Y",
                     "MESH_VELOCITY_X",
                     "MESH_VELOCITY_Y"]
+                }
+            },{
+                "python_module"   : "compare_two_files_check_process",
+                "kratos_module"   : "KratosMultiphysics",
+                "process_name"    : "CompareTwoFilesCheckProcess",
+                "Parameters" :{
+                    "output_file_name"    : "fsi_mok/fsi_mok_cfd_results_fluid.dat",
+                    "reference_file_name" : \""""+fluid_ref_file_name.replace("\\", "\\\\")+"""\",
+                    "comparison_type"     : "dat_file_variables_time_history",
+                    "tolerance"           : """+self.err_tol+"""
+                }
             }
-        }]"""))
+            ]"""))
 
     def __DumpUpdatedCFDSettings(self):
         with open(self.cfd_tes_file_name, 'w') as parameter_output_file:
