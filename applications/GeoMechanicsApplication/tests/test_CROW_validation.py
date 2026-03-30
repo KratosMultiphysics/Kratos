@@ -148,8 +148,9 @@ def extract_horizontal_displacements_from_line(line):
 
 
 def extract_shear_force_and_y_from_line(line):
+    # The shear force sign in the comparison data is opposite to the Kratos sign
     return _extract_x_and_y_from_line(
-        line, index_of_x=2, index_of_y=0
+        line, index_of_x=2, index_of_y=0, x_transform=lambda x: -x
     )
 
 class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
