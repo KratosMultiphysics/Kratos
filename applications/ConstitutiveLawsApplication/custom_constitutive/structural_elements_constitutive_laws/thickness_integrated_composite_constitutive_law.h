@@ -425,10 +425,18 @@ public:
         return mConstitutiveLaws;
     }
 
+    /**
+     * @brief Computes the material maximum edge length for the given geometry, used to compute the integration points in thickness
+     */
     double GetMaxReferenceEdgeLength(const GeometryType& rGeometry) const
     {
         return AdvancedConstitutiveLawUtilities<3>::GetMaxReferenceEdgeLengthForShell(rGeometry);
     }
+
+    /**
+     * @brief Computes the shear modulus of the shell
+     */
+    void CalculateShearModulus(double &Gyz, double &Gxz, Parameters &rValues);
 
     /**
      * @brief Computes the material response in terms of 1st Piola-Kirchhoff stresses and constitutive tensor

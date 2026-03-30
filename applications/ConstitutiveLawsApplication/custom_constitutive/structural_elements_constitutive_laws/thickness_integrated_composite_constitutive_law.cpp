@@ -382,6 +382,41 @@ void ThicknessIntegratedCompositeConstitutiveLaw::InitializeMaterial(
 /***********************************************************************************/
 /***********************************************************************************/
 
+void ThicknessIntegratedCompositeConstitutiveLaw::CalculateShearModulus(
+    double &Gyz,
+    double &Gxz,
+    Parameters &rValues)
+{
+    const auto& r_material_properties = rValues.GetMaterialProperties();
+    if (r_material_properties.Has(ORTHOTROPIC_ELASTIC_CONSTANTS)) {
+        const double Ex  = r_ortho_elastic_constants[0];
+        const double Ey  = r_ortho_elastic_constants[1];
+        const double Ez  = r_ortho_elastic_constants[2];
+        const double vxy = r_ortho_elastic_constants[3];
+        const double vyz = r_ortho_elastic_constants[4];
+        const double vxz = r_ortho_elastic_constants[5];
+
+        const double vyx = vxy * Ey / Ex;
+        const double vzx = vxz * Ez / Ex;
+        const double vzy = vyz * Ez / Ey;
+
+        KRATOS_ERROR_IF(vyx > 0.5) << "The Poisson_yx is greater than 0.5." << std::endl;
+        KRATOS_ERROR_IF(vzx > 0.5) << "The Poisson_zx is greater than 0.5." << std::endl;
+        KRATOS_ERROR_IF(vzy > 0.5) << "The Poisson_zy is greater than 0.5." << std::endl;
+
+        Gyz = (rMaterialProperties.Has(SHEAR_MODULUS_YZ)) ? rMaterialProperties[SHEAR_MODULUS_YZ] : 1.0 / ((1.0 + vzy) / Ey + (1.0 + vyz) / Ez);
+        Gxz = (rMaterialProperties.Has(SHEAR_MODULUS_XZ)) ? rMaterialProperties[SHEAR_MODULUS_XZ] : 1.0 / ((1.0 + vzx) / Ex + (1.0 + vxz) / Ez);
+    } else {
+        const double E = r_material_properties[YOUNG_MODULUS];
+        const double v = r_material_properties[POISSON_RATIO];
+        Gyz = (rMaterialProperties.Has(SHEAR_MODULUS)) ? rMaterialProperties[SHEAR_MODULUS] : E / (2.0 * (1.0 + v));
+        Gxz = Gyz;
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void ThicknessIntegratedCompositeConstitutiveLaw::CalculateMaterialResponsePK1(
     ConstitutiveLaw::Parameters& rValues)
 {
@@ -462,7 +497,7 @@ void ThicknessIntegratedCompositeConstitutiveLaw::CalculateMaterialResponseCauch
         const double thickness = r_material_properties[THICKNESS];
         const double t_square = thickness * thickness;
         const double stenberg_stabilization = (5.0 / 6.0) * t_square / (t_square + alpha * h_max * h_max);
-        
+
         // const double Gyz = r_subprop.Has(SHEAR_MODULUS_YZ) ? r_subprop[SHEAR_MODULUS_YZ] : r_subprop[YOUNG_MODULUS] / (2.0 * (1.0 + r_subprop[POISSON_RATIO]));
         // const double Gxz = r_subprop.Has(SHEAR_MODULUS_XZ) ? r_subprop[SHEAR_MODULUS_XZ] : r_subprop[YOUNG_MODULUS] / (2.0 * (1.0 + r_subprop[POISSON_RATIO]));
 
