@@ -4,10 +4,12 @@ about: Doubts and questions
 
 ---
 
-**Description**
+## **📝Description**
+
 What is happening?
 
-**Scope**
+## **🔭Scope**
+
 Which areas of Kratos are involved
 E.g.
 - Compilation
