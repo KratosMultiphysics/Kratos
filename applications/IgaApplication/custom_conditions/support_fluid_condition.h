@@ -281,6 +281,15 @@ namespace Kratos
             ConstitutiveLaw::Parameters& rValues,
             ConstitutiveVariables& rConstitutiveVariables) const;
 
+        void BuildStressMatrixFromVoigt(
+            Matrix& rStressMatrix,
+            const Vector& rVoigtVector) const;
+
+        void BuildStressMatrixFromVoigt(
+            Matrix& rStressMatrix,
+            const Matrix& rVoigtMatrix,
+            const IndexType Column) const;
+
         // member variables
         unsigned int mDim;
         double mPenalty;
