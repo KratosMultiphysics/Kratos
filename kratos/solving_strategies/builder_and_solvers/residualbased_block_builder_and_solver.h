@@ -241,7 +241,7 @@ public:
                     Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId);
                 }
 
-                KRATOS_CATCH_THREAD_EXCEPTION
+                KRATOS_CATCH_THREAD_EXCEPTION(omp_get_thread_num())
             }
 
             #pragma omp for  schedule(guided, 512)
@@ -257,7 +257,7 @@ public:
                     // Assemble the elemental contribution
                     Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId);
                 }
-                KRATOS_CATCH_THREAD_EXCEPTION
+                KRATOS_CATCH_THREAD_EXCEPTION(omp_get_thread_num())
 
             }
         }
@@ -327,7 +327,7 @@ public:
                     AssembleLHS(rA, lhs_contribution, equation_id);
                 }
 
-                KRATOS_CATCH_THREAD_EXCEPTION
+                KRATOS_CATCH_THREAD_EXCEPTION(omp_get_thread_num())
             }
 
             #pragma omp for  schedule(guided, 512)
@@ -345,7 +345,7 @@ public:
                     AssembleLHS(rA, lhs_contribution, equation_id);
                 }
 
-                KRATOS_CATCH_THREAD_EXCEPTION
+                KRATOS_CATCH_THREAD_EXCEPTION(omp_get_thread_num())
             }
         }
 
@@ -1218,7 +1218,7 @@ protected:
                     AssembleRHS(b, RHS_Contribution, EquationId);
                 }
 
-                KRATOS_CATCH_THREAD_EXCEPTION
+                KRATOS_CATCH_THREAD_EXCEPTION(omp_get_thread_num())
             }
 
             LHS_Contribution.resize(0, 0, false);
@@ -1240,7 +1240,7 @@ protected:
                     AssembleRHS(b, RHS_Contribution, EquationId);
                 }
 
-                KRATOS_CATCH_THREAD_EXCEPTION
+                KRATOS_CATCH_THREAD_EXCEPTION(omp_get_thread_num())
             }
         }
 
@@ -1282,7 +1282,7 @@ protected:
                         temp_indices[id_i].insert(master_ids.begin(), master_ids.end());
                     }
 
-                    KRATOS_CATCH_THREAD_EXCEPTION
+                    KRATOS_CATCH_THREAD_EXCEPTION(omp_get_thread_num())
                 }
 
                 // Merging all the temporal indexes
@@ -1400,7 +1400,7 @@ protected:
                         auxiliar_inactive_slave_dofs.insert(slave_equation_ids.begin(), slave_equation_ids.end());
                     }
 
-                    KRATOS_CATCH_THREAD_EXCEPTION
+                    KRATOS_CATCH_THREAD_EXCEPTION(omp_get_thread_num())
                 }
 
                 // We merge all the sets in one thread
