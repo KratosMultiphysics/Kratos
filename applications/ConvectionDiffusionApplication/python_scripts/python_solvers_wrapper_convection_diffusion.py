@@ -43,6 +43,9 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
         # Coupled CFD-thermal solvers (volume coupling by Boussinesq approximation)
         elif (solver_type == "thermally_coupled" or solver_type == "ThermallyCoupled"):
             solver_module_name = "coupled_fluid_thermal_solver"
+        # Coupled CFD-thermal solver with fully implicit Boussinesq body-force coupling
+        elif (solver_type == "thermally_coupled_boussinesq" or solver_type == "ThermallyCoupledBoussinesq"):
+            solver_module_name = "coupled_fluid_thermal_solver_boussinesq"
         # Coupled mechanical-thermal solver
         elif (solver_type == "thermo_mechanically_coupled" or solver_type == "ThermoMechanicallyCoupled"):
             solver_module_name = "coupled_structural_thermal_solver"

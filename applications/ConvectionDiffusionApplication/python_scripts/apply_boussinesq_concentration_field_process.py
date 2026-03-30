@@ -17,8 +17,8 @@ class ApplyBoussinesqConcentrationFieldProcess(KratosMultiphysics.Process):
         default_settings = KratosMultiphysics.Parameters( """
         {
             "model_part_name" : "CHOOSE_FLUID_MODELPART_NAME",
-            "base_fluid_density" : 1000.0,
-            "particles_density" : 1200.0,
+            "base_fluid_density" : 1.0,
+            "max_density": 2.0,
             "gravity" : [0.0,0.0,0.0],
             "modify_pressure" : false,
             "modify_density": false,
@@ -42,4 +42,14 @@ class ApplyBoussinesqConcentrationFieldProcess(KratosMultiphysics.Process):
         self.BoussinesqCDProcess.ExecuteInitialize()
 
     def ExecuteInitializeSolutionStep(self):
+        # NOTE: When used with CoupledFluidThermalSolverBoussinesq, this method
+        # should NOT be called — the solver owns the Boussinesq process and drives
+        # it explicitly inside the Picard coupling loop via Execute().
+        # If this process is listed under "processes" in ProjectParameters.json
+        # while also using CoupledFluidThermalSolverBoussinesq, REMOVE IT from
+        # the process list to avoid overwriting the body force with stale φ.
+        #
+        # For backward compatibility with the original (lagged) coupling, this
+        # method is intentionally left active. Simply do not include this process
+        # in the JSON when switching to the new solver.
         self.BoussinesqCDProcess.ExecuteInitializeSolutionStep()

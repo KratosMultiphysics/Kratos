@@ -6,7 +6,7 @@
 //  License: BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:  Aniol Sala, Guillermo Casas
+//  Main authors:  Riccardo Rossi
 //
 
 #if !defined(KRATOS_EULERIAN_CONVECTION_DIFFUSION_SHOCK_CAPTURING_ELEMENT_INCLUDED )

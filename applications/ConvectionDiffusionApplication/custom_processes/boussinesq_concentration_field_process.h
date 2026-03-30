@@ -191,7 +191,7 @@ namespace Kratos
       array_1d<double,3> mrR0;
 
       double mRho0;
-      double mRhoP;
+      double mRhoMax;
       bool mModifyPressure;
       bool mModifyDensity;
 

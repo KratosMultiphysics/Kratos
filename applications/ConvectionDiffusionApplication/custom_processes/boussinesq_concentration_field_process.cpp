@@ -43,16 +43,16 @@ namespace Kratos
 
         mRho0 = BaseFluidDensityParam.GetDouble();
 
-        // Solid particles density
-        KRATOS_ERROR_IF_NOT( rParameters.Has("particles_density") ) <<
-        "In Boussinesq Force Process: \'particles_density\' not found in parameters." << std::endl;
+        // Max density
+        KRATOS_ERROR_IF_NOT( rParameters.Has("max_density") ) <<
+        "In Boussinesq Force Process: \'max_density\' not found in parameters." << std::endl;
 
-        Parameters SolidDensityParam = rParameters.GetValue("particles_density");
+        Parameters MaxDensityParam = rParameters.GetValue("max_density");
 
-        KRATOS_ERROR_IF_NOT( SolidDensityParam.IsDouble() ) <<
-        "In Boussinesq Force Process: Given \'base_fluid_density\' parameter is not a double." << std::endl;
+        KRATOS_ERROR_IF_NOT( MaxDensityParam.IsDouble() ) <<
+        "In Boussinesq Force Process: Given \'max_density\' parameter is not a double." << std::endl;
 
-        mRhoP = SolidDensityParam.GetDouble();
+        mRhoMax = MaxDensityParam.GetDouble();
 
         if(!rParameters.Has("modify_pressure"))
         {
@@ -137,9 +137,9 @@ namespace Kratos
 
             // Change the body force (and pressure)
             double phi = iNode->FastGetSolutionStepValue(CONCENTRATION_VAR);
-            double delta_rho = mRhoP - mRho0;
+            double delta_rho = mRhoMax - mRho0;
 
-            array_1d<double,3> delta_rho_gravity_term = (delta_rho / mRho0) * phi * mrGravity;
+            array_1d<double,3> delta_rho_gravity_term = (1.0 / delta_rho) * phi * mrGravity;
             if(mModifyPressure)
             {
                 // p -> p - rho_0 * g_i * (r - r0)_i
@@ -151,7 +151,7 @@ namespace Kratos
                 }
 
                 iNode->FastGetSolutionStepValue(BODY_FORCE) = delta_rho_gravity_term;
-                iNode->FastGetSolutionStepValue(PRESSURE) += mRho0 / mRho0 * gravity_field_potential;
+                iNode->FastGetSolutionStepValue(PRESSURE) -= (1.0 * mRho0 / delta_rho) * gravity_field_potential;
 
             } else {
                 iNode->FastGetSolutionStepValue(BODY_FORCE) += mrGravity + delta_rho_gravity_term;
