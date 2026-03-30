@@ -646,66 +646,9 @@ void ThicknessIntegratedCompositeConstitutiveLaw::InitializeMaterialResponseCauc
 {
     KRATOS_TRY
 
-    // if (RequiresInitializeMaterialResponse()) {
-    //     const auto& r_material_properties = rValues.GetMaterialProperties();
-    //     const IndexType number_of_laws = mConstitutiveLaws.size();
-    //     const auto subprop_strain_size = mConstitutiveLaws[0]->GetStrainSize(); // 3
-    //     const auto subprop_dimension = mConstitutiveLaws[0]->WorkingSpaceDimension(); // 2
+    if (RequiresInitializeMaterialResponse()) {
 
-    //     std::vector<double> coordinates;
-    //     std::vector<double> weights;
-
-    //     CalculateCoordinatesAndWeights(coordinates, weights, mThicknessIntegrationPoints, r_material_properties);
-
-    //     // The generalized strain vector, constant
-    //     const Vector generalized_strain_vector = rValues.GetStrainVector(); // size 8
-    //     Vector generalized_stress_vector(VoigtSize); // size 8
-    //     Matrix generalized_constitutive_matrix(VoigtSize, VoigtSize); // 8x8
-    //     generalized_constitutive_matrix.clear();
-    //     generalized_stress_vector.clear();
-
-    //     const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
-    //     Properties &r_subprop = *(it_prop_begin);
-
-    //     // Auxiliary stress vector
-    //     Vector& r_stress_vector = rValues.GetStressVector(); // size 3
-    //     Vector& r_strain_vector = rValues.GetStrainVector(); // size 3
-    //     Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix(); // size 3x3
-    //     r_strain_vector.resize(subprop_strain_size, false);
-    //     r_stress_vector.resize(subprop_strain_size, false);
-    //     r_constitutive_matrix.resize(subprop_strain_size, subprop_strain_size, false);
-    //     r_strain_vector.clear();
-    //     r_stress_vector.clear();
-    //     r_constitutive_matrix.clear();
-
-    //     Matrix F(subprop_dimension, subprop_dimension); // 2x2
-    //     double z_coord, detF;
-    //     rValues.SetMaterialProperties(r_subprop);
-
-    //     // We perform the integration through the thickness
-    //     for (IndexType i_layer = 0; i_layer < number_of_laws; ++i_layer) {
-
-    //         z_coord = coordinates[i_layer];
-
-    //         r_strain_vector[0] = generalized_strain_vector[0] + z_coord * generalized_strain_vector[3]; // xx
-    //         r_strain_vector[1] = generalized_strain_vector[1] + z_coord * generalized_strain_vector[4]; // yy
-    //         r_strain_vector[2] = generalized_strain_vector[2] + z_coord * generalized_strain_vector[5]; // xy
-
-    //         // In case the 2D Cls work in finite strain
-    //         noalias(F) = AdvancedConstitutiveLawUtilities<3>::ComputeEquivalentSmallDeformationDeformationGradient(r_strain_vector);
-    //         detF = MathUtils<double>::Det2(F);
-    //         rValues.SetDeterminantF(detF);
-    //         rValues.SetDeformationGradientF(F);
-
-    //         // This fills stress and D
-    //         mConstitutiveLaws[i_layer]->InitializeMaterialResponseCauchy(rValues);
-
-    //     }
-    //     // Reset some values
-    //     rValues.SetMaterialProperties(r_material_properties);
-    //     r_strain_vector.resize(VoigtSize, false);
-    //     noalias(r_strain_vector) = generalized_strain_vector;
-    // }
+    }
 
     KRATOS_CATCH("InitializeMaterialResponseCauchy")
 }
@@ -749,68 +692,9 @@ void ThicknessIntegratedCompositeConstitutiveLaw::FinalizeMaterialResponseCauchy
 {
     KRATOS_TRY
 
-    // if (RequiresFinalizeMaterialResponse()) {
+    if (RequiresFinalizeMaterialResponse()) {
 
-    //     // Get Values to compute the constitutive law:
-    //     const auto& r_material_properties = rValues.GetMaterialProperties();
-    //     const IndexType number_of_laws = mConstitutiveLaws.size();
-    //     const auto subprop_strain_size = mConstitutiveLaws[0]->GetStrainSize(); // 3
-    //     const auto subprop_dimension = mConstitutiveLaws[0]->WorkingSpaceDimension(); // 2
-
-    //     std::vector<double> coordinates;
-    //     std::vector<double> weights;
-
-    //     CalculateCoordinatesAndWeights(coordinates, weights, mThicknessIntegrationPoints, r_material_properties);
-
-    //     // The generalized strain vector, constant
-    //     const Vector generalized_strain_vector = rValues.GetStrainVector(); // size 8
-    //     Vector generalized_stress_vector(VoigtSize); // size 8
-    //     Matrix generalized_constitutive_matrix(VoigtSize, VoigtSize); // 8x8
-    //     generalized_constitutive_matrix.clear();
-    //     generalized_stress_vector.clear();
-
-    //     const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
-    //     Properties &r_subprop = *(it_prop_begin);
-
-    //     // Auxiliary stress vector
-    //     Vector& r_stress_vector = rValues.GetStressVector(); // size 3
-    //     Vector& r_strain_vector = rValues.GetStrainVector(); // size 3
-    //     Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix(); // size 3x3
-    //     r_strain_vector.resize(subprop_strain_size, false);
-    //     r_stress_vector.resize(subprop_strain_size, false);
-    //     r_constitutive_matrix.resize(subprop_strain_size, subprop_strain_size, false);
-    //     r_strain_vector.clear();
-    //     r_stress_vector.clear();
-    //     r_constitutive_matrix.clear();
-
-    //     Matrix F(subprop_dimension, subprop_dimension); // 2x2
-    //     double z_coord, detF;
-    //     rValues.SetMaterialProperties(r_subprop);
-
-    //     // We perform the integration through the thickness
-    //     for (IndexType i_layer = 0; i_layer < number_of_laws; ++i_layer) {
-
-    //         z_coord = coordinates[i_layer];
-
-    //         r_strain_vector[0] = generalized_strain_vector[0] + z_coord * generalized_strain_vector[3]; // xx
-    //         r_strain_vector[1] = generalized_strain_vector[1] + z_coord * generalized_strain_vector[4]; // yy
-    //         r_strain_vector[2] = generalized_strain_vector[2] + z_coord * generalized_strain_vector[5]; // xy
-
-    //         // In case the 2D Cls work in finite strain
-    //         noalias(F) = AdvancedConstitutiveLawUtilities<3>::ComputeEquivalentSmallDeformationDeformationGradient(r_strain_vector);
-    //         detF = MathUtils<double>::Det2(F);
-    //         rValues.SetDeterminantF(detF);
-    //         rValues.SetDeformationGradientF(F);
-
-    //         // This fills stress and D
-    //         mConstitutiveLaws[i_layer]->FinalizeMaterialResponseCauchy(rValues);
-
-    //     }
-    //     // Reset some values
-    //     rValues.SetMaterialProperties(r_material_properties);
-    //     r_strain_vector.resize(VoigtSize, false);
-    //     noalias(r_strain_vector) = generalized_strain_vector;
-    // }
+    }
 
     KRATOS_CATCH("FinalizeMaterialResponseCauchy")
 }
