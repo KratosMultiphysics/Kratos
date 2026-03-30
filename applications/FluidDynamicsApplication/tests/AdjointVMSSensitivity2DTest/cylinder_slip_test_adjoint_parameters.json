@@ -6,7 +6,7 @@
         "echo_level": 0,
         "parallel_type": "<PARALLEL_TYPE>"
     },
-    "output_processes": {},
+    "_output_processes": {},
     "solver_settings": {
         "solver_type": "Monolithic",
         "scheme_settings": {
