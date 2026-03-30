@@ -92,7 +92,7 @@ void SupportFluidCondition::CalculateAll(
     // Compute the pressure & velocity at the previous iteration
     double pressure_current_iteration = 0.0;
     Vector velocity_current_iteration = ZeroVector(mDim);
-    for(unsigned int j = 0; j < number_of_nodes; ++j) {
+    for (IndexType j = 0; j < number_of_nodes; ++j) {
         pressure_current_iteration    += r_geometry[j].GetSolutionStepValue(PRESSURE) * H(0,j);
         const auto& r_velocity = r_geometry[j].GetSolutionStepValue(VELOCITY);
         for (IndexType d = 0; d < mDim; ++d) {
@@ -395,14 +395,14 @@ void SupportFluidCondition::EquationIdVector(EquationIdVectorType &rResult, cons
 {
     const GeometryType& rGeom = this->GetGeometry();
     const std::size_t number_of_control_points = GetGeometry().size();
-    const unsigned int LocalSize = (mDim + 1) * number_of_control_points;
+    const std::size_t LocalSize = (mDim + 1) * number_of_control_points;
 
     if (rResult.size() != LocalSize)
         rResult.resize(LocalSize);
 
-    unsigned int Index = 0;
+    IndexType Index = 0;
 
-    for (unsigned int i = 0; i < number_of_control_points; i++)
+    for (IndexType i = 0; i < number_of_control_points; ++i)
     {
         rResult[Index++] = rGeom[i].GetDof(VELOCITY_X).EquationId();
         rResult[Index++] = rGeom[i].GetDof(VELOCITY_Y).EquationId();

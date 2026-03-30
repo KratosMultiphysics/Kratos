@@ -274,9 +274,9 @@ namespace Kratos
          */
         double ComputeTaylorTerm3D(
             double derivative,
-            double dx, int k_x,
-            double dy, int k_y,
-            double dz, int k_z);
+            double dx, IndexType k_x,
+            double dy, IndexType k_y,
+            double dz, IndexType k_z);
 
     private:
         ///@name Serialization

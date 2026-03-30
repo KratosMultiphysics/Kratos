@@ -84,7 +84,7 @@ void SbmFluidConditionDirichlet::CalculateAll(
     // Compute the pressure & velocity at the previous iteration
     double pressure_old_iteration = 0.0;
     Vector velocity_old_iteration = ZeroVector(mDim);
-    for(unsigned int j = 0; j < number_of_nodes; ++j) {
+    for (IndexType j = 0; j < number_of_nodes; ++j) {
         pressure_old_iteration    += r_geometry[j].GetSolutionStepValue(PRESSURE) * H(0,j);
         const auto& r_velocity = r_geometry[j].GetSolutionStepValue(VELOCITY);
         for (IndexType d = 0; d < mDim; ++d) {
@@ -259,18 +259,16 @@ void SbmFluidConditionDirichlet::InitializeSbmMemberVariables()
     // Retrieve projection
     Condition candidate_closest_skin_segment_1 = this->GetValue(NEIGHBOUR_CONDITIONS)[0] ;
     // Find the closest node in condition
-    int closestNodeId;
+    IndexType closestNodeId = 0;
     if (mDim > 2) {
         double incumbent_dist = 1e16;
         // Loop over the three nodes of the closest skin element
-        for (unsigned int i = 0; i < 3; i++) {
+        for (IndexType i = 0; i < 3; ++i) {
             if (norm_2(candidate_closest_skin_segment_1.GetGeometry()[i]-r_geometry.Center()) < incumbent_dist) {
                 incumbent_dist = norm_2(candidate_closest_skin_segment_1.GetGeometry()[i]-r_geometry.Center());
                 closestNodeId = i;
             }
         }
-    } else {
-        closestNodeId = 0;
     }
     mpProjectionNode = &candidate_closest_skin_segment_1.GetGeometry()[closestNodeId] ;
 
@@ -303,13 +301,15 @@ void SbmFluidConditionDirichlet::InitializeSbmMemberVariables()
             mHsum(0,i) = H_taylor_term + H(0,i);
         } else {
             // 3D Taylor expansion for the velocity dofs
-            for (int n = 1; n <= int(mBasisFunctionsOrder); n++) {
+            for (IndexType n = 1; n <= mBasisFunctionsOrder; ++n) {
                 Matrix& r_shape_function_derivatives = mShapeFunctionDerivatives[n-1];
 
-                int countDerivativeId = 0;
-                for (int k_x = n; k_x >= 0; k_x--) {
-                    for (int k_y = n - k_x; k_y >= 0; k_y--) {
-                        int k_z = n - k_x - k_y;
+                IndexType countDerivativeId = 0;
+                for (IndexType reverse_k_x = 0; reverse_k_x <= n; ++reverse_k_x) {
+                    const IndexType k_x = n - reverse_k_x;
+                    for (IndexType reverse_k_y = 0; reverse_k_y <= n - k_x; ++reverse_k_y) {
+                        const IndexType k_y = n - k_x - reverse_k_y;
+                        const IndexType k_z = reverse_k_y;
                         double derivative = r_shape_function_derivatives(i, countDerivativeId);
 
                         H_taylor_term += ComputeTaylorTerm3D(
@@ -441,14 +441,14 @@ void SbmFluidConditionDirichlet::EquationIdVector(EquationIdVectorType &rResult,
 {
     const GeometryType& rGeom = this->GetGeometry();
     const std::size_t number_of_control_points = GetGeometry().size();
-    const unsigned int LocalSize = (mDim + 1) * number_of_control_points;
+    const IndexType LocalSize = (mDim + 1) * number_of_control_points;
 
     if (rResult.size() != LocalSize)
         rResult.resize(LocalSize);
 
-    unsigned int Index = 0;
+    IndexType Index = 0;
 
-    for (unsigned int i = 0; i < number_of_control_points; i++)
+    for (IndexType i = 0; i < number_of_control_points; ++i)
     {
         rResult[Index++] = rGeom[i].GetDof(VELOCITY_X).EquationId();
         rResult[Index++] = rGeom[i].GetDof(VELOCITY_Y).EquationId();
@@ -510,9 +510,9 @@ double SbmFluidConditionDirichlet::ComputeTaylorTerm(double derivative, double d
 
 double SbmFluidConditionDirichlet::ComputeTaylorTerm3D(
     double derivative,
-    double dx, int k_x,
-    double dy, int k_y,
-    double dz, int k_z)
+    double dx, IndexType k_x,
+    double dy, IndexType k_y,
+    double dz, IndexType k_z)
 {
     return derivative * std::pow(dx, k_x) * std::pow(dy, k_y) * std::pow(dz, k_z) /
         (MathUtils<double>::Factorial(k_x) * MathUtils<double>::Factorial(k_y) * MathUtils<double>::Factorial(k_z));

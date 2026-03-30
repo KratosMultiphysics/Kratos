@@ -33,8 +33,8 @@ const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
-    const SizeType number_of_nodes = GetGeometry().size();
-    const SizeType mat_size = number_of_nodes * (mDim+1);
+    const std::size_t number_of_nodes = GetGeometry().size();
+    const std::size_t mat_size = number_of_nodes * (mDim+1);
 
     if (rRightHandSideVector.size() != mat_size)
         rRightHandSideVector.resize(mat_size);
@@ -54,7 +54,7 @@ void SupportPressureCondition::CalculateLeftHandSide(
     MatrixType& rLeftHandSideMatrix,
     const ProcessInfo& rCurrentProcessInfo)
 {
-    const SizeType mat_size = GetGeometry().size() * (mDim+1);
+    const std::size_t mat_size = GetGeometry().size() * (mDim+1);
 
     if (rLeftHandSideMatrix.size1() != mat_size && rLeftHandSideMatrix.size2())
         rLeftHandSideMatrix.resize(mat_size, mat_size);
@@ -68,12 +68,12 @@ void SupportPressureCondition::CalculateRightHandSide(
     KRATOS_TRY
 
     const auto& r_geometry = GetGeometry();
-    const SizeType number_of_nodes = r_geometry.size();
+    const std::size_t number_of_nodes = r_geometry.size();
     const GeometryType::ShapeFunctionsGradientsType& r_DN_De = r_geometry.ShapeFunctionsLocalGradients(r_geometry.GetDefaultIntegrationMethod());
     
     Matrix DN_DX(number_of_nodes,mDim);
 
-    const SizeType mat_size = number_of_nodes * (mDim+1);
+    const std::size_t mat_size = number_of_nodes * (mDim+1);
     
     // resizing as needed the RHS
     if(rRightHandSideVector.size() != mat_size)
@@ -143,9 +143,9 @@ void SupportPressureCondition::CalculateB(
     Matrix& rB, 
     const ShapeDerivativesType& r_DN_DX) const
 {
-    const SizeType number_of_control_points = GetGeometry().size();
-    const SizeType mat_size = number_of_control_points * mDim;
-    const SizeType strain_size = (mDim == 3) ? 6 : 3;
+    const std::size_t number_of_control_points = GetGeometry().size();
+    const std::size_t mat_size = number_of_control_points * mDim;
+    const std::size_t strain_size = (mDim == 3) ? 6 : 3;
 
     // Resize B matrix to Voigt strain size and appropriate number of columns.
     if (rB.size1() != strain_size || rB.size2() != mat_size)
@@ -182,15 +182,15 @@ void SupportPressureCondition::CalculateB(
 void SupportPressureCondition::EquationIdVector(EquationIdVectorType &rResult, const ProcessInfo &rCurrentProcessInfo) const
 {
     const GeometryType& rGeom = this->GetGeometry();
-    const SizeType number_of_control_points = GetGeometry().size();
-    const unsigned int LocalSize = (mDim + 1) * number_of_control_points;
+    const std::size_t number_of_control_points = GetGeometry().size();
+    const std::size_t LocalSize = (mDim + 1) * number_of_control_points;
 
     if (rResult.size() != LocalSize)
         rResult.resize(LocalSize);
 
-    unsigned int Index = 0;
+    IndexType Index = 0;
 
-    for (unsigned int i = 0; i < number_of_control_points; i++)
+    for (IndexType i = 0; i < number_of_control_points; ++i)
     {
         rResult[Index++] = rGeom[i].GetDof(VELOCITY_X).EquationId();
         rResult[Index++] = rGeom[i].GetDof(VELOCITY_Y).EquationId();
@@ -206,7 +206,7 @@ void SupportPressureCondition::GetDofList(
 {
     KRATOS_TRY;
 
-    const SizeType number_of_control_points = GetGeometry().size();
+    const std::size_t number_of_control_points = GetGeometry().size();
 
     rElementalDofList.resize(0);
     rElementalDofList.reserve((mDim + 1) * number_of_control_points);
@@ -225,8 +225,8 @@ void SupportPressureCondition::GetDofList(
 void SupportPressureCondition::GetSolutionCoefficientVector(
         Vector& rValues) const
 {
-    const SizeType number_of_control_points = GetGeometry().size();
-    const SizeType mat_size = number_of_control_points * mDim;
+    const std::size_t number_of_control_points = GetGeometry().size();
+    const std::size_t mat_size = number_of_control_points * mDim;
 
     if (rValues.size() != mat_size)
         rValues.resize(mat_size, false);
