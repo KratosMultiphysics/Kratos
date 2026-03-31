@@ -181,57 +181,51 @@ private:
             << ", tolerance = " << rank_tolerance
             << ", max(|R_ii|) = " << max_abs_r_diag << std::endl;
 
-        Vector b_xx(gauss_point_number), b_yy(gauss_point_number), b_xy(gauss_point_number);
+        const std::size_t component_count = is_3d ? 6 : 3;
+        Matrix rhs_values(gauss_point_number, component_count);
         for (std::size_t i = 0; i < gauss_point_number; ++i) {
-            b_xx(i) = rSigmaValues(i, 0);
-            b_yy(i) = rSigmaValues(i, 1);
-            b_xy(i) = is_3d ? rSigmaValues(i, 3) : rSigmaValues(i, 2);
-        }
-
-        Vector c_xx(gauss_point_number), c_yy(gauss_point_number), c_xy(gauss_point_number);
-        qr_decomposition.Solve(b_xx, c_xx);
-        qr_decomposition.Solve(b_yy, c_yy);
-        qr_decomposition.Solve(b_xy, c_xy);
-
-        Vector c_zz, c_yz, c_xz;
-        Vector b_zz, b_yz, b_xz;
-        if (is_3d) {
-            c_zz.resize(gauss_point_number, false);
-            c_yz.resize(gauss_point_number, false);
-            c_xz.resize(gauss_point_number, false);
-            b_zz.resize(gauss_point_number, false);
-            b_yz.resize(gauss_point_number, false);
-            b_xz.resize(gauss_point_number, false);
-            for (std::size_t i = 0; i < gauss_point_number; ++i) {
-                b_zz(i) = rSigmaValues(i, 2);
-                b_yz(i) = rSigmaValues(i, 4);
-                b_xz(i) = rSigmaValues(i, 5);
+            rhs_values(i, 0) = rSigmaValues(i, 0);
+            rhs_values(i, 1) = rSigmaValues(i, 1);
+            rhs_values(i, 2) = is_3d ? rSigmaValues(i, 3) : rSigmaValues(i, 2);
+            if (is_3d) {
+                rhs_values(i, 3) = rSigmaValues(i, 2);
+                rhs_values(i, 4) = rSigmaValues(i, 4);
+                rhs_values(i, 5) = rSigmaValues(i, 5);
             }
-            qr_decomposition.Solve(b_zz, c_zz);
-            qr_decomposition.Solve(b_yz, c_yz);
-            qr_decomposition.Solve(b_xz, c_xz);
         }
+
+        Matrix solution_coefficients;
+        qr_decomposition.Solve(rhs_values, solution_coefficients);
 
 #ifdef KRATOS_DEBUG
-        CheckResidualNorm(rShapeFunctionValues, b_xx, c_xx, "sigma_xx");
-        CheckResidualNorm(rShapeFunctionValues, b_yy, c_yy, "sigma_yy");
-        CheckResidualNorm(rShapeFunctionValues, b_xy, c_xy, "sigma_xy");
+        Vector rhs_column(gauss_point_number);
+        Vector coefficient_column(gauss_point_number);
+        DenseSpace::GetColumn(0, rhs_values, rhs_column);
+        DenseSpace::GetColumn(0, solution_coefficients, coefficient_column);
+        CheckResidualNorm(rShapeFunctionValues, rhs_column, coefficient_column, "sigma_xx");
+        DenseSpace::GetColumn(1, rhs_values, rhs_column);
+        DenseSpace::GetColumn(1, solution_coefficients, coefficient_column);
+        CheckResidualNorm(rShapeFunctionValues, rhs_column, coefficient_column, "sigma_yy");
+        DenseSpace::GetColumn(2, rhs_values, rhs_column);
+        DenseSpace::GetColumn(2, solution_coefficients, coefficient_column);
+        CheckResidualNorm(rShapeFunctionValues, rhs_column, coefficient_column, "sigma_xy");
         if (is_3d) {
-            CheckResidualNorm(rShapeFunctionValues, b_zz, c_zz, "sigma_zz");
-            CheckResidualNorm(rShapeFunctionValues, b_yz, c_yz, "sigma_yz");
-            CheckResidualNorm(rShapeFunctionValues, b_xz, c_xz, "sigma_xz");
+            DenseSpace::GetColumn(3, rhs_values, rhs_column);
+            DenseSpace::GetColumn(3, solution_coefficients, coefficient_column);
+            CheckResidualNorm(rShapeFunctionValues, rhs_column, coefficient_column, "sigma_zz");
+            DenseSpace::GetColumn(4, rhs_values, rhs_column);
+            DenseSpace::GetColumn(4, solution_coefficients, coefficient_column);
+            CheckResidualNorm(rShapeFunctionValues, rhs_column, coefficient_column, "sigma_yz");
+            DenseSpace::GetColumn(5, rhs_values, rhs_column);
+            DenseSpace::GetColumn(5, solution_coefficients, coefficient_column);
+            CheckResidualNorm(rShapeFunctionValues, rhs_column, coefficient_column, "sigma_xz");
         }
 #endif
 
-        Matrix coefficients(is_3d ? 6 : 3, gauss_point_number);
+        Matrix coefficients(component_count, gauss_point_number);
         for (std::size_t j = 0; j < gauss_point_number; ++j) {
-            coefficients(0, j) = c_xx(j);
-            coefficients(1, j) = c_yy(j);
-            coefficients(2, j) = c_xy(j);
-            if (is_3d) {
-                coefficients(3, j) = c_zz(j);
-                coefficients(4, j) = c_yz(j);
-                coefficients(5, j) = c_xz(j);
+            for (std::size_t i = 0; i < component_count; ++i) {
+                coefficients(i, j) = solution_coefficients(j, i);
             }
         }
 
