@@ -27,6 +27,23 @@
                             "model_part_name": "PorousDomain"
                         }
                     }
+                ],
+                "operations": [
+                    {
+                        "name": "Operations.KratosMultiphysics.GeoMechanicsApplication.DeactivateModelPartOperation",
+                        "Parameters": {
+                            "model_part_name_list": [
+                                "PorousDomain.Wall_Clay_Interface_Left",
+                                "PorousDomain.Wall_Clay_Interface_Upper_Right",
+                                "PorousDomain.Wall_Clay_Interface_Middle_Right",
+                                "PorousDomain.Wall_Clay_Interface_Lower_Right",
+                                "PorousDomain.Wall_Sand_Interface_Left",
+                                "PorousDomain.Wall_Sand_Interface_Right",
+                                "PorousDomain.Diaphragm_Wall",
+                                "PorousDomain.Strut"
+                            ]
+                        }
+                    }
                 ]
             },
             "stage_settings": {
@@ -176,24 +193,6 @@
                         }
                     ],
                     "auxiliary_process_list": [
-                        {
-                            "python_module": "apply_excavation_process",
-                            "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
-                            "process_name": "apply_excavation_process",
-                            "Parameters": {
-                                "model_part_name_list": [
-                                    "PorousDomain.Wall_Clay_Interface_Left",
-                                    "PorousDomain.Wall_Clay_Interface_Upper_Right",
-                                    "PorousDomain.Wall_Clay_Interface_Middle_Right",
-                                    "PorousDomain.Wall_Clay_Interface_Lower_Right",
-                                    "PorousDomain.Wall_Sand_Interface_Left",
-                                    "PorousDomain.Wall_Sand_Interface_Right",
-                                    "PorousDomain.Diaphragm_Wall",
-                                    "PorousDomain.Strut"
-                                ],
-                                "deactivate_soil_part": true
-                            }
-                        },
                         {
                             "python_module": "apply_k0_procedure_process",
                             "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
@@ -445,6 +444,24 @@
             }
         },
         "3_Wall_installation": {
+            "stage_preprocess": {
+                "operations": [
+                    {
+                        "name": "Operations.KratosMultiphysics.GeoMechanicsApplication.ActivateModelPartOperation",
+                        "Parameters": {
+                            "model_part_name_list": [
+                                "PorousDomain.Wall_Clay_Interface_Left",
+                                "PorousDomain.Wall_Clay_Interface_Upper_Right",
+                                "PorousDomain.Wall_Clay_Interface_Middle_Right",
+                                "PorousDomain.Wall_Clay_Interface_Lower_Right",
+                                "PorousDomain.Wall_Sand_Interface_Left",
+                                "PorousDomain.Wall_Sand_Interface_Right",
+                                "PorousDomain.Diaphragm_Wall"
+                            ]
+                        }
+                    }
+                ]
+            },
             "stage_settings": {
                 "analysis_stage": "Stages.KratosMultiphysics.GeoMechanicsApplication.GeoMechanicsAnalysis",
                 "problem_data": {
@@ -619,23 +636,6 @@
                     ],
                     "auxiliary_process_list": [
                         {
-                            "python_module": "apply_excavation_process",
-                            "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
-                            "process_name": "apply_excavation_process",
-                            "Parameters": {
-                                "model_part_name_list": [
-                                    "PorousDomain.Wall_Clay_Interface_Left",
-                                    "PorousDomain.Wall_Clay_Interface_Upper_Right",
-                                    "PorousDomain.Wall_Clay_Interface_Middle_Right",
-                                    "PorousDomain.Wall_Clay_Interface_Lower_Right",
-                                    "PorousDomain.Wall_Sand_Interface_Left",
-                                    "PorousDomain.Wall_Sand_Interface_Right",
-                                    "PorousDomain.Diaphragm_Wall"
-                                ],
-                                "deactivate_soil_part": false
-                            }
-                        },
-                        {
                             "python_module": "find_neighbours_of_interfaces_process",
                             "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
                             "process_name": "FindNeighboursOfInterfacesProcess",
@@ -728,6 +728,19 @@
             }
         },
         "4_First_excavation": {
+            "stage_preprocess": {
+                "operations": [
+                    {
+                        "name": "Operations.KratosMultiphysics.GeoMechanicsApplication.DeactivateModelPartOperation",
+                        "Parameters": {
+                            "model_part_name_list": [
+                                "PorousDomain.Clay_Upper_Right",
+                                "PorousDomain.Wall_Clay_Interface_Upper_Right"
+                            ]
+                        }
+                    }
+                ]
+            },
             "stage_settings": {
                 "analysis_stage": "Stages.KratosMultiphysics.GeoMechanicsApplication.GeoMechanicsAnalysis",
                 "problem_data": {
@@ -902,18 +915,6 @@
                     ],
                     "auxiliary_process_list": [
                         {
-                            "python_module": "apply_excavation_process",
-                            "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
-                            "process_name": "ApplyExcavationProcess",
-                            "Parameters": {
-                                "model_part_name_list": [
-                                    "PorousDomain.Clay_Upper_Right",
-                                    "PorousDomain.Wall_Clay_Interface_Upper_Right"
-                                ],
-                                "deactivate_soil_part": true
-                            }
-                        },
-                        {
                             "python_module": "apply_final_stresses_of_previous_stage_to_initial_state",
                             "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
                             "process_name": "ApplyFinalStressesOfPreviousStageToInitialState",
@@ -1005,6 +1006,16 @@
             }
         },
         "5_Strut_installation": {
+            "stage_preprocess": {
+                "operations": [
+                    {
+                        "name": "Operations.KratosMultiphysics.GeoMechanicsApplication.ActivateModelPartOperation",
+                        "Parameters": {
+                            "model_part_name": "PorousDomain.Strut"
+                        }
+                    }
+                ]
+            },
             "stage_settings": {
                 "analysis_stage": "Stages.KratosMultiphysics.GeoMechanicsApplication.GeoMechanicsAnalysis",
                 "problem_data": {
@@ -1184,27 +1195,6 @@
                     ],
                     "auxiliary_process_list": [
                         {
-                            "python_module": "apply_excavation_process",
-                            "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
-                            "process_name": "ApplyExcavationProcess",
-                            "Parameters": {
-                                "model_part_name_list": [
-                                    "PorousDomain.Clay_Upper_Right",
-                                    "PorousDomain.Wall_Clay_Interface_Upper_Right"
-                                ],
-                                "deactivate_soil_part": true
-                            }
-                        },
-                        {
-                            "python_module": "apply_excavation_process",
-                            "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
-                            "process_name": "apply_excavation_process",
-                            "Parameters": {
-                                "model_part_name": "PorousDomain.Strut",
-                                "deactivate_soil_part": false
-                            }
-                        },
-                        {
                             "python_module": "apply_final_stresses_of_previous_stage_to_initial_state",
                             "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
                             "process_name": "ApplyFinalStressesOfPreviousStageToInitialState",
@@ -1296,6 +1286,19 @@
             }
         },
         "6_Second_excavation": {
+            "stage_preprocess": {
+                "operations": [
+                    {
+                        "name": "Operations.KratosMultiphysics.GeoMechanicsApplication.DeactivateModelPartOperation",
+                        "Parameters": {
+                            "model_part_name_list": [
+                                "PorousDomain.Clay_Middle_Right",
+                                "PorousDomain.Wall_Clay_Interface_Middle_Right"
+                            ]
+                        }
+                    }
+                ]
+            },
             "stage_settings": {
                 "analysis_stage": "Stages.KratosMultiphysics.GeoMechanicsApplication.GeoMechanicsAnalysis",
                 "problem_data": {
@@ -1491,18 +1494,6 @@
                     ],
                     "auxiliary_process_list": [
                         {
-                            "python_module": "apply_excavation_process",
-                            "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
-                            "process_name": "ApplyExcavationProcess",
-                            "Parameters": {
-                                "model_part_name_list": [
-                                    "PorousDomain.Clay_Middle_Right",
-                                    "PorousDomain.Wall_Clay_Interface_Middle_Right"
-                                ],
-                                "deactivate_soil_part": true
-                            }
-                        },
-                        {
                             "python_module": "apply_final_stresses_of_previous_stage_to_initial_state",
                             "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
                             "process_name": "ApplyFinalStressesOfPreviousStageToInitialState",
@@ -1593,6 +1584,19 @@
             }
         },
         "7_Third_excavation": {
+            "stage_preprocess": {
+                "operations": [
+                    {
+                        "name": "Operations.KratosMultiphysics.GeoMechanicsApplication.DeactivateModelPartOperation",
+                        "Parameters": {
+                            "model_part_name_list": [
+                                "PorousDomain.Clay_Lower_Right",
+                                "PorousDomain.Wall_Clay_Interface_Lower_Right"
+                            ]
+                        }
+                    }
+                ]
+            },
             "stage_settings": {
                 "analysis_stage": "Stages.KratosMultiphysics.GeoMechanicsApplication.GeoMechanicsAnalysis",
                 "problem_data": {
@@ -1787,18 +1791,6 @@
                         }
                     ],
                     "auxiliary_process_list": [
-                        {
-                            "python_module": "apply_excavation_process",
-                            "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
-                            "process_name": "ApplyExcavationProcess",
-                            "Parameters": {
-                                "model_part_name_list": [
-                                    "PorousDomain.Clay_Lower_Right",
-                                    "PorousDomain.Wall_Clay_Interface_Lower_Right"
-                                ],
-                                "deactivate_soil_part": true
-                            }
-                        },
                         {
                             "python_module": "apply_final_stresses_of_previous_stage_to_initial_state",
                             "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
