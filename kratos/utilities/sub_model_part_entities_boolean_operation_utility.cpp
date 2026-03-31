@@ -46,9 +46,9 @@ void SubModelPartEntitiesBooleanOperationUtility<
         ModelPart& rModelPart)
 {
     if constexpr (std::is_same_v<TEntityType, Node>) {
-        rModelPart.AddElements(rIds);
+        rModelPart.AddNodes(rIds);
     } else if constexpr (std::is_same_v<TEntityType, Element>) {
-        rModelPart.AddMasterSlaveConstraints(rIds);
+        rModelPart.AddElements(rIds);
     } else if constexpr (std::is_same_v<TEntityType, Condition>) {
         rModelPart.AddConditions(rIds);
     } else if constexpr (std::is_same_v<TEntityType, MasterSlaveConstraint>) {
