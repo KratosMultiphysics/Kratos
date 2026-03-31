@@ -545,20 +545,15 @@ namespace Kratos::Testing
         r_element_3.CalculateOnIntegrationPoints(MP_COORD, mp_coordinate_3, rProcessInfo);
         r_element_4.CalculateOnIntegrationPoints(MP_COORD, mp_coordinate_4, rProcessInfo);
 
-        array_1d<double, 3> ref_mp_coordinate_1 {0.0, 0.0, 0.0};
-        array_1d<double, 3> ref_mp_coordinate_2 {0.0, 0.0, 0.0};
-        array_1d<double, 3> ref_mp_coordinate_3 {0.0, 0.0, 0.0};
-        array_1d<double, 3> ref_mp_coordinate_4 {0.0, 0.0, 0.0};
+        array_1d<double, 3> ref_mp_coordinate_1 {0.240790684821637, 0.224124018178363, 0.0};
+        array_1d<double, 3> ref_mp_coordinate_2 {0.898643071928363, 0.230224441571637, 0.0};
+        array_1d<double, 3> ref_mp_coordinate_3 {0.875875981821637, 0.859209315178363, 0.0};
+        array_1d<double, 3> ref_mp_coordinate_4 {0.234690261428363, 0.836442225071637, 0.0};
 
-        KRATOS_WATCH(mp_coordinate_1)
-        KRATOS_WATCH(mp_coordinate_2)
-        KRATOS_WATCH(mp_coordinate_3)
-        KRATOS_WATCH(mp_coordinate_4)
-
-        // KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(mp_coordinate_1[0], ref_mp_coordinate_1, 1e-6);
-        // KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(mp_coordinate_2[0], ref_mp_coordinate_2, 1e-6);
-        // KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(mp_coordinate_3[0], ref_mp_coordinate_3, 1e-6);
-        // KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(mp_coordinate_4[0], ref_mp_coordinate_4, 1e-6);
+        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(mp_coordinate_1[0], ref_mp_coordinate_1, 1e-6);
+        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(mp_coordinate_2[0], ref_mp_coordinate_2, 1e-6);
+        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(mp_coordinate_3[0], ref_mp_coordinate_3, 1e-6);
+        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(mp_coordinate_4[0], ref_mp_coordinate_4, 1e-6);
 
         // Check MP velocity
         std::vector<array_1d<double, 3>> mp_velocity_1{};
@@ -589,8 +584,6 @@ namespace Kratos::Testing
 
         KRATOS_CATCH("")
     }
-
-
     // end of MPMFlipParticleMappingUtilityOneGridElement2D
 
     // KRATOS_TEST_CASE_IN_SUITE(MPMFlipParticleMappingUtilityNineGridElement2D, KratosMPMFastSuite)
