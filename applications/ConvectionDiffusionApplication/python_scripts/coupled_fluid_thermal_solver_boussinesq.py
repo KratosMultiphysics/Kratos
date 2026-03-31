@@ -4,6 +4,7 @@ import KratosMultiphysics.ConvectionDiffusionApplication as ConvectionDiffusionA
 
 # Import the base coupled solver that this class extends
 from KratosMultiphysics.ConvectionDiffusionApplication.coupled_fluid_thermal_solver import CoupledFluidThermalSolver
+from KratosMultiphysics.FSIApplication import convergence_accelerator_factory
 
 
 def CreateSolver(model, custom_settings):
@@ -78,7 +79,13 @@ class CoupledFluidThermalSolverBoussinesq(CoupledFluidThermalSolver):
             "coupling_settings": {
                 "max_coupling_iterations"    : 20,
                 "coupling_relative_tolerance": 1.0e-5,
-                "relaxation_factor"          : 1.0
+                "relaxation_factor"          : 1.0,
+                "coupling_strategy"          : "Picard",
+                "picard_iterations_before_newton": 0,
+                "quasi_newton_settings"      : {
+                    "solver_type" : "MVQN",
+                    "w_0"         : 0.825
+                }
             }
         }""")
 
@@ -99,14 +106,20 @@ class CoupledFluidThermalSolverBoussinesq(CoupledFluidThermalSolver):
         self._max_coupling_it = coupling["max_coupling_iterations"].GetInt()
         self._coupling_tol    = coupling["coupling_relative_tolerance"].GetDouble()
         self._omega           = coupling["relaxation_factor"].GetDouble()
+        self._coupling_strategy = coupling["coupling_strategy"].GetString()
+        
+        if self._coupling_strategy == "QuasiNewton":
+            self._qn_settings = coupling["quasi_newton_settings"]
+            self._picard_iters_first = coupling["picard_iterations_before_newton"].GetInt()
 
         KratosMultiphysics.Logger.PrintInfo(
             "::[CoupledFluidThermalSolverBoussinesq]::",
             "Construction finished. "
-            "Max Picard iterations: {0}, "
-            "tolerance: {1:.1e}, "
-            "relaxation ω: {2:.2f}".format(
-                self._max_coupling_it, self._coupling_tol, self._omega))
+            "Strategy: {0}, "
+            "Max iterations: {1}, "
+            "tolerance: {2:.1e}, "
+            "relaxation ω: {3:.2f}".format(
+                self._coupling_strategy, self._max_coupling_it, self._coupling_tol, self._omega))
 
     # ------------------------------------------------------------------
     # Initialization
@@ -133,6 +146,11 @@ class CoupledFluidThermalSolverBoussinesq(CoupledFluidThermalSolver):
             self.thermal_solver.main_model_part,
             boussinesq_settings)
         self._boussinesq_process.ExecuteInitialize()
+
+        # Create Quasi-Newton convergence accelerator if requested
+        if self._coupling_strategy == "QuasiNewton":
+            self._convergence_accelerator = convergence_accelerator_factory.CreateConvergenceAccelerator(self._qn_settings)
+            self._convergence_accelerator.Initialize()
 
         KratosMultiphysics.Logger.PrintInfo(
             "::[CoupledFluidThermalSolverBoussinesq]::",
@@ -171,8 +189,15 @@ class CoupledFluidThermalSolverBoussinesq(CoupledFluidThermalSolver):
         is_coupling_converged = False
         rel_res = 0.0
 
+        if self._coupling_strategy == "QuasiNewton":
+            self._convergence_accelerator.InitializeSolutionStep()
+
         self._boussinesq_process.ExecuteInitializeSolutionStep()
         for it in range(1, self._max_coupling_it + 1):
+
+            # --- Initialize QN iteration if past the Picard phase -----------
+            if self._coupling_strategy == "QuasiNewton" and it > self._picard_iters_first:
+                self._convergence_accelerator.InitializeNonLinearIteration()
 
             # --- Step 1: update body force from current φ -------------------
             # Uses φ on the nodes (= φ^{k-1} at the start of iteration k).
@@ -185,34 +210,61 @@ class CoupledFluidThermalSolverBoussinesq(CoupledFluidThermalSolver):
             # The C-D solver reads VELOCITY from the now-updated fluid model part.
             thermal_converged = self.thermal_solver.SolveSolutionStep()
 
-            # --- Step 4: relaxation (only if ω < 1) -------------------------
-            if self._omega < 1.0:
-                ConvectionDiffusionApplication.BoussinesqCouplingUtilities.ApplyRelaxation(
-                    self.thermal_solver.main_model_part, phi_var, aux_phi_var, self._omega)
-
-            # --- Step 5: coupling convergence check -------------------------
+            # --- Step 4/5: Relaxation/Quasi-Newton and residual --------
+            # Compute relative residual BEFORE relaxation/QN so we see the raw prediction delta
             rel_res = ConvectionDiffusionApplication.BoussinesqCouplingUtilities.ComputeRelativeResidual(
                 self.thermal_solver.main_model_part, phi_var, aux_phi_var)
+
             KratosMultiphysics.Logger.PrintInfo(
                 "::[CoupledFluidThermalSolverBoussinesq]::",
-                "Picard it={0:3d} | |Δφ|/|φ| = {1:.3e}".format(it, rel_res))
-
-            # φ^{k+1} becomes φ^k for the next iteration
-            KratosMultiphysics.VariableUtils().CopyModelPartNodalVarToNonHistoricalVar(
-                phi_var, aux_phi_var, self.thermal_solver.main_model_part, self.thermal_solver.main_model_part, 0)
+                "Coupling it={0:3d} | |Δφ|/|φ| = {1:.3e}".format(it, rel_res))
 
             if rel_res <= self._coupling_tol:
                 is_coupling_converged = True
                 KratosMultiphysics.Logger.PrintInfo(
                     "::[CoupledFluidThermalSolverBoussinesq]::",
-                    "Coupling converged in {0} Picard iteration(s).".format(it))
+                    "Coupling converged in {0} iteration(s).".format(it))
                 break
+
+            if self._coupling_strategy == "QuasiNewton" and it > self._picard_iters_first:
+                num_nodes = self.thermal_solver.main_model_part.NumberOfNodes()
+                r_vec = KratosMultiphysics.Vector(num_nodes)
+                x_vec = KratosMultiphysics.Vector(num_nodes)
+                
+                # Build Kratos Vectors for the accelerator
+                # phi_var holds predicted value, aux_phi_var holds previous value
+                for i, node in enumerate(self.thermal_solver.main_model_part.Nodes):
+                    phi_k = node.GetValue(aux_phi_var)
+                    phi_pred = node.GetSolutionStepValue(phi_var)
+                    x_vec[i] = phi_k
+                    r_vec[i] = phi_pred - phi_k
+                
+                # Apply Newton-Raphson update
+                self._convergence_accelerator.UpdateSolution(r_vec, x_vec)
+                
+                # Write back converged/relaxed values
+                for i, node in enumerate(self.thermal_solver.main_model_part.Nodes):
+                    node.SetSolutionStepValue(phi_var, 0, x_vec[i])
+                    node.SetValue(aux_phi_var, x_vec[i])
+                
+                self._convergence_accelerator.FinalizeNonLinearIteration()
+                
+            else:
+                # Classic Picard with fixed relaxation
+                if self._omega < 1.0:
+                    ConvectionDiffusionApplication.BoussinesqCouplingUtilities.ApplyRelaxation(
+                        self.thermal_solver.main_model_part, phi_var, aux_phi_var, self._omega)
+
+                # φ^{k+1} becomes φ^k for the next iteration
+                KratosMultiphysics.VariableUtils().CopyModelPartNodalVarToNonHistoricalVar(
+                    phi_var, aux_phi_var, self.thermal_solver.main_model_part, self.thermal_solver.main_model_part, 0)
+
         self._boussinesq_process.ExecuteFinalizeSolutionStep()
 
         if not is_coupling_converged:
             KratosMultiphysics.Logger.PrintWarning(
                 "::[CoupledFluidThermalSolverBoussinesq]::",
-                "Picard loop reached max iterations ({0}) without convergence. "
+                "Coupling loop reached max iterations ({0}) without convergence. "
                 "Last |Δφ|/|φ| = {1:.3e}".format(self._max_coupling_it, rel_res))
 
         return fluid_converged and thermal_converged
