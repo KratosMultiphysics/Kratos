@@ -268,8 +268,7 @@ namespace Kratos
     void P2GCalculateNodalVariable()
     {
         ModelPart& r_mpm_model_part = GetMPMModelPart();
-        // block_for_each(r_model_part.Nodes(), [&](Node& rNode)
-        for (auto& rNode : r_mpm_model_part.Nodes())
+        block_for_each(r_mpm_model_part.Nodes(), [&](Node& rNode) // Comment: uncomment this
         {
             const double& r_nodal_mass = rNode.FastGetSolutionStepValue(NODAL_MASS);
 
@@ -308,7 +307,7 @@ namespace Kratos
                 // }
             }
 
-        }//);
+        });
     }
 
     #pragma endregion
