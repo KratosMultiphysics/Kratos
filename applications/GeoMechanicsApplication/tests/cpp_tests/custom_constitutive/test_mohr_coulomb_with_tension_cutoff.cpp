@@ -32,6 +32,8 @@ Vector CalculateMappedStressVector(Vector&                       rCauchyStressVe
     Vector strain_vector = ZeroVector(4);
     rParameters.SetStrainVector(strain_vector);
     rParameters.SetStressVector(rCauchyStressVector);
+    rParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
+
     const auto dummy_process_info = ProcessInfo{};
     rLaw.SetValue(CAUCHY_STRESS_VECTOR, rCauchyStressVector, dummy_process_info);
     rLaw.FinalizeMaterialResponseCauchy(rParameters);
@@ -696,6 +698,42 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     KRATOS_EXPECT_EQ(plasticity_status, static_cast<int>(PlasticityStatus::TENSION_MOHR_COULOMB_CORNER));
 }
 
+KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponseCauchyDoesNotChangeStressVectorDependingOnOptions,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto       law = MohrCoulombWithTensionCutOff(std::make_unique<PlaneStrain>());
+    Properties properties;
+    properties.SetValue(YOUNG_MODULUS, 1.0e6);
+    properties.SetValue(POISSON_RATIO, 0.25);
+    properties.SetValue(GEO_FRICTION_ANGLE, 35.0);
+    properties.SetValue(GEO_COHESION, 10.0);
+    properties.SetValue(GEO_DILATANCY_ANGLE, 20.0);
+    properties.SetValue(GEO_TENSILE_STRENGTH, 10.0);
+    ConstitutiveLaw::Parameters parameters;
+    parameters.SetMaterialProperties(properties);
+    const auto dummy_element_geometry      = Geometry<Node>{};
+    const auto dummy_shape_function_values = Vector{};
+    law.InitializeMaterial(properties, dummy_element_geometry, dummy_shape_function_values);
+
+    auto   cauchy_stress_vector = UblasUtilities::CreateVector({18.0, 0.0, 0.0, -8.0});
+    Vector strain_vector        = ZeroVector(4);
+    parameters.SetStrainVector(strain_vector);
+    parameters.SetStressVector(cauchy_stress_vector);
+
+    const auto dummy_process_info = ProcessInfo{};
+    law.SetValue(CAUCHY_STRESS_VECTOR, cauchy_stress_vector, dummy_process_info);
+    law.FinalizeMaterialResponseCauchy(parameters);
+
+    // Act
+    law.CalculateMaterialResponseCauchy(parameters);
+
+    // Assert
+    const auto expected_cauchy_stress_vector = UblasUtilities::CreateVector({18.0, 0.0, 0.0, -8.0});
+    KRATOS_EXPECT_VECTOR_NEAR(parameters.GetStressVector(), expected_cauchy_stress_vector,
+                              Defaults::absolute_tolerance);
+}
+
 KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponseCauchyAtTensionApexReturnZoneInterface,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
@@ -800,6 +838,7 @@ Vector ComputeStressVectorUsingCPhiReductionTestData(double  Cohesion,
     law.InitializeMaterial(properties, dummy_element_geometry, dummy_shape_function_values);
 
     ConstitutiveLaw::Parameters parameters;
+    parameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
     parameters.SetMaterialProperties(properties);
     parameters.SetStrainVector(rStrainVectorFinalized);
     parameters.SetStressVector(rStressVectorFinalized);
