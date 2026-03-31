@@ -10,11 +10,11 @@ A brief description of the PR.
 Please mark the PR with appropriate tags: 
 - Api Breaker, Mpi, etc...
 
-### **💡Key changes**
+### **Key changes**
 
 Detail of the key changes.
 
-### **✅ Validation**
+### **Validation**
 
 A way to validate the changes do not break the code.
 

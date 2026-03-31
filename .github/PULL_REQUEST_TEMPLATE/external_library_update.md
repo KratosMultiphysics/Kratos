@@ -4,15 +4,15 @@ about: Bringing updates in an external library
 
 ---
 
-## **📝Description**
+## **Description**
 
 Main changes in the external library compared from the previous version version
 
-### **💡Key changes**
+### **Key changes**
 
 Detail of the key changes.
 
-## **🆕Changelog**
+## **Changelog**
 
 Please summarize the changes in one a list to generate the changelog:
 E.g.

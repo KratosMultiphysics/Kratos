@@ -4,27 +4,27 @@ about: Improvement of performance in certain part of the code
 
 ---
 
-## **📝Description**
+## **Description**
 
 A brief description of the MR.
 
-### **💡Key changes**
+### **Key changes**
 
 Detail of the key changes.
 
-### **✅ Validation**
+### **Validation**
 
 A way to validate the changes do not break the code.
 
-### **📊Benchmark**
+### **Benchmark**
 
 Adding benchmark here.
 
-### **☣️ Risk / Notes**
+### **Risk / Notes**
 
 Details of something to take into account due to the changes.
 
-## **🆕Changelog**
+## **Changelog**
 
 Please summarize the changes in one a list to generate the changelog:
 E.g.

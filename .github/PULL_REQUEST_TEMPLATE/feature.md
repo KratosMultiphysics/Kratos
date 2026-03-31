@@ -4,19 +4,19 @@ about: New applications, new features or wider changes,
 
 ---
 
-## **📝Description**
+## **Description**
 
 A brief description of the PR.
 
-### **💡Key changes**
+### **Key changes**
 
 Detail of the key changes.
 
-### **✅ Validation**
+### **Validation**
 
 A way to validate the changes do not break the code.
 
-## **🆕Changelog**
+## **Changelog**
 
 Please summarize the changes in one a list to generate the changelog:
 E.g.

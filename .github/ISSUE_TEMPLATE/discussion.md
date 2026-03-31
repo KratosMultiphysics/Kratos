@@ -5,6 +5,6 @@ label: discussion
 
 ---
 
-## **📝Description**
+## **Description**
 
 Introduction of the discussion topic.
