@@ -66,6 +66,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_CalculateMaterialRes
 
     auto parameters = ConstitutiveLaw::Parameters{};
     parameters.SetMaterialProperties(properties);
+    parameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
     auto traction_vector = Vector{ZeroVector{2}};
     parameters.SetStressVector(traction_vector);
     auto relative_displacement_vector = Vector{ZeroVector{2}};
@@ -131,6 +132,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_CalculateMaterialRes
 
     auto parameters = ConstitutiveLaw::Parameters{};
     parameters.SetMaterialProperties(properties);
+    parameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
     auto traction_vector = Vector{ZeroVector{2}};
     parameters.SetStressVector(traction_vector);
     auto relative_displacement_vector = Vector{ZeroVector{2}};
@@ -171,6 +173,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_CalculateMaterialRes
 
     auto parameters = ConstitutiveLaw::Parameters{};
     parameters.SetMaterialProperties(properties);
+    parameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
     auto traction_vector = Vector{ZeroVector{2}};
     parameters.SetStressVector(traction_vector);
     auto relative_displacement_vector = Vector{ZeroVector{2}};
@@ -209,6 +212,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_CalculateMaterialRes
 
     auto parameters = ConstitutiveLaw::Parameters{};
     parameters.SetMaterialProperties(properties);
+    parameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
     auto traction_vector = Vector{ZeroVector{2}};
     parameters.SetStressVector(traction_vector);
     auto relative_displacement_vector = Vector{ZeroVector{2}};
@@ -249,6 +253,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_CalculateMaterialRes
 
     auto parameters = ConstitutiveLaw::Parameters{};
     parameters.SetMaterialProperties(properties);
+    parameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
     auto traction_vector = Vector{ZeroVector{2}};
     parameters.SetStressVector(traction_vector);
     auto relative_displacement_vector = Vector{ZeroVector{2}};
@@ -275,6 +280,39 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_CalculateMaterialRes
     KRATOS_EXPECT_EQ(plasticity_status, static_cast<int>(PlasticityStatus::MOHR_COULOMB_FAILURE));
 }
 
+KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_DoesNotCalculateStressDependingOnOption,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto properties = Properties{};
+    properties.SetValue(GEO_FRICTION_ANGLE, 35.0);
+    properties.SetValue(GEO_COHESION, 10.0);
+    properties.SetValue(GEO_DILATANCY_ANGLE, 0.0);
+    properties.SetValue(GEO_TENSILE_STRENGTH, 10.0);
+    properties.SetValue(INTERFACE_NORMAL_STIFFNESS, 25.0);
+    properties.SetValue(INTERFACE_SHEAR_STIFFNESS, 12.5);
+
+    auto parameters = ConstitutiveLaw::Parameters{};
+    parameters.SetMaterialProperties(properties);
+    auto traction_vector = Vector{ZeroVector{2}};
+    parameters.SetStressVector(traction_vector);
+    auto relative_displacement_vector = Vector{ZeroVector{2}};
+    parameters.SetStrainVector(relative_displacement_vector);
+
+    auto law = InterfaceCoulombWithTensionCutOff{std::make_unique<InterfacePlaneStrain>()};
+    InitializeLawMaterial(law, properties);
+
+    // Act
+    law.CalculateMaterialResponseCauchy(parameters);
+    const auto& r_resulting_traction = parameters.GetStressVector();
+    int         plasticity_status;
+    law.GetValue(GEO_PLASTICITY_STATUS, plasticity_status);
+
+    // Assert
+    const auto expected_traction = UblasUtilities::CreateVector({0.0, 0.0});
+    KRATOS_EXPECT_VECTOR_NEAR(r_resulting_traction, expected_traction, Defaults::absolute_tolerance);
+}
+
 KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_Serialization, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
@@ -288,6 +326,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_Serialization, Krato
 
     auto parameters = ConstitutiveLaw::Parameters{};
     parameters.SetMaterialProperties(properties);
+    parameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
     auto traction_vector = Vector{ZeroVector{2}};
     parameters.SetStressVector(traction_vector);
     auto relative_displacement_vector = Vector{ZeroVector{2}};
