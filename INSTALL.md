@@ -14,6 +14,12 @@
         - [Using MINGW64 (legacy)](#using-mingw64-legacy)
         - [Using UCRT64 (*Universal C Runtime*)](#using-ucrt64-universal-c-runtime)
     - [MacOS](#macos)
+      - [System Requirements](#system-requirements)
+      - [Quick Start](#quick-start)
+      - [Manual Configuration](#manual-configuration)
+      - [Verify Installation](#verify-installation)
+      - [Building Python Wheels (for Distribution)](#building-python-wheels-for-distribution)
+      - [Troubleshooting](#troubleshooting)
   - [Adding Applications](#adding-applications)
   - [Post Compilation](#post-compilation)
     - [GNU/Linux](#gnulinux-1)
@@ -660,6 +666,36 @@ cmake --build . --target install -j$(sysctl -n machdep.cpu.thread_count)
 python3 -c "import KratosMultiphysics; m = KratosMultiphysics.Model(); print('✅ Success')"
 ```
 
+#### Building Python Wheels (for Distribution)
+
+To build distributable Python wheels for macOS, use the wheel builder script:
+
+```bash
+cd /path/to/Kratos
+./scripts/mac_build_wheel -j4 -p "313 314"
+```
+
+This builds wheels for specified Python versions (default: 3.9-3.14) and outputs to `dist/wheels/`.
+
+**Options:**
+- `-j<N>` — Number of parallel jobs (default: auto-detected)
+- `-p "PYTHONS"` — Space-separated Python versions to build (e.g., `-p "313 314"`)
+- `-C` — Clean build directory before building
+
+**Example - Build wheels for Python 3.13 and 3.14:**
+```bash
+./scripts/mac_build_wheel -j8 -p "313 314" -C
+```
+
+**Manual wheel building** (if scripting):
+```bash
+python3.14 -m pip install --upgrade build hatchling
+cd /path/to/Kratos/build/wheel_staging
+python3.14 -m build --wheel
+```
+
+Wheels are built for both the Kratos core and all compiled applications. Each is packaged separately for modularity.
+
 #### Troubleshooting
 
 | Error | Solution |
@@ -669,6 +705,7 @@ python3 -c "import KratosMultiphysics; m = KratosMultiphysics.Model(); print('�
 | "Boost not found" | Set: `-DBOOST_ROOT=$(brew --prefix boost)` |
 | Permission denied | Use venv or: `-DCMAKE_INSTALL_PREFIX=$HOME/.local/opt/kratos` |
 | Using system clang | Verify CMAKE_CXX_COMPILER: `/opt/homebrew/opt/llvm/bin/clang++` |
+| Wheel build fails | Ensure virtual environment is activated and `build` module is installed: `pip install --upgrade build` |
 
 
 

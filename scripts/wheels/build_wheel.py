@@ -32,13 +32,17 @@ PLATFORM_CONFIG = {
         'WHEEL_OUT': "C:/data_swap_guest/"
     },
     'Darwin': {
-        'PYTHONS': ["39"],
-        'PYTHON_BUILD_VER': "39",
+        'PYTHONS': ["39", "310", "311", "312", "313", "314"],
+        'PYTHON_BUILD_VER': "314",
         'BUILD_SCRIPT': "scripts/wheels/darwin/configure.sh",
         'BUILD_CORES': 8,
-        'KRATOS_ROOT': "/workspace/kratos/Kratos",
-        'WHEEL_ROOT': "/workspace/wheel",
-        'WHEEL_OUT': "/workspace/dist",
+        # For CI/Docker environments, override these with:
+        # KRATOS_ROOT="/workspace/kratos/Kratos"
+        # WHEEL_ROOT="/workspace/wheel"
+        # WHEEL_OUT="/workspace/dist"
+        'KRATOS_ROOT': os.environ.get("KRATOS_ROOT", "/Users/alessandro/Braid/Kratos"),
+        'WHEEL_ROOT': os.environ.get("WHEEL_ROOT", "/tmp/kratos_wheel"),
+        'WHEEL_OUT': os.environ.get("WHEEL_OUT", "/tmp/kratos_dist"),
     }
 }
 
@@ -76,7 +80,29 @@ def getPythonInterpreter(platform: str, python_ver: str):
     elif platform == "Linux":
         return Path("/opt") / "python" / f"cp{python_ver}-cp{python_ver}" / "bin" / "python"
     elif platform == "Darwin":
-        return Path("/opt") / "python" / f"cp{python_ver}-cp{python_ver}" / "bin" / "python"
+        # First try Docker/CI path
+        docker_python = Path("/opt") / "python" / f"cp{python_ver}-cp{python_ver}" / "bin" / "python"
+        if docker_python.exists():
+            return docker_python
+        
+        # Fall back to Homebrew Python on local macOS development
+        # Python versions: "39" -> "python@3.9", "310" -> "python@3.10", "314" -> "python@3.14"
+        major = python_ver[0]
+        minor = python_ver[1:]
+        homebrew_python = Path("/opt/homebrew/opt") / f"python@{major}.{minor}" / "bin" / f"python{major}.{minor}"
+        if homebrew_python.exists():
+            logging.debug(f"Found Homebrew Python: {homebrew_python}")
+            return homebrew_python
+        
+        # Try alternative Homebrew path (python@3.14 may install as python3.14)
+        homebrew_python_alt = Path("/opt/homebrew/bin") / f"python{major}.{minor}"
+        if homebrew_python_alt.exists():
+            logging.debug(f"Found Homebrew Python: {homebrew_python_alt}")
+            return homebrew_python_alt
+        
+        # Final fallback: try system python
+        logging.warning(f"Python {python_ver} not found in standard locations. Trying system python...")
+        return Path("/usr/bin") / "python3"
     else:
         logging.critical(f"Cannot retrieve python interpreter for platform: {platform}")
 
