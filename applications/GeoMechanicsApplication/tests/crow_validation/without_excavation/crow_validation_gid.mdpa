@@ -4614,7 +4614,6 @@ Begin Nodes
  4607   5.5268650316  -0.2840459012   0.0000000000
  4608   4.1669370860  -2.0000000000   0.0000000000
  4609   5.2711378916  -0.5340459012   0.0000000000
- 4610   4.5000000000  -1.5000000000   0.0000000000
  4611   3.2266182363  -3.1801352087   0.0000000000
  4612   4.7060430655  -1.1873246478   0.0000000000
  4613   3.4951572138  -2.7513353516   0.0000000000
@@ -7072,7 +7071,7 @@ Begin Elements Geo_UPwLineInterfacePlaneStrainDiffOrderElement3Plus3N// GUI grou
      12459          0  3996  3968  3982
 End Elements
 
-Begin Elements Geo_ULineInterfacePlaneStrainElement3Plus3N// GUI group identifier: Beam
+Begin Elements LinearTimoshenkoCurvedBeamElement2D3N// GUI group identifier: Beam
      2434          0  4639  4624  4633 
      2435          0  4624  4604  4614 
      2436          0  4604  4582  4595 
@@ -7101,8 +7100,8 @@ Begin Elements Geo_ULineInterfacePlaneStrainElement3Plus3N// GUI group identifie
      2459          0  3996  3968  3982 
 End Elements
 
-Begin Elements Geo_ULineInterfacePlaneStrainElement3Plus3N// GUI group identifier: Anchor
-     2433          0  4582  4634  4610 
+Begin Elements LinearTrussElement2D2N // GUI group identifier: Anchor
+     2433          0  4582  4634
 End Elements
 
 Begin Elements Geo_UPwLineInterfacePlaneStrainDiffOrderElement3Plus3N// GUI group identifier: Interface_Middle_Right
@@ -15009,7 +15008,6 @@ End SubModelPart
 Begin SubModelPart Anchor // Group Anchor // Subtree Parts_Interface
     Begin SubModelPartNodes
          4582
-         4610
          4634
     End SubModelPartNodes
     Begin SubModelPartElements
