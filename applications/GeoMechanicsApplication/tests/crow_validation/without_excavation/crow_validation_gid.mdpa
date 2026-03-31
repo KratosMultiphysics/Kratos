@@ -7409,6 +7409,11 @@ Begin SubModelPart Side_Rollers // Group Side_Rollers // Subtree DISPLACEMENT
          4707
     End SubModelPartNodes
 End SubModelPart
+Begin SubModelPart Strut_Support // Group Strut_Support // Subtree DISPLACEMENT
+    Begin SubModelPartNodes
+         4634
+    End SubModelPartNodes
+End SubModelPart
 Begin SubModelPart Soil_Middle_Right // Group Soil_Middle_Right // Subtree Parts_Soil
     Begin SubModelPartNodes
          1342
