@@ -72,6 +72,29 @@ Additionally, Visual Studio is required to compile in *Windows*.
 
     http://www.boost.org/users/download/.
 
+- #### macOS installation
+
+    **Homebrew is the recommended method** for installing dependencies on macOS (Intel and Apple Silicon).
+
+    First, [install Homebrew](https://brew.sh/) if not already installed:
+    ```Shell
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    ```
+
+    Then install the required dependencies:
+    ```Shell
+    brew install cmake llvm boost python@3.14
+    ```
+
+    **Important:** macOS's system clang compiler lacks OpenMP support. The `llvm` installation from Homebrew provides `libomp` which is required. When building Kratos, you must explicitly use the Homebrew LLVM compiler (see configuration examples in the [MacOS build section](#macos) below).
+
+    Optional but recommended for faster builds:
+    ```Shell
+    brew install ninja ccache
+    ```
+
+    If you need a specific Python version, Homebrew also provides `python@3.13`, `python@3.12`, etc.
+
 - #### Windows installation
 
     - Visual Studio
@@ -595,53 +618,173 @@ else
     echo "Python DLL not found at ${PYTHON_DLL}"
     exit 1
 fi
-```
+``
 
 ### MacOS
 
-```console
-# Function to add apps
-add_app () {
-    export KRATOS_APPLICATIONS="${KRATOS_APPLICATIONS}$1;"
-}
+#### System Requirements
 
-# Set compiler
-export CC=/usr/local/opt/llvm/bin/clang
-export CXX=/usr/local/opt/llvm/bin/clang++
+**Supported Versions:** macOS 11.0+ (Intel and Apple Silicon M1/M2/M3+)
 
-# Set variables
-export KRATOS_SOURCE="${KRATOS_SOURCE:-"$( cd "$(dirname "$0")" ; pwd -P )"/..}"
-export KRATOS_BUILD="${KRATOS_SOURCE}/build"
-export KRATOS_APP_DIR="${KRATOS_SOURCE}/applications"
-export KRATOS_INSTALL_PYTHON_USING_LINKS=ON
+**Recommended:** Use Homebrew for dependency management. The following dependencies must be installed:
 
-# Set basic configuration
-export KRATOS_BUILD_TYPE="Release"
-export BOOST_ROOT="/path/to/boost"
-export PYTHON_EXECUTABLE="/Library/Frameworks/Python.framework/Versions/3.8/bin/python3"
+```bash
+# Install Homebrew (if not already installed)
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
-# Set applications to compile
-export KRATOS_APPLICATIONS=
-add_app ${KRATOS_APP_DIR}/LinearSolversApplication
-add_app ${KRATOS_APP_DIR}/StructuralMechanicsApplication
-add_app ${KRATOS_APP_DIR}/FluidDynamicsApplication
+# Install required dependencies
+brew install cmake llvm boost python@3.14
 
-# Clean
-clear
-rm -rf "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}/cmake_install.cmake"
-rm -rf "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}/CMakeCache.txt"
-rm -rf "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}/CMakeFiles"
-
-# Configure
-/Applications/CMake.app/Contents/bin/cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" \
- -DCMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS} -msse3 -std=c++11 -L/usr/local/opt/llvm/lib" \
- -DCMAKE_C_FLAGS="${CMAKE_C_FLAGS} -msse3 -L/usr/local/opt/llvm/lib" \
- -DUSE_EIGEN_MKL=OFF
-
-# Build
-/Applications/CMake.app/Contents/bin/cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j3
-
+# Optional but recommended for faster builds
+brew install ninja ccache
 ```
+
+**Critical:** macOS system clang lacks OpenMP support. You **must** use Homebrew's LLVM installation, which provides `libomp`.
+
+#### Recommended: Using the Build Script
+
+Kratos provides a dedicated build script for Apple Silicon that handles all macOS-specific configuration:
+
+```bash
+cd /path/to/Kratos
+./scripts/mac_build -j4
+```
+
+This script will:
+- Automatically find Homebrew-installed LLVM and Boost
+- Detect your Python installation
+- Install Kratos to your Python site-packages directory
+- Use the Ninja build system if installed (faster than Unix Makefiles)
+
+**Options:**
+- `-j <N>`: Number of parallel build jobs (default: auto-detected)
+- `-i <path>`: Custom installation directory (default: Python site-packages)
+- `-o "<option>"`: Pass additional CMake options
+- `-C`: Clean build and install directories
+
+**Example with custom Python:**
+```bash
+./scripts/mac_build -o "-DPYTHON_EXECUTABLE=$(which python3)" -j8
+```
+
+#### Manual Configuration (Advanced)
+
+If you prefer to configure manually, follow these steps:
+
+**Step 1: Create a Python Virtual Environment (Recommended)**
+
+```bash
+python3 -m venv ~/kratos_env
+source ~/kratos_env/bin/activate
+pip install --upgrade pip
+```
+
+**Step 2: Configure with CMake**
+
+```bash
+# Set paths
+export KRATOS_SOURCE=/path/to/Kratos
+export KRATOS_BUILD=$KRATOS_SOURCE/build
+export KRATOS_INSTALL=$(python3 -c "import sysconfig; print(sysconfig.get_paths()['purelib'])")
+
+# Create build directory
+mkdir -p $KRATOS_BUILD
+cd $KRATOS_BUILD
+
+# Configure (adjust -j to your CPU core count)
+cmake $KRATOS_SOURCE \
+  -DCMAKE_INSTALL_PREFIX=$KRATOS_INSTALL \
+  -DCMAKE_C_COMPILER=/opt/homebrew/opt/llvm/bin/clang \
+  -DCMAKE_CXX_COMPILER=/opt/homebrew/opt/llvm/bin/clang++ \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DPYTHON_EXECUTABLE=$(which python3) \
+  -G Ninja
+```
+
+**Step 3: Build and Install**
+
+```bash
+cmake --build . --target install -j$(sysctl -n machdep.cpu.thread_count)
+```
+
+#### Testing Your Installation
+
+After successful build, verify the installation:
+
+```bash
+python3 << 'EOF'
+import KratosMultiphysics
+
+# Create a basic model
+model = KratosMultiphysics.Model()
+model_part = model.CreateModelPart("TestPart")
+
+print("✅ Kratos successfully installed and working!")
+print(f"Installation path: {KratosMultiphysics.__file__}")
+EOF
+```
+
+You should see output similar to:
+```
+ |  /           |
+ ' /   __| _` | __|  _ \   __|
+ . \  |   (   | |   (   |\__ \
+_|\_\_|  \__,_|\__|\___/ ____/
+           Multi-Physics X.Y.Z-hash-Release-ARM64
+           Compiled for Mac OS and PythonX.Y with Clang-XX.X
+Compiled with threading support. Threading support with OpenMP.
+Maximum number of threads: N.
+✅ Kratos successfully installed and working!
+Installation path: /path/to/site-packages/KratosMultiphysics/__init__.py
+```
+
+#### Troubleshooting
+
+**Error: "Unable to find KratosCore" or "Symbol not found in flat namespace"**
+
+- **Cause:** Python version mismatch (e.g., compiled for Python 3.12 but running Python 3.14)
+- **Solution:** Explicitly specify Python when configuring:
+  ```bash
+  cmake ... -DPYTHON_EXECUTABLE=/opt/homebrew/opt/python@3.14/bin/python3.14
+  ```
+
+**Error: "libomp not found"**
+
+- **Cause:** LLVM from Homebrew not installed
+- **Solution:**
+  ```bash
+  brew install llvm
+  # Then verify LLVM paths are used in CMake configuration
+  ```
+
+**Error: "Boost not found"**
+
+- **Cause:** Homebrew Boost installed but CMake can't find it
+- **Solution:** Explicitly set Boost path:
+  ```bash
+  cmake ... -DBOOST_ROOT=$(brew --prefix boost)
+  ```
+
+**Build is slow or using system clang**
+
+- **Cause:** System clang is being used instead of Homebrew LLVM
+- **Solution:** Verify compiler paths:
+  ```bash
+  which clang  # Should show /usr/bin/clang, that's OK
+  # But CMAKE_CXX_COMPILER should point to Homebrew LLVM:
+  echo /opt/homebrew/opt/llvm/bin/clang++
+  ```
+
+**Permission denied on installation**
+
+- **Cause:** Writing to Python site-packages requires appropriate permissions
+- **Solution:** Use a Python virtual environment (recommended) or install to custom directory:
+  ```bash
+  cmake ... -DCMAKE_INSTALL_PREFIX=$HOME/.local/opt/kratos
+  export PYTHONPATH=$PYTHONPATH:$HOME/.local/opt/kratos
+  ```
+
+
 
 ## Adding Applications
 
@@ -760,6 +903,37 @@ Example using 2 threads and 2 project ( total io 4 threads )
 rem Build
 cmake --build "%KRATOS_BUILD%/%KRATOS_BUILD_TYPE%" --target install -- /property:configuration=%KRATOS_BUILD_TYPE% /p:Platform=x64 /p:CL_MPcount=2 /m:2
 ```
+
+#### MacOS
+
+*MacOS* has a dedicated build script that automatically configures all macOS-specific settings (compilers, OpenMP, Boost, Python):
+
+```bash
+cd /path/to/Kratos
+./scripts/mac_build -j4
+```
+
+**This is the recommended approach** for most users. The script will:
+- Automatically detect Homebrew-installed LLVM, Boost, and Python
+- Configure the correct compiler flags for Apple Silicon or Intel Macs
+- Install Kratos to your Python site-packages directory
+- Use Ninja if available (faster builds)
+
+**For advanced users** needing custom configuration, see the [MacOS advanced build section](#macos) for manual CMake instructions.
+
+**Mac_build script options:**
+- `-j<N>`: Number of parallel build jobs (default: auto-detected)
+- `-i <path>`: Custom installation directory
+- `-o "<option>"`: Pass additional CMake options
+- `-C`: Clean build and install directories
+- `-h`: Show help
+
+Example with custom Python and more cores:
+```bash
+./scripts/mac_build -o "-DPYTHON_EXECUTABLE=$(which python3.13)" -j8
+```
+
+**Note:** The older `scripts/standard_configure_mac.sh` is deprecated. Please use `scripts/mac_build` instead.
 
 Finally you can set parallelism options in the *VisualStudio IDE*.
 
