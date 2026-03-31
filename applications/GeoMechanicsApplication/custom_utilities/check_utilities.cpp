@@ -21,27 +21,25 @@
 namespace Kratos
 {
 
-CheckProperties::CheckProperties(const Properties&       rProperties,
-                                 const std::string&      rPrintName,
-                                 CheckProperties::Bounds RangeBoundsType)
-    : mrProperties(rProperties), mrPrintName(rPrintName), mRangeBoundsType(RangeBoundsType)
+CheckProperties::CheckProperties(const Properties& rProperties, std::string PrintName, CheckProperties::Bounds RangeBoundsType)
+    : mrProperties{rProperties}, mPrintName{std::move(PrintName)}, mRangeBoundsType{RangeBoundsType}
 {
 }
 
 CheckProperties::CheckProperties(const Properties&       rProperties,
-                                 const std::string&      rPrintName,
+                                 std::string             PrintName,
                                  std::size_t             ElementId,
                                  CheckProperties::Bounds RangeBoundsType)
-    : mrProperties(rProperties), mrPrintName(rPrintName), mElementId(ElementId), mRangeBoundsType(RangeBoundsType)
+    : mrProperties{rProperties}, mPrintName{std::move(PrintName)}, mElementId{ElementId}, mRangeBoundsType{RangeBoundsType}
 {
 }
 
 CheckProperties CheckProperties::SingleUseBounds(CheckProperties::Bounds RangeBoundsType) const
 {
     if (mElementId) {
-        return CheckProperties(mrProperties, mrPrintName, *mElementId, RangeBoundsType);
+        return {mrProperties, mPrintName, *mElementId, RangeBoundsType};
     }
-    return CheckProperties(mrProperties, mrPrintName, RangeBoundsType);
+    return {mrProperties, mPrintName, RangeBoundsType};
 }
 
 void CheckProperties::SetNewRangeBounds(CheckProperties::Bounds RangeBoundsType) const
@@ -140,7 +138,7 @@ std::string CheckProperties::double_to_string(double value) const
 std::string CheckProperties::print_property_id() const
 {
     std::ostringstream oss;
-    oss << " in the " << mrPrintName << " with Id " << mrProperties.Id();
+    oss << " in the " << mPrintName << " with Id " << mrProperties.Id();
     return oss.str();
 }
 

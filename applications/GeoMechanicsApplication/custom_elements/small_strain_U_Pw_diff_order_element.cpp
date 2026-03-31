@@ -47,7 +47,7 @@ SmallStrainUPwDiffOrderElement::SmallStrainUPwDiffOrderElement(IndexType        
                                                                GeometryType::Pointer pGeometry,
                                                                std::unique_ptr<StressStatePolicy> pStressStatePolicy,
                                                                std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier)
-    : UPwBaseElement(NewId, pGeometry, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
+    : UPwBaseElement{NewId, std::move(pGeometry), std::move(pStressStatePolicy), std::move(pCoefficientModifier)}
 {
     SetUpPressureGeometryPointer();
 }
@@ -57,7 +57,8 @@ SmallStrainUPwDiffOrderElement::SmallStrainUPwDiffOrderElement(IndexType        
                                                                PropertiesType::Pointer pProperties,
                                                                std::unique_ptr<StressStatePolicy> pStressStatePolicy,
                                                                std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier)
-    : UPwBaseElement(NewId, pGeometry, pProperties, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
+    : UPwBaseElement{NewId, std::move(pGeometry), std::move(pProperties),
+                     std::move(pStressStatePolicy), std::move(pCoefficientModifier)}
 {
     SetUpPressureGeometryPointer();
 }
