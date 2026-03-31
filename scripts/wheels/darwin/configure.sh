@@ -17,7 +17,10 @@ export KRATOS_APP_DIR="${KRATOS_SOURCE}/applications"
 
 export KRATOS_BUILD_TYPE="Release"
 export PYTHON_EXECUTABLE=$1
-export KRATOS_INSTALL_PREFIX=${2:-"/workspace/kratos/Kratos/bin/Release/Python-314"}
+
+# Extract Python version from executable (e.g., python3.14 -> 314)
+PYTHON_VERSION=$($1 -c "import sys; print(f'{sys.version_info.major}{sys.version_info.minor}')")
+export KRATOS_INSTALL_PREFIX=${2:-"/workspace/kratos/Kratos/bin/Release/Python-${PYTHON_VERSION}"}
 
 # Detect environment: Docker CI or local Homebrew development
 if [ -d "/opt/homebrew/opt" ]; then
