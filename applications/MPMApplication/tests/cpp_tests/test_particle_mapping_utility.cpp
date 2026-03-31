@@ -33,11 +33,11 @@ namespace Kratos::Testing
         //  |    |    |    |
         //  |    |    |    |
         //  |    |    |    |
-        //  9----10---11----12 
+        //  9----10---11----12
         //  |    |    |    |
         //  |    |    |    |
         //  |    |    |    |
-        //  5----6----7----8 
+        //  5----6----7----8
         //  |    |    |    |
         //  |    |    |    |
         //  |    |    |    |
@@ -80,7 +80,7 @@ namespace Kratos::Testing
     template <SizeType TDimension>
     void PrepareMP(
         ModelPart& rModelPart,
-        ModelPart& rBackgroundModelPart, std::vector<array_1d<double, 3>>& rMPCoordinates, 
+        ModelPart& rBackgroundModelPart, std::vector<array_1d<double, 3>>& rMPCoordinates,
         const double& rMPVolume)
     {
         // Properties
@@ -135,7 +135,7 @@ namespace Kratos::Testing
         pElement3->SetValuesOnIntegrationPoints(MP_VOLUME, { mp_volume3 }, r_current_process_info);
         double mp_volume4{ 0.25 };
         pElement4->SetValuesOnIntegrationPoints(MP_VOLUME, { mp_volume4 }, r_current_process_info);
-        
+
         // mp velocity
         array_1d<double, 3> velocity1{1.211324865,0.0, 0.0};
         array_1d<double, 3> velocity2{1.788675135,0.0, 0.0};
@@ -206,11 +206,11 @@ namespace Kratos::Testing
         //  |    |    |    |
         //  | 7  | 8  | 9  |
         //  |    |    |    |
-        //  9----10---11---12 
+        //  9----10---11---12
         //  |    |    |    |
         //  | 4  | 5  | 6  |
         //  |    |    |    |
-        //  5----6----7----8 
+        //  5----6----7----8
         //  |    |    |    |
         //  | 1  | 2  | 3  |
         //  |    |    |    |
@@ -351,7 +351,7 @@ namespace Kratos::Testing
         }
     }
     /**
-    * 
+    *
     */
     KRATOS_TEST_CASE_IN_SUITE(MPMFlipParticleMappingUtilityOneGridElement2D, KratosMPMFastSuite)
     {
@@ -383,12 +383,12 @@ namespace Kratos::Testing
 
         MPMSearchElementUtility::SearchElement<dimension>(
             r_background_model_part, r_mpm_model_part, 1000, 1e-6);
-        
+
         // ------------------------------------------------------------------------------------------ P2G Test ------------------------------------------------------------------------------------------ //
         unsigned int echo_level = 0;
         MPMFlipParticleMappingUtility flip_mapping(r_mpm_model_part, r_background_model_part, echo_level);
         flip_mapping.RunP2GMapping();
-        
+
         // Checking values at the nodes
         auto& r_node_1 = r_mpm_model_part.GetNode(1);
         auto& r_node_2 = r_mpm_model_part.GetNode(2);
@@ -459,7 +459,7 @@ namespace Kratos::Testing
         r_node_2_acceleration_current = array_1d<double,3>{ 0.1, -0.1};
         r_node_3_acceleration_current = array_1d<double,3>{-0.1, -0.1};
         r_node_4_acceleration_current = array_1d<double,3>{ 0.1,  1.1};
-      
+
         double& r_node_1_pressure_current = r_node_1.FastGetSolutionStepValue(PRESSURE, 0);
         double& r_node_2_pressure_current = r_node_2.FastGetSolutionStepValue(PRESSURE, 0);
         double& r_node_3_pressure_current = r_node_3.FastGetSolutionStepValue(PRESSURE, 0);
@@ -469,9 +469,9 @@ namespace Kratos::Testing
         r_node_2_pressure_current = 1.0;
         r_node_3_pressure_current = 1.5;
         r_node_4_pressure_current = 2.0;
-        
+
         // Adding current displacement at grid nodes to be mapped back to MP
-        array_1d<double,3>& r_displacement_1 = r_node_1.FastGetSolutionStepValue(DISPLACEMENT, 0);        
+        array_1d<double,3>& r_displacement_1 = r_node_1.FastGetSolutionStepValue(DISPLACEMENT, 0);
         array_1d<double,3>& r_displacement_2 = r_node_2.FastGetSolutionStepValue(DISPLACEMENT, 0);
         array_1d<double,3>& r_displacement_3 = r_node_3.FastGetSolutionStepValue(DISPLACEMENT, 0);
         array_1d<double,3>& r_displacement_4 = r_node_4.FastGetSolutionStepValue(DISPLACEMENT, 0);
@@ -552,9 +552,9 @@ namespace Kratos::Testing
         array_1d<double, 3> ref_mp_velocity_4 {0.0, 0.0, 0.0};
 
         // KRATOS_WATCH(mp_velocity_1)
-// KRATOS_WATCH(mp_velocity_2) // ------------------------------------------------------------------------------------------------------------------------------------------ Comment: Not done yet
+        // KRATOS_WATCH(mp_velocity_2) // ------------------------------------------------------------------------------------------------------------------------------------------ Comment: Not done yet
         // KRATOS_WATCH(mp_velocity_3)
-// KRATOS_WATCH(mp_velocity_4)
+        // KRATOS_WATCH(mp_velocity_4)
 
         // Check MP pressure
         const double ref_mp_pressure_1 = 0.877991531432732;
@@ -572,6 +572,14 @@ namespace Kratos::Testing
         KRATOS_CATCH("")
     }
     // end of MPMFlipParticleMappingUtilityOneGridElement2D
+
+    // FAIL: test_execution (mpm_test_factory.GravityTimeStepTableTest.test_execution)
+    // reference for 1 thread
+    // AssertionError: False is not true : -4.3750899682120523e-07 != -1.0246735978938274e-07, rel_tol = 1e-07, abs_tol = 1e-07 : Error checking material point 26 MP_ACCELERATION results.
+    // reference for 2 threads
+    // AssertionError: False is not true : -4.276550023090116e-07 != -1.0246735978938274e-07, rel_tol = 1e-07, abs_tol = 1e-07 : Error checking material point 26 MP_ACCELERATION results.
+    // reference for 3 threads and above
+    // AssertionError: False is not true : -1.0246735978938274e-07 != 5.829681202114759e-23, rel_tol = 1e-07, abs_tol = 1e-07 : Error checking material point 26 MP_ACCELERATION results.
 
     // KRATOS_TEST_CASE_IN_SUITE(MPMFlipParticleMappingUtilityNineGridElement2D, KratosMPMFastSuite)
     // {
@@ -600,11 +608,11 @@ namespace Kratos::Testing
     //     Prepare2D1EModelPart(r_mpm_model_part, r_background_model_part); // ------------------------------------------------------------
 
     //     MPMSearchElementUtility::SearchElement<dimension>(r_background_model_part, r_mpm_model_part, 1000, 1e-6);
-        
+
     //     // Run Flip P2G Mapping
     //     MPMFlipParticleMappingUtility flip_mapping(r_mpm_model_part);
     //     flip_mapping.RunP2GMapping();
-        
+
 
     //     // Checking values at the nodes
     //     auto& r_node_1 = r_mpm_model_part.GetNode(1);
