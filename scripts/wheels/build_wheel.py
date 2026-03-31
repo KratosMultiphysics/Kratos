@@ -40,7 +40,7 @@ PLATFORM_CONFIG = {
         # KRATOS_ROOT="/workspace/kratos/Kratos"
         # WHEEL_ROOT="/workspace/wheel"
         # WHEEL_OUT="/workspace/dist"
-        'KRATOS_ROOT': os.environ.get("KRATOS_ROOT", "/Users/alessandro/Braid/Kratos"),
+        'KRATOS_ROOT': os.environ.get("KRATOS_ROOT", str(Path(__file__).resolve().parent.parent.parent)),
         'WHEEL_ROOT': os.environ.get("WHEEL_ROOT", "/tmp/kratos_wheel"),
         'WHEEL_OUT': os.environ.get("WHEEL_OUT", "/tmp/kratos_dist"),
     }
