@@ -71,7 +71,7 @@ namespace Kratos::Testing
         auto p_new_mp_geometry = CreateQuadraturePointsUtility<Node>::CreateFromCoordinates(
                             pelem->pGetGeometry(), rMPCoordinate, rMPVolume);
 
-        const Element& element = KratosComponents<Element>::Get("MPMUpdatedLagrangian");
+        const Element& element = KratosComponents<Element>::Get("MPMUpdatedLagrangianUP");
         Element::Pointer p_new_element = element.Create(new_element_id, p_new_mp_geometry, pProperties);
 
         p_new_element->SetValuesOnIntegrationPoints(MP_COORD, {rMPCoordinate}, rModelPart.GetProcessInfo());
@@ -114,7 +114,7 @@ namespace Kratos::Testing
         auto pElement3 = rModelPart.pGetElement(3);
         auto pElement4 = rModelPart.pGetElement(4);
 
-        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
         // mass
         double mp_mass1{ 2.5 };
@@ -155,6 +155,13 @@ namespace Kratos::Testing
         pElement2->SetValuesOnIntegrationPoints(MP_ACCELERATION, { acceleration2 }, r_current_process_info);
         pElement3->SetValuesOnIntegrationPoints(MP_ACCELERATION, { acceleration3 }, r_current_process_info);
         pElement4->SetValuesOnIntegrationPoints(MP_ACCELERATION, { acceleration4 }, r_current_process_info);
+
+        // pressure
+        r_current_process_info.SetValue(IS_MIXED_FORMULATION, true);
+        pElement1->SetValuesOnIntegrationPoints(MP_PRESSURE, { 0.5 }, r_current_process_info);
+        pElement2->SetValuesOnIntegrationPoints(MP_PRESSURE, { 1.0 }, r_current_process_info);
+        pElement3->SetValuesOnIntegrationPoints(MP_PRESSURE, { 1.5 }, r_current_process_info);
+        pElement4->SetValuesOnIntegrationPoints(MP_PRESSURE, { 2.0 }, r_current_process_info);
     }
 
     void SetVelocityAndAccelerationToCoordinate(ModelPart& rModelPart)
@@ -349,6 +356,7 @@ namespace Kratos::Testing
         Model current_model;
         ModelPart& r_mpm_model_part = current_model.CreateModelPart("MPMModelPart");
         ModelPart& r_background_model_part = current_model.CreateModelPart("MPMBackgroundModelPart");
+        const ProcessInfo& rProcessInfo = r_mpm_model_part.GetProcessInfo();
 
         r_background_model_part.SetBufferSize(2);
 
@@ -362,6 +370,7 @@ namespace Kratos::Testing
         r_background_model_part.AddNodalSolutionStepVariable(NODAL_INERTIA);
         r_background_model_part.AddNodalSolutionStepVariable(VELOCITY);
         r_background_model_part.AddNodalSolutionStepVariable(ACCELERATION);
+        r_background_model_part.AddNodalSolutionStepVariable(NODAL_MPRESSURE);
 
         Prepare2D1EBackgroundModelPart(r_background_model_part);
         r_mpm_model_part.SetNodes(r_background_model_part.pNodes());
@@ -371,13 +380,11 @@ namespace Kratos::Testing
         MPMSearchElementUtility::SearchElement<dimension>(
             r_background_model_part, r_mpm_model_part, 1000, 1e-6);
         
-        
         // ------------------------------------------------------------------------------------------ P2G Test ------------------------------------------------------------------------------------------ //
         unsigned int echo_level = 0;
         MPMFlipParticleMappingUtility flip_mapping(r_mpm_model_part, r_background_model_part, echo_level);
         flip_mapping.RunP2GMapping();
         
-
         // Checking values at the nodes
         auto& r_node_1 = r_mpm_model_part.GetNode(1);
         auto& r_node_2 = r_mpm_model_part.GetNode(2);
@@ -416,8 +423,19 @@ namespace Kratos::Testing
         KRATOS_EXPECT_NEAR(r_node_3_acceleration_previous[0], 2.666666666, 1e-6);
         KRATOS_EXPECT_NEAR(r_node_4_acceleration_previous[0], 2.333333333, 1e-6);
 
+        // Check mapped pressure
+        const double& r_node_1_pressure_previous = r_node_1.FastGetSolutionStepValue(PRESSURE, 1);
+        const double& r_node_2_pressure_previous = r_node_2.FastGetSolutionStepValue(PRESSURE, 1);
+        const double& r_node_3_pressure_previous = r_node_3.FastGetSolutionStepValue(PRESSURE, 1);
+        const double& r_node_4_pressure_previous = r_node_4.FastGetSolutionStepValue(PRESSURE, 1);
+
+        KRATOS_EXPECT_NEAR(r_node_1_pressure_previous, 0.877991531432732, 1e-6);
+        KRATOS_EXPECT_NEAR(r_node_2_pressure_previous, 1.044658198567268, 1e-6);
+        KRATOS_EXPECT_NEAR(r_node_3_pressure_previous, 1.455341801432732, 1e-6);
+        KRATOS_EXPECT_NEAR(r_node_4_pressure_previous, 1.622008468567268, 1e-6);
+
         // ------------------------------------------------------------------------------------------ G2P Test ------------------------------------------------------------------------------------------ //
-        // Setting values for current nodal velocity and acceleration
+        // Setting values for current nodal velocity, acceleration, and pressure
         array_1d<double,3>& r_node_1_velocity_current = r_node_1.FastGetSolutionStepValue(VELOCITY, 0);
         array_1d<double,3>& r_node_2_velocity_current = r_node_2.FastGetSolutionStepValue(VELOCITY, 0);
         array_1d<double,3>& r_node_3_velocity_current = r_node_3.FastGetSolutionStepValue(VELOCITY, 0);
@@ -438,10 +456,15 @@ namespace Kratos::Testing
         r_node_3_acceleration_current = array_1d<double,3>{-0.1, -0.1};
         r_node_4_acceleration_current = array_1d<double,3>{ 0.1,  1.1};
       
-        // r_node_1_acceleration_current = array_1d<double,3> {0.1, 0.2, 0.0};
-        // r_node_2_acceleration_current = array_1d<double,3> {0.1, 0.2, 0.0};
-        // r_node_3_acceleration_current = array_1d<double,3> {0.1, 0.2, 0.0};
-        // r_node_4_acceleration_current = array_1d<double,3> {0.1, 0.2, 0.0};
+        double& r_node_1_pressure_current = r_node_1.FastGetSolutionStepValue(PRESSURE, 0);
+        double& r_node_2_pressure_current = r_node_2.FastGetSolutionStepValue(PRESSURE, 0);
+        double& r_node_3_pressure_current = r_node_3.FastGetSolutionStepValue(PRESSURE, 0);
+        double& r_node_4_pressure_current = r_node_4.FastGetSolutionStepValue(PRESSURE, 0);
+
+        r_node_1_pressure_current = 0.5;
+        r_node_2_pressure_current = 1.0;
+        r_node_3_pressure_current = 1.5;
+        r_node_4_pressure_current = 2.0;
         
         // Adding current displacement at grid nodes to be mapped back to MP
         array_1d<double,3>& r_displacement_1 = r_node_1.FastGetSolutionStepValue(DISPLACEMENT, 0);        
@@ -454,14 +477,7 @@ namespace Kratos::Testing
         r_displacement_3 = array_1d<double,3> {0.1, 0.1, 0.0};
         r_displacement_4 = array_1d<double,3> {0.0, 0.05, 0.0};
 
-        // r_displacement_1 = array_1d<double,3> {0.1, 0.2, 0.0};
-        // r_displacement_2 = array_1d<double,3> {0.1, 0.2, 0.0};
-        // r_displacement_3 = array_1d<double,3> {0.1, 0.2, 0.0};
-        // r_displacement_4 = array_1d<double,3> {0.1, 0.2, 0.0};
-
-
         // Adding initial MP displacement
-        const ProcessInfo& rProcessInfo = r_mpm_model_part.GetProcessInfo();
         auto& r_element_1 = r_mpm_model_part.GetElement(1);
         auto& r_element_2 = r_mpm_model_part.GetElement(2);
         auto& r_element_3 = r_mpm_model_part.GetElement(3);
@@ -471,11 +487,6 @@ namespace Kratos::Testing
         r_element_2.SetValuesOnIntegrationPoints(MP_DISPLACEMENT, {array_1d<double, 3> {0.3, 0.4, 0.0}}, rProcessInfo);
         r_element_3.SetValuesOnIntegrationPoints(MP_DISPLACEMENT, {array_1d<double, 3> {0.5, 0.6, 0.0}}, rProcessInfo);
         r_element_4.SetValuesOnIntegrationPoints(MP_DISPLACEMENT, {array_1d<double, 3> {0.7, 0.8, 0.0}}, rProcessInfo);
-
-        // r_element_1.SetValuesOnIntegrationPoints(MP_DISPLACEMENT, {array_1d<double, 3> {0.0, 0.0, 0.0}}, rProcessInfo);
-        // r_element_2.SetValuesOnIntegrationPoints(MP_DISPLACEMENT, {array_1d<double, 3> {0.0, 0.0, 0.0}}, rProcessInfo);
-        // r_element_3.SetValuesOnIntegrationPoints(MP_DISPLACEMENT, {array_1d<double, 3> {0.0, 0.0, 0.0}}, rProcessInfo);
-        // r_element_4.SetValuesOnIntegrationPoints(MP_DISPLACEMENT, {array_1d<double, 3> {0.0, 0.0, 0.0}}, rProcessInfo);
 
         flip_mapping.RunG2PMapping();
 
@@ -502,11 +513,6 @@ namespace Kratos::Testing
         KRATOS_WATCH(mp_acceleration_3)
         KRATOS_WATCH(mp_acceleration_4)
 
-        // KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(mp_acceleration_1[0], ref_mp_acceleration_1, 1e-6);
-        // KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(mp_acceleration_2[0], ref_mp_acceleration_2, 1e-6);
-        // KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(mp_acceleration_3[0], ref_mp_acceleration_3, 1e-6);
-        // KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(mp_acceleration_4[0], ref_mp_acceleration_4, 1e-6);
-
         // Check MP displacement
         std::vector<array_1d<double, 3>> mp_displacement_1{};
         std::vector<array_1d<double, 3>> mp_displacement_2{};
@@ -523,16 +529,10 @@ namespace Kratos::Testing
         array_1d<double, 3> ref_mp_displacement_3 {0.587200846821637, 0.670534180178363, 0.0};
         array_1d<double, 3> ref_mp_displacement_4 {0.723365396428363, 0.847767090071637, 0.0};
 
-        KRATOS_WATCH(mp_displacement_1)
-        KRATOS_WATCH(mp_displacement_2)
-        KRATOS_WATCH(mp_displacement_3)
-        KRATOS_WATCH(mp_displacement_4)
-
         KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(mp_displacement_1[0], ref_mp_displacement_1, 1e-6);
         KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(mp_displacement_2[0], ref_mp_displacement_2, 1e-6);
         KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(mp_displacement_3[0], ref_mp_displacement_3, 1e-6);
         KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(mp_displacement_4[0], ref_mp_displacement_4, 1e-6);
-
 
         // Check MP coordinate
         std::vector<array_1d<double, 3>> mp_coordinate_1{};
@@ -571,16 +571,31 @@ namespace Kratos::Testing
         array_1d<double, 3> ref_mp_velocity_3 {0.0, 0.0, 0.0};
         array_1d<double, 3> ref_mp_velocity_4 {0.0, 0.0, 0.0};
 
-        KRATOS_WATCH(mp_velocity_1)
-        KRATOS_WATCH(mp_velocity_2)
-        KRATOS_WATCH(mp_velocity_3)
-        KRATOS_WATCH(mp_velocity_4)
+        // KRATOS_WATCH(mp_velocity_1)
+// KRATOS_WATCH(mp_velocity_2) // ------------------------------------------------------------------------------------------------------------------------------------------ Comment: Not done yet
+        // KRATOS_WATCH(mp_velocity_3)
+// KRATOS_WATCH(mp_velocity_4)
 
-        // KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(mp_velocity_1[0], ref_mp_velocity_1, 1e-6);
-        // KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(mp_velocity_2[0], ref_mp_velocity_2, 1e-6);
-        // KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(mp_velocity_3[0], ref_mp_velocity_3, 1e-6);
-        // KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(mp_velocity_4[0], ref_mp_velocity_4, 1e-6);
+        // Check MP pressure
+        std::vector<double> mp_pressure_1{};
+        std::vector<double> mp_pressure_2{};
+        std::vector<double> mp_pressure_3{};
+        std::vector<double> mp_pressure_4{};
 
+        r_element_1.CalculateOnIntegrationPoints(MP_PRESSURE, mp_pressure_1, rProcessInfo);
+        r_element_2.CalculateOnIntegrationPoints(MP_PRESSURE, mp_pressure_2, rProcessInfo);
+        r_element_3.CalculateOnIntegrationPoints(MP_PRESSURE, mp_pressure_3, rProcessInfo);
+        r_element_4.CalculateOnIntegrationPoints(MP_PRESSURE, mp_pressure_4, rProcessInfo);
+
+        const double ref_mp_pressure_1 = 0.877991531432732;
+        const double ref_mp_pressure_2 = 1.044658198567268;
+        const double ref_mp_pressure_3 = 1.455341801432732;
+        const double ref_mp_pressure_4 = 1.622008468567268;
+
+        KRATOS_EXPECT_RELATIVE_NEAR(mp_pressure_1[0], ref_mp_pressure_1, 1e-6);
+        KRATOS_EXPECT_RELATIVE_NEAR(mp_pressure_2[0], ref_mp_pressure_2, 1e-6);
+        KRATOS_EXPECT_RELATIVE_NEAR(mp_pressure_3[0], ref_mp_pressure_3, 1e-6);
+        KRATOS_EXPECT_RELATIVE_NEAR(mp_pressure_4[0], ref_mp_pressure_4, 1e-6);
 
         KRATOS_CATCH("")
     }
