@@ -7023,7 +7023,7 @@ Begin Elements SmallStrainUPwDiffOrderElement2D6N// GUI group identifier: Soil_T
       547          0  3206  3305  3374  3255  3337  3287 
 End Elements
 
-Begin Elements Geo_ULineInterfacePlaneStrainElement3Plus3N// GUI group identifier: Interface_Top_Right
+Begin Elements Geo_UPwLineInterfacePlaneStrainDiffOrderElement3Plus3N// GUI group identifier: Interface_Top_Right
      22434          0  4639  4624  4633
      22435          0  4624  4604  4614
      22436          0  4604  4582  4595
@@ -7042,14 +7042,14 @@ Begin Elements Geo_ULineInterfacePlaneStrainElement3Plus3N// GUI group identifie
      22449          0  4271  4241  4256
 End Elements
 
-Begin Elements Geo_ULineInterfacePlaneStrainElement3Plus3N// GUI group identifier: Interface_Excavated_Soil_1
+Begin Elements Geo_UPwLineInterfacePlaneStrainDiffOrderElement3Plus3N// GUI group identifier: Interface_Excavated_Soil_1
      12434          0  4639  4624  4633
      12435          0  4624  4604  4614
      12436          0  4604  4582  4595
      12437          0  4582  4560  4571
 End Elements
 
-Begin Elements Geo_ULineInterfacePlaneStrainElement3Plus3N// GUI group identifier: Interface_Excavated_Soil_2
+Begin Elements Geo_UPwLineInterfacePlaneStrainDiffOrderElement3Plus3N// GUI group identifier: Interface_Excavated_Soil_2
      12438          0  4560  4536  4547
      12439          0  4536  4509  4522
      12440          0  4509  4483  4497
@@ -7058,7 +7058,7 @@ Begin Elements Geo_ULineInterfacePlaneStrainElement3Plus3N// GUI group identifie
      12443          0  4430  4403  4415
 End Elements
 
-Begin Elements Geo_ULineInterfacePlaneStrainElement3Plus3N// GUI group identifier: Interface_Excavated_Soil_3
+Begin Elements Geo_UPwLineInterfacePlaneStrainDiffOrderElement3Plus3N// GUI group identifier: Interface_Excavated_Soil_3
      12444          0  4403  4375  4390
      12445          0  4375  4352  4361
      12446          0  4352  4322  4338
@@ -7067,7 +7067,7 @@ Begin Elements Geo_ULineInterfacePlaneStrainElement3Plus3N// GUI group identifie
      12449          0  4271  4241  4256
 End Elements
 
-Begin Elements Geo_ULineInterfacePlaneStrainElement3Plus3N// GUI group identifier: Interface_Bottom_Left
+Begin Elements Geo_UPwLineInterfacePlaneStrainDiffOrderElement3Plus3N// GUI group identifier: Interface_Bottom_Left
      12458          0  4026  3996  4010
      12459          0  3996  3968  3982
 End Elements
@@ -7105,7 +7105,7 @@ Begin Elements Geo_ULineInterfacePlaneStrainElement3Plus3N// GUI group identifie
      2433          0  4582  4634  4610 
 End Elements
 
-Begin Elements Geo_ULineInterfacePlaneStrainElement3Plus3N// GUI group identifier: Interface_Middle_Right
+Begin Elements Geo_UPwLineInterfacePlaneStrainDiffOrderElement3Plus3N// GUI group identifier: Interface_Middle_Right
      22450          0  4241  4218  4231
      22451          0  4218  4188  4204
      22452          0  4188  4161  4172
@@ -7116,7 +7116,7 @@ Begin Elements Geo_ULineInterfacePlaneStrainElement3Plus3N// GUI group identifie
      22457          0  4051  4026  4036
 End Elements
 
-Begin Elements Geo_ULineInterfacePlaneStrainElement3Plus3N// GUI group identifier: Interface_Middle_Left
+Begin Elements Geo_UPwLineInterfacePlaneStrainDiffOrderElement3Plus3N// GUI group identifier: Interface_Middle_Left
      12450          0  4241  4218  4231
      12451          0  4218  4188  4204
      12452          0  4188  4161  4172
@@ -7127,7 +7127,7 @@ Begin Elements Geo_ULineInterfacePlaneStrainElement3Plus3N// GUI group identifie
      12457          0  4051  4026  4036
 End Elements
 
-Begin Elements Geo_ULineInterfacePlaneStrainElement3Plus3N// GUI group identifier: Interface_Bottom_Right
+Begin Elements Geo_UPwLineInterfacePlaneStrainDiffOrderElement3Plus3N// GUI group identifier: Interface_Bottom_Right
      22458          0  4026  3996  4010
      22459          0  3996  3968  3982
 End Elements
