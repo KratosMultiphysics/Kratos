@@ -55,6 +55,15 @@ class AnalysisStage(object):
         """
         return self.time < self.end_time
 
+    def RunBeforeSolutionLoop(self):
+        """This function executes the processes before solution loop of the AnalysisStage
+        It can be overridden by derived classes.
+        """
+
+        for process in self._GetListOfProcesses():
+            process.ExecuteBeforeSolutionLoop()
+        self._GetSolver().BeforeSolutionLoop()
+
     def RunSolutionLoop(self):
         """This function executes the solution loop of the AnalysisStage
         It can be overridden by derived classes
@@ -94,8 +103,8 @@ class AnalysisStage(object):
 
         self.ModifyAfterSolverInitialize()
 
-        for process in self._GetListOfProcesses():
-            process.ExecuteBeforeSolutionLoop()
+        # Execute before the solution loop
+        self.RunBeforeSolutionLoop()
 
         ## Stepping and time settings
         self.end_time = self.project_parameters["problem_data"]["end_time"].GetDouble()
