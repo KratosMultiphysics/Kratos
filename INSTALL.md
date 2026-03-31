@@ -677,15 +677,6 @@ cd /path/to/Kratos
 
 This builds wheels for specified Python versions (default: 3.9-3.14) and outputs to `dist/wheels/`.
 
-**Options:**
-- `-j<N>` — Number of parallel jobs (default: auto-detected)
-- `-p "PYTHONS"` — Space-separated Python versions to build (e.g., `-p "313 314"`)
-- `-C` — Clean build directory before building
-
-**Example - Build wheels for Python 3.13 and 3.14:**
-```bash
-./scripts/mac_build_wheel -j8 -p "313 314" -C
-```
 
 **Manual wheel building** (if scripting):
 ```bash
@@ -698,15 +689,13 @@ Wheels are built for both the Kratos core and all compiled applications. Each is
 
 #### Troubleshooting
 
-| Error | Solution |
-|-------|----------|
-| "Unable to find KratosCore" | Python version mismatch. Use: `-DPYTHON_EXECUTABLE=/opt/homebrew/opt/python@3.14/bin/python3.14` |
-| "libomp not found" | Install LLVM: `brew install llvm` |
-| "Boost not found" | Set: `-DBOOST_ROOT=$(brew --prefix boost)` |
-| Permission denied | Use venv or: `-DCMAKE_INSTALL_PREFIX=$HOME/.local/opt/kratos` |
-| Using system clang | Verify CMAKE_CXX_COMPILER: `/opt/homebrew/opt/llvm/bin/clang++` |
-| Wheel build fails | Ensure virtual environment is activated and `build` module is installed: `pip install --upgrade build` |
-
+Some errors and solutions we found (may not be applicable every time)
+* "Unable to find KratosCore" --> Python version mismatch. Use: `-DPYTHON_EXECUTABLE=/opt/homebrew/opt/python@3.14/bin/python3.14`
+* "libomp not found" --> Install LLVM: `brew install llvm` 
+* "Boost not found" --> `-DBOOST_ROOT=$(brew --prefix boost)`
+* "Permission denied" --> maybe  `-DCMAKE_INSTALL_PREFIX=$HOME/.local/opt/kratos`
+* "Using system clang" --> Verify CMAKE_CXX_COMPILER: `/opt/homebrew/opt/llvm/bin/clang++`
+* "Wheel build fails" --> Very general, but ensure virtual environment is activated and `build` module is installed: `pip install --upgrade build`
 
 
 ## Adding Applications
