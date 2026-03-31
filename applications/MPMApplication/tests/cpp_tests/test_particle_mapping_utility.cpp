@@ -330,20 +330,24 @@ namespace Kratos::Testing
         SetVelocityAndAccelerationToCoordinate(rModelPart);
     }
 
-    template<class TVariable>
-    void AssertMaterialPointVariables(ModelPart& rModelPart,
-                                      const TVariable& MPVariable,
-                                      const std::vector<TVariable>& rReferenceValues,
-                                      const double tolerance)
+    template<class TDataType>
+    void AssertMPVariables(ModelPart& rMpmModelPart,
+                           const Variable<TDataType>&  MPScalarVariable,
+                           const std::vector<TDataType>& rReferenceValues,
+                           const double tolerance,
+                           const ProcessInfo& rProcessInfo)
     {
-        ProcessInfo& rProcessInfo = rModelPart.GetProcessInfo();
-        size_t i = 0;
-        for (auto& material_point_i : rModelPart.Elements())
+        IndexType mp_index = 0;
+        for (auto& material_point_i : rMpmModelPart.Elements())
         {
-            std::vector<TVariable> mp_variable_value;
-            material_point_i.CalculateOnIntegrationPoints(MPVariable, mp_variable_value, rProcessInfo);
-            KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(mp_variable_value[0], rReferenceValues[i], tolerance);
-            ++i;
+            std::vector<TDataType> mp_variable_value;
+            material_point_i.CalculateOnIntegrationPoints(MPScalarVariable, mp_variable_value, rProcessInfo);
+            if constexpr(std::is_same_v<TDataType, double>) {
+                KRATOS_EXPECT_RELATIVE_NEAR(mp_variable_value[0], rReferenceValues[mp_index] + 1, tolerance);
+            } else {
+                KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(mp_variable_value[0], rReferenceValues[mp_index], tolerance);
+            }
+            ++mp_index;
         }
     }
     /**
@@ -490,70 +494,46 @@ namespace Kratos::Testing
 
         flip_mapping.RunG2PMapping();
 
-        // Material points checks
+        // Material points G2P Checks
 
         // Check MP acceleration
-        std::vector<array_1d<double, 3>> mp_acceleration_1{};
-        std::vector<array_1d<double, 3>> mp_acceleration_2{};
-        std::vector<array_1d<double, 3>> mp_acceleration_3{};
-        std::vector<array_1d<double, 3>> mp_acceleration_4{};
-
-        r_element_1.CalculateOnIntegrationPoints(MP_ACCELERATION, mp_acceleration_1, rProcessInfo);
-        r_element_2.CalculateOnIntegrationPoints(MP_ACCELERATION, mp_acceleration_2, rProcessInfo);
-        r_element_3.CalculateOnIntegrationPoints(MP_ACCELERATION, mp_acceleration_3, rProcessInfo);
-        r_element_4.CalculateOnIntegrationPoints(MP_ACCELERATION, mp_acceleration_4, rProcessInfo);
-
         array_1d<double, 3> ref_mp_acceleration_1 { 0.713076828853815,  0.224401693432732, 0.0};
         array_1d<double, 3> ref_mp_acceleration_2 { 0.233333333146185, -0.013076828432732, 0.0};
         array_1d<double, 3> ref_mp_acceleration_3 { 0.020256504853815,  0.108931639432732, 0.0};
         array_1d<double, 3> ref_mp_acceleration_4 { 0.233333333146185,  0.679743495567268, 0.0};
 
-        KRATOS_WATCH(mp_acceleration_1)
-        KRATOS_WATCH(mp_acceleration_2)
-        KRATOS_WATCH(mp_acceleration_3)
-        KRATOS_WATCH(mp_acceleration_4)
+        const std::vector<array_1d<double, 3>> ref_mp_accelerations{ref_mp_acceleration_1,
+                                                                    ref_mp_acceleration_2,
+                                                                    ref_mp_acceleration_3,
+                                                                    ref_mp_acceleration_4};
+
+        AssertMPVariables(r_mpm_model_part, MP_ACCELERATION, ref_mp_accelerations, 1e-6, rProcessInfo);
 
         // Check MP displacement
-        std::vector<array_1d<double, 3>> mp_displacement_1{};
-        std::vector<array_1d<double, 3>> mp_displacement_2{};
-        std::vector<array_1d<double, 3>> mp_displacement_3{};
-        std::vector<array_1d<double, 3>> mp_displacement_4{};
-
-        r_element_1.CalculateOnIntegrationPoints(MP_DISPLACEMENT, mp_displacement_1, rProcessInfo);
-        r_element_2.CalculateOnIntegrationPoints(MP_DISPLACEMENT, mp_displacement_2, rProcessInfo);
-        r_element_3.CalculateOnIntegrationPoints(MP_DISPLACEMENT, mp_displacement_3, rProcessInfo);
-        r_element_4.CalculateOnIntegrationPoints(MP_DISPLACEMENT, mp_displacement_4, rProcessInfo);
-
         array_1d<double, 3> ref_mp_displacement_1 {0.129465819821637, 0.212799153178363, 0.0};
         array_1d<double, 3> ref_mp_displacement_2 {0.409967936928363, 0.418899576571637, 0.0};
         array_1d<double, 3> ref_mp_displacement_3 {0.587200846821637, 0.670534180178363, 0.0};
         array_1d<double, 3> ref_mp_displacement_4 {0.723365396428363, 0.847767090071637, 0.0};
 
-        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(mp_displacement_1[0], ref_mp_displacement_1, 1e-6);
-        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(mp_displacement_2[0], ref_mp_displacement_2, 1e-6);
-        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(mp_displacement_3[0], ref_mp_displacement_3, 1e-6);
-        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(mp_displacement_4[0], ref_mp_displacement_4, 1e-6);
+        const std::vector<array_1d<double, 3>> ref_mp_displacements{ref_mp_displacement_1,
+                                                                    ref_mp_displacement_2,
+                                                                    ref_mp_displacement_3,
+                                                                    ref_mp_displacement_4};
+
+        AssertMPVariables(r_mpm_model_part, MP_DISPLACEMENT, ref_mp_displacements, 1e-6, rProcessInfo);
 
         // Check MP coordinate
-        std::vector<array_1d<double, 3>> mp_coordinate_1{};
-        std::vector<array_1d<double, 3>> mp_coordinate_2{};
-        std::vector<array_1d<double, 3>> mp_coordinate_3{};
-        std::vector<array_1d<double, 3>> mp_coordinate_4{};
-
-        r_element_1.CalculateOnIntegrationPoints(MP_COORD, mp_coordinate_1, rProcessInfo);
-        r_element_2.CalculateOnIntegrationPoints(MP_COORD, mp_coordinate_2, rProcessInfo);
-        r_element_3.CalculateOnIntegrationPoints(MP_COORD, mp_coordinate_3, rProcessInfo);
-        r_element_4.CalculateOnIntegrationPoints(MP_COORD, mp_coordinate_4, rProcessInfo);
-
         array_1d<double, 3> ref_mp_coordinate_1 {0.240790684821637, 0.224124018178363, 0.0};
         array_1d<double, 3> ref_mp_coordinate_2 {0.898643071928363, 0.230224441571637, 0.0};
         array_1d<double, 3> ref_mp_coordinate_3 {0.875875981821637, 0.859209315178363, 0.0};
         array_1d<double, 3> ref_mp_coordinate_4 {0.234690261428363, 0.836442225071637, 0.0};
 
-        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(mp_coordinate_1[0], ref_mp_coordinate_1, 1e-6);
-        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(mp_coordinate_2[0], ref_mp_coordinate_2, 1e-6);
-        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(mp_coordinate_3[0], ref_mp_coordinate_3, 1e-6);
-        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(mp_coordinate_4[0], ref_mp_coordinate_4, 1e-6);
+        const std::vector<array_1d<double, 3>> ref_mp_coordinates{ref_mp_coordinate_1,
+                                                                  ref_mp_coordinate_2,
+                                                                  ref_mp_coordinate_3,
+                                                                  ref_mp_coordinate_4};
+
+        AssertMPVariables(r_mpm_model_part, MP_COORD, ref_mp_coordinates, 1e-6, rProcessInfo);
 
         // Check MP velocity
         std::vector<array_1d<double, 3>> mp_velocity_1{};
@@ -577,25 +557,17 @@ namespace Kratos::Testing
 // KRATOS_WATCH(mp_velocity_4)
 
         // Check MP pressure
-        std::vector<double> mp_pressure_1{};
-        std::vector<double> mp_pressure_2{};
-        std::vector<double> mp_pressure_3{};
-        std::vector<double> mp_pressure_4{};
-
-        r_element_1.CalculateOnIntegrationPoints(MP_PRESSURE, mp_pressure_1, rProcessInfo);
-        r_element_2.CalculateOnIntegrationPoints(MP_PRESSURE, mp_pressure_2, rProcessInfo);
-        r_element_3.CalculateOnIntegrationPoints(MP_PRESSURE, mp_pressure_3, rProcessInfo);
-        r_element_4.CalculateOnIntegrationPoints(MP_PRESSURE, mp_pressure_4, rProcessInfo);
-
         const double ref_mp_pressure_1 = 0.877991531432732;
         const double ref_mp_pressure_2 = 1.044658198567268;
         const double ref_mp_pressure_3 = 1.455341801432732;
         const double ref_mp_pressure_4 = 1.622008468567268;
 
-        KRATOS_EXPECT_RELATIVE_NEAR(mp_pressure_1[0], ref_mp_pressure_1, 1e-6);
-        KRATOS_EXPECT_RELATIVE_NEAR(mp_pressure_2[0], ref_mp_pressure_2, 1e-6);
-        KRATOS_EXPECT_RELATIVE_NEAR(mp_pressure_3[0], ref_mp_pressure_3, 1e-6);
-        KRATOS_EXPECT_RELATIVE_NEAR(mp_pressure_4[0], ref_mp_pressure_4, 1e-6);
+        const std::vector<double> ref_mp_pressures{ref_mp_pressure_1,
+                                                   ref_mp_pressure_2,
+                                                   ref_mp_pressure_3,
+                                                   ref_mp_pressure_4};
+
+        AssertMPVariables(r_mpm_model_part, MP_PRESSURE, ref_mp_pressures, 1e-6, rProcessInfo);
 
         KRATOS_CATCH("")
     }
