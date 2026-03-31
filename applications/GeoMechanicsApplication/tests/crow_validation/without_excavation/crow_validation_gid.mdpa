@@ -7085,7 +7085,7 @@ Begin Elements LinearTrussElement2D2N
   2433 0 4582 4634
 End Elements
 
-Begin Conditions LineLoadCondition2D3N
+Begin Conditions LineLoadDiffOrderCondition2D3N
   1 0 2081 2087 2083
   2 0 2087 2103 2098
   3 0 2103 2119 2111
