@@ -55,6 +55,10 @@ namespace Kratos
         , mrGridModelPart(rGridModelPart)
         , mEchoLevel(EchoLevel)
     {
+        const ProcessInfo& rProcessInfo = rMPMModelPart.GetProcessInfo();
+        mIsMixedFormulation = (rProcessInfo.Has(IS_MIXED_FORMULATION)) // Comment: make this as a class member bool
+        ? rProcessInfo.GetValue(IS_MIXED_FORMULATION)
+        : false;
     }
 
     ///@}
@@ -281,9 +285,10 @@ namespace Kratos
                 double delta_nodal_pressure = 0.0;
 
                 // For mixed formulation
-                if (rNode.HasDofFor(PRESSURE) && rNode.SolutionStepsDataHas(NODAL_MPRESSURE))
+                // if (rNode.HasDofFor(PRESSURE) && rNode.SolutionStepsDataHas(NODAL_MPRESSURE))
+                if ( mIsMixedFormulation )
                 {
-                    double & nodal_mpressure = rNode.FastGetSolutionStepValue(NODAL_MPRESSURE);
+                    const double& nodal_mpressure = rNode.FastGetSolutionStepValue(NODAL_MPRESSURE);
                     delta_nodal_pressure = nodal_mpressure/r_nodal_mass;
                 }
 
@@ -364,10 +369,8 @@ namespace Kratos
     virtual void G2PAdditionalVariables(Element& rElement, const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY;
-        const bool is_mixed_formulation = (rCurrentProcessInfo.Has(IS_MIXED_FORMULATION))
-            ? rCurrentProcessInfo.GetValue(IS_MIXED_FORMULATION)
-            : false;
-        if (is_mixed_formulation){
+
+        if ( mIsMixedFormulation ){
             this->G2PPressure(rElement, rCurrentProcessInfo);
         }
         KRATOS_CATCH("")
@@ -430,7 +433,8 @@ protected:
     ///@{
     ModelPart& mrMPMModelPart;
     ModelPart& mrGridModelPart;
-    const int mEchoLevel{}; // Comment: static?
+    const int mEchoLevel{};
+    bool mIsMixedFormulation;
     ///@}
     ///@name Protected Operators
     ///@{
