@@ -52,11 +52,11 @@ template <class TContainerType>
 void FindNodalNeighboursForEntitiesProcess<TContainerType>::AddHangingNodeIds(
     std::unordered_map<int, std::unordered_map<int, std::vector<int>>>& rNeighbourIds) const
 {
-    // do nothing for elements here since mettis partitioner is based on elements, there
-    // cannot be any hanging nodes. If metis partitioner is based on conditions, then
-    // this process need not to be used with elements, so this method won't be called.
-
-    if constexpr (std::is_same_v<TContainerType, ModelPart::ConditionsContainerType>) {
+    if constexpr (std::is_same_v<TContainerType, ModelPart::ElementsContainerType>) {
+        // do nothing for elements here since mettis partitioner is based on elements, there
+        // cannot be any hanging nodes. If metis partitioner is based on conditions, then
+        // this process need not to be used with elements, so this method won't be called.
+    } else if constexpr (std::is_same_v<TContainerType, ModelPart::ConditionsContainerType>) {
         // if the metis partitioner is based on conditions, this will still work,
         // but with this additional cost of checking.
 
