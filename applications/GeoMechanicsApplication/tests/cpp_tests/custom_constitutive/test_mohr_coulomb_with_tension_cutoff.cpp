@@ -698,7 +698,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     KRATOS_EXPECT_EQ(plasticity_status, static_cast<int>(PlasticityStatus::TENSION_MOHR_COULOMB_CORNER));
 }
 
-KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponseCauchyDoesNotChangeStressVectorDependingOnOptions,
+KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_DoesNotCalculateStressWhenComputeStressOptionIsNotSet,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
