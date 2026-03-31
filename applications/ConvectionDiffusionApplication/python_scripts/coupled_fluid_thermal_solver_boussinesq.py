@@ -83,7 +83,7 @@ class CoupledFluidThermalSolverBoussinesq(CoupledFluidThermalSolver):
                 "coupling_strategy"          : "Picard",
                 "picard_iterations_before_newton": 0,
                 "quasi_newton_settings"      : {
-                    "solver_type" : "MVQN",
+                    "solver_type" : "MVQN_recursive",
                     "w_0"         : 0.825
                 }
             }
@@ -231,21 +231,16 @@ class CoupledFluidThermalSolverBoussinesq(CoupledFluidThermalSolver):
                 r_vec = KratosMultiphysics.Vector(num_nodes)
                 x_vec = KratosMultiphysics.Vector(num_nodes)
                 
-                # Build Kratos Vectors for the accelerator
-                # phi_var holds predicted value, aux_phi_var holds previous value
-                for i, node in enumerate(self.thermal_solver.main_model_part.Nodes):
-                    phi_k = node.GetValue(aux_phi_var)
-                    phi_pred = node.GetSolutionStepValue(phi_var)
-                    x_vec[i] = phi_k
-                    r_vec[i] = phi_pred - phi_k
+                # Build Kratos Vectors for the accelerator using C++ utility
+                ConvectionDiffusionApplication.BoussinesqCouplingUtilities.ComputeQuasiNewtonUpdateVectors(
+                    self.thermal_solver.main_model_part, phi_var, aux_phi_var, x_vec, r_vec)
                 
                 # Apply Newton-Raphson update
                 self._convergence_accelerator.UpdateSolution(r_vec, x_vec)
                 
-                # Write back converged/relaxed values
-                for i, node in enumerate(self.thermal_solver.main_model_part.Nodes):
-                    node.SetSolutionStepValue(phi_var, 0, x_vec[i])
-                    node.SetValue(aux_phi_var, x_vec[i])
+                # Write back converged/relaxed values using C++ utility
+                ConvectionDiffusionApplication.BoussinesqCouplingUtilities.UpdateConvergenceVariables(
+                    self.thermal_solver.main_model_part, phi_var, aux_phi_var, x_vec)
                 
                 self._convergence_accelerator.FinalizeNonLinearIteration()
                 

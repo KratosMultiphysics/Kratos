@@ -89,4 +89,45 @@ void BoussinesqCouplingUtilities::ApplyRelaxation(
     });
 }
 
+void BoussinesqCouplingUtilities::ComputeQuasiNewtonUpdateVectors(
+    ModelPart& rModelPart,
+    const Variable<double>& rVarNew,
+    const Variable<double>& rVarOld,
+    Vector& rX,
+    Vector& rR)
+{
+    const int num_nodes = static_cast<int>(rModelPart.NumberOfNodes());
+
+    if (static_cast<int>(rX.size()) != num_nodes) rX.resize(num_nodes, false);
+    if (static_cast<int>(rR.size()) != num_nodes) rR.resize(num_nodes, false);
+
+    auto& r_nodes_array = rModelPart.Nodes();
+
+    IndexPartition<int>(num_nodes).for_each([&](int i) {
+        auto it_node = r_nodes_array.begin() + i;
+        const double val_old = it_node->GetValue(rVarOld);
+        const double val_new = it_node->FastGetSolutionStepValue(rVarNew);
+        rX[i] = val_old;
+        rR[i] = val_new - val_old;
+    });
+}
+
+void BoussinesqCouplingUtilities::UpdateConvergenceVariables(
+    ModelPart& rModelPart,
+    const Variable<double>& rVarNew,
+    const Variable<double>& rVarOld,
+    const Vector& rX)
+{
+    const int num_nodes = static_cast<int>(rModelPart.NumberOfNodes());
+    KRATOS_ERROR_IF(static_cast<int>(rX.size()) != num_nodes) << "Vector size mismatch in UpdateConvergenceVariables" << std::endl;
+
+    auto& r_nodes_array = rModelPart.Nodes();
+
+    IndexPartition<int>(num_nodes).for_each([&](int i) {
+        auto it_node = r_nodes_array.begin() + i;
+        it_node->FastGetSolutionStepValue(rVarNew) = rX[i];
+        it_node->SetValue(rVarOld, rX[i]);
+    });
+}
+
 } // namespace Kratos

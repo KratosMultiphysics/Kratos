@@ -181,6 +181,8 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     py::class_<BoussinesqCouplingUtilities>(m, "BoussinesqCouplingUtilities")
     .def_static("ComputeRelativeResidual", &BoussinesqCouplingUtilities::ComputeRelativeResidual)
     .def_static("ApplyRelaxation", &BoussinesqCouplingUtilities::ApplyRelaxation)
+    .def_static("ComputeQuasiNewtonUpdateVectors", &BoussinesqCouplingUtilities::ComputeQuasiNewtonUpdateVectors)
+    .def_static("UpdateConvergenceVariables", &BoussinesqCouplingUtilities::UpdateConvergenceVariables)
     ;
 
 }

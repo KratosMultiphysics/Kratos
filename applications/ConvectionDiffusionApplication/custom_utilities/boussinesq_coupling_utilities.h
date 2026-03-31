@@ -25,6 +25,21 @@ public:
         const Variable<double>& rVariable,
         const Variable<double>& rOldVariable,
         const double Omega);
+
+    /// Compute the x and residual vectors for the convergence accelerator (OpenMP)
+    static void ComputeQuasiNewtonUpdateVectors(
+        ModelPart& rModelPart,
+        const Variable<double>& rVarNew,
+        const Variable<double>& rVarOld,
+        Vector& rX,
+        Vector& rR);
+
+    /// Write back the updated values from the quasi-newton step into the modelpart (OpenMP)
+    static void UpdateConvergenceVariables(
+        ModelPart& rModelPart,
+        const Variable<double>& rVarNew,
+        const Variable<double>& rVarOld,
+        const Vector& rX);
 };
 
 } // namespace Kratos
