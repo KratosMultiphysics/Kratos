@@ -19,6 +19,7 @@
 
 #include "processes/process.h"
 #include "custom_utilities/solver_settings.h"
+#include "custom_utilities/compute_div_sigma_utility.h"
 
 #include "spaces/ublas_space.h"
 
@@ -166,6 +167,24 @@ void AddCustomStrategiesToPython(pybind11::module &m)
     .def(py::init<>())
     .def(py::init<Process::Pointer>())
     ;
+
+    py::class_<ComputeDivSigmaUtility>(m, "ComputeDivSigmaUtility")
+    .def(py::init<>())
+    .def(
+        "ComputeDivergence",
+        py::overload_cast<
+            const Matrix&,
+            const Matrix&,
+            const Matrix&,
+            const Matrix&>(&ComputeDivSigmaUtility::ComputeDivergence, py::const_))
+    .def(
+        "ComputeDivergence",
+        py::overload_cast<
+            const Matrix&,
+            const Matrix&,
+            const Matrix&,
+            const Matrix&,
+            const Matrix&>(&ComputeDivSigmaUtility::ComputeDivergence, py::const_));
 
     using  SimpleSteadyAdjointSchemeType = SimpleSteadyAdjointScheme<SparseSpaceType, LocalSpaceType>;
     py::class_<SimpleSteadyAdjointSchemeType, typename SimpleSteadyAdjointSchemeType::Pointer, BaseSchemeType>
