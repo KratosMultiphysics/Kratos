@@ -17,11 +17,6 @@ class StructuralElement(ABC):
 
     @classmethod
     @abstractmethod
-    def FromDict(self, sub_model_part, data):
-        pass
-
-    @classmethod
-    @abstractmethod
     def FromKratosParametersObject(self, sub_model_part, data):
         """This classmethod instantiates a StructuralElement Object from a Kratos.Prameters Object 
 
@@ -32,25 +27,19 @@ class StructuralElement(ABC):
         pass
     
     @abstractmethod
-    def GetMaterialData(self):
+    def ExtractMaterial(self):
         """Reads the material properties from the Kratos ModelPart and assigns them to the attributes of a structural element.
         """
         pass
 
     @abstractmethod
-    def ComputeLoad(self):
-        """Computes the loading of the structural element from the FE-Simulation results (e.g. from stresses).
-        """
-        pass
-
-    @abstractmethod
-    def RunHandbookMethods(self):
+    def ExtractResponse(self):
         """This method triggers the execution of the handbook methods that are defined in the configuration file.
         """
         pass
 
     @abstractmethod
-    def ComputeMeasurements(self):
+    def ExtractGeometry(self):
         """Compute the measurements of a structural element.
         """
         pass

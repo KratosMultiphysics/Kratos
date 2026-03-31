@@ -29,20 +29,21 @@ class StressAnalysisProcess(KratosMultiphysics.Process):
             if structural_element["type"].GetString().lower() == "panel":
                 sub_model_part = self.modelpart.GetSubModelPart(structural_element["submodelpart"].GetString())
                 panel = Panel.FromKratosParametersObject(sub_model_part=sub_model_part, data=structural_element)
-                print("Panel Name: ", structural_element["submodelpart"].GetString(), 
-                    "\n Length: ", panel.a, 
-                    "\n Width: ", panel.b, 
-                    "\n Aspect Ratio: ", panel.aspect_ratio,
-                    "\n E: ", panel.E,
-                    "\n Nu: ", panel.nu,
-                    "\n t: ", panel.thickness,
-                    "\n x: ", panel.x_axis_base_vector,
-                    "\n y: ", panel.y_axis_base_vector,
-                    "\n z: ", panel.z_axis_base_vector,
-                    "\n XX: ", panel.xx_panel_stress,
-                    "\n YY: ", panel.yy_panel_stress,
-                    "\n CL: ", panel.cl,
-                    "\n BCs: ", panel.boundary_conditions)
+                panel.PrepareAnalysis()
+                #print("Panel Name: ", structural_element["submodelpart"].GetString(), 
+                #    "\n Length: ", panel.a, 
+                #    "\n Width: ", panel.b, 
+                #    "\n Aspect Ratio: ", panel.aspect_ratio,
+                #    "\n E: ", panel.E,
+                #    "\n Nu: ", panel.nu,
+                #    "\n t: ", panel.thickness,
+                #    "\n x: ", panel.x_axis_base_vector,
+                #    "\n y: ", panel.y_axis_base_vector,
+                #    "\n z: ", panel.z_axis_base_vector,
+                #    "\n XX: ", panel.xx_panel_stress,
+                #    "\n YY: ", panel.yy_panel_stress,
+                #    "\n CL: ", panel.cl,
+                #    "\n BCs: ", panel.boundary_conditions)
                 
 
             elif structural_element["type"].GetString().lower() == "column":
