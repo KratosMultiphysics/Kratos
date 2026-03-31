@@ -174,11 +174,55 @@ for py_ver in $PYTHONS; do
     
     # Set environment variables for build_wheel.py
     export KRATOS_ROOT="$KRATOS_SOURCE"
-    export KRATOS_WHEEL_PYTHON="$python_exe"
-    export KRATOS_NUM_JOBS="$NUM_JOBS"
+    export WHEEL_ROOT="${KRATOS_BUILD}/wheel_staging_py${py_ver}"
+    export WHEEL_OUT="$WHEEL_ROOT"
+    export PYTHONPATH="${venv_dir}/lib/python${py_ver:0:1}.${py_ver:1}/site-packages:$PYTHONPATH"
     
-    # Run build (this would be via build_wheel.py with proper modifications)
-    # For now, use simpler direct build approach
+    # Create output directory
+    mkdir -p "$WHEEL_OUT"
+    
+    # Run build_wheel.py for this Python version
+    # For now, do a simpler standalone build using hatchling
+    mkdir -p "$WHEEL_ROOT/staging"
+    
+    # Copy Kratos modules to staging
+    if [ -d "/opt/homebrew/lib/python${py_ver:0:1}.${py_ver:1}/site-packages/KratosMultiphysics" ]; then
+        # Set up the proper wheel directory structure
+        WHEEL_STAGING="$WHEEL_ROOT/staging"
+        mkdir -p "$WHEEL_STAGING"
+        
+        cp -r "/opt/homebrew/lib/python${py_ver:0:1}.${py_ver:1}/site-packages/KratosMultiphysics" "$WHEEL_STAGING/"
+        cp "$KRATOS_SOURCE/README.md" "$WHEEL_STAGING/README.md" 2>/dev/null
+        
+        # Copy pyproject.toml to staging root
+        if [ -f "$KRATOS_SOURCE/kratos/pyproject.toml" ]; then
+            cp "$KRATOS_SOURCE/kratos/pyproject.toml" "$WHEEL_STAGING/pyproject.toml"
+        else
+            cp "$KRATOS_SOURCE/scripts/wheels/pyproject.toml" "$WHEEL_STAGING/pyproject.toml"
+        fi
+        
+        # Copy build hook if needed
+        if [ -f "$KRATOS_SOURCE/scripts/wheels/hatch_build.py" ]; then
+            cp "$KRATOS_SOURCE/scripts/wheels/hatch_build.py" "$WHEEL_STAGING/hatch_build.py"
+        fi
+        
+        # Build wheel from staging
+        cd "$WHEEL_STAGING"
+        log_info "Running: python -m build --wheel --outdir $WHEEL_OUT"
+        
+        # Set required environment variables
+        export KRATOS_VERSION="10.4.0"
+        
+        python -m build --wheel --outdir "$WHEEL_OUT" 2>&1 | tail -30
+        
+        if [ -f "$WHEEL_OUT"/*.whl ]; then
+            log_success "Wheel built successfully for Python $py_ver"
+        else
+            log_error "Wheel building failed for Python $py_ver"
+        fi
+    else
+        log_error "KratosMultiphysics not found for Python $py_ver at /opt/homebrew/lib/python${py_ver:0:1}.${py_ver:1}/site-packages"
+    fi
     
     deactivate
     
