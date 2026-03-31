@@ -13,18 +13,18 @@
 
 #include "custom_elements/plane_strain_stress_state.h"
 #include "custom_elements/three_dimensional_stress_state.h"
-#include "custom_elements/transient_Pw_element.hpp"
+#include "custom_elements/transient_Pw_element.h"
 #include "custom_retention/saturated_law.h"
+#include "custom_utilities/ublas_utilities.h"
+#include "geo_mechanics_application_variables.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/test_utilities.h"
-
-#include <boost/numeric/ublas/assignment.hpp>
 
 namespace
 {
 using namespace Kratos;
 
-PointerVector<Node> CreateThreeNodes()
+PointerVector<Node> CreateThreeNodesForTransientPwElementTest()
 {
     PointerVector<Node> result;
     result.push_back(make_intrusive<Node>(1, 0.0, 0.0, 0.0));
@@ -33,7 +33,7 @@ PointerVector<Node> CreateThreeNodes()
     return result;
 }
 
-PointerVector<Node> CreateThreeCoincidentNodes()
+PointerVector<Node> CreateThreeCoincidentNodesForTransientPwElementTest()
 {
     PointerVector<Node> result;
     for (unsigned int id = 1; id <= 3; id++) {
@@ -43,7 +43,7 @@ PointerVector<Node> CreateThreeCoincidentNodes()
 }
 
 template <unsigned int TNumNodes>
-PointerVector<Node> CreateNodesOnModelPart(ModelPart& rModelPart)
+PointerVector<Node> CreateNodesOnModelPartForTransientPwElementTest(ModelPart& rModelPart)
 {
     PointerVector<Node> result;
     result.push_back(rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0));
@@ -85,12 +85,13 @@ intrusive_ptr<TransientPwElement<TDim, TNumNodes>> CreateTransientPwElementWithP
     if constexpr (TDim == 2) {
         p_element = make_intrusive<TransientPwElement<TDim, TNumNodes>>(
             NextElementNumber(rModelPart),
-            std::make_shared<Triangle2D3<Node>>(CreateNodesOnModelPart<TNumNodes>(rModelPart)),
+            std::make_shared<Triangle2D3<Node>>(CreateNodesOnModelPartForTransientPwElementTest<TNumNodes>(rModelPart)),
             rProperties, std::make_unique<PlaneStrainStressState>());
     } else {
         p_element = make_intrusive<TransientPwElement<TDim, TNumNodes>>(
             NextElementNumber(rModelPart),
-            std::make_shared<Tetrahedra3D4<Node>>(CreateNodesOnModelPart<TNumNodes>(rModelPart)),
+            std::make_shared<Tetrahedra3D4<Node>>(
+                CreateNodesOnModelPartForTransientPwElementTest<TNumNodes>(rModelPart)),
             rProperties, std::make_unique<ThreeDimensionalStressState>());
     }
     for (auto& r_node : p_element->GetGeometry()) {
@@ -105,15 +106,15 @@ intrusive_ptr<TransientPwElement<2, 3>> CreateTriangleTransientPwElementWithoutP
 {
     auto p_element = make_intrusive<TransientPwElement<2, 3>>(
         NextElementNumber(rModelPart),
-        std::make_shared<Triangle2D3<Node>>(CreateNodesOnModelPart<3>(rModelPart)), rProperties,
-        std::make_unique<PlaneStrainStressState>(), nullptr);
+        std::make_shared<Triangle2D3<Node>>(CreateNodesOnModelPartForTransientPwElementTest<3>(rModelPart)),
+        rProperties, std::make_unique<PlaneStrainStressState>(), nullptr);
 
     rModelPart.AddElement(p_element);
     return p_element;
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void SetBasicPropertiesAndVariables(intrusive_ptr<TransientPwElement<TDim, TNumNodes>> rElement)
+void SetBasicPropertiesAndVariables(const intrusive_ptr<TransientPwElement<TDim, TNumNodes>>& rElement)
 {
     rElement->GetProperties().SetValue(DENSITY_WATER, 1.0E3);
     rElement->GetProperties().SetValue(DYNAMIC_VISCOSITY, 1.0E-2);
@@ -142,8 +143,8 @@ using namespace Kratos;
 KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CreateInstanceWithGeometryInput, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    const auto p_geometry   = std::make_shared<Triangle2D3<Node>>(CreateThreeNodes());
-    const auto p_properties = std::make_shared<Properties>();
+    const auto p_geometry = std::make_shared<Triangle2D3<Node>>(CreateThreeNodesForTransientPwElementTest());
+    const auto                     p_properties = std::make_shared<Properties>();
     const TransientPwElement<2, 3> element(0, p_geometry, p_properties,
                                            std::make_unique<PlaneStrainStressState>());
 
@@ -160,12 +161,13 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CreateInstanceWithGeometryInput, Kr
 KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CreateInstanceWithNodeInput, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    const auto p_properties = std::make_shared<Properties>();
-    const TransientPwElement<2, 3> element(0, std::make_shared<Triangle2D3<Node>>(CreateThreeNodes()),
-                                           p_properties, std::make_unique<PlaneStrainStressState>());
+    const auto                     p_properties = std::make_shared<Properties>();
+    const TransientPwElement<2, 3> element(
+        0, std::make_shared<Triangle2D3<Node>>(CreateThreeNodesForTransientPwElementTest()),
+        p_properties, std::make_unique<PlaneStrainStressState>());
 
     // Act
-    const auto p_created_element = element.Create(1, CreateThreeNodes(), p_properties);
+    const auto p_created_element = element.Create(1, CreateThreeNodesForTransientPwElementTest(), p_properties);
 
     // Assert
     EXPECT_NE(p_created_element, nullptr);
@@ -220,7 +222,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_IntegrationMethod, KratosGeoMechani
 {
     // Arrange
     const TransientPwElement<2, 3> element(
-        0, std::make_shared<Triangle2D3<Node>>(CreateThreeCoincidentNodes()),
+        0, std::make_shared<Triangle2D3<Node>>(CreateThreeCoincidentNodesForTransientPwElementTest()),
         std::make_shared<Properties>(), std::make_unique<PlaneStrainStressState>(), nullptr);
 
     // Act
@@ -236,8 +238,8 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CheckThrowsOnFaultyInput, KratosGeo
     // Arrange
     const auto                     p_properties = std::make_shared<Properties>();
     const TransientPwElement<2, 3> element_with_coincident_nodes(
-        1, std::make_shared<Triangle2D3<Node>>(CreateThreeCoincidentNodes()), p_properties,
-        std::make_unique<PlaneStrainStressState>(), nullptr);
+        1, std::make_shared<Triangle2D3<Node>>(CreateThreeCoincidentNodesForTransientPwElementTest()),
+        p_properties, std::make_unique<PlaneStrainStressState>(), nullptr);
 
     // Act and Assert
     const auto dummy_process_info = ProcessInfo{};
@@ -245,8 +247,8 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CheckThrowsOnFaultyInput, KratosGeo
                                       "DomainSize (0) is smaller than 1e-15 for element 1")
 
     const TransientPwElement<2, 3> element_with_correct_domain_size(
-        1, std::make_shared<Triangle2D3<Node>>(CreateThreeNodes()), p_properties,
-        std::make_unique<PlaneStrainStressState>(), nullptr);
+        1, std::make_shared<Triangle2D3<Node>>(CreateThreeNodesForTransientPwElementTest()),
+        p_properties, std::make_unique<PlaneStrainStressState>(), nullptr);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(element_with_correct_domain_size.Check(dummy_process_info),
                                       "Missing variable WATER_PRESSURE on nodes 1 2 3")
 
@@ -429,7 +431,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_Initialize, KratosGeoMechanicsFastS
 {
     // Arrange
     TransientPwElement<2, 3> element(
-        0, std::make_shared<Triangle2D3<Node>>(CreateThreeCoincidentNodes()),
+        0, std::make_shared<Triangle2D3<Node>>(CreateThreeCoincidentNodesForTransientPwElementTest()),
         std::make_shared<Properties>(), std::make_unique<PlaneStrainStressState>(), nullptr);
     const auto dummy_process_info = ProcessInfo{};
 
@@ -447,8 +449,9 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_Initialize, KratosGeoMechanicsFastS
 
     const auto& r_retention_law_vector = element.mRetentionLawVector;
     KRATOS_EXPECT_EQ(r_retention_law_vector.size(), number_of_integration_points);
-    KRATOS_EXPECT_TRUE(std::none_of(r_retention_law_vector.begin(), r_retention_law_vector.end(), [](auto p_retention_law) {
-        return dynamic_cast<SaturatedLaw*>(p_retention_law.get()) == nullptr;
+    KRATOS_EXPECT_TRUE(std::none_of(r_retention_law_vector.begin(), r_retention_law_vector.end(),
+                                    [](const auto& rp_retention_law) {
+        return dynamic_cast<SaturatedLaw*>(rp_retention_law.get()) == nullptr;
     }))
 }
 
@@ -512,8 +515,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CalculateOnIntegrationPoints_Vector
 
     // Assert
     KRATOS_EXPECT_EQ(results.size(), number_of_integration_points);
-    Vector expected_results(3);
-    expected_results <<= 1.0, 1.0, 1.0;
+    auto expected_results = UblasUtilities::CreateVector({1.0, 1.0, 1.0});
     KRATOS_EXPECT_VECTOR_EQ(results, expected_results);
 
     // Act
@@ -522,7 +524,6 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CalculateOnIntegrationPoints_Vector
 
     // Assert
     KRATOS_EXPECT_EQ(results.size(), number_of_integration_points);
-    expected_results <<= 1.0, 1.0, 1.0;
     KRATOS_EXPECT_VECTOR_EQ(results, expected_results);
 
     // Act
@@ -531,7 +532,6 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CalculateOnIntegrationPoints_Vector
 
     // Assert
     KRATOS_EXPECT_EQ(results.size(), number_of_integration_points);
-    expected_results <<= 1.0, 1.0, 1.0;
     KRATOS_EXPECT_VECTOR_EQ(results, expected_results);
 
     // Act
@@ -540,7 +540,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CalculateOnIntegrationPoints_Vector
 
     // Assert
     KRATOS_EXPECT_EQ(results.size(), number_of_integration_points);
-    expected_results <<= 0.0, 0.0, 0.0;
+    expected_results = UblasUtilities::CreateVector({0.0, 0.0, 0.0});
     KRATOS_EXPECT_VECTOR_EQ(results, expected_results);
 
     // Act
@@ -549,7 +549,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CalculateOnIntegrationPoints_Vector
 
     // Assert
     KRATOS_EXPECT_EQ(results.size(), number_of_integration_points);
-    expected_results <<= 1.0, 1.0, 1.0;
+    expected_results = UblasUtilities::CreateVector({1.0, 1.0, 1.0});
     KRATOS_EXPECT_VECTOR_EQ(results, expected_results);
 
     // Act
@@ -558,8 +558,8 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CalculateOnIntegrationPoints_Vector
 
     // Assert
     KRATOS_EXPECT_EQ(results.size(), number_of_integration_points);
-    expected_results <<= 0.166667, 0.166667, 0.666667;
-    KRATOS_EXPECT_VECTOR_NEAR(results, expected_results, Defaults::relative_tolerance);
+    expected_results = UblasUtilities::CreateVector({1.0 / 6.0, 1.0 / 6.0, 2.0 / 3.0});
+    KRATOS_EXPECT_VECTOR_EQ(results, expected_results);
 
     // Act
     results.clear();
@@ -567,7 +567,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CalculateOnIntegrationPoints_Vector
 
     // Assert
     KRATOS_EXPECT_EQ(results.size(), number_of_integration_points);
-    expected_results <<= 0, 0, 0;
+    expected_results = UblasUtilities::CreateVector({0.0, 0.0, 0.0});
     KRATOS_EXPECT_VECTOR_EQ(results, expected_results);
 }
 
@@ -628,8 +628,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CalculateOnIntegrationPoints_Matrix
 
     // Assert
     KRATOS_EXPECT_EQ(results.size(), number_of_integration_points);
-    Matrix expected_nonzero_component(2, 2);
-    expected_nonzero_component <<= 1, 1, 1, 1;
+    const auto expected_nonzero_component = UblasUtilities::CreateMatrix({{1, 1}, {1, 1}});
     for (const auto& component : results) {
         KRATOS_EXPECT_MATRIX_EQ(component, expected_nonzero_component);
     }
@@ -669,16 +668,12 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement2D3N_CalculateLocalSystem, KratosGeo
     p_element->CalculateLocalSystem(actual_left_hand_side, actual_right_hand_side, dummy_process_info);
 
     // Assert
-    Matrix expected_left_hand_side(3, 3);
-    // clang-format off
-    expected_left_hand_side <<= -49.999999999999993,0,49.999999999999993,
-                                 0,0,0,
-                                 49.999999999999993,0,-49.999999999999993;
+    const auto expected_left_hand_side = UblasUtilities::CreateMatrix(
+        {{-49.999999999999993, 0, 49.999999999999993}, {0, 0, 0}, {49.999999999999993, 0, -49.999999999999993}});
     // clang-format on
     KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(actual_left_hand_side, expected_left_hand_side, Defaults::relative_tolerance)
 
-    Vector expected_right_hand_side(3);
-    expected_right_hand_side <<= 500000, 0, -500000;
+    const auto expected_right_hand_side = UblasUtilities::CreateVector({500000, 0, -500000});
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_right_hand_side, expected_right_hand_side, Defaults::relative_tolerance)
 }
 
@@ -705,17 +700,14 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement3D4N_CalculateLocalSystem, KratosGeo
     p_element->CalculateLocalSystem(actual_left_hand_side, actual_right_hand_side, dummy_process_info);
 
     // Assert
-    Matrix expected_left_hand_side(4, 4);
-    // clang-format off
-    expected_left_hand_side <<= -16.666666666666664,0,0,16.666666666666664,
-                                 0,0,0,0,
-                                 0,0,0,0,
-                                 16.666666666666664,0,0,-16.666666666666664;
-    // clang-format on
+    const auto expected_left_hand_side =
+        UblasUtilities::CreateMatrix({{-16.666666666666664, 0, 0, 16.666666666666664},
+                                      {0, 0, 0, 0},
+                                      {0, 0, 0, 0},
+                                      {16.666666666666664, 0, 0, -16.666666666666664}});
     KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(actual_left_hand_side, expected_left_hand_side, Defaults::relative_tolerance)
 
-    Vector expected_right_hand_side(4);
-    expected_right_hand_side <<= 166666.666, 0, 0, -166666.666;
+    const auto expected_right_hand_side = UblasUtilities::CreateVector({166666.666, 0, 0, -166666.666});
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_right_hand_side, expected_right_hand_side, Defaults::relative_tolerance)
 }
 
@@ -723,7 +715,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_ZeroReturnFunctions, KratosGeoMecha
 {
     // Arrange
     TransientPwElement<2, 3> element(
-        0, std::make_shared<Triangle2D3<Node>>(CreateThreeCoincidentNodes()),
+        0, std::make_shared<Triangle2D3<Node>>(CreateThreeCoincidentNodesForTransientPwElementTest()),
         std::make_shared<Properties>(), std::make_unique<PlaneStrainStressState>(), nullptr);
     const auto   dummy_process_info = ProcessInfo{};
     const auto   n_DoF              = 3;

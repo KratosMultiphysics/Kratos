@@ -15,6 +15,7 @@
 // System includes
 #include <string>
 #include <vector>
+#include <algorithm>
 
 // Project includes
 #include "includes/define.h"
@@ -22,6 +23,7 @@
 #include "includes/data_communicator.h"
 #include "includes/kratos_parameters.h"
 #include "containers/model.h"
+#include "tensor_adaptors/tensor_adaptor.h"
 
 // Application includes
 
@@ -40,29 +42,23 @@ public:
     using IndexType = std::size_t;
 
     ///@}
-    ///@name Public classes
-    ///@{
-
-    template<class TEntityPointType>
-    struct KDTreeThreadLocalStorage
-    {
-        explicit KDTreeThreadLocalStorage(const IndexType MaxNumberOfNeighbors, const IndexType Stride)
-        {
-            mNeighbourEntityPoints.resize(MaxNumberOfNeighbors);
-            mResultingSquaredDistances.resize(MaxNumberOfNeighbors);
-            mListOfWeights.resize(MaxNumberOfNeighbors);
-            mListOfDampedWeights.resize(Stride, std::vector<double>(MaxNumberOfNeighbors));
-        }
-
-        std::vector<TEntityPointType> mNeighbourEntityPoints;
-        std::vector<double> mResultingSquaredDistances;
-        std::vector<double> mListOfWeights;
-        std::vector<std::vector<double>> mListOfDampedWeights;
-    };
-
-    ///@}
     ///@name Static operations
     ///@{
+
+    template<class TEntity>
+    inline static const array_1d<double, 3> GetEntityPosition(const TEntity& rEntity)
+    {
+        if constexpr(std::is_same_v<TEntity, ModelPart::NodeType>) {
+            return rEntity.Coordinates();
+        } else if constexpr(std::is_same_v<TEntity, ModelPart::ConditionType>) {
+            return rEntity.GetGeometry().Center();
+        } else if constexpr(std::is_same_v<TEntity, ModelPart::ElementType>) {
+            return rEntity.GetGeometry().Center();
+        } else {
+            static_assert(!std::is_same_v<TEntity, TEntity>, "Unsupported entity type.");
+            return array_1d<double, 3>(0.0);
+        }
+    }
 
     template<class TContainerType>
     static GeometryData::KratosGeometryType GetContainerEntityGeometryType(
@@ -110,6 +106,45 @@ public:
     static std::vector<std::vector<ModelPart*>> GetComponentWiseModelParts(
         Model& rModel,
         Parameters Settings);
+
+    /**
+     * @brief Maps container data to nodal data
+     *
+     * @details This method returns a mapped container data given in @p rInput to nodal given by @p pNodes .
+     *          It distributes the each entity's data to its nodes equally.
+     *
+     * @throws std::runtime_error if the container in @p rInput is not of type conditions or elements.
+     * @throws std::runtime_error if the entities in @p rInput 's container contain nodes which are not found in the @p pNodes.
+     *
+     * @param rInput    Input containing values in which needs to be mapped to nodes (container should be conditions or elements).
+     * @param pNodes    List of nodes to which the values will be mapped out.
+     * @returns         Returns a tensor adaptor having the container @p pNodes with the mapped values.
+     */
+    static TensorAdaptor<double>::Pointer MapContainerDataToNodalData(
+        const TensorAdaptor<double>& rInput,
+        ModelPart::NodesContainerType::Pointer pNodes);
+
+    /**
+     * @brief Maps nodal data to a specific container data
+     *
+     * @details This method returns a mapped nodal data given in @p rInput to container given by @p pEntities .
+     *          It first divide each node's value by number of neighour entities and adds that value to each neighbouring
+     *          entity.
+     *
+     * @throws std::runtime_error if the container in @p rInput is not a nodal container.
+     * @throws std::runtime_error if the nodal container in @p rInput is not same as nodal container in @p rNeighbourCount .
+     * @throws std::runtime_error if the entities in @p rInput 's container contain nodes which are not found in the nodal container of @p rInput .
+     *
+     * @param rInput            Input containing values in which needs to be mapped to conditions / elements (container should be nodal).
+     * @param pEntities         List of entities to which the values will be mapped out.
+     * @param rNeighbourCount   Number of neighbour entities around each node.
+     * @returns                 Returns a tensor adaptor having the container @p pEntities with the mapped values.
+     */
+    template<class TContainerPointerType>
+    static TensorAdaptor<double>::Pointer MapNodalDataToContainerData(
+        const TensorAdaptor<double>& rInput,
+        TContainerPointerType pEntities,
+        const TensorAdaptor<int>& rNeighbourCount);
 
     ///@}
 };
