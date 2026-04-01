@@ -245,6 +245,7 @@ class ArcLengthStrategy
         InitializeSystemVector(mpDxb);
         InitializeSystemVector(mpDxPred);
         InitializeSystemVector(mpDxStep);
+        InitializeSystemVector(mpUp_barpplus1);
 
         KRATOS_CATCH("");
     }
@@ -288,20 +289,17 @@ class ArcLengthStrategy
         ModelPart& r_model_part = BaseType::GetModelPart();
 
         // Initialize variables
-        DofsArrayType& r_dof_set    = this->mpBuilderAndSolver->GetDofSet();
-        TSystemMatrixType& r_A      = *(this->mpA);
-        TSystemVectorType& r_Dx     = *(this->mpDx);
-        TSystemVectorType& r_b      = *(this->mpb);
-        TSystemVectorType& r_f      = *mpf;
-        TSystemVectorType& r_Dxb    = *mpDxb;
-        TSystemVectorType& r_Dxf    = *mpDxf;
-        TSystemVectorType& r_DxPred = *mpDxPred;
-        TSystemVectorType& r_DxStep = *mpDxStep;
+        DofsArrayType& r_dof_set          = this->mpBuilderAndSolver->GetDofSet();
+        TSystemMatrixType& r_A            = *(this->mpA);
+        TSystemVectorType& r_Dx           = *(this->mpDx);
+        TSystemVectorType& r_b            = *(this->mpb);
+        TSystemVectorType& r_f            = *mpf;
+        TSystemVectorType& r_Dxb          = *mpDxb;
+        TSystemVectorType& r_Dxf          = *mpDxf;
+        TSystemVectorType& r_DxPred       = *mpDxPred;
+        TSystemVectorType& r_DxStep       = *mpDxStep;
+        TSystemVectorType& r_Up_barpplus1 = *mpUp_barpplus1;
 
-        KRATOS_INFO("eerst r_b") << r_b << std::endl;
-        KRATOS_INFO("eerst r_f") << r_f << std::endl;
-        KRATOS_INFO("eerst r_Dxb") << r_Dxb << std::endl;
-        KRATOS_INFO("eerst r_Dxf") << r_Dxf << std::endl;
         // Initialize iterations info
         unsigned int iteration_number = 1;
         r_model_part.GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
@@ -323,13 +321,21 @@ class ArcLengthStrategy
         KRATOS_INFO("Na constraints en Dirichlet r_b") << r_b << std::endl;
 
         KRATOS_INFO("r_f?") << r_f << std::endl;
-        TSparseSpace::Assign(r_b, 1.0, r_f);
-        KRATOS_INFO("r_b overschreven met r_f") << r_b << std::endl;
-        this->mpBuilderAndSolver->SystemSolve(r_A, r_Dxf, r_b);
-        KRATOS_INFO("r_b na SystemSolve") << r_b << std::endl;
+        // TSparseSpace::Assign(r_b, 1.0, r_f);
+        // this->mpBuilderAndSolver->SystemSolve(r_A, r_Dxf, r_b);
+        this->mpBuilderAndSolver->SystemSolve(r_A, r_Dxf, r_f);
         KRATOS_INFO("0_e Iteratie oplossing r_Dxf?") << r_Dxf << std::endl;
-        double lambda_increment = mRadius / TSparseSpace::TwoNorm(r_Dxf);
+
+        auto option = 1;  // See Fig. 11.
+        double lambda_increment;
+        if (option == 1) {
+            lambda_increment = 1.0;
+        } else {
+            lambda_increment = mRadius / TSparseSpace::TwoNorm(r_Dxf);
+        }
         KRATOS_INFO("mRadius ") << mRadius << " sqrt(du1F*du1F) " << TSparseSpace::TwoNorm(r_Dxf) << " dLambda^1 " << lambda_increment << std::endl;
+
+        auto deltaS = lambda_increment * TSparseSpace::TwoNorm(r_Dxf);
 
         // mDLambdaStep = lambda_increment;
         mLambda += lambda_increment;
@@ -342,8 +348,8 @@ class ArcLengthStrategy
         TSparseSpace::Assign(r_DxPred, lambda_increment, r_Dxf);
         TSparseSpace::Assign(r_DxStep, 1.0, r_DxPred);
         // TSparseSpace::InplaceMult(r_Dxf, 1.0 / lambda_increment);
+        KRATOS_INFO("r_b voor UpdateDataBase") << r_b << std::endl;
         UpdateDatabase(r_A, r_DxPred, r_b, BaseType::MoveMeshFlag());
-        // nog geen UpdateExternalLoad
         KRATOS_INFO("r_b na UpdateDataBase") << r_b << std::endl;
 
         this->mpScheme->FinalizeNonLinIteration(r_model_part, r_A, r_DxPred, r_b);
@@ -355,6 +361,7 @@ class ArcLengthStrategy
         if (is_converged) {
             if (this->mpConvergenceCriteria->GetActualizeRHSflag()) {
                 TSparseSpace::SetToZero(r_b);
+                // hier moet het residu opgesteld worden F_ext - int B*sigma dV
                 this->mpBuilderAndSolver->BuildRHS(this->mpScheme, r_model_part, r_b);
                 KRATOS_INFO("r_b na mpBuilderAndSolver->BuildRHS") << r_b << std::endl;
             }
@@ -377,6 +384,7 @@ class ArcLengthStrategy
 
             TSparseSpace::SetToZero(r_A);
             TSparseSpace::SetToZero(r_b);
+            TSparseSpace::SetToZero(r_Dxb);
             TSparseSpace::SetToZero(r_Dxf);
 
             // We compute r_Dxf
@@ -384,7 +392,9 @@ class ArcLengthStrategy
             this->mpBuilderAndSolver->ApplyConstraints(this->mpScheme, r_model_part, r_A, r_b);
             this->mpBuilderAndSolver->ApplyDirichletConditions(this->mpScheme, r_model_part, r_A, r_Dxf, r_b);
             // why don't we solve for r_Dxb first.
+            KRATOS_INFO("r_b voor 1st solve in iteratie loop") << r_b << std::endl;
             this->mpBuilderAndSolver->SystemSolve(r_A, r_Dxb, r_b);
+            KRATOS_INFO("i_e Iteratie oplossing r_Dxb?") << r_Dxb << std::endl;
             // TSparseSpace::Assign(r_b, 1.0, r_f);
             this->mpBuilderAndSolver->SystemSolve(r_A, r_Dxf, r_f);
             KRATOS_INFO("i_e Iteratie oplossing r_Dxf?") << r_Dxf << std::endl;
@@ -394,14 +404,13 @@ class ArcLengthStrategy
             // TSparseSpace::SetToZero(r_Dxb);
             //
             // this->mpBuilderAndSolver->BuildAndSolve(this->mpScheme, r_model_part, r_A, r_Dxb, r_b);
-            KRATOS_INFO("i_e Iteratie oplossing r_Dxb?") << r_Dxb << std::endl;
-            auto arc_length_type = "UpdatedNormalPlane";
+            auto arc_length_type = "ModifiedCrisfieldRamm";
             if ( arc_length_type == "Ramm" ) {
                 lambda_increment = -TSparseSpace::Dot(r_DxPred, r_Dxb) / TSparseSpace::Dot(r_DxPred, r_Dxf);
             } else if ( arc_length_type == "Crisfield" ) {
-
-            } else if (arc_length_type == "UpdatedNormalPlane") {
-                lambda_increment = -TSparseSpace::Dot(r_DxStep, r_Dxb) / TSparseSpace::Dot(r_DxStep, r_Dxf);
+                // this I would like to implement as it selects based on the direction of movement
+            } else if (arc_length_type == "ModifiedCrisfieldRamm") {
+                lambda_increment = -TSparseSpace::Dot(r_DxStep, r_Dxb) / TSparseSpace::Dot(r_DxStep, r_Dxf); // Formula 44
             };
             KRATOS_INFO("teller r_DxPred * r_Dxb") << TSparseSpace::Dot(r_DxPred, r_Dxb) << " noemer r_DxPred * r_Dxf " << TSparseSpace::Dot(r_DxPred, r_Dxf) << " dLambda^i " << lambda_increment << std::endl;
             //TSparseSpace::Assign(r_Dx, 1.0, r_Dxb + lambda_increment*r_Dxf); // wtf this lijkt wel heel hybride
@@ -411,16 +420,20 @@ class ArcLengthStrategy
 
 
             // Update results
+            if (arc_length_type == "ModifiedCrisfieldRamm") {
+                TSparseSpace::Assign(r_Up_barpplus1, 1.0, r_DxStep);   // construct u_p bar ^i+1 formula 45
+                TSparseSpace::UnaliasedAdd(r_Up_barpplus1, 1.0, r_Dx);
+                KRATOS_INFO("alpha value = ") <<  deltaS / TSparseSpace::TwoNorm(r_Up_barpplus1) << std::endl;
+                TSparseSpace::InplaceMult(r_Up_barpplus1, deltaS / TSparseSpace::TwoNorm(r_Up_barpplus1) ); // scale  u_p bar ^i+1 formula 46, 47
+                TSparseSpace::Assign(r_Dx, 1.0, r_Up_barpplus1);   // recompute resulting r_Dx to facilitate UpdateDatebase etc.
+                TSparseSpace::UnaliasedAdd(r_Dx, -1.0, r_DxStep);
+            }
             // mDLambdaStep += lambda_increment;
             mLambda += lambda_increment;
             // update step increment
             TSparseSpace::UnaliasedAdd(r_DxStep, 1.0, r_Dx);
             KRATOS_INFO_IF("ArcLengthStrategy", BaseType::GetEchoLevel() > 0) << "ARC-LENGTH dLAMBDA: " << lambda_increment << " ARC-LENGTH LAMBDA: " << mLambda << std::endl;
 
-            if (arc_length_type == "MCR") {
-                // equations 46-48
-                auto alpha = mRadius_0 / TSparseSpace::TwoNorm(r_DxStep);
-            };
             UpdateDatabase(r_A, r_Dx, r_b, BaseType::MoveMeshFlag());
 
             this->mpScheme->FinalizeNonLinIteration(r_model_part, r_A, r_Dx, r_b);
@@ -430,6 +443,7 @@ class ArcLengthStrategy
                 if (this->mpConvergenceCriteria->GetActualizeRHSflag()) {
                     TSparseSpace::SetToZero(r_b);
                     this->mpBuilderAndSolver->BuildRHS(this->mpScheme, r_model_part, r_b);
+                    KRATOS_INFO("r_b na mpBuilderAndSolver->BuildRHS") << r_b << std::endl;
                 }
                 is_converged = this->mpConvergenceCriteria->PostCriteria(r_model_part, r_dof_set, r_A, r_Dx, r_b);
             }
@@ -647,6 +661,7 @@ class ArcLengthStrategy
     TSystemVectorPointerType mpDxb;    /// Delta x of A*Dxb=b
     TSystemVectorPointerType mpDxPred; /// Delta x of prediction phase
     TSystemVectorPointerType mpDxStep; /// Delta x of the current step
+    TSystemVectorPointerType mpUp_barpplus1; /// Delta x of the current step scaled
 
     unsigned int mDesiredIterations;   /// This is used to calculate the radius of the next step
 
@@ -681,7 +696,7 @@ class ArcLengthStrategy
         const bool MoveMesh) override
     {
         BaseType::UpdateDatabase(rA, rDx, rb, MoveMesh);
-        // UpdateExternalLoads();
+        UpdateExternalLoads();
     }
 
 
