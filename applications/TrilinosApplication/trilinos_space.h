@@ -70,7 +70,7 @@ namespace Kratos
  * @tparam TVectorType the vector type considered
  */
 template<class TMatrixType, class TVectorType>
-class TrilinosSpace
+class KRATOS_EXPOSE TrilinosSpace
 {
 public:
     ///@name Type Definitions
