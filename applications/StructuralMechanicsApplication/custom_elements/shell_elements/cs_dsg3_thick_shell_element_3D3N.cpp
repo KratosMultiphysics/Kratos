@@ -109,6 +109,40 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::CalculateOnIntegrationPoints(
 /***********************************************************************************/
 
 template <bool IS_COROTATIONAL>
+void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::CalculateOnIntegrationPoints(
+    const Variable<array_1d<double, 3>>& rVariable,
+    std::vector<array_1d<double, 3>>& rOutput,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    const auto& r_integration_points = CustomTriangleAreaCoordinatesQuadrature(GetGeometry().Area());
+    const SizeType number_of_integration_points = r_integration_points.size();
+
+    // Provide a default empty implementation: resize and set zeros
+    rOutput.assign(number_of_integration_points, ZeroVector(3)); // plane stress components
+
+    if (rVariable == LOCAL_AXIS_1 || rVariable == LOCAL_AXIS_2 || rVariable == LOCAL_AXIS_3) {
+        bounded_3_matrix rotation_matrix;
+        CalculateRotationMatrixGlobalToLocal(rotation_matrix, true);
+        IndexType axis_index = 0;
+        if (rVariable == LOCAL_AXIS_2) {
+            axis_index = 1;
+        } else if (rVariable == LOCAL_AXIS_3) {
+            axis_index = 2;
+        }
+        for (IndexType i = 0; i < number_of_integration_points; ++i) {
+            noalias(rOutput[i]) = row(rotation_matrix, axis_index);
+        }
+    }
+
+    KRATOS_CATCH("CSDSG3ThickShellElement3D3N::CalculateOnIntegrationPoints")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <bool IS_COROTATIONAL>
 void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::InitializeMaterial()
 {
     KRATOS_TRY
