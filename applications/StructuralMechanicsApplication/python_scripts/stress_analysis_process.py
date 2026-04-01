@@ -48,8 +48,7 @@ class StressAnalysisProcess(KratosMultiphysics.Process):
 
             elif structural_element["type"].GetString().lower() == "column":
                 sub_model_part = self.modelpart.GetSubModelPart(structural_element["submodelpart"].GetString())
-                column = 4
-                print("Column Structural Element: ", column)
+                print("Column")
 
             else:
                 continue
