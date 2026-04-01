@@ -652,13 +652,6 @@ tests/compressibility_tests/upw_small_strain_diff_order/ProjectParameters.json
 tests/compressibility_tests/upw_small_strain_fic/ProjectParameters.json
 tests/compressibility_tests/upw_updated_lagrange/ProjectParameters.json
 tests/compressibility_tests/upw_updated_lagrange_fic/ProjectParameters.json
-tests/building_pit/common/1_Initial_stage.json
-tests/building_pit/common/2_Null_step.json
-tests/building_pit/common/3_Wall_installation.json
-tests/building_pit/common/4_First_excavation.json
-tests/building_pit/common/5_Strut_installation.json
-tests/building_pit/common/6_Second_excavation.json
-tests/building_pit/common/7_Third_excavation.json
 tests/building_pit/common/Linear_Elastic_Materials.json
 tests/building_pit/linear_elastic/MaterialParameters.json
 tests/C-Phi_reduction_process/Mohr_Coulomb_model/MaterialParameters_stage2.json
