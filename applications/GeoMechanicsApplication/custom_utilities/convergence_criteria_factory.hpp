@@ -30,11 +30,11 @@ template <class TSparseSpace, class TDenseSpace>
 class ConvergenceCriteriaFactory
 {
 public:
-    using ConvergenceCriteriaType       = ConvergenceCriteria<TSparseSpace, TDenseSpace>;
-    using ConvergenceCriterionSharedPtr = std::shared_ptr<ConvergenceCriteriaType>;
+    using ConvergenceCriterionType      = ConvergenceCriteria<TSparseSpace, TDenseSpace>;
+    using ConvergenceCriterionSharedPtr = std::shared_ptr<ConvergenceCriterionType>;
     using MixedGenericCriterionType     = MixedGenericCriteria<TSparseSpace, TDenseSpace>;
 
-    static std::shared_ptr<ConvergenceCriteriaType> Create(const Parameters& rSolverSettings)
+    static std::shared_ptr<ConvergenceCriterionType> Create(const Parameters& rSolverSettings)
     {
         using namespace std::string_literals;
 
@@ -80,7 +80,7 @@ public:
     }
 
 private:
-    static std::shared_ptr<ConvergenceCriteriaType> CreateDisplacementCriterion(const Parameters& rSolverSettings)
+    static std::shared_ptr<ConvergenceCriterionType> CreateDisplacementCriterion(const Parameters& rSolverSettings)
     {
         using namespace std::string_literals;
 
@@ -91,7 +91,7 @@ private:
         return std::make_shared<DisplacementCriteria<TSparseSpace, TDenseSpace>>(convergence_inputs);
     }
 
-    static std::shared_ptr<ConvergenceCriteriaType> CreateResidualCriterion(const Parameters& rSolverSettings)
+    static std::shared_ptr<ConvergenceCriterionType> CreateResidualCriterion(const Parameters& rSolverSettings)
     {
         using namespace std::string_literals;
 
@@ -101,7 +101,7 @@ private:
         return std::make_shared<ResidualCriteria<TSparseSpace, TDenseSpace>>(convergence_inputs);
     }
 
-    static std::shared_ptr<ConvergenceCriteriaType> CreateWaterPressureCriterion(const Parameters& rSolverSettings)
+    static std::shared_ptr<ConvergenceCriterionType> CreateWaterPressureCriterion(const Parameters& rSolverSettings)
     {
         using namespace std::string_literals;
 
