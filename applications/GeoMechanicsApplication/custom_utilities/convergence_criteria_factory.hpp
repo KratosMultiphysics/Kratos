@@ -30,8 +30,9 @@ template <class TSparseSpace, class TDenseSpace>
 class ConvergenceCriteriaFactory
 {
 public:
-    using ConvergenceCriteriaType   = ConvergenceCriteria<TSparseSpace, TDenseSpace>;
-    using MixedGenericCriterionType = MixedGenericCriteria<TSparseSpace, TDenseSpace>;
+    using ConvergenceCriteriaType       = ConvergenceCriteria<TSparseSpace, TDenseSpace>;
+    using ConvergenceCriterionSharedPtr = std::shared_ptr<ConvergenceCriteriaType>;
+    using MixedGenericCriterionType     = MixedGenericCriteria<TSparseSpace, TDenseSpace>;
 
     static std::shared_ptr<ConvergenceCriteriaType> Create(const Parameters& rSolverSettings)
     {
@@ -65,6 +66,11 @@ public:
 
         if (convergence_criterion_type == "water_pressure_criterion") {
             return CreateWaterPressureCriterion(rSolverSettings);
+        }
+
+        if (convergence_criterion_type == "displacement_and_water_pressure_criterion") {
+            return CreateAndCriterion(CreateDisplacementCriterion(rSolverSettings),
+                                      CreateWaterPressureCriterion(rSolverSettings));
         }
 
         KRATOS_ERROR << "The convergence_criterion (" << convergence_criterion_type << ") is unknown, "
@@ -104,6 +110,13 @@ private:
                 &WATER_PRESSURE, rSolverSettings["water_pressure_relative_tolerance"s].GetDouble(),
                 rSolverSettings["water_pressure_absolute_tolerance"s].GetDouble())};
         return std::make_shared<MixedGenericCriterionType>(convergence_variables);
+    }
+
+    static ConvergenceCriterionSharedPtr CreateAndCriterion(ConvergenceCriterionSharedPtr FirstCriterion,
+                                                            ConvergenceCriterionSharedPtr SecondCriterion)
+    {
+        return std::make_shared<And_Criteria<TSparseSpace, TDenseSpace>>(
+            std::move(FirstCriterion), std::move(SecondCriterion));
     }
 };
 
