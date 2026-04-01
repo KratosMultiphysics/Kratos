@@ -129,7 +129,7 @@ GetUpdateFunctionForEntities(const Kratos::Flags& rMappingOptions)
 }
 
 template<class TVectorType, bool TParallel=true>
-void UpdateSystemVectorFromModelPartNodes(
+void KRATOS_EXPOSE UpdateSystemVectorFromModelPartNodes(
     TVectorType& rVector,
     const ModelPart& rModelPart,
     const Variable<double>& rVariable,
@@ -159,7 +159,7 @@ void UpdateSystemVectorFromModelPartNodes(
 }
 
 template<class TVectorType, class TContainerType>
-void UpdateSystemVectorFromGeometricalEntities(
+void KRATOS_EXPOSE UpdateSystemVectorFromGeometricalEntities(
     TVectorType& rVector,
     const TContainerType& rContainer,
     const Variable<double>& rVariable,
@@ -185,7 +185,7 @@ void UpdateSystemVectorFromGeometricalEntities(
 }
 
 template<class TVectorType>
-void UpdateSystemVectorFromModelPartGeometries(
+void KRATOS_EXPOSE UpdateSystemVectorFromModelPartGeometries(
     TVectorType& rVector,
     const ModelPart& rModelPart,
     const Variable<double>& rVariable,
@@ -210,7 +210,7 @@ void UpdateSystemVectorFromModelPartGeometries(
 }
 
 template<class TVectorType>
-void UpdateSystemVectorFromModelPartConditions(
+void KRATOS_EXPOSE UpdateSystemVectorFromModelPartConditions(
     TVectorType& rVector,
     const ModelPart& rModelPart,
     const Variable<double>& rVariable,
@@ -235,7 +235,7 @@ void UpdateSystemVectorFromModelPartConditions(
 }
 
 template<class TVectorType>
-void UpdateSystemVectorFromModelPartElements(
+void KRATOS_EXPOSE UpdateSystemVectorFromModelPartElements(
     TVectorType& rVector,
     const ModelPart& rModelPart,
     const Variable<double>& rVariable,
@@ -260,7 +260,7 @@ void UpdateSystemVectorFromModelPartElements(
 }
 
 template<class TVectorType>
-void UpdateModelPartNodesFromSystemVector(
+void KRATOS_EXPOSE UpdateModelPartNodesFromSystemVector(
     const TVectorType& rVector,
     ModelPart& rModelPart,
     const Variable<double>& rVariable,
@@ -301,7 +301,7 @@ void UpdateModelPartNodesFromSystemVector(
 }
 
 template<class TVectorType, class TContainerType>
-void UpdateGeometricalEntitiesFromSystemVector(
+void KRATOS_EXPOSE UpdateGeometricalEntitiesFromSystemVector(
     const TVectorType& rVector,
     TContainerType& rContainer,
     const Variable<double>& rVariable,
@@ -331,7 +331,7 @@ void UpdateGeometricalEntitiesFromSystemVector(
 }
 
 template<class TVectorType>
-void UpdateModelPartConditionsFromSystemVector(
+void KRATOS_EXPOSE UpdateModelPartConditionsFromSystemVector(
     const TVectorType& rVector,
     ModelPart& rModelPart,
     const Variable<double>& rVariable,
@@ -350,7 +350,7 @@ void UpdateModelPartConditionsFromSystemVector(
 }
 
 template<class TVectorType>
-void UpdateModelPartElementsFromSystemVector(
+void KRATOS_EXPOSE UpdateModelPartElementsFromSystemVector(
     const TVectorType& rVector,
     ModelPart& rModelPart,
     const Variable<double>& rVariable,
@@ -369,7 +369,7 @@ void UpdateModelPartElementsFromSystemVector(
 }
 
 template<class TVectorType>
-void UpdateModelPartGeometriesFromSystemVector(
+void KRATOS_EXPOSE UpdateModelPartGeometriesFromSystemVector(
     const TVectorType& rVector,
     ModelPart& rModelPart,
     const Variable<double>& rVariable,
@@ -459,7 +459,7 @@ double ComputeSearchRadius(const ModelPart& rModelPart, int EchoLevel);
 
 double ComputeSearchRadius(const ModelPart& rModelPart1, const ModelPart& rModelPart2, const int EchoLevel);
 
-void CheckInterfaceModelParts(const int CommRank);
+void KRATOS_API(MAPPING_APPLICATION) CheckInterfaceModelParts(const int CommRank);
 
 BoundingBoxType KRATOS_API(MAPPING_APPLICATION) ComputeLocalBoundingBox(const ModelPart& rModelPart);
 
