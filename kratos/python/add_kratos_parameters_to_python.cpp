@@ -86,6 +86,7 @@ void  AddKratosParametersToPython(pybind11::module& m)
     .def("RecursivelyAddMissingParameters", &Parameters::RecursivelyAddMissingParameters)
     .def("ValidateDefaults", &Parameters::ValidateDefaults)
     .def("RecursivelyValidateDefaults", &Parameters::RecursivelyValidateDefaults)
+    .def("Validate", &Parameters::Validate)
     .def("IsEquivalentTo",&Parameters::IsEquivalentTo)
     .def("HasSameKeysAndTypeOfValuesAs",&Parameters::HasSameKeysAndTypeOfValuesAs)
     //.def("GetValue", GetValue) //Do not export this method. users shall adopt the operator [] syntax
