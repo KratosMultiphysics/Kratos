@@ -106,11 +106,12 @@ namespace Kratos
      */
     void ResetBackgroundGrid()
     {
+        KRATOS_INFO_IF("MPMBaseParticleMappingUtility", this->GetEchoLevel() >= 1) << "Resetting background grid..." << std::endl;
         // ModelPart& r_mpm_model_part = GetMPMModelPart();
         ModelPart& r_grid_model_part = GetGridModelPart();
 
         // Loop over the grid nodes performed to clear all nodal information
-        for (Node& r_node : r_grid_model_part.Nodes()) // yes.. i know it is confusing.
+        for (Node& r_node : r_grid_model_part.Nodes())
         {
         // block_for_each(r_mpm_model_part.Nodes(), [&](Node& r_node)
 		// {
@@ -173,14 +174,12 @@ namespace Kratos
 
     void RunP2GMapping()
     {
+        KRATOS_INFO_IF("MPMBaseParticleMappingUtility", this->GetEchoLevel() >= 1) << "Starting P2G mapping..." << std::endl;
         ModelPart& r_mpm_model_part = GetMPMModelPart();
         const ProcessInfo& r_current_process_info = r_mpm_model_part.GetProcessInfo();
         // Question: Since there are a couple of things needed to be reset that has nothing to do with the Mapping scheme, but their specific needs (example NODAL_AREA, STICK_FORCE),
         //           maybe this reset should be outside of RunP2GMapping and called somewhere in mpm_solver, together with these other variables that ideally should be in their own process ---------------------------------------------------------------------------------------------------------------------
-        KRATOS_INFO_IF("MPMBaseParticleMappingUtility", this->GetEchoLevel() >= 1) << "Resetting background grid..." << std::endl;
-        this->ResetBackgroundGrid();
 
-        KRATOS_INFO_IF("MPMBaseParticleMappingUtility", this->GetEchoLevel() >= 1) << "Starting P2G mapping..." << std::endl;
         // Extrapolate from Material Point Elements and Conditions (P2G Mapping)
         block_for_each(r_mpm_model_part.Elements(), [&](Element& r_material_point_element)
 		{
@@ -268,7 +267,7 @@ namespace Kratos
     void P2GCalculateNodalVariable()
     {
         ModelPart& r_mpm_model_part = GetMPMModelPart();
-        block_for_each(r_mpm_model_part.Nodes(), [&](Node& rNode) // Comment: uncomment this
+        block_for_each(r_mpm_model_part.Nodes(), [&](Node& rNode)
         {
             const double& r_nodal_mass = rNode.FastGetSolutionStepValue(NODAL_MASS);
 
