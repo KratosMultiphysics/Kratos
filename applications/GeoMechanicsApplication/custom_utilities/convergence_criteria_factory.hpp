@@ -12,9 +12,13 @@
 
 #pragma once
 
+#include "custom_utilities/string_utilities.h"
 #include "parameters_utilities.h"
+#include "solving_strategies/convergencecriterias/and_criteria.h"
 #include "solving_strategies/convergencecriterias/displacement_criteria.h"
 #include "solving_strategies/convergencecriterias/residual_criteria.h"
+
+#include <string>
 
 namespace Kratos
 {
@@ -27,29 +31,55 @@ public:
 
     static std::shared_ptr<ConvergenceCriteriaType> Create(const Parameters& rSolverSettings)
     {
-        KRATOS_ERROR_IF_NOT(rSolverSettings.Has("convergence_criterion"))
+        using namespace std::string_literals;
+
+        KRATOS_ERROR_IF_NOT(rSolverSettings.Has("convergence_criterion"s))
             << "No convergence_criterion is defined, aborting.";
 
-        if (rSolverSettings["convergence_criterion"].GetString() == "displacement_criterion") {
-            const std::vector<std::string> entries_to_copy = {"displacement_absolute_tolerance",
-                                                              "displacement_relative_tolerance"};
-            const Parameters               convergence_inputs =
-                ParametersUtilities::CopyOptionalParameters(rSolverSettings, entries_to_copy);
-            return std::make_shared<DisplacementCriteria<TSparseSpace, TDenseSpace>>(convergence_inputs);
-        }
-        if (rSolverSettings["convergence_criterion"].GetString() == "residual_criterion") {
-            const std::vector<std::string> entries_to_copy = {"residual_absolute_tolerance",
-                                                              "residual_relative_tolerance"};
-            const auto                     convergence_inputs =
-                ParametersUtilities::CopyOptionalParameters(rSolverSettings, entries_to_copy);
-            return std::make_shared<ResidualCriteria<TSparseSpace, TDenseSpace>>(convergence_inputs);
+        const auto convergence_criterion_type =
+            GeoStringUtilities::ToLower(rSolverSettings["convergence_criterion"s].GetString());
+
+        // The following switch resembles the one in method `_ConstructConvergenceCriterion` (see
+        // `geomechanics_U_Pw_solver.py`)
+        if (convergence_criterion_type == "displacement_criterion") {
+            return CreateDisplacementCriterion(rSolverSettings);
         }
 
-        KRATOS_ERROR << "The convergence_criterion ("
-                     << rSolverSettings["convergence_criterion"].GetString() << ") is unknown, "
+        if (convergence_criterion_type == "residual_criterion") {
+            return CreateResidualCriterion(rSolverSettings);
+        }
+
+        if (convergence_criterion_type == "and_criterion") {
+            return std::make_shared<And_Criteria<TSparseSpace, TDenseSpace>>(
+                CreateResidualCriterion(rSolverSettings), CreateDisplacementCriterion(rSolverSettings));
+        }
+
+        KRATOS_ERROR << "The convergence_criterion (" << convergence_criterion_type << ") is unknown, "
                      << "supported criteria are: 'displacement_criterion', "
                         "'residual_criterion'."
                      << std::endl;
+    }
+
+private:
+    static std::shared_ptr<ConvergenceCriteriaType> CreateDisplacementCriterion(const Parameters& rSolverSettings)
+    {
+        using namespace std::string_literals;
+
+        const auto entries_to_copy =
+            std::vector{"displacement_absolute_tolerance"s, "displacement_relative_tolerance"s};
+        const auto convergence_inputs =
+            ParametersUtilities::CopyOptionalParameters(rSolverSettings, entries_to_copy);
+        return std::make_shared<DisplacementCriteria<TSparseSpace, TDenseSpace>>(convergence_inputs);
+    }
+
+    static std::shared_ptr<ConvergenceCriteriaType> CreateResidualCriterion(const Parameters& rSolverSettings)
+    {
+        using namespace std::string_literals;
+
+        const auto entries_to_copy = std::vector{"residual_absolute_tolerance"s, "residual_relative_tolerance"s};
+        const auto convergence_inputs =
+            ParametersUtilities::CopyOptionalParameters(rSolverSettings, entries_to_copy);
+        return std::make_shared<ResidualCriteria<TSparseSpace, TDenseSpace>>(convergence_inputs);
     }
 };
 
