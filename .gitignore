@@ -3,7 +3,6 @@
 # unless it should be available for everyone
 # Please change the LOCAL gitignore (.git/info/exclude) to customize
 # exluding files/folders from being recognized by git
-.codex
 # Recovery files
 *~
 
