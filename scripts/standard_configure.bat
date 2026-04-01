@@ -37,7 +37,7 @@ del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\CMakeCache.txt"
 del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\CMakeFiles"
 
 rem Enable this if your build is slow and you have a multi-core machine
-set KRATOS_PARALLEL_BUILD_FLAG=/MP10
+set KRATOS_PARALLEL_BUILD_FLAG=/MP12
 
 rem Configure
 @echo on

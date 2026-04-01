@@ -43,6 +43,8 @@ namespace Kratos
      "Isogeometric shell analysis: The Reissner–Mindlin shell."
      Computer Methods in Applied Mechanics and Engineering, 199, 276-289
 
+
+
      [2] Du, X., Li, J., Wang, W., Zhao, G., Liu, Y., & Zhang, P. (2024).
      "Isogeometric Shape Optimization of Reissner–Mindlin Shell with Analytical Sensitivity 
       and Application to Cellular Sandwich Structures."
@@ -452,21 +454,8 @@ private:
         Matrix& DN_De_Jn,
         Matrix& J_inv,
         Matrix& dn,
-        const KinematicVariables& rActualKinematic) const;
-    void CalculateN_A(
-        const IndexType IntegrationPointIndex,
-        Matrix& rN_sigma_A,
-        const KinematicVariables& rActualKinematic) const;
-    void CalculateN_B(
-        const IndexType IntegrationPointIndex,
-        Matrix& rN_sigma_B,
-        const KinematicVariables& rActualKinematic) const;
-    void CalculateM(
-        const double IntegrationWeight,
-        
-        Matrix& rN_sigma_A,
-        Matrix& rN_sigma_B,
-        Matrix& rM) const;
+        KinematicVariables& rActualKinematic) const;
+  
     void CalculateMID_bar(
         const double IntegrationWeight,
         const double IntegrationWeight_zeta,
