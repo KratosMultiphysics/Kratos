@@ -16,6 +16,7 @@
 #include "parameters_utilities.h"
 #include "solving_strategies/convergencecriterias/and_criteria.h"
 #include "solving_strategies/convergencecriterias/displacement_criteria.h"
+#include "solving_strategies/convergencecriterias/or_criteria.h"
 #include "solving_strategies/convergencecriterias/residual_criteria.h"
 
 #include <string>
@@ -51,6 +52,11 @@ public:
 
         if (convergence_criterion_type == "and_criterion") {
             return std::make_shared<And_Criteria<TSparseSpace, TDenseSpace>>(
+                CreateResidualCriterion(rSolverSettings), CreateDisplacementCriterion(rSolverSettings));
+        }
+
+        if (convergence_criterion_type == "or_criterion") {
+            return std::make_shared<Or_Criteria<TSparseSpace, TDenseSpace>>(
                 CreateResidualCriterion(rSolverSettings), CreateDisplacementCriterion(rSolverSettings));
         }
 
