@@ -13,9 +13,11 @@
 #pragma once
 
 #include "custom_utilities/string_utilities.h"
+#include "includes/variables.h" // for WATER_PRESSURE
 #include "parameters_utilities.h"
 #include "solving_strategies/convergencecriterias/and_criteria.h"
 #include "solving_strategies/convergencecriterias/displacement_criteria.h"
+#include "solving_strategies/convergencecriterias/mixed_generic_criteria.h"
 #include "solving_strategies/convergencecriterias/or_criteria.h"
 #include "solving_strategies/convergencecriterias/residual_criteria.h"
 
@@ -28,7 +30,8 @@ template <class TSparseSpace, class TDenseSpace>
 class ConvergenceCriteriaFactory
 {
 public:
-    using ConvergenceCriteriaType = ConvergenceCriteria<TSparseSpace, TDenseSpace>;
+    using ConvergenceCriteriaType   = ConvergenceCriteria<TSparseSpace, TDenseSpace>;
+    using MixedGenericCriterionType = MixedGenericCriteria<TSparseSpace, TDenseSpace>;
 
     static std::shared_ptr<ConvergenceCriteriaType> Create(const Parameters& rSolverSettings)
     {
@@ -60,6 +63,10 @@ public:
                 CreateResidualCriterion(rSolverSettings), CreateDisplacementCriterion(rSolverSettings));
         }
 
+        if (convergence_criterion_type == "water_pressure_criterion") {
+            return CreateWaterPressureCriterion(rSolverSettings);
+        }
+
         KRATOS_ERROR << "The convergence_criterion (" << convergence_criterion_type << ") is unknown, "
                      << "supported criteria are: 'displacement_criterion', "
                         "'residual_criterion'."
@@ -86,6 +93,17 @@ private:
         const auto convergence_inputs =
             ParametersUtilities::CopyOptionalParameters(rSolverSettings, entries_to_copy);
         return std::make_shared<ResidualCriteria<TSparseSpace, TDenseSpace>>(convergence_inputs);
+    }
+
+    static std::shared_ptr<ConvergenceCriteriaType> CreateWaterPressureCriterion(const Parameters& rSolverSettings)
+    {
+        using namespace std::string_literals;
+
+        const auto convergence_variables = std::vector{
+            std::make_tuple<const VariableData*, MixedGenericCriterionType::TDataType, MixedGenericCriterionType::TDataType>(
+                &WATER_PRESSURE, rSolverSettings["water_pressure_relative_tolerance"s].GetDouble(),
+                rSolverSettings["water_pressure_absolute_tolerance"s].GetDouble())};
+        return std::make_shared<MixedGenericCriterionType>(convergence_variables);
     }
 };
 
