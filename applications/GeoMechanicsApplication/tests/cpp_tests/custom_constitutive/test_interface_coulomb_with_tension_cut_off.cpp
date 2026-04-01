@@ -305,8 +305,6 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_DoesNotCalculateStre
     // Act
     law.CalculateMaterialResponseCauchy(parameters);
     const auto& r_resulting_traction = parameters.GetStressVector();
-    int         plasticity_status;
-    law.GetValue(GEO_PLASTICITY_STATUS, plasticity_status);
 
     // Assert
     const auto expected_traction = UblasUtilities::CreateVector({0.0, 0.0});
