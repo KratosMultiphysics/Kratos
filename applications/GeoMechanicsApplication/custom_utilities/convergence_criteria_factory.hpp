@@ -55,8 +55,8 @@ public:
         }
 
         if (convergence_criterion_type == "and_criterion") {
-            return std::make_shared<And_Criteria<TSparseSpace, TDenseSpace>>(
-                CreateResidualCriterion(rSolverSettings), CreateDisplacementCriterion(rSolverSettings));
+            return CreateAndCriterion(CreateResidualCriterion(rSolverSettings),
+                                      CreateDisplacementCriterion(rSolverSettings));
         }
 
         if (convergence_criterion_type == "or_criterion") {
