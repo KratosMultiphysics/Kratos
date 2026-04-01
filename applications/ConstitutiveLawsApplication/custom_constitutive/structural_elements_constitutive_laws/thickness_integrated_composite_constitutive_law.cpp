@@ -252,80 +252,7 @@ double& ThicknessIntegratedCompositeConstitutiveLaw::CalculateValue(
     double& rValue
     )
 {
-    // if (rThisVariable == VON_MISES_STRESS_TOP_SURFACE ||
-    //     rThisVariable == VON_MISES_STRESS_BOTTOM_SURFACE ||
-    //     rThisVariable == VON_MISES_STRESS_MIDDLE_SURFACE)
-    // {
-    //     const auto& r_material_properties = rValues.GetMaterialProperties();
-    //     Flags& r_flags = rValues.GetOptions();
-
-    //     // Previous flags saved
-    //     const bool flag_compute_constitutive_tensor = r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
-    //     const bool flag_compute_stress = r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS);
-
-    //     r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
-    //     r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
-
-    //     std::vector<double> coordinates;
-    //     std::vector<double> weights;
-    //     CalculateCoordinatesAndWeights(coordinates, weights, mThicknessIntegrationPoints, r_material_properties);
-
-    //     const auto subprop_strain_size = mConstitutiveLaws[0]->GetStrainSize(); // 3
-    //     const auto subprop_dimension = mConstitutiveLaws[0]->WorkingSpaceDimension(); // 2
-    //     const Vector generalized_strain_vector = rValues.GetStrainVector(); // size 8
-    //     const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
-    //     Properties &r_subprop = *(it_prop_begin);
-
-    //     Vector& r_stress_vector = rValues.GetStressVector(); // size 3
-    //     Vector& r_strain_vector = rValues.GetStrainVector(); // size 3
-    //     Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix(); // size 3x3
-    //     r_strain_vector.resize(subprop_strain_size, false);
-    //     r_stress_vector.resize(subprop_strain_size, false);
-    //     r_constitutive_matrix.resize(subprop_strain_size, subprop_strain_size, false);
-    //     r_strain_vector.clear();
-    //     r_stress_vector.clear();
-    //     r_constitutive_matrix.clear();
-    //     Matrix F(subprop_dimension, subprop_dimension); // 2x2
-
-    //     rValues.SetMaterialProperties(r_subprop);
-
-    //     IndexType layer = 0; // Top case
-    //     if (rThisVariable == VON_MISES_STRESS_BOTTOM_SURFACE) {
-    //         layer = mThicknessIntegrationPoints - 1;
-    //     } else if (rThisVariable == VON_MISES_STRESS_MIDDLE_SURFACE) {
-    //         layer = (mThicknessIntegrationPoints - 1) / 2; // Assuming odd number of IPs, so that we have a middle one
-    //     }
-
-    //     noalias(r_strain_vector) = project(generalized_strain_vector, range(0, 3)) + coordinates[layer] * project(generalized_strain_vector, range(3, 6));
-
-    //     // In case the 2D Cls work in finite strain
-    //     noalias(F) = AdvancedConstitutiveLawUtilities<3>::ComputeEquivalentSmallDeformationDeformationGradient(r_strain_vector);
-    //     double detF = MathUtils<double>::Det2(F);
-    //     rValues.SetDeterminantF(detF);
-    //     rValues.SetDeformationGradientF(F);
-
-    //     mConstitutiveLaws[layer]->CalculateMaterialResponseCauchy(rValues);
-
-    //     rValue = ConstitutiveLawUtilities<3>::CalculateVonMisesEquivalentStress(rValues.GetStressVector());
-
-    //     // Restore information
-    //     r_strain_vector.resize(VoigtSize, false);
-    //     noalias(r_strain_vector) = generalized_strain_vector;
-    //     rValues.SetMaterialProperties(r_material_properties);
-    //     r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_compute_constitutive_tensor);
-    //     r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_compute_stress);
-
-    //     return rValue;
-    // } else if (rThisVariable == VON_MISES_STRESS) {
-    //     double top_value, mid_value, bot_value;
-
-    //     CalculateValue(rValues, VON_MISES_STRESS_TOP_SURFACE, top_value);
-    //     CalculateValue(rValues, VON_MISES_STRESS_MIDDLE_SURFACE, mid_value);
-    //     CalculateValue(rValues, VON_MISES_STRESS_BOTTOM_SURFACE, bot_value);
-    //     rValue = std::max({top_value, mid_value, bot_value});
-    //     return rValue;
-    // }
-
+    // TODO
     return TCalculateValue<double>(rValues, rThisVariable, rValue);
 }
 
@@ -493,12 +420,13 @@ void ThicknessIntegratedCompositeConstitutiveLaw::CalculateMaterialResponseCauch
 
         Matrix F(subprop_dimension, subprop_dimension); // 2x2
         double weight, z_coord, z_coord2, aux_weight, aux_weight2, detF, Euler_angle;
-        
+
         const double h_max = GetMaxReferenceEdgeLength(rValues.GetElementGeometry());
         const double alpha = 0.1;
         const double thickness = r_material_properties[THICKNESS];
         const double t_square = thickness * thickness;
-        const double stenberg_stabilization = (5.0 / 6.0) * t_square / (t_square + alpha * h_max * h_max); // TODO 5/6 already in...
+        const double shear_reduction_factor = 1.0;
+        const double stenberg_stabilization = (shear_reduction_factor) * t_square / (t_square + alpha * h_max * h_max); // TODO 5/6 already in...
 
         double Gyz = 0.0;
         double Gxz = 0.0;
@@ -647,7 +575,7 @@ void ThicknessIntegratedCompositeConstitutiveLaw::InitializeMaterialResponseCauc
     KRATOS_TRY
 
     if (RequiresInitializeMaterialResponse()) {
-
+        // TODO
     }
 
     KRATOS_CATCH("InitializeMaterialResponseCauchy")
@@ -693,7 +621,7 @@ void ThicknessIntegratedCompositeConstitutiveLaw::FinalizeMaterialResponseCauchy
     KRATOS_TRY
 
     if (RequiresFinalizeMaterialResponse()) {
-
+        // TODO
     }
 
     KRATOS_CATCH("FinalizeMaterialResponseCauchy")
