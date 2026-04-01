@@ -716,22 +716,21 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_DoesNotCalculateStressWhe
     const auto dummy_shape_function_values = Vector{};
     law.InitializeMaterial(properties, dummy_element_geometry, dummy_shape_function_values);
 
-    auto   cauchy_stress_vector = UblasUtilities::CreateVector({18.0, 0.0, 0.0, -8.0});
-    Vector strain_vector        = ZeroVector(4);
+    auto cauchy_stress_vector = Vector{4, 0.0};
+    auto strain_vector        = Vector{4, 1.0};
     parameters.SetStrainVector(strain_vector);
     parameters.SetStressVector(cauchy_stress_vector);
 
-    const auto dummy_process_info = ProcessInfo{};
-    law.SetValue(CAUCHY_STRESS_VECTOR, cauchy_stress_vector, dummy_process_info);
-    law.FinalizeMaterialResponseCauchy(parameters);
-
     // Act
     law.CalculateMaterialResponseCauchy(parameters);
+    int plasticity_status;
+    law.GetValue(GEO_PLASTICITY_STATUS, plasticity_status);
 
     // Assert
-    const auto expected_cauchy_stress_vector = UblasUtilities::CreateVector({18.0, 0.0, 0.0, -8.0});
+    const auto expected_cauchy_stress_vector = Vector{4, 0.0};
     KRATOS_EXPECT_VECTOR_NEAR(parameters.GetStressVector(), expected_cauchy_stress_vector,
                               Defaults::absolute_tolerance);
+    KRATOS_EXPECT_EQ(plasticity_status, static_cast<int>(PlasticityStatus::ELASTIC));
 }
 
 KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponseCauchyAtTensionApexReturnZoneInterface,

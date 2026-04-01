@@ -296,7 +296,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_DoesNotCalculateStre
     parameters.SetMaterialProperties(properties);
     auto traction_vector = Vector{ZeroVector{2}};
     parameters.SetStressVector(traction_vector);
-    auto relative_displacement_vector = Vector{ZeroVector{2}};
+    auto relative_displacement_vector = Vector{2, 1.0};
     parameters.SetStrainVector(relative_displacement_vector);
 
     auto law = InterfaceCoulombWithTensionCutOff{std::make_unique<InterfacePlaneStrain>()};
@@ -305,10 +305,13 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_DoesNotCalculateStre
     // Act
     law.CalculateMaterialResponseCauchy(parameters);
     const auto& r_resulting_traction = parameters.GetStressVector();
+    int         plasticity_status;
+    law.GetValue(GEO_PLASTICITY_STATUS, plasticity_status);
 
     // Assert
     const auto expected_traction = UblasUtilities::CreateVector({0.0, 0.0});
     KRATOS_EXPECT_VECTOR_NEAR(r_resulting_traction, expected_traction, Defaults::absolute_tolerance);
+    KRATOS_EXPECT_EQ(plasticity_status, static_cast<int>(PlasticityStatus::ELASTIC));
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_Serialization, KratosGeoMechanicsFastSuiteWithoutKernel)
