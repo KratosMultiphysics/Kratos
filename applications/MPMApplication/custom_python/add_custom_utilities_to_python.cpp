@@ -36,7 +36,7 @@ namespace Python{
     public:
         //Inherit the constructors
 
-        void P2GMomentum(Element& rElement, Node& rNode, const double& rN_i,  const ProcessInfo& rCurrentProcessInfo) override
+        void P2GMomentum(Element& rElement, Node& rNode, const double& rN_i) override
         {
             using ReturnType = void;
             using BaseType = MPMBaseParticleMappingUtility;
@@ -46,10 +46,9 @@ namespace Python{
                 P2GMomentum,
                 rElement,
                 rNode,
-                rN_i,
-                rCurrentProcessInfo);
+                rN_i);
         }
-        void P2GInertia(Element& rElement, Node& rNode, const double& rN_i,  const ProcessInfo& rCurrentProcessInfo) override
+        void P2GInertia(Element& rElement, Node& rNode, const double& rN_i) override
         {
             using ReturnType = void;
             using BaseType = MPMBaseParticleMappingUtility;
@@ -59,10 +58,9 @@ namespace Python{
                 P2GInertia,
                 rElement,
                 rNode,
-                rN_i,
-                rCurrentProcessInfo);
+                rN_i);
         }
-        void G2PVelocity(Element& rElement, const array_1d<double, 3>& rNewMPAcceleration, const ProcessInfo& rCurrentProcessInfo) override
+        void G2PVelocity(Element& rElement, const array_1d<double, 3>& rNewMPAcceleration) override
         {
             using ReturnType = void;
             using BaseType = MPMBaseParticleMappingUtility;
@@ -71,8 +69,7 @@ namespace Python{
                 BaseType,
                 G2PVelocity,
                 rElement,
-                rNewMPAcceleration,
-                rCurrentProcessInfo);
+                rNewMPAcceleration);
         }
     }; // class ControllerTrampoline
 

@@ -63,13 +63,13 @@ namespace Kratos
     /**
      * Do Particle to Grid mapping for nodal mass.
      */
-    void P2GMomentum(Element& rElement, Node& rNode, const double& rN_i,  const ProcessInfo& rCurrentProcessInfo) override
+    void P2GMomentum(Element& rElement, Node& rNode, const double& rN_i) override
     {
         std::vector<array_1d<double, 3 >> mp_velocity;
         std::vector<double> mp_mass;
 
-        rElement.CalculateOnIntegrationPoints(MP_VELOCITY, mp_velocity, rCurrentProcessInfo);
-        rElement.CalculateOnIntegrationPoints(MP_MASS, mp_mass, rCurrentProcessInfo);
+        rElement.CalculateOnIntegrationPoints(MP_VELOCITY, mp_velocity, mrProcessInfo);
+        rElement.CalculateOnIntegrationPoints(MP_MASS, mp_mass, mrProcessInfo);
 
         array_1d<double,3> r_nodal_momentum = mp_velocity[0] * rN_i * mp_mass[0];
         AtomicAdd(rNode.FastGetSolutionStepValue(NODAL_MOMENTUM, 0), r_nodal_momentum);
@@ -78,13 +78,13 @@ namespace Kratos
     /**
      * Do Particle to Grid mapping for nodal inertia.
      */
-    void P2GInertia(Element& rElement, Node& rNode, const double& rN_i,  const ProcessInfo& rCurrentProcessInfo) override
+    void P2GInertia(Element& rElement, Node& rNode, const double& rN_i) override
     {
         std::vector<array_1d<double, 3 >> mp_acceleration;
         std::vector<double> mp_mass;
 
-        rElement.CalculateOnIntegrationPoints(MP_ACCELERATION, mp_acceleration, rCurrentProcessInfo);
-        rElement.CalculateOnIntegrationPoints(MP_MASS, mp_mass, rCurrentProcessInfo);
+        rElement.CalculateOnIntegrationPoints(MP_ACCELERATION, mp_acceleration, mrProcessInfo);
+        rElement.CalculateOnIntegrationPoints(MP_MASS, mp_mass, mrProcessInfo);
 
 
         array_1d<double,3> r_nodal_inertia = mp_acceleration[0] * rN_i * mp_mass[0];
@@ -97,29 +97,22 @@ namespace Kratos
 
     #pragma region Grid to Particle Mapping (G2P)
 
-    void G2PVelocity(Element& rElement, const array_1d<double, 3>& rNewMPAcceleration, const ProcessInfo& rCurrentProcessInfo) override
+    void G2PVelocity(Element& rElement, const array_1d<double, 3>& rNewMPAcceleration) override
     {
         // array_1d<double,3> mp_previous_velocity;
         std::vector<array_1d<double, 3 >> mp_new_velocity;
-        rElement.CalculateOnIntegrationPoints(MP_VELOCITY, mp_new_velocity, rCurrentProcessInfo);
+        rElement.CalculateOnIntegrationPoints(MP_VELOCITY, mp_new_velocity, mrProcessInfo);
         std::vector<array_1d<double, 3 >> mp_previous_acceleration;
-        rElement.CalculateOnIntegrationPoints(MP_ACCELERATION, mp_previous_acceleration, rCurrentProcessInfo);
+        rElement.CalculateOnIntegrationPoints(MP_ACCELERATION, mp_previous_acceleration, mrProcessInfo);
 
 
         /* NOTE:
         Another way to update the MP velocity (see paper Guilkey and Weiss, 2003).
         This assume newmark (or trapezoidal, since n.gamma=0.5) rule of integration*/
         const double gamma_n = 0.5;
-        const double delta_time = rCurrentProcessInfo[DELTA_TIME];
+        const double delta_time = mrProcessInfo[DELTA_TIME];
         mp_new_velocity[0] += delta_time * (mp_previous_acceleration[0] * (1.0-gamma_n) + gamma_n * rNewMPAcceleration);
-        rElement.SetValuesOnIntegrationPoints(MP_VELOCITY, mp_new_velocity, rCurrentProcessInfo);
-    }
-
-
-    void G2PAdditionalVariables(Element& rElement, const ProcessInfo& rCurrentProcessInfo) override
-    {
-        MPMBaseParticleMappingUtility::G2PAdditionalVariables(rElement, rCurrentProcessInfo);
-        // Flip requires no additional variables
+        rElement.SetValuesOnIntegrationPoints(MP_VELOCITY, mp_new_velocity, mrProcessInfo);
     }
 
     #pragma endregion
