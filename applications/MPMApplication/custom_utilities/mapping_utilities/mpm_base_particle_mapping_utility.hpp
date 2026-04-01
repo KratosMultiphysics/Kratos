@@ -107,11 +107,9 @@ namespace Kratos
     void ResetBackgroundGrid()
     {
         KRATOS_INFO_IF("MPMBaseParticleMappingUtility", this->GetEchoLevel() >= 1) << "Resetting background grid..." << std::endl;
-        // ModelPart& r_mpm_model_part = GetMPMModelPart();
-        ModelPart& r_grid_model_part = GetGridModelPart();
 
         // Loop over the grid nodes performed to clear all nodal information
-        for (Node& r_node : r_grid_model_part.Nodes())
+        for (Node& r_node : mrGridModelPart.Nodes())
         {
         // block_for_each(r_mpm_model_part.Nodes(), [&](Node& r_node)
 		// {
@@ -175,13 +173,13 @@ namespace Kratos
     void RunP2GMapping()
     {
         KRATOS_INFO_IF("MPMBaseParticleMappingUtility", this->GetEchoLevel() >= 1) << "Starting P2G mapping..." << std::endl;
-        ModelPart& r_mpm_model_part = GetMPMModelPart();
-        const ProcessInfo& r_current_process_info = r_mpm_model_part.GetProcessInfo();
+
+        const ProcessInfo& r_current_process_info = mrMPMModelPart.GetProcessInfo();
         // Question: Since there are a couple of things needed to be reset that has nothing to do with the Mapping scheme, but their specific needs (example NODAL_AREA, STICK_FORCE),
         //           maybe this reset should be outside of RunP2GMapping and called somewhere in mpm_solver, together with these other variables that ideally should be in their own process ---------------------------------------------------------------------------------------------------------------------
 
         // Extrapolate from Material Point Elements and Conditions (P2G Mapping)
-        block_for_each(r_mpm_model_part.Elements(), [&](Element& r_material_point_element)
+        block_for_each(mrMPMModelPart.Elements(), [&](Element& r_material_point_element)
 		{
             this->InitializeSolutionStep(r_material_point_element);
             const Vector& rN = row(r_material_point_element.GetGeometry().ShapeFunctionsValues(), 0);
@@ -266,8 +264,7 @@ namespace Kratos
      */
     void P2GCalculateNodalVariable()
     {
-        ModelPart& r_mpm_model_part = GetMPMModelPart();
-        block_for_each(r_mpm_model_part.Nodes(), [&](Node& rNode)
+        block_for_each(mrMPMModelPart.Nodes(), [&](Node& rNode)
         {
             const double& r_nodal_mass = rNode.FastGetSolutionStepValue(NODAL_MASS);
 
@@ -315,10 +312,9 @@ namespace Kratos
     #pragma region Grid to Particle Mapping (G2P)
     void RunG2PMapping()
     {
-        ModelPart& r_model_part = GetMPMModelPart();
-        const ProcessInfo& r_current_process_info = r_model_part.GetProcessInfo();
+        const ProcessInfo& r_current_process_info = mrMPMModelPart.GetProcessInfo();
         // Interpolate from Nodes to Particle (P2G Mapping)
-        block_for_each(r_model_part.Elements(), [&](Element& r_element)
+        block_for_each(mrMPMModelPart.Elements(), [&](Element& r_element)
 		{
             array_1d<double,3> new_mp_displacement = ZeroVector(3);
             array_1d<double,3> new_mp_velocity     = ZeroVector(3);
@@ -389,23 +385,6 @@ namespace Kratos
     }
     #pragma endregion
     // end of G2P Mapping
-
-    /**
-     * @brief Operations to get the reference to MPM model part
-     * @return mrMPMModelPart: The model part member variable
-     */
-    ModelPart& GetMPMModelPart() // Comment: are these even necessary?
-    {
-        return mrMPMModelPart;
-    };
-    /**
-     * @brief Operations to get the reference to grid model part
-     * @return mrGridModelPart: The model part member variable
-     */
-    ModelPart& GetGridModelPart()
-    {
-        return mrGridModelPart;
-    };
 
     /**
      * @brief This returns the level of echo for the particle mapping utility
