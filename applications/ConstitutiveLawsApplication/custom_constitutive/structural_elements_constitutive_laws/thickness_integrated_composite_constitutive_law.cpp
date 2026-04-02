@@ -482,10 +482,9 @@ void ThicknessIntegratedCompositeConstitutiveLaw::CalculateMaterialResponseCauch
                 generalized_stress_vector[1] += r_stress_vector[1] * weight; // membrane yy
                 generalized_stress_vector[2] += r_stress_vector[2] * weight; // membrane xy
 
-                const double factor = 0.5 * (std::pow(z_sup, 2) - std::pow(z_inf, 2));
-                generalized_stress_vector[3] += r_stress_vector[0] * factor; // bending xx
-                generalized_stress_vector[4] += r_stress_vector[1] * factor; // bending yy
-                generalized_stress_vector[5] += r_stress_vector[2] * factor; // bending xy
+                generalized_stress_vector[3] += r_stress_vector[0] * aux_weight; // bending xx
+                generalized_stress_vector[4] += r_stress_vector[1] * aux_weight; // bending yy
+                generalized_stress_vector[5] += r_stress_vector[2] * aux_weight; // bending xy
 
                 // Elastic behaviour in shear
                 generalized_stress_vector[6] += stenberg_stabilization * Gyz * (generalized_strain_vector[6]) * weight; // shear YZ
@@ -503,7 +502,7 @@ void ThicknessIntegratedCompositeConstitutiveLaw::CalculateMaterialResponseCauch
                 noalias(project(generalized_constitutive_matrix, range(3, 6), range(3, 6))) += (std::pow(z_sup, 3) - std::pow(z_inf, 3)) / 3.0 * r_constitutive_matrix;
 
                 // membrane-bending part
-                noalias(project(generalized_constitutive_matrix, range(0, 3), range(3, 6))) += 0.5 * (std::pow(z_sup, 2) - std::pow(z_inf, 2)) * r_constitutive_matrix;
+                noalias(project(generalized_constitutive_matrix, range(0, 3), range(3, 6))) += aux_weight * r_constitutive_matrix;
 
                 // bending-membrane part (transposed)
                 generalized_constitutive_matrix(3, 0) = generalized_constitutive_matrix(0, 3);
