@@ -90,7 +90,7 @@
                 "kratos_module": "KratosMultiphysics",
                 "process_name": "JsonOutputProcess",
                 "Parameters": {
-                    "model_part_name": "PorousDomain.RightInterfaceSoilSideNodes",
+                    "model_part_name": "PorousDomain.Slave_side_1",
                     "output_file_name": "3_Final_equilibrium_interface_output.json",
                     "output_variables"             : ["GEO_EFFECTIVE_TRACTION_VECTOR"],
                     "gauss_points_output_variables": [],
