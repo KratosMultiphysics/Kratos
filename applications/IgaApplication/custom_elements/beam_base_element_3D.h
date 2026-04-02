@@ -29,7 +29,7 @@ namespace Kratos{
 /// Short class definition.
 /** Base class for IGA 3D Beams.
 */
-class KRATOS_API(IGA_APPLICATION) Base3DBeamElement
+class KRATOS_API(IGA_APPLICATION) BeamBaseElement3D
     : public Element
 {
 protected:
@@ -76,17 +76,17 @@ public:
     using IndexType = typename BaseType::IndexType;
 
     /// Counted pointer of Shell3pElement
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(Base3DBeamElement);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(BeamBaseElement3D);
 
     /// Constructor using an array of nodes
-    Base3DBeamElement(
+    BeamBaseElement3D(
         IndexType NewId,
         GeometryType::Pointer pGeometry)
         : Element(NewId, pGeometry)
     {};
 
     /// Constructor using an array of nodes with properties
-    Base3DBeamElement(
+    BeamBaseElement3D(
         IndexType NewId,
         GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties)
@@ -94,12 +94,12 @@ public:
     {};
 
     /// Default constructor necessary for serialization
-    Base3DBeamElement()
+    BeamBaseElement3D()
         : Element()
     {};
 
     /// Destructor.
-    virtual ~Base3DBeamElement() = default;
+    virtual ~BeamBaseElement3D() = default;
 
     ///@}
     ///@name Life Cycle
@@ -254,6 +254,6 @@ private:
     void load(Serializer& rSerializer) override = 0 ;
 
 
-}; // Class Base3DBeamElement
+}; // Class BeamBaseElement3D
 
 } // Namespace Kratos

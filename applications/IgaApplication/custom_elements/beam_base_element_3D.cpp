@@ -17,7 +17,7 @@
 // Project includes
 
 // Application includes
-#include "custom_elements/base_3d_beam_element.h"
+#include "custom_elements/beam_base_element_3D.h"
 
 namespace Kratos
 {

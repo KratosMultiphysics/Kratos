@@ -22,7 +22,7 @@
 
 // Application includes
 #include "iga_application_variables.h"
-#include "base_3d_beam_element.h"
+#include "custom_elements/beam_base_element_3D.h"
 
 namespace Kratos{
 ///@name Kratos Classes
@@ -30,8 +30,8 @@ namespace Kratos{
 /// Short class definition.
 /** 3D Bernoulli beam element.
 */
-class KRATOS_API(IGA_APPLICATION) Bernoulli3DBeamElement
-    : public Base3DBeamElement
+class KRATOS_API(IGA_APPLICATION) BeamBernoulliElement3D
+    : public BeamBaseElement3D
 {
 protected:
     struct KinematicVariables
@@ -88,9 +88,9 @@ public:
     ///@name Type Definitions
     ///@{
 
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(Bernoulli3DBeamElement);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(BeamBernoulliElement3D);
 
-    using BaseType = Base3DBeamElement;
+    using BaseType = BeamBaseElement3D;
     using SizeType = typename BaseType::SizeType;
     using IndexType = typename BaseType::IndexType;
 
@@ -102,30 +102,30 @@ public:
     ///@{
 
     /// Constructor using an array of nodes
-    Bernoulli3DBeamElement(
+    BeamBernoulliElement3D(
         IndexType NewId,
         GeometryType::Pointer pGeometry)
-        : Base3DBeamElement(NewId, pGeometry)
+        : BeamBaseElement3D(NewId, pGeometry)
     {
     };
 
     /// Constructor using an array of nodes with properties
-    Bernoulli3DBeamElement(
+    BeamBernoulliElement3D(
         IndexType NewId,
         GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties)
-        : Base3DBeamElement(NewId, pGeometry, pProperties)
+        : BeamBaseElement3D(NewId, pGeometry, pProperties)
     {
     };
 
     /// Default constructor necessary for serialization
-    Bernoulli3DBeamElement()
-        : Base3DBeamElement()
+    BeamBernoulliElement3D()
+        : BeamBaseElement3D()
     {
     };
 
     /// Destructor.
-    ~Bernoulli3DBeamElement() override = default;
+    ~BeamBernoulliElement3D() override = default;
 
      /// Create with Id, pointer to geometry and pointer to property
     Element::Pointer Create(
@@ -134,7 +134,7 @@ public:
         PropertiesType::Pointer pProperties
     ) const override
     {
-        return Kratos::make_intrusive<Bernoulli3DBeamElement>(
+        return Kratos::make_intrusive<BeamBernoulliElement3D>(
             NewId, pGeom, pProperties);
     };
 
@@ -145,7 +145,7 @@ public:
         PropertiesType::Pointer pProperties
     ) const override
     {
-        return Kratos::make_intrusive<Bernoulli3DBeamElement>(
+        return Kratos::make_intrusive<BeamBernoulliElement3D>(
             NewId, GetGeometry().Create(ThisNodes), pProperties);
     };
 

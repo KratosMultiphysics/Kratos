@@ -17,11 +17,11 @@
 // Project includes
 
 // Application includes
-#include "custom_elements/bernoulli_3d_beam_element.h"
+#include "custom_elements/beam_bernoulli_element_3D.h"
 
 namespace Kratos
 {
-    void Bernoulli3DBeamElement::GetDofList(
+    void BeamBernoulliElement3D::GetDofList(
         DofsVectorType& rElementalDofList,
         const ProcessInfo& rCurrentProcessInfo
     ) const
@@ -42,7 +42,7 @@ namespace Kratos
         KRATOS_CATCH("")
     }
 
-    void Bernoulli3DBeamElement::EquationIdVector(
+    void BeamBernoulliElement3D::EquationIdVector(
         EquationIdVectorType& rResult,
         const ProcessInfo& rCurrentProcessInfo
     ) const
@@ -68,7 +68,7 @@ namespace Kratos
         KRATOS_CATCH("")
     };
 
-    void Bernoulli3DBeamElement::ComputeGAxial(
+    void BeamBernoulliElement3D::ComputeGAxial(
         const IndexType IntegrationPointIndex,
         Matrix& rGAxial,
         KinematicVariables& rKinematicVariables) const
