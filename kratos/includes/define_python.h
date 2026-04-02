@@ -100,6 +100,19 @@ PYBIND11_DECLARE_HOLDER_TYPE(T, Kratos::intrusive_ptr<T>);
 #define KRATOS_REGISTER_IN_PYTHON_FLAG(module,flag) \
     KRATOS_REGISTER_IN_PYTHON_FLAG_IMPLEMENTATION(module,flag);
 
+#ifdef KRATOS_REGISTER_IN_PYTHON_LOCAL_FLAG_IMPLEMENTATION
+#undef KRATOS_REGISTER_IN_PYTHON_LOCAL_FLAG_IMPLEMENTATION
+#endif
+#define KRATOS_REGISTER_IN_PYTHON_LOCAL_FLAG_IMPLEMENTATION(module,class_name,flag) \
+    module.attr(#flag) = &class_name::flag;
+
+#ifdef KRATOS_REGISTER_IN_PYTHON_LOCAL_FLAG
+#undef KRATOS_REGISTER_IN_PYTHON_LOCAL_FLAG
+#endif
+#define KRATOS_REGISTER_IN_PYTHON_LOCAL_FLAG(module,class_name,flag) \
+    KRATOS_REGISTER_IN_PYTHON_LOCAL_FLAG_IMPLEMENTATION(module,class_name,flag) \
+    KRATOS_REGISTER_IN_PYTHON_LOCAL_FLAG_IMPLEMENTATION(module,class_name,NOT_##flag)
+
 // This function is used to print the ofstream-operator
 // i.e. printing an object will give the same result in Python as in C++
 // To be defined as the "__str__" function
