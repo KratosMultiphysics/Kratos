@@ -1,6 +1,7 @@
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-import KratosMultiphysics.GeoMechanicsApplication.geomechanics_analysis as analysis
+from KratosMultiphysics.project import Project
+import importlib
 import KratosMultiphysics.GeoMechanicsApplication.context_managers as context_managers
 from KratosMultiphysics.GeoMechanicsApplication.gid_output_file_reader import (
     GiDOutputFileReader,
@@ -705,19 +706,24 @@ class KratosGeoMechanicsBuildingPit(KratosUnittest.TestCase):
             delta=rel_tolerance * expected_total_vertical_reaction,
         )
 
-    def run_simulation_and_checks(self, sub_directory_name):
+    def run_simulation_and_checks(self, sub_directory_name, skip_last_stage=False):
         project_path = test_helper.get_file_path(
             os.path.join("building_pit", sub_directory_name)
         )
 
         with context_managers.set_cwd_to(project_path):
-            model = Kratos.Model()
-            for stage in self.stages_info.values():
-                with open(
-                    Path("..") / "common" / f"{stage['base_name']}.json", "r"
-                ) as f:
-                    stage_parameters = Kratos.Parameters(f.read())
-                analysis.GeoMechanicsAnalysis(model, stage_parameters).Run()
+            with open(Path("..") / "common" / "orchestrator_stages.json", 'r') as parameter_file:
+                project_parameters = Kratos.Parameters(parameter_file.read())
+                if skip_last_stage:
+                    stage_execution_list = project_parameters["orchestrator"]["settings"]["execution_list"].GetStringArray()
+                    stage_execution_list.pop()
+                    project_parameters["orchestrator"]["settings"]["execution_list"].SetStringArray(stage_execution_list)
+                project = Project(project_parameters)
+                orchestrator_reg_entry = Kratos.Registry[project.GetSettings()["orchestrator"]["name"].GetString()]
+                orchestrator_module = importlib.import_module(orchestrator_reg_entry["ModuleName"])
+                orchestrator_class = getattr(orchestrator_module, orchestrator_reg_entry["ClassName"])
+                orchestrator_instance = orchestrator_class(project)
+                orchestrator_instance.Run()
 
         if test_helper.want_test_plots():
             self.create_wall_plots(project_path)
@@ -791,7 +797,7 @@ class KratosGeoMechanicsBuildingPit(KratosUnittest.TestCase):
 
         # Stress-free installation of the strut has no impact on the results with respect to the previous stage
         # However for mohr coulomb we still define the results, due to some local differences
-        if not "strut_installation" in expected_results:
+        if "strut_installation" not in expected_results:
             expected_results["strut_installation"] = expected_results["first_excavation"]
 
         reader = GiDOutputFileReader()
@@ -1027,7 +1033,7 @@ class KratosGeoMechanicsBuildingPit(KratosUnittest.TestCase):
 
     def test_simulation_with_mohr_coulomb_materials(self):
         self.stages_info.pop("third_excavation") # The third excavation stage does not converge yet with Mohr-Coulomb materials, so we remove it from the test
-        self.run_simulation_and_checks("mohr_coulomb")
+        self.run_simulation_and_checks("mohr_coulomb", skip_last_stage=True)
 
 if __name__ == "__main__":
     KratosUnittest.main()

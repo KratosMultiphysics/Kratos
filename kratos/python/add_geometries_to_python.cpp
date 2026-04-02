@@ -393,6 +393,25 @@ void  AddGeometriesToPython(pybind11::module& m)
         {
             return self.KnotsV();
         }
+        )
+        .def("ComputeSpanTriangulationLocalSpace",
+            [](const BrepSurfaceType& self,
+            const double u0,
+            const double u1,
+            const double v0,
+            const double v1)
+            {
+                std::vector<Matrix> triangles;
+
+                const bool is_trimmed =
+                    self.ComputeSpanTriangulationLocalSpace(u0, u1, v0, v1, triangles);
+
+                return py::make_tuple(is_trimmed, triangles);
+            },
+            py::arg("u0"),
+            py::arg("u1"),
+            py::arg("v0"),
+            py::arg("v1")
         );
 
     py::class_<SurfaceInNurbsVolumeGeometry<3, NodeContainerType>, SurfaceInNurbsVolumeGeometry<3, NodeContainerType>::Pointer, GeometryType>(m, "SurfaceInNurbsVolumeGeometry")
