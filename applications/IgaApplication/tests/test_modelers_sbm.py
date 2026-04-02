@@ -91,15 +91,9 @@ class TestModelersSbm(KratosUnittest.TestCase):
         support_model_part = current_model.GetModelPart("IgaModelPart.SBM_Support_outer")
         computational_model_part = current_model.GetModelPart("IgaModelPart.ComputationalDomain")
 
-        # # Check if all needed node are within the model parts
-        self.assertEqual(support_model_part.NumberOfNodes(), 240)
+        # Support SBM model parts now store only the conditions, not duplicated nodes
         self.assertEqual(support_model_part.NumberOfConditions(), 60)
         self.assertEqual(computational_model_part.NumberOfConditions(), 0)
-        
-        self.assertEqual(support_model_part.GetNodes()[6].X, 2.0)
-        self.assertEqual(support_model_part.GetNodes()[6].Y, 0.0)
-        self.assertEqual(support_model_part.GetNodes()[12].X, 2.0)
-        self.assertEqual(support_model_part.GetNodes()[12].Y, 0.4)
 
         self.assertEqual(support_model_part.GetConditions()[21].Info(), "\"SbmLaplacianConditionDirichlet\" #21")
         self.assertEqual(support_model_part.GetConditions()[80].Info(), "\"SbmLaplacianConditionDirichlet\" #80")
@@ -210,10 +204,8 @@ class TestModelersSbm(KratosUnittest.TestCase):
         support_model_part_inner = current_model.GetModelPart("IgaModelPart.SBM_Support_inner")
         computational_model_part = current_model.GetModelPart("IgaModelPart.ComputationalDomain")
 
-        # # Check if all needed node are within the model parts
-        self.assertEqual(support_model_part_inner.NumberOfNodes(), 990)
+        # Support SBM model parts now store only the conditions, not duplicated nodes
         self.assertEqual(support_model_part_inner.NumberOfConditions(), 110)
-        self.assertEqual(support_model_part_outer.NumberOfNodes(), 2160)
         self.assertEqual(support_model_part_outer.NumberOfConditions(), 240)
         self.assertEqual(computational_model_part.NumberOfConditions(), 0)
         self.assertEqual(computational_model_part.NumberOfElements(), 810)
