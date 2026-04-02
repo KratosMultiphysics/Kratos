@@ -130,6 +130,11 @@ class TestPatchTestShells(KratosUnittest.TestCase):
 
         self._add_variables(mp)
         self._apply_material_properties(mp)
+
+        if element_name == "MITCThickShellCorotationalElement3D4N":
+            cl = StructuralMechanicsApplication.ReissnerMindlinShellElasticConstitutiveLaw()
+            mp.GetProperties()[1].SetValue(KratosMultiphysics.CONSTITUTIVE_LAW, cl)
+
         self._create_nodes(mp,element_name)
         self._add_dofs(mp)
         self._create_elements(mp,element_name)
@@ -192,7 +197,7 @@ class TestPatchTestShells(KratosUnittest.TestCase):
 
 
     def test_thick_shell_quadrilateral(self):
-        element_name = "ShellThickElementCorotational3D4N"
+        element_name = "MITCThickShellCorotationalElement3D4N"
         displacement_results = [0.0003572969872 , -0.0006341259132 , 0.00127807995001]
         rotation_results     = [0.0012082600485 , -0.0004098356773 , -0.0011673798349]
 

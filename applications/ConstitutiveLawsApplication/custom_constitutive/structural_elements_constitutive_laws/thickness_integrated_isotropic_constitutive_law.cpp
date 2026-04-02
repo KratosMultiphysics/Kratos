@@ -18,7 +18,6 @@
 
 // Project includes
 #include "thickness_integrated_isotropic_constitutive_law.h"
-#include "custom_utilities/advanced_constitutive_law_utilities.h"
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "structural_mechanics_application_variables.h"
 #include "constitutive_laws_application_variables.h"
@@ -533,7 +532,7 @@ void ThicknessIntegratedIsotropicConstitutiveLaw::CalculateMaterialResponseCauch
 
             if (flag_compute_constitutive_tensor) {
                 // membrane part
-                noalias(project(generalized_constitutive_matrix, range(0,3), range(0,3))) += weight * r_constitutive_matrix;
+                noalias(project(generalized_constitutive_matrix, range(0, 3), range(0, 3))) += weight * r_constitutive_matrix;
 
                 // bending part
                 noalias(project(generalized_constitutive_matrix, range(3, 6), range(3, 6))) += aux_weight2 * r_constitutive_matrix;
