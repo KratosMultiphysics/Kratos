@@ -479,51 +479,46 @@ void ThicknessIntegratedCompositeConstitutiveLaw::CalculateMaterialResponseCauch
             // This fills stress and D in local axes of the layer
             mConstitutiveLaws[i_layer]->CalculateMaterialResponseCauchy(rValues);
 
-            if (flag_compute_stress) {
-                // We rotate the stress to the local axes of the shell
-                r_stress_vector = prod(trans(Tvoigt), r_stress_vector);
-                
-                generalized_stress_vector[0] += r_stress_vector[0] * weight; // membrane xx
-                generalized_stress_vector[1] += r_stress_vector[1] * weight; // membrane yy
-                generalized_stress_vector[2] += r_stress_vector[2] * weight; // membrane xy
-                
-                generalized_stress_vector[3] += r_stress_vector[0] * aux_weight; // bending xx
-                generalized_stress_vector[4] += r_stress_vector[1] * aux_weight; // bending yy
-                generalized_stress_vector[5] += r_stress_vector[2] * aux_weight; // bending xy
-                
-                // Elastic behaviour in shear
-                generalized_stress_vector[6] += stenberg_stabilization * Gyz * (generalized_strain_vector[6]) * weight; // shear YZ
-                generalized_stress_vector[7] += stenberg_stabilization * Gxz * (generalized_strain_vector[7]) * weight; // shear XZ
-            }
+            // We rotate the stress to the local axes of the shell
+            r_stress_vector = prod(trans(Tvoigt), r_stress_vector);
+            
+            generalized_stress_vector[0] += r_stress_vector[0] * weight; // membrane xx
+            generalized_stress_vector[1] += r_stress_vector[1] * weight; // membrane yy
+            generalized_stress_vector[2] += r_stress_vector[2] * weight; // membrane xy
+            
+            generalized_stress_vector[3] += r_stress_vector[0] * aux_weight; // bending xx
+            generalized_stress_vector[4] += r_stress_vector[1] * aux_weight; // bending yy
+            generalized_stress_vector[5] += r_stress_vector[2] * aux_weight; // bending xy
+            
+            // Elastic behaviour in shear
+            generalized_stress_vector[6] += stenberg_stabilization * Gyz * (generalized_strain_vector[6]) * weight; // shear YZ
+            generalized_stress_vector[7] += stenberg_stabilization * Gxz * (generalized_strain_vector[7]) * weight; // shear XZ
 
-            if (flag_compute_constitutive_tensor) {
+            // We rotate the constitutive matrix to the local axes of the shell
+            r_constitutive_matrix = prod(trans(Tvoigt), Matrix(prod(r_constitutive_matrix, Tvoigt)));
 
-                // We rotate the constitutive matrix to the local axes of the shell
-                r_constitutive_matrix = prod(trans(Tvoigt), Matrix(prod(r_constitutive_matrix, Tvoigt)));
+            // membrane part
+            noalias(project(generalized_constitutive_matrix, range(0, 3), range(0, 3))) += weight * r_constitutive_matrix;
 
-                // membrane part
-                noalias(project(generalized_constitutive_matrix, range(0, 3), range(0, 3))) += weight * r_constitutive_matrix;
+            // bending part
+            noalias(project(generalized_constitutive_matrix, range(3, 6), range(3, 6))) += (std::pow(z_sup_layer, 3) - std::pow(z_inf_layer, 3)) / 3.0 * r_constitutive_matrix;
 
-                // bending part
-                noalias(project(generalized_constitutive_matrix, range(3, 6), range(3, 6))) += (std::pow(z_sup_layer, 3) - std::pow(z_inf_layer, 3)) / 3.0 * r_constitutive_matrix;
+            // membrane-bending part
+            noalias(project(generalized_constitutive_matrix, range(0, 3), range(3, 6))) += aux_weight * r_constitutive_matrix;
 
-                // membrane-bending part
-                noalias(project(generalized_constitutive_matrix, range(0, 3), range(3, 6))) += aux_weight * r_constitutive_matrix;
+            // bending-membrane part (transposed)
+            generalized_constitutive_matrix(3, 0) = generalized_constitutive_matrix(0, 3);
+            generalized_constitutive_matrix(4, 0) = generalized_constitutive_matrix(0, 4);
+            generalized_constitutive_matrix(5, 0) = generalized_constitutive_matrix(0, 5);
+            generalized_constitutive_matrix(3, 1) = generalized_constitutive_matrix(1, 3);
+            generalized_constitutive_matrix(4, 1) = generalized_constitutive_matrix(1, 4);
+            generalized_constitutive_matrix(5, 1) = generalized_constitutive_matrix(1, 5);
+            generalized_constitutive_matrix(3, 2) = generalized_constitutive_matrix(2, 3);
+            generalized_constitutive_matrix(4, 2) = generalized_constitutive_matrix(2, 4);
+            generalized_constitutive_matrix(5, 2) = generalized_constitutive_matrix(2, 5);
 
-                // bending-membrane part (transposed)
-                generalized_constitutive_matrix(3, 0) = generalized_constitutive_matrix(0, 3);
-                generalized_constitutive_matrix(4, 0) = generalized_constitutive_matrix(0, 4);
-                generalized_constitutive_matrix(5, 0) = generalized_constitutive_matrix(0, 5);
-                generalized_constitutive_matrix(3, 1) = generalized_constitutive_matrix(1, 3);
-                generalized_constitutive_matrix(4, 1) = generalized_constitutive_matrix(1, 4);
-                generalized_constitutive_matrix(5, 1) = generalized_constitutive_matrix(1, 5);
-                generalized_constitutive_matrix(3, 2) = generalized_constitutive_matrix(2, 3);
-                generalized_constitutive_matrix(4, 2) = generalized_constitutive_matrix(2, 4);
-                generalized_constitutive_matrix(5, 2) = generalized_constitutive_matrix(2, 5);
-
-                generalized_constitutive_matrix(6, 6) += weight * stenberg_stabilization * Gyz;
-                generalized_constitutive_matrix(7, 7) += weight * stenberg_stabilization * Gxz;
-            }
+            generalized_constitutive_matrix(6, 6) += weight * stenberg_stabilization * Gyz;
+            generalized_constitutive_matrix(7, 7) += weight * stenberg_stabilization * Gxz;
 
             // Let's compute the shear reduction factor required integrals
             double Q_bottom_1 = 0.0;
