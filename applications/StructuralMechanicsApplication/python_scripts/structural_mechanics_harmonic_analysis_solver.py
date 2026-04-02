@@ -58,6 +58,23 @@ class HarmonicAnalysisSolver(MechanicalSolver):
                 }
             }''')
         )
+    
+    def AddVariables(self):
+        # First add the standard structural mechanics variables
+        super().AddVariables()
+
+        # Then add harmonic-analysis-specific variables
+        self.main_model_part.AddNodalSolutionStepVariable(
+            StructuralMechanicsApplication.DISPLACEMENT_IMAGINARY
+        )
+        self.main_model_part.AddNodalSolutionStepVariable(
+            StructuralMechanicsApplication.POINT_LOAD_IMAGINARY
+        )
+
+        KratosMultiphysics.Logger.PrintInfo(
+            "::[HarmonicMechanicalSolver]:: ",
+            "Harmonic variables ADDED"
+        )
 
     @classmethod
     def GetDefaultParameters(cls):
