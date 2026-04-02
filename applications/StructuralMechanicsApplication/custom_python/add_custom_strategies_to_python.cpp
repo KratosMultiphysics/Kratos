@@ -150,30 +150,19 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         ;
 
     py::class_<DirectHarmonicAnalysisStrategyType, typename DirectHarmonicAnalysisStrategyType::Pointer, BaseSolvingStrategyType>(m, "DirectHarmonicAnalysisStrategy")
-        .def(py::init<ModelPart&,
-                    BaseSchemeType::Pointer,
-                    BuilderAndSolverPointer,
-                    ComplexLinearSolverPointer,
-                    double,
-                    double,
-                    double,
-                    bool,
-                    bool,
-                    std::string,
-                    std::string>(),
+        .def(py::init<
+                ModelPart&,
+                BaseSchemeType::Pointer,
+                BuilderAndSolverPointer,
+                ComplexLinearSolverPointer,
+                Parameters>(),
             py::arg("model_part"),
             py::arg("scheme"),
             py::arg("builder_and_solver"),
             py::arg("complex_linear_solver"),
-            py::arg("mass_matrix_diagonal_value") = 1.0,
-            py::arg("stiffness_matrix_diagonal_value") = 1.0,
-            py::arg("damping_matrix_diagonal_value") = 1.0,
-            py::arg("reform_dof_set_at_each_step") = false,
-            py::arg("assemble_damping_matrix") = false,
-            py::arg("real_load_sub_model_part") = "",
-            py::arg("imaginary_load_sub_model_part") = "")
-        .def("SetAssembleDampingMatrixFlag", &DirectHarmonicAnalysisStrategyType::SetAssembleDampingMatrixFlag)
-        .def("GetAssembleDampingMatrixFlag", &DirectHarmonicAnalysisStrategyType::GetAssembleDampingMatrixFlag);
+            py::arg("settings"))
+    .def("SetAssembleDampingMatrixFlag", &DirectHarmonicAnalysisStrategyType::SetAssembleDampingMatrixFlag)
+    .def("GetAssembleDampingMatrixFlag", &DirectHarmonicAnalysisStrategyType::GetAssembleDampingMatrixFlag);
 
     //********************************************************************
     //*************************SCHEME CLASSES*****************************
