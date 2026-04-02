@@ -21,6 +21,7 @@
 #include "custom_elements/truss_embedded_edge_element.h"
 #include "custom_elements/beam_thin_element_2D.h"
 #include "custom_elements/beam_thick_element_2D.h"
+#include "custom_elements/beam_bernoulli_element_3D.h"
 #include "custom_elements/iga_membrane_element.h"
 #include "custom_elements/shell_3p_element.h"
 #include "custom_elements/shell_5p_hierarchic_element.h"
@@ -137,6 +138,7 @@ private:
     const TrussEmbeddedEdgeElement mTrussEmbeddedEdgeElement;
     const BeamThinElement2D mBeamThinElement2D;
     const BeamThickElement2D mBeamThickElement2D;
+    const BeamThickElement2D mBeamBernoulliElement3D;
     const IgaMembraneElement mIgaMembraneElement;
     const Shell3pElement mShell3pElement;
     const Shell5pHierarchicElement mShell5pHierarchicElement;
