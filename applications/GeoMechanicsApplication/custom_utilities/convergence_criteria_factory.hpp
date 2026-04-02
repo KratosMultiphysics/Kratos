@@ -106,7 +106,7 @@ private:
         using namespace std::string_literals;
 
         const auto convergence_variables = std::vector{
-            std::make_tuple<const VariableData*, MixedGenericCriterionType::TDataType, MixedGenericCriterionType::TDataType>(
+            std::make_tuple<const VariableData*, typename MixedGenericCriterionType::TDataType, typename MixedGenericCriterionType::TDataType>(
                 &WATER_PRESSURE, rSolverSettings["water_pressure_relative_tolerance"s].GetDouble(),
                 rSolverSettings["water_pressure_absolute_tolerance"s].GetDouble())};
         return std::make_shared<MixedGenericCriterionType>(convergence_variables);
