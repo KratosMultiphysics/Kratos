@@ -392,9 +392,9 @@
                     "name": "TimoshenkoBeamPlaneStrainElasticConstitutiveLaw"
                 },
                 "Variables": {
-                    "YOUNG_MODULUS": 2.1e+11,
+                    "YOUNG_MODULUS": 5929270610.0,
                     "POISSON_RATIO": 0.0,
-                    "THICKNESS": 0.1687,
+                    "THICKNESS": 1.265,
                     "THICKNESS_EFFECTIVE_Y": 10.0,
                     "DENSITY": 805.82
                 }
