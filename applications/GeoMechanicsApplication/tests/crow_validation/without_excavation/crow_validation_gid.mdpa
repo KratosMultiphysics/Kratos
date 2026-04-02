@@ -7234,7 +7234,7 @@ Begin Conditions LineLoadDiffOrderCondition2D3N
   41 0 4517 4557 4540
   42 0 4557 4587 4575
   43 0 4587 4617 4605
-  44 0 4617 4639 4631
+  44 0 4617 4771 4631
 End Conditions
 
 Begin Conditions LineNormalLoadDiffOrderCondition2D3N
@@ -15370,7 +15370,7 @@ Begin SubModelPart Load
     4605
     4617
     4631
-    4639
+    4771
   End SubModelPartNodes
   Begin SubModelPartConditions
     1
