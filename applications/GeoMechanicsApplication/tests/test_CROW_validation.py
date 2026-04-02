@@ -73,6 +73,10 @@ def get_sheetpile_node_ids():
     ]
 def get_soil_side_node_ids_of_right_interfaces():
     return [
+        4761,
+        4762,
+        4763,
+        4764,
         4765,
         4766,
         4767,
@@ -118,14 +122,9 @@ def get_soil_side_node_ids_of_right_interfaces():
         4807,
         4808,
         4809,
-        4810,
         4811,
         4812,
         4813,
-        4814,
-        4815,
-        4816,
-        4817,
     ]
 
 def _extract_x_and_y_from_line(line, index_of_x=0, index_of_y=1, x_transform=None):
