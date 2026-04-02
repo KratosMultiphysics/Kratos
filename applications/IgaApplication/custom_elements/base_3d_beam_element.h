@@ -33,6 +33,8 @@ class KRATOS_API(IGA_APPLICATION) Base3DBeamElement
     : public Element
 {
 protected:
+    struct KinematicVariables{};
+
     /**
     * Internal variables used in the constitutive equations
     */
@@ -66,16 +68,15 @@ protected:
 public:
     ///@name Type Definitions
     ///@{
+    using BaseType = Element;
+    using NodeType = Node;
+    using GeometryType = Geometry<NodeType>;
+    using NodesArrayType = GeometryType::PointsArrayType;
+    using SizeType = typename BaseType::SizeType;
+    using IndexType = typename BaseType::IndexType;
 
     /// Counted pointer of Shell3pElement
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(Base3DBeamElement);
-
-    /// Size types
-    typedef std::size_t SizeType;
-    typedef std::size_t IndexType;
-
-    // GometryType
-    typedef Geometry<Node> GeometryType;
 
     /// Constructor using an array of nodes
     Base3DBeamElement(
@@ -108,22 +109,14 @@ public:
         IndexType NewId,
         GeometryType::Pointer pGeom,
         PropertiesType::Pointer pProperties
-    ) const override
-    {
-        return Kratos::make_intrusive<Base3DBeamElement>(
-            NewId, pGeom, pProperties);
-    };
+    ) const override = 0;
 
     /// Create with Id, pointer to geometry and pointer to property
     Element::Pointer Create(
         IndexType NewId,
         NodesArrayType const& ThisNodes,
         PropertiesType::Pointer pProperties
-    ) const override
-    {
-        return Kratos::make_intrusive< Base3DBeamElement >(
-            NewId, GetGeometry().Create(ThisNodes), pProperties);
-    };
+    ) const override = 0;
 
     ///@}
     ///@name Operators
@@ -140,40 +133,52 @@ public:
     * @param rResult: the elemental equation ID vector
     * @param rCurrentProcessInfo: the current process info instance
     */
-    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& CurrentProcessInfo) const override;
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& CurrentProcessInfo) const override = 0;
 
     /**
     * determines the elemental list of DOFs
     * @param ElementalDofList: the list of DOFs
     * @param rCurrentProcessInfo: the current process info instance
     */
-    void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const override;
-
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
-                              VectorType& rRightHandSideVector,
-                              const ProcessInfo& rCurrentProcessInfo) override;
-
-    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                               const ProcessInfo& rCurrentProcessInfo) override;
-
-    void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                const ProcessInfo& rCurrentProcessInfo) override;
+    void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const override = 0;
 
     /**
-     * @brief This functions calculates both the RHS and the LHS
-     * @param rLeftHandSideMatrix The LHS
-     * @param rRightHandSideVector The RHS
-     * @param rCurrentProcessInfo The current process info instance
-     * @param CalculateStiffnessMatrixFlag The flag to set if compute the LHS
-     * @param CalculateResidualVectorFlag The flag to set if compute the RHS
-     */
+    * @brief This function provides a more general interface to the element.
+    * @details It is designed so that rLHSvariables and rRHSvariables are
+    *          passed to the element thus telling what is the desired output
+    * @param rLeftHandSideMatrix container with the output Left Hand Side matrix
+    * @param rRightHandSideVector container for the desired RHS output
+    * @param rCurrentProcessInfo the current process info instance
+    */
+    virtual void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
+                              VectorType& rRightHandSideVector,
+                              const ProcessInfo& rCurrentProcessInfo) = 0;
+
+    /**
+    * @brief This is called during the assembling process in order
+    *        to calculate the element left hand side matrix
+    * @param rLeftHandSideMatrix the element left hand side matrix
+    * @param rCurrentProcessInfo the current process info
+    */
+    virtual void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
+                               const ProcessInfo& rCurrentProcessInfo) = 0;
+
+    /**
+    * @brief This is called during the assembling process in order
+    *        to calculate the element right hand side matrix
+    * @param rLeftHandSideMatrix the element right hand side matrix
+    * @param rCurrentProcessInfo the current process info
+    */
+    virtual void CalculateRightHandSide(VectorType& rRightHandSideVector,
+                                const ProcessInfo& rCurrentProcessInfo) = 0;
+
     virtual void CalculateAll(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         const ProcessInfo& rCurrentProcessInfo,
         const bool CalculateStiffnessMatrixFlag,
         const bool CalculateResidualVectorFlag
-    );
+    ) = 0;
 
     static inline void ComputeRotationMatrix(
         MatrixType& rMatRod,
@@ -245,8 +250,8 @@ private:
 
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const override;
-    void load(Serializer& rSerializer) override;
+    void save(Serializer& rSerializer) const override = 0;
+    void load(Serializer& rSerializer) override = 0 ;
 
 
 }; // Class Base3DBeamElement
