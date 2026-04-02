@@ -86,6 +86,19 @@ class GeoMechanicsAnalysis(AnalysisStage):
             KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Please check settings in Project Parameters and Materials files.")
             raise RuntimeError('The time step is too small!')
 
+    def _RevertStateToStartOfStep(self):
+        # Reset variables to the start of the step/increment
+        KratosMultiphysics.VariableUtils().UpdateCurrentPosition(self._GetSolver().GetComputingModelPart().Nodes, KratosMultiphysics.DISPLACEMENT,1)
+        has_rotations = self._GetSolver().main_model_part.HasNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
+        for node in self._GetSolver().GetComputingModelPart().Nodes:
+            dold = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT,1)
+            node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT, 0, dold)
+            pold = node.GetSolutionStepValue(KratosMultiphysics.WATER_PRESSURE,1)
+            node.SetSolutionStepValue(KratosMultiphysics.WATER_PRESSURE, 0, pold)
+            if has_rotations:
+                rold = node.GetSolutionStepValue(KratosMultiphysics.ROTATION,1)
+                node.SetSolutionStepValue(KratosMultiphysics.ROTATION, 0, rold)
+
     def RunSolutionLoop(self):
         """This function executes the solution loop of the AnalysisStage
         It can be overridden by derived classes
@@ -158,11 +171,7 @@ class GeoMechanicsAnalysis(AnalysisStage):
                     KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Down-scaling with factor: ", self.reduction_factor)
                     self.delta_time *= self.reduction_factor
                     self._CheckDeltaTimeSize()
-                    # Reset displacements to the initial
-                    KratosMultiphysics.VariableUtils().UpdateCurrentPosition(self._GetSolver().GetComputingModelPart().Nodes, KratosMultiphysics.DISPLACEMENT,1)
-                    for node in self._GetSolver().GetComputingModelPart().Nodes:
-                        dold = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT,1)
-                        node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT, 0, dold)
+                    self._RevertStateToStartOfStep()
 
             if not converged:
                 raise RuntimeError('The maximum number of cycles is reached without convergence!')
