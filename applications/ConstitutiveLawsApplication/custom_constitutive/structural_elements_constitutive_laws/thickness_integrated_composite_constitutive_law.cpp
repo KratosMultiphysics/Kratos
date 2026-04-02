@@ -471,27 +471,27 @@ void ThicknessIntegratedCompositeConstitutiveLaw::CalculateMaterialResponseCauch
             // This fills stress and D in local axes of the layer
             mConstitutiveLaws[i_layer]->CalculateMaterialResponseCauchy(rValues);
 
-            const double z_inf = mZCoordinates[i_layer] - 0.5 * mThicknesses[i_layer];
-            const double z_sup = mZCoordinates[i_layer] + 0.5 * mThicknesses[i_layer];
-
+            
             if (flag_compute_stress) {
                 // We rotate the stress to the local axes of the shell
                 r_stress_vector = prod(trans(Tvoigt), r_stress_vector);
-
+                
                 generalized_stress_vector[0] += r_stress_vector[0] * weight; // membrane xx
                 generalized_stress_vector[1] += r_stress_vector[1] * weight; // membrane yy
                 generalized_stress_vector[2] += r_stress_vector[2] * weight; // membrane xy
-
+                
                 generalized_stress_vector[3] += r_stress_vector[0] * aux_weight; // bending xx
                 generalized_stress_vector[4] += r_stress_vector[1] * aux_weight; // bending yy
                 generalized_stress_vector[5] += r_stress_vector[2] * aux_weight; // bending xy
-
+                
                 // Elastic behaviour in shear
                 generalized_stress_vector[6] += stenberg_stabilization * Gyz * (generalized_strain_vector[6]) * weight; // shear YZ
                 generalized_stress_vector[7] += stenberg_stabilization * Gxz * (generalized_strain_vector[7]) * weight; // shear XZ
             }
 
             if (flag_compute_constitutive_tensor) {
+                const double z_inf = mZCoordinates[i_layer] - 0.5 * mThicknesses[i_layer];
+                const double z_sup = mZCoordinates[i_layer] + 0.5 * mThicknesses[i_layer];
                 // We rotate the constitutive matrix to the local axes of the shell
                 r_constitutive_matrix = prod(trans(Tvoigt), Matrix(prod(r_constitutive_matrix, Tvoigt)));
 
