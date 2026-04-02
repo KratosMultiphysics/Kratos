@@ -87,31 +87,34 @@ public:
         SchemePointerType pScheme,
         BuilderAndSolverPointerType pBuilderAndSolver,
         ComplexLinearSolverPointerType pComplexLinearSolver,
-        const double MassMatrixDiagonalValue = 1.0,
-        const double StiffnessMatrixDiagonalValue = 1.0,
-        const double DampingMatrixDiagonalValue = 1.0,
-        const bool ReformDofSetAtEachStep = false,
-        const bool AssembleDampingMatrix = false,
-        const std::string RealLoadSubModelPart = "",
-        const std::string ImaginaryLoadSubModelPart = ""
+        Parameters ThisParameters
     )
-        : BaseType(rModelPart),
-          mMassMatrixDiagonalValue(MassMatrixDiagonalValue),
-          mStiffnessMatrixDiagonalValue(StiffnessMatrixDiagonalValue),
-          mDampingMatrixDiagonalValue(DampingMatrixDiagonalValue),
-          mAssembleDampingMatrix(AssembleDampingMatrix)
+        : BaseType(rModelPart)
+        , mpScheme(pScheme)
+        , mpBuilderAndSolver(pBuilderAndSolver)
+        , mpComplexLinearSolver(pComplexLinearSolver)
     {
         KRATOS_TRY
 
-        mpScheme = pScheme;
-        mpBuilderAndSolver = pBuilderAndSolver;
-        mpComplexLinearSolver = pComplexLinearSolver;
+        ThisParameters.ValidateAndAssignDefaults(this->GetDefaultParameters());
+
+        KRATOS_ERROR_IF(mpScheme == nullptr)
+            << "Scheme is null." << std::endl;
+
+        KRATOS_ERROR_IF(mpBuilderAndSolver == nullptr)
+            << "Builder and solver is null." << std::endl;
 
         KRATOS_ERROR_IF(mpComplexLinearSolver == nullptr)
             << "Complex linear solver is null." << std::endl;
 
+        mMassMatrixDiagonalValue      = ThisParameters["mass_matrix_diagonal_value"].GetDouble();
+        mStiffnessMatrixDiagonalValue = ThisParameters["stiffness_matrix_diagonal_value"].GetDouble();
+        mDampingMatrixDiagonalValue   = ThisParameters["damping_matrix_diagonal_value"].GetDouble();
+        mReformDofSetAtEachStep       = ThisParameters["reform_dof_set_at_each_step"].GetBool();
+        mAssembleDampingMatrix        = ThisParameters["assemble_damping_matrix"].GetBool();
+
         mpBuilderAndSolver->SetDofSetIsInitializedFlag(false);
-        mpBuilderAndSolver->SetReshapeMatrixFlag(ReformDofSetAtEachStep);
+        mpBuilderAndSolver->SetReshapeMatrixFlag(mReformDofSetAtEachStep);
 
         mpMassMatrix = Kratos::make_shared<SparseMatrixType>();
         mpStiffnessMatrix = Kratos::make_shared<SparseMatrixType>();
@@ -124,8 +127,25 @@ public:
         mpComplexRHS = Kratos::make_shared<ComplexVectorType>();
         mpComplexSolution = Kratos::make_shared<ComplexVectorType>();
 
-        mRealLoadSubModelPart = RealLoadSubModelPart;
-        mImaginaryLoadSubModelPart = ImaginaryLoadSubModelPart;
+        mRealLoadSubModelPartNames.clear();
+        mRealLoadSubModelPartNames.reserve(ThisParameters["real_load_sub_model_part_list"].size());
+        for (IndexType i = 0; i < ThisParameters["real_load_sub_model_part_list"].size(); ++i) {
+            const std::string& r_name = ThisParameters["real_load_sub_model_part_list"][i].GetString();
+            KRATOS_ERROR_IF_NOT(rModelPart.HasSubModelPart(r_name))
+                << "Real load sub model part \"" << r_name << "\" does not exist in model part \""
+                << rModelPart.Name() << "\"." << std::endl;
+            mRealLoadSubModelPartNames.push_back(r_name);
+        }
+
+        mImaginaryLoadSubModelPartNames.clear();
+        mImaginaryLoadSubModelPartNames.reserve(ThisParameters["imaginary_load_sub_model_part_list"].size());
+        for (IndexType i = 0; i < ThisParameters["imaginary_load_sub_model_part_list"].size(); ++i) {
+            const std::string& r_name = ThisParameters["imaginary_load_sub_model_part_list"][i].GetString();
+            KRATOS_ERROR_IF_NOT(rModelPart.HasSubModelPart(r_name))
+                << "Imaginary load sub model part \"" << r_name << "\" does not exist in model part \""
+                << rModelPart.Name() << "\"." << std::endl;
+            mImaginaryLoadSubModelPartNames.push_back(r_name);
+        }
 
         this->SetEchoLevel(0);
         this->SetRebuildLevel(0);
@@ -374,14 +394,14 @@ public:
         TSparseSpace::SetToZero(r_real_load_vector);
         TSparseSpace::SetToZero(r_imaginary_load_vector);
 
-        // Build real part of the RHS (we do it here to avoid the residual formulation)
-        if (mRealLoadSubModelPart != ""){
-            BuildRHS(r_model_part.GetSubModelPart(mRealLoadSubModelPart), r_real_load_vector);
+        // Build real part of the RHS from all specified real-load sub model parts
+        for (const auto& r_sub_model_part_name : mRealLoadSubModelPartNames) {
+            BuildRHS(r_model_part.GetSubModelPart(r_sub_model_part_name), r_real_load_vector);
         }
 
-        // Build imaginary part of the RHS (we do it here to avoid the residual formulation)
-        if (mImaginaryLoadSubModelPart != ""){
-            BuildRHS(r_model_part.GetSubModelPart(mImaginaryLoadSubModelPart), r_imaginary_load_vector);
+        // Build imaginary part of the RHS from all specified imaginary-load sub model parts
+        for (const auto& r_sub_model_part_name : mImaginaryLoadSubModelPartNames) {
+            BuildRHS(r_model_part.GetSubModelPart(r_sub_model_part_name), r_imaginary_load_vector);
         }
         
         // Keep this consistent with your current infrastructure.
@@ -496,18 +516,20 @@ public:
         KRATOS_ERROR_IF(mpComplexLinearSolver == nullptr)
             << "DirectHarmonicAnalysisStrategy: complex linear solver is null in Check()." << std::endl;
 
-        KRATOS_ERROR_IF(mRealLoadSubModelPart.empty())
-            << "DirectHarmonicAnalysisStrategy: \"real_load_sub_model_part\" is not defined." << std::endl;
+        KRATOS_ERROR_IF(mRealLoadSubModelPartNames.empty())
+            << "DirectHarmonicAnalysisStrategy: \"real_load_sub_model_part_list\" is empty." << std::endl;
 
-        KRATOS_ERROR_IF_NOT(r_model_part.HasSubModelPart(mRealLoadSubModelPart))
-            << "DirectHarmonicAnalysisStrategy: real load sub model part \""
-            << mRealLoadSubModelPart << "\" was not found in model part \""
-            << r_model_part.Name() << "\"." << std::endl;
+        for (const auto& r_sub_model_part_name : mRealLoadSubModelPartNames) {
+            KRATOS_ERROR_IF_NOT(r_model_part.HasSubModelPart(r_sub_model_part_name))
+                << "DirectHarmonicAnalysisStrategy: real load sub model part \""
+                << r_sub_model_part_name << "\" was not found in model part \""
+                << r_model_part.Name() << "\"." << std::endl;
+        }
 
-        if (!mImaginaryLoadSubModelPart.empty()) {
-            KRATOS_ERROR_IF_NOT(r_model_part.HasSubModelPart(mImaginaryLoadSubModelPart))
+        for (const auto& r_sub_model_part_name : mImaginaryLoadSubModelPartNames) {
+            KRATOS_ERROR_IF_NOT(r_model_part.HasSubModelPart(r_sub_model_part_name))
                 << "DirectHarmonicAnalysisStrategy: imaginary load sub model part \""
-                << mImaginaryLoadSubModelPart << "\" was not found in model part \""
+                << r_sub_model_part_name << "\" was not found in model part \""
                 << r_model_part.Name() << "\"." << std::endl;
         }
 
@@ -516,6 +538,18 @@ public:
         KRATOS_CATCH("")
     }
 
+    Parameters GetDefaultParameters() const override
+    {
+        return Parameters(R"({
+            "mass_matrix_diagonal_value"         : 1.0,
+            "stiffness_matrix_diagonal_value"    : 1.0,
+            "damping_matrix_diagonal_value"      : 1.0,
+            "reform_dof_set_at_each_step"        : false,
+            "assemble_damping_matrix"            : false,
+            "real_load_sub_model_part_list"      : [],
+            "imaginary_load_sub_model_part_list" : []
+        })");
+    }
 private:
     SchemePointerType mpScheme;
     BuilderAndSolverPointerType mpBuilderAndSolver;
@@ -532,10 +566,11 @@ private:
     ComplexVectorPointerType mpComplexRHS;
     ComplexVectorPointerType mpComplexSolution;
 
-    std::string mRealLoadSubModelPart;
-    std::string mImaginaryLoadSubModelPart;
+    std::vector<std::string> mRealLoadSubModelPartNames;
+    std::vector<std::string> mImaginaryLoadSubModelPartNames;
 
     bool mInitializeWasPerformed = false;
+    bool mReformDofSetAtEachStep = false;
 
     double mMassMatrixDiagonalValue = 1.0;
     double mStiffnessMatrixDiagonalValue = 1.0;
@@ -722,17 +757,15 @@ private:
         }
     }
 
-    void BuildRHS(ModelPart& rModelPart, Vector& rRHS)
+    void BuildRHS(ModelPart& rModelPart, SparseVectorType& rRHS)
     {
         KRATOS_TRY
-
-        SparseSpaceType::SetToZero(rRHS);
 
         auto& r_process_info = rModelPart.GetProcessInfo();
         const std::size_t number_of_conditions = rModelPart.NumberOfConditions();
 
         IndexPartition<std::size_t>(number_of_conditions).for_each(
-            std::tuple<Vector, Element::EquationIdVectorType>{},
+            std::tuple<LocalSystemVectorType, Element::EquationIdVectorType>{},
             [&rModelPart, &r_process_info, &rRHS](const std::size_t Index, auto& rTLS) {
                 auto& r_condition = *(rModelPart.ConditionsBegin() + Index);
 
