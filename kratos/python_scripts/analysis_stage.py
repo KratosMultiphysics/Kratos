@@ -92,6 +92,7 @@ class AnalysisStage(object):
         self._InitializeInternals()
         self.Check()
 
+        self.ModifyAfterSolverInitialize()
         self.ModifyBeforeSolutionLoop()
 
         for process in self._GetListOfProcesses():
@@ -226,8 +227,7 @@ class AnalysisStage(object):
 
     def ModifyAfterSolverInitialize(self):
         """this is the place to eventually do any modification that requires the solver to be initialized """
-        IssueDeprecationWarning("AnalysisStage", "ModifyAfterSolverInitialize is deprecated. Please, use ModifyBeforeSolutionLoop instead. Calling ModifyBeforeSolutionLoop.")
-        self.ModifyBeforeSolutionLoop()
+        IssueDeprecationWarning("AnalysisStage", "ModifyAfterSolverInitialize is deprecated. Please, use ModifyBeforeSolutionLoop instead.")
 
     def ApplyBoundaryConditions(self):
         """here the boundary conditions is applied, by calling the InitializeSolutionStep function of the processes"""
