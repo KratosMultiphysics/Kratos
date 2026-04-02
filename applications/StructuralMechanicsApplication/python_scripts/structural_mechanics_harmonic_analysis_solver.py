@@ -90,8 +90,8 @@ class HarmonicAnalysisSolver(MechanicalSolver):
                 "damping_matrix_diagonal_value"   : 1.0,
                 "reform_dof_set_at_each_step"     : false,
                 "assemble_damping_matrix"         : false,
-                "real_load_sub_model_part"        : "",
-                "imaginary_load_sub_model_part" : "",
+                "real_load_sub_model_part_list"      : [],
+                "imaginary_load_sub_model_part_list" : [],
                 "complex_linear_solver_settings"  : {
                     "solver_type" : "pardiso_lu_complex"
                 }
@@ -167,12 +167,21 @@ class HarmonicAnalysisSolver(MechanicalSolver):
             direct_settings = self.settings["direct_harmonic_analysis_settings"]
             complex_linear_solver = self._CreateComplexLinearSolver()
 
+            strategy_settings = KratosMultiphysics.Parameters(r'''{}''')
+            strategy_settings.AddValue("mass_matrix_diagonal_value", direct_settings["mass_matrix_diagonal_value"])
+            strategy_settings.AddValue("stiffness_matrix_diagonal_value", direct_settings["stiffness_matrix_diagonal_value"])
+            strategy_settings.AddValue("damping_matrix_diagonal_value", direct_settings["damping_matrix_diagonal_value"])
+            strategy_settings.AddValue("reform_dof_set_at_each_step", direct_settings["reform_dof_set_at_each_step"])
+            strategy_settings.AddValue("assemble_damping_matrix", direct_settings["assemble_damping_matrix"])
+            strategy_settings.AddValue("real_load_sub_model_part_list", direct_settings["real_load_sub_model_part_list"])
+            strategy_settings.AddValue("imaginary_load_sub_model_part_list", direct_settings["imaginary_load_sub_model_part_list"])
+
             return StructuralMechanicsApplication.DirectHarmonicAnalysisStrategy(
                 computing_model_part,
                 scheme,
                 builder_and_solver,
                 complex_linear_solver,
-                direct_settings
+                strategy_settings
             )
 
         else:
