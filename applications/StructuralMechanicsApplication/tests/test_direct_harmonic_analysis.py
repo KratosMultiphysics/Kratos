@@ -21,7 +21,7 @@ class DirectHarmonicAnalysisTests(KratosUnittest.TestCase):
         vu.AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y, mp)
         vu.AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z, mp)
 
-    def _create_2dof_geometry(self, current_model, stiffness, mass):
+    def _create_3dof_geometry(self, current_model, stiffness, mass):
         mp = current_model.CreateModelPart("mdof_direct")
         self._add_variables(mp)
 
@@ -74,18 +74,19 @@ class DirectHarmonicAnalysisTests(KratosUnittest.TestCase):
         cond_imag_2 = mp.CreateNewCondition("ImaginaryPointLoadCondition3D1N", 4, [2], prop1)
 
         # Submodelparts for RHS assembly
-        real_loads_smp = mp.CreateSubModelPart("RealLoads")
+        real_loads_1_smp = mp.CreateSubModelPart("RealLoads1")
+        real_loads_2_smp = mp.CreateSubModelPart("RealLoads2")
         imag_loads_smp = mp.CreateSubModelPart("ImaginaryLoads")
 
         # Add nodes used by the conditions
-        real_loads_smp.AddNode(node1, 0)
-        real_loads_smp.AddNode(node2, 0)
+        real_loads_1_smp.AddNode(node1, 0)
+        real_loads_2_smp.AddNode(node2, 0)
         imag_loads_smp.AddNode(node1, 0)
         imag_loads_smp.AddNode(node2, 0)
 
         # Add conditions
-        real_loads_smp.AddCondition(cond_real_1, 0)
-        real_loads_smp.AddCondition(cond_real_2, 0)
+        real_loads_1_smp.AddCondition(cond_real_1, 0)
+        real_loads_2_smp.AddCondition(cond_real_2, 0)
         imag_loads_smp.AddCondition(cond_imag_1, 0)
         imag_loads_smp.AddCondition(cond_imag_2, 0)
 
@@ -98,10 +99,10 @@ class DirectHarmonicAnalysisTests(KratosUnittest.TestCase):
             StructuralMechanicsApplication.POINT_LOAD, 0, [1.0, 0.0, 0.0]
         )
         node2.SetSolutionStepValue(
-            StructuralMechanicsApplication.POINT_LOAD, 0, [0.0, 0.0, 0.0]
+            StructuralMechanicsApplication.POINT_LOAD, 0, [2.0, 0.0, 0.0]
         )
 
-        # Imaginary load: zero for this test, so reference remains purely real
+        # Imaginary load: node1 only
         node1.SetSolutionStepValue(
             StructuralMechanicsApplication.POINT_LOAD_IMAGINARY, 0, [1.0, 0.0, 0.0]
         )
@@ -125,18 +126,27 @@ class DirectHarmonicAnalysisTests(KratosUnittest.TestCase):
         factory = KratosMultiphysics.ComplexLinearSolverFactory()
         complex_linear_solver = factory.Create(complex_solver_settings)
 
+        direct_harmonic_settings = KratosMultiphysics.Parameters(r'''{
+            "mass_matrix_diagonal_value"         : 1.0,
+            "stiffness_matrix_diagonal_value"    : 1.0,
+            "damping_matrix_diagonal_value"      : 1.0,
+            "reform_dof_set_at_each_step"        : false,
+            "assemble_damping_matrix"            : false,
+            "real_load_sub_model_part_list"      : [
+                "RealLoads1",
+                "RealLoads2"
+            ],
+            "imaginary_load_sub_model_part_list" : [
+                "ImaginaryLoads"
+            ]
+        }''')
+
         direct_strategy = StructuralMechanicsApplication.DirectHarmonicAnalysisStrategy(
             mp,
             scheme,
             builder_and_solver,
             complex_linear_solver,
-            1.0,          # mass_matrix_diagonal_value
-            1.0,          # stiffness_matrix_diagonal_value
-            1.0,          # damping_matrix_diagonal_value
-            False,        # reform_dof_set_at_each_step
-            False,        # assemble_damping_matrix
-            "RealLoads",  # real_load_sub_model_part
-            "ImaginaryLoads"  # imaginary_load_sub_model_part
+            direct_harmonic_settings
         )
         direct_strategy.SetEchoLevel(echo)
         return direct_strategy
@@ -158,7 +168,7 @@ class DirectHarmonicAnalysisTests(KratosUnittest.TestCase):
         ], dtype=float)
 
         A = K - (omega ** 2) * M
-        f = np.array([1.0 + 1.0j, 0.0], dtype=complex)
+        f = np.array([1.0 + 1.0j, 2.0 + 0.0j], dtype=complex)
 
         return np.linalg.solve(A.astype(complex), f)
 
@@ -168,7 +178,7 @@ class DirectHarmonicAnalysisTests(KratosUnittest.TestCase):
         stiffness = 10.0
         mass = 2.0
 
-        mp = self._create_2dof_geometry(current_model, stiffness, mass)
+        mp = self._create_3dof_geometry(current_model, stiffness, mass)
 
         test_frequencies = [1.0, 1.2, 1.4]
 
