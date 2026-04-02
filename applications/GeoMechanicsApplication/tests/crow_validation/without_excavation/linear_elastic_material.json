@@ -9,7 +9,7 @@
                 },
                 "Variables": {
                     "IGNORE_UNDRAINED": true,
-                    "DENSITY_SOLID": 2.65035e+03,
+                    "DENSITY_SOLID": 3669.72,
                     "DENSITY_WATER": 1.01937e+03,
                     "POROSITY": 0.5,
                     "BULK_MODULUS_SOLID": 1e+09,
@@ -39,7 +39,7 @@
                 },
                 "Variables": {
                     "IGNORE_UNDRAINED": true,
-                    "DENSITY_SOLID": 2.65035e+03,
+                    "DENSITY_SOLID": 3669.72,
                     "DENSITY_WATER": 1.01937e+03,
                     "POROSITY": 0.5,
                     "BULK_MODULUS_SOLID": 1e+09,
@@ -69,7 +69,7 @@
                 },
                 "Variables": {
                     "IGNORE_UNDRAINED": true,
-                    "DENSITY_SOLID": 2.65035e+03,
+                    "DENSITY_SOLID": 3669.72,
                     "DENSITY_WATER": 1.01937e+03,
                     "POROSITY": 0.5,
                     "BULK_MODULUS_SOLID": 1e+09,
@@ -99,7 +99,7 @@
                 },
                 "Variables": {
                     "IGNORE_UNDRAINED": true,
-                    "DENSITY_SOLID": 2.65035e+03,
+                    "DENSITY_SOLID": 3669.72,
                     "DENSITY_WATER": 1.01937e+03,
                     "POROSITY": 0.5,
                     "BULK_MODULUS_SOLID": 1e+09,
@@ -129,7 +129,7 @@
                 },
                 "Variables": {
                     "IGNORE_UNDRAINED": true,
-                    "DENSITY_SOLID": 2.47561e+03,
+                    "DENSITY_SOLID": 2912.48,
                     "DENSITY_WATER": 1.01937e+03,
                     "POROSITY": 0.3,
                     "BULK_MODULUS_SOLID": 1e+09,
@@ -159,7 +159,7 @@
                 },
                 "Variables": {
                     "IGNORE_UNDRAINED": true,
-                    "DENSITY_SOLID": 2.47561e+03,
+                    "DENSITY_SOLID": 2912.48,
                     "DENSITY_WATER": 1.01937e+03,
                     "POROSITY": 0.3,
                     "BULK_MODULUS_SOLID": 1e+09,
@@ -189,7 +189,7 @@
                 },
                 "Variables": {
                     "IGNORE_UNDRAINED": true,
-                    "DENSITY_SOLID": 2.65035e+03,
+                    "DENSITY_SOLID": 3669.72,
                     "DENSITY_WATER": 1.01937e+03,
                     "POROSITY": 0.5,
                     "BULK_MODULUS_SOLID": 1e+09,
@@ -219,7 +219,7 @@
                 },
                 "Variables": {
                     "IGNORE_UNDRAINED": true,
-                    "DENSITY_SOLID": 2.65035e+03,
+                    "DENSITY_SOLID": 3669.72,
                     "DENSITY_WATER": 1.01937e+03,
                     "POROSITY": 0.5,
                     "BULK_MODULUS_SOLID": 1e+09,
@@ -284,7 +284,7 @@
                     "name": "GeoIncrementalLinearElasticInterfaceLaw"
                 },
                 "Variables": {
-                    "INTERFACE_NORMAL_STIFFNESS": 4.615e+07,
+                    "INTERFACE_NORMAL_STIFFNESS": 4.615e+06,
                     "INTERFACE_SHEAR_STIFFNESS": 4.615e+06,
                     "BIOT_COEFFICIENT"              : 1.0,
                     "RETENTION_LAW"                 : "SaturatedBelowPhreaticLevelLaw",
@@ -374,7 +374,7 @@
                     "name": "GeoIncrementalLinearElasticInterfaceLaw"
                 },
                 "Variables": {
-                    "INTERFACE_NORMAL_STIFFNESS": 4.615e+07,
+                    "INTERFACE_NORMAL_STIFFNESS": 4.615e+06,
                     "INTERFACE_SHEAR_STIFFNESS": 4.615e+06,
                     "BIOT_COEFFICIENT"              : 1.0,
                     "RETENTION_LAW"                 : "SaturatedBelowPhreaticLevelLaw",
