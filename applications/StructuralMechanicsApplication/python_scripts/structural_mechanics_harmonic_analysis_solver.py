@@ -51,8 +51,8 @@ class HarmonicAnalysisSolver(MechanicalSolver):
                 "damping_matrix_diagonal_value"   : 1.0,
                 "reform_dof_set_at_each_step"     : false,
                 "assemble_damping_matrix"         : false,
-                "real_load_sub_model_part"        : "",
-                "imaginary_load_sub_model_part" : "",
+                "real_load_sub_model_part_list"        : [],
+                "imaginary_load_sub_model_part_list" : [],
                 "complex_linear_solver_settings"  : {
                     "solver_type" : "pardiso_lu_complex"
                 }
@@ -172,13 +172,7 @@ class HarmonicAnalysisSolver(MechanicalSolver):
                 scheme,
                 builder_and_solver,
                 complex_linear_solver,
-                direct_settings["mass_matrix_diagonal_value"].GetDouble(),
-                direct_settings["stiffness_matrix_diagonal_value"].GetDouble(),
-                direct_settings["damping_matrix_diagonal_value"].GetDouble(),
-                direct_settings["reform_dof_set_at_each_step"].GetBool(),
-                direct_settings["assemble_damping_matrix"].GetBool(),
-                direct_settings["real_load_sub_model_part"].GetString(),
-                direct_settings["imaginary_load_sub_model_part"].GetString()
+                direct_settings
             )
 
         else:
