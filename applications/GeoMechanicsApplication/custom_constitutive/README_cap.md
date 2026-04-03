@@ -21,7 +21,7 @@ where:
 In stress-invariant form, the MC yield function is typically written as:
 
 ```math
-    F_{MC}(p, q) = q - \frac{6 \sin{\phi}}{3 - \sin{\phi}} p - \frac{6 c \cos⁡{\phi}}{3 - \sin{\phi}}
+    F_{MC}(p, q) = q + \frac{6 \sin{\phi}}{3 - \sin{\phi}} p - \frac{6 c \cos⁡{\phi}}{3 - \sin{\phi}}
 ```
 where:
 
@@ -73,7 +73,7 @@ For the cap branch, plastic deformation is primarily volumetric (compaction), an
 ```math
     G_{cap} \left(p, q \right) = F_{cap} \left(p, q \right)
 ```
-The derivative of the flow function is the:
+The derivative of the flow function is:
 
 ```math
     \frac{\partial G_{cap}}{\partial \sigma} = \frac{2 q}{X^2} \frac{\partial q}{\partial \sigma} + 2 p \frac{\partial p}{\partial \sigma}
@@ -87,7 +87,7 @@ or
 
 ### Cap corner point
 
-The point where the compression cap yield surface intersects the Mohr-Coulomb yield surface is called the cap corner point. This point can be calculated by extracting $q$ of Coulomb yield surface:
+The point where the compression cap yield surface intersects the Mohr-Coulomb yield surface is called the cap corner point. This point can be calculated by solving the Coulomb yield surface for $q$:
 
 ```math
     q = - \frac{6 \sin{\phi}}{3 - \sin{\phi}} p + \frac{6 c \cos⁡{\phi}}{3 - \sin{\phi}}
@@ -151,7 +151,7 @@ Then the trial principal stresses need to be mapped to the cap yield surface by:
 ```
 
 ### Return mapping from cap corner zone
-The cap compression zone is the rigion where the trial principal stresses are,
+The cap compression zone is the region where the trial principal stresses are,
 
 1. above the line which passes from the cap corner point and in the direction normal to the flow function of the cap yield surface. 
 ```math
@@ -163,13 +163,13 @@ The cap compression zone is the rigion where the trial principal stresses are,
     q - q_{corner} - \left( G_{MC,p}/G_{MC,q} \right) (p - p_{corner}) < 0
 ```
 
-Then the trial principal stresses need to be mapped to the cap yield surface by:
+Then the trial principal stresses need to be mapped to the cap yield surface and Coulomb yield surface by:
 ```math
     \sigma = \sigma^{trial} + \lambda_{MC} C \frac{\partial G_{MC}}{\partial \sigma}
     + \lambda_{cap} C \frac{\partial G_{cap}}{\partial \sigma}
 ```
 
-Subsituting this traisl stresses in compression cap and Coulomb yield surfaces, it leads to two equations and two unknowns.
+Substuting this trial stresses in compression cap and Coulomb yield surfaces, it leads to two equations and two unknowns.
 ```math
     c_1 \lambda_{MC} + c_2 \lambda_{cap} = c_3
 ```
@@ -212,7 +212,7 @@ where,
     c_5 = q_{cap}^{cor^2} / X^2 + p_{cap}^{cor^2}
 ```
 ```math
-    c_6 = 2 \left( q^{trial} p_{MC}^{cor} / X^2 + p^{trial} p_{MC}^{cor} \right)
+    c_6 = 2 \left( q^{trial} q_{MC}^{cor} / X^2 + p^{trial} p_{MC}^{cor} \right)
 ```
 ```math
     c_7 = 2 \left( q^{trial} q_{cap}^{cor} / X^2 + p^{trial} p_{cap}^{cor} \right)
@@ -231,10 +231,10 @@ where,
     B = \frac{1}{c_1} \left( -2 \frac{c_2 c_3 c_4}{c_1} - c_2 c_6 + c_3 c_8 \right) + c_7
 ```
 ```math
-    C = \frac{c_3}{c_1} \left( \frac{c_3 c_4}{c_1} + c_6 \right) - c9
+    C = \frac{c_3}{c_1} \left( \frac{c_3 c_4}{c_1} + c_6 \right) - c_9
 ```
     
-Then, solving the recond order polynomial, it gives 
+Then, solving the second order polynomial, it gives 
 ```math
     \lambda_{cap} = \frac{-B + \sqrt{B^2 - 4 A C}}{2A}
 ```
@@ -272,7 +272,7 @@ Subsituting the stresses with the mapped stresses, we get the following relation
 ```
 ```math
     B = \frac{ \Delta \sigma \cdot \Delta \sigma^{cor}}{X^2} + \frac{2}{9}  
-        \sum_{i=1}^3{\sigma_i} \sum_{i=1}^3{\Delta \sigma_i^{cor}}
+        \sum_{i=1}^3{\sigma_i} \sum_{i=1}^3{\sigma_i^{cor}}
 ```
 ```math
     C = F_{cap} \left( \sigma^{trial} \right)
