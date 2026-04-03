@@ -24,6 +24,7 @@
 #include "includes/kratos_flags.h"
 #include "includes/constitutive_law.h"
 #include "includes/convection_diffusion_settings.h"
+#include "includes/viscosity_modulator_settings.h"
 #include "includes/radiation_settings.h"
 #include "utilities/quaternion.h"
 
@@ -150,6 +151,10 @@ void  AddContainersToPython(pybind11::module& m)
     .def("__str__", PrintObject<Variable<ConvectionDiffusionSettings::Pointer >>)
     ;
 
+    py::class_<Variable<ViscosityModulatorSettings::Pointer > ,VariableData>(m,"ViscosityModulatorSettingsVariable")
+    .def("__str__", PrintObject<Variable<ViscosityModulatorSettings::Pointer >>)
+    ;
+
     py::class_<Variable<RadiationSettings::Pointer > ,VariableData>(m,"RadiationSettingsVariable")
     .def("__str__", PrintObject<Variable<RadiationSettings::Pointer >>)
     ;
@@ -172,6 +177,7 @@ void  AddContainersToPython(pybind11::module& m)
     DataValueContainerIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<Vector> >(DataValueBinder);
     DataValueContainerIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<Matrix> >(DataValueBinder);
     DataValueContainerIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<ConvectionDiffusionSettings::Pointer> >(DataValueBinder);
+    DataValueContainerIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<ViscosityModulatorSettings::Pointer> >(DataValueBinder);
     DataValueContainerIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<RadiationSettings::Pointer> >(DataValueBinder);
     DataValueContainerIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<Quaternion<double>> >(DataValueBinder);
     DataValueContainerIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<std::string> >(DataValueBinder);
@@ -293,6 +299,7 @@ void  AddContainersToPython(pybind11::module& m)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, CONSTRAINT_SCALE_FACTOR )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, AUXILIAR_CONSTRAINT_SCALE_FACTOR )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, TEMPERATURE )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, CONCENTRATION )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, TEMPERATURE_OLD_IT )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PRESSURE )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, VISCOSITY_AIR )
@@ -646,6 +653,52 @@ void  AddContainersToPython(pybind11::module& m)
     .def("IsDefinedReactionGradientVariable",&ConvectionDiffusionSettings::IsDefinedReactionGradientVariable)
     ;
 
+    py::class_< ViscosityModulatorSettings, ViscosityModulatorSettings::Pointer >	(m,"ViscosityModulatorSettings")
+    .def(py::init<	>() )
+    .def("SetDensityVariable",&ViscosityModulatorSettings::SetDensityVariable)
+    .def("SetDiffusionVariable",&ViscosityModulatorSettings::SetDiffusionVariable)
+    .def("SetUnknownVariable",&ViscosityModulatorSettings::SetUnknownVariable)
+    .def("SetVolumeSourceVariable",&ViscosityModulatorSettings::SetVolumeSourceVariable)
+    .def("SetSurfaceSourceVariable",&ViscosityModulatorSettings::SetSurfaceSourceVariable)
+    .def("SetProjectionVariable",&ViscosityModulatorSettings::SetProjectionVariable)
+    .def("SetMeshVelocityVariable",&ViscosityModulatorSettings::SetMeshVelocityVariable)
+    .def("SetConvectionVariable",&ViscosityModulatorSettings::SetConvectionVariable)
+    .def("SetGradientVariable",&ViscosityModulatorSettings::SetGradientVariable)
+    .def("SetTransferCoefficientVariable",&ViscosityModulatorSettings::SetTransferCoefficientVariable)
+    .def("SetSpecificHeatVariable",&ViscosityModulatorSettings::SetSpecificHeatVariable)
+    .def("SetVelocityVariable",&ViscosityModulatorSettings::SetVelocityVariable)
+    .def("SetReactionVariable",&ViscosityModulatorSettings::SetReactionVariable)
+    .def("SetReactionGradientVariable",&ViscosityModulatorSettings::SetReactionGradientVariable)
+    .def("GetDensityVariable",&ViscosityModulatorSettings::GetDensityVariable, py::return_value_policy::reference_internal )
+    .def("GetDiffusionVariable",&ViscosityModulatorSettings::GetDiffusionVariable, py::return_value_policy::reference_internal )
+    .def("GetUnknownVariable",&ViscosityModulatorSettings::GetUnknownVariable, py::return_value_policy::reference_internal )
+    .def("GetVolumeSourceVariable",&ViscosityModulatorSettings::GetVolumeSourceVariable, py::return_value_policy::reference_internal )
+    .def("GetSurfaceSourceVariable",&ViscosityModulatorSettings::GetSurfaceSourceVariable, py::return_value_policy::reference_internal )
+    .def("GetProjectionVariable",&ViscosityModulatorSettings::GetProjectionVariable, py::return_value_policy::reference_internal )
+    .def("GetMeshVelocityVariable",&ViscosityModulatorSettings::GetMeshVelocityVariable, py::return_value_policy::reference_internal )
+    .def("GetConvectionVariable",&ViscosityModulatorSettings::GetConvectionVariable, py::return_value_policy::reference_internal )
+    .def("GetGradientVariable",&ViscosityModulatorSettings::GetGradientVariable, py::return_value_policy::reference_internal )
+    .def("GetTransferCoefficientVariable",&ViscosityModulatorSettings::GetTransferCoefficientVariable, py::return_value_policy::reference_internal)
+    .def("GetSpecificHeatVariable",&ViscosityModulatorSettings::GetSpecificHeatVariable, py::return_value_policy::reference_internal )
+    .def("GetVelocityVariable",&ViscosityModulatorSettings::GetVelocityVariable, py::return_value_policy::reference_internal )
+    .def("GetReactionVariable",&ViscosityModulatorSettings::GetReactionVariable, py::return_value_policy::reference_internal )
+    .def("GetReactionGradientVariable",&ViscosityModulatorSettings::GetReactionGradientVariable, py::return_value_policy::reference_internal )
+    .def("IsDefinedDensityVariable",&ViscosityModulatorSettings::IsDefinedDensityVariable)
+    .def("IsDefinedDiffusionVariable",&ViscosityModulatorSettings::IsDefinedDiffusionVariable)
+    .def("IsDefinedUnknownVariable",&ViscosityModulatorSettings::IsDefinedUnknownVariable)
+    .def("IsDefinedVolumeSourceVariable",&ViscosityModulatorSettings::IsDefinedVolumeSourceVariable)
+    .def("IsDefinedSurfaceSourceVariable",&ViscosityModulatorSettings::IsDefinedSurfaceSourceVariable)
+    .def("IsDefinedProjectionVariable",&ViscosityModulatorSettings::IsDefinedProjectionVariable)
+    .def("IsDefinedMeshVelocityVariable",&ViscosityModulatorSettings::IsDefinedMeshVelocityVariable)
+    .def("IsDefinedConvectionVariable",&ViscosityModulatorSettings::IsDefinedConvectionVariable)
+    .def("IsDefinedGradientVariable",&ViscosityModulatorSettings::IsDefinedGradientVariable)
+    .def("IsDefinedSpecificHeatVariable",&ViscosityModulatorSettings::IsDefinedSpecificHeatVariable)
+    .def("IsDefinedVelocityVariable",&ViscosityModulatorSettings::IsDefinedVelocityVariable)
+    .def("IsDefinedTransferCoefficientVariable",&ViscosityModulatorSettings::IsDefinedTransferCoefficientVariable)
+    .def("IsDefinedReactionVariable",&ViscosityModulatorSettings::IsDefinedReactionVariable)
+    .def("IsDefinedReactionGradientVariable",&ViscosityModulatorSettings::IsDefinedReactionGradientVariable)
+    ;
+
     py::class_< RadiationSettings, RadiationSettings::Pointer>	(m,"RadiationSettings")
     .def(py::init<	>() )
     .def("SetDensityVariable",&RadiationSettings::SetDensityVariable)
@@ -665,6 +718,7 @@ void  AddContainersToPython(pybind11::module& m)
     .def("GetMeshVelocityVariable",&RadiationSettings::GetMeshVelocityVariable, py::return_value_policy::reference_internal )
     ;
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,CONVECTION_DIFFUSION_SETTINGS)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,VISCOSITY_MODULATOR_SETTINGS)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,RADIATION_SETTINGS)
 }
 } // namespace Kratos::Python.

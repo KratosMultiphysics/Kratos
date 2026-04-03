@@ -19,6 +19,7 @@
 #include "includes/variables.h"
 #include "includes/kernel.h"
 #include "includes/convection_diffusion_settings.h"
+#include "includes/viscosity_modulator_settings.h"
 #include "includes/radiation_settings.h"
 
 namespace Kratos {
@@ -84,6 +85,7 @@ KRATOS_CREATE_VARIABLE(double, CONSTRAINT_SCALE_FACTOR)
 KRATOS_CREATE_VARIABLE(double, AUXILIAR_CONSTRAINT_SCALE_FACTOR)
 
 KRATOS_CREATE_VARIABLE(double, TEMPERATURE)
+KRATOS_CREATE_VARIABLE(double, CONCENTRATION)
 KRATOS_CREATE_VARIABLE(double, PRESSURE)
 
 KRATOS_CREATE_VARIABLE(double, NEGATIVE_FACE_PRESSURE)
@@ -446,6 +448,9 @@ KRATOS_CREATE_VARIABLE(GlobalPointersVector<GeometricalObject>, NEIGHBOUR_EMBEDD
 KRATOS_CREATE_VARIABLE(ConvectionDiffusionSettings::Pointer, CONVECTION_DIFFUSION_SETTINGS)
 KRATOS_CREATE_VARIABLE(RadiationSettings::Pointer, RADIATION_SETTINGS)
 
+// for viscosity modulator application
+KRATOS_CREATE_VARIABLE(ViscosityModulatorSettings::Pointer, VISCOSITY_MODULATOR_SETTINGS)
+
 KRATOS_CREATE_VARIABLE(PeriodicVariablesContainer, PERIODIC_VARIABLES)
 
 // Variables that should be moved to applications (but have too many dependencies)
@@ -560,6 +565,7 @@ void KratosApplication::RegisterVariables() {
 
     //THERMAL DOFS
     KRATOS_REGISTER_VARIABLE(TEMPERATURE)
+    KRATOS_REGISTER_VARIABLE(CONCENTRATION)
 
     //PRESSURE DOFS
     KRATOS_REGISTER_VARIABLE(PRESSURE)
@@ -744,6 +750,9 @@ void KratosApplication::RegisterVariables() {
 
     //--------------- STRUCTURAL Application -------------------//
     KRATOS_REGISTER_VARIABLE(NUMBER_OF_CYCLES)
+
+    //--------------- VISCOSITY MODULATOR Application -------------------//
+    KRATOS_REGISTER_VARIABLE(VISCOSITY_MODULATOR_SETTINGS)
 
     //--------------- MULTISCALE Application -------------------//
 

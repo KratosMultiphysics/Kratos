@@ -600,7 +600,7 @@ class ConvectionDiffusionSolver(PythonSolver):
 
         # Conditions
         condition_name = self.settings["element_replace_settings"]["condition_name"].GetString()
-        condition_list = ["FluxCondition", "ThermalFace", "AxisymmetricThermalFace", "LineCondition", "SurfaceCondition"]
+        condition_list = ["FluxCondition", "ThermalFace", "AxisymmetricThermalFace", "LineCondition", "ConsistentFluxBoundaryCondition"]
         if condition_name in condition_list:
             num_nodes_conditions = 0
             if (len(self.main_model_part.Conditions) > 0):

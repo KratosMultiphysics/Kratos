@@ -57,6 +57,9 @@ KratosConvectionDiffusionApplication::KratosConvectionDiffusionApplication()
       mAdjointDiffusionElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node >(Element::GeometryType::PointsArrayType(3)))),
       mAdjointDiffusionElement3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4)))),
       mAxisymmetricThermalFace2D2N(0, Element::GeometryType::Pointer(new Line2D2<Node >(Element::GeometryType::PointsArrayType(2)))),
+    mConsistentFluxBoundaryCondition2D2N(0, Element::GeometryType::Pointer(new Line2D2<Node >(Element::GeometryType::PointsArrayType(2)))),
+    mConsistentFluxBoundaryCondition3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<Node >(Element::GeometryType::PointsArrayType(3)))),
+    mConsistentFluxBoundaryCondition3D4N(0, Element::GeometryType::Pointer(new Quadrilateral3D4<Node >(Element::GeometryType::PointsArrayType(4)))),
       mThermalFace2D2N(0, Element::GeometryType::Pointer(new Line2D2<Node >(Element::GeometryType::PointsArrayType(2)))),
       mThermalFace3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<Node >(Element::GeometryType::PointsArrayType(3)))),
       mThermalFace3D4N(0, Element::GeometryType::Pointer(new Quadrilateral3D4<Node >(Element::GeometryType::PointsArrayType(4)))),
@@ -84,7 +87,6 @@ void KratosConvectionDiffusionApplication::Register() {
     KRATOS_REGISTER_VARIABLE(MELT_TEMPERATURE_2)
     KRATOS_REGISTER_VARIABLE(BFECC_ERROR)
     KRATOS_REGISTER_VARIABLE(BFECC_ERROR_1)
-
     KRATOS_REGISTER_VARIABLE(MEAN_SIZE)
     KRATOS_REGISTER_VARIABLE(PROJECTED_SCALAR1)
     KRATOS_REGISTER_VARIABLE(DELTA_SCALAR1)
@@ -137,6 +139,9 @@ void KratosConvectionDiffusionApplication::Register() {
     KRATOS_REGISTER_ELEMENT("AdjointDiffusionElement3D4N", mAdjointDiffusionElement3D4N);
 
     KRATOS_REGISTER_CONDITION("AxisymmetricThermalFace2D2N", mAxisymmetricThermalFace2D2N);
+    KRATOS_REGISTER_CONDITION("ConsistentFluxBoundaryCondition2D2N", mConsistentFluxBoundaryCondition2D2N);
+    KRATOS_REGISTER_CONDITION("ConsistentFluxBoundaryCondition3D3N", mConsistentFluxBoundaryCondition3D3N);
+    KRATOS_REGISTER_CONDITION("ConsistentFluxBoundaryCondition3D4N", mConsistentFluxBoundaryCondition3D4N);
     KRATOS_REGISTER_CONDITION("ThermalFace2D2N", mThermalFace2D2N);
     KRATOS_REGISTER_CONDITION("ThermalFace3D3N", mThermalFace3D3N);
     KRATOS_REGISTER_CONDITION("ThermalFace3D4N", mThermalFace3D4N);

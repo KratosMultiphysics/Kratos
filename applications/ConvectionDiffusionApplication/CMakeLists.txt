@@ -27,6 +27,7 @@ set( KRATOS_CONVECTION_DIFFUSION_APPLICATION_CORE_SOURCES
 
     # Conditions
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/axisymmetric_thermal_face.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/consistent_flux_boundary_condition.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/thermal_face.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/flux_condition.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/adjoint_thermal_face.cpp

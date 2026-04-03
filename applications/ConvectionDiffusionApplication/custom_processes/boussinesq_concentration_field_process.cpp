@@ -159,10 +159,6 @@ namespace Kratos
 
     void BoussinesqConcentrationFieldProcess::ValidateModelPart()
     {
-        // Nodal variables
-        KRATOS_ERROR_IF_NOT( mrModelPart.GetNodalSolutionStepVariablesList().Has(TEMPERATURE) ) <<
-        "\'TEMPERATURE\' variable is not added to the ModelPart nodal data." << std::endl;
-
         KRATOS_ERROR_IF_NOT( mrModelPart.GetNodalSolutionStepVariablesList().Has(BODY_FORCE) ) <<
         "\'BODY_FORCE\' variable is not added to the ModelPart nodal data." << std::endl;
     }
