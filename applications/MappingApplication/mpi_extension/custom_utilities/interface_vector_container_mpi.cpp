@@ -33,7 +33,7 @@ typedef InterfaceVectorContainer<SparseSpaceType, DenseSpaceType> VectorContaine
 /* PUBLIC Methods */
 /***********************************************************************************/
 template<>
-void VectorContainerType::UpdateSystemVectorFromModelPart(const Variable<double>& rVariable,
+KRATOS_API(MAPPING_MPI_APPLICATION) void VectorContainerType::UpdateSystemVectorFromModelPart(const Variable<double>& rVariable,
                                                           const Kratos::Flags& rMappingOptions)
 {
     constexpr bool in_parallel = false; // accessing the Trilinos vectors is not threadsafe in the default configuration!
@@ -64,7 +64,7 @@ void VectorContainerType::UpdateSystemVectorFromModelPart(const Variable<double>
 }
 
 template<>
-void VectorContainerType::UpdateModelPartFromSystemVector(const Variable<double>& rVariable,
+KRATOS_API(MAPPING_MPI_APPLICATION) void VectorContainerType::UpdateModelPartFromSystemVector(const Variable<double>& rVariable,
                                                           const Kratos::Flags& rMappingOptions)
 {
     constexpr bool in_parallel = false; // accessing the Trilinos vectors is not threadsafe in the default configuration!

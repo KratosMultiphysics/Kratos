@@ -18,7 +18,7 @@ namespace Kratos
 {
 
 template <typename TPrimalElement>
-class AdjointFiniteDifferenceCrBeamElement
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) AdjointFiniteDifferenceCrBeamElement
     : public AdjointFiniteDifferencingBaseElement<TPrimalElement>
 {
 public:

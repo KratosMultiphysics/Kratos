@@ -57,7 +57,7 @@ namespace Kratos
  * @author Alejandro Cornejo
  */
 template <class TPlasticPotentialType>
-class PlaneStressVonMisesYieldSurface
+class KRATOS_EXPOSE PlaneStressVonMisesYieldSurface
 {
 public:
     ///@name Type Definitions

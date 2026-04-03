@@ -50,7 +50,7 @@ namespace Kratos
  * @author Alejandro Cornejo & Lucia Barbu
  */
 template <SizeType TVoigtSize = 6>
-class VonMisesPlasticPotential
+class KRATOS_EXPOSE VonMisesPlasticPotential
 {
 public:
     ///@name Type Definitions
