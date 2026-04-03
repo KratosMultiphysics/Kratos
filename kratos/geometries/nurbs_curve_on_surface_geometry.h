@@ -720,18 +720,25 @@ public:
         } 
         else if (rIntegrationPoints.size() == 1)
         {
-            IntegrationPointsArrayType temp_integration_points_array;
-            CreateIntegrationPoints(temp_integration_points_array, rIntegrationInfo);
-            if (temp_integration_points_array.size() > 3)
-            {
-                mpNurbsCurve->GlobalSpaceDerivatives(first_integration_point,temp_integration_points_array[1],1);
-                mpNurbsCurve->GlobalSpaceDerivatives(last_integration_point,temp_integration_points_array[temp_integration_points_array.size()-2],1);
+            const auto interval = mpNurbsCurve->DomainInterval();
+            const double t0 = interval.GetT0();
+            const double t1 = interval.GetT1();
+            const double span = t1 - t0;
+            double offset = 1.0e-6 * span;
+            if (span <= 0.0) {
+                KRATOS_ERROR << "::[NurbsCurveOnSurfaceGeometry]::Invalid span detected in CreateQuadraturePointGeometriesSbm.";
+            } else if (2.0 * offset >= span) {
+                offset = 0.25 * span;
             }
-            else
-            {
-                mpNurbsCurve->GlobalSpaceDerivatives(first_integration_point,temp_integration_points_array[0],1);
-                mpNurbsCurve->GlobalSpaceDerivatives(last_integration_point,temp_integration_points_array[temp_integration_points_array.size()-1],1);
-            }
+
+            const double t_first = t0 + offset;
+            const double t_last = t1 - offset;
+
+            const IntegrationPoint<1> first_local_point(t_first);
+            const IntegrationPoint<1> last_local_point(t_last);
+
+            mpNurbsCurve->GlobalSpaceDerivatives(first_integration_point, first_local_point, 1);
+            mpNurbsCurve->GlobalSpaceDerivatives(last_integration_point, last_local_point, 1);
         }
         else 
         {

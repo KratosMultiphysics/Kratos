@@ -14,6 +14,7 @@
 #include "includes/define.h"
 #include "iga_application_variables.h"
 #include "includes/global_pointer_variables.h"
+#include "geometries/brep_curve.h"
 #include "spatial_containers/bins_dynamic.h"
 #include "containers/pointer_vector.h"
 
@@ -79,25 +80,17 @@ namespace Kratos
 
         std::string contact_model_part_name = analysis_model_part_name + ".ContactInterface." + contact_sub_model_part_name;
 
-        mrContactModelPart = &(mpModel->CreateModelPart(contact_model_part_name));
+        mpContactModelPart = &(mpModel->CreateModelPart(contact_model_part_name));
     }
 
     void IgaContactProcessGapSbm::Execute()
     {
         // TODO: create or retrieve "contact" submodelpart of the contact model part.
         // NOTE: this is the target where all coupling quadrature geometries will be stored.
-        ModelPart& r_contact_sub_model_part = mrContactModelPart->HasSubModelPart("contact")
-            ? mrContactModelPart->GetSubModelPart("contact")
-            : mrContactModelPart->CreateSubModelPart("contact");
+        ModelPart& r_contact_sub_model_part = mpContactModelPart->HasSubModelPart("contact")
+            ? mpContactModelPart->GetSubModelPart("contact")
+            : mpContactModelPart->CreateSubModelPart("contact");
 
-        if (mrMasterModelPart->NumberOfConditions() > 0) {
-            std::vector<IndexType> condition_ids;
-            condition_ids.reserve(mrMasterModelPart->NumberOfConditions());
-            for (auto& r_condition : mrMasterModelPart->Conditions()) {
-                condition_ids.push_back(r_condition.Id());
-            }
-            r_contact_sub_model_part.AddConditions(condition_ids);
-        }
 
         if (!mrSlaveModelPart->HasSubModelPart("contact")) {
             KRATOS_WARNING("IgaContactProcessGapSbm")
@@ -113,6 +106,7 @@ namespace Kratos
         using DistanceIterator = std::vector<double>::iterator;
         using DynamicBins = BinsDynamic<3, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator>;
         using PointerType = DynamicBins::PointerType;
+        using BrepCurveType = BrepCurve<PointerVector<NodeType>, PointerVector<Point>>;
 
         ModelPart& r_slave_contact = mrSlaveModelPart->GetSubModelPart("contact");
 
@@ -132,13 +126,19 @@ namespace Kratos
 
         DynamicBins slave_bins(slave_center_points.begin(), slave_center_points.end());
 
+        const Vector master_knot_step_uv = mrMasterModelPart->GetParentModelPart().GetValue(KNOT_SPAN_SIZES);
+        const double projection_distance_limit = master_knot_step_uv[0] * 1.0;
+        const double projection_distance_fallback = master_knot_step_uv[0] / 2.0;
+        const double projection_distance_limit_sq = projection_distance_limit * projection_distance_limit;
+        const double projection_distance_fallback_sq = projection_distance_fallback * projection_distance_fallback;
+
         IndexType next_projection_node_id = 1;
-        if (mrContactModelPart->GetRootModelPart().NumberOfNodes() > 0) {
-            next_projection_node_id = (mrContactModelPart->GetRootModelPart().NodesEnd() - 1)->Id() + 1;
+        if (mpContactModelPart->GetRootModelPart().NumberOfNodes() > 0) {
+            next_projection_node_id = (mpContactModelPart->GetRootModelPart().NodesEnd() - 1)->Id() + 1;
         }
 
         for (auto& r_master_condition : mrMasterModelPart->Conditions()) {
-            r_master_condition.SetValue(IDENTIFIER, "MASTER");
+            r_master_condition.SetValue(IDENTIFIER, "INACTIVE");
             const auto& r_master_center = r_master_condition.GetGeometry().Center();
             // TODO: use deformed coordinates for the master quadrature point once available.
             PointType master_query_point(0, r_master_center.X(), r_master_center.Y(), r_master_center.Z());
@@ -155,10 +155,42 @@ namespace Kratos
                 continue;
             }
 
-            auto p_slave_projection_node = Kratos::make_intrusive<NodeType>(
-                next_projection_node_id++, p_nearest->X(), p_nearest->Y(), p_nearest->Z());
+            auto p_slave_brep_curve = std::dynamic_pointer_cast<BrepCurveType>(p_slave_geometry);
+            KRATOS_ERROR_IF(!p_slave_brep_curve)
+                << "::[IgaContactProcessGapSbm]:: geometry with id " << p_slave_geometry->Id()
+                << " is not a BrepCurve." << std::endl;
 
-            r_master_condition.GetGeometry().SetValue(PROJECTION_NODE, p_slave_projection_node);
+            CoordinatesArrayType projection_local = ZeroVector(3);
+            if (const auto p_background_curve = p_slave_brep_curve->pGetGeometryPart(GeometryType::BACKGROUND_GEOMETRY_INDEX)) {
+                std::vector<double> curve_spans;
+                p_background_curve->SpansLocalSpace(curve_spans);
+                if (!curve_spans.empty()) {
+                    projection_local[0] = 0.5 * (curve_spans.front() + curve_spans.back());
+                }
+            }
+
+            const int is_projected = p_slave_brep_curve->ProjectionPointGlobalToLocalSpace(
+                master_query_point.Coordinates(), projection_local);
+            CoordinatesArrayType projection_global = ZeroVector(3);
+            p_slave_brep_curve->GlobalCoordinates(projection_global, projection_local);
+            const auto& r_master_coords = master_query_point.Coordinates();
+            const double dx = projection_global[0] - r_master_coords[0];
+            const double dy = projection_global[1] - r_master_coords[1];
+            const double dz = projection_global[2] - r_master_coords[2];
+            const double projection_distance_sq = dx*dx + dy*dy + dz*dz;
+
+            if (is_projected == 0) {
+                if (projection_distance_sq >= projection_distance_fallback_sq) {
+                    continue;
+                }
+            } else {
+                if (projection_distance_sq > projection_distance_limit_sq) {
+                    continue;
+                }
+            }
+
+            auto p_slave_projection_node = Kratos::make_intrusive<NodeType>(
+                next_projection_node_id++, projection_global[0], projection_global[1], projection_global[2]);
 
             std::vector<Geometry<Node>::Pointer> neighbour_geometries;
             if (p_slave_geometry->Has(NEIGHBOUR_GEOMETRIES)) {
@@ -166,15 +198,47 @@ namespace Kratos
             }
             neighbour_geometries.push_back(p_slave_geometry);
             p_slave_projection_node->SetValue(NEIGHBOUR_GEOMETRIES, neighbour_geometries);
+
+            r_master_condition.GetGeometry().SetValue(PROJECTION_NODE, p_slave_projection_node);
+
+            r_master_condition.SetValue(IDENTIFIER, "MASTER");
+        }
+
+        // // Add only master conditions flagged as MASTER to the contact model part.
+        if (mrMasterModelPart->NumberOfConditions() > 0) {
+            std::vector<IndexType> master_condition_ids;
+            master_condition_ids.reserve(mrMasterModelPart->NumberOfConditions());
+            for (auto& r_condition : mrMasterModelPart->Conditions()) {
+                if (r_condition.GetValue(IDENTIFIER) == "MASTER") {
+                    master_condition_ids.push_back(r_condition.Id());
+                }
+            }
+            if (!master_condition_ids.empty()) {
+                mpContactModelPart->GetSubModelPart("contact").AddConditions(master_condition_ids);
+            }
         }
 
         for (auto& r_slave_geometry : r_slave_contact.Geometries()) {
             r_slave_geometry.SetValue(IDENTIFIER, "SLAVE");
         }
 
-        // NOTE: no extra work is required on the slave model part beyond the projection.
+        //FIXME: 
+        // Remove all slave conditions from the root model part (no copies, just detach).
+        if (mrSlaveModelPart->NumberOfConditions() > 0) {
+            std::vector<IndexType> slave_condition_ids;
+            slave_condition_ids.reserve(mrSlaveModelPart->NumberOfConditions());
+            for (auto& r_condition : mrSlaveModelPart->Conditions()) {
+                slave_condition_ids.push_back(r_condition.Id());
+            }
 
-        EntitiesUtilities::InitializeEntities<Condition>(mrContactModelPart->GetParentModelPart());
+            auto& r_root_model_part = mrSlaveModelPart->GetRootModelPart();
+            for (const auto condition_id : slave_condition_ids) {
+                r_root_model_part.RemoveCondition(condition_id);
+            }
+        }
+
+        // NOTE: no extra work is required on the slave model part beyond the projection.
+        EntitiesUtilities::InitializeEntities<Condition>(mpContactModelPart->GetParentModelPart());
     }
 
 } // namespace Kratos

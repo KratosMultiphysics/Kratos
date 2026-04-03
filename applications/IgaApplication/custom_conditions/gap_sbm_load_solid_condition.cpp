@@ -352,18 +352,18 @@ void GapSbmLoadSolidCondition::InitializeSolutionStep(const ProcessInfo& rCurren
 
     mpConstitutiveLaw->InitializeMaterialResponse(constitutive_law_parameters, ConstitutiveLaw::StressMeasure_Cauchy);
 
-    for (unsigned int i = 0; i < GetSurrogateGeometry().size(); i++) {
-            // if (r_geometry[i].GetId() == 420) 
-            // {
-            //     KRATOS_WATCH(r_geometry[i].Coordinates())
-            //     KRATOS_WATCH(DN_DX(i,0))
-            //     KRATOS_WATCH(DN_DX(i,1))
-            // }
+    // for (unsigned int i = 0; i < GetSurrogateGeometry().size(); i++) {
+    //         // if (r_geometry[i].GetId() == 420) 
+    //         // {
+    //         //     KRATOS_WATCH(r_geometry[i].Coordinates())
+    //         //     KRATOS_WATCH(DN_DX(i,0))
+    //         //     KRATOS_WATCH(DN_DX(i,1))
+    //         // }
         
-            std::ofstream outputFile("txt_files/Id_active_control_points_condition.txt", std::ios::app);
-            outputFile << GetSurrogateGeometry()[i].GetId() << "  " <<GetSurrogateGeometry()[i].GetDof(DISPLACEMENT_X).EquationId() <<"\n";
-            outputFile.close();
-        }
+    //         // std::ofstream outputFile("txt_files/Id_active_control_points_condition.txt", std::ios::app);
+    //         // outputFile << GetSurrogateGeometry()[i].GetId() << "  " <<GetSurrogateGeometry()[i].GetDof(DISPLACEMENT_X).EquationId() <<"\n";
+    //         // outputFile.close();
+    //     }
 
 }
 

@@ -154,11 +154,15 @@ public:
 
     /**
      * @brief Get the solution coefficient at the previous time step in the two-dimensional case.
-     * 
+     *
      * @param rValues solution coefficients at the previous time step
+     * @param index 0: master, 1: slave, 2: master+slave
      */
     void GetSolutionCoefficientVector(
-        Vector& rValues) const;
+        Vector& rValues,
+        IndexType index) const;
+
+    void SetGap();
 
     const NodeType::Pointer pGetProjectionNode() const;
 
@@ -229,7 +233,11 @@ void InitializeMaterial();
 
 void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
-void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
+    void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
+
+    void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
+
+    void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 
 //@}
 /**
@@ -250,10 +258,12 @@ void InitializeSbmMemberVariables();
  * 
  * @param rB B matrix to be calculated
  * @param r_DN_DX The shape function derivatives in the global coordinate system
+ * @param number_of_control_points
  */
 void CalculateB(
     Matrix& rB,
-    Matrix& r_DN_DX) const;
+    Matrix& r_DN_DX,
+    const SizeType number_of_control_points) const;
 
 /**
  * @brief Compute the constitutive law response for the given strain vector.
@@ -272,16 +282,30 @@ void ApplyConstitutiveLaw(
 /**
  * @brief 
  * 
- * @param H_sum_vec 
+ * @param rGeometry
+ * @param rDistanceVector
+ * @param BasisFunctionsOrder
+ * @param H_sum_vec
  */
-void ComputeTaylorExpansionContribution(Vector& H_sum_vec);
+void ComputeTaylorExpansionContribution(
+    const GeometryType& rGeometry,
+    const Vector& rDistanceVector,
+    const SizeType BasisFunctionsOrder,
+    Vector& H_sum_vec);
 
 /**
  * @brief 
  * 
- * @param grad_H_sum 
+ * @param rGeometry
+ * @param rDistanceVector
+ * @param BasisFunctionsOrder
+ * @param grad_H_sum
  */
-void ComputeGradientTaylorExpansionContribution(Matrix& grad_H_sum);
+void ComputeGradientTaylorExpansionContribution(
+    const GeometryType& rGeometry,
+    const Vector& rDistanceVector,
+    const SizeType BasisFunctionsOrder,
+    Matrix& grad_H_sum);
 
 /**
  * @brief compute the Taylor expansion for apply the Shifted Boundary Method in 2D
@@ -317,12 +341,15 @@ double ComputeTaylorTerm3D(
     ConstitutiveLaw::Pointer mpConstitutiveLaw; /// The pointer containing the constitutive laws
     // sbm variables
     array_1d<double, 3> mNormalParameterSpace;
-    array_1d<double, 3> mNormalPhysicalSpace;
-    Vector mDistanceVector;
+    array_1d<double, 3> mNormalPhysicalSpaceMaster;
+    array_1d<double, 3> mNormalPhysicalSpaceSlave;
+    Vector mDistanceVectorSkinReferenceMaster;
+    Vector mDistanceVectorSkinReferenceSlave;
     unsigned int mDim;
     double mPenalty;
     double mNitschePenalty;
-    IndexType mBasisFunctionsOrder;
+    IndexType mBasisFunctionsOrderMaster;
+    IndexType mBasisFunctionsOrderSlave;
     std::string mSideIdentifier;
 
 ///@}
