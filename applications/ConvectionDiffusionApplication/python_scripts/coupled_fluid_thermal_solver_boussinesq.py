@@ -148,6 +148,11 @@ class CoupledFluidThermalSolverBoussinesq(CoupledFluidThermalSolver):
             "condition_name": ""
         }""")
 
+        thermal_solver = self.thermal_solver
+        thermal_solver._ValidateNeighbourElementAssignmentForCondition(
+            thermal_solver.settings["element_replace_settings"]["condition_name"].GetString(),
+            "thermal_solver_settings.element_replace_settings.condition_name")
+
         custom_assignments = self.settings["sub_model_part_conditions"]
         assigned_sub_model_parts = set()
 
@@ -165,6 +170,10 @@ class CoupledFluidThermalSolverBoussinesq(CoupledFluidThermalSolver):
             if condition_name == "":
                 raise Exception(
                     "Each entry in 'sub_model_part_conditions' requires a non-empty 'condition_name'.")
+
+            thermal_solver._ValidateNeighbourElementAssignmentForCondition(
+                condition_name,
+                "sub_model_part_conditions[{}].condition_name".format(i))
 
             if sub_model_part_name in assigned_sub_model_parts:
                 raise Exception(

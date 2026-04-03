@@ -347,7 +347,11 @@ class ConvectionDiffusionSolver(PythonSolver):
             else:
                 KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionSolver]:: ", "Materials were not imported.")
 
-            KratosMultiphysics.ReplaceElementsAndConditionsProcess(self.main_model_part, self._get_element_condition_replace_settings()).Execute()
+            replace_settings = self._get_element_condition_replace_settings()
+            self._ValidateNeighbourElementAssignmentForCondition(
+                replace_settings["condition_name"].GetString(),
+                "element_replace_settings.condition_name")
+            KratosMultiphysics.ReplaceElementsAndConditionsProcess(self.main_model_part, replace_settings).Execute()
 
             tmoc = KratosMultiphysics.TetrahedralMeshOrientationCheck
             throw_errors = False
@@ -561,6 +565,19 @@ class ConvectionDiffusionSolver(PythonSolver):
             time = time + delta_time
             self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.STEP, step)
             self.main_model_part.CloneTimeStep(time)
+
+    def _ConditionRequiresNeighbourElements(self, condition_name):
+        return condition_name.startswith("ConsistentFluxBoundaryCondition")
+
+    def _ValidateNeighbourElementAssignmentForCondition(self, condition_name, condition_origin):
+        assign_neighbour_elements = self.settings["assign_neighbour_elements_to_conditions"].GetBool()
+
+        if self._ConditionRequiresNeighbourElements(condition_name) and not assign_neighbour_elements:
+            raise Exception(
+                "The condition '{}' selected in '{}' requires "
+                "'assign_neighbour_elements_to_conditions' to be true.".format(
+                    condition_name,
+                    condition_origin))
 
     def _get_element_condition_replace_settings(self):
         # Get and check domain size
