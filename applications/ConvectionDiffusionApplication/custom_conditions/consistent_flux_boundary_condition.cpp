@@ -19,6 +19,31 @@
 namespace Kratos
 {
 
+namespace
+{
+
+array_1d<double, 3> CalculateParentOrientedUnitNormal(
+    const Condition::GeometryType& rConditionGeometry,
+    const Condition::GeometryType& rParentGeometry,
+    const Condition::GeometryType::CoordinatesArrayType& rConditionLocalCoordinates)
+{
+    auto unit_normal = rConditionGeometry.UnitNormal(rConditionLocalCoordinates);
+
+    Point global_coordinates;
+    rConditionGeometry.GlobalCoordinates(global_coordinates, rConditionLocalCoordinates);
+
+    const auto parent_center = rParentGeometry.Center();
+    const array_1d<double, 3> inward_direction = parent_center - global_coordinates;
+
+    if (inner_prod(unit_normal, inward_direction) > 0.0) {
+        unit_normal *= -1.0;
+    }
+
+    return unit_normal;
+}
+
+} // namespace
+
 ConsistentFluxBoundaryCondition::ConsistentFluxBoundaryCondition(
     IndexType NewId,
     Geometry<Node>::Pointer pGeometry)
@@ -297,7 +322,10 @@ void ConsistentFluxBoundaryCondition::ComputeIntegrationPointData(
     IntegrationPointData& rData) const
 {
     rData.Weight = rDetJ[IntegrationPointIndex] * rIntegrationPoints[IntegrationPointIndex].Weight();
-    rData.UnitNormal = rConditionGeometry.UnitNormal(rIntegrationPoints[IntegrationPointIndex].Coordinates());
+    rData.UnitNormal = CalculateParentOrientedUnitNormal(
+        rConditionGeometry,
+        rParentGeometry,
+        rIntegrationPoints[IntegrationPointIndex].Coordinates());
 
     CalculateParentGeometryValues(
         rConditionGeometry,
