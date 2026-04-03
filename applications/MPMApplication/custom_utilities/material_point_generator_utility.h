@@ -65,7 +65,7 @@ namespace Kratos::MaterialPointGeneratorUtility
      * @details Generating material points using a designated shape functions
      */
     template<SizeType TDimension>
-    void GenerateMaterialPointElement(  ModelPart& rBackgroundGridModelPart,
+    void KRATOS_API(MPM_APPLICATION) GenerateMaterialPointElement(  ModelPart& rBackgroundGridModelPart,
                                         ModelPart& rInitialModelPart,
                                         ModelPart& rMPMModelPart,
                                         bool IsMixedFormulation=false);
@@ -74,7 +74,7 @@ namespace Kratos::MaterialPointGeneratorUtility
      * @details Generating material point condition using a designated shape functions
      */
     template<SizeType TDimension>
-    void GenerateMaterialPointCondition(ModelPart& rBackgroundGridModelPart,
+    void KRATOS_API(MPM_APPLICATION) GenerateMaterialPointCondition(ModelPart& rBackgroundGridModelPart,
                                             ModelPart& rInitialModelPart,
                                             ModelPart& rMPMModelPart);
 
@@ -82,7 +82,7 @@ namespace Kratos::MaterialPointGeneratorUtility
      * @brief Function to add dofs to elements for Lagrange multiplier.
      * @details non-conforming Perturbed Lagrangian or Lagrange multiplier conditions
      */
-    void GenerateLagrangeNodes(ModelPart& rBackgroundGridModelPart);
+    void KRATOS_API(MPM_APPLICATION) GenerateLagrangeNodes(ModelPart& rBackgroundGridModelPart);
     /**
      * @brief Function to Initiate material point condition.
      * @details Generating material point condition using a designated shape functions

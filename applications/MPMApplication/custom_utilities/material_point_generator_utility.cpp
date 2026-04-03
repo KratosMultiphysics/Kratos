@@ -1039,19 +1039,19 @@ namespace Kratos::MaterialPointGeneratorUtility
     //
 
 
-    template void GenerateMaterialPointElement<2>(ModelPart& rBackgroundGridModelPart,
+    template KRATOS_API(MPM_APPLICATION) void GenerateMaterialPointElement<2>(ModelPart& rBackgroundGridModelPart,
                                         ModelPart& rInitialModelPart,
                                         ModelPart& rMPMModelPart,
                                         bool IsMixedFormulation);
-    template void GenerateMaterialPointElement<3>(ModelPart& rBackgroundGridModelPart,
+    template KRATOS_API(MPM_APPLICATION) void GenerateMaterialPointElement<3>(ModelPart& rBackgroundGridModelPart,
                                         ModelPart& rInitialModelPart,
                                         ModelPart& rMPMModelPart,
                                         bool IsMixedFormulation);
 
-    template void GenerateMaterialPointCondition<2>(ModelPart& rBackgroundGridModelPart,
+    template KRATOS_API(MPM_APPLICATION) void GenerateMaterialPointCondition<2>(ModelPart& rBackgroundGridModelPart,
                                             ModelPart& rInitialModelPart,
                                             ModelPart& rMPMModelPart);
-    template void GenerateMaterialPointCondition<3>(ModelPart& rBackgroundGridModelPart,
+    template KRATOS_API(MPM_APPLICATION) void GenerateMaterialPointCondition<3>(ModelPart& rBackgroundGridModelPart,
                                             ModelPart& rInitialModelPart,
                                             ModelPart& rMPMModelPart);
 
