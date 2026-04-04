@@ -30,6 +30,7 @@
 #include "custom_utilities/surface_integral.h"
 #include "custom_utilities/blurriness_calculator.h"
 #include "custom_utilities/boussinesq_coupling_utilities.h"
+#include "custom_utilities/compute_flux_vector.h"
 
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
@@ -119,6 +120,10 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     py::class_<ComputeFlux > (m,"ComputeFlux")
     .def(py::init< ModelPart&, const Variable<array_1d<double,3>>& >())
     .def("ComputeSurfaceIntegral",  &ComputeFlux::ComputeSurfaceIntegral)
+    ;
+
+    py::class_<ComputeFluxUtility>(m,"ComputeFluxUtility")
+    .def_static("ComputeVectorialFlux", &ComputeFluxUtility::ComputeVectorialFlux)
     ;
 
     py::class_<BFECCConvection<3> > (m,"BFECCConvection3D")

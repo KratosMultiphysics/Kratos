@@ -43,6 +43,8 @@
 #include "custom_conditions/flux_condition.h"
 #include "custom_conditions/adjoint_thermal_face.h"
 
+#include "custom_utilities/compute_flux_vector.h"
+
 #include "includes/variables.h"
 #include "includes/condition.h"
 
