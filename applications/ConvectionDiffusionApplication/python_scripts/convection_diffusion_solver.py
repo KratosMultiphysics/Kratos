@@ -257,20 +257,23 @@ class ConvectionDiffusionSolver(PythonSolver):
             # step_solution_variable = self.settings["convection_diffusion_variables"]["step_solution"].GetString()
             # if (step_solution_variable != ""):
             #     target_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ConvectionDiffusionApplication.STEP_SOLUTION)
-            # trunc_solution_variable = self.settings["convection_diffusion_variables"]["trunc_solution"].GetString()
-            # if (trunc_solution_variable != ""):
-            #     target_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ConvectionDiffusionApplication.TRUNC_SOLUTION)
+            trunc_solution_variable = self.settings["convection_diffusion_variables"]["trunc_solution"].GetString()
+            if (trunc_solution_variable != ""):
+                target_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ConvectionDiffusionApplication.TRUNC_SOLUTION)
             # step_solution_error_variable = self.settings["convection_diffusion_variables"]["step_solution_error"].GetString()
             # if (step_solution_error_variable != ""):
             #     target_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ConvectionDiffusionApplication.STEP_SOLUTION_ERROR)
-            # trunc_solution_error_variable = self.settings["convection_diffusion_variables"]["trunc_solution_error"].GetString()
-            # if (trunc_solution_error_variable != ""):
-            #     target_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ConvectionDiffusionApplication.TRUNC_SOLUTION_ERROR)
+            trunc_solution_error_variable = self.settings["convection_diffusion_variables"]["trunc_solution_error"].GetString()
+            if (trunc_solution_error_variable != ""):
+                target_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ConvectionDiffusionApplication.TRUNC_SOLUTION_ERROR)
             # print(f"settigns:\n{self.settings['convection_diffusion_variables']}")
             # generic_variable_3D = self.settings["convection_diffusion_variables"]["generic_3d_variable"].GetString()
             # if (generic_variable_3D != ""):
             #     target_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ConvectionDiffusionApplication.GENERIC_3D_VARIABLE)
 
+            reference_velocity = self.settings["convection_diffusion_variables"]["reference_velocity"].GetString()
+            if (reference_velocity != ""):
+                target_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ConvectionDiffusionApplication.REFERENCE_VELOCITY)
         else:
             raise Exception("The provided target_model_part does not have CONVECTION_DIFFUSION_SETTINGS defined.")
 

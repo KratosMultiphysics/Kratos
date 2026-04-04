@@ -250,6 +250,8 @@ void ConsistentFluxBoundaryCondition::CalculateConditionSystem(
     VectorType* pRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo) const
 {
+    constexpr double zero_tolerance = std::numeric_limits<double>::epsilon();
+
     const auto& r_condition_geometry = this->GetGeometry();
     const auto& r_parent_geometry = GetParentElement().GetGeometry();
     const auto parent_num_nodes = r_parent_geometry.PointsNumber();
@@ -304,11 +306,15 @@ void ConsistentFluxBoundaryCondition::CalculateConditionSystem(
 
     if (pLeftHandSideMatrix != nullptr) {
         noalias(*pLeftHandSideMatrix) = lhs_contribution;
+        // KRATOS_WARNING_IF("ConsistentFluxBoundaryCondition", norm_frobenius(lhs_contribution) <= zero_tolerance)
+        //     << "Condition " << this->Id() << " has zero (or near-zero) LHS contribution." << std::endl;
     }
 
     if (pRightHandSideVector != nullptr) {
         const auto parent_unknown_values = GetParentUnknownValues(r_unknown_var);
         noalias(*pRightHandSideVector) -= prod(lhs_contribution, parent_unknown_values);
+        // KRATOS_WARNING_IF("ConsistentFluxBoundaryCondition", norm_2(*pRightHandSideVector) <= zero_tolerance)
+        //     << "Condition " << this->Id() << " has zero (or near-zero) RHS contribution." << std::endl;
     }
 }
 

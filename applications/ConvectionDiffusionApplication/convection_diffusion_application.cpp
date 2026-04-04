@@ -104,6 +104,7 @@ void KratosConvectionDiffusionApplication::Register() {
     KRATOS_REGISTER_VARIABLE(TRUNC_SOLUTION_ERROR)
 
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(CONVECTION_VELOCITY)
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(REFERENCE_VELOCITY)
 
     // Registering elements and conditions here
     KRATOS_REGISTER_ELEMENT("AxisymmetricEulerianConvectionDiffusion2D3N", mAxisymmetricEulerianConvectionDiffusion2D3N);

@@ -6,7 +6,7 @@
 // //  License:       BSD License
 // //                 Kratos default license: kratos/license.txt
 // //
-// //  Main authors:  Riccardo Rossi
+// //  Main authors:  Aniol Sala
 // //
 
 #if !defined(KRATOS_SURFACE_INTEGRAL_INCLUDED)
