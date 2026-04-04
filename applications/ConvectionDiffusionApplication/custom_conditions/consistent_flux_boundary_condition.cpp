@@ -250,7 +250,7 @@ void ConsistentFluxBoundaryCondition::CalculateConditionSystem(
     VectorType* pRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo) const
 {
-    constexpr double zero_tolerance = std::numeric_limits<double>::epsilon();
+    // constexpr double zero_tolerance = std::numeric_limits<double>::epsilon();
 
     const auto& r_condition_geometry = this->GetGeometry();
     const auto& r_parent_geometry = GetParentElement().GetGeometry();
