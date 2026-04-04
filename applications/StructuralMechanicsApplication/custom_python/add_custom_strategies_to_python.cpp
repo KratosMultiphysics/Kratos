@@ -21,7 +21,8 @@
 
 // Strategies
 #include "custom_strategies/custom_strategies/eigensolver_strategy.hpp"
-#include "custom_strategies/custom_strategies/harmonic_analysis_strategy.hpp"
+#include "custom_strategies/custom_strategies/modal_harmonic_analysis_strategy.hpp"
+#include "custom_strategies/custom_strategies/direct_harmonic_analysis_strategy.hpp"
 #include "custom_strategies/custom_strategies/formfinding_strategy.hpp"
 #include "custom_strategies/custom_strategies/mechanical_explicit_strategy.hpp"
 #include "custom_strategies/custom_strategies/prebuckling_strategy.hpp"
@@ -69,7 +70,8 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     // Custom strategy types
     typedef EigensolverStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > EigensolverStrategyType;
     typedef PrebucklingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > PrebucklingStrategyType;
-    typedef HarmonicAnalysisStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > HarmonicAnalysisStrategyType;
+    typedef ModalHarmonicAnalysisStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ModalHarmonicAnalysisStrategyType;
+    typedef DirectHarmonicAnalysisStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > DirectHarmonicAnalysisStrategyType;
     typedef FormfindingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > FormfindingStrategyType;
     typedef MechanicalExplicitStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > MechanicalExplicitStrategyType;
 
@@ -85,6 +87,19 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     // Custom convergence criterion types
     typedef ResidualDisplacementAndOtherDoFCriteria< SparseSpaceType,  LocalSpaceType > ResidualDisplacementAndOtherDoFCriteriaType;
     typedef ErrorMeshCriteria< SparseSpaceType,  LocalSpaceType > ErrorMeshCriteriaType;
+
+    typedef std::complex<double> ComplexType;
+
+    typedef UblasSpace<ComplexType,
+                    boost::numeric::ublas::compressed_matrix<ComplexType>,
+                    boost::numeric::ublas::vector<ComplexType>> ComplexSparseSpaceType;
+
+    typedef UblasSpace<ComplexType,
+                    boost::numeric::ublas::matrix<ComplexType>,
+                    boost::numeric::ublas::vector<ComplexType>> ComplexLocalSpaceType;
+
+    typedef LinearSolver<ComplexSparseSpaceType, ComplexLocalSpaceType> ComplexLinearSolverType;
+    typedef ComplexLinearSolverType::Pointer ComplexLinearSolverPointer;
 
     // Custom builder and solvers types
 
@@ -128,12 +143,26 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         ;
 
     // harmonic Analysis Strategy
-    py::class_< HarmonicAnalysisStrategyType,typename HarmonicAnalysisStrategyType::Pointer, BaseSolvingStrategyType >(m,"HarmonicAnalysisStrategy")
+    py::class_< ModalHarmonicAnalysisStrategyType,typename ModalHarmonicAnalysisStrategyType::Pointer, BaseSolvingStrategyType >(m,"ModalHarmonicAnalysisStrategy")
         .def(py::init<ModelPart&, BaseSchemeType::Pointer, BuilderAndSolverPointer, bool>() )
-        .def("SetUseMaterialDampingFlag", &HarmonicAnalysisStrategyType::SetUseMaterialDampingFlag)
-        .def("GetUseMaterialDampingFlag", &HarmonicAnalysisStrategyType::GetUseMaterialDampingFlag)
+        .def("SetUseMaterialDampingFlag", &ModalHarmonicAnalysisStrategyType::SetUseMaterialDampingFlag)
+        .def("GetUseMaterialDampingFlag", &ModalHarmonicAnalysisStrategyType::GetUseMaterialDampingFlag)
         ;
 
+    py::class_<DirectHarmonicAnalysisStrategyType, typename DirectHarmonicAnalysisStrategyType::Pointer, BaseSolvingStrategyType>(m, "DirectHarmonicAnalysisStrategy")
+        .def(py::init<
+                ModelPart&,
+                BaseSchemeType::Pointer,
+                BuilderAndSolverPointer,
+                ComplexLinearSolverPointer,
+                Parameters>(),
+            py::arg("model_part"),
+            py::arg("scheme"),
+            py::arg("builder_and_solver"),
+            py::arg("complex_linear_solver"),
+            py::arg("settings"))
+    .def("SetAssembleDampingMatrixFlag", &DirectHarmonicAnalysisStrategyType::SetAssembleDampingMatrixFlag)
+    .def("GetAssembleDampingMatrixFlag", &DirectHarmonicAnalysisStrategyType::GetAssembleDampingMatrixFlag);
 
     //********************************************************************
     //*************************SCHEME CLASSES*****************************
