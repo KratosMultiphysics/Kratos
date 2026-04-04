@@ -14,6 +14,12 @@
         - [Using MINGW64 (legacy)](#using-mingw64-legacy)
         - [Using UCRT64 (*Universal C Runtime*)](#using-ucrt64-universal-c-runtime)
     - [MacOS](#macos)
+      - [System Requirements](#system-requirements)
+      - [Quick Start](#quick-start)
+      - [Manual Configuration](#manual-configuration)
+      - [Verify Installation](#verify-installation)
+      - [Building Python Wheels (for Distribution)](#building-python-wheels-for-distribution)
+      - [Troubleshooting](#troubleshooting)
   - [Adding Applications](#adding-applications)
   - [Post Compilation](#post-compilation)
     - [GNU/Linux](#gnulinux-1)
@@ -71,6 +77,16 @@ Additionally, Visual Studio is required to compile in *Windows*.
     Newer versions of boost can be downloaded in:
 
     http://www.boost.org/users/download/.
+
+- #### macOS installation
+
+    Use Homebrew:
+    ```Shell
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    brew install cmake llvm boost python@3.14 ninja ccache
+    ```
+
+    **Note:** System clang lacks OpenMP. Homebrew's `llvm` provides `libomp` (required for builds).
 
 - #### Windows installation
 
@@ -595,53 +611,92 @@ else
     echo "Python DLL not found at ${PYTHON_DLL}"
     exit 1
 fi
-```
+``
 
 ### MacOS
 
-```console
-# Function to add apps
-add_app () {
-    export KRATOS_APPLICATIONS="${KRATOS_APPLICATIONS}$1;"
-}
+#### System Requirements
 
-# Set compiler
-export CC=/usr/local/opt/llvm/bin/clang
-export CXX=/usr/local/opt/llvm/bin/clang++
+macOS 11.0+ (Intel or Apple Silicon). Install dependencies via Homebrew:
 
-# Set variables
-export KRATOS_SOURCE="${KRATOS_SOURCE:-"$( cd "$(dirname "$0")" ; pwd -P )"/..}"
-export KRATOS_BUILD="${KRATOS_SOURCE}/build"
-export KRATOS_APP_DIR="${KRATOS_SOURCE}/applications"
-export KRATOS_INSTALL_PYTHON_USING_LINKS=ON
-
-# Set basic configuration
-export KRATOS_BUILD_TYPE="Release"
-export BOOST_ROOT="/path/to/boost"
-export PYTHON_EXECUTABLE="/Library/Frameworks/Python.framework/Versions/3.8/bin/python3"
-
-# Set applications to compile
-export KRATOS_APPLICATIONS=
-add_app ${KRATOS_APP_DIR}/LinearSolversApplication
-add_app ${KRATOS_APP_DIR}/StructuralMechanicsApplication
-add_app ${KRATOS_APP_DIR}/FluidDynamicsApplication
-
-# Clean
-clear
-rm -rf "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}/cmake_install.cmake"
-rm -rf "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}/CMakeCache.txt"
-rm -rf "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}/CMakeFiles"
-
-# Configure
-/Applications/CMake.app/Contents/bin/cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" \
- -DCMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS} -msse3 -std=c++11 -L/usr/local/opt/llvm/lib" \
- -DCMAKE_C_FLAGS="${CMAKE_C_FLAGS} -msse3 -L/usr/local/opt/llvm/lib" \
- -DUSE_EIGEN_MKL=OFF
-
-# Build
-/Applications/CMake.app/Contents/bin/cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j3
-
+```bash
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+brew install cmake llvm boost python@3.14 ninja ccache
 ```
+
+**Note:** System clang lacks OpenMP. Homebrew's `llvm` provides `libomp`, which is required.
+
+#### Quick Start
+
+Use the provided build script:
+
+```bash
+cd /path/to/Kratos
+./scripts/mac_build -j4
+```
+
+Options: `-j<N>` (jobs), `-i <path>` (install dir), `-o "<option>"` (CMake options), `-C` (clean)
+
+#### Manual Configuration
+
+For custom setups:
+
+```bash
+python3 -m venv ~/kratos_env
+source ~/kratos_env/bin/activate
+
+export KRATOS_SOURCE=/path/to/Kratos
+export KRATOS_BUILD=$KRATOS_SOURCE/build
+mkdir -p $KRATOS_BUILD && cd $KRATOS_BUILD
+
+cmake $KRATOS_SOURCE \
+  -DCMAKE_INSTALL_PREFIX=$(python3 -c "import sysconfig; print(sysconfig.get_paths()['purelib'])") \
+  -DCMAKE_C_COMPILER=/opt/homebrew/opt/llvm/bin/clang \
+  -DCMAKE_CXX_COMPILER=/opt/homebrew/opt/llvm/bin/clang++ \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DPYTHON_EXECUTABLE=$(which python3) \
+  -G Ninja
+
+cmake --build . --target install -j$(sysctl -n machdep.cpu.thread_count)
+```
+
+#### Verify Installation
+
+```bash
+python3 -c "import KratosMultiphysics; m = KratosMultiphysics.Model(); print('✅ Success')"
+```
+
+#### Building Python Wheels (for Distribution)
+
+To build distributable Python wheels for macOS, use the wheel builder script:
+
+```bash
+cd /path/to/Kratos
+./scripts/mac_build_wheel -j4 -p "313 314"
+```
+
+This builds wheels for specified Python versions (default: 3.9-3.14) and outputs to `dist/wheels/`.
+
+
+**Manual wheel building** (if scripting):
+```bash
+python3.14 -m pip install --upgrade build hatchling
+cd /path/to/Kratos/build/wheel_staging
+python3.14 -m build --wheel
+```
+
+Wheels are built for both the Kratos core and all compiled applications. Each is packaged separately for modularity.
+
+#### Troubleshooting
+
+Some errors and solutions we found (may not be applicable every time)
+* "Unable to find KratosCore" --> Python version mismatch. Use: `-DPYTHON_EXECUTABLE=/opt/homebrew/opt/python@3.14/bin/python3.14`
+* "libomp not found" --> Install LLVM: `brew install llvm` 
+* "Boost not found" --> `-DBOOST_ROOT=$(brew --prefix boost)`
+* "Permission denied" --> maybe  `-DCMAKE_INSTALL_PREFIX=$HOME/.local/opt/kratos`
+* "Using system clang" --> Verify CMAKE_CXX_COMPILER: `/opt/homebrew/opt/llvm/bin/clang++`
+* "Wheel build fails" --> Very general, but ensure virtual environment is activated and `build` module is installed: `pip install --upgrade build`
+
 
 ## Adding Applications
 
@@ -761,13 +816,25 @@ rem Build
 cmake --build "%KRATOS_BUILD%/%KRATOS_BUILD_TYPE%" --target install -- /property:configuration=%KRATOS_BUILD_TYPE% /p:Platform=x64 /p:CL_MPcount=2 /m:2
 ```
 
+#### MacOS
+
+Use the dedicated build script:
+
+```bash
+cd /path/to/Kratos
+./scripts/mac_build -j4
+```
+
+For advanced configuration, see the [MacOS build section](#macos).
+**Note:** The older `scripts/standard_configure_mac.sh` is deprecated.
+
 Finally you can set parallelism options in the *VisualStudio IDE*.
 
 **Warning**: Please be careful while mixing parallel builds with unitary builds. See [below](#unitary-builds)
 
 #### MacOS
 
-There is no dedicated support for parallel builds in *MacOS*, but *GNU/Linux* options should behave very similarly. If you detect a problem please inform us and we will try to update this section with the specifics.
+See [MacOS build section](#macos) for parallel build options.
 
 ### Building Environment
 
