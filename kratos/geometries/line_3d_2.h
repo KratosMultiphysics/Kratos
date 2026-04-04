@@ -880,8 +880,14 @@ public:
 
         // Project point
         const double tolerance = 1e-14; // Tolerance
-
         const double length = Length();
+
+        // Check if point is too far away from the line, if so, return false
+        const double distance = this->CalculateDistance(rPoint, tolerance);
+        if (distance > std::max(tolerance, 1.0e-6 * length)) { 
+            rResult[0] = 2.0;
+            return rResult;
+        }
 
         const double length_1 = std::sqrt( std::pow(rPoint[0] - r_first_point[0], 2)
                     + std::pow(rPoint[1] - r_first_point[1], 2) + std::pow(rPoint[2] - r_first_point[2], 2));
