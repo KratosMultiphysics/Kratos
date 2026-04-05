@@ -2,6 +2,7 @@
 import KratosMultiphysics
 import KratosMultiphysics.FluidDynamicsApplication
 from KratosMultiphysics.process_factory import KratosProcessFactory
+from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
 from KratosMultiphysics.model_parameters_factory import KratosModelParametersFactory
 from KratosMultiphysics.python_null_solver import PYTHON_NULL_SOLVER
 
@@ -40,10 +41,7 @@ class AnalysisStage(object):
         if self.parallel_type == "MPI" and not is_distributed_run:
             KratosMultiphysics.Logger.PrintWarning("Parallel Type", '"MPI" is specified as "parallel_type", but Kratos is not running distributed!')
 
-    def AddVariables(self):
-        """This function adds the variables to the model part
-        """
-        pass
+        self._AddVariables()
 
     def Run(self):
         """This function executes the entire AnalysisStage
@@ -66,7 +64,7 @@ class AnalysisStage(object):
         while self.KeepAdvancingSolutionLoop():
             self.time = self.AdvanceInTime()
             self.InitializeSolutionStep()
-            is_converged = self.SolveSolutionStep()
+            _ = self.SolveSolutionStep()
             self.FinalizeSolutionStep()
             self.OutputSolutionStep()
 
@@ -91,8 +89,8 @@ class AnalysisStage(object):
         Usage: It is designed to be called ONCE, BEFORE the execution of the solution-loop
         This function has to be implemented in deriving classes!
         """
-        # #importing the variables to be used 
-        # self.AddVariables() 
+        # #importing the variables to be used
+        # self.AddVariables()
 
         # Modelers:
         self._CreateModelers()
@@ -100,7 +98,8 @@ class AnalysisStage(object):
         self._ModelersPrepareGeometryModel()
         self._ModelersSetupModelPart()
 
-        self.SetupModelPart()
+        self._PrepareModelPart()
+        self._AddDofs()
 
         self.ModifyInitialProperties()
         self.ModifyInitialGeometry()
@@ -108,11 +107,11 @@ class AnalysisStage(object):
         ##here we initialize user-provided processes
         self.SetupProcesses()
 
-        self.InitializeSolver() #DOES NOTHING in the base class
-
+        self._InitializeInternals()
         self.Check()
 
-        self.ModifyAfterSolverInitialize() #DOES NOTHING in the base class
+        self.ModifyAfterSolverInitialize()
+        self.ModifyBeforeSolutionLoop()
 
         for process in self._GetListOfProcesses():
             process.ExecuteBeforeSolutionLoop()
@@ -120,11 +119,11 @@ class AnalysisStage(object):
         ## Stepping and time settings
         self.end_time = self.project_parameters["problem_data"]["end_time"].GetDouble()
 
-        if self.GetIsRestarted():
-            self.time = self.GetTime()
+        if self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
+            self.time = self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME]
         else:
             self.time = self.project_parameters["problem_data"]["start_time"].GetDouble()
-            self.SetTime(self.time)
+            self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME] = self.time
 
         ## If the echo level is high enough, print the complete list of settings used to run the simulation
         if self.echo_level > 1:
@@ -177,6 +176,12 @@ class AnalysisStage(object):
 
         KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Analysis -END- ")
 
+    def GetComputingModelPart(self):
+        """This function provides a unified way to access the computing model part from outside the stage.
+        It can be overriden in derived classes. By default, it returns the solver computing model part.
+        """
+        return self._GetSolver().GetComputingModelPart()
+
     def GetFinalData(self):
         """Returns the final data dictionary.
 
@@ -201,23 +206,20 @@ class AnalysisStage(object):
         """
         pass
 
-
- 
-    def InitializeSolver(self):
-        """This function initializes the solver - IF SUCH A THING EXISTS - do nothing otherwise
-        It is designed to be called ONCE, BEFORE the execution of the solution-loop
-        """
-        pass
-
     def ModifyAfterSolverInitialize(self):
         """This function modifies the model after the solver is initialized  - IF SUCH A THING EXISTS - do nothing otherwise
         """
         pass
 
-
     def PrintAnalysisStageProgressInformation(self):
-        KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "STEP: ", self.GetStep())
+        KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "STEP: ", self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.STEP])
         KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "TIME: ", self.time)
+
+    def SolveSolutionStep(self):
+        """This function solves the solution step.
+        By default, it simply calls the solver's SolveSolutionStep method, but it can be overridden by derived classes if needed.
+        """
+        return self._GetSolver().SolveSolutionStep()
 
     def FinalizeSolutionStep(self):
         """This function performs all the required operations that should be executed
@@ -259,14 +261,19 @@ class AnalysisStage(object):
         """this is the place to eventually modify geometry (for example moving nodes) in the stage """
         pass
 
+    def ModifyBeforeSolutionLoop(self):
+        """This is the place to eventually do any modification that requires the stage to be initialized """
+        pass
+
+    def ModifyAfterSolverInitialize(self):
+        """this is the place to eventually do any modification that requires the solver to be initialized """
+        IssueDeprecationWarning("AnalysisStage", "ModifyAfterSolverInitialize is deprecated. Please, use ModifyBeforeSolutionLoop instead.")
 
     def ApplyBoundaryConditions(self):
         """here the boundary conditions is applied, by calling the InitializeSolutionStep function of the processes"""
 
         for process in self._GetListOfProcesses():
             process.ExecuteInitializeSolutionStep()
-
-        #other operations as needed
 
     def ChangeMaterialProperties(self):
         """this function is where the user could change material parameters as a part of the solution step """
@@ -320,6 +327,33 @@ class AnalysisStage(object):
         """This function returns the computing model part
         """
         raise Exception("GetComputingModelPart must be implemented in the derived class.")
+
+    def _AddVariables(self):
+        """This function creates the solver by lazy instantiation and adds the required variables to the model part.
+        It can be overridden by derived classes
+        """
+        self._GetSolver().AddVariables()
+
+    def _PrepareModelPart(self):
+        """This function calls the solver to prepare the model part
+        Note that it also calls the solver to import the model part if not already imported by a modeler
+        It can be overridden by derived classes
+        """
+        self._GetSolver().ImportModelPart()
+        self._GetSolver().PrepareModelPart()
+
+    def _AddDofs(self):
+        """This function calls the solver to adds the DOFs to the model part
+        It can be overridden by derived classes
+        """
+        self._GetSolver().AddDofs()
+
+    def _InitializeInternals(self):
+        """This is the place to eventually do any initialization of the solution strategy that
+        requires the model part, DOFS, properties and processes to be already initialized
+        By default, it simply calls the solver's Initialize method, but it can be overridden by derived classes if needed.
+        """
+        self._GetSolver().Initialize()
 
     ### Modelers
     def _ModelersSetupGeometryModel(self):
@@ -448,6 +482,16 @@ class AnalysisStage(object):
         """
         return []
 
+    def _CheckDeprecatedOutputProcesses(self, list_of_processes):
+        deprecated_output_processes = []
+        for process in list_of_processes:
+            if issubclass(type(process), KratosMultiphysics.OutputProcess):
+                deprecated_output_processes.append(process)
+                msg  = "{} is an OutputProcess. However, it has been constructed as a regular process.\n"
+                msg += "Please, define it as an 'output_processes' in the ProjectParameters."
+                IssueDeprecationWarning("AnalysisStage", msg.format(process.__class__.__name__))
+        return deprecated_output_processes
+
     def _GetSimulationName(self):
         """Returns the name of the Simulation
         """
@@ -458,6 +502,8 @@ class AnalysisStage(object):
         """
         order_processes_initialization = self._GetOrderOfProcessesInitialization()
         self._list_of_processes        = self._CreateProcesses("processes", order_processes_initialization)
+        deprecated_output_processes    = self._CheckDeprecatedOutputProcesses(self._list_of_processes)
         order_processes_initialization = self._GetOrderOfOutputProcessesInitialization()
         self._list_of_output_processes = self._CreateProcesses("output_processes", order_processes_initialization)
         self._list_of_processes.extend(self._list_of_output_processes) # Adding the output processes to the regular processes
+        self._list_of_output_processes.extend(deprecated_output_processes)
