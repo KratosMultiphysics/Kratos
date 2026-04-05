@@ -3,9 +3,9 @@ import KratosMultiphysics
 import KratosMultiphysics.MeshMovingApplication.python_solvers_wrapper_mesh_motion as mesh_mothion_solvers
 
 # Importing the base class
-from KratosMultiphysics.analysis_stage_with_solver import AnalysisStageWithSolver
+from KratosMultiphysics.analysis_stage import AnalysisStage
 
-class MeshMovingAnalysis(AnalysisStageWithSolver):
+class MeshMovingAnalysis(AnalysisStage):
     """
     This class is the main-script of the MeshMovingApplication put in a class
     It can be imported and used as "black-box"

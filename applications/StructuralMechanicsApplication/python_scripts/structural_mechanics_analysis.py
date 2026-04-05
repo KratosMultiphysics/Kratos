@@ -3,9 +3,9 @@ import KratosMultiphysics
 from KratosMultiphysics.StructuralMechanicsApplication import python_solvers_wrapper_structural as structural_solvers
 
 # Importing the base class
-from KratosMultiphysics.analysis_stage_with_solver import AnalysisStageWithSolver
+from KratosMultiphysics.analysis_stage import AnalysisStage
 
-class StructuralMechanicsAnalysis(AnalysisStageWithSolver):
+class StructuralMechanicsAnalysis(AnalysisStage):
     """
     This class is the main-script of the StructuralMechanicsApplication put in a class
 

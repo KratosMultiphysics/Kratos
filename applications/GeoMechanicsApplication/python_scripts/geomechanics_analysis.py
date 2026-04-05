@@ -8,7 +8,7 @@ import KratosMultiphysics as Kratos
 import KratosMultiphysics.StructuralMechanicsApplication
 import KratosMultiphysics.GeoMechanicsApplication as KratosGeo
 
-from KratosMultiphysics.analysis_stage_with_solver import AnalysisStageWithSolver
+from KratosMultiphysics.analysis_stage import AnalysisStage
 from KratosMultiphysics.GeoMechanicsApplication import geomechanics_solvers_wrapper
 
 

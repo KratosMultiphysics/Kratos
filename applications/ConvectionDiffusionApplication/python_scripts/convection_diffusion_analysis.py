@@ -4,12 +4,12 @@ import KratosMultiphysics
 from KratosMultiphysics.ConvectionDiffusionApplication import python_solvers_wrapper_convection_diffusion as solver_wrapper
 
 # Importing the base class
-from KratosMultiphysics.analysis_stage_with_solver import AnalysisStageWithSolver
+from KratosMultiphysics.analysis_stage import AnalysisStage
 
 # Other imports
 import sys
 
-class ConvectionDiffusionAnalysis(AnalysisStageWithSolver):
+class ConvectionDiffusionAnalysis(AnalysisStage):
     """
     This class is the main-script of the ConvectionDiffusionApplication put in a class
 

@@ -1,6 +1,6 @@
 # Importing the Kratos Library
 import KratosMultiphysics as KM
-from KratosMultiphysics.analysis_stage_with_solver import AnalysisStageWithSolver
+from KratosMultiphysics.analysis_stage import AnalysisStage
 
 # CoSimulation imports
 import KratosMultiphysics.CoSimulationApplication.factories.solver_wrapper_factory as solver_wrapper_factory
@@ -10,7 +10,7 @@ import KratosMultiphysics.CoSimulationApplication.colors as colors
 # Other imports
 import sys
 
-class CoSimulationAnalysis(AnalysisStageWithSolver):
+class CoSimulationAnalysis(AnalysisStage):
     """AnalysisStage of the CoSimulationApplication.
     It does NOT override the "RunSolutionLoop" method!
     """

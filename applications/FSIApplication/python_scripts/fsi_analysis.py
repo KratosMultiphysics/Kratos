@@ -1,9 +1,9 @@
 
 import KratosMultiphysics as Kratos
-from KratosMultiphysics.analysis_stage_with_solver import AnalysisStageWithSolver
+from KratosMultiphysics.analysis_stage import AnalysisStage
 from KratosMultiphysics.FSIApplication import python_solvers_wrapper_fsi
 
-class FsiAnalysis(AnalysisStageWithSolver):
+class FsiAnalysis(AnalysisStage):
     '''Main script for FSI simulations using the FSI family of python solvers.'''
 
     def Initialize(self):

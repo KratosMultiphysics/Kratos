@@ -8,7 +8,7 @@ import KratosMultiphysics as Kratos
 from KratosMultiphysics import Vector, Logger, Parameters
 import KratosMultiphysics.DEMApplication as DEM
 
-from KratosMultiphysics.analysis_stage_with_solver import AnalysisStageWithSolver
+from KratosMultiphysics.analysis_stage import AnalysisStage
 
 import KratosMultiphysics.SwimmingDEMApplication.swimming_DEM_procedures as SDP
 import KratosMultiphysics.SwimmingDEMApplication.swimming_DEM_gid_output as swimming_DEM_gid_output
@@ -54,7 +54,7 @@ class python_parameters:
     def __init__(self):
         pass
 
-class SwimmingDEMAnalysis(AnalysisStageWithSolver):
+class SwimmingDEMAnalysis(AnalysisStage):
     def __enter__ (self):
         return self
 

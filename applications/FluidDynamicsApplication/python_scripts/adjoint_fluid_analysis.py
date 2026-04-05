@@ -2,12 +2,12 @@
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.FluidDynamicsApplication as KFluid
 
-from KratosMultiphysics.analysis_stage_with_solver import AnalysisStageWithSolver
+from KratosMultiphysics.analysis_stage import AnalysisStage
 from KratosMultiphysics.process_factory import KratosProcessFactory
 from KratosMultiphysics.FluidDynamicsApplication import python_solvers_wrapper_adjoint_fluid
 from KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis import FluidDynamicsAnalysis
 
-class AdjointFluidAnalysis(AnalysisStageWithSolver):
+class AdjointFluidAnalysis(AnalysisStage):
     '''Main script for adjoint sensitivity optimization in fluid dynamics simulations.'''
 
     def __init__(self,model,parameters):

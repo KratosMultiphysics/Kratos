@@ -11,9 +11,9 @@ import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 sys.stdout.flush()
 
 # Importing the analysis_stage base class
-from KratosMultiphysics.analysis_stage_with_solver import AnalysisStageWithSolver
+from KratosMultiphysics.analysis_stage import AnalysisStage
 
-class Solution(AnalysisStageWithSolver):
+class Solution(AnalysisStage):
 
     def __init__(self, Model, project_parameters="ProjectParameters.json", file_name=None):
         # Time control starts
