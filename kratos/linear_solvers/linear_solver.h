@@ -387,7 +387,7 @@ private:
 }; // class LinearSolver
 
 // Out-of-line constructor definition to avoid -fvisibility-inlines-hidden hiding the symbol
-#if (defined(__GNUC__) || defined(__clang__))
+#if !defined(_MSC_VER)
 template<class TSparseSpaceType, class TDenseSpaceType, class TReordererType>
 KRATOS_API_EXPORT LinearSolver<TSparseSpaceType, TDenseSpaceType, TReordererType>::LinearSolver()
     : mpReorderer(new TReordererType())
