@@ -442,9 +442,20 @@ void NavierStokesWallCondition<TDim,TNumNodes,TWallModel...>::ComputeRHSOutletIn
     constexpr SizeType LocalSize = TDim+1;
     const GeometryType& rGeom = this->GetGeometry();
 
-    // Get DENSITY from parent element properties
+    // Get DENSITY from the parent element properties, falling back to the nodal one if needed
     auto & r_neighbours = this->GetValue(NEIGHBOUR_ELEMENTS);
-    const double rho = r_neighbours[0].GetProperties().GetValue(DENSITY);
+    const auto& r_properties = r_neighbours[0].GetProperties();
+    double rho = 0.0;
+    if (r_properties.Has(DENSITY) && r_properties.GetValue(DENSITY) > 0.0) {
+        rho = r_properties.GetValue(DENSITY);
+    } else if (rGeom[0].SolutionStepsDataHas(DENSITY)) {
+        for (unsigned int i=0; i<TNumNodes; ++i) {
+            rho += data.N[i] * rGeom[i].FastGetSolutionStepValue(DENSITY);
+        }
+    }
+    KRATOS_ERROR_IF(rho <= 0.0)
+        << "Outlet inflow contribution requires a positive DENSITY either in the parent element properties or as nodal historical data. Condition "
+        << this->Id() << " computed rho = " << rho << std::endl;
 
     // Compute Gauss pt. density, velocity norm and velocity projection
     array_1d<double, 3> vGauss = ZeroVector(3);

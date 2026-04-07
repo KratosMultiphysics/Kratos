@@ -33,6 +33,7 @@ namespace
         rModelPart.AddNodalSolutionStepVariable(ADVPROJ);
         rModelPart.AddNodalSolutionStepVariable(NORMAL);
         rModelPart.AddNodalSolutionStepVariable(VELOCITY);
+        rModelPart.AddNodalSolutionStepVariable(DENSITY);
         rModelPart.AddNodalSolutionStepVariable(PRESSURE);
         rModelPart.AddNodalSolutionStepVariable(BODY_FORCE);
         rModelPart.AddNodalSolutionStepVariable(MESH_VELOCITY);
@@ -88,6 +89,7 @@ namespace
         rModelPart.AddNodalSolutionStepVariable(ADVPROJ);
         rModelPart.AddNodalSolutionStepVariable(NORMAL);
         rModelPart.AddNodalSolutionStepVariable(VELOCITY);
+        rModelPart.AddNodalSolutionStepVariable(DENSITY);
         rModelPart.AddNodalSolutionStepVariable(PRESSURE);
         rModelPart.AddNodalSolutionStepVariable(BODY_FORCE);
         rModelPart.AddNodalSolutionStepVariable(MESH_VELOCITY);
@@ -196,6 +198,45 @@ KRATOS_TEST_CASE_IN_SUITE(NavierStokesWallCondition2D2NOutletInflow, FluidDynami
     p_test_condition->CalculateLocalSystem(LHS, RHS, r_model_part.GetProcessInfo());
 
     // Check results
+    std::vector<double> rhs_out = {-7083.333333333,0,0,-3750.0,0,0};
+    KRATOS_EXPECT_VECTOR_NEAR(RHS, rhs_out, 1.0e-8)
+    KRATOS_EXPECT_MATRIX_NEAR(LHS, ZeroMatrix(6,6), 1.0e-12)
+}
+
+KRATOS_TEST_CASE_IN_SUITE(NavierStokesWallCondition2D2NOutletInflowNodalDensityFallback, FluidDynamicsApplicationFastSuite)
+{
+    // Create the test model part
+    Model model;
+    std::size_t buffer_size = 2;
+    auto& r_model_part = model.CreateModelPart("TestModelPart",buffer_size);
+
+    // Create the testing condition
+    auto p_test_condition = CreateTestingNavierStokesWallCondition2D2N("NavierStokesWallCondition2D2N", r_model_part);
+
+    // Remove parent element density so the condition falls back to the nodal one
+    auto& r_parent_element = p_test_condition->GetValue(NEIGHBOUR_ELEMENTS)[0];
+    r_parent_element.GetProperties().SetValue(DENSITY, 0.0);
+
+    // Set the testing nodal values
+    array_1d<double,3> aux_v = ZeroVector(3);
+    for (auto& r_node: r_model_part.Nodes()) {
+        aux_v[0] = r_node.Id();
+        aux_v[1] = 2.0*r_node.Id();
+        r_node.FastGetSolutionStepValue(VELOCITY) = aux_v;
+        r_node.FastGetSolutionStepValue(DENSITY) = 1000.0;
+    }
+
+    // Activate the outlet inflow contribution and set required values
+    p_test_condition->Set(OUTLET, true);
+    r_model_part.GetProcessInfo().SetValue(CHARACTERISTIC_VELOCITY, 1.0);
+    r_model_part.GetProcessInfo().SetValue(OUTLET_INFLOW_CONTRIBUTION_SWITCH, true);
+
+    // Calculate the RHS and LHS
+    Vector RHS;
+    Matrix LHS;
+    p_test_condition->CalculateLocalSystem(LHS, RHS, r_model_part.GetProcessInfo());
+
+    // Check results against the property-based density case
     std::vector<double> rhs_out = {-7083.333333333,0,0,-3750.0,0,0};
     KRATOS_EXPECT_VECTOR_NEAR(RHS, rhs_out, 1.0e-8)
     KRATOS_EXPECT_MATRIX_NEAR(LHS, ZeroMatrix(6,6), 1.0e-12)

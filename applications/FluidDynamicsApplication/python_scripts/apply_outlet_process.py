@@ -87,10 +87,11 @@ class ApplyOutletProcess(KratosMultiphysics.Process):
         if self.__outlet_inflow_contribution:
             self.outlet_model_part.ProcessInfo[KratosFluid.OUTLET_INFLOW_CONTRIBUTION_SWITCH] = True
             self.__outlet_char_velocity = None
+            self.__outlet_char_velocity_value = settings["outlet_inflow_contribution_characteristic_velocity_value"].GetDouble()
             self.__outlet_char_velocity_type = settings["outlet_inflow_contribution_characteristic_velocity_calculation"].GetString()
             if self.__outlet_char_velocity_type in ["user_defined", "outlet_average", "outlet_max"]:
                 if self.__outlet_char_velocity_type == "user_defined":
-                    self.__outlet_char_velocity = settings["outlet_inflow_contribution_characteristic_velocity_value"].GetDouble()
+                    self.__outlet_char_velocity = self.__outlet_char_velocity_value
                     if self.__outlet_char_velocity < 1.0e-12:
                         raise ValueError(f"Wrong 'outlet_inflow_contribution_characteristic_velocity_value', must be greater than zero. Provided {self.__outlet_char_velocity}.")
             else:
@@ -117,7 +118,7 @@ class ApplyOutletProcess(KratosMultiphysics.Process):
             # If required, update the outlet characteristic velocity
             if self.__outlet_char_velocity_type == "outlet_average":
                 self.__outlet_char_velocity = self.__ComputeOutletAverageVelocity()
-            else:
+            elif self.__outlet_char_velocity_type == "outlet_max":
                 self.__outlet_char_velocity = self.__ComputeOutletMaxVelocity()
             # Save value to be used in the boundary terms integration
             self.outlet_model_part.ProcessInfo[KratosFluid.CHARACTERISTIC_VELOCITY] = self.__outlet_char_velocity
@@ -178,7 +179,7 @@ class ApplyOutletProcess(KratosMultiphysics.Process):
         outlet_avg_vel_norm /= tot_len
 
         # Check the outlet average velocity minimum value and return
-        min_outlet_avg_vel_norm = 1.0e-12
+        min_outlet_avg_vel_norm = self.__GetMinimumOutletCharacteristicVelocity()
         return outlet_avg_vel_norm if outlet_avg_vel_norm >= min_outlet_avg_vel_norm else min_outlet_avg_vel_norm
 
     def __ComputeOutletMaxVelocity(self):
@@ -193,5 +194,8 @@ class ApplyOutletProcess(KratosMultiphysics.Process):
         outlet_max_vel_norm = math.sqrt(outlet_max_vel_norm)
 
         # Check the outlet max velocity minimum value and return
-        min_outlet_vel_norm = 1.0e-12
+        min_outlet_vel_norm = self.__GetMinimumOutletCharacteristicVelocity()
         return outlet_max_vel_norm if outlet_max_vel_norm >= min_outlet_vel_norm else min_outlet_vel_norm
+
+    def __GetMinimumOutletCharacteristicVelocity(self):
+        return self.__outlet_char_velocity_value if self.__outlet_char_velocity_value >= 1.0e-12 else 1.0e-12
