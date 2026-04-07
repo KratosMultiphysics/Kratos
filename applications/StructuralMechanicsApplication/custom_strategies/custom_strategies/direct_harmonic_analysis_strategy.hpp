@@ -107,10 +107,6 @@ public:
         KRATOS_ERROR_IF(mpComplexLinearSolver == nullptr)
             << "Complex linear solver is null." << std::endl;
 
-        mMassMatrixDiagonalValue      = ThisParameters["mass_matrix_diagonal_value"].GetDouble();
-        mStiffnessMatrixDiagonalValue = ThisParameters["stiffness_matrix_diagonal_value"].GetDouble();
-        mDampingMatrixDiagonalValue   = ThisParameters["damping_matrix_diagonal_value"].GetDouble();
-        mReformDofSetAtEachStep       = ThisParameters["reform_dof_set_at_each_step"].GetBool();
         mAssembleDampingMatrix        = ThisParameters["assemble_damping_matrix"].GetBool();
 
         mpBuilderAndSolver->SetDofSetIsInitializedFlag(false);
@@ -541,10 +537,6 @@ public:
     Parameters GetDefaultParameters() const override
     {
         return Parameters(R"({
-            "mass_matrix_diagonal_value"         : 1.0,
-            "stiffness_matrix_diagonal_value"    : 1.0,
-            "damping_matrix_diagonal_value"      : 1.0,
-            "reform_dof_set_at_each_step"        : false,
             "assemble_damping_matrix"            : false,
             "real_load_sub_model_part_list"      : [],
             "imaginary_load_sub_model_part_list" : []
@@ -571,11 +563,6 @@ private:
 
     bool mInitializeWasPerformed = false;
     bool mReformDofSetAtEachStep = false;
-
-    double mMassMatrixDiagonalValue = 1.0;
-    double mStiffnessMatrixDiagonalValue = 1.0;
-    double mDampingMatrixDiagonalValue = 1.0;
-
     bool mAssembleDampingMatrix = false;
 
     double mRayleighAlpha = 0.0;

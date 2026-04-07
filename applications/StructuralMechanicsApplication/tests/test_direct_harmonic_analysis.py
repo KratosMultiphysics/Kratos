@@ -127,10 +127,6 @@ class DirectHarmonicAnalysisTests(KratosUnittest.TestCase):
         complex_linear_solver = factory.Create(complex_solver_settings)
 
         direct_harmonic_settings = KratosMultiphysics.Parameters(r'''{
-            "mass_matrix_diagonal_value"         : 1.0,
-            "stiffness_matrix_diagonal_value"    : 1.0,
-            "damping_matrix_diagonal_value"      : 1.0,
-            "reform_dof_set_at_each_step"        : false,
             "assemble_damping_matrix"            : false,
             "real_load_sub_model_part_list"      : [
                 "RealLoads1",

@@ -60,7 +60,19 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     // Base types
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
     typedef ImplicitSolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
-//     typedef BaseSolvingStrategyType::Pointer BaseSolvingStrategyPointer;
+    using ComplexType = std::complex<double>;
+    using ComplexSparseSpaceType = UblasSpace<
+        ComplexType,
+        boost::numeric::ublas::compressed_matrix<ComplexType>,
+        boost::numeric::ublas::vector<ComplexType>
+    >;
+    using ComplexLocalSpaceType = UblasSpace<
+        ComplexType,
+        boost::numeric::ublas::matrix<ComplexType>,
+        boost::numeric::ublas::vector<ComplexType>
+    >;
+    using ComplexLinearSolverType = LinearSolver<ComplexSparseSpaceType, ComplexLocalSpaceType>;
+    using ComplexLinearSolverPointer = typename ComplexLinearSolverType::Pointer;
     typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > ConvergenceCriteriaType;
     typedef ConvergenceCriteriaType::Pointer ConvergenceCriteriaPointer;
     typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverType;
@@ -87,19 +99,6 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     // Custom convergence criterion types
     typedef ResidualDisplacementAndOtherDoFCriteria< SparseSpaceType,  LocalSpaceType > ResidualDisplacementAndOtherDoFCriteriaType;
     typedef ErrorMeshCriteria< SparseSpaceType,  LocalSpaceType > ErrorMeshCriteriaType;
-
-    typedef std::complex<double> ComplexType;
-
-    typedef UblasSpace<ComplexType,
-                    boost::numeric::ublas::compressed_matrix<ComplexType>,
-                    boost::numeric::ublas::vector<ComplexType>> ComplexSparseSpaceType;
-
-    typedef UblasSpace<ComplexType,
-                    boost::numeric::ublas::matrix<ComplexType>,
-                    boost::numeric::ublas::vector<ComplexType>> ComplexLocalSpaceType;
-
-    typedef LinearSolver<ComplexSparseSpaceType, ComplexLocalSpaceType> ComplexLinearSolverType;
-    typedef ComplexLinearSolverType::Pointer ComplexLinearSolverPointer;
 
     // Custom builder and solvers types
 
