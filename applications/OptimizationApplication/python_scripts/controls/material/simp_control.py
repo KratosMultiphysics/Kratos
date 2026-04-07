@@ -189,7 +189,6 @@ class SimpControl(Control):
         if numpy.linalg.norm(update.data) > 1e-15:
             self.control_phi.data[:] = control_field.data[:]
             self._UpdateAndOutputFields(update)
-            self.filter.Update()
             self.density_projection.Update()
             self.young_modulus_projection.Update()
             return True
