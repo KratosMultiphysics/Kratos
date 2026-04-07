@@ -151,7 +151,7 @@ Then the trial principal stresses need to be mapped to the cap yield surface by:
 ```
 
 ### Return mapping from cap corner zone
-The cap compression zone is the region where the trial principal stresses are,
+The cap compression zone is the region where the trial $\left(p, q \right)$ stress invariants are demarcated by the following two lines,
 
 1. above the line which passes from the cap corner point and in the direction normal to the cap flow function $G_{cap}$. 
 ```math
@@ -262,7 +262,7 @@ We define the following vectors,
 
 where
 ```math
-    \sigma^{cor} = \lambda_{cap} C \frac{\partial G_{cap}}{\partial \sigma}
+    \sigma^{cor} = C \frac{\partial G_{cap}}{\partial \sigma}
 ```
 
 Subsituting the stresses with the mapped stresses, we get the following relations.
