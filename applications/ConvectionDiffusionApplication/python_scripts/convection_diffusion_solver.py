@@ -274,6 +274,9 @@ class ConvectionDiffusionSolver(PythonSolver):
             reference_velocity = self.settings["convection_diffusion_variables"]["reference_velocity"].GetString()
             if (reference_velocity != ""):
                 target_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ConvectionDiffusionApplication.REFERENCE_VELOCITY)
+            exact_pressure = self.settings["convection_diffusion_variables"]["exact_pressure"].GetString()
+            if (exact_pressure != ""):
+                target_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ConvectionDiffusionApplication.EXACT_PRESSURE)
         else:
             raise Exception("The provided target_model_part does not have CONVECTION_DIFFUSION_SETTINGS defined.")
 
