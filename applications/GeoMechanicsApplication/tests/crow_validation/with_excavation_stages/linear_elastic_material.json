@@ -9,7 +9,7 @@
                 },
                 "Variables": {
                     "IGNORE_UNDRAINED": true,
-                    "DENSITY_SOLID": 2.65035e+03,
+                    "DENSITY_SOLID": 3669.72,
                     "DENSITY_WATER": 1.01937e+03,
                     "POROSITY": 0.5,
                     "BULK_MODULUS_SOLID": 1e+09,
@@ -39,7 +39,7 @@
                 },
                 "Variables": {
                     "IGNORE_UNDRAINED": true,
-                    "DENSITY_SOLID": 2.65035e+03,
+                    "DENSITY_SOLID": 3669.72,
                     "DENSITY_WATER": 1.01937e+03,
                     "POROSITY": 0.5,
                     "BULK_MODULUS_SOLID": 1e+09,
@@ -69,7 +69,7 @@
                 },
                 "Variables": {
                     "IGNORE_UNDRAINED": true,
-                    "DENSITY_SOLID": 2.65035e+03,
+                    "DENSITY_SOLID": 3669.72,
                     "DENSITY_WATER": 1.01937e+03,
                     "POROSITY": 0.5,
                     "BULK_MODULUS_SOLID": 1e+09,
@@ -99,7 +99,7 @@
                 },
                 "Variables": {
                     "IGNORE_UNDRAINED": true,
-                    "DENSITY_SOLID": 2.65035e+03,
+                    "DENSITY_SOLID": 3669.72,
                     "DENSITY_WATER": 1.01937e+03,
                     "POROSITY": 0.5,
                     "BULK_MODULUS_SOLID": 1e+09,
@@ -129,7 +129,7 @@
                 },
                 "Variables": {
                     "IGNORE_UNDRAINED": true,
-                    "DENSITY_SOLID": 2.47561e+03,
+                    "DENSITY_SOLID": 2912.48,
                     "DENSITY_WATER": 1.01937e+03,
                     "POROSITY": 0.3,
                     "BULK_MODULUS_SOLID": 1e+09,
@@ -159,7 +159,7 @@
                 },
                 "Variables": {
                     "IGNORE_UNDRAINED": true,
-                    "DENSITY_SOLID": 2.47561e+03,
+                    "DENSITY_SOLID": 2912.48,
                     "DENSITY_WATER": 1.01937e+03,
                     "POROSITY": 0.3,
                     "BULK_MODULUS_SOLID": 1e+09,
@@ -189,7 +189,7 @@
                 },
                 "Variables": {
                     "IGNORE_UNDRAINED": true,
-                    "DENSITY_SOLID": 2.65035e+03,
+                    "DENSITY_SOLID": 3669.72,
                     "DENSITY_WATER": 1.01937e+03,
                     "POROSITY": 0.5,
                     "BULK_MODULUS_SOLID": 1e+09,
@@ -219,7 +219,7 @@
                 },
                 "Variables": {
                     "IGNORE_UNDRAINED": true,
-                    "DENSITY_SOLID": 2.65035e+03,
+                    "DENSITY_SOLID": 3669.72,
                     "DENSITY_WATER": 1.01937e+03,
                     "POROSITY": 0.5,
                     "BULK_MODULUS_SOLID": 1e+09,
@@ -249,7 +249,12 @@
                 },
                 "Variables": {
                     "INTERFACE_NORMAL_STIFFNESS": 4.615e+07,
-                    "INTERFACE_SHEAR_STIFFNESS": 4.615e+06
+                    "INTERFACE_SHEAR_STIFFNESS": 4.615e+06,
+                    "BIOT_COEFFICIENT"              : 1.0,
+                    "RETENTION_LAW"                 : "SaturatedBelowPhreaticLevelLaw",
+                    "SATURATED_SATURATION"          : 1.0,
+                    "RESIDUAL_SATURATION"           : 1e-10,
+                    "MINIMUM_RELATIVE_PERMEABILITY" : 0.0001
                 }
             }
         },
@@ -262,7 +267,12 @@
                 },
                 "Variables": {
                     "INTERFACE_NORMAL_STIFFNESS": 4.615e+07,
-                    "INTERFACE_SHEAR_STIFFNESS": 4.615e+06
+                    "INTERFACE_SHEAR_STIFFNESS": 4.615e+06,
+                    "BIOT_COEFFICIENT"              : 1.0,
+                    "RETENTION_LAW"                 : "SaturatedBelowPhreaticLevelLaw",
+                    "SATURATED_SATURATION"          : 1.0,
+                    "RESIDUAL_SATURATION"           : 1e-10,
+                    "MINIMUM_RELATIVE_PERMEABILITY" : 0.0001
                 }
             }
         },
@@ -274,8 +284,13 @@
                     "name": "GeoIncrementalLinearElasticInterfaceLaw"
                 },
                 "Variables": {
-                    "INTERFACE_NORMAL_STIFFNESS": 4.615e+07,
-                    "INTERFACE_SHEAR_STIFFNESS": 4.615e+06
+                    "INTERFACE_NORMAL_STIFFNESS": 4.615e+06,
+                    "INTERFACE_SHEAR_STIFFNESS": 4.615e+06,
+                    "BIOT_COEFFICIENT"              : 1.0,
+                    "RETENTION_LAW"                 : "SaturatedBelowPhreaticLevelLaw",
+                    "SATURATED_SATURATION"          : 1.0,
+                    "RESIDUAL_SATURATION"           : 1e-10,
+                    "MINIMUM_RELATIVE_PERMEABILITY" : 0.0001
                 }
             }
         },
@@ -288,7 +303,12 @@
                 },
                 "Variables": {
                     "INTERFACE_NORMAL_STIFFNESS": 4.615e+07,
-                    "INTERFACE_SHEAR_STIFFNESS": 4.615e+06
+                    "INTERFACE_SHEAR_STIFFNESS": 4.615e+06,
+                    "BIOT_COEFFICIENT"              : 1.0,
+                    "RETENTION_LAW"                 : "SaturatedBelowPhreaticLevelLaw",
+                    "SATURATED_SATURATION"          : 1.0,
+                    "RESIDUAL_SATURATION"           : 1e-10,
+                    "MINIMUM_RELATIVE_PERMEABILITY" : 0.0001
                 }
             }
         },
@@ -301,7 +321,12 @@
                 },
                 "Variables": {
                     "INTERFACE_NORMAL_STIFFNESS": 4.615e+07,
-                    "INTERFACE_SHEAR_STIFFNESS": 4.615e+06
+                    "INTERFACE_SHEAR_STIFFNESS": 4.615e+06,
+                    "BIOT_COEFFICIENT"              : 1.0,
+                    "RETENTION_LAW"                 : "SaturatedBelowPhreaticLevelLaw",
+                    "SATURATED_SATURATION"          : 1.0,
+                    "RESIDUAL_SATURATION"           : 1e-10,
+                    "MINIMUM_RELATIVE_PERMEABILITY" : 0.0001
                 }
             }
         },
@@ -314,7 +339,12 @@
                 },
                 "Variables": {
                     "INTERFACE_NORMAL_STIFFNESS": 4.615e+07,
-                    "INTERFACE_SHEAR_STIFFNESS": 4.615e+06
+                    "INTERFACE_SHEAR_STIFFNESS": 4.615e+06,
+                    "BIOT_COEFFICIENT"              : 1.0,
+                    "RETENTION_LAW"                 : "SaturatedBelowPhreaticLevelLaw",
+                    "SATURATED_SATURATION"          : 1.0,
+                    "RESIDUAL_SATURATION"           : 1e-10,
+                    "MINIMUM_RELATIVE_PERMEABILITY" : 0.0001
                 }
             }
         },
@@ -327,7 +357,12 @@
                 },
                 "Variables": {
                     "INTERFACE_NORMAL_STIFFNESS": 4.615e+07,
-                    "INTERFACE_SHEAR_STIFFNESS": 4.615e+06
+                    "INTERFACE_SHEAR_STIFFNESS": 4.615e+06,
+                    "BIOT_COEFFICIENT"              : 1.0,
+                    "RETENTION_LAW"                 : "SaturatedBelowPhreaticLevelLaw",
+                    "SATURATED_SATURATION"          : 1.0,
+                    "RESIDUAL_SATURATION"           : 1e-10,
+                    "MINIMUM_RELATIVE_PERMEABILITY" : 0.0001
                 }
             }
         },
@@ -339,8 +374,13 @@
                     "name": "GeoIncrementalLinearElasticInterfaceLaw"
                 },
                 "Variables": {
-                    "INTERFACE_NORMAL_STIFFNESS": 4.615e+07,
-                    "INTERFACE_SHEAR_STIFFNESS": 4.615e+06
+                    "INTERFACE_NORMAL_STIFFNESS": 4.615e+06,
+                    "INTERFACE_SHEAR_STIFFNESS": 4.615e+06,
+                    "BIOT_COEFFICIENT"              : 1.0,
+                    "RETENTION_LAW"                 : "SaturatedBelowPhreaticLevelLaw",
+                    "SATURATED_SATURATION"          : 1.0,
+                    "RESIDUAL_SATURATION"           : 1e-10,
+                    "MINIMUM_RELATIVE_PERMEABILITY" : 0.0001
                 }
             }
         },
@@ -352,9 +392,9 @@
                     "name": "TimoshenkoBeamPlaneStrainElasticConstitutiveLaw"
                 },
                 "Variables": {
-                    "YOUNG_MODULUS": 2.1e+11,
+                    "YOUNG_MODULUS": 5929270610.0,
                     "POISSON_RATIO": 0.0,
-                    "THICKNESS": 0.1687,
+                    "THICKNESS": 1.265,
                     "THICKNESS_EFFECTIVE_Y": 10.0,
                     "DENSITY": 805.82
                 }

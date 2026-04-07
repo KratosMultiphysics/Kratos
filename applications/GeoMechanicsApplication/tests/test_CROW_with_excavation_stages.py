@@ -1,16 +1,175 @@
-import os
-from pathlib import Path
-
 import KratosMultiphysics as Kratos
+import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.GeoMechanicsApplication.geomechanics_analysis as analysis
 import KratosMultiphysics.GeoMechanicsApplication.context_managers as context_managers
+from KratosMultiphysics.GeoMechanicsApplication.gid_output_file_reader import (
+    GiDOutputFileReader,
+)
+from KratosMultiphysics.GeoMechanicsApplication.unit_conversions import unit_to_k_unit
 import test_helper
 
+import os
+import json
+from pathlib import Path
+
+import KratosMultiphysics.GeoMechanicsApplication.geo_plot_utilities as plot_utils
 
 
-class KratosGeoMechanicsCrowValidationWithStages:
-    def __init__(self):
-        # fmt: off
+def get_sheetpile_node_ids():
+    return [
+        3968,
+        3982,
+        3996,
+        4010,
+        4026,
+        4036,
+        4051,
+        4066,
+        4075,
+        4090,
+        4102,
+        4120,
+        4135,
+        4148,
+        4161,
+        4172,
+        4188,
+        4204,
+        4218,
+        4231,
+        4241,
+        4256,
+        4271,
+        4280,
+        4297,
+        4308,
+        4322,
+        4338,
+        4352,
+        4361,
+        4375,
+        4390,
+        4403,
+        4415,
+        4430,
+        4444,
+        4457,
+        4470,
+        4483,
+        4497,
+        4509,
+        4522,
+        4536,
+        4547,
+        4560,
+        4571,
+        4582,
+        4595,
+        4604,
+        4614,
+        4624,
+        4633,
+        4639,
+    ]
+def get_soil_side_node_ids_of_right_interfaces():
+    return [
+        4761,
+        4762,
+        4763,
+        4764,
+        4765,
+        4766,
+        4767,
+        4768,
+        4769,
+        4770,
+        4771,
+        4772,
+        4773,
+        4774,
+        4775,
+        4776,
+        4777,
+        4778,
+        4779,
+        4780,
+        4781,
+        4782,
+        4783,
+        4784,
+        4785,
+        4786,
+        4787,
+        4788,
+        4789,
+        4790,
+        4791,
+        4792,
+        4793,
+        4794,
+        4795,
+        4796,
+        4797,
+        4798,
+        4799,
+        4800,
+        4801,
+        4802,
+        4803,
+        4804,
+        4805,
+        4806,
+        4807,
+        4808,
+        4809,
+        4811,
+        4812,
+        4813,
+    ]
+
+def _extract_x_and_y_from_line(line, index_of_x=0, index_of_y=1, x_transform=None):
+    line = line.strip().lstrip("\ufeff").replace("ï»¿", "")
+    words = [word.strip() for word in (line.split(",") if "," in line else line.split())]
+
+    x_ = float(words[index_of_x])
+    if x_transform:
+        x_ = x_transform(x_)
+    y_ = float(words[index_of_y])
+
+    return x_, y_
+
+def extract_bending_moment_and_y_from_line(line):
+    return _extract_x_and_y_from_line(line, index_of_x=1, index_of_y=0, x_transform=lambda x: -x)
+
+
+def extract_horizontal_displacements_from_line(line):
+    return _extract_x_and_y_from_line(line, index_of_x=3, index_of_y=0, x_transform=lambda x: x / 1000.0)
+
+
+def extract_shear_force_and_y_from_line(line):
+    # The shear force sign in the comparison data is opposite to the Kratos sign
+    return _extract_x_and_y_from_line(
+        line, index_of_x=2, index_of_y=0, x_transform=lambda x: -x
+    )
+
+def extract_normal_traction_and_y_from_line(line):
+    return _extract_x_and_y_from_line(line, index_of_x=2, index_of_y=1)
+
+def extract_shear_traction_and_y_from_line(line):
+    return _extract_x_and_y_from_line(
+        line, index_of_x=3, index_of_y=1,
+    )
+
+class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
+    def setUp(self):
+        super().setUp()
+
+        # self.stages_info = {
+        #     "initial_stage": {"end_time": -1.0, "base_name": "1_Initial_stage"},
+        #     "null_step": {"end_time": 0.0, "base_name": "2_Null_step"},
+        #     "final_equilibrium": {"end_time": 1.0, "base_name": "3_Final_equilibrium"},
+        # }
+
         self.stages_info = {
             "initial_stage":      {"end_time": -1.0, "base_name": "1_Initial_stage"},
             "null_step":          {"end_time":  0.0, "base_name": "2_Null_step"},
@@ -20,13 +179,10 @@ class KratosGeoMechanicsCrowValidationWithStages:
             "second_excavation":  {"end_time":  4.0, "base_name": "6_Second_excavation"},
             "third_excavation":   {"end_time":  5.0, "base_name": "7_Third_excavation"},
         }
-        # fmt: on
 
-    def run_simulation(self):
-        project_path = (
-                Path(__file__).resolve().parent
-                / "crow_validation"
-                / "with_excavation_stages"
+    def run_simulation_and_checks(self, sub_directory_name):
+        project_path = test_helper.get_file_path(
+            os.path.join("crow_validation", sub_directory_name)
         )
 
         with context_managers.set_cwd_to(project_path):
@@ -36,7 +192,344 @@ class KratosGeoMechanicsCrowValidationWithStages:
                     stage_parameters = Kratos.Parameters(f.read())
                 analysis.GeoMechanicsAnalysis(model, stage_parameters).Run()
 
+        self.create_sheetpile_plots(project_path)
+        self.create_interface_plots(project_path)
+
+    def read_json_output(self, project_path, stage):
+        with open(
+                os.path.join(project_path, f"{stage['base_name']}_interface_output.json"),
+                "r",
+        ) as output_file:
+            return json.load(output_file)
+
+    def get_variable_collections_per_stage(
+            self,
+            kratos_variable_label,
+            variable_plot_label,
+            project_path,
+            structural_stages,
+            data_extractor
+    ):
+        node_ids = get_soil_side_node_ids_of_right_interfaces()
+
+
+        # Since the coordinates do not change between stages, we base them on the first stage
+        y_coords = self.get_y_coords(
+            project_path, structural_stages[0]["base_name"], node_ids
+        )
+
+        variable_data_collections = []
+        for stage in structural_stages:
+            json_data = self.read_json_output(project_path, stage)
+            variable_kratos_data = []
+            index = 0 if variable_plot_label == "Normal traction" else 1
+            for node_label in [f"NODE_{node_id}" for node_id in node_ids]:
+                variable_kratos_data.append(
+                    json_data[node_label][kratos_variable_label][0][index]
+                )
+
+            variable_kratos_data = [
+                unit_to_k_unit(value) for value in variable_kratos_data
+            ]
+            sorted_y, sorted_data = zip(*sorted(zip(y_coords, variable_kratos_data)))
+            data_series_collection = []
+            data_series_collection.append(
+                plot_utils.DataSeries(
+                    zip(sorted_data, sorted_y),
+                    f"{variable_plot_label} [Kratos]",
+                    line_style="-",
+                    marker=".",
+                )
+            )
+            fem_comparison_csv = Path(project_path) / f"{stage['base_name']}_interface_comparison.csv"
+            if fem_comparison_csv.exists():
+                fem_comparison_variable = test_helper.get_data_points_from_file(
+                    fem_comparison_csv, data_extractor
+                )
+
+                data_series_collection.append(
+                    plot_utils.DataSeries(
+                        fem_comparison_variable,
+                        f"{variable_plot_label} [FEM Comparison_with excavation stages]",
+                        marker="3",
+                    )
+                )
+            variable_data_collections.append(data_series_collection)
+
+        return variable_data_collections
+
+    def create_interface_plots(self, project_path):
+        # structural_stages = [self.stages_info["final_equilibrium"]]
+        structural_stages = [self.stages_info["third_excavation"]]
+
+        normal_traction_kratos_label = "GEO_EFFECTIVE_TRACTION_VECTOR"
+        normal_traction_plot_label = "Normal traction"
+        normal_traction_collections = self.get_variable_collections_per_stage(
+            normal_traction_kratos_label,
+            normal_traction_plot_label,
+            project_path,
+            structural_stages,
+            extract_normal_traction_and_y_from_line
+        )
+
+        plot_titles = [stage["base_name"] for stage in structural_stages]
+        plot_utils.make_sub_plots(
+            normal_traction_collections,
+            Path(project_path) / "normal_tractions_all_stages.svg",
+            titles=plot_titles,
+            xlabel=r"Normal Traction [$\mathrm{kN} / \mathrm{m}^2$]",
+            ylabel="y [m]",
+            figsize=(4, 6),
+            )
+
+        shear_traction_plot_label = "Shear traction"
+        shear_traction_kratos_label = "GEO_EFFECTIVE_TRACTION_VECTOR"
+        shear_traction_collections = self.get_variable_collections_per_stage(
+            shear_traction_kratos_label,
+            shear_traction_plot_label,
+            project_path,
+            structural_stages,
+            extract_shear_traction_and_y_from_line
+        )
+
+        plot_utils.make_sub_plots(
+            shear_traction_collections,
+            Path(project_path) / "shear_tractions_all_stages.svg",
+            titles=plot_titles,
+            xlabel=r"Shear Traction [$\mathrm{kN} / \mathrm{m}^2$]",
+            ylabel="y [m]",
+            figsize=(4, 6),
+            )
+
+    def get_plot_stages(self):
+        # return [self.stages_info["final_equilibrium"]]
+        return [self.stages_info["third_excavation"]]
+
+
+    def get_y_coords(self, project_path, stage_base_name, node_ids):
+        coordinates = test_helper.read_coordinates_from_post_msh_file(
+            Path(project_path) / "gid_output" / f"{stage_base_name}.post.msh", node_ids=node_ids
+        )
+        return [coord[1] for coord in coordinates]
+
+    def get_wall_variable_collections_per_stage(
+            self,
+            kratos_variable_label,
+            variable_plot_label,
+            project_path,
+            plot_stages,
+            data_extractor
+    ):
+        node_ids = get_sheetpile_node_ids()
+
+        y_coords = self.get_y_coords(
+            project_path, plot_stages[0]["base_name"], node_ids
+        )
+
+        variable_data_collections = []
+        reader = GiDOutputFileReader()
+
+        for stage in plot_stages:
+            output_data = reader.read_output_from(
+                Path(project_path) / "gid_output" / f"{stage['base_name']}.post.res"
+            )
+
+            variable_kratos_data = reader.nodal_values_at_time(
+                kratos_variable_label,
+                stage["end_time"],
+                output_data,
+                node_ids=node_ids,
+            )
+
+            variable_kratos_data = [unit_to_k_unit(value) for value in variable_kratos_data]
+
+            data_series_collection = [
+                plot_utils.DataSeries(
+                    zip(variable_kratos_data, y_coords),
+                    f"{variable_plot_label} [Kratos]",
+                    line_style="-",
+                    marker=".",
+                )
+            ]
+
+            if (Path(project_path) / f"{stage['base_name']}_comparison.csv").exists():
+                comparison_variable = test_helper.get_data_points_from_file(
+                    Path(project_path) / f"{stage['base_name']}_comparison.csv", data_extractor
+                )
+                data_series_collection.append(
+                    plot_utils.DataSeries(
+                        comparison_variable,
+                        f"{variable_plot_label} [Comparison]",
+                        marker="1",
+                    )
+                )
+
+            fem_comparison_csv = Path(project_path) / f"{stage['base_name']}_comparison_FEM.csv"
+            if fem_comparison_csv.exists():
+                fem_comparison_variable = test_helper.get_data_points_from_file(
+                    fem_comparison_csv, data_extractor
+                )
+                data_series_collection.append(
+                    plot_utils.DataSeries(
+                        fem_comparison_variable,
+                        f"{variable_plot_label} [FEM Comparison]",
+                        marker="2",
+                    )
+                )
+
+            fem_comparison_csv = Path(project_path) / f"{stage['base_name']}_wall_comparison.csv"
+            if fem_comparison_csv.exists():
+                fem_comparison_variable = test_helper.get_data_points_from_file(
+                    fem_comparison_csv, data_extractor
+                )
+                data_series_collection.append(
+                    plot_utils.DataSeries(
+                        fem_comparison_variable,
+                        f"{variable_plot_label} [FEM Comparison_with excavation stages]",
+                        marker="3",
+                    )
+                )
+
+            variable_data_collections.append(data_series_collection)
+
+        return variable_data_collections
+
+    def get_wall_horizontal_displacement_collections_per_stage(
+            self,
+            project_path,
+            plot_stages,
+            data_extractor
+    ):
+        node_ids = get_sheetpile_node_ids()
+
+        y_coords = self.get_y_coords(
+            project_path, plot_stages[0]["base_name"], node_ids
+        )
+
+        variable_data_collections = []
+        reader = GiDOutputFileReader()
+
+        for stage in plot_stages:
+            output_data = reader.read_output_from(
+                Path(project_path) / "gid_output" / f"{stage['base_name']}.post.res"
+            )
+
+            displacements = reader.nodal_values_at_time(
+                "DISPLACEMENT",
+                stage["end_time"],
+                output_data,
+                node_ids=node_ids,
+            )
+
+            horizontal_displacements = [value[0] for value in displacements]
+
+            data_series_collection = [
+                plot_utils.DataSeries(
+                    zip(horizontal_displacements, y_coords),
+                    "Horizontal displacement [Kratos]",
+                    line_style="-",
+                    marker=".",
+                )
+            ]
+
+            if (Path(project_path) / f"{stage['base_name']}_comparison.csv").exists():
+                comparison_variable = test_helper.get_data_points_from_file(
+                    Path(project_path) / f"{stage['base_name']}_comparison.csv", data_extractor
+                )
+                data_series_collection.append(
+                    plot_utils.DataSeries(
+                        comparison_variable,
+                        "Horizontal displacement [Comparison]",
+                        marker="1",
+                    )
+                )
+
+            if (Path(project_path) / f"{stage['base_name']}_comparison_FEM.csv").exists():
+                comparison_variable = test_helper.get_data_points_from_file(
+                    Path(project_path) / f"{stage['base_name']}_comparison_FEM.csv", data_extractor
+                )
+                data_series_collection.append(
+                    plot_utils.DataSeries(
+                        comparison_variable,
+                        "Horizontal displacement [FEM Comparison]",
+                        marker="2",
+                    )
+                )
+
+            if (Path(project_path) / f"{stage['base_name']}_comparison_FEM_with_excavation_stages.csv").exists():
+                comparison_variable = test_helper.get_data_points_from_file(
+                    Path(project_path) / f"{stage['base_name']}_comparison_FEM_with_excavation_stages.csv", data_extractor
+                )
+                data_series_collection.append(
+                    plot_utils.DataSeries(
+                        comparison_variable,
+                        "Horizontal displacement [FEM Comparison_with_excavation_stages]",
+                        marker="3",
+                    )
+                )
+
+            variable_data_collections.append(data_series_collection)
+
+        return variable_data_collections
+
+    def create_sheetpile_plots(self, project_path):
+        plot_stages = self.get_plot_stages()
+        plot_titles = [stage["base_name"] for stage in plot_stages]
+
+        bending_moment_collections = self.get_wall_variable_collections_per_stage(
+            "BENDING_MOMENT",
+            "Bending moment",
+            project_path,
+            plot_stages,
+            extract_bending_moment_and_y_from_line
+        )
+        plot_utils.make_sub_plots(
+            bending_moment_collections,
+            Path(project_path) / "bending_moments.svg",
+            titles=plot_titles,
+            xlabel="Bending moment [kNm/m]",
+            ylabel="y [m]",
+            figsize=(4, 6),
+            )
+
+        shear_force_collections = self.get_wall_variable_collections_per_stage(
+            "SHEAR_FORCE",
+            "Shear force",
+            project_path,
+            plot_stages,
+            extract_shear_force_and_y_from_line
+        )
+        plot_utils.make_sub_plots(
+            shear_force_collections,
+            Path(project_path) / "shear_forces.svg",
+            titles=plot_titles,
+            xlabel="Shear force [kN/m]",
+            ylabel="y [m]",
+            figsize=(4, 6),
+            )
+
+        horizontal_displacement_collections = (
+            self.get_wall_horizontal_displacement_collections_per_stage(
+                project_path,
+                plot_stages,
+                extract_horizontal_displacements_from_line
+            )
+        )
+        plot_utils.make_sub_plots(
+            horizontal_displacement_collections,
+            Path(project_path) / "horizontal_displacements.svg",
+            titles=plot_titles,
+            xlabel="Horizontal displacement [m]",
+            ylabel="y [m]",
+            figsize=(4, 6),
+            )
+
+    # def test_simulation_without_excavation(self):
+    #     self.run_simulation_and_checks("without_excavation")
+
+    def test_simulation_without_excavation(self):
+        self.run_simulation_and_checks("with_excavation_stages")
+
 
 if __name__ == "__main__":
-    model_runner = KratosGeoMechanicsCrowValidationWithStages()
-    model_runner.run_simulation()
+    KratosUnittest.main()
