@@ -449,8 +449,8 @@ void ThicknessIntegratedCompositeConstitutiveLaw::InitializeMaterial(
     } // for each layer
 
      // We calculate the shear reduction factors
-    mShearReductionFactors[0] = std::pow(generalized_constitutive_matrix(3, 3), 2) / (thickness_integral_22 * generalized_constitutive_matrix(6, 6)); // YZ shear
-    mShearReductionFactors[1] = std::pow(generalized_constitutive_matrix(4, 4), 2) / (thickness_integral_11 * generalized_constitutive_matrix(7, 7)); // XZ shear
+    mShearReductionFactors[0] = std::pow(generalized_constitutive_matrix(4, 4), 2) / (thickness_integral_22 * generalized_constitutive_matrix(6, 6)); // YZ shear
+    mShearReductionFactors[1] = std::pow(generalized_constitutive_matrix(3, 3), 2) / (thickness_integral_11 * generalized_constitutive_matrix(7, 7)); // XZ shear
 
     KRATOS_CATCH("ThicknessIntegratedCompositeConstitutiveLaw::InitializeMaterial")
 }
