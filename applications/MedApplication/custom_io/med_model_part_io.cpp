@@ -571,8 +571,6 @@ void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
         MED_NONE,
         node_ids.data());
 
-    KRATOS_ERROR_IF(node_ids.empty()) << "MED file does not contain global numbering for nodes." << std::endl;
-
     if (err < 0) { // No global numbering = Use MED (1-based)
         KRATOS_WARNING("MedModelPartIO")
             << "MED file does not contain global numbering for nodes. "
