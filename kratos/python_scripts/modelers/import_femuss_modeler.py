@@ -68,6 +68,7 @@ class ImportFemussModeler(KratosMultiphysics.Modeler):
             self.model_part.CreateNewNode(int(node_id), x, y, z)
 
         # Create geometries
+        print(connectivity)
         geometry_name = self.__GetGeometryName(len(connectivity[0]))
         for i, geom_id in enumerate(element_ids):
             self.model_part.CreateNewGeometry(
@@ -111,6 +112,7 @@ class ImportFemussModeler(KratosMultiphysics.Modeler):
         node_ids = []
         coordinates = []
 
+        new_format = False
         in_elements = False
         in_coordinates = False
 
@@ -120,26 +122,49 @@ class ImportFemussModeler(KratosMultiphysics.Modeler):
                 if not line:
                     continue
 
-                if line == "ELEMENTS":
+                # ---------------------------------
+                # BLOCK DETECTION
+                # ---------------------------------
+                if line.startswith("ELEMENTS"):
                     in_elements = True
+                    new_format = "NEWFORMAT" in line
                     continue
+
                 elif line == "END_ELEMENTS":
                     in_elements = False
                     continue
+
                 elif line == "COORDINATES":
                     in_coordinates = True
                     continue
+
                 elif line == "END_COORDINATES":
                     in_coordinates = False
                     continue
 
+                # ---------------------------------
+                # ELEMENTS
+                # ---------------------------------
                 if in_elements:
                     parts = line.split()
-                    element_ids.append(int(parts[0]))
-                    connectivity.append([int(p) for p in parts[1:]])
 
+                    elem_id = int(parts[0])
+
+                    if new_format:
+                        n_nodes = int(parts[1])
+                        conn = [int(p) for p in parts[2:2 + n_nodes]]
+                    else:
+                        conn = [int(p) for p in parts[1:]]
+
+                    element_ids.append(elem_id)
+                    connectivity.append(conn)
+
+                # ---------------------------------
+                # COORDINATES
+                # ---------------------------------
                 elif in_coordinates:
                     parts = line.split()
+
                     node_ids.append(int(parts[0]))
                     coordinates.append([float(p) for p in parts[1:]])
 
