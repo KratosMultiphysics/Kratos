@@ -1,0 +1,22 @@
+{
+    "properties" : [{
+        "model_part_name" : "FluidModelPart",
+        "properties_id"   : 0,
+        "Material"        : null
+    },{
+        "model_part_name" : "FluidModelPart.FluidParts_Parts_Auto1",
+        "properties_id"   : 1,
+        "Material"        : {
+            "constitutive_law" : {
+                "name" : "Newtonian3DLaw"
+            },
+            "Variables"        : {
+                "DENSITY"           : 1.225,
+                "DYNAMIC_VISCOSITY" : 1.846e-5,
+                "CONDUCTIVITY"      : 0.024,
+                "SPECIFIC_HEAT"     : 1012.0
+            },
+            "Tables"           : null
+        }
+    }]
+}
