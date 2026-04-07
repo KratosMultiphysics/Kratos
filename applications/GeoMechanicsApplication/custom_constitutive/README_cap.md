@@ -82,7 +82,7 @@ The derivative of the flow function is:
 or
 
 ```math
-    \frac{\partial G_{cap}}{\partial \sigma_i} = \frac{1}{3} G_{,p} + \frac{3 G_{,q}}{2 q} \left(\sigma_i - p \right)
+    \frac{\partial G_{cap}}{\partial \sigma_i} = \frac{1}{3} \frac{\partial G_{cap}}{\partial p} + \frac{3}{2 q} \frac{\partial G_{cap}}{\partial q} \left(\sigma_i - p \right)
 ```
 
 ### Cap corner point
@@ -124,7 +124,7 @@ Where,
     c_2 = \frac{6 c \cos{\phi}}{3 - \sin{\phi}}
 ```
 
-A second order polynomial equation needs to be solved, and the minimum root needs to be selected, because $p \lt 0$
+A second order polynomial equation needs to be solved, and the minimum root needs to be selected,
 
 ```math
     p_{corner} = \frac{ -B - \sqrt{B^2 - 4 A C}}{2A}
@@ -153,12 +153,12 @@ Then the trial principal stresses need to be mapped to the cap yield surface by:
 ### Return mapping from cap corner zone
 The cap compression zone is the region where the trial principal stresses are,
 
-1. above the line which passes from the cap corner point and in the direction normal to the flow function of the cap yield surface. 
+1. above the line which passes from the cap corner point and in the direction normal to the cap flow function $G_{cap}$. 
 ```math
     q - q_{corner} - \left( G_{cap,p}/G_{cap,q} \right) (p - p_{corner}) > 0
 ```
 
-2. Under the line which passes from the cap corner point and in the direction normal to the flow function of the Coulomb yield surface. 
+2. Under the line which passes from the cap corner point and in the direction normal to the Coulomb flow function $G_{MC}$. 
 ```math
     q - q_{corner} - \left( G_{MC,p}/G_{MC,q} \right) (p - p_{corner}) < 0
 ```
