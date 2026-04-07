@@ -82,6 +82,7 @@ public:
             "analysis_model_part_name" : "ModelPart",
             "contact_sub_model_part_name" : "contact",
             "echo_level" : 0,
+            "numbered_considered_neighbours" : 1,
             "contact_parameters" : {
                 "slave_model_part" : {
                     "sub_model_part_name" : "",
@@ -132,7 +133,7 @@ private:
 
     ModelPart* mrSlaveModelPart = nullptr; 
     ModelPart* mrMasterModelPart = nullptr; 
-    ModelPart* mrContactModelPart = nullptr; 
+    ModelPart* mpContactModelPart = nullptr; 
 
     Properties::Pointer mpPropMaster;
     Properties::Pointer mpPropSlave;

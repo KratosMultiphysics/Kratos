@@ -1018,35 +1018,35 @@ namespace Kratos
     // std::string master_skin_model_part_name = "skin_Body1.outer.Bottom";
     // std::string slave_skin_model_part_name = "skin_Body2.outer.Top_1";
 
-    std::string master_skin_model_part_name = "skin_Body1.outer.Bottom";
-    std::string slave_skin_model_part_name = "skin_Body2.outer.Top_1";
+    // std::string master_skin_model_part_name = "skin_Body1.outer.Bottom";
+    // std::string slave_skin_model_part_name = "skin_Body2.outer.Top_1";
 
-    // std::string master_skin_model_part_name = "skin_Body1.outer.bottom";
-    // std::string slave_skin_model_part_name = "skin_Body2.outer.top";
+    // // std::string master_skin_model_part_name = "skin_Body1.outer.bottom";
+    // // std::string slave_skin_model_part_name = "skin_Body2.outer.top";
 
-    KRATOS_ERROR_IF_NOT(mpModel->HasModelPart(slave_skin_model_part_name)) << "ERROR: SLAVE SKIN MODEL PART " 
-                                            << slave_skin_model_part_name << "NOT CREATED" << std::endl; 
+    // KRATOS_ERROR_IF_NOT(mpModel->HasModelPart(slave_skin_model_part_name)) << "ERROR: SLAVE SKIN MODEL PART " 
+    //                                         << slave_skin_model_part_name << "NOT CREATED" << std::endl; 
 
-    KRATOS_ERROR_IF_NOT(mpModel->HasModelPart(master_skin_model_part_name)) << "ERROR: MASTER SKIN MODEL PART " 
-                                            << master_skin_model_part_name << "NOT CREATED" << std::endl; 
+    // KRATOS_ERROR_IF_NOT(mpModel->HasModelPart(master_skin_model_part_name)) << "ERROR: MASTER SKIN MODEL PART " 
+    //                                         << master_skin_model_part_name << "NOT CREATED" << std::endl; 
 
-    auto& r_slave_skin_sub_model_part = (mpModel->GetModelPart(slave_skin_model_part_name));
-    auto& r_master_skin_sub_model_part = (mpModel->GetModelPart(master_skin_model_part_name));
+    // auto& r_slave_skin_sub_model_part = (mpModel->GetModelPart(slave_skin_model_part_name));
+    // auto& r_master_skin_sub_model_part = (mpModel->GetModelPart(master_skin_model_part_name));
 
-    KRATOS_INFO("IgaContactProcessSbmTiming") << "ProjectToSkinBoundary: " << time_project_to_skin
-        << "s, NewtonRaphsonCurveOnDeformed: " << time_newton
-        << "s, ProjectBackToSurrogateBoundary: " << time_back_projection
-        << "s, CreateQuadratureGeometries: " << time_create_quadrature
-        << "s, CreateQuadraturePointGeometriesSBM: " << time_create_quadrature_sbm
-        << "s, CreateQuadraturePointCouplingGeometry2D: " << time_create_coupling
-        << "s" << std::endl;
+    // KRATOS_INFO("IgaContactProcessSbmTiming") << "ProjectToSkinBoundary: " << time_project_to_skin
+    //     << "s, NewtonRaphsonCurveOnDeformed: " << time_newton
+    //     << "s, ProjectBackToSurrogateBoundary: " << time_back_projection
+    //     << "s, CreateQuadratureGeometries: " << time_create_quadrature
+    //     << "s, CreateQuadraturePointGeometriesSBM: " << time_create_quadrature_sbm
+    //     << "s, CreateQuadraturePointCouplingGeometry2D: " << time_create_coupling
+    //     << "s" << std::endl;
 
-    KRATOS_INFO("[IgaContactProcess]:: finished projections \n");
+    // KRATOS_INFO("[IgaContactProcess]:: finished projections \n");
 
-    if (mIntegrateOnTrueBoundary)
-        PrepareIntegrationOnTrueBoundary(r_master_skin_sub_model_part, r_slave_skin_sub_model_part);
+    // if (mIntegrateOnTrueBoundary)
+    //     PrepareIntegrationOnTrueBoundary(r_master_skin_sub_model_part, r_slave_skin_sub_model_part);
     
-    KRATOS_INFO("[IgaContactProcess]:: finished preparation for integration on true \n");
+    // KRATOS_INFO("[IgaContactProcess]:: finished preparation for integration on true \n");
     
 }
 

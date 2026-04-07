@@ -101,10 +101,14 @@ void GapSbmContactCondition::InitializeMemberVariables()
     const double integration_weight = r_integration_points[0].Weight()*thickness;
 
     SetValue(INTEGRATION_WEIGHT, integration_weight);
+
+
+    mPenalty = GetProperties()[PENALTY_FACTOR];
 }
 
 void GapSbmContactCondition::InitializeSbmMemberVariables()
 {
+    mSideIdentifier = GetValue(IDENTIFIER);
     const auto& r_geometry = this->GetGeometry();
     const auto& r_surrogate_geometry = GetSurrogateGeometry();
 
@@ -123,12 +127,12 @@ void GapSbmContactCondition::InitializeSbmMemberVariables()
 
     mDistanceVectorSkinReferenceSlave.resize(3);
     noalias(mDistanceVectorSkinReferenceSlave) = p_skin_node_slave->Coordinates() - p_surrogate_geometry_slave->Center().Coordinates();
-    mNormalPhysicalSpaceSlave = p_surrogate_geometry_slave->Normal(0, GetIntegrationMethod());
 
-    mNormalPhysicalSpaceSlave = mNormalPhysicalSpaceSlave / MathUtils<double>::Norm(mNormalPhysicalSpaceSlave);
+    mNormalPhysicalSpaceSlave = p_skin_node_slave->GetValue(NORMAL);
 
-    mNormalPhysicalSpaceSlave = -mNormalPhysicalSpaceMaster; //TODO:
-
+    if (mNormalPhysicalSpaceSlave == ZeroVector(3)) {
+        mNormalPhysicalSpaceSlave = -mNormalPhysicalSpaceMaster; //FIXME: theoretically useless, but kratos stops otherwise for the non active points
+    }
 
     const auto& r_DN_De_slave = p_surrogate_geometry_slave->ShapeFunctionsLocalGradients(
         p_surrogate_geometry_slave->GetDefaultIntegrationMethod());
@@ -143,6 +147,13 @@ void GapSbmContactCondition::InitializeSbmMemberVariables()
 
     SetValue(SKIN_MASTER_COORDINATES, GetGeometry().Center().Coordinates());
     SetValue(SKIN_SLAVE_COORDINATES, pGetProjectionNode()->Coordinates());
+
+    SetValue(SURROGATE_MASTER_COORDINATES, GetSurrogateGeometry().Center().Coordinates());
+    SetValue(SURROGATE_SLAVE_COORDINATES, p_surrogate_geometry_slave->Center().Coordinates());
+
+
+    this->SetValue(NORMAL_SKIN_MASTER, mNormalPhysicalSpaceMaster);
+    this->SetValue(NORMAL_SKIN_SLAVE, mNormalPhysicalSpaceSlave);
 }
 
 void GapSbmContactCondition::CalculateLocalSystem(
@@ -151,7 +162,7 @@ void GapSbmContactCondition::CalculateLocalSystem(
     const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
-
+    mSideIdentifier = GetValue(IDENTIFIER);
 
     // FIXME: simply remove
     if (mSideIdentifier == "SLAVE" || mSideIdentifier == "INACTIVE") {
@@ -183,6 +194,7 @@ void GapSbmContactCondition::CalculateLeftHandSide(
 )
 {
     KRATOS_TRY
+    mSideIdentifier = GetValue(IDENTIFIER);
 
     // FIXME: simply remove
     if (mSideIdentifier == "SLAVE" || mSideIdentifier == "INACTIVE") {
@@ -209,10 +221,94 @@ void GapSbmContactCondition::CalculateLeftHandSide(
         rLeftHandSideMatrix.resize(mat_size,mat_size,false);
     noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size,mat_size); //resetting LHS
 
-    if (this->GetValue(ACTIVATION_LEVEL) == 0)
+    if (this->GetValue(ACTIVATION_LEVEL) != 3)
     {
         return;
     }
+
+    // /*****************
+    const auto& r_surrogate_geometry = *this->GetValue(NEIGHBOUR_GEOMETRIES)[0];
+    const auto& r_true_geometry = GetGeometry();
+    const unsigned int number_of_control_points = r_surrogate_geometry.size();
+
+    // reading integration points and local gradients
+
+    // compute Taylor expansion contribution: H_sum_vec
+    Vector N_sum_vec = ZeroVector(number_of_control_points);
+    ComputeTaylorExpansionContribution(
+        r_surrogate_geometry_master,
+        mDistanceVectorSkinReferenceMaster,
+        mBasisFunctionsOrderMaster,
+        N_sum_vec);
+
+    // compute Taylor expansion contribution: grad_H_sum
+    Matrix grad_N_sum_transposed = ZeroMatrix(3, number_of_control_points);
+    ComputeGradientTaylorExpansionContribution(r_surrogate_geometry_master,
+                                                 mDistanceVectorSkinReferenceMaster, 
+                                                 mBasisFunctionsOrderMaster, 
+                                                 grad_N_sum_transposed);
+    Matrix grad_N_sum = trans(grad_N_sum_transposed);
+
+    Matrix B_sum = ZeroMatrix(mDim,mat_size_master);
+    CalculateB(B_sum, grad_N_sum, number_of_control_points);
+
+    // obtain the tangent constitutive matrix at the true position
+    ConstitutiveLaw::Parameters values_true(r_true_geometry, GetProperties(), rCurrentProcessInfo);
+    Vector old_displacement_coefficient_vector(mat_size_master);
+    GetSolutionCoefficientVector(old_displacement_coefficient_vector, 0);
+    Vector old_strain_on_true = prod(B_sum, old_displacement_coefficient_vector);
+    const std::size_t strain_size_true = mpConstitutiveLaw->GetStrainSize();
+    ConstitutiveVariables this_constitutive_variables_true(strain_size_true);
+    ApplyConstitutiveLaw(mat_size_master, old_strain_on_true, values_true, this_constitutive_variables_true);
+
+    const Matrix& r_D_on_true = values_true.GetConstitutiveMatrix();
+
+    Matrix DB_sum = prod(r_D_on_true, B_sum);
+
+    // Differential area
+    double penalty_integration = mPenalty * integration_weight;
+
+    // ASSEMBLE
+    // ASSIGN BC BY COMPONENTS 
+    //--------------------------------------------------------------------------------------------
+    for (IndexType i = 0; i < number_of_control_points; i++) {
+        for (IndexType j = 0; j < number_of_control_points; j++) {
+            
+            for (IndexType idim = 0; idim < 2; idim++) {
+                const int id1 = 2*idim;
+                const int iglob = 2*i+idim;
+
+                // PENALTY TERM
+                rLeftHandSideMatrix(iglob, 2*j+idim) += N_sum_vec(i)*N_sum_vec(j)* penalty_integration;
+
+                Vector cut_sigma_w_n = ZeroVector(3);
+                cut_sigma_w_n[0] = (DB_sum(0, iglob)* mNormalPhysicalSpaceMaster[0] + DB_sum(2, iglob)* mNormalPhysicalSpaceMaster[1]);
+                cut_sigma_w_n[1] = (DB_sum(2, iglob)* mNormalPhysicalSpaceMaster[0] + DB_sum(1, iglob)* mNormalPhysicalSpaceMaster[1]);
+
+                for (IndexType jdim = 0; jdim < 2; jdim++) {
+                    const int id2 = (id1+2)%3;
+                    const int jglob = 2*j+jdim;
+
+                    // FLUX 
+                    // [sigma(u) \dot n] \dot n * (-w \dot n)
+                    //*********************************************** */
+                    rLeftHandSideMatrix(iglob, jglob) -= N_sum_vec(i)*(DB_sum(id1, jglob)* mNormalPhysicalSpaceMaster[0] + DB_sum(id2, jglob)* mNormalPhysicalSpaceMaster[1]) * integration_weight;
+
+                    // // PENALTY FREE g_n = 0
+                    // // [\sigma_1(w) \dot n] \dot n (-u_1 \dot n)
+                    // //*********************************************** */
+                    rLeftHandSideMatrix(iglob, jglob) -= mNitschePenalty*N_sum_vec(j)*cut_sigma_w_n[jdim] * integration_weight;
+                }
+
+            }
+        }
+    }
+      
+    return;
+      
+      
+      
+    //  *********************************************************/
 
     // compute Taylor expansion contribution: H_sum_vec
     Vector N_sum_vec_master = ZeroVector(number_of_control_points_master);
@@ -258,8 +354,20 @@ void GapSbmContactCondition::CalculateLeftHandSide(
     Matrix DB_sum_master = prod(r_D_on_true_master, B_sum_master);
 
     // Differential area
+    const Vector& mesh_size_uv = this->GetValue(KNOT_SPAN_SIZES);
+    double h = mesh_size_uv[0];
+    for (IndexType i = 1; i < mesh_size_uv.size(); ++i) {
+        h = std::min(h, mesh_size_uv[i]);
+    }
+    const double penalty = mPenalty / h * mBasisFunctionsOrderMaster *mBasisFunctionsOrderMaster;
+    // double penalty_integration = penalty * integration_weight; //FIXME:
+
     mNitschePenalty = -1; //FIXME:
-    // double penalty_integration = mPenalty * integration_weight;
+    if (mPenalty == -1)
+    {
+        mNitschePenalty = -1;
+        penalty_integration = 0;
+    }
 
     // ASSEMBLE
     const std::size_t shift_dof = mat_size_master;
@@ -270,9 +378,6 @@ void GapSbmContactCondition::CalculateLeftHandSide(
             const int id1 = 2*idim;
             const int iglob = 2*i+idim;
 
-            // PENALTY TERM
-            // rLeftHandSideMatrix(iglob, 2*j+idim) += N_sum_vec_master(i)*N_sum_vec_master(j)* penalty_integration;
-
             Vector extended_sigma_w_n = ZeroVector(3);
             extended_sigma_w_n[0] = (DB_sum_master(0, iglob)* mNormalPhysicalSpaceMaster[0] + DB_sum_master(2, iglob)* mNormalPhysicalSpaceMaster[1]);
             extended_sigma_w_n[1] = (DB_sum_master(2, iglob)* mNormalPhysicalSpaceMaster[0] + DB_sum_master(1, iglob)* mNormalPhysicalSpaceMaster[1]);
@@ -282,6 +387,10 @@ void GapSbmContactCondition::CalculateLeftHandSide(
                 for (IndexType jdim = 0; jdim < 2; jdim++) {
                     const int id2 = (id1+2)%3;
                     const int jglob = 2*j+jdim;
+
+                    // PENALTY TERM
+                    rLeftHandSideMatrix(iglob, jglob) -= N_sum_vec_master(i)*N_sum_vec_master(j)* 
+                                                         mNormalPhysicalSpaceMaster[idim] * mNormalPhysicalSpaceMaster[jdim] * penalty_integration;
 
                     Vector extension_sigma_u_n(2);
                     extension_sigma_u_n[0] = (DB_sum_master(0, jglob)* mNormalPhysicalSpaceMaster[0] + DB_sum_master(2, jglob)* mNormalPhysicalSpaceMaster[1]);
@@ -303,14 +412,18 @@ void GapSbmContactCondition::CalculateLeftHandSide(
             }
 
             // SLAVE NON PENETRABILITY PART
-            for (IndexType j = 0; j < number_of_control_points_master; j++) {
+            for (IndexType j = 0; j < number_of_control_points_slave; j++) {
                 for (IndexType jdim = 0; jdim < 2; jdim++) {
                     const int id2 = (id1+2)%3;
                     const int jglob = 2*j+jdim + shift_dof;
 
-                    // // PENALTY FREE FOR NON PENETRABILITY g_n = 0
-                    // // [\sigma_1(w) \dot n] \dot n (u_1 \dot n1 + u_2 \dot n2)
-                    // //*********************************************** */
+                    // PENALTY TERM
+                    rLeftHandSideMatrix(iglob, jglob) += N_sum_vec_master(i)*N_sum_vec_slave(j)* 
+                                                         mNormalPhysicalSpaceMaster[idim] * mNormalPhysicalSpaceMaster[jdim] * penalty_integration;
+
+                    // // // PENALTY FREE FOR NON PENETRABILITY g_n = 0
+                    // // // [\sigma_1(w) \dot n] \dot n (u_1 \dot n1 + u_2 \dot n2)
+                    // // //*********************************************** */
                     rLeftHandSideMatrix(iglob, jglob) -= mNitschePenalty *extended_sigma_w_n_dot_n
                                                          * (N_sum_vec_slave(j) * mNormalPhysicalSpaceSlave[jdim]) * integration_weight;
                 }
@@ -326,8 +439,6 @@ void GapSbmContactCondition::CalculateLeftHandSide(
             const int iloc = 2*i+idim;
             const int iglob = 2*i+idim + shift_dof;
 
-            // PENALTY TERM
-            // rLeftHandSideMatrix(iglob, 2*j+idim) += N_sum_vec_slave(i)*N_sum_vec_slave(j)* penalty_integration;
 
             for (IndexType j = 0; j < number_of_control_points_master; j++) {
                 for (IndexType jdim = 0; jdim < 2; jdim++) {
@@ -359,18 +470,25 @@ void GapSbmContactCondition::CalculateRightHandSide(
 )
 {
     KRATOS_TRY
+    mSideIdentifier = GetValue(IDENTIFIER);
 
     // FIXME: simply remove
     if (mSideIdentifier == "SLAVE" || mSideIdentifier == "INACTIVE") {
         return;
     }
 
-    const auto& r_surrogate_geometry = GetSurrogateGeometry();
-    const auto& r_true_geometry = GetGeometry();
-    const unsigned int number_of_control_points = r_surrogate_geometry.size();
+    const auto& r_skin_geometry_master = this->GetGeometry();
+    const auto& r_surrogate_geometry_master = GetSurrogateGeometry();
+    const unsigned int number_of_control_points_master = r_surrogate_geometry_master.size();
+
+    const auto& r_skin_node_slave = *pGetProjectionNode();
+    const auto& r_surrogate_geometry_slave = *r_skin_node_slave.GetValue(NEIGHBOUR_GEOMETRIES)[0];
+    const unsigned int number_of_control_points_slave = r_surrogate_geometry_slave.size();
 
     // reading integration points and local gradients
-    const SizeType mat_size = number_of_control_points * mDim;
+    const std::size_t mat_size_master = number_of_control_points_master * mDim;
+    const std::size_t mat_size_slave = number_of_control_points_slave * mDim;
+    const std::size_t mat_size = (number_of_control_points_master + number_of_control_points_slave) * mDim;
     const double integration_weight = GetValue(INTEGRATION_WEIGHT);
 
     // resizing as needed the RHS
@@ -378,30 +496,167 @@ void GapSbmContactCondition::CalculateRightHandSide(
         rRightHandSideVector.resize(mat_size,false);
     noalias(rRightHandSideVector) = ZeroVector(mat_size); //resetting RHS
 
-    // compute Taylor expansion contribution: H_sum_vec
-    Vector N_sum_vec = ZeroVector(number_of_control_points);
-    ComputeTaylorExpansionContribution(
-        r_surrogate_geometry,
-        mDistanceVectorSkinReferenceMaster,
-        mBasisFunctionsOrderMaster,
-        N_sum_vec);
+    if (this->GetValue(ACTIVATION_LEVEL) != 3)
+    {
+        return;
+    }
 
-
-
-    // FIXME:
+    //---------------------------------------------------------------------------------------------
+    // // DEBUG PURPOSE ONLY
     MatrixType lhs;
     CalculateLeftHandSide(lhs, rCurrentProcessInfo);
 
     const std::size_t size = lhs.size1();
     KRATOS_ERROR_IF(size == 0) << "SolidCouplingCondition::CalculateRightHandSide: The left hand side matrix has zero size." << std::endl;
 
-    Vector solution_coefficient_vector;
-    GetSolutionCoefficientVector(solution_coefficient_vector, 2);
+    Vector plus_values;
+    GetSolutionCoefficientVector(plus_values, 0);
+    Vector minus_values;
+    GetSolutionCoefficientVector(minus_values, 1);
+
+    Vector values(plus_values.size() + minus_values.size());
+    for (IndexType i = 0; i < plus_values.size(); ++i) {
+        values[i] = plus_values[i];
+    }
+    for (IndexType i = 0; i < minus_values.size(); ++i) {
+        values[plus_values.size() + i] = minus_values[i];
+    }
 
     if (rRightHandSideVector.size() != size) {
         rRightHandSideVector.resize(size, false);
     }
-    noalias(rRightHandSideVector) = -prod(lhs, solution_coefficient_vector);
+    noalias(rRightHandSideVector) = -prod(lhs, values);
+
+    return;
+
+    //---------------------------------------------------------------------------------------------
+
+    // compute Taylor expansion contribution: H_sum_vec
+    Vector N_sum_vec_master = ZeroVector(number_of_control_points_master);
+    ComputeTaylorExpansionContribution(
+        r_surrogate_geometry_master,
+        mDistanceVectorSkinReferenceMaster,
+        mBasisFunctionsOrderMaster,
+        N_sum_vec_master);
+
+    Vector N_sum_vec_slave = ZeroVector(number_of_control_points_slave);
+    ComputeTaylorExpansionContribution(
+        r_surrogate_geometry_slave,
+        mDistanceVectorSkinReferenceSlave,
+        mBasisFunctionsOrderSlave,
+        N_sum_vec_slave);
+
+    // master true gradient by shifted basis functions
+    // compute Taylor expansion contribution: grad_H_sum
+    Matrix grad_N_sum_transposed_master = ZeroMatrix(3, number_of_control_points_master);
+    ComputeGradientTaylorExpansionContribution(
+        r_surrogate_geometry_master,
+        mDistanceVectorSkinReferenceMaster,
+        mBasisFunctionsOrderMaster,
+        grad_N_sum_transposed_master);
+    Matrix grad_N_sum_master = trans(grad_N_sum_transposed_master);
+
+    Matrix B_sum_master = ZeroMatrix(mDim,mat_size_master);
+    CalculateB(B_sum_master, grad_N_sum_master, number_of_control_points_master);
+
+    // obtain the tangent constitutive matrix at the true position
+    ConstitutiveLaw::Parameters values_true_master(r_skin_geometry_master, GetProperties(), rCurrentProcessInfo);
+    Vector displacement_coefficient_vector_master(mat_size_master);
+    GetSolutionCoefficientVector(displacement_coefficient_vector_master, 0);
+    Vector strain_true_master = prod(B_sum_master, displacement_coefficient_vector_master);
+    const std::size_t strain_size_true_master = mpConstitutiveLaw->GetStrainSize();
+    ConstitutiveVariables this_constitutive_variables_true_master(strain_size_true_master);
+    ApplyConstitutiveLaw(mat_size_master, strain_true_master, values_true_master, this_constitutive_variables_true_master);
+
+    const Matrix& r_D_on_true_master = values_true_master.GetConstitutiveMatrix();
+    const Vector& r_stress_vector_on_true_master = values_true_master.GetStressVector();
+
+    Matrix DB_sum_master = prod(r_D_on_true_master, B_sum_master);
+
+    Vector displacement_master = ZeroVector(3);
+    for (IndexType i = 0; i < number_of_control_points_master; ++i) {
+        displacement_master[0] += N_sum_vec_master(i) * displacement_coefficient_vector_master[2*i];
+        displacement_master[1] += N_sum_vec_master(i) * displacement_coefficient_vector_master[2*i + 1];
+    }
+
+    Vector displacement_coefficient_vector_slave(mat_size_slave);
+    GetSolutionCoefficientVector(displacement_coefficient_vector_slave, 1);
+
+    Vector displacement_slave = ZeroVector(3);
+    for (IndexType i = 0; i < number_of_control_points_slave; ++i) {
+        displacement_slave[0] += N_sum_vec_slave(i) * displacement_coefficient_vector_slave[2*i];
+        displacement_slave[1] += N_sum_vec_slave(i) * displacement_coefficient_vector_slave[2*i + 1];
+    }
+
+    const double displacement_master_dot_n =
+        displacement_master[0]*mNormalPhysicalSpaceMaster[0] + displacement_master[1]*mNormalPhysicalSpaceMaster[1];
+    const double displacement_slave_dot_n =
+        displacement_slave[0]*mNormalPhysicalSpaceSlave[0] + displacement_slave[1]*mNormalPhysicalSpaceSlave[1];
+    const double gap_dot_n = displacement_master_dot_n + displacement_slave_dot_n;
+
+    Vector stress_normal = ZeroVector(3);
+    stress_normal[0] = r_stress_vector_on_true_master[0]*mNormalPhysicalSpaceMaster[0]
+                        + r_stress_vector_on_true_master[2]*mNormalPhysicalSpaceMaster[1];
+    stress_normal[1] = r_stress_vector_on_true_master[2]*mNormalPhysicalSpaceMaster[0]
+                        + r_stress_vector_on_true_master[1]*mNormalPhysicalSpaceMaster[1];
+
+    const double stress_normal_dot_n =
+    stress_normal[0]*mNormalPhysicalSpaceMaster[0] + stress_normal[1]*mNormalPhysicalSpaceMaster[1];
+
+    // Differential area
+    const Vector& mesh_size_uv = this->GetValue(KNOT_SPAN_SIZES);
+    double h = mesh_size_uv[0];
+    for (IndexType i = 1; i < mesh_size_uv.size(); ++i) {
+        h = std::min(h, mesh_size_uv[i]);
+    }
+    const double penalty = mPenalty / h * mBasisFunctionsOrderMaster *mBasisFunctionsOrderMaster;
+    double penalty_integration = penalty * integration_weight;
+
+    mNitschePenalty = -1; //FIXME:
+    if (mPenalty == -1)
+    {
+        mNitschePenalty = -1;
+        penalty_integration = 0;
+    }
+    
+    const std::size_t shift_dof = mat_size_master;
+
+    // MASTER
+    for (IndexType i = 0; i < number_of_control_points_master; i++) {
+        for (IndexType idim = 0; idim < 2; idim++) {
+            const int iglob = 2*i+idim;
+
+            // PENALTY TERM
+            rRightHandSideVector(iglob) -= N_sum_vec_master(i) * mNormalPhysicalSpaceMaster[idim] *
+                                           gap_dot_n * penalty_integration;
+
+            Vector extended_sigma_w_n = ZeroVector(3);
+            extended_sigma_w_n[0] = (DB_sum_master(0, iglob)* mNormalPhysicalSpaceMaster[0] + DB_sum_master(2, iglob)* mNormalPhysicalSpaceMaster[1]);
+            extended_sigma_w_n[1] = (DB_sum_master(2, iglob)* mNormalPhysicalSpaceMaster[0] + DB_sum_master(1, iglob)* mNormalPhysicalSpaceMaster[1]);
+
+            const double extended_sigma_w_n_dot_n = extended_sigma_w_n[0]*mNormalPhysicalSpaceMaster[0] + extended_sigma_w_n[1]*mNormalPhysicalSpaceMaster[1];
+
+            // FLUX
+            rRightHandSideVector(iglob) += stress_normal_dot_n * N_sum_vec_master(i) * mNormalPhysicalSpaceMaster[idim] * integration_weight;
+
+            // // // PENALTY FREE FOR NON PENETRABILITY g_n = 0
+            rRightHandSideVector(iglob) += mNitschePenalty * extended_sigma_w_n_dot_n * displacement_master_dot_n * integration_weight;
+            rRightHandSideVector(iglob) += mNitschePenalty * extended_sigma_w_n_dot_n * displacement_slave_dot_n * integration_weight;
+        }
+    }
+
+    // SLAVE
+    for (IndexType i = 0; i < number_of_control_points_slave; i++) {
+        for (IndexType idim = 0; idim < 2; idim++) {
+            const int iglob = 2*i+idim + shift_dof;
+
+            // // FLUX
+            rRightHandSideVector(iglob) += stress_normal_dot_n * N_sum_vec_slave(i) * mNormalPhysicalSpaceSlave[idim] * integration_weight;
+        }
+    }
+
+
+
 
     KRATOS_CATCH("")
 }
@@ -412,7 +667,8 @@ void GapSbmContactCondition::CalculateRightHandSide(
         const ProcessInfo& rCurrentProcessInfo
     ) const
     {
-        if (mSideIdentifier == "SLAVE" || mSideIdentifier == "INACTIVE") {
+        const std::string& r_side_identifier = GetValue(IDENTIFIER);
+        if (r_side_identifier == "SLAVE" || r_side_identifier == "INACTIVE") {
             return;
         }
         const auto& r_surrogate_geometry_master = GetSurrogateGeometry();
@@ -448,7 +704,8 @@ void GapSbmContactCondition::CalculateRightHandSide(
         const ProcessInfo& rCurrentProcessInfo
     ) const
     {
-        if (mSideIdentifier == "SLAVE" || mSideIdentifier == "INACTIVE") {
+        const std::string& r_side_identifier = GetValue(IDENTIFIER);
+        if (r_side_identifier == "SLAVE" || r_side_identifier == "INACTIVE") {
             return;
         }
         const auto& r_surrogate_geometry_master = GetSurrogateGeometry();
@@ -681,6 +938,7 @@ void GapSbmContactCondition::CalculateRightHandSide(
     }
 
 void GapSbmContactCondition::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo){
+    mSideIdentifier = GetValue(IDENTIFIER);
     if (mSideIdentifier == "SLAVE" || mSideIdentifier == "INACTIVE") {
         return;
     }
@@ -691,10 +949,28 @@ void GapSbmContactCondition::InitializeSolutionStep(const ProcessInfo& rCurrentP
 
     mpConstitutiveLaw->InitializeMaterialResponse(constitutive_law_parameters, ConstitutiveLaw::StressMeasure_Cauchy);
     SetValue(ACTIVATION_LEVEL, 0);  
+
+
+    // //FIXME: REMOVE
+    // for (unsigned int i = 0; i < GetSurrogateGeometry().size(); i++) {
+    //     std::ofstream outputFile("txt_files/Id_active_control_points_condition.txt", std::ios::app);
+    //     outputFile << GetSurrogateGeometry()[i].GetId() << "  " <<GetSurrogateGeometry()[i].GetDof(DISPLACEMENT_X).EquationId() <<"\n";
+    //     outputFile.close();
+    // }
+    
+    // const auto& r_skin_node_slave = *pGetProjectionNode();
+    // const auto& r_surrogate_geometry_slave = *r_skin_node_slave.GetValue(NEIGHBOUR_GEOMETRIES)[0];
+
+    // for (unsigned int i = 0; i < r_surrogate_geometry_slave.size(); i++) {
+    //     std::ofstream outputFile("txt_files/Id_active_control_points_condition.txt", std::ios::app);
+    //     outputFile << r_surrogate_geometry_slave[i].GetId() << "  " << r_surrogate_geometry_slave[i].GetDof(DISPLACEMENT_X).EquationId() <<"\n";
+    //     outputFile.close();
+    // }
 }
 
 void GapSbmContactCondition::InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
 {
+    mSideIdentifier = GetValue(IDENTIFIER);
     // FIXME: simply remove
     if (mSideIdentifier == "SLAVE" || mSideIdentifier == "INACTIVE") {
         return;
@@ -792,9 +1068,6 @@ void GapSbmContactCondition::InitializeNonLinearIteration(const ProcessInfo& rCu
     ConstitutiveVariables constitutive_variables_slave(mpConstitutiveLaw->GetStrainSize());
     ApplyConstitutiveLaw(dim * number_of_nodes_slave, strain_vector_slave, values_slave, constitutive_variables_slave);
     this->SetValue(STRESS_SLAVE, values_slave.GetStressVector());
-
-    this->SetValue(NORMAL_SKIN_MASTER, mNormalPhysicalSpaceMaster);
-    this->SetValue(NORMAL_SKIN_SLAVE, mNormalPhysicalSpaceSlave);
 
     SetGap();
 }

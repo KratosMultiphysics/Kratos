@@ -947,6 +947,8 @@ void MultipatchModeler::ProcessRefPatch(
 
         // KRATOS_WATCH(patch_analysis)
         // exit(0);
+        // patch_analysis.AddEmptyValue("echo_level");
+        // patch_analysis["echo_level"].SetInt(4);
 
         IgaModelerSbm iga_modeler(*mpModel, patch_analysis);
         iga_modeler.SetupModelPart();

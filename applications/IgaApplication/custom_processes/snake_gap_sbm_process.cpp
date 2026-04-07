@@ -1002,7 +1002,6 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries(
             process_pair(projection_pair.pFirst, projection_pair.pSecond);
         }
     }
-
     //---------------------------------------------------------------------------
     bool is_entering = false;
     for (IndexType i_cond_id = first_condition_id; i_cond_id <= last_condition_id; ++i_cond_id)
@@ -1410,78 +1409,78 @@ void SnakeGapSbmProcess::CreateGapAndSkinQuadraturePoints(
             
             interpolation_projection_ids.erase(new_end, interpolation_projection_ids.end());
 
-            const IndexType first_id = rSkinSubModelPart.NodesBegin()->Id();
-            const IndexType last_id  = first_id + rSkinSubModelPart.NumberOfNodes() - 1;
+            // const IndexType first_id = rSkinSubModelPart.NodesBegin()->Id();
+            // const IndexType last_id  = first_id + rSkinSubModelPart.NumberOfNodes() - 1;
 
-            auto next_id = [&](IndexType id){ return (id < last_id) ? (id + 1) : first_id; };
-            auto previous_id = [&](IndexType id){ return (id > first_id) ? (id - 1) : last_id; };
+            // auto next_id = [&](IndexType id){ return (id < last_id) ? (id + 1) : first_id; };
+            // auto previous_id = [&](IndexType id){ return (id > first_id) ? (id - 1) : last_id; };
 
-            auto advance_to_next_skin_id = [&](IndexType current_id) {
-                if constexpr (TIsInnerLoop) {
-                    return previous_id(current_id);
-                } else {
-                    return next_id(current_id);
-                }
-            };
+            // auto advance_to_next_skin_id = [&](IndexType current_id) {
+            //     if constexpr (TIsInnerLoop) {
+            //         return previous_id(current_id);
+            //     } else {
+            //         return next_id(current_id);
+            //     }
+            // };
 
-            std::vector<IndexType> skin_segment_ids;
-            skin_segment_ids.reserve(rSkinSubModelPart.NumberOfNodes());
-            IndexType current_id = left_id;
-            ModelPart::SizeType iter = 0;
-            const ModelPart::SizeType max_iterations = rSkinSubModelPart.NumberOfNodes();
-            skin_segment_ids.push_back(current_id);
-            while (current_id != right_id) {
-                current_id = advance_to_next_skin_id(current_id);
-                skin_segment_ids.push_back(current_id);
-                ++iter;
-                KRATOS_ERROR_IF(iter > max_iterations)
-                    << "::[SnakeGapSbmProcess]:: interpolation segment loop between node IDs "
-                    << left_id << " and " << right_id
-                    << " exceeded the number of skin nodes (" << max_iterations << ").\n";
-            }
+            // std::vector<IndexType> skin_segment_ids;
+            // skin_segment_ids.reserve(rSkinSubModelPart.NumberOfNodes());
+            // IndexType current_id = left_id;
+            // ModelPart::SizeType iter = 0;
+            // const ModelPart::SizeType max_iterations = rSkinSubModelPart.NumberOfNodes();
+            // skin_segment_ids.push_back(current_id);
+            // while (current_id != right_id) {
+            //     current_id = advance_to_next_skin_id(current_id);
+            //     skin_segment_ids.push_back(current_id);
+            //     ++iter;
+            //     KRATOS_ERROR_IF(iter > max_iterations)
+            //         << "::[SnakeGapSbmProcess]:: interpolation segment loop between node IDs "
+            //         << left_id << " and " << right_id
+            //         << " exceeded the number of skin nodes (" << max_iterations << ").\n";
+            // }
 
-            std::unordered_map<IndexType, std::size_t> skin_order;
-            skin_order.reserve(skin_segment_ids.size());
-            for (std::size_t idx = 0; idx < skin_segment_ids.size(); ++idx) {
-                skin_order.emplace(skin_segment_ids[idx], idx);
-            }
+            // std::unordered_map<IndexType, std::size_t> skin_order;
+            // skin_order.reserve(skin_segment_ids.size());
+            // for (std::size_t idx = 0; idx < skin_segment_ids.size(); ++idx) {
+            //     skin_order.emplace(skin_segment_ids[idx], idx);
+            // }
 
-            std::vector<IndexType> filtered_projection_ids;
-            filtered_projection_ids.reserve(interpolation_projection_ids.size() + 2);
-            std::size_t filtered_out_count = 0;
-            for (const auto projection_id : interpolation_projection_ids) {
-                if (skin_order.find(projection_id) != skin_order.end()) {
-                    filtered_projection_ids.push_back(projection_id);
-                } else {
-                    ++filtered_out_count;
-                }
-            }
-            if (std::find(filtered_projection_ids.begin(), filtered_projection_ids.end(), left_id) == filtered_projection_ids.end()) {
-                filtered_projection_ids.push_back(left_id);
-            }
-            if (std::find(filtered_projection_ids.begin(), filtered_projection_ids.end(), right_id) == filtered_projection_ids.end()) {
-                filtered_projection_ids.push_back(right_id);
-            }
+            // std::vector<IndexType> filtered_projection_ids;
+            // filtered_projection_ids.reserve(interpolation_projection_ids.size() + 2);
+            // std::size_t filtered_out_count = 0;
+            // for (const auto projection_id : interpolation_projection_ids) {
+            //     if (skin_order.find(projection_id) != skin_order.end()) {
+            //         filtered_projection_ids.push_back(projection_id);
+            //     } else {
+            //         ++filtered_out_count;
+            //     }
+            // }
+            // if (std::find(filtered_projection_ids.begin(), filtered_projection_ids.end(), left_id) == filtered_projection_ids.end()) {
+            //     filtered_projection_ids.push_back(left_id);
+            // }
+            // if (std::find(filtered_projection_ids.begin(), filtered_projection_ids.end(), right_id) == filtered_projection_ids.end()) {
+            //     filtered_projection_ids.push_back(right_id);
+            // }
 
-            std::stable_sort(
-                filtered_projection_ids.begin(),
-                filtered_projection_ids.end(),
-                [&](IndexType a, IndexType b) {
-                    return skin_order[a] < skin_order[b];
-                });
+            // std::stable_sort(
+            //     filtered_projection_ids.begin(),
+            //     filtered_projection_ids.end(),
+            //     [&](IndexType a, IndexType b) {
+            //         return skin_order[a] < skin_order[b];
+            //     });
 
-            filtered_projection_ids.erase(
-                std::unique(filtered_projection_ids.begin(), filtered_projection_ids.end()),
-                filtered_projection_ids.end());
+            // filtered_projection_ids.erase(
+            //     std::unique(filtered_projection_ids.begin(), filtered_projection_ids.end()),
+            //     filtered_projection_ids.end());
 
-            if (filtered_out_count > 0) {
-                KRATOS_WARNING("SnakeGapSbmProcess")
-                    << "Removed " << filtered_out_count
-                    << " interpolation nodes outside the skin segment between "
-                    << left_id << " and " << right_id << "." << std::endl;
-            }
+            // if (filtered_out_count > 0) {
+            //     KRATOS_WARNING("SnakeGapSbmProcess")
+            //         << "Removed " << filtered_out_count
+            //         << " interpolation nodes outside the skin segment between "
+            //         << left_id << " and " << right_id << "." << std::endl;
+            // }
 
-            interpolation_projection_ids = std::move(filtered_projection_ids);
+            // interpolation_projection_ids = std::move(filtered_projection_ids);
 
             segment_count = interpolation_projection_ids.size();
             rInterpolationNodes.reserve(segment_count);
@@ -2140,9 +2139,6 @@ void SnakeGapSbmProcess::CreateConditions(
     KRATOS_INFO_IF("CreateConditions", mEchoLevel > 2)
         << "Creating conditions of type " << rConditionName
         << " in " << rModelPart.Name() << "-SubModelPart." << std::endl;
-
-    KRATOS_ERROR_IF(CharacteristicLength <= 0.0)
-    << "Characteristic length for gap conditions must be positive." << std::endl;
 
     IndexType geometry_count = 0;
     array_1d<double,3> characteristic_length_vector = ZeroVector(3);
@@ -2995,34 +2991,6 @@ IndexType SnakeGapSbmProcess::FindClosestNodeInLayerWithDirection(
         return index;
     };
 
-    IndexType best_node_id = std::numeric_limits<IndexType>::max();
-    double best_intersection_distance = std::numeric_limits<double>::max();
-    double best_intersection_node_distance = std::numeric_limits<double>::max();
-
-    auto update_candidate = [&](Node::Pointer p_candidate_node, const CoordinatesArrayType& rIntersectionPoint){
-        const auto& candidate_layers = p_candidate_node->GetValue(CONNECTED_LAYERS);
-        if (std::find(candidate_layers.begin(), candidate_layers.end(), rLayer) == candidate_layers.end()) {
-            return;
-        }
-        array_1d<double,3> diff_intersection = rIntersectionPoint;
-        diff_intersection -= rStartPoint;
-        const double distance_intersection = norm_2(diff_intersection);
-
-        if (distance_intersection <= best_intersection_distance) {
-            best_intersection_distance = distance_intersection;
-
-            array_1d<double,3> diff_intersection_node = p_candidate_node->Coordinates();
-            diff_intersection_node -= rIntersectionPoint;
-            const double distance_intersection_node = norm_2(diff_intersection_node);
-            if (distance_intersection_node < best_intersection_node_distance)
-            {
-                best_intersection_node_distance = distance_intersection_node;
-                best_node_id = p_candidate_node->Id();
-            }
-            
-        }
-    };
-
     const std::size_t number_spans_x = rSkinConditionsPerSpan.NumberOfSpansX;
     const std::size_t number_spans_y = rSkinConditionsPerSpan.NumberOfSpansY;
     const std::size_t base_ix = compute_index(rStartPoint[0], min_u, max_u, span_size_x, number_spans_x);
@@ -3031,79 +2999,115 @@ IndexType SnakeGapSbmProcess::FindClosestNodeInLayerWithDirection(
     const int max_search_level = static_cast<int>(std::max(number_spans_x, number_spans_y));
 
     ConditionPointerContainerType candidate_conditions;
-    candidate_conditions.reserve(32);
+    candidate_conditions.reserve(2000);
+    auto search_with_direction = [&](const array_1d<double,3>& rSearchDirection) -> IndexType {
+        IndexType best_node_id = std::numeric_limits<IndexType>::max();
+        double best_intersection_distance = std::numeric_limits<double>::max();
+        double best_intersection_node_distance = std::numeric_limits<double>::max();
 
-    bool found_intersection = false;
-    for (int level = 0; level < max_search_level && !found_intersection; ++level) {
+        auto update_candidate = [&](Node::Pointer p_candidate_node, const CoordinatesArrayType& rIntersectionPoint){
+            const auto& candidate_layers = p_candidate_node->GetValue(CONNECTED_LAYERS);
+            if (std::find(candidate_layers.begin(), candidate_layers.end(), rLayer) == candidate_layers.end()) {
+                return;
+            }
+            array_1d<double,3> diff_intersection = rIntersectionPoint;
+            diff_intersection -= rStartPoint;
+            const double distance_intersection = norm_2(diff_intersection);
 
-        const std::size_t extension = static_cast<std::size_t>(level+1);
-        const double current_length = reference_span_size * static_cast<double>(extension);
+            if (distance_intersection <= best_intersection_distance) {
+                best_intersection_distance = distance_intersection;
 
-        array_1d<double,3> segment_start = rStartPoint - direction * reference_span_size/2;
-        array_1d<double,3> segment_end = rStartPoint;
-        segment_end += direction * current_length;
+                array_1d<double,3> diff_intersection_node = p_candidate_node->Coordinates();
+                diff_intersection_node -= rIntersectionPoint;
+                const double distance_intersection_node = norm_2(diff_intersection_node);
+                if (distance_intersection_node < best_intersection_node_distance)
+                {
+                    best_intersection_node_distance = distance_intersection_node;
+                    best_node_id = p_candidate_node->Id();
+                }
+            }
+        };
 
-        const std::size_t min_ix = (base_ix > extension) ? base_ix - extension : 0;
-        const std::size_t max_ix = std::min<std::size_t>(base_ix + extension, number_spans_x > 0 ? number_spans_x - 1 : 0);
-        const std::size_t min_iy = (base_iy > extension) ? base_iy - extension : 0;
-        const std::size_t max_iy = std::min<std::size_t>(base_iy + extension, number_spans_y > 0 ? number_spans_y - 1 : 0);
+        bool found_intersection = false;
+        for (int level = 0; level < max_search_level && !found_intersection; ++level) {
+            const std::size_t extension = static_cast<std::size_t>(level+1);
+            const double current_length = reference_span_size * static_cast<double>(extension);
 
-        candidate_conditions.clear();
+            array_1d<double,3> segment_start = rStartPoint - rSearchDirection * reference_span_size/2;
+            array_1d<double,3> segment_end = rStartPoint;
+            segment_end += rSearchDirection * current_length;
 
-        Node::Pointer start_node = Node::Pointer(new Node(0, segment_start[0], segment_start[1], segment_start[2]));
-        Node::Pointer end_node   = Node::Pointer(new Node(0, segment_end[0],   segment_end[1],   segment_end[2]));
+            const std::size_t min_ix = (base_ix > extension) ? base_ix - extension : 0;
+            const std::size_t max_ix = std::min<std::size_t>(base_ix + extension, number_spans_x > 0 ? number_spans_x - 1 : 0);
+            const std::size_t min_iy = (base_iy > extension) ? base_iy - extension : 0;
+            const std::size_t max_iy = std::min<std::size_t>(base_iy + extension, number_spans_y > 0 ? number_spans_y - 1 : 0);
 
-        Condition::NodesArrayType ray_nodes;
-        ray_nodes.reserve(2);
-        ray_nodes.push_back(start_node);
-        ray_nodes.push_back(end_node);
-        ConditionPointerType p_ray_condition(new Condition(0, ray_nodes));
+            candidate_conditions.clear();
+
+            Node::Pointer start_node = Node::Pointer(new Node(0, segment_start[0], segment_start[1], segment_start[2]));
+            Node::Pointer end_node   = Node::Pointer(new Node(0, segment_end[0],   segment_end[1],   segment_end[2]));
+
+            Condition::NodesArrayType ray_nodes;
+            ray_nodes.reserve(2);
+            ray_nodes.push_back(start_node);
+            ray_nodes.push_back(end_node);
+            ConditionPointerType p_ray_condition(new Condition(0, ray_nodes));
 
             for (std::size_t ix = min_ix; ix <= max_ix; ++ix) {
                 if (ix >= rSkinConditionsPerSpan.NumberOfSpansX) continue;
                 for (std::size_t iy = min_iy; iy <= max_iy; ++iy) {
                     if (iy >= rSkinConditionsPerSpan.NumberOfSpansY) continue;
-
-                const std::size_t k = FindNnzIndex(rSkinConditionsPerSpan.Occupancy, ix, iy);
-                if (k == static_cast<std::size_t>(-1)) continue;
-                if (k >= rSkinConditionsPerSpan.CellBinsByNnz.size()) continue;
-                const auto& r_cell_bins = rSkinConditionsPerSpan.CellBinsByNnz[k];
-                if (!r_cell_bins.HasBins) continue;
+                    const std::size_t k = FindNnzIndex(rSkinConditionsPerSpan.Occupancy, ix, iy);
+                    if (k == static_cast<std::size_t>(-1)) continue;
+                    if (k >= rSkinConditionsPerSpan.CellBinsByNnz.size()) continue;
+                    const auto& r_cell_bins = rSkinConditionsPerSpan.CellBinsByNnz[k];
+                    if (!r_cell_bins.HasBins) continue;
                     auto& r_bins = const_cast<BinsObjectDynamic<ConditionConfigure>&>(r_cell_bins.Bins);
                     r_bins.SearchObjects(p_ray_condition, candidate_conditions);
                 }
             }
 
-
-        if (candidate_conditions.empty()) {
-            continue;
-        }
-
-        // Example: framework factory
-        for (const auto& p_condition : candidate_conditions) {
-            const auto p_geometry = p_condition->pGetGeometry();
-            if (p_geometry->size() < 2) {
+            if (candidate_conditions.empty()) {
                 continue;
             }
 
-            const auto& node_a = p_geometry->pGetPoint(0);
-            const auto& node_b = p_geometry->pGetPoint(1);
+            for (const auto& p_condition : candidate_conditions) {
+                const auto p_geometry = p_condition->pGetGeometry();
+                if (p_geometry->size() < 2) {
+                    continue;
+                }
 
-            CoordinatesArrayType intersection_point;
-        
-            const bool intersects = SegmentsIntersect(start_node, end_node, node_a, node_b, intersection_point);
+                const auto& node_a = p_geometry->pGetPoint(0);
+                const auto& node_b = p_geometry->pGetPoint(1);
 
-            if (intersects) {
-                best_intersection_node_distance = std::numeric_limits<double>::max();
-                update_candidate(node_a, intersection_point);
-                update_candidate(node_b, intersection_point);
-                found_intersection = true;
+                CoordinatesArrayType intersection_point;
+                const bool intersects = SegmentsIntersect(start_node, end_node, node_a, node_b, intersection_point);
+
+                if (intersects) {
+                    best_intersection_node_distance = std::numeric_limits<double>::max();
+                    update_candidate(node_a, intersection_point);
+                    update_candidate(node_b, intersection_point);
+                    found_intersection = true;
+                }
+            }
+
+            if (best_node_id != std::numeric_limits<IndexType>::max()) {
+                return best_node_id;
             }
         }
 
-        if (best_node_id != std::numeric_limits<IndexType>::max()) {
-            return best_node_id;
-        }
+        return best_node_id;
+    };
+
+    IndexType best_node_id = search_with_direction(direction);
+    if (best_node_id != std::numeric_limits<IndexType>::max()) {
+        return best_node_id;
+    }
+
+    const array_1d<double,3> opposite_direction = -direction;
+    best_node_id = search_with_direction(opposite_direction);
+    if (best_node_id != std::numeric_limits<IndexType>::max()) {
+        return best_node_id;
     }
 
     KRATOS_ERROR << "::[SnakeGapSbmProcess]::FindClosestNodeInLayerWithDirection: no node found for layer "
@@ -3210,15 +3214,35 @@ std::pair<SnakeGapSbmProcess::IndexType, SnakeGapSbmProcess::IndexType> SnakeGap
     candidate_conditions.reserve(32);
 
     auto search_with_direction = [&](const array_1d<double,3>& rSearchDirection) {
+        const double window_length = reference_span_size;
+        const double step_length = 0.5 * window_length;
+        const double probe_radius = 0.5 * step_length;
+
+        Node::Pointer probe_node_1 = Node::Pointer(new Node(0, 0.0, 0.0, 0.0));
+        Node::Pointer probe_node_2 = Node::Pointer(new Node(0, 0.0, 0.0, 0.0));
+        Condition::NodesArrayType probe_nodes;
+        probe_nodes.reserve(2);
+        probe_nodes.push_back(probe_node_1);
+        probe_nodes.push_back(probe_node_2);
+        ConditionPointerType p_probe_condition(new Condition(0, probe_nodes));
+
+        ConditionPointerContainerType cell_results;
+        cell_results.reserve(64);
+
         bool found_intersection = false;
         for (int level = 0; level < max_search_level && !found_intersection; ++level) {
             const std::size_t extension = static_cast<std::size_t>(level+1);
             const double current_length = reference_span_size * static_cast<double>(extension);
 
-            // Cast a forward segment (ray-like) starting at rStartPoint along rSearchDirection
-            array_1d<double,3> segment_start = rStartPoint - rSearchDirection * reference_span_size/2;
-            array_1d<double,3> segment_end = rStartPoint;
-            segment_end += rSearchDirection * current_length;
+            const double window_end = current_length;
+            double window_start = current_length - window_length;
+            if (level == 0) {
+                window_start = -0.5 * window_length;
+            }
+
+            // Short segment window along the ray direction
+            array_1d<double,3> segment_start = rStartPoint + rSearchDirection * window_start;
+            array_1d<double,3> segment_end = rStartPoint + rSearchDirection * window_end;
 
             const std::size_t min_ix = (base_ix > extension) ? base_ix - extension : 0;
             const std::size_t max_ix = std::min<std::size_t>(base_ix + extension, number_spans_x > 0 ? number_spans_x - 1 : 0);
@@ -3230,32 +3254,48 @@ std::pair<SnakeGapSbmProcess::IndexType, SnakeGapSbmProcess::IndexType> SnakeGap
             Node::Pointer start_node = Node::Pointer(new Node(0, segment_start[0], segment_start[1], segment_start[2]));
             Node::Pointer end_node   = Node::Pointer(new Node(0, segment_end[0],   segment_end[1],   segment_end[2]));
 
-            Condition::NodesArrayType ray_nodes;
-            ray_nodes.reserve(2);
-            ray_nodes.push_back(start_node);
-            ray_nodes.push_back(end_node);
-            ConditionPointerType p_ray_condition(new Condition(0, ray_nodes));
+            const double window_span = window_end - window_start;
+            const int num_steps = (window_span > 0.0) ? static_cast<int>(std::ceil(window_span / step_length)) : 0;
+            for (int step = 0; step <= num_steps; ++step) {
+                double offset = window_start + step_length * static_cast<double>(step);
+                if (offset > window_end) {
+                    offset = window_end;
+                }
+                const array_1d<double,3> probe_point = rStartPoint + rSearchDirection * offset;
+                probe_node_1->X() = probe_point[0];
+                probe_node_1->Y() = probe_point[1];
+                probe_node_1->Z() = probe_point[2];
+                probe_node_2->X() = probe_point[0];
+                probe_node_2->Y() = probe_point[1];
+                probe_node_2->Z() = probe_point[2];
 
-            for (std::size_t ix = min_ix; ix <= max_ix; ++ix) {
-                if (ix >= rSkinConditionsPerSpan.NumberOfSpansX) continue;
-                for (std::size_t iy = min_iy; iy <= max_iy; ++iy) {
-                    if (iy >= rSkinConditionsPerSpan.NumberOfSpansY) continue;
+                for (std::size_t ix = min_ix; ix <= max_ix; ++ix) {
+                    if (ix >= rSkinConditionsPerSpan.NumberOfSpansX) continue;
+                    for (std::size_t iy = min_iy; iy <= max_iy; ++iy) {
+                        if (iy >= rSkinConditionsPerSpan.NumberOfSpansY) continue;
+                        const std::size_t k = FindNnzIndex(rSkinConditionsPerSpan.Occupancy, ix, iy);
+                        if (k == static_cast<std::size_t>(-1)) continue;
+                        if (k >= rSkinConditionsPerSpan.CellBinsByNnz.size()) continue;
+                        const auto& r_cell_bins = rSkinConditionsPerSpan.CellBinsByNnz[k];
+                        if (!r_cell_bins.HasBins) continue;
+                        auto& r_bins = const_cast<BinsObjectDynamic<ConditionConfigure>&>(r_cell_bins.Bins);
 
-                    const std::size_t k = FindNnzIndex(rSkinConditionsPerSpan.Occupancy, ix, iy);
-                    if (k == static_cast<std::size_t>(-1)) continue;
-                    if (k >= rSkinConditionsPerSpan.CellBinsByNnz.size()) continue;
-                    const auto& r_cell_bins = rSkinConditionsPerSpan.CellBinsByNnz[k];
-                    if (!r_cell_bins.HasBins) continue;
-                auto& r_bins = const_cast<BinsObjectDynamic<ConditionConfigure>&>(r_cell_bins.Bins);
-                r_bins.SearchObjects(p_ray_condition, candidate_conditions);
+                        const std::size_t max_results = r_cell_bins.Conditions.size();
+                        if (max_results == 0) continue;
+                        if (cell_results.size() < max_results) {
+                            cell_results.resize(max_results);
+                        }
+                        auto result_it = cell_results.begin();
+                        const auto n_found = r_bins.SearchObjectsInRadius(p_probe_condition, probe_radius, result_it, max_results);
+                        candidate_conditions.insert(candidate_conditions.end(), cell_results.begin(), cell_results.begin() + n_found);
+                    }
+                }
             }
-        }
 
             if (candidate_conditions.empty()) {
                 continue;
             }
 
-            // Example: framework factory
             for (const auto& p_condition : candidate_conditions) {
                 const auto p_geometry = p_condition->pGetGeometry();
                 if (p_geometry->size() < 2) {

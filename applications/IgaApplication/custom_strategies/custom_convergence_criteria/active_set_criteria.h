@@ -310,10 +310,10 @@ public:
 
             // if (toll_gap > 0) return true; //FIXME:
 
-            int n_CP = (r_contact_sub_model_part.Conditions().begin())->GetGeometry().GetGeometryPart(0).size();
-            int p = (int) sqrt(n_CP);
+            // int n_CP = (r_contact_sub_model_part.Conditions().begin())->GetGeometry().GetGeometryPart(0).size();
+            // int p = (int) sqrt(n_CP);
 
-            int n_GP_per_segment = 2*p+1;
+            // int n_GP_per_segment = 2*p+1;
             
             // int n_cond = contact_sub_model_part.Conditions().size(); 
 
@@ -322,18 +322,31 @@ public:
 
             for (auto i_cond(r_contact_sub_model_part.Conditions().begin()); i_cond != r_contact_sub_model_part.Conditions().end(); ++i_cond)
             {
+                if (i_cond->GetValue(IDENTIFIER) == "INACTIVE") {
+                    continue;
+                }
                 
                 // double normal_gap = i_cond->GetValue(NORMAL_GAP);
-                Vector normal_stress_slave = i_cond->GetValue(STRESS_SLAVE);
-                Vector normal_slave = i_cond->GetValue(NORMAL_SKIN_SLAVE);
-                Vector normal_stress_master = i_cond->GetValue(STRESS_MASTER);
-                Vector normal_master = i_cond->GetValue(NORMAL_SKIN_MASTER);
+                if (!i_cond->Has(STRESS_SLAVE) || !i_cond->Has(STRESS_MASTER) ||
+                    !i_cond->Has(NORMAL_SKIN_SLAVE) || !i_cond->Has(NORMAL_SKIN_MASTER) ||
+                    !i_cond->Has(GAP)) {
+                    continue;
+                }
 
-                Vector gap = i_cond->GetValue(GAP);
+                const Vector& normal_stress_slave = i_cond->GetValue(STRESS_SLAVE);
+                const Vector& normal_slave = i_cond->GetValue(NORMAL_SKIN_SLAVE);
+                const Vector& normal_stress_master = i_cond->GetValue(STRESS_MASTER);
+                const Vector& normal_master = i_cond->GetValue(NORMAL_SKIN_MASTER);
+                const Vector& gap = i_cond->GetValue(GAP);
+
+                if (normal_slave.size() < 2 || normal_master.size() < 2 || gap.size() < 2 ||
+                    normal_stress_slave.size() < 3 || normal_stress_master.size() < 3) {
+                    continue;
+                }
                 double normal_gap_master = -inner_prod(gap, normal_master);
                 double normal_gap_slave = inner_prod(gap, normal_slave);
 
-                Vector penalty_master_slave = i_cond->GetValue(PENALTY);
+                // Vector penalty_master_slave = i_cond->GetValue(PENALTY);
 
                 double sigma_nn_master = (normal_stress_master[0]* normal_master[0] + normal_stress_master[2]* normal_master[1])*normal_master[0] +
                                          (normal_stress_master[2]* normal_master[0] + normal_stress_master[1]* normal_master[1])*normal_master[1];
@@ -343,11 +356,11 @@ public:
                                         (normal_stress_slave[2]* normal_slave[0] + normal_stress_slave[1]* normal_slave[1])*normal_slave[1];
 
 
-                double young_modulus_master = i_cond->GetValue(YOUNG_MODULUS_MASTER); 
-                double young_modulus_slave = i_cond->GetValue(YOUNG_MODULUS_SLAVE); 
+                double young_modulus_master = 2.1e5; //i_cond->GetValue(YOUNG_MODULUS_MASTER); 
+                double young_modulus_slave  = 2.1e5; //i_cond->GetValue(YOUNG_MODULUS_SLAVE); 
 
-                const double penalty = 2e5;
-                double check_value_master = normal_gap_master; //*penalty - sigma_nn_master;///young_modulus_master;
+                const double penalty = 0; //FIXME:
+                double check_value_master = normal_gap_master;//*penalty - sigma_nn_master;///young_modulus_master;
                 double check_value_slave = normal_gap_slave; //*penalty - sigma_nn_slave;///young_modulus_slave;
 
                 double tangent_gap_master = norm_2(gap + normal_master*normal_gap_master);
@@ -422,8 +435,8 @@ public:
                 //     continue;
                 // }
                 // // // FIXME:
-                // if (std::abs(i_cond->GetGeometry().GetGeometryPart(0).Center().X()) <= 0.4305620486218446) //47165709287164087
-                // // if (i_cond->GetValue(SKIN_MASTER_COORDINATES)[0] < 0.27085)
+                // if (std::abs(i_cond->GetGeometry().Center().X()) <= 0.4305620486218446) //47165709287164087
+                // if (std::abs(i_cond->GetGeometry().Center().X()) < 0.27085)
                 // {
                 //     if (i_cond->GetValue(ACTIVATION_LEVEL) != 3)
                 //     {
@@ -431,12 +444,10 @@ public:
                 //         n_changes++;
                 //     }
                 //     n_active ++;
-
-                //     KRATOS_WATCH(check_value_master)
                 // }
                 // else
-                // // if (std::abs(i_cond->GetGeometry().GetGeometryPart(0).Center().X()) > 0.4305620486218446)
-                // // if (i_cond->GetValue(SKIN_MASTER_COORDINATES)[0] > 0.27085)
+                // // if (std::abs(i_cond->GetGeometry().Center().X()) > 0.4305620486218446)
+                // // if (std::abs(i_cond->GetGeometry().GetGeometryPart(0).Center().X()) > 0.27085)
                 // {
                 //     if (i_cond->GetValue(ACTIVATION_LEVEL) != 0)
                 //     {
@@ -458,18 +469,22 @@ public:
                             n_changes++;
                         }
                     }
-                    else if (sigma_nn_slave/young_modulus_slave > 0)  // ONLY MASTER ACTIVE
-                    {
-                        if (i_cond->GetValue(ACTIVATION_LEVEL) != 1)
-                        {
-                            i_cond->SetValue(ACTIVATION_LEVEL, 1);
-                            n_changes++;
-                        }
-                    }
+                    // else if (sigma_nn_slave/young_modulus_slave > 0)  // ONLY MASTER ACTIVE
+                    // {
+                    //     if (i_cond->GetValue(ACTIVATION_LEVEL) != 1)
+                    //     {
+                    //         i_cond->SetValue(ACTIVATION_LEVEL, 1);
+                    //         n_changes++;
+                    //     }
+                    // }
                 } 
                 else if (sigma_nn_master/young_modulus_master > 0)
                 // else if (normal_gap_master*2E5 < -1e-1)
-                {
+                {   
+                    // KRATOS_WATCH(check_value_master)
+                    // KRATOS_WATCH(sigma_nn_master)
+                    // KRATOS_WATCH("esce")
+                    // exit(0);
                     // if (check_value_slave >= toll_gap && tangent_gap_slave < toll_tangent_distance) //ONLY SLAVE ACTIVE
                     // {
                     //     if (i_cond->GetValue(ACTIVATION_LEVEL) != 2)

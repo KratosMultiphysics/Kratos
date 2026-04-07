@@ -186,35 +186,82 @@ void GapSbmSolidCondition::CalculateLeftHandSide(
 
     // ASSEMBLE
     //-----------------------------------------------------
-    for (IndexType i = 0; i < number_of_control_points; i++) {
-        for (IndexType j = 0; j < number_of_control_points; j++) {
-            
-            for (IndexType idim = 0; idim < 2; idim++) {
-                const int id1 = 2*idim;
-                const int iglob = 2*i+idim;
+    if (this->Has(DIRECTION)){
+        // ASSIGN BC BY DIRECTION
+        //--------------------------------------------------------------------------------------------
+        Vector direction = this->GetValue(DIRECTION);
 
-                // PENALTY TERM
-                rLeftHandSideMatrix(iglob, 2*j+idim) += N_sum_vec(i)*N_sum_vec(j)* penalty_integration;
+        for (IndexType i = 0; i < number_of_control_points; i++) {
+            for (IndexType j = 0; j < number_of_control_points; j++) {
+                
+                for (IndexType idim = 0; idim < 2; idim++) {
+                    const int iglob = 2*i+idim;
 
-                Vector Cut_sigma_w_n = ZeroVector(3);
-                Cut_sigma_w_n[0] = (DB_sum(0, iglob)* mNormalPhysicalSpace[0] + DB_sum(2, iglob)* mNormalPhysicalSpace[1]);
-                Cut_sigma_w_n[1] = (DB_sum(2, iglob)* mNormalPhysicalSpace[0] + DB_sum(1, iglob)* mNormalPhysicalSpace[1]);
+                    for (IndexType jdim = 0; jdim < 2; jdim++) {
+                        const int jglob = 2*j+jdim;
+    
+                        // PENALTY TERM
+                        rLeftHandSideMatrix(iglob, jglob) += N_sum_vec(i)*N_sum_vec(j)* penalty_integration * direction[idim] * direction[jdim];
 
-                for (IndexType jdim = 0; jdim < 2; jdim++) {
-                    const int id2 = (id1+2)%3;
-                    const int jglob = 2*j+jdim;
+                        // FLUX 
+                        // [sigma(u) \dot n] \dot n * (-w \dot n)
+                        //*********************************************** */
+                        Vector cut_sigma_u_n = ZeroVector(3);
+                        cut_sigma_u_n[0] = DB_sum(0, jglob)*mNormalPhysicalSpace[0] + DB_sum(2, jglob)*mNormalPhysicalSpace[1];
+                        cut_sigma_u_n[1] = DB_sum(2, jglob)*mNormalPhysicalSpace[0] + DB_sum(1, jglob)*mNormalPhysicalSpace[1];
 
-                    // FLUX 
-                    // [sigma(u) \dot n] \dot n * (-w \dot n)
-                    //*********************************************** */
-                    rLeftHandSideMatrix(iglob, jglob) -= N_sum_vec(i)*(DB_sum(id1, jglob)* mNormalPhysicalSpace[0] + DB_sum(id2, jglob)* mNormalPhysicalSpace[1]) * integration_weight;
+                        double sigma_u_n_dot_direction = inner_prod(cut_sigma_u_n, direction);
 
-                    // // PENALTY FREE g_n = 0
-                    // // [\sigma_1(w) \dot n] \dot n (-u_1 \dot n)
-                    // //*********************************************** */
-                    rLeftHandSideMatrix(iglob, jglob) -= mNitschePenalty*N_sum_vec(j)*Cut_sigma_w_n[jdim] * integration_weight;
+                        rLeftHandSideMatrix(iglob, jglob) -= N_sum_vec(i) * sigma_u_n_dot_direction * direction[idim] * integration_weight;
+
+                        // // PENALTY FREE g_n = 0
+                        // // [\sigma_1(w) \dot n] \dot n (-u_1 \dot n)
+                        // //*********************************************** */
+                        Vector cut_sigma_w_n = ZeroVector(3);
+                        cut_sigma_w_n[0] = (DB_sum(0, iglob)* mNormalPhysicalSpace[0] + DB_sum(2, iglob)* mNormalPhysicalSpace[1]);
+                        cut_sigma_w_n[1] = (DB_sum(2, iglob)* mNormalPhysicalSpace[0] + DB_sum(1, iglob)* mNormalPhysicalSpace[1]);
+
+                        double sigma_w_n_dot_direction = inner_prod(cut_sigma_w_n, direction);
+                        rLeftHandSideMatrix(iglob, jglob) -= mNitschePenalty*N_sum_vec(j) * sigma_w_n_dot_direction * direction[jdim] * integration_weight;
+                    }
+
                 }
+            }
+        }
+    }
+    else {
+    // ASSIGN BC BY COMPONENTS 
+    //--------------------------------------------------------------------------------------------
+        for (IndexType i = 0; i < number_of_control_points; i++) {
+            for (IndexType j = 0; j < number_of_control_points; j++) {
+                
+                for (IndexType idim = 0; idim < 2; idim++) {
+                    const int id1 = 2*idim;
+                    const int iglob = 2*i+idim;
 
+                    // PENALTY TERM
+                    rLeftHandSideMatrix(iglob, 2*j+idim) += N_sum_vec(i)*N_sum_vec(j)* penalty_integration;
+
+                    Vector cut_sigma_w_n = ZeroVector(3);
+                    cut_sigma_w_n[0] = (DB_sum(0, iglob)* mNormalPhysicalSpace[0] + DB_sum(2, iglob)* mNormalPhysicalSpace[1]);
+                    cut_sigma_w_n[1] = (DB_sum(2, iglob)* mNormalPhysicalSpace[0] + DB_sum(1, iglob)* mNormalPhysicalSpace[1]);
+
+                    for (IndexType jdim = 0; jdim < 2; jdim++) {
+                        const int id2 = (id1+2)%3;
+                        const int jglob = 2*j+jdim;
+
+                        // FLUX 
+                        // [sigma(u) \dot n] \dot n * (-w \dot n)
+                        //*********************************************** */
+                        rLeftHandSideMatrix(iglob, jglob) -= N_sum_vec(i)*(DB_sum(id1, jglob)* mNormalPhysicalSpace[0] + DB_sum(id2, jglob)* mNormalPhysicalSpace[1]) * integration_weight;
+
+                        // // PENALTY FREE g_n = 0
+                        // // [\sigma_1(w) \dot n] \dot n (-u_1 \dot n)
+                        // //*********************************************** */
+                        rLeftHandSideMatrix(iglob, jglob) -= mNitschePenalty*N_sum_vec(j)*cut_sigma_w_n[jdim] * integration_weight;
+                    }
+
+                }
             }
         }
     }
@@ -283,33 +330,101 @@ void GapSbmSolidCondition::CalculateRightHandSide(
     //-----------------------------------------------------
     Vector u_D = this->GetValue(DISPLACEMENT);
 
-    for (IndexType i = 0; i < number_of_control_points; i++) {
+    if (this->Has(DIRECTION)){
+        // ASSIGN BC BY DIRECTION
+        //--------------------------------------------------------------------------------------------
+        Vector direction = this->GetValue(DIRECTION);
+        const Vector displacement = this->GetValue(DISPLACEMENT); //already times direction
+        const double displacement_module = inner_prod(displacement, direction);
+
+        const double old_displacement_direction = inner_prod(old_displacement, direction);
             
-        for (IndexType idim = 0; idim < 2; idim++) {
-            const int id1 = 2*idim;
-            const int iglob = 2*i+idim;
+        for (IndexType i = 0; i < number_of_control_points; i++) {
+            for (IndexType idim = 0; idim < 2; idim++) {
+                const int iglob = 2*i+idim;
 
-            // PENALTY TERM
-            rRightHandSideVector[iglob] += N_sum_vec(i)*(u_D - old_displacement)[idim]* penalty_integration;
+                rRightHandSideVector(iglob) += N_sum_vec(i) * direction[idim] * (displacement_module-old_displacement_direction) * penalty_integration;
 
-            Vector Cut_sigma_w_n = ZeroVector(3);
-            Cut_sigma_w_n[0] = (DB_sum(0, iglob)* mNormalPhysicalSpace[0] + DB_sum(2, iglob)* mNormalPhysicalSpace[1]);
-            Cut_sigma_w_n[1] = (DB_sum(2, iglob)* mNormalPhysicalSpace[0] + DB_sum(1, iglob)* mNormalPhysicalSpace[1]);
+                // // PENALTY FREE g_n = 0
+                // // rhs -> [\sigma_1(w) \dot n] \dot n (-g_{n,0})
+                // //*********************************************** */
+                Vector cut_sigma_w_n = ZeroVector(3);
+                cut_sigma_w_n[0] = (DB_sum(0, iglob)* mNormalPhysicalSpace[0] + DB_sum(2, iglob)* mNormalPhysicalSpace[1]);
+                cut_sigma_w_n[1] = (DB_sum(2, iglob)* mNormalPhysicalSpace[0] + DB_sum(1, iglob)* mNormalPhysicalSpace[1]);
 
-            for (IndexType jdim = 0; jdim < 2; jdim++) {
-                rRightHandSideVector(iglob) -= mNitschePenalty*(u_D[jdim]-old_displacement[jdim])*Cut_sigma_w_n[jdim] * integration_weight;
+                double cut_sigma_w_n_dot_direction = inner_prod(cut_sigma_w_n, direction);
+
+                //PENALTY FREE
+                // [\sigma_1(w) \dot n] \dot n (-u_1 \dot n)
+                rRightHandSideVector(iglob) -= mNitschePenalty*cut_sigma_w_n_dot_direction * integration_weight *(displacement_module - old_displacement_direction);
+
+                // residual terms
+
+                // FLUX
+                Vector old_stress_normal = ZeroVector(3);
+                old_stress_normal[0] = r_stress_vector_on_true[0]*mNormalPhysicalSpace[0] + r_stress_vector_on_true[2]*mNormalPhysicalSpace[1];
+                old_stress_normal[1] = r_stress_vector_on_true[2]*mNormalPhysicalSpace[0] + r_stress_vector_on_true[1]*mNormalPhysicalSpace[1];
+
+                double old_stress_normal_dot_direction = inner_prod(old_stress_normal, direction);
+                rRightHandSideVector(iglob) += N_sum_vec(i) * old_stress_normal_dot_direction * direction[idim] * integration_weight;
             }
-
-            // residual terms
-            // FLUX
-            Vector old_stress_normal = ZeroVector(3);
-            old_stress_normal[0] = r_stress_vector_on_true[0]*mNormalPhysicalSpace[0] + r_stress_vector_on_true[2]*mNormalPhysicalSpace[1];
-            old_stress_normal[1] = r_stress_vector_on_true[2]*mNormalPhysicalSpace[0] + r_stress_vector_on_true[1]*mNormalPhysicalSpace[1];
-
-            rRightHandSideVector(iglob) += N_sum_vec(i) * old_stress_normal[idim] * integration_weight;
-
         }
     }
+    else {
+        // ASSIGN BC BY COMPONENTS 
+            //--------------------------------------------------------------------------------------------
+        for (IndexType i = 0; i < number_of_control_points; i++) {
+                
+            for (IndexType idim = 0; idim < 2; idim++) {
+                const int id1 = 2*idim;
+                const int iglob = 2*i+idim;
+
+                // PENALTY TERM
+                rRightHandSideVector[iglob] += N_sum_vec(i)*(u_D - old_displacement)[idim]* penalty_integration;
+
+                Vector Cut_sigma_w_n = ZeroVector(3);
+                Cut_sigma_w_n[0] = (DB_sum(0, iglob)* mNormalPhysicalSpace[0] + DB_sum(2, iglob)* mNormalPhysicalSpace[1]);
+                Cut_sigma_w_n[1] = (DB_sum(2, iglob)* mNormalPhysicalSpace[0] + DB_sum(1, iglob)* mNormalPhysicalSpace[1]);
+
+                for (IndexType jdim = 0; jdim < 2; jdim++) {
+                    rRightHandSideVector(iglob) -= mNitschePenalty*(u_D[jdim]-old_displacement[jdim])*Cut_sigma_w_n[jdim] * integration_weight;
+                }
+
+                // residual terms
+                // FLUX
+                Vector old_stress_normal = ZeroVector(3);
+                old_stress_normal[0] = r_stress_vector_on_true[0]*mNormalPhysicalSpace[0] + r_stress_vector_on_true[2]*mNormalPhysicalSpace[1];
+                old_stress_normal[1] = r_stress_vector_on_true[2]*mNormalPhysicalSpace[0] + r_stress_vector_on_true[1]*mNormalPhysicalSpace[1];
+
+                rRightHandSideVector(iglob) += N_sum_vec(i) * old_stress_normal[idim] * integration_weight;
+
+            }
+        }
+    }
+
+
+    // // DEBUG PURPOSE ONLY
+    // MatrixType lhs;
+    // CalculateLeftHandSide(lhs, rCurrentProcessInfo);
+
+    // const std::size_t size = lhs.size1();
+    // KRATOS_ERROR_IF(size == 0) << "SolidCouplingCondition::CalculateRightHandSide: The left hand side matrix has zero size." << std::endl;
+
+    // Vector plus_values;
+    // GetSolutionCoefficientVector(plus_values);
+
+    // Vector values(plus_values.size());
+    // for (IndexType i = 0; i < plus_values.size(); ++i) {
+    //     values[i] = plus_values[i];
+    // }
+
+    // if (rRightHandSideVector.size() != size) {
+    //     rRightHandSideVector.resize(size, false);
+    // }
+    // noalias(rRightHandSideVector) = -prod(lhs, values);
+
+    // return;
+
     KRATOS_CATCH("")
 }
 

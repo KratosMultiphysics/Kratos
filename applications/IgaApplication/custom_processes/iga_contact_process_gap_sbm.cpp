@@ -17,7 +17,10 @@
 #include "geometries/brep_curve.h"
 #include "spatial_containers/bins_dynamic.h"
 #include "containers/pointer_vector.h"
+#include "custom_utilities/iga_sbm_utilities.h"
 
+#include <algorithm>
+#include <cmath>
 #include <limits>
 
 namespace Kratos
@@ -126,6 +129,15 @@ namespace Kratos
 
         DynamicBins slave_bins(slave_center_points.begin(), slave_center_points.end());
 
+        const int requested_neighbours = mParameters.Has("numbered_considered_neighbours")
+            ? mParameters["numbered_considered_neighbours"].GetInt()
+            : 1;
+        KRATOS_ERROR_IF(requested_neighbours <= 0) << "::[IgaContactProcessGapSbm]:: "
+            << "\"numbered_considered_neighbours\" must be > 0." << std::endl;
+        const SizeType number_of_considered_neighbours = static_cast<SizeType>(requested_neighbours);
+        const SizeType max_considered_neighbours =
+            std::min(number_of_considered_neighbours, slave_center_points.size());
+
         const Vector master_knot_step_uv = mrMasterModelPart->GetParentModelPart().GetValue(KNOT_SPAN_SIZES);
         const double projection_distance_limit = master_knot_step_uv[0] * 1.0;
         const double projection_distance_fallback = master_knot_step_uv[0] / 2.0;
@@ -137,66 +149,160 @@ namespace Kratos
             next_projection_node_id = (mpContactModelPart->GetRootModelPart().NodesEnd() - 1)->Id() + 1;
         }
 
+        std::vector<std::pair<double, PointType::Pointer>> candidate_points;
+        candidate_points.reserve(slave_center_points.size());
+
         for (auto& r_master_condition : mrMasterModelPart->Conditions()) {
             r_master_condition.SetValue(IDENTIFIER, "INACTIVE");
-            const auto& r_master_center = r_master_condition.GetGeometry().Center();
-            // TODO: use deformed coordinates for the master quadrature point once available.
-            PointType master_query_point(0, r_master_center.X(), r_master_center.Y(), r_master_center.Z());
+            array_1d<double, 3> master_query_coordinates;
 
-            PointerType p_nearest = nullptr;
-            double nearest_distance = std::numeric_limits<double>::max();
-            slave_bins.SearchNearestPoint(master_query_point, p_nearest, nearest_distance);
-            if (!p_nearest) {
-                continue;
-            }
+            auto const center = r_master_condition.GetGeometry().Center();
+            master_query_coordinates[0] = center.X();
+            master_query_coordinates[1] = center.Y();
+            master_query_coordinates[2] = center.Z();
 
-            auto p_slave_geometry = r_slave_contact.pGetGeometry(p_nearest->Id());
-            if (!p_slave_geometry) {
-                continue;
-            }
-
-            auto p_slave_brep_curve = std::dynamic_pointer_cast<BrepCurveType>(p_slave_geometry);
-            KRATOS_ERROR_IF(!p_slave_brep_curve)
-                << "::[IgaContactProcessGapSbm]:: geometry with id " << p_slave_geometry->Id()
-                << " is not a BrepCurve." << std::endl;
-
-            CoordinatesArrayType projection_local = ZeroVector(3);
-            if (const auto p_background_curve = p_slave_brep_curve->pGetGeometryPart(GeometryType::BACKGROUND_GEOMETRY_INDEX)) {
-                std::vector<double> curve_spans;
-                p_background_curve->SpansLocalSpace(curve_spans);
-                if (!curve_spans.empty()) {
-                    projection_local[0] = 0.5 * (curve_spans.front() + curve_spans.back());
-                }
-            }
-
-            const int is_projected = p_slave_brep_curve->ProjectionPointGlobalToLocalSpace(
-                master_query_point.Coordinates(), projection_local);
-            CoordinatesArrayType projection_global = ZeroVector(3);
-            p_slave_brep_curve->GlobalCoordinates(projection_global, projection_local);
+            // IgaSbmUtilities::GetDeformedPosition(r_master_condition, master_query_coordinates);
+            
+            PointType master_query_point(
+                0,
+                master_query_coordinates[0],
+                master_query_coordinates[1],
+                master_query_coordinates[2]);
             const auto& r_master_coords = master_query_point.Coordinates();
-            const double dx = projection_global[0] - r_master_coords[0];
-            const double dy = projection_global[1] - r_master_coords[1];
-            const double dz = projection_global[2] - r_master_coords[2];
-            const double projection_distance_sq = dx*dx + dy*dy + dz*dz;
 
-            if (is_projected == 0) {
-                if (projection_distance_sq >= projection_distance_fallback_sq) {
+            candidate_points.clear();
+            if (max_considered_neighbours == 1) {
+                PointerType p_nearest = nullptr;
+                double nearest_distance = std::numeric_limits<double>::max();
+                slave_bins.SearchNearestPoint(master_query_point, p_nearest, nearest_distance);
+                if (!p_nearest) {
                     continue;
                 }
+                candidate_points.emplace_back(nearest_distance, p_nearest);
             } else {
-                if (projection_distance_sq > projection_distance_limit_sq) {
+                for (const auto& p_slave_center_point : slave_center_points) {
+                    const double dx = p_slave_center_point->X() - r_master_coords[0];
+                    const double dy = p_slave_center_point->Y() - r_master_coords[1];
+                    const double dz = p_slave_center_point->Z() - r_master_coords[2];
+                    candidate_points.emplace_back(dx*dx + dy*dy + dz*dz, p_slave_center_point);
+                }
+
+                if (candidate_points.empty()) {
                     continue;
                 }
+
+                if (max_considered_neighbours < candidate_points.size()) {
+                    auto nth = candidate_points.begin() + max_considered_neighbours;
+                    std::nth_element(
+                        candidate_points.begin(),
+                        nth,
+                        candidate_points.end(),
+                        [](const auto& r_a, const auto& r_b) { return r_a.first < r_b.first; });
+                    candidate_points.resize(max_considered_neighbours);
+                }
+
+                std::sort(
+                    candidate_points.begin(),
+                    candidate_points.end(),
+                    [](const auto& r_a, const auto& r_b) { return r_a.first < r_b.first; });
+            }
+
+            GeometryPointerType p_best_slave_geometry = nullptr;
+            BrepCurveType::Pointer p_best_slave_brep_curve = nullptr;
+            CoordinatesArrayType best_projection_global = ZeroVector(3);
+            CoordinatesArrayType best_projection_local = ZeroVector(3);
+            double best_projection_distance_sq = std::numeric_limits<double>::max();
+
+            for (const auto& r_candidate : candidate_points) {
+                auto p_slave_geometry = r_slave_contact.pGetGeometry(r_candidate.second->Id());
+                if (!p_slave_geometry) {
+                    continue;
+                }
+
+                auto p_slave_brep_curve = std::dynamic_pointer_cast<BrepCurveType>(p_slave_geometry);
+                KRATOS_ERROR_IF(!p_slave_brep_curve)
+                    << "::[IgaContactProcessGapSbm]:: geometry with id " << p_slave_geometry->Id()
+                    << " is not a BrepCurve." << std::endl;
+
+                CoordinatesArrayType projection_local = ZeroVector(3);
+                if (const auto p_background_curve = p_slave_brep_curve->pGetGeometryPart(GeometryType::BACKGROUND_GEOMETRY_INDEX)) {
+                    std::vector<double> curve_spans;
+                    p_background_curve->SpansLocalSpace(curve_spans);
+                    if (!curve_spans.empty()) {
+                        projection_local[0] = 0.5 * (curve_spans.front() + curve_spans.back());
+                    }
+                }
+
+                const int is_projected = p_slave_brep_curve->ProjectionPointGlobalToLocalSpace(
+                    r_master_coords, projection_local);
+                CoordinatesArrayType projection_global = ZeroVector(3);
+                p_slave_brep_curve->GlobalCoordinates(projection_global, projection_local);
+                const double dx = projection_global[0] - r_master_coords[0];
+                const double dy = projection_global[1] - r_master_coords[1];
+                const double dz = projection_global[2] - r_master_coords[2];
+                const double projection_distance_sq = dx*dx + dy*dy + dz*dz;
+
+                // if (is_projected == 0) {
+                //     if (projection_distance_sq >= projection_distance_fallback_sq) {
+                //         continue;
+                //     }
+                // } else {
+                    if (projection_distance_sq > projection_distance_limit_sq) {
+                        continue;
+                    }
+                // }
+
+                if (projection_distance_sq < best_projection_distance_sq) {
+                    best_projection_distance_sq = projection_distance_sq;
+                    best_projection_global = projection_global;
+                    best_projection_local = projection_local;
+                    p_best_slave_geometry = p_slave_geometry;
+                    p_best_slave_brep_curve = p_slave_brep_curve;
+                }
+            }
+
+            if (!p_best_slave_geometry) {
+                continue;
             }
 
             auto p_slave_projection_node = Kratos::make_intrusive<NodeType>(
-                next_projection_node_id++, projection_global[0], projection_global[1], projection_global[2]);
+                next_projection_node_id++,
+                best_projection_global[0],
+                best_projection_global[1],
+                best_projection_global[2]);
+
+            if (p_best_slave_brep_curve) {
+                Matrix jacobian = ZeroMatrix(3, 1);
+                if (const auto p_background_curve =
+                        p_best_slave_brep_curve->pGetGeometryPart(GeometryType::BACKGROUND_GEOMETRY_INDEX)) {
+                    p_background_curve->Jacobian(jacobian, best_projection_local);
+                } else {
+                    p_best_slave_brep_curve->Jacobian(jacobian, best_projection_local);
+                }
+
+                const double tx = jacobian(0, 0);
+                const double ty = jacobian(1, 0);
+                const double t_norm = std::sqrt(tx * tx + ty * ty);
+
+                array_1d<double, 3> normal = ZeroVector(3);
+                if (t_norm > std::numeric_limits<double>::epsilon()) {
+                    normal[0] = ty / t_norm;
+                    normal[1] = -tx / t_norm;
+                } else {
+                    KRATOS_WARNING("IgaContactProcessGapSbm")
+                        << "Zero tangential norm when computing normal at projection local "
+                        << best_projection_local << " on brep geometry id "
+                        << p_best_slave_brep_curve->Id() << std::endl;
+                }
+
+                p_slave_projection_node->SetValue(NORMAL, normal);
+            }
 
             std::vector<Geometry<Node>::Pointer> neighbour_geometries;
-            if (p_slave_geometry->Has(NEIGHBOUR_GEOMETRIES)) {
-                neighbour_geometries = p_slave_geometry->GetValue(NEIGHBOUR_GEOMETRIES);
+            if (p_best_slave_geometry->Has(NEIGHBOUR_GEOMETRIES)) {
+                neighbour_geometries = p_best_slave_geometry->GetValue(NEIGHBOUR_GEOMETRIES);
             }
-            neighbour_geometries.push_back(p_slave_geometry);
+            neighbour_geometries.push_back(p_best_slave_geometry);
             p_slave_projection_node->SetValue(NEIGHBOUR_GEOMETRIES, neighbour_geometries);
 
             r_master_condition.GetGeometry().SetValue(PROJECTION_NODE, p_slave_projection_node);

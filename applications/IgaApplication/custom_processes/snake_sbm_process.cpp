@@ -1524,7 +1524,7 @@ void SnakeSbmProcess::MarkKnotSpansAvailable(
                     }
 
                 // Create 49 "fake" gauss_points to check if the majority are inside or outside
-                const int num_fake_gauss_points = 7;
+                const int num_fake_gauss_points = 10;
                 int number_of_inside_gaussian_points = 0;
                 const double tollerance = rKnotStepUV[0]/1e4; // Tolerance to avoid numerical issues
                 for (IndexType i_GPx = 0; i_GPx < num_fake_gauss_points; i_GPx++){
@@ -2072,7 +2072,7 @@ std::vector<std::vector<int>> SnakeSbmProcess::GenerateOuterSurrogateFromInnerKn
         }
     }
 
-    constexpr int refinement_patch_size = 3;
+    constexpr int refinement_patch_size = 2;
     std::vector<std::vector<int>> outer_knot_spans(row_count, std::vector<int>(column_count, 0));
 
     auto set_one = [&outer_knot_spans](const std::size_t row, const std::size_t column) {
@@ -2179,7 +2179,7 @@ std::vector<std::vector<int>> SnakeSbmProcess::GenerateInnerSurrogateFromOuterKn
         << " cols=" << column_count << std::endl;
     std::vector<std::vector<int>> merged_outer = rOuterKnotSpansAvailable.front();
 
-    constexpr int refinement_patch_size = 1;
+    constexpr int refinement_patch_size = 2; //FIXME:
     std::vector<std::vector<int>> inner_knot_spans(row_count, std::vector<int>(column_count, 0));
 
     auto in_bounds = [row_count, column_count](const int row, const int column) {
