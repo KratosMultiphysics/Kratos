@@ -321,16 +321,9 @@ auto GetGroupsByFamily(
         CheckMEDErrorCode(err, "MEDfamilyInfo");
 
         std::vector<std::string> group_names(num_groups);
-        // split the goup names
+        // split the group names
         for (int i = 0; i < num_groups; i++) {
-            std::string raw_name( c_group_names.data() + i * MED_LNAME_SIZE, MED_LNAME_SIZE);
-            raw_name = StringUtilities::Trim(raw_name, true);
-            // clean the name
-            auto pos = raw_name.find('\0');
-            if (pos != std::string::npos) {
-                raw_name = raw_name.substr(0, pos);
-            }
-            group_names[i] = raw_name;
+            group_names[i] = StringUtilities::Trim(c_group_names.substr(i * MED_LNAME_SIZE, MED_LNAME_SIZE), /*RemoveNullChar=*/true);
         }
 
         groups_by_family[family_number] = std::move(group_names);
@@ -519,7 +512,6 @@ void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
     BuiltinTimer timer;
 
     const bool add_nodes_of_geometries = true; // TODO make this an input parameter
-    const bool preserve_global_numbering_for_nodes = true;
 
     KRATOS_ERROR_IF_NOT(mpFileHandler->IsReadMode()) << "MedModelPartIO needs to be created in read mode to read a ModelPart!" << std::endl;
     KRATOS_ERROR_IF_NOT(rThisModelPart.NumberOfNodes() == 0) << "ModelPart is not empty, it has Nodes!" << std::endl;
@@ -570,25 +562,21 @@ void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
 
     std::vector<med_int> node_ids(num_nodes);
     // get global numbering for nodes, if the file contains them
-    if (preserve_global_numbering_for_nodes) {
-        med_err err = MEDmeshGlobalNumberRd(
-            mpFileHandler->GetFileHandle(),
-            mpFileHandler->GetMeshName(),
-            MED_NO_DT,
-            MED_NO_IT,
-            MED_NODE,
-            MED_NONE,
-            node_ids.data());
-    
-        KRATOS_ERROR_IF(node_ids.empty()) << "MED file does not contain global numbering for nodes." << std::endl;
-    
-        if (err < 0) { // No global numbering = Use MED (1-based)
-            KRATOS_WARNING("MedModelPartIO")
-                << "MED file does not contain global numbering for nodes. "
-                << "Using MED implicit numbering." << std::endl;
-            std::iota(node_ids.begin(), node_ids.end(), 1);
-        }
-    } else {
+    med_err err = MEDmeshGlobalNumberRd(
+        mpFileHandler->GetFileHandle(),
+        mpFileHandler->GetMeshName(),
+        MED_NO_DT,
+        MED_NO_IT,
+        MED_NODE,
+        MED_NONE,
+        node_ids.data());
+
+    KRATOS_ERROR_IF(node_ids.empty()) << "MED file does not contain global numbering for nodes." << std::endl;
+
+    if (err < 0) { // No global numbering = Use MED (1-based)
+        KRATOS_WARNING("MedModelPartIO")
+            << "MED file does not contain global numbering for nodes. "
+            << "Using MED implicit numbering." << std::endl;
         std::iota(node_ids.begin(), node_ids.end(), 1);
     }
     
@@ -798,8 +786,8 @@ void MedModelPartIO::WriteModelPart(const ModelPart& rThisModelPart)
     med_err err = MEDmeshCr(
         mpFileHandler->GetFileHandle(),
         mpFileHandler->GetMeshName(), // TODO use name of ModelPart? See comment above, this is what is displayed in Salome TODO check length!
-        dimension,   // space dimension
-        dimension,   // mesh dimension
+        dimension,  // space dimension
+        dimension,  // mesh dimension
         MED_UNSTRUCTURED_MESH,
         "Kratos med", // description
         "",
