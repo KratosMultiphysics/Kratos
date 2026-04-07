@@ -578,6 +578,7 @@ private:
     std::vector<double> mZCoordinates; /// The vector containing the z-coordinate of the centroid of each layer in the thickness of the shell
     std::vector<double> mEulerAngles; /// The Euler angle of rotation of each layer w.r.t the local axes of the shell
     std::vector<double> mThicknesses; /// The thickness of each layer
+    std::vector<double> mShearReductionFactors = std::vector<double>(2, 1.0); /// The shear reduction factors for the shear components of the constitutive matrix, initialized to 1.0 (no reduction)
 
     ///@}
     ///@name Private Operators

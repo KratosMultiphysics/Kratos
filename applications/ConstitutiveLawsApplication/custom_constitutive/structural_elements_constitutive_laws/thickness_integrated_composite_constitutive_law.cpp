@@ -396,7 +396,6 @@ void ThicknessIntegratedCompositeConstitutiveLaw::CalculateMaterialResponseCauch
     // Previous flags saved
     const bool flag_compute_constitutive_tensor = r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
     const bool flag_compute_stress = r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS);
-    r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
 
     // The generalized strain vector, constant
     const Vector generalized_strain_vector = rValues.GetStrainVector(); // size 8
@@ -426,7 +425,6 @@ void ThicknessIntegratedCompositeConstitutiveLaw::CalculateMaterialResponseCauch
         const double thickness = r_material_properties[THICKNESS];
         const double t_square = thickness * thickness;
         const double stenberg_stabilization = t_square / (t_square + alpha * h_max * h_max);
-        double shear_reduction_factor = 0.0;
 
         double Gyz = 0.0;
         double Gxz = 0.0;
@@ -436,9 +434,6 @@ void ThicknessIntegratedCompositeConstitutiveLaw::CalculateMaterialResponseCauch
         // Rotation and strain-rotation matrices
         BoundedMatrix<double, 2, 2> T;
         BoundedMatrix<double, 3, 3> Tvoigt;
-
-        double thickness_integral_11 = 0.0;
-        double thickness_integral_22 = 0.0;
 
         // We perform the integration through the thickness
         for (IndexType i_layer = 0; i_layer < number_of_laws; ++i_layer) {
@@ -479,85 +474,52 @@ void ThicknessIntegratedCompositeConstitutiveLaw::CalculateMaterialResponseCauch
             // This fills stress and D in local axes of the layer
             mConstitutiveLaws[i_layer]->CalculateMaterialResponseCauchy(rValues);
 
-            // We rotate the stress to the local axes of the shell
-            r_stress_vector = prod(trans(Tvoigt), r_stress_vector);
-            
-            generalized_stress_vector[0] += r_stress_vector[0] * weight; // membrane xx
-            generalized_stress_vector[1] += r_stress_vector[1] * weight; // membrane yy
-            generalized_stress_vector[2] += r_stress_vector[2] * weight; // membrane xy
-            
-            generalized_stress_vector[3] += r_stress_vector[0] * aux_weight; // bending xx
-            generalized_stress_vector[4] += r_stress_vector[1] * aux_weight; // bending yy
-            generalized_stress_vector[5] += r_stress_vector[2] * aux_weight; // bending xy
-            
-            // Elastic behaviour in shear
-            generalized_stress_vector[6] += stenberg_stabilization * Gyz * (generalized_strain_vector[6]) * weight; // shear YZ
-            generalized_stress_vector[7] += stenberg_stabilization * Gxz * (generalized_strain_vector[7]) * weight; // shear XZ
-
-            // We rotate the constitutive matrix to the local axes of the shell
-            r_constitutive_matrix = prod(trans(Tvoigt), Matrix(prod(r_constitutive_matrix, Tvoigt)));
-
-            // membrane part
-            noalias(project(generalized_constitutive_matrix, range(0, 3), range(0, 3))) += weight * r_constitutive_matrix;
-
-            // bending part
-            noalias(project(generalized_constitutive_matrix, range(3, 6), range(3, 6))) += (std::pow(z_sup_layer, 3) - std::pow(z_inf_layer, 3)) / 3.0 * r_constitutive_matrix;
-
-            // membrane-bending part
-            noalias(project(generalized_constitutive_matrix, range(0, 3), range(3, 6))) += aux_weight * r_constitutive_matrix;
-
-            // bending-membrane part (transposed)
-            generalized_constitutive_matrix(3, 0) = generalized_constitutive_matrix(0, 3);
-            generalized_constitutive_matrix(4, 0) = generalized_constitutive_matrix(0, 4);
-            generalized_constitutive_matrix(5, 0) = generalized_constitutive_matrix(0, 5);
-            generalized_constitutive_matrix(3, 1) = generalized_constitutive_matrix(1, 3);
-            generalized_constitutive_matrix(4, 1) = generalized_constitutive_matrix(1, 4);
-            generalized_constitutive_matrix(5, 1) = generalized_constitutive_matrix(1, 5);
-            generalized_constitutive_matrix(3, 2) = generalized_constitutive_matrix(2, 3);
-            generalized_constitutive_matrix(4, 2) = generalized_constitutive_matrix(2, 4);
-            generalized_constitutive_matrix(5, 2) = generalized_constitutive_matrix(2, 5);
-
-            generalized_constitutive_matrix(6, 6) += weight * stenberg_stabilization * Gyz;
-            generalized_constitutive_matrix(7, 7) += weight * stenberg_stabilization * Gxz;
-
-            // Let's compute the shear reduction factor required integrals
-            double Q_bottom_1 = 0.0;
-            double Q_bottom_2 = 0.0;
-            for (IndexType i = 0; i <= i_layer; ++i) {
-                const double z_inf_i = mZCoordinates[i] - 0.5 * mThicknesses[i];
-                const double z_sup_i = mZCoordinates[i] + 0.5 * mThicknesses[i];
-                const double factor = 0.5 * (std::pow(z_sup_i, 2) - std::pow(z_inf_i, 2));
-                Q_bottom_1 += factor * r_constitutive_matrix(0, 0);
-                Q_bottom_2 += factor * r_constitutive_matrix(1, 1);
+            if (flag_compute_stress) {
+                // We rotate the stress to the local axes of the shell
+                r_stress_vector = prod(trans(Tvoigt), r_stress_vector);
+                
+                generalized_stress_vector[0] += r_stress_vector[0] * weight; // membrane xx
+                generalized_stress_vector[1] += r_stress_vector[1] * weight; // membrane yy
+                generalized_stress_vector[2] += r_stress_vector[2] * weight; // membrane xy
+                
+                generalized_stress_vector[3] += r_stress_vector[0] * aux_weight; // bending xx
+                generalized_stress_vector[4] += r_stress_vector[1] * aux_weight; // bending yy
+                generalized_stress_vector[5] += r_stress_vector[2] * aux_weight; // bending xy
+                
+                // Elastic behaviour in shear
+                generalized_stress_vector[6] += Gyz * (generalized_strain_vector[6]) * weight * stenberg_stabilization * mShearReductionFactors[1]; // shear YZ
+                generalized_stress_vector[7] += Gxz * (generalized_strain_vector[7]) * weight * stenberg_stabilization * mShearReductionFactors[0]; // shear XZ
             }
 
-            std::vector<double> gauss_w({5.0 / 9.0, 8.0 / 9.0, 5.0 / 9.0});
-            std::vector<double> gauss_xi({-std::sqrt(3.0 / 5.0), 0.0, std::sqrt(3.0 / 5.0)});
-            double layer_int_11 = 0.0;
-            double layer_int_22 = 0.0;
-
-            for (IndexType gauss_ip = 0; gauss_ip < gauss_w.size(); ++gauss_ip) {
-                const double z_gauss = mZCoordinates[i_layer] + 0.5 * mThicknesses[i_layer] * gauss_xi[gauss_ip];
-
-                const double Qz1 = Q_bottom_1 + r_constitutive_matrix(0, 0) * 0.5 * (z_gauss*z_gauss - z_inf_layer*z_inf_layer);
-                const double Qz2 = Q_bottom_2 + r_constitutive_matrix(1, 1) * 0.5 * (z_gauss*z_gauss - z_inf_layer*z_inf_layer);
-
-                layer_int_11 += (Qz1*Qz1 / Gxz) * gauss_w[gauss_ip];
-                layer_int_22 += (Qz2*Qz1 / Gyz) * gauss_w[gauss_ip];
+            if (flag_compute_constitutive_tensor) {
+                // We rotate the constitutive matrix to the local axes of the shell
+                r_constitutive_matrix = prod(trans(Tvoigt), Matrix(prod(r_constitutive_matrix, Tvoigt)));
+    
+                // membrane part
+                noalias(project(generalized_constitutive_matrix, range(0, 3), range(0, 3))) += weight * r_constitutive_matrix;
+    
+                // bending part
+                noalias(project(generalized_constitutive_matrix, range(3, 6), range(3, 6))) += (std::pow(z_sup_layer, 3) - std::pow(z_inf_layer, 3)) / 3.0 * r_constitutive_matrix;
+    
+                // membrane-bending part
+                noalias(project(generalized_constitutive_matrix, range(0, 3), range(3, 6))) += aux_weight * r_constitutive_matrix;
+    
+                // bending-membrane part (transposed)
+                generalized_constitutive_matrix(3, 0) = generalized_constitutive_matrix(0, 3);
+                generalized_constitutive_matrix(4, 0) = generalized_constitutive_matrix(0, 4);
+                generalized_constitutive_matrix(5, 0) = generalized_constitutive_matrix(0, 5);
+                generalized_constitutive_matrix(3, 1) = generalized_constitutive_matrix(1, 3);
+                generalized_constitutive_matrix(4, 1) = generalized_constitutive_matrix(1, 4);
+                generalized_constitutive_matrix(5, 1) = generalized_constitutive_matrix(1, 5);
+                generalized_constitutive_matrix(3, 2) = generalized_constitutive_matrix(2, 3);
+                generalized_constitutive_matrix(4, 2) = generalized_constitutive_matrix(2, 4);
+                generalized_constitutive_matrix(5, 2) = generalized_constitutive_matrix(2, 5);
+    
+                generalized_constitutive_matrix(6, 6) += weight * Gyz * stenberg_stabilization * mShearReductionFactors[1];
+                generalized_constitutive_matrix(7, 7) += weight * Gxz * stenberg_stabilization * mShearReductionFactors[0];
             }
-
-            thickness_integral_11 += layer_int_11 * (mThicknesses[i_layer] / 2.0);
-            thickness_integral_22 += layer_int_22 * (mThicknesses[i_layer] / 2.0);
-
         } // layer loop
-        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_compute_constitutive_tensor); // We restore the flag
 
-        const double kxz = generalized_constitutive_matrix(0, 0) * generalized_constitutive_matrix(0, 0) / (thickness_integral_11 * generalized_constitutive_matrix(7, 7));
-        const double kyz = generalized_constitutive_matrix(1, 1) * generalized_constitutive_matrix(1, 1) / (thickness_integral_22 * generalized_constitutive_matrix(6, 6));
-
-        KRATOS_WATCH(generalized_constitutive_matrix)
-        KRATOS_WATCH(kxz)
-        KRATOS_WATCH(kyz)
         // Reset some values
         rValues.SetMaterialProperties(r_material_properties);
         r_strain_vector.resize(VoigtSize, false);
@@ -566,17 +528,11 @@ void ThicknessIntegratedCompositeConstitutiveLaw::CalculateMaterialResponseCauch
         if (flag_compute_stress) {
             r_stress_vector.resize(VoigtSize, false);
             noalias(r_stress_vector) = generalized_stress_vector;
-            // we apply the shear reduction factor to the shear components of the stress vector
-            r_stress_vector[6] *= kyz; // shear YZ
-            r_stress_vector[7] *= kxz; // shear XZ
         }
 
         if (flag_compute_constitutive_tensor) {
             r_constitutive_matrix.resize(VoigtSize, VoigtSize, false);
             noalias(r_constitutive_matrix) = generalized_constitutive_matrix;
-            // we apply the shear reduction factor to the shear components of the constitutive matrix
-            r_constitutive_matrix(6, 6) *= kyz; // shear YZ
-            r_constitutive_matrix(7, 7) *= kxz; // shear XZ
         }
     }
     KRATOS_CATCH("CalculateMaterialResponseCauchy")
