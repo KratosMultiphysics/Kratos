@@ -312,6 +312,9 @@ void ThicknessIntegratedCompositeConstitutiveLaw::InitializeMaterial(
     const auto subprop_strain_size = mConstitutiveLaws[0]->GetStrainSize(); // 3
     const auto subprop_dimension = mConstitutiveLaws[0]->WorkingSpaceDimension(); // 2
 
+    Vector Dp1(number_of_laws, 0.0);
+    Vector Dp2(number_of_laws, 0.0);
+
     ConstitutiveLaw::Parameters parameters;
     parameters.SetMaterialProperties(rMaterialProperties);
 
@@ -351,6 +354,9 @@ void ThicknessIntegratedCompositeConstitutiveLaw::InitializeMaterial(
 
     // We perform the integration through the thickness
     for (IndexType i_layer = 0; i_layer < number_of_laws; ++i_layer) {
+        double Q_bottom_1 = 0.0;
+        double Q_bottom_2 = 0.0;
+
         const double z_inf_layer = mZCoordinates[i_layer] - 0.5 * mThicknesses[i_layer];
         const double z_sup_layer = mZCoordinates[i_layer] + 0.5 * mThicknesses[i_layer];
 
@@ -409,10 +415,42 @@ void ThicknessIntegratedCompositeConstitutiveLaw::InitializeMaterial(
         generalized_constitutive_matrix(6, 6) += weight * Gyz;
         generalized_constitutive_matrix(7, 7) += weight * Gxz;
 
+        // Let's compute the shear reduction factor required integrals
+        Dp1[i_layer] = constitutive_matrix(0, 0);
+        Dp2[i_layer] = constitutive_matrix(1, 1);
 
+        for (IndexType i = 0; i < i_layer; ++i) {
+            const double z_inf_i = mZCoordinates[i] - 0.5 * mThicknesses[i];
+            const double z_sup_i = mZCoordinates[i] + 0.5 * mThicknesses[i];
+            const double factor = 0.5 * (std::pow(z_sup_i, 2) - std::pow(z_inf_i, 2));
+            Q_bottom_1 += factor * Dp1[i]; // x
+            Q_bottom_2 += factor * Dp2[i]; // y
+        }
 
-    }
+        std::vector<double> gauss_w({5.0 / 9.0, 8.0 / 9.0, 5.0 / 9.0});
+        std::vector<double> gauss_xi({-std::sqrt(3.0 / 5.0), 0.0, std::sqrt(3.0 / 5.0)});
 
+        double layer_int_11 = 0.0;
+        double layer_int_22 = 0.0;
+
+        for (IndexType gauss_ip = 0; gauss_ip < gauss_w.size(); ++gauss_ip) {
+            const double z_gauss = mZCoordinates[i_layer] + 0.5 * mThicknesses[i_layer] * gauss_xi[gauss_ip];
+
+            const double Qz1 = Q_bottom_1 + constitutive_matrix(0, 0) * 0.5 * (z_gauss * z_gauss - z_inf_layer * z_inf_layer);
+            const double Qz2 = Q_bottom_2 + constitutive_matrix(1, 1) * 0.5 * (z_gauss * z_gauss - z_inf_layer * z_inf_layer);
+
+            layer_int_11 += (Qz1 * Qz1 / Gxz) * gauss_w[gauss_ip];
+            layer_int_22 += (Qz2 * Qz2 / Gyz) * gauss_w[gauss_ip];
+        }
+
+        thickness_integral_11 += layer_int_11 * (mThicknesses[i_layer] / 2.0);
+        thickness_integral_22 += layer_int_22 * (mThicknesses[i_layer] / 2.0);
+
+    } // for each layer
+
+     // We calculate the shear reduction factors
+    mShearReductionFactors[0] = std::pow(generalized_constitutive_matrix(3, 3), 2) / (thickness_integral_22 * generalized_constitutive_matrix(6, 6)); // YZ shear
+    mShearReductionFactors[1] = std::pow(generalized_constitutive_matrix(4, 4), 2) / (thickness_integral_11 * generalized_constitutive_matrix(7, 7)); // XZ shear
 
     KRATOS_CATCH("ThicknessIntegratedCompositeConstitutiveLaw::InitializeMaterial")
 }
@@ -593,8 +631,8 @@ void ThicknessIntegratedCompositeConstitutiveLaw::CalculateMaterialResponseCauch
                 generalized_stress_vector[5] += r_stress_vector[2] * aux_weight; // bending xy
                 
                 // Elastic behaviour in shear
-                generalized_stress_vector[6] += Gyz * (generalized_strain_vector[6]) * weight * stenberg_stabilization * mShearReductionFactors[1]; // shear YZ
-                generalized_stress_vector[7] += Gxz * (generalized_strain_vector[7]) * weight * stenberg_stabilization * mShearReductionFactors[0]; // shear XZ
+                generalized_stress_vector[6] += Gyz * (generalized_strain_vector[6]) * weight * stenberg_stabilization * mShearReductionFactors[0]; // shear YZ
+                generalized_stress_vector[7] += Gxz * (generalized_strain_vector[7]) * weight * stenberg_stabilization * mShearReductionFactors[1]; // shear XZ
             }
 
             if (flag_compute_constitutive_tensor) {
@@ -621,8 +659,8 @@ void ThicknessIntegratedCompositeConstitutiveLaw::CalculateMaterialResponseCauch
                 generalized_constitutive_matrix(4, 2) = generalized_constitutive_matrix(2, 4);
                 generalized_constitutive_matrix(5, 2) = generalized_constitutive_matrix(2, 5);
     
-                generalized_constitutive_matrix(6, 6) += weight * Gyz * stenberg_stabilization * mShearReductionFactors[1];
-                generalized_constitutive_matrix(7, 7) += weight * Gxz * stenberg_stabilization * mShearReductionFactors[0];
+                generalized_constitutive_matrix(6, 6) += weight * Gyz * stenberg_stabilization * mShearReductionFactors[0];
+                generalized_constitutive_matrix(7, 7) += weight * Gxz * stenberg_stabilization * mShearReductionFactors[1];
             }
         } // layer loop
 
