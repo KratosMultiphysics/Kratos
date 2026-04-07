@@ -306,6 +306,114 @@ void ThicknessIntegratedCompositeConstitutiveLaw::InitializeMaterial(
 
     KRATOS_DEBUG_ERROR_IF(mConstitutiveLaws.size() == 0) << "ThicknessIntegratedCompositeConstitutiveLaw: the vector of constitutive laws is empty..." << std::endl;
 
+    // Let's calculate the shear reduction factors
+
+    const IndexType number_of_laws = mConstitutiveLaws.size();
+    const auto subprop_strain_size = mConstitutiveLaws[0]->GetStrainSize(); // 3
+    const auto subprop_dimension = mConstitutiveLaws[0]->WorkingSpaceDimension(); // 2
+
+    ConstitutiveLaw::Parameters parameters;
+    parameters.SetMaterialProperties(rMaterialProperties);
+
+    Vector null_strain_vector(subprop_strain_size);
+    null_strain_vector.clear();
+    parameters.SetStrainVector(null_strain_vector);
+    
+    Vector null_stress_vector(subprop_strain_size);
+    null_stress_vector.clear();
+    parameters.SetStressVector(null_stress_vector);
+
+    Matrix constitutive_matrix(subprop_strain_size, subprop_strain_size);
+    constitutive_matrix.clear();
+    parameters.SetConstitutiveMatrix(constitutive_matrix);
+
+    Matrix generalized_constitutive_matrix(VoigtSize, VoigtSize);
+    generalized_constitutive_matrix.clear();
+
+    Flags& r_flags = parameters.GetOptions();
+    r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+    r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+
+    Matrix F(subprop_dimension, subprop_dimension); // 2x2
+    double weight, z_coord, z_coord2, aux_weight, aux_weight2, detF, Euler_angle;
+
+    double Gyz = 0.0;
+    double Gxz = 0.0;
+
+    // Rotation and strain-rotation matrices
+    BoundedMatrix<double, 2, 2> T;
+    BoundedMatrix<double, 3, 3> Tvoigt;
+
+    double thickness_integral_11 = 0.0;
+    double thickness_integral_22 = 0.0;
+
+    const auto it_prop_begin = rMaterialProperties.GetSubProperties().begin();
+
+    // We perform the integration through the thickness
+    for (IndexType i_layer = 0; i_layer < number_of_laws; ++i_layer) {
+        const double z_inf_layer = mZCoordinates[i_layer] - 0.5 * mThicknesses[i_layer];
+        const double z_sup_layer = mZCoordinates[i_layer] + 0.5 * mThicknesses[i_layer];
+
+        // Assign subprops of the layer
+        Properties &r_subprop = *(it_prop_begin + i_layer);
+        parameters.SetMaterialProperties(r_subprop);
+
+        CalculateShearModulus(Gyz, Gxz, parameters);
+
+        // We retrieve the layer info
+        weight = mThicknesses[i_layer];
+        z_coord = mZCoordinates[i_layer];
+        Euler_angle = mEulerAngles[i_layer];
+
+        // z_coord2 = z_coord * z_coord;
+        aux_weight = weight * z_coord;
+        // aux_weight2 = weight * z_coord2;
+
+        // We rotate the strain to layer local axes
+        AdvancedConstitutiveLawUtilities<3>::CalculateRotationOperatorEuler1(Euler_angle, T);
+        ConstitutiveLawUtilities<3>::CalculateRotationOperatorVoigt(T, Tvoigt);
+        null_strain_vector = prod(Tvoigt, null_strain_vector);
+
+        // In case the 2D Cls work in finite strain
+        noalias(F) = AdvancedConstitutiveLawUtilities<3>::ComputeEquivalentSmallDeformationDeformationGradient(null_strain_vector);
+        detF = MathUtils<double>::Det2(F);
+        parameters.SetDeterminantF(detF);
+        parameters.SetDeformationGradientF(F);
+
+        // This fills stress and D in local axes of the layer
+        mConstitutiveLaws[i_layer]->CalculateMaterialResponseCauchy(parameters);
+
+        // We rotate the constitutive matrix to the local axes of the shell
+        constitutive_matrix = prod(trans(Tvoigt), Matrix(prod(constitutive_matrix, Tvoigt)));
+
+        // membrane part
+        noalias(project(generalized_constitutive_matrix, range(0, 3), range(0, 3))) += weight * constitutive_matrix;
+
+        // bending part
+        noalias(project(generalized_constitutive_matrix, range(3, 6), range(3, 6))) += (std::pow(z_sup_layer, 3) - std::pow(z_inf_layer, 3)) / 3.0 * constitutive_matrix;
+
+        // membrane-bending part
+        noalias(project(generalized_constitutive_matrix, range(0, 3), range(3, 6))) += aux_weight * constitutive_matrix;
+
+        // bending-membrane part (transposed)
+        generalized_constitutive_matrix(3, 0) = generalized_constitutive_matrix(0, 3);
+        generalized_constitutive_matrix(4, 0) = generalized_constitutive_matrix(0, 4);
+        generalized_constitutive_matrix(5, 0) = generalized_constitutive_matrix(0, 5);
+        generalized_constitutive_matrix(3, 1) = generalized_constitutive_matrix(1, 3);
+        generalized_constitutive_matrix(4, 1) = generalized_constitutive_matrix(1, 4);
+        generalized_constitutive_matrix(5, 1) = generalized_constitutive_matrix(1, 5);
+        generalized_constitutive_matrix(3, 2) = generalized_constitutive_matrix(2, 3);
+        generalized_constitutive_matrix(4, 2) = generalized_constitutive_matrix(2, 4);
+        generalized_constitutive_matrix(5, 2) = generalized_constitutive_matrix(2, 5);
+
+        generalized_constitutive_matrix(6, 6) += weight * Gyz;
+        generalized_constitutive_matrix(7, 7) += weight * Gxz;
+
+
+
+    }
+
+
     KRATOS_CATCH("ThicknessIntegratedCompositeConstitutiveLaw::InitializeMaterial")
 }
 
@@ -418,7 +526,7 @@ void ThicknessIntegratedCompositeConstitutiveLaw::CalculateMaterialResponseCauch
         r_constitutive_matrix.clear();
 
         Matrix F(subprop_dimension, subprop_dimension); // 2x2
-        double weight, z_coord, z_coord2, aux_weight, aux_weight2, detF, Euler_angle;
+        double weight, z_coord, aux_weight, detF, Euler_angle;
 
         const double h_max = GetMaxReferenceEdgeLength(rValues.GetElementGeometry());
         const double alpha = 0.1;
@@ -452,9 +560,7 @@ void ThicknessIntegratedCompositeConstitutiveLaw::CalculateMaterialResponseCauch
             z_coord = mZCoordinates[i_layer];
             Euler_angle = mEulerAngles[i_layer];
 
-            z_coord2 = z_coord * z_coord;
             aux_weight = weight * z_coord;
-            aux_weight2 = weight * z_coord2;
 
             r_strain_vector[0] = generalized_strain_vector[0] + z_coord * generalized_strain_vector[3]; // xx
             r_strain_vector[1] = generalized_strain_vector[1] + z_coord * generalized_strain_vector[4]; // yy
