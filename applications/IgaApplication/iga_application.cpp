@@ -38,6 +38,8 @@ KratosIgaApplication::KratosIgaApplication()
         new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
     , mStokesElement(0, Element::GeometryType::Pointer(
         new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
+    , mNavierStokesElement(0, Element::GeometryType::Pointer(
+        new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
     , mOutputCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
     , mLoadCondition(0, Condition::GeometryType::Pointer(
@@ -97,6 +99,7 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_ELEMENT("LaplacianElement", mLaplacianElement)
     KRATOS_REGISTER_ELEMENT("SolidElement", mSolidElement)
     KRATOS_REGISTER_ELEMENT("StokesElement", mStokesElement)
+    KRATOS_REGISTER_ELEMENT("NavierStokesElement", mNavierStokesElement)
 
     // CONDITIONS
     KRATOS_REGISTER_CONDITION("OutputCondition", mOutputCondition)

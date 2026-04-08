@@ -57,6 +57,14 @@ Vector& InterfaceCoulombWithTensionCutOff::GetValue(const Variable<Vector>& rVar
     return rValue;
 }
 
+int& InterfaceCoulombWithTensionCutOff::GetValue(const Variable<int>& rVariable, int& rValue)
+{
+    if (rVariable == GEO_PLASTICITY_STATUS) {
+        rValue = static_cast<int>(mCoulombWithTensionCutOffImpl.GetPlasticityStatus());
+    }
+    return rValue;
+}
+
 void InterfaceCoulombWithTensionCutOff::SetValue(const Variable<Vector>& rVariable,
                                                  const Vector&           rValue,
                                                  const ProcessInfo&      rCurrentProcessInfo)
@@ -137,6 +145,10 @@ void InterfaceCoulombWithTensionCutOff::InitializeMaterialResponseCauchy(Paramet
 
 void InterfaceCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(Parameters& rConstitutiveLawParameters)
 {
+    if (!rConstitutiveLawParameters.GetOptions().Is(ConstitutiveLaw::COMPUTE_STRESS)) {
+        return;
+    }
+
     const auto& r_properties = rConstitutiveLawParameters.GetMaterialProperties();
 
     auto trial_sigma_tau = CalculateTrialTractionVector(rConstitutiveLawParameters.GetStrainVector(),
@@ -195,23 +207,23 @@ Matrix& InterfaceCoulombWithTensionCutOff::CalculateValue(Parameters& rConstitut
 void InterfaceCoulombWithTensionCutOff::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw)
+    rSerializer.save("ConstitutiveDimension", mpConstitutiveDimension);
     rSerializer.save("TractionVector", mTractionVector);
     rSerializer.save("TractionVectorFinalized", mTractionVectorFinalized);
     rSerializer.save("RelativeDisplacementVectorFinalized", mRelativeDisplacementVectorFinalized);
     rSerializer.save("CoulombWithTensionCutOffImpl", mCoulombWithTensionCutOffImpl);
     rSerializer.save("IsModelInitialized", mIsModelInitialized);
-    rSerializer.save("ConstitutiveDimension", mpConstitutiveDimension);
 }
 
 void InterfaceCoulombWithTensionCutOff::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw)
+    rSerializer.load("ConstitutiveDimension", mpConstitutiveDimension);
     rSerializer.load("TractionVector", mTractionVector);
     rSerializer.load("TractionVectorFinalized", mTractionVectorFinalized);
     rSerializer.load("RelativeDisplacementVectorFinalized", mRelativeDisplacementVectorFinalized);
     rSerializer.load("CoulombWithTensionCutOffImpl", mCoulombWithTensionCutOffImpl);
     rSerializer.load("IsModelInitialized", mIsModelInitialized);
-    rSerializer.load("ConstitutiveDimension", mpConstitutiveDimension);
 }
 
 } // Namespace Kratos

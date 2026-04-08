@@ -325,6 +325,33 @@ public:
     ///@name Quadrature Point Geometries
     ///@{
 
+    /* @brief Creates a list of quadrature point geometries from integration info.
+     *        Uses CUSTOM assembly mode so one QuadraturePointGeometry is created per integration point.
+     *
+     * @param rResultGeometries list of quadrature point geometries.
+     * @param NumberOfShapeFunctionDerivatives the number of evaluated derivatives of shape functions.
+     * @param rIntegrationInfo integration information used to generate integration points.
+     */
+    void CreateQuadraturePointGeometries(
+        GeometriesArrayType& rResultGeometries,
+        IndexType NumberOfShapeFunctionDerivatives,
+        IntegrationInfo& rIntegrationInfo) override
+    {
+        IntegrationPointsArrayType integration_points;
+        CreateIntegrationPoints(integration_points, rIntegrationInfo);
+
+        // Match NurbsVolume behavior: one quadrature-point geometry per integration point.
+        IntegrationInfo custom_integration_info(
+            { mpNurbsVolume->PolynomialDegreeU() + 1, mpNurbsVolume->PolynomialDegreeV() + 1, mpNurbsVolume->PolynomialDegreeW() + 1 },
+            { IntegrationInfo::QuadratureMethod::CUSTOM, IntegrationInfo::QuadratureMethod::CUSTOM, IntegrationInfo::QuadratureMethod::CUSTOM });
+
+        this->CreateQuadraturePointGeometries(
+            rResultGeometries,
+            NumberOfShapeFunctionDerivatives,
+            integration_points,
+            custom_integration_info);
+    }
+
     /* @brief calls function of underlying nurbs surface and updates
      *        the parent to itself.
      *

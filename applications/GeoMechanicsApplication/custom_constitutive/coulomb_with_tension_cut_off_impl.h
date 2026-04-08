@@ -17,6 +17,7 @@
 
 #include "coulomb_yield_surface.h"
 #include "custom_constitutive/principal_stresses.hpp"
+#include "geo_mechanics_application_constants.h"
 #include "tension_cutoff.h"
 
 namespace Kratos
@@ -36,18 +37,19 @@ public:
     CoulombWithTensionCutOffImpl() = default;
     explicit CoulombWithTensionCutOffImpl(const Properties& rMaterialProperties);
 
-    [[nodiscard]] bool IsAdmissibleStressState(const Geo::SigmaTau& rTrialTraction) const;
-    [[nodiscard]] bool IsAdmissibleStressState(const Geo::PrincipalStresses& rTrialPrincipalStresses) const;
+    [[nodiscard]] bool IsAdmissibleStressState(const Geo::SigmaTau& rTrialTraction);
+    [[nodiscard]] bool IsAdmissibleStressState(const Geo::PrincipalStresses& rTrialPrincipalStresses);
 
     [[nodiscard]] Geo::SigmaTau DoReturnMapping(const Geo::SigmaTau& rTrialTraction,
                                                 const Matrix&        rElasticConstitutiveTensor,
                                                 Geo::PrincipalStresses::AveragingType AveragingType);
-    [[nodiscard]] Geo::PrincipalStresses DoReturnMapping(const Geo::PrincipalStresses& rTrialSigmaTau,
+    [[nodiscard]] Geo::PrincipalStresses DoReturnMapping(const Geo::PrincipalStresses& rTrialPrincipalStresses,
                                                          const Matrix& rElasticConstitutiveTensor,
                                                          Geo::PrincipalStresses::AveragingType AveragingType);
 
-    void SaveKappaOfCoulombYieldSurface();
-    void RestoreKappaOfCoulombYieldSurface();
+    void                           SaveKappaOfCoulombYieldSurface();
+    void                           RestoreKappaOfCoulombYieldSurface();
+    [[nodiscard]] PlasticityStatus GetPlasticityStatus() const;
 
 private:
     CoulombYieldSurface mCoulombYieldSurface;
@@ -55,9 +57,10 @@ private:
     double              mSavedKappaOfCoulombYieldSurface{0.0};
     double              mAbsoluteYieldFunctionValueTolerance{1.0e-8};
     std::size_t         mMaxNumberOfPlasticIterations{100};
+    PlasticityStatus    mPlasticityStatus{PlasticityStatus::ELASTIC};
 
     template <typename StressStateType>
-    [[nodiscard]] bool IsAdmissibleStressState(const StressStateType& rTrialStressState) const;
+    [[nodiscard]] bool IsAdmissibleStressState(const StressStateType& rTrialStressState);
     template <typename StressStateType, typename StressStateToSigmaTauFunctionType>
     [[nodiscard]] StressStateType DoReturnMapping(const StressStateType& rTrialStressState,
                                                   const StressStateToSigmaTauFunctionType& rStressStateToSigmaTau,
