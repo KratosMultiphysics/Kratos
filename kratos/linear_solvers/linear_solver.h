@@ -73,7 +73,7 @@ public:
     ///@{
 
     /// Default constructor.
-    LinearSolver();
+    LinearSolver() = default;
 
     /// Destructor.
     virtual ~LinearSolver() = default;
@@ -385,15 +385,6 @@ private:
     /// A counted pointer to the reorderer object.
     typename TReordererType::Pointer mpReorderer;
 }; // class LinearSolver
-
-// Out-of-line constructor definition to avoid -fvisibility-inlines-hidden hiding the symbol
-template<class TSparseSpaceType, class TDenseSpaceType, class TReordererType>
-#if !defined(_MSC_VER)
-KRATOS_API_EXPORT
-#endif
-LinearSolver<TSparseSpaceType, TDenseSpaceType, TReordererType>::LinearSolver()
-    : mpReorderer(new TReordererType())
-{}
 
 ///@name Input and output
 ///@{
