@@ -173,8 +173,8 @@ public:
                                 this_model_part.Nodes()(geom[1].Id())
                             );
 
-                            Condition::Pointer pcond1 = it->Create(current_id++, newgeom1, it->pGetProperties());
-                            Condition::Pointer pcond2 = it->Create(current_id++, newgeom2, it->pGetProperties());
+                            Condition::Pointer pcond1 = it->Create(current_id++, newgeom1.Points(), it->pGetProperties());
+                            Condition::Pointer pcond2 = it->Create(current_id++, newgeom2.Points(), it->pGetProperties());
 
                             pcond1->GetData() = it->GetData();
                             pcond2->GetData() = it->GetData();
@@ -194,8 +194,8 @@ public:
                                 this_model_part.Nodes()(geom[1].Id())
                             );
 
-                            Condition::Pointer pcond1 = it->Create(current_id++, newgeom1, it->pGetProperties());
-                            Condition::Pointer pcond2 = it->Create(current_id++, newgeom2, it->pGetProperties());
+                            Condition::Pointer pcond1 = it->Create(current_id++, newgeom1.Points(), it->pGetProperties());
+                            Condition::Pointer pcond2 = it->Create(current_id++, newgeom2.Points(), it->pGetProperties());
 
                             pcond1->GetData() = it->GetData();
                             pcond2->GetData() = it->GetData();
