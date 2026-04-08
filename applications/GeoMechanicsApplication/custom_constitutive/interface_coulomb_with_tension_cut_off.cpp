@@ -24,6 +24,9 @@
 #include "geo_mechanics_application_variables.h"
 
 #include <cmath>
+#include <string>
+
+using namespace std::string_literals;
 
 namespace Kratos
 {
@@ -99,6 +102,12 @@ int InterfaceCoulombWithTensionCutOff::Check(const Properties&   rMaterialProper
             std::tan(MathUtils<>::DegreesToRadians(rMaterialProperties[GEO_FRICTION_ANGLE])));
     check_properties.Check(INTERFACE_NORMAL_STIFFNESS);
     check_properties.Check(INTERFACE_SHEAR_STIFFNESS);
+
+    KRATOS_ERROR_IF(rMaterialProperties.Has(GEO_ENABLE_COMPRESSION_CAP) && rMaterialProperties[GEO_ENABLE_COMPRESSION_CAP])
+        << "GEO_ENABLE_COMPRESSION_CAP must not be set to True in the property with Id "
+        << rMaterialProperties.Id() << ". Constitutive law '" << Info()
+        << "' does not support a compression cap.\n";
+
     return result;
 }
 
@@ -202,6 +211,11 @@ Matrix& InterfaceCoulombWithTensionCutOff::CalculateValue(Parameters& rConstitut
     }
 
     return rValue;
+}
+
+std::string InterfaceCoulombWithTensionCutOff::Info() const
+{
+    return "InterfaceCoulombWithTensionCutOff"s;
 }
 
 void InterfaceCoulombWithTensionCutOff::save(Serializer& rSerializer) const

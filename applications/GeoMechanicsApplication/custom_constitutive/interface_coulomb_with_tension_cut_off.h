@@ -64,6 +64,8 @@ public:
                            Matrix&                 rValue) override;
     using ConstitutiveLaw::CalculateValue;
 
+    [[nodiscard]] std::string Info() const override;
+
 private:
     std::unique_ptr<ConstitutiveLawDimension> mpConstitutiveDimension;
     Vector                                    mTractionVector;

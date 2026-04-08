@@ -15,6 +15,7 @@
 
 #pragma once
 
+#include "custom_constitutive/principal_stresses.hpp"
 #include "geo_aliases.h"
 #include "includes/properties.h"
 
@@ -26,6 +27,8 @@ class CheckProperties;
 namespace Geo
 {
 class PQ;
+class PrincipalStresses;
+class SigmaTau;
 } // namespace Geo
 
 class KRATOS_API(GEO_MECHANICS_APPLICATION) CompressionCapYieldSurface
@@ -40,7 +43,14 @@ public:
     [[nodiscard]] double GetPreconsolidationStress() const;
 
     [[nodiscard]] double YieldFunctionValue(const Geo::PQ& rPQ) const;
+    [[nodiscard]] double YieldFunctionValue(const Geo::PrincipalStresses& rPrincipalStresses) const;
+    [[nodiscard]] double YieldFunctionValue(const Geo::SigmaTau&) const;
     [[nodiscard]] Vector DerivativeOfFlowFunction(const Geo::PQ& rPQ) const;
+    [[nodiscard]] Vector DerivativeOfFlowFunction(const Geo::PrincipalStresses& rPrincipalStresses) const;
+
+    double CalculatePlasticMultiplier(const Geo::PrincipalStresses& rPrincipalStresses,
+                                      const Vector&                 rDerivativeOfFlowFunction,
+                                      const Matrix&                 rElasticMatrix) const;
 
 private:
     void InitializeKappaDependentFunctions();

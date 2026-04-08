@@ -15,10 +15,13 @@
 
 #pragma once
 
+#include "compression_cap_yield_surface.h"
 #include "coulomb_yield_surface.h"
 #include "custom_constitutive/principal_stresses.hpp"
 #include "geo_mechanics_application_constants.h"
 #include "tension_cutoff.h"
+
+#include <optional>
 
 namespace Kratos
 {
@@ -52,26 +55,32 @@ public:
     [[nodiscard]] PlasticityStatus GetPlasticityStatus() const;
 
 private:
-    CoulombYieldSurface mCoulombYieldSurface;
-    TensionCutoff       mTensionCutOff;
-    double              mSavedKappaOfCoulombYieldSurface{0.0};
-    double              mAbsoluteYieldFunctionValueTolerance{1.0e-8};
-    std::size_t         mMaxNumberOfPlasticIterations{100};
-    PlasticityStatus    mPlasticityStatus{PlasticityStatus::ELASTIC};
+    CoulombYieldSurface                       mCoulombYieldSurface;
+    TensionCutoff                             mTensionCutOff;
+    std::optional<CompressionCapYieldSurface> mOptionalCompressionCap;
+    double                                    mSavedKappaOfCoulombYieldSurface{0.0};
+    double                                    mAbsoluteYieldFunctionValueTolerance{1.0e-8};
+    std::size_t                               mMaxNumberOfPlasticIterations{100};
+    PlasticityStatus                          mPlasticityStatus{PlasticityStatus::ELASTIC};
 
     template <typename StressStateType>
     [[nodiscard]] bool IsAdmissibleStressState(const StressStateType& rTrialStressState);
-    template <typename StressStateType, typename StressStateToSigmaTauFunctionType>
+    template <typename StressStateType, typename StressStateToSigmaTauFunctionType, typename StressStateToPQFunctionType>
     [[nodiscard]] StressStateType DoReturnMapping(const StressStateType& rTrialStressState,
                                                   const StressStateToSigmaTauFunctionType& rStressStateToSigmaTau,
+                                                  const StressStateToPQFunctionType& rStressStateToPQ,
                                                   const Matrix& rElasticConstitutiveTensor,
                                                   Geo::PrincipalStresses::AveragingType AveragingType);
 
     [[nodiscard]] Geo::SigmaTau CalculateCornerPoint() const;
+    [[nodiscard]] Geo::PQ       CalculateCapCornerPoint() const;
     [[nodiscard]] bool IsStressAtTensionApexReturnZone(const Geo::SigmaTau& rTrialTraction) const;
     [[nodiscard]] bool IsStressAtTensionCutoffReturnZone(const Geo::SigmaTau& rTrialTraction) const;
     [[nodiscard]] bool IsStressAtCornerReturnZone(const Geo::SigmaTau& rTrialTraction,
                                                   Geo::PrincipalStresses::AveragingType AveragingType) const;
+    [[nodiscard]] bool IsStressAtCompressionCapReturnZone(const Geo::PQ& rTrialPQ) const;
+    [[nodiscard]] bool IsStressAtCapCornerReturnZone(const Geo::PQ& rTrialPQ,
+                                                     Geo::PrincipalStresses::AveragingType AveragingType) const;
 
     [[nodiscard]] Geo::SigmaTau ReturnStressAtTensionApexReturnZone(const Geo::SigmaTau&) const;
     [[nodiscard]] Geo::PrincipalStresses ReturnStressAtTensionApexReturnZone(const Geo::PrincipalStresses& rTrialPrincipalStresses) const;
@@ -95,6 +104,17 @@ private:
     [[nodiscard]] Geo::SigmaTau ReturnStressAtCornerPoint(const Geo::SigmaTau&,
                                                           const Matrix&,
                                                           Geo::PrincipalStresses::AveragingType AveragingType) const;
+    [[nodiscard]] Geo::PrincipalStresses ReturnStressAtCompressionCapZone(const Geo::PrincipalStresses& rTrialPrincipalStresses,
+                                                                          const Matrix& rElasticMatrix) const;
+    [[nodiscard]] Geo::SigmaTau ReturnStressAtCompressionCapZone(const Geo::SigmaTau& rTrialSigmaTau,
+                                                                 const Matrix& rElasticMatrix) const;
+    [[nodiscard]] Geo::PrincipalStresses ReturnStressAtCapCornerZone(
+        const Geo::PrincipalStresses&         rTrialPrincipalStresses,
+        const Matrix&                         rElasticConstitutiveTensor,
+        Geo::PrincipalStresses::AveragingType AveragingType) const;
+    [[nodiscard]] Geo::SigmaTau ReturnStressAtCapCornerZone(const Geo::SigmaTau& rTrialSigmaTau,
+                                                            const Matrix& rElasticConstitutiveTensor,
+                                                            Geo::PrincipalStresses::AveragingType AveragingType) const;
 
     friend class Serializer;
     void save(Serializer& rSerializer) const;

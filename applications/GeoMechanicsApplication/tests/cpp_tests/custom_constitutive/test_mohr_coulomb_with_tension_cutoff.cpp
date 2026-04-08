@@ -12,9 +12,11 @@
 //
 
 #include "custom_constitutive/mohr_coulomb_with_tension_cutoff.h"
+#include "custom_constitutive/p_q.hpp"
 #include "custom_constitutive/plane_strain.h"
 #include "custom_constitutive/three_dimensional.h"
 #include "custom_utilities/registration_utilities.hpp"
+#include "custom_utilities/stress_strain_utilities.h"
 #include "custom_utilities/ublas_utilities.h"
 #include "geo_mechanics_application_variables.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
@@ -935,6 +937,69 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     const auto expected_cauchy_stress_vector = UblasUtilities::CreateVector(
         {999.999996609523, -252.651135465368, -252.651138855841, 0.065169629648695});
     KRATOS_EXPECT_VECTOR_NEAR(actual_cauchy_stress_vector, expected_cauchy_stress_vector,
+                              Defaults::absolute_tolerance);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponseCauchyAtCompressionCapZone,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto       law = MohrCoulombWithTensionCutOff(std::make_unique<PlaneStrain>());
+    Properties properties;
+    properties.SetValue(GEO_FRICTION_ANGLE, 30.0);
+    properties.SetValue(GEO_COHESION, 5.0);
+    properties.SetValue(YOUNG_MODULUS, 1.0);
+    properties.SetValue(POISSON_RATIO, 0.35);
+    properties.SetValue(GEO_ENABLE_COMPRESSION_CAP, true);
+    properties.SetValue(GEO_COMPRESSION_CAP_SIZE, 1.0);
+    properties.SetValue(GEO_PRECONSOLIDATION_STRESS, 20.0);
+    properties.SetValue(GEO_DILATANCY_ANGLE, 0.0);
+
+    ConstitutiveLaw::Parameters parameters;
+    parameters.SetMaterialProperties(properties);
+    const auto dummy_element_geometry      = Geometry<Node>{};
+    const auto dummy_shape_function_values = Vector{};
+    law.InitializeMaterial(properties, dummy_element_geometry, dummy_shape_function_values);
+
+    // Act and Assert
+    auto cauchy_stress_vector =
+        UblasUtilities::CreateVector({-20.0, -25.1973512697524, -27.2470857019277, 0.0});
+    const auto expected_pq = Geo::PQ(-19.318516525781365734994863994578, 5.176380902050415246977976752481);
+    const auto resulting_stress_vector = CalculateMappedStressVector(cauchy_stress_vector, parameters, law);
+    const auto resulting_pq = StressStrainUtilities::TransformPrincipalStressesToPandQ(Geo::PrincipalStresses(
+        resulting_stress_vector[0], resulting_stress_vector[1], resulting_stress_vector[2]));
+    KRATOS_EXPECT_VECTOR_NEAR(Vector{resulting_pq.Values()}, Vector{expected_pq.Values()},
+                              Defaults::absolute_tolerance);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponseCauchyAtCapCornerZone,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto       law = MohrCoulombWithTensionCutOff(std::make_unique<PlaneStrain>());
+    Properties properties;
+    properties.SetValue(GEO_FRICTION_ANGLE, 30.0);
+    properties.SetValue(GEO_COHESION, 5.0);
+    properties.SetValue(YOUNG_MODULUS, 1.0e6);
+    properties.SetValue(POISSON_RATIO, 0.35);
+    properties.SetValue(GEO_ENABLE_COMPRESSION_CAP, true);
+    properties.SetValue(GEO_COMPRESSION_CAP_SIZE, 1.0);
+    properties.SetValue(GEO_PRECONSOLIDATION_STRESS, 20.0);
+    properties.SetValue(GEO_DILATANCY_ANGLE, 0.0);
+
+    ConstitutiveLaw::Parameters parameters;
+    parameters.SetMaterialProperties(properties);
+    const auto dummy_element_geometry      = Geometry<Node>{};
+    const auto dummy_shape_function_values = Vector{};
+    law.InitializeMaterial(properties, dummy_element_geometry, dummy_shape_function_values);
+
+    // Act and Assert
+    auto       cauchy_stress_vector = UblasUtilities::CreateVector({8.0, -8.0, -28, 0.0});
+    const auto expected_pq          = Geo::PQ(-6.96355, 18.7486);
+    const auto resulting_stress_vector = CalculateMappedStressVector(cauchy_stress_vector, parameters, law);
+    const auto resulting_pq = StressStrainUtilities::TransformPrincipalStressesToPandQ(Geo::PrincipalStresses(
+        resulting_stress_vector[0], resulting_stress_vector[1], resulting_stress_vector[2]));
+    KRATOS_EXPECT_VECTOR_NEAR(Vector{resulting_pq.Values()}, Vector{expected_pq.Values()},
                               Defaults::absolute_tolerance);
 }
 
