@@ -1,5 +1,5 @@
-#ifndef KRATOS_COMPRESSIBLE_SBM_SLIP_CONDITION_H
-#define KRATOS_COMPRESSIBLE_SBM_SLIP_CONDITION_H
+#ifndef KRATOS_TEST_CONDITION_H
+#define KRATOS_TEST_CONDITION_H
 
 #include "includes/condition.h"
 #include "includes/process_info.h"
@@ -10,10 +10,10 @@ namespace Kratos
 {
 
     template <unsigned int TDim, unsigned int TNumNodes>
-    class CompressibleSBMSlipCondition : public Condition
+    class TestCondition : public Condition
     {
     public:
-        KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(CompressibleSBMSlipCondition);
+        KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(TestCondition);
 
         using BaseType = Condition;
         using GeometryType = Geometry<Node>;
@@ -23,9 +23,9 @@ namespace Kratos
         using EquationIdVectorType = BaseType::EquationIdVectorType;
         using DofsVectorType = BaseType::DofsVectorType;
 
-        CompressibleSBMSlipCondition() = default;
+        TestCondition() = default;
 
-        CompressibleSBMSlipCondition(
+        TestCondition(
             IndexType NewId,
             GeometryType::Pointer pGeometry,
             PropertiesType::Pointer pProperties)
@@ -33,7 +33,7 @@ namespace Kratos
         {
         }
 
-        CompressibleSBMSlipCondition(
+        TestCondition(
             IndexType NewId,
             GeometryType::Pointer pGeometry)
             : Condition(NewId, pGeometry)
@@ -45,7 +45,7 @@ namespace Kratos
             NodesArrayType const &ThisNodes,
             PropertiesType::Pointer pProperties) const override
         {
-            return Kratos::make_intrusive<CompressibleSBMSlipCondition>(
+            return Kratos::make_intrusive<TestCondition>(
                 NewId,
                 this->GetGeometry().Create(ThisNodes),
                 pProperties);
@@ -59,18 +59,12 @@ namespace Kratos
             DofsVectorType &rConditionDofList,
             const ProcessInfo &rCurrentProcessInfo) const override;
 
-        ///  THIS is the only execution hook
         void CalculateRightHandSide(
             VectorType &rRightHandSideVector,
             const ProcessInfo &rCurrentProcessInfo) override;
 
-        void AddExplicitContribution(const ProcessInfo &rCurrentProcessInfo) override
-        {
-            KRATOS_WATCH("HEEEEEEY")
-        }
-
     protected:
-        void CalculateNormal(array_1d<double, 3> &rNormal);
+        // void CalculateNormal(array_1d<double, 3> &rNormal);
     };
 
 } // namespace Kratos

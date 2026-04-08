@@ -68,6 +68,8 @@
 #include "custom_conditions/embedded_ausas_navier_stokes_wall_condition.h"
 // #SBM Slip Condition:
 #include "custom_conditions/compressible_sbm_slip_condition.h"
+// #Test Condition:
+#include "custom_conditions/test_condition.h"
 
 #include "custom_elements/dpg_vms.h"
 #include "custom_elements/bingham_fluid.h"
@@ -360,6 +362,10 @@ namespace Kratos
         /// SBM Slip conditions
         const CompressibleSBMSlipCondition<2, 2> mCompressibleSBMSlipCondition2D2N;
         const CompressibleSBMSlipCondition<3, 3> mCompressibleSBMSlipCondition3D3N;
+
+        /// Test Condition
+        const TestCondition<2, 2> mTestCondition2D2N;
+        const TestCondition<3, 3> mTestCondition3D3N;
 
         /// Wall model using Werner-Wengle power law (fractional step version)
         const FSWernerWengleWallCondition<2, 2> mFSWernerWengleWallCondition2D;

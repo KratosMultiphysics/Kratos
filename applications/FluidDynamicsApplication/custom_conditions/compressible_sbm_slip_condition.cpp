@@ -3,7 +3,6 @@
 namespace Kratos
 {
 
-
     // EquationIdVector
 
     template <>
@@ -37,7 +36,7 @@ namespace Kratos
         }
     }
 
-    // GetDofList 
+    // GetDofList
 
     template <>
     void CompressibleSBMSlipCondition<2, 2>::GetDofList(
@@ -70,8 +69,7 @@ namespace Kratos
         }
     }
 
-
-    // CalculateRightHandSide — PROOF OF EXECUTION 
+    // CalculateRightHandSide — PROOF OF EXECUTION
 
     template <unsigned int TDim, unsigned int TNumNodes>
     void CompressibleSBMSlipCondition<TDim, TNumNodes>::CalculateRightHandSide(
@@ -82,7 +80,6 @@ namespace Kratos
         rRHS.resize(TDim * TNumNodes, false);
         rRHS.clear();
     }
-
 
     /* Explicit instantiation */
 

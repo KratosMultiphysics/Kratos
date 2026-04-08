@@ -113,6 +113,10 @@ namespace Kratos
                                                                        mSpalartAllmaras3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node>(Element::GeometryType::PointsArrayType(4))), GeometryData::IntegrationMethod::GI_GAUSS_2),
                                                                        mWallCondition2D(0, Element::GeometryType::Pointer(new Line2D2<Node>(Element::GeometryType::PointsArrayType(2)))),
                                                                        mWallCondition3D(0, Element::GeometryType::Pointer(new Triangle3D3<Node>(Element::GeometryType::PointsArrayType(3)))),
+                                                                       mCompressibleSBMSlipCondition2D2N(0, Element::GeometryType::Pointer(new Line2D2<Node>(Element::GeometryType::PointsArrayType(2)))),
+                                                                       mCompressibleSBMSlipCondition3D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node>(Element::GeometryType::PointsArrayType(3)))),
+                                                                       mTestCondition2D2N(0, Element::GeometryType::Pointer(new Line2D2<Node>(Element::GeometryType::PointsArrayType(2)))),
+                                                                       mTestCondition3D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node>(Element::GeometryType::PointsArrayType(3)))),
                                                                        mFSWernerWengleWallCondition2D(0, Element::GeometryType::Pointer(new Line2D2<Node>(Element::GeometryType::PointsArrayType(2)))),
                                                                        mFSWernerWengleWallCondition3D(0, Element::GeometryType::Pointer(new Triangle3D3<Node>(Element::GeometryType::PointsArrayType(3)))),
                                                                        mFSGeneralizedWallCondition2D(0, Element::GeometryType::Pointer(new Line2D2<Node>(Element::GeometryType::PointsArrayType(2)))),
@@ -473,6 +477,9 @@ namespace Kratos
         // KRATOS_REGISTER_CONDITION("CompressibleSBMSlipCondition", mCompressibleSBMSlipCondition);     // SBM Slip Condition
         KRATOS_REGISTER_CONDITION("CompressibleSBMSlipCondition2D2N", mCompressibleSBMSlipCondition2D2N); // SBM Slip Condition 2D
         KRATOS_REGISTER_CONDITION("CompressibleSBMSlipCondition3D3N", mCompressibleSBMSlipCondition3D3N); // SBM Slip Condition 3D
+        // TEST Condition
+        KRATOS_REGISTER_CONDITION("TestCondition2D2N", mTestCondition2D2N); // Test Condition 2D
+        KRATOS_REGISTER_CONDITION("TestCondition3D3N", mTestCondition3D3N); // Test Condition 3D
         KRATOS_REGISTER_CONDITION("FSWernerWengleWallCondition2D2N", mFSWernerWengleWallCondition2D);
         KRATOS_REGISTER_CONDITION("FSWernerWengleWallCondition3D3N", mFSWernerWengleWallCondition3D);
         KRATOS_REGISTER_CONDITION("FSGeneralizedWallCondition2D2N", mFSGeneralizedWallCondition2D);
