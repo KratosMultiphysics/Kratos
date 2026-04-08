@@ -224,7 +224,7 @@ void AMGCLSolve(
     }
 }
 
-template class  AmgclSolver<
+template class AmgclSolver<
     TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>,
     UblasSpace<double, Matrix, Vector>
 >;
