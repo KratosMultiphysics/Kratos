@@ -95,9 +95,9 @@ void AddStrategiesToPython(py::module& m)
         .def("FinalizeNonLinIteration", &ImplicitSchemeType::FinalizeNonLinIteration)
         .def("SetUpDofArrays", &ImplicitSchemeType::SetUpDofArrays)
         .def("SetUpSystemIds", &ImplicitSchemeType::SetUpSystemIds)
-        // .def("Build", py::overload_cast<CsrMatrix<>, SystemVector<>>(&ImplicitSchemeType::Build)) //TODO: To be activated once we decide the parallelism
-        // .def("Build", py::overload_cast<CsrMatrix<>>(&ImplicitSchemeType::Build)) //TODO: To be activated once we decide the parallelism
-        // .def("Build", py::overload_cast<SystemVector<>>(&ImplicitSchemeType::Build)) //TODO: To be activated once we decide the parallelism
+        .def("Build", py::overload_cast<CsrMatrix<>&, SystemVector<>&>(&ImplicitSchemeType::Build)) //TODO: To be activated once we decide the parallelism
+        .def("Build", py::overload_cast<CsrMatrix<>&>(&ImplicitSchemeType::Build)) //TODO: To be activated once we decide the parallelism
+        .def("Build", py::overload_cast<SystemVector<>&>(&ImplicitSchemeType::Build)) //TODO: To be activated once we decide the parallelism
         .def("BuildMasterSlaveConstraints", &ImplicitSchemeType::BuildMasterSlaveConstraints)
         .def("BuildLinearSystemConstraints", &ImplicitSchemeType::BuildLinearSystemConstraints)
         .def("ApplyLinearSystemConstraints", &ImplicitSchemeType::ApplyLinearSystemConstraints)
