@@ -58,7 +58,7 @@ class HarmonicAnalysisTests(KratosUnittest.TestCase):
     def _setup_harmonic_solver(self,mp,echo=0):
         builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(KratosMultiphysics.LinearSolver())
         eigen_scheme = StructuralMechanicsApplication.EigensolverDynamicScheme()
-        harmonic_strategy = StructuralMechanicsApplication.HarmonicAnalysisStrategy(mp, eigen_scheme, builder_and_solver, False)
+        harmonic_strategy = StructuralMechanicsApplication.ModalHarmonicAnalysisStrategy(mp, eigen_scheme, builder_and_solver, False)
         harmonic_strategy.SetEchoLevel(echo)
 
         return harmonic_strategy
