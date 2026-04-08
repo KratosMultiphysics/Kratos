@@ -64,6 +64,8 @@ class ImportFemussModeler(KratosMultiphysics.Modeler):
     def __ReadFemussGeometry(self):
         # Read geometry from file
         element_ids, connectivity, node_ids, coordinates = self.__ParseGeoFile(self.settings["geo_input_filename"].GetString())
+        if self.echo_level > 0:
+            KratosMultiphysics.Logger.PrintInfo("\t- Geometry file parsed.")
 
         # Consistency checks
         if len(node_ids) != len(coordinates):
@@ -78,6 +80,8 @@ class ImportFemussModeler(KratosMultiphysics.Modeler):
             y = coordinates[i][1]
             z = coordinates[i][2] if len(coordinates[i]) == 3 else 0.0
             self.model_part.CreateNewNode(int(node_id), x, y, z)
+        if self.echo_level > 0:
+            KratosMultiphysics.Logger.PrintInfo(f"\t- Nodes created. Number of nodes: {self.model_part.NumberOfNodes()}.")
 
         # Create geometries
         geometry_name = self.__GetGeometryName(len(connectivity[0]))
@@ -86,6 +90,8 @@ class ImportFemussModeler(KratosMultiphysics.Modeler):
                 geometry_name,
                 int(geom_id),
                 [int(n) for n in connectivity[i]])
+        if self.echo_level > 0:
+            KratosMultiphysics.Logger.PrintInfo(f"\t- Geometries created. Number of geometries: {self.model_part.NumberOfGeometries()}.")
 
     def __GetGeometryName(self, num_nodes):
         if self.dimension == 2:
@@ -103,9 +109,14 @@ class ImportFemussModeler(KratosMultiphysics.Modeler):
 
     def __CreateFixitySubModelParts(self):
         groups = self.__ParseFixFile()
+        if self.echo_level > 0:
+            KratosMultiphysics.Logger.PrintInfo("\t- Fix file parsed.")
+
         for name, data in groups.items():
             sub_model_part = self.model_part.CreateSubModelPart(name)
             sub_model_part.AddNodes(data["nodes"])
+        if self.echo_level > 0:
+            KratosMultiphysics.Logger.PrintInfo("\t- Groups created.")
 
     def __BuildAutoGroupName(self, fix, val):
         fix_str = ''.join('1' if f else '0' for f in fix)
