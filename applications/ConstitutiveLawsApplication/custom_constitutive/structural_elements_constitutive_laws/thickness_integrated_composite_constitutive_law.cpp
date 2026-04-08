@@ -380,10 +380,7 @@ void ThicknessIntegratedCompositeConstitutiveLaw::InitializeShearReductionFactor
         weight = mThicknesses[i_layer];
         z_coord = mZCoordinates[i_layer];
         Euler_angle = mEulerAngles[i_layer];
-
-        // z_coord2 = z_coord * z_coord;
         aux_weight = weight * z_coord;
-        // aux_weight2 = weight * z_coord2;
 
         // We rotate the strain to layer local axes
         AdvancedConstitutiveLawUtilities<3>::CalculateRotationOperatorEuler1(Euler_angle, T);
@@ -453,8 +450,8 @@ void ThicknessIntegratedCompositeConstitutiveLaw::InitializeShearReductionFactor
             layer_int_22 += (Qz2 * Qz2 / Gyz) * gauss_w[gauss_ip];
         }
 
-        thickness_integral_11 += layer_int_11 * (mThicknesses[i_layer] / 2.0);
-        thickness_integral_22 += layer_int_22 * (mThicknesses[i_layer] / 2.0);
+        thickness_integral_11 += layer_int_11 * (mThicknesses[i_layer] * 0.5);
+        thickness_integral_22 += layer_int_22 * (mThicknesses[i_layer] * 0.5);
 
     } // for each layer
 
@@ -498,7 +495,7 @@ void ThicknessIntegratedCompositeConstitutiveLaw::CalculateShearModulus(
         Gyz = (r_material_properties.Has(SHEAR_MODULUS)) ? r_material_properties[SHEAR_MODULUS] : E / (2.0 * (1.0 + v));
         Gxz = Gyz;
     }
-    KRATOS_CATCH("")
+    KRATOS_CATCH("CalculateShearModulus")
 }
 
 /***********************************************************************************/
@@ -729,8 +726,76 @@ void ThicknessIntegratedCompositeConstitutiveLaw::InitializeMaterialResponseCauc
     KRATOS_TRY
 
     if (RequiresInitializeMaterialResponse()) {
-        // TODO
-    }
+
+        // Get Values to compute the constitutive law:
+        const auto& r_material_properties = rValues.GetMaterialProperties();
+        const IndexType number_of_laws = mConstitutiveLaws.size();
+        const auto subprop_strain_size = mConstitutiveLaws[0]->GetStrainSize(); // 3
+        const auto subprop_dimension = mConstitutiveLaws[0]->WorkingSpaceDimension(); // 2
+
+        // The generalized strain vector, constant
+        const Vector generalized_strain_vector = rValues.GetStrainVector(); // size 8
+        Vector generalized_stress_vector(VoigtSize); // size 8
+        Matrix generalized_constitutive_matrix(VoigtSize, VoigtSize); // 8x8
+        generalized_constitutive_matrix.clear();
+        generalized_stress_vector.clear();
+
+        // Auxiliary stress vector
+        Vector& r_stress_vector = rValues.GetStressVector(); // size 3
+        Vector& r_strain_vector = rValues.GetStrainVector(); // size 3
+        Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix(); // size 3x3
+        r_strain_vector.resize(subprop_strain_size, false);
+        r_stress_vector.resize(subprop_strain_size, false);
+        r_constitutive_matrix.resize(subprop_strain_size, subprop_strain_size, false);
+        r_strain_vector.clear();
+        r_stress_vector.clear();
+        r_constitutive_matrix.clear();
+
+        Matrix F(subprop_dimension, subprop_dimension); // 2x2
+        double z_coord, detF, Euler_angle;
+
+        const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
+
+        // Rotation and strain-rotation matrices
+        BoundedMatrix<double, 2, 2> T;
+        BoundedMatrix<double, 3, 3> Tvoigt;
+
+        // We perform the integration through the thickness
+        for (IndexType i_layer = 0; i_layer < number_of_laws; ++i_layer) {
+
+            // Assign subprops of the layer
+            Properties &r_subprop = *(it_prop_begin + i_layer);
+            rValues.SetMaterialProperties(r_subprop);
+
+            // We retrieve the layer info
+            z_coord = mZCoordinates[i_layer];
+            Euler_angle = mEulerAngles[i_layer];
+
+            r_strain_vector[0] = generalized_strain_vector[0] + z_coord * generalized_strain_vector[3]; // xx
+            r_strain_vector[1] = generalized_strain_vector[1] + z_coord * generalized_strain_vector[4]; // yy
+            r_strain_vector[2] = generalized_strain_vector[2] + z_coord * generalized_strain_vector[5]; // xy
+
+            // We rotate the strain to layer local axes
+            AdvancedConstitutiveLawUtilities<3>::CalculateRotationOperatorEuler1(Euler_angle, T);
+            ConstitutiveLawUtilities<3>::CalculateRotationOperatorVoigt(T, Tvoigt);
+            r_strain_vector = prod(Tvoigt, r_strain_vector);
+
+            // In case the 2D Cls work in finite strain
+            noalias(F) = AdvancedConstitutiveLawUtilities<3>::ComputeEquivalentSmallDeformationDeformationGradient(r_strain_vector);
+            detF = MathUtils<double>::Det2(F);
+            rValues.SetDeterminantF(detF);
+            rValues.SetDeformationGradientF(F);
+
+            mConstitutiveLaws[i_layer]->InitializeMaterialResponseCauchy(rValues);
+
+        } // layer loop
+
+        // Reset some values
+        rValues.SetMaterialProperties(r_material_properties);
+        r_strain_vector.resize(VoigtSize, false);
+        noalias(r_strain_vector) = generalized_strain_vector;
+
+    } // if requires
 
     KRATOS_CATCH("InitializeMaterialResponseCauchy")
 }
@@ -775,7 +840,74 @@ void ThicknessIntegratedCompositeConstitutiveLaw::FinalizeMaterialResponseCauchy
     KRATOS_TRY
 
     if (RequiresFinalizeMaterialResponse()) {
-        // TODO
+
+        // Get Values to compute the constitutive law:
+        const auto& r_material_properties = rValues.GetMaterialProperties();
+        const IndexType number_of_laws = mConstitutiveLaws.size();
+        const auto subprop_strain_size = mConstitutiveLaws[0]->GetStrainSize(); // 3
+        const auto subprop_dimension = mConstitutiveLaws[0]->WorkingSpaceDimension(); // 2
+
+        // The generalized strain vector, constant
+        const Vector generalized_strain_vector = rValues.GetStrainVector(); // size 8
+        Vector generalized_stress_vector(VoigtSize); // size 8
+        Matrix generalized_constitutive_matrix(VoigtSize, VoigtSize); // 8x8
+        generalized_constitutive_matrix.clear();
+        generalized_stress_vector.clear();
+
+        // Auxiliary stress vector
+        Vector& r_stress_vector = rValues.GetStressVector(); // size 3
+        Vector& r_strain_vector = rValues.GetStrainVector(); // size 3
+        Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix(); // size 3x3
+        r_strain_vector.resize(subprop_strain_size, false);
+        r_stress_vector.resize(subprop_strain_size, false);
+        r_constitutive_matrix.resize(subprop_strain_size, subprop_strain_size, false);
+        r_strain_vector.clear();
+        r_stress_vector.clear();
+        r_constitutive_matrix.clear();
+
+        Matrix F(subprop_dimension, subprop_dimension); // 2x2
+        double z_coord, detF, Euler_angle;
+
+        const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
+
+        // Rotation and strain-rotation matrices
+        BoundedMatrix<double, 2, 2> T;
+        BoundedMatrix<double, 3, 3> Tvoigt;
+
+        // We perform the integration through the thickness
+        for (IndexType i_layer = 0; i_layer < number_of_laws; ++i_layer) {
+
+            // Assign subprops of the layer
+            Properties &r_subprop = *(it_prop_begin + i_layer);
+            rValues.SetMaterialProperties(r_subprop);
+
+            // We retrieve the layer info
+            z_coord = mZCoordinates[i_layer];
+            Euler_angle = mEulerAngles[i_layer];
+
+            r_strain_vector[0] = generalized_strain_vector[0] + z_coord * generalized_strain_vector[3]; // xx
+            r_strain_vector[1] = generalized_strain_vector[1] + z_coord * generalized_strain_vector[4]; // yy
+            r_strain_vector[2] = generalized_strain_vector[2] + z_coord * generalized_strain_vector[5]; // xy
+
+            // We rotate the strain to layer local axes
+            AdvancedConstitutiveLawUtilities<3>::CalculateRotationOperatorEuler1(Euler_angle, T);
+            ConstitutiveLawUtilities<3>::CalculateRotationOperatorVoigt(T, Tvoigt);
+            r_strain_vector = prod(Tvoigt, r_strain_vector);
+
+            // In case the 2D Cls work in finite strain
+            noalias(F) = AdvancedConstitutiveLawUtilities<3>::ComputeEquivalentSmallDeformationDeformationGradient(r_strain_vector);
+            detF = MathUtils<double>::Det2(F);
+            rValues.SetDeterminantF(detF);
+            rValues.SetDeformationGradientF(F);
+
+            mConstitutiveLaws[i_layer]->FinalizeMaterialResponseCauchy(rValues);
+
+        } // layer loop
+
+        // Reset some values
+        rValues.SetMaterialProperties(r_material_properties);
+        r_strain_vector.resize(VoigtSize, false);
+        noalias(r_strain_vector) = generalized_strain_vector;
     }
 
     KRATOS_CATCH("FinalizeMaterialResponseCauchy")
