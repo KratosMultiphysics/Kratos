@@ -35,10 +35,9 @@ class JacobiPreconditioner(LinearOperator):
 
 class VectorizedCFDStage(analysis_stage.AnalysisStage):
     def __init__(self, model, project_parameters):
-        super().__init__(model,project_parameters)
 
         # Get configuration from problem data settings
-        problem_data = self.project_parameters["problem_data"]
+        problem_data = project_parameters["problem_data"]
         precision = problem_data["precision"].GetString() if problem_data.Has("precision") else "float64"
         parallel_type = problem_data["parallel_type"].GetString() if problem_data.Has("parallel_type") else "open_mp"
 
@@ -55,7 +54,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
         # Get and validate the solving settings
         # Note that these are encapsulated within the customary "solver_settings" block
-        settings = self.project_parameters["solver_settings"]
+        settings = project_parameters["solver_settings"]
         settings.ValidateAndAssignDefaults(self._GetDefaultSolvingSettings())
 
         # Either retrieve the model part from the model or create a new one
@@ -63,10 +62,10 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         if model_part_name == "":
             raise ValueError('Please provide the model part name as the "model_part_name" (string) parameter!')
 
-        if self.model.HasModelPart(model_part_name):
-            self.model_part = self.model.GetModelPart(model_part_name)
+        if model.HasModelPart(model_part_name):
+            self.model_part = model.GetModelPart(model_part_name)
         else:
-            self.model_part = self.model.CreateModelPart(model_part_name)
+            self.model_part = model.CreateModelPart(model_part_name)
 
         # Set the problem dimension
         self.dim = settings["domain_size"].GetInt()
@@ -78,9 +77,6 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         # Note that only linear simplicial elements are supported (i.e., linear triangle and tetrahedron)
         self.n_in_el = 3 if self.dim == 2 else 4
 
-        # Add Kratos variables to the historical database
-        self.AddVariables()
-
         # Set time integration parameters for RK4
         self.dt = settings["time_stepping"]["time_step"].GetDouble()
         self.max_cfl = settings["time_stepping"]["max_cfl_number"].GetDouble()
@@ -91,6 +87,11 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         self.convection_integration_order = settings["convection_integration_order"].GetInt()
         self.pressure_max_iteration = settings["linear_solver_settings"]["max_iterations"].GetInt()
         self.pressure_tolerance = settings["linear_solver_settings"]["tolerance"].GetDouble()
+
+        # Call base analysis stage constructor
+        # Note that this must be done at the end (indeed, after creating the model part)
+        # Otherwise the model part is not created when calling the _AddVariables()
+        super().__init__(model,project_parameters)
 
     def ComputeLumpedMass(self):
         Mscalar = xp.zeros(len(self.model_part.Nodes), dtype=cfd_utils.PRECISION)
@@ -172,8 +173,8 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         # This is equivalent to get the maximum eigenvalue of the elemental convective operator
         return xp.max(xp.abs(advective_projection), axis=1)
 
-    def PrepareModelPart(self):
-        super().PrepareModelPart()
+    def _PrepareModelPart(self):
+        super()._PrepareModelPart()
         self.model_part.ProcessInfo[KM.STEP] = 0
 
         vol_geometries = []
@@ -185,10 +186,10 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         self.vol_mp.AddGeometries(vol_geometries)
 
         ##TODO: change viscosity
-        self.dyn_visc = 2.0e-5
-        self.rho = 1.0e0
+        self.dyn_visc = 1.79e-5
+        self.rho = 1.225e0
 
-    def AddVariables(self):
+    def _AddVariables(self):
         self.model_part.AddNodalSolutionStepVariable(KM.VELOCITY)
         self.model_part.AddNodalSolutionStepVariable(KM.PRESSURE)
         self.model_part.AddNodalSolutionStepVariable(KM.REACTION)
@@ -199,7 +200,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
         self.model_part.SetBufferSize(2)
 
-    def AddDofs(self):
+    def _AddDofs(self):
         dofs_and_reactions_to_add = []
         dofs_and_reactions_to_add.append(["VELOCITY_X", "REACTION_X"])
         dofs_and_reactions_to_add.append(["VELOCITY_Y", "REACTION_Y"])
@@ -257,7 +258,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
     def ElemData(self, v, connectivities):
         return xp.take(v, connectivities,axis=0)
 
-    def AdvanceInTime(self):
+    def _AdvanceTime(self):
         # Get time step and advance in time
         self.time += self.dt # Note that this is the user defined time
         self.model_part.CloneTimeStep(self.time)
@@ -403,6 +404,12 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         print(f"Step 1 total time: {self.step_1_total_time} ({round(100.0 * self.step_1_total_time / total_time)}%)")
         print(f"Step 2 total time: {self.step_2_total_time} ({round(100.0 * self.step_2_total_time / total_time)}%)")
         print(f"Step 3 total time: {self.step_3_total_time} ({round(100.0 * self.step_3_total_time / total_time)}%)")
+
+    def GetComputingModelPart(self):
+        """This function provides a unified way to access the computing model part from outside the stage.
+        It can be overriden in derived classes. By default, it returns the solver computing model part.
+        """
+        return self.model_part
 
     def ComputeVelocityProjection(self, v_elemental):
         # Solve (w,pi) = (w,rho·a·∇u)
