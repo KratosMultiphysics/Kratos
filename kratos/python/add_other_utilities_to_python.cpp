@@ -17,15 +17,14 @@
 // External includes
 
 // Project includes
+#include "python/add_other_utilities_to_python.h"
+#include "spaces/ublas_space.h"
+#include "linear_solvers/linear_solver_ublas.h"
 #include "includes/define_python.h"
+#include "processes/process.h"
 #include "includes/fill_communicator.h"
 #include "includes/global_pointer_variables.h"
 #include "includes/kratos_filesystem.h"
-
-#include "spaces/ublas_space.h"
-#include "python/add_other_utilities_to_python.h"
-
-#include "linear_solvers/linear_solver_ublas.h"
 
 //Other utilities
 #include "utilities/function_parser_utility.h"

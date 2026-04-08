@@ -17,19 +17,15 @@
 
 // Project includes
 #include "includes/define_python.h"
-#include "includes/dof.h"
-#include "includes/ublas_complex_interface.h"
-
-#include "spaces/ublas_space.h"
-
 #include "python/add_linear_solvers_to_python.h"
-
 #include "linear_solvers/cg_solver.h"
 #include "linear_solvers/deflated_cg_solver.h"
 #include "linear_solvers/bicgstab_solver.h"
 #include "linear_solvers/tfqmr_solver.h"
+#include "includes/dof.h"
+#include "includes/ublas_complex_interface.h"
 
-#include "linear_solvers/linear_solver.h"
+#include "linear_solvers/linear_solver_ublas.h"
 #include "linear_solvers/reorderer.h"
 #include "linear_solvers/direct_solver.h"
 #include "linear_solvers/skyline_lu_factorization_solver.h"
