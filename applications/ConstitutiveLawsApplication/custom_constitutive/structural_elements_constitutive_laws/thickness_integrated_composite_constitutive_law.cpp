@@ -306,7 +306,17 @@ void ThicknessIntegratedCompositeConstitutiveLaw::InitializeMaterial(
 
     KRATOS_DEBUG_ERROR_IF(mConstitutiveLaws.size() == 0) << "ThicknessIntegratedCompositeConstitutiveLaw: the vector of constitutive laws is empty..." << std::endl;
 
-    // Let's calculate the shear reduction factors
+    InitializeShearReductionFactors(rMaterialProperties);
+
+    KRATOS_CATCH("ThicknessIntegratedCompositeConstitutiveLaw::InitializeMaterial")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void ThicknessIntegratedCompositeConstitutiveLaw::InitializeShearReductionFactors(
+    const Properties &rMaterialProperties)
+{
 
     const IndexType number_of_laws = mConstitutiveLaws.size();
     const auto subprop_strain_size = mConstitutiveLaws[0]->GetStrainSize(); // 3
@@ -451,10 +461,7 @@ void ThicknessIntegratedCompositeConstitutiveLaw::InitializeMaterial(
      // We calculate the shear reduction factors
     mShearReductionFactors[0] = std::pow(generalized_constitutive_matrix(4, 4), 2) / (thickness_integral_22 * generalized_constitutive_matrix(6, 6)); // YZ shear
     mShearReductionFactors[1] = std::pow(generalized_constitutive_matrix(3, 3), 2) / (thickness_integral_11 * generalized_constitutive_matrix(7, 7)); // XZ shear
-
-    KRATOS_CATCH("ThicknessIntegratedCompositeConstitutiveLaw::InitializeMaterial")
 }
-
 /***********************************************************************************/
 /***********************************************************************************/
 

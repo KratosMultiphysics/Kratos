@@ -419,6 +419,12 @@ public:
         const Vector& rShapeFunctionsValues
         ) override;
 
+    /**
+     * @brief This is to calculate and initialize the mShearReductionFactors at the very beginning of the calculation
+     * @param rMaterialProperties the Properties instance of the current element
+     */
+    void InitializeShearReductionFactors(
+        const Properties &rMaterialProperties);
 
     std::vector<ConstitutiveLaw::Pointer>& GetConstitutiveLaws()
     {
