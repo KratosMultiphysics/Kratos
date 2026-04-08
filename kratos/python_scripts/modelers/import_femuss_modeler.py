@@ -28,10 +28,22 @@ class ImportFemussModeler(KratosMultiphysics.Modeler):
         if self.dimension not in [2, 3]:
             raise ValueError(f"Unsupported problem dimension: {self.dimension}. Only 2D and 3D are supported.")
 
+        # Save echo_level for verbosity
+        self.echo_level = settings["echo_level"].GetInt()
+
     def SetupGeometryModel(self):
         super().SetupGeometryModel()
+
+        if self.echo_level > 0:
+            KratosMultiphysics.Logger.PrintInfo("Reading FEMUSS geometry...")
         self.__ReadFemussGeometry()
+
+        if self.echo_level > 0:
+            KratosMultiphysics.Logger.PrintInfo("Creating groups from FEMUSS fixity...")
         self.__CreateFixitySubModelParts()
+
+        if self.echo_level > 0:
+            KratosMultiphysics.Logger.PrintInfo("FEMUSS geometry set up completed.")
 
     def PrepareGeometryModel(self):
         super().PrepareGeometryModel()
@@ -68,7 +80,6 @@ class ImportFemussModeler(KratosMultiphysics.Modeler):
             self.model_part.CreateNewNode(int(node_id), x, y, z)
 
         # Create geometries
-        print(connectivity)
         geometry_name = self.__GetGeometryName(len(connectivity[0]))
         for i, geom_id in enumerate(element_ids):
             self.model_part.CreateNewGeometry(
