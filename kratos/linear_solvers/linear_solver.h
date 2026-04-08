@@ -383,7 +383,7 @@ public:
 
 private:
     /// A counted pointer to the reorderer object.
-    typename TReordererType::Pointer mpReorderer;
+    typename TReordererType::Pointer mpReorderer = std::make_shared<TReordererType>();
 }; // class LinearSolver
 
 ///@name Input and output
