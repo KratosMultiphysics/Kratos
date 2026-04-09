@@ -53,7 +53,7 @@ namespace Kratos
  * @author Alejandro Cornejo & Lucia Barbu
  */
 template <class TPlasticPotentialType>
-class ThermalRankineYieldSurface
+class KRATOS_EXPOSE ThermalRankineYieldSurface
 {
 public:
     ///@name Type Definitions

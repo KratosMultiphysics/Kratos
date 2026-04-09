@@ -55,7 +55,7 @@ namespace Kratos
 * @author Pooyan Dadvand
 */
 template<class TDataType>
-class Variable : public VariableData
+class KRATOS_EXPOSE Variable : public VariableData
 {
 public:
     ///@name Type Definitions

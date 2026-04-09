@@ -24,6 +24,7 @@
 #include "mapper_utilities.h"
 #include "mapping_application_variables.h"
 #include "utilities/search_utilities.h"
+#include "mappers/mapper_define.h"
 
 namespace Kratos {
 namespace MapperUtilities {

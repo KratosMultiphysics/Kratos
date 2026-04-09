@@ -50,7 +50,7 @@ namespace Kratos
  * @author Alejandro Cornejo & Lucia Barbu
  */
 template <class TPlasticPotentialType>
-class ThermalSimoJuYieldSurface
+class KRATOS_EXPOSE ThermalSimoJuYieldSurface
 {
   public:
     ///@name Type Definitions

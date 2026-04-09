@@ -21,7 +21,7 @@
 #undef KRATOS_API_EXPORT
 #undef KRATOS_API_IMPORT
 #if defined(_WIN32) || defined(_WIN64)
-    #if defined(__MINGW32__) || defined(__MINGW64__) || defined(__INTEL_LLVM_COMPILER )
+    #if defined(__MINGW32__) || defined(__MINGW64__) || defined(__INTEL_LLVM_COMPILER) || defined(__clang__)
         #define KRATOS_API_EXPORT __attribute__((visibility("default")))
         #define KRATOS_API_IMPORT __attribute__((visibility("default")))
     #else
@@ -31,6 +31,17 @@
 #else
     #define KRATOS_API_EXPORT __attribute__((visibility("default")))
     #define KRATOS_API_IMPORT __attribute__((visibility("default")))
+#endif
+
+#undef KRATOS_EXPOSE
+#if defined(_WIN32) || defined(_WIN64)
+    #if defined(__MINGW32__) || defined(__MINGW64__) || defined(__INTEL_LLVM_COMPILER )
+        #define KRATOS_EXPOSE __attribute__((visibility("default")))
+    #else
+        #define KRATOS_EXPOSE
+    #endif
+#else
+    #define KRATOS_EXPOSE __attribute__((visibility("default")))
 #endif
 
 // Fixes MSVC not expanding __VA_ARGS__ as defined in the C99 standard
@@ -59,7 +70,7 @@
 // Conditionally declare explicit template instances, since explicit instantiation does not play nice with dllexport
 #undef KRATOS_API_EXTERN
 #if defined(_WIN32) || defined(_WIN64)
-    #if defined(__MINGW32__) || defined(__MINGW64__) || defined(__INTEL_LLVM_COMPILER )
+    #if defined(__MINGW32__) || defined(__MINGW64__) || defined(__INTEL_LLVM_COMPILER) || defined(__clang__)
         #define KRATOS_API_EXTERN extern
     #else
         #define KRATOS_API_EXTERN

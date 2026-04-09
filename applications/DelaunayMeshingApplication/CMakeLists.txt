@@ -88,7 +88,7 @@ set( KRATOS_DELAUNAY_MESHING_APPLICATION_PYTHON_INTERFACE
 
 add_library(KratosDelaunayMeshingCore SHARED ${KRATOS_DELAUNAY_MESHING_APPLICATION_CORE})
 target_link_libraries(KratosDelaunayMeshingCore PUBLIC KratosCore ${MESHER_LIBRARIES})
-set_target_properties(KratosDelaunayMeshingCore PROPERTIES COMPILE_DEFINITIONS "DELAUNAY_MESHING_APPLICATION=EXPORT,API")
+set_target_properties(KratosDelaunayMeshingCore PROPERTIES CXX_VISIBILITY_PRESET hidden VISIBILITY_INLINES_HIDDEN ON COMPILE_DEFINITIONS "DELAUNAY_MESHING_APPLICATION=EXPORT,API")
 
 ###############################################################
 ## define library Kratos which defines the basic python interface

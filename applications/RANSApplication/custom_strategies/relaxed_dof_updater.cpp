@@ -19,42 +19,38 @@
 
 namespace Kratos
 {
-template <>
-void RelaxedDofUpdater<UblasSpace<double, CompressedMatrix, Vector>>::Initialize(
-    const DofsArrayType& rDofSet,
-    const SystemVectorType& rDx)
-{
-}
 
-template <>
-void RelaxedDofUpdater<UblasSpace<double, CompressedMatrix, Vector>>::Clear()
-{
-}
+using SparseSpace = UblasSpace<double, CompressedMatrix, Vector>;
 
-template <>
-void RelaxedDofUpdater<UblasSpace<double, CompressedMatrix, Vector>>::UpdateDofs(
+template<class TSparseSpace>
+void RelaxedDofUpdater<TSparseSpace>::UpdateDofs(
     DofsArrayType& rDofSet,
     const SystemVectorType& rDx)
 {
-    block_for_each(rDofSet, [&](DofType& rDof) {
-        if (rDof.IsFree()) {
-            rDof.GetSolutionStepValue() += rDx[rDof.EquationId()] * mRelaxationFactor;
-        }
-    });
+    if constexpr (std::is_same_v<TSparseSpace, SparseSpace>) {
+        block_for_each(rDofSet, [&](DofType& rDof) {
+            if (rDof.IsFree()) {
+                rDof.GetSolutionStepValue() += rDx[rDof.EquationId()] * mRelaxationFactor;
+            }
+        });
+    }
 }
 
-template <>
-std::string RelaxedDofUpdater<UblasSpace<double, CompressedMatrix, Vector>>::Info() const
+template<class TSparseSpace>
+std::string RelaxedDofUpdater<TSparseSpace>::Info() const
 {
-    std::stringstream buffer;
-    buffer << "RelaxedDofUpdater - UblasSpace";
-    return buffer.str();
+    if constexpr (std::is_same_v<TSparseSpace, SparseSpace>) {
+        std::stringstream buffer;
+        buffer << "RelaxedDofUpdater - UblasSpace";
+        return buffer.str();
+    }
 }
 
 ///@}
 
 //class template instantiations
-template class RelaxedDofUpdater<UblasSpace<double, CompressedMatrix, Vector>>;
+template class DofUpdater<SparseSpace>;
+template class RelaxedDofUpdater<SparseSpace>;
 }; // namespace Kratos
 
 ///@}

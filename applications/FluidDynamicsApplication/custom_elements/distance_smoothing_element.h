@@ -43,7 +43,7 @@ namespace Kratos
 ///@{
 
 template< unsigned int TDim >
-class DistanceSmoothingElement : public Element
+class KRATOS_API(FLUID_DYNAMICS_APPLICATION) DistanceSmoothingElement : public Element
 {
 public:
 

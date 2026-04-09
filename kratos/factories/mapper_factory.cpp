@@ -88,7 +88,7 @@ typedef typename MapperDefinitions::DenseSpaceType  DenseSpaceType;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Class template instantiation
-template class MapperFactory< SparseSpaceType, DenseSpaceType >;
+template class  MapperFactory< SparseSpaceType, DenseSpaceType >;
 
 }  // namespace Kratos.
 

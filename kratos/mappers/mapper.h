@@ -39,7 +39,7 @@ namespace Kratos
  * It provides the basic interface for the mapping operations
 */
 template<class TSparseSpace, class TDenseSpace>
-class Mapper
+class KRATOS_EXPOSE Mapper
 {
 public:
 

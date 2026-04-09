@@ -325,11 +325,18 @@ private:
     ///@name Private static operations
     ///@{
 
+    template<typename T>
+    static constexpr T identity(T index) { return index; }
+
     template<unsigned int TCheckIndex, unsigned int TCurrentIndex = 0>
     requires (TCheckIndex == 0)
     static constexpr bool IsDimensionDynamicImpl()
     {
-        return false;
+        if constexpr(TCheckIndex == 0) {
+            return false;
+        } else {
+            static_assert(identity(TCheckIndex) != TCheckIndex, "Invalid dimension index.");
+        }
     }
 
     ///@}
@@ -1888,11 +1895,18 @@ private:
     ///@name Private static operations
     ///@{
 
+    template<typename T>
+    static constexpr T identity(T index) { return index; }
+
     template<unsigned int TCheckIndex, unsigned int TCurrentIndex>
     requires (TCheckIndex == TCurrentIndex)
     static constexpr bool IsDimensionDynamicImpl()
     {
-        return true;
+        if constexpr(TCheckIndex == TCurrentIndex) {
+            return true;
+        } else {
+            static_assert(identity(TCheckIndex) != TCheckIndex, "Invalid dimension index.");
+        }
     }
 
     ///@}

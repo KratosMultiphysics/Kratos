@@ -38,7 +38,7 @@ file(GLOB_RECURSE KRATOS_ROM_APPLICATION_PYTHON_INTERFACE ${CMAKE_CURRENT_SOURCE
 
 add_library(KratosRomCore SHARED ${KRATOS_ROM_APPLICATION_CORE})
 target_link_libraries(KratosRomCore PUBLIC KratosCore KratosLinearSolversCore)
-set_target_properties(KratosRomCore PROPERTIES COMPILE_DEFINITIONS "ROM_APPLICATION=EXPORT,API")
+set_target_properties(KratosRomCore PROPERTIES CXX_VISIBILITY_PRESET hidden VISIBILITY_INLINES_HIDDEN ON COMPILE_DEFINITIONS "ROM_APPLICATION=EXPORT,API")
 
 ###############################################################
 ## define library Kratos which defines the basic python interface
