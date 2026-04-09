@@ -20,7 +20,7 @@
         },
         "time_stepping": {
             "time_step": 1,
-            "max_delta_time_factor": 86400000000
+            "max_delta_time_factor": 8.64e+10
         },
         "buffer_size": 2,
         "echo_level": 1,
@@ -32,8 +32,8 @@
         "reset_displacements": false,
         "strategy_type": "newton_raphson",
         "convergence_criterion": "residual_criterion",
-        "residual_relative_tolerance": 0.0001,
-        "residual_absolute_tolerance": 1e-09,
+        "residual_relative_tolerance": 1.0e-04,
+        "residual_absolute_tolerance": 1.0e-09,
         "min_iterations": 6,
         "max_iterations": 60,
         "number_cycles": 1,
@@ -78,7 +78,7 @@
                             "body_output": true,
                             "node_output": false,
                             "skin_output": false,
-                            "nodal_results": ["TOTAL_DISPLACEMENT","WATER_PRESSURE"],
+                            "nodal_results": ["TOTAL_DISPLACEMENT", "WATER_PRESSURE"],
                             "gauss_point_results": []
                         }
                     }
@@ -106,7 +106,7 @@
                 "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
                 "process_name": "ApplyVectorConstraintTableProcess",
                 "Parameters": {
-                    "model_part_name_list": ["PorousDomain.LeftSide","PorousDomain.RightSide"],
+                    "model_part_name_list": ["PorousDomain.LeftSide", "PorousDomain.RightSide"],
                     "variable_name": "DISPLACEMENT",
                     "active": [true, false, false],
                     "is_fixed": [true, false, false],
