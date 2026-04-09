@@ -271,7 +271,7 @@ public:
             r_constitutive_matrix.clear();
             
             Matrix F(subprop_dimension, subprop_dimension); // 2x2
-            double weight, z_coord, aux_weight, detF, Euler_angle;
+            double z_coord, detF, Euler_angle;
             
             double Gyz = 0.0;
             double Gxz = 0.0;

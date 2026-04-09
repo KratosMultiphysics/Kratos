@@ -330,7 +330,7 @@ void ThicknessIntegratedCompositeConstitutiveLaw::InitializeShearReductionFactor
     r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
 
     Matrix F(subprop_dimension, subprop_dimension); // 2x2
-    double weight, z_coord, z_coord2, aux_weight, aux_weight2, detF, Euler_angle;
+    double weight, z_coord, aux_weight, detF, Euler_angle;
 
     double Gyz = 0.0;
     double Gxz = 0.0;
