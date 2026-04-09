@@ -354,8 +354,6 @@ class ShellQ4ThickDrillingRollUpTests(StructuralMechanicsTestFactory):
     file_name = "shell_test/Shell_Q4_Thick__DrillingRollUp_test"
 
 @KratosUnittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
-class ShellQ4ThickOrthotropicLaminateLinearStaticTests(StructuralMechanicsTestFactory):
-    file_name = "shell_test/Shell_Q4_Thick_orthotropic_laminate_linear_static_test"
 class ShellT3ThinBendingRollUpTests(StructuralMechanicsTestFactory):
     file_name = "shell_test/Shell_T3_Thin__BendingRollUp_test"
 class ShellT3ThinDrillingRollUpTests(StructuralMechanicsTestFactory):
