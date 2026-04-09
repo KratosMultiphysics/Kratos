@@ -41,29 +41,6 @@ class KratosGeoMechanicsUPwInterfaceTests(KratosUnittest.TestCase):
         return times
 
     @staticmethod
-    def _top_vector_component_differences(
-        vectors_a,
-        vectors_b,
-        ids_a,
-        ids_b,
-        component_index,
-        top_n=5,
-    ):
-        differences = [
-            (
-                abs(vector_a[component_index] - vector_b[component_index]),
-                id_a,
-                id_b,
-                vector_a[component_index],
-                vector_b[component_index],
-            )
-            for id_a, id_b, vector_a, vector_b in zip(
-                ids_a, ids_b, vectors_a, vectors_b
-            )
-        ]
-        return sorted(differences, key=lambda item: item[0], reverse=True)[:top_n]
-
-    @staticmethod
     def _top_scalar_differences(values_a, values_b, ids_a, ids_b, top_n=5):
         differences = [
             (
@@ -331,13 +308,19 @@ class KratosGeoMechanicsUPwInterfaceTests(KratosUnittest.TestCase):
         soil_displacements = GiDOutputFileReader.nodal_values_at_time(
             "TOTAL_DISPLACEMENT", soil_time, soil_output, soil_node_ids
         )
-        top_displacement_differences = self._top_vector_component_differences(
-            interface_displacements,
-            soil_displacements,
-            interface_node_ids,
-            soil_node_ids,
-            component_index=1,
-        )
+        top_displacement_differences = sorted(
+            [
+                (abs(a[1] - b[1]), id_a, id_b, a[1], b[1])
+                for id_a, id_b, a, b in zip(
+                    interface_node_ids,
+                    soil_node_ids,
+                    interface_displacements,
+                    soil_displacements,
+                )
+            ],
+            key=lambda item: item[0],
+            reverse=True,
+        )[:5]
         max_displacement_difference_y = (
             top_displacement_differences[0][0] if top_displacement_differences else 0.0
         )
