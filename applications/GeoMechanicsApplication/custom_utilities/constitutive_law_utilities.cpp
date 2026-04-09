@@ -130,8 +130,8 @@ void ConstitutiveLawUtilities::CheckHasStrainMeasure_Infinitesimal(const Propert
 {
     ConstitutiveLaw::Features LawFeatures;
     rProperties[CONSTITUTIVE_LAW]->GetLawFeatures(LawFeatures);
-    const auto correct_strain_measure = std::any_of(
-        LawFeatures.mStrainMeasures.begin(), LawFeatures.mStrainMeasures.end(), [](auto& strain_measure) {
+    const auto correct_strain_measure =
+        std::ranges::any_of(LawFeatures.mStrainMeasures, [](auto& strain_measure) {
         return strain_measure == ConstitutiveLaw::StrainMeasure_Infinitesimal;
     });
 
@@ -144,6 +144,37 @@ void ConstitutiveLawUtilities::CheckHasStrainMeasure_Infinitesimal(const Propert
 double ConstitutiveLawUtilities::CalculateK0NCFromFrictionAngleInRadians(double FrictionAngleInRadians)
 {
     return 1.0 - std::sin(FrictionAngleInRadians);
+}
+
+double ConstitutiveLawUtilities::GetUndrainedYoungsModulus(const Properties& rProperties, double UndrainedPoissonsRatio)
+{
+    return rProperties[YOUNG_MODULUS] * (1.0 + UndrainedPoissonsRatio) / (1.0 + rProperties[POISSON_RATIO]);
+}
+
+double ConstitutiveLawUtilities::GetUndrainedPoissonsRatio(const Properties& rProperties)
+{
+    if (rProperties.Has(POISSON_UNDRAINED)) {
+        return rProperties[POISSON_UNDRAINED];
+    }
+
+    auto skempton_b     = ConstitutiveLawUtilities::GetSkemptonB(rProperties);
+    auto biot_alpha     = rProperties[BIOT_COEFFICIENT];
+    auto poissons_ratio = rProperties[POISSON_RATIO];
+    return (3.0 * poissons_ratio + biot_alpha * skempton_b * (1.0 - 2.0 * poissons_ratio)) /
+           (3.0 - biot_alpha * skempton_b * (1.0 - 2.0 * poissons_ratio));
+}
+
+double ConstitutiveLawUtilities::GetSkemptonB(const Properties& rProperties)
+{
+    if (rProperties.Has(SKEMPTON_B)) {
+        return rProperties[SKEMPTON_B];
+    }
+
+    auto k_f = rProperties[BULK_MODULUS_FLUID];
+    auto k_s = rProperties[BULK_MODULUS_SOLID]; // or should this be k skeleton, the porous material i.s.o. the solid
+    auto porosity   = rProperties[POROSITY];
+    auto biot_alpha = rProperties[BIOT_COEFFICIENT];
+    return biot_alpha / (biot_alpha + porosity * ((k_s / k_f) + biot_alpha - 1.0));
 }
 
 } // namespace Kratos

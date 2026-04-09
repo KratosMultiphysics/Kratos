@@ -12,7 +12,9 @@
 
 #include "plane_strain.h"
 
+#include "custom_utilities/constitutive_law_utilities.h"
 #include "geo_mechanics_application_constants.h"
+#include "geo_mechanics_application_variables.h"
 #include "includes/constitutive_law.h"
 
 namespace Kratos
@@ -20,12 +22,23 @@ namespace Kratos
 
 Matrix PlaneStrain::CalculateElasticMatrix(const Properties& rProperties) const
 {
-    const auto youngs_modulus = rProperties[YOUNG_MODULUS];
-    const auto poissons_ratio = rProperties[POISSON_RATIO];
-    const auto c0 = youngs_modulus / ((1.0 + poissons_ratio) * (1.0 - 2.0 * poissons_ratio));
-    const auto c1 = (1.0 - poissons_ratio) * c0;
-    const auto c2 = poissons_ratio * c0;
-    const auto c3 = (0.5 - poissons_ratio) * c0;
+    double E;
+    double nu;
+    auto   drainage_type = rProperties.Has(GEO_DRAINAGE_TYPE)
+                               ? static_cast<DrainageType>(rProperties[GEO_DRAINAGE_TYPE])
+                               : DrainageType::FULLY_COUPLED;
+    if (drainage_type == DrainageType::UNDRAINED) {
+        nu = ConstitutiveLawUtilities::GetUndrainedPoissonsRatio(rProperties);
+        E  = ConstitutiveLawUtilities::GetUndrainedYoungsModulus(rProperties, nu);
+    } else {
+        E  = rProperties[YOUNG_MODULUS];
+        nu = rProperties[POISSON_RATIO];
+    }
+
+    const auto c0            = E / ((1.0 + nu) * (1.0 - 2.0 * nu));
+    const auto c1            = (1.0 - nu) * c0;
+    const auto c2            = nu * c0;
+    const auto shear_modulus = E / (2.0 * (1.0 + nu));
 
     Matrix result = ZeroMatrix(4, 4);
 
@@ -41,7 +54,7 @@ Matrix PlaneStrain::CalculateElasticMatrix(const Properties& rProperties) const
     result(INDEX_2D_PLANE_STRAIN_ZZ, INDEX_2D_PLANE_STRAIN_YY) = c2;
     result(INDEX_2D_PLANE_STRAIN_ZZ, INDEX_2D_PLANE_STRAIN_ZZ) = c1;
 
-    result(INDEX_2D_PLANE_STRAIN_XY, INDEX_2D_PLANE_STRAIN_XY) = c3;
+    result(INDEX_2D_PLANE_STRAIN_XY, INDEX_2D_PLANE_STRAIN_XY) = shear_modulus;
 
     return result;
 }
