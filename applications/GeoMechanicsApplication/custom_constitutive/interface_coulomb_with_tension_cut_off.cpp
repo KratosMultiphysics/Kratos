@@ -161,7 +161,7 @@ void InterfaceCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(Paramete
 
     if (!mCoulombWithTensionCutOffImpl.IsAdmissibleStressState(trial_sigma_tau)) {
         mapped_sigma_tau = mCoulombWithTensionCutOffImpl.DoReturnMapping(
-            trial_sigma_tau, mpConstitutiveDimension->CalculateElasticMatrix(r_properties),
+            trial_sigma_tau, mpConstitutiveDimension->CalculateElasticConstitutiveTensor(r_properties),
             Geo::PrincipalStresses::AveragingType::NO_AVERAGING);
         if (negative) mapped_sigma_tau.Tau() *= -1.0;
     }
@@ -176,7 +176,7 @@ Geo::SigmaTau InterfaceCoulombWithTensionCutOff::CalculateTrialTractionVector(co
 {
     constexpr auto number_of_normal_components = std::size_t{1};
     return Geo::SigmaTau{mTractionVectorFinalized +
-                         prod(ConstitutiveLawUtilities::MakeInterfaceConstitutiveMatrix(
+                         prod(ConstitutiveLawUtilities::MakeInterfaceConstitutiveTensor(
                                   NormalStiffness, ShearStiffness, GetStrainSize(), number_of_normal_components),
                               rRelativeDisplacementVector - mRelativeDisplacementVectorFinalized)};
 }
@@ -194,7 +194,7 @@ Matrix& InterfaceCoulombWithTensionCutOff::CalculateValue(Parameters& rConstitut
     if (rVariable == CONSTITUTIVE_MATRIX) {
         const auto&    r_properties = rConstitutiveLawParameters.GetMaterialProperties();
         constexpr auto number_of_normal_components = std::size_t{1};
-        rValue = ConstitutiveLawUtilities::MakeInterfaceConstitutiveMatrix(
+        rValue = ConstitutiveLawUtilities::MakeInterfaceConstitutiveTensor(
             r_properties[INTERFACE_NORMAL_STIFFNESS], r_properties[INTERFACE_SHEAR_STIFFNESS],
             GetStrainSize(), number_of_normal_components);
     } else {

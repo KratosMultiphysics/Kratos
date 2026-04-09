@@ -64,7 +64,7 @@ KRATOS_TEST_CASE_IN_SUITE(ThreeDimensional_CalculateElasticMatrixReturnsConstitu
     properties.SetValue(POISSON_RATIO, 0.0);
 
     // Act
-    auto constitutive_tensor = p_three_dimensional->CalculateElasticMatrix(properties);
+    auto constitutive_tensor = p_three_dimensional->CalculateElasticConstitutiveTensor(properties);
 
     // Assert
     auto expected_tensor = UblasUtilities::CreateMatrix({{1.0, 0.0, 0.0, 0.0, 0.0, 0.0},
@@ -83,7 +83,7 @@ KRATOS_TEST_CASE_IN_SUITE(ThreeDimensional_CalculateElasticMatrixReturnsConstitu
     properties.SetValue(POROSITY, 0.5);
 
     // Act
-    constitutive_tensor = p_three_dimensional->CalculateElasticMatrix(properties);
+    constitutive_tensor = p_three_dimensional->CalculateElasticConstitutiveTensor(properties);
 
     // Assert
     expected_tensor = UblasUtilities::CreateMatrix({{4.0 / 3.0, 1.0 / 3.0, 1.0 / 3.0, 0.0, 0.0, 0.0},
@@ -101,7 +101,7 @@ KRATOS_TEST_CASE_IN_SUITE(ThreeDimensional_CalculateElasticMatrixReturnsConstitu
     properties.SetValue(SKEMPTON_B, 0.5);
 
     // Act
-    constitutive_tensor = p_three_dimensional->CalculateElasticMatrix(properties);
+    constitutive_tensor = p_three_dimensional->CalculateElasticConstitutiveTensor(properties);
 
     // Assert
     KRATOS_EXPECT_MATRIX_EQ(constitutive_tensor, expected_tensor);
@@ -112,7 +112,7 @@ KRATOS_TEST_CASE_IN_SUITE(ThreeDimensional_CalculateElasticMatrixReturnsConstitu
     properties.SetValue(POISSON_UNDRAINED, 0.2);
 
     // Act
-    constitutive_tensor = p_three_dimensional->CalculateElasticMatrix(properties);
+    constitutive_tensor = p_three_dimensional->CalculateElasticConstitutiveTensor(properties);
 
     // Assert
     KRATOS_EXPECT_MATRIX_EQ(constitutive_tensor, expected_tensor);

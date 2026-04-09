@@ -20,7 +20,7 @@
 namespace Kratos
 {
 
-Matrix PlaneStrain::CalculateElasticMatrix(const Properties& rProperties) const
+Matrix PlaneStrain::CalculateElasticConstitutiveTensor(const Properties& rProperties) const
 {
     const auto   drainage_type = rProperties.Has(GEO_DRAINAGE_TYPE)
                                      ? static_cast<DrainageType>(rProperties[GEO_DRAINAGE_TYPE])

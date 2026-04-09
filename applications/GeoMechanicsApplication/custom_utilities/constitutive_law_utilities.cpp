@@ -105,7 +105,7 @@ double ConstitutiveLawUtilities::GetFrictionAngleInRadians(const Properties& rPr
     return MathUtils<>::DegreesToRadians(GetFrictionAngleInDegrees(rProperties));
 }
 
-Matrix ConstitutiveLawUtilities::MakeInterfaceConstitutiveMatrix(double      NormalStiffness,
+Matrix ConstitutiveLawUtilities::MakeInterfaceConstitutiveTensor(double      NormalStiffness,
                                                                  double      ShearStiffness,
                                                                  std::size_t TractionSize,
                                                                  std::size_t NumberOfNormalComponents)
