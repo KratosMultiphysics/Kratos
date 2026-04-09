@@ -612,6 +612,7 @@ private:
         rSerializer.save("ZCoordinates", mZCoordinates);
         rSerializer.save("EulerAngles", mEulerAngles);
         rSerializer.save("Thicknesses", mThicknesses);
+        rSerializer.save("ShearReductionFactors", mShearReductionFactors);
     }
 
     void load(Serializer& rSerializer) override
@@ -621,6 +622,7 @@ private:
         rSerializer.load("ThicknessIntegrationPoints", mZCoordinates);
         rSerializer.load("EulerAngles", mEulerAngles);
         rSerializer.load("Thicknesses", mThicknesses);
+        rSerializer.load("ShearReductionFactors", mShearReductionFactors);
     }
 
 
