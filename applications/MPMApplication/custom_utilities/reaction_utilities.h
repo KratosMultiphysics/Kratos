@@ -26,7 +26,7 @@ namespace Kratos
 // The line or surface can be a part of the boundary of the background grid
 // (conforming boundary conditions) or can be defined through material
 // point conditions (non-conforming boundary conditions)
-class ReactionUtilities
+class KRATOS_API(MPM_APPLICATION) ReactionUtilities
 {
 public:
 
