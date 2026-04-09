@@ -45,7 +45,7 @@ Both same-order and diff-order element families are included. The figure below s
 - Stage 1: gravity loading + K0 initialization
 - Stage 2:
 	- prescribed top vertical displacement (table to $-0.01\ \mathrm{[m]}$)
-	- prescribed top water pressure table (from $0$ to $1000\ \mathrm{[Pa]}$)
+	- prescribed top water pressure table (which varies linearly in time from $0$ (at $`t = 0`$) to $1000\ \mathrm{[Pa]}$ (at $`t = 1`$))
 
 ## Material models
 
@@ -62,9 +62,9 @@ Both same-order and diff-order element families are included. The figure below s
 ### Interface (`PorousDomain.Interface`)
 
 - Constitutive law: `GeoIncrementalLinearElasticInterfaceLaw`
-- `INTERFACE_NORMAL_STIFFNESS = 6.4e10`
-- `INTERFACE_SHEAR_STIFFNESS = 2.6000869565e10`
-- `TRANSVERSAL_PERMEABILITY = 5.0e-4`
+- $k_{\mathrm{n}} = 6.4e10\ \mathrm{[N/m^3]}$
+- $k_{\mathrm{t}} = 2.6000869565e10\ \mathrm{[N/m^3]}$
+- $k_{\perp} = 5.0e-4\ \mathrm{[m^2]}$
 - $\mu=1.0e-3\ \mathrm{[Pa\cdot s]}$
 
 ## Assertions
