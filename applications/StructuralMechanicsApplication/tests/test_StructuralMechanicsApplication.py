@@ -55,9 +55,11 @@ from test_nodal_damping import NodalDampingTests as TNodalDampingTests
 from test_rve_analytic import TestRVESimplestTest as TTestRVESimplestTest
 # Spring damper element test
 from test_spring_damper_element import SpringDamperElementTests as TSpringDamperElementTests
-# Harmonic analysis tests
-from test_harmonic_analysis import HarmonicAnalysisTests as THarmonicAnalysisTests
-from test_harmonic_analysis import HarmonicAnalysisTestsWithHDF5 as THarmonicAnalysisTestsWithHDF5
+# Harmonic analysis tests - Modal Superposition
+from test_modal_harmonic_analysis import HarmonicAnalysisTests as THarmonicAnalysisTests
+from test_modal_harmonic_analysis import HarmonicAnalysisTestsWithHDF5 as THarmonicAnalysisTestsWithHDF5
+# Harmonic analysis tests - Direct
+from test_direct_harmonic_analysis import DirectHarmonicAnalysisTests as TDirectHarmonicAnalysisTests
 # Dynamic eigenvalue test
 from test_dynamic_eigenvalue_analysis import TestDynamicEigenvalueAnalysis as TTestDynamicEigenvalueAnalysis
 # Dynamic basic tests
@@ -461,6 +463,7 @@ def AssembleTestSuites():
             print("FEAST not available in LinearSolversApplication")
 
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([THarmonicAnalysisTestsWithHDF5]))
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TDirectHarmonicAnalysisTests]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestStepControllers]))
 
     nightSuite.addTest(TTestAdjointSensitivityAnalysisBeamStructureLocalStress('test_execution'))
