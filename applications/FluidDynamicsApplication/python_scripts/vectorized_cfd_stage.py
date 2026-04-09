@@ -20,18 +20,16 @@ class JacobiPreconditioner(LinearOperator):
         """
         self.shape = A.shape
         self.dtype = A.dtype
-        
+
         # Store the inverse diagonal as a class attribute
         self.inv_diag = 1.0 / A.diagonal()
 
     def _matvec(self, v):
         """
-        Applies the preconditioner to vector v. 
+        Applies the preconditioner to vector v.
         CuPy's solver automatically calls this method.
         """
         return self.inv_diag * v
-        
-
 
 class VectorizedCFDStage(analysis_stage.AnalysisStage):
     def __init__(self, model, project_parameters):
@@ -58,7 +56,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         settings.ValidateAndAssignDefaults(self._GetDefaultSolvingSettings())
 
         # Either retrieve the model part from the model or create a new one
-        model_part_name = settings["model_part_name"].GetString()       
+        model_part_name = settings["model_part_name"].GetString()
         if model_part_name == "":
             raise ValueError('Please provide the model part name as the "model_part_name" (string) parameter!')
 
@@ -137,8 +135,8 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         """
 
         c_1 = 4.0
-        c_2 = 2.0      
-   
+        c_2 = 2.0
+
         denom_max = 1.0e-3*rho/dt
         denom = xp.maximum(denom_max, c_2*rho*rho_conv + c_1*viscosity/h**2) #TODO: check if we can reuse Fourier and CFL numbers here
         tau_1 = 1.0 / denom
@@ -147,7 +145,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         if self.clear_divergence_steps > 0:
             tau_1.fill(0.0)
             tau_2.fill(0.0)
-        
+
         return tau_1, tau_2
 
     def ComputeElementalConvectiveOperatorSpectralRadius(self, v):
@@ -160,12 +158,12 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         # In consequence, this term scales like |v|/h_i
         advective_projection = xp.einsum('ek, enk -> en', v_el_mean, self.DN)
 
-        # # Get the convective spectral radius (inverse time scale) as the average of the values in each direction 
+        # # Get the convective spectral radius (inverse time scale) as the average of the values in each direction
         # # Note that this is an approximation of the elemental convective operator spectral radius
-        # return xp.sum(xp.abs(advective_projection), axis=1) / self.n_in_el 
+        # return xp.sum(xp.abs(advective_projection), axis=1) / self.n_in_el
 
         # # Get the convective operator row-sum as an upper bound of its spectral radius (inverse time scale)
-        # # Note that using this as an approximation of the spectral radius results in a conservative estimation of the time increment when computing the CFL 
+        # # Note that using this as an approximation of the spectral radius results in a conservative estimation of the time increment when computing the CFL
         # # On the contrary, when using it in the subscale stabilization factor calculation (tau_1) results in a smaller contribution of the subscales
         # return xp.sum(xp.abs(advective_projection), axis=1)
 
@@ -361,6 +359,15 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         # Compute the Fourier number time step restriction (constant as h, rho and mu are constant in time)
         aux = self.max_fourier * self.rho / self.dyn_visc
         self.dt_fourier = np.min(aux * self.h**2)
+
+        # Assemble Laplacian matrix (w/o stabilization) to get the graph for AMG
+        L_el = self.cfd_utils.ComputeLaplacianMatrix(self.DN) # elemental laplacian contributions as L_IJ := (∇N_I,∇N_J)
+        L_el *= self.elemental_volumes[:, None, None] # scale Laplaciant elemental contributions
+        self.cfd_utils.AssembleScalarMatrixByCSRIndices(L_el, self.L_assembly_indices, self.L) # assemble the scaled elemental contributions
+        print(f"Setting graph for AMG with {self.L.nnz} nonzeros and {self.L.shape[0]} rows")
+        t0 = time.perf_counter()
+        self.graph_sa = cfd_utils.GraphBasedSA_AMG(self.L, max_coarse=300)
+        print(f"AMG graph setup time: {time.perf_counter()-t0}")
 
         #FIXME: remove after developing
         self.step_1_total_time = 0.0
@@ -565,10 +572,14 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         pres_proj_el = self.ElemData(pres_proj, self.connectivity)
 
         # Assemble pressure LHS (set to zero is done internally)
+        t0 = time.perf_counter()
         L_el = self.cfd_utils.ComputeLaplacianMatrix(self.DN) # elemental laplacian contributions as L_IJ := (∇N_I,∇N_J)
+        print(f"Time to compute elemental Laplacian contributions: {time.perf_counter()-t0}")
         coef = (dt / self.rho / 2.0 + self.tau_1) * self.elemental_volumes
         L_el *= coef[:, None, None] # scale LHS elemental contributions
+        t0 = time.perf_counter()
         self.cfd_utils.AssembleScalarMatrixByCSRIndices(L_el, self.L_assembly_indices, self.L) # assemble the scaled elemental contributions
+        print(f"Time to assemble pressure LHS: {time.perf_counter()-t0}")
 
         # -(q,∇·ufrac)
         rhs_el = -self.cfd_utils.ComputeElementwiseNodalDivergence(self.N, self.DN, vel_frac)
@@ -591,7 +602,9 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         self.cfd_utils.AssembleVector(self.connectivity, rhs_el, rhs)
 
         # Apply pressure BCs
+        t0 = time.perf_counter()
         self.cfd_utils.ApplyHomogeneousDirichlet(self.fix_pres_indices, self.csr_data_indices, self.csr_diag_indices, self.L, rhs)
+        print(f"Time to apply pressure BCs: {time.perf_counter()-t0}")
 
         # Solve the system
         ##TODO: use amgcl instead of this one!! ... and also avoid creating temporaries
@@ -666,7 +679,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         v_old_dirichlet = vold.ravel()[self.fix_vel_indices]
 
         # Perform substepping
-        dt = self.model_part.ProcessInfo[KM.DELTA_TIME]
+        self.update_precond = True # Update preconditioner at the first substep
         current_time = self.time - self.dt
         while (self.time - current_time > 1.0e-12):
             # Compute convective operator spectral radius
@@ -954,10 +967,18 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
                 return self.x_amgx.download(), is_converged
             else:
-                precond = JacobiPreconditioner(self.L)
-                
+                # precond = JacobiPreconditioner(self.L)
+                if self.update_precond:
+                    t0 = time.perf_counter()
+                    self.graph_sa.update_matrix_values(self.L)
+                    print(f"AMG graph update time: {time.perf_counter() - t0:.4f} seconds")
+                    self.update_precond = True
+                precond = self.graph_sa.aspreconditioner()
+
                 # Solve and get convergence status
+                t0 = time.perf_counter()
                 sol, status = cfd_utils.sparse_linalg.cg(self.L, rhs, x0=previous_p, rtol=self.pressure_tolerance, M=precond)
+                print(f"CG solve time: {time.perf_counter() - t0:.4f} seconds")
                 is_converged = status == 0 # Note that the status is 0 if the solver converged
                 if not is_converged:
                     print("CG failed to converge.")
