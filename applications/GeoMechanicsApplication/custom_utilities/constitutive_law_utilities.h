@@ -43,6 +43,11 @@ public:
                                                   std::size_t TractionSize,
                                                   std::size_t NumberOfNormalComponents);
 
+    [[nodiscard]] static Matrix MakeContinuumConstitutiveTensor(double      YoungsModulus,
+                                                                double      PoissonsRatio,
+                                                                std::size_t StrainSize,
+                                                                std::size_t NumberOfNormalComponents);
+
     static void CheckStrainSize(const Properties& rProperties, std::size_t ExpectedSize, std::size_t ElementId);
 
     static void CheckHasStrainMeasure_Infinitesimal(const Properties& rProperties, std::size_t ElementId);

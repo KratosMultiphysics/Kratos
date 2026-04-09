@@ -118,6 +118,28 @@ Matrix ConstitutiveLawUtilities::MakeInterfaceConstitutiveMatrix(double      Nor
     return result;
 }
 
+Matrix ConstitutiveLawUtilities::MakeContinuumConstitutiveTensor(double      YoungsModulus,
+                                                                 double      PoissonsRatio,
+                                                                 std::size_t StrainSize,
+                                                                 std::size_t NumberOfNormalComponents)
+{
+    const auto c0 = YoungsModulus / ((1.0 + PoissonsRatio) * (1.0 - 2.0 * PoissonsRatio));
+    const auto c1 = (1.0 - PoissonsRatio) * c0;
+    const auto c2 = PoissonsRatio * c0;
+
+    auto result = Matrix{ZeroMatrix{StrainSize, StrainSize}};
+    for (auto i = std::size_t{0}; i < NumberOfNormalComponents; ++i) {
+        for (auto j = std::size_t{0}; j < NumberOfNormalComponents; ++j) {
+            result(i, j) = i == j ? c1 : c2;
+        }
+    }
+    auto shear_modulus = YoungsModulus / (2.0 * (1.0 + PoissonsRatio));
+    for (auto i = NumberOfNormalComponents; i < StrainSize; ++i) {
+        result(i, i) = shear_modulus;
+    }
+    return result;
+}
+
 void ConstitutiveLawUtilities::CheckStrainSize(const Properties& rProperties, std::size_t ExpectedSize, std::size_t ElementId)
 {
     const std::size_t strain_size = rProperties[CONSTITUTIVE_LAW]->GetStrainSize();
