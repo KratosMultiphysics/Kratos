@@ -25,9 +25,6 @@
                     "PERMEABILITY_XY": 0.0,
                     "DYNAMIC_VISCOSITY": 1.0e-03,
                     "THICKNESS": 1.0
-                },
-                "Tables": {
-
                 }
             }
         }

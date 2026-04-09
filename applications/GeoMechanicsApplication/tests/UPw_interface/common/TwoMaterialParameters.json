@@ -25,9 +25,6 @@
                     "PERMEABILITY_XY": 0.0,
                     "DYNAMIC_VISCOSITY": 1.0e-03,
                     "THICKNESS": 1.0
-                },
-                "Tables": {
-
                 }
             }
         },
@@ -44,9 +41,6 @@
                     "INTERFACE_SHEAR_STIFFNESS": 2.6000869565e+10,
                     "TRANSVERSAL_PERMEABILITY": 5.0e-04,
                     "DYNAMIC_VISCOSITY": 1.0e-03
-                },
-                "Tables": {
-
                 }
             }
         }
