@@ -1,5 +1,4 @@
 import KratosMultiphysics as Kratos
-import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.algorithms.standardized_SciPy_objective import StandardizedSciPyObjective
 from KratosMultiphysics.OptimizationApplication.algorithms.standardized_SciPy_constraint import StandardizedSciPyConstraint
@@ -70,7 +69,7 @@ class SciPyAlgorithms(Algorithm):
         self.bounds = scipy.optimize.Bounds(lb=self.SciPy_settings["lower_bound"].GetDouble(), ub=self.SciPy_settings["upper_bound"].GetDouble())
         self.__kratos_constraints = []
         self.__scipy_constraints = []
-        for constraint_settings in parameters["constraints"]:
+        for constraint_settings in parameters["constraints"].values():
             constraint = StandardizedSciPyConstraint(constraint_settings, self.master_control, self._optimization_problem)
             self.__kratos_constraints.append(constraint)
             self._optimization_problem.AddComponent(constraint)
@@ -78,10 +77,6 @@ class SciPyAlgorithms(Algorithm):
             # create SciPy specific constraints
             scipy_constraint = NonlinearConstraint(constraint.CalculateStandardizedValue, constraint.GetLowerBound(), constraint.GetUpperBound(), constraint.CalculateStandardizedGradient)
             self.__scipy_constraints.append(scipy_constraint)
-
-        
-
-
 
     def GetMinimumBufferSize(self) -> int:
         return 2
@@ -101,7 +96,7 @@ class SciPyAlgorithms(Algorithm):
         self.algorithm_data.SetDataBuffer(self.GetMinimumBufferSize())
 
         # create nlopt optimizer
-        self.x0 = self.__control_field.Evaluate().reshape(-1)
+        self.x0 = self.__control_field.data.reshape(-1)
 
     @time_decorator()
     def Finalize(self):
@@ -121,14 +116,14 @@ class SciPyAlgorithms(Algorithm):
         Kratos.Logger.PrintInfo(self.__class__.__name__, f"res::message: {res.message}")
 
     @time_decorator()
-    def Output(self, *args) -> KratosOA.CollectiveExpression:
+    def Output(self, *args) -> Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor:
         # SciPy calls it at the end of each optimization iterations. Sometime it doesn't call f(x) during iteration, hence to avoid lack of data in the buffer we have a flag "computed" here.
         if self.__objective.computed:
 
             Kratos.Logger.PrintInfo(self.__class__.__name__, f"Output iteration {self._optimization_problem.GetStep()}")
 
-            shape = [c.GetItemShape() for c in self.__control_field.GetContainerExpressions()]
-            KratosOA.CollectiveExpressionIO.Read(self.__control_field, args[0], shape)
+            self.__control_field.data[:] = args[0]
+            Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(self.__control_field, perform_store_data_recursively=False, copy=False).StoreData()
 
             self.algorithm_data.GetBufferedData().SetValue("control_field", self.__control_field.Clone(), overwrite=True)
             OutputGradientFields(self.__objective, self._optimization_problem, True)
@@ -137,7 +132,7 @@ class SciPyAlgorithms(Algorithm):
             for process in self._optimization_problem.GetListOfProcesses("output_processes"):
                 if process.IsOutputStep():
                     process.PrintOutput()
-            
+
             # Advance in Optimization Iteration
             self._optimization_problem.AdvanceStep()
             self.__objective.computed = False

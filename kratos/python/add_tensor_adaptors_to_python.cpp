@@ -24,11 +24,13 @@
 #include "python/numpy_utils.h"
 #include "utilities/container_io_utils.h"
 #include "utilities/parallel_utilities.h"
+#include "tensor_adaptors/tensor_adaptor_utils.h"
 
 // Tensor adaptors
 #include "tensor_adaptors/combined_tensor_adaptor.h"
 #include "tensor_adaptors/connectivity_ids_tensor_adaptor.h"
 #include "tensor_adaptors/equation_ids_tensor_adaptor.h"
+#include "tensor_adaptors/fixity_tensor_adaptor.h"
 #include "tensor_adaptors/flags_tensor_adaptor.h"
 #include "tensor_adaptors/gauss_point_variable_tensor_adaptor.h"
 #include "tensor_adaptors/historical_variable_tensor_adaptor.h"
@@ -36,6 +38,7 @@
 #include "tensor_adaptors/geometries_tensor_adaptor.h"
 #include "tensor_adaptors/tensor_adaptor.h"
 #include "tensor_adaptors/variable_tensor_adaptor.h"
+#include "tensor_adaptors/geometry_metrics_tensor_adaptor.h"
 
 // Include base h
 #include "add_tensor_adaptors_to_python.h"
@@ -127,6 +130,10 @@ void AddTensorAdaptorsToPython(pybind11::module& m)
      Detail::AddCombinedTensorAdaptor<bool>(tensor_adaptor_sub_module, "BoolCombinedTensorAdaptor");
      Detail::AddCombinedTensorAdaptor<int>(tensor_adaptor_sub_module, "IntCombinedTensorAdaptor");
      Detail::AddCombinedTensorAdaptor<double>(tensor_adaptor_sub_module, "DoubleCombinedTensorAdaptor");
+
+     auto tensor_adaptor_utils = tensor_adaptor_sub_module.def_submodule("Utils");
+     tensor_adaptor_utils.def("CreateNodalConditionNeighboursCountTensorAdaptor", &TensorAdaptorUtils::CreateNodalNeighboursCountTensorAdaptor<ModelPart::ConditionsContainerType>, py::arg("model_part"));
+     tensor_adaptor_utils.def("CreateNodalElementNeighboursCountTensorAdaptor", &TensorAdaptorUtils::CreateNodalNeighboursCountTensorAdaptor<ModelPart::ElementsContainerType>, py::arg("model_part"));
 
      py::class_<HistoricalVariableTensorAdaptor, HistoricalVariableTensorAdaptor::Pointer, HistoricalVariableTensorAdaptor::BaseType>(tensor_adaptor_sub_module, "HistoricalVariableTensorAdaptor")
           .def(py::init<ModelPart::NodesContainerType::Pointer, HistoricalVariableTensorAdaptor::VariablePointerType, const int>(),
@@ -296,6 +303,40 @@ void AddTensorAdaptorsToPython(pybind11::module& m)
           .def(py::init<ModelPart::ConditionsContainerType::Pointer>(),
                py::arg("container"))
           .def(py::init<const ConnectivityIdsTensorAdaptor::BaseType&, const bool>(),
+               py::arg("tensor_adaptor"),
+               py::arg("copy") = true);
+
+     py::class_<GeometryMetricsTensorAdaptor, GeometryMetricsTensorAdaptor::Pointer, GeometryMetricsTensorAdaptor::BaseType> geometric_tensor_adaptor(tensor_adaptor_sub_module, "GeometryMetricsTensorAdaptor");
+
+     py::enum_<GeometryMetricsTensorAdaptor::Metric>(geometric_tensor_adaptor,"Metric")
+          .value("DomainSize", GeometryMetricsTensorAdaptor::Metric::DomainSize)
+          .export_values();
+
+     geometric_tensor_adaptor
+          .def(py::init<const GeometryMetricsTensorAdaptor::BaseType&, GeometryMetricsTensorAdaptor::Metric, const bool>(),
+               py::arg("tensor_adaptor"),
+               py::arg("datum"),
+               py::arg("copy") = true)
+          .def(py::init<ModelPart::GeometryContainerType::Pointer, GeometryMetricsTensorAdaptor::Metric>(),
+               py::arg("container"),
+               py::arg("datum"))
+          .def(py::init<ModelPart::ConditionsContainerType::Pointer, GeometryMetricsTensorAdaptor::Metric>(),
+               py::arg("container"),
+               py::arg("datum"))
+          .def(py::init<ModelPart::ElementsContainerType::Pointer, GeometryMetricsTensorAdaptor::Metric>(),
+               py::arg("container"),
+               py::arg("datum"));
+     py::class_<FixityTensorAdaptor, FixityTensorAdaptor::Pointer, FixityTensorAdaptor::BaseType>(tensor_adaptor_sub_module, "FixityTensorAdaptor")
+          .def(py::init([](ModelPart::NodesContainerType::Pointer pNodes, py::sequence DofVariableList){
+               std::vector<const Variable<double>*> dof_variable_list;
+               dof_variable_list.reserve(DofVariableList.size());
+               for (auto dof_variable : DofVariableList) {
+                    dof_variable_list.push_back(dof_variable.cast<const Variable<double>*>());
+               }
+               return FixityTensorAdaptor(pNodes, dof_variable_list);}),
+               py::arg("container"),
+               py::arg("dof_variable_list"))
+          .def(py::init<const FixityTensorAdaptor::BaseType&, const bool>(),
                py::arg("tensor_adaptor"),
                py::arg("copy") = true);
 }

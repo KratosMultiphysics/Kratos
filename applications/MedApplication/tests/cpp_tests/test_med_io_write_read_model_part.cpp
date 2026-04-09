@@ -103,7 +103,7 @@ KRATOS_TEST_CASE_IN_SUITE(WriteRead2DLineMesh, KratosMedFastSuite)
             rModelPart.CreateNewNode(i+1, i,0,0);
         }
         for (std::size_t i=0; i<num_nodes-1; ++i) {
-            rModelPart.CreateNewGeometry("Line3D2", std::vector<ModelPart::IndexType>{i+1, i+2});
+            rModelPart.CreateNewGeometry("Line3D2", i+1, std::vector<ModelPart::IndexType>{i+1, i+2});
         }
     });
 }
@@ -116,7 +116,7 @@ KRATOS_TEST_CASE_IN_SUITE(WriteRead2DLineMeshNonConsecutiveNodeIds, KratosMedFas
             rModelPart.CreateNewNode(i*10+1, i,0,0)->Id();
         }
         for (std::size_t i=0; i<num_nodes-1; ++i) {
-            rModelPart.CreateNewGeometry("Line3D2", std::vector<ModelPart::IndexType>{i*10+1, (i+1)*10+1});
+            rModelPart.CreateNewGeometry("Line3D2", i*5+1, std::vector<ModelPart::IndexType>{i*10+1, (i+1)*10+1});
         }
     });
 }
@@ -141,7 +141,7 @@ KRATOS_TEST_CASE_IN_SUITE(WriteRead2DTriangularMesh, KratosMedFastSuite)
 
         StructuredMeshGeneratorProcess(geometry, rModelPart, mesher_parameters).Execute();
         // create geometries!
-        MedTestingUtilities::AddGeometriesFromElements(rModelPart);
+        MedTestingUtilities::AddGeometriesFromElementsAndConditions(rModelPart);
     });
 }
 
@@ -156,7 +156,7 @@ KRATOS_TEST_CASE_IN_SUITE(WriteRead2DQuadrilateralMesh, KratosMedFastSuite)
         }
 
         for (std::size_t i=0; i<num_quads; ++i) {
-            rModelPart.CreateNewGeometry("Quadrilateral3D4", std::vector<ModelPart::IndexType>{
+            rModelPart.CreateNewGeometry("Quadrilateral3D4", i+1, std::vector<ModelPart::IndexType>{
                 (i*2)+1,
                 (i*2)+3,
                 (i*2)+4,
@@ -178,7 +178,7 @@ KRATOS_TEST_CASE_IN_SUITE(WriteRead2DTriAndQuadMesh, KratosMedFastSuite)
 
         // first writing all quads
         for (std::size_t i=0; i<num_quads; ++i) {
-            rModelPart.CreateNewGeometry("Quadrilateral3D4", std::vector<ModelPart::IndexType>{
+            rModelPart.CreateNewGeometry("Quadrilateral3D4", i+1, std::vector<ModelPart::IndexType>{
                 (i*2)+1,
                 (i*2)+3,
                 (i*2)+4,
@@ -189,7 +189,7 @@ KRATOS_TEST_CASE_IN_SUITE(WriteRead2DTriAndQuadMesh, KratosMedFastSuite)
         // then writing all triangles
         for (std::size_t i=0; i<num_quads; ++i) {
             rModelPart.CreateNewNode(++node_id, i*1+0.5,1,0);
-            rModelPart.CreateNewGeometry("Triangle3D3", std::vector<ModelPart::IndexType>{
+            rModelPart.CreateNewGeometry("Triangle3D3", num_quads+i+1, std::vector<ModelPart::IndexType>{
                 (i*2)+4,
                 static_cast<ModelPart::IndexType>(node_id),
                 (i*2)+2
@@ -227,7 +227,7 @@ KRATOS_TEST_CASE_IN_SUITE(WriteRead3DTetraMesh, KratosMedFastSuite)
 
         StructuredMeshGeneratorProcess(geometry, rModelPart, mesher_parameters).Execute();
         // create geometries!
-        MedTestingUtilities::AddGeometriesFromElements(rModelPart);
+        MedTestingUtilities::AddGeometriesFromElementsAndConditions(rModelPart);
     });
 }
 
