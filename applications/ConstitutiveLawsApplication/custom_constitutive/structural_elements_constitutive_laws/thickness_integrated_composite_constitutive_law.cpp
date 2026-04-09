@@ -18,7 +18,6 @@
 
 // Project includes
 #include "thickness_integrated_composite_constitutive_law.h"
-#include "custom_utilities/constitutive_law_utilities.h"
 #include "structural_mechanics_application_variables.h"
 #include "constitutive_laws_application_variables.h"
 #include "includes/mat_variables.h"
@@ -155,11 +154,6 @@ bool ThicknessIntegratedCompositeConstitutiveLaw::Has(const Variable<double>& rT
 
 bool ThicknessIntegratedCompositeConstitutiveLaw::Has(const Variable<Vector>& rThisVariable)
 {
-    // if (rThisVariable == PLASTIC_STRAIN_VECTOR_TOP_SURFACE ||
-    //     rThisVariable == PLASTIC_STRAIN_VECTOR_BOTTOM_SURFACE ||
-    //     rThisVariable == PLASTIC_STRAIN_VECTOR_MIDDLE_SURFACE) {
-    //         return mConstitutiveLaws[0]->Has(PLASTIC_STRAIN_VECTOR);
-    // }
     return THas<Vector>(rThisVariable);
 }
 
@@ -193,17 +187,6 @@ Vector& ThicknessIntegratedCompositeConstitutiveLaw::GetValue(
     Vector& rValue
     )
 {
-    // if (rThisVariable == PLASTIC_STRAIN_VECTOR_TOP_SURFACE ||
-    //     rThisVariable == PLASTIC_STRAIN_VECTOR_BOTTOM_SURFACE ||
-    //     rThisVariable == PLASTIC_STRAIN_VECTOR_MIDDLE_SURFACE) {
-    //         SizeType layer = 0;
-    //         if (rThisVariable == PLASTIC_STRAIN_VECTOR_BOTTOM_SURFACE) {
-    //             layer = mThicknessIntegrationPoints - 1;
-    //         } else if (rThisVariable == PLASTIC_STRAIN_VECTOR_MIDDLE_SURFACE) {
-    //             layer = (mThicknessIntegrationPoints - 1) / 2; // Assuming odd number of IPs, so that we have a middle one }
-    //         }
-    //         return mConstitutiveLaws[layer]->GetValue(PLASTIC_STRAIN_VECTOR, rValue);
-    // }
     return TGetValue<Vector>(rThisVariable, rValue);
 }
 
@@ -252,7 +235,6 @@ double& ThicknessIntegratedCompositeConstitutiveLaw::CalculateValue(
     double& rValue
     )
 {
-    // TODO
     return TCalculateValue<double>(rValues, rThisVariable, rValue);
 }
 
@@ -360,15 +342,21 @@ void ThicknessIntegratedCompositeConstitutiveLaw::InitializeShearReductionFactor
     double thickness_integral_11 = 0.0;
     double thickness_integral_22 = 0.0;
 
+    std::vector<double> gauss_w({5.0 / 9.0, 8.0 / 9.0, 5.0 / 9.0});
+    std::vector<double> gauss_xi({-std::sqrt(3.0 / 5.0), 0.0, std::sqrt(3.0 / 5.0)});
+
     const auto it_prop_begin = rMaterialProperties.GetSubProperties().begin();
 
     // We perform the integration through the thickness
     for (IndexType i_layer = 0; i_layer < number_of_laws; ++i_layer) {
+
         double Q_bottom_1 = 0.0;
         double Q_bottom_2 = 0.0;
 
-        const double z_inf_layer = mZCoordinates[i_layer] - 0.5 * mThicknesses[i_layer];
-        const double z_sup_layer = mZCoordinates[i_layer] + 0.5 * mThicknesses[i_layer];
+        const double half_thickness = 0.5 * mThicknesses[i_layer];
+
+        const double z_inf_layer = mZCoordinates[i_layer] - half_thickness;
+        const double z_sup_layer = mZCoordinates[i_layer] + half_thickness;
 
         // Assign subprops of the layer
         Properties &r_subprop = *(it_prop_begin + i_layer);
@@ -426,7 +414,7 @@ void ThicknessIntegratedCompositeConstitutiveLaw::InitializeShearReductionFactor
         Dp1[i_layer] = constitutive_matrix(0, 0);
         Dp2[i_layer] = constitutive_matrix(1, 1);
 
-        for (IndexType i = 0; i < i_layer; ++i) {
+        for (IndexType i = 0; i < i_layer; ++i) { // We integrate the contribution of the layers below the current one
             const double z_inf_i = mZCoordinates[i] - 0.5 * mThicknesses[i];
             const double z_sup_i = mZCoordinates[i] + 0.5 * mThicknesses[i];
             const double factor = 0.5 * (std::pow(z_sup_i, 2) - std::pow(z_inf_i, 2));
@@ -434,24 +422,21 @@ void ThicknessIntegratedCompositeConstitutiveLaw::InitializeShearReductionFactor
             Q_bottom_2 += factor * Dp2[i]; // y
         }
 
-        std::vector<double> gauss_w({5.0 / 9.0, 8.0 / 9.0, 5.0 / 9.0});
-        std::vector<double> gauss_xi({-std::sqrt(3.0 / 5.0), 0.0, std::sqrt(3.0 / 5.0)});
-
         double layer_int_11 = 0.0;
         double layer_int_22 = 0.0;
 
         for (IndexType gauss_ip = 0; gauss_ip < gauss_w.size(); ++gauss_ip) {
-            const double z_gauss = mZCoordinates[i_layer] + 0.5 * mThicknesses[i_layer] * gauss_xi[gauss_ip];
-
-            const double Qz1 = Q_bottom_1 + constitutive_matrix(0, 0) * 0.5 * (z_gauss * z_gauss - z_inf_layer * z_inf_layer);
-            const double Qz2 = Q_bottom_2 + constitutive_matrix(1, 1) * 0.5 * (z_gauss * z_gauss - z_inf_layer * z_inf_layer);
+            const double z_gauss = mZCoordinates[i_layer] + half_thickness * gauss_xi[gauss_ip];
+            const double aux_inner_factor = 0.5 * (z_gauss * z_gauss - z_inf_layer * z_inf_layer);
+            const double Qz1 = Q_bottom_1 + constitutive_matrix(0, 0) * aux_inner_factor;
+            const double Qz2 = Q_bottom_2 + constitutive_matrix(1, 1) * aux_inner_factor;
 
             layer_int_11 += (Qz1 * Qz1 / Gxz) * gauss_w[gauss_ip];
             layer_int_22 += (Qz2 * Qz2 / Gyz) * gauss_w[gauss_ip];
         }
 
-        thickness_integral_11 += layer_int_11 * (mThicknesses[i_layer] * 0.5);
-        thickness_integral_22 += layer_int_22 * (mThicknesses[i_layer] * 0.5);
+        thickness_integral_11 += layer_int_11 * half_thickness;
+        thickness_integral_22 += layer_int_22 * half_thickness;
 
     } // for each layer
 
