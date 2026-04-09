@@ -16,11 +16,6 @@ class KratosGeoMechanicsUPwInterfaceTests(KratosUnittest.TestCase):
     """
 
     def setUp(self):
-
-        self.interface_filename_pattern = "ProjectParameters_interface_stage{}.json"
-
-        self.soil_project_filename_pattern = "ProjectParameters_stage{}.json"
-
         self.output_reader = GiDOutputFileReader()
 
     def _run_two_stage_case(self, case_path, project_parameters_filename_pattern):
@@ -30,10 +25,12 @@ class KratosGeoMechanicsUPwInterfaceTests(KratosUnittest.TestCase):
         return self._read_output(case_path, "stage2")
 
     def _run_two_stage_interface_case(self, case_path):
-        return self._run_two_stage_case(case_path, self.interface_filename_pattern)
+        return self._run_two_stage_case(
+            case_path, "ProjectParameters_interface_stage{}.json"
+        )
 
     def _run_two_stage_soil_case(self, case_path):
-        return self._run_two_stage_case(case_path, self.soil_project_filename_pattern)
+        return self._run_two_stage_case(case_path, "ProjectParameters_stage{}.json")
 
     def _read_output(self, case_path, stage_name):
         output_file_name = os.path.join(case_path, f"{stage_name}.post.res")
