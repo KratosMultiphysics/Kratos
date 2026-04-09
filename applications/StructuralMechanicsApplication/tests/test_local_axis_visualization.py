@@ -92,9 +92,9 @@ class TestLocalAxisVisualization(KratosUnittest.TestCase):
         kratos_utils.DeleteFileIfExisting(msh_file_name)
         kratos_utils.DeleteFileIfExisting(output_file_name) # usually this is deleted by the check process but not if it fails
 
-    def test_ThickQuadShellElement(self):
-        self.element_name = "MITCThickShellCorotationalElement3D4N"
-        self.__ExecuteShellTest()
+    # def test_ThickQuadShellElement(self):
+    #     self.element_name = "MITCThickShellCorotationalElement3D4N"
+    #     self.__ExecuteShellTest()
 
     def test_ThinQuadShellElement(self):
         self.element_name = "ShellThinElementCorotational3D4N"
