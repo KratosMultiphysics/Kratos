@@ -33,7 +33,7 @@ class PrepareLHSandRHSs(AnalysisStage):
 
     def Initialize(self):
         super().Initialize()
-        self.BuildLHS()
+        self.__BuildLHS()
         #self.ApplyBoundaryConditions() -> this is now done in buildrhss
         self.__BuildRHSs()
         
@@ -43,18 +43,64 @@ class PrepareLHSandRHSs(AnalysisStage):
         self.rhss = {}
 
         for load_definition in self.load_processes.values():
+            self.__ResetRHS()
             process_id = load_definition["process_id"].GetString() #get the loadcase id
-            process = self._CreateProcess(load_definition) 
+            process = self.__CreateProcess(load_definition) 
             process.ExecuteInitialize()
             process.ExecuteBeforeSolutionLoop()
-            process.ExecuteInitializeSolutionStep()
+            process.ExecuteInitializeSolutionStep() #usually done in ApplyBoundaryConditions()
 
-            rhs = self.BuildRHS()
-            self.rhss[process_id] = rhs
+            rhs = self.__BuildRHS()
+            self.rhss[process_id] = rhs.copy()
+
+            #not really needed
+            #process.ExecuteFinalizeSolutionStep()
+            #process.ExecuteFinalize()
         for key in self.rhss:
             KratosMultiphysics.Logger.PrintInfo(key, self.rhss[key])
 
-    def BuildRHS(self):
+    def __ResetRHS(self):
+        """Bug was: 
+                [6](0,0,0,0,0,30000)
+                [6](0,0,0,0,0,30000)
+                lc3: SystemVector
+
+
+                [6](40000,0,0,0,0,30000)
+                [6](40000,0,0,0,0,30000)
+                lc4: SystemVector
+                
+                instead of
+                [6](0,0,0,0,0,30000)
+                [6](0,0,0,0,0,30000)
+                lc3: SystemVector
+
+
+                [6](40000,0,0,0,0,0)
+                [6](40000,0,0,0,0,0)
+                lc4: SystemVector
+
+                So reset of conditions is needed. Maybe there is a better way (i.e. Kratos already has that functionality)?
+                """
+        variables = [
+            StructuralMechanicsApplication.POINT_LOAD,
+            StructuralMechanicsApplication.LINE_LOAD,
+            StructuralMechanicsApplication.SURFACE_LOAD,
+            StructuralMechanicsApplication.POINT_MOMENT,
+            KratosMultiphysics.POSITIVE_FACE_PRESSURE,
+            KratosMultiphysics.NEGATIVE_FACE_PRESSURE,
+        ]
+        zero_vector = KratosMultiphysics.Vector(3)
+        zero_vector[0] = 0.0
+        zero_vector[1] = 0.0
+        zero_vector[2] = 0.0
+
+        for condition in self.main_model_part.Conditions:
+            for variable in variables:
+                if condition.Has(variable):
+                    condition.SetValue(variable, zero_vector)
+
+    def __BuildRHS(self):
         linear_system = self.strategy_data.GetLinearSystem()
         rhs = linear_system.GetVector(KratosMultiphysics.Future.DenseVectorTag.RHS)
 
@@ -62,7 +108,7 @@ class PrepareLHSandRHSs(AnalysisStage):
         self.scheme.Build(rhs)
         return rhs.copy()
 
-    def _CreateProcess(self, process_definition):
+    def __CreateProcess(self, process_definition):
         factory = KratosProcessFactory(self.model) #instantiate factory
         # the function "ConstructListOfProcesses" expects a Parameters array, so the process_list is stores in one here
         process_list = KratosMultiphysics.Parameters("[]") 
@@ -78,7 +124,7 @@ class PrepareLHSandRHSs(AnalysisStage):
     def Check(self):
         pass
 
-    def BuildLHS(self):
+    def __BuildLHS(self):
         """Construct the lhs"""
         #get linear system container stored inside the strategy data
         linear_system = self.strategy_data.GetLinearSystem()
