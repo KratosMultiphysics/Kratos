@@ -120,6 +120,9 @@ namespace Kratos
         BoundedMatrix<double,TNumNodes, TNumNodes> aux2 = ZeroMatrix(TNumNodes, TNumNodes); //terms multiplying phi
         bounded_matrix<double,TNumNodes, TDim> tmp;
 
+        // Diffusion contribution
+        BoundedMatrix<double,TDim,TDim> Dcw;
+
         // Gauss points and Number of nodes coincides in this case.
         for(unsigned int igauss=0; igauss<TNumNodes; igauss++)
         {
@@ -145,20 +148,36 @@ namespace Kratos
             noalias(aux2) += (1.0+tau*Variables.beta*Variables.div_v)*outer_prod(N, a_dot_grad);
             noalias(aux2) += tau*outer_prod(a_dot_grad, a_dot_grad);
 
-            //cross-wind term
-            if(norm_grad > 1e-3 && norm_vel > 1e-9)
+            // Cross-wind term
+            const double norm_vel2 = norm_vel * norm_vel;
+            if(Variables.C > 0.0 && norm_grad > 1e-3 && norm_vel2 > 1e-9)
             {
-                const double C = rCurrentProcessInfo[CROSS_WIND_STABILIZATION_FACTOR];
-                const double time_derivative = Variables.dt_inv*(inner_prod(N,Variables.phi)-inner_prod(N,Variables.phi_old));
-                const double res = -time_derivative -inner_prod(vel_gauss, grad_phi_halfstep);
+                // Temporal derivative
+                const double phi_gauss = inner_prod(N, Variables.phi);
+                const double phi_old_gauss = inner_prod(N, Variables.phi_old);
+                const double dphi_dt = Variables.dt_inv * (phi_gauss - phi_old_gauss);
 
-                const double disc_capturing_coeff = 0.5*C*h*fabs(res/norm_grad);
-                BoundedMatrix<double,TDim,TDim> D = disc_capturing_coeff*( IdentityMatrix(TDim));
-                const double norm_vel_squared = norm_vel*norm_vel;
-                D += (std::max( disc_capturing_coeff - tau*norm_vel_squared , 0.0) - disc_capturing_coeff)/(norm_vel_squared) * outer_prod(vel_gauss,vel_gauss);
+                // Convective term
+                const double conv = inner_prod(vel_gauss, grad_phi_halfstep);
 
-                noalias(tmp) = prod(DN_DX,D);
-                noalias(aux2) += prod(tmp,trans(DN_DX));
+                // Residual
+                const double res = dphi_dt + conv;
+
+                // Discontinuity capturing coefficient
+                const double k_c = Variables.C * h * std::abs(res) / norm_grad;
+
+                // Crosswind diffusion tensor
+                Dcw = k_c * IdentityMatrix(TDim);
+
+                // Removing diffusion in streamline direcction
+                const double k_streamline = tau * norm_vel2;
+                const double correction = std::max(k_c - k_streamline, 0.0) - k_c;
+
+                Dcw += (correction / norm_vel2) * outer_prod(vel_gauss, vel_gauss);
+
+                // Add diffusion contribution
+                noalias(tmp) = prod(DN_DX, Dcw);
+                noalias(aux2) += prod(tmp, trans(DN_DX));
             }
         }
 
@@ -193,6 +212,7 @@ namespace Kratos
     {
         KRATOS_TRY
 
+        rVariables.C = rCurrentProcessInfo[CROSS_WIND_STABILIZATION_FACTOR];
         rVariables.theta = rCurrentProcessInfo[TIME_INTEGRATION_THETA]; //Variable defining the temporal scheme (0: Forward Euler, 1: Backward Euler, 0.5: Crank-Nicolson)
         rVariables.dyn_st_beta = rCurrentProcessInfo[DYNAMIC_TAU];
         const double delta_t = rCurrentProcessInfo[DELTA_TIME];
