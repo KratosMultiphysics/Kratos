@@ -1,6 +1,3 @@
-Begin ModelPartData
-End ModelPartData
-
 Begin Properties 1
 End Properties
 
@@ -30,8 +27,6 @@ Begin Elements Geo_ULineInterfacePlaneStrainElement2Plus2N
 End Elements
 
 Begin SubModelPart Soil
-  Begin SubModelPartTables
-  End SubModelPartTables
   Begin SubModelPartNodes
      1
      2
@@ -46,13 +41,9 @@ Begin SubModelPart Soil
      1
      2
   End SubModelPartElements
-  Begin SubModelPartConditions
-  End SubModelPartConditions
 End SubModelPart
 
 Begin SubModelPart Interface
-  Begin SubModelPartTables
-  End SubModelPartTables
   Begin SubModelPartNodes
      1
      4
@@ -65,8 +56,6 @@ Begin SubModelPart Interface
      3
      4
   End SubModelPartElements
-  Begin SubModelPartConditions
-  End SubModelPartConditions
 End SubModelPart
   
 Begin SubModelPart Bottom
