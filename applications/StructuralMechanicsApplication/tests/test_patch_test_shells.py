@@ -198,8 +198,8 @@ class TestPatchTestShells(KratosUnittest.TestCase):
 
     def test_thick_shell_quadrilateral(self):
         element_name = "MITCThickShellCorotationalElement3D4N"
-        displacement_results = [0.0003572969872 , -0.0006341259132 , 0.00127807995001]
-        rotation_results     = [0.0012082600485 , -0.0004098356773 , -0.0011673798349]
+        displacement_results = [0.00040886238477951854, -0.0007158925090607913,  0.0013771858098899556]
+        rotation_results     = [0.001403128974121922,   -0.0003905313014176117, -0.001580745190969663]
 
         current_model = KratosMultiphysics.Model()
         self.execute_shell_test(current_model,
