@@ -16,18 +16,20 @@
 
 // System includes
 #include <string>
-#include <variant>
+
+// External includes
+#include "nanoflann/include/nanoflann.hpp"
 
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
-#include "spatial_containers/spatial_containers.h"
+#include "includes/ublas_interface.h"
 #include "tensor_adaptors/tensor_adaptor.h"
 
 // Application includes
-#include "entity_point.h"
 #include "filter_function.h"
 #include "explicit_damping.h"
+#include "filter_utils.h"
 
 namespace Kratos {
 
@@ -41,19 +43,24 @@ public:
     ///@name Type definitions
     ///@{
 
-    using EntityType = typename TContainerType::value_type;
-
-    using EntityPointType = EntityPoint<EntityType>;
-
-    using EntityPointVector = std::vector<typename EntityPointType::Pointer>;
-
-    // Type definitions for tree-search
-    using BucketType = Bucket<3, EntityPoint<EntityType>, EntityPointVector>;
-
-    using KDTree = Tree<KDTreePartition<BucketType>>;
-
     /// Pointer definition of ContainerMapper
     KRATOS_CLASS_POINTER_DEFINITION(ExplicitFilterUtils);
+
+    ///@}
+    ///@name Nanoflann KD Tree type definitions
+    ///@{
+
+    using PositionAdapter = NanoFlannSingleContainerPositionAdapter<TContainerType>;
+
+    using ResultVectorType = typename PositionAdapter::ResultVectorType;
+
+    using PointerVectorType = typename PositionAdapter::PointerVectorType;
+
+    using DistanceMetricType = typename nanoflann::metric_L2_Simple::traits<double, PositionAdapter>::distance_t;
+
+    using KDTreeIndexType = nanoflann::KDTreeSingleIndexAdaptor<DistanceMetricType, PositionAdapter, 3>;
+
+    using KDTreeThreadLocalStorage = NanoFlannKDTreeThreadLocalStorage<PointerVectorType>;
 
     ///@}
     ///@name LifeCycle
@@ -62,9 +69,10 @@ public:
     ExplicitFilterUtils(
         const ModelPart& rModelPart,
         const std::string& rKernelFunctionType,
-        const IndexType MaxNumberOfNeighbours,
-        const IndexType EchoLevel,
-        const bool NodeCloudMesh);
+        const IndexType MaxLeafSize = 10,
+        const IndexType EchoLevel = 0,
+        const bool NodeCloudMesh = false,
+        const bool StoreFilterMatrix = false);
 
     ///@}
     ///@name Public operations
@@ -151,17 +159,24 @@ private:
 
     std::vector<double> mNodalDomainSizes;
 
-    EntityPointVector mEntityPointVector;
-
-    IndexType mBucketSize = 100;
-
-    IndexType mMaxNumberOfNeighbors;
+    IndexType mLeafMaxSize;
 
     IndexType mEchoLevel;
 
-    typename KDTree::Pointer mpSearchTree;
+    std::unique_ptr<PositionAdapter> mpAdapter;
+
+    std::unique_ptr<KDTreeIndexType> mpKDTreeIndex;
 
     bool mNodeCloudMesh;
+
+    bool mStoreFilteringMatrix;
+
+    // The storage of the filtering matrix mFilteringMatrix.
+    //      number of rows of first dense vector -> number of items in the container of interest in mrModelPart
+    //      number of rows of second dense vector -> number of neighbours for each item of each row of the first dense vector
+    //      std::get<0>(unsigned int) -> neighbour index
+    //      std::get<1>(DenseVector)  -> filter matrix coefficient corresponding to the component in stride.
+    DenseVector<DenseVector<std::pair<unsigned int, DenseVector<double>>>> mFilteringMatrix;
 
     ///@}
     ///@name Private operations
@@ -170,12 +185,15 @@ private:
     void CheckField(const TensorAdaptor<double>& rTensorAdaptor) const;
 
     template<class TMeshDependencyType>
+    void ComputeForwardFilteringMatrix();
+
+    template<class TMeshDependencyType>
     void GenericGetIntegrationWeights(TensorAdaptor<double>& rTensorAdapto) const;
 
-    template<class TMeshDependencyType>
+    template<class TMeshDependencyType, bool TUseFilterMatrix = false>
     TensorAdaptor<double>::Pointer GenericForwardFilterField(const TensorAdaptor<double>& rTensorAdaptor) const;
 
-    template<class TMeshDependencyType>
+    template<class TMeshDependencyType, bool TUseFilterMatrix = false>
     TensorAdaptor<double>::Pointer GenericBackwardFilterField(const TensorAdaptor<double>& rTensorAdaptor) const;
 
     ///@}

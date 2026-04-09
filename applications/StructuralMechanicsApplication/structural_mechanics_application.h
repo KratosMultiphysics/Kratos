@@ -101,6 +101,7 @@
 /* Conditions */
 #include "custom_conditions/base_load_condition.h"
 #include "custom_conditions/point_load_condition.h"
+#include "custom_conditions/imaginary_point_load_condition.h"
 #include "custom_conditions/point_contact_condition.h"
 #include "custom_conditions/axisym_point_load_condition.h"
 #include "custom_conditions/line_load_condition.h"
@@ -476,6 +477,8 @@ private:
     const PointLoadCondition mPointLoadCondition3D1N;
     const PointContactCondition mPointContactCondition2D1N;
     const PointContactCondition mPointContactCondition3D1N;
+    const ImaginaryPointLoadCondition mImaginaryPointLoadCondition2D1N;
+    const ImaginaryPointLoadCondition mImaginaryPointLoadCondition3D1N;
 
     const AxisymPointLoadCondition mAxisymPointLoadCondition2D1N;
 
