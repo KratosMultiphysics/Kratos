@@ -1,7 +1,10 @@
 import KratosMultiphysics
 from KratosMultiphysics.analysis_stage import AnalysisStage
+from KratosMultiphysics.process_factory import KratosProcessFactory
+import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
+import KratosMultiphysics.scipy_conversion_tools #just for debugging
 
-class MultiLoadConstraintAnalysis(AnalysisStage):
+class PrepareLHSandRHSs(AnalysisStage):
 
     def __init__(self, model, project_parameters):
         self.model = model
@@ -22,42 +25,79 @@ class MultiLoadConstraintAnalysis(AnalysisStage):
             self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
 
         super().__init__(model, project_parameters)
+        self.scheme_settings = self.project_parameters["future_scheme_settings"]
+        if self.project_parameters.Has("process_combinations"):
+            if self.project_parameters["process_combinations"].Has("load_processes"):
+                self.load_processes = self.project_parameters["process_combinations"]["load_processes"]
+        print(self.load_processes)
 
-    def _GetListOfProcesses(self):
-        """Otherwise error, because Initialize() of the baseclass loops through self._list_of_processes and calls a method for each process.
-        I would have to add variables for this to work and I think this should not be done right now."""
-        return []
+    def Initialize(self):
+        super().Initialize()
+        self.BuildLHS()
+        #self.ApplyBoundaryConditions() -> this is now done in buildrhss
+        self.__BuildRHSs()
         
+    def __BuildRHSs(self):
+
+        #stores right hand sides
+        self.rhss = {}
+
+        for load_definition in self.load_processes.values():
+            process_id = load_definition["process_id"].GetString() #get the loadcase id
+            process = self._CreateProcess(load_definition) 
+            process.ExecuteInitialize()
+            process.ExecuteBeforeSolutionLoop()
+            process.ExecuteInitializeSolutionStep()
+
+            rhs = self.BuildRHS()
+            self.rhss[process_id] = rhs
+        for key in self.rhss:
+            KratosMultiphysics.Logger.PrintInfo(key, self.rhss[key])
+
+    def BuildRHS(self):
+        linear_system = self.strategy_data.GetLinearSystem()
+        rhs = linear_system.GetVector(KratosMultiphysics.Future.DenseVectorTag.RHS)
+
+        rhs.SetValue(0.0)
+        self.scheme.Build(rhs)
+        return rhs.copy()
+
+    def _CreateProcess(self, process_definition):
+        factory = KratosProcessFactory(self.model) #instantiate factory
+        # the function "ConstructListOfProcesses" expects a Parameters array, so the process_list is stores in one here
+        process_list = KratosMultiphysics.Parameters("[]") 
+        process_list.Append(process_definition) 
+        return factory.ConstructListOfProcesses(process_list)[0] # function returns a list, but we create processes one by one so it only holds one entry
+
+
     def RunSolutionLoop(self):
         """Changed it because only matrix generation is done"""
         self.InitializeSolutionStep()
         self.SolveSolutionStep()
-
-    def InitializeSolutionStep(self):
-        #not necessary, but why not
-        self.PrintAnalysisStageProgressInformation()
-
-    def SolveSolutionStep(self):
-        self.BuildLHS()
+    
+    def Check(self):
+        pass
 
     def BuildLHS(self):
         """Construct the lhs"""
+        #get linear system container stored inside the strategy data
         linear_system = self.strategy_data.GetLinearSystem()
+        #Get the matrix stored under the tag LHS
+        #Can store MassMatrix, DampingMatrix etc.
         lhs = linear_system.GetMatrix(KratosMultiphysics.Future.SparseMatrixTag.LHS)
-
         lhs.SetValue(0.0)
-        KratosMultiphysics.Logger.PrintInfo(lhs)
         self.scheme.Build(lhs)
-        KratosMultiphysics.Logger.PrintInfo(lhs)
+        self.lhs = lhs
+        #KratosMultiphysics.Logger.PrintInfo(lhs)
+        print(KratosMultiphysics.scipy_conversion_tools.to_csr(lhs).todense())
 
     def _InitializeInternals(self):
-        self.InitializeScheme()
+        self.__InitializeScheme()
     
-    def InitializeScheme(self):
-        self.strategy_data = KratosMultiphysics.Future.ImplicitStrategyData()
-        scheme_settings = self.project_parameters["future_scheme_settings"]
-        self.scheme = KratosMultiphysics.Future.StaticScheme(self.main_model_part, scheme_settings)
-        self.scheme.Initialize(self.strategy_data)
+    def __InitializeScheme(self):
+        self.strategy_data = KratosMultiphysics.Future.ImplicitStrategyData() #stores all arrays required to setup linear system
+        self.scheme = KratosMultiphysics.Future.StaticScheme(self.main_model_part, self.scheme_settings) # scheme settings from json file
+        self.scheme.Initialize(self.strategy_data) #initialize the scheme
 
     def GetComputingModelPart(self):
         """Is used in Initialize()"""
@@ -76,12 +116,21 @@ class MultiLoadConstraintAnalysis(AnalysisStage):
         KratosMultiphysics.VariableUtils.AddDofsList(dofs_and_reactions_to_add, self.main_model_part)
         KratosMultiphysics.Logger.PrintInfo("::[Null]:: ", "DOF's ADDED")
 
-    def _PrepareModelPart(self):
-        self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] = 0
-        self.main_model_part.ProcessInfo[KratosMultiphysics.TIME] = self.project_parameters["problem_data"]["start_time"].GetDouble()
-        self.read_materials()
+    def _AddVariables(self):
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
+        self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_LOAD)
+        self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.SURFACE_LOAD)
+        if self.settings["rotation_dofs"].GetBool():
+            # Add specific variables for the problem (rotation dofs).
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION_MOMENT)
+            self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_MOMENT)
 
-    def read_materials(self):
+    def _PrepareModelPart(self):
+        self.__ReadMaterials()
+
+    def __ReadMaterials(self):
         """Reads materials. Was done by solver before in 'PrepareModelPart'"""
         materials_filename = self.settings["material_import_settings"]["materials_filename"].GetString()
         if materials_filename != "":
@@ -91,6 +140,16 @@ class MultiLoadConstraintAnalysis(AnalysisStage):
             KratosMultiphysics.Logger.PrintInfo("::[Null]:: ", "Materials successfully imported")
         else:
             raise Exception("Please specify a 'materials_filename'!")
+        
+    def GetFinalData(self):
+        """Returns the final data dictionary.
+
+        The main purpose of this function is to retrieve any data (in a key-value format) from outside the stage.
+        Note that even though it can be called at any point, it is intended to be called at the end of the stage run.
+        """
+        return {"lhs": self.lhs,
+                "rhss": self.rhss,
+                "model_part_name": self.main_model_part.FullName()}
 
 if __name__ == "__main__":
     from sys import argv
@@ -104,5 +163,5 @@ if __name__ == "__main__":
         parameters = KratosMultiphysics.Parameters(parameter_file.read())
 
     model = KratosMultiphysics.Model()
-    simulation = MultiLoadConstraintAnalysis(model, parameters)
+    simulation = PrepareLHSandRHSs(model, parameters)
     simulation.Run()
