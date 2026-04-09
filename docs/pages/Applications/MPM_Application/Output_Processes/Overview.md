@@ -20,6 +20,7 @@ This type of output processes includes:
 - [MPM GiD Output Process](./mpm_gid_output_process) ([<i class="fa fa-github"></i> code](https://github.com/KratosMultiphysics/Kratos/blob/master/applications/MPMApplication/python_scripts/mpm_gid_output_process.py))
 - [MPM Vtk Output Process](./mpm_vtk_output_process) ([<i class="fa fa-github"></i> code](https://github.com/KratosMultiphysics/Kratos/blob/master/applications/MPMApplication/python_scripts/mpm_vtk_output_process.py))
 - [MPM Json Output Process](./mpm_json_output_process) ([<i class="fa fa-github"></i> code](https://github.com/KratosMultiphysics/Kratos/blob/master/applications/MPMApplication/python_scripts/mpm_json_output_process.py))
+- [MPM Non-Conforming Reaction Output Process](./mpm_non_conforming_reaction_output_process) ([<i class="fa fa-github"></i> code](https://github.com/KratosMultiphysics/Kratos/blob/master/applications/MPMApplication/python_scripts/mpm_non_conforming_reaction_output_process.py))
 
 ## Grid Output Processes
 The **grid** output processes, which are implemented in the Kratos Core (see [here](../../../Kratos/Processes/Output_Process/Output_Process)), provide information at the background grid level.
@@ -29,6 +30,7 @@ This type of output processes includes:
 - Vtu Output Process ([<i class="fa fa-github"></i> code](https://github.com/KratosMultiphysics/Kratos/blob/master/kratos/python_scripts/vtu_output_process.py))
 - [Point Output Process](../../../Kratos/Processes/Output_Process/Point_output_process) ([<i class="fa fa-github"></i> code](https://github.com/KratosMultiphysics/Kratos/blob/master/kratos/python_scripts/point_output_process.py))
 - Multiple Points Output Process ([<i class="fa fa-github"></i> code](https://github.com/KratosMultiphysics/Kratos/blob/master/kratos/python_scripts/multiple_points_output_process.py))
+- [MPM Grid Conforming Reaction Output Process](./mpm_grid_conforming_reaction_output_process) ([<i class="fa fa-github"></i> code](https://github.com/KratosMultiphysics/Kratos/blob/master/applications/MPMApplication/python_scripts/mpm_grid_conforming_reaction_output_process.py))
 
 ## Restart Output Process
 
