@@ -140,6 +140,8 @@ void KratosGeoMechanicsApplication::Register()
     KRATOS_REGISTER_ELEMENT("Geo_USurfaceInterfaceElement4Plus4N", mUPwSurfaceInterfaceElement4Plus4N)
     KRATOS_REGISTER_ELEMENT("Geo_USurfaceInterfaceElement6Plus6N", mUPwSurfaceInterfaceElement6Plus6N)
     KRATOS_REGISTER_ELEMENT("Geo_USurfaceInterfaceElement8Plus8N", mUPwSurfaceInterfaceElement8Plus8N)
+    KRATOS_REGISTER_ELEMENT("Geo_UPwLineInterfacePlaneStrainDiffOrderElement3Plus3N",
+                            mUPwLineInterfacePlaneStrainDiffOrderElement3Plus3N)
 
     // Updated-Lagrangian elements
     KRATOS_REGISTER_ELEMENT("UPwUpdatedLagrangianElement2D3N", mUPwUpdatedLagrangianElement2D3N)
@@ -192,9 +194,6 @@ void KratosGeoMechanicsApplication::Register()
 
     KRATOS_REGISTER_ELEMENT("UPwUpdatedLagrangianAxisymmetricFICElement2D3N", mUPwUpdatedLagrangianAxisymmetricFICElement2D3N)
     KRATOS_REGISTER_ELEMENT("UPwUpdatedLagrangianAxisymmetricFICElement2D4N", mUPwUpdatedLagrangianAxisymmetricFICElement2D4N)
-
-    // Register geo structural elements
-    KRATOS_REGISTER_ELEMENT("GeoCrBeamElementLinear2D2N", mGeoCrBeamElementLinear2D2N)
 
     // Register thermal elements
     KRATOS_REGISTER_ELEMENT("GeoTransientThermalElement2D3N", mTransientThermalElement2D3N)
@@ -473,7 +472,6 @@ void KratosGeoMechanicsApplication::Register()
     KRATOS_REGISTER_VARIABLE(BIOT_COEFFICIENT)
     KRATOS_REGISTER_VARIABLE(PLATE_SHAPE_CORRECTION_FACTOR)
 
-    KRATOS_REGISTER_VARIABLE(RESET_DISPLACEMENTS)
     KRATOS_REGISTER_VARIABLE(CONSIDER_GEOMETRIC_STIFFNESS)
 
     KRATOS_REGISTER_VARIABLE(CONSIDER_GAP_CLOSURE)
@@ -601,6 +599,7 @@ void KratosGeoMechanicsApplication::Register()
     KRATOS_REGISTER_VARIABLE(INTERFACE_SHEAR_STIFFNESS)
 
     KRATOS_REGISTER_VARIABLE(GEO_SHEAR_CAPACITY)
+    KRATOS_REGISTER_VARIABLE(GEO_PLASTICITY_STATUS)
 
     Serializer::Register("PlaneStrain", PlaneStrain{});
     Serializer::Register("PlaneStrainStressState", PlaneStrainStressState{});

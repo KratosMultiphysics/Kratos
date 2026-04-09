@@ -34,7 +34,7 @@ public:
     {
     }
 
-    bool hasWaterPressure() const { return mVariableName == "WATER_PRESSURE"; }
+    [[nodiscard]] bool hasWaterPressure() const { return mVariableName == "WATER_PRESSURE"; }
 
     Kratos::ModelPart& GetModelPart() { return mrModelPart; }
 };
@@ -49,11 +49,11 @@ public:
 
     Kratos::ModelPart& GetModelPart() { return mrModelPart; }
 
-    double GetReferenceCoord() const { return mReferenceCoordinate; }
+    [[nodiscard]] double GetReferenceCoord() const { return mReferenceCoordinate; }
 
     void SetReferenceCoord(double value) { mReferenceCoordinate = value; }
 
-    bool hasWaterPressure() const { return mVariableName == "WATER_PRESSURE"; }
+    [[nodiscard]] bool hasWaterPressure() const { return mVariableName == "WATER_PRESSURE"; }
 };
 
 namespace Kratos
