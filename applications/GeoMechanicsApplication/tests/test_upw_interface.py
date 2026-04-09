@@ -15,9 +15,6 @@ class KratosGeoMechanicsUPwInterfaceTests(KratosUnittest.TestCase):
     calculated correctly
     """
 
-    def setUp(self):
-        self.output_reader = GiDOutputFileReader()
-
     def _run_two_stage_case(self, case_path, project_parameters_filename_pattern):
         run_multiple_stages.run_stages(
             case_path, 2, project_parameters_filename_pattern, input_path="../common"
@@ -34,7 +31,7 @@ class KratosGeoMechanicsUPwInterfaceTests(KratosUnittest.TestCase):
 
     def _read_output(self, case_path, stage_name):
         output_file_name = os.path.join(case_path, f"{stage_name}.post.res")
-        return self.output_reader.read_output_from(output_file_name)
+        return GiDOutputFileReader().read_output_from(output_file_name)
 
     @staticmethod
     def _all_times(output_data):
@@ -42,13 +39,6 @@ class KratosGeoMechanicsUPwInterfaceTests(KratosUnittest.TestCase):
         if not times:
             raise RuntimeError("No valid output time steps found")
         return times
-
-    @staticmethod
-    def _max_component_difference(vectors_a, vectors_b, component_index):
-        return max(
-            abs(vector_a[component_index] - vector_b[component_index])
-            for vector_a, vector_b in zip(vectors_a, vectors_b)
-        )
 
     @staticmethod
     def _top_vector_component_differences(
@@ -253,29 +243,6 @@ class KratosGeoMechanicsUPwInterfaceTests(KratosUnittest.TestCase):
 
         return node_id_pairs
 
-    def _run_interface_and_soil_cases(self, interface_case_name, soil_case_name):
-        interface_path = test_helper.get_file_path(
-            os.path.join("UPw_interface", interface_case_name)
-        )
-        soil_path = test_helper.get_file_path(
-            os.path.join("UPw_interface", soil_case_name)
-        )
-
-        interface_output = self._run_two_stage_interface_case(interface_path)
-        soil_output = self._run_two_stage_soil_case(soil_path)
-
-        interface_times = self._all_times(interface_output)
-        soil_times = self._all_times(soil_output)
-
-        return (
-            interface_path,
-            soil_path,
-            interface_output,
-            soil_output,
-            interface_times,
-            soil_times,
-        )
-
     def _shared_unique_node_ids(self, interface_path, soil_path, min_pairs):
         node_id_pairs = self._shared_unique_node_id_pairs(
             os.path.join(interface_path, "column.mdpa"),
@@ -283,8 +250,7 @@ class KratosGeoMechanicsUPwInterfaceTests(KratosUnittest.TestCase):
         )
         self.assertGreaterEqual(len(node_id_pairs), min_pairs)
 
-        interface_node_ids = [pair[0] for pair in node_id_pairs]
-        soil_node_ids = [pair[1] for pair in node_id_pairs]
+        interface_node_ids, soil_node_ids = zip(*node_id_pairs)
 
         return interface_node_ids, soil_node_ids
 
@@ -610,8 +576,8 @@ class KratosGeoMechanicsUPwInterfaceTests(KratosUnittest.TestCase):
             interface_side_b = GiDOutputFileReader.nodal_values_at_time(
                 "TOTAL_DISPLACEMENT", time_step, output_data, side_b_node_ids
             )
-            max_interface_displacement_jump_y = self._max_component_difference(
-                interface_side_a, interface_side_b, component_index=1
+            max_interface_displacement_jump_y = max(
+                abs(a[1] - b[1]) for a, b in zip(interface_side_a, interface_side_b)
             )
             self.assertGreater(max_interface_displacement_jump_y, min_jump)
 
@@ -627,14 +593,19 @@ class KratosGeoMechanicsUPwInterfaceTests(KratosUnittest.TestCase):
         side_pair_min_pairs=None,
         min_jump=1e-10,
     ):
-        (
-            interface_path,
-            soil_path,
-            interface_output,
-            soil_output,
-            interface_times,
-            soil_times,
-        ) = self._run_interface_and_soil_cases(interface_case_name, soil_case_name)
+
+        interface_path = test_helper.get_file_path(
+            os.path.join("UPw_interface", interface_case_name)
+        )
+        soil_path = test_helper.get_file_path(
+            os.path.join("UPw_interface", soil_case_name)
+        )
+
+        interface_output = self._run_two_stage_interface_case(interface_path)
+        soil_output = self._run_two_stage_soil_case(soil_path)
+
+        interface_times = self._all_times(interface_output)
+        soil_times = self._all_times(soil_output)
 
         interface_node_ids, soil_node_ids = self._all_interface_to_soil_node_ids(
             interface_path,
