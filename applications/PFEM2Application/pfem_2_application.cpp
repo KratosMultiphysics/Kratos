@@ -46,7 +46,11 @@ namespace Kratos
         mFixedVelocity3D    ( 0, Condition::GeometryType::Pointer( new Point3D<Node >(  Element::GeometryType::PointsArrayType (1 ) ) ) ),
         mFixedPressure2D    ( 0, Condition::GeometryType::Pointer( new Point2D<Node >(  Element::GeometryType::PointsArrayType (1 ) ) ) ),
         mFixedPressure3D    ( 0, Condition::GeometryType::Pointer( new Point3D<Node >(  Element::GeometryType::PointsArrayType (1 ) ) ) ),
-        mMonolithicAutoSlipInlet3D    ( 0, Element::GeometryType::Pointer( new Triangle3D3<Node >(  Element::GeometryType::PointsArrayType (3 ) ) ) )
+        mMonolithicAutoSlipInlet3D    ( 0, Element::GeometryType::Pointer( new Triangle3D3<Node >(  Element::GeometryType::PointsArrayType (3 ) ) ) ),
+
+		/////////
+        mMonolithicPFEM22DModified ( 0, Element::GeometryType::Pointer( new Triangle3D3<Node >(  Element::GeometryType::PointsArrayType (3 ) ) ) )
+        /////////
 
  	{}
 
@@ -63,6 +67,10 @@ namespace Kratos
  		KRATOS_REGISTER_ELEMENT("MonolithicAutoSlipPFEM23D", mMonolithicAutoSlipPFEM23D);
  		//KRATOS_REGISTER_ELEMENT("VelocityEnrichedPFEM22D", mVelocityEnrichedPFEM22D);
  		//KRATOS_REGISTER_ELEMENT("VelocityEnrichedPFEM22DNoPressure", mVelocityEnrichedPFEM22DNoPressure);
+
+		/////////
+        KRATOS_REGISTER_ELEMENT("MonolithicPFEM22DModified", mMonolithicPFEM22DModified); 
+        /////////
 
  		KRATOS_REGISTER_CONDITION("FixedVelocity2D", mFixedVelocity2D);
  		KRATOS_REGISTER_CONDITION("FixedVelocity3D", mFixedVelocity3D);
@@ -126,6 +134,8 @@ namespace Kratos
 		KRATOS_REGISTER_VARIABLE(SOLID_PRESSURE)
 		KRATOS_REGISTER_VARIABLE(SOLID_YP)
 		KRATOS_REGISTER_VARIABLE(WATER_DISTANCE)
+
+		
 
  	}
 
