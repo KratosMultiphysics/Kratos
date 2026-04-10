@@ -620,7 +620,7 @@ KRATOS_TEST_CASE_IN_SUITE(K0ProcedureChecksIfModelPartHasElements, KratosGeoMech
     k0_settings.AddString("model_part_name", "dummy");
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN((ApplyK0ProcedureProcess{model, k0_settings}.Check()),
-                                      "ApplyK0ProcedureProces has no elements in modelpart dummy")
+                                      "ApplyK0ProcedureProcess has no elements in modelpart dummy")
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CheckInfoK0ProcedureProcess, KratosGeoMechanicsFastSuiteWithoutKernel)
