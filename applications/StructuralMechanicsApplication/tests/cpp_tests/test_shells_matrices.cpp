@@ -177,7 +177,7 @@ KRATOS_TEST_CASE_IN_SUITE(ShellElementCorotational_4N_LumpedMassMatrix, KratosSt
         ref_mass_matrix(idx+2, idx+2) = ref_val;
     }
 
-    ConductShellMassMatrixTest("ShellThickElementCorotational3D4N", ref_mass_matrix, true);
+    ConductShellMassMatrixTest("MITCThickShellElement3D4N", ref_mass_matrix, true);
     ConductShellMassMatrixTest("ShellThinElementCorotational3D4N", ref_mass_matrix, true);
 }
 
@@ -247,7 +247,7 @@ KRATOS_TEST_CASE_IN_SUITE(ShellElementCorotational_4N_ConsistentMassMatrix, Krat
     ref_mass_matrix(22,16)=0.01851851851852; ref_mass_matrix(22,22)=0.03703703703704; ref_mass_matrix(23,5)=0.01851851851852;
     ref_mass_matrix(23,11)=0.009259259259259; ref_mass_matrix(23,17)=0.01851851851852; ref_mass_matrix(23,23)=0.03703703703704;
 
-    ConductShellMassMatrixTest("ShellThickElementCorotational3D4N", ref_mass_matrix, false);
+    ConductShellMassMatrixTest("MITCThickShellElement3D4N", ref_mass_matrix, false);
     ConductShellMassMatrixTest("ShellThinElementCorotational3D4N", ref_mass_matrix, false);
 }
 
@@ -464,7 +464,7 @@ KRATOS_TEST_CASE_IN_SUITE(ShellThickElementCorotational3D4N_DampingMatrix, Krato
     ref_damping_matrix(23,12)=134.6153846154; ref_damping_matrix(23,13)=-269.2307692308; ref_damping_matrix(23,17)=358.9743589744;
     ref_damping_matrix(23,18)=269.2307692308; ref_damping_matrix(23,19)=269.2307692308; ref_damping_matrix(23,23)=717.9487179487;
 
-    ConductShellDampingMatrixTest("ShellThickElementCorotational3D4N", ref_damping_matrix);
+    ConductShellDampingMatrixTest("MITCThickShellElement3D4N", ref_damping_matrix);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ShellThinElementCorotational3D4N_DampingMatrix, KratosStructuralMechanicsFastSuite)
