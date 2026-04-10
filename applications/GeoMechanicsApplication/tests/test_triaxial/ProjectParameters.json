@@ -224,7 +224,7 @@
                             "gidpost_flags": {
                                 "GiDPostMode": "GiD_PostAscii",
                                 "WriteDeformedMeshFlag": "WriteDeformed",
-                                "WriteConditionsFlag": "WriteConditions",
+                                "WriteConditionsFlag": "WriteElementsOnly",
                                 "MultiFileFlag": "SingleFile"
                             },
                             "file_label": "step",
@@ -245,7 +245,7 @@
                             ]
                         }
                     },
-                    "output_name": "gid_output/output"
+                    "output_name": "output"
                 }
             }
         ]
