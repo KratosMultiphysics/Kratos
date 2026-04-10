@@ -488,6 +488,24 @@ KRATOS_TEST_CASE_IN_SUITE(K0ProcedureIsAppliedCorrectlyWithK0_NCandPOPandNu_UR_3
     KRATOS_EXPECT_VECTOR_NEAR(actual_stress_vector, expected_stress_vector, Defaults::absolute_tolerance);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(K0ProcedureIsAppliedCorrectlyWithK0_Values_3D, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto p_properties = std::make_shared<Properties>();
+    p_properties->SetValue(K0_VALUE_XX, 0.5);
+    p_properties->SetValue(K0_VALUE_YY, 0.5);
+    p_properties->SetValue(K0_VALUE_ZZ, 1.0);
+    p_properties->SetValue(K0_MAIN_DIRECTION, 2);
+    const auto initial_stress_vector = UblasUtilities::CreateVector({0.0, -10.0, -10.0, 27.0, 10.0, 5.0});
+
+    // Act
+    const auto actual_stress_vector = ApplyK0ProcedureOnStubElement(p_properties, initial_stress_vector);
+
+    // Assert
+    const auto expected_stress_vector = UblasUtilities::CreateVector({-5, -5, -10, 0, 0, 0});
+    KRATOS_EXPECT_VECTOR_NEAR(actual_stress_vector, expected_stress_vector, Defaults::absolute_tolerance);
+}
+
 KRATOS_TEST_CASE_IN_SUITE(K0ProcedureChecksIfProcessHasCorrectMaterialData, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
