@@ -473,6 +473,14 @@ public:
     */
     double CalculateEquivalentShearModulus(const Matrix& rConstitutiveMatrix);
 
+
+    /**
+     * @brief This method computes the mass matrix
+     */
+    void CalculateMassMatrix(
+        MatrixType &rMassMatrix,
+        const ProcessInfo &rCurrentProcessInfo) override;
+
     ///@}
 
     ///@name Public specialized Access - Temporary

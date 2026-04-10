@@ -11,6 +11,7 @@
 //
 
 #include "mitc_thick_shell_element_3D4N.hpp"
+#include "custom_utilities/structural_mechanics_element_utilities.h"
 
 #include <string>
 #include <iomanip>
@@ -1138,6 +1139,88 @@ double MITCThickShellElement3D4N<TKinematics>::CalculateEquivalentShearModulus(
 )
 {
     return 0.2 * (rConstitutiveMatrix(0, 0) - 2.0 * rConstitutiveMatrix(0, 1) + rConstitutiveMatrix(1, 1) + rConstitutiveMatrix(2, 2));
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <ShellKinematics TKinematics>
+void MITCThickShellElement3D4N<TKinematics>::CalculateMassMatrix(
+    MatrixType& rMassMatrix,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    const auto& r_geometry = GetGeometry();
+    const IndexType number_of_nodes = r_geometry.PointsNumber();
+    const IndexType system_size = number_of_nodes * 6;
+
+    if (rMassMatrix.size1() != system_size || rMassMatrix.size2() != system_size)
+        rMassMatrix.resize(system_size, system_size, false);
+    rMassMatrix.clear();
+
+    const auto& r_props = GetProperties();
+    const bool compute_lumped_mass_matrix = StructuralMechanicsElementUtilities::ComputeLumpedMassMatrix(GetProperties(), rCurrentProcessInfo);
+
+    auto ref_coord_sys(this->mpCoordinateTransformation->CreateReferenceCoordinateSystem());
+    const double ref_area = ref_coord_sys.Area();
+
+    double density = 0.0;
+    if (r_props.Has(DENSITY)) {
+        density = r_props[DENSITY];
+    } else {
+        // In composite shells the density is to be retrieved from the CL
+        mConstitutiveLawVector[0]->GetValue(DENSITY, density);
+        KRATOS_ERROR_IF(density <= 0.0) << "DENSITY is null as far as the shell CL is concerned... Please implement the GetValue(DENSITY) " <<  std::endl;
+    }
+    const double thickness = r_props[THICKNESS];
+
+    if (compute_lumped_mass_matrix) { // Lumped
+        const double nodal_mass = density * thickness * ref_area / 4.0;
+
+        for (SizeType i=0; i < number_of_nodes; i++) {
+            SizeType index = i * 6;
+            rMassMatrix(index, index) = nodal_mass;
+            rMassMatrix(index + 1, index + 1) = nodal_mass;
+            rMassMatrix(index + 2, index + 2) = nodal_mass;
+        }
+    } else { // Consistent
+        // Get shape function values and setup jacobian
+        const GeometryType& r_geometry = GetGeometry();
+        const Matrix& shapeFunctions = r_geometry.ShapeFunctionsValues();
+        ShellUtilities::JacobianOperator jac_operator;
+
+        // Get integration points
+        const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geometry.IntegrationPoints(this->mIntegrationMethod);
+
+        // Setup matrix of shape functions
+        Matrix N = Matrix(6, 24, 0.0);
+
+        // Gauss loop
+        for (SizeType gauss_point = 0; gauss_point < 4; gauss_point++) {
+            // Calculate average mass per unit area and thickness at the
+            // current GP
+            const double av_mass_per_unit_area = density * thickness;
+
+            // Calc jacobian and weighted dA at current GP
+            jac_operator.Calculate(ref_coord_sys, r_geometry.ShapeFunctionLocalGradient(gauss_point));
+            const double dA = r_integration_points[gauss_point].Weight() * jac_operator.Determinant();
+
+            // Assemble shape function matrix over nodes
+            for (SizeType node = 0; node < 4; node++) {
+                // Translational entries - dofs 1-3
+                for (SizeType dof = 0; dof < 3; dof++) {
+                    N(dof, 6 * node + dof) = shapeFunctions(gauss_point, node);
+                }
+
+                // Rotational inertia entries - dofs 4-6
+                for (SizeType dof = 0; dof < 3; dof++) {
+                    N(dof + 3, 6 * node + dof + 3) = thickness / std::sqrt(12.0) * shapeFunctions(gauss_point, node);
+                }
+            } // IP loop
+
+            // Add contribution to total mass matrix
+            noalias(rMassMatrix) += prod(trans(N), N) * dA * av_mass_per_unit_area;
+        } // consistent
+    }
 }
 
 /***********************************************************************************/
