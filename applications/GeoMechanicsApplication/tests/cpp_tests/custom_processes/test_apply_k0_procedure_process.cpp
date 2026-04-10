@@ -589,6 +589,7 @@ KRATOS_TEST_CASE_IN_SUITE(K0ProcedureChecksIfProcessHasCorrectMaterialData, Krat
                                       "K0_NC (-0.5) should be in the range [0.0,-> for element 1.")
 
     p_element->GetProperties().SetValue(K0_NC, 0.5);
+    p_element->GetProperties().SetValue(GEO_FRICTION_ANGLE, 35.0);
     KRATOS_EXPECT_EQ(process.Check(), 0);
 }
 

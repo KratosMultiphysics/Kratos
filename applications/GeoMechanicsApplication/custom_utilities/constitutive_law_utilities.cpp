@@ -83,6 +83,42 @@ double ConstitutiveLawUtilities::GetCohesion(const Properties& rProperties)
     }
 }
 
+bool ConstitutiveLawUtilities::HasFrictionAngle(const Properties& rProperties)
+{
+    // Friction angle can be supplied either directly via GEO_FRICTION_ANGLE
+    // or via UMAT parameters + INDEX_OF_UMAT_PHI_PARAMETER.
+    return rProperties.Has(GEO_FRICTION_ANGLE) ||
+           (rProperties.Has(INDEX_OF_UMAT_PHI_PARAMETER) && rProperties.Has(UMAT_PARAMETERS));
+}
+
+void ConstitutiveLawUtilities::ValidateFrictionAngle(const Properties& rProperties, IndexType ElementId)
+{
+    // If UMAT-route is used, validate index and the stored angle in UMAT parameters (degrees)
+    if (rProperties.Has(INDEX_OF_UMAT_PHI_PARAMETER) && rProperties.Has(UMAT_PARAMETERS)) {
+        const auto phi_index = rProperties[INDEX_OF_UMAT_PHI_PARAMETER];
+        const auto number_of_umat_parameters = static_cast<int>(rProperties[UMAT_PARAMETERS].size());
+
+        KRATOS_ERROR_IF(phi_index < 1 || phi_index > number_of_umat_parameters)
+            << "INDEX_OF_UMAT_PHI_PARAMETER (" << phi_index
+            << ") is not in range 1, size of UMAT_PARAMETERS for element " << ElementId << "." << std::endl;
+
+        const double phi = rProperties[UMAT_PARAMETERS][phi_index - 1];
+        KRATOS_ERROR_IF(phi < 0.0 || phi > 90.0)
+            << "Phi (" << phi << ") should be between 0 and 90 degrees for element " << ElementId
+            << "." << std::endl;
+    }
+    // If GEO_FRICTION_ANGLE is provided directly, validate its range (degrees)
+    else if (rProperties.Has(GEO_FRICTION_ANGLE)) {
+        const double phi = rProperties[GEO_FRICTION_ANGLE];
+        KRATOS_ERROR_IF(phi < 0.0 || phi > 90.0)
+            << "GEO_FRICTION_ANGLE (" << phi << ") should be between 0 and 90 degrees for element "
+            << ElementId << "." << std::endl;
+    } else {
+        KRATOS_ERROR << "Properties of element ( " << ElementId
+                     << ") does not have GEO_FRICTION_ANGLE nor INDEX_OF_UMAT_PHI_PARAMETER." << std::endl;
+    }
+}
+
 double ConstitutiveLawUtilities::GetFrictionAngleInDegrees(const Properties& rProperties)
 {
     if (rProperties.Has(GEO_FRICTION_ANGLE)) {

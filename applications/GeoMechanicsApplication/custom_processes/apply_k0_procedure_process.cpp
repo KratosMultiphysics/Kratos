@@ -83,8 +83,8 @@ int ApplyK0ProcedureProcess::Check()
             CheckSufficientMaterialParameters(r_properties, rElement.Id());
             CheckOCRorPOP(r_properties, rElement.Id());
             CheckPoissonUnloadingReloading(r_properties, rElement.Id());
-            CheckPhi(r_properties, rElement.Id());
             CheckK0(r_properties, rElement.Id());
+            ConstitutiveLawUtilities::ValidateFrictionAngle(r_properties, rElement.Id());
         });
     }
 
@@ -122,27 +122,9 @@ void ApplyK0ProcedureProcess::CheckK0(const Properties& rProperties, IndexType E
     }
 }
 
-void ApplyK0ProcedureProcess::CheckPhi(const Properties& rProperties, IndexType ElementId)
-{
-    if (rProperties.Has(INDEX_OF_UMAT_PHI_PARAMETER) && rProperties.Has(UMAT_PARAMETERS)) {
-        const auto phi_index = rProperties[INDEX_OF_UMAT_PHI_PARAMETER];
-        const auto number_of_umat_parameters = static_cast<int>(rProperties[UMAT_PARAMETERS].size());
-
-        KRATOS_ERROR_IF(phi_index < 1 || phi_index > number_of_umat_parameters)
-            << "INDEX_OF_UMAT_PHI_PARAMETER (" << phi_index
-            << ") is not in range 1, size of UMAT_PARAMETERS for element " << ElementId << "." << std::endl;
-
-        const double phi = rProperties[UMAT_PARAMETERS][phi_index - 1];
-        KRATOS_ERROR_IF(phi < 0.0 || phi > 90.0)
-            << "Phi (" << phi << ") should be between 0 and 90 degrees for element " << ElementId
-            << "." << std::endl;
-    }
-}
-
 void ApplyK0ProcedureProcess::CheckOCRorPOP(const Properties& rProperties, IndexType ElementId)
 {
-    if (rProperties.Has(K0_NC) ||
-        (rProperties.Has(INDEX_OF_UMAT_PHI_PARAMETER) && rProperties.Has(UMAT_PARAMETERS))) {
+    if (rProperties.Has(K0_NC) || ConstitutiveLawUtilities::HasFrictionAngle(rProperties)) {
         if (rProperties.Has(OCR)) {
             const auto ocr = rProperties[OCR];
             KRATOS_ERROR_IF(ocr < 1.0) << "OCR (" << ocr << ") should be in the range [1.0,-> for element "
@@ -177,8 +159,7 @@ void ApplyK0ProcedureProcess::CheckPoissonUnloadingReloading(const Properties& r
 void ApplyK0ProcedureProcess::CheckSufficientMaterialParameters(const Properties& rProperties, IndexType ElementId)
 {
     KRATOS_ERROR_IF_NOT(
-        rProperties.Has(K0_NC) ||
-        (rProperties.Has(INDEX_OF_UMAT_PHI_PARAMETER) && rProperties.Has(UMAT_PARAMETERS)) ||
+        rProperties.Has(K0_NC) || ConstitutiveLawUtilities::HasFrictionAngle(rProperties) ||
         (rProperties.Has(K0_VALUE_XX) && rProperties.Has(K0_VALUE_YY) && rProperties.Has(K0_VALUE_ZZ)))
         << "Insufficient material data for K0 procedure process for element " << ElementId << ". No K0_NC, "
         << "(INDEX_OF_UMAT_PHI_PARAMETER and UMAT_PARAMETERS) or (K0_VALUE_XX, _YY and _ZZ found)."
@@ -206,19 +187,19 @@ bool ApplyK0ProcedureProcess::UseStandardProcedure() const
     return !mSettings.Has(setting_name) || mSettings[setting_name].GetBool();
 }
 
-array_1d<double, 3> ApplyK0ProcedureProcess::CreateK0Vector(const Element::PropertiesType& rProp)
+array_1d<double, 3> ApplyK0ProcedureProcess::CreateK0Vector(const Element::PropertiesType& rProperties)
 {
     // Check for alternative K0 specifications
     array_1d<double, 3> k0_vector;
-    if (rProp.Has(K0_NC)) {
-        std::fill(k0_vector.begin(), k0_vector.end(), rProp[K0_NC]);
-    } else if (rProp.Has(INDEX_OF_UMAT_PHI_PARAMETER) && rProp.Has(UMAT_PARAMETERS)) {
+    if (rProperties.Has(K0_NC)) {
+        std::fill(k0_vector.begin(), k0_vector.end(), rProperties[K0_NC]);
+    } else if (ConstitutiveLawUtilities::HasFrictionAngle(rProperties)) {
         std::ranges::fill(k0_vector, ConstitutiveLawUtilities::CalculateK0NCFromFrictionAngleInRadians(
-                                         ConstitutiveLawUtilities::GetFrictionAngleInRadians(rProp)));
+                                         ConstitutiveLawUtilities::GetFrictionAngleInRadians(rProperties)));
     } else {
-        k0_vector[0] = rProp[K0_VALUE_XX];
-        k0_vector[1] = rProp[K0_VALUE_YY];
-        k0_vector[2] = rProp[K0_VALUE_ZZ];
+        k0_vector[0] = rProperties[K0_VALUE_XX];
+        k0_vector[1] = rProperties[K0_VALUE_YY];
+        k0_vector[2] = rProperties[K0_VALUE_ZZ];
     }
 
     return k0_vector;
@@ -227,25 +208,26 @@ array_1d<double, 3> ApplyK0ProcedureProcess::CreateK0Vector(const Element::Prope
 void ApplyK0ProcedureProcess::CalculateK0Stresses(Element& rElement, const ProcessInfo& rProcessInfo)
 {
     // Get K0 material parameters of this element ( probably there is something more efficient )
-    const Element::PropertiesType& rProp             = rElement.GetProperties();
-    const auto                     k0_main_direction = rProp[K0_MAIN_DIRECTION];
+    const Element::PropertiesType& r_properties      = rElement.GetProperties();
+    const auto                     k0_main_direction = r_properties[K0_MAIN_DIRECTION];
 
-    auto k0_vector = CreateK0Vector(rProp);
+    auto k0_vector = CreateK0Vector(r_properties);
 
     // Corrections on k0_vector by OCR or POP
-    const auto PoissonUR = rProp.Has(POISSON_UNLOADING_RELOADING) ? rProp[POISSON_UNLOADING_RELOADING] : 0.;
+    const auto PoissonUR =
+        r_properties.Has(POISSON_UNLOADING_RELOADING) ? r_properties[POISSON_UNLOADING_RELOADING] : 0.;
     const auto PoissonURfactor = PoissonUR / (1. - PoissonUR);
 
     double POP_value = 0.0;
-    if (rProp.Has(K0_NC) || rProp.Has(INDEX_OF_UMAT_PHI_PARAMETER)) {
-        if (rProp.Has(OCR)) {
+    if (r_properties.Has(K0_NC) || ConstitutiveLawUtilities::HasFrictionAngle(r_properties)) {
+        if (r_properties.Has(OCR)) {
             // Determine OCR dependent K0 values ( constant per element! )
-            k0_vector *= rProp[OCR];
-            const array_1d<double, 3> correction(3, PoissonURfactor * (rProp[OCR] - 1.0));
+            k0_vector *= r_properties[OCR];
+            const array_1d<double, 3> correction(3, PoissonURfactor * (r_properties[OCR] - 1.0));
             k0_vector -= correction;
-        } else if (rProp.Has(POP)) {
+        } else if (r_properties.Has(POP)) {
             // POP is entered as positive value, convention here is compression negative.
-            POP_value = -rProp[POP];
+            POP_value = -r_properties[POP];
         }
     }
     // Get element stress vectors
