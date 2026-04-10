@@ -1068,6 +1068,7 @@ void PMultigridBuilderAndSolver<TSparse,TDense>::AssignSettings(const Parameters
             << "Make sure you imported the application it is defined in and that the spelling is correct.";
         const auto& r_factory = SolverFactoryRegistry::Get(solver_name);
         this->mpImpl->mpRootGridSolver = r_factory.Create(smoother_settings);
+        Interface::mpLinearSystemSolver = mpImpl->mpRootGridSolver;
 
         // Construct the coarse hierarchy.
         const std::string coarse_build_precision = coarse_hierarchy_settings["precision"].Get<std::string>();
@@ -1102,19 +1103,21 @@ void PMultigridBuilderAndSolver<TSparse,TDense>::AssignSettings(const Parameters
         KRATOS_CATCH("")
     } /* if coarse_hierarchy_settings["max_depth"].Get<int>() */ else {
         KRATOS_TRY
-        KRATOS_ERROR_IF_NOT(leaf_solver_settings.Has("solver_type"));
-        const std::string solver_name = leaf_solver_settings["solver_type"].Get<std::string>();
-        using SolverFactoryRegistry = KratosComponents<LinearSolverFactory<TSparse,TDense>>;
-        KRATOS_ERROR_IF_NOT(SolverFactoryRegistry::Has(solver_name))
-                << "'" << solver_name << "' does not name a registered linear solver. Options are:\n"
-                << []() -> std::string {
-                    std::stringstream message;
-                    for (const auto& r_pair : SolverFactoryRegistry::GetComponents())
-                        message << "\t" << r_pair.first << "\n";
-                    return message.str();
-                }();
-        const auto& r_factory = SolverFactoryRegistry::Get(solver_name);
-        this->mpImpl->mpRootGridSolver = r_factory.Create(leaf_solver_settings);
+        if (leaf_solver_settings.Has("solver_type")) {
+            const std::string solver_name = leaf_solver_settings["solver_type"].Get<std::string>();
+            using SolverFactoryRegistry = KratosComponents<LinearSolverFactory<TSparse,TDense>>;
+            KRATOS_ERROR_IF_NOT(SolverFactoryRegistry::Has(solver_name))
+                    << "'" << solver_name << "' does not name a registered linear solver. Options are:\n"
+                    << []() -> std::string {
+                        std::stringstream message;
+                        for (const auto& r_pair : SolverFactoryRegistry::GetComponents())
+                            message << "\t" << r_pair.first << "\n";
+                        return message.str();
+                    }();
+            const auto& r_factory = SolverFactoryRegistry::Get(solver_name);
+            this->mpImpl->mpRootGridSolver = r_factory.Create(leaf_solver_settings);
+            Interface::mpLinearSystemSolver = mpImpl->mpRootGridSolver;
+        }
         KRATOS_CATCH("")
     }
 
@@ -1154,9 +1157,7 @@ Parameters PMultigridBuilderAndSolver<TSparse,TDense>::GetDefaultParameters() co
         "smoother_settings" : {
             "solver_type" : ""
         },
-        "linear_solver_settings" : {
-            "solver_type" : "amgcl"
-        },
+        "linear_solver_settings" : {},
         "constraint_imposition_settings" : {
             "method" : "master_slave"
         },
