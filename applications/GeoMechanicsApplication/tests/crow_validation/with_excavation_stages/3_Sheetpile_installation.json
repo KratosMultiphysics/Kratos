@@ -88,6 +88,20 @@
         }
     },
     "processes": {
+        "json_output": [
+            {
+                "python_module": "json_output_process",
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "JsonOutputProcess",
+                "Parameters": {
+                    "model_part_name": "PorousDomain.Slave_side_1",
+                    "output_file_name": "3_Sheetpile_installation_interface_output.json",
+                    "output_variables"             : ["GEO_EFFECTIVE_TRACTION_VECTOR"],
+                    "gauss_points_output_variables": [],
+                    "time_frequency": 0.9999999999
+                }
+            }
+        ],
         "constraints_process_list": [
             {
                 "python_module": "apply_vector_constraint_table_process",
