@@ -56,7 +56,7 @@ namespace Kratos
  * but can be used in Geometrically nonlinear problems
  * involving large displacements and rotations
  * using a Corotational Coordinate Transformation.
- * Material nonlinearity is handled by means of the constitutive laws.
+ * Material nonlinearity is handled by means of the plane stress constitutive laws.
  */
 template <ShellKinematics TKinematics>
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) MITCThickShellElement3D4N :
@@ -150,18 +150,17 @@ public:
         inline void FinalizeNonLinearIteration(const Vector& displacementVector);
 
     private:
+        array_1d<double, 5> alpha;           // (trial) vector containing the 5 enhanced strain parameters
+        array_1d<double, 5> alpha_converged; // (converged) vector containing the 5 enhanced strain parameters
 
-        array_1d<double, 5> alpha;              // (trial) vector containing the 5 enhanced strain parameters
-        array_1d<double, 5> alpha_converged;    // (converged) vector containing the 5 enhanced strain parameters
+        array_1d<double, 24> displ;           // (trial) vector containing the displacement vector
+        array_1d<double, 24> displ_converged; // (converged) vector containing the displacement vector
 
-        array_1d<double, 24> displ;             // (trial) vector containing the displacement vector
-        array_1d<double, 24> displ_converged;   // (converged) vector containing the displacement vector
+        array_1d<double, 5> residual;     // vector containing the 5 residuals for the 5 enhanced strain parameters
+        BoundedMatrix<double, 5, 5> Hinv; // 5x5 matrix that stores H^-1
+        BoundedMatrix<double, 5, 24> L;   // 5x24 coupling matrix
 
-        array_1d<double, 5>           residual; // vector containing the 5 residuals for the 5 enhanced strain parameters
-        BoundedMatrix<double, 5, 5>  Hinv;     // 5x5 matrix that stores H^-1
-        BoundedMatrix<double, 5, 24> L;        // 5x24 coupling matrix
-
-        bool mInitialized;                      // Initialization flag
+        bool mInitialized; // Initialization flag
 
     private:
 
@@ -243,11 +242,11 @@ public:
     ///@{
 
     MITCThickShellElement3D4N(IndexType NewId,
-                          GeometryType::Pointer pGeometry);
+                              GeometryType::Pointer pGeometry);
 
     MITCThickShellElement3D4N(IndexType NewId,
-                          GeometryType::Pointer pGeometry,
-                          PropertiesType::Pointer pProperties);
+                              GeometryType::Pointer pGeometry,
+                              PropertiesType::Pointer pProperties);
 
     // ~MITCThickShellElement3D4N() override = default;
 
@@ -470,7 +469,7 @@ public:
      * @brief This method calculates the shear modulus to be used.
      * In elasticity the shear modulus is G = E / (2*(1+nu)).
      * However, in some cases, such as in plasticity, the constitutive matrix may not have this form.
-     * In nonlinear cases, we compute an equvalent isotropic D and retrieve its shear modulus.
+     * In nonlinear cases, we compute an equivalent isotropic D and retrieve its shear modulus.
     */
     double CalculateEquivalentShearModulus(const Matrix& rConstitutiveMatrix);
 
@@ -565,8 +564,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    EASOperatorStorage mEASStorage; /*!< The storage instance for the EAS Operator */
-
+    EASOperatorStorage mEASStorage; /// The storage instance for the EAS Operator
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector; /// The vector containing the constitutive laws
 
     ///@}
