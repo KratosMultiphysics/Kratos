@@ -100,7 +100,8 @@ void ConstitutiveLawUtilities::ValidateFrictionAngle(const Properties& rProperti
 
         KRATOS_ERROR_IF(phi_index < 1 || phi_index > number_of_umat_parameters)
             << "INDEX_OF_UMAT_PHI_PARAMETER (" << phi_index
-            << ") is not in range 1, size of UMAT_PARAMETERS for element " << ElementId << "." << std::endl;
+            << ") is not in range [1, size of UMAT_PARAMETERS] for element " << ElementId << "."
+            << std::endl;
 
         const double phi = rProperties[UMAT_PARAMETERS][phi_index - 1];
         KRATOS_ERROR_IF(phi < 0.0 || phi > 90.0)
