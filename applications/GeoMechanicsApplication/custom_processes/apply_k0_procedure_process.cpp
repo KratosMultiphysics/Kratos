@@ -84,7 +84,9 @@ int ApplyK0ProcedureProcess::Check()
             CheckOCRorPOP(r_properties, rElement.Id());
             CheckPoissonUnloadingReloading(r_properties, rElement.Id());
             CheckK0(r_properties, rElement.Id());
-            ConstitutiveLawUtilities::ValidateFrictionAngle(r_properties, rElement.Id());
+            if (!(r_properties.Has(K0_NC) || (r_properties.Has(K0_VALUE_XX) && r_properties.Has(K0_VALUE_YY) &&
+                                              r_properties.Has(K0_VALUE_ZZ))))
+                ConstitutiveLawUtilities::ValidateFrictionAngle(r_properties, rElement.Id());
         });
     }
 
