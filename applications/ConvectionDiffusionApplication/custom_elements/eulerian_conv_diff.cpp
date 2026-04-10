@@ -119,7 +119,9 @@ namespace Kratos
         BoundedMatrix<double,TNumNodes, TNumNodes> aux1 = ZeroMatrix(TNumNodes, TNumNodes); //terms multiplying dphi/dt
         BoundedMatrix<double,TNumNodes, TNumNodes> aux2 = ZeroMatrix(TNumNodes, TNumNodes); //terms multiplying phi
         bounded_matrix<double,TNumNodes, TDim> tmp;
-
+        // CrossWind variables
+        // Projected velocity
+        array_1d<double,TDim> u_proj;
         // Diffusion contribution
         BoundedMatrix<double,TDim,TDim> Dcw;
 
@@ -162,10 +164,27 @@ namespace Kratos
 
                 // Residual
                 const double res = dphi_dt + conv;
+    
+                // Projected velocity
+                u_proj = (conv/norm_grad) * (grad_phi_halfstep/norm_grad);
+
+                // Projected Peclet
+                const double Pe_proj = norm_2(u_proj) * h / (2.0 * Variables.conductivity + 1e-12);
+
+                // Limiter
+                const double alpha_c = std::max( 0.0, Variables.C - 1.0/(Pe_proj + 1e-12));
 
                 // Discontinuity capturing coefficient
-                const double k_c = Variables.C * h * std::abs(res) / norm_grad;
-
+                bool force_diffusion = true; // to avoid k_c = 0.0 when alpha_c = 0.0 using Pe_proj, add to ProjectParameters?
+                double k_c;
+                if (alpha_c == 0.0 && force_diffusion)
+                {
+                    k_c = Variables.C * h * std::abs(res / norm_grad);
+                } else
+                {
+                    k_c = 0.5 * alpha_c * h * std::abs(res / norm_grad);
+                }
+                
                 // Crosswind diffusion tensor
                 Dcw = k_c * IdentityMatrix(TDim);
 
