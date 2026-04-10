@@ -186,41 +186,31 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_CalculateK0NCFromFrictionAngl
 KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_HasFrictionAngle, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // 1) GEO_FRICTION_ANGLE provided
-    {
-        auto properties = Properties{};
-        properties.SetValue(GEO_FRICTION_ANGLE, 30.0);
-        KRATOS_EXPECT_EQ(ConstitutiveLawUtilities::HasFrictionAngle(properties), true);
-    }
+    auto properties = Properties{};
+    properties.SetValue(GEO_FRICTION_ANGLE, 30.0);
+    KRATOS_EXPECT_EQ(ConstitutiveLawUtilities::HasFrictionAngle(properties), true);
 
     // 2) UMAT_PARAMETERS + INDEX_OF_UMAT_PHI_PARAMETER provided
-    {
-        auto       properties      = Properties{};
-        const auto umat_parameters = UblasUtilities::CreateVector({2.0, 30.0});
-        properties.SetValue(UMAT_PARAMETERS, umat_parameters);
-        properties.SetValue(INDEX_OF_UMAT_PHI_PARAMETER, 2);
-        KRATOS_EXPECT_EQ(ConstitutiveLawUtilities::HasFrictionAngle(properties), true);
-    }
+    properties           = Properties{};
+    auto umat_parameters = UblasUtilities::CreateVector({2.0, 30.0});
+    properties.SetValue(UMAT_PARAMETERS, umat_parameters);
+    properties.SetValue(INDEX_OF_UMAT_PHI_PARAMETER, 2);
+    KRATOS_EXPECT_EQ(ConstitutiveLawUtilities::HasFrictionAngle(properties), true);
 
     // 3) only INDEX_OF_UMAT_PHI_PARAMETER provided -> should be false
-    {
-        auto properties = Properties{};
-        properties.SetValue(INDEX_OF_UMAT_PHI_PARAMETER, 1);
-        KRATOS_EXPECT_EQ(ConstitutiveLawUtilities::HasFrictionAngle(properties), false);
-    }
+    properties = Properties{};
+    properties.SetValue(INDEX_OF_UMAT_PHI_PARAMETER, 1);
+    KRATOS_EXPECT_EQ(ConstitutiveLawUtilities::HasFrictionAngle(properties), false);
 
     // 4) only UMAT_PARAMETERS provided -> should be false
-    {
-        auto       properties      = Properties{};
-        const auto umat_parameters = UblasUtilities::CreateVector({2.0, 30.0});
-        properties.SetValue(UMAT_PARAMETERS, umat_parameters);
-        KRATOS_EXPECT_EQ(ConstitutiveLawUtilities::HasFrictionAngle(properties), false);
-    }
+    properties      = Properties{};
+    umat_parameters = UblasUtilities::CreateVector({2.0, 30.0});
+    properties.SetValue(UMAT_PARAMETERS, umat_parameters);
+    KRATOS_EXPECT_EQ(ConstitutiveLawUtilities::HasFrictionAngle(properties), false);
 
     // 5) neither provided -> false
-    {
-        auto properties = Properties{};
-        KRATOS_EXPECT_EQ(ConstitutiveLawUtilities::HasFrictionAngle(properties), false);
-    }
+    properties = Properties{};
+    KRATOS_EXPECT_EQ(ConstitutiveLawUtilities::HasFrictionAngle(properties), false);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_ValidateFrictionAngle, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -228,54 +218,41 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_ValidateFrictionAngle, Kratos
     constexpr std::size_t element_id = 1;
 
     // Valid: GEO_FRICTION_ANGLE provided
-    {
-        auto properties = Properties{};
-        properties.SetValue(GEO_FRICTION_ANGLE, 30.0);
-        EXPECT_NO_THROW(ConstitutiveLawUtilities::ValidateFrictionAngle(properties, element_id));
-    }
+    auto properties = Properties{};
+    properties.SetValue(GEO_FRICTION_ANGLE, 30.0);
+    EXPECT_NO_THROW(ConstitutiveLawUtilities::ValidateFrictionAngle(properties, element_id));
 
     // Valid: UMAT_PARAMETERS + INDEX_OF_UMAT_PHI_PARAMETER provided
-    {
-        auto       properties      = Properties{};
-        const auto umat_parameters = UblasUtilities::CreateVector({2.0, 30.0});
-        properties.SetValue(UMAT_PARAMETERS, umat_parameters);
-        properties.SetValue(INDEX_OF_UMAT_PHI_PARAMETER, 2);
-        EXPECT_NO_THROW(ConstitutiveLawUtilities::ValidateFrictionAngle(properties, element_id));
-    }
+    properties           = Properties{};
+    auto umat_parameters = UblasUtilities::CreateVector({2.0, 30.0});
+    properties.SetValue(UMAT_PARAMETERS, umat_parameters);
+    properties.SetValue(INDEX_OF_UMAT_PHI_PARAMETER, 2);
+    EXPECT_NO_THROW(ConstitutiveLawUtilities::ValidateFrictionAngle(properties, element_id));
 
     // Missing both -> error
-    {
-        auto properties = Properties{};
-        KRATOS_EXPECT_EXCEPTION_IS_THROWN(ConstitutiveLawUtilities::ValidateFrictionAngle(properties, element_id), "Properties of element ( 1) does not have GEO_FRICTION_ANGLE nor INDEX_OF_UMAT_PHI_PARAMETER.");
-    }
+    properties = Properties{};
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(ConstitutiveLawUtilities::ValidateFrictionAngle(properties, element_id), "Properties of element ( 1) does not have GEO_FRICTION_ANGLE nor INDEX_OF_UMAT_PHI_PARAMETER.");
 
     // GEO_FRICTION_ANGLE out of range -> error
-    {
-        auto properties = Properties{};
-        properties.SetValue(GEO_FRICTION_ANGLE, -1.0);
-        KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-            ConstitutiveLawUtilities::ValidateFrictionAngle(properties, element_id),
-            "GEO_FRICTION_ANGLE (-1) should be between 0 and 90 degrees for element 1.");
-    }
+    properties = Properties{};
+    properties.SetValue(GEO_FRICTION_ANGLE, -1.0);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        ConstitutiveLawUtilities::ValidateFrictionAngle(properties, element_id),
+        "GEO_FRICTION_ANGLE (-1) should be between 0 and 90 degrees for element 1.");
 
     // UMAT phi value out of range -> error
-    {
-        auto       properties      = Properties{};
-        const auto umat_parameters = UblasUtilities::CreateVector({2.0, -5.0});
-        properties.SetValue(UMAT_PARAMETERS, umat_parameters);
-        properties.SetValue(INDEX_OF_UMAT_PHI_PARAMETER, 2);
-        KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-            ConstitutiveLawUtilities::ValidateFrictionAngle(properties, element_id),
-            "Phi (-5) should be between 0 and 90 degrees for element 1.");
-    }
+    properties      = Properties{};
+    umat_parameters = UblasUtilities::CreateVector({2.0, -5.0});
+    properties.SetValue(UMAT_PARAMETERS, umat_parameters);
+    properties.SetValue(INDEX_OF_UMAT_PHI_PARAMETER, 2);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(ConstitutiveLawUtilities::ValidateFrictionAngle(properties, element_id),
+                                      "Phi (-5) should be between 0 and 90 degrees for element 1.");
 
     // INDEX_OF_UMAT_PHI_PARAMETER out of bounds -> error
-    {
-        auto       properties      = Properties{};
-        const auto umat_parameters = UblasUtilities::CreateVector({2.0, 30.0});
-        properties.SetValue(UMAT_PARAMETERS, umat_parameters);
-        properties.SetValue(INDEX_OF_UMAT_PHI_PARAMETER, 3);
-        KRATOS_EXPECT_EXCEPTION_IS_THROWN(ConstitutiveLawUtilities::ValidateFrictionAngle(properties, element_id), "INDEX_OF_UMAT_PHI_PARAMETER (3) is not in range [1, size of UMAT_PARAMETERS] for element 1.");
-    }
+    properties      = Properties{};
+    umat_parameters = UblasUtilities::CreateVector({2.0, 30.0});
+    properties.SetValue(UMAT_PARAMETERS, umat_parameters);
+    properties.SetValue(INDEX_OF_UMAT_PHI_PARAMETER, 3);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(ConstitutiveLawUtilities::ValidateFrictionAngle(properties, element_id), "INDEX_OF_UMAT_PHI_PARAMETER (3) is not in range [1, size of UMAT_PARAMETERS] for element 1.");
 }
 } // namespace Kratos::Testing
