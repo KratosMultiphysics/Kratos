@@ -20,7 +20,6 @@
 
 namespace Kratos
 {
-
 class KRATOS_API(GEO_MECHANICS_APPLICATION) ConstitutiveLawUtilities
 {
 public:
@@ -57,6 +56,8 @@ public:
     [[nodiscard]] static double GetUndrainedYoungsModulus(const Properties& rProperties,
                                                           double            UndrainedPoissonsRatio);
     [[nodiscard]] static double GetSkemptonB(const Properties& rProperties);
+    [[nodiscard]] static double UndrainedExcessPorePressureIncrement(const Properties& rProperties,
+                                                                     double VolumetricStrainIncrement);
 }; /* Class ConstitutiveLawUtilities*/
 
 } // namespace Kratos

@@ -179,9 +179,9 @@ double ConstitutiveLawUtilities::GetUndrainedPoissonsRatio(const Properties& rPr
         return rProperties[POISSON_UNDRAINED];
     }
 
-    auto skempton_b     = ConstitutiveLawUtilities::GetSkemptonB(rProperties);
-    auto biot_alpha     = rProperties[BIOT_COEFFICIENT];
-    auto poissons_ratio = rProperties[POISSON_RATIO];
+    const auto skempton_b     = ConstitutiveLawUtilities::GetSkemptonB(rProperties);
+    const auto biot_alpha     = rProperties[BIOT_COEFFICIENT];
+    const auto poissons_ratio = rProperties[POISSON_RATIO];
     return (3.0 * poissons_ratio + biot_alpha * skempton_b * (1.0 - 2.0 * poissons_ratio)) /
            (3.0 - biot_alpha * skempton_b * (1.0 - 2.0 * poissons_ratio));
 }
@@ -192,11 +192,21 @@ double ConstitutiveLawUtilities::GetSkemptonB(const Properties& rProperties)
         return rProperties[SKEMPTON_B];
     }
 
-    auto k_f = rProperties[BULK_MODULUS_FLUID];
-    auto k_s = rProperties[BULK_MODULUS_SOLID]; // or should this be k skeleton, the porous material i.s.o. the solid
-    auto porosity   = rProperties[POROSITY];
-    auto biot_alpha = rProperties[BIOT_COEFFICIENT];
+    const auto k_f = rProperties[BULK_MODULUS_FLUID];
+    const auto k_s = rProperties[BULK_MODULUS_SOLID]; // or should this be k skeleton, the porous material i.s.o. the solid
+    const auto porosity   = rProperties[POROSITY];
+    const auto biot_alpha = rProperties[BIOT_COEFFICIENT];
     return biot_alpha / (biot_alpha + porosity * ((k_s / k_f) + biot_alpha - 1.0));
+}
+
+double ConstitutiveLawUtilities::UndrainedExcessPorePressureIncrement(const Properties& rProperties,
+                                                                      double VolumetricStrainIncrement)
+{
+    const auto c_f        = 1.0 / rProperties[BULK_MODULUS_FLUID];
+    const auto c_s        = 1.0 / rProperties[BULK_MODULUS_SOLID];
+    const auto porosity   = rProperties[POROSITY];
+    const auto biot_alpha = rProperties[BIOT_COEFFICIENT];
+    return (biot_alpha / (porosity * c_f + (biot_alpha - porosity) * c_s)) * VolumetricStrainIncrement;
 }
 
 } // namespace Kratos
