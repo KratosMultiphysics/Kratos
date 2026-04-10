@@ -13,7 +13,6 @@
 #include "apply_k0_procedure_process.h"
 
 #include <algorithm>
-#include <ostream>
 
 #include "containers/model.h"
 #include "custom_constitutive/linear_elastic_law.h"
@@ -32,7 +31,7 @@ using namespace std::string_literals;
 void SetConsiderDiagonalEntriesOnlyAndNoShear(ModelPart::ElementsContainerType& rElements, bool Whether)
 {
     block_for_each(rElements, [Whether](Element& rElement) {
-        auto p_linear_elastic_law =
+        const auto p_linear_elastic_law =
             dynamic_cast<GeoLinearElasticLaw*>(rElement.GetProperties().GetValue(CONSTITUTIVE_LAW).get());
         if (p_linear_elastic_law)
             p_linear_elastic_law->SetConsiderDiagonalEntriesOnlyAndNoShear(Whether);
@@ -73,7 +72,7 @@ int ApplyK0ProcedureProcess::Check()
 {
     for (const auto& r_model_part : mrModelParts) {
         KRATOS_ERROR_IF(r_model_part.get().Elements().empty())
-            << "ApplyK0ProcedureProces has no elements in modelpart " << r_model_part.get().Name()
+            << "ApplyK0ProcedureProcess has no elements in modelpart " << r_model_part.get().Name()
             << std::endl;
     }
 
@@ -195,7 +194,7 @@ array_1d<double, 3> ApplyK0ProcedureProcess::CreateK0Vector(const Element::Prope
     // Check for alternative K0 specifications
     array_1d<double, 3> k0_vector;
     if (rProperties.Has(K0_NC)) {
-        std::fill(k0_vector.begin(), k0_vector.end(), rProperties[K0_NC]);
+        std::ranges::fill(k0_vector, rProperties[K0_NC]);
     } else if (ConstitutiveLawUtilities::HasFrictionAngle(rProperties)) {
         std::ranges::fill(k0_vector, ConstitutiveLawUtilities::CalculateK0NCFromFrictionAngleInRadians(
                                          ConstitutiveLawUtilities::GetFrictionAngleInRadians(rProperties)));
