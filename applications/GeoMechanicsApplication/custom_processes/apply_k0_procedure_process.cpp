@@ -32,9 +32,10 @@ using namespace std::string_literals;
 void SetConsiderDiagonalEntriesOnlyAndNoShear(ModelPart::ElementsContainerType& rElements, bool Whether)
 {
     block_for_each(rElements, [Whether](Element& rElement) {
-        auto pLinearElasticLaw =
+        auto p_linear_elastic_law =
             dynamic_cast<GeoLinearElasticLaw*>(rElement.GetProperties().GetValue(CONSTITUTIVE_LAW).get());
-        if (pLinearElasticLaw) pLinearElasticLaw->SetConsiderDiagonalEntriesOnlyAndNoShear(Whether);
+        if (p_linear_elastic_law)
+            p_linear_elastic_law->SetConsiderDiagonalEntriesOnlyAndNoShear(Whether);
     });
 }
 
@@ -216,16 +217,16 @@ void ApplyK0ProcedureProcess::CalculateK0Stresses(Element& rElement, const Proce
     auto k0_vector = CreateK0Vector(r_properties);
 
     // Corrections on k0_vector by OCR or POP
-    const auto PoissonUR =
+    const auto poisson_u_r =
         r_properties.Has(POISSON_UNLOADING_RELOADING) ? r_properties[POISSON_UNLOADING_RELOADING] : 0.;
-    const auto PoissonURfactor = PoissonUR / (1. - PoissonUR);
+    const auto poisson_u_r_factor = poisson_u_r / (1. - poisson_u_r);
 
     double POP_value = 0.0;
     if (r_properties.Has(K0_NC) || ConstitutiveLawUtilities::HasFrictionAngle(r_properties)) {
         if (r_properties.Has(OCR)) {
             // Determine OCR dependent K0 values ( constant per element! )
             k0_vector *= r_properties[OCR];
-            const array_1d<double, 3> correction(3, PoissonURfactor * (r_properties[OCR] - 1.0));
+            const array_1d<double, 3> correction(3, poisson_u_r_factor * (r_properties[OCR] - 1.0));
             k0_vector -= correction;
         } else if (r_properties.Has(POP)) {
             // POP is entered as positive value, convention here is compression negative.
@@ -233,23 +234,23 @@ void ApplyK0ProcedureProcess::CalculateK0Stresses(Element& rElement, const Proce
         }
     }
     // Get element stress vectors
-    std::vector<ConstitutiveLaw::StressVectorType> rStressVectors;
-    rElement.CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, rStressVectors, rProcessInfo);
+    std::vector<ConstitutiveLaw::StressVectorType> stress_vectors;
+    rElement.CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, stress_vectors, rProcessInfo);
 
     // Loop over integration point stress vectors
-    for (auto& rStressVector : rStressVectors) {
+    for (auto& r_stress_vector : stress_vectors) {
         // Apply K0 procedure
         for (int i_dir = 0; i_dir <= 2; ++i_dir) {
             if (i_dir != k0_main_direction) {
-                rStressVector[i_dir] = k0_vector[i_dir] * (rStressVector[k0_main_direction] + POP_value) -
-                                       PoissonURfactor * POP_value;
+                r_stress_vector[i_dir] = k0_vector[i_dir] * (r_stress_vector[k0_main_direction] + POP_value) -
+                                         poisson_u_r_factor * POP_value;
             }
         }
         // Erase shear stresses
-        std::fill(rStressVector.begin() + 3, rStressVector.end(), 0.0);
+        std::fill(r_stress_vector.begin() + 3, r_stress_vector.end(), 0.0);
     }
     // Set element integration point stress tensors
-    rElement.SetValuesOnIntegrationPoints(CAUCHY_STRESS_VECTOR, rStressVectors, rProcessInfo);
+    rElement.SetValuesOnIntegrationPoints(CAUCHY_STRESS_VECTOR, stress_vectors, rProcessInfo);
 }
 
 } // namespace Kratos
