@@ -93,8 +93,15 @@ bool ConstitutiveLawUtilities::HasFrictionAngle(const Properties& rProperties)
 
 void ConstitutiveLawUtilities::ValidateFrictionAngle(const Properties& rProperties, IndexType ElementId)
 {
+    // If GEO_FRICTION_ANGLE is provided directly, validate its range (degrees)
+    if (rProperties.Has(GEO_FRICTION_ANGLE)) {
+        const double phi = rProperties[GEO_FRICTION_ANGLE];
+        KRATOS_ERROR_IF(phi < 0.0 || phi > 90.0)
+            << "GEO_FRICTION_ANGLE (" << phi << ") should be between 0 and 90 degrees for element "
+            << ElementId << "." << std::endl;
+    }
     // If UMAT-route is used, validate index and the stored angle in UMAT parameters (degrees)
-    if (rProperties.Has(INDEX_OF_UMAT_PHI_PARAMETER) && rProperties.Has(UMAT_PARAMETERS)) {
+    else if (rProperties.Has(INDEX_OF_UMAT_PHI_PARAMETER) && rProperties.Has(UMAT_PARAMETERS)) {
         const auto phi_index = rProperties[INDEX_OF_UMAT_PHI_PARAMETER];
         const auto number_of_umat_parameters = static_cast<int>(rProperties[UMAT_PARAMETERS].size());
 
@@ -107,13 +114,6 @@ void ConstitutiveLawUtilities::ValidateFrictionAngle(const Properties& rProperti
         KRATOS_ERROR_IF(phi < 0.0 || phi > 90.0)
             << "Phi (" << phi << ") should be between 0 and 90 degrees for element " << ElementId
             << "." << std::endl;
-    }
-    // If GEO_FRICTION_ANGLE is provided directly, validate its range (degrees)
-    else if (rProperties.Has(GEO_FRICTION_ANGLE)) {
-        const double phi = rProperties[GEO_FRICTION_ANGLE];
-        KRATOS_ERROR_IF(phi < 0.0 || phi > 90.0)
-            << "GEO_FRICTION_ANGLE (" << phi << ") should be between 0 and 90 degrees for element "
-            << ElementId << "." << std::endl;
     } else {
         KRATOS_ERROR << "Properties of element ( " << ElementId
                      << ") does not have GEO_FRICTION_ANGLE nor INDEX_OF_UMAT_PHI_PARAMETER." << std::endl;
