@@ -109,7 +109,7 @@ void ApplyK0ProcedureProcess::CheckK0MainDirection(const Properties& rProperties
         }
         valid_values << i;
     }
-    KRATOS_ERROR_IF(rProperties[K0_MAIN_DIRECTION] < 0 || rProperties[K0_MAIN_DIRECTION] > dimension)
+    KRATOS_ERROR_IF(rProperties[K0_MAIN_DIRECTION] < 0 || rProperties[K0_MAIN_DIRECTION] > static_cast<int>(dimension))
         << "K0_MAIN_DIRECTION should be " << valid_values.str() << " for element " << ElementId
         << "." << std::endl;
 }
