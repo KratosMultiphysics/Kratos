@@ -585,8 +585,9 @@ KRATOS_TEST_CASE_IN_SUITE(K0ProcedureChecksIfProcessHasCorrectMaterialData, Krat
                                       "UMAT_PARAMETERS] for element 1")
     p_element->GetProperties().SetValue(INDEX_OF_UMAT_PHI_PARAMETER, 1);
 
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(process.Check(),
-                                      "Phi (-30) should be between 0 and 90 degrees for element 1.")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        process.Check(),
+        "Properties ( 0): Phi (-30 degrees) should be between 0 and 90 degrees for element 1.")
 
     umat_parameters[0] = 30.0;
     p_element->GetProperties().SetValue(UMAT_PARAMETERS, umat_parameters);

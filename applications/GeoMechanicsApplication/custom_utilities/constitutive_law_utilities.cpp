@@ -113,13 +113,13 @@ void ConstitutiveLawUtilities::ValidateFrictionAngle(const Properties& rProperti
     }
 
     if (phi_name == "") {
-        KRATOS_ERROR << "Properties of element ( " << ElementId
+        KRATOS_ERROR << "Properties ( " << rProperties.Id() << ") of element ( " << ElementId
                      << ") does not have GEO_FRICTION_ANGLE nor INDEX_OF_UMAT_PHI_PARAMETER." << std::endl;
     }
 
     KRATOS_ERROR_IF(phi < 0.0 || phi > 90.0)
-        << phi_name << " (" << phi << ") should be between 0 and 90 degrees for element "
-        << ElementId << "." << std::endl;
+        << "Properties ( " << rProperties.Id() << "): " << phi_name << " (" << phi
+        << " degrees) should be between 0 and 90 degrees for element " << ElementId << "." << std::endl;
 }
 
 double ConstitutiveLawUtilities::GetFrictionAngleInDegrees(const Properties& rProperties)
