@@ -161,12 +161,14 @@ $$ k_{\mathrm{s}} = \frac{G}{h} $$
 
 The interface normal stiffness is taken as:
 
-$$ k_{\mathrm{n}} = 10 , k_{\mathrm{s}} $$
+$$ k_{\mathrm{n}} = 10 \, k_{\mathrm{s}} $$
 
 with:
 
 * $G$ = shear modulus of the adjacent soil
 * $h$ = element size normal to the interface
+
+This formulation is used directly for the clay-side interface. For the sand-side interface, the final values were reduced in the calibrated Kratos model.
 
 ### Clay-side interface
 
@@ -196,23 +198,30 @@ and
 
 $$ h = 1.0 ,\mathrm{m} $$
 
-the shear stiffness becomes:
+the direct estimate from the same formulation would be:
 
 $$ k_{\mathrm{s,sand}} = \frac{1.1538 \times 10^7}{1.0} = 1.1538 \times 10^7 $$
 
-and the normal stiffness becomes:
+and
 
 $$ k_{\mathrm{n,sand}} = 10 \cdot 1.1538 \times 10^7 = 1.1538 \times 10^8 $$
+
+However, in the current calibrated Kratos model, the adopted sand-side interface values are reduced to:
+
+$$ k_{\mathrm{s,sand}} = 4.615 \times 10^6 $$
+
+and
+
+$$ k_{\mathrm{n,sand}} = 4.615 \times 10^6 $$
 
 ### Final values
 
 | Property                          | Kratos input parameter       | Clay-side interface |  Sand-side interface | Unit                     |
-| --------------------------------- | ---------------------------- | ------------------: | -------------------: | ------------------------ |
-| Normal stiffness $k_{\mathrm{n}}$ | `INTERFACE_NORMAL_STIFFNESS` | $4.615 \times 10^7$ | $1.1538 \times 10^8$ | $\mathrm{Pa}/\mathrm{m}$ |
-| Shear stiffness $k_{\mathrm{s}}$  | `INTERFACE_SHEAR_STIFFNESS`  | $4.615 \times 10^6$ | $1.1538 \times 10^7$ | $\mathrm{Pa}/\mathrm{m}$ |
+| --------------------------------- | ---------------------------- | ------------------: |---------------------:| ------------------------ |
+| Normal stiffness $k_{\mathrm{n}}$ | `INTERFACE_NORMAL_STIFFNESS` | $4.615 \times 10^7$ | $1.1538 \times 10^6$ | $\mathrm{Pa}/\mathrm{m}$ |
+| Shear stiffness $k_{\mathrm{s}}$  | `INTERFACE_SHEAR_STIFFNESS`  | $4.615 \times 10^6$ | $1.1538 \times 10^6$ | $\mathrm{Pa}/\mathrm{m}$ |
 
-Note that only the clay interface values are used in the current model as the separation of the small sand layer from the clay layer part in the interface is not modeled yet.
-
+The clay-side interface values follow directly from the adopted stiffness formulation. For the sand-side interface, the values used in the current Kratos model are reduced calibration values rather than the direct estimate from the adjacent sand shear modulus.
 
 ## Sheet pile parameters
 
@@ -237,9 +246,9 @@ These values are apparently based on the **D-Sheet Piling** section properties f
 
 ### Equivalent second moment of area
 
-The Young’s modulus of steel sheet piles is generally considered to be 200 GPa. This is the standard modulus of elasticity for structural steel.
-Therefore, the Young's modulus is taken as:
-$$ E = 2.10 \times 10^{11},\mathrm{Pa} $$
+The Young’s modulus of steel sheet piles is generally considered to be 200 GPa. This is the standard modulus of elasticity for structural steel. Therefore, the reference Young's modulus is taken as:
+
+$$ E_{\mathrm{steel}} = 2.10 \times 10^{11},\mathrm{Pa} $$
 
 The section area is converted as:
 
@@ -253,7 +262,7 @@ $$ EI = 8.40000 \times 10^4 \times 10^3 = 8.40 \times 10^7 ,\mathrm{N,m}^2 $$
 
 The equivalent second moment of area is:
 
-$$ I = \frac{EI}{E} $$
+$$ I = \frac{EI}{E_{\mathrm{steel}}} $$
 
 Substituting:
 
@@ -261,21 +270,19 @@ $$ I = \frac{8.40 \times 10^7}{2.10 \times 10^{11}} $$
 
 $$ I = 4.00 \times 10^{-4} ,\mathrm{m}^4 $$
 
+### Adopted Kratos beam representation
 
-## TODO: To represent the sheet pile with a Timoshenko beam constitutive law
-### Calculation of equivalent thickness
-Marjan: I'm not sure how to calculate the equivalent thickness for the beam representation of the sheet pile. The section area is 0.0198 m^2, and the width of the sheet pile is 0.63 m. Should I use these values to calculate the thickness?
-I kept some of the previous values from the building pit model.
+In the current Kratos model, the sheet pile is represented by an equivalent Timoshenko beam. The final beam parameters were calibrated to obtain a better agreement with the D-Sheet Piling response. Therefore, the adopted Kratos beam values are not a direct one-to-one translation of the AZ26 steel material parameters, but an equivalent set of beam parameters for the present model formulation.
 
 ### Final values
 
-| Property                           | Kratos input parameter  |                 Value | Unit                       |
-|------------------------------------|-------------------------|----------------------:|----------------------------|
-| Young's modulus                    | `YOUNG_MODULUS`         | $2.10 \times 10^{11}$ | $\mathrm{Pa}$              |
-| Poisson's ratio                    | `POISSON_RATIO`         |                   0.0 | $-$                        |
-| Thickness                          | `THICKNESS`             |                 1.265 | $\mathrm{m}$               |
-| Effective thickness in y-direction | `THICKNESS_EFFECTIVE_Y` |                10.025 | $\mathrm{m}$               |
-| Density                            | `DENSITY`               |                805.82 | $\mathrm{kg}/\mathrm{m}^3$ |
+| Property                           | Kratos input parameter  |                    Value | Unit                       |
+|------------------------------------|-------------------------|-------------------------:|----------------------------|
+| Young's modulus                    | `YOUNG_MODULUS`         | $5.92927061 \times 10^9$ | $\mathrm{Pa}$              |
+| Poisson's ratio                    | `POISSON_RATIO`         |                      0.0 | $-$                        |
+| Thickness                          | `THICKNESS`             |                    1.265 | $\mathrm{m}$               |
+| Effective thickness in y-direction | `THICKNESS_EFFECTIVE_Y` |                     10.0 | $\mathrm{m}$               |
+| Density                            | `DENSITY`               |                   805.82 | $\mathrm{kg}/\mathrm{m}^3$ |
 
 
 ## Spring support / anchor parameters
@@ -294,11 +301,11 @@ From **D-Sheet Piling**:
 
 Adopted for the truss material:
 
-| Property        | Kratos input parameter |               Value | Unit                       |
-|-----------------|------------------------|--------------------:|----------------------------|
-| Young's modulus | `YOUNG_MODULUS`        | $2.0 \times 10^{9}$ | $\mathrm{Pa}$              |
-| Density         | `DENSITY`              |                 0.0 | $\mathrm{kg}/\mathrm{m}^3$ |
-| Prestress       | `TRUSS_PRESTRESS_PK2`  |                 0.0 | $\mathrm{Pa}$              |
+| Property        | Kratos input parameter |                Value | Unit                       |
+|-----------------|------------------------|---------------------:|----------------------------|
+| Young's modulus | `YOUNG_MODULUS`        | $4.0 \times 10^{11}$ | $\mathrm{Pa}$              |
+| Density         | `DENSITY`              |                  0.0 | $\mathrm{kg}/\mathrm{m}^3$ |
+| Prestress       | `TRUSS_PRESTRESS_PK2`  |                  0.0 | $\mathrm{Pa}$              |
 
 ### Axial stiffness relation
 
@@ -313,53 +320,36 @@ where:
 * $A$ is the cross-sectional area
 * $L$ is the truss length
 
-Rearranging:
-
-$$ A = \frac{kL}{E} $$
-
-### Conversion of translational stiffness
+### Reference translational stiffness from D-Sheet
 
 Converting the D-Sheet translational stiffness to SI units:
 
 $$ k = 1.00000 \times 10^4 ,\mathrm{kN}/\mathrm{m} $$
+
 $$ k = 1.00000 \times 10^4 \times 10^3 = 1.0 \times 10^7,\mathrm{N}/\mathrm{m} $$
 
-### Assumed anchor length
+### Adopted Kratos anchor representation
 
-Since the spring support in D-Sheet provides only the translational stiffness, an anchor length must be assumed for the truss representation.
+In the current Kratos model, the spring support is represented with a truss element using an equivalent calibrated stiffness. Therefore, the final truss material values are not a direct one-to-one translation of the D-Sheet spring stiffness for an assumed truss length of $1.0\,\mathrm{m}$, but a calibrated representation that gives a better agreement in the present model.
 
-The assumed value is:
+The adopted axial stiffness of the truss material is:
 
-$$ L = 1.0 ,\mathrm{m} $$
+$$ EA = E \cdot A $$
 
-### Calculation of cross-sectional area
+Substituting the current Kratos values:
 
-Substituting into
+$$ EA = 4.0 \times 10^{11} \cdot 1.0 \times 10^{-3} $$
 
-$$ A = \frac{kL}{E} $$
-
-gives:
-
-$$ A = \frac{1.0 \times 10^7 \cdot 1.0}{2.0 \times 10^{9}} $$
-
-$$ A = 4.76 \times 10^{-3} ,\mathrm{m}^2 $$
-
-### Adopted Kratos interpretation
-
-The spring support is represented by a truss element such that:
-
-* the axial stiffness matches the D-Sheet translational spring stiffness
-* the material is assumed to be steel
-* no prestress is applied
+$$ EA = 4.0 \times 10^8 ,\mathrm{N} $$
 
 ### Final values
 
-| Property             | Kratos input parameter |                 Value | Unit                       |
-|----------------------|------------------------|----------------------:|----------------------------|
-| Young's modulus      | `YOUNG_MODULUS`        |   $2.0 \times 10^{9}$ | $\mathrm{Pa}$              |
-| Density              | `DENSITY`              |                   0.0 | $\mathrm{kg}/\mathrm{m}^3$ |
-| Cross-sectional area | `CROSS_AREA`           | $5.0 \times 10^{-3}$ | $\mathrm{m}^2$             |
-| Prestress            | `TRUSS_PRESTRESS_PK2`  |                   0.0 | $\mathrm{Pa}$              |
+| Property             | Kratos input parameter |                Value | Unit                       |
+|----------------------|------------------------|---------------------:|----------------------------|
+| Young's modulus      | `YOUNG_MODULUS`        | $4.0 \times 10^{11}$ | $\mathrm{Pa}$              |
+| Density              | `DENSITY`              |                  0.0 | $\mathrm{kg}/\mathrm{m}^3$ |
+| Cross-sectional area | `CROSS_AREA`           | $1.0 \times 10^{-3}$ | $\mathrm{m}^2$             |
+| Prestress            | `TRUSS_PRESTRESS_PK2`  |                  0.0 | $\mathrm{Pa}$              |
 
 ## Staged analysis
 
