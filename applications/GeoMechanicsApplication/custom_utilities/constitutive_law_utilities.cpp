@@ -104,9 +104,9 @@ void ConstitutiveLawUtilities::ValidateFrictionAngle(const Properties& rProperti
         const auto number_of_umat_parameters = static_cast<int>(rProperties[UMAT_PARAMETERS].size());
 
         KRATOS_ERROR_IF(phi_index < 1 || phi_index > number_of_umat_parameters)
-            << "INDEX_OF_UMAT_PHI_PARAMETER (" << phi_index
-            << ") is not in range [1, size of UMAT_PARAMETERS] for element " << ElementId << "."
-            << std::endl;
+            << "Properties ( " << rProperties.Id() << ") of element ( " << ElementId
+            << "): INDEX_OF_UMAT_PHI_PARAMETER (" << phi_index
+            << ") is not in range [1, size of UMAT_PARAMETERS]." << std::endl;
 
         phi      = rProperties[UMAT_PARAMETERS][phi_index - 1];
         phi_name = "Phi";
@@ -118,8 +118,8 @@ void ConstitutiveLawUtilities::ValidateFrictionAngle(const Properties& rProperti
     }
 
     KRATOS_ERROR_IF(phi < 0.0 || phi > 90.0)
-        << "Properties ( " << rProperties.Id() << "): " << phi_name << " (" << phi
-        << " degrees) should be between 0 and 90 degrees for element " << ElementId << "." << std::endl;
+        << "Properties ( " << rProperties.Id() << ") of element ( " << ElementId << "): " << phi_name
+        << " (" << phi << " degrees) should be between 0 and 90 degrees." << std::endl;
 }
 
 double ConstitutiveLawUtilities::GetFrictionAngleInDegrees(const Properties& rProperties)
