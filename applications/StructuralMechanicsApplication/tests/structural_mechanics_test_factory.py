@@ -302,8 +302,8 @@ class Simple2D2NBeamCrTest(StructuralMechanicsTestFactory):
 class InitialStateElasticityTest(StructuralMechanicsTestFactory):
     file_name = "InitialStateElasticity/initial_state_test"
 
-class InitialStrainShellQ4ThickTest(StructuralMechanicsTestFactory):
-    file_name = "InitialStateElasticity/initial_strain_shell_Q4_thick_test"
+# class InitialStrainShellQ4ThickTest(StructuralMechanicsTestFactory):
+#     file_name = "InitialStateElasticity/initial_strain_shell_Q4_thick_test"   # TODO: This test will be activated again when the initial state capability is added to the new MITC thick shell. A. Cornejo, 2026.
 
 class ShellT3IsotropicLinearStaticStructScordelisLoRoofTests(StructuralMechanicsTestFactory):
     file_name = "shell_test/Shell_T3_isotropic_linear_static_struct_scordelis_lo_roof"

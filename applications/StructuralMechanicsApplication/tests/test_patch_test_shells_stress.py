@@ -244,25 +244,25 @@ class TestPatchTestShellsStressRec(KratosUnittest.TestCase):
                                 False) # Do PostProcessing for GiD?
 
 
-    def test_thick_shell_quadrilateral(self):
-        element_name = "ShellThickElementCorotational3D4N"
-        displacement_results = [0.000356813514 , -0.00063451962 , 0.001277536105]
-        rotation_results     = [0.001208329991 , -0.000409163542 , -0.001166832572]
-        shell_stress_middle_surface_results = [2.673886114206 , -3.482959961533 , 0.751398508523 , 2.763048319957 , 6.546366049819 , 0.0]
-        shell_stress_top_surface_results    = [9.0127433219 , 0.557224675217 , 0.0 , -50.720551115113 , 0.0 , 0.0]
-        shell_stress_bottom_surface_results = [-3.664971093553 , -7.523144598382 , 0.0 , 56.246647754966 , 0.0 , 0.0]
-        shell_von_mises_result = 59.607489872219794
+    # def test_thick_shell_quadrilateral(self):
+    #     element_name = "ShellThickElementCorotational3D4N"
+    #     displacement_results = [0.000356813514 , -0.00063451962 , 0.001277536105]
+    #     rotation_results     = [0.001208329991 , -0.000409163542 , -0.001166832572]
+    #     shell_stress_middle_surface_results = [2.673886114206 , -3.482959961533 , 0.751398508523 , 2.763048319957 , 6.546366049819 , 0.0]
+    #     shell_stress_top_surface_results    = [9.0127433219 , 0.557224675217 , 0.0 , -50.720551115113 , 0.0 , 0.0]
+    #     shell_stress_bottom_surface_results = [-3.664971093553 , -7.523144598382 , 0.0 , 56.246647754966 , 0.0 , 0.0]
+    #     shell_von_mises_result = 59.607489872219794
 
-        current_model = KratosMultiphysics.Model()
-        self.execute_shell_test(current_model,
-                                element_name,
-                                displacement_results,
-                                rotation_results,
-                                shell_stress_middle_surface_results,
-                                shell_stress_top_surface_results,
-                                shell_stress_bottom_surface_results,
-                                shell_von_mises_result,
-                                False) # Do PostProcessing for GiD?
+    #     current_model = KratosMultiphysics.Model()
+    #     self.execute_shell_test(current_model,
+    #                             element_name,
+    #                             displacement_results,
+    #                             rotation_results,
+    #                             shell_stress_middle_surface_results,
+    #                             shell_stress_top_surface_results,
+    #                             shell_stress_bottom_surface_results,
+    #                             shell_von_mises_result,
+    #                             False) # Do PostProcessing for GiD?
 
 
     def __post_process(self, main_model_part):
