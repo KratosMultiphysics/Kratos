@@ -144,6 +144,14 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_UndrainedExcessPorePressureI
     properties.SetValue(BULK_MODULUS_FLUID, 1.E3);
     properties.SetValue(BULK_MODULUS_SOLID, 2.E3);
     properties.SetValue(POROSITY, 0.5);
+
+    // Act
+    const auto volumetric_strain = 1.0;
+    const auto excess_pore_pressure =
+        ConstitutiveLawUtilities::UndrainedExcessPorePressureIncrement(properties, volumetric_strain);
+
+    // Assert
+    KRATOS_EXPECT_NEAR(excess_pore_pressure, 4.0e3 / 3.0, Defaults::absolute_tolerance);
 }
 
 } // namespace Kratos::Testing
