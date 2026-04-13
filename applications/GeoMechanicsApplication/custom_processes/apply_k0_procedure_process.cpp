@@ -133,14 +133,16 @@ void ApplyK0ProcedureProcess::CheckOCRorPOP(const Properties& rProperties, Index
     if (rProperties.Has(K0_NC) || ConstitutiveLawUtilities::HasFrictionAngle(rProperties)) {
         if (rProperties.Has(OCR)) {
             const auto ocr = rProperties[OCR];
-            KRATOS_ERROR_IF(ocr < 1.0) << "OCR (" << ocr << ") should be in the range [1.0,-> for element "
-                                       << ElementId << "." << std::endl;
+            KRATOS_ERROR_IF(ocr < 1.0)
+                << "OCR (" << ocr << ") should be in the range [1.0,-> for property Id of "
+                << rProperties.Id() << " for element " << ElementId << "." << std::endl;
         }
 
         if (rProperties.Has(POP)) {
             const auto pop = rProperties[POP];
-            KRATOS_ERROR_IF(pop < 0.0) << "POP (" << pop << ") should be in the range [0.0,-> for element "
-                                       << ElementId << "." << std::endl;
+            KRATOS_ERROR_IF(pop < 0.0)
+                << "POP (" << pop << ") should be in the range [0.0,-> for property Id of "
+                << rProperties.Id() << " element " << ElementId << "." << std::endl;
         }
     }
 }
@@ -151,12 +153,14 @@ void ApplyK0ProcedureProcess::CheckPoissonUnloadingReloading(const Properties& r
                     (rProperties[POISSON_UNLOADING_RELOADING] < -1.0 ||
                      rProperties[POISSON_UNLOADING_RELOADING] >= 0.5))
         << "POISSON_UNLOADING_RELOADING (" << rProperties[POISSON_UNLOADING_RELOADING]
-        << ") is not in range [-1.0, 0.5> for element " << ElementId << "." << std::endl;
+        << ") is not in range [-1.0, 0.5> for property Id of " << rProperties.Id()
+        << " for element " << ElementId << "." << std::endl;
 
     if (rProperties.Has(K0_VALUE_XX)) {
         KRATOS_ERROR_IF(rProperties.Has(POISSON_UNLOADING_RELOADING) || rProperties.Has(OCR) ||
                         rProperties.Has(POP))
-            << "Insufficient material data for K0 procedure process for element "
+            << "Insufficient material data for K0 procedure process for property Id of "
+            << rProperties.Id() << " for element "
             << ElementId << ". Poisson unloading-reloading, OCR and POP functionality cannot be combined with K0_VALUE_XX, _YY and _ZZ."
             << std::endl;
     }
@@ -167,7 +171,8 @@ void ApplyK0ProcedureProcess::CheckSufficientMaterialParameters(const Properties
     KRATOS_ERROR_IF_NOT(
         rProperties.Has(K0_NC) || ConstitutiveLawUtilities::HasFrictionAngle(rProperties) ||
         (rProperties.Has(K0_VALUE_XX) && rProperties.Has(K0_VALUE_YY) && rProperties.Has(K0_VALUE_ZZ)))
-        << "Insufficient material data for K0 procedure process for element " << ElementId << ". No K0_NC, "
+        << "Insufficient material data for K0 procedure process for property Id of "
+        << rProperties.Id() << " for element " << ElementId << ". No K0_NC, "
         << "(INDEX_OF_UMAT_PHI_PARAMETER and UMAT_PARAMETERS) or (K0_VALUE_XX, _YY and _ZZ found)."
         << std::endl;
 }
