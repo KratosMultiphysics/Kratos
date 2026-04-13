@@ -481,7 +481,7 @@ public:
                     r_friction_force[1] = tangent_force1;
                     r_friction_force[2] = tangent_force2;
                 }
-				
+
 				// reset flag as this function is called in InitializeNonLinearIteration
 				rNode.SetValue(FRICTION_ASSIGNED, false);
             }
@@ -555,7 +555,7 @@ void RotateLagrangeCondition(TLocalMatrixType& rLocalMatrix,
 		}
 		else{
 			auto pLagrangeNode = rGeometry.GetGeometryParent(0).GetValue(MPC_LAGRANGE_NODE);
-			
+
 			if( this->IsSlip(*pLagrangeNode) )
 			{
 				NeedRotation[i] = true;
@@ -569,7 +569,7 @@ void RotateLagrangeCondition(TLocalMatrixType& rLocalMatrix,
 			}
 		}
 	}
-	
+
 	BoundedMatrix<double,TDim,TDim> mat_block;
 	array_1d<double,TDim> aux, aux1;
 
@@ -578,15 +578,15 @@ void RotateLagrangeCondition(TLocalMatrixType& rLocalMatrix,
 		for(unsigned int i=0; i<NumBlocks; i++)
 		{
 			if(NeedRotation[i] == true)
-			{	
+			{
 				for(unsigned int j=0; j<NumBlocks; j++)
 				{
 					if(NeedRotation[j] == true)
-					{	
+					{
 						this->template ReadBlockMatrix<TDim>(mat_block, rLocalMatrix, i*TDim, j*TDim);
 						noalias(tmp) = prod(mat_block,trans(rRot[j]));
 						noalias(mat_block) = prod(rRot[i],tmp);
-						
+
 						// avoid numerical instabilities
 						for(unsigned int k=0; k<TDim; k++)
 						{

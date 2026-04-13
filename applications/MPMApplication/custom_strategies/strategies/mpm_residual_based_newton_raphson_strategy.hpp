@@ -275,7 +275,7 @@ public:
                 curr_node.FastGetSolutionStepValue(STICK_FORCE).clear();
                 }
             }
-            
+
             p_builder_and_solver->CalculateReactions(p_scheme, BaseType::GetModelPart(), rA, rDx, rb);
         }
 
@@ -317,7 +317,7 @@ public:
                     curr_node.FastGetSolutionStepValue(STICK_FORCE).clear();
                     }
                 }
-                
+
                 p_builder_and_solver->CalculateReactions(p_scheme, BaseType::GetModelPart(), rA, rDx, rb);
             }
         }
@@ -403,7 +403,7 @@ private:
                     curr_node.FastGetSolutionStepValue(STICK_FORCE).clear();
                     }
                 }
-                
+
                 TSparseSpace::SetToZero(rb);
 
                 p_builder_and_solver->BuildRHS(p_scheme, BaseType::GetModelPart(), rb);
