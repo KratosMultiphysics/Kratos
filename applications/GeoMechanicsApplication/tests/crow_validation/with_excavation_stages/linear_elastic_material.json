@@ -260,42 +260,6 @@
         },
         {
             "model_part_name": "PorousDomain.Interface_Middle_Right",
-            "properties_id": 9,
-            "Material": {
-                "constitutive_law": {
-                    "name": "GeoIncrementalLinearElasticInterfaceLaw"
-                },
-                "Variables": {
-                    "INTERFACE_NORMAL_STIFFNESS": 4.615e+07,
-                    "INTERFACE_SHEAR_STIFFNESS": 4.615e+06,
-                    "BIOT_COEFFICIENT"              : 1.0,
-                    "RETENTION_LAW"                 : "SaturatedBelowPhreaticLevelLaw",
-                    "SATURATED_SATURATION"          : 1.0,
-                    "RESIDUAL_SATURATION"           : 1e-10,
-                    "MINIMUM_RELATIVE_PERMEABILITY" : 0.0001
-                }
-            }
-        },
-        {
-            "model_part_name": "PorousDomain.Interface_Bottom_Right",
-            "properties_id": 9,
-            "Material": {
-                "constitutive_law": {
-                    "name": "GeoIncrementalLinearElasticInterfaceLaw"
-                },
-                "Variables": {
-                    "INTERFACE_NORMAL_STIFFNESS": 4.615e+06,
-                    "INTERFACE_SHEAR_STIFFNESS": 4.615e+06,
-                    "BIOT_COEFFICIENT"              : 1.0,
-                    "RETENTION_LAW"                 : "SaturatedBelowPhreaticLevelLaw",
-                    "SATURATED_SATURATION"          : 1.0,
-                    "RESIDUAL_SATURATION"           : 1e-10,
-                    "MINIMUM_RELATIVE_PERMEABILITY" : 0.0001
-                }
-            }
-        },
-        {
-            "model_part_name": "PorousDomain.Interface_Excavated_Soil_1",
             "properties_id": 10,
             "Material": {
                 "constitutive_law": {
@@ -313,14 +277,14 @@
             }
         },
         {
-            "model_part_name": "PorousDomain.Interface_Excavated_Soil_2",
+            "model_part_name": "PorousDomain.Interface_Bottom_Right",
             "properties_id": 11,
             "Material": {
                 "constitutive_law": {
                     "name": "GeoIncrementalLinearElasticInterfaceLaw"
                 },
                 "Variables": {
-                    "INTERFACE_NORMAL_STIFFNESS": 4.615e+07,
+                    "INTERFACE_NORMAL_STIFFNESS": 4.615e+06,
                     "INTERFACE_SHEAR_STIFFNESS": 4.615e+06,
                     "BIOT_COEFFICIENT"              : 1.0,
                     "RETENTION_LAW"                 : "SaturatedBelowPhreaticLevelLaw",
@@ -331,7 +295,7 @@
             }
         },
         {
-            "model_part_name": "PorousDomain.Interface_Excavated_Soil_3",
+            "model_part_name": "PorousDomain.Interface_Excavated_Soil_1",
             "properties_id": 12,
             "Material": {
                 "constitutive_law": {
@@ -349,7 +313,7 @@
             }
         },
         {
-            "model_part_name": "PorousDomain.Interface_Middle_Left",
+            "model_part_name": "PorousDomain.Interface_Excavated_Soil_2",
             "properties_id": 13,
             "Material": {
                 "constitutive_law": {
@@ -367,8 +331,44 @@
             }
         },
         {
+            "model_part_name": "PorousDomain.Interface_Excavated_Soil_3",
+            "properties_id": 14,
+            "Material": {
+                "constitutive_law": {
+                    "name": "GeoIncrementalLinearElasticInterfaceLaw"
+                },
+                "Variables": {
+                    "INTERFACE_NORMAL_STIFFNESS": 4.615e+07,
+                    "INTERFACE_SHEAR_STIFFNESS": 4.615e+06,
+                    "BIOT_COEFFICIENT"              : 1.0,
+                    "RETENTION_LAW"                 : "SaturatedBelowPhreaticLevelLaw",
+                    "SATURATED_SATURATION"          : 1.0,
+                    "RESIDUAL_SATURATION"           : 1e-10,
+                    "MINIMUM_RELATIVE_PERMEABILITY" : 0.0001
+                }
+            }
+        },
+        {
+            "model_part_name": "PorousDomain.Interface_Middle_Left",
+            "properties_id": 15,
+            "Material": {
+                "constitutive_law": {
+                    "name": "GeoIncrementalLinearElasticInterfaceLaw"
+                },
+                "Variables": {
+                    "INTERFACE_NORMAL_STIFFNESS": 4.615e+07,
+                    "INTERFACE_SHEAR_STIFFNESS": 4.615e+06,
+                    "BIOT_COEFFICIENT"              : 1.0,
+                    "RETENTION_LAW"                 : "SaturatedBelowPhreaticLevelLaw",
+                    "SATURATED_SATURATION"          : 1.0,
+                    "RESIDUAL_SATURATION"           : 1e-10,
+                    "MINIMUM_RELATIVE_PERMEABILITY" : 0.0001
+                }
+            }
+        },
+        {
             "model_part_name": "PorousDomain.Interface_Bottom_Left",
-            "properties_id": 13,
+            "properties_id": 16,
             "Material": {
                 "constitutive_law": {
                     "name": "GeoIncrementalLinearElasticInterfaceLaw"
@@ -386,7 +386,7 @@
         },
         {
             "model_part_name": "PorousDomain.Beam",
-            "properties_id": 14,
+            "properties_id": 17,
             "Material": {
                 "constitutive_law": {
                     "name": "TimoshenkoBeamPlaneStrainElasticConstitutiveLaw"
@@ -402,7 +402,7 @@
         },
         {
             "model_part_name": "PorousDomain.Anchor",
-            "properties_id": 15,
+            "properties_id": 18,
             "Material": {
                 "constitutive_law": {
                     "name": "TrussConstitutiveLaw"
