@@ -220,6 +220,112 @@ public:
     }
 
     /**
+     * @brief Calculate values of type double on integration points (stub)
+     */
+    void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
+                                      std::vector<double>& rOutput,
+                                      const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+     * @brief Calculate values of type double on integration points (stub)
+     */
+    void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
+                                      std::vector<Vector>& rOutput,
+                                      const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+     * @brief This method gets a value directly in the CL
+     * @details Avoids code repetition
+     * @param rVariable The variable we want to get
+     * @param rOutput The values obtained in the integration points
+     * @tparam TType The type considered
+     */
+    template <class TType>
+    void GetValueOnConstitutiveLaw(
+        const Variable<TType> &rVariable,
+        std::vector<TType> &rOutput)
+    {
+        const auto& r_integration_points = CustomTriangleAreaCoordinatesQuadrature(GetGeometry().Area());
+
+        for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
+            mConstitutiveLawVector[point_number]->GetValue(rVariable, rOutput[point_number]);
+        }
+    }
+
+    /**
+     * @brief This method computes directly in the CL
+     * @details Avoids code repetition
+     * @param rVariable The variable we want to get
+     * @param rOutput The values obtained in the integration points
+     * @param rProcessInfo the current process info instance
+     * @tparam TType The type considered
+     */
+    template<class TType>
+    void CalculateOnConstitutiveLaw(
+        const Variable<TType>& rVariable,
+        std::vector<TType>& rOutput,
+        const ProcessInfo& rProcessInfo
+        )
+    {
+        const IndexType strain_size = GetStrainSize();
+        const auto& r_geometry = GetGeometry();
+        const auto& r_props = GetProperties();
+        const IndexType number_of_nodes = r_geometry.PointsNumber();
+        const IndexType system_size = number_of_nodes * GetDoFsPerNode();
+
+        bounded_3_matrix rotation_matrix;
+        CalculateRotationMatrixGlobalToLocal(rotation_matrix, true);
+
+        array_3 local_coords_1, local_coords_2, local_coords_3;
+        noalias(local_coords_1) = ZeroVector(3);
+        noalias(local_coords_2) = prod(rotation_matrix, r_geometry[1].GetInitialPosition() - r_geometry[0].GetInitialPosition());
+        noalias(local_coords_3) = prod(rotation_matrix, r_geometry[2].GetInitialPosition() - r_geometry[0].GetInitialPosition());
+        const double area = CalculateArea(local_coords_1, local_coords_2, local_coords_3);
+
+        VectorType nodal_values(system_size);
+        GetNodalValuesVector(nodal_values, rotation_matrix);
+
+        ConstitutiveLaw::Parameters cl_values(r_geometry, r_props, rProcessInfo);
+        auto &r_cl_options = cl_values.GetOptions();
+        r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+        r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+        r_cl_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+
+        // Let's initialize the constitutive law's values
+        VectorType gen_strain_vector(strain_size), gen_stress_vector(strain_size); // Generalized
+        MatrixType gen_constitutive_matrix(strain_size, strain_size);
+        cl_values.SetStrainVector(gen_strain_vector);
+        cl_values.SetStressVector(gen_stress_vector);
+        cl_values.SetConstitutiveMatrix(gen_constitutive_matrix);
+
+        const auto& r_integration_points = CustomTriangleAreaCoordinatesQuadrature(area);
+        double zeta1, zeta2, zeta3;
+        MatrixType B(strain_size, system_size);
+        MatrixType temporal(strain_size, system_size);
+        MatrixType Bm(strain_size, system_size);
+        MatrixType B_bs_smoothed(strain_size, system_size);
+        CalculateSmoothedBendingShearB(B_bs_smoothed, area, local_coords_1, local_coords_2, local_coords_3); // constant for all points
+
+        for (SizeType i_point = 0; i_point < r_integration_points.size(); ++i_point) {
+            zeta1 = r_integration_points[i_point].X();
+            zeta2 = r_integration_points[i_point].Y();
+            zeta3 = r_integration_points[i_point].Z();
+
+            CalculateBmTriangle(Bm, area, local_coords_1, local_coords_2, local_coords_3, zeta1, zeta2, zeta3);
+
+            noalias(B) = Bm + B_bs_smoothed;
+
+            // We compute the strain at the integration point
+            noalias(gen_strain_vector) = prod(B, nodal_values);
+
+            // We call the constitutive law to compute the stress
+            cl_values.SetStrainVector(gen_strain_vector);
+
+            mConstitutiveLawVector[i_point]->CalculateValue(cl_values, rVariable, rOutput[i_point]);
+        }
+    }
+
+    /**
      * @brief This method computes the Strain-Displacement matrix B, used to relate nodal displacements to strains for a triangle sub-element
      * It assumes that the coordinates are already in the local coordinate system
      * @details The B matrix includes the bending and shear parts. Size of 8x18 since we have 8 generalized strains and 18 dofs (3 nodes with 6 dofs each)
@@ -369,6 +475,21 @@ public:
      * @param rCurrentProcessInfo the current process info instance
      */
     void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+     * Getting method to obtain the variable which defines the degrees of freedom
+     */
+    void GetValuesVector(Vector& rValues, int Step = 0) const override;
+
+    /**
+     * Getting method to obtain the time derivative of variable which defines the degrees of freedom
+     */
+    void GetFirstDerivativesVector(Vector& rValues, int Step = 0) const override;
+
+    /**
+     * Getting method to obtain the second time derivative of variable which defines the degrees of freedom
+     */
+    void GetSecondDerivativesVector(Vector& rValues, int Step = 0) const override;
 
 
     /**

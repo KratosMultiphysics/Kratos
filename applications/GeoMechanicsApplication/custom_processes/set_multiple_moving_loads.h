@@ -49,7 +49,7 @@ public:
     ///@name Life Cycle
     ///@{
 
-    SetMultipleMovingLoadsProcess(ModelPart& rModelPart, const Parameters& rProcessSettings);
+    SetMultipleMovingLoadsProcess(ModelPart& rModelPart, Parameters ProcessSettings);
 
     SetMultipleMovingLoadsProcess(const SetMultipleMovingLoadsProcess&)            = delete;
     SetMultipleMovingLoadsProcess& operator=(const SetMultipleMovingLoadsProcess&) = delete;

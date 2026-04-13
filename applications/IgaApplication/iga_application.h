@@ -28,6 +28,7 @@
 #include "custom_elements/laplacian_element.h"
 #include "custom_elements/solid_element.h"
 #include "custom_elements/stokes_element.h"
+#include "custom_elements/navier_stokes_element.h"
 
 //conditions
 #include "custom_conditions/output_condition.h"
@@ -57,6 +58,7 @@
 #include "custom_modelers/refinement_modeler.h"
 #include "custom_modelers/nurbs_geometry_modeler.h"
 #include "custom_modelers/nurbs_geometry_modeler_sbm.h"
+#include "custom_modelers/nurbs_geometry_modeler_gap_sbm.h"
 #include "custom_modelers/import_nurbs_sbm_modeler.h"
 
 namespace Kratos {
@@ -142,6 +144,7 @@ private:
     const LaplacianElement mLaplacianElement;
     const SolidElement mSolidElement;
     const StokesElement mStokesElement;
+    const NavierStokesElement mNavierStokesElement;
 
     //Conditions
     const OutputCondition mOutputCondition;
@@ -171,6 +174,7 @@ private:
     const RefinementModeler mRefinementModeler;
     const NurbsGeometryModeler mNurbsGeometryModeler;
     const NurbsGeometryModelerSbm mNurbsGeometryModelerSbm;
+    const NurbsGeometryModelerGapSbm mNurbsGeometryModelerGapSbm;
     const ImportNurbsSbmModeler mImportNurbsSbmModeler;
 
     ///@}
