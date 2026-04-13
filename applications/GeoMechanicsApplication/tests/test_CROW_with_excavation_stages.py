@@ -419,7 +419,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             )
 
             displacements = reader.nodal_values_at_time(
-                "TOTAL_DISPLACEMENT",
+                "DISPLACEMENT",
                 stage["end_time"],
                 output_data,
                 node_ids=node_ids,
