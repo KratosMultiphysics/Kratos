@@ -102,7 +102,7 @@ void ApplyK0ProcedureProcess::CheckK0MainDirection(const Properties& rProperties
     KRATOS_ERROR_IF(dimension != 2 && dimension != 3)
         << "dimension should be 2 or 3 for element " << ElementId << "." << std::endl;
     std::ostringstream valid_values;
-    for (int i = 0; i < dimension; ++i) {
+    for (std::size_t i = 0; i < dimension; ++i) {
         if (i > 0) {
             if (i == dimension - 1) valid_values << " or ";
             else valid_values << ", ";
