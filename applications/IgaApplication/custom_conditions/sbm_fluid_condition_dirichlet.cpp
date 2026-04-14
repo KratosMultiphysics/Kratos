@@ -259,18 +259,21 @@ void SbmFluidConditionDirichlet::InitializeSbmMemberVariables()
     // Retrieve projection
     Condition candidate_closest_skin_segment_1 = this->GetValue(NEIGHBOUR_CONDITIONS)[0] ;
     // Find the closest node in condition
-    IndexType closestNodeId = 0;
+    int closestNodeId = 0;
     if (mDim > 2) {
         double incumbent_dist = 1e16;
         // Loop over the three nodes of the closest skin element
-        for (IndexType i = 0; i < 3; ++i) {
+        for (unsigned int i = 0; i < 3; i++) {
             if (norm_2(candidate_closest_skin_segment_1.GetGeometry()[i]-r_geometry.Center()) < incumbent_dist) {
                 incumbent_dist = norm_2(candidate_closest_skin_segment_1.GetGeometry()[i]-r_geometry.Center());
                 closestNodeId = i;
             }
         }
+    } else {
+        closestNodeId = 0;
     }
     mpProjectionNode = &candidate_closest_skin_segment_1.GetGeometry()[closestNodeId] ;
+    this->SetValue(PROJECTION_NODE_COORDINATES, mpProjectionNode->Coordinates());
 
     mDistanceVector.resize(mDim);
     noalias(mDistanceVector) = mpProjectionNode->Coordinates() - r_geometry.Center().Coordinates();
@@ -413,6 +416,23 @@ void SbmFluidConditionDirichlet::ApplyConstitutiveLaw(
     mpConstitutiveLaw->CalculateMaterialResponseCauchy(rValues);
 }
 
+void SbmFluidConditionDirichlet::ApplyConstitutiveLawTrue(SizeType matSize, Vector& rStrain, ConstitutiveLaw::Parameters& rValues,
+                                        ConstitutiveVariables& rConstitutiVariables)
+{
+    // Set constitutive law flags:
+    Flags& ConstitutiveLawOptions=rValues.GetOptions();
+
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+    
+    rValues.SetStrainVector(rStrain);
+    rValues.SetStressVector(rConstitutiVariables.StressVector);
+    rValues.SetConstitutiveMatrix(rConstitutiVariables.D);
+
+    mpConstitutiveLaw->CalculateMaterialResponse(rValues, ConstitutiveLaw::StressMeasure_Cauchy); 
+}
+
 void SbmFluidConditionDirichlet::InitializeMaterial()
 {
     KRATOS_TRY
@@ -517,6 +537,195 @@ double SbmFluidConditionDirichlet::ComputeTaylorTerm3D(
     return derivative * std::pow(dx, k_x) * std::pow(dy, k_y) * std::pow(dz, k_z) /
         (MathUtils<double>::Factorial(k_x) * MathUtils<double>::Factorial(k_y) * MathUtils<double>::Factorial(k_z));
 }
+
+
+void SbmFluidConditionDirichlet::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
+{
+    #pragma omp critical
+    {
+        KRATOS_ERROR_IF(mDim != 2)
+            << "SbmFluidConditionDirichlet::FinalizeSolutionStep true-boundary results are currently implemented only in 2D."
+            << std::endl;
+
+        const auto& r_geometry = GetGeometry();
+        const SizeType number_of_nodes = r_geometry.size();
+        const SizeType mat_size = number_of_nodes * mDim;
+        const Matrix& r_N = r_geometry.ShapeFunctionsValues();
+
+        const Matrix integration_point_list_on_true_boundary  = this->GetValue(INTEGRATION_POINTS);
+        const Vector integration_weight_list_on_true_boundary = this->GetValue(INTEGRATION_WEIGHTS);
+        const Matrix normals_on_true = this->GetValue(INTEGRATION_NORMALS);
+        
+        // Create a matrix with the same schema used in other IGA fluid conditions
+        // [0] w, [1] fx_tot, [2] fy_tot, [3] fx_visc, [4] fy_visc, [5] fx_pres, [6] fy_pres,
+        // [7] nx, [8] ny, [9] x_gp, [10] y_gp
+        const std::size_t num_results = integration_weight_list_on_true_boundary.size();
+        Matrix integration_results(num_results, 11, 0.0);
+
+        double pressure_max_min = 0.0;
+
+        // if (integration_weight_list_on_true_boundary.size() == 0) {
+        //     std::cout << "No integration points on true boundary found for condition with ID " << this->Id() << std::endl;
+        // }
+
+        for (IndexType i_gauss = 0; i_gauss < integration_weight_list_on_true_boundary.size(); ++i_gauss) 
+        {
+            const double weight = integration_weight_list_on_true_boundary[i_gauss];
+            Vector true_boundary_distance = ZeroVector(3);
+            true_boundary_distance[0] = integration_point_list_on_true_boundary(i_gauss, 0) - r_geometry.Center().X();
+            true_boundary_distance[1] = integration_point_list_on_true_boundary(i_gauss, 1) - r_geometry.Center().Y();
+            true_boundary_distance[2] = integration_point_list_on_true_boundary(i_gauss, 2) - r_geometry.Center().Z();
+
+            // normals
+            array_1d<double,3> true_normal;
+            true_normal[0] = normals_on_true(i_gauss,0);
+            true_normal[1] = normals_on_true(i_gauss,1);
+            true_normal[2] = normals_on_true(i_gauss,2);
+
+            // === 1. Pressure at true boundary ===
+            double p_true = 0.0;
+            for (IndexType i = 0; i < r_geometry.size(); ++i) {
+                double p_i = r_geometry[i].GetSolutionStepValue(PRESSURE);
+
+                double H_taylor = 0.0;
+                for (IndexType n = 1; n <= mBasisFunctionsOrder; ++n) {
+                    Matrix& p_derivatives = mShapeFunctionDerivatives[n - 1];
+                    for (IndexType k = 0; k <= n; ++k) {
+                        const IndexType n_k = n - k;
+                        double deriv = p_derivatives(i, k);
+                        H_taylor += ComputeTaylorTerm(
+                            deriv,
+                            true_boundary_distance[0],
+                            n_k,
+                            true_boundary_distance[1],
+                            k);
+                    }
+                }
+                p_true += (r_N(0, i) + H_taylor) * p_i;
+            }
+
+            Matrix grad_H_sum_transposed = ZeroMatrix(3, number_of_nodes);
+            ComputeGradientTaylorExpansionContribution(true_boundary_distance, grad_H_sum_transposed);
+            Matrix grad_H_sum = trans(grad_H_sum_transposed);
+            Matrix B_sum = ZeroMatrix(mDim,mat_size);
+            CalculateB(B_sum, grad_H_sum);
+            Vector old_displacement_coefficient_vector(mat_size);
+            GetSolutionCoefficientVector(old_displacement_coefficient_vector);
+
+            ConstitutiveLaw::Parameters values_true(r_geometry, GetProperties(), rCurrentProcessInfo);
+            Vector old_strain_on_true = prod(B_sum,old_displacement_coefficient_vector);
+
+            const SizeType strain_size_true = mpConstitutiveLaw->GetStrainSize();
+            ConstitutiveVariables this_constitutive_variables_true(strain_size_true);
+            ApplyConstitutiveLawTrue(mat_size, old_strain_on_true, values_true, this_constitutive_variables_true);
+            const Vector& r_stress_vector_on_true = values_true.GetStressVector();
+            
+            // === 4. Compute traction = σ · n ===
+            Vector normal_stress_true_old = ZeroVector(3);
+            normal_stress_true_old[0] = (r_stress_vector_on_true[0] * true_normal[0] + r_stress_vector_on_true[2] * true_normal[1]);
+            normal_stress_true_old[1] = (r_stress_vector_on_true[2] * true_normal[0] + r_stress_vector_on_true[1] * true_normal[1]);
+            
+            // === 5. Compute traction contributions ===
+            array_1d<double,2> t_visc = ZeroVector(2);
+            t_visc[0] = normal_stress_true_old[0];
+            t_visc[1] = normal_stress_true_old[1];
+
+            array_1d<double,2> t_pres = ZeroVector(2);
+            t_pres[0] = -p_true * true_normal[0];
+            t_pres[1] = -p_true * true_normal[1];
+
+            array_1d<double,2> t_tot = t_visc + t_pres;
+
+            // === 6. Output in standard 11-column layout ===
+            integration_results(i_gauss, 0)  = weight;
+            integration_results(i_gauss, 1)  = t_tot[0];
+            integration_results(i_gauss, 2)  = t_tot[1];
+            integration_results(i_gauss, 3)  = t_visc[0];
+            integration_results(i_gauss, 4)  = t_visc[1];
+            integration_results(i_gauss, 5)  = t_pres[0];
+            integration_results(i_gauss, 6)  = t_pres[1];
+            integration_results(i_gauss, 7)  = true_normal[0];
+            integration_results(i_gauss, 8)  = true_normal[1];
+            integration_results(i_gauss, 9)  = integration_point_list_on_true_boundary(i_gauss, 0);
+            integration_results(i_gauss, 10) = integration_point_list_on_true_boundary(i_gauss, 1);
+
+            if (integration_point_list_on_true_boundary(i_gauss, 0) > 0.2499968 ||
+                integration_point_list_on_true_boundary(i_gauss, 0) < 0.15001)
+            {
+                // KRATOS_WATCH("First or Last point on true boundary");
+                pressure_max_min = p_true;
+            }
+
+        }
+
+        // Save to condition as a matrix
+        this->SetValue(RESULTS_ON_TRUE_BOUNDARY, integration_results);
+        this->SetValue(PRESSURE, pressure_max_min);
+    }  
+}
+
+    
+
+
+
+void SbmFluidConditionDirichlet::ComputeGradientTaylorExpansionContribution(
+    const Vector& rDistanceVector,
+    Matrix& grad_H_sum)
+{
+    const auto& r_geometry = this->GetGeometry();
+    const SizeType number_of_control_points = r_geometry.PointsNumber();
+    const auto& r_DN_De = r_geometry.ShapeFunctionsLocalGradients(r_geometry.GetDefaultIntegrationMethod());
+
+    if (grad_H_sum.size1() != 3 || grad_H_sum.size2() != number_of_control_points)
+    {
+        grad_H_sum.resize(3, number_of_control_points);
+    }
+
+    // Neumann (Taylor expansion of the gradient)
+    for (IndexType i = 0; i < number_of_control_points; ++i)
+    {
+        // Reset for each control point
+        double H_taylor_term_X = 0.0; 
+        double H_taylor_term_Y = 0.0; 
+        double H_taylor_term_Z = 0.0; 
+
+        if (mDim == 2) {
+            for (IndexType n = 2; n <= mBasisFunctionsOrder; n++) {
+                // Retrieve the appropriate derivative for the term
+                Matrix& shapeFunctionDerivatives = mShapeFunctionDerivatives[n-1];
+                for (IndexType k = 0; k <= n-1; k++) {
+                    IndexType n_k = n - 1 - k;
+                    double derivative = shapeFunctionDerivatives(i,k); 
+                    // Compute the Taylor term for this derivative
+                    H_taylor_term_X += ComputeTaylorTerm(
+                        derivative,
+                        rDistanceVector[0],
+                        n_k,
+                        rDistanceVector[1],
+                        k);
+                }
+                for (IndexType k = 0; k <= n-1; k++) {
+                    IndexType n_k = n - 1 - k;
+                    double derivative = shapeFunctionDerivatives(i,k+1); 
+                    // Compute the Taylor term for this derivative
+                    H_taylor_term_Y += ComputeTaylorTerm(
+                        derivative,
+                        rDistanceVector[0],
+                        n_k,
+                        rDistanceVector[1],
+                        k);
+                }
+            }
+        }
+        grad_H_sum(0,i) = H_taylor_term_X + r_DN_De[0](i, 0);
+        grad_H_sum(1,i) = H_taylor_term_Y + r_DN_De[0](i, 1);
+        if (mDim == 3)
+            grad_H_sum(2,i) = H_taylor_term_Z + r_DN_De[0](i, 2);
+        else 
+            grad_H_sum(2,i) = 0;
+    }    
+}
+
 
 
 } // Namespace Kratos

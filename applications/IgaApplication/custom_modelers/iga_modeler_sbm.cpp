@@ -14,7 +14,7 @@
 
 // Project includes
 #include "iga_modeler_sbm.h"
-#include "integration/integration_point_utilities.h"
+#include "custom_processes/prepare_integration_on_true_boundary_process.h"
 #include "iga_application_variables.h"
 
 
@@ -39,6 +39,32 @@ void IgaModelerSbm::SetupModelPart()
         iga_physics_parameters);
     
     ActivateNodesInElementsAndCleanRoot(analysis_model_part);
+
+    if (mParameters.Has("integrate_on_true_boundary") &&
+        mParameters["integrate_on_true_boundary"].GetBool()) {
+        Parameters process_parameters(R"(
+        {
+            "analysis_model_part_name" : "",
+            "skin_model_part_name" : "skin_model_part",
+            "precision_order_on_integration" : 0
+        })");
+
+        process_parameters["analysis_model_part_name"].SetString(
+            mParameters["analysis_model_part_name"].GetString());
+
+        if (mParameters.Has("skin_model_part_name")) {
+            process_parameters["skin_model_part_name"].SetString(
+                mParameters["skin_model_part_name"].GetString());
+        }
+
+        if (mParameters.Has("precision_order_on_integration")) {
+            process_parameters["precision_order_on_integration"].SetInt(
+                mParameters["precision_order_on_integration"].GetInt());
+        }
+
+        PrepareIntegrationOnTrueBoundaryProcess prepare_process(*mpModel, process_parameters);
+        prepare_process.Execute();
+    }
 }
 
 ///@}
