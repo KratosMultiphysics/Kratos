@@ -235,7 +235,7 @@ Matrix ConstitutiveLawUtilities::MakeContinuumConstitutiveTensor(double      You
     const auto denominator = (1.0 + PoissonsRatio) * (1.0 - 2.0 * PoissonsRatio);
     KRATOS_ERROR_IF(denominator <= std::numeric_limits<double>::epsilon())
         << "PoissonsRatio of " << PoissonsRatio << " leads to a nearly zero denominator" << std::endl;
-    const auto prefactor                 = YoungsModulus / denominator;
+    const auto prefactor          = YoungsModulus / denominator;
     const auto diagonal_value     = (1.0 - PoissonsRatio) * prefactor;
     const auto off_diagonal_value = PoissonsRatio * prefactor;
 
