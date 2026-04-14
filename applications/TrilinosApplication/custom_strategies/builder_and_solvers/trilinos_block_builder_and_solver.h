@@ -236,8 +236,8 @@ public:
         }
 
         // Finalizing the assembly
-        rA.GlobalAssemble();
-        rb.GlobalAssemble();
+        TSparseSpace::GlobalAssemble(rA);
+        TSparseSpace::GlobalAssemble(rb);
 
         KRATOS_INFO_IF("TrilinosBlockBuilderAndSolver", BaseType::GetEchoLevel() >= 1) << "Build time: " << build_timer << std::endl;
 
@@ -295,7 +295,7 @@ public:
         }
 
         // Finalizing the assembly
-        rA.GlobalAssemble();
+        TSparseSpace::GlobalAssemble(rA);
 
         KRATOS_INFO_IF("TrilinosBlockBuilderAndSolver", BaseType::GetEchoLevel() >= 1) << "Build time LHS: " << build_timer << std::endl;
 
@@ -586,7 +586,7 @@ public:
         }
 
         // Finalizing the assembly
-        rb.GlobalAssemble();
+        TSparseSpace::GlobalAssemble(rb);
 
         STOP_TIMER("BuildRHS ", 0)
 
@@ -982,7 +982,7 @@ public:
             });
 
             // Global assembly
-            rb.GlobalAssemble();
+            TSparseSpace::GlobalAssemble(rb);
         }
 
         KRATOS_CATCH("")
@@ -1032,8 +1032,8 @@ public:
             });
 
             // Global assembly
-            rb.GlobalAssemble();
-            rA.GlobalAssemble();
+            TSparseSpace::GlobalAssemble(rb);
+            TSparseSpace::GlobalAssemble(rA);
         }
 
         KRATOS_CATCH("")
