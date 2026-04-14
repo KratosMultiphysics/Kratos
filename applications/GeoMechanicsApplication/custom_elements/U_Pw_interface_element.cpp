@@ -90,6 +90,9 @@ Geo::ProcessInfoGetter CreateProcessInfoGetter(const ProcessInfo& rProcessInfo)
 
 bool GetIgnoreUndrained(const Properties& rProperties)
 {
+    if (rProperties.Has(GEO_DRAINAGE_TYPE))
+            return ConstitutiveLawUtilities::StringToDrainageType(rProperties[GEO_DRAINAGE_TYPE]) ==
+                  DrainageType::CONSTANT_WATER_PRESSURE;
     return rProperties.Has(IGNORE_UNDRAINED) ? rProperties[IGNORE_UNDRAINED] : false;
 }
 
