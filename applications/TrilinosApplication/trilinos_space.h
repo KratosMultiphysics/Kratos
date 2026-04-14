@@ -738,6 +738,26 @@ public:
     }
 
     /**
+     * @brief Returns the unaliased addition of two matrices by a scalar
+     * @details rY = (A * rX) + (B * rY)
+     * @param A The scalar considered
+     * @param rX The first matrix considered
+     * @param B The scalar considered
+     * @param rY The resulting matrix considered
+     */
+    static void ScaleAndAdd(
+        const double A,
+        const MatrixType& rX,
+        const double B,
+        MatrixType& rY
+        )
+    {
+        // Compute rY = A * rX + B * rY
+        const int ierr = EpetraExt::MatrixMatrix::Add(rX, false, A, rY, B);
+        KRATOS_ERROR_IF(ierr != 0) << "Epetra scale and add failure " << ierr << std::endl;
+    }
+
+    /**
      * @brief Sets a value in a vector
      * @param rX The vector considered
      * @param i The index of the value considered
