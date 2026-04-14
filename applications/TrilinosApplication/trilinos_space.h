@@ -1621,44 +1621,6 @@ public:
         KRATOS_CATCH("");
     }
 
-    ///@}
-    ///@name Access
-    ///@{
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
-    ///@}
-    ///@name Input and output
-    ///@{
-
-    /**
-     * @brief Turn back information as a string.
-     * @return Info as a string.
-     */
-    virtual std::string Info() const
-    {
-        return "TrilinosSpace";
-    }
-
-    /**
-     * @brief Print information about this object.
-     * @param rOStream The output stream to print on.
-     */
-    virtual void PrintInfo(std::ostream& rOStream) const
-    {
-        rOStream << "TrilinosSpace";
-    }
-
-    /**
-     * @brief Print object's data.
-     * @param rOStream The output stream to print on.
-     */
-    virtual void PrintData(std::ostream& rOStream) const
-    {
-    }
-
     /**
      * @brief Writes a matrix to a file in MatrixMarket format
      * @param pFileName The name of the file to be written
@@ -1704,6 +1666,44 @@ public:
     {
         DofUpdaterType tmp;
         return tmp.Create();
+    }
+
+    ///@}
+    ///@name Access
+    ///@{
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /**
+     * @brief Turn back information as a string.
+     * @return Info as a string.
+     */
+    virtual std::string Info() const
+    {
+        return "TrilinosSpace";
+    }
+
+    /**
+     * @brief Print information about this object.
+     * @param rOStream The output stream to print on.
+     */
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << "TrilinosSpace";
+    }
+
+    /**
+     * @brief Print object's data.
+     * @param rOStream The output stream to print on.
+     */
+    virtual void PrintData(std::ostream& rOStream) const
+    {
     }
 
     ///@}
