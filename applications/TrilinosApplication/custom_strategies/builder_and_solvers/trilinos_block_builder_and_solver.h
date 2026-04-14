@@ -106,7 +106,7 @@ public:
     using DofsArrayType = typename BaseType::DofsArrayType;
 
     /// Epetra definitions
-    using EpetraCommunicatorType = Epetra_MpiComm;
+    using TrilinosCommunicatorType = typename TSparseSpace::CommunicatorType;
 
     /// Defining the sparse matrices and vectors
     using TSystemMatrixType = typename BaseType::TSystemMatrixType;
@@ -132,7 +132,7 @@ public:
     /**
      * @brief Default constructor.
      */
-    explicit TrilinosBlockBuilderAndSolver(EpetraCommunicatorType& rComm,
+    explicit TrilinosBlockBuilderAndSolver(TrilinosCommunicatorType& rComm,
                                   int GuessRowSize,
                                   typename TLinearSolver::Pointer pNewLinearSystemSolver)
         : BaseType(pNewLinearSystemSolver),
@@ -145,7 +145,7 @@ public:
      * @brief Default constructor. (with parameters)
      */
     explicit TrilinosBlockBuilderAndSolver(
-        EpetraCommunicatorType& rComm,
+        TrilinosCommunicatorType& rComm,
         typename TLinearSolver::Pointer pNewLinearSystemSolver,
         Parameters ThisParameters
         ) : BaseType(pNewLinearSystemSolver),
@@ -800,6 +800,7 @@ public:
         // Refresh RHS to have the correct reactions
         BuildRHS(pScheme, rModelPart, rb);
 
+        if constexpr (TSparseSpace::LinearAlgebraLibrary() == TrilinosLinearAlgebraLibrary::EPETRA) {
         // Initialize the Epetra importer
         // TODO: this part of the code has been pasted until a better solution
         // is found
@@ -860,6 +861,9 @@ public:
             // (dof_iterator)->GetSolutionStepReactionValue() = -(*b[i]);
             const double react_val = temp_RHS[pDofImporter->TargetMap().LID(i)];
             (dof_iterator->GetSolutionStepReactionValue()) = -react_val;
+            }
+        } else {
+            KRATOS_ERROR << "CalculateReactions only implemented for Epetra" << std::endl;
         }
     }
 
