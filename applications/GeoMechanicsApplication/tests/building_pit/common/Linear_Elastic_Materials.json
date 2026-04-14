@@ -7,7 +7,7 @@
                 "name" : "GeoLinearElasticPlaneStrain2DLaw"
             },
             "Variables"        : {
-                "IGNORE_UNDRAINED"              : true,
+                "GEO_DRAINAGE_TYPE"             :  "CONSTANT_PW_FIELD",
                 "DENSITY_SOLID"                 : 2038.74,
                 "DENSITY_WATER"                 : 1019.37,
                 "POROSITY"                      : 0.20,
@@ -36,7 +36,7 @@
                 "name" : "GeoLinearElasticPlaneStrain2DLaw"
             },
             "Variables"        : {
-                "IGNORE_UNDRAINED"              : true,
+                "GEO_DRAINAGE_TYPE"             :  "CONSTANT_PW_FIELD",
                 "DENSITY_SOLID"                 : 2038.74,
                 "DENSITY_WATER"                 : 1019.37,
                 "POROSITY"                      : 0.20,
@@ -65,7 +65,7 @@
                 "name" : "GeoLinearElasticPlaneStrain2DLaw"
             },
             "Variables"        : {
-                "IGNORE_UNDRAINED"              : true,
+                "GEO_DRAINAGE_TYPE"             : "CONSTANT_PW_FIELD",
                 "DENSITY_SOLID"                 : 2038.74,
                 "DENSITY_WATER"                 : 1019.37,
                 "POROSITY"                      : 0.20,
@@ -94,7 +94,7 @@
                 "name" : "GeoLinearElasticPlaneStrain2DLaw"
             },
             "Variables"        : {
-                "IGNORE_UNDRAINED"              : true,
+                "GEO_DRAINAGE_TYPE"             : "CONSTANT_PW_FIELD",
                 "DENSITY_SOLID"                 : 2038.74,
                 "DENSITY_WATER"                 : 1019.37,
                 "POROSITY"                      : 0.20,
@@ -123,7 +123,7 @@
                 "name" : "GeoLinearElasticPlaneStrain2DLaw"
             },
             "Variables"        : {
-                "IGNORE_UNDRAINED"     : true,
+                "GEO_DRAINAGE_TYPE"    : "CONSTANT_PW_FIELD",
                 "DENSITY_SOLID"        : 2475.61,
                 "DENSITY_WATER"        : 1019.37,
                 "POROSITY"             : 0.30,
@@ -152,7 +152,7 @@
                 "name" : "GeoLinearElasticPlaneStrain2DLaw"
             },
             "Variables"        : {
-                "IGNORE_UNDRAINED"     : true,
+                "GEO_DRAINAGE_TYPE"    : "CONSTANT_PW_FIELD",
                 "DENSITY_SOLID"        : 2475.61,
                 "DENSITY_WATER"        : 1019.37,
                 "POROSITY"             : 0.30,

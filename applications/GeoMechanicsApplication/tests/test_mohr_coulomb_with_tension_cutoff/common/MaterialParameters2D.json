@@ -7,7 +7,7 @@
               "name"             : "GeoMohrCoulombWithTensionCutOff2D"
           },
           "Variables": {
-              "IGNORE_UNDRAINED"         :  false,
+              "GEO_DRAINAGE_TYPE"        :  "FULLY_COUPLED",
               "YOUNG_MODULUS"            :  1.0e3,
               "POISSON_RATIO"            :  0.0,
               "DENSITY_SOLID"            :  2650,
