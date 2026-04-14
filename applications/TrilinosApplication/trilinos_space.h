@@ -836,7 +836,7 @@ public:
     {
         //KRATOS_ERROR_IF(pX != NULL) << "Trying to resize a null pointer" << std::endl;
         int global_elems = n;
-        Epetra_Map Map(global_elems, 0, pX->Comm());
+        MapType Map(global_elems, 0, pX->Comm());
         VectorPointerType pNewEmptyX = Kratos::make_shared<VectorType>(Map);
         pX.swap(pNewEmptyX);
     }
@@ -849,7 +849,7 @@ public:
     {
         if(pA != NULL) {
             int global_elems = 0;
-            Epetra_Map Map(global_elems, 0, pA->Comm());
+            MapType Map(global_elems, 0, pA->Comm());
             MatrixPointerType pNewEmptyA = MatrixPointerType(new TMatrixType(::Copy, Map, 0));
             pA.swap(pNewEmptyA);
         }
@@ -863,7 +863,7 @@ public:
     {
         if(pX != NULL) {
             int global_elems = 0;
-            Epetra_Map Map(global_elems, 0, pX->Comm());
+            MapType Map(global_elems, 0, pX->Comm());
             VectorPointerType pNewEmptyX = VectorPointerType(new VectorType(Map));
             pX.swap(pNewEmptyX);
         }
