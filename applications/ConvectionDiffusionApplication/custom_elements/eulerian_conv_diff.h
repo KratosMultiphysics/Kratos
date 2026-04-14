@@ -119,7 +119,7 @@ protected:
         double density;
         double beta;
         double div_v;
-        double C;
+        double crosswind_constant;
 
         array_1d<double,TNumNodes> phi;
         array_1d<double,TNumNodes> phi_old;

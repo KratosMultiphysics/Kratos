@@ -150,9 +150,9 @@ namespace Kratos
             noalias(aux2) += (1.0+tau*Variables.beta*Variables.div_v)*outer_prod(N, a_dot_grad);
             noalias(aux2) += tau*outer_prod(a_dot_grad, a_dot_grad);
 
-            // Cross-wind term
+            // Crosswind term according to https://doi.org/10.1016/0045-7825(93)90213-H
             const double norm_vel2 = norm_vel * norm_vel;
-            if(Variables.C > 0.0 && norm_grad > 1e-3 && norm_vel2 > 1e-9)
+            if(Variables.crosswind_constant > 0.0 && norm_grad > 1e-3 && norm_vel2 > 1e-9)
             {
                 // Temporal derivative
                 const double phi_gauss = inner_prod(N, Variables.phi);
@@ -160,30 +160,40 @@ namespace Kratos
                 const double dphi_dt = Variables.dt_inv * (phi_gauss - phi_old_gauss);
 
                 // Convective term
-                const double conv = inner_prod(vel_gauss, grad_phi_halfstep);
+                const double convection = inner_prod(vel_gauss, grad_phi_halfstep);
 
-                // Residual
-                const double res = dphi_dt + conv;
+                // Reaction term
+                const double reaction = Variables.beta * Variables.div_v * phi_gauss;
+
+                // Source termn
+                const double source = inner_prod(N, Variables.volumetric_source);
+
+                // Complete residual
+                const double residual = dphi_dt + convection + reaction - source;
     
-                // Projected velocity
-                u_proj = (conv/norm_grad) * (grad_phi_halfstep/norm_grad);
+                // //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+                // //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+                // // Peclet's projected formulation was commented after some testing due to 
+                // // residual radial instabilities in 3D cases. 
+                // // It was decided to use a complete approach with 'crosswind_constant' without 
+                // // considering the projection.
+                // //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+                // // Velocity projected in the direction of the solution gradient
+                // u_proj = (convection/std::pow(norm_grad,2)) * grad_phi_halfstep;
 
-                // Projected Peclet
-                const double Pe_proj = norm_2(u_proj) * h / (2.0 * Variables.conductivity + 1e-12);
+                // // Peclet number projected in the direction of the solution gradient
+                // const double Pe_proj = norm_2(u_proj) * h / (2.0 * Variables.conductivity + 1e-12);
 
-                // Limiter
-                const double alpha_c = std::max( 0.0, Variables.C - 1.0/(Pe_proj + 1e-12));
+                // // Limiter
+                // const double alpha_c = std::max( 0.0, Variables.crosswind_constant - 1.0/(Pe_proj + 1e-12));
 
+                // // Discontinuity capturing coefficient
+                // double k_c = 0.5 * alpha_c * h * std::abs(residual / norm_grad);
+                // //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+                // //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+                
                 // Discontinuity capturing coefficient
-                bool force_diffusion = true; // to avoid k_c = 0.0 when alpha_c = 0.0 using Pe_proj, add to ProjectParameters?
-                double k_c;
-                if (alpha_c == 0.0 && force_diffusion)
-                {
-                    k_c = Variables.C * h * std::abs(res / norm_grad);
-                } else
-                {
-                    k_c = 0.5 * alpha_c * h * std::abs(res / norm_grad);
-                }
+                double k_c = Variables.crosswind_constant * h * std::abs(residual / norm_grad);
                 
                 // Crosswind diffusion tensor
                 Dcw = k_c * IdentityMatrix(TDim);
@@ -231,7 +241,7 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        rVariables.C = rCurrentProcessInfo[CROSS_WIND_STABILIZATION_FACTOR];
+        rVariables.crosswind_constant = rCurrentProcessInfo[CROSS_WIND_STABILIZATION_FACTOR];
         rVariables.theta = rCurrentProcessInfo[TIME_INTEGRATION_THETA]; //Variable defining the temporal scheme (0: Forward Euler, 1: Backward Euler, 0.5: Crank-Nicolson)
         rVariables.dyn_st_beta = rCurrentProcessInfo[DYNAMIC_TAU];
         const double delta_t = rCurrentProcessInfo[DELTA_TIME];
