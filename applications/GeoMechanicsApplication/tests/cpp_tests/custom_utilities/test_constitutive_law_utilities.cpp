@@ -346,4 +346,29 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitilties_MakeContinuumConstitutiveTen
     KRATOS_EXPECT_MATRIX_EQ(constitutive_tensor, expected_tensor);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_MakeInterfaceConstitutiveTensorReturnsConstitutiveTensor,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange & Act
+    const auto constitutive_tensor =
+        ConstitutiveLawUtilities::MakeInterfaceConstitutiveTensor(2.0, 1.0, 4, 2);
+
+    // Assert
+    auto expected_tensor = UblasUtilities::CreateMatrix(
+        {{2.0, 0.0, 0.0, 0.0}, {0.0, 2.0, 0.0, 0.0}, {0.0, 0.0, 1.0, 0.0}, {0.0, 0.0, 0.0, 1.0}});
+    KRATOS_EXPECT_MATRIX_EQ(constitutive_tensor, expected_tensor);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_MakeCotinuumConstitutiveTensorReturnsConstitutiveTensor,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange & Act
+    const auto constitutive_tensor =
+        ConstitutiveLawUtilities::MakeContinuumConstitutiveTensor(1.0, 0.25, 4, 2);
+
+    // Assert
+    auto expected_tensor = UblasUtilities::CreateMatrix(
+        {{1.2, 0.4, 0.0, 0.0}, {0.4, 1.2, 0.0, 0.0}, {0.0, 0.0, 0.4, 0.0}, {0.0, 0.0, 0.0, 0.4}});
+    KRATOS_EXPECT_MATRIX_EQ(constitutive_tensor, expected_tensor);
+}
 } // namespace Kratos::Testing

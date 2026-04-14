@@ -169,8 +169,8 @@ void ConstitutiveLawUtilities::CheckHasStrainMeasure_Infinitesimal(const Propert
 {
     ConstitutiveLaw::Features LawFeatures;
     rProperties[CONSTITUTIVE_LAW]->GetLawFeatures(LawFeatures);
-    const auto correct_strain_measure = std::any_of(
-        LawFeatures.mStrainMeasures.begin(), LawFeatures.mStrainMeasures.end(), [](auto& strain_measure) {
+    const auto correct_strain_measure =
+        std::ranges::any_of(LawFeatures.mStrainMeasures, [](auto& strain_measure) {
         return strain_measure == ConstitutiveLaw::StrainMeasure_Infinitesimal;
     });
 
