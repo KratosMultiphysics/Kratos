@@ -187,20 +187,28 @@ double ConstitutiveLawUtilities::CalculateK0NCFromFrictionAngleInRadians(double 
 
 double ConstitutiveLawUtilities::GetUndrainedYoungsModulus(const Properties& rProperties, double UndrainedPoissonsRatio)
 {
-    return rProperties[YOUNG_MODULUS] * (1.0 + UndrainedPoissonsRatio) / (1.0 + rProperties[POISSON_RATIO]);
+    const auto denominator = 1.0 + rProperties[POISSON_RATIO];
+    KRATOS_ERROR_IF(denominator <= std::numeric_limits<double>::epsilon())
+        << "1 + POISSON_RATIO < epsilon" << std::endl;
+    return rProperties[YOUNG_MODULUS] * (1.0 + UndrainedPoissonsRatio) / denominator;
 }
 
 double ConstitutiveLawUtilities::GetUndrainedPoissonsRatio(const Properties& rProperties)
 {
+    double result;
     if (rProperties.Has(GEO_POISSON_UNDRAINED)) {
-        return rProperties[GEO_POISSON_UNDRAINED];
+        result = rProperties[GEO_POISSON_UNDRAINED];
+    } else {
+        const auto skempton_b     = ConstitutiveLawUtilities::GetSkemptonB(rProperties);
+        const auto biot_alpha     = rProperties[BIOT_COEFFICIENT];
+        const auto poissons_ratio = rProperties[POISSON_RATIO];
+        const auto denominator    = 3.0 - biot_alpha * skempton_b * (1.0 - 2.0 * poissons_ratio);
+        KRATOS_ERROR_IF(denominator <= std::numeric_limits<double>::epsilon())
+            << "Non-physical values: denominator < epsilon" << std::endl;
+        result = (3.0 * poissons_ratio + biot_alpha * skempton_b * (1.0 - 2.0 * poissons_ratio)) / denominator;
     }
-
-    const auto skempton_b     = ConstitutiveLawUtilities::GetSkemptonB(rProperties);
-    const auto biot_alpha     = rProperties[BIOT_COEFFICIENT];
-    const auto poissons_ratio = rProperties[POISSON_RATIO];
-    return (3.0 * poissons_ratio + biot_alpha * skempton_b * (1.0 - 2.0 * poissons_ratio)) /
-           (3.0 - biot_alpha * skempton_b * (1.0 - 2.0 * poissons_ratio));
+    constexpr auto max_value_poisson_ratio = 0.495;
+    return result < max_value_poisson_ratio ? result : max_value_poisson_ratio;
 }
 
 double ConstitutiveLawUtilities::GetSkemptonB(const Properties& rProperties)
@@ -211,9 +219,12 @@ double ConstitutiveLawUtilities::GetSkemptonB(const Properties& rProperties)
 
     const auto k_f = rProperties[BULK_MODULUS_FLUID];
     const auto k_s = rProperties[BULK_MODULUS_SOLID]; // or should this be k skeleton, the porous material i.s.o. the solid
-    const auto porosity   = rProperties[POROSITY];
-    const auto biot_alpha = rProperties[BIOT_COEFFICIENT];
-    return biot_alpha / (biot_alpha + porosity * ((k_s / k_f) + biot_alpha - 1.0));
+    const auto porosity    = rProperties[POROSITY];
+    const auto biot_alpha  = rProperties[BIOT_COEFFICIENT];
+    const auto denominator = biot_alpha + porosity * ((k_s / k_f) + biot_alpha - 1.0);
+    KRATOS_ERROR_IF(denominator <= std::numeric_limits<double>::epsilon())
+        << "Non-physical values: denominator < epsilon" << std::endl;
+    return biot_alpha / denominator;
 }
 
 Matrix ConstitutiveLawUtilities::MakeContinuumConstitutiveTensor(double      YoungsModulus,
@@ -221,7 +232,10 @@ Matrix ConstitutiveLawUtilities::MakeContinuumConstitutiveTensor(double      You
                                                                  std::size_t StrainSize,
                                                                  std::size_t NumberOfNormalComponents)
 {
-    const auto c0 = YoungsModulus / ((1.0 + PoissonsRatio) * (1.0 - 2.0 * PoissonsRatio));
+    const auto denominator = (1.0 + PoissonsRatio) * (1.0 - 2.0 * PoissonsRatio);
+    KRATOS_ERROR_IF(denominator <= std::numeric_limits<double>::epsilon())
+        << "PoissonsRatio of " << PoissonsRatio << " leads to nearly zero denominator" << std::endl;
+    const auto c0 = YoungsModulus / denominator;
     const auto c1 = (1.0 - PoissonsRatio) * c0;
     const auto c2 = PoissonsRatio * c0;
 

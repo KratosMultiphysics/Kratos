@@ -333,7 +333,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_GetUndrainedPoissonsRatioGiv
     KRATOS_EXPECT_NEAR(undrained_poissons_ratio, 0.4, Defaults::absolute_tolerance);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_MakeCotinuumConstitutiveTensorReturnsConstitutiveTensor,
+KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitilties_MakeContinuumConstitutiveTensorReturnsConstitutiveTensor,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange & Act
