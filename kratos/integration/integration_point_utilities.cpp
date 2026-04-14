@@ -33,6 +33,23 @@ namespace Kratos
         }
     }
 
+    void IntegrationPointUtilities::CreateIntegrationPoints2D(
+        IntegrationPointsArrayType& rIntegrationPoints,
+        const std::vector<double>& rSpansLocalSpaceU,
+        const std::vector<double>& rSpansLocalSpaceV,
+        const IntegrationInfo& rIntegrationInfo)
+    {
+        if (rIntegrationInfo.GetQuadratureMethod(0) == IntegrationInfo::QuadratureMethod::GAUSS) {
+            IntegrationPointUtilities::CreateIntegrationPoints2DGauss(
+                rIntegrationPoints, rSpansLocalSpaceU, rSpansLocalSpaceV, 
+                rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(0), 
+                rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(1));
+        } else {
+            KRATOS_ERROR << "Integration with given quadrature method not implemented for 1d structures. "
+                << "Additional provided information: - rSpansLocalSpace: " << rSpansLocalSpaceU << std::endl;
+        }
+    }
+
     /* @brief Creates integration points within provided spans according
      *        to the provided points per span.
      * @param rIntegrationPoints result integration points.
@@ -58,6 +75,38 @@ namespace Kratos
                 IntegrationPointsPerSpan,
                 rSpansLocalSpace[i], rSpansLocalSpace[i + 1]);
         }
+    }
+
+    void IntegrationPointUtilities::CreateIntegrationPoints2DGauss(
+        IntegrationPointsArrayType& rIntegrationPoints,
+        const std::vector<double>& rSpansLocalSpaceU,
+        const std::vector<double>& rSpansLocalSpaceV,
+        const SizeType IntegrationPointsPerSpanU,
+        const SizeType IntegrationPointsPerSpanV)
+    {
+        const SizeType num_spansU = rSpansLocalSpaceU.size() - 1;
+        const SizeType number_of_integration_pointsU = num_spansU * IntegrationPointsPerSpanU;
+        const SizeType num_spansV = rSpansLocalSpaceV.size() - 1;
+        const SizeType number_of_integration_pointsV = num_spansV * IntegrationPointsPerSpanV;
+
+        if (rIntegrationPoints.size() != number_of_integration_pointsU * number_of_integration_pointsV)
+            rIntegrationPoints.resize(number_of_integration_pointsU * number_of_integration_pointsV);
+
+        auto integration_point_iterator = rIntegrationPoints.begin();
+        for (IndexType i = 0; i < num_spansU; ++i)
+        {
+            for (IndexType j = 0; j < num_spansV; ++j)
+            {
+                IntegrationPointUtilities::IntegrationPoints2D(
+                    integration_point_iterator,
+                    IntegrationPointsPerSpanU,
+                    IntegrationPointsPerSpanV,
+                    rSpansLocalSpaceU[i], rSpansLocalSpaceU[i + 1],
+                    rSpansLocalSpaceV[j], rSpansLocalSpaceV[j + 1]);
+
+               
+            }
+        } 
     }
 
     /* @brief Creates integration points within provided spans according

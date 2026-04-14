@@ -1,0 +1,368 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   contentStyleType="text/css"
+   data-diagram-type="ACTIVITY"
+   height="506px"
+   preserveAspectRatio="none"
+   style="width:276px;height:506px;background:#FFFFFF;"
+   version="1.1"
+   viewBox="0 0 276 506"
+   width="276px"
+   zoomAndPan="magnify"
+   id="svg21"
+   sodipodi:docname="hardening_flowchart.svg"
+   inkscape:version="1.4.3 (0d15f75, 2025-12-25)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview21"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="1.6818182"
+     inkscape:cx="137.94595"
+     inkscape:cy="253"
+     inkscape:window-width="1920"
+     inkscape:window-height="1111"
+     inkscape:window-x="612"
+     inkscape:window-y="1351"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="g21" />
+  <defs
+     id="defs1">
+    <rect
+       x="240.21622"
+       y="425.72973"
+       width="9.5135135"
+       height="17.837838"
+       id="rect21" />
+  </defs>
+  <g
+     id="g21">
+    <ellipse
+       cx="127.0281"
+       cy="20"
+       fill="#222222"
+       rx="10"
+       ry="10"
+       style="stroke:#222222;stroke-width:1;"
+       id="ellipse1" />
+    <rect
+       fill="#F1F1F1"
+       height="33.9688"
+       rx="12.5"
+       ry="12.5"
+       style="stroke:#181818;stroke-width:0.5;"
+       width="79.2793"
+       x="87.3884"
+       y="50"
+       id="rect1" />
+    <text
+       fill="#000000"
+       font-family="sans-serif"
+       font-size="12"
+       lengthAdjust="spacing"
+       textLength="59.2793"
+       x="97.3884"
+       y="71.1387"
+       id="text1">n_iter = 0</text>
+    <rect
+       fill="#F1F1F1"
+       height="33.9688"
+       rx="12.5"
+       ry="12.5"
+       style="stroke:#181818;stroke-width:0.5;"
+       width="89.334"
+       x="82.3611"
+       y="147.9688"
+       id="rect2" />
+    <text
+       fill="#000000"
+       font-family="sans-serif"
+       font-size="12"
+       lengthAdjust="spacing"
+       textLength="69.334"
+       x="92.3611"
+       y="169.1074"
+       id="text2">n_iter += 1</text>
+    <rect
+       fill="#F1F1F1"
+       height="33.9688"
+       rx="12.5"
+       ry="12.5"
+       style="stroke:#181818;stroke-width:0.5;"
+       width="200.6152"
+       x="26.7205"
+       y="201.9375"
+       id="rect3" />
+    <text
+       fill="#000000"
+       font-family="sans-serif"
+       font-size="12"
+       lengthAdjust="spacing"
+       textLength="180.6152"
+       x="36.7205"
+       y="223.0762"
+       id="text3">Calculate λ, Map trial stresses</text>
+    <rect
+       fill="#F1F1F1"
+       height="33.9688"
+       rx="12.5"
+       ry="12.5"
+       style="stroke:#181818;stroke-width:0.5;"
+       width="209.5156"
+       x="22.2703"
+       y="255.9063"
+       id="rect4" />
+    <text
+       fill="#000000"
+       font-family="sans-serif"
+       font-size="12"
+       lengthAdjust="spacing"
+       textLength="189.5156"
+       x="32.2703"
+       y="277.0449"
+       id="text4">Update plastic strain increment</text>
+    <rect
+       fill="#F1F1F1"
+       height="33.9688"
+       rx="12.5"
+       ry="12.5"
+       style="stroke:#181818;stroke-width:0.5;"
+       width="222.5879"
+       x="15.7341"
+       y="309.875"
+       id="rect5" />
+    <text
+       fill="#000000"
+       font-family="sans-serif"
+       font-size="12"
+       lengthAdjust="spacing"
+       textLength="202.5879"
+       x="25.7341"
+       y="331.0137"
+       id="text5">Update equivalent plastic strain κ</text>
+    <rect
+       fill="#F1F1F1"
+       height="33.9688"
+       rx="12.5"
+       ry="12.5"
+       style="stroke:#181818;stroke-width:0.5;"
+       width="144.207"
+       x="54.9246"
+       y="363.8438"
+       id="rect6" />
+    <text
+       fill="#000000"
+       font-family="sans-serif"
+       font-size="12"
+       lengthAdjust="spacing"
+       textLength="124.207"
+       x="64.9246"
+       y="384.9824"
+       id="text6">Update yield surface</text>
+    <polygon
+       fill="#F1F1F1"
+       points="127.0281,103.9688,139.0281,115.9688,127.0281,127.9688,115.0281,115.9688,127.0281,103.9688"
+       style="stroke:#181818;stroke-width:0.5;"
+       id="polygon6" />
+    <polygon
+       fill="#F1F1F1"
+       points="32,417.8125,222.0562,417.8125,234.0562,429.8125,222.0562,441.8125,32,441.8125,20,429.8125,32,417.8125"
+       style="stroke:#181818;stroke-width:0.5;"
+       id="polygon7" />
+    <text
+       fill="#000000"
+       font-family="sans-serif"
+       font-size="11"
+       lengthAdjust="spacing"
+       textLength="13.7017"
+       x="131.0281"
+       y="452.0229"
+       id="text7">no</text>
+    <text
+       fill="#000000"
+       font-family="sans-serif"
+       font-size="11px"
+       lengthAdjust="spacing"
+       textLength="190.0562"
+       x="32"
+       y="433.62061"
+       id="text8">|F_MC(σ, κ)| &gt; ε_tol, n_iter &lt; max_iter</text>
+    <text
+       fill="#000000"
+       font-family="sans-serif"
+       font-size="11"
+       lengthAdjust="spacing"
+       textLength="19.0083"
+       x="234.0562"
+       y="427.2183"
+       id="text9">yes</text>
+    <ellipse
+       cx="127.0281"
+       cy="484.5229"
+       fill="none"
+       rx="11"
+       ry="11"
+       style="stroke:#222222;stroke-width:1;"
+       id="ellipse9" />
+    <ellipse
+       cx="127.0281"
+       cy="484.5229"
+       fill="#222222"
+       rx="6"
+       ry="6"
+       style="stroke:#222222;stroke-width:1;"
+       id="ellipse10" />
+    <line
+       style="stroke:#181818;stroke-width:1;"
+       x1="127.0281"
+       x2="127.0281"
+       y1="30"
+       y2="50"
+       id="line10" />
+    <polygon
+       fill="#181818"
+       points="123.0281,40,127.0281,50,131.0281,40,127.0281,44"
+       style="stroke:#181818;stroke-width:1;"
+       id="polygon10" />
+    <line
+       style="stroke:#181818;stroke-width:1;"
+       x1="127.0281"
+       x2="127.0281"
+       y1="181.9375"
+       y2="201.9375"
+       id="line11" />
+    <polygon
+       fill="#181818"
+       points="123.0281,191.9375,127.0281,201.9375,131.0281,191.9375,127.0281,195.9375"
+       style="stroke:#181818;stroke-width:1;"
+       id="polygon11" />
+    <line
+       style="stroke:#181818;stroke-width:1;"
+       x1="127.0281"
+       x2="127.0281"
+       y1="235.9063"
+       y2="255.9063"
+       id="line12" />
+    <polygon
+       fill="#181818"
+       points="123.0281,245.9063,127.0281,255.9063,131.0281,245.9063,127.0281,249.9063"
+       style="stroke:#181818;stroke-width:1;"
+       id="polygon12" />
+    <line
+       style="stroke:#181818;stroke-width:1;"
+       x1="127.0281"
+       x2="127.0281"
+       y1="289.875"
+       y2="309.875"
+       id="line13" />
+    <polygon
+       fill="#181818"
+       points="123.0281,299.875,127.0281,309.875,131.0281,299.875,127.0281,303.875"
+       style="stroke:#181818;stroke-width:1;"
+       id="polygon13" />
+    <line
+       style="stroke:#181818;stroke-width:1;"
+       x1="127.0281"
+       x2="127.0281"
+       y1="343.8438"
+       y2="363.8438"
+       id="line14" />
+    <polygon
+       fill="#181818"
+       points="123.0281,353.8438,127.0281,363.8438,131.0281,353.8438,127.0281,357.8438"
+       style="stroke:#181818;stroke-width:1;"
+       id="polygon14" />
+    <line
+       style="stroke:#181818;stroke-width:1;"
+       x1="127.0281"
+       x2="127.0281"
+       y1="127.9688"
+       y2="147.9688"
+       id="line15" />
+    <polygon
+       fill="#181818"
+       points="123.0281,137.9688,127.0281,147.9688,131.0281,137.9688,127.0281,141.9688"
+       style="stroke:#181818;stroke-width:1;"
+       id="polygon15" />
+    <line
+       style="stroke:#181818;stroke-width:1;"
+       x1="234.0562"
+       x2="250.322"
+       y1="429.8125"
+       y2="429.8125"
+       id="line16" />
+    <polygon
+       fill="#181818"
+       points="246.322,282.8906,250.322,272.8906,254.322,282.8906,250.322,278.8906"
+       style="stroke:#181818;stroke-width:1;"
+       id="polygon16" />
+    <line
+       style="stroke:#181818;stroke-width:1;"
+       x1="250.322"
+       x2="250.322"
+       y1="115.9688"
+       y2="429.8125"
+       id="line17" />
+    <line
+       style="stroke:#181818;stroke-width:1;"
+       x1="250.322"
+       x2="139.0281"
+       y1="115.9688"
+       y2="115.9688"
+       id="line18" />
+    <polygon
+       fill="#181818"
+       points="149.0281,111.9688,139.0281,115.9688,149.0281,119.9688,145.0281,115.9688"
+       style="stroke:#181818;stroke-width:1;"
+       id="polygon18" />
+    <line
+       style="stroke:#181818;stroke-width:1;"
+       x1="127.0281"
+       x2="127.0281"
+       y1="397.8125"
+       y2="417.8125"
+       id="line19" />
+    <polygon
+       fill="#181818"
+       points="123.0281,407.8125,127.0281,417.8125,131.0281,407.8125,127.0281,411.8125"
+       style="stroke:#181818;stroke-width:1;"
+       id="polygon19" />
+    <line
+       style="stroke:#181818;stroke-width:1;"
+       x1="127.0281"
+       x2="127.0281"
+       y1="83.9688"
+       y2="103.9688"
+       id="line20" />
+    <polygon
+       fill="#181818"
+       points="123.0281,93.9688,127.0281,103.9688,131.0281,93.9688,127.0281,97.9688"
+       style="stroke:#181818;stroke-width:1;"
+       id="polygon20" />
+    <line
+       style="stroke:#181818;stroke-width:1;"
+       x1="127.0281"
+       x2="127.0281"
+       y1="441.8125"
+       y2="473.5229"
+       id="line21" />
+    <polygon
+       fill="#181818"
+       points="123.0281,463.5229,127.0281,473.5229,131.0281,463.5229,127.0281,467.5229"
+       style="stroke:#181818;stroke-width:1;"
+       id="polygon21" />
+    <!--SRC=[NSwz2i9G30NWlKznnXOxw6hLHN3hw2oXHWnSRwytgJ_GpMToqNUehwGL1N5BJhx0KQDeoTYln3XYYc6HH0vCbW3VT335gEZtERcgSMICxfwZf02BGWvgaLLPtsWPrhq8ZjIawcya7kAho3lszcjutyY1t2lzvztjrvs5tHhQn0rL_2s8urOSf-rYLSxJnoL__MGjPkYkEJx59zZHwJrc44LwPitWQqFgwonHgyCJ]-->
+    <text
+       xml:space="preserve"
+       id="text21"
+       style="fill:#000000;stroke-width:0.19653543;stroke-dasharray:0.83149606, 0.83149606;text-orientation:auto;writing-mode:lr-tb;direction:ltr;white-space:pre;shape-inside:url(#rect21)" />
+  </g>
+</svg>

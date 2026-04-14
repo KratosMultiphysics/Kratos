@@ -33,67 +33,75 @@ void GeoElementUtilities::FillArray1dOutput(array_1d<double, 3>& rOutputValue, c
 }
 
 void GeoElementUtilities::FillPermeabilityMatrix(BoundedMatrix<double, 1, 1>&   rPermeabilityMatrix,
-                                                 const Element::PropertiesType& Prop)
+                                                 const Element::PropertiesType& rProperties)
 {
     // 1D
-    if (Prop[RETENTION_LAW] == "PressureFilterLaw") {
-        const auto equivalent_radius_square = Prop[CROSS_AREA] / Globals::Pi;
+    if (rProperties[RETENTION_LAW] == "PressureFilterLaw") {
+        const auto equivalent_radius_square = rProperties[CROSS_AREA] / Globals::Pi;
         rPermeabilityMatrix(0, 0)           = equivalent_radius_square * 0.125;
     } else {
-        rPermeabilityMatrix(0, 0) = Prop[PERMEABILITY_XX];
+        rPermeabilityMatrix(0, 0) = rProperties[PERMEABILITY_XX];
     }
 }
 
 void GeoElementUtilities::FillPermeabilityMatrix(BoundedMatrix<double, 2, 2>&   rPermeabilityMatrix,
-                                                 const Element::PropertiesType& Prop)
+                                                 const Element::PropertiesType& rProperties)
 {
     // 2D
-    rPermeabilityMatrix(0, 0) = Prop[PERMEABILITY_XX];
-    rPermeabilityMatrix(1, 1) = Prop[PERMEABILITY_YY];
+    rPermeabilityMatrix(0, 0) = rProperties[PERMEABILITY_XX];
+    rPermeabilityMatrix(1, 1) = rProperties[PERMEABILITY_YY];
 
-    rPermeabilityMatrix(0, 1) = Prop[PERMEABILITY_XY];
+    rPermeabilityMatrix(0, 1) = rProperties[PERMEABILITY_XY];
     rPermeabilityMatrix(1, 0) = rPermeabilityMatrix(0, 1);
 }
 
 void GeoElementUtilities::FillPermeabilityMatrix(BoundedMatrix<double, 3, 3>&   rPermeabilityMatrix,
-                                                 const Element::PropertiesType& Prop)
+                                                 const Element::PropertiesType& rProperties)
 {
     // 3D
-    rPermeabilityMatrix(0, 0) = Prop[PERMEABILITY_XX];
-    rPermeabilityMatrix(1, 1) = Prop[PERMEABILITY_YY];
-    rPermeabilityMatrix(2, 2) = Prop[PERMEABILITY_ZZ];
+    rPermeabilityMatrix(0, 0) = rProperties[PERMEABILITY_XX];
+    rPermeabilityMatrix(1, 1) = rProperties[PERMEABILITY_YY];
+    rPermeabilityMatrix(2, 2) = rProperties[PERMEABILITY_ZZ];
 
-    rPermeabilityMatrix(0, 1) = Prop[PERMEABILITY_XY];
+    rPermeabilityMatrix(0, 1) = rProperties[PERMEABILITY_XY];
     rPermeabilityMatrix(1, 0) = rPermeabilityMatrix(0, 1);
 
-    rPermeabilityMatrix(1, 2) = Prop[PERMEABILITY_YZ];
+    rPermeabilityMatrix(1, 2) = rProperties[PERMEABILITY_YZ];
     rPermeabilityMatrix(2, 1) = rPermeabilityMatrix(1, 2);
 
-    rPermeabilityMatrix(2, 0) = Prop[PERMEABILITY_ZX];
+    rPermeabilityMatrix(2, 0) = rProperties[PERMEABILITY_ZX];
     rPermeabilityMatrix(0, 2) = rPermeabilityMatrix(2, 0);
 }
 
-Matrix GeoElementUtilities::FillPermeabilityMatrix(const Element::PropertiesType& Prop, std::size_t Dimension)
+Matrix GeoElementUtilities::FillPermeabilityMatrix(const Element::PropertiesType& rProperties, std::size_t Dimension)
 {
     switch (Dimension) {
     case 1: {
         BoundedMatrix<double, 1, 1> result;
-        FillPermeabilityMatrix(result, Prop);
+        FillPermeabilityMatrix(result, rProperties);
         return result;
     }
     case 2: {
         BoundedMatrix<double, 2, 2> result;
-        FillPermeabilityMatrix(result, Prop);
+        FillPermeabilityMatrix(result, rProperties);
         return result;
     }
     case 3: {
         BoundedMatrix<double, 3, 3> result;
-        FillPermeabilityMatrix(result, Prop);
+        FillPermeabilityMatrix(result, rProperties);
         return result;
     }
     default:
         KRATOS_ERROR << "Dimension " << Dimension << " is not supported" << std::endl;
     }
+}
+
+Matrix GeoElementUtilities::FillInterfacePermeabilityMatrix(const Element::PropertiesType& rProperties,
+                                                            std::size_t Dimension)
+{
+    auto result  = Matrix{Dimension, Dimension, 0.0};
+    result(0, 0) = rProperties[TRANSVERSAL_PERMEABILITY];
+    return result;
 }
 
 double GeoElementUtilities::CalculateRadius(const Vector& rN, const GeometryType& rGeometry)
@@ -183,6 +191,27 @@ Vector GeoElementUtilities::EvaluateDeterminantsOfJacobiansAtIntegrationPoints(
         return rGeometry.DeterminantOfJacobian(rIntegrationPoint);
     };
     std::ranges::transform(rIntegrationPoints, result.begin(), evaluate_determinant_of_jacobian);
+    return result;
+}
+
+Vector GeoElementUtilities::GetNodalVariableVector(const Element::GeometryType&         rGeom,
+                                                   const Variable<array_1d<double, 3>>& rVariable,
+                                                   IndexType                            Dimension,
+                                                   IndexType NumberOfDofs)
+{
+    const auto nodal_values = VariablesUtilities::GetNodalValues(rGeom, rVariable);
+    KRATOS_ERROR_IF_NOT(Dimension >= 1 && Dimension <= 3)
+        << "Incorrect dimension value (" << Dimension << ")." << std::endl;
+    KRATOS_ERROR_IF_NOT(nodal_values.size() * Dimension == NumberOfDofs)
+        << "Mismatch between requested number of DOFs (" << NumberOfDofs
+        << ") and computed number of DOFs from nodal values (" << nodal_values.size() * Dimension
+        << ")." << std::endl;
+    auto        result   = Vector(NumberOfDofs);
+    std::size_t position = 0;
+    for (const auto& values : nodal_values) {
+        std::copy(values.begin(), values.begin() + Dimension, result.begin() + position);
+        position += Dimension;
+    }
     return result;
 }
 

@@ -5,6 +5,7 @@ import math
 sys.path.append(os.path.join('..','..','..'))
 
 import KratosMultiphysics as Kratos
+import KratosMultiphysics.StructuralMechanicsApplication as KratosStructural
 import KratosMultiphysics.GeoMechanicsApplication as KratosGeo
 
 sys.path.append(os.path.join('..', 'python_scripts'))
@@ -326,7 +327,7 @@ def get_force(simulation):
         Kratos.FORCE, model_part.ProcessInfo)[0] for element in elements]
 
 
-def get_moment(simulation):
+def get_bending_moment(simulation):
     """
     Gets bending moment on all integration points from Kratos simulation
     :param simulation:
@@ -336,7 +337,7 @@ def get_moment(simulation):
     elements = model_part.Elements
 
     moment = [element.CalculateOnIntegrationPoints(
-        Kratos.MOMENT, model_part.ProcessInfo)[0] for element in elements]
+        KratosStructural.BENDING_MOMENT, model_part.ProcessInfo)[0] for element in elements]
     return moment
 
 

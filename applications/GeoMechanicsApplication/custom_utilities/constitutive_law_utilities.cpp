@@ -83,6 +83,45 @@ double ConstitutiveLawUtilities::GetCohesion(const Properties& rProperties)
     }
 }
 
+bool ConstitutiveLawUtilities::HasFrictionAngle(const Properties& rProperties)
+{
+    // Friction angle can be supplied either directly via GEO_FRICTION_ANGLE
+    // or via UMAT parameters + INDEX_OF_UMAT_PHI_PARAMETER.
+    return rProperties.Has(GEO_FRICTION_ANGLE) ||
+           (rProperties.Has(INDEX_OF_UMAT_PHI_PARAMETER) && rProperties.Has(UMAT_PARAMETERS));
+}
+
+void ConstitutiveLawUtilities::ValidateFrictionAngle(const Properties& rProperties, IndexType ElementId)
+{
+    double      phi = 0.0;
+    std::string phi_name;
+
+    if (rProperties.Has(GEO_FRICTION_ANGLE)) {
+        phi      = rProperties[GEO_FRICTION_ANGLE];
+        phi_name = "GEO_FRICTION_ANGLE";
+    } else if (rProperties.Has(INDEX_OF_UMAT_PHI_PARAMETER) && rProperties.Has(UMAT_PARAMETERS)) {
+        const auto phi_index = rProperties[INDEX_OF_UMAT_PHI_PARAMETER];
+        const auto number_of_umat_parameters = static_cast<int>(rProperties[UMAT_PARAMETERS].size());
+
+        KRATOS_ERROR_IF(phi_index < 1 || phi_index > number_of_umat_parameters)
+            << "Properties ( " << rProperties.Id() << ") of element ( " << ElementId
+            << "): INDEX_OF_UMAT_PHI_PARAMETER (" << phi_index
+            << ") is not in range [1, size of UMAT_PARAMETERS]." << std::endl;
+
+        phi      = rProperties[UMAT_PARAMETERS][phi_index - 1];
+        phi_name = "Phi";
+    }
+
+    if (phi_name == "") {
+        KRATOS_ERROR << "Properties ( " << rProperties.Id() << ") of element ( " << ElementId
+                     << ") does not have GEO_FRICTION_ANGLE nor INDEX_OF_UMAT_PHI_PARAMETER." << std::endl;
+    }
+
+    KRATOS_ERROR_IF(phi < 0.0 || phi > 90.0)
+        << "Properties ( " << rProperties.Id() << ") of element ( " << ElementId << "): " << phi_name
+        << " (" << phi << " degrees) should be between 0 and 90 degrees." << std::endl;
+}
+
 double ConstitutiveLawUtilities::GetFrictionAngleInDegrees(const Properties& rProperties)
 {
     if (rProperties.Has(GEO_FRICTION_ANGLE)) {
@@ -92,10 +131,11 @@ double ConstitutiveLawUtilities::GetFrictionAngleInDegrees(const Properties& rPr
     try {
         return GetValueOfUMatParameter(rProperties, INDEX_OF_UMAT_PHI_PARAMETER);
     } catch (const std::exception& e) {
-        KRATOS_ERROR << "ConstitutiveLawUtilities::GetFrictionAngleInDegrees failed. There is no "
-                        "GEO_FRICTION_ANGLE available and attempting to get the cohesion from UMAT "
-                        "parameters resulted in the following "
-                     << e.what() << "." << std::endl;
+        KRATOS_ERROR
+            << "ConstitutiveLawUtilities::GetFrictionAngleInDegrees failed. There is no "
+               "GEO_FRICTION_ANGLE available and attempting to get the friction angle from UMAT "
+               "parameters resulted in the following "
+            << e.what() << "." << std::endl;
     }
 }
 
@@ -138,6 +178,11 @@ void ConstitutiveLawUtilities::CheckHasStrainMeasure_Infinitesimal(const Propert
         << "Constitutive law is not compatible with the strain type "
            "StrainMeasure_Infinitesimal at element "
         << ElementId << "." << std::endl;
+}
+
+double ConstitutiveLawUtilities::CalculateK0NCFromFrictionAngleInRadians(double FrictionAngleInRadians)
+{
+    return 1.0 - std::sin(FrictionAngleInRadians);
 }
 
 } // namespace Kratos

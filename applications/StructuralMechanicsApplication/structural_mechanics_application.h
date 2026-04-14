@@ -35,6 +35,7 @@
 #include "custom_elements/truss_elements/truss_element_linear_3D2N.hpp"
 #include "custom_elements/truss_elements/cable_element_3D2N.hpp"
 #include "custom_elements/truss_elements/linear_truss_element.h"
+#include "custom_elements/truss_elements/total_lagrangian_truss_element.h"
 
 /* Adding beam element */
 #include "custom_elements/beam_elements/cr_beam_element_3D2N.hpp"
@@ -98,6 +99,7 @@
 /* Conditions */
 #include "custom_conditions/base_load_condition.h"
 #include "custom_conditions/point_load_condition.h"
+#include "custom_conditions/imaginary_point_load_condition.h"
 #include "custom_conditions/point_contact_condition.h"
 #include "custom_conditions/axisym_point_load_condition.h"
 #include "custom_conditions/line_load_condition.h"
@@ -284,6 +286,8 @@ private:
     const LinearTrussElement<2, 3> mLinearTrussElement2D3N;
     const LinearTrussElement<3, 2> mLinearTrussElement3D2N;
     const LinearTrussElement<3, 3> mLinearTrussElement3D3N;
+    const TotalLagrangianTrussElement<2> mTotalLagrangianTrussElement2D2N;
+    const TotalLagrangianTrussElement<3> mTotalLagrangianTrussElement3D2N;
 
     // Adding the beam element
     const CrBeamElement3D2N mCrBeamElement3D2N;
@@ -469,6 +473,8 @@ private:
     const PointLoadCondition mPointLoadCondition3D1N;
     const PointContactCondition mPointContactCondition2D1N;
     const PointContactCondition mPointContactCondition3D1N;
+    const ImaginaryPointLoadCondition mImaginaryPointLoadCondition2D1N;
+    const ImaginaryPointLoadCondition mImaginaryPointLoadCondition3D1N;
 
     const AxisymPointLoadCondition mAxisymPointLoadCondition2D1N;
 

@@ -17,7 +17,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "expression/container_expression.h"
+#include "tensor_adaptors/tensor_adaptor.h"
 
 // Application includes
 
@@ -25,7 +25,6 @@ namespace Kratos {
 ///@name Kratos Classes
 ///@{
 
-template<class TContainerType>
 class KRATOS_API(SYSTEM_IDENTIFICATION_APPLICATION) SmoothClamper
 {
 public:
@@ -74,29 +73,29 @@ public:
     double ProjectBackward(const double Y) const;
 
     /**
-     * @brief Clamps the given input expression smoothly.
+     * @brief Clamps the given input tensor adaptor smoothly.
      * @details The input value (x) can be in [-infty, +infty] range. But the output (y) will be in
      *          [Min, Max] range.
-     * @param rX                                    Input expression in input space.
-     * @return ContainerExpression<TContainerType>  Clamped output expression in clamped space.
+     * @param rX                                    Input tensor adaptor in input space.
+     * @return TensorAdaptor<double>::Pointer       Clamped output tensor adaptor in clamped space.
      */
-    ContainerExpression<TContainerType> ProjectForward(const ContainerExpression<TContainerType>& rX) const;
+    TensorAdaptor<double>::Pointer ProjectForward(const TensorAdaptor<double>& rX) const;
 
     /**
      * @brief Compute the derivative dy/dx at given X for clamping.
      * @details Computes the clamped derivative where clamped value is Y and input is X, and the
      *          derivative is dY/dX
-     * @param rX                                    Input expression in input space.
-     * @return ContainerExpression<TContainerType>  Output expression with dY/dX.
+     * @param rX                                    Input tensor adaptor in input space.
+     * @return TensorAdaptor<double>::Pointer       Output tensor adaptor with dY/dX.
      */
-    ContainerExpression<TContainerType> CalculateForwardProjectionGradient(const ContainerExpression<TContainerType>& rX) const;
+    TensorAdaptor<double>::Pointer CalculateForwardProjectionGradient(const TensorAdaptor<double>& rX) const;
 
     /**
      * @brief Computes the X given Y.
-     * @param rY                                    Input expression in clamped space.
-     * @return ContainerExpression<TContainerType>  Output expression in input space.
+     * @param rY                                    Input tensor adaptor in clamped space.
+     * @return TensorAdaptor<double>::Pointer       Output tensor adaptor in input space.
      */
-    ContainerExpression<TContainerType> ProjectBackward(const ContainerExpression<TContainerType>& rY) const;
+    TensorAdaptor<double>::Pointer ProjectBackward(const TensorAdaptor<double>& rY) const;
 
     ///@}
 

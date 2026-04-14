@@ -67,6 +67,12 @@ public:
     /// The definition of the CL base class
     using BaseType = ConstitutiveLaw;
 
+    /// Unhide the base class SetValue overloads
+    using BaseType::SetValue;
+
+    /// Unhide the base class GetValue overloads
+    using BaseType::GetValue;
+
     /// The definition of the size type
     using SizeType = std::size_t;
 
@@ -174,7 +180,7 @@ public:
      * @return true if the variable is defined in the constitutive law
      */
     template<class TDataType>
-    TDataType& GetValue(
+    TDataType& TGetValue(
         const Variable<TDataType>& rThisVariable,
         TDataType& rValue
         )
@@ -202,7 +208,7 @@ public:
      * @param rThisVariable the variable to be checked for
      */
     template<class TDataType>
-    void SetValue(
+    void TSetValue(
         const Variable<TDataType>& rThisVariable,
         const TDataType& rValue,
         const ProcessInfo& rCurrentProcessInfo
@@ -224,7 +230,7 @@ public:
      * @param rThisVariable the variable to be checked for
      */
     template<class TDataType>
-    TDataType& CalculateValue(
+    TDataType& TCalculateValue(
         Parameters& rParameterValues,
         const Variable<TDataType>& rThisVariable,
         TDataType& rValue)
@@ -247,7 +253,7 @@ public:
             rValue /= static_cast<double>(number_of_laws);
 
             rParameterValues.SetMaterialProperties(r_material_properties);
-            
+
             return rValue;
 
             KRATOS_CATCH("Generic CalculateValue")
