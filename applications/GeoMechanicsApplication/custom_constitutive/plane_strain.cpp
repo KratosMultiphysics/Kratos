@@ -21,10 +21,10 @@ namespace Kratos
 Matrix PlaneStrain::CalculateElasticConstitutiveTensor(const Properties& rProperties) const
 {
     constexpr auto undrained = false;
-    const double nu = undrained ? ConstitutiveLawUtilities::GetUndrainedPoissonsRatio(rProperties)
-                            : rProperties[POISSON_RATIO];
-    const double E  = undrained ? ConstitutiveLawUtilities::GetUndrainedYoungsModulus(rProperties, nu)
-                            : rProperties[YOUNG_MODULUS];
+    const double   nu = undrained ? ConstitutiveLawUtilities::GetUndrainedPoissonsRatio(rProperties)
+                                  : rProperties[POISSON_RATIO];
+    const double E = undrained ? ConstitutiveLawUtilities::GetUndrainedYoungsModulus(rProperties, nu)
+                               : rProperties[YOUNG_MODULUS];
 
     return ConstitutiveLawUtilities::MakeContinuumConstitutiveTensor(
         E, nu, PlaneStrain::GetStrainSize(), PlaneStrain::GetNumberOfNormalComponents());

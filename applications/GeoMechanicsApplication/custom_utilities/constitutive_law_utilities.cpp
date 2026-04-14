@@ -199,13 +199,13 @@ double ConstitutiveLawUtilities::GetUndrainedPoissonsRatio(const Properties& rPr
     if (rProperties.Has(GEO_POISSON_UNDRAINED)) {
         result = rProperties[GEO_POISSON_UNDRAINED];
     } else {
-        const auto skempton_b     = ConstitutiveLawUtilities::GetSkemptonB(rProperties);
-        const auto biot_alpha     = rProperties[BIOT_COEFFICIENT];
-        const auto poissons_ratio = rProperties[POISSON_RATIO];
-        const auto denominator    = 3.0 - biot_alpha * skempton_b * (1.0 - 2.0 * poissons_ratio);
+        const auto skempton_b       = ConstitutiveLawUtilities::GetSkemptonB(rProperties);
+        const auto biot_coefficient = rProperties[BIOT_COEFFICIENT];
+        const auto poissons_ratio   = rProperties[POISSON_RATIO];
+        const auto denominator = 3.0 - biot_coefficient * skempton_b * (1.0 - 2.0 * poissons_ratio);
         KRATOS_ERROR_IF(denominator <= std::numeric_limits<double>::epsilon())
             << "Non-physical values: denominator < epsilon." << std::endl;
-        result = (3.0 * poissons_ratio + biot_alpha * skempton_b * (1.0 - 2.0 * poissons_ratio)) / denominator;
+        result = (3.0 * poissons_ratio + biot_coefficient * skempton_b * (1.0 - 2.0 * poissons_ratio)) / denominator;
     }
     constexpr auto max_value_poisson_ratio = 0.495;
     return result < max_value_poisson_ratio ? result : max_value_poisson_ratio;
@@ -219,12 +219,12 @@ double ConstitutiveLawUtilities::GetSkemptonB(const Properties& rProperties)
 
     const auto k_f = rProperties[BULK_MODULUS_FLUID];
     const auto k_s = rProperties[BULK_MODULUS_SOLID]; // or should this be k skeleton, the porous material i.s.o. the solid
-    const auto porosity    = rProperties[POROSITY];
-    const auto biot_alpha  = rProperties[BIOT_COEFFICIENT];
-    const auto denominator = biot_alpha + porosity * ((k_s / k_f) + biot_alpha - 1.0);
+    const auto porosity         = rProperties[POROSITY];
+    const auto biot_coefficient = rProperties[BIOT_COEFFICIENT];
+    const auto denominator = biot_coefficient + porosity * ((k_s / k_f) + biot_coefficient - 1.0);
     KRATOS_ERROR_IF(denominator <= std::numeric_limits<double>::epsilon())
         << "Non-physical values: denominator < epsilon." << std::endl;
-    return biot_alpha / denominator;
+    return biot_coefficient / denominator;
 }
 
 Matrix ConstitutiveLawUtilities::MakeContinuumConstitutiveTensor(double      YoungsModulus,
@@ -235,9 +235,9 @@ Matrix ConstitutiveLawUtilities::MakeContinuumConstitutiveTensor(double      You
     const auto denominator = (1.0 + PoissonsRatio) * (1.0 - 2.0 * PoissonsRatio);
     KRATOS_ERROR_IF(denominator <= std::numeric_limits<double>::epsilon())
         << "PoissonsRatio of " << PoissonsRatio << " leads to a nearly zero denominator" << std::endl;
-    const auto c0                 = YoungsModulus / denominator;
-    const auto diagonal_value     = (1.0 - PoissonsRatio) * c0;
-    const auto off_diagonal_value = PoissonsRatio * c0;
+    const auto prefactor                 = YoungsModulus / denominator;
+    const auto diagonal_value     = (1.0 - PoissonsRatio) * prefactor;
+    const auto off_diagonal_value = PoissonsRatio * prefactor;
 
     auto result = Matrix{ZeroMatrix{StrainSize, StrainSize}};
     for (auto i = std::size_t{0}; i < NumberOfNormalComponents; ++i) {
