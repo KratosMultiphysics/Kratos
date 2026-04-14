@@ -35,6 +35,7 @@
 #include <EpetraExt_MatrixMatrix.h>
 
 // Project includes
+#include "trilinos_application.h"
 #include "includes/ublas_interface.h"
 #include "spaces/ublas_space.h"
 #include "includes/data_communicator.h"
@@ -139,6 +140,15 @@ public:
     ///@}
     ///@name Operations
     ///@{
+
+    /**
+     * @brief This method returns the linear algebra library used
+     * @return The linear algebra library, EPETRA in this case
+     */
+    static TrilinosLinearAlgebraLibrary LinearAlgebraLibrary()
+    {
+        return TrilinosLinearAlgebraLibrary::EPETRA;
+    }
 
     /**
      * @brief This method returns the rank of the communicator
