@@ -58,6 +58,11 @@ public:
 
     [[nodiscard]] static double GetSkemptonB(const Properties& rProperties);
 
+    [[nodiscard]] static Matrix MakeContinuumConstitutiveTensor(double      YoungsModulus,
+                                                                double      PoissonsRatio,
+                                                                std::size_t StrainSize,
+                                                                std::size_t NumberOfNormalComponents);
+
 }; /* Class ConstitutiveLawUtilities*/
 
 } // namespace Kratos

@@ -333,4 +333,17 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_GetUndrainedPoissonsRatioGiv
     KRATOS_EXPECT_NEAR(undrained_poissons_ratio, 0.4, Defaults::absolute_tolerance);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_MakeCotinuumConstitutiveTensorReturnsConstitutiveTensor,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange & Act
+    const auto constitutive_tensor =
+        ConstitutiveLawUtilities::MakeContinuumConstitutiveTensor(1.0, 0.25, 4, 2);
+
+    // Assert
+    auto expected_tensor = UblasUtilities::CreateMatrix(
+        {{1.2, 0.4, 0.0, 0.0}, {0.4, 1.2, 0.0, 0.0}, {0.0, 0.0, 0.4, 0.0}, {0.0, 0.0, 0.0, 0.4}});
+    KRATOS_EXPECT_MATRIX_EQ(constitutive_tensor, expected_tensor);
+}
+
 } // namespace Kratos::Testing
