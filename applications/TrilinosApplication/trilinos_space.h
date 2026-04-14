@@ -889,8 +889,105 @@ public:
         KRATOS_ERROR_IF(ierr != 0) << "Epetra set to zero failure " << ierr << std::endl;
     }
 
-    /// TODO: creating the the calculating reaction version
-    // 	template<class TOtherMatrixType, class TEquationIdVectorType>
+    /**
+     * @brief Build Epetra FECrsGraph and create new system matrix + vectors.
+     * @param rComm The communicator considered
+     * @param LocalSize The local size of the system
+     * @param FirstMyId The first global id owned by this rank
+     * @param GuessRowSize The guess row size for the graph construction
+     * @param rAllEquationIds The list of lists of equation ids for each local row
+     * @param rpA The pointer to the matrix to be created
+     * @param rpb The pointer to the right-hand side vector to be created
+     * @param rpDx The pointer to the solution vector to be created
+     * @param rpReactions The pointer to the reactions vector to be created
+     * @param EquationSystemSize The global size of the system
+     * @param pMap The map to be used for the construction of the matrix and vectors
+     */
+    static void BuildSystemStructure(
+        CommunicatorType& rComm,
+        const IndexType LocalSize,
+        const int FirstMyId,
+        const int GuessRowSize,
+        const std::vector<std::vector<int>>& rAllEquationIds,
+        MatrixPointerType& rpA,
+        VectorPointerType& rpb,
+        VectorPointerType& rpDx,
+        VectorPointerType& rpReactions,
+        const IndexType EquationSystemSize,
+        MapPointerType pMap
+        )
+    {
+        // Create graph
+        Epetra_FECrsGraph graph(::Copy, *pMap, GuessRowSize);
+        for (const auto& r_ids : rAllEquationIds) {
+            if (r_ids.size() != 0) {
+                graph.InsertGlobalIndices(r_ids.size(), r_ids.data(), r_ids.size(), r_ids.data());
+            }
+        }
+        graph.GlobalAssemble();
+        graph.FillComplete();
+        graph.OptimizeStorage();
+
+        // Create matrix and vectors
+        rpA = MatrixPointerType(new MatrixType(::Copy, graph));
+        if (IsNull(rpb) || Size(*rpb) != EquationSystemSize) {
+            rpb = VectorPointerType(new VectorType(*pMap));
+        }
+        if (IsNull(rpDx) || Size(*rpDx) != EquationSystemSize) {
+            rpDx = VectorPointerType(new VectorType(*pMap));
+        }
+        if (IsNull(rpReactions)) {
+            rpReactions = VectorPointerType(new VectorType(*pMap));
+        }
+    }
+
+    /**
+     * @brief Build Epetra FE constraint graph and create T matrix + constant vector.
+     * @param rComm The communicator considered
+     * @param LocalSize The local size of the system
+     * @param FirstMyId The first global id owned by this rank
+     * @param GuessRowSize The guess row size for the graph construction
+     * @param rSlaveEquationIds The list of lists of slave equation ids for each local row
+     * @param rMasterEquationIds The list of lists of master equation ids for each local row
+     * @param rpT The pointer to the T matrix to be created
+     * @param rpConstantVector The pointer to the constant vector to be created
+     * @param pMap The map to be used for the construction of the matrix and vectors
+     */
+    static void BuildConstraintsStructure(
+        CommunicatorType& rComm,
+        const IndexType LocalSize,
+        const int FirstMyId,
+        const int GuessRowSize,
+        const std::vector<std::vector<int>>& rSlaveEquationIds,
+        const std::vector<std::vector<int>>& rMasterEquationIds,
+        MatrixPointerType& rpT,
+        VectorPointerType& rpConstantVector,
+        MapPointerType pMap
+        )
+    {
+        // Create graph
+        Epetra_FECrsGraph graph(::Copy, *pMap, GuessRowSize);
+        for (IndexType i = 0; i < LocalSize; i++) {
+            int gid = FirstMyId + i;
+            graph.InsertGlobalIndices(1, &gid, 1, &gid);
+        }
+        for (std::size_t c = 0; c < rSlaveEquationIds.size(); c++) {
+            const auto& r_slave_ids = rSlaveEquationIds[c];
+            const auto& r_master_ids = rMasterEquationIds[c];
+            if (r_slave_ids.size() > 0 && r_master_ids.size() > 0) {
+                for (auto slave_id : r_slave_ids) {
+                    graph.InsertGlobalIndices(1, &slave_id, r_master_ids.size(), r_master_ids.data());
+                }
+            }
+        }
+        graph.GlobalAssemble();
+        graph.FillComplete();
+        graph.OptimizeStorage();
+
+        // Create matrix and vector
+        rpT = MatrixPointerType(new MatrixType(::Copy, graph));
+        rpConstantVector = VectorPointerType(new VectorType(*pMap));
+    }
 
     /**
      * @brief Assembles the LHS of the system
