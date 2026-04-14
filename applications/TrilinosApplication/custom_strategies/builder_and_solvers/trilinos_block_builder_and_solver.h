@@ -900,9 +900,7 @@ public:
     {
         KRATOS_TRY
 
-        const auto& r_process_info = rModelPart.GetProcessInfo();
-
-        // loop over all dofs to find the fixed ones
+        // Loop over all dofs to find the fixed ones
         std::vector<int> global_ids(BaseType::mDofSet.size());
         std::vector<int> is_dirichlet(BaseType::mDofSet.size());
 
