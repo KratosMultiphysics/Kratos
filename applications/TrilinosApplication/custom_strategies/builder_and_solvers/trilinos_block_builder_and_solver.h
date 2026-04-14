@@ -1507,59 +1507,47 @@ protected:
         // Number of local dofs
         const IndexType number_of_local_rows = mLocalSystemSize;
 
-        // Generate map - use the "temp" array here
-        const int temp_size = (number_of_local_rows < 1000) ? 1000 : number_of_local_rows;
-        std::vector<int> temp_primary(temp_size, 0);
-        std::vector<int> temp_secondary(temp_size, 0);
-        for (IndexType i = 0; i != number_of_local_rows; i++) {
-            temp_primary[i] = mFirstMyId + i;
-        }
-        auto& r_map = GetMap();
-        std::fill(temp_primary.begin(), temp_primary.begin() + number_of_local_rows, 0);
+        // Ensure map is initialized
+        GetMap();
 
-        // Create and fill the graph of the matrix --> the temp array is
-        // reused here with a different meaning
-        Epetra_FECrsGraph Agraph(Copy, r_map, mGuessRowSize);
         Element::EquationIdVectorType equation_ids_vector;
         const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
-        // Trilinos error int definition
-        int ierr;
+        // Auxiliary vectors to construct the system matrix structure
+        std::vector<std::vector<int>> all_row_equation_ids;
+        std::vector<std::vector<int>> all_col_equation_ids;
+        const auto reserve_size = r_elements_array.size() + r_conditions_array.size() + 3 * r_constraints_array.size();
+        all_row_equation_ids.reserve(reserve_size);
+        all_col_equation_ids.reserve(reserve_size);
 
         // Assemble all elements
         for (auto& r_elem : r_elements_array) {
             pScheme->EquationId(r_elem, equation_ids_vector, r_current_process_info);
 
-            // Filling the list of active global indices (non fixed)
-            IndexType num_active_indices = 0;
-            for (auto& r_id : equation_ids_vector) {
-                temp_primary[num_active_indices] = r_id;
-                ++num_active_indices;
+            if (!equation_ids_vector.empty()) {
+                std::vector<int> local_equation_ids;
+                local_equation_ids.reserve(equation_ids_vector.size());
+                for (const auto equation_id : equation_ids_vector) {
+                    local_equation_ids.push_back(static_cast<int>(equation_id));
+                }
+                all_row_equation_ids.push_back(local_equation_ids);
+                all_col_equation_ids.push_back(std::move(local_equation_ids));
             }
-
-            if (num_active_indices != 0) {
-                ierr = Agraph.InsertGlobalIndices(num_active_indices, temp_primary.data(), num_active_indices, temp_primary.data());
-                KRATOS_ERROR_IF(ierr < 0) << ": Epetra failure in Graph.InsertGlobalIndices. Error code: " << ierr << std::endl;
-            }
-            std::fill(temp_primary.begin(), temp_primary.begin() + num_active_indices, 0);
         }
 
         // Assemble all conditions
         for (auto& r_cond : r_conditions_array) {
             pScheme->EquationId(r_cond, equation_ids_vector, r_current_process_info);
 
-            // Filling the list of active global indices (non fixed)
-            IndexType num_active_indices = 0;
-            for (auto& r_id : equation_ids_vector) {
-                temp_primary[num_active_indices] = r_id;
-                ++num_active_indices;
+            if (!equation_ids_vector.empty()) {
+                std::vector<int> local_equation_ids;
+                local_equation_ids.reserve(equation_ids_vector.size());
+                for (const auto equation_id : equation_ids_vector) {
+                    local_equation_ids.push_back(static_cast<int>(equation_id));
+                }
+                all_row_equation_ids.push_back(local_equation_ids);
+                all_col_equation_ids.push_back(std::move(local_equation_ids));
             }
-
-            if (num_active_indices != 0) {
-                ierr = Agraph.InsertGlobalIndices(num_active_indices, temp_primary.data(), num_active_indices, temp_primary.data());
-                KRATOS_ERROR_IF(ierr < 0) << ": Epetra failure in Graph.InsertGlobalIndices. Error code: " << ierr << std::endl;
-            }
-            std::fill(temp_primary.begin(), temp_primary.begin() + num_active_indices, 0);
         }
 
         // Assemble all constraints
@@ -1567,71 +1555,51 @@ protected:
         for (auto& r_const : r_constraints_array) {
             r_const.EquationIdVector(slave_equation_ids_vector, master_equation_ids_vector, r_current_process_info);
 
-            // Filling the list of active global indices (non fixed)
-            IndexType num_active_slave_indices = 0;
-            for (auto& r_slave_id : slave_equation_ids_vector) {
-                temp_primary[num_active_slave_indices] = r_slave_id;
-                ++num_active_slave_indices;
-            }
-            IndexType num_active_master_indices = 0;
-            for (auto& r_master_id : master_equation_ids_vector) {
-                temp_secondary[num_active_master_indices] = r_master_id;
-                ++num_active_master_indices;
+            std::vector<int> slave_equation_ids;
+            slave_equation_ids.reserve(slave_equation_ids_vector.size());
+            for (const auto slave_equation_id : slave_equation_ids_vector) {
+                slave_equation_ids.push_back(static_cast<int>(slave_equation_id));
             }
 
-            // First adding the pure slave dofs
-            if (num_active_slave_indices > 0) {
-                int index[1] = {0};
-                for (IndexType i = 0; i < num_active_slave_indices; ++i) {
-                    index[0] = temp_primary[i];
-                    ierr = Agraph.InsertGlobalIndices(1, index, 1, index);
-                    KRATOS_ERROR_IF(ierr < 0) << ": Epetra failure in Graph.InsertGlobalIndices. Error code: " << ierr << std::endl;
-                }
-                // Now adding cross master-slave dofs
-                if (num_active_master_indices > 0) {
-                    ierr = Agraph.InsertGlobalIndices(num_active_slave_indices, temp_primary.data(), num_active_master_indices, temp_secondary.data());
-                    KRATOS_ERROR_IF(ierr < 0) << ": Epetra failure in Graph.InsertGlobalIndices. Error code: " << ierr << std::endl;
-                }
+            std::vector<int> master_equation_ids;
+            master_equation_ids.reserve(master_equation_ids_vector.size());
+            for (const auto master_equation_id : master_equation_ids_vector) {
+                master_equation_ids.push_back(static_cast<int>(master_equation_id));
             }
+
+            // First adding the pure slave dofs (diagonal entries)
+            for (const auto slave_equation_id : slave_equation_ids) {
+                all_row_equation_ids.push_back({slave_equation_id});
+                all_col_equation_ids.push_back({slave_equation_id});
+            }
+
+            // Now adding cross master-slave dofs
+            if (!slave_equation_ids.empty() && !master_equation_ids.empty()) {
+                all_row_equation_ids.push_back(slave_equation_ids);
+                all_col_equation_ids.push_back(master_equation_ids);
+            }
+
             // Second adding pure master dofs
-            if (num_active_master_indices > 0) {
-                int index[1] = {0};
-                for (IndexType i = 0; i < num_active_master_indices; ++i) {
-                    index[0] = temp_secondary[i];
-                    ierr = Agraph.InsertGlobalIndices(1, index, 1, index);
-                    KRATOS_ERROR_IF(ierr < 0) << ": Epetra failure in Graph.InsertGlobalIndices. Error code: " << ierr << std::endl;
-                }
+            for (const auto master_equation_id : master_equation_ids) {
+                all_row_equation_ids.push_back({master_equation_id});
+                all_col_equation_ids.push_back({master_equation_id});
             }
-            std::fill(temp_primary.begin(), temp_primary.begin() + num_active_slave_indices, 0);
-            std::fill(temp_secondary.begin(), temp_secondary.begin() + num_active_master_indices, 0);
         }
 
-        // Finalizing graph construction
-        ierr = Agraph.GlobalAssemble();
-        KRATOS_ERROR_IF(ierr < 0) << ": Epetra failure in Epetra_FECrsGraph.GlobalAssemble. Error code: " << ierr << std::endl;
-        ierr = Agraph.FillComplete();
-        KRATOS_ERROR_IF(ierr < 0) << ": Epetra failure in Epetra_FECrsGraph.FillComplete. Error code: " << ierr << std::endl;
-        ierr = Agraph.OptimizeStorage();
-        KRATOS_ERROR_IF(ierr < 0) << ": Epetra failure in Epetra_FECrsGraph.OptimizeStorage. Error code: " << ierr << std::endl;
-
-        // Generate a new matrix pointer according to this graph
-        TSystemMatrixPointerType p_new_A = TSystemMatrixPointerType(new TSystemMatrixType(Copy, Agraph));
-        rpA.swap(p_new_A);
-
-        // Generate new vector pointers according to the given map
-        if (rpb == nullptr || TSparseSpace::Size(*rpb) != BaseType::mEquationSystemSize) {
-            TSystemVectorPointerType p_new_b = TSystemVectorPointerType(new TSystemVectorType(r_map));
-            rpb.swap(p_new_b);
-        }
-        if (rpDx == nullptr || TSparseSpace::Size(*rpDx) != BaseType::mEquationSystemSize) {
-            TSystemVectorPointerType p_new_Dx = TSystemVectorPointerType(new TSystemVectorType(r_map));
-            rpDx.swap(p_new_Dx);
-        }
-        // If the pointer is not initialized initialize it to an empty matrix
-        if (BaseType::mpReactionsVector == nullptr) {
-            TSystemVectorPointerType pNewReactionsVector = TSystemVectorPointerType(new TSystemVectorType(r_map));
-            BaseType::mpReactionsVector.swap(pNewReactionsVector);
-        }
+        TSparseSpace::BuildSystemStructure(
+            mrComm,
+            number_of_local_rows,
+            mFirstMyId,
+            mGuessRowSize,
+            all_row_equation_ids,
+            all_col_equation_ids,
+            rpA,
+            rpb,
+            rpDx,
+            BaseType::mpReactionsVector,
+            BaseType::mEquationSystemSize,
+            mpMap
+        );
 
         STOP_TIMER("MatrixStructure", 0)
     }
