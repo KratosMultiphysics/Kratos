@@ -145,7 +145,7 @@ public:
      * @brief This method returns the linear algebra library used
      * @return The linear algebra library, EPETRA in this case
      */
-    static TrilinosLinearAlgebraLibrary LinearAlgebraLibrary()
+    static constexpr TrilinosLinearAlgebraLibrary LinearAlgebraLibrary()
     {
         return TrilinosLinearAlgebraLibrary::EPETRA;
     }
