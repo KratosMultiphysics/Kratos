@@ -812,66 +812,66 @@ public:
         BuildRHS(pScheme, rModelPart, rb);
 
         if constexpr (TSparseSpace::LinearAlgebraLibrary() == TrilinosLinearAlgebraLibrary::EPETRA) {
-        // Initialize the Epetra importer
-        // TODO: this part of the code has been pasted until a better solution
-        // is found
-        int system_size = TSparseSpace::Size(rb);
-        int number_of_dofs = BaseType::mDofSet.size();
-        std::vector<int> index_array(number_of_dofs);
+            // Initialize the Epetra importer
+            // TODO: this part of the code has been pasted until a better solution
+            // is found
+            int system_size = TSparseSpace::Size(rb);
+            int number_of_dofs = BaseType::mDofSet.size();
+            std::vector<int> index_array(number_of_dofs);
 
-        // Filling the array with the global ids
-        int counter = 0;
-        int id = 0;
-        for (const auto& dof : BaseType::mDofSet) {
-            id = dof.EquationId();
-            if (id < system_size) {
-                index_array[counter++] = id;
+            // Filling the array with the global ids
+            int counter = 0;
+            int id = 0;
+            for (const auto& dof : BaseType::mDofSet) {
+                id = dof.EquationId();
+                if (id < system_size) {
+                    index_array[counter++] = id;
+                }
             }
-        }
 
-        std::sort(index_array.begin(), index_array.end());
-        std::vector<int>::iterator NewEnd = std::unique(index_array.begin(), index_array.end());
-        index_array.resize(NewEnd - index_array.begin());
+            std::sort(index_array.begin(), index_array.end());
+            std::vector<int>::iterator NewEnd = std::unique(index_array.begin(), index_array.end());
+            index_array.resize(NewEnd - index_array.begin());
 
-        int check_size = -1;
-        int tot_update_dofs = index_array.size();
-        rb.Comm().SumAll(&tot_update_dofs, &check_size, 1);
-        KRATOS_ERROR_IF(check_size < system_size)
-            << "Dof count is not correct. There are less dofs than expected.\n"
-            << "Expected number of active dofs = " << system_size
-            << " dofs found = " << check_size << std::endl;
+            int check_size = -1;
+            int tot_update_dofs = index_array.size();
+            rb.Comm().SumAll(&tot_update_dofs, &check_size, 1);
+            KRATOS_ERROR_IF(check_size < system_size)
+                << "Dof count is not correct. There are less dofs than expected.\n"
+                << "Expected number of active dofs = " << system_size
+                << " dofs found = " << check_size << std::endl;
 
-        // Defining a map as needed
-        Epetra_Map dof_update_map(-1, index_array.size(),
-                                  &(*(index_array.begin())), 0, rb.Comm());
+            // Defining a map as needed
+            Epetra_Map dof_update_map(-1, index_array.size(),
+                                    &(*(index_array.begin())), 0, rb.Comm());
 
-        // Defining the importer class
-        Kratos::shared_ptr<Epetra_Import> pDofImporter = Kratos::make_shared<Epetra_Import>(dof_update_map, rb.Map());
+            // Defining the importer class
+            Kratos::shared_ptr<Epetra_Import> pDofImporter = Kratos::make_shared<Epetra_Import>(dof_update_map, rb.Map());
 
-        // Defining a temporary vector to gather all of the values needed
-        Epetra_Vector temp_RHS(pDofImporter->TargetMap());
+            // Defining a temporary vector to gather all of the values needed
+            Epetra_Vector temp_RHS(pDofImporter->TargetMap());
 
-        // Importing in the new temp_RHS vector the values
-        int ierr = temp_RHS.Import(rb, *pDofImporter, Insert);
-        KRATOS_ERROR_IF(ierr != 0) << "Epetra failure found - error code: " << ierr << std::endl;
+            // Importing in the new temp_RHS vector the values
+            int ierr = temp_RHS.Import(rb, *pDofImporter, Insert);
+            KRATOS_ERROR_IF(ierr != 0) << "Epetra failure found - error code: " << ierr << std::endl;
 
-        double* temp_RHS_values; // DO NOT make delete of this one!!
-        temp_RHS.ExtractView(&temp_RHS_values);
+            double* temp_RHS_values; // DO NOT make delete of this one!!
+            temp_RHS.ExtractView(&temp_RHS_values);
 
-        rb.Comm().Barrier();
+            rb.Comm().Barrier();
 
-        const int ndofs = static_cast<int>(BaseType::mDofSet.size());
+            const int ndofs = static_cast<int>(BaseType::mDofSet.size());
 
-        // Store the RHS values in the reaction variable
-        // NOTE: dofs are assumed to be numbered consecutively in the
-        // BlockBuilderAndSolver
-        for (int k = 0; k < ndofs; k++) {
-            auto dof_iterator = BaseType::mDofSet.begin() + k;
+            // Store the RHS values in the reaction variable
+            // NOTE: dofs are assumed to be numbered consecutively in the
+            // BlockBuilderAndSolver
+            for (int k = 0; k < ndofs; k++) {
+                auto dof_iterator = BaseType::mDofSet.begin() + k;
 
-            const int i = (dof_iterator)->EquationId();
-            // (dof_iterator)->GetSolutionStepReactionValue() = -(*b[i]);
-            const double react_val = temp_RHS[pDofImporter->TargetMap().LID(i)];
-            (dof_iterator->GetSolutionStepReactionValue()) = -react_val;
+                const int i = (dof_iterator)->EquationId();
+                // (dof_iterator)->GetSolutionStepReactionValue() = -(*b[i]);
+                const double react_val = temp_RHS[pDofImporter->TargetMap().LID(i)];
+                (dof_iterator->GetSolutionStepReactionValue()) = -react_val;
             }
         } else {
             KRATOS_ERROR << "CalculateReactions only implemented for Epetra" << std::endl;
@@ -914,48 +914,48 @@ public:
 
         if constexpr (TSparseSpace::LinearAlgebraLibrary() == TrilinosLinearAlgebraLibrary::EPETRA) {
             // Here we construct and fill a vector "fixed local" which cont
-        Epetra_Map localmap(-1, global_ids.size(), global_ids.data(), 0, rA.Comm());
-        Epetra_IntVector fixed_local(Copy, localmap, is_dirichlet.data());
+            Epetra_Map localmap(-1, global_ids.size(), global_ids.data(), 0, rA.Comm());
+            Epetra_IntVector fixed_local(Copy, localmap, is_dirichlet.data());
 
-        Epetra_Import dirichlet_importer(rA.ColMap(), fixed_local.Map());
+            Epetra_Import dirichlet_importer(rA.ColMap(), fixed_local.Map());
 
-        // defining a temporary vector to gather all of the values needed
-        Epetra_IntVector fixed(rA.ColMap());
+            // defining a temporary vector to gather all of the values needed
+            Epetra_IntVector fixed(rA.ColMap());
 
-        // Detect if there is a line of all zeros and set the diagonal to a certain number (1 if not scale, some norms values otherwise) if this happens
-        const auto& r_process_info = rModelPart.GetProcessInfo();
-        mScaleFactor = TSparseSpace::CheckAndCorrectZeroDiagonalValues(r_process_info, rA, rb, mScalingDiagonal);
+            // Detect if there is a line of all zeros and set the diagonal to a certain number (1 if not scale, some norms values otherwise) if this happens
+            const auto& r_process_info = rModelPart.GetProcessInfo();
+            mScaleFactor = TSparseSpace::CheckAndCorrectZeroDiagonalValues(r_process_info, rA, rb, mScalingDiagonal);
 
-        // Importing in the new temp vector the values
-        int ierr = fixed.Import(fixed_local, dirichlet_importer, Insert);
-        KRATOS_ERROR_IF(ierr != 0) << "Epetra failure found" << std::endl;
+            // Importing in the new temp vector the values
+            int ierr = fixed.Import(fixed_local, dirichlet_importer, Insert);
+            KRATOS_ERROR_IF(ierr != 0) << "Epetra failure found" << std::endl;
 
-        for (int i = 0; i < rA.NumMyRows(); i++) {
-            int numEntries; // Number of non-zero entries
-            double* vals;   // Row non-zero values
-            int* cols;      // Column indices of row non-zero values
-            rA.ExtractMyRowView(i, numEntries, vals, cols);
+            for (int i = 0; i < rA.NumMyRows(); i++) {
+                int numEntries; // Number of non-zero entries
+                double* vals;   // Row non-zero values
+                int* cols;      // Column indices of row non-zero values
+                rA.ExtractMyRowView(i, numEntries, vals, cols);
 
-            const int row_gid = rA.RowMap().GID(i);
-            const int row_lid = localmap.LID(row_gid);
+                const int row_gid = rA.RowMap().GID(i);
+                const int row_lid = localmap.LID(row_gid);
 
-            if (fixed_local[row_lid] == 0) { // Not a dirichlet row
-                for (int j = 0; j < numEntries; j++) {
-                    if (fixed[cols[j]] == true)
-                        vals[j] = 0.0;
+                if (fixed_local[row_lid] == 0) { // Not a dirichlet row
+                    for (int j = 0; j < numEntries; j++) {
+                        if (fixed[cols[j]] == true)
+                            vals[j] = 0.0;
+                    }
+                } else { // This IS a dirichlet row
+                    // Set to zero the rhs
+                    rb[0][i] = 0.0; // note that the index of i is expected to be
+                                    // coherent with the rows of A
+
+                    // Set to zero the whole row
+                    for (int j = 0; j < numEntries; j++) {
+                        int col_gid = rA.ColMap().GID(cols[j]);
+                        if (col_gid != row_gid)
+                            vals[j] = 0.0;
+                    }
                 }
-            } else { // This IS a dirichlet row
-                // Set to zero the rhs
-                rb[0][i] = 0.0; // note that the index of i is expected to be
-                                // coherent with the rows of A
-
-                // Set to zero the whole row
-                for (int j = 0; j < numEntries; j++) {
-                    int col_gid = rA.ColMap().GID(cols[j]);
-                    if (col_gid != row_gid)
-                        vals[j] = 0.0;
-                }
-            }
             }
         } else {
             KRATOS_ERROR << "Only Epetra_MpiComm is supported for now" << std::endl;
@@ -1027,9 +1027,9 @@ public:
 
             // Compute T' A T
             if constexpr (TSparseSpace::LinearAlgebraLibrary() == TrilinosLinearAlgebraLibrary::EPETRA) {
-            const TSystemMatrixType copy_A(rA);
-            TSparseSpace::BtDBProductOperation(rA, copy_A, r_T, true, true);
-} else {
+                const TSystemMatrixType copy_A(rA);
+                TSparseSpace::BtDBProductOperation(rA, copy_A, r_T, true, true);
+            } else {
                 KRATOS_ERROR << "Only EPETRA is supported for now" << std::endl;
             }
 
@@ -1264,82 +1264,54 @@ protected:
             // Generate indices database
             const IndexType number_of_local_rows = mLocalSystemSize;
 
-            // Generate map - use the "temp" array here
-            const int temp_size = (number_of_local_rows < 1000) ? 1000 : number_of_local_rows;
-            std::vector<int> temp_primary(temp_size, 0);
-            std::vector<int> temp_secondary(temp_size, 0);
-            for (IndexType i = 0; i != number_of_local_rows; i++) {
-                temp_primary[i] = mFirstMyId + i;
-            }
-            auto& r_map = GetMap();
-            std::fill(temp_primary.begin(), temp_primary.begin() + number_of_local_rows, 0);
-
-            // The T graph
-            Epetra_FECrsGraph Tgraph(Copy, r_map, mGuessRowSize);
-
-            // Adding diagonal values
-            int ierr;
-            int index_diagonal[1] = {0};
-            for (IndexType i = 0; i < number_of_local_rows; ++i) {
-                index_diagonal[0] = mFirstMyId + i;
-                ierr = Tgraph.InsertGlobalIndices(1, index_diagonal, 1, index_diagonal);
-                KRATOS_ERROR_IF(ierr < 0) << ": Epetra failure in Graph.InsertGlobalIndices. Error code: " << ierr << std::endl;
-            }
+            // Ensure map is initialized
+            GetMap();
 
             // Vector containing indices belonging to slave DoFs, not used for graph, but for master/slave index identification
-            std::unordered_set<std::size_t> indices;
+            std::unordered_set<IndexType> indices;
 
             // TODO: Check if these should be local constraints
             auto& r_constraints_array = rModelPart.MasterSlaveConstraints();
+
+            // Auxiliary vectors to construct the relation matrix structure
+            std::vector<std::vector<int>> all_slave_equation_ids;
+            std::vector<std::vector<int>> all_master_equation_ids;
+            all_slave_equation_ids.reserve(r_constraints_array.size());
+            all_master_equation_ids.reserve(r_constraints_array.size());
 
             // Assemble all constraints
             Element::EquationIdVectorType slave_equation_ids_vector, master_equation_ids_vector;
             for (auto& r_const : r_constraints_array) {
                 r_const.EquationIdVector(slave_equation_ids_vector, master_equation_ids_vector, r_current_process_info);
 
-                // Filling the list of active global indices (non fixed)
-                IndexType num_active_slave_indices = 0;
-                for (auto& r_slave_id : slave_equation_ids_vector) {
-                    temp_primary[num_active_slave_indices] = r_slave_id;
-                    ++num_active_slave_indices;
-                }
-                IndexType num_active_master_indices = 0;
-                for (auto& r_master_id : master_equation_ids_vector) {
-                    temp_secondary[num_active_master_indices] = r_master_id;
-                    ++num_active_master_indices;
+                std::vector<int> slave_equation_ids;
+                slave_equation_ids.reserve(slave_equation_ids_vector.size());
+                for (const auto r_slave_id : slave_equation_ids_vector) {
+                    indices.insert(r_slave_id);
+                    slave_equation_ids.push_back(static_cast<int>(r_slave_id));
                 }
 
-                // Adding cross master-slave dofs
-                if (num_active_slave_indices > 0 && num_active_master_indices > 0) {
-                    int slave_index[1] = {0};
-                    for (IndexType i = 0; i < num_active_slave_indices; ++i) {
-                        slave_index[0] = temp_primary[i];
-                        indices.insert(temp_primary[i]);
-                        ierr = Tgraph.InsertGlobalIndices(1, slave_index, num_active_master_indices, temp_secondary.data());
-                        KRATOS_ERROR_IF(ierr < 0) << ": Epetra failure in Graph.InsertGlobalIndices. Error code: " << ierr << std::endl;
-                    }
+                std::vector<int> master_equation_ids;
+                master_equation_ids.reserve(master_equation_ids_vector.size());
+                for (const auto r_master_id : master_equation_ids_vector) {
+                    master_equation_ids.push_back(static_cast<int>(r_master_id));
                 }
-                std::fill(temp_primary.begin(), temp_primary.begin() + num_active_slave_indices, 0);
-                std::fill(temp_secondary.begin(), temp_secondary.begin() + num_active_master_indices, 0);
+
+                all_slave_equation_ids.push_back(std::move(slave_equation_ids));
+                all_master_equation_ids.push_back(std::move(master_equation_ids));
             }
 
-            // Finalizing graph construction
-            ierr = Tgraph.GlobalAssemble();
-            KRATOS_ERROR_IF(ierr < 0) << ": Epetra failure in Epetra_FECrsGraph.GlobalAssemble. Error code: " << ierr << std::endl;
-            ierr = Tgraph.FillComplete();
-            KRATOS_ERROR_IF(ierr < 0) << ": Epetra failure in Epetra_FECrsGraph.FillComplete. Error code: " << ierr << std::endl;
-            ierr = Tgraph.OptimizeStorage();
-            KRATOS_ERROR_IF(ierr < 0) << ": Epetra failure in Epetra_FECrsGraph.OptimizeStorage. Error code: " << ierr << std::endl;
-
-            // Generate a new matrix pointer according to this non-zero values
-            TSystemMatrixPointerType p_new_T = TSystemMatrixPointerType(new TSystemMatrixType(Copy, Tgraph));
-
-            // Swap matrix
-            mpT.swap(p_new_T);
-
-            // Generate the constant vector equivalent
-            TSystemVectorPointerType p_new_constant_vector = TSystemVectorPointerType(new TSystemVectorType(r_map));
-            mpConstantVector.swap(p_new_constant_vector);
+            TSparseSpace::BuildConstraintsStructure(
+                mrComm,
+                number_of_local_rows,
+                mFirstMyId,
+                mGuessRowSize,
+                all_slave_equation_ids,
+                all_master_equation_ids,
+                mpT,
+                mpConstantVector,
+                mpMap
+            );
 
             /* Fill ids for master/slave */
 
