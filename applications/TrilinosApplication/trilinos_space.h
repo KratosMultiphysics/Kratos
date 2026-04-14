@@ -907,12 +907,13 @@ public:
     }
 
     /**
-     * @brief Build Epetra FECrsGraph and create new system matrix + vectors.
+     * @brief Build Epetra FECrsGraph and create new system matrix + vectors from row/column block connectivity.
      * @param rComm The communicator considered
      * @param LocalSize The local size of the system
      * @param FirstMyId The first global id owned by this rank
      * @param GuessRowSize The guess row size for the graph construction
-     * @param rAllEquationIds The list of lists of equation ids for each local row
+     * @param rAllRowEquationIds The list of row equation-id blocks
+     * @param rAllColEquationIds The list of column equation-id blocks
      * @param rpA The pointer to the matrix to be created
      * @param rpb The pointer to the right-hand side vector to be created
      * @param rpDx The pointer to the solution vector to be created
@@ -925,7 +926,8 @@ public:
         const IndexType LocalSize,
         const int FirstMyId,
         const int GuessRowSize,
-        const std::vector<std::vector<int>>& rAllEquationIds,
+        const std::vector<std::vector<int>>& rAllRowEquationIds,
+        const std::vector<std::vector<int>>& rAllColEquationIds,
         MatrixPointerType& rpA,
         VectorPointerType& rpb,
         VectorPointerType& rpDx,
@@ -934,11 +936,16 @@ public:
         MapPointerType pMap
         )
     {
+        KRATOS_ERROR_IF(rAllRowEquationIds.size() != rAllColEquationIds.size())
+            << "BuildSystemStructure: row and column block lists must have the same size" << std::endl;
+
         // Create graph
         Epetra_FECrsGraph graph(::Copy, *pMap, GuessRowSize);
-        for (const auto& r_ids : rAllEquationIds) {
-            if (r_ids.size() != 0) {
-                graph.InsertGlobalIndices(r_ids.size(), r_ids.data(), r_ids.size(), r_ids.data());
+        for (std::size_t i_block = 0; i_block < rAllRowEquationIds.size(); ++i_block) {
+            const auto& r_row_ids = rAllRowEquationIds[i_block];
+            const auto& r_col_ids = rAllColEquationIds[i_block];
+            if (!r_row_ids.empty() && !r_col_ids.empty()) {
+                graph.InsertGlobalIndices(r_row_ids.size(), r_row_ids.data(), r_col_ids.size(), r_col_ids.data());
             }
         }
         graph.GlobalAssemble();
