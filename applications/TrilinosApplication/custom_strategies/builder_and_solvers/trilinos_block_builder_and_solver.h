@@ -767,12 +767,11 @@ public:
             TSystemVectorPointerType pNewReactionsVector = TSparseSpace::CreateEmptyVectorPointer();
             if constexpr (TSparseSpace::LinearAlgebraLibrary() == TrilinosLinearAlgebraLibrary::EPETRA) {
                 pNewReactionsVector = TSystemVectorPointerType(new TSystemVectorType(rpDx->Map()));
-        } else {
-                pNewReactionsVector = TSparseSpace::CreateVector(rpDx->getMap());
+            } else {
+                KRATOS_ERROR << "ResizeAndInitializeVectors not implemented for this linear algebra library" << std::endl;
             }
             BaseType::mpReactionsVector.swap(pNewReactionsVector);
-        }
-        else {
+        } else {
             if (TSparseSpace::Size1(*rpA) == 0 ||
                 TSparseSpace::Size1(*rpA) != BaseType::mEquationSystemSize ||
                 TSparseSpace::Size2(*rpA) != BaseType::mEquationSystemSize) {
