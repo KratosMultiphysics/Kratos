@@ -970,6 +970,133 @@ KRATOS_TEST_CASE_IN_SUITE(TrilinosSetValue, KratosTrilinosApplicationMPITestSuit
     }
 }
 
+KRATOS_TEST_CASE_IN_SUITE(TrilinosSetGlobalVecMethods, KratosTrilinosApplicationMPITestSuite)
+{
+    const auto& r_comm = Testing::GetDefaultDataCommunicator();
+    const int size = 2 * r_comm.Size();
+    auto raw_mpi_comm = MPIDataCommunicator::GetMPICommunicator(r_comm);
+    TrilinosSparseSpaceType::CommunicatorType epetra_comm(raw_mpi_comm);
+    TrilinosSparseSpaceType::MapType map(size, 0, epetra_comm);
+    TrilinosVectorType vector(map);
+    vector.PutScalar(0.0);
+
+    const int first_my_gid = r_comm.Rank() * 2;
+    const int second_my_gid = first_my_gid + 1;
+
+    TrilinosSparseSpaceType::SetGlobalVec(vector, first_my_gid, 42.0);
+    if (map.MyGID(first_my_gid)) {
+        KRATOS_EXPECT_DOUBLE_EQ(42.0, vector[0][map.LID(first_my_gid)]);
+    }
+
+    TrilinosSparseSpaceType::SetGlobalVecNoAssemble(vector, second_my_gid, 21.0);
+    vector.GlobalAssemble(Insert, true);
+    if (map.MyGID(second_my_gid)) {
+        KRATOS_EXPECT_DOUBLE_EQ(21.0, vector[0][map.LID(second_my_gid)]);
+    }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(TrilinosSetLocalVecMethods, KratosTrilinosApplicationMPITestSuite)
+{
+    const auto& r_comm = Testing::GetDefaultDataCommunicator();
+    const int size = 2 * r_comm.Size();
+    auto raw_mpi_comm = MPIDataCommunicator::GetMPICommunicator(r_comm);
+    TrilinosSparseSpaceType::CommunicatorType epetra_comm(raw_mpi_comm);
+    TrilinosSparseSpaceType::MapType map(size, 0, epetra_comm);
+    TrilinosVectorType vector(map);
+    vector.PutScalar(0.0);
+
+    TrilinosSparseSpaceType::SetLocalVec(vector, 0, 11.0);
+    KRATOS_EXPECT_DOUBLE_EQ(11.0, vector[0][0]);
+
+    TrilinosSparseSpaceType::SetLocalVecNoAssemble(vector, 1, 7.0);
+    vector.GlobalAssemble(Insert, true);
+    KRATOS_EXPECT_DOUBLE_EQ(7.0, vector[0][1]);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(TrilinosSetGlobalMatMethods, KratosTrilinosApplicationMPITestSuite)
+{
+    const auto& r_comm = Testing::GetDefaultDataCommunicator();
+    const int size = 2 * r_comm.Size();
+    const int first_my_gid = r_comm.Rank() * 2;
+    auto raw_mpi_comm = MPIDataCommunicator::GetMPICommunicator(r_comm);
+    TrilinosSparseSpaceType::CommunicatorType epetra_comm(raw_mpi_comm);
+    const TrilinosSparseSpaceType::MapType map(size, 0, epetra_comm);
+
+    Epetra_FECrsGraph graph(Copy, map, 2);
+    int col_gids[2] = {first_my_gid, first_my_gid + 1};
+    for (int gid = first_my_gid; gid < first_my_gid + 2; ++gid) {
+        graph.InsertGlobalIndices(1, &gid, 2, col_gids);
+    }
+    graph.GlobalAssemble();
+    graph.FillComplete();
+    TrilinosSparseMatrixType A(Copy, graph);
+    A.PutScalar(0.0);
+
+    TrilinosSparseSpaceType::SetGlobalMat(A, first_my_gid, first_my_gid, 5.0);
+
+    int num_entries = 0;
+    double* vals = nullptr;
+    int* cols = nullptr;
+    A.ExtractMyRowView(map.LID(first_my_gid), num_entries, vals, cols);
+    for (int k = 0; k < num_entries; ++k) {
+        if (A.ColMap().GID(cols[k]) == first_my_gid) {
+            KRATOS_EXPECT_DOUBLE_EQ(5.0, vals[k]);
+        }
+    }
+
+    TrilinosSparseSpaceType::SetGlobalMatNoAssemble(A, first_my_gid, first_my_gid + 1, 3.0);
+    A.GlobalAssemble();
+
+    A.ExtractMyRowView(map.LID(first_my_gid), num_entries, vals, cols);
+    for (int k = 0; k < num_entries; ++k) {
+        if (A.ColMap().GID(cols[k]) == first_my_gid + 1) {
+            KRATOS_EXPECT_DOUBLE_EQ(3.0, vals[k]);
+        }
+    }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(TrilinosSetLocalMatMethods, KratosTrilinosApplicationMPITestSuite)
+{
+    const auto& r_comm = Testing::GetDefaultDataCommunicator();
+    const int size = 2 * r_comm.Size();
+    const int first_my_gid = r_comm.Rank() * 2;
+    auto raw_mpi_comm = MPIDataCommunicator::GetMPICommunicator(r_comm);
+    TrilinosSparseSpaceType::CommunicatorType epetra_comm(raw_mpi_comm);
+    const TrilinosSparseSpaceType::MapType map(size, 0, epetra_comm);
+
+    Epetra_FECrsGraph graph(Copy, map, 2);
+    int col_gids[2] = {first_my_gid, first_my_gid + 1};
+    for (int gid = first_my_gid; gid < first_my_gid + 2; ++gid) {
+        graph.InsertGlobalIndices(1, &gid, 2, col_gids);
+    }
+    graph.GlobalAssemble();
+    graph.FillComplete();
+    TrilinosSparseMatrixType A(Copy, graph);
+    A.PutScalar(0.0);
+
+    TrilinosSparseSpaceType::SetLocalMat(A, 0, 0, 9.0);
+
+    int num_entries = 0;
+    double* vals = nullptr;
+    int* cols = nullptr;
+    A.ExtractMyRowView(0, num_entries, vals, cols);
+    for (int k = 0; k < num_entries; ++k) {
+        if (cols[k] == 0) {
+            KRATOS_EXPECT_DOUBLE_EQ(9.0, vals[k]);
+        }
+    }
+
+    TrilinosSparseSpaceType::SetLocalMatNoAssemble(A, 0, 1, 4.0);
+    A.GlobalAssemble();
+
+    A.ExtractMyRowView(0, num_entries, vals, cols);
+    for (int k = 0; k < num_entries; ++k) {
+        if (cols[k] == 1) {
+            KRATOS_EXPECT_DOUBLE_EQ(4.0, vals[k]);
+        }
+    }
+}
+
 KRATOS_TEST_CASE_IN_SUITE(TrilinosGetValue, KratosTrilinosApplicationMPITestSuite)
 {
     const auto& r_comm = Testing::GetDefaultDataCommunicator();

@@ -1172,6 +1172,175 @@ public:
     }
 
     /**
+     * @brief Sets a vector entry using a global index and performs assembly.
+     * @param rX The vector to be modified.
+     * @param i The global index of the entry.
+     * @param Value The value to assign.
+     * @details This method inserts the value with global indexing and then calls
+     * `GlobalAssemble()` so the change is synchronized across all ranks.
+     */
+    static void SetGlobalVec(
+        VectorType& rX, 
+        const IndexType i, 
+        const double Value
+        )
+    {
+        Epetra_IntSerialDenseVector indices(1);
+        Epetra_SerialDenseVector values(1);
+        indices[0] = i; values[0] = Value;
+        int ierr = rX.ReplaceGlobalValues(indices, values);
+        KRATOS_ERROR_IF(ierr != 0) << "Epetra failure found" << std::endl;
+        ierr = rX.GlobalAssemble(Insert, true);
+        KRATOS_ERROR_IF(ierr < 0) << "Epetra failure in SetGlobalValue" << std::endl;
+    }
+
+    /**
+     * @brief Sets a vector entry using a global index without assembly.
+     * @param rX The vector to be modified.
+     * @param i The global index of the entry.
+     * @param Value The value to assign.
+     * @details This method is intended for batched updates where assembly is
+     * deferred and handled separately by the caller.
+     */
+    static void SetGlobalVecNoAssemble(
+        VectorType& rX, 
+        const IndexType i, 
+        const double Value
+        ) 
+    {
+        Epetra_IntSerialDenseVector indices(1);
+        Epetra_SerialDenseVector values(1);
+        indices[0] = i; values[0] = Value;
+        const int ierr = rX.ReplaceGlobalValues(indices, values);
+        KRATOS_ERROR_IF(ierr != 0) << "Epetra failure found" << std::endl;
+    }
+
+    /**
+     * @brief Sets a vector entry using a local index and performs assembly.
+     * @param rX The vector to be modified.
+     * @param i The local index of the entry on the current rank.
+     * @param Value The value to assign.
+     * @details This method uses local indexing and then calls `GlobalAssemble()`
+     * to propagate pending FE vector contributions.
+     */
+    static void SetLocalVec(
+        VectorType& rX, 
+        const IndexType i,
+        const double Value
+        ) 
+    {
+        int ierr = rX.ReplaceMyValue(static_cast<int>(i), 0, Value);
+        KRATOS_ERROR_IF(ierr != 0) << "Epetra failure found" << std::endl;
+        ierr = rX.GlobalAssemble(Insert, true);
+        KRATOS_ERROR_IF(ierr < 0) << "Epetra failure in SetLocalValue" << std::endl;
+    }
+
+    /**
+     * @brief Sets a vector entry using a local index without assembly.
+     * @param rX The vector to be modified.
+     * @param i The local index of the entry on the current rank.
+     * @param Value The value to assign.
+     * @details This method is useful when several local values are modified and
+     * a single later assembly is preferred for efficiency.
+     */
+    static void SetLocalVecNoAssemble(
+        VectorType& rX,
+        const IndexType i, 
+        const double Value
+        ) 
+    {
+        const int ierr = rX.ReplaceMyValue(static_cast<int>(i), 0, Value);
+        KRATOS_ERROR_IF(ierr != 0) << "Epetra failure found" << std::endl;
+    }
+
+    /**
+     * @brief Sets a matrix entry using global row and column indices and performs assembly.
+     * @param rA The matrix to be modified.
+     * @param i The global row index.
+     * @param j The global column index.
+     * @param Value The value to assign.
+     * @details The value is inserted with global indexing and the matrix is then
+     * globally assembled so the modification becomes consistent in parallel.
+     */
+    static void SetGlobalMat(MatrixType& rA, IndexType i, IndexType j, double Value) 
+    {
+        std::vector<double> values(1, Value);
+        std::vector<int> indices(1, static_cast<int>(j));
+        int ierr = rA.ReplaceGlobalValues(static_cast<int>(i), 1, values.data(), indices.data());
+        KRATOS_ERROR_IF(ierr != 0) << "Epetra failure found" << std::endl;
+        ierr = rA.GlobalAssemble();
+        KRATOS_ERROR_IF(ierr < 0) << "Epetra failure in SetGlobalValue matrix" << std::endl;
+    }
+
+    /**
+     * @brief Sets a matrix entry using global row and column indices without assembly.
+     * @param rA The matrix to be modified.
+     * @param i The global row index.
+     * @param j The global column index.
+     * @param Value The value to assign.
+     * @details This method is intended for batched matrix insertions where
+     * `GlobalAssemble()` will be invoked separately by the caller.
+     */
+    static void SetGlobalMatNoAssemble(
+        MatrixType& rA,
+        const IndexType i, 
+        const IndexType j, 
+        const double Value
+        ) 
+    {
+        std::vector<double> values(1, Value);
+        std::vector<int> indices(1, static_cast<int>(j));
+        const int ierr = rA.ReplaceGlobalValues(static_cast<int>(i), 1, values.data(), indices.data());
+        KRATOS_ERROR_IF(ierr != 0) << "Epetra failure found" << std::endl;
+    }
+
+    /**
+     * @brief Sets a matrix entry using local row and column indices and performs assembly.
+     * @param rA The matrix to be modified.
+     * @param i The local row index on the current rank.
+     * @param j The local column index on the current rank.
+     * @param Value The value to assign.
+     * @details This method uses local indexing and then assembles the FE matrix
+     * so pending contributions are synchronized across ranks.
+     */
+    static void SetLocalMat(
+        MatrixType& rA, 
+        const IndexType i, 
+        const IndexType j, 
+        const double Value
+        ) 
+    {
+        std::vector<double> values(1, Value);
+        std::vector<int> indices(1, static_cast<int>(j));
+        int ierr = rA.ReplaceMyValues(static_cast<int>(i), 1, values.data(), indices.data());
+        KRATOS_ERROR_IF(ierr != 0) << "Epetra failure found" << std::endl;
+        ierr = rA.GlobalAssemble();
+        KRATOS_ERROR_IF(ierr < 0) << "Epetra failure in SetLocalValue matrix" << std::endl;
+    }
+
+    /**
+     * @brief Sets a matrix entry using local row and column indices without assembly.
+     * @param rA The matrix to be modified.
+     * @param i The local row index on the current rank.
+     * @param j The local column index on the current rank.
+     * @param Value The value to assign.
+     * @details This method is useful for repeated local updates followed by a
+     * single explicit `GlobalAssemble()` call.
+     */
+    static void SetLocalMatNoAssemble(
+        MatrixType& rA, 
+        const IndexType i, 
+        const IndexType j, 
+        const double Value
+        ) 
+    {
+        std::vector<double> values(1, Value);
+        std::vector<int> indices(1, static_cast<int>(j));
+        const int ierr = rA.ReplaceMyValues(static_cast<int>(i), 1, values.data(), indices.data());
+        KRATOS_ERROR_IF(ierr != 0) << "Epetra failure found" << std::endl;
+    }
+
+    /**
      * @brief This function returns a value from a given vector according to a given index
      * @param rX The vector from which values are to be gathered
      * @param I The index of the value to be gathered
