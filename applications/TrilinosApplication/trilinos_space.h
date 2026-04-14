@@ -27,6 +27,7 @@
 #include <Epetra_IntSerialDenseVector.h>
 #include <Epetra_SerialDenseMatrix.h>
 #include <Epetra_SerialDenseVector.h>
+#include <Epetra_FECrsGraph.h>
 #include <EpetraExt_CrsMatrixIn.h>
 #include <EpetraExt_VectorIn.h>
 #include <EpetraExt_RowMatrixOut.h>
@@ -93,6 +94,21 @@ public:
 
     /// Definition of the size type
     using SizeType = std::size_t;
+
+    /// Class definition
+    using ClassType = TrilinosSpace<TMatrixType, TVectorType>;
+
+    /// Define the map type
+    using MapType = Epetra_Map;
+    using MapPointerType = Kratos::shared_ptr<MapType>;
+
+    /// Define the graph type
+    using GraphType = Epetra_CrsGraph;
+    using GraphPointerType = Kratos::shared_ptr<GraphType>;
+
+    // Define TPetra communicator
+    using CommunicatorType = Epetra_MpiComm;
+    using CommunicatorPointerType = Kratos::shared_ptr<CommunicatorType>;
 
     /// Definition of the pointer types
     using MatrixPointerType = typename Kratos::shared_ptr<TMatrixType>;
