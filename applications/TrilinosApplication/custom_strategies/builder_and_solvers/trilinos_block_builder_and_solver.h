@@ -889,19 +889,22 @@ public:
     {
         KRATOS_TRY
 
+        const auto& r_process_info = rModelPart.GetProcessInfo();
+
         // loop over all dofs to find the fixed ones
         std::vector<int> global_ids(BaseType::mDofSet.size());
         std::vector<int> is_dirichlet(BaseType::mDofSet.size());
 
-        IndexType i = 0;
+        IndexType i_dof = 0;
         for (const auto& dof : BaseType::mDofSet) {
             const int global_id = dof.EquationId();
-            global_ids[i] = global_id;
-            is_dirichlet[i] = dof.IsFixed();
-            ++i;
+            global_ids[i_dof] = global_id;
+            is_dirichlet[i_dof] = dof.IsFixed();
+            ++i_dof;
         }
 
-        // here we construct and fill a vector "fixed local" which cont
+        if constexpr (TSparseSpace::LinearAlgebraLibrary() == TrilinosLinearAlgebraLibrary::EPETRA) {
+            // Here we construct and fill a vector "fixed local" which cont
         Epetra_Map localmap(-1, global_ids.size(), global_ids.data(), 0, rA.Comm());
         Epetra_IntVector fixed_local(Copy, localmap, is_dirichlet.data());
 
@@ -944,6 +947,9 @@ public:
                         vals[j] = 0.0;
                 }
             }
+            }
+        } else {
+            KRATOS_ERROR << "Only Epetra_MpiComm is supported for now" << std::endl;
         }
 
         KRATOS_CATCH("");
@@ -970,8 +976,8 @@ public:
             const TSystemMatrixType& r_T = GetConstraintRelationMatrix();
 
             // Compute T' b
-            const TSystemVectorType copy_b(rb);
-            TSparseSpace::TransposeMult(r_T, copy_b, rb);
+            auto p_copy_b = TSparseSpace::CreateVectorCopy(rb);
+            TSparseSpace::TransposeMult(r_T, *p_copy_b, rb);
 
             // Apply diagonal values on slaves
             IndexPartition<std::size_t>(mSlaveIds.size()).for_each([&](std::size_t Index){
@@ -1011,12 +1017,16 @@ public:
             const TSystemMatrixType& r_T = GetConstraintRelationMatrix();
 
             // Compute T' A T
+            if constexpr (TSparseSpace::LinearAlgebraLibrary() == TrilinosLinearAlgebraLibrary::EPETRA) {
             const TSystemMatrixType copy_A(rA);
             TSparseSpace::BtDBProductOperation(rA, copy_A, r_T, true, true);
+} else {
+                KRATOS_ERROR << "Only EPETRA is supported for now" << std::endl;
+            }
 
             // Compute T' b
-            const TSystemVectorType copy_b(rb);
-            TSparseSpace::TransposeMult(r_T, copy_b, rb);
+            auto p_copy_b = TSparseSpace::CreateVectorCopy(rb);
+            TSparseSpace::TransposeMult(r_T, *p_copy_b, rb);
 
             // Compute the scale factor value
             const auto& r_process_info = rModelPart.GetProcessInfo();
@@ -1478,8 +1488,8 @@ protected:
             }
 
             // Finalizing the assembly
-            r_T.GlobalAssemble();
-            r_constant_vector.GlobalAssemble();
+            TSparseSpace::GlobalAssemble(r_T);
+            TSparseSpace::GlobalAssemble(r_constant_vector);
 
             // Mark constraints as assembled
             mConstraintsAssembled = true;
@@ -1712,22 +1722,27 @@ private:
     ///@{
 
     /**
-     * @brief Generates the EpetraMap used for the vectors and matrices
-     * @return Returns the Epetra_Map considered for the graphs
+     * @brief Generates the Map used for the vectors and matrices
+     * @return Returns the Map considered for the graphs
      */
-    Epetra_Map& GetEpetraMap()
+    typename TSparseSpace::MapType& GetMap()
     {
-        if (mpMap == nullptr) {
+        if (TSparseSpace::IsNull(mpMap)) {
             // Generate map - use the "temp" array here
             const int temp_size = (mLocalSystemSize < 1000) ? 1000 : mLocalSystemSize;
             std::vector<int> temp_primary(temp_size, 0);
             for (IndexType i = 0; i != mLocalSystemSize; i++) {
                 temp_primary[i] = mFirstMyId + i;
             }
+
+            if constexpr (TSparseSpace::LinearAlgebraLibrary() == TrilinosLinearAlgebraLibrary::EPETRA) {
             mpMap = Kratos::make_shared<Epetra_Map>(-1, mLocalSystemSize, temp_primary.data(), 0, mrComm);
+            } else {
+                KRATOS_ERROR << "The map generation is only implemented for Epetra" << std::endl;
+            }
         }
 
-        return *mpMap;
+        return const_cast<typename TSparseSpace::MapType&>(*mpMap);
     }
 
     /**
