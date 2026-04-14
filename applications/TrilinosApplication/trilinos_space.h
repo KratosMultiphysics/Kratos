@@ -1226,107 +1226,6 @@ public:
     }
 
     /**
-     * @brief Read a matrix from a MatrixMarket file
-     * @param rFileName The name of the file to read
-     * @param rComm The MPI communicator
-     * @return The matrix read from the file
-     */
-    static MatrixPointerType ReadMatrixMarket(
-        const std::string FileName,
-        CommunicatorType& rComm
-        )
-    {
-        KRATOS_TRY
-
-        Epetra_CrsMatrix* pp = nullptr;
-
-        int error_code = EpetraExt::MatrixMarketFileToCrsMatrix(FileName.c_str(), rComm, pp);
-
-        KRATOS_ERROR_IF(error_code != 0) << "Eerror thrown while reading Matrix Market file "<<FileName<< " error code is : " << error_code;
-
-        rComm.Barrier();
-
-        const GraphType& rGraph = pp->Graph();
-        MatrixPointerType paux = Kratos::make_shared<Epetra_FECrsMatrix>( ::Copy, rGraph, false );
-
-        IndexType NumMyRows = rGraph.RowMap().NumMyElements();
-
-        int* MyGlobalElements = new int[NumMyRows];
-        rGraph.RowMap().MyGlobalElements(MyGlobalElements);
-
-        for(IndexType i = 0; i < NumMyRows; ++i) {
-//             std::cout << pA->Comm().MyPID() << " : I=" << i << std::endl;
-            IndexType GlobalRow = MyGlobalElements[i];
-
-            int NumEntries;
-            std::size_t Length = pp->NumGlobalEntries(GlobalRow);  // length of Values and Indices
-
-            double* Values = new double[Length];     // extracted values for this row
-            int* Indices = new int[Length];          // extracted global column indices for the corresponding values
-
-            error_code = pp->ExtractGlobalRowCopy(GlobalRow, Length, NumEntries, Values, Indices);
-
-            KRATOS_ERROR_IF(error_code != 0) << "Error thrown in ExtractGlobalRowCopy : " << error_code;
-
-            error_code = paux->ReplaceGlobalValues(GlobalRow, Length, Values, Indices);
-
-            KRATOS_ERROR_IF(error_code != 0) << "Error thrown in ReplaceGlobalValues : " << error_code;
-
-            delete [] Values;
-            delete [] Indices;
-        }
-
-        paux->GlobalAssemble();
-
-        delete [] MyGlobalElements;
-        delete pp;
-
-        return paux;
-        KRATOS_CATCH("");
-    }
-
-    /**
-     * @brief Read a vector from a MatrixMarket file
-     * @param rFileName The name of the file to read
-     * @param rComm The MPI communicator
-     * @param N The size of the vector
-     */
-    static VectorPointerType ReadMatrixMarketVector(
-        const std::string& rFileName,
-        CommunicatorType& rComm,
-        const int N
-        )
-    {
-        KRATOS_TRY
-
-        MapType my_map(N, 0, rComm);
-        Epetra_Vector* pv = nullptr;
-
-        int error_code = EpetraExt::MatrixMarketFileToVector(rFileName.c_str(), my_map, pv);
-
-        KRATOS_ERROR_IF(error_code != 0) << "error thrown while reading Matrix Market Vector file " << rFileName << " error code is: " << error_code;
-
-        rComm.Barrier();
-
-        IndexType num_my_rows = my_map.NumMyElements();
-        std::vector<int> gids(num_my_rows);
-        my_map.MyGlobalElements(gids.data());
-
-        std::vector<double> values(num_my_rows);
-        pv->ExtractCopy(values.data());
-
-        VectorPointerType final_vector = Kratos::make_shared<VectorType>(my_map);
-        int ierr = final_vector->ReplaceGlobalValues(gids.size(),gids.data(), values.data());
-        KRATOS_ERROR_IF(ierr != 0) << "Epetra failure found with code ierr = " << ierr << std::endl;
-
-        final_vector->GlobalAssemble();
-
-        delete pv;
-        return final_vector;
-        KRATOS_CATCH("");
-    }
-
-    /**
      * @brief Generates a graph combining the graphs of two matrices
      * @param rA The first matrix
      * @param rB The second matrix
@@ -1618,6 +1517,107 @@ public:
         KRATOS_ERROR_IF(ierr != 0) << "Epetra failure extracting diagonal " << ierr << std::endl;
         return TrilinosSpace<Epetra_FECrsMatrix, Epetra_Vector>::Min(diagonal);
 
+        KRATOS_CATCH("");
+    }
+
+    /**
+     * @brief Read a matrix from a MatrixMarket file
+     * @param rFileName The name of the file to read
+     * @param rComm The MPI communicator
+     * @return The matrix read from the file
+     */
+    static MatrixPointerType ReadMatrixMarket(
+        const std::string FileName,
+        CommunicatorType& rComm
+        )
+    {
+        KRATOS_TRY
+
+        Epetra_CrsMatrix* pp = nullptr;
+
+        int error_code = EpetraExt::MatrixMarketFileToCrsMatrix(FileName.c_str(), rComm, pp);
+
+        KRATOS_ERROR_IF(error_code != 0) << "Eerror thrown while reading Matrix Market file "<<FileName<< " error code is : " << error_code;
+
+        rComm.Barrier();
+
+        const GraphType& rGraph = pp->Graph();
+        MatrixPointerType paux = Kratos::make_shared<Epetra_FECrsMatrix>( ::Copy, rGraph, false );
+
+        IndexType NumMyRows = rGraph.RowMap().NumMyElements();
+
+        int* MyGlobalElements = new int[NumMyRows];
+        rGraph.RowMap().MyGlobalElements(MyGlobalElements);
+
+        for(IndexType i = 0; i < NumMyRows; ++i) {
+//             std::cout << pA->Comm().MyPID() << " : I=" << i << std::endl;
+            IndexType GlobalRow = MyGlobalElements[i];
+
+            int NumEntries;
+            std::size_t Length = pp->NumGlobalEntries(GlobalRow);  // length of Values and Indices
+
+            double* Values = new double[Length];     // extracted values for this row
+            int* Indices = new int[Length];          // extracted global column indices for the corresponding values
+
+            error_code = pp->ExtractGlobalRowCopy(GlobalRow, Length, NumEntries, Values, Indices);
+
+            KRATOS_ERROR_IF(error_code != 0) << "Error thrown in ExtractGlobalRowCopy : " << error_code;
+
+            error_code = paux->ReplaceGlobalValues(GlobalRow, Length, Values, Indices);
+
+            KRATOS_ERROR_IF(error_code != 0) << "Error thrown in ReplaceGlobalValues : " << error_code;
+
+            delete [] Values;
+            delete [] Indices;
+        }
+
+        paux->GlobalAssemble();
+
+        delete [] MyGlobalElements;
+        delete pp;
+
+        return paux;
+        KRATOS_CATCH("");
+    }
+
+    /**
+     * @brief Read a vector from a MatrixMarket file
+     * @param rFileName The name of the file to read
+     * @param rComm The MPI communicator
+     * @param N The size of the vector
+     */
+    static VectorPointerType ReadMatrixMarketVector(
+        const std::string& rFileName,
+        CommunicatorType& rComm,
+        const int N
+        )
+    {
+        KRATOS_TRY
+
+        MapType my_map(N, 0, rComm);
+        Epetra_Vector* pv = nullptr;
+
+        int error_code = EpetraExt::MatrixMarketFileToVector(rFileName.c_str(), my_map, pv);
+
+        KRATOS_ERROR_IF(error_code != 0) << "error thrown while reading Matrix Market Vector file " << rFileName << " error code is: " << error_code;
+
+        rComm.Barrier();
+
+        IndexType num_my_rows = my_map.NumMyElements();
+        std::vector<int> gids(num_my_rows);
+        my_map.MyGlobalElements(gids.data());
+
+        std::vector<double> values(num_my_rows);
+        pv->ExtractCopy(values.data());
+
+        VectorPointerType final_vector = Kratos::make_shared<VectorType>(my_map);
+        int ierr = final_vector->ReplaceGlobalValues(gids.size(),gids.data(), values.data());
+        KRATOS_ERROR_IF(ierr != 0) << "Epetra failure found with code ierr = " << ierr << std::endl;
+
+        final_vector->GlobalAssemble();
+
+        delete pv;
+        return final_vector;
         KRATOS_CATCH("");
     }
 
