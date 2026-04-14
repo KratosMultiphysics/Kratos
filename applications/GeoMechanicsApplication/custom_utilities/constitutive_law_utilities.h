@@ -40,7 +40,7 @@ public:
     static double GetFrictionAngleInDegrees(const Properties& rProperties);
     static double GetFrictionAngleInRadians(const Properties& rProperties);
 
-    static Matrix MakeInterfaceConstitutiveMatrix(double      NormalStiffness,
+    static Matrix MakeInterfaceConstitutiveTensor(double      NormalStiffness,
                                                   double      ShearStiffness,
                                                   std::size_t TractionSize,
                                                   std::size_t NumberOfNormalComponents);
