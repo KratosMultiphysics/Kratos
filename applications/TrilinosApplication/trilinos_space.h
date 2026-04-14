@@ -243,14 +243,24 @@ public:
     }
 
     /**
+     * @brief Creates a copy of a vector.
+     * @param src The source vector
+     * @return Shared pointer to a deep copy of src
+     */
+    static VectorPointerType CreateVectorCopy(const VectorType& src)
+    {
+        return VectorPointerType(new VectorType(src));
+    }
+
+    /**
      * @brief This method creates an empty pointer to a matrix using epetra communicator
      * @param rComm The epetra communicator
      * @return The pointer to the matrix
      */
-    static MatrixPointerType CreateEmptyMatrixPointer(Epetra_MpiComm& rComm)
+    static MatrixPointerType CreateEmptyMatrixPointer(CommunicatorType& rComm)
     {
         const int global_elems = 0;
-        Epetra_Map Map(global_elems, 0, rComm);
+        MapType Map(global_elems, 0, rComm);
         return MatrixPointerType(new TMatrixType(::Copy, Map, 0));
     }
 
@@ -259,10 +269,10 @@ public:
      * @param rComm The epetra communicator
      * @return The pointer to the vector
      */
-    static VectorPointerType CreateEmptyVectorPointer(Epetra_MpiComm& rComm)
+    static VectorPointerType CreateEmptyVectorPointer(CommunicatorType& rComm)
     {
         const int global_elems = 0;
-        Epetra_Map Map(global_elems, 0, rComm);
+        MapType Map(global_elems, 0, rComm);
         return VectorPointerType(new TVectorType(Map));
     }
 
@@ -402,10 +412,10 @@ public:
     }
 
     /**
-     * @brief Returns the Frobenius norm of the matrix rX
+     * @brief Returns the Frobenius norm of the matrix rA
      * @details ||rA||2
      * @param rA The matrix considered
-     * @return The Frobenius norm of the matrix rX
+     * @return The Frobenius norm of the matrix rA
      */
     static double TwoNorm(const MatrixType& rA)
     {
@@ -508,7 +518,7 @@ public:
      * @param rB The matrices to be transposed
      * @param CallFillCompleteOnResult	Optional argument, defaults to true. Power users may specify this argument to be false if they DON'T want this function to call C.FillComplete. (It is often useful to allow this function to call C.FillComplete, in cases where one or both of the input matrices are rectangular and it is not trivial to know which maps to use for the domain- and range-maps.)
      * @param KeepAllHardZeros	Optional argument, defaults to false. If true, Multiply, keeps all entries in C corresponding to hard zeros. If false, the following happens by case: A*B^T, A^T*B^T - Does not store entries caused by hard zeros in C. A^T*B (unoptimized) - Hard zeros are always stored (this option has no effect) A*B, A^T*B (optimized) - Hard zeros in corresponding to hard zeros in A are not stored, There are certain cases involving reuse of C, where this can be useful.
-     * @tparam TEnforceInitialGraph If the initial graph is enforced, or a new one is generated
+     * @param EnforceInitialGraph If the initial graph is enforced, or a new one is generated
      */
     static void BtDBProductOperation(
         MatrixType& rA,
@@ -571,7 +581,7 @@ public:
      * @param rB The matrices to be transposed
      * @param CallFillCompleteOnResult	Optional argument, defaults to true. Power users may specify this argument to be false if they DON'T want this function to call C.FillComplete. (It is often useful to allow this function to call C.FillComplete, in cases where one or both of the input matrices are rectangular and it is not trivial to know which maps to use for the domain- and range-maps.)
      * @param KeepAllHardZeros	Optional argument, defaults to false. If true, Multiply, keeps all entries in C corresponding to hard zeros. If false, the following happens by case: A*B^T, A^T*B^T - Does not store entries caused by hard zeros in C. A^T*B (unoptimized) - Hard zeros are always stored (this option has no effect) A*B, A^T*B (optimized) - Hard zeros in corresponding to hard zeros in A are not stored, There are certain cases involving reuse of C, where this can be useful.
-     * @tparam TEnforceInitialGraph If the initial graph is enforced, or a new one is generated
+     * @param EnforceInitialGraph If the initial graph is enforced, or a new one is generated
      */
     static void BDBtProductOperation(
         MatrixType& rA,
