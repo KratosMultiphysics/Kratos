@@ -973,7 +973,7 @@ public:
             IndexPartition<std::size_t>(mSlaveIds.size()).for_each([&](std::size_t Index){
                 const IndexType slave_equation_id = mSlaveIds[Index];
                 if (mInactiveSlaveDofs.find(slave_equation_id) == mInactiveSlaveDofs.end()) {
-                    TrilinosAssemblingUtilities::SetGlobalValueWithoutGlobalAssembly(rb, slave_equation_id, 0.0);
+                    TrilinosAssemblingUtilities<TSparseSpace>::SetGlobalValueWithoutGlobalAssembly(rb, slave_equation_id, 0.0);
                 }
             });
 
@@ -1022,8 +1022,8 @@ public:
             IndexPartition<std::size_t>(mSlaveIds.size()).for_each([&](std::size_t Index){
                 const IndexType slave_equation_id = mSlaveIds[Index];
                 if (mInactiveSlaveDofs.find(slave_equation_id) == mInactiveSlaveDofs.end()) {
-                    TrilinosAssemblingUtilities::SetGlobalValueWithoutGlobalAssembly(rA, slave_equation_id, slave_equation_id, mScaleFactor);
-                    TrilinosAssemblingUtilities::SetGlobalValueWithoutGlobalAssembly(rb, slave_equation_id, 0.0);
+                    TrilinosAssemblingUtilities<TSparseSpace>::SetGlobalValueWithoutGlobalAssembly(rA, slave_equation_id, slave_equation_id, mScaleFactor);
+                    TrilinosAssemblingUtilities<TSparseSpace>::SetGlobalValueWithoutGlobalAssembly(rb, slave_equation_id, 0.0);
                 }
             });
 
@@ -1422,8 +1422,8 @@ protected:
                 if (r_const.IsActive()) {
                     r_const.CalculateLocalSystem(transformation_matrix, constant_vector, r_current_process_info);
 
-                    TrilinosAssemblingUtilities::AssembleRelationMatrixT(r_T, transformation_matrix, slave_equation_ids, master_equation_ids);
-                    TrilinosAssemblingUtilities::AssembleConstantVector(r_constant_vector, constant_vector, slave_equation_ids);
+                    TrilinosAssemblingUtilities<TSparseSpace>::AssembleRelationMatrixT(r_T, transformation_matrix, slave_equation_ids, master_equation_ids);
+                    TrilinosAssemblingUtilities<TSparseSpace>::AssembleConstantVector(r_constant_vector, constant_vector, slave_equation_ids);
                 } else { // Taking into account inactive constraints
                     // Save the auxiliary ids of the the slave inactive DoFs
                     for (auto slave_id : slave_equation_ids) {
@@ -1463,14 +1463,14 @@ protected:
 
             // Setting the master dofs into the T and C system
             for (auto eq_id : mMasterIds) {
-                TrilinosAssemblingUtilities::SetGlobalValueWithoutGlobalAssembly(r_constant_vector, eq_id, 0.0);
-                TrilinosAssemblingUtilities::SetGlobalValueWithoutGlobalAssembly(r_T, eq_id, eq_id, 1.0);
+                TrilinosAssemblingUtilities<TSparseSpace>::SetGlobalValueWithoutGlobalAssembly(r_constant_vector, eq_id, 0.0);
+                TrilinosAssemblingUtilities<TSparseSpace>::SetGlobalValueWithoutGlobalAssembly(r_T, eq_id, eq_id, 1.0);
             }
 
             // Setting inactive slave dofs in the T and C system
             for (auto eq_id : mInactiveSlaveDofs) {
-                TrilinosAssemblingUtilities::SetGlobalValueWithoutGlobalAssembly(r_constant_vector, eq_id, 0.0);
-                TrilinosAssemblingUtilities::SetGlobalValueWithoutGlobalAssembly(r_T, eq_id, eq_id, 1.0);
+                TrilinosAssemblingUtilities<TSparseSpace>::SetGlobalValueWithoutGlobalAssembly(r_constant_vector, eq_id, 0.0);
+                TrilinosAssemblingUtilities<TSparseSpace>::SetGlobalValueWithoutGlobalAssembly(r_T, eq_id, eq_id, 1.0);
             }
 
             // Finalizing the assembly
