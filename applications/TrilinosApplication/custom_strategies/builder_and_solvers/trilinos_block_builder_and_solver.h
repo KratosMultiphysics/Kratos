@@ -32,12 +32,12 @@
 
 #if !defined(START_TIMER)
 #define START_TIMER(label, rank) \
-    if (mrComm.MyPID() == rank)  \
+    if (TSparseSpace::GetRank(mrComm) == rank)  \
         Timer::Start(label);
 #endif
 #if !defined(STOP_TIMER)
 #define STOP_TIMER(label, rank) \
-    if (mrComm.MyPID() == rank) \
+    if (TSparseSpace::GetRank(mrComm) == rank) \
         Timer::Stop(label);
 #endif
 
