@@ -234,18 +234,18 @@ Matrix ConstitutiveLawUtilities::MakeContinuumConstitutiveTensor(double      You
 {
     const auto denominator = (1.0 + PoissonsRatio) * (1.0 - 2.0 * PoissonsRatio);
     KRATOS_ERROR_IF(denominator <= std::numeric_limits<double>::epsilon())
-        << "PoissonsRatio of " << PoissonsRatio << " leads to nearly zero denominator" << std::endl;
-    const auto c0 = YoungsModulus / denominator;
-    const auto c1 = (1.0 - PoissonsRatio) * c0;
-    const auto c2 = PoissonsRatio * c0;
+        << "PoissonsRatio of " << PoissonsRatio << " leads to a nearly zero denominator" << std::endl;
+    const auto c0                 = YoungsModulus / denominator;
+    const auto diagonal_value     = (1.0 - PoissonsRatio) * c0;
+    const auto off_diagonal_value = PoissonsRatio * c0;
 
     auto result = Matrix{ZeroMatrix{StrainSize, StrainSize}};
     for (auto i = std::size_t{0}; i < NumberOfNormalComponents; ++i) {
         for (auto j = std::size_t{0}; j < NumberOfNormalComponents; ++j) {
-            result(i, j) = i == j ? c1 : c2;
+            result(i, j) = i == j ? diagonal_value : off_diagonal_value;
         }
     }
-    auto shear_modulus = YoungsModulus / (2.0 * (1.0 + PoissonsRatio));
+    const auto shear_modulus = YoungsModulus / (2.0 * (1.0 + PoissonsRatio));
     for (auto i = NumberOfNormalComponents; i < StrainSize; ++i) {
         result(i, i) = shear_modulus;
     }
