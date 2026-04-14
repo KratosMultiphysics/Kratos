@@ -141,6 +141,90 @@ public:
     ///@{
 
     /**
+     * @brief This method returns the rank of the communicator
+     * @param rComm The communicator considered
+     * @return The rank of the communicator
+     */
+    inline static int GetRank(const CommunicatorType& rComm)
+    {
+        return rComm.MyPID();
+    }
+
+    /**
+     * @brief This method returns true if the pointer is null
+     * @param pPointer The pointer considered
+     * @return True if the pointer is null
+     */
+    template<class TPointerType>
+    inline static bool IsNull(const TPointerType& pPointer)
+    {
+        return pPointer == nullptr;
+    }
+
+    /**
+     * @brief This method returns the map of the vector
+     * @param rV The vector considered
+     * @return The map of the vector
+     */
+    inline static const MapType& GetMap(const VectorType& rV)
+    {
+        // Epetra_FEVector::Map() returns an Epetra_BlockMap&. The underlying object
+        // was constructed from an Epetra_Map but gets stored as Epetra_BlockMap internally,
+        // so dynamic_cast would fail. Use a reinterpret approach via the block map interface
+        // to get access to the same data through the Epetra_Map slice.
+        // Since Epetra_Map derives from Epetra_BlockMap, and the map is always point-based,
+        // we can safely use static_cast here.
+        return static_cast<const MapType&>(rV.Map());
+    }
+
+    /**
+     * @brief This method returns the communicator of the vector
+     * @param rV The vector considered
+     * @return The communicator of the vector
+     */
+    inline static const CommunicatorType& GetCommunicator(const VectorType& rV)
+    {
+        return dynamic_cast<const CommunicatorType&>(rV.Comm());
+    }
+
+    /**
+     * @brief This method returns the communicator of the matrix
+     * @param rA The matrix considered
+     * @return The communicator of the matrix
+     */
+    inline static const CommunicatorType& GetCommunicator(const MatrixType& rA)
+    {
+        return dynamic_cast<const CommunicatorType&>(rA.Comm());
+    }
+
+    /**
+     * @brief This method performs the global assembly of the matrix
+     * @param rA The matrix considered
+     */
+    inline static void GlobalAssemble(MatrixType& rA)
+    {
+        rA.GlobalAssemble();
+    }
+
+    /**
+     * @brief This method performs the global assembly of the vector
+     * @param rV The vector considered
+     */
+    inline static void GlobalAssemble(VectorType& rV)
+    {
+        rV.GlobalAssemble();
+    }
+
+    /**
+     * @brief This method creates an empty pointer to a map
+     * @return The pointer to the map
+     */
+    static MapPointerType CreateEmptyMapPointer()
+    {
+        return MapPointerType(nullptr);
+    }
+
+    /**
      * @brief This method creates an empty pointer to a matrix
      * @return The pointer to the matrix
      */
