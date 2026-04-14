@@ -354,11 +354,11 @@ public:
 
         // If there are master-slave constraints
         if(TSparseSpace::Size1(r_T) != 0) {
-            // Recover solution of the original problem
-            TSystemVectorType Dxmodified(rDx);
+            // Recover solution of the original problem; use CreateVectorCopy (safe for FEMultiVector)
+            auto p_Dxmodified = TSparseSpace::CreateVectorCopy(rDx);
 
             // Recover solution of the original problem
-            TSparseSpace::Mult(r_T, Dxmodified, rDx);
+            TSparseSpace::Mult(r_T, *p_Dxmodified, rDx);
         }
 
         // Prints information about the current time
@@ -384,18 +384,18 @@ public:
 
         // If considering MPC
         if (rModelPart.GetCommunicator().GlobalNumberOfMasterSlaveConstraints() > 0) {
-            TSystemVectorType Dxmodified(rb);
+            // Create modified Dx using CreateVectorCopy (safe for FEMultiVector whose copy ctor is deleted)
+            auto p_Dxmodified = TSparseSpace::CreateVectorCopy(rb);
+            TSparseSpace::SetToZero(*p_Dxmodified);
 
-            // Initialize the vector
-            TSparseSpace::SetToZero(Dxmodified);
-
-            InternalSystemSolveWithPhysics(rA, Dxmodified, rb, rModelPart);
+            // Do solve
+            InternalSystemSolveWithPhysics(rA, *p_Dxmodified, rb, rModelPart);
 
             // Reference to T
             const TSystemMatrixType& r_T = GetConstraintRelationMatrix();
 
-            // Recover solution of the original problem
-            TSparseSpace::Mult(r_T, Dxmodified, rDx);
+            // Recover solution of the original problem; use CreateVectorCopy (safe for FEMultiVector)
+            TSparseSpace::Mult(r_T, *p_Dxmodified, rDx);
         } else {
             InternalSystemSolveWithPhysics(rA, rDx, rb, rModelPart);
         }
