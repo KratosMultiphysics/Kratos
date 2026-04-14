@@ -254,4 +254,83 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_ValidateFrictionAngle, Kratos
     properties.SetValue(INDEX_OF_UMAT_PHI_PARAMETER, 3);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(ConstitutiveLawUtilities::ValidateFrictionAngle(properties, element_id), "Properties ( 0) of element ( 1): INDEX_OF_UMAT_PHI_PARAMETER (3) is not in range [1, size of UMAT_PARAMETERS].");
 }
+
+KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_GetUndrainedYoungsModulusGivesUndrainedYoungsModulus,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    Properties properties;
+    properties.SetValue(YOUNG_MODULUS, 1.0);
+    properties.SetValue(POISSON_RATIO, 0.2);
+
+    // Act
+    const auto undrained_youngs_modulus =
+        ConstitutiveLawUtilities::GetUndrainedYoungsModulus(properties, 0.4);
+
+    // Assert
+    KRATOS_EXPECT_EQ(undrained_youngs_modulus, 7.0 / 6.0);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_GetSkemptonBGivesSkemptonB, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    Properties properties;
+    properties.SetValue(YOUNG_MODULUS, 1.0);
+    properties.SetValue(POISSON_RATIO, 0.2);
+    properties.SetValue(BIOT_COEFFICIENT, 1.0);
+    properties.SetValue(BULK_MODULUS_FLUID, 1.E3);
+    properties.SetValue(BULK_MODULUS_SOLID, 2.E3);
+    properties.SetValue(POROSITY, 0.5);
+
+    // Act
+    auto skempton_b = ConstitutiveLawUtilities::GetSkemptonB(properties);
+
+    // Assert
+    KRATOS_EXPECT_EQ(skempton_b, 0.5);
+
+    // Arrange
+    properties.SetValue(GEO_SKEMPTON_B, 0.8);
+    // Act
+    skempton_b = ConstitutiveLawUtilities::GetSkemptonB(properties);
+
+    // Assert
+    KRATOS_EXPECT_EQ(skempton_b, 0.8);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_GetUndrainedPoissonsRatioGivesUndrainedPoissonsRatio,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    Properties properties;
+    properties.SetValue(POISSON_RATIO, 0.2);
+    properties.SetValue(BIOT_COEFFICIENT, 1.0);
+    properties.SetValue(BULK_MODULUS_FLUID, 1.E3);
+    properties.SetValue(BULK_MODULUS_SOLID, 2.E3);
+    properties.SetValue(POROSITY, 0.5);
+
+    // Act
+    auto undrained_poissons_ratio = ConstitutiveLawUtilities::GetUndrainedPoissonsRatio(properties);
+
+    // Assert
+    KRATOS_EXPECT_NEAR(undrained_poissons_ratio, 1.0 / 3.0, Defaults::absolute_tolerance);
+
+    // Arrange
+    properties.SetValue(GEO_SKEMPTON_B, 0.5);
+
+    // Act
+    undrained_poissons_ratio = ConstitutiveLawUtilities::GetUndrainedPoissonsRatio(properties);
+
+    // Assert
+    KRATOS_EXPECT_NEAR(undrained_poissons_ratio, 1.0 / 3.0, Defaults::absolute_tolerance);
+
+    // Arrange
+    properties.SetValue(GEO_POISSON_UNDRAINED, 0.4);
+
+    // Act
+    undrained_poissons_ratio = ConstitutiveLawUtilities::GetUndrainedPoissonsRatio(properties);
+
+    // Assert
+    KRATOS_EXPECT_NEAR(undrained_poissons_ratio, 0.4, Defaults::absolute_tolerance);
+}
+
 } // namespace Kratos::Testing

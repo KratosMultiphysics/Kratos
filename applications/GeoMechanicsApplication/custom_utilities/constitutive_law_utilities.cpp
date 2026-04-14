@@ -185,4 +185,34 @@ double ConstitutiveLawUtilities::CalculateK0NCFromFrictionAngleInRadians(double 
     return 1.0 - std::sin(FrictionAngleInRadians);
 }
 
+double ConstitutiveLawUtilities::GetUndrainedYoungsModulus(const Properties& rProperties, double UndrainedPoissonsRatio)
+{
+    return rProperties[YOUNG_MODULUS] * (1.0 + UndrainedPoissonsRatio) / (1.0 + rProperties[POISSON_RATIO]);
+}
+
+double ConstitutiveLawUtilities::GetUndrainedPoissonsRatio(const Properties& rProperties)
+{
+    if (rProperties.Has(GEO_POISSON_UNDRAINED)) {
+        return rProperties[GEO_POISSON_UNDRAINED];
+    }
+
+    const auto skempton_b     = ConstitutiveLawUtilities::GetSkemptonB(rProperties);
+    const auto biot_alpha     = rProperties[BIOT_COEFFICIENT];
+    const auto poissons_ratio = rProperties[POISSON_RATIO];
+    return (3.0 * poissons_ratio + biot_alpha * skempton_b * (1.0 - 2.0 * poissons_ratio)) /
+           (3.0 - biot_alpha * skempton_b * (1.0 - 2.0 * poissons_ratio));
+}
+
+double ConstitutiveLawUtilities::GetSkemptonB(const Properties& rProperties)
+{
+    if (rProperties.Has(GEO_SKEMPTON_B)) {
+        return rProperties[GEO_SKEMPTON_B];
+    }
+
+    const auto k_f = rProperties[BULK_MODULUS_FLUID];
+    const auto k_s = rProperties[BULK_MODULUS_SOLID]; // or should this be k skeleton, the porous material i.s.o. the solid
+    const auto porosity   = rProperties[POROSITY];
+    const auto biot_alpha = rProperties[BIOT_COEFFICIENT];
+    return biot_alpha / (biot_alpha + porosity * ((k_s / k_f) + biot_alpha - 1.0));
+}
 } // namespace Kratos
