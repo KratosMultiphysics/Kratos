@@ -41,8 +41,6 @@
         "reduction_factor": 0.5,
         "increase_factor": 2.0,
         "desired_iterations": 4,
-        "max_radius_factor": 10.0,
-        "min_radius_factor": 0.1,
         "calculate_reactions": true,
         "max_line_search_iterations": 5,
         "first_alpha_value": 0.5,
@@ -176,7 +174,7 @@
                             ]
                         }
                     },
-                    "output_name": "output"
+                    "output_name": "triaxial_test_output"
                 }
             }
         ]
