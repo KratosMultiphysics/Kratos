@@ -216,6 +216,13 @@ public:
     }
 
     /**
+     * @brief Manually finalizes matrix assembly (no-op for Epetra).
+     */
+    static void ManualFinalize(MatrixType& rA)
+    {
+    }
+
+    /**
      * @brief This method creates an empty pointer to a map
      * @return The pointer to the map
      */
