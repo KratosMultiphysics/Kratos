@@ -106,7 +106,7 @@ public:
         const auto& r_reference_geometry = (el_begin + first_valid_index)->GetGeometry();
         const unsigned int gauss_point_per_knot_span = r_reference_geometry.size();
         const unsigned int number_of_control_points = r_reference_geometry.size();
-        const unsigned int reference_dim = r_reference_geometry.WorkingSpaceDimension();
+        const unsigned int reference_dim = r_reference_geometry.LocalSpaceDimension();
         const unsigned int reference_basis_order =
             (reference_dim == 3)
                 ? static_cast<unsigned int>(std::cbrt(number_of_control_points) - 1.0)
@@ -127,7 +127,6 @@ public:
         }
         std::vector<Element*> collected_elements;
         collected_elements.reserve(gauss_point_per_knot_span);
-        std::vector<Vector> stress_vector;
         unsigned int collected_count = 0;
 
         // Iterate over all elements, skipping any with LocalSpaceDimension()==1
@@ -139,10 +138,10 @@ public:
 
             const unsigned int gauss_point_per_knot_span = (it_elem)->GetGeometry().size();
             const unsigned int number_of_control_points  = (it_elem)->GetGeometry().size();
-            const unsigned int elem_dim = it_elem->GetGeometry().WorkingSpaceDimension();
+            const unsigned int elem_dim = it_elem->GetGeometry().LocalSpaceDimension();
 
             if (it_elem->IsActive()) {
-                stress_vector.clear();
+                std::vector<Vector> stress_vector;
                 it_elem->CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, stress_vector, CurrentProcessInfo);
                 KRATOS_ERROR_IF(stress_vector.empty())
                     << "BDF2HigherOrderVMSScheme: element " << it_elem->Id()

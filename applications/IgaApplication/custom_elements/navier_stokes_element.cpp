@@ -473,13 +473,20 @@ void NavierStokesElement::AddSecondOrderStabilizationTerms(MatrixType &rLeftHand
         // Get 2nd derivatives of shape functions in physical space (as provided by the geometry)
         // For 2D, it is expected to contain 3 components per shape function: [xx, xy, yy] (or equivalent)
         // For 3D, it is expected to contain 6 components per shape function: [xx, xy, xz, yy, yz, zz] (or equivalent)
-        const Matrix& DDN_DDe = GetGeometry().ShapeFunctionDerivatives(
+        const Matrix DDN_DDe = GetGeometry().ShapeFunctionDerivatives(
             2, 0, GetGeometry().GetDefaultIntegrationMethod());
 
+        KRATOS_ERROR_IF(DDN_DDe.size1() != number_of_points)
+            << "Second-derivative matrix row count mismatch in NavierStokesElement " << Id()
+            << ". Expected " << number_of_points << " rows, got " << DDN_DDe.size1() << std::endl;
         KRATOS_ERROR_IF(mDim == 2 && DDN_DDe.size2() != 3)
             << "Expected 3 second-derivative entries in 2D, got " << DDN_DDe.size2() << std::endl;
         KRATOS_ERROR_IF(mDim == 3 && DDN_DDe.size2() != 6)
             << "Expected 6 second-derivative entries in 3D, got " << DDN_DDe.size2() << std::endl;
+        KRATOS_ERROR_IF(rDN_DX.size1() != number_of_points || rDN_DX.size2() != mDim)
+            << "First-derivative matrix size mismatch in NavierStokesElement " << Id()
+            << ". Expected " << number_of_points << "x" << mDim
+            << ", got " << rDN_DX.size1() << "x" << rDN_DX.size2() << std::endl;
 
         const SizeType expected_voigt_size = (mDim == 3) ? 6 : 3;
         KRATOS_ERROR_IF(rD.size1() != expected_voigt_size || rD.size2() != expected_voigt_size)

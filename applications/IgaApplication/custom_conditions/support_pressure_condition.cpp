@@ -102,7 +102,80 @@ void SupportPressureCondition::CalculateRightHandSide(
         }
         
         // // Neumann condition for the velocity
-        Vector t_N = this->GetValue(NORMAL_STRESS);
+        // Vector t_N = this->GetValue(NORMAL_STRESS);
+        Vector t_N = ZeroVector(mDim);
+        double x = r_geometry.Center().X(); 
+        double y = r_geometry.Center().Y();
+        double z = r_geometry.Center().Z();
+
+        Matrix grad_u(mDim, mDim); // grad_u(i,j) = du_i/dx_j
+
+        if (mDim == 2) {
+            grad_u(0, 0) = sinh(x) * sinh(y);     // ∂u_x / ∂x
+            grad_u(0, 1) = cosh(x) * cosh(y);     // ∂u_x / ∂y
+            grad_u(1, 0) = -cosh(x) * cosh(y);    // ∂u_y / ∂x
+            grad_u(1, 1) = -sinh(x) * sinh(y);    // ∂u_y / ∂y
+        } else {
+            // 3D analytical gradient
+            noalias(grad_u) = ZeroMatrix(mDim, mDim);
+
+            // grad_u(0,0) =  2.0;  // dux/dx
+            // grad_u(0,1) = -1.0;  // dux/dy
+            // grad_u(0,2) =  3.0;  // dux/dz
+            // grad_u(1,0) =  3.0;  // duy/dx
+            // grad_u(1,1) =  2.0;  // duy/dy
+            // grad_u(1,2) = -1.0;  // duy/dz
+            // grad_u(2,0) = -5.0;  // duz/dx
+            // grad_u(2,1) = -4.0;  // duz/dy
+            // grad_u(2,2) = -4.0;  // duz/dz
+
+            // // quadratic
+            // grad_u(0,0) = -2.0*y;  grad_u(0,1) = -2.0*x;  grad_u(0,2) = 0.0;
+            // grad_u(1,0) = -2.0*x;  grad_u(1,1) =  2.0*y + z;  grad_u(1,2) = y - z;
+            // grad_u(2,0) =  0.0;    grad_u(2,1) =  0.0;    grad_u(2,2) = -z;
+
+            // // cubic
+            // grad_u(0,0) = 2.0*y*z - 2.0*x*y;   grad_u(0,1) = 2.0*x*z - x*x;      grad_u(0,2) = 2.0*x*y;
+            // grad_u(1,0) = 0.0;                 grad_u(1,1) = -2.0*y*z;           grad_u(1,2) = -y*y;
+            // grad_u(2,0) = 2.0*y*z;             grad_u(2,1) = 2.0*x*z;            grad_u(2,2) = 2.0*x*y;
+
+            // ux = cosh(x)cosh(y)cosh(z)          // uy = sinh(x)*sinh(z-y)          // uz = -sinh(x)sinh(y)cosh(z)
+            grad_u(0,0) = sinh(x)*cosh(y)*cosh(z); grad_u(1,0) = cosh(x)*sinh(z-y);   grad_u(2,0) = -cosh(x)*sinh(y)*cosh(z);
+            grad_u(0,1) = cosh(x)*sinh(y)*cosh(z); grad_u(1,1) = -sinh(x)*cosh(z-y);  grad_u(2,1) = -sinh(x)*cosh(y)*cosh(z);
+            grad_u(0,2) = cosh(x)*cosh(y)*sinh(z); grad_u(1,2) =  sinh(x)*cosh(z-y);  grad_u(2,2) = -sinh(x)*sinh(y)*sinh(z);
+        }
+
+        // grad_u(0, 0) = 3.0 * x * x;      // ∂u_x / ∂x
+        // grad_u(0, 1) = 0.0;              // ∂u_x / ∂y
+        // grad_u(1, 0) = -6.0 * x * y;     // ∂u_y / ∂x
+        // grad_u(1, 1) = -3.0 * x * x;     // ∂u_y / ∂y
+
+        // grad_u(0, 0) = 2.0 * x;      // ∂u_x / ∂x
+        // grad_u(0, 1) = 0.0;              // ∂u_x / ∂y
+        // grad_u(1, 0) = -2.0 * y;     // ∂u_y / ∂x
+        // grad_u(1, 1) = -2.0 * x;     // ∂u_y / ∂y
+
+        // grad_u(0, 0) = sinh(x) * sinh(y) * std::exp(-current_time)*current_time*current_time;    // ∂u_x / ∂x
+        // grad_u(0, 1) = cosh(x) * cosh(y) * std::exp(-current_time)*current_time*current_time;    // ∂u_x / ∂y
+        // grad_u(1, 0) = -cosh(x) * cosh(y) * std::exp(-current_time)*current_time*current_time;    // ∂u_y / ∂x
+        // grad_u(1, 1) = -sinh(x) * sinh(y) * std::exp(-current_time)*current_time*current_time;     // ∂u_y / ∂y
+
+        Matrix sym_grad_u(mDim, mDim); // ε(u) = 0.5*(∇u + ∇u^T)
+        for (IndexType i = 0; i < mDim; ++i) {
+            for (IndexType j = 0; j < mDim; ++j) {
+                sym_grad_u(i,j) = 0.5 * (grad_u(i,j) + grad_u(j,i));
+            }
+        }
+        // Now compute stress vector: σ·n = 2ν ε(u)·n
+        for (IndexType i = 0; i < mDim; ++i) {
+            for (IndexType j = 0; j < mDim; ++j) {
+                t_N[i] += 2.0 * sym_grad_u(i,j) * normal_parameter_space[j];
+            }
+        }
+
+        // -------------------------------------------------------CHANNEL-------------------------------------------------------
+        t_N = ZeroVector(mDim); 
+        // -------------------------------------------------------CHANNEL-------------------------------------------------------
 
         for (IndexType idim = 0; idim < mDim; idim++) {
             rRightHandSideVector((mDim+1)*j+idim) += N(0,j) * t_N[idim] * mIntegrationWeight;
