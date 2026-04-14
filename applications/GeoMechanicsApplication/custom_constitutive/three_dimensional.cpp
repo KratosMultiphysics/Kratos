@@ -21,9 +21,11 @@ namespace Kratos
 
 Matrix ThreeDimensional::CalculateElasticConstitutiveTensor(const Properties& rProperties) const
 {
-    const double nu = false ? ConstitutiveLawUtilities::GetUndrainedPoissonsRatio(rProperties)
+    constexpr auto undrained = false;
+
+    const double nu = undrained ? ConstitutiveLawUtilities::GetUndrainedPoissonsRatio(rProperties)
                             : rProperties[POISSON_RATIO];
-    const double E  = false ? ConstitutiveLawUtilities::GetUndrainedYoungsModulus(rProperties, nu)
+    const double E  = undrained ? ConstitutiveLawUtilities::GetUndrainedYoungsModulus(rProperties, nu)
                             : rProperties[YOUNG_MODULUS];
 
     return ConstitutiveLawUtilities::MakeContinuumConstitutiveTensor(
