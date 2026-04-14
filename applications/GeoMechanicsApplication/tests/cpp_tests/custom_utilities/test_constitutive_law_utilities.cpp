@@ -371,4 +371,15 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_MakeCotinuumConstitutiveTens
         {{1.2, 0.4, 0.0, 0.0}, {0.4, 1.2, 0.0, 0.0}, {0.0, 0.0, 0.4, 0.0}, {0.0, 0.0, 0.0, 0.4}});
     KRATOS_EXPECT_MATRIX_EQ(constitutive_tensor, expected_tensor);
 }
+
+KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_CalculateK0NCFromFrictionAngleGivesK0NC,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange & Act
+    const auto computed_K0NC =
+        ConstitutiveLawUtilities::CalculateK0NCFromFrictionAngleInRadians(30.0 * Globals::Pi / 180.0);
+
+    // Assert
+    KRATOS_EXPECT_EQ(computed_K0NC, 0.5);
+}
 } // namespace Kratos::Testing
