@@ -1202,21 +1202,21 @@ protected:
     ///@{
 
     /* Base variables */
-    EpetraCommunicatorType& mrComm;                 /// The MPI communicator
-    int mGuessRowSize;                              /// The guess row size
-    IndexType mLocalSystemSize;                     /// The local system size
-    int mFirstMyId;                                 /// Auxiliary Id (the first row of the local system)
-    int mLastMyId;                                  /// Auxiliary Id (the last row of the local system) // TODO: This can be removed as can be deduced from mLocalSystemSize
-    Kratos::shared_ptr<Epetra_Map> mpMap = nullptr; /// The map considered for the different vectors and matrices
-    std::vector<int> mFirstMyIds;                   /// The ids corresponding to each partition (only used with MPC)
+    TrilinosCommunicatorType& mrComm;                                                    /// The MPI communicator
+    int mGuessRowSize;                                                                   /// The guess row size
+    IndexType mLocalSystemSize;                                                          /// The local system size
+    int mFirstMyId;                                                                      /// Auxiliary Id (the first row of the local system)
+    int mLastMyId;                                                                       /// Auxiliary Id (the last row of the local system) // TODO: This can be removed as can be deduced from mLocalSystemSize
+    typename TSparseSpace::MapPointerType mpMap = TSparseSpace::CreateEmptyMapPointer(); /// The map considered for the different vectors and matrices
+    std::vector<int> mFirstMyIds;                                                        /// The ids corresponding to each partition (only used with MPC)
 
     /* MPC variables */
-    TSystemMatrixPointerType mpT =  nullptr;              /// This is matrix containing the global relation for the constraints
-    TSystemVectorPointerType mpConstantVector =  nullptr; /// This is vector containing the rigid movement of the constraint
-    std::vector<IndexType> mSlaveIds;                     /// The equation ids of the slaves
-    std::vector<IndexType> mMasterIds;                    /// The equation ids of the master
-    std::unordered_set<IndexType> mInactiveSlaveDofs;     /// The set containing the inactive slave dofs
-    double mScaleFactor = 1.0;                            /// The manually set scale factor
+    TSystemMatrixPointerType mpT =  TSparseSpace::CreateEmptyMatrixPointer();              /// This is matrix containing the global relation for the constraints
+    TSystemVectorPointerType mpConstantVector =  TSparseSpace::CreateEmptyVectorPointer(); /// This is vector containing the rigid movement of the constraint
+    std::vector<IndexType> mSlaveIds;                                                      /// The equation ids of the slaves
+    std::vector<IndexType> mMasterIds;                                                     /// The equation ids of the master
+    std::unordered_set<IndexType> mInactiveSlaveDofs;                                      /// The set containing the inactive slave dofs
+    double mScaleFactor = 1.0;                                                             /// The manually set scale factor
 
     /* Flags */
     SCALING_DIAGONAL mScalingDiagonal = SCALING_DIAGONAL::CONSIDER_MAX_DIAGONAL; /// We identify the scaling considered for the dirichlet dofs
