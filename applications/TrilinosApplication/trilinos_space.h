@@ -1098,6 +1098,15 @@ public:
     }
 
     /**
+     * @brief This function returns if we are in a distributed system
+     * @return True if we are in a distributed system, false otherwise (always true in this case)
+     */
+    inline static constexpr bool IsDistributedSpace()
+    {
+        return true;
+    }
+
+    /**
      * @brief Returns a list of the fastest direct solvers.
      * @details This function returns a vector of strings representing the names of the fastest direct solvers. The order of the solvers in the list may need to be updated and reordered depending on the size of the equation system.
      * In Trilinos, the speed of direct solvers like MUMPS, SuperLU_DIST, KLU, and Basker can depend on various factors including the size and sparsity of the matrix, the architecture of the computer system, and the specific characteristics of the problem being solved. Below are some general observations about these solvers:
