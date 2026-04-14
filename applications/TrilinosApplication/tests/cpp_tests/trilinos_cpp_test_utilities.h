@@ -46,6 +46,7 @@ public:
     using TrilinosSparseSpaceType = TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>;
     using TrilinosLocalSpaceType = UblasSpace<double, Matrix, Vector>;
 
+    /// Trilinos definitions
     using TrilinosSparseMatrixType = TrilinosSparseSpaceType::MatrixType;
     using TrilinosVectorType = TrilinosSparseSpaceType::VectorType;
 
