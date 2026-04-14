@@ -18,7 +18,7 @@
 namespace Kratos
 {
 
-Matrix PlaneStrain::CalculateElasticMatrix(const Properties& rProperties) const
+Matrix PlaneStrain::CalculateElasticConstitutiveTensor(const Properties& rProperties) const
 {
     const auto youngs_modulus = rProperties[YOUNG_MODULUS];
     const auto poissons_ratio = rProperties[POISSON_RATIO];

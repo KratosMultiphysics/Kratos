@@ -19,7 +19,7 @@
 namespace Kratos
 {
 
-Matrix ThreeDimensional::CalculateElasticMatrix(const Properties& rProperties) const
+Matrix ThreeDimensional::CalculateElasticConstitutiveTensor(const Properties& rProperties) const
 {
     const auto youngs_modulus = rProperties[YOUNG_MODULUS];
     const auto poissons_ratio = rProperties[POISSON_RATIO];

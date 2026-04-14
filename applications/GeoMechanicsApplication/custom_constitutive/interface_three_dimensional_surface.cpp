@@ -20,7 +20,7 @@
 namespace Kratos
 {
 
-Matrix InterfaceThreeDimensionalSurface::CalculateElasticMatrix(const Properties& rProperties) const
+Matrix InterfaceThreeDimensionalSurface::CalculateElasticConstitutiveTensor(const Properties& rProperties) const
 {
     auto result = ConstitutiveLawUtilities::MakeInterfaceConstitutiveMatrix(
         rProperties[INTERFACE_NORMAL_STIFFNESS], rProperties[INTERFACE_SHEAR_STIFFNESS],
