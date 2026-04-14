@@ -761,12 +761,18 @@ public:
         KRATOS_TRY
 
         // Resizing the system vectors and matrix
-        if (rpA == nullptr || TSparseSpace::Size1(*rpA) == 0 || BaseType::GetReshapeMatrixFlag()) { // If the matrix is not initialized
+        if (TSparseSpace::IsNull(rpA) || TSparseSpace::Size1(*rpA) == 0 || BaseType::GetReshapeMatrixFlag()) { // If the matrix is not initialized
             ConstructMatrixStructure(pScheme, rpA, rpDx, rpb, rModelPart);
-        } else if (BaseType::mpReactionsVector == nullptr && this->mCalculateReactionsFlag) {
-            TSystemVectorPointerType pNewReactionsVector = TSystemVectorPointerType(new TSystemVectorType(rpDx->Map()));
-            BaseType::mpReactionsVector.swap(pNewReactionsVector);
+        } else if (TSparseSpace::IsNull(BaseType::mpReactionsVector) && this->mCalculateReactionsFlag) {
+            TSystemVectorPointerType pNewReactionsVector = TSparseSpace::CreateEmptyVectorPointer();
+            if constexpr (std::is_same_v<typename TSparseSpace::CommunicatorType, Epetra_MpiComm>) {
+                pNewReactionsVector = TSystemVectorPointerType(new TSystemVectorType(rpDx->Map()));
         } else {
+                pNewReactionsVector = TSparseSpace::CreateVector(rpDx->getMap());
+            }
+            BaseType::mpReactionsVector.swap(pNewReactionsVector);
+        }
+        else {
             if (TSparseSpace::Size1(*rpA) == 0 ||
                 TSparseSpace::Size1(*rpA) != BaseType::mEquationSystemSize ||
                 TSparseSpace::Size2(*rpA) != BaseType::mEquationSystemSize) {
@@ -775,6 +781,12 @@ public:
         }
 
         ConstructMasterSlaveConstraintsStructure(rModelPart);
+
+        // Finalize assembly after all structure is built
+        TSparseSpace::GlobalAssemble(*rpA);
+        if (!TSparseSpace::IsNull(mpT)) {
+            TSparseSpace::GlobalAssemble(*mpT);
+        }
 
         KRATOS_CATCH("")
     }
