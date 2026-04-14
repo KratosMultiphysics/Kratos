@@ -796,6 +796,8 @@ int MITCThickShellElement3D4N<TKinematics>::Check(
     const int points_number = r_geom.PointsNumber();
     KRATOS_ERROR_IF_NOT(points_number == 4) << "MITCThickShellElement3D4N - Wrong number of nodes" << points_number << std::endl;
 
+    KRATOS_ERROR_IF_NOT(mConstitutiveLawVector[0]->GetStrainSize() == 8) << "MITCThickShellElement3D4N - Wrong size of the strain vector in constitutive law" << mConstitutiveLawVector[0]->GetStrainSize() << std::endl;
+
     return 0;
 
     KRATOS_CATCH("Check")

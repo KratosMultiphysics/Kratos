@@ -245,7 +245,7 @@ class TestPatchTestShellsStressRec(KratosUnittest.TestCase):
 
 
     # def test_thick_shell_quadrilateral(self):
-    #     element_name = "ShellThickElementCorotational3D4N"
+    #     element_name = "MITCThickShellCorotationalElement3D4N"
     #     displacement_results = [0.000356813514 , -0.00063451962 , 0.001277536105]
     #     rotation_results     = [0.001208329991 , -0.000409163542 , -0.001166832572]
     #     shell_stress_middle_surface_results = [2.673886114206 , -3.482959961533 , 0.751398508523 , 2.763048319957 , 6.546366049819 , 0.0]

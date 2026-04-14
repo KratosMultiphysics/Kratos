@@ -49,15 +49,74 @@
         "properties_id"   : 4,
         "Material"        : {
             "constitutive_law" : {
-                "name" : "LinearElasticOrthotropic2DLaw"
+                "name" : "ThicknessIntegratedCompositeConstitutiveLaw",
+                "z_layer_coordinate_vector" : [0.25, 0.75],
+                "Euler_angle_layer_vector"  : [0.0, 90.0],
+                "thickness_layer_vector"    : [0.5, 0.5]
             },
             "Variables"        : {
-                "SHELL_ORTHOTROPIC_LAYERS" : [
-                [0.5,0.0,7850,7.5E+6,2E+6,0.25,1.25E+6,0.625E+6,0.625E+6],
-                [0.5,90.0,7850,7.5E+6,2E+6,0.25,1.25E+6,0.625E+6,0.625E+6]
-                ]
+                "THICKNESS"     : 1.0,
+                "DENSITY"       : 7850.0
             },
-            "Tables"           : {}
+            "sub_properties" : [
+            {
+                "properties_id"   : 11,
+                    "Material"        : {
+                        "constitutive_law" : {
+                            "name" : "GenericAnisotropicPlaneStress2DLaw"
+                        },
+                        "Variables"        : {
+                            "ORTHOTROPIC_ELASTIC_CONSTANTS" : [7.5E+6, 2e6, 2e6, 0.25, 0.25, 0.25],
+                            "SHEAR_MODULUS_XY" : 1.25e6,
+                            "SHEAR_MODULUS_YZ" : 0.625e6,
+                            "SHEAR_MODULUS_XZ" : 0.625e6,
+                            "EULER_ANGLES"     : [0.0,0.0,0.0],
+                            "ISOTROPIC_ANISOTROPIC_YIELD_RATIO"  : [1,1,1,1,1,1]
+                        },
+                        "Tables"           : {}
+                    },
+                    "sub_properties" : [{
+                        "properties_id"   : 111,
+                        "Material"        : {
+                            "constitutive_law" : {
+                                "name" : "LinearElasticPlaneStress2DLaw"
+                            },
+                            "Variables"        : {
+                                "DENSITY"         : 7850.0,
+                                "YOUNG_MODULUS"   : 2e6,
+                                "POISSON_RATIO"   : 0.3
+                            }
+                        }
+                    }]
+            },{
+                "properties_id"   : 12,
+                    "Material"        : {
+                        "constitutive_law" : {
+                            "name" : "GenericAnisotropicPlaneStress2DLaw"
+                        },
+                        "Variables"        : {
+                            "ORTHOTROPIC_ELASTIC_CONSTANTS" : [7.5E+6, 2e6, 2e6, 0.25, 0.25, 0.25],
+                            "SHEAR_MODULUS_XY" : 1.25e6,
+                            "SHEAR_MODULUS_YZ" : 0.625e6,
+                            "SHEAR_MODULUS_XZ" : 0.625e6,
+                            "EULER_ANGLES"     : [0.0,0.0,0.0],
+                            "ISOTROPIC_ANISOTROPIC_YIELD_RATIO"  : [1,1,1,1,1,1]
+                        }
+                    },
+                    "sub_properties" : [{
+                        "properties_id"   : 121,
+                        "Material"        : {
+                            "constitutive_law" : {
+                                "name" : "LinearElasticPlaneStress2DLaw"
+                            },
+                            "Variables"        : {
+                                "DENSITY"         : 7850.0,
+                                "YOUNG_MODULUS"   : 2e6,
+                                "POISSON_RATIO"   : 0.0
+                            }
+                        }
+                    }]
+                }]
         }
     }]
 }

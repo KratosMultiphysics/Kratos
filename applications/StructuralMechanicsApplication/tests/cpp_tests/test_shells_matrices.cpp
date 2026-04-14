@@ -362,7 +362,7 @@ KRATOS_TEST_CASE_IN_SUITE(ShellThinElementCorotational3D3N_DampingMatrix, Kratos
 }
 
 
-KRATOS_TEST_CASE_IN_SUITE(ShellThickElementCorotational3D4N_DampingMatrix, KratosStructuralMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(MITCThickShellCorotationalElement3D4N_DampingMatrix, KratosStructuralMechanicsFastSuite)
 {
     Matrix ref_damping_matrix(24, 24);
     ref_damping_matrix = ZeroMatrix(24,24);
