@@ -23,7 +23,7 @@ class KratosGeoMechanicsTriaxialTests(KratosUnittest.TestCase):
 
         # read the output files from the simulation for comparison
         reader = GiDOutputFileReader()
-        result = reader.read_output_from(os.path.join(file_path, 'output.post.res'))
+        result = reader.read_output_from(os.path.join(file_path, 'triaxial_test_output.post.res'))
 
         displacement = reader.nodal_values_at_time("DISPLACEMENT", 1, result)
         self.assertEqual(displacement,[[0.0, -0.2, 0.0], [0.0527793, -0.2, 0.0], [0.0, -0.100033, 0.0], [0.0524016, -0.0996909, 0.0], [0.0, 0.0, 0.0], [0.105199, -0.2, 0.0], [0.105115, -0.10005, 0.0], [0.05244, 0.0, 0.0], [0.104629, 0.0, 0.0]], "The displacement in one of the nodes is not correct.")
