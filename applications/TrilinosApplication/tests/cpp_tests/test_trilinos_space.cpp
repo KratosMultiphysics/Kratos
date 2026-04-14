@@ -845,7 +845,7 @@ KRATOS_TEST_CASE_IN_SUITE(TrilinosBuildSystemStructure, KratosTrilinosApplicatio
     pMap = Kratos::make_shared<Epetra_Map>(-1, local_size, local_ids.data(), 0, epetra_comm);
 
     TrilinosSparseSpaceType::BuildSystemStructure(
-        epetra_comm, local_size, first_my_id, 5, all_equation_ids,
+        epetra_comm, local_size, first_my_id, 5, all_equation_ids, all_equation_ids,
         pA, pb, pDx, pReactions, system_size, pMap
     );
 
@@ -854,6 +854,43 @@ KRATOS_TEST_CASE_IN_SUITE(TrilinosBuildSystemStructure, KratosTrilinosApplicatio
     KRATOS_EXPECT_FALSE(TrilinosSparseSpaceType::IsNull(pDx));
     KRATOS_EXPECT_FALSE(TrilinosSparseSpaceType::IsNull(pReactions));
     KRATOS_EXPECT_EQ(static_cast<std::size_t>(system_size), TrilinosSparseSpaceType::Size1(*pA));
+}
+
+KRATOS_TEST_CASE_IN_SUITE(TrilinosBuildSystemStructureRowColumnBlocks, KratosTrilinosApplicationMPITestSuite)
+{
+    const auto& r_comm = Testing::GetDefaultDataCommunicator();
+    auto raw_mpi_comm = MPIDataCommunicator::GetMPICommunicator(r_comm);
+    Epetra_MpiComm epetra_comm(raw_mpi_comm);
+
+    const int local_size = 2;
+    const int first_my_id = r_comm.Rank() * local_size;
+    const int system_size = 2 * r_comm.Size();
+
+    // Rectangular row/column blocks: one diagonal and one cross entry per rank
+    std::vector<std::vector<int>> all_row_equation_ids = {{first_my_id}, {first_my_id}};
+    std::vector<std::vector<int>> all_col_equation_ids = {{first_my_id}, {first_my_id + 1}};
+
+    TrilinosSparseSpaceType::MatrixPointerType pA;
+    TrilinosSparseSpaceType::VectorPointerType pb;
+    TrilinosSparseSpaceType::VectorPointerType pDx;
+    TrilinosSparseSpaceType::VectorPointerType pReactions;
+
+    TrilinosSparseSpaceType::MapPointerType pMap;
+    std::vector<int> local_ids(local_size);
+    for (int i = 0; i < local_size; i++) local_ids[i] = first_my_id + i;
+    pMap = Kratos::make_shared<Epetra_Map>(-1, local_size, local_ids.data(), 0, epetra_comm);
+
+    TrilinosSparseSpaceType::BuildSystemStructure(
+        epetra_comm, local_size, first_my_id, 5, all_row_equation_ids, all_col_equation_ids,
+        pA, pb, pDx, pReactions, system_size, pMap
+    );
+
+    KRATOS_EXPECT_FALSE(TrilinosSparseSpaceType::IsNull(pA));
+    KRATOS_EXPECT_FALSE(TrilinosSparseSpaceType::IsNull(pb));
+    KRATOS_EXPECT_FALSE(TrilinosSparseSpaceType::IsNull(pDx));
+    KRATOS_EXPECT_FALSE(TrilinosSparseSpaceType::IsNull(pReactions));
+    KRATOS_EXPECT_EQ(static_cast<std::size_t>(system_size), TrilinosSparseSpaceType::Size1(*pA));
+    KRATOS_EXPECT_EQ(2 * r_comm.Size(), pA->NumGlobalNonzeros());
 }
 
 KRATOS_TEST_CASE_IN_SUITE(TrilinosBuildConstraintsStructure, KratosTrilinosApplicationMPITestSuite)
