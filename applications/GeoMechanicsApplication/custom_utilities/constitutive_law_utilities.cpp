@@ -12,6 +12,7 @@
 //
 
 #include "custom_utilities/constitutive_law_utilities.h"
+#include "custom_utilities/string_utilities.h"
 #include "geo_mechanics_application_variables.h"
 #include "utilities/math_utils.h"
 
@@ -144,6 +145,17 @@ void ConstitutiveLawUtilities::CheckHasStrainMeasure_Infinitesimal(const Propert
 double ConstitutiveLawUtilities::CalculateK0NCFromFrictionAngleInRadians(double FrictionAngleInRadians)
 {
     return 1.0 - std::sin(FrictionAngleInRadians);
+}
+
+DrainageType ConstitutiveLawUtilities::StringToDrainageType(const std::string& rDrainageTypeName)
+{
+    using namespace std::string_literals;
+    const std::map<std::string, DrainageType> drainage_type_map = {
+        {"drained"s, DrainageType::DRAINED},
+        {"fully_coupled"s, DrainageType::FULLY_COUPLED},
+        {"undrained"s, DrainageType::UNDRAINED},
+        {"constant_pw_field"s, DrainageType::CONSTANT_WATER_PRESSURE}};
+    return drainage_type_map.at(GeoStringUtilities::ToLower(rDrainageTypeName));
 }
 
 } // namespace Kratos

@@ -14,6 +14,7 @@
 #pragma once
 
 #include "containers/variable.h"
+#include "geo_mechanics_application_constants.h"
 #include "includes/constitutive_law.h"
 
 #include <optional>
@@ -48,6 +49,7 @@ public:
     static void CheckHasStrainMeasure_Infinitesimal(const Properties& rProperties, std::size_t ElementId);
 
     [[nodiscard]] static double CalculateK0NCFromFrictionAngleInRadians(double FrictionAngleInRadians);
+    [[nodiscard]] static DrainageType StringToDrainageType(const std::string& rDrainageTypeName);
 }; /* Class ConstitutiveLawUtilities*/
 
 } // namespace Kratos
