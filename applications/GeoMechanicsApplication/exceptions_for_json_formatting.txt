@@ -71,6 +71,7 @@ tests/test_constant_strip_load_2d/MaterialParameters_stage_1.json
 tests/test_constant_strip_load_2d/ProjectParameters.json
 tests/test_darcy_law.gid/MaterialParameters.json
 tests/test_darcy_law.gid/ProjectParameters.json
+tests/test_element_lab/test_triaxial/MaterialParameters.json
 tests/test_inclinded_phreatic_line_smaller_line.gid/MaterialParameters.json
 tests/test_inclinded_phreatic_line_smaller_line.gid/ProjectParameters.json
 tests/test_inclinded_phreatic_surface.gid/MaterialParameters.json
