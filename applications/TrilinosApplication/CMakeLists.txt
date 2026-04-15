@@ -70,6 +70,9 @@ endif()
 ## Kratos tests sources. Enabled by default
 if(${KRATOS_BUILD_TESTING} MATCHES ON)
     file(GLOB_RECURSE KRATOS_TRILINOS_TEST_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
+    if(NOT HAVE_TPETRA)
+        list(FILTER KRATOS_TRILINOS_TEST_SOURCES EXCLUDE REGEX ".*experimental.*")
+    endif()
     kratos_add_gtests(TARGET KratosTrilinosCore SOURCES "${KRATOS_TRILINOS_TEST_SOURCES}" USE_MPI)
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
