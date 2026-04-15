@@ -27,7 +27,7 @@ namespace Kratos::Testing
 KRATOS_TEST_CASE_IN_SUITE(CalculateBiotModulusInverse_GivesExpectedResult, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Properties properties;
-    properties[IGNORE_UNDRAINED]                       = false;
+    properties[GEO_DRAINAGE_TYPE]                      = "FULLY_COUPLED";
     properties[POROSITY]                               = 0.5;
     properties[BULK_MODULUS_SOLID]                     = 1.0e9;
     properties[BULK_MODULUS_FLUID]                     = 2.0e6;
@@ -46,7 +46,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateBiotModulusInverse_ReturnsLargeNumber_WhenIgn
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Properties properties;
-    properties[IGNORE_UNDRAINED]                       = true;
+    properties[GEO_DRAINAGE_TYPE]                      = "CONSTANT_PW_FIELD";
     properties[POROSITY]                               = 0.5;
     properties[BULK_MODULUS_SOLID]                     = 1.0e9;
     properties[BULK_MODULUS_FLUID]                     = 2.0e6;
