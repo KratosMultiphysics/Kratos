@@ -116,6 +116,18 @@ ENDIF(CMAKE_UNITY_BUILD MATCHES ON)
 
 # Exclude from unity build
 set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/linear_solver_trilinos.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
+# The experimental (Tpetra) files include MatrixMarket_Tpetra.hpp → mmio_Tpetra.h, which shares the
+# same MM_IO_H include guard as Kratos' mmio.h but declares mm_read_mtx_crd_size with size_t*
+# instead of int*.  When merged into a unity unit with Epetra-based files that have already pulled
+# in Kratos' mmio.h, the guard prevents mmio_Tpetra.h from being re-included, leaving the wrong
+# signature in scope.  Compiling the experimental files as separate translation units ensures the
+# correct include order and avoids free-function name conflicts with the Epetra equivalents.
+set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_trilinos_space_experimental_to_python.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
+if(${KRATOS_BUILD_TESTING} MATCHES ON)
+    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/test_trilinos_space_experimental.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
+    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/trilinos_cpp_test_experimental_utilities.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
+    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/utilities/test_cpp_test_utilities_experimental.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
+endif()
 
 # Changing the .dll suffix to .pyd
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
