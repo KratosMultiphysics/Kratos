@@ -4,7 +4,7 @@ import scipy.sparse as sp
 import KratosMultiphysics as KM
 
 # Einsum optimization configuration
-opt_type = "greedy"
+opt_type = True
 
 # Backend modules to be defined
 xp = None
@@ -86,14 +86,14 @@ class CFDUtils:
                     [2.0/3.0, 1.0/6.0, 1.0/6.0],
                     [1.0/6.0, 2.0/3.0, 1.0/6.0],
                     [1.0/6.0, 1.0/6.0, 2.0/3.0]
-                ])
+                ], dtype=PRECISION)
             elif dim == 3:
                 N = xp.array([
                     [0.5854101966249685, 0.1381966011250105, 0.1381966011250105, 0.1381966011250105],
                     [0.1381966011250105, 0.5854101966249685, 0.1381966011250105, 0.1381966011250105],
                     [0.1381966011250105, 0.1381966011250105, 0.5854101966249685, 0.1381966011250105],
                     [0.1381966011250105, 0.1381966011250105, 0.1381966011250105, 0.5854101966249685]
-                ])
+                ], dtype=PRECISION)
             else:
                 raise Exception("Dimension not supported.")
         else:
@@ -101,12 +101,33 @@ class CFDUtils:
 
         return N
 
+    def GetShapeFunctionsOnEdgeMidpoints(self, dim: int):
+        if dim == 2:
+            N = xp.array([
+                [0.5, 0.5, 0.0],
+                [0.5, 0.0, 0.5],
+                [0.0, 0.5, 0.5]
+            ], dtype=PRECISION)
+        elif dim == 3:
+            N = xp.array([
+                [0.5, 0.5, 0.0, 0.0],
+                [0.5, 0.0, 0.5, 0.0],
+                [0.5, 0.0, 0.0, 0.5],
+                [0.0, 0.5, 0.5, 0.0],
+                [0.0, 0.5, 0.0, 0.5],
+                [0.0, 0.0, 0.5, 0.5]
+            ], dtype=PRECISION)
+        else:
+            raise Exception("Dimension not supported.")
+
+        return N
+
     def GetGaussIntegrationWeights(self, dim: int, integration_order: int):
         if integration_order == 1:
             if dim == 2:
-                w = xp.array([1.0/2.0])
+                w = xp.array([1.0/2.0],dtype=PRECISION)
             elif dim == 3:
-                w = xp.array([1.0/6.0])
+                w = xp.array([1.0/6.0],dtype=PRECISION)
             else:
                 raise Exception("Dimension not supported.")
         elif integration_order == 2:
@@ -115,14 +136,14 @@ class CFDUtils:
                     1.0/6.0,
                     1.0/6.0,
                     1.0/6.0
-                ])
+                ],dtype=PRECISION)
             elif dim == 3:
                 w = xp.array([
                     1.0/24.0,
                     1.0/24.0,
                     1.0/24.0,
                     1.0/24.0
-                ])
+                ],dtype=PRECISION)
             else:
                 raise Exception("Dimension not supported.")
         else:
@@ -171,6 +192,14 @@ class CFDUtils:
             raise Exception("wrong size of uel")
 
         return xp.einsum("I,eJk,eJk->eI",N,DN,uel,optimize=opt_type)
+
+    def ComputeElementalConvectiveOperator(self, a_elemental, DN):
+        """
+        Computes the convective operator (a·∇).
+
+        conv[e, i, j] = sum_m a[e,i,m] * DN[e,j,m]
+        """
+        return xp.einsum("eiM,ejM->eij", a_elemental, DN, optimize=opt_type) # (E, nnode, nnode)
 
     def Compute_N_DN(self, N: np.ndarray, DN: np.ndarray, pel: np.ndarray):
         """
@@ -229,33 +258,71 @@ class CFDUtils:
 
     def ApplyLaplacian(self, DN: np.ndarray, field: np.ndarray):
         """
-        Computes the term (∇q, ∇field) - scalar field
-                       or (∇w, ∇field) - vector field
+        Compute the Laplacian term in a matrix-free manner:
+            (∇q, ∇field)   or   (∇w, ∇field)
 
-        Using Einstein notation:
-        if field is scalar: out[e,i] = DN[e,i,m]*DN[e,j,m]*field[e,j]
-        if field is vector: out[e,i,k] = DN[e,i,m]*DN[e,j,m]*field[e,j,k]
+        Instead of explicitly forming the elemental Laplacian matrix
+            L_ij = (∇N_i · ∇N_j),
+        which would involve O(nnode²) operations and large temporaries,
+        this implementation exploits the factorization:
+
+            L · u = (DN^T · DN) · u
+                = DN^T · (DN · u)
+
+        i.e.:
+            1) Compute the gradient of the field:
+                grad = DN · field
+            2) Apply the divergence (projection back to nodes):
+                out = DN^T · grad
+
+        This reduces computational cost to O(nnode · dim) and avoids
+        constructing the dense (nnode × nnode) Laplacian matrix.
 
         Parameters
         ----------
-        DN : ndarray
-            Numpy array with shape (Nelem, n_in_el, dim).
-        field : ndarray
-            Numpy array with shape (Nelem, n_in_el). - scalar case
-            or
-            Numpy array with shape (Nelem, n_in_el, dim). - vector case
-        out : ndarray
-            Output array, expected to have shape (Nelem, n_in_el).
-            or
-            Output array, expected to have shape (Nelem, n_in_el, dim).
+        DN : (E, nnode, dim)
+            Shape function gradients.
+        field : (E, nnode) or (E, nnode, dim)
+            Scalar or vector field at element nodes.
+
+        Returns
+        -------
+        (E, nnode) or (E, nnode, dim)
+            Laplacian applied to the field.
         """
 
-        if field.ndim == 2: # scalar case
-            return xp.einsum("eIm,eJm,eJ->eI", DN, DN, field, optimize=opt_type)
-        elif field.ndim == 3: # vector case
-            return xp.einsum("eIm,eJm,eJk->eIk", DN, DN, field, optimize=opt_type)
+        nelem, _, dim = DN.shape
 
-        raise ValueError("Field must have shape (nelem,nnode) or (nelem,nnode,dim)")
+        # Scalar field
+        if field.ndim == 2:
+            grad = xp.zeros((nelem, dim), dtype=field.dtype)
+            for m in range(dim):
+                grad[:, m] = xp.sum(DN[:, :, m] * field, axis=1)
+
+            out = xp.zeros_like(field)
+            for m in range(dim):
+                out += DN[:, :, m] * grad[:, m][:, None]
+
+            return out
+
+        # Vector field
+        elif field.ndim == 3:
+            _, _, ncomp = field.shape
+
+            grad = xp.zeros((nelem, dim, ncomp), dtype=field.dtype)
+            for m in range(dim):
+                grad[:, m, :] = xp.sum(
+                    DN[:, :, m][:, :, None] * field,
+                    axis=1
+                )
+
+            out = xp.zeros_like(field)
+            for m in range(dim):
+                out += DN[:, :, m][:, :, None] * grad[:, m, :][:, None, :]
+
+            return out
+
+        raise ValueError("Field must have shape (E,nnode) or (E,nnode,dim)")
 
     def InterpolateValue(self, N, field):
         """
@@ -409,12 +476,26 @@ class CFDUtils:
             raise ValueError("grad_u must have 2 dims (scalar) or 3 dims (vector)")
 
         return out
+    
+    def ComputeConvectiveContributionOnEdgeMidpoints(self, N, a_DN, u_elemental):
+        """
+        Compute (w,a·∇u) using the previously computed convective operator a·∇
+        """
+        n_el_edges, n_el_nodes = N.shape
+        n_elems, n_el_nodes, n_dim = u_elemental.shape
+
+        mass = xp.zeros((n_elems, n_el_nodes, n_el_nodes), dtype=PRECISION)
+        for i_edge in range(n_el_edges):
+            mass += N[None,i_edge,:] * N[i_edge,:,None]
+
+        conv = xp.einsum("eiJ,eJk->eik", a_DN, u_elemental, optimize=opt_type)
+        return xp.einsum("eij,ejk->eik", mass, conv, optimize=opt_type)
 
     def ComputeMomentumStabilization(self, N, DN, u_elemental, a_gauss, pi_gauss, rho):
         """
         Compute convection + convective stabilization in a single pass.
 
-        (w, a·∇u) + (ρ a·∇w, ρ a·∇u) - (ρ a·∇w, Π)
+        (ρ a·∇w, ρ a·∇u) - (ρ a·∇w, ρ Π)
 
         Parameters
         ----------
@@ -428,32 +509,54 @@ class CFDUtils:
         Returns
         -------
         out : (nelem, ngauss, nnode, ndim)
-            Total convective contribution (Galerkin + stabilization)
+            Convective stabilization contribution
         """
 
-        # --- discrete operator: a · ∇N ---
-        adv = xp.einsum("egd,end->egn", a_gauss, DN, optimize=opt_type)  # (E,G,nnode)
+        adv = xp.einsum("egd,end->egn", a_gauss, DN, optimize=opt_type)
 
-        # --- a·∇u = Σ_J adv_J u_J ---
-        conv = xp.einsum("egn,end->egd", adv, u_elemental, optimize=opt_type)  # (E,G,dim)
+        conv = xp.einsum("egn,end->egd", adv, u_elemental, optimize=opt_type)
 
-        # --- Galerkin term ---
-        out = N[None, :, :, None] * conv[:, :, None, :]  # (E,G,nnode,dim)
+        rho2 = rho * rho
 
-        # --- stabilization ---
-        beta = rho * adv                                # (E,G,nnode)
-
-        tmp = xp.einsum("egn,end->egd", beta, u_elemental, optimize=opt_type)
-
-        out += beta[:, :, :, None] * (tmp[:, :, None, :] - pi_gauss[:, :, None, :])
+        out = rho2 * adv[:, :, :, None] * (conv - pi_gauss)[:, :, None, :]
 
         return out
 
     def ComputeDivDivStabilization(self, N: np.array, DN: np.ndarray, u_elemental : np.ndarray, Pi_div_elemental: np.ndarray):
-        output = xp.einsum("eik,ejl,ejl->eik", DN, DN, u_elemental, optimize=opt_type)
-        elem_scratch = xp.einsum("eik,j,ej->eik", DN, N, Pi_div_elemental, optimize=opt_type)
-        output -= elem_scratch
-        return output
+        """
+        Compute div-div stabilization term:
+
+            (∇·w, ∇·u - Π)
+
+        Strategy:
+            1) Compute divergence of u
+            2) Compute projected Π
+            3) Form scalar residual
+            4) Apply DN once
+
+        Parameters
+        ----------
+        N : (nnode,)
+        DN : (E, nnode, dim)
+        u_elemental : (E, nnode, dim)
+        Pi_div_elemental : (E, nnode)
+
+        Returns
+        -------
+        (E, nnode, dim)
+        """
+
+        # Step 1: divergence of u → (E,)
+        div_u = xp.sum(DN * u_elemental, axis=(1, 2))
+
+        # Step 2: projection of Π → (E,)
+        proj = xp.sum(N[None, :] * Pi_div_elemental, axis=1)
+
+        # Step 3: scalar residual → (E,)
+        div_res = div_u - proj
+
+        # Step 4: apply DN → (E, nnode, dim)
+        return DN * div_res[:, None, None]
 
     def ComputePressureStabilization_ProjectionTerm(self, N: np.ndarray, DN: np.ndarray, Pi_press_el: np.ndarray):
         """

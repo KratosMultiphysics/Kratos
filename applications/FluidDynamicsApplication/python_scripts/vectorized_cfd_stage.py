@@ -184,8 +184,10 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         self.vol_mp.AddGeometries(vol_geometries)
 
         ##TODO: change viscosity
-        self.dyn_visc = 1.79e-5
-        self.rho = 1.225e0
+        self.dyn_visc = 1.0e-3
+        self.rho = 1.0e0
+        # self.dyn_visc = 1.79e-5
+        # self.rho = 1.225e0
 
     def _AddVariables(self):
         self.model_part.AddNodalSolutionStepVariable(KM.VELOCITY)
@@ -419,15 +421,16 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         return self.model_part
 
     def ComputeVelocityProjection(self, v_elemental):
-        # Solve (w,pi) = (w,rho·a·∇u)
+        # Solve (w,pi) = (w,a·∇u)
         # Calculate the convective term at the elemental level
         convective = xp.zeros(v_elemental.shape, dtype=cfd_utils.PRECISION)
         tmp = xp.zeros_like(convective)
         grad_v = self.cfd_utils.ComputeElementalGradient(self.DN, v_elemental)
         v_el_gauss = self.cfd_utils.InterpolateValue(self.N_int_order, v_elemental)
 
-        # Compute convective contribution at integration points (w,rho·a·∇u)
-        tmp = self.rho * self.cfd_utils.ComputeConvectiveContribution(self.N_int_order, grad_v, v_el_gauss) # Calculate the elemental convective contributions at each integration point
+        # Compute convective contribution at integration points (w,a·∇u)
+        # tmp = self.rho * self.cfd_utils.ComputeConvectiveContribution(self.N_int_order, grad_v, v_el_gauss) # Calculate the elemental convective contributions at each integration point
+        tmp = self.cfd_utils.ComputeConvectiveContribution(self.N_int_order, grad_v, v_el_gauss) # Calculate the elemental convective contributions at each integration point
         convective = xp.tensordot(tmp, self.w_int_order, axes=(1, 0)) # Scale with integration weights and do the integration points summation
         convective *= self.elemental_volumes[:, None, None] # Apply Jacobian determinant to the entire residual
 
@@ -509,35 +512,53 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
             self.slip_vel_indices = (slip_node_ids[:, None] * self.dim + xp.arange(self.dim)).ravel() # Broadcast with dimension to get the component indices
 
     def SolveStep1(self,vold,v_dirichlet,p,b,dt):
+
+        xp.cuda.Stream.null.synchronize()
+
         # Gather elemental data from the database
         pel = self.ElemData(p, self.connectivity)
         vel = self.ElemData(vold, self.connectivity)
         b_el = self.ElemData(b, self.connectivity)
 
         # Compute convective projection
+        t0 = time.perf_counter()
         conv_proj = self.ComputeVelocityProjection(vel)
         conv_proj_el = self.ElemData(conv_proj, self.connectivity)
+        print(f"ComputeVelocityProjection time: {time.perf_counter() - t0}")
 
         # Compute divergence projection
+        t0 = time.perf_counter()
         div_proj = self.ComputeDivergenceProjection(vel)
         div_proj_el = self.ElemData(div_proj, self.connectivity)
+        print(f"ComputeDivergenceProjection time: {time.perf_counter() - t0}")
 
         # Advance in time by runge kutta
 
         # --- k1 ---
+        t0 = time.perf_counter()
         k1 = self.ComputeVelocityResidual(vel, pel, b_el, conv_proj_el, div_proj_el, self.DN, self.tau_1)
         k1.reshape(-1)[:] *= (1.0/self.rho) * self.Minv
+        print(f"k1 time: {time.perf_counter() - t0}")
 
         # --- k2 ---
+        t0 = time.perf_counter()
         v2 = vold + 0.5 * dt * k1
         self.ApplyVelocitySlipConditions(v2, self.normals)
         self.ApplyVelocityDirichletConditions(vold,v_dirichlet,0.5,v2)
 
+        t_el_data = time.perf_counter()
         vel = self.ElemData(v2, self.connectivity)
+        print(f"\tElemData time k2: {time.perf_counter() - t0}")
+        t_k2_res = time.perf_counter()
         k2 = self.ComputeVelocityResidual(vel, pel, b_el, conv_proj_el, div_proj_el, self.DN,self.tau_1)
+        print(f"\tk2 residual: {time.perf_counter() - t_k2_res}")
+        t_k2_update = time.perf_counter()
         k2.reshape(-1)[:] *= (1.0/self.rho) * self.Minv
+        print(f"\tk2 update: {time.perf_counter() - t_k2_update}")
+        print(f"k2 time: {time.perf_counter() - t0}")
 
         # --- k3 ---
+        t0 = time.perf_counter()
         v3 = vold + 0.5 * dt * k2
         self.ApplyVelocitySlipConditions(v3, self.normals)
         self.ApplyVelocityDirichletConditions(vold,v_dirichlet,0.5,v3)
@@ -545,8 +566,10 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         vel = self.ElemData(v3, self.connectivity)
         k3 = self.ComputeVelocityResidual(vel, pel, b_el, conv_proj_el, div_proj_el, self.DN,self.tau_1)
         k3.reshape(-1)[:] *= (1.0/self.rho) * self.Minv
+        print(f"k3 time: {time.perf_counter() - t0}")
 
         # --- k4 ---
+        t0 = time.perf_counter()
         v4 = vold + dt * k3
         self.ApplyVelocitySlipConditions(v4, self.normals)
         self.ApplyVelocityDirichletConditions(vold,v_dirichlet,1.0,v4)
@@ -554,11 +577,16 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         vel = self.ElemData(v4, self.connectivity)
         k4 = self.ComputeVelocityResidual(vel, pel, b_el, conv_proj_el, div_proj_el, self.DN,self.tau_1)
         k4.reshape(-1)[:] *= (1.0/self.rho) * self.Minv
+        print(f"k4 time: {time.perf_counter() - t0}")
 
         # --- final RK4 update ---
         vnew = vold + (dt/6.0) * (k1 + 2*k2 + 2*k3 + k4)
+        t0 = time.perf_counter()
         self.ApplyVelocitySlipConditions(vnew, self.normals)
+        print(f"Apply SLIP time: {time.perf_counter() - t0}")
+        t0 = time.perf_counter()
         self.ApplyVelocityDirichletConditions(vold, v_dirichlet,1.0,vnew)
+        print(f"Apply DIRICHLET time: {time.perf_counter() - t0}")
 
         return vnew
 
@@ -729,54 +757,90 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         self.p_adaptor.StoreData()
 
     def ComputeVelocityResidual(self, v_elemental, p_elemental, b_elemental, proj_elemental, proj_div_el, DN, tau):
+        
+        ttot = time.perf_counter()
 
         # Initialize residual
         res = xp.zeros(v_elemental.shape, dtype=cfd_utils.PRECISION)
 
         #(w,b)
+        t0 = time.perf_counter()
         res += self.rho * self.cfd_utils.ComputeBodyForceContribution(self.N_int_order, b_elemental)
+        print(f"\t\ttime {1}: {time.perf_counter() - t0}")
 
         #-(w,rho·a·∇u) - (rho·a·∇w,tau_1·rho·a·∇u) + (rho·a·∇w,tau_1·Pi_conv)
+        t0 = time.perf_counter()
         grad_v = self.cfd_utils.ComputeElementalGradient(DN, v_elemental)
+        a_grad = self.cfd_utils.ComputeElementalConvectiveOperator(v_elemental, DN)
         v_el_gauss = self.cfd_utils.InterpolateValue(self.N_int_order, v_elemental)
         proj_el_gauss = self.cfd_utils.InterpolateValue(self.N_int_order, proj_elemental)
+        print(f"\t\ttime {2}: {time.perf_counter() - t0}")
 
+        t0 = time.perf_counter()
         tmp = self.rho * self.cfd_utils.ComputeConvectiveContribution(self.N_int_order, grad_v, v_el_gauss) #(w,rho·a·∇u)
-        tmp_stab = self.cfd_utils.ComputeMomentumStabilization(self.N_int_order, DN, v_elemental, v_el_gauss, proj_el_gauss, self.rho) #(rho·a·∇w,rho·a·∇u) - (rho·a·∇w,Pi_conv)
 
+        N_edges = self.cfd_utils.GetShapeFunctionsOnEdgeMidpoints(self.dim)
+        tmp_2 = self.rho * self.cfd_utils.ComputeConvectiveContributionOnEdgeMidpoints(N_edges, a_grad, v_elemental) #(w,rho·a·∇u)
+
+        print(f"\t\ttime {3}: {time.perf_counter() - t0}")
+        t0 = time.perf_counter()
+        tmp_stab = self.cfd_utils.ComputeMomentumStabilization(self.N_int_order, DN, v_elemental, v_el_gauss, proj_el_gauss, self.rho) #(rho·a·∇w,rho·a·∇u) - (rho·a·∇w,Pi_conv)
+        print(f"\t\ttime {4}: {time.perf_counter() - t0}")
+
+        t0 = time.perf_counter()
         del grad_v
         del v_el_gauss
         del proj_el_gauss
+        print(f"\t\ttime {5}: {time.perf_counter() - t0}")
 
+        t0 = time.perf_counter()
         convective = xp.tensordot(tmp, self.w_int_order, axes=(1, 0)) #weighted integration over Gauss points (Jacobian determinant is applied at the end)
         convective_stab = xp.tensordot(tmp_stab, self.w_int_order, axes=(1, 0)) #weighted integration over Gauss points (Jacobian determinant is applied at the end)
+        print(f"\t\ttime {6}: {time.perf_counter() - t0}")
 
+        t0 = time.perf_counter()
         del tmp
         del tmp_stab
+        print(f"\t\ttime {7}: {time.perf_counter() - t0}")
 
+        t0 = time.perf_counter()
         res -= convective #assemble convective contribution
         res -= convective_stab * self.tau_1[:, None, None] #assemble convective stabilization contribution
+        print(f"\t\ttime {8}: {time.perf_counter() - t0}")
 
         del convective
         del convective_stab
 
         #-(∇w,∇u)
+        t0 = time.perf_counter()
         res -= self.dyn_visc * self.cfd_utils.ApplyLaplacian(DN, v_elemental)
+        print(f"\t\ttime {9}: {time.perf_counter() - t0}")
 
         #+(∇·w,p_gauss)
+        t0 = time.perf_counter()
         res += self.cfd_utils.Compute_DN_N(self.N, DN, p_elemental)
+        print(f"\t\ttime {10}: {time.perf_counter() - t0}")
 
         #-(∇·w,tau_2·∇·v) + (∇·w,tau_2·Pi_div)
+        t0 = time.perf_counter()
         div_div_stab = self.cfd_utils.ComputeDivDivStabilization(self.N, DN, v_elemental, proj_div_el)
         res -= div_div_stab * self.tau_2[:,np.newaxis,np.newaxis]
+        print(f"\t\ttime {11}: {time.perf_counter() - t0}")
 
         # Multiply by volume
         # Note that the convective term already includes the corresponding weighting factor to emulate the Jacobian determinant, so we just need to apply the volume here)
+        t0 = time.perf_counter()
         res *= self.elemental_volumes[:,xp.newaxis,xp.newaxis]
+        print(f"\t\ttime {12}: {time.perf_counter() - t0}")
 
         # Vectorized assembly of the elemental contributions into the nodal residual
+        t0 = time.perf_counter()
         res_assembled = xp.zeros((self.nnodes,self.dim),dtype=res.dtype)
         self.cfd_utils.AssembleVector(self.connectivity, res, res_assembled)
+        print(f"\t\ttime {13}: {time.perf_counter() - t0}")
+
+        print(f"\t Time inside ComputeVelocityResidual: {time.perf_counter() - ttot}")
+
         return res_assembled
 
     def GetStep(self):
@@ -967,13 +1031,13 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
                 return self.x_amgx.download(), is_converged
             else:
-                # precond = JacobiPreconditioner(self.L)
-                if self.update_precond:
-                    t0 = time.perf_counter()
-                    self.graph_sa.update_matrix_values(self.L)
-                    print(f"AMG graph update time: {time.perf_counter() - t0:.4f} seconds")
-                    self.update_precond = True
-                precond = self.graph_sa.aspreconditioner()
+                precond = JacobiPreconditioner(self.L)
+                # if self.update_precond:
+                #     t0 = time.perf_counter()
+                #     self.graph_sa.update_matrix_values(self.L)
+                #     print(f"AMG graph update time: {time.perf_counter() - t0:.4f} seconds")
+                #     self.update_precond = True
+                # precond = self.graph_sa.aspreconditioner()
 
                 # Solve and get convergence status
                 t0 = time.perf_counter()
