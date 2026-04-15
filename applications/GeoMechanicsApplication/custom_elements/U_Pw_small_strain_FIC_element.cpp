@@ -531,7 +531,7 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLeftHa
 template <unsigned int TDim, unsigned int TNumNodes>
 double UPwSmallStrainFICElement<TDim, TNumNodes>::CalculateShearModulus(const Matrix& ConstitutiveMatrix) const
 {
-    const int IndexG = ConstitutiveMatrix.size1() - 1;
+    const auto IndexG = ConstitutiveMatrix.size1() - 1;
     return ConstitutiveMatrix(IndexG, IndexG);
 }
 

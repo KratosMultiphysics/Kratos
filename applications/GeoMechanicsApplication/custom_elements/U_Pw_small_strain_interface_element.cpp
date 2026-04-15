@@ -1895,9 +1895,9 @@ double UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateBulkModulus(con
 {
     KRATOS_TRY
 
-    const int    IndexM = ConstitutiveMatrix.size1() - 1;
-    const double M      = ConstitutiveMatrix(IndexM, IndexM);
-    const double G      = ConstitutiveMatrix(0, 0);
+    const auto IndexM = ConstitutiveMatrix.size1() - 1;
+    const auto M      = ConstitutiveMatrix(IndexM, IndexM);
+    const auto G      = ConstitutiveMatrix(0, 0);
 
     return M - (4.0 / 3.0) * G;
 
