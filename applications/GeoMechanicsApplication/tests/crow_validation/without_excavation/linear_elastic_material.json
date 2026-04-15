@@ -248,6 +248,7 @@
                     "name": "GeoIncrementalLinearElasticInterfaceLaw"
                 },
                 "Variables": {
+                    "IGNORE_UNDRAINED": true,
                     "INTERFACE_NORMAL_STIFFNESS": 4.615e+07,
                     "INTERFACE_SHEAR_STIFFNESS": 4.615e+06,
                     "BIOT_COEFFICIENT"              : 1.0,
@@ -266,6 +267,7 @@
                     "name": "GeoIncrementalLinearElasticInterfaceLaw"
                 },
                 "Variables": {
+                    "IGNORE_UNDRAINED": true,
                     "INTERFACE_NORMAL_STIFFNESS": 4.615e+07,
                     "INTERFACE_SHEAR_STIFFNESS": 4.615e+06,
                     "BIOT_COEFFICIENT"              : 1.0,
@@ -284,6 +286,7 @@
                     "name": "GeoIncrementalLinearElasticInterfaceLaw"
                 },
                 "Variables": {
+                    "IGNORE_UNDRAINED": true,
                     "INTERFACE_NORMAL_STIFFNESS": 4.615e+06,
                     "INTERFACE_SHEAR_STIFFNESS": 4.615e+06,
                     "BIOT_COEFFICIENT"              : 1.0,
@@ -302,6 +305,7 @@
                     "name": "GeoIncrementalLinearElasticInterfaceLaw"
                 },
                 "Variables": {
+                    "IGNORE_UNDRAINED": true,
                     "INTERFACE_NORMAL_STIFFNESS": 4.615e+07,
                     "INTERFACE_SHEAR_STIFFNESS": 4.615e+06,
                     "BIOT_COEFFICIENT"              : 1.0,
@@ -320,6 +324,7 @@
                     "name": "GeoIncrementalLinearElasticInterfaceLaw"
                 },
                 "Variables": {
+                    "IGNORE_UNDRAINED": true,
                     "INTERFACE_NORMAL_STIFFNESS": 4.615e+07,
                     "INTERFACE_SHEAR_STIFFNESS": 4.615e+06,
                     "BIOT_COEFFICIENT"              : 1.0,
@@ -338,6 +343,7 @@
                     "name": "GeoIncrementalLinearElasticInterfaceLaw"
                 },
                 "Variables": {
+                    "IGNORE_UNDRAINED": true,
                     "INTERFACE_NORMAL_STIFFNESS": 4.615e+07,
                     "INTERFACE_SHEAR_STIFFNESS": 4.615e+06,
                     "BIOT_COEFFICIENT"              : 1.0,
@@ -356,6 +362,7 @@
                     "name": "GeoIncrementalLinearElasticInterfaceLaw"
                 },
                 "Variables": {
+                    "IGNORE_UNDRAINED": true,
                     "INTERFACE_NORMAL_STIFFNESS": 4.615e+07,
                     "INTERFACE_SHEAR_STIFFNESS": 4.615e+06,
                     "BIOT_COEFFICIENT"              : 1.0,
@@ -374,6 +381,7 @@
                     "name": "GeoIncrementalLinearElasticInterfaceLaw"
                 },
                 "Variables": {
+                    "IGNORE_UNDRAINED": true,
                     "INTERFACE_NORMAL_STIFFNESS": 4.615e+06,
                     "INTERFACE_SHEAR_STIFFNESS": 4.615e+06,
                     "BIOT_COEFFICIENT"              : 1.0,
