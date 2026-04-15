@@ -42,7 +42,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateBiotModulusInverse_GivesExpectedResult, Krato
         expected_value);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CalculateBiotModulusInverse_ReturnsLargeNumber_WhenIgnoreUndrained,
+KRATOS_TEST_CASE_IN_SUITE(CalculateBiotModulusInverse_ReturnsLargeNumber_WhenConstantPwField,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Properties properties;
