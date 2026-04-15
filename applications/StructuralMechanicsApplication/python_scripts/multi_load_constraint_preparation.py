@@ -5,7 +5,7 @@ import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsA
 import KratosMultiphysics.scipy_conversion_tools #just for debugging
 
 class MultiLoadConstraintPreparation(AnalysisStage):
-
+    """This stage prepares the LHS of the model and the right hand sides (one for each load process defined in the parameters)"""
     def __init__(self, model, project_parameters):
         self.model = model
         self.settings = project_parameters["solver_settings"]
@@ -31,7 +31,7 @@ class MultiLoadConstraintPreparation(AnalysisStage):
                 self.load_processes = self.project_parameters["process_combinations"]["load_processes"]
 
     def Initialize(self):
-        super().Initialize()
+        super().Initialize() # this calls some functions of the base class and also initializes the strategy data and the scheme
         self.__BuildLHS()
         #self.ApplyBoundaryConditions() -> this is now done in buildrhss
         self.__BuildRHSs()
@@ -127,6 +127,9 @@ class MultiLoadConstraintPreparation(AnalysisStage):
         lhs = linear_system.GetMatrix(KratosMultiphysics.Future.SparseMatrixTag.LHS)
         lhs.SetValue(0.0)
         self.scheme.Build(lhs)
+        #dofset = self.strategy_data.GetDofSet()
+        #reference_state = dofset.GetValues()
+        #print("refstate",reference_state)
         self.lhs = lhs
         KratosMultiphysics.Logger.PrintInfo("::[PreparationStage]:: ", "LHS built")
         #KratosMultiphysics.Logger.PrintInfo(lhs)
