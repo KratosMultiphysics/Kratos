@@ -254,7 +254,16 @@ public:
      */
     static void GlobalAssemble(MatrixType& rA)
     {
-        if (rA.isFillActive()) {
+        // endAssembly() is an MPI collective on FECrsMatrix. All ranks must call it,
+        // even idle ones that contributed no entries (and therefore never called
+        // beginAssembly() via AssembleLHS). Open the matrix first if needed.
+        auto p_fe_rA = dynamic_cast<MatrixType*>(&rA);
+        if (p_fe_rA) {
+            if (!rA.isFillActive()) {
+                p_fe_rA->beginAssembly();
+            }
+            p_fe_rA->endAssembly();
+        } else if (rA.isFillActive()) {
             rA.endAssembly();
         }
     }
@@ -1296,6 +1305,26 @@ public:
             }
         }
 
+        // Force ALL ranks into the FECrsGraph "hard case" if any rank has ghosts.
+        // Idle ranks (e.g. LocalSize==0, no elements) would otherwise take the
+        // "easy path" in endAssembly(), which skips the MPI collectives that
+        // active ranks call, causing a collective mismatch and crash.
+        {
+            GO has_ghosts_local = ghost_gids_set.empty() ? GO(0) : GO(1);
+            GO has_ghosts_global = GO(0);
+            Teuchos::reduceAll(*comm, Teuchos::REDUCE_MAX, 1, &has_ghosts_local, &has_ghosts_global);
+            if (has_ghosts_global > GO(0) && ghost_gids_set.empty()) {
+                // Add a dummy ghost from the first rank that owns any DOFs.
+                for (int p = 0; p < nproc; ++p) {
+                    const GO q_first = allFirstIds[p];
+                    if (allLocalSizes[p] > 0 && (q_first < firstId || q_first >= lastId)) {
+                        ghost_gids_set.insert(q_first);
+                        break;
+                    }
+                }
+            }
+        }
+
         // Step 3: Build OWNED_PLUS_SHARED map.
         // After symmetric expansion every process with any cross-partition elements
         // has a non-trivially-different OPS map → all enter FECrsGraph's hard case
@@ -1439,6 +1468,23 @@ public:
                 const GO q_first = allFirstIds[q];
                 if (q_first < firstId || q_first >= lastId)
                     ghost_gids_set.insert(q_first);
+            }
+        }
+
+        // Force ALL ranks into the FECrsGraph "hard case" if any rank has ghosts.
+        // (same logic as the single-block overload above)
+        {
+            GO has_ghosts_local = ghost_gids_set.empty() ? GO(0) : GO(1);
+            GO has_ghosts_global = GO(0);
+            Teuchos::reduceAll(*comm, Teuchos::REDUCE_MAX, 1, &has_ghosts_local, &has_ghosts_global);
+            if (has_ghosts_global > GO(0) && ghost_gids_set.empty()) {
+                for (int p = 0; p < nproc; ++p) {
+                    const GO q_first = allFirstIds[p];
+                    if (allLocalSizes[p] > 0 && (q_first < firstId || q_first >= lastId)) {
+                        ghost_gids_set.insert(q_first);
+                        break;
+                    }
+                }
             }
         }
 
@@ -2093,8 +2139,14 @@ public:
             if (empty) {
                 // replaceValues expects LOCAL column indices, not global IDs.
                 // Convert the global diagonal column ID to a local column index.
-                const LO local_diag_col = static_cast<LO>(colMap->getLocalElement(row_gid));
-                localMatrix.replaceValues(i, &local_diag_col, 1, &scale_factor, false, true);
+                // This is safe as long as the colMap contains the diagonal entry,
+                // which is guaranteed for owned rows in any properly-structured Tpetra matrix.
+                if (!colMap.is_null()) {
+                    const LO local_diag_col = static_cast<LO>(colMap->getLocalElement(row_gid));
+                    if (local_diag_col != Teuchos::OrdinalTraits<LO>::invalid()) {
+                        localMatrix.replaceValues(i, &local_diag_col, 1, &scale_factor, false, true);
+                    }
+                }
                 localRhs(i, 0) = 0.0;
             }
         }
