@@ -760,7 +760,6 @@ KRATOS_TEST_CASE_IN_SUITE(TrilinosMatrixMarketVector, KratosTrilinosApplicationM
     }
 }
 
-
 KRATOS_TEST_CASE_IN_SUITE(TrilinosIsDistributedSpace, KratosTrilinosApplicationMPITestSuite)
 {
     KRATOS_EXPECT_TRUE(TrilinosSparseSpaceType::IsDistributedSpace());
