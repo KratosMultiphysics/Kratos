@@ -1026,12 +1026,8 @@ public:
             const TSystemMatrixType& r_T = GetConstraintRelationMatrix();
 
             // Compute T' A T
-            if constexpr (TSparseSpace::LinearAlgebraLibrary() == TrilinosLinearAlgebraLibrary::EPETRA) {
-                const TSystemMatrixType copy_A(rA);
-                TSparseSpace::BtDBProductOperation(rA, copy_A, r_T, true, true);
-            } else {
-                KRATOS_ERROR << "Only EPETRA is supported for now" << std::endl;
-            }
+            const auto p_copy_A = TSparseSpace::CreateMatrixCopy(rA);
+            TSparseSpace::BtDBProductOperation(rA, *p_copy_A, r_T, true, true);
 
             // Compute T' b
             auto p_copy_b = TSparseSpace::CreateVectorCopy(rb);
