@@ -540,7 +540,7 @@ double integration_weight_inplane =
 
               noalias(B_hat)       = prod(trans(T), B_local);
               noalias(MID_hat)     = prod(trans(T), MID_local);
-              noalias(MID_bar_hat) = MID_bar_local;
+              noalias(MID_bar_hat) = prod(trans(T), MID_bar_local);
               Matrix zero=ZeroMatrix(6, mat_size);
                row(MID_hat,2) = row(zero,2);
               
@@ -556,7 +556,7 @@ double integration_weight_inplane =
                 
 
                 double integration_weight =
-                   integration_weight_inplane; // * m_dA_vector[point_number]; 
+                   int_w; // * m_dA_vector[point_number]; 
                
             
                     

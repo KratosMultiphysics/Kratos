@@ -3502,17 +3502,7 @@ public:
         KRATOS_ERROR << "Calling base class ShapeFunctionsValuesLowerOrderAll method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
         return rResult;
     }
-     virtual Vector& ShapeFunctionsValuesLowerOrderAll_1 (Vector &rResult, const CoordinatesArrayType& rCoordinates) const
-    {
-        KRATOS_ERROR << "Calling base class ShapeFunctionsValuesLowerOrderAll_1 method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
-        return rResult;
-    }
-     virtual Vector& ShapeFunctionsValuesLowerOrderAll_2 (Vector &rResult, const CoordinatesArrayType& rCoordinates) const
-    {
-        KRATOS_ERROR << "Calling base class ShapeFunctionsValuesLowerOrderAll_2 method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
-        return rResult;
-    }
-
+    
     /** This method gives all shape functions values evaluated in all
     integration points of given integration method. There is no
     calculation and it just give it from shape functions values

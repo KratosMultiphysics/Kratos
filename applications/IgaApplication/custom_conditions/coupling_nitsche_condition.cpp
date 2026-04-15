@@ -298,6 +298,8 @@ namespace Kratos
 
         const double stabilization_parameter = GetProperties()[NITSCHE_STABILIZATION_FACTOR];
 
+        KRATOS_WATCH(stabilization_parameter)
+
         const auto& r_geometry_master = GetGeometry().GetGeometryPart(0);
         const auto& r_geometry_slave = GetGeometry().GetGeometryPart(1);
 
@@ -391,6 +393,8 @@ namespace Kratos
             m_n_contravariant_vector_master[point_number] = kinematic_variables_reference_master.n_contravariant;
             m_n_contravariant_vector_slave[point_number] = kinematic_variables_reference_slave.n_contravariant;
 
+            KRATOS_WATCH("test")
+
             CalculateTransformation(kinematic_variables_reference_master, m_T_vector_master[point_number], m_T_hat_vector_master[point_number], m_reference_contravariant_base_master[point_number]);
             CalculateTransformation(kinematic_variables_reference_slave, m_T_vector_slave[point_number], m_T_hat_vector_slave[point_number], m_reference_contravariant_base_slave[point_number]);
 
@@ -431,28 +435,28 @@ namespace Kratos
                 PatchType::Slave);
 
             //Prestress component
-            array_1d<double, 3> prestress_master = GetProperties().GetSubProperties().front()[PRESTRESS]*GetProperties().GetSubProperties().front()[THICKNESS];
-            array_1d<double, 3> prestress_slave = GetProperties().GetSubProperties().back()[PRESTRESS]*GetProperties().GetSubProperties().back()[THICKNESS];
-            array_1d<double, 3> transformed_prestress_master, transformed_prestress_slave;
+            // array_1d<double, 3> prestress_master = GetProperties().GetSubProperties().front()[PRESTRESS]*GetProperties().GetSubProperties().front()[THICKNESS];
+            // array_1d<double, 3> prestress_slave = GetProperties().GetSubProperties().back()[PRESTRESS]*GetProperties().GetSubProperties().back()[THICKNESS];
+            // array_1d<double, 3> transformed_prestress_master, transformed_prestress_slave;
 
-            Matrix T_pre_master = ZeroMatrix(3, 3);
-            Matrix T_pre_slave = ZeroMatrix(3, 3);
+            // Matrix T_pre_master = ZeroMatrix(3, 3);
+            // Matrix T_pre_slave = ZeroMatrix(3, 3);
 
-            if (Has(LOCAL_PRESTRESS_AXIS_1)) //for anisotropic prestress case
-            {
-                CalculateTransformationPrestress(T_pre_master, kinematic_variables_master);
-                CalculateTransformationPrestress(T_pre_slave, kinematic_variables_slave);
-                transformed_prestress_master = prod(T_pre_master, prestress_master);
-                transformed_prestress_slave = prod(T_pre_slave, prestress_slave);
-            }
-            else //for isotropic prestress case
-            {
-                transformed_prestress_master = prestress_master;
-                transformed_prestress_slave = prestress_slave;
-            }
+            // if (Has(LOCAL_PRESTRESS_AXIS_1)) //for anisotropic prestress case
+            // {
+            //     CalculateTransformationPrestress(T_pre_master, kinematic_variables_master);
+            //     CalculateTransformationPrestress(T_pre_slave, kinematic_variables_slave);
+            //     transformed_prestress_master = prod(T_pre_master, prestress_master);
+            //     transformed_prestress_slave = prod(T_pre_slave, prestress_slave);
+            // }
+            // else //for isotropic prestress case
+            // {
+                // transformed_prestress_master = prestress_master;
+                // transformed_prestress_slave = prestress_slave;
+            // }
             
-            constitutive_variables_membrane_master.StressVector += transformed_prestress_master;
-            constitutive_variables_membrane_slave.StressVector += transformed_prestress_slave;
+            // constitutive_variables_membrane_master.StressVector += transformed_prestress_master;
+            // constitutive_variables_membrane_slave.StressVector += transformed_prestress_slave;
 
             // calculate traction vectors
             array_1d<double, 3> traction_vector_master;

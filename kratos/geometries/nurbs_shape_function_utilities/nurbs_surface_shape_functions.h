@@ -371,68 +371,7 @@ public:
         }
     }
     // p-1,q-2
-     void ComputeBSplineShapeFunctionValuesAtSpanAll_1(
-        const Vector& rKnotsU,
-        const Vector& rKnotsV,
-        const int SpanU,
-        const int SpanV,
-        const double ParameterU,
-        const double ParameterV)
-    {
-        mShapeFunctionValues = ZeroVector(mShapeFunctionValues.size());
-
-        mFirstNonzeroControlPointU = SpanU - PolynomialDegreeU() + 1;
-        mFirstNonzeroControlPointV = SpanV - PolynomialDegreeV() + 1;
-
-        // compute 1D shape functions
-        mShapeFunctionsU.ComputeBSplineShapeFunctionValuesAtSpanLowerOrder(rKnotsU, SpanU, ParameterU);
-        mShapeFunctionsV.ComputeBSplineShapeFunctionValuesAtSpanLowerOrder_2(rKnotsV, SpanV, ParameterV);
-
-        // compute 2D shape functions
-        for (IndexType i = 0; i <= DerivativeOrder() ; i++) {
-            for (IndexType j = 0; j <= DerivativeOrder() - i; j++) {
-                for (IndexType a = 0; a < NumberOfNonzeroControlPointsU(); a++) {
-                    for (IndexType b = 0; b < NumberOfNonzeroControlPointsV(); b++) {
-                        const IndexType index = IndexOfShapeFunctionRow(i, j);
-
-                        ShapeFunctionValue(a, b, index) = mShapeFunctionsU(a, i) * mShapeFunctionsV(b, j);
-                    }
-                }
-            }
-        }
-    }
-
-    // p-2,q-1
-     void ComputeBSplineShapeFunctionValuesAtSpanAll_2(
-        const Vector& rKnotsU,
-        const Vector& rKnotsV,
-        const int SpanU,
-        const int SpanV,
-        const double ParameterU,
-        const double ParameterV)
-    {
-        mShapeFunctionValues = ZeroVector(mShapeFunctionValues.size());
-
-        mFirstNonzeroControlPointU = SpanU - PolynomialDegreeU() + 1;
-        mFirstNonzeroControlPointV = SpanV - PolynomialDegreeV() + 1;
-
-        // compute 1D shape functions
-        mShapeFunctionsU.ComputeBSplineShapeFunctionValuesAtSpanLowerOrder_2(rKnotsU, SpanU, ParameterU);
-        mShapeFunctionsV.ComputeBSplineShapeFunctionValuesAtSpanLowerOrder(rKnotsV, SpanV, ParameterV);
-
-        // compute 2D shape functions
-        for (IndexType i = 0; i <= DerivativeOrder() ; i++) {
-            for (IndexType j = 0; j <= DerivativeOrder() - i; j++) {
-                for (IndexType a = 0; a < NumberOfNonzeroControlPointsU(); a++) {
-                    for (IndexType b = 0; b < NumberOfNonzeroControlPointsV(); b++) {
-                        const IndexType index = IndexOfShapeFunctionRow(i, j);
-
-                        ShapeFunctionValue(a, b, index) = mShapeFunctionsU(a, i) * mShapeFunctionsV(b, j);
-                    }
-                }
-            }
-        }
-    }
+    
 
     void ComputeBSplineShapeFunctionValues(
         const Vector& rKnotsU,
@@ -505,40 +444,7 @@ public:
             ParameterU,
             ParameterV);
     }
-    void ComputeBSplineShapeFunctionValuesAll_1(
-        const Vector& rKnotsU,
-        const Vector& rKnotsV,
-        const double ParameterU,
-        const double ParameterV)
-    {
-        const IndexType SpanU = NurbsUtilities::GetLowerSpan(PolynomialDegreeU(), rKnotsU, ParameterU);
-        const IndexType SpanV = NurbsUtilities::GetLowerSpan(PolynomialDegreeV(), rKnotsV, ParameterV);
-
-        ComputeBSplineShapeFunctionValuesAtSpanAll_1(
-            rKnotsU,
-            rKnotsV,
-            SpanU,
-            SpanV,
-            ParameterU,
-            ParameterV);
-    }
-    void ComputeBSplineShapeFunctionValuesAll_2(
-        const Vector& rKnotsU,
-        const Vector& rKnotsV,
-        const double ParameterU,
-        const double ParameterV)
-    {
-        const IndexType SpanU = NurbsUtilities::GetLowerSpan(PolynomialDegreeU(), rKnotsU, ParameterU);
-        const IndexType SpanV = NurbsUtilities::GetLowerSpan(PolynomialDegreeV(), rKnotsV, ParameterV);
-
-        ComputeBSplineShapeFunctionValuesAtSpanAll_2(
-            rKnotsU,
-            rKnotsV,
-            SpanU,
-            SpanV,
-            ParameterU,
-            ParameterV);
-    }
+   
 
     void ComputeNurbsShapeFunctionValuesAtSpan(
         const Vector& rKnotsU,
@@ -863,166 +769,7 @@ public:
             }
         }
     }
-    void ComputeNurbsShapeFunctionValuesAtSpanAll_1(
-        const Vector& rKnotsU,
-        const Vector& rKnotsV,
-        const IndexType SpanU,
-        const IndexType SpanV,
-        const Vector& Weights,
-        const double ParameterU,
-        const double ParameterV)
-    {
-        // Check input
-        KRATOS_DEBUG_ERROR_IF(Weights.size() !=
-            (NurbsUtilities::GetNumberOfControlPoints(PolynomialDegreeU(), rKnotsU.size())
-                * NurbsUtilities::GetNumberOfControlPoints(PolynomialDegreeV(), rKnotsV.size())))
-            << "Number of controls points and polynomial degrees and number of knots do not match!" << std::endl;
-
-        // compute B-Spline shape functions
-        ComputeBSplineShapeFunctionValuesAtSpanAll_1(
-            rKnotsU, rKnotsV, SpanU, SpanV, ParameterU, ParameterV);
-
-        // apply weights
-        for (IndexType shape_row_index = 0; shape_row_index < NumberOfShapeFunctionRows(); shape_row_index++) {
-            GetWeightedSum(shape_row_index) = double(0);
-
-            for (IndexType u = 0; u < NumberOfNonzeroControlPointsU(); u++) {
-                for (IndexType v = 0; v < NumberOfNonzeroControlPointsV(); v++) {
-                    const IndexType ControlPointIndexU = GetFirstNonzeroControlPointU() + u;
-                    const IndexType ControlPointIndexV = GetFirstNonzeroControlPointV() + v;
-
-                    const double weight = Weights(GetControlPointIndex(rKnotsU.size(), rKnotsV.size(), ControlPointIndexU, ControlPointIndexV));
-                    ShapeFunctionValue(u, v, shape_row_index) *= weight;
-                    GetWeightedSum(shape_row_index) += ShapeFunctionValue(u, v, shape_row_index);
-                }
-            }
-        }
-
-        for (IndexType k = 0; k <= DerivativeOrder(); k++) {
-            for (IndexType l = 0; l <= DerivativeOrder() - k; l++) {
-                const IndexType shape = IndexOfShapeFunctionRow(k, l);
-
-                for (IndexType j = 1; j <= l; j++) {
-                    const IndexType index = IndexOfShapeFunctionRow(k, l - j);
-
-                    double a = NurbsUtilities::GetBinomCoefficient(l, j) * GetWeightedSum(0, j);
-
-                    for (IndexType p = 0; p < NumberOfNonzeroControlPoints(); p++) {
-                        ShapeFunctionValue(p, shape) -= a * ShapeFunctionValue(p, index);
-                    }
-                }
-
-                for (IndexType i = 1; i <= k; i++) {
-                    const IndexType index = IndexOfShapeFunctionRow(k - i, l);
-
-                    double a = NurbsUtilities::GetBinomCoefficient(k, i) * GetWeightedSum(i, 0);
-
-                    for (IndexType p = 0; p < NumberOfNonzeroControlPoints(); p++) {
-                        ShapeFunctionValue(p, shape) -= a * ShapeFunctionValue(p, index);
-                    }
-                }
-
-                for (IndexType i = 1; i <= k; i++) {
-                    const double a = NurbsUtilities::GetBinomCoefficient(k, i);
-
-                    for (IndexType j = 1; j <= l; j++) {
-                        const IndexType index = IndexOfShapeFunctionRow(k - i, l - j);
-
-                        const double b = a * NurbsUtilities::GetBinomCoefficient(l, j) *
-                            GetWeightedSum(i, j);
-
-                        for (IndexType p = 0; p < NumberOfNonzeroControlPoints(); p++) {
-                            ShapeFunctionValue(p, shape) -= b * ShapeFunctionValue(p, index);
-                        }
-                    }
-                }
-
-                for (IndexType p = 0; p < NumberOfNonzeroControlPoints(); p++) {
-                    ShapeFunctionValue(p, shape) /= GetWeightedSum(0);
-                }
-            }
-        }
-    }
-    void ComputeNurbsShapeFunctionValuesAtSpanAll_2(
-        const Vector& rKnotsU,
-        const Vector& rKnotsV,
-        const IndexType SpanU,
-        const IndexType SpanV,
-        const Vector& Weights,
-        const double ParameterU,
-        const double ParameterV)
-    {
-        // Check input
-        KRATOS_DEBUG_ERROR_IF(Weights.size() !=
-            (NurbsUtilities::GetNumberOfControlPoints(PolynomialDegreeU(), rKnotsU.size())
-                * NurbsUtilities::GetNumberOfControlPoints(PolynomialDegreeV(), rKnotsV.size())))
-            << "Number of controls points and polynomial degrees and number of knots do not match!" << std::endl;
-
-        // compute B-Spline shape functions
-        ComputeBSplineShapeFunctionValuesAtSpanAll_2(
-            rKnotsU, rKnotsV, SpanU, SpanV, ParameterU, ParameterV);
-
-        // apply weights
-        for (IndexType shape_row_index = 0; shape_row_index < NumberOfShapeFunctionRows(); shape_row_index++) {
-            GetWeightedSum(shape_row_index) = double(0);
-
-            for (IndexType u = 0; u < NumberOfNonzeroControlPointsU(); u++) {
-                for (IndexType v = 0; v < NumberOfNonzeroControlPointsV(); v++) {
-                    const IndexType ControlPointIndexU = GetFirstNonzeroControlPointU() + u;
-                    const IndexType ControlPointIndexV = GetFirstNonzeroControlPointV() + v;
-
-                    const double weight = Weights(GetControlPointIndex(rKnotsU.size(), rKnotsV.size(), ControlPointIndexU, ControlPointIndexV));
-                    ShapeFunctionValue(u, v, shape_row_index) *= weight;
-                    GetWeightedSum(shape_row_index) += ShapeFunctionValue(u, v, shape_row_index);
-                }
-            }
-        }
-
-        for (IndexType k = 0; k <= DerivativeOrder(); k++) {
-            for (IndexType l = 0; l <= DerivativeOrder() - k; l++) {
-                const IndexType shape = IndexOfShapeFunctionRow(k, l);
-
-                for (IndexType j = 1; j <= l; j++) {
-                    const IndexType index = IndexOfShapeFunctionRow(k, l - j);
-
-                    double a = NurbsUtilities::GetBinomCoefficient(l, j) * GetWeightedSum(0, j);
-
-                    for (IndexType p = 0; p < NumberOfNonzeroControlPoints(); p++) {
-                        ShapeFunctionValue(p, shape) -= a * ShapeFunctionValue(p, index);
-                    }
-                }
-
-                for (IndexType i = 1; i <= k; i++) {
-                    const IndexType index = IndexOfShapeFunctionRow(k - i, l);
-
-                    double a = NurbsUtilities::GetBinomCoefficient(k, i) * GetWeightedSum(i, 0);
-
-                    for (IndexType p = 0; p < NumberOfNonzeroControlPoints(); p++) {
-                        ShapeFunctionValue(p, shape) -= a * ShapeFunctionValue(p, index);
-                    }
-                }
-
-                for (IndexType i = 1; i <= k; i++) {
-                    const double a = NurbsUtilities::GetBinomCoefficient(k, i);
-
-                    for (IndexType j = 1; j <= l; j++) {
-                        const IndexType index = IndexOfShapeFunctionRow(k - i, l - j);
-
-                        const double b = a * NurbsUtilities::GetBinomCoefficient(l, j) *
-                            GetWeightedSum(i, j);
-
-                        for (IndexType p = 0; p < NumberOfNonzeroControlPoints(); p++) {
-                            ShapeFunctionValue(p, shape) -= b * ShapeFunctionValue(p, index);
-                        }
-                    }
-                }
-
-                for (IndexType p = 0; p < NumberOfNonzeroControlPoints(); p++) {
-                    ShapeFunctionValue(p, shape) /= GetWeightedSum(0);
-                }
-            }
-        }
-    }
+ 
 
     void ComputeNurbsShapeFunctionValues(
         const Vector& rKnotsU,
@@ -1079,33 +826,7 @@ public:
         ComputeNurbsShapeFunctionValuesAtSpanAll(
             rKnotsU, rKnotsV, SpanU, SpanV, Weights, ParameterU, ParameterV);
     }
-     void ComputeNurbsShapeFunctionValuesAll_1(
-        const Vector& rKnotsU,
-        const Vector& rKnotsV,
-        const Vector& Weights,
-        const double ParameterU,
-        const double ParameterV)
-    {
-        const IndexType SpanU = NurbsUtilities::GetLowerSpan(PolynomialDegreeU(), rKnotsU, ParameterU);
-        const IndexType SpanV = NurbsUtilities::GetLowerSpan(PolynomialDegreeV(), rKnotsV, ParameterV);
-
-        ComputeNurbsShapeFunctionValuesAtSpanAll_1(
-            rKnotsU, rKnotsV, SpanU, SpanV, Weights, ParameterU, ParameterV);
-    }
-     void ComputeNurbsShapeFunctionValuesAll_2(
-        const Vector& rKnotsU,
-        const Vector& rKnotsV,
-        const Vector& Weights,
-        const double ParameterU,
-        const double ParameterV)
-    {
-        const IndexType SpanU = NurbsUtilities::GetLowerSpan(PolynomialDegreeU(), rKnotsU, ParameterU);
-        const IndexType SpanV = NurbsUtilities::GetLowerSpan(PolynomialDegreeV(), rKnotsV, ParameterV);
-
-        ComputeNurbsShapeFunctionValuesAtSpanAll_2(
-            rKnotsU, rKnotsV, SpanU, SpanV, Weights, ParameterU, ParameterV);
-    }
-
+  
     ///@}
 private:
     ///@name Operations
