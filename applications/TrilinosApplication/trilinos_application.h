@@ -88,6 +88,12 @@ class KRATOS_API(TRILINOS_APPLICATION) KratosTrilinosApplication : public Kratos
      */
     void Register() override;
 
+    /**
+     * @brief This method is used to unregister specific application components.
+     * @details This method is used to unregister specific application components.
+     */
+    void DeregisterApplication() override;
+
     ///@}
     ///@name Access
     ///@{
@@ -128,7 +134,6 @@ class KRATOS_API(TRILINOS_APPLICATION) KratosTrilinosApplication : public Kratos
     ///@{
 
     ///@}
-
    protected:
     ///@name Protected static Member Variables
     ///@{
@@ -136,6 +141,8 @@ class KRATOS_API(TRILINOS_APPLICATION) KratosTrilinosApplication : public Kratos
     ///@}
     ///@name Protected member Variables
     ///@{
+
+    // Tpetra::ScopeGuard mTpetraScope; TODO: Tpetra::ScopeGuard member variable. Think how to manage this depending if TPetra is used or not
 
     ///@}
     ///@name Protected Operators

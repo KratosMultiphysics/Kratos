@@ -30,6 +30,13 @@ void KratosTrilinosApplication::Register()
                     << "Initializing KratosTrilinosApplication..." << std::endl;
 
     RegisterTrilinosLinearSolvers();
+
+    // TODO: Tpetra::ScopeGuard creation if required
+}
+
+void KratosTrilinosApplication::DeregisterApplication()
+{
+    // TODO: Tpetra::ScopeGuard destruction if required
 }
 
 }  // namespace Kratos.
