@@ -97,7 +97,7 @@ int UPwSmallStrainElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentPro
 
     const CheckProperties check_properties(r_properties, "property", this->Id(),
                                            CheckProperties::Bounds::AllInclusive);
-    bool                  is_constant_pw_field = false;
+    auto                  is_constant_pw_field = false;
     if (r_properties.Has(GEO_DRAINAGE_TYPE)) {
         is_constant_pw_field =
             ConstitutiveLawUtilities::StringToDrainageType(r_properties[GEO_DRAINAGE_TYPE]) ==
