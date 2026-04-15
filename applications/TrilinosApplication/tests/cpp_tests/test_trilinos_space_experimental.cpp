@@ -626,7 +626,7 @@ KRATOS_TEST_CASE_IN_SUITE(TrilinosExperimentalScaleAndAddMatrix, KratosTrilinosA
     TrilinosCPPTestExperimentalUtilities::CheckSparseMatrixFromLocalMatrix(*matrix_2, local_reference);
 }
 
-/* KRATOS_TEST_CASE_IN_SUITE(TrilinosExperimentalMatrixMarket, KratosTrilinosApplicationMPITestSuite)
+KRATOS_TEST_CASE_IN_SUITE(TrilinosExperimentalMatrixMarket, KratosTrilinosApplicationMPITestSuite)
 {
     // The data communicator
     const auto& r_comm = Testing::GetDefaultDataCommunicator();
@@ -652,10 +652,10 @@ KRATOS_TEST_CASE_IN_SUITE(TrilinosExperimentalScaleAndAddMatrix, KratosTrilinosA
     if (r_comm.Rank() == 0) {
         std::remove(file_name.c_str());
     }
-} */
+}
 
 
-/* KRATOS_TEST_CASE_IN_SUITE(TrilinosExperimentalMatrixMarketVector, KratosTrilinosApplicationMPITestSuite)
+KRATOS_TEST_CASE_IN_SUITE(TrilinosExperimentalMatrixMarketVector, KratosTrilinosApplicationMPITestSuite)
 {
     // The data communicator
     const auto& r_comm = Testing::GetDefaultDataCommunicator();
@@ -683,7 +683,7 @@ KRATOS_TEST_CASE_IN_SUITE(TrilinosExperimentalScaleAndAddMatrix, KratosTrilinosA
     if (r_comm.Rank() == 0) {
         std::remove(file_name.c_str());
     }
-} */
+}
 
 
 KRATOS_TEST_CASE_IN_SUITE(TrilinosExperimentalTransposeMultMatrixVector, KratosTrilinosApplicationMPITestSuite)
