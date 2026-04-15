@@ -18,6 +18,9 @@
 
 // Project includes
 #include "trilinos_space.h"
+#if (HAVE_TPETRA)
+#include "trilinos_space_experimental.h"
+#endif
 
 namespace Kratos
 {
@@ -140,8 +143,33 @@ public:
                     }
                 }
             }
+        } else if constexpr (TSparseSpace::LinearAlgebraLibrary() == TrilinosLinearAlgebraLibrary::TPETRA) {
+        #if (HAVE_TPETRA)
+            using GO = typename MatrixType::global_ordinal_type;
+            using ST = typename MatrixType::scalar_type;
+            const std::size_t system_size = rT.getGlobalNumRows();
+
+            for (std::size_t i = 0; i < rSlaveEquationId.size(); ++i) {
+                if (rSlaveEquationId[i] < system_size) {
+                    const GO global_id = static_cast<GO>(rSlaveEquationId[i]);
+                    std::vector<GO> indices;
+                    std::vector<ST> values;
+                    for (std::size_t j = 0; j < rMasterEquationId.size(); ++j) {
+                        if (rMasterEquationId[j] < system_size) {
+                            indices.push_back(static_cast<GO>(rMasterEquationId[j]));
+                            values.push_back(static_cast<ST>(rTContribution(i, j)));
+                        }
+                    }
+                    if (indices.size() > 0) {
+                        rT.sumIntoGlobalValues(global_id, indices.size(), values.data(), indices.data());
+                    }
+                }
+            }
+        #else
+            KRATOS_ERROR << "You must compile Kratos with TPETRA support" << std::endl;
+        #endif
         } else {
-            KRATOS_ERROR << "Only Epetra_MpiComm is supported for now" << std::endl;
+            KRATOS_ERROR << "Only EPETRA and TPETRA are supported for now" << std::endl;
         }
     }
 
@@ -184,8 +212,24 @@ public:
                 const int ierr = rC.SumIntoGlobalValues(indices, values);
                 KRATOS_ERROR_IF(ierr != 0) << "Epetra failure found" << std::endl;
             }
+        } else if constexpr (TSparseSpace::LinearAlgebraLibrary() == TrilinosLinearAlgebraLibrary::TPETRA) {
+        #if (HAVE_TPETRA)
+            using GO = typename VectorType::global_ordinal_type;
+            using ST = typename VectorType::scalar_type;
+            const std::size_t system_size = rC.getGlobalLength();
+
+            for (std::size_t i = 0; i < rSlaveEquationId.size(); ++i) {
+                if (rSlaveEquationId[i] < system_size) {
+                    const GO global_id = static_cast<GO>(rSlaveEquationId[i]);
+                    const ST val = static_cast<ST>(rConstantContribution[i]);
+                    rC.sumIntoGlobalValue(global_id, size_t(0), val);
+                }
+            }
+        #else
+            KRATOS_ERROR << "You must compile Kratos with TPETRA support" << std::endl;
+        #endif
         } else {
-            KRATOS_ERROR << "Only EPETRA is supported for now" << std::endl;
+            KRATOS_ERROR << "Only EPETRA and TPETRA are supported for now" << std::endl;
         }
     }
 
