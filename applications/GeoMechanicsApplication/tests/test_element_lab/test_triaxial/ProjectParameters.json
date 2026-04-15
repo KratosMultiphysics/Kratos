@@ -3,13 +3,13 @@
         "problem_name": "triaxial",
         "parallel_type": "OpenMP",
         "echo_level": 1,
-        "start_time": 0.0,
+        "start_time": -0.1,
         "end_time": 1.0
     },
     "solver_settings": {
         "time_stepping": {
             "time_step": 1.0e-02,
-            "max_delta_time_factor": 1
+            "max_delta_time_factor": 1.0
         },
         "solver_type": "U_Pw",
         "solution_type": "Quasi-Static",
