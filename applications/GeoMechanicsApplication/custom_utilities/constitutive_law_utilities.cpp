@@ -113,7 +113,7 @@ void ConstitutiveLawUtilities::ValidateFrictionAngle(const Properties& rProperti
         phi_name = "Phi";
     }
 
-    if (phi_name == "") {
+    if (phi_name.empty()) {
         KRATOS_ERROR << "Properties ( " << rProperties.Id() << ") of element ( " << ElementId
                      << ") does not have GEO_FRICTION_ANGLE nor INDEX_OF_UMAT_PHI_PARAMETER." << std::endl;
     }
@@ -170,8 +170,8 @@ void ConstitutiveLawUtilities::CheckHasStrainMeasure_Infinitesimal(const Propert
 {
     ConstitutiveLaw::Features LawFeatures;
     rProperties[CONSTITUTIVE_LAW]->GetLawFeatures(LawFeatures);
-    const auto correct_strain_measure = std::any_of(
-        LawFeatures.mStrainMeasures.begin(), LawFeatures.mStrainMeasures.end(), [](auto& strain_measure) {
+    const auto correct_strain_measure =
+        std::ranges::any_of(LawFeatures.mStrainMeasures, [](auto& strain_measure) {
         return strain_measure == ConstitutiveLaw::StrainMeasure_Infinitesimal;
     });
 
@@ -189,11 +189,12 @@ double ConstitutiveLawUtilities::CalculateK0NCFromFrictionAngleInRadians(double 
 DrainageType ConstitutiveLawUtilities::StringToDrainageType(const std::string& rDrainageTypeName)
 {
     using namespace std::string_literals;
+    using enum DrainageType;
     const std::map<std::string, DrainageType> drainage_type_map = {
-        {"drained"s, DrainageType::DRAINED},
-        {"fully_coupled"s, DrainageType::FULLY_COUPLED},
-        {"undrained"s, DrainageType::UNDRAINED},
-        {"constant_pw_field"s, DrainageType::CONSTANT_WATER_PRESSURE}};
+        {"drained"s, DRAINED},
+        {"fully_coupled"s, FULLY_COUPLED},
+        {"undrained"s, UNDRAINED},
+        {"constant_pw_field"s, CONSTANT_WATER_PRESSURE}};
     return drainage_type_map.at(GeoStringUtilities::ToLower(rDrainageTypeName));
 }
 
