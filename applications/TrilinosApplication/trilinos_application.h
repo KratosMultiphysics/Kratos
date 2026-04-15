@@ -17,15 +17,12 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "includes/kratos_application.h"
 
 namespace Kratos {
 
 ///@name Kratos Globals
 ///@{
-
-// Variables definition
 
 ///@}
 ///@name Type Definitions
@@ -34,6 +31,16 @@ namespace Kratos {
 ///@}
 ///@name  Enum's
 ///@{
+
+/**
+ * @brief Enum to select the linear algebra library used in Trilinos
+ * @details This enum is used to select the linear algebra library used in Trilinos. The options are Epetra and Tpetra. Epetra is the default linear algebra library used in Trilinos, while Tpetra is a newer linear algebra library that is designed to be more scalable and efficient for large problems. The choice of linear algebra library can have a significant impact on the performance of the linear solvers and preconditioners used in Trilinos, so it is important to select the appropriate library for the problem at hand.
+ */
+enum class TrilinosLinearAlgebraLibrary
+{
+    EPETRA, /// Epetra linear algebra library
+    TPETRA  /// Tpetra linear algebra library (TO BE IMPLEMENTED)
+};
 
 ///@}
 ///@name  Functions
