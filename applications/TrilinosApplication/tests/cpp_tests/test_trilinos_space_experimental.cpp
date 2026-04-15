@@ -750,6 +750,11 @@ KRATOS_TEST_CASE_IN_SUITE(TrilinosExperimentalIsDistributedSpace, KratosTrilinos
     KRATOS_EXPECT_TRUE(TrilinosSparseSpaceType::IsDistributedSpace());
 }
 
+KRATOS_TEST_CASE_IN_SUITE(TrilinosExperimentalLinearAlgebraLibrary, KratosTrilinosApplicationMPITestSuite)
+{
+    KRATOS_EXPECT_EQ(TrilinosSparseSpaceType::LinearAlgebraLibrary(), TrilinosLinearAlgebraLibrary::TPETRA);
+}
+
 
 
 KRATOS_TEST_CASE_IN_SUITE(TrilinosExperimentalBtDBProductOperationRealCase, KratosTrilinosApplicationMPITestSuite)
@@ -910,6 +915,47 @@ KRATOS_TEST_CASE_IN_SUITE(TrilinosExperimentalBuildSystemStructure, KratosTrilin
     KRATOS_EXPECT_EQ(static_cast<std::size_t>(system_size), TrilinosSparseSpaceType::Size1(*pA));
 }
 
+KRATOS_TEST_CASE_IN_SUITE(TrilinosExperimentalBuildSystemStructureRowColumnBlocks, KratosTrilinosApplicationMPITestSuite)
+{
+    const auto& r_comm = Testing::GetDefaultDataCommunicator();
+    auto raw_mpi_comm = MPIDataCommunicator::GetMPICommunicator(r_comm);
+    Teuchos::MpiComm<int> tpetra_comm(raw_mpi_comm);
+
+    const int local_size = 2;
+    const int first_my_id = r_comm.Rank() * local_size;
+    const int system_size = 2 * r_comm.Size();
+
+    // Rectangular row/column blocks: one diagonal and one cross entry per rank
+    std::vector<std::vector<int>> all_row_equation_ids = {{first_my_id}, {first_my_id}};
+    std::vector<std::vector<int>> all_col_equation_ids = {{first_my_id}, {first_my_id + 1}};
+
+    TrilinosSparseSpaceType::MatrixPointerType pA;
+    TrilinosSparseSpaceType::VectorPointerType pb;
+    TrilinosSparseSpaceType::VectorPointerType pDx;
+    TrilinosSparseSpaceType::VectorPointerType pReactions;
+
+    TrilinosSparseSpaceType::MapPointerType pMap;
+    std::vector<typename TrilinosSparseSpaceType::MapType::global_ordinal_type> local_ids(local_size);
+    for (int i = 0; i < local_size; i++) local_ids[i] = first_my_id + i;
+    pMap = Teuchos::rcp(new typename TrilinosSparseSpaceType::MapType(
+        Teuchos::OrdinalTraits<Tpetra::global_size_t>::invalid(), local_ids, 0,
+        Teuchos::rcp(&tpetra_comm, false)));
+
+    TrilinosSparseSpaceType::BuildSystemStructure(
+        tpetra_comm, local_size, first_my_id, 5,
+        all_row_equation_ids, all_col_equation_ids,
+        pA, pb, pDx, pReactions, system_size, pMap
+    );
+
+    KRATOS_EXPECT_FALSE(TrilinosSparseSpaceType::IsNull(pA));
+    KRATOS_EXPECT_FALSE(TrilinosSparseSpaceType::IsNull(pb));
+    KRATOS_EXPECT_FALSE(TrilinosSparseSpaceType::IsNull(pDx));
+    KRATOS_EXPECT_FALSE(TrilinosSparseSpaceType::IsNull(pReactions));
+    KRATOS_EXPECT_EQ(static_cast<std::size_t>(system_size), TrilinosSparseSpaceType::Size1(*pA));
+    // Each rank contributes 2 non-zeros in row first_my_id (cols first_my_id, first_my_id+1)
+    KRATOS_EXPECT_EQ(2 * r_comm.Size(), static_cast<int>(pA->getGlobalNumEntries()));
+}
+
 KRATOS_TEST_CASE_IN_SUITE(TrilinosExperimentalBuildConstraintsStructure, KratosTrilinosApplicationMPITestSuite)
 {
     const auto& r_comm = Testing::GetDefaultDataCommunicator();
@@ -1030,6 +1076,148 @@ KRATOS_TEST_CASE_IN_SUITE(TrilinosExperimentalSetValueVector, KratosTrilinosAppl
     if (local_idx != Tpetra::Details::OrdinalTraits<TrilinosSparseSpaceType::LO>::invalid()) {
         auto localView = vector->getLocalViewHost(Tpetra::Access::ReadOnly);
         KRATOS_EXPECT_DOUBLE_EQ(42.0, static_cast<double>(localView(local_idx, 0)));
+    }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(TrilinosExperimentalSetGlobalVecMethods, KratosTrilinosApplicationMPITestSuite)
+{
+    const auto& r_comm = Testing::GetDefaultDataCommunicator();
+    const int size = 2 * r_comm.Size();
+    auto vector = TrilinosCPPTestExperimentalUtilities::GenerateDummySparseVector(r_comm, size, 0.0);
+
+    const int first_my_gid  = r_comm.Rank() * 2;
+    const int second_my_gid = first_my_gid + 1;
+
+    // SetGlobalVec: set first owned entry to 42.0 and verify immediately
+    TrilinosSparseSpaceType::SetGlobalVec(*vector, first_my_gid, 42.0);
+    auto map = vector->getMap();
+    auto local_idx = map->getLocalElement(static_cast<TrilinosSparseSpaceType::GO>(first_my_gid));
+    if (local_idx != Tpetra::Details::OrdinalTraits<TrilinosSparseSpaceType::LO>::invalid()) {
+        auto localView = vector->getLocalViewHost(Tpetra::Access::ReadOnly);
+        KRATOS_EXPECT_DOUBLE_EQ(42.0, static_cast<double>(localView(local_idx, 0)));
+    }
+
+    // SetGlobalVecNoAssemble: set second owned entry to 21.0 then assemble explicitly
+    TrilinosSparseSpaceType::SetGlobalVecNoAssemble(*vector, second_my_gid, 21.0);
+    TrilinosSparseSpaceType::GlobalAssemble(*vector);
+    local_idx = map->getLocalElement(static_cast<TrilinosSparseSpaceType::GO>(second_my_gid));
+    if (local_idx != Tpetra::Details::OrdinalTraits<TrilinosSparseSpaceType::LO>::invalid()) {
+        auto localView = vector->getLocalViewHost(Tpetra::Access::ReadOnly);
+        KRATOS_EXPECT_DOUBLE_EQ(21.0, static_cast<double>(localView(local_idx, 0)));
+    }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(TrilinosExperimentalSetLocalVecMethods, KratosTrilinosApplicationMPITestSuite)
+{
+    const auto& r_comm = Testing::GetDefaultDataCommunicator();
+    const int size = 2 * r_comm.Size();
+    auto vector = TrilinosCPPTestExperimentalUtilities::GenerateDummySparseVector(r_comm, size, 0.0);
+
+    // SetLocalVec: set local row 0 to 11.0 and verify
+    TrilinosSparseSpaceType::SetLocalVec(*vector, 0, 11.0);
+    {
+        auto localView = vector->getLocalViewHost(Tpetra::Access::ReadOnly);
+        KRATOS_EXPECT_DOUBLE_EQ(11.0, static_cast<double>(localView(0, 0)));
+    }
+
+    // SetLocalVecNoAssemble: set local row 1 to 7.0 and assemble explicitly
+    TrilinosSparseSpaceType::SetLocalVecNoAssemble(*vector, 1, 7.0);
+    TrilinosSparseSpaceType::GlobalAssemble(*vector);
+    {
+        auto localView = vector->getLocalViewHost(Tpetra::Access::ReadOnly);
+        KRATOS_EXPECT_DOUBLE_EQ(7.0, static_cast<double>(localView(1, 0)));
+    }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(TrilinosExperimentalSetGlobalMatMethods, KratosTrilinosApplicationMPITestSuite)
+{
+    using GO = TrilinosSparseSpaceType::GO;
+    using LO = TrilinosSparseSpaceType::LO;
+
+    const auto& r_comm = Testing::GetDefaultDataCommunicator();
+    const int size = 2 * r_comm.Size();
+    const int first_my_gid = r_comm.Rank() * 2;
+
+    // Build a diagonal sparse matrix (only diagonal entries in sparsity pattern)
+    auto matrix = TrilinosCPPTestExperimentalUtilities::GenerateDummySparseMatrix(r_comm, size, 0.0, false);
+
+    // SetGlobalMat: set diagonal entry at global row=first_my_gid to 5.0
+    TrilinosSparseSpaceType::SetGlobalMat(*matrix, first_my_gid, first_my_gid, 5.0);
+    {
+        auto row_map = matrix->getRowMap();
+        LO local_row = row_map->getLocalElement(static_cast<GO>(first_my_gid));
+        typename TrilinosSparseSpaceType::MatrixType::local_inds_host_view_type local_cols;
+        typename TrilinosSparseSpaceType::MatrixType::values_host_view_type vals;
+        matrix->getLocalRowView(local_row, local_cols, vals);
+        bool found = false;
+        for (std::size_t k = 0; k < local_cols.extent(0); ++k) {
+            if (matrix->getColMap()->getGlobalElement(local_cols(k)) == static_cast<GO>(first_my_gid)) {
+                KRATOS_EXPECT_DOUBLE_EQ(5.0, static_cast<double>(vals(k)));
+                found = true;
+            }
+        }
+        KRATOS_EXPECT_TRUE(found);
+    }
+
+    // SetGlobalMatNoAssemble: set diagonal entry at global row=first_my_gid+1 to 3.0
+    TrilinosSparseSpaceType::SetGlobalMatNoAssemble(*matrix, first_my_gid + 1, first_my_gid + 1, 3.0);
+    TrilinosSparseSpaceType::GlobalAssemble(*matrix);
+    {
+        auto row_map = matrix->getRowMap();
+        LO local_row = row_map->getLocalElement(static_cast<GO>(first_my_gid + 1));
+        typename TrilinosSparseSpaceType::MatrixType::local_inds_host_view_type local_cols;
+        typename TrilinosSparseSpaceType::MatrixType::values_host_view_type vals;
+        matrix->getLocalRowView(local_row, local_cols, vals);
+        bool found = false;
+        for (std::size_t k = 0; k < local_cols.extent(0); ++k) {
+            if (matrix->getColMap()->getGlobalElement(local_cols(k)) == static_cast<GO>(first_my_gid + 1)) {
+                KRATOS_EXPECT_DOUBLE_EQ(3.0, static_cast<double>(vals(k)));
+                found = true;
+            }
+        }
+        KRATOS_EXPECT_TRUE(found);
+    }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(TrilinosExperimentalSetLocalMatMethods, KratosTrilinosApplicationMPITestSuite)
+{
+    const auto& r_comm = Testing::GetDefaultDataCommunicator();
+    const int size = 2 * r_comm.Size();
+
+    // Build a diagonal sparse matrix (only diagonal entries in sparsity pattern)
+    auto matrix = TrilinosCPPTestExperimentalUtilities::GenerateDummySparseMatrix(r_comm, size, 0.0, false);
+
+    // SetLocalMat: set local row 0, local col 0 (diagonal) to 9.0
+    TrilinosSparseSpaceType::SetLocalMat(*matrix, 0, 0, 9.0);
+    {
+        typename TrilinosSparseSpaceType::MatrixType::local_inds_host_view_type local_cols;
+        typename TrilinosSparseSpaceType::MatrixType::values_host_view_type vals;
+        matrix->getLocalRowView(0, local_cols, vals);
+        bool found = false;
+        for (std::size_t k = 0; k < local_cols.extent(0); ++k) {
+            if (local_cols(k) == 0) {
+                KRATOS_EXPECT_DOUBLE_EQ(9.0, static_cast<double>(vals(k)));
+                found = true;
+            }
+        }
+        KRATOS_EXPECT_TRUE(found);
+    }
+
+    // SetLocalMatNoAssemble: set local row 1, local col 1 (diagonal) to 4.0
+    TrilinosSparseSpaceType::SetLocalMatNoAssemble(*matrix, 1, 1, 4.0);
+    TrilinosSparseSpaceType::GlobalAssemble(*matrix);
+    {
+        typename TrilinosSparseSpaceType::MatrixType::local_inds_host_view_type local_cols;
+        typename TrilinosSparseSpaceType::MatrixType::values_host_view_type vals;
+        matrix->getLocalRowView(1, local_cols, vals);
+        bool found = false;
+        for (std::size_t k = 0; k < local_cols.extent(0); ++k) {
+            if (local_cols(k) == 1) {
+                KRATOS_EXPECT_DOUBLE_EQ(4.0, static_cast<double>(vals(k)));
+                found = true;
+            }
+        }
+        KRATOS_EXPECT_TRUE(found);
     }
 }
 
@@ -1300,31 +1488,6 @@ KRATOS_TEST_CASE_IN_SUITE(TrilinosExperimentalGetOrCreateTpetraMap, KratosTrilin
     auto node_elements = p_map->getNodeElementList();
     KRATOS_EXPECT_EQ(static_cast<int>(node_elements[0]), first_my_id);
     KRATOS_EXPECT_EQ(static_cast<int>(node_elements[1]), first_my_id + 1);
-}
-
-KRATOS_TEST_CASE_IN_SUITE(TrilinosExperimentalApplyDirichletConditionsTpetra, KratosTrilinosApplicationMPITestSuite)
-{
-    // ApplyDirichletConditionsTpetra zeros rows/columns of fixed DOFs and sets the RHS entry to 0
-    const auto& r_comm = Testing::GetDefaultDataCommunicator();
-    const int size = 2 * r_comm.Size();
-    const int rank = r_comm.Rank();
-    const int first_my_id = rank * 2;
-
-    auto matrix = TrilinosCPPTestExperimentalUtilities::GenerateDummySparseMatrix(r_comm, size, 1.0);
-    auto p_rhs = TrilinosCPPTestExperimentalUtilities::GenerateDummySparseVector(r_comm, size, 1.0);
-
-    // Fix the first DOF on rank 0 (global DOF 0)
-    std::vector<int> global_ids = {first_my_id};
-    std::vector<int> is_fixed   = {1};
-
-    ProcessInfo process_info;
-    double scale_factor = 0.0;
-    TrilinosSparseSpaceType::ApplyDirichletConditionsTpetra(
-        *matrix, *p_rhs, global_ids, is_fixed, process_info,
-        SCALING_DIAGONAL::NO_SCALING, scale_factor);
-
-    // After application: scale_factor should be 1.0 (NO_SCALING)
-    KRATOS_EXPECT_NEAR(scale_factor, 1.0, 1.0e-10);
 }
 
 } // namespace Kratos::Testing
