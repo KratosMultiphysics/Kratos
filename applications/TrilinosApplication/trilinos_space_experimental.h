@@ -2190,6 +2190,40 @@ public:
         return CreateEmptyVectorPointer();
     }
 
+    /**
+     * @brief Writes a matrix to a file in MatrixMarket format
+     * @param pFileName The name of the file to be written
+     * @param rM The matrix to be written
+     * @param Symmetric If the matrix is symmetric
+     * @return True if the file was successfully written, false otherwise
+     */
+    static void WriteMatrixMarketMatrix(const char* FileName, const MatrixType& rA, const bool symmetric)
+    {
+        KRATOS_ERROR << "MatrixMarket not built due to internal conflicts" << std::endl;
+    }
+
+    /**
+     * @brief Writes a vector to a file in MatrixMarket format
+     * @param pFileName The name of the file to be written
+     * @param rV The vector to be written
+     * @return True if the file was successfully written, false otherwise
+     */
+    static void WriteMatrixMarketVector(
+        const char* pFileName,
+        const VectorType& rV
+        )
+    {
+        KRATOS_ERROR << "MatrixMarket not built due to internal conflicts" << std::endl;
+    }
+
+    /**
+     * @brief Creates a new dof updater
+     * @return The new dof updater
+     */
+    inline static DofUpdaterPointerType CreateDofUpdater()
+    {
+        return DofUpdaterPointerType(new DofUpdater<TrilinosSpaceExperimental<TMatrixType, TVectorType>>());
+    }
 
     ///@}
     ///@name Access
@@ -2229,40 +2263,20 @@ public:
     {
     }
 
-    /**
-     * @brief Writes a matrix to a file in MatrixMarket format
-     * @param pFileName The name of the file to be written
-     * @param rM The matrix to be written
-     * @param Symmetric If the matrix is symmetric
-     * @return True if the file was successfully written, false otherwise
-     */
-    static void WriteMatrixMarketMatrix(const char* FileName, const MatrixType& rA, const bool symmetric)
-    {
-        KRATOS_ERROR << "MatrixMarket not built due to internal conflicts" << std::endl;
-    }
+    ///@}
+private:
+    ///@name Un accessible methods
+    ///@{
 
-    /**
-     * @brief Writes a vector to a file in MatrixMarket format
-     * @param pFileName The name of the file to be written
-     * @param rV The vector to be written
-     * @return True if the file was successfully written, false otherwise
-     */
-    static void WriteMatrixMarketVector(
-        const char* pFileName,
-        const VectorType& rV
-        )
-    {
-        KRATOS_ERROR << "MatrixMarket not built due to internal conflicts" << std::endl;
-    }
+    /// Assignment operator.
+    TrilinosSpaceExperimental & operator=(TrilinosSpaceExperimental const& rOther);
 
-    /**
-     * @brief Creates a new dof updater
-     * @return The new dof updater
-     */
-    inline static DofUpdaterPointerType CreateDofUpdater()
-    {
-        return DofUpdaterPointerType(new DofUpdater<TrilinosSpaceExperimental<TMatrixType, TVectorType>>());
-    }
+    /// Copy constructor.
+    TrilinosSpaceExperimental(TrilinosSpaceExperimental const& rOther);
+
+    ///@}
+    ///@name Private Operations
+    ///@{
 
     /**
      * @brief Returns a Tpetra map for this rank's local rows starting at FirstMyId.
@@ -2302,21 +2316,6 @@ public:
             return Teuchos::rcp(new VectorType(pMap));
         }
     }
-
-
-    ///@}
-private:
-    ///@name Un accessible methods
-    ///@{
-
-    /// Assignment operator.
-    TrilinosSpaceExperimental & operator=(TrilinosSpaceExperimental const& rOther);
-
-    /// Copy constructor.
-    TrilinosSpaceExperimental(TrilinosSpaceExperimental const& rOther);
-
-    ///@name Un accessible methods
-    ///@{
 
     ///@}
 }; // Class TrilinosSpaceExperimental
