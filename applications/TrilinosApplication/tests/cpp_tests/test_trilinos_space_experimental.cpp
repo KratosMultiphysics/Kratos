@@ -1470,9 +1470,9 @@ KRATOS_TEST_CASE_IN_SUITE(TrilinosExperimentalResizeVectorPointer, KratosTrilino
     KRATOS_EXPECT_EQ(TrilinosSparseSpaceType::Size(*p_vec), std::size_t(0));
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TrilinosExperimentalGetOrCreateTpetraMap, KratosTrilinosApplicationMPITestSuite)
+KRATOS_TEST_CASE_IN_SUITE(TrilinosExperimentalGetOrCreateMap, KratosTrilinosApplicationMPITestSuite)
 {
-    // GetOrCreateTpetraMap creates a Tpetra::Map with LocalSize entries starting at FirstMyId
+    // GetOrCreateMap creates a Tpetra::Map with LocalSize entries starting at FirstMyId
     const auto& r_comm = Testing::GetDefaultDataCommunicator();
     auto raw_mpi_comm = MPIDataCommunicator::GetMPICommunicator(r_comm);
     TrilinosSparseSpaceType::CommunicatorType tpetra_comm(raw_mpi_comm);
@@ -1480,7 +1480,7 @@ KRATOS_TEST_CASE_IN_SUITE(TrilinosExperimentalGetOrCreateTpetraMap, KratosTrilin
     const int rank = r_comm.Rank();
     const int local_size = 2;
     const int first_my_id = rank * local_size;
-    auto p_map = TrilinosSparseSpaceType::GetOrCreateTpetraMap(tpetra_comm, local_size, first_my_id);
+    auto p_map = TrilinosSparseSpaceType::GetOrCreateMap(tpetra_comm, local_size, first_my_id);
 
     KRATOS_EXPECT_NE(p_map, Teuchos::null);
     KRATOS_EXPECT_EQ(static_cast<int>(p_map->getNodeNumElements()), local_size);

@@ -200,6 +200,30 @@ public:
     {
         return *(rV.getMap());
     }
+
+    /**
+     * @brief Returns a Tpetra map for this rank's local rows starting at FirstMyId.
+     * @param rComm The MPI communicator
+     * @param LocalSize The number of locally owned rows on this rank
+     * @param FirstMyId The first global row index owned by this rank
+     * @return A Tpetra::Map covering the locally owned GIDs [FirstMyId, FirstMyId+LocalSize)
+     */
+    static MapPointerType GetOrCreateMap(
+        CommunicatorType& rComm,
+        const IndexType LocalSize,
+        const int FirstMyId)
+    {
+        std::vector<GO> local_ids(LocalSize);
+        for (IndexType i = 0; i < LocalSize; ++i) {
+            local_ids[i] = static_cast<GO>(FirstMyId + static_cast<int>(i));
+        }
+        return Teuchos::rcp(new MapType(
+            Teuchos::OrdinalTraits<Tpetra::global_size_t>::invalid(),
+            Teuchos::ArrayView<const GO>(local_ids.data(), static_cast<int>(local_ids.size())),
+            0,
+            Teuchos::rcp(&rComm, false)));
+    }
+
     /**
      * @brief This method returns the communicator of the vector
      * @param rV The vector considered
@@ -209,6 +233,7 @@ public:
     {
         return dynamic_cast<const CommunicatorType&>(*(rV.getMap()->getComm()));
     }
+
     /**
      * @brief This method returns the communicator of the matrix
      * @param rA The matrix considered
@@ -218,6 +243,7 @@ public:
     {
         return dynamic_cast<const CommunicatorType&>(*(rA.getMap()->getComm()));
     }
+
     /**
      * @brief Global assembly on a Tpetra FECrsMatrix — close matrix if open.
      * @param rA The matrix to assemble
@@ -230,6 +256,7 @@ public:
             rA.endAssembly();
         }
     }
+
     /**
      * @brief Global assembly on a Tpetra Vector.
      * @param rV The vector to assemble (no-op)
@@ -240,7 +267,11 @@ public:
      */
     static void GlobalAssemble(VectorType& rV)
     {
+        // No-op: vectors in this space use a null importer (no overlap),
+        // so all RHS contributions go directly to locally owned entries via
+        // sumIntoGlobalValue. No FE state-machine management or cross-process communication is required.
     }
+
     /**
      * @brief Manually finalizes matrix assembly.
      * @param rA The matrix to finalize
@@ -257,12 +288,6 @@ public:
             rA.fillComplete();
         }
     }
-
-
-
-
-
-
 
     /**
      * @brief This method creates an empty pointer to a map
@@ -289,6 +314,22 @@ public:
     inline static VectorPointerType CreateEmptyVectorPointer()
     {
         return VectorPointerType(nullptr);
+    }
+
+    /**
+     * @brief Creates an empty VectorType from a map.
+     * @details Handles both Tpetra::FEMultiVector (needs importer+numVecs) and
+     *          plain Vector/MultiVector types.
+     * @param pMap The map to be used for the construction of the vector
+     * @return The pointer to the created vector
+     */
+    inline static VectorPointerType CreateVector(const MapPointerType& pMap)
+    {
+        if constexpr (std::is_same_v<VectorType, Tpetra::FEMultiVector<ST, LO, GO, NT>>) {
+            return Teuchos::rcp(new VectorType(pMap, Teuchos::null, 1));
+        } else {
+            return Teuchos::rcp(new VectorType(pMap));
+        }
     }
 
     /**
@@ -333,6 +374,7 @@ public:
         MapPointerType map = Teuchos::rcp(new MapType(global_elems, 0, pComm));
         return CreateVector(map);
     }
+
     /**
      * @brief This method creates an empty pointer to a matrix using TPetra communicator
      * @param rComm The Tpetra communicator
@@ -352,7 +394,6 @@ public:
     {
         return CreateEmptyVectorPointer(Teuchos::rcp(&rComm, false));
     }
-
 
     /**
      * @brief Returns size of vector rV
@@ -1391,6 +1432,7 @@ public:
         if (!rpReactions)
             rpReactions = CreateVector(pMap);
     }
+
     /**
      * @brief Build a Tpetra FE constraint graph and create T matrix + constant vector.
      * @param rComm The communicator considered
@@ -1438,12 +1480,6 @@ public:
         if (rpT->isFillActive()) rpT->fillComplete();
         rpConstantVector = CreateVector(pMap);
     }
-
-
-
-
-    /// TODO: creating the the calculating reaction version
-    // 	template<class TOtherMatrixType, class TEquationIdVectorType>
 
     /**
      * @brief Assembles the LHS of the system
@@ -1493,10 +1529,6 @@ public:
             }
         }
     }
-
-    //***********************************************************************
-    /// TODO: creating the the calculating reaction version
-    // 	template<class TOtherVectorType, class TEquationIdVectorType>
 
     /**
      * @brief Assembles the RHS of the system
@@ -1552,7 +1584,6 @@ public:
         return true;
     }
 
-
     /**
      * @brief Returns a list of the fastest direct solvers.
      * @details This function returns a vector of strings representing the names of the fastest direct solvers. The order of the solvers in the list may need to be updated and reordered depending on the size of the equation system.
@@ -1596,6 +1627,7 @@ public:
         }
         GlobalAssemble(rX);
     }
+
     /**
      * @brief Sets a vector entry using a global index without assembly.
      * @param rX The vector to be modified.
@@ -1616,6 +1648,7 @@ public:
             rX.replaceLocalValue(localIndex, size_t(0), static_cast<ST>(Value));
         }
     }
+
     /**
      * @brief Sets a vector entry using a local index and performs assembly.
      * @param rX The vector to be modified.
@@ -1633,6 +1666,7 @@ public:
         rX.replaceLocalValue(static_cast<LO>(i), size_t(0), static_cast<ST>(Value));
         GlobalAssemble(rX);
     }
+
     /**
      * @brief Sets a vector entry using a local index without assembly.
      * @param rX The vector to be modified.
@@ -1649,6 +1683,7 @@ public:
     {
         rX.replaceLocalValue(static_cast<LO>(i), size_t(0), static_cast<ST>(Value));
     }
+
     /**
      * @brief Sets a matrix entry using global row and column indices and performs assembly.
      * @param rA The matrix to be modified.
@@ -1678,6 +1713,7 @@ public:
             if (rA.isFillActive()) rA.fillComplete();
         }
     }
+
     /**
      * @brief Sets a matrix entry using global row and column indices without assembly.
      * @param rA The matrix to be modified.
@@ -1703,6 +1739,7 @@ public:
         rA.replaceGlobalValues(globalRow, 1, &val, &globalCol);
         // Assembly must be finalized by the caller via GlobalAssemble()
     }
+
     /**
      * @brief Sets a matrix entry using local row and column indices and performs assembly.
      * @param rA The matrix to be modified.
@@ -1732,6 +1769,7 @@ public:
             if (rA.isFillActive()) rA.fillComplete();
         }
     }
+
     /**
      * @brief Sets a matrix entry using local row and column indices without assembly.
      * @param rA The matrix to be modified.
@@ -1757,9 +1795,6 @@ public:
         rA.replaceLocalValues(local_row, 1, &val, &local_col);
         // Assembly must be finalized by the caller via GlobalAssemble()
     }
-
-
-
 
     /**
      * @brief This function returns a value from a given vector according to a given index
@@ -1832,8 +1867,6 @@ public:
 
         KRATOS_CATCH("")
     }
-
-
 
     /**
      * @brief Generates a graph combining the graphs of two matrices
@@ -2178,6 +2211,7 @@ public:
         KRATOS_ERROR << "MatrixMarket not built due to internal conflicts" << std::endl;
         return CreateEmptyMatrixPointer();
     }
+
     /**
      * @brief Read a vector from a MatrixMarket file
      * @param rFileName The name of the file to read
@@ -2273,49 +2307,6 @@ private:
 
     /// Copy constructor.
     TrilinosSpaceExperimental(TrilinosSpaceExperimental const& rOther);
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-    /**
-     * @brief Returns a Tpetra map for this rank's local rows starting at FirstMyId.
-     * @param rComm The MPI communicator
-     * @param LocalSize The number of locally owned rows on this rank
-     * @param FirstMyId The first global row index owned by this rank
-     * @return A Tpetra::Map covering the locally owned GIDs [FirstMyId, FirstMyId+LocalSize)
-     */
-    static MapPointerType GetOrCreateTpetraMap(
-        CommunicatorType& rComm,
-        const IndexType LocalSize,
-        const int FirstMyId)
-    {
-        std::vector<GO> local_ids(LocalSize);
-        for (IndexType i = 0; i < LocalSize; ++i) {
-            local_ids[i] = static_cast<GO>(FirstMyId + static_cast<int>(i));
-        }
-        return Teuchos::rcp(new MapType(
-            Teuchos::OrdinalTraits<Tpetra::global_size_t>::invalid(),
-            Teuchos::ArrayView<const GO>(local_ids.data(), static_cast<int>(local_ids.size())),
-            0,
-            Teuchos::rcp(&rComm, false)));
-    }
-
-    /**
-     * @brief Creates an empty VectorType from a map.
-     * @details Handles both Tpetra::FEMultiVector (needs importer+numVecs) and
-     *          plain Vector/MultiVector types.
-     * @param pMap The map to be used for the construction of the vector
-     * @return The pointer to the created vector
-     */
-    inline static VectorPointerType CreateVector(const MapPointerType& pMap)
-    {
-        if constexpr (std::is_same_v<VectorType, Tpetra::FEMultiVector<ST, LO, GO, NT>>) {
-            return Teuchos::rcp(new VectorType(pMap, Teuchos::null, 1));
-        } else {
-            return Teuchos::rcp(new VectorType(pMap));
-        }
-    }
 
     ///@}
 }; // Class TrilinosSpaceExperimental
