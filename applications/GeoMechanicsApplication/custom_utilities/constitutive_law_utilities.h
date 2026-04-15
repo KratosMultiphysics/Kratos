@@ -35,6 +35,8 @@ public:
                                           double                       detF);
 
     static double GetCohesion(const Properties& rProperties);
+    static bool   HasFrictionAngle(const Properties& rProperties);
+    static void   ValidateFrictionAngle(const Properties& rProperties, IndexType ElementId);
     static double GetFrictionAngleInDegrees(const Properties& rProperties);
     static double GetFrictionAngleInRadians(const Properties& rProperties);
 
