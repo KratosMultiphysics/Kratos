@@ -231,12 +231,11 @@ double ConstitutiveLawUtilities::GetSkemptonB(const Properties& rProperties)
     KRATOS_ERROR_IF(denominator <= std::numeric_limits<double>::epsilon())
         << "Non-physical values: denominator < epsilon." << std::endl;
 
-    auto result = biot_coefficient / denominator;
+    const auto result = biot_coefficient / denominator;
     KRATOS_ERROR_IF(result < -std::numeric_limits<double>::epsilon() || result > 1.0 + std::numeric_limits<double>::epsilon())
         << "Calculated Skempton B (" << result << ") is out of range [0,1]." << std::endl;
 
-    result = std::max(0.0, std::min(1.0, result));
-    return result;
+    return std::max(0.0, std::min(1.0, result));
 }
 
 Matrix ConstitutiveLawUtilities::MakeContinuumConstitutiveTensor(double      YoungsModulus,
