@@ -264,9 +264,9 @@ public:
      * @param src The source vector
      * @return Shared pointer to a deep copy of src
      */
-    static VectorPointerType CreateVectorCopy(const VectorType& src)
+    static VectorPointerType CreateVectorCopy(const VectorType& rVector)
     {
-        return VectorPointerType(new VectorType(src));
+        return VectorPointerType(new VectorType(rVector));
     }
 
     /**
