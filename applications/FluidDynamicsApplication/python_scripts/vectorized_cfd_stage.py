@@ -757,7 +757,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         self.p_adaptor.StoreData()
 
     def ComputeVelocityResidual(self, v_elemental, p_elemental, b_elemental, proj_elemental, proj_div_el, DN, tau):
-        
+
         ttot = time.perf_counter()
 
         # Initialize residual
