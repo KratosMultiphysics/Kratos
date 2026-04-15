@@ -765,11 +765,7 @@ public:
             ConstructMatrixStructure(pScheme, rpA, rpDx, rpb, rModelPart);
         } else if (TSparseSpace::IsNull(BaseType::mpReactionsVector) && this->mCalculateReactionsFlag) {
             TSystemVectorPointerType pNewReactionsVector = TSparseSpace::CreateEmptyVectorPointer();
-            if constexpr (TSparseSpace::LinearAlgebraLibrary() == TrilinosLinearAlgebraLibrary::EPETRA) {
-                pNewReactionsVector = TSystemVectorPointerType(new TSystemVectorType(rpDx->Map()));
-            } else {
-                KRATOS_ERROR << "ResizeAndInitializeVectors not implemented for this linear algebra library" << std::endl;
-            }
+            pNewReactionsVector = TSparseSpace::CreateVector(rpDx->getMap());
             BaseType::mpReactionsVector.swap(pNewReactionsVector);
         } else {
             if (TSparseSpace::Size1(*rpA) == 0 ||
@@ -822,8 +818,8 @@ public:
             // Filling the array with the global ids
             int counter = 0;
             int id = 0;
-            for (const auto& dof : BaseType::mDofSet) {
-                id = dof.EquationId();
+            for (const auto& r_dof : BaseType::mDofSet) {
+                id = r_dof.EquationId();
                 if (id < system_size) {
                     index_array[counter++] = id;
                 }
@@ -875,7 +871,54 @@ public:
             }
         } else if constexpr (TSparseSpace::LinearAlgebraLibrary() == TrilinosLinearAlgebraLibrary::TPETRA) {
         #if (HAVE_TPETRA)
+            using MapType = typename TSparseSpace::MapType;
+            using VectorType = typename TSparseSpace::VectorType;
+            using GO = typename MapType::global_ordinal_type;
 
+            const std::size_t system_size = TSparseSpace::Size(rb);
+            const std::size_t number_of_dofs = BaseType::mDofSet.size();
+            std::vector<GO> index_array;
+            index_array.reserve(number_of_dofs);
+
+            // Filling the array with the global ids
+            for (const auto& r_dof : BaseType::mDofSet) {
+                const std::size_t id = r_dof.EquationId();
+                if (id < system_size) {
+                    index_array.push_back(static_cast<GO>(id));
+                }
+            }
+
+            std::sort(index_array.begin(), index_array.end());
+            auto NewEnd = std::unique(index_array.begin(), index_array.end());
+            index_array.resize(std::distance(index_array.begin(), NewEnd));
+
+            // Defining a map as needed
+            Teuchos::RCP<const MapType> p_dof_update_map = Teuchos::rcp(new MapType(Teuchos::OrdinalTraits<GO>::invalid(), index_array, 0, rb.getMap()->getComm()));
+
+            // Defining the importer class
+            using ImportType = Tpetra::Import<typename MapType::local_ordinal_type, GO, typename MapType::node_type>;
+            Teuchos::RCP<ImportType> p_dof_importer = Teuchos::rcp(new ImportType(rb.getMap(), p_dof_update_map));
+
+            // Defining a temporary vector to gather all of the values needed
+            // Use plain MultiVector (not FEMultiVector) for this intermediate import
+            using ST_t = typename VectorType::scalar_type;
+            using LO_t = typename VectorType::local_ordinal_type;
+            using GO_t = typename VectorType::global_ordinal_type;
+            using NT_t = typename VectorType::node_type;
+            Tpetra::MultiVector<ST_t, LO_t, GO_t, NT_t> temp_RHS(p_dof_update_map, 1);
+
+            // Importing in the new temp_RHS vector the values
+            temp_RHS.doImport(rb, *p_dof_importer, Tpetra::INSERT);
+
+            auto temp_RHS_view = temp_RHS.getLocalViewHost(Tpetra::Access::ReadOnly);
+
+            for (auto& dof : BaseType::mDofSet) {
+                const GO i = static_cast<GO>(dof.EquationId());
+                if (i < static_cast<GO>(system_size)) {
+                    const double react_val = static_cast<double>(temp_RHS_view(p_dof_update_map->getLocalElement(i), 0));
+                    dof.GetSolutionStepReactionValue() = -react_val;
+                }
+            }
         #else
             KRATOS_ERROR << "You must compile Kratos with TPETRA support" << std::endl;
         #endif
@@ -918,6 +961,11 @@ public:
             ++i_dof;
         }
 
+        // Detect if there is a line of all zeros and set the diagonal to a certain number (1 if not scale, some norms values otherwise) if this happens
+        const auto& r_process_info = rModelPart.GetProcessInfo();
+        mScaleFactor = TSparseSpace::CheckAndCorrectZeroDiagonalValues(r_process_info, rA, rb, mScalingDiagonal);
+
+        // Apply the dirichlet conditions by setting to zero the rows and columns corresponding to the fixed dofs and setting the diagonal entry to 1 (or to the value of mScaleFactor)
         if constexpr (TSparseSpace::LinearAlgebraLibrary() == TrilinosLinearAlgebraLibrary::EPETRA) {
             // Here we construct and fill a vector "fixed local" which cont
             Epetra_Map localmap(-1, global_ids.size(), global_ids.data(), 0, rA.Comm());
@@ -927,10 +975,6 @@ public:
 
             // defining a temporary vector to gather all of the values needed
             Epetra_IntVector fixed(rA.ColMap());
-
-            // Detect if there is a line of all zeros and set the diagonal to a certain number (1 if not scale, some norms values otherwise) if this happens
-            const auto& r_process_info = rModelPart.GetProcessInfo();
-            mScaleFactor = TSparseSpace::CheckAndCorrectZeroDiagonalValues(r_process_info, rA, rb, mScalingDiagonal);
 
             // Importing in the new temp vector the values
             int ierr = fixed.Import(fixed_local, dirichlet_importer, Insert);
@@ -965,7 +1009,40 @@ public:
             }
         } else if constexpr (TSparseSpace::LinearAlgebraLibrary() == TrilinosLinearAlgebraLibrary::TPETRA) {
         #if (HAVE_TPETRA)
-
+            using GO = typename TSystemMatrixType::global_ordinal_type;
+            using LO = typename TSystemMatrixType::local_ordinal_type;
+            using ST = typename TSystemMatrixType::scalar_type;
+            std::unordered_map<GO, int> is_fixed_map;
+            for (std::size_t i = 0; i < global_ids.size(); ++i) {
+                is_fixed_map[static_cast<GO>(global_ids[i])] = is_dirichlet[i];
+            }
+            auto p_row_map = rA.getRowMap();
+            const LO num_local_rows = static_cast<LO>(p_row_map->getNodeNumElements());
+            auto rb_view = rb.getLocalViewHost(Tpetra::Access::ReadWrite);
+            for (LO local_row = 0; local_row < num_local_rows; ++local_row) {
+                const GO global_row = p_row_map->getGlobalElement(local_row);
+                const bool row_is_fixed = is_fixed_map.count(global_row) > 0 && is_fixed_map.at(global_row) != 0;
+                typename MatrixType::local_inds_host_view_type cols_view;
+                typename MatrixType::values_host_view_type vals_view;
+                rA.getLocalRowView(local_row, cols_view, vals_view);
+                const LO num_entries = static_cast<LO>(cols_view.size());
+                if (num_entries == 0) continue;
+                auto col_map = rA.getColMap();
+                std::vector<ST> new_vals(num_entries);
+                if (!row_is_fixed) {
+                    for (LO j = 0; j < num_entries; ++j) {
+                        const GO global_col = col_map->getGlobalElement(cols_view(j));
+                        new_vals[j] = (is_fixed_map.count(global_col) > 0 && is_fixed_map.at(global_col) != 0) ? ST(0.0) : vals_view(j);
+                    }
+                } else {
+                    rb_view(local_row, 0) = ST(0.0);
+                    for (LO j = 0; j < num_entries; ++j) {
+                        const GO global_col = col_map->getGlobalElement(cols_view(j));
+                        new_vals[j] = (global_col == global_row) ? vals_view(j) : ST(0.0);
+                    }
+                }
+                rA.replaceLocalValues(local_row, num_entries, new_vals.data(), cols_view.data());
+            }
         #else
             KRATOS_ERROR << "You must compile Kratos with TPETRA support" << std::endl;
         #endif
@@ -1038,18 +1115,8 @@ public:
             const TSystemMatrixType& r_T = GetConstraintRelationMatrix();
 
             // Compute T' A T
-            if constexpr (TSparseSpace::LinearAlgebraLibrary() == TrilinosLinearAlgebraLibrary::EPETRA) {
-                const TSystemMatrixType copy_A(rA);
-                TSparseSpace::BtDBProductOperation(rA, copy_A, r_T, true, true);
-            } else if constexpr (TSparseSpace::LinearAlgebraLibrary() == TrilinosLinearAlgebraLibrary::TPETRA) {
-            #if (HAVE_TPETRA)
-
-            #else
-                KRATOS_ERROR << "You must compile Kratos with TPETRA support" << std::endl;
-            #endif
-            } else {
-                KRATOS_ERROR << "Only EPETRA and TPETRA are supported for now" << std::endl;
-            }
+            const auto p_copy_A = TSparseSpace::CreateMatrixCopy(rA);
+            TSparseSpace::BtDBProductOperation(rA, *p_copy_A, r_T, true, true);
 
             // Compute T' b
             auto p_copy_b = TSparseSpace::CreateVectorCopy(rb);
@@ -1706,7 +1773,10 @@ private:
                 mpMap = Kratos::make_shared<Epetra_Map>(-1, mLocalSystemSize, temp_primary.data(), 0, mrComm);
             }  else if constexpr (TSparseSpace::LinearAlgebraLibrary() == TrilinosLinearAlgebraLibrary::TPETRA) {
             #if (HAVE_TPETRA)
-
+                using MapType = typename TSparseSpace::MapType;
+                using GO = typename MapType::global_ordinal_type;
+                std::vector<GO> global_ids(temp_primary.begin(), temp_primary.begin() + mLocalSystemSize);
+                mpMap = Teuchos::rcp(new MapType(Teuchos::OrdinalTraits<GO>::invalid(), global_ids, 0, Teuchos::rcpFromRef(mrComm)));
             #else
                 KRATOS_ERROR << "You must compile Kratos with TPETRA support" << std::endl;
             #endif
