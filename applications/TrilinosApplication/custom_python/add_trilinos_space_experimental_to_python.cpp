@@ -19,346 +19,550 @@
 #include "custom_python/add_trilinos_space_experimental_to_python.h"
 #include "mpi/includes/mpi_data_communicator.h"
 
-namespace Kratos::Python {
+namespace Kratos::Python
+{
 namespace py = pybind11;
 
 #ifdef HAVE_TPETRA
 
 using ExperimentalTrilinosSparseSpaceType = TrilinosSpaceExperimental<Tpetra::FECrsMatrix<>, Tpetra::FEMultiVector<>>;
 
-class ExperimentalAuxiliaryMatrixWrapper {
+/**
+ * @brief Thin RAII wrapper around a Tpetra FECrsMatrix shared pointer.
+ * @details Pybind11 cannot bind Teuchos::RCP directly, so this wrapper
+ *          exposes GetPointer() and GetReference() to Python.
+ */
+class ExperimentalAuxiliaryMatrixWrapper
+{
 public:
-  typedef typename ExperimentalTrilinosSparseSpaceType::MatrixType
-      TrilinosMatrixType;
-  typedef typename ExperimentalTrilinosSparseSpaceType::MatrixPointerType
-      TrilinosMatrixPointerType;
+    using TrilinosMatrixType = typename ExperimentalTrilinosSparseSpaceType::MatrixType;
+    using TrilinosMatrixPointerType = typename ExperimentalTrilinosSparseSpaceType::MatrixPointerType;
 
-  ExperimentalAuxiliaryMatrixWrapper(TrilinosMatrixPointerType p) : mp(p) {};
-  virtual ~ExperimentalAuxiliaryMatrixWrapper() {}
-  TrilinosMatrixPointerType &GetPointer() { return mp; }
-  TrilinosMatrixType &GetReference() { return *mp; }
+    ExperimentalAuxiliaryMatrixWrapper(TrilinosMatrixPointerType pMatrix) : mpMatrix(pMatrix) {}
+    virtual ~ExperimentalAuxiliaryMatrixWrapper() = default;
+    TrilinosMatrixPointerType& GetPointer() { return mpMatrix; }
+    TrilinosMatrixType& GetReference() { return *mpMatrix; }
 
 private:
-  TrilinosMatrixPointerType mp;
+    TrilinosMatrixPointerType mpMatrix;
 };
 
-class ExperimentalAuxiliaryVectorWrapper {
+/**
+ * @brief Thin RAII wrapper around a Tpetra FEMultiVector shared pointer.
+ * @details Pybind11 cannot bind Teuchos::RCP directly, so this wrapper
+ *          exposes GetPointer() and GetReference() to Python.
+ */
+class ExperimentalAuxiliaryVectorWrapper
+{
 public:
-  typedef typename ExperimentalTrilinosSparseSpaceType::VectorType
-      TrilinosVectorType;
-  typedef typename ExperimentalTrilinosSparseSpaceType::VectorPointerType
-      TrilinosVectorPointerType;
+    using TrilinosVectorType = typename ExperimentalTrilinosSparseSpaceType::VectorType;
+    using TrilinosVectorPointerType = typename ExperimentalTrilinosSparseSpaceType::VectorPointerType;
 
-  ExperimentalAuxiliaryVectorWrapper(TrilinosVectorPointerType p) : mp(p) {};
-  virtual ~ExperimentalAuxiliaryVectorWrapper() {}
-  TrilinosVectorPointerType &GetPointer() { return mp; }
-  TrilinosVectorType &GetReference() { return *mp; }
+    ExperimentalAuxiliaryVectorWrapper(TrilinosVectorPointerType pVector) : mpVector(pVector) {}
+    virtual ~ExperimentalAuxiliaryVectorWrapper() = default;
+    TrilinosVectorPointerType& GetPointer() { return mpVector; }
+    TrilinosVectorType& GetReference() { return *mpVector; }
 
 private:
-  TrilinosVectorPointerType mp;
+    TrilinosVectorPointerType mpVector;
 };
 
-namespace {
+namespace // anonymous: internal linkage for pybind11 helper trampolines
+{
 
-double ExperimentalDot(ExperimentalTrilinosSparseSpaceType &dummy,
-                       ExperimentalTrilinosSparseSpaceType::VectorType &rX,
-                       ExperimentalTrilinosSparseSpaceType::VectorType &rY) {
-  return dummy.Dot(rX, rY);
-}
-void ExperimentalScaleAndAdd(
-    ExperimentalTrilinosSparseSpaceType &dummy, const double A,
-    const ExperimentalTrilinosSparseSpaceType::VectorType &rX, const double B,
-    ExperimentalTrilinosSparseSpaceType::VectorType &rY) {
-  dummy.ScaleAndAdd(A, rX, B, rY);
-}
-void ExperimentalScaleAndAddMatrix(
-    ExperimentalTrilinosSparseSpaceType &dummy, const double A,
-    const ExperimentalTrilinosSparseSpaceType::MatrixType &rX, const double B,
-    ExperimentalTrilinosSparseSpaceType::MatrixType &rY) {
-  dummy.ScaleAndAdd(A, rX, B, rY);
-}
-void ExperimentalMult(ExperimentalTrilinosSparseSpaceType &dummy,
-                      ExperimentalTrilinosSparseSpaceType::MatrixType &rA,
-                      ExperimentalTrilinosSparseSpaceType::VectorType &rX,
-                      ExperimentalTrilinosSparseSpaceType::VectorType &rY) {
-  dummy.Mult(rA, rX, rY);
-}
-void ExperimentalTransposeMult(
-    ExperimentalTrilinosSparseSpaceType &dummy,
-    ExperimentalTrilinosSparseSpaceType::MatrixType &rA,
-    ExperimentalTrilinosSparseSpaceType::VectorType &rX,
-    ExperimentalTrilinosSparseSpaceType::VectorType &rY) {
-  dummy.TransposeMult(rA, rX, rY);
-}
-ExperimentalTrilinosSparseSpaceType::IndexType
-ExperimentalSize(ExperimentalTrilinosSparseSpaceType &dummy,
-                 ExperimentalTrilinosSparseSpaceType::VectorType const &rV) {
-  return dummy.Size(rV);
-}
-ExperimentalTrilinosSparseSpaceType::IndexType
-ExperimentalSize1(ExperimentalTrilinosSparseSpaceType &dummy,
-                  ExperimentalTrilinosSparseSpaceType::MatrixType const &rM) {
-  return dummy.Size1(rM);
-}
-ExperimentalTrilinosSparseSpaceType::IndexType
-ExperimentalSize2(ExperimentalTrilinosSparseSpaceType &dummy,
-                  ExperimentalTrilinosSparseSpaceType::MatrixType const &rM) {
-  return dummy.Size2(rM);
-}
-void ExperimentalClearMatrix(
-    ExperimentalTrilinosSparseSpaceType &dummy,
-    ExperimentalTrilinosSparseSpaceType::MatrixPointerType &pA) {
-  dummy.Clear(pA);
-}
-void ExperimentalClearVector(
-    ExperimentalTrilinosSparseSpaceType &dummy,
-    ExperimentalTrilinosSparseSpaceType::VectorPointerType &pX) {
-  dummy.Clear(pX);
-}
-void ExperimentalResizeVector(
-    ExperimentalTrilinosSparseSpaceType &dummy,
-    ExperimentalTrilinosSparseSpaceType::VectorPointerType &pX,
-    ExperimentalTrilinosSparseSpaceType::SizeType n) {
-  dummy.Resize(pX, n);
-}
-void ExperimentalSetToZeroMatrix(
-    ExperimentalTrilinosSparseSpaceType &dummy,
-    ExperimentalTrilinosSparseSpaceType::MatrixType &A) {
-  dummy.SetToZero(A);
-}
-void ExperimentalSetToZeroVector(
-    ExperimentalTrilinosSparseSpaceType &dummy,
-    ExperimentalTrilinosSparseSpaceType::VectorType &x) {
-  dummy.SetToZero(x);
-}
-double ExperimentalTwoNorm(ExperimentalTrilinosSparseSpaceType &dummy,
-                           ExperimentalTrilinosSparseSpaceType::VectorType &x) {
-  return dummy.TwoNorm(x);
-}
-void ExperimentalUnaliasedAdd(
-    ExperimentalTrilinosSparseSpaceType &dummy,
-    ExperimentalTrilinosSparseSpaceType::VectorType &x, const double A,
-    const ExperimentalTrilinosSparseSpaceType::VectorType &y) {
-  dummy.UnaliasedAdd(x, A, y);
-}
-ExperimentalAuxiliaryMatrixWrapper
-ExperimentalCreateEmptyMatrixPointer(ExperimentalTrilinosSparseSpaceType &dummy,
-                                     Teuchos::MpiComm<int> &rComm) {
-  return ExperimentalAuxiliaryMatrixWrapper(
-      dummy.CreateEmptyMatrixPointer(rComm));
-}
-ExperimentalAuxiliaryVectorWrapper
-ExperimentalCreateEmptyVectorPointer(ExperimentalTrilinosSparseSpaceType &dummy,
-                                     Teuchos::MpiComm<int> &rComm) {
-  return ExperimentalAuxiliaryVectorWrapper(
-      dummy.CreateEmptyVectorPointer(rComm));
-}
-ExperimentalTrilinosSparseSpaceType::MatrixType &
-ExperimentalGetMatRef(ExperimentalAuxiliaryMatrixWrapper &dummy) {
-  return dummy.GetReference();
-}
-ExperimentalTrilinosSparseSpaceType::VectorType &
-ExperimentalGetVecRef(ExperimentalAuxiliaryVectorWrapper &dummy) {
-  return dummy.GetReference();
+// --- Wrapper accessor helpers ---
+
+ExperimentalTrilinosSparseSpaceType::MatrixType& GetMatRef(ExperimentalAuxiliaryMatrixWrapper& rWrapper)
+{
+    return rWrapper.GetReference();
 }
 
-// Additional bindings
-
-void ExperimentalCopyVector(
-    ExperimentalTrilinosSparseSpaceType &dummy,
-    const ExperimentalTrilinosSparseSpaceType::VectorType &rX,
-    ExperimentalTrilinosSparseSpaceType::VectorType &rY) {
-  dummy.Copy(rX, rY);
-}
-void ExperimentalCopyMatrix(
-    ExperimentalTrilinosSparseSpaceType &dummy,
-    const ExperimentalTrilinosSparseSpaceType::MatrixType &rX,
-    ExperimentalTrilinosSparseSpaceType::MatrixType &rY) {
-  dummy.Copy(rX, rY);
-}
-void ExperimentalCopyMatrixValues(
-    ExperimentalTrilinosSparseSpaceType &dummy,
-    ExperimentalTrilinosSparseSpaceType::MatrixType &rA,
-    const ExperimentalTrilinosSparseSpaceType::MatrixType &rB) {
-  dummy.CopyMatrixValues(rA, rB);
-}
-void ExperimentalAssign(
-    ExperimentalTrilinosSparseSpaceType &dummy,
-    ExperimentalTrilinosSparseSpaceType::VectorType &rX, const double A,
-    const ExperimentalTrilinosSparseSpaceType::VectorType &rY) {
-  dummy.Assign(rX, A, rY);
-}
-void ExperimentalInplaceMult(
-    ExperimentalTrilinosSparseSpaceType &dummy,
-    ExperimentalTrilinosSparseSpaceType::VectorType &rX, const double A) {
-  dummy.InplaceMult(rX, A);
-}
-void ExperimentalSetV(ExperimentalTrilinosSparseSpaceType &dummy,
-                      ExperimentalTrilinosSparseSpaceType::VectorType &rX,
-                      double value) {
-  dummy.Set(rX, value);
-}
-double ExperimentalGetValue(
-    ExperimentalTrilinosSparseSpaceType &dummy,
-    const ExperimentalTrilinosSparseSpaceType::VectorType &rX, std::size_t I) {
-  return dummy.GetValue(rX, I);
-}
-void ExperimentalSetValueVector(
-    ExperimentalTrilinosSparseSpaceType &dummy,
-    ExperimentalTrilinosSparseSpaceType::VectorType &rX,
-    ExperimentalTrilinosSparseSpaceType::IndexType i, double value) {
-  dummy.SetValue(rX, i, value);
-}
-void ExperimentalSetValueMatrix(
-    ExperimentalTrilinosSparseSpaceType &dummy,
-    ExperimentalTrilinosSparseSpaceType::MatrixType &rA,
-    ExperimentalTrilinosSparseSpaceType::IndexType i,
-    ExperimentalTrilinosSparseSpaceType::IndexType j, double value) {
-  dummy.SetValue(rA, i, j, value);
-}
-pybind11::object ExperimentalGatherValues(
-    ExperimentalTrilinosSparseSpaceType &dummy,
-    ExperimentalTrilinosSparseSpaceType::VectorType &rX,
-    const std::vector<int> &IndexArray) {
-  std::vector<double> values(IndexArray.size());
-  dummy.GatherValues(rX, IndexArray, values.data());
-  return pybind11::cast(values);
-}
-void ExperimentalGlobalAssembleMatrix(
-    ExperimentalTrilinosSparseSpaceType &dummy,
-    ExperimentalTrilinosSparseSpaceType::MatrixType &rA) {
-  dummy.GlobalAssemble(rA);
-}
-void ExperimentalGlobalAssembleVector(
-    ExperimentalTrilinosSparseSpaceType &dummy,
-    ExperimentalTrilinosSparseSpaceType::VectorType &rV) {
-  dummy.GlobalAssemble(rV);
-}
-void ExperimentalManualFinalize(
-    ExperimentalTrilinosSparseSpaceType &dummy,
-    ExperimentalTrilinosSparseSpaceType::MatrixType &rA) {
-  dummy.ManualFinalize(rA);
-}
-double ExperimentalGetDiagonalNorm(
-    ExperimentalTrilinosSparseSpaceType &dummy,
-    const ExperimentalTrilinosSparseSpaceType::MatrixType &rA) {
-  return dummy.GetDiagonalNorm(rA);
-}
-double ExperimentalGetAveragevalueDiagonal(
-    ExperimentalTrilinosSparseSpaceType &dummy,
-    const ExperimentalTrilinosSparseSpaceType::MatrixType &rA) {
-  return dummy.GetAveragevalueDiagonal(rA);
-}
-double ExperimentalGetMaxDiagonal(
-    ExperimentalTrilinosSparseSpaceType &dummy,
-    const ExperimentalTrilinosSparseSpaceType::MatrixType &rA) {
-  return dummy.GetMaxDiagonal(rA);
-}
-double ExperimentalGetMinDiagonal(
-    ExperimentalTrilinosSparseSpaceType &dummy,
-    const ExperimentalTrilinosSparseSpaceType::MatrixType &rA) {
-  return dummy.GetMinDiagonal(rA);
-}
-ExperimentalAuxiliaryVectorWrapper ExperimentalCreateVectorCopy(
-    ExperimentalTrilinosSparseSpaceType &dummy,
-    const ExperimentalTrilinosSparseSpaceType::VectorType &rV) {
-  return ExperimentalAuxiliaryVectorWrapper(dummy.CreateVectorCopy(rV));
-}
-ExperimentalAuxiliaryMatrixWrapper ExperimentalCreateMatrixCopy(
-    ExperimentalTrilinosSparseSpaceType &dummy,
-    const ExperimentalTrilinosSparseSpaceType::MatrixType &rA) {
-  return ExperimentalAuxiliaryMatrixWrapper(dummy.CreateMatrixCopy(rA));
+ExperimentalTrilinosSparseSpaceType::VectorType& GetVecRef(ExperimentalAuxiliaryVectorWrapper& rWrapper)
+{
+    return rWrapper.GetReference();
 }
 
-} // namespace
+// --- Pointer factories ---
+
+ExperimentalAuxiliaryMatrixWrapper CreateEmptyMatrixPointer(
+    ExperimentalTrilinosSparseSpaceType& rDummy,
+    Teuchos::MpiComm<int>& rComm
+    )
+{
+    return ExperimentalAuxiliaryMatrixWrapper(rDummy.CreateEmptyMatrixPointer(rComm));
+}
+
+ExperimentalAuxiliaryVectorWrapper CreateEmptyVectorPointer(
+    ExperimentalTrilinosSparseSpaceType& rDummy,
+    Teuchos::MpiComm<int>& rComm
+    )
+{
+    return ExperimentalAuxiliaryVectorWrapper(rDummy.CreateEmptyVectorPointer(rComm));
+}
+
+ExperimentalAuxiliaryVectorWrapper CreateVector(
+    ExperimentalTrilinosSparseSpaceType& rDummy,
+    ExperimentalTrilinosSparseSpaceType::MapPointerType& pMap
+    )
+{
+    return ExperimentalAuxiliaryVectorWrapper(rDummy.CreateVector(pMap));
+}
+
+ExperimentalAuxiliaryMatrixWrapper CreateMatrix(
+    ExperimentalTrilinosSparseSpaceType& rDummy,
+    ExperimentalTrilinosSparseSpaceType::GraphPointerType& pGraph
+    )
+{
+    return ExperimentalAuxiliaryMatrixWrapper(rDummy.CreateMatrix(pGraph));
+}
+
+ExperimentalAuxiliaryVectorWrapper CreateVectorCopy(
+    ExperimentalTrilinosSparseSpaceType& rDummy,
+    const ExperimentalTrilinosSparseSpaceType::VectorType& rV
+    )
+{
+    return ExperimentalAuxiliaryVectorWrapper(rDummy.CreateVectorCopy(rV));
+}
+
+ExperimentalAuxiliaryMatrixWrapper CreateMatrixCopy(
+    ExperimentalTrilinosSparseSpaceType& rDummy,
+    const ExperimentalTrilinosSparseSpaceType::MatrixType& rA
+    )
+{
+    return ExperimentalAuxiliaryMatrixWrapper(rDummy.CreateMatrixCopy(rA));
+}
+
+// --- Clear / resize ---
+
+void ClearMatrix(
+    ExperimentalTrilinosSparseSpaceType& rDummy,
+    ExperimentalTrilinosSparseSpaceType::MatrixPointerType& pA
+    )
+{
+    rDummy.Clear(pA);
+}
+
+void ClearVector(
+    ExperimentalTrilinosSparseSpaceType& rDummy,
+    ExperimentalTrilinosSparseSpaceType::VectorPointerType& pX
+    )
+{
+    rDummy.Clear(pX);
+}
+
+void ResizeVector(
+    ExperimentalTrilinosSparseSpaceType& rDummy,
+    ExperimentalTrilinosSparseSpaceType::VectorPointerType& pX,
+    ExperimentalTrilinosSparseSpaceType::SizeType N
+    )
+{
+    rDummy.Resize(pX, N);
+}
+
+// --- Zero-fill ---
+
+void SetToZeroMatrix(
+    ExperimentalTrilinosSparseSpaceType& rDummy,
+    ExperimentalTrilinosSparseSpaceType::MatrixType& rA
+    )
+{
+    rDummy.SetToZero(rA);
+}
+
+void SetToZeroVector(
+    ExperimentalTrilinosSparseSpaceType& rDummy,
+    ExperimentalTrilinosSparseSpaceType::VectorType& rX
+    )
+{
+    rDummy.SetToZero(rX);
+}
+
+// --- Norms ---
+
+double TwoNorm(
+    ExperimentalTrilinosSparseSpaceType& rDummy,
+    ExperimentalTrilinosSparseSpaceType::VectorType& rX
+    )
+{
+    return rDummy.TwoNorm(rX);
+}
+
+double GetDiagonalNorm(
+    ExperimentalTrilinosSparseSpaceType& rDummy,
+    const ExperimentalTrilinosSparseSpaceType::MatrixType& rA
+    )
+{
+    return rDummy.GetDiagonalNorm(rA);
+}
+
+double GetAveragevalueDiagonal(
+    ExperimentalTrilinosSparseSpaceType& rDummy,
+    const ExperimentalTrilinosSparseSpaceType::MatrixType& rA
+    )
+{
+    return rDummy.GetAveragevalueDiagonal(rA);
+}
+
+double GetMaxDiagonal(
+    ExperimentalTrilinosSparseSpaceType& rDummy,
+    const ExperimentalTrilinosSparseSpaceType::MatrixType& rA
+    )
+{
+    return rDummy.GetMaxDiagonal(rA);
+}
+
+double GetMinDiagonal(
+    ExperimentalTrilinosSparseSpaceType& rDummy,
+    const ExperimentalTrilinosSparseSpaceType::MatrixType& rA
+    )
+{
+    return rDummy.GetMinDiagonal(rA);
+}
+
+// --- Dot product ---
+
+double Dot(
+    ExperimentalTrilinosSparseSpaceType& rDummy,
+    ExperimentalTrilinosSparseSpaceType::VectorType& rX,
+    ExperimentalTrilinosSparseSpaceType::VectorType& rY
+    )
+{
+    return rDummy.Dot(rX, rY);
+}
+
+// --- Vector / matrix algebra ---
+
+void ScaleAndAdd(
+    ExperimentalTrilinosSparseSpaceType& rDummy,
+    const double A,
+    const ExperimentalTrilinosSparseSpaceType::VectorType& rX,
+    const double B,
+    ExperimentalTrilinosSparseSpaceType::VectorType& rY
+    )
+{
+    rDummy.ScaleAndAdd(A, rX, B, rY);
+}
+
+void ScaleAndAddMatrix(
+    ExperimentalTrilinosSparseSpaceType& rDummy,
+    const double A,
+    const ExperimentalTrilinosSparseSpaceType::MatrixType& rX,
+    const double B,
+    ExperimentalTrilinosSparseSpaceType::MatrixType& rY
+    )
+{
+    rDummy.ScaleAndAdd(A, rX, B, rY);
+}
+
+void UnaliasedAdd(
+    ExperimentalTrilinosSparseSpaceType& rDummy,
+    ExperimentalTrilinosSparseSpaceType::VectorType& rX,
+    const double A,
+    const ExperimentalTrilinosSparseSpaceType::VectorType& rY
+    )
+{
+    rDummy.UnaliasedAdd(rX, A, rY);
+}
+
+void Assign(
+    ExperimentalTrilinosSparseSpaceType& rDummy,
+    ExperimentalTrilinosSparseSpaceType::VectorType& rX,
+    const double A,
+    const ExperimentalTrilinosSparseSpaceType::VectorType& rY
+    )
+{
+    rDummy.Assign(rX, A, rY);
+}
+
+void InplaceMult(
+    ExperimentalTrilinosSparseSpaceType& rDummy,
+    ExperimentalTrilinosSparseSpaceType::VectorType& rX,
+    const double A
+    )
+{
+    rDummy.InplaceMult(rX, A);
+}
+
+void SetValue(
+    ExperimentalTrilinosSparseSpaceType& rDummy,
+    ExperimentalTrilinosSparseSpaceType::VectorType& rX,
+    const double Value
+    )
+{
+    rDummy.Set(rX, Value);
+}
+
+// --- Matrix-vector / matrix-matrix products ---
+
+void Mult(
+    ExperimentalTrilinosSparseSpaceType& rDummy,
+    ExperimentalTrilinosSparseSpaceType::MatrixType& rA,
+    ExperimentalTrilinosSparseSpaceType::VectorType& rX,
+    ExperimentalTrilinosSparseSpaceType::VectorType& rY
+    )
+{
+    rDummy.Mult(rA, rX, rY);
+}
+
+void TransposeMult(
+    ExperimentalTrilinosSparseSpaceType& rDummy,
+    ExperimentalTrilinosSparseSpaceType::MatrixType& rA,
+    ExperimentalTrilinosSparseSpaceType::VectorType& rX,
+    ExperimentalTrilinosSparseSpaceType::VectorType& rY
+    )
+{
+    rDummy.TransposeMult(rA, rX, rY);
+}
+
+// --- Size queries ---
+
+ExperimentalTrilinosSparseSpaceType::IndexType Size(
+    ExperimentalTrilinosSparseSpaceType& rDummy,
+    ExperimentalTrilinosSparseSpaceType::VectorType const& rV
+    )
+{
+    return rDummy.Size(rV);
+}
+
+ExperimentalTrilinosSparseSpaceType::IndexType Size1(
+    ExperimentalTrilinosSparseSpaceType& rDummy,
+    ExperimentalTrilinosSparseSpaceType::MatrixType const& rM
+    )
+{
+    return rDummy.Size1(rM);
+}
+
+ExperimentalTrilinosSparseSpaceType::IndexType Size2(
+    ExperimentalTrilinosSparseSpaceType& rDummy,
+    ExperimentalTrilinosSparseSpaceType::MatrixType const& rM
+    )
+{
+    return rDummy.Size2(rM);
+}
+
+// --- Copy ---
+
+void CopyVector(
+    ExperimentalTrilinosSparseSpaceType& rDummy,
+    const ExperimentalTrilinosSparseSpaceType::VectorType& rX,
+    ExperimentalTrilinosSparseSpaceType::VectorType& rY
+    )
+{
+    rDummy.Copy(rX, rY);
+}
+
+void CopyMatrix(
+    ExperimentalTrilinosSparseSpaceType& rDummy,
+    const ExperimentalTrilinosSparseSpaceType::MatrixType& rX,
+    ExperimentalTrilinosSparseSpaceType::MatrixType& rY
+    )
+{
+    rDummy.Copy(rX, rY);
+}
+
+void CopyMatrixValues(
+    ExperimentalTrilinosSparseSpaceType& rDummy,
+    ExperimentalTrilinosSparseSpaceType::MatrixType& rA,
+    const ExperimentalTrilinosSparseSpaceType::MatrixType& rB
+    )
+{
+    rDummy.CopyMatrixValues(rA, rB);
+}
+
+// --- Element access ---
+
+double GetValue(
+    ExperimentalTrilinosSparseSpaceType& rDummy,
+    const ExperimentalTrilinosSparseSpaceType::VectorType& rX,
+    std::size_t I
+    )
+{
+    return rDummy.GetValue(rX, I);
+}
+
+void SetValueVector(
+    ExperimentalTrilinosSparseSpaceType& rDummy,
+    ExperimentalTrilinosSparseSpaceType::VectorType& rX,
+    ExperimentalTrilinosSparseSpaceType::IndexType I,
+    const double Value
+    )
+{
+    rDummy.SetValue(rX, I, Value);
+}
+
+void SetValueMatrix(
+    ExperimentalTrilinosSparseSpaceType& rDummy,
+    ExperimentalTrilinosSparseSpaceType::MatrixType& rA,
+    ExperimentalTrilinosSparseSpaceType::IndexType I,
+    ExperimentalTrilinosSparseSpaceType::IndexType J,
+    const double Value
+    )
+{
+    rDummy.SetValue(rA, I, J, Value);
+}
+
+py::object GatherValues(
+    ExperimentalTrilinosSparseSpaceType& rDummy,
+    ExperimentalTrilinosSparseSpaceType::VectorType& rX,
+    const std::vector<int>& rIndexArray
+    )
+{
+    std::vector<double> values(rIndexArray.size());
+    rDummy.GatherValues(rX, rIndexArray, values.data());
+    return py::cast(values);
+}
+
+// --- Assembly ---
+
+void GlobalAssembleMatrix(
+    ExperimentalTrilinosSparseSpaceType& rDummy,
+    ExperimentalTrilinosSparseSpaceType::MatrixType& rA
+    )
+{
+    rDummy.GlobalAssemble(rA);
+}
+
+void GlobalAssembleVector(
+    ExperimentalTrilinosSparseSpaceType& rDummy,
+    ExperimentalTrilinosSparseSpaceType::VectorType& rV
+    )
+{
+    rDummy.GlobalAssemble(rV);
+}
+
+void ManualFinalize(
+    ExperimentalTrilinosSparseSpaceType& rDummy,
+    ExperimentalTrilinosSparseSpaceType::MatrixType& rA
+    )
+{
+    rDummy.ManualFinalize(rA);
+}
+
+// --- Matrix Market I/O ---
+
+ExperimentalAuxiliaryMatrixWrapper ReadMatrixMarket(
+    ExperimentalTrilinosSparseSpaceType& rDummy,
+    const std::string& rFileName,
+    Teuchos::MpiComm<int>& rComm
+    )
+{
+    return ExperimentalAuxiliaryMatrixWrapper(rDummy.ReadMatrixMarket(rFileName, rComm));
+}
+
+ExperimentalAuxiliaryVectorWrapper ReadMatrixMarketVector(
+    ExperimentalTrilinosSparseSpaceType& rDummy,
+    const std::string& rFileName,
+    ExperimentalTrilinosSparseSpaceType::CommunicatorPointerType pComm,
+    const int N
+    )
+{
+    return ExperimentalAuxiliaryVectorWrapper(rDummy.ReadMatrixMarketVector(rFileName, pComm, N));
+}
+
+void WriteMatrixMarketMatrix(
+    ExperimentalTrilinosSparseSpaceType& rDummy,
+    const char* pFileName,
+    const ExperimentalTrilinosSparseSpaceType::MatrixType& rA,
+    const bool Symmetric
+    )
+{
+    rDummy.WriteMatrixMarketMatrix(pFileName, rA, Symmetric);
+}
+
+void WriteMatrixMarketVector(
+    ExperimentalTrilinosSparseSpaceType& rDummy,
+    const char* pFileName,
+    const ExperimentalTrilinosSparseSpaceType::VectorType& rV
+    )
+{
+    rDummy.WriteMatrixMarketVector(pFileName, rV);
+}
+
+} // anonymous namespace
 
 #endif
 
-void AddBasicOperationsExperimental(pybind11::module &m) {
+void AddBasicOperationsExperimental(py::module& m)
+{
 #ifdef HAVE_TPETRA
 
-  py::class_<Teuchos::MpiComm<int>>(m, "Experimental_TeuchosMpiComm")
-      //.def(py::init< Teuchos::MpiComm<int>& >())
-      ;
+    // Expose underlying Tpetra/Teuchos types so Python can receive or pass them
+    py::class_<Teuchos::MpiComm<int>>(m, "Experimental_TeuchosMpiComm");
+    py::class_<Tpetra::FECrsMatrix<>>(m, "Experimental_FECrsMatrix");
+    py::class_<Tpetra::FEMultiVector<>>(m, "Experimental_FEMultiVector");
 
-  py::class_<Tpetra::FECrsMatrix<>>(m, "Experimental_FECrsMatrix")
-      //.def(py::init< Tpetra::FECrsMatrix<>& >())
-      ;
+    // Smart-pointer wrappers (Teuchos::RCP cannot be bound directly)
+    py::class_<ExperimentalAuxiliaryMatrixWrapper>(m, "ExperimentalTrilinosMatrixPointer")
+        .def("GetReference", GetMatRef, py::return_value_policy::reference_internal)
+        ;
 
-  py::class_<Tpetra::FEMultiVector<>>(m, "Experimental_FEMultiVector")
-      //.def(py::init< Tpetra::FEMultiVector<>& >())
-      ;
+    py::class_<ExperimentalAuxiliaryVectorWrapper>(m, "ExperimentalTrilinosVectorPointer")
+        .def("GetReference", GetVecRef, py::return_value_policy::reference_internal)
+        ;
 
-  py::class_<ExperimentalAuxiliaryMatrixWrapper>(
-      m, "ExperimentalTrilinosMatrixPointer")
-      .def("GetReference", ExperimentalGetMatRef,
-           py::return_value_policy::reference_internal);
-
-  py::class_<ExperimentalAuxiliaryVectorWrapper>(
-      m, "ExperimentalTrilinosVectorPointer")
-      .def("GetReference", ExperimentalGetVecRef,
-           py::return_value_policy::reference_internal);
-
-  py::class_<ExperimentalTrilinosSparseSpaceType>(
-      m, "ExperimentalTrilinosSparseSpace")
-      .def(py::init<>())
-      // --- Clear / Resize ---
-      .def("ClearMatrix", ExperimentalClearMatrix)
-      .def("ClearVector", ExperimentalClearVector)
-      .def("ResizeVector", ExperimentalResizeVector)
-      // --- Zero-fill ---
-      .def("SetToZeroMatrix", ExperimentalSetToZeroMatrix)
-      .def("SetToZeroVector", ExperimentalSetToZeroVector)
-      // --- Norms ---
-      .def("TwoNorm", ExperimentalTwoNorm)
-      .def("GetDiagonalNorm", ExperimentalGetDiagonalNorm)
-      .def("GetAveragevalueDiagonal", ExperimentalGetAveragevalueDiagonal)
-      .def("GetMaxDiagonal", ExperimentalGetMaxDiagonal)
-      .def("GetMinDiagonal", ExperimentalGetMinDiagonal)
-      // --- Dot / vector algebra ---
-      .def("Dot", ExperimentalDot)
-      .def("UnaliasedAdd", ExperimentalUnaliasedAdd)
-      .def("ScaleAndAdd", ExperimentalScaleAndAdd)
-      .def("ScaleAndAddMatrix", ExperimentalScaleAndAddMatrix)
-      .def("Assign", ExperimentalAssign)
-      .def("InplaceMult", ExperimentalInplaceMult)
-      // --- Matrix-vector / matrix-matrix products ---
-      .def("Mult", ExperimentalMult)
-      .def("TransposeMult", ExperimentalTransposeMult)
-      // --- Sizes ---
-      .def("Size", ExperimentalSize)
-      .def("Size1", ExperimentalSize1)
-      .def("Size2", ExperimentalSize2)
-      // --- Copy ---
-      .def("CopyVector", ExperimentalCopyVector)
-      .def("CopyMatrix", ExperimentalCopyMatrix)
-      .def("CopyMatrixValues", ExperimentalCopyMatrixValues)
-      // --- Pointer factories ---
-      .def("CreateEmptyMatrixPointer", ExperimentalCreateEmptyMatrixPointer)
-      .def("CreateEmptyVectorPointer", ExperimentalCreateEmptyVectorPointer)
-      .def("CreateVectorCopy", ExperimentalCreateVectorCopy)
-      .def("CreateMatrixCopy", ExperimentalCreateMatrixCopy)
-      // --- Element access ---
-      .def("GetValue", ExperimentalGetValue)
-      .def("SetValueVector", ExperimentalSetValueVector)
-      .def("SetValueMatrix", ExperimentalSetValueMatrix)
-      .def("GatherValues", ExperimentalGatherValues)
-      // --- Set scalar ---
-      .def("Set", ExperimentalSetV)
-      // --- Assembly ---
-      .def("GlobalAssembleMatrix", ExperimentalGlobalAssembleMatrix)
-      .def("GlobalAssembleVector", ExperimentalGlobalAssembleVector)
-      .def("ManualFinalize", ExperimentalManualFinalize)
-      // --- Static queries ---
-      .def_static("IsDistributed",
-                  &ExperimentalTrilinosSparseSpaceType::IsDistributed)
-      .def_static("IsDistributedSpace",
-                  &ExperimentalTrilinosSparseSpaceType::IsDistributedSpace)
-      .def_static(
-          "FastestDirectSolverList",
-          &ExperimentalTrilinosSparseSpaceType::FastestDirectSolverList);
+    py::class_<ExperimentalTrilinosSparseSpaceType>(m, "ExperimentalTrilinosSparseSpace")
+        .def(py::init<>())
+        // --- Pointer factories ---
+        .def("CreateEmptyMatrixPointer", CreateEmptyMatrixPointer)
+        .def("CreateEmptyVectorPointer", CreateEmptyVectorPointer)
+        .def("CreateVector",             CreateVector)
+        .def("CreateMatrix",             CreateMatrix)
+        .def("CreateVectorCopy",         CreateVectorCopy)
+        .def("CreateMatrixCopy",         CreateMatrixCopy)
+        // --- Clear / resize ---
+        .def("ClearMatrix",  ClearMatrix)
+        .def("ClearVector",  ClearVector)
+        .def("ResizeVector", ResizeVector)
+        // --- Zero-fill ---
+        .def("SetToZeroMatrix", SetToZeroMatrix)
+        .def("SetToZeroVector", SetToZeroVector)
+        // --- Norms ---
+        .def("TwoNorm",                 TwoNorm)
+        .def("GetDiagonalNorm",         GetDiagonalNorm)
+        .def("GetAveragevalueDiagonal", GetAveragevalueDiagonal)
+        .def("GetMaxDiagonal",          GetMaxDiagonal)
+        .def("GetMinDiagonal",          GetMinDiagonal)
+        // --- Dot product ---
+        .def("Dot", Dot)
+        // --- Vector / matrix algebra ---
+        .def("UnaliasedAdd",      UnaliasedAdd)
+        .def("ScaleAndAdd",       ScaleAndAdd)
+        .def("ScaleAndAddMatrix", ScaleAndAddMatrix)
+        .def("Assign",            Assign)
+        .def("InplaceMult",       InplaceMult)
+        .def("Set",               SetValue)
+        // --- Matrix-vector / matrix-matrix products ---
+        .def("Mult",          Mult)
+        .def("TransposeMult", TransposeMult)
+        // --- Size queries ---
+        .def("Size",  Size)
+        .def("Size1", Size1)
+        .def("Size2", Size2)
+        // --- Copy ---
+        .def("CopyVector",       CopyVector)
+        .def("CopyMatrix",       CopyMatrix)
+        .def("CopyMatrixValues", CopyMatrixValues)
+        // --- Element access ---
+        .def("GetValue",       GetValue)
+        .def("SetValueVector", SetValueVector)
+        .def("SetValueMatrix", SetValueMatrix)
+        .def("GatherValues",   GatherValues)
+        // --- Assembly ---
+        .def("GlobalAssembleMatrix", GlobalAssembleMatrix)
+        .def("GlobalAssembleVector", GlobalAssembleVector)
+        .def("ManualFinalize",       ManualFinalize)
+        // --- Matrix Market I/O ---
+        .def("ReadMatrixMarket",        ReadMatrixMarket)
+        .def("ReadMatrixMarketVector",  ReadMatrixMarketVector)
+        .def("WriteMatrixMarketMatrix", WriteMatrixMarketMatrix)
+        .def("WriteMatrixMarketVector", WriteMatrixMarketVector)
+        // --- Static queries ---
+        .def_static("IsDistributed",           &ExperimentalTrilinosSparseSpaceType::IsDistributed)
+        .def_static("IsDistributedSpace",      &ExperimentalTrilinosSparseSpaceType::IsDistributedSpace)
+        .def_static("FastestDirectSolverList", &ExperimentalTrilinosSparseSpaceType::FastestDirectSolverList)
+        ;
 
 #endif
 }
 
-} // namespace Kratos::Python.
+} // namespace Kratos::Python
