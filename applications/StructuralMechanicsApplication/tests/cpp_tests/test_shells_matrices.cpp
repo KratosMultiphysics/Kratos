@@ -463,7 +463,7 @@ ref_damping_matrix(0,0)=1923.1538461538; ref_damping_matrix(0,1)=739.9038461538;
 
     ref_damping_matrix(18,0)=386.5384615385; ref_damping_matrix(18,1)=-47.5961538462; ref_damping_matrix(18,5)=26.9230769231;
     ref_damping_matrix(18,6)=-1214.4230769231; ref_damping_matrix(18,7)=739.9038461538; ref_damping_matrix(18,11)=13.4615384615;
-    ref_damping_matrix(18,12)=-1093.2692307692; ref_damping_matrix(18,13)=-47.5961538462; ref_damping_matrix(18,17)=13.4615384615;
+    ref_damping_matrix(18,12)=-1093.2692307692; ref_damping_matrix(18,13)=47.5961538462; ref_damping_matrix(18,17)=13.4615384615;
     ref_damping_matrix(18,18)=1923.1538461538; ref_damping_matrix(18,19)=-739.9038461538; ref_damping_matrix(18,23)=26.9230769231;
 
     ref_damping_matrix(19,0)=47.5961538462; ref_damping_matrix(19,1)=-1093.2692307692; ref_damping_matrix(19,5)=13.4615384615;
