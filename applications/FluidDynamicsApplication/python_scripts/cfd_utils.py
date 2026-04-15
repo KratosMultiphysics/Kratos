@@ -86,14 +86,14 @@ class CFDUtils:
                     [2.0/3.0, 1.0/6.0, 1.0/6.0],
                     [1.0/6.0, 2.0/3.0, 1.0/6.0],
                     [1.0/6.0, 1.0/6.0, 2.0/3.0]
-                ])
+                ], dtype=PRECISION)
             elif dim == 3:
                 N = xp.array([
                     [0.5854101966249685, 0.1381966011250105, 0.1381966011250105, 0.1381966011250105],
                     [0.1381966011250105, 0.5854101966249685, 0.1381966011250105, 0.1381966011250105],
                     [0.1381966011250105, 0.1381966011250105, 0.5854101966249685, 0.1381966011250105],
                     [0.1381966011250105, 0.1381966011250105, 0.1381966011250105, 0.5854101966249685]
-                ])
+                ], dtype=PRECISION)
             else:
                 raise Exception("Dimension not supported.")
         else:
@@ -101,12 +101,33 @@ class CFDUtils:
 
         return N
 
+    def GetShapeFunctionsOnEdgeMidpoints(self, dim: int):
+        if dim == 2:
+            N = xp.array([
+                [0.5, 0.5, 0.0],
+                [0.5, 0.0, 0.5],
+                [0.0, 0.5, 0.5]
+            ], dtype=PRECISION)
+        elif dim == 3:
+            N = xp.array([
+                [0.5, 0.5, 0.0, 0.0],
+                [0.5, 0.0, 0.5, 0.0],
+                [0.5, 0.0, 0.0, 0.5],
+                [0.0, 0.5, 0.5, 0.0],
+                [0.0, 0.5, 0.0, 0.5],
+                [0.0, 0.0, 0.5, 0.5]
+            ], dtype=PRECISION)
+        else:
+            raise Exception("Dimension not supported.")
+
+        return N
+
     def GetGaussIntegrationWeights(self, dim: int, integration_order: int):
         if integration_order == 1:
             if dim == 2:
-                w = xp.array([1.0/2.0])
+                w = xp.array([1.0/2.0],dtype=PRECISION)
             elif dim == 3:
-                w = xp.array([1.0/6.0])
+                w = xp.array([1.0/6.0],dtype=PRECISION)
             else:
                 raise Exception("Dimension not supported.")
         elif integration_order == 2:
@@ -115,14 +136,14 @@ class CFDUtils:
                     1.0/6.0,
                     1.0/6.0,
                     1.0/6.0
-                ])
+                ],dtype=PRECISION)
             elif dim == 3:
                 w = xp.array([
                     1.0/24.0,
                     1.0/24.0,
                     1.0/24.0,
                     1.0/24.0
-                ])
+                ],dtype=PRECISION)
             else:
                 raise Exception("Dimension not supported.")
         else:
@@ -171,6 +192,14 @@ class CFDUtils:
             raise Exception("wrong size of uel")
 
         return xp.einsum("I,eJk,eJk->eI",N,DN,uel,optimize=opt_type)
+
+    def ComputeElementalConvectiveOperator(self, a_elemental, DN):
+        """
+        Computes the convective operator (a·∇).
+
+        conv[e, i, j] = sum_m a[e,i,m] * DN[e,j,m]
+        """
+        return xp.einsum("eiM,ejM->eij", a_elemental, DN, optimize=opt_type) # (E, nnode, nnode)
 
     def Compute_N_DN(self, N: np.ndarray, DN: np.ndarray, pel: np.ndarray):
         """
@@ -447,12 +476,26 @@ class CFDUtils:
             raise ValueError("grad_u must have 2 dims (scalar) or 3 dims (vector)")
 
         return out
+    
+    def ComputeConvectiveContributionOnEdgeMidpoints(self, N, a_DN, u_elemental):
+        """
+        Compute (w,a·∇u) using the previously computed convective operator a·∇
+        """
+        n_el_edges, n_el_nodes = N.shape
+        n_elems, n_el_nodes, n_dim = u_elemental.shape
+
+        mass = xp.zeros((n_elems, n_el_nodes, n_el_nodes), dtype=PRECISION)
+        for i_edge in range(n_el_edges):
+            mass += N[None,i_edge,:] * N[i_edge,:,None]
+
+        conv = xp.einsum("eiJ,eJk->eik", a_DN, u_elemental, optimize=opt_type)
+        return xp.einsum("eij,ejk->eik", mass, conv, optimize=opt_type)
 
     def ComputeMomentumStabilization(self, N, DN, u_elemental, a_gauss, pi_gauss, rho):
         """
         Compute convection + convective stabilization in a single pass.
 
-        (ρ a·∇w, ρ a·∇u) - (ρ a·∇w, Π)
+        (ρ a·∇w, ρ a·∇u) - (ρ a·∇w, ρ Π)
 
         Parameters
         ----------
@@ -466,25 +509,16 @@ class CFDUtils:
         Returns
         -------
         out : (nelem, ngauss, nnode, ndim)
-            Total convective contribution (Galerkin + stabilization)
+            Convective stabilization contribution
         """
 
-        # --- discrete operator: a · ∇N ---
-        adv = xp.einsum("egd,end->egn", a_gauss, DN, optimize=opt_type)  # (E,G,nnode)
+        adv = xp.einsum("egd,end->egn", a_gauss, DN, optimize=opt_type)
 
-        # --- a·∇u = Σ_J adv_J u_J ---
-        conv = xp.einsum("egn,end->egd", adv, u_elemental, optimize=opt_type)  # (E,G,dim)
+        conv = xp.einsum("egn,end->egd", adv, u_elemental, optimize=opt_type)
 
-        # --- Galerkin term ---
-        out = N[None, :, :, None] * conv[:, :, None, :]  # (E,G,nnode,dim)
+        rho2 = rho * rho
 
-        # --- stabilization ---
-        beta = rho * adv                                # (E,G,nnode)
-
-        tmp = xp.einsum("egn,end->egd", beta, u_elemental, optimize=opt_type)
-        # tmp = rho * conv #FIXME: this reduces time, however we need to check it is correct
-
-        out += beta[:, :, :, None] * (tmp[:, :, None, :] - pi_gauss[:, :, None, :])
+        out = rho2 * adv[:, :, :, None] * (conv - pi_gauss)[:, :, None, :]
 
         return out
 

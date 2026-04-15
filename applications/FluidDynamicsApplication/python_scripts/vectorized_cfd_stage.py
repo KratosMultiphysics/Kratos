@@ -184,8 +184,10 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         self.vol_mp.AddGeometries(vol_geometries)
 
         ##TODO: change viscosity
-        self.dyn_visc = 1.79e-5
-        self.rho = 1.225e0
+        self.dyn_visc = 1.0e-3
+        self.rho = 1.0e0
+        # self.dyn_visc = 1.79e-5
+        # self.rho = 1.225e0
 
     def _AddVariables(self):
         self.model_part.AddNodalSolutionStepVariable(KM.VELOCITY)
@@ -419,15 +421,16 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         return self.model_part
 
     def ComputeVelocityProjection(self, v_elemental):
-        # Solve (w,pi) = (w,rho·a·∇u)
+        # Solve (w,pi) = (w,a·∇u)
         # Calculate the convective term at the elemental level
         convective = xp.zeros(v_elemental.shape, dtype=cfd_utils.PRECISION)
         tmp = xp.zeros_like(convective)
         grad_v = self.cfd_utils.ComputeElementalGradient(self.DN, v_elemental)
         v_el_gauss = self.cfd_utils.InterpolateValue(self.N_int_order, v_elemental)
 
-        # Compute convective contribution at integration points (w,rho·a·∇u)
-        tmp = self.rho * self.cfd_utils.ComputeConvectiveContribution(self.N_int_order, grad_v, v_el_gauss) # Calculate the elemental convective contributions at each integration point
+        # Compute convective contribution at integration points (w,a·∇u)
+        # tmp = self.rho * self.cfd_utils.ComputeConvectiveContribution(self.N_int_order, grad_v, v_el_gauss) # Calculate the elemental convective contributions at each integration point
+        tmp = self.cfd_utils.ComputeConvectiveContribution(self.N_int_order, grad_v, v_el_gauss) # Calculate the elemental convective contributions at each integration point
         convective = xp.tensordot(tmp, self.w_int_order, axes=(1, 0)) # Scale with integration weights and do the integration points summation
         convective *= self.elemental_volumes[:, None, None] # Apply Jacobian determinant to the entire residual
 
@@ -768,12 +771,17 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         #-(w,rho·a·∇u) - (rho·a·∇w,tau_1·rho·a·∇u) + (rho·a·∇w,tau_1·Pi_conv)
         t0 = time.perf_counter()
         grad_v = self.cfd_utils.ComputeElementalGradient(DN, v_elemental)
+        a_grad = self.cfd_utils.ComputeElementalConvectiveOperator(v_elemental, DN)
         v_el_gauss = self.cfd_utils.InterpolateValue(self.N_int_order, v_elemental)
         proj_el_gauss = self.cfd_utils.InterpolateValue(self.N_int_order, proj_elemental)
         print(f"\t\ttime {2}: {time.perf_counter() - t0}")
 
         t0 = time.perf_counter()
         tmp = self.rho * self.cfd_utils.ComputeConvectiveContribution(self.N_int_order, grad_v, v_el_gauss) #(w,rho·a·∇u)
+
+        N_edges = self.cfd_utils.GetShapeFunctionsOnEdgeMidpoints(self.dim)
+        tmp_2 = self.rho * self.cfd_utils.ComputeConvectiveContributionOnEdgeMidpoints(N_edges, a_grad, v_elemental) #(w,rho·a·∇u)
+
         print(f"\t\ttime {3}: {time.perf_counter() - t0}")
         t0 = time.perf_counter()
         tmp_stab = self.cfd_utils.ComputeMomentumStabilization(self.N_int_order, DN, v_elemental, v_el_gauss, proj_el_gauss, self.rho) #(rho·a·∇w,rho·a·∇u) - (rho·a·∇w,Pi_conv)
@@ -1023,13 +1031,13 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
                 return self.x_amgx.download(), is_converged
             else:
-                # precond = JacobiPreconditioner(self.L)
-                if self.update_precond:
-                    t0 = time.perf_counter()
-                    self.graph_sa.update_matrix_values(self.L)
-                    print(f"AMG graph update time: {time.perf_counter() - t0:.4f} seconds")
-                    self.update_precond = True
-                precond = self.graph_sa.aspreconditioner()
+                precond = JacobiPreconditioner(self.L)
+                # if self.update_precond:
+                #     t0 = time.perf_counter()
+                #     self.graph_sa.update_matrix_values(self.L)
+                #     print(f"AMG graph update time: {time.perf_counter() - t0:.4f} seconds")
+                #     self.update_precond = True
+                # precond = self.graph_sa.aspreconditioner()
 
                 # Solve and get convergence status
                 t0 = time.perf_counter()
