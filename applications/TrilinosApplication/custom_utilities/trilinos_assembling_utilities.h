@@ -15,12 +15,15 @@
 // System includes
 
 // External includes
+#include <Epetra_SerialDenseVector.h>
+#include <Epetra_FEVector.h>
+#include <Epetra_FECrsMatrix.h>
+#if (HAVE_TPETRA)
+#include <Tpetra_FEMultiVector.hpp>
+#include <Tpetra_FECrsMatrix.hpp>
+#endif
 
 // Project includes
-#include "trilinos_space.h"
-#if (HAVE_TPETRA)
-#include "trilinos_space_experimental.h"
-#endif
 
 namespace Kratos
 {
