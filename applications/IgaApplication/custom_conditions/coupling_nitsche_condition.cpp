@@ -435,9 +435,15 @@ namespace Kratos
                 PatchType::Slave);
 
             //Prestress component
-            // array_1d<double, 3> prestress_master = GetProperties().GetSubProperties().front()[PRESTRESS]*GetProperties().GetSubProperties().front()[THICKNESS];
-            // array_1d<double, 3> prestress_slave = GetProperties().GetSubProperties().back()[PRESTRESS]*GetProperties().GetSubProperties().back()[THICKNESS];
-            // array_1d<double, 3> transformed_prestress_master, transformed_prestress_slave;
+            array_1d<double, 3> prestress_master = ZeroVector(3);
+            array_1d<double, 3> prestress_slave = ZeroVector(3);
+
+            if(this->GetProperties().Has(PRESTRESS))
+            {
+                prestress_master = GetProperties().GetSubProperties().front()[PRESTRESS]*GetProperties().GetSubProperties().front()[THICKNESS];
+                prestress_slave = GetProperties().GetSubProperties().back()[PRESTRESS]*GetProperties().GetSubProperties().back()[THICKNESS];
+            }
+            array_1d<double, 3> transformed_prestress_master, transformed_prestress_slave;
 
             // Matrix T_pre_master = ZeroMatrix(3, 3);
             // Matrix T_pre_slave = ZeroMatrix(3, 3);
@@ -819,8 +825,14 @@ namespace Kratos
                 PatchType::Slave);
 
             //Prestress component
-            array_1d<double, 3> prestress_master = GetProperties().GetSubProperties().front()[PRESTRESS]*GetProperties().GetSubProperties().front()[THICKNESS];
-            array_1d<double, 3> prestress_slave = GetProperties().GetSubProperties().back()[PRESTRESS]*GetProperties().GetSubProperties().back()[THICKNESS];
+            array_1d<double, 3> prestress_master = ZeroVector(3);
+            array_1d<double, 3> prestress_slave = ZeroVector(3);
+
+            if(this->GetProperties().Has(PRESTRESS))
+            {
+                prestress_master = GetProperties().GetSubProperties().front()[PRESTRESS]*GetProperties().GetSubProperties().front()[THICKNESS];
+                prestress_slave = GetProperties().GetSubProperties().back()[PRESTRESS]*GetProperties().GetSubProperties().back()[THICKNESS];
+            }
             array_1d<double, 3> transformed_prestress_master, transformed_prestress_slave;
 
             Matrix T_pre_master = ZeroMatrix(3, 3);

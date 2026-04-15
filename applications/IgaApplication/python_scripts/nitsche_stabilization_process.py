@@ -70,10 +70,11 @@ class NitscheStabilizationProcess(KratosMultiphysics.Process):
             self.params["eigen_system_settings"]["number_of_eigenvalues"].SetInt(math.ceil(eigenvalue_nitsche_stabilization_size-1))
 
     def ExecuteInitializeSolutionStep(self):
-        # Get the model parts which divide the problem
-        current_process_info = self.model_part.ProcessInfo
 
         if(self.params["compute_stabilization_factor"].GetBool()):
+            # Get the model parts which divide the problem
+            current_process_info = self.model_part.ProcessInfo
+
             # Compute the eigen values
             eigen_linear_solver = eigen_solver_factory.ConstructSolver(self.params["eigen_system_settings"])
             builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(eigen_linear_solver)
@@ -90,7 +91,7 @@ class NitscheStabilizationProcess(KratosMultiphysics.Process):
         else:
             prop = next(iter(self.model_part_condition.Properties))
             nitsche_stabilization_factor = prop.GetValue(IGA.PENALTY_FACTOR)
-            nitsche_stabilization_rotation_factor = prop.GetValue(IGA.PENALTY_FACTOR)
+            # nitsche_stabilization_rotation_factor = prop.GetValue(IGA.PENALTY_ROTATION_FACTOR)
 
         # Set the Nitsche stabilization factor
         for prop in self.model_part_condition.Properties:

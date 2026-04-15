@@ -39,32 +39,32 @@ namespace Kratos
         Vector g1 = ZeroVector(dimension);
         Vector g2 = ZeroVector(dimension);
 
-        Vector current_displacement_total = ZeroVector(dimension*(GetGeometry().GetGeometryPart(0).size()+GetGeometry().GetGeometryPart(1).size()));
-        Vector current_displacement = ZeroVector(dimension*number_of_nodes);
+        Vector current_displacement_total = ZeroVector(2*dimension*(GetGeometry().GetGeometryPart(0).size()+GetGeometry().GetGeometryPart(1).size()));
+        Vector current_displacement = ZeroVector(2*dimension*number_of_nodes);
 
         if (rConfiguration==ConfigurationType::Current) GetValuesVector(current_displacement_total);
 
         if (rPatch==PatchType::Master)
         {
-            for (SizeType i=0;i<dimension*number_of_nodes;++i){
+            for (SizeType i=0;i<2*dimension*number_of_nodes;++i){
                 current_displacement[i] = current_displacement_total[i];
             }
         }
         else
         {
-            for (SizeType i=0;i<dimension*number_of_nodes;++i){
-                current_displacement[i] = current_displacement_total[i+GetGeometry().GetGeometryPart(0).size()*3];
+            for (SizeType i=0;i<2*dimension*number_of_nodes;++i){
+                current_displacement[i] = current_displacement_total[i+GetGeometry().GetGeometryPart(0).size()*6];
             }
         }
 
         for (SizeType i=0;i<number_of_nodes;++i){
-            g1[0] += (r_geometry.GetPoint( i ).X0()+current_displacement[i*dimension]) * rShapeFunctionGradientValues(i, 0);
-            g1[1] += (r_geometry.GetPoint( i ).Y0()+current_displacement[(i*dimension)+1]) * rShapeFunctionGradientValues(i, 0);
-            g1[2] += (r_geometry.GetPoint( i ).Z0()+current_displacement[(i*dimension)+2]) * rShapeFunctionGradientValues(i, 0);
+            g1[0] += (r_geometry.GetPoint( i ).X0()+current_displacement[i*2*dimension]) * rShapeFunctionGradientValues(i, 0);
+            g1[1] += (r_geometry.GetPoint( i ).Y0()+current_displacement[(i*2*dimension)+1]) * rShapeFunctionGradientValues(i, 0);
+            g1[2] += (r_geometry.GetPoint( i ).Z0()+current_displacement[(i*2*dimension)+2]) * rShapeFunctionGradientValues(i, 0);
 
-            g2[0] += (r_geometry.GetPoint( i ).X0()+current_displacement[i*dimension]) * rShapeFunctionGradientValues(i, 1);
-            g2[1] += (r_geometry.GetPoint( i ).Y0()+current_displacement[(i*dimension)+1]) * rShapeFunctionGradientValues(i, 1);
-            g2[2] += (r_geometry.GetPoint( i ).Z0()+current_displacement[(i*dimension)+2]) * rShapeFunctionGradientValues(i, 1);
+            g2[0] += (r_geometry.GetPoint( i ).X0()+current_displacement[i*2*dimension]) * rShapeFunctionGradientValues(i, 1);
+            g2[1] += (r_geometry.GetPoint( i ).Y0()+current_displacement[(i*2*dimension)+1]) * rShapeFunctionGradientValues(i, 1);
+            g2[2] += (r_geometry.GetPoint( i ).Z0()+current_displacement[(i*2*dimension)+2]) * rShapeFunctionGradientValues(i, 1);
         }
 
         rKinematicVariables.a1 = g1;
@@ -143,6 +143,10 @@ namespace Kratos
         if (rT.size1() != 6 && rT.size2() != 6)                                                                 
             rT.resize(6, 6);
         noalias(rT) = ZeroMatrix(6, 6);
+
+        if (rT_hat.size1() != 6 && rT_hat.size2() != 6)                                                                 
+            rT_hat.resize(6, 6);
+        noalias(rT_hat) = ZeroMatrix(6, 6);
 
         for (std::size_t i = 0; i < 3; ++i)
         {
@@ -1435,7 +1439,7 @@ namespace Kratos
         for (IndexType i = 0; i < number_of_control_points_master; ++i)
         {
             const array_1d<double, 3 >& displacement = r_geometry_master[i].FastGetSolutionStepValue(DISPLACEMENT, Step);
-            const array_1d<double, 3 >& rotation = GetGeometry()[i].FastGetSolutionStepValue(ROTATION, Step);
+            const array_1d<double, 3 >& rotation = r_geometry_master[i].FastGetSolutionStepValue(ROTATION, Step);
             IndexType index = i * 6;
 
             rValues[index] = displacement[0];
@@ -1450,7 +1454,7 @@ namespace Kratos
         for (IndexType i = 0; i < number_of_control_points_slave; ++i)
         {
             const array_1d<double, 3 >& displacement = r_geometry_slave[i].FastGetSolutionStepValue(DISPLACEMENT, Step);
-            const array_1d<double, 3 >& rotation = GetGeometry()[i].FastGetSolutionStepValue(ROTATION, Step);
+            const array_1d<double, 3 >& rotation = r_geometry_slave[i].FastGetSolutionStepValue(ROTATION, Step);
             IndexType index = 6 * (i + number_of_control_points_master) ;
 
             rValues[index] = displacement[0];
