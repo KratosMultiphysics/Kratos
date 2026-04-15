@@ -50,6 +50,9 @@ public:
     static void CheckHasStrainMeasure_Infinitesimal(const Properties& rProperties, std::size_t ElementId);
 
     [[nodiscard]] static double CalculateK0NCFromFrictionAngleInRadians(double FrictionAngleInRadians);
+
+    [[nodiscard]] static double UndrainedExcessPorePressureIncrement(const Properties& rProperties,
+                                                                     double VolumetricStrainIncrement);
 }; /* Class ConstitutiveLawUtilities*/
 
 } // namespace Kratos

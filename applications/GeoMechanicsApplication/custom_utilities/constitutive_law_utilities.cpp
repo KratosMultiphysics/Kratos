@@ -185,4 +185,17 @@ double ConstitutiveLawUtilities::CalculateK0NCFromFrictionAngleInRadians(double 
     return 1.0 - std::sin(FrictionAngleInRadians);
 }
 
+double ConstitutiveLawUtilities::UndrainedExcessPorePressureIncrement(const Properties& rProperties,
+                                                                      double VolumetricStrainIncrement)
+{
+    const auto c_f              = 1.0 / rProperties[BULK_MODULUS_FLUID];
+    const auto c_s              = 1.0 / rProperties[BULK_MODULUS_SOLID];
+    const auto porosity         = rProperties[POROSITY];
+    const auto biot_coefficient = rProperties[BIOT_COEFFICIENT];
+    const auto denominator      = porosity * c_f + (biot_coefficient - porosity) * c_s;
+    KRATOS_ERROR_IF(abs(denominator) <= std::numeric_limits<double>::epsilon())
+        << "Non-physical values: denominator < epsilon." << std::endl;
+    return biot_coefficient / denominator * VolumetricStrainIncrement;
+}
+
 } // namespace Kratos
