@@ -29,10 +29,12 @@
 #include <Teuchos_CommHelpers.hpp>
 #include <TpetraExt_MatrixMatrix.hpp>
 #include <TpetraExt_TripleMatrixMultiply.hpp>
-#include <MatrixMarket_Tpetra.hpp>
+// NOTE: MatrixMarket_Tpetra.hpp is intentionally NOT included here — see
+// custom_utilities/auxiliary_matrix_market.h for the rationale.
 
 // Project includes
 #include "trilinos_application.h"
+#include "custom_utilities/auxiliary_matrix_market.h"
 #include "includes/ublas_interface.h"
 #include "spaces/ublas_space.h"
 #include "includes/data_communicator.h"
@@ -2274,71 +2276,7 @@ public:
         CommunicatorType& rComm
         )
     {
-        KRATOS_TRY
-
-        // Read into a regular (non-FE) CrsMatrix
-        auto p_comm = Teuchos::rcp(&rComm, false);
-        auto p_crs = Tpetra::MatrixMarket::Reader<CrsMatrixType>::readSparseFile(rFileName, p_comm);
-
-        const auto p_row_map = p_crs->getRowMap();
-        const auto p_col_map = p_crs->getColMap();
-        const LO num_local_rows = static_cast<LO>(p_crs->getNodeNumRows());
-
-        // Compute max entries per row for FECrsGraph allocation (requires scalar)
-        std::size_t max_entries_per_row = 0;
-        for (LO i = 0; i < num_local_rows; ++i) {
-            max_entries_per_row = std::max(max_entries_per_row,
-                static_cast<std::size_t>(p_crs->getNumEntriesInLocalRow(i)));
-        }
-
-        // Build FECrsGraph mirroring the sparsity pattern of the read matrix
-        auto p_graph = Teuchos::rcp(new GraphType(p_row_map, p_col_map, max_entries_per_row));
-        p_graph->beginAssembly();
-        for (LO i = 0; i < num_local_rows; ++i) {
-            const GO global_row = p_row_map->getGlobalElement(i);
-            typename CrsMatrixType::local_inds_host_view_type local_cols;
-            typename CrsMatrixType::values_host_view_type vals;
-            p_crs->getLocalRowView(i, local_cols, vals);
-            if (local_cols.extent(0) > 0) {
-                Teuchos::Array<GO> global_cols(local_cols.extent(0));
-                for (std::size_t j = 0; j < local_cols.extent(0); ++j) {
-                    global_cols[j] = p_col_map->getGlobalElement(local_cols(j));
-                }
-                p_graph->insertGlobalIndices(global_row,
-                    Teuchos::ArrayView<const GO>(global_cols.data(), global_cols.size()));
-            }
-        }
-        p_graph->endAssembly();
-
-        // Construct FECrsMatrix from the closed graph
-        auto p_matrix = Teuchos::rcp(new MatrixType(
-            Teuchos::rcp_const_cast<const GraphType>(p_graph)));
-
-        // Normalize fill state, then copy values from the read CrsMatrix
-        if (p_matrix->isFillActive()) {
-            p_matrix->fillComplete();
-        }
-        p_matrix->beginAssembly();
-        p_matrix->setAllToScalar(static_cast<ST>(0));
-        for (LO i = 0; i < num_local_rows; ++i) {
-            const GO global_row = p_row_map->getGlobalElement(i);
-            typename CrsMatrixType::local_inds_host_view_type local_cols;
-            typename CrsMatrixType::values_host_view_type vals;
-            p_crs->getLocalRowView(i, local_cols, vals);
-            if (vals.extent(0) > 0) {
-                Teuchos::Array<GO> global_cols(local_cols.extent(0));
-                for (std::size_t j = 0; j < local_cols.extent(0); ++j) {
-                    global_cols[j] = p_col_map->getGlobalElement(local_cols(j));
-                }
-                p_matrix->sumIntoGlobalValues(global_row, static_cast<LO>(global_cols.size()),
-                    vals.data(), global_cols.data());
-            }
-        }
-        p_matrix->endAssembly();
-
-        return p_matrix;
-
-        KRATOS_CATCH("")
+        return AuxiliaryMatrixMarket<MatrixType, VectorType>::ReadMatrixMarket(rFileName, rComm);
     }
 
     /**
@@ -2354,21 +2292,7 @@ public:
         const int N
         )
     {
-        KRATOS_TRY
-
-        // Create a uniform contiguous map over all N global DOFs
-        MapPointerType p_map = Teuchos::rcp(new MapType(static_cast<GO>(N), 0, pComm));
-
-        // Read dense file into a regular (non-FE) MultiVector
-        auto p_mv = Tpetra::MatrixMarket::Reader<CrsMatrixType>::readDenseFile(rFileName, pComm, p_map);
-
-        // Create FEMultiVector and copy values via update
-        auto p_vector = CreateVector(p_map);
-        p_vector->update(static_cast<ST>(1), *p_mv, static_cast<ST>(0));
-
-        return p_vector;
-
-        KRATOS_CATCH("")
+        return AuxiliaryMatrixMarket<MatrixType, VectorType>::ReadMatrixMarketVector(rFileName, pComm, N);
     }
 
     /**
@@ -2383,13 +2307,7 @@ public:
         const bool Symmetric
         )
     {
-        KRATOS_TRY
-
-        // FECrsMatrix inherits from CrsMatrix; cast so Writer can accept it
-        auto p_crs = Teuchos::rcp_static_cast<const CrsMatrixType>(Teuchos::rcpFromRef(rA));
-        Tpetra::MatrixMarket::Writer<CrsMatrixType>::writeSparseFile(std::string(pFileName), p_crs);
-
-        KRATOS_CATCH("")
+        AuxiliaryMatrixMarket<MatrixType, VectorType>::WriteMatrixMarketMatrix(pFileName, rA, Symmetric);
     }
 
     /**
@@ -2402,14 +2320,7 @@ public:
         const VectorType& rV
         )
     {
-        KRATOS_TRY
-
-        // FEMultiVector inherits from MultiVector; cast so Writer can accept it
-        using MultiVectorType = Tpetra::MultiVector<ST, LO, GO, NT>;
-        auto p_mv = Teuchos::rcp_static_cast<const MultiVectorType>(Teuchos::rcpFromRef(rV));
-        Tpetra::MatrixMarket::Writer<CrsMatrixType>::writeDenseFile(std::string(pFileName), p_mv);
-
-        KRATOS_CATCH("")
+        AuxiliaryMatrixMarket<MatrixType, VectorType>::WriteMatrixMarketVector(pFileName, rV);
     }
 
     /**
