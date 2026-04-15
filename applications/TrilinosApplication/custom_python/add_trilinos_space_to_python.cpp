@@ -178,6 +178,26 @@ AuxiliaryVectorWrapper ReadMatrixMarketVector(TrilinosSparseSpaceType& dummy, co
     return AuxiliaryVectorWrapper(dummy.ReadMatrixMarketVector(FileName, Comm, n));
 }
 
+AuxiliaryVectorWrapper CreateVectorCopy(TrilinosSparseSpaceType& dummy, const TrilinosSparseSpaceType::VectorType& rV)
+{
+    return AuxiliaryVectorWrapper(dummy.CreateVectorCopy(rV));
+}
+
+AuxiliaryVectorWrapper CreateVector(TrilinosSparseSpaceType& dummy, TrilinosSparseSpaceType::MapPointerType& pMap)
+{
+    return AuxiliaryVectorWrapper(dummy.CreateVector(pMap));
+}
+
+AuxiliaryMatrixWrapper CreateMatrix(TrilinosSparseSpaceType& dummy, TrilinosSparseSpaceType::GraphPointerType& pGraph)
+{
+    return AuxiliaryMatrixWrapper(dummy.CreateMatrix(pGraph));
+}
+
+AuxiliaryMatrixWrapper CreateMatrixCopy(TrilinosSparseSpaceType& dummy, const TrilinosSparseSpaceType::MatrixType& rA)
+{
+    return AuxiliaryMatrixWrapper(dummy.CreateMatrixCopy(rA));
+}
+
 Epetra_FECrsMatrix& GetMatRef(AuxiliaryMatrixWrapper& dummy)
 {
     return dummy.GetReference();
@@ -363,6 +383,10 @@ void  AddBasicOperations(pybind11::module& m)
     .def("ScaleAndAdd", ScaleAndAdd)
     .def("CreateEmptyMatrixPointer", CreateEmptyMatrixPointer)
     .def("CreateEmptyVectorPointer", CreateEmptyVectorPointer)
+    .def("CreateVectorCopy", CreateVectorCopy)
+    .def("CreateVector", CreateVector)
+    .def("CreateMatrix", CreateMatrix)
+    .def("CreateMatrixCopy", CreateMatrixCopy)
     .def("ReadMatrixMarketMatrix", ReadMatrixMarketMatrix)
     .def("ReadMatrixMarketVector", ReadMatrixMarketVector)
     .def("WriteMatrixMarketMatrix", WriteMatrixMarketMatrixHelper)

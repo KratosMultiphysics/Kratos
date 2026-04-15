@@ -760,7 +760,6 @@ KRATOS_TEST_CASE_IN_SUITE(TrilinosMatrixMarketVector, KratosTrilinosApplicationM
     }
 }
 
-
 KRATOS_TEST_CASE_IN_SUITE(TrilinosIsDistributedSpace, KratosTrilinosApplicationMPITestSuite)
 {
     KRATOS_EXPECT_TRUE(TrilinosSparseSpaceType::IsDistributedSpace());
@@ -948,6 +947,49 @@ KRATOS_TEST_CASE_IN_SUITE(TrilinosCreateVectorCopy, KratosTrilinosApplicationMPI
     auto p_copy = TrilinosSparseSpaceType::CreateVectorCopy(vector);
     auto local_vector = TrilinosCPPTestUtilities::GenerateDummyLocalVector(size);
     TrilinosCPPTestUtilities::CheckSparseVectorFromLocalVector(*p_copy, local_vector);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(TrilinosCreateVector, KratosTrilinosApplicationMPITestSuite)
+{
+    const auto& r_comm = Testing::GetDefaultDataCommunicator();
+    const int size = 2 * r_comm.Size();
+    auto raw_mpi_comm = MPIDataCommunicator::GetMPICommunicator(r_comm);
+    TrilinosSparseSpaceType::CommunicatorType epetra_comm(raw_mpi_comm);
+    auto p_map = Kratos::make_shared<TrilinosSparseSpaceType::MapType>(size, 0, epetra_comm);
+    auto p_vec = TrilinosSparseSpaceType::CreateVector(p_map);
+    KRATOS_EXPECT_FALSE(TrilinosSparseSpaceType::IsNull(p_vec));
+    KRATOS_EXPECT_EQ(static_cast<std::size_t>(size), TrilinosSparseSpaceType::Size(*p_vec));
+}
+
+KRATOS_TEST_CASE_IN_SUITE(TrilinosCreateMatrix, KratosTrilinosApplicationMPITestSuite)
+{
+    const auto& r_comm = Testing::GetDefaultDataCommunicator();
+    const int size = 2 * r_comm.Size();
+    auto matrix = TrilinosCPPTestUtilities::GenerateDummySparseMatrix(r_comm, size);
+    // Build a graph from the existing matrix and use CreateMatrix
+    auto p_graph = Kratos::make_shared<TrilinosSparseSpaceType::GraphType>(matrix.Graph());
+    auto p_new_matrix = TrilinosSparseSpaceType::CreateMatrix(p_graph);
+    KRATOS_EXPECT_FALSE(TrilinosSparseSpaceType::IsNull(p_new_matrix));
+    KRATOS_EXPECT_EQ(TrilinosSparseSpaceType::Size1(matrix), TrilinosSparseSpaceType::Size1(*p_new_matrix));
+    KRATOS_EXPECT_EQ(TrilinosSparseSpaceType::Size2(matrix), TrilinosSparseSpaceType::Size2(*p_new_matrix));
+}
+
+KRATOS_TEST_CASE_IN_SUITE(TrilinosCreateMatrixCopy, KratosTrilinosApplicationMPITestSuite)
+{
+    const auto& r_comm = Testing::GetDefaultDataCommunicator();
+    const int size = 2 * r_comm.Size();
+    auto matrix = TrilinosCPPTestUtilities::GenerateDummySparseMatrix(r_comm, size);
+    auto p_copy = TrilinosSparseSpaceType::CreateMatrixCopy(matrix);
+    // Sizes must match
+    KRATOS_EXPECT_EQ(TrilinosSparseSpaceType::Size1(matrix), TrilinosSparseSpaceType::Size1(*p_copy));
+    KRATOS_EXPECT_EQ(TrilinosSparseSpaceType::Size2(matrix), TrilinosSparseSpaceType::Size2(*p_copy));
+    // Frobenius norms must match
+    KRATOS_EXPECT_NEAR(TrilinosSparseSpaceType::TwoNorm(matrix),
+                       TrilinosSparseSpaceType::TwoNorm(*p_copy), 1.0e-12);
+    // Copy must be independent: zeroing the original does not affect the copy
+    const double original_norm = TrilinosSparseSpaceType::TwoNorm(*p_copy);
+    TrilinosSparseSpaceType::SetToZero(matrix);
+    KRATOS_EXPECT_NEAR(TrilinosSparseSpaceType::TwoNorm(*p_copy), original_norm, 1.0e-12);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(TrilinosCreateEmptyPointerWithComm, KratosTrilinosApplicationMPITestSuite)

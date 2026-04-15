@@ -264,9 +264,43 @@ public:
      * @param src The source vector
      * @return Shared pointer to a deep copy of src
      */
-    static VectorPointerType CreateVectorCopy(const VectorType& src)
+    static VectorPointerType CreateVectorCopy(const VectorType& rVector)
     {
-        return VectorPointerType(new VectorType(src));
+        return VectorPointerType(new VectorType(rVector));
+    }
+
+    /**
+     * @brief Creates a VectorType from a given Epetra map.
+     * @param pMap The Epetra map to construct the vector from
+     * @return Shared pointer to the newly created vector
+     */
+    static VectorPointerType CreateVector(const MapPointerType& pMap)
+    {
+        return VectorPointerType(new VectorType(*pMap));
+    }
+
+    /**
+     * @brief Creates a MatrixType from a given Epetra CRS graph.
+     * @param pGraph The Epetra CRS graph to construct the matrix from
+     * @return Shared pointer to the newly created matrix
+     */
+    static MatrixPointerType CreateMatrix(const GraphPointerType& pGraph)
+    {
+        return MatrixPointerType(new TMatrixType(::Copy, *pGraph));
+    }
+
+    /**
+     * @brief Creates a deep copy of a matrix.
+     * @details Constructs a new matrix with the same sparsity pattern and values
+     *          as @p rMatrix using the existing CopyMatrixValues helper.
+     * @param rMatrix The source matrix to copy
+     * @return Shared pointer to the new matrix
+     */
+    static MatrixPointerType CreateMatrixCopy(const MatrixType& rMatrix)
+    {
+        auto p_copy = MatrixPointerType(new TMatrixType(::Copy, rMatrix.Graph()));
+        CopyMatrixValues(*p_copy, rMatrix);
+        return p_copy;
     }
 
     /**
