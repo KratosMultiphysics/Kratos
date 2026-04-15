@@ -828,6 +828,7 @@ public:
      * @param CallFillCompleteOnResult	Optional argument, defaults to true. Power users may specify this argument to be false if they DON'T want this function to call C.FillComplete. (It is often useful to allow this function to call C.FillComplete, in cases where one or both of the input matrices are rectangular and it is not trivial to know which maps to use for the domain- and range-maps.)
      * @param KeepAllHardZeros	Optional argument, defaults to false. If true, Multiply, keeps all entries in C corresponding to hard zeros. If false, the following happens by case: A*B^T, A^T*B^T - Does not store entries caused by hard zeros in C. A^T*B (unoptimized) - Hard zeros are always stored (this option has no effect) A*B, A^T*B (optimized) - Hard zeros in corresponding to hard zeros in A are not stored, There are certain cases involving reuse of C, where this can be useful.
      * @param EnforceInitialGraph If the initial graph is enforced, or a new one is generated
+     * @todo TpetraExt_TripleMatrixMultiply_def is failing compilation in the version of Trilinos available in Ubuntu 20.04. We cannot use TripleMatrixMultiply::MultiplyRAP
      */
     inline static void BDBtProductOperation(
         MatrixType& rA,
@@ -2359,7 +2360,6 @@ public:
         MapPointerType p_map = Teuchos::rcp(new MapType(static_cast<GO>(N), 0, pComm));
 
         // Read dense file into a regular (non-FE) MultiVector
-        using MultiVectorType = Tpetra::MultiVector<ST, LO, GO, NT>;
         auto p_mv = Tpetra::MatrixMarket::Reader<CrsMatrixType>::readDenseFile(rFileName, pComm, p_map);
 
         // Create FEMultiVector and copy values via update
