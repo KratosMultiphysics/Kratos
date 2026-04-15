@@ -299,15 +299,6 @@ public:
     }
 
     /**
-     * @brief This method creates an empty pointer to a matrix
-     * @return The pointer to the matrix
-     */
-    inline static MatrixPointerType CreateEmptyMatrixPointer()
-    {
-        return MatrixPointerType(nullptr);
-    }
-
-    /**
      * @brief This method creates an empty pointer to a vector
      * @return The pointer to the vector
      */
@@ -346,6 +337,99 @@ public:
     }
 
     /**
+     * @brief This method creates an empty pointer to a vector using Tpetra communicator
+     * @param pComm The Tpetra communicator
+     * @return The pointer to the vector
+     */
+    inline static VectorPointerType CreateEmptyVectorPointer(CommunicatorPointerType pComm)
+    {
+        const int global_elems = 0;
+        MapPointerType map = Teuchos::rcp(new MapType(global_elems, 0, pComm));
+        return CreateVector(map);
+    }
+
+    /**
+     * @brief This method creates an empty pointer to a vector using Tpetra communicator
+     * @param rComm The Tpetra communicator
+     * @return The pointer to the vector
+     */
+    inline static VectorPointerType CreateEmptyVectorPointer(CommunicatorType& rComm)
+    {
+        return CreateEmptyVectorPointer(Teuchos::rcp(&rComm, false));
+    }
+
+
+    /**
+     * @brief Creates an empty MatrixType from a graph.
+     * @param pGraph The FECrsGraph used to construct the matrix
+     * @return The pointer to the created matrix
+     */
+    inline static MatrixPointerType CreateMatrix(const GraphPointerType& pGraph)
+    {
+        return Teuchos::rcp(new MatrixType(pGraph));
+    }
+
+    /**
+     * @brief Creates a deep copy of a matrix.
+     * @details Replicates the sparsity pattern of @p rMatrix into a freshly
+     *          allocated FECrsMatrix and then copies all values via CopyMatrixValues.
+     *          Safe for FECrsMatrix whose copy constructor and assignment operator
+     *          are deleted/unreliable.
+     * @param rMatrix The source matrix
+     * @return The pointer to the new matrix (same graph, same values)
+     */
+    inline static MatrixPointerType CreateMatrixCopy(const MatrixType& rMatrix)
+    {
+        // Reproduce the sparsity pattern through a new FECrsGraph
+        const auto p_row_map = rMatrix.getRowMap();
+        const auto p_col_map = rMatrix.getColMap();
+        const LO num_local_rows = static_cast<LO>(rMatrix.getNodeNumRows());
+
+        // Compute max entries per row to size the FE graph allocation.
+        // (FECrsGraph accepts a scalar maxNumEntriesPerRow, not a per-row array.)
+        std::size_t max_entries_per_row = 0;
+        for (LO i = 0; i < num_local_rows; ++i) {
+            max_entries_per_row = std::max(max_entries_per_row,
+                static_cast<std::size_t>(rMatrix.getNumEntriesInLocalRow(i)));
+        }
+        Teuchos::RCP<GraphType> p_graph = Teuchos::rcp(new GraphType(
+            p_row_map, p_col_map, max_entries_per_row));
+
+        // Insert column indices (global indexing)
+        p_graph->beginAssembly();
+        for (LO i = 0; i < num_local_rows; ++i) {
+            const auto global_row_index = p_row_map->getGlobalElement(i);
+            typename MatrixType::local_inds_host_view_type local_cols;
+            typename MatrixType::values_host_view_type vals;
+            rMatrix.getLocalRowView(i, local_cols, vals);
+            if (local_cols.extent(0) > 0) {
+                Teuchos::Array<GO> global_cols(local_cols.extent(0));
+                for (std::size_t j = 0; j < static_cast<std::size_t>(local_cols.extent(0)); ++j) {
+                    global_cols[j] = p_col_map->getGlobalElement(local_cols(j));
+                }
+                p_graph->insertGlobalIndices(global_row_index,
+                    Teuchos::ArrayView<const GO>(global_cols.data(), global_cols.size()));
+            }
+        }
+        p_graph->endAssembly();
+
+        // Construct the new matrix from the closed graph and copy values
+        auto p_new_matrix = Teuchos::rcp(new MatrixType(
+            Teuchos::rcp_const_cast<const GraphType>(p_graph)));
+        CopyMatrixValues(*p_new_matrix, rMatrix);
+        return p_new_matrix;
+    }
+
+    /**
+     * @brief This method creates an empty pointer to a matrix
+     * @return The pointer to the matrix
+     */
+    inline static MatrixPointerType CreateEmptyMatrixPointer()
+    {
+        return MatrixPointerType(nullptr);
+    }
+
+    /**
      * @brief This method creates an empty pointer to a matrix using TPetra communicator
      * @param rComm The Tpetra communicator
      * @return The pointer to the matrix
@@ -364,18 +448,6 @@ public:
     }
 
     /**
-     * @brief This method creates an empty pointer to a vector using Tpetra communicator
-     * @param pComm The Tpetra communicator
-     * @return The pointer to the vector
-     */
-    inline static VectorPointerType CreateEmptyVectorPointer(CommunicatorPointerType pComm)
-    {
-        const int global_elems = 0;
-        MapPointerType map = Teuchos::rcp(new MapType(global_elems, 0, pComm));
-        return CreateVector(map);
-    }
-
-    /**
      * @brief This method creates an empty pointer to a matrix using TPetra communicator
      * @param rComm The Tpetra communicator
      * @return The pointer to the matrix
@@ -383,16 +455,6 @@ public:
     inline static MatrixPointerType CreateEmptyMatrixPointer(CommunicatorType& rComm)
     {
         return CreateEmptyMatrixPointer(Teuchos::rcp(&rComm, false));
-    }
-
-    /**
-     * @brief This method creates an empty pointer to a vector using Tpetra communicator
-     * @param rComm The Tpetra communicator
-     * @return The pointer to the vector
-     */
-    inline static VectorPointerType CreateEmptyVectorPointer(CommunicatorType& rComm)
-    {
-        return CreateEmptyVectorPointer(Teuchos::rcp(&rComm, false));
     }
 
     /**

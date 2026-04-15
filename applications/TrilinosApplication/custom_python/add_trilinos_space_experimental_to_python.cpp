@@ -264,6 +264,11 @@ ExperimentalAuxiliaryVectorWrapper ExperimentalCreateVectorCopy(
     const ExperimentalTrilinosSparseSpaceType::VectorType &rV) {
   return ExperimentalAuxiliaryVectorWrapper(dummy.CreateVectorCopy(rV));
 }
+ExperimentalAuxiliaryMatrixWrapper ExperimentalCreateMatrixCopy(
+    ExperimentalTrilinosSparseSpaceType &dummy,
+    const ExperimentalTrilinosSparseSpaceType::MatrixType &rA) {
+  return ExperimentalAuxiliaryMatrixWrapper(dummy.CreateMatrixCopy(rA));
+}
 
 } // namespace
 
@@ -332,6 +337,7 @@ void AddBasicOperationsExperimental(pybind11::module &m) {
       .def("CreateEmptyMatrixPointer", ExperimentalCreateEmptyMatrixPointer)
       .def("CreateEmptyVectorPointer", ExperimentalCreateEmptyVectorPointer)
       .def("CreateVectorCopy", ExperimentalCreateVectorCopy)
+      .def("CreateMatrixCopy", ExperimentalCreateMatrixCopy)
       // --- Element access ---
       .def("GetValue", ExperimentalGetValue)
       .def("SetValueVector", ExperimentalSetValueVector)

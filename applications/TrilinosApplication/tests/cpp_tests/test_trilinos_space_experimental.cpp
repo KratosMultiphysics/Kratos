@@ -1004,6 +1004,24 @@ KRATOS_TEST_CASE_IN_SUITE(TrilinosExperimentalCreateVectorCopy, KratosTrilinosAp
     TrilinosCPPTestExperimentalUtilities::CheckSparseVectorFromLocalVector(*p_copy, local_vector);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(TrilinosExperimentalCreateMatrixCopy, KratosTrilinosApplicationMPITestSuite)
+{
+    const auto& r_comm = Testing::GetDefaultDataCommunicator();
+    const int size = 2 * r_comm.Size();
+    auto matrix = TrilinosCPPTestExperimentalUtilities::GenerateDummySparseMatrix(r_comm, size);
+    auto p_copy = TrilinosSparseSpaceType::CreateMatrixCopy(*matrix);
+    // Sizes must match
+    KRATOS_EXPECT_EQ(TrilinosSparseSpaceType::Size1(*matrix), TrilinosSparseSpaceType::Size1(*p_copy));
+    KRATOS_EXPECT_EQ(TrilinosSparseSpaceType::Size2(*matrix), TrilinosSparseSpaceType::Size2(*p_copy));
+    // Values must match: check via norms
+    KRATOS_EXPECT_NEAR(TrilinosSparseSpaceType::TwoNorm(*matrix),
+                       TrilinosSparseSpaceType::TwoNorm(*p_copy), 1.0e-12);
+    // The copy must be independent: zeroing the original does not affect the copy
+    const double original_norm = TrilinosSparseSpaceType::TwoNorm(*p_copy);
+    TrilinosSparseSpaceType::SetToZero(*matrix);
+    KRATOS_EXPECT_NEAR(TrilinosSparseSpaceType::TwoNorm(*p_copy), original_norm, 1.0e-12);
+}
+
 KRATOS_TEST_CASE_IN_SUITE(TrilinosExperimentalCreateEmptyPointerWithCommPtr, KratosTrilinosApplicationMPITestSuite)
 {
     const auto& r_comm = Testing::GetDefaultDataCommunicator();
