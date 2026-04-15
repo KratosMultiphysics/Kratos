@@ -39,7 +39,7 @@ namespace Kratos {
 enum class TrilinosLinearAlgebraLibrary
 {
     EPETRA, /// Epetra linear algebra library
-    TPETRA  /// Tpetra linear algebra library (TO BE IMPLEMENTED)
+    TPETRA  /// Tpetra linear algebra library
 };
 
 ///@}
