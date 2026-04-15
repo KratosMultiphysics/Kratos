@@ -28,8 +28,9 @@ Geo::KappaDependentFunction FunctionObjectUtilities::MakeLinearFunction(double V
 
 Geo::KappaDependentFunction FunctionObjectUtilities::MakeExponentialFunction(double Value, const Vector& Coefficient)
 {
-    return [Value, Coefficient](double Kappa) { return Coefficient[0] + (Value - Coefficient[0])
-        * (1.0 - std::exp(-Coefficient[1] * Kappa)); };
+    return [Value, Coefficient](double Kappa) {
+        return Coefficient[0] + (Value - Coefficient[0]) * (1.0 - std::exp(-Coefficient[1] * Kappa));
+    };
 }
 
 } // namespace Kratos
