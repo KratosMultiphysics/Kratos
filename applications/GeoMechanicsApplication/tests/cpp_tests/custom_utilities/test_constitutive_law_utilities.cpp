@@ -255,7 +255,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_ValidateFrictionAngle, Kratos
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(ConstitutiveLawUtilities::ValidateFrictionAngle(properties, element_id), "Properties ( 0) of element ( 1): INDEX_OF_UMAT_PHI_PARAMETER (3) is not in range [1, size of UMAT_PARAMETERS].");
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_UndrainedExcessPorePressureIncrementGivesDeltaPw,
+KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_CalculateExcessPorePressureGivesDeltaPw,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
@@ -268,7 +268,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_UndrainedExcessPorePressureI
 
     // Act
     auto excess_pore_pressure =
-        ConstitutiveLawUtilities::UndrainedExcessPorePressureIncrement(properties, volumetric_strain);
+        ConstitutiveLawUtilities::CalculateExcessPorePressure(properties, volumetric_strain);
 
     // Assert
     KRATOS_EXPECT_NEAR(excess_pore_pressure, 4.0e3 / 3.0, Defaults::absolute_tolerance);
@@ -277,8 +277,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_UndrainedExcessPorePressureI
     properties.SetValue(POROSITY, 0.0);
 
     // Act
-    excess_pore_pressure =
-        ConstitutiveLawUtilities::UndrainedExcessPorePressureIncrement(properties, volumetric_strain);
+    excess_pore_pressure = ConstitutiveLawUtilities::CalculateExcessPorePressure(properties, volumetric_strain);
 
     // Assert
     KRATOS_EXPECT_NEAR(excess_pore_pressure, properties.GetValue(BULK_MODULUS_SOLID), Defaults::absolute_tolerance);
@@ -288,8 +287,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_UndrainedExcessPorePressureI
     properties.SetValue(POROSITY, 0.5);
 
     // Act
-    excess_pore_pressure =
-        ConstitutiveLawUtilities::UndrainedExcessPorePressureIncrement(properties, volumetric_strain);
+    excess_pore_pressure = ConstitutiveLawUtilities::CalculateExcessPorePressure(properties, volumetric_strain);
 
     // Assert
     KRATOS_EXPECT_NEAR(excess_pore_pressure, 0.0, Defaults::absolute_tolerance);
@@ -299,14 +297,13 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_UndrainedExcessPorePressureI
     properties.SetValue(POROSITY, 1.0);
 
     // Act
-    excess_pore_pressure =
-        ConstitutiveLawUtilities::UndrainedExcessPorePressureIncrement(properties, volumetric_strain);
+    excess_pore_pressure = ConstitutiveLawUtilities::CalculateExcessPorePressure(properties, volumetric_strain);
 
     // Assert
     KRATOS_EXPECT_NEAR(excess_pore_pressure, properties.GetValue(BULK_MODULUS_FLUID), Defaults::absolute_tolerance);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_UndrainedExcessPorePressureIncrementThrowsError,
+KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_CalculateExcessPorePressureThrowsError,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
@@ -319,7 +316,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_UndrainedExcessPorePressureI
 
     // Act & Assert
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        (void)ConstitutiveLawUtilities::UndrainedExcessPorePressureIncrement(properties, volumetric_strain),
+        (void)ConstitutiveLawUtilities::CalculateExcessPorePressure(properties, volumetric_strain),
         "Non-physical values: denominator < epsilon.");
 }
 } // namespace Kratos::Testing

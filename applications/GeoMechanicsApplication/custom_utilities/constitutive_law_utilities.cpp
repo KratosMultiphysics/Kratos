@@ -185,8 +185,7 @@ double ConstitutiveLawUtilities::CalculateK0NCFromFrictionAngleInRadians(double 
     return 1.0 - std::sin(FrictionAngleInRadians);
 }
 
-double ConstitutiveLawUtilities::UndrainedExcessPorePressureIncrement(const Properties& rProperties,
-                                                                      double VolumetricStrainIncrement)
+double ConstitutiveLawUtilities::CalculateExcessPorePressure(const Properties& rProperties, double VolumetricStrainIncrement)
 {
     const double k_f              = rProperties[BULK_MODULUS_FLUID];
     const double k_s              = rProperties[BULK_MODULUS_SOLID];

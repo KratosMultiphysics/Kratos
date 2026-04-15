@@ -51,8 +51,8 @@ public:
 
     [[nodiscard]] static double CalculateK0NCFromFrictionAngleInRadians(double FrictionAngleInRadians);
 
-    [[nodiscard]] static double UndrainedExcessPorePressureIncrement(const Properties& rProperties,
-                                                                     double VolumetricStrainIncrement);
+    [[nodiscard]] static double CalculateExcessPorePressure(const Properties& rProperties,
+                                                            double VolumetricStrainIncrement);
 }; /* Class ConstitutiveLawUtilities*/
 
 } // namespace Kratos
