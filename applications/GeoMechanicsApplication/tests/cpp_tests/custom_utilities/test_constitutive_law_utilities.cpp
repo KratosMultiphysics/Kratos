@@ -255,7 +255,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_ValidateFrictionAngle, Kratos
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(ConstitutiveLawUtilities::ValidateFrictionAngle(properties, element_id), "Properties ( 0) of element ( 1): INDEX_OF_UMAT_PHI_PARAMETER (3) is not in range [1, size of UMAT_PARAMETERS].");
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_GetUndrainedYoungsModulusGivesUndrainedYoungsModulus,
+KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_CalculateUndrainedYoungsModulus_ReturnsExpectedValue,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
@@ -265,13 +265,13 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_GetUndrainedYoungsModulusGiv
 
     // Act
     const auto undrained_youngs_modulus =
-        ConstitutiveLawUtilities::GetUndrainedYoungsModulus(properties, 0.4);
+        ConstitutiveLawUtilities::CalculateUndrainedYoungsModulus(properties, 0.4);
 
     // Assert
     KRATOS_EXPECT_EQ(undrained_youngs_modulus, 7.0 / 6.0);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_GetUndrainedYoungsModulusThrowsError,
+KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_CalculateUndrainedYoungsModulus_ThrowsError,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
@@ -280,11 +280,12 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_GetUndrainedYoungsModulusThr
     properties.SetValue(POISSON_RATIO, -2.0);
 
     // Act & Assert
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN((void)ConstitutiveLawUtilities::GetUndrainedYoungsModulus(properties, 0.4),
-                                      "POISSON_RATIO (-2) <= -1.");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        (void)ConstitutiveLawUtilities::CalculateUndrainedYoungsModulus(properties, 0.4),
+        "POISSON_RATIO (-2) <= -1.");
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_GetSkemptonBGivesSkemptonB, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_GetSkemptonB_ReturnsExpectedValue, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
     Properties properties;
@@ -330,7 +331,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_GetSkemptonBGivesSkemptonB, 
     KRATOS_EXPECT_EQ(skempton_b, 0.8);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_GetSkemptonBThrowsError, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_GetSkemptonB_ThrowsError, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
     Properties properties;
@@ -360,7 +361,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_GetSkemptonBThrowsError, Kra
                                       "Calculated Skempton B (-0.0010011) is out of range [0,1].");
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_GetUndrainedPoissonsRatioGivesUndrainedPoissonsRatio,
+KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_GetUndrainedPoissonsRatio_ReturnsExpectedValue,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
@@ -424,7 +425,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_GetUndrainedPoissonsRatioGiv
     KRATOS_EXPECT_NEAR(undrained_poissons_ratio, 0.495, Defaults::absolute_tolerance);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_GetUndrainedPoissonsRatioThrowsError,
+KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_GetUndrainedPoissonsRatio_ThrowsError,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange

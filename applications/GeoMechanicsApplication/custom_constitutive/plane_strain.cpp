@@ -24,7 +24,7 @@ Matrix PlaneStrain::CalculateElasticConstitutiveTensor(const Properties& rProper
     constexpr auto undrained = false;
     const auto     nu = undrained ? ConstitutiveLawUtilities::GetUndrainedPoissonsRatio(rProperties)
                                   : rProperties[POISSON_RATIO];
-    const auto E = undrained ? ConstitutiveLawUtilities::GetUndrainedYoungsModulus(rProperties, nu)
+    const auto E = undrained ? ConstitutiveLawUtilities::CalculateUndrainedYoungsModulus(rProperties, nu)
                              : rProperties[YOUNG_MODULUS];
 
     return ConstitutiveLawUtilities::MakeContinuumConstitutiveTensor(

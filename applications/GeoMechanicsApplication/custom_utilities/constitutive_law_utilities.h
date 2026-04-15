@@ -51,8 +51,8 @@ public:
 
     [[nodiscard]] static double CalculateK0NCFromFrictionAngleInRadians(double FrictionAngleInRadians);
 
-    [[nodiscard]] static double GetUndrainedYoungsModulus(const Properties& rProperties,
-                                                          double            UndrainedPoissonsRatio);
+    [[nodiscard]] static double CalculateUndrainedYoungsModulus(const Properties& rProperties,
+                                                                double UndrainedPoissonsRatio);
 
     [[nodiscard]] static double GetUndrainedPoissonsRatio(const Properties& rProperties);
 

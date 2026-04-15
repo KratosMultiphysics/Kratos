@@ -185,7 +185,7 @@ double ConstitutiveLawUtilities::CalculateK0NCFromFrictionAngleInRadians(double 
     return 1.0 - std::sin(FrictionAngleInRadians);
 }
 
-double ConstitutiveLawUtilities::GetUndrainedYoungsModulus(const Properties& rProperties, double UndrainedPoissonsRatio)
+double ConstitutiveLawUtilities::CalculateUndrainedYoungsModulus(const Properties& rProperties, double UndrainedPoissonsRatio)
 {
     const auto denominator = 1.0 + rProperties[POISSON_RATIO];
     KRATOS_ERROR_IF(denominator <= std::numeric_limits<double>::epsilon())
