@@ -615,3 +615,45 @@ The convergence criterion is defined as:
 Where $\epsilon_{tol}$ is a tolerance.
 
 <img src="documentation_data/hardening_flowchart.svg" alt="Hardening flowchart" title="Hardening flowchart" width="400">
+
+## Undrained behaviour
+
+### Undrained effective-stress formulation (Material A)
+
+#### Definition:
+- Effective-stress undrained analysis using effective strength parameters. 
+
+#### Inputs:
+- Effective stiffness parameters.
+- Effective strength parameters such as $c'$ and $\phi'$. 
+- Undrained Poisson's ratio $\nu_u$ or Skempton $B$ can be provided or calculated (see Eqs. below).
+
+#### Behaviour:
+- Pore pressure and effective stress are kept as separate quantities.
+- The resulting effective stress path depends on the constitutive model and may be unrealistic for soft soils.
+
+#### Warnings: 
+- This may overestimate the mobilized undrained shear strength. 
+- Using a nonzero dilatancy angle $\psi$ can give unrealistic pore pressure response and unrealistic shear strength.
+
+#### Equations: 
+
+Undrained Poisson's ratio
+
+$$\nu_u = \frac{3 \nu' + \alpha_{Biot} B (1 - 2 \nu')}{3 - \alpha_{Biot} B (1 - 2 \nu')},$$ where $\nu'$ is the effective Poisson's ratio, $\alpha_{Biot}$ is the Biot coefficient.
+
+Undrained Young's module
+
+$$E_u = E' \frac{1-2\nu_u} {1-2\nu'}$$
+
+Skempton B coefficient
+
+$$B = \frac{\alpha_{Biot}}{\alpha_{Biot} + n (K'/K_w + \alpha_{Biot} - 1)},$$ where $n$ is the porosity, $K'$ is the drained bulk modulus of the soil skeleton, $K_w$ is the water bulk modulus.
+
+Excess pore pressure increment
+
+$$\Delta u = \frac{\alpha_{Biot}}{ (n /K_w + (\alpha_{Biot} - n) / K')}  \Delta \epsilon_v,$$ where $\Delta \epsilon_v$ is the volumetric strain increment.
+
+MohrCoulomb64 model uses an ad‑hoc elastic stiffness correction: 
+$$ M = 2G/3 [ (1+\nu_u)/(1−2\nu_u) − (1+\nu)/(1−2\nu) ],$$ 
+which approximates an undrained − drained bulk modulus difference using an artificial near‑incompressible Poisson ratio $\nu_u = 0.495$. 
