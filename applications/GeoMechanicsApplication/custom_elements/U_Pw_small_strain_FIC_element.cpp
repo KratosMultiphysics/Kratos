@@ -133,9 +133,10 @@ int UPwSmallStrainFICElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrent
     } else if (r_properties.Has(IGNORE_UNDRAINED)) {
         is_constant_pw_field = r_properties[IGNORE_UNDRAINED];
     }
-    KRATOS_ERROR_IF(is_constant_pw_field) << "IGNORE_UNDRAINED cannot be used in FIC elements. Use "
-                                             "Non FIC elements instead"
-                                          << this->Id() << std::endl;
+    KRATOS_ERROR_IF(is_constant_pw_field)
+        << "Constant water pressure fields cannot be used in FIC elements. "
+           "Use Non FIC elements instead"
+        << this->Id() << std::endl;
 
     return ierr;
 
