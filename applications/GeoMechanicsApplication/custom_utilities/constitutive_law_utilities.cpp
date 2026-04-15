@@ -224,7 +224,13 @@ double ConstitutiveLawUtilities::GetSkemptonB(const Properties& rProperties)
     const auto denominator = biot_coefficient + porosity * ((k_s / k_f) + biot_coefficient - 1.0);
     KRATOS_ERROR_IF(denominator <= std::numeric_limits<double>::epsilon())
         << "Non-physical values: denominator < epsilon." << std::endl;
-    return biot_coefficient / denominator;
+
+    auto result = biot_coefficient / denominator;
+    KRATOS_ERROR_IF(result < -std::numeric_limits<double>::epsilon() || result > 1.0 + std::numeric_limits<double>::epsilon())
+        << "Calculated Skempton B (" << result << ") is out of range [0,1]." << std::endl;
+
+    result = std::max(0.0, std::min(1.0, result));
+    return result;
 }
 
 Matrix ConstitutiveLawUtilities::MakeContinuumConstitutiveTensor(double      YoungsModulus,

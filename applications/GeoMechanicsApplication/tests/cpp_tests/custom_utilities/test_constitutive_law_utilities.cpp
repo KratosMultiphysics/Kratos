@@ -302,6 +302,26 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_GetSkemptonBGivesSkemptonB, 
     KRATOS_EXPECT_EQ(skempton_b, 0.5);
 
     // Arrange
+    properties.SetValue(BIOT_COEFFICIENT, 1.0e-8);
+    properties.SetValue(POROSITY, 1.0e-8);
+
+    // Act
+    skempton_b = ConstitutiveLawUtilities::GetSkemptonB(properties);
+
+    // Assert
+    constexpr auto tolerance = 1.0e-6;
+    KRATOS_EXPECT_NEAR(skempton_b, 0.5, tolerance);
+
+    // Arrange
+    properties.SetValue(BIOT_COEFFICIENT, 0.0);
+
+    // Act
+    skempton_b = ConstitutiveLawUtilities::GetSkemptonB(properties);
+
+    // Assert
+    KRATOS_EXPECT_EQ(skempton_b, 0.0);
+
+    // Arrange
     properties.SetValue(GEO_SKEMPTON_B, 0.8);
     // Act
     skempton_b = ConstitutiveLawUtilities::GetSkemptonB(properties);
@@ -314,8 +334,6 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_GetSkemptonBThrowsError, Kra
 {
     // Arrange
     Properties properties;
-    properties.SetValue(YOUNG_MODULUS, 1.0);
-    properties.SetValue(POISSON_RATIO, 0.2);
     properties.SetValue(BIOT_COEFFICIENT, 0.0);
     properties.SetValue(BULK_MODULUS_FLUID, 1.E3);
     properties.SetValue(BULK_MODULUS_SOLID, 2.E3);
@@ -324,6 +342,22 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_GetSkemptonBThrowsError, Kra
     // Act & Assert
     KRATOS_EXPECT_EXCEPTION_IS_THROWN((void)ConstitutiveLawUtilities::GetSkemptonB(properties),
                                       "Non-physical values: denominator < epsilon.");
+
+    // Arrange
+    properties.SetValue(BIOT_COEFFICIENT, 1.0);
+    properties.SetValue(POROSITY, -5e-05);
+
+    // Act & Assert
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN((void)ConstitutiveLawUtilities::GetSkemptonB(properties),
+                                      "Calculated Skempton B (1.0001) is out of range [0,1].");
+
+    // Arrange
+    properties.SetValue(BIOT_COEFFICIENT, -0.0001);
+    properties.SetValue(POROSITY, 0.1);
+
+    // Act & Assert
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN((void)ConstitutiveLawUtilities::GetSkemptonB(properties),
+                                      "Calculated Skempton B (-0.0010011) is out of range [0,1].");
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_GetUndrainedPoissonsRatioGivesUndrainedPoissonsRatio,
@@ -353,6 +387,25 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_GetUndrainedPoissonsRatioGiv
     KRATOS_EXPECT_NEAR(undrained_poissons_ratio, 1.0 / 3.0, Defaults::absolute_tolerance);
 
     // Arrange
+    properties.SetValue(POISSON_RATIO, 0.3);
+    properties.SetValue(GEO_SKEMPTON_B, 1.0);
+
+    // Act
+    undrained_poissons_ratio = ConstitutiveLawUtilities::GetUndrainedPoissonsRatio(properties);
+
+    // Assert
+    KRATOS_EXPECT_NEAR(undrained_poissons_ratio, 0.495, Defaults::absolute_tolerance);
+
+    // Arrange
+    properties.SetValue(BIOT_COEFFICIENT, 0.0);
+
+    // Act
+    undrained_poissons_ratio = ConstitutiveLawUtilities::GetUndrainedPoissonsRatio(properties);
+
+    // Assert
+    KRATOS_EXPECT_NEAR(undrained_poissons_ratio, 0.3, Defaults::absolute_tolerance);
+
+    // Arrange
     properties.SetValue(GEO_POISSON_UNDRAINED, 0.4);
 
     // Act
@@ -360,6 +413,15 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_GetUndrainedPoissonsRatioGiv
 
     // Assert
     KRATOS_EXPECT_NEAR(undrained_poissons_ratio, 0.4, Defaults::absolute_tolerance);
+
+    // Arrange
+    properties.SetValue(GEO_POISSON_UNDRAINED, 0.6);
+
+    // Act
+    undrained_poissons_ratio = ConstitutiveLawUtilities::GetUndrainedPoissonsRatio(properties);
+
+    // Assert
+    KRATOS_EXPECT_NEAR(undrained_poissons_ratio, 0.495, Defaults::absolute_tolerance);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_GetUndrainedPoissonsRatioThrowsError,
