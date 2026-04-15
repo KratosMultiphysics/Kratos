@@ -1026,8 +1026,8 @@ public:
             for (LO local_row = 0; local_row < num_local_rows; ++local_row) {
                 const GO global_row = p_row_map->getGlobalElement(local_row);
                 const bool row_is_fixed = is_fixed_map.count(global_row) > 0 && is_fixed_map.at(global_row) != 0;
-                typename MatrixType::local_inds_host_view_type cols_view;
-                typename MatrixType::values_host_view_type vals_view;
+                typename TSparseSpace::MatrixType::local_inds_host_view_type cols_view;
+                typename TSparseSpace::MatrixType::values_host_view_type vals_view;
                 rA.getLocalRowView(local_row, cols_view, vals_view);
                 const LO num_entries = static_cast<LO>(cols_view.size());
                 if (num_entries == 0) continue;
