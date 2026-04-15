@@ -48,6 +48,13 @@ Geo::KappaDependentFunction MakeFrictionAngleCalculator(const Properties& rMater
             ConstitutiveLawUtilities::GetFrictionAngleInRadians(rMaterialProperties),
             rMaterialProperties[GEO_FRICTION_ANGLE_FUNCTION_COEFFICIENTS][0]);
     }
+
+    if (hardening_type == "exponential") {
+        return FunctionObjectUtilities::MakeExponentialFunction(
+            ConstitutiveLawUtilities::GetFrictionAngleInRadians(rMaterialProperties),
+            rMaterialProperties[GEO_FRICTION_ANGLE_FUNCTION_COEFFICIENTS]);
+    }
+
     KRATOS_ERROR << "Cannot create a kappa-dependent function for the friction angle of material "
                  << rMaterialProperties.Id() << ": unknown hardening type '" << hardening_type << "'\n";
 }
@@ -65,6 +72,13 @@ Geo::KappaDependentFunction MakeCohesionCalculator(const Properties& rMaterialPr
             ConstitutiveLawUtilities::GetCohesion(rMaterialProperties),
             rMaterialProperties[GEO_COHESION_FUNCTION_COEFFICIENTS][0]);
     }
+
+    if (hardening_type == "exponential") {
+        return FunctionObjectUtilities::MakeExponentialFunction(
+            ConstitutiveLawUtilities::GetCohesion(rMaterialProperties),
+            rMaterialProperties[GEO_COHESION_FUNCTION_COEFFICIENTS]);
+    }
+
     KRATOS_ERROR << "Cannot create a kappa-dependent function for the cohesion of material "
                  << rMaterialProperties.Id() << ": unknown hardening type '" << hardening_type << "'\n";
 }

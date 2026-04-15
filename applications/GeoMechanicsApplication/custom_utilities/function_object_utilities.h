@@ -24,6 +24,7 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) FunctionObjectUtilities
 public:
     static Geo::KappaDependentFunction MakeConstantFunction(double Value);
     static Geo::KappaDependentFunction MakeLinearFunction(double Value, double Coefficient);
+    static Geo::KappaDependentFunction MakeExponentialFunction(double Value, const Vector& Coefficient);
 };
 
 } // namespace Kratos
