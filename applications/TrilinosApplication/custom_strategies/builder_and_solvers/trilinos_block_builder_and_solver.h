@@ -765,7 +765,11 @@ public:
             ConstructMatrixStructure(pScheme, rpA, rpDx, rpb, rModelPart);
         } else if (TSparseSpace::IsNull(BaseType::mpReactionsVector) && this->mCalculateReactionsFlag) {
             TSystemVectorPointerType pNewReactionsVector = TSparseSpace::CreateEmptyVectorPointer();
-            pNewReactionsVector = TSparseSpace::CreateVector(rpDx->getMap());
+            if constexpr (TSparseSpace::LinearAlgebraLibrary() == TrilinosLinearAlgebraLibrary::EPETRA) {
+                pNewReactionsVector = TSystemVectorPointerType(new TSystemVectorType(rpDx->Map()));
+            } else {
+                pNewReactionsVector = TSparseSpace::CreateVector(rpDx->getMap());
+            }
             BaseType::mpReactionsVector.swap(pNewReactionsVector);
         } else {
             if (TSparseSpace::Size1(*rpA) == 0 ||
