@@ -23,6 +23,7 @@
 #include "includes/debug_helpers.h"
 #include "structural_mechanics_application_variables.h"
 #include "custom_constitutive/linear_plane_strain.h"
+#include "custom_constitutive/reissner_mindlin_shell_elastic_constitutive_law.h"
 
 
 namespace Kratos {
@@ -66,8 +67,11 @@ void CreateShellTestModelPart(std::string const& rElementName, ModelPart& rModel
         r_node.AddDof(ROTATION_Y);
         r_node.AddDof(ROTATION_Z);
     }
-
-    (*p_prop)[CONSTITUTIVE_LAW] = LinearPlaneStrain::Pointer(new LinearPlaneStrain());
+    if (rElementName == "MITCThickShellElement3D4N") {
+        (*p_prop)[CONSTITUTIVE_LAW] = ReissnerMindlinShellElasticConstitutiveLaw::Pointer(new ReissnerMindlinShellElasticConstitutiveLaw());
+    } else {
+        (*p_prop)[CONSTITUTIVE_LAW] = LinearPlaneStrain::Pointer(new LinearPlaneStrain());
+    }
     (*p_prop)[DENSITY] = 1000.0;
     (*p_prop)[YOUNG_MODULUS] = 1400000.0;
     (*p_prop)[THICKNESS] = 0.1;
