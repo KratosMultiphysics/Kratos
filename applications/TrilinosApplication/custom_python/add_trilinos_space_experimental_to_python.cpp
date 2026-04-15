@@ -15,15 +15,48 @@
 // External includes
 
 // Project includes
+#include "trilinos_space_experimental.h"
 #include "custom_python/add_trilinos_space_experimental_to_python.h"
-#include "custom_python/experimental_trilinos_pointer_wrapper.h"
-#include "includes/define.h"
 #include "mpi/includes/mpi_data_communicator.h"
 
 namespace Kratos::Python {
 namespace py = pybind11;
 
 #ifdef HAVE_TPETRA
+
+using ExperimentalTrilinosSparseSpaceType = TrilinosSpaceExperimental<Tpetra::FECrsMatrix<>, Tpetra::FEMultiVector<>>;
+
+class ExperimentalAuxiliaryMatrixWrapper {
+public:
+  typedef typename ExperimentalTrilinosSparseSpaceType::MatrixType
+      TrilinosMatrixType;
+  typedef typename ExperimentalTrilinosSparseSpaceType::MatrixPointerType
+      TrilinosMatrixPointerType;
+
+  ExperimentalAuxiliaryMatrixWrapper(TrilinosMatrixPointerType p) : mp(p) {};
+  virtual ~ExperimentalAuxiliaryMatrixWrapper() {}
+  TrilinosMatrixPointerType &GetPointer() { return mp; }
+  TrilinosMatrixType &GetReference() { return *mp; }
+
+private:
+  TrilinosMatrixPointerType mp;
+};
+
+class ExperimentalAuxiliaryVectorWrapper {
+public:
+  typedef typename ExperimentalTrilinosSparseSpaceType::VectorType
+      TrilinosVectorType;
+  typedef typename ExperimentalTrilinosSparseSpaceType::VectorPointerType
+      TrilinosVectorPointerType;
+
+  ExperimentalAuxiliaryVectorWrapper(TrilinosVectorPointerType p) : mp(p) {};
+  virtual ~ExperimentalAuxiliaryVectorWrapper() {}
+  TrilinosVectorPointerType &GetPointer() { return mp; }
+  TrilinosVectorType &GetReference() { return *mp; }
+
+private:
+  TrilinosVectorPointerType mp;
+};
 
 namespace {
 
