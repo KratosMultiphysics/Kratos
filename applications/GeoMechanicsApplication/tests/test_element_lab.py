@@ -9,6 +9,28 @@ class KratosGeoMechanicsLabElementTests(KratosUnittest.TestCase):
     """
     This class contains some element tests, such as triaxial and oedometer tests
     """
+    def test_triaxial(self):
+        """
+        Regression test for the triaxial experiment.
+        """
+        test_name = 'test_triaxial'
+        file_path = test_helper.get_file_path(os.path.join('test_element_lab', test_name))
+        simulation = test_helper.run_kratos(file_path)
+
+        # read the output files from the simulation for comparison
+        reader = GiDOutputFileReader()
+        result = reader.read_output_from(os.path.join(file_path, 'triaxial_test_output.post.res'))
+
+        displacement = reader.nodal_values_at_time("DISPLACEMENT", 1, result)
+        print(displacement)
+        self.assertEqual(displacement,[[0.0, -0.2, 0.0], [0.0527776, -0.2, 0.0], [0.0, -0.100033, 0.0], [0.0524025, -0.0996931, 0.0], [0.0, 0.0, 0.0], [0.105197, -0.2, 0.0], [0.105114, -0.100049, 0.0], [0.0524406, 0.0, 0.0], [0.104632, 0.0, 0.0]], "The displacement in one of the nodes is incorrect.")
+
+        stress = reader.element_integration_point_values_at_time("CAUCHY_STRESS_TENSOR", 1, result, [1], [0])
+        self.assertEqual(stress, [[[-99.9808, -252.622, -99.9806, 0.193199, 0.0, 0.0]]], "The Cauchy stress calculation is not OK.")
+
+        strain = reader.element_integration_point_values_at_time("ENGINEERING_STRAIN_TENSOR", 1, result, [1], [0])
+        self.assertEqual(strain, [[[0.104863, -0.19973, 0.104946, 0.000440186, 0.0, 0.0]]], "The engineering strain calculation is not OK.")
+
     def test_triaxial_comp_6n(self):
         """
         Drained compression triaxial test on Mohr-Coulomb model with axisymmetric 2D6N elements
