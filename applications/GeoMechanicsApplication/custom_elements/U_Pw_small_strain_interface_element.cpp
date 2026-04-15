@@ -1191,7 +1191,7 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::InitializeElementVariables
     KRATOS_TRY
 
     // Properties variables
-    rVariables.IgnoreUndrained =
+    rVariables.IsConstantWaterPressure =
         rProperties.Has(GEO_DRAINAGE_TYPE)
             ? ConstitutiveLawUtilities::StringToDrainageType(rProperties[GEO_DRAINAGE_TYPE]) ==
                   DrainageType::CONSTANT_WATER_PRESSURE
@@ -1625,7 +1625,7 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateAndAddLHS(MatrixT
 
     this->CalculateAndAddStiffnessMatrix(rLeftHandSideMatrix, rVariables);
 
-    if (!rVariables.IgnoreUndrained) {
+    if (!rVariables.IsConstantWaterPressure) {
         this->CalculateAndAddCouplingMatrix(rLeftHandSideMatrix, rVariables);
 
         this->CalculateAndAddCompressibilityMatrix(rLeftHandSideMatrix, rVariables);
@@ -1669,7 +1669,7 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateAndAddCouplingMat
 
     GeoElementUtilities::AssembleUPBlockMatrix(rLeftHandSideMatrix, coupling_matrix);
 
-    if (!rVariables.IgnoreUndrained) {
+    if (!rVariables.IsConstantWaterPressure) {
         const double SaturationCoefficient = rVariables.DegreeOfSaturation / rVariables.BishopCoefficient;
         const BoundedMatrix<double, TNumNodes, TNumNodes * TDim> transposed_coupling_matrix =
             PORE_PRESSURE_SIGN_FACTOR * SaturationCoefficient * rVariables.VelocityCoefficient *
@@ -1724,7 +1724,7 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateAndAddRHS(VectorT
 
     this->CalculateAndAddCouplingTerms(rRightHandSideVector, rVariables);
 
-    if (!rVariables.IgnoreUndrained) {
+    if (!rVariables.IsConstantWaterPressure) {
         this->CalculateAndAddCompressibilityFlow(rRightHandSideVector, rVariables);
 
         this->CalculateAndAddPermeabilityFlow(rRightHandSideVector, rVariables);
@@ -1799,7 +1799,7 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateAndAddCouplingTer
 
     GeoElementUtilities::AssembleUBlockVector(rRightHandSideVector, u_vector);
 
-    if (!rVariables.IgnoreUndrained) {
+    if (!rVariables.IsConstantWaterPressure) {
         const double SaturationCoefficient = rVariables.DegreeOfSaturation / rVariables.BishopCoefficient;
         const array_1d<double, TNumNodes> coupling_flow_vector =
             PORE_PRESSURE_SIGN_FACTOR * SaturationCoefficient *

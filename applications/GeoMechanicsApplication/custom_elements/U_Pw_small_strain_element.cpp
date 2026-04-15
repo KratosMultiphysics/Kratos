@@ -969,7 +969,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddLHS(MatrixType& rLef
 
     this->CalculateAndAddCouplingMatrix(rLeftHandSideMatrix, rVariables);
 
-    if (!rVariables.IgnoreUndrained) {
+    if (!rVariables.IsConstantWaterPressure) {
         const auto permeability_matrix =
             GeoTransportEquationUtilities::CalculatePermeabilityMatrix<TDim, TNumNodes>(
                 rVariables.GradNpT, rVariables.DynamicViscosityInverse, rVariables.PermeabilityMatrix,
@@ -1007,7 +1007,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddCouplingMatrix(Matri
         rVariables.BiotCoefficient, rVariables.BishopCoefficient, rVariables.IntegrationCoefficient);
     GeoElementUtilities::AssembleUPBlockMatrix(rLeftHandSideMatrix, coupling_matrix);
 
-    if (!rVariables.IgnoreUndrained) {
+    if (!rVariables.IsConstantWaterPressure) {
         const auto p_coupling_matrix = GeoTransportEquationUtilities::CalculateCouplingMatrix<TDim, TNumNodes>(
             rVariables.B, GetStressStatePolicy().GetVoigtVector(), rVariables.Np,
             rVariables.BiotCoefficient, rVariables.DegreeOfSaturation, rVariables.IntegrationCoefficient);
@@ -1048,7 +1048,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddRHS(VectorType& rRig
 
     this->CalculateAndAddCouplingTerms(rRightHandSideVector, rVariables);
 
-    if (!rVariables.IgnoreUndrained) {
+    if (!rVariables.IsConstantWaterPressure) {
         this->CalculateAndAddCompressibilityFlow(rRightHandSideVector, rVariables);
 
         this->CalculateAndAddPermeabilityFlow(rRightHandSideVector, rVariables);
@@ -1114,7 +1114,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddCouplingTerms(Vector
     const array_1d<double, TNumNodes * TDim> coupling_force = prod(coupling_matrix, rVariables.PressureVector);
     GeoElementUtilities::AssembleUBlockVector(rRightHandSideVector, (-1.0) * coupling_force);
 
-    if (!rVariables.IgnoreUndrained) {
+    if (!rVariables.IsConstantWaterPressure) {
         const auto p_coupling_matrix = GeoTransportEquationUtilities::CalculateCouplingMatrix<TDim, TNumNodes>(
             rVariables.B, GetStressStatePolicy().GetVoigtVector(), rVariables.Np,
             rVariables.BiotCoefficient, rVariables.DegreeOfSaturation, rVariables.IntegrationCoefficient);
@@ -1318,7 +1318,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::InitializeProperties(ElementVariabl
 
     const auto& r_properties = this->GetProperties();
 
-    rVariables.IgnoreUndrained =
+    rVariables.IsConstantWaterPressure =
         r_properties.Has(GEO_DRAINAGE_TYPE)
             ? ConstitutiveLawUtilities::StringToDrainageType(r_properties[GEO_DRAINAGE_TYPE]) ==
                   DrainageType::CONSTANT_WATER_PRESSURE

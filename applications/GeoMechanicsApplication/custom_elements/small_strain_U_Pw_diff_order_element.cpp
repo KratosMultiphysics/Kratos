@@ -191,7 +191,7 @@ void SmallStrainUPwDiffOrderElement::FinalizeSolutionStep(const ProcessInfo& rCu
     }
 
     // Assign pressure values to the intermediate nodes for post-processing
-    if (!Variables.IgnoreUndrained) AssignPressureToIntermediateNodes();
+    if (!Variables.IsConstantWaterPressure) AssignPressureToIntermediateNodes();
 
     KRATOS_CATCH("")
 }
@@ -883,7 +883,7 @@ Vector SmallStrainUPwDiffOrderElement::CalculateInternalForces(ElementVariables&
 
         this->CalculateAndAddCouplingTerms(result, rVariables);
     }
-    if (!rVariables.IgnoreUndrained) {
+    if (!rVariables.IsConstantWaterPressure) {
         for (unsigned int integration_point = 0;
              integration_point < rIntegrationCoefficients.size(); ++integration_point) {
             noalias(rVariables.Np)            = row(rVariables.NpContainer, integration_point);
@@ -921,7 +921,7 @@ Vector SmallStrainUPwDiffOrderElement::CalculateExternalForces(
             rIntegrationCoefficientsOnInitialConfiguration[integration_point];
         this->CalculateAndAddMixBodyForce(result, rVariables);
     }
-    if (!rVariables.IgnoreUndrained) {
+    if (!rVariables.IsConstantWaterPressure) {
         for (unsigned int integration_point = 0;
              integration_point < rIntegrationCoefficients.size(); ++integration_point) {
             noalias(rVariables.Nu)            = row(rVariables.NuContainer, integration_point);
@@ -1257,7 +1257,7 @@ void SmallStrainUPwDiffOrderElement::InitializeProperties(ElementVariables& rVar
 
     const auto& r_properties = this->GetProperties();
 
-    rVariables.IgnoreUndrained =
+    rVariables.IsConstantWaterPressure =
         r_properties.Has(GEO_DRAINAGE_TYPE)
             ? ConstitutiveLawUtilities::StringToDrainageType(r_properties[GEO_DRAINAGE_TYPE]) ==
                   DrainageType::CONSTANT_WATER_PRESSURE
@@ -1317,7 +1317,7 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddLHS(MatrixType&             
 
     this->CalculateAndAddCouplingMatrix(rLeftHandSideMatrix, rVariables);
 
-    if (!rVariables.IgnoreUndrained) {
+    if (!rVariables.IsConstantWaterPressure) {
         const auto permeability_matrix = GeoTransportEquationUtilities::CalculatePermeabilityMatrix(
             rVariables.DNp_DX, rVariables.DynamicViscosityInverse, rVariables.IntrinsicPermeability,
             rVariables.RelativePermeability, rVariables.IntegrationCoefficient);
@@ -1357,7 +1357,7 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddCouplingMatrix(MatrixType& r
         rVariables.BiotCoefficient, rVariables.BishopCoefficient, rVariables.IntegrationCoefficient);
     GeoElementUtilities::AssembleUPBlockMatrix(rLeftHandSideMatrix, coupling_matrix);
 
-    if (!rVariables.IgnoreUndrained) {
+    if (!rVariables.IsConstantWaterPressure) {
         GeoTransportEquationUtilities::CalculateCouplingMatrix(
             coupling_matrix, rVariables.B, GetStressStatePolicy().GetVoigtVector(), rVariables.Np,
             rVariables.BiotCoefficient, rVariables.DegreeOfSaturation, rVariables.IntegrationCoefficient);
@@ -1440,7 +1440,7 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddCouplingTerms(VectorType& rR
     const Vector coupling_force = prod(coupling_matrix, rVariables.PressureVector);
     GeoElementUtilities::AssembleUBlockVector(rRightHandSideVector, coupling_force);
 
-    if (!rVariables.IgnoreUndrained) {
+    if (!rVariables.IsConstantWaterPressure) {
         GeoTransportEquationUtilities::CalculateCouplingMatrix(
             coupling_matrix, rVariables.B, GetStressStatePolicy().GetVoigtVector(), rVariables.Np,
             rVariables.BiotCoefficient, rVariables.DegreeOfSaturation, rVariables.IntegrationCoefficient);

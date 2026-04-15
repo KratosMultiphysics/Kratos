@@ -143,7 +143,7 @@ protected:
         double BishopCoefficient;
 
         // Properties and processinfo variables
-        bool IgnoreUndrained;
+        bool IsConstantWaterPressure;
         bool UseHenckyStrain;
         bool ConsiderGeometricStiffness;
 
