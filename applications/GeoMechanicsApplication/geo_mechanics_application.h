@@ -113,7 +113,6 @@
 #include "custom_constitutive/linear_elastic_2D_beam_law.h"
 #include "custom_constitutive/linear_elastic_2D_interface_law.h"
 #include "custom_constitutive/linear_elastic_3D_interface_law.h"
-#include "custom_constitutive/linear_elastic_plane_stress_2D_law.h"
 #include "custom_constitutive/mohr_coulomb_with_tension_cutoff.h"
 #include "custom_constitutive/plane_strain.h"
 #include "custom_constitutive/small_strain_udsm_2D_interface_law.h"
@@ -131,7 +130,9 @@ namespace Kratos
 {
 
 static const auto UPwInterfaceElementContributions =
-    std::vector{CalculationContribution::Stiffness, CalculationContribution::UPCoupling};
+    std::vector{CalculationContribution::Stiffness, CalculationContribution::UPCoupling,
+                CalculationContribution::PUCoupling, CalculationContribution::Permeability,
+                CalculationContribution::FluidBodyFlow};
 
 ///@name Kratos Globals
 ///@{
@@ -928,7 +929,6 @@ private:
     // constitutive models
     const GeoIncrementalLinearElasticLaw mLinearElasticPlaneStrain2DLaw{std::make_unique<PlaneStrain>()};
     const GeoIncrementalLinearElasticLaw mLinearElastic3DLaw{std::make_unique<ThreeDimensional>()};
-    const GeoLinearElasticPlaneStress2DLaw mLinearElasticPlaneStress2DLaw;
 
     const SmallStrainUDSMLaw mSmallStrainUDSM2DPlaneStrainLaw{std::make_unique<PlaneStrain>()};
     const SmallStrainUDSMLaw mSmallStrainUDSM3DLaw{std::make_unique<ThreeDimensional>()};

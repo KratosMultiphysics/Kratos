@@ -36,12 +36,15 @@ NearestEntityExplicitDamping<TContainerType>::NearestEntityExplicitDamping(
 
     Parameters defaults = Parameters(R"(
     {
-        "damping_type"              : "nearest_entity",
-        "damping_function_type"     : "cosine",
-        "damped_model_part_settings": {}
+        "damping_type"               : "nearest_entity",
+        "damping_function_type"      : "cosine",
+        "damping_max_items_in_bucket": 10,
+        "damped_model_part_settings" : {}
     })" );
 
     Settings.ValidateAndAssignDefaults(defaults);
+
+    mLeafMaxSize = Settings["damping_max_items_in_bucket"].GetInt();
 
     mpKernelFunction = Kratos::make_unique<FilterFunction>(Settings["damping_function_type"].GetString());
     mComponentWiseDampedModelParts = OptimizationUtils::GetComponentWiseModelParts(rModel, Settings["damped_model_part_settings"]);
@@ -95,49 +98,49 @@ void NearestEntityExplicitDamping<TContainerType>::Update()
 {
     KRATOS_TRY
 
+    #if defined(_WIN32) || defined(_WIN64)
+        // The MSVC compiler does not support std::unique_lock<std::mutex> lock(mutex);
+        // in the case the mutex is passed by reference. [See https://stackoverflow.com/questions/78598141/first-stdmutexlock-crashes-in-application-built-with-latest-visual-studio ]
+        const unsigned int number_of_threads = 1;
+        KRATOS_WARNING("NearestEntityExplicitDamping") << "The nanoflann will construct the KD tree in serial mode in Windows.";
+    #else
+        const unsigned int number_of_threads = 0;
+    #endif
+
     const auto stride = this->GetStride();
     auto& r_container = *(std::get<typename TContainerType::Pointer>(mpDampingRadius->GetContainer()));
     const auto radius_view = mpDampingRadius->ViewData();
 
     mDampingCoefficients.resize(radius_view.size(), stride);
+    auto& damping_coefficient_data = mDampingCoefficients.data();
 
     for (IndexType i_comp = 0; i_comp < stride; ++i_comp) {
         auto& r_damped_model_parts = mComponentWiseDampedModelParts[i_comp];
 
-        EntityPointVector damped_entities;
-        damped_entities.resize(std::accumulate(
-            r_damped_model_parts.begin(), r_damped_model_parts.end(), 0UL,
-            [](const IndexType Value, const auto& pModelPart) {
-                return Value + ModelPartUtils::GetContainer<TContainerType>(*pModelPart).size();
-            }));
+        PositionAdapter adapter(r_damped_model_parts);
 
-        IndexType local_start = 0;
-        for (const auto& p_model_part : r_damped_model_parts) {
-            const auto& r_damping_container = ModelPartUtils::GetContainer<TContainerType>(*p_model_part);
-            IndexPartition<IndexType>(r_damping_container.size()).for_each([&damped_entities, &r_damping_container, local_start](const auto Index) {
-                *(damped_entities.begin() + local_start + Index) =  Kratos::make_shared<EntityPointType>(*(r_damping_container.begin() + Index), Index);
-            });
-            local_start += r_damping_container.size();
-        }
-
-        if (damped_entities.empty()) {
-            IndexPartition<IndexType>(r_container.size()).for_each([this, i_comp](const auto Index) {
-                this->mDampingCoefficients(Index, i_comp) = 1.0;
-            });
+        if (adapter.kdtree_get_point_count() == 0) {
+            std::fill(damping_coefficient_data.begin(), damping_coefficient_data.end(), 1.0);
         } else {
             // now construct the kd tree
-            auto p_search_tree =  Kratos::make_shared<KDTree>(damped_entities.begin(), damped_entities.end(), mBucketSize);
+            KDTreeIndexType kd_tree_index(
+                3, adapter,
+                nanoflann::KDTreeSingleIndexAdaptorParams(
+                    mLeafMaxSize, nanoflann::KDTreeSingleIndexAdaptorFlags::None, number_of_threads));
+
             const auto& kernel_function = *mpKernelFunction;
 
             // now calculate the damping for each entity
-            IndexPartition<IndexType>(r_container.size()).for_each([this, &r_container, &p_search_tree, &kernel_function, &radius_view, i_comp](const auto Index){
-                EntityPointType entity_point(*(r_container.begin() + Index), Index);
+            IndexPartition<IndexType>(r_container.size()).for_each([&damping_coefficient_data, &r_container, &kd_tree_index, &kernel_function, &radius_view, stride, i_comp](const auto Index){
+                const auto data_begin_index = Index * stride;
                 const auto radius = radius_view[Index];
 
                 double squared_distance;
-                auto p_nearest_damped_entity_point = p_search_tree->SearchNearestPoint(entity_point, squared_distance);
+                unsigned int global_index;
+                kd_tree_index.knnSearch(&OptimizationUtils::GetEntityPosition(*(r_container.begin() + Index))[0], 1, &global_index, &squared_distance);
 
-                this->mDampingCoefficients(Index, i_comp) = 1.0 - kernel_function.ComputeWeight(radius, std::sqrt(squared_distance));
+                double& value = *(damping_coefficient_data.begin() + data_begin_index + i_comp);
+                value = 1.0 - kernel_function.ComputeWeight(radius, std::sqrt(squared_distance));
             });
         }
     }
@@ -155,8 +158,13 @@ void NearestEntityExplicitDamping<TContainerType>::NearestEntityExplicitDamping:
 {
     KRATOS_TRY
 
-    for (IndexType i_comp = 0; i_comp < this->GetStride(); ++i_comp) {
+    const IndexType stride = this->GetStride();
+
+    rDampedWeights.resize(stride);
+
+    for (IndexType i_comp = 0; i_comp < stride; ++i_comp) {
         auto& r_damped_weights = rDampedWeights[i_comp];
+        r_damped_weights.resize(rNeighbours.size());
         for (IndexType i_neighbour = 0; i_neighbour < NumberOfNeighbours; ++i_neighbour) {
             r_damped_weights[i_neighbour] = rWeights[i_neighbour] * mDampingCoefficients(Index, i_comp);
         }

@@ -49,14 +49,14 @@ template<class TSparseSpace,
          class TDenseSpace,
          class TLinearSolver
          >
-class HarmonicAnalysisStrategy
+class ModalHarmonicAnalysisStrategy
     : public ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    KRATOS_CLASS_POINTER_DEFINITION(HarmonicAnalysisStrategy);
+    KRATOS_CLASS_POINTER_DEFINITION(ModalHarmonicAnalysisStrategy);
 
     typedef ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
@@ -87,7 +87,7 @@ public:
     ///@{
 
     /// Constructor.
-    HarmonicAnalysisStrategy(
+    ModalHarmonicAnalysisStrategy(
         ModelPart& rModelPart,
         SchemePointerType pScheme,
         BuilderAndSolverPointerType pBuilderAndSolver,
@@ -119,10 +119,10 @@ public:
     }
 
     /// Deleted copy constructor.
-    HarmonicAnalysisStrategy(const HarmonicAnalysisStrategy& Other) = delete;
+    ModalHarmonicAnalysisStrategy(const ModalHarmonicAnalysisStrategy& Other) = delete;
 
     /// Destructor.
-    ~HarmonicAnalysisStrategy() override
+    ~ModalHarmonicAnalysisStrategy() override
     {
     }
 
@@ -205,7 +205,7 @@ public:
         auto& r_model_part = BaseType::GetModelPart();
         const auto rank = r_model_part.GetCommunicator().MyPID();
 
-        KRATOS_INFO_IF("HarmonicAnalysisStrategy", BaseType::GetEchoLevel() > 2 && rank == 0)
+        KRATOS_INFO_IF("ModalHarmonicAnalysisStrategy", BaseType::GetEchoLevel() > 2 && rank == 0)
         <<  "Entering Initialize" << std::endl;
 
         if( !mInitializeWasPerformed )
@@ -367,7 +367,7 @@ public:
             mInitializeWasPerformed = true;
         }
 
-        KRATOS_INFO_IF("HarmonicAnalysisStrategy", BaseType::GetEchoLevel() > 2 && rank == 0)
+        KRATOS_INFO_IF("ModalHarmonicAnalysisStrategy", BaseType::GetEchoLevel() > 2 && rank == 0)
         <<  "Exiting Initialize" << std::endl;
 
         KRATOS_CATCH("")
@@ -380,7 +380,7 @@ public:
         auto& r_model_part = BaseType::GetModelPart();
         const auto rank = r_model_part.GetCommunicator().MyPID();
 
-        KRATOS_INFO_IF("HarmonicAnalysisStrategy", BaseType::GetEchoLevel() > 2 && rank == 0)
+        KRATOS_INFO_IF("ModalHarmonicAnalysisStrategy", BaseType::GetEchoLevel() > 2 && rank == 0)
             <<  "Entering SolveSolutionStep" << std::endl;
 
         auto& r_process_info = r_model_part.GetProcessInfo();
@@ -464,7 +464,7 @@ public:
 
         this->AssignVariables(modal_displacement);
 
-        KRATOS_INFO_IF("HarmonicAnalysisStrategy", BaseType::GetEchoLevel() > 2 && rank == 0)
+        KRATOS_INFO_IF("ModalHarmonicAnalysisStrategy", BaseType::GetEchoLevel() > 2 && rank == 0)
             << "Exiting SolveSolutionStep" << std::endl;
 
         return true;
@@ -508,7 +508,7 @@ public:
         auto& r_model_part = BaseType::GetModelPart();
         const auto rank = r_model_part.GetCommunicator().MyPID();
 
-        KRATOS_INFO_IF("HarmonicAnalysisStrategy", BaseType::GetEchoLevel() > 2 && rank == 0)
+        KRATOS_INFO_IF("ModalHarmonicAnalysisStrategy", BaseType::GetEchoLevel() > 2 && rank == 0)
             << "Entering Check" << std::endl;
 
         // check the model part
@@ -520,7 +520,7 @@ public:
         // check the builder and solver
         this->pGetBuilderAndSolver()->Check(r_model_part);
 
-        KRATOS_INFO_IF("HarmonicAnalysisStrategy", BaseType::GetEchoLevel() > 2 && rank == 0)
+        KRATOS_INFO_IF("ModalHarmonicAnalysisStrategy", BaseType::GetEchoLevel() > 2 && rank == 0)
             << "Exiting Check" << std::endl;
 
         return 0;
@@ -654,7 +654,7 @@ private:
 
     ///@}
 
-}; /* Class HarmonicAnalysisStrategy */
+}; /* Class ModalHarmonicAnalysisStrategy */
 
 ///@}
 

@@ -15,7 +15,6 @@
 // System includes
 #include <sstream>
 #include <type_traits>
-#include <tuple>
 
 // Project includes
 #include "utilities/atomic_utilities.h"
@@ -39,9 +38,7 @@ void CalculateNodalDomainSizes(
     const TContainerType& rContainer,
     const ModelPart::NodesContainerType& rNodes)
 {
-    const IndexType number_of_nodes = rNodes.size();
-
-    rNodalDomainSizes.resize(number_of_nodes);
+    rNodalDomainSizes.resize(rNodes.size());
     std::fill(rNodalDomainSizes.begin(), rNodalDomainSizes.end(), 0.0);
 
     IndexPartition<IndexType>(rContainer.size()).for_each([&rNodes, &rContainer, &rNodalDomainSizes](const IndexType Index) {
@@ -63,8 +60,9 @@ struct NodeCloudsType
 {
     template<class TEntityType>
     static inline double GetDomainSize(
-        const EntityPoint<TEntityType>& rPoint,
-        const std::vector<double>& rNodalDomainSizes)
+        const TEntityType& rPoint,
+        const std::vector<double>& rNodalDomainSizes,
+        const ModelPart::NodesContainerType& rNodes)
     {
         if constexpr(!std::is_same_v<TEntityType, ModelPart::NodeType>) {
             KRATOS_ERROR << "Point / node clouds should only be used with nodes.";
@@ -84,13 +82,16 @@ struct MeshIndependentType
 {
     template<class TEntityType>
     static inline double GetDomainSize(
-        const EntityPoint<TEntityType>& rPoint,
-        const std::vector<double>& rNodalDomainSizes)
+        const TEntityType& rEntity,
+        const std::vector<double>& rNodalDomainSizes,
+        const ModelPart::NodesContainerType& rNodes)
     {
         if constexpr(std::is_same_v<TEntityType, ModelPart::NodeType>) {
-            return rNodalDomainSizes[rPoint.Id()];
+            auto node_itr = rNodes.find(rEntity.Id());
+            KRATOS_ERROR_IF(node_itr == rNodes.end()) << "Node with " << rEntity.Id() << " not found in the model part nodes.";
+            return rNodalDomainSizes[std::distance(rNodes.begin(), node_itr)];
         } else {
-            return rPoint.GetEntity().GetGeometry().DomainSize();
+            return rEntity.GetGeometry().DomainSize();
         }
     }
 
@@ -106,13 +107,16 @@ struct MeshDependentType
 {
     template<class TEntityType>
     static inline double GetDomainSize(
-        const EntityPoint<TEntityType>& rPoint,
-        const std::vector<double>& rNodalDomainSizes)
+        const TEntityType& rEntity,
+        const std::vector<double>& rNodalDomainSizes,
+        const ModelPart::NodesContainerType& rNodes)
     {
         if constexpr(std::is_same_v<TEntityType, ModelPart::NodeType>) {
-            return rNodalDomainSizes[rPoint.Id()];
+            auto node_itr = rNodes.find(rEntity.Id());
+            KRATOS_ERROR_IF(node_itr == rNodes.end()) << "Node with " << rEntity.Id() << " not found in the model part nodes.";
+            return rNodalDomainSizes[std::distance(rNodes.begin(), node_itr)];
         } else {
-            return rPoint.GetEntity().GetGeometry().DomainSize();
+            return rEntity.GetGeometry().DomainSize();
         }
     }
 
@@ -124,24 +128,47 @@ struct MeshDependentType
     }
 };
 
-template <class TMeshDependencyType, class TEntityType>
-void ComputeWeightForAllNeighbors(
-    double& rSumOfWeights,
+template <class TMeshDependencyType, class TContainerType>
+double ComputeWeights(
+    std::vector<std::vector<double>>& rListOfDampedWeights,
+    typename ExplicitFilterUtils<TContainerType>::ResultVectorType& rNeighbourNodeIndicesAndSquaredDistances,
     std::vector<double>& rListOfWeights,
+    typename ExplicitFilterUtils<TContainerType>::PointerVectorType& rListOfNeighbourEntityPointers,
     const FilterFunction& rFilterFunction,
+    const typename ExplicitFilterUtils<TContainerType>::PositionAdapter& rAdapter,
+    const typename ExplicitFilterUtils<TContainerType>::KDTreeIndexType& rKDTreeIndex,
+    const ExplicitDamping<TContainerType>& rDamping,
     const double Radius,
-    const EntityPoint<TEntityType>& rDesignPoint,
-    const std::vector<typename EntityPoint<TEntityType>::Pointer>& rNeighbourNodes,
-    const std::vector<double>& rSquaredDistances,
-    const IndexType NumberOfNeighbours,
-    const std::vector<double>& rNodalDomainSizes)
+    const array_1d<double, 3>& rPoint,
+    const IndexType Index,
+    const std::vector<double>& rNodalDomainSizes,
+    const ModelPart::NodesContainerType& rNodes)
 {
-    for (IndexType i = 0; i < NumberOfNeighbours; ++i) {
-        const double domain_size = TMeshDependencyType::GetDomainSize(*rNeighbourNodes[i], rNodalDomainSizes);
-        const double filter_weight = rFilterFunction.ComputeWeight(Radius, std::sqrt(rSquaredDistances[i])) * domain_size;
+    KRATOS_TRY
+
+    // search for entities within radius
+    rKDTreeIndex.radiusSearch(&rPoint[0], Radius * Radius, rNeighbourNodeIndicesAndSquaredDistances, nanoflann::SearchParameters());
+
+    // update the neighbour entities from found indices
+    const IndexType number_of_neighbors = rNeighbourNodeIndicesAndSquaredDistances.size();
+    rAdapter.GetResultingEntityPointersVector(rListOfNeighbourEntityPointers, rNeighbourNodeIndicesAndSquaredDistances);
+
+    double sum_of_weights = 0.0;
+    rListOfWeights.resize(rNeighbourNodeIndicesAndSquaredDistances.size());
+
+    for (IndexType i = 0; i < rNeighbourNodeIndicesAndSquaredDistances.size(); ++i) {
+        const auto& r_neighbour_info = rNeighbourNodeIndicesAndSquaredDistances[i];
+        const double domain_size = TMeshDependencyType::GetDomainSize(*rListOfNeighbourEntityPointers[i], rNodalDomainSizes, rNodes);
+        const double filter_weight = rFilterFunction.ComputeWeight(Radius, std::sqrt(r_neighbour_info.second)) * domain_size;
         rListOfWeights[i] = filter_weight;
-        rSumOfWeights += filter_weight;
+        sum_of_weights += filter_weight;
     }
+
+    rDamping.Apply(rListOfDampedWeights, rListOfWeights, Index, number_of_neighbors, rListOfNeighbourEntityPointers);
+
+    return sum_of_weights;
+
+    KRATOS_CATCH("");
 }
 
 }; // namespace ExplicitFilterUtilsHelperUtilities
@@ -150,13 +177,15 @@ template<class TContainerType>
 ExplicitFilterUtils<TContainerType>::ExplicitFilterUtils(
     const ModelPart& rModelPart,
     const std::string& rKernelFunctionType,
-    const IndexType MaxNumberOfNeighbours,
+    const IndexType MaxLeafSize,
     const IndexType EchoLevel,
-    const bool NodeCloudMesh)
+    const bool NodeCloudMesh,
+    const bool StoreFilteringMatrix)
     : mrModelPart(rModelPart),
-      mMaxNumberOfNeighbors(MaxNumberOfNeighbours),
+      mLeafMaxSize(MaxLeafSize),
       mEchoLevel(EchoLevel),
-      mNodeCloudMesh(NodeCloudMesh)
+      mNodeCloudMesh(NodeCloudMesh),
+      mStoreFilteringMatrix(StoreFilteringMatrix)
 {
     mpKernelFunction = Kratos::make_unique<FilterFunction>(rKernelFunctionType);
 }
@@ -164,6 +193,8 @@ ExplicitFilterUtils<TContainerType>::ExplicitFilterUtils(
 template<class TContainerType>
 void ExplicitFilterUtils<TContainerType>::SetRadius(TensorAdaptor<double>::Pointer pTensorAdaptor)
 {
+    KRATOS_TRY
+
     KRATOS_ERROR_IF_NOT(pTensorAdaptor->Shape().size() == 1)
         << "Only scalar values are allowed for the filter radius tensor adaptor."
         << "Provided tensor adaptor = " << *pTensorAdaptor << ".\n";
@@ -192,6 +223,8 @@ void ExplicitFilterUtils<TContainerType>::SetRadius(TensorAdaptor<double>::Point
     }
 
     mpFilterRadiusTensorAdaptor = pTensorAdaptor;
+
+    KRATOS_CATCH("");
 }
 
 template<class TContainerType>
@@ -215,16 +248,20 @@ void ExplicitFilterUtils<TContainerType>::ExplicitFilterUtils::Update()
 
     const auto& r_container = ModelPartUtils::GetContainer<TContainerType>(mrModelPart);
 
-    if (mEntityPointVector.size() != r_container.size()) {
-        mEntityPointVector.resize(r_container.size());
-    }
+    mpAdapter = Kratos::make_unique<PositionAdapter>(&r_container);
 
-    // now fill the points vector
-    IndexPartition<IndexType>(r_container.size()).for_each([&](const IndexType Index) {
-        mEntityPointVector[Index] = Kratos::make_shared<EntityPoint<EntityType>>(*(r_container.begin() + Index), Index);
-    });
+    #if defined(_WIN32) || defined(_WIN64)
+        // The MSVC compiler does not support std::unique_lock<std::mutex> lock(mutex);
+        // in the case the mutex is passed by reference. [See https://stackoverflow.com/questions/78598141/first-stdmutexlock-crashes-in-application-built-with-latest-visual-studio ]
+        const unsigned int number_of_threads = 1;
+        KRATOS_WARNING("ExplicitFilterUtils") << "The nanoflann will construct the KD tree in serial mode in Windows.";
+    #else
+        const unsigned int number_of_threads = 0;
+    #endif
 
-    mpSearchTree =  Kratos::make_shared<ExplicitFilterUtils::KDTree>(mEntityPointVector.begin(), mEntityPointVector.end(), mBucketSize);
+    mpKDTreeIndex = Kratos::make_unique<KDTreeIndexType>(
+        3, *mpAdapter,
+        nanoflann::KDTreeSingleIndexAdaptorParams(mLeafMaxSize, nanoflann::KDTreeSingleIndexAdaptorFlags::None, number_of_threads));
 
     if constexpr(std::is_same_v<TContainerType, ModelPart::NodesContainerType>) {
         if (!mNodeCloudMesh) {
@@ -246,6 +283,18 @@ void ExplicitFilterUtils<TContainerType>::ExplicitFilterUtils::Update()
         }
     }
 
+    if (mStoreFilteringMatrix) {
+        if (mNodeCloudMesh) {
+            ComputeForwardFilteringMatrix<ExplicitFilterUtilsHelperUtilities::NodeCloudsType>();
+        } else {
+            ComputeForwardFilteringMatrix<ExplicitFilterUtilsHelperUtilities::MeshIndependentType>();
+        }
+
+        // release the memory of the kd trees.
+        mpKDTreeIndex.reset();
+        mpAdapter.reset();
+    }
+
     KRATOS_INFO_IF("ExplicitFilterUtils", mEchoLevel > 0) << "Updated filter in: " << timer.ElapsedSeconds() << " s" << std::endl;
 
     KRATOS_CATCH("");
@@ -254,6 +303,8 @@ void ExplicitFilterUtils<TContainerType>::ExplicitFilterUtils::Update()
 template<class TContainerType>
 void ExplicitFilterUtils<TContainerType>::CheckField(const TensorAdaptor<double>& rTensorAdaptor) const
 {
+    KRATOS_TRY
+
     KRATOS_ERROR_IF(mpFilterRadiusTensorAdaptor.get() == nullptr)
         << "The filter radius tensor adaptor not set. "
         << "Please set it using SetRadius method.\n\t Filter = "
@@ -286,15 +337,59 @@ void ExplicitFilterUtils<TContainerType>::CheckField(const TensorAdaptor<double>
         << "Damping method is not set. "
         << "Please set it using SetDamping method.\n\t Filter = "
         << *this;
+
+    KRATOS_CATCH("");
 }
 
 template<class TContainerType>
 template<class TMeshDependencyType>
-TensorAdaptor<double>::Pointer ExplicitFilterUtils<TContainerType>::GenericForwardFilterField(const TensorAdaptor<double>& rTensorAdaptor) const
+void ExplicitFilterUtils<TContainerType>::ComputeForwardFilteringMatrix()
 {
     KRATOS_TRY
 
-    using tls = OptimizationUtils::KDTreeThreadLocalStorage<typename EntityPointType::Pointer>;
+    const auto& r_container = ModelPartUtils::GetContainer<TContainerType>(mrModelPart);
+    const IndexType stride = mpDamping->GetStride();
+    const auto& r_filter_radius_data_view = mpFilterRadiusTensorAdaptor->ViewData();
+
+    mFilteringMatrix.resize(r_container.size(), false);
+
+    IndexPartition<IndexType>(r_container.size()).for_each(KDTreeThreadLocalStorage(), [&](const IndexType Index, auto& rTLS){
+        const double sum_of_weights = ExplicitFilterUtilsHelperUtilities::ComputeWeights<TMeshDependencyType, TContainerType>(
+                rTLS.mListOfDampedWeights, rTLS.mNeighbourIndicesAndSquaredDistances,
+                rTLS.mListOfWeights, rTLS.mNeighbourEntityPoints,
+                *mpKernelFunction, *mpAdapter, *mpKDTreeIndex, *mpDamping, r_filter_radius_data_view[Index],
+                OptimizationUtils::GetEntityPosition(*(r_container.begin() + Index)),
+                Index, this->mNodalDomainSizes, this->mrModelPart.Nodes());
+
+        const auto number_of_neighbours = rTLS.mNeighbourIndicesAndSquaredDistances.size();
+
+        auto& filtering_matrix_row_data = mFilteringMatrix[Index];
+        filtering_matrix_row_data.resize(number_of_neighbours);
+
+        for(IndexType neighbour_index = 0 ; neighbour_index < rTLS.mNeighbourIndicesAndSquaredDistances.size(); ++neighbour_index) {
+            const IndexType neighbour_id = rTLS.mNeighbourIndicesAndSquaredDistances[neighbour_index].first;
+
+            auto& neighbour_data = filtering_matrix_row_data[neighbour_index];
+            std::get<0>(neighbour_data) = neighbour_id;
+
+            auto& coefficients = std::get<1>(neighbour_data);
+            coefficients.resize(stride, false);
+            for (IndexType j = 0; j < stride; ++j) {
+                coefficients[j] = rTLS.mListOfDampedWeights[j][neighbour_index] / sum_of_weights;
+            }
+        }
+    });
+
+    KRATOS_INFO_IF("ExplicitFilterUtils", mEchoLevel > 1) << "Computed filtering matrix." << std::endl;
+
+    KRATOS_CATCH("");
+}
+
+template<class TContainerType>
+template<class TMeshDependencyType, bool TUseFilterMatrix>
+TensorAdaptor<double>::Pointer ExplicitFilterUtils<TContainerType>::GenericForwardFilterField(const TensorAdaptor<double>& rTensorAdaptor) const
+{
+    KRATOS_TRY
 
     CheckField(rTensorAdaptor);
 
@@ -310,38 +405,36 @@ TensorAdaptor<double>::Pointer ExplicitFilterUtils<TContainerType>::GenericForwa
     auto p_result_tensor_adaptor = Kratos::make_shared<TensorAdaptor<double>>(rTensorAdaptor);
     auto result_data_view = p_result_tensor_adaptor->ViewData();
 
-    IndexPartition<IndexType>(r_container.size()).for_each(tls(mMaxNumberOfNeighbors, stride), [&](const IndexType Index, tls& rTLS){
-        const double radius = r_filter_radius_data_view[Index];
-
-        EntityPoint<EntityType> entity_point(*(r_container.begin() + Index), Index);
-        const auto number_of_neighbors = mpSearchTree->SearchInRadius(
-                                            entity_point,
-                                            radius,
-                                            rTLS.mNeighbourEntityPoints.begin(),
-                                            rTLS.mResultingSquaredDistances.begin(),
-                                            mMaxNumberOfNeighbors);
-
-        KRATOS_ERROR_IF(number_of_neighbors >= mMaxNumberOfNeighbors)
-            << "Maximum number of allowed neighbours reached when searching for neighbours in "
-            << mrModelPart.FullName() << " with radii = " << radius << " [ max number of allowed neighbours = "
-            << mMaxNumberOfNeighbors << " ].\n";
-
-        double sum_of_weights = 0.0;
-        ExplicitFilterUtilsHelperUtilities::ComputeWeightForAllNeighbors<TMeshDependencyType>(
-            sum_of_weights, rTLS.mListOfWeights, *mpKernelFunction, radius,
-            entity_point, rTLS.mNeighbourEntityPoints, rTLS.mResultingSquaredDistances, number_of_neighbors, this->mNodalDomainSizes);
-
-        mpDamping->Apply(rTLS.mListOfDampedWeights, rTLS.mListOfWeights, Index, number_of_neighbors, rTLS.mNeighbourEntityPoints);
-
-        for (IndexType j = 0; j < stride; ++j) {
-            const auto& r_damped_weights = rTLS.mListOfDampedWeights[j];
-            double& current_index_value = result_data_view[Index * stride + j];
-            current_index_value = 0.0;
-            for(IndexType neighbour_index = 0 ; neighbour_index < number_of_neighbors; ++neighbour_index) {
-                const IndexType neighbour_id = rTLS.mNeighbourEntityPoints[neighbour_index]->Id();
-                const double weight = r_damped_weights[neighbour_index] / sum_of_weights;
-                const double origin_value = r_origin_data_view[neighbour_id * stride + j];
-                current_index_value +=  weight * origin_value;
+    IndexPartition<IndexType>(r_container.size()).for_each(KDTreeThreadLocalStorage(), [&](const IndexType Index, auto& rTLS){
+        if constexpr(!TUseFilterMatrix) {
+            const double sum_of_weights = ExplicitFilterUtilsHelperUtilities::ComputeWeights<TMeshDependencyType, TContainerType>(
+                    rTLS.mListOfDampedWeights, rTLS.mNeighbourIndicesAndSquaredDistances,
+                    rTLS.mListOfWeights, rTLS.mNeighbourEntityPoints,
+                    *mpKernelFunction, *mpAdapter, *mpKDTreeIndex, *mpDamping, r_filter_radius_data_view[Index],
+                    OptimizationUtils::GetEntityPosition(*(r_container.begin() + Index)),
+                    Index, this->mNodalDomainSizes, this->mrModelPart.Nodes());
+            for (IndexType j = 0; j < stride; ++j) {
+                const auto& r_damped_weights = rTLS.mListOfDampedWeights[j];
+                double& current_index_value = result_data_view[Index * stride + j];
+                current_index_value = 0.0;
+                for(IndexType neighbour_index = 0 ; neighbour_index < rTLS.mNeighbourIndicesAndSquaredDistances.size(); ++neighbour_index) {
+                    const IndexType neighbour_id = rTLS.mNeighbourIndicesAndSquaredDistances[neighbour_index].first;
+                    const double weight = r_damped_weights[neighbour_index] / sum_of_weights;
+                    const double origin_value = r_origin_data_view[neighbour_id * stride + j];
+                    current_index_value +=  weight * origin_value;
+                }
+            }
+        } else {
+            const auto& filter_matrix_row_data = mFilteringMatrix[Index];
+            for (IndexType j = 0; j < stride; ++j) {
+                double& current_index_value = result_data_view[Index * stride + j];
+                current_index_value = 0.0;
+                for(IndexType neighbour_index = 0 ; neighbour_index < filter_matrix_row_data.size(); ++neighbour_index) {
+                    const auto neighbour_id = std::get<0>(filter_matrix_row_data[neighbour_index]);
+                    const auto weight = std::get<1>(filter_matrix_row_data[neighbour_index])[j];
+                    const double origin_value = r_origin_data_view[neighbour_id * stride + j];
+                    current_index_value +=  weight * origin_value;
+                }
             }
         }
     });
@@ -354,12 +447,10 @@ TensorAdaptor<double>::Pointer ExplicitFilterUtils<TContainerType>::GenericForwa
 }
 
 template<class TContainerType>
-template<class TMeshDependencyType>
+template<class TMeshDependencyType, bool TUseFilterMatrix>
 TensorAdaptor<double>::Pointer ExplicitFilterUtils<TContainerType>::GenericBackwardFilterField(const TensorAdaptor<double>& rTensorAdaptor) const
 {
     KRATOS_TRY
-
-    using tls = OptimizationUtils::KDTreeThreadLocalStorage<typename EntityPointType::Pointer>;
 
     CheckField(rTensorAdaptor);
 
@@ -375,48 +466,42 @@ TensorAdaptor<double>::Pointer ExplicitFilterUtils<TContainerType>::GenericBackw
     auto p_result_tensor_adaptor = Kratos::make_shared<TensorAdaptor<double>>(rTensorAdaptor);
     auto result_data_view = p_result_tensor_adaptor->ViewData();
 
-    IndexPartition<IndexType>(result_data_view.size()).for_each([&result_data_view](const auto Index) {
-        result_data_view[Index] = 0.0;
-    });
+    std::fill(result_data_view.begin(), result_data_view.end(), 0.0);
 
-    IndexPartition<IndexType>(r_container.size()).for_each(tls(mMaxNumberOfNeighbors, stride), [&](const IndexType Index, tls& rTLS){
-        const double radius = r_filter_radius_data_view[Index];
-
-        EntityPoint<EntityType> entity_point(*(r_container.begin() + Index), Index);
-        const auto number_of_neighbors = mpSearchTree->SearchInRadius(
-                                            entity_point,
-                                            radius,
-                                            rTLS.mNeighbourEntityPoints.begin(),
-                                            rTLS.mResultingSquaredDistances.begin(),
-                                            mMaxNumberOfNeighbors);
-
-        KRATOS_ERROR_IF(number_of_neighbors >= mMaxNumberOfNeighbors)
-            << "Maximum number of allowed neighbours reached when searching for neighbours in "
-            << mrModelPart.FullName() << " with radii = " << radius << " [ max number of allowed neighbours = "
-            << mMaxNumberOfNeighbors << " ].\n";
-
-        double sum_of_weights = 0.0;
-        ExplicitFilterUtilsHelperUtilities::ComputeWeightForAllNeighbors<TMeshDependencyType>(
-            sum_of_weights, rTLS.mListOfWeights, *mpKernelFunction, radius,
-            entity_point, rTLS.mNeighbourEntityPoints, rTLS.mResultingSquaredDistances, number_of_neighbors, this->mNodalDomainSizes);
-
-        mpDamping->Apply(rTLS.mListOfDampedWeights, rTLS.mListOfWeights, Index, number_of_neighbors, rTLS.mNeighbourEntityPoints);
-
+    IndexPartition<IndexType>(r_container.size()).for_each(KDTreeThreadLocalStorage(), [&](const IndexType Index, auto& rTLS){
+        const double domain_size = TMeshDependencyType::GetDomainSize(*(r_container.begin() + Index), mNodalDomainSizes, mrModelPart.Nodes());
         const IndexType current_data_begin = Index * stride;
-        const double domain_size = TMeshDependencyType::GetDomainSize(entity_point, mNodalDomainSizes);
 
-        for (IndexType j = 0; j < stride; ++j) {
-            const auto& r_damped_weights = rTLS.mListOfDampedWeights[j];
-            const double origin_value = TMeshDependencyType::Compute(r_origin_data_view[current_data_begin + j], domain_size);
-            // KRATOS_WATCH(origin_value)
+        if constexpr(!TUseFilterMatrix) {
+            const double sum_of_weights = ExplicitFilterUtilsHelperUtilities::ComputeWeights<TMeshDependencyType, TContainerType>(
+                    rTLS.mListOfDampedWeights, rTLS.mNeighbourIndicesAndSquaredDistances,
+                    rTLS.mListOfWeights, rTLS.mNeighbourEntityPoints,
+                    *mpKernelFunction, *mpAdapter, *mpKDTreeIndex, *mpDamping, r_filter_radius_data_view[Index],
+                    OptimizationUtils::GetEntityPosition(*(r_container.begin() + Index)),
+                    Index, this->mNodalDomainSizes, this->mrModelPart.Nodes());
 
-            for(IndexType neighbour_index = 0; neighbour_index < number_of_neighbors; ++neighbour_index) {
-                const double weight = r_damped_weights[neighbour_index] / sum_of_weights;
+            for (IndexType j = 0; j < stride; ++j) {
+                const auto& r_damped_weights = rTLS.mListOfDampedWeights[j];
+                const double origin_value = TMeshDependencyType::Compute(r_origin_data_view[current_data_begin + j], domain_size);
 
-                const IndexType neighbour_id = rTLS.mNeighbourEntityPoints[neighbour_index]->Id();
-                const IndexType neighbour_data_begin_index = neighbour_id * stride;
+                for(IndexType neighbour_index = 0; neighbour_index < rTLS.mNeighbourIndicesAndSquaredDistances.size(); ++neighbour_index) {
+                    const double weight = r_damped_weights[neighbour_index] / sum_of_weights;
 
-                AtomicAdd<double>(result_data_view[neighbour_data_begin_index + j], origin_value * weight);
+                    const IndexType neighbour_id = rTLS.mNeighbourIndicesAndSquaredDistances[neighbour_index].first;
+                    const IndexType neighbour_data_begin_index = neighbour_id * stride;
+
+                    AtomicAdd<double>(result_data_view[neighbour_data_begin_index + j], origin_value * weight);
+                }
+            }
+        } else {
+            const auto& filter_matrix_row_data = mFilteringMatrix[Index];
+            for (IndexType j = 0; j < stride; ++j) {
+                const double origin_value = TMeshDependencyType::Compute(r_origin_data_view[current_data_begin + j], domain_size);
+                for(IndexType neighbour_index = 0 ; neighbour_index < filter_matrix_row_data.size(); ++neighbour_index) {
+                    const auto neighbour_id = std::get<0>(filter_matrix_row_data[neighbour_index]);
+                    const auto weight = std::get<1>(filter_matrix_row_data[neighbour_index])[j];
+                    AtomicAdd<double>(result_data_view[neighbour_id * stride + j], origin_value * weight);
+                }
             }
         }
     });
@@ -439,8 +524,7 @@ void ExplicitFilterUtils<TContainerType>::GenericGetIntegrationWeights(TensorAda
     auto r_data_view = rTensorAdaptor.ViewData();
 
     IndexPartition<IndexType>(r_container.size()).for_each([&](const IndexType Index){
-        const EntityPoint<EntityType> entity(*(r_container.begin() + Index), Index);
-        const auto integration_weight = TMeshDependencyType::GetDomainSize(entity, this->mNodalDomainSizes);
+        const auto integration_weight = TMeshDependencyType::GetDomainSize(*(r_container.begin() + Index), this->mNodalDomainSizes, this->mrModelPart.Nodes());
         const IndexType current_data_begin = Index * stride;
         for (IndexType j = 0; j < stride; ++j) {
             r_data_view[current_data_begin + j] = integration_weight;
@@ -451,30 +535,54 @@ void ExplicitFilterUtils<TContainerType>::GenericGetIntegrationWeights(TensorAda
 template<class TContainerType>
 TensorAdaptor<double>::Pointer ExplicitFilterUtils<TContainerType>::ForwardFilterField(const TensorAdaptor<double>& rTensorAdaptor) const
 {
-    if (mNodeCloudMesh) {
-        return GenericForwardFilterField<ExplicitFilterUtilsHelperUtilities::NodeCloudsType>(rTensorAdaptor);
+    if (mStoreFilteringMatrix) {
+        if (mNodeCloudMesh) {
+            return GenericForwardFilterField<ExplicitFilterUtilsHelperUtilities::NodeCloudsType, true>(rTensorAdaptor);
+        } else {
+            return GenericForwardFilterField<ExplicitFilterUtilsHelperUtilities::MeshIndependentType, true>(rTensorAdaptor);
+        }
     } else {
-        return GenericForwardFilterField<ExplicitFilterUtilsHelperUtilities::MeshIndependentType>(rTensorAdaptor);
+        if (mNodeCloudMesh) {
+            return GenericForwardFilterField<ExplicitFilterUtilsHelperUtilities::NodeCloudsType>(rTensorAdaptor);
+        } else {
+            return GenericForwardFilterField<ExplicitFilterUtilsHelperUtilities::MeshIndependentType>(rTensorAdaptor);
+        }
     }
 }
 
 template<class TContainerType>
 TensorAdaptor<double>::Pointer ExplicitFilterUtils<TContainerType>::BackwardFilterField(const TensorAdaptor<double>& rTensorAdaptor) const
 {
-    if (mNodeCloudMesh) {
-        return GenericBackwardFilterField<ExplicitFilterUtilsHelperUtilities::NodeCloudsType>(rTensorAdaptor);
+    if (mStoreFilteringMatrix) {
+        if (mNodeCloudMesh) {
+            return GenericBackwardFilterField<ExplicitFilterUtilsHelperUtilities::NodeCloudsType, true>(rTensorAdaptor);
+        } else {
+            return GenericBackwardFilterField<ExplicitFilterUtilsHelperUtilities::MeshIndependentType, true>(rTensorAdaptor);
+        }
     } else {
-        return GenericBackwardFilterField<ExplicitFilterUtilsHelperUtilities::MeshIndependentType>(rTensorAdaptor);
+        if (mNodeCloudMesh) {
+            return GenericBackwardFilterField<ExplicitFilterUtilsHelperUtilities::NodeCloudsType>(rTensorAdaptor);
+        } else {
+            return GenericBackwardFilterField<ExplicitFilterUtilsHelperUtilities::MeshIndependentType>(rTensorAdaptor);
+        }
     }
 }
 
 template<class TContainerType>
 TensorAdaptor<double>::Pointer ExplicitFilterUtils<TContainerType>::BackwardFilterIntegratedField(const TensorAdaptor<double>& rTensorAdaptor) const
 {
-    if (mNodeCloudMesh) {
-        return GenericBackwardFilterField<ExplicitFilterUtilsHelperUtilities::NodeCloudsType>(rTensorAdaptor);
+    if (mStoreFilteringMatrix) {
+        if (mNodeCloudMesh) {
+            return GenericBackwardFilterField<ExplicitFilterUtilsHelperUtilities::NodeCloudsType, true>(rTensorAdaptor);
+        } else {
+            return GenericBackwardFilterField<ExplicitFilterUtilsHelperUtilities::MeshDependentType, true>(rTensorAdaptor);
+        }
     } else {
-        return GenericBackwardFilterField<ExplicitFilterUtilsHelperUtilities::MeshDependentType>(rTensorAdaptor);
+        if (mNodeCloudMesh) {
+            return GenericBackwardFilterField<ExplicitFilterUtilsHelperUtilities::NodeCloudsType>(rTensorAdaptor);
+        } else {
+            return GenericBackwardFilterField<ExplicitFilterUtilsHelperUtilities::MeshDependentType>(rTensorAdaptor);
+        }
     }
 }
 
@@ -512,9 +620,9 @@ void ExplicitFilterUtils<TContainerType>::CalculateMatrix(Matrix& rOutput) const
 {
     KRATOS_TRY
 
-    using tls = OptimizationUtils::KDTreeThreadLocalStorage<typename EntityPointType::Pointer>;
+    const auto& r_container = ModelPartUtils::GetContainer<TContainerType>(mrModelPart);
 
-    const auto number_of_entities = mEntityPointVector.size();
+    const auto number_of_entities = r_container.size();
 
     const auto r_filter_radius_data_view = mpFilterRadiusTensorAdaptor->ViewData();
 
@@ -524,32 +632,19 @@ void ExplicitFilterUtils<TContainerType>::CalculateMatrix(Matrix& rOutput) const
 
     noalias(rOutput) = ZeroMatrix(number_of_entities, number_of_entities);
 
-    IndexPartition<IndexType>(number_of_entities).for_each(tls(mMaxNumberOfNeighbors, 1), [&](const auto Index, auto& rTLS) {
-        const double radius = r_filter_radius_data_view[Index];
-
-        const auto number_of_neighbors = mpSearchTree->SearchInRadius(
-                                            *mEntityPointVector[Index],
-                                            radius,
-                                            rTLS.mNeighbourEntityPoints.begin(),
-                                            rTLS.mResultingSquaredDistances.begin(),
-                                            mMaxNumberOfNeighbors);
-
-        KRATOS_ERROR_IF(number_of_neighbors >= mMaxNumberOfNeighbors)
-            << "Maximum number of allowed neighbours reached when searching for neighbours in "
-            << mrModelPart.FullName() << " with radii = " << radius << " [ max number of allowed neighbours = "
-            << mMaxNumberOfNeighbors << " ].\n";
-
-        std::vector<double> list_of_weights(number_of_neighbors, 0.0);
-        double sum_of_weights = 0.0;
-        ExplicitFilterUtilsHelperUtilities::ComputeWeightForAllNeighbors<ExplicitFilterUtilsHelperUtilities::MeshIndependentType>(
-            sum_of_weights, list_of_weights, *mpKernelFunction, radius,
-            *mEntityPointVector[Index], rTLS.mNeighbourEntityPoints, rTLS.mResultingSquaredDistances, number_of_neighbors, this->mNodalDomainSizes);
+    IndexPartition<IndexType>(number_of_entities).for_each(KDTreeThreadLocalStorage(), [&](const auto Index, auto& rTLS) {
+        const double sum_of_weights = ExplicitFilterUtilsHelperUtilities::ComputeWeights<ExplicitFilterUtilsHelperUtilities::MeshIndependentType, TContainerType>(
+                rTLS.mListOfDampedWeights, rTLS.mNeighbourIndicesAndSquaredDistances,
+                rTLS.mListOfWeights, rTLS.mNeighbourEntityPoints,
+                *mpKernelFunction, *mpAdapter, *mpKDTreeIndex, *mpDamping, r_filter_radius_data_view[Index],
+                OptimizationUtils::GetEntityPosition(*(r_container.begin() + Index)),
+                Index, this->mNodalDomainSizes, this->mrModelPart.Nodes());
 
         double* data_begin = (rOutput.data().begin() + Index * number_of_entities);
 
-        for (IndexType neighbour_index = 0; neighbour_index < number_of_neighbors; ++neighbour_index) {
-            const IndexType neighbour_id = rTLS.mNeighbourEntityPoints[neighbour_index]->Id();
-            *(data_begin + neighbour_id) = list_of_weights[neighbour_index] / sum_of_weights;
+        for (IndexType neighbour_index = 0; neighbour_index < rTLS.mNeighbourIndicesAndSquaredDistances.size(); ++neighbour_index) {
+            const IndexType neighbour_id = rTLS.mNeighbourIndicesAndSquaredDistances[neighbour_index].first;
+            *(data_begin + neighbour_id) = rTLS.mListOfWeights[neighbour_index] / sum_of_weights;
         }
     });
 

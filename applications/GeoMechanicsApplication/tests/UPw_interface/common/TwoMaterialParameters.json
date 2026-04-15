@@ -1,0 +1,48 @@
+{
+    "properties": [
+        {
+            "model_part_name": "PorousDomain.Soil",
+            "properties_id": 1,
+            "Material": {
+                "constitutive_law": {
+                    "name": "GeoLinearElasticPlaneStrain2DLaw"
+                },
+                "Variables": {
+                    "IGNORE_UNDRAINED": false,
+                    "K0_MAIN_DIRECTION": 1,
+                    "K0_VALUE_XX": 0.5,
+                    "K0_VALUE_YY": 1.0,
+                    "K0_VALUE_ZZ": 0.5,
+                    "YOUNG_MODULUS": 1.0e+09,
+                    "POISSON_RATIO": 0.2,
+                    "DENSITY_SOLID": 2.0e+03,
+                    "DENSITY_WATER": 1.0e+03,
+                    "POROSITY": 0.3,
+                    "BULK_MODULUS_SOLID": 1.0e+12,
+                    "BULK_MODULUS_FLUID": 2.2e+09,
+                    "PERMEABILITY_XX": 4.5e-09,
+                    "PERMEABILITY_YY": 4.5e-09,
+                    "PERMEABILITY_XY": 0.0,
+                    "DYNAMIC_VISCOSITY": 1.0e-03,
+                    "THICKNESS": 1.0
+                }
+            }
+        },
+        {
+            "model_part_name": "PorousDomain.Interface",
+            "properties_id": 2,
+            "Material": {
+                "constitutive_law": {
+                    "name": "GeoIncrementalLinearElasticInterfaceLaw"
+                },
+                "Variables": {
+                    "IGNORE_UNDRAINED": false,
+                    "INTERFACE_NORMAL_STIFFNESS": 6.4e+10,
+                    "INTERFACE_SHEAR_STIFFNESS": 2.6000869565e+10,
+                    "TRANSVERSAL_PERMEABILITY": 5.0e-04,
+                    "DYNAMIC_VISCOSITY": 1.0e-03
+                }
+            }
+        }
+    ]
+}
