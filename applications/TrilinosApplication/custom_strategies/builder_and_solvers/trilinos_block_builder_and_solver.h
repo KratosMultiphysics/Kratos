@@ -1016,27 +1016,53 @@ public:
             using GO = typename TSystemMatrixType::global_ordinal_type;
             using LO = typename TSystemMatrixType::local_ordinal_type;
             using ST = typename TSystemMatrixType::scalar_type;
+            using NT = typename TSystemMatrixType::node_type;
+
+            // Build a local lookup for owned DOFs (quick access by global equation ID).
             std::unordered_map<GO, int> is_fixed_map;
             for (std::size_t i = 0; i < global_ids.size(); ++i) {
                 is_fixed_map[static_cast<GO>(global_ids[i])] = is_dirichlet[i];
             }
+
+            // Communicate fixed-DOF flags to ghost columns via Tpetra Import.
+            // Build a vector of fixed flags on the (one-to-one) row map, then
+            // import it to the column map, which covers both owned and ghost columns.
             auto p_row_map = rA.getRowMap();
             const LO num_local_rows = static_cast<LO>(p_row_map->getNodeNumElements());
+            Tpetra::Vector<ST, LO, GO, NT> fixed_owned(p_row_map);
+            {
+                auto view = fixed_owned.getLocalViewHost(Tpetra::Access::ReadWrite);
+                for (LO local_row = 0; local_row < num_local_rows; ++local_row) {
+                    const GO global_row = p_row_map->getGlobalElement(local_row);
+                    const bool is_fixed = is_fixed_map.count(global_row) > 0 && is_fixed_map.at(global_row) != 0;
+                    view(local_row, 0) = is_fixed ? ST(1) : ST(0);
+                }
+            }
+            // Import from the row map (one-to-one) to the column map (possibly overlapping).
+            // This gives every rank the fixed status of ghost columns owned by other ranks.
+            Tpetra::Import<LO, GO, NT> dirichlet_importer(p_row_map, rA.getColMap());
+            Tpetra::Vector<ST, LO, GO, NT> fixed_col(rA.getColMap());
+            fixed_col.putScalar(ST(0));
+            fixed_col.doImport(fixed_owned, dirichlet_importer, Tpetra::INSERT);
+            auto fixed_col_view = fixed_col.getLocalViewHost(Tpetra::Access::ReadOnly);
+
             auto rb_view = rb.getLocalViewHost(Tpetra::Access::ReadWrite);
+            auto col_map = rA.getColMap();
             for (LO local_row = 0; local_row < num_local_rows; ++local_row) {
                 const GO global_row = p_row_map->getGlobalElement(local_row);
-                const bool row_is_fixed = is_fixed_map.count(global_row) > 0 && is_fixed_map.at(global_row) != 0;
+                // For owned columns, local_row matches the local column index in the col map
+                // (Tpetra guarantees owned GIDs appear first in the col map in row-map order).
+                const bool row_is_fixed = fixed_col_view(local_row, 0) != ST(0);
                 typename TSparseSpace::MatrixType::local_inds_host_view_type cols_view;
                 typename TSparseSpace::MatrixType::values_host_view_type vals_view;
                 rA.getLocalRowView(local_row, cols_view, vals_view);
                 const LO num_entries = static_cast<LO>(cols_view.size());
                 if (num_entries == 0) continue;
-                auto col_map = rA.getColMap();
                 std::vector<ST> new_vals(num_entries);
                 if (!row_is_fixed) {
                     for (LO j = 0; j < num_entries; ++j) {
-                        const GO global_col = col_map->getGlobalElement(cols_view(j));
-                        new_vals[j] = (is_fixed_map.count(global_col) > 0 && is_fixed_map.at(global_col) != 0) ? ST(0.0) : vals_view(j);
+                        // fixed_col_view indexed by local column index covers both owned and ghost columns
+                        new_vals[j] = (fixed_col_view(cols_view(j), 0) != ST(0)) ? ST(0.0) : vals_view(j);
                     }
                 } else {
                     rb_view(local_row, 0) = ST(0.0);
