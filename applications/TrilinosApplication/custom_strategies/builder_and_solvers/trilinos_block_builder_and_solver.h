@@ -1685,7 +1685,7 @@ private:
             }
 
             if constexpr (TSparseSpace::LinearAlgebraLibrary() == TrilinosLinearAlgebraLibrary::EPETRA) {
-            mpMap = Kratos::make_shared<Epetra_Map>(-1, mLocalSystemSize, temp_primary.data(), 0, mrComm);
+                mpMap = Kratos::make_shared<Epetra_Map>(-1, mLocalSystemSize, temp_primary.data(), 0, mrComm);
             } else {
                 KRATOS_ERROR << "The map generation is only implemented for Epetra" << std::endl;
             }
