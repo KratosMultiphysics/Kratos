@@ -1040,14 +1040,17 @@ public:
             }
             // Import from the row map (one-to-one) to the column map (possibly overlapping).
             // This gives every rank the fixed status of ghost columns owned by other ranks.
-            Tpetra::Import<LO, GO, NT> dirichlet_importer(p_row_map, rA.getColMap());
-            Tpetra::Vector<ST, LO, GO, NT> fixed_col(rA.getColMap());
+            // Ranks with an empty partition may have a null colMap; fall back to the row map
+            // so that the Import (a collective operation) still succeeds on all ranks.
+            auto col_map = rA.getColMap();
+            auto p_import_target_map = col_map.is_null() ? p_row_map : col_map;
+            Tpetra::Import<LO, GO, NT> dirichlet_importer(p_row_map, p_import_target_map);
+            Tpetra::Vector<ST, LO, GO, NT> fixed_col(p_import_target_map);
             fixed_col.putScalar(ST(0));
             fixed_col.doImport(fixed_owned, dirichlet_importer, Tpetra::INSERT);
             auto fixed_col_view = fixed_col.getLocalViewHost(Tpetra::Access::ReadOnly);
 
             auto rb_view = rb.getLocalViewHost(Tpetra::Access::ReadWrite);
-            auto col_map = rA.getColMap();
             for (LO local_row = 0; local_row < num_local_rows; ++local_row) {
                 const GO global_row = p_row_map->getGlobalElement(local_row);
                 // For owned columns, local_row matches the local column index in the col map
