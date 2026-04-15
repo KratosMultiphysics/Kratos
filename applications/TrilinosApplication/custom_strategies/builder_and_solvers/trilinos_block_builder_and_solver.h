@@ -873,8 +873,14 @@ public:
                 const double react_val = temp_RHS[pDofImporter->TargetMap().LID(i)];
                 (dof_iterator->GetSolutionStepReactionValue()) = -react_val;
             }
+        } else if constexpr (TSparseSpace::LinearAlgebraLibrary() == TrilinosLinearAlgebraLibrary::TPETRA) {
+        #if (HAVE_TPETRA)
+
+        #else
+            KRATOS_ERROR << "You must compile Kratos with TPETRA support" << std::endl;
+        #endif
         } else {
-            KRATOS_ERROR << "CalculateReactions only implemented for Epetra" << std::endl;
+            KRATOS_ERROR << "Only EPETRA and TPETRA are supported for now" << std::endl;
         }
     }
 
@@ -957,8 +963,14 @@ public:
                     }
                 }
             }
+        } else if constexpr (TSparseSpace::LinearAlgebraLibrary() == TrilinosLinearAlgebraLibrary::TPETRA) {
+        #if (HAVE_TPETRA)
+
+        #else
+            KRATOS_ERROR << "You must compile Kratos with TPETRA support" << std::endl;
+        #endif
         } else {
-            KRATOS_ERROR << "Only Epetra_MpiComm is supported for now" << std::endl;
+            KRATOS_ERROR << "Only EPETRA and TPETRA are supported for now" << std::endl;
         }
 
         KRATOS_CATCH("");
@@ -1029,8 +1041,14 @@ public:
             if constexpr (TSparseSpace::LinearAlgebraLibrary() == TrilinosLinearAlgebraLibrary::EPETRA) {
                 const TSystemMatrixType copy_A(rA);
                 TSparseSpace::BtDBProductOperation(rA, copy_A, r_T, true, true);
+            } else if constexpr (TSparseSpace::LinearAlgebraLibrary() == TrilinosLinearAlgebraLibrary::TPETRA) {
+            #if (HAVE_TPETRA)
+
+            #else
+                KRATOS_ERROR << "You must compile Kratos with TPETRA support" << std::endl;
+            #endif
             } else {
-                KRATOS_ERROR << "Only EPETRA is supported for now" << std::endl;
+                KRATOS_ERROR << "Only EPETRA and TPETRA are supported for now" << std::endl;
             }
 
             // Compute T' b
@@ -1685,9 +1703,15 @@ private:
             }
 
             if constexpr (TSparseSpace::LinearAlgebraLibrary() == TrilinosLinearAlgebraLibrary::EPETRA) {
-            mpMap = Kratos::make_shared<Epetra_Map>(-1, mLocalSystemSize, temp_primary.data(), 0, mrComm);
+                mpMap = Kratos::make_shared<Epetra_Map>(-1, mLocalSystemSize, temp_primary.data(), 0, mrComm);
+            }  else if constexpr (TSparseSpace::LinearAlgebraLibrary() == TrilinosLinearAlgebraLibrary::TPETRA) {
+            #if (HAVE_TPETRA)
+
+            #else
+                KRATOS_ERROR << "You must compile Kratos with TPETRA support" << std::endl;
+            #endif
             } else {
-                KRATOS_ERROR << "The map generation is only implemented for Epetra" << std::endl;
+                KRATOS_ERROR << "Only EPETRA and TPETRA are supported for now" << std::endl;
             }
         }
 
