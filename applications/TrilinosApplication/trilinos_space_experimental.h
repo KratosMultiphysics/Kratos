@@ -2264,17 +2264,20 @@ public:
 
     /**
      * @brief Read a matrix from a MatrixMarket file
-     * @param FileName The name of the file to read
+     * @param rFileName The name of the file to read
      * @param rComm The Tpetra MPI communicator
      * @return The FECrsMatrix read from the file
      */
-    inline static MatrixPointerType ReadMatrixMarket(const std::string& FileName, CommunicatorType& rComm)
+    inline static MatrixPointerType ReadMatrixMarket(
+        const std::string& rFileName,
+        CommunicatorType& rComm
+        )
     {
         KRATOS_TRY
 
         // Read into a regular (non-FE) CrsMatrix
         auto p_comm = Teuchos::rcp(&rComm, false);
-        auto p_crs = Tpetra::MatrixMarket::Reader<CrsMatrixType>::readSparseFile(FileName, p_comm);
+        auto p_crs = Tpetra::MatrixMarket::Reader<CrsMatrixType>::readSparseFile(rFileName, p_comm);
 
         const auto p_row_map = p_crs->getRowMap();
         const auto p_col_map = p_crs->getColMap();
@@ -2334,26 +2337,30 @@ public:
 
         return p_matrix;
 
-        KRATOS_CATCH("");
+        KRATOS_CATCH("")
     }
 
     /**
      * @brief Read a vector from a MatrixMarket file
-     * @param FileName The name of the file to read
+     * @param rFileName The name of the file to read
      * @param pComm The Tpetra MPI communicator
-     * @param n The global size of the vector
+     * @param N The global size of the vector
      * @return The FEMultiVector read from the file
      */
-    inline static VectorPointerType ReadMatrixMarketVector(const std::string& FileName, CommunicatorPointerType pComm, const int n)
+    inline static VectorPointerType ReadMatrixMarketVector(
+        const std::string& rFileName,
+        CommunicatorPointerType pComm,
+        const int N
+        )
     {
         KRATOS_TRY
 
-        // Create a uniform contiguous map over all n global DOFs
-        MapPointerType p_map = Teuchos::rcp(new MapType(static_cast<GO>(n), 0, pComm));
+        // Create a uniform contiguous map over all N global DOFs
+        MapPointerType p_map = Teuchos::rcp(new MapType(static_cast<GO>(N), 0, pComm));
 
         // Read dense file into a regular (non-FE) MultiVector
         using MultiVectorType = Tpetra::MultiVector<ST, LO, GO, NT>;
-        auto p_mv = Tpetra::MatrixMarket::Reader<CrsMatrixType>::readDenseFile(FileName, pComm, p_map);
+        auto p_mv = Tpetra::MatrixMarket::Reader<CrsMatrixType>::readDenseFile(rFileName, pComm, p_map);
 
         // Create FEMultiVector and copy values via update
         auto p_vector = CreateVector(p_map);
@@ -2361,24 +2368,28 @@ public:
 
         return p_vector;
 
-        KRATOS_CATCH("");
+        KRATOS_CATCH("")
     }
 
     /**
      * @brief Writes a matrix to a file in MatrixMarket format
-     * @param FileName The name of the file to be written
+     * @param pFileName The name of the file to be written
      * @param rA The matrix to be written
      * @param Symmetric If the matrix is symmetric (unused; kept for API compatibility)
      */
-    static void WriteMatrixMarketMatrix(const char* FileName, const MatrixType& rA, const bool symmetric)
+    static void WriteMatrixMarketMatrix(
+        const char* pFileName,
+        const MatrixType& rA,
+        const bool Symmetric
+        )
     {
         KRATOS_TRY
 
         // FECrsMatrix inherits from CrsMatrix; cast so Writer can accept it
         auto p_crs = Teuchos::rcp_static_cast<const CrsMatrixType>(Teuchos::rcpFromRef(rA));
-        Tpetra::MatrixMarket::Writer<CrsMatrixType>::writeSparseFile(std::string(FileName), p_crs);
+        Tpetra::MatrixMarket::Writer<CrsMatrixType>::writeSparseFile(std::string(pFileName), p_crs);
 
-        KRATOS_CATCH("");
+        KRATOS_CATCH("")
     }
 
     /**
@@ -2398,7 +2409,7 @@ public:
         auto p_mv = Teuchos::rcp_static_cast<const MultiVectorType>(Teuchos::rcpFromRef(rV));
         Tpetra::MatrixMarket::Writer<CrsMatrixType>::writeDenseFile(std::string(pFileName), p_mv);
 
-        KRATOS_CATCH("");
+        KRATOS_CATCH("")
     }
 
     /**
