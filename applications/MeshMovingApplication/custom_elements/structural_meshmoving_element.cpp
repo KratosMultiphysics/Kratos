@@ -104,6 +104,11 @@ StructuralMeshMovingElement::SetAndModifyConstitutiveLaw(
 
   MoveMeshUtilities::CheckJacobianDimension(invJ0, detJ0, rgeom);
 
+  if (detJ0[PointNumber] < 0.0) {
+    KRATOS_ERROR << "Invalid negative Jacobian determinant detected!, Element ID: " << this->Id()
+    << "\n Element is inverted. Check mesh quality, node ordering, or surface normals." << std::endl;
+  }
+
   J0 = GetGeometry().Jacobian(J0, this_integration_method);
 
   MathUtils<double>::InvertMatrix(J0[PointNumber], invJ0[PointNumber],
