@@ -2091,8 +2091,10 @@ public:
 
             // If diagonal empty assign scale factor
             if (empty) {
-                const int row_gid_int = static_cast<int>(row_gid);  // Casting to int
-                localMatrix.replaceValues(i, &row_gid_int, 1, &scale_factor, false, true);
+                // replaceValues expects LOCAL column indices, not global IDs.
+                // Convert the global diagonal column ID to a local column index.
+                const LO local_diag_col = static_cast<LO>(colMap->getLocalElement(row_gid));
+                localMatrix.replaceValues(i, &local_diag_col, 1, &scale_factor, false, true);
                 localRhs(i, 0) = 0.0;
             }
         }
