@@ -56,6 +56,10 @@ std::string ErrorCleaner(std::string const& Input)
     return output;
 }
 
+namespace // Anonymous namespace: internal-linkage helpers for pybind11 bindings.
+{        // This avoids name clashes with identically-named helpers in other
+         // translation units that may be merged via unity builds.
+
 double Dot(TrilinosSparseSpaceType& dummy, TrilinosSparseSpaceType::VectorType& rX, TrilinosSparseSpaceType::VectorType& rY)
 {
     return dummy.Dot(rX, rY);
@@ -324,6 +328,8 @@ double GetValue(TrilinosSparseSpaceType& dummy, const TrilinosSparseSpaceType::V
 {
     return TrilinosSparseSpaceType::GetValue(rX, I);
 }
+
+} // anonymous namespace
 
 void  AddBasicOperations(pybind11::module& m)
 {
