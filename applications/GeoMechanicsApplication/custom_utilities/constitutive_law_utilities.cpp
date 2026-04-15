@@ -207,8 +207,14 @@ double ConstitutiveLawUtilities::GetUndrainedPoissonsRatio(const Properties& rPr
             << "Non-physical values: denominator < epsilon." << std::endl;
         result = (3.0 * poissons_ratio + biot_coefficient * skempton_b * (1.0 - 2.0 * poissons_ratio)) / denominator;
     }
-    constexpr auto max_value_poisson_ratio = 0.495;
-    return result < max_value_poisson_ratio ? result : max_value_poisson_ratio;
+    constexpr auto max_poisson_ratio = 0.495;
+    if (result > max_poisson_ratio) {
+        KRATOS_WARNING("Clamping undrained Poisson ratio from ")
+            << result << " to " << max_poisson_ratio << "." << std::endl;
+        return max_poisson_ratio;
+    }
+
+    return result;
 }
 
 double ConstitutiveLawUtilities::GetSkemptonB(const Properties& rProperties)
