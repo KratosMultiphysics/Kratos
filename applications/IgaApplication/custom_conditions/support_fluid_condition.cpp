@@ -186,19 +186,6 @@ void SupportFluidCondition::CalculateAll(
         u_D[2] = this->GetValue(VELOCITY_Z);
     }
 
-    // // TO BE DELETED
-    // if (mDim == 3) {
-    //     if (r_geometry.Center().X() < -0.49999) {
-    //         // Inlet
-    //         const double t = rCurrentProcessInfo[TIME];
-    //         double ux = 1.0;
-    //         if (t < 2.0) {
-    //             ux = 0.5 * t; // linear ramp: ux = t / 2
-    //         }
-    //         u_D[0] = ux;
-    //     }
-    // }
-
     for (IndexType i = 0; i < number_of_nodes; i++) {
 
         for (IndexType idim = 0; idim < mDim; idim++) {

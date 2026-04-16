@@ -259,38 +259,38 @@ public:
         // Define a threshold for acceptable residuals
         const double threshold = 1e-9; // Adjust this value as necessary
 
-        if (norm_residual_xx > threshold) {
-            std::cerr << "Warning: High residual norm detected for sigma_xx fit!" << std::endl;
-            std::cerr << "Residual norm (sigma_xx): " << norm_residual_xx << std::endl;
-            std::cerr << "Residual vector: " << residual_xx.transpose() << std::endl;
-        }
+        // if (norm_residual_xx > threshold) {
+        //     std::cerr << "Warning: High residual norm detected for sigma_xx fit!" << std::endl;
+        //     std::cerr << "Residual norm (sigma_xx): " << norm_residual_xx << std::endl;
+        //     std::cerr << "Residual vector: " << residual_xx.transpose() << std::endl;
+        // }
 
-        if (norm_residual_yy > threshold) {
-            std::cerr << "Warning: High residual norm detected for sigma_yy fit!" << std::endl;
-            std::cerr << "Residual norm (sigma_yy): " << norm_residual_yy << std::endl;
-            std::cerr << "Residual vector: " << residual_yy.transpose() << std::endl;
-        }
+        // if (norm_residual_yy > threshold) {
+        //     std::cerr << "Warning: High residual norm detected for sigma_yy fit!" << std::endl;
+        //     std::cerr << "Residual norm (sigma_yy): " << norm_residual_yy << std::endl;
+        //     std::cerr << "Residual vector: " << residual_yy.transpose() << std::endl;
+        // }
 
-        if (norm_residual_xy > threshold) {
-            std::cerr << "Warning: High residual norm detected for sigma_xy fit!" << std::endl;
-            std::cerr << "Residual norm (sigma_xy): " << norm_residual_xy << std::endl;
-            std::cerr << "Residual vector: " << residual_xy.transpose() << std::endl;
-        }
-        if (is_3d && norm_residual_zz > threshold) {
-            std::cerr << "Warning: High residual norm detected for sigma_zz fit!" << std::endl;
-            std::cerr << "Residual norm (sigma_zz): " << norm_residual_zz << std::endl;
-            std::cerr << "Residual vector: " << residual_zz.transpose() << std::endl;
-        }
-        if (is_3d && norm_residual_yz > threshold) {
-            std::cerr << "Warning: High residual norm detected for sigma_yz fit!" << std::endl;
-            std::cerr << "Residual norm (sigma_yz): " << norm_residual_yz << std::endl;
-            std::cerr << "Residual vector: " << residual_yz.transpose() << std::endl;
-        }
-        if (is_3d && norm_residual_xz > threshold) {
-            std::cerr << "Warning: High residual norm detected for sigma_xz fit!" << std::endl;
-            std::cerr << "Residual norm (sigma_xz): " << norm_residual_xz << std::endl;
-            std::cerr << "Residual vector: " << residual_xz.transpose() << std::endl;
-        }
+        // if (norm_residual_xy > threshold) {
+        //     std::cerr << "Warning: High residual norm detected for sigma_xy fit!" << std::endl;
+        //     std::cerr << "Residual norm (sigma_xy): " << norm_residual_xy << std::endl;
+        //     std::cerr << "Residual vector: " << residual_xy.transpose() << std::endl;
+        // }
+        // if (is_3d && norm_residual_zz > threshold) {
+        //     std::cerr << "Warning: High residual norm detected for sigma_zz fit!" << std::endl;
+        //     std::cerr << "Residual norm (sigma_zz): " << norm_residual_zz << std::endl;
+        //     std::cerr << "Residual vector: " << residual_zz.transpose() << std::endl;
+        // }
+        // if (is_3d && norm_residual_yz > threshold) {
+        //     std::cerr << "Warning: High residual norm detected for sigma_yz fit!" << std::endl;
+        //     std::cerr << "Residual norm (sigma_yz): " << norm_residual_yz << std::endl;
+        //     std::cerr << "Residual vector: " << residual_yz.transpose() << std::endl;
+        // }
+        // if (is_3d && norm_residual_xz > threshold) {
+        //     std::cerr << "Warning: High residual norm detected for sigma_xz fit!" << std::endl;
+        //     std::cerr << "Residual norm (sigma_xz): " << norm_residual_xz << std::endl;
+        //     std::cerr << "Residual vector: " << residual_xz.transpose() << std::endl;
+        // }
 
         // Convert Eigen vectors to std::vector and store results
         std::vector<double> coefficients_xx(c_xx.data(), c_xx.data() + c_xx.size());

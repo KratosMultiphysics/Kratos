@@ -284,8 +284,6 @@ namespace Kratos
          * @param grad_H_sum 
          */
         void ComputeGradientTaylorExpansionContribution(Matrix& grad_H_sum);
-
-        void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
     
     private:
         ///@name Serialization

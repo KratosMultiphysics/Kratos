@@ -101,8 +101,6 @@ public:
 
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
-    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
-
     /**
     * @brief This is called during the assembling process in order
     *        to calculate the condition right hand side matrix
