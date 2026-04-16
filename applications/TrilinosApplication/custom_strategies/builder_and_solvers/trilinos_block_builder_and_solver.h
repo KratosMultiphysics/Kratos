@@ -1697,10 +1697,13 @@ protected:
                 all_col_equation_ids.push_back(master_equation_ids);
             }
 
-            // Second adding pure master dofs
-            for (const auto master_equation_id : master_equation_ids) {
-                all_row_equation_ids.push_back({master_equation_id});
-                all_col_equation_ids.push_back({master_equation_id});
+            // Full master×master block: T'KT can produce (m_i, m_j) entries for any
+            // pair of masters sharing a constraint, including cross-partition pairs
+            // not in K's original graph. Adding the dense block ensures rA's sparsity
+            // pattern can accept all entries that BtDBProductOperation will write.
+            if (!master_equation_ids.empty()) {
+                all_row_equation_ids.push_back(master_equation_ids);
+                all_col_equation_ids.push_back(master_equation_ids);
             }
         }
 
