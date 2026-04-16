@@ -19,7 +19,6 @@
 //Trilinos includes
 
 // Project includes
-#include "includes/define.h"
 #include "trilinos_space.h"
 #include "custom_python/trilinos_pointer_wrapper.h"
 #include "custom_python/add_trilinos_space_to_python.h"
@@ -324,10 +323,10 @@ void CopyMatrixValuesHelper(TrilinosSparseSpaceType& dummy, TrilinosSparseSpaceT
     TrilinosSparseSpaceType::CopyMatrixValues(rA, rB);
 }
 
-double GetValue(TrilinosSparseSpaceType& dummy, const TrilinosSparseSpaceType::VectorType& rX, std::size_t I)
-{
-    return TrilinosSparseSpaceType::GetValue(rX, I);
-}
+// double GetValue(TrilinosSparseSpaceType& dummy, const TrilinosSparseSpaceType::VectorType& rX, std::size_t I)
+// {
+//     return TrilinosSparseSpaceType::GetValue(rX, I);
+// }
 
 } // anonymous namespace
 
