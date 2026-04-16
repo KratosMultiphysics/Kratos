@@ -3,7 +3,8 @@ import KratosMultiphysics.IgaApplication
 from KratosMultiphysics import KratosUnittest
 
 
-class TestPythonBindingsBrepSurface(KratosUnittest.TestCase):
+class TestPythonBindingsIGAGeometries(KratosUnittest.TestCase):
+
     def setUp(self):
         self.model = KM.Model()
         self.model_part = self.model.CreateModelPart("ModelPart")
@@ -56,6 +57,43 @@ class TestPythonBindingsBrepSurface(KratosUnittest.TestCase):
         self.assertEqual(CountGeometries(self.model_part), 1)
         self.assertEqual(brep_surface.Id, 1002)
 
+    def test_create_brep_curve_on_surface_from_python_bindings(self):
+        nurbs_surface = CreateNurbsSurfaceFromPythonIGABindings(
+            self.model_part,
+            self.degree_u,
+            self.degree_v,
+            self.knot_vector_u,
+            self.knot_vector_v
+        )
+
+        curve_2d = CreateLinearParametricCurveOnUnitSquare((0.0, 0.0), (1.0, 0.0))
+
+        brep_curve_on_surface = KM.BrepCurveOnSurface(
+            nurbs_surface,
+            curve_2d,
+            True
+        )
+
+        self.assertIsNotNone(brep_curve_on_surface)
+
+    def test_create_brep_curve_on_surface_from_python_bindings_with_default_direction(self):
+        nurbs_surface = CreateNurbsSurfaceFromPythonIGABindings(
+            self.model_part,
+            self.degree_u,
+            self.degree_v,
+            self.knot_vector_u,
+            self.knot_vector_v
+        )
+
+        curve_2d = CreateLinearParametricCurveOnUnitSquare((0.0, 0.0), (0.0, 1.0))
+
+        brep_curve_on_surface = KM.BrepCurveOnSurface(
+            nurbs_surface,
+            curve_2d
+        )
+
+        self.assertIsNotNone(brep_curve_on_surface)
+
 
 def MakeVector(values):
     v = KM.Vector(len(values))
@@ -71,7 +109,7 @@ def MakePointsList2D(p0, p1):
     ]
 
 
-def MakeBoundaryBrepCurve(surface, p0, p1, same_curve_direction=True):
+def CreateLinearParametricCurveOnUnitSquare(p0, p1):
     knot_vector_curve = KM.Vector(4)
     knot_vector_curve[0] = 0.0
     knot_vector_curve[1] = 0.0
@@ -81,7 +119,15 @@ def MakeBoundaryBrepCurve(surface, p0, p1, same_curve_direction=True):
     degree_curve = 1
     points_curve = MakePointsList2D(p0, p1)
 
-    curve_2d = KM.NurbsCurveGeometry2DPoint(points_curve, degree_curve, knot_vector_curve)
+    return KM.NurbsCurveGeometry2DPoint(
+        points_curve,
+        degree_curve,
+        knot_vector_curve
+    )
+
+
+def MakeBoundaryBrepCurve(surface, p0, p1, same_curve_direction=True):
+    curve_2d = CreateLinearParametricCurveOnUnitSquare(p0, p1)
     return KM.BrepCurveOnSurface(surface, curve_2d, same_curve_direction)
 
 
@@ -101,7 +147,7 @@ def MakeNodesVectorFromCtrlPts(model_part, control_points):
     return points
 
 
-def CreateBrepSurfaceFromPythonIGABindings(
+def CreateNurbsSurfaceFromPythonIGABindings(
     model_part,
     degree_u,
     degree_v,
@@ -131,6 +177,26 @@ def CreateBrepSurfaceFromPythonIGABindings(
     )
     nurbs_surface.SetId(1001)
 
+    return nurbs_surface
+
+
+def CreateBrepSurfaceFromPythonIGABindings(
+    model_part,
+    degree_u,
+    degree_v,
+    knot_vector_u,
+    knot_vector_v,
+    weights=None
+):
+    nurbs_surface = CreateNurbsSurfaceFromPythonIGABindings(
+        model_part,
+        degree_u,
+        degree_v,
+        knot_vector_u,
+        knot_vector_v,
+        weights
+    )
+
     u_min, u_max, v_min, v_max = GetParametricBounds(
         knot_vector_u, knot_vector_v, degree_u, degree_v
     )
@@ -152,6 +218,7 @@ def CreateBrepSurfaceFromPythonIGABindings(
 
 def CountGeometries(model_part):
     return sum(1 for _ in model_part.Geometries)
+
 
 if __name__ == "__main__":
     KratosUnittest.main()
