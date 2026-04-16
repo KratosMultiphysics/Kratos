@@ -543,10 +543,6 @@ void SbmFluidConditionDirichlet::FinalizeSolutionStep(const ProcessInfo& rCurren
 {
     #pragma omp critical
     {
-        KRATOS_ERROR_IF(mDim != 2)
-            << "SbmFluidConditionDirichlet::FinalizeSolutionStep true-boundary results are currently implemented only in 2D."
-            << std::endl;
-
         const auto& r_geometry = GetGeometry();
         const SizeType number_of_nodes = r_geometry.size();
         const SizeType mat_size = number_of_nodes * mDim;
@@ -555,12 +551,16 @@ void SbmFluidConditionDirichlet::FinalizeSolutionStep(const ProcessInfo& rCurren
         const Matrix integration_point_list_on_true_boundary  = this->GetValue(INTEGRATION_POINTS);
         const Vector integration_weight_list_on_true_boundary = this->GetValue(INTEGRATION_WEIGHTS);
         const Matrix normals_on_true = this->GetValue(INTEGRATION_NORMALS);
-        
-        // Create a matrix with the same schema used in other IGA fluid conditions
-        // [0] w, [1] fx_tot, [2] fy_tot, [3] fx_visc, [4] fy_visc, [5] fx_pres, [6] fy_pres,
-        // [7] nx, [8] ny, [9] x_gp, [10] y_gp
+
+        // Output schema:
+        // [0] w,
+        // [1 : 1 + mDim) traction_total,
+        // [1 + mDim : 1 + 2*mDim) traction_viscous,
+        // [1 + 2*mDim : 1 + 3*mDim) traction_pressure,
+        // [1 + 3*mDim : 1 + 4*mDim) normal,
+        // [1 + 4*mDim : 1 + 5*mDim) coordinates
         const std::size_t num_results = integration_weight_list_on_true_boundary.size();
-        Matrix integration_results(num_results, 11, 0.0);
+        Matrix integration_results(num_results, 1 + 5 * mDim, 0.0);
 
         double pressure_max_min = 0.0;
 
@@ -588,17 +588,39 @@ void SbmFluidConditionDirichlet::FinalizeSolutionStep(const ProcessInfo& rCurren
                 double p_i = r_geometry[i].GetSolutionStepValue(PRESSURE);
 
                 double H_taylor = 0.0;
-                for (IndexType n = 1; n <= mBasisFunctionsOrder; ++n) {
-                    Matrix& p_derivatives = mShapeFunctionDerivatives[n - 1];
-                    for (IndexType k = 0; k <= n; ++k) {
-                        const IndexType n_k = n - k;
-                        double deriv = p_derivatives(i, k);
-                        H_taylor += ComputeTaylorTerm(
-                            deriv,
-                            true_boundary_distance[0],
-                            n_k,
-                            true_boundary_distance[1],
-                            k);
+                if (mDim == 2) {
+                    for (IndexType n = 1; n <= mBasisFunctionsOrder; ++n) {
+                        Matrix& p_derivatives = mShapeFunctionDerivatives[n - 1];
+                        for (IndexType k = 0; k <= n; ++k) {
+                            const IndexType n_k = n - k;
+                            double deriv = p_derivatives(i, k);
+                            H_taylor += ComputeTaylorTerm(
+                                deriv,
+                                true_boundary_distance[0],
+                                n_k,
+                                true_boundary_distance[1],
+                                k);
+                        }
+                    }
+                } else {
+                    for (IndexType n = 1; n <= mBasisFunctionsOrder; ++n) {
+                        Matrix& p_derivatives = mShapeFunctionDerivatives[n - 1];
+                        IndexType derivative_id = 0;
+
+                        for (IndexType reverse_k_x = 0; reverse_k_x <= n; ++reverse_k_x) {
+                            const IndexType k_x = n - reverse_k_x;
+                            for (IndexType reverse_k_y = 0; reverse_k_y <= n - k_x; ++reverse_k_y) {
+                                const IndexType k_y = n - k_x - reverse_k_y;
+                                const IndexType k_z = reverse_k_y;
+
+                                H_taylor += ComputeTaylorTerm3D(
+                                    p_derivatives(i, derivative_id),
+                                    true_boundary_distance[0], k_x,
+                                    true_boundary_distance[1], k_y,
+                                    true_boundary_distance[2], k_z);
+                                ++derivative_id;
+                            }
+                        }
                     }
                 }
                 p_true += (r_N(0, i) + H_taylor) * p_i;
@@ -619,38 +641,52 @@ void SbmFluidConditionDirichlet::FinalizeSolutionStep(const ProcessInfo& rCurren
             ConstitutiveVariables this_constitutive_variables_true(strain_size_true);
             ApplyConstitutiveLawTrue(mat_size, old_strain_on_true, values_true, this_constitutive_variables_true);
             const Vector& r_stress_vector_on_true = values_true.GetStressVector();
-            
+
             // === 4. Compute traction = σ · n ===
-            Vector normal_stress_true_old = ZeroVector(3);
-            normal_stress_true_old[0] = (r_stress_vector_on_true[0] * true_normal[0] + r_stress_vector_on_true[2] * true_normal[1]);
-            normal_stress_true_old[1] = (r_stress_vector_on_true[2] * true_normal[0] + r_stress_vector_on_true[1] * true_normal[1]);
-            
+            Matrix stress_on_true = ZeroMatrix(mDim, mDim);
+            if (mDim == 2) {
+                stress_on_true(0, 0) = r_stress_vector_on_true[0];
+                stress_on_true(1, 1) = r_stress_vector_on_true[1];
+                stress_on_true(0, 1) = r_stress_vector_on_true[2];
+                stress_on_true(1, 0) = r_stress_vector_on_true[2];
+            } else {
+                stress_on_true(0, 0) = r_stress_vector_on_true[0];
+                stress_on_true(1, 1) = r_stress_vector_on_true[1];
+                stress_on_true(2, 2) = r_stress_vector_on_true[2];
+                stress_on_true(0, 1) = r_stress_vector_on_true[3];
+                stress_on_true(1, 0) = r_stress_vector_on_true[3];
+                stress_on_true(1, 2) = r_stress_vector_on_true[4];
+                stress_on_true(2, 1) = r_stress_vector_on_true[4];
+                stress_on_true(0, 2) = r_stress_vector_on_true[5];
+                stress_on_true(2, 0) = r_stress_vector_on_true[5];
+            }
+
+            Vector true_normal_vector = ZeroVector(mDim);
+            for (IndexType d = 0; d < mDim; ++d) {
+                true_normal_vector[d] = true_normal[d];
+            }
+            const Vector normal_stress_true_old = prod(stress_on_true, true_normal_vector);
+
             // === 5. Compute traction contributions ===
-            array_1d<double,2> t_visc = ZeroVector(2);
-            t_visc[0] = normal_stress_true_old[0];
-            t_visc[1] = normal_stress_true_old[1];
+            Vector t_visc = normal_stress_true_old;
+            Vector t_pres = ZeroVector(mDim);
+            for (IndexType d = 0; d < mDim; ++d) {
+                t_pres[d] = -p_true * true_normal[d];
+            }
+            const Vector t_tot = t_visc + t_pres;
 
-            array_1d<double,2> t_pres = ZeroVector(2);
-            t_pres[0] = -p_true * true_normal[0];
-            t_pres[1] = -p_true * true_normal[1];
-
-            array_1d<double,2> t_tot = t_visc + t_pres;
-
-            // === 6. Output in standard 11-column layout ===
+            // === 6. Output in dimension-dependent layout ===
             integration_results(i_gauss, 0)  = weight;
-            integration_results(i_gauss, 1)  = t_tot[0];
-            integration_results(i_gauss, 2)  = t_tot[1];
-            integration_results(i_gauss, 3)  = t_visc[0];
-            integration_results(i_gauss, 4)  = t_visc[1];
-            integration_results(i_gauss, 5)  = t_pres[0];
-            integration_results(i_gauss, 6)  = t_pres[1];
-            integration_results(i_gauss, 7)  = true_normal[0];
-            integration_results(i_gauss, 8)  = true_normal[1];
-            integration_results(i_gauss, 9)  = integration_point_list_on_true_boundary(i_gauss, 0);
-            integration_results(i_gauss, 10) = integration_point_list_on_true_boundary(i_gauss, 1);
+            for (IndexType d = 0; d < mDim; ++d) {
+                integration_results(i_gauss, 1 + d) = t_tot[d];
+                integration_results(i_gauss, 1 + mDim + d) = t_visc[d];
+                integration_results(i_gauss, 1 + 2 * mDim + d) = t_pres[d];
+                integration_results(i_gauss, 1 + 3 * mDim + d) = true_normal[d];
+                integration_results(i_gauss, 1 + 4 * mDim + d) = integration_point_list_on_true_boundary(i_gauss, d);
+            }
 
-            if (integration_point_list_on_true_boundary(i_gauss, 0) > 0.2499968 ||
-                integration_point_list_on_true_boundary(i_gauss, 0) < 0.15001)
+            if (mDim == 2 && (integration_point_list_on_true_boundary(i_gauss, 0) > 0.2499968 ||
+                integration_point_list_on_true_boundary(i_gauss, 0) < 0.15001))
             {
                 // KRATOS_WATCH("First or Last point on true boundary");
                 pressure_max_min = p_true;
@@ -714,6 +750,43 @@ void SbmFluidConditionDirichlet::ComputeGradientTaylorExpansionContribution(
                         n_k,
                         rDistanceVector[1],
                         k);
+                }
+            }
+        } else {
+            for (IndexType n = 2; n <= mBasisFunctionsOrder; n++) {
+                Matrix& shapeFunctionDerivatives = mShapeFunctionDerivatives[n-1];
+
+                IndexType derivative_id = 0;
+                for (IndexType reverse_k_x = 0; reverse_k_x <= n; ++reverse_k_x) {
+                    const IndexType k_x = n - reverse_k_x;
+                    for (IndexType reverse_k_y = 0; reverse_k_y <= n - k_x; ++reverse_k_y) {
+                        const IndexType k_y = n - k_x - reverse_k_y;
+                        const IndexType k_z = reverse_k_y;
+                        const double derivative = shapeFunctionDerivatives(i, derivative_id);
+
+                        if (k_x >= 1) {
+                            H_taylor_term_X += ComputeTaylorTerm3D(
+                                derivative,
+                                rDistanceVector[0], k_x - 1,
+                                rDistanceVector[1], k_y,
+                                rDistanceVector[2], k_z);
+                        }
+                        if (k_y >= 1) {
+                            H_taylor_term_Y += ComputeTaylorTerm3D(
+                                derivative,
+                                rDistanceVector[0], k_x,
+                                rDistanceVector[1], k_y - 1,
+                                rDistanceVector[2], k_z);
+                        }
+                        if (k_z >= 1) {
+                            H_taylor_term_Z += ComputeTaylorTerm3D(
+                                derivative,
+                                rDistanceVector[0], k_x,
+                                rDistanceVector[1], k_y,
+                                rDistanceVector[2], k_z - 1);
+                        }
+                        ++derivative_id;
+                    }
                 }
             }
         }
