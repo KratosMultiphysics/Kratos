@@ -365,6 +365,10 @@ public:
         Matrix &rJPhiElemental,
         const Element::DofsVectorType& rDofs,
         const Matrix &rJPhi);
+        
+    static void AddGeometries(
+    const ModelPart& rOriginModelPart,
+    ModelPart& rDestinationModelPart);
 
     ///@}
 

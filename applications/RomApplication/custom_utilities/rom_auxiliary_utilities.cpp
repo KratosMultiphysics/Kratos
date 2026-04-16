@@ -1088,4 +1088,51 @@ void RomAuxiliaryUtilities::GetJPhiElemental(
         }
     }
 
+void RomAuxiliaryUtilities::AddGeometries(
+    const ModelPart& rOriginModelPart,
+    ModelPart& rDestinationModelPart)
+{
+    KRATOS_TRY 
+    
+    // Root level 
+    // Elements 
+    for (const auto& r_elem : rDestinationModelPart.Elements()) 
+    { 
+        auto p_geom = rOriginModelPart.GetElement(r_elem.Id()).pGetGeometry(); 
+        rDestinationModelPart.AddGeometry(p_geom); 
+    } 
+    // Conditions 
+    for (const auto& r_cond : rDestinationModelPart.Conditions()) 
+    { 
+        auto p_geom = rOriginModelPart.GetCondition(r_cond.Id()).pGetGeometry(); 
+        rDestinationModelPart.AddGeometry(p_geom); 
+    } 
+            
+    // SubModelParts 
+    std::unordered_map<std::string, std::vector<IndexType>> smp_geoms; 
+    for (const auto& r_dest_smp : rDestinationModelPart.SubModelParts()) 
+    { 
+        auto& r_orig_smp = rOriginModelPart.GetSubModelPart(r_dest_smp.Name()); 
+        // Elements 
+        for (const auto& r_elem : r_dest_smp.Elements()) 
+        { 
+            auto p_geom = r_orig_smp.GetElement(r_elem.Id()).pGetGeometry(); 
+            smp_geoms[r_dest_smp.Name()].push_back(p_geom->Id()); 
+        } 
+        // Conditions 
+        for (const auto& r_cond : r_dest_smp.Conditions()) 
+        { 
+            auto p_geom = r_orig_smp.GetCondition(r_cond.Id()).pGetGeometry(); 
+            smp_geoms[r_dest_smp.Name()].push_back(p_geom->Id()); 
+        } 
+    } 
+
+    for (const auto& r_map : smp_geoms) 
+    { 
+        rDestinationModelPart.GetSubModelPart(r_map.first).AddGeometries(r_map.second); 
+    } 
+
+    KRATOS_CATCH("")
+}
+
 } // namespace Kratos
