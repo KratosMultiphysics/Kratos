@@ -1751,19 +1751,23 @@ protected:
                 }
             };
             std::unordered_map<int, std::vector<int>> slave_to_masters;
+            slave_to_masters.reserve(2 * r_constraints_array.size());
             const auto& r_data_comm = rModelPart.GetCommunicator().GetDataCommunicator();
             const int current_rank = r_data_comm.Rank();
+
+            std::vector<int> slave_equation_ids;
+            std::vector<int> master_equation_ids;
 
             for (auto& r_const : r_constraints_array) {
                 r_const.EquationIdVector(slave_equation_ids_vector, master_equation_ids_vector, r_current_process_info);
 
-                std::vector<int> slave_equation_ids;
+                slave_equation_ids.clear();
                 slave_equation_ids.reserve(slave_equation_ids_vector.size());
                 for (const auto slave_equation_id : slave_equation_ids_vector) {
                     slave_equation_ids.push_back(static_cast<int>(slave_equation_id));
                 }
 
-                std::vector<int> master_equation_ids;
+                master_equation_ids.clear();
                 master_equation_ids.reserve(master_equation_ids_vector.size());
                 for (const auto master_equation_id : master_equation_ids_vector) {
                     master_equation_ids.push_back(static_cast<int>(master_equation_id));
@@ -1795,8 +1799,14 @@ protected:
                 sort_unique_ids(r_pair.second);
             }
 
-            auto deduplicate_neighbors_for_constrained_slaves = [&dof_neighbors, &slave_to_masters, &sort_unique_ids]() {
-                for (const auto& [slave_id, _] : slave_to_masters) {
+            std::vector<int> constrained_slave_ids;
+            constrained_slave_ids.reserve(slave_to_masters.size());
+            for (const auto& [slave_id, _] : slave_to_masters) {
+                constrained_slave_ids.push_back(slave_id);
+            }
+
+            auto deduplicate_neighbors_for_constrained_slaves = [&dof_neighbors, &constrained_slave_ids, &sort_unique_ids]() {
+                for (const auto slave_id : constrained_slave_ids) {
                     auto it = dof_neighbors.find(slave_id);
                     if (it != dof_neighbors.end()) {
                         sort_unique_ids(it->second);
@@ -1812,8 +1822,8 @@ protected:
             // from elements assembled on a different partition.
             auto serialize_slave_neighbors = [&](const std::unordered_map<int, std::vector<int>>& rNeighborMap,
                                                 const std::unordered_map<int, std::vector<int>>& rSlaveToMasters) {
-                std::size_t reserve_size = 1 + 2 * rSlaveToMasters.size();
-                for (const auto& [slave_id, _] : rSlaveToMasters) {
+                std::size_t reserve_size = 1 + 2 * constrained_slave_ids.size();
+                for (const auto slave_id : constrained_slave_ids) {
                     auto it = rNeighborMap.find(slave_id);
                     if (it != rNeighborMap.end()) {
                         reserve_size += it->second.size();
@@ -1821,8 +1831,8 @@ protected:
                 }
                 std::vector<int> serialized;
                 serialized.reserve(reserve_size);
-                serialized.push_back(static_cast<int>(rSlaveToMasters.size()));
-                for (const auto& [slave_id, _] : rSlaveToMasters) {
+                serialized.push_back(static_cast<int>(constrained_slave_ids.size()));
+                for (const auto slave_id : constrained_slave_ids) {
                     serialized.push_back(slave_id);
                     auto it = rNeighborMap.find(slave_id);
                     if (it == rNeighborMap.end()) {
