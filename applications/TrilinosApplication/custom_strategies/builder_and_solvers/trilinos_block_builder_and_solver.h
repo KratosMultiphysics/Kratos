@@ -1638,11 +1638,30 @@ protected:
         all_row_equation_ids.reserve(reserve_size);
         all_col_equation_ids.reserve(reserve_size);
 
+        // Build neighbor map: DOF eq-id → sorted list of all DOF eq-ids sharing an element/condition.
+        // This is needed to expand slave DOF neighborhoods into master rows for T'KT graph positions.
+        std::unordered_map<int, std::vector<int>> dof_neighbors;
+
+        auto add_to_neighbor_map = [&](const Element::EquationIdVectorType& ids) {
+            std::vector<int> local_ids;
+            local_ids.reserve(ids.size());
+            for (const auto id : ids) {
+                local_ids.push_back(static_cast<int>(id));
+            }
+            for (const auto row_id : local_ids) {
+                auto& neighbors = dof_neighbors[row_id];
+                for (const auto col_id : local_ids) {
+                    neighbors.push_back(col_id);
+                }
+            }
+        };
+
         // Assemble all elements
         for (auto& r_elem : r_elements_array) {
             pScheme->EquationId(r_elem, equation_ids_vector, r_current_process_info);
 
             if (!equation_ids_vector.empty()) {
+                add_to_neighbor_map(equation_ids_vector);
                 std::vector<int> local_equation_ids;
                 local_equation_ids.reserve(equation_ids_vector.size());
                 for (const auto equation_id : equation_ids_vector) {
@@ -1658,6 +1677,7 @@ protected:
             pScheme->EquationId(r_cond, equation_ids_vector, r_current_process_info);
 
             if (!equation_ids_vector.empty()) {
+                add_to_neighbor_map(equation_ids_vector);
                 std::vector<int> local_equation_ids;
                 local_equation_ids.reserve(equation_ids_vector.size());
                 for (const auto equation_id : equation_ids_vector) {
@@ -1668,7 +1688,18 @@ protected:
             }
         }
 
-        // Assemble all constraints
+        // Deduplicate the neighbor map entries
+        for (auto& kv : dof_neighbors) {
+            auto& vec = kv.second;
+            std::sort(vec.begin(), vec.end());
+            vec.erase(std::unique(vec.begin(), vec.end()), vec.end());
+        }
+
+        // Assemble all constraints.
+        // For T'KT correctness: when slave s maps to masters {m_i}, T'KT places
+        // values at positions (m_i, neighbor_of_s) and (neighbor_of_s, m_i) where
+        // neighbor_of_s are the K-graph neighbors of s (DOFs sharing an element).
+        // Additionally, slave row entries and slave↔master connectivity are needed.
         Element::EquationIdVectorType slave_equation_ids_vector, master_equation_ids_vector;
         for (auto& r_const : r_constraints_array) {
             r_const.EquationIdVector(slave_equation_ids_vector, master_equation_ids_vector, r_current_process_info);
@@ -1685,27 +1716,38 @@ protected:
                 master_equation_ids.push_back(static_cast<int>(master_equation_id));
             }
 
-            // First adding the pure slave dofs (diagonal entries)
+            // Slave diagonal entries (keeps slave rows in graph)
             for (const auto slave_equation_id : slave_equation_ids) {
                 all_row_equation_ids.push_back({slave_equation_id});
                 all_col_equation_ids.push_back({slave_equation_id});
             }
 
-            // Now adding cross master-slave dofs
-            if (!slave_equation_ids.empty() && !master_equation_ids.empty()) {
-                all_row_equation_ids.push_back(slave_equation_ids);
-                all_col_equation_ids.push_back(master_equation_ids);
-            }
+            // slave×master and master×slave blocks
+            all_row_equation_ids.push_back(slave_equation_ids);
+            all_col_equation_ids.push_back(master_equation_ids);
+            all_row_equation_ids.push_back(master_equation_ids);
+            all_col_equation_ids.push_back(slave_equation_ids);
 
-            // Full master×master block: T'KT can produce (m_i, m_j) entries for any
-            // pair of masters sharing a constraint, including cross-partition pairs
-            // not in K's original graph. Adding the dense block ensures rA's sparsity
-            // pattern can accept all entries that BtDBProductOperation will write.
-            if (!master_equation_ids.empty()) {
+            // master×master block (cross-master T'KT entries)
+            all_row_equation_ids.push_back(master_equation_ids);
+            all_col_equation_ids.push_back(master_equation_ids);
+
+            // For each slave DOF, expand its K-graph neighbors into master rows.
+            // T'KT[m, n] += K[s, n] * T[s,m] for all n in neighbors(s).
+            // T'KT[n, m] += K[n, s] * T[s,m] for all n in neighbors(s) (symmetric).
+            for (const auto slave_id : slave_equation_ids) {
+                auto it = dof_neighbors.find(slave_id);
+                if (it == dof_neighbors.end()) continue;
+                const auto& slave_neighbors = it->second;
+                // master rows, slave's K-neighbors as columns
                 all_row_equation_ids.push_back(master_equation_ids);
+                all_col_equation_ids.push_back(slave_neighbors);
+                // slave's K-neighbors as rows, master columns (symmetric)
+                all_row_equation_ids.push_back(slave_neighbors);
                 all_col_equation_ids.push_back(master_equation_ids);
             }
         }
+
 
         TSparseSpace::BuildSystemStructure(
             mrComm,
