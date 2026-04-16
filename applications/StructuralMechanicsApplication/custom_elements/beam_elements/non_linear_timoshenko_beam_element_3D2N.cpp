@@ -25,11 +25,24 @@ Element::Pointer NonLinearTimoshenkoBeamElement3D2N::Clone(
     NodesArrayType const& rThisNodes
     ) const
 {
+    KRATOS_TRY
+
     NonLinearTimoshenkoBeamElement3D2N::Pointer p_new_elem = Kratos::make_intrusive<NonLinearTimoshenkoBeamElement3D2N>
         (NewId, GetGeometry().Create(rThisNodes), pGetProperties());
     p_new_elem->SetData(this->GetData());
     p_new_elem->Set(Flags(*this));
+
+    // Currently selected integration methods
+    p_new_elem->SetIntegrationMethod(mThisIntegrationMethod);
+
+    // The vector containing the constitutive laws
+    p_new_elem->SetConstitutiveLawVector(mConstitutiveLawVector);
+
+    // The rotation operators
+    p_new_elem->SetRotationOperators(mRotationOperators);
     return p_new_elem;
+
+    KRATOS_CATCH("Clone");
 }
 
 /***********************************************************************************/
@@ -78,7 +91,41 @@ void NonLinearTimoshenkoBeamElement3D2N::InitializeMaterial()
     } else
         KRATOS_ERROR << "A constitutive law needs to be specified for the element with ID " << this->Id() << std::endl;
 
-    KRATOS_CATCH("InitializeMaterial");
+    KRATOS_CATCH("InitializeMaterial")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+int NonLinearTimoshenkoBeamElement3D2N::Check(const ProcessInfo& rCurrentProcessInfo) const
+{
+    KRATOS_TRY
+
+    KRATOS_ERROR_IF_NOT(mConstitutiveLawVector[0]->GetStrainSize() == 6) << "The strain size of the CL is not 6, hence is not compatible with this 3D beam element" << std::endl;
+
+    return mConstitutiveLawVector[0]->Check(GetProperties(), GetGeometry(), rCurrentProcessInfo);
+
+    KRATOS_CATCH("Check")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+BoundedMatrix<double, 12, 6> NonLinearTimoshenkoBeamElement3D2N::CalculateDoFMappingMatrix(
+        const Vector &rD1,
+        const Vector &rD2,
+        const Vector &rD3
+    )
+{
+    BoundedMatrix<double, 12, 6> matrix;
+    matrix.clear();
+
+    noalias(project(matrix, range(0, 3), range(0, 3)))  = IdentityMatrix(3);
+    noalias(project(matrix, range(3, 6), range(3, 6)))  = ConstitutiveLawUtilities<6>::CalculateSpinMatrix(rD1);
+    noalias(project(matrix, range(6, 9), range(3, 6)))  = ConstitutiveLawUtilities<6>::CalculateSpinMatrix(rD2);
+    noalias(project(matrix, range(9, 12), range(3, 6))) = ConstitutiveLawUtilities<6>::CalculateSpinMatrix(rD3);
+
+    return matrix;
 }
 
 /***********************************************************************************/

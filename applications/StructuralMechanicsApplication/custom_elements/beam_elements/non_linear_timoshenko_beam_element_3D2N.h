@@ -136,12 +136,60 @@ public:
         return 6; // 3 displacements and 3 rotations
     }
 
+    /**
+     * @brief This function provides the place to perform checks on the completeness of the input.
+     * @details It is designed to be called only once (or anyway, not often) typically at the beginning
+     * of the calculations, so to verify that nothing is missing from the input
+     * or that no common error is found.
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    int Check(const ProcessInfo &rCurrentProcessInfo) const override;
+
+    /**
+     * @brief Sets the used integration method
+     * @param ThisIntegrationMethod Integration method used
+     */
+    void SetIntegrationMethod(const IntegrationMethod& rThisIntegrationMethod)
+    {
+        mThisIntegrationMethod = rThisIntegrationMethod;
+    }
+
+    /**
+     * @brief Sets the used constitutive laws
+     * @param ThisConstitutiveLawVector Constitutive laws used
+     */
+    void SetConstitutiveLawVector(const std::vector<ConstitutiveLaw::Pointer>& rThisConstitutiveLawVector)
+    {
+        mConstitutiveLawVector = rThisConstitutiveLawVector;
+    }
+
+    /**
+     * @brief Sets the used constitutive laws
+     * @param ThisConstitutiveLawVector Constitutive laws used
+     */
+    void SetRotationOperators(const std::vector<BoundedMatrix<double, 3, 3>>& rThisRotationOperators)
+    {
+        mRotationOperators = rThisRotationOperators;
+    }
+
+    /**
+     * @brief This method computes the DoF mapping operator defined in Eq. (37) from the ref.
+     * NOTE the ref is incorrect. It has been corrected in here.
+     * This matrix maps the (du, dd1, dd2, dd3) -> (du, dtheta), being "d" the variation
+     */
+    BoundedMatrix<double, 12, 6> CalculateDoFMappingMatrix(
+        const Vector &rD1,
+        const Vector &rD2,
+        const Vector &rD3);
+
 private:
 
     /* The rotation operators are built with [d1, d2, d3] as col vectors */
-    std::vector<BoundedMatrix<double, 3, 3>> mRotationOperators; // the two rotation matrices, one per each IP.
+    std::vector<BoundedMatrix<double, 3, 3>> mRotationOperators; // The two rotation matrices, one per each IP.
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector; // The vector containing the beam constitutive laws, one per each IP
     IntegrationMethod mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_LOBATTO_1; // By default the quadrature points are located at the nodes of the beam
+
+
 };
 
 } // namespace Kratos
