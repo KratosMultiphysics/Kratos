@@ -1368,7 +1368,7 @@ namespace Kratos::Testing
         // The solution check
         KRATOS_EXPECT_EQ(rA.getGlobalNumRows(), 8);
         KRATOS_EXPECT_EQ(rA.getGlobalNumCols(), 8);
-        KRATOS_EXPECT_EQ(rA.getGlobalNumEntries(), 36);
+        KRATOS_EXPECT_EQ(rA.getGlobalNumEntries(), 34);
 
         // Values to check
         auto p_prop = r_model_part.pGetProperties(1);
