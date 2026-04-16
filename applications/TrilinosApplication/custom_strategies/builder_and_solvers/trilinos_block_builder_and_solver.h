@@ -1734,15 +1734,6 @@ protected:
                 rIds.erase(std::unique(rIds.begin(), rIds.end()), rIds.end());
             };
 
-            auto deduplicate_neighbor_map = [&sort_unique_ids](std::unordered_map<int, std::vector<int>>& rNeighborMap) {
-                for (auto& r_kv : rNeighborMap) {
-                    sort_unique_ids(r_kv.second);
-                }
-            };
-
-            // Deduplicate the neighbor map entries
-            deduplicate_neighbor_map(dof_neighbors);
-
             // For T'KT correctness: when slave s maps to masters {m_i}, T'KT places
             // values at positions (m_i, neighbor_of_s) and (neighbor_of_s, m_i) where
             // neighbor_of_s are the K-graph neighbors of s (DOFs sharing an element).
@@ -1798,30 +1789,38 @@ protected:
                 // master×master block (cross-master T'KT entries)
                 append_constraint_block(master_equation_ids, master_equation_ids);
 
-                // For each slave DOF, expand its K-graph neighbors into master rows.
-                // T'KT[m, n] += K[s, n] * T[s,m] for all n in neighbors(s).
-                // T'KT[n, m] += K[n, s] * T[s,m] for all n in neighbors(s) (symmetric).
-                for (const auto slave_id : slave_equation_ids) {
-                    auto it = dof_neighbors.find(slave_id);
-                    if (it == dof_neighbors.end()) continue;
-                    const auto& slave_neighbors = it->second;
-                    // master rows, slave's K-neighbors as columns
-                    append_constraint_block(master_equation_ids, slave_neighbors);
-                    // slave's K-neighbors as rows, master columns (symmetric)
-                    append_constraint_block(slave_neighbors, master_equation_ids);
-                }
             }
 
             for (auto& r_pair : slave_to_masters) {
                 sort_unique_ids(r_pair.second);
             }
 
+            auto deduplicate_neighbors_for_constrained_slaves = [&dof_neighbors, &slave_to_masters, &sort_unique_ids]() {
+                for (const auto& [slave_id, _] : slave_to_masters) {
+                    auto it = dof_neighbors.find(slave_id);
+                    if (it != dof_neighbors.end()) {
+                        sort_unique_ids(it->second);
+                    }
+                }
+            };
+
+            // Deduplicate only the constrained slave neighborhood (relevant subset).
+            deduplicate_neighbors_for_constrained_slaves();
+
             // Complete slave-neighbor map across ranks for constrained slaves.
             // Some constrained tests miss entries when a slave's neighbors come
             // from elements assembled on a different partition.
             auto serialize_slave_neighbors = [&](const std::unordered_map<int, std::vector<int>>& rNeighborMap,
                                                 const std::unordered_map<int, std::vector<int>>& rSlaveToMasters) {
+                std::size_t reserve_size = 1 + 2 * rSlaveToMasters.size();
+                for (const auto& [slave_id, _] : rSlaveToMasters) {
+                    auto it = rNeighborMap.find(slave_id);
+                    if (it != rNeighborMap.end()) {
+                        reserve_size += it->second.size();
+                    }
+                }
                 std::vector<int> serialized;
+                serialized.reserve(reserve_size);
                 serialized.push_back(static_cast<int>(rSlaveToMasters.size()));
                 for (const auto& [slave_id, _] : rSlaveToMasters) {
                     serialized.push_back(slave_id);
@@ -1864,7 +1863,7 @@ protected:
                 merge_serialized_slave_neighbors(gathered_serialized_slave_neighbors[rank_index], dof_neighbors);
             }
 
-            deduplicate_neighbor_map(dof_neighbors);
+            deduplicate_neighbors_for_constrained_slaves();
 
             // Re-apply first-order slave-neighbor closure with the merged global map.
             for (const auto& [slave_id, masters] : slave_to_masters) {
@@ -1895,7 +1894,12 @@ protected:
             // of remote rows can insert the corresponding structure entries.
             auto serialize_constraint_blocks = [](const std::vector<std::vector<int>>& rRows,
                                                 const std::vector<std::vector<int>>& rCols) {
+                std::size_t reserve_size = 1;
+                for (std::size_t i = 0; i < rRows.size(); ++i) {
+                    reserve_size += 2 + rRows[i].size() + rCols[i].size();
+                }
                 std::vector<int> serialized;
+                serialized.reserve(reserve_size);
                 serialized.push_back(static_cast<int>(rRows.size()));
                 for (std::size_t i = 0; i < rRows.size(); ++i) {
                     serialized.push_back(static_cast<int>(rRows[i].size()));
