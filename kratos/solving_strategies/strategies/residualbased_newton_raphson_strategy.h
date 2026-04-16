@@ -1078,14 +1078,8 @@ class ResidualBasedNewtonRaphsonStrategy
         //(note that some convergence criteria need it to be recalculated)
         if (residual_is_updated == false)
         {
-            // NOTE:
-            // The following part will be commented because it is time consuming
-            // and there is no obvious reason to be here. If someone need this
-            // part please notify the community via mailing list before uncommenting it.
-            // Pooyan.
-
-            //    TSparseSpace::SetToZero(mb);
-            //    p_builder_and_solver->BuildRHS(p_scheme, r_model_part, mb);
+            TSparseSpace::SetToZero(rb);
+            p_builder_and_solver->BuildRHS(p_scheme, r_model_part, rb);
         }
 
         //calculate reactions if required

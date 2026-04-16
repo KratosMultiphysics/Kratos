@@ -73,6 +73,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
     py::class_<GlobalROMBuilderAndSolverType, typename GlobalROMBuilderAndSolverType::Pointer, ResidualBasedBlockBuilderAndSolverType>(m, "GlobalROMBuilderAndSolver")
         .def(py::init< LinearSolverType::Pointer, Parameters>() )
+        .def("GetCurrentResidual", &GlobalROMBuilderAndSolverType::GetCurrentResidual)
         ;
 
     typedef LeastSquaresPetrovGalerkinROMBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> LeastSquaresPetrovGalerkinROMBuilderAndSolverType;

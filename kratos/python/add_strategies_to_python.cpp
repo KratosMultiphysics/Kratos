@@ -505,6 +505,7 @@ namespace Kratos:: Python
         py::class_< ResidualBasedBlockBuilderAndSolverType, ResidualBasedBlockBuilderAndSolverType::Pointer,BuilderAndSolverType>(m,"ResidualBasedBlockBuilderAndSolver")
         .def(py::init< LinearSolverType::Pointer > ())
         .def(py::init< LinearSolverType::Pointer, Parameters > ())
+        .def("GetCurrentResidual", &ResidualBasedBlockBuilderAndSolverType::GetCurrentResidual)
         .def("IsConstantConstraints", &ResidualBasedBlockBuilderAndSolverType::IsConstantConstraints)
         .def("SetConstantConstraints", &ResidualBasedBlockBuilderAndSolverType::SetConstantConstraints)
         ;
