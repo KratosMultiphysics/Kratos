@@ -4,7 +4,7 @@ import scipy.sparse as sp
 import KratosMultiphysics as KM
 
 # Einsum optimization configuration
-opt_type = "greedy"
+opt_type = True
 
 # Backend modules to be defined
 xp = None
