@@ -811,9 +811,15 @@ public:
         // If it is an FECrsMatrix, we might need to recreate it if the graph is too small.
         // But we try to copy values directly.
         // Inline copy logic from CrsMatrixType to MatrixType
-        if (!rA.isFillActive()) rA.resumeFill();
         auto p_fe_A = dynamic_cast<MatrixType*>(&rA);
-        if (p_fe_A) p_fe_A->beginAssembly();
+        if (p_fe_A) {
+            // FECrsMatrix: use the FE state machine. Do NOT also call resumeFill().
+            if (!rA.isFillActive()) p_fe_A->beginAssembly();
+        } else {
+            if (!rA.isFillActive()) rA.resumeFill();
+        }
+        // Zero rA before summing: the result is a full replacement (T'AT), not an accumulation.
+        rA.setAllToScalar(static_cast<ST>(0));
         for (LO i = 0; i < static_cast<LO>(aux_2->getNodeNumRows()); ++i) {
             const auto global_row_index = aux_2->getRowMap()->getGlobalElement(i);
             typename MatrixType::local_inds_host_view_type local_cols;
@@ -858,9 +864,14 @@ public:
         Tpetra::MatrixMatrix::Multiply(*aux_1, false, rB, true, *aux_2);
 
         // Inline copy logic from CrsMatrixType to MatrixType
-        if (!rA.isFillActive()) rA.resumeFill();
         auto p_fe_A = dynamic_cast<MatrixType*>(&rA);
-        if (p_fe_A) p_fe_A->beginAssembly();
+        if (p_fe_A) {
+            if (!rA.isFillActive()) p_fe_A->beginAssembly();
+        } else {
+            if (!rA.isFillActive()) rA.resumeFill();
+        }
+        // Zero rA before summing: full replacement, not accumulation.
+        rA.setAllToScalar(static_cast<ST>(0));
         for (LO i = 0; i < static_cast<LO>(aux_2->getNodeNumRows()); ++i) {
             const auto global_row_index = aux_2->getRowMap()->getGlobalElement(i);
             typename MatrixType::local_inds_host_view_type local_cols;

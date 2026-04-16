@@ -152,6 +152,12 @@ public:
             using ST = typename MatrixType::scalar_type;
             const std::size_t system_size = rT.getGlobalNumRows();
 
+            // Open for FE assembly if not already active (mirrors lazy-open in AssembleLHS).
+            auto p_fe_T = dynamic_cast<MatrixType*>(&rT);
+            if (p_fe_T && !rT.isFillActive()) {
+                p_fe_T->beginAssembly();
+            }
+
             for (std::size_t i = 0; i < rSlaveEquationId.size(); ++i) {
                 if (rSlaveEquationId[i] < system_size) {
                     const GO global_id = static_cast<GO>(rSlaveEquationId[i]);
