@@ -28,7 +28,7 @@
 #include <Teuchos_GlobalMPISession.hpp>
 #include <Teuchos_CommHelpers.hpp>
 #include <TpetraExt_MatrixMatrix.hpp>
-#include <TpetraExt_TripleMatrixMultiply.hpp>
+// #include <TpetraExt_TripleMatrixMultiply.hpp> // NOTE: TripleMatrixMultiply is giving segmentation fault in the version of Trilinos available in Ubuntu 24.04. We cannot use it for the BDB' operation, and instead must do two separate multiplications with an intermediate CrsMatrix. This is less efficient than a single triple-matrix multiply, but it is a temporary workaround until we can upgrade to a newer Trilinos version with a working TpetraExt_TripleMatrixMultiply_def implementation.
 // NOTE: MatrixMarket_Tpetra.hpp is intentionally NOT included here — see
 // custom_utilities/auxiliary_matrix_market.h for the rationale.
 
@@ -786,10 +786,10 @@ public:
      * @param rA The resulting matrix
      * @param rD The "center" matrix
      * @param rB The matrices to be transposed
-     * @param CallFillCompleteOnResult	Optional argument, defaults to true. Power users may specify this argument to be false if they DON'T want this function to call C.FillComplete. (It is often useful to allow this function to call C.FillComplete, in cases where one or both of the input matrices are rectangular and it is not trivial to know which maps to use for the domain- and range-maps.)
-     * @param KeepAllHardZeros	Optional argument, defaults to false. If true, Multiply, keeps all entries in C corresponding to hard zeros. If false, the following happens by case: A*B^T, A^T*B^T - Does not store entries caused by hard zeros in C. A^T*B (unoptimized) - Hard zeros are always stored (this option has no effect) A*B, A^T*B (optimized) - Hard zeros in corresponding to hard zeros in A are not stored, There are certain cases involving reuse of C, where this can be useful.
-     * @param EnforceInitialGraph If the initial graph is enforced, or a new one is generated
-     * @todo TpetraExt_TripleMatrixMultiply_def is failing compilation in the version of Trilinos available in Ubuntu 20.04. We cannot use TripleMatrixMultiply::MultiplyRAP
+     * @param CallFillCompleteOnResult Reserved for API compatibility with TrilinosSpace; ignored in this experimental implementation.
+     * @param KeepAllHardZeros Reserved for API compatibility with TrilinosSpace; ignored in this experimental implementation.
+     * @param EnforceInitialGraph Reserved for API compatibility with TrilinosSpace; ignored in this experimental implementation.
+     * @todo TripleMatrixMultiply::MultiplyRAP is giving segmentation fault in the version of Trilinos available in Ubuntu 24.04. We cannot use it for the BDB' operation, and instead must do two separate multiplications with an intermediate CrsMatrix. This is less efficient than a single triple-matrix multiply, but it is a temporary workaround until we can upgrade to a newer Trilinos version with a working TpetraExt_TripleMatrixMultiply_def implementation.
      */
     inline static void BtDBProductOperation(
         MatrixType& rA,
@@ -870,10 +870,10 @@ public:
      * @param rA The resulting matrix
      * @param rD The "center" matrix
      * @param rB The matrices to be transposed
-     * @param CallFillCompleteOnResult	Optional argument, defaults to true. Power users may specify this argument to be false if they DON'T want this function to call C.FillComplete. (It is often useful to allow this function to call C.FillComplete, in cases where one or both of the input matrices are rectangular and it is not trivial to know which maps to use for the domain- and range-maps.)
-     * @param KeepAllHardZeros	Optional argument, defaults to false. If true, Multiply, keeps all entries in C corresponding to hard zeros. If false, the following happens by case: A*B^T, A^T*B^T - Does not store entries caused by hard zeros in C. A^T*B (unoptimized) - Hard zeros are always stored (this option has no effect) A*B, A^T*B (optimized) - Hard zeros in corresponding to hard zeros in A are not stored, There are certain cases involving reuse of C, where this can be useful.
-     * @param EnforceInitialGraph If the initial graph is enforced, or a new one is generated
-     * @todo TpetraExt_TripleMatrixMultiply_def is failing compilation in the version of Trilinos available in Ubuntu 20.04. We cannot use TripleMatrixMultiply::MultiplyRAP
+     * @param CallFillCompleteOnResult Reserved for API compatibility with TrilinosSpace; ignored in this experimental implementation.
+     * @param KeepAllHardZeros Reserved for API compatibility with TrilinosSpace; ignored in this experimental implementation.
+     * @param EnforceInitialGraph Reserved for API compatibility with TrilinosSpace; ignored in this experimental implementation.
+     * @todo TripleMatrixMultiply::MultiplyRAP is giving segmentation fault in the version of Trilinos available in Ubuntu 24.04. We cannot use it for the BDB' operation, and instead must do two separate multiplications with an intermediate CrsMatrix. This is less efficient than a single triple-matrix multiply, but it is a temporary workaround until we can upgrade to a newer Trilinos version with a working TpetraExt_TripleMatrixMultiply_def implementation.
      */
     inline static void BDBtProductOperation(
         MatrixType& rA,
