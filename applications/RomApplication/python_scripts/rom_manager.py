@@ -36,7 +36,7 @@ class RomManager(object):
         self.data_base = RomDatabase(self.general_rom_manager_parameters, mu_names)
         self.SetupErrorsDictionaries()
 
-    def Fit(self, mu_train=[None],mu_validation=[None]):
+    def Fit(self, mu_train=[None],mu_validation=[None], use_hrom_full_model_part=False):
         chosen_projection_strategy = self.general_rom_manager_parameters["projection_strategy"].GetString()
         training_stages = self.general_rom_manager_parameters["rom_stages_to_train"].GetStringArray()
         type_of_decoder = self.general_rom_manager_parameters["type_of_decoder"].GetString()
@@ -64,7 +64,7 @@ class RomManager(object):
                     self._ChangeRomFlags(simulation_to_run = "trainHROMGalerkin")
                     self._LaunchTrainHROM(mu_train)
                     self._ChangeRomFlags(simulation_to_run = "runHROMGalerkin")
-                    self._LaunchHROM(mu_train)
+                    self._LaunchHROM(mu_train, use_hrom_full_model_part)
         #######################
 
         #######################################
@@ -92,7 +92,7 @@ class RomManager(object):
                     self._LaunchTrainHROM(mu_train)
                     # Change the flags to run the HROM for LSPG
                     self._ChangeRomFlags(simulation_to_run = "runHROMLSPG")
-                    self._LaunchHROM(mu_train)
+                    self._LaunchHROM(mu_train, use_hrom_full_model_part)
         #######################################
 
         ##########################
@@ -115,7 +115,7 @@ class RomManager(object):
                     self._ChangeRomFlags(simulation_to_run = "trainHROMPetrovGalerkin")
                     self._LaunchTrainHROM(mu_train)
                     self._ChangeRomFlags(simulation_to_run = "runHROMPetrovGalerkin")
-                    self._LaunchHROM(mu_train)
+                    self._LaunchHROM(mu_train, use_hrom_full_model_part)
             ##########################
         else:
             err_msg = f'Provided projection strategy {chosen_projection_strategy} is not supported. Available options are \'galerkin\', \'lspg\' and \'petrov_galerkin\'.'
@@ -141,7 +141,7 @@ class RomManager(object):
         self._LaunchTestNeuralNetworkReconstruction( mu_train, mu_validation)
 
 
-    def Test(self, mu_test=[None], mu_train=[None]):
+    def Test(self, mu_test=[None], mu_train=[None], use_hrom_full_model_part=False):
         chosen_projection_strategy = self.general_rom_manager_parameters["projection_strategy"].GetString()
         testing_stages = self.general_rom_manager_parameters["rom_stages_to_test"].GetStringArray()
         type_of_decoder = self.general_rom_manager_parameters["type_of_decoder"].GetString()
@@ -168,7 +168,7 @@ class RomManager(object):
                 if any(item == "HROM" for item in testing_stages):
                     #FIXME there will be an error if we only test HROM, but not ROM
                     self._ChangeRomFlags(simulation_to_run = "runHROMGalerkin")
-                    self._LaunchHROM(mu_test,gid_and_vtk_name='HROM_Test')
+                    self._LaunchHROM(mu_test, use_hrom_full_model_part, gid_and_vtk_name='HROM_Test')
 
         #######################
 
@@ -192,7 +192,7 @@ class RomManager(object):
                     self._LaunchROM(mu_test,gid_and_vtk_name='ROM_Test')
                 if any(item == "HROM" for item in testing_stages):
                     self._ChangeRomFlags(simulation_to_run = "runHROMLSPG")
-                    self._LaunchHROM(mu_test,gid_and_vtk_name='HROM_Test')
+                    self._LaunchHROM(mu_test, use_hrom_full_model_part, gid_and_vtk_name='HROM_Test')
         #######################################
 
 
@@ -211,7 +211,7 @@ class RomManager(object):
                 if any(item == "HROM" for item in testing_stages):
                     #FIXME there will be an error if we only train HROM, but not ROM
                     self._ChangeRomFlags(simulation_to_run = "runHROMPetrovGalerkin")
-                    self._LaunchHROM(mu_test,gid_and_vtk_name='HROM_Test')
+                    self._LaunchHROM(mu_test, use_hrom_full_model_part, gid_and_vtk_name='HROM_Test')
         ##########################
         else:
             err_msg = f'Provided projection strategy {chosen_projection_strategy} is not supported. Available options are \'galerkin\', \'lspg\' and \'petrov_galerkin\'.'
@@ -313,6 +313,13 @@ class RomManager(object):
             if rom_snapshots is None:  # Only fetch if not already fetched
                 rom_snapshots = self.data_base.get_snapshots_matrix_from_database(mu_list, table_name=f'ROM')
             hrom_snapshots = self.data_base.get_snapshots_matrix_from_database(mu_list, table_name=f'HROM')
+
+            if (len(fom_snapshots) != len(hrom_snapshots)):
+                q_matrix = self.data_base.get_snapshots_matrix_from_database(mu_list, table_name=f'QoI_HROM', QoI = 'q')
+                phi = np.load(f'rom_data/RightBasisMatrix.npy')
+                if (q_matrix.shape[0] == 1): q_matrix = q_matrix.T
+                hrom_snapshots = phi @ q_matrix
+
             error_rom_hrom = np.linalg.norm(rom_snapshots - hrom_snapshots) / np.linalg.norm(rom_snapshots)
             error_fom_hrom = np.linalg.norm(fom_snapshots - hrom_snapshots) / np.linalg.norm(fom_snapshots)
             self.ROMvsHROM[case] = error_rom_hrom
@@ -448,7 +455,7 @@ class RomManager(object):
                 materials_file_name = parameters_copy["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
                 self.UpdateMaterialParametersFile(materials_file_name, mu)
                 model = KratosMultiphysics.Model()
-                analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy, nn_rom_interface=nn_rom_interface))
+                analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy.Clone(), nn_rom_interface=nn_rom_interface))
                 simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy, mu)
 
                 simulation.Run()
@@ -481,7 +488,7 @@ class RomManager(object):
                     materials_file_name = parameters_copy["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
                     self.UpdateMaterialParametersFile(materials_file_name, mu)
                     model = KratosMultiphysics.Model()
-                    analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy))
+                    analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy.Clone()))
                     simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy, mu)
                     simulation.Run()
                     PetrovGalerkinTrainingUtility = simulation.GetPetrovGalerkinTrainUtility()
@@ -522,7 +529,7 @@ class RomManager(object):
                     materials_file_name = parameters_copy["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
                     self.UpdateMaterialParametersFile(materials_file_name, mu)
                     model = KratosMultiphysics.Model()
-                    analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy))
+                    analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy.Clone()))
                     simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy, mu)
                     simulation.Run()
                     ResidualProjected = simulation.GetHROM_utility()._GetResidualsProjectedMatrix() #TODO flush intermediately the residuals projected to cope with large models.
@@ -558,12 +565,23 @@ class RomManager(object):
             HROM_utility.CreateHRomModelParts()
         self.GenerateDatabaseSummary()
 
-    def _LaunchHROM(self, mu_train, gid_and_vtk_name ='HROM_Fit'):
+    def _LaunchHROM(self, mu_train, use_hrom_full_model_part=False, gid_and_vtk_name ='HROM_Fit'):
         """
         This method should be parallel capable
         """
         with open(self.project_parameters_name,'r') as parameter_file:
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
+
+        if not use_hrom_full_model_part:
+            model_part_type = parameters["solver_settings"]["model_import_settings"]["input_type"].GetString()
+            if model_part_type == 'use_input_model_part':
+                model_part_name = parameters["modelers"][0]["parameters"]["input_filename"].GetString().split('.')[0]
+                parameters["modelers"][0]["parameters"]["input_filename"].SetString(f"{model_part_name}HROM.med")
+                parameters["modelers"][1]["parameters"]["assign_ids_from_file"].SetBool(True)
+            else:
+                model_part_name = parameters["solver_settings"]["model_import_settings"]["input_filename"].GetString()
+                parameters["solver_settings"]["model_import_settings"]["input_filename"].SetString(f"{model_part_name}HROM")
+
         BasisOutputProcess = None
         for Id, mu in enumerate(mu_train):
             in_database, _ = self.data_base.check_if_in_database("HROM", mu)
@@ -574,7 +592,7 @@ class RomManager(object):
                 materials_file_name = parameters_copy["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
                 self.UpdateMaterialParametersFile(materials_file_name, mu)
                 model = KratosMultiphysics.Model()
-                analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy))
+                analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy.Clone()))
                 simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy, mu)
                 simulation.Run()
                 self.data_base.add_to_database("QoI_HROM", mu, simulation.GetFinalData())
@@ -617,21 +635,28 @@ class RomManager(object):
             materials_file_name = parameters_copy["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
             self.UpdateMaterialParametersFile(materials_file_name, mu)
             model = KratosMultiphysics.Model()
-            analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy, nn_rom_interface=nn_rom_interface))
+            analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy.Clone(), nn_rom_interface=nn_rom_interface))
             simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy, mu)
             simulation.Run()
             self.QoI_Run_ROM.append(simulation.GetFinalData())
 
 
-    def _LaunchRunHROM(self, mu_run, use_full_model_part):
+    def _LaunchRunHROM(self, mu_run, use_hrom_full_model_part=False):
         """
         This method should be parallel capable
         """
         with open(self.project_parameters_name,'r') as parameter_file:
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
-        if not use_full_model_part:
-            model_part_name = parameters["solver_settings"]["model_import_settings"]["input_filename"].GetString()
-            parameters["solver_settings"]["model_import_settings"]["input_filename"].SetString(f"{model_part_name}HROM")
+
+        if not use_hrom_full_model_part:
+            model_part_type = parameters["solver_settings"]["model_import_settings"]["input_type"].GetString()
+            if model_part_type == 'use_input_model_part':
+                model_part_name = parameters["modelers"][0]["parameters"]["input_filename"].GetString().split('.')[0]
+                parameters["modelers"][0]["parameters"]["input_filename"].SetString(f"{model_part_name}HROM.med")
+                parameters["modelers"][1]["parameters"]["assign_ids_from_file"].SetBool(True)
+            else:
+                model_part_name = parameters["solver_settings"]["model_import_settings"]["input_filename"].GetString()
+                parameters["solver_settings"]["model_import_settings"]["input_filename"].SetString(f"{model_part_name}HROM")
 
         for Id, mu in enumerate(mu_run):
             parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
@@ -639,7 +664,7 @@ class RomManager(object):
             materials_file_name = parameters_copy["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
             self.UpdateMaterialParametersFile(materials_file_name, mu)
             model = KratosMultiphysics.Model()
-            analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy))
+            analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy.Clone()))
             simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy, mu)
             simulation.Run()
             self.QoI_Run_HROM.append(simulation.GetFinalData())
@@ -664,7 +689,7 @@ class RomManager(object):
         parameters = self._StoreNoResults(parameters)
         model = KratosMultiphysics.Model()
         analysis_stage_class = self._GetAnalysisStageClass(parameters)
-        simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
+        simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters, [])
         simulation.Initialize()
         for process in simulation._GetListOfOutputProcesses():
             if isinstance(process, CalculateRomBasisOutputProcess):
@@ -678,8 +703,8 @@ class RomManager(object):
         parameters = self._AddBasisCreationToProjectParameters(parameters)
         parameters = self._StoreNoResults(parameters)
         model = KratosMultiphysics.Model()
-        analysis_stage_class = type(SetUpSimulationInstance(model, parameters))
-        simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
+        analysis_stage_class = type(SetUpSimulationInstance(model, parameters.Clone()))
+        simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters, [])
         simulation.Initialize()
         return simulation.GetHROM_utility()
 
@@ -690,8 +715,8 @@ class RomManager(object):
         parameters = self._AddBasisCreationToProjectParameters(parameters)
         parameters = self._StoreNoResults(parameters)
         model = KratosMultiphysics.Model()
-        analysis_stage_class = type(SetUpSimulationInstance(model, parameters))
-        simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
+        analysis_stage_class = type(SetUpSimulationInstance(model, parameters.Clone()))
+        simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters,[])
         simulation.Initialize()
         return simulation.GetPetrovGalerkinTrainUtility()
 
@@ -703,6 +728,9 @@ class RomManager(object):
         f["hrom_settings"]["constraint_sum_weights"] = self.general_rom_manager_parameters["HROM"]["constraint_sum_weights"].GetBool()
         f["hrom_settings"]["svd_type"] = self.general_rom_manager_parameters["HROM"]["svd_type"].GetString()
         f["hrom_settings"]["create_hrom_visualization_model_part"] = self.general_rom_manager_parameters["HROM"]["create_hrom_visualization_model_part"].GetBool()
+        f["hrom_settings"]["base_model_filename"] = self.general_rom_manager_parameters["HROM"]["base_model_filename"].GetString()
+        f["hrom_settings"]["base_model_type"] = self.general_rom_manager_parameters["HROM"]["base_model_type"].GetString()
+        f["hrom_settings"]["modelers"] = json.loads(self.general_rom_manager_parameters["HROM"]["modelers"].PrettyPrintJsonString())
         f["hrom_settings"]["include_elements_model_parts_list"] = self.general_rom_manager_parameters["HROM"]["include_elements_model_parts_list"].GetStringArray()
         f["hrom_settings"]["include_conditions_model_parts_list"] = self.general_rom_manager_parameters["HROM"]["include_conditions_model_parts_list"].GetStringArray()
         f["hrom_settings"]["initial_candidate_elements_model_part_list"] = self.general_rom_manager_parameters["HROM"]["initial_candidate_elements_model_part_list"].GetStringArray()
@@ -965,6 +993,9 @@ class RomManager(object):
                 "constraint_sum_weights": true,                   // if true, then sum(w) = num_elems (this avoids trivial solutions sum(w)=0)
                 "svd_type": "numpy_rsvd",                         //  "numpy_svd", "numpy_rsvd"
                 "create_hrom_visualization_model_part" : true,
+                "base_model_filename" : "",
+                "base_model_type" : "",
+                "modelers": [],
                 "include_elements_model_parts_list": [],          //The elements of the submodel parts included in this list will be considered in the HROM model part
                 "include_conditions_model_parts_list": [],         //The conditions of the submodel parts included in this list will be considered in the HROM model part
                 "initial_candidate_elements_model_part_list" : [],        //These elements will be given priority when creating the HROM model part
