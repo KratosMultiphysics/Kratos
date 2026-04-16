@@ -178,11 +178,29 @@ BoundedMatrix<double, 6, 12> NonLinearTimoshenkoBeamElement3D2N::CalculateB(
     const array3 d3_s = dN1 * column(mRotationOperators[0], 2) + dN2 * column(mRotationOperators[1], 2);
 
     // Let's start assigning components...
-    // noalias(project(B1, range(0, 1), range(0, 3))) = dN1 * d1;
-    // noalias(project(B1, range(1, 2), range(0, 3))) = dN1 * d2;
-    // noalias(project(B1, range(2, 3), range(0, 3))) = dN1 * d3;
-    for (IndexType i = 0; i < 3; ++i) {
 
+    for (IndexType i = 0; i < 3; ++i) {
+        // Gamma components
+        // node 1
+        B1(0, i)     = dN1 * d1[i];
+        B1(0, i + 3) = N1 * dr[i];
+
+        B1(1, i)     = dN1 * d2[i];
+        B1(1, i + 6) = N1 * dr[i];
+
+        B1(2, i)     = dN1 * d3[i];
+        B1(2, i + 9) = N1 * dr[i];
+        // node 2
+        B2(0, i)     = dN2 * d1[i];
+        B2(0, i + 3) = N2 * dr[i];
+
+        B2(1, i)     = dN2 * d2[i];
+        B2(1, i + 6) = N2 * dr[i];
+
+        B2(2, i)     = dN2 * d3[i];
+        B2(2, i + 9) = N2 * dr[i];
+
+        // Omega components
     }
 
     return b_matrix;
