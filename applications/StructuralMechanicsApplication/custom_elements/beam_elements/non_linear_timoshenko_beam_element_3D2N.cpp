@@ -131,6 +131,66 @@ BoundedMatrix<double, 12, 6> NonLinearTimoshenkoBeamElement3D2N::CalculateDoFMap
 /***********************************************************************************/
 /***********************************************************************************/
 
+double NonLinearTimoshenkoBeamElement3D2N::CalculateReferenceLength()
+{
+    return StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+BoundedMatrix<double, 6, 12> NonLinearTimoshenkoBeamElement3D2N::CalculateB(
+    const double xi, // [-1, 1] with Lobatto
+    const double N1, // 0.5 * (1.0 - xi)
+    const double N2, // 0.5 * (1.0 + xi)
+    const double dN1, // -1.0 / L0
+    const double dN2 // 1 / L0
+    )
+{
+    const auto &r_geom = GetGeometry();
+
+    BoundedMatrix<double, 6, 12> b_matrix;
+    b_matrix.clear();
+
+    BoundedMatrix<double, 12, 6> dof_mapper_1, dof_mapper_2;
+    // noalias()
+
+    BoundedMatrix<double, 6, 24> B; // without the DoF mapping operation
+    B.clear();
+
+    BoundedMatrix<double, 6, 12> B1, B2; // B = [B1, B2]
+    B1.clear();
+    B2.clear();
+
+    // The tangent vector to the beam axis r'
+    array3 dr = r_geom[1].Coordinates() - r_geom[0].Coordinates();
+    const double current_L = norm_2(dr);
+    KRATOS_ERROR_IF_NOT(current_L > 0.0) << "The length of the 3D beam element is null..." << std::endl;
+    dr /= current_L;
+
+    // We interpolate the directors
+    const array3 d1 = N1 * column(mRotationOperators[0], 0) + N2 * column(mRotationOperators[1], 0);
+    const array3 d2 = N1 * column(mRotationOperators[0], 1) + N2 * column(mRotationOperators[1], 1);
+    const array3 d3 = N1 * column(mRotationOperators[0], 2) + N2 * column(mRotationOperators[1], 2);
+    // We interpolate the derivative of the directors (d/ds)
+    const array3 d1_s = dN1 * column(mRotationOperators[0], 0) + dN2 * column(mRotationOperators[1], 0);
+    const array3 d2_s = dN1 * column(mRotationOperators[0], 1) + dN2 * column(mRotationOperators[1], 1);
+    const array3 d3_s = dN1 * column(mRotationOperators[0], 2) + dN2 * column(mRotationOperators[1], 2);
+
+    // Let's start assigning components...
+    // noalias(project(B1, range(0, 1), range(0, 3))) = dN1 * d1;
+    // noalias(project(B1, range(1, 2), range(0, 3))) = dN1 * d2;
+    // noalias(project(B1, range(2, 3), range(0, 3))) = dN1 * d3;
+    for (IndexType i = 0; i < 3; ++i) {
+
+    }
+
+    return b_matrix;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void NonLinearTimoshenkoBeamElement3D2N::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
@@ -183,14 +243,14 @@ void NonLinearTimoshenkoBeamElement3D2N::CalculateAll(
         if (rLHS.size1() != mat_size || rLHS.size2() != mat_size) {
             rLHS.resize(mat_size, mat_size, false);
         }
-        noalias(rLHS) = ZeroMatrix(mat_size, mat_size);
+        rLHS.clear();
     }
 
     if (ComputeRHS) {
         if (rRHS.size() != mat_size) {
             rRHS.resize(mat_size, false);
         }
-        noalias(rRHS) = ZeroVector(mat_size);
+        rRHS.clear();
     }
 
     

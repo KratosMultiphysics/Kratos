@@ -52,6 +52,8 @@ public:
     ///@{
     using BaseType = Element;
 
+    using array3 = array_1d<double, 3>;
+
     NonLinearTimoshenkoBeamElement3D2N() {}
 
     NonLinearTimoshenkoBeamElement3D2N(IndexType NewId, GeometryType::Pointer pGeometry)
@@ -182,10 +184,27 @@ public:
         const Vector &rD2,
         const Vector &rD3);
 
+    /**
+     * @brief This method computes the B matrix that relates the variation of the DoFs and the variation of the
+     * strains, its size is a 6 by 12.
+     */
+    BoundedMatrix<double, 6, 12> CalculateB(
+        const double xi,
+        const double N1,
+        const double N2,
+        const double dN1,
+        const double dN2);
+
+    /**
+     * @brief This method computes the element length in the reference configuration
+     */
+    double CalculateReferenceLength();
+
 private:
 
     /* The rotation operators are built with [d1, d2, d3] as col vectors */
     std::vector<BoundedMatrix<double, 3, 3>> mRotationOperators; // The two rotation matrices, one per each IP.
+
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector; // The vector containing the beam constitutive laws, one per each IP
     IntegrationMethod mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_LOBATTO_1; // By default the quadrature points are located at the nodes of the beam
 
