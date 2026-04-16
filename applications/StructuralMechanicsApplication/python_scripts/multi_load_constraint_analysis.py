@@ -12,9 +12,11 @@ class MultiLoadConstraintAnalysis(AnalysisStage):
         self.scheme_settings = project_parameters["future_scheme_settings"]
         self.solver_settings = project_parameters["solver_settings"]
         self.combination_list = project_parameters["process_combinations"]["combinations"]
+        self.fixity_ids = project_parameters["process_combinations"]["fixity_ids"]
         self.model_part_name = self.solver_settings["model_part_name"].GetString()
-        self.combination_by_constraint = self.__GroupCombinationsByConstraints()
+        #self.combination_by_constraint = self.__GroupCombinationsByConstraints()
         self.combination_solutions = {}
+        self.primitive_solutions = {}
 
         #TODO: Change the input format so all of these are accessible via their ids?
         if self.project_parameters.Has("process_combinations"):
@@ -25,7 +27,7 @@ class MultiLoadConstraintAnalysis(AnalysisStage):
                 pass
             if self.project_parameters["process_combinations"].Has("combinations"):
                 self.combinations = self.__CreateCombinationDictionary()
-                print(self.combinations)
+                #print(self.combinations)
 
         if self.model_part_name == "":
             raise Exception('Please specify a model_part name!')
@@ -43,79 +45,113 @@ class MultiLoadConstraintAnalysis(AnalysisStage):
     def Initialize(self):
         super().Initialize()
 
-    def __GroupCombinationsByConstraints(self):
-        combinations_by_constraint = {}
-
-        for combination in self.combination_list.values():
-            combination_id = combination["combination_id"].GetInt()
-
-            fixity_ids = []
-            if combination.Has("fixity_ids"):
-                fixity_ids = [item.GetString() for item in combination["fixity_ids"].values()]
-
-            mpc_ids = []
-            if combination.Has("mpc_ids"):
-                mpc_ids = [item.GetString() for item in combination["mpc_ids"].values()]
-
-            constraint_key = (
-                tuple(sorted(fixity_ids)),
-                tuple(sorted(mpc_ids))
-            )
-
-            #create a new dictionary key with an empty list
-            if constraint_key not in combinations_by_constraint:
-                combinations_by_constraint[constraint_key] = []
-            #store the current combination id to the key
-            combinations_by_constraint[constraint_key].append(combination_id)
-
-        return combinations_by_constraint
-
     def Run(self):
-        #self.debug_check()
+
         self.__StoreReferenceState()
-        self.__SolveCombinations()
-        #self.__ResetFixities()
+        self.__SolveConstraintState()
+        self.__OutputSolutionStep()
         for comb, dx in self.combination_solutions.items():
             print(f"Combination {comb} solution vector dx: {dx}")
 
-    def __SolveCombinations(self):
-        for fixity_group, combination_ids in self.combination_by_constraint.items():
-            self.__ResetFixities()
-            self.__ApplyFixities(fixity_group)
-            for combination_id in combination_ids:
-                self.__SolveCombination(combination_id)
-                self.__OutputSolutionStep(combination_id)
-                self.__RestoreReferenceState()
-        print(self.combination_solutions)
+    def __SolveConstraintState(self):
 
-    def __SolveCombination(self, combination_id):
-        combination = self.__GetCombination(combination_id)
-        combination_rhs = self.__CreateCombinationRHS(combination)
-        lhs = self.__GetRawLHS()
-        dx = KratosMultiphysics.SystemVector(combination_rhs.Size())
-        linear_system = self.__CreateLinearSystem(lhs, combination_rhs, dx)
-        strategy_data = self.__CreateStrategyData()
-        scheme = self.__InitializeScheme(strategy_data)
-        self.__InitializeStrategyData(strategy_data, linear_system)
-        self.__BuildEffectiveSystem(scheme, strategy_data)
-        self.__SolveLinearSystem(strategy_data)
-        scheme.Update(strategy_data)
-        self.__StoreCombinationSolution(combination_id, strategy_data)
+        load_ids = self.__GetPrimaryLoads()
+        self.__ApplyFixities()
+        self.__SolvePrimaryLoads(load_ids)
+        self.__SolveCombinations()
+        KratosMultiphysics.Logger.PrintInfo("::[MultiLoadConstraintAnalysis]::", "Finished constraint-state solve")
 
-    def __OutputSolutionStep(self, combination_id):
+    def __OutputSolutionStep(self):
+
+        for combination_id, solution in self.combination_solutions.items():
+            self.dofset.SetValues(solution)
+            self.__PrintCombinationOutput(combination_id)
+            self.__RestoreReferenceState()
+
+    def __PrintCombinationOutput(self, combination_id):
+
         current_combination = self.__GetCombination(combination_id)
+
         if self.project_parameters.Has("output_processes"):
             if self.project_parameters["output_processes"].Has("vtk_output"):
                 if current_combination.Has("combination_label"):
                     label = current_combination["combination_label"].GetString()
                     self.project_parameters["output_processes"]["vtk_output"][0]["Parameters"]["output_path"].SetString(f"vtk_output/{label}")
-                else:    
+                else:
                     self.project_parameters["output_processes"]["vtk_output"][0]["Parameters"]["output_path"].SetString(f"vtk_output/combination_{combination_id}")
+
                 order_processes_initialization = self._GetOrderOfOutputProcessesInitialization()
                 self._list_of_output_processes = self._CreateProcesses("output_processes", order_processes_initialization)
+
                 for process in self._list_of_output_processes:
                     process.ExecuteBeforeOutputStep()
                     process.PrintOutput()
+
+
+    def __GetPrimaryLoads(self):
+        load_ids = set()
+
+        for combination in self.combination_list.values():
+            for load in combination["loads"].values():
+                load_ids.add(load["load_process_id"].GetString())
+
+        return list(load_ids)
+    
+    def __SolveCombinations(self):
+        KratosMultiphysics.Logger.PrintInfo("::[MultiLoadConstraintAnalysis]::", "Solving combinations")
+        for combination in self.combination_list.values():
+            combination_factor = combination["combination_factor"].GetDouble()
+            combination_id = combination["combination_id"].GetInt()
+            combination_Dx = None
+            for load in combination["loads"].values():
+                load_factor = load["load_factor"].GetDouble()
+                load_id = load["load_process_id"].GetString()
+                dx = self.primitive_solutions[load_id]
+                if combination_Dx == None:
+                    combination_Dx = dx.copy()
+                    combination_Dx.SetValue(0.0)
+                combination_Dx += load_factor * dx
+            combination_Dx *= combination_factor
+            self.combination_solutions[combination_id] = combination_Dx.copy()
+
+    
+    def __SolvePrimaryLoads(self, load_ids):
+        KratosMultiphysics.Logger.PrintInfo("::[MultiLoadConstraintAnalysis]::", f"Primitive loads to solve: {load_ids}")
+        for id in load_ids:
+            self.__RestoreReferenceState()
+            rhs = self.__GetRHS(id)
+            lhs = self.__GetRawLHS()
+            #linear_system = self.init_strategy_data.GetLinearSystem()
+            #linear_system.SetVector(rhs, KratosMultiphysics.Future.DenseVectorTag.RHS)
+            dx = KratosMultiphysics.SystemVector(rhs.Size())
+            linear_system = self.__CreateLinearSystem(lhs, rhs, dx)
+            strategy_data = self.__CreateStrategyData()
+            scheme = self.__InitializeScheme(strategy_data)
+            self.__InitializeStrategyData(strategy_data, linear_system)
+            self.__BuildEffectiveSystem(scheme, strategy_data)
+            self.__SolveLinearSystem(strategy_data)
+            scheme.Update(strategy_data)
+            self.__StorePrimarySolution(id, strategy_data)
+
+    def __StorePrimarySolution(self, id, strategy_data):
+        dx = strategy_data.GetLinearSystem().GetVector(KratosMultiphysics.Future.DenseVectorTag.Dx)
+        self.primitive_solutions[id] = dx.copy()
+
+    #def __OutputSolutionStep(self):
+    #    for combination_id, solution in self.combination_solutions.items():
+    #        current_combination = self.__GetCombination(combination_id)
+    #        if self.project_parameters.Has("output_processes"):
+    #            if self.project_parameters["output_processes"].Has("vtk_output"):
+    #                if current_combination.Has("combination_label"):
+    #                    label = current_combination["combination_label"].GetString()
+    #                    self.project_parameters["output_processes"]["vtk_output"][0]["Parameters"]["output_path"].SetString(f"vtk_output/{label}")
+    #                else:    
+    #                    self.project_parameters["output_processes"]["vtk_output"][0]["Parameters"]["output_path"].SetString(f"vtk_output/combination_{combination_id}")
+    #                order_processes_initialization = self._GetOrderOfOutputProcessesInitialization()
+    #                self._list_of_output_processes = self._CreateProcesses("output_processes", order_processes_initialization)
+    #                for process in self._list_of_output_processes:
+    #                    process.ExecuteBeforeOutputStep()
+    #                    process.PrintOutput()
 
     def GetFinalData(self):
         return self.combination_solutions
@@ -136,39 +172,15 @@ class MultiLoadConstraintAnalysis(AnalysisStage):
     def __GetLinearSolver(self):
         return KratosMultiphysics.Future.SkylineLUFactorizationSolver()
         
-    def __ApplyFixities(self, fixity_tuple):
-        fixities, mpcs = fixity_tuple
-        for id in fixities:
+    def __ApplyFixities(self):
+        KratosMultiphysics.Logger.PrintInfo("::[MultiLoadConstraintAnalysis]::", "Applying fixities")
+        for id in self.fixity_ids.values():
+            id = id.GetString()
             definition = self.__GetFixity(id)
             process = self.__CreateProcess(definition)
             process.ExecuteInitialize()
             process.ExecuteBeforeSolutionLoop()
             process.ExecuteInitializeSolutionStep()
-    
-    def __CreateCombinationRHS(self, combination):
-        """Build the RHS for one combination by applying the load factors"""
-        loads = combination["loads"]
-        combination_scale_factor = combination["combination_factor"].GetDouble()
-        combination_rhs = None
-        for load in loads.values():
-            load_id = load["load_process_id"].GetString()
-            load_factor = load["load_factor"].GetDouble()
-            rhs = self.__GetRHS(load_id)
-            if combination_rhs is None:
-                combination_rhs = rhs.copy()
-                combination_rhs.SetValue(0.0)
-
-            combination_rhs += load_factor * rhs
-
-        combination_rhs *= combination_scale_factor
-        combination_id = combination["combination_id"].GetInt()
-        print(f"COMBINATION: {combination_id} with rh: {combination_rhs}")
-        return combination_rhs
-    
-    def __InitializeSchemeDofs(self, scheme, dof_set, effective_dof_set):
-
-        scheme.SetUpDofArrays(dof_set, effective_dof_set)
-        scheme.SetUpSystemIds(dof_set, effective_dof_set)
 
     def __BuildEffectiveSystem(self, scheme, strategy_data):
 
@@ -179,11 +191,9 @@ class MultiLoadConstraintAnalysis(AnalysisStage):
     def __InitializeStrategyData(self, strategy_data, linear_system):
 
         strategy_data.SetLinearSystem(linear_system)
-        #strategy_data.SetDofSet(dof_set)
-        #strategy_data.SetEffectiveDofSet(effective_dof_set)
+        strategy_data.SetDofSet(self.dofset)
 
     def __CreateStrategyData(self):
-
         return KratosMultiphysics.Future.ImplicitStrategyData() #stores all arrays required to setup linear system
 
     def __InitializeScheme(self, strategy_data):
@@ -203,23 +213,10 @@ class MultiLoadConstraintAnalysis(AnalysisStage):
     
     def GetProjectOutputData(self, stage_name, output_data):
 
-        self.lhs = output_data[stage_name]["lhs"]
+        self.init_strategy_data = output_data[stage_name]["strategy_data"]
+        self.lhs = self.init_strategy_data.GetLinearSystem().GetMatrix(KratosMultiphysics.Future.SparseMatrixTag.LHS)
         self.rhss = output_data[stage_name]["rhss"]
-
-    def debug_check(self):
-
-        print(self.combination_by_constraint)
-        for node in self.main_model_part.Nodes:
-            print(f"Node {node.Id}")
-            print("  UX fixed:", node.GetDof(KratosMultiphysics.DISPLACEMENT_X).IsFixed())
-            print("  UY fixed:", node.GetDof(KratosMultiphysics.DISPLACEMENT_Y).IsFixed())
-            print("  UZ fixed:", node.GetDof(KratosMultiphysics.DISPLACEMENT_Z).IsFixed())
-            print("  RX fixed:", node.GetDof(KratosMultiphysics.ROTATION_X).IsFixed())
-            print("  RY fixed:", node.GetDof(KratosMultiphysics.ROTATION_Y).IsFixed())
-            print("  RZ fixed:", node.GetDof(KratosMultiphysics.ROTATION_Z).IsFixed())
-
-        for id, rhs in self.rhss.items():
-            print(rhs)
+        self.fixity_processes = output_data[stage_name]["fixities"]
 
     def __CreateFixityDictionary(self):
 
@@ -243,22 +240,6 @@ class MultiLoadConstraintAnalysis(AnalysisStage):
 
         return combinations
     
-    def __ResetFixities(self):
-
-        dof_variables = [
-            KratosMultiphysics.DISPLACEMENT_X,
-            KratosMultiphysics.DISPLACEMENT_Y,
-            KratosMultiphysics.DISPLACEMENT_Z,
-            KratosMultiphysics.ROTATION_X,
-            KratosMultiphysics.ROTATION_Y,
-            KratosMultiphysics.ROTATION_Z
-        ]
-
-        for node in self.main_model_part.Nodes:
-            for dof_variable in dof_variables:
-                if node.HasDofFor(dof_variable):
-                    node.Free(dof_variable)
-    
     def __GetRawLHS(self):
         return self.lhs.copy()
     
@@ -272,6 +253,7 @@ class MultiLoadConstraintAnalysis(AnalysisStage):
         return self.combinations[id]
     
     def __CreateLinearSystem(self, lhs, rhs, dx, name="linear_system"):
+
         linear_system = KratosMultiphysics.Future.LinearSystem(name)
         linear_system.SetMatrix(lhs, KratosMultiphysics.Future.SparseMatrixTag.LHS)
         linear_system.SetVector(rhs, KratosMultiphysics.Future.DenseVectorTag.RHS)
@@ -280,34 +262,8 @@ class MultiLoadConstraintAnalysis(AnalysisStage):
         return linear_system
     
     def __StoreReferenceState(self):
-        self.reference_state = {}
-
-        variables = [
-            KratosMultiphysics.DISPLACEMENT_X,
-            KratosMultiphysics.DISPLACEMENT_Y,
-            KratosMultiphysics.DISPLACEMENT_Z,
-            KratosMultiphysics.ROTATION_X,
-            KratosMultiphysics.ROTATION_Y,
-            KratosMultiphysics.ROTATION_Z
-        ]
-
-        for node in self.main_model_part.Nodes:
-            self.reference_state[node.Id] = {}
-            for variable in variables:
-                if node.SolutionStepsDataHas(variable):
-                    self.reference_state[node.Id][variable.Name()] = node.GetSolutionStepValue(variable)
+        self.dofset = self.init_strategy_data.GetDofSet()
+        self.reference_state = self.dofset.GetValues()
 
     def __RestoreReferenceState(self):
-        #self.dofset.SetValues(self.reference_state)
-        variable_map = {
-            "DISPLACEMENT_X": KratosMultiphysics.DISPLACEMENT_X,
-            "DISPLACEMENT_Y": KratosMultiphysics.DISPLACEMENT_Y,
-            "DISPLACEMENT_Z": KratosMultiphysics.DISPLACEMENT_Z,
-            "ROTATION_X": KratosMultiphysics.ROTATION_X,
-            "ROTATION_Y": KratosMultiphysics.ROTATION_Y,
-            "ROTATION_Z": KratosMultiphysics.ROTATION_Z
-        }
-
-        for node in self.main_model_part.Nodes:
-            for variable_name, value in self.reference_state[node.Id].items():
-                node.SetSolutionStepValue(variable_map[variable_name], value)
+        self.dofset.SetValues(self.reference_state)

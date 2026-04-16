@@ -29,12 +29,21 @@ class MultiLoadConstraintPreparation(AnalysisStage):
         if self.project_parameters.Has("process_combinations"):
             if self.project_parameters["process_combinations"].Has("load_processes"):
                 self.load_processes = self.project_parameters["process_combinations"]["load_processes"]
+            if self.project_parameters["process_combinations"].Has("fixity_processes"):
+                self.__PrepareFixityDB()
 
     def Initialize(self):
         super().Initialize() # this calls some functions of the base class and also initializes the strategy data and the scheme
         self.__BuildLHS()
         #self.ApplyBoundaryConditions() -> this is now done in buildrhss
         self.__BuildRHSs()
+        
+
+    def __PrepareFixityDB(self):
+        self.fixities = {}
+        for fixity_definition in self.project_parameters["process_combinations"]["fixity_processes"].values():
+            process_id = fixity_definition["process_id"].GetString()
+            self.fixities[process_id] = fixity_definition
         
     def __BuildRHSs(self):
 
@@ -192,6 +201,8 @@ class MultiLoadConstraintPreparation(AnalysisStage):
         Note that even though it can be called at any point, it is intended to be called at the end of the stage run.
         """
         return {"lhs": self.lhs,
+                "strategy_data": self.strategy_data,
+                "fixities": self.fixities,
                 "rhss": self.rhss,
                 "model_part_name": self.main_model_part.FullName()}
 
