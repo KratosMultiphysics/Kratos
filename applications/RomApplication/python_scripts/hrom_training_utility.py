@@ -7,6 +7,7 @@ from pathlib import Path
 import KratosMultiphysics
 
 # Import applications
+import KratosMultiphysics.MedApplication as KratosMed
 import KratosMultiphysics.RomApplication as KratosROM
 from KratosMultiphysics.RomApplication.empirical_cubature_method import EmpiricalCubatureMethod
 from KratosMultiphysics.RomApplication.randomized_singular_value_decomposition import RandomizedSingularValueDecomposition
@@ -42,6 +43,9 @@ class HRomTrainingUtility(object):
         self.rom_settings = custom_settings["rom_settings"].Clone()
         self.rom_settings.RemoveValue("rom_bns_settings") #Removing because the inner rom settings are specific for each builder and solver.
         self.hrom_visualization_model_part = settings["create_hrom_visualization_model_part"].GetBool()
+        self.base_model_filename = settings["base_model_filename"].GetString()
+        self.base_model_type = settings["base_model_type"].GetString()
+        self.modelers_list = settings["modelers"]
         self.projection_strategy = settings["projection_strategy"].GetString()
         self.hrom_output_format = settings["hrom_format"].GetString()
         self.include_minimum_condition = settings["include_minimum_condition"].GetBool()
@@ -216,13 +220,32 @@ class HRomTrainingUtility(object):
     def CreateHRomModelParts(self):
         # Get solver data
         model_part_name = self.solver.settings["model_part_name"].GetString()
-        model_part_output_name = self.solver.settings["model_import_settings"]["input_filename"].GetString()
+        model_part_output_type = self.solver.settings["model_import_settings"]["input_type"].GetString()
+
+        if model_part_output_type == 'use_input_model_part':
+            model_part_output_name = self.base_model_filename
+        else:
+            model_part_output_name = self.solver.settings["model_import_settings"]["input_filename"].GetString()
+
         # computing_model_part = self.solver.GetComputingModelPart()
         #computing_model_part = self.solver.GetComputingModelPart().GetRootModelPart() #TODO: DECIDE WHICH ONE WE SHOULD USE?¿?¿ MOST PROBABLY THE ROOT FOR THOSE CASES IN WHICH THE COMPUTING IS CUSTOM (e.g. CFD)
         aux_model = KratosMultiphysics.Model()
-        computing_model_part = aux_model.CreateModelPart("main")
-        model_part_io = KratosMultiphysics.ModelPartIO(model_part_output_name)
-        model_part_io.ReadModelPart(computing_model_part)
+        computing_model_part = aux_model.CreateModelPart("MainModelPart")
+
+        if model_part_output_type == 'mdpa' or self.base_model_type == 'mdpa':
+            model_part_io = KratosMultiphysics.ModelPartIO(model_part_output_name)
+            model_part_io.ReadModelPart(computing_model_part)
+        elif self.base_model_type == 'med':
+            model_part_io = KratosMed.MedModelPartIO(model_part_output_name+".med")
+            model_part_io.ReadModelPart(computing_model_part)
+            if computing_model_part.NumberOfElements() == 0:
+                self._CreateModelers(aux_model)
+                self._ModelersSetupGeometryModel()
+                self._ModelersPrepareGeometryModel()
+                self._ModelersSetupModelPart()
+        else:
+            err_msg = "Model input type have to be 'mdpa' or 'med'."
+            raise Exception(err_msg)
 
         # Create a new model with the HROM main model part
         # This is intentionally done in order to completely emulate the origin model part
@@ -248,13 +271,28 @@ class HRomTrainingUtility(object):
         if self.echo_level > 0:
             KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","HROM computing model part \'{}\' created.".format(hrom_main_model_part.FullName()))
 
-        # Output the HROM model part in mdpa format
-        hrom_output_name = "{}HROM".format(model_part_output_name)
-        model_part_io = KratosMultiphysics.ModelPartIO(hrom_output_name, KratosMultiphysics.IO.WRITE | KratosMultiphysics.IO.MESH_ONLY | KratosMultiphysics.IO.SCIENTIFIC_PRECISION)
-        model_part_io.WriteModelPart(hrom_main_model_part)
-        KratosMultiphysics.kratos_utilities.DeleteFileIfExisting("{}.time".format(hrom_output_name))
-        if self.echo_level > 0:
-            KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","HROM mesh written in \'{}.mdpa\'".format(hrom_output_name))
+        if model_part_output_type == 'mdpa' or self.base_model_type == 'mdpa':
+            # Output the HROM model part in mdpa format
+            hrom_output_name = "{}HROM".format(model_part_output_name)
+            model_part_io = KratosMultiphysics.ModelPartIO(hrom_output_name, KratosMultiphysics.IO.WRITE | KratosMultiphysics.IO.MESH_ONLY | KratosMultiphysics.IO.SCIENTIFIC_PRECISION)
+            model_part_io.WriteModelPart(hrom_main_model_part)
+            KratosMultiphysics.kratos_utilities.DeleteFileIfExisting("{}.time".format(hrom_output_name))
+            if self.echo_level > 0:
+                KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","HROM mesh written in \'{}.mdpa\'".format(hrom_output_name))
+        elif self.base_model_type == 'med':
+            hrom_output_name = "{}HROM.med".format(model_part_output_name)
+            KratosROM.RomAuxiliaryUtilities.AddGeometries(computing_model_part, hrom_main_model_part)
+            model_part_io = KratosMed.MedModelPartIO(hrom_output_name, KratosMultiphysics.IO.WRITE)
+            model_part_io.WriteModelPart(hrom_main_model_part)
+            del model_part_io
+            geometry_ids_list = []
+            for element in hrom_main_model_part.Elements:
+                geometry_ids_list.append([element.GetGeometry().Id, element.Id])
+            for condition in hrom_main_model_part.Conditions:
+                geometry_ids_list.append([condition.GetGeometry().Id, condition.Id])
+            np.savetxt(f"{self.rom_basis_output_folder}/HROM_GeometryIds.csv", geometry_ids_list, fmt="%d", delimiter=",")
+            if self.echo_level > 0:
+                KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","HROM mesh written in \'{}\'".format(hrom_output_name))
 
         #TODO: Make this optional
         #TODO: Move this out of here
@@ -270,12 +308,21 @@ class HRomTrainingUtility(object):
             print(hrom_visualization_model_part)
 
             # Write the HROM visualization mesh
-            hrom_vis_output_name = "{}HROMVisualization".format(model_part_output_name)
-            model_part_io = KratosMultiphysics.ModelPartIO(hrom_vis_output_name, KratosMultiphysics.IO.WRITE | KratosMultiphysics.IO.MESH_ONLY | KratosMultiphysics.IO.SCIENTIFIC_PRECISION)
-            model_part_io.WriteModelPart(hrom_visualization_model_part)
-            KratosMultiphysics.kratos_utilities.DeleteFileIfExisting("{}.time".format(hrom_vis_output_name))
-            if self.echo_level > 0:
-                KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","HROM visualization mesh written in \'{}.mdpa\'".format(hrom_vis_output_name))
+            if model_part_output_type == 'mdpa' or self.base_model_type == 'mdpa':
+                hrom_vis_output_name = "{}HROMVisualization".format(model_part_output_name)
+                model_part_io = KratosMultiphysics.ModelPartIO(hrom_vis_output_name, KratosMultiphysics.IO.WRITE | KratosMultiphysics.IO.MESH_ONLY | KratosMultiphysics.IO.SCIENTIFIC_PRECISION)
+                model_part_io.WriteModelPart(hrom_visualization_model_part)
+                KratosMultiphysics.kratos_utilities.DeleteFileIfExisting("{}.time".format(hrom_vis_output_name))
+                if self.echo_level > 0:
+                    KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","HROM visualization mesh written in \'{}.mdpa\'".format(hrom_vis_output_name))
+            elif self.base_model_type == 'med':
+                hrom_vis_output_name = "{}HROMVisualization.med".format(model_part_output_name)
+                KratosROM.RomAuxiliaryUtilities.AddGeometries(computing_model_part, hrom_visualization_model_part)
+                model_part_io = KratosMed.MedModelPartIO(hrom_vis_output_name, KratosMultiphysics.IO.WRITE)
+                model_part_io.WriteModelPart(hrom_visualization_model_part)
+                del model_part_io
+                if self.echo_level > 0:
+                    KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","HROM visualization mesh written in \'{}\'".format(hrom_vis_output_name))
 
     @classmethod
     def __GetHRomTrainingDefaultSettings(cls):
@@ -285,6 +332,9 @@ class HRomTrainingUtility(object):
             "element_selection_svd_truncation_tolerance": 1.0e-6,
             "echo_level" : 0,
             "create_hrom_visualization_model_part" : false,
+            "base_model_filename" : "",
+            "base_model_type" : "",
+            "modelers": [],
             "projection_strategy": "galerkin",
             "include_conditions_model_parts_list": [],
             "include_elements_model_parts_list": [],
@@ -508,4 +558,63 @@ class HRomTrainingUtility(object):
 
         return unique_element_ids_list, unique_condition_ids_list
 
+    # --------------------------------------------------------------------------
+    ### Modelers
+    def _GetListOfModelers(self):
+        """ This function returns the list of modelers
+        """
+        if not hasattr(self, '_list_of_modelers'):
+            raise Exception("The list of modelers was not yet created!")
+        return self._list_of_modelers
+    
+    def _CreateModelers(self, model):
+        """ List of modelers in following format:
+        "modelers" : [{
+            "name" : "geometry_import",
+            "parameters" : {
+                "echo_level" : 0,
+                // settings for this modeler
+            }
+        },{ ... }]
+        """
+        self._list_of_modelers = []
+        if self.__BackwardCompatibleModelersCreation(self.modelers_list):
+            from KratosMultiphysics.modeler_factory import KratosModelerFactory
+            factory = KratosModelerFactory()
+            self._list_of_modelers = factory.ConstructListOfModelers(model, self.modelers_list)
+        else:
+            from KratosMultiphysics.model_parameters_factory import KratosModelParametersFactory
+            factory = KratosModelParametersFactory(model)
+            self._list_of_modelers = factory.ConstructListOfItems(self.modelers_list)
+            
+    @classmethod
+    def __BackwardCompatibleModelersCreation(self, modelers_list):
+        return any([modeler.Has("modeler_name") for modeler in modelers_list.values()])
+    
+    def _ModelersSetupGeometryModel(self):
+        # Import or generate geometry models from external input.
+        for modeler in self._GetListOfModelers():
+            if self.echo_level > 1:
+                KratosMultiphysics.Logger.PrintInfo("Modeler: ", str(modeler), " Setup Geometry Model started.")
+            modeler.SetupGeometryModel()
+            if self.echo_level > 1:
+                KratosMultiphysics.Logger.PrintInfo("Modeler: ", str(modeler), " Setup Geometry Model finished.")
 
+    def _ModelersPrepareGeometryModel(self):
+        # Prepare or update the geometry model_part.
+        for modeler in self._GetListOfModelers():
+            if self.echo_level > 1:
+                KratosMultiphysics.Logger.PrintInfo("Modeler: ", str(modeler), " Prepare Geometry Model started.")
+            modeler.PrepareGeometryModel()
+            if self.echo_level > 1:
+                KratosMultiphysics.Logger.PrintInfo("Modeler: ", str(modeler), " Prepare Geometry Model finished.")
+
+    def _ModelersSetupModelPart(self):
+        # Convert the geometry model or import analysis suitable models.
+        for modeler in self._GetListOfModelers():
+            if self.echo_level > 1:
+                KratosMultiphysics.Logger.PrintInfo("Modeler: ", str(modeler), " Setup ModelPart started.")
+            modeler.SetupModelPart()
+            if self.echo_level > 1:
+                KratosMultiphysics.Logger.PrintInfo("Modeler: ", str(modeler), " Setup ModelPart finished.")
+    # --------------------------------------------------------------------------
