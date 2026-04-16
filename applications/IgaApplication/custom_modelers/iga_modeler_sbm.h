@@ -209,6 +209,16 @@ private:
         PropertiesPointerType pProperties,
         const Vector KnotSpanSizes) const;
 
+    /// Creates conditions from geometries and routes subsets based on additional_data rules.
+    void CreateConditionsWithAdditionalData(
+        GeometriesArrayType& rGeometries,
+        ModelPart& rModelPart,
+        const Parameters rAdditionalData,
+        std::string& rDefaultConditionName,
+        SizeType& rIdCounter,
+        PropertiesPointerType pProperties,
+        const Vector KnotSpanSizes) const;
+
     /// Creates conditions from geometries
     void CreateConditions(
         typename GeometriesArrayType::ptr_iterator rGeometriesBegin,

@@ -32,6 +32,8 @@ AssignIgaExternalConditionsProcess::AssignIgaExternalConditionsProcess(
         << "Missing \"model_part_name\" section" << std::endl;
 
     mElementConditionList = mParameters["element_condition_list"];
+
+    ExpandElementConditionList();
 }
 
 void AssignIgaExternalConditionsProcess::ExecuteInitialize(){
@@ -362,6 +364,62 @@ void AssignIgaExternalConditionsProcess::SetVariableValueToCondition(
     } else {
         KRATOS_ERROR << "No name found" ;
     }
-} 
+}
+
+void AssignIgaExternalConditionsProcess::ExpandElementConditionList()
+{
+    Parameters expanded("[]");
+
+    const std::string root_name = mParameters["model_part_name"].GetString();
+    ModelPart& r_root = mpModel->GetModelPart(root_name);
+
+    for (IndexType i = 0; i < mElementConditionList.size(); ++i) {
+        const Parameters item = mElementConditionList[i];
+
+        const bool for_all = item.Has("apply_to_all_patches") && item["apply_to_all_patches"].GetBool();
+        const std::string suffix = item.Has("iga_model_part_suffix") ? item["iga_model_part_suffix"].GetString() : "";
+        const std::string patch_prefix = item.Has("patch_prefix") ? item["patch_prefix"].GetString() : "Patch";
+
+        if (for_all) {
+            KRATOS_ERROR_IF(suffix.empty())
+                << "AssignIgaExternalConditionsProcess: 'apply_to_all_patches' requires 'iga_model_part_suffix'." << std::endl;
+
+            for (auto& r_patch : r_root.SubModelParts()) {
+                const std::string& patch_name = r_patch.Name();
+                if (patch_name.rfind(patch_prefix, 0) != 0) {
+                    continue;
+                }
+
+                const std::string full_target = r_patch.FullName() + "." + suffix;
+                if (!mpModel->HasModelPart(full_target)) {
+                    continue;
+                }
+
+                Parameters clone = item.Clone();
+                if (clone.Has("iga_model_part")) {
+                    clone["iga_model_part"].SetString(full_target);
+                } else {
+                    clone.AddEmptyValue("iga_model_part").SetString(full_target);
+                }
+
+                if (clone.Has("apply_to_all_patches")) {
+                    clone.RemoveValue("apply_to_all_patches");
+                }
+                if (clone.Has("iga_model_part_suffix")) {
+                    clone.RemoveValue("iga_model_part_suffix");
+                }
+                if (clone.Has("patch_prefix")) {
+                    clone.RemoveValue("patch_prefix");
+                }
+
+                expanded.Append(clone);
+            }
+        } else {
+            expanded.Append(item);
+        }
+    }
+
+    mElementConditionList = expanded;
+}
 
 } // namespace Kratos

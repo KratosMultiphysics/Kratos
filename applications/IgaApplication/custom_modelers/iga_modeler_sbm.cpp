@@ -12,6 +12,10 @@
 //
 
 
+// System includes
+#include <cctype>
+#include <cstdlib>
+
 // Project includes
 #include "iga_modeler_sbm.h"
 #include "custom_processes/prepare_integration_on_true_boundary_process.h"
@@ -338,14 +342,130 @@ void IgaModelerSbm::CreateQuadraturePointGeometries(
             SizeType id = 1;
             if (rModelPart.GetRootModelPart().Conditions().size() > 0)
                 id = rModelPart.GetRootModelPart().Conditions().back().Id() + 1;
-            this->CreateConditions(
-                geometries.ptr_begin(), geometries.ptr_end(),
-                rModelPart, name, id, PropertiesPointerType(), knot_span_sizes);
+            if (!rParameters.Has("additional_data")) {
+                this->CreateConditions(
+                    geometries.ptr_begin(), geometries.ptr_end(),
+                    rModelPart, name, id, PropertiesPointerType(), knot_span_sizes);
+            } else {
+                this->CreateConditionsWithAdditionalData(
+                    geometries,
+                    rModelPart,
+                    rParameters["additional_data"],
+                    name,
+                    id,
+                    PropertiesPointerType(),
+                    knot_span_sizes);
+            }
         }
         else {
             KRATOS_ERROR << "\"type\" does not exist: " << type
                 << ". Possible types are \"element\" and \"condition\"." << std::endl;
         }
+    }
+}
+
+void IgaModelerSbm::CreateConditionsWithAdditionalData(
+    GeometriesArrayType& rGeometries,
+    ModelPart& rModelPart,
+    const Parameters rAdditionalData,
+    std::string& rDefaultConditionName,
+    SizeType& rIdCounter,
+    PropertiesPointerType pProperties,
+    const Vector KnotSpanSizes) const
+{
+    GeometriesArrayType remaining_geometries;
+    for (auto it = rGeometries.ptr_begin(); it != rGeometries.ptr_end(); ++it) {
+        remaining_geometries.push_back(*it);
+    }
+
+    auto matches_apply_to = [](const GeometryType& rGeom, const std::string& rExpr) -> bool {
+        std::string expr;
+        expr.reserve(rExpr.size());
+        for (char c : rExpr) {
+            if (c != ' ') {
+                expr.push_back(c);
+            }
+        }
+        if (expr.empty()) {
+            return false;
+        }
+
+        const char axis = static_cast<char>(std::tolower(static_cast<unsigned char>(expr[0])));
+        std::size_t eq_pos = expr.find('=');
+        if (eq_pos == std::string::npos) {
+            eq_pos = expr.find("==");
+            if (eq_pos == std::string::npos) {
+                return false;
+            }
+        }
+
+        const bool has_double_equals = expr[eq_pos] == '=' && eq_pos + 1 < expr.size() && expr[eq_pos + 1] == '=';
+        const std::string value_str = expr.substr(eq_pos + (has_double_equals ? 2 : 1));
+        char* endptr = nullptr;
+        const double value = std::strtod(value_str.c_str(), &endptr);
+        if (endptr == value_str.c_str()) {
+            return false;
+        }
+
+        const auto center = rGeom.Center();
+        constexpr double eps = 1e-12;
+        if (axis == 'x') return std::abs(center.X() - value) < eps;
+        if (axis == 'y') return std::abs(center.Y() - value) < eps;
+        if (axis == 'z') return std::abs(center.Z() - value) < eps;
+        return false;
+    };
+
+    for (IndexType i_rule = 0; i_rule < rAdditionalData.size(); ++i_rule) {
+        const Parameters rule = rAdditionalData[i_rule];
+        if (!rule.Has("apply_to") || !rule.Has("iga_model_part") || !rule.Has("name")) {
+            KRATOS_INFO("IgaModelerSbm") << "Skipping additional_data[" << i_rule
+                << "]: missing one of {apply_to, iga_model_part, name}." << std::endl;
+            continue;
+        }
+
+        const std::string apply_to = rule["apply_to"].GetString();
+        const std::string target_mp_name = rule["iga_model_part"].GetString();
+        const std::string target_cond_name = rule["name"].GetString();
+
+        GeometriesArrayType geometries_match;
+        GeometriesArrayType geometries_non_match;
+        for (auto it = remaining_geometries.ptr_begin(); it != remaining_geometries.ptr_end(); ++it) {
+            const auto& r_geom = *(*it);
+            if (matches_apply_to(r_geom, apply_to)) {
+                geometries_match.push_back(*it);
+            } else {
+                geometries_non_match.push_back(*it);
+            }
+        }
+
+        if (geometries_match.size() > 0) {
+            ModelPart* p_target_mp = nullptr;
+            if (mpModel != nullptr && mpModel->HasModelPart(target_mp_name)) {
+                p_target_mp = &mpModel->GetModelPart(target_mp_name);
+            } else {
+                ModelPart& r_owner_mp = rModelPart.GetParentModelPart();
+                ModelPart* p_owner = (&r_owner_mp == &rModelPart) ? &rModelPart : &r_owner_mp;
+                p_target_mp = p_owner->HasSubModelPart(target_mp_name)
+                    ? &p_owner->GetSubModelPart(target_mp_name)
+                    : &p_owner->CreateSubModelPart(target_mp_name);
+            }
+
+            std::string cond_name_copy = target_cond_name;
+            this->CreateConditions(
+                geometries_match.ptr_begin(), geometries_match.ptr_end(),
+                *p_target_mp, cond_name_copy, rIdCounter, pProperties, KnotSpanSizes);
+        }
+
+        remaining_geometries = GeometriesArrayType();
+        for (auto it = geometries_non_match.ptr_begin(); it != geometries_non_match.ptr_end(); ++it) {
+            remaining_geometries.push_back(*it);
+        }
+    }
+
+    if (remaining_geometries.size() > 0) {
+        this->CreateConditions(
+            remaining_geometries.ptr_begin(), remaining_geometries.ptr_end(),
+            rModelPart, rDefaultConditionName, rIdCounter, pProperties, KnotSpanSizes);
     }
 }
 

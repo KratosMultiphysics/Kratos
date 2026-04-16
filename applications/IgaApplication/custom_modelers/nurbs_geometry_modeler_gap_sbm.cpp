@@ -160,6 +160,8 @@ void NurbsGeometryModelerGapSbm::CreateAndAddRegularGrid2D(
         snake_parameters.AddInt("number_of_interpolation_levels", mParameters["number_of_interpolation_levels"].GetInt());
     if (mParameters.Has("polynomial_order"))
         snake_parameters.AddVector("polynomial_order", mParameters["polynomial_order"].GetVector());
+    if (mParameters.Has("use_for_multipatch"))
+        snake_parameters.AddBool("use_for_multipatch", mParameters["use_for_multipatch"].GetBool());
 
 
     // Create the surrogate_sub_model_part for inner and outer
@@ -345,6 +347,7 @@ const Parameters NurbsGeometryModelerGapSbm::GetDefaultParameters() const
         "number_internal_divisions": 1,
         "gap_relative_tolerance_for_subdivisions": 0.1,
         "number_of_interpolation_levels": 3,
+        "use_for_multipatch": false,
         "gap_approximation_order": 0,
         "gap_element_name": "",
         "gap_interface_condition_name": "",
@@ -371,6 +374,7 @@ const Parameters NurbsGeometryModelerGapSbm::GetValidParameters() const
         "number_internal_divisions": 1,
         "gap_relative_tolerance_for_subdivisions": 0.1,
         "number_of_interpolation_levels": 3,
+        "use_for_multipatch": false,
         "gap_approximation_order": 0,
         "skin_model_part_inner_initial_name": "r_skin_model_part_inner_initial",
         "skin_model_part_outer_initial_name": "r_skin_model_part_outer_initial",
