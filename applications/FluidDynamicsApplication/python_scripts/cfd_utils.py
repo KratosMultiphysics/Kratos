@@ -139,30 +139,9 @@ class CFDUtils:
                     [0.1381966011250105, 0.1381966011250105, 0.1381966011250105, 0.5854101966249685]
                 ], dtype=PRECISION)
             else:
-                raise Exception("Dimension not supported.")
+                raise Exception(f"Dimension {dim} not supported.")
         else:
             raise Exception("Integration order not supported.")
-
-        return N
-
-    def GetShapeFunctionsOnEdgeMidpoints(self, dim: int):
-        if dim == 2:
-            N = xp.array([
-                [0.5, 0.5, 0.0],
-                [0.5, 0.0, 0.5],
-                [0.0, 0.5, 0.5]
-            ], dtype=PRECISION)
-        elif dim == 3:
-            N = xp.array([
-                [0.5, 0.5, 0.0, 0.0],
-                [0.5, 0.0, 0.5, 0.0],
-                [0.5, 0.0, 0.0, 0.5],
-                [0.0, 0.5, 0.5, 0.0],
-                [0.0, 0.5, 0.0, 0.5],
-                [0.0, 0.0, 0.5, 0.5]
-            ], dtype=PRECISION)
-        else:
-            raise Exception("Dimension not supported.")
 
         return N
 
@@ -181,7 +160,7 @@ class CFDUtils:
                 [1.0/20.0, 1.0/20.0, 1.0/20.0, 2.0/20.0]
             ], dtype=PRECISION)
         else:
-            raise Exception("Dimension not supported.")
+            raise Exception(f"Dimension {dim} not supported.")
 
         return M_e
 
@@ -192,7 +171,7 @@ class CFDUtils:
             elif dim == 3:
                 w = xp.array([1.0/6.0],dtype=PRECISION)
             else:
-                raise Exception("Dimension not supported.")
+                raise Exception(f"Dimension {dim} not supported.")
         elif integration_order == 2:
             if dim == 2:
                 w = xp.array([
@@ -645,7 +624,7 @@ class CFDUtils:
 
         if out is None:
             ngauss = N.shape[0]
-            nelem, nnode, dim = b_elemental.shape
+            nelem, _, dim = b_elemental.shape
             out = xp.empty((nelem, ngauss, dim), dtype=b_elemental.dtype)
             
         # N (ngauss, nnode) @ b_elemental (nelem, nnode, dim) -> (nelem, ngauss, dim)
@@ -774,7 +753,6 @@ class CFDUtils:
         if elem_conv.ndim == 3: # vector field
             _, _, n_dim = elem_conv.shape
             M_e = self.GetElementalMassMatrix(n_dim) #elemental mass matrix (n_node, n_node)
-            print("Mass matrix", M_e)
             return xp.einsum('ij,ejk->eik', M_e, elem_conv) # (n_elem, n_node, n_dim)
 
         elif elem_conv.ndim == 2: # scalar field
@@ -817,6 +795,67 @@ class CFDUtils:
         out = rho2 * adv[:, :, :, None] * (conv - pi_gauss)[:, :, None, :]
 
         return out
+
+    def ComputeMomentumStabilizationAlt(self, DN, a_elemental, conv_elemental, pi_elemental):
+        """
+        Compute the momentum stabilization term:
+
+            (a · ∇w, a · ∇u - Π)
+
+        using a consistent mass-matrix projection instead of Gauss quadrature loop.
+
+        The nodal quantity
+
+            β_j = (a_j · ∇u) - Π_j
+
+        is projected with the elemental mass matrix, yielding:
+
+            R_{i,l} = Σ_{j,m,k} DN_{i,k} M_{j m} β_{m,k} a_{j,l}
+
+        Assumptions
+        -----------
+        - Linear elements (constant ∇u per element)
+        - FE interpolation of convective operator a · ∇u and projection Π
+
+        Parameters
+        ----------
+        DN : (n_elem, n_node, n_dim)
+        a_elemental : (n_elem, n_node, n_dim)
+        conv_elemental : (n_elem, n_node, n_dim)
+        pi_elemental : (n_elem, n_node, n_dim)
+
+        Returns
+        -------
+        (n_elem, n_node, n_dim)
+
+        Notes
+        -----
+        - Equivalent to Gauss integration under consistent interpolation.
+        - Geometric scaling (detJ / volume) applied externally.
+        """
+        # _, _, dim = a_elemental.shape 
+        # beta = conv_elemental - pi_elemental #nodal convective term minus L2 projection
+        # M_e = self.GetElementalMassMatrix(dim) #elemental mass matrix (n_node, n_node)
+        # return xp.einsum("eik,jm,emk,ejl->eil", DN, M_e, beta, a_elemental, optimize=opt_type)
+    
+        beta = conv_elemental - pi_elemental              # (e, node, dim)
+        M_e = self.GetElementalMassMatrix(beta.shape[2])  # (node, node)
+
+        n_node = beta.shape[1]
+        n_dim = beta.shape[2]
+
+        # --- 1) Unrolled mass projection (compute once) ---
+        B = M_e[:, 0][None, :, None] * beta[:, 0, :][:, None, :]
+        for m in range(1, n_node):
+            B += M_e[:, m][None, :, None] * beta[:, m, :][:, None, :]
+
+        # --- 2) Unrolled contraction with DN ---
+        T = DN[:, :, 0][:, :, None] * B[:, None, :, 0]
+        for k in range(1, n_dim):
+            T += DN[:, :, k][:, :, None] * B[:, None, :, k]
+
+        # --- 3) Final contraction ---
+        return xp.matmul(T, a_elemental)
 
     def ComputeDivDivStabilization(self, N: np.array, DN: np.ndarray, u_elemental : np.ndarray, Pi_div_elemental: np.ndarray):
         """

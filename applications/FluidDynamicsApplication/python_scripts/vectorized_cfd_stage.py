@@ -423,15 +423,17 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
     def ComputeVelocityProjection(self, v_elemental):
         # Solve (w,pi) = (w,a·∇u)
         # Calculate the convective term at the elemental level
-        convective = xp.zeros(v_elemental.shape, dtype=cfd_utils.PRECISION)
-        tmp = xp.zeros_like(convective)
-        grad_v = self.cfd_utils.ComputeElementalGradient(self.DN, v_elemental)
-        v_el_gauss = self.cfd_utils.InterpolateValue(self.N_int_order, v_elemental)
+        # convective = xp.zeros(v_elemental.shape, dtype=cfd_utils.PRECISION)
+        # tmp = xp.zeros_like(convective)
+        # v_el_gauss = self.cfd_utils.InterpolateValue(self.N_int_order, v_elemental)
 
         # Compute convective contribution at integration points (w,a·∇u)
         # tmp = self.rho * self.cfd_utils.ComputeConvectiveContribution(self.N_int_order, grad_v, v_el_gauss) # Calculate the elemental convective contributions at each integration point
-        tmp = self.cfd_utils.ComputeConvectiveContribution(self.N_int_order, grad_v, v_el_gauss) # Calculate the elemental convective contributions at each integration point
-        convective = xp.tensordot(tmp, self.w_int_order, axes=(1, 0)) # Scale with integration weights and do the integration points summation
+        # tmp = self.cfd_utils.ComputeConvectiveContribution(self.N_int_order, grad_v, v_el_gauss) 
+        # convective = xp.tensordot(tmp, self.w_int_order, axes=(1, 0)) # Scale with integration weights and do the integration points summation 
+        grad_v_elemental = self.cfd_utils.ComputeElementalGradient(self.DN, v_elemental) # Calculate the velocity gradient at each element (assumed constant within the element)
+        a_grad_elemental = self.cfd_utils.ComputeElementalConvectiveOperator(v_elemental, grad_v_elemental) # Calculate the convective operator at each node
+        convective = self.rho * self.cfd_utils.ComputeConvectiveContributionAlt(a_grad_elemental) # Calculate the elemental convective contributions
         convective *= self.elemental_volumes[:, None, None] # Apply Jacobian determinant to the entire residual
 
         # Do the nodal assembly of the projection elemental contributions
@@ -765,43 +767,45 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
         #(w,b)
         t0 = time.perf_counter()
-        res += self.rho * self.cfd_utils.ComputeBodyForceContribution(self.N_int_order, b_elemental)
+        b = self.rho * self.cfd_utils.ComputeBodyForceContribution(self.N_int_order, b_elemental)
+        xp.tensordot(b, self.w_int_order, axes=(1, 0)) #weighted integration over Gauss points (Jacobian determinant is applied at the end)
+        res += b
         print(f"\t\ttime {1}: {time.perf_counter() - t0}")
 
         #-(w,rho·a·∇u) - (rho·a·∇w,tau_1·rho·a·∇u) + (rho·a·∇w,tau_1·Pi_conv)
         t0 = time.perf_counter()
         grad_v = self.cfd_utils.ComputeElementalGradient(DN, v_elemental)
-        a_grad = self.cfd_utils.ComputeElementalConvectiveOperator(v_elemental, DN)
-        v_el_gauss = self.cfd_utils.InterpolateValue(self.N_int_order, v_elemental)
-        proj_el_gauss = self.cfd_utils.InterpolateValue(self.N_int_order, proj_elemental)
+        a_grad_elemental = self.cfd_utils.ComputeElementalConvectiveOperator(v_elemental, grad_v)
+        # v_el_gauss = self.cfd_utils.InterpolateValue(self.N_int_order, v_elemental)
+        # proj_el_gauss = self.cfd_utils.InterpolateValue(self.N_int_order, proj_elemental)
         print(f"\t\ttime {2}: {time.perf_counter() - t0}")
 
-        t0 = time.perf_counter()
-        tmp = self.rho * self.cfd_utils.ComputeConvectiveContribution(self.N_int_order, grad_v, v_el_gauss) #(w,rho·a·∇u)
+        # t0 = time.perf_counter()
+        # tmp = self.rho * self.cfd_utils.ComputeConvectiveContribution(self.N_int_order, grad_v, v_el_gauss) #(w,rho·a·∇u)
+        # print(f"\t\ttime {3}: {time.perf_counter() - t0}")
+        # t0 = time.perf_counter()
+        # tmp_stab = self.cfd_utils.ComputeMomentumStabilization(self.N_int_order, DN, v_elemental, v_el_gauss, proj_el_gauss, self.rho) #(rho·a·∇w,rho·a·∇u) - (rho·a·∇w,Pi_conv)
+        # print(f"\t\ttime {4}: {time.perf_counter() - t0}")
 
-        N_edges = self.cfd_utils.GetShapeFunctionsOnEdgeMidpoints(self.dim)
-        tmp_2 = self.rho * self.cfd_utils.ComputeConvectiveContributionOnEdgeMidpoints(N_edges, a_grad, v_elemental) #(w,rho·a·∇u)
-
-        print(f"\t\ttime {3}: {time.perf_counter() - t0}")
-        t0 = time.perf_counter()
-        tmp_stab = self.cfd_utils.ComputeMomentumStabilization(self.N_int_order, DN, v_elemental, v_el_gauss, proj_el_gauss, self.rho) #(rho·a·∇w,rho·a·∇u) - (rho·a·∇w,Pi_conv)
-        print(f"\t\ttime {4}: {time.perf_counter() - t0}")
-
-        t0 = time.perf_counter()
-        del grad_v
-        del v_el_gauss
-        del proj_el_gauss
-        print(f"\t\ttime {5}: {time.perf_counter() - t0}")
+        # t0 = time.perf_counter()
+        # del grad_v
+        # del v_el_gauss
+        # del proj_el_gauss
+        # print(f"\t\ttime {5}: {time.perf_counter() - t0}")
 
         t0 = time.perf_counter()
-        convective = xp.tensordot(tmp, self.w_int_order, axes=(1, 0)) #weighted integration over Gauss points (Jacobian determinant is applied at the end)
-        convective_stab = xp.tensordot(tmp_stab, self.w_int_order, axes=(1, 0)) #weighted integration over Gauss points (Jacobian determinant is applied at the end)
+        # convective = xp.tensordot(tmp, self.w_int_order, axes=(1, 0)) #weighted integration over Gauss points (Jacobian determinant is applied at the end)
+        # convective_stab = xp.tensordot(tmp_stab, self.w_int_order, axes=(1, 0)) #weighted integration over Gauss points (Jacobian determinant is applied at the end)
+        convective = self.cfd_utils.ComputeConvectiveContributionAlt(a_grad_elemental)
+        convective *= self.rho
+        convective_stab = self.cfd_utils.ComputeMomentumStabilizationAlt(DN, v_elemental, a_grad_elemental, proj_elemental)
+        convective_stab *= self.rho * self.rho
         print(f"\t\ttime {6}: {time.perf_counter() - t0}")
 
-        t0 = time.perf_counter()
-        del tmp
-        del tmp_stab
-        print(f"\t\ttime {7}: {time.perf_counter() - t0}")
+        # t0 = time.perf_counter()
+        # del tmp
+        # del tmp_stab
+        # print(f"\t\ttime {7}: {time.perf_counter() - t0}")
 
         t0 = time.perf_counter()
         res -= convective #assemble convective contribution
@@ -1031,13 +1035,13 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
                 return self.x_amgx.download(), is_converged
             else:
-                precond = JacobiPreconditioner(self.L)
-                # if self.update_precond:
-                #     t0 = time.perf_counter()
-                #     self.graph_sa.update_matrix_values(self.L)
-                #     print(f"AMG graph update time: {time.perf_counter() - t0:.4f} seconds")
-                #     self.update_precond = True
-                # precond = self.graph_sa.aspreconditioner()
+                # precond = JacobiPreconditioner(self.L)
+                if self.update_precond:
+                    t0 = time.perf_counter()
+                    self.graph_sa.update_matrix_values(self.L)
+                    print(f"AMG graph update time: {time.perf_counter() - t0:.4f} seconds")
+                    self.update_precond = True
+                precond = self.graph_sa.aspreconditioner()
 
                 # Solve and get convergence status
                 t0 = time.perf_counter()
