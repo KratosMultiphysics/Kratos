@@ -141,10 +141,22 @@ private:
 
         const std::string filename = rReconstructionSettings["filename"].GetString();
 
-        CadGeometryReconstructionUtility::ReconstructModelPartBrepGeometryFromCadJson(
-            filename,
-            rInterfaceMP,
-            mEchoLevel);
+        const bool use_model_part_existing_nodes =
+            rReconstructionSettings.Has("use_model_part_existing_nodes")
+                ? rReconstructionSettings["use_model_part_existing_nodes"].GetBool()
+                : true;
+
+        if (use_model_part_existing_nodes) {
+            CadGeometryReconstructionUtility::ReconstructModelPartBrepGeometryFromCadJson(
+                filename,
+                rInterfaceMP,
+                mEchoLevel);
+        } else {
+            CadGeometryReconstructionUtility::ReconstructModelPartBrepGeometryFromCadJsonCreatingNodes(
+                filename,
+                rInterfaceMP,
+                mEchoLevel);
+        }
 
         KRATOS_CATCH("")
     }

@@ -55,7 +55,10 @@ void SetIdOrName(
     if (rParameters.Has("brep_id")) {
         pGeometry->SetId(rParameters["brep_id"].GetInt());
     } else if (rParameters.Has("brep_name")) {
-        pGeometry->SetId(rParameters["brep_name"].GetString());
+        // fallback: only numeric ids are supported here
+        KRATOS_WARNING("CadGeometryReconstructionUtility")
+            << "\"brep_name\" is present but geometry ids are numeric. "
+            << "Ignoring name \"" << rParameters["brep_name"].GetString() << "\"." << std::endl;
     }
 }
 
@@ -103,6 +106,15 @@ Vector ReadControlPointWeightVector(const Parameters rParameters)
     return control_point_weights;
 }
 
+IndexType GetNextNodeId(ModelPart& rModelPart)
+{
+    IndexType max_id = 0;
+    for (auto it_node = rModelPart.NodesBegin(); it_node != rModelPart.NodesEnd(); ++it_node) {
+        max_id = std::max(max_id, static_cast<IndexType>(it_node->Id()));
+    }
+    return max_id + 1;
+}
+
 void ReadControlPointVectorFromExistingNodes(
     ContainerNodeType& rControlPoints,
     const Parameters rParameters,
@@ -125,6 +137,53 @@ void ReadControlPointVectorFromExistingNodes(
 
     for (auto it_node = rModelPart.NodesBegin(); it_node != rModelPart.NodesEnd(); ++it_node) {
         rControlPoints.push_back(*(it_node.base()));
+    }
+}
+
+void ReadControlPointVectorCreatingNodes(
+    ContainerNodeType& rControlPoints,
+    const Parameters rParameters,
+    ModelPart& rModelPart,
+    const int EchoLevel)
+{
+    KRATOS_ERROR_IF_NOT(rParameters.IsArray())
+        << "\"control_points\" section needs to be an array." << std::endl;
+
+    KRATOS_ERROR_IF(rParameters.size() == 0)
+        << "Length of control point list is zero!" << std::endl;
+
+    KRATOS_INFO_IF("CadGeometryReconstructionUtility", EchoLevel > 1)
+        << "Creating control-point nodes from CAD file. CAD cp count = "
+        << rParameters.size() << ", existing model part node count = "
+        << rModelPart.NumberOfNodes() << std::endl;
+
+    rControlPoints.reserve(rParameters.size());
+
+    IndexType next_node_id = GetNextNodeId(rModelPart);
+
+    for (IndexType cp_idx = 0; cp_idx < rParameters.size(); ++cp_idx) {
+        const SizeType number_of_entries = rParameters[cp_idx].size();
+
+        KRATOS_ERROR_IF((number_of_entries != 1) && (number_of_entries != 2))
+            << "Control points need to be provided in the following structure: "
+            << "[[x, y, z, weight]] or [id, [x, y, z, weight]]." << std::endl;
+
+        const Vector cp = rParameters[cp_idx][number_of_entries - 1].GetVector();
+
+        KRATOS_ERROR_IF(cp.size() != 4)
+            << "Control point must contain [x, y, z, weight]." << std::endl;
+
+        IndexType node_id = next_node_id++;
+        if (number_of_entries == 2) {
+            node_id = rParameters[cp_idx][0].GetInt();
+        }
+
+        KRATOS_ERROR_IF(rModelPart.HasNode(node_id))
+            << "Node with id " << node_id << " already exists in model part \""
+            << rModelPart.FullName() << "\"." << std::endl;
+
+        rModelPart.CreateNewNode(node_id, cp[0], cp[1], cp[2]);
+        rControlPoints.push_back(rModelPart.pGetNode(node_id));
     }
 }
 
@@ -159,6 +218,61 @@ NurbsSurfacePointerType ReadNurbsSurfaceWithExistingNodes(
 
     ContainerNodeType control_points;
     ReadControlPointVectorFromExistingNodes(
+        control_points,
+        rParameters["control_points"],
+        rModelPart,
+        EchoLevel);
+
+    if (is_rational) {
+        const Vector control_point_weights = ReadControlPointWeightVector(rParameters["control_points"]);
+        return Kratos::make_shared<NurbsSurfaceType>(
+            control_points,
+            p,
+            q,
+            knot_vector_u,
+            knot_vector_v,
+            control_point_weights);
+    }
+
+    return Kratos::make_shared<NurbsSurfaceType>(
+        control_points,
+        p,
+        q,
+        knot_vector_u,
+        knot_vector_v);
+}
+
+NurbsSurfacePointerType ReadNurbsSurfaceCreatingNodes(
+    const Parameters rParameters,
+    ModelPart& rModelPart,
+    const int EchoLevel)
+{
+    bool is_rational = true;
+    if (rParameters.Has("is_rational")) {
+        is_rational = rParameters["is_rational"].GetBool();
+    }
+
+    KRATOS_ERROR_IF_NOT(rParameters.Has("knot_vectors"))
+        << "Missing 'knot_vectors' in nurbs surface." << std::endl;
+    KRATOS_ERROR_IF(rParameters["knot_vectors"].size() != 2)
+        << "'knot_vectors' need to be of size two." << std::endl;
+
+    const Vector knot_vector_u = rParameters["knot_vectors"][0].GetVector();
+    const Vector knot_vector_v = rParameters["knot_vectors"][1].GetVector();
+
+    KRATOS_ERROR_IF_NOT(rParameters.Has("degrees"))
+        << "Missing 'degrees' in nurbs surface." << std::endl;
+    KRATOS_ERROR_IF(rParameters["degrees"].size() != 2)
+        << "'degrees' need to be of size two." << std::endl;
+
+    const int p = rParameters["degrees"][0].GetInt();
+    const int q = rParameters["degrees"][1].GetInt();
+
+    KRATOS_ERROR_IF_NOT(rParameters.Has("control_points"))
+        << "Missing 'control_points' in nurbs surface." << std::endl;
+
+    ContainerNodeType control_points;
+    ReadControlPointVectorCreatingNodes(
         control_points,
         rParameters["control_points"],
         rModelPart,
@@ -404,6 +518,73 @@ void ReadBrepSurfaceWithExistingNodes(
     }
 }
 
+void ReadBrepSurfaceCreatingNodes(
+    const Parameters rParameters,
+    ModelPart& rModelPart,
+    const int EchoLevel)
+{
+    KRATOS_INFO_IF("CadGeometryReconstructionUtility", EchoLevel > 0)
+        << "Reading BrepSurface \"" << GetIdOrName(rParameters)
+        << "\" creating control-point nodes." << std::endl;
+
+    KRATOS_ERROR_IF_NOT(rParameters.Has("surface"))
+        << "Missing 'surface' in brep face." << std::endl;
+
+    auto p_surface = ReadNurbsSurfaceCreatingNodes(
+        rParameters["surface"],
+        rModelPart,
+        EchoLevel);
+
+    const bool is_trimmed = rParameters["surface"].Has("is_trimmed")
+        ? rParameters["surface"]["is_trimmed"].GetBool()
+        : true;
+
+    if (rParameters.Has("boundary_loops"))
+    {
+        BrepCurveOnSurfaceLoopArrayType outer_loops;
+        BrepCurveOnSurfaceLoopArrayType inner_loops;
+        std::tie(outer_loops, inner_loops) = ReadBoundaryLoops(
+            rParameters["boundary_loops"],
+            p_surface,
+            rModelPart,
+            EchoLevel);
+
+        auto p_brep_surface = Kratos::make_shared<BrepSurfaceType>(
+            p_surface,
+            outer_loops,
+            inner_loops,
+            is_trimmed);
+
+        p_surface->SetGeometryParent(p_brep_surface.get());
+
+        SetIdOrName<BrepSurfaceType>(rParameters, p_brep_surface);
+
+        ReadAndAddEmbeddedEdges(
+            p_brep_surface,
+            rParameters,
+            p_surface,
+            rModelPart,
+            EchoLevel);
+
+        rModelPart.AddGeometry(p_brep_surface);
+    }
+    else
+    {
+        auto p_brep_surface = Kratos::make_shared<BrepSurfaceType>(p_surface);
+
+        SetIdOrName<BrepSurfaceType>(rParameters, p_brep_surface);
+
+        ReadAndAddEmbeddedEdges(
+            p_brep_surface,
+            rParameters,
+            p_surface,
+            rModelPart,
+            EchoLevel);
+
+        rModelPart.AddGeometry(p_brep_surface);
+    }
+}
+
 void ReadBrepSurfacesWithExistingNodes(
     const Parameters rParameters,
     ModelPart& rModelPart,
@@ -414,6 +595,22 @@ void ReadBrepSurfacesWithExistingNodes(
 
     for (IndexType brep_surface_i = 0; brep_surface_i < rParameters.size(); ++brep_surface_i) {
         ReadBrepSurfaceWithExistingNodes(
+            rParameters[brep_surface_i],
+            rModelPart,
+            EchoLevel);
+    }
+}
+
+void ReadBrepSurfacesCreatingNodes(
+    const Parameters rParameters,
+    ModelPart& rModelPart,
+    const int EchoLevel)
+{
+    KRATOS_ERROR_IF_NOT(rParameters.IsArray())
+        << "\"faces\" section needs to be an array of BrepSurfaces." << std::endl;
+
+    for (IndexType brep_surface_i = 0; brep_surface_i < rParameters.size(); ++brep_surface_i) {
+        ReadBrepSurfaceCreatingNodes(
             rParameters[brep_surface_i],
             rModelPart,
             EchoLevel);
@@ -440,6 +637,26 @@ void ReadBrepsWithExistingNodes(
     }
 }
 
+void ReadBrepsCreatingNodes(
+    const Parameters rParameters,
+    ModelPart& rModelPart,
+    const int EchoLevel)
+{
+    for (IndexType brep_index = 0; brep_index < rParameters.size(); ++brep_index)
+    {
+        KRATOS_INFO_IF("CadGeometryReconstructionUtility", EchoLevel > 0)
+            << "Reading Brep \"" << GetIdOrName(rParameters[brep_index])
+            << "\" - faces creating nodes." << std::endl;
+
+        if (rParameters[brep_index].Has("faces")) {
+            ReadBrepSurfacesCreatingNodes(
+                rParameters[brep_index]["faces"],
+                rModelPart,
+                EchoLevel);
+        }
+    }
+}
+
 void ReadGeometryModelPartWithExistingNodes(
     const Parameters rCadJsonParameters,
     ModelPart& rModelPart,
@@ -449,6 +666,20 @@ void ReadGeometryModelPartWithExistingNodes(
         << "Missing \"breps\" section." << std::endl;
 
     ReadBrepsWithExistingNodes(
+        rCadJsonParameters["breps"],
+        rModelPart,
+        EchoLevel);
+}
+
+void ReadGeometryModelPartCreatingNodes(
+    const Parameters rCadJsonParameters,
+    ModelPart& rModelPart,
+    const int EchoLevel)
+{
+    KRATOS_ERROR_IF_NOT(rCadJsonParameters.Has("breps"))
+        << "Missing \"breps\" section." << std::endl;
+
+    ReadBrepsCreatingNodes(
         rCadJsonParameters["breps"],
         rModelPart,
         EchoLevel);
@@ -481,6 +712,34 @@ void ReconstructModelPartBrepGeometryFromCadJson(
         << rModelPart.FullName() << "\" from CAD json using existing nodes." << std::endl;
 
     ReadGeometryModelPartWithExistingNodes(
+        CadJsonParameters,
+        rModelPart,
+        EchoLevel);
+
+    KRATOS_CATCH("")
+}
+
+void ReconstructModelPartBrepGeometryFromCadJsonCreatingNodes(
+    const std::string& rDataFileName,
+    ModelPart& rModelPart,
+    const int EchoLevel)
+{
+    const Parameters cad_json_parameters = ReadParametersFile(rDataFileName, EchoLevel);
+    ReconstructModelPartBrepGeometryFromCadJsonCreatingNodes(cad_json_parameters, rModelPart, EchoLevel);
+}
+
+void ReconstructModelPartBrepGeometryFromCadJsonCreatingNodes(
+    const Parameters CadJsonParameters,
+    ModelPart& rModelPart,
+    const int EchoLevel)
+{
+    KRATOS_TRY
+
+    KRATOS_INFO_IF("CadGeometryReconstructionUtility", EchoLevel > 0)
+        << "Reconstructing BRep geometry in model part \""
+        << rModelPart.FullName() << "\" from CAD json creating control-point nodes." << std::endl;
+
+    ReadGeometryModelPartCreatingNodes(
         CadJsonParameters,
         rModelPart,
         EchoLevel);

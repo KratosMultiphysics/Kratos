@@ -65,8 +65,6 @@ namespace CadGeometryReconstructionUtility
     using BrepCurveOnSurfaceLoopArrayType = DenseVector<DenseVector<typename BrepCurveOnSurfaceType::Pointer>>;
 
     /// Reconstructs BrepSurface geometries from a CAD json file using already existing nodes in rModelPart.
-    /// The file provides topology / knots / degrees / trimming curves.
-    /// The nodes already present in rModelPart are used as control points of the background surface.
     void KRATOS_API(MAPPING_APPLICATION) ReconstructModelPartBrepGeometryFromCadJson(
         const std::string& rDataFileName,
         ModelPart& rModelPart,
@@ -74,6 +72,18 @@ namespace CadGeometryReconstructionUtility
 
     /// Same as above, but taking already parsed Parameters.
     void KRATOS_API(MAPPING_APPLICATION) ReconstructModelPartBrepGeometryFromCadJson(
+        const Parameters CadJsonParameters,
+        ModelPart& rModelPart,
+        const int EchoLevel = 0);
+
+    /// Reconstructs BrepSurface geometries from a CAD json file by creating the control-point nodes from the file.
+    void KRATOS_API(MAPPING_APPLICATION) ReconstructModelPartBrepGeometryFromCadJsonCreatingNodes(
+        const std::string& rDataFileName,
+        ModelPart& rModelPart,
+        const int EchoLevel = 0);
+
+    /// Same as above, but taking already parsed Parameters.
+    void KRATOS_API(MAPPING_APPLICATION) ReconstructModelPartBrepGeometryFromCadJsonCreatingNodes(
         const Parameters CadJsonParameters,
         ModelPart& rModelPart,
         const int EchoLevel = 0);
