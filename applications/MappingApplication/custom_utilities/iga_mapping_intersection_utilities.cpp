@@ -597,7 +597,7 @@ void IgaMappingIntersectionUtilities::CreateIgaFEMQuadraturePointsOnSurface(
         IntegrationPointsArrayType integration_points_slave(3);
         GeometriesArrayType quadrature_point_geometries_slave(3);
 
-        CoordinatesArrayType master_quadrature_point_xyz = ZeroVector(3);
+        CoordinatesArrayType master_quadrature_point_physical_space = ZeroVector(3);
         CoordinatesArrayType slave_quadrature_point_local_space = ZeroVector(3);
 
         IntegrationInfo master_integration_info = geom_master->GetDefaultIntegrationInfo();
@@ -633,10 +633,10 @@ void IgaMappingIntersectionUtilities::CreateIgaFEMQuadraturePointsOnSurface(
 
                 for (IndexType qp = 0; qp < quadrature_point_geometries_master.size(); ++qp)
                 {
-                    master_quadrature_point_xyz = quadrature_point_geometries_master[qp].Center();
+                    master_quadrature_point_physical_space = quadrature_point_geometries_master[qp].Center();
 
                     geom_slave->PointLocalCoordinates(
-                        slave_quadrature_point_local_space, master_quadrature_point_xyz);
+                        slave_quadrature_point_local_space, master_quadrature_point_physical_space);
 
                     integration_points_slave[qp].X() = slave_quadrature_point_local_space[0];
                     integration_points_slave[qp].Y() = slave_quadrature_point_local_space[1];
@@ -677,6 +677,316 @@ void IgaMappingIntersectionUtilities::CreateIgaFEMQuadraturePointsOnSurface(
     }
 
 }
+
+void IgaMappingIntersectionUtilities::CreateIgaIgaQuadraturePointsCoupling2DGeometries3D(
+        ModelPart &rModelPartCoupling)
+{
+    const ModelPart &rParentModelPart = rModelPartCoupling.GetParentModelPart();
+
+    // Iterate over the coupling geometries and create the quadrature points
+    for (auto geometry_itr = rModelPartCoupling.GeometriesBegin();
+            geometry_itr != rModelPartCoupling.GeometriesEnd();
+            ++geometry_itr)
+    {
+        // Don´t enter the for loop if the geometry is a brep curve on surface or a brep surface (remember that in order to get the brep surface we have to include in the coupling model part the geometries of origin and destination)
+        if (geometry_itr->GetGeometryType() != GeometryData::KratosGeometryType::Kratos_Coupling_Geometry)
+        {
+            continue;
+        }
+
+        // Extract the master and slave parts from the coupling geometry
+        auto geom_master = geometry_itr->pGetGeometryPart(0); // IGA patch
+        auto geom_slave = geometry_itr->pGetGeometryPart(1);  // IGA patch
+
+        //     auto &r_geom_slave = geometry_itr->GetGeometryPart(1);
+
+        auto geom_master_cast = dynamic_pointer_cast<BrepSurface<PointerVector<NodeType>, false, PointerVector<Point>>>(geom_master);
+        auto geom_slave_cast = dynamic_pointer_cast<BrepSurface<PointerVector<NodeType>, false, PointerVector<Point>>>(geom_slave);
+
+        // Get the knot vectors in xi and eta direction for the destination domain
+        std::vector<double> knot_vector_xi_slave_domain, knot_vector_eta_slave_domain;
+        geom_slave->pGetGeometryPart(GeometryType::BACKGROUND_GEOMETRY_INDEX)->SpansLocalSpace(knot_vector_xi_slave_domain, 0);
+        geom_slave->pGetGeometryPart(GeometryType::BACKGROUND_GEOMETRY_INDEX)->SpansLocalSpace(knot_vector_eta_slave_domain, 1);
+
+        // Get the trimming curves outer loop
+        auto outer_loop_array = geom_slave_cast->GetOuterLoops();
+
+        // Construct the clipper library objects
+        Clipper2Lib::Paths64 all_loops(1), rectangle(1), solution;
+        const double factor = 1e-10;
+
+        Clipper2Lib::Point64 int_point;
+        int_point.x = static_cast<cInt>(std::numeric_limits<int>::min());
+        int_point.y = static_cast<cInt>(std::numeric_limits<int>::min());
+
+        // Loop over the trimming curves, tesselate them and store the discretized geometry in the all_loops object
+        for (IndexType j = 0; j < outer_loop_array[0].size(); ++j)
+        {
+            CurveTessellation<PointerVector<Node>> curve_tesselation;
+            auto geometry_outer = *(outer_loop_array[0][j].get());
+            curve_tesselation.Tessellate(
+                geometry_outer, 0.001, 1, true);
+            auto tesselation = curve_tesselation.GetTessellation();
+            for (IndexType u = 0; u < tesselation.size(); ++u)
+            {
+                auto new_int_point = BrepTrimmingUtilities<false>::ToIntPoint(std::get<1>(tesselation[u])[0], std::get<1>(tesselation[u])[1], factor);
+                if (!(int_point.x == new_int_point.x && int_point.y == new_int_point.y))
+                {
+                    all_loops[0].push_back(new_int_point);
+                    int_point.x = new_int_point.x;
+                    int_point.y = new_int_point.y;
+                }
+            }
+        }
+
+        // Loop over the "elements" in the destination domain
+        std::vector<std::vector<CoordinatesArrayType>> all_new_rectangles_master_parameter_space;
+        for (IndexType i = 0; i < knot_vector_xi_slave_domain.size() - 1; ++i)
+        {
+            for (IndexType j = 0; j < knot_vector_eta_slave_domain.size() - 1; ++j)
+            {
+                Clipper2Lib::Rect64 rectangle = Clipper2Lib::Rect64(
+                    static_cast<cInt>(knot_vector_xi_slave_domain[i] / factor), static_cast<cInt>(knot_vector_eta_slave_domain[j] / factor),
+                    static_cast<cInt>(knot_vector_xi_slave_domain[i + 1] / factor), static_cast<cInt>(knot_vector_eta_slave_domain[j + 1] / factor));
+
+                // Intersect the rectangle with the polygon resulting from the tessellation of the outer loop
+                solution = Clipper2Lib::RectClip(rectangle, all_loops);
+
+                    // Area of the original rectangle
+                    const double span_area = std::abs(Clipper2Lib::Area(rectangle.AsPath()));
+                    double clip_area = 0.0;
+
+                if (solution.size() > 0){
+                    clip_area = std::abs(Clipper2Lib::Area(solution[0]));
+                    for (IndexType k = 1; k < solution.size(); ++k){
+                        clip_area -= std::abs(Clipper2Lib::Area(solution[k]));
+                    }
+                } else {
+                    continue; // If the solution size is equal to 0, continue to the next iteration
+                }
+
+                // Check if the element is untrimmed. If it is untrimmed, map the rectangle to the destination physical space and then project to the origin parameter space
+                if (std::abs(clip_area - span_area) < 1000){
+                    // Create a vector with the coordinates of the rectangle in the destination physical space
+                    std::vector<CoordinatesArrayType> knot_span_coordinates_physical_space, knot_span_coordinates_master_parameter_space;
+
+                    // Map the rectangle vertices from the parameter space to the physical space
+                    for (IndexType k = i; k < i + 2; k++){
+                        for (IndexType h = j; h < j + 2; h++){
+                            CoordinatesArrayType vertex_coordinate_physical_space, vertex_coordinate_slave_parameter_space{knot_vector_xi_slave_domain[k], knot_vector_eta_slave_domain[h], 0.0};
+
+                            geom_slave->GlobalCoordinates(vertex_coordinate_physical_space, vertex_coordinate_slave_parameter_space);
+
+                            knot_span_coordinates_physical_space.push_back(vertex_coordinate_physical_space);
+                        }
+                    }
+
+                    // Project the rectangle to the origin domain parameter space
+                    for (IndexType k = 0; k < knot_span_coordinates_physical_space.size(); k++){
+                        CoordinatesArrayType vertex_coordinate_master_parameter_space;
+
+                        geom_master->ProjectionPointGlobalToLocalSpace(knot_span_coordinates_physical_space[k], vertex_coordinate_master_parameter_space, 1e-6);
+
+                        knot_span_coordinates_master_parameter_space.push_back(vertex_coordinate_master_parameter_space);
+                    }
+
+                    // Check if the projected rectangles are cut by knot lines in the origin parameter space and subdivide them in new rectangles
+                    std::vector<std::vector<CoordinatesArrayType>> new_rectangles_master_parameter_space;
+                    auto reordered_knot_span_coordinates_master_parameter_space = IgaMappingIntersectionUtilities::OrderRectangleCoordinates(knot_span_coordinates_master_parameter_space); 
+                    IgaMappingIntersectionUtilities::SubdivideRectangleWithMasterPatchKnotLines(reordered_knot_span_coordinates_master_parameter_space, geom_master, new_rectangles_master_parameter_space);
+                    all_new_rectangles_master_parameter_space.insert(
+                        all_new_rectangles_master_parameter_space.end(),
+                        new_rectangles_master_parameter_space.begin(),
+                        new_rectangles_master_parameter_space.end());
+
+                    // Iterate over the newly created rectangles in the origin parameter space
+                    for (IndexType k = 0; k < new_rectangles_master_parameter_space.size(); k++){
+                        // Create integration points in the master parameter space
+                        IntegrationInfo master_integration_info = geom_master->GetDefaultIntegrationInfo();
+                        IntegrationInfo slave_integration_info = geom_slave->GetDefaultIntegrationInfo();
+                        const IndexType number_of_integration_points_master = master_integration_info.GetNumberOfIntegrationPointsPerSpan(0) * master_integration_info.GetNumberOfIntegrationPointsPerSpan(1);
+                        const IndexType number_of_integration_points_slave = master_integration_info.GetNumberOfIntegrationPointsPerSpan(0) * master_integration_info.GetNumberOfIntegrationPointsPerSpan(1);
+                        IndexType number_of_integration_points;
+
+                        // Define the number of integration points to place in the origin domain as the biggest number between the origin and destination domains
+                        number_of_integration_points = (number_of_integration_points_master >= number_of_integration_points_slave)
+                            ? number_of_integration_points_master
+                            : number_of_integration_points_slave;
+
+                        // Create integration points and quadrature points containers for the master
+                        IntegrationPointsArrayType integration_points_master(number_of_integration_points);
+                        typename IntegrationPointsArrayType::iterator integration_point_master_iterator = integration_points_master.begin();
+                        GeometriesArrayType quadrature_point_geometries_master(number_of_integration_points);
+
+                        // Create integration and quadrature points containers for the slave
+                        IntegrationPointsArrayType integration_points_slave(number_of_integration_points);
+                        GeometriesArrayType quadrature_point_geometries_slave(number_of_integration_points);
+
+                        IntegrationPointUtilities::IntegrationPoints2D(
+                            integration_point_master_iterator,
+                            master_integration_info.GetNumberOfIntegrationPointsPerSpan(0), master_integration_info.GetNumberOfIntegrationPointsPerSpan(1),
+                            new_rectangles_master_parameter_space[k][0][0], new_rectangles_master_parameter_space[k][1][0],
+                            new_rectangles_master_parameter_space[k][0][1], new_rectangles_master_parameter_space[k][2][1]);
+
+                        // Create master quadrature points
+                        geom_master->CreateQuadraturePointGeometries(quadrature_point_geometries_master, 3, integration_points_master, master_integration_info);
+
+                        // Get the position of the master quadrature points in its physical space
+                        CoordinatesArrayType master_quadrature_point_physical_space = ZeroVector(3);
+                        CoordinatesArrayType slave_quadrature_point_local_space = ZeroVector(3);
+                        integration_points_slave = integration_points_master;
+
+                        for (IndexType k = 0; k < quadrature_point_geometries_master.size(); k++){
+
+                            // Get the position of the master i_th quadrature point in its physical space
+                            master_quadrature_point_physical_space = quadrature_point_geometries_master[k].Center();
+
+                            // Obtain the local coordinate of the i_th master quadrature point in the slave local space
+                            geom_slave->ProjectionPointGlobalToLocalSpace(master_quadrature_point_physical_space, slave_quadrature_point_local_space, 1e-6);
+
+                            // Modify the slave integration points container
+                            integration_points_slave[k].X() = slave_quadrature_point_local_space[0];
+                            integration_points_slave[k].Y() = slave_quadrature_point_local_space[1];
+                        }
+
+                        // Create slave quadrature points
+                        geom_slave->CreateQuadraturePointGeometries(quadrature_point_geometries_slave, 3, integration_points_slave, slave_integration_info);
+
+                        // Create new conditions in the coupling model part whose geometry is CouplingGeometry
+                        const IndexType id = (rParentModelPart.NumberOfConditions() == 0) ? 1 : (rParentModelPart.ConditionsEnd() - 1)->Id() + 1;
+
+                        for (IndexType i = 0; i < quadrature_point_geometries_master.size(); ++i){
+                            rModelPartCoupling.AddCondition(Kratos::make_intrusive<Condition>(
+                                id + i, Kratos::make_shared<CouplingGeometry<Node>>(quadrature_point_geometries_master(i), quadrature_point_geometries_slave(i))));
+                        }
+        //             }
+        //             else
+        //             {
+        //                 std::vector<std::vector<CoordinatesArrayType>> triangles_destination_parameter_space; // Vector of triangles coming from the triangulation process (="triangles", but of different kind)
+        //                 std::vector<Matrix> triangles;
+
+        //                 // Do triangulation
+        //                 BrepTrimmingUtilities::Triangulate_OPT(solution[0], triangles, factor);
+
+        //                 for (IndexType u = 0; u < triangles.size(); ++u)
+        //                 {
+        //                     std::vector<CoordinatesArrayType> triangle; // One specific triangle coming from the triangulation process
+        //                     // Extract the triangles from the Triangulation_OPT method
+        //                     for (IndexType vertex_index = 0; vertex_index < 3; vertex_index++)
+        //                     {
+        //                         double coordinate_xi = triangles[u](vertex_index, 0);
+        //                         double coordinate_eta = triangles[u](vertex_index, 1);
+        //                         CoordinatesArrayType node_coordinate{coordinate_xi, coordinate_eta, 0.0};
+        //                         triangle.push_back(node_coordinate);
+        //                     }
+
+        //                     // Order the triangles vertices counterclockwise
+        //                     std::vector<CoordinatesArrayType> sorted_triangle;
+        //                     sortVerticesCounterClockwise(triangle, sorted_triangle);
+
+        //                     triangles_destination_parameter_space.push_back(sorted_triangle);
+        //                 }
+
+        //                 for (IndexType k = 0; k < triangles_destination_parameter_space.size(); k++)
+        //                 {
+
+        //                     // Create a vector with the coordinates of the triangle in the destination physical space
+        //                     std::vector<CoordinatesArrayType> triangle_coordinates_xyz, triangle_coordinates_master_parameter_space;
+
+        //                     // Map each triangle node from parameter to physical space
+        //                     for (IndexType h = 0; h < 3; h++)
+        //                     {
+        //                         CoordinatesArrayType vertex_coordinate_physical_space;
+        //                         geom_slave->GlobalCoordinates(vertex_coordinate_physical_space, triangles_destination_parameter_space[k][h]);
+        //                         triangle_coordinates_xyz.push_back(vertex_coordinate_physical_space);
+        //                     }
+
+        //                     // Project the triangle to the origin domain parameter space
+        //                     for (IndexType k = 0; k < triangle_coordinates_xyz.size(); k++)
+        //                     {
+        //                         CoordinatesArrayType vertex_coordinate_master_parameter_space;
+
+        //                         geom_master->ProjectionPointGlobalToLocalSpace(triangle_coordinates_xyz[k], vertex_coordinate_master_parameter_space, 1e-6);
+
+        //                         triangle_coordinates_master_parameter_space.push_back(vertex_coordinate_master_parameter_space);
+        //                     }
+
+        //                     // Triangulation step: Intersect the triangles in the origin parameter space with the knot lines and subdivide them
+        //                     std::vector<std::vector<CoordinatesArrayType>> obtained_triangles; // The outer vector contains the newly found triangles
+
+        //                     // The triangulation process will create new triangles which are not intersected by the knot lines
+        //                     IgaMappingIntersectionUtilities::Triangulation(triangle_coordinates_master_parameter_space, geom_master, obtained_triangles);
+
+        //                     for (IndexType j = 0; j < obtained_triangles.size(); j++)
+        //                     {
+        //                         // Create integration points container for the master
+        //                         IntegrationPointsArrayType integration_points_master(3);
+        //                         typename IntegrationPointsArrayType::iterator integration_point_master_iterator = integration_points_master.begin();
+        //                         GeometriesArrayType quadrature_point_geometries_master(3);
+
+        //                         // Create integration points container for the slave
+        //                         IntegrationPointsArrayType integration_points_slave(3);
+        //                         GeometriesArrayType quadrature_point_geometries_slave(3);
+
+        //                         // Coordinates of the triangle vertex in the master parameter space
+        //                         double xi_0 = obtained_triangles[j][0][0];
+        //                         double xi_1 = obtained_triangles[j][1][0];
+        //                         double xi_2 = obtained_triangles[j][2][0];
+        //                         double eta_0 = obtained_triangles[j][0][1];
+        //                         double eta_1 = obtained_triangles[j][1][1];
+        //                         double eta_2 = obtained_triangles[j][2][1];
+
+        //                         // Creating the integration points
+        //                         IntegrationPointUtilities::IntegrationPointsTriangle2D(integration_point_master_iterator, 1, xi_0, xi_1, xi_2, eta_0, eta_1, eta_2);
+
+        //                         // Create master quadrature points
+        //                         IntegrationInfo master_integration_info = geom_master->GetDefaultIntegrationInfo();
+        //                         geom_master->CreateQuadraturePointGeometries(quadrature_point_geometries_master, 3, integration_points_master, master_integration_info);
+
+        //                         // Get the position of the master quadrature points in its physical space
+        //                         CoordinatesArrayType master_quadrature_point_physical_space = ZeroVector(3);
+        //                         CoordinatesArrayType slave_quadrature_point_local_space = ZeroVector(3);
+        //                         integration_points_slave = integration_points_master;
+
+        //                         for (IndexType k = 0; k < quadrature_point_geometries_master.size(); k++)
+        //                         {
+        //                             // Get the position of the master i_th quadrature point in its physical space
+
+        //                             master_quadrature_point_physical_space = quadrature_point_geometries_master[k].Center();
+
+        //                             // Obtain the local coordinate of the i_th master quadrature point in the slave local space
+        //                             geom_slave->ProjectionPointGlobalToLocalSpace(master_quadrature_point_physical_space, slave_quadrature_point_local_space, 1e-6);
+
+        //                             // Modify the slave integration points container
+        //                             integration_points_slave[k].X() = slave_quadrature_point_local_space[0];
+        //                             integration_points_slave[k].Y() = slave_quadrature_point_local_space[1];
+        //                         }
+
+        //                         // Create slave quadrature points
+        //                         IntegrationInfo slave_integration_info = geom_slave->GetDefaultIntegrationInfo();
+        //                         geom_slave->CreateQuadraturePointGeometries(quadrature_point_geometries_slave, 3, integration_points_slave, slave_integration_info);
+
+        //                         // add the quadrature point geometry conditions to the result model part
+        //                         const IndexType id = (rParentModelPart.NumberOfConditions() == 0)
+        //                                                  ? 1
+        //                                                  : (rParentModelPart.ConditionsEnd() - 1)->Id() + 1;
+
+        //                         for (IndexType i = 0; i < quadrature_point_geometries_master.size(); ++i)
+        //                         {
+        //                             rModelPartCoupling.AddCondition(Kratos::make_intrusive<Condition>(
+        //                                 id + i, Kratos::make_shared<CouplingGeometry<Node>>(quadrature_point_geometries_master(i), quadrature_point_geometries_slave(i))));
+        //                         }
+        //                     }
+                        }
+                    }
+                }
+            }
+            IgaMappingIntersectionUtilities::WriteRectanglesToPythonPlot(
+                        all_new_rectangles_master_parameter_space,
+                        "rectangles_plot.py");
+        }
+}
+
 
 bool IgaMappingIntersectionUtilities::FindInitialGuessNewtonRaphsonProjection(
     const CoordinatesArrayType& slave_xyz,
@@ -843,5 +1153,279 @@ void IgaMappingIntersectionUtilities::SortVerticesCounterClockwise(
     );
 }
 
+void IgaMappingIntersectionUtilities::SubdivideRectangleWithMasterPatchKnotLines(
+        const std::vector<CoordinatesArrayType>& r_original_knot_span_coordinates,
+        GeometryPointerType master_geometry,
+        std::vector<std::vector<CoordinatesArrayType>> &r_new_rectangles_master_parameter_space)
+{
+    r_new_rectangles_master_parameter_space.push_back(r_original_knot_span_coordinates);
+
+    // Get the knot vectors of the master patch in the xi and eta directions
+    std::vector<double> knot_vector_xi;
+    std::vector<double> knot_vector_eta;
+
+    master_geometry->pGetGeometryPart(GeometryType::BACKGROUND_GEOMETRY_INDEX)->SpansLocalSpace(knot_vector_xi, 0);
+    master_geometry->pGetGeometryPart(GeometryType::BACKGROUND_GEOMETRY_INDEX)->SpansLocalSpace(knot_vector_eta, 1);
+
+    // Check if both knot vectors size is 2 and if true, return the original rectangle coordinates (no new rectangles will be found)
+    if (knot_vector_xi.size() == 2 && knot_vector_eta.size() == 2){ return; }
+
+    // Obtain the inner knots for the xi and eta direction
+    std::vector<double> inner_knots_xi, inner_knots_eta;
+
+    if (knot_vector_xi.size() > 2){ inner_knots_xi = std::vector<double>(knot_vector_xi.begin() + 1, knot_vector_xi.end() - 1); }
+
+    if (knot_vector_eta.size() > 2){ inner_knots_eta = std::vector<double>(knot_vector_eta.begin() + 1, knot_vector_eta.end() - 1); }
+
+    for (IndexType k = 0; k < inner_knots_xi.size(); k++){
+
+        std::vector<std::vector<CoordinatesArrayType>> intermediate_rectangles_xi;
+
+        for (IndexType j = 0; j < r_new_rectangles_master_parameter_space.size(); j++){
+            std::vector<std::vector<CoordinatesArrayType>> new_temp_rectangles_xi;
+            SplitRectangle(new_temp_rectangles_xi, r_new_rectangles_master_parameter_space[j], inner_knots_xi[k], true);
+            for (IndexType i = 0; i < new_temp_rectangles_xi.size(); i++){
+                intermediate_rectangles_xi.push_back(new_temp_rectangles_xi[i]);
+            }
+        }
+
+        r_new_rectangles_master_parameter_space = intermediate_rectangles_xi;
+    }
+
+    for (IndexType k = 0; k < inner_knots_eta.size(); k++){
+
+        std::vector<std::vector<CoordinatesArrayType>> intermediate_rectangles_eta;
+
+        for (IndexType j = 0; j < r_new_rectangles_master_parameter_space.size(); j++){
+            std::vector<std::vector<CoordinatesArrayType>> new_temp_rectangles_eta;
+            SplitRectangle(new_temp_rectangles_eta, r_new_rectangles_master_parameter_space[j], inner_knots_eta[k], false);
+            for (IndexType i = 0; i < new_temp_rectangles_eta.size(); i++){
+                intermediate_rectangles_eta.push_back(new_temp_rectangles_eta[i]);
+            }
+        }
+
+        r_new_rectangles_master_parameter_space = intermediate_rectangles_eta;
+    }
+}
+
+void IgaMappingIntersectionUtilities::SplitRectangle(
+        std::vector<std::vector<CoordinatesArrayType>> &new_rectangles_master_parameter_space,
+        std::vector<CoordinatesArrayType> rectangle_coordinates,
+        double knot_line_position,
+        bool is_vertical)
+{
+    // If the rectangle is not intersected by a knot line, return the complete rectangle
+    if (!IsRectangleIntersectedByKnotLine(rectangle_coordinates, knot_line_position, is_vertical)){
+        new_rectangles_master_parameter_space.push_back(rectangle_coordinates);
+        return;
+    }
+
+    std::vector<CoordinatesArrayType> points_below_knot_line, points_above_knot_line;
+    // std::vector<CoordinatesArrayType> intersections;
+    // IndexType intersectionCount=0;
+
+    // Categorize the coordinates of the given triangle
+    categorizePoint(rectangle_coordinates[0], points_below_knot_line, points_above_knot_line, knot_line_position, is_vertical);
+    categorizePoint(rectangle_coordinates[1], points_below_knot_line, points_above_knot_line, knot_line_position, is_vertical);
+    categorizePoint(rectangle_coordinates[2], points_below_knot_line, points_above_knot_line, knot_line_position, is_vertical);
+    categorizePoint(rectangle_coordinates[3], points_below_knot_line, points_above_knot_line, knot_line_position, is_vertical);
+
+    if (is_vertical){
+        CoordinatesArrayType intersection_point_1{knot_line_position, points_below_knot_line[0][1], 0.0};
+        CoordinatesArrayType intersection_point_2{knot_line_position, points_below_knot_line[1][1], 0.0};
+
+        // Append these intersection points to the vector of points below the knot line
+        points_below_knot_line.push_back(intersection_point_1);
+        points_below_knot_line.push_back(intersection_point_2);
+
+        // Append these intersection points to the vector of points above the knot line
+        points_above_knot_line.push_back(intersection_point_1);
+        points_above_knot_line.push_back(intersection_point_2);
+    } else {
+        CoordinatesArrayType intersection_point_1{points_below_knot_line[0][0], knot_line_position, 0.0};
+        CoordinatesArrayType intersection_point_2{points_below_knot_line[1][0], knot_line_position, 0.0};
+
+        // Append these intersection points to the vector of points below the knot line
+        points_below_knot_line.push_back(intersection_point_1);
+        points_below_knot_line.push_back(intersection_point_2);
+
+        // Append these intersection points to the vector of points above the knot line
+        points_above_knot_line.push_back(intersection_point_1);
+        points_above_knot_line.push_back(intersection_point_2);
+    }
+
+    std::vector<CoordinatesArrayType> new_rectangle_1 = OrderRectangleCoordinates(points_below_knot_line);
+    std::vector<CoordinatesArrayType> new_rectangle_2 = OrderRectangleCoordinates(points_above_knot_line);
+
+    // Append these newly created rectangles to the return object
+    new_rectangles_master_parameter_space.push_back(new_rectangle_1);
+    new_rectangles_master_parameter_space.push_back(new_rectangle_2);
+}
+
+
+bool IgaMappingIntersectionUtilities::IsRectangleIntersectedByKnotLine(
+    const std::vector<CoordinatesArrayType>& rRectangleCoordinates,
+    const double KnotLinePosition,
+    const bool IsVertical)
+{
+    KRATOS_DEBUG_ERROR_IF(rRectangleCoordinates.size() != 4)
+        << "Rectangle must have exactly 4 coordinates, but got "
+        << rRectangleCoordinates.size() << std::endl;
+
+    const double min_xi = std::min({
+        rRectangleCoordinates[0][0],
+        rRectangleCoordinates[1][0],
+        rRectangleCoordinates[2][0],
+        rRectangleCoordinates[3][0]
+    });
+
+    const double max_xi = std::max({
+        rRectangleCoordinates[0][0],
+        rRectangleCoordinates[1][0],
+        rRectangleCoordinates[2][0],
+        rRectangleCoordinates[3][0]
+    });
+
+    const double min_eta = std::min({
+        rRectangleCoordinates[0][1],
+        rRectangleCoordinates[1][1],
+        rRectangleCoordinates[2][1],
+        rRectangleCoordinates[3][1]
+    });
+
+    const double max_eta = std::max({
+        rRectangleCoordinates[0][1],
+        rRectangleCoordinates[1][1],
+        rRectangleCoordinates[2][1],
+        rRectangleCoordinates[3][1]
+    });
+
+    // Tolerance scaled with the size of the interval
+    if (IsVertical) {
+        const double length_xi = max_xi - min_xi;
+        const double tolerance = 1e-12 * std::max(1.0, length_xi);
+
+        // Degenerate rectangle in xi-direction
+        if (length_xi <= tolerance) {
+            return false;
+        }
+
+        return (KnotLinePosition > min_xi + tolerance) &&
+               (KnotLinePosition < max_xi - tolerance);
+    } else {
+        const double length_eta = max_eta - min_eta;
+        const double tolerance = 1e-12 * std::max(1.0, length_eta);
+
+        // Degenerate rectangle in eta-direction
+        if (length_eta <= tolerance) {
+            return false;
+        }
+
+        return (KnotLinePosition > min_eta + tolerance) &&
+               (KnotLinePosition < max_eta - tolerance);
+    }
+}
+
+void IgaMappingIntersectionUtilities::categorizePoint(CoordinatesArrayType point,
+                                                          std::vector<CoordinatesArrayType> &points_below,
+                                                          std::vector<CoordinatesArrayType> &points_above,
+                                                          double knot_line_position,
+                                                          bool is_vertical)
+{
+    double tolerance = 1e-8;
+    if ((is_vertical && point[0] < (knot_line_position - tolerance)) || (!is_vertical && point[1] < (knot_line_position - tolerance))){
+        points_below.push_back(point);
+    } else {
+        if ((is_vertical && std::abs(point[0] - knot_line_position) < tolerance) || (!is_vertical && std::abs(point[1] - knot_line_position) < tolerance)){
+            points_below.push_back(point);
+        }
+        points_above.push_back(point);
+    }
+}
+
+std::vector<Kratos::IgaMappingIntersectionUtilities::CoordinatesArrayType> Kratos::IgaMappingIntersectionUtilities::OrderRectangleCoordinates(
+    const std::vector<Kratos::IgaMappingIntersectionUtilities::CoordinatesArrayType>& rRectangleCoordinates)
+{
+    KRATOS_DEBUG_ERROR_IF(rRectangleCoordinates.size() != 4)
+        << "Rectangle must have exactly 4 coordinates, but got "
+        << rRectangleCoordinates.size() << std::endl;
+
+    std::vector<CoordinatesArrayType> ordered_rectangle = rRectangleCoordinates;
+
+    double center_x = 0.0;
+    double center_y = 0.0;
+    for (const auto& r_point : ordered_rectangle) {
+        center_x += r_point[0];
+        center_y += r_point[1];
+    }
+    center_x /= 4.0;
+    center_y /= 4.0;
+
+    std::sort(
+        ordered_rectangle.begin(),
+        ordered_rectangle.end(),
+        [center_x, center_y](const CoordinatesArrayType& rA, const CoordinatesArrayType& rB) {
+            const double angle_a = std::atan2(rA[1] - center_y, rA[0] - center_x);
+            const double angle_b = std::atan2(rB[1] - center_y, rB[0] - center_x);
+            return angle_a < angle_b;
+        });
+
+    return ordered_rectangle;
+}
+
+void IgaMappingIntersectionUtilities::WriteRectanglesToPythonPlot(
+    const std::vector<std::vector<CoordinatesArrayType>>& rRectangles,
+    const std::string& rFileName)
+{
+    std::ofstream out(rFileName);
+    KRATOS_ERROR_IF_NOT(out.is_open())
+        << "Could not open file: " << rFileName << std::endl;
+
+    out << "import matplotlib.pyplot as plt\n";
+    out << "rectangles = [\n";
+    out << std::setprecision(16);
+
+    for (IndexType i = 0; i < rRectangles.size(); ++i) {
+        const auto& r_rect = rRectangles[i];
+
+        KRATOS_ERROR_IF(r_rect.size() != 4)
+            << "Rectangle " << i << " does not have 4 points, got "
+            << r_rect.size() << std::endl;
+
+        out << "    [";
+        for (IndexType j = 0; j < 4; ++j) {
+            out << "(" << r_rect[j][0] << ", " << r_rect[j][1] << ")";
+            if (j != 3) {
+                out << ", ";
+            }
+        }
+        out << "]";
+        if (i + 1 != rRectangles.size()) {
+            out << ",";
+        }
+        out << "\n";
+    }
+
+    out << "]\n\n";
+
+    out << "fig, ax = plt.subplots()\n";
+    out << "for i, rect in enumerate(rectangles):\n";
+    out << "    xs = [p[0] for p in rect] + [rect[0][0]]\n";
+    out << "    ys = [p[1] for p in rect] + [rect[0][1]]\n";
+    out << "    ax.plot(xs, ys, '-o')\n";
+    out << "    cx = sum(p[0] for p in rect) / 4.0\n";
+    out << "    cy = sum(p[1] for p in rect) / 4.0\n";
+    out << "    ax.text(cx, cy, f'R{i}', fontsize=9)\n";
+    out << "    for j, p in enumerate(rect):\n";
+    out << "        ax.text(p[0], p[1], f'  {j}', fontsize=8)\n";
+    out << "ax.set_aspect('equal')\n";
+    out << "ax.grid(True)\n";
+    out << "ax.set_xlabel('xi')\n";
+    out << "ax.set_ylabel('eta')\n";
+    out << "ax.set_title('Subdivided rectangles in parameter space')\n";
+    out << "plt.show()\n";
+
+    out.close();
+}
 
 } // namespace Kratos.

@@ -184,6 +184,9 @@ namespace IgaMappingIntersectionUtilities
         bool origin_is_iga,
         const PatchCacheMap& rPatchCache,
         const double search_radius);
+    
+    void KRATOS_API(MAPPING_APPLICATION) CreateIgaIgaQuadraturePointsCoupling2DGeometries3D(
+        ModelPart& rModelPartCoupling);
 
 
     /**
@@ -289,6 +292,35 @@ namespace IgaMappingIntersectionUtilities
     void KRATOS_API(MAPPING_APPLICATION) SortVerticesCounterClockwise(
         std::vector<CoordinatesArrayType>& r_triangle_vertices);
 
+    void KRATOS_API(MAPPING_APPLICATION) SubdivideRectangleWithMasterPatchKnotLines(
+        const std::vector<CoordinatesArrayType>& r_original_rectangle_coordinates,
+        GeometryPointerType master_geometry,
+        std::vector<std::vector<CoordinatesArrayType>>& new_rectangles);
+
+    void KRATOS_API(MAPPING_APPLICATION) SplitRectangle(
+        std::vector<std::vector<CoordinatesArrayType>>& new_rectangles,
+        std::vector<CoordinatesArrayType> rectangle_coordinates, 
+        double knot_line_position, 
+        bool is_vertical);
+    
+    bool KRATOS_API(MAPPING_APPLICATION) IsRectangleIntersectedByKnotLine(
+        const std::vector<CoordinatesArrayType>& rRectangleCoordinates,
+        const double KnotLinePosition,
+        const bool IsVertical);
+        
+    void KRATOS_API(MAPPING_APPLICATION) categorizePoint(CoordinatesArrayType point,
+        std::vector<CoordinatesArrayType>& points_below,
+        std::vector<CoordinatesArrayType>& points_above,
+        double knot_line_position,
+        bool is_vertical
+        );
+
+    std::vector<CoordinatesArrayType> KRATOS_API(MAPPING_APPLICATION) OrderRectangleCoordinates(
+        const std::vector<CoordinatesArrayType>& rRectangleCoordinates);
+
+    void KRATOS_API(MAPPING_APPLICATION) WriteRectanglesToPythonPlot(
+        const std::vector<std::vector<CoordinatesArrayType>>& rRectangles,
+        const std::string& rFileName = "rectangles_plot.py");
 
 }  // namespace IgaMappingIntersectionUtilities.
 
