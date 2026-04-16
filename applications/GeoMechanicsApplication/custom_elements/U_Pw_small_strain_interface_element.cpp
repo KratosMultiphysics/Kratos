@@ -1895,11 +1895,11 @@ double UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateBulkModulus(con
 {
     KRATOS_TRY
 
-    const auto IndexM = ConstitutiveMatrix.size1() - 1;
-    const auto M      = ConstitutiveMatrix(IndexM, IndexM);
-    const auto G      = ConstitutiveMatrix(0, 0);
+    const auto IndexM          = ConstitutiveMatrix.size1() - 1;
+    const auto normal_stiffnes = ConstitutiveMatrix(IndexM, IndexM);
+    const auto shear_stiffnes  = ConstitutiveMatrix(0, 0);
 
-    return M - (4.0 / 3.0) * G;
+    return normal_stiffnes - (4.0 / 3.0) * shear_stiffnes;
 
     KRATOS_CATCH("")
 }
