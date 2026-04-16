@@ -521,10 +521,7 @@ CalculateRotationMatrixFromRotationVectorRodrigues(
 {
     const double theta = norm_2(rRotationsVector);
     BoundedMatrix<double, 3, 3> rotation_matrix;
-    rotation_matrix.clear();
-
-    for (IndexType i = 0; i < Dimension; ++i)
-        rotation_matrix(i, i) = 1.0;
+    noalias(rotation_matrix) = IdentityMatrix(Dimension);
 
     if (theta > tolerance) {
         const double cos_theta = std::cos(theta);
@@ -532,8 +529,8 @@ CalculateRotationMatrixFromRotationVectorRodrigues(
         BoundedMatrix<double, 3, 3> spin_matrix;
         noalias(spin_matrix) = CalculateSpinMatrix(rRotationsVector);
 
-        noalias(rotation_matrix) += (sin_theta / theta) * spin_matrix +
-            ((1.0 - cos_theta) / (theta * theta)) * prod(spin_matrix, spin_matrix);
+        noalias(rotation_matrix) += (sin_theta / theta) * spin_matrix;
+        noalias(rotation_matrix) += ((1.0 - cos_theta) / (theta * theta)) * prod(spin_matrix, spin_matrix);
     }
 
     return rotation_matrix;

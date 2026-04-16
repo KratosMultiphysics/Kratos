@@ -11,6 +11,8 @@
 
 #include "non_linear_timoshenko_beam_element_3D2N.h"
 #include "structural_mechanics_application_variables.h"
+#include "custom_utilities/structural_mechanics_element_utilities.h"
+#include "custom_utilities/constitutive_law_utilities.h"
 
 namespace Kratos
 {
@@ -39,13 +41,22 @@ void NonLinearTimoshenkoBeamElement3D2N::Initialize(const ProcessInfo& rCurrentP
 
     // Initialization should not be done again in a restart!
     if (!rCurrentProcessInfo[IS_RESTARTED]) {
-        const auto& r_integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod); // Lobatto by default
+        const auto &r_geom = GetGeometry();
+        const auto& r_integration_points = r_geom.IntegrationPoints(mThisIntegrationMethod); // Lobatto by default
 
         // Constitutive Law initialisation
         if (mConstitutiveLawVector.size() != r_integration_points.size())
             mConstitutiveLawVector.resize(r_integration_points.size());
         InitializeMaterial();
+
+        BoundedMatrix<double, 3, 3> T;
+        noalias(T) = StructuralMechanicsElementUtilities::GetFrenetSerretMatrix3D(r_geom, false); // ref conf
+        // We initialize the IP rotation operators with the reference local system
+        noalias(mRotationOperators[0]) = trans(T);
+        noalias(mRotationOperators[1]) = trans(T);
     }
+
+
     KRATOS_CATCH("Initialize")
 }
 

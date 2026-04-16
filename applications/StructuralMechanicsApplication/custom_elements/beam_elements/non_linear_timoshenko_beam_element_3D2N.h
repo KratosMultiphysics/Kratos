@@ -11,7 +11,6 @@
 #pragma once
 
 #include "includes/element.h"
-#include "utilities/quaternion.h"
 
 namespace Kratos
 {
@@ -37,9 +36,10 @@ namespace Kratos
 /**
  * @class NonLinearTimoshenkoBeamElement3D2N
  * @ingroup StructuralMechanicsApplication
- * @brief This is the 3D Timoshenko beam element of 2 nodes. It is formulated in a Total Lagrangian fashion.
- * This is not a corotational approach. The non-linearity is introduced by the use of the exact beam kinematics, which results in a non-linear strain-displacement relationship.
- * Reference: 
+ * @brief This is the 3D Timoshenko beam element of 2 nodes. 
+ * Reference:  I. Romero and F. Armero, "An objective finite element approximation o the kinetics of geometrically exact rods
+ * and its use in the formulation of an energy-momentum conservative scheme in dynamics", IJNME, 2002.
+ * DOI: 10.1002/nme.486 
  * @author Alejandro Cornejo
  */
 class NonLinearTimoshenkoBeamElement3D2N : public Element
@@ -139,7 +139,7 @@ public:
 private:
 
     /* The rotation operators are built with [d1, d2, d3] as col vectors */
-    std::vector<Matrix> mRotationOperators; // the two rotation matrices, one per each IP.
+    std::vector<BoundedMatrix<double, 3, 3>> mRotationOperators; // the two rotation matrices, one per each IP.
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector; // The vector containing the beam constitutive laws, one per each IP
     IntegrationMethod mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_LOBATTO_1; // By default the quadrature points are located at the nodes of the beam
 };
