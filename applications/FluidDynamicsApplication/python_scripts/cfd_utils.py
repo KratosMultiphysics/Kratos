@@ -122,6 +122,25 @@ class CFDUtils:
 
         return N
 
+    def GetElementalMassMatrix(self, dim):
+        if dim == 2:
+            M_e = xp.array([
+                [2.0/12.0, 1.0/12.0, 1.0/12.0],
+                [1.0/12.0, 2.0/12.0, 1.0/12.0],
+                [1.0/12.0, 1.0/12.0, 2.0/12.0]
+            ], dtype=PRECISION)
+        elif dim == 3:
+            M_e = xp.array([
+                [2.0/20.0, 1.0/20.0, 1.0/20.0, 1.0/20.0],
+                [1.0/20.0, 2.0/20.0, 1.0/20.0, 1.0/20.0],
+                [1.0/20.0, 1.0/20.0, 2.0/20.0, 1.0/20.0],
+                [1.0/20.0, 1.0/20.0, 1.0/20.0, 2.0/20.0]
+            ], dtype=PRECISION)
+        else:
+            raise Exception("Dimension not supported.")
+
+        return M_e
+
     def GetGaussIntegrationWeights(self, dim: int, integration_order: int):
         if integration_order == 1:
             if dim == 2:
@@ -193,13 +212,23 @@ class CFDUtils:
 
         return xp.einsum("I,eJk,eJk->eI",N,DN,uel,optimize=opt_type)
 
-    def ComputeElementalConvectiveOperator(self, a_elemental, DN):
+    def ComputeElementalConvectiveOperator(self, a_elemental, grad_u):
         """
-        Computes the convective operator (a·∇).
+        Computes the convective operator (a·∇u).
 
         conv[e, i, j] = sum_m a[e,i,m] * DN[e,j,m]
         """
-        return xp.einsum("eiM,ejM->eij", a_elemental, DN, optimize=opt_type) # (E, nnode, nnode)
+
+        if grad_u.ndim == 3: # vector field
+            return xp.einsum('ekl,eil->eik', grad_u, a_elemental, optimize=opt_type) #a·∇u
+
+        elif grad_u.ndim == 2: # scalar field
+            return xp.einsum('el,eil->ei', grad_u, a_elemental, optimize=opt_type) #a·∇u
+
+        else:
+            raise ValueError("grad_u must have 2 dims (scalar) or 3 dims (vector)")
+
+        return _
 
     def Compute_N_DN(self, N: np.ndarray, DN: np.ndarray, pel: np.ndarray):
         """
@@ -476,20 +505,110 @@ class CFDUtils:
             raise ValueError("grad_u must have 2 dims (scalar) or 3 dims (vector)")
 
         return out
-    
-    def ComputeConvectiveContributionOnEdgeMidpoints(self, N, a_DN, u_elemental):
-        """
-        Compute (w,a·∇u) using the previously computed convective operator a·∇
-        """
-        n_el_edges, n_el_nodes = N.shape
-        n_elems, n_el_nodes, n_dim = u_elemental.shape
 
-        mass = xp.zeros((n_elems, n_el_nodes, n_el_nodes), dtype=PRECISION)
-        for i_edge in range(n_el_edges):
-            mass += N[None,i_edge,:] * N[i_edge,:,None]
+    def ComputeConvectiveContributionAlt(self, elem_conv):
+        """
+        Compute the elemental convective contribution using a factorized formulation
+        based on a nodal convective operator.
 
-        conv = xp.einsum("eiJ,eJk->eik", a_DN, u_elemental, optimize=opt_type)
-        return xp.einsum("eij,ejk->eik", mass, conv, optimize=opt_type)
+        This implementation evaluates the term
+
+            (w, a · ∇u) = ∫_K N_i (a · ∇u) dK
+
+        by exploiting the following assumptions:
+
+        Assumptions
+        -----------
+        1. Linear finite elements (P1):
+        - Shape function gradients ∇N_j are constant within each element.
+        - Therefore, the field gradient ∇u is also constant per element:
+                ∇u = Σ_j u_j ∇N_j
+
+        2. Finite element interpolation of the convective velocity:
+                a(x) = Σ_j N_j(x) a_j
+
+        3. The convective operator is evaluated at nodes:
+                c_j = a_j · ∇u
+
+        which implies the FE reconstruction:
+                a(x) · ∇u = Σ_j N_j(x) c_j
+
+        Formulation
+        -----------
+        Using the above, the weak form becomes:
+
+            ∫_K N_i (a · ∇u)
+            = ∫_K N_i Σ_j N_j c_j
+            = Σ_j (∫_K N_i N_j) c_j
+            = Σ_j M_ij c_j
+
+        where M_ij is the consistent elemental mass matrix.
+
+        Therefore, the convective contribution is computed as:
+
+            R_i = Σ_j M_ij c_j
+
+        which is equivalent to standard Galerkin integration under the stated assumptions.
+
+        Parameters
+        ----------
+        elem_conv : array
+            Nodal convective operator per element:
+
+            - Scalar case: shape (n_elem, n_node)
+                elem_conv[e, j] = a_j · ∇u
+
+            - Vector case: shape (n_elem, n_node, n_comp)
+                elem_conv[e, j, k] = a_j · ∇u_k
+
+        Returns
+        -------
+        array
+            Elemental residual contribution:
+
+            - Scalar case: shape (n_elem, n_node)
+            - Vector case: shape (n_elem, n_node, n_comp)
+
+            Note:
+            The returned values correspond to the reference element contribution.
+            Any geometric scaling (e.g. detJ or element volume) must be applied externally.
+
+        Notes
+        -----
+        - This formulation avoids explicit quadrature over Gauss points and replaces it
+        with a matrix-vector (or matrix-matrix) product using the elemental mass matrix.
+
+        - It is algebraically equivalent to standard Gauss integration if:
+            * the same FE interpolation is used for the velocity field,
+            * the gradient is computed consistently,
+            * and the mass matrix corresponds to the same reference element.
+
+        - Differences with Gauss-based implementations can arise if:
+            * under-integration is used,
+            * the velocity field is not interpolated from nodal values,
+            * or inconsistent geometric scaling is applied.
+
+        - This formulation is particularly well-suited for GPU execution since it:
+            * avoids per-Gauss-point loops,
+            * uses small dense tensor contractions,
+            * and enables further fusion with gradient computation.
+        """
+
+        if elem_conv.ndim == 3: # vector field
+            _, _, n_dim = elem_conv.shape
+            M_e = self.GetElementalMassMatrix(n_dim) #elemental mass matrix (n_node, n_node)
+            print("Mass matrix", M_e)
+            return xp.einsum('ij,ejk->eik', M_e, elem_conv) # (n_elem, n_node, n_dim)
+
+        elif elem_conv.ndim == 2: # scalar field
+            _, n_dim = elem_conv.shape
+            M_e = self.GetElementalMassMatrix(n_dim) #elemental mass matrix (n_node, n_node)
+            return xp.einsum('ij,ej->ei', M_e, elem_conv) # (n_elem, n_node)
+
+        else:
+            raise ValueError("Provided elemental nodal convective operator must have 2 dims (scalar) or 3 dims (vector)")
+
+        return _
 
     def ComputeMomentumStabilization(self, N, DN, u_elemental, a_gauss, pi_gauss, rho):
         """
