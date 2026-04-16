@@ -324,10 +324,10 @@ void CopyMatrixValuesHelper(TrilinosSparseSpaceType& dummy, TrilinosSparseSpaceT
     TrilinosSparseSpaceType::CopyMatrixValues(rA, rB);
 }
 
-double GetValue(TrilinosSparseSpaceType& dummy, const TrilinosSparseSpaceType::VectorType& rX, std::size_t I)
-{
-    return TrilinosSparseSpaceType::GetValue(rX, I);
-}
+// double GetValue(TrilinosSparseSpaceType& dummy, const TrilinosSparseSpaceType::VectorType& rX, std::size_t I)
+// {
+//     return TrilinosSparseSpaceType::GetValue(rX, I);
+// }
 
 } // anonymous namespace
 
