@@ -1729,12 +1729,19 @@ protected:
                 }
             }
         }  else if constexpr (TSparseSpace::LinearAlgebraLibrary() == TrilinosLinearAlgebraLibrary::TPETRA) {
+            auto sort_unique_ids = [](std::vector<int>& rIds) {
+                std::sort(rIds.begin(), rIds.end());
+                rIds.erase(std::unique(rIds.begin(), rIds.end()), rIds.end());
+            };
+
+            auto deduplicate_neighbor_map = [&sort_unique_ids](std::unordered_map<int, std::vector<int>>& rNeighborMap) {
+                for (auto& r_kv : rNeighborMap) {
+                    sort_unique_ids(r_kv.second);
+                }
+            };
+
             // Deduplicate the neighbor map entries
-            for (auto& r_kv : dof_neighbors) {
-                auto& r_vec = r_kv.second;
-                std::sort(r_vec.begin(), r_vec.end());
-                r_vec.erase(std::unique(r_vec.begin(), r_vec.end()), r_vec.end());
-            }
+            deduplicate_neighbor_map(dof_neighbors);
 
             // For T'KT correctness: when slave s maps to masters {m_i}, T'KT places
             // values at positions (m_i, neighbor_of_s) and (neighbor_of_s, m_i) where
@@ -1744,10 +1751,17 @@ protected:
             std::vector<std::vector<int>> local_constraint_col_equation_ids;
             local_constraint_row_equation_ids.reserve(4 * r_constraints_array.size());
             local_constraint_col_equation_ids.reserve(4 * r_constraints_array.size());
+            auto append_constraint_block = [&local_constraint_row_equation_ids, &local_constraint_col_equation_ids](
+                const std::vector<int>& rRows,
+                const std::vector<int>& rCols) {
+                if (!rRows.empty() && !rCols.empty()) {
+                    local_constraint_row_equation_ids.push_back(rRows);
+                    local_constraint_col_equation_ids.push_back(rCols);
+                }
+            };
             std::unordered_map<int, std::vector<int>> slave_to_masters;
             const auto& r_data_comm = rModelPart.GetCommunicator().GetDataCommunicator();
             const int current_rank = r_data_comm.Rank();
-            const int world_size = r_data_comm.Size();
 
             for (auto& r_const : r_constraints_array) {
                 r_const.EquationIdVector(slave_equation_ids_vector, master_equation_ids_vector, r_current_process_info);
@@ -1778,14 +1792,11 @@ protected:
                 }
 
                 // slave×master and master×slave blocks
-                local_constraint_row_equation_ids.push_back(slave_equation_ids);
-                local_constraint_col_equation_ids.push_back(master_equation_ids);
-                local_constraint_row_equation_ids.push_back(master_equation_ids);
-                local_constraint_col_equation_ids.push_back(slave_equation_ids);
+                append_constraint_block(slave_equation_ids, master_equation_ids);
+                append_constraint_block(master_equation_ids, slave_equation_ids);
 
                 // master×master block (cross-master T'KT entries)
-                local_constraint_row_equation_ids.push_back(master_equation_ids);
-                local_constraint_col_equation_ids.push_back(master_equation_ids);
+                append_constraint_block(master_equation_ids, master_equation_ids);
 
                 // For each slave DOF, expand its K-graph neighbors into master rows.
                 // T'KT[m, n] += K[s, n] * T[s,m] for all n in neighbors(s).
@@ -1795,12 +1806,14 @@ protected:
                     if (it == dof_neighbors.end()) continue;
                     const auto& slave_neighbors = it->second;
                     // master rows, slave's K-neighbors as columns
-                    local_constraint_row_equation_ids.push_back(master_equation_ids);
-                    local_constraint_col_equation_ids.push_back(slave_neighbors);
+                    append_constraint_block(master_equation_ids, slave_neighbors);
                     // slave's K-neighbors as rows, master columns (symmetric)
-                    local_constraint_row_equation_ids.push_back(slave_neighbors);
-                    local_constraint_col_equation_ids.push_back(master_equation_ids);
+                    append_constraint_block(slave_neighbors, master_equation_ids);
                 }
+            }
+
+            for (auto& r_pair : slave_to_masters) {
+                sort_unique_ids(r_pair.second);
             }
 
             // Complete slave-neighbor map across ranks for constrained slaves.
@@ -1830,56 +1843,41 @@ protected:
                 std::size_t cursor = 0;
                 const std::size_t num_slaves = static_cast<std::size_t>(rSerialized[cursor++]);
                 for (std::size_t i = 0; i < num_slaves; ++i) {
-                    KRATOS_ERROR_IF(cursor + 1 >= rSerialized.size()) << "Invalid serialized slave-neighbor payload" << std::endl;
+                    KRATOS_DEBUG_ERROR_IF(cursor + 1 >= rSerialized.size()) << "Invalid serialized slave-neighbor payload" << std::endl;
                     const int slave_id = rSerialized[cursor++];
                     const std::size_t num_neighbors = static_cast<std::size_t>(rSerialized[cursor++]);
-                    KRATOS_ERROR_IF(cursor + num_neighbors > rSerialized.size()) << "Invalid serialized slave-neighbor payload" << std::endl;
+                    KRATOS_DEBUG_ERROR_IF(cursor + num_neighbors > rSerialized.size()) << "Invalid serialized slave-neighbor payload" << std::endl;
                     auto& neighbors = rNeighborMap[slave_id];
                     neighbors.insert(neighbors.end(), rSerialized.begin() + cursor, rSerialized.begin() + cursor + num_neighbors);
                     cursor += num_neighbors;
                 }
-                KRATOS_ERROR_IF(cursor != rSerialized.size()) << "Invalid serialized slave-neighbor payload: extra data" << std::endl;
+                KRATOS_DEBUG_ERROR_IF(cursor != rSerialized.size()) << "Invalid serialized slave-neighbor payload: extra data" << std::endl;
             };
 
-            const std::vector<int> local_serialized_slave_neighbors =
-                serialize_slave_neighbors(dof_neighbors, slave_to_masters);
+            const std::vector<int> local_serialized_slave_neighbors = serialize_slave_neighbors(dof_neighbors, slave_to_masters);
 
-            for (int i_rank = 0; i_rank < world_size; ++i_rank) {
-                if (i_rank != current_rank) {
-                    std::vector<int> received_serialized_slave_neighbors;
-                    r_data_comm.Recv(received_serialized_slave_neighbors, i_rank, 2);
-                    merge_serialized_slave_neighbors(received_serialized_slave_neighbors, dof_neighbors);
-                } else {
-                    for (int j_rank = 0; j_rank < world_size; ++j_rank) {
-                        if (j_rank != current_rank) {
-                            r_data_comm.Send(local_serialized_slave_neighbors, j_rank, 2);
-                        }
-                    }
+            const auto gathered_serialized_slave_neighbors = r_data_comm.AllGatherv(local_serialized_slave_neighbors);
+            for (std::size_t rank_index = 0; rank_index < gathered_serialized_slave_neighbors.size(); ++rank_index) {
+                if (static_cast<int>(rank_index) == current_rank) {
+                    continue;
                 }
+                merge_serialized_slave_neighbors(gathered_serialized_slave_neighbors[rank_index], dof_neighbors);
             }
 
-            for (auto& kv : dof_neighbors) {
-                auto& vec = kv.second;
-                std::sort(vec.begin(), vec.end());
-                vec.erase(std::unique(vec.begin(), vec.end()), vec.end());
-            }
+            deduplicate_neighbor_map(dof_neighbors);
 
             // Re-apply first-order slave-neighbor closure with the merged global map.
             for (const auto& [slave_id, masters] : slave_to_masters) {
                 auto it_neighbors = dof_neighbors.find(slave_id);
                 if (it_neighbors == dof_neighbors.end()) continue;
-                local_constraint_row_equation_ids.push_back(masters);
-                local_constraint_col_equation_ids.push_back(it_neighbors->second);
-                local_constraint_row_equation_ids.push_back(it_neighbors->second);
-                local_constraint_col_equation_ids.push_back(masters);
+                append_constraint_block(masters, it_neighbors->second);
+                append_constraint_block(it_neighbors->second, masters);
             }
 
             // Second-order constraint closure for T'KT graph:
             // if s and n are constrained slaves and n is in neighbors(s), then
             // master(s) × master(n) couplings can appear in T'KT.
-            for (auto& [slave_id, r_slave_masters] : slave_to_masters) {
-                std::sort(r_slave_masters.begin(), r_slave_masters.end());
-                r_slave_masters.erase(std::unique(r_slave_masters.begin(), r_slave_masters.end()), r_slave_masters.end());
+            for (const auto& [slave_id, r_slave_masters] : slave_to_masters) {
                 auto it_neighbors = dof_neighbors.find(slave_id);
                 if (it_neighbors == dof_neighbors.end()) continue;
 
@@ -1887,14 +1885,9 @@ protected:
                     auto it_neighbor_masters = slave_to_masters.find(neighbor_id);
                     if (it_neighbor_masters == slave_to_masters.end()) continue;
 
-                    auto neighbor_masters = it_neighbor_masters->second;
-                    std::sort(neighbor_masters.begin(), neighbor_masters.end());
-                    neighbor_masters.erase(std::unique(neighbor_masters.begin(), neighbor_masters.end()), neighbor_masters.end());
-
-                    local_constraint_row_equation_ids.push_back(r_slave_masters);
-                    local_constraint_col_equation_ids.push_back(neighbor_masters);
-                    local_constraint_row_equation_ids.push_back(neighbor_masters);
-                    local_constraint_col_equation_ids.push_back(r_slave_masters);
+                    const auto& r_neighbor_masters = it_neighbor_masters->second;
+                    append_constraint_block(r_slave_masters, r_neighbor_masters);
+                    append_constraint_block(r_neighbor_masters, r_slave_masters);
                 }
             }
 
@@ -1917,46 +1910,41 @@ protected:
                                                             std::vector<std::vector<int>>& rRows,
                                                             std::vector<std::vector<int>>& rCols) {
                 std::size_t cursor = 0;
-                KRATOS_ERROR_IF(rSerialized.empty()) << "Invalid serialized constraint blocks: empty payload" << std::endl;
+                KRATOS_DEBUG_ERROR_IF(rSerialized.empty()) << "Invalid serialized constraint blocks: empty payload" << std::endl;
                 const std::size_t num_blocks = static_cast<std::size_t>(rSerialized[cursor++]);
                 for (std::size_t i = 0; i < num_blocks; ++i) {
-                    KRATOS_ERROR_IF(cursor >= rSerialized.size()) << "Invalid serialized constraint blocks: truncated rows size" << std::endl;
+                    KRATOS_DEBUG_ERROR_IF(cursor >= rSerialized.size()) << "Invalid serialized constraint blocks: truncated rows size" << std::endl;
                     const std::size_t row_size = static_cast<std::size_t>(rSerialized[cursor++]);
-                    KRATOS_ERROR_IF(cursor + row_size > rSerialized.size()) << "Invalid serialized constraint blocks: truncated row data" << std::endl;
+                    KRATOS_DEBUG_ERROR_IF(cursor + row_size > rSerialized.size()) << "Invalid serialized constraint blocks: truncated row data" << std::endl;
                     std::vector<int> row_block(rSerialized.begin() + cursor, rSerialized.begin() + cursor + row_size);
                     cursor += row_size;
 
-                    KRATOS_ERROR_IF(cursor >= rSerialized.size()) << "Invalid serialized constraint blocks: truncated cols size" << std::endl;
+                    KRATOS_DEBUG_ERROR_IF(cursor >= rSerialized.size()) << "Invalid serialized constraint blocks: truncated cols size" << std::endl;
                     const std::size_t col_size = static_cast<std::size_t>(rSerialized[cursor++]);
-                    KRATOS_ERROR_IF(cursor + col_size > rSerialized.size()) << "Invalid serialized constraint blocks: truncated col data" << std::endl;
+                    KRATOS_DEBUG_ERROR_IF(cursor + col_size > rSerialized.size()) << "Invalid serialized constraint blocks: truncated col data" << std::endl;
                     std::vector<int> col_block(rSerialized.begin() + cursor, rSerialized.begin() + cursor + col_size);
                     cursor += col_size;
 
                     rRows.push_back(std::move(row_block));
                     rCols.push_back(std::move(col_block));
                 }
-                KRATOS_ERROR_IF(cursor != rSerialized.size()) << "Invalid serialized constraint blocks: extra trailing data" << std::endl;
+                KRATOS_DEBUG_ERROR_IF(cursor != rSerialized.size()) << "Invalid serialized constraint blocks: extra trailing data" << std::endl;
             };
 
             std::vector<int> local_serialized_constraint_blocks =
                 serialize_constraint_blocks(local_constraint_row_equation_ids, local_constraint_col_equation_ids);
 
-            for (int i_rank = 0; i_rank < world_size; ++i_rank) {
-                if (i_rank != current_rank) {
-                    std::vector<int> received_serialized_constraint_blocks;
-                    r_data_comm.Recv(received_serialized_constraint_blocks, i_rank, 1);
-                    if (!received_serialized_constraint_blocks.empty()) {
-                        deserialize_and_append_constraint_blocks(
-                            received_serialized_constraint_blocks,
-                            local_constraint_row_equation_ids,
-                            local_constraint_col_equation_ids);
-                    }
-                } else {
-                    for (int j_rank = 0; j_rank < world_size; ++j_rank) {
-                        if (j_rank != current_rank) {
-                            r_data_comm.Send(local_serialized_constraint_blocks, j_rank, 1);
-                        }
-                    }
+            const auto gathered_serialized_constraint_blocks = r_data_comm.AllGatherv(local_serialized_constraint_blocks);
+            for (std::size_t rank_index = 0; rank_index < gathered_serialized_constraint_blocks.size(); ++rank_index) {
+                if (static_cast<int>(rank_index) == current_rank) {
+                    continue;
+                }
+                const auto& r_serialized_constraint_blocks = gathered_serialized_constraint_blocks[rank_index];
+                if (!r_serialized_constraint_blocks.empty()) {
+                    deserialize_and_append_constraint_blocks(
+                        r_serialized_constraint_blocks,
+                        local_constraint_row_equation_ids,
+                        local_constraint_col_equation_ids);
                 }
             }
 
