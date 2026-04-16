@@ -259,7 +259,7 @@ void SbmFluidConditionDirichlet::InitializeSbmMemberVariables()
     // Retrieve projection
     Condition candidate_closest_skin_segment_1 = this->GetValue(NEIGHBOUR_CONDITIONS)[0] ;
     // Find the closest node in condition
-    int closestNodeId;
+    int closestNodeId = 0;
     if (mDim > 2) {
         double incumbent_dist = 1e16;
         // Loop over the three nodes of the closest skin element
@@ -413,6 +413,25 @@ void SbmFluidConditionDirichlet::ApplyConstitutiveLaw(
     mpConstitutiveLaw->CalculateMaterialResponseCauchy(rValues);
 }
 
+void SbmFluidConditionDirichlet::ApplyConstitutiveLawTrue(
+    SizeType /*matSize*/,
+    Vector& rStrain,
+    ConstitutiveLaw::Parameters& rValues,
+    ConstitutiveVariables& rConstitutiveVariables)
+{
+    Flags& r_constitutive_law_options = rValues.GetOptions();
+
+    r_constitutive_law_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+    r_constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+    r_constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+
+    rValues.SetStrainVector(rStrain);
+    rValues.SetStressVector(rConstitutiveVariables.StressVector);
+    rValues.SetConstitutiveMatrix(rConstitutiveVariables.D);
+
+    mpConstitutiveLaw->CalculateMaterialResponse(rValues, ConstitutiveLaw::StressMeasure_Cauchy);
+}
+
 void SbmFluidConditionDirichlet::InitializeMaterial()
 {
     KRATOS_TRY
@@ -545,7 +564,7 @@ void SbmFluidConditionDirichlet::FinalizeSolutionStep(const ProcessInfo& rCurren
         //     std::cout << "No integration points on true boundary found for condition with ID " << this->Id() << std::endl;
         // }
 
-        for (int i_gauss = 0; i_gauss < integration_weight_list_on_true_boundary.size(); ++i_gauss) 
+        for (SizeType i_gauss = 0; i_gauss < integration_weight_list_on_true_boundary.size(); ++i_gauss) 
         {
             const Vector& gp = row(integration_point_list_on_true_boundary, i_gauss);
             const double weight = integration_weight_list_on_true_boundary[i_gauss];
@@ -566,21 +585,21 @@ void SbmFluidConditionDirichlet::FinalizeSolutionStep(const ProcessInfo& rCurren
 
                 double H_taylor = 0.0;
                 if (mDim == 2) {
-                    for (int n = 1; n <= mBasisFunctionsOrder; ++n) {
+                    for (IndexType n = 1; n <= mBasisFunctionsOrder; ++n) {
                         Matrix& p_derivatives = mShapeFunctionDerivatives[n - 1];
-                        for (int k = 0; k <= n; ++k) {
-                            int n_k = n - k;
+                        for (IndexType k = 0; k <= n; ++k) {
+                            const IndexType n_k = n - k;
                             double deriv = p_derivatives(i, k);
                             H_taylor += ComputeTaylorTerm(deriv, d[0], n_k, d[1], k);
                         }
                     }
                 } else {
-                    for (int n = 1; n <= mBasisFunctionsOrder; ++n) {
+                    for (IndexType n = 1; n <= mBasisFunctionsOrder; ++n) {
                         Matrix& p_derivatives = mShapeFunctionDerivatives[n - 1];
-                        int countDerivativeId = 0;
-                        for (int k_x = n; k_x >= 0; k_x--) {
-                            for (int k_y = n - k_x; k_y >= 0; k_y--) {
-                                int k_z = n - k_x - k_y;
+                        IndexType countDerivativeId = 0;
+                        for (int k_x = static_cast<int>(n); k_x >= 0; --k_x) {
+                            for (int k_y = static_cast<int>(n) - k_x; k_y >= 0; --k_y) {
+                                const int k_z = static_cast<int>(n) - k_x - k_y;
                                 double deriv = p_derivatives(i, countDerivativeId);
                                 H_taylor += ComputeTaylorTerm3D(
                                     deriv,
