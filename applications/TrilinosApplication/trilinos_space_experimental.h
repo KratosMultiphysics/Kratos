@@ -28,7 +28,7 @@
 #include <Teuchos_GlobalMPISession.hpp>
 #include <Teuchos_CommHelpers.hpp>
 #include <TpetraExt_MatrixMatrix.hpp>
-#include <TpetraExt_TripleMatrixMultiply.hpp>
+// #include <TpetraExt_TripleMatrixMultiply.hpp> // NOTE: TripleMatrixMultiply is giving segmentation fault in the version of Trilinos available in Ubuntu 24.04. We cannot use it for the BDB' operation, and instead must do two separate multiplications with an intermediate CrsMatrix. This is less efficient than a single triple-matrix multiply, but it is a temporary workaround until we can upgrade to a newer Trilinos version with a working TpetraExt_TripleMatrixMultiply_def implementation.
 // NOTE: MatrixMarket_Tpetra.hpp is intentionally NOT included here — see
 // custom_utilities/auxiliary_matrix_market.h for the rationale.
 
@@ -786,10 +786,10 @@ public:
      * @param rA The resulting matrix
      * @param rD The "center" matrix
      * @param rB The matrices to be transposed
-     * @param CallFillCompleteOnResult	Optional argument, defaults to true. Power users may specify this argument to be false if they DON'T want this function to call C.FillComplete. (It is often useful to allow this function to call C.FillComplete, in cases where one or both of the input matrices are rectangular and it is not trivial to know which maps to use for the domain- and range-maps.)
-     * @param KeepAllHardZeros	Optional argument, defaults to false. If true, Multiply, keeps all entries in C corresponding to hard zeros. If false, the following happens by case: A*B^T, A^T*B^T - Does not store entries caused by hard zeros in C. A^T*B (unoptimized) - Hard zeros are always stored (this option has no effect) A*B, A^T*B (optimized) - Hard zeros in corresponding to hard zeros in A are not stored, There are certain cases involving reuse of C, where this can be useful.
-     * @param EnforceInitialGraph If the initial graph is enforced, or a new one is generated
-     * @todo TpetraExt_TripleMatrixMultiply_def is failing compilation in the version of Trilinos available in Ubuntu 20.04. We cannot use TripleMatrixMultiply::MultiplyRAP
+     * @param CallFillCompleteOnResult Reserved for API compatibility with TrilinosSpace; ignored in this experimental implementation.
+     * @param KeepAllHardZeros Reserved for API compatibility with TrilinosSpace; ignored in this experimental implementation.
+     * @param EnforceInitialGraph Reserved for API compatibility with TrilinosSpace; ignored in this experimental implementation.
+     * @todo TripleMatrixMultiply::MultiplyRAP is giving segmentation fault in the version of Trilinos available in Ubuntu 24.04. We cannot use it for the BDB' operation, and instead must do two separate multiplications with an intermediate CrsMatrix. This is less efficient than a single triple-matrix multiply, but it is a temporary workaround until we can upgrade to a newer Trilinos version with a working TpetraExt_TripleMatrixMultiply_def implementation.
      */
     inline static void BtDBProductOperation(
         MatrixType& rA,
@@ -807,28 +807,62 @@ public:
         Teuchos::RCP<CrsMatrixType> aux_2 = Teuchos::rcp(new CrsMatrixType(aux_1->getRowMap(), 16));
         Tpetra::MatrixMatrix::Multiply(*aux_1, false, rB, false, *aux_2);
 
-        // We must ensure rA has enough space. 
-        // If it is an FECrsMatrix, we might need to recreate it if the graph is too small.
-        // But we try to copy values directly.
-        // Inline copy logic from CrsMatrixType to MatrixType
-        if (!rA.isFillActive()) rA.resumeFill();
-        auto p_fe_A = dynamic_cast<MatrixType*>(&rA);
-        if (p_fe_A) p_fe_A->beginAssembly();
-        for (LO i = 0; i < static_cast<LO>(aux_2->getNodeNumRows()); ++i) {
-            const auto global_row_index = aux_2->getRowMap()->getGlobalElement(i);
-            typename MatrixType::local_inds_host_view_type local_cols;
-            typename MatrixType::values_host_view_type vals;
-            aux_2->getLocalRowView(i, local_cols, vals);
-            if (vals.extent(0) > 0) {
+        auto build_fe_from_crs = [&](const CrsMatrixType& rSrc) {
+            std::size_t max_entries_per_row = 0;
+            for (LO i = 0; i < static_cast<LO>(rSrc.getNodeNumRows()); ++i) {
+                typename MatrixType::local_inds_host_view_type local_cols;
+                typename MatrixType::values_host_view_type vals;
+                rSrc.getLocalRowView(i, local_cols, vals);
+                max_entries_per_row = std::max(max_entries_per_row, static_cast<std::size_t>(local_cols.extent(0)));
+            }
+
+            Teuchos::RCP<GraphType> p_graph = Teuchos::rcp(new GraphType(
+                rSrc.getRowMap(), rSrc.getColMap(), max_entries_per_row));
+            p_graph->beginAssembly();
+            for (LO i = 0; i < static_cast<LO>(rSrc.getNodeNumRows()); ++i) {
+                const auto global_row_index = rSrc.getRowMap()->getGlobalElement(i);
+                typename MatrixType::local_inds_host_view_type local_cols;
+                typename MatrixType::values_host_view_type vals;
+                rSrc.getLocalRowView(i, local_cols, vals);
+                if (vals.extent(0) == 0) continue;
                 Teuchos::Array<GO> global_cols(local_cols.extent(0));
                 for (std::size_t j = 0; j < static_cast<std::size_t>(local_cols.extent(0)); ++j) {
-                    global_cols[j] = aux_2->getColMap()->getGlobalElement(local_cols(j));
+                    global_cols[j] = rSrc.getColMap()->getGlobalElement(local_cols(j));
                 }
-                rA.sumIntoGlobalValues(global_row_index, static_cast<LO>(global_cols.size()), vals.data(), global_cols.data());
+                p_graph->insertGlobalIndices(global_row_index,
+                    Teuchos::ArrayView<const GO>(global_cols.data(), static_cast<int>(global_cols.size())));
             }
+            p_graph->endAssembly();
+
+            auto p_matrix = Teuchos::rcp(new MatrixType(Teuchos::rcp_const_cast<const GraphType>(p_graph)));
+            if (p_matrix->isFillActive()) p_matrix->fillComplete();
+            p_matrix->beginAssembly();
+            for (LO i = 0; i < static_cast<LO>(rSrc.getNodeNumRows()); ++i) {
+                const auto global_row_index = rSrc.getRowMap()->getGlobalElement(i);
+                typename MatrixType::local_inds_host_view_type local_cols;
+                typename MatrixType::values_host_view_type vals;
+                rSrc.getLocalRowView(i, local_cols, vals);
+                if (vals.extent(0) == 0) continue;
+                Teuchos::Array<GO> global_cols(local_cols.extent(0));
+                for (std::size_t j = 0; j < static_cast<std::size_t>(local_cols.extent(0)); ++j) {
+                    global_cols[j] = rSrc.getColMap()->getGlobalElement(local_cols(j));
+                }
+                p_matrix->sumIntoGlobalValues(global_row_index, static_cast<LO>(global_cols.size()), vals.data(), global_cols.data());
+            }
+            p_matrix->endAssembly();
+            if (CallFillCompleteOnResult && p_matrix->isFillActive()) p_matrix->fillComplete();
+            return p_matrix;
+        };
+
+        auto p_result = build_fe_from_crs(*aux_2);
+        if (EnforceInitialGraph) {
+            auto p_combined_graph = CombineMatricesGraphs(rA, *p_result);
+            auto p_enforced = Teuchos::rcp(new MatrixType(Teuchos::rcp_const_cast<const GraphType>(p_combined_graph)));
+            CopyMatrixValues(*p_enforced, *p_result);
+            p_result = p_enforced;
         }
-        if (p_fe_A) p_fe_A->endAssembly();
-        if (rA.isFillActive()) rA.fillComplete();
+
+        CopyMatrixValues(rA, *p_result);
     }
 
     /**
@@ -836,10 +870,10 @@ public:
      * @param rA The resulting matrix
      * @param rD The "center" matrix
      * @param rB The matrices to be transposed
-     * @param CallFillCompleteOnResult	Optional argument, defaults to true. Power users may specify this argument to be false if they DON'T want this function to call C.FillComplete. (It is often useful to allow this function to call C.FillComplete, in cases where one or both of the input matrices are rectangular and it is not trivial to know which maps to use for the domain- and range-maps.)
-     * @param KeepAllHardZeros	Optional argument, defaults to false. If true, Multiply, keeps all entries in C corresponding to hard zeros. If false, the following happens by case: A*B^T, A^T*B^T - Does not store entries caused by hard zeros in C. A^T*B (unoptimized) - Hard zeros are always stored (this option has no effect) A*B, A^T*B (optimized) - Hard zeros in corresponding to hard zeros in A are not stored, There are certain cases involving reuse of C, where this can be useful.
-     * @param EnforceInitialGraph If the initial graph is enforced, or a new one is generated
-     * @todo TpetraExt_TripleMatrixMultiply_def is failing compilation in the version of Trilinos available in Ubuntu 20.04. We cannot use TripleMatrixMultiply::MultiplyRAP
+     * @param CallFillCompleteOnResult Reserved for API compatibility with TrilinosSpace; ignored in this experimental implementation.
+     * @param KeepAllHardZeros Reserved for API compatibility with TrilinosSpace; ignored in this experimental implementation.
+     * @param EnforceInitialGraph Reserved for API compatibility with TrilinosSpace; ignored in this experimental implementation.
+     * @todo TripleMatrixMultiply::MultiplyRAP is giving segmentation fault in the version of Trilinos available in Ubuntu 24.04. We cannot use it for the BDB' operation, and instead must do two separate multiplications with an intermediate CrsMatrix. This is less efficient than a single triple-matrix multiply, but it is a temporary workaround until we can upgrade to a newer Trilinos version with a working TpetraExt_TripleMatrixMultiply_def implementation.
      */
     inline static void BDBtProductOperation(
         MatrixType& rA,
@@ -857,10 +891,36 @@ public:
         Teuchos::RCP<CrsMatrixType> aux_2 = Teuchos::rcp(new CrsMatrixType(aux_1->getRowMap(), 16));
         Tpetra::MatrixMatrix::Multiply(*aux_1, false, rB, true, *aux_2);
 
-        // Inline copy logic from CrsMatrixType to MatrixType
-        if (!rA.isFillActive()) rA.resumeFill();
-        auto p_fe_A = dynamic_cast<MatrixType*>(&rA);
-        if (p_fe_A) p_fe_A->beginAssembly();
+        // Copy aux_2 values into rA
+        auto p_fe_rA = dynamic_cast<MatrixType*>(&rA);
+        if (p_fe_rA) {
+            if (rA.isFillActive()) {
+                rA.fillComplete();
+            }
+            p_fe_rA->beginAssembly();
+        } else {
+            if (!rA.isFillActive()) rA.resumeFill();
+        }
+
+        // Preserve existing structure from rD (hard-zero positions) so FE
+        // assembly does not shrink the graph to only aux_2 inserted entries.
+        for (LO i = 0; i < static_cast<LO>(rD.getNodeNumRows()); ++i) {
+            const auto global_row_index = rD.getRowMap()->getGlobalElement(i);
+            typename MatrixType::local_inds_host_view_type local_cols_d;
+            typename MatrixType::values_host_view_type vals_d;
+            rD.getLocalRowView(i, local_cols_d, vals_d);
+            if (vals_d.extent(0) > 0) {
+                Teuchos::Array<GO> global_cols(local_cols_d.extent(0));
+                std::vector<ST> zero_vals(static_cast<std::size_t>(local_cols_d.extent(0)), static_cast<ST>(0));
+                for (std::size_t j = 0; j < static_cast<std::size_t>(local_cols_d.extent(0)); ++j) {
+                    global_cols[j] = rD.getColMap()->getGlobalElement(local_cols_d(j));
+                }
+                rA.sumIntoGlobalValues(global_row_index, static_cast<LO>(global_cols.size()), zero_vals.data(), global_cols.data());
+            }
+        }
+
+        // Zero rA before summing: full replacement, not accumulation.
+        rA.setAllToScalar(static_cast<ST>(0));
         for (LO i = 0; i < static_cast<LO>(aux_2->getNodeNumRows()); ++i) {
             const auto global_row_index = aux_2->getRowMap()->getGlobalElement(i);
             typename MatrixType::local_inds_host_view_type local_cols;
@@ -874,8 +934,8 @@ public:
                 rA.sumIntoGlobalValues(global_row_index, static_cast<LO>(global_cols.size()), vals.data(), global_cols.data());
             }
         }
-        if (p_fe_A) p_fe_A->endAssembly();
-        if (rA.isFillActive()) rA.fillComplete();
+        if (p_fe_rA) p_fe_rA->endAssembly();
+        if (CallFillCompleteOnResult && rA.isFillActive()) rA.fillComplete();
     }
 
     /**
