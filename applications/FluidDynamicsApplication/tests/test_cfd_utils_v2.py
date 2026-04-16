@@ -19,7 +19,7 @@ class TestCFDUtilsV2(UnitTest.TestCase):
         self.model_part.AddNodalSolutionStepVariable(KM.PRESSURE)
         self.model_part.AddNodalSolutionStepVariable(KM.VELOCITY)
 
-        model_part_io = KM.ModelPartIO("small_cube")
+        model_part_io = KM.ModelPartIO("cfd_utils")
         model_part_io.ReadModelPart(self.model_part)
 
         for node in self.model_part.Nodes:
@@ -228,7 +228,7 @@ class TestCFDUtilsV2(UnitTest.TestCase):
                                        [0.5125],
                                        [0.5375]])
         np.testing.assert_allclose(a_gauss_scalar, ref_a_gauss_scalar, rtol=self.rtol, atol=self.atol)
-        
+
     def test_ComputeConvectiveContribution(self):
         grad_u = self.cfd_utils.ComputeElementalGradient(self.DN, self.velem)
         a_gauss = self.cfd_utils.InterpolateValue(self.Ngauss, self.velem)
