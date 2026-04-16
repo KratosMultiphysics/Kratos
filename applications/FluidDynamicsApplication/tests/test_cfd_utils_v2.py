@@ -74,6 +74,118 @@ class TestCFDUtilsV2(UnitTest.TestCase):
         det_J_volume_factor = 2.0 if self.dim == 2 else 6.0
         self.w_int_order = det_J_volume_factor * self.cfd_utils.GetGaussIntegrationWeights(self.dim, 1)
 
+    def test_ComputeElementalDivergence(self):
+        div_v = self.cfd_utils.ComputeElementalDivergence(self.DN, self.velem)
+        ref_div_v = np.array([3.7, 4.100000000000001, 3.6, 3.45, 3.5, 3.6])
+        np.testing.assert_allclose(div_v, ref_div_v, rtol=self.rtol, atol=self.atol)
+
+    def test_ComputeElementwiseNodalDivergence(self):
+        nodal_div_v = self.cfd_utils.ComputeElementwiseNodalDivergence(self.N, self.DN, self.velem)
+        ref_nodal_div_v = np.array([[0.925 , 0.925 , 0.925 , 0.925 ],
+                                    [1.025 , 1.025 , 1.025 , 1.025 ],
+                                    [0.9   , 0.9   , 0.9   , 0.9   ],
+                                    [0.8625, 0.8625, 0.8625, 0.8625],
+                                    [0.875 , 0.875 , 0.875 , 0.875 ],
+                                    [0.9   , 0.9   , 0.9   , 0.9   ]])
+        np.testing.assert_allclose(nodal_div_v, ref_nodal_div_v, rtol=self.rtol, atol=self.atol)
+
+    def test_Compute_N_DN(self):
+        n_dn = self.cfd_utils.Compute_N_DN(self.N, self.DN, self.pelem)
+        ref_n_dn = np.array([[[0.25, 0.0, 0.0],
+                              [0.25, 0.0, 0.0],
+                              [0.25, 0.0, 0.0],
+                              [0.25, 0.0, 0.0]],
+                             [[0.25, 0.0, 0.0],
+                              [0.25, 0.0, 0.0],
+                              [0.25, 0.0, 0.0],
+                              [0.25, 0.0, 0.0]],
+                             [[0.25, 0.0, 0.0],
+                              [0.25, 0.0, 0.0],
+                              [0.25, 0.0, 0.0],
+                              [0.25, 0.0, 0.0]],
+                             [[0.25, 0.0, 0.0],
+                              [0.25, 0.0, 0.0],
+                              [0.25, 0.0, 0.0],
+                              [0.25, 0.0, 0.0]],
+                             [[0.25, 0.0, 0.0],
+                              [0.25, 0.0, 0.0],
+                              [0.25, 0.0, 0.0],
+                              [0.25, 0.0, 0.0]],
+                             [[0.25, 0.0, 0.0],
+                              [0.25, 0.0, 0.0],
+                              [0.25, 0.0, 0.0],
+                              [0.25, 0.0, 0.0]]])
+        np.testing.assert_allclose(n_dn, ref_n_dn, rtol=self.rtol, atol=1e-14)
+
+    def test_Compute_DN_N(self):
+        dn_n = self.cfd_utils.Compute_DN_N(self.N, self.DN, self.pelem)
+        ref_dn_n = np.array([[[ 0.591666666666667,  0.070902203856749, -0.537878787878788],
+                              [ 0.               , -0.953512396694215,  0.806818181818182],
+                              [ 0.               ,  0.806818181818182,  0.               ],
+                              [-0.591666666666667,  0.075792011019284, -0.268939393939394]],
+                             [[-0.608333333333333, -0.187179487179487, -0.052194280078895],
+                              [ 0.608333333333333, -0.51474358974359 , -0.055793885601578],
+                              [ 0.               ,  0.701923076923077, -0.593934911242604],
+                              [ 0.               ,  0.               ,  0.701923076923077]],
+                             [[-0.027173913043478, -0.195652173913044,  0.1875           ],
+                              [-0.239130434782609,  0.228260869565217,  0.               ],
+                              [ 0.25             ,  0.               ,  0.               ],
+                              [ 0.016304347826087, -0.032608695652174, -0.1875           ]],
+                             [[-0.009548611111111, -0.21875          , -0.009114583333333],
+                              [ 0.030381944444444,  0.21875          , -0.209635416666667],
+                              [-0.270833333333333,  0.               ,  0.21875          ],
+                              [ 0.25             ,  0.               ,  0.               ]],
+                             [[-0.109821428571429,  0.071550324675325, -0.366071428571429],
+                              [-0.402678571428571, -0.04825487012987 ,  0.366071428571429],
+                              [ 0.5125           , -0.489204545454545,  0.               ],
+                              [ 0.               ,  0.465909090909091,  0.               ]],
+                             [[-0.529356060606061,  0.447916666666667,  0.048550407925408],
+                              [ 0.488636363636364,  0.               , -0.394667832167832],
+                              [-0.               ,  0.               ,  0.413461538461538],
+                              [ 0.040719696969697, -0.447916666666667, -0.067344114219114]]])
+        np.testing.assert_allclose(dn_n, ref_dn_n, rtol=self.rtol, atol=self.atol)
+
+    def test_ComputeElementalConvectiveOperator(self):
+        grad_u = self.cfd_utils.ComputeElementalGradient(self.DN, self.velem)
+        # Vector case
+        conv_op = self.cfd_utils.ComputeElementalConvectiveOperator(self.velem, grad_u)
+        ref_conv_op = np.array([[[3.375            , 0.               , 0.               ],
+                                 [0.95             , 0.               , 1.331            ],
+                                 [1.015818181818182, 1.331            , 2.145            ],
+                                 [0.               , 0.               , 0.               ]],
+                                [[0.               , 0.               , 0.               ],
+                                 [3.375            , 0.               , 0.               ],
+                                 [1.243000000000001, 2.197000000000001, 0.               ],
+                                 [1.113961538461539, 1.287000000000001, 2.197000000000001]],
+                                [[0.               , 0.               , 2.743999999999999],
+                                 [0.               , 1.520875         , 1.74             ],
+                                 [1.157625         , 1.33375          , 2.218021739130435],
+                                 [0.               , 0.               , 0.               ]],
+                                [[0.               , 0.               , 0.               ],
+                                 [0.               , 1.728            , 0.               ],
+                                 [0.               , 1.517999999999999, 1.728            ],
+                                 [1.157625         , 1.320927083333333, 2.1645           ]],
+                                [[0.               , 0.               , 0.               ],
+                                 [0.               , 0.               , 2.743999999999999],
+                                 [1.               , 0.               , 1.364            ],
+                                 [1.16025          , 1.331            , 2.240325000000001]],
+                                [[0.               , 1.728            , 0.               ],
+                                 [1.331            , 2.171            , 0.               ],
+                                 [1.1445           , 1.277977272727273, 2.197000000000001],
+                                 [0.               , 0.               , 0.               ]]])
+        np.testing.assert_allclose(conv_op, ref_conv_op, rtol=self.rtol, atol=self.atol)
+
+        # Scalar case
+        grad_p = self.cfd_utils.ComputeElementalGradient(self.DN, self.pelem)
+        conv_op_scalar = self.cfd_utils.ComputeElementalConvectiveOperator(self.velem, grad_p)
+        ref_conv_op_scalar = np.array([[2.25  , 1.    , 1.1025, 0.    ],
+                                       [0.    , 2.25  , 1.21  , 1.1025],
+                                       [0.    , 0.    , 1.1025, 0.    ],
+                                       [0.    , 0.    , 0.    , 1.1025],
+                                       [0.    , 0.    , 1.    , 1.1025],
+                                       [0.    , 1.21  , 1.1025, 0.    ]])
+        np.testing.assert_allclose(conv_op_scalar, ref_conv_op_scalar, rtol=self.rtol, atol=self.atol)
+
     def test_ComputeElementalGradient(self):
         grad_u = self.cfd_utils.ComputeElementalGradient(self.DN, self.velem)
         ref_grad_u = np.array([[[ 1.5              ,  0.107644628099173, -0.454545454545454],
@@ -97,6 +209,7 @@ class TestCFDUtilsV2(UnitTest.TestCase):
         np.testing.assert_allclose(grad_u, ref_grad_u, rtol=self.rtol, atol=self.atol)
 
     def test_InterpolateValue(self):
+        # Vector case
         a_gauss = self.cfd_utils.InterpolateValue(self.Ngauss, self.velem)
         ref_a_gauss = np.array([[[1.088125, 0.3025  , 0.725   ]],
                                [[1.140625, 0.725   , 0.4225  ]],
@@ -106,6 +219,16 @@ class TestCFDUtilsV2(UnitTest.TestCase):
                                [[0.578125, 1.085   , 0.4225  ]]])
         np.testing.assert_allclose(a_gauss, ref_a_gauss, rtol=self.rtol, atol=self.atol)
 
+        # Scalar case
+        a_gauss_scalar = self.cfd_utils.InterpolateValue(self.Ngauss, self.pelem)
+        ref_a_gauss_scalar = np.array([[0.8875],
+                                       [0.9125],
+                                       [0.2625],
+                                       [0.2625],
+                                       [0.5125],
+                                       [0.5375]])
+        np.testing.assert_allclose(a_gauss_scalar, ref_a_gauss_scalar, rtol=self.rtol, atol=self.atol)
+        
     def test_ComputeConvectiveContribution(self):
         grad_u = self.cfd_utils.ComputeElementalGradient(self.DN, self.velem)
         a_gauss = self.cfd_utils.InterpolateValue(self.Ngauss, self.velem)

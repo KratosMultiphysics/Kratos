@@ -76,6 +76,50 @@ class CFDUtils:
     def __init__(self):
         if not _configured:
             raise RuntimeError("Backend not set. Call 'configure()' first.")
+        self._tmp_nelem = 0
+        self._tmp_n_in_el = 0
+        self._tmp_dim = 0
+
+    def allocate_temporaries(self, nelem, n_in_el, dim):
+        """
+        Pre-allocate shared temporary buffers used by compute methods.
+
+        These buffers are reused across calls under the assumption that
+        only one compute method executes at a time.  The returned arrays
+        from compute methods are views into these buffers and remain
+        valid only until the next call.
+
+        Parameters
+        ----------
+        nelem : int
+            Number of elements.
+        n_in_el : int
+            Number of nodes per element.
+        dim : int
+            Spatial dimension.
+        """
+        self._tmp_nelem = nelem
+        self._tmp_n_in_el = n_in_el
+        self._tmp_dim = dim
+
+        nd = n_in_el * dim
+
+        # Scalar per element — shape (nelem,)
+        self._tmp_e = xp.empty(nelem, dtype=PRECISION)
+
+        # Flat node×dim per element — shape (nelem, n_in_el*dim)
+        self._tmp_e_nd = xp.empty((nelem, nd), dtype=PRECISION)
+
+        # Per-element dim vector — shape (nelem, dim)
+        self._tmp_ed = xp.empty((nelem, dim), dtype=PRECISION)
+
+        # Per-element node×dim — shape (nelem, n_in_el, dim)
+        self._tmp_eik = xp.empty((nelem, n_in_el, dim), dtype=PRECISION)
+
+    def _ensure_temporaries(self, nelem, n_in_el, dim):
+        """Lazily allocate temporaries on first use or if dimensions change."""
+        if nelem != self._tmp_nelem or n_in_el != self._tmp_n_in_el or dim != self._tmp_dim:
+            self.allocate_temporaries(nelem, n_in_el, dim)
 
     def GetShapeFunctionsOnGaussPoints(self, dim: int, integration_order: int):
         if integration_order == 1:
@@ -170,7 +214,7 @@ class CFDUtils:
 
         return w
 
-    def ComputeElementalDivergence(self, DN: np.ndarray, uel: np.ndarray):
+    def ComputeElementalDivergence(self, DN: np.ndarray, uel: np.ndarray, out=None):
         """
         Computes the elemental divergence of a vector field u.
 
@@ -183,16 +227,38 @@ class CFDUtils:
             Numpy array with shape (Nelem, n_in_el, dim).
         uel : ndarray
             Numpy array with shape (Nelem, n_in_el, dim).
+        out : ndarray, optional
+            Pre-allocated output array of shape (Nelem,).
+            If None, a new array is allocated.
         """
-        return xp.einsum("nij,nij->n", DN, uel, optimize=opt_type)
+        # Original einsum (no `out` support in CuPy):
+        # return xp.einsum("nij,nij->n", DN, uel, optimize=opt_type)
+        nelem, n_in_el, dim = DN.shape
+        self._ensure_temporaries(nelem, n_in_el, dim)
+        nd = n_in_el * dim
 
-    def ComputeElementwiseNodalDivergence(self, N: np.ndarray, DN: np.ndarray, uel: np.ndarray):
+        if out is None:
+            out = xp.empty(nelem, dtype=DN.dtype)
+
+        # Zero-copy reshape to 2D
+        DN_flat = DN.reshape(nelem, nd)
+        uel_flat = uel.reshape(nelem, nd)
+
+        # Element-wise product into pre-allocated buffer
+        xp.multiply(DN_flat, uel_flat, out=self._tmp_e_nd)
+
+        # Sum rows into caller-provided (or freshly allocated) output
+        xp.sum(self._tmp_e_nd, axis=1, out=out)
+
+        return out
+
+    def ComputeElementwiseNodalDivergence(self, N: np.ndarray, DN: np.ndarray, uel: np.ndarray, out=None):
         """
         Computes the nodal weighted divergence of a vector field u.
 
         This term is (w, ∇·u).
         Using Einstein notation: out[e,i] = sum_k sum_l N[i]*DN[e,k,l]*uel[e,k,l]
-
+                                          = xp.einsum("I,eJk,eJk->eI",N,DN,uel,optimize=opt_type)
         Parameters
         ----------
         N : ndarray
@@ -201,40 +267,73 @@ class CFDUtils:
             Numpy array with shape (Nelem, n_in_el, dim).
         uel : ndarray
             Numpy array with shape (Nelem, n_in_el, dim).
-        out : ndarray
-            Output array, expected to have shape (Nelem, n_in_el).
+        out : ndarray, optional
+            Pre-allocated output array of shape (Nelem, n_in_el).
+            If None, a new array is allocated.
         """
+        # Original einsum:
+        # return xp.einsum("I,eJk,eJk->eI", N, DN, uel, optimize=opt_type)
         n_in_el = DN.shape[1]
-        if N.shape[0] != n_in_el or N.ndim!=1:
+        if N.shape[0] != n_in_el or N.ndim != 1:
             raise Exception("wrong size of N")
         if uel.shape != DN.shape:
             raise Exception("wrong size of uel")
 
-        return xp.einsum("I,eJk,eJk->eI",N,DN,uel,optimize=opt_type)
+        nelem, n_in_el, dim = DN.shape
+        self._ensure_temporaries(nelem, n_in_el, dim)
+        nd = n_in_el * dim
 
-    def ComputeElementalConvectiveOperator(self, a_elemental, grad_u):
+        if out is None:
+            out = xp.empty((nelem, n_in_el), dtype=DN.dtype)
+
+        # Step 1: divergence div[e] = sum_{J,k} DN[e,J,k] * uel[e,J,k]
+        DN_flat = DN.reshape(nelem, nd)
+        uel_flat = uel.reshape(nelem, nd)
+        xp.multiply(DN_flat, uel_flat, out=self._tmp_e_nd)
+        xp.sum(self._tmp_e_nd, axis=1, out=self._tmp_e)
+
+        # Step 2: out[e,I] = N[I] * div[e]
+        xp.multiply(self._tmp_e[:, None], N[None, :], out=out)
+
+        return out
+
+    def ComputeElementalConvectiveOperator(self, a_elemental, grad_u, out=None):
         """
         Computes the convective operator (a·∇u).
 
         conv[e, i, j] = sum_m a[e,i,m] * DN[e,j,m]
+                      = xp.einsum('ekl,eil->eik', grad_u, a_elemental, optimize=opt_type) #vector case
+                      = xp.einsum('el,eil->ei', grad_u, a_elemental, optimize=opt_type) #scalar case
         """
+        nelem = a_elemental.shape[0]
+        n_in_el = a_elemental.shape[1]
 
         if grad_u.ndim == 3: # vector field
-            return xp.einsum('ekl,eil->eik', grad_u, a_elemental, optimize=opt_type) #a·∇u
+            dim = grad_u.shape[1]
+            if out is None:
+                out = xp.empty((nelem, n_in_el, dim), dtype=PRECISION)
+            
+            # (E, I, L) @ (E, L, K) -> (E, I, K)
+            xp.matmul(a_elemental, grad_u.swapaxes(1, 2), out=out)
+            return out
 
         elif grad_u.ndim == 2: # scalar field
-            return xp.einsum('el,eil->ei', grad_u, a_elemental, optimize=opt_type) #a·∇u
+            if out is None:
+                out = xp.empty((nelem, n_in_el), dtype=PRECISION)
+            
+            # (E, I, L) @ (E, L, 1) -> (E, I, 1) -> squeeze to (E, I)
+            xp.matmul(a_elemental, grad_u[:, :, None], out=out[:, :, None])
+            return out
 
         else:
             raise ValueError("grad_u must have 2 dims (scalar) or 3 dims (vector)")
 
-        return _
-
-    def Compute_N_DN(self, N: np.ndarray, DN: np.ndarray, pel: np.ndarray):
+    def Compute_N_DN(self, N: np.ndarray, DN: np.ndarray, pel: np.ndarray, out=None):
         """
         Computes the term (w, ∇p).
 
         Using Einstein notation: out[e,I,k] = N[I]*DN[e,J,k]*pel[e,J]
+                                            = xp.einsum("I,eJk,eJ->eIk", N, DN, pel, optimize=opt_type)
 
         Parameters
         ----------
@@ -244,21 +343,35 @@ class CFDUtils:
             Numpy array with shape (Nelem, n_in_el, dim).
         pel : ndarray
             Numpy array with shape (Nelem, n_in_el), i.e., one scalar per node of the element.
+        out : ndarray, optional
+            Pre-allocated output of shape (Nelem, n_in_el, dim).
         """
         nelem = DN.shape[0]
         n_in_el = DN.shape[1]
+        dim = DN.shape[2]
 
         if pel.shape != (nelem, n_in_el):
             raise ValueError("pel must have shape (nelem, n_in_el) for scalar case. Current shape is:",field.shape)
+        
+        self._ensure_temporaries(nelem, n_in_el, dim)
 
-        return xp.einsum("I,eJk,eJ->eIk", N, DN, pel, optimize=opt_type)
+        if out is None:
+            out = xp.empty((nelem, n_in_el, dim), dtype=DN.dtype)
 
-    def Compute_DN_N(self, N: np.ndarray, DN: np.ndarray, pel: np.ndarray):
+        # Step 1: grad_p[e,k] = sum_J DN[e,J,k] * pel[e,J]
+        xp.matmul(DN.swapaxes(1, 2), pel[:, :, None], out=self._tmp_ed[:, :, None])
+
+        # Step 2: out[e,I,k] = N[I] * grad_p[e,k]
+        xp.multiply(N[None, :, None], self._tmp_ed[:, None, :], out=out)
+
+        return out
+
+    def Compute_DN_N(self, N: np.ndarray, DN: np.ndarray, pel: np.ndarray, out=None):
         """
         Computes the term (∇·w, p).
 
         Using Einstein notation: out[e,I,k] = sum_J DN[e,I,k]*pel[e,J]*N[J]
-
+                                            = xp.einsum("eIk,J,eJ->eIk", DN, N, pel, optimize=opt_type)
         Parameters
         ----------
         N : ndarray
@@ -267,23 +380,51 @@ class CFDUtils:
             Numpy array with shape (Nelem, n_in_el, dim).
         pel : ndarray
             Numpy array with shape (Nelem, n_in_el), i.e., one scalar per node of the element.
+        out : ndarray, optional
+            Pre-allocated output of shape (Nelem, n_in_el, dim).
         """
-        return xp.einsum("eIk,J,eJ->eIk", DN, N, pel, optimize=opt_type)
+        # Original einsum:
+        # return xp.einsum("eIk,J,eJ->eIk", DN, N, pel, optimize=opt_type)
+        nelem, n_in_el, dim = DN.shape
+        self._ensure_temporaries(nelem, n_in_el, dim)
 
-    def ComputeLaplacianMatrix(self, DN: np.ndarray):
+        if out is None:
+            out = xp.empty((nelem, n_in_el, dim), dtype=DN.dtype)
+
+        # Step 1: s[e] = sum_J pel[e,J] * N[J]  — dot product per element
+        xp.dot(pel, N, out=self._tmp_e)
+
+        # Step 2: out[e,I,k] = DN[e,I,k] * s[e]
+        xp.multiply(DN, self._tmp_e[:, None, None], out=out)
+
+        return out
+
+    def ComputeLaplacianMatrix(self, DN: np.ndarray, out=None):
         """
         Computes the Laplacian local matrix term (∇N, ∇N).
 
-        Using Einstein notation: out[e,i,j] = DN[e,i,m]*DN[e,j,m]
-
+        Using Einstein notation: out[e,i,j] = sum_m DN[e,i,m]*DN[e,j,m]
+                                            = xp.einsum("eim,ejm->eij", DN, DN, optimize=opt_type)
         Parameters
         ----------
         DN : ndarray
             Numpy array with shape (Nelem, n_in_el, dim).
+        out : ndarray, optional
+            Pre-allocated output array, expected to have shape (Nelem, n_in_el, n_in_el).
+            
+        Returns
+        -------
         out : ndarray
-            Output array, expected to have shape (Nelem, n_in_el, n_in_el).
+            Laplacian local matrices of shape (Nelem, n_in_el, n_in_el).
         """
-        return xp.einsum("eim,ejm->eij", DN, DN, optimize=opt_type)
+        if out is None:
+            nelem = DN.shape[0]
+            n_in_el = DN.shape[1]
+            out = xp.empty((nelem, n_in_el, n_in_el), dtype=DN.dtype)
+            
+        # DN (E, n_in_el, dim) @ DN^T (E, dim, n_in_el) -> (E, n_in_el, n_in_el)
+        xp.matmul(DN, DN.swapaxes(1, 2), out=out)
+        return out
 
     def ApplyLaplacian(self, DN: np.ndarray, field: np.ndarray):
         """
@@ -353,15 +494,18 @@ class CFDUtils:
 
         raise ValueError("Field must have shape (E,nnode) or (E,nnode,dim)")
 
-    def InterpolateValue(self, N, field):
+    def InterpolateValue(self, N, field, out=None):
         """
         Interpolates field values at Gauss points.
+           out =  xp.einsum("gn,en->eg", N, field, optimize=opt_type)
 
         Parameters
         ----------
         N : (nnode,) or (ngauss, nnode)
         field : (nelem, nnode) or (nelem, nnode, dim)
-
+        out : ndarray, optional
+            Pre-allocated output array of shape (nelem, ngauss) or (nelem, ngauss, dim).
+            
         Returns
         -------
         scalar:
@@ -374,17 +518,28 @@ class CFDUtils:
         if N.ndim == 1:
             N = N[None, :]   # (1, nnode)
 
+        ngauss = N.shape[0]
+        nelem = field.shape[0]
+
         # Scalar field
         if field.ndim == 2:
-            # (ngauss, nnode) x (nelem, nnode) -> (nelem, ngauss)
-            return xp.einsum("gn,en->eg", N, field, optimize=opt_type)
+            if out is None:
+                out = xp.empty((nelem, ngauss), dtype=field.dtype)
+            # (nelem, nnode) @ (nnode, ngauss) -> (nelem, ngauss)
+            xp.matmul(field, N.T, out=out)
+            return out
 
         # Vector field
-        if field.ndim == 3:
-            # (ngauss, nnode) x (nelem, nnode, dim) -> (nelem, ngauss, dim)
-            return xp.einsum("gn,end->egd", N, field, optimize=opt_type)
+        elif field.ndim == 3:
+            dim = field.shape[2]
+            if out is None:
+                out = xp.empty((nelem, ngauss, dim), dtype=field.dtype)
+            # N (ngauss, nnode) @ field (nelem, nnode, dim) -> (nelem, ngauss, dim)
+            xp.matmul(N, field, out=out)
+            return out
 
-        raise ValueError("Field must have shape (nelem,nnode) or (nelem,nnode,dim)")
+        else:
+            raise ValueError("Field must have shape (nelem,nnode) or (nelem,nnode,dim)")
 
     def AssembleVector(self, conn: np.ndarray, vals: np.ndarray, out: np.ndarray):
         """
@@ -401,12 +556,12 @@ class CFDUtils:
         """
         xp.add.at(out, conn, vals)
 
-    def ComputeElementalGradient(self, DN: np.ndarray, field: np.ndarray):
+    def ComputeElementalGradient(self, DN: np.ndarray, field: np.ndarray, out=None):
         """
         Compute the gradient of a scalar or vector field using element-dependent DN.
         that is for every element we compute:
-            grad[k]   = sum_I DN_I/Dx_k p_I  - scalar case
-            grad[k,l] = sum_I DN_I/Dx_l v_Ik - vector case
+            grad[k]   = sum_I DN_I/Dx_k p_I  - scalar case = xp.einsum('ei,eik->ek', field, DN, optimize=opt_type)
+            grad[k,l] = sum_I DN_I/Dx_l v_Ik - vector case = xp.einsum('eik,eil->ekl', field, DN, optimize=opt_type)
         Parameters
         ----------
         DN : (nelem, nnode, ndim)
@@ -416,6 +571,9 @@ class CFDUtils:
             Field values at element nodes. Must have shape:
             - (nelem, nnode)          for a scalar field
             - (nelem, nnode, ncomp)   for a vector field
+            
+        out : ndarray, optional
+            Pre-allocated output array of shape (nelem, ndim) or (nelem, ncomp, ndim).
 
         Notes
         -----
@@ -440,40 +598,59 @@ class CFDUtils:
             if field.shape != (nelem, nnode):
                 raise ValueError("field must have shape (nelem, nnode) for scalar case. Current shape is:",field.shape)
 
-            return xp.einsum('ei,eik->ek', field, DN, optimize=opt_type)
+            if out is None:
+                out = xp.empty((nelem, ndim), dtype=field.dtype)
+            
+            # (E, 1, nnode) @ (E, nnode, ndim) -> (E, 1, ndim) -> squeeze to (E, ndim)
+            xp.matmul(field[:, None, :], DN, out=out[:, None, :])
+            return out
 
         # ------------------------------
         # Vector field
         # ------------------------------
         elif field.ndim == 3:
+            ncomp = field.shape[2]
             if field.shape[0] != nelem or field.shape[1] != nnode:
                 raise ValueError("field must have shape (nelem, nnode, ncomp). Current shape is:",field.shape)
 
-            return xp.einsum('eik,eil->ekl', field, DN, optimize=opt_type)
+            if out is None:
+                out = xp.empty((nelem, ncomp, ndim), dtype=field.dtype)
+            
+            # field^T @ DN: (E, ncomp, nnode) @ (E, nnode, ndim) -> (E, ncomp, ndim)
+            xp.matmul(field.swapaxes(1, 2), DN, out=out) #TODO: verify if this is efficient
+            return out
 
         # ------------------------------
         # Invalid field
         # ------------------------------
         raise ValueError("field must have 2 dims (scalar) or 3 dims (vector), Current shape of field is:",field.shape)
 
-    def ComputeBodyForceContribution(self, N, b_elemental):
+    def ComputeBodyForceContribution(self, N, b_elemental, out=None):
         """
         Compute (w, b) contribution for multiple Gauss points.
-
+                       = xp.einsum("gn,end->egd", N, b_elemental, optimize=opt_type)
         Parameters
         ----------
         N : (ngauss, nnode)
             shape function values at Gauss points
-
-        b : (nelem, nnode, dim)
-            body force at Gauss points
+        b_elemental : (nelem, nnode, dim)
+            body force at element nodes
+        out : ndarray, optional
+            Pre-allocated output array of shape (nelem, ngauss, dim).
 
         Returns
         -------
         (nelem, ngauss, dim)
         """
 
-        return xp.einsum("gn,end->egd", N, b_elemental, optimize=opt_type)
+        if out is None:
+            ngauss = N.shape[0]
+            nelem, nnode, dim = b_elemental.shape
+            out = xp.empty((nelem, ngauss, dim), dtype=b_elemental.dtype)
+            
+        # N (ngauss, nnode) @ b_elemental (nelem, nnode, dim) -> (nelem, ngauss, dim)
+        xp.matmul(N, b_elemental, out=out)
+        return out
 
     def ComputeConvectiveContribution(self, N, grad_u, a_gauss):
         """
