@@ -10,7 +10,7 @@
 //
 #pragma once
 
-#include "timoshenko_beam_element_3D2N.h"
+#include "includes/element.h"
 #include "utilities/quaternion.h"
 
 namespace Kratos
@@ -42,7 +42,7 @@ namespace Kratos
  * Reference: 
  * @author Alejandro Cornejo
  */
-class NonLinearTimoshenkoBeamElement3D2N : public LinearTimoshenkoBeamElement3D2N
+class NonLinearTimoshenkoBeamElement3D2N : public Element
 {
 public:
 
@@ -50,7 +50,7 @@ public:
 
     ///@name Type Definitions
     ///@{
-    using BaseType = LinearTimoshenkoBeamElement3D2N;
+    using BaseType = Element;
 
     NonLinearTimoshenkoBeamElement3D2N() {}
 
@@ -115,20 +115,33 @@ public:
         const bool ComputeRHS
         );
 
+    /**
+     * @brief Called to initialize the element.
+     * @warning Must be called before any calculation is done
+     */
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+     * @brief It initializes the material
+     */
+    void InitializeMaterial();
+
         // void CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rProcessInfo) override;
 
-private:
     /**
-     * @brief This quaternion is located at the centre of the beam and
-     * it will be updated at any time that the rotations are updated.
-     * It is used to compute the rotation matrix that transforms the local internal forces to the global frame, and also to compute the local deformation of the beam.
-     * It is initialized as the identity quaternion, and then it is updated at each iteration using the incremental rotations of the nodes.
-     * The use of a quaternion allows to avoid singularities and to have a more robust update of the rotation matrix, especially for large rotations.
-     * The use of a quaternion also allows to have a more efficient update of the rotation matrix.
+     * @brief Indicates the amount of DoFs per node (u, v, w, theta_x, theta_y, theta_z)
      */
-    Quaternion<double> mQuaternion = Quaternion<double>::Identity();
+    IndexType GetDoFsPerNode() const
+    {
+        return 6; // 3 displacements and 3 rotations
+    }
 
+private:
 
+    /* The rotation operators are built with [d1, d2, d3] as col vectors */
+    std::vector<Matrix> mRotationOperators; // the two rotation matrices, one per each IP.
+    std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector; // The vector containing the beam constitutive laws, one per each IP
+    IntegrationMethod mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_LOBATTO_1; // By default the quadrature points are located at the nodes of the beam
 };
 
 } // namespace Kratos

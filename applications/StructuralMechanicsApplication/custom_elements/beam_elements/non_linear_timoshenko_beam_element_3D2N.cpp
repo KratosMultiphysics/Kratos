@@ -33,6 +33,46 @@ Element::Pointer NonLinearTimoshenkoBeamElement3D2N::Clone(
 /***********************************************************************************/
 /***********************************************************************************/
 
+void NonLinearTimoshenkoBeamElement3D2N::Initialize(const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    // Initialization should not be done again in a restart!
+    if (!rCurrentProcessInfo[IS_RESTARTED]) {
+        const auto& r_integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod); // Lobatto by default
+
+        // Constitutive Law initialisation
+        if (mConstitutiveLawVector.size() != r_integration_points.size())
+            mConstitutiveLawVector.resize(r_integration_points.size());
+        InitializeMaterial();
+    }
+    KRATOS_CATCH("Initialize")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void NonLinearTimoshenkoBeamElement3D2N::InitializeMaterial()
+{
+    KRATOS_TRY
+
+    if (GetProperties()[CONSTITUTIVE_LAW] != nullptr) {
+        const auto& r_geometry   = GetGeometry();
+        const auto& r_properties = GetProperties();
+        auto N_values            = Vector();
+        for (IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number) {
+            mConstitutiveLawVector[point_number] = r_properties[CONSTITUTIVE_LAW]->Clone();
+            mConstitutiveLawVector[point_number]->InitializeMaterial(r_properties, r_geometry, N_values);
+        }
+    } else
+        KRATOS_ERROR << "A constitutive law needs to be specified for the element with ID " << this->Id() << std::endl;
+
+    KRATOS_CATCH("InitializeMaterial");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void NonLinearTimoshenkoBeamElement3D2N::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
