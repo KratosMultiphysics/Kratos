@@ -21,6 +21,7 @@
 // Project includes
 #include "includes/kratos_application.h"
 #include "custom_elements/small_displacement_particle.h"
+#include "custom_elements/total_lagrangian_particle.h"
 
 // Include constitutive 
 #include "custom_constitutive/volumetric_linear_elastic_2D_law.h"
@@ -186,6 +187,7 @@ private:
     // Adding the particle elements
 
     const SmallDisplacementParticle<CubicKernel2D> mSmallDisplacementCubicParticle2D;
+    const TotalLagrangianDisplacementParticle<CubicKernel2D> mTotalLagrangianDisplacementCubicParticle2D;
 
     /* CONSTITUTIVE LAWS */ 
     const VolumetricLinearElastic2DLaw mVolumetricLinearElastic2DLaw;
