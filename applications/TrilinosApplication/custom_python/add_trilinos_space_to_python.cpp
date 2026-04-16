@@ -19,7 +19,6 @@
 //Trilinos includes
 
 // Project includes
-#include "includes/define.h"
 #include "trilinos_space.h"
 #include "custom_python/trilinos_pointer_wrapper.h"
 #include "custom_python/add_trilinos_space_to_python.h"
