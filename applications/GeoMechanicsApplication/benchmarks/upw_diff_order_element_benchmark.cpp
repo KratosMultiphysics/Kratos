@@ -42,7 +42,7 @@ std::shared_ptr<Properties> CreatePropertiesForUPwDiffOrderElementBenchmark()
     p_properties->SetValue(BIOT_COEFFICIENT, 1.000000e+00);
     p_properties->SetValue(RETENTION_LAW, "SaturatedLaw");
     p_properties->SetValue(SATURATED_SATURATION, 1.000000e+00);
-    p_properties->SetValue(IGNORE_UNDRAINED, false);
+    p_properties->SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
 
     return p_properties;
 }

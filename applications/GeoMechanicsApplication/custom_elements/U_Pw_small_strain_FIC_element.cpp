@@ -13,6 +13,7 @@
 
 // Application includes
 #include "custom_elements/U_Pw_small_strain_FIC_element.h"
+#include "custom_utilities/constitutive_law_utilities.h"
 #include "custom_utilities/equation_of_motion_utilities.hpp"
 #include "custom_utilities/extrapolation_utilities.h"
 
@@ -121,13 +122,10 @@ int UPwSmallStrainFICElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrent
     int ierr = UPwSmallStrainElement<TDim, TNumNodes>::Check(rCurrentProcessInfo);
     if (ierr != 0) return ierr;
 
-    const PropertiesType& Prop = this->GetProperties();
-
-    // Verify specific properties
-    if (Prop[IGNORE_UNDRAINED])
-        KRATOS_ERROR << "IGNORE_UNDRAINED cannot be used in FIC elements. Use "
-                        "Non FIC elements instead"
-                     << this->Id() << std::endl;
+    KRATOS_ERROR_IF(ConstitutiveLawUtilities::IsConstantWaterPressure(this->GetProperties()))
+        << "Constant water pressure fields cannot be used in FIC elements. "
+           "Use Non FIC elements instead"
+        << this->Id() << std::endl;
 
     return ierr;
 
@@ -522,7 +520,7 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLeftHa
 template <unsigned int TDim, unsigned int TNumNodes>
 double UPwSmallStrainFICElement<TDim, TNumNodes>::CalculateShearModulus(const Matrix& ConstitutiveMatrix) const
 {
-    const int IndexG = ConstitutiveMatrix.size1() - 1;
+    const auto IndexG = ConstitutiveMatrix.size1() - 1;
     return ConstitutiveMatrix(IndexG, IndexG);
 }
 

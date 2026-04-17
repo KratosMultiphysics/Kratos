@@ -88,11 +88,6 @@ Geo::ProcessInfoGetter CreateProcessInfoGetter(const ProcessInfo& rProcessInfo)
     return [&rProcessInfo]() -> const ProcessInfo& { return rProcessInfo; };
 }
 
-bool GetIgnoreUndrained(const Properties& rProperties)
-{
-    return rProperties.Has(IGNORE_UNDRAINED) ? rProperties[IGNORE_UNDRAINED] : false;
-}
-
 } // namespace
 
 namespace Kratos
@@ -108,6 +103,7 @@ UPwInterfaceElement::UPwInterfaceElement(IndexType                          NewI
       mpStressStatePolicy(std::move(pStressStatePolicy)),
       mContributions(rContributions)
 {
+    ConstitutiveLawUtilities::ReplaceIgnoreUndrainedByDrainageType(rpProperties.get());
     MakeIntegrationSchemeAndAssignFunction();
     mpOptionalPressureGeometry = MakeOptionalWaterPressureGeometry(GetDisplacementGeometry(), IsDiffOrder);
 }
@@ -158,9 +154,9 @@ void UPwInterfaceElement::EquationIdVector(EquationIdVectorType& rResult, const 
 
 void UPwInterfaceElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rProcessInfo)
 {
-    const auto number_of_dofs   = GetDofs().size();
-    const auto ignore_undrained = GetIgnoreUndrained(GetProperties());
-    rLeftHandSideMatrix         = ZeroMatrix{number_of_dofs, number_of_dofs};
+    const auto number_of_dofs = GetDofs().size();
+    const auto is_constant_pw_field = ConstitutiveLawUtilities::IsConstantWaterPressure(GetProperties());
+    rLeftHandSideMatrix = ZeroMatrix{number_of_dofs, number_of_dofs};
 
     for (auto contribution : mContributions) {
         switch (contribution) {
@@ -172,10 +168,10 @@ void UPwInterfaceElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
             CalculateAndAssignUPCouplingMatrix(rLeftHandSideMatrix);
             break;
         case PUCoupling:
-            if (!ignore_undrained) CalculateAndAssignPUCouplingMatrix(rLeftHandSideMatrix);
+            if (!is_constant_pw_field) CalculateAndAssignPUCouplingMatrix(rLeftHandSideMatrix);
             break;
         case Permeability:
-            if (!ignore_undrained) CalculateAndAssignPermeabilityMatrix(rLeftHandSideMatrix);
+            if (!is_constant_pw_field) CalculateAndAssignPermeabilityMatrix(rLeftHandSideMatrix);
             break;
         case FluidBodyFlow:
             break;
@@ -267,8 +263,8 @@ void UPwInterfaceElement::CalculateAndAssignPermeabilityMatrix(Element::MatrixTy
 void UPwInterfaceElement::CalculateRightHandSide(Element::VectorType& rRightHandSideVector,
                                                  const ProcessInfo&   rProcessInfo)
 {
-    const auto ignore_undrained = GetIgnoreUndrained(GetProperties());
-    rRightHandSideVector        = ZeroVector{GetDofs().size()};
+    const auto is_constant_pw_field = ConstitutiveLawUtilities::IsConstantWaterPressure(GetProperties());
+    rRightHandSideVector = ZeroVector{GetDofs().size()};
 
     for (auto contribution : mContributions) {
         switch (contribution) {
@@ -280,13 +276,16 @@ void UPwInterfaceElement::CalculateRightHandSide(Element::VectorType& rRightHand
             CalculateAndAssembleUPCouplingForceVector(rRightHandSideVector);
             break;
         case PUCoupling:
-            if (!ignore_undrained) CalculateAndAssemblePUCouplingForceVector(rRightHandSideVector);
+            if (!is_constant_pw_field)
+                CalculateAndAssemblePUCouplingForceVector(rRightHandSideVector);
             break;
         case Permeability:
-            if (!ignore_undrained) CalculateAndAssemblePermeabilityFlowVector(rRightHandSideVector);
+            if (!is_constant_pw_field)
+                CalculateAndAssemblePermeabilityFlowVector(rRightHandSideVector);
             break;
         case FluidBodyFlow:
-            if (!ignore_undrained) CalculateAndAssembleFluidBodyFlowVector(rRightHandSideVector);
+            if (!is_constant_pw_field)
+                CalculateAndAssembleFluidBodyFlowVector(rRightHandSideVector);
             break;
         default:
             KRATOS_ERROR << "This contribution is not supported \n";

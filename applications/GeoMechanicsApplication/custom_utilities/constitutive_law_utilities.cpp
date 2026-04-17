@@ -12,8 +12,11 @@
 //
 
 #include "custom_utilities/constitutive_law_utilities.h"
+#include "custom_utilities/string_utilities.h"
 #include "geo_mechanics_application_variables.h"
 #include "utilities/math_utils.h"
+
+using namespace std::string_literals;
 
 namespace
 {
@@ -112,7 +115,7 @@ void ConstitutiveLawUtilities::ValidateFrictionAngle(const Properties& rProperti
         phi_name = "Phi";
     }
 
-    if (phi_name == "") {
+    if (phi_name.empty()) {
         KRATOS_ERROR << "Properties ( " << rProperties.Id() << ") of element ( " << ElementId
                      << ") does not have GEO_FRICTION_ANGLE nor INDEX_OF_UMAT_PHI_PARAMETER." << std::endl;
     }
@@ -169,8 +172,8 @@ void ConstitutiveLawUtilities::CheckHasStrainMeasure_Infinitesimal(const Propert
 {
     ConstitutiveLaw::Features LawFeatures;
     rProperties[CONSTITUTIVE_LAW]->GetLawFeatures(LawFeatures);
-    const auto correct_strain_measure = std::any_of(
-        LawFeatures.mStrainMeasures.begin(), LawFeatures.mStrainMeasures.end(), [](auto& strain_measure) {
+    const auto correct_strain_measure =
+        std::ranges::any_of(LawFeatures.mStrainMeasures, [](auto& strain_measure) {
         return strain_measure == ConstitutiveLaw::StrainMeasure_Infinitesimal;
     });
 
@@ -183,6 +186,44 @@ void ConstitutiveLawUtilities::CheckHasStrainMeasure_Infinitesimal(const Propert
 double ConstitutiveLawUtilities::CalculateK0NCFromFrictionAngleInRadians(double FrictionAngleInRadians)
 {
     return 1.0 - std::sin(FrictionAngleInRadians);
+}
+
+DrainageType ConstitutiveLawUtilities::StringToDrainageType(const std::string& rDrainageTypeName)
+{
+    using namespace std::string_literals;
+    using enum DrainageType;
+    const std::map<std::string, DrainageType, std::less<>> drainage_type_map = {
+        {"drained"s, DRAINED},
+        {"fully_coupled"s, FULLY_COUPLED},
+        {"undrained"s, UNDRAINED},
+        {"constant_pw_field"s, CONSTANT_WATER_PRESSURE}};
+    return drainage_type_map.at(GeoStringUtilities::ToLower(rDrainageTypeName));
+}
+
+bool ConstitutiveLawUtilities::IsConstantWaterPressure(const Properties& rProperties)
+{
+    // once the replace works, here the if condition and the next return should be removed.
+    if (rProperties.Has(GEO_DRAINAGE_TYPE)) {
+        return ConstitutiveLawUtilities::StringToDrainageType(rProperties[GEO_DRAINAGE_TYPE]) ==
+               DrainageType::CONSTANT_WATER_PRESSURE;
+    }
+    return rProperties.Has(IGNORE_UNDRAINED) ? rProperties[IGNORE_UNDRAINED] : false;
+}
+
+void ConstitutiveLawUtilities::ReplaceIgnoreUndrainedByDrainageType(Properties* pProperties)
+{
+    if (!pProperties) return;
+
+    if (pProperties->Has(IGNORE_UNDRAINED)) {
+        KRATOS_WARNING("DEPRECATION")
+            << "Use of IGNORE_UNDRAINED is deprecated, please change your input to "
+               "GEO_DRAINAGE_TYPE"
+            << std::endl;
+        if (!pProperties->Has(GEO_DRAINAGE_TYPE))
+            (*pProperties)[GEO_DRAINAGE_TYPE] =
+                (*pProperties)[IGNORE_UNDRAINED] ? "constant_pw_field"s : "fully_coupled"s;
+        pProperties->Erase(IGNORE_UNDRAINED);
+    }
 }
 
 } // namespace Kratos

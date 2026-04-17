@@ -14,6 +14,7 @@
 
 #include "contribution_calculator.h"
 #include "custom_retention/retention_law.h"
+#include "custom_utilities/constitutive_law_utilities.h"
 #include "custom_utilities/transport_equation_utilities.hpp"
 #include "geo_aliases.h"
 #include "geo_mechanics_application_variables.h"
@@ -103,15 +104,15 @@ private:
     [[nodiscard]] double CalculateBiotModulusInverse(const RetentionLaw::Pointer& rRetentionLaw,
                                                      double FluidPresssure) const
     {
-        const auto&  r_properties     = mInputProvider.GetElementProperties();
-        const double biot_coefficient = r_properties[BIOT_COEFFICIENT];
+        const auto& r_properties     = mInputProvider.GetElementProperties();
+        const auto  biot_coefficient = r_properties[BIOT_COEFFICIENT];
 
-        double bulk_fluid = TINY;
-        if (!r_properties[IGNORE_UNDRAINED]) {
-            bulk_fluid = r_properties[BULK_MODULUS_FLUID];
-        }
-        double result = (biot_coefficient - r_properties[POROSITY]) / r_properties[BULK_MODULUS_SOLID] +
-                        r_properties[POROSITY] / bulk_fluid;
+        auto bulk_fluid = ConstitutiveLawUtilities::IsConstantWaterPressure(r_properties)
+                              ? TINY
+                              : r_properties[BULK_MODULUS_FLUID];
+
+        auto result = (biot_coefficient - r_properties[POROSITY]) / r_properties[BULK_MODULUS_SOLID] +
+                      r_properties[POROSITY] / bulk_fluid;
 
         RetentionLaw::Parameters retention_parameters(r_properties);
         retention_parameters.SetFluidPressure(FluidPresssure);

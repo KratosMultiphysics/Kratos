@@ -111,8 +111,7 @@ int UPwSmallStrainInterfaceElement<TDim, TNumNodes>::Check(const ProcessInfo& rC
     const CheckProperties check_properties(r_properties, "property", element_Id,
                                            CheckProperties::Bounds::AllInclusive);
     check_properties.SingleUseBounds(CheckProperties::Bounds::AllExclusive).Check(MINIMUM_JOINT_WIDTH);
-    check_properties.CheckAvailability(IGNORE_UNDRAINED);
-    if (!r_properties[IGNORE_UNDRAINED]) {
+    if (!ConstitutiveLawUtilities::IsConstantWaterPressure(r_properties)) {
         check_properties.Check(TRANSVERSAL_PERMEABILITY);
         check_properties.SingleUseBounds(CheckProperties::Bounds::AllExclusive).Check(BULK_MODULUS_FLUID);
         check_properties.SingleUseBounds(CheckProperties::Bounds::AllExclusive).Check(DYNAMIC_VISCOSITY);
@@ -1183,8 +1182,7 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::InitializeElementVariables
     KRATOS_TRY
 
     // Properties variables
-    rVariables.IgnoreUndrained = rProperties[IGNORE_UNDRAINED];
-
+    rVariables.IsConstantWaterPressure = ConstitutiveLawUtilities::IsConstantWaterPressure(rProperties);
     rVariables.DynamicViscosityInverse = 1.0 / rProperties[DYNAMIC_VISCOSITY];
 
     // ProcessInfo variables
@@ -1613,7 +1611,7 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateAndAddLHS(MatrixT
 
     this->CalculateAndAddStiffnessMatrix(rLeftHandSideMatrix, rVariables);
 
-    if (!rVariables.IgnoreUndrained) {
+    if (!rVariables.IsConstantWaterPressure) {
         this->CalculateAndAddCouplingMatrix(rLeftHandSideMatrix, rVariables);
 
         this->CalculateAndAddCompressibilityMatrix(rLeftHandSideMatrix, rVariables);
@@ -1657,7 +1655,7 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateAndAddCouplingMat
 
     GeoElementUtilities::AssembleUPBlockMatrix(rLeftHandSideMatrix, coupling_matrix);
 
-    if (!rVariables.IgnoreUndrained) {
+    if (!rVariables.IsConstantWaterPressure) {
         const double SaturationCoefficient = rVariables.DegreeOfSaturation / rVariables.BishopCoefficient;
         const BoundedMatrix<double, TNumNodes, TNumNodes * TDim> transposed_coupling_matrix =
             PORE_PRESSURE_SIGN_FACTOR * SaturationCoefficient * rVariables.VelocityCoefficient *
@@ -1712,7 +1710,7 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateAndAddRHS(VectorT
 
     this->CalculateAndAddCouplingTerms(rRightHandSideVector, rVariables);
 
-    if (!rVariables.IgnoreUndrained) {
+    if (!rVariables.IsConstantWaterPressure) {
         this->CalculateAndAddCompressibilityFlow(rRightHandSideVector, rVariables);
 
         this->CalculateAndAddPermeabilityFlow(rRightHandSideVector, rVariables);
@@ -1787,7 +1785,7 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateAndAddCouplingTer
 
     GeoElementUtilities::AssembleUBlockVector(rRightHandSideVector, u_vector);
 
-    if (!rVariables.IgnoreUndrained) {
+    if (!rVariables.IsConstantWaterPressure) {
         const double SaturationCoefficient = rVariables.DegreeOfSaturation / rVariables.BishopCoefficient;
         const array_1d<double, TNumNodes> coupling_flow_vector =
             PORE_PRESSURE_SIGN_FACTOR * SaturationCoefficient *
@@ -1883,11 +1881,11 @@ double UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateBulkModulus(con
 {
     KRATOS_TRY
 
-    const int    IndexM = ConstitutiveMatrix.size1() - 1;
-    const double M      = ConstitutiveMatrix(IndexM, IndexM);
-    const double G      = ConstitutiveMatrix(0, 0);
+    const auto IndexM          = ConstitutiveMatrix.size1() - 1;
+    const auto normal_stiffnes = ConstitutiveMatrix(IndexM, IndexM);
+    const auto shear_stiffnes  = ConstitutiveMatrix(0, 0);
 
-    return M - (4.0 / 3.0) * G;
+    return normal_stiffnes - (4.0 / 3.0) * shear_stiffnes;
 
     KRATOS_CATCH("")
 }

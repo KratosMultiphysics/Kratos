@@ -191,8 +191,8 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_DoFList, KratosGeoMechanicsFastSuit
 
     // Assert
     KRATOS_EXPECT_EQ(degrees_of_freedom.size(), 3);
-    KRATOS_EXPECT_TRUE(std::all_of(degrees_of_freedom.begin(), degrees_of_freedom.end(),
-                                   [](auto p_dof) { return p_dof->GetVariable() == WATER_PRESSURE; }))
+    KRATOS_EXPECT_TRUE(std::ranges::all_of(
+        degrees_of_freedom, [](auto p_dof) { return p_dof->GetVariable() == WATER_PRESSURE; }))
 }
 
 KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_EquationIdVector, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -449,8 +449,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_Initialize, KratosGeoMechanicsFastS
 
     const auto& r_retention_law_vector = element.mRetentionLawVector;
     KRATOS_EXPECT_EQ(r_retention_law_vector.size(), number_of_integration_points);
-    KRATOS_EXPECT_TRUE(std::none_of(r_retention_law_vector.begin(), r_retention_law_vector.end(),
-                                    [](const auto& rp_retention_law) {
+    KRATOS_EXPECT_TRUE(std::ranges::none_of(r_retention_law_vector, [](const auto& rp_retention_law) {
         return dynamic_cast<SaturatedLaw*>(rp_retention_law.get()) == nullptr;
     }))
 }
@@ -469,9 +468,9 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_InitializeSolution, KratosGeoMechan
     p_element->InitializeSolutionStep(dummy_process_info);
 
     // Assert
-    KRATOS_EXPECT_TRUE(std::all_of(
-        p_element->GetGeometry().begin(), p_element->GetGeometry().end(),
-        [](auto& r_node) { return r_node.FastGetSolutionStepValue(HYDRAULIC_DISCHARGE) == 0.0; }))
+    KRATOS_EXPECT_TRUE(std::ranges::all_of(p_element->GetGeometry(), [](auto& r_node) {
+        return r_node.FastGetSolutionStepValue(HYDRAULIC_DISCHARGE) == 0.0;
+    }))
 }
 
 KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_FinalizeSolutionStep, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -657,7 +656,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement2D3N_CalculateLocalSystem, KratosGeo
     p_element->GetProperties().SetValue(BULK_MODULUS_FLUID, 1.0E6);
     p_element->GetProperties().SetValue(BULK_MODULUS_SOLID, 1.0E6);
     p_element->GetProperties().SetValue(POROSITY, 0.1);
-    p_element->GetProperties().SetValue(IGNORE_UNDRAINED, false);
+    p_element->GetProperties().SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
     const auto dummy_process_info = ProcessInfo{};
     p_element->Initialize(dummy_process_info);
     p_element->InitializeSolutionStep(dummy_process_info);
@@ -689,7 +688,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement3D4N_CalculateLocalSystem, KratosGeo
     p_element->GetProperties().SetValue(BULK_MODULUS_FLUID, 1.0E6);
     p_element->GetProperties().SetValue(BULK_MODULUS_SOLID, 1.0E6);
     p_element->GetProperties().SetValue(POROSITY, 0.1);
-    p_element->GetProperties().SetValue(IGNORE_UNDRAINED, false);
+    p_element->GetProperties().SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
     const auto dummy_process_info = ProcessInfo{};
     p_element->Initialize(dummy_process_info);
     p_element->InitializeSolutionStep(dummy_process_info);
@@ -717,10 +716,10 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_ZeroReturnFunctions, KratosGeoMecha
     TransientPwElement<2, 3> element(
         0, std::make_shared<Triangle2D3<Node>>(CreateThreeCoincidentNodesForTransientPwElementTest()),
         std::make_shared<Properties>(), std::make_unique<PlaneStrainStressState>(), nullptr);
-    const auto   dummy_process_info = ProcessInfo{};
-    const auto   n_DoF              = 3;
-    const Matrix expected_matrix    = ZeroMatrix(n_DoF, n_DoF);
-    const Vector expected_vector    = ZeroVector(n_DoF);
+    const auto     dummy_process_info = ProcessInfo{};
+    constexpr auto n_DoF              = 3;
+    const Matrix   expected_matrix    = ZeroMatrix(n_DoF, n_DoF);
+    const Vector   expected_vector    = ZeroVector(n_DoF);
 
     // Act
     Matrix actual_matrix;

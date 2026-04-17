@@ -8,7 +8,7 @@
                     "name": "SmallStrainUDSM2DPlaneStrainLaw"
                 },
                 "Variables": {
-                    "IGNORE_UNDRAINED"         :  true,
+                    "GEO_DRAINAGE_TYPE"        :  "CONSTANT_PW_FIELD",
                     "DENSITY_SOLID": 2650.0,
                     "DENSITY_WATER": 1000.0,
                     "POROSITY": 0.395,
@@ -29,8 +29,7 @@
                                         1.0e3,
                                         1,
                                         0.0]
-                },
-                "Tables": {}
+                }
             }
         },
         {
@@ -41,7 +40,7 @@
                     "name": "SmallStrainUDSM2DPlaneStrainLaw"
                 },
                 "Variables": {
-                    "IGNORE_UNDRAINED"  :  true,
+                    "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
                     "DENSITY_SOLID": 2650.0,
                     "DENSITY_WATER": 1000.0,
                     "POROSITY": 0.395,
@@ -62,8 +61,7 @@
                                         1.0e3,
                                         1,
                                         0.0]
-                },
-                "Tables": {}
+                }
             }
         }
     ]

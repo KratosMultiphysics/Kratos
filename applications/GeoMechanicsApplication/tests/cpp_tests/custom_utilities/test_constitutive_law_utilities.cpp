@@ -254,4 +254,22 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_ValidateFrictionAngle, Kratos
     properties.SetValue(INDEX_OF_UMAT_PHI_PARAMETER, 3);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(ConstitutiveLawUtilities::ValidateFrictionAngle(properties, element_id), "Properties ( 0) of element ( 1): INDEX_OF_UMAT_PHI_PARAMETER (3) is not in range [1, size of UMAT_PARAMETERS].");
 }
+
+KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_ReplaceIgnoreUndrainedByDrainageTypeEndsWithoutIgnoreUndrained,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    Properties* pProperties = nullptr;
+    EXPECT_NO_THROW(ConstitutiveLawUtilities::ReplaceIgnoreUndrainedByDrainageType(pProperties));
+
+    Model               my_model;
+    ModelPart&          my_model_part = my_model.CreateModelPart("Main");
+    Properties::Pointer p_properties  = my_model_part.CreateNewProperties(0);
+    p_properties->SetValue(IGNORE_UNDRAINED, true);
+    ConstitutiveLawUtilities::ReplaceIgnoreUndrainedByDrainageType(p_properties.get());
+    EXPECT_FALSE(p_properties->Has(IGNORE_UNDRAINED));
+    EXPECT_TRUE(p_properties->Has(GEO_DRAINAGE_TYPE));
+
+    // would be nice to test the warning and the value of GEO_DRAINAGE_TYPE
+}
+
 } // namespace Kratos::Testing

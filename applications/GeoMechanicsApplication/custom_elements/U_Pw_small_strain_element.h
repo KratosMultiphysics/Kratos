@@ -119,7 +119,7 @@ public:
 protected:
     struct ElementVariables {
         /// Properties variables
-        bool   IgnoreUndrained;
+        bool   IsConstantWaterPressure;
         bool   UseHenckyStrain;
         bool   ConsiderGeometricStiffness;
         double DynamicViscosityInverse;
