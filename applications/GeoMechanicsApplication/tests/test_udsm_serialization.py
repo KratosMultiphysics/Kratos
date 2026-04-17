@@ -15,6 +15,25 @@ NodalSeries = Dict[float, Dict[int, NodalValue]]
 
 class KratosGeoMechanicsUDSMSerializationTest(KratosUnittest.TestCase):
 
+    @staticmethod
+    def _is_values_block_start(line: str, variable_name: str) -> bool:
+        return f'"{variable_name}"' in line
+
+    @staticmethod
+    def _try_get_time_from_header(line: str) -> Union[float, None]:
+        parts = line.split()
+        if len(parts) < 4:
+            return None
+        return float(parts[3])
+
+    @staticmethod
+    def _parse_nodal_value_line(line: str) -> (int, NodalValue):
+        parts = line.split()
+        node_id = int(parts[0])
+        values = [float(v) for v in parts[1:]]
+        value: NodalValue = values[0] if len(values) == 1 else values
+        return node_id, value
+
     def _cleanup_case_run_artifacts(self, case_dir: str) -> None:
         checkpoint_dir = os.path.join(case_dir, "checkpoints")
         if os.path.exists(checkpoint_dir):
@@ -97,20 +116,15 @@ class KratosGeoMechanicsUDSMSerializationTest(KratosUnittest.TestCase):
             if active:
                 if stripped == "Values" or not stripped:
                     continue
-                parts = stripped.split()
-                node_id = int(parts[0])
-                values = [float(v) for v in parts[1:]]
-                if len(values) == 1:
-                    result[current_time][node_id] = values[0]
-                else:
-                    result[current_time][node_id] = values
+                node_id, value = self._parse_nodal_value_line(stripped)
+                result[current_time][node_id] = value
                 continue
 
-            if f'"{variable_name}"' in stripped:
-                parts = stripped.split()
-                if len(parts) < 4:
+            if self._is_values_block_start(stripped, variable_name):
+                parsed_time = self._try_get_time_from_header(stripped)
+                if parsed_time is None:
                     raise RuntimeError(f"Could not parse result header line: {line}")
-                current_time = float(parts[3])
+                current_time = parsed_time
                 result[current_time] = {}
                 active = True
 
@@ -125,6 +139,73 @@ class KratosGeoMechanicsUDSMSerializationTest(KratosUnittest.TestCase):
             raise RuntimeError("No common time steps found between result files")
         return max(common)
 
+    @staticmethod
+    def _get_nodes_mismatch_error(lhs_nodes: Dict[int, NodalValue],
+                                  rhs_nodes: Dict[int, NodalValue],
+                                  time: float) -> Union[str, None]:
+        if set(lhs_nodes.keys()) == set(rhs_nodes.keys()):
+            return None
+
+        only_lhs = sorted(set(lhs_nodes.keys()) - set(rhs_nodes.keys()))
+        only_rhs = sorted(set(rhs_nodes.keys()) - set(lhs_nodes.keys()))
+        return (
+            f"Node id mismatch at time {time}: only in lhs={only_lhs[:10]}, "
+            f"only in rhs={only_rhs[:10]}"
+        )
+
+    @staticmethod
+    def _get_tolerance(lhs_value: float, rhs_value: float, abs_tol: float, rel_tol: float) -> float:
+        return max(abs_tol, rel_tol * max(abs(lhs_value), abs(rhs_value), 1.0))
+
+    def _compare_scalar_value(self,
+                              node_id: int,
+                              lhs_value: float,
+                              rhs_value: float,
+                              abs_tol: float,
+                              rel_tol: float) -> List[str]:
+        diff = abs(lhs_value - rhs_value)
+        tol = self._get_tolerance(lhs_value, rhs_value, abs_tol, rel_tol)
+        if diff > tol:
+            return [
+                f"Node {node_id}: lhs={lhs_value}, rhs={rhs_value}, diff={diff}, tol={tol}"
+            ]
+        return []
+
+    def _compare_vector_value(self,
+                              node_id: int,
+                              lhs_value: List[float],
+                              rhs_value: List[float],
+                              abs_tol: float,
+                              rel_tol: float) -> List[str]:
+        if len(lhs_value) != len(rhs_value):
+            return [
+                f"Component count mismatch at node {node_id}: lhs={lhs_value}, rhs={rhs_value}"
+            ]
+
+        errors: List[str] = []
+        for comp, (lv, rv) in enumerate(zip(lhs_value, rhs_value)):
+            diff = abs(lv - rv)
+            tol = self._get_tolerance(lv, rv, abs_tol, rel_tol)
+            if diff > tol:
+                errors.append(
+                    f"Node {node_id}, comp {comp}: lhs={lv}, rhs={rv}, diff={diff}, tol={tol}"
+                )
+        return errors
+
+    def _compare_node_value(self,
+                            node_id: int,
+                            lhs_value: NodalValue,
+                            rhs_value: NodalValue,
+                            abs_tol: float,
+                            rel_tol: float) -> List[str]:
+        if isinstance(lhs_value, list) != isinstance(rhs_value, list):
+            return [f"Type mismatch at node {node_id}: lhs={lhs_value}, rhs={rhs_value}"]
+
+        if isinstance(lhs_value, list):
+            return self._compare_vector_value(node_id, lhs_value, rhs_value, abs_tol, rel_tol)
+
+        return self._compare_scalar_value(node_id, lhs_value, rhs_value, abs_tol, rel_tol)
+
     def _compare_nodal_series_at_time(
         self,
         lhs: NodalSeries,
@@ -133,49 +214,20 @@ class KratosGeoMechanicsUDSMSerializationTest(KratosUnittest.TestCase):
         abs_tol: float,
         rel_tol: float,
     ) -> List[str]:
-        errors: List[str] = []
-
         lhs_nodes = lhs[time]
         rhs_nodes = rhs[time]
 
-        if set(lhs_nodes.keys()) != set(rhs_nodes.keys()):
-            only_lhs = sorted(set(lhs_nodes.keys()) - set(rhs_nodes.keys()))
-            only_rhs = sorted(set(rhs_nodes.keys()) - set(lhs_nodes.keys()))
-            errors.append(
-                f"Node id mismatch at time {time}: only in lhs={only_lhs[:10]}, only in rhs={only_rhs[:10]}"
-            )
-            return errors
+        mismatch_error = self._get_nodes_mismatch_error(lhs_nodes, rhs_nodes, time)
+        if mismatch_error is not None:
+            return [mismatch_error]
 
+        errors: List[str] = []
         for node_id in sorted(lhs_nodes.keys()):
-            lval = lhs_nodes[node_id]
-            rval = rhs_nodes[node_id]
-
-            if isinstance(lval, list) != isinstance(rval, list):
-                errors.append(
-                    f"Type mismatch at node {node_id}: lhs={lval}, rhs={rval}"
+            errors.extend(
+                self._compare_node_value(
+                    node_id, lhs_nodes[node_id], rhs_nodes[node_id], abs_tol, rel_tol
                 )
-                continue
-
-            if isinstance(lval, list):
-                if len(lval) != len(rval):
-                    errors.append(
-                        f"Component count mismatch at node {node_id}: lhs={lval}, rhs={rval}"
-                    )
-                    continue
-                for comp, (lv, rv) in enumerate(zip(lval, rval)):
-                    diff = abs(lv - rv)
-                    tol = max(abs_tol, rel_tol * max(abs(lv), abs(rv), 1.0))
-                    if diff > tol:
-                        errors.append(
-                            f"Node {node_id}, comp {comp}: lhs={lv}, rhs={rv}, diff={diff}, tol={tol}"
-                        )
-            else:
-                diff = abs(lval - rval)
-                tol = max(abs_tol, rel_tol * max(abs(lval), abs(rval), 1.0))
-                if diff > tol:
-                    errors.append(
-                        f"Node {node_id}: lhs={lval}, rhs={rval}, diff={diff}, tol={tol}"
-                    )
+            )
 
         return errors
 
