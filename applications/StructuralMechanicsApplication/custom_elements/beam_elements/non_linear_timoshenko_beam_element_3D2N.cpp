@@ -521,6 +521,12 @@ void NonLinearTimoshenkoBeamElement3D2N::CalculateAndAddKg(
     dN[0] = dN1;
     dN[1] = dN2;
 
+    Vector Q(3), M(3);
+    for (IndexType i = 0; i < 3; ++i) {
+        Q[i] = rGeneralizedStressVector[i];
+        M[i] = rGeneralizedStressVector[i + 3];
+    }
+
     BoundedMatrix<double, 6, 6> Kn, Km;
     Kn.clear();
     Km.clear();
