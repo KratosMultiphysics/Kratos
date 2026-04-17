@@ -303,7 +303,7 @@ void AssignIgaExternalConditionsProcess::SetExternalConditionToElementsAndCondit
                 Condition::Pointer p_condition = *i_cond.base();
                 SetVariableValueToCondition(component_rVariableName, value, p_condition);
             } 
-        } else {KRATOS_ERROR << "AssignIgaExternalConditionsProcess : No Condition or Elements defined" ;}
+        }
     }
 }
 

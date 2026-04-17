@@ -114,7 +114,14 @@ void RefPatchCouplingProcess::CreateAndAddBrepCurve(
     knot_vector[1] = active_range_knot_vector[1];
     const int p = 1;
 
-    IndexType next_node_id = rModelPart.Nodes().empty() ? 1 : rModelPart.NumberOfNodes() + 1;
+    IndexType max_node_id = 0;
+    for (auto it_node = rModelPart.NodesBegin(); it_node != rModelPart.NodesEnd(); ++it_node) {
+        const IndexType node_id = it_node->Id();
+        if (node_id > max_node_id) {
+            max_node_id = node_id;
+        }
+    }
+    IndexType next_node_id = max_node_id + 1;
     auto pN1 = rModelPart.CreateNewNode(next_node_id++, first_point[0], first_point[1], 0.0);
     auto pN2 = rModelPart.CreateNewNode(next_node_id++, second_point[0], second_point[1], 0.0);
 
