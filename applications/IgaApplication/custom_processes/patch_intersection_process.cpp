@@ -439,10 +439,16 @@ void PatchIntersectionProcess::CreateAndAddBrepCurve(
     knot_vector[1] = active_range_knot_vector[1];
     const int p = 1;
 
-    // Allocate node IDs safely from the root model part
-    IndexType next_node_id = rModelPart.Nodes().empty()
-        ? 1
-        : rModelPart.NumberOfNodes() + 1;
+    // Allocate node IDs from the actual max root-node ID because patch/modeler workflows
+    // can leave sparse node numbering in the shared root model part.
+    IndexType max_node_id = 0;
+    for (auto it_node = rModelPart.NodesBegin(); it_node != rModelPart.NodesEnd(); ++it_node) {
+        const IndexType node_id = it_node->Id();
+        if (node_id > max_node_id) {
+            max_node_id = node_id;
+        }
+    }
+    IndexType next_node_id = max_node_id + 1;
 
     // Create two parametric nodes (u, v, 0)
     auto pN1 = rModelPart.CreateNewNode(next_node_id++, first_point[0], first_point[1], 0.0);

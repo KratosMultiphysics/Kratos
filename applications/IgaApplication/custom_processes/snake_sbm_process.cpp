@@ -18,6 +18,29 @@
 
 namespace Kratos
 {
+namespace
+{
+
+IndexType GetMaxRootNodeId(const ModelPart& rModelPart)
+{
+    const auto& r_root_model_part = rModelPart.GetRootModelPart();
+    IndexType max_node_id = 0;
+    for (auto it_node = r_root_model_part.NodesBegin(); it_node != r_root_model_part.NodesEnd(); ++it_node) {
+        const IndexType node_id = it_node->Id();
+        if (node_id > max_node_id) {
+            max_node_id = node_id;
+        }
+    }
+    return max_node_id;
+}
+
+IndexType GetNextRootNodeId(const ModelPart& rModelPart)
+{
+    return GetMaxRootNodeId(rModelPart) + 1;
+}
+
+} // namespace
+
 SnakeSbmProcess::SnakeSbmProcess(
     Model& rModel, Parameters ThisParameters) : 
     Process(),
@@ -122,7 +145,7 @@ void SnakeSbmProcess::GenerateOuterInitialFromSurrogateInner()
     for (const auto& r_node : r_inner.Nodes()) { cx += r_node.X(); cy += r_node.Y(); ++n_nodes; }
     if (n_nodes > 0) { cx /= static_cast<double>(n_nodes); cy /= static_cast<double>(n_nodes); }
 
-    IndexType next_node_id = r_root.NumberOfNodes() + 1;
+    IndexType next_node_id = GetNextRootNodeId(r_root);
     IndexType next_cond_id = r_root.NumberOfConditions() + 1;
 
     const auto& knot_u = mpIgaModelPart->GetValue(KNOT_VECTOR_U);
@@ -404,7 +427,7 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates(
 
                 const double x_true_boundary0_loop = r_condition.GetGeometry()[0].X();
                 const double y_true_boundary0_loop = r_condition.GetGeometry()[0].Y();
-                const int id_new_node = rSkinModelPart.GetRootModelPart().NumberOfNodes() + 1;
+                const int id_new_node = static_cast<int>(GetNextRootNodeId(rSkinModelPart));
 
                 p_skin_sub_model_part_loop->CreateNewNode(id_new_node, x_true_boundary0_loop, y_true_boundary0_loop, 0.0);
                 new_inner_loop = false;
@@ -852,7 +875,7 @@ void SnakeSbmProcess::SnakeStep(
     }
     if (!is_splitted) {
         // Call the root model part for the Ids of the node
-        const IndexType node_id_1 = (rSkinModelPart.GetRootModelPart().NodesEnd() - 1)->Id();
+        const IndexType node_id_1 = GetMaxRootNodeId(rSkinModelPart);
         const IndexType node_id_2 = node_id_1 + 1;
         // Create two nodes and two conditions for each skin condition
         rSkinModelPart.CreateNewNode(
@@ -985,7 +1008,7 @@ void SnakeSbmProcess::SnakeStepNurbs(
     }
     if (!is_splitted) {
         // Call the root model part for the Ids of the node
-        const IndexType node_id_1 = (rSkinModelPart.GetRootModelPart().NodesEnd() - 1)->Id();
+        const IndexType node_id_1 = GetMaxRootNodeId(rSkinModelPart);
 
         std::string layer_name = rpCurve->GetValue(IDENTIFIER);
         std::string condition_name = rpCurve->GetValue(CONDITION_NAME);
@@ -2212,7 +2235,7 @@ void SnakeSbmProcess::SnakeStep3D(
             int kw31 = (z31 - rStartingPosition[2]) / rKnotStepUVW[2];
 
             // CREATE three NEW NODES in the middle of each side
-            auto idNode_12 = rSkinModelPart.NumberOfNodes() + 1;
+            auto idNode_12 = GetNextRootNodeId(rSkinModelPart);
             auto idNode_23 = idNode_12 + 1;
             auto idNode_31 = idNode_23 + 1;
             rSkinModelPart.CreateNewNode(idNode_12, x12, y12, z12);
@@ -2520,7 +2543,7 @@ void SnakeSbmProcess::CreateSurrogateBuondaryFromSnakeInner3D(
     const double knot_step_v = rKnotVectorV[1] - rKnotVectorV[0];
     const double knot_step_w = rKnotVectorW[1] - rKnotVectorW[0];
 
-    IndexType id_surrogate_first_node = rSurrogateModelPartInner.GetParentModelPart().NumberOfNodes() + 1;
+    IndexType id_surrogate_first_node = GetNextRootNodeId(rSurrogateModelPartInner.GetParentModelPart());
     IndexType id_node = id_surrogate_first_node;
 
     // Create nodes for each knot span position
@@ -2736,7 +2759,7 @@ void SnakeSbmProcess::CreateSurrogateBuondaryFromSnakeOuter3D(
     const double knot_step_v = rKnotVectorV[1] - rKnotVectorV[0];
     const double knot_step_w = rKnotVectorW[1] - rKnotVectorW[0];
 
-    IndexType id_surrogate_first_node = rSurrogateModelPartOuter.GetParentModelPart().NumberOfNodes() + 1;
+    IndexType id_surrogate_first_node = GetNextRootNodeId(rSurrogateModelPartOuter.GetParentModelPart());
     IndexType id_node = id_surrogate_first_node;
 
     // Create nodes for each knot span position

@@ -224,10 +224,12 @@ namespace Kratos
                 WeightsRefined);
         }
 
-        IndexType node_id = 1;
-        if( r_model_part.NumberOfNodes() > 0 ){
-            node_id = (r_model_part.NodesEnd() - 1)->Id() + 1;
+        ModelPart& r_root_model_part = r_model_part.GetRootModelPart();
+        IndexType max_node_id = 0;
+        for (auto it_node = r_root_model_part.NodesBegin(); it_node != r_root_model_part.NodesEnd(); ++it_node) {
+            max_node_id = std::max(max_node_id, it_node->Id());
         }
+        IndexType node_id = max_node_id + 1;
 
         for (IndexType i = 0; i < PointsRefined.size(); ++i) {
             if (PointsRefined(i)->Id() == 0) {
@@ -395,10 +397,12 @@ namespace Kratos
         }
 
         // Add nodes to model part
-        IndexType node_id = 1;
-        if( r_model_part.NumberOfNodes() > 0 ){
-            node_id = (r_model_part.NodesEnd() - 1)->Id() + 1;
+        ModelPart& r_root_model_part = r_model_part.GetRootModelPart();
+        IndexType max_node_id = 0;
+        for (auto it_node = r_root_model_part.NodesBegin(); it_node != r_root_model_part.NodesEnd(); ++it_node) {
+            max_node_id = std::max(max_node_id, it_node->Id());
         }
+        IndexType node_id = max_node_id + 1;
         for (IndexType i = 0; i < PointsRefined.size(); ++i) {
             if (PointsRefined(i)->Id() == 0) {
                 PointsRefined(i) = r_model_part.CreateNewNode(node_id, PointsRefined[i][0], PointsRefined[i][1], PointsRefined[i][2]);
