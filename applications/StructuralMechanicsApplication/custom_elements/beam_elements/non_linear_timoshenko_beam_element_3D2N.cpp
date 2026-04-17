@@ -466,7 +466,7 @@ void NonLinearTimoshenkoBeamElement3D2N::CalculateAll(
     cl_values.SetStressVector(gen_stress_vector);
     cl_values.SetConstitutiveMatrix(gen_constitutive_matrix);
 
-    const double J = 0.5 * L0;
+    const double J = 0.5 * L0; // integration weight is 1.0 in Lobatto
 
     Vector nodal_values(12);
     GetValuesVector(nodal_values);
@@ -489,7 +489,14 @@ void NonLinearTimoshenkoBeamElement3D2N::CalculateAll(
         noalias(b_matrix) = CalculateB(N1, N2, dN1, dN2);
 
         if (ComputeRHS) {
-            noalias(rRHS) -= prod(trans(b_matrix), gen_stress_vector);
+            noalias(rRHS) -= prod(trans(b_matrix), gen_stress_vector) * J;
+        }
+
+        if (ComputeLHS) {
+            // Material stiffness
+            BoundedMatrix<double, 12, 6> temp;
+            noalias(temp) = prod(trans(b_matrix), gen_constitutive_matrix);
+            noalias(rLHS) += prod(temp, b_matrix) * J;
         }
 
     } // IP loop
