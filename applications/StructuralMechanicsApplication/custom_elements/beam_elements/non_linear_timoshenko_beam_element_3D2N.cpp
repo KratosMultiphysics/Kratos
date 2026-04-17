@@ -456,18 +456,33 @@ void NonLinearTimoshenkoBeamElement3D2N::CalculateAll(
 /***********************************************************************************/
 /***********************************************************************************/
 
-// void NonLinearTimoshenkoBeamElement3D2N::CalculateOnIntegrationPoints(
-//     const Variable<double>& rVariable,
-//     std::vector<double>& rOutput,
-//     const ProcessInfo& rProcessInfo
-//     )
-// {
-//     const auto& r_integration_points = IntegrationPoints(GetIntegrationMethod());
-//     rOutput.resize(r_integration_points.size());
-//     for (std::size_t i = 0; i < rOutput.size(); ++i) {
-//         rOutput[i] = 0.0;
-//     }
-// }
+void NonLinearTimoshenkoBeamElement3D2N::FinalizeNonLinearIteration(
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    const auto &r_geom = GetGeometry();
+
+    array3 curr_rot_1, curr_rot_2, old_rot_1, old_rot_2, delta_rot_1, delta_rot_2;
+
+    noalias(curr_rot_1) = r_geom[0].FastGetSolutionStepValue(ROTATION);
+    noalias(old_rot_1) = r_geom[0].FastGetSolutionStepValue(ROTATION, 1);
+    noalias(curr_rot_2) = r_geom[1].FastGetSolutionStepValue(ROTATION);
+    noalias(old_rot_2) = r_geom[1].FastGetSolutionStepValue(ROTATION, 1);
+
+    noalias(delta_rot_1) = curr_rot_1 - old_rot_1;
+    noalias(delta_rot_2) = curr_rot_2 - old_rot_2;
+
+    BoundedMatrix<double, 3, 3> exp_delta_rot_1, exp_delta_rot_2;
+    noalias(exp_delta_rot_1) = ConstitutiveLawUtilities<6>::CalculateRotationMatrixFromRotationVectorRodrigues(delta_rot_1);
+    noalias(exp_delta_rot_2) = ConstitutiveLawUtilities<6>::CalculateRotationMatrixFromRotationVectorRodrigues(delta_rot_2);
+
+    // Let's update the nodal triads
+    mRotationOperators[0] = prod(exp_delta_rot_1, mRotationOperators[0]);
+    mRotationOperators[1] = prod(exp_delta_rot_2, mRotationOperators[1]);
+
+    KRATOS_CATCH("FinalizeNonLinearIteration")
+}
 
 /***********************************************************************************/
 /***********************************************************************************/

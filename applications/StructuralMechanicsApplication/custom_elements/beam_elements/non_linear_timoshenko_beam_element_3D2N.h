@@ -243,6 +243,12 @@ public:
      */
     BoundedMatrix<double, 3, 3> CalculateInitialRotationOperator(const bool UseCurrentConfiguration = false);
 
+    /**
+     * @brief this is called for non-linear analysis at the end of the iteration process
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
+
 private:
 
     /* The rotation operators are built with [d1, d2, d3] as col vectors */
