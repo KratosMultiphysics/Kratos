@@ -65,8 +65,12 @@ void NonLinearTimoshenkoBeamElement3D2N::Initialize(const ProcessInfo& rCurrentP
         BoundedMatrix<double, 3, 3> T;
         noalias(T) = StructuralMechanicsElementUtilities::GetFrenetSerretMatrix3D(r_geom, false); // ref conf
         // We initialize the IP rotation operators with the reference local system
-        noalias(mRotationOperators[0]) = trans(T);
-        noalias(mRotationOperators[1]) = trans(T);
+        for (IndexType i_node = 0; i_node < 2; ++i_node) {
+            // In Romero and Armero, the directors convention is different from Kratos
+            noalias(column(mRotationOperators[i_node], 0)) = row(T, 1);
+            noalias(column(mRotationOperators[i_node], 1)) = row(T, 2);
+            noalias(column(mRotationOperators[i_node], 2)) = row(T, 0);
+        }
     }
 
 
@@ -221,7 +225,7 @@ BoundedMatrix<double, 6, 12> NonLinearTimoshenkoBeamElement3D2N::CalculateB(
     noalias(project(b_matrix, range(0, 6), range(0, 6)))  = prod(B1, dof_mapper_1);
     noalias(project(b_matrix, range(0, 6), range(6, 12))) = prod(B2, dof_mapper_2);
 
-    return b_matrix;
+    return b_matrix; // 6x12 matrix
 }
 
 /***********************************************************************************/
