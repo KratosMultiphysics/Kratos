@@ -15,6 +15,7 @@
 #include "custom_elements/U_Pw_base_element.h"
 #include "custom_retention/retention_law_factory.h"
 #include "custom_utilities/check_utilities.hpp"
+#include "custom_utilities/constitutive_law_utilities.h"
 #include "custom_utilities/dof_utilities.hpp"
 #include "custom_utilities/element_utilities.hpp"
 #include "custom_utilities/equation_of_motion_utilities.hpp"
@@ -53,6 +54,7 @@ UPwBaseElement::UPwBaseElement(IndexType                                       N
       mpStressStatePolicy{std::move(pStressStatePolicy)},
       mIntegrationCoefficientsCalculator{std::move(pCoefficientModifier)}
 {
+    // ConstitutiveLawUtilities::ReplaceIgnoreUndrainedByDrainageType(*pProperties);
     // this is needed for interface elements
     mThisIntegrationMethod = this->GetIntegrationMethod();
 }

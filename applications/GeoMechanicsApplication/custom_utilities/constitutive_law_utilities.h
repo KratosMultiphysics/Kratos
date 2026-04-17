@@ -52,6 +52,8 @@ public:
 
     [[nodiscard]] static double CalculateK0NCFromFrictionAngleInRadians(double FrictionAngleInRadians);
     [[nodiscard]] static DrainageType StringToDrainageType(const std::string& rDrainageTypeName);
+    [[nodiscard]] static bool         IsConstantWaterPressure(const Properties& rProperties);
+    static void                       ReplaceIgnoreUndrainedByDrainageType(Properties& rProperties);
 }; /* Class ConstitutiveLawUtilities*/
 
 } // namespace Kratos

@@ -111,16 +111,7 @@ int UPwSmallStrainInterfaceElement<TDim, TNumNodes>::Check(const ProcessInfo& rC
     const CheckProperties check_properties(r_properties, "property", element_Id,
                                            CheckProperties::Bounds::AllInclusive);
     check_properties.SingleUseBounds(CheckProperties::Bounds::AllExclusive).Check(MINIMUM_JOINT_WIDTH);
-    auto is_constant_pw_field = false;
-    if (r_properties.Has(GEO_DRAINAGE_TYPE)) {
-        is_constant_pw_field =
-            ConstitutiveLawUtilities::StringToDrainageType(r_properties[GEO_DRAINAGE_TYPE]) ==
-            DrainageType::CONSTANT_WATER_PRESSURE;
-    } else {
-        check_properties.CheckAvailability(IGNORE_UNDRAINED);
-        is_constant_pw_field = r_properties[IGNORE_UNDRAINED];
-    }
-    if (!is_constant_pw_field) {
+    if (!ConstitutiveLawUtilities::IsConstantWaterPressure(r_properties)) {
         check_properties.Check(TRANSVERSAL_PERMEABILITY);
         check_properties.SingleUseBounds(CheckProperties::Bounds::AllExclusive).Check(BULK_MODULUS_FLUID);
         check_properties.SingleUseBounds(CheckProperties::Bounds::AllExclusive).Check(DYNAMIC_VISCOSITY);
@@ -1191,12 +1182,7 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::InitializeElementVariables
     KRATOS_TRY
 
     // Properties variables
-    rVariables.IsConstantWaterPressure =
-        rProperties.Has(GEO_DRAINAGE_TYPE)
-            ? ConstitutiveLawUtilities::StringToDrainageType(rProperties[GEO_DRAINAGE_TYPE]) ==
-                  DrainageType::CONSTANT_WATER_PRESSURE
-            : rProperties[IGNORE_UNDRAINED];
-
+    rVariables.IsConstantWaterPressure = ConstitutiveLawUtilities::IsConstantWaterPressure(rProperties);
     rVariables.DynamicViscosityInverse = 1.0 / rProperties[DYNAMIC_VISCOSITY];
 
     // ProcessInfo variables

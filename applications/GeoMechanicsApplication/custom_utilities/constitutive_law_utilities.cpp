@@ -16,6 +16,8 @@
 #include "geo_mechanics_application_variables.h"
 #include "utilities/math_utils.h"
 
+using namespace std::string_literals;
+
 namespace
 {
 
@@ -198,4 +200,26 @@ DrainageType ConstitutiveLawUtilities::StringToDrainageType(const std::string& r
     return drainage_type_map.at(GeoStringUtilities::ToLower(rDrainageTypeName));
 }
 
+bool ConstitutiveLawUtilities::IsConstantWaterPressure(const Properties& rProperties)
+{
+    // once the replace works, here the if condition and the next return should be removed.
+    if (rProperties.Has(GEO_DRAINAGE_TYPE)) {
+        return ConstitutiveLawUtilities::StringToDrainageType(rProperties[GEO_DRAINAGE_TYPE]) ==
+               DrainageType::CONSTANT_WATER_PRESSURE;
+    }
+    return rProperties.Has(IGNORE_UNDRAINED) ? rProperties[IGNORE_UNDRAINED] : false;
+}
+
+void ConstitutiveLawUtilities::ReplaceIgnoreUndrainedByDrainageType(Properties& rProperties)
+{
+    if (rProperties.Has(IGNORE_UNDRAINED)) {
+        KRATOS_WARNING("DEPRECATION")
+            << "Use of IGNORE_UNDRAINED is deprecated, please change your input to "
+               "GEO_DRAINAGE_TYPE"
+            << std::endl;
+        if (!rProperties.Has(GEO_DRAINAGE_TYPE))
+            rProperties[GEO_DRAINAGE_TYPE] = rProperties[IGNORE_UNDRAINED] ? "constant_pw_field"s : "fully_coupled"s;
+        rProperties.Erase(IGNORE_UNDRAINED);
+    }
+}
 } // namespace Kratos

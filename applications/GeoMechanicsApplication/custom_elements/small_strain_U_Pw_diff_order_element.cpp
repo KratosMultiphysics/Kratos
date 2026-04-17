@@ -98,15 +98,8 @@ int SmallStrainUPwDiffOrderElement::Check(const ProcessInfo& rCurrentProcessInfo
     const auto&           r_prop = this->GetProperties();
     const CheckProperties check_properties(r_prop, "parameter list", element_Id,
                                            CheckProperties::Bounds::AllExclusive);
-    bool                  is_constant_pw_field = false;
-    if (r_prop.Has(GEO_DRAINAGE_TYPE)) {
-        is_constant_pw_field = ConstitutiveLawUtilities::StringToDrainageType(r_prop[GEO_DRAINAGE_TYPE]) ==
-                               DrainageType::CONSTANT_WATER_PRESSURE;
-    } else {
-        check_properties.CheckAvailability(IGNORE_UNDRAINED);
-        is_constant_pw_field = r_prop[IGNORE_UNDRAINED];
-    }
-    if (!is_constant_pw_field)
+
+    if (!ConstitutiveLawUtilities::IsConstantWaterPressure(r_prop))
         check_properties.CheckPermeabilityProperties(r_geom.WorkingSpaceDimension());
 
     check_properties.CheckAvailabilityAndSpecified(CONSTITUTIVE_LAW);
@@ -1257,11 +1250,7 @@ void SmallStrainUPwDiffOrderElement::InitializeProperties(ElementVariables& rVar
 
     const auto& r_properties = this->GetProperties();
 
-    rVariables.IsConstantWaterPressure =
-        r_properties.Has(GEO_DRAINAGE_TYPE)
-            ? ConstitutiveLawUtilities::StringToDrainageType(r_properties[GEO_DRAINAGE_TYPE]) ==
-                  DrainageType::CONSTANT_WATER_PRESSURE
-            : r_properties[IGNORE_UNDRAINED];
+    rVariables.IsConstantWaterPressure = ConstitutiveLawUtilities::IsConstantWaterPressure(r_properties);
     rVariables.UseHenckyStrain = r_properties.Has(USE_HENCKY_STRAIN) ? r_properties[USE_HENCKY_STRAIN] : false;
 
     rVariables.ConsiderGeometricStiffness =

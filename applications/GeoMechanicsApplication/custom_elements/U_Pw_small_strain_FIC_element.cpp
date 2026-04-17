@@ -122,18 +122,7 @@ int UPwSmallStrainFICElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrent
     int ierr = UPwSmallStrainElement<TDim, TNumNodes>::Check(rCurrentProcessInfo);
     if (ierr != 0) return ierr;
 
-    const PropertiesType& r_properties = this->GetProperties();
-
-    // Verify specific properties
-    auto is_constant_pw_field = false;
-    if (r_properties.Has(GEO_DRAINAGE_TYPE)) {
-        is_constant_pw_field =
-            ConstitutiveLawUtilities::StringToDrainageType(r_properties[GEO_DRAINAGE_TYPE]) ==
-            DrainageType::CONSTANT_WATER_PRESSURE;
-    } else if (r_properties.Has(IGNORE_UNDRAINED)) {
-        is_constant_pw_field = r_properties[IGNORE_UNDRAINED];
-    }
-    KRATOS_ERROR_IF(is_constant_pw_field)
+    KRATOS_ERROR_IF(ConstitutiveLawUtilities::IsConstantWaterPressure(this->GetProperties()))
         << "Constant water pressure fields cannot be used in FIC elements. "
            "Use Non FIC elements instead"
         << this->Id() << std::endl;

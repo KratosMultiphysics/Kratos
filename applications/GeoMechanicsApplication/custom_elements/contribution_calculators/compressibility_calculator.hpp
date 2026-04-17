@@ -104,22 +104,15 @@ private:
     [[nodiscard]] double CalculateBiotModulusInverse(const RetentionLaw::Pointer& rRetentionLaw,
                                                      double FluidPresssure) const
     {
-        const auto&  r_properties     = mInputProvider.GetElementProperties();
-        const double biot_coefficient = r_properties[BIOT_COEFFICIENT];
+        const auto& r_properties     = mInputProvider.GetElementProperties();
+        const auto  biot_coefficient = r_properties[BIOT_COEFFICIENT];
 
-        double bulk_fluid           = TINY;
-        bool   is_constant_pw_field = false;
-        if (r_properties.Has(GEO_DRAINAGE_TYPE)) {
-            is_constant_pw_field =
-                ConstitutiveLawUtilities::StringToDrainageType(r_properties[GEO_DRAINAGE_TYPE]) ==
-                DrainageType::CONSTANT_WATER_PRESSURE;
-        } else {
-            is_constant_pw_field = r_properties[IGNORE_UNDRAINED];
-        }
-        if (!is_constant_pw_field) bulk_fluid = r_properties[BULK_MODULUS_FLUID];
+        auto bulk_fluid = ConstitutiveLawUtilities::IsConstantWaterPressure(r_properties)
+                              ? TINY
+                              : r_properties[BULK_MODULUS_FLUID];
 
-        double result = (biot_coefficient - r_properties[POROSITY]) / r_properties[BULK_MODULUS_SOLID] +
-                        r_properties[POROSITY] / bulk_fluid;
+        auto result = (biot_coefficient - r_properties[POROSITY]) / r_properties[BULK_MODULUS_SOLID] +
+                      r_properties[POROSITY] / bulk_fluid;
 
         RetentionLaw::Parameters retention_parameters(r_properties);
         retention_parameters.SetFluidPressure(FluidPresssure);
