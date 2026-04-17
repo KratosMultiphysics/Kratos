@@ -1,11 +1,11 @@
 Begin Table 1 TIME NORMAL_CONTACT_STRESS
- -0.1 100.0000
+ -0.01 100.0000
   0.0 100.0000
   1.0 100.0000
 End Table
 
 Begin Table 2 TIME DISPLACEMENT_Y
- -0.1 0.0
+ -0.01 0.0
   0.0 0.0
   1.0 -0.2000
 End Table
