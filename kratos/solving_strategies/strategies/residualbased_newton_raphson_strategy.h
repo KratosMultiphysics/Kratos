@@ -716,11 +716,11 @@ class ResidualBasedNewtonRaphsonStrategy
         }
 
         // Clearing the system of equations
-        if (mpA != nullptr)
+        if (!SparseSpaceType::IsNull(mpA))
             SparseSpaceType::Clear(mpA);
-        if (mpDx != nullptr)
+        if (!SparseSpaceType::IsNull(mpDx))
             SparseSpaceType::Clear(mpDx);
-        if (mpb != nullptr)
+        if (!SparseSpaceType::IsNull(mpb))
             SparseSpaceType::Clear(mpb);
 
         // Clearing scheme
