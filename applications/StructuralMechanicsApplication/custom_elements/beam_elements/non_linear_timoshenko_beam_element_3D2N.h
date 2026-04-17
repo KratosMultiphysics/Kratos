@@ -217,8 +217,7 @@ public:
      */
     void CalculateGeneralizedResponse(
         const IndexType IntegrationPoint,
-        ConstitutiveLaw::Parameters rValues,
-        const ProcessInfo& rProcessInfo);
+        ConstitutiveLaw::Parameters rValues);
 
     /**
      * @brief This method builds the rotation operator in the reference configuration
