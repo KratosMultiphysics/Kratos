@@ -150,13 +150,6 @@ BoundedMatrix<double, 6, 12> NonLinearTimoshenkoBeamElement3D2N::CalculateB(
     const auto &r_geom = GetGeometry();
 
     BoundedMatrix<double, 6, 12> b_matrix;
-    b_matrix.clear();
-
-    BoundedMatrix<double, 12, 6> dof_mapper_1, dof_mapper_2;
-    // noalias()
-
-    BoundedMatrix<double, 6, 24> B; // without the DoF mapping operation
-    B.clear();
 
     BoundedMatrix<double, 6, 12> B1, B2; // B = [B1, B2]
     B1.clear();
@@ -177,8 +170,11 @@ BoundedMatrix<double, 6, 12> NonLinearTimoshenkoBeamElement3D2N::CalculateB(
     const array3 d2_s = dN1 * column(mRotationOperators[0], 1) + dN2 * column(mRotationOperators[1], 1);
     const array3 d3_s = dN1 * column(mRotationOperators[0], 2) + dN2 * column(mRotationOperators[1], 2);
 
-    // Let's start assigning components...
+    BoundedMatrix<double, 12, 6> dof_mapper_1, dof_mapper_2; // map from (u, d1, d2, d3) -> (u, rotation)
+    noalias(dof_mapper_1) = CalculateDoFMappingMatrix(column(mRotationOperators[0], 0), column(mRotationOperators[0], 1), column(mRotationOperators[0], 2));
+    noalias(dof_mapper_2) = CalculateDoFMappingMatrix(column(mRotationOperators[1], 0), column(mRotationOperators[1], 1), column(mRotationOperators[1], 2));
 
+    // Let's start assigning components...
     for (IndexType i = 0; i < 3; ++i) {
         // Gamma components
         // node 1
@@ -201,7 +197,29 @@ BoundedMatrix<double, 6, 12> NonLinearTimoshenkoBeamElement3D2N::CalculateB(
         B2(2, i + 9) = N2 * dr[i];
 
         // Omega components
+        // node 1
+        B1(3, i + 6) = 0.5 * (dN1 * d3[i] - N1 * d3_s[i]);
+        B1(3, i + 9) = 0.5 * (dN1 * d2[i] - N1 * d2_s[i]);
+
+        B1(4, i + 3) = 0.5 * (dN1 * d3[i] - N1 * d3_s[i]);
+        B1(4, i + 9) = 0.5 * (dN1 * d1[i] - N1 * d1_s[i]);
+
+        B1(5, i + 3) = 0.5 * (dN1 * d2[i] - N1 * d2_s[i]);
+        B1(5, i + 6) = 0.5 * (dN1 * d1[i] - N1 * d1_s[i]);
+
+        // node 2
+        B2(3, i + 6) = 0.5 * (dN2 * d3[i] - N2 * d3_s[i]);
+        B2(3, i + 9) = 0.5 * (dN2 * d2[i] - N2 * d2_s[i]);
+
+        B2(4, i + 3) = 0.5 * (dN2 * d3[i] - N2 * d3_s[i]);
+        B2(4, i + 9) = 0.5 * (dN2 * d1[i] - N2 * d1_s[i]);
+
+        B2(5, i + 3) = 0.5 * (dN2 * d2[i] - N2 * d2_s[i]);
+        B2(5, i + 6) = 0.5 * (dN2 * d1[i] - N2 * d1_s[i]);
     }
+
+    noalias(project(b_matrix, range(0, 6), range(0, 6)))  = prod(B1, dof_mapper_1);
+    noalias(project(b_matrix, range(0, 6), range(6, 12))) = prod(B2, dof_mapper_2);
 
     return b_matrix;
 }
