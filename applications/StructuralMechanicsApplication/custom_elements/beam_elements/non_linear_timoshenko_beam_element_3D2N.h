@@ -237,6 +237,19 @@ public:
         ConstitutiveLaw::Parameters rValues);
 
     /**
+     * @brief This method computes the contribution to the LHs of the geometrical part for 
+     * one integration point.
+     */
+    void CalculateAndAddKg(
+        Matrix& rLHS,
+        const double J, // jacobian for integration
+        const double N1,
+        const double N2,
+        const double dN1,
+        const double dN2,
+        const Vector& rGeneralizedStressVector);
+
+    /**
      * @brief This method builds the rotation operator in the reference configuration
      * This corresponds to the "Lambda" operator in Romero and Armero, Eq. (3)
      * Operator = [d1, d2, d3] as column vectors

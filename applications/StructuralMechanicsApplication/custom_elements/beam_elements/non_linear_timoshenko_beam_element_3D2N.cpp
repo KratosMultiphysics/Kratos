@@ -505,6 +505,38 @@ void NonLinearTimoshenkoBeamElement3D2N::CalculateAll(
 /***********************************************************************************/
 /***********************************************************************************/
 
+void NonLinearTimoshenkoBeamElement3D2N::CalculateAndAddKg(
+    Matrix& rLHS,
+    const double J, // jacobian for integration
+    const double N1,
+    const double N2,
+    const double dN1,
+    const double dN2,
+    const Vector& rGeneralizedStressVector
+)
+{
+    Vector N(2), dN(2);
+    N[0] = N1;
+    N[1] = N2;
+    dN[0] = dN1;
+    dN[1] = dN2;
+
+    BoundedMatrix<double, 6, 6> Kn, Km;
+    Kn.clear();
+    Km.clear();
+
+    for (IndexType a = 0; a < 2; ++a) {
+        for (IndexType b = 0; b < 2; ++b) {
+            for (IndexType i = 0; i < 3; ++i) {
+
+            }
+        }
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void NonLinearTimoshenkoBeamElement3D2N::GetValuesVector(
     Vector &values,
     int Step
