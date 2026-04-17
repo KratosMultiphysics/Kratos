@@ -183,7 +183,7 @@ public:
     SimpleMortarMapperProcess(
         ModelPart& rOriginModelPart,
         ModelPart& rDestinationModelPart,
-        TVarType& rThisVariable,
+        const TVarType& rThisVariable,
         Parameters ThisParameters = Parameters(R"({})" ),
         LinearSolverType::Pointer pThisLinearSolver = nullptr
         );
@@ -255,8 +255,8 @@ public:
      * @param Flag The flags to special settings. Right now does nothing
      */
     void Map(
-        TVarType& rOriginVariable,
-        TVarType& rDestinationVariable,
+        const TVarType& rOriginVariable,
+        const TVarType& rDestinationVariable,
         const Flags Flag = Flags()
         )
     {
