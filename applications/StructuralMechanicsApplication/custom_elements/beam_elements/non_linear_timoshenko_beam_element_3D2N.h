@@ -80,6 +80,25 @@ public:
 
     Element::Pointer Clone(IndexType NewId, NodesArrayType const& rThisNodes) const override;
 
+    /**
+     * @brief Sets on rResult the ID's of the element degrees of freedom
+     * @param rResult The vector containing the equation id
+     * @param rCurrentProcessInfo The current process info instance
+     */
+    void EquationIdVector(
+        EquationIdVectorType& rResult,
+        const ProcessInfo& rCurrentProcessInfo
+        ) const override;
+
+    /**
+     * @brief Sets on rElementalDofList the degrees of freedom of the considered element geometry
+     * @param rElementalDofList The vector containing the dof of the element
+     * @param rCurrentProcessInfo The current process info instance
+     */
+    void GetDofList(
+        DofsVectorType& rElementalDofList,
+        const ProcessInfo& rCurrentProcessInfo
+        ) const override;
 
     /**
      * @brief Calculate local system
@@ -127,8 +146,6 @@ public:
      * @brief It initializes the material
      */
     void InitializeMaterial();
-
-        // void CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rProcessInfo) override;
 
     /**
      * @brief Indicates the amount of DoFs per node (u, v, w, theta_x, theta_y, theta_z)
