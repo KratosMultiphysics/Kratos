@@ -145,6 +145,10 @@ void InterfaceCoulombWithTensionCutOff::InitializeMaterialResponseCauchy(Paramet
 
 void InterfaceCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(Parameters& rConstitutiveLawParameters)
 {
+    if (!rConstitutiveLawParameters.GetOptions().Is(ConstitutiveLaw::COMPUTE_STRESS)) {
+        return;
+    }
+
     const auto& r_properties = rConstitutiveLawParameters.GetMaterialProperties();
 
     auto trial_sigma_tau = CalculateTrialTractionVector(rConstitutiveLawParameters.GetStrainVector(),

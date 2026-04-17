@@ -187,7 +187,8 @@
                 "RETENTION_LAW"                 : "SaturatedBelowPhreaticLevelLaw",
                 "SATURATED_SATURATION"          : 1.0,
                 "RESIDUAL_SATURATION"           : 1e-10,
-                "MINIMUM_RELATIVE_PERMEABILITY" : 0.0001
+                "MINIMUM_RELATIVE_PERMEABILITY" : 0.0001,
+                "IGNORE_UNDRAINED"              : true
             }
         }
     },{
@@ -204,7 +205,8 @@
                 "RETENTION_LAW"                 : "SaturatedBelowPhreaticLevelLaw",
                 "SATURATED_SATURATION"          : 1.0,
                 "RESIDUAL_SATURATION"           : 1e-10,
-                "MINIMUM_RELATIVE_PERMEABILITY" : 0.0001
+                "MINIMUM_RELATIVE_PERMEABILITY" : 0.0001,
+                "IGNORE_UNDRAINED"              : true
             }
         }
     },{
@@ -221,7 +223,8 @@
                 "RETENTION_LAW"                 : "SaturatedBelowPhreaticLevelLaw",
                 "SATURATED_SATURATION"          : 1.0,
                 "RESIDUAL_SATURATION"           : 1e-10,
-                "MINIMUM_RELATIVE_PERMEABILITY" : 0.0001
+                "MINIMUM_RELATIVE_PERMEABILITY" : 0.0001,
+                "IGNORE_UNDRAINED"              : true
             }
         }
     },{
@@ -238,7 +241,8 @@
                 "RETENTION_LAW"                 : "SaturatedBelowPhreaticLevelLaw",
                 "SATURATED_SATURATION"          : 1.0,
                 "RESIDUAL_SATURATION"           : 1e-10,
-                "MINIMUM_RELATIVE_PERMEABILITY" : 0.0001
+                "MINIMUM_RELATIVE_PERMEABILITY" : 0.0001,
+                "IGNORE_UNDRAINED"              : true
             }
         }
     },{
@@ -255,7 +259,8 @@
                 "RETENTION_LAW"                 : "SaturatedBelowPhreaticLevelLaw",
                 "SATURATED_SATURATION"          : 1.0,
                 "RESIDUAL_SATURATION"           : 1e-10,
-                "MINIMUM_RELATIVE_PERMEABILITY" : 0.0001
+                "MINIMUM_RELATIVE_PERMEABILITY" : 0.0001,
+                "IGNORE_UNDRAINED"              : true
             }
         }
     },{
@@ -272,7 +277,8 @@
                 "RETENTION_LAW"                 : "SaturatedBelowPhreaticLevelLaw",
                 "SATURATED_SATURATION"          : 1.0,
                 "RESIDUAL_SATURATION"           : 1e-10,
-                "MINIMUM_RELATIVE_PERMEABILITY" : 0.0001
+                "MINIMUM_RELATIVE_PERMEABILITY" : 0.0001,
+                "IGNORE_UNDRAINED"              : true
             }
         }
     },{

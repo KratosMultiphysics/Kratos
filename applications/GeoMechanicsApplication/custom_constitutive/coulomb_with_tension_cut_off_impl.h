@@ -43,7 +43,7 @@ public:
     [[nodiscard]] Geo::SigmaTau DoReturnMapping(const Geo::SigmaTau& rTrialTraction,
                                                 const Matrix&        rElasticConstitutiveTensor,
                                                 Geo::PrincipalStresses::AveragingType AveragingType);
-    [[nodiscard]] Geo::PrincipalStresses DoReturnMapping(const Geo::PrincipalStresses& rTrialSigmaTau,
+    [[nodiscard]] Geo::PrincipalStresses DoReturnMapping(const Geo::PrincipalStresses& rTrialPrincipalStresses,
                                                          const Matrix& rElasticConstitutiveTensor,
                                                          Geo::PrincipalStresses::AveragingType AveragingType);
 

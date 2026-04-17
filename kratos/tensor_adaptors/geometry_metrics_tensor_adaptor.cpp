@@ -31,7 +31,7 @@ DenseVector<unsigned int> GetShape(
     const GeometryMetricsTensorAdaptor::Metric CurrentMetric)
 {
     switch (CurrentMetric) {
-        case GeometryMetricsTensorAdaptor::DomainSize:
+        case GeometryMetricsTensorAdaptor::Metric::DomainSize:
             return DenseVector<unsigned int>(1, NumberOfEntities);
     }
 
@@ -65,7 +65,7 @@ void FillData(
     const TContainerType& rContainer)
 {
     switch (CurrentMetric) {
-        case GeometryMetricsTensorAdaptor::DomainSize:
+        case GeometryMetricsTensorAdaptor::Metric::DomainSize:
             FillDomainSize(DataSpan, rContainer);
             break;
     }
@@ -145,7 +145,7 @@ std::string GeometryMetricsTensorAdaptor::Info() const
     info << "GeometryMetricsTensorAdaptor:";
     info << " Metric = ";
     switch (mMetric) {
-        case DomainSize: info << "DomainSize"; break;
+        case Metric::DomainSize: info << "DomainSize"; break;
     }
     info << ", " << BaseType::Info();
     return info.str();

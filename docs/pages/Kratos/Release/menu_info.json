@@ -1,0 +1,8 @@
+{
+    "side_bar_name": "kratos_release",
+    "landing_page": "Wheels/Building-Wheels.md",
+    "additional_menu_options": {
+        "product": "Release",
+        "title": "sidebar"
+    }
+}

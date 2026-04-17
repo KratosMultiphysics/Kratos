@@ -182,9 +182,9 @@ protected:
                       bool               CalculateResidualVectorFlag) override;
 
     virtual void InitializeElementVariables(InterfaceElementVariables& rVariables,
-                                            const GeometryType&        Geom,
-                                            const PropertiesType&      Prop,
-                                            const ProcessInfo&         CurrentProcessInfo);
+                                            const GeometryType&        rGeometry,
+                                            const PropertiesType&      rProperties,
+                                            const ProcessInfo&         rCurrentProcessInfo);
 
     void CalculateRotationMatrix(BoundedMatrix<double, TDim, TDim>& rRotationMatrix, const GeometryType& Geom);
 
