@@ -87,6 +87,8 @@ class TemporalStatisticsProcess(Kratos.Process):
         if (self.echo_level > 0):
             Kratos.Logger.PrintInfo("TemporalStatisticsProcess", "Initialized statistics process.")
 
+        self.__initialized = False
+
     def Check(self):
         if (not self.model.HasModelPart(self.model_part_name)):
             raise Exception(self.model_part_name + " not found.")
@@ -105,10 +107,12 @@ class TemporalStatisticsProcess(Kratos.Process):
 
             self.method_list.extend(method_objects)
 
-        for method in self.method_list:
-            method.InitializeStatisticsMethod(self.statistics_control_value)
-
     def ExecuteFinalizeSolutionStep(self):
+        if not self.__initialized:
+            for method in self.method_list:
+                method.InitializeStatisticsMethod(self.statistics_control_value)
+            self.__initialized = True
+
         current_value = self.model_part.ProcessInfo[self.statistics_control_variable]
         if (current_value >= self.statistics_control_value):
             for method in self.method_list:
