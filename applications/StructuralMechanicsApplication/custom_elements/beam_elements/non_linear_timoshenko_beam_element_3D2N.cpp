@@ -184,7 +184,6 @@ void NonLinearTimoshenkoBeamElement3D2N::CalculateGeneralizedResponse(
     // Here the stress and constitutive matrix are filled according to Kratos convention
     mConstitutiveLawVector[IntegrationPoint]->CalculateMaterialResponseCauchy(rValues);
 
-    
     // We swap order to be compatible with Romero and Armero
     if (rValues.GetOptions().Is(ConstitutiveLaw::COMPUTE_STRESS)) {
         auto &r_stress = rValues.GetStressVector();
@@ -196,7 +195,7 @@ void NonLinearTimoshenkoBeamElement3D2N::CalculateGeneralizedResponse(
         r_stress[4] = temp_stress[5];
         r_stress[5] = temp_stress[3];
     }
-    
+
     if (rValues.GetOptions().Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
         auto &r_D = rValues.GetConstitutiveMatrix();
         Matrix temp_D = r_D; // we make a copy
@@ -207,9 +206,7 @@ void NonLinearTimoshenkoBeamElement3D2N::CalculateGeneralizedResponse(
         r_D(4, 4) = temp_D(5, 5);
         r_D(5, 5) = temp_D(3, 3);
     }
-
 }
-
 
 /***********************************************************************************/
 /***********************************************************************************/
