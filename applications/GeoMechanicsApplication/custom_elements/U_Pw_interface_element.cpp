@@ -103,7 +103,7 @@ UPwInterfaceElement::UPwInterfaceElement(IndexType                          NewI
       mpStressStatePolicy(std::move(pStressStatePolicy)),
       mContributions(rContributions)
 {
-    // ConstitutiveLawUtilities::ReplaceIgnoreUndrainedByDrainageType(*rpProperties);
+    ConstitutiveLawUtilities::ReplaceIgnoreUndrainedByDrainageType(rpProperties.get());
     MakeIntegrationSchemeAndAssignFunction();
     mpOptionalPressureGeometry = MakeOptionalWaterPressureGeometry(GetDisplacementGeometry(), IsDiffOrder);
 }

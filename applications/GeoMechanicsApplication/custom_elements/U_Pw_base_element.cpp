@@ -54,7 +54,7 @@ UPwBaseElement::UPwBaseElement(IndexType                                       N
       mpStressStatePolicy{std::move(pStressStatePolicy)},
       mIntegrationCoefficientsCalculator{std::move(pCoefficientModifier)}
 {
-    // ConstitutiveLawUtilities::ReplaceIgnoreUndrainedByDrainageType(*pProperties);
+    ConstitutiveLawUtilities::ReplaceIgnoreUndrainedByDrainageType(pProperties.get());
     // this is needed for interface elements
     mThisIntegrationMethod = this->GetIntegrationMethod();
 }

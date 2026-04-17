@@ -192,7 +192,7 @@ DrainageType ConstitutiveLawUtilities::StringToDrainageType(const std::string& r
 {
     using namespace std::string_literals;
     using enum DrainageType;
-    const std::map<std::string, DrainageType> drainage_type_map = {
+    const std::map<std::string, DrainageType, std::less<>> drainage_type_map = {
         {"drained"s, DRAINED},
         {"fully_coupled"s, FULLY_COUPLED},
         {"undrained"s, UNDRAINED},
@@ -210,16 +210,20 @@ bool ConstitutiveLawUtilities::IsConstantWaterPressure(const Properties& rProper
     return rProperties.Has(IGNORE_UNDRAINED) ? rProperties[IGNORE_UNDRAINED] : false;
 }
 
-void ConstitutiveLawUtilities::ReplaceIgnoreUndrainedByDrainageType(Properties& rProperties)
+void ConstitutiveLawUtilities::ReplaceIgnoreUndrainedByDrainageType(Properties* pProperties)
 {
-    if (rProperties.Has(IGNORE_UNDRAINED)) {
+    if (!pProperties) return;
+
+    if (pProperties->Has(IGNORE_UNDRAINED)) {
         KRATOS_WARNING("DEPRECATION")
             << "Use of IGNORE_UNDRAINED is deprecated, please change your input to "
                "GEO_DRAINAGE_TYPE"
             << std::endl;
-        if (!rProperties.Has(GEO_DRAINAGE_TYPE))
-            rProperties[GEO_DRAINAGE_TYPE] = rProperties[IGNORE_UNDRAINED] ? "constant_pw_field"s : "fully_coupled"s;
-        rProperties.Erase(IGNORE_UNDRAINED);
+        if (!pProperties->Has(GEO_DRAINAGE_TYPE))
+            (*pProperties)[GEO_DRAINAGE_TYPE] =
+                (*pProperties)[IGNORE_UNDRAINED] ? "constant_pw_field"s : "fully_coupled"s;
+        pProperties->Erase(IGNORE_UNDRAINED);
     }
 }
+
 } // namespace Kratos
