@@ -1488,18 +1488,26 @@ void VtuOutput::WriteData(
     KRATOS_CATCH("");
 }
 
-void VtuOutput::PrintOutput(const std::string& rOutputFileNamePrefix)
+void VtuOutput::PrintOutput(
+    const std::string& rOutputFileNamePrefix,
+    const int Step,
+    const double Time)
 {
     KRATOS_TRY
 
-    const auto& r_process_info = mrModelPart.GetProcessInfo();
-
-    // here we do not check whether the r_process_info has the time variable specified
-    // because, in a const DataValueContainer, if the variable is not there, it returns the
-    // zero value of the variable.
-    const double time = r_process_info[TIME];
-
-    const IndexType step = r_process_info[STEP];
+    double time;
+    IndexType step;
+    if (Step != std::numeric_limits<int>::lowest()) {
+        step = Step;
+        time = Time;
+    } else {
+        const auto& r_process_info = mrModelPart.GetProcessInfo();
+        // here we do not check whether the r_process_info has the time variable specified
+        // because, in a const DataValueContainer, if the variable is not there, it returns the
+        // zero value of the variable.
+        step = r_process_info[STEP];
+        time = r_process_info[TIME];
+    }
 
     std::filesystem::create_directories(rOutputFileNamePrefix);
 
