@@ -251,7 +251,8 @@ void  AddIOToPython(pybind11::module& m)
         .def("EmplaceTensorAdaptor", &VtuOutput::EmplaceTensorAdaptor<TensorAdaptor<double>::Pointer>, py::arg("tensor_adaptor_name"), py::arg("tensor_adaptor"))
         .def("GetModelPart", &VtuOutput::GetModelPart, py::return_value_policy::reference)
         .def("GetOutputContainerList", &VtuOutput::GetOutputContainerList)
-        .def("PrintOutput", &VtuOutput::PrintOutput, py::arg("output_file_name_prefix"))
+        .def("PrintOutput", py::overload_cast<const std::string&>(&VtuOutput::PrintOutput), py::arg("output_file_name_prefix"))
+        .def("PrintOutput", py::overload_cast<const std::string&, const int, const double>(&VtuOutput::PrintOutput), py::arg("output_file_name_prefix"), py::arg("step"), py::arg("time"))
         .def("__str__", PrintObject<VtuOutput>)
         ;
 }
