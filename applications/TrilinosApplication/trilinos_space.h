@@ -168,7 +168,7 @@ public:
     template<class TPointerType>
     inline static bool IsNull(const TPointerType& pPointer)
     {
-        return pPointer == nullptr;
+        return !static_cast<bool>(pPointer);
     }
 
     /**

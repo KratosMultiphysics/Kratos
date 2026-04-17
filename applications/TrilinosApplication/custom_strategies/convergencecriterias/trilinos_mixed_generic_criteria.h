@@ -1,8 +1,8 @@
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics
+//  KRATOS  _____     _ _ _
+//         |_   _| __(_) (_)_ __   ___  ___
+//           | || '__| | | | '_ \ / _ \/ __|
+//           | || |  | | | | | | | (_) \__
+//           |_||_|  |_|_|_|_| |_|\___/|___/ APPLICATION
 //
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
@@ -10,15 +10,13 @@
 //  Main authors:    Jordi Cotela, Riccardo Rossi, Carlos Roig and Ruben Zorrilla
 //
 
-#ifndef KRATOS_TRILINOS_MIXED_GENERIC_CRITERIA_H
-#define	KRATOS_TRILINOS_MIXED_GENERIC_CRITERIA_H
+#pragma once
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "includes/model_part.h"
 #include "solving_strategies/convergencecriterias/mixed_generic_criteria.h"
 
@@ -47,19 +45,19 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION(TrilinosMixedGenericCriteria);
 
-    typedef MixedGenericCriteria< TSparseSpace, TDenseSpace > BaseType;
+    using BaseType = MixedGenericCriteria< TSparseSpace, TDenseSpace >;
 
-    typedef typename BaseType::TDataType TDataType;
+    using TDataType = typename BaseType::TDataType;
 
-    typedef typename BaseType::DofsArrayType DofsArrayType;
+    using DofsArrayType = typename BaseType::DofsArrayType;
 
-    typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
+    using TSystemMatrixType = typename BaseType::TSystemMatrixType;
 
-    typedef typename BaseType::TSystemVectorType TSystemVectorType;
+    using TSystemVectorType = typename BaseType::TSystemVectorType;
 
-    typedef typename BaseType::ConvergenceVariableListType ConvergenceVariableListType;
+    using ConvergenceVariableListType = typename BaseType::ConvergenceVariableListType;
 
-    typedef typename BaseType::KeyType KeyType;
+    using KeyType = typename BaseType::KeyType;
 
     ///@}
     ///@name Life Cycle
@@ -106,11 +104,6 @@ public:
         const TSystemVectorType& Dx,
         const TSystemVectorType& b) override
     {
-        // If required, initialize the Epetra vector import
-        if(!mEpetraImportIsInitialized) {
-            InitializeEpetraImport(rDofSet, Dx);
-        }
-
         // Serial base implementation convergence check call
         return BaseType::PostCriteria(rModelPart, rDofSet, A, Dx, b);
     }
@@ -140,8 +133,6 @@ private:
     ///@name Member Variables
     ///@{
 
-    bool mEpetraImportIsInitialized = false;
-    std::unique_ptr<Epetra_Import> mpDofImport = nullptr;
 
     ///@}
     ///@name Private Operators
@@ -160,27 +151,23 @@ private:
         std::vector<TDataType>& rSolutionNormsVector,
         std::vector<TDataType>& rIncreaseNormsVector) const override
     {
-        int n_dofs = rDofSet.size();
+        const int n_dofs = rDofSet.size();
         const auto& r_data_comm = rModelPart.GetCommunicator().GetDataCommunicator();
         const int rank = r_data_comm.Rank();
 
-        // Do the local Dx vector import
-        Epetra_Vector local_dx(mpDofImport->TargetMap());
-        int i_err = local_dx.Import(rDx, *mpDofImport, Insert);
-        KRATOS_ERROR_IF_NOT(i_err == 0) << "Local Dx import failed!" << std::endl;
+        std::vector<int> equation_ids;
+        equation_ids.reserve(n_dofs);
 
-        // Local thread variables
-        int dof_id;
-        TDataType dof_dx;
+        std::vector<int> var_local_keys;
+        var_local_keys.reserve(n_dofs);
 
-        // Loop over Dofs
+        std::vector<TDataType> dof_values;
+        dof_values.reserve(n_dofs);
+
+        // Gather equation ids and corresponding information for free dofs in this rank
         for (int i = 0; i < n_dofs; i++) {
             auto it_dof = rDofSet.begin() + i;
             if (it_dof->IsFree() && it_dof->GetSolutionStepValue(PARTITION_INDEX) == rank) {
-                dof_id = it_dof->EquationId();
-                const TDataType& r_dof_value = it_dof->GetSolutionStepValue(0);
-                dof_dx = local_dx[mpDofImport->TargetMap().LID(dof_id)];
-
                 int var_local_key;
                 bool key_found = BaseType::FindVarLocalKey(it_dof,var_local_key);
                 if (!key_found) {
@@ -189,62 +176,27 @@ private:
                     continue;
                 }
 
-                rSolutionNormsVector[var_local_key] += r_dof_value * r_dof_value;
-                rIncreaseNormsVector[var_local_key] += dof_dx * dof_dx;
-                rDofsCount[var_local_key]++;
-            }
-        }
-    }
-
-    /**
-     * @brief Initialize the DofUpdater in preparation for a subsequent UpdateDofs call.
-     *  The DofUpdater needs to be initialized only if the dofset changes.
-     *  If the problem does not require creating/destroying nodes or changing the
-     *  mesh graph, it is in general enough to intialize this tool once at the
-     *  begining of the problem.
-     *  If the dofset only changes under certain conditions (for example because
-     *  the domain is remeshed every N iterations), it is enough to call the
-     *  Clear method to let this class know that its auxiliary data has to be re-generated
-     *  and Initialize will be called as part of the next UpdateDofs call.
-     * @param rDofSet rDofSet The list of degrees of freedom.
-     * @param rDx rDx The update vector.
-     */
-    void InitializeEpetraImport(
-        const DofsArrayType &rDofSet,
-        const TSystemVectorType &rDx)
-    {
-        int number_of_dofs = rDofSet.size();
-        int system_size = TSparseSpace::Size(rDx);
-        std::vector<int> index_array(number_of_dofs);
-
-        // Filling the array with the global ids
-        unsigned int counter = 0;
-        for (typename DofsArrayType::const_iterator i_dof = rDofSet.begin(); i_dof != rDofSet.end(); ++i_dof) {
-            const int id = i_dof->EquationId();
-            if (id < system_size) {
-                index_array[counter++] = id;
+                equation_ids.push_back(static_cast<int>(it_dof->EquationId()));
+                var_local_keys.push_back(var_local_key);
+                dof_values.push_back(it_dof->GetSolutionStepValue(0));
             }
         }
 
-        std::sort(index_array.begin(), index_array.end());
-        std::vector<int>::iterator new_end = std::unique(index_array.begin(), index_array.end());
-        index_array.resize(new_end - index_array.begin());
+        std::vector<double> dof_increments(equation_ids.size(), 0.0);
+        if (!equation_ids.empty()) {
+            TSparseSpace::GatherValues(rDx, equation_ids, dof_increments.data());
+        }
 
-        int check_size = -1;
-        int tot_update_dofs = index_array.size();
-        rDx.Comm().SumAll(&tot_update_dofs, &check_size, 1);
-        KRATOS_ERROR_IF(check_size < system_size)
-            << "DOF count is not correct. There are less dofs then expected.\n"
-            << "Expected number of active dofs: " << system_size << ", DOFs found: " << check_size << std::endl;
+        const std::size_t n_local_dofs = equation_ids.size();
+        for (std::size_t i = 0; i < n_local_dofs; ++i) {
+            const int var_local_key = var_local_keys[i];
+            const TDataType& r_dof_value = dof_values[i];
+            const TDataType dof_dx = static_cast<TDataType>(dof_increments[i]);
 
-        // Defining a map as needed
-        Epetra_Map dof_update_map(-1, index_array.size(), &(*(index_array.begin())), 0, rDx.Comm());
-
-        // Defining the import instance
-        std::unique_ptr<Epetra_Import> p_dof_import(new Epetra_Import(dof_update_map, rDx.Map()));
-        mpDofImport.swap(p_dof_import);
-
-        mEpetraImportIsInitialized = true;
+            rSolutionNormsVector[var_local_key] += r_dof_value * r_dof_value;
+            rIncreaseNormsVector[var_local_key] += dof_dx * dof_dx;
+            rDofsCount[var_local_key]++;
+        }
     }
 
     ///@}
@@ -268,5 +220,3 @@ private:
 
 ///@} // Application group
 }
-
-#endif // KRATOS_TRILINOS_MIXED_GENERIC_CRITERIA_H

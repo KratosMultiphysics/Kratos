@@ -8,6 +8,7 @@
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
+//                   Vicente Mataix Ferrandiz
 //
 
 #if defined(KRATOS_PYTHON)
@@ -19,6 +20,9 @@
 // Project includes
 #include "includes/define_python.h"
 #include "trilinos_space.h"
+#ifdef HAVE_TPETRA
+#include "trilinos_space_experimental.h"
+#endif
 #include "spaces/ublas_space.h"
 #include "includes/model_part.h"
 
@@ -93,7 +97,7 @@ void  AddLinearSolvers(pybind11::module& m)
         ;
 
 #ifndef TRILINOS_EXCLUDE_AZTEC_SOLVER
-    typedef AztecSolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType > AztecSolverType;
+    using AztecSolverType = AztecSolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType >;
     py::class_<AztecSolverType, typename AztecSolverType::Pointer, TrilinosLinearSolverType >
     (m,"AztecSolver")
         .def(py::init< Teuchos::ParameterList&, std::string, Teuchos::ParameterList&, double, int, int >())
@@ -110,7 +114,7 @@ void  AddLinearSolvers(pybind11::module& m)
 #endif
 
 #ifndef TRILINOS_EXCLUDE_AMESOS_SOLVER
-    typedef AmesosSolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType > AmesosSolverType;
+    using AmesosSolverType = AmesosSolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType >;
     py::class_<AmesosSolverType, typename AmesosSolverType::Pointer, TrilinosLinearSolverType >
     (m,"AmesosSolver").def( py::init<const std::string&, Teuchos::ParameterList& >())
         .def(py::init<Parameters>())
@@ -120,7 +124,7 @@ void  AddLinearSolvers(pybind11::module& m)
 #endif
 
 #ifndef TRILINOS_EXCLUDE_AMESOS2_SOLVER
-    typedef Amesos2Solver<TrilinosSparseSpaceType, TrilinosLocalSpaceType > Amesos2SolverType;
+    using Amesos2SolverType = Amesos2Solver<TrilinosSparseSpaceType, TrilinosLocalSpaceType >;
     py::class_<Amesos2SolverType, typename Amesos2SolverType::Pointer, TrilinosLinearSolverType >
     (m,"Amesos2Solver").def( py::init<const std::string&, Teuchos::ParameterList& >())
         .def(py::init<Parameters>())
@@ -130,7 +134,7 @@ void  AddLinearSolvers(pybind11::module& m)
 #endif
 
 #ifndef TRILINOS_EXCLUDE_ML_SOLVER
-    typedef MultiLevelSolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType > MLSolverType;
+    using MLSolverType = MultiLevelSolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType >;
     py::class_<MLSolverType, typename MLSolverType::Pointer, TrilinosLinearSolverType >
     (m,"MultiLevelSolver").def( py::init<Teuchos::ParameterList&, Teuchos::ParameterList&, double, int >())
         .def(py::init<Parameters>())
@@ -146,27 +150,64 @@ void  AddLinearSolvers(pybind11::module& m)
         ;
 #endif
 
-    typedef AmgclMPISolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType > AmgclMPISolverType;
+    using AmgclMPISolverType = AmgclMPISolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType >;
     py::class_<AmgclMPISolverType, typename AmgclMPISolverType::Pointer, TrilinosLinearSolverType >
     (m,"AmgclMPISolver")
         .def( py::init<Parameters>())
         .def("__str__", PrintObject<AmgclMPISolverType>)
         ;
 
-    typedef AmgclMPISchurComplementSolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType > AmgclMPISchurComplementSolverType;
+    using AmgclMPISchurComplementSolverType = AmgclMPISchurComplementSolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType >;
     py::class_<AmgclMPISchurComplementSolverType, typename AmgclMPISchurComplementSolverType::Pointer, TrilinosLinearSolverType >
     (m,"AmgclMPISchurComplementSolver")
         .def( py::init<Parameters>())
         .def("__str__", PrintObject<AmgclMPISchurComplementSolverType>)
         ;
 
-    typedef LinearSolverFactory< TrilinosSparseSpaceType, TrilinosLocalSpaceType > TrilinosLinearSolverFactoryType;
+    using TrilinosLinearSolverFactoryType = LinearSolverFactory<TrilinosSparseSpaceType, TrilinosLocalSpaceType>;
 
     py::class_<TrilinosLinearSolverFactoryType, TrilinosLinearSolverFactoryType::Pointer>(m, "TrilinosLinearSolverFactory")
         .def( py::init< >() )
         .def("Create",&TrilinosLinearSolverFactoryType::Create)
         .def("Has",&TrilinosLinearSolverFactoryType::Has)
         ;
+
+#ifdef HAVE_TPETRA
+    using TrilinosExperimentalSparseSpaceType = TrilinosSpaceExperimental<Tpetra::FECrsMatrix<>, Tpetra::FEMultiVector<>>;
+    using TrilinosExperimentalLinearSolverType = LinearSolver<TrilinosExperimentalSparseSpaceType, TrilinosLocalSpaceType>;
+
+    py::class_<TrilinosExperimentalLinearSolverType, typename TrilinosExperimentalLinearSolverType::Pointer>(m, "TrilinosExperimentalLinearSolver")
+        .def(py::init<>())
+        ;
+
+    using TrilinosExperimentalFallbackLinearSolverType = FallbackLinearSolver<TrilinosExperimentalSparseSpaceType, TrilinosLocalSpaceType>;
+    py::class_<TrilinosExperimentalFallbackLinearSolverType, typename TrilinosExperimentalFallbackLinearSolverType::Pointer, TrilinosExperimentalLinearSolverType>(m, "TrilinosExperimentalFallbackLinearSolver")
+        .def(py::init<Parameters>())
+        .def(py::init<const std::vector<typename TrilinosExperimentalLinearSolverType::Pointer>&, Parameters>())
+        .def("GetSolvers",             &TrilinosExperimentalFallbackLinearSolverType::GetSolvers)
+        .def("GetResetSolverEachTry",  &TrilinosExperimentalFallbackLinearSolverType::GetResetSolverEachTry)
+        .def("GetParameters",          &TrilinosExperimentalFallbackLinearSolverType::GetParameters)
+        .def("GetCurrentSolverIndex",  &TrilinosExperimentalFallbackLinearSolverType::GetCurrentSolverIndex)
+        .def("ClearCurrentSolverIndex",&TrilinosExperimentalFallbackLinearSolverType::ClearCurrentSolverIndex)
+        ;
+
+#ifndef TRILINOS_EXCLUDE_AMESOS2_SOLVER
+    using TrilinosExperimentalAmesos2SolverType = Amesos2Solver<TrilinosExperimentalSparseSpaceType, TrilinosLocalSpaceType>;
+    py::class_<TrilinosExperimentalAmesos2SolverType, typename TrilinosExperimentalAmesos2SolverType::Pointer, TrilinosExperimentalLinearSolverType>(m, "TrilinosExperimentalAmesos2Solver")
+        .def(py::init<const std::string&, Teuchos::ParameterList&>())
+        .def(py::init<Parameters>())
+        .def_static("HasSolver", &TrilinosExperimentalAmesos2SolverType::HasSolver)
+        .def("__str__", PrintObject<TrilinosExperimentalAmesos2SolverType>)
+        ;
+#endif
+
+    using TrilinosExperimentalLinearSolverFactoryType = LinearSolverFactory<TrilinosExperimentalSparseSpaceType, TrilinosLocalSpaceType>;
+    py::class_<TrilinosExperimentalLinearSolverFactoryType, typename TrilinosExperimentalLinearSolverFactoryType::Pointer>(m, "TrilinosExperimentalLinearSolverFactory")
+        .def(py::init<>())
+        .def("Create", &TrilinosExperimentalLinearSolverFactoryType::Create)
+        .def("Has",    &TrilinosExperimentalLinearSolverFactoryType::Has)
+        ;
+#endif
 }
 
 // Dummy solver definition to mark LinearSolver as an imported class
