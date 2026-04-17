@@ -266,21 +266,23 @@ public:
 
     /**
      * Returns the value of the Levi-Civita symbol epsilon_ijk.
-     * Indices i, j, k are assumed to be 1, 2, or 3.
+     * Indices i, j, k are 0-based: {0, 1, 2}.
      */
-    inline double epsilon(int i, int j, int k) {
-        // Check for repeated indices first (the most common case in sums)
+    inline int epsilon(int i, int j, int k) {
+        // Check for repeated indices first (accounts for 21 out of 27 cases)
         if (i == j || j == k || k == i) {
-            return 0.0;
+            return 0;
         }
-        // Check for even permutations (+1)
-        if ((i == 1 && j == 2 && k == 3) ||
-            (i == 2 && j == 3 && k == 1) ||
-            (i == 3 && j == 1 && k == 2)) {
-            return 1.0;
+
+        // Check for even permutations (+1): (0,1,2), (1,2,0), (2,0,1)
+        if ((i == 0 && j == 1 && k == 2) ||
+            (i == 1 && j == 2 && k == 0) ||
+            (i == 2 && j == 0 && k == 1)) {
+            return 1;
         }
-        // Otherwise, it's an odd permutation (-1)
-        return -1.0;
+
+        // Otherwise, it's an odd permutation (-1): (0,2,1), (2,1,0), (1,0,2)
+        return -1;
     }
 
     /**
