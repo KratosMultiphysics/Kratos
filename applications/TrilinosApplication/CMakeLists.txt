@@ -131,10 +131,6 @@ if(HAVE_TPETRA)
     set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/auxiliary_matrix_market.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
     # Defines anonymous-namespace helpers (ClearMatrix, SetToZero, TwoNorm, Mult, …) that collide with identically-named helpers in add_trilinos_space_to_python.cpp when merged, causing unresolved overloads.
     set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_trilinos_space_experimental_to_python.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
-    # Defines TrilinosSparseSpaceType/Matrix/Vector aliases for Tpetra in Kratos::Testing; other test files define the same names for Epetra, causing "conflicting declaration" in unity batches.
-    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/test_trilinos_space_experimental.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
-    # Companion to test_trilinos_space_experimental.cpp; pulls in Tpetra-heavy headers with the same alias conflicts.
-    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/trilinos_cpp_test_experimental_utilities.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
 endif(HAVE_TPETRA)
 
 # Changing the .dll suffix to .pyd
