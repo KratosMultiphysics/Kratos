@@ -211,6 +211,16 @@ public:
         const double dN2);
 
     /**
+     * @brief This method computes the generalized stress vector (6 components) and/or the generalized constitutive matrix (6x6)
+     * The ordering of the strain is supposed to be the Kratos one, however the stress and constitutive are returned as
+     * Romero and Armero for coherence
+     */
+    void CalculateGeneralizedResponse(
+        const IndexType IntegrationPoint,
+        ConstitutiveLaw::Parameters rValues,
+        const ProcessInfo& rProcessInfo);
+
+    /**
      * @brief This method builds the rotation operator in the reference configuration
      * This corresponds to the "Lambda" operator in Romero and Armero, Eq. (3)
      * Operator = [d1, d2, d3] as column vectors

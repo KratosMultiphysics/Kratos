@@ -176,6 +176,43 @@ Vector NonLinearTimoshenkoBeamElement3D2N::CalculateStrainVector(
 /***********************************************************************************/
 /***********************************************************************************/
 
+void NonLinearTimoshenkoBeamElement3D2N::CalculateGeneralizedResponse(
+    const IndexType IntegrationPoint,
+    ConstitutiveLaw::Parameters rValues,
+    const ProcessInfo& rProcessInfo
+)
+{
+    // Here the stress and constitutive matrix are filled according to Kratos convention
+    mConstitutiveLawVector[IntegrationPoint]->CalculateMaterialResponseCauchy(rValues);
+
+    auto &r_stress = rValues.GetStressVector();
+    auto &r_D = rValues.GetConstitutiveMatrix();
+
+    // We swap order to be compatible with Romero and Armero
+    Vector temp_stress = r_stress;
+    r_stress[0] = temp_stress[1];
+    r_stress[1] = temp_stress[2];
+    r_stress[2] = temp_stress[0];
+    r_stress[3] = temp_stress[4];
+    r_stress[4] = temp_stress[5];
+    r_stress[5] = temp_stress[3];
+    
+    if (rValues.GetOptions().Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
+        Matrix temp_D = r_D;
+        r_D(0, 0) = temp_D(1, 1);
+        r_D(1, 1) = temp_D(2, 2);
+        r_D(2, 2) = temp_D(0, 0);
+        r_D(3, 3) = temp_D(4, 4);
+        r_D(4, 4) = temp_D(5, 5);
+        r_D(5, 5) = temp_D(3, 3);
+    }
+
+}
+
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 BoundedMatrix<double, 12, 6> NonLinearTimoshenkoBeamElement3D2N::CalculateDoFMappingMatrix(
         const Vector &rD1,
         const Vector &rD2,
@@ -222,7 +259,6 @@ BoundedMatrix<double, 6, 12> NonLinearTimoshenkoBeamElement3D2N::CalculateB(
     // The current tangent vector to the beam axis r'
     array3 dr = r_geom[1].Coordinates() - r_geom[0].Coordinates();
     const double current_L = norm_2(dr);
-    KRATOS_ERROR_IF_NOT(current_L > 0.0) << "The length of the 3D beam element is null..." << std::endl;
     dr /= current_L;
 
     // We interpolate the directors
