@@ -59,6 +59,7 @@ namespace {
 
         using DofsArrayType = typename ModelPart::DofsArrayType;
 
+        // Builder and solver classes
         py::class_<BuilderAndSolverType, typename BuilderAndSolverType::Pointer>(m, (Prefix + "ResidualBasedBuilderAndSolver").c_str())
             .def(py::init<typename TLinearSolverType::Pointer>())
             .def("SetCalculateReactionsFlag", &BuilderAndSolverType::SetCalculateReactionsFlag)
@@ -87,6 +88,16 @@ namespace {
             .def("GetEchoLevel",               &BuilderAndSolverType::GetEchoLevel)
             ;
 
+        using TrilinosBlockBuilderAndSolverType = TrilinosBlockBuilderAndSolver<TSparseSpace, TLocalSpace, TLinearSolverType>;
+        using TrilinosCommType = typename TrilinosBlockBuilderAndSolverType::TrilinosCommunicatorType;
+        py::class_<TrilinosBlockBuilderAndSolverType, typename TrilinosBlockBuilderAndSolverType::Pointer, BuilderAndSolverType>(m, (Prefix + "BlockBuilderAndSolver").c_str())
+            .def(py::init<TrilinosCommType&, int, typename TLinearSolverType::Pointer>())
+            .def(py::init<TrilinosCommType&, typename TLinearSolverType::Pointer, Parameters>())
+            .def("IsConstantConstraints", &TrilinosBlockBuilderAndSolverType::IsConstantConstraints)
+            .def("SetConstantConstraints", &TrilinosBlockBuilderAndSolverType::SetConstantConstraints)
+            ;
+
+        // Solving strategies
         py::class_<BaseSolvingStrategyType, typename BaseSolvingStrategyType::Pointer>(m, (Prefix + "SolvingStrategy").c_str())
             .def(py::init<ModelPart&, bool>())
             .def("Predict",                &BaseSolvingStrategyType::Predict)
@@ -160,13 +171,6 @@ void AddStrategies(pybind11::module& m)
         ;
 
     using TrilinosBlockBuilderAndSolverType = TrilinosBlockBuilderAndSolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType>;
-    py::class_<TrilinosBlockBuilderAndSolverType, typename TrilinosBlockBuilderAndSolverType::Pointer, TrilinosBuilderAndSolverType>(m, "TrilinosBlockBuilderAndSolver")
-        .def(py::init<Epetra_MpiComm&, int, TrilinosLinearSolverType::Pointer>())
-        .def(py::init<Epetra_MpiComm&, TrilinosLinearSolverType::Pointer, Parameters>())
-        .def("IsConstantConstraints", &TrilinosBlockBuilderAndSolverType::IsConstantConstraints)
-        .def("SetConstantConstraints", &TrilinosBlockBuilderAndSolverType::SetConstantConstraints)
-        ;
-
     using TrilinosBlockBuilderAndSolverPeriodicType = TrilinosBlockBuilderAndSolverPeriodic<TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType>;
     py::class_<TrilinosBlockBuilderAndSolverPeriodicType, typename TrilinosBlockBuilderAndSolverPeriodicType::Pointer, TrilinosBlockBuilderAndSolverType>(m, "TrilinosBlockBuilderAndSolverPeriodic")
         .def(py::init<Epetra_MpiComm&, int, TrilinosLinearSolverType::Pointer, Kratos::Variable<int>&>())
