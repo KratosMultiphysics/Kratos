@@ -743,8 +743,6 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
             vfrac = self.SolveStep1(vold, v_dirichlet, pold, b, substep_dt)
             self.step_1_total_time += time.perf_counter() - t1
 
-            err
-
             t2 = time.perf_counter()
             p = self.SolveStep2(vfrac, pold, substep_dt)
             delta_p = p - pold #TODO: most probably we could modify p in place
@@ -789,9 +787,6 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         convective_stab = self.cfd_utils.ComputeMomentumStabilization(DN, v_elemental, a_grad_elemental, proj_elemental)
         convective_stab *= self.rho * self.rho
         print(f"\t\ttime {6}: {time.perf_counter() - t0}")
-
-        print(f"\t\tconvective[100,:,:]: {convective[100,:,:]}")
-        print(f"\t\tconvective_stab[100,:,:]: {convective_stab[100,:,:]}")
 
         t0 = time.perf_counter()
         res -= convective #assemble convective contribution

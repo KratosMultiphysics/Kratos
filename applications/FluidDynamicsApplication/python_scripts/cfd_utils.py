@@ -804,24 +804,23 @@ class CFDUtils:
         # M_e = self.GetElementalMassMatrix(dim) #elemental mass matrix (n_node, n_node)
         # return xp.einsum("eik,jm,emk,ejl->eil", DN, M_e, beta, a_elemental, optimize=opt_type)
 
-        beta = conv_elemental - pi_elemental              # (e, node, dim)
-        M_e = self.GetElementalMassMatrix(beta.shape[2])  # (node, node)
+        beta = conv_elemental - pi_elemental
+        n_elem, n_node, n_dim = beta.shape
 
-        n_node = beta.shape[1]
-        n_dim = beta.shape[2]
+        # --- build S[k,l] ---
+        M_e = self.GetElementalMassMatrix(beta.shape[2])
+        S = xp.zeros((n_elem, n_dim, n_dim), dtype=beta.dtype)
+        for j in range(n_node):
+            for m in range(n_node):
+                w = M_e[j, m]
+                S += w * (a_elemental[:, j, :, None] * beta[:, m, None, :]) # a_j,k * beta_m,l
 
-        # --- 1) Unrolled mass projection (compute once) ---
-        B = M_e[:, 0][None, :, None] * beta[:, 0, :][:, None, :]
-        for m in range(1, n_node):
-            B += M_e[:, m][None, :, None] * beta[:, m, :][:, None, :]
+        # --- contract with DN ---
+        R = xp.zeros((n_elem, n_node, n_dim), dtype=beta.dtype)
+        for k in range(n_dim):
+            R += DN[:, :, k][:, :, None] * S[:, k, :][:, None, :]
 
-        # --- 2) Unrolled contraction with DN ---
-        T = DN[:, :, 0][:, :, None] * B[:, None, :, 0]
-        for k in range(1, n_dim):
-            T += DN[:, :, k][:, :, None] * B[:, None, :, k]
-
-        # --- 3) Final contraction ---
-        return xp.matmul(T, a_elemental)
+        return R
 
     def ComputeMomentumStabilizationLegacy(self, N, DN, u_elemental, a_gauss, pi_gauss, rho):
         """
