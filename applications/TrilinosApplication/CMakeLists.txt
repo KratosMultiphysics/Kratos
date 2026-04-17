@@ -72,6 +72,13 @@ if(${KRATOS_BUILD_TESTING} MATCHES ON)
     file(GLOB_RECURSE KRATOS_TRILINOS_TEST_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
     if(NOT HAVE_TPETRA)
         list(FILTER KRATOS_TRILINOS_TEST_SOURCES EXCLUDE REGEX ".*experimental.*")
+    else()
+        # Keep all experimental tests out of unity batches to avoid Epetra/Tpetra alias and type collisions.
+        set(KRATOS_TRILINOS_EXPERIMENTAL_TEST_SOURCES ${KRATOS_TRILINOS_TEST_SOURCES})
+        list(FILTER KRATOS_TRILINOS_EXPERIMENTAL_TEST_SOURCES INCLUDE REGEX ".*[Ee]xperimental.*\\.cpp$")
+        if(KRATOS_TRILINOS_EXPERIMENTAL_TEST_SOURCES)
+            set_source_files_properties(${KRATOS_TRILINOS_EXPERIMENTAL_TEST_SOURCES} PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
+        endif()
     endif()
     kratos_add_gtests(TARGET KratosTrilinosCore SOURCES "${KRATOS_TRILINOS_TEST_SOURCES}" USE_MPI)
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
@@ -124,12 +131,6 @@ if(HAVE_TPETRA)
     set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/auxiliary_matrix_market.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
     # Defines anonymous-namespace helpers (ClearMatrix, SetToZero, TwoNorm, Mult, …) that collide with identically-named helpers in add_trilinos_space_to_python.cpp when merged, causing unresolved overloads.
     set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_trilinos_space_experimental_to_python.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
-    # Defines TrilinosSparseSpaceType/Matrix/Vector aliases for Tpetra in Kratos::Testing; other test files define the same names for Epetra, causing "conflicting declaration" in unity batches.
-    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/test_trilinos_space_experimental.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
-    # Companion to test_trilinos_space_experimental.cpp; pulls in Tpetra-heavy headers with the same alias conflicts.
-    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/trilinos_cpp_test_experimental_utilities.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
-    # Defines TrilinosSparseSpaceType for Tpetra in Kratos::Testing (utilities/ subfolder); clashes with the Epetra alias in test_trilinos_assembling_utilities.cpp when merged in the same unity batch.
-    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/utilities/test_cpp_test_utilities_experimental.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
 endif(HAVE_TPETRA)
 
 # Changing the .dll suffix to .pyd
