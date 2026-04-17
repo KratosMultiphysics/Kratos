@@ -73,6 +73,7 @@ from test_dirichlet_u_constant import KratosGeoMechanicsDirichletUConstantTests
 from interface_prestress import KratosGeoMechanicsInterfacePreStressTests
 from test_upw_interface import KratosGeoMechanicsUPwInterfaceTests
 from test_building_pit import KratosGeoMechanicsBuildingPit
+from test_udsm_serialization import KratosGeoMechanicsUDSMSerializationTest
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -131,6 +132,7 @@ def AssembleTestSuites():
                         KratosGeoMechanicsDirichletUConstantTests,
                         KratosGeoMechanicsInterfacePreStressTests,
                         KratosGeoMechanicsUPwInterfaceTests,
+                        KratosGeoMechanicsUDSMSerializationTest,
                         ]
 
     night_test_cases = [
