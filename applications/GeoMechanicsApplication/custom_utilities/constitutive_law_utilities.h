@@ -40,7 +40,7 @@ public:
     static double GetFrictionAngleInDegrees(const Properties& rProperties);
     static double GetFrictionAngleInRadians(const Properties& rProperties);
 
-    static Matrix MakeInterfaceConstitutiveMatrix(double      NormalStiffness,
+    static Matrix MakeInterfaceConstitutiveTensor(double      NormalStiffness,
                                                   double      ShearStiffness,
                                                   std::size_t TractionSize,
                                                   std::size_t NumberOfNormalComponents);
@@ -50,6 +50,19 @@ public:
     static void CheckHasStrainMeasure_Infinitesimal(const Properties& rProperties, std::size_t ElementId);
 
     [[nodiscard]] static double CalculateK0NCFromFrictionAngleInRadians(double FrictionAngleInRadians);
+
+    [[nodiscard]] static double CalculateUndrainedYoungsModulus(const Properties& rProperties,
+                                                                double UndrainedPoissonsRatio);
+
+    [[nodiscard]] static double GetUndrainedPoissonsRatio(const Properties& rProperties);
+
+    [[nodiscard]] static double GetSkemptonB(const Properties& rProperties);
+
+    [[nodiscard]] static Matrix MakeContinuumConstitutiveTensor(double      YoungsModulus,
+                                                                double      PoissonsRatio,
+                                                                std::size_t StrainSize,
+                                                                std::size_t NumberOfNormalComponents);
+
 }; /* Class ConstitutiveLawUtilities*/
 
 } // namespace Kratos

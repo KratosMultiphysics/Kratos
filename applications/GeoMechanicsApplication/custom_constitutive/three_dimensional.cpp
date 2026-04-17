@@ -12,41 +12,24 @@
 //
 
 #include "three_dimensional.h"
-
+#include "custom_utilities/constitutive_law_utilities.h"
 #include "geo_mechanics_application_constants.h"
 #include "includes/constitutive_law.h"
 
 namespace Kratos
 {
 
-Matrix ThreeDimensional::CalculateElasticMatrix(const Properties& rProperties) const
+Matrix ThreeDimensional::CalculateElasticConstitutiveTensor(const Properties& rProperties) const
 {
-    const auto youngs_modulus = rProperties[YOUNG_MODULUS];
-    const auto poissons_ratio = rProperties[POISSON_RATIO];
-    const auto c0 = youngs_modulus / ((1.0 + poissons_ratio) * (1.0 - 2.0 * poissons_ratio));
-    const auto c1 = (1.0 - poissons_ratio) * c0;
-    const auto c2 = poissons_ratio * c0;
-    const auto c3 = (0.5 - poissons_ratio) * c0;
+    // next lines shall be replaced with lines from the prototype when GEO_DRAINAGE_TYPE is merged.
+    constexpr auto undrained = false;
+    const auto     nu = undrained ? ConstitutiveLawUtilities::GetUndrainedPoissonsRatio(rProperties)
+                                  : rProperties[POISSON_RATIO];
+    const auto E = undrained ? ConstitutiveLawUtilities::CalculateUndrainedYoungsModulus(rProperties, nu)
+                             : rProperties[YOUNG_MODULUS];
 
-    Matrix result = ZeroMatrix(GetStrainSize(), GetStrainSize());
-
-    result(INDEX_3D_XX, INDEX_3D_XX) = c1;
-    result(INDEX_3D_XX, INDEX_3D_YY) = c2;
-    result(INDEX_3D_XX, INDEX_3D_ZZ) = c2;
-
-    result(INDEX_3D_YY, INDEX_3D_XX) = c2;
-    result(INDEX_3D_YY, INDEX_3D_YY) = c1;
-    result(INDEX_3D_YY, INDEX_3D_ZZ) = c2;
-
-    result(INDEX_3D_ZZ, INDEX_3D_XX) = c2;
-    result(INDEX_3D_ZZ, INDEX_3D_YY) = c2;
-    result(INDEX_3D_ZZ, INDEX_3D_ZZ) = c1;
-
-    result(INDEX_3D_XY, INDEX_3D_XY) = c3;
-    result(INDEX_3D_YZ, INDEX_3D_YZ) = c3;
-    result(INDEX_3D_XZ, INDEX_3D_XZ) = c3;
-
-    return result;
+    return ConstitutiveLawUtilities::MakeContinuumConstitutiveTensor(
+        E, nu, ThreeDimensional::GetStrainSize(), ThreeDimensional::GetNumberOfNormalComponents());
 }
 
 std::unique_ptr<ConstitutiveLawDimension> ThreeDimensional::Clone() const

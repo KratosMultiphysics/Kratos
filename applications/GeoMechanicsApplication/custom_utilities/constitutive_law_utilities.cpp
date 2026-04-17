@@ -144,7 +144,7 @@ double ConstitutiveLawUtilities::GetFrictionAngleInRadians(const Properties& rPr
     return MathUtils<>::DegreesToRadians(GetFrictionAngleInDegrees(rProperties));
 }
 
-Matrix ConstitutiveLawUtilities::MakeInterfaceConstitutiveMatrix(double      NormalStiffness,
+Matrix ConstitutiveLawUtilities::MakeInterfaceConstitutiveTensor(double      NormalStiffness,
                                                                  double      ShearStiffness,
                                                                  std::size_t TractionSize,
                                                                  std::size_t NumberOfNormalComponents)
@@ -169,8 +169,8 @@ void ConstitutiveLawUtilities::CheckHasStrainMeasure_Infinitesimal(const Propert
 {
     ConstitutiveLaw::Features LawFeatures;
     rProperties[CONSTITUTIVE_LAW]->GetLawFeatures(LawFeatures);
-    const auto correct_strain_measure = std::any_of(
-        LawFeatures.mStrainMeasures.begin(), LawFeatures.mStrainMeasures.end(), [](auto& strain_measure) {
+    const auto correct_strain_measure =
+        std::ranges::any_of(LawFeatures.mStrainMeasures, [](auto& strain_measure) {
         return strain_measure == ConstitutiveLaw::StrainMeasure_Infinitesimal;
     });
 
@@ -183,6 +183,84 @@ void ConstitutiveLawUtilities::CheckHasStrainMeasure_Infinitesimal(const Propert
 double ConstitutiveLawUtilities::CalculateK0NCFromFrictionAngleInRadians(double FrictionAngleInRadians)
 {
     return 1.0 - std::sin(FrictionAngleInRadians);
+}
+
+double ConstitutiveLawUtilities::CalculateUndrainedYoungsModulus(const Properties& rProperties, double UndrainedPoissonsRatio)
+{
+    const auto denominator = 1.0 + rProperties[POISSON_RATIO];
+    KRATOS_ERROR_IF(denominator <= std::numeric_limits<double>::epsilon())
+        << "POISSON_RATIO (" << rProperties[POISSON_RATIO] << ") <= -1." << std::endl;
+    return rProperties[YOUNG_MODULUS] * (1.0 + UndrainedPoissonsRatio) / denominator;
+}
+
+double ConstitutiveLawUtilities::GetUndrainedPoissonsRatio(const Properties& rProperties)
+{
+    double result;
+    if (rProperties.Has(GEO_POISSON_UNDRAINED)) {
+        result = rProperties[GEO_POISSON_UNDRAINED];
+    } else {
+        const auto skempton_b       = ConstitutiveLawUtilities::GetSkemptonB(rProperties);
+        const auto biot_coefficient = rProperties[BIOT_COEFFICIENT];
+        const auto poissons_ratio   = rProperties[POISSON_RATIO];
+        const auto denominator = 3.0 - biot_coefficient * skempton_b * (1.0 - 2.0 * poissons_ratio);
+        KRATOS_ERROR_IF(denominator <= std::numeric_limits<double>::epsilon())
+            << "Non-physical values: denominator < epsilon." << std::endl;
+        result = (3.0 * poissons_ratio + biot_coefficient * skempton_b * (1.0 - 2.0 * poissons_ratio)) / denominator;
+    }
+
+    if (constexpr auto max_poisson_ratio = 0.495; result > max_poisson_ratio) {
+        KRATOS_WARNING("Clamping undrained Poisson ratio from ")
+            << result << " to " << max_poisson_ratio << "." << std::endl;
+        return max_poisson_ratio;
+    }
+
+    return result;
+}
+
+double ConstitutiveLawUtilities::GetSkemptonB(const Properties& rProperties)
+{
+    if (rProperties.Has(GEO_SKEMPTON_B)) {
+        return rProperties[GEO_SKEMPTON_B];
+    }
+
+    const auto k_f = rProperties[BULK_MODULUS_FLUID];
+    const auto k_s = rProperties[BULK_MODULUS_SOLID]; // or should this be k skeleton, the porous material i.s.o. the solid
+    const auto porosity         = rProperties[POROSITY];
+    const auto biot_coefficient = rProperties[BIOT_COEFFICIENT];
+    const auto denominator = biot_coefficient + porosity * ((k_s / k_f) + biot_coefficient - 1.0);
+    KRATOS_ERROR_IF(denominator <= std::numeric_limits<double>::epsilon())
+        << "Non-physical values: denominator < epsilon." << std::endl;
+
+    const auto result = biot_coefficient / denominator;
+    KRATOS_ERROR_IF(result < -std::numeric_limits<double>::epsilon() || result > 1.0 + std::numeric_limits<double>::epsilon())
+        << "Calculated Skempton B (" << result << ") is out of range [0,1]." << std::endl;
+
+    return std::max(0.0, std::min(1.0, result));
+}
+
+Matrix ConstitutiveLawUtilities::MakeContinuumConstitutiveTensor(double      YoungsModulus,
+                                                                 double      PoissonsRatio,
+                                                                 std::size_t StrainSize,
+                                                                 std::size_t NumberOfNormalComponents)
+{
+    const auto denominator = (1.0 + PoissonsRatio) * (1.0 - 2.0 * PoissonsRatio);
+    KRATOS_ERROR_IF(denominator <= std::numeric_limits<double>::epsilon())
+        << "PoissonsRatio of " << PoissonsRatio << " leads to a nearly zero denominator" << std::endl;
+    const auto prefactor          = YoungsModulus / denominator;
+    const auto diagonal_value     = (1.0 - PoissonsRatio) * prefactor;
+    const auto off_diagonal_value = PoissonsRatio * prefactor;
+
+    auto result = Matrix{ZeroMatrix{StrainSize, StrainSize}};
+    for (auto i = std::size_t{0}; i < NumberOfNormalComponents; ++i) {
+        for (auto j = std::size_t{0}; j < NumberOfNormalComponents; ++j) {
+            result(i, j) = i == j ? diagonal_value : off_diagonal_value;
+        }
+    }
+    const auto shear_modulus = YoungsModulus / (2.0 * (1.0 + PoissonsRatio));
+    for (auto i = NumberOfNormalComponents; i < StrainSize; ++i) {
+        result(i, i) = shear_modulus;
+    }
+    return result;
 }
 
 } // namespace Kratos

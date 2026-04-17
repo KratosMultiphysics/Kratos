@@ -600,7 +600,7 @@ KRATOS_TEST_CASE_IN_SUITE(K0ProcedureChecksIfProcessHasCorrectMaterialData, Krat
     p_element->GetProperties().SetValue(POP, -100.0);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         process.Check(),
-        "POP (-100) should be in the range [0.0,-> for property Id of 0 element 1.")
+        "POP (-100) should be in the range [0.0,-> for property Id of 0 for element 1.")
 
     p_element->GetProperties().Erase(POP);
     p_element->GetProperties().Erase(INDEX_OF_UMAT_PHI_PARAMETER);

@@ -11,39 +11,24 @@
 //
 
 #include "plane_strain.h"
-
+#include "custom_utilities/constitutive_law_utilities.h"
 #include "geo_mechanics_application_constants.h"
 #include "includes/constitutive_law.h"
 
 namespace Kratos
 {
 
-Matrix PlaneStrain::CalculateElasticMatrix(const Properties& rProperties) const
+Matrix PlaneStrain::CalculateElasticConstitutiveTensor(const Properties& rProperties) const
 {
-    const auto youngs_modulus = rProperties[YOUNG_MODULUS];
-    const auto poissons_ratio = rProperties[POISSON_RATIO];
-    const auto c0 = youngs_modulus / ((1.0 + poissons_ratio) * (1.0 - 2.0 * poissons_ratio));
-    const auto c1 = (1.0 - poissons_ratio) * c0;
-    const auto c2 = poissons_ratio * c0;
-    const auto c3 = (0.5 - poissons_ratio) * c0;
+    // next lines shall be replaced with lines from the prototype when GEO_DRAINAGE_TYPE is merged.
+    constexpr auto undrained = false;
+    const auto     nu = undrained ? ConstitutiveLawUtilities::GetUndrainedPoissonsRatio(rProperties)
+                                  : rProperties[POISSON_RATIO];
+    const auto E = undrained ? ConstitutiveLawUtilities::CalculateUndrainedYoungsModulus(rProperties, nu)
+                             : rProperties[YOUNG_MODULUS];
 
-    Matrix result = ZeroMatrix(4, 4);
-
-    result(INDEX_2D_PLANE_STRAIN_XX, INDEX_2D_PLANE_STRAIN_XX) = c1;
-    result(INDEX_2D_PLANE_STRAIN_XX, INDEX_2D_PLANE_STRAIN_YY) = c2;
-    result(INDEX_2D_PLANE_STRAIN_XX, INDEX_2D_PLANE_STRAIN_ZZ) = c2;
-
-    result(INDEX_2D_PLANE_STRAIN_YY, INDEX_2D_PLANE_STRAIN_XX) = c2;
-    result(INDEX_2D_PLANE_STRAIN_YY, INDEX_2D_PLANE_STRAIN_YY) = c1;
-    result(INDEX_2D_PLANE_STRAIN_YY, INDEX_2D_PLANE_STRAIN_ZZ) = c2;
-
-    result(INDEX_2D_PLANE_STRAIN_ZZ, INDEX_2D_PLANE_STRAIN_XX) = c2;
-    result(INDEX_2D_PLANE_STRAIN_ZZ, INDEX_2D_PLANE_STRAIN_YY) = c2;
-    result(INDEX_2D_PLANE_STRAIN_ZZ, INDEX_2D_PLANE_STRAIN_ZZ) = c1;
-
-    result(INDEX_2D_PLANE_STRAIN_XY, INDEX_2D_PLANE_STRAIN_XY) = c3;
-
-    return result;
+    return ConstitutiveLawUtilities::MakeContinuumConstitutiveTensor(
+        E, nu, PlaneStrain::GetStrainSize(), PlaneStrain::GetNumberOfNormalComponents());
 }
 
 std::unique_ptr<ConstitutiveLawDimension> PlaneStrain::Clone() const
