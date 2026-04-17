@@ -4,7 +4,7 @@
         "properties_id"   : 1,
         "Material"        : {
             "constitutive_law" : {
-                "name" : "LinearElasticPlaneStress2DLaw"
+                "name" : "ReissnerMindlinShellElasticConstitutiveLaw"
             },
             "Variables"        : {
                 "THICKNESS"     : 3.0,

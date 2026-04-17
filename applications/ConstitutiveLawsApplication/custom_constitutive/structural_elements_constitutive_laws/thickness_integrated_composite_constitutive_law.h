@@ -21,6 +21,7 @@
 #include "includes/constitutive_law.h"
 
 #include "custom_utilities/advanced_constitutive_law_utilities.h"
+#include "custom_utilities/constitutive_law_utilities.h"
 
 namespace Kratos
 {
@@ -43,18 +44,20 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 /**
- * @class ThicknessIntegratedIsotropicConstitutiveLaw
+ * @class ThicknessIntegratedCompositeConstitutiveLaw
  * @ingroup StructuralMechanicsApplication
- * @brief This constitutive law is implemented to be used together with the CSDSG3ThickShellElement3D3N and MITCThickShellElement3D4N element
- * It computes the constitutive matrix and stress vector by integrating over the thickness using a
- * sub-property, and constitutive model (MUST be isotropic and plane stress).
+ * @brief This constitutive law is implemented to be used together with the CSDSG3ThickShellElement3D3N or MITCThickShellElement3D4N element
+ * It computes the constitutive matrix and stress vector by integrating over the thickness using a set of
+ * sub-properties, each one with its own subproperty and constitutive model (isotropic plane stress).
+ * For each layer, the user needs to provide: thickness, z coordinate of the layer w.r.t the bending axis and the Euler angle of rotation
+ * w.r.t the local axes of the shell.
  * Input: the Generalized strain vector of 8 components (3 membrane + 3 bending + 2 shear)
  * Output: the Generalized stress vector of 8 components (3 membrane + 3 bending + 2 shear) and 8x8 generalized
  * constitutive matrix.
  * The number of integration points can be defined by the user, by default 5 points are used.
  * @author Alejandro Cornejo
  */
-class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) ThicknessIntegratedIsotropicConstitutiveLaw
+class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) ThicknessIntegratedCompositeConstitutiveLaw
     : public ConstitutiveLaw
 {
 public:
@@ -89,8 +92,8 @@ public:
     /// Definition of the machine precision tolerance
     static constexpr double machine_tolerance = std::numeric_limits<double>::epsilon();
 
-    /// Pointer definition of ThicknessIntegratedIsotropicConstitutiveLaw
-    KRATOS_CLASS_POINTER_DEFINITION(ThicknessIntegratedIsotropicConstitutiveLaw);
+    /// Pointer definition of ThicknessIntegratedCompositeConstitutiveLaw
+    KRATOS_CLASS_POINTER_DEFINITION(ThicknessIntegratedCompositeConstitutiveLaw);
 
     ///@name Lyfe Cycle
     ///@{
@@ -98,23 +101,26 @@ public:
     /**
      * @brief Default constructor.
      */
-    ThicknessIntegratedIsotropicConstitutiveLaw();
+    ThicknessIntegratedCompositeConstitutiveLaw();
 
     /**
      * @brief Constructor with values
      * @param rThicknessIntegrationPoints The amount of thickness integration points
      */
-    ThicknessIntegratedIsotropicConstitutiveLaw(const IndexType rThicknessIntegrationPoints);
+    ThicknessIntegratedCompositeConstitutiveLaw(
+        const std::vector<double>& rZCoordinates,
+        const std::vector<double>& rEulerAngles,
+        const std::vector<double>& rThicknesses);
 
     /**
      * @brief Copy constructor.
      */
-    ThicknessIntegratedIsotropicConstitutiveLaw(const ThicknessIntegratedIsotropicConstitutiveLaw &rOther);
+    ThicknessIntegratedCompositeConstitutiveLaw(const ThicknessIntegratedCompositeConstitutiveLaw &rOther);
 
     /**
      * @brief Destructor.
      */
-    ~ThicknessIntegratedIsotropicConstitutiveLaw() override;
+    ~ThicknessIntegratedCompositeConstitutiveLaw() override;
 
     ///@}
     ///@name Operators
@@ -153,7 +159,11 @@ public:
      */
     bool RequiresInitializeMaterialResponse() override
     {
-        return mConstitutiveLaws[0]->RequiresInitializeMaterialResponse(); // All the same;
+        for (IndexType i_layer = 0; i_layer < mConstitutiveLaws.size(); ++i_layer) {
+            if (mConstitutiveLaws[i_layer]->RequiresInitializeMaterialResponse())
+                return true;
+        }
+        return false;
     }
 
     /**
@@ -161,7 +171,11 @@ public:
      */
     bool RequiresFinalizeMaterialResponse() override
     {
-        return mConstitutiveLaws[0]->RequiresFinalizeMaterialResponse(); // All the same;
+        for (IndexType i_layer = 0; i_layer < mConstitutiveLaws.size(); ++i_layer) {
+            if (mConstitutiveLaws[i_layer]->RequiresFinalizeMaterialResponse())
+                return true;
+        }
+        return false;
     }
 
     /**
@@ -170,9 +184,13 @@ public:
      * @return true if the variable is defined in the constitutive law
      */
     template<class TDataType>
-    bool Has(const Variable<TDataType>& rThisVariable)
+    bool THas(const Variable<TDataType>& rThisVariable)
     {
-        return mConstitutiveLaws[0]->Has(rThisVariable); // All the same
+        for (IndexType i_layer = 0; i_layer < mConstitutiveLaws.size(); ++i_layer) {
+            if (mConstitutiveLaws[i_layer]->Has(rThisVariable))
+                return true;
+        }
+        return false;
     }
 
     /**
@@ -188,17 +206,15 @@ public:
     {
         KRATOS_TRY
 
-        IndexType number_of_laws = mConstitutiveLaws.size();
         TDataType ip_value;
-        if (mConstitutiveLaws[0]->Has(rThisVariable)) {
-            mConstitutiveLaws[0]->GetValue(rThisVariable, rValue);
 
-            for (IndexType i = 1; i < number_of_laws; ++i) {
-                mConstitutiveLaws[i]->GetValue(rThisVariable, ip_value);
-                rValue += ip_value;
+            for (IndexType i = 1; i < mConstitutiveLaws.size(); ++i) {
+                if (mConstitutiveLaws[i]->Has(rThisVariable)) {
+                    mConstitutiveLaws[i]->GetValue(rThisVariable, ip_value);
+                    rValue += ip_value * mThicknesses[i]; // We integrate the value through the thickness, multiplying by the layer thickness
+                }
             }
-            rValue /= static_cast<double>(number_of_laws);
-        }
+
         return rValue;
 
         KRATOS_CATCH("Generic GetValue")
@@ -217,10 +233,9 @@ public:
     {
         KRATOS_TRY
 
-        if (mConstitutiveLaws[0]->Has(rThisVariable)) {
-            for (IndexType i = 0; i < mConstitutiveLaws.size(); ++i) {
+        for (IndexType i = 0; i < mConstitutiveLaws.size(); ++i) {
+            if (mConstitutiveLaws[0]->Has(rThisVariable))
                 mConstitutiveLaws[i]->SetValue(rThisVariable, rValue, rCurrentProcessInfo);
-            }
         }
 
         KRATOS_CATCH("Generic SetValue")
@@ -232,28 +247,75 @@ public:
      */
     template<class TDataType>
     TDataType& TCalculateValue(
-        Parameters& rParameterValues,
+        Parameters& rValues,
         const Variable<TDataType>& rThisVariable,
         TDataType& rValue)
         {
             KRATOS_TRY
 
-            const Properties& r_material_properties = rParameterValues.GetMaterialProperties();
-            const auto sub_property = r_material_properties.GetSubProperties().begin();
-            IndexType number_of_laws = mConstitutiveLaws.size();
+            const IndexType number_of_laws = mConstitutiveLaws.size();
+            const auto subprop_strain_size = mConstitutiveLaws[0]->GetStrainSize(); // 3
+            const auto subprop_dimension = mConstitutiveLaws[0]->WorkingSpaceDimension(); // 2
+            const auto& r_material_properties = rValues.GetMaterialProperties();
 
-            TDataType aux_value;
+            const Vector generalized_strain_vector = rValues.GetStrainVector(); // size 8
 
-            rParameterValues.SetMaterialProperties(*(sub_property));
-            mConstitutiveLaws[0]->CalculateValue(rParameterValues, rThisVariable, rValue);
+            Vector& r_stress_vector = rValues.GetStressVector(); // size 3
+            Vector& r_strain_vector = rValues.GetStrainVector(); // size 3
+            Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix(); // size 3x3
+            r_strain_vector.resize(subprop_strain_size, false);
+            r_stress_vector.resize(subprop_strain_size, false);
+            r_constitutive_matrix.resize(subprop_strain_size, subprop_strain_size, false);
+            r_strain_vector.clear();
+            r_stress_vector.clear();
+            r_constitutive_matrix.clear();
+            
+            Matrix F(subprop_dimension, subprop_dimension); // 2x2
+            double z_coord, detF, Euler_angle;
+            
+            double Gyz = 0.0;
+            double Gxz = 0.0;
+            
+            const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
+            // Rotation and strain-rotation matrices
+            BoundedMatrix<double, 2, 2> T;
+            BoundedMatrix<double, 3, 3> Tvoigt;
 
-            for (IndexType i = 1; i < number_of_laws; ++i) {
-                mConstitutiveLaws[i]->CalculateValue(rParameterValues, rThisVariable, aux_value);
-                rValue += aux_value;
+            TDataType ip_value;
+
+            // We perform the integration through the thickness
+            for (IndexType i_layer = 0; i_layer < number_of_laws; ++i_layer) {
+                // Assign subprops of the layer
+                Properties &r_subprop = *(it_prop_begin + i_layer);
+                rValues.SetMaterialProperties(r_subprop);
+
+                CalculateShearModulus(Gyz, Gxz, rValues);
+
+                // We retrieve the layer information
+                z_coord = mZCoordinates[i_layer];
+                Euler_angle = mEulerAngles[i_layer];
+
+                r_strain_vector[0] = generalized_strain_vector[0] + z_coord * generalized_strain_vector[3]; // xx
+                r_strain_vector[1] = generalized_strain_vector[1] + z_coord * generalized_strain_vector[4]; // yy
+                r_strain_vector[2] = generalized_strain_vector[2] + z_coord * generalized_strain_vector[5]; // xy
+
+                // We rotate the strain to layer local axes
+                AdvancedConstitutiveLawUtilities<3>::CalculateRotationOperatorEuler1(Euler_angle, T);
+                ConstitutiveLawUtilities<3>::CalculateRotationOperatorVoigt(T, Tvoigt);
+                r_strain_vector = prod(Tvoigt, r_strain_vector);
+
+                // In case the 2D Cls work in finite strain
+                noalias(F) = AdvancedConstitutiveLawUtilities<3>::ComputeEquivalentSmallDeformationDeformationGradient(r_strain_vector);
+                detF = MathUtils<double>::Det2(F);
+                rValues.SetDeterminantF(detF);
+                rValues.SetDeformationGradientF(F);
+
+                mConstitutiveLaws[i_layer]->CalculateValue(rValues, rThisVariable, ip_value);
+                rValue += ip_value * mThicknesses[i_layer]; // We integrate the value through the thickness, multiplying by the layer thickness
             }
-            rValue /= static_cast<double>(number_of_laws);
 
-            rParameterValues.SetMaterialProperties(r_material_properties);
+            r_strain_vector.resize(VoigtSize, false);
+            noalias(r_strain_vector) = generalized_strain_vector;
 
             return rValue;
 
@@ -402,25 +464,22 @@ public:
         const Vector& rShapeFunctionsValues
         ) override;
 
+    /**
+     * @brief This is to calculate and initialize the mShearReductionFactors at the very beginning of the calculation
+     * @param rMaterialProperties the Properties instance of the current element
+     * This implementation is based on E. Oñate Vol 2: Beams plates and shells. Page 399 of the document
+     * Eq. (7.48a) from section 7.3  "computation of transverse shear correction parameters".
+     */
+    void InitializeShearReductionFactors(
+        const Properties &rMaterialProperties);
 
     std::vector<ConstitutiveLaw::Pointer>& GetConstitutiveLaws()
     {
         return mConstitutiveLaws;
     }
 
-    IndexType& GetNumberOfThicknessIntegrationPoints()
-    {
-        return mThicknessIntegrationPoints;
-    }
-
-    void SetNumberOfThicknessIntegrationPoints(const IndexType NumberOfPoints)
-    {
-        mThicknessIntegrationPoints = NumberOfPoints;
-    }
-
     /**
-     * @brief This method computes the maximum edge length of
-     * a shell of 3 and 4 nodes
+     * @brief Computes the material maximum edge length for the given geometry, used to compute the integration points in thickness
      */
     double GetMaxReferenceEdgeLength(const GeometryType& rGeometry) const
     {
@@ -428,19 +487,15 @@ public:
     }
 
     /**
-     * @brief Computes a lists of z-coordinates and weigths to perform the integration through the thickness
+     * @brief Computes the shear modulus of the shell
      */
-    void CalculateCoordinatesAndWeights(
-        std::vector<double> &rCoordinates,
-        std::vector<double> &rWeights,
-        const IndexType NumberOfPoints,
-        const Properties& rMaterialProperties);
+    void CalculateShearModulus(double &Gyz, double &Gxz, Parameters &rValues);
 
     /**
      * @brief Computes the material response in terms of 1st Piola-Kirchhoff stresses and constitutive tensor
      * @see Parameters
      */
-    void CalculateMaterialResponsePK1 (Parameters& rValues) override;
+    void CalculateMaterialResponsePK1(Parameters& rValues) override;
 
     /**
      * @brief Computes the material response in terms of 2nd Piola-Kirchhoff stresses and constitutive tensor
@@ -541,9 +596,6 @@ public:
         const ProcessInfo& rCurrentProcessInfo
         ) const override;
 
-
-
-
 protected:
 
     ///@name Protected static Member Variables
@@ -573,7 +625,10 @@ private:
     ///@{
 
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLaws; /// The vector containing the constitutive laws (must be cloned, the ones contained on the properties can conflict between them)
-    IndexType mThicknessIntegrationPoints = 5;               /// The number of thickness integration points
+    std::vector<double> mZCoordinates; /// The vector containing the z-coordinate of the centroid of each layer in the thickness of the shell
+    std::vector<double> mEulerAngles; /// The Euler angle of rotation of each layer w.r.t the local axes of the shell
+    std::vector<double> mThicknesses; /// The thickness of each layer
+    std::vector<double> mShearReductionFactors = std::vector<double>(2, 1.0); /// The shear reduction factors for the shear components of the constitutive matrix, initialized to 1.0 (no reduction)
 
     ///@}
     ///@name Private Operators
@@ -596,18 +651,24 @@ private:
 
     void save(Serializer& rSerializer) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveLaw )
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw)
         rSerializer.save("ConstitutiveLaws", mConstitutiveLaws);
-        rSerializer.save("ThicknessIntegrationPoints", mThicknessIntegrationPoints);
+        rSerializer.save("ZCoordinates", mZCoordinates);
+        rSerializer.save("EulerAngles", mEulerAngles);
+        rSerializer.save("Thicknesses", mThicknesses);
+        rSerializer.save("ShearReductionFactors", mShearReductionFactors);
     }
 
     void load(Serializer& rSerializer) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw)
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw)
         rSerializer.load("ConstitutiveLaws", mConstitutiveLaws);
-        rSerializer.load("ThicknessIntegrationPoints", mThicknessIntegrationPoints);
+        rSerializer.load("ThicknessIntegrationPoints", mZCoordinates);
+        rSerializer.load("EulerAngles", mEulerAngles);
+        rSerializer.load("Thicknesses", mThicknesses);
+        rSerializer.load("ShearReductionFactors", mShearReductionFactors);
     }
 
 
-}; // Class ThicknessIntegratedIsotropicConstitutiveLaw
+}; // Class ThicknessIntegratedCompositeConstitutiveLaw
 }  // namespace Kratos.

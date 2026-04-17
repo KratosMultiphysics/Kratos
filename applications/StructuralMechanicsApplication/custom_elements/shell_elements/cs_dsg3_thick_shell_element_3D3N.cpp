@@ -109,6 +109,40 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::CalculateOnIntegrationPoints(
 /***********************************************************************************/
 
 template <bool IS_COROTATIONAL>
+void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::CalculateOnIntegrationPoints(
+    const Variable<array_1d<double, 3>>& rVariable,
+    std::vector<array_1d<double, 3>>& rOutput,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    const auto& r_integration_points = CustomTriangleAreaCoordinatesQuadrature(GetGeometry().Area());
+    const SizeType number_of_integration_points = r_integration_points.size();
+
+    // Provide a default empty implementation: resize and set zeros
+    rOutput.assign(number_of_integration_points, ZeroVector(3)); // plane stress components
+
+    if (rVariable == LOCAL_AXIS_1 || rVariable == LOCAL_AXIS_2 || rVariable == LOCAL_AXIS_3) {
+        bounded_3_matrix rotation_matrix;
+        CalculateRotationMatrixGlobalToLocal(rotation_matrix, true);
+        IndexType axis_index = 0;
+        if (rVariable == LOCAL_AXIS_2) {
+            axis_index = 1;
+        } else if (rVariable == LOCAL_AXIS_3) {
+            axis_index = 2;
+        }
+        for (IndexType i = 0; i < number_of_integration_points; ++i) {
+            noalias(rOutput[i]) = row(rotation_matrix, axis_index);
+        }
+    }
+
+    KRATOS_CATCH("CSDSG3ThickShellElement3D3N::CalculateOnIntegrationPoints")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <bool IS_COROTATIONAL>
 void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::InitializeMaterial()
 {
     KRATOS_TRY
@@ -265,15 +299,18 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::CalculateRotationMatrixGlobal
     }
 
     if (this->Has(LOCAL_AXIS_1)) {
+        array_3 edge_12 = aux_1 - aux_0;
+        array_3 edge_13 = aux_2 - aux_0;
+        array_3 normal = MathUtils<double>::CrossProduct(edge_12, edge_13);
+        const double norm_normal = norm_2(normal);
+
+        KRATOS_DEBUG_ERROR_IF_NOT(norm_normal > 0.0) << "Zero area for CSDSG3ThickShellElement3D3N " << this->Id() << std::endl;
+        normal /= norm_normal;
         noalias(v1) = this->GetValue(LOCAL_AXIS_1); // We assume that the user has set a unit vector
-        noalias(v2) = aux_2 - aux_0;
-        v2 -= inner_prod(v1, v2) * v1; // v2 orthogonal to v1
+        noalias(v2) = MathUtils<double>::CrossProduct(normal, v1);
         const double norm_v2 = norm_2(v2);
-        if (norm_v2 <= 1.0e-8) { // colineal
-            noalias(v2) = aux_1 - aux_0;
-            v2 -= inner_prod(v1, v2) * v1; // v2 orthogonal to v1
-        }
-        v2 /= norm_2(v2);
+        KRATOS_DEBUG_ERROR_IF_NOT(norm_v2 > 0.0) << "Zero length local axis 2 for CSDSG3ThickShellElement3D3N " << this->Id() << std::endl;
+        v2 /= norm_v2;
     } else {
         noalias(v1) = aux_1 - aux_0;
         const double norm_v1 = norm_2(v1);
