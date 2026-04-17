@@ -13,14 +13,18 @@
 #pragma once
 
 // System includes
+#include <memory>
 
 // External includes
+#ifdef HAVE_TPETRA
+#include "Tpetra_Core.hpp"
+#endif
 
 // Project includes
 #include "includes/kratos_application.h"
 
-namespace Kratos {
-
+namespace Kratos
+{
 ///@name Kratos Globals
 ///@{
 
@@ -39,7 +43,7 @@ namespace Kratos {
 enum class TrilinosLinearAlgebraLibrary
 {
     EPETRA, /// Epetra linear algebra library
-    TPETRA  /// Tpetra linear algebra library (TO BE IMPLEMENTED)
+    TPETRA  /// Tpetra linear algebra library
 };
 
 ///@}
@@ -88,6 +92,12 @@ class KRATOS_API(TRILINOS_APPLICATION) KratosTrilinosApplication : public Kratos
      */
     void Register() override;
 
+    /**
+     * @brief This method is used to unregister specific application components.
+     * @details This method is used to unregister specific application components.
+     */
+    void DeregisterApplication() override;
+
     ///@}
     ///@name Access
     ///@{
@@ -128,7 +138,6 @@ class KRATOS_API(TRILINOS_APPLICATION) KratosTrilinosApplication : public Kratos
     ///@{
 
     ///@}
-
    protected:
     ///@name Protected static Member Variables
     ///@{
@@ -136,6 +145,11 @@ class KRATOS_API(TRILINOS_APPLICATION) KratosTrilinosApplication : public Kratos
     ///@}
     ///@name Protected member Variables
     ///@{
+
+#ifdef HAVE_TPETRA
+    /// @brief Tpetra/Kokkos scope guard. Initialised in Register() and reset in DeregisterApplication().
+    std::unique_ptr<Tpetra::ScopeGuard> mpTpetraScope = nullptr;
+#endif
 
     ///@}
     ///@name Protected Operators

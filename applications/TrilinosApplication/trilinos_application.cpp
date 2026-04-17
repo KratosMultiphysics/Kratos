@@ -30,6 +30,29 @@ void KratosTrilinosApplication::Register()
                     << "Initializing KratosTrilinosApplication..." << std::endl;
 
     RegisterTrilinosLinearSolvers();
+
+#ifdef HAVE_TPETRA
+    // Initialize Kokkos (and Tpetra) via the ScopeGuard so that Tpetra objects
+    // can be used for the lifetime of the application.  We pass dummy argc/argv
+    // because command-line argument parsing is not relevant here. 
+    // TODO: Think a way to allow users to pass command-line arguments to Tpetra/Kokkos if they want to (e.g. for Kokkos backend selection or Tpetra debug options). Maybe environment variables are sufficient for this purpose, and would be simpler than trying to pass command-line arguments through Kratos.
+    if (!mpTpetraScope) {
+        // int argc = 0;
+        // char** argv = nullptr;
+        // mpTpetraScope = std::make_unique<Tpetra::ScopeGuard>(&argc, &argv);
+    }
+#endif
+}
+
+void KratosTrilinosApplication::DeregisterApplication()
+{
+#ifdef HAVE_TPETRA
+    // Reset the ScopeGuard, which calls Tpetra::finalize() / Kokkos::finalize()
+    // and marks Tpetra as no longer initialised.
+    if (mpTpetraScope) {
+        mpTpetraScope.reset();
+    }
+#endif
 }
 
 }  // namespace Kratos.
