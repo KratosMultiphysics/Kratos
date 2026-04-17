@@ -264,6 +264,32 @@ public:
      */
     void GetSecondDerivativesVector(Vector &values, int Step = 0) const;
 
+    /**
+     * Returns the value of the Levi-Civita symbol epsilon_ijk.
+     * Indices i, j, k are assumed to be 1, 2, or 3.
+     */
+    inline double epsilon(int i, int j, int k) {
+        // Check for repeated indices first (the most common case in sums)
+        if (i == j || j == k || k == i) {
+            return 0.0;
+        }
+        // Check for even permutations (+1)
+        if ((i == 1 && j == 2 && k == 3) ||
+            (i == 2 && j == 3 && k == 1) ||
+            (i == 3 && j == 1 && k == 2)) {
+            return 1.0;
+        }
+        // Otherwise, it's an odd permutation (-1)
+        return -1.0;
+    }
+
+    /**
+     * Returns the Kronecker delta value for indices i and j.
+     */
+    inline double delta(int i, int j) {
+        return (i == j) ? 1.0 : 0.0;
+    }
+
 private:
 
     /* The rotation operators are built with [d1, d2, d3] as col vectors */
