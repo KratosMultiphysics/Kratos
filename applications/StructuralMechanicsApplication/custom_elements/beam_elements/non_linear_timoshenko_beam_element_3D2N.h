@@ -249,6 +249,21 @@ public:
      */
     void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 
+    /**
+     * Getting method to obtain the variable which defines the degrees of freedom
+     */
+    void GetValuesVector(Vector &values, int Step) const;
+
+    /**
+     * Getting method to obtain the time derivative of variable which defines the degrees of freedom
+     */
+    void GetFirstDerivativesVector(Vector &values, int Step) const;
+
+    /**
+     * Getting method to obtain the second time derivative of variable which defines the degrees of freedom
+     */
+    void GetSecondDerivativesVector(Vector &values, int Step) const;
+
 private:
 
     /* The rotation operators are built with [d1, d2, d3] as col vectors */

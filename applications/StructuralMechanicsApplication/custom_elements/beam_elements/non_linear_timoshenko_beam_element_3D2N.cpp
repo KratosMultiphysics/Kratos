@@ -432,9 +432,11 @@ void NonLinearTimoshenkoBeamElement3D2N::CalculateAll(
     const bool ComputeRHS
 )
 {
+    const auto &r_props = GetProperties();
     const auto &r_geometry = GetGeometry();
     const SizeType number_of_nodes = r_geometry.size();
     const SizeType mat_size = GetDoFsPerNode() * number_of_nodes;
+    const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize(); // 6
 
     if (ComputeLHS) {
         if (rLHS.size1() != mat_size || rLHS.size2() != mat_size) {
@@ -450,7 +452,96 @@ void NonLinearTimoshenkoBeamElement3D2N::CalculateAll(
         rRHS.clear();
     }
 
-    
+    const auto& r_integration_points = r_geometry.IntegrationPoints(mThisIntegrationMethod);
+
+    ConstitutiveLaw::Parameters cl_values(r_geometry, r_props, rProcessInfo);
+    auto &r_cl_options = cl_values.GetOptions();
+    r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS, ComputeRHS);
+    r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, ComputeLHS);
+
+    const double length = CalculateReferenceLength(); // Reference length
+
+    // Let's initialize the cl values
+    VectorType strain_vector(strain_size), stress_vector(strain_size);
+    MatrixType constitutive_matrix(strain_size, strain_size);
+    strain_vector.clear();
+    cl_values.SetStrainVector(strain_vector);
+    cl_values.SetStressVector(stress_vector);
+    cl_values.SetConstitutiveMatrix(constitutive_matrix);
+
+
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void NonLinearTimoshenkoBeamElement3D2N::GetValuesVector(
+    Vector &values,
+    int Step
+) const
+{
+    values.resize(12, false);
+    const auto& r_geom = GetGeometry();
+
+    const auto& r_displ_0    = r_geom[0].FastGetSolutionStepValue(DISPLACEMENT);
+    const auto& r_rotation_0 = r_geom[0].FastGetSolutionStepValue(ROTATION);
+    const auto& r_displ_1    = r_geom[1].FastGetSolutionStepValue(DISPLACEMENT);
+    const auto& r_rotation_1 = r_geom[1].FastGetSolutionStepValue(ROTATION);
+
+    for (IndexType i = 0; i < 3; ++i) {
+        values[i]     = r_displ_0[i];
+        values[i + 3] = r_rotation_0[i];
+        values[i + 6] = r_displ_1[i];
+        values[i + 9] = r_rotation_1[i];
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void NonLinearTimoshenkoBeamElement3D2N::GetFirstDerivativesVector(
+    Vector &values,
+    int Step
+) const
+{
+    values.resize(12, false);
+    const auto& r_geom = GetGeometry();
+
+    const auto& r_displ_0    = r_geom[0].FastGetSolutionStepValue(VELOCITY);
+    const auto& r_rotation_0 = r_geom[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
+    const auto& r_displ_1    = r_geom[1].FastGetSolutionStepValue(VELOCITY);
+    const auto& r_rotation_1 = r_geom[1].FastGetSolutionStepValue(ANGULAR_VELOCITY);
+
+    for (IndexType i = 0; i < 3; ++i) {
+        values[i]     = r_displ_0[i];
+        values[i + 3] = r_rotation_0[i];
+        values[i + 6] = r_displ_1[i];
+        values[i + 9] = r_rotation_1[i];
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void NonLinearTimoshenkoBeamElement3D2N::GetSecondDerivativesVector(
+    Vector &values,
+    int Step
+) const
+{
+    values.resize(12, false);
+    const auto& r_geom = GetGeometry();
+
+    const auto& r_displ_0    = r_geom[0].FastGetSolutionStepValue(ACCELERATION);
+    const auto& r_rotation_0 = r_geom[0].FastGetSolutionStepValue(ANGULAR_ACCELERATION);
+    const auto& r_displ_1    = r_geom[1].FastGetSolutionStepValue(ACCELERATION);
+    const auto& r_rotation_1 = r_geom[1].FastGetSolutionStepValue(ANGULAR_ACCELERATION);
+
+    for (IndexType i = 0; i < 3; ++i) {
+        values[i]     = r_displ_0[i];
+        values[i + 3] = r_rotation_0[i];
+        values[i + 6] = r_displ_1[i];
+        values[i + 9] = r_rotation_1[i];
+    }
 }
 
 /***********************************************************************************/
