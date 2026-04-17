@@ -284,12 +284,6 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 #define KRATOS_CREATE_VARIABLE(type, name) \
     /*const*/ Kratos::Variable<type > name(#name);
 
-#ifdef KRATOS_CREATE_VARIABLE_WITH_ZERO
-#undef KRATOS_CREATE_VARIABLE_WITH_ZERO
-#endif
-#define KRATOS_CREATE_VARIABLE_WITH_ZERO(type, name, zero) \
-    /*const*/ Kratos::Variable<type> name(#name, zero);
-
 #ifdef KRATOS_CREATE_3D_VARIABLE_WITH_THIS_COMPONENTS
 #undef KRATOS_CREATE_3D_VARIABLE_WITH_THIS_COMPONENTS
 #endif
