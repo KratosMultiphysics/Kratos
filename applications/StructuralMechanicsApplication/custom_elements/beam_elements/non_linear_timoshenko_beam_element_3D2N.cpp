@@ -452,24 +452,47 @@ void NonLinearTimoshenkoBeamElement3D2N::CalculateAll(
         rRHS.clear();
     }
 
-    const auto& r_integration_points = r_geometry.IntegrationPoints(mThisIntegrationMethod);
-
     ConstitutiveLaw::Parameters cl_values(r_geometry, r_props, rProcessInfo);
     auto &r_cl_options = cl_values.GetOptions();
     r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS, ComputeRHS);
     r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, ComputeLHS);
-
-    const double length = CalculateReferenceLength(); // Reference length
-
+    
+    const double L0 = CalculateReferenceLength(); // Reference length
+    
     // Let's initialize the cl values
-    VectorType strain_vector(strain_size), stress_vector(strain_size);
-    MatrixType constitutive_matrix(strain_size, strain_size);
-    strain_vector.clear();
-    cl_values.SetStrainVector(strain_vector);
-    cl_values.SetStressVector(stress_vector);
-    cl_values.SetConstitutiveMatrix(constitutive_matrix);
+    Vector gen_strain_vector(strain_size), gen_stress_vector(strain_size);
+    Matrix gen_constitutive_matrix(strain_size, strain_size);
+    cl_values.SetStrainVector(gen_strain_vector);
+    cl_values.SetStressVector(gen_stress_vector);
+    cl_values.SetConstitutiveMatrix(gen_constitutive_matrix);
 
+    const double J = 0.5 * L0;
 
+    Vector nodal_values(12);
+    GetValuesVector(nodal_values);
+    
+    double N1, N2;
+    const double dN1 = -1.0 / L0;
+    const double dN2 = -dN1;
+    BoundedMatrix<double, 6, 12> b_matrix;
+    const auto& r_integration_points = r_geometry.IntegrationPoints(mThisIntegrationMethod); // Lobatto
+
+    // Loop over the integration points
+    for (IndexType IP = 0; IP < r_integration_points.size(); ++IP) {
+        const double xi = r_integration_points[IP].X(); // weights are 1.0
+        N1 = 0.5 * (1.0 - xi);
+        N2 = 0.5 * (1.0 + xi);
+
+        noalias(gen_strain_vector) = CalculateStrainVector(N1, N2, dN1, dN2);
+        CalculateGeneralizedResponse(IP, cl_values); // here we fill stress and D
+
+        noalias(b_matrix) = CalculateB(N1, N2, dN1, dN2);
+
+        if (ComputeRHS) {
+            noalias(rRHS) -= prod(trans(b_matrix), gen_stress_vector);
+        }
+
+    } // IP loop
 }
 
 /***********************************************************************************/
@@ -480,7 +503,8 @@ void NonLinearTimoshenkoBeamElement3D2N::GetValuesVector(
     int Step
 ) const
 {
-    values.resize(12, false);
+    if (values.size() != 12)
+        values.resize(12, false);
     const auto& r_geom = GetGeometry();
 
     const auto& r_displ_0    = r_geom[0].FastGetSolutionStepValue(DISPLACEMENT);
@@ -504,7 +528,8 @@ void NonLinearTimoshenkoBeamElement3D2N::GetFirstDerivativesVector(
     int Step
 ) const
 {
-    values.resize(12, false);
+    if (values.size() != 12)
+        values.resize(12, false);
     const auto& r_geom = GetGeometry();
 
     const auto& r_displ_0    = r_geom[0].FastGetSolutionStepValue(VELOCITY);
@@ -528,7 +553,8 @@ void NonLinearTimoshenkoBeamElement3D2N::GetSecondDerivativesVector(
     int Step
 ) const
 {
-    values.resize(12, false);
+    if (values.size() != 12)
+        values.resize(12, false);
     const auto& r_geom = GetGeometry();
 
     const auto& r_displ_0    = r_geom[0].FastGetSolutionStepValue(ACCELERATION);
