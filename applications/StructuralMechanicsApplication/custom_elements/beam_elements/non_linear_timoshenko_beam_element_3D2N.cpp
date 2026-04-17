@@ -48,7 +48,9 @@ Element::Pointer NonLinearTimoshenkoBeamElement3D2N::Clone(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void NonLinearTimoshenkoBeamElement3D2N::Initialize(const ProcessInfo& rCurrentProcessInfo)
+void NonLinearTimoshenkoBeamElement3D2N::Initialize(
+    const ProcessInfo& rCurrentProcessInfo
+)
 {
     KRATOS_TRY
 
@@ -63,18 +65,31 @@ void NonLinearTimoshenkoBeamElement3D2N::Initialize(const ProcessInfo& rCurrentP
         InitializeMaterial();
 
         BoundedMatrix<double, 3, 3> T;
-        noalias(T) = StructuralMechanicsElementUtilities::GetFrenetSerretMatrix3D(r_geom, false); // ref conf
-        // We initialize the IP rotation operators with the reference local system
-        for (IndexType i_node = 0; i_node < 2; ++i_node) {
-            // In Romero and Armero, the directors convention is different from Kratos
-            noalias(column(mRotationOperators[i_node], 0)) = row(T, 1);
-            noalias(column(mRotationOperators[i_node], 1)) = row(T, 2);
-            noalias(column(mRotationOperators[i_node], 2)) = row(T, 0);
-        }
+        noalias(T) = CalculateInitialRotationOperator();
+        noalias(mRotationOperators[0]) = T;
+        noalias(mRotationOperators[1]) = T;
     }
 
-
     KRATOS_CATCH("Initialize")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+BoundedMatrix<double, 3, 3> NonLinearTimoshenkoBeamElement3D2N::CalculateInitialRotationOperator(
+    const bool UseCurrentConfiguration
+)
+{
+    BoundedMatrix<double, 3, 3> T, rot_operator;
+    noalias(T) = StructuralMechanicsElementUtilities::GetFrenetSerretMatrix3D(GetGeometry(), UseCurrentConfiguration); // ref conf
+    // We initialize the rotation operator with the reference local system
+    for (IndexType i_node = 0; i_node < 2; ++i_node) {
+        // In Romero and Armero, the directors convention is different from Kratos
+        noalias(column(rot_operator, 0)) = row(T, 1);
+        noalias(column(rot_operator, 1)) = row(T, 2);
+        noalias(column(rot_operator, 2)) = row(T, 0);
+    }
+    return rot_operator;
 }
 
 /***********************************************************************************/
@@ -101,11 +116,15 @@ void NonLinearTimoshenkoBeamElement3D2N::InitializeMaterial()
 /***********************************************************************************/
 /***********************************************************************************/
 
-int NonLinearTimoshenkoBeamElement3D2N::Check(const ProcessInfo& rCurrentProcessInfo) const
+int NonLinearTimoshenkoBeamElement3D2N::Check(
+    const ProcessInfo& rCurrentProcessInfo
+) const
 {
     KRATOS_TRY
 
     KRATOS_ERROR_IF_NOT(mConstitutiveLawVector[0]->GetStrainSize() == 6) << "The strain size of the CL is not 6, hence is not compatible with this 3D beam element" << std::endl;
+
+    KRATOS_ERROR_IF_NOT(CalculateReferenceLength() > 0.0) << "The element has null length..." << std::endl;
 
     return mConstitutiveLawVector[0]->Check(GetProperties(), GetGeometry(), rCurrentProcessInfo);
 
@@ -115,11 +134,53 @@ int NonLinearTimoshenkoBeamElement3D2N::Check(const ProcessInfo& rCurrentProcess
 /***********************************************************************************/
 /***********************************************************************************/
 
+Vector NonLinearTimoshenkoBeamElement3D2N::CalculateStrainVector(        
+    const double N1,
+    const double N2,
+    const double dN1,
+    const double dN2
+)
+{
+    const auto &r_geom = GetGeometry();
+    Vector generalized_strain(6);
+
+    // The current tangent vector to the beam axis r'
+    array3 dr = r_geom[1].Coordinates() - r_geom[0].Coordinates();
+    const double current_L = norm_2(dr);
+    dr /= current_L;
+
+    BoundedMatrix<double, 3, 3> current_rot, d_current_rot; // current rotation and its derivative w.r.t "s"
+    // We interpolate the rotation operators and its derivative
+    noalias(current_rot) = N1 * mRotationOperators[0] + N2 * mRotationOperators[1];
+    noalias(d_current_rot) = dN1 * mRotationOperators[0] + dN2 * mRotationOperators[1];
+
+    array3 d1, d2, d3, d1_s, d2_s, d3_s;
+    noalias(d1) = column(current_rot, 0);
+    noalias(d2) = column(current_rot, 1);
+    noalias(d3) = column(current_rot, 2);
+
+    noalias(d1_s) = column(d_current_rot, 0);
+    noalias(d2_s) = column(d_current_rot, 1);
+    noalias(d3_s) = column(d_current_rot, 2);
+
+    generalized_strain[0] = inner_prod(d3, dr) - 1.0; // axial
+    generalized_strain[1] = inner_prod(d1, dr); // shear y
+    generalized_strain[2] = inner_prod(d2, dr); // shear z
+
+    generalized_strain[3] = inner_prod(d2, d1_s) - inner_prod(d1, d2_s); // torsion
+    generalized_strain[4] = inner_prod(d3, d2_s) - inner_prod(d2, d3_s); // bending y
+    generalized_strain[5] = inner_prod(d1, d3_s) - inner_prod(d3, d1_s); // bending z
+
+    return generalized_strain;
+}
+/***********************************************************************************/
+/***********************************************************************************/
+
 BoundedMatrix<double, 12, 6> NonLinearTimoshenkoBeamElement3D2N::CalculateDoFMappingMatrix(
         const Vector &rD1,
         const Vector &rD2,
         const Vector &rD3
-    )
+)
 {
     BoundedMatrix<double, 12, 6> matrix;
     matrix.clear();
@@ -135,7 +196,7 @@ BoundedMatrix<double, 12, 6> NonLinearTimoshenkoBeamElement3D2N::CalculateDoFMap
 /***********************************************************************************/
 /***********************************************************************************/
 
-double NonLinearTimoshenkoBeamElement3D2N::CalculateReferenceLength()
+double NonLinearTimoshenkoBeamElement3D2N::CalculateReferenceLength() const
 {
     return StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
 }
@@ -144,12 +205,11 @@ double NonLinearTimoshenkoBeamElement3D2N::CalculateReferenceLength()
 /***********************************************************************************/
 
 BoundedMatrix<double, 6, 12> NonLinearTimoshenkoBeamElement3D2N::CalculateB(
-    const double xi, // [-1, 1] with Lobatto
     const double N1, // 0.5 * (1.0 - xi)
     const double N2, // 0.5 * (1.0 + xi)
     const double dN1, // -1.0 / L0
     const double dN2 // 1 / L0
-    )
+)
 {
     const auto &r_geom = GetGeometry();
 
@@ -159,7 +219,7 @@ BoundedMatrix<double, 6, 12> NonLinearTimoshenkoBeamElement3D2N::CalculateB(
     B1.clear();
     B2.clear();
 
-    // The tangent vector to the beam axis r'
+    // The current tangent vector to the beam axis r'
     array3 dr = r_geom[1].Coordinates() - r_geom[0].Coordinates();
     const double current_L = norm_2(dr);
     KRATOS_ERROR_IF_NOT(current_L > 0.0) << "The length of the 3D beam element is null..." << std::endl;
@@ -235,7 +295,7 @@ void NonLinearTimoshenkoBeamElement3D2N::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo
-    )
+)
 {
     CalculateAll(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo, true, true);
 }
@@ -246,7 +306,7 @@ void NonLinearTimoshenkoBeamElement3D2N::CalculateLocalSystem(
 void NonLinearTimoshenkoBeamElement3D2N::CalculateLeftHandSide(
     MatrixType& rLeftHandSideMatrix,
     const ProcessInfo& rCurrentProcessInfo
-    )
+)
 {
     VectorType dummy_rhs;
     CalculateAll(rLeftHandSideMatrix, dummy_rhs, rCurrentProcessInfo, true, false);
@@ -258,7 +318,7 @@ void NonLinearTimoshenkoBeamElement3D2N::CalculateLeftHandSide(
 void NonLinearTimoshenkoBeamElement3D2N::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo
-    )
+)
 {
     MatrixType dummy_lhs;
     CalculateAll(dummy_lhs, rRightHandSideVector, rCurrentProcessInfo, false, true);
@@ -273,7 +333,7 @@ void NonLinearTimoshenkoBeamElement3D2N::CalculateAll(
     const ProcessInfo& rProcessInfo,
     const bool ComputeLHS,
     const bool ComputeRHS
-    )
+)
 {
     const auto &r_geometry = GetGeometry();
     const SizeType number_of_nodes = r_geometry.size();

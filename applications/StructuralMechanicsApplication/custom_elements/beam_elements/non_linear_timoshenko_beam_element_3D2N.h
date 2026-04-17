@@ -189,7 +189,6 @@ public:
      * strains, its size is a 6 by 12.
      */
     BoundedMatrix<double, 6, 12> CalculateB(
-        const double xi,
         const double N1,
         const double N2,
         const double dN1,
@@ -198,7 +197,25 @@ public:
     /**
      * @brief This method computes the element length in the reference configuration
      */
-    double CalculateReferenceLength();
+    double CalculateReferenceLength() const;
+
+    /**
+     * @brief This method computes the generalized strain vector (6 components)
+     * The ordering is of the components is the Kratos one:
+     * generalized_strain = [Gamma, Omega], see Timoshenko beam constitutive law.
+     */
+    Vector CalculateStrainVector(
+        const double N1,
+        const double N2,
+        const double dN1,
+        const double dN2);
+
+    /**
+     * @brief This method builds the rotation operator in the reference configuration
+     * This corresponds to the "Lambda" operator in Romero and Armero, Eq. (3)
+     * Operator = [d1, d2, d3] as column vectors
+     */
+    BoundedMatrix<double, 3, 3> CalculateInitialRotationOperator(const bool UseCurrentConfiguration = false);
 
 private:
 
