@@ -14,7 +14,9 @@
 #include "custom_constitutive/incremental_linear_elastic_interface_law.h"
 #include "custom_constitutive/interface_plane_strain.h"
 #include "custom_constitutive/interface_three_dimensional_surface.h"
-#include "custom_geometries/interface_geometry.h"
+#include "custom_geometries/interface_geometry.hpp"
+#include "custom_utilities/registration_utilities.hpp"
+#include "custom_utilities/ublas_utilities.h"
 #include "geo_mechanics_application_variables.h"
 #include "geometries/line_2d_2.h"
 #include "includes/checks.h"
@@ -22,8 +24,6 @@
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/test_utilities.h"
 
-#include "custom_utilities/registration_utilities.h"
-#include <boost/numeric/ublas/assignment.hpp>
 #include <sstream>
 #include <string>
 
@@ -70,15 +70,17 @@ void TestInitialStates(GeoIncrementalLinearElasticInterfaceLaw& rLaw,
                                        rExpectedInitialTraction, Kratos::Testing::Defaults::relative_tolerance)
 }
 
-void TestStrainAndStress(GeoIncrementalLinearElasticInterfaceLaw& rLaw,
-                         const Vector&                            rExpectedStrain,
-                         const Vector&                            rExpectedStress)
+void TestRelativeDisplacementVectorAndTractionVector(GeoIncrementalLinearElasticInterfaceLaw& rLaw,
+                                                     const Vector& rExpectedRelativeDisplacementVector,
+                                                     const Vector& rExpectedEffectiveTractionVector)
 {
     auto value = Vector{};
-    rLaw.GetValue(STRAIN, value);
-    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(value, rExpectedStrain, Kratos::Testing::Defaults::relative_tolerance)
-    rLaw.GetValue(CAUCHY_STRESS_VECTOR, value);
-    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(value, rExpectedStress, Kratos::Testing::Defaults::relative_tolerance)
+    rLaw.GetValue(GEO_RELATIVE_DISPLACEMENT_VECTOR, value);
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(value, rExpectedRelativeDisplacementVector,
+                                       Kratos::Testing::Defaults::relative_tolerance)
+    rLaw.GetValue(GEO_EFFECTIVE_TRACTION_VECTOR, value);
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(value, rExpectedEffectiveTractionVector,
+                                       Kratos::Testing::Defaults::relative_tolerance)
 }
 } // namespace
 
@@ -170,28 +172,38 @@ KRATOS_TEST_CASE_IN_SUITE(LinearElasticLawForInterfaces_ChecksForCorrectMaterial
     const auto geometry     = InterfaceGeometry<Line2D2<Node>>{};
     const auto process_info = ProcessInfo{};
 
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(law.Check(properties, geometry, process_info),
-                                      "No interface normal stiffness is defined")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        law.Check(properties, geometry, process_info),
+        "INTERFACE_NORMAL_STIFFNESS does not exist in the material properties with Id 0.")
 
     properties[INTERFACE_NORMAL_STIFFNESS] = -5.0;
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(law.Check(properties, geometry, process_info),
-                                      "Interface normal stiffness must be positive, but got -5")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        law.Check(properties, geometry, process_info),
+        "INTERFACE_NORMAL_STIFFNESS in the material properties with Id 0 has "
+        "an invalid value: -5 is out of the range (0, -).")
 
     properties[INTERFACE_NORMAL_STIFFNESS] = 0.0;
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(law.Check(properties, geometry, process_info),
-                                      "Interface normal stiffness must be positive, but got 0")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        law.Check(properties, geometry, process_info),
+        "INTERFACE_NORMAL_STIFFNESS in the material properties with Id 0 has "
+        "an invalid value: 0 is out of the range (0, -).")
 
     properties[INTERFACE_NORMAL_STIFFNESS] = 5.0;
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(law.Check(properties, geometry, process_info),
-                                      "No interface shear stiffness is defined")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        law.Check(properties, geometry, process_info),
+        "INTERFACE_SHEAR_STIFFNESS does not exist in the material properties with Id 0.")
 
     properties[INTERFACE_SHEAR_STIFFNESS] = -2.5;
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(law.Check(properties, geometry, process_info),
-                                      "Interface shear stiffness must be positive, but got -2.5")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        law.Check(properties, geometry, process_info),
+        "INTERFACE_SHEAR_STIFFNESS in the material properties with Id 0 has "
+        "an invalid value: -2.5 is out of the range (0, -).")
 
     properties[INTERFACE_SHEAR_STIFFNESS] = 0.0;
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(law.Check(properties, geometry, process_info),
-                                      "Interface shear stiffness must be positive, but got 0")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        law.Check(properties, geometry, process_info),
+        "INTERFACE_SHEAR_STIFFNESS in the material properties with Id 0 has "
+        "an invalid value: 0 is out of the range (0, -).")
 
     properties[INTERFACE_SHEAR_STIFFNESS] = 2.5;
     KRATOS_EXPECT_EQ(law.Check(properties, geometry, process_info), 0);
@@ -215,11 +227,7 @@ KRATOS_TEST_CASE_IN_SUITE(TheCalculatedConstitutiveMatrixIsADiagonalMatrixContai
     law_2D.CalculateValue(law_parameters, CONSTITUTIVE_MATRIX, actual_constitutive_matrix);
 
     // Assert
-    auto expected_constitutive_matrix = Matrix{2, 2};
-    // clang-format off
-    expected_constitutive_matrix <<= 20.0, 0.0,
-                                     0.0, 10.0;
-    // clang-format on
+    auto expected_constitutive_matrix = UblasUtilities::CreateMatrix({{20.0, 0.0}, {0.0, 10.0}});
     KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(actual_constitutive_matrix, expected_constitutive_matrix,
                                        Defaults::relative_tolerance)
 
@@ -232,12 +240,8 @@ KRATOS_TEST_CASE_IN_SUITE(TheCalculatedConstitutiveMatrixIsADiagonalMatrixContai
     law_3D.CalculateValue(law_parameters, CONSTITUTIVE_MATRIX, actual_constitutive_matrix);
 
     // Assert
-    expected_constitutive_matrix = Matrix{3, 3};
-    // clang-format off
-    expected_constitutive_matrix <<= 20.0, 0.0,  0.0,
-                                     0.0, 10.0,  0.0,
-                                     0.0,  0.0, 10.0;
-    // clang-format on
+    expected_constitutive_matrix =
+        UblasUtilities::CreateMatrix({{20.0, 0.0, 0.0}, {0.0, 10.0, 0.0}, {0.0, 0.0, 10.0}});
     KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(actual_constitutive_matrix, expected_constitutive_matrix,
                                        Defaults::relative_tolerance)
 }
@@ -273,12 +277,12 @@ KRATOS_TEST_CASE_IN_SUITE(WhenNoInitialStateIsGivenStartWithZeroRelativeDisplace
     auto law_2D = CreateLaw2D();
     InitializeLawMaterial(law_2D);
 
-    TestStrainAndStress(law_2D, Vector{ZeroVector{2}}, Vector{ZeroVector{2}});
+    TestRelativeDisplacementVectorAndTractionVector(law_2D, Vector{ZeroVector{2}}, Vector{ZeroVector{2}});
 
     auto law_3D = CreateLaw3D();
     InitializeLawMaterial(law_3D);
 
-    TestStrainAndStress(law_3D, Vector{ZeroVector{3}}, Vector{ZeroVector{3}});
+    TestRelativeDisplacementVectorAndTractionVector(law_3D, Vector{ZeroVector{3}}, Vector{ZeroVector{3}});
 }
 
 KRATOS_TEST_CASE_IN_SUITE(WhenAnInitialStateIsGivenStartFromThereAfterMaterialInitialization,
@@ -290,7 +294,7 @@ KRATOS_TEST_CASE_IN_SUITE(WhenAnInitialStateIsGivenStartFromThereAfterMaterialIn
     SetLawInitialState(law_2D, initial_relative_displacement, initial_traction);
     InitializeLawMaterial(law_2D);
 
-    TestStrainAndStress(law_2D, initial_relative_displacement, initial_traction);
+    TestRelativeDisplacementVectorAndTractionVector(law_2D, initial_relative_displacement, initial_traction);
 
     auto       law_3D                           = CreateLaw3D();
     const auto initial_relative_displacement_3D = Vector{ScalarVector{3, 0.5}};
@@ -298,7 +302,7 @@ KRATOS_TEST_CASE_IN_SUITE(WhenAnInitialStateIsGivenStartFromThereAfterMaterialIn
     SetLawInitialState(law_3D, initial_relative_displacement_3D, initial_traction_3D);
     InitializeLawMaterial(law_3D);
 
-    TestStrainAndStress(law_3D, initial_relative_displacement_3D, initial_traction_3D);
+    TestRelativeDisplacementVectorAndTractionVector(law_3D, initial_relative_displacement_3D, initial_traction_3D);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ComputedIncrementalTractionIsProductOfIncrementalRelativeDisplacementAndStiffness,
@@ -310,8 +314,7 @@ KRATOS_TEST_CASE_IN_SUITE(ComputedIncrementalTractionIsProductOfIncrementalRelat
     properties[INTERFACE_SHEAR_STIFFNESS]  = 10.0;
     auto law_parameters                    = ConstitutiveLaw::Parameters{};
 
-    auto relative_displacement = Vector{2};
-    relative_displacement <<= 0.1, 0.3;
+    auto relative_displacement = UblasUtilities::CreateVector({0.1, 0.3});
     law_parameters.SetStrainVector(relative_displacement);
     auto traction = Vector{ZeroVector{2}};
     law_parameters.SetStressVector(traction);
@@ -322,12 +325,10 @@ KRATOS_TEST_CASE_IN_SUITE(ComputedIncrementalTractionIsProductOfIncrementalRelat
 
     law_2d.CalculateMaterialResponseCauchy(law_parameters);
 
-    auto expected_traction = Vector{2};
-    expected_traction <<= 2.0, 3.0;
+    auto expected_traction = UblasUtilities::CreateVector({2.0, 3.0});
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(law_parameters.GetStressVector(), expected_traction, Defaults::relative_tolerance)
 
-    relative_displacement = Vector{3};
-    relative_displacement <<= 0.1, 0.3, 0.5;
+    relative_displacement = UblasUtilities::CreateVector({0.1, 0.3, 0.5});
     law_parameters.SetStrainVector(relative_displacement);
     traction = Vector{ZeroVector{3}};
     law_parameters.SetMaterialProperties(properties);
@@ -336,8 +337,7 @@ KRATOS_TEST_CASE_IN_SUITE(ComputedIncrementalTractionIsProductOfIncrementalRelat
 
     law_3D.CalculateMaterialResponseCauchy(law_parameters);
 
-    expected_traction = Vector{3};
-    expected_traction <<= 2.0, 3.0, 5.0;
+    expected_traction = UblasUtilities::CreateVector({2.0, 3.0, 5.0});
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(law_parameters.GetStressVector(), expected_traction, Defaults::relative_tolerance)
 }
 
@@ -360,21 +360,20 @@ KRATOS_TEST_CASE_IN_SUITE(ComputedTractionIsSumOfPreviousTractionAndTractionIncr
     InitializeLawMaterial(law_2D, properties);
 
     // First step
-    relative_displacement <<= 5.1, 5.3;
+    relative_displacement = UblasUtilities::CreateVector({5.1, 5.3});
     law_2D.CalculateMaterialResponseCauchy(law_parameters);
     law_2D.FinalizeMaterialResponseCauchy(law_parameters);
 
     // Second step
-    relative_displacement <<= 5.2, 5.6;
+    relative_displacement = UblasUtilities::CreateVector({5.2, 5.6});
     law_2D.CalculateMaterialResponseCauchy(law_parameters);
     law_2D.FinalizeMaterialResponseCauchy(law_parameters);
 
-    auto expected_traction = Vector{2};
-    expected_traction <<= 30.0 + (5.1 - 5.0) * 20.0 + (5.2 - 5.1) * 20.0,
-        30.0 + (5.3 - 5.0) * 10.0 + (5.6 - 5.3) * 10.0;
+    auto expected_traction = UblasUtilities::CreateVector(
+        {30.0 + (5.1 - 5.0) * 20.0 + (5.2 - 5.1) * 20.0, 30.0 + (5.3 - 5.0) * 10.0 + (5.6 - 5.3) * 10.0});
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(law_parameters.GetStressVector(), expected_traction, Defaults::relative_tolerance)
-    auto expected_relative_displacement = Vector{2};
-    expected_relative_displacement <<= 5.0 + (5.1 - 5.0) + (5.2 - 5.1), 5.0 + (5.3 - 5.0) + (5.6 - 5.3);
+    auto expected_relative_displacement =
+        UblasUtilities::CreateVector({5.0 + (5.1 - 5.0) + (5.2 - 5.1), 5.0 + (5.3 - 5.0) + (5.6 - 5.3)});
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(law_parameters.GetStrainVector(),
                                        expected_relative_displacement, Defaults::relative_tolerance)
 
@@ -387,22 +386,21 @@ KRATOS_TEST_CASE_IN_SUITE(ComputedTractionIsSumOfPreviousTractionAndTractionIncr
     InitializeLawMaterial(law_3D, properties);
 
     // First step
-    relative_displacement <<= 5.1, 5.3, 5.5;
+    relative_displacement = UblasUtilities::CreateVector({5.1, 5.3, 5.5});
     law_3D.CalculateMaterialResponseCauchy(law_parameters);
     law_3D.FinalizeMaterialResponseCauchy(law_parameters);
 
     // Second step
-    relative_displacement <<= 5.2, 5.6, 6.0;
+    relative_displacement = UblasUtilities::CreateVector({5.2, 5.6, 6.0});
     law_3D.CalculateMaterialResponseCauchy(law_parameters);
     law_3D.FinalizeMaterialResponseCauchy(law_parameters);
 
-    expected_traction = Vector{3};
-    expected_traction <<= 30.0 + (5.1 - 5.0) * 20.0 + (5.2 - 5.1) * 20.0,
-        30.0 + (5.3 - 5.0) * 10.0 + (5.6 - 5.3) * 10.0, 30.0 + (5.5 - 5.0) * 10.0 + (6.0 - 5.5) * 10.0;
+    expected_traction = UblasUtilities::CreateVector({30.0 + (5.1 - 5.0) * 20.0 + (5.2 - 5.1) * 20.0,
+                                                      30.0 + (5.3 - 5.0) * 10.0 + (5.6 - 5.3) * 10.0,
+                                                      30.0 + (5.5 - 5.0) * 10.0 + (6.0 - 5.5) * 10.0});
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(law_parameters.GetStressVector(), expected_traction, Defaults::relative_tolerance)
-    expected_relative_displacement = Vector{3};
-    expected_relative_displacement <<= 5.0 + (5.1 - 5.0) + (5.2 - 5.1),
-        5.0 + (5.3 - 5.0) + (5.6 - 5.3), 5.0 + (5.5 - 5.0) + (6.0 - 5.5);
+    expected_relative_displacement = UblasUtilities::CreateVector(
+        {5.0 + (5.1 - 5.0) + (5.2 - 5.1), 5.0 + (5.3 - 5.0) + (5.6 - 5.3), 5.0 + (5.5 - 5.0) + (6.0 - 5.5)});
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(law_parameters.GetStrainVector(),
                                        expected_relative_displacement, Defaults::relative_tolerance)
 }
@@ -417,11 +415,9 @@ KRATOS_TEST_CASE_IN_SUITE(LinearElasticLawForInterfacesCanBeSavedToAndLoadedFrom
     InitializeLawMaterial(law_2D);
 
     auto law_parameters        = ConstitutiveLaw::Parameters{};
-    auto relative_displacement = Vector{2};
-    relative_displacement <<= 0.1, 0.3;
+    auto relative_displacement = UblasUtilities::CreateVector({0.1, 0.3});
     law_parameters.SetStrainVector(relative_displacement);
-    auto traction = Vector{2};
-    traction <<= 20.0, 45.0;
+    auto traction = UblasUtilities::CreateVector({20.0, 45.0});
     law_parameters.SetStressVector(traction);
     law_2D.FinalizeMaterialResponseCauchy(law_parameters);
 
@@ -434,7 +430,7 @@ KRATOS_TEST_CASE_IN_SUITE(LinearElasticLawForInterfacesCanBeSavedToAndLoadedFrom
     auto restored_law_2D = GeoIncrementalLinearElasticInterfaceLaw{nullptr};
     serializer.load(tag_2D, restored_law_2D);
 
-    TestStrainAndStress(restored_law_2D, relative_displacement, traction);
+    TestRelativeDisplacementVectorAndTractionVector(restored_law_2D, relative_displacement, traction);
     TestInitialStates(restored_law_2D, initial_relative_displacement, initial_traction);
 
     auto       law_3D                           = CreateLaw3D();
@@ -443,11 +439,9 @@ KRATOS_TEST_CASE_IN_SUITE(LinearElasticLawForInterfacesCanBeSavedToAndLoadedFrom
     SetLawInitialState(law_3D, initial_relative_displacement_3D, initial_traction_3D);
     InitializeLawMaterial(law_3D);
 
-    relative_displacement = Vector{3};
-    relative_displacement <<= 0.1, 0.3, 0.5;
+    relative_displacement = UblasUtilities::CreateVector({0.1, 0.3, 0.5});
     law_parameters.SetStrainVector(relative_displacement);
-    traction = Vector{3};
-    traction <<= 20.0, 45.0, 45.0;
+    traction = UblasUtilities::CreateVector({20.0, 45.0, 45.0});
     law_parameters.SetStressVector(traction);
     law_3D.FinalizeMaterialResponseCauchy(law_parameters);
 
@@ -459,7 +453,7 @@ KRATOS_TEST_CASE_IN_SUITE(LinearElasticLawForInterfacesCanBeSavedToAndLoadedFrom
     auto restored_law_3D = GeoIncrementalLinearElasticInterfaceLaw{nullptr};
     serializer.load(tag_3D, restored_law_3D);
 
-    TestStrainAndStress(restored_law_3D, relative_displacement, traction);
+    TestRelativeDisplacementVectorAndTractionVector(restored_law_3D, relative_displacement, traction);
     TestInitialStates(restored_law_3D, initial_relative_displacement_3D, initial_traction_3D);
 }
 

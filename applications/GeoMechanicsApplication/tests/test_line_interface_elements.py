@@ -1,6 +1,7 @@
 import os
 
 import KratosMultiphysics as Kratos
+import KratosMultiphysics.GeoMechanicsApplication as KratosGeo
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import test_helper
 
@@ -55,13 +56,13 @@ class KratosGeoMechanicsInterfaceElementTests(KratosUnittest.TestCase):
             self.assertAlmostEqual(displacements[index][0], expected_horizontal_displacement)
             self.assertAlmostEqual(displacements[index][1], expected_vertical_displacement)
 
-        tractions = test_helper.get_on_integration_points(simulation, Kratos.CAUCHY_STRESS_VECTOR)
+        tractions = test_helper.get_on_integration_points(simulation, KratosGeo.GEO_EFFECTIVE_TRACTION_VECTOR)
         tractions_horizontal_element = tractions[0]
         for index in range(3):
             self.assertAlmostEqual(tractions_horizontal_element[index][0], -normal_traction)
             self.assertAlmostEqual(tractions_horizontal_element[index][1], -shear_traction)
 
-        relative_displacements = test_helper.get_on_integration_points(simulation, Kratos.STRAIN)
+        relative_displacements = test_helper.get_on_integration_points(simulation, KratosGeo.GEO_RELATIVE_DISPLACEMENT_VECTOR)
         relative_displacements_horizontal_element = relative_displacements[0]
         for index in range(3):
             # Notice the first index is the normal displacement (which is vertical for this horizontally oriented
@@ -101,12 +102,12 @@ class KratosGeoMechanicsInterfaceElementTests(KratosUnittest.TestCase):
         expected_normal_relative_displacement = displacement_vector[1]
         expected_tangential_relative_displacement = displacement_vector[0]
         expected_relative_displacement_vectors = [[expected_normal_relative_displacement, expected_tangential_relative_displacement]] * 3
-        self.assertVectorsAlmostEqual(test_helper.get_on_integration_points(stage, Kratos.STRAIN)[0],
+        self.assertVectorsAlmostEqual(test_helper.get_on_integration_points(stage, KratosGeo.GEO_RELATIVE_DISPLACEMENT_VECTOR)[0],
                                       expected_relative_displacement_vectors)
 
         expected_traction_vectors = [[self.normal_stiffness * expected_normal_relative_displacement,
                                       self.shear_stiffness * expected_tangential_relative_displacement]] * 3
-        self.assertVectorsAlmostEqual(test_helper.get_on_integration_points(stage, Kratos.CAUCHY_STRESS_VECTOR)[0],
+        self.assertVectorsAlmostEqual(test_helper.get_on_integration_points(stage, KratosGeo.GEO_EFFECTIVE_TRACTION_VECTOR)[0],
                                       expected_traction_vectors)
 
 
@@ -171,7 +172,7 @@ class KratosGeoMechanicsInterfaceElementTests(KratosUnittest.TestCase):
         expected_normal_relative_displacement = displacement_vector[1]
         expected_tangential_relative_displacement = displacement_vector[0]
         expected_relative_displacement_vectors = [[expected_normal_relative_displacement, expected_tangential_relative_displacement]] * 3
-        self.assertVectorsAlmostEqual(test_helper.get_on_integration_points(stage, Kratos.STRAIN)[0],
+        self.assertVectorsAlmostEqual(test_helper.get_on_integration_points(stage, KratosGeo.GEO_RELATIVE_DISPLACEMENT_VECTOR)[0],
                                       expected_relative_displacement_vectors)
 
     def test_multi_stage_3_plus_3_line_interface_element_with_neumann_conditions_and_reset_displacements(self):

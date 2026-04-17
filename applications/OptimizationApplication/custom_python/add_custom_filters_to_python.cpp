@@ -39,7 +39,7 @@ void AddExplicitFilterUtils(
     namespace py = pybind11;
 
     py::class_<ExplicitFilterUtils<TContainerType>, typename ExplicitFilterUtils<TContainerType>::Pointer>(m, rName.c_str())
-        .def(py::init<const ModelPart&, const std::string&, const std::size_t, const std::size_t>(), py::arg("model_part"), py::arg("kernel_function_type"), py::arg("max_number_of_neighbours"), py::arg("echo_level"))
+        .def(py::init<const ModelPart&, const std::string&, const std::size_t, const std::size_t, bool, bool>(), py::arg("model_part"), py::arg("kernel_function_type"), py::arg("max_items_in_bucket") = 10, py::arg("echo_level") = 0, py::arg("node_cloud_mesh") = false, py::arg("store_filter_matrix") = false)
         .def("SetRadius", &ExplicitFilterUtils<TContainerType>::SetRadius, py::arg("filter_radius"))
         .def("SetDamping", &ExplicitFilterUtils<TContainerType>::SetDamping, py::arg("damping"))
         .def("ForwardFilterField", &ExplicitFilterUtils<TContainerType>::ForwardFilterField, py::arg("mesh_independent_control_space_field"))
@@ -62,7 +62,7 @@ void AddExplicitDamping(
 
     using explicit_damping_type = ExplicitDamping<TContainerType>;
     py::class_<explicit_damping_type, typename explicit_damping_type::Pointer>(m, (rSuffix + "ExplicitDamping").c_str())
-        .def("SetRadius", &explicit_damping_type::SetRadius, py::arg("radius_expression"))
+        .def("SetRadius", &explicit_damping_type::SetRadius, py::arg("radius_tensor_adaptor"))
         .def("GetRadius", &explicit_damping_type::GetRadius)
         .def("GetStride", &explicit_damping_type::GetStride)
         .def("GetDampedModelParts", &explicit_damping_type::GetDampedModelParts)

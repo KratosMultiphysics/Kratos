@@ -46,16 +46,15 @@ KRATOS_TEST_CASE_IN_SUITE(RetentionLaw_CheckEmptyRetentionLawVector, KratosGeoMe
     std::vector<RetentionLaw::Pointer> retention_law_vector;
 
     // Act and Assert
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        RetentionLaw::Check(retention_law_vector, Properties{}, ProcessInfo{}),
-        "A retention law has to be provided.")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(RetentionLaw::Check(retention_law_vector, Properties{}, ProcessInfo{}),
+                                      "A retention law has to be provided.")
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RetentionLaw_CheckRetentionLawVectorReturnsOne, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
     std::vector<RetentionLaw::Pointer> retention_law_vector;
-    const auto mock_retention_law = std::make_shared<MockRetentionLaw>();
+    const auto                         mock_retention_law = std::make_shared<MockRetentionLaw>();
     retention_law_vector.emplace_back(mock_retention_law);
     retention_law_vector.emplace_back(mock_retention_law);
     EXPECT_CALL(*mock_retention_law, Check(_, _)).WillOnce(Return(1));
@@ -68,7 +67,7 @@ KRATOS_TEST_CASE_IN_SUITE(RetentionLaw_CheckRetentionLawVectorReturnsZero, Krato
 {
     // Arrange
     std::vector<RetentionLaw::Pointer> retention_law_vector;
-    const auto mock_retention_law = std::make_shared<MockRetentionLaw>();
+    const auto                         mock_retention_law = std::make_shared<MockRetentionLaw>();
     retention_law_vector.emplace_back(mock_retention_law);
     retention_law_vector.emplace_back(mock_retention_law);
     EXPECT_CALL(*mock_retention_law, Check(_, _)).WillOnce(Return(0));

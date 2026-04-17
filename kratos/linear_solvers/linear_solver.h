@@ -149,6 +149,7 @@ public:
         this->InitializeSolutionStep(rA, rX, rB);
         const auto status = this->PerformSolutionStep(rA, rX, rB);
         this->FinalizeSolutionStep(rA, rX, rB);
+        this->Clear();
         return status;
     }
 

@@ -12,13 +12,13 @@
 //
 
 #include "custom_constitutive/interface_coulomb_with_tension_cut_off.h"
-#include "custom_utilities/registration_utilities.h"
+#include "custom_constitutive/interface_plane_strain.h"
+#include "custom_utilities/registration_utilities.hpp"
+#include "custom_utilities/ublas_utilities.h"
 #include "geo_mechanics_application_variables.h"
 #include "includes/stream_serializer.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/test_utilities.h"
-
-#include <boost/numeric/ublas/assignment.hpp>
 
 using namespace Kratos;
 using namespace std::string_literals;
@@ -43,7 +43,7 @@ namespace Kratos::Testing
 KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_Clone, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    const auto original_law = InterfaceCoulombWithTensionCutOff{};
+    const auto original_law = InterfaceCoulombWithTensionCutOff{std::make_unique<InterfacePlaneStrain>()};
 
     // Act
     auto p_cloned_law = original_law.Clone();
@@ -66,48 +66,58 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_CalculateMaterialRes
 
     auto parameters = ConstitutiveLaw::Parameters{};
     parameters.SetMaterialProperties(properties);
+    parameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
     auto traction_vector = Vector{ZeroVector{2}};
     parameters.SetStressVector(traction_vector);
     auto relative_displacement_vector = Vector{ZeroVector{2}};
     parameters.SetStrainVector(relative_displacement_vector);
 
-    auto p_initial_state         = make_intrusive<InitialState>();
-    auto initial_traction_vector = Vector{2};
-    initial_traction_vector <<= -6.0, 8.0;
+    auto       p_initial_state         = make_intrusive<InitialState>();
+    const auto initial_traction_vector = UblasUtilities::CreateVector({-6.0, 8.0});
     p_initial_state->SetInitialStressVector(initial_traction_vector);
     p_initial_state->SetInitialStrainVector(Vector{ZeroVector{2}});
 
-    auto law = InterfaceCoulombWithTensionCutOff{};
+    auto law = InterfaceCoulombWithTensionCutOff{std::make_unique<InterfacePlaneStrain>()};
     law.SetInitialState(p_initial_state);
     InitializeLawMaterial(law, properties);
 
     // Act
     law.CalculateMaterialResponseCauchy(parameters);
+    auto resulting_traction = parameters.GetStressVector();
+    int  plasticity_status;
+    law.GetValue(GEO_PLASTICITY_STATUS, plasticity_status);
 
     // Assert
-    KRATOS_EXPECT_VECTOR_NEAR(parameters.GetStressVector(), initial_traction_vector, Defaults::absolute_tolerance);
+    KRATOS_EXPECT_VECTOR_NEAR(resulting_traction, initial_traction_vector, Defaults::absolute_tolerance);
+    KRATOS_EXPECT_EQ(plasticity_status, static_cast<int>(PlasticityStatus::ELASTIC));
 
     // Arrange: set elastic tensile state
-    traction_vector <<= 5.0, 4.0;
-    law.SetValue(CAUCHY_STRESS_VECTOR, traction_vector, ProcessInfo{});
+    traction_vector = UblasUtilities::CreateVector({5.0, 4.0});
+    law.SetValue(GEO_EFFECTIVE_TRACTION_VECTOR, traction_vector, ProcessInfo{});
     law.FinalizeMaterialResponseCauchy(parameters);
 
     // Act
     law.CalculateMaterialResponseCauchy(parameters);
+    resulting_traction = parameters.GetStressVector();
+    law.GetValue(GEO_PLASTICITY_STATUS, plasticity_status);
 
     // Assert
-    KRATOS_EXPECT_VECTOR_NEAR(parameters.GetStressVector(), traction_vector, Defaults::absolute_tolerance);
+    KRATOS_EXPECT_VECTOR_NEAR(resulting_traction, traction_vector, Defaults::absolute_tolerance);
+    KRATOS_EXPECT_EQ(plasticity_status, static_cast<int>(PlasticityStatus::ELASTIC));
 
     // Arrange: set elastic tensile state (reverse shear)
-    traction_vector <<= 5.0, -2.0;
-    law.SetValue(CAUCHY_STRESS_VECTOR, traction_vector, ProcessInfo{});
+    traction_vector = UblasUtilities::CreateVector({5.0, -2.0});
+    law.SetValue(GEO_EFFECTIVE_TRACTION_VECTOR, traction_vector, ProcessInfo{});
     law.FinalizeMaterialResponseCauchy(parameters);
 
     // Act
     law.CalculateMaterialResponseCauchy(parameters);
+    resulting_traction = parameters.GetStressVector();
+    law.GetValue(GEO_PLASTICITY_STATUS, plasticity_status);
 
     // Assert
-    KRATOS_EXPECT_VECTOR_NEAR(parameters.GetStressVector(), traction_vector, Defaults::absolute_tolerance);
+    KRATOS_EXPECT_VECTOR_NEAR(resulting_traction, traction_vector, Defaults::absolute_tolerance);
+    KRATOS_EXPECT_EQ(plasticity_status, static_cast<int>(PlasticityStatus::ELASTIC));
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_CalculateMaterialResponseCauchyAtTensionApexReturnZone,
@@ -122,29 +132,31 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_CalculateMaterialRes
 
     auto parameters = ConstitutiveLaw::Parameters{};
     parameters.SetMaterialProperties(properties);
+    parameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
     auto traction_vector = Vector{ZeroVector{2}};
     parameters.SetStressVector(traction_vector);
     auto relative_displacement_vector = Vector{ZeroVector{2}};
     parameters.SetStrainVector(relative_displacement_vector);
 
-    auto p_initial_state         = make_intrusive<InitialState>();
-    auto initial_traction_vector = Vector{2};
-    initial_traction_vector <<= 15.0, 2.0;
+    auto       p_initial_state         = make_intrusive<InitialState>();
+    const auto initial_traction_vector = UblasUtilities::CreateVector({15.0, 2.0});
     p_initial_state->SetInitialStressVector(initial_traction_vector);
     p_initial_state->SetInitialStrainVector(Vector{ZeroVector{2}});
 
-    auto law = InterfaceCoulombWithTensionCutOff{};
+    auto law = InterfaceCoulombWithTensionCutOff{std::make_unique<InterfacePlaneStrain>()};
     law.SetInitialState(p_initial_state);
     InitializeLawMaterial(law, properties);
 
     // Act
     law.CalculateMaterialResponseCauchy(parameters);
+    const auto& r_resulting_traction = parameters.GetStressVector();
+    int         plasticity_status;
+    law.GetValue(GEO_PLASTICITY_STATUS, plasticity_status);
 
     // Assert
-    Vector expected_cauchy_stress_vector(2);
-    expected_cauchy_stress_vector <<= 10.0, 0.0;
-    KRATOS_EXPECT_VECTOR_NEAR(parameters.GetStressVector(), expected_cauchy_stress_vector,
-                              Defaults::absolute_tolerance);
+    const auto expected_traction = UblasUtilities::CreateVector({10.0, 0.0});
+    KRATOS_EXPECT_VECTOR_NEAR(r_resulting_traction, expected_traction, Defaults::absolute_tolerance);
+    KRATOS_EXPECT_EQ(plasticity_status, static_cast<int>(PlasticityStatus::TENSION_APEX));
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_CalculateMaterialResponseCauchyAtTensionCutoffReturnZone,
@@ -156,32 +168,36 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_CalculateMaterialRes
     properties.SetValue(GEO_COHESION, 10.0);
     properties.SetValue(GEO_DILATANCY_ANGLE, 20.0);
     properties.SetValue(GEO_TENSILE_STRENGTH, 10.0);
+    properties.SetValue(INTERFACE_NORMAL_STIFFNESS, 25.0);
+    properties.SetValue(INTERFACE_SHEAR_STIFFNESS, 12.5);
 
     auto parameters = ConstitutiveLaw::Parameters{};
     parameters.SetMaterialProperties(properties);
+    parameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
     auto traction_vector = Vector{ZeroVector{2}};
     parameters.SetStressVector(traction_vector);
     auto relative_displacement_vector = Vector{ZeroVector{2}};
     parameters.SetStrainVector(relative_displacement_vector);
 
-    auto p_initial_state         = make_intrusive<InitialState>();
-    auto initial_traction_vector = Vector{2};
-    initial_traction_vector <<= 10.0, 4.0;
+    auto       p_initial_state         = make_intrusive<InitialState>();
+    const auto initial_traction_vector = UblasUtilities::CreateVector({10.0, 4.0});
     p_initial_state->SetInitialStressVector(initial_traction_vector);
     p_initial_state->SetInitialStrainVector(Vector{ZeroVector{2}});
 
-    auto law = InterfaceCoulombWithTensionCutOff{};
+    auto law = InterfaceCoulombWithTensionCutOff{std::make_unique<InterfacePlaneStrain>()};
     law.SetInitialState(p_initial_state);
     InitializeLawMaterial(law, properties);
 
     // Act
     law.CalculateMaterialResponseCauchy(parameters);
+    const auto& r_resulting_traction = parameters.GetStressVector();
+    int         plasticity_status;
+    law.GetValue(GEO_PLASTICITY_STATUS, plasticity_status);
 
     // Assert
-    Vector expected_cauchy_stress_vector(2);
-    expected_cauchy_stress_vector <<= 8.0, 2.0;
-    KRATOS_EXPECT_VECTOR_NEAR(parameters.GetStressVector(), expected_cauchy_stress_vector,
-                              Defaults::absolute_tolerance);
+    const auto expected_traction = UblasUtilities::CreateVector({22.0 / 3.0, 8.0 / 3.0});
+    KRATOS_EXPECT_VECTOR_NEAR(r_resulting_traction, expected_traction, Defaults::absolute_tolerance);
+    KRATOS_EXPECT_EQ(plasticity_status, static_cast<int>(PlasticityStatus::TENSION_CUT_OFF));
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_CalculateMaterialResponseCauchyAtCornerReturnZone,
@@ -196,29 +212,31 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_CalculateMaterialRes
 
     auto parameters = ConstitutiveLaw::Parameters{};
     parameters.SetMaterialProperties(properties);
+    parameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
     auto traction_vector = Vector{ZeroVector{2}};
     parameters.SetStressVector(traction_vector);
     auto relative_displacement_vector = Vector{ZeroVector{2}};
     parameters.SetStrainVector(relative_displacement_vector);
 
-    auto p_initial_state         = make_intrusive<InitialState>();
-    auto initial_traction_vector = Vector{2};
-    initial_traction_vector <<= 10.0, 14.0;
+    auto       p_initial_state         = make_intrusive<InitialState>();
+    const auto initial_traction_vector = UblasUtilities::CreateVector({10.0, 14.0});
     p_initial_state->SetInitialStressVector(initial_traction_vector);
     p_initial_state->SetInitialStrainVector(Vector{ZeroVector{2}});
 
-    auto law = InterfaceCoulombWithTensionCutOff{};
+    auto law = InterfaceCoulombWithTensionCutOff{std::make_unique<InterfacePlaneStrain>()};
     law.SetInitialState(p_initial_state);
     InitializeLawMaterial(law, properties);
 
     // Act
     law.CalculateMaterialResponseCauchy(parameters);
+    const auto& r_resulting_traction = parameters.GetStressVector();
+    int         plasticity_status;
+    law.GetValue(GEO_PLASTICITY_STATUS, plasticity_status);
 
     // Assert
-    Vector expected_cauchy_stress_vector(2);
-    expected_cauchy_stress_vector <<= 4.2410403910016600, 5.7589596089983400;
-    KRATOS_EXPECT_VECTOR_NEAR(parameters.GetStressVector(), expected_cauchy_stress_vector,
-                              Defaults::absolute_tolerance);
+    const auto expected_traction = UblasUtilities::CreateVector({4.2410403910016600, 5.7589596089983400});
+    KRATOS_EXPECT_VECTOR_NEAR(r_resulting_traction, expected_traction, Defaults::absolute_tolerance);
+    KRATOS_EXPECT_EQ(plasticity_status, static_cast<int>(PlasticityStatus::TENSION_MOHR_COULOMB_CORNER));
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_CalculateMaterialResponseCauchyAtRegularFailureZone,
@@ -230,37 +248,77 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_CalculateMaterialRes
     properties.SetValue(GEO_COHESION, 10.0);
     properties.SetValue(GEO_DILATANCY_ANGLE, 0.0);
     properties.SetValue(GEO_TENSILE_STRENGTH, 10.0);
+    properties.SetValue(INTERFACE_NORMAL_STIFFNESS, 25.0);
+    properties.SetValue(INTERFACE_SHEAR_STIFFNESS, 12.5);
 
     auto parameters = ConstitutiveLaw::Parameters{};
     parameters.SetMaterialProperties(properties);
+    parameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
     auto traction_vector = Vector{ZeroVector{2}};
     parameters.SetStressVector(traction_vector);
     auto relative_displacement_vector = Vector{ZeroVector{2}};
     parameters.SetStrainVector(relative_displacement_vector);
 
-    auto p_initial_state         = make_intrusive<InitialState>();
-    auto initial_traction_vector = Vector{2};
-    initial_traction_vector <<= -5.0, 18.0;
+    auto       p_initial_state         = make_intrusive<InitialState>();
+    const auto initial_traction_vector = UblasUtilities::CreateVector({-5.0, 18.0});
     p_initial_state->SetInitialStressVector(initial_traction_vector);
     p_initial_state->SetInitialStrainVector(Vector{ZeroVector{2}});
 
-    auto law = InterfaceCoulombWithTensionCutOff{};
+    auto law = InterfaceCoulombWithTensionCutOff{std::make_unique<InterfacePlaneStrain>()};
     law.SetInitialState(p_initial_state);
     InitializeLawMaterial(law, properties);
 
     // Act
     law.CalculateMaterialResponseCauchy(parameters);
+    const auto& r_resulting_traction = parameters.GetStressVector();
+    int         plasticity_status;
+    law.GetValue(GEO_PLASTICITY_STATUS, plasticity_status);
 
     // Assert
-    Vector expected_cauchy_stress_vector(2);
-    expected_cauchy_stress_vector <<= -5.0, 11.059402624645148377;
-    KRATOS_EXPECT_VECTOR_NEAR(parameters.GetStressVector(), expected_cauchy_stress_vector,
-                              Defaults::absolute_tolerance);
+    const auto expected_traction = UblasUtilities::CreateVector({-5.0, 11.059402624645148377});
+    KRATOS_EXPECT_VECTOR_NEAR(r_resulting_traction, expected_traction, Defaults::absolute_tolerance);
+    KRATOS_EXPECT_EQ(plasticity_status, static_cast<int>(PlasticityStatus::MOHR_COULOMB_FAILURE));
+}
+
+KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_DoesNotCalculateStressWhenComputeStressOptionIsNotSet,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto properties = Properties{};
+    properties.SetValue(GEO_FRICTION_ANGLE, 35.0);
+    properties.SetValue(GEO_COHESION, 10.0);
+    properties.SetValue(GEO_DILATANCY_ANGLE, 0.0);
+    properties.SetValue(GEO_TENSILE_STRENGTH, 10.0);
+    properties.SetValue(INTERFACE_NORMAL_STIFFNESS, 25.0);
+    properties.SetValue(INTERFACE_SHEAR_STIFFNESS, 12.5);
+
+    auto parameters = ConstitutiveLaw::Parameters{};
+    parameters.SetMaterialProperties(properties);
+    auto traction_vector = Vector{ZeroVector{2}};
+    parameters.SetStressVector(traction_vector);
+    auto relative_displacement_vector = Vector{2, 1.0};
+    parameters.SetStrainVector(relative_displacement_vector);
+
+    auto law = InterfaceCoulombWithTensionCutOff{std::make_unique<InterfacePlaneStrain>()};
+    InitializeLawMaterial(law, properties);
+
+    // Act
+    law.CalculateMaterialResponseCauchy(parameters);
+    const auto& r_resulting_traction = parameters.GetStressVector();
+    int         plasticity_status;
+    law.GetValue(GEO_PLASTICITY_STATUS, plasticity_status);
+
+    // Assert
+    const auto expected_traction = UblasUtilities::CreateVector({0.0, 0.0});
+    KRATOS_EXPECT_VECTOR_NEAR(r_resulting_traction, expected_traction, Defaults::absolute_tolerance);
+    KRATOS_EXPECT_EQ(plasticity_status, static_cast<int>(PlasticityStatus::ELASTIC));
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_Serialization, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
+    const auto scoped_registration =
+        ScopedSerializerRegistration{std::make_pair("InterfacePlaneStrain"s, InterfacePlaneStrain{})};
     auto properties = Properties{};
     properties.SetValue(GEO_FRICTION_ANGLE, 35.0);
     properties.SetValue(GEO_COHESION, 10.0);
@@ -269,18 +327,19 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_Serialization, Krato
 
     auto parameters = ConstitutiveLaw::Parameters{};
     parameters.SetMaterialProperties(properties);
+    parameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
     auto traction_vector = Vector{ZeroVector{2}};
     parameters.SetStressVector(traction_vector);
     auto relative_displacement_vector = Vector{ZeroVector{2}};
     parameters.SetStrainVector(relative_displacement_vector);
 
-    auto p_initial_state         = make_intrusive<InitialState>();
-    auto initial_traction_vector = Vector{2};
-    initial_traction_vector <<= -2.0, 8.0;
+    auto       p_initial_state         = make_intrusive<InitialState>();
+    const auto initial_traction_vector = UblasUtilities::CreateVector({-2.0, 8.0});
     p_initial_state->SetInitialStressVector(initial_traction_vector);
     p_initial_state->SetInitialStrainVector(Vector{ZeroVector{2}});
 
-    auto p_law = std::unique_ptr<ConstitutiveLaw>{std::make_unique<InterfaceCoulombWithTensionCutOff>()};
+    auto p_law = std::unique_ptr<ConstitutiveLaw>{
+        std::make_unique<InterfaceCoulombWithTensionCutOff>(std::make_unique<InterfacePlaneStrain>())};
     p_law->SetInitialState(p_initial_state);
     InitializeLawMaterial(*p_law, properties);
 
@@ -299,52 +358,56 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_Serialization, Krato
     ASSERT_NE(p_loaded_law.get(), nullptr);
 
     auto loaded_calculated_traction_vector = Vector{};
-    p_loaded_law->GetValue(CAUCHY_STRESS_VECTOR, loaded_calculated_traction_vector);
+    p_loaded_law->GetValue(GEO_EFFECTIVE_TRACTION_VECTOR, loaded_calculated_traction_vector);
     KRATOS_EXPECT_VECTOR_EQ(loaded_calculated_traction_vector, calculated_traction_vector);
 
     // Check whether the finalized traction and relative displacement have been restored properly
     p_loaded_law->CalculateMaterialResponseCauchy(parameters);
-    KRATOS_EXPECT_VECTOR_EQ(parameters.GetStressVector(), calculated_traction_vector);
+    const auto& r_resulting_traction = parameters.GetStressVector();
+    KRATOS_EXPECT_VECTOR_EQ(r_resulting_traction, calculated_traction_vector);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_Has2DWorkingSpaceDimension,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    KRATOS_EXPECT_EQ(InterfaceCoulombWithTensionCutOff{}.WorkingSpaceDimension(), N_DIM_2D);
+    KRATOS_EXPECT_EQ(InterfaceCoulombWithTensionCutOff{std::make_unique<InterfacePlaneStrain>()}.WorkingSpaceDimension(),
+                     N_DIM_2D);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_HasCauchyStressMeasure, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    KRATOS_EXPECT_EQ(InterfaceCoulombWithTensionCutOff{}.GetStressMeasure(), ConstitutiveLaw::StressMeasure_Cauchy);
+    KRATOS_EXPECT_EQ(InterfaceCoulombWithTensionCutOff{std::make_unique<InterfacePlaneStrain>()}.GetStressMeasure(),
+                     ConstitutiveLaw::StressMeasure_Cauchy);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_StrainSizeEqualsTwo, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    KRATOS_EXPECT_EQ(InterfaceCoulombWithTensionCutOff{}.GetStrainSize(), 2);
+    KRATOS_EXPECT_EQ(
+        InterfaceCoulombWithTensionCutOff{std::make_unique<InterfacePlaneStrain>()}.GetStrainSize(), 2);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_HasInfinitesimalStrainMeasure,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    KRATOS_EXPECT_EQ(InterfaceCoulombWithTensionCutOff{}.GetStrainMeasure(),
+    KRATOS_EXPECT_EQ(InterfaceCoulombWithTensionCutOff{std::make_unique<InterfacePlaneStrain>()}.GetStrainMeasure(),
                      ConstitutiveLaw::StrainMeasure_Infinitesimal);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_HasIncrementalFormulation, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    EXPECT_TRUE(InterfaceCoulombWithTensionCutOff{}.IsIncremental());
+    EXPECT_TRUE(InterfaceCoulombWithTensionCutOff{std::make_unique<InterfacePlaneStrain>()}.IsIncremental());
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_RequiresInitializeMaterialResponse,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    EXPECT_TRUE(InterfaceCoulombWithTensionCutOff{}.RequiresInitializeMaterialResponse());
+    EXPECT_TRUE(InterfaceCoulombWithTensionCutOff{std::make_unique<InterfacePlaneStrain>()}.RequiresInitializeMaterialResponse());
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_Check, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    auto                        law = InterfaceCoulombWithTensionCutOff{};
+    auto law = InterfaceCoulombWithTensionCutOff{std::make_unique<InterfacePlaneStrain>()};
     ConstitutiveLaw::Parameters parameters;
     Properties                  properties(3);
     parameters.SetMaterialProperties(properties);
@@ -354,65 +417,56 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_Check, KratosGeoMech
     // Act & Assert
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info),
-        "Error: GEO_COHESION is not defined for property 3")
+        "GEO_COHESION does not exist in the property with Id 3.")
     properties.SetValue(GEO_COHESION, -1.0);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info),
-        "Error: value of GEO_COHESION for property 3 is out of range: -1 is not in [0.0, ->")
+        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info), "GEO_COHESION in the property with Id 3 has an invalid value: -1 is out of the range [0, -).")
     properties.SetValue(GEO_COHESION, 1.0);
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info),
-        "Error: GEO_FRICTION_ANGLE is not defined for property 3")
+        "GEO_FRICTION_ANGLE does not exist in the property with Id 3.")
     properties.SetValue(GEO_FRICTION_ANGLE, -30.0);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info), "Error: value of GEO_FRICTION_ANGLE for property 3 is out of range: -30 is not in (0.0, 90.0)")
+        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info), "GEO_FRICTION_ANGLE in the property with Id 3 has an invalid value: -30 is out of the range (0, 90).")
     properties.SetValue(GEO_FRICTION_ANGLE, 30.0);
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info),
-        "Error: GEO_DILATANCY_ANGLE is not defined for property 3")
+        "GEO_DILATANCY_ANGLE does not exist in the property with Id 3.")
     properties.SetValue(GEO_DILATANCY_ANGLE, -30.0);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info),
-        "Error: value of GEO_DILATANCY_ANGLE for property 3 is out "
-        "of range: -30 is not in [0.0, 30.000000]")
+        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info), "GEO_DILATANCY_ANGLE in the property with Id 3 has an invalid value: -30 is out of the range [0, 30].")
     properties.SetValue(GEO_DILATANCY_ANGLE, 40.0);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info),
-        "Error: value of GEO_DILATANCY_ANGLE for property 3 is out "
-        "of range: 40 is not in [0.0, 30.000000]")
+        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info), "GEO_DILATANCY_ANGLE in the property with Id 3 has an invalid value: 40 is out of the range [0, 30].")
     properties.SetValue(GEO_DILATANCY_ANGLE, 30.0);
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info),
-        "Error: GEO_TENSILE_STRENGTH is not defined for property 3")
+        "GEO_TENSILE_STRENGTH does not exist in the property with Id 3.")
     properties.SetValue(GEO_TENSILE_STRENGTH, -1.0);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info),
-        "Error: value of GEO_TENSILE_STRENGTH for property 3 is out "
-        "of range: -1 is not in [0.0, 1.732051]")
+        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info), "GEO_TENSILE_STRENGTH in the property with Id 3 has an invalid value: -1 is out of the range [0, 1.73205].")
     properties.SetValue(GEO_TENSILE_STRENGTH, 2.0);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info),
-        "Error: value of GEO_TENSILE_STRENGTH for property 3 is out "
-        "of range: 2 is not in [0.0, 1.732051]")
+        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info), "GEO_TENSILE_STRENGTH in the property with Id 3 has an invalid value: 2 is out of the range [0, 1.73205].")
     properties.SetValue(GEO_TENSILE_STRENGTH, 1.0);
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info),
-        "Error: INTERFACE_NORMAL_STIFFNESS is not defined for property 3")
+        "INTERFACE_NORMAL_STIFFNESS does not exist in the property with Id 3.")
     properties.SetValue(INTERFACE_NORMAL_STIFFNESS, -1.0);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info), "Error: value of INTERFACE_NORMAL_STIFFNESS for property 3 is out of range: -1 is not in [0.0, ->")
+        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info), "INTERFACE_NORMAL_STIFFNESS in the property with Id 3 has an invalid value: -1 is out of the range [0, -).")
     properties.SetValue(INTERFACE_NORMAL_STIFFNESS, 1.0);
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info),
-        "Error: INTERFACE_SHEAR_STIFFNESS is not defined for property 3")
+        "INTERFACE_SHEAR_STIFFNESS does not exist in the property with Id 3.")
     properties.SetValue(INTERFACE_SHEAR_STIFFNESS, -1.0);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info), "Error: value of INTERFACE_SHEAR_STIFFNESS for property 3 is out of range: -1 is not in [0.0, ->")
+        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info), "INTERFACE_SHEAR_STIFFNESS in the property with Id 3 has an invalid value: -1 is out of the range [0, -).")
     properties.SetValue(INTERFACE_SHEAR_STIFFNESS, 1.0);
 
     KRATOS_EXPECT_EQ(law.Check(properties, element_geometry, process_info), 0);
@@ -422,14 +476,17 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_CalculateConstitutiv
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    auto properties = Properties{};
-    properties.SetValue(INTERFACE_NORMAL_STIFFNESS, 1.0E8);
-    properties.SetValue(INTERFACE_SHEAR_STIFFNESS, 5.0E7);
+    auto properties                        = Properties{};
+    properties[INTERFACE_NORMAL_STIFFNESS] = 1.0E8;
+    properties[INTERFACE_SHEAR_STIFFNESS]  = 5.0E7;
+    properties[GEO_FRICTION_ANGLE]         = 0.0;
+    properties[GEO_COHESION]               = 0.0;
+    properties[GEO_DILATANCY_ANGLE]        = 0.0;
 
     auto parameters = ConstitutiveLaw::Parameters{};
     parameters.SetMaterialProperties(properties);
 
-    auto law = InterfaceCoulombWithTensionCutOff{};
+    auto law = InterfaceCoulombWithTensionCutOff{std::make_unique<InterfacePlaneStrain>()};
     InitializeLawMaterial(law, properties);
 
     // Act
@@ -437,11 +494,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_CalculateConstitutiv
     law.CalculateValue(parameters, CONSTITUTIVE_MATRIX, constitutive_matrix);
 
     // Assert
-    auto expected_constitutive_matrix = Matrix{2, 2};
-    // clang-format off
-    expected_constitutive_matrix <<= 1.0E8, 0.0,
-                                     0.0,   5.0E7;
-    // clang-format on
+    const auto expected_constitutive_matrix = UblasUtilities::CreateMatrix({{1.0E8, 0.0}, {0.0, 5.0E7}});
     KRATOS_EXPECT_MATRIX_NEAR(constitutive_matrix, expected_constitutive_matrix, Defaults::absolute_tolerance);
 }
 

@@ -44,7 +44,6 @@
             "scaling":       true
         },
         "problem_domain_sub_model_part_list": ["all"],
-        "processes_sub_model_part_list":      ["bottom_left","bottom_right","top_right","top_left","bottom","right","top","left","all"],
         "body_domain_sub_model_part_list":    ["all"]
     },
     "output_processes": {

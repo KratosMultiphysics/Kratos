@@ -32,6 +32,7 @@
 
 //schemes
 #include "custom_strategies/schemes/bdf2_turbulent_scheme.h"
+#include "custom_strategies/schemes/incremental_update_rotation_scheme.h"
 #include "custom_strategies/schemes/residualbased_simple_steady_scheme.h"
 #include "custom_strategies/schemes/residualbased_predictorcorrector_velocity_bossak_scheme_turbulent.h"
 #include "custom_strategies/strategies/compressible_navier_stokes_explicit_solving_strategy_runge_kutta.h"
@@ -118,6 +119,13 @@ void AddCustomStrategiesToPython(pybind11::module &m)
         self.CalculateReactions();})
     .def("AddIterationStep", &FractionalStepStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>::AddIterationStep)
     .def("ClearExtraIterationSteps", &FractionalStepStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>::ClearExtraIterationSteps);
+
+    py::class_<
+        IncrementalUpdateRotationScheme<SparseSpaceType, LocalSpaceType>,
+        typename IncrementalUpdateRotationScheme<SparseSpaceType, LocalSpaceType>::Pointer,
+        ResidualBasedIncrementalUpdateStaticSchemeSlip<SparseSpaceType, LocalSpaceType>>(m, "IncrementalUpdateRotationScheme")
+    .def(py::init<Parameters>())
+    ;
 
     py::class_<
         ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent<SparseSpaceType, LocalSpaceType>,

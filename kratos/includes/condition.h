@@ -984,7 +984,7 @@ public:
     PropertiesType& GetProperties()
     {
         KRATOS_DEBUG_ERROR_IF(mpProperties == nullptr)
-            << "Tryining to get the properties of " << Info()
+            << "Trying to get the properties of " << Info()
             << ", which are uninitialized." << std::endl;
         return *mpProperties;
     }
@@ -992,7 +992,7 @@ public:
     PropertiesType const& GetProperties() const
     {
         KRATOS_DEBUG_ERROR_IF(mpProperties == nullptr)
-            << "Tryining to get the properties of " << Info()
+            << "Trying to get the properties of " << Info()
             << ", which are uninitialized." << std::endl;
         return *mpProperties;
     }
