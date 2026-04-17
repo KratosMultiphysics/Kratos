@@ -104,8 +104,8 @@ Organizations contributing to Kratos:
 
 <br><br>
 
-<img align="left" src="https://github.com/KratosMultiphysics/Documentation/raw/master/Wiki_files/Logos/altair-sponsor-logo.png" width="128">
-<br><p>Altair Engineering</p>
+<img align="left" src="https://github.com/KratosMultiphysics/Documentation/raw/master/Wiki_files/Logos/siemens_logo.png" width="128">
+<br><p>Siemens Industry Software Inc</p>
 
 <img align="left" src="https://github.com/KratosMultiphysics/Documentation/raw/master/Wiki_files/Logos/Deltares_logo.png" width="128">
 <br><p>Deltares</p>
