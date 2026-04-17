@@ -245,7 +245,7 @@ namespace Kratos
         KRATOS_CATCH("Error in Levelset Element")
     }
 
-    template class KRATOS_API(KRATOS_CORE) LevelSetConvectionElementSimplexAlgebraicStabilization<2, 3>;
-    template class KRATOS_API(KRATOS_CORE) LevelSetConvectionElementSimplexAlgebraicStabilization<3, 4>;
+    template class LevelSetConvectionElementSimplexAlgebraicStabilization<2, 3>;
+    template class LevelSetConvectionElementSimplexAlgebraicStabilization<3, 4>;
 
 } // namespace Kratos.

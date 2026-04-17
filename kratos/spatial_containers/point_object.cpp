@@ -100,10 +100,12 @@ void PointObject<TObject>::Check() const
 /***********************************************************************************/
 /***********************************************************************************/
 
+template class PointObject<GeometricalObject>;
+
 template class KRATOS_API(KRATOS_CORE) PointObject<Node>;
-template class KRATOS_API(KRATOS_CORE) PointObject<GeometricalObject>;
 template class KRATOS_API(KRATOS_CORE) PointObject<Condition>;
 template class KRATOS_API(KRATOS_CORE) PointObject<Element>;
 template class KRATOS_API(KRATOS_CORE) PointObject<Geometry<Node>>;
+
 
 } // namespace Kratos.
