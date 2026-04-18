@@ -13,11 +13,9 @@ from KratosMultiphysics.HDF5Application.core.file_io import OpenHDF5File
 import pathlib
 
 
-
 class TestPointSetOutputProcess(UnitTest.TestCase):
 
     communicator = KratosMultiphysics.Testing.GetDefaultDataCommunicator()
-
 
     def setUp(self):
         KratosUtils.DeleteFileIfExisting("test_point_set_output.h5")
@@ -52,6 +50,7 @@ class TestPointSetOutputProcess(UnitTest.TestCase):
             for node in model_part.Nodes:
                 for variable, increment in zip((KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.VELOCITY), (1.0, [0.0,0.0,1.0])):
                     node.SetSolutionStepValue(variable,node.GetSolutionStepValue(variable) + increment)
+                    node.SetValue(variable,node.GetValue(variable) + increment)
 
             # Print output if necessary
             if point_set_output_process.IsOutputStep():
@@ -60,7 +59,7 @@ class TestPointSetOutputProcess(UnitTest.TestCase):
         self.communicator.Barrier()
 
         # Open output file
-        file_parameters = parameters["file_parameters"].Clone()
+        file_parameters = parameters["file_settings"].Clone()
         file_parameters["file_access_mode"].SetString("read_only")
         with OpenHDF5File(file_parameters, model_part) as file:
             # Check output file structure
@@ -69,22 +68,54 @@ class TestPointSetOutputProcess(UnitTest.TestCase):
             self.assertTrue(file.IsDataSet(root + "/Ids"))
             self.assertTrue(file.IsDataSet(root + "/Coordinates"))
 
+            self.__CheckStep(file, root, 3)
+            self.__CheckStep(file, root, 6)
+            self.__CheckStep(file, root, 9)
+
     @property
     def parameters(self) -> KratosMultiphysics.Parameters:
         parameters = KratosMultiphysics.Parameters("""{
             "model_part_name"      : "main",
-            "positions"            : [[0.0, 0.0, 0.0]],
-            "output_variables"     : ["DISPLACEMENT_X", "VELOCITY"],
-            "output_frequency"     : 3,
-            "coordinates_prefix"   : "/test_point_set_output_<model_part_name>",
-            "variables_prefix"     : "/test_point_set_output_<model_part_name>/test_step_<step>",
-            "file_parameters"      : {
+            "file_settings": {
                 "file_name"        : "test_point_set_output.h5",
-                "file_access_mode" : "read_write"
+                "time_format"      : "0.4f",
+                "file_access_mode" : "read_write",
+                "max_files_to_keep": "unlimited",
+                "echo_level"       :  0
+            },
+            "output_time_settings": {
+                "output_interval": 3.0
+            },
+            "point_output_settings": {
+                "prefix"              : "/test_point_set_output_<model_part_name>",
+                "time_format"         : "0.4f",
+                "positions"           : [[0.0, 0.0, 0.0]],
+                "search_configuration": "initial",
+                "search_tolerance"    : 1e-6
+            },
+            "nodal_solution_step_data_settings": {
+                "prefix"           : "/test_point_set_output_<model_part_name>/test_step_hist_<step>/",
+                "list_of_variables": ["DISPLACEMENT_X", "VELOCITY"],
+                "time_format"      : "0.4f"
+            },
+            "nodal_data_value_settings": {
+                "prefix"           : "/test_point_set_output_<model_part_name>/test_step_nonhist_<step>/",
+                "list_of_variables": ["DISPLACEMENT_X", "VELOCITY"],
+                "time_format"      : "0.4f"
             }
         }""")
 
         return parameters
+
+    def __CheckStep(self, file: HDF5.HDF5File, root: str, step: int) -> None:
+        self.assertTrue(file.IsDataSet(f"{root}/test_step_hist_{step}/DISPLACEMENT_X"))
+        self.assertTrue(file.IsDataSet(f"{root}/test_step_hist_{step}/VELOCITY"))
+        self.assertTrue(file.GetDataDimensions(f"{root}/test_step_hist_{step}/DISPLACEMENT_X"), [1])
+        self.assertTrue(file.GetDataDimensions(f"{root}/test_step_hist_{step}/VELOCITY"), [1, 3])
+        self.assertTrue(file.IsDataSet(f"{root}/test_step_nonhist_{step}/DISPLACEMENT_X"))
+        self.assertTrue(file.IsDataSet(f"{root}/test_step_nonhist_{step}/VELOCITY"))
+        self.assertTrue(file.GetDataDimensions(f"{root}/test_step_nonhist_{step}/DISPLACEMENT_X"), [1])
+        self.assertTrue(file.GetDataDimensions(f"{root}/test_step_nonhist_{step}/VELOCITY"), [1, 3])
 
 
     @staticmethod
@@ -101,6 +132,8 @@ class TestPointSetOutputProcess(UnitTest.TestCase):
         for node in model_part.Nodes:
             node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X, node.X)
             node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, [node.X, node.Y, node.Z])
+            node.SetValue(KratosMultiphysics.DISPLACEMENT_X, node.X * 2)
+            node.SetValue(KratosMultiphysics.VELOCITY, [node.X * 2, node.Y * 2, node.Z * 2])
 
         return model, model_part
 

@@ -28,7 +28,7 @@ class IOOperation(KratosMultiphysics.Operation): # IOOperation(KratosMultiphysic
         self.__file = file
         self.__parameters = parameters
 
-        self.__parameters.ValidateAndAssignDefaults(self.GetDefaultParameters())
+        self.__parameters.AddMissingParameters(self.GetDefaultParameters())
 
         self.__time_format = ""
         if self.__parameters.Has("time_format"):
@@ -252,3 +252,57 @@ class MoveMesh(ModelPartIOOperation):
 
     def Execute(self) -> None:
         KratosMultiphysics.ImplicitSolvingStrategy(self.model_part, True).MoveMesh()
+
+
+class VertexCoordinateOutput(IOOperation):
+    @classmethod
+    def GetDefaultParameters(cls) -> KratosMultiphysics.Parameters:
+        return KratosMultiphysics.Parameters("""{
+            "prefix"           : "/ResultsData",
+            "custom_attributes": {},
+            "time_format"      : "0.4f"
+        }""")
+
+    def __init__(self,
+                 model_part: KratosMultiphysics.ModelPart,
+                 parameters: KratosMultiphysics.Parameters,
+                 file: KratosHDF5.HDF5File,
+                 vertices: KratosHDF5.VertexContainer):
+        super().__init__(model_part, parameters, file)
+        self.__vertices = vertices
+
+    def Execute(self) -> None:
+        KratosHDF5.VertexContainerCoordinateIO(self.parameters, self.file).Write(self.__vertices, self.parameters["custom_attributes"])
+
+
+class VertexValueOutput(IOOperation):
+    @classmethod
+    def GetDefaultParameters(cls) -> KratosMultiphysics.Parameters:
+        return KratosMultiphysics.Parameters("""{
+            "prefix"           : "/VertexData",
+            "list_of_variables": [],
+            "custom_attributes": {},
+            "time_format"      : "0.4f"
+        }""")
+
+    def _MakeIO(self) -> typing.Any:
+        raise NotImplementedError("Please implement _MakeIO method in derrived class.")
+
+    def __init__(self,
+                 model_part: KratosMultiphysics.ModelPart,
+                 parameters: KratosMultiphysics.Parameters,
+                 file: KratosHDF5.HDF5File,
+                 vertices: KratosHDF5.VertexContainer):
+        super().__init__(model_part, parameters, file)
+        self.__vertices = vertices
+
+    def Execute(self) -> None:
+        self._MakeIO().Write(self.__vertices, self.parameters["custom_attributes"])
+
+class VertexHistoricalValueOutput(VertexValueOutput):
+    def _MakeIO(self) -> typing.Any:
+        return KratosHDF5.VertexContainerHistoricalVariableIO(self.parameters, self.file)
+
+class VertexNonHistoricalValueOutput(VertexValueOutput):
+    def _MakeIO(self) -> typing.Any:
+        return KratosHDF5.VertexContainerNonHistoricalVariableIO(self.parameters, self.file)
