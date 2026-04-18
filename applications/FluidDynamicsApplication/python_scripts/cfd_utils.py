@@ -628,37 +628,6 @@ class CFDUtils:
 
         return out
 
-    def ComputeConvectiveContributionLegacy(self, N, grad_u, a_gauss):
-        """
-        Compute (w,a·∇u) although with the definition we employ for ∇u this is actually (w,∇u·a)
-        Note that this function assumes ∇u to be constant within the element
-
-        Parameters
-        ----------
-        N : (ngauss, nnode)
-        grad_u : (nelem, ndim, ndim) or (nelem, ndim)
-        a_gauss : (nelem, ngauss, ndim)
-
-        Returns
-        -------
-        vector case: (nelem, ngauss, nnode, ndim) and (nelem, ngauss, ndim)
-        scalar case: (nelem, ngauss, nnode) and (nelem, ngauss, ndim)
-        """
-
-        if grad_u.ndim == 3:
-
-            conv = xp.einsum('ekl,egl->egk', grad_u, a_gauss, optimize=opt_type) #a·∇u
-            out = N[None, :, :, None] * conv[:, :, None, :] #w,a·∇u
-
-        elif grad_u.ndim == 2:
-            conv = xp.einsum('el,egl->eg', grad_u, a_gauss, optimize=opt_type) #a·∇u
-            out = N[None, :, :] * conv[:, :, None] #w,a·∇u
-
-        else:
-            raise ValueError("grad_u must have 2 dims (scalar) or 3 dims (vector)")
-
-        return out
-
     def ComputeConvectiveContribution(self, elem_conv):
         """
         Compute the elemental convective contribution using a factorized formulation
@@ -799,10 +768,6 @@ class CFDUtils:
         - Equivalent to Gauss integration under consistent interpolation.
         - Geometric scaling (detJ / volume) applied externally.
         """
-        # _, _, dim = a_elemental.shape
-        # beta = conv_elemental - pi_elemental #nodal convective term minus L2 projection
-        # M_e = self.GetElementalMassMatrix(dim) #elemental mass matrix (n_node, n_node)
-        # return xp.einsum("eik,jm,emk,ejl->eil", DN, M_e, beta, a_elemental, optimize=opt_type)
 
         beta = conv_elemental - pi_elemental
         n_elem, n_node, n_dim = beta.shape
@@ -821,37 +786,6 @@ class CFDUtils:
             R += DN[:, :, k][:, :, None] * S[:, k, :][:, None, :]
 
         return R
-
-    def ComputeMomentumStabilizationLegacy(self, N, DN, u_elemental, a_gauss, pi_gauss, rho):
-        """
-        Compute convection + convective stabilization in a single pass.
-
-        (ρ a·∇w, ρ a·∇u) - (ρ a·∇w, ρ Π)
-
-        Parameters
-        ----------
-        N : (ngauss, nnode)
-        DN : (nelem, nnode, ndim)
-        u_elemental : (nelem, nnode, ndim)
-        a_gauss : (nelem, ngauss, ndim)
-        pi_gauss : (nelem, ngauss, ndim)
-        rho : float
-
-        Returns
-        -------
-        out : (nelem, ngauss, nnode, ndim)
-            Convective stabilization contribution
-        """
-
-        adv = xp.einsum("egd,end->egn", a_gauss, DN, optimize=opt_type)
-
-        conv = xp.einsum("egn,end->egd", adv, u_elemental, optimize=opt_type)
-
-        rho2 = rho * rho
-
-        out = rho2 * adv[:, :, :, None] * (conv - pi_gauss)[:, :, None, :]
-
-        return out
 
     def ComputeDivDivStabilization(self, N: np.array, DN: np.ndarray, u_elemental : np.ndarray, Pi_div_elemental: np.ndarray):
         """

@@ -322,12 +322,6 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         geometry_adaptor_DN.CollectData()
         self.DN = xp.squeeze(geometry_adaptor_DN.data).copy() #this has shape nel*1*nnodes_in_el*dim - the copy is important as we need to own the data
 
-        # Allocation of shape functions and weights for the convective term calculation
-        # Note that these cannot be integrated with the first order shape functions above
-        # det_J_volume_factor = 2.0 if self.dim == 2 else 6.0
-        # self.w_int_order = det_J_volume_factor * self.cfd_utils.GetGaussIntegrationWeights(self.dim, self.convection_integration_order)
-        # self.N_int_order = self.cfd_utils.GetShapeFunctionsOnGaussPoints(self.dim, self.convection_integration_order)
-
         # Obtain elemental volumes #TODO: an adaptor should be available for these
         vols = []
         for geom in self.vol_mp.Geometries:
@@ -408,13 +402,6 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         # self.elemental_grad_scratch = xp.empty(self.DN.shape, dtype=cfd_utils.PRECISION)
         # self.Lel_scratch = xp.empty((nelem, self.n_in_el, self.n_in_el), dtype=cfd_utils.PRECISION)
         # self.rhs_el_scratch = xp.empty((nelem, self.n_in_el), dtype=cfd_utils.PRECISION)
-
-        #FIXME: initial conditions for debuggings
-        #TODO: hydrostatic pressure initialization for debugging
-        # for node in self.model_part.Nodes:
-        #     node.SetSolutionStepValue(KM.PRESSURE, 0, (2.0-node.Y)*10*self.rho) #TODO: remove after debugging
-        #     node.SetSolutionStepValue(KM.PRESSURE, 1, (2.0-node.Y)*10*self.rho) #TODO: remove after debugging
-            # node.Fix(KM.PRESSURE) #TODO: remove after debugging
 
     def Finalize(self):
         super().Finalize()
@@ -520,7 +507,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
     def SolveStep1(self,vold,v_dirichlet,p,b,dt):
 
-        xp.cuda.Stream.null.synchronize()
+        xp.cuda.Stream.null.synchronize() #FIXME: remove after debugging, just to be sure we are not measuring asynchronously some previous step computations
 
         # Gather elemental data from the database
         pel = self.ElemData(p, self.connectivity)
@@ -540,7 +527,6 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         print(f"ComputeDivergenceProjection time: {time.perf_counter() - t0}")
 
         # Advance in time by runge kutta
-
         # --- k1 ---
         t0 = time.perf_counter()
         k1 = self.ComputeVelocityResidual(vel, pel, b_el, conv_proj_el, div_proj_el, self.DN, self.tau_1)
@@ -627,7 +613,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         # -tau*(∇q,Pi_pressure)
         aux_scalar = self.cfd_utils.ComputePressureStabilizationProjectionTerm(self.N, self.DN, pres_proj_el)
         aux_scalar *= self.tau_1[:,xp.newaxis]
-        rhs_el -= aux_scalar #FIXME: Try +/-
+        rhs_el -= aux_scalar
 
         # scale RHS elemental contributions by elemental volumes (integration)
         rhs_el *= self.elemental_volumes[:,xp.newaxis]
@@ -642,17 +628,6 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         print(f"Time to apply pressure BCs: {time.perf_counter()-t0}")
 
         # Solve the system
-        ##TODO: use amgcl instead of this one!! ... and also avoid creating temporaries
-        # TODO: I think we can hide this logic in the cfd_utils
-        # if type(self.L) == KM.CsrMatrix:
-        #     A_cu = cfd_utils.sparse.csr_matrix((
-        #         xp.asarray(self.L.value_data(), dtype=cfd_utils.PRECISION),
-        #         xp.asarray(self.L.index2_data()),
-        #         xp.asarray(self.L.index1_data())),
-        #         shape=(self.L.Size1(), self.L.Size2()))
-        #     p, info = cfd_utils.sparse_linalg.cg(A_cu, rhs, rtol=1e-9)
-        # else:
-        #     p, info = self._SolvePressure(rhs)
         p, is_converged = self._SolvePressure(rhs,p)
         if not is_converged:
             print("CG failed to converge.")
@@ -829,18 +804,6 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
     def GetStep(self):
         return self.model_part.ProcessInfo[KM.STEP]
-
-    # def _ComputeCFL(self, v, dt):
-    #     v_el = self.ElemData(v, self.connectivity)
-    #     v_el_avg = xp.sum(v_el, axis=1) / (self.dim+1.0)
-    #     v_el_avg_norm = xp.linalg.norm(v_el_avg, axis=1)
-    #     return xp.max(dt * v_el_avg_norm / self.h)
-
-    # def _ComputeCFLAdvective(self, v, dt, DN):
-    #     v_el = self.ElemData(v, self.connectivity)
-    #     v_el_mean = xp.mean(v_el, axis=1)
-    #     advective_projection = xp.einsum('ek, enk -> en', v_el_mean, DN)
-    #     return xp.max(xp.sum(xp.abs(advective_projection), axis=1) * dt) #FIXME: do the same as we did in computedeltatime
 
     @classmethod
     def _GetDefaultSolvingSettings(self):
