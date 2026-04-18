@@ -705,7 +705,12 @@ array_1d<double, SmallStrainUDSMLaw::Sig0Size>& SmallStrainUDSMLaw::GetSig0() { 
 void SmallStrainUDSMLaw::CallUDSM(UDSMTaskId TaskId, Parameters& rValues)
 {
     KRATOS_TRY
-
+    if (!mIsUDSMLoaded || mpUserMod == nullptr || mpGetParamCount == nullptr || mpGetStateVarCount == nullptr) {
+        const Properties& rMaterialProperties = rValues.GetMaterialProperties();
+        mIsUDSMLoaded                         = loadUDSM(rMaterialProperties);
+        KRATOS_ERROR_IF_NOT(mIsUDSMLoaded)
+            << "Cannot (re)load UDSM " << rMaterialProperties[UDSM_NAME] << std::endl;
+    }
     auto task_id_as_int = static_cast<int>(TaskId);
 
     double deltaTime = rValues.GetProcessInfo()[DELTA_TIME];
@@ -938,25 +943,26 @@ void SmallStrainUDSMLaw::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw)
 
+    // Function pointers (mpGetParamCount, mpGetStateVarCount and mpUserMod) point into the shared
+    // library, since it may no longer be loaded when we restore this constitutive law.
+
     rSerializer.save("StressVector", mStressVector);
     rSerializer.save("DeltaStrainVector", mDeltaStrainVector);
     rSerializer.save("StrainVectorFinalized", mStrainVectorFinalized);
-    // Saving `mMatrixD` was missing and I wasn't able to find an easy way to add it, since it is a
-    // C-style array. When the type of `mMatrixD` is modified to a proper matrix type, this will
-    // become a no-brainer.
-
-    // Also, it doesn't make sense to save function pointers pointing into the shared library, since
-    // it may no longer be loaded when we restore this constitutive law. Therefore, member `load`
-    // keeps the initial null values. By setting the 'is UDSM loaded' flag to false we enforce the
-    // shared library to be loaded again before using it.
     rSerializer.save("IsModelInitialized", mIsModelInitialized);
-    rSerializer.save("IsUDSMLoaded", false);
     rSerializer.save("Attributes", mAttributes);
     rSerializer.save("ProjectDirectory", mProjectDirectory);
     rSerializer.save("StateVariables", mStateVariables);
     rSerializer.save("StateVariablesFinalized", mStateVariablesFinalized);
     rSerializer.save("Sig0", mSig0);
     rSerializer.save("Dimension", mpDimension);
+
+    std::array<double, VOIGT_SIZE_3D * VOIGT_SIZE_3D> buffer;
+    for (SizeType i = 0; i < VOIGT_SIZE_3D; ++i)
+        for (SizeType j = 0; j < VOIGT_SIZE_3D; ++j)
+            buffer[i * VOIGT_SIZE_3D + j] = mMatrixD[i][j];
+
+    rSerializer.save("mMatrixD", buffer);
 }
 
 void SmallStrainUDSMLaw::load(Serializer& rSerializer)
@@ -966,19 +972,25 @@ void SmallStrainUDSMLaw::load(Serializer& rSerializer)
     rSerializer.load("StressVector", mStressVector);
     rSerializer.load("DeltaStrainVector", mDeltaStrainVector);
     rSerializer.load("StrainVectorFinalized", mStrainVectorFinalized);
-    // Loading `mMatrixD` was missing and cannot be added yet, since saving it is rather
-    // complicated (see also the comment in member `save`)
-
-    // Also the function pointers cannot be restored. They will keep their initial null values.
-
     rSerializer.load("IsModelInitialized", mIsModelInitialized);
-    rSerializer.load("IsUDSMLoaded", mIsUDSMLoaded);
     rSerializer.load("Attributes", mAttributes);
     rSerializer.load("ProjectDirectory", mProjectDirectory);
     rSerializer.load("StateVariables", mStateVariables);
     rSerializer.load("StateVariablesFinalized", mStateVariablesFinalized);
     rSerializer.load("Sig0", mSig0);
     rSerializer.load("Dimension", mpDimension);
+
+    std::array<double, VOIGT_SIZE_3D * VOIGT_SIZE_3D> buffer;
+    rSerializer.load("mMatrixD", buffer);
+    for (SizeType i = 0; i < VOIGT_SIZE_3D; ++i)
+        for (SizeType j = 0; j < VOIGT_SIZE_3D; ++j)
+            mMatrixD[i][j] = buffer[i * VOIGT_SIZE_3D + j];
+
+    // We set mIsUDSMLoaded false to call loadUDSM(rMaterialProperties) later to re-initialise the functions pointers listed below.
+    mIsUDSMLoaded      = false;
+    mpGetParamCount    = nullptr;
+    mpGetStateVarCount = nullptr;
+    mpUserMod          = nullptr;
 }
 
 // Instances of this class can neither be copied nor moved. Check that at compile time.
