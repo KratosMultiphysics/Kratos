@@ -4,99 +4,17 @@ import glob
 import json
 import os
 from pathlib import Path
-from typing import Dict, List, Tuple, Union
+from typing import Dict, List, Union
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.project import Project
+import test_helper
 
 
 NodalValue = Union[float, List[float]]
 NodalSeries = Dict[float, Dict[int, NodalValue]]
 
 class KratosGeoMechanicsUDSMSerializationTest(KratosUnittest.TestCase):
-
-    @staticmethod
-    def _is_values_block_start(line: str, variable_name: str) -> bool:
-        return f'"{variable_name}"' in line
-
-    @staticmethod
-    def _try_get_time_from_header(line: str) -> Union[float, None]:
-        parts = line.split()
-        if len(parts) < 4:
-            return None
-        return float(parts[3])
-
-    @staticmethod
-    def _parse_nodal_value_line(line: str) -> (int, NodalValue):
-        parts = line.split()
-        node_id = int(parts[0])
-        values = [float(v) for v in parts[1:]]
-        value: NodalValue = values[0] if len(values) == 1 else values
-        return node_id, value
-
-    @staticmethod
-    def _is_skippable_value_line(line: str) -> bool:
-        return not line or line == "Values"
-
-    def _parse_values_lines(self, lines: List[str]) -> Dict[int, NodalValue]:
-        parsed: Dict[int, NodalValue] = {}
-        for line in lines:
-            stripped = line.strip()
-            if self._is_skippable_value_line(stripped):
-                continue
-            node_id, value = self._parse_nodal_value_line(stripped)
-            parsed[node_id] = value
-        return parsed
-
-    def _extract_values_block(self, lines: List[str], header_index: int) -> Tuple[float, int, List[str]]:
-        header_line = lines[header_index].strip()
-        parsed_time = self._try_get_time_from_header(header_line)
-        if parsed_time is None:
-            raise RuntimeError(f"Could not parse result header line: {lines[header_index]}")
-
-        block_lines: List[str] = []
-        line_index = header_index + 1
-        while line_index < len(lines):
-            current_line = lines[line_index].strip()
-            if current_line == "End Values":
-                return parsed_time, line_index + 1, block_lines
-            block_lines.append(lines[line_index])
-            line_index += 1
-
-        return parsed_time, line_index, block_lines
-
-    def _collect_variable_value_blocks(self, lines: List[str], variable_name: str) -> List[Tuple[float, List[str]]]:
-        blocks: List[Tuple[float, List[str]]] = []
-        line_index = 0
-        while line_index < len(lines):
-            stripped = lines[line_index].strip()
-            if not self._is_values_block_start(stripped, variable_name):
-                line_index += 1
-                continue
-
-            block_time, next_index, block_lines = self._extract_values_block(lines, line_index)
-            blocks.append((block_time, block_lines))
-            line_index = next_index
-        return blocks
-
-    def _cleanup_case_run_artifacts(self, case_dir: str) -> None:
-        checkpoint_dir = os.path.join(case_dir, "checkpoints")
-        if os.path.exists(checkpoint_dir):
-            for path in glob.glob(os.path.join(checkpoint_dir, "*")):
-                if os.path.isfile(path):
-                    os.remove(path)
-
-        result_patterns = [
-            "stage1.post.*",
-            "stage2.post.*",
-            "stage3.post.*",
-            "stage3_from_checkpoint.post.*",
-            "mesh.post.*",
-        ]
-        for pattern in result_patterns:
-            for path in glob.glob(os.path.join(case_dir, pattern)):
-                if os.path.isfile(path):
-                    os.remove(path)
 
     def _read_project_settings(self, filepath: Path) -> dict:
         with open(filepath, "r", encoding="utf-8") as f:
@@ -143,14 +61,7 @@ class KratosGeoMechanicsUDSMSerializationTest(KratosUnittest.TestCase):
     def _parse_gid_ascii_nodal_variable(
         self, filepath: Path, variable_name: str
     ) -> NodalSeries:
-        with open(filepath, "r", encoding="utf-8") as f:
-            lines = f.readlines()
-
-        value_blocks = self._collect_variable_value_blocks(lines, variable_name)
-        result: NodalSeries = {
-            block_time: self._parse_values_lines(block_lines)
-            for block_time, block_lines in value_blocks
-        }
+        result = test_helper.get_nodal_variable_from_ascii(str(filepath), variable_name)
 
         if not result:
             raise RuntimeError(f"Variable '{variable_name}' not found in {filepath}")
@@ -312,8 +223,6 @@ class KratosGeoMechanicsUDSMSerializationTest(KratosUnittest.TestCase):
         base_project_settings = self._read_project_settings(
             os.path.join(case_dir, "ProjectParameters.json")
         )
-
-        self._cleanup_case_run_artifacts(case_dir)
 
         print(f"Case directory: {case_dir}")
         print(f"Run dir: {case_dir}")
