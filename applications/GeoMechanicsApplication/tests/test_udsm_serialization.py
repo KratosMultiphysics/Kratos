@@ -72,39 +72,6 @@ class KratosGeoMechanicsUDSMSerializationTest(KratosUnittest.TestCase):
     def _get_tolerance(lhs_value: float, rhs_value: float, abs_tol: float, rel_tol: float) -> float:
         return max(abs_tol, rel_tol * max(abs(lhs_value), abs(rhs_value), 1.0))
 
-    def _compare_node_value(self,
-                            node_id: int,
-                            lhs_value: NodalValue,
-                            rhs_value: NodalValue,
-                            abs_tol: float,
-                            rel_tol: float) -> List[str]:
-        if isinstance(lhs_value, list) != isinstance(rhs_value, list):
-            return [f"Type mismatch at node {node_id}: lhs={lhs_value}, rhs={rhs_value}"]
-
-        if isinstance(lhs_value, list):
-            if len(lhs_value) != len(rhs_value):
-                return [
-                    f"Component count mismatch at node {node_id}: lhs={lhs_value}, rhs={rhs_value}"
-                ]
-
-            errors: List[str] = []
-            for comp, (lv, rv) in enumerate(zip(lhs_value, rhs_value)):
-                diff = abs(lv - rv)
-                tol = self._get_tolerance(lv, rv, abs_tol, rel_tol)
-                if diff > tol:
-                    errors.append(
-                        f"Node {node_id}, comp {comp}: lhs={lv}, rhs={rv}, diff={diff}, tol={tol}"
-                    )
-            return errors
-
-        diff = abs(lhs_value - rhs_value)
-        tol = self._get_tolerance(lhs_value, rhs_value, abs_tol, rel_tol)
-        if diff > tol:
-            return [
-                f"Node {node_id}: lhs={lhs_value}, rhs={rhs_value}, diff={diff}, tol={tol}"
-            ]
-        return []
-
     def _compare_nodal_series_at_time(
         self,
         lhs: NodalSeries,
@@ -126,11 +93,38 @@ class KratosGeoMechanicsUDSMSerializationTest(KratosUnittest.TestCase):
 
         errors: List[str] = []
         for node_id in sorted(lhs_nodes.keys()):
-            errors.extend(
-                self._compare_node_value(
-                    node_id, lhs_nodes[node_id], rhs_nodes[node_id], abs_tol, rel_tol
+            lhs_value = lhs_nodes[node_id]
+            rhs_value = rhs_nodes[node_id]
+
+            # Type mismatch
+            if isinstance(lhs_value, list) != isinstance(rhs_value, list):
+                errors.append(
+                    f"Type mismatch at node {node_id}: lhs={lhs_value}, rhs={rhs_value}"
                 )
-            )
+                continue
+
+            if isinstance(lhs_value, list):
+                # vector component-wise comparison (inlined)
+                if len(lhs_value) != len(rhs_value):
+                    errors.append(
+                        f"Component count mismatch at node {node_id}: lhs={lhs_value}, rhs={rhs_value}"
+                    )
+                    continue
+
+                for comp, (lv, rv) in enumerate(zip(lhs_value, rhs_value)):
+                    diff = abs(lv - rv)
+                    tol = self._get_tolerance(lv, rv, abs_tol, rel_tol)
+                    if diff > tol:
+                        errors.append(
+                            f"Node {node_id}, comp {comp}: lhs={lv}, rhs={rv}, diff={diff}, tol={tol}"
+                        )
+            else:
+                diff = abs(lhs_value - rhs_value)
+                tol = self._get_tolerance(lhs_value, rhs_value, abs_tol, rel_tol)
+                if diff > tol:
+                    errors.append(
+                        f"Node {node_id}: lhs={lhs_value}, rhs={rhs_value}, diff={diff}, tol={tol}"
+                    )
 
         return errors
 
@@ -167,16 +161,6 @@ class KratosGeoMechanicsUDSMSerializationTest(KratosUnittest.TestCase):
         if failures:
             raise AssertionError("\n\n".join(failures))
 
-    def _resolve_case_dir(self) -> str:
-        script_dir = str(Path(__file__).resolve().parent)
-        TEST_NAME = "UDSM-serialization"
-        case_dir = os.path.join(script_dir, TEST_NAME)
-        if not os.path.exists(case_dir):
-            raise FileNotFoundError(
-                f"Could not find case directory for test '{TEST_NAME}': {case_dir}"
-            )
-        return case_dir
-
     def _checkpoint_path_exists(self, case_dir: str) -> bool:
         checkpoint_dir = os.path.join(case_dir, "checkpoints")
         if not os.path.exists(checkpoint_dir):
@@ -187,7 +171,9 @@ class KratosGeoMechanicsUDSMSerializationTest(KratosUnittest.TestCase):
     def test_udsm_serialization(self):
         abs_tol = 1e-10
         rel_tol = 1e-8
-        case_dir = self._resolve_case_dir()
+        script_dir = str(Path(__file__).resolve().parent)
+        TEST_NAME = "UDSM-serialization"
+        case_dir = os.path.join(script_dir, TEST_NAME)
         base_project_settings = self._read_project_settings(
             os.path.join(case_dir, "ProjectParameters.json")
         )
