@@ -1111,12 +1111,27 @@ public:
             TSparseSpace::TransposeMult(r_T, *p_copy_b, rb);
 
             // Apply diagonal values on slaves
-            IndexPartition<std::size_t>(mSlaveIds.size()).for_each([&](std::size_t Index){
-                const IndexType slave_equation_id = mSlaveIds[Index];
-                if (mInactiveSlaveDofs.find(slave_equation_id) == mInactiveSlaveDofs.end()) {
-                    TrilinosAssemblingUtilities<TSparseSpace>::SetGlobalValueWithoutGlobalAssembly(rb, slave_equation_id, 0.0);
+            if constexpr (TSparseSpace::LinearAlgebraLibrary() == TrilinosLinearAlgebraLibrary::EPETRA) {
+                IndexPartition<std::size_t>(mSlaveIds.size()).for_each([&](std::size_t Index){
+                    const IndexType slave_equation_id = mSlaveIds[Index];
+                    if (mInactiveSlaveDofs.find(slave_equation_id) == mInactiveSlaveDofs.end()) {
+                        TrilinosAssemblingUtilities<TSparseSpace>::SetGlobalValueWithoutGlobalAssembly(rb, slave_equation_id, 0.0);
+                    }
+                });
+            } else if constexpr (TSparseSpace::LinearAlgebraLibrary() == TrilinosLinearAlgebraLibrary::TPETRA) { // Kokkos conflict with IndexPartition for now, so we keep it simple
+            #if (HAVE_TPETRA)
+                for (std::size_t Index = 0; Index < mSlaveIds.size(); ++Index) {
+                    const IndexType slave_equation_id = mSlaveIds[Index];
+                    if (mInactiveSlaveDofs.find(slave_equation_id) == mInactiveSlaveDofs.end()) {
+                        TrilinosAssemblingUtilities<TSparseSpace>::SetGlobalValueWithoutGlobalAssembly(rb, slave_equation_id, 0.0);
+                    }
                 }
-            });
+            #else
+                KRATOS_ERROR << "You must compile Kratos with TPETRA support" << std::endl;
+            #endif
+            } else {
+                KRATOS_ERROR << "Only EPETRA and TPETRA are supported for now" << std::endl;
+            }
 
             // Global assembly
             TSparseSpace::GlobalAssemble(rb);
@@ -1160,13 +1175,29 @@ public:
             mScaleFactor = TSparseSpace::GetScaleNorm(r_process_info, rA, mScalingDiagonal);
 
             // Apply diagonal values on slaves
-            IndexPartition<std::size_t>(mSlaveIds.size()).for_each([&](std::size_t Index){
-                const IndexType slave_equation_id = mSlaveIds[Index];
-                if (mInactiveSlaveDofs.find(slave_equation_id) == mInactiveSlaveDofs.end()) {
-                    TrilinosAssemblingUtilities<TSparseSpace>::SetGlobalValueWithoutGlobalAssembly(rA, slave_equation_id, slave_equation_id, mScaleFactor);
-                    TrilinosAssemblingUtilities<TSparseSpace>::SetGlobalValueWithoutGlobalAssembly(rb, slave_equation_id, 0.0);
+            if constexpr (TSparseSpace::LinearAlgebraLibrary() == TrilinosLinearAlgebraLibrary::EPETRA) {
+                IndexPartition<std::size_t>(mSlaveIds.size()).for_each([&](std::size_t Index){
+                    const IndexType slave_equation_id = mSlaveIds[Index];
+                    if (mInactiveSlaveDofs.find(slave_equation_id) == mInactiveSlaveDofs.end()) {
+                        TrilinosAssemblingUtilities<TSparseSpace>::SetGlobalValueWithoutGlobalAssembly(rA, slave_equation_id, slave_equation_id, mScaleFactor);
+                        TrilinosAssemblingUtilities<TSparseSpace>::SetGlobalValueWithoutGlobalAssembly(rb, slave_equation_id, 0.0);
+                    }
+                });
+            } else if constexpr (TSparseSpace::LinearAlgebraLibrary() == TrilinosLinearAlgebraLibrary::TPETRA) { // Kokkos conflict with IndexPartition for now, so we keep it simple
+            #if (HAVE_TPETRA)
+                for (std::size_t Index = 0; Index < mSlaveIds.size(); ++Index) {
+                    const IndexType slave_equation_id = mSlaveIds[Index];
+                    if (mInactiveSlaveDofs.find(slave_equation_id) == mInactiveSlaveDofs.end()) {
+                        TrilinosAssemblingUtilities<TSparseSpace>::SetGlobalValueWithoutGlobalAssembly(rA, slave_equation_id, slave_equation_id, mScaleFactor);
+                        TrilinosAssemblingUtilities<TSparseSpace>::SetGlobalValueWithoutGlobalAssembly(rb, slave_equation_id, 0.0);
+                    }
                 }
-            });
+            #else
+                KRATOS_ERROR << "You must compile Kratos with TPETRA support" << std::endl;
+            #endif
+            } else {
+                KRATOS_ERROR << "Only EPETRA and TPETRA are supported for now" << std::endl;
+            }   
 
             // Global assembly
             TSparseSpace::GlobalAssemble(rb);
