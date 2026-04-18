@@ -4,7 +4,7 @@ import glob
 import json
 import os
 from pathlib import Path
-from typing import Dict, List, Union
+from typing import Dict, List, Tuple, Union
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.project import Project
@@ -33,6 +33,51 @@ class KratosGeoMechanicsUDSMSerializationTest(KratosUnittest.TestCase):
         values = [float(v) for v in parts[1:]]
         value: NodalValue = values[0] if len(values) == 1 else values
         return node_id, value
+
+    @staticmethod
+    def _is_skippable_value_line(line: str) -> bool:
+        return not line or line == "Values"
+
+    def _parse_values_lines(self, lines: List[str]) -> Dict[int, NodalValue]:
+        parsed: Dict[int, NodalValue] = {}
+        for line in lines:
+            stripped = line.strip()
+            if self._is_skippable_value_line(stripped):
+                continue
+            node_id, value = self._parse_nodal_value_line(stripped)
+            parsed[node_id] = value
+        return parsed
+
+    def _extract_values_block(self, lines: List[str], header_index: int) -> Tuple[float, int, List[str]]:
+        header_line = lines[header_index].strip()
+        parsed_time = self._try_get_time_from_header(header_line)
+        if parsed_time is None:
+            raise RuntimeError(f"Could not parse result header line: {lines[header_index]}")
+
+        block_lines: List[str] = []
+        line_index = header_index + 1
+        while line_index < len(lines):
+            current_line = lines[line_index].strip()
+            if current_line == "End Values":
+                return parsed_time, line_index + 1, block_lines
+            block_lines.append(lines[line_index])
+            line_index += 1
+
+        return parsed_time, line_index, block_lines
+
+    def _collect_variable_value_blocks(self, lines: List[str], variable_name: str) -> List[Tuple[float, List[str]]]:
+        blocks: List[Tuple[float, List[str]]] = []
+        line_index = 0
+        while line_index < len(lines):
+            stripped = lines[line_index].strip()
+            if not self._is_values_block_start(stripped, variable_name):
+                line_index += 1
+                continue
+
+            block_time, next_index, block_lines = self._extract_values_block(lines, line_index)
+            blocks.append((block_time, block_lines))
+            line_index = next_index
+        return blocks
 
     def _cleanup_case_run_artifacts(self, case_dir: str) -> None:
         checkpoint_dir = os.path.join(case_dir, "checkpoints")
@@ -101,32 +146,11 @@ class KratosGeoMechanicsUDSMSerializationTest(KratosUnittest.TestCase):
         with open(filepath, "r", encoding="utf-8") as f:
             lines = f.readlines()
 
-        result: NodalSeries = {}
-        active = False
-        current_time = None
-
-        for line in lines:
-            stripped = line.strip()
-
-            if active and stripped == "End Values":
-                active = False
-                current_time = None
-                continue
-
-            if active:
-                if stripped == "Values" or not stripped:
-                    continue
-                node_id, value = self._parse_nodal_value_line(stripped)
-                result[current_time][node_id] = value
-                continue
-
-            if self._is_values_block_start(stripped, variable_name):
-                parsed_time = self._try_get_time_from_header(stripped)
-                if parsed_time is None:
-                    raise RuntimeError(f"Could not parse result header line: {line}")
-                current_time = parsed_time
-                result[current_time] = {}
-                active = True
+        value_blocks = self._collect_variable_value_blocks(lines, variable_name)
+        result: NodalSeries = {
+            block_time: self._parse_values_lines(block_lines)
+            for block_time, block_lines in value_blocks
+        }
 
         if not result:
             raise RuntimeError(f"Variable '{variable_name}' not found in {filepath}")
