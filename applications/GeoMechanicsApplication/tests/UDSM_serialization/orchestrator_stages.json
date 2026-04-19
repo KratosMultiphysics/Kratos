@@ -39,7 +39,7 @@
                         "input_type": "use_input_model_part"
                     },
                     "material_import_settings": {
-                        "materials_filename": "MaterialParameters_stage1.json"
+                        "materials_filename": "MaterialParameters_linear.json"
                     },
                     "time_stepping": {
                         "time_step": 1.0,
@@ -194,7 +194,7 @@
                         "input_type": "use_input_model_part"
                     },
                     "material_import_settings": {
-                        "materials_filename": "MaterialParameters.json"
+                        "materials_filename": "MaterialParameters_abc.json"
                     },
                     "time_stepping": {
                         "time_step": 2.0e-02,
@@ -352,7 +352,7 @@
                         "input_type": "use_input_model_part"
                     },
                     "material_import_settings": {
-                        "materials_filename": "MaterialParameters.json"
+                        "materials_filename": "MaterialParameters_abc.json"
                     },
                     "time_stepping": {
                         "time_step": 2.0e-02,

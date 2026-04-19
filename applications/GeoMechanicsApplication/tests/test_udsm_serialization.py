@@ -211,7 +211,7 @@ class KratosGeoMechanicsUDSMSerializationTest(KratosUnittest.TestCase):
         script_dir = str(Path(__file__).resolve().parent)
         case_dir = os.path.join(script_dir, "UDSM_serialization")
         base_project_settings = self._read_project_settings(
-            os.path.join(case_dir, "ProjectParameters.json")
+            os.path.join(case_dir, "orchestrator_stages.json")
         )
 
         cwd = os.getcwd()

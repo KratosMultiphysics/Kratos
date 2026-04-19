@@ -21,11 +21,9 @@ Compact 2D column benchmarks for verifying that a UDSM-based constitutive law se
 
 ## Material models
 
-The entries below list the physical symbol, a short description, and the corresponding JSON key used in the case material files.
-
 ### Stage 1 (initialization)
 
- - Constitutive law: `GeoLinearElasticPlaneStrain2DLaw`
+A K0 stage with a linear elastic model:
  - $E = 1.0e9\ \mathrm{[Pa]}$, 
  - $\nu = 0.2$
  - $\rho_s = 2000\ \mathrm{[kg/m^3]}$, $\rho_w = 1000\ \mathrm{[kg/m^3]}$
@@ -39,14 +37,7 @@ The entries below list the physical symbol, a short description, and the corresp
 
 ### Stages 2 and 3 (UDSM)
 
- - Constitutive law: `SmallStrainUDSM2DPlaneStrainLaw`
- - Same elastic/hydraulic keys as stage 1 (`YOUNG_MODULUS`, `POISSON_RATIO`, `POROSITY`, `PERMEABILITY_*`, `DYNAMIC_VISCOSITY`, ...)
- - UMAT parameters (Props): [
-                        4.998729486706428e-02,
-                        0.19999260891644746,
-                        1.999926089164475e-02,
-                        8.64e+04,
-                        1.5]
+The material is switched to the abc model.
 
 ## Assertions
  - The test compares final `TOTAL_DISPLACEMENT` and `WATER_PRESSURE` fields from the full run and the restart run for the third stage. Differences should be within numerical tolerance.
