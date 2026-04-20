@@ -131,6 +131,7 @@ Sensor::Pointer StrainSensor::Create(
     );
 
     SensorUtils::ReadVariableData(p_sensor->GetNode()->GetData(), SensorParameters["variable_data"]);
+    SensorUtils::ReadFlagData(*p_sensor->GetNode(), SensorParameters["flag_data"]);
 
     return p_sensor;
 
@@ -148,6 +149,7 @@ Parameters StrainSensor::GetDefaultParameters()
         "strain_type"    : "strain_xx",
         "strain_variable": "SHELL_STRAIN",
         "weight"         : 0.0,
+        "flag_data"      : {},
         "variable_data": {}
     })" );
 }

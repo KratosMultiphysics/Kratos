@@ -137,6 +137,7 @@ Sensor::Pointer DisplacementSensor::Create(
     );
 
     SensorUtils::ReadVariableData(p_sensor->GetNode()->GetData(), SensorParameters["variable_data"]);
+    SensorUtils::ReadFlagData(*p_sensor->GetNode(), SensorParameters["flag_data"]);
 
     return p_sensor;
 
@@ -161,6 +162,7 @@ Parameters DisplacementSensor::GetDefaultParameters()
         "location"     : [0.0, 0.0, 0.0],
         "direction"    : [0.0, 0.0, 0.0],
         "weight"       : 1.0,
+        "flag_data"    : {},
         "variable_data": {}
     })" );
 }
