@@ -12,7 +12,6 @@
 #include "non_linear_timoshenko_beam_element_3D2N.h"
 #include "structural_mechanics_application_variables.h"
 #include "custom_utilities/structural_mechanics_element_utilities.h"
-#include "custom_utilities/constitutive_law_utilities.h"
 
 namespace Kratos
 {
@@ -284,9 +283,9 @@ BoundedMatrix<double, 12, 6> NonLinearTimoshenkoBeamElement3D2N::CalculateDoFMap
     matrix.clear();
 
     noalias(project(matrix, range(0, 3), range(0, 3)))  = IdentityMatrix(3);
-    noalias(project(matrix, range(3, 6), range(3, 6)))  = ConstitutiveLawUtilities<6>::CalculateSpinMatrix(rD1);
-    noalias(project(matrix, range(6, 9), range(3, 6)))  = ConstitutiveLawUtilities<6>::CalculateSpinMatrix(rD2);
-    noalias(project(matrix, range(9, 12), range(3, 6))) = ConstitutiveLawUtilities<6>::CalculateSpinMatrix(rD3);
+    noalias(project(matrix, range(3, 6), range(3, 6)))  = CL_utils::CalculateSpinMatrix(rD1);
+    noalias(project(matrix, range(6, 9), range(3, 6)))  = CL_utils::CalculateSpinMatrix(rD2);
+    noalias(project(matrix, range(9, 12), range(3, 6))) = CL_utils::CalculateSpinMatrix(rD3);
 
     return matrix;
 }
@@ -515,6 +514,13 @@ void NonLinearTimoshenkoBeamElement3D2N::CalculateAndAddKg(
     const Vector& rGeneralizedStressVector
 )
 {
+    const auto &r_geom = GetGeometry();
+
+    // The current tangent vector to the beam axis r'
+    array3 dr = r_geom[1].Coordinates() - r_geom[0].Coordinates();
+    const double current_L = norm_2(dr);
+    dr /= current_L;
+
     Vector N(2), dN(2);
     N[0] = N1;
     N[1] = N2;
@@ -527,15 +533,34 @@ void NonLinearTimoshenkoBeamElement3D2N::CalculateAndAddKg(
         M[i] = rGeneralizedStressVector[i + 3];
     }
 
-    BoundedMatrix<double, 6, 6> Kn, Km;
+    BoundedMatrix<double, 12, 12> Kn, Km;
     Kn.clear();
     Km.clear();
+    BoundedMatrix<double, 6, 6> Kn_ab, Km_ab; // submatrices
+    Kn_ab.clear();
+    Km_ab.clear();
+    array3 di_a, di_b;
+
+    const IndexType block_size = 6; // 3 displ + 3 rot
 
     for (IndexType a = 0; a < 2; ++a) {
         for (IndexType b = 0; b < 2; ++b) {
-            for (IndexType i = 0; i < 3; ++i) {
 
+            for (IndexType i = 0; i < 3; ++i) { // Loop over the vector directors
+                noalias(di_a) = column(mRotationOperators[a], i);
+                noalias(di_b) = column(mRotationOperators[b], i);
+
+                // Shear and axial submatrix
+                noalias(project(Kn_ab, range(0, 3), range(3, 6))) = -dN[a] * N[b] * Q[i] *
+                                                                    CL_utils::CalculateSpinMatrix(di_b); // i director vector
+                noalias(project(Kn_ab, range(3, 6), range(0, 3))) = N[a] * dN[b] * Q[i] * CL_utils::CalculateSpinMatrix(di_a);
+                noalias(project(Kn_ab, range(3, 6), range(3, 6))) = delta(a, b) * N[a] * Q[i] * (outer_prod(di_a, dr) - (inner_prod(di_a, dr) * IdentityMatrix(3)));
+
+                // Bending submatrix
             }
+
+
+            // noalias(project(Kn, range(a * block_size), range(range(a * block_size)))) // CHECK 1/2 ???
         }
     }
 }
