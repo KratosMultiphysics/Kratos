@@ -567,7 +567,21 @@ As it is mentioned above, in hardening process, the material properties for Coul
 
 Where $`H_\phi`$, $`H_c`$ and $`H_\psi`$ are hardening modulus for the friction angle, cohesion and dilatancy angle, respectively.
 
-Note: These formulations will be extended for more physics-based form.
+
+#### Exponential hardening
+In exponential hardening, the material properties of the Coulomb yield surface follow exponential-type functions:
+
+```math
+    \phi(\kappa) = \phi_{res} + (\phi_0 - \phi_{res}) e^{-a_{\phi} \kappa }
+```
+```math
+    c(\kappa) = c_{res} + (c_0 - c_{res}) e^{-a_c \kappa }
+```
+```math
+    \psi(\kappa) = \psi_{res} + (\psi_0 - \psi_{res}) e^{-a_{\psi} \kappa }
+```
+
+where $\phi_{\mathrm{res}}$, $c_{\mathrm{res}}$, and $\psi_{\mathrm{res}}$ are the residual values and are user-defined parameters. The variables $a_{\phi}$, $a_c$, and $a_{\psi}$ are shape factors that control the rate of hardening and are also user-defined.
 
 
 #### Iterative process
