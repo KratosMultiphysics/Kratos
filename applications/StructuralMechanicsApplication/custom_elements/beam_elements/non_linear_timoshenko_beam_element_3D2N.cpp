@@ -209,8 +209,8 @@ Vector NonLinearTimoshenkoBeamElement3D2N::CalculateStrainVector(
 
     // The current tangent vector to the beam axis r'
     array3 dr = r_geom[1].Coordinates() - r_geom[0].Coordinates();
-    const double current_L = norm_2(dr);
-    dr /= current_L;
+    // const double current_L = norm_2(dr);
+    dr /= CalculateReferenceLength();
 
     BoundedMatrix<double, 3, 3> current_rot, d_current_rot; // current rotation and its derivative w.r.t "s"
     // We interpolate the rotation operators and its derivative
@@ -227,12 +227,12 @@ Vector NonLinearTimoshenkoBeamElement3D2N::CalculateStrainVector(
     noalias(d3_s) = column(d_current_rot, 2);
 
     generalized_strain[0] = inner_prod(d3, dr) - 1.0; // axial
-    generalized_strain[1] = inner_prod(d1, dr); // shear y
-    generalized_strain[2] = inner_prod(d2, dr); // shear z
+    generalized_strain[2] = inner_prod(d1, dr); // shear y
+    generalized_strain[1] = inner_prod(d2, dr); // shear z
 
     generalized_strain[3] = inner_prod(d2, d1_s) - inner_prod(d1, d2_s); // torsion
-    generalized_strain[4] = inner_prod(d3, d2_s) - inner_prod(d2, d3_s); // bending y
-    generalized_strain[5] = inner_prod(d1, d3_s) - inner_prod(d3, d1_s); // bending z
+    generalized_strain[5] = inner_prod(d3, d2_s) - inner_prod(d2, d3_s); // bending y
+    generalized_strain[4] = inner_prod(d1, d3_s) - inner_prod(d3, d1_s); // bending z
 
     return generalized_strain;
 }
@@ -284,9 +284,9 @@ BoundedMatrix<double, 12, 6> NonLinearTimoshenkoBeamElement3D2N::CalculateDoFMap
     matrix.clear();
 
     noalias(project(matrix, range(0, 3), range(0, 3)))  = IdentityMatrix(3);
-    noalias(project(matrix, range(3, 6), range(3, 6)))  = CL_utils::CalculateSpinMatrix(rD1);
-    noalias(project(matrix, range(6, 9), range(3, 6)))  = CL_utils::CalculateSpinMatrix(rD2);
-    noalias(project(matrix, range(9, 12), range(3, 6))) = CL_utils::CalculateSpinMatrix(rD3);
+    noalias(project(matrix, range(3, 6), range(3, 6)))  = -CL_utils::CalculateSpinMatrix(rD1);
+    noalias(project(matrix, range(6, 9), range(3, 6)))  = -CL_utils::CalculateSpinMatrix(rD2);
+    noalias(project(matrix, range(9, 12), range(3, 6))) = -CL_utils::CalculateSpinMatrix(rD3);
 
     return matrix;
 }
@@ -319,8 +319,7 @@ BoundedMatrix<double, 6, 12> NonLinearTimoshenkoBeamElement3D2N::CalculateB(
 
     // The current tangent vector to the beam axis r'
     array3 dr = r_geom[1].Coordinates() - r_geom[0].Coordinates();
-    const double current_L = norm_2(dr);
-    dr /= current_L;
+    dr /= CalculateReferenceLength();
 
     // We interpolate the directors
     const array3 d1 = N1 * column(mRotationOperators[0], 0) + N2 * column(mRotationOperators[1], 0);
@@ -488,16 +487,16 @@ void NonLinearTimoshenkoBeamElement3D2N::CalculateAll(
 
         noalias(b_matrix) = CalculateB(N1, N2, dN1, dN2);
 
-        // KRATOS_WATCH(xi)
-        // KRATOS_WATCH(N1)
-        // KRATOS_WATCH(N2)
-        // KRATOS_WATCH(b_matrix)
-
-        // KRATOS_ERROR << "ff" << std::endl;
-
+        
         if (ComputeRHS) {
             noalias(rRHS) -= prod(trans(b_matrix), gen_stress_vector) * J;
         }
+        // KRATOS_WATCH(xi)
+        // KRATOS_WATCH(N1)
+        // KRATOS_WATCH(N2)
+        KRATOS_WATCH(gen_stress_vector)
+
+        // KRATOS_ERROR << "ff" << std::endl;
 
         if (ComputeLHS) {
             // Material stiffness
@@ -506,7 +505,7 @@ void NonLinearTimoshenkoBeamElement3D2N::CalculateAll(
             // Material
             noalias(rLHS) += prod(temp, b_matrix) * J;
             // Geometric
-            // CalculateAndAddKg(rLHS, J, N1, N2, dN1, dN2, gen_stress_vector);
+            CalculateAndAddKg(rLHS, J, N1, N2, dN1, dN2, gen_stress_vector);
         }
 
     } // IP loop
@@ -529,8 +528,8 @@ void NonLinearTimoshenkoBeamElement3D2N::CalculateAndAddKg(
 
     // The current tangent vector to the beam axis r'
     array3 dr = r_geom[1].Coordinates() - r_geom[0].Coordinates();
-    const double current_L = norm_2(dr);
-    dr /= current_L;
+    // const double current_L = norm_2(dr);
+    dr /= CalculateReferenceLength();
 
     Vector N(2), dN(2);
     N[0] = N1;
