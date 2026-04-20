@@ -540,7 +540,8 @@ void NonLinearTimoshenkoBeamElement3D2N::CalculateAndAddKg(
     BoundedMatrix<double, 12, 12> Kn, Km;
     Kn.clear();
     Km.clear();
-    BoundedMatrix<double, 6, 6> Kn_ab, Km_ab, Gi_ab; // submatrices
+    BoundedMatrix<double, 6, 6> Kn_ab, Km_ab; // submatrices
+    BoundedMatrix<double, 3, 3> Gi_ab;
     Kn_ab.clear();
     Km_ab.clear();
     array3 di_a, di_b, dk_s, dk;
