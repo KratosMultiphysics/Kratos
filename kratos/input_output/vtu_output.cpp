@@ -1502,6 +1502,64 @@ void VtuOutput::PrintOutput(
     KRATOS_CATCH("");
 }
 
+
+std::vector<std::tuple<
+    std::string,                                                // model part name      0
+    ModelPart::NodesContainerType::Pointer,                     // nodes container      1
+    std::optional<VtuOutput::CellContainerPointerType>          // entities container   2
+    >> VtuOutput::GetUnstructuredGrids() const
+{
+    KRATOS_TRY
+
+    std::vector<std::tuple<std::string, ModelPart::NodesContainerType::Pointer, std::optional<CellContainerPointerType>>> result;
+    result.resize(mUnstructuredGridDataList.size(), {});
+    for (IndexType i = 0; i < mUnstructuredGridDataList.size(); ++i) {
+        auto& unstructured_grid_data = mUnstructuredGridDataList[i];
+        auto& current_data = result[i];
+        std::get<0>(current_data) = unstructured_grid_data.mpModelPart->FullName();
+        std::get<1>(current_data) = unstructured_grid_data.mpPoints;
+        std::get<2>(current_data) = unstructured_grid_data.mpCells;
+    }
+
+    return result;
+
+    KRATOS_CATCH("");
+}
+
+template<class TCellContainerPointerType>
+std::tuple<
+    NDData<double>::Pointer,                    // nodal positions      0
+    NDData<unsigned char>::Pointer,             // geometry types       1
+    NDData<int>::Pointer,                       // connectivity offsets 2
+    NDData<int>::Pointer                        // connectivities       3
+    > VtuOutput::GetConnectivityData(
+        ModelPart::NodesContainerType::Pointer pNodes,
+        TCellContainerPointerType pEntities) const
+{
+    KRATOS_TRY
+
+    NodePositionTensorAdaptor node_position_tensor_adaptor(pNodes, mConfiguration);
+    node_position_tensor_adaptor.CollectData();
+
+    std::unordered_map<IndexType, IndexType> indices_map;
+    std::vector<IndexType> writing_indices;
+    indices_map.reserve(pNodes->size());
+    IndexType vtu_index = 0;
+    for (const auto& r_node : *pNodes) {
+        indices_map[r_node.Id()] = vtu_index++;
+    }
+
+    std::tuple<NDData<double>::Pointer, NDData<unsigned char>::Pointer, NDData<int>::Pointer, NDData<int>::Pointer> result;
+    std::get<0>(result) = node_position_tensor_adaptor.pGetStorage();
+    std::get<1>(result) = GetGeometryTypes(writing_indices, *pEntities, mEchoLevel);
+    std::get<2>(result) = GetOffsets(writing_indices, *pEntities);
+    std::get<3>(result) = GetConnectivities(*std::get<2>(result), *pEntities, indices_map, writing_indices);
+
+    return result;
+
+    KRATOS_CATCH("");
+}
+
 std::string VtuOutput::Info() const
 {
     std::stringstream info;
@@ -1603,6 +1661,9 @@ KRATOS_VTU_OUTPUT_VARIABLE_METHOD_INSTANTIATION(Matrix)
 KRATOS_VTU_OUTPUT_TENSOR_METHOD_INSTANTIATION(bool)
 KRATOS_VTU_OUTPUT_TENSOR_METHOD_INSTANTIATION(int)
 KRATOS_VTU_OUTPUT_TENSOR_METHOD_INSTANTIATION(double)
+
+template KRATOS_API(KRATOS_CORE) std::tuple<NDData<double>::Pointer, NDData<unsigned char>::Pointer, NDData<int>::Pointer, NDData<int>::Pointer> VtuOutput::GetConnectivityData(ModelPart::NodesContainerType::Pointer, ModelPart::ConditionsContainerType::Pointer) const;
+template KRATOS_API(KRATOS_CORE) std::tuple<NDData<double>::Pointer, NDData<unsigned char>::Pointer, NDData<int>::Pointer, NDData<int>::Pointer> VtuOutput::GetConnectivityData(ModelPart::NodesContainerType::Pointer, ModelPart::ElementsContainerType::Pointer) const;
 
 #undef KRATOS_VTU_OUTPUT_VARIABLE_METHOD_INSTANTIATION
 #undef KRATOS_VTU_OUTPUT_TENSOR_METHOD_INSTANTIATION

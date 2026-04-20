@@ -316,6 +316,26 @@ public:
         const int Step,
         const double Time);
 
+    /**
+     * @brief Fills the appropriate NDData containers with the connectivity data
+     */
+    std::vector<std::tuple<
+        std::string,                                                          // model part name
+        ModelPart::NodesContainerType::Pointer,                               // nodes container
+        std::optional<VtuOutput::CellContainerPointerType>                    // entities container
+        >> GetUnstructuredGrids() const;
+
+    template<class TCellContainerPointerType>
+    std::tuple<
+        NDData<double>::Pointer,                    // nodal positions
+        NDData<unsigned char>::Pointer,             // geometry types
+        NDData<int>::Pointer,                       // connectivity offsets
+        NDData<int>::Pointer                        // connectivities
+        > GetConnectivityData(
+            ModelPart::NodesContainerType::Pointer,
+            TCellContainerPointerType pEntities) const;
+
+
     ///@}
     ///@name Input and output
     ///@{
