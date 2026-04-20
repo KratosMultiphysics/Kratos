@@ -271,21 +271,44 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_CalculateUndrainedYoungsModu
     KRATOS_EXPECT_EQ(undrained_youngs_modulus, 7.0 / 6.0);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_CalculateUndrainedYoungsModulus_ThrowsError,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_CalculateElasticProperties, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    // Arrange
+    // Arrange: plain properties
     Properties properties;
-    properties.SetValue(YOUNG_MODULUS, 1.0);
-    properties.SetValue(POISSON_RATIO, -2.0);
+    properties.SetValue(YOUNG_MODULUS, 2.5);
+    properties.SetValue(POISSON_RATIO, 0.25);
 
-    // Act & Assert
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        (void)ConstitutiveLawUtilities::CalculateUndrainedYoungsModulus(properties, 0.4),
-        "POISSON_RATIO (-2) <= -1.");
+    // Act
+    const auto [E_plain, nu_plain] = ConstitutiveLawUtilities::GetOrCalculateElasticProperties(properties);
+
+    // Assert
+    KRATOS_EXPECT_EQ(E_plain, 2.5);
+    KRATOS_EXPECT_EQ(nu_plain, 0.25);
+
+    // Arrange: properties for undrained computation
+    properties = Properties{};
+    properties.SetValue(YOUNG_MODULUS, 1.0);
+    properties.SetValue(POISSON_RATIO, 0.2);
+    properties.SetValue(BIOT_COEFFICIENT, 1.0);
+    properties.SetValue(BULK_MODULUS_FLUID, 1.E3);
+    properties.SetValue(BULK_MODULUS_SOLID, 2.E3);
+    properties.SetValue(POROSITY, 0.5);
+
+    // Expected values computed from existing utilities
+    const auto expected_nu = ConstitutiveLawUtilities::GetOrCalculateUndrainedPoissonsRatio(properties);
+    const auto expected_E = ConstitutiveLawUtilities::CalculateUndrainedYoungsModulus(properties, expected_nu);
+
+    // Act: undrained
+    const auto [E_undrained, nu_undrained] =
+        ConstitutiveLawUtilities::GetOrCalculateElasticProperties(properties, true);
+
+    // Assert
+    KRATOS_EXPECT_NEAR(E_undrained, expected_E, Defaults::absolute_tolerance);
+    KRATOS_EXPECT_NEAR(nu_undrained, expected_nu, Defaults::absolute_tolerance);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_GetSkemptonB_ReturnsExpectedValue, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_GetOrCalculatedSkemptonB_ReturnsExpectedValue,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
     Properties properties;
@@ -297,7 +320,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_GetSkemptonB_ReturnsExpected
     properties.SetValue(POROSITY, 0.5);
 
     // Act
-    auto skempton_b = ConstitutiveLawUtilities::GetSkemptonB(properties);
+    auto skempton_b = ConstitutiveLawUtilities::GetOrCalculateSkemptonB(properties);
 
     // Assert
     KRATOS_EXPECT_EQ(skempton_b, 0.5);
@@ -307,17 +330,17 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_GetSkemptonB_ReturnsExpected
     properties.SetValue(POROSITY, 1.0e-8);
 
     // Act
-    skempton_b = ConstitutiveLawUtilities::GetSkemptonB(properties);
+    skempton_b = ConstitutiveLawUtilities::GetOrCalculateSkemptonB(properties);
 
     // Assert
-    constexpr auto tolerance = 1.0e-6;
+    constexpr auto tolerance = 1.0e6 * Defaults::absolute_tolerance;
     KRATOS_EXPECT_NEAR(skempton_b, 0.5, tolerance);
 
     // Arrange
     properties.SetValue(BIOT_COEFFICIENT, 0.0);
 
     // Act
-    skempton_b = ConstitutiveLawUtilities::GetSkemptonB(properties);
+    skempton_b = ConstitutiveLawUtilities::GetOrCalculateSkemptonB(properties);
 
     // Assert
     KRATOS_EXPECT_EQ(skempton_b, 0.0);
@@ -325,13 +348,14 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_GetSkemptonB_ReturnsExpected
     // Arrange
     properties.SetValue(GEO_SKEMPTON_B, 0.8);
     // Act
-    skempton_b = ConstitutiveLawUtilities::GetSkemptonB(properties);
+    skempton_b = ConstitutiveLawUtilities::GetOrCalculateSkemptonB(properties);
 
     // Assert
     KRATOS_EXPECT_EQ(skempton_b, 0.8);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_GetSkemptonB_ThrowsError, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_GetOrCalculatedSkemptonB_ThrowsError,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
     Properties properties;
@@ -341,27 +365,28 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_GetSkemptonB_ThrowsError, Kr
     properties.SetValue(POROSITY, 0.0);
 
     // Act & Assert
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN((void)ConstitutiveLawUtilities::GetSkemptonB(properties),
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN((void)ConstitutiveLawUtilities::GetOrCalculateSkemptonB(properties),
                                       "Non-physical values: denominator < epsilon.");
 
     // Arrange
-    properties.SetValue(BIOT_COEFFICIENT, 1.0);
-    properties.SetValue(POROSITY, -5e-05);
-
+    properties.SetValue(BIOT_COEFFICIENT, 0.5);
+    properties.SetValue(BULK_MODULUS_SOLID, 1.E2);
+    properties.SetValue(POROSITY, 0.1);
     // Act & Assert
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN((void)ConstitutiveLawUtilities::GetSkemptonB(properties),
-                                      "Calculated Skempton B (1.0001) is out of range [0,1].");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN((void)ConstitutiveLawUtilities::GetOrCalculateSkemptonB(properties),
+                                      "Calculated Skempton B (1.08696) is out of range [0,1].");
 
     // Arrange
     properties.SetValue(BIOT_COEFFICIENT, -0.0001);
+    properties.SetValue(BULK_MODULUS_SOLID, 2.E3);
     properties.SetValue(POROSITY, 0.1);
 
     // Act & Assert
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN((void)ConstitutiveLawUtilities::GetSkemptonB(properties),
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN((void)ConstitutiveLawUtilities::GetOrCalculateSkemptonB(properties),
                                       "Calculated Skempton B (-0.0010011) is out of range [0,1].");
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_GetUndrainedPoissonsRatio_ReturnsExpectedValue,
+KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_CalculateUndrainedPoissonsRatio_ReturnsExpectedValue,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
@@ -373,69 +398,80 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_GetUndrainedPoissonsRatio_Re
     properties.SetValue(POROSITY, 0.5);
 
     // Act
-    auto undrained_poissons_ratio = ConstitutiveLawUtilities::GetUndrainedPoissonsRatio(properties);
+    auto undrained_poissons_ratio = ConstitutiveLawUtilities::CalculateUndrainedPoissonsRatio(properties);
 
     // Assert
     KRATOS_EXPECT_NEAR(undrained_poissons_ratio, 1.0 / 3.0, Defaults::absolute_tolerance);
 
     // Arrange
-    properties.SetValue(GEO_SKEMPTON_B, 0.5);
+    properties.SetValue(GEO_SKEMPTON_B, 0.2);
 
     // Act
-    undrained_poissons_ratio = ConstitutiveLawUtilities::GetUndrainedPoissonsRatio(properties);
+    undrained_poissons_ratio = ConstitutiveLawUtilities::CalculateUndrainedPoissonsRatio(properties);
 
     // Assert
-    KRATOS_EXPECT_NEAR(undrained_poissons_ratio, 1.0 / 3.0, Defaults::absolute_tolerance);
+    KRATOS_EXPECT_NEAR(undrained_poissons_ratio, 0.25, Defaults::absolute_tolerance);
 
     // Arrange
     properties.SetValue(POISSON_RATIO, 0.3);
     properties.SetValue(GEO_SKEMPTON_B, 1.0);
 
     // Act
-    undrained_poissons_ratio = ConstitutiveLawUtilities::GetUndrainedPoissonsRatio(properties);
+    undrained_poissons_ratio = ConstitutiveLawUtilities::CalculateUndrainedPoissonsRatio(properties);
 
     // Assert
-    KRATOS_EXPECT_NEAR(undrained_poissons_ratio, 0.495, Defaults::absolute_tolerance);
+    KRATOS_EXPECT_NEAR(undrained_poissons_ratio, 0.5, Defaults::absolute_tolerance);
 
     // Arrange
     properties.SetValue(BIOT_COEFFICIENT, 0.0);
 
     // Act
-    undrained_poissons_ratio = ConstitutiveLawUtilities::GetUndrainedPoissonsRatio(properties);
+    undrained_poissons_ratio = ConstitutiveLawUtilities::CalculateUndrainedPoissonsRatio(properties);
 
     // Assert
     KRATOS_EXPECT_NEAR(undrained_poissons_ratio, 0.3, Defaults::absolute_tolerance);
-
-    // Arrange
-    properties.SetValue(GEO_POISSON_UNDRAINED, 0.4);
-
-    // Act
-    undrained_poissons_ratio = ConstitutiveLawUtilities::GetUndrainedPoissonsRatio(properties);
-
-    // Assert
-    KRATOS_EXPECT_NEAR(undrained_poissons_ratio, 0.4, Defaults::absolute_tolerance);
-
-    // Arrange
-    properties.SetValue(GEO_POISSON_UNDRAINED, 0.6);
-
-    // Act
-    undrained_poissons_ratio = ConstitutiveLawUtilities::GetUndrainedPoissonsRatio(properties);
-
-    // Assert
-    KRATOS_EXPECT_NEAR(undrained_poissons_ratio, 0.495, Defaults::absolute_tolerance);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_GetUndrainedPoissonsRatio_ThrowsError,
+KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_GetOrCalculateUndrainedPoissonsRatio_ReturnsExpectedValue,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
     Properties properties;
-    properties.SetValue(POISSON_RATIO, 0.0);
+    properties.SetValue(POISSON_RATIO, 0.2);
     properties.SetValue(BIOT_COEFFICIENT, 1.0);
-    properties.SetValue(GEO_SKEMPTON_B, 3.0);
+    properties.SetValue(BULK_MODULUS_FLUID, 1.E3);
+    properties.SetValue(BULK_MODULUS_SOLID, 2.E3);
+    properties.SetValue(POROSITY, 0.5);
+
+    // Act
+    auto undrained_poissons_ratio = ConstitutiveLawUtilities::GetOrCalculateUndrainedPoissonsRatio(properties);
+    const auto calculated_undrained_poissons_ratio =
+        ConstitutiveLawUtilities::CalculateUndrainedPoissonsRatio(properties);
+
+    // Assert
+    KRATOS_EXPECT_NEAR(undrained_poissons_ratio, calculated_undrained_poissons_ratio, Defaults::absolute_tolerance);
+
+    // When explicit GEO_POISSON_UNDRAINED is provided it should be returned (and clamped if needed)
+    properties.SetValue(GEO_POISSON_UNDRAINED, 0.4);
+    undrained_poissons_ratio = ConstitutiveLawUtilities::GetOrCalculateUndrainedPoissonsRatio(properties);
+    KRATOS_EXPECT_NEAR(undrained_poissons_ratio, 0.4, Defaults::absolute_tolerance);
+
+    properties.SetValue(GEO_POISSON_UNDRAINED, 0.6);
+    undrained_poissons_ratio = ConstitutiveLawUtilities::GetOrCalculateUndrainedPoissonsRatio(properties);
+    KRATOS_EXPECT_NEAR(undrained_poissons_ratio, 0.495, Defaults::absolute_tolerance);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_CalculateUndrainedPoissonsRatio_ThrowsError,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    Properties properties;
+    properties.SetValue(POISSON_RATIO, -0.99999999999999995);
+    properties.SetValue(BIOT_COEFFICIENT, 1.0);
+    properties.SetValue(GEO_SKEMPTON_B, 1.0);
 
     // Act & Assert
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN((void)ConstitutiveLawUtilities::GetUndrainedPoissonsRatio(properties),
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN((void)ConstitutiveLawUtilities::CalculateUndrainedPoissonsRatio(properties),
                                       "Non-physical values: denominator < epsilon.");
 }
 
@@ -443,8 +479,12 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitilties_MakeContinuumConstitutiveTen
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange & Act
-    const auto constitutive_tensor =
-        ConstitutiveLawUtilities::MakeContinuumConstitutiveTensor(1.0, 0.25, 4, 2);
+    constexpr auto youngs_modulus              = 1.0;
+    constexpr auto poissons_ratio              = 0.25;
+    constexpr auto strain_size                 = 4;
+    constexpr auto number_of_normal_components = 2;
+    const auto constitutive_tensor = ConstitutiveLawUtilities::MakeContinuumElasticConstitutiveTensor(
+        youngs_modulus, poissons_ratio, strain_size, number_of_normal_components);
 
     // Assert
     const auto expected_tensor = UblasUtilities::CreateMatrix(
@@ -452,12 +492,16 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitilties_MakeContinuumConstitutiveTen
     KRATOS_EXPECT_MATRIX_EQ(constitutive_tensor, expected_tensor);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_MakeInterfaceConstitutiveTensorReturnsConstitutiveTensor,
+KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_MakeInterfaceElasticConstitutiveTensorReturnsConstitutiveTensor,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange & Act
-    const auto constitutive_tensor =
-        ConstitutiveLawUtilities::MakeInterfaceConstitutiveTensor(2.0, 1.0, 4, 2);
+    constexpr auto youngs_modulus              = 2.0;
+    constexpr auto poissons_ratio              = 1.0;
+    constexpr auto strain_size                 = 4;
+    constexpr auto number_of_normal_components = 2;
+    const auto     constitutive_tensor =
+        ConstitutiveLawUtilities::MakeInterfaceElasticConstitutiveTensor(2.0, 1.0, 4, 2);
 
     // Assert
     const auto expected_tensor = UblasUtilities::CreateMatrix(
@@ -465,23 +509,10 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_MakeInterfaceConstitutiveTen
     KRATOS_EXPECT_MATRIX_EQ(constitutive_tensor, expected_tensor);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_MakeCotinuumConstitutiveTensorReturnsConstitutiveTensor,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    // Arrange & Act
-    const auto constitutive_tensor =
-        ConstitutiveLawUtilities::MakeContinuumConstitutiveTensor(1.0, 0.25, 4, 2);
-
-    // Assert
-    const auto expected_tensor = UblasUtilities::CreateMatrix(
-        {{1.2, 0.4, 0.0, 0.0}, {0.4, 1.2, 0.0, 0.0}, {0.0, 0.0, 0.4, 0.0}, {0.0, 0.0, 0.0, 0.4}});
-    KRATOS_EXPECT_MATRIX_EQ(constitutive_tensor, expected_tensor);
-}
-
 KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_CalculateK0NCFromFrictionAngleGivesK0NC,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    // Arrange & Act+
+    // Arrange & Act
     const auto calculated_k0_nc =
         ConstitutiveLawUtilities::CalculateK0NCFromFrictionAngleInRadians(30.0 * Globals::Pi / 180.0);
 

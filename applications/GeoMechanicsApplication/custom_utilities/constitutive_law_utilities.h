@@ -40,10 +40,13 @@ public:
     static double GetFrictionAngleInDegrees(const Properties& rProperties);
     static double GetFrictionAngleInRadians(const Properties& rProperties);
 
-    static Matrix MakeInterfaceConstitutiveTensor(double      NormalStiffness,
-                                                  double      ShearStiffness,
-                                                  std::size_t TractionSize,
-                                                  std::size_t NumberOfNormalComponents);
+    static std::pair<double, double> GetOrCalculateElasticProperties(const Properties& rProperties,
+                                                                     bool Undrained = false);
+
+    static Matrix MakeInterfaceElasticConstitutiveTensor(double      NormalStiffness,
+                                                         double      ShearStiffness,
+                                                         std::size_t TractionSize,
+                                                         std::size_t NumberOfNormalComponents);
 
     static void CheckStrainSize(const Properties& rProperties, std::size_t ExpectedSize, std::size_t ElementId);
 
@@ -54,14 +57,16 @@ public:
     [[nodiscard]] static double CalculateUndrainedYoungsModulus(const Properties& rProperties,
                                                                 double UndrainedPoissonsRatio);
 
-    [[nodiscard]] static double GetUndrainedPoissonsRatio(const Properties& rProperties);
+    [[nodiscard]] static double CalculateUndrainedPoissonsRatio(const Properties& rProperties);
 
-    [[nodiscard]] static double GetSkemptonB(const Properties& rProperties);
+    [[nodiscard]] static double GetOrCalculateUndrainedPoissonsRatio(const Properties& rProperties);
 
-    [[nodiscard]] static Matrix MakeContinuumConstitutiveTensor(double      YoungsModulus,
-                                                                double      PoissonsRatio,
-                                                                std::size_t StrainSize,
-                                                                std::size_t NumberOfNormalComponents);
+    [[nodiscard]] static double GetOrCalculateSkemptonB(const Properties& rProperties);
+
+    [[nodiscard]] static Matrix MakeContinuumElasticConstitutiveTensor(double      YoungsModulus,
+                                                                       double      PoissonsRatio,
+                                                                       std::size_t StrainSize,
+                                                                       std::size_t NumberOfNormalComponents);
 
 }; /* Class ConstitutiveLawUtilities*/
 
