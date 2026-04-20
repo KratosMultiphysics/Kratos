@@ -103,7 +103,7 @@ double Sensor::GetWeight() const
 bool Sensor::IsActive() const
 {
     const auto& p_node = this->GetNode();
-    return (!p_node->IsDefined(ACTIVE)) || (p_node->IsDefined(ACTIVE) && p_node->Is(ACTIVE));
+    return (!p_node->IsDefined(ACTIVE) || p_node->Is(ACTIVE));
 }
 
 double Sensor::GetSensorValue() const
