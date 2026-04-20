@@ -76,7 +76,7 @@ def PrintSensorListToCSV(output_file_name: Path, list_of_sensors: 'list[KratosSI
         first_sensor = list_of_sensors[0]
 
         # write the csv id
-        file_output.write("#")
+        file_output.write("sensor_id")
 
         # store converters to CSV in dicts
         params_value_dict: 'dict[str, typing.Callable[[Kratos.Parameters], str]]' = {}
