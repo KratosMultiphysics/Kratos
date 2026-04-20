@@ -159,4 +159,19 @@ void SensorUtils::ReadVariableData(
     KRATOS_CATCH("");
 }
 
+void SensorUtils::ReadFlagData(
+    Flags& rFlags,
+    Parameters FlagDataParameters)
+{
+    KRATOS_TRY
+
+    for (auto flag_data_itr = FlagDataParameters.begin(); flag_data_itr != FlagDataParameters.end(); ++flag_data_itr ) {
+        const auto& flag_name = flag_data_itr.name();
+        const auto& r_flag = KratosComponents<Flags>::Get(flag_name);
+        rFlags.Set(r_flag, flag_data_itr->GetBool());
+    }
+
+    KRATOS_CATCH("");
+}
+
 } /* namespace Kratos.*/

@@ -41,6 +41,11 @@ public:
         DataValueContainer& rDataValueContainer,
         Parameters VariableDataParameters);
 
+    static void ReadFlagData(
+        Flags& rFlags,
+        Parameters FlagDataParameters);
+
+
     ///@}
 };
 
