@@ -10,8 +10,8 @@
                 "Variables": {
                     "IGNORE_UNDRAINED": true,
                     "BIOT_COEFFICIENT": 1.0,
-                    "DENSITY_SOLID": 2.242609582059123e+03,
-                    "DENSITY_WATER": 1.019367991845056e+03,
+                    "DENSITY_SOLID": 2.24260958205912e+03,
+                    "DENSITY_WATER": 1.01936799184506e+03,
                     "POROSITY": 0.5,
                     "BULK_MODULUS_SOLID": 2.0e+10,
                     "BULK_MODULUS_FLUID": 2.2e+09,
