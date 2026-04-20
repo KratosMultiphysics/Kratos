@@ -682,6 +682,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_InitializeCorrectlySetsStatePara
     // Arrange
     const auto p_properties = std::make_shared<Properties>();
     p_properties->SetValue(CONSTITUTIVE_LAW, std::make_shared<MockConstitutiveLaw>());
+    p_properties->SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
     Model      model;
     const auto process_info = ProcessInfo{};
     auto       p_element    = CreateUPwSmallStrainElementWithUPwDofs(model, p_properties);

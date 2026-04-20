@@ -202,12 +202,8 @@ DrainageType ConstitutiveLawUtilities::StringToDrainageType(const std::string& r
 
 bool ConstitutiveLawUtilities::IsConstantWaterPressure(const Properties& rProperties)
 {
-    // once the replace works, here the if condition and the next return should be removed.
-    if (rProperties.Has(GEO_DRAINAGE_TYPE)) {
-        return ConstitutiveLawUtilities::StringToDrainageType(rProperties[GEO_DRAINAGE_TYPE]) ==
-               DrainageType::CONSTANT_WATER_PRESSURE;
-    }
-    return rProperties.Has(IGNORE_UNDRAINED) ? rProperties[IGNORE_UNDRAINED] : false;
+    return ConstitutiveLawUtilities::StringToDrainageType(rProperties[GEO_DRAINAGE_TYPE]) ==
+           DrainageType::CONSTANT_WATER_PRESSURE;
 }
 
 void ConstitutiveLawUtilities::ReplaceIgnoreUndrainedByDrainageType(Properties* pProperties)

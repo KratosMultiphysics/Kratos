@@ -258,18 +258,34 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_ValidateFrictionAngle, Kratos
 KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_ReplaceIgnoreUndrainedByDrainageTypeEndsWithoutIgnoreUndrained,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
+    // Arrange
     Properties* pProperties = nullptr;
+    // Act & assert
     EXPECT_NO_THROW(ConstitutiveLawUtilities::ReplaceIgnoreUndrainedByDrainageType(pProperties));
 
+    // Arrange
     Model               my_model;
     ModelPart&          my_model_part = my_model.CreateModelPart("Main");
     Properties::Pointer p_properties  = my_model_part.CreateNewProperties(0);
     p_properties->SetValue(IGNORE_UNDRAINED, true);
+    // Act
     ConstitutiveLawUtilities::ReplaceIgnoreUndrainedByDrainageType(p_properties.get());
+    // Assert
     EXPECT_FALSE(p_properties->Has(IGNORE_UNDRAINED));
     EXPECT_TRUE(p_properties->Has(GEO_DRAINAGE_TYPE));
+    KRATOS_EXPECT_EQ(ConstitutiveLawUtilities::StringToDrainageType(p_properties->GetValue(GEO_DRAINAGE_TYPE)),
+                     DrainageType::CONSTANT_WATER_PRESSURE);
 
-    // would be nice to test the warning and the value of GEO_DRAINAGE_TYPE
+    // Arrange
+    p_properties->Erase(GEO_DRAINAGE_TYPE);
+    p_properties->SetValue(IGNORE_UNDRAINED, false);
+    // Act
+    ConstitutiveLawUtilities::ReplaceIgnoreUndrainedByDrainageType(p_properties.get());
+    // Assert
+    EXPECT_FALSE(p_properties->Has(IGNORE_UNDRAINED));
+    EXPECT_TRUE(p_properties->Has(GEO_DRAINAGE_TYPE));
+    KRATOS_EXPECT_EQ(ConstitutiveLawUtilities::StringToDrainageType(p_properties->GetValue(GEO_DRAINAGE_TYPE)),
+                     DrainageType::FULLY_COUPLED);
 }
 
 } // namespace Kratos::Testing
