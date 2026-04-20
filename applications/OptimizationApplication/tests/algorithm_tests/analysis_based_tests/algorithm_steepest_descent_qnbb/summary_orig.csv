@@ -4,6 +4,7 @@
 # -----------------------------------------------
 # --------------- Initial values ----------------
 # 	algorithm:
+# 		max_iterations: 10
 # 	strain_energy:
 # 		initial_value: 2.045937642e-02
 # ------------ End of initial values ------------
