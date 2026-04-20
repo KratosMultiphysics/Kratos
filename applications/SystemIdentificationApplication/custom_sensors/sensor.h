@@ -138,6 +138,13 @@ public:
     double GetWeight() const;
 
     /**
+     * @brief Returns the state if the sensor is active or not.
+     * @details This method returns true if the @p ACTIVE flag is not defined in the corresponding
+     *          node or, it is defined and is set to be true.
+     */
+    bool IsActive() const;
+
+    /**
      * @brief Get the Sensor value
      *
      * @return double       Value of the sensor.
