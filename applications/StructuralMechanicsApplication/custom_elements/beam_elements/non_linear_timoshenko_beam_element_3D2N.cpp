@@ -495,7 +495,10 @@ void NonLinearTimoshenkoBeamElement3D2N::CalculateAll(
             // Material stiffness
             BoundedMatrix<double, 12, 6> temp;
             noalias(temp) = prod(trans(b_matrix), gen_constitutive_matrix);
+            // Material
             noalias(rLHS) += prod(temp, b_matrix) * J;
+            // Geometric
+            CalculateAndAddKg(rLHS, J, N1, N2, dN1, dN2, gen_stress_vector);
         }
 
     } // IP loop
