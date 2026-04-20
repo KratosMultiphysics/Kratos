@@ -156,7 +156,9 @@ double MeasurementResidualResponseFunction::CalculateValue(ModelPart& rModelPart
         p_sensor->GetNode()->SetValue(SENSOR_ERROR, current_sensor_error);
         p_sensor->GetNode()->SetValue(SENSOR_RELATIVE_ERROR, current_sensor_error / p_sensor->GetNode()->GetValue(SENSOR_MEASURED_VALUE));
 
-        sum += ( std::pow( 0.5 * pow(current_sensor_error, 2) * p_sensor->GetWeight(), mPCoefficient ) );
+        if (p_sensor->IsActive()) {
+            sum += ( std::pow( 0.5 * pow(current_sensor_error, 2) * p_sensor->GetWeight(), mPCoefficient ) );
+        }
     }
 
     mC1 = std::pow( sum, 1 / mPCoefficient - 1 ) / std::pow(2, mPCoefficient - 1);
@@ -183,8 +185,10 @@ void MeasurementResidualResponseFunction::CalculateDerivative(
     auto& local_sensor_response_gradient = mResponseGradientList[OpenMPUtils::ThisThread()];
 
     for (auto& p_sensor : mpSensorsList) {
-        TCalculationType::Calculate(*p_sensor, local_sensor_response_gradient, rResidualGradient, rArgs...);
-        noalias(rResponseGradient) += local_sensor_response_gradient * mC1 * (std::pow(p_sensor->GetWeight(), mPCoefficient) * std::pow(p_sensor->GetNode()->GetValue(SENSOR_ERROR), mPCoefficient * 2 - 1 ) );
+        if (p_sensor->IsActive()) {
+            TCalculationType::Calculate(*p_sensor, local_sensor_response_gradient, rResidualGradient, rArgs...);
+            noalias(rResponseGradient) += local_sensor_response_gradient * mC1 * (std::pow(p_sensor->GetWeight(), mPCoefficient) * std::pow(p_sensor->GetNode()->GetValue(SENSOR_ERROR), mPCoefficient * 2 - 1 ) );
+        }
     }
 
     KRATOS_CATCH("");
