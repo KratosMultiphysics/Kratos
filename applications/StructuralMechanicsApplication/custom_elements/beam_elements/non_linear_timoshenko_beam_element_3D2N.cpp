@@ -536,10 +536,10 @@ void NonLinearTimoshenkoBeamElement3D2N::CalculateAndAddKg(
     BoundedMatrix<double, 12, 12> Kn, Km;
     Kn.clear();
     Km.clear();
-    BoundedMatrix<double, 6, 6> Kn_ab, Km_ab; // submatrices
+    BoundedMatrix<double, 6, 6> Kn_ab, Km_ab, Gi_ab; // submatrices
     Kn_ab.clear();
     Km_ab.clear();
-    array3 di_a, di_b;
+    array3 di_a, di_b, dk_s, dk;
 
     const IndexType block_size = 6; // 3 displ + 3 rot
 
@@ -557,12 +557,28 @@ void NonLinearTimoshenkoBeamElement3D2N::CalculateAndAddKg(
                 noalias(project(Kn_ab, range(3, 6), range(3, 6))) = delta(a, b) * N[a] * Q[i] * (outer_prod(di_a, dr) - (inner_prod(di_a, dr) * IdentityMatrix(3)));
 
                 // Bending submatrix
-            }
+                Gi_ab.clear();
+                for (IndexType j = 0; j < 3; ++j) {
+                    for (IndexType k = 0; k < 3; ++k) {
 
+                        noalias(dk_s) = dN[0] * column(mRotationOperators[0], k) + dN[0] * column(mRotationOperators[1], k);
+                        noalias(dk) = N[0] * column(mRotationOperators[0], k) + N[0] * column(mRotationOperators[1], k);
 
-            // noalias(project(Kn, range(a * block_size), range(range(a * block_size)))) // CHECK 1/2 ???
-        }
-    }
+                        noalias(Gi_ab) += epsilon(j, i, k) *
+                                          ((dN[a] * N[b] - N[a] * dN[b]) * CL_utils::CalculateSpinMatrix(column(mRotationOperators[a], k)) +
+                                           delta(a, b) * (dN[a] * CL_utils::CalculateSpinMatrix(dk) - N[a] * CL_utils::CalculateSpinMatrix(dk_s)));
+                    } // k loop
+                } // j loop
+                Gi_ab *= 0.5 * M[i];
+                noalias(project(Km_ab, range(3, 6), range(3, 6))) = -prod(CL_utils::CalculateSpinMatrix(di_b), Gi_ab);
+            } // i loop
+
+            noalias(project(Kn, range(a * block_size, a * block_size + block_size), range(range(b * block_size, b * block_size + block_size)))) = Kn_ab; // CHECK 1/2 ???
+            noalias(project(Km, range(a * block_size, a * block_size + block_size), range(range(b * block_size, b * block_size + block_size)))) = Km_ab; // CHECK 1/2 ???
+        } // b
+    } // a
+    // We add the geometric stiffness
+    noalias(rLHS) += J * (Kn + Km);
 }
 
 /***********************************************************************************/
