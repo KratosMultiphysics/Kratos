@@ -456,9 +456,9 @@ void NonLinearTimoshenkoBeamElement3D2N::CalculateAll(
     auto &r_cl_options = cl_values.GetOptions();
     r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS, ComputeRHS);
     r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, ComputeLHS);
-    
+
     const double L0 = CalculateReferenceLength(); // Reference length
-    
+
     // Let's initialize the cl values
     Vector gen_strain_vector(strain_size), gen_stress_vector(strain_size);
     Matrix gen_constitutive_matrix(strain_size, strain_size);
@@ -488,6 +488,13 @@ void NonLinearTimoshenkoBeamElement3D2N::CalculateAll(
 
         noalias(b_matrix) = CalculateB(N1, N2, dN1, dN2);
 
+        // KRATOS_WATCH(xi)
+        // KRATOS_WATCH(N1)
+        // KRATOS_WATCH(N2)
+        // KRATOS_WATCH(b_matrix)
+
+        // KRATOS_ERROR << "ff" << std::endl;
+
         if (ComputeRHS) {
             noalias(rRHS) -= prod(trans(b_matrix), gen_stress_vector) * J;
         }
@@ -499,7 +506,7 @@ void NonLinearTimoshenkoBeamElement3D2N::CalculateAll(
             // Material
             noalias(rLHS) += prod(temp, b_matrix) * J;
             // Geometric
-            CalculateAndAddKg(rLHS, J, N1, N2, dN1, dN2, gen_stress_vector);
+            // CalculateAndAddKg(rLHS, J, N1, N2, dN1, dN2, gen_stress_vector);
         }
 
     } // IP loop
@@ -671,7 +678,7 @@ void NonLinearTimoshenkoBeamElement3D2N::FinalizeNonLinearIteration(
 
     const auto &r_geom = GetGeometry();
 
-    array3 curr_rot_1, curr_rot_2, old_rot_1, old_rot_2, delta_rot_1, delta_rot_2;
+    array3 curr_rot_1, curr_rot_2, old_rot_1, old_rot_2, delta_rot_1, delta_rot_2, romero_rot_1, romero_rot_2;
 
     noalias(curr_rot_1) = r_geom[0].FastGetSolutionStepValue(ROTATION);
     noalias(old_rot_1) = r_geom[0].FastGetSolutionStepValue(ROTATION, 1);
@@ -681,9 +688,16 @@ void NonLinearTimoshenkoBeamElement3D2N::FinalizeNonLinearIteration(
     noalias(delta_rot_1) = curr_rot_1 - old_rot_1;
     noalias(delta_rot_2) = curr_rot_2 - old_rot_2;
 
+    romero_rot_1[2] = delta_rot_1[0];
+    romero_rot_1[0] = delta_rot_1[1];
+    romero_rot_1[1] = delta_rot_1[2];
+    romero_rot_2[2] = delta_rot_2[0];
+    romero_rot_2[0] = delta_rot_2[1];
+    romero_rot_2[1] = delta_rot_2[2];
+
     BoundedMatrix<double, 3, 3> exp_delta_rot_1, exp_delta_rot_2;
-    noalias(exp_delta_rot_1) = ConstitutiveLawUtilities<6>::CalculateRotationMatrixFromRotationVectorRodrigues(delta_rot_1);
-    noalias(exp_delta_rot_2) = ConstitutiveLawUtilities<6>::CalculateRotationMatrixFromRotationVectorRodrigues(delta_rot_2);
+    noalias(exp_delta_rot_1) = ConstitutiveLawUtilities<6>::CalculateRotationMatrixFromRotationVectorRodrigues(romero_rot_1);
+    noalias(exp_delta_rot_2) = ConstitutiveLawUtilities<6>::CalculateRotationMatrixFromRotationVectorRodrigues(romero_rot_2);
 
     // Let's update the nodal triads
     mRotationOperators[0] = prod(exp_delta_rot_1, mRotationOperators[0]);
