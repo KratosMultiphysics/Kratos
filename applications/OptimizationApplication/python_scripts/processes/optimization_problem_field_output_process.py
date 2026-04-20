@@ -11,6 +11,7 @@ from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem_u
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem_utilities import GetComponentHavingDataByFullName
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem_utilities import TensorAdaptorData
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem_utilities import CombinedTensorAdaptorData
+from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem_utilities import GetModelPart
 
 class TensorAdaptorOutput(abc.ABC):
     @abc.abstractmethod
@@ -86,23 +87,7 @@ class OptimizationProblemFieldOutputProcess(Kratos.OutputProcess):
                     self.__AddTensorAdaptor(TensorAdaptorData(global_k, global_v))
 
     def _GetModelPart(self, container) -> Kratos.ModelPart:
-        def get_model_part(container, model_part: Kratos.ModelPart):
-            if container in [model_part.Nodes, model_part.Conditions, model_part.Elements]:
-                return model_part
-
-            for sub_model_part_name in model_part.GetSubModelPartNames():
-                root_model_part = get_model_part(container, model_part.GetSubModelPart(sub_model_part_name))
-                if root_model_part is not None:
-                    return root_model_part
-
-            return None
-
-        for model_part_name in self.model.GetModelPartNames():
-            root_model_part = get_model_part(container, self.model[model_part_name])
-            if root_model_part is not None:
-                return root_model_part
-
-        raise RuntimeError(f"No model part contains the provided container.")
+        return GetModelPart(self.model, container)
 
     def __AddTensorAdaptor(self, tensor_adaptor_data: TensorAdaptorData) -> bool:
         found_vtu_output = False
