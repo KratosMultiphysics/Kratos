@@ -1,5 +1,6 @@
 import typing
 import KratosMultiphysics as Kratos
+from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.convergence_criteria.convergence_criterion import ConvergenceCriterion
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import time_decorator
@@ -24,6 +25,8 @@ class MaxIterConvCriterion(ConvergenceCriterion):
 
         self.__max_iter = parameters["max_iter"].GetInt()
         self.__optimization_problem = optimization_problem
+        data_view = ComponentDataView("algorithm", self.__optimization_problem)
+        data_view.GetUnBufferedData()["max_iterations"] = self.__max_iter
 
         if self.__max_iter <= 0:
             raise RuntimeError(f"The number of max iterations cannot be zero or negative.")
@@ -33,6 +36,8 @@ class MaxIterConvCriterion(ConvergenceCriterion):
 
     @time_decorator()
     def IsConverged(self) -> bool:
+        data_view = ComponentDataView("algorithm", self.__optimization_problem)
+        self.__max_iter = data_view.GetUnBufferedData()["max_iterations"]
         self.__conv = (self.__optimization_problem.GetStep() >= self.__max_iter)
         return self.__conv
 
