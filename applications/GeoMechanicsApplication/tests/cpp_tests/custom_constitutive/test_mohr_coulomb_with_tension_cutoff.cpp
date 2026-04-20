@@ -816,6 +816,81 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     KRATOS_EXPECT_VECTOR_NEAR(resulting_cauchy_stress_vector, expected_cauchy_stress_vector, tolerance);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponseCauchyAtRegularFailureZoneWithExponentialHardening,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto       law = MohrCoulombWithTensionCutOff(std::make_unique<PlaneStrain>());
+    Properties properties;
+
+    properties.SetValue(GEO_COULOMB_HARDENING_TYPE, "Exponential");
+
+    // Base (initial / peak) parameters
+    properties.SetValue(GEO_FRICTION_ANGLE, 35.0);
+    properties.SetValue(GEO_COHESION, 10.0);
+    properties.SetValue(GEO_DILATANCY_ANGLE, 0.0);
+    properties.SetValue(GEO_TENSILE_STRENGTH, 10.0);
+    properties.SetValue(YOUNG_MODULUS, 1.0e6);
+    properties.SetValue(POISSON_RATIO, 0.25);
+    properties.SetValue(GEO_MAX_PLASTIC_ITERATIONS, 100);
+    properties.SetValue(GEO_COHESION_FUNCTION_COEFFICIENTS, UblasUtilities::CreateVector({0.0, 0.0}));
+    properties.SetValue(GEO_FRICTION_ANGLE_FUNCTION_COEFFICIENTS, UblasUtilities::CreateVector({0.0, 0.0}));
+    properties.SetValue(GEO_DILATANCY_ANGLE_FUNCTION_COEFFICIENTS, UblasUtilities::CreateVector({0.0, 0.0}));
+
+    ConstitutiveLaw::Parameters parameters;
+    parameters.SetMaterialProperties(properties);
+    const auto dummy_element_geometry      = Geometry<Node>{};
+    const auto dummy_shape_function_values = Vector{};
+    law.InitializeMaterial(properties, dummy_element_geometry, dummy_shape_function_values);
+
+    // Arrange
+    const double c_res = 10.0;
+    const double a_c   = 0.0;
+    properties.SetValue(GEO_COHESION_FUNCTION_COEFFICIENTS, UblasUtilities::CreateVector({c_res, a_c}));
+    parameters.SetMaterialProperties(properties);
+
+    // Act
+    auto cauchy_stress_vector = UblasUtilities::CreateVector({8.0, 0.0, -12.0, 0.0});
+    auto calculated_result    = CalculateMappedStressVector(cauchy_stress_vector, parameters, law);
+
+    // Assert
+    auto expected_result =
+        UblasUtilities::CreateVector({7.338673315592010089, 0.0, -11.338673315592010089, 0.0});
+    KRATOS_EXPECT_VECTOR_NEAR(calculated_result, expected_result, Defaults::absolute_tolerance);
+
+    // Arrange
+    const double a_phi   = 15.0;
+    const double phi_res = 0.0;
+    properties.SetValue(GEO_FRICTION_ANGLE_FUNCTION_COEFFICIENTS,
+                        UblasUtilities::CreateVector({a_phi, phi_res}));
+    properties.SetValue(GEO_COHESION_FUNCTION_COEFFICIENTS, UblasUtilities::CreateVector({0.0, 0.0}));
+    parameters.SetMaterialProperties(properties);
+
+    // Act
+    cauchy_stress_vector = UblasUtilities::CreateVector({8.0, 0.0, -12.0, 0.0});
+    calculated_result    = CalculateMappedStressVector(cauchy_stress_vector, parameters, law);
+
+    // Assert
+    expected_result = UblasUtilities::CreateVector({7.338673315592010089, 0.0, -11.338673315592010089, 0.0});
+    KRATOS_EXPECT_VECTOR_NEAR(calculated_result, expected_result, Defaults::absolute_tolerance);
+
+    // Arrange
+    const double a_psi   = 20.0;
+    const double psi_res = 0.0;
+    properties.SetValue(GEO_DILATANCY_ANGLE_FUNCTION_COEFFICIENTS,
+                        UblasUtilities::CreateVector({a_psi, psi_res}));
+    properties.SetValue(GEO_FRICTION_ANGLE_FUNCTION_COEFFICIENTS, UblasUtilities::CreateVector({0.0, 0.0}));
+    parameters.SetMaterialProperties(properties);
+
+    // Act
+    cauchy_stress_vector = UblasUtilities::CreateVector({8.0, 0.0, -12.0, 0.0});
+    calculated_result    = CalculateMappedStressVector(cauchy_stress_vector, parameters, law);
+
+    // Assert
+    expected_result = UblasUtilities::CreateVector({7.338673315592010089, 0.0, -11.338673315592010089, 0.0});
+    KRATOS_EXPECT_VECTOR_NEAR(calculated_result, expected_result, Defaults::absolute_tolerance);
+}
+
 Vector ComputeStressVectorUsingCPhiReductionTestData(double  Cohesion,
                                                      double  FrictionAngle,
                                                      Vector& rStrainVectorFinalized,

@@ -91,6 +91,12 @@ Geo::KappaDependentFunction MakeDilatancyAngleCalculator(const Properties& rMate
             MathUtils<>::DegreesToRadians(rMaterialProperties[GEO_DILATANCY_ANGLE]));
     }
 
+    if (hardening_type == "exponential") {
+        return FunctionObjectUtilities::MakeExponentialFunction(
+            MathUtils<>::DegreesToRadians(rMaterialProperties[GEO_DILATANCY_ANGLE]),
+            rMaterialProperties[GEO_DILATANCY_ANGLE_FUNCTION_COEFFICIENTS]);
+    }
+
     if (hardening_type == "linear") {
         return FunctionObjectUtilities::MakeLinearFunction(
             MathUtils<>::DegreesToRadians(rMaterialProperties[GEO_DILATANCY_ANGLE]),
