@@ -190,7 +190,6 @@ double ConstitutiveLawUtilities::CalculateK0NCFromFrictionAngleInRadians(double 
 
 DrainageType ConstitutiveLawUtilities::StringToDrainageType(const std::string& rDrainageTypeName)
 {
-    using namespace std::string_literals;
     using enum DrainageType;
     const std::map<std::string, DrainageType, std::less<>> drainage_type_map = {
         {"drained"s, DRAINED},
@@ -208,18 +207,16 @@ bool ConstitutiveLawUtilities::IsConstantWaterPressure(const Properties& rProper
 
 void ConstitutiveLawUtilities::ReplaceIgnoreUndrainedByDrainageType(Properties* pProperties)
 {
-    if (!pProperties) return;
+    if (!pProperties || !pProperties->Has(IGNORE_UNDRAINED)) return;
 
-    if (pProperties->Has(IGNORE_UNDRAINED)) {
-        KRATOS_WARNING("DEPRECATION")
-            << "Use of IGNORE_UNDRAINED is deprecated, please change your input to "
-               "GEO_DRAINAGE_TYPE"
-            << std::endl;
-        if (!pProperties->Has(GEO_DRAINAGE_TYPE))
-            (*pProperties)[GEO_DRAINAGE_TYPE] =
-                (*pProperties)[IGNORE_UNDRAINED] ? "constant_pw_field"s : "fully_coupled"s;
-        pProperties->Erase(IGNORE_UNDRAINED);
-    }
+    KRATOS_WARNING("DEPRECATION")
+        << "Use of IGNORE_UNDRAINED is deprecated, please change your input to "
+           "GEO_DRAINAGE_TYPE"
+        << std::endl;
+    if (!pProperties->Has(GEO_DRAINAGE_TYPE))
+        (*pProperties)[GEO_DRAINAGE_TYPE] =
+            (*pProperties)[IGNORE_UNDRAINED] ? "constant_pw_field"s : "fully_coupled"s;
+    pProperties->Erase(IGNORE_UNDRAINED);
 }
 
 } // namespace Kratos

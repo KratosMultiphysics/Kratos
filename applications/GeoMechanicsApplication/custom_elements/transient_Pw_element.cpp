@@ -430,8 +430,8 @@ void TransientPwElement<TDim, TNumNodes>::InitializeProperties(ElementVariables&
 
     const auto& r_properties = this->GetProperties();
 
-    rVariables.IsConstantWaterPressure = false;
-    rVariables.UseHenckyStrain         = false;
+    rVariables.IsConstantWaterPressure    = false;
+    rVariables.UseHenckyStrain            = false;
     rVariables.ConsiderGeometricStiffness = false;
 
     rVariables.DynamicViscosityInverse = 1.0 / r_properties[DYNAMIC_VISCOSITY];

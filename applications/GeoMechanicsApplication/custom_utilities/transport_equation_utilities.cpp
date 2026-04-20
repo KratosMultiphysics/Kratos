@@ -104,14 +104,11 @@ double GeoTransportEquationUtilities::CalculateInverseBiotModulus(double BiotCoe
                                                                   double DerivativeOfSaturation,
                                                                   const Properties& rProperties)
 {
-    auto is_constant_pw_field =
-        rProperties.Has(GEO_DRAINAGE_TYPE)
-            ? ConstitutiveLawUtilities::StringToDrainageType(rProperties[GEO_DRAINAGE_TYPE]) ==
-                  DrainageType::CONSTANT_WATER_PRESSURE
-            : rProperties[IGNORE_UNDRAINED];
-    const auto bulk_modulus_fluid = is_constant_pw_field ? TINY : rProperties[BULK_MODULUS_FLUID];
-    double result = (BiotCoefficient - rProperties[POROSITY]) / rProperties[BULK_MODULUS_SOLID] +
-                    rProperties[POROSITY] / bulk_modulus_fluid;
+    const auto bulk_modulus_fluid = ConstitutiveLawUtilities::IsConstantWaterPressure(rProperties)
+                                        ? TINY
+                                        : rProperties[BULK_MODULUS_FLUID];
+    auto result = (BiotCoefficient - rProperties[POROSITY]) / rProperties[BULK_MODULUS_SOLID] +
+                  rProperties[POROSITY] / bulk_modulus_fluid;
 
     result *= DegreeOfSaturation;
     result -= DerivativeOfSaturation * rProperties[POROSITY];

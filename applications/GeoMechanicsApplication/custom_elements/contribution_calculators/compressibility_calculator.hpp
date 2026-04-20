@@ -107,9 +107,9 @@ private:
         const auto& r_properties     = mInputProvider.GetElementProperties();
         const auto  biot_coefficient = r_properties[BIOT_COEFFICIENT];
 
-        auto bulk_fluid = ConstitutiveLawUtilities::IsConstantWaterPressure(r_properties)
-                              ? TINY
-                              : r_properties[BULK_MODULUS_FLUID];
+        const auto bulk_fluid = ConstitutiveLawUtilities::IsConstantWaterPressure(r_properties)
+                                    ? TINY
+                                    : r_properties[BULK_MODULUS_FLUID];
 
         auto result = (biot_coefficient - r_properties[POROSITY]) / r_properties[BULK_MODULUS_SOLID] +
                       r_properties[POROSITY] / bulk_fluid;

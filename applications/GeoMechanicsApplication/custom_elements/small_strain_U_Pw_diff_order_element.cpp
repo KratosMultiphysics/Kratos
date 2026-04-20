@@ -40,7 +40,6 @@
 #include "geo_mechanics_application_constants.h"
 #include "stress_state_policy.h"
 
-#include <custom_utilities/string_utilities.h>
 #include <numeric>
 
 namespace Kratos

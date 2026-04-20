@@ -259,9 +259,9 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_ReplaceIgnoreUndrainedByDrain
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    Properties* pProperties = nullptr;
+    Properties* p_null_properties = nullptr;
     // Act & assert
-    EXPECT_NO_THROW(ConstitutiveLawUtilities::ReplaceIgnoreUndrainedByDrainageType(pProperties));
+    EXPECT_NO_THROW(ConstitutiveLawUtilities::ReplaceIgnoreUndrainedByDrainageType(p_null_properties));
 
     // Arrange
     Model               my_model;
