@@ -500,8 +500,8 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_MakeInterfaceElasticConstitu
     constexpr auto poissons_ratio              = 1.0;
     constexpr auto strain_size                 = 4;
     constexpr auto number_of_normal_components = 2;
-    const auto     constitutive_tensor =
-        ConstitutiveLawUtilities::MakeInterfaceElasticConstitutiveTensor(2.0, 1.0, 4, 2);
+    const auto constitutive_tensor = ConstitutiveLawUtilities::MakeInterfaceElasticConstitutiveTensor(
+        youngs_modulus, poissons_ratio, strain_size, number_of_normal_components);
 
     // Assert
     const auto expected_tensor = UblasUtilities::CreateMatrix(
