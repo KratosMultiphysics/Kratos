@@ -19,7 +19,7 @@ class TestCFDUtilsV2(UnitTest.TestCase):
         self.model_part.AddNodalSolutionStepVariable(KM.PRESSURE)
         self.model_part.AddNodalSolutionStepVariable(KM.VELOCITY)
 
-        model_part_io = KM.ModelPartIO("small_cube")
+        model_part_io = KM.ModelPartIO("cfd_utils", KM.ModelPartIO.SKIP_TIMER)
         model_part_io.ReadModelPart(self.model_part)
 
         for node in self.model_part.Nodes:
@@ -30,7 +30,7 @@ class TestCFDUtilsV2(UnitTest.TestCase):
         p_adaptor = KM.TensorAdaptors.HistoricalVariableTensorAdaptor(self.model_part.Nodes,KM.PRESSURE,0)
 
         v_adaptor.CollectData()
-        self.v = v_adaptor.data.reshape((len(self.model_part.Nodes),self.dim)) 
+        self.v = v_adaptor.data.reshape((len(self.model_part.Nodes),self.dim))
 
         p_adaptor.CollectData()
         self.p = p_adaptor.data
@@ -51,20 +51,20 @@ class TestCFDUtilsV2(UnitTest.TestCase):
             KM.GeometryData.IntegrationMethod.GI_GAUSS_1)
         geometry_adaptor_DN.CollectData()
         self.DN = np.squeeze(geometry_adaptor_DN.data).copy() #this has shape nel*1*nnodes_in_el*dim - the copy is important as we need to own the data
-        
+
         is_float32 = (np.dtype(cfd_utils_module.PRECISION).itemsize == 4)
         self.rtol = 1e-5 if is_float32 else 1e-12
         self.atol = 1e-5 if is_float32 else 1e-12
 
         self.velem = self.ElemData(self.v, self.connectivity)
         self.pelem = self.ElemData(self.p, self.connectivity)
-            
+
         self.cfd_utils = cfd_utils_module.CFDUtils()
 
         # Stabilization parameters and prerequisites
         self.rho = 1.225
         self.elemental_volumes = np.array([elem.GetGeometry().DomainSize() for elem in self.model_part.Elements])
-        
+
         Mscalar = np.zeros(len(self.model_part.Nodes), dtype=np.float64)
         Mel = np.einsum("e,i->ei", self.elemental_volumes, self.N)
         self.cfd_utils.AssembleVector(self.connectivity, Mel, Mscalar)
@@ -89,8 +89,8 @@ class TestCFDUtilsV2(UnitTest.TestCase):
                                     [0.9   , 0.9   , 0.9   , 0.9   ]])
         np.testing.assert_allclose(nodal_div_v, ref_nodal_div_v, rtol=self.rtol, atol=self.atol)
 
-    def test_Compute_N_DN(self):
-        n_dn = self.cfd_utils.Compute_N_DN(self.N, self.DN, self.pelem)
+    def test_ComputeNDN(self):
+        n_dn = self.cfd_utils.ComputeNDN(self.N, self.DN, self.pelem)
         ref_n_dn = np.array([[[0.25, 0.0, 0.0],
                               [0.25, 0.0, 0.0],
                               [0.25, 0.0, 0.0],
@@ -117,8 +117,8 @@ class TestCFDUtilsV2(UnitTest.TestCase):
                               [0.25, 0.0, 0.0]]])
         np.testing.assert_allclose(n_dn, ref_n_dn, rtol=self.rtol, atol=1e-14)
 
-    def test_Compute_DN_N(self):
-        dn_n = self.cfd_utils.Compute_DN_N(self.N, self.DN, self.pelem)
+    def test_ComputeDNN(self):
+        dn_n = self.cfd_utils.ComputeDNN(self.N, self.DN, self.pelem)
         ref_dn_n = np.array([[[ 0.591666666666667,  0.070902203856749, -0.537878787878788],
                               [ 0.               , -0.953512396694215,  0.806818181818182],
                               [ 0.               ,  0.806818181818182,  0.               ],
@@ -228,36 +228,36 @@ class TestCFDUtilsV2(UnitTest.TestCase):
                                        [0.5125],
                                        [0.5375]])
         np.testing.assert_allclose(a_gauss_scalar, ref_a_gauss_scalar, rtol=self.rtol, atol=self.atol)
-        
+
     def test_ComputeConvectiveContribution(self):
         grad_u = self.cfd_utils.ComputeElementalGradient(self.DN, self.velem)
-        a_gauss = self.cfd_utils.InterpolateValue(self.Ngauss, self.velem)
-        
-        conv_contrib = self.cfd_utils.ComputeConvectiveContribution(self.Ngauss, grad_u, a_gauss)
-        ref_conv_contrib = np.array([[[[0.333801136363636, 0.0831875        , 0.21725          ],
-         [0.333801136363636, 0.0831875        , 0.21725          ],
-         [0.333801136363636, 0.0831875        , 0.21725          ],
-         [0.333801136363636, 0.0831875        , 0.21725          ]]],
-       [[[0.358247596153846, 0.21775          , 0.1373125        ],
-         [0.358247596153846, 0.21775          , 0.1373125        ],
-         [0.358247596153846, 0.21775          , 0.1373125        ],
-         [0.358247596153846, 0.21775          , 0.1373125        ]]],
-       [[[0.0723515625     , 0.1784140625     , 0.418876358695652],
-         [0.0723515625     , 0.1784140625     , 0.418876358695652],
-         [0.0723515625     , 0.1784140625     , 0.418876358695652],
-         [0.0723515625     , 0.1784140625     , 0.418876358695652]]],
-       [[[0.0723515625     , 0.285432942708333, 0.24328125       ],
-         [0.0723515625     , 0.285432942708333, 0.24328125       ],
-         [0.0723515625     , 0.285432942708333, 0.24328125       ],
-         [0.0723515625     , 0.285432942708333, 0.24328125       ]]],
-       [[[0.135015625      , 0.0831875        , 0.3967703125     ],
-         [0.135015625      , 0.0831875        , 0.3967703125     ],
-         [0.135015625      , 0.0831875        , 0.3967703125     ],
-         [0.135015625      , 0.0831875        , 0.3967703125     ]]],
-       [[[0.15471875       , 0.323561079545455, 0.1373125        ],
-         [0.15471875       , 0.323561079545455, 0.1373125        ],
-         [0.15471875       , 0.323561079545455, 0.1373125        ],
-         [0.15471875       , 0.323561079545455, 0.1373125        ]]]])
+        conv_op_elem = self.cfd_utils.ComputeElementalConvectiveOperator(self.velem, grad_u)
+        conv_contrib = self.cfd_utils.ComputeConvectiveContribution(conv_op_elem)
+        ref_conv_contrib = np.array([
+            [[0.4357909090909091, 0.06655000000000003, 0.17380000000000004],
+            [0.31454090909090915, 0.06655000000000003, 0.24035000000000006],
+            [0.31783181818181827, 0.13310000000000005, 0.28105],
+            [0.26704090909090916, 0.06655000000000003, 0.17380000000000004]],
+            [[0.28659807692307704, 0.17420000000000008, 0.10985000000000003],
+            [0.4553480769230771, 0.17420000000000008, 0.10985000000000003],
+            [0.3487480769230771, 0.28405000000000014, 0.10985000000000003],
+            [0.342296153846154, 0.23855000000000012, 0.21970000000000006]],
+            [[0.05788125000000001, 0.14273124999999998, 0.4723010869565217],
+            [0.05788125000000001, 0.21877499999999997, 0.4221010869565217],
+            [0.11576250000000002, 0.20941875, 0.4460021739130434],
+            [0.05788125000000001, 0.14273124999999998, 0.3351010869565217]],
+            [[0.05788125000000001, 0.22834635416666663, 0.19462500000000002],
+            [0.05788125000000001, 0.31474635416666663, 0.19462500000000002],
+            [0.05788125000000001, 0.30424635416666657, 0.281025],
+            [0.11576250000000002, 0.2943927083333333, 0.30285000000000006]],
+            [[0.10801250000000001, 0.06655000000000003, 0.31741625],
+            [0.10801250000000001, 0.06655000000000003, 0.45461625],
+            [0.15801250000000003, 0.06655000000000003, 0.38561625000000005],
+            [0.16602500000000003, 0.13310000000000005, 0.42943250000000005]],
+            [[0.12377500000000002, 0.3452488636363637, 0.10985000000000003],
+            [0.19032500000000005, 0.3673988636363637, 0.10985000000000003],
+            [0.18100000000000005, 0.3227477272727273, 0.21970000000000006],
+            [0.12377500000000002, 0.25884886363636367, 0.10985000000000003]]])
         np.testing.assert_allclose(conv_contrib, ref_conv_contrib, rtol=self.rtol, atol=self.atol)
 
     def test_ApplyLaplacian(self):
@@ -305,47 +305,49 @@ class TestCFDUtilsV2(UnitTest.TestCase):
 
     def test_ComputeMomentumStabilization(self):
         grad_v = self.cfd_utils.ComputeElementalGradient(self.DN, self.velem)
-        v_el_gauss = self.cfd_utils.InterpolateValue(self.Ngauss, self.velem)
-        tmp = self.rho * self.cfd_utils.ComputeConvectiveContribution(self.Ngauss, grad_v, v_el_gauss)
-        convective = np.tensordot(tmp, self.w_int_order, axes=(1, 0))
+        conv_op_elem = self.cfd_utils.ComputeElementalConvectiveOperator(self.velem, grad_v)
+        convective = self.rho * self.cfd_utils.ComputeConvectiveContribution(conv_op_elem)
         convective *= self.elemental_volumes[:, None, None]
 
         pi_conv = np.zeros((len(self.model_part.Nodes), self.dim), dtype=np.float64)
         self.cfd_utils.AssembleVector(self.connectivity, convective, pi_conv)
         pi_conv = pi_conv.ravel() * self.Minv
         pi_conv = pi_conv.reshape((len(self.model_part.Nodes), self.dim))
-        
-        conv_proj_el = self.ElemData(pi_conv, self.connectivity)
-        proj_el_gauss = self.cfd_utils.InterpolateValue(self.Ngauss, conv_proj_el)
 
-        stab_mom = self.cfd_utils.ComputeMomentumStabilization(self.Ngauss, self.DN, self.velem, v_el_gauss, proj_el_gauss, self.rho)
+        conv_proj_el = self.ElemData(pi_conv, self.connectivity)
+        stab_mom = self.cfd_utils.ComputeMomentumStabilization(self.DN, self.velem, conv_op_elem, conv_proj_el)
         # import sys
         # np.set_printoptions(threshold=sys.maxsize, precision=15, suppress=True)
         # print(repr(stab_mom))
-        ref_stab_mom = np.array([[[[ 0.050596189905262, -0.20832754990043 , -0.144868568241734],
-            [ 0.054494858342217, -0.224380142889461, -0.156031355707913],
-            [ 0.044856311968763, -0.184693859113093, -0.128433973065697],
-            [-0.149947360216242,  0.617401551902984,  0.429333897015344]]],
-          [[[-0.231654375683096,  0.17712339862571 ,  0.605183295920595],
-            [ 0.080819286464665, -0.061794587954208, -0.211135585125084],
-            [ 0.070166956060473, -0.053649794837692, -0.183307004705507],
-            [ 0.080668133157958, -0.061679015833809, -0.210740706090004]]],
-          [[[-0.262040837789505, -0.128842037752164,  0.097860279702437],
-            [-0.192091896104556, -0.094449061980442,  0.071737546101359],
-            [-0.16838545520599 , -0.082792916400279,  0.06288427362424 ],
-            [ 0.622518189100052,  0.306084016132886, -0.232482099428036]]],
-          [[[ 0.576861502480971, -0.008252176665896,  0.352386389773009],
-            [-0.156483634675516,  0.002238545288791, -0.095590887664899],
-            [-0.245278326174092,  0.003508779960526, -0.149832747511013],
-            [-0.175099541631363,  0.002504851416579, -0.106962754597097]]],
-          [[[ 0.542507971090554,  0.580843603236126, -0.162912525002362],
-            [-0.246538213440828, -0.263959521078567,  0.074034235442621],
-            [-0.136962806043036, -0.146641107616258,  0.041129269527646],
-            [-0.15900695160669 , -0.170242974541302,  0.047749020032096]]],
-          [[[-0.204071235621765,  0.067305510572914, -0.253005676772859],
-            [-0.117826073328397,  0.038860665492651, -0.146079702673982],
-            [-0.177827213572146,  0.058649869820043, -0.220468575011921],
-            [ 0.499724522522309, -0.164816045885608,  0.619553954458762]]]])
+        ref_stab_mom = np.array([[[ 0.094903781666614, -0.141011265504643, -0.128222298224962],
+        [-0.008839356240907, -0.114461541088728, -0.07999652885956 ],
+        [ 0.000661256580191, -0.068541295676325, -0.028969778250378],
+        [-0.086725682005898,  0.324014102269696,  0.237188605334899]],
+
+       [[-0.13050483648701 ,  0.105385799928034,  0.320174463925397],
+        [ 0.106792886634332, -0.089493261831567, -0.144416739905702],
+        [ 0.004537485540416,  0.008015625330015, -0.124567412827371],
+        [ 0.019174464312261, -0.023908163426482, -0.051190311192325]],
+
+       [[-0.143210793979794, -0.09860013126933 ,  0.057500622763395],
+        [-0.100641899265625, -0.032601649163062,  0.014577343688467],
+        [-0.069997635438296, -0.028948962438353,  0.048871462954706],
+        [ 0.313850328683715,  0.160150742870745, -0.120949429406568]],
+
+       [[ 0.292858453579981, -0.001782509510481,  0.190271227002012],
+        [-0.096240524605413, -0.005279680174441, -0.100385609340366],
+        [-0.123756809779678,  0.004553026836638, -0.069304028127915],
+        [-0.07286111919489 ,  0.002509162848283, -0.020581589533731]],
+
+       [[ 0.279726260987099,  0.296782783987071, -0.09118907783863 ],
+        [-0.139947753974007, -0.152317664202192,  0.049349424931468],
+        [-0.071929956731032, -0.08208696688303 , -0.004193720855013],
+        [-0.06784855028206 , -0.062378152901849,  0.046033373762175]],
+
+       [[-0.121741619077499,  0.024174608536179, -0.162404635742216],
+        [-0.058577880588672,  0.037567986849959, -0.104393957565646],
+        [-0.077673073037437,  0.021314605499533, -0.055339139920372],
+        [ 0.257992572703609, -0.083057200885672,  0.322137733228235]]])
         np.testing.assert_allclose(stab_mom, ref_stab_mom, rtol=self.rtol, atol=self.atol)
 
     def test_ComputeDivDivStabilization(self):
@@ -354,7 +356,7 @@ class TestCFDUtilsV2(UnitTest.TestCase):
         pi_div = np.zeros((len(self.model_part.Nodes)), dtype=np.float64)
         self.cfd_utils.AssembleVector(self.connectivity, aux_scalar, pi_div)
         pi_div *= self.Minv[::self.dim]
-        
+
         div_proj_el = self.ElemData(pi_div, self.connectivity)
         stab_div = self.cfd_utils.ComputeDivDivStabilization(self.N, self.DN, self.velem, div_proj_el)
 
@@ -384,17 +386,17 @@ class TestCFDUtilsV2(UnitTest.TestCase):
         [-0.008059927352859,  0.088659200881451,  0.013329879852806]]])
         np.testing.assert_allclose(stab_div, ref_stab_div, rtol=self.rtol, atol=self.atol)
 
-    def test_ComputePressureStabilization_ProjectionTerm(self):
-        pi_press_el = self.cfd_utils.Compute_N_DN(self.N, self.DN, self.pelem)
+    def test_ComputePressureStabilizationProjectionTerm(self):
+        pi_press_el = self.cfd_utils.ComputeNDN(self.N, self.DN, self.pelem)
         pi_press_el *= self.elemental_volumes[:, np.newaxis, np.newaxis]
         pi_press = np.zeros((len(self.model_part.Nodes), self.dim), dtype=np.float64)
         self.cfd_utils.AssembleVector(self.connectivity, pi_press_el, pi_press)
         pi_press = pi_press.ravel() * self.Minv
         pi_press = pi_press.reshape((len(self.model_part.Nodes), self.dim))
-        
+
         pres_proj_el = self.ElemData(pi_press, self.connectivity)
 
-        stab_press = self.cfd_utils.ComputePressureStabilization_ProjectionTerm(self.N, self.DN, pres_proj_el)
+        stab_press = self.cfd_utils.ComputePressureStabilizationProjectionTerm(self.N, self.DN, pres_proj_el)
         ref_stab_press = np.array([[ 0.666666666666667,  0.               ,  0.               ,
         -0.666666666666667],
        [-0.666666666666667,  0.666666666666667, -0.               ,

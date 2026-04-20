@@ -139,30 +139,9 @@ class CFDUtils:
                     [0.1381966011250105, 0.1381966011250105, 0.1381966011250105, 0.5854101966249685]
                 ], dtype=PRECISION)
             else:
-                raise Exception("Dimension not supported.")
+                raise Exception(f"Dimension {dim} not supported.")
         else:
             raise Exception("Integration order not supported.")
-
-        return N
-
-    def GetShapeFunctionsOnEdgeMidpoints(self, dim: int):
-        if dim == 2:
-            N = xp.array([
-                [0.5, 0.5, 0.0],
-                [0.5, 0.0, 0.5],
-                [0.0, 0.5, 0.5]
-            ], dtype=PRECISION)
-        elif dim == 3:
-            N = xp.array([
-                [0.5, 0.5, 0.0, 0.0],
-                [0.5, 0.0, 0.5, 0.0],
-                [0.5, 0.0, 0.0, 0.5],
-                [0.0, 0.5, 0.5, 0.0],
-                [0.0, 0.5, 0.0, 0.5],
-                [0.0, 0.0, 0.5, 0.5]
-            ], dtype=PRECISION)
-        else:
-            raise Exception("Dimension not supported.")
 
         return N
 
@@ -181,7 +160,7 @@ class CFDUtils:
                 [1.0/20.0, 1.0/20.0, 1.0/20.0, 2.0/20.0]
             ], dtype=PRECISION)
         else:
-            raise Exception("Dimension not supported.")
+            raise Exception(f"Dimension {dim} not supported.")
 
         return M_e
 
@@ -192,7 +171,7 @@ class CFDUtils:
             elif dim == 3:
                 w = xp.array([1.0/6.0],dtype=PRECISION)
             else:
-                raise Exception("Dimension not supported.")
+                raise Exception(f"Dimension {dim} not supported.")
         elif integration_order == 2:
             if dim == 2:
                 w = xp.array([
@@ -312,7 +291,7 @@ class CFDUtils:
             dim = grad_u.shape[1]
             if out is None:
                 out = xp.empty((nelem, n_in_el, dim), dtype=PRECISION)
-            
+
             # (E, I, L) @ (E, L, K) -> (E, I, K)
             xp.matmul(a_elemental, grad_u.swapaxes(1, 2), out=out)
             return out
@@ -320,7 +299,7 @@ class CFDUtils:
         elif grad_u.ndim == 2: # scalar field
             if out is None:
                 out = xp.empty((nelem, n_in_el), dtype=PRECISION)
-            
+
             # (E, I, L) @ (E, L, 1) -> (E, I, 1) -> squeeze to (E, I)
             xp.matmul(a_elemental, grad_u[:, :, None], out=out[:, :, None])
             return out
@@ -328,7 +307,7 @@ class CFDUtils:
         else:
             raise ValueError("grad_u must have 2 dims (scalar) or 3 dims (vector)")
 
-    def Compute_N_DN(self, N: np.ndarray, DN: np.ndarray, pel: np.ndarray, out=None):
+    def ComputeNDN(self, N: np.ndarray, DN: np.ndarray, pel: np.ndarray, out=None):
         """
         Computes the term (w, ∇p).
 
@@ -352,7 +331,7 @@ class CFDUtils:
 
         if pel.shape != (nelem, n_in_el):
             raise ValueError("pel must have shape (nelem, n_in_el) for scalar case. Current shape is:",field.shape)
-        
+
         self._ensure_temporaries(nelem, n_in_el, dim)
 
         if out is None:
@@ -366,7 +345,7 @@ class CFDUtils:
 
         return out
 
-    def Compute_DN_N(self, N: np.ndarray, DN: np.ndarray, pel: np.ndarray, out=None):
+    def ComputeDNN(self, N: np.ndarray, DN: np.ndarray, pel: np.ndarray, out=None):
         """
         Computes the term (∇·w, p).
 
@@ -411,7 +390,7 @@ class CFDUtils:
             Numpy array with shape (Nelem, n_in_el, dim).
         out : ndarray, optional
             Pre-allocated output array, expected to have shape (Nelem, n_in_el, n_in_el).
-            
+
         Returns
         -------
         out : ndarray
@@ -421,7 +400,7 @@ class CFDUtils:
             nelem = DN.shape[0]
             n_in_el = DN.shape[1]
             out = xp.empty((nelem, n_in_el, n_in_el), dtype=DN.dtype)
-            
+
         # DN (E, n_in_el, dim) @ DN^T (E, dim, n_in_el) -> (E, n_in_el, n_in_el)
         xp.matmul(DN, DN.swapaxes(1, 2), out=out)
         return out
@@ -505,7 +484,7 @@ class CFDUtils:
         field : (nelem, nnode) or (nelem, nnode, dim)
         out : ndarray, optional
             Pre-allocated output array of shape (nelem, ngauss) or (nelem, ngauss, dim).
-            
+
         Returns
         -------
         scalar:
@@ -571,7 +550,7 @@ class CFDUtils:
             Field values at element nodes. Must have shape:
             - (nelem, nnode)          for a scalar field
             - (nelem, nnode, ncomp)   for a vector field
-            
+
         out : ndarray, optional
             Pre-allocated output array of shape (nelem, ndim) or (nelem, ncomp, ndim).
 
@@ -600,7 +579,7 @@ class CFDUtils:
 
             if out is None:
                 out = xp.empty((nelem, ndim), dtype=field.dtype)
-            
+
             # (E, 1, nnode) @ (E, nnode, ndim) -> (E, 1, ndim) -> squeeze to (E, ndim)
             xp.matmul(field[:, None, :], DN, out=out[:, None, :])
             return out
@@ -615,7 +594,7 @@ class CFDUtils:
 
             if out is None:
                 out = xp.empty((nelem, ncomp, ndim), dtype=field.dtype)
-            
+
             # field^T @ DN: (E, ncomp, nnode) @ (E, nnode, ndim) -> (E, ncomp, ndim)
             xp.matmul(field.swapaxes(1, 2), DN, out=out) #TODO: verify if this is efficient
             return out
@@ -625,18 +604,16 @@ class CFDUtils:
         # ------------------------------
         raise ValueError("field must have 2 dims (scalar) or 3 dims (vector), Current shape of field is:",field.shape)
 
-    def ComputeBodyForceContribution(self, N, b_elemental, out=None):
+    def ComputeBodyForceContribution(self, b_elemental, out=None):
         """
         Compute (w, b) contribution for multiple Gauss points.
-                       = xp.einsum("gn,end->egd", N, b_elemental, optimize=opt_type)
+                       = xp.einsum("ij,ejd->eid", M_e, b_elemental, optimize=opt_type)
         Parameters
         ----------
-        N : (ngauss, nnode)
-            shape function values at Gauss points
         b_elemental : (nelem, nnode, dim)
             body force at element nodes
         out : ndarray, optional
-            Pre-allocated output array of shape (nelem, ngauss, dim).
+            Pre-allocated output array of shape (nelem, nnode, dim).
 
         Returns
         -------
@@ -644,46 +621,14 @@ class CFDUtils:
         """
 
         if out is None:
-            ngauss = N.shape[0]
-            nelem, nnode, dim = b_elemental.shape
-            out = xp.empty((nelem, ngauss, dim), dtype=b_elemental.dtype)
-            
-        # N (ngauss, nnode) @ b_elemental (nelem, nnode, dim) -> (nelem, ngauss, dim)
-        xp.matmul(N, b_elemental, out=out)
-        return out
+            out = xp.empty((b_elemental.shape), dtype=b_elemental.dtype)
 
-    def ComputeConvectiveContribution(self, N, grad_u, a_gauss):
-        """
-        Compute (w,a·∇u) although with the definition we employ for ∇u this is actually (w,∇u·a)
-        Note that this function assumes ∇u to be constant within the element
-
-        Parameters
-        ----------
-        N : (ngauss, nnode)
-        grad_u : (nelem, ndim, ndim) or (nelem, ndim)
-        a_gauss : (nelem, ngauss, ndim)
-
-        Returns
-        -------
-        vector case: (nelem, ngauss, nnode, ndim) and (nelem, ngauss, ndim)
-        scalar case: (nelem, ngauss, nnode) and (nelem, ngauss, ndim)
-        """
-
-        if grad_u.ndim == 3:
-
-            conv = xp.einsum('ekl,egl->egk', grad_u, a_gauss, optimize=opt_type) #a·∇u
-            out = N[None, :, :, None] * conv[:, :, None, :] #w,a·∇u
-
-        elif grad_u.ndim == 2:
-            conv = xp.einsum('el,egl->eg', grad_u, a_gauss, optimize=opt_type) #a·∇u
-            out = N[None, :, :] * conv[:, :, None] #w,a·∇u
-
-        else:
-            raise ValueError("grad_u must have 2 dims (scalar) or 3 dims (vector)")
+        M_e = self.GetElementalMassMatrix(b_elemental.shape[2])  # (node, node)
+        xp.matmul(M_e, b_elemental, out=out)   # (e, node, dim)
 
         return out
 
-    def ComputeConvectiveContributionAlt(self, elem_conv):
+    def ComputeConvectiveContribution(self, elem_conv):
         """
         Compute the elemental convective contribution using a factorized formulation
         based on a nodal convective operator.
@@ -774,7 +719,6 @@ class CFDUtils:
         if elem_conv.ndim == 3: # vector field
             _, _, n_dim = elem_conv.shape
             M_e = self.GetElementalMassMatrix(n_dim) #elemental mass matrix (n_node, n_node)
-            print("Mass matrix", M_e)
             return xp.einsum('ij,ejk->eik', M_e, elem_conv) # (n_elem, n_node, n_dim)
 
         elif elem_conv.ndim == 2: # scalar field
@@ -787,36 +731,61 @@ class CFDUtils:
 
         return _
 
-    def ComputeMomentumStabilization(self, N, DN, u_elemental, a_gauss, pi_gauss, rho):
+    def ComputeMomentumStabilization(self, DN, a_elemental, conv_elemental, pi_elemental):
         """
-        Compute convection + convective stabilization in a single pass.
+        Compute the momentum stabilization term:
 
-        (ρ a·∇w, ρ a·∇u) - (ρ a·∇w, ρ Π)
+            (a · ∇w, a · ∇u - Π)
+
+        using a consistent mass-matrix projection instead of Gauss quadrature loop.
+
+        The nodal quantity
+
+            β_j = (a_j · ∇u) - Π_j
+
+        is projected with the elemental mass matrix, yielding:
+
+            R_{i,l} = Σ_{j,m,k} DN_{i,k} M_{j m} β_{m,k} a_{j,l}
+
+        Assumptions
+        -----------
+        - Linear elements (constant ∇u per element)
+        - FE interpolation of convective operator a · ∇u and projection Π
 
         Parameters
         ----------
-        N : (ngauss, nnode)
-        DN : (nelem, nnode, ndim)
-        u_elemental : (nelem, nnode, ndim)
-        a_gauss : (nelem, ngauss, ndim)
-        pi_gauss : (nelem, ngauss, ndim)
-        rho : float
+        DN : (n_elem, n_node, n_dim)
+        a_elemental : (n_elem, n_node, n_dim)
+        conv_elemental : (n_elem, n_node, n_dim)
+        pi_elemental : (n_elem, n_node, n_dim)
 
         Returns
         -------
-        out : (nelem, ngauss, nnode, ndim)
-            Convective stabilization contribution
+        (n_elem, n_node, n_dim)
+
+        Notes
+        -----
+        - Equivalent to Gauss integration under consistent interpolation.
+        - Geometric scaling (detJ / volume) applied externally.
         """
 
-        adv = xp.einsum("egd,end->egn", a_gauss, DN, optimize=opt_type)
+        beta = conv_elemental - pi_elemental
+        n_elem, n_node, n_dim = beta.shape
 
-        conv = xp.einsum("egn,end->egd", adv, u_elemental, optimize=opt_type)
+        # --- build S[k,l] ---
+        M_e = self.GetElementalMassMatrix(beta.shape[2])
+        S = xp.zeros((n_elem, n_dim, n_dim), dtype=beta.dtype)
+        for j in range(n_node):
+            for m in range(n_node):
+                w = M_e[j, m]
+                S += w * (a_elemental[:, j, :, None] * beta[:, m, None, :]) # a_j,k * beta_m,l
 
-        rho2 = rho * rho
+        # --- contract with DN ---
+        R = xp.zeros((n_elem, n_node, n_dim), dtype=beta.dtype)
+        for k in range(n_dim):
+            R += DN[:, :, k][:, :, None] * S[:, k, :][:, None, :]
 
-        out = rho2 * adv[:, :, :, None] * (conv - pi_gauss)[:, :, None, :]
-
-        return out
+        return R
 
     def ComputeDivDivStabilization(self, N: np.array, DN: np.ndarray, u_elemental : np.ndarray, Pi_div_elemental: np.ndarray):
         """
@@ -854,7 +823,7 @@ class CFDUtils:
         # Step 4: apply DN → (E, nnode, dim)
         return DN * div_res[:, None, None]
 
-    def ComputePressureStabilization_ProjectionTerm(self, N: np.ndarray, DN: np.ndarray, Pi_press_el: np.ndarray):
+    def ComputePressureStabilizationProjectionTerm(self, N: np.ndarray, DN: np.ndarray, Pi_press_el: np.ndarray):
         """
         implements (∇q,Pi_pressure)
 
