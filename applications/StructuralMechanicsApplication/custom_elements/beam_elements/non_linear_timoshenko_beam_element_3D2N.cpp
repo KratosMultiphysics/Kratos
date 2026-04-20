@@ -128,6 +128,7 @@ void NonLinearTimoshenkoBeamElement3D2N::Initialize(
 
         BoundedMatrix<double, 3, 3> T;
         noalias(T) = CalculateInitialRotationOperator();
+        mRotationOperators.resize(2);
         noalias(mRotationOperators[0]) = T;
         noalias(mRotationOperators[1]) = T;
     }
