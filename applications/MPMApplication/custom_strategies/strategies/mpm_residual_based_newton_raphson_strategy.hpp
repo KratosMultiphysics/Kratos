@@ -261,13 +261,12 @@ public:
             if (this->GetEchoLevel() > 1) this->MaxIterationsExceeded();
         }
 
+
         // recompute first timestep if friction is active
         const bool friction_active = BaseType::GetModelPart().GetProcessInfo()[FRICTION_ACTIVE];
         const bool is_initial_loop = (BaseType::GetModelPart().GetProcessInfo()[STEP] ==  1);
 
         bool mCalculateReactionsFlag = true;
-
-
         //calculate reactions if required
         if (this->mCalculateReactionsFlag == true){
             // due to the assembly procedure the friction related values need to be reset
@@ -277,7 +276,7 @@ public:
                 curr_node.FastGetSolutionStepValue(STICK_FORCE).clear();
                 }
             }
-
+            
             p_builder_and_solver->CalculateReactions(p_scheme, BaseType::GetModelPart(), rA, rDx, rb);
         }
 
@@ -392,7 +391,6 @@ private:
         else
         {
             KRATOS_WARNING("MPMNewtonRaphsonStrategy") << "ATTENTION: no free DOFs!! " << std::endl;
-
         }
 
         // Updating the results stored in the database

@@ -220,7 +220,7 @@ void MPMUpdatedLagrangian::SetGeneralVariables(GeneralVariables& rVariables,
         KRATOS_INFO("MPMUpdatedLagrangian")<<" Element: "<<this->Id()<<std::endl;
         KRATOS_INFO("MPMUpdatedLagrangian")<<" Element position: "<< mMP.xg <<std::endl;
         KRATOS_INFO("MPMUpdatedLagrangian")<<" Element velocity: "<< mMP.velocity <<std::endl;
-
+        const unsigned int number_of_nodes = r_geometry.PointsNumber();
         KRATOS_INFO("MPMUpdatedLagrangian") << " Shape functions: " << r_geometry.ShapeFunctionsValues() << std::endl;
         KRATOS_INFO("MPMUpdatedLagrangian") << " Quadrature points: " << r_geometry.IntegrationPointsNumber() << std::endl;
         KRATOS_INFO("MPMUpdatedLagrangian") << " Parent geometry ID: " << r_geometry.GetGeometryParent(0).Id() << std::endl;
@@ -1309,13 +1309,13 @@ void MPMUpdatedLagrangian::CalculateDampingMatrix( MatrixType& rDampingMatrix, c
 
     //resizing as needed the LHS
     unsigned int matrix_size;
-
     if (rCurrentProcessInfo.GetValue(IS_MIXED_FORMULATION)) {
         matrix_size = number_of_nodes * (dimension + 1);
     }
     else {
         matrix_size = number_of_nodes * dimension;
     }
+
 
     if ( rDampingMatrix.size1() != matrix_size )
         rDampingMatrix.resize( matrix_size, matrix_size, false );

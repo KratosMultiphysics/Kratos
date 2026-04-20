@@ -34,7 +34,6 @@
 namespace Kratos
 {
 
-
 MPMUpdatedLagrangianPQ::MPMUpdatedLagrangianPQ( )
     : MPMUpdatedLagrangian( )
 { }//DO NOT CALL IT: only needed for Register and Serialization!!!

@@ -213,7 +213,6 @@ class MPMSolver(PythonSolver):
         pressure_dofs          = self.settings["pressure_dofs"].GetBool()
         axis_symmetric_flag    = self.settings["axis_symmetric_flag"].GetBool()
         stabilization_type     = self.settings["stabilization"].GetString()
-
         if axis_symmetric_flag:
             self.grid_model_part.ProcessInfo.SetValue(KratosMPM.IS_AXISYMMETRIC, True)
         else:
@@ -344,7 +343,6 @@ class MPMSolver(PythonSolver):
         KratosMultiphysics.VariableUtils().AddDof(KratosMPM.NODAL_CAUCHY_STRESS_VECTOR_Y, model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMPM.NODAL_CAUCHY_STRESS_VECTOR_Z,  model_part)
     
-
 
         if self.settings["pressure_dofs"].GetBool():
             KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.PRESSURE, KratosMPM.PRESSURE_REACTION, model_part)

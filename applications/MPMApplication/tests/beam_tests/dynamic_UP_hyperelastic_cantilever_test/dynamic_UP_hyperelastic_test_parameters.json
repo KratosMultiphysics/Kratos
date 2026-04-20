@@ -75,7 +75,6 @@
                 "direction"       : [0.0,-1.0,0.0]
             }
         }]
-
     },
     "print_output_process" : [{
        "python_module"   : "mpm_json_output_process",
@@ -90,4 +89,3 @@
     }],
     "analysis_stage"   : "KratosMultiphysics.MPMApplication.mpm_analysis"
 }
-

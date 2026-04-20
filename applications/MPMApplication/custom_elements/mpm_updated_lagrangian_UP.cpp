@@ -583,7 +583,6 @@ void MPMUpdatedLagrangianUP::CalculateAndAddPressureForces(VectorType& rRightHan
 	     //rRightHandSideVector[index_p] -= (1.0 - 1.0 / rVariables.detFT) * r_N(0, i) * rIntegrationWeight;
         index_p += (dimension + 1);
     }
-    //std::cout<<"material point id: "<< this->Id() <<" volumetric_strains "<<VolumetricStrainFunction<<"\n";
 
     KRATOS_CATCH( "" )
 }
@@ -878,8 +877,6 @@ void MPMUpdatedLagrangianUP::CalculateAndAddKpp (MatrixType& rLeftHandSideMatrix
     }
 
 
-    //double delta_coefficient = rVariables.detF0 - 1; //FLUID
-
     unsigned int indexpi = dimension;
 
     for (unsigned int i = 0; i < number_of_nodes; i++)
@@ -888,8 +885,6 @@ void MPMUpdatedLagrangianUP::CalculateAndAddKpp (MatrixType& rLeftHandSideMatrix
         for (unsigned int j = 0; j < number_of_nodes; j++)
         {
              rLeftHandSideMatrix(indexpi,indexpj)  -= ((1.0)/(bulk_modulus)) * r_N(0, i) * r_N(0, j) * rIntegrationWeight;
-	    // FLUID-UP	
-           //rLeftHandSideMatrix(indexpi, indexpj) -= ((1.0) / (bulk_modulus)) * r_N(0, i) * r_N(0, j) * rIntegrationWeight / (delta_coefficient * (rVariables.detF0 / rVariables.detF));
 
             indexpj += (dimension + 1);
         }

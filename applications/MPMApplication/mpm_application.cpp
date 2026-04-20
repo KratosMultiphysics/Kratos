@@ -10,6 +10,8 @@
 //  Main authors:    Ilaria Iaconeta, Bodhinanda Chandra
 //
 //
+
+
 // System includes
 
 // External includes
@@ -58,12 +60,9 @@ namespace Kratos
     KratosMPMApplication::KratosMPMApplication():
         KratosApplication("MPMApplication"),
         /// Elements, using QuadraturePointGeometries:
-
-
         mMPMUpdatedLagrangian(0, Element::GeometryType::Pointer(new GeometryType(Element::GeometryType::PointsArrayType(0)))),
         mMPMUpdatedLagrangianUP(0, Element::GeometryType::Pointer(new GeometryType(Element::GeometryType::PointsArrayType(0)))),
         mMPMUpdatedLagrangianPQ(0, Element::GeometryType::Pointer(new GeometryType(Element::GeometryType::PointsArrayType(0)))),
-
 
         /// Deprecated Elements
         mMPMUpdatedLagrangian2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
@@ -116,8 +115,6 @@ namespace Kratos
                         << "Initializing KratosMPMApplication..." << std::endl;
 
         // Registering elements
-
-
         KRATOS_REGISTER_ELEMENT("MPMUpdatedLagrangian", mMPMUpdatedLagrangian)
         KRATOS_REGISTER_ELEMENT("MPMUpdatedLagrangianUP", mMPMUpdatedLagrangianUP)
         KRATOS_REGISTER_ELEMENT("MPMUpdatedLagrangianPQ", mMPMUpdatedLagrangianPQ)
@@ -326,7 +323,7 @@ namespace Kratos
         KRATOS_REGISTER_VARIABLE(IS_FIX_EXPLICIT_MP_ON_GRID_EDGE)
 
         // Partitioned Quadrature MPM variables
-        KRATOS_REGISTER_VARIABLE(IS_PQMPM)
+        KRATOS_REGISTER_VARIABLE (IS_PQMPM)
         KRATOS_REGISTER_VARIABLE(IS_MAKE_NORMAL_MP_IF_PQMPM_FAILS)
         KRATOS_REGISTER_VARIABLE(PQMPM_SUBPOINT_MIN_VOLUME_FRACTION)
 

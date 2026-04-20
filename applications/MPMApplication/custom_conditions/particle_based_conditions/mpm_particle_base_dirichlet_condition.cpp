@@ -75,7 +75,6 @@ void MPMParticleBaseDirichletCondition::CalculateInterfaceContactForce(const Pro
 
     array_1d<double, 3 > mpc_force = ZeroVector(3);
 
-
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
         if (std::abs(Variables.N[i]) > std::numeric_limits<double>::epsilon())
@@ -226,3 +225,5 @@ int MPMParticleBaseDirichletCondition::Check( const ProcessInfo& rCurrentProcess
 }
 
 } // Namespace Kratos
+
+

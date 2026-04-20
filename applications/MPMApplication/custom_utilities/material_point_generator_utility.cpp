@@ -459,9 +459,6 @@ namespace Kratos::MaterialPointGeneratorUtility
                             ProcessInfo process_info = ProcessInfo();
                             if (is_interface){
                                 p_condition->Set(INTERFACE);
-                                //p_condition->SetValuesOnIntegrationPoints(POINT_LOAD,  mpc_contact_force , process_info);
-
-
                             }
 
                             // Setting material point condition's initial condition

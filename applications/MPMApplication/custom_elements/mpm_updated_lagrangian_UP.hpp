@@ -342,15 +342,16 @@ protected:
      */
     virtual void CalculateAndAddPressureForces(VectorType& rRightHandSideVector,
             GeneralVariables & rVariables,
-            const double& rIntegrationWeight);
-
+            const double& rIntegrationWeight
+                                              );
 
     /**
      * Calculation of the Internal Forces due to Pressure-Balance
      */
     virtual void CalculateAndAddStabilizedPressure(VectorType& rRightHandSideVector,
             GeneralVariables & rVariables,
-            const double& rIntegrationWeight);
+            const double& rIntegrationWeight
+                                                  );
 
     /**
      * Calculate Element Kinematics
@@ -366,6 +367,7 @@ protected:
      */
 
     void UpdateGaussPoint(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo) override;
+
 
     /**
      * Calculation of the constitutive coefficient for pressure of the Element

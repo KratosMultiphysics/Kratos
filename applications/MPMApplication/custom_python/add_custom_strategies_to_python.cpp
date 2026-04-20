@@ -35,10 +35,8 @@
 //---schemes
 #include "custom_strategies/schemes/mpm_residual_based_bossak_scheme.hpp"
 #include "custom_strategies/schemes/mpm_explicit_scheme.hpp"
-
 #include "custom_strategies/schemes/mpm_residualbased_incrementalupdate_static_scheme.hpp"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
-
 
 //---builders and solvers
 #include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver.h"
@@ -88,7 +86,6 @@ namespace Python{
         py::class_< MPMResidualBasedIncrementalUpdateStaticSchemeType, typename MPMResidualBasedIncrementalUpdateStaticSchemeType::Pointer, BaseStaticSchemeType >(m, "MPMResidualBasedIncrementalUpdateStaticScheme")
             .def(py::init < >())
             .def("Initialize", &MPMResidualBasedIncrementalUpdateStaticSchemeType::Initialize)
-
             ;
 
         // MPM Residual Based Newton Raphson Strategy Type

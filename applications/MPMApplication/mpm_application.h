@@ -47,13 +47,10 @@
 #include "custom_conditions/particle_based_conditions/mpm_particle_point_load_condition.h"
 
 //---element
-
 #include "custom_elements/mpm_updated_lagrangian.hpp"
 #include "custom_elements/mpm_updated_lagrangian_UP.hpp"
 #include "custom_elements/mpm_updated_lagrangian_PQ.hpp"
 #include "custom_elements/mpm_updated_lagrangian_UP_VMS.hpp"
-
-
 
 //---constitutive laws
 #include "custom_constitutive/linear_elastic_3D_law.hpp"
@@ -238,12 +235,10 @@ private:
     ///@{
 
     // Elements
-
     const MPMUpdatedLagrangian mMPMUpdatedLagrangian;
     const MPMUpdatedLagrangianUP mMPMUpdatedLagrangianUP;
     const MPMUpdatedLagrangianPQ mMPMUpdatedLagrangianPQ;
     const MPMUpdatedLagrangianUPVMS mMPMUpdatedLagrangianUPVMS;
-
 
     // Deprecated Elements
     const MPMUpdatedLagrangian mMPMUpdatedLagrangian2D3N;

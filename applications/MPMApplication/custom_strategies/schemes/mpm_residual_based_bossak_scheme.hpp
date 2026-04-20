@@ -489,9 +489,8 @@ public:
         TSystemVectorType& rb) override
     {
         KRATOS_TRY
-    
+        
         // Particle to Grid mapping for elements is moved to predict because it needs the velocity field (PR #13432)
-
         ImplicitBaseType::InitializeSolutionStep(rModelPart,rA,rDx,rb);
 
         const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
@@ -707,8 +706,6 @@ public:
         KRATOS_CATCH( "" )
     }
 
-
-
 protected:
 
     // MPM Background Grid
@@ -724,11 +721,8 @@ protected:
     unsigned int mDomainSize;
     unsigned int mBlockSize;
     MPMBoundaryRotationUtility<LocalSystemMatrixType,LocalSystemVectorType> mRotationTool;
-    
-    //void ClearReactionVariable() // const
 
     void ClearReactionVariable() const
-
     {
         block_for_each(mGridModelPart.Nodes(), [&](Node& rNode)
         {
