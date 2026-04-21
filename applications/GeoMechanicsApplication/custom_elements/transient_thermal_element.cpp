@@ -170,17 +170,17 @@ int TransientThermalElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentP
 
     check_properties.CheckAvailabilityAndEquality(RETENTION_LAW, "SaturatedLaw");
 
-    std::vector<double> values{
-        r_properties[SPECIFIC_HEAT_CAPACITY_WATER],  r_properties[SPECIFIC_HEAT_CAPACITY_SOLID],
-        r_properties[THERMAL_CONDUCTIVITY_WATER],    r_properties[THERMAL_CONDUCTIVITY_SOLID_XX],
-        r_properties[THERMAL_CONDUCTIVITY_SOLID_YY], r_properties[THERMAL_CONDUCTIVITY_SOLID_XY]};
+    std::vector<const Variable<double>*> properties_list{
+        &SPECIFIC_HEAT_CAPACITY_WATER,  &SPECIFIC_HEAT_CAPACITY_SOLID,
+        &THERMAL_CONDUCTIVITY_WATER,    &THERMAL_CONDUCTIVITY_SOLID_XX,
+        &THERMAL_CONDUCTIVITY_SOLID_YY, &THERMAL_CONDUCTIVITY_SOLID_XY};
     if constexpr (TDim == 3) {
-        values.insert(values.end(), {r_properties[THERMAL_CONDUCTIVITY_SOLID_ZZ],
-                                     r_properties[THERMAL_CONDUCTIVITY_SOLID_YZ],
-                                     r_properties[THERMAL_CONDUCTIVITY_SOLID_XZ]});
+        properties_list.insert(properties_list.end(), {&THERMAL_CONDUCTIVITY_SOLID_ZZ, &THERMAL_CONDUCTIVITY_SOLID_YZ,
+                                                       &THERMAL_CONDUCTIVITY_SOLID_XZ});
     }
-    const auto areAllValuesZero = std::all_of(values.begin(), values.end(), [&](double value) {
-        return std::abs(value) <= 1.0e-12 || std::abs(value) <= std::numeric_limits<double>::epsilon();
+    const auto areAllValuesZero =
+        std::ranges::all_of(properties_list, [&r_properties](const Variable<double>* pVariable) {
+        return std::abs(r_properties[*pVariable]) <= 1.0e-12;
     });
     if (areAllValuesZero) {
         KRATOS_ERROR << "The input is invalid: capacity and thermal conductivity parameters "
