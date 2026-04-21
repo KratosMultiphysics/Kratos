@@ -963,13 +963,13 @@ void MPMUpdatedLagrangianUPVMS::CalculateProjections(const ProcessInfo &rCurrent
     this-> CalculateKinematics(Variables, rCurrentProcessInfo);
     this-> SetGeneralVariables(Variables, Values, r_N);
     this-> SetSpecificVariables(Variables,rCurrentProcessInfo);
+    this-> ComputeMaterialPointBodyForce(Variables, rCurrentProcessInfo);
+
 
 
     mMP.volume = mMP.mass / mMP.density;
     Vector volume_force = ((mMP.volume_acceleration * mMP.mass ) + (Variables.BodyForceMP * mMP.mass)); ///mMP.volume 
 
-
-    //std::cout<< "Nodes"<< number_of_nodes <<"\n";
 
     // Compute the Residual
     this->ComputeResidual(Variables,volume_force,MomentumRes,ConservRes);

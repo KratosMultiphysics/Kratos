@@ -627,6 +627,14 @@ protected:
     virtual void SetGeneralVariables(GeneralVariables& rVariables,
                                      ConstitutiveLaw::Parameters& rValues, const Vector& rN);
 
+    /**
+     * Computes the body force at the material point by interpolating
+     * nodal BODY_FORCE values using shape functions.
+     * This is mainly used for external loading or MMS-based forcing.
+     */
+    void ComputeMaterialPointBodyForce(GeneralVariables& rVariables,
+                                   const ProcessInfo& rCurrentProcessInfo);                           
+
 
     /**
      * Initialize Material Properties on the Constitutive Law

@@ -198,7 +198,6 @@ void MPMUpdatedLagrangian::InitializeGeneralVariables (GeneralVariables& rVariab
     // CurrentDisp is the unknown variable. It represents the nodal delta displacement. When it is predicted is equal to zero.
     rVariables.CurrentDisp = CalculateCurrentDisp(rVariables.CurrentDisp, rCurrentProcessInfo);
 
-    rVariables.BodyForceMP = ZeroVector(3);
 }
 //************************************************************************************
 //************************************************************************************
@@ -264,22 +263,34 @@ void MPMUpdatedLagrangian::SetGeneralVariables(GeneralVariables& rVariables,
     rValues.SetShapeFunctionsDerivatives(rVariables.DN_DX);
     rValues.SetShapeFunctionsValues(rN);
 
-    // Body forces
-    rVariables.BodyForceMP = ZeroVector(3);
+}
+//************************************************************************************
+//************************************************************************************
+void MPMUpdatedLagrangian::ComputeMaterialPointBodyForce(
+    GeneralVariables& rVariables,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    GeometryType& r_geometry = GetGeometry();
+    const Matrix& r_N = r_geometry.ShapeFunctionsValues();
+    const unsigned int number_of_nodes = r_geometry.PointsNumber();
+    const unsigned int dimension = r_geometry.WorkingSpaceDimension();
+
+    rVariables.BodyForceMP = ZeroVector(dimension);
+
     array_1d<double, 3 > nodal_body_force = ZeroVector(3);
-    for ( unsigned int j = 0; j < number_of_nodes; j++ )
+
+    for (unsigned int j = 0; j < number_of_nodes; j++)
     {
         if (r_geometry[j].SolutionStepsDataHas(BODY_FORCE))
         {
-
             nodal_body_force = r_geometry[j].FastGetSolutionStepValue(BODY_FORCE,0);
+
             for (unsigned int k = 0; k < dimension; k++)
             {
                 rVariables.BodyForceMP[k] += r_N(0, j) * nodal_body_force[k];
             }
         }
     }
-
 }
 
 //************************************************************************************
@@ -348,8 +359,12 @@ void MPMUpdatedLagrangian::CalculateElementalSystem(
 
     if (CalculateResidualVectorFlag) // if calculation of the vector is required
     {
+        this->ComputeMaterialPointBodyForce(Variables, rCurrentProcessInfo);
+
         // Contribution to forces (in residual term) are calculated
-        Vector volume_force = (mMP.volume_acceleration * mMP.mass ) +  (Variables.BodyForceMP * mMP.mass);
+        Vector volume_force = (mMP.volume_acceleration * mMP.mass) 
+                        + (Variables.BodyForceMP * mMP.mass);
+
         this->CalculateAndAddRHS(
             rRightHandSideVector,
             Variables,
@@ -888,9 +903,7 @@ void MPMUpdatedLagrangian::AddExplicitContribution(const ProcessInfo& rCurrentPr
     {
         for (unsigned int j = 0; j < dimension; j++){
             nodal_momentum[j] = r_N(0, i) * mMP.velocity[j] * mMP.mass;
-            nodal_inertia[j] = r_N(0, i) * mMP.acceleration[j] * mMP.mass;
-        
-              //std::cout<<nodal_cauchy_stress_vector[j]<<"\n";
+            nodal_inertia[j] = r_N(0, i) * mMP.acceleration[j] * mMP.mass;    
         }
 
         for (unsigned int j = 0; j < voigt_dimension; j++){
@@ -911,8 +924,6 @@ void MPMUpdatedLagrangian::AddExplicitContribution(const ProcessInfo& rCurrentPr
         r_geometry[i].FastGetSolutionStepValue(NODAL_MOMENTUM, 0) += nodal_momentum;
         r_geometry[i].FastGetSolutionStepValue(NODAL_INERTIA, 0)  += nodal_inertia;
         r_geometry[i].FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_VECTOR, 0) += nodal_cauchy_stress_vector;
-
-      
         r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0) += r_N(0, i) * mMP.mass;
         r_geometry[i].UnSetLock();
     }
