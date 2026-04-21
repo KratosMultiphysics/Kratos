@@ -294,15 +294,13 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_CalculateElasticProperties, K
     properties.SetValue(BULK_MODULUS_SOLID, 2.E3);
     properties.SetValue(POROSITY, 0.5);
 
-    // Expected values computed from existing utilities
-    const auto expected_nu = ConstitutiveLawUtilities::GetOrCalculateUndrainedPoissonsRatio(properties);
-    const auto expected_E = ConstitutiveLawUtilities::CalculateUndrainedYoungsModulus(properties, expected_nu);
-
     // Act: undrained
     const auto [E_undrained, nu_undrained] =
         ConstitutiveLawUtilities::GetOrCalculateElasticProperties(properties, true);
 
     // Assert
+    const auto expected_E  = 10.0 / 9.0;
+    const auto expected_nu = 1.0 / 3.0;
     KRATOS_EXPECT_NEAR(E_undrained, expected_E, Defaults::absolute_tolerance);
     KRATOS_EXPECT_NEAR(nu_undrained, expected_nu, Defaults::absolute_tolerance);
 }
@@ -445,11 +443,10 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_GetOrCalculateUndrainedPoiss
 
     // Act
     auto undrained_poissons_ratio = ConstitutiveLawUtilities::GetOrCalculateUndrainedPoissonsRatio(properties);
-    const auto calculated_undrained_poissons_ratio =
-        ConstitutiveLawUtilities::CalculateUndrainedPoissonsRatio(properties);
 
     // Assert
-    KRATOS_EXPECT_NEAR(undrained_poissons_ratio, calculated_undrained_poissons_ratio, Defaults::absolute_tolerance);
+    const auto expected_undrained_poissons_ratio = 1.0 / 3.0;
+    KRATOS_EXPECT_NEAR(undrained_poissons_ratio, expected_undrained_poissons_ratio, Defaults::absolute_tolerance);
 
     // When explicit GEO_POISSON_UNDRAINED is provided it should be returned (and clamped if needed)
     properties.SetValue(GEO_POISSON_UNDRAINED, 0.4);
