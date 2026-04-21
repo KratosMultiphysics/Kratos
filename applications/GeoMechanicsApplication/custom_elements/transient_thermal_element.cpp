@@ -130,6 +130,16 @@ GeometryData::IntegrationMethod TransientThermalElement<TDim, TNumNodes>::GetInt
     }
 }
 
+inline bool AllZeroValues(std::vector<double>& rValues, double rel_tol = 1e-12)
+{
+    const auto max_abs =
+        std::max(1.0, *std::max_element(rValues.begin(), rValues.end(),
+                                        [](double a, double b) { return std::abs(a) < std::abs(b); }));
+    return std::all_of(rValues.begin(), rValues.end(), [&](double value) {
+        return std::abs(value) <= rel_tol || std::abs(value) <= std::numeric_limits<double>::epsilon();
+    });
+}
+
 template <unsigned int TDim, unsigned int TNumNodes>
 int TransientThermalElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
@@ -165,8 +175,23 @@ int TransientThermalElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentP
     if constexpr (TDim == 2) CheckUtilities::CheckForNonZeroZCoordinateIn2D(GetGeometry());
 
     check_properties.CheckAvailabilityAndEquality(RETENTION_LAW, "SaturatedLaw");
-    return RetentionLawFactory::Clone(r_properties)->Check(r_properties, rCurrentProcessInfo);
 
+    std::vector<double> vals{
+        r_properties[SPECIFIC_HEAT_CAPACITY_WATER],  r_properties[SPECIFIC_HEAT_CAPACITY_SOLID],
+        r_properties[THERMAL_CONDUCTIVITY_WATER],    r_properties[THERMAL_CONDUCTIVITY_SOLID_XX],
+        r_properties[THERMAL_CONDUCTIVITY_SOLID_YY], r_properties[THERMAL_CONDUCTIVITY_SOLID_XY]};
+    if constexpr (TDim == 3) {
+        vals.insert(vals.end(), {r_properties[THERMAL_CONDUCTIVITY_SOLID_ZZ],
+                                 r_properties[THERMAL_CONDUCTIVITY_SOLID_YZ],
+                                 r_properties[THERMAL_CONDUCTIVITY_SOLID_XZ]});
+    }
+    if (AllZeroValues(vals)) {
+        KRATOS_ERROR << "The input is invalid: capacity and thermal conductivity parameters "
+                        "cannot all be zero."
+                     << std::endl;
+    }
+
+    return RetentionLawFactory::Clone(r_properties)->Check(r_properties, rCurrentProcessInfo);
     KRATOS_CATCH("")
 }
 
