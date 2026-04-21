@@ -102,26 +102,13 @@ then subsituting in the cap yield surface, it leads to the following equation:
 Where,
 
 ```math
-    A = 1 + b_1 a_2^2
+    A = 1 + \frac{1}{X^2} \left( \frac{6  \sin{\phi}}{3 - \sin{\phi}} \right) ^2
 ```
 ```math
-    B = -2 b_1 a_2 c_2
+    B = -\frac{72}{X^2} \frac{c \sin{\phi} \cos{\phi}}{\left( 3 - \sin{\phi} \right)^2}
 ```
 ```math
-    C = b_1 c_2^2 - c_1
-```
-
-```math
-    b_1 = 1 / X^2
-```
-```math
-    c_1 = p_c^2
-```
-```math
-    a_2 = \frac{6  \sin{\phi}}{3 - \sin{\phi}}
-```
-```math
-    c_2 = \frac{6 c \cos{\phi}}{3 - \sin{\phi}}
+    C = \frac{1}{X^2} \left( \frac{6 c \cos{\phi}}{3 - \sin{\phi}} \right)^2 - p_c^2
 ```
 
 A second order polynomial equation needs to be solved, and the minimum root needs to be selected,
@@ -254,10 +241,10 @@ Now, by considering the cap yield surface function, and extracting $p$ and $q$ i
 ```
 We define the following vectors,
 ```math
-    \Delta \sigma = \left[\sigma_1 - \sigma_2 \; , \; \sigma_2 - \sigma_3 \; , \; \sigma_3 - \sigma_1 \right]^T
+    \sigma_{diff} = \left[\sigma_1 - \sigma_2 \; , \; \sigma_2 - \sigma_3 \; , \; \sigma_3 - \sigma_1 \right]^T
 ```
 ```math
-    \Delta \sigma^{cor} = \left[\sigma_1^{cor} - \sigma_2^{cor} \; , \; \sigma_2^{cor} - \sigma_3^{cor} \; , \; \sigma_3^{cor} - \sigma_1^{cor} \right]^T
+    \sigma_{diff}^{cor} = \left[\sigma_1^{cor} - \sigma_2^{cor} \; , \; \sigma_2^{cor} - \sigma_3^{cor} \; , \; \sigma_3^{cor} - \sigma_1^{cor} \right]^T
 ```
 
 where
@@ -268,11 +255,10 @@ where
 Subsituting the stresses with the mapped stresses, we get the following relations.
 
 ```math
-    A = \frac{\Delta \sigma^{cor} \cdot \Delta \sigma^{cor}}{2 X^2} + \frac{1}{9} \left( \sum_{i=1}^3{\sigma_i^{cor}} \right)^2
+    A = \frac{\sigma_{diff}^{cor} \cdot \sigma_{diff}^{cor}}{2 X^2} + \frac{1}{9} \left( \sum_{i=1}^3{\sigma_i^{cor}} \right)^2
 ```
 ```math
-    B = \frac{ \Delta \sigma \cdot \Delta \sigma^{cor}}{X^2} + \frac{2}{9}  
-        \sum_{i=1}^3{\sigma_i} \sum_{i=1}^3{\sigma_i^{cor}}
+    B = \frac{\sigma_{diff} \cdot \sigma_{diff}^{cor}}{X^2} + \frac{2}{9} \sum_{i=1}^3{\sigma_i} \sum_{i=1}^3{\sigma_i^{cor}}
 ```
 ```math
     C = F_{cap} \left( \sigma^{trial} \right)
