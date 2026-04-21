@@ -259,17 +259,12 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_ReplaceIgnoreUndrainedByDrain
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    Properties* p_null_properties = nullptr;
-    // Act & assert
-    EXPECT_NO_THROW(ConstitutiveLawUtilities::ReplaceIgnoreUndrainedByDrainageType(p_null_properties));
-
-    // Arrange
     Model               my_model;
     ModelPart&          my_model_part = my_model.CreateModelPart("Main");
     Properties::Pointer p_properties  = my_model_part.CreateNewProperties(0);
     p_properties->SetValue(IGNORE_UNDRAINED, true);
     // Act
-    ConstitutiveLawUtilities::ReplaceIgnoreUndrainedByDrainageType(p_properties.get());
+    ConstitutiveLawUtilities::ReplaceIgnoreUndrainedByDrainageType(*p_properties);
     // Assert
     EXPECT_FALSE(p_properties->Has(IGNORE_UNDRAINED));
     EXPECT_TRUE(p_properties->Has(GEO_DRAINAGE_TYPE));
@@ -280,7 +275,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_ReplaceIgnoreUndrainedByDrain
     p_properties->Erase(GEO_DRAINAGE_TYPE);
     p_properties->SetValue(IGNORE_UNDRAINED, false);
     // Act
-    ConstitutiveLawUtilities::ReplaceIgnoreUndrainedByDrainageType(p_properties.get());
+    ConstitutiveLawUtilities::ReplaceIgnoreUndrainedByDrainageType(*p_properties);
     // Assert
     EXPECT_FALSE(p_properties->Has(IGNORE_UNDRAINED));
     EXPECT_TRUE(p_properties->Has(GEO_DRAINAGE_TYPE));

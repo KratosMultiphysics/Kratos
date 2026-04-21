@@ -463,7 +463,7 @@ void UPwInterfaceElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     Element::Initialize(rCurrentProcessInfo);
     // IGNORE_UNDRAINED is deprecated
-    ConstitutiveLawUtilities::ReplaceIgnoreUndrainedByDrainageType(pGetProperties().get());
+    ConstitutiveLawUtilities::ReplaceIgnoreUndrainedByDrainageType(GetProperties());
 
     mConstitutiveLaws.clear();
     mRetentionLaws.clear();
