@@ -194,8 +194,8 @@ public:
 					const array_1d<double,3> & displacement = rNode.FastGetSolutionStepValue(DISPLACEMENT);
 
 					// Get Normal Vector of the boundary
-					array_1d<double,3> rN = rGeometry[itNode].FastGetSolutionStepValue(NORMAL);
-					this->Normalize(rN);
+					array_1d<double,3> normal_vector_norm = rNode.FastGetSolutionStepValue(NORMAL);
+					this->Normalize(normal_vector_norm);
 
                     // Zero out row/column corresponding to normal displacement DoF except diagonal term (set to 1)
                     // Applied IFF the local matrix passed is not empty [otherwise does nothing -- RHS only case]
@@ -254,7 +254,7 @@ public:
                     }
 
                     // Set value of normal displacement at node directly to the normal displacement of the boundary mesh
-					rLocalVector[j] = inner_prod(rN,displacement);
+					rLocalVector[j] = inner_prod(normal_vector_norm,displacement);
 				}
 			}
 		}
