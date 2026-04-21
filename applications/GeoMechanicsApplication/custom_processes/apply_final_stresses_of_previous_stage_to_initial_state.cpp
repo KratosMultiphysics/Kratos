@@ -24,6 +24,7 @@
 
 namespace Kratos
 {
+using namespace std::string_literals;
 
 ApplyFinalStressesOfPreviousStageToInitialState::ApplyFinalStressesOfPreviousStageToInitialState(
     Model& rModel, const Parameters& rProcessSettings)
@@ -35,21 +36,21 @@ ApplyFinalStressesOfPreviousStageToInitialState::ApplyFinalStressesOfPreviousSta
 void ApplyFinalStressesOfPreviousStageToInitialState::ExecuteInitialize()
 {
     for (const auto& r_model_part : mrModelParts) {
-        block_for_each(r_model_part.get().Elements(), [&r_model_part, this](Element& rElement) {
+        for (auto& r_element : r_model_part.get().Elements()) {
             std::vector<Vector> stresses_on_integration_points;
-            rElement.CalculateOnIntegrationPoints(PK2_STRESS_VECTOR, stresses_on_integration_points,
-                                                  r_model_part.get().GetProcessInfo());
+            r_element.CalculateOnIntegrationPoints(PK2_STRESS_VECTOR, stresses_on_integration_points,
+                                                   r_model_part.get().GetProcessInfo());
             if (stresses_on_integration_points.empty()) {
-                rElement.CalculateOnIntegrationPoints(GEO_EFFECTIVE_TRACTION_VECTOR, stresses_on_integration_points,
-                                                      r_model_part.get().GetProcessInfo());
+                r_element.CalculateOnIntegrationPoints(GEO_EFFECTIVE_TRACTION_VECTOR, stresses_on_integration_points,
+                                                       r_model_part.get().GetProcessInfo());
             }
             std::vector<ConstitutiveLaw::Pointer> constitutive_laws;
-            rElement.CalculateOnIntegrationPoints(CONSTITUTIVE_LAW, constitutive_laws,
-                                                  r_model_part.get().GetProcessInfo());
+            r_element.CalculateOnIntegrationPoints(CONSTITUTIVE_LAW, constitutive_laws,
+                                                   r_model_part.get().GetProcessInfo());
 
-            CheckRetrievedElementData(constitutive_laws, stresses_on_integration_points, rElement.GetId());
-            mStressesByElementId[rElement.GetId()] = stresses_on_integration_points;
-        });
+            CheckRetrievedElementData(constitutive_laws, stresses_on_integration_points, r_element.GetId());
+            mStressesByElementId[r_element.GetId()] = stresses_on_integration_points;
+        }
     }
 }
 
@@ -92,7 +93,7 @@ void ApplyFinalStressesOfPreviousStageToInitialState::CheckRetrievedElementData(
 
 std::string ApplyFinalStressesOfPreviousStageToInitialState::Info() const
 {
-    return "ApplyFinalStressesOfPreviousStageToInitialState";
+    return "ApplyFinalStressesOfPreviousStageToInitialState"s;
 }
 
 } // namespace Kratos

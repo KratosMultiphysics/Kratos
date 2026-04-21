@@ -16,7 +16,7 @@
             "input_filename":   "../common/mesh2D"
         },
         "material_import_settings":              {
-            "materials_filename":       "../common/MaterialParameters2D.json"
+            "materials_filename":       "MaterialParameters2D.json"
         },
         "time_stepping":              {
             "time_step":                1.0,

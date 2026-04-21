@@ -80,10 +80,8 @@ namespace Kratos::MaterialPointGeneratorUtility
                         material_points_per_element = i->GetProperties()[MATERIAL_POINTS_PER_ELEMENT];
                     }
                     else {
-                        std::string warning_msg = "MATERIAL_POINTS_PER_ELEMENT is not specified in Properties, ";
-                        warning_msg += "1 material point per element is assumed.";
-                        KRATOS_WARNING("MaterialPointGeneratorUtility") << warning_msg << std::endl;
-                        material_points_per_element = 1;
+                        std::string error_msg = "\"MATERIAL_POINTS_PER_ELEMENT\" is not specified in Properties";
+                        KRATOS_ERROR << error_msg << std::endl;
                     }
 
                     // Get geometry and dimension of the background grid
@@ -94,17 +92,13 @@ namespace Kratos::MaterialPointGeneratorUtility
                     // Get integration method and shape function values
                     IntegrationMethod int_method = GeometryData::IntegrationMethod::GI_GAUSS_1;
                     Matrix shape_functions_values;
-                    bool is_equal_int_volumes = false;
                     DetermineIntegrationMethodAndShapeFunctionValues(r_geometry, material_points_per_element,
-                        int_method, shape_functions_values, is_equal_int_volumes);
+                        int_method, shape_functions_values);
 
                     // Get volumes of the material points
                     const unsigned int integration_point_per_elements = shape_functions_values.size1();
                     Vector int_volumes (integration_point_per_elements);
-                    if (is_equal_int_volumes) {
-                        for (size_t j = 0; j < integration_point_per_elements; ++j)  int_volumes[j] = r_geometry.DomainSize() / integration_point_per_elements;
-                    }
-                    else  GetIntegrationPointVolumes(r_geometry, int_method, int_volumes);
+                    GetIntegrationPointVolumes(r_geometry, int_method, int_volumes);
                     if (domain_size == 2 && i->GetProperties().Has(THICKNESS)) {
                         for (size_t j = 0; j < integration_point_per_elements; ++j) int_volumes[j] *= i->GetProperties()[THICKNESS];
                     }
@@ -156,7 +150,9 @@ namespace Kratos::MaterialPointGeneratorUtility
 
                         // FindPointOnMesh find the background element in which a given point falls and the relative shape functions
                         bool is_found = SearchStructure.FindPointOnMesh(xg[0], N, pelem, result_begin);
-                        if (!is_found) KRATOS_WARNING("MaterialPointGeneratorUtility") << "::search failed." << std::endl;
+                        std::string error_msg = "Search failed: unable to find a background grid ";
+                        error_msg += "geometry containing the material point element having coordinates ";
+                        KRATOS_ERROR_IF_NOT(is_found) << error_msg << xg[0] << std::endl;
 
                         pelem->Set(ACTIVE);
                         auto p_new_geometry = CreateQuadraturePointsUtility<Node>::CreateFromCoordinates(
@@ -308,12 +304,14 @@ namespace Kratos::MaterialPointGeneratorUtility
                         const int boundary_condition_type = r_cond.GetValue(MPC_BOUNDARY_CONDITION_TYPE);
 
                         // Check number of material points per condition to be created
-                        unsigned int material_points_per_condition = 0; // Default zero
+                        unsigned int material_points_per_condition;
                         if (r_cond.Has( MATERIAL_POINTS_PER_CONDITION )){
                             material_points_per_condition = r_cond.GetValue(MATERIAL_POINTS_PER_CONDITION);
                         }
                         else{
-                            KRATOS_WARNING("MaterialPointGeneratorUtility") << "MATERIAL_POINTS_PER_CONDITION is not specified. Only one material point is assumed." << std::endl;
+                            std::string error_msg = "Variable \"MATERIAL_POINTS_PER_CONDITION\" is not specified ";
+                            error_msg += "for conditions of submodelpart \"" + submodelpart_name + "\".";
+                            KRATOS_ERROR << error_msg << std::endl;
                         }
 
                         // Get condition variables:
@@ -342,15 +340,15 @@ namespace Kratos::MaterialPointGeneratorUtility
                             {
                                 number_of_points_per_span = material_points_per_condition;
                                 std::vector<double> spans = {-1, 1};
-                                
+
                                 auto integration_info = IntegrationInfo(r_geometry.LocalSpaceDimension(), number_of_points_per_span, IntegrationInfo::QuadratureMethod::GRID);
 
                                 IntegrationPointUtilities::CreateIntegrationPoints1D(
                                             integration_points, spans, integration_info);
-                               
+
                             }
                             else{
-                                KRATOS_WARNING("MaterialPointGeneratorUtility") << "Equal distribution of material point conditions only available for line segments:  "  << std::endl;
+                                KRATOS_ERROR << "Equal distribution of material point conditions only available for line segments"  << std::endl;
                             }
                         }
                         else{
@@ -362,6 +360,9 @@ namespace Kratos::MaterialPointGeneratorUtility
                                 auto integration_info = IntegrationInfo(r_geometry.LocalSpaceDimension(), number_of_points_per_span, IntegrationInfo::QuadratureMethod::GAUSS);
                                 r_geometry.CreateIntegrationPoints(integration_points,integration_info);
                                 integration_method = integration_info.GetIntegrationMethod(0);
+                            } else {
+                                KRATOS_WARNING_IF("MaterialPointGeneratorUtility",material_points_per_condition!=1) <<
+                                    "When using a material point load condition, only 1 material point per condition (geometrical point) can be used" << std::endl;
                             }
                         }
 
@@ -393,9 +394,9 @@ namespace Kratos::MaterialPointGeneratorUtility
                                 const GeometryData::KratosGeometryType background_geo_type = rBackgroundGridModelPart.ElementsBegin()->GetGeometry().GetGeometryType();
                                 if(background_geo_type == GeometryData::KratosGeometryType::Kratos_Triangle2D3 || background_geo_type == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4)
                                     KRATOS_ERROR << "Lagrange multiplier condition is currently only suitable for quadrilateral/hexahedral elements. Boundary locking effect in case of triangular/tetrahedral background grid elements"  << std::endl;
-                            } 
+                            }
                             else if(boundary_condition_type==3)
-                                condition_type_name = "MPMParticleLagrangeDirichletCondition"; 
+                                condition_type_name = "MPMParticleLagrangeDirichletCondition";
                             else{
                                 KRATOS_ERROR << "boundary_condition_type in material_point_generator_utility.cpp is not correctly defined." << std::endl;
                             }
@@ -433,7 +434,9 @@ namespace Kratos::MaterialPointGeneratorUtility
 
                             // FindPointOnMesh find the background element in which a given point falls and the relative shape functions
                             bool is_found = SearchStructure.FindPointOnMesh(mpc_xg[0], N, pelem, result_begin);
-                            if (!is_found) KRATOS_WARNING("MaterialPointGeneratorUtility") << "::search failed." << std::endl;
+                            std::string error_msg = "Search failed: unable to find a background grid ";
+                            error_msg += "geometry containing the material point condition having coordinates ";
+                            KRATOS_ERROR_IF_NOT(is_found) << error_msg << mpc_xg[0] << std::endl;
 
                             auto p_new_geometry = CreateQuadraturePointsUtility<Node>::CreateFromCoordinates(
                                 pelem->pGetGeometry(), mpc_xg[0],
@@ -475,12 +478,14 @@ namespace Kratos::MaterialPointGeneratorUtility
                                 r_geometry.GlobalCoordinates(mpc_xg[0], local_coordinates);
 
                                 mpc_area[0] = integration_points[i_integration_point].Weight() * r_geometry.DeterminantOfJacobian(i_integration_point, integration_method);
-                                
+
                                 typename BinBasedFastPointLocator<TDimension>::ResultIteratorType result_begin = results.begin();
                                 Element::Pointer pelem;
                                 Vector N;
                                 bool is_found = SearchStructure.FindPointOnMesh(mpc_xg[0], N, pelem, result_begin);
-                                if (!is_found) KRATOS_WARNING("MaterialPointGeneratorUtility") << "::MPC search failed." << std::endl;
+                                std::string error_msg = "Search failed: unable to find a background grid ";
+                                error_msg += "geometry containing the material point condition having coordinates ";
+                                KRATOS_ERROR_IF_NOT(is_found) << error_msg << mpc_xg[0] << std::endl;
 
                                 pelem->Set(ACTIVE);
                                 auto p_quadrature_point_geometry = CreateQuadraturePointsUtility<Node>::CreateFromCoordinates(
@@ -587,265 +592,6 @@ namespace Kratos::MaterialPointGeneratorUtility
 /***********************************************************************************/
 /***********************************************************************************/
 
-    Matrix MP16ShapeFunctions()
-    {
-        const double Na1 = 0.33333333333333;
-        const double Nb1 = 0.45929258829272;
-        const double Nb2 = 0.08141482341455;
-        const double Nc1 = 0.17056930775176;
-        const double Nc2 = 0.65886138449648;
-
-        const double Nd1 = 0.05054722831703;
-        const double Nd2 = 0.89890554336594;
-
-        const double Ne1 = 0.26311282963464;
-        const double Ne2 = 0.72849239295540;
-        const double Ne3 = 0.00839477740996;
-
-        BoundedMatrix<double,16,3> MP_shape_functions;
-
-        MP_shape_functions(0,0) = Na1;
-        MP_shape_functions(0,1) = Na1;
-        MP_shape_functions(0,2) = Na1;
-
-        MP_shape_functions(1,0) = Nb1;
-        MP_shape_functions(1,1) = Nb1;
-        MP_shape_functions(1,2) = Nb2;
-
-        MP_shape_functions(2,0) = Nb1;
-        MP_shape_functions(2,1) = Nb2;
-        MP_shape_functions(2,2) = Nb1;
-
-        MP_shape_functions(3,0) = Nb2;
-        MP_shape_functions(3,1) = Nb1;
-        MP_shape_functions(3,2) = Nb1;
-
-        MP_shape_functions(4,0) = Nc1;
-        MP_shape_functions(4,1) = Nc1;
-        MP_shape_functions(4,2) = Nc2;
-
-        MP_shape_functions(5,0) = Nc1;
-        MP_shape_functions(5,1) = Nc2;
-        MP_shape_functions(5,2) = Nc1;
-
-        MP_shape_functions(6,0) = Nc2;
-        MP_shape_functions(6,1) = Nc1;
-        MP_shape_functions(6,2) = Nc1;
-
-        MP_shape_functions(7,0) = Nd1;
-        MP_shape_functions(7,1) = Nd1;
-        MP_shape_functions(7,2) = Nd2;
-
-        MP_shape_functions(8,0) = Nd1;
-        MP_shape_functions(8,1) = Nd2;
-        MP_shape_functions(8,2) = Nd1;
-
-        MP_shape_functions(9,0) = Nd2;
-        MP_shape_functions(9,1) = Nd1;
-        MP_shape_functions(9,2) = Nd1;
-
-        MP_shape_functions(10,0) = Ne1;
-        MP_shape_functions(10,1) = Ne2;
-        MP_shape_functions(10,2) = Ne3;
-
-        MP_shape_functions(11,0) = Ne2;
-        MP_shape_functions(11,1) = Ne3;
-        MP_shape_functions(11,2) = Ne1;
-
-        MP_shape_functions(12,0) = Ne3;
-        MP_shape_functions(12,1) = Ne1;
-        MP_shape_functions(12,2) = Ne2;
-
-        MP_shape_functions(13,0) = Ne2;
-        MP_shape_functions(13,1) = Ne1;
-        MP_shape_functions(13,2) = Ne3;
-
-        MP_shape_functions(14,0) = Ne1;
-        MP_shape_functions(14,1) = Ne3;
-        MP_shape_functions(14,2) = Ne2;
-
-        MP_shape_functions(15,0) = Ne3;
-        MP_shape_functions(15,1) = Ne2;
-        MP_shape_functions(15,2) = Ne1;
-
-        //MP_shape_functions = [(Na1, Na1, Na1),(Nb1, Nb1, Nb2),(Nb1, Nb2, Nb1),(Nb2, Nb1, Nb1),
-        //                    (Nc1, Nc1, Nc2),(Nc1, Nc2, Nc1),(Nc2, Nc1, Nc1),(Nd1, Nd1, Nd2),
-        //                    (Nd1, Nd2, Nd1),(Nd2, Nd1, Nd1),(Ne1, Ne2, Ne3),(Ne2, Ne3, Ne1),
-        //                    (Ne3, Ne1, Ne2),(Ne2, Ne1, Ne3),(Ne1, Ne3, Ne2),(Ne3, Ne2, Ne1)];
-
-        return MP_shape_functions;
-    }
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-    Matrix MP33ShapeFunctions()
-    {
-        const double Na2 = 0.02356522045239;
-        const double Na1 = 0.488217389773805;
-
-        const double Nb2 = 0.120551215411079;
-        const double Nb1 = 0.43972439229446;
-
-        const double Nc2 = 0.457579229975768;
-        const double Nc1 = 0.271210385012116;
-
-        const double Nd2 = 0.744847708916828;
-        const double Nd1 = 0.127576145541586;
-
-        const double Ne2 = 0.957365299093579;
-        const double Ne1 = 0.021317350453210;
-
-        const double Nf1 = 0.115343494534698;
-        const double Nf2 = 0.275713269685514;
-        const double Nf3 = 0.608943235779788;
-
-        const double Ng1 = 0.022838332222257;
-        const double Ng2 = 0.281325580989940;
-        const double Ng3 = 0.695836086787803;
-
-        const double Nh1 = 0.025734050548330;
-        const double Nh2 = 0.116251915907597;
-        const double Nh3 = 0.858014033544073;
-
-        BoundedMatrix<double,33,3> MP_shape_functions;
-
-        MP_shape_functions(0,0) = Na1;
-        MP_shape_functions(0,1) = Na1;
-        MP_shape_functions(0,2) = Na2;
-
-        MP_shape_functions(1,0) = Na1;
-        MP_shape_functions(1,1) = Na2;
-        MP_shape_functions(1,2) = Na1;
-
-        MP_shape_functions(2,0) = Na2;
-        MP_shape_functions(2,1) = Na1;
-        MP_shape_functions(2,2) = Na1;
-
-
-        MP_shape_functions(3,0) = Nb1;
-        MP_shape_functions(3,1) = Nb1;
-        MP_shape_functions(3,2) = Nb2;
-
-        MP_shape_functions(4,0) = Nb1;
-        MP_shape_functions(4,1) = Nb2;
-        MP_shape_functions(4,2) = Nb1;
-
-        MP_shape_functions(5,0) = Nb2;
-        MP_shape_functions(5,1) = Nb1;
-        MP_shape_functions(5,2) = Nb1;
-
-        MP_shape_functions(6,0) = Nc1;
-        MP_shape_functions(6,1) = Nc1;
-        MP_shape_functions(6,2) = Nc2;
-
-        MP_shape_functions(7,0) = Nc1;
-        MP_shape_functions(7,1) = Nc2;
-        MP_shape_functions(7,2) = Nc1;
-
-        MP_shape_functions(8,0) = Nc2;
-        MP_shape_functions(8,1) = Nc1;
-        MP_shape_functions(8,2) = Nc1;
-
-        MP_shape_functions(9,0) = Nd1;
-        MP_shape_functions(9,1) = Nd1;
-        MP_shape_functions(9,2) = Nd2;
-
-        MP_shape_functions(10,0) = Nd1;
-        MP_shape_functions(10,1) = Nd2;
-        MP_shape_functions(10,2) = Nd1;
-
-        MP_shape_functions(11,0) = Nd2;
-        MP_shape_functions(11,1) = Nd1;
-        MP_shape_functions(11,2) = Nd1;
-
-        MP_shape_functions(12,0) = Ne1;
-        MP_shape_functions(12,1) = Ne1;
-        MP_shape_functions(12,2) = Ne2;
-
-        MP_shape_functions(13,0) = Ne1;
-        MP_shape_functions(13,1) = Ne2;
-        MP_shape_functions(13,2) = Ne1;
-
-        MP_shape_functions(14,0) = Ne2;
-        MP_shape_functions(14,1) = Ne1;
-        MP_shape_functions(14,2) = Ne1;
-
-        MP_shape_functions(15,0) = Nf1;
-        MP_shape_functions(15,1) = Nf2;
-        MP_shape_functions(15,2) = Nf3;
-
-        MP_shape_functions(16,0) = Nf2;
-        MP_shape_functions(16,1) = Nf3;
-        MP_shape_functions(16,2) = Nf1;
-
-        MP_shape_functions(17,0) = Nf3;
-        MP_shape_functions(17,1) = Nf1;
-        MP_shape_functions(17,2) = Nf2;
-
-        MP_shape_functions(18,0) = Nf2;
-        MP_shape_functions(18,1) = Nf1;
-        MP_shape_functions(18,2) = Nf3;
-
-        MP_shape_functions(19,0) = Nf1;
-        MP_shape_functions(19,1) = Nf3;
-        MP_shape_functions(19,2) = Nf2;
-
-        MP_shape_functions(20,0) = Nf3;
-        MP_shape_functions(20,1) = Nf2;
-        MP_shape_functions(20,2) = Nf1;
-
-        MP_shape_functions(21,0) = Ng1;
-        MP_shape_functions(21,1) = Ng2;
-        MP_shape_functions(21,2) = Ng3;
-
-        MP_shape_functions(22,0) = Ng2;
-        MP_shape_functions(22,1) = Ng3;
-        MP_shape_functions(22,2) = Ng1;
-
-        MP_shape_functions(23,0) = Ng3;
-        MP_shape_functions(23,1) = Ng1;
-        MP_shape_functions(23,2) = Ng2;
-
-        MP_shape_functions(24,0) = Ng2;
-        MP_shape_functions(24,1) = Ng1;
-        MP_shape_functions(24,2) = Ng3;
-
-        MP_shape_functions(25,0) = Ng1;
-        MP_shape_functions(25,1) = Ng3;
-        MP_shape_functions(25,2) = Ng2;
-
-        MP_shape_functions(26,0) = Ng3;
-        MP_shape_functions(26,1) = Ng2;
-        MP_shape_functions(26,2) = Ng1;
-
-        MP_shape_functions(27,0) = Nh1;
-        MP_shape_functions(27,1) = Nh2;
-        MP_shape_functions(27,2) = Nh3;
-
-        MP_shape_functions(28,0) = Nh2;
-        MP_shape_functions(28,1) = Nh3;
-        MP_shape_functions(28,2) = Nh1;
-
-        MP_shape_functions(29,0) = Nh3;
-        MP_shape_functions(29,1) = Nh1;
-        MP_shape_functions(29,2) = Nh2;
-
-        MP_shape_functions(30,0) = Nh2;
-        MP_shape_functions(30,1) = Nh1;
-        MP_shape_functions(30,2) = Nh3;
-
-        MP_shape_functions(31,0) = Nh1;
-        MP_shape_functions(31,1) = Nh3;
-        MP_shape_functions(31,2) = Nh2;
-
-        MP_shape_functions(32,0) = Nh3;
-        MP_shape_functions(32,1) = Nh2;
-        MP_shape_functions(32,2) = Nh1;
-
-        return MP_shape_functions;
-    }
-
     void GetIntegrationPointVolumes(const GeometryType& rGeom, const IntegrationMethod IntegrationMethod, Vector& rIntVolumes)
     {
         auto int_points = rGeom.IntegrationPoints(IntegrationMethod);
@@ -859,12 +605,11 @@ namespace Kratos::MaterialPointGeneratorUtility
 
 
     void DetermineIntegrationMethodAndShapeFunctionValues(const GeometryType& rGeom, const SizeType MaterialPointsPerElement,
-        IntegrationMethod& rIntegrationMethod, Matrix& rN, bool& IsEqualVolumes)
+        IntegrationMethod& rIntegrationMethod, Matrix& rN)
     {
         const GeometryData::KratosGeometryType geo_type = rGeom.GetGeometryType();
-        const SizeType domain_size = rGeom.WorkingSpaceDimension();
 
-        if (geo_type == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4 || geo_type == GeometryData::KratosGeometryType::Kratos_Triangle2D3)
+        if (geo_type == GeometryData::KratosGeometryType::Kratos_Triangle2D3)
         {
             switch (MaterialPointsPerElement)
             {
@@ -874,39 +619,53 @@ namespace Kratos::MaterialPointGeneratorUtility
             case 3:
                 rIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
                 break;
+            case 4:
+                rIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_3;
+                break;
             case 6:
                 rIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_4;
                 break;
             case 12:
                 rIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_5;
                 break;
-            case 16:
-                if (domain_size == 2) {
-                    IsEqualVolumes = true;
-
-                    KRATOS_WARNING("MaterialPointGeneratorUtility") << "16 material points per triangle element is only valid for undistorted triangles." << std::endl;
-                    rN = MP16ShapeFunctions();
-                    break;
-                }
-            case 33:
-                if (domain_size == 2) {
-                    IsEqualVolumes = true;
-                    KRATOS_WARNING("MaterialPointGeneratorUtility") << "33 material points per triangle element is only valid for undistorted triangles." << std::endl;
-                    rN = MP33ShapeFunctions();
-                    break;
-                }
             default:
-                rIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2; // default to 3 material points per tri
-
-                std::string warning_msg = "The input number of MATERIAL_POINTS_PER_ELEMENT: " + std::to_string(MaterialPointsPerElement);
-                warning_msg += " is not available for Triangular" + std::to_string(domain_size) + "D.\n";
-                warning_msg += "Available options are: 1, 3, 6, 12, 16 (only 2D), and 33 (only 2D).\n";
-                warning_msg += "The default number of material points: 3 is currently assumed.";
-                KRATOS_WARNING("MaterialPointGeneratorUtility") <<  warning_msg << std::endl;
+                std::string err_msg = "The input number of MATERIAL_POINTS_PER_ELEMENT ";
+                err_msg += "(" + std::to_string(MaterialPointsPerElement) + ")";
+                err_msg += " is not available for Triangular elements\n";
+                err_msg += "Available options are: 1, 3, 4, 6, 12.\n";
+                KRATOS_ERROR <<  err_msg << std::endl;
                 break;
             }
         }
-        else if (geo_type == GeometryData::KratosGeometryType::Kratos_Hexahedra3D8 || geo_type == GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4)
+        else if (geo_type == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4)
+        {
+            switch (MaterialPointsPerElement)
+            {
+            case 1:
+                rIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_1;
+                break;
+            case 4:
+                rIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
+                break;
+            case 8:
+                rIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_3;
+                break;
+            case 14:
+                rIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_4;
+                break;
+            case 24:
+                rIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_5;
+                break;
+            default:
+                std::string err_msg = "The input number of MATERIAL_POINTS_PER_ELEMENT ";
+                err_msg += "(" + std::to_string(MaterialPointsPerElement) + ")";
+                err_msg += " is not available for Tetrahedral elements\n";
+                err_msg += "Available options are: 1, 4, 8, 14 and 24.\n";
+                KRATOS_ERROR <<  err_msg << std::endl;
+                break;
+            }
+        }
+        else if (geo_type == GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4)
         {
             switch (MaterialPointsPerElement)
             {
@@ -922,20 +681,47 @@ namespace Kratos::MaterialPointGeneratorUtility
             case 16:
                 rIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_4;
                 break;
+            case 25:
+                rIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_5;
+                break;
             default:
-                rIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2; // default to 4 material points per quad
-
-                std::string warning_msg = "The input number of MATERIAL_POINTS_PER_ELEMENT: " + std::to_string(MaterialPointsPerElement);
-                warning_msg += " is not available for Quadrilateral" + std::to_string(domain_size) + "D.\n";
-                warning_msg += "Available options are: 1, 4, 9, 16.\n";
-                warning_msg += "The default number of material points: 4 is currently assumed.";
-                KRATOS_WARNING("MaterialPointGeneratorUtility") <<  warning_msg << std::endl;
+                std::string err_msg = "The input number of MATERIAL_POINTS_PER_ELEMENT ";
+                err_msg += "(" + std::to_string(MaterialPointsPerElement) + ")";
+                err_msg += " is not available for Quadrilateral elements\n";
+                err_msg += "Available options are: 1, 4, 9, 16 and 25.\n";
+                KRATOS_ERROR <<  err_msg << std::endl;
                 break;
             }
         }
-
-        // Get shape function values
-        if (!IsEqualVolumes) rN = rGeom.ShapeFunctionsValues(rIntegrationMethod);
+        else if (geo_type == GeometryData::KratosGeometryType::Kratos_Hexahedra3D8)
+        {
+            switch (MaterialPointsPerElement)
+            {
+            case 1:
+                rIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_1;
+                break;
+            case 8:
+                rIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
+                break;
+            case 27:
+                rIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_3;
+                break;
+            case 64:
+                rIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_4;
+                break;
+            case 125:
+                rIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_5;
+                break;
+            default:
+                std::string err_msg = "The input number of MATERIAL_POINTS_PER_ELEMENT ";
+                err_msg += "(" + std::to_string(MaterialPointsPerElement) + ")";
+                err_msg += " is not available for Hexahedral elements\n";
+                err_msg += "Available options are: 1, 8, 27, 64 and 125.\n";
+                KRATOS_ERROR <<  err_msg << std::endl;
+                break;
+            }
+        }
+        rN = rGeom.ShapeFunctionsValues(rIntegrationMethod);
     }
 
     void DetermineGeometryIntegrationMethod(const GeometryType& rGeom, const SizeType MaterialPointsPerCondition,
@@ -949,12 +735,11 @@ namespace Kratos::MaterialPointGeneratorUtility
             if (MaterialPointsPerCondition>0 && MaterialPointsPerCondition<6)
                 rNumPointsPerSpan = MaterialPointsPerCondition;
             else{
-                rNumPointsPerSpan = 1;
-                std::string warning_msg = "The input number of MATERIAL_POINTS_PER_CONDITION: " + std::to_string(MaterialPointsPerCondition);
-                warning_msg += " is not available for Line" + std::to_string(domain_size) + "D.\n";
-                warning_msg += "Available options are: 1 (default), 2, 3, 4, 5.\n";
-                warning_msg += "The default number of material points: 1 is currently assumed.";
-                KRATOS_WARNING("MaterialPointGeneratorUtility") <<  warning_msg << std::endl;
+                std::string err_msg = "The input number of MATERIAL_POINTS_PER_CONDITION ";
+                err_msg += "(" + std::to_string(MaterialPointsPerCondition) + ")";
+                err_msg += " is not available for Line" + std::to_string(domain_size) + "D.\n";
+                err_msg += "Available options are: 1, 2, 3, 4 and 5.";
+                KRATOS_ERROR <<  err_msg << std::endl;
             }
 
         }
@@ -975,12 +760,11 @@ namespace Kratos::MaterialPointGeneratorUtility
                 rNumPointsPerSpan = 5;
                 break;
             default:
-                rNumPointsPerSpan = 1;
-                std::string warning_msg = "The input number of MATERIAL_POINTS_PER_CONDITION: " + std::to_string(MaterialPointsPerCondition);
-                warning_msg += " is not available for Triangular" + std::to_string(domain_size) + "D.\n";
-                warning_msg += "Available options are: 1 (default), 3, 6 and 12.\n";
-                warning_msg += "The default number of material points: 1 is currently assumed.";
-                KRATOS_WARNING("MaterialPointGeneratorUtility") << warning_msg << std::endl;
+                std::string err_msg = "The input number of MATERIAL_POINTS_PER_CONDITION: ";
+                err_msg += "(" + std::to_string(MaterialPointsPerCondition) + ")";
+                err_msg += " is not available for triangles (3D).\n";
+                err_msg += "Available options are: 1, 3, 6 and 12.";
+                KRATOS_ERROR << err_msg << std::endl;
                 break;
             }
 
@@ -1002,12 +786,11 @@ namespace Kratos::MaterialPointGeneratorUtility
                 rNumPointsPerSpan = 4;
                 break;
             default:
-                rNumPointsPerSpan = 1;
-                std::string warning_msg = "The input number of MATERIAL_POINTS_PER_CONDITION: " + std::to_string(MaterialPointsPerCondition);
-                warning_msg += " is not available for Triangular" + std::to_string(domain_size) + "D.\n";
-                warning_msg += "Available options are: 1 (default), 4, 9 and 16.\n";
-                warning_msg += "The default number of material points: 1 is currently assumed.";
-                KRATOS_WARNING("MaterialPointGeneratorUtility") <<  warning_msg << std::endl;
+                std::string err_msg = "The input number of MATERIAL_POINTS_PER_CONDITION ";
+                err_msg += "(" + std::to_string(MaterialPointsPerCondition) + ")";
+                err_msg += " is not available for quadrilaterals (3D).\n";
+                err_msg += "Available options are: 1, 4, 9 and 16.";
+                KRATOS_ERROR <<  err_msg << std::endl;
                 break;
             }
 

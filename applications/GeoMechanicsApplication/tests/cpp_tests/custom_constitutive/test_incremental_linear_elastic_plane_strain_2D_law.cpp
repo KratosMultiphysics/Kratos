@@ -12,9 +12,8 @@
 
 #include "custom_constitutive/incremental_linear_elastic_law.h"
 #include "custom_constitutive/plane_strain.h"
+#include "custom_utilities/ublas_utilities.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
-
-#include <boost/numeric/ublas/assignment.hpp>
 
 namespace
 {
@@ -123,8 +122,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeoLinearElasticPlaneStrain2DLawReturnsExpectedStress,
 
     const auto stress = CalculateStress(law);
 
-    Vector expected_stress{4};
-    expected_stress <<= 2.5e+07, 2.5e+07, 2.5e+07, 3.84615e+06;
+    const auto expected_stress = UblasUtilities::CreateVector({2.5e+07, 2.5e+07, 2.5e+07, 3.84615e+06});
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(expected_stress, stress, 1e-3);
 }
 
@@ -136,8 +134,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeoLinearElasticPlaneStrain2DLawReturnsExpectedStress_
 
     const auto stress = CalculateStress(law);
 
-    Vector expected_stress{4};
-    expected_stress <<= 1.34615e+07, 1.34615e+07, 1.34615e+07, 0;
+    const auto expected_stress = UblasUtilities::CreateVector({1.34615e+07, 1.34615e+07, 1.34615e+07, 0});
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(expected_stress, stress, 1e-3);
 }
 
@@ -155,8 +152,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeoLinearElasticPlaneStrain2DLawReturnsExpectedStress_
 
     const auto stress = CalculateStress(law);
 
-    Vector expected_stress{4};
-    expected_stress <<= 1.35e+07, 1.35e+07, 1.35e+07, 2.92308e+06;
+    const auto expected_stress = UblasUtilities::CreateVector({1.35e+07, 1.35e+07, 1.35e+07, 2.92308e+06});
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(expected_stress, stress, 1e-3);
 }
 
@@ -180,8 +176,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeoLinearElasticPlaneStrain2DLawReturnsExpectedStress_
     law.FinalizeMaterialResponseCauchy(final_parameters);
     stress = CalculateStress(law);
 
-    Vector expected_stress{4};
-    expected_stress <<= 6e+06, 6e+06, 6e+06, 1.76923e+06;
+    const auto expected_stress = UblasUtilities::CreateVector({6e+06, 6e+06, 6e+06, 1.76923e+06});
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(expected_stress, stress, 1e-3);
 }
 

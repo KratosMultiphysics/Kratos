@@ -275,8 +275,8 @@ public:
 
             mDispCurrentResidualNorm = disp_residual_solution_norm;
             mRotCurrentResidualNorm = rot_residual_solution_norm;
-            const double lm_ratio = lm_solution_norm > Tolerance ? std::sqrt(lm_increase_norm/lm_solution_norm) : 0.0;
-            const double lm_abs = std::sqrt(lm_increase_norm)/static_cast<double>(lm_dof_num);
+            const double lm_ratio = (lm_solution_norm > Tolerance) ? std::sqrt(lm_increase_norm/lm_solution_norm) : 0.0;
+            const double lm_abs = (lm_dof_num > 0) ? std::sqrt(lm_increase_norm)/static_cast<double>(lm_dof_num) : 0.0;
 
             double residual_disp_ratio, residual_rot_ratio;
 
@@ -298,8 +298,8 @@ public:
             residual_rot_ratio = mRotCurrentResidualNorm/mRotInitialResidualNorm;
 
             // We calculate the absolute norms
-            double residual_disp_abs = mDispCurrentResidualNorm/disp_dof_num;
-            double residual_rot_abs = mRotCurrentResidualNorm/rot_dof_num;
+            const double residual_disp_abs = (disp_dof_num > 0) ? mDispCurrentResidualNorm/static_cast<double>(disp_dof_num) : 0.0;
+            const double residual_rot_abs = (rot_dof_num > 0) ? mRotCurrentResidualNorm/static_cast<double>(rot_dof_num) : 0.0;
 
             // The process info of the model part
             ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
@@ -378,8 +378,9 @@ public:
                 }
                 return false;
             }
-        } else // In this case all the displacements are imposed!
+        } else { // In this case all the displacements are imposed!
             return true;
+        }
     }
 
     /**

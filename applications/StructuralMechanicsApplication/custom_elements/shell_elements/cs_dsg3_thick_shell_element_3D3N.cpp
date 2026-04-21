@@ -57,6 +57,58 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::Initialize(
 /***********************************************************************************/
 
 template <bool IS_COROTATIONAL>
+void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::CalculateOnIntegrationPoints(
+    const Variable<double>& rVariable,
+    std::vector<double>& rOutput,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    const auto& r_integration_points = CustomTriangleAreaCoordinatesQuadrature(GetGeometry().Area());
+    const SizeType number_of_integration_points = r_integration_points.size();
+
+    // Provide a default empty implementation: resize and set zeros
+    rOutput.assign(number_of_integration_points, 0.0);
+
+    if (mConstitutiveLawVector[0]->Has(rVariable)) {
+        GetValueOnConstitutiveLaw(rVariable, rOutput);
+    } else {
+        CalculateOnConstitutiveLaw(rVariable, rOutput, rCurrentProcessInfo);
+    }
+
+    KRATOS_CATCH("CSDSG3ThickShellElement3D3N::CalculateOnIntegrationPoints")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <bool IS_COROTATIONAL>
+void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::CalculateOnIntegrationPoints(
+    const Variable<Vector>& rVariable,
+    std::vector<Vector>& rOutput,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    const auto& r_integration_points = CustomTriangleAreaCoordinatesQuadrature(GetGeometry().Area());
+    const SizeType number_of_integration_points = r_integration_points.size();
+
+    // Provide a default empty implementation: resize and set zeros
+    rOutput.assign(number_of_integration_points, ZeroVector(3)); // plane stress components
+
+    if (mConstitutiveLawVector[0]->Has(rVariable)) {
+        GetValueOnConstitutiveLaw(rVariable, rOutput);
+    } else {
+        CalculateOnConstitutiveLaw(rVariable, rOutput, rCurrentProcessInfo);
+    }
+
+    KRATOS_CATCH("CSDSG3ThickShellElement3D3N::CalculateOnIntegrationPoints")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <bool IS_COROTATIONAL>
 void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::InitializeMaterial()
 {
     KRATOS_TRY
@@ -795,13 +847,14 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::CalculateLocalSystem(
 
     }
     if constexpr (is_corotational) {
-        this->mpCoordinateTransformation->FinalizeCalculations(mpCoordinateTransformation->CreateLocalCoordinateSystem(),
-                                                               Vector(),
-                                                               nodal_values,
-                                                               rLHS,
-                                                               rRHS,
-                                                               true,
-                                                               true);
+        this->mpCoordinateTransformation->FinalizeCalculations(
+            mpCoordinateTransformation->CreateLocalCoordinateSystem(),
+            Vector(),
+            nodal_values,
+            rLHS,
+            rRHS,
+            true,
+            true);
     } else {
         RotateLHSToGlobal(rLHS, rotation_matrix);
         RotateRHSToGlobal(rRHS, rotation_matrix);
@@ -889,13 +942,14 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::CalculateLeftHandSide(
     }
     if constexpr (is_corotational) {
         Vector empty_vector;
-        this->mpCoordinateTransformation->FinalizeCalculations(mpCoordinateTransformation->CreateLocalCoordinateSystem(),
-                                                               Vector(),
-                                                               nodal_values,
-                                                               rLHS,
-                                                               empty_vector,
-                                                               true,
-                                                               true);
+        this->mpCoordinateTransformation->FinalizeCalculations(
+            mpCoordinateTransformation->CreateLocalCoordinateSystem(),
+            Vector(),
+            nodal_values,
+            rLHS,
+            empty_vector,
+            true,
+            true);
     } else {
         RotateLHSToGlobal(rLHS, rotation_matrix);
     }
@@ -981,13 +1035,14 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::CalculateRightHandSide(
     }
     if constexpr (is_corotational) {
         Matrix empty_matrix;
-        this->mpCoordinateTransformation->FinalizeCalculations(mpCoordinateTransformation->CreateLocalCoordinateSystem(),
-                                                               Vector(),
-                                                               nodal_values,
-                                                               empty_matrix,
-                                                               rRHS,
-                                                               true,
-                                                               false);
+        this->mpCoordinateTransformation->FinalizeCalculations(
+            mpCoordinateTransformation->CreateLocalCoordinateSystem(),
+            Vector(),
+            nodal_values,
+            empty_matrix,
+            rRHS,
+            true,
+            false);
     } else {
         RotateRHSToGlobal(rRHS, rotation_matrix);
     }
@@ -1312,6 +1367,93 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::CalculateDampingMatrix(
     const IndexType system_size = number_of_nodes * GetDoFsPerNode();
 
     StructuralMechanicsElementUtilities::CalculateRayleighDampingMatrix(*this, rDampingMatrix, rCurrentProcessInfo, system_size);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <bool IS_COROTATIONAL>
+void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::GetValuesVector(Vector& rValues, int Step) const
+{
+    const auto& r_geometry = GetGeometry();
+    const IndexType number_of_nodes = r_geometry.PointsNumber();
+    const IndexType system_size = number_of_nodes * GetDoFsPerNode();
+
+    if (rValues.size() != system_size) {
+        rValues.resize(system_size, false);
+    }
+
+    for (IndexType i = 0; i < r_geometry.size(); ++i) {
+        const array_3& disp = r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT, Step);
+        const array_3& rot  = r_geometry[i].FastGetSolutionStepValue(ROTATION, Step);
+
+        const IndexType index = i * GetDoFsPerNode();
+        rValues[index]     = disp[0];
+        rValues[index + 1] = disp[1];
+        rValues[index + 2] = disp[2];
+
+        rValues[index + 3] = rot[0];
+        rValues[index + 4] = rot[1];
+        rValues[index + 5] = rot[2];
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <bool IS_COROTATIONAL>
+void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::GetFirstDerivativesVector(Vector& rValues, int Step) const
+{
+    const auto& r_geometry = GetGeometry();
+    const IndexType number_of_nodes = r_geometry.PointsNumber();
+    const IndexType system_size = number_of_nodes * GetDoFsPerNode();
+
+    if (rValues.size() != system_size) {
+        rValues.resize(system_size, false);
+    }
+
+    for (IndexType i = 0; i < r_geometry.size(); ++i) {
+        const array_3& r_vel = r_geometry[i].FastGetSolutionStepValue(VELOCITY, Step);
+        const array_3& r_ang_vel = r_geometry[i].FastGetSolutionStepValue(ANGULAR_VELOCITY, Step);
+
+        const IndexType index = i * GetDoFsPerNode();
+        rValues[index]     = r_vel[0];
+        rValues[index + 1] = r_vel[1];
+        rValues[index + 2] = r_vel[2];
+
+        rValues[index + 3] = r_ang_vel[0];
+        rValues[index + 4] = r_ang_vel[1];
+        rValues[index + 5] = r_ang_vel[2];
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <bool IS_COROTATIONAL>
+void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::GetSecondDerivativesVector(Vector& rValues, int Step) const
+{
+    const auto& r_geometry = GetGeometry();
+    const IndexType number_of_nodes = r_geometry.PointsNumber();
+    const IndexType system_size = number_of_nodes * GetDoFsPerNode();
+
+    if (rValues.size() != system_size) {
+        rValues.resize(system_size, false);
+    }
+
+    for (IndexType i = 0; i < r_geometry.size(); ++i) {
+        const array_3& r_acc = r_geometry[i].FastGetSolutionStepValue(ACCELERATION, Step);
+        const array_3& r_ang_acc = r_geometry[i].FastGetSolutionStepValue(ANGULAR_ACCELERATION, Step);
+
+        const IndexType index = i * GetDoFsPerNode();
+        rValues[index]     = r_acc[0];
+        rValues[index + 1] = r_acc[1];
+        rValues[index + 2] = r_acc[2];
+
+        rValues[index + 3] = r_ang_acc[0];
+        rValues[index + 4] = r_ang_acc[1];
+        rValues[index + 5] = r_ang_acc[2];
+    }
 }
 
 /***********************************************************************************/

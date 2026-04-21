@@ -1598,7 +1598,17 @@ void DVMSDEMCoupled<TElementData>::UpdateSubscaleVelocityPrediction(
 
     // Store new subscale values or discard the calculation
     // If not converged, we will not use the subscale in the convective term.
-    noalias(mPredictedSubscaleVelocity[rData.IntegrationPointIndex]) = converged ? u : ZeroVector(Dim);
+    if (converged) {
+        mPredictedSubscaleVelocity[rData.IntegrationPointIndex][0] = u[0];
+        mPredictedSubscaleVelocity[rData.IntegrationPointIndex][1] = u[1];
+        if constexpr (Dim == 3) {
+            mPredictedSubscaleVelocity[rData.IntegrationPointIndex][2] = u[2];
+        } else {
+            mPredictedSubscaleVelocity[rData.IntegrationPointIndex][2] = 0.0;   
+        }
+    } else {
+        noalias(mPredictedSubscaleVelocity[rData.IntegrationPointIndex]) = ZeroVector(Dim);
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

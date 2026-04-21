@@ -11,7 +11,8 @@
 //
 
 #include "containers/model.h"
-#include "custom_processes/geo_extrapolate_integration_point_values_to_nodes_process.h"
+#include "custom_processes/geo_extrapolate_integration_point_values_to_nodes_process.hpp"
+#include "custom_utilities/variables_utilities.hpp"
 #include "geo_mechanics_application_variables.h"
 #include "geometries/quadrilateral_2d_4.h"
 #include "test_setup_utilities/model_setup_utilities.h"
@@ -196,25 +197,13 @@ void CreateAndRunExtrapolationProcess(Model& rModel, const Parameters& rProcessS
     extrapolation_process.ExecuteFinalizeSolutionStep();
 }
 
-template <typename NodeContainerType, typename DataType>
-std::vector<DataType> GetNodalValues(const NodeContainerType& rNodes, const Variable<DataType>& rVariable)
-{
-    auto result = std::vector<DataType>{};
-    result.reserve(rNodes.size());
-    auto get_nodal_value = [&rVariable](const auto& rNode) {
-        return rNode.FastGetSolutionStepValue(rVariable);
-    };
-    std::ranges::transform(rNodes, std::back_inserter(result), get_nodal_value);
-    return result;
-}
-
 template <typename NodeContainerType>
 void AssertNodalValues(const NodeContainerType&   rNodes,
                        const Variable<double>&    rVariable,
                        const std::vector<double>& rExpectedNodalValues)
 {
-    KRATOS_EXPECT_VECTOR_NEAR(GetNodalValues(rNodes, rVariable), rExpectedNodalValues,
-                              Testing::Defaults::absolute_tolerance);
+    KRATOS_EXPECT_VECTOR_NEAR(VariablesUtilities::GetNodalValues(rNodes, rVariable),
+                              rExpectedNodalValues, Testing::Defaults::absolute_tolerance);
 }
 
 template <typename NodeContainerType, typename VectorType>
@@ -222,7 +211,7 @@ void AssertNodalVectorValues(const NodeContainerType&       rNodes,
                              const Variable<VectorType>&    rVectorVariable,
                              const std::vector<VectorType>& rExpectedNodalVectorValues)
 {
-    const auto actual_nodal_vector_values = GetNodalValues(rNodes, rVectorVariable);
+    const auto actual_nodal_vector_values = VariablesUtilities::GetNodalValues(rNodes, rVectorVariable);
 
     ASSERT_EQ(actual_nodal_vector_values.size(), rExpectedNodalVectorValues.size());
     for (auto i = std::size_t{0}; i < actual_nodal_vector_values.size(); ++i) {
@@ -252,7 +241,7 @@ void AssertNodalValues(const NodeContainerType&   rNodes,
                        const Variable<Matrix>&    rVariable,
                        const std::vector<Matrix>& rExpectedNodalValues)
 {
-    const auto actual_nodal_values = GetNodalValues(rNodes, rVariable);
+    const auto actual_nodal_values = VariablesUtilities::GetNodalValues(rNodes, rVariable);
 
     ASSERT_EQ(actual_nodal_values.size(), rExpectedNodalValues.size());
     for (auto i = std::size_t{0}; i < actual_nodal_values.size(); ++i) {

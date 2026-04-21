@@ -113,27 +113,29 @@ void ConstructMatrixStructure(Kratos::unique_ptr<typename MappingSparseSpaceType
 void BuildMatrix(Kratos::unique_ptr<typename MappingSparseSpaceType::MatrixType>& rpMdo,
                  std::vector<Kratos::unique_ptr<MapperLocalSystem>>& rMapperLocalSystems)
 {
-    MatrixType local_mapping_matrix;
-    EquationIdVectorType origin_ids;
-    EquationIdVectorType destination_ids;
+    struct TLS {
+        MatrixType local_mapping_matrix;
+        EquationIdVectorType origin_ids;
+        EquationIdVectorType destination_ids;
+    };
 
-    for (auto& r_local_sys : rMapperLocalSystems) { // TODO omp
+    block_for_each(rMapperLocalSystems, TLS(), [&rpMdo] (auto& r_local_sys, TLS& rTls){
 
-        r_local_sys->CalculateLocalSystem(local_mapping_matrix, origin_ids, destination_ids);
+        r_local_sys->CalculateLocalSystem(rTls.local_mapping_matrix, rTls.origin_ids, rTls.destination_ids);
 
-        KRATOS_DEBUG_ERROR_IF(local_mapping_matrix.size1() != destination_ids.size()) << "MappingMatrixAssembly: DestinationID vector size mismatch: LocalMappingMatrix-Size1: " << local_mapping_matrix.size1() << " | DestinationIDs-size: " << destination_ids.size() << std::endl;
-        KRATOS_DEBUG_ERROR_IF(local_mapping_matrix.size2() != origin_ids.size()) << "MappingMatrixAssembly: OriginID vector size mismatch: LocalMappingMatrix-Size2: " << local_mapping_matrix.size2() << " | OriginIDs-size: " << origin_ids.size() << std::endl;
+        KRATOS_DEBUG_ERROR_IF(rTls.local_mapping_matrix.size1() != rTls.destination_ids.size()) << "MappingMatrixAssembly: DestinationID vector size mismatch: LocalMappingMatrix-Size1: " << rTls.local_mapping_matrix.size1() << " | DestinationIDs-size: " << rTls.destination_ids.size() << std::endl;
+        KRATOS_DEBUG_ERROR_IF(rTls.local_mapping_matrix.size2() != rTls.origin_ids.size()) << "MappingMatrixAssembly: OriginID vector size mismatch: LocalMappingMatrix-Size2: " << rTls.local_mapping_matrix.size2() << " | OriginIDs-size: " << rTls.origin_ids.size() << std::endl;
 
-        for (IndexType i=0; i<destination_ids.size(); ++i) {
-            for (IndexType j=0; j<origin_ids.size(); ++j) {
-                // #pragma omp atomic
-                (*rpMdo)(destination_ids[i], origin_ids[j]) += local_mapping_matrix(i,j);
+        for (IndexType i = 0; i < rTls.destination_ids.size(); ++i) {
+            for (IndexType j = 0; j < rTls.origin_ids.size(); ++j) {
+                AtomicAdd((*rpMdo)(rTls.destination_ids[i], rTls.origin_ids[j]).ref(), rTls.local_mapping_matrix(i,j));
             }
         }
 
         r_local_sys->Clear();
-    }
-}
+    });
+
+} 
 
 } // anonymous namespace
 

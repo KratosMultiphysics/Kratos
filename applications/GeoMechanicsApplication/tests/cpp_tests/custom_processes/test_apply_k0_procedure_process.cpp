@@ -10,15 +10,15 @@
 //  Main authors:    Anne van de Graaf
 //
 #include "containers/model.h"
+#include "custom_constitutive/incremental_linear_elastic_law.h"
 #include "custom_processes/apply_k0_procedure_process.h"
+#include "custom_utilities/ublas_utilities.h"
 #include "geo_mechanics_application_variables.h"
 #include "includes/element.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/stub_linear_elastic_law.h"
 #include "tests/cpp_tests/test_utilities.h"
-#include <custom_constitutive/incremental_linear_elastic_law.h>
 
-#include <boost/numeric/ublas/assignment.hpp>
 #include <gmock/gmock.h>
 
 namespace
@@ -261,15 +261,13 @@ KRATOS_TEST_CASE_IN_SUITE(K0ProcedureIsAppliedCorrectlyWithK0_NC, KratosGeoMecha
     auto p_properties = std::make_shared<Properties>();
     p_properties->SetValue(K0_NC, 0.5);
     p_properties->SetValue(K0_MAIN_DIRECTION, 1);
-    Vector initial_stress_vector{4};
-    initial_stress_vector <<= 0.0, -10.0, 0.0, 27.0;
+    const auto initial_stress_vector = UblasUtilities::CreateVector({0.0, -10.0, 0.0, 27.0});
 
     // Act
     const auto actual_stress_vector = ApplyK0ProcedureOnStubElement(p_properties, initial_stress_vector);
 
     // Assert
-    Vector expected_stress_vector{4};
-    expected_stress_vector <<= -5.0, -10.0, -5.0, 0.0;
+    const auto expected_stress_vector = UblasUtilities::CreateVector({-5.0, -10.0, -5.0, 0.0});
     KRATOS_EXPECT_VECTOR_NEAR(actual_stress_vector, expected_stress_vector, Defaults::absolute_tolerance);
 }
 
@@ -279,16 +277,14 @@ KRATOS_TEST_CASE_IN_SUITE(K0ProcedureIsAppliedCorrectlyWithK0_NC_MultipleModelPa
     auto p_properties = std::make_shared<Properties>();
     p_properties->SetValue(K0_NC, 0.5);
     p_properties->SetValue(K0_MAIN_DIRECTION, 1);
-    Vector initial_stress_vector{4};
-    initial_stress_vector <<= 0.0, -10.0, 0.0, 27.0;
+    const auto initial_stress_vector = UblasUtilities::CreateVector({0.0, -10.0, 0.0, 27.0});
 
     // Act
     const auto actual_stress_vector =
         ApplyK0ProcedureOnStubElementsInMultipleModelParts(p_properties, initial_stress_vector);
 
     // Assert
-    Vector expected_stress_vector{4};
-    expected_stress_vector <<= -5.0, -10.0, -5.0, 0.0;
+    const auto expected_stress_vector = UblasUtilities::CreateVector({-5.0, -10.0, -5.0, 0.0});
     KRATOS_EXPECT_VECTOR_NEAR(actual_stress_vector, expected_stress_vector, Defaults::absolute_tolerance);
 }
 
@@ -298,15 +294,13 @@ KRATOS_TEST_CASE_IN_SUITE(K0ProcedureIsAppliedCorrectlyWithK0_NC_3D, KratosGeoMe
     auto p_properties = std::make_shared<Properties>();
     p_properties->SetValue(K0_NC, 0.5);
     p_properties->SetValue(K0_MAIN_DIRECTION, 2);
-    Vector initial_stress_vector{6};
-    initial_stress_vector <<= 0.0, -10.0, -10.0, 27.0, 10.0, 5.0;
+    const auto initial_stress_vector = UblasUtilities::CreateVector({0.0, -10.0, -10.0, 27.0, 10.0, 5.0});
 
     // Act
     const auto actual_stress_vector = ApplyK0ProcedureOnStubElement(p_properties, initial_stress_vector);
 
     // Assert
-    Vector expected_stress_vector{6};
-    expected_stress_vector <<= -5.0, -5.0, -10.0, 0.0, 0.0, 0.0;
+    auto expected_stress_vector = UblasUtilities::CreateVector({-5.0, -5.0, -10.0, 0.0, 0.0, 0.0});
     KRATOS_EXPECT_VECTOR_NEAR(actual_stress_vector, expected_stress_vector, Defaults::absolute_tolerance);
 }
 
@@ -320,15 +314,13 @@ KRATOS_TEST_CASE_IN_SUITE(K0ProcedureIsAppliedCorrectlyWithPhi, KratosGeoMechani
     p_properties->SetValue(UMAT_PARAMETERS, umat_parameters);
     p_properties->SetValue(K0_MAIN_DIRECTION, 1);
 
-    Vector initial_stress_vector{4};
-    initial_stress_vector <<= 0.0, -10.0, 0.0, 27.0;
+    const auto initial_stress_vector = UblasUtilities::CreateVector({0.0, -10.0, 0.0, 27.0});
 
     // Act
     const auto actual_stress_vector = ApplyK0ProcedureOnStubElement(p_properties, initial_stress_vector);
 
     // Assert
-    Vector expected_stress_vector{4};
-    expected_stress_vector <<= -5.0, -10.0, -5.0, 0.0;
+    const auto expected_stress_vector = UblasUtilities::CreateVector({-5.0, -10.0, -5.0, 0.0});
     KRATOS_EXPECT_VECTOR_NEAR(actual_stress_vector, expected_stress_vector, Defaults::absolute_tolerance);
 }
 
@@ -342,15 +334,13 @@ KRATOS_TEST_CASE_IN_SUITE(K0ProcedureIsAppliedCorrectlyWithPhi_3D, KratosGeoMech
     p_properties->SetValue(UMAT_PARAMETERS, umat_parameters);
     p_properties->SetValue(K0_MAIN_DIRECTION, 2);
 
-    Vector initial_stress_vector{6};
-    initial_stress_vector <<= 0.0, -10.0, -10.0, 27.0, 10.0, 5.0;
+    const auto initial_stress_vector = UblasUtilities::CreateVector({0.0, -10.0, -10.0, 27.0, 10.0, 5.0});
 
     // Act
     const auto actual_stress_vector = ApplyK0ProcedureOnStubElement(p_properties, initial_stress_vector);
 
     // Assert
-    Vector expected_stress_vector{6};
-    expected_stress_vector <<= -5.0, -5.0, -10.0, 0.0, 0.0, 0.0;
+    auto expected_stress_vector = UblasUtilities::CreateVector({-5.0, -5.0, -10.0, 0.0, 0.0, 0.0});
     KRATOS_EXPECT_VECTOR_NEAR(actual_stress_vector, expected_stress_vector, Defaults::absolute_tolerance);
 }
 
@@ -361,15 +351,13 @@ KRATOS_TEST_CASE_IN_SUITE(K0ProcedureIsAppliedCorrectlyWithK0_NCandOCR, KratosGe
     p_properties->SetValue(K0_NC, 0.5);
     p_properties->SetValue(K0_MAIN_DIRECTION, 1);
     p_properties->SetValue(OCR, 1.5);
-    Vector initial_stress_vector{4};
-    initial_stress_vector <<= 0.0, -10.0, 0.0, 27.0;
+    const auto initial_stress_vector = UblasUtilities::CreateVector({0.0, -10.0, 0.0, 27.0});
 
     // Act
     const auto actual_stress_vector = ApplyK0ProcedureOnStubElement(p_properties, initial_stress_vector);
 
     // Assert
-    Vector expected_stress_vector{4};
-    expected_stress_vector <<= -7.5, -10.0, -7.5, 0.0;
+    const auto expected_stress_vector = UblasUtilities::CreateVector({-7.5, -10.0, -7.5, 0.0});
     KRATOS_EXPECT_VECTOR_NEAR(actual_stress_vector, expected_stress_vector, Defaults::absolute_tolerance);
 }
 
@@ -380,15 +368,13 @@ KRATOS_TEST_CASE_IN_SUITE(K0ProcedureIsAppliedCorrectlyWithK0_NCandOCR_3D, Krato
     p_properties->SetValue(K0_NC, 0.5);
     p_properties->SetValue(K0_MAIN_DIRECTION, 2);
     p_properties->SetValue(OCR, 1.5);
-    Vector initial_stress_vector{6};
-    initial_stress_vector <<= 0.0, -10.0, -10.0, 27.0, 10.0, 5.0;
+    const auto initial_stress_vector = UblasUtilities::CreateVector({0.0, -10.0, -10.0, 27.0, 10.0, 5.0});
 
     // Act
     const auto actual_stress_vector = ApplyK0ProcedureOnStubElement(p_properties, initial_stress_vector);
 
     // Assert
-    Vector expected_stress_vector{6};
-    expected_stress_vector <<= -7.5, -7.5, -10.0, 0.0, 0.0, 0.0;
+    const auto expected_stress_vector = UblasUtilities::CreateVector({-7.5, -7.5, -10.0, 0.0, 0.0, 0.0});
     KRATOS_EXPECT_VECTOR_NEAR(actual_stress_vector, expected_stress_vector, Defaults::absolute_tolerance);
 }
 
@@ -400,15 +386,14 @@ KRATOS_TEST_CASE_IN_SUITE(K0ProcedureIsAppliedCorrectlyWithK0_NCandOCRandNu_UR, 
     p_properties->SetValue(K0_MAIN_DIRECTION, 1);
     p_properties->SetValue(OCR, 1.5);
     p_properties->SetValue(POISSON_UNLOADING_RELOADING, 0.25);
-    Vector initial_stress_vector{4};
-    initial_stress_vector <<= 0.0, -10.0, 0.0, 27.0;
+    const auto initial_stress_vector = UblasUtilities::CreateVector({0.0, -10.0, 0.0, 27.0});
 
     // Act
     const auto actual_stress_vector = ApplyK0ProcedureOnStubElement(p_properties, initial_stress_vector);
 
     // Assert
-    Vector expected_stress_vector{4};
-    expected_stress_vector <<= -7 * 10.0 / 12.0, -10.0, -7 * 10.0 / 12.0, 0.0;
+    const auto expected_stress_vector =
+        UblasUtilities::CreateVector({-7 * 10.0 / 12.0, -10.0, -7 * 10.0 / 12.0, 0.0});
     KRATOS_EXPECT_VECTOR_NEAR(actual_stress_vector, expected_stress_vector, Defaults::absolute_tolerance);
 }
 
@@ -420,15 +405,14 @@ KRATOS_TEST_CASE_IN_SUITE(K0ProcedureIsAppliedCorrectlyWithK0_NCandOCRandNu_UR_3
     p_properties->SetValue(K0_MAIN_DIRECTION, 2);
     p_properties->SetValue(OCR, 1.5);
     p_properties->SetValue(POISSON_UNLOADING_RELOADING, 0.25);
-    Vector initial_stress_vector{6};
-    initial_stress_vector <<= 0.0, -10.0, -10.0, 27.0, 10.0, 5.0;
+    const auto initial_stress_vector = UblasUtilities::CreateVector({0.0, -10.0, -10.0, 27.0, 10.0, 5.0});
 
     // Act
     const auto actual_stress_vector = ApplyK0ProcedureOnStubElement(p_properties, initial_stress_vector);
 
     // Assert
-    Vector expected_stress_vector{6};
-    expected_stress_vector <<= -7 * 10.0 / 12.0, -7 * 10.0 / 12.0, -10.0, 0.0, 0.0, 0.0;
+    const auto expected_stress_vector =
+        UblasUtilities::CreateVector({-7 * 10.0 / 12.0, -7 * 10.0 / 12.0, -10.0, 0.0, 0.0, 0.0});
     KRATOS_EXPECT_VECTOR_NEAR(actual_stress_vector, expected_stress_vector, Defaults::absolute_tolerance);
 }
 
@@ -439,15 +423,13 @@ KRATOS_TEST_CASE_IN_SUITE(K0ProcedureIsAppliedCorrectlyWithK0_NCandPOP, KratosGe
     p_properties->SetValue(K0_NC, 0.5);
     p_properties->SetValue(K0_MAIN_DIRECTION, 1);
     p_properties->SetValue(POP, 50.0);
-    Vector initial_stress_vector{4};
-    initial_stress_vector <<= 0.0, -10.0, 0.0, 27.0;
+    const auto initial_stress_vector = UblasUtilities::CreateVector({0.0, -10.0, 0.0, 27.0});
 
     // Act
     const auto actual_stress_vector = ApplyK0ProcedureOnStubElement(p_properties, initial_stress_vector);
 
     // Assert
-    Vector expected_stress_vector{4};
-    expected_stress_vector <<= -30.0, -10.0, -30.0, 0.0;
+    const auto expected_stress_vector = UblasUtilities::CreateVector({-30.0, -10.0, -30.0, 0.0});
     KRATOS_EXPECT_VECTOR_NEAR(actual_stress_vector, expected_stress_vector, Defaults::absolute_tolerance);
 }
 
@@ -458,15 +440,13 @@ KRATOS_TEST_CASE_IN_SUITE(K0ProcedureIsAppliedCorrectlyWithK0_NCandPOP_3D, Krato
     p_properties->SetValue(K0_NC, 0.5);
     p_properties->SetValue(K0_MAIN_DIRECTION, 2);
     p_properties->SetValue(POP, 50.0);
-    Vector initial_stress_vector{6};
-    initial_stress_vector <<= 0.0, -10.0, -10.0, 27.0, 10.0, 5.0;
+    const auto initial_stress_vector = UblasUtilities::CreateVector({0.0, -10.0, -10.0, 27.0, 10.0, 5.0});
 
     // Act
     const auto actual_stress_vector = ApplyK0ProcedureOnStubElement(p_properties, initial_stress_vector);
 
     // Assert
-    Vector expected_stress_vector{6};
-    expected_stress_vector <<= -30.0, -30.0, -10.0, 0.0, 0.0, 0.0;
+    const auto expected_stress_vector = UblasUtilities::CreateVector({-30.0, -30.0, -10.0, 0.0, 0.0, 0.0});
     KRATOS_EXPECT_VECTOR_NEAR(actual_stress_vector, expected_stress_vector, Defaults::absolute_tolerance);
 }
 
@@ -478,15 +458,14 @@ KRATOS_TEST_CASE_IN_SUITE(K0ProcedureIsAppliedCorrectlyWithK0_NCandPOPandNu_UR, 
     p_properties->SetValue(K0_MAIN_DIRECTION, 1);
     p_properties->SetValue(POP, 50.0);
     p_properties->SetValue(POISSON_UNLOADING_RELOADING, 0.25);
-    Vector initial_stress_vector{4};
-    initial_stress_vector <<= 0.0, -10.0, 0.0, 27.0;
+    const auto initial_stress_vector = UblasUtilities::CreateVector({0.0, -10.0, 0.0, 27.0});
 
     // Act
     const auto actual_stress_vector = ApplyK0ProcedureOnStubElement(p_properties, initial_stress_vector);
 
     // Assert
-    Vector expected_stress_vector{4};
-    expected_stress_vector <<= -30.0 + 50.0 / 3.0, -10.0, -30.0 + 50.0 / 3.0, 0.0;
+    const auto expected_stress_vector =
+        UblasUtilities::CreateVector({-30.0 + 50.0 / 3.0, -10.0, -30.0 + 50.0 / 3.0, 0.0});
     KRATOS_EXPECT_VECTOR_NEAR(actual_stress_vector, expected_stress_vector, Defaults::absolute_tolerance);
 }
 
@@ -498,15 +477,32 @@ KRATOS_TEST_CASE_IN_SUITE(K0ProcedureIsAppliedCorrectlyWithK0_NCandPOPandNu_UR_3
     p_properties->SetValue(K0_MAIN_DIRECTION, 2);
     p_properties->SetValue(POP, 50.0);
     p_properties->SetValue(POISSON_UNLOADING_RELOADING, 0.25);
-    Vector initial_stress_vector{6};
-    initial_stress_vector <<= 0.0, -10.0, -10.0, 27.0, 10.0, 5.0;
+    const auto initial_stress_vector = UblasUtilities::CreateVector({0.0, -10.0, -10.0, 27.0, 10.0, 5.0});
 
     // Act
     const auto actual_stress_vector = ApplyK0ProcedureOnStubElement(p_properties, initial_stress_vector);
 
     // Assert
-    Vector expected_stress_vector{6};
-    expected_stress_vector <<= -30.0 + 50.0 / 3.0, -30.0 + 50.0 / 3.0, -10.0, 0.0, 0.0, 0.0;
+    const auto expected_stress_vector =
+        UblasUtilities::CreateVector({-30.0 + 50.0 / 3.0, -30.0 + 50.0 / 3.0, -10.0, 0.0, 0.0, 0.0});
+    KRATOS_EXPECT_VECTOR_NEAR(actual_stress_vector, expected_stress_vector, Defaults::absolute_tolerance);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(K0ProcedureIsAppliedCorrectlyWithK0_Values_3D, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto p_properties = std::make_shared<Properties>();
+    p_properties->SetValue(K0_VALUE_XX, 0.5);
+    p_properties->SetValue(K0_VALUE_YY, 0.5);
+    p_properties->SetValue(K0_VALUE_ZZ, 1.0);
+    p_properties->SetValue(K0_MAIN_DIRECTION, 2);
+    const auto initial_stress_vector = UblasUtilities::CreateVector({0.0, -10.0, -10.0, 27.0, 10.0, 5.0});
+
+    // Act
+    const auto actual_stress_vector = ApplyK0ProcedureOnStubElement(p_properties, initial_stress_vector);
+
+    // Assert
+    const auto expected_stress_vector = UblasUtilities::CreateVector({-5, -5, -10, 0, 0, 0});
     KRATOS_EXPECT_VECTOR_NEAR(actual_stress_vector, expected_stress_vector, Defaults::absolute_tolerance);
 }
 
@@ -547,9 +543,9 @@ KRATOS_TEST_CASE_IN_SUITE(K0ProcedureChecksIfProcessHasCorrectMaterialData, Krat
 
     p_element->GetProperties().SetValue(K0_MAIN_DIRECTION, 1);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        process.Check(),
-        "Insufficient material data for K0 procedure process for element 1. No K0_NC, "
-        "(INDEX_OF_UMAT_PHI_PARAMETER and UMAT_PARAMETERS) or (K0_VALUE_XX, _YY and _ZZ found).")
+        process.Check(), " Insufficient material data for K0 procedure process for property Id of "
+                         "0 for element 1. No K0_NC, (INDEX_OF_UMAT_PHI_PARAMETER and "
+                         "UMAT_PARAMETERS) or (K0_VALUE_XX, _YY and _ZZ found).")
     p_element->GetProperties().SetValue(K0_VALUE_XX, -0.5);
     p_element->GetProperties().SetValue(K0_VALUE_YY, -0.5);
     p_element->GetProperties().SetValue(K0_VALUE_ZZ, -0.5);
@@ -566,15 +562,15 @@ KRATOS_TEST_CASE_IN_SUITE(K0ProcedureChecksIfProcessHasCorrectMaterialData, Krat
     p_element->GetProperties().SetValue(K0_VALUE_ZZ, 0.5);
 
     p_element->GetProperties().SetValue(POISSON_UNLOADING_RELOADING, 0.75);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        process.Check(),
-        "POISSON_UNLOADING_RELOADING (0.75) is not in range [-1.0, 0.5> for element 1.")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(process.Check(),
+                                      "POISSON_UNLOADING_RELOADING (0.75) is not in range [-1.0, "
+                                      "0.5> for property Id of 0 for element 1.")
     p_element->GetProperties().SetValue(POISSON_UNLOADING_RELOADING, 0.25);
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        process.Check(), "Insufficient material data for K0 procedure process for "
-                         "element 1. Poisson unloading-reloading, OCR and POP functionality cannot "
-                         "be combined with K0_VALUE_XX, _YY and _ZZ.")
+        process.Check(), "Insufficient material data for K0 procedure process for property Id of 0 "
+                         "for element 1. Poisson unloading-reloading, OCR and POP functionality "
+                         "cannot be combined with K0_VALUE_XX, _YY and _ZZ.")
 
     p_element->GetProperties().Erase(K0_VALUE_XX);
     p_element->GetProperties().Erase(K0_VALUE_YY);
@@ -585,23 +581,26 @@ KRATOS_TEST_CASE_IN_SUITE(K0ProcedureChecksIfProcessHasCorrectMaterialData, Krat
     umat_parameters[0] = -30.0;
     p_element->GetProperties().SetValue(UMAT_PARAMETERS, umat_parameters);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        process.Check(),
-        "INDEX_OF_UMAT_PHI_PARAMETER (2) is not in range 1, size of UMAT_PARAMETERS for element 1")
+        process.Check(), "Properties ( 0) of element ( 1): INDEX_OF_UMAT_PHI_PARAMETER (2) is not "
+                         "in range [1, size of UMAT_PARAMETERS].")
     p_element->GetProperties().SetValue(INDEX_OF_UMAT_PHI_PARAMETER, 1);
 
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(process.Check(),
-                                      "Phi (-30) should be between 0 and 90 degrees for element 1.")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        process.Check(),
+        "Properties ( 0) of element ( 1): Phi (-30 degrees) should be between 0 and 90 degrees.")
 
     umat_parameters[0] = 30.0;
     p_element->GetProperties().SetValue(UMAT_PARAMETERS, umat_parameters);
     p_element->GetProperties().SetValue(OCR, 0.5);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(process.Check(),
-                                      "OCR (0.5) should be in the range [1.0,-> for element 1.")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        process.Check(),
+        "Error: OCR (0.5) should be in the range [1.0,-> for property Id of 0 for element 1.")
 
     p_element->GetProperties().Erase(OCR);
     p_element->GetProperties().SetValue(POP, -100.0);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(process.Check(),
-                                      "POP (-100) should be in the range [0.0,-> for element 1.")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        process.Check(),
+        "POP (-100) should be in the range [0.0,-> for property Id of 0 element 1.")
 
     p_element->GetProperties().Erase(POP);
     p_element->GetProperties().Erase(INDEX_OF_UMAT_PHI_PARAMETER);
@@ -611,6 +610,7 @@ KRATOS_TEST_CASE_IN_SUITE(K0ProcedureChecksIfProcessHasCorrectMaterialData, Krat
                                       "K0_NC (-0.5) should be in the range [0.0,-> for element 1.")
 
     p_element->GetProperties().SetValue(K0_NC, 0.5);
+    p_element->GetProperties().SetValue(GEO_FRICTION_ANGLE, 35.0);
     KRATOS_EXPECT_EQ(process.Check(), 0);
 }
 
@@ -623,7 +623,7 @@ KRATOS_TEST_CASE_IN_SUITE(K0ProcedureChecksIfModelPartHasElements, KratosGeoMech
     k0_settings.AddString("model_part_name", "dummy");
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN((ApplyK0ProcedureProcess{model, k0_settings}.Check()),
-                                      "ApplyK0ProcedureProces has no elements in modelpart dummy")
+                                      "ApplyK0ProcedureProcess has no elements in modelpart dummy")
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CheckInfoK0ProcedureProcess, KratosGeoMechanicsFastSuiteWithoutKernel)

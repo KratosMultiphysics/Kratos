@@ -19,6 +19,7 @@
 
 namespace Kratos
 {
+using namespace std::string_literals;
 
 ApplyVectorConstraintTableProcess::ApplyVectorConstraintTableProcess(Model& rModel, const Parameters& rSettings)
     : Process(Flags())
@@ -32,8 +33,6 @@ ApplyVectorConstraintTableProcess::ApplyVectorConstraintTableProcess(Model& rMod
         }
     }
 }
-
-ApplyVectorConstraintTableProcess::~ApplyVectorConstraintTableProcess() = default;
 
 std::vector<Parameters> ApplyVectorConstraintTableProcess::CreateParametersForActiveComponents(
     const ModelPart& rModelPart, const Parameters& rSettings)
@@ -125,7 +124,7 @@ void ApplyVectorConstraintTableProcess::ExecuteFinalize()
 
 std::string ApplyVectorConstraintTableProcess::Info() const
 {
-    return "ApplyVectorConstraintTableProcess";
+    return "ApplyVectorConstraintTableProcess"s;
 }
 
 } // namespace Kratos

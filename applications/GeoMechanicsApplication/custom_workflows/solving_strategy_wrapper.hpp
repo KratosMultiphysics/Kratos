@@ -12,7 +12,7 @@
 
 #pragma once
 
-#include "strategy_wrapper.hpp"
+#include "strategy_wrapper.h"
 #include <memory>
 
 #include "custom_processes/calculate_incremental_motion_process.h"

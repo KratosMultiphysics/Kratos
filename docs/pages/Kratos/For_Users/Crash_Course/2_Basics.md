@@ -1,5 +1,5 @@
 ---
-title: 2 - Kraots Basics
+title: 2 - Kratos Basics
 keywords: 
 tags: [Kratos Crash Course Basics]
 sidebar: kratos_for_users

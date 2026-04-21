@@ -11,7 +11,7 @@
 //
 
 #include "custom_utilities/neighbouring_element_finder.hpp"
-#include "test_setup_utilities/element_setup_utilities.h"
+#include "test_setup_utilities/element_setup_utilities.hpp"
 #include "test_setup_utilities/model_setup_utilities.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 
@@ -246,6 +246,30 @@ KRATOS_TEST_CASE_IN_SUITE(NeighbouringElementFinder_FindsNeighboursBetweenQuadra
 
     ASSERT_EQ(p_interface_element->GetValue(NEIGHBOUR_ELEMENTS).size(), 1);
     EXPECT_EQ(p_interface_element->GetValue(NEIGHBOUR_ELEMENTS)[0].GetId(), 1);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(NeighbouringElementFinder_FindsNeighbourElementOfConditionWithTheSameGeometry,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    Model model;
+    auto& r_model_part = model.CreateModelPart("main");
+    auto  nodes        = Testing::ModelSetupUtilities::CreateNodes(
+        r_model_part, {{1, {0.0, 0.0, 0.0}}, {2, {1.0, 0.0, 0.0}}});
+    auto geometry = Kratos::make_shared<Line2D2<Node>>(nodes);
+
+    r_model_part.AddElement(Kratos::make_intrusive<Element>(1, geometry));
+    r_model_part.AddCondition(Kratos::make_intrusive<Condition>(1, geometry));
+
+    NeighbouringElementFinder::BoundaryGeneratorByLocalDim boundary_generators;
+    boundary_generators[std::size_t{1}] = std::make_unique<EdgesGenerator>();
+    NeighbouringElementFinder finder;
+
+    // Act
+    finder.FindEntityNeighbours(r_model_part.Conditions(), r_model_part.Elements(), boundary_generators);
+
+    // Assert
+    EXPECT_EQ(r_model_part.GetCondition(1).GetValue(NEIGHBOUR_ELEMENTS).size(), 1);
 }
 
 } // namespace Kratos::Testing

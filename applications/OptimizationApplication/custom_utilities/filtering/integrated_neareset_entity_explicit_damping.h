@@ -18,14 +18,13 @@
 
 // Project includes
 #include "containers/model.h"
-#include "expression/container_expression.h"
-#include "expression/expression.h"
+#include "tensor_adaptors/tensor_adaptor.h"
 #include "includes/define.h"
-#include "spatial_containers/spatial_containers.h"
 
 // Application includes
 #include "damping_function.h"
 #include "explicit_damping.h"
+#include "filter_utils.h"
 
 namespace Kratos
 {
@@ -44,14 +43,19 @@ class KRATOS_API(OPTIMIZATION_APPLICATION) IntegratedNearestEntityExplicitDampin
 
     using EntityType = typename BaseType::EntityType;
 
-    using EntityPointType = typename BaseType::EntityPointType;
-
     using EntityPointVector = typename BaseType::EntityPointVector;
 
-    // Type definitions for tree-search
-    using BucketType = Bucket<3, EntityPointType, EntityPointVector>;
+    using PositionAdapter = NanoFlannMultipleModelPartPositionAdapter<TContainerType>;
 
-    using KDTree = Tree<KDTreePartition<BucketType>>;
+    using ResultVectorType = typename PositionAdapter::ResultVectorType;
+
+    using PointerVectorType = typename PositionAdapter::PointerVectorType;
+
+    using DistanceMetricType = typename nanoflann::metric_L2_Simple::traits<double, PositionAdapter>::distance_t;
+
+    using KDTreeIndexType = nanoflann::KDTreeSingleIndexAdaptor<DistanceMetricType, PositionAdapter, 3>;
+
+    using KDTreeThreadLocalStorage = NanoFlannKDTreeThreadLocalStorage<PointerVectorType>;
 
     /// Pointer definition of ContainerMapper
     KRATOS_CLASS_POINTER_DEFINITION(IntegratedNearestEntityExplicitDamping);
@@ -72,9 +76,9 @@ class KRATOS_API(OPTIMIZATION_APPLICATION) IntegratedNearestEntityExplicitDampin
     ///@name Operations
     ///@{
 
-    void SetRadius(const ContainerExpression<TContainerType>& rDampingRadiusExpression) override;
+    void SetRadius(TensorAdaptor<double>::Pointer pDampingRadiusTensorAdaptor) override;
 
-    typename ContainerExpression<TContainerType>::Pointer GetRadius() const override;
+    TensorAdaptor<double>::Pointer GetRadius() const override;
 
     IndexType GetStride() const override;
 
@@ -101,17 +105,17 @@ private:
 
     IndexType mStride;
 
-    IndexType mBucketSize = 100;
+    IndexType mLeafMaxSize;
 
     DampingFunction::UniquePointer mpKernelFunction;
 
-    typename ContainerExpression<TContainerType>::Pointer mpDampingRadius;
+    TensorAdaptor<double>::Pointer mpDampingRadius;
 
     std::vector<std::vector<ModelPart*>> mComponentWiseDampedModelParts;
 
-    std::vector<typename KDTree::Pointer> mComponentWiseKDTrees;
+    std::vector<std::shared_ptr<PositionAdapter>> mComponentWisePositionAdapters;
 
-    std::vector<EntityPointVector> mComponentWiseEntityPoints;
+    std::vector<std::shared_ptr<KDTreeIndexType>> mComponentWiseKDTrees;
 
     ///@}
 

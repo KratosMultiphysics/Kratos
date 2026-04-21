@@ -11,12 +11,14 @@
 //
 
 #include "custom_utilities/constitutive_law_utilities.h"
+#include "custom_utilities/ublas_utilities.h"
 #include "geo_mechanics_application_variables.h"
 #include "includes/checks.h"
 #include "tests/cpp_tests/custom_constitutive/mock_constitutive_law.hpp"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include "tests/cpp_tests/test_utilities.h"
 
-#include <boost/numeric/ublas/assignment.hpp>
+#include <numbers>
 
 using namespace Kratos;
 
@@ -27,11 +29,9 @@ KRATOS_TEST_CASE_IN_SUITE(SetSixConstitutiveParametersCorrectResults, KratosGeoM
 {
     ConstitutiveLaw::Parameters ConstitutiveParameters;
 
-    Vector strain_vector(3);
-    strain_vector <<= 1.0, 2.0, 3.0;
-    Matrix constitutive_matrix = IdentityMatrix(5, 5);
-    Vector N(3);
-    N <<= 0.1, 0.2, 0.5;
+    auto             strain_vector               = UblasUtilities::CreateVector({1.0, 2.0, 3.0});
+    Matrix           constitutive_matrix         = IdentityMatrix(5, 5);
+    const auto       N                           = UblasUtilities::CreateVector({0.1, 0.2, 0.5});
     const Matrix     shape_functions_derivatives = ScalarMatrix(3, 3, 5.0);
     const Matrix     deformation_gradient_F      = ScalarMatrix(3, 3, 10.0);
     constexpr double determinant_of_F            = 10.0;
@@ -63,9 +63,8 @@ KRATOS_TEST_CASE_IN_SUITE(CohesionCanBeFetchedFromGeoCohesionProperty, KratosGeo
 
 KRATOS_TEST_CASE_IN_SUITE(CohesionCanBeFetchedFromUMatParameters, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    auto properties      = Properties{};
-    auto umat_parameters = Vector{2};
-    umat_parameters <<= 2.0, 30.0;
+    auto       properties      = Properties{};
+    const auto umat_parameters = UblasUtilities::CreateVector({2.0, 30.0});
     properties.SetValue(UMAT_PARAMETERS, umat_parameters);
     properties.SetValue(INDEX_OF_UMAT_C_PARAMETER, 1);
 
@@ -97,20 +96,19 @@ KRATOS_TEST_CASE_IN_SUITE(FrictionAngleCanBeFetchedFromGeoFrictionAngleProperty,
 
 KRATOS_TEST_CASE_IN_SUITE(FrictionAngleCanBeFetchedFromUMatParameters, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    auto properties      = Properties{};
-    auto umat_parameters = Vector{2};
-    umat_parameters <<= 2.0, 30.0;
+    auto       properties      = Properties{};
+    const auto umat_parameters = UblasUtilities::CreateVector({2.0, 30.0});
     properties.SetValue(UMAT_PARAMETERS, umat_parameters);
     properties.SetValue(INDEX_OF_UMAT_PHI_PARAMETER, 2);
 
     KRATOS_EXPECT_DOUBLE_EQ(ConstitutiveLawUtilities::GetFrictionAngleInDegrees(properties), 30.0);
 
     properties.Erase(INDEX_OF_UMAT_PHI_PARAMETER);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(ConstitutiveLawUtilities::GetFrictionAngleInDegrees(properties), "ConstitutiveLawUtilities::GetFrictionAngleInDegrees failed. There is no GEO_FRICTION_ANGLE available and attempting to get the cohesion from UMAT parameters resulted in the following Error: There is no INDEX_OF_UMAT_PHI_PARAMETER for material 0.");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(ConstitutiveLawUtilities::GetFrictionAngleInDegrees(properties), "ConstitutiveLawUtilities::GetFrictionAngleInDegrees failed. There is no GEO_FRICTION_ANGLE available and attempting to get the friction angle from UMAT parameters resulted in the following Error: There is no INDEX_OF_UMAT_PHI_PARAMETER for material 0.");
 
     properties.SetValue(INDEX_OF_UMAT_PHI_PARAMETER, 2);
     properties.Erase(UMAT_PARAMETERS);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(ConstitutiveLawUtilities::GetFrictionAngleInDegrees(properties), "ConstitutiveLawUtilities::GetFrictionAngleInDegrees failed. There is no GEO_FRICTION_ANGLE available and attempting to get the cohesion from UMAT parameters resulted in the following Error: There is no UMAT_PARAMETERS for material 0.");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(ConstitutiveLawUtilities::GetFrictionAngleInDegrees(properties), "ConstitutiveLawUtilities::GetFrictionAngleInDegrees failed. There is no GEO_FRICTION_ANGLE available and attempting to get the friction angle from UMAT parameters resulted in the following Error: There is no UMAT_PARAMETERS for material 0.");
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RaiseADebugErrorWhenIndexInUMatParametersIsOutOfBounds, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -119,9 +117,8 @@ KRATOS_TEST_CASE_IN_SUITE(RaiseADebugErrorWhenIndexInUMatParametersIsOutOfBounds
     GTEST_SKIP() << "This test requires a debug build";
 #endif
 
-    auto properties      = Properties{};
-    auto umat_parameters = Vector{2};
-    umat_parameters <<= 2.0, 30.0;
+    auto       properties      = Properties{};
+    const auto umat_parameters = UblasUtilities::CreateVector({2.0, 30.0});
     properties.SetValue(UMAT_PARAMETERS, umat_parameters);
     properties.SetValue(INDEX_OF_UMAT_C_PARAMETER, 0); // 1-based index
 
@@ -177,4 +174,84 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_CheckStrainMeasures, KratosGe
     EXPECT_NO_THROW(ConstitutiveLawUtilities::CheckHasStrainMeasure_Infinitesimal(properties, element_id));
 }
 
+KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_CalculateK0NCFromFrictionAngleInDegrees,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    EXPECT_NEAR(ConstitutiveLawUtilities::CalculateK0NCFromFrictionAngleInRadians(MathUtils<>::DegreesToRadians(30.0)),
+                0.5, Defaults::absolute_tolerance);
+    EXPECT_NEAR(ConstitutiveLawUtilities::CalculateK0NCFromFrictionAngleInRadians(MathUtils<>::DegreesToRadians(60.0)),
+                1.0 - 0.5 * std::numbers::sqrt3, Defaults::absolute_tolerance);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_HasFrictionAngle, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // 1) GEO_FRICTION_ANGLE provided
+    auto properties = Properties{};
+    properties.SetValue(GEO_FRICTION_ANGLE, 30.0);
+    KRATOS_EXPECT_EQ(ConstitutiveLawUtilities::HasFrictionAngle(properties), true);
+
+    // 2) UMAT_PARAMETERS + INDEX_OF_UMAT_PHI_PARAMETER provided
+    properties           = Properties{};
+    auto umat_parameters = UblasUtilities::CreateVector({2.0, 30.0});
+    properties.SetValue(UMAT_PARAMETERS, umat_parameters);
+    properties.SetValue(INDEX_OF_UMAT_PHI_PARAMETER, 2);
+    KRATOS_EXPECT_EQ(ConstitutiveLawUtilities::HasFrictionAngle(properties), true);
+
+    // 3) only INDEX_OF_UMAT_PHI_PARAMETER provided -> should be false
+    properties = Properties{};
+    properties.SetValue(INDEX_OF_UMAT_PHI_PARAMETER, 1);
+    KRATOS_EXPECT_EQ(ConstitutiveLawUtilities::HasFrictionAngle(properties), false);
+
+    // 4) only UMAT_PARAMETERS provided -> should be false
+    properties      = Properties{};
+    umat_parameters = UblasUtilities::CreateVector({2.0, 30.0});
+    properties.SetValue(UMAT_PARAMETERS, umat_parameters);
+    KRATOS_EXPECT_EQ(ConstitutiveLawUtilities::HasFrictionAngle(properties), false);
+
+    // 5) neither provided -> false
+    properties = Properties{};
+    KRATOS_EXPECT_EQ(ConstitutiveLawUtilities::HasFrictionAngle(properties), false);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_ValidateFrictionAngle, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    constexpr std::size_t element_id = 1;
+
+    // Valid: GEO_FRICTION_ANGLE provided
+    auto properties = Properties{};
+    properties.SetValue(GEO_FRICTION_ANGLE, 30.0);
+    EXPECT_NO_THROW(ConstitutiveLawUtilities::ValidateFrictionAngle(properties, element_id));
+
+    // Valid: UMAT_PARAMETERS + INDEX_OF_UMAT_PHI_PARAMETER provided
+    properties           = Properties{};
+    auto umat_parameters = UblasUtilities::CreateVector({2.0, 30.0});
+    properties.SetValue(UMAT_PARAMETERS, umat_parameters);
+    properties.SetValue(INDEX_OF_UMAT_PHI_PARAMETER, 2);
+    EXPECT_NO_THROW(ConstitutiveLawUtilities::ValidateFrictionAngle(properties, element_id));
+
+    // Missing both -> error
+    properties = Properties{};
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(ConstitutiveLawUtilities::ValidateFrictionAngle(properties, element_id), "Properties ( 0) of element ( 1) does not have GEO_FRICTION_ANGLE nor INDEX_OF_UMAT_PHI_PARAMETER.");
+
+    // GEO_FRICTION_ANGLE out of range -> error
+    properties = Properties{};
+    properties.SetValue(GEO_FRICTION_ANGLE, -1.0);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(ConstitutiveLawUtilities::ValidateFrictionAngle(properties, element_id), " Properties ( 0) of element ( 1): GEO_FRICTION_ANGLE (-1 degrees) should be between 0 and 90 degrees.");
+
+    // UMAT phi value out of range -> error
+    properties      = Properties{};
+    umat_parameters = UblasUtilities::CreateVector({2.0, -5.0});
+    properties.SetValue(UMAT_PARAMETERS, umat_parameters);
+    properties.SetValue(INDEX_OF_UMAT_PHI_PARAMETER, 2);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        ConstitutiveLawUtilities::ValidateFrictionAngle(properties, element_id),
+        " Properties ( 0) of element ( 1): Phi (-5 degrees) should be between 0 and 90 degrees.");
+
+    // INDEX_OF_UMAT_PHI_PARAMETER out of bounds -> error
+    properties      = Properties{};
+    umat_parameters = UblasUtilities::CreateVector({2.0, 30.0});
+    properties.SetValue(UMAT_PARAMETERS, umat_parameters);
+    properties.SetValue(INDEX_OF_UMAT_PHI_PARAMETER, 3);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(ConstitutiveLawUtilities::ValidateFrictionAngle(properties, element_id), "Properties ( 0) of element ( 1): INDEX_OF_UMAT_PHI_PARAMETER (3) is not in range [1, size of UMAT_PARAMETERS].");
+}
 } // namespace Kratos::Testing

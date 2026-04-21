@@ -35,6 +35,8 @@ public:
                                           double                       detF);
 
     static double GetCohesion(const Properties& rProperties);
+    static bool   HasFrictionAngle(const Properties& rProperties);
+    static void   ValidateFrictionAngle(const Properties& rProperties, IndexType ElementId);
     static double GetFrictionAngleInDegrees(const Properties& rProperties);
     static double GetFrictionAngleInRadians(const Properties& rProperties);
 
@@ -47,6 +49,7 @@ public:
 
     static void CheckHasStrainMeasure_Infinitesimal(const Properties& rProperties, std::size_t ElementId);
 
+    [[nodiscard]] static double CalculateK0NCFromFrictionAngleInRadians(double FrictionAngleInRadians);
 }; /* Class ConstitutiveLawUtilities*/
 
 } // namespace Kratos

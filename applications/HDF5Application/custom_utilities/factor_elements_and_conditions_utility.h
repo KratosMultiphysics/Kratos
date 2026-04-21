@@ -44,13 +44,13 @@ typedef PointerVectorSet<Condition, IndexedObject> ConditionsContainerType;
  * each container on a process are local. If a process has no local elements 
  * corresponding to the ith container, it is empty.
  */
-std::vector<ElementsContainerType> FactorElements(ElementsContainerType const& rElements);
+std::vector<ElementsContainerType> KRATOS_API(HDF5_APPLICATION) FactorElements(ElementsContainerType const& rElements);
 
 void FactorElements(ElementsContainerType const& rElements,
                     std::vector<std::string>& rNames,
                     std::vector<ElementsContainerType>& rFactoredElements);
 
-std::vector<ConditionsContainerType> FactorConditions(ConditionsContainerType const& rConditions);
+std::vector<ConditionsContainerType> KRATOS_API(HDF5_APPLICATION) FactorConditions(ConditionsContainerType const& rConditions);
 
 void FactorConditions(ConditionsContainerType const& rConditions,
                       std::vector<std::string>& rNames,

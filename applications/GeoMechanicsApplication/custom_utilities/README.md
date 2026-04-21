@@ -73,7 +73,7 @@ $$D = \alpha_R M + \beta_R K$$
 
 Where $M$ and $K$ are the mass and stiffness  matrices respectively and $\alpha_R$ and $\beta_R$ are the coefficients from the Rayleigh Method.
 
-File equation_of_motion_utilities.h includes 
+File equation_of_motion_utilities.hpp includes 
 -  CalculateMassMatrix function
 -  CalculateStiffnessMatrixGPoint provides a stiffness matrix for a specific integration point
 -  CalculateStiffnessMatrix provides a stiffness matrix for an element

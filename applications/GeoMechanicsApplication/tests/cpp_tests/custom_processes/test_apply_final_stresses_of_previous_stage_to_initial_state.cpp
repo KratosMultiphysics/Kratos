@@ -13,6 +13,7 @@
 #include "containers/model.h"
 #include "containers/variable.h"
 #include "custom_processes/apply_final_stresses_of_previous_stage_to_initial_state.h"
+#include "custom_utilities/ublas_utilities.h"
 #include "geometries/triangle_2d_3.h"
 #include "includes/constitutive_law.h"
 #include "includes/element.h"
@@ -24,8 +25,6 @@
 #include "includes/variables.h"
 #include "tests/cpp_tests/custom_constitutive/mock_constitutive_law.hpp"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
-
-#include <boost/numeric/ublas/assignment.hpp>
 
 namespace
 {
@@ -106,10 +105,9 @@ namespace Kratos::Testing
 KRATOS_TEST_CASE_IN_SUITE(ApplyFinalStressesOfPreviousStageToInitialState_SetsInitialStressOfConstitutiveLaws,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    Model  model;
-    auto&  model_part = CreateModelPartWithAStubElement(model);
-    Vector initial_stress_vector(4);
-    initial_stress_vector <<= 1.0, 2.0, 3.0, 4.0;
+    Model      model;
+    auto&      model_part            = CreateModelPartWithAStubElement(model);
+    const auto initial_stress_vector = UblasUtilities::CreateVector({1.0, 2.0, 3.0, 4.0});
 
     constexpr auto number_of_integration_points = 3;
     const auto     dummy_process_info           = ProcessInfo{};
