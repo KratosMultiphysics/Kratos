@@ -183,14 +183,15 @@ public:
 			{
                 // Checks for conforming slip
                 // [ non-conforming SLIP BCs are treated within the resp. condition itself ]
-				if( this->IsConformingSlip(rGeometry[itNode]) )
+				NodeType& rNode = rGeometry[itNode];
+				if( this->IsConformingSlip(rNode) )
 				{
 					// We fix the first displacement dof (normal component) for each rotated block
 					unsigned int j = itNode * this->GetBlockSize();
 
 					// Get the displacement of the boundary mesh, this does not assume that the mesh is moving.
 					// If the mesh is moving, need to consider the displacement of the moving mesh into account.
-					const array_1d<double,3> & displacement = rGeometry[itNode].FastGetSolutionStepValue(DISPLACEMENT);
+					const array_1d<double,3> & displacement = rNode.FastGetSolutionStepValue(DISPLACEMENT);
 
 					// Get Normal Vector of the boundary
 					array_1d<double,3> rN = rGeometry[itNode].FastGetSolutionStepValue(NORMAL);
@@ -208,25 +209,25 @@ public:
                     }
 
                     // Modifications to introduce friction force
-                    const double mu = rGeometry[itNode].GetValue(FRICTION_COEFFICIENT);
-                    const double tangential_penalty_coefficient = rGeometry[itNode].GetValue(TANGENTIAL_PENALTY_COEFFICIENT);
+                    const double mu = rNode.GetValue(FRICTION_COEFFICIENT);
+                    const double tangential_penalty_coefficient = rNode.GetValue(TANGENTIAL_PENALTY_COEFFICIENT);
 
                     if (mu > 0 && tangential_penalty_coefficient > 0) { // Friction active
-                        array_1d<double,3> & r_stick_force = rGeometry[itNode].FastGetSolutionStepValue(STICK_FORCE);
+                        array_1d<double,3> & r_stick_force = rNode.FastGetSolutionStepValue(STICK_FORCE);
 
                         // accumulate normal forces (RHS vector) for subsequent re-determination of friction state
                         // and check if friction force has been computed for the current node
-                        rGeometry[itNode].SetLock();
-                        rGeometry[itNode].FastGetSolutionStepValue(STICK_FORCE)[0] -= rLocalVector[j];
-                        const bool friction_assigned = rGeometry[itNode].GetValue(FRICTION_ASSIGNED);
-                        rGeometry[itNode].SetValue(FRICTION_ASSIGNED, true);
-                        rGeometry[itNode].UnSetLock();
+                        rNode.SetLock();
+                        rNode.FastGetSolutionStepValue(STICK_FORCE)[0] -= rLocalVector[j];
+                        const bool friction_assigned = rNode.GetValue(FRICTION_ASSIGNED);
+                        rNode.SetValue(FRICTION_ASSIGNED, true);
+                        rNode.UnSetLock();
 
                         if (!friction_assigned) {
                             // obtain displacement in normal-tangential coordinates
                             // [ use a copy and not reference to avoid rotating the displacement in SolutionStepValue ]
-                            array_1d<double,3> displacement_copy = rGeometry[itNode].FastGetSolutionStepValue(DISPLACEMENT);
-                            RotateVector(displacement_copy, rGeometry[itNode]);
+                            array_1d<double,3> displacement_copy = rNode.FastGetSolutionStepValue(DISPLACEMENT);
+                            RotateVector(displacement_copy, rNode);
 
                             // determine penalty-based sticking force in the tangential direction for the current node
                             // [ displacement in MPM is the displacement update -> penalize any and all displacement
@@ -235,7 +236,7 @@ public:
                                 r_stick_force[i] = -tangential_penalty_coefficient * displacement_copy[i];
                             }
 
-                            const int friction_state = rGeometry[itNode].FastGetSolutionStepValue(FRICTION_STATE);
+                            const int friction_state = rNode.FastGetSolutionStepValue(FRICTION_STATE);
 
                             if(friction_state == STICK) {
                                 if (rLocalMatrix.size1() != 0) {
@@ -245,7 +246,7 @@ public:
                             } // else, sliding: nothing needed for LHS
 
                             // add friction to RHS
-                            const array_1d<double,3> & r_friction_force = rGeometry[itNode].FastGetSolutionStepValue(REACTION);
+                            const array_1d<double,3> & r_friction_force = rNode.FastGetSolutionStepValue(REACTION);
 
                             for( unsigned int i = 1; i < this->GetDomainSize(); ++i)
                                 rLocalVector[j + i] += r_friction_force[i];
