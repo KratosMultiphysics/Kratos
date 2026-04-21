@@ -103,7 +103,6 @@ UPwInterfaceElement::UPwInterfaceElement(IndexType                          NewI
       mpStressStatePolicy(std::move(pStressStatePolicy)),
       mContributions(rContributions)
 {
-    ConstitutiveLawUtilities::ReplaceIgnoreUndrainedByDrainageType(pGetProperties().get());
     MakeIntegrationSchemeAndAssignFunction();
     mpOptionalPressureGeometry = MakeOptionalWaterPressureGeometry(GetDisplacementGeometry(), IsDiffOrder);
 }
@@ -463,6 +462,8 @@ void UPwInterfaceElement::GetDofList(DofsVectorType& rElementalDofList, const Pr
 void UPwInterfaceElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     Element::Initialize(rCurrentProcessInfo);
+    // IGNORE_UNDRAINED is deprecated
+    ConstitutiveLawUtilities::ReplaceIgnoreUndrainedByDrainageType(pGetProperties().get());
 
     mConstitutiveLaws.clear();
     mRetentionLaws.clear();

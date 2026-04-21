@@ -54,7 +54,6 @@ UPwBaseElement::UPwBaseElement(IndexType                                       N
       mpStressStatePolicy{std::move(pStressStatePolicy)},
       mIntegrationCoefficientsCalculator{std::move(pCoefficientModifier)}
 {
-    ConstitutiveLawUtilities::ReplaceIgnoreUndrainedByDrainageType(pGetProperties().get());
     // this is needed for interface elements
     mThisIntegrationMethod = this->GetIntegrationMethod();
 }
@@ -95,6 +94,9 @@ int UPwBaseElement::Check(const ProcessInfo& rCurrentProcessInfo) const
 void UPwBaseElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
+
+    // IGNORE_UNDRAINED is deprecated.
+    ConstitutiveLawUtilities::ReplaceIgnoreUndrainedByDrainageType(pGetProperties().get());
 
     const auto& r_properties = this->GetProperties();
     const auto& r_geometry   = this->GetGeometry();
