@@ -27,7 +27,7 @@ namespace Kratos::Testing
 KRATOS_TEST_CASE_IN_SUITE(CalculateBiotModulusInverse_GivesExpectedResult, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Properties properties;
-    properties[IGNORE_UNDRAINED]                       = false;
+    properties[GEO_DRAINAGE_TYPE]                      = "FULLY_COUPLED";
     properties[POROSITY]                               = 0.5;
     properties[BULK_MODULUS_SOLID]                     = 1.0e9;
     properties[BULK_MODULUS_FLUID]                     = 2.0e6;
@@ -42,11 +42,11 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateBiotModulusInverse_GivesExpectedResult, Krato
         expected_value);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CalculateBiotModulusInverse_ReturnsLargeNumber_WhenIgnoreUndrained,
+KRATOS_TEST_CASE_IN_SUITE(CalculateBiotModulusInverse_ReturnsLargeNumber_WhenConstantPwField,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Properties properties;
-    properties[IGNORE_UNDRAINED]                       = true;
+    properties[GEO_DRAINAGE_TYPE]                      = "CONSTANT_PW_FIELD";
     properties[POROSITY]                               = 0.5;
     properties[BULK_MODULUS_SOLID]                     = 1.0e9;
     properties[BULK_MODULUS_FLUID]                     = 2.0e6;
@@ -60,15 +60,16 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateBiotModulusInverse_ReturnsLargeNumber_WhenIgn
                      large_number);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CalculateBiotModulusInverse_DoesNotThrow_ForEmptyProperties, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(CalculateBiotModulusInverse_DoesThrow_ForEmptyProperties, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const Properties          properties;
     const std::vector<double> biot_coefficient         = {1.0};
     const std::vector<double> degree_of_saturation     = {0.3};
     const std::vector<double> derivative_of_saturation = {0.2};
 
-    KRATOS_EXPECT_TRUE(std::isnan(GeoTransportEquationUtilities::CalculateInverseBiotModuli(
-        biot_coefficient, degree_of_saturation, derivative_of_saturation, properties)[0]))
+    EXPECT_THROW([[maybe_unused]] const auto unused_result = GeoTransportEquationUtilities::CalculateInverseBiotModuli(
+                     biot_coefficient, degree_of_saturation, derivative_of_saturation, properties),
+                 std::out_of_range);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CalculateBulkModulus_ReturnsZeroForZeroConstitutiveMatrix, KratosGeoMechanicsFastSuiteWithoutKernel)

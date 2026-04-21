@@ -12,9 +12,12 @@
 //
 
 #include "custom_utilities/constitutive_law_utilities.h"
+#include "custom_utilities/string_utilities.h"
 #include "geo_mechanics_application_variables.h"
 #include "utilities/math_utils.h"
 #include <algorithm>
+
+using namespace std::string_literals;
 
 namespace
 {
@@ -43,7 +46,6 @@ double GetValueOfUMatParameter(const Properties& rProperties, const Variable<int
 
 namespace Kratos
 {
-
 int ConstitutiveLawUtilities::GetStateVariableIndex(const Variable<double>& rThisVariable)
 {
     int index = -1;
@@ -113,7 +115,7 @@ void ConstitutiveLawUtilities::ValidateFrictionAngle(const Properties& rProperti
         phi_name = "Phi";
     }
 
-    if (phi_name == "") {
+    if (phi_name.empty()) {
         KRATOS_ERROR << "Properties ( " << rProperties.Id() << ") of element ( " << ElementId
                      << ") does not have GEO_FRICTION_ANGLE nor INDEX_OF_UMAT_PHI_PARAMETER." << std::endl;
     }
@@ -275,4 +277,34 @@ Matrix ConstitutiveLawUtilities::MakeContinuumElasticConstitutiveTensor(double  
     return result;
 }
 
+DrainageType ConstitutiveLawUtilities::StringToDrainageType(const std::string& rDrainageTypeName)
+{
+    using enum DrainageType;
+    static const std::map<std::string, DrainageType, std::less<>> drainage_type_map = {
+        {"drained"s, DRAINED},
+        {"fully_coupled"s, FULLY_COUPLED},
+        {"undrained"s, UNDRAINED},
+        {"constant_pw_field"s, CONSTANT_WATER_PRESSURE}};
+    return drainage_type_map.at(GeoStringUtilities::ToLower(rDrainageTypeName));
+}
+
+bool ConstitutiveLawUtilities::IsConstantWaterPressure(const Properties& rProperties)
+{
+    return ConstitutiveLawUtilities::StringToDrainageType(rProperties[GEO_DRAINAGE_TYPE]) ==
+           DrainageType::CONSTANT_WATER_PRESSURE;
+}
+
+void ConstitutiveLawUtilities::ReplaceIgnoreUndrainedByDrainageType(Properties& rProperties)
+{
+    if (!rProperties.Has(IGNORE_UNDRAINED)) return;
+
+    KRATOS_WARNING("DEPRECATION")
+        << "Use of IGNORE_UNDRAINED is deprecated, please change your input to "
+           "GEO_DRAINAGE_TYPE"
+        << std::endl;
+    if (!rProperties.Has(GEO_DRAINAGE_TYPE))
+        rProperties[GEO_DRAINAGE_TYPE] = rProperties[IGNORE_UNDRAINED] ? "constant_pw_field"s : "fully_coupled"s;
+    rProperties.Erase(IGNORE_UNDRAINED);
+
+} // namespace Kratos
 } // namespace Kratos

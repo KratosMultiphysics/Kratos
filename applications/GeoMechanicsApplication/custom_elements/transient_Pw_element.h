@@ -120,6 +120,7 @@ protected:
                       bool               CalculateResidualVectorFlag) override;
 
     void InitializeElementVariables(ElementVariables& rVariables, const ProcessInfo& CurrentProcessInfo) override;
+    void InitializeProperties(ElementVariables& rVariables) override;
 
     void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables) override;
 

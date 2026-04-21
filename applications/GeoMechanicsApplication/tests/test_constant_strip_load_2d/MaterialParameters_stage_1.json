@@ -10,7 +10,7 @@
                     "DENSITY_SOLID": 1020,
                     "POROSITY": 0.0,
                     "BULK_MODULUS_SOLID": 50000000000.0,
-                    "IGNORE_UNDRAINED": true,
+                    "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
                     "PERMEABILITY_XX": 1e-30,
                     "PERMEABILITY_YY": 1e-30,
                     "PERMEABILITY_ZZ": 1e-30,
@@ -28,8 +28,7 @@
                 "constitutive_law": {
                     "name": "GeoLinearElasticPlaneStrain2DLaw"
                 }
-            },
-            "Tables": {}
+            }
         }
     ]
 }

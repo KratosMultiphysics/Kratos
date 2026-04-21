@@ -13,6 +13,9 @@ End Table
 Begin Properties 0
 End Properties
 
+Begin Properties 1
+End Properties
+
 Begin Nodes
     1   0.0000000000   1.0000000000   0.0000000000
     2   0.5000000000   1.0000000000   0.0000000000
@@ -26,8 +29,8 @@ Begin Nodes
 End Nodes
 
 Begin Elements SmallStrainUPwDiffOrderAxisymmetricElement2D6N// GUI group identifier: Soil
-        1          0     1     5     9     3     8     4 
-        2          0     9     6     1     7     2     4 
+        1          1     1     5     9     3     8     4
+        2          1     9     6     1     7     2     4
 End Elements
 
 Begin Conditions AxisymmetricLineNormalLoadDiffOrderCondition2D3N// GUI group identifier: Lateral_load
