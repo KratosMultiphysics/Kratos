@@ -135,7 +135,7 @@ then
 ```
 
 ### Return mapping from cap compression zone
-The cap compression zone is the rigion where the trial principal stresses are,
+The cap compression zone is the region where the trial principal stresses are,
 1. Outside the compression cap yield surface
 ```math
     \frac{q^2}{X^2} + p^2 - p_c^2 > 0
