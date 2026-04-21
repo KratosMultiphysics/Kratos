@@ -128,3 +128,24 @@ class TestCreationUtility:
         model_part.AddGeometry(volume)
 
         return geom_vector[0]
+
+    @staticmethod
+    def GetQuadraturePointGeometryOnVolumeSurfaceP2(model_part, integration_point):
+        volume = TestCreationUtility.GenerateNurbsVolumeP2Rectangular(model_part)
+        volume.SetId(1)
+        model_part.AddGeometry(volume)
+
+        p1 = KM.Node(1001, 0.0, 0.0, 0.0)
+        p2 = KM.Node(1002, 1.0, 0.0, 0.0)
+        p3 = KM.Node(1003, 1.0, 1.0, 0.0)
+        p4 = KM.Node(1004, 0.0, 1.0, 0.0)
+        face_in_volume = KM.Quadrilateral3D4(p1, p2, p3, p4)
+
+        surface_in_volume = KM.SurfaceInNurbsVolumeGeometry(volume, face_in_volume)
+        surface_in_volume.SetId(2)
+        model_part.AddGeometry(surface_in_volume)
+
+        geom_vector = KM.GeometriesVector()
+        surface_in_volume.CreateQuadraturePointGeometries(geom_vector, 3, [integration_point])
+
+        return geom_vector[0]

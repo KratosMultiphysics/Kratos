@@ -38,7 +38,7 @@ UPwBaseElement::UPwBaseElement(IndexType                                       N
                                GeometryType::Pointer                           pGeometry,
                                std::unique_ptr<StressStatePolicy>              pStressStatePolicy,
                                std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier)
-    : Element(NewId, pGeometry),
+    : Element{NewId, std::move(pGeometry)},
       mpStressStatePolicy{std::move(pStressStatePolicy)},
       mIntegrationCoefficientsCalculator{std::move(pCoefficientModifier)}
 {
@@ -49,7 +49,7 @@ UPwBaseElement::UPwBaseElement(IndexType                                       N
                                PropertiesType::Pointer                         pProperties,
                                std::unique_ptr<StressStatePolicy>              pStressStatePolicy,
                                std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier)
-    : Element(NewId, pGeometry, pProperties),
+    : Element{NewId, std::move(pGeometry), std::move(pProperties)},
       mpStressStatePolicy{std::move(pStressStatePolicy)},
       mIntegrationCoefficientsCalculator{std::move(pCoefficientModifier)}
 {

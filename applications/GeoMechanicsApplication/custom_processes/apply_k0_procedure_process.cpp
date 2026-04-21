@@ -13,7 +13,6 @@
 #include "apply_k0_procedure_process.h"
 
 #include <algorithm>
-#include <ostream>
 
 #include "containers/model.h"
 #include "custom_constitutive/linear_elastic_law.h"
@@ -32,9 +31,10 @@ using namespace std::string_literals;
 void SetConsiderDiagonalEntriesOnlyAndNoShear(ModelPart::ElementsContainerType& rElements, bool Whether)
 {
     block_for_each(rElements, [Whether](Element& rElement) {
-        auto pLinearElasticLaw =
+        const auto p_linear_elastic_law =
             dynamic_cast<GeoLinearElasticLaw*>(rElement.GetProperties().GetValue(CONSTITUTIVE_LAW).get());
-        if (pLinearElasticLaw) pLinearElasticLaw->SetConsiderDiagonalEntriesOnlyAndNoShear(Whether);
+        if (p_linear_elastic_law)
+            p_linear_elastic_law->SetConsiderDiagonalEntriesOnlyAndNoShear(Whether);
     });
 }
 
@@ -72,7 +72,7 @@ int ApplyK0ProcedureProcess::Check()
 {
     for (const auto& r_model_part : mrModelParts) {
         KRATOS_ERROR_IF(r_model_part.get().Elements().empty())
-            << "ApplyK0ProcedureProces has no elements in modelpart " << r_model_part.get().Name()
+            << "ApplyK0ProcedureProcess has no elements in modelpart " << r_model_part.get().Name()
             << std::endl;
     }
 
@@ -83,8 +83,10 @@ int ApplyK0ProcedureProcess::Check()
             CheckSufficientMaterialParameters(r_properties, rElement.Id());
             CheckOCRorPOP(r_properties, rElement.Id());
             CheckPoissonUnloadingReloading(r_properties, rElement.Id());
-            CheckPhi(r_properties, rElement.Id());
             CheckK0(r_properties, rElement.Id());
+            if (!(r_properties.Has(K0_NC) || (r_properties.Has(K0_VALUE_XX) && r_properties.Has(K0_VALUE_YY) &&
+                                              r_properties.Has(K0_VALUE_ZZ))))
+                ConstitutiveLawUtilities::ValidateFrictionAngle(r_properties, rElement.Id());
         });
     }
 
@@ -97,15 +99,19 @@ void ApplyK0ProcedureProcess::CheckK0MainDirection(const Properties& rProperties
         << "K0_MAIN_DIRECTION is not defined for element " << ElementId << "." << std::endl;
 
     const auto dimension = rProperties.GetValue(CONSTITUTIVE_LAW).get()->WorkingSpaceDimension();
-    if (dimension == 2) {
-        KRATOS_ERROR_IF(rProperties[K0_MAIN_DIRECTION] < 0 || rProperties[K0_MAIN_DIRECTION] > 1)
-            << "K0_MAIN_DIRECTION should be 0 or 1 for element " << ElementId << "." << std::endl;
-    } else if (dimension == 3) {
-        KRATOS_ERROR_IF(rProperties[K0_MAIN_DIRECTION] < 0 || rProperties[K0_MAIN_DIRECTION] > 2)
-            << "K0_MAIN_DIRECTION should be 0, 1 or 2 for element " << ElementId << "." << std::endl;
-    } else {
-        KRATOS_ERROR << "dimension should be 2 or 3 for element " << ElementId << "." << std::endl;
+    KRATOS_ERROR_IF(dimension != 2 && dimension != 3)
+        << "dimension should be 2 or 3 for element " << ElementId << "." << std::endl;
+    std::ostringstream valid_values;
+    for (std::size_t i = 0; i < dimension; ++i) {
+        if (i > 0) {
+            if (i == dimension - 1) valid_values << " or ";
+            else valid_values << ", ";
+        }
+        valid_values << i;
     }
+    KRATOS_ERROR_IF(rProperties[K0_MAIN_DIRECTION] < 0 || rProperties[K0_MAIN_DIRECTION] > static_cast<int>(dimension))
+        << "K0_MAIN_DIRECTION should be " << valid_values.str() << " for element " << ElementId
+        << "." << std::endl;
 }
 
 void ApplyK0ProcedureProcess::CheckK0(const Properties& rProperties, IndexType ElementId)
@@ -122,37 +128,21 @@ void ApplyK0ProcedureProcess::CheckK0(const Properties& rProperties, IndexType E
     }
 }
 
-void ApplyK0ProcedureProcess::CheckPhi(const Properties& rProperties, IndexType ElementId)
-{
-    if (rProperties.Has(INDEX_OF_UMAT_PHI_PARAMETER) && rProperties.Has(UMAT_PARAMETERS)) {
-        const auto phi_index = rProperties[INDEX_OF_UMAT_PHI_PARAMETER];
-        const auto number_of_umat_parameters = static_cast<int>(rProperties[UMAT_PARAMETERS].size());
-
-        KRATOS_ERROR_IF(phi_index < 1 || phi_index > number_of_umat_parameters)
-            << "INDEX_OF_UMAT_PHI_PARAMETER (" << phi_index
-            << ") is not in range 1, size of UMAT_PARAMETERS for element " << ElementId << "." << std::endl;
-
-        const double phi = rProperties[UMAT_PARAMETERS][phi_index - 1];
-        KRATOS_ERROR_IF(phi < 0.0 || phi > 90.0)
-            << "Phi (" << phi << ") should be between 0 and 90 degrees for element " << ElementId
-            << "." << std::endl;
-    }
-}
-
 void ApplyK0ProcedureProcess::CheckOCRorPOP(const Properties& rProperties, IndexType ElementId)
 {
-    if (rProperties.Has(K0_NC) ||
-        (rProperties.Has(INDEX_OF_UMAT_PHI_PARAMETER) && rProperties.Has(UMAT_PARAMETERS))) {
+    if (rProperties.Has(K0_NC) || ConstitutiveLawUtilities::HasFrictionAngle(rProperties)) {
         if (rProperties.Has(OCR)) {
             const auto ocr = rProperties[OCR];
-            KRATOS_ERROR_IF(ocr < 1.0) << "OCR (" << ocr << ") should be in the range [1.0,-> for element "
-                                       << ElementId << "." << std::endl;
+            KRATOS_ERROR_IF(ocr < 1.0)
+                << "OCR (" << ocr << ") should be in the range [1.0,-> for property Id of "
+                << rProperties.Id() << " for element " << ElementId << "." << std::endl;
         }
 
         if (rProperties.Has(POP)) {
             const auto pop = rProperties[POP];
-            KRATOS_ERROR_IF(pop < 0.0) << "POP (" << pop << ") should be in the range [0.0,-> for element "
-                                       << ElementId << "." << std::endl;
+            KRATOS_ERROR_IF(pop < 0.0)
+                << "POP (" << pop << ") should be in the range [0.0,-> for property Id of "
+                << rProperties.Id() << " element " << ElementId << "." << std::endl;
         }
     }
 }
@@ -163,12 +153,14 @@ void ApplyK0ProcedureProcess::CheckPoissonUnloadingReloading(const Properties& r
                     (rProperties[POISSON_UNLOADING_RELOADING] < -1.0 ||
                      rProperties[POISSON_UNLOADING_RELOADING] >= 0.5))
         << "POISSON_UNLOADING_RELOADING (" << rProperties[POISSON_UNLOADING_RELOADING]
-        << ") is not in range [-1.0, 0.5> for element " << ElementId << "." << std::endl;
+        << ") is not in range [-1.0, 0.5> for property Id of " << rProperties.Id()
+        << " for element " << ElementId << "." << std::endl;
 
     if (rProperties.Has(K0_VALUE_XX)) {
         KRATOS_ERROR_IF(rProperties.Has(POISSON_UNLOADING_RELOADING) || rProperties.Has(OCR) ||
                         rProperties.Has(POP))
-            << "Insufficient material data for K0 procedure process for element "
+            << "Insufficient material data for K0 procedure process for property Id of "
+            << rProperties.Id() << " for element "
             << ElementId << ". Poisson unloading-reloading, OCR and POP functionality cannot be combined with K0_VALUE_XX, _YY and _ZZ."
             << std::endl;
     }
@@ -177,10 +169,10 @@ void ApplyK0ProcedureProcess::CheckPoissonUnloadingReloading(const Properties& r
 void ApplyK0ProcedureProcess::CheckSufficientMaterialParameters(const Properties& rProperties, IndexType ElementId)
 {
     KRATOS_ERROR_IF_NOT(
-        rProperties.Has(K0_NC) ||
-        (rProperties.Has(INDEX_OF_UMAT_PHI_PARAMETER) && rProperties.Has(UMAT_PARAMETERS)) ||
+        rProperties.Has(K0_NC) || ConstitutiveLawUtilities::HasFrictionAngle(rProperties) ||
         (rProperties.Has(K0_VALUE_XX) && rProperties.Has(K0_VALUE_YY) && rProperties.Has(K0_VALUE_ZZ)))
-        << "Insufficient material data for K0 procedure process for element " << ElementId << ". No K0_NC, "
+        << "Insufficient material data for K0 procedure process for property Id of "
+        << rProperties.Id() << " for element " << ElementId << ". No K0_NC, "
         << "(INDEX_OF_UMAT_PHI_PARAMETER and UMAT_PARAMETERS) or (K0_VALUE_XX, _YY and _ZZ found)."
         << std::endl;
 }
@@ -206,19 +198,19 @@ bool ApplyK0ProcedureProcess::UseStandardProcedure() const
     return !mSettings.Has(setting_name) || mSettings[setting_name].GetBool();
 }
 
-array_1d<double, 3> ApplyK0ProcedureProcess::CreateK0Vector(const Element::PropertiesType& rProp)
+array_1d<double, 3> ApplyK0ProcedureProcess::CreateK0Vector(const Element::PropertiesType& rProperties)
 {
     // Check for alternative K0 specifications
     array_1d<double, 3> k0_vector;
-    if (rProp.Has(K0_NC)) {
-        std::fill(k0_vector.begin(), k0_vector.end(), rProp[K0_NC]);
-    } else if (rProp.Has(INDEX_OF_UMAT_PHI_PARAMETER) && rProp.Has(UMAT_PARAMETERS)) {
+    if (rProperties.Has(K0_NC)) {
+        std::ranges::fill(k0_vector, rProperties[K0_NC]);
+    } else if (ConstitutiveLawUtilities::HasFrictionAngle(rProperties)) {
         std::ranges::fill(k0_vector, ConstitutiveLawUtilities::CalculateK0NCFromFrictionAngleInRadians(
-                                         ConstitutiveLawUtilities::GetFrictionAngleInRadians(rProp)));
+                                         ConstitutiveLawUtilities::GetFrictionAngleInRadians(rProperties)));
     } else {
-        k0_vector[0] = rProp[K0_VALUE_XX];
-        k0_vector[1] = rProp[K0_VALUE_YY];
-        k0_vector[2] = rProp[K0_VALUE_ZZ];
+        k0_vector[0] = rProperties[K0_VALUE_XX];
+        k0_vector[1] = rProperties[K0_VALUE_YY];
+        k0_vector[2] = rProperties[K0_VALUE_ZZ];
     }
 
     return k0_vector;
@@ -227,45 +219,46 @@ array_1d<double, 3> ApplyK0ProcedureProcess::CreateK0Vector(const Element::Prope
 void ApplyK0ProcedureProcess::CalculateK0Stresses(Element& rElement, const ProcessInfo& rProcessInfo)
 {
     // Get K0 material parameters of this element ( probably there is something more efficient )
-    const Element::PropertiesType& rProp             = rElement.GetProperties();
-    const auto                     k0_main_direction = rProp[K0_MAIN_DIRECTION];
+    const Element::PropertiesType& r_properties      = rElement.GetProperties();
+    const auto                     k0_main_direction = r_properties[K0_MAIN_DIRECTION];
 
-    auto k0_vector = CreateK0Vector(rProp);
+    auto k0_vector = CreateK0Vector(r_properties);
 
     // Corrections on k0_vector by OCR or POP
-    const auto PoissonUR = rProp.Has(POISSON_UNLOADING_RELOADING) ? rProp[POISSON_UNLOADING_RELOADING] : 0.;
-    const auto PoissonURfactor = PoissonUR / (1. - PoissonUR);
+    const auto poisson_u_r =
+        r_properties.Has(POISSON_UNLOADING_RELOADING) ? r_properties[POISSON_UNLOADING_RELOADING] : 0.;
+    const auto poisson_u_r_factor = poisson_u_r / (1. - poisson_u_r);
 
     double POP_value = 0.0;
-    if (rProp.Has(K0_NC) || rProp.Has(INDEX_OF_UMAT_PHI_PARAMETER)) {
-        if (rProp.Has(OCR)) {
+    if (r_properties.Has(K0_NC) || ConstitutiveLawUtilities::HasFrictionAngle(r_properties)) {
+        if (r_properties.Has(OCR)) {
             // Determine OCR dependent K0 values ( constant per element! )
-            k0_vector *= rProp[OCR];
-            const array_1d<double, 3> correction(3, PoissonURfactor * (rProp[OCR] - 1.0));
+            k0_vector *= r_properties[OCR];
+            const array_1d<double, 3> correction(3, poisson_u_r_factor * (r_properties[OCR] - 1.0));
             k0_vector -= correction;
-        } else if (rProp.Has(POP)) {
+        } else if (r_properties.Has(POP)) {
             // POP is entered as positive value, convention here is compression negative.
-            POP_value = -rProp[POP];
+            POP_value = -r_properties[POP];
         }
     }
     // Get element stress vectors
-    std::vector<ConstitutiveLaw::StressVectorType> rStressVectors;
-    rElement.CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, rStressVectors, rProcessInfo);
+    std::vector<ConstitutiveLaw::StressVectorType> stress_vectors;
+    rElement.CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, stress_vectors, rProcessInfo);
 
     // Loop over integration point stress vectors
-    for (auto& rStressVector : rStressVectors) {
+    for (auto& r_stress_vector : stress_vectors) {
         // Apply K0 procedure
         for (int i_dir = 0; i_dir <= 2; ++i_dir) {
             if (i_dir != k0_main_direction) {
-                rStressVector[i_dir] = k0_vector[i_dir] * (rStressVector[k0_main_direction] + POP_value) -
-                                       PoissonURfactor * POP_value;
+                r_stress_vector[i_dir] = k0_vector[i_dir] * (r_stress_vector[k0_main_direction] + POP_value) -
+                                         poisson_u_r_factor * POP_value;
             }
         }
         // Erase shear stresses
-        std::fill(rStressVector.begin() + 3, rStressVector.end(), 0.0);
+        std::fill(r_stress_vector.begin() + 3, r_stress_vector.end(), 0.0);
     }
     // Set element integration point stress tensors
-    rElement.SetValuesOnIntegrationPoints(CAUCHY_STRESS_VECTOR, rStressVectors, rProcessInfo);
+    rElement.SetValuesOnIntegrationPoints(CAUCHY_STRESS_VECTOR, stress_vectors, rProcessInfo);
 }
 
 } // namespace Kratos

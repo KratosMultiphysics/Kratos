@@ -243,6 +243,8 @@ KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication()
       mPointLoadCondition3D1N(0, Condition::GeometryType::Pointer(new Point3D<NodeType >(Condition::GeometryType::PointsArrayType(1)))),
       mPointContactCondition2D1N(0, Condition::GeometryType::Pointer(new Point2D<NodeType >(Condition::GeometryType::PointsArrayType(1)))),
       mPointContactCondition3D1N(0, Condition::GeometryType::Pointer(new Point3D<NodeType >(Condition::GeometryType::PointsArrayType(1)))),
+      mImaginaryPointLoadCondition2D1N(0, Condition::GeometryType::Pointer(new Point2D<NodeType >(Condition::GeometryType::PointsArrayType(1)))),
+      mImaginaryPointLoadCondition3D1N(0, Condition::GeometryType::Pointer(new Point3D<NodeType >(Condition::GeometryType::PointsArrayType(1)))),
       mAxisymPointLoadCondition2D1N(0, Condition::GeometryType::Pointer(new Point2D<NodeType >(Condition::GeometryType::PointsArrayType(1)))),
       // Adding line load conditions
       mLineLoadCondition2D2N(0, Condition::GeometryType::Pointer(new Line2D2<NodeType >(Condition::GeometryType::PointsArrayType(2)))),
@@ -321,6 +323,9 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE(EIGENVECTOR_MATRIX)
     KRATOS_REGISTER_VARIABLE(MODAL_MASS_MATRIX)
     KRATOS_REGISTER_VARIABLE(MODAL_STIFFNESS_MATRIX)
+
+    // Harmonic analysis
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(DISPLACEMENT_IMAGINARY)
 
     // Geometrical
     KRATOS_REGISTER_VARIABLE(AXIAL_FORCE)
@@ -498,6 +503,7 @@ void KratosStructuralMechanicsApplication::Register() {
 
     // Nodal load variables
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(POINT_LOAD)
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(POINT_LOAD_IMAGINARY)
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(LINE_LOAD)
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(SURFACE_LOAD)
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(MOVING_LOAD)
@@ -754,6 +760,8 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_CONDITION("PointLoadCondition3D1N", mPointLoadCondition3D1N)
     KRATOS_REGISTER_CONDITION("PointContactCondition2D1N", mPointContactCondition2D1N)
     KRATOS_REGISTER_CONDITION("PointContactCondition3D1N", mPointContactCondition3D1N)
+    KRATOS_REGISTER_CONDITION("ImaginaryPointLoadCondition2D1N", mImaginaryPointLoadCondition2D1N)
+    KRATOS_REGISTER_CONDITION("ImaginaryPointLoadCondition3D1N", mImaginaryPointLoadCondition3D1N)
 
     KRATOS_REGISTER_CONDITION("AxisymPointLoadCondition2D1N", mAxisymPointLoadCondition2D1N)
 
