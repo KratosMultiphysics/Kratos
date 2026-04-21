@@ -17,8 +17,6 @@
 #include "geo_mechanics_application_constants.h"
 #include "includes/constitutive_law.h"
 
-#include <optional>
-
 namespace Kratos
 {
 

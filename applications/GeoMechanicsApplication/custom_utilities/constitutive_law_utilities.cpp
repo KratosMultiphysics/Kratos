@@ -191,7 +191,7 @@ double ConstitutiveLawUtilities::CalculateK0NCFromFrictionAngleInRadians(double 
 DrainageType ConstitutiveLawUtilities::StringToDrainageType(const std::string& rDrainageTypeName)
 {
     using enum DrainageType;
-    const std::map<std::string, DrainageType, std::less<>> drainage_type_map = {
+    static const std::map<std::string, DrainageType, std::less<>> drainage_type_map = {
         {"drained"s, DRAINED},
         {"fully_coupled"s, FULLY_COUPLED},
         {"undrained"s, UNDRAINED},
