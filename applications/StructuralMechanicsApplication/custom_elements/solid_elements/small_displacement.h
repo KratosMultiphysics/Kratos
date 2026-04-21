@@ -184,6 +184,16 @@ public:
     ///@}
 
 protected:
+    /// @name Adjoint Interface
+    /// @{
+
+    //virtual void ComputeStiffnessDerivative(
+    //    std::span<const IAdjoint::DynamicVariable> Variables,
+    //    const ProcessInfo& rProcessInfo,
+    //    Matrix& rOutput) const override;
+
+    /// @}
+
     ///@name Protected static Member Variables
     ///@{
     ///@}

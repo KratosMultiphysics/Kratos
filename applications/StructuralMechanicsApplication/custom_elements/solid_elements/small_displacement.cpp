@@ -91,6 +91,20 @@ Element::Pointer SmallDisplacement::Clone (
 /***********************************************************************************/
 /***********************************************************************************/
 
+
+//void SmallDisplacement::ComputeStiffnessDerivative(
+//        std::span<const IAdjoint::DynamicVariable> Variables,
+//        const ProcessInfo& rProcessInfo,
+//        Matrix& rOutput) const {
+//            KRATOS_TRY
+//
+//            KRATOS_CATCH("")
+//}
+
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 bool SmallDisplacement::UseElementProvidedStrain() const
 {
     return true;

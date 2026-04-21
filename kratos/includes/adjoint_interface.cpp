@@ -22,12 +22,12 @@
 namespace Kratos {
 
 
-void IAdjoint::GetStateVariables(std::vector<VARIABLE>&) const {
+void IAdjoint::GetStateVariables(std::vector<DynamicVariable>&) const {
     KRATOS_ERROR << KRATOS_CODE_LOCATION.CleanFunctionName() << " is not implemented";
 }
 
 
-void IAdjoint::GetInfluencingVariables(std::vector<IAdjoint::VARIABLE>&) const {
+void IAdjoint::GetInfluencingVariables(std::vector<IAdjoint::DynamicVariable>&) const {
     KRATOS_ERROR << KRATOS_CODE_LOCATION.CleanFunctionName() << " is not implemented";
 }
 
@@ -37,9 +37,9 @@ void IAdjointElement::GetDofs(std::vector<const Dof<IAdjoint::Scalar>*>&) const 
 }
 
 
-void IAdjointElement::GetInfluencingVariables(std::vector<IAdjoint::VARIABLE>& rOutput) const {
+void IAdjointElement::GetInfluencingVariables(std::vector<IAdjoint::DynamicVariable>& rOutput) const {
     KRATOS_TRY
-        std::vector<IAdjoint::VARIABLE> buffer;
+        std::vector<IAdjoint::DynamicVariable> buffer;
         #define KRATOS_IADJOINTELEMENT_COLLECT(term)                    \
             this->GetInfluencingVariables<term>(buffer);                \
             rOutput.insert(rOutput.end(), buffer.begin(), buffer.end())
@@ -52,14 +52,14 @@ void IAdjointElement::GetInfluencingVariables(std::vector<IAdjoint::VARIABLE>& r
         std::sort(
             rOutput.begin(),
             rOutput.end(),
-            [] (const IAdjoint::VARIABLE& r_left, const IAdjoint::VARIABLE& r_right) -> bool {
+            [] (const IAdjoint::DynamicVariable& r_left, const IAdjoint::DynamicVariable& r_right) -> bool {
                 return r_left.Key() < r_right.Key();
             });
         rOutput.erase(
             std::unique(
                 rOutput.begin(),
                 rOutput.end(),
-                [] (const IAdjoint::VARIABLE& r_left, const IAdjoint::VARIABLE& r_right) -> bool {
+                [] (const IAdjoint::DynamicVariable& r_left, const IAdjoint::DynamicVariable& r_right) -> bool {
                     return r_left.Key() == r_right.Key();
                 }),
             rOutput.end());
@@ -67,50 +67,54 @@ void IAdjointElement::GetInfluencingVariables(std::vector<IAdjoint::VARIABLE>& r
 }
 
 
-void IAdjointElement::GetMassInfluencingVariables(std::vector<IAdjoint::VARIABLE>&) const {
+void IAdjointElement::GetMassInfluencingVariables(std::vector<IAdjoint::DynamicVariable>&) const {
     KRATOS_ERROR << KRATOS_CODE_LOCATION.CleanFunctionName() << " is not implemented";
 }
 
 
-void IAdjointElement::GetDampingInfluencingVariables(std::vector<IAdjoint::VARIABLE>&) const {
+void IAdjointElement::GetDampingInfluencingVariables(std::vector<IAdjoint::DynamicVariable>&) const {
     KRATOS_ERROR << KRATOS_CODE_LOCATION.CleanFunctionName() << " is not implemented";
 }
 
 
-void IAdjointElement::GetStiffnessInfluencingVariables(std::vector<IAdjoint::VARIABLE>&) const {
+void IAdjointElement::GetStiffnessInfluencingVariables(std::vector<IAdjoint::DynamicVariable>&) const {
     KRATOS_ERROR << KRATOS_CODE_LOCATION.CleanFunctionName() << " is not implemented";
 }
 
 
-void IAdjointElement::GetLoadInfluencingVariables(std::vector<IAdjoint::VARIABLE>&) const {
+void IAdjointElement::GetLoadInfluencingVariables(std::vector<IAdjoint::DynamicVariable>&) const {
     KRATOS_ERROR << KRATOS_CODE_LOCATION.CleanFunctionName() << " is not implemented";
 }
 
 
 void IAdjointElement::ComputeStiffnessDerivative(
-    std::span<const IAdjoint::VARIABLE> Variables,
-    Matrix& rOutput) const {
+    [[maybe_unused]] std::span<const IAdjoint::DynamicVariable> Variables,
+    [[maybe_unused]] const ProcessInfo& rProcessInfo,
+    [[maybe_unused]] Matrix& rOutput) const {
         KRATOS_ERROR << KRATOS_CODE_LOCATION.CleanFunctionName() << " is not implemented";
 }
 
 
 void IAdjointElement::ComputeDampingDerivative(
-    std::span<const IAdjoint::VARIABLE> Variables,
-    Matrix& rOutput) const {
+    [[maybe_unused]] std::span<const IAdjoint::DynamicVariable> Variables,
+    [[maybe_unused]] const ProcessInfo& rProcessInfo,
+    [[maybe_unused]] Matrix& rOutput) const {
         KRATOS_ERROR << KRATOS_CODE_LOCATION.CleanFunctionName() << " is not implemented";
 }
 
 
 void IAdjointElement::ComputeMassDerivative(
-    std::span<const IAdjoint::VARIABLE> Variables,
-    Matrix& rOutput) const {
+    [[maybe_unused]] std::span<const IAdjoint::DynamicVariable> Variables,
+    [[maybe_unused]] const ProcessInfo& rProcessInfo,
+    [[maybe_unused]] Matrix& rOutput) const {
         KRATOS_ERROR << KRATOS_CODE_LOCATION.CleanFunctionName() << " is not implemented";
 }
 
 
 void IAdjointElement::ComputeLoadDerivative(
-    std::span<const IAdjoint::VARIABLE> Variables,
-    Matrix& rOutput) const {
+    [[maybe_unused]] std::span<const IAdjoint::DynamicVariable> Variables,
+    [[maybe_unused]] const ProcessInfo& rProcessInfo,
+    [[maybe_unused]] Matrix& rOutput) const {
         KRATOS_ERROR << KRATOS_CODE_LOCATION.CleanFunctionName() << " is not implemented";
 }
 

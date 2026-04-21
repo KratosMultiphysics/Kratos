@@ -1225,7 +1225,7 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
 
                 noalias(rOutput[point_number]) = this_constitutive_variables.D;
             }
-        } else if ( rVariable == DEFORMATION_GRADIENT ) { // VARIABLE SET FOR TRANSFER PURPOUSES
+        } else if ( rVariable == DEFORMATION_GRADIENT ) { // DynamicVariable SET FOR TRANSFER PURPOUSES
             // Create and initialize element variables:
             const SizeType number_of_nodes = r_geom.size();
             const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
@@ -1693,7 +1693,7 @@ void BaseSolidElement::GetDofs(std::vector<const Dof<IAdjoint::Scalar>*>& rOutpu
 }
 
 
-void BaseSolidElement::GetMassInfluencingVariables(std::vector<IAdjoint::VARIABLE>& rOutput) const {
+void BaseSolidElement::GetMassInfluencingVariables(std::vector<IAdjoint::DynamicVariable>& rOutput) const {
     // This function must be consistent with BaseSolidElement::CalculateMassMatrix
     KRATOS_TRY
         rOutput.clear();
@@ -1710,21 +1710,23 @@ void BaseSolidElement::GetMassInfluencingVariables(std::vector<IAdjoint::VARIABL
         if (this->GetGeometry().WorkingSpaceDimension() == 2 && r_properties.Has(THICKNESS)) rOutput.push_back(THICKNESS);
 
         // Geometry.
-        rOutput.push_back(SHAPE_X);
-        rOutput.push_back(SHAPE_Y);
-        rOutput.push_back(SHAPE_Z);
+        for (std::size_t i_node=0ul; i_node<this->GetGeometry().size(); ++i_node) {
+            rOutput.push_back(IAdjoint::DynamicVariable(SHAPE_X, i_node));
+            rOutput.push_back(IAdjoint::DynamicVariable(SHAPE_Y, i_node));
+            rOutput.push_back(IAdjoint::DynamicVariable(SHAPE_Z, i_node));
+        } // for i_node in range(geometry.size)
     KRATOS_CATCH("")
 }
 
 
-void BaseSolidElement::GetDampingInfluencingVariables(std::vector<IAdjoint::VARIABLE>& rOutput) const {
+void BaseSolidElement::GetDampingInfluencingVariables(std::vector<IAdjoint::DynamicVariable>& rOutput) const {
     // This function must be consistent with BaseSolidElement::CalculateDampingMatrix
     KRATOS_TRY
         rOutput.clear();
         rOutput.reserve(6);
 
         // Rayleigh damping as a linear combination of stiffness and mass matrices.
-        std::vector<IAdjoint::VARIABLE> buffer;
+        std::vector<IAdjoint::DynamicVariable> buffer;
         this->GetMassInfluencingVariables(buffer);
         rOutput.insert(
             rOutput.end(),
@@ -1740,14 +1742,14 @@ void BaseSolidElement::GetDampingInfluencingVariables(std::vector<IAdjoint::VARI
         std::sort(
             rOutput.begin(),
             rOutput.end(),
-            [] (const IAdjoint::VARIABLE& r_left, const IAdjoint::VARIABLE& r_right) -> bool {
+            [] (const IAdjoint::DynamicVariable& r_left, const IAdjoint::DynamicVariable& r_right) -> bool {
                 return r_left.Key() < r_right.Key();
             });
         rOutput.erase(
             std::unique(
                 rOutput.begin(),
                 rOutput.end(),
-                [] (const IAdjoint::VARIABLE& r_left, const IAdjoint::VARIABLE& r_right) -> bool {
+                [] (const IAdjoint::DynamicVariable& r_left, const IAdjoint::DynamicVariable& r_right) -> bool {
                     return r_left.Key() == r_right.Key();
                 }),
             rOutput.end());

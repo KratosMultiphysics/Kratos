@@ -29,11 +29,49 @@ void FiniteDifferenceUtility::ComputeDerivative(
         Vector,
         Matrix
     >& rValue,
-    const IAdjoint::VARIABLE& rVariable,
+    std::span<const std::pair<
+        IAdjoint::DynamicVariable,
+        Globals::DataLocation>
+    > variables,
     Matrix& rOutput,
     double Perturbation,
     const ProcessInfo& rProcessInfo) {
         KRATOS_TRY
+
+        // This wonderful piece of software does not care about petty concepts
+        // such as const-correctness, so I have to do a disgusting const cast here.
+        TEntity& r_mutable_entity = *const_cast<TEntity*>(&rEntity);
+
+        // Make a copy of the entity, its geometry, nodes, properties and constitutive law.
+        // Since the naming and design in Kratos is deliberately misleading, TEntity::Clone
+        // does not actually perform a deep copy of the entity, so the above mentioned
+        // components have to be copied separately.
+        typename TEntity::Pointer p_entity_clone;
+
+        {
+            // Copy nodes.
+            typename TEntity::NodesArrayType nodes;
+            for (Node& r_node : r_mutable_entity.GetGeometry())
+                nodes.push_back(r_node.Clone(r_node.Id()));
+
+            // Geometry does not have clone function even though it's a base class.
+            // The best I can do here is to construct a new one and hope the instance
+            // does not have any exotic internal state.
+            Geometry<Node>::Pointer p_geometry_clone = rEntity.GetGeometry().Create(
+                rEntity.GetGeometry().Id(),
+                rEntity.GetGeometry());
+
+            // Copy the DataValueContainer attached to the geometry.
+            p_geometry_clone->GetData() = rEntity.GetGeometry().GetData();
+
+            // Copy the entity's properties.
+            Properties::Pointer p_properties_clone(new Properties(rEntity.GetProperties()));
+
+            // Clone the entity.
+            //p_entity_clone = rEntity.Clone(
+            //    rEntity.Id(),
+            //    )
+        }
 
         KRATOS_CATCH("")
 }
@@ -47,10 +85,13 @@ void FiniteDifferenceUtility::ComputeDerivative(
             Vector,                                                         \
             Matrix                                                          \
         >&,                                                                 \
-        const IAdjoint::VARIABLE&,                                          \
+        std::span<const std::pair<                                          \
+            IAdjoint::DynamicVariable,                                      \
+            Globals::DataLocation>>,                                        \
         Matrix&,                                                            \
         double,                                                             \
         const ProcessInfo&);
+
 
 KRATOS_INSTANTIATE_FINITE_DIFFERENCE_UTILITY(IAdjoint::ResidualTerm::Load, Element)
 KRATOS_INSTANTIATE_FINITE_DIFFERENCE_UTILITY(IAdjoint::ResidualTerm::Mass, Element)
@@ -60,6 +101,8 @@ KRATOS_INSTANTIATE_FINITE_DIFFERENCE_UTILITY(IAdjoint::ResidualTerm::Load, Condi
 KRATOS_INSTANTIATE_FINITE_DIFFERENCE_UTILITY(IAdjoint::ResidualTerm::Mass, Condition)
 KRATOS_INSTANTIATE_FINITE_DIFFERENCE_UTILITY(IAdjoint::ResidualTerm::Damping, Condition)
 KRATOS_INSTANTIATE_FINITE_DIFFERENCE_UTILITY(IAdjoint::ResidualTerm::Stiffness, Condition)
+
+
 #undef KRATOS_INSTANTIATE_FINITE_DIFFERENCE_UTILITY
 
 

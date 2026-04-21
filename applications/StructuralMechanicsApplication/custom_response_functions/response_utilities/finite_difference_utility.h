@@ -22,6 +22,10 @@
 #include "structural_mechanics_application_variables.h"
 #include "includes/adjoint_interface.hpp"
 
+// --- STL Includes ---
+#include <span> // std::span
+
+
 namespace Kratos
 {
 
@@ -49,7 +53,10 @@ public:
             Vector,
             Matrix
         >& rValue,
-        const IAdjoint::VARIABLE& rVariable,
+        std::span<const std::pair<
+            IAdjoint::DynamicVariable,
+            Globals::DataLocation>
+        > variables,
         Matrix& rOutput,
         double Perturbation,
         const ProcessInfo& rProcessInfo);

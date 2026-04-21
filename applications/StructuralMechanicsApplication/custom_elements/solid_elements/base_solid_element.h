@@ -967,11 +967,11 @@ protected:
 
 
     /// @copydoc IAdjointElement::GetMassInfluencingVariables
-    void GetMassInfluencingVariables(std::vector<IAdjoint::VARIABLE>& rOutput) const override;
+    void GetMassInfluencingVariables(std::vector<IAdjoint::DynamicVariable>& rOutput) const override;
 
 
     /// @copydoc IAdjointElement::GetDampingInfluencingVariables
-    void GetDampingInfluencingVariables(std::vector<IAdjoint::VARIABLE>& rOutput) const override;
+    void GetDampingInfluencingVariables(std::vector<IAdjoint::DynamicVariable>& rOutput) const override;
 
     /// @}
 
