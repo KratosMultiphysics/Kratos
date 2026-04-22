@@ -268,8 +268,24 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
     def _GetSimulationName(self):
         return "Fluid Dynamics Analysis"
 
-    def ElemData(self, v, connectivities):
-        return xp.take(v, connectivities,axis=0)
+    def ElemData(self, v, connectivities, out=None):
+        if out is None:
+            return xp.take(v, connectivities, axis=0, out=out)
+        else:
+            if(len(v.shape) == 1): ##getting a scalar
+                if out.shape != (self.DN.shape[0], self.n_in_el):
+                    print("v.shape", v.shape)
+                    print("out.shape", out.shape)
+                    print("connectivities.shape", connectivities.shape)
+                    raise ValueError(f"Output array has incompatible shape {out.shape}, expected {(v.shape[0], self.n_in_el)}")
+            else:
+                if out.shape != (self.DN.shape[0], self.n_in_el, self.dim):
+                    print("v.shape", v.shape)
+                    print("out.shape", out.shape)
+                    print("connectivities.shape", connectivities.shape)
+                    raise ValueError(f"Output array has incompatible shape {out.shape}, expected {(v.shape[0], self.n_in_el, self.dim)}")
+            xp.take(v, connectivities, axis=0, out=out)
+            return out
 
     def _AdvanceTime(self):
         # Get time step and advance in time
@@ -278,6 +294,32 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         self.model_part.ProcessInfo[KM.STEP] += 1
 
         return self.time
+    
+    def AllocateWorkArrays(self):
+        ##arrays to store elemental values
+        self.v_el = xp.empty(self.DN.shape, dtype=cfd_utils.PRECISION)
+        self.p_el = xp.empty((self.DN.shape[0], self.n_in_el), dtype=cfd_utils.PRECISION)
+        self.p_old_el = xp.empty(self.p_el.shape, dtype=cfd_utils.PRECISION)
+        self.b_el = xp.empty(self.DN.shape, dtype=cfd_utils.PRECISION)
+        self.div_proj_el = xp.empty(self.p_el.shape, dtype=cfd_utils.PRECISION)
+        self.conv_proj_el = xp.empty(self.DN.shape, dtype=cfd_utils.PRECISION)
+
+        #arrays to be usef for residual on elements
+        self.res_v_el = xp.empty(self.DN.shape, dtype=cfd_utils.PRECISION)
+        self.res_p_el = xp.empty((self.DN.shape[0],self.DN.shape[1]), dtype=cfd_utils.PRECISION)
+
+        #arrays to be used for assemble residual
+        self.res_v = xp.empty((self.nnodes, self.dim), dtype=cfd_utils.PRECISION)
+        self.res_p = xp.empty((self.nnodes), dtype=cfd_utils.PRECISION)
+
+        #work arrays for intermediate computations
+        self.tmp_elem = xp.empty(self.DN.shape, dtype=cfd_utils.PRECISION)
+        self.tmp_elem_2 = xp.empty(self.DN.shape, dtype=cfd_utils.PRECISION)
+        self.tmp_dim_dim = xp.empty((self.DN.shape[0], self.dim, self.dim), dtype=cfd_utils.PRECISION)
+        self.pi_conv = xp.empty((self.nnodes,self.dim), dtype=cfd_utils.PRECISION) #TODO: allocate this once
+        self.tmp_n_in_el_sq = xp.empty((self.DN.shape[0], self.n_in_el, self.n_in_el), dtype=cfd_utils.PRECISION)
+        self.tmp_n_in_el = xp.empty((self.DN.shape[0], self.n_in_el), dtype=cfd_utils.PRECISION)
+
 
     def Initialize(self):
         super().Initialize()
@@ -307,9 +349,9 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         self.connectivity = self.connectivity.astype(np.int64) #############OUCH!!! TODO: this by defaults should be probably int64
 
         # Preallocation of elemental arrays of velocities, pressures and body force
-        self.vec_elemental_data = np.empty((*self.connectivity.shape, v.shape[1]))
-        self.vec_elemental_data_b = np.empty((*self.connectivity.shape, v.shape[1]))
-        self.scalar_elemental_data = np.empty(self.connectivity.shape)
+        # self.vec_elemental_data = np.empty((*self.connectivity.shape, v.shape[1]))
+        # self.vec_elemental_data_b = np.empty((*self.connectivity.shape, v.shape[1]))
+        # self.scalar_elemental_data = np.empty(self.connectivity.shape)
 
         # Preallocation of local array of shape functions
         self.N = np.ones(self.dim+1)/(self.dim+1)
@@ -384,6 +426,8 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         self.step_3_total_time = 0.0
         self.init_time = time.perf_counter()
 
+        self.AllocateWorkArrays()
+
         self.outfile = open("refres.res", "w")
 
         # self.vec_elemental_data = xp.asarray(self.vec_elemental_data, dtype=cfd_utils.PRECISION)
@@ -424,11 +468,11 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
     def ComputeVelocityProjection(self, v_elemental):
 
-        #allocation of temporaries
-        tmp_elem = xp.empty(v_elemental.shape, dtype=cfd_utils.PRECISION)
-        tmp_elem_2 = xp.empty(v_elemental.shape, dtype=cfd_utils.PRECISION)
-        tmp_dim_dim = xp.empty((v_elemental.shape[0], self.dim, self.dim), dtype=cfd_utils.PRECISION)
-        pi_conv = xp.zeros((self.nnodes,self.dim), dtype=cfd_utils.PRECISION) #TODO: allocate this once
+        #temporaries
+        tmp_elem = self.tmp_elem
+        tmp_elem_2 = self.tmp_elem_2
+        tmp_dim_dim = self.tmp_dim_dim
+        pi_conv = self.pi_conv #TODO: allocate this once
 
         # Solve (w,pi) = (w,a·∇u)
         # Compute convective contribution at integration points (w,a·∇u)
@@ -438,6 +482,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         convective *= self.elemental_volumes[:, None, None] # Apply Jacobian determinant to the entire residual
 
         # Do the nodal assembly of the projection elemental contributions
+        pi_conv.fill(0.0)
         self.cfd_utils.AssembleVector(self.connectivity, convective, pi_conv)
 
         # Solve with the lumped mass matrix to get the nodal values of the projection
@@ -518,20 +563,20 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         #xp.cuda.Stream.null.synchronize() #FIXME: remove after debugging, just to be sure we are not measuring asynchronously some previous step computations
 
         # Gather elemental data from the database
-        pel = self.ElemData(p, self.connectivity)
-        vel = self.ElemData(vold, self.connectivity)
-        b_el = self.ElemData(b, self.connectivity)
+        pel = self.ElemData(p, self.connectivity, self.p_el)
+        vel = self.ElemData(vold, self.connectivity, self.v_el)
+        b_el = self.ElemData(b, self.connectivity, self.b_el)
 
         # Compute convective projection
         t0 = time.perf_counter()
         conv_proj = self.ComputeVelocityProjection(vel)
-        conv_proj_el = self.ElemData(conv_proj, self.connectivity)
+        conv_proj_el = self.ElemData(conv_proj, self.connectivity, out=self.conv_proj_el)
         #print(f"ComputeVelocityProjection time: {time.perf_counter() - t0}")
 
         # Compute divergence projection
         t0 = time.perf_counter()
         div_proj = self.ComputeDivergenceProjection(vel)
-        div_proj_el = self.ElemData(div_proj, self.connectivity)
+        div_proj_el = self.ElemData(div_proj, self.connectivity, out=self.div_proj_el)
         #print(f"ComputeDivergenceProjection time: {time.perf_counter() - t0}")
 
         # Advance in time by runge kutta
@@ -548,7 +593,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         self.ApplyVelocityDirichletConditions(vold,v_dirichlet,0.5,v2)
 
         t_el_data = time.perf_counter()
-        vel = self.ElemData(v2, self.connectivity)
+        vel = self.ElemData(v2, self.connectivity, self.v_el)
         t_k2_res = time.perf_counter()
         k2 = self.ComputeVelocityResidual(vel, pel, b_el, conv_proj_el, div_proj_el, self.DN,self.tau_1)
         #print(f"\tk2 residual: {time.perf_counter() - t_k2_res}")
@@ -565,7 +610,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         self.ApplyVelocitySlipConditions(v3, self.normals)
         self.ApplyVelocityDirichletConditions(vold,v_dirichlet,0.5,v3)
 
-        vel = self.ElemData(v3, self.connectivity)
+        vel = self.ElemData(v3, self.connectivity, self.v_el)
         k3 = self.ComputeVelocityResidual(vel, pel, b_el, conv_proj_el, div_proj_el, self.DN,self.tau_1)
         k3.reshape(-1)[:] *= (1.0/self.rho) * self.Minv
         #print(f"k3 time: {time.perf_counter() - t0}")
@@ -575,7 +620,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         self.ApplyVelocitySlipConditions(v4, self.normals)
         self.ApplyVelocityDirichletConditions(vold,v_dirichlet,1.0,v4)
 
-        vel = self.ElemData(v4, self.connectivity)
+        vel = self.ElemData(v4, self.connectivity, self.v_el)
         k4 = self.ComputeVelocityResidual(vel, pel, b_el, conv_proj_el, div_proj_el, self.DN,self.tau_1)
         k4.reshape(-1)[:] *= (1.0/self.rho) * self.Minv
         #print(f"k4 time: {time.perf_counter() - t0}")
@@ -593,17 +638,18 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
     def SolveStep2(self,vfrac,p,dt):
         
         # Gather data from the database
-        pel = self.ElemData(p, self.connectivity)
-        vel_frac = self.ElemData(vfrac, self.connectivity)
+        pel = self.ElemData(p, self.connectivity , self.p_el)
+        vel_frac = self.ElemData(vfrac, self.connectivity, self.v_el)
 
         #allocation of temporaries
-        tmp_n_in_el_sq = xp.empty((pel.shape[0], self.n_in_el, self.n_in_el), dtype=cfd_utils.PRECISION)
-        tmp_n_in_el = xp.empty((pel.shape[0], self.n_in_el), dtype=cfd_utils.PRECISION)
-        rhs_el_p = xp.empty((pel.shape[0], self.n_in_el), dtype=cfd_utils.PRECISION)
+        tmp_n_in_el_sq = self.tmp_n_in_el_sq
+        tmp_n_in_el = self.tmp_n_in_el
+        rhs_el_p = self.res_p_el
+        rhs_p = self.res_p
 
         # Compute pressure projection
         pres_proj = self.ComputePressureProjection(pel)
-        pres_proj_el = self.ElemData(pres_proj, self.connectivity)
+        pres_proj_el = self.ElemData(pres_proj, self.connectivity, out=self.conv_proj_el) # reuse conv_proj_el as temporary for the elemental pressure projection
 
         # Assemble pressure LHS (set to zero is done internally)
         t0 = time.perf_counter()
@@ -632,17 +678,17 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         rhs_el *= self.elemental_volumes[:,xp.newaxis]
 
         # Assemble RHS
-        rhs = xp.zeros(vfrac.shape[0], dtype=cfd_utils.PRECISION)
-        self.cfd_utils.AssembleVector(self.connectivity, rhs_el, rhs)
+        rhs_p.fill(0.0)
+        self.cfd_utils.AssembleVector(self.connectivity, rhs_el, rhs_p)
 
         # Apply pressure BCs
         t0 = time.perf_counter()
-        self.cfd_utils.ApplyHomogeneousDirichlet(self.fix_pres_indices, self.csr_data_indices, self.csr_diag_indices, self.L, rhs)
+        self.cfd_utils.ApplyHomogeneousDirichlet(self.fix_pres_indices, self.csr_data_indices, self.csr_diag_indices, self.L, rhs_p)
         #print(f"Time to apply pressure BCs: {time.perf_counter()-t0}")
 
         t0 = time.perf_counter()
         # Solve the system
-        p, is_converged = self._SolvePressure(rhs,p)
+        p, is_converged = self._SolvePressure(rhs_p,p)
         if not is_converged:
             print("CG failed to converge.")
         #print(f"Time to solve pressure: {time.perf_counter()-t0}")
@@ -655,15 +701,20 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         return p
 
     def SolveStep3(self, vfrac, v_dirichlet, delta_p, dt):
+
+        #allocation of temporaries
+        tmp = self.tmp_elem #reusing
+        grad_dp_nodal = self.res_v #reusing
+
         # Gather elemental pressure increments from the nodal values
-        delta_p_el = self.ElemData(delta_p, self.connectivity)
+        delta_p_el = self.ElemData(delta_p, self.connectivity, out=self.p_el) # reuse p_old_el as temporary for the elemental pressure increment
 
         # Calculate the gradient of the pressure increment at the elemental level
-        grad_dp_el = self.cfd_utils.ComputeDNN(self.N, self.DN, delta_p_el)
+        grad_dp_el = self.cfd_utils.ComputeDNN(self.N, self.DN, delta_p_el, out=tmp)
         grad_dp_el *= self.elemental_volumes[:,xp.newaxis,xp.newaxis]
 
         # Assemble the gradient contributions at the nodes
-        grad_dp_nodal = xp.zeros(vfrac.shape, dtype=cfd_utils.PRECISION)
+        grad_dp_nodal.fill(0.0)
         self.cfd_utils.AssembleVector(self.connectivity, grad_dp_el, grad_dp_nodal)
 
         # Update the fractional velocity with the pressure gradient contribution
