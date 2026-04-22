@@ -109,8 +109,9 @@ void TransientThermalElement<TDim, TNumNodes>::CalculateLocalSystem(MatrixType& 
     const auto integration_coefficients = mIntegrationCoefficientsCalculator.Run<Vector>(
         GetGeometry().IntegrationPoints(GetIntegrationMethod()), det_J_container, this);
     const auto conductivity_matrix = CalculateConductivityMatrix(dN_dX_container, integration_coefficients);
+    std::cout << "conductivity_matrix" << conductivity_matrix << std::endl;
     const auto capacity_matrix = CalculateCapacityMatrix(integration_coefficients);
-
+    std::cout << "capacity_matrix" << capacity_matrix << std::endl;
     AddContributionsToLhsMatrix(rLeftHandSideMatrix, conductivity_matrix, capacity_matrix,
                                 rCurrentProcessInfo[DT_TEMPERATURE_COEFFICIENT]);
     AddContributionsToRhsVector(rRightHandSideVector, conductivity_matrix, capacity_matrix);
@@ -155,13 +156,13 @@ int TransientThermalElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentP
     check_properties.Check(DENSITY_SOLID);
     check_properties.Check(SPECIFIC_HEAT_CAPACITY_WATER);
     check_properties.Check(SPECIFIC_HEAT_CAPACITY_SOLID);
-    check_properties.Check(THERMAL_CONDUCTIVITY_WATER);
-    check_properties.Check(THERMAL_CONDUCTIVITY_SOLID_XX);
-    check_properties.Check(THERMAL_CONDUCTIVITY_SOLID_YY);
+    check_properties.SingleUseBounds(CheckProperties::Bounds::AllExclusive).Check(THERMAL_CONDUCTIVITY_WATER);
+    check_properties.SingleUseBounds(CheckProperties::Bounds::AllExclusive).Check(THERMAL_CONDUCTIVITY_SOLID_XX);
+    check_properties.SingleUseBounds(CheckProperties::Bounds::AllExclusive).Check(THERMAL_CONDUCTIVITY_SOLID_YY);
     check_properties.Check(THERMAL_CONDUCTIVITY_SOLID_XY);
 
     if constexpr (TDim == 3) {
-        check_properties.Check(THERMAL_CONDUCTIVITY_SOLID_ZZ);
+        check_properties.SingleUseBounds(CheckProperties::Bounds::AllExclusive).Check(THERMAL_CONDUCTIVITY_SOLID_ZZ);
         check_properties.Check(THERMAL_CONDUCTIVITY_SOLID_YZ);
         check_properties.Check(THERMAL_CONDUCTIVITY_SOLID_XZ);
     }
@@ -169,24 +170,6 @@ int TransientThermalElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentP
     if constexpr (TDim == 2) CheckUtilities::CheckForNonZeroZCoordinateIn2D(GetGeometry());
 
     check_properties.CheckAvailabilityAndEquality(RETENTION_LAW, "SaturatedLaw");
-
-    std::vector<const Variable<double>*> properties_list{
-        &SPECIFIC_HEAT_CAPACITY_WATER,  &SPECIFIC_HEAT_CAPACITY_SOLID,
-        &THERMAL_CONDUCTIVITY_WATER,    &THERMAL_CONDUCTIVITY_SOLID_XX,
-        &THERMAL_CONDUCTIVITY_SOLID_YY, &THERMAL_CONDUCTIVITY_SOLID_XY};
-    if constexpr (TDim == 3) {
-        properties_list.insert(properties_list.end(), {&THERMAL_CONDUCTIVITY_SOLID_ZZ, &THERMAL_CONDUCTIVITY_SOLID_YZ,
-                                                       &THERMAL_CONDUCTIVITY_SOLID_XZ});
-    }
-    const auto areAllValuesZero =
-        std::ranges::all_of(properties_list, [&r_properties](const Variable<double>* pVariable) {
-        return std::abs(r_properties[*pVariable]) <= 1.0e-12;
-    });
-    if (areAllValuesZero) {
-        KRATOS_ERROR << "The input is invalid: capacity and thermal conductivity parameters "
-                        "cannot all be zero."
-                     << std::endl;
-    }
 
     return RetentionLawFactory::Clone(r_properties)->Check(r_properties, rCurrentProcessInfo);
     KRATOS_CATCH("")
