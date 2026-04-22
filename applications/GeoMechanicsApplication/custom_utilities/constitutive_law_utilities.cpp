@@ -316,7 +316,8 @@ double ConstitutiveLawUtilities::CalculateExcessPorePressure(const Properties& r
 
     const double denominator = porosity * k_s + (biot_coefficient - porosity) * k_f;
     KRATOS_ERROR_IF(std::abs(denominator) <= std::numeric_limits<double>::epsilon())
-        << "Non-physical values: denominator < epsilon." << std::endl;
+        << "Non-physical values: denominator < epsilon for property Id of " << rProperties.Id()
+        << "." << std::endl;
     return biot_coefficient * (k_f * k_s) / denominator * VolumetricStrainIncrement;
 }
 

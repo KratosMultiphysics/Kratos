@@ -607,7 +607,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_CalculateExcessPorePressureT
     // Act & Assert
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         (void)ConstitutiveLawUtilities::CalculateExcessPorePressure(properties, volumetric_strain),
-        "Non-physical values: denominator < epsilon.");
+        "Non-physical values: denominator < epsilon for property Id of 0.");
 }
 
 } // namespace Kratos::Testing
