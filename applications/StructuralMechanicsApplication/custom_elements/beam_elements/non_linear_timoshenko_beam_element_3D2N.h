@@ -331,9 +331,7 @@ private:
     std::vector<BoundedMatrix<double, 3, 3>> mOldRotationOperators; // The two rotation matrices, one per each IP.
 
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector; // The vector containing the beam constitutive laws, one per each IP
-    IntegrationMethod mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_LOBATTO_1; // By default the quadrature points are located at the nodes of the beam
-
-
+    IntegrationMethod mThisIntegrationMethod;
 };
 
 } // namespace Kratos

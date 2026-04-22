@@ -120,7 +120,8 @@ void NonLinearTimoshenkoBeamElement3D2N::Initialize(
     // Initialization should not be done again in a restart!
     if (!rCurrentProcessInfo[IS_RESTARTED]) {
         const auto &r_geom = GetGeometry();
-        const auto& r_integration_points = r_geom.IntegrationPoints(mThisIntegrationMethod); // Lobatto by default
+        mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_1;
+        const auto& r_integration_points = r_geom.IntegrationPoints(mThisIntegrationMethod);
 
         // Constitutive Law initialisation
         if (mConstitutiveLawVector.size() != r_integration_points.size())
