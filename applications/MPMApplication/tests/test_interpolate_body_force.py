@@ -8,16 +8,17 @@ class TestBodyForceInterpolationMPM(KratosUnittest.TestCase):
 
     def setUp(self):
         self.model = KratosMultiphysics.Model()
+        self.work_folder = "test_interpolate_body_force"
         self.parameters_file = "ProjectParameters.json"
 
     def test_body_force_interpolation(self):
 
-	
-        with open(self.parameters_file, 'r') as parameter_file:
-            project_parameters = KratosMultiphysics.Parameters(parameter_file.read())
+        with KratosUnittest.WorkFolderScope(self.work_folder, __file__):
+            with open(self.parameters_file, 'r') as parameter_file:
+                project_parameters = KratosMultiphysics.Parameters(parameter_file.read())
 
-        simulation = BodyForceTestSimulation(self.model, project_parameters)
-        simulation.Run()
+            simulation = BodyForceTestSimulation(self.model, project_parameters)
+            simulation.Run()
 
         # --- Get MP model part ---
         mp_model_part = self.model.GetModelPart("MPM_Material")

@@ -263,15 +263,14 @@ void MPMUpdatedLagrangian::SetGeneralVariables(GeneralVariables& rVariables,
 //************************************************************************************
 //************************************************************************************
 void MPMUpdatedLagrangian::ComputeMaterialPointBodyForce(
-    GeneralVariables& rVariables,
-    const ProcessInfo& rCurrentProcessInfo)
+    array_1d<double,3>& rBodyForce)
 {
     GeometryType& r_geometry = GetGeometry();
     const Matrix& r_N = r_geometry.ShapeFunctionsValues();
     const unsigned int number_of_nodes = r_geometry.PointsNumber();
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
 
-    rVariables.BodyForceMP = ZeroVector(dimension);
+    rBodyForce = ZeroVector(3);
 
     array_1d<double, 3 > nodal_body_force = ZeroVector(3);
 
@@ -283,7 +282,7 @@ void MPMUpdatedLagrangian::ComputeMaterialPointBodyForce(
 
             for (unsigned int k = 0; k < dimension; k++)
             {
-                rVariables.BodyForceMP[k] += r_N(0, j) * nodal_body_force[k];
+                rBodyForce[k] += r_N(0, j) * nodal_body_force[k];
             }
         }
     }
@@ -355,11 +354,11 @@ void MPMUpdatedLagrangian::CalculateElementalSystem(
 
     if (CalculateResidualVectorFlag) // if calculation of the vector is required
     {
-        this->ComputeMaterialPointBodyForce(Variables, rCurrentProcessInfo);
+        this->ComputeMaterialPointBodyForce(mMP.body_force);
 
         // Contribution to forces (in residual term) are calculated
         Vector volume_force = (mMP.volume_acceleration * mMP.mass)
-                        + (Variables.BodyForceMP * mMP.mass);
+                            + (mMP.body_force * mMP.mass);
 
         this->CalculateAndAddRHS(
             rRightHandSideVector,

@@ -123,6 +123,9 @@ protected:
         // MP_ACCUMULATED_PLASTIC_DEVIATORIC_STRAIN
         double accumulated_plastic_deviatoric_strain;
 
+        // MP_BODY_FORCE
+        array_1d<double, 3> body_force;
+
         explicit MaterialPointVariables()
         {
             // MP_MASS
@@ -144,6 +147,8 @@ protected:
             accumulated_plastic_volumetric_strain = 1.0;
             // MP_ACCUMULATED_PLASTIC_DEVIATORIC_STRAIN
             accumulated_plastic_deviatoric_strain = 1.0;
+
+         
         }
 
     private:
@@ -171,6 +176,7 @@ protected:
             rSerializer.save("equivalent_plastic_strain",equivalent_plastic_strain);
             rSerializer.save("accumulated_plastic_volumetric_strain",accumulated_plastic_volumetric_strain);
             rSerializer.save("accumulated_plastic_deviatoric_strain",accumulated_plastic_deviatoric_strain);
+            rSerializer.save("body_force",body_force);
         }
 
         void load( Serializer& rSerializer )
@@ -191,6 +197,7 @@ protected:
             rSerializer.load("equivalent_plastic_strain",equivalent_plastic_strain);
             rSerializer.load("accumulated_plastic_volumetric_strain",accumulated_plastic_volumetric_strain);
             rSerializer.load("accumulated_plastic_deviatoric_strain",accumulated_plastic_deviatoric_strain);
+            rSerializer.load("body_force",body_force);
         }
         ///@}
     };
@@ -224,8 +231,6 @@ protected:
 
         // Variables including all integration points
         Matrix CurrentDisp;
-
-	    Vector BodyForceMP;
     };
 
 public:
@@ -607,8 +612,7 @@ protected:
      * nodal BODY_FORCE values using shape functions.
      * This is mainly used for external loading or MMS-based forcing.
      */
-    void ComputeMaterialPointBodyForce(GeneralVariables& rVariables,
-                                   const ProcessInfo& rCurrentProcessInfo);                           
+    void ComputeMaterialPointBodyForce(array_1d<double,3>& rBodyForce);                           
     
     /**
      * Initialize Material Properties on the Constitutive Law
