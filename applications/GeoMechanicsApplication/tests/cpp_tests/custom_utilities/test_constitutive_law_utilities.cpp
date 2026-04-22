@@ -598,7 +598,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_CalculateExcessPorePressureI
                        Defaults::absolute_tolerance);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_CalculateExcessPorePressureIncrementThrowsError,
+KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_CalculateExcessPorePressureIncrementThrowsErrorWhenDenominatorEqualsZero,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
@@ -607,11 +607,11 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_CalculateExcessPorePressureI
     properties.SetValue(BULK_MODULUS_FLUID, 1.E3);
     properties.SetValue(BULK_MODULUS_SOLID, 2.E3);
     properties.SetValue(POROSITY, 0.0);
-    constexpr auto volumetric_strain = 1.0;
+    constexpr auto volumetric_strain_increment = 1.0;
 
     // Act & Assert
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        (void)ConstitutiveLawUtilities::CalculateExcessPorePressureIncrement(properties, volumetric_strain),
+        (void)ConstitutiveLawUtilities::CalculateExcessPorePressureIncrement(properties, volumetric_strain_increment),
         "Non-physical values: denominator < epsilon for property Id of 0.");
 }
 
