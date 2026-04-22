@@ -423,15 +423,21 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         return self.model_part
 
     def ComputeVelocityProjection(self, v_elemental):
+
+        #allocation of temporaries
+        tmp_elem = xp.empty(v_elemental.shape, dtype=cfd_utils.PRECISION)
+        tmp_elem_2 = xp.empty(v_elemental.shape, dtype=cfd_utils.PRECISION)
+        tmp_dim_dim = xp.empty((v_elemental.shape[0], self.dim, self.dim), dtype=cfd_utils.PRECISION)
+        pi_conv = xp.zeros((self.nnodes,self.dim), dtype=cfd_utils.PRECISION) #TODO: allocate this once
+
         # Solve (w,pi) = (w,a·∇u)
         # Compute convective contribution at integration points (w,a·∇u)
-        grad_v_elemental = self.cfd_utils.ComputeElementalGradient(self.DN, v_elemental) # Calculate the velocity gradient at each element (assumed constant within the element)
-        a_grad_elemental = self.cfd_utils.ComputeElementalConvectiveOperator(v_elemental, grad_v_elemental) # Calculate the convective operator at each node
-        convective = self.cfd_utils.ComputeConvectiveContribution(a_grad_elemental) # Calculate the elemental convective contributions (note that density should be applied outside)
+        grad_v_elemental = self.cfd_utils.ComputeElementalGradient(self.DN, v_elemental, out=tmp_dim_dim) # Calculate the velocity gradient at each element (assumed constant within the element)
+        a_grad_elemental = self.cfd_utils.ComputeElementalConvectiveOperator(v_elemental, grad_v_elemental, out=tmp_elem) # Calculate the convective operator at each node
+        convective = self.cfd_utils.ComputeConvectiveContribution(a_grad_elemental, out=tmp_elem_2) # Calculate the elemental convective contributions (note that density should be applied outside)
         convective *= self.elemental_volumes[:, None, None] # Apply Jacobian determinant to the entire residual
 
         # Do the nodal assembly of the projection elemental contributions
-        pi_conv = xp.zeros((self.nnodes,self.dim), dtype=cfd_utils.PRECISION)
         self.cfd_utils.AssembleVector(self.connectivity, convective, pi_conv)
 
         # Solve with the lumped mass matrix to get the nodal values of the projection
@@ -585,9 +591,15 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         return vnew
 
     def SolveStep2(self,vfrac,p,dt):
+        
         # Gather data from the database
         pel = self.ElemData(p, self.connectivity)
         vel_frac = self.ElemData(vfrac, self.connectivity)
+
+        #allocation of temporaries
+        tmp_n_in_el_sq = xp.empty((pel.shape[0], self.n_in_el, self.n_in_el), dtype=cfd_utils.PRECISION)
+        tmp_n_in_el = xp.empty((pel.shape[0], self.n_in_el), dtype=cfd_utils.PRECISION)
+        rhs_el_p = xp.empty((pel.shape[0], self.n_in_el), dtype=cfd_utils.PRECISION)
 
         # Compute pressure projection
         pres_proj = self.ComputePressureProjection(pel)
@@ -595,7 +607,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
         # Assemble pressure LHS (set to zero is done internally)
         t0 = time.perf_counter()
-        L_el = self.cfd_utils.ComputeLaplacianMatrix(self.DN) # elemental laplacian contributions as L_IJ := (∇N_I,∇N_J)
+        L_el = self.cfd_utils.ComputeLaplacianMatrix(self.DN, out=tmp_n_in_el_sq) # elemental laplacian contributions as L_IJ := (∇N_I,∇N_J)
         #print(f"Time to compute elemental Laplacian contributions: {time.perf_counter()-t0}")
         coef = (dt / self.rho / 2.0 + self.tau_1) * self.elemental_volumes
         L_el *= coef[:, None, None] # scale LHS elemental contributions
@@ -604,15 +616,15 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         #print(f"Time to assemble pressure LHS: {time.perf_counter()-t0}")
 
         # -(q,∇·ufrac)
-        rhs_el = -self.cfd_utils.ComputeElementwiseNodalDivergence(self.N, self.DN, vel_frac)
+        rhs_el = -self.cfd_utils.ComputeElementwiseNodalDivergence(self.N, self.DN, vel_frac, out=rhs_el_p)
 
         # (dt/rho/2 + tau)*(∇q,∇pold) = (dt/rho/2 + tau)*Lij*pj
-        aux_scalar = self.cfd_utils.ApplyLaplacian(self.DN, pel)
+        aux_scalar = self.cfd_utils.ApplyLaplacian(self.DN, pel, out=rhs_el_p)
         aux_scalar *= (dt / self.rho / 2.0)
         rhs_el += aux_scalar
 
         # -tau*(∇q,Pi_pressure)
-        aux_scalar = self.cfd_utils.ComputePressureStabilizationProjectionTerm(self.N, self.DN, pres_proj_el)
+        aux_scalar = self.cfd_utils.ComputePressureStabilizationProjectionTerm(self.N, self.DN, pres_proj_el,out=tmp_n_in_el)
         aux_scalar *= self.tau_1[:,xp.newaxis]
         rhs_el -= aux_scalar
 
@@ -750,47 +762,52 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
         ttot = time.perf_counter()
 
+        #allocation of temporaries
+        tmp_elem = xp.empty(v_elemental.shape, dtype=cfd_utils.PRECISION)
+        tmp_elem_2 = xp.empty(v_elemental.shape, dtype=cfd_utils.PRECISION)
+        tmp_dim_dim = xp.empty((v_elemental.shape[0], self.dim, self.dim), dtype=cfd_utils.PRECISION)
+
         # Initialize residual
-        res = xp.zeros(v_elemental.shape, dtype=cfd_utils.PRECISION)
+        #res = xp.zeros(v_elemental.shape, dtype=cfd_utils.PRECISION)
 
         #(w,b)
         t0 = time.perf_counter()
-        res += self.rho * self.cfd_utils.ComputeBodyForceContribution(b_elemental)
+        res = self.rho * self.cfd_utils.ComputeBodyForceContribution(b_elemental, out=tmp_elem)
         #print(f"\t\ttime {1}: {time.perf_counter() - t0}")
 
         
         t0 = time.perf_counter()
-        grad_v = self.cfd_utils.ComputeElementalGradient(DN, v_elemental)
-        a_grad_elemental = self.cfd_utils.ComputeElementalConvectiveOperator(v_elemental, grad_v)
+        grad_v = self.cfd_utils.ComputeElementalGradient(DN, v_elemental, out=tmp_dim_dim)
+        a_grad_elemental = self.cfd_utils.ComputeElementalConvectiveOperator(v_elemental, grad_v, out=tmp_elem)
         #print(f"\t\ttime {2}: {time.perf_counter() - t0}")
 
         t0 = time.perf_counter()
         # -(w,rho·a·∇u)
-        convective = self.cfd_utils.ComputeConvectiveContribution(a_grad_elemental)
+        convective = self.cfd_utils.ComputeConvectiveContribution(a_grad_elemental, out=tmp_elem_2) #a_grad_elemental is actually still tmp_elem here
         convective *= self.rho
         res -= convective #assemble convective contribution
-        del convective
+        #del convective
 
         # -(rho·a·∇w,tau_1·rho·a·∇u) + (rho·a·∇w,tau_1·rho·Pi_conv)
-        convective_stab = self.cfd_utils.ComputeMomentumStabilization(DN, v_elemental, a_grad_elemental, proj_elemental)
+        convective_stab = self.cfd_utils.ComputeMomentumStabilization(DN, v_elemental, a_grad_elemental, proj_elemental, out=tmp_elem_2) #a_grad_elemental is actually still tmp_elem here
         convective_stab *= self.rho * self.rho
         res -= convective_stab * self.tau_1[:, None, None] #assemble convective stabilization contribution
         #print(f"\t\ttime {8}: {time.perf_counter() - t0}")
-        del convective_stab
+        #del convective_stab
 
         #-(∇w,∇u)
         t0 = time.perf_counter()
-        res -= self.dyn_visc * self.cfd_utils.ApplyLaplacian(DN, v_elemental)
+        res -= self.dyn_visc * self.cfd_utils.ApplyLaplacian(DN, v_elemental, out=tmp_elem)
         #print(f"\t\ttime {9}: {time.perf_counter() - t0}")
 
         #+(∇·w,p_gauss)
         t0 = time.perf_counter()
-        res += self.cfd_utils.ComputeDNN(self.N, DN, p_elemental)
+        res += self.cfd_utils.ComputeDNN(self.N, DN, p_elemental, out=tmp_elem)
         #print(f"\t\ttime {10}: {time.perf_counter() - t0}")
 
         #-(∇·w,tau_2·∇·v) + (∇·w,tau_2·Pi_div)
         t0 = time.perf_counter()
-        div_div_stab = self.cfd_utils.ComputeDivDivStabilization(self.N, DN, v_elemental, proj_div_el)
+        div_div_stab = self.cfd_utils.ComputeDivDivStabilization(self.N, DN, v_elemental, proj_div_el, out=tmp_elem)
         res -= div_div_stab * self.tau_2[:,np.newaxis,np.newaxis]
         #print(f"\t\ttime {11}: {time.perf_counter() - t0}")
 
