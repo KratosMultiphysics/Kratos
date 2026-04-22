@@ -502,7 +502,7 @@ void NonLinearTimoshenkoBeamElement3D2N::CalculateAll(
             // Material
             noalias(rLHS) += prod(temp, b_matrix) * J;
             // Geometric
-            //CalculateAndAddKg(rLHS, J, N1, N2, dN1, dN2, gen_stress_vector);
+            CalculateAndAddKg(rLHS, J, N1, N2, dN1, dN2, gen_stress_vector);
         }
 
     } // IP loop
@@ -546,7 +546,7 @@ void NonLinearTimoshenkoBeamElement3D2N::CalculateAndAddKg(
     BoundedMatrix<double, 3, 3> Gi_ab;
     Kn_ab.clear();
     Km_ab.clear();
-    array3 di_a, di_b, dk_s, dk;
+    array3 di_a, di_b, dk_s, dk, di, di_s;
 
     const IndexType block_size = 6; // 3 displ + 3 rot
 
@@ -554,13 +554,14 @@ void NonLinearTimoshenkoBeamElement3D2N::CalculateAndAddKg(
         for (IndexType b = 0; b < 2; ++b) {
 
             for (IndexType i = 0; i < 3; ++i) { // Loop over the vector directors
+                noalias(di_s) = dN[0] * column(mRotationOperators[0], i) + dN[0] * column(mRotationOperators[1], i);
+                noalias(di) = N[0] * column(mRotationOperators[0], i) + N[0] * column(mRotationOperators[1], i);
                 noalias(di_a) = column(mRotationOperators[a], i);
                 noalias(di_b) = column(mRotationOperators[b], i);
 
                 // Shear and axial submatrix
-                noalias(project(Kn_ab, range(0, 3), range(3, 6))) = -dN[a] * N[b] * Q[i] *
-                                                                    CL_utils::CalculateSpinMatrix(di_b); // i director vector
-                noalias(project(Kn_ab, range(3, 6), range(0, 3))) = N[a] * dN[b] * Q[i] * CL_utils::CalculateSpinMatrix(di_a);
+                noalias(project(Kn_ab, range(0, 3), range(3, 6))) = -dN[a] * N[b] * Q[i] * CL_utils::CalculateSpinMatrix(di_b); // i director vector
+                noalias(project(Kn_ab, range(3, 6), range(0, 3))) = N[a] * dN[b] * Q[i] * CL_utils::CalculateSpinMatrix(di);
                 noalias(project(Kn_ab, range(3, 6), range(3, 6))) = delta(a, b) * N[a] * Q[i] * (outer_prod(di_a, dr) - (inner_prod(di_a, dr) * IdentityMatrix(3)));
 
                 // Bending submatrix
