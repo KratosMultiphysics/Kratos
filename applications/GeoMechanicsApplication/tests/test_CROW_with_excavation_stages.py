@@ -1,6 +1,7 @@
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-import KratosMultiphysics.GeoMechanicsApplication.geomechanics_analysis as analysis
+from KratosMultiphysics.project import Project
+import importlib
 import KratosMultiphysics.GeoMechanicsApplication.context_managers as context_managers
 from KratosMultiphysics.GeoMechanicsApplication.gid_output_file_reader import (
     GiDOutputFileReader,
@@ -186,11 +187,14 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
         )
 
         with context_managers.set_cwd_to(project_path):
-            model = Kratos.Model()
-            for stage in self.stages_info.values():
-                with open(f"{stage['base_name']}.json", "r") as f:
-                    stage_parameters = Kratos.Parameters(f.read())
-                analysis.GeoMechanicsAnalysis(model, stage_parameters).Run()
+            with open("staged_analysis.json", 'r') as parameter_file:
+                project_parameters = Kratos.Parameters(parameter_file.read())
+                project = Project(project_parameters)
+                orchestrator_reg_entry = Kratos.Registry[project.GetSettings()["orchestrator"]["name"].GetString()]
+                orchestrator_module = importlib.import_module(orchestrator_reg_entry["ModuleName"])
+                orchestrator_class = getattr(orchestrator_module, orchestrator_reg_entry["ClassName"])
+                orchestrator_instance = orchestrator_class(project)
+                orchestrator_instance.Run()
 
         self.create_sheetpile_plots(project_path)
         self.create_interface_plots(project_path)
