@@ -27,6 +27,7 @@
 #include <Epetra_IntSerialDenseVector.h>
 #include <Epetra_SerialDenseMatrix.h>
 #include <Epetra_SerialDenseVector.h>
+#include <Epetra_FECrsGraph.h>
 #include <EpetraExt_CrsMatrixIn.h>
 #include <EpetraExt_VectorIn.h>
 #include <EpetraExt_RowMatrixOut.h>
@@ -34,6 +35,7 @@
 #include <EpetraExt_MatrixMatrix.h>
 
 // Project includes
+#include "trilinos_application.h"
 #include "includes/ublas_interface.h"
 #include "spaces/ublas_space.h"
 #include "includes/data_communicator.h"
@@ -94,6 +96,21 @@ public:
     /// Definition of the size type
     using SizeType = std::size_t;
 
+    /// Class definition
+    using ClassType = TrilinosSpace<TMatrixType, TVectorType>;
+
+    /// Define the map type
+    using MapType = Epetra_Map;
+    using MapPointerType = Kratos::shared_ptr<MapType>;
+
+    /// Define the graph type
+    using GraphType = Epetra_CrsGraph;
+    using GraphPointerType = Kratos::shared_ptr<GraphType>;
+
+    // Define TPetra communicator
+    using CommunicatorType = Epetra_MpiComm;
+    using CommunicatorPointerType = Kratos::shared_ptr<CommunicatorType>;
+
     /// Definition of the pointer types
     using MatrixPointerType = typename Kratos::shared_ptr<TMatrixType>;
     using VectorPointerType = typename Kratos::shared_ptr<TVectorType>;
@@ -125,6 +142,106 @@ public:
     ///@{
 
     /**
+     * @brief This method returns the linear algebra library used
+     * @return The linear algebra library, EPETRA in this case
+     */
+    static constexpr TrilinosLinearAlgebraLibrary LinearAlgebraLibrary()
+    {
+        return TrilinosLinearAlgebraLibrary::EPETRA;
+    }
+
+    /**
+     * @brief This method returns the rank of the communicator
+     * @param rComm The communicator considered
+     * @return The rank of the communicator
+     */
+    inline static int GetRank(const CommunicatorType& rComm)
+    {
+        return rComm.MyPID();
+    }
+
+    /**
+     * @brief This method returns true if the pointer is null
+     * @param pPointer The pointer considered
+     * @return True if the pointer is null
+     */
+    template<class TPointerType>
+    inline static bool IsNull(const TPointerType& pPointer)
+    {
+        return pPointer == nullptr;
+    }
+
+    /**
+     * @brief This method returns the map of the vector
+     * @param rV The vector considered
+     * @return The map of the vector
+     */
+    inline static const MapType& GetMap(const VectorType& rV)
+    {
+        // Epetra_FEVector::Map() returns an Epetra_BlockMap&. The underlying object
+        // was constructed from an Epetra_Map but gets stored as Epetra_BlockMap internally,
+        // so dynamic_cast would fail. Use a reinterpret approach via the block map interface
+        // to get access to the same data through the Epetra_Map slice.
+        // Since Epetra_Map derives from Epetra_BlockMap, and the map is always point-based,
+        // we can safely use static_cast here.
+        return static_cast<const MapType&>(rV.Map());
+    }
+
+    /**
+     * @brief This method returns the communicator of the vector
+     * @param rV The vector considered
+     * @return The communicator of the vector
+     */
+    inline static const CommunicatorType& GetCommunicator(const VectorType& rV)
+    {
+        return dynamic_cast<const CommunicatorType&>(rV.Comm());
+    }
+
+    /**
+     * @brief This method returns the communicator of the matrix
+     * @param rA The matrix considered
+     * @return The communicator of the matrix
+     */
+    inline static const CommunicatorType& GetCommunicator(const MatrixType& rA)
+    {
+        return dynamic_cast<const CommunicatorType&>(rA.Comm());
+    }
+
+    /**
+     * @brief This method performs the global assembly of the matrix
+     * @param rA The matrix considered
+     */
+    inline static void GlobalAssemble(MatrixType& rA)
+    {
+        rA.GlobalAssemble();
+    }
+
+    /**
+     * @brief This method performs the global assembly of the vector
+     * @param rV The vector considered
+     */
+    inline static void GlobalAssemble(VectorType& rV)
+    {
+        rV.GlobalAssemble();
+    }
+
+    /**
+     * @brief Manually finalizes matrix assembly (no-op for Epetra).
+     */
+    static void ManualFinalize(MatrixType& rA)
+    {
+    }
+
+    /**
+     * @brief This method creates an empty pointer to a map
+     * @return The pointer to the map
+     */
+    static MapPointerType CreateEmptyMapPointer()
+    {
+        return MapPointerType(nullptr);
+    }
+
+    /**
      * @brief This method creates an empty pointer to a matrix
      * @return The pointer to the matrix
      */
@@ -143,14 +260,58 @@ public:
     }
 
     /**
+     * @brief Creates a copy of a vector.
+     * @param src The source vector
+     * @return Shared pointer to a deep copy of src
+     */
+    static VectorPointerType CreateVectorCopy(const VectorType& rVector)
+    {
+        return VectorPointerType(new VectorType(rVector));
+    }
+
+    /**
+     * @brief Creates a VectorType from a given Epetra map.
+     * @param pMap The Epetra map to construct the vector from
+     * @return Shared pointer to the newly created vector
+     */
+    static VectorPointerType CreateVector(const MapPointerType& pMap)
+    {
+        return VectorPointerType(new VectorType(*pMap));
+    }
+
+    /**
+     * @brief Creates a MatrixType from a given Epetra CRS graph.
+     * @param pGraph The Epetra CRS graph to construct the matrix from
+     * @return Shared pointer to the newly created matrix
+     */
+    static MatrixPointerType CreateMatrix(const GraphPointerType& pGraph)
+    {
+        return MatrixPointerType(new TMatrixType(::Copy, *pGraph));
+    }
+
+    /**
+     * @brief Creates a deep copy of a matrix.
+     * @details Constructs a new matrix with the same sparsity pattern and values
+     *          as @p rMatrix using the existing CopyMatrixValues helper.
+     * @param rMatrix The source matrix to copy
+     * @return Shared pointer to the new matrix
+     */
+    static MatrixPointerType CreateMatrixCopy(const MatrixType& rMatrix)
+    {
+        auto p_copy = MatrixPointerType(new TMatrixType(::Copy, rMatrix.Graph()));
+        CopyMatrixValues(*p_copy, rMatrix);
+        return p_copy;
+    }
+
+    /**
      * @brief This method creates an empty pointer to a matrix using epetra communicator
      * @param rComm The epetra communicator
      * @return The pointer to the matrix
      */
-    static MatrixPointerType CreateEmptyMatrixPointer(Epetra_MpiComm& rComm)
+    static MatrixPointerType CreateEmptyMatrixPointer(CommunicatorType& rComm)
     {
         const int global_elems = 0;
-        Epetra_Map Map(global_elems, 0, rComm);
+        MapType Map(global_elems, 0, rComm);
         return MatrixPointerType(new TMatrixType(::Copy, Map, 0));
     }
 
@@ -159,10 +320,10 @@ public:
      * @param rComm The epetra communicator
      * @return The pointer to the vector
      */
-    static VectorPointerType CreateEmptyVectorPointer(Epetra_MpiComm& rComm)
+    static VectorPointerType CreateEmptyVectorPointer(CommunicatorType& rComm)
     {
         const int global_elems = 0;
-        Epetra_Map Map(global_elems, 0, rComm);
+        MapType Map(global_elems, 0, rComm);
         return VectorPointerType(new TVectorType(Map));
     }
 
@@ -302,10 +463,10 @@ public:
     }
 
     /**
-     * @brief Returns the Frobenius norm of the matrix rX
+     * @brief Returns the Frobenius norm of the matrix rA
      * @details ||rA||2
      * @param rA The matrix considered
-     * @return The Frobenius norm of the matrix rX
+     * @return The Frobenius norm of the matrix rA
      */
     static double TwoNorm(const MatrixType& rA)
     {
@@ -408,7 +569,7 @@ public:
      * @param rB The matrices to be transposed
      * @param CallFillCompleteOnResult	Optional argument, defaults to true. Power users may specify this argument to be false if they DON'T want this function to call C.FillComplete. (It is often useful to allow this function to call C.FillComplete, in cases where one or both of the input matrices are rectangular and it is not trivial to know which maps to use for the domain- and range-maps.)
      * @param KeepAllHardZeros	Optional argument, defaults to false. If true, Multiply, keeps all entries in C corresponding to hard zeros. If false, the following happens by case: A*B^T, A^T*B^T - Does not store entries caused by hard zeros in C. A^T*B (unoptimized) - Hard zeros are always stored (this option has no effect) A*B, A^T*B (optimized) - Hard zeros in corresponding to hard zeros in A are not stored, There are certain cases involving reuse of C, where this can be useful.
-     * @tparam TEnforceInitialGraph If the initial graph is enforced, or a new one is generated
+     * @param EnforceInitialGraph If the initial graph is enforced, or a new one is generated
      */
     static void BtDBProductOperation(
         MatrixType& rA,
@@ -471,7 +632,7 @@ public:
      * @param rB The matrices to be transposed
      * @param CallFillCompleteOnResult	Optional argument, defaults to true. Power users may specify this argument to be false if they DON'T want this function to call C.FillComplete. (It is often useful to allow this function to call C.FillComplete, in cases where one or both of the input matrices are rectangular and it is not trivial to know which maps to use for the domain- and range-maps.)
      * @param KeepAllHardZeros	Optional argument, defaults to false. If true, Multiply, keeps all entries in C corresponding to hard zeros. If false, the following happens by case: A*B^T, A^T*B^T - Does not store entries caused by hard zeros in C. A^T*B (unoptimized) - Hard zeros are always stored (this option has no effect) A*B, A^T*B (optimized) - Hard zeros in corresponding to hard zeros in A are not stored, There are certain cases involving reuse of C, where this can be useful.
-     * @tparam TEnforceInitialGraph If the initial graph is enforced, or a new one is generated
+     * @param EnforceInitialGraph If the initial graph is enforced, or a new one is generated
      */
     static void BDBtProductOperation(
         MatrixType& rA,
@@ -628,6 +789,26 @@ public:
     }
 
     /**
+     * @brief Returns the unaliased addition of two matrices by a scalar
+     * @details rY = (A * rX) + (B * rY)
+     * @param A The scalar considered
+     * @param rX The first matrix considered
+     * @param B The scalar considered
+     * @param rY The resulting matrix considered
+     */
+    static void ScaleAndAdd(
+        const double A,
+        const MatrixType& rX,
+        const double B,
+        MatrixType& rY
+        )
+    {
+        // Compute rY = A * rX + B * rY
+        const int ierr = EpetraExt::MatrixMatrix::Add(rX, false, A, rY, B);
+        KRATOS_ERROR_IF(ierr != 0) << "Epetra scale and add failure " << ierr << std::endl;
+    }
+
+    /**
      * @brief Sets a value in a vector
      * @param rX The vector considered
      * @param i The index of the value considered
@@ -706,7 +887,7 @@ public:
     {
         //KRATOS_ERROR_IF(pX != NULL) << "Trying to resize a null pointer" << std::endl;
         int global_elems = n;
-        Epetra_Map Map(global_elems, 0, pX->Comm());
+        MapType Map(global_elems, 0, pX->Comm());
         VectorPointerType pNewEmptyX = Kratos::make_shared<VectorType>(Map);
         pX.swap(pNewEmptyX);
     }
@@ -719,7 +900,7 @@ public:
     {
         if(pA != NULL) {
             int global_elems = 0;
-            Epetra_Map Map(global_elems, 0, pA->Comm());
+            MapType Map(global_elems, 0, pA->Comm());
             MatrixPointerType pNewEmptyA = MatrixPointerType(new TMatrixType(::Copy, Map, 0));
             pA.swap(pNewEmptyA);
         }
@@ -733,7 +914,7 @@ public:
     {
         if(pX != NULL) {
             int global_elems = 0;
-            Epetra_Map Map(global_elems, 0, pX->Comm());
+            MapType Map(global_elems, 0, pX->Comm());
             VectorPointerType pNewEmptyX = VectorPointerType(new VectorType(Map));
             pX.swap(pNewEmptyX);
         }
@@ -759,8 +940,112 @@ public:
         KRATOS_ERROR_IF(ierr != 0) << "Epetra set to zero failure " << ierr << std::endl;
     }
 
-    /// TODO: creating the the calculating reaction version
-    // 	template<class TOtherMatrixType, class TEquationIdVectorType>
+    /**
+     * @brief Build Epetra FECrsGraph and create new system matrix + vectors from row/column block connectivity.
+     * @param rComm The communicator considered
+     * @param LocalSize The local size of the system
+     * @param FirstMyId The first global id owned by this rank
+     * @param GuessRowSize The guess row size for the graph construction
+     * @param rAllRowEquationIds The list of row equation-id blocks
+     * @param rAllColEquationIds The list of column equation-id blocks
+     * @param rpA The pointer to the matrix to be created
+     * @param rpb The pointer to the right-hand side vector to be created
+     * @param rpDx The pointer to the solution vector to be created
+     * @param rpReactions The pointer to the reactions vector to be created
+     * @param EquationSystemSize The global size of the system
+     * @param pMap The map to be used for the construction of the matrix and vectors
+     */
+    static void BuildSystemStructure(
+        CommunicatorType& rComm,
+        const IndexType LocalSize,
+        const int FirstMyId,
+        const int GuessRowSize,
+        const std::vector<std::vector<int>>& rAllRowEquationIds,
+        const std::vector<std::vector<int>>& rAllColEquationIds,
+        MatrixPointerType& rpA,
+        VectorPointerType& rpb,
+        VectorPointerType& rpDx,
+        VectorPointerType& rpReactions,
+        const IndexType EquationSystemSize,
+        MapPointerType pMap
+        )
+    {
+        KRATOS_ERROR_IF(rAllRowEquationIds.size() != rAllColEquationIds.size())
+            << "BuildSystemStructure: row and column block lists must have the same size" << std::endl;
+
+        // Create graph
+        Epetra_FECrsGraph graph(::Copy, *pMap, GuessRowSize);
+        for (std::size_t i_block = 0; i_block < rAllRowEquationIds.size(); ++i_block) {
+            const auto& r_row_ids = rAllRowEquationIds[i_block];
+            const auto& r_col_ids = rAllColEquationIds[i_block];
+            if (!r_row_ids.empty() && !r_col_ids.empty()) {
+                graph.InsertGlobalIndices(r_row_ids.size(), r_row_ids.data(), r_col_ids.size(), r_col_ids.data());
+            }
+        }
+        graph.GlobalAssemble();
+        graph.FillComplete();
+        graph.OptimizeStorage();
+
+        // Create matrix and vectors
+        rpA = MatrixPointerType(new MatrixType(::Copy, graph));
+        if (IsNull(rpb) || Size(*rpb) != EquationSystemSize) {
+            rpb = VectorPointerType(new VectorType(*pMap));
+        }
+        if (IsNull(rpDx) || Size(*rpDx) != EquationSystemSize) {
+            rpDx = VectorPointerType(new VectorType(*pMap));
+        }
+        if (IsNull(rpReactions)) {
+            rpReactions = VectorPointerType(new VectorType(*pMap));
+        }
+    }
+
+    /**
+     * @brief Build Epetra FE constraint graph and create T matrix + constant vector.
+     * @param rComm The communicator considered
+     * @param LocalSize The local size of the system
+     * @param FirstMyId The first global id owned by this rank
+     * @param GuessRowSize The guess row size for the graph construction
+     * @param rSlaveEquationIds The list of lists of slave equation ids for each local row
+     * @param rMasterEquationIds The list of lists of master equation ids for each local row
+     * @param rpT The pointer to the T matrix to be created
+     * @param rpConstantVector The pointer to the constant vector to be created
+     * @param pMap The map to be used for the construction of the matrix and vectors
+     */
+    static void BuildConstraintsStructure(
+        CommunicatorType& rComm,
+        const IndexType LocalSize,
+        const int FirstMyId,
+        const int GuessRowSize,
+        const std::vector<std::vector<int>>& rSlaveEquationIds,
+        const std::vector<std::vector<int>>& rMasterEquationIds,
+        MatrixPointerType& rpT,
+        VectorPointerType& rpConstantVector,
+        MapPointerType pMap
+        )
+    {
+        // Create graph
+        Epetra_FECrsGraph graph(::Copy, *pMap, GuessRowSize);
+        for (IndexType i = 0; i < LocalSize; i++) {
+            int gid = FirstMyId + i;
+            graph.InsertGlobalIndices(1, &gid, 1, &gid);
+        }
+        for (std::size_t c = 0; c < rSlaveEquationIds.size(); c++) {
+            const auto& r_slave_ids = rSlaveEquationIds[c];
+            const auto& r_master_ids = rMasterEquationIds[c];
+            if (r_slave_ids.size() > 0 && r_master_ids.size() > 0) {
+                for (auto slave_id : r_slave_ids) {
+                    graph.InsertGlobalIndices(1, &slave_id, r_master_ids.size(), r_master_ids.data());
+                }
+            }
+        }
+        graph.GlobalAssemble();
+        graph.FillComplete();
+        graph.OptimizeStorage();
+
+        // Create matrix and vector
+        rpT = MatrixPointerType(new MatrixType(::Copy, graph));
+        rpConstantVector = VectorPointerType(new VectorType(*pMap));
+    }
 
     /**
      * @brief Assembles the LHS of the system
@@ -871,6 +1156,15 @@ public:
     }
 
     /**
+     * @brief This function returns if we are in a distributed system
+     * @return True if we are in a distributed system, false otherwise (always true in this case)
+     */
+    inline static constexpr bool IsDistributedSpace()
+    {
+        return true;
+    }
+
+    /**
      * @brief Returns a list of the fastest direct solvers.
      * @details This function returns a vector of strings representing the names of the fastest direct solvers. The order of the solvers in the list may need to be updated and reordered depending on the size of the equation system.
      * In Trilinos, the speed of direct solvers like MUMPS, SuperLU_DIST, KLU, and Basker can depend on various factors including the size and sparsity of the matrix, the architecture of the computer system, and the specific characteristics of the problem being solved. Below are some general observations about these solvers:
@@ -919,6 +1213,175 @@ public:
     }
 
     /**
+     * @brief Sets a vector entry using a global index and performs assembly.
+     * @param rX The vector to be modified.
+     * @param i The global index of the entry.
+     * @param Value The value to assign.
+     * @details This method inserts the value with global indexing and then calls
+     * `GlobalAssemble()` so the change is synchronized across all ranks.
+     */
+    static void SetGlobalVec(
+        VectorType& rX, 
+        const IndexType i, 
+        const double Value
+        )
+    {
+        Epetra_IntSerialDenseVector indices(1);
+        Epetra_SerialDenseVector values(1);
+        indices[0] = i; values[0] = Value;
+        int ierr = rX.ReplaceGlobalValues(indices, values);
+        KRATOS_ERROR_IF(ierr != 0) << "Epetra failure found" << std::endl;
+        ierr = rX.GlobalAssemble(Insert, true);
+        KRATOS_ERROR_IF(ierr < 0) << "Epetra failure in SetGlobalValue" << std::endl;
+    }
+
+    /**
+     * @brief Sets a vector entry using a global index without assembly.
+     * @param rX The vector to be modified.
+     * @param i The global index of the entry.
+     * @param Value The value to assign.
+     * @details This method is intended for batched updates where assembly is
+     * deferred and handled separately by the caller.
+     */
+    static void SetGlobalVecNoAssemble(
+        VectorType& rX, 
+        const IndexType i, 
+        const double Value
+        ) 
+    {
+        Epetra_IntSerialDenseVector indices(1);
+        Epetra_SerialDenseVector values(1);
+        indices[0] = i; values[0] = Value;
+        const int ierr = rX.ReplaceGlobalValues(indices, values);
+        KRATOS_ERROR_IF(ierr != 0) << "Epetra failure found" << std::endl;
+    }
+
+    /**
+     * @brief Sets a vector entry using a local index and performs assembly.
+     * @param rX The vector to be modified.
+     * @param i The local index of the entry on the current rank.
+     * @param Value The value to assign.
+     * @details This method uses local indexing and then calls `GlobalAssemble()`
+     * to propagate pending FE vector contributions.
+     */
+    static void SetLocalVec(
+        VectorType& rX, 
+        const IndexType i,
+        const double Value
+        ) 
+    {
+        int ierr = rX.ReplaceMyValue(static_cast<int>(i), 0, Value);
+        KRATOS_ERROR_IF(ierr != 0) << "Epetra failure found" << std::endl;
+        ierr = rX.GlobalAssemble(Insert, true);
+        KRATOS_ERROR_IF(ierr < 0) << "Epetra failure in SetLocalValue" << std::endl;
+    }
+
+    /**
+     * @brief Sets a vector entry using a local index without assembly.
+     * @param rX The vector to be modified.
+     * @param i The local index of the entry on the current rank.
+     * @param Value The value to assign.
+     * @details This method is useful when several local values are modified and
+     * a single later assembly is preferred for efficiency.
+     */
+    static void SetLocalVecNoAssemble(
+        VectorType& rX,
+        const IndexType i, 
+        const double Value
+        ) 
+    {
+        const int ierr = rX.ReplaceMyValue(static_cast<int>(i), 0, Value);
+        KRATOS_ERROR_IF(ierr != 0) << "Epetra failure found" << std::endl;
+    }
+
+    /**
+     * @brief Sets a matrix entry using global row and column indices and performs assembly.
+     * @param rA The matrix to be modified.
+     * @param i The global row index.
+     * @param j The global column index.
+     * @param Value The value to assign.
+     * @details The value is inserted with global indexing and the matrix is then
+     * globally assembled so the modification becomes consistent in parallel.
+     */
+    static void SetGlobalMat(MatrixType& rA, IndexType i, IndexType j, double Value) 
+    {
+        std::vector<double> values(1, Value);
+        std::vector<int> indices(1, static_cast<int>(j));
+        int ierr = rA.ReplaceGlobalValues(static_cast<int>(i), 1, values.data(), indices.data());
+        KRATOS_ERROR_IF(ierr != 0) << "Epetra failure found" << std::endl;
+        ierr = rA.GlobalAssemble();
+        KRATOS_ERROR_IF(ierr < 0) << "Epetra failure in SetGlobalValue matrix" << std::endl;
+    }
+
+    /**
+     * @brief Sets a matrix entry using global row and column indices without assembly.
+     * @param rA The matrix to be modified.
+     * @param i The global row index.
+     * @param j The global column index.
+     * @param Value The value to assign.
+     * @details This method is intended for batched matrix insertions where
+     * `GlobalAssemble()` will be invoked separately by the caller.
+     */
+    static void SetGlobalMatNoAssemble(
+        MatrixType& rA,
+        const IndexType i, 
+        const IndexType j, 
+        const double Value
+        ) 
+    {
+        std::vector<double> values(1, Value);
+        std::vector<int> indices(1, static_cast<int>(j));
+        const int ierr = rA.ReplaceGlobalValues(static_cast<int>(i), 1, values.data(), indices.data());
+        KRATOS_ERROR_IF(ierr != 0) << "Epetra failure found" << std::endl;
+    }
+
+    /**
+     * @brief Sets a matrix entry using local row and column indices and performs assembly.
+     * @param rA The matrix to be modified.
+     * @param i The local row index on the current rank.
+     * @param j The local column index on the current rank.
+     * @param Value The value to assign.
+     * @details This method uses local indexing and then assembles the FE matrix
+     * so pending contributions are synchronized across ranks.
+     */
+    static void SetLocalMat(
+        MatrixType& rA, 
+        const IndexType i, 
+        const IndexType j, 
+        const double Value
+        ) 
+    {
+        std::vector<double> values(1, Value);
+        std::vector<int> indices(1, static_cast<int>(j));
+        int ierr = rA.ReplaceMyValues(static_cast<int>(i), 1, values.data(), indices.data());
+        KRATOS_ERROR_IF(ierr != 0) << "Epetra failure found" << std::endl;
+        ierr = rA.GlobalAssemble();
+        KRATOS_ERROR_IF(ierr < 0) << "Epetra failure in SetLocalValue matrix" << std::endl;
+    }
+
+    /**
+     * @brief Sets a matrix entry using local row and column indices without assembly.
+     * @param rA The matrix to be modified.
+     * @param i The local row index on the current rank.
+     * @param j The local column index on the current rank.
+     * @param Value The value to assign.
+     * @details This method is useful for repeated local updates followed by a
+     * single explicit `GlobalAssemble()` call.
+     */
+    static void SetLocalMatNoAssemble(
+        MatrixType& rA, 
+        const IndexType i, 
+        const IndexType j, 
+        const double Value
+        ) 
+    {
+        std::vector<double> values(1, Value);
+        std::vector<int> indices(1, static_cast<int>(j));
+        const int ierr = rA.ReplaceMyValues(static_cast<int>(i), 1, values.data(), indices.data());
+        KRATOS_ERROR_IF(ierr != 0) << "Epetra failure found" << std::endl;
+    }
+
+    /**
      * @brief This function returns a value from a given vector according to a given index
      * @param rX The vector from which values are to be gathered
      * @param I The index of the value to be gathered
@@ -949,10 +1412,12 @@ public:
         )
     {
         KRATOS_TRY
-        double tot_size = IndexArray.size();
+
+        // Get the total size of the index array
+        const std::size_t tot_size = IndexArray.size();
 
         //defining a map as needed
-        Epetra_Map dof_update_map(-1, tot_size, &(*(IndexArray.begin())), 0, rX.Comm());
+        MapType dof_update_map(-1, tot_size, &(*(IndexArray.begin())), 0, rX.Comm());
 
         //defining the importer class
         Epetra_Import importer(dof_update_map, rX.Map());
@@ -971,112 +1436,11 @@ public:
     }
 
     /**
-     * @brief Read a matrix from a MatrixMarket file
-     * @param rFileName The name of the file to read
-     * @param rComm The MPI communicator
-     * @return The matrix read from the file
-     */
-    MatrixPointerType ReadMatrixMarket(
-        const std::string FileName,
-        Epetra_MpiComm& rComm
-        )
-    {
-        KRATOS_TRY
-
-        Epetra_CrsMatrix* pp = nullptr;
-
-        int error_code = EpetraExt::MatrixMarketFileToCrsMatrix(FileName.c_str(), rComm, pp);
-
-        KRATOS_ERROR_IF(error_code != 0) << "Eerror thrown while reading Matrix Market file "<<FileName<< " error code is : " << error_code;
-
-        rComm.Barrier();
-
-        const Epetra_CrsGraph& rGraph = pp->Graph();
-        MatrixPointerType paux = Kratos::make_shared<Epetra_FECrsMatrix>( ::Copy, rGraph, false );
-
-        IndexType NumMyRows = rGraph.RowMap().NumMyElements();
-
-        int* MyGlobalElements = new int[NumMyRows];
-        rGraph.RowMap().MyGlobalElements(MyGlobalElements);
-
-        for(IndexType i = 0; i < NumMyRows; ++i) {
-//             std::cout << pA->Comm().MyPID() << " : I=" << i << std::endl;
-            IndexType GlobalRow = MyGlobalElements[i];
-
-            int NumEntries;
-            std::size_t Length = pp->NumGlobalEntries(GlobalRow);  // length of Values and Indices
-
-            double* Values = new double[Length];     // extracted values for this row
-            int* Indices = new int[Length];          // extracted global column indices for the corresponding values
-
-            error_code = pp->ExtractGlobalRowCopy(GlobalRow, Length, NumEntries, Values, Indices);
-
-            KRATOS_ERROR_IF(error_code != 0) << "Error thrown in ExtractGlobalRowCopy : " << error_code;
-
-            error_code = paux->ReplaceGlobalValues(GlobalRow, Length, Values, Indices);
-
-            KRATOS_ERROR_IF(error_code != 0) << "Error thrown in ReplaceGlobalValues : " << error_code;
-
-            delete [] Values;
-            delete [] Indices;
-        }
-
-        paux->GlobalAssemble();
-
-        delete [] MyGlobalElements;
-        delete pp;
-
-        return paux;
-        KRATOS_CATCH("");
-    }
-
-    /**
-     * @brief Read a vector from a MatrixMarket file
-     * @param rFileName The name of the file to read
-     * @param rComm The MPI communicator
-     * @param N The size of the vector
-     */
-    VectorPointerType ReadMatrixMarketVector(
-        const std::string& rFileName,
-        Epetra_MpiComm& rComm,
-        const int N
-        )
-    {
-        KRATOS_TRY
-
-        Epetra_Map my_map(N, 0, rComm);
-        Epetra_Vector* pv = nullptr;
-
-        int error_code = EpetraExt::MatrixMarketFileToVector(rFileName.c_str(), my_map, pv);
-
-        KRATOS_ERROR_IF(error_code != 0) << "error thrown while reading Matrix Market Vector file " << rFileName << " error code is: " << error_code;
-
-        rComm.Barrier();
-
-        IndexType num_my_rows = my_map.NumMyElements();
-        std::vector<int> gids(num_my_rows);
-        my_map.MyGlobalElements(gids.data());
-
-        std::vector<double> values(num_my_rows);
-        pv->ExtractCopy(values.data());
-
-        VectorPointerType final_vector = Kratos::make_shared<VectorType>(my_map);
-        int ierr = final_vector->ReplaceGlobalValues(gids.size(),gids.data(), values.data());
-        KRATOS_ERROR_IF(ierr != 0) << "Epetra failure found with code ierr = " << ierr << std::endl;
-
-        final_vector->GlobalAssemble();
-
-        delete pv;
-        return final_vector;
-        KRATOS_CATCH("");
-    }
-
-    /**
      * @brief Generates a graph combining the graphs of two matrices
      * @param rA The first matrix
      * @param rB The second matrix
      */
-    static Epetra_CrsGraph CombineMatricesGraphs(
+    static GraphType CombineMatricesGraphs(
         const MatrixType& rA,
         const MatrixType& rB
         )
@@ -1096,7 +1460,7 @@ public:
         int num_entries; // Number of non-zero entries
         int* cols;       // Column indices of row non-zero values
         const bool same_col_map = rA.ColMap().SameAs(rB.ColMap());
-        Epetra_CrsGraph graph = same_col_map ? Epetra_CrsGraph(::Copy, rA.RowMap(), rA.ColMap(), 1000) : Epetra_CrsGraph(::Copy, rA.RowMap(), 1000);
+        GraphType graph = same_col_map ? GraphType(::Copy, rA.RowMap(), rA.ColMap(), 1000) : GraphType(::Copy, rA.RowMap(), 1000);
 
         // Same column map. Local indices, simpler and faster
         if (same_col_map) {
@@ -1154,7 +1518,7 @@ public:
 
         // Finalizing graph construction
         ierr = graph.FillComplete();
-        KRATOS_ERROR_IF(ierr < 0) << ": Epetra failure in Epetra_CrsGraph.FillComplete. Error code: " << ierr << std::endl;
+        KRATOS_ERROR_IF(ierr < 0) << ": Epetra failure in GraphType.FillComplete. Error code: " << ierr << std::endl;
 
         return graph;
     }
@@ -1214,7 +1578,7 @@ public:
      * @param rProcessInfo The problem process info
      * @param rA The LHS matrix
      * @param rb The RHS vector
-     * @param ScalingDiagonal The type of caling diagonal considered
+     * @param ScalingDiagonal The type of scaling diagonal considered
      * @return The scale norm
      */
     static double CheckAndCorrectZeroDiagonalValues(
@@ -1366,42 +1730,105 @@ public:
         KRATOS_CATCH("");
     }
 
-    ///@}
-    ///@name Access
-    ///@{
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
-    ///@}
-    ///@name Input and output
-    ///@{
-
     /**
-     * @brief Turn back information as a string.
-     * @return Info as a string.
+     * @brief Read a matrix from a MatrixMarket file
+     * @param rFileName The name of the file to read
+     * @param rComm The MPI communicator
+     * @return The matrix read from the file
      */
-    virtual std::string Info() const
+    static MatrixPointerType ReadMatrixMarket(
+        const std::string FileName,
+        CommunicatorType& rComm
+        )
     {
-        return "TrilinosSpace";
+        KRATOS_TRY
+
+        Epetra_CrsMatrix* pp = nullptr;
+
+        int error_code = EpetraExt::MatrixMarketFileToCrsMatrix(FileName.c_str(), rComm, pp);
+
+        KRATOS_ERROR_IF(error_code != 0) << "Eerror thrown while reading Matrix Market file "<<FileName<< " error code is : " << error_code;
+
+        rComm.Barrier();
+
+        const GraphType& rGraph = pp->Graph();
+        MatrixPointerType paux = Kratos::make_shared<Epetra_FECrsMatrix>( ::Copy, rGraph, false );
+
+        IndexType NumMyRows = rGraph.RowMap().NumMyElements();
+
+        int* MyGlobalElements = new int[NumMyRows];
+        rGraph.RowMap().MyGlobalElements(MyGlobalElements);
+
+        for(IndexType i = 0; i < NumMyRows; ++i) {
+//             std::cout << pA->Comm().MyPID() << " : I=" << i << std::endl;
+            IndexType GlobalRow = MyGlobalElements[i];
+
+            int NumEntries;
+            std::size_t Length = pp->NumGlobalEntries(GlobalRow);  // length of Values and Indices
+
+            double* Values = new double[Length];     // extracted values for this row
+            int* Indices = new int[Length];          // extracted global column indices for the corresponding values
+
+            error_code = pp->ExtractGlobalRowCopy(GlobalRow, Length, NumEntries, Values, Indices);
+
+            KRATOS_ERROR_IF(error_code != 0) << "Error thrown in ExtractGlobalRowCopy : " << error_code;
+
+            error_code = paux->ReplaceGlobalValues(GlobalRow, Length, Values, Indices);
+
+            KRATOS_ERROR_IF(error_code != 0) << "Error thrown in ReplaceGlobalValues : " << error_code;
+
+            delete [] Values;
+            delete [] Indices;
+        }
+
+        paux->GlobalAssemble();
+
+        delete [] MyGlobalElements;
+        delete pp;
+
+        return paux;
+        KRATOS_CATCH("");
     }
 
     /**
-     * @brief Print information about this object.
-     * @param rOStream The output stream to print on.
+     * @brief Read a vector from a MatrixMarket file
+     * @param rFileName The name of the file to read
+     * @param rComm The MPI communicator
+     * @param N The size of the vector
      */
-    virtual void PrintInfo(std::ostream& rOStream) const
+    static VectorPointerType ReadMatrixMarketVector(
+        const std::string& rFileName,
+        CommunicatorType& rComm,
+        const int N
+        )
     {
-        rOStream << "TrilinosSpace";
-    }
+        KRATOS_TRY
 
-    /**
-     * @brief Print object's data.
-     * @param rOStream The output stream to print on.
-     */
-    virtual void PrintData(std::ostream& rOStream) const
-    {
+        MapType my_map(N, 0, rComm);
+        Epetra_Vector* pv = nullptr;
+
+        int error_code = EpetraExt::MatrixMarketFileToVector(rFileName.c_str(), my_map, pv);
+
+        KRATOS_ERROR_IF(error_code != 0) << "error thrown while reading Matrix Market Vector file " << rFileName << " error code is: " << error_code;
+
+        rComm.Barrier();
+
+        IndexType num_my_rows = my_map.NumMyElements();
+        std::vector<int> gids(num_my_rows);
+        my_map.MyGlobalElements(gids.data());
+
+        std::vector<double> values(num_my_rows);
+        pv->ExtractCopy(values.data());
+
+        VectorPointerType final_vector = Kratos::make_shared<VectorType>(my_map);
+        int ierr = final_vector->ReplaceGlobalValues(gids.size(),gids.data(), values.data());
+        KRATOS_ERROR_IF(ierr != 0) << "Epetra failure found with code ierr = " << ierr << std::endl;
+
+        final_vector->GlobalAssemble();
+
+        delete pv;
+        return final_vector;
+        KRATOS_CATCH("");
     }
 
     /**
@@ -1449,6 +1876,44 @@ public:
     {
         DofUpdaterType tmp;
         return tmp.Create();
+    }
+
+    ///@}
+    ///@name Access
+    ///@{
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /**
+     * @brief Turn back information as a string.
+     * @return Info as a string.
+     */
+    virtual std::string Info() const
+    {
+        return "TrilinosSpace";
+    }
+
+    /**
+     * @brief Print information about this object.
+     * @param rOStream The output stream to print on.
+     */
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << "TrilinosSpace";
+    }
+
+    /**
+     * @brief Print object's data.
+     * @param rOStream The output stream to print on.
+     */
+    virtual void PrintData(std::ostream& rOStream) const
+    {
     }
 
     ///@}

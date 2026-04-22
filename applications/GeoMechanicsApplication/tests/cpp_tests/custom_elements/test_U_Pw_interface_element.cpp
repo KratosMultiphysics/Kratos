@@ -530,6 +530,8 @@ void GeneralizedCouplingContributionTest(TElementFactory&&                      
     p_properties->SetValue(RESIDUAL_SATURATION, 0.06203);
     p_properties->SetValue(VAN_GENUCHTEN_AIR_ENTRY_PRESSURE, 2.561);
     p_properties->SetValue(VAN_GENUCHTEN_GN, 1.377);
+    p_properties->SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
+
     Model model;
     auto  interface_element = ElementFactory(model, p_properties, DiffOrder, rContributions);
 
@@ -705,6 +707,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_LeftHandSideContainsMaterialCo
     p_properties->SetValue(TRANSVERSAL_PERMEABILITY, 5.0E-3);
     p_properties->SetValue(DYNAMIC_VISCOSITY, 2.0E-1);
     p_properties->SetValue(RETENTION_LAW, "SaturatedLaw");
+    p_properties->SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
     auto element = CreateAndInitializeElement(
         CreateHorizontalUnitLength2Plus2NodedLineInterfaceElementWithUPwDofs, p_properties,
         IsDiffOrderElement::No, {CalculationContribution::Stiffness, CalculationContribution::Permeability});
@@ -735,6 +738,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_LeftHandSideContainsMaterialSt
     constexpr auto shear_stiffness  = 10.0;
     const auto     p_properties =
         CreateElasticMaterialProperties<InterfacePlaneStrain>(normal_stiffness, shear_stiffness);
+    p_properties->SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
 
     auto element = CreateAndInitializeElement(
         CreateUnitLengthLineInterfaceElementRotatedBy30DegreesWithUPwDoF, p_properties,
@@ -781,6 +785,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_RightHandSideEqualsMinusIntern
     p_properties->SetValue(TRANSVERSAL_PERMEABILITY, 5.0E-3);
     p_properties->SetValue(DYNAMIC_VISCOSITY, 2.0E-1);
     p_properties->SetValue(RETENTION_LAW, "SaturatedLaw");
+    p_properties->SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
 
     const auto prescribed_displacements = PrescribedBoundedArrays{
         {2, array_1d<double, 3>{0.2, 0.5, 0.0}}, {3, array_1d<double, 3>{0.2, 0.5, 0.0}}};
@@ -833,6 +838,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_RightHandSideEqualsMinusIntern
     constexpr auto shear_stiffness  = 10.0;
     const auto     p_properties =
         CreateElasticMaterialProperties<InterfacePlaneStrain>(normal_stiffness, shear_stiffness);
+    p_properties->SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
 
     const auto prescribed_displacements =
         PrescribedBoundedArrays{{2, array_1d<double, 3>{-0.07679492, 0.5330127, 0.0}},
@@ -913,6 +919,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_ReturnsExpectedLeftAndRightHan
     constexpr auto shear_stiffness  = 10.0;
     const auto     p_properties =
         CreateElasticMaterialProperties<InterfacePlaneStrain>(normal_stiffness, shear_stiffness);
+    p_properties->SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
 
     const auto second_side_displacement = array_1d<double, 3>{0.2, 0.5, 0.0};
     const auto prescribed_displacements =
@@ -1009,6 +1016,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_3Plus3NodedElement_ReturnsExpe
     constexpr auto shear_stiffness  = 10.0;
     const auto     p_properties =
         CreateElasticMaterialProperties<InterfacePlaneStrain>(normal_stiffness, shear_stiffness);
+    p_properties->SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
     const auto second_side_displacement = array_1d<double, 3>{0.2, 0.5, 0.0};
     const auto prescribed_displacements = PrescribedBoundedArrays{
         {3, second_side_displacement}, {4, second_side_displacement}, {5, second_side_displacement}};
@@ -1176,6 +1184,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_LeftHandSideContainsMateri
     constexpr auto shear_stiffness  = 10.0;
     const auto     p_properties = CreateElasticMaterialProperties<InterfaceThreeDimensionalSurface>(
         normal_stiffness, shear_stiffness);
+    p_properties->SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
 
     auto element = CreateAndInitializeElement(
         CreateHorizontal3Plus3NodedTriangleInterfaceElementWithUPwDofs, p_properties,
@@ -1205,6 +1214,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_LeftHandSideContainsMateri
     constexpr auto shear_stiffness  = 10.0;
     const auto     p_properties = CreateElasticMaterialProperties<InterfaceThreeDimensionalSurface>(
         normal_stiffness, shear_stiffness);
+    p_properties->SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
 
     auto element = CreateAndInitializeElement(CreateTriangleInterfaceElementRotatedBy30DegreesWithUPwDoF,
                                               p_properties, IsDiffOrderElement::No,
@@ -1237,6 +1247,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_LeftHandSideContainsMateri
     constexpr auto shear_stiffness  = 10.0;
     const auto     p_properties = CreateElasticMaterialProperties<InterfaceThreeDimensionalSurface>(
         normal_stiffness, shear_stiffness);
+    p_properties->SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
 
     auto element = CreateAndInitializeElement(
         CreateTriangleInterfaceElementRotatedBy30DegreesAboutYAxisWithUPwDoF, p_properties,
@@ -1299,6 +1310,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_RightHandSideEqualsMinusIn
     constexpr auto shear_stiffness  = 10.0;
     const auto     p_properties = CreateElasticMaterialProperties<InterfaceThreeDimensionalSurface>(
         normal_stiffness, shear_stiffness);
+    p_properties->SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
 
     const auto prescribed_displacements = PrescribedBoundedArrays{
         {2, array_1d<double, 3>{0.2, 0.5, 0.0}}, {3, array_1d<double, 3>{0.2, 0.5, 0.0}}};
@@ -1327,6 +1339,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_RightHandSideEqualsMinusIn
     constexpr auto shear_stiffness  = 10.0;
     const auto     p_properties = CreateElasticMaterialProperties<InterfaceThreeDimensionalSurface>(
         normal_stiffness, shear_stiffness);
+    p_properties->SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
 
     const auto prescribed_displacements =
         PrescribedBoundedArrays{{3, array_1d<double, 3>{1.0, 2.0, 3.0}},
@@ -1411,6 +1424,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_ReturnsExpectedLeftAndRigh
     constexpr auto shear_stiffness  = 10.0;
     const auto     p_properties = CreateElasticMaterialProperties<InterfaceThreeDimensionalSurface>(
         normal_stiffness, shear_stiffness);
+    p_properties->SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
 
     const auto prescribed_displacements = PrescribedBoundedArrays{
         {2, array_1d<double, 3>{0.2, 0.5, 0.0}}, {3, array_1d<double, 3>{0.2, 0.5, 0.0}}};
@@ -1606,6 +1620,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_6Plus6NodedElement_Returns
     constexpr auto shear_stiffness  = 10.0;
     const auto     p_properties = CreateElasticMaterialProperties<InterfaceThreeDimensionalSurface>(
         normal_stiffness, shear_stiffness);
+    p_properties->SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
 
     const auto second_side_displacement = array_1d<double, 3>{0.2, 0.5, 0.0};
     const auto prescribed_displacements = PrescribedBoundedArrays{
@@ -1987,6 +2002,7 @@ KRATOS_TEST_CASE_IN_SUITE(ThreePlusThreeDiffOrderLineInterface_ReturnsExpectedLe
     constexpr auto shear_stiffness  = 10.0;
     const auto     p_interface_properties =
         CreateElasticMaterialProperties<InterfacePlaneStrain>(normal_stiffness, shear_stiffness);
+    p_interface_properties->SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
 
     auto interface_element = CreateInterfaceElementWithUPwDofs<Interface2D>(
         p_interface_properties, p_line_interface_displacement_geometry, IsDiffOrderElement::Yes,
@@ -2060,6 +2076,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwDiffOrderTriangleInterfaceElement_6Plus6NodedElemen
     constexpr auto shear_stiffness  = 10.0;
     const auto     p_properties = CreateElasticMaterialProperties<InterfaceThreeDimensionalSurface>(
         normal_stiffness, shear_stiffness);
+    p_properties->SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
 
     auto interface_element = CreateInterfaceElementWithUPwDofs<Interface3D>(
         p_properties, p_triangle_interface_displacement_geometry, IsDiffOrderElement::Yes,
@@ -2152,6 +2169,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwDiffOrderQuadrilateraleInterfaceElement_8Plus8Noded
     constexpr auto shear_stiffness  = 10.0;
     const auto     p_properties = CreateElasticMaterialProperties<InterfaceThreeDimensionalSurface>(
         normal_stiffness, shear_stiffness);
+    p_properties->SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
     Model model;
     auto  interface_element = CreateHorizontal8Plus8NodedQuadrilateralInterfaceElementWithUPwDoF(
         model, p_properties, IsDiffOrderElement::Yes, {CalculationContribution::Stiffness});
@@ -2262,6 +2280,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_HorizontalOpenInterfacePermeab
     p_properties->SetValue(DYNAMIC_VISCOSITY, 2.0E-1);
     p_properties->SetValue(RETENTION_LAW, "SaturatedLaw");
     p_properties->SetValue(DENSITY_WATER, 1000.0);
+    p_properties->SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
 
     const auto zero_displacement        = array_1d<double, 3>{0.0, 0.0, 0.0};
     const auto prescribed_displacements = PrescribedBoundedArrays{
@@ -2305,6 +2324,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_VerticalInterfaceFluidBodyFlow
     p_properties->SetValue(DYNAMIC_VISCOSITY, 2.0E-1);
     p_properties->SetValue(RETENTION_LAW, "SaturatedLaw");
     p_properties->SetValue(DENSITY_WATER, 1000.0);
+    p_properties->SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
 
     Model model;
     auto& r_model_part = CreateModelPartWithUPwVariables(model);
@@ -2360,6 +2380,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_Inclined2DOpenInterfaceFluidBo
     p_properties->SetValue(DYNAMIC_VISCOSITY, 2.0E-1);
     p_properties->SetValue(RETENTION_LAW, "SaturatedLaw");
     p_properties->SetValue(DENSITY_WATER, 1000.0);
+    p_properties->SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
 
     Model model;
     auto& r_model_part = CreateModelPartWithUPwVariables(model);
@@ -2420,6 +2441,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_Horizontal3D8plus8DiffOrderInt
     p_properties->SetValue(DYNAMIC_VISCOSITY, 2.0E-1);
     p_properties->SetValue(RETENTION_LAW, "SaturatedLaw");
     p_properties->SetValue(DENSITY_WATER, 1000.0);
+    p_properties->SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
 
     Model model;
     auto& r_model_part = CreateModelPartWithUPwVariables(model);
@@ -2502,6 +2524,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_Vertical3D8plus8DiffOrderInter
     p_properties->SetValue(DYNAMIC_VISCOSITY, 2.0E-1);
     p_properties->SetValue(RETENTION_LAW, "SaturatedLaw");
     p_properties->SetValue(DENSITY_WATER, 1000.0);
+    p_properties->SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
 
     Model model;
     auto& r_model_part = CreateModelPartWithUPwVariables(model);
@@ -2583,6 +2606,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_Inclined3DInterfaceFluidBodyFl
     p_properties->SetValue(DYNAMIC_VISCOSITY, 2.0E-1);
     p_properties->SetValue(RETENTION_LAW, "SaturatedLaw");
     p_properties->SetValue(DENSITY_WATER, 1000.0);
+    p_properties->SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
 
     Model model;
     auto& r_model_part = CreateModelPartWithUPwVariables(model);

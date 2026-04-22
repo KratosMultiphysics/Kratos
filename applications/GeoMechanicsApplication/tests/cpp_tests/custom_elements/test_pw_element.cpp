@@ -206,7 +206,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement_ReturnsTheExpectedLeftHandSideA
     p_properties->SetValue(RETENTION_LAW, "SaturatedLaw");
     p_properties->SetValue(SATURATED_SATURATION, 1.000000e+00);
     p_properties->SetValue(CROSS_AREA, 1.0);
-    p_properties->SetValue(IGNORE_UNDRAINED, false);
+    p_properties->SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
 
     auto process_info                     = ProcessInfo{};
     process_info[DT_PRESSURE_COEFFICIENT] = 1.5;
@@ -476,8 +476,8 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement_DoFList, KratosGeoMechanicsFast
 
     // Assert
     KRATOS_EXPECT_EQ(degrees_of_freedom.size(), 3);
-    KRATOS_EXPECT_TRUE(std::all_of(degrees_of_freedom.begin(), degrees_of_freedom.end(),
-                                   [](auto p_dof) { return p_dof->GetVariable() == WATER_PRESSURE; }))
+    KRATOS_EXPECT_TRUE(std::ranges::all_of(
+        degrees_of_freedom, [](auto p_dof) { return p_dof->GetVariable() == WATER_PRESSURE; }))
 }
 
 KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement_EquationIdVector, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -683,9 +683,9 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement_InitializeSolution, KratosGeoMe
     p_element->InitializeSolutionStep(dummy_process_info);
 
     // Assert
-    KRATOS_EXPECT_TRUE(std::all_of(
-        p_element->GetGeometry().begin(), p_element->GetGeometry().end(),
-        [](auto& r_node) { return r_node.FastGetSolutionStepValue(HYDRAULIC_DISCHARGE) == 0.0; }))
+    KRATOS_EXPECT_TRUE(std::ranges::all_of(p_element->GetGeometry(), [](auto& r_node) {
+        return r_node.FastGetSolutionStepValue(HYDRAULIC_DISCHARGE) == 0.0;
+    }))
 }
 
 KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement_FinalizeSolutionStep, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -885,7 +885,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement2D3N_CalculateLocalSystem, Krato
     p_element->GetProperties().SetValue(BULK_MODULUS_FLUID, 1.0E6);
     p_element->GetProperties().SetValue(BULK_MODULUS_SOLID, 1.0E6);
     p_element->GetProperties().SetValue(POROSITY, 0.1);
-    p_element->GetProperties().SetValue(IGNORE_UNDRAINED, false);
+    p_element->GetProperties().SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
     const auto dummy_process_info = ProcessInfo{};
     p_element->Initialize(dummy_process_info);
     p_element->InitializeSolutionStep(dummy_process_info);
@@ -919,7 +919,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement2D3N_Case_A1_2D3N, KratosGeoMech
     using enum CalculationContribution;
     const std::vector contributions = {Permeability, Compressibility, FluidBodyFlow};
     auto              properties    = std::make_shared<Properties>();
-    properties->SetValue(IGNORE_UNDRAINED, false);
+    properties->SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
     properties->SetValue(YOUNG_MODULUS, 10000);
     properties->SetValue(POISSON_RATIO, 0.2);
     properties->SetValue(DENSITY_SOLID, 2.65);
@@ -977,7 +977,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement2D3N_Case_A1_2D3N, KratosGeoMech
         UblasUtilities::CreateVector({0.0001404394389, -9.276110236e-06, 1.140103478e-05});
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_right_hand_side, expected_right_hand_side, Defaults::relative_tolerance)
 
-    // The following tests are from TransientPwLineElement_CalculateOnIntegrationPoints_Vector but
+    // The following tests are from TransientPwLineElement_CalculateOnIntegrationPoints_Vector, but
     // they use a single element from integration test test_transient_groundwater_flow.py
 
     // Act
@@ -1109,7 +1109,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement3D4N_CalculateLocalSystem, Krato
     p_element->GetProperties().SetValue(BULK_MODULUS_FLUID, 1.0E6);
     p_element->GetProperties().SetValue(BULK_MODULUS_SOLID, 1.0E6);
     p_element->GetProperties().SetValue(POROSITY, 0.1);
-    p_element->GetProperties().SetValue(IGNORE_UNDRAINED, false);
+    p_element->GetProperties().SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
     const auto dummy_process_info = ProcessInfo{};
     p_element->Initialize(dummy_process_info);
     p_element->InitializeSolutionStep(dummy_process_info);
@@ -1233,7 +1233,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement2D3N_SaveLoad, KratosGeoMechanic
     p_element->GetProperties().SetValue(BULK_MODULUS_FLUID, 1.0E6);
     p_element->GetProperties().SetValue(BULK_MODULUS_SOLID, 1.0E6);
     p_element->GetProperties().SetValue(POROSITY, 0.1);
-    p_element->GetProperties().SetValue(IGNORE_UNDRAINED, false);
+    p_element->GetProperties().SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
     const auto dummy_process_info = ProcessInfo{};
     p_element->Initialize(dummy_process_info);
     p_element->InitializeSolutionStep(dummy_process_info);
