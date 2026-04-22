@@ -110,4 +110,6 @@ enum class PlasticityStatus : int {
     MOHR_COULOMB_FAILURE
 };
 
+enum class DrainageType : int { DRAINED, FULLY_COUPLED, UNDRAINED, CONSTANT_WATER_PRESSURE };
+
 } // namespace Kratos

@@ -8,7 +8,7 @@
           "name": "SmallStrainUDSM2DPlaneStrainLaw"
         },
         "Variables": {
-          "IGNORE_UNDRAINED": false,
+          "GEO_DRAINAGE_TYPE": "FULLY_COUPLED",
           "BIOT_COEFFICIENT": 1.0,
           "DENSITY_SOLID": 2338.2845492937236,
           "DENSITY_WATER": 1000.0,
@@ -42,7 +42,7 @@
           "name": "GeoLinearElasticPlaneStrain2DLaw"
         },
         "Variables": {
-          "IGNORE_UNDRAINED": true,
+          "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
           "BIOT_COEFFICIENT": 1.0,
           "DENSITY_SOLID": 299.54856560361145,
           "DENSITY_WATER": 1000.0,
@@ -55,7 +55,6 @@
           "DYNAMIC_VISCOSITY": 9810.0,
           "YOUNG_MODULUS": 10000000.0,
           "POISSON_RATIO": 0.3,
-          "THICKNESS": 1.0,
           "RETENTION_LAW": "SaturatedLaw",
           "SATURATED_SATURATION": 1.0
         }
