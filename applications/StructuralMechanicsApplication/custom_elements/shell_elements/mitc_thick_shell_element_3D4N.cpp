@@ -796,6 +796,12 @@ int MITCThickShellElement3D4N<TKinematics>::Check(
     const int points_number = r_geom.PointsNumber();
     KRATOS_ERROR_IF_NOT(points_number == 4) << "MITCThickShellElement3D4N - Wrong number of nodes" << points_number << std::endl;
 
+    if (mConstitutiveLawVector[0]->GetStrainSize() != 8) {
+        std::cout << "The thick shell quadrilateral element requires now a shell constitutive law (see StructuralMechanicsApp/custom_constitutive/reissner_mindlin_shell_elastic_constitutive_law.cpp)." << std::endl;
+        std::cout << "If you set LinearElasticPlaneStress2DLaw you need to use ReissnerMindlinShellElasticConstitutiveLaw, just swap these names and it should work." << std::endl;
+        std::cout << "If you want to perform a composite and/or nonlinear constitutive problem (plasticity, damage, etc...) make use of the ConstitutiveLawsApplication constitutive laws, particularly the custom_constitutive/structural_elements_constitutive_laws/thickness_integrated_composite_constitutive_law and the thickness_integrated_isotropic_constitutive_law" << std::endl;
+    }
+
     KRATOS_ERROR_IF_NOT(mConstitutiveLawVector[0]->GetStrainSize() == 8) << "MITCThickShellElement3D4N - Wrong size of the strain vector in constitutive law" << mConstitutiveLawVector[0]->GetStrainSize() << std::endl;
 
     return 0;
