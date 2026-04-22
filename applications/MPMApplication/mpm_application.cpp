@@ -141,7 +141,7 @@ namespace Kratos
         KRATOS_REGISTER_CONDITION( "MPMGridSurfaceLoadCondition3D4N", mMPMGridSurfaceLoadCondition3D4N)
         // MPM Conditions
         KRATOS_REGISTER_CONDITION( "MPMParticlePenaltyDirichletCondition", mMPMParticlePenaltyDirichletCondition)
-        KRATOS_REGISTER_CONDITION( "MPMParticleLagrangeDirichletCondition", mMPMParticleLagrangeDirichletCondition) 
+        KRATOS_REGISTER_CONDITION( "MPMParticleLagrangeDirichletCondition", mMPMParticleLagrangeDirichletCondition)
         KRATOS_REGISTER_CONDITION( "MPMParticlePointLoadCondition", mMPMParticlePointLoadCondition)
 
         // deprecated conditions
@@ -327,6 +327,9 @@ namespace Kratos
         KRATOS_REGISTER_VARIABLE(FRICTION_ASSIGNED)
         KRATOS_REGISTER_VARIABLE(HAS_INITIAL_MOMENTUM)
         KRATOS_REGISTER_VARIABLE(INITIAL_LOOP_COMPLETE)
+
+        // BC: Contact
+        KRATOS_REGISTER_VARIABLE(IS_PENETRATING)
     }
 
 }  // namespace Kratos.

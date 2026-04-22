@@ -17,6 +17,7 @@ class ApplyMPMSlipBoundaryProcess(KratosMultiphysics.Process):
                 "model_part_name"                : "PLEASE_CHOOSE_MODEL_PART_NAME",
                 "friction_coefficient"           : 0,
                 "tangential_penalty_coefficient" : 0,
+                "is_contact"                     : true,
                 "option"                         : "",
                 "avoid_recomputing_normals"      : true
             }  """ )
@@ -31,6 +32,7 @@ class ApplyMPMSlipBoundaryProcess(KratosMultiphysics.Process):
 
         self.model_part = Model[settings["model_part_name"].GetString()]
         self.avoid_recomputing_normals = settings["avoid_recomputing_normals"].GetBool()
+        self.is_contact = settings["is_contact"].GetBool()
 
         # get friction parameters
         self.friction_coefficient = settings["friction_coefficient"].GetDouble()
@@ -54,6 +56,9 @@ class ApplyMPMSlipBoundaryProcess(KratosMultiphysics.Process):
             node.SetValue(KratosMPM.TANGENTIAL_PENALTY_COEFFICIENT, self.tangential_penalty_coefficient)
             node.Set(KratosMultiphysics.MODIFIED, self.flip_normal)
 
+        if self.is_contact:
+            for node in self.model_part.Nodes:
+                node.Set(KratosMultiphysics.CONTACT, True)
 
 
     def ExecuteInitializeSolutionStep(self):

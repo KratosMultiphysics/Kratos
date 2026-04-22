@@ -186,6 +186,13 @@ public:
 				NodeType& rNode = rGeometry[itNode];
 				if( this->IsConformingSlip(rNode) )
 				{
+					bool is_apply_normal_constraint = true;
+					if (rNode.Is(CONTACT))
+					{
+						is_apply_normal_constraint = rNode.GetValue(IS_PENETRATING);
+					}
+					if (is_apply_normal_constraint)
+						KRATOS_WATCH(rNode.FastGetSolutionStepValue(DISPLACEMENT))
 					// We fix the first displacement dof (normal component) for each rotated block
 					unsigned int j = itNode * this->GetBlockSize();
 
@@ -199,7 +206,8 @@ public:
 
                     // Zero out row/column corresponding to normal displacement DoF except diagonal term (set to 1)
                     // Applied IFF the local matrix passed is not empty [otherwise does nothing -- RHS only case]
-                    if (rLocalMatrix.size1() != 0) {
+                    if ((rLocalMatrix.size1() != 0) && (is_apply_normal_constraint))
+					{
                         for( unsigned int i = 0; i < LocalSize; ++i)
                         {
                             rLocalMatrix(i,j) = 0.0;
@@ -254,7 +262,8 @@ public:
                     }
 
                     // Set value of normal displacement at node directly to the normal displacement of the boundary mesh
-					rLocalVector[j] = inner_prod(normal_vector_norm,displacement);
+					if (is_apply_normal_constraint)
+						rLocalVector[j] = 0.0;//inner_prod(normal_vector_norm,displacement);
 				}
 			}
 		}
@@ -290,6 +299,48 @@ public:
     bool IsConformingSlip(const NodeType& rNode) const {
         return rNode.Is(SLIP) && !IsParticleBasedSlip(rNode);
     }
+
+	void IsPenetrating(NodeType& rNode)
+	{
+		const array_1d<double, 3>& nodal_velocity = rNode.FastGetSolutionStepValue(VELOCITY);
+
+		// This assumes that there is no imposed displacement
+		/* 	Penetration check with nodal displacement have been tried. It failed to properly apply
+			the constrains even though penetration is expected. This is because during predict phase in
+			the beginning of the timestep, we set current displacement to zero, thus contact is never detected.*/
+        const double penetration = MathUtils<double>::Dot(nodal_velocity, rNode.FastGetSolutionStepValue(NORMAL));
+
+        // If penetrates, apply constraint, otherwise no
+        if (penetration > 0.0)
+		{
+			rNode.SetValue(IS_PENETRATING, true);
+		} // normal is assumed to be outward. Thus positive mean there's penetration.
+		else
+		{
+			rNode.SetValue(IS_PENETRATING, false);
+		}
+	}
+
+	void InitializeSolutionStep(ModelPart& rModelPart)
+	{
+		// Alternatively, do it in InitializeNonLinIteration?
+
+
+		// Performance has not been considered.
+		// Probably unecessarily expensive to check every node even though there's not a single slip/contact bc.
+		this->PenetrationCheck(rModelPart);
+	}
+
+	// Loops through nodes and check for penetration
+	void PenetrationCheck(ModelPart& rModelPart)
+	{
+		block_for_each(rModelPart.Nodes(), [&](Node& rNode)
+		{
+			// Currently, contact release is only implemented for slip condition.
+			if (this->IsConformingSlip(rNode))
+				this->IsPenetrating(rNode);
+		});
+	}
 
 	/// Same functionalities as RotateVelocities, just to have a clear function naming
 	virtual	void RotateDisplacements(ModelPart& rModelPart) const

@@ -162,7 +162,7 @@ public:
      * @param rDx incremental update of primary variables
      * @param rb RHS Vector
      */
-    void Update(
+    void Update( //
         ModelPart& rModelPart,
         DofsArrayType& rDofSet,
         TSystemMatrixType& rA,
@@ -370,8 +370,15 @@ public:
             array_1d<double, 3 > & current_acceleration   = rNode.FastGetSolutionStepValue(ACCELERATION);
 
             if (mIsDynamic){
-                BossakBaseType::UpdateVelocity(current_velocity, r_current_displacement, r_previous_velocity, r_previous_acceleration);
-                BossakBaseType::UpdateAcceleration (current_acceleration, r_current_displacement, r_previous_velocity, r_previous_acceleration);
+
+                // Updating Velocity and Acceleration this way results in flipped sign since we set current displacement to zero, but still have mapped previous velocity
+                // BossakBaseType::UpdateVelocity(current_velocity, r_current_displacement, r_previous_velocity, r_previous_acceleration);
+                // BossakBaseType::UpdateAcceleration (current_acceleration, r_current_displacement, r_previous_velocity, r_previous_acceleration);
+
+                // Predict current velocity by passing explicit prediction of displacement. This is needed to get velocity field that is consistent with the previous velocity direction.
+                // Additionally, the resulting velocity is used for contact (release) detection.
+                BossakBaseType::UpdateVelocity(current_velocity, r_current_displacement + ( r_previous_velocity * delta_time ), r_previous_velocity, r_previous_acceleration);
+                BossakBaseType::UpdateAcceleration (current_acceleration, r_current_displacement + ( r_previous_velocity * delta_time ), r_previous_velocity, r_previous_acceleration);
             }
 
 		});
@@ -454,6 +461,9 @@ public:
         mBossak.c3 = ( 0.5 / (mBossak.beta) - 1.0 );
         mBossak.c4 = ( (mBossak.gamma / mBossak.beta) - 1.0  );
         mBossak.c5 = ( delta_time * 0.5 * ( ( mBossak.gamma / mBossak.beta ) - 2.0 ) );
+
+        // Initializing contact detection. Alternatively, do it in InitializeNonLinIteration?
+        mRotationTool.InitializeSolutionStep(rModelPart);
 
         KRATOS_CATCH( "" )
     }
