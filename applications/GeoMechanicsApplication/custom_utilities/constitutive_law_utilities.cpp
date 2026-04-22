@@ -296,8 +296,8 @@ bool ConstitutiveLawUtilities::IsConstantWaterPressure(const Properties& rProper
 
 void ConstitutiveLawUtilities::ReplaceIgnoreUndrainedByDrainageType(Properties& rProperties)
 {
-    KRATOS_ERROR_IF_NOT(!rProperties.Has(IGNORE_UNDRAINED) && !rProperties.Has(GEO_DRAINAGE_TYPE))
-        << "There is no GEO_DRAINAGE_TYPE for material " << rProperties.Id() << "." << std::endl;
+    KRATOS_ERROR_IF(!rProperties.Has(IGNORE_UNDRAINED) && !rProperties.Has(GEO_DRAINAGE_TYPE))
+        << "There is no GEO_DRAINAGE_TYPE for material Id of " << rProperties.Id() << "." << std::endl;
 
     if (!rProperties.Has(IGNORE_UNDRAINED)) return;
 

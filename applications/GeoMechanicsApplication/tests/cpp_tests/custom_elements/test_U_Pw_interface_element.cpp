@@ -868,6 +868,7 @@ KRATOS_TEST_CASE_IN_SUITE(GetInitializedConstitutiveLawsAfterElementInitializati
 {
     // Arrange
     const auto p_properties = std::make_shared<Properties>();
+    p_properties->SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
     p_properties->GetValue(CONSTITUTIVE_LAW) =
         std::make_shared<GeoIncrementalLinearElasticInterfaceLaw>(std::make_unique<InterfacePlaneStrain>());
 
@@ -892,6 +893,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwInterfaceElement_HasCorrectNumberOfConstitutiveLaws
 {
     // Arrange
     const auto p_properties = std::make_shared<Properties>();
+    p_properties->SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
     p_properties->GetValue(CONSTITUTIVE_LAW) =
         std::make_shared<GeoIncrementalLinearElasticInterfaceLaw>(std::make_unique<InterfacePlaneStrain>());
 
@@ -959,6 +961,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_CalculateRelativeDisplacementV
     constexpr auto shear_stiffness  = 10.0;
     const auto     p_properties =
         CreateElasticMaterialProperties<InterfacePlaneStrain>(normal_stiffness, shear_stiffness);
+    p_properties->SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
 
     const auto second_side_displacement = array_1d<double, 3>{-0.07679492, 0.5330127, 0.0};
     const auto prescribed_displacements =
@@ -988,6 +991,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_CalculateEffectiveTractionVect
     constexpr auto shear_stiffness  = 10.0;
     const auto     p_properties =
         CreateElasticMaterialProperties<InterfacePlaneStrain>(normal_stiffness, shear_stiffness);
+    p_properties->SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
     const auto second_side_displacement = array_1d<double, 3>{-0.07679492, 0.5330127, 0.0};
     const auto prescribed_displacements =
         PrescribedBoundedArrays{{2, second_side_displacement}, {3, second_side_displacement}};
@@ -1373,7 +1377,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_GetInitializedConstitutive
     const auto p_properties = std::make_shared<Properties>();
     p_properties->GetValue(CONSTITUTIVE_LAW) =
         std::make_shared<GeoIncrementalLinearElasticInterfaceLaw>(std::make_unique<InterfacePlaneStrain>());
-
+    p_properties->SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
     auto element = CreateAndInitializeElement(
         CreateHorizontal3Plus3NodedTriangleInterfaceElementWithUPwDofs, p_properties,
         IsDiffOrderElement::No, {CalculationContribution::Stiffness});
@@ -1398,7 +1402,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_HasCorrectNumberOfConstitu
     const auto p_properties = std::make_shared<Properties>();
     p_properties->GetValue(CONSTITUTIVE_LAW) =
         std::make_shared<GeoIncrementalLinearElasticInterfaceLaw>(std::make_unique<InterfacePlaneStrain>());
-
+    p_properties->SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
     Model model;
     auto  element = CreateHorizontal3Plus3NodedTriangleInterfaceElementWithUPwDofs(
         model, p_properties, IsDiffOrderElement::No, {CalculationContribution::Stiffness});
@@ -1462,7 +1466,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_CalculateRelativeDisplacem
     constexpr auto shear_stiffness  = 10.0;
     const auto     p_properties = CreateElasticMaterialProperties<InterfaceThreeDimensionalSurface>(
         normal_stiffness, shear_stiffness);
-
+    p_properties->SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
     const auto first_side_displacement  = array_1d<double, 3>{1.0, 2.0, 3.0};
     const auto prescribed_displacements = PrescribedBoundedArrays{
         {0, first_side_displacement}, {1, first_side_displacement}, {2, first_side_displacement}};
@@ -1494,7 +1498,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElementHorizontal_CalculateRelativ
     constexpr auto shear_stiffness  = 10.0;
     const auto     p_properties = CreateElasticMaterialProperties<InterfaceThreeDimensionalSurface>(
         normal_stiffness, shear_stiffness);
-
+    p_properties->SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
     const auto first_side_displacement  = array_1d<double, 3>{0.0, 0.0, 1.0};
     const auto prescribed_displacements = PrescribedBoundedArrays{
         {0, first_side_displacement}, {1, first_side_displacement}, {2, first_side_displacement}};
@@ -1525,7 +1529,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElementInYZPlane_CalculateRelative
     constexpr auto shear_stiffness  = 10.0;
     const auto     p_properties = CreateElasticMaterialProperties<InterfaceThreeDimensionalSurface>(
         normal_stiffness, shear_stiffness);
-
+    p_properties->SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
     const auto second_side_displacement = array_1d<double, 3>{1.0, 0.0, 0.0};
     const auto prescribed_displacements = PrescribedBoundedArrays{
         {3, second_side_displacement}, {4, second_side_displacement}, {5, second_side_displacement}};
@@ -1556,7 +1560,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElementInXZPlane_CalculateRelative
     constexpr auto shear_stiffness  = 10.0;
     const auto     p_properties = CreateElasticMaterialProperties<InterfaceThreeDimensionalSurface>(
         normal_stiffness, shear_stiffness);
-
+    p_properties->SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
     // The prescribed displacements are in the direction of the normal of the interface
     // which is the -y direction. This results in a positive normal relative displacement,
     // since the second side of the interface is moved.
@@ -1590,7 +1594,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_CalculateEffectiveTraction
     constexpr auto shear_stiffness  = 10.0;
     const auto     p_properties = CreateElasticMaterialProperties<InterfaceThreeDimensionalSurface>(
         normal_stiffness, shear_stiffness);
-
+    p_properties->SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
     const auto first_side_displacement  = array_1d<double, 3>{1.0, 2.0, 3.0};
     const auto prescribed_displacements = PrescribedBoundedArrays{
         {0, first_side_displacement}, {1, first_side_displacement}, {2, first_side_displacement}};
@@ -1706,7 +1710,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwInterfaceElement_CheckThrowsWhenElementIsNotInitial
     constexpr auto shear_stiffness  = 10.0;
     const auto     p_properties =
         CreateElasticMaterialProperties<InterfacePlaneStrain>(normal_stiffness, shear_stiffness);
-
+    p_properties->SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
     Model model;
     auto  element = CreateHorizontalUnitLength3Plus3NodedLineInterfaceElementWithUPwDoF(
         model, p_properties, IsDiffOrderElement::No, {CalculationContribution::Stiffness});
@@ -1759,6 +1763,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_InterpolatesNodalStresses, Kra
                                                  std::make_unique<PlaneStrain>()));
     p_properties->SetValue(YOUNG_MODULUS, 1.000000e+07);
     p_properties->SetValue(POISSON_RATIO, 0.000000e+00);
+    p_properties->SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
     // create a triangle neighbour element
     auto p_neighbour_element = make_intrusive<MockElementWithEffectiveStressVectors>(
         2, std::make_shared<Triangle2D3<Node>>(nodes), p_properties);
@@ -1784,6 +1789,8 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_InterpolatesNodalStresses, Kra
     constexpr auto shear_stiffness  = 10.0;
     const auto     p_interface_properties =
         CreateElasticMaterialProperties<InterfacePlaneStrain>(normal_stiffness, shear_stiffness);
+    p_interface_properties->SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
+
     auto interface_element = CreateInterfaceElementWithUPwDofs<Interface2D>(
         p_interface_properties, p_geometry, IsDiffOrderElement::No, {CalculationContribution::Stiffness});
     interface_element.SetValue(NEIGHBOUR_ELEMENTS, MakeElementGlobalPtrContainerWith(p_neighbour_element));
@@ -1854,6 +1861,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwPlaneInterfaceElement_InterpolatesNodalStresses, Kr
                                                  std::make_unique<ThreeDimensional>()));
     p_properties->SetValue(YOUNG_MODULUS, 1.000000e+07);
     p_properties->SetValue(POISSON_RATIO, 0.000000e+00);
+    p_properties->SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
     // create a hexagonal neighbour element
     auto p_neighbour_element = make_intrusive<MockElementWithEffectiveStressVectors>(
         2, std::make_shared<Hexahedra3D8<Node>>(nodes), p_properties);
@@ -1884,6 +1892,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwPlaneInterfaceElement_InterpolatesNodalStresses, Kr
     constexpr auto shear_stiffness  = 10.0;
     const auto     p_interface_properties =
         CreateElasticMaterialProperties<InterfaceThreeDimensionalSurface>(normal_stiffness, shear_stiffness);
+    p_interface_properties->SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
     auto interface_element = CreateInterfaceElementWithUPwDofs<Interface3D>(
         p_interface_properties, p_geometry, IsDiffOrderElement::No, {CalculationContribution::Stiffness});
     interface_element.SetValue(NEIGHBOUR_ELEMENTS, MakeElementGlobalPtrContainerWith(p_neighbour_element));

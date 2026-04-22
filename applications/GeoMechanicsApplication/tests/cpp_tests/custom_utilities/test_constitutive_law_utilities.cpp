@@ -553,7 +553,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_ReplaceIgnoreUndrainedByDrain
 
     // Act & Asset
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(ConstitutiveLawUtilities::ReplaceIgnoreUndrainedByDrainageType(properties),
-                                      "There is no GEO_DRAINAGE_TYPE for material 0.");
+                                      "There is no GEO_DRAINAGE_TYPE for material Id of 0.");
 }
 
 } // namespace Kratos::Testing

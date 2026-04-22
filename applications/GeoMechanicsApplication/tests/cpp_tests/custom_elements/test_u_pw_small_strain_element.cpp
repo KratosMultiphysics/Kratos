@@ -659,6 +659,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_CalculateShearCapacity, KratosGe
     r_properties.SetValue(CONSTITUTIVE_LAW, std::make_shared<StubConstitutiveLaw>());
     r_properties.SetValue(GEO_COHESION, 2.0);
     r_properties.SetValue(GEO_FRICTION_ANGLE, 0.0);
+    r_properties.SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
 
     const auto dummy_process_info = ProcessInfo{};
     p_element->Initialize(dummy_process_info);
