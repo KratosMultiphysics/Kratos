@@ -359,23 +359,23 @@ BoundedMatrix<double, 6, 12> NonLinearTimoshenkoBeamElement3D2N::CalculateB(
         // Omega components
         // node 1
         B1(3, i + 6) = 0.5 * (dN1 * d3[i] - N1 * d3_s[i]);
-        B1(3, i + 9) = 0.5 * (dN1 * d2[i] - N1 * d2_s[i]);
+        B1(3, i + 9) = 0.5 * (N1 * d2_s[i] - dN1 * d2[i]);
 
-        B1(4, i + 3) = 0.5 * (dN1 * d3[i] - N1 * d3_s[i]);
+        B1(4, i + 3) = 0.5 * (N1 * d3_s[i] - dN1 * d3[i]);
         B1(4, i + 9) = 0.5 * (dN1 * d1[i] - N1 * d1_s[i]);
 
         B1(5, i + 3) = 0.5 * (dN1 * d2[i] - N1 * d2_s[i]);
-        B1(5, i + 6) = 0.5 * (dN1 * d1[i] - N1 * d1_s[i]);
+        B1(5, i + 6) = 0.5 * (N1 * d1_s[i] - dN1 * d1[i]);
 
         // node 2
         B2(3, i + 6) = 0.5 * (dN2 * d3[i] - N2 * d3_s[i]);
-        B2(3, i + 9) = 0.5 * (dN2 * d2[i] - N2 * d2_s[i]);
+        B2(3, i + 9) = 0.5 * (N2 * d2_s[i] - dN2 * d2[i]);
 
-        B2(4, i + 3) = 0.5 * (dN2 * d3[i] - N2 * d3_s[i]);
+        B2(4, i + 3) = 0.5 * (N2 * d3_s[i] - dN2 * d3[i]);
         B2(4, i + 9) = 0.5 * (dN2 * d1[i] - N2 * d1_s[i]);
 
         B2(5, i + 3) = 0.5 * (dN2 * d2[i] - N2 * d2_s[i]);
-        B2(5, i + 6) = 0.5 * (dN2 * d1[i] - N2 * d1_s[i]);
+        B2(5, i + 6) = 0.5 * (N2 * d1_s[i] - dN2 * d1[i]);
     }
 
     noalias(project(b_matrix, range(0, 6), range(0, 6)))  = prod(B1, dof_mapper_1);
