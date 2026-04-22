@@ -618,14 +618,14 @@ Where $\epsilon_{tol}$ is a tolerance.
 
 ## Undrained behaviour
 
-### Undrained effective-stress formulation (Material A)
+### Undrained effective-stress formulation
 
 #### Definition:
 - Effective-stress undrained analysis using effective strength parameters. 
 
 #### Inputs:
-- Effective stiffness parameters.
-- Effective strength parameters such as $c'$ and $\phi'$. 
+- Effective stiffness parameters, e.g. Young’s modulus $E'$ and Poisson’s ratio $\nu'$.
+- Effective strength parameters such as cohesion $c'$ and friction angle $\phi'$. 
 - Undrained Poisson's ratio $\nu_u$ or Skempton $B$ can be provided or calculated (see Eqs. below).
 
 #### Behaviour:
@@ -640,20 +640,33 @@ Where $\epsilon_{tol}$ is a tolerance.
 
 Undrained Poisson's ratio
 
-$$\nu_u = \frac{3 \nu' + \alpha_{Biot} B (1 - 2 \nu')}{3 - \alpha_{Biot} B (1 - 2 \nu')},$$ where $\nu'$ is the effective Poisson's ratio, $\alpha_{Biot}$ is the Biot coefficient.
+```math
+\nu_u = \frac{3 \nu' + \alpha_{Biot} B (1 - 2 \nu')}{3 - \alpha_{Biot} B (1 - 2 \nu')},
+```
+ where $\nu'$ is the effective Poisson's ratio, $\alpha_{Biot}$ is the Biot coefficient.
 
 Undrained Young's module
 
-$$E_u = E' \frac{1-2\nu_u} {1-2\nu'}$$
+```math
+E_u = E' \frac{1-2\nu_u} {1-2\nu'}
+```
 
 Skempton B coefficient
 
-$$B = \frac{\alpha_{Biot}}{\alpha_{Biot} + n (K'/K_w + \alpha_{Biot} - 1)},$$ where $n$ is the porosity, $K'$ is the drained bulk modulus of the soil skeleton, $K_w$ is the water bulk modulus.
+```math
+B = \frac{\alpha_{Biot}}{\alpha_{Biot} + n (K'/K_w + \alpha_{Biot} - 1)},
+```
+ where $n$ is the porosity, $K'$ is the drained bulk modulus of the soil skeleton, $K_w$ is the water bulk modulus.
 
 Excess pore pressure increment
 
-$$\Delta u = \frac{\alpha_{Biot}}{ (n /K_w + (\alpha_{Biot} - n) / K')}  \Delta \epsilon_v,$$ where $\Delta \epsilon_v$ is the volumetric strain increment.
+```math
+\Delta u = \frac{\alpha_{Biot}}{ (n /K_w + (\alpha_{Biot} - n) / K')}  \Delta \epsilon_v,
+```
+ where $\Delta \epsilon_v$ is the volumetric strain increment.
 
 MohrCoulomb64 model uses an ad‑hoc elastic stiffness correction: 
-$$ M = 2G/3 [ (1+\nu_u)/(1−2\nu_u) − (1+\nu)/(1−2\nu) ],$$ 
+```math
+\Delta u = 2G/3 ( \frac{1+\nu_u}{1−2\nu_u} − \frac{1+\nu}{1−2\nu} ) \Delta \epsilon_v,
+```
 which approximates an undrained − drained bulk modulus difference using an artificial near‑incompressible Poisson ratio $\nu_u = 0.495$. 
