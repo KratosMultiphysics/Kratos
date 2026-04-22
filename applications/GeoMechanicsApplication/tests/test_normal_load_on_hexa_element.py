@@ -1,6 +1,7 @@
 import os
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+from KratosMultiphysics.GeoMechanicsApplication.gid_output_file_reader import GiDOutputFileReader
 import test_helper
 
 
@@ -15,11 +16,13 @@ class KratosGeoMechanicsNormalLoadHexaTests(KratosUnittest.TestCase):
         test_helper.run_kratos(file_path)
 
         output_file_path = os.path.join(file_path, test_name + '.post.res')
-        output_reader = test_helper.GiDOutputFileReader()
+        output_reader = GiDOutputFileReader()
         output_data = output_reader.read_output_from(output_file_path)
-        total_stress_vectors = \
-            test_helper.GiDOutputFileReader.element_integration_point_values_at_time("TOTAL_STRESS_TENSOR", 1.0,
-                                                                                     output_data, element_ids=[1])[0]
+        total_stress_vectors = (
+            GiDOutputFileReader.element_integration_point_values_at_time(
+                "TOTAL_STRESS_TENSOR", 1.0, output_data, element_ids=[1]
+            )[0]
+        )
 
         self.assertEqual(len(total_stress_vectors), 8)
 
@@ -31,11 +34,13 @@ class KratosGeoMechanicsNormalLoadHexaTests(KratosUnittest.TestCase):
             self.assertAlmostEqual(total_stress[2], -1000.0, 6)
 
         top_node_nbrs = [5, 6, 7, 8]
-        displacements_at_top = test_helper.GiDOutputFileReader.nodal_values_at_time("DISPLACEMENT", 1.0, output_data,
-                                                                                    node_ids=top_node_nbrs)
+        displacements_at_top = GiDOutputFileReader.nodal_values_at_time(
+            "DISPLACEMENT", 1.0, output_data, node_ids=top_node_nbrs
+        )
         bottom_node_nbrs = [1, 2, 3, 4]
-        displacements_at_bottom = test_helper.GiDOutputFileReader.nodal_values_at_time("DISPLACEMENT", 1.0, output_data,
-                                                                                       node_ids=bottom_node_nbrs)
+        displacements_at_bottom = GiDOutputFileReader.nodal_values_at_time(
+            "DISPLACEMENT", 1.0, output_data, node_ids=bottom_node_nbrs
+        )
 
         young_modulus = 3e7
         area = 25.0

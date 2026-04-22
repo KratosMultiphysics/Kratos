@@ -75,6 +75,28 @@ void CopyRadiusArrayToPython(
 }
 
 /**
+ * @brief Binds a SpatialSearchResult class to Python using pybind11.
+ * @tparam TObjectType The type of object stored in the container.
+ * @param m The pybind11 module to bind the class to.
+ * @param rClassName The name of the class.
+ */
+template<typename TObjectType>
+void BindSpatialSearchResult(pybind11::module& m, const std::string& rClassName) {
+    using ResultType = SpatialSearchResult<TObjectType>;
+    auto cls = pybind11::class_<ResultType, typename ResultType::Pointer>(m, rClassName.c_str())
+    .def(pybind11::init< >())
+    .def(pybind11::init<TObjectType*>())
+    .def("Reset", &ResultType::Reset)
+    .def("Get", [&](ResultType& self) {return self.Get().get();})
+    .def("Set", &ResultType::Set)
+    .def("GetDistance", &ResultType::GetDistance)
+    .def("SetDistance", &ResultType::SetDistance)
+    .def("IsObjectFound", &ResultType::IsObjectFound)
+    .def("IsDistanceCalculated", &ResultType::IsDistanceCalculated)
+    ;
+}
+
+/**
  * @brief Copies a Python list of radius to a C++ radius array.
  * @param rListOfRadius list of radius to copy
  * @return Radius array with copied radius
@@ -489,20 +511,14 @@ void AddSearchStrategiesToPython(pybind11::module& m)
     DefineSpecializedSpatialSearch<SpatialContainer::BinsStatic>(m, "SpatialSearchBinsStatic");
     DefineSpecializedSpatialSearch<SpatialContainer::BinsDynamic>(m, "SpatialSearchBinsDynamic");
 
-    using ResultType = SpatialSearchResult<GeometricalObject>;
+    // Result types
+    BindSpatialSearchResult<Node>(m, "SpatialSearchResultNode");
+    BindSpatialSearchResult<GeometricalObject>(m, "SpatialSearchResultGeometricalObject");
+    BindSpatialSearchResult<Element>(m, "SpatialSearchResultElement");
+    BindSpatialSearchResult<Condition>(m, "SpatialSearchResultCondition");
 
-    py::class_<ResultType, ResultType::Pointer>(m, "ResultType")
-    .def(py::init< >())
-    .def(py::init<GeometricalObject*>())
-    .def("Reset", &ResultType::Reset)
-    .def("Get", [&](ResultType& self) {return self.Get().get();})
-    .def("Set", &ResultType::Set)
-    .def("GetDistance", &ResultType::GetDistance)
-    .def("SetDistance", &ResultType::SetDistance)
-    .def("IsObjectFound", &ResultType::IsObjectFound)
-    .def("IsDistanceCalculated", &ResultType::IsDistanceCalculated)
-    ;
-
+    // GeometricalObjectsBins
+    using ResultTypeGeometricalObject = SpatialSearchResult<GeometricalObject>;
     using NodesContainerType = ModelPart::NodesContainerType;
     using ElementsContainerType = ModelPart::ElementsContainerType;
     using ConditionsContainerType = ModelPart::ConditionsContainerType;
@@ -518,7 +534,7 @@ void AddSearchStrategiesToPython(pybind11::module& m)
     .def("GetTotalNumberOfCells", &GeometricalObjectsBins::GetTotalNumberOfCells)
     .def("SearchInRadius", [&](GeometricalObjectsBins& self, const Point& rPoint, const double Radius) {
         // Perform the search
-        std::vector<ResultType> results;
+        std::vector<ResultTypeGeometricalObject> results;
         self.SearchInRadius(rPoint, Radius, results);
 
         // Copy the results to the python list
@@ -530,7 +546,7 @@ void AddSearchStrategiesToPython(pybind11::module& m)
     })
     .def("SearchInRadius", [&](GeometricalObjectsBins& self, const NodesContainerType& rNodes, const double Radius) {
         // Perform the search
-        std::vector<std::vector<ResultType>> results;
+        std::vector<std::vector<ResultTypeGeometricalObject>> results;
         self.SearchInRadius(rNodes.begin(), rNodes.end(), Radius, results);
 
         // Copy the results to the python list
@@ -550,7 +566,7 @@ void AddSearchStrategiesToPython(pybind11::module& m)
     })
     .def("SearchNearestInRadius", [&](GeometricalObjectsBins& self, const NodesContainerType& rNodes, const double Radius) {
         // Perform the search
-        std::vector<ResultType> results = self.SearchNearestInRadius(rNodes.begin(), rNodes.end(), Radius);
+        std::vector<ResultTypeGeometricalObject> results = self.SearchNearestInRadius(rNodes.begin(), rNodes.end(), Radius);
 
         // Copy the results to the python list
         py::list list_results;
@@ -565,7 +581,7 @@ void AddSearchStrategiesToPython(pybind11::module& m)
     })
     .def("SearchNearest", [&](GeometricalObjectsBins& self, const NodesContainerType& rNodes) {
         // Perform the search
-        std::vector<ResultType> results = self.SearchNearest(rNodes.begin(), rNodes.end());
+        std::vector<ResultTypeGeometricalObject> results = self.SearchNearest(rNodes.begin(), rNodes.end());
 
         // Copy the results to the python list
         py::list list_results;
@@ -580,7 +596,7 @@ void AddSearchStrategiesToPython(pybind11::module& m)
     })
     .def("SearchIsInside", [&](GeometricalObjectsBins& self, const NodesContainerType& rNodes) {
         // Perform the search
-        std::vector<ResultType> results = self.SearchIsInside(rNodes.begin(), rNodes.end());
+        std::vector<ResultTypeGeometricalObject> results = self.SearchIsInside(rNodes.begin(), rNodes.end());
 
         // Copy the results to the python list
         py::list list_results;

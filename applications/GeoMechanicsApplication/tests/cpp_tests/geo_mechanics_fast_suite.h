@@ -13,6 +13,7 @@
 
 #pragma once
 
+#include "geo_mechanics_fast_suite_without_kernel.h"
 #include "testing/testing.h"
 
 namespace Kratos
@@ -32,12 +33,6 @@ public:
 private:
     std::shared_ptr<KratosGeoMechanicsApplication>  mpGeoApp;
     std::shared_ptr<KratosLinearSolversApplication> mpLinearSolversApp;
-};
-
-class KratosGeoMechanicsFastSuiteWithoutKernel : public KratosCoreFastSuiteWithoutKernel
-{
-public:
-    KratosGeoMechanicsFastSuiteWithoutKernel();
 };
 
 class KratosGeoMechanicsIntegrationSuite : public KratosCoreFastSuite

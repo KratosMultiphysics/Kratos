@@ -15,6 +15,7 @@
         "domain_size"                     : 2,
         "model_part_name"                 : "MainModelPart",
         "compute_reactions"               : true,
+        "time_scheme"                     : "steady",
         "maximum_iterations"     : 25,
         "reform_dofs_at_each_step": false,
         "linear_solver_settings" : {

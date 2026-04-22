@@ -11,7 +11,8 @@
 //                   Anne van de Graaf
 //
 
-#include "custom_geometries/interface_geometry.h"
+#include "custom_geometries/interface_geometry.hpp"
+#include "custom_utilities/ublas_utilities.h"
 #include "geometries/geometry_data.h"
 #include "geometries/line_2d_2.h"
 #include "geometries/line_2d_3.h"
@@ -19,10 +20,9 @@
 #include "geometries/quadrilateral_3d_8.h"
 #include "geometries/triangle_3d_3.h"
 #include "geometries/triangle_3d_6.h"
+#include "test_setup_utilities/element_setup_utilities.hpp"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/test_utilities.h"
-
-#include <boost/numeric/ublas/assignment.hpp>
 
 namespace
 {
@@ -140,10 +140,10 @@ namespace Kratos::Testing
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometryIsAGeometry, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    const auto geometry      = InterfaceGeometry<Line2D3<Node>>();
-    const auto base_geometry = dynamic_cast<const Geometry<Node>*>(&geometry);
+    const auto geometry        = InterfaceGeometry<Line2D3<Node>>();
+    const auto p_base_geometry = dynamic_cast<const Geometry<Node>*>(&geometry);
 
-    KRATOS_EXPECT_NE(base_geometry, nullptr);
+    KRATOS_EXPECT_NE(p_base_geometry, nullptr);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometryCanBeConstructedGivenASetOfNullPointersToNodes,
@@ -157,6 +157,8 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometryCanBeConstructedGivenASetOfNullPointe
     KRATOS_EXPECT_EQ(geometry.PointsNumber(), 6);
     KRATOS_EXPECT_EQ(geometry.LocalSpaceDimension(), 1);
     KRATOS_EXPECT_EQ(geometry.WorkingSpaceDimension(), 2);
+    KRATOS_EXPECT_EQ(geometry.GetGeometryFamily(), GeometryData::KratosGeometryFamily::Kratos_Linear);
+    KRATOS_EXPECT_EQ(geometry.GetGeometryOrderType(), GeometryData::KratosGeometryOrderType::Kratos_Quadratic_Order);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometryCanBeConstructedGivenASetOfNullPointersToNodesAndASurfaceGeometryType,
@@ -170,6 +172,8 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometryCanBeConstructedGivenASetOfNullPointe
     KRATOS_EXPECT_EQ(geometry.PointsNumber(), 6);
     KRATOS_EXPECT_EQ(geometry.LocalSpaceDimension(), 2);
     KRATOS_EXPECT_EQ(geometry.WorkingSpaceDimension(), 3);
+    KRATOS_EXPECT_EQ(geometry.GetGeometryFamily(), GeometryData::KratosGeometryFamily::Kratos_Triangle);
+    KRATOS_EXPECT_EQ(geometry.GetGeometryOrderType(), GeometryData::KratosGeometryOrderType::Kratos_Linear_Order);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_Create_CreatesNewInstanceOfCorrectType, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -181,17 +185,20 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_Create_CreatesNewInstanceOfCorrectTy
     nodes.push_back(Kratos::make_intrusive<Node>(3, 0.0, 0.0, 0.0));
     nodes.push_back(Kratos::make_intrusive<Node>(4, 0.0, 0.0, 0.0));
 
-    const auto new_geometry = geometry.Create(nodes);
+    const auto p_new_geometry = geometry.Create(nodes);
 
-    KRATOS_EXPECT_NE(new_geometry, nullptr);
-    KRATOS_EXPECT_NE(dynamic_cast<const InterfaceGeometry<Line2D2<Node>>*>(new_geometry.get()), nullptr);
-    KRATOS_EXPECT_EQ(new_geometry->PointsNumber(), 4);
-    KRATOS_EXPECT_EQ(new_geometry->Id(), 0);
-    KRATOS_EXPECT_EQ(new_geometry->LocalSpaceDimension(), 1);
-    KRATOS_EXPECT_EQ(new_geometry->WorkingSpaceDimension(), 2);
+    KRATOS_EXPECT_NE(p_new_geometry, nullptr);
+    KRATOS_EXPECT_NE(dynamic_cast<const InterfaceGeometry<Line2D2<Node>>*>(p_new_geometry.get()), nullptr);
+    KRATOS_EXPECT_EQ(p_new_geometry->PointsNumber(), 4);
+    KRATOS_EXPECT_EQ(p_new_geometry->Id(), 0);
+    KRATOS_EXPECT_EQ(p_new_geometry->LocalSpaceDimension(), 1);
+    KRATOS_EXPECT_EQ(p_new_geometry->WorkingSpaceDimension(), 2);
+    KRATOS_EXPECT_EQ(p_new_geometry->GetGeometryFamily(), GeometryData::KratosGeometryFamily::Kratos_Linear);
+    KRATOS_EXPECT_EQ(p_new_geometry->GetGeometryOrderType(),
+                     GeometryData::KratosGeometryOrderType::Kratos_Linear_Order);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_CreateWithId_CreatesNewInstanceOfCorrectTypeAndId,
+KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_CreateWithId_CreatesNewInstanceOfCorrectTypeAndIdForLinearLineMidGeometry,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto          geometry = InterfaceGeometry<Line2D2<Node>>();
@@ -202,31 +209,37 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_CreateWithId_CreatesNewInstanceOfCor
     nodes.push_back(Kratos::make_intrusive<Node>(4, 0.0, 0.0, 0.0));
 
     constexpr auto new_geometry_id = 1;
-    const auto     new_geometry    = geometry.Create(new_geometry_id, nodes);
+    const auto     p_new_geometry  = geometry.Create(new_geometry_id, nodes);
 
-    KRATOS_EXPECT_NE(new_geometry, nullptr);
-    KRATOS_EXPECT_NE(dynamic_cast<const InterfaceGeometry<Line2D2<Node>>*>(new_geometry.get()), nullptr);
-    KRATOS_EXPECT_EQ(new_geometry->PointsNumber(), 4);
-    KRATOS_EXPECT_EQ(new_geometry->Id(), new_geometry_id);
-    KRATOS_EXPECT_EQ(new_geometry->LocalSpaceDimension(), 1);
-    KRATOS_EXPECT_EQ(new_geometry->WorkingSpaceDimension(), 2);
+    KRATOS_EXPECT_NE(p_new_geometry, nullptr);
+    KRATOS_EXPECT_NE(dynamic_cast<const InterfaceGeometry<Line2D2<Node>>*>(p_new_geometry.get()), nullptr);
+    KRATOS_EXPECT_EQ(p_new_geometry->PointsNumber(), 4);
+    KRATOS_EXPECT_EQ(p_new_geometry->Id(), new_geometry_id);
+    KRATOS_EXPECT_EQ(p_new_geometry->LocalSpaceDimension(), 1);
+    KRATOS_EXPECT_EQ(p_new_geometry->WorkingSpaceDimension(), 2);
+    KRATOS_EXPECT_EQ(p_new_geometry->GetGeometryFamily(), GeometryData::KratosGeometryFamily::Kratos_Linear);
+    KRATOS_EXPECT_EQ(p_new_geometry->GetGeometryOrderType(),
+                     GeometryData::KratosGeometryOrderType::Kratos_Linear_Order);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_CreateWithId_CreatesNewInstanceOfCorrectTypeAndIdForSurfaceMidGeometry,
+KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_CreateWithId_CreatesNewInstanceOfCorrectTypeAndIdForQuadraticTriangularMidGeometry,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto geometry = InterfaceGeometry<Triangle3D6<Node>>();
 
     constexpr auto new_geometry_id = 1;
-    const auto     new_geometry =
+    const auto     p_new_geometry =
         geometry.Create(new_geometry_id, CreateNodesForSixPlusSixNoded3DSurfaceInterface());
 
-    KRATOS_EXPECT_NE(new_geometry, nullptr);
-    KRATOS_EXPECT_NE(dynamic_cast<const InterfaceGeometry<Triangle3D6<Node>>*>(new_geometry.get()), nullptr);
-    KRATOS_EXPECT_EQ(new_geometry->PointsNumber(), 12);
-    KRATOS_EXPECT_EQ(new_geometry->Id(), new_geometry_id);
-    KRATOS_EXPECT_EQ(new_geometry->LocalSpaceDimension(), 2);
-    KRATOS_EXPECT_EQ(new_geometry->WorkingSpaceDimension(), 3);
+    KRATOS_EXPECT_NE(p_new_geometry, nullptr);
+    KRATOS_EXPECT_NE(dynamic_cast<const InterfaceGeometry<Triangle3D6<Node>>*>(p_new_geometry.get()), nullptr);
+    KRATOS_EXPECT_EQ(p_new_geometry->PointsNumber(), 12);
+    KRATOS_EXPECT_EQ(p_new_geometry->Id(), new_geometry_id);
+    KRATOS_EXPECT_EQ(p_new_geometry->LocalSpaceDimension(), 2);
+    KRATOS_EXPECT_EQ(p_new_geometry->WorkingSpaceDimension(), 3);
+    KRATOS_EXPECT_EQ(p_new_geometry->GetGeometryFamily(), GeometryData::KratosGeometryFamily::Kratos_Triangle);
+    KRATOS_EXPECT_EQ(p_new_geometry->GetGeometryOrderType(),
+                     GeometryData::KratosGeometryOrderType::Kratos_Quadratic_Order);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CreatingInterfaceWithThreeNodesThrows, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -241,6 +254,127 @@ KRATOS_TEST_CASE_IN_SUITE(CreatingInterfaceWithThreeNodesThrows, KratosGeoMechan
     constexpr auto geometry_id = 1;
     KRATOS_EXPECT_EXCEPTION_IS_THROWN((InterfaceGeometry<Line2D3<Node>>{geometry_id, nodes}),
                                       "Number of nodes must be 2+2, 3+3, 6+6, 4+4 or 8+8")
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MidGeometryOf2Plus2LineInterfaceIsDefinedByMidPointsOfNodePairs,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto nodes = ElementSetupUtilities::GenerateNodes(
+        {{0.0, 0.0, 0.0}, {5.0, 0.0, 0.0}, {-1.0, 0.2, 0.0}, {7.0, 0.2, 0.0}});
+    constexpr auto geometry_id        = std::size_t{1};
+    const auto     interface_geometry = InterfaceGeometry<Line2D2<Node>>{geometry_id, nodes};
+    constexpr auto unused_part_index  = std::size_t{0};
+    const auto&    r_mid_geometry     = interface_geometry.GetGeometryPart(unused_part_index);
+
+    const auto expected_mid_points = std::vector<Point>{{-0.5, 0.1, 0.0}, {6.0, 0.1, 0.0}};
+    ExpectPointsAreNear(r_mid_geometry.Points(), expected_mid_points);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MidGeometryOf3Plus3LineInterfaceIsDefinedByMidPointsOfNodePairs,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto nodes = ElementSetupUtilities::GenerateNodes(
+        {{0.0, 0.0, 0.0}, {5.0, 0.0, 0.0}, {2.5, 0.0, 0.0}, {-1.0, 0.2, 0.0}, {7.0, 0.2, 0.0}, {3.5, 0.4, 0.0}});
+    constexpr auto geometry_id        = std::size_t{1};
+    const auto     interface_geometry = InterfaceGeometry<Line2D3<Node>>{geometry_id, nodes};
+    constexpr auto unused_part_index  = std::size_t{0};
+    const auto&    r_mid_geometry     = interface_geometry.GetGeometryPart(unused_part_index);
+
+    const auto expected_mid_points = std::vector<Point>{{-0.5, 0.1, 0.0}, {6.0, 0.1, 0.0}, {3.0, 0.2, 0.0}};
+    ExpectPointsAreNear(r_mid_geometry.Points(), expected_mid_points);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MidGeometryOf3Plus3TriangularInterfaceIsDefinedByMidPointsOfNodePairs,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto nodes = ElementSetupUtilities::GenerateNodes(
+        {{0.0, 0.0, 0.0}, {1.0, 0.0, 0.0}, {1.0, 1.0, 0.0}, {0.5, 0.5, 0.5}, {1.5, 0.5, 0.5}, {1.5, 1.5, 0.5}});
+    constexpr auto geometry_id        = std::size_t{1};
+    const auto     interface_geometry = InterfaceGeometry<Triangle3D3<Node>>{geometry_id, nodes};
+    constexpr auto unused_part_index  = std::size_t{0};
+    const auto&    r_mid_geometry     = interface_geometry.GetGeometryPart(unused_part_index);
+
+    const auto expected_mid_points =
+        std::vector<Point>{{0.25, 0.25, 0.25}, {1.25, 0.25, 0.25}, {1.25, 1.25, 0.25}};
+    ExpectPointsAreNear(r_mid_geometry.Points(), expected_mid_points);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MidGeometryOf6Plus6TriangularInterfaceIsDefinedByMidPointsOfNodePairs,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto nodes = ElementSetupUtilities::GenerateNodes({{0.0, 0.0, 0.0},
+                                                             {1.0, 0.0, 0.0},
+                                                             {1.0, 1.0, 0.0},
+                                                             {0.5, 0.0, 0.0},
+                                                             {1.0, 0.5, 0.0},
+                                                             {0.5, 0.5, 0.0},
+                                                             {0.5, 0.5, 0.5},
+                                                             {1.5, 0.5, 0.5},
+                                                             {1.5, 1.5, 0.5},
+                                                             {1.0, 0.5, 0.5},
+                                                             {1.5, 1.0, 0.5},
+                                                             {1.0, 1.0, 0.5}});
+
+    constexpr auto geometry_id        = std::size_t{1};
+    const auto     interface_geometry = InterfaceGeometry<Triangle3D6<Node>>{geometry_id, nodes};
+    constexpr auto unused_part_index  = std::size_t{0};
+    const auto&    r_mid_geometry     = interface_geometry.GetGeometryPart(unused_part_index);
+
+    const auto expected_mid_points =
+        std::vector<Point>{{0.25, 0.25, 0.25}, {1.25, 0.25, 0.25}, {1.25, 1.25, 0.25},
+                           {0.75, 0.25, 0.25}, {1.25, 0.75, 0.25}, {0.75, 0.75, 0.25}};
+    ExpectPointsAreNear(r_mid_geometry.Points(), expected_mid_points);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MidGeometryOf4Plus4QuadrilateralInterfaceIsDefinedByMidPointsOfNodePairs,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto     nodes          = ElementSetupUtilities::GenerateNodes({{0.0, 0.0, 0.0},
+                                                                          {1.0, 0.0, 0.0},
+                                                                          {1.0, 1.0, 0.0},
+                                                                          {0.0, 1.0, 0.0},
+                                                                          {0.5, 0.5, 0.5},
+                                                                          {1.5, 0.5, 0.5},
+                                                                          {1.5, 1.5, 0.5},
+                                                                          {0.5, 1.5, 0.5}});
+    constexpr auto geometry_id    = std::size_t{1};
+    const auto interface_geometry = InterfaceGeometry<Quadrilateral3D4<Node>>{geometry_id, nodes};
+    constexpr auto unused_part_index = std::size_t{0};
+    const auto&    r_mid_geometry    = interface_geometry.GetGeometryPart(unused_part_index);
+
+    const auto expected_mid_points = std::vector<Point>{
+        {0.25, 0.25, 0.25}, {1.25, 0.25, 0.25}, {1.25, 1.25, 0.25}, {0.25, 1.25, 0.25}};
+    ExpectPointsAreNear(r_mid_geometry.Points(), expected_mid_points);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MidGeometryOf8Plus8QuadrilateralInterfaceIsDefinedByMidPointsOfNodePairs,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto     nodes          = ElementSetupUtilities::GenerateNodes({{0.0, 0.0, 0.0},
+                                                                          {1.0, 0.0, 0.0},
+                                                                          {1.0, 1.0, 0.0},
+                                                                          {0.0, 1.0, 0.0},
+                                                                          {0.5, 0.0, 0.0},
+                                                                          {1.0, 0.5, 0.0},
+                                                                          {0.5, 1.0, 0.0},
+                                                                          {0.0, 0.5, 0.0},
+                                                                          {0.5, 0.5, 0.5},
+                                                                          {1.5, 0.5, 0.5},
+                                                                          {1.5, 1.5, 0.5},
+                                                                          {0.5, 1.5, 0.5},
+                                                                          {1.0, 0.5, 0.5},
+                                                                          {1.5, 1.0, 0.5},
+                                                                          {1.0, 1.5, 0.5},
+                                                                          {0.5, 1.0, 0.5}});
+    constexpr auto geometry_id    = std::size_t{1};
+    const auto interface_geometry = InterfaceGeometry<Quadrilateral3D8<Node>>{geometry_id, nodes};
+    constexpr auto unused_part_index = std::size_t{0};
+    const auto&    r_mid_geometry    = interface_geometry.GetGeometryPart(unused_part_index);
+
+    const auto expected_mid_points = std::vector<Point>{
+        {0.25, 0.25, 0.25}, {1.25, 0.25, 0.25}, {1.25, 1.25, 0.25}, {0.25, 1.25, 0.25},
+        {0.75, 0.25, 0.25}, {1.25, 0.75, 0.25}, {0.75, 1.25, 0.25}, {0.25, 0.75, 0.25}};
+    ExpectPointsAreNear(r_mid_geometry.Points(), expected_mid_points);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectShapeFunctionValuesInNodes_ForTwoPlusTwoNodedGeometry,
@@ -317,8 +451,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectAllShapeFunctionValues
     geometry.ShapeFunctionsValues(result, xi);
 
     // Note that the shape function values are evaluated per nodal pair!
-    Vector expected_result{2};
-    expected_result <<= 0.25, 0.75;
+    const auto expected_result = UblasUtilities::CreateVector({0.25, 0.75});
     KRATOS_EXPECT_VECTOR_NEAR(result, expected_result, Defaults::absolute_tolerance)
 }
 
@@ -332,8 +465,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectAllShapeFunctionValues
     geometry.ShapeFunctionsValues(result, xi);
 
     // Note that the shape function values are evaluated per nodal pair!
-    Vector expected_result{3};
-    expected_result <<= -0.125, 0.375, 0.75;
+    const auto expected_result = UblasUtilities::CreateVector({-0.125, 0.375, 0.75});
     KRATOS_EXPECT_VECTOR_NEAR(result, expected_result, Defaults::absolute_tolerance)
 }
 
@@ -346,8 +478,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectAllLocalGradientsAtPos
     Matrix result;
     geometry.ShapeFunctionsLocalGradients(result, xi);
 
-    Matrix expected_result(2, 1);
-    expected_result <<= -0.5, 0.5;
+    const auto expected_result = UblasUtilities::CreateMatrix({{-0.5}, {0.5}});
     KRATOS_EXPECT_MATRIX_NEAR(result, expected_result, Defaults::absolute_tolerance)
 }
 
@@ -360,8 +491,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectAllLocalGradientsAtPos
     Matrix result;
     geometry.ShapeFunctionsLocalGradients(result, xi);
 
-    Matrix expected_result(3, 1);
-    expected_result <<= 0.0, 1.0, -1.0;
+    const auto expected_result = UblasUtilities::CreateMatrix({{0.0}, {1.0}, {-1.0}});
     KRATOS_EXPECT_MATRIX_NEAR(result, expected_result, Defaults::absolute_tolerance)
 }
 
@@ -374,8 +504,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectJacobian_ForTwoPlusTwo
     Matrix result;
     geometry.Jacobian(result, xi);
 
-    Matrix expected_result(2, 1);
-    expected_result <<= 3.25, 0.0;
+    const auto expected_result = UblasUtilities::CreateMatrix({{3.25}, {0.0}});
     KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(result, expected_result, Defaults::relative_tolerance)
 }
 
@@ -388,8 +517,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectJacobian_ForThreePlusT
     Matrix result;
     geometry.Jacobian(result, xi);
 
-    Matrix expected_result(2, 1);
-    expected_result <<= 3.0, -0.1;
+    const auto expected_result = UblasUtilities::CreateMatrix({{3.0}, {-0.1}});
     KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(result, expected_result, Defaults::relative_tolerance)
 }
 
@@ -498,8 +626,7 @@ KRATOS_TEST_CASE_IN_SUITE(GetLocalCoordinatesOfAllNodesOfThreePlusThreeNodedLine
     Matrix result;
     geometry.PointsLocalCoordinates(result);
 
-    Matrix expected_result{3, 1};
-    expected_result <<= -1.0, 1.0, 0.0;
+    const auto expected_result = UblasUtilities::CreateMatrix({{-1.0}, {1.0}, {0.0}});
     KRATOS_EXPECT_MATRIX_NEAR(result, expected_result, Defaults::absolute_tolerance)
 }
 
@@ -700,4 +827,5 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_Throws_WhenCallingFunctionsRelatedTo
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         geometry.GlobalSpaceDerivatives(dummy_coordinates, dummy_index, dummy_index), message)
 }
+
 } // namespace Kratos::Testing

@@ -68,7 +68,7 @@ class SbmSolidTests(KratosUnittest.TestCase):
                             "iga_model_part": "SBM_Support_outer",
                             "type": "condition",
                             "name": "SbmSolidCondition",
-                            "shape_function_derivatives_order": 4, 
+                            "shape_function_derivatives_order": 8, 
                             "sbm_parameters": {
                                 "is_inner" : false
                             }

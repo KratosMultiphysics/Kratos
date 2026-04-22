@@ -13,7 +13,7 @@
 //
 
 // Project includes
-#include "custom_conditions/surface_normal_load_3D_diff_order_condition.hpp"
+#include "custom_conditions/surface_normal_load_3D_diff_order_condition.h"
 #include "custom_utilities/variables_utilities.hpp"
 #include "includes/variables.h"
 #include "utilities/math_utils.h"
@@ -23,24 +23,21 @@
 namespace Kratos
 {
 
-// Default Constructor
 SurfaceNormalLoad3DDiffOrderCondition::SurfaceNormalLoad3DDiffOrderCondition()
     : SurfaceLoad3DDiffOrderCondition()
 {
 }
 
-// Constructor 1
 SurfaceNormalLoad3DDiffOrderCondition::SurfaceNormalLoad3DDiffOrderCondition(IndexType NewId,
                                                                              GeometryType::Pointer pGeometry)
-    : SurfaceLoad3DDiffOrderCondition(NewId, pGeometry)
+    : SurfaceLoad3DDiffOrderCondition(NewId, std::move(pGeometry))
 {
 }
 
-// Constructor 2
 SurfaceNormalLoad3DDiffOrderCondition::SurfaceNormalLoad3DDiffOrderCondition(IndexType NewId,
                                                                              GeometryType::Pointer pGeometry,
                                                                              PropertiesType::Pointer pProperties)
-    : SurfaceLoad3DDiffOrderCondition(NewId, pGeometry, pProperties)
+    : SurfaceLoad3DDiffOrderCondition(NewId, std::move(pGeometry), std::move(pProperties))
 {
 }
 
@@ -67,9 +64,7 @@ void SurfaceNormalLoad3DDiffOrderCondition::CalculateConditionVector(ConditionVa
     MathUtils<double>::CrossProduct(normal_vector, column(rVariables.JContainer[PointNumber], 0),
                                     column(rVariables.JContainer[PointNumber], 1));
 
-    const auto& r_geometry = GetGeometry();
-    Vector      normal_stresses(r_geometry.PointsNumber());
-    VariablesUtilities::GetNodalValues(r_geometry, NORMAL_CONTACT_STRESS, normal_stresses.begin());
+    const auto normal_stresses = VariablesUtilities::GetNodalValues(GetGeometry(), NORMAL_CONTACT_STRESS);
 
     // Since the normal vector is pointing outwards for the 3D conditions, the normal stress
     // should switch sign, such that positive normal contact stress is defined inwards.
@@ -104,6 +99,14 @@ void SurfaceNormalLoad3DDiffOrderCondition::CalculateAndAddConditionForce(Vector
             rVariables.Nu[node] * rVariables.ConditionVector[2] * rVariables.IntegrationCoefficient;
     }
 }
+
+void SurfaceNormalLoad3DDiffOrderCondition::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, SurfaceLoad3DDiffOrderCondition)
+}
+
+void SurfaceNormalLoad3DDiffOrderCondition::load(Serializer& rSerializer){
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, SurfaceLoad3DDiffOrderCondition)}
 
 std::string SurfaceNormalLoad3DDiffOrderCondition::Info() const
 {

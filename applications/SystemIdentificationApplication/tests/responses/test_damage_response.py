@@ -144,7 +144,7 @@ class TestDamageDetectionResponse(kratos_unittest.TestCase):
 
             response.CalculateGradient(var)
 
-            gradients = var[Kratos.YOUNG_MODULUS].Evaluate()
+            gradients = var[Kratos.YOUNG_MODULUS].data
 
             delta = 1e-8
             for index, element in enumerate(model_part.Elements):
@@ -171,11 +171,11 @@ class TestDamageDetectionResponseStrainSensor(kratos_unittest.TestCase):
             model_part = response.GetInfluencingModelPart()
 
             ref_value = response.CalculateValue()
-            self.assertAlmostEqual(ref_value, 1.9789595600760277e-07, 6)
+            self.assertAlmostEqual(ref_value, 2.7829118764552163e-08, 10)
 
             response.CalculateGradient(var)
 
-            gradients = var[Kratos.YOUNG_MODULUS].Evaluate()
+            gradients = var[Kratos.YOUNG_MODULUS].data
 
             delta = 1e-8
             for index, element in enumerate(model_part.Elements):

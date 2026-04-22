@@ -132,7 +132,7 @@ class BLOCKIBQNLSConvergenceAccelerator(CoSimulationConvergenceAccelerator):
             ## Matrix-free implementation of the linear solver (and the pseudoinverse) -------------------------------------
             block_oper = lambda vec: vec - self.pinv_product(V, Q, R, self.pinv_product(previous_V, previous_Q, previous_R, vec))
             block_x = sp.sparse.linalg.LinearOperator((row, row), block_oper)
-            delta_x, _ = sp.sparse.linalg.gmres( block_x, b, atol=self.gmres_abs_tol, tol=self.gmres_rel_tol )
+            delta_x, _ = sp.sparse.linalg.gmres( block_x, b, atol=self.gmres_abs_tol, rtol=self.gmres_rel_tol )
         else:
             ## Using J = 0 if a previous approximate Jacobian is not available
             delta_x = b

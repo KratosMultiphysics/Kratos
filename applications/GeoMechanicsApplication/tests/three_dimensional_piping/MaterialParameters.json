@@ -25,8 +25,7 @@
                     "PERMEABILITY_XY": 0.0,
                     "PERMEABILITY_YZ": 0.0,
                     "PERMEABILITY_ZX": 0.0
-                },
-                "Tables": {}
+                }
             }
         },
         {
@@ -54,11 +53,10 @@
                     "PIPE_MODIFIED_D": false,
                     "PIPE_MODEL_FACTOR": 1.0,
                     "PIPE_WIDTH_FACTOR": 10.0,
-					"PIPE_HEIGHT": 1e-12,
+                    "PIPE_HEIGHT": 1e-12,
                     "PIPE_D_70": 0.0002,
                     "PERMEABILITY_XX": 1.02e-11
-                },
-                "Tables": {}
+                }
             }
         },
         {
@@ -86,11 +84,10 @@
                     "PIPE_MODIFIED_D": true,
                     "PIPE_MODEL_FACTOR": 1.0,
                     "PIPE_WIDTH_FACTOR": 10.0,
-					"PIPE_HEIGHT": 1e-12,
+                    "PIPE_HEIGHT": 1e-12,
                     "PIPE_D_70": 0.0002,
                     "PERMEABILITY_XX": 1.02e-11
-                },
-                "Tables": {}
+                }
             }
         }
     ]

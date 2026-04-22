@@ -68,7 +68,7 @@ Begin Nodes
 End Nodes
 
 
-Begin Elements GeoCrBeamElementLinear2D2N
+Begin Elements LinearTimoshenkoBeamElement2D2N
   1  1  61 60
   2  1  60 59
   3  1  59 58

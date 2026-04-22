@@ -116,7 +116,7 @@ class TestComputeCenterOfGravity(KratosUnittest.TestCase):
 
         cog_process = StructuralMechanicsApplication.ComputeCenterOfGravityProcess(mp)
         cog_process.Execute()
-        center_of_gravity = mp.ProcessInfo[StructuralMechanicsApplication.CENTER_OF_GRAVITY]
+        center_of_gravity = mp.GetValue(StructuralMechanicsApplication.CENTER_OF_GRAVITY)
 
         self.assertAlmostEqual(2.5688903639, center_of_gravity[0])
         self.assertAlmostEqual(0.0, center_of_gravity[1])
@@ -143,7 +143,7 @@ class TestComputeCenterOfGravity(KratosUnittest.TestCase):
 
         cog_process = StructuralMechanicsApplication.ComputeCenterOfGravityProcess(mp)
         cog_process.Execute()
-        center_of_gravity = mp.ProcessInfo[StructuralMechanicsApplication.CENTER_OF_GRAVITY]
+        center_of_gravity = mp.GetValue(StructuralMechanicsApplication.CENTER_OF_GRAVITY)
 
         self.assertAlmostEqual(0.6, center_of_gravity[0])
         self.assertAlmostEqual(0.0, center_of_gravity[1])
@@ -162,7 +162,7 @@ class TestComputeCenterOfGravity(KratosUnittest.TestCase):
 
         cog_process = StructuralMechanicsApplication.ComputeCenterOfGravityProcess(mp)
         cog_process.Execute()
-        center_of_gravity = mp.ProcessInfo[StructuralMechanicsApplication.CENTER_OF_GRAVITY]
+        center_of_gravity = mp.GetValue(StructuralMechanicsApplication.CENTER_OF_GRAVITY)
 
         self.assertAlmostEqual(0.0723057, center_of_gravity[0])
         self.assertAlmostEqual(0.0517395, center_of_gravity[1])
@@ -181,7 +181,7 @@ class TestComputeCenterOfGravity(KratosUnittest.TestCase):
 
         cog_process = StructuralMechanicsApplication.ComputeCenterOfGravityProcess(mp)
         cog_process.Execute()
-        center_of_gravity = mp.ProcessInfo[StructuralMechanicsApplication.CENTER_OF_GRAVITY]
+        center_of_gravity = mp.GetValue(StructuralMechanicsApplication.CENTER_OF_GRAVITY)
 
         self.assertAlmostEqual(0.0723057, center_of_gravity[0])
         self.assertAlmostEqual(0.0517395, center_of_gravity[1])
@@ -210,7 +210,7 @@ class TestComputeCenterOfGravity(KratosUnittest.TestCase):
 
         cog_process = StructuralMechanicsApplication.ComputeCenterOfGravityProcess(mp)
         cog_process.Execute()
-        center_of_gravity = mp.ProcessInfo[StructuralMechanicsApplication.CENTER_OF_GRAVITY]
+        center_of_gravity = mp.GetValue(StructuralMechanicsApplication.CENTER_OF_GRAVITY)
 
         self.assertAlmostEqual(0.6416666667, center_of_gravity[0])
         self.assertAlmostEqual(0.5729166667, center_of_gravity[1])

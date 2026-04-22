@@ -13,6 +13,7 @@
 #pragma once
 
 #include "custom_strategies/schemes/backward_euler_quasistatic_U_Pw_scheme.hpp"
+#include "custom_strategies/schemes/load_stepping_scheme.hpp"
 #include "custom_strategies/schemes/newmark_dynamic_U_Pw_scheme.hpp"
 #include "solving_strategies/schemes/scheme.h"
 #include <memory>
@@ -56,6 +57,13 @@ public:
                 return std::make_shared<NewmarkQuasistaticUPwScheme<TSparseSpace, TDenseSpace>>(
                     beta, gamma, theta);
             }
+        }
+
+        if (rSolverSettings["solution_type"].GetString() == "static") {
+            if (rSolverSettings["scheme_type"].GetString() == "load_stepping") {
+                return std::make_shared<LoadSteppingScheme<TSparseSpace, TDenseSpace>>();
+            }
+            return std::make_shared<GeoMechanicsStaticScheme<TSparseSpace, TDenseSpace>>();
         }
 
         KRATOS_ERROR << "Specified combination of solution_type ("

@@ -270,7 +270,7 @@ private:
         for(std::size_t i = 0; i < DoubleVarSize; i++)
         {
             rSerializer.load("Variable Name", Name);
-            Add( *(static_cast<DoubleVariableType*>(KratosComponents<VariableData>::pGet(Name))) );
+            Add( *(static_cast<const DoubleVariableType*>(KratosComponents<VariableData>::pGet(Name))) );
         }
     }
 

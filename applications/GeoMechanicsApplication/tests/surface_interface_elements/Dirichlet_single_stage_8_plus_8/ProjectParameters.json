@@ -27,7 +27,6 @@
         "compute_reactions":                  false,
         "move_mesh_flag":                     false,
         "reform_dofs_at_each_step":           false,
-        "nodal_smoothing":                    false,
         "block_builder":                      false,
         "solution_type":                      "Quasi-Static",
         "scheme_type":                        "Newmark",
@@ -50,7 +49,6 @@
             "solver_type":     "LinearSolversApplication.sparse_lu"
         },
         "problem_domain_sub_model_part_list": ["Interfaces"],
-        "processes_sub_model_part_list":      ["AllFixed","AllNodes", "SideXY", "SideYZ", "SideZX"],
         "body_domain_sub_model_part_list":    ["Interfaces"]
     },
     "output_processes": {

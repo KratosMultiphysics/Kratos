@@ -1,28 +1,24 @@
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics
+//  KRATOS  _____     _ _ _
+//         |_   _| __(_) (_)_ __   ___  ___
+//           | || '__| | | | '_ \ / _ \/ __|
+//           | || |  | | | | | | | (_) \__
+//           |_||_|  |_|_|_|_| |_|\___/|___/ APPLICATION
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //  Collaborator:    Philipp Bucher
 //
 
-#if !defined (KRATOS_AMESOS_SOLVER_H_INCLUDED)
-#define KRATOS_AMESOS_SOLVER_H_INCLUDED
+#pragma once
 
 // External includes
+#include <Amesos.h>
+#include <Epetra_LinearProblem.h>
 
 // Project includes
-#include "includes/define.h"
 #include "linear_solvers/linear_solver.h"
-
-// Amesos solver includes
-#include "Amesos.h"
-#include "Epetra_LinearProblem.h"
 
 namespace Kratos
 {
@@ -35,7 +31,6 @@ namespace Kratos
  * Amesos provides clean and consistent interfaces to several third party libraries.
  * https://github.com/trilinos/Trilinos/tree/master/packages/amesos
 */
-
 template< class TSparseSpaceType, class TDenseSpaceType,
           class TReordererType = Reorderer<TSparseSpaceType, TDenseSpaceType> >
 class AmesosSolver : public LinearSolver< TSparseSpaceType,
@@ -48,11 +43,11 @@ public:
     /// Pointer definition of AmesosSolver
     KRATOS_CLASS_POINTER_DEFINITION(AmesosSolver);
 
-    typedef typename TSparseSpaceType::MatrixType SparseMatrixType;
+    using SparseMatrixType = typename TSparseSpaceType::MatrixType;
 
-    typedef typename TSparseSpaceType::VectorType VectorType;
+    using VectorType = typename TSparseSpaceType::VectorType;
 
-    typedef typename TDenseSpaceType::MatrixType DenseMatrixType;
+    using DenseMatrixType = typename TDenseSpaceType::MatrixType;
 
     ///@}
     ///@name Life Cycle
@@ -242,5 +237,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }
 
 }  // namespace Kratos.
-
-#endif // KRATOS_AMESOS_SOLVER_H_INCLUDED defined

@@ -29,7 +29,7 @@ std::vector<ProcessParameters> JsonProcessInfoParser::GetProcessList(const Param
 }
 
 std::vector<ProcessParameters> JsonProcessInfoParser::AddProcessesForList(const std::string& rProcessListName,
-                                                                          const Parameters& rProcessParameters) const
+                                                                          const Parameters& rProcessParameters)
 {
     if (!rProcessParameters.Has(rProcessListName)) {
         return {};

@@ -520,6 +520,12 @@ public:
 
         for (IndexType i = 0; i < rIntegrationPoints.size(); ++i)
         {
+            std::vector<CoordinatesArrayType> global_space_derivatives(2);
+            this->GlobalSpaceDerivatives(
+                                        global_space_derivatives,
+                                        rIntegrationPoints[i],
+                                        1);
+
             if (IsRational()) {
                 shape_function_container.ComputeNurbsShapeFunctionValues(
                     mKnots, mWeights, rIntegrationPoints[i][0]);
@@ -553,9 +559,11 @@ public:
             GeometryShapeFunctionContainer<GeometryData::IntegrationMethod> data_container(
                 default_method, rIntegrationPoints[i],
                 N, shape_function_derivatives);
-
-            rResultGeometries(i) = CreateQuadraturePointsUtility<NodeType>::CreateQuadraturePoint(
-                this->WorkingSpaceDimension(), 1, data_container, nonzero_control_points);
+            
+            rResultGeometries(i) = CreateQuadraturePointsUtility<NodeType>::CreateQuadraturePointCurve(
+                this->WorkingSpaceDimension(), 1, 
+                data_container, nonzero_control_points,
+                global_space_derivatives[1][0], global_space_derivatives[1][1], this);
         }
     }
 

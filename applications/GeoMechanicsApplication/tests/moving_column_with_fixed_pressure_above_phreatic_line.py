@@ -1,5 +1,6 @@
 import os
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+from KratosMultiphysics.GeoMechanicsApplication.gid_output_file_reader import GiDOutputFileReader
 import test_helper
 
 
@@ -50,7 +51,7 @@ class KratosGeoMechanicsMovingColumnWithFixedPressureAbovePhreaticLine(
         self.assert_results(test_folder, expected_value1 = 0.0, expected_value2 = 0.0)
 
     def assert_results(self, test_folder, expected_value1, expected_value2):
-        reader = test_helper.GiDOutputFileReader()
+        reader = GiDOutputFileReader()
         output_data = reader.read_output_from(
             os.path.join(test_folder, "output.post.res")
         )

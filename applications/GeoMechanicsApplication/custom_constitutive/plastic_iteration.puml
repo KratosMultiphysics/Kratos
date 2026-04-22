@@ -1,0 +1,12 @@
+@startuml
+start
+:n_iter = 0;
+repeat
+  :n_iter += 1;
+  :Calculate λ, Map trial stresses;
+  :Update plastic strain increment;
+  :Update equivalent plastic strain κ;
+  :Update yield surface;
+repeat while(|F_MC(σ, κ)| > ε_tol, n_iter < max_iter) is (yes) not (no)
+stop
+@enduml

@@ -16,6 +16,7 @@
 
 // Project includes
 #include "containers/model.h"
+#include "custom_utilities/process_utilities.h"
 #include "includes/element.h"
 #include "includes/kratos_flags.h"
 #include "includes/kratos_parameters.h"
@@ -26,10 +27,9 @@
 
 namespace Kratos
 {
-
 DeactivateModelPartOperation::DeactivateModelPartOperation(Model& rModel, const Parameters& rSettings)
-    : Operation(), mpModelPart(&rModel.GetModelPart(rSettings["model_part_name"].GetString()))
 {
+    mrModelParts = ProcessUtilities::GetModelPartsFromSettings(rModel, rSettings, "DeactivateModelPartOperation");
 }
 
 Operation::Pointer DeactivateModelPartOperation::Create(Model& rModel, Parameters Settings) const
@@ -41,18 +41,20 @@ void DeactivateModelPartOperation::Execute()
 {
     KRATOS_TRY
 
-    // Deactivate the elements of the model part
-    VariableUtils().SetFlag(ACTIVE, false, mpModelPart->Elements());
+    for (const auto& r_model_part : mrModelParts) {
+        // Deactivate the elements of the model part
+        VariableUtils().SetFlag(ACTIVE, false, r_model_part.get().Elements());
 
-    // Reset the elements' constitutive law (e.g., excavation)
-    block_for_each(mpModelPart->Elements(),
-                   [](Element& rElement) { rElement.ResetConstitutiveLaw(); });
+        // Reset the elements' constitutive law (e.g., excavation)
+        block_for_each(r_model_part.get().Elements(),
+                       [](Element& rElement) { rElement.ResetConstitutiveLaw(); });
 
-    // Deactivate the nodes of the model part
-    VariableUtils().SetFlag(ACTIVE, false, mpModelPart->Nodes());
+        // Deactivate the nodes of the model part
+        VariableUtils().SetFlag(ACTIVE, false, r_model_part.get().Nodes());
 
-    // Deactivate the conditions of the model part
-    VariableUtils().SetFlag(ACTIVE, false, mpModelPart->Conditions());
+        // Deactivate the conditions of the model part
+        VariableUtils().SetFlag(ACTIVE, false, r_model_part.get().Conditions());
+    }
 
     KRATOS_CATCH("")
 }

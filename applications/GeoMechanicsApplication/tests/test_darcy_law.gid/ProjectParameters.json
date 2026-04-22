@@ -28,7 +28,6 @@
         "compute_reactions":                  false,
         "move_mesh_flag":                     false,
         "reform_dofs_at_each_step":           true,
-        "nodal_smoothing":                    false,
         "block_builder":                      true,
         "solution_type":                      "Steady_State_Groundwater_Flow",
         "scheme_type":                        "Backward_Euler",
@@ -68,7 +67,6 @@
             "preconditioner_type": "ilu0"
         },
         "problem_domain_sub_model_part_list": ["porous_medium"],
-        "processes_sub_model_part_list":      ["top_head","bottom_head","gravity"],
         "body_domain_sub_model_part_list":    ["porous_medium"]
     },
     "output_processes": {

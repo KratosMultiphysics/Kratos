@@ -23,9 +23,9 @@
 #include "linear_solvers/bicgstab_solver.h"
 #include "linear_solvers/tfqmr_solver.h"
 #include "includes/dof.h"
-#include "spaces/ublas_space.h"
 #include "includes/ublas_complex_interface.h"
 
+#include "linear_solvers/linear_solver_ublas.h"
 #include "linear_solvers/reorderer.h"
 #include "linear_solvers/direct_solver.h"
 #include "linear_solvers/skyline_lu_factorization_solver.h"
@@ -78,6 +78,7 @@ void  AddLinearSolversToPython(pybind11::module& m)
     using ComplexSkylineLUSolverType = SkylineLUCustomScalarSolver<ComplexSpaceType, ComplexLocalSpaceType>;
 
     bool (LinearSolverType::*pointer_to_solve)(LinearSolverType::SparseMatrixType& rA, LinearSolverType::VectorType& rX, LinearSolverType::VectorType& rB) = &LinearSolverType::Solve;
+    bool (LinearSolverType::*pointer_to_multi_solve)(LinearSolverType::SparseMatrixType& rA,LinearSolverType::DenseMatrixType& rX, LinearSolverType::DenseMatrixType& rB) = &LinearSolverType::Solve;
     void (LinearSolverType::*pointer_to_solve_eigen)(LinearSolverType::SparseMatrixType& rK, LinearSolverType::SparseMatrixType& rM,LinearSolverType::DenseVectorType& Eigenvalues, LinearSolverType::DenseMatrixType& Eigenvectors) = &LinearSolverType::Solve;
     bool (ComplexLinearSolverType::*pointer_to_complex_solve)(ComplexLinearSolverType::SparseMatrixType& rA, ComplexLinearSolverType::VectorType& rX, ComplexLinearSolverType::VectorType& rB) = &ComplexLinearSolverType::Solve;
     void (ComplexLinearSolverType::*pointer_to_complex_solve_eigen)(ComplexLinearSolverType::SparseMatrixType& rK, ComplexLinearSolverType::SparseMatrixType& rM, ComplexLinearSolverType::DenseVectorType& Eigenvalues, ComplexLinearSolverType::DenseMatrixType& Eigenvectors) = &ComplexLinearSolverType::Solve;
@@ -119,6 +120,7 @@ void  AddLinearSolversToPython(pybind11::module& m)
     .def("Initialize",&LinearSolverType::Initialize)
     .def("Solve",pointer_to_solve)
     .def("Solve",pointer_to_solve_eigen)
+    .def("Solve",pointer_to_multi_solve)
     .def("Clear",&LinearSolverType::Clear)
     .def("__str__", PrintObject<LinearSolverType>)
     .def( "GetIterationsNumber",&LinearSolverType::GetIterationsNumber)

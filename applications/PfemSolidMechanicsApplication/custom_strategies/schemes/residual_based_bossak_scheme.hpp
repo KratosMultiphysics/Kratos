@@ -237,6 +237,27 @@ public:
         TSystemVectorType& b
     ) override
     {
+        ProcessInfo CurrentProcessInfo= r_model_part.GetProcessInfo();
+
+        double DeltaTime = CurrentProcessInfo[DELTA_TIME];
+
+        if (DeltaTime == 0) {
+            std::cout<<" WARNING: detected delta_time = 0 in the Solution Scheme "<<std::endl;
+            std::cout<<" DELTA_TIME set to 1 considering a Quasistatic step with one step only "<<std::endl;
+            std::cout<<" PLEASE : check if the time step is created correctly for the current model part "<<std::endl;
+
+            CurrentProcessInfo[DELTA_TIME] = 1;
+            DeltaTime = CurrentProcessInfo[DELTA_TIME];
+        }
+
+        //initializing Newmark constants
+        mNewmark.c0 = ( 1.0 / (mNewmark.beta * DeltaTime * DeltaTime) );
+        mNewmark.c1 = ( mNewmark.gamma / (mNewmark.beta * DeltaTime) );
+        mNewmark.c2 = ( 1.0 / (mNewmark.beta * DeltaTime) );
+        mNewmark.c3 = ( 0.5 / (mNewmark.beta) - 1.0 );
+        mNewmark.c4 = ( (mNewmark.gamma / mNewmark.beta) - 1.0  );
+        mNewmark.c5 = ( DeltaTime * 0.5 * ( ( mNewmark.gamma / mNewmark.beta ) - 2 ) );
+
         //std::cout << " Prediction " << std::endl;
         array_1d<double, 3 > DeltaDisplacement;
 
@@ -681,7 +702,7 @@ public:
         Condition::Pointer rCurrentCondition,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo) 
+        ProcessInfo& CurrentProcessInfo)
     {
         KRATOS_TRY
 
@@ -723,7 +744,7 @@ public:
     virtual void GetElementalDofList(
         Element::Pointer rCurrentElement,
         Element::DofsVectorType& ElementalDofList,
-        ProcessInfo& CurrentProcessInfo) 
+        ProcessInfo& CurrentProcessInfo)
     {
         rCurrentElement->GetDofList(ElementalDofList, CurrentProcessInfo);
     }

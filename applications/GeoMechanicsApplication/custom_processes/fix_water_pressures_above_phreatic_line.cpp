@@ -18,6 +18,7 @@
 
 namespace Kratos
 {
+using namespace std::string_literals;
 
 FixWaterPressuresAbovePhreaticLineProcess::FixWaterPressuresAbovePhreaticLineProcess(ModelPart& rMainModelPart,
                                                                                      const Parameters& rSettings)
@@ -49,6 +50,11 @@ void FixWaterPressuresAbovePhreaticLineProcess::ExecuteInitializeSolutionStep()
             rNode.Free(WATER_PRESSURE);
         }
     });
+}
+
+std::string FixWaterPressuresAbovePhreaticLineProcess::Info() const
+{
+    return "FixWaterPressuresAbovePhreaticLineProcess"s;
 }
 
 } // namespace Kratos

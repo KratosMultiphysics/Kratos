@@ -232,7 +232,8 @@ namespace Kratos
 
               if (i_node->Is(FLUID))
               {
-                Node::Pointer pnode = i_node->Clone();
+                unsigned int temporaryId=sizeClonedNodes;
+                Node::Pointer pnode = i_node->Clone(temporaryId);
                 sizeClonedNodes = numberClonedNodes + 1;
                 clonedNodes.resize(sizeClonedNodes);
                 clonedNodes[numberClonedNodes] = pnode;

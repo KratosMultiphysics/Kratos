@@ -1,6 +1,7 @@
 import os
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+from KratosMultiphysics.GeoMechanicsApplication.gid_output_file_reader import GiDOutputFileReader
 import test_helper
 
 
@@ -10,7 +11,7 @@ class KratosGeoMechanicsMasterSlaveConstraints(KratosUnittest.TestCase):
         loaded_node_ids = [6, 7]
         actual_x_displacements = [
             displacement_vector[0]
-            for displacement_vector in test_helper.GiDOutputFileReader.nodal_values_at_time(
+            for displacement_vector in GiDOutputFileReader.nodal_values_at_time(
                 "DISPLACEMENT", end_time, output_data, node_ids=loaded_node_ids
             )
         ]
@@ -26,12 +27,12 @@ class KratosGeoMechanicsMasterSlaveConstraints(KratosUnittest.TestCase):
         end_time = 1.0
         master_node_ids = [2, 3]
         master_node_displacements = (
-            test_helper.GiDOutputFileReader.nodal_values_at_time(
+            GiDOutputFileReader.nodal_values_at_time(
                 "DISPLACEMENT", end_time, output_data, node_ids=master_node_ids
             )
         )
         slave_node_ids = [5, 8]
-        slave_node_displacements = test_helper.GiDOutputFileReader.nodal_values_at_time(
+        slave_node_displacements = GiDOutputFileReader.nodal_values_at_time(
             "DISPLACEMENT", end_time, output_data, node_ids=slave_node_ids
         )
         self.assertTrue(
@@ -46,7 +47,7 @@ class KratosGeoMechanicsMasterSlaveConstraints(KratosUnittest.TestCase):
         supported_node_ids = [1, 4]
         actual_x_reaction_forces = [
             reaction_force_vector[0]
-            for reaction_force_vector in test_helper.GiDOutputFileReader.nodal_values_at_time(
+            for reaction_force_vector in GiDOutputFileReader.nodal_values_at_time(
                 "REACTION", end_time, output_data, node_ids=supported_node_ids
             )
         ]
@@ -62,7 +63,7 @@ class KratosGeoMechanicsMasterSlaveConstraints(KratosUnittest.TestCase):
         test_files_path = test_helper.get_file_path("test_master_slave_constraints")
         test_helper.run_kratos(test_files_path)
 
-        reader = test_helper.GiDOutputFileReader()
+        reader = GiDOutputFileReader()
         output_data = reader.read_output_from(
             os.path.join(test_files_path, "test_master_slave_constraints.post.res")
         )

@@ -77,7 +77,6 @@ class GeoMechanicalSolver(PythonSolver):
             "clear_storage": false,
             "compute_reactions": false,
             "move_mesh_flag": false,
-            "nodal_smoothing": false,
             "reset_displacements":  false,
             "solution_type": "quasi_static",
             "scheme_type": "Newmark",
@@ -170,9 +169,6 @@ class GeoMechanicalSolver(PythonSolver):
         # Add temperature variables
         self._add_temperature_variables()
 
-        ## smoothing variables
-        self._add_smoothing_variables()
-
         # Add variables that the user defined in the ProjectParameters
         if (self.settings.Has("auxiliary_variables_list")):
             for i in range(self.settings["auxiliary_variables_list"].size()):
@@ -200,8 +196,6 @@ class GeoMechanicalSolver(PythonSolver):
         """
         # Set ProcessInfo variables
         self.main_model_part.ProcessInfo.SetValue(GeoMechanicsApplication.TIME_UNIT_CONVERTER, 1.0)
-        self.main_model_part.ProcessInfo.SetValue(GeoMechanicsApplication.NODAL_SMOOTHING,
-                                                  self.settings["nodal_smoothing"].GetBool())
 
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.STEP, 0)
         self.computing_model_part_name = "porous_computational_model_part"
@@ -330,6 +324,8 @@ class GeoMechanicalSolver(PythonSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL_CONTACT_STRESS)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TANGENTIAL_CONTACT_STRESS)
+        self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.GEO_RELATIVE_DISPLACEMENT_VECTOR)
+        self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.GEO_EFFECTIVE_TRACTION_VECTOR)
 
     def _add_rotational_variables(self):
         if (self.settings.Has("rotation_dofs")):
@@ -357,8 +353,12 @@ class GeoMechanicalSolver(PythonSolver):
         # Add integration \ gauss point values that will likely need extrapolating to node
         self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.HYDRAULIC_HEAD)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CAUCHY_STRESS_TENSOR)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CAUCHY_STRESS_VECTOR)
         self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.TOTAL_STRESS_TENSOR)
         self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.FLUID_FLUX_VECTOR)
+        self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.AXIAL_FORCE)
+        self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.BENDING_MOMENT)
+        self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.SHEAR_FORCE)
 
     def _add_temperature_variables(self):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
@@ -371,11 +371,6 @@ class GeoMechanicalSolver(PythonSolver):
         self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.AIR_HUMIDITY)
         self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.PRECIPITATION)
         self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.WIND_SPEED)
-
-    def _add_smoothing_variables(self):
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
-        self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.NODAL_JOINT_AREA)
-        self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.NODAL_JOINT_WIDTH)
 
     def _add_dynamic_dofs(self):
         # For being consistent for Serial and Trilinos
@@ -452,10 +447,13 @@ class GeoMechanicalSolver(PythonSolver):
         return KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(self.linear_solver)
 
     def _BaseConstructScheme(self):
-        if (self.settings["solution_type"].GetString().lower() == "static"):
+
+        if self.settings["solution_type"].GetString().lower() == "static":
+            if self.settings["scheme_type"].GetString().lower() == "load_stepping":
+                return GeoMechanicsApplication.GeoLoadSteppingScheme()
             return GeoMechanicsApplication.GeoStaticScheme()
-        else:
-            return self._ConstructScheme(self.settings["scheme_type"].GetString(),
+
+        return self._ConstructScheme(self.settings["scheme_type"].GetString(),
                                          self.settings["solution_type"].GetString())
 
 

@@ -711,6 +711,11 @@ void LinearTrussElement<TDimension, TNNodes>::CalculateOnIntegrationPoints(
         SystemSizeBoundedArrayType B;
         const double area = GetProperties()[CROSS_AREA];
 
+        double pre_stress = 0.0;
+        if (GetProperties().Has(TRUSS_PRESTRESS_PK2)) {
+            pre_stress = GetProperties()[TRUSS_PRESTRESS_PK2];
+        }
+
         // Loop over the integration points
         for (SizeType IP = 0; IP < integration_points.size(); ++IP) {
             const double xi = integration_points[IP].X();
@@ -719,11 +724,6 @@ void LinearTrussElement<TDimension, TNNodes>::CalculateOnIntegrationPoints(
             strain_vector[0] = inner_prod(B, nodal_values);
 
             mConstitutiveLawVector[IP]->CalculateMaterialResponsePK2(cl_values);
-
-            double pre_stress = 0.0;
-            if (GetProperties().Has(TRUSS_PRESTRESS_PK2)) {
-                pre_stress = GetProperties()[TRUSS_PRESTRESS_PK2];
-            }
 
             rOutput[IP] = (cl_values.GetStressVector()[0] + pre_stress) * area;
         }

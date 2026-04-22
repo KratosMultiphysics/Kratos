@@ -28,7 +28,6 @@
         "compute_reactions": true,
         "move_mesh_flag": false,
         "reform_dofs_at_each_step": false,
-        "nodal_smoothing": false,
         "block_builder": true,
         "solution_type": "Quasi-static",
         "scheme_type": "Newmark",
@@ -68,13 +67,6 @@
         },
         "problem_domain_sub_model_part_list": [
             "Soil_column"
-        ],
-        "processes_sub_model_part_list": [
-            "Side_rollers",
-            "Base_Fixed",
-            "Initial_field_pressure",
-            "Fixed_base_pressure",
-            "Gravity_load"
         ],
         "body_domain_sub_model_part_list": [
             "Soil_column"

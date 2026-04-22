@@ -18,14 +18,14 @@
 #include <memory>
 #include <vector>
 
-#include "strategy_wrapper.hpp"
-#include "time_incrementor.h"
 #include "time_step_end_state.hpp"
 
 namespace Kratos
 {
 
 class Process;
+class StrategyWrapper;
+class TimeIncrementor;
 
 class TimeLoopExecutorInterface
 {

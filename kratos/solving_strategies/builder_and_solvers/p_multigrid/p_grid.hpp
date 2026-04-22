@@ -28,7 +28,7 @@
 namespace Kratos {
 
 
-/** @brief Coarse grid level of @PMultigridBuilderAndSolver.
+/** @brief Coarse grid level of @ref PMultigridBuilderAndSolver.
  *  @details Settings:
  *           @code
  *           {
@@ -116,13 +116,25 @@ public:
                   const typename TParentSparse::VectorType& rParentSolution,
                   const typename TParentSparse::VectorType& rParentRhs);
 
+    /// @brief Compute the residual in the coarse grid's independent space.
+    /// @tparam TParentSparse Sparse space type of the parent grid.
+    /// @param rCoarseIndependentResidual Output vector. Residual in the coarse grid's independent space.
+    /// @param rFineIndependentRhs Residual vector in the fine grid's independent space.
+    /// @param rParentConstraintAssembler Constraint assembler of the fine grid.
     template <class TParentSparse>
-    void Restrict(const typename TParentSparse::VectorType& rParentVector,
-                  typename TSparse::VectorType& rOutput) const;
+    void Restrict(typename TSparse::VectorType& rCoarseIndependentResidual,
+                  const typename TParentSparse::VectorType& rFineIndependentResidual,
+                  const ConstraintAssembler<TParentSparse,TDense>& rParentConstraintAssembler) const;
 
+    /// @brief Compute the solution in the fine grid's independent space.
+    /// @tparam TParentSparse Space space type of the parent grid.
+    /// @param rFineIndependentSolution Output vector. Solution vector in the fine grid's independent space.
+    /// @param rCoarseIndependentSolution Solution vector in the coarse grid's independent space.
+    /// @param rParentConstraintAssembler Constraint assembler of the fine grid.
     template <class TParentSparse>
-    void Prolong(const typename TSparse::VectorType& rInput,
-                 typename TParentSparse::VectorType& rParentVector) const;
+    void Prolong(typename TParentSparse::VectorType& rFineIndependentSolution,
+                 const typename TSparse::VectorType& rCoarseIndependentSolution,
+                 const ConstraintAssembler<TParentSparse,TDense>& rParentConstraintAssembler) const;
 
     void Clear();
 

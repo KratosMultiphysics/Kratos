@@ -4,8 +4,8 @@
 //        | |  | | |___ ___) |  _  || || |\  | |_| |
 //        |_|  |_|_____|____/|_| |_|___|_| \_|\____| APPLICATION
 //
-//  License:		 BSD License
-//                                       Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   license: MeshingApplication/license.txt
 //
 //  Main authors:    Nelson Lafontaine
 //                   Jordi Cotela Dalmau
@@ -13,13 +13,13 @@
 //                   Vicente Mataix Ferrandiz
 //
 
+#if defined(KRATOS_PYTHON)
+
 // System includes
 
-#if defined(KRATOS_PYTHON)
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "includes/define_python.h"
 #include "meshing_application.h"
 #include "meshing_application_variables.h"
@@ -28,10 +28,7 @@
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_python/add_custom_io_to_python.h"
 
-namespace Kratos
-{
-
-namespace Python
+namespace Kratos::Python
 {
 
 namespace py = pybind11;
@@ -63,8 +60,6 @@ PYBIND11_MODULE(KratosMeshingApplication,m)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, SUBSCALE_INDEX)
 }
 
-}  // namespace Python.
-
-}  // namespace Kratos.
+}  // namespace Kratos::Python.
 
 #endif // KRATOS_PYTHON defined

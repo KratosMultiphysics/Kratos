@@ -22,8 +22,7 @@
                     "BIOT_COEFFICIENT": 1.0,
                     "RETENTION_LAW": "SaturatedLaw",
                     "SATURATED_SATURATION": 1.0
-                },
-                "Tables": {}
+                }
             }
         },
         {
@@ -48,8 +47,7 @@
                     "BIOT_COEFFICIENT": 1.0,
                     "RETENTION_LAW": "SaturatedLaw",
                     "SATURATED_SATURATION": 1.0
-                },
-                "Tables": {}
+                }
             }
         },
         {
@@ -78,9 +76,8 @@
                     "PIPE_MODIFIED_D": false,
                     "PIPE_MODEL_FACTOR": 1.0,
                     "PIPE_D_70": 0.0003,
-		    "PIPE_HEIGHT": 0.0
-                },
-                "Tables": {}
+                    "PIPE_HEIGHT": 0.0
+                }
             }
         }
     ]

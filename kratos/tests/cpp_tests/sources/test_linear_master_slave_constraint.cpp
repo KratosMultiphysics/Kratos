@@ -23,8 +23,9 @@
 #include "includes/model_part.h"
 #include "constraints/linear_master_slave_constraint.h"
 
-namespace Kratos {
-namespace Testing {
+#include "includes/stream_serializer.h"
+
+namespace Kratos::Testing {
 
 KRATOS_TEST_CASE_IN_SUITE(LinearMasterSlaveConstraintTests, KratosCoreFastSuite)
 {
@@ -61,7 +62,60 @@ KRATOS_TEST_CASE_IN_SUITE(LinearMasterSlaveConstraintTests, KratosCoreFastSuite)
         KRATOS_EXPECT_DOUBLE_EQ(constant_vector(0), 0.0);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(LinearMasterSlaveConstraintSerialization, KratosCoreFastSuite)
+{
+    // Create model and populate it
+    Model current_model;
+    ModelPart& model_part = current_model.CreateModelPart("a");
+    model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+    model_part.AddNodalSolutionStepVariable(REACTION);
+
+    // Create nodes
+    auto p_node_1 = model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+    auto p_node_2 = model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
+    
+    // Add DoFs
+    p_node_1->AddDof(DISPLACEMENT_X, REACTION_X);
+    p_node_2->AddDof(DISPLACEMENT_X, REACTION_X);
+    
+    auto p_constraint = model_part.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 1, *p_node_1, DISPLACEMENT_X, *p_node_2, DISPLACEMENT_X, 2.0, 5.0);
+    const auto& r_preload_master_dofs = p_constraint->GetMasterDofsVector();
+
+    // Verify Dof Pointers before storing
+    KRATOS_EXPECT_EQ(r_preload_master_dofs.size(), 1);
+    KRATOS_EXPECT_NE(r_preload_master_dofs[0], nullptr);
+
+    // Serialize
+    StreamSerializer serializer;
+    serializer.save("ModelPart", model_part);
+    current_model.DeleteModelPart("a");
+
+    // Deserialize into new model
+    Model loaded_model;
+    ModelPart& loaded_model_part = loaded_model.CreateModelPart("a");
+
+    serializer.load("ModelPart", loaded_model_part);
+
+    // Verify
+    KRATOS_EXPECT_EQ(loaded_model_part.NumberOfMasterSlaveConstraints(), 1);
+    
+    auto p_loaded_constraint = loaded_model_part.pGetMasterSlaveConstraint(1);
+
+    LinearMasterSlaveConstraint::MatrixType transformation_matrix;
+    LinearMasterSlaveConstraint::VectorType constant_vector;
+    p_loaded_constraint->CalculateLocalSystem(transformation_matrix, constant_vector, loaded_model_part.GetProcessInfo());
+    
+    KRATOS_EXPECT_DOUBLE_EQ(transformation_matrix(0,0), 2.0);
+    KRATOS_EXPECT_DOUBLE_EQ(constant_vector(0), 5.0);
+    KRATOS_EXPECT_EQ(p_loaded_constraint->Id(), 1);
+
+    // Verify Dof Pointers
+    const auto& r_master_dofs = p_loaded_constraint->GetMasterDofsVector();
+
+    KRATOS_EXPECT_EQ(r_master_dofs.size(), 1);
+    KRATOS_EXPECT_NE(r_master_dofs[0], nullptr);
 }
-}  // namespace Kratos.
+
+} // namespace Kratos::Testing.
 
 

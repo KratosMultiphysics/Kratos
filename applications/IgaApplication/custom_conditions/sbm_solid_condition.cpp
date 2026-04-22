@@ -85,6 +85,8 @@ void SbmSolidCondition::InitializeMemberVariables()
         // Modify the penalty factor: p^2 * penalty / h (NITSCHE APPROACH)
         mPenalty = mBasisFunctionsOrder * mBasisFunctionsOrder * penalty / h;
     }
+
+    mBasisFunctionsOrder*=2; //use complete Talor expansion
     // Compute the normals
     mNormalParameterSpace = - r_geometry.Normal(0, GetIntegrationMethod());
     mNormalParameterSpace = mNormalParameterSpace / MathUtils<double>::Norm(mNormalParameterSpace);
@@ -261,10 +263,10 @@ void SbmSolidCondition::CalculateLeftHandSide(
     ComputeTaylorExpansionContribution (H_sum_vec);
 
     // Assembly
-    if (this->Has(DIRECTION)){
+    if (mpProjectionNode->Has(DIRECTION)){
         // ASSIGN BC BY DIRECTION
         //--------------------------------------------------------------------------------------------
-        Vector direction = this->GetValue(DIRECTION);
+        Vector direction = mpProjectionNode->GetValue(DIRECTION);
 
         for (IndexType i = 0; i < number_of_control_points; i++) {
             for (IndexType j = 0; j < number_of_control_points; j++) {
@@ -435,12 +437,21 @@ void SbmSolidCondition::CalculateRightHandSide(
         old_displacement[1] += H_sum_vec(i) * old_displacement_coefficient_vector[2*i + 1];
     }
 
-    if (this->Has(DIRECTION)){
+    if (mpProjectionNode->Has(DIRECTION)){
         // ASSIGN BC BY DIRECTION
         //--------------------------------------------------------------------------------------------
-        Vector direction = this->GetValue(DIRECTION);
-        const Vector displacement = this->GetValue(DISPLACEMENT); //already direction
-        const double displacement_module = inner_prod(displacement, direction);
+        Vector direction = mpProjectionNode->GetValue(DIRECTION);
+        const Vector & r_displacement = mpProjectionNode->GetValue(DISPLACEMENT);
+
+        Vector orthogonal_direction = ZeroVector(3);
+        orthogonal_direction[0] = direction[1];
+        orthogonal_direction[1] = -direction[0];
+        if (norm_2(orthogonal_direction) < 1e-12)
+            orthogonal_direction[0] = 1; 
+        KRATOS_ERROR_IF(std::abs(inner_prod(orthogonal_direction, r_displacement)) > 1e-12)
+            << "::[SbmSolidCondition]:: Error: the projection node displacement is not aligned with the prescribed direction." << std::endl;
+
+        const double displacement_module = norm_2(r_displacement);
 
         const double old_displacement_direction = inner_prod(old_displacement, direction);
             

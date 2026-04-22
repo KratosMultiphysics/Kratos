@@ -84,13 +84,13 @@ void TableAccessor::save(Serializer& rSerializer) const
 {
     rSerializer.save("InputVariable", mpInputVariable->Name());
     // we must do the int cast to be able to compile
-    rSerializer.save("InputVariableType", static_cast<int>(mInputVariableType)); 
+    rSerializer.save("InputVariableType", static_cast<int>(mInputVariableType));
 }
 void TableAccessor::load(Serializer& rSerializer)
 {
     std::string variable_name;
     rSerializer.load("InputVariable", variable_name);
-    mpInputVariable = static_cast<Variable<double> *>(KratosComponents<VariableData>::pGet(variable_name));
+    mpInputVariable = static_cast<const Variable<double> *>(KratosComponents<VariableData>::pGet(variable_name));
 
     // we must do the int cast to be able to compile
     int enum_value;

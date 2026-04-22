@@ -768,7 +768,7 @@ Vector LinearTimoshenkoCurvedBeamElement2D3N::CalculateStrainVector(double Xi)
     BoundedMatrix<double, 2, 2> frenet_serret = GetFrenetSerretMatrix(Xi, t, n);
     BoundedVector<double, 2> gamma = prod(prod(frenet_serret, aux_B_s), nodal_values);
 
-    Vector strain_vector(3);
+    Vector strain_vector(mConstitutiveLawVector[0]->GetStrainSize());
     strain_vector.clear();
     strain_vector[0] = gamma[0]; // axial strain
     strain_vector[2] = gamma[1]; // shear strain

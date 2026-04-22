@@ -6,6 +6,7 @@ import KratosMultiphysics.StructuralMechanicsApplication as KratosStructural
 import test_helper
 from KratosMultiphysics.project import Project
 import importlib
+from KratosMultiphysics.GeoMechanicsApplication.gid_output_file_reader import GiDOutputFileReader
 import KratosMultiphysics.GeoMechanicsApplication.run_multiple_stages as run_multiple_stages
 
 class KratosGeoMechanicsLineLoadTests(KratosUnittest.TestCase):
@@ -14,9 +15,9 @@ class KratosGeoMechanicsLineLoadTests(KratosUnittest.TestCase):
     No analytical solution is defined. This is to check if find neighbour elements work when line elements are applied in 3D.
     """
     def total_reaction_y_from_file(self, output_file_path, time, node_ids):
-        output_reader = test_helper.GiDOutputFileReader()
+        output_reader = GiDOutputFileReader()
         output_data = output_reader.read_output_from(output_file_path)
-        reactions = test_helper.GiDOutputFileReader.nodal_values_at_time("REACTION", time, output_data, node_ids=node_ids)
+        reactions = GiDOutputFileReader.nodal_values_at_time("REACTION", time, output_data, node_ids=node_ids)
         return sum([reaction[1] for reaction in reactions])
 
     def test_line_load_3D2N_hex(self):

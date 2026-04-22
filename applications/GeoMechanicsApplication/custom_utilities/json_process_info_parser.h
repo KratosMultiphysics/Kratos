@@ -26,8 +26,8 @@ public:
     std::vector<ProcessParameters> GetProcessList(const Parameters& rProcessParameters) const override;
 
 private:
-    std::vector<ProcessParameters> AddProcessesForList(const std::string& rProcessListName,
-                                                       const Parameters&  rProcessParameters) const;
+    static std::vector<ProcessParameters> AddProcessesForList(const std::string& rProcessListName,
+                                                              const Parameters& rProcessParameters);
 };
 
 } // namespace Kratos

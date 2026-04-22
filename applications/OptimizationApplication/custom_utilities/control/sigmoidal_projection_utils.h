@@ -18,7 +18,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "expression/container_expression.h"
+#include "tensor_adaptors/tensor_adaptor.h"
 
 // Application includes
 
@@ -40,25 +40,22 @@ public:
     ///@name Static operations
     ///@{
 
-    template<class TContainerType>
-    static ContainerExpression<TContainerType> ProjectForward(
-        const ContainerExpression<TContainerType>& rInputExpression,
+    static TensorAdaptor<double>::Pointer ProjectForward(
+        const TensorAdaptor<double>& rInputTensorAdaptor,
         const std::vector<double>& rXValues,
         const std::vector<double>& rYValues,
         const double Beta,
         const int PenaltyFactor);
 
-    template<class TContainerType>
-    static ContainerExpression<TContainerType> ProjectBackward(
-        const ContainerExpression<TContainerType>& rInputExpression,
+    static TensorAdaptor<double>::Pointer ProjectBackward(
+        const TensorAdaptor<double>& rInputTensorAdaptor,
         const std::vector<double>& rXValues,
         const std::vector<double>& rYValues,
         const double Beta,
         const int PenaltyFactor);
 
-    template<class TContainerType>
-    static ContainerExpression<TContainerType> CalculateForwardProjectionGradient(
-        const ContainerExpression<TContainerType>& rInputExpression,
+    static TensorAdaptor<double>::Pointer CalculateForwardProjectionGradient(
+        const TensorAdaptor<double>& rInputTensorAdaptor,
         const std::vector<double>& rXValues,
         const std::vector<double>& rYValues,
         const double Beta,

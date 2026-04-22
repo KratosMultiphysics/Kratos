@@ -1,4 +1,5 @@
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+from KratosMultiphysics.GeoMechanicsApplication.gid_output_file_reader import GiDOutputFileReader
 import test_helper
 import os.path
 
@@ -14,7 +15,7 @@ class KratosGeoMechanicsApplyInitialUniformStressFieldTests(KratosUnittest.TestC
     def test_application_of_uniform_stress_field(self):
         output = self.run_simulation("apply_initial_uniform_stress_field")
         stress_vectors = (
-            test_helper.GiDOutputFileReader.element_integration_point_values_at_time(
+            GiDOutputFileReader.element_integration_point_values_at_time(
                 "CAUCHY_STRESS_VECTOR", 1.0, output, [1]
             )[0]
         )
@@ -29,7 +30,7 @@ class KratosGeoMechanicsApplyInitialUniformStressFieldTests(KratosUnittest.TestC
         file_path = test_helper.get_file_path(test_name)
         test_helper.run_kratos(file_path)
         output_file_path = os.path.join(file_path, "output.post.res")
-        output_reader = test_helper.GiDOutputFileReader()
+        output_reader = GiDOutputFileReader()
         return output_reader.read_output_from(output_file_path)
 
 

@@ -1,6 +1,7 @@
 import os
 
 import KratosMultiphysics as Kratos
+import KratosMultiphysics.GeoMechanicsApplication as KratosGeo
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import test_helper
 
@@ -110,8 +111,8 @@ class KratosGeoMechanicsSurfaceInterfaceElementTests(KratosUnittest.TestCase):
 
     def assert_outputs_for_surface_interface_element(self, simulation, number_of_nodes, number_of_integration_points, number_of_elements):
         displacements = test_helper.get_displacement(simulation)
-        tractions = test_helper.get_on_integration_points(simulation, Kratos.CAUCHY_STRESS_VECTOR)
-        relative_displacements = test_helper.get_on_integration_points(simulation, Kratos.STRAIN)
+        tractions = test_helper.get_on_integration_points(simulation, KratosGeo.GEO_EFFECTIVE_TRACTION_VECTOR)
+        relative_displacements = test_helper.get_on_integration_points(simulation, KratosGeo.GEO_RELATIVE_DISPLACEMENT_VECTOR)
 
         shear_traction = -667.0
         expected_shear_displacement = shear_traction / self.shear_stiffness
@@ -190,7 +191,7 @@ class KratosGeoMechanicsSurfaceInterfaceElementTests(KratosUnittest.TestCase):
             self.assertAlmostEqual(displacements[index][1], expected_normal_displacement)
             self.assertAlmostEqual(displacements[index][2], expected_shear_displacement)
 
-        tractions = test_helper.get_on_integration_points(simulation, Kratos.CAUCHY_STRESS_VECTOR)
+        tractions = test_helper.get_on_integration_points(simulation, KratosGeo.GEO_EFFECTIVE_TRACTION_VECTOR)
         node_index = 0
         tractions_horizontal_element = tractions[node_index]
         for index in range(number_of_integration_points):
@@ -198,7 +199,7 @@ class KratosGeoMechanicsSurfaceInterfaceElementTests(KratosUnittest.TestCase):
             self.assertAlmostEqual(tractions_horizontal_element[index][1], shear_traction)
             self.assertAlmostEqual(tractions_horizontal_element[index][2], shear_traction)
 
-        relative_displacements = test_helper.get_on_integration_points(simulation, Kratos.STRAIN)
+        relative_displacements = test_helper.get_on_integration_points(simulation, KratosGeo.GEO_RELATIVE_DISPLACEMENT_VECTOR)
         relative_displacements_horizontal_element = relative_displacements[node_index]
         for index in range(number_of_integration_points):
             self.assertAlmostEqual(relative_displacements_horizontal_element[index][0], expected_normal_displacement)

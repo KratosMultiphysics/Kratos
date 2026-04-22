@@ -42,7 +42,6 @@
               "scaling": true
         },
         "problem_domain_sub_model_part_list": ["soil"],
-        "processes_sub_model_part_list":      ["Init", "SideX0", "SideX1", "SideY0", "SideY1", "SideZ0", "SideZ1"],
         "body_domain_sub_model_part_list":    ["soil"]
     },
     "output_processes": {

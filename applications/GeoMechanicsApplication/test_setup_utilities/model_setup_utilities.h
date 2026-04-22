@@ -26,9 +26,20 @@ class ModelPart;
 
 namespace Kratos::Testing
 {
+
+struct NodeDefinition {
+    std::size_t id       = 1;
+    Point       position = {0.0, 0.0, 0.0};
+};
+
+using NodeDefinitionVector = std::vector<NodeDefinition>;
+
 class KRATOS_API(KRATOS_GEO_TEST_UTILS) ModelSetupUtilities
 {
 public:
+    static PointerVector<Node> CreateNodes(const NodeDefinitionVector& rNodeDefinitions);
+    static PointerVector<Node> CreateNodes(ModelPart& rModelPart, const NodeDefinitionVector& rNodeDefinitions);
+
     static ModelPart& CreateModelPartWithASingle2D3NElement(Model& rModel,
                                                             const Geo::ConstVariableRefs& rNodalVariables = {});
 
@@ -59,6 +70,8 @@ public:
     static ModelPart&          CreateModelPartWithASingle3D10NUPwDiffOrderElement(Model& rModel);
     static Triangle2D3<Node>   Create2D3NTriangleGeometry();
     static Tetrahedra3D4<Node> Create3D4NTetrahedraGeometry();
+    static void CreateNumberOfNewNodes(ModelPart& rModelPart, std::size_t NumberOfNodes);
+    static PointerVector<Node> GetNodesFromIds(ModelPart& rModelPart, const std::vector<std::size_t>& rNodeIds);
 };
 
 } // namespace Kratos::Testing

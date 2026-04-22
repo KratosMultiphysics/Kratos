@@ -9,7 +9,7 @@
 //
 //  Main authors:    Anne van de Graaf
 //
-#include "registration_utilities.h"
+#include "registration_utilities.hpp"
 
 namespace Kratos
 {

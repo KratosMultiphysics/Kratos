@@ -14,9 +14,8 @@
 #pragma once
 
 #include "containers/variable.h"
+#include "geo_mechanics_application_constants.h"
 #include "includes/constitutive_law.h"
-
-#include <optional>
 
 namespace Kratos
 {
@@ -35,17 +34,42 @@ public:
                                           double                       detF);
 
     static double GetCohesion(const Properties& rProperties);
+    static bool   HasFrictionAngle(const Properties& rProperties);
+    static void   ValidateFrictionAngle(const Properties& rProperties, IndexType ElementId);
     static double GetFrictionAngleInDegrees(const Properties& rProperties);
     static double GetFrictionAngleInRadians(const Properties& rProperties);
 
-    static Matrix MakeInterfaceConstitutiveMatrix(double      NormalStiffness,
-                                                  double      ShearStiffness,
-                                                  std::size_t TractionSize,
-                                                  std::size_t NumberOfNormalComponents);
+    static std::pair<double, double> GetOrCalculateElasticProperties(const Properties& rProperties,
+                                                                     bool Undrained = false);
+
+    static Matrix MakeInterfaceElasticConstitutiveTensor(double      NormalStiffness,
+                                                         double      ShearStiffness,
+                                                         std::size_t TractionSize,
+                                                         std::size_t NumberOfNormalComponents);
 
     static void CheckStrainSize(const Properties& rProperties, std::size_t ExpectedSize, std::size_t ElementId);
 
     static void CheckHasStrainMeasure_Infinitesimal(const Properties& rProperties, std::size_t ElementId);
+
+    [[nodiscard]] static double CalculateK0NCFromFrictionAngleInRadians(double FrictionAngleInRadians);
+
+    [[nodiscard]] static double CalculateUndrainedYoungsModulus(const Properties& rProperties,
+                                                                double UndrainedPoissonsRatio);
+
+    [[nodiscard]] static double CalculateUndrainedPoissonsRatio(const Properties& rProperties);
+
+    [[nodiscard]] static double GetOrCalculateUndrainedPoissonsRatio(const Properties& rProperties);
+
+    [[nodiscard]] static double GetOrCalculateSkemptonB(const Properties& rProperties);
+
+    [[nodiscard]] static Matrix MakeContinuumElasticConstitutiveTensor(double      YoungsModulus,
+                                                                       double      PoissonsRatio,
+                                                                       std::size_t StrainSize,
+                                                                       std::size_t NumberOfNormalComponents);
+
+    [[nodiscard]] static DrainageType StringToDrainageType(const std::string& rDrainageTypeName);
+    [[nodiscard]] static bool         IsConstantWaterPressure(const Properties& rProperties);
+    static void                       ReplaceIgnoreUndrainedByDrainageType(Properties& rProperties);
 
 }; /* Class ConstitutiveLawUtilities*/
 

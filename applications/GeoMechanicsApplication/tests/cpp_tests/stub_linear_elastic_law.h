@@ -19,6 +19,9 @@ namespace Kratos::Testing
 
 class StubLinearElasticLaw : public Kratos::GeoLinearElasticLaw
 {
+public:
+    [[nodiscard]] std::string Info() const override;
+
 protected:
     void CalculateElasticMatrix(Matrix& rConstitutiveMatrix, Parameters& rValues) override;
     void CalculatePK2Stress(const Vector& rStrainVector, Vector& rStressVector, Parameters& rValues) override;

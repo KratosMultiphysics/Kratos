@@ -90,17 +90,10 @@ KRATOS_TEST_CASE_IN_SUITE(SetUpEffectiveDofArray, KratosCoreFastSuite)
 
     // Set up the effective DOFs array
     DofArrayUtilities::DofsArrayType eff_dofs_array;
-    DofArrayUtilities::SlaveToMasterDofsMap slave_to_master_dofs_map;
-    DofArrayUtilities::SetUpEffectiveDofArray(r_model_part, dofs_array, eff_dofs_array, slave_to_master_dofs_map);
+    DofArrayUtilities::SetUpEffectiveDofArray(r_model_part, dofs_array, eff_dofs_array);
 
     // Check results
     KRATOS_CHECK_EQUAL(eff_dofs_array.size(), 14);
-    KRATOS_CHECK_EQUAL(slave_to_master_dofs_map.size(), 2);
-    auto p_master_dof_of_3 = slave_to_master_dofs_map[r_model_part.GetNode(3).pGetDof(DISTANCE)][0];
-    auto p_master_dof_of_4 = slave_to_master_dofs_map[r_model_part.GetNode(4).pGetDof(DISTANCE)][0];
-    auto p_expected_master_dof = r_model_part.GetNode(1).pGetDof(DISTANCE);
-    KRATOS_CHECK_EQUAL(p_master_dof_of_3, p_expected_master_dof);
-    KRATOS_CHECK_EQUAL(p_master_dof_of_4, p_expected_master_dof);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(SetDofEquationIds, KratosCoreFastSuite)
@@ -145,8 +138,7 @@ KRATOS_TEST_CASE_IN_SUITE(SetDofEquationIdsWithConstraints, KratosCoreFastSuite)
 
     // Set up the effective DOFs array
     DofArrayUtilities::DofsArrayType eff_dofs_array;
-    DofArrayUtilities::SlaveToMasterDofsMap slave_to_master_dofs_map;
-    DofArrayUtilities::SetUpEffectiveDofArray(r_model_part, dofs_array, eff_dofs_array, slave_to_master_dofs_map);
+    DofArrayUtilities::SetUpEffectiveDofArray(r_model_part, dofs_array, eff_dofs_array);
 
     // Set up the DOF equation ids
     DofArrayUtilities::SetDofEquationIds(dofs_array);

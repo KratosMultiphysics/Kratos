@@ -282,14 +282,26 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "Updated Lagrangian Solid Element #" << Id() << "\nConstitutive law: " << BaseType::mConstitutiveLawVector[0]->Info();
+        buffer << "Updated Lagrangian Solid Element #" << Id();
+        if (!BaseType::mConstitutiveLawVector.empty()
+            && BaseType::mConstitutiveLawVector[0] != nullptr) {
+          buffer << "\nConstitutive law: " << BaseType::mConstitutiveLawVector[0]->Info();
+        } else {
+          buffer << " (no constitutive law)";
+        }
         return buffer.str();
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "Updated Lagrangian Solid Element #" << Id() << "\nConstitutive law: " << BaseType::mConstitutiveLawVector[0]->Info();
+        rOStream << "Updated Lagrangian Solid Element #" << Id();
+        if (!BaseType::mConstitutiveLawVector.empty()
+            && BaseType::mConstitutiveLawVector[0] != nullptr) {
+          rOStream << "\nConstitutive law: " << BaseType::mConstitutiveLawVector[0]->Info();
+        } else {
+          rOStream << " (no constitutive law)";
+        }
     }
 
     /// Print object's data.

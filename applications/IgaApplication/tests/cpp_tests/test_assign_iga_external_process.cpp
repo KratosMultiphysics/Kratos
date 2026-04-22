@@ -34,7 +34,7 @@ KRATOS_TEST_CASE_IN_SUITE(AssignIgaConditionProcessTest, KratosIgaFastSuite)
 
     convection_diffusion_domain_sub_model_part.CreateNewNode(1, 1.0, 2.0, 0.0);
     convection_diffusion_domain_sub_model_part.CreateNewNode(2, 1.0, 2.0, 0.0); 
-    convection_diffusion_domain_sub_model_part.CreateNewElement("LaplacianIGAElement", 1, {{1,2}}, 0);
+    convection_diffusion_domain_sub_model_part.CreateNewElement("LaplacianElement", 1, {{1,2}}, 0);
     
     sbm_outer_sub_model_part.CreateNewCondition("SbmLaplacianConditionDirichlet", 1, {{1,2}}, 0);
 

@@ -27,7 +27,6 @@
     "clear_storage"                   : false,
     "compute_reactions"               : true,
     "reform_dofs_at_each_step"        : false,
-    "nodal_smoothing"                 : false,
     "block_builder"                   : true,
     "solution_type"                   : "Quasi-Static",
     "scheme_type"                     : "Backward_Euler",
@@ -53,15 +52,6 @@
       "scaling": true
     },
     "problem_domain_sub_model_part_list": ["Soil-0"],
-    "processes_sub_model_part_list"   : ["gravity",
-                                         "PhreaticLineContactStress0",
-                                         "TopWaterPressure",
-                                         "Bottom1",
-                                         "BottomWaterPressure",
-                                         "LeftSide",
-                                         "RightSide",
-                                         "K0_model_part",
-                                         "Head_line0"],
     "body_domain_sub_model_part_list" : ["Soil-0"],
     "move_mesh_flag"                  : false
   },
@@ -123,8 +113,8 @@
         "Parameters": {
           "model_part_name"        : "PorousDomain.Bottom1",
           "variable_name"          : "DISPLACEMENT",
-          "active"                 : [true, true, true],
-          "is_fixed"               : [true, true, true],
+          "active"                 : [true, true, false],
+          "is_fixed"               : [true, true, false],
           "value"                  : [0.0, 0.0, 0.0],
           "table"                  : [0, 0, 0]
         }
@@ -152,23 +142,10 @@
         "kratos_module"            : "KratosMultiphysics.GeoMechanicsApplication",
         "process_name"             : "ApplyVectorConstraintTableProcess",
         "Parameters": {
-          "model_part_name"        : "PorousDomain.LeftSide",
+          "model_part_name_list"   : ["PorousDomain.LeftSide", "PorousDomain.RightSide"],
           "variable_name"          : "DISPLACEMENT",
-          "active"                 : [true, false, true],
-          "is_fixed"               : [true, false, true],
-          "value"                  : [0.0, 0.0, 0.0],
-          "table"                  : [0, 0, 0]
-        }
-      },
-      {
-        "python_module"            : "apply_vector_constraint_table_process",
-        "kratos_module"            : "KratosMultiphysics.GeoMechanicsApplication",
-        "process_name"             : "ApplyVectorConstraintTableProcess",
-        "Parameters": {
-          "model_part_name"        : "PorousDomain.RightSide",
-          "variable_name"          : "DISPLACEMENT",
-          "active"                 : [true, false, true],
-          "is_fixed"               : [true, false, true],
+          "active"                 : [true, false, false],
+          "is_fixed"               : [true, false, false],
           "value"                  : [0.0, 0.0, 0.0],
           "table"                  : [0, 0, 0]
         }

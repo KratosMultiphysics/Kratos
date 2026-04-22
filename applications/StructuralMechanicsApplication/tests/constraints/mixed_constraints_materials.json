@@ -1,0 +1,19 @@
+{
+    "properties": [
+        {
+            "model_part_name": "root",
+            "properties_id": 1,
+            "Material": {
+                "constitutive_law": {
+                    "name": "LinearElasticPlaneStress2DLaw"
+                },
+                "Variables": {
+                    "DENSITY": 1.0,
+                    "YOUNG_MODULUS": 1.0,
+                    "POISSON_RATIO": 0.3
+                },
+                "Tables": null
+            }
+        }
+    ]
+}
