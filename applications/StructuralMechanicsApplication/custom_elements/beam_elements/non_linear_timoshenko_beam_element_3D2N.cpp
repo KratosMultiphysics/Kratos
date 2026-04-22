@@ -544,14 +544,14 @@ void NonLinearTimoshenkoBeamElement3D2N::CalculateAndAddKg(
     Km.clear();
     BoundedMatrix<double, 6, 6> Kn_ab, Km_ab; // submatrices
     BoundedMatrix<double, 3, 3> Gi_ab;
-    Kn_ab.clear();
-    Km_ab.clear();
     array3 di_a, di_b, dk_s, dk, di, di_s;
 
     const IndexType block_size = 6; // 3 displ + 3 rot
 
     for (IndexType a = 0; a < 2; ++a) {
         for (IndexType b = 0; b < 2; ++b) {
+            Kn_ab.clear();
+            Km_ab.clear();
 
             for (IndexType i = 0; i < 3; ++i) { // Loop over the vector directors
                 noalias(di_s) = dN[0] * column(mRotationOperators[0], i) + dN[0] * column(mRotationOperators[1], i);
@@ -560,9 +560,9 @@ void NonLinearTimoshenkoBeamElement3D2N::CalculateAndAddKg(
                 noalias(di_b) = column(mRotationOperators[b], i);
 
                 // Shear and axial submatrix
-                noalias(project(Kn_ab, range(0, 3), range(3, 6))) = -dN[a] * N[b] * Q[i] * CL_utils::CalculateSpinMatrix(di_b); // i director vector
-                noalias(project(Kn_ab, range(3, 6), range(0, 3))) = N[a] * dN[b] * Q[i] * CL_utils::CalculateSpinMatrix(di);
-                noalias(project(Kn_ab, range(3, 6), range(3, 6))) = delta(a, b) * N[a] * Q[i] * (outer_prod(di_a, dr) - (inner_prod(di_a, dr) * IdentityMatrix(3)));
+                noalias(project(Kn_ab, range(0, 3), range(3, 6))) += -dN[a] * N[b] * Q[i] * CL_utils::CalculateSpinMatrix(di_b); // i director vector
+                noalias(project(Kn_ab, range(3, 6), range(0, 3))) += N[a] * dN[b] * Q[i] * CL_utils::CalculateSpinMatrix(di);
+                noalias(project(Kn_ab, range(3, 6), range(3, 6))) += delta(a, b) * N[a] * Q[i] * (outer_prod(di_a, dr) - (inner_prod(di_a, dr) * IdentityMatrix(3)));
 
                 // Bending submatrix
                 Gi_ab.clear();
@@ -578,7 +578,7 @@ void NonLinearTimoshenkoBeamElement3D2N::CalculateAndAddKg(
                     } // k loop
                 } // j loop
                 Gi_ab *= 0.5 * M[i];
-                noalias(project(Km_ab, range(3, 6), range(3, 6))) = -prod(CL_utils::CalculateSpinMatrix(di_b), Gi_ab);
+                noalias(project(Km_ab, range(3, 6), range(3, 6))) -= prod(Gi_ab, CL_utils::CalculateSpinMatrix(di_b));
             } // i loop
 
             noalias(project(Kn, range(a * block_size, a * block_size + block_size), range(range(b * block_size, b * block_size + block_size)))) = Kn_ab; // CHECK 1/2 ???
