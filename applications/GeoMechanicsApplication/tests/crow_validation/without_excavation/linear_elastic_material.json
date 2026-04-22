@@ -8,7 +8,7 @@
                     "name": "GeoLinearElasticPlaneStrain2DLaw"
                 },
                 "Variables": {
-                    "IGNORE_UNDRAINED": true,
+                    "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
                     "DENSITY_SOLID": 2.65035e+03,
                     "DENSITY_WATER": 1.01937e+03,
                     "POROSITY": 0.5,
@@ -38,7 +38,7 @@
                     "name": "GeoLinearElasticPlaneStrain2DLaw"
                 },
                 "Variables": {
-                    "IGNORE_UNDRAINED": true,
+                    "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
                     "DENSITY_SOLID": 2.65035e+03,
                     "DENSITY_WATER": 1.01937e+03,
                     "POROSITY": 0.5,
@@ -68,7 +68,7 @@
                     "name": "GeoLinearElasticPlaneStrain2DLaw"
                 },
                 "Variables": {
-                    "IGNORE_UNDRAINED": true,
+                    "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
                     "DENSITY_SOLID": 2.65035e+03,
                     "DENSITY_WATER": 1.01937e+03,
                     "POROSITY": 0.5,
@@ -98,7 +98,7 @@
                     "name": "GeoLinearElasticPlaneStrain2DLaw"
                 },
                 "Variables": {
-                    "IGNORE_UNDRAINED": true,
+                    "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
                     "DENSITY_SOLID": 2.65035e+03,
                     "DENSITY_WATER": 1.01937e+03,
                     "POROSITY": 0.5,
@@ -128,7 +128,7 @@
                     "name": "GeoLinearElasticPlaneStrain2DLaw"
                 },
                 "Variables": {
-                    "IGNORE_UNDRAINED": true,
+                    "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
                     "DENSITY_SOLID": 2.47561e+03,
                     "DENSITY_WATER": 1.01937e+03,
                     "POROSITY": 0.3,
@@ -158,7 +158,7 @@
                     "name": "GeoLinearElasticPlaneStrain2DLaw"
                 },
                 "Variables": {
-                    "IGNORE_UNDRAINED": true,
+                    "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
                     "DENSITY_SOLID": 2.47561e+03,
                     "DENSITY_WATER": 1.01937e+03,
                     "POROSITY": 0.3,
@@ -188,7 +188,7 @@
                     "name": "GeoLinearElasticPlaneStrain2DLaw"
                 },
                 "Variables": {
-                    "IGNORE_UNDRAINED": true,
+                    "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
                     "DENSITY_SOLID": 2.65035e+03,
                     "DENSITY_WATER": 1.01937e+03,
                     "POROSITY": 0.5,
@@ -218,7 +218,7 @@
                     "name": "GeoLinearElasticPlaneStrain2DLaw"
                 },
                 "Variables": {
-                    "IGNORE_UNDRAINED": true,
+                    "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
                     "DENSITY_SOLID": 2.65035e+03,
                     "DENSITY_WATER": 1.01937e+03,
                     "POROSITY": 0.5,
@@ -248,7 +248,7 @@
                     "name": "GeoIncrementalLinearElasticInterfaceLaw"
                 },
                 "Variables": {
-                    "IGNORE_UNDRAINED": true,
+                    "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
                     "INTERFACE_NORMAL_STIFFNESS": 4.615e+07,
                     "INTERFACE_SHEAR_STIFFNESS": 4.615e+06,
                     "BIOT_COEFFICIENT"              : 1.0,
@@ -267,7 +267,7 @@
                     "name": "GeoIncrementalLinearElasticInterfaceLaw"
                 },
                 "Variables": {
-                    "IGNORE_UNDRAINED": true,
+                    "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
                     "INTERFACE_NORMAL_STIFFNESS": 4.615e+07,
                     "INTERFACE_SHEAR_STIFFNESS": 4.615e+06,
                     "BIOT_COEFFICIENT"              : 1.0,
@@ -286,7 +286,7 @@
                     "name": "GeoIncrementalLinearElasticInterfaceLaw"
                 },
                 "Variables": {
-                    "IGNORE_UNDRAINED": true,
+                    "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
                     "INTERFACE_NORMAL_STIFFNESS": 4.615e+06,
                     "INTERFACE_SHEAR_STIFFNESS": 4.615e+06,
                     "BIOT_COEFFICIENT"              : 1.0,
@@ -305,7 +305,7 @@
                     "name": "GeoIncrementalLinearElasticInterfaceLaw"
                 },
                 "Variables": {
-                    "IGNORE_UNDRAINED": true,
+                    "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
                     "INTERFACE_NORMAL_STIFFNESS": 4.615e+07,
                     "INTERFACE_SHEAR_STIFFNESS": 4.615e+06,
                     "BIOT_COEFFICIENT"              : 1.0,
@@ -324,7 +324,7 @@
                     "name": "GeoIncrementalLinearElasticInterfaceLaw"
                 },
                 "Variables": {
-                    "IGNORE_UNDRAINED": true,
+                    "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
                     "INTERFACE_NORMAL_STIFFNESS": 4.615e+07,
                     "INTERFACE_SHEAR_STIFFNESS": 4.615e+06,
                     "BIOT_COEFFICIENT"              : 1.0,
@@ -343,7 +343,7 @@
                     "name": "GeoIncrementalLinearElasticInterfaceLaw"
                 },
                 "Variables": {
-                    "IGNORE_UNDRAINED": true,
+                    "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
                     "INTERFACE_NORMAL_STIFFNESS": 4.615e+07,
                     "INTERFACE_SHEAR_STIFFNESS": 4.615e+06,
                     "BIOT_COEFFICIENT"              : 1.0,
@@ -362,7 +362,7 @@
                     "name": "GeoIncrementalLinearElasticInterfaceLaw"
                 },
                 "Variables": {
-                    "IGNORE_UNDRAINED": true,
+                    "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
                     "INTERFACE_NORMAL_STIFFNESS": 4.615e+07,
                     "INTERFACE_SHEAR_STIFFNESS": 4.615e+06,
                     "BIOT_COEFFICIENT"              : 1.0,
@@ -381,7 +381,7 @@
                     "name": "GeoIncrementalLinearElasticInterfaceLaw"
                 },
                 "Variables": {
-                    "IGNORE_UNDRAINED": true,
+                    "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
                     "INTERFACE_NORMAL_STIFFNESS": 4.615e+06,
                     "INTERFACE_SHEAR_STIFFNESS": 4.615e+06,
                     "BIOT_COEFFICIENT"              : 1.0,
