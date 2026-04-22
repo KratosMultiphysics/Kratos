@@ -200,7 +200,8 @@ void MohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(ConstitutiveL
     const auto& r_properties = rParameters.GetMaterialProperties();
 
     if (rParameters.GetOptions().Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
-        rParameters.GetConstitutiveMatrix() = mpConstitutiveDimension->CalculateElasticMatrix(r_properties);
+        rParameters.GetConstitutiveMatrix() =
+            mpConstitutiveDimension->CalculateElasticConstitutiveTensor(r_properties);
     }
     if (!rParameters.GetOptions().Is(ConstitutiveLaw::COMPUTE_STRESS)) {
         return;
@@ -215,7 +216,7 @@ void MohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(ConstitutiveL
     } else {
         mCoulombWithTensionCutOffImpl.SaveKappaOfCoulombYieldSurface();
         auto mapped_principal_stresses = mCoulombWithTensionCutOffImpl.DoReturnMapping(
-            trial_principal_stresses, mpConstitutiveDimension->CalculateElasticMatrix(r_properties),
+            trial_principal_stresses, mpConstitutiveDimension->CalculateElasticConstitutiveTensor(r_properties),
             Geo::PrincipalStresses::AveragingType::NO_AVERAGING);
 
         // For interchanging principal stresses, retry mapping with averaged principal stresses.
@@ -226,7 +227,7 @@ void MohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(ConstitutiveL
             mCoulombWithTensionCutOffImpl.RestoreKappaOfCoulombYieldSurface();
             mapped_principal_stresses = mCoulombWithTensionCutOffImpl.DoReturnMapping(
                 averaged_principal_trial_stress_vector,
-                mpConstitutiveDimension->CalculateElasticMatrix(r_properties), averaging_type);
+                mpConstitutiveDimension->CalculateElasticConstitutiveTensor(r_properties), averaging_type);
             mapped_principal_stresses.Values()[1] =
                 mapped_principal_stresses.Values()[AveragingTypeToArrayIndex(averaging_type)];
         }
@@ -240,7 +241,7 @@ void MohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(ConstitutiveL
 Vector MohrCoulombWithTensionCutOff::CalculateTrialStressVector(const Vector&     rStrainVector,
                                                                 const Properties& rProperties) const
 {
-    return mStressVectorFinalized + prod(mpConstitutiveDimension->CalculateElasticMatrix(rProperties),
+    return mStressVectorFinalized + prod(mpConstitutiveDimension->CalculateElasticConstitutiveTensor(rProperties),
                                          rStrainVector - mStrainVectorFinalized);
 }
 
