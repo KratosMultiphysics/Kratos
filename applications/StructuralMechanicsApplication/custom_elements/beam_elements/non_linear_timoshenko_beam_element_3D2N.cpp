@@ -483,7 +483,7 @@ void NonLinearTimoshenkoBeamElement3D2N::CalculateAll(
     // Loop over the integration points
     for (IndexType IP = 0; IP < r_integration_points.size(); ++IP) {
         const double xi = r_integration_points[IP].X();
-        const double weight = integration_points[IP].Weight() * J;
+        const double weight = r_integration_points[IP].Weight() * J;
         N1 = 0.5 * (1.0 - xi);
         N2 = 0.5 * (1.0 + xi);
 
