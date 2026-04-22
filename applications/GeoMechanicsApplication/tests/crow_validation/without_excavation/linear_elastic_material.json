@@ -12,19 +12,19 @@
                     "DENSITY_SOLID": 2.65035e+03,
                     "DENSITY_WATER": 1.01937e+03,
                     "POROSITY": 0.5,
-                    "BULK_MODULUS_SOLID": 1e+09,
-                    "BULK_MODULUS_FLUID": 2e+06,
+                    "BULK_MODULUS_SOLID": 1.0e+09,
+                    "BULK_MODULUS_FLUID": 2.0e+06,
                     "PERMEABILITY_XX": 1.02e-11,
                     "PERMEABILITY_YY": 1.02e-11,
                     "PERMEABILITY_XY": 0.0,
-                    "DYNAMIC_VISCOSITY": 1e-03,
+                    "DYNAMIC_VISCOSITY": 1.0e-03,
                     "YOUNG_MODULUS": 1.2e+07,
                     "POISSON_RATIO": 0.3,
                     "BIOT_COEFFICIENT": 1.0,
                     "RETENTION_LAW": "SaturatedBelowPhreaticLevelLaw",
                     "SATURATED_SATURATION": 1.0,
-                    "RESIDUAL_SATURATION": 1e-10,
-                    "MINIMUM_RELATIVE_PERMEABILITY": 1e-04,
+                    "RESIDUAL_SATURATION": 1.0e-10,
+                    "MINIMUM_RELATIVE_PERMEABILITY": 1.0e-04,
                     "K0_MAIN_DIRECTION": 1,
                     "K0_NC": 0.62
                 }
@@ -42,19 +42,19 @@
                     "DENSITY_SOLID": 2.65035e+03,
                     "DENSITY_WATER": 1.01937e+03,
                     "POROSITY": 0.5,
-                    "BULK_MODULUS_SOLID": 1e+09,
-                    "BULK_MODULUS_FLUID": 2e+06,
+                    "BULK_MODULUS_SOLID": 1.0e+09,
+                    "BULK_MODULUS_FLUID": 2.0e+06,
                     "PERMEABILITY_XX": 1.02e-11,
                     "PERMEABILITY_YY": 1.02e-11,
                     "PERMEABILITY_XY": 0.0,
-                    "DYNAMIC_VISCOSITY": 1e-03,
+                    "DYNAMIC_VISCOSITY": 1.0e-03,
                     "YOUNG_MODULUS": 1.2e+07,
                     "POISSON_RATIO": 0.3,
                     "BIOT_COEFFICIENT": 1.0,
                     "RETENTION_LAW": "SaturatedBelowPhreaticLevelLaw",
                     "SATURATED_SATURATION": 1.0,
-                    "RESIDUAL_SATURATION": 1e-10,
-                    "MINIMUM_RELATIVE_PERMEABILITY": 1e-04,
+                    "RESIDUAL_SATURATION": 1.0e-10,
+                    "MINIMUM_RELATIVE_PERMEABILITY": 1.0e-04,
                     "K0_MAIN_DIRECTION": 1,
                     "K0_NC": 0.62
                 }
@@ -72,19 +72,19 @@
                     "DENSITY_SOLID": 2.65035e+03,
                     "DENSITY_WATER": 1.01937e+03,
                     "POROSITY": 0.5,
-                    "BULK_MODULUS_SOLID": 1e+09,
-                    "BULK_MODULUS_FLUID": 2e+06,
+                    "BULK_MODULUS_SOLID": 1.0e+09,
+                    "BULK_MODULUS_FLUID": 2.0e+06,
                     "PERMEABILITY_XX": 1.02e-11,
                     "PERMEABILITY_YY": 1.02e-11,
                     "PERMEABILITY_XY": 0.0,
-                    "DYNAMIC_VISCOSITY": 1e-03,
+                    "DYNAMIC_VISCOSITY": 1.0e-03,
                     "YOUNG_MODULUS": 1.2e+07,
                     "POISSON_RATIO": 0.3,
                     "BIOT_COEFFICIENT": 1.0,
                     "RETENTION_LAW": "SaturatedBelowPhreaticLevelLaw",
                     "SATURATED_SATURATION": 1.0,
-                    "RESIDUAL_SATURATION": 1e-10,
-                    "MINIMUM_RELATIVE_PERMEABILITY": 1e-04,
+                    "RESIDUAL_SATURATION": 1.0e-10,
+                    "MINIMUM_RELATIVE_PERMEABILITY": 1.0e-04,
                     "K0_MAIN_DIRECTION": 1,
                     "K0_NC": 0.62
                 }
@@ -102,19 +102,19 @@
                     "DENSITY_SOLID": 2.65035e+03,
                     "DENSITY_WATER": 1.01937e+03,
                     "POROSITY": 0.5,
-                    "BULK_MODULUS_SOLID": 1e+09,
-                    "BULK_MODULUS_FLUID": 2e+06,
+                    "BULK_MODULUS_SOLID": 1.0e+09,
+                    "BULK_MODULUS_FLUID": 2.0e+06,
                     "PERMEABILITY_XX": 1.02e-11,
                     "PERMEABILITY_YY": 1.02e-11,
                     "PERMEABILITY_XY": 0.0,
-                    "DYNAMIC_VISCOSITY": 1e-03,
+                    "DYNAMIC_VISCOSITY": 1.0e-03,
                     "YOUNG_MODULUS": 1.2e+07,
                     "POISSON_RATIO": 0.3,
                     "BIOT_COEFFICIENT": 1.0,
                     "RETENTION_LAW": "SaturatedBelowPhreaticLevelLaw",
                     "SATURATED_SATURATION": 1.0,
-                    "RESIDUAL_SATURATION": 1e-10,
-                    "MINIMUM_RELATIVE_PERMEABILITY": 1e-04,
+                    "RESIDUAL_SATURATION": 1.0e-10,
+                    "MINIMUM_RELATIVE_PERMEABILITY": 1.0e-04,
                     "K0_MAIN_DIRECTION": 1,
                     "K0_NC": 0.62
                 }
@@ -132,19 +132,19 @@
                     "DENSITY_SOLID": 2.47561e+03,
                     "DENSITY_WATER": 1.01937e+03,
                     "POROSITY": 0.3,
-                    "BULK_MODULUS_SOLID": 1e+09,
-                    "BULK_MODULUS_FLUID": 2e+06,
+                    "BULK_MODULUS_SOLID": 1.0e+09,
+                    "BULK_MODULUS_FLUID": 2.0e+06,
                     "PERMEABILITY_XX": 1.02e-11,
                     "PERMEABILITY_YY": 1.02e-11,
                     "PERMEABILITY_XY": 0.0,
-                    "DYNAMIC_VISCOSITY": 1e-03,
-                    "YOUNG_MODULUS": 3e+07,
+                    "DYNAMIC_VISCOSITY": 1.0e-03,
+                    "YOUNG_MODULUS": 3.0e+07,
                     "POISSON_RATIO": 0.3,
                     "BIOT_COEFFICIENT": 1.0,
                     "RETENTION_LAW": "SaturatedBelowPhreaticLevelLaw",
                     "SATURATED_SATURATION": 1.0,
-                    "RESIDUAL_SATURATION": 1e-10,
-                    "MINIMUM_RELATIVE_PERMEABILITY": 1e-04,
+                    "RESIDUAL_SATURATION": 1.0e-10,
+                    "MINIMUM_RELATIVE_PERMEABILITY": 1.0e-04,
                     "K0_MAIN_DIRECTION": 1,
                     "K0_NC": 0.46
                 }
@@ -162,19 +162,19 @@
                     "DENSITY_SOLID": 2.47561e+03,
                     "DENSITY_WATER": 1.01937e+03,
                     "POROSITY": 0.3,
-                    "BULK_MODULUS_SOLID": 1e+09,
-                    "BULK_MODULUS_FLUID": 2e+06,
+                    "BULK_MODULUS_SOLID": 1.0e+09,
+                    "BULK_MODULUS_FLUID": 2.0e+06,
                     "PERMEABILITY_XX": 1.02e-11,
                     "PERMEABILITY_YY": 1.02e-11,
                     "PERMEABILITY_XY": 0.0,
-                    "DYNAMIC_VISCOSITY": 1e-03,
-                    "YOUNG_MODULUS": 3e+07,
+                    "DYNAMIC_VISCOSITY": 1.0e-03,
+                    "YOUNG_MODULUS": 3.0e+07,
                     "POISSON_RATIO": 0.3,
                     "BIOT_COEFFICIENT": 1.0,
                     "RETENTION_LAW": "SaturatedBelowPhreaticLevelLaw",
                     "SATURATED_SATURATION": 1.0,
-                    "RESIDUAL_SATURATION": 1e-10,
-                    "MINIMUM_RELATIVE_PERMEABILITY": 1e-04,
+                    "RESIDUAL_SATURATION": 1.0e-10,
+                    "MINIMUM_RELATIVE_PERMEABILITY": 1.0e-04,
                     "K0_MAIN_DIRECTION": 1,
                     "K0_NC": 0.46
                 }
@@ -192,19 +192,19 @@
                     "DENSITY_SOLID": 2.65035e+03,
                     "DENSITY_WATER": 1.01937e+03,
                     "POROSITY": 0.5,
-                    "BULK_MODULUS_SOLID": 1e+09,
-                    "BULK_MODULUS_FLUID": 2e+06,
+                    "BULK_MODULUS_SOLID": 1.0e+09,
+                    "BULK_MODULUS_FLUID": 2.0e+06,
                     "PERMEABILITY_XX": 1.02e-11,
                     "PERMEABILITY_YY": 1.02e-11,
                     "PERMEABILITY_XY": 0.0,
-                    "DYNAMIC_VISCOSITY": 1e-03,
+                    "DYNAMIC_VISCOSITY": 1.0e-03,
                     "YOUNG_MODULUS": 1.2e+07,
                     "POISSON_RATIO": 0.3,
                     "BIOT_COEFFICIENT": 1.0,
                     "RETENTION_LAW": "SaturatedBelowPhreaticLevelLaw",
                     "SATURATED_SATURATION": 1.0,
-                    "RESIDUAL_SATURATION": 1e-10,
-                    "MINIMUM_RELATIVE_PERMEABILITY": 1e-04,
+                    "RESIDUAL_SATURATION": 1.0e-10,
+                    "MINIMUM_RELATIVE_PERMEABILITY": 1.0e-04,
                     "K0_MAIN_DIRECTION": 1,
                     "K0_NC": 0.62
                 }
@@ -222,19 +222,19 @@
                     "DENSITY_SOLID": 2.65035e+03,
                     "DENSITY_WATER": 1.01937e+03,
                     "POROSITY": 0.5,
-                    "BULK_MODULUS_SOLID": 1e+09,
-                    "BULK_MODULUS_FLUID": 2e+06,
+                    "BULK_MODULUS_SOLID": 1.0e+09,
+                    "BULK_MODULUS_FLUID": 2.0e+06,
                     "PERMEABILITY_XX": 1.02e-11,
                     "PERMEABILITY_YY": 1.02e-11,
                     "PERMEABILITY_XY": 0.0,
-                    "DYNAMIC_VISCOSITY": 1e-03,
+                    "DYNAMIC_VISCOSITY": 1.0e-03,
                     "YOUNG_MODULUS": 1.2e+07,
                     "POISSON_RATIO": 0.3,
                     "BIOT_COEFFICIENT": 1.0,
                     "RETENTION_LAW": "SaturatedBelowPhreaticLevelLaw",
                     "SATURATED_SATURATION": 1.0,
-                    "RESIDUAL_SATURATION": 1e-10,
-                    "MINIMUM_RELATIVE_PERMEABILITY": 1e-04,
+                    "RESIDUAL_SATURATION": 1.0e-10,
+                    "MINIMUM_RELATIVE_PERMEABILITY": 1.0e-04,
                     "K0_MAIN_DIRECTION": 1,
                     "K0_NC": 0.62
                 }
@@ -251,11 +251,11 @@
                     "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
                     "INTERFACE_NORMAL_STIFFNESS": 4.615e+07,
                     "INTERFACE_SHEAR_STIFFNESS": 4.615e+06,
-                    "BIOT_COEFFICIENT"              : 1.0,
-                    "RETENTION_LAW"                 : "SaturatedBelowPhreaticLevelLaw",
-                    "SATURATED_SATURATION"          : 1.0,
-                    "RESIDUAL_SATURATION"           : 1e-10,
-                    "MINIMUM_RELATIVE_PERMEABILITY" : 0.0001
+                    "BIOT_COEFFICIENT": 1.0,
+                    "RETENTION_LAW": "SaturatedBelowPhreaticLevelLaw",
+                    "SATURATED_SATURATION": 1.0,
+                    "RESIDUAL_SATURATION": 1.0e-10,
+                    "MINIMUM_RELATIVE_PERMEABILITY": 1.0e-04
                 }
             }
         },
@@ -270,11 +270,11 @@
                     "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
                     "INTERFACE_NORMAL_STIFFNESS": 4.615e+07,
                     "INTERFACE_SHEAR_STIFFNESS": 4.615e+06,
-                    "BIOT_COEFFICIENT"              : 1.0,
-                    "RETENTION_LAW"                 : "SaturatedBelowPhreaticLevelLaw",
-                    "SATURATED_SATURATION"          : 1.0,
-                    "RESIDUAL_SATURATION"           : 1e-10,
-                    "MINIMUM_RELATIVE_PERMEABILITY" : 0.0001
+                    "BIOT_COEFFICIENT": 1.0,
+                    "RETENTION_LAW": "SaturatedBelowPhreaticLevelLaw",
+                    "SATURATED_SATURATION": 1.0,
+                    "RESIDUAL_SATURATION": 1.0e-10,
+                    "MINIMUM_RELATIVE_PERMEABILITY": 1.0e-04
                 }
             }
         },
@@ -289,11 +289,11 @@
                     "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
                     "INTERFACE_NORMAL_STIFFNESS": 4.615e+06,
                     "INTERFACE_SHEAR_STIFFNESS": 4.615e+06,
-                    "BIOT_COEFFICIENT"              : 1.0,
-                    "RETENTION_LAW"                 : "SaturatedBelowPhreaticLevelLaw",
-                    "SATURATED_SATURATION"          : 1.0,
-                    "RESIDUAL_SATURATION"           : 1e-10,
-                    "MINIMUM_RELATIVE_PERMEABILITY" : 0.0001
+                    "BIOT_COEFFICIENT": 1.0,
+                    "RETENTION_LAW": "SaturatedBelowPhreaticLevelLaw",
+                    "SATURATED_SATURATION": 1.0,
+                    "RESIDUAL_SATURATION": 1.0e-10,
+                    "MINIMUM_RELATIVE_PERMEABILITY": 1.0e-04
                 }
             }
         },
@@ -308,11 +308,11 @@
                     "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
                     "INTERFACE_NORMAL_STIFFNESS": 4.615e+07,
                     "INTERFACE_SHEAR_STIFFNESS": 4.615e+06,
-                    "BIOT_COEFFICIENT"              : 1.0,
-                    "RETENTION_LAW"                 : "SaturatedBelowPhreaticLevelLaw",
-                    "SATURATED_SATURATION"          : 1.0,
-                    "RESIDUAL_SATURATION"           : 1e-10,
-                    "MINIMUM_RELATIVE_PERMEABILITY" : 0.0001
+                    "BIOT_COEFFICIENT": 1.0,
+                    "RETENTION_LAW": "SaturatedBelowPhreaticLevelLaw",
+                    "SATURATED_SATURATION": 1.0,
+                    "RESIDUAL_SATURATION": 1.0e-10,
+                    "MINIMUM_RELATIVE_PERMEABILITY": 1.0e-04
                 }
             }
         },
@@ -327,11 +327,11 @@
                     "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
                     "INTERFACE_NORMAL_STIFFNESS": 4.615e+07,
                     "INTERFACE_SHEAR_STIFFNESS": 4.615e+06,
-                    "BIOT_COEFFICIENT"              : 1.0,
-                    "RETENTION_LAW"                 : "SaturatedBelowPhreaticLevelLaw",
-                    "SATURATED_SATURATION"          : 1.0,
-                    "RESIDUAL_SATURATION"           : 1e-10,
-                    "MINIMUM_RELATIVE_PERMEABILITY" : 0.0001
+                    "BIOT_COEFFICIENT": 1.0,
+                    "RETENTION_LAW": "SaturatedBelowPhreaticLevelLaw",
+                    "SATURATED_SATURATION": 1.0,
+                    "RESIDUAL_SATURATION": 1.0e-10,
+                    "MINIMUM_RELATIVE_PERMEABILITY": 1.0e-04
                 }
             }
         },
@@ -346,11 +346,11 @@
                     "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
                     "INTERFACE_NORMAL_STIFFNESS": 4.615e+07,
                     "INTERFACE_SHEAR_STIFFNESS": 4.615e+06,
-                    "BIOT_COEFFICIENT"              : 1.0,
-                    "RETENTION_LAW"                 : "SaturatedBelowPhreaticLevelLaw",
-                    "SATURATED_SATURATION"          : 1.0,
-                    "RESIDUAL_SATURATION"           : 1e-10,
-                    "MINIMUM_RELATIVE_PERMEABILITY" : 0.0001
+                    "BIOT_COEFFICIENT": 1.0,
+                    "RETENTION_LAW": "SaturatedBelowPhreaticLevelLaw",
+                    "SATURATED_SATURATION": 1.0,
+                    "RESIDUAL_SATURATION": 1.0e-10,
+                    "MINIMUM_RELATIVE_PERMEABILITY": 1.0e-04
                 }
             }
         },
@@ -365,11 +365,11 @@
                     "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
                     "INTERFACE_NORMAL_STIFFNESS": 4.615e+07,
                     "INTERFACE_SHEAR_STIFFNESS": 4.615e+06,
-                    "BIOT_COEFFICIENT"              : 1.0,
-                    "RETENTION_LAW"                 : "SaturatedBelowPhreaticLevelLaw",
-                    "SATURATED_SATURATION"          : 1.0,
-                    "RESIDUAL_SATURATION"           : 1e-10,
-                    "MINIMUM_RELATIVE_PERMEABILITY" : 0.0001
+                    "BIOT_COEFFICIENT": 1.0,
+                    "RETENTION_LAW": "SaturatedBelowPhreaticLevelLaw",
+                    "SATURATED_SATURATION": 1.0,
+                    "RESIDUAL_SATURATION": 1.0e-10,
+                    "MINIMUM_RELATIVE_PERMEABILITY": 1.0e-04
                 }
             }
         },
@@ -384,11 +384,11 @@
                     "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
                     "INTERFACE_NORMAL_STIFFNESS": 4.615e+06,
                     "INTERFACE_SHEAR_STIFFNESS": 4.615e+06,
-                    "BIOT_COEFFICIENT"              : 1.0,
-                    "RETENTION_LAW"                 : "SaturatedBelowPhreaticLevelLaw",
-                    "SATURATED_SATURATION"          : 1.0,
-                    "RESIDUAL_SATURATION"           : 1e-10,
-                    "MINIMUM_RELATIVE_PERMEABILITY" : 0.0001
+                    "BIOT_COEFFICIENT": 1.0,
+                    "RETENTION_LAW": "SaturatedBelowPhreaticLevelLaw",
+                    "SATURATED_SATURATION": 1.0,
+                    "RESIDUAL_SATURATION": 1.0e-10,
+                    "MINIMUM_RELATIVE_PERMEABILITY": 1.0e-04
                 }
             }
         },
@@ -400,7 +400,7 @@
                     "name": "TimoshenkoBeamPlaneStrainElasticConstitutiveLaw"
                 },
                 "Variables": {
-                    "YOUNG_MODULUS": 5929270610.0,
+                    "YOUNG_MODULUS": 5.92927061e+09,
                     "POISSON_RATIO": 0.0,
                     "THICKNESS": 1.265,
                     "THICKNESS_EFFECTIVE_Y": 10.0,
@@ -416,7 +416,7 @@
                     "name": "TrussConstitutiveLaw"
                 },
                 "Variables": {
-                    "YOUNG_MODULUS": 4e+11,
+                    "YOUNG_MODULUS": 4.0e+11,
                     "DENSITY": 0.0,
                     "CROSS_AREA": 1.0e-03,
                     "TRUSS_PRESTRESS_PK2": 0.0
