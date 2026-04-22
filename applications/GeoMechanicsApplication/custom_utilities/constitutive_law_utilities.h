@@ -69,6 +69,7 @@ public:
 
     [[nodiscard]] static DrainageType StringToDrainageType(const std::string& rDrainageTypeName);
     [[nodiscard]] static bool         IsConstantWaterPressure(const Properties& rProperties);
+    [[nodiscard]] static bool         IsUndrained(const Properties& rProperties);
     static void                       ReplaceIgnoreUndrainedByDrainageType(Properties& rProperties);
 
 }; /* Class ConstitutiveLawUtilities*/

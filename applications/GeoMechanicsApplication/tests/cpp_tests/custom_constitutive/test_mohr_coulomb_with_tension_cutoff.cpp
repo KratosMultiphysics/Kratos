@@ -114,6 +114,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     properties.SetValue(GEO_COHESION, 10.0);
     properties.SetValue(GEO_DILATANCY_ANGLE, 20.0);
     properties.SetValue(GEO_TENSILE_STRENGTH, 10.0);
+    properties.SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
     ConstitutiveLaw::Parameters parameters;
     parameters.SetMaterialProperties(properties);
     const auto dummy_element_geometry      = Geometry<Node>{};
@@ -152,6 +153,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     properties.SetValue(GEO_TENSILE_STRENGTH, 10.0);
     properties.SetValue(YOUNG_MODULUS, 1.0e6);
     properties.SetValue(POISSON_RATIO, 0.25);
+    properties.SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
     ConstitutiveLaw::Parameters parameters;
     parameters.SetMaterialProperties(properties);
     const auto dummy_element_geometry      = Geometry<Node>{};
@@ -218,6 +220,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     properties.SetValue(GEO_TENSILE_STRENGTH, 10.0);
     properties.SetValue(YOUNG_MODULUS, 1.0e6);
     properties.SetValue(POISSON_RATIO, 0.25);
+    properties.SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
     ConstitutiveLaw::Parameters parameters;
     parameters.SetMaterialProperties(properties);
     const auto dummy_element_geometry      = Geometry<Node>{};
@@ -272,6 +275,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     properties.SetValue(GEO_TENSILE_STRENGTH, 10.0);
     properties.SetValue(YOUNG_MODULUS, 1.0e6);
     properties.SetValue(POISSON_RATIO, 0.0);
+    properties.SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
     ConstitutiveLaw::Parameters parameters;
     parameters.SetMaterialProperties(properties);
     const auto dummy_element_geometry      = Geometry<Node>{};
@@ -322,6 +326,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     properties.SetValue(GEO_TENSILE_STRENGTH, 10.0);
     properties.SetValue(YOUNG_MODULUS, 1.0e6);
     properties.SetValue(POISSON_RATIO, 0.0);
+    properties.SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
     ConstitutiveLaw::Parameters parameters;
     parameters.SetMaterialProperties(properties);
     const auto dummy_element_geometry      = Geometry<Node>{};
@@ -355,6 +360,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     // Arrange
     auto       law = MohrCoulombWithTensionCutOff(std::make_unique<PlaneStrain>());
     Properties properties;
+    properties.SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
     properties.SetValue(YOUNG_MODULUS, 1.0e6);
     properties.SetValue(POISSON_RATIO, 0.0);
     properties.SetValue(GEO_FRICTION_ANGLE, 35.0);
@@ -382,10 +388,12 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_Serialization, KratosGeoM
     auto p_law = std::unique_ptr<ConstitutiveLaw>{
         std::make_unique<MohrCoulombWithTensionCutOff>(std::make_unique<PlaneStrain>())};
     Properties properties;
+    properties.SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
     properties.SetValue(GEO_FRICTION_ANGLE, 35.0);
     properties.SetValue(GEO_COHESION, 10.0);
     properties.SetValue(GEO_DILATANCY_ANGLE, 20.0);
     properties.SetValue(GEO_TENSILE_STRENGTH, 10.0);
+    properties.SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
     ConstitutiveLaw::Parameters parameters;
     parameters.SetMaterialProperties(properties);
     const auto dummy_element_geometry      = Geometry<Node>{};
@@ -436,6 +444,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateConstitutiveMatr
     // Arrange
     auto       law = MohrCoulombWithTensionCutOff(std::make_unique<PlaneStrain>());
     Properties properties;
+    properties.SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
     properties.SetValue(YOUNG_MODULUS, 1.0e8);
     properties.SetValue(POISSON_RATIO, 0.3);
     properties.SetValue(GEO_FRICTION_ANGLE, 35.0);
@@ -549,6 +558,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     // Arrange
     auto       law = MohrCoulombWithTensionCutOff(std::make_unique<PlaneStrain>());
     Properties properties;
+    properties.SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
     properties.SetValue(GEO_FRICTION_ANGLE, 35.0);
     properties.SetValue(GEO_COHESION, 10.0);
     properties.SetValue(GEO_DILATANCY_ANGLE, 20.0);
@@ -580,6 +590,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     // Arrange
     auto       law = MohrCoulombWithTensionCutOff(std::make_unique<PlaneStrain>());
     Properties properties;
+    properties.SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
     properties.SetValue(GEO_FRICTION_ANGLE, 35.0);
     properties.SetValue(GEO_COHESION, 10.0);
     properties.SetValue(GEO_DILATANCY_ANGLE, 0.0);
@@ -607,6 +618,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     // Arrange
     auto       law = MohrCoulombWithTensionCutOff(std::make_unique<PlaneStrain>());
     Properties properties;
+    properties.SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
     properties.SetValue(GEO_FRICTION_ANGLE, 35.0);
     properties.SetValue(GEO_COHESION, 10.0);
     properties.SetValue(GEO_DILATANCY_ANGLE, 20.0);
@@ -632,8 +644,9 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_TrialStressInDegeneratedT
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    auto           law = MohrCoulombWithTensionCutOff(std::make_unique<PlaneStrain>());
-    Properties     properties;
+    auto       law = MohrCoulombWithTensionCutOff(std::make_unique<PlaneStrain>());
+    Properties properties;
+    properties.SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
     constexpr auto phi_in_degrees = 30.0;
     properties.SetValue(GEO_FRICTION_ANGLE, phi_in_degrees);
     constexpr auto cohesion = 10.0;
@@ -671,6 +684,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     // Arrange
     auto       law = MohrCoulombWithTensionCutOff(std::make_unique<PlaneStrain>());
     Properties properties;
+    properties.SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
     properties.SetValue(YOUNG_MODULUS, 1.0e6);
     properties.SetValue(POISSON_RATIO, 0.25);
     properties.SetValue(GEO_FRICTION_ANGLE, 35.0);
@@ -704,6 +718,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_DoesNotCalculateStressWhe
     // Arrange
     auto       law = MohrCoulombWithTensionCutOff(std::make_unique<PlaneStrain>());
     Properties properties;
+    properties.SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
     properties.SetValue(YOUNG_MODULUS, 1.0e6);
     properties.SetValue(POISSON_RATIO, 0.25);
     properties.SetValue(GEO_FRICTION_ANGLE, 35.0);
@@ -739,6 +754,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     // Arrange
     auto       law = MohrCoulombWithTensionCutOff(std::make_unique<PlaneStrain>());
     Properties properties;
+    properties.SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
     properties.SetValue(GEO_FRICTION_ANGLE, 35.0);
     properties.SetValue(GEO_COHESION, 10.0);
     properties.SetValue(GEO_DILATANCY_ANGLE, 20.0);
@@ -763,6 +779,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     // Arrange
     auto       law = MohrCoulombWithTensionCutOff(std::make_unique<PlaneStrain>());
     Properties properties;
+    properties.SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
     properties.SetValue(GEO_COULOMB_HARDENING_TYPE, "Linear");
     properties.SetValue(GEO_FRICTION_ANGLE, 30.0);
     properties.SetValue(GEO_COHESION, 10.0);
@@ -823,6 +840,7 @@ Vector ComputeStressVectorUsingCPhiReductionTestData(double  Cohesion,
                                                      Vector& rStrainVector)
 {
     Properties properties;
+    properties.SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
     properties.SetValue(GEO_COHESION, Cohesion);
     properties.SetValue(GEO_FRICTION_ANGLE, FrictionAngle);
     properties.SetValue(GEO_DILATANCY_ANGLE, 0.0);
@@ -943,6 +961,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutoff_InitialPlasticityStatusEq
 {
     // Arrange
     Properties properties;
+    properties.SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
     properties.SetValue(GEO_COHESION, 10.0);
     properties.SetValue(GEO_FRICTION_ANGLE, 30.0);
     properties.SetValue(GEO_DILATANCY_ANGLE, 0.0);

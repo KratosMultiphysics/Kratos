@@ -13,6 +13,7 @@
 #include "custom_constitutive/incremental_linear_elastic_law.h"
 #include "custom_constitutive/plane_strain.h"
 #include "custom_utilities/ublas_utilities.h"
+#include "geo_mechanics_application_variables.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 
 namespace
@@ -38,6 +39,7 @@ Vector CalculateStress(GeoIncrementalLinearElasticLaw& rConstitutiveLaw)
     Properties properties;
     properties.SetValue(YOUNG_MODULUS, 1.0e7);
     properties.SetValue(POISSON_RATIO, 0.3);
+    properties.SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
     parameters.SetMaterialProperties(properties);
 
     rConstitutiveLaw.CalculateMaterialResponsePK2(parameters);
