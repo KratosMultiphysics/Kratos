@@ -30,7 +30,6 @@ class TestBodyForceInterpolationMPM(KratosUnittest.TestCase):
         variable_disp = KratosMultiphysics.KratosGlobals.GetVariable( "MP_DISPLACEMENT" )
         displacement = mp.CalculateOnIntegrationPoints(variable_disp,mp_model_part.ProcessInfo)[0]
 
-        #print("Computed Displacement:", displacement)
 
         # Expected (constant field)
         self.assertAlmostEqual(displacement[0], 0.005, places=12)
@@ -55,13 +54,13 @@ class BodyForceTestSimulation(ParticleMechanicsAnalysis):
 
         grid_model_part = self.model.GetModelPart("Background_Grid")
 
-        # Aplicar BODY_FORCE constante
+        # Apply constant BODY_FORCE
         for node in grid_model_part.Nodes:
             node.SetSolutionStepValue(KratosMultiphysics.BODY_FORCE_X, 2.0)
             node.SetSolutionStepValue(KratosMultiphysics.BODY_FORCE_Y, -3.0)
             node.SetSolutionStepValue(KratosMultiphysics.BODY_FORCE_Z, 0.0)
 
-        # print("Body force applied to grid nodes")
+
 
     def ApplyBoundaryConditions(self):
         super().ApplyBoundaryConditions()

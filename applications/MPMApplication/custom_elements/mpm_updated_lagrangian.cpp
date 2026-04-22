@@ -359,7 +359,6 @@ void MPMUpdatedLagrangian::CalculateElementalSystem(
         // Contribution to forces (in residual term) are calculated
         Vector volume_force = (mMP.volume_acceleration * mMP.mass)
                             + (mMP.body_force * mMP.mass);
-
         this->CalculateAndAddRHS(
             rRightHandSideVector,
             Variables,

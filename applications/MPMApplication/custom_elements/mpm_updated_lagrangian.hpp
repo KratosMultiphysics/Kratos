@@ -146,9 +146,7 @@ protected:
             // MP_ACCUMULATED_PLASTIC_VOLUMETRIC_STRAIN
             accumulated_plastic_volumetric_strain = 1.0;
             // MP_ACCUMULATED_PLASTIC_DEVIATORIC_STRAIN
-            accumulated_plastic_deviatoric_strain = 1.0;
-
-         
+            accumulated_plastic_deviatoric_strain = 1.0;    
         }
 
     private:
