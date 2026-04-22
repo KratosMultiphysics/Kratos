@@ -234,9 +234,9 @@ Vector NonLinearTimoshenkoBeamElement3D2N::CalculateStrainVector(
     generalized_strain[4] = inner_prod(d1, dr); // shear y
     generalized_strain[5] = inner_prod(d2, dr); // shear z
 
-    generalized_strain[1] = inner_prod(d2, d1_s) - inner_prod(d1, d2_s); // torsion
-    generalized_strain[2] = inner_prod(d3, d2_s) - inner_prod(d2, d3_s); // bending y
-    generalized_strain[3] = inner_prod(d1, d3_s) - inner_prod(d3, d1_s); // bending z
+    generalized_strain[1] = 0.5 * (inner_prod(d2, d1_s) - inner_prod(d1, d2_s)); // torsion
+    generalized_strain[2] = 0.5 * (inner_prod(d3, d2_s) - inner_prod(d2, d3_s)); // bending y
+    generalized_strain[3] = 0.5 * (inner_prod(d1, d3_s) - inner_prod(d3, d1_s)); // bending z
 
     return generalized_strain;
 }
