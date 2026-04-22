@@ -159,7 +159,7 @@ namespace Kratos
 
         void PrintInterfaceKinematics(const Variable< array_1d<double, 3> >& rVariable, const SolverIndex solverIndex);
 
-        Variable< array_1d<double, 3> >& GetEquilibriumVariable();
+        const Variable< array_1d<double, 3> >& GetEquilibriumVariable();
 
     };  // namespace FetiDynamicCouplingUtilities.
 

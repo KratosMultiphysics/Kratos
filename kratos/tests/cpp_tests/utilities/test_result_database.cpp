@@ -63,7 +63,7 @@ KRATOS_TEST_CASE_IN_SUITE(ResultDatabase, KratosCoreFastSuite)
     std::vector<IndexType> nodal_variables_ids(4);
     std::vector<IndexType> nodal_values_sizes(4, 1);
 
-    const std::vector<Variable<double>*> variable_vector = {&DISPLACEMENT_X,&DISPLACEMENT_Y,&DISPLACEMENT_Z,&TEMPERATURE};
+    const std::vector<const Variable<double>*> variable_vector = {&DISPLACEMENT_X,&DISPLACEMENT_Y,&DISPLACEMENT_Z,&TEMPERATURE};
 
     for (std::size_t i = 0; i < 4; ++i) {
         nodal_variables_ids[i] = variable_vector[i]->Key();
