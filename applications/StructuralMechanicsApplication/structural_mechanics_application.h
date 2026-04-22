@@ -304,6 +304,11 @@ private:
     const IsotropicShellElement mIsotropicShellElement3D3N;
     const MITCThickShellElement3D4N<ShellKinematics::LINEAR> mMITCThickShellElement3D4N;
     const MITCThickShellElement3D4N<ShellKinematics::NONLINEAR_COROTATIONAL> mMITCThickShellCorotationalElement3D4N;
+
+    // deprecated
+    const MITCThickShellElement3D4N<ShellKinematics::LINEAR> mShellThickElement3D4N;
+    const MITCThickShellElement3D4N<ShellKinematics::NONLINEAR_COROTATIONAL> mShellThickCorotationalElement3D4N;
+
     const ShellThinElement3D4N<ShellKinematics::NONLINEAR_COROTATIONAL> mShellThinCorotationalElement3D4N;
     const ShellThinElement3D3N<ShellKinematics::LINEAR> mShellThinElement3D3N;
     const ShellThinElement3D3N<ShellKinematics::NONLINEAR_COROTATIONAL> mShellThinCorotationalElement3D3N;
