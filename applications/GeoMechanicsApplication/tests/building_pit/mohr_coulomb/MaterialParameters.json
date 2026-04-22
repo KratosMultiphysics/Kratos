@@ -8,7 +8,7 @@
                     "name": "GeoMohrCoulombWithTensionCutOff2D"
                 },
                 "Variables": {
-                    "IGNORE_UNDRAINED": true,
+                    "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
                     "YOUNG_MODULUS": 1.2e+07,
                     "POISSON_RATIO": 0.15,
                     "DENSITY_SOLID": 2.03874e+03,
@@ -40,7 +40,7 @@
                     "name": "GeoMohrCoulombWithTensionCutOff2D"
                 },
                 "Variables": {
-                    "IGNORE_UNDRAINED": true,
+                    "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
                     "YOUNG_MODULUS": 1.2e+07,
                     "POISSON_RATIO": 0.15,
                     "DENSITY_SOLID": 2.03874e+03,
@@ -72,7 +72,7 @@
                     "name": "GeoMohrCoulombWithTensionCutOff2D"
                 },
                 "Variables": {
-                    "IGNORE_UNDRAINED": true,
+                    "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
                     "YOUNG_MODULUS": 1.2e+07,
                     "POISSON_RATIO": 0.15,
                     "DENSITY_SOLID": 2.03874e+03,
@@ -104,7 +104,7 @@
                     "name": "GeoMohrCoulombWithTensionCutOff2D"
                 },
                 "Variables": {
-                    "IGNORE_UNDRAINED": true,
+                    "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
                     "YOUNG_MODULUS": 1.2e+07,
                     "POISSON_RATIO": 0.15,
                     "DENSITY_SOLID": 2.03874e+03,
@@ -136,7 +136,7 @@
                     "name": "GeoMohrCoulombWithTensionCutOff2D"
                 },
                 "Variables": {
-                    "IGNORE_UNDRAINED": true,
+                    "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
                     "YOUNG_MODULUS": 1.2e+08,
                     "POISSON_RATIO": 0.2,
                     "DENSITY_SOLID": 2.47561e+03,
@@ -168,7 +168,7 @@
                     "name": "GeoMohrCoulombWithTensionCutOff2D"
                 },
                 "Variables": {
-                    "IGNORE_UNDRAINED": true,
+                    "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
                     "YOUNG_MODULUS": 1.2e+08,
                     "POISSON_RATIO": 0.2,
                     "DENSITY_SOLID": 2.47561e+03,
@@ -207,7 +207,7 @@
                     "GEO_TENSILE_STRENGTH": 2.1445e+03,
                     "GEO_DILATANCY_ANGLE": 0.0,
                     "BIOT_COEFFICIENT": 1.0,
-                    "IGNORE_UNDRAINED": true,
+                    "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
                     "RETENTION_LAW": "SaturatedBelowPhreaticLevelLaw",
                     "SATURATED_SATURATION": 1.0,
                     "RESIDUAL_SATURATION": 1e-10,
@@ -230,7 +230,7 @@
                     "GEO_TENSILE_STRENGTH": 2.1445e+03,
                     "GEO_DILATANCY_ANGLE": 0.0,
                     "BIOT_COEFFICIENT": 1.0,
-                    "IGNORE_UNDRAINED": true,
+                    "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
                     "RETENTION_LAW": "SaturatedBelowPhreaticLevelLaw",
                     "SATURATED_SATURATION": 1.0,
                     "RESIDUAL_SATURATION": 1e-10,
@@ -253,7 +253,7 @@
                     "GEO_TENSILE_STRENGTH": 2.1445e+03,
                     "GEO_DILATANCY_ANGLE": 0.0,
                     "BIOT_COEFFICIENT": 1.0,
-                    "IGNORE_UNDRAINED": true,
+                    "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
                     "RETENTION_LAW": "SaturatedBelowPhreaticLevelLaw",
                     "SATURATED_SATURATION": 1.0,
                     "RESIDUAL_SATURATION": 1e-10,
@@ -276,7 +276,7 @@
                     "GEO_TENSILE_STRENGTH": 2.1445e+03,
                     "GEO_DILATANCY_ANGLE": 0.0,
                     "BIOT_COEFFICIENT": 1.0,
-                    "IGNORE_UNDRAINED": true,
+                    "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
                     "RETENTION_LAW": "SaturatedBelowPhreaticLevelLaw",
                     "SATURATED_SATURATION": 1.0,
                     "RESIDUAL_SATURATION": 1e-10,
@@ -299,7 +299,7 @@
                     "GEO_TENSILE_STRENGTH": 0.0,
                     "GEO_DILATANCY_ANGLE": 2.0,
                     "BIOT_COEFFICIENT": 1.0,
-                    "IGNORE_UNDRAINED": true,
+                    "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
                     "RETENTION_LAW": "SaturatedBelowPhreaticLevelLaw",
                     "SATURATED_SATURATION": 1.0,
                     "RESIDUAL_SATURATION": 1e-10,
@@ -322,7 +322,7 @@
                     "GEO_TENSILE_STRENGTH": 0.0,
                     "GEO_DILATANCY_ANGLE": 2.0,
                     "BIOT_COEFFICIENT": 1.0,
-                    "IGNORE_UNDRAINED": true,
+                    "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
                     "RETENTION_LAW": "SaturatedBelowPhreaticLevelLaw",
                     "SATURATED_SATURATION": 1.0,
                     "RESIDUAL_SATURATION": 1e-10,
