@@ -482,7 +482,8 @@ void NonLinearTimoshenkoBeamElement3D2N::CalculateAll(
 
     // Loop over the integration points
     for (IndexType IP = 0; IP < r_integration_points.size(); ++IP) {
-        const double xi = r_integration_points[IP].X(); // weights are 1.0
+        const double xi = r_integration_points[IP].X();
+        const double weight = integration_points[IP].Weight() * J;
         N1 = 0.5 * (1.0 - xi);
         N2 = 0.5 * (1.0 + xi);
 
@@ -492,7 +493,7 @@ void NonLinearTimoshenkoBeamElement3D2N::CalculateAll(
         noalias(b_matrix) = CalculateB(N1, N2, dN1, dN2);
 
         if (ComputeRHS) {
-            noalias(rRHS) -= prod(trans(b_matrix), gen_stress_vector) * J;
+            noalias(rRHS) -= prod(trans(b_matrix), gen_stress_vector) * weight;
         }
 
         if (ComputeLHS) {
@@ -500,9 +501,9 @@ void NonLinearTimoshenkoBeamElement3D2N::CalculateAll(
             BoundedMatrix<double, 12, 6> temp;
             noalias(temp) = prod(trans(b_matrix), gen_constitutive_matrix);
             // Material
-            noalias(rLHS) += prod(temp, b_matrix) * J;
+            noalias(rLHS) += prod(temp, b_matrix) * weight;
             // Geometric
-            CalculateAndAddKg(rLHS, J, N1, N2, dN1, dN2, gen_stress_vector);
+            CalculateAndAddKg(rLHS, weight, N1, N2, dN1, dN2, gen_stress_vector);
         }
 
     } // IP loop
