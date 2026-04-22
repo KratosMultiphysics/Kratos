@@ -9,7 +9,7 @@ class KratosGeoMechanicsLabElementTests(KratosUnittest.TestCase):
     """
     This class contains some element tests, such as triaxial and oedometer tests
     """
-    def no_test_triaxial(self):
+    def test_triaxial(self):
         """
         Regression test for the triaxial experiment.
         """
@@ -89,7 +89,7 @@ class KratosGeoMechanicsLabElementTests(KratosUnittest.TestCase):
                 self.assertAlmostEqual(expected_strain[element][1], strain_component[1], 4)  # eps_yy
                 self.assertAlmostEqual(expected_strain[element][2], strain_component[2], 4)  # eps_zz
 
-    def no_test_triaxial_comp_6n(self):
+    def test_triaxial_comp_6n(self):
         """
         Drained compression triaxial test on Mohr-Coulomb model with axisymmetric 2D6N elements
         It consistes of two calculation phases:
@@ -131,7 +131,7 @@ class KratosGeoMechanicsLabElementTests(KratosUnittest.TestCase):
                 self.assertAlmostEqual(-100.0, stress_vector[2], 2)  # sigma_zz
 
 
-    def no_test_oedometer_ULFEM(self):
+    def test_oedometer_ULFEM(self):
         """
         Oedometer test on a linear elastic model with 2D6N elements
         """
@@ -168,7 +168,7 @@ class KratosGeoMechanicsLabElementTests(KratosUnittest.TestCase):
             y_displacement = displacement[1]
             self.assertAlmostEqual(-0.0909090909516868, y_displacement, 6)
 
-    def no_test_oedometer_ULFEM_diff_order(self):
+    def test_oedometer_ULFEM_diff_order(self):
         """
         Oedometer test on a linear elastic model with 2D6N with different order elements
         """

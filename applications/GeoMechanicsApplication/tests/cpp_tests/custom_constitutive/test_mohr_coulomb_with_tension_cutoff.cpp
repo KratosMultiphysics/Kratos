@@ -388,12 +388,11 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_Serialization, KratosGeoM
     auto p_law = std::unique_ptr<ConstitutiveLaw>{
         std::make_unique<MohrCoulombWithTensionCutOff>(std::make_unique<PlaneStrain>())};
     Properties properties;
-    properties.SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
+    properties.SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED"s);
     properties.SetValue(GEO_FRICTION_ANGLE, 35.0);
     properties.SetValue(GEO_COHESION, 10.0);
     properties.SetValue(GEO_DILATANCY_ANGLE, 20.0);
     properties.SetValue(GEO_TENSILE_STRENGTH, 10.0);
-    properties.SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
     ConstitutiveLaw::Parameters parameters;
     parameters.SetMaterialProperties(properties);
     const auto dummy_element_geometry      = Geometry<Node>{};
