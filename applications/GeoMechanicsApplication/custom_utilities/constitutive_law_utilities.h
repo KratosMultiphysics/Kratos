@@ -71,8 +71,8 @@ public:
     [[nodiscard]] static bool         IsConstantWaterPressure(const Properties& rProperties);
     static void                       ReplaceIgnoreUndrainedByDrainageType(Properties& rProperties);
 
-    [[nodiscard]] static double CalculateExcessPorePressure(const Properties& rProperties,
-                                                            double VolumetricStrainIncrement);
+    [[nodiscard]] static double CalculateExcessPorePressureIncrement(const Properties& rProperties,
+                                                                     double VolumetricStrainIncrement);
 }; /* Class ConstitutiveLawUtilities*/
 
 } // namespace Kratos
