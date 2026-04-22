@@ -445,20 +445,20 @@ namespace Kratos::Testing
         array_1d<double,3>& r_node_3_velocity_current = r_node_3.FastGetSolutionStepValue(VELOCITY, 0);
         array_1d<double,3>& r_node_4_velocity_current = r_node_4.FastGetSolutionStepValue(VELOCITY, 0);
 
-        r_node_1_velocity_current = array_1d<double,3>{ 1.1,  0.1};
-        r_node_2_velocity_current = array_1d<double,3>{ 0.1, -0.1};
-        r_node_3_velocity_current = array_1d<double,3>{-0.1, -0.1};
-        r_node_4_velocity_current = array_1d<double,3>{ 0.1,  1.1};
+        r_node_1_velocity_current = array_1d<double,3>{ 1.1,  0.1, 0.0};
+        r_node_2_velocity_current = array_1d<double,3>{ 0.1, -0.1, 0.0};
+        r_node_3_velocity_current = array_1d<double,3>{-0.1, -0.1, 0.0};
+        r_node_4_velocity_current = array_1d<double,3>{ 0.1,  1.1, 0.0};
 
         array_1d<double,3>& r_node_1_acceleration_current = r_node_1.FastGetSolutionStepValue(ACCELERATION, 0);
         array_1d<double,3>& r_node_2_acceleration_current = r_node_2.FastGetSolutionStepValue(ACCELERATION, 0);
         array_1d<double,3>& r_node_3_acceleration_current = r_node_3.FastGetSolutionStepValue(ACCELERATION, 0);
         array_1d<double,3>& r_node_4_acceleration_current = r_node_4.FastGetSolutionStepValue(ACCELERATION, 0);
 
-        r_node_1_acceleration_current = array_1d<double,3>{ 1.1,  0.1};
-        r_node_2_acceleration_current = array_1d<double,3>{ 0.1, -0.1};
-        r_node_3_acceleration_current = array_1d<double,3>{-0.1, -0.1};
-        r_node_4_acceleration_current = array_1d<double,3>{ 0.1,  1.1};
+        r_node_1_acceleration_current = array_1d<double,3>{ 1.1,  0.1, 0.0};
+        r_node_2_acceleration_current = array_1d<double,3>{ 0.1, -0.1, 0.0};
+        r_node_3_acceleration_current = array_1d<double,3>{-0.1, -0.1, 0.0};
+        r_node_4_acceleration_current = array_1d<double,3>{ 0.1,  1.1, 0.0};
 
         double& r_node_1_pressure_current = r_node_1.FastGetSolutionStepValue(PRESSURE, 0);
         double& r_node_2_pressure_current = r_node_2.FastGetSolutionStepValue(PRESSURE, 0);
