@@ -196,6 +196,15 @@ public:
     }
 
     /**
+     * @brief Sets the used constitutive laws
+     * @param ThisConstitutiveLawVector Constitutive laws used
+     */
+    void SetOldRotationOperators(const std::vector<BoundedMatrix<double, 3, 3>>& rThisRotationOperators)
+    {
+        mOldRotationOperators = rThisRotationOperators;
+    }
+
+    /**
      * @brief This method computes the DoF mapping operator defined in Eq. (37) from the ref.
      * NOTE the ref is incorrect. It has been corrected in here.
      * This matrix maps the (du, dd1, dd2, dd3) -> (du, dtheta), being "d" the variation
@@ -267,6 +276,12 @@ public:
     void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
+     * this is called at the end of each solution step
+     * In here we update the old rotation triad
+     */
+    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
      * Getting method to obtain the variable which defines the degrees of freedom
      */
     void GetValuesVector(Vector &values, int Step = 0) const;
@@ -313,6 +328,7 @@ private:
 
     /* The rotation operators are built with [d1, d2, d3] as col vectors */
     std::vector<BoundedMatrix<double, 3, 3>> mRotationOperators; // The two rotation matrices, one per each IP.
+    std::vector<BoundedMatrix<double, 3, 3>> mOldRotationOperators; // The two rotation matrices, one per each IP.
 
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector; // The vector containing the beam constitutive laws, one per each IP
     IntegrationMethod mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_LOBATTO_1; // By default the quadrature points are located at the nodes of the beam

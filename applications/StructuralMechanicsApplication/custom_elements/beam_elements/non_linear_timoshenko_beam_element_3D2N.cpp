@@ -102,6 +102,7 @@ Element::Pointer NonLinearTimoshenkoBeamElement3D2N::Clone(
 
     // The rotation operators
     p_new_elem->SetRotationOperators(mRotationOperators);
+    p_new_elem->SetOldRotationOperators(mOldRotationOperators);
     return p_new_elem;
 
     KRATOS_CATCH("Clone");
@@ -128,9 +129,13 @@ void NonLinearTimoshenkoBeamElement3D2N::Initialize(
 
         BoundedMatrix<double, 3, 3> T;
         noalias(T) = CalculateInitialRotationOperator();
+
         mRotationOperators.resize(2);
+        mOldRotationOperators.resize(2);
         noalias(mRotationOperators[0]) = T;
         noalias(mRotationOperators[1]) = T;
+        noalias(mOldRotationOperators[0]) = T;
+        noalias(mOldRotationOperators[1]) = T;
     }
 
     KRATOS_CATCH("Initialize")
@@ -209,7 +214,6 @@ Vector NonLinearTimoshenkoBeamElement3D2N::CalculateStrainVector(
 
     // The current tangent vector to the beam axis r'
     array3 dr = r_geom[1].Coordinates() - r_geom[0].Coordinates();
-    // const double current_L = norm_2(dr);
     dr /= CalculateReferenceLength();
 
     BoundedMatrix<double, 3, 3> current_rot, d_current_rot; // current rotation and its derivative w.r.t "s"
@@ -227,12 +231,12 @@ Vector NonLinearTimoshenkoBeamElement3D2N::CalculateStrainVector(
     noalias(d3_s) = column(d_current_rot, 2);
 
     generalized_strain[0] = inner_prod(d3, dr) - 1.0; // axial
-    generalized_strain[2] = inner_prod(d1, dr); // shear y
-    generalized_strain[1] = inner_prod(d2, dr); // shear z
+    generalized_strain[4] = inner_prod(d1, dr); // shear y
+    generalized_strain[5] = inner_prod(d2, dr); // shear z
 
-    generalized_strain[3] = inner_prod(d2, d1_s) - inner_prod(d1, d2_s); // torsion
-    generalized_strain[5] = inner_prod(d3, d2_s) - inner_prod(d2, d3_s); // bending y
-    generalized_strain[4] = inner_prod(d1, d3_s) - inner_prod(d3, d1_s); // bending z
+    generalized_strain[1] = inner_prod(d2, d1_s) - inner_prod(d1, d2_s); // torsion
+    generalized_strain[2] = inner_prod(d3, d2_s) - inner_prod(d2, d3_s); // bending y
+    generalized_strain[3] = inner_prod(d1, d3_s) - inner_prod(d3, d1_s); // bending z
 
     return generalized_strain;
 }
@@ -251,23 +255,23 @@ void NonLinearTimoshenkoBeamElement3D2N::CalculateGeneralizedResponse(
     if (rValues.GetOptions().Is(ConstitutiveLaw::COMPUTE_STRESS)) {
         auto &r_stress = rValues.GetStressVector();
         Vector temp_stress = r_stress; // we make a copy
-        r_stress[0] = temp_stress[1];
-        r_stress[1] = temp_stress[2];
+        r_stress[0] = temp_stress[4];
+        r_stress[1] = temp_stress[5];
         r_stress[2] = temp_stress[0];
-        r_stress[3] = temp_stress[4];
-        r_stress[4] = temp_stress[5];
-        r_stress[5] = temp_stress[3];
+        r_stress[3] = temp_stress[2];
+        r_stress[4] = temp_stress[3];
+        r_stress[5] = temp_stress[1];
     }
 
     if (rValues.GetOptions().Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
         auto &r_D = rValues.GetConstitutiveMatrix();
         Matrix temp_D = r_D; // we make a copy
-        r_D(0, 0) = temp_D(1, 1);
-        r_D(1, 1) = temp_D(2, 2);
+        r_D(0, 0) = temp_D(4, 4);
+        r_D(1, 1) = temp_D(5, 5);
         r_D(2, 2) = temp_D(0, 0);
-        r_D(3, 3) = temp_D(4, 4);
-        r_D(4, 4) = temp_D(5, 5);
-        r_D(5, 5) = temp_D(3, 3);
+        r_D(3, 3) = temp_D(2, 2);
+        r_D(4, 4) = temp_D(3, 3);
+        r_D(5, 5) = temp_D(1, 1);
     }
 }
 
@@ -469,7 +473,7 @@ void NonLinearTimoshenkoBeamElement3D2N::CalculateAll(
 
     Vector nodal_values(12);
     GetValuesVector(nodal_values);
-    
+
     double N1, N2;
     const double dN1 = -1.0 / L0;
     const double dN2 = -dN1;
@@ -487,16 +491,9 @@ void NonLinearTimoshenkoBeamElement3D2N::CalculateAll(
 
         noalias(b_matrix) = CalculateB(N1, N2, dN1, dN2);
 
-        
         if (ComputeRHS) {
             noalias(rRHS) -= prod(trans(b_matrix), gen_stress_vector) * J;
         }
-        // KRATOS_WATCH(xi)
-        // KRATOS_WATCH(N1)
-        // KRATOS_WATCH(N2)
-        KRATOS_WATCH(gen_stress_vector)
-
-        // KRATOS_ERROR << "ff" << std::endl;
 
         if (ComputeLHS) {
             // Material stiffness
@@ -505,7 +502,7 @@ void NonLinearTimoshenkoBeamElement3D2N::CalculateAll(
             // Material
             noalias(rLHS) += prod(temp, b_matrix) * J;
             // Geometric
-            CalculateAndAddKg(rLHS, J, N1, N2, dN1, dN2, gen_stress_vector);
+            //CalculateAndAddKg(rLHS, J, N1, N2, dN1, dN2, gen_stress_vector);
         }
 
     } // IP loop
@@ -528,7 +525,6 @@ void NonLinearTimoshenkoBeamElement3D2N::CalculateAndAddKg(
 
     // The current tangent vector to the beam axis r'
     array3 dr = r_geom[1].Coordinates() - r_geom[0].Coordinates();
-    // const double current_L = norm_2(dr);
     dr /= CalculateReferenceLength();
 
     Vector N(2), dN(2);
@@ -677,7 +673,7 @@ void NonLinearTimoshenkoBeamElement3D2N::FinalizeNonLinearIteration(
 
     const auto &r_geom = GetGeometry();
 
-    array3 curr_rot_1, curr_rot_2, old_rot_1, old_rot_2, delta_rot_1, delta_rot_2, romero_rot_1, romero_rot_2;
+    array3 curr_rot_1, curr_rot_2, old_rot_1, old_rot_2, delta_rot_1, delta_rot_2;
 
     noalias(curr_rot_1) = r_geom[0].FastGetSolutionStepValue(ROTATION);
     noalias(old_rot_1) = r_geom[0].FastGetSolutionStepValue(ROTATION, 1);
@@ -687,22 +683,25 @@ void NonLinearTimoshenkoBeamElement3D2N::FinalizeNonLinearIteration(
     noalias(delta_rot_1) = curr_rot_1 - old_rot_1;
     noalias(delta_rot_2) = curr_rot_2 - old_rot_2;
 
-    romero_rot_1[2] = delta_rot_1[0];
-    romero_rot_1[0] = delta_rot_1[1];
-    romero_rot_1[1] = delta_rot_1[2];
-    romero_rot_2[2] = delta_rot_2[0];
-    romero_rot_2[0] = delta_rot_2[1];
-    romero_rot_2[1] = delta_rot_2[2];
-
     BoundedMatrix<double, 3, 3> exp_delta_rot_1, exp_delta_rot_2;
-    noalias(exp_delta_rot_1) = ConstitutiveLawUtilities<6>::CalculateRotationMatrixFromRotationVectorRodrigues(romero_rot_1);
-    noalias(exp_delta_rot_2) = ConstitutiveLawUtilities<6>::CalculateRotationMatrixFromRotationVectorRodrigues(romero_rot_2);
+    noalias(exp_delta_rot_1) = ConstitutiveLawUtilities<6>::CalculateRotationMatrixFromRotationVectorRodrigues(delta_rot_1);
+    noalias(exp_delta_rot_2) = ConstitutiveLawUtilities<6>::CalculateRotationMatrixFromRotationVectorRodrigues(delta_rot_2);
 
     // Let's update the nodal triads
-    mRotationOperators[0] = prod(exp_delta_rot_1, mRotationOperators[0]);
-    mRotationOperators[1] = prod(exp_delta_rot_2, mRotationOperators[1]);
+    noalias(mRotationOperators[0]) = prod(exp_delta_rot_1, mOldRotationOperators[0]);
+    noalias(mRotationOperators[1]) = prod(exp_delta_rot_2, mOldRotationOperators[1]);
 
     KRATOS_CATCH("FinalizeNonLinearIteration")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void NonLinearTimoshenkoBeamElement3D2N::FinalizeSolutionStep(
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    noalias(mOldRotationOperators[0]) = mRotationOperators[0];
+    noalias(mOldRotationOperators[1]) = mRotationOperators[1];
 }
 
 /***********************************************************************************/
