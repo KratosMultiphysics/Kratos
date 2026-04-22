@@ -313,6 +313,31 @@ def get_pipe_length(simulation):
     elements = model_part.Elements
     return sum([element.GetValue(KratosGeo.PIPE_ELEMENT_LENGTH) for element in elements if element.GetValue(KratosGeo.PIPE_ACTIVE)])
 
+def get_integration_point_variable(model_obj, variable, element_ids: list=None) -> Union[list, Any, list]:
+
+    """
+    Gets values of a give integration point variable from kratos simulation
+    :param model_obj: simulation object or model part
+    :return values of a variable:
+    """
+    # if model_obj is a simulation object get model part from output_process else if its its a model part do nothing
+    if hasattr(model_obj, "_list_of_output_processes"):
+        model_part = model_obj._list_of_output_processes[0].model_part
+    else:
+        model_part = model_obj
+
+    if isinstance(element_ids, list) :
+        elements = model_part.Elements
+        elements = [element for element in elements if element.Id in element_ids]
+        return [element.CalculateOnIntegrationPoints(
+            variable, model_part.ProcessInfo) for element in elements]
+    elif element_ids is None:
+        elements = model_part.Elements
+        return [element.CalculateOnIntegrationPoints(
+            variable, model_part.ProcessInfo) for element in elements]
+    else:
+        raise TypeError("element_ids should be a list, but got {type(element_ids)} instead.".format(type(element_ids)))
+
 def get_force(simulation):
     """
     Gets force on all integration points from Kratos simulation
