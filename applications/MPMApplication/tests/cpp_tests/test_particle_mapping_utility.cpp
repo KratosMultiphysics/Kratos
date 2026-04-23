@@ -43,22 +43,22 @@ namespace Kratos::Testing
         //  |    |    |    |
         //  1----2----3----4
         // Nodes
-        auto p_node_1 = rBackgroundModelPart.CreateNewNode( 1,  0.0 ,  0.0 , 0.0);
-        auto p_node_2 = rBackgroundModelPart.CreateNewNode( 2,  1.0 ,  0.0 , 0.0);
-        auto p_node_3 = rBackgroundModelPart.CreateNewNode( 3,  1.0 ,  1.0 , 0.0);
-        auto p_node_4 = rBackgroundModelPart.CreateNewNode( 4,  0.0 ,  1.0 , 0.0);
+        auto p_node_1 = rGridModelPart.CreateNewNode( 1,  0.0 ,  0.0 , 0.0);
+        auto p_node_2 = rGridModelPart.CreateNewNode( 2,  1.0 ,  0.0 , 0.0);
+        auto p_node_3 = rGridModelPart.CreateNewNode( 3,  1.0 ,  1.0 , 0.0);
+        auto p_node_4 = rGridModelPart.CreateNewNode( 4,  0.0 ,  1.0 , 0.0);
 
-        rBackgroundModelPart.CreateNewElement(
+        rGridModelPart.CreateNewElement(
             "Element2D4N", 1, { 1, 2, 3, 4 }, nullptr);
     }
 
     template <SizeType TDimension>
-    void CreateMP(ModelPart& rModelPart, ModelPart& rBackgroundModelPart, Properties::Pointer pProperties, const array_1d<double, 3>& rMPCoordinate, const double& rMPVolume)
+    void CreateMP(ModelPart& rModelPart, ModelPart& rGridModelPart, Properties::Pointer pProperties, const array_1d<double, 3>& rMPCoordinate, const double& rMPVolume)
     {
         // Create new material point element
         unsigned int new_element_id = rModelPart.NumberOfElements() + 1;
 
-        BinBasedFastPointLocator<TDimension> SearchStructure(rBackgroundModelPart);
+        BinBasedFastPointLocator<TDimension> SearchStructure(rGridModelPart);
         SearchStructure.UpdateSearchDatabase();
         typename BinBasedFastPointLocator<TDimension>::ResultContainerType results(100);
         typename BinBasedFastPointLocator<TDimension>::ResultIteratorType result_begin = results.begin();
@@ -80,7 +80,7 @@ namespace Kratos::Testing
     template <SizeType TDimension>
     void PrepareMP(
         ModelPart& rModelPart,
-        ModelPart& rBackgroundModelPart, std::vector<array_1d<double, 3>>& rMPCoordinates,
+        ModelPart& rGridModelPart, std::vector<array_1d<double, 3>>& rMPCoordinates,
         const double& rMPVolume)
     {
         // Properties
@@ -90,14 +90,14 @@ namespace Kratos::Testing
         for (auto& mp_coordinate : rMPCoordinates)
         {
             // array_1d<double, 3> mp_coordinate1{0.211324865,0.211324865, 0.0};
-            CreateMP<TDimension>(rModelPart, rBackgroundModelPart, p_elem_prop, mp_coordinate, rMPVolume);
+            CreateMP<TDimension>(rModelPart, rGridModelPart, p_elem_prop, mp_coordinate, rMPVolume);
         }
     }
 
-    void Prepare2D1EModelPart(ModelPart& rModelPart, ModelPart& rBackgroundModelPart)
+    void Prepare2D1ElementMpmModelPart(ModelPart& rMPMModelPart, ModelPart& rGridModelPart)
     {
         // Properties
-        Properties::Pointer p_elem_prop = rModelPart.CreateNewProperties(0);
+        Properties::Pointer p_elem_prop = rMPMModelPart.CreateNewProperties(0);
 
         // Elements
         array_1d<double, 3> mp_coordinate1{0.211324865,0.211324865, 0.0};
@@ -107,14 +107,14 @@ namespace Kratos::Testing
         std::vector<array_1d<double, 3>> mp_coordinates = {mp_coordinate1, mp_coordinate2, mp_coordinate3, mp_coordinate4};
 
 
-        PrepareMP<2>(rModelPart, rBackgroundModelPart, mp_coordinates, 0.25);
+        PrepareMP<2>(rMPMModelPart, rGridModelPart, mp_coordinates, 0.25);
 
-        auto pElement1 = rModelPart.pGetElement(1);
-        auto pElement2 = rModelPart.pGetElement(2);
-        auto pElement3 = rModelPart.pGetElement(3);
-        auto pElement4 = rModelPart.pGetElement(4);
+        auto pElement1 = rMPMModelPart.pGetElement(1);
+        auto pElement2 = rMPMModelPart.pGetElement(2);
+        auto pElement3 = rMPMModelPart.pGetElement(3);
+        auto pElement4 = rMPMModelPart.pGetElement(4);
 
-        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+        ProcessInfo& r_current_process_info = rMPMModelPart.GetProcessInfo();
 
         // mass
         double mp_mass1{ 2.5 };
@@ -199,7 +199,7 @@ namespace Kratos::Testing
             element.SetValuesOnIntegrationPoints(MP_MASS, {volume}, rProcessInfo);
         }
     }
-    void Prepare2D9EBackgroundModelPart(ModelPart& rBackgroundModelPart)
+    void Prepare2D9EGridModelPart(ModelPart& rGridModelPart)
     {
         // Grid scheme:
         //  13---14---15---16
@@ -217,39 +217,39 @@ namespace Kratos::Testing
         //  1----2----3----4
 
         // Nodes
-        auto p_node_1  = rBackgroundModelPart.CreateNewNode( 1,  0.0 ,  0.0 , 0.0);
-        auto p_node_2  = rBackgroundModelPart.CreateNewNode( 2,  1.0 ,  0.0 , 0.0);
-        auto p_node_3  = rBackgroundModelPart.CreateNewNode( 3,  2.0 ,  0.0 , 0.0);
-        auto p_node_4  = rBackgroundModelPart.CreateNewNode( 4,  3.0 ,  0.0 , 0.0);
+        auto p_node_1  = rGridModelPart.CreateNewNode( 1,  0.0 ,  0.0 , 0.0);
+        auto p_node_2  = rGridModelPart.CreateNewNode( 2,  1.0 ,  0.0 , 0.0);
+        auto p_node_3  = rGridModelPart.CreateNewNode( 3,  2.0 ,  0.0 , 0.0);
+        auto p_node_4  = rGridModelPart.CreateNewNode( 4,  3.0 ,  0.0 , 0.0);
 
-        auto p_node_5  = rBackgroundModelPart.CreateNewNode( 5,  0.0 ,  1.0 , 0.0);
-        auto p_node_6  = rBackgroundModelPart.CreateNewNode( 6,  1.0 ,  1.0 , 0.0);
-        auto p_node_7  = rBackgroundModelPart.CreateNewNode( 7,  2.0 ,  1.0 , 0.0);
-        auto p_node_8  = rBackgroundModelPart.CreateNewNode( 8,  3.0 ,  1.0 , 0.0);
+        auto p_node_5  = rGridModelPart.CreateNewNode( 5,  0.0 ,  1.0 , 0.0);
+        auto p_node_6  = rGridModelPart.CreateNewNode( 6,  1.0 ,  1.0 , 0.0);
+        auto p_node_7  = rGridModelPart.CreateNewNode( 7,  2.0 ,  1.0 , 0.0);
+        auto p_node_8  = rGridModelPart.CreateNewNode( 8,  3.0 ,  1.0 , 0.0);
 
-        auto p_node_9  = rBackgroundModelPart.CreateNewNode( 9 ,  0.0 ,  2.0 , 0.0);
-        auto p_node_10 = rBackgroundModelPart.CreateNewNode( 10,  1.0 ,  2.0 , 0.0);
-        auto p_node_11 = rBackgroundModelPart.CreateNewNode( 11,  2.0 ,  2.0 , 0.0);
-        auto p_node_12 = rBackgroundModelPart.CreateNewNode( 12,  3.0 ,  2.0 , 0.0);
+        auto p_node_9  = rGridModelPart.CreateNewNode( 9 ,  0.0 ,  2.0 , 0.0);
+        auto p_node_10 = rGridModelPart.CreateNewNode( 10,  1.0 ,  2.0 , 0.0);
+        auto p_node_11 = rGridModelPart.CreateNewNode( 11,  2.0 ,  2.0 , 0.0);
+        auto p_node_12 = rGridModelPart.CreateNewNode( 12,  3.0 ,  2.0 , 0.0);
 
-        auto p_node_13 = rBackgroundModelPart.CreateNewNode( 13,  0.0 ,  3.0 , 0.0);
-        auto p_node_14 = rBackgroundModelPart.CreateNewNode( 14,  1.0 ,  3.0 , 0.0);
-        auto p_node_15 = rBackgroundModelPart.CreateNewNode( 15,  2.0 ,  3.0 , 0.0);
-        auto p_node_16 = rBackgroundModelPart.CreateNewNode( 16,  3.0 ,  3.0 , 0.0);
+        auto p_node_13 = rGridModelPart.CreateNewNode( 13,  0.0 ,  3.0 , 0.0);
+        auto p_node_14 = rGridModelPart.CreateNewNode( 14,  1.0 ,  3.0 , 0.0);
+        auto p_node_15 = rGridModelPart.CreateNewNode( 15,  2.0 ,  3.0 , 0.0);
+        auto p_node_16 = rGridModelPart.CreateNewNode( 16,  3.0 ,  3.0 , 0.0);
 
         // Grid Elements
-        rBackgroundModelPart.CreateNewElement("Element2D4N", 1, {  1,  2,  6,  5 }, nullptr);
-        rBackgroundModelPart.CreateNewElement("Element2D4N", 2, {  2,  3,  7,  6 }, nullptr);
-        rBackgroundModelPart.CreateNewElement("Element2D4N", 3, {  3,  4,  8,  7 }, nullptr);
-        rBackgroundModelPart.CreateNewElement("Element2D4N", 4, {  5,  6, 10,  9 }, nullptr);
-        rBackgroundModelPart.CreateNewElement("Element2D4N", 5, {  6,  7, 11, 10 }, nullptr);
-        rBackgroundModelPart.CreateNewElement("Element2D4N", 6, {  7,  8, 12, 11 }, nullptr);
-        rBackgroundModelPart.CreateNewElement("Element2D4N", 7, {  9, 10, 14, 13 }, nullptr);
-        rBackgroundModelPart.CreateNewElement("Element2D4N", 8, { 10, 11, 15, 14 }, nullptr);
-        rBackgroundModelPart.CreateNewElement("Element2D4N", 9, { 11, 12, 16, 15 }, nullptr);
+        rGridModelPart.CreateNewElement("Element2D4N", 1, {  1,  2,  6,  5 }, nullptr);
+        rGridModelPart.CreateNewElement("Element2D4N", 2, {  2,  3,  7,  6 }, nullptr);
+        rGridModelPart.CreateNewElement("Element2D4N", 3, {  3,  4,  8,  7 }, nullptr);
+        rGridModelPart.CreateNewElement("Element2D4N", 4, {  5,  6, 10,  9 }, nullptr);
+        rGridModelPart.CreateNewElement("Element2D4N", 5, {  6,  7, 11, 10 }, nullptr);
+        rGridModelPart.CreateNewElement("Element2D4N", 6, {  7,  8, 12, 11 }, nullptr);
+        rGridModelPart.CreateNewElement("Element2D4N", 7, {  9, 10, 14, 13 }, nullptr);
+        rGridModelPart.CreateNewElement("Element2D4N", 8, { 10, 11, 15, 14 }, nullptr);
+        rGridModelPart.CreateNewElement("Element2D4N", 9, { 11, 12, 16, 15 }, nullptr);
     }
 
-    void Prepare2D9EModelPart(ModelPart& rModelPart, ModelPart& rBackgroundModelPart)
+    void Prepare2D9EModelPart(ModelPart& rModelPart, ModelPart& rGridModelPart)
     {
         // Properties
         Properties::Pointer p_elem_prop = rModelPart.CreateNewProperties(0);
@@ -312,7 +312,7 @@ namespace Kratos::Testing
                                                            mp_coordinate29, mp_coordinate30, mp_coordinate31, mp_coordinate32, // Grid Element 8
                                                            mp_coordinate29, mp_coordinate30, mp_coordinate31, mp_coordinate32};// Grid Element 9
 
-        PrepareMP<2>(rModelPart, rBackgroundModelPart, mp_coordinates, 0.25);
+        PrepareMP<2>(rModelPart, rGridModelPart, mp_coordinates, 0.25);
 
         auto pElement1 = rModelPart.pGetElement(1);
         auto pElement2 = rModelPart.pGetElement(2);
@@ -359,7 +359,7 @@ namespace Kratos::Testing
         const unsigned int dimension = 2;
         Model current_model;
         ModelPart& r_mpm_model_part = current_model.CreateModelPart("MPMModelPart");
-        ModelPart& r_background_model_part = current_model.CreateModelPart("MPMBackgroundModelPart");
+        ModelPart& r_grid_model_part = current_model.CreateModelPart("MPMGridModelPart");
         const ProcessInfo& rProcessInfo = r_mpm_model_part.GetProcessInfo();
 
         r_background_model_part.SetBufferSize(2);
@@ -381,12 +381,12 @@ namespace Kratos::Testing
 
         Prepare2D1EModelPart(r_mpm_model_part, r_background_model_part); // ------------------------------------------------------------
 
-        MPMSearchElementUtility::SearchElement<dimension>(
-            r_background_model_part, r_mpm_model_part, 1000, 1e-6);
+        // Search and update shape function values
+        MPMSearchElementUtility::SearchElement<dimension>(r_grid_model_part, r_mpm_model_part, 1000, 1e-6);
 
         // ------------------------------------------------------------------------------------------ P2G Test ------------------------------------------------------------------------------------------ //
         unsigned int echo_level = 0;
-        MPMFlipParticleMappingUtility flip_mapping(r_mpm_model_part, r_background_model_part, echo_level);
+        MPMFlipParticleMappingUtility flip_mapping(r_mpm_model_part, r_grid_model_part, echo_level);
         flip_mapping.RunP2GMapping();
 
         // Checking values at the nodes
