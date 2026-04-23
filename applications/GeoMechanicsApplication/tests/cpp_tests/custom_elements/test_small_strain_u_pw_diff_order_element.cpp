@@ -51,7 +51,7 @@ std::shared_ptr<Properties> CreatePropertiesForUPwDiffOrderElementTest()
     p_properties->SetValue(BIOT_COEFFICIENT, 0.000000e+00);
     p_properties->SetValue(RETENTION_LAW, "SaturatedLaw");
     p_properties->SetValue(SATURATED_SATURATION, 1.000000e+00);
-    p_properties->SetValue(IGNORE_UNDRAINED, false);
+    p_properties->SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
 
     return p_properties;
 }
@@ -291,6 +291,27 @@ KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculateThrowsDebugErr
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         p_element->Calculate(CAUCHY_STRAIN_VECTOR, output, ProcessInfo{}),
         "Variable CAUCHY_STRAIN_VECTOR is unknown for element with Id 1.");
+}
+
+KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculatesFluidFluxVector, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto p_element =
+        CreateSmallStrainUPwDiffOrderElementWithUPwDofs(CreatePropertiesForUPwDiffOrderElementTest());
+    SetSolutionStepValuesForGeneralCheck(p_element); // uniform pressure + gravity
+    const ProcessInfo process_info{};
+    p_element->Initialize(process_info);
+
+    // Act
+    std::vector<array_1d<double, 3>> fluid_fluxes;
+    p_element->CalculateOnIntegrationPoints(FLUID_FLUX_VECTOR, fluid_fluxes, process_info);
+
+    // Assert
+    // With uniform pressure (∇p = 0) and gravity [0,-10,0]:
+    // q_y = (1/μ) * k_yy * (0 + ρ_w * g_y) = (1/0.01) * 9.084e-6 * 1000 * (-10) = -9.084
+    const array_1d<double, 3> expected_fluid_flux{0., -9.084, 0.}; // sign follows PORE_PRESSURE_SIGN_FACTOR
+    for (const auto& fluid_flux : fluid_fluxes)
+        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(fluid_flux, expected_fluid_flux, Defaults::relative_tolerance);
 }
 
 } // namespace Kratos::Testing

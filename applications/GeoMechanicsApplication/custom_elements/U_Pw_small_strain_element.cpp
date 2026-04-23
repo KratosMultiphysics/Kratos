@@ -24,6 +24,7 @@
 #include "custom_utilities/stress_strain_utilities.h"
 #include "custom_utilities/transport_equation_utilities.hpp"
 #include "custom_utilities/variables_utilities.hpp"
+#include "geo_mechanics_application_constants.h"
 #include "geo_mechanics_application_variables.h"
 #include "includes/cfd_variables.h"
 
@@ -96,8 +97,7 @@ int UPwSmallStrainElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentPro
 
     const CheckProperties check_properties(r_properties, "property", this->Id(),
                                            CheckProperties::Bounds::AllInclusive);
-    check_properties.CheckAvailability(IGNORE_UNDRAINED);
-    if (!r_properties[IGNORE_UNDRAINED]) {
+    if (!ConstitutiveLawUtilities::IsConstantWaterPressure(r_properties)) {
         check_properties.SingleUseBounds(CheckProperties::Bounds::AllExclusive).Check(BULK_MODULUS_FLUID);
         check_properties.SingleUseBounds(CheckProperties::Bounds::AllExclusive).Check(DYNAMIC_VISCOSITY);
         check_properties.CheckPermeabilityProperties(r_geometry.WorkingSpaceDimension());
@@ -765,8 +765,6 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLe
     ElementVariables Variables;
     this->InitializeElementVariables(Variables, rCurrentProcessInfo);
 
-    RetentionLaw::Parameters RetentionParameters(r_properties);
-
     const auto b_matrices = CalculateBMatrices(Variables.DN_DXContainer, Variables.NContainer);
     const auto integration_coefficients =
         this->CalculateIntegrationCoefficients(IntegrationPoints, Variables.detJContainer);
@@ -962,7 +960,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddLHS(MatrixType& rLef
 
     this->CalculateAndAddCouplingMatrix(rLeftHandSideMatrix, rVariables);
 
-    if (!rVariables.IgnoreUndrained) {
+    if (!rVariables.IsConstantWaterPressure) {
         const auto permeability_matrix =
             GeoTransportEquationUtilities::CalculatePermeabilityMatrix<TDim, TNumNodes>(
                 rVariables.GradNpT, rVariables.DynamicViscosityInverse, rVariables.PermeabilityMatrix,
@@ -1000,7 +998,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddCouplingMatrix(Matri
         rVariables.BiotCoefficient, rVariables.BishopCoefficient, rVariables.IntegrationCoefficient);
     GeoElementUtilities::AssembleUPBlockMatrix(rLeftHandSideMatrix, coupling_matrix);
 
-    if (!rVariables.IgnoreUndrained) {
+    if (!rVariables.IsConstantWaterPressure) {
         const auto p_coupling_matrix = GeoTransportEquationUtilities::CalculateCouplingMatrix<TDim, TNumNodes>(
             rVariables.B, GetStressStatePolicy().GetVoigtVector(), rVariables.Np,
             rVariables.BiotCoefficient, rVariables.DegreeOfSaturation, rVariables.IntegrationCoefficient);
@@ -1041,7 +1039,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddRHS(VectorType& rRig
 
     this->CalculateAndAddCouplingTerms(rRightHandSideVector, rVariables);
 
-    if (!rVariables.IgnoreUndrained) {
+    if (!rVariables.IsConstantWaterPressure) {
         this->CalculateAndAddCompressibilityFlow(rRightHandSideVector, rVariables);
 
         this->CalculateAndAddPermeabilityFlow(rRightHandSideVector, rVariables);
@@ -1107,7 +1105,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddCouplingTerms(Vector
     const array_1d<double, TNumNodes * TDim> coupling_force = prod(coupling_matrix, rVariables.PressureVector);
     GeoElementUtilities::AssembleUBlockVector(rRightHandSideVector, (-1.0) * coupling_force);
 
-    if (!rVariables.IgnoreUndrained) {
+    if (!rVariables.IsConstantWaterPressure) {
         const auto p_coupling_matrix = GeoTransportEquationUtilities::CalculateCouplingMatrix<TDim, TNumNodes>(
             rVariables.B, GetStressStatePolicy().GetVoigtVector(), rVariables.Np,
             rVariables.BiotCoefficient, rVariables.DegreeOfSaturation, rVariables.IntegrationCoefficient);
@@ -1311,7 +1309,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::InitializeProperties(ElementVariabl
 
     const auto& r_properties = this->GetProperties();
 
-    rVariables.IgnoreUndrained = r_properties[IGNORE_UNDRAINED];
+    rVariables.IsConstantWaterPressure = ConstitutiveLawUtilities::IsConstantWaterPressure(r_properties);
     rVariables.UseHenckyStrain = r_properties.Has(USE_HENCKY_STRAIN) ? r_properties[USE_HENCKY_STRAIN] : false;
 
     rVariables.ConsiderGeometricStiffness =

@@ -944,7 +944,7 @@ namespace Kratos {
             double node_area = rNode.FastGetSolutionStepValue(DEM_NODAL_AREA);
             double& shear_stress = rNode.FastGetSolutionStepValue(SHEAR_STRESS);
             array_1d<double, 3>& node_rhs_tang = rNode.FastGetSolutionStepValue(TANGENTIAL_ELASTIC_FORCES);
-            
+
             if (node_area > 0.0){
                 node_pressure = node_pressure / node_area;
                 shear_stress = GeometryFunctions::module(node_rhs_tang) / node_area;
@@ -954,7 +954,7 @@ namespace Kratos {
         KRATOS_CATCH("")
     }
 
-    void ExplicitSolverStrategy::SetFlagAndVariableToNodes(const Kratos::Flags& r_flag_name, ComponentOf3ComponentsVariableType& r_variable_to_set, const double value, NodesArrayType& r_nodes_array) {
+    void ExplicitSolverStrategy::SetFlagAndVariableToNodes(const Kratos::Flags& r_flag_name, const ComponentOf3ComponentsVariableType& r_variable_to_set, const double value, NodesArrayType& r_nodes_array) {
         KRATOS_TRY
 
         block_for_each(r_nodes_array, [&](ModelPart::NodeType& rNode) {
@@ -964,7 +964,7 @@ namespace Kratos {
         KRATOS_CATCH("")
     }
 
-    void ExplicitSolverStrategy::SetVariableToNodes(ComponentOf3ComponentsVariableType& r_variable_to_set, const double value, NodesArrayType& r_nodes_array) {
+    void ExplicitSolverStrategy::SetVariableToNodes(const ComponentOf3ComponentsVariableType& r_variable_to_set, const double value, NodesArrayType& r_nodes_array) {
         KRATOS_TRY
         block_for_each(r_nodes_array, [&](ModelPart::NodeType& rNode) {
             rNode.FastGetSolutionStepValue(r_variable_to_set) = value;
@@ -1324,7 +1324,7 @@ namespace Kratos {
 
         KRATOS_CATCH("")
     }
-    
+
     void ExplicitSolverStrategy::SetNormalRadiiOnAllParticles(ModelPart& r_model_part) {
         KRATOS_TRY
 
@@ -1883,7 +1883,7 @@ namespace Kratos {
     }
 
     double ExplicitSolverStrategy::ComputeCoordinationNumber(double& standard_dev) {
-        
+
         KRATOS_TRY
 
         return 0.0;
