@@ -35,19 +35,14 @@ class KratosGeoMechanicsLabElementTests(KratosUnittest.TestCase):
         expected_stress = [[-99.9808, -252.622, -99.9806, 0.193199, 0.0, 0.0], [-99.9991, -252.668, -99.9991, 0.00846584, 0, 0]]
         for element in range(number_of_elements):
             stress = reader.element_integration_point_values_at_time("CAUCHY_STRESS_TENSOR", 1, result, [element+1], [0])[0]
-            for stress_vector in stress:
-                self.assertAlmostEqual(expected_stress[element][0], stress_vector[0], 4)  # sigma_xx
-                self.assertAlmostEqual(expected_stress[element][1], stress_vector[1], 4)  # sigma_yy
-                self.assertAlmostEqual(expected_stress[element][2], stress_vector[2], 4)  # sigma_zz
-        
+            self._assert_integration_point_tensor_results(stress, expected_stress[element], 4,"CAUCHY_STRESS_TENSOR")
+
         # Assert the engineering strain for both elements in the first integration point
         expected_strain = [[0.104863, -0.19973, 0.104946, 0.000440186, 0.0, 0.0], [0.1055, -0.200303, 0.104922, 3.84218e-05, 0, 0]]
         for element in range(number_of_elements):
             strain = reader.element_integration_point_values_at_time("ENGINEERING_STRAIN_TENSOR", 1, result, [element+1], [0])[0]
-            for strain_component in strain:
-                self.assertAlmostEqual(expected_strain[element][0], strain_component[0], 4)  # eps_xx
-                self.assertAlmostEqual(expected_strain[element][1], strain_component[1], 4)  # eps_yy
-                self.assertAlmostEqual(expected_strain[element][2], strain_component[2], 4)  # eps_zz
+            self._assert_integration_point_tensor_results(strain, expected_strain[element], 4,"ENGINEERING_STRAIN_TENSOR")
+
 
     def test_triaxial_undrained(self):
         """
@@ -75,19 +70,13 @@ class KratosGeoMechanicsLabElementTests(KratosUnittest.TestCase):
         expected_stress = [[-100.0, -4740.0, -100.0, 0.0, 0.0, 0.0], [-100.0, -4740.0, -100.0, 0.0, 0.0, 0.0]]
         for element in range(number_of_elements):
             stress = reader.element_integration_point_values_at_time("CAUCHY_STRESS_TENSOR", 1, result, [element+1], [0])[0]
-            for stress_vector in stress:
-                self.assertAlmostEqual(expected_stress[element][0], stress_vector[0], 4)  # sigma_xx
-                self.assertAlmostEqual(expected_stress[element][1], stress_vector[1], 4)  # sigma_yy
-                self.assertAlmostEqual(expected_stress[element][2], stress_vector[2], 4)  # sigma_zz
+            self._assert_integration_point_tensor_results(stress, expected_stress[element], 4,"CAUCHY_STRESS_TENSOR")
 
         # Assert the engineering strain for both elements in the first integration point
         expected_strain = [[0.09, -0.2, 0.09, 0.0, 0.0, 0.0], [0.09, -0.2, 0.09, 0.0, 0.0, 0.0]]
         for element in range(number_of_elements):
             strain = reader.element_integration_point_values_at_time("ENGINEERING_STRAIN_TENSOR", 1, result, [element+1], [0])[0]
-            for strain_component in strain:
-                self.assertAlmostEqual(expected_strain[element][0], strain_component[0], 4)  # eps_xx
-                self.assertAlmostEqual(expected_strain[element][1], strain_component[1], 4)  # eps_yy
-                self.assertAlmostEqual(expected_strain[element][2], strain_component[2], 4)  # eps_zz
+            self._assert_integration_point_tensor_results(strain, expected_strain[element], 4,"ENGINEERING_STRAIN_TENSOR")
 
     def test_triaxial_comp_6n(self):
         """
@@ -111,24 +100,20 @@ class KratosGeoMechanicsLabElementTests(KratosUnittest.TestCase):
         self.assertEqual(number_of_elements, len(stress_vectors_per_element))
 
         number_of_integration_points_per_element = 3
+        expected_stress_vector = [-100.0, -100.0, -100.0]
         for element_stress_vectors in stress_vectors_per_element:
             self.assertEqual(number_of_integration_points_per_element, len(element_stress_vectors))
-            for stress_vector in element_stress_vectors:
-                self.assertAlmostEqual(-100.0, stress_vector[0], 3)  # sigma_xx
-                self.assertAlmostEqual(-100.0, stress_vector[1], 3)  # sigma_yy
-                self.assertAlmostEqual(-100.0, stress_vector[2], 3)  # sigma_zz
+            self._assert_integration_point_tensor_results(element_stress_vectors, expected_stress_vector, 3,"CAUCHY_STRESS_TENSOR")
 
         output_data = reader.read_output_from(os.path.join(project_path, "triaxial_comp_6n_stage2.post.res"))
         time = 1.25
         stress_vectors_per_element = reader.element_integration_point_values_at_time("CAUCHY_STRESS_TENSOR", time, output_data)
         self.assertEqual(number_of_elements, len(stress_vectors_per_element))
 
+        expected_stress_vector = [-100.0, -300.0, -100.0]
         for element_stress_vectors in stress_vectors_per_element:
             self.assertEqual(number_of_integration_points_per_element, len(element_stress_vectors))
-            for stress_vector in element_stress_vectors:
-                self.assertAlmostEqual(-100.0, stress_vector[0], 2)  # sigma_xx
-                self.assertAlmostEqual(-300.0, stress_vector[1], 2)  # sigma_yy
-                self.assertAlmostEqual(-100.0, stress_vector[2], 2)  # sigma_zz
+            self._assert_integration_point_tensor_results(element_stress_vectors, expected_stress_vector, 2,"CAUCHY_STRESS_TENSOR")
 
 
     def test_oedometer_ULFEM(self):
@@ -192,6 +177,13 @@ class KratosGeoMechanicsLabElementTests(KratosUnittest.TestCase):
         top_node_nbrs = [1]
         for top_node_nbr in top_node_nbrs:
             self.assertAlmostEqual(-1e-04, y_displacements[top_node_nbr], 6)
+
+    def _assert_integration_point_tensor_results(self, integration_point_tensors, expected_integration_point_tensor, places, result_name):
+        for idx, ip_tensor in enumerate(integration_point_tensors):
+            self.assertAlmostEqual(expected_integration_point_tensor[0], ip_tensor[0], places, msg = f"{result_name} component xx at integration point {idx}")
+            self.assertAlmostEqual(expected_integration_point_tensor[1], ip_tensor[1], places, msg = f"{result_name} component yy at integration point {idx}")
+            self.assertAlmostEqual(expected_integration_point_tensor[2], ip_tensor[2], places, msg = f"{result_name} component zz at integration point {idx}")
+
 
 if __name__ == '__main__':
     KratosUnittest.main()
