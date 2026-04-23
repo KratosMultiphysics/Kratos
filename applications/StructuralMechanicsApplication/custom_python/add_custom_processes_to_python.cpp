@@ -27,6 +27,7 @@
 #include "custom_processes/shell_to_solid_shell_process.h"
 #include "custom_processes/solid_shell_thickness_compute_process.h"
 #include "custom_processes/spr_error_process.h"
+#include "custom_processes/assign_nodal_elements_to_nodes_process.h"
 #include "custom_processes/impose_rigid_movement_process.h"
 #include "custom_processes/impose_z_strain_process.h"
 #include "custom_processes/distribute_load_on_surface_process.h"
@@ -79,6 +80,10 @@ void  AddCustomProcessesToPython(pybind11::module& m)
         .def(py::init< ModelPart&, Parameters >())
         ;
 
+    py::class_<AssignNodalElementsToNodesProcess, AssignNodalElementsToNodesProcess::Pointer, Process>(m, "AssignNodalElementsToNodesProcess")
+        .def(py::init<Model&, Parameters>())
+        ;
+
     //SPR_ERROR
     py::class_<SPRErrorProcess<2>, SPRErrorProcess<2>::Pointer, Process >(m, "SPRErrorProcess2D")
         .def(py::init<ModelPart&>())
@@ -113,9 +118,9 @@ void  AddCustomProcessesToPython(pybind11::module& m)
 
     py::class_<SetSphericalLocalAxesProcess, SetSphericalLocalAxesProcess::Pointer, Process>(m,"SetSphericalLocalAxesProcess")
         .def(py::init<ModelPart&, Parameters>());
-        
+
     py::class_<SetAutomatedInitialVariableProcess, SetAutomatedInitialVariableProcess::Pointer, Process>(m,"SetAutomatedInitialVariableProcess")
-    .def(py::init<ModelPart&, Parameters>());
+        .def(py::init<ModelPart&, Parameters>());
 }
 
 }  // namespace Kratos::Python
