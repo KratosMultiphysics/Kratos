@@ -96,6 +96,7 @@ In the above table, the value of the tensile strength $`f_{\mathrm{t}}`$ (which 
 
 This section documents the derivation of the Kratos input values for the interfaces adjacent to **clay** and **sand**.
 
+
 ### Given data
 
 The interface stiffnesses are based on the adjacent soil shear modulus and a characteristic element size normal to the interface.
@@ -112,19 +113,23 @@ The following values were adopted:
 
 The soil shear modulus is calculated as:
 
-$$ G = \frac{E}{2(1+\nu)} $$
+```math
+G = \frac{E}{2 (1 + \nu)}
+```
 
 #### Clay
 
-$$ G_{\mathrm{clay}} = \frac{1.2 \times 10^7}{2(1+0.30)} $$
+```math
+G_{\mathrm{clay}} = \frac{1.2 \times 10^7}{2(1+0.30)} = 4.615 \times 10^6 \mathrm{Pa}
+```
 
-$$ G_{\mathrm{clay}} = \frac{1.2 \times 10^7}{2.6} = 4.615 \times 10^6 ,\mathrm{Pa} $$
 
 #### Sand
 
-$$ G_{\mathrm{sand}} = \frac{3.0 \times 10^7}{2(1+0.30)} $$
+```math
+G_{\mathrm{sand}} = \frac{3.0 \times 10^7}{2(1+0.30)} = 1.1538 \times 10^7 \mathrm{Pa}
+```
 
-$$ G_{\mathrm{sand}} = \frac{3.0 \times 10^7}{2.6} = 1.1538 \times 10^7 ,\mathrm{Pa} $$
 
 ### Interface stiffness formulation
 
