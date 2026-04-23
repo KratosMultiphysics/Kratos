@@ -1050,7 +1050,8 @@ class CFDUtils:
         return LHS, RHS
 
 class GraphBasedSA_AMG:
-    def __init__(self, A_pattern_gpu, max_coarse=300):
+    def __init__(self, A_pattern_gpu, max_coarse=300, smoothed_aggregation = False):
+        self.smoothed_aggregation = smoothed_aggregation
         if(type(A_pattern_gpu) != KM.CsrMatrix):
             self.shape = A_pattern_gpu.shape
             self.dtype = A_pattern_gpu.dtype
@@ -1115,11 +1116,14 @@ class GraphBasedSA_AMG:
             #invD = PRECISION(1.0) / diag #TODO: check precision!
             lvl_dict['invD'] = invD
 
-            # Build Smoothed Prolongator using @
-            A_T = A_current @ T
-            scaled_A_T = sparse.spdiags(invD, 0, A_current.shape[0], A_current.shape[1]) * A_T
+            if self.smoothed_aggregation:
+                # Build Smoothed Prolongator using @
+                A_T = A_current @ T
+                scaled_A_T = sparse.spdiags(invD, 0, A_current.shape[0], A_current.shape[1]) * A_T
 
-            P = T - (scaled_A_T * omega_prolong)
+                P = T - (scaled_A_T * omega_prolong)
+            else: #non smoothed version
+                P = T 
             lvl_dict['P'] = P
             R = P.T
             self.levels.append(lvl_dict)
