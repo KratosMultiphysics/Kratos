@@ -46,6 +46,36 @@ namespace Kratos::Testing
         rMpmModelPart.SetNodalSolutionStepVariablesList(rGridModelPart.pGetNodalSolutionStepVariablesList());
     }
 
+    template<class TDataType>
+    void SetValuesOnNodes(ModelPart& rGridModelPart,
+                          const Variable<TDataType>& rNodalVariableName,
+                          const int buffer_index,
+                          const std::vector<TDataType>& rValues)
+    {
+        IndexType nodal_index = 0;
+        for (Node& r_node : rGridModelPart.Nodes())
+        {
+            if (r_node.SolutionStepsDataHas(rNodalVariableName)){
+                r_node.FastGetSolutionStepValue(rNodalVariableName) = rValues[nodal_index];
+            }
+            ++nodal_index;
+        }
+    }
+
+    template<class TDataType>
+    void SetValuesOnMaterialPoints(ModelPart& rMpmModelPart,
+                                   const Variable<TDataType>& rMPVariableName,
+                                   const std::vector<TDataType>& rValues)
+    {
+        const ProcessInfo& rProcessInfo = rMpmModelPart.GetProcessInfo();
+        IndexType mp_index = 0;
+        for (auto& material_point_i : rMpmModelPart.Elements())
+        {
+            material_point_i.SetValuesOnIntegrationPoints(rMPVariableName, {rValues[mp_index]}, rProcessInfo);
+            ++mp_index;
+        }
+    }
+
     void Prepare2D1ElementGridModelPart(ModelPart& rGridModelPart)
     {
         // Grid scheme:
@@ -346,44 +376,13 @@ namespace Kratos::Testing
         SetVelocityAndAccelerationToCoordinate(rModelPart);
     }
 
-
-    template<class TDataType>
-    void SetValuesOnNodes(ModelPart& rGridModelPart,
-                          const Variable<TDataType>& rNodalVariableName,
-                          const int buffer_index,
-                          const std::vector<TDataType>& rValues)
-    {
-        IndexType nodal_index = 0;
-        for (Node& r_node : rGridModelPart.Nodes())
-        {
-            if (r_node.SolutionStepsDataHas(rNodalVariableName)){
-                r_node.FastGetSolutionStepValue(rNodalVariableName) = rValues[nodal_index];
-            }
-            ++nodal_index;
-        }
-    }
-
-    template<class TDataType>
-    void SetValuesOnMaterialPoints(ModelPart& rMpmModelPart,
-                                   const Variable<TDataType>& rMPVariableName,
-                                   const std::vector<TDataType>& rValues,
-                                   const ProcessInfo& rProcessInfo)
-    {
-        IndexType mp_index = 0;
-        for (auto& material_point_i : rMpmModelPart.Elements())
-        {
-            material_point_i.SetValuesOnIntegrationPoints(rMPVariableName, {rValues[mp_index]}, rProcessInfo);
-            ++mp_index;
-        }
-    }
-
     template<class TDataType>
     void AssertMPVariables(const ModelPart& rMpmModelPart,
                            const Variable<TDataType>& rMPVariableName,
                            const std::vector<TDataType>& rReferenceValues,
-                           const double tolerance,
-                           const ProcessInfo& rProcessInfo)
+                           const double tolerance)
     {
+        const ProcessInfo& rProcessInfo = rMpmModelPart.GetProcessInfo();
         IndexType mp_index = 0;
         for (auto& material_point_i : rMpmModelPart.Elements())
         {
@@ -425,11 +424,9 @@ namespace Kratos::Testing
     {
         KRATOS_TRY;
         // --------------------------------------------------------------------------------------- Model Creation --------------------------------------------------------------------------------------- //
-        const unsigned int dimension = 2;
         Model current_model;
         ModelPart& r_mpm_model_part = current_model.CreateModelPart("MPMModelPart");
         ModelPart& r_grid_model_part = current_model.CreateModelPart("MPMGridModelPart");
-        const ProcessInfo& rProcessInfo = r_mpm_model_part.GetProcessInfo();
 
         AddVariablesToModelPart(r_mpm_model_part, r_grid_model_part);
 
@@ -483,15 +480,12 @@ namespace Kratos::Testing
 
         // ------------------------------------------------------------------------------------------ G2P Test ------------------------------------------------------------------------------------------ //
         // Setting values for current nodal velocity, acceleration, and pressure to simulate solving
-        auto& r_node_1 = r_mpm_model_part.GetNode(1);
-        auto& r_node_2 = r_mpm_model_part.GetNode(2);
-        auto& r_node_3 = r_mpm_model_part.GetNode(3);
-        auto& r_node_4 = r_mpm_model_part.GetNode(4);
         // Velocity
         const array_1d<double,3> node_1_velocity{ 1.1,  0.1, 0.0};
         const array_1d<double,3> node_2_velocity{ 0.1, -0.1, 0.0};
         const array_1d<double,3> node_3_velocity{-0.1, -0.1, 0.0};
         const array_1d<double,3> node_4_velocity{ 0.1,  1.1, 0.0};
+
         const std::vector<array_1d<double,3>> node_velocity_values{node_1_velocity,
                                                                    node_2_velocity,
                                                                    node_3_velocity,
@@ -504,10 +498,12 @@ namespace Kratos::Testing
         const array_1d<double,3> node_2_acceleration{ 0.1, -0.1, 0.0};
         const array_1d<double,3> node_3_acceleration{-0.1, -0.1, 0.0};
         const array_1d<double,3> node_4_acceleration{ 0.1,  1.1, 0.0};
+
         const std::vector<array_1d<double,3>> node_acceleration_values{node_1_acceleration,
                                                                        node_2_acceleration,
                                                                        node_3_acceleration,
                                                                        node_4_acceleration};
+
         SetValuesOnNodes(r_grid_model_part, ACCELERATION, 0, node_acceleration_values);
 
         // Pressure
@@ -523,6 +519,7 @@ namespace Kratos::Testing
                                                                        node_2_displacement,
                                                                        node_3_displacement,
                                                                        node_4_displacement};
+
         SetValuesOnNodes(r_grid_model_part, DISPLACEMENT, 0, node_displacement_values);
 
         // Adding initial MP displacement
@@ -535,7 +532,7 @@ namespace Kratos::Testing
                                                                          set_mp_3_displacement,
                                                                          set_mp_4_displacement};
 
-        SetValuesOnMaterialPoints(r_mpm_model_part, MP_DISPLACEMENT, set_mp_displacement_values, rProcessInfo);
+        SetValuesOnMaterialPoints(r_mpm_model_part, MP_DISPLACEMENT, set_mp_displacement_values);
 
         flip_mapping.RunG2PMapping();
 
@@ -552,7 +549,7 @@ namespace Kratos::Testing
                                                                     ref_mp_acceleration_3,
                                                                     ref_mp_acceleration_4};
 
-        AssertMPVariables(r_mpm_model_part, MP_ACCELERATION, ref_mp_accelerations, 1e-6, rProcessInfo);
+        AssertMPVariables(r_mpm_model_part, MP_ACCELERATION, ref_mp_accelerations, 1e-6);
 
         // Check MP displacement
         array_1d<double, 3> ref_mp_displacement_1 {0.129465819821637, 0.212799153178363, 0.0};
@@ -565,7 +562,7 @@ namespace Kratos::Testing
                                                                     ref_mp_displacement_3,
                                                                     ref_mp_displacement_4};
 
-        AssertMPVariables(r_mpm_model_part, MP_DISPLACEMENT, ref_mp_displacements, 1e-6, rProcessInfo);
+        AssertMPVariables(r_mpm_model_part, MP_DISPLACEMENT, ref_mp_displacements, 1e-6);
 
         // Check MP coordinate
         array_1d<double, 3> ref_mp_coordinate_1 {0.240790684821637, 0.224124018178363, 0.0};
@@ -578,7 +575,7 @@ namespace Kratos::Testing
                                                                   ref_mp_coordinate_3,
                                                                   ref_mp_coordinate_4};
 
-        AssertMPVariables(r_mpm_model_part, MP_COORD, ref_mp_coordinates, 1e-6, rProcessInfo);
+        AssertMPVariables(r_mpm_model_part, MP_COORD, ref_mp_coordinates, 1e-6);
 
         // Check MP velocity // -------------------------------------------------------------------------- #ToDo: To be moved to FLIP specific test
         // std::vector<array_1d<double, 3>> mp_velocity_1{};
@@ -612,7 +609,7 @@ namespace Kratos::Testing
                                                    ref_mp_pressure_3,
                                                    ref_mp_pressure_4};
 
-        AssertMPVariables(r_mpm_model_part, MP_PRESSURE, ref_mp_pressures, 1e-6, rProcessInfo);
+        AssertMPVariables(r_mpm_model_part, MP_PRESSURE, ref_mp_pressures, 1e-6);
 
         KRATOS_CATCH("")
     }
