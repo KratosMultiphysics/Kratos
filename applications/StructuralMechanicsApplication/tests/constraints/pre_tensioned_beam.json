@@ -1,0 +1,124 @@
+{
+    "analysis_stage": "KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis",
+    "problem_data": {
+        "problem_name": "pre_tensioned_beam",
+        "parallel_type": "OpenMP",
+        "echo_level": 1,
+        "start_time": 0,
+        "end_time": 1
+    },
+    "solver_settings": {
+        "time_stepping": {
+            "time_step": 1.0
+        },
+        "solver_type": "Static",
+        "model_part_name": "root",
+        "domain_size": 2,
+        "echo_level": 0,
+
+        "analysis_type": "non_linear",
+        "max_iteration" : 1e2,
+        "convergence_criterion": "displacement_criterion",
+        "displacement_relative_tolerance": 1e-4,
+        "displacement_absolute_tolerance": 1e-9,
+
+        "rotation_dofs" : true,
+        "move_mesh_flag" : true,
+
+        "model_import_settings": {
+            "input_type": "mdpa",
+            "input_filename" : "pre_tensioned_beam"
+        },
+
+        "material_import_settings": {
+            "materials_filename": "pre_tensioned_beam_materials.json"
+        },
+
+        "builder_and_solver_settings" : {
+            "type" : "p_multigrid",
+            "advanced_settings" : {
+                "constraint_imposition_settings" : {
+                    "method" : "augmented_lagrange",
+                    "max_iterations" : 20,
+                    "penalty_factor" : "max",
+                    "tolerance" : 1e-9,
+                    "verbosity" : 1
+                }
+            }
+        }
+    },
+    "processes": {
+        "constraints_process_list": [
+            {
+                "python_module": "assign_vector_variable_process",
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "AssignVectorVariableProcess",
+                "Parameters": {
+                    "model_part_name": "root.dirichlet",
+                    "variable_name": "DISPLACEMENT",
+                    "interval": [0, "End"],
+                    "constrained": [true, true, false],
+                    "value": [0, 0, 0]
+                }
+            },
+            {
+                "python_module": "assign_vector_variable_process",
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "AssignVectorVariableProcess",
+                "Parameters": {
+                    "model_part_name": "root.dirichlet",
+                    "variable_name": "ROTATION",
+                    "interval": [0, "End"],
+                    "constrained": [false, false, true],
+                    "value": [null, null, 0]
+                }
+            },
+            {
+                "python_module" : "neumann_pre_tension_process",
+                "kratos_module" : "KratosMultiphysics.StructuralMechanicsApplication",
+                "Parameters" : {
+                    "model_part_name" : "root.pre_tension_surface",
+                    "magnitude" : 2e7,
+                    "verbosity" : 1
+                }
+            }
+        ],
+        "loads_process_list": [
+            {
+                "python_module": "assign_vector_by_direction_to_condition_process",
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "AssignVectorByDirectionToConditionProcess",
+                "Parameters": {
+                    "model_part_name": "root.neumann",
+                    "variable_name": "POINT_LOAD",
+                    "interval": [
+                        0, "End"
+                    ],
+                    "modulus": 0,
+                    "direction": [-2, 7, 0]
+                }
+            }
+        ]
+    }
+    //,"output_processes": {
+    //"vtk_output": [
+    //  {
+    //    "Parameters": {
+    //      "folder_name": "vtk",
+    //      "model_part_name": "root",
+    //      "nodal_data_value_variables": [],
+    //      "nodal_solution_step_data_variables": [
+    //        "DISPLACEMENT",
+    //        "ROTATION",
+    //        "REACTION"
+    //      ],
+    //      "output_sub_model_parts": false,
+    //      "save_output_files_in_folder": true
+    //    },
+    //    "kratos_module": "KratosMultiphysics",
+    //    "process_name": "VTKOutputProcess",
+    //    "python_module": "vtk_output_process"
+    //  }
+    //]
+    //}
+}

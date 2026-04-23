@@ -2,14 +2,18 @@ Begin Properties 0
 End Properties
 
 Begin Nodes
-    1 0 0 0
-    2 1 0 0
-    3 2 0 0
-    4 0 2 0
-    5 1 2 0
-    6 2 2 0
-    7 1 1 0
+    1 0.0 2.0 0.0
+    2 1.0 1.0 0.0
+    3 2.0 0.0 0.0
+    4 0.5 4.0 0.0
+    5 3.0 4.0 0.0
+    6 4.5 4.0 0.0
+    7 2.0 2.5 0.0
 End Nodes
+
+Begin Geometries Point2D
+    1 7
+End Geometries
 
 Begin Elements CrBeamElement2D2N
     1 0 1 2
@@ -21,7 +25,7 @@ Begin Elements CrBeamElement2D2N
 End Elements
 
 Begin Conditions PointLoadCondition2D1N
-    1 0 7
+    1 0 5
 End Conditions
 
 Begin SubModelPart neumann
@@ -39,8 +43,8 @@ Begin SubModelPart dirichlet
     End SubModelPartNodes
 End SubModelPart
 
-Begin SubModelPart pretension_surface
-    Begin SubModelPartConditions
+Begin SubModelPart pre_tension_surface
+    Begin SubModelPartGeometries
         1
-    End SubModelPartConditions
+    End SubModelPartGeometries
 End SubModelPart

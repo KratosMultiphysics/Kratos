@@ -10,10 +10,10 @@ import pathlib
 
 class TestPretension(KratosMultiphysics.KratosUnittest.TestCase):
 
-    def test_pretension_1d(self) -> None:
+    def test_pretensioned_beam(self) -> None:
         with WorkFolderScope("constraints", pathlib.Path(__file__).absolute()):
             # Load config
-            with open("pretension_1d.json", "r") as project_parameters_file:
+            with open("pre_tensioned_beam.json", "r") as project_parameters_file:
                 parameters = KratosMultiphysics.Parameters(project_parameters_file.read())
             model = KratosMultiphysics.Model()
             analysis = StructuralMechanicsAnalysis(model, parameters)

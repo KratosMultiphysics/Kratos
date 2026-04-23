@@ -8,11 +8,11 @@
                     "name": "BeamConstitutiveLaw"
                 },
                 "Variables": {
-                    "DENSITY": 1e0,
-                    "YOUNG_MODULUS": 1e0,
-                    "POISSON_RATIO": 3e-1,
-                    "CROSS_AREA": 1e-3,
-                    "I33": 1e-5
+                    "DENSITY": 7.85e3,
+                    "YOUNG_MODULUS": 2.069e11,
+                    "POISSON_RATIO": 2.9e-1,
+                    "CROSS_AREA": 7.68e-3,
+                    "I33" : 7.763e-5
                 }
             }
         }
