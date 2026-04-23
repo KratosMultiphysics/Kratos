@@ -12,6 +12,7 @@ import test_helper
 import os
 import json
 from pathlib import Path
+import unittest
 
 import KratosMultiphysics.GeoMechanicsApplication.geo_plot_utilities as plot_utils
 
@@ -187,7 +188,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
         )
 
         with context_managers.set_cwd_to(project_path):
-            with open("staged_analysis.json", 'r') as parameter_file:
+            with open("../common/simulation_with_7_stages.json", 'r') as parameter_file:
                 project_parameters = Kratos.Parameters(parameter_file.read())
                 project = Project(project_parameters)
                 orchestrator_reg_entry = Kratos.Registry[project.GetSettings()["orchestrator"]["name"].GetString()]
@@ -532,8 +533,12 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
     # def test_simulation_without_excavation(self):
     #     self.run_simulation_and_checks("without_excavation")
 
+    @unittest.skip("focus is now on Mohr-Coulomb")
     def test_simulation_without_excavation(self):
         self.run_simulation_and_checks("with_excavation_stages")
+
+    def test_simulation_with_mohr_coulomb_materials(self):
+        self.run_simulation_and_checks("mohr_coulomb")
 
 
 if __name__ == "__main__":
