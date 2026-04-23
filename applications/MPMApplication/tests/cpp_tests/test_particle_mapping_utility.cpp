@@ -331,8 +331,8 @@ namespace Kratos::Testing
     }
 
     template<class TDataType>
-    void AssertMPVariables(ModelPart& rMpmModelPart,
-                           const Variable<TDataType>&  MPScalarVariable,
+    void AssertMPVariables(const ModelPart& rMpmModelPart,
+                           const Variable<TDataType>& rMPVariableName,
                            const std::vector<TDataType>& rReferenceValues,
                            const double tolerance,
                            const ProcessInfo& rProcessInfo)
@@ -341,13 +341,34 @@ namespace Kratos::Testing
         for (auto& material_point_i : rMpmModelPart.Elements())
         {
             std::vector<TDataType> mp_variable_value;
-            material_point_i.CalculateOnIntegrationPoints(MPScalarVariable, mp_variable_value, rProcessInfo);
+            material_point_i.CalculateOnIntegrationPoints(rMPVariableName, mp_variable_value, rProcessInfo);
             if constexpr(std::is_same_v<TDataType, double>) {
-                KRATOS_EXPECT_RELATIVE_NEAR(mp_variable_value[0], rReferenceValues[mp_index] + 1, tolerance);
+                KRATOS_EXPECT_RELATIVE_NEAR(mp_variable_value[0], rReferenceValues[mp_index], tolerance);
             } else {
                 KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(mp_variable_value[0], rReferenceValues[mp_index], tolerance);
             }
             ++mp_index;
+        }
+    }
+
+    template<class TDataType>
+    void AssertNodalVariables(const ModelPart& rGridModelPart,
+                              const Variable<TDataType>& rNodalVariableName,
+                              const int buffer_index,
+                              const std::vector<TDataType>& rReferenceValues,
+                              const double tolerance)
+    {
+        IndexType nodal_index = 0;
+        for (Node& r_node : rGridModelPart.Nodes())
+        {
+            TDataType nodal_variable_value = r_node.FastGetSolutionStepValue(rNodalVariableName, buffer_index);
+
+            if constexpr(std::is_same_v<TDataType, double>) {
+                KRATOS_EXPECT_RELATIVE_NEAR(nodal_variable_value, rReferenceValues[nodal_index], tolerance);
+            } else {
+                KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(nodal_variable_value, rReferenceValues[nodal_index], tolerance);
+            }
+            ++nodal_index;
         }
     }
     /**
@@ -390,6 +411,46 @@ namespace Kratos::Testing
         flip_mapping.RunP2GMapping();
 
         // Checking values at the nodes
+        // Check mapped mass
+        const std::vector<double> ref_nodal_mass{2.5, 2.5, 2.5, 2.5};
+        AssertNodalVariables(r_mpm_model_part, NODAL_MASS, 0, ref_nodal_mass, 1e-6);
+
+        // Check mapped velocity
+        const array_1d<double, 3> ref_nodal_velocity_1 { 1.333333333, 0.0, 0.0};
+        const array_1d<double, 3> ref_nodal_velocity_2 { 1.666666666, 0.0, 0.0};
+        const array_1d<double, 3> ref_nodal_velocity_3 { 1.666666666, 0.0, 0.0};
+        const array_1d<double, 3> ref_nodal_velocity_4 { 1.333333333, 0.0, 0.0};
+
+        const std::vector<array_1d<double, 3>> ref_nodal_velocity{ref_nodal_velocity_1,
+                                                                  ref_nodal_velocity_2,
+                                                                  ref_nodal_velocity_3,
+                                                                  ref_nodal_velocity_4};
+
+        AssertNodalVariables(r_mpm_model_part, VELOCITY, 1, ref_nodal_velocity, 1e-6);
+
+        // Check mapped acceleration
+        const array_1d<double, 3> ref_nodal_acceleration_1 { 2.333333333, 0.0, 0.0};
+        const array_1d<double, 3> ref_nodal_acceleration_2 { 2.666666666, 0.0, 0.0};
+        const array_1d<double, 3> ref_nodal_acceleration_3 { 2.666666666, 0.0, 0.0};
+        const array_1d<double, 3> ref_nodal_acceleration_4 { 2.333333333, 0.0, 0.0};
+
+        const std::vector<array_1d<double, 3>> ref_nodal_acceleration{ref_nodal_acceleration_1,
+                                                                      ref_nodal_acceleration_2,
+                                                                      ref_nodal_acceleration_3,
+                                                                      ref_nodal_acceleration_4};
+
+        AssertNodalVariables(r_mpm_model_part, ACCELERATION, 1, ref_nodal_acceleration, 1e-6);
+
+        // Check mapped pressure
+        const std::vector<double> ref_nodal_pressure{0.877991531432732,
+                                                     1.044658198567268,
+                                                     1.455341801432732,
+                                                     1.622008468567268};
+
+        AssertNodalVariables(r_mpm_model_part, PRESSURE, 1, ref_nodal_pressure, 1e-6);
+
+        // ------------------------------------------------------------------------------------------ G2P Test ------------------------------------------------------------------------------------------ //
+        // Setting values for current nodal velocity, acceleration, and pressure to simulate solving
         auto& r_node_1 = r_mpm_model_part.GetNode(1);
         auto& r_node_2 = r_mpm_model_part.GetNode(2);
         auto& r_node_3 = r_mpm_model_part.GetNode(3);
