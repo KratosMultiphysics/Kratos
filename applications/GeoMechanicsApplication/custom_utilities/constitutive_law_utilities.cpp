@@ -24,6 +24,9 @@ namespace
 
 using namespace Kratos;
 
+constexpr auto FullyCoupledDrainageType    = "fully_coupled";
+constexpr auto ConstantPwFieldDrainageType = "constant_pw_field";
+
 double GetValueOfUMatParameter(const Properties& rProperties, const Variable<int>& rIndexVariable)
 {
     KRATOS_ERROR_IF_NOT(rProperties.Has(UMAT_PARAMETERS))
@@ -296,22 +299,30 @@ bool ConstitutiveLawUtilities::IsConstantWaterPressure(const Properties& rProper
 
 void ConstitutiveLawUtilities::ReplaceIgnoreUndrainedByDrainageType(Properties& rProperties)
 {
-    if (!rProperties.Has(IGNORE_UNDRAINED)) {
-        if (!rProperties.Has(GEO_DRAINAGE_TYPE)) {
-            rProperties[GEO_DRAINAGE_TYPE] = "fully_coupled"s;
-        }
+    const bool has_ignore_undrained = rProperties.Has(IGNORE_UNDRAINED);
+    const bool has_drainage_type    = rProperties.Has(GEO_DRAINAGE_TYPE);
+
+    if (!has_ignore_undrained && !has_drainage_type) {
+        KRATOS_WARNING("DEPRECATION") << "Soon GEO_DRAINAGE_TYPE will be a mandatory input. "
+                                         "Currently, the default value is "
+                                      << FullyCoupledDrainageType << "." << std::endl;
+        rProperties[GEO_DRAINAGE_TYPE] = FullyCoupledDrainageType;
         return;
     }
+
+    if (!has_ignore_undrained) {
+        return;
+    }
+
+    KRATOS_ERROR_IF(has_drainage_type)
+        << "Both IGNORE_UNDRAINED and GEO_DRAINAGE_TYPE are used. Choose the latter only." << std::endl;
 
     KRATOS_WARNING("DEPRECATION")
         << "Use of IGNORE_UNDRAINED is deprecated, please change your input to "
            "GEO_DRAINAGE_TYPE"
         << std::endl;
-    if (!rProperties.Has(GEO_DRAINAGE_TYPE))
-        rProperties[GEO_DRAINAGE_TYPE] = rProperties[IGNORE_UNDRAINED] ? "constant_pw_field"s : "fully_coupled"s;
-    else
-        KRATOS_ERROR
-            << "Both IGNORE_UNDRAINED and GEO_DRAINAGE_TYPE are used. Choose the latter only." << std::endl;
+    rProperties[GEO_DRAINAGE_TYPE] =
+        rProperties[IGNORE_UNDRAINED] ? ConstantPwFieldDrainageType : FullyCoupledDrainageType;
     rProperties.Erase(IGNORE_UNDRAINED);
 }
 
