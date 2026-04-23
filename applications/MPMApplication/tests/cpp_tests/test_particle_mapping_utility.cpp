@@ -175,6 +175,9 @@ namespace Kratos::Testing
         pElement2->SetValuesOnIntegrationPoints(MP_PRESSURE, { 1.0 }, r_current_process_info);
         pElement3->SetValuesOnIntegrationPoints(MP_PRESSURE, { 1.5 }, r_current_process_info);
         pElement4->SetValuesOnIntegrationPoints(MP_PRESSURE, { 2.0 }, r_current_process_info);
+
+        // Search and update shape function values
+        MPMSearchElementUtility::SearchElement<dimension>(rGridModelPart, rMPMModelPart, 1000, 1e-6);
     }
 
     void SetVelocityAndAccelerationToCoordinate(ModelPart& rModelPart)
@@ -432,9 +435,6 @@ namespace Kratos::Testing
 
         Prepare2D1ElementGridModelPart(r_grid_model_part);
         Prepare2D1ElementMpmModelPart(r_mpm_model_part, r_grid_model_part); // ------------------------------------------------------------
-
-        // Search and update shape function values
-        MPMSearchElementUtility::SearchElement<dimension>(r_grid_model_part, r_mpm_model_part, 1000, 1e-6);
 
         // ------------------------------------------------------------------------------------------ P2G Test ------------------------------------------------------------------------------------------ //
         // Initialize and run FLIP mapping scheme
