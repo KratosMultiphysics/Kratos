@@ -19,7 +19,7 @@ namespace Kratos
 using SizeType = std::size_t;
 
 template<class TKernelType>
-class KRATOS_API(SPH_APPLICATION) SmallDisplacementParticle : public Element
+class KRATOS_API(SPH_APPLICATION) TotalLagrangianDisplacementParticle: public Element
 {
 protected:
     /**
@@ -49,12 +49,12 @@ protected:
             W = ZeroVector(NumberOfNeighbours);
             DW_DX = ZeroMatrix(NumberOfNeighbours, DomainSize);
             B = ZeroMatrix(StrainSize, DomainSize * NumberOfNeighbours);
-            double detF = 1.0;
+            detF = 1.0;
             F = IdentityMatrix(DomainSize);
             Displacement = ZeroVector(DomainSize * NumberOfNeighbours);
         }
     };
-
+    
     struct ConstitutiveVariables
     {
         ConstitutiveLaw::StrainVectorType StrainVector;
@@ -75,31 +75,30 @@ protected:
             noalias(C) = ZeroMatrix(StrainSize, StrainSize);
         }
     };
-
 public: 
 
     using BaseType = Element;
 
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SmallDisplacementParticle);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(TotalLagrangianDisplacementParticle);
 
     // Constructor void 
-    SmallDisplacementParticle()
+    TotalLagrangianDisplacementParticle()
     {
     }
 
     // Constructor using an array of nodes 
-    SmallDisplacementParticle(IndexType NewId, GeometryType::Pointer pGeometry) : BaseType(NewId, pGeometry)
+    TotalLagrangianDisplacementParticle(IndexType NewId, GeometryType::Pointer pGeometry) : BaseType(NewId, pGeometry)
     {
     }
 
     // Constructor using an array of nodes with properties 
-    SmallDisplacementParticle(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
+    TotalLagrangianDisplacementParticle(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
         : BaseType(NewId, pGeometry, pProperties)
     { 
     }
 
     // Copy constructor
-    SmallDisplacementParticle(SmallDisplacementParticle const& rOther)
+    TotalLagrangianDisplacementParticle(TotalLagrangianDisplacementParticle const& rOther)
         : BaseType(rOther),
         mThisConstitutiveLaw(rOther.mThisConstitutiveLaw)
     {
@@ -108,13 +107,13 @@ public:
     // Create method
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_intrusive<SmallDisplacementParticle>(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
+        return Kratos::make_intrusive<TotalLagrangianDisplacementParticle>(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
     }
 
     // Create method
     Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_intrusive<SmallDisplacementParticle>(NewId, pGeom, pProperties);
+        return Kratos::make_intrusive<TotalLagrangianDisplacementParticle>(NewId, pGeom, pProperties);
     }
 
     /**
@@ -128,16 +127,11 @@ public:
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
-     * @brief Returns a vector that includes the values of the DoFs
-     */
-    virtual void GetNodalValuesVector(VectorType& rNodalValue) const;
-
-    /**
      * @brief Sets on rResult the ID's of the element degrees of freedom
-     * @param rResult The vector containing the equation id
+     * @param rResult The vector containing the equation IDs
      */
     void EquationIdVector(
-        EquationIdVectorType& rElementalDofList,
+        EquationIdVectorType& rResult,
         const ProcessInfo& rCurrentProcessInfo
         ) const override;
     
@@ -158,40 +152,6 @@ public:
      * @brief Sets on rValues the nodal accelerations
      */
     void GetSecondDerivativesVector(VectorType& rValues, int step = 0) const override;
-
-    /**
-     * @brief
-     */
-    void GlobalSizeVector(
-        VectorType& rLocalVector,
-        VectorType& rNodalValue,
-        IndexType i
-    )
-    {
-        IndexType dofs_per_node = rLocalVector.size();
-        rLocalVector.clear();
-        rLocalVector[0] = rNodalValue[dofs_per_node * i];
-        rLocalVector[1] = rNodalValue[dofs_per_node * i + 1];
-    };
-    
-    /**
-     * @brief
-     */
-    virtual void GetShapeFunctionDerivatives(
-        MatrixType& rB,
-        VectorType& rCGCK,
-        const double volume
-    );
-
-    /**
-     * @brief
-     */
-    virtual void CalculateStrainVector(
-        VectorType& rStrainVector,
-        VectorType& rCGCK,
-        const VectorType& rNodalValues,
-        const double volume
-    );
 
     /**
      * @brief This is called during the assembling process in order to calculate the local system
@@ -235,44 +195,106 @@ public:
         const ProcessInfo& rCurrentProcessInfo,
         const bool CalculateStiffnessMatrixFlag,
         const bool CalculateResidualVectorFlag
-        );
+    );
+    
+    /**
+     * @brief This function is called to initialize the kinematic variables
+     */
+    virtual void CalculateKinematicVariables(
+        KinematicVariables& rThisKinematicVariables, 
+        const ProcessInfo& rCurrentProcessInfo
+    );
 
     /**
-     * @brief
+     * @brief This function computes the deformation gradient of the particle
+     * @details At the same time it strores the kernel and the kernel gradient values in the reference configuration
+     * @param rDW_DX The matrix containing the kernel gradients in the reference configuration
+     * @param rW The vector containing the kernels in the reference configuration
      */
-    virtual void CalculateKineamaticVariables(
-        KinematicVariables& rThisKinematicVariables, 
+    virtual void CalculateDeformationGradient(
+        MatrixType& rF,
+        MatrixType& rDW_DX,
+        VectorType& rW,
         const ProcessInfo& rProcessInfo
     );
 
     /**
-     * @brief
+     * @brief This function computes the deformation matrix B
      */
-    virtual void CalculateB(
+    void CalculateB(
         MatrixType& rB,
+        const MatrixType& rF,
         const MatrixType& rDW_DX
     );
 
     /**
-     * @brief
+     * @brief This function is called to initialize the constitutive variables
      */
-    virtual void CalculateAndAddExternalForcesContribution(
-        const VectorType& rW,
-        const ProcessInfo& rProcessInfo,
-        const VectorType& rBodyForce,
-        VectorType& rRHS,
-        const double weight
-    ) const;
-
-    /**
-     * @brief
-    */
     virtual void CalculateConstitutiveVariables(
         ConstitutiveVariables& rThisConstitutiveVariables,
         KinematicVariables& rThisKinematicVariables,
         ConstitutiveLaw::Parameters& rValues,
         const ConstitutiveLaw::StressMeasure ThisStressMeasure
     );
+
+    /**
+     * @brief This function is called to set the variables for the constitutive law
+     */
+    virtual void SetConstitutiveLawVariables(
+        ConstitutiveVariables& rThisConstitutiveVariables,
+        KinematicVariables& rThisKinematicVariables,
+        ConstitutiveLaw::Parameters& rValues
+    );
+    
+    /**
+      * @brief Calculation of the Geometric Stiffness Matrix. Kg = dB * S
+      * @param StressVector The vector containing the stress components
+      */
+    void CalculateAndAddKg(
+        MatrixType& rLeftHandSideMatrix,
+        const MatrixType& DW_DX,
+        const VectorType& StressVector,
+        const double IntegrationWeight
+    ) const;
+
+    /**
+      * @brief Calculation of the Material Stiffness Matrix. Km = B^T * D *B
+      * @param rLeftHandSideMatrix The local LHS of the element
+      * @param B The deformation matrix (Total Lagrangian Framework)
+      * @param D The constitutive matrix
+      * @param IntegrationWeight The integration weight of the corresponding Gauss point
+      */
+    void CalculateAndAddKm(
+        MatrixType& rLeftHandSideMatrix,
+        const Matrix& B,
+        const Matrix& rConstitutiveMatrix,
+        const double IntegrationWeight
+    ) const; 
+
+    /**
+      * @brief Calculation of the right hand side
+      * @param rRightHandSideVector The local component of the RHS due to external forces
+      * @param rThisKinematicVariables The kinematic variables
+      */
+    void CalculateAndAddResidualVector(
+        VectorType& rRightHandSideVector,
+        const KinematicVariables& rThisKinematicVariables,
+        const ProcessInfo& rCurrentProcessInfo,
+        const VectorType& rBodyForce,
+        const Vector& rStressVector,
+        const double IntegrationWeight
+    ) const; 
+
+    /**
+     * @brief This function calculates the contribution of the external forces to the RHS
+     */
+    void CalculateAndAddExternelForcesContribution(
+        const VectorType& rW,
+        const ProcessInfo& rProcessInfo,
+        const VectorType& rBodyForce,
+        VectorType& rRHS,
+        const double weight
+    ) const;
 
     /**
       * @brief This is called during the assembling process in order to calculate the elemental mass matrix

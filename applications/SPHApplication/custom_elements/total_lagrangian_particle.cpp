@@ -1,10 +1,10 @@
-#include "custom_elements/small_displacement_particle.h"
+#include "custom_elements/total_lagrangian_particle.h"
 
 namespace Kratos
 {
 
 template<class TKernelType>
-void SmallDisplacementParticle<TKernelType>::Initialize(const ProcessInfo& rCurrentProcessInfo)
+void TotalLagrangianDisplacementParticle<TKernelType>::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -14,7 +14,7 @@ void SmallDisplacementParticle<TKernelType>::Initialize(const ProcessInfo& rCurr
 }
 
 template<class TKernelType>
-void SmallDisplacementParticle<TKernelType>::InitializeMaterial()
+void TotalLagrangianDisplacementParticle<TKernelType>::InitializeMaterial()
 {
     KRATOS_TRY
 
@@ -33,14 +33,14 @@ void SmallDisplacementParticle<TKernelType>::InitializeMaterial()
 }
 
 template<class TKernelType>
-Element::Pointer SmallDisplacementParticle<TKernelType>::Clone( 
+Element::Pointer TotalLagrangianDisplacementParticle<TKernelType>::Clone( 
     IndexType NewId, 
     NodesArrayType const& rThisNodes
     ) const
 {
     KRATOS_TRY
 
-    SmallDisplacementParticle<TKernelType>::Pointer p_new_elem = Kratos::make_intrusive<SmallDisplacementParticle<TKernelType>>
+    TotalLagrangianDisplacementParticle<TKernelType>::Pointer p_new_elem = Kratos::make_intrusive<TotalLagrangianDisplacementParticle<TKernelType>>
         (NewId, GetGeometry().Create(rThisNodes), pGetProperties());
     p_new_elem->SetData(this->GetData());
     p_new_elem->Set(Flags(*this));
@@ -53,33 +53,7 @@ Element::Pointer SmallDisplacementParticle<TKernelType>::Clone(
 }
 
 template<class TKernelType>
-void SmallDisplacementParticle<TKernelType>::GetNodalValuesVector(VectorType& rNodalValues) const
-{
-    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
-
-    const auto& r_neighbours = GetValue(NEIGHBOURS);
-    const SizeType number_of_neighbours = r_neighbours.size();
-
-    if (rNodalValues.size() != dimension * number_of_neighbours){
-        rNodalValues.resize(dimension * number_of_neighbours, false);
-    }
-
-    IndexType index = 0;
-
-    for (IndexType i = 0; i < number_of_neighbours; ++i){
-
-        const auto& r_geom = r_neighbours[i]->GetGeometry();
-        const auto& r_displ = r_geom[0].FastGetSolutionStepValue(DISPLACEMENT);
-        rNodalValues[index++] = r_displ[0];
-        rNodalValues[index++] = r_displ[1];
-        if (dimension == 3){
-            rNodalValues[index++] = r_displ[2];
-        }
-    }
-}
-
-template<class TKernelType>
-void SmallDisplacementParticle<TKernelType>::EquationIdVector(
+void TotalLagrangianDisplacementParticle<TKernelType>::EquationIdVector(
     EquationIdVectorType& rResult,
     const ProcessInfo& rCurrentProcessInfo
     ) const
@@ -110,7 +84,7 @@ void SmallDisplacementParticle<TKernelType>::EquationIdVector(
 }
 
 template<class TKernelType>
-void SmallDisplacementParticle<TKernelType>::GetDofList(
+void TotalLagrangianDisplacementParticle<TKernelType>::GetDofList(
     DofsVectorType& rElementalDofList,
     const ProcessInfo& rCurrentProcessInfo
     ) const
@@ -139,7 +113,7 @@ void SmallDisplacementParticle<TKernelType>::GetDofList(
 }
 
 template<class TKernelType>
-void SmallDisplacementParticle<TKernelType>::GetFirstDerivativesVector(VectorType& rValues, int step) const
+void TotalLagrangianDisplacementParticle<TKernelType>::GetFirstDerivativesVector(VectorType& rValues, int step) const
 {
     KRATOS_TRY
     const auto& r_neighbours = GetValue(NEIGHBOURS);
@@ -163,7 +137,7 @@ void SmallDisplacementParticle<TKernelType>::GetFirstDerivativesVector(VectorTyp
 }
 
 template<class TKernelType>
-void SmallDisplacementParticle<TKernelType>::GetSecondDerivativesVector(VectorType& rValues, int step) const
+void TotalLagrangianDisplacementParticle<TKernelType>::GetSecondDerivativesVector(VectorType& rValues, int step) const
 {
     KRATOS_TRY
     const auto& r_neighbours = GetValue(NEIGHBOURS);
@@ -187,40 +161,7 @@ void SmallDisplacementParticle<TKernelType>::GetSecondDerivativesVector(VectorTy
 }
 
 template<class TKernelType>
-void SmallDisplacementParticle<TKernelType>::GetShapeFunctionDerivatives(
-    MatrixType& rB,
-    VectorType& rCGCK,
-    const double volume
-)
-{
-    rB.clear();
-    rB(0,0) = rCGCK[0];
-    rB(1,1) = rCGCK[1];
-    rB(2,0) = rCGCK[1];
-    rB(2,1) = rCGCK[0];
-    rB *= volume;
-
-}
-
-template<class TKernelType>
-void SmallDisplacementParticle<TKernelType>::CalculateStrainVector(
-    VectorType& rStrainVector, 
-    VectorType& rCGCK, 
-    const VectorType& rNodalValues,
-    const double volume
-)
-{
-    SizeType strain_size = rStrainVector.size();
-    SizeType domain_size = rCGCK.size();
-    MatrixType B(strain_size, domain_size);
-
-    rStrainVector.clear();
-    GetShapeFunctionDerivatives(B, rCGCK, volume);
-    noalias(rStrainVector) = prod(B, rNodalValues);
-}
-
-template<class TKernelType>
-void SmallDisplacementParticle<TKernelType>::CalculateLocalSystem(
+void TotalLagrangianDisplacementParticle<TKernelType>::CalculateLocalSystem(
     MatrixType& rLHS,
     VectorType& rRHS,
     const ProcessInfo& rProcessInfo
@@ -236,7 +177,7 @@ void SmallDisplacementParticle<TKernelType>::CalculateLocalSystem(
 }
 
 template<class TKernelType>
-void SmallDisplacementParticle<TKernelType>::CalculateLeftHandSide(
+void TotalLagrangianDisplacementParticle<TKernelType>::CalculateLeftHandSide(
     MatrixType& rLHS,
     const ProcessInfo& rProcessInfo
 )
@@ -253,7 +194,7 @@ void SmallDisplacementParticle<TKernelType>::CalculateLeftHandSide(
 }
 
 template<class TKernelType>
-void SmallDisplacementParticle<TKernelType>::CalculateRightHandSide(
+void TotalLagrangianDisplacementParticle<TKernelType>::CalculateRightHandSide(
     VectorType& rRHS,
     const ProcessInfo& rProcessInfo
 )
@@ -269,7 +210,7 @@ void SmallDisplacementParticle<TKernelType>::CalculateRightHandSide(
 }
 
 template<class TKernelType>
-void SmallDisplacementParticle<TKernelType>::CalculateAll(
+void TotalLagrangianDisplacementParticle<TKernelType>::CalculateAll(
     MatrixType& rLHS, 
     VectorType& rRHS,
     const ProcessInfo& rProcessInfo,
@@ -282,16 +223,13 @@ void SmallDisplacementParticle<TKernelType>::CalculateAll(
     const auto& r_props = GetProperties();
     const SizeType domain_size = r_geom.WorkingSpaceDimension();
     const SizeType strain_size = mThisConstitutiveLaw->GetStrainSize();
-    const double h = rProcessInfo.GetValue(SMOOTHING_LENGTH);
 
-    // The neighbours of the particle are like the nodes belonging to the element in standard FEM
-    const auto& r_neighbours = GetValue(NEIGHBOURS);
-    const SizeType number_of_neigh = r_neighbours.size();
+    const SizeType number_of_neigh = GetValue(NEIGHBOURS).size();
     const SizeType mat_size = domain_size * number_of_neigh;
 
     KinematicVariables this_kinematic_variables(strain_size, domain_size, number_of_neigh);
     ConstitutiveVariables this_constitutive_variables(strain_size);
-    
+
     if (CalculateStiffnessMatrixFlag){
         if (rLHS.size1() != mat_size || rLHS.size2() != mat_size) rLHS.resize(mat_size, mat_size, false);
         noalias(rLHS) = ZeroMatrix(mat_size, mat_size);
@@ -302,48 +240,61 @@ void SmallDisplacementParticle<TKernelType>::CalculateAll(
         noalias(rRHS) = ZeroVector(mat_size);
     }
 
-    VectorType nodal_values(mat_size), dkernel(domain_size), X_AB_target(domain_size), body_force(domain_size);
-    double kernel;
-    GetNodalValuesVector(nodal_values);
-
-    // Constitutive law 
-    ConstitutiveLaw::Parameters cl_values(r_geom, r_props, rProcessInfo);
-    auto& r_cl_options = cl_values.GetOptions();
-    r_cl_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true); //To compute the strain outside the CL
-    r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
-    if (CalculateStiffnessMatrixFlag){
-        r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+    ConstitutiveLaw::Parameters Values(r_geom, r_props, rProcessInfo);
+    auto& ConstitutiveLawOptions = Values.GetOptions();
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+    if (CalculateStiffnessMatrixFlag) {
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
     } else {
-        r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
     }
-    cl_values.SetStrainVector(this_constitutive_variables.StrainVector);
+    Values.SetStrainVector(this_constitutive_variables.StrainVector);
 
     double gauss_weight = r_geom[0].GetValue(VOLUME);
+    VectorType body_force(domain_size);
     SPHElementUtilities::GetLocalBodyForces(*this, body_force);
 
-    CalculateKineamaticVariables(this_kinematic_variables, rProcessInfo);
-    CalculateConstitutiveVariables(this_constitutive_variables, this_kinematic_variables, cl_values, ConstitutiveLaw::StressMeasure_Cauchy);
+    CalculateKinematicVariables(this_kinematic_variables, rProcessInfo);
+    CalculateConstitutiveVariables(this_constitutive_variables, this_kinematic_variables, Values, ConstitutiveLaw::StressMeasure_PK2);
+
+    const double thickness = (domain_size == 2 && r_props.Has(THICKNESS)) ? r_props[THICKNESS] : 1.0;
+    gauss_weight *= thickness;
 
     if (CalculateStiffnessMatrixFlag){
-        MatrixType temp = prod(this_constitutive_variables.C, this_kinematic_variables.B);
-        noalias(rLHS) = gauss_weight * prod(trans(this_kinematic_variables.B), temp);
+        /* Geometric stiffness matrix */
+        CalculateAndAddKg(rLHS, this_kinematic_variables.DW_DX, this_constitutive_variables.StressVector, gauss_weight);
+
+        /* Material stiffness matrix */
+        CalculateAndAddKm(rLHS, this_kinematic_variables.B, this_constitutive_variables.C, gauss_weight);
     }
 
     if (CalculateResidualVectorFlag){
-        CalculateAndAddExternalForcesContribution(this_kinematic_variables.W, rProcessInfo, body_force, rRHS, gauss_weight);
-        noalias(rRHS) -= gauss_weight * prod(trans(this_kinematic_variables.B), this_constitutive_variables.StressVector);
+        CalculateAndAddResidualVector(rRHS, this_kinematic_variables, rProcessInfo, body_force, this_constitutive_variables.StressVector, gauss_weight);
     }
+    
+    KRATOS_CATCH("")
+}
+
+template<class TKernelType>
+void TotalLagrangianDisplacementParticle<TKernelType>::CalculateKinematicVariables(KinematicVariables& rThisKinematicVariables, const ProcessInfo& rProcessInfo)
+{
+    KRATOS_TRY
+    CalculateDeformationGradient(rThisKinematicVariables.F, rThisKinematicVariables.DW_DX, rThisKinematicVariables.W, rProcessInfo);
+    rThisKinematicVariables.detF = MathUtils<double>::Det(rThisKinematicVariables.F);
+    
+    CalculateB(rThisKinematicVariables.B, rThisKinematicVariables.F, rThisKinematicVariables.DW_DX);
 
     KRATOS_CATCH("")
 }
 
 template<class TKernelType>
-void SmallDisplacementParticle<TKernelType>::CalculateKineamaticVariables(KinematicVariables& rThisKinematicVariables, const ProcessInfo& rProcessInfo)
+void TotalLagrangianDisplacementParticle<TKernelType>::CalculateDeformationGradient(
+    MatrixType& rF, 
+    MatrixType& rDW_DX,
+    VectorType& rW,
+    const ProcessInfo& rProcessInfo)
 {
-    KRATOS_TRY
-    auto& rW = rThisKinematicVariables.W;
-    auto& rDW_DX = rThisKinematicVariables.DW_DX;
-
     // Initialization of variables
     const auto& r_neighbours = this->GetValue(NEIGHBOURS);
     const double h = rProcessInfo.GetValue(SMOOTHING_LENGTH);
@@ -353,10 +304,15 @@ void SmallDisplacementParticle<TKernelType>::CalculateKineamaticVariables(Kinema
 
     // Initialization of variables
     double kernel;
-    VectorType dkernel(domain_size), X_AB_target(domain_size);
+    VectorType dkernel(domain_size), X_AB_target(domain_size), nodal_values(domain_size);
+
+    rF = ZeroMatrix(domain_size, domain_size);
 
     for (IndexType i = 0; i < r_neighbours.size(); ++i){
+        
         const auto& JPcoords = r_neighbours[i]->GetGeometry()[0].GetInitialPosition();
+        const auto& IP_current_position = r_neighbours[i]->GetGeometry()[0].Coordinates();
+        
         const double weight = r_neighbours[i]->GetGeometry()[0].GetValue(VOLUME);
 
         for (IndexType d = 0; d < domain_size; d++) X_AB_target[d] = IPcoords[d] - JPcoords[d];
@@ -364,43 +320,125 @@ void SmallDisplacementParticle<TKernelType>::CalculateKineamaticVariables(Kinema
         TKernelType::ComputeKernelValue(kernel, h, X_AB_target);
         TKernelType::ComputeKernelGradientValue(dkernel, h, X_AB_target);
         ComputeKernelCorrectionUtilities::ApplyKernelGradientCorrection(*this, kernel, dkernel);
-
-        rW[i] = weight * kernel;
-        for (IndexType d = 0; d < domain_size; d++){ 
+            
+        for (IndexType d = 0; d < domain_size; d++){
+            nodal_values[d] = IP_current_position[d];
             rDW_DX(i, d) = weight * dkernel[d];
         }
+
+        rF += weight * outer_prod(nodal_values, dkernel);
+        rW[i] = weight * kernel;
     }
-
-    CalculateB(rThisKinematicVariables.B, rThisKinematicVariables.DW_DX);
-
-    KRATOS_CATCH("")
 }
 
 template<class TKernelType>
-void SmallDisplacementParticle<TKernelType>::CalculateB(MatrixType& rB, const MatrixType& rDW_DX)
+void TotalLagrangianDisplacementParticle<TKernelType>::CalculateB(MatrixType& rB, const MatrixType& rF, const MatrixType& rDW_DX)
 {
     const SizeType number_of_neigh = GetValue(NEIGHBOURS).size();
     const SizeType domain_size = GetGeometry().WorkingSpaceDimension();
 
     for (IndexType i =0; i < number_of_neigh; ++i){
         const IndexType index = i * domain_size;
-        rB(0, index + 0) = rDW_DX(i, 0);
-        rB(0, index + 1) = 0.0;
-        rB(1, index + 0) = 0.0;
-        rB(1, index + 1) = rDW_DX(i, 1);
-        rB(2, index + 0) = rDW_DX(i, 1);
-        rB(2, index + 1) = rDW_DX(i, 0);
+        rB(0, index + 0) = rF(0, 0) * rDW_DX(i, 0);
+        rB(0, index + 1) = rF(1, 0) * rDW_DX(i, 0);
+        rB(1, index + 0) = rF(0, 1) * rDW_DX(i, 1);
+        rB(1, index + 1) = rF(1, 1) * rDW_DX(i, 1);
+        rB(2, index + 0) = rF(0, 0) * rDW_DX(i, 1) + rF(0, 1) * rDW_DX(i, 0);
+        rB(2, index + 1) = rF(1, 0) * rDW_DX(i, 1) + rF(1, 1) * rDW_DX(i, 0);
     }
+
 }
 
 template<class TKernelType>
-void SmallDisplacementParticle<TKernelType>::CalculateAndAddExternalForcesContribution(
+void TotalLagrangianDisplacementParticle<TKernelType>::CalculateConstitutiveVariables(
+    ConstitutiveVariables& rThisConstitutiveVariables,
+    KinematicVariables& rThisKinematicVariables,
+    ConstitutiveLaw::Parameters& rValues,
+    const ConstitutiveLaw::StressMeasure ThisStressMeasure
+)
+{
+    SetConstitutiveLawVariables(rThisConstitutiveVariables, rThisKinematicVariables, rValues);
+        
+    mThisConstitutiveLaw->CalculateMaterialResponse(rValues, ThisStressMeasure);
+
+}
+
+template<class TKernelType>
+void TotalLagrangianDisplacementParticle<TKernelType>::SetConstitutiveLawVariables(
+    ConstitutiveVariables& rThisConstitutiveVariables,
+    KinematicVariables& rThisKinematicVariables,
+    ConstitutiveLaw::Parameters& rValues
+)
+{
+    // Essential input parameters for the constitutive law
+    rValues.SetDeterminantF(rThisKinematicVariables.detF);
+    rValues.SetDeformationGradientF(rThisKinematicVariables.F);
+
+    // Space in which the resulta shall be saved
+    rValues.SetConstitutiveMatrix(rThisConstitutiveVariables.C);
+    rValues.SetStressVector(rThisConstitutiveVariables.StressVector);
+}
+
+template<class TKernelType>
+void TotalLagrangianDisplacementParticle<TKernelType>::CalculateAndAddKg(
+    MatrixType& rLHS, 
+    const Matrix& DW_DX, 
+    const Vector& stress_vector, 
+    const double weight
+    ) const 
+{
+    KRATOS_TRY
+    
+    const SizeType domain_size = GetGeometry().WorkingSpaceDimension();
+    const MatrixType stress_tensor = weight * MathUtils<double>::StressVectorToTensor(stress_vector);
+    MatrixType reduced_Kg(DW_DX.size1(), DW_DX.size1());
+    MathUtils<double>::BDBtProductOperation(reduced_Kg, stress_tensor, DW_DX);
+    MathUtils<double>::ExpandAndAddReducedMatrix(rLHS, reduced_Kg, domain_size);
+    
+    KRATOS_CATCH("")
+}
+
+template<class TKernelType>
+void TotalLagrangianDisplacementParticle<TKernelType>::CalculateAndAddKm(
+    MatrixType& rLHS, 
+    const Matrix& rB,
+    const Matrix& rConstitutiveMatrix, 
+    const double weight
+    ) const 
+{
+    KRATOS_TRY
+
+    noalias(rLHS) += weight * prod(trans(rB), Matrix(prod(rConstitutiveMatrix, rB)));
+
+    KRATOS_CATCH("")
+}
+
+template<class TKernelType>
+void TotalLagrangianDisplacementParticle<TKernelType>::CalculateAndAddResidualVector(
+    VectorType& rRHS,
+    const KinematicVariables& rThisKinematicVariables,
+    const ProcessInfo& rProcessInfo,
+    const VectorType& rBodyForce,
+    const Vector& rStressVector,
+    const double weigth 
+    ) const
+{
+    KRATOS_TRY
+
+    CalculateAndAddExternelForcesContribution(rThisKinematicVariables.W, rProcessInfo, rBodyForce, rRHS, weigth);
+    noalias(rRHS) -= weigth * prod(trans(rThisKinematicVariables.B), rStressVector);
+
+    KRATOS_CATCH("")
+}
+
+template<class TKernelType>
+void TotalLagrangianDisplacementParticle<TKernelType>::CalculateAndAddExternelForcesContribution(
     const VectorType& rW,
     const ProcessInfo& rProcessInfo,
     const VectorType& rBodyForce,
     VectorType& rRHS,
     const double weight
-) const 
+    ) const
 {
     const SizeType number_of_neigh = GetValue(NEIGHBOURS).size();
     const SizeType domain_size = GetGeometry().WorkingSpaceDimension();
@@ -415,37 +453,7 @@ void SmallDisplacementParticle<TKernelType>::CalculateAndAddExternalForcesContri
 }
 
 template<class TKernelType>
-void SmallDisplacementParticle<TKernelType>::CalculateConstitutiveVariables(
-    ConstitutiveVariables& rThisConstitutiveVariables,
-    KinematicVariables& rThisKinematicVariables,
-    ConstitutiveLaw::Parameters& rValues,
-    const ConstitutiveLaw::StressMeasure ThisStressMeasure
-)
-{
-    const SizeType number_of_neigh = GetValue(NEIGHBOURS).size();
-    const SizeType domain_size = GetGeometry().WorkingSpaceDimension();
-    const SizeType strain_size = mThisConstitutiveLaw->GetStrainSize();
-
-    GetNodalValuesVector(rThisKinematicVariables.Displacement);
-
-    rValues.SetDeterminantF(1.0);
-    rValues.SetDeformationGradientF(IdentityMatrix(2)); 
-
-    rValues.SetConstitutiveMatrix(rThisConstitutiveVariables.C);
-    rValues.SetStressVector(rThisConstitutiveVariables.StressVector);
-
-    for (IndexType i = 0; i < number_of_neigh; ++i){
-        rThisConstitutiveVariables.StrainVector[0] += rThisKinematicVariables.Displacement[domain_size * i] * rThisKinematicVariables.DW_DX(i, 0);
-        rThisConstitutiveVariables.StrainVector[1] += rThisKinematicVariables.Displacement[domain_size * i + 1] * rThisKinematicVariables.DW_DX(i, 1);
-        rThisConstitutiveVariables.StrainVector[2] += rThisKinematicVariables.Displacement[domain_size * i] * rThisKinematicVariables.DW_DX(i, 1) 
-            + rThisKinematicVariables.Displacement[domain_size * i + 1] * rThisKinematicVariables.DW_DX(i, 0);
-    }
-    
-    mThisConstitutiveLaw->CalculateMaterialResponse(rValues, ThisStressMeasure);
-}
-
-template<class TKernelType>
-void SmallDisplacementParticle<TKernelType>::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rProcessInfo)
+void TotalLagrangianDisplacementParticle<TKernelType>::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rProcessInfo)
 {
     KRATOS_TRY
     const auto& r_geom = GetGeometry();
@@ -500,7 +508,7 @@ void SmallDisplacementParticle<TKernelType>::CalculateMassMatrix(MatrixType& rMa
 }
 
 template<class TKernelType>
-void SmallDisplacementParticle<TKernelType>::CalculateDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& rProcessInfo)
+void TotalLagrangianDisplacementParticle<TKernelType>::CalculateDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& rProcessInfo)
 {
     const auto& r_neighbours = this->GetValue(NEIGHBOURS);
     const SizeType mat_size = GetGeometry().WorkingSpaceDimension() * r_neighbours.size();
@@ -509,7 +517,11 @@ void SmallDisplacementParticle<TKernelType>::CalculateDampingMatrix(MatrixType& 
 }
 
 template<class TKernelType>
-void SmallDisplacementParticle<TKernelType>::CalculateOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rOutput, const ProcessInfo& rProcessInfo)
+void TotalLagrangianDisplacementParticle<TKernelType>::CalculateOnIntegrationPoints(
+    const Variable<Vector>& rVariable, 
+    std::vector<Vector>& rOutput, 
+    const ProcessInfo& rProcessInfo
+)
 {
     if (rVariable == SPH_KERNEL_GRADIENT){
         const auto& r_neighbours = this->GetValue(NEIGHBOURS);
@@ -538,7 +550,11 @@ void SmallDisplacementParticle<TKernelType>::CalculateOnIntegrationPoints(const 
 }
 
 template<class TKernelType>
-void SmallDisplacementParticle<TKernelType>::CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rProcessInfo)
+void TotalLagrangianDisplacementParticle<TKernelType>::CalculateOnIntegrationPoints(
+    const Variable<double>& rVariable, 
+    std::vector<double>& rOutput, 
+    const ProcessInfo& rProcessInfo
+)
 {
     if (rVariable == SPH_KERNEL){
         const auto& r_neighbours = this->GetValue(NEIGHBOURS);
@@ -566,8 +582,9 @@ void SmallDisplacementParticle<TKernelType>::CalculateOnIntegrationPoints(const 
     }
 }
 
+
 template<class TKernelType>
-int SmallDisplacementParticle<TKernelType>::Check(const ProcessInfo& rCurrentProcessInfo) const 
+int TotalLagrangianDisplacementParticle<TKernelType>::Check(const ProcessInfo& rCurrentProcessInfo) const 
 {
     KRATOS_TRY
 
@@ -578,11 +595,7 @@ int SmallDisplacementParticle<TKernelType>::Check(const ProcessInfo& rCurrentPro
     KRATOS_CATCH("")
 }
 
-template class SmallDisplacementParticle<CubicKernel2D>;
+template class TotalLagrangianDisplacementParticle<CubicKernel2D>;
 
 }
-
-
-
-
 
