@@ -26,6 +26,15 @@
 // --- STL Includes ---
 #include <array> // std::array
 #include <sstream> // std::stringstream
+#include <optional> // std::optional
+#include <memory> // std::shared_ptr
+#include <array> // std::array
+#include <vector> // std::vector
+#include <algorithm>
+#include <numeric>
+#include <string>
+#include <unordered_set>
+#include <unordered_map>
 
 
 namespace Kratos {
