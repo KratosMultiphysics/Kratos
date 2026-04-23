@@ -71,23 +71,23 @@ $$ k \approx 1.0 \times 10^{-11},\mathrm{m}^2 $$
 ### Final values
 Because the Kratos model requires additional parameters, the table below summarizes the final material properties for the soil layers, including both the calculated values and the assumed values adopted for use in the model.
 
-| Property                     | Kratos input parameter |                   Clay |                   Sand | Unit                       |
-|------------------------------|------------------------|-----------------------:|-----------------------:|----------------------------|
-| Solid density                | `DENSITY_SOLID`        |                1834.86 |                2038.74 | $\mathrm{kg}/\mathrm{m}^3$ |
-| Water density                | `DENSITY_WATER`        |                1019.37 |                1019.37 | $\mathrm{kg}/\mathrm{m}^3$ |
-| Porosity                     | `POROSITY`             |                    0.0 |                    0.0 | $-$                        |
-| Young's modulus              | `YOUNG_MODULUS`        |      $1.2 \times 10^7$ |      $3.0 \times 10^7$ | $\mathrm{Pa}$              |
-| Poisson's ratio              | `POISSON_RATIO`        |                   0.30 |                   0.30 | $-$                        |
+| Property                     | Kratos input parameter | Clay                   | Sand                   | Unit                       |
+|:-----------------------------|:-----------------------|:-----------------------|:-----------------------|:---------------------------|
+| Solid density                | `DENSITY_SOLID`        | 1834.86                | 2038.74                | $\mathrm{kg}/\mathrm{m}^3$ |
+| Water density                | `DENSITY_WATER`        | 1019.37                | 1019.37                | $\mathrm{kg}/\mathrm{m}^3$ |
+| Porosity                     | `POROSITY`             | 0.0                    | 0.0                    | $-$                        |
+| Young's modulus              | `YOUNG_MODULUS`        | $1.2 \times 10^7$      | $3.0 \times 10^7$      | $\mathrm{Pa}$              |
+| Poisson's ratio              | `POISSON_RATIO`        | 0.30                   | 0.30                   | $-$                        |
 | Intrinsic permeability in xx | `PERMEABILITY_XX`      | $1.02 \times 10^{-11}$ | $1.02 \times 10^{-11}$ | $\mathrm{m}^2$             |
 | Intrinsic permeability in yy | `PERMEABILITY_YY`      | $1.02 \times 10^{-11}$ | $1.02 \times 10^{-11}$ | $\mathrm{m}^2$             |
-| Intrinsic permeability in xy | `PERMEABILITY_XY`      |                      0 |                      0 | $\mathrm{m}^2$             |
-| Saturated saturation         | `SATURATED_SATURATION` |                    1.0 |                    1.0 | $-$                        |
-| Residual saturation          | `RESIDUAL_SATURATION`  |  $1.0 \times 10^{-10}$ |  $1.0 \times 10^{-10}$ | $-$                        |
-| Earth pressure coefficient   | `K0_NC`                |                   0.62 |                   0.46 | $-$                        |
-| Cohesion                     | `GEO_COHESION`         |                 3000.0 |                    0.0 | $\mathrm{Pa}$              |
-| Friction angle               | `GEO_FRICTION_ANGLE`   |                   22.5 |                   32.5 | $`^{\circ}`$               |
-| Dilatancy angle              | `GEO_DILATANCY_ANGLE`  |                    0.0 |                    0.0 | $`^{\circ}`$               |
-| Tensile strength             | `GEO_TENSILE_STRENGTH` |                7242.64 |                    0.0 | $\mathrm{Pa}$              |
+| Intrinsic permeability in xy | `PERMEABILITY_XY`      | 0                      | 0                      | $\mathrm{m}^2$             |
+| Saturated saturation         | `SATURATED_SATURATION` | 1.0                    | 1.0                    | $-$                        |
+| Residual saturation          | `RESIDUAL_SATURATION`  | $1.0 \times 10^{-10}$  | $1.0 \times 10^{-10}$  | $-$                        |
+| Earth pressure coefficient   | `K0_NC`                | 0.62                   | 0.46                   | $-$                        |
+| Cohesion                     | `GEO_COHESION`         | 3000.0                 | 0.0                    | $\mathrm{Pa}$              |
+| Friction angle               | `GEO_FRICTION_ANGLE`   | 22.5                   | 32.5                   | $`^{\circ}`$               |
+| Dilatancy angle              | `GEO_DILATANCY_ANGLE`  | 0.0                    | 0.0                    | $`^{\circ}`$               |
+| Tensile strength             | `GEO_TENSILE_STRENGTH` | 7242.64                | 0.0                    | $\mathrm{Pa}$              |
 
 In the above table, the value of the tensile strength $`f_{\mathrm{t}}`$ (which fixes the tension cut-off) has been chosen such that it passes through the apex of the Coulomb yield surface.  In other words, it has been calculated as follows: $`f_{\mathrm{t}} = \frac{c}{\mathrm{tan}(\phi)}`$, with $`c`$ the cohesion and $`\phi`$ the friction angle.  Note that this choice effectively disables the tension cut-off. 
 
@@ -104,10 +104,10 @@ The interface stiffnesses are based on the adjacent soil shear modulus and a cha
 The following values were adopted:
 
 | Property                         | Clay-side interface | Sand-side interface | Unit          |
-|----------------------------------|--------------------:|--------------------:|---------------|
-| Young's modulus of adjacent soil |   $1.2 \times 10^7$ |   $3.0 \times 10^7$ | $\mathrm{Pa}$ |
-| Poisson's ratio of adjacent soil |                0.30 |                0.30 | $-$           |
-| Element size normal to interface |                 1.0 |                 1.0 | $\mathrm{m}$  |
+|:---------------------------------|:--------------------|:--------------------|:--------------|
+| Young's modulus of adjacent soil | $1.2 \times 10^7$   | $3.0 \times 10^7$   | $\mathrm{Pa}$ |
+| Poisson's ratio of adjacent soil | 0.30                | 0.30                | $-$           |
+| Element size normal to interface | 1.0                 | 1.0                 | $\mathrm{m}$  |
 
 ### Shear modulus of the adjacent soil
 
@@ -221,10 +221,10 @@ k_{\mathrm{n,sand}} = 4.615 \times 10^6
 
 ### Final values
 
-| Property                          | Kratos input parameter       | Clay-side interface |  Sand-side interface | Unit                     |
-| --------------------------------- | ---------------------------- | ------------------: |---------------------:| ------------------------ |
-| Normal stiffness $k_{\mathrm{n}}$ | `INTERFACE_NORMAL_STIFFNESS` | $4.615 \times 10^7$ | $1.1538 \times 10^6$ | $\mathrm{Pa}/\mathrm{m}$ |
-| Shear stiffness $k_{\mathrm{s}}$  | `INTERFACE_SHEAR_STIFFNESS`  | $4.615 \times 10^6$ | $1.1538 \times 10^6$ | $\mathrm{Pa}/\mathrm{m}$ |
+| Property                             | Kratos input parameter       | Clay-side interface   | Sand-side interface    | Unit                       |
+|:-------------------------------------|:-----------------------------|:----------------------|:-----------------------|:---------------------------|
+| Normal stiffness $`k_{\mathrm{n}}`$  | `INTERFACE_NORMAL_STIFFNESS` | $`4.615 \times 10^7`$ | $`4.615 \times 10^6`$  | $`\mathrm{Pa}/\mathrm{m}`$ |
+| Shear stiffness $`k_{\mathrm{s}}`$   | `INTERFACE_SHEAR_STIFFNESS`  | $`4.615 \times 10^6`$ | $`4.615 \times 10^6`$  | $`\mathrm{Pa}/\mathrm{m}`$ |
 
 The clay-side interface values follow directly from the adopted stiffness formulation. For the sand-side interface, the values used in the current Kratos model are reduced calibration values rather than the direct estimate from the adjacent sand shear modulus.
 
@@ -236,13 +236,13 @@ This section documents the parameters for the sheet pile, which is represented a
 
 From the section data for **AZ26** in D-Sheet Piling, the following properties are given for the sheet pile:
 
-| Property                    |                 Value | Unit                         |
-|-----------------------------|----------------------:|------------------------------|
-| Elastic stiffness           |    $8.40 \times 10^4$ | $\mathrm{kN,m}^2/\mathrm{m}$ |
-| Section area per meter wall |                   198 | $\mathrm{cm}^2/\mathrm{m}$   |
-| Elastic section modulus     |                  2600 | $\mathrm{cm}^3/\mathrm{m}$   |
-| Height                      |                   427 | $\mathrm{mm}$                |
-| Width of sheet piles        |                  0.63 | $\mathrm{m}$                 |
+| Property                    | Value                 | Unit                         |
+|:----------------------------|:----------------------|:-----------------------------|
+| Elastic stiffness           | $8.40 \times 10^4$    | $\mathrm{kN,m}^2/\mathrm{m}$ |
+| Section area per meter wall | 198                   | $\mathrm{cm}^2/\mathrm{m}$   |
+| Elastic section modulus     | 2600                  | $\mathrm{cm}^3/\mathrm{m}$   |
+| Height                      | 427                   | $\mathrm{mm}$                |
+| Width of sheet piles        | 0.63                  | $\mathrm{m}$                 |
 
 
 ### Note
@@ -281,13 +281,13 @@ In the current Kratos model, the sheet pile is represented by an equivalent Timo
 
 ### Final values
 
-| Property                           | Kratos input parameter  |                    Value | Unit                       |
-|------------------------------------|-------------------------|-------------------------:|----------------------------|
+| Property                           | Kratos input parameter  | Value                    | Unit                       |
+|:-----------------------------------|:------------------------|:-------------------------|:---------------------------|
 | Young's modulus                    | `YOUNG_MODULUS`         | $5.92927061 \times 10^9$ | $\mathrm{Pa}$              |
-| Poisson's ratio                    | `POISSON_RATIO`         |                      0.0 | $-$                        |
-| Thickness                          | `THICKNESS`             |                    1.265 | $\mathrm{m}$               |
-| Effective thickness in y-direction | `THICKNESS_EFFECTIVE_Y` |                     10.0 | $\mathrm{m}$               |
-| Density                            | `DENSITY`               |                   805.82 | $\mathrm{kg}/\mathrm{m}^3$ |
+| Poisson's ratio                    | `POISSON_RATIO`         | 0.0                      | $-$                        |
+| Thickness                          | `THICKNESS`             | 1.265                    | $\mathrm{m}$               |
+| Effective thickness in y-direction | `THICKNESS_EFFECTIVE_Y` | 10.0                     | $\mathrm{m}$               |
+| Density                            | `DENSITY`               | 805.82                   | $\mathrm{kg}/\mathrm{m}^3$ |
 
 
 ## Spring support / anchor parameters
@@ -298,19 +298,19 @@ This section documents the derivation of the Kratos input values for the **sprin
 
 From **D-Sheet Piling**:
 
-| Property                |              Value | Unit                                   |
-|-------------------------|-------------------:|----------------------------------------|
-| Spring support level    |              -1.50 | $\mathrm{m}$                           |
-| Rotational stiffness    |                  0 | $\mathrm{kNm}/\mathrm{rad}/\mathrm{m}$ |
+| Property                | Value              | Unit                                   |
+|:------------------------|:-------------------|:---------------------------------------|
+| Spring support level    | -1.50              | $\mathrm{m}$                           |
+| Rotational stiffness    | 0                  | $\mathrm{kNm}/\mathrm{rad}/\mathrm{m}$ |
 | Translational stiffness | $1.00 \times 10^4$ | $\mathrm{kN}/\mathrm{m}/\mathrm{m}$    |
 
 Adopted for the truss material:
 
-| Property        | Kratos input parameter |                Value | Unit                       |
-|-----------------|------------------------|---------------------:|----------------------------|
+| Property        | Kratos input parameter | Value                | Unit                       |
+|:----------------|:-----------------------|:---------------------|:---------------------------|
 | Young's modulus | `YOUNG_MODULUS`        | $4.0 \times 10^{11}$ | $\mathrm{Pa}$              |
-| Density         | `DENSITY`              |                  0.0 | $\mathrm{kg}/\mathrm{m}^3$ |
-| Prestress       | `TRUSS_PRESTRESS_PK2`  |                  0.0 | $\mathrm{Pa}$              |
+| Density         | `DENSITY`              | 0.0                  | $\mathrm{kg}/\mathrm{m}^3$ |
+| Prestress       | `TRUSS_PRESTRESS_PK2`  | 0.0                  | $\mathrm{Pa}$              |
 
 ### Axial stiffness relation
 
@@ -349,12 +349,12 @@ $$ EA = 4.0 \times 10^8 ,\mathrm{N} $$
 
 ### Final values
 
-| Property             | Kratos input parameter |                Value | Unit                       |
-|----------------------|------------------------|---------------------:|----------------------------|
+| Property             | Kratos input parameter | Value                | Unit                       |
+|:---------------------|:-----------------------|:---------------------|:---------------------------|
 | Young's modulus      | `YOUNG_MODULUS`        | $4.0 \times 10^{11}$ | $\mathrm{Pa}$              |
-| Density              | `DENSITY`              |                  0.0 | $\mathrm{kg}/\mathrm{m}^3$ |
+| Density              | `DENSITY`              | 0.0                  | $\mathrm{kg}/\mathrm{m}^3$ |
 | Cross-sectional area | `CROSS_AREA`           | $1.0 \times 10^{-3}$ | $\mathrm{m}^2$             |
-| Prestress            | `TRUSS_PRESTRESS_PK2`  |                  0.0 | $\mathrm{Pa}$              |
+| Prestress            | `TRUSS_PRESTRESS_PK2`  | 0.0                  | $\mathrm{Pa}$              |
 
 ## Staged analysis
 
