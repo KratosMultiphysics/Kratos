@@ -15,7 +15,7 @@ class KratosGeoMechanicsLabElementTests(KratosUnittest.TestCase):
         """
         test_name = 'test_triaxial'
         file_path = test_helper.get_file_path(os.path.join('test_element_lab', test_name))
-        simulation = test_helper.run_kratos(file_path)
+        test_helper.run_kratos(file_path)
 
         # read the output files from the simulation for comparison
         reader = GiDOutputFileReader()
@@ -55,7 +55,7 @@ class KratosGeoMechanicsLabElementTests(KratosUnittest.TestCase):
         """
         test_name = 'test_triaxial/undrained'
         file_path = test_helper.get_file_path(os.path.join('test_element_lab', test_name))
-        simulation = test_helper.run_kratos(file_path)
+        test_helper.run_kratos(file_path)
 
         # read the output files from the simulation for comparison
         reader = GiDOutputFileReader()
