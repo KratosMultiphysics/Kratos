@@ -296,6 +296,7 @@ class MPMSolver(PythonSolver):
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_MASS)
         model_part.AddNodalSolutionStepVariable(KratosMPM.NODAL_MOMENTUM)
         model_part.AddNodalSolutionStepVariable(KratosMPM.NODAL_INERTIA)
+        model_part.AddNodalSolutionStepVariable(KratosMPM.NODAL_CAUCHY_STRESS_VECTOR)
 
         # Add variables that the user defined in the ProjectParameters
         auxiliary_solver_utilities.AddVariables(model_part, self.settings["auxiliary_variables_list"])
@@ -328,6 +329,10 @@ class MPMSolver(PythonSolver):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X, model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y, model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z, model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMPM.NODAL_CAUCHY_STRESS_VECTOR_X, model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMPM.NODAL_CAUCHY_STRESS_VECTOR_Y, model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMPM.NODAL_CAUCHY_STRESS_VECTOR_Z,  model_part)
+    
 
         if self.settings["pressure_dofs"].GetBool():
             KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.PRESSURE, KratosMPM.PRESSURE_REACTION, model_part)

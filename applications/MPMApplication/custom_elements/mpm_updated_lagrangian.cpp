@@ -845,6 +845,7 @@ void MPMUpdatedLagrangian::AddExplicitContribution(const ProcessInfo& rCurrentPr
     GeometryType& r_geometry = GetGeometry();
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
     const unsigned int number_of_nodes = r_geometry.PointsNumber();
+    unsigned int voigt_dimension = 0;
 
     const bool is_explicit_central_difference = (rCurrentProcessInfo.Has(IS_EXPLICIT_CENTRAL_DIFFERENCE))
         ? rCurrentProcessInfo.GetValue(IS_EXPLICIT_CENTRAL_DIFFERENCE)
@@ -854,6 +855,12 @@ void MPMUpdatedLagrangian::AddExplicitContribution(const ProcessInfo& rCurrentPr
     const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
     array_1d<double,3> nodal_momentum = ZeroVector(3);
     array_1d<double,3> nodal_inertia  = ZeroVector(3);
+    
+
+    if (dimension==2) voigt_dimension=3;
+    if (dimension==3) voigt_dimension=6;
+    Vector nodal_cauchy_stress_vector  = ZeroVector(voigt_dimension);
+    
 
     // Here MP contribution in terms of momentum, inertia and mass are added
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
@@ -862,6 +869,10 @@ void MPMUpdatedLagrangian::AddExplicitContribution(const ProcessInfo& rCurrentPr
         {
             nodal_momentum[j] = r_N(0, i) * mMP.velocity[j] * mMP.mass;
             nodal_inertia[j] = r_N(0, i) * mMP.acceleration[j] * mMP.mass;
+        }
+	    for (unsigned int j = 0; j < voigt_dimension; j++)
+	    {
+            nodal_cauchy_stress_vector[j] = r_N(0, i) * mMP.cauchy_stress_vector[j] * mMP.mass;
         }
 
         // Add in the predictor velocity increment for central difference explicit
@@ -877,6 +888,7 @@ void MPMUpdatedLagrangian::AddExplicitContribution(const ProcessInfo& rCurrentPr
         r_geometry[i].SetLock();
         r_geometry[i].FastGetSolutionStepValue(NODAL_MOMENTUM, 0) += nodal_momentum;
         r_geometry[i].FastGetSolutionStepValue(NODAL_INERTIA, 0)  += nodal_inertia;
+        r_geometry[i].FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_VECTOR, 0) += nodal_cauchy_stress_vector;
         r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0) += r_N(0, i) * mMP.mass;
         r_geometry[i].UnSetLock();
     }
