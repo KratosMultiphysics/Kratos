@@ -127,16 +127,11 @@ public:
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
-     * @brief Returns a vector that includes the values of the DoFs
-     */
-    virtual void GetNodalValuesVector(VectorType& rNodalValue) const;
-
-    /**
      * @brief Sets on rResult the ID's of the element degrees of freedom
-     * @param rResult The vector containing the equation id
+     * @param rResult The vector containing the equation IDs
      */
     void EquationIdVector(
-        EquationIdVectorType& rElementalDofList,
+        EquationIdVectorType& rResult,
         const ProcessInfo& rCurrentProcessInfo
         ) const override;
     
@@ -157,21 +152,6 @@ public:
      * @brief Sets on rValues the nodal accelerations
      */
     void GetSecondDerivativesVector(VectorType& rValues, int step = 0) const override;
-
-    /**
-     * @brief
-     */
-    void GlobalSizeVector(
-        VectorType& rLocalVector,
-        VectorType& rNodalValue,
-        IndexType i
-    )
-    {
-        IndexType dofs_per_node = rLocalVector.size();
-        rLocalVector.clear();
-        rLocalVector[0] = rNodalValue[dofs_per_node * i];
-        rLocalVector[1] = rNodalValue[dofs_per_node * i + 1];
-    };
 
     /**
      * @brief This is called during the assembling process in order to calculate the local system
@@ -227,11 +207,14 @@ public:
 
     /**
      * @brief This function computes the deformation gradient of the particle
+     * @details At the same time it strores the kernel and the kernel gradient values in the reference configuration
+     * @param rDW_DX The matrix containing the kernel gradients in the reference configuration
+     * @param rW The vector containing the kernels in the reference configuration
      */
     virtual void CalculateDeformationGradient(
         MatrixType& rF,
         MatrixType& rDW_DX,
-        VectorType rW,
+        VectorType& rW,
         const ProcessInfo& rProcessInfo
     );
 
@@ -265,8 +248,7 @@ public:
     
     /**
       * @brief Calculation of the Geometric Stiffness Matrix. Kg = dB * S
-      * @param 
-      * @param 
+      * @param StressVector The vector containing the stress components
       */
     void CalculateAndAddKg(
         MatrixType& rLeftHandSideMatrix,
@@ -278,7 +260,7 @@ public:
     /**
       * @brief Calculation of the Material Stiffness Matrix. Km = B^T * D *B
       * @param rLeftHandSideMatrix The local LHS of the element
-      * @param B The deformationmmatrix
+      * @param B The deformation matrix (Total Lagrangian Framework)
       * @param D The constitutive matrix
       * @param IntegrationWeight The integration weight of the corresponding Gauss point
       */
@@ -293,7 +275,6 @@ public:
       * @brief Calculation of the right hand side
       * @param rRightHandSideVector The local component of the RHS due to external forces
       * @param rThisKinematicVariables The kinematic variables
-      * @param rStressVector The vector containing the stress components
       */
     void CalculateAndAddResidualVector(
         VectorType& rRightHandSideVector,

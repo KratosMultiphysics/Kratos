@@ -21,6 +21,61 @@ using SizeType = std::size_t;
 template<class TKernelType>
 class KRATOS_API(SPH_APPLICATION) SmallDisplacementParticle : public Element
 {
+protected:
+    /**
+     * Internal variables used in the kinematic calculations
+     */
+    struct KinematicVariables
+    {
+        VectorType W;
+        MatrixType DW_DX;
+        MatrixType B;
+        double detF;
+        MatrixType F;
+        VectorType Displacement;
+
+        /**
+         * @brief Default constructor
+         * @param StrainSize The size of the strain vector in Voigt notation
+         * @param DomainSize The size of the problem domain
+         * @param NumberOfNeighbours The number of neighbours of the particle
+         */
+        KinematicVariables(
+            const SizeType StrainSize,
+            const SizeType DomainSize,
+            const SizeType NumberOfNeighbours
+        )
+        {
+            W = ZeroVector(NumberOfNeighbours);
+            DW_DX = ZeroMatrix(NumberOfNeighbours, DomainSize);
+            B = ZeroMatrix(StrainSize, DomainSize * NumberOfNeighbours);
+            double detF = 1.0;
+            F = IdentityMatrix(DomainSize);
+            Displacement = ZeroVector(DomainSize * NumberOfNeighbours);
+        }
+    };
+
+    struct ConstitutiveVariables
+    {
+        ConstitutiveLaw::StrainVectorType StrainVector;
+        ConstitutiveLaw::StressVectorType StressVector;
+        ConstitutiveLaw::VoigtSizeMatrixType C;
+
+        /**
+         * @brief Default constructor
+         */
+        ConstitutiveVariables(const SizeType StrainSize)
+        {
+            if (StrainVector.size() != StrainSize) StrainVector.resize(StrainSize);
+            if (StressVector.size() != StrainSize) StressVector.resize(StrainSize);
+            if (C.size1() != StrainSize || C.size2() != StrainSize) C.resize(StrainSize, StrainSize);
+
+            noalias(StrainVector) = ZeroVector(StrainSize);
+            noalias(StressVector) = ZeroVector(StrainSize);
+            noalias(C) = ZeroMatrix(StrainSize, StrainSize);
+        }
+    };
+
 public: 
 
     using BaseType = Element;
@@ -181,6 +236,43 @@ public:
         const bool CalculateStiffnessMatrixFlag,
         const bool CalculateResidualVectorFlag
         );
+
+    /**
+     * @brief
+     */
+    virtual void CalculateKineamaticVariables(
+        KinematicVariables& rThisKinematicVariables, 
+        const ProcessInfo& rProcessInfo
+    );
+
+    /**
+     * @brief
+     */
+    virtual void CalculateB(
+        MatrixType& rB,
+        const MatrixType& rDW_DX
+    );
+
+    /**
+     * @brief
+     */
+    virtual void CalculateAndAddExternalForcesContribution(
+        const VectorType& rW,
+        const ProcessInfo& rProcessInfo,
+        const VectorType& rBodyForce,
+        VectorType& rRHS,
+        const double weight
+    ) const;
+
+    /**
+     * @brief
+    */
+    virtual void CalculateConstitutiveVariables(
+        ConstitutiveVariables& rThisConstitutiveVariables,
+        KinematicVariables& rThisKinematicVariables,
+        ConstitutiveLaw::Parameters& rValues,
+        const ConstitutiveLaw::StressMeasure ThisStressMeasure
+    );
 
     /**
       * @brief This is called during the assembling process in order to calculate the elemental mass matrix
