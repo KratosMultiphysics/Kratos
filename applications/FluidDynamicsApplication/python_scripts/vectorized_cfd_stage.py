@@ -139,10 +139,13 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         c_1 = 4.0
         c_2 = 2.0
 
+        tau_1 = self.tau_1
+        tau_2 = self.tau_2
+
         denom_max = 1.0e-3*rho/dt
         denom = xp.maximum(denom_max, c_2*rho*rho_conv + c_1*viscosity/h**2) #TODO: check if we can reuse Fourier and CFL numbers here
-        tau_1 = 1.0 / denom
-        tau_2 = h**2/(c_1 * tau_1)
+        xp.reciprocal(denom, out=tau_1)
+        tau_2[:] = h**2/(c_1 * tau_1)
 
         if self.clear_divergence_steps > 0:
             tau_1.fill(0.0)
@@ -316,6 +319,8 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         self.b_el = xp.empty(self.DN.shape, dtype=cfd_utils.PRECISION)
         self.div_proj_el = xp.empty(self.p_el.shape, dtype=cfd_utils.PRECISION)
         self.conv_proj_el = xp.empty(self.DN.shape, dtype=cfd_utils.PRECISION)
+        self.tau_1 = xp.empty(self.DN.shape[0], dtype=cfd_utils.PRECISION)
+        self.tau_2 = xp.empty(self.DN.shape[0], dtype=cfd_utils.PRECISION)
 
         #arrays to be usef for residual on elements
         self.res_v_el = xp.empty(self.DN.shape, dtype=cfd_utils.PRECISION)
@@ -943,6 +948,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         # xp.divide(self.max_cfl, (rho_conv + eps), out=self.tmp_n_elem)
         # dt_cfl = xp.min(self.tmp_n_elem)
 
+        #much better version avoiding vector divisions and mostly working with scalars
         max_rho_conv = xp.max(rho_conv)
         dt_cfl = self.max_cfl / (max_rho_conv + eps)
 
