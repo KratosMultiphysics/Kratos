@@ -26,22 +26,35 @@
 
 namespace Kratos::Testing
 {
-    void Prepare2D1EBackgroundModelPart(ModelPart& rBackgroundModelPart)
+    void AddVariablesToModelPart(ModelPart& rMpmModelPart, ModelPart& rGridModelPart)
+    {
+        rGridModelPart.SetBufferSize(2);
+        rGridModelPart.AddNodalSolutionStepVariable(DISPLACEMENT);
+        rGridModelPart.AddNodalSolutionStepVariable(REACTION);
+        rGridModelPart.AddNodalSolutionStepVariable(PRESSURE);
+        rGridModelPart.AddNodalSolutionStepVariable(POSITIVE_FACE_PRESSURE);
+        rGridModelPart.AddNodalSolutionStepVariable(VOLUME_ACCELERATION);
+        rGridModelPart.AddNodalSolutionStepVariable(NODAL_MASS);
+        rGridModelPart.AddNodalSolutionStepVariable(NODAL_MOMENTUM);
+        rGridModelPart.AddNodalSolutionStepVariable(NODAL_INERTIA);
+        rGridModelPart.AddNodalSolutionStepVariable(VELOCITY);
+        rGridModelPart.AddNodalSolutionStepVariable(ACCELERATION);
+        rGridModelPart.AddNodalSolutionStepVariable(NODAL_MPRESSURE);
+
+        rMpmModelPart.SetBufferSize(2);
+        rMpmModelPart.SetNodes(rGridModelPart.pNodes());
+        rMpmModelPart.SetNodalSolutionStepVariablesList(rGridModelPart.pGetNodalSolutionStepVariablesList());
+    }
+
+    void Prepare2D1ElementGridModelPart(ModelPart& rGridModelPart)
     {
         // Grid scheme:
-        //  13---14---15---16
-        //  |    |    |    |
-        //  |    |    |    |
-        //  |    |    |    |
-        //  9----10---11----12
-        //  |    |    |    |
-        //  |    |    |    |
-        //  |    |    |    |
-        //  5----6----7----8
-        //  |    |    |    |
-        //  |    |    |    |
-        //  |    |    |    |
-        //  1----2----3----4
+        //  4----3
+        //  |    |
+        //  |    |
+        //  |    |
+        //  1----2
+
         // Nodes
         auto p_node_1 = rGridModelPart.CreateNewNode( 1,  0.0 ,  0.0 , 0.0);
         auto p_node_2 = rGridModelPart.CreateNewNode( 2,  1.0 ,  0.0 , 0.0);
@@ -405,38 +418,26 @@ namespace Kratos::Testing
     /**
     *
     */
-    KRATOS_TEST_CASE_IN_SUITE(MPMFlipParticleMappingUtilityOneGridElement2D, KratosMPMFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(MPMFlipParticleMappingUtilityOneGridElement2D, KratosMPMFastSuite) // #ToDo: To be renamed as MPMBaseParticleMappingUtilityOneGridElement2D
     {
         KRATOS_TRY;
+        // --------------------------------------------------------------------------------------- Model Creation --------------------------------------------------------------------------------------- //
         const unsigned int dimension = 2;
         Model current_model;
         ModelPart& r_mpm_model_part = current_model.CreateModelPart("MPMModelPart");
         ModelPart& r_grid_model_part = current_model.CreateModelPart("MPMGridModelPart");
         const ProcessInfo& rProcessInfo = r_mpm_model_part.GetProcessInfo();
 
-        r_background_model_part.SetBufferSize(2);
+        AddVariablesToModelPart(r_mpm_model_part, r_grid_model_part);
 
-        r_background_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
-        r_background_model_part.AddNodalSolutionStepVariable(REACTION);
-        r_background_model_part.AddNodalSolutionStepVariable(PRESSURE);
-        r_background_model_part.AddNodalSolutionStepVariable(POSITIVE_FACE_PRESSURE);
-        r_background_model_part.AddNodalSolutionStepVariable(VOLUME_ACCELERATION);
-        r_background_model_part.AddNodalSolutionStepVariable(NODAL_MASS);
-        r_background_model_part.AddNodalSolutionStepVariable(NODAL_MOMENTUM);
-        r_background_model_part.AddNodalSolutionStepVariable(NODAL_INERTIA);
-        r_background_model_part.AddNodalSolutionStepVariable(VELOCITY);
-        r_background_model_part.AddNodalSolutionStepVariable(ACCELERATION);
-        r_background_model_part.AddNodalSolutionStepVariable(NODAL_MPRESSURE);
-
-        Prepare2D1EBackgroundModelPart(r_background_model_part);
-        r_mpm_model_part.SetNodes(r_background_model_part.pNodes());
-
-        Prepare2D1EModelPart(r_mpm_model_part, r_background_model_part); // ------------------------------------------------------------
+        Prepare2D1ElementGridModelPart(r_grid_model_part);
+        Prepare2D1ElementMpmModelPart(r_mpm_model_part, r_grid_model_part); // ------------------------------------------------------------
 
         // Search and update shape function values
         MPMSearchElementUtility::SearchElement<dimension>(r_grid_model_part, r_mpm_model_part, 1000, 1e-6);
 
         // ------------------------------------------------------------------------------------------ P2G Test ------------------------------------------------------------------------------------------ //
+        // Initialize and run FLIP mapping scheme
         unsigned int echo_level = 0;
         MPMFlipParticleMappingUtility flip_mapping(r_mpm_model_part, r_grid_model_part, echo_level);
         flip_mapping.RunP2GMapping();
@@ -579,24 +580,24 @@ namespace Kratos::Testing
 
         AssertMPVariables(r_mpm_model_part, MP_COORD, ref_mp_coordinates, 1e-6, rProcessInfo);
 
-        // Check MP velocity
-        std::vector<array_1d<double, 3>> mp_velocity_1{};
-        std::vector<array_1d<double, 3>> mp_velocity_2{};
-        std::vector<array_1d<double, 3>> mp_velocity_3{};
-        std::vector<array_1d<double, 3>> mp_velocity_4{};
+        // Check MP velocity // -------------------------------------------------------------------------- #ToDo: To be moved to FLIP specific test
+        // std::vector<array_1d<double, 3>> mp_velocity_1{};
+        // std::vector<array_1d<double, 3>> mp_velocity_2{};
+        // std::vector<array_1d<double, 3>> mp_velocity_3{};
+        // std::vector<array_1d<double, 3>> mp_velocity_4{};
 
-        r_element_1.CalculateOnIntegrationPoints(MP_VELOCITY, mp_velocity_1, rProcessInfo);
-        r_element_2.CalculateOnIntegrationPoints(MP_VELOCITY, mp_velocity_2, rProcessInfo);
-        r_element_3.CalculateOnIntegrationPoints(MP_VELOCITY, mp_velocity_3, rProcessInfo);
-        r_element_4.CalculateOnIntegrationPoints(MP_VELOCITY, mp_velocity_4, rProcessInfo);
+        // r_element_1.CalculateOnIntegrationPoints(MP_VELOCITY, mp_velocity_1, rProcessInfo);
+        // r_element_2.CalculateOnIntegrationPoints(MP_VELOCITY, mp_velocity_2, rProcessInfo);
+        // r_element_3.CalculateOnIntegrationPoints(MP_VELOCITY, mp_velocity_3, rProcessInfo);
+        // r_element_4.CalculateOnIntegrationPoints(MP_VELOCITY, mp_velocity_4, rProcessInfo);
 
-        array_1d<double, 3> ref_mp_velocity_1 {0.0, 0.0, 0.0};
-        array_1d<double, 3> ref_mp_velocity_2 {0.0, 0.0, 0.0};
-        array_1d<double, 3> ref_mp_velocity_3 {0.0, 0.0, 0.0};
-        array_1d<double, 3> ref_mp_velocity_4 {0.0, 0.0, 0.0};
+        // array_1d<double, 3> ref_mp_velocity_1 {0.0, 0.0, 0.0};
+        // array_1d<double, 3> ref_mp_velocity_2 {0.0, 0.0, 0.0};
+        // array_1d<double, 3> ref_mp_velocity_3 {0.0, 0.0, 0.0};
+        // array_1d<double, 3> ref_mp_velocity_4 {0.0, 0.0, 0.0};
 
         // KRATOS_WATCH(mp_velocity_1)
-        // KRATOS_WATCH(mp_velocity_2) // ------------------------------------------------------------------------------------------------------------------------------------------ Comment: Not done yet
+        // KRATOS_WATCH(mp_velocity_2)
         // KRATOS_WATCH(mp_velocity_3)
         // KRATOS_WATCH(mp_velocity_4)
 
@@ -625,88 +626,5 @@ namespace Kratos::Testing
     // reference for 3 threads and above
     // AssertionError: False is not true : -1.0246735978938274e-07 != 5.829681202114759e-23, rel_tol = 1e-07, abs_tol = 1e-07 : Error checking material point 26 MP_ACCELERATION results.
 
-    // KRATOS_TEST_CASE_IN_SUITE(MPMFlipParticleMappingUtilityNineGridElement2D, KratosMPMFastSuite)
-    // {
-    //     KRATOS_TRY;
-    //     const unsigned int dimension = 2;
-    //     Model current_model;
-    //     ModelPart& r_mpm_model_part = current_model.CreateModelPart("MPMModelPart");
-    //     ModelPart& r_background_model_part = current_model.CreateModelPart("MPMBackgroundModelPart");
-
-    //     r_background_model_part.SetBufferSize(2);
-
-    //     r_background_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
-    //     r_background_model_part.AddNodalSolutionStepVariable(REACTION);
-    //     r_background_model_part.AddNodalSolutionStepVariable(PRESSURE);
-    //     r_background_model_part.AddNodalSolutionStepVariable(POSITIVE_FACE_PRESSURE);
-    //     r_background_model_part.AddNodalSolutionStepVariable(VOLUME_ACCELERATION);
-    //     r_background_model_part.AddNodalSolutionStepVariable(NODAL_MASS);
-    //     r_background_model_part.AddNodalSolutionStepVariable(NODAL_MOMENTUM);
-    //     r_background_model_part.AddNodalSolutionStepVariable(NODAL_INERTIA);
-    //     r_background_model_part.AddNodalSolutionStepVariable(VELOCITY);
-    //     r_background_model_part.AddNodalSolutionStepVariable(ACCELERATION);
-
-    //     Prepare2D1EBackgroundModelPart(r_background_model_part);
-    //     r_mpm_model_part.SetNodes(r_background_model_part.pNodes());
-
-    //     Prepare2D1EModelPart(r_mpm_model_part, r_background_model_part); // ------------------------------------------------------------
-
-    //     MPMSearchElementUtility::SearchElement<dimension>(r_background_model_part, r_mpm_model_part, 1000, 1e-6);
-
-    //     // Run Flip P2G Mapping
-    //     MPMFlipParticleMappingUtility flip_mapping(r_mpm_model_part);
-    //     flip_mapping.RunP2GMapping();
-
-
-    //     // Checking values at the nodes
-    //     auto& r_node_1 = r_mpm_model_part.GetNode(1);
-    //     auto& r_node_2 = r_mpm_model_part.GetNode(2);
-    //     auto& r_node_3 = r_mpm_model_part.GetNode(3);
-    //     auto& r_node_4 = r_mpm_model_part.GetNode(4);
-    //     // Check mapped mass
-    //     double& r_node_1_mass = r_node_1.FastGetSolutionStepValue(NODAL_MASS);
-    //     double& r_node_2_mass = r_node_2.FastGetSolutionStepValue(NODAL_MASS);
-    //     double& r_node_3_mass = r_node_3.FastGetSolutionStepValue(NODAL_MASS);
-    //     double& r_node_4_mass = r_node_4.FastGetSolutionStepValue(NODAL_MASS);
-
-    //     KRATOS_EXPECT_NEAR(r_node_1_mass, 2.5, 1e-6);
-    //     KRATOS_EXPECT_NEAR(r_node_2_mass, 2.5, 1e-6);
-    //     KRATOS_EXPECT_NEAR(r_node_3_mass, 2.5, 1e-6);
-    //     KRATOS_EXPECT_NEAR(r_node_4_mass, 2.5, 1e-6);
-
-    //     // Check mapped velocity_x
-    //     array_1d<double,3>& r_node_1_velocity_previous = r_node_1.FastGetSolutionStepValue(VELOCITY, 1);
-    //     array_1d<double,3>& r_node_2_velocity_previous = r_node_2.FastGetSolutionStepValue(VELOCITY, 1);
-    //     array_1d<double,3>& r_node_3_velocity_previous = r_node_3.FastGetSolutionStepValue(VELOCITY, 1);
-    //     array_1d<double,3>& r_node_4_velocity_previous = r_node_4.FastGetSolutionStepValue(VELOCITY, 1);
-
-    //     KRATOS_EXPECT_NEAR(r_node_1_velocity_previous[0], 1.333333333, 1e-6);
-    //     KRATOS_EXPECT_NEAR(r_node_2_velocity_previous[0], 1.666666666, 1e-6);
-    //     KRATOS_EXPECT_NEAR(r_node_3_velocity_previous[0], 1.666666666, 1e-6);
-    //     KRATOS_EXPECT_NEAR(r_node_4_velocity_previous[0], 1.333333333, 1e-6);
-
-    //     // Check mapped acceleration_x
-    //     array_1d<double,3>& r_node_1_acceleration_previous = r_node_1.FastGetSolutionStepValue(ACCELERATION, 1);
-    //     array_1d<double,3>& r_node_2_acceleration_previous = r_node_2.FastGetSolutionStepValue(ACCELERATION, 1);
-    //     array_1d<double,3>& r_node_3_acceleration_previous = r_node_3.FastGetSolutionStepValue(ACCELERATION, 1);
-    //     array_1d<double,3>& r_node_4_acceleration_previous = r_node_4.FastGetSolutionStepValue(ACCELERATION, 1);
-
-    //     KRATOS_EXPECT_NEAR(r_node_1_acceleration_previous[0], 2.333333333, 1e-6);
-    //     KRATOS_EXPECT_NEAR(r_node_2_acceleration_previous[0], 2.666666666, 1e-6);
-    //     KRATOS_EXPECT_NEAR(r_node_3_acceleration_previous[0], 2.666666666, 1e-6);
-    //     KRATOS_EXPECT_NEAR(r_node_4_acceleration_previous[0], 2.333333333, 1e-6);
-
-    //     KRATOS_CATCH("")
-    // }
-    // void CheckVelocity(ModelPart& rMPMModelPart)
-    // {
-    //     for (auto iter = rMPMModelPart.NodesBegin(); iter != rMPMModelPart.NodesEnd(); ++iter )
-    //     {
-    //         const auto& node = rMPMModelPart.Nodes()[iter];
-
-    //         KRATOS_EXPECT_NEAR(node.FastGetSolutionStepValue(VELOCITY, 1), 1.333333333, 1e-6);
-    //         rMPMModelPart
-    //     }
-    // }
 
 } // namespace Kratos::Testing
