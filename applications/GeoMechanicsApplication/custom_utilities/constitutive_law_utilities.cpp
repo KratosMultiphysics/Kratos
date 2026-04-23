@@ -314,4 +314,19 @@ void ConstitutiveLawUtilities::ReplaceIgnoreUndrainedByDrainageType(Properties& 
             << "Both IGNORE_UNDRAINED and GEO_DRAINAGE_TYPE are used. Choose the latter only." << std::endl;
     rProperties.Erase(IGNORE_UNDRAINED);
 }
+
+double ConstitutiveLawUtilities::CalculateExcessPorePressureIncrement(const Properties& rProperties,
+                                                                      double VolumetricStrainIncrement)
+{
+    const auto bulk_modulus_fluid = rProperties[BULK_MODULUS_FLUID];
+    const auto bulk_modulus_solid = rProperties[BULK_MODULUS_SOLID];
+    const auto porosity           = rProperties[POROSITY];
+    const auto biot_coefficient   = rProperties[BIOT_COEFFICIENT];
+
+    const auto denominator = porosity / bulk_modulus_fluid + (biot_coefficient - porosity) / bulk_modulus_solid;
+    KRATOS_ERROR_IF(std::abs(denominator) <= std::numeric_limits<double>::epsilon())
+        << "Non-physical values: denominator < epsilon for property Id of " << rProperties.Id()
+        << "." << std::endl;
+    return biot_coefficient * VolumetricStrainIncrement / denominator;
+}
 } // namespace Kratos
