@@ -184,27 +184,40 @@ k_{\mathrm{n, clay}} = 10 \cdot 4.615 \times 10^6 = 4.615 \times 10^7
 
 Using:
 
-$$ G_{\mathrm{sand}} = 1.1538 \times 10^7 ,\mathrm{Pa} $$
+```math
+G_{\mathrm{sand}} = 1.1538 \times 10^7\ \mathrm{Pa}
+```
 
 and
 
-$$ h = 1.0 ,\mathrm{m} $$
+```math
+h = 1.0\ \mathrm{m}
+```
 
 the direct estimate from the same formulation would be:
 
-$$ k_{\mathrm{s,sand}} = \frac{1.1538 \times 10^7}{1.0} = 1.1538 \times 10^7 $$
+```math
+k_{\mathrm{s, sand}} = \frac{1.1538 \times 10^7}{1.0} = 1.1538 \times 10^7
+```
 
 and
 
-$$ k_{\mathrm{n,sand}} = 10 \cdot 1.1538 \times 10^7 = 1.1538 \times 10^8 $$
+```math
+k_{\mathrm{n, sand}} = 10 \cdot 1.1538 \times 10^7 = 1.1538 \times 10^8
+```
 
 However, in the current calibrated Kratos model, the adopted sand-side interface values are reduced to:
 
-$$ k_{\mathrm{s,sand}} = 4.615 \times 10^6 $$
+```math
+k_{\mathrm{s, sand}} = 4.615 \times 10^6
+```
 
 and
 
-$$ k_{\mathrm{n,sand}} = 4.615 \times 10^6 $$
+```math
+k_{\mathrm{n,sand}} = 4.615 \times 10^6
+```
+
 
 ### Final values
 
