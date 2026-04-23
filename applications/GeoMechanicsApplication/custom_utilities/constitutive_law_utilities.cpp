@@ -296,10 +296,12 @@ bool ConstitutiveLawUtilities::IsConstantWaterPressure(const Properties& rProper
 
 void ConstitutiveLawUtilities::ReplaceIgnoreUndrainedByDrainageType(Properties& rProperties)
 {
-    KRATOS_ERROR_IF(!rProperties.Has(IGNORE_UNDRAINED) && !rProperties.Has(GEO_DRAINAGE_TYPE))
-        << "There is no GEO_DRAINAGE_TYPE for material Id of " << rProperties.Id() << "." << std::endl;
-
-    if (!rProperties.Has(IGNORE_UNDRAINED)) return;
+    if (!rProperties.Has(IGNORE_UNDRAINED)) {
+        if (!rProperties.Has(GEO_DRAINAGE_TYPE)) {
+            rProperties[GEO_DRAINAGE_TYPE] = "fully_coupled"s;
+        }
+        return;
+    }
 
     KRATOS_WARNING("DEPRECATION")
         << "Use of IGNORE_UNDRAINED is deprecated, please change your input to "
@@ -307,7 +309,9 @@ void ConstitutiveLawUtilities::ReplaceIgnoreUndrainedByDrainageType(Properties& 
         << std::endl;
     if (!rProperties.Has(GEO_DRAINAGE_TYPE))
         rProperties[GEO_DRAINAGE_TYPE] = rProperties[IGNORE_UNDRAINED] ? "constant_pw_field"s : "fully_coupled"s;
+    else
+        KRATOS_ERROR
+            << "Both IGNORE_UNDRAINED and GEO_DRAINAGE_TYPE are used. Choose the latter only." << std::endl;
     rProperties.Erase(IGNORE_UNDRAINED);
-
-} // namespace Kratos
+}
 } // namespace Kratos

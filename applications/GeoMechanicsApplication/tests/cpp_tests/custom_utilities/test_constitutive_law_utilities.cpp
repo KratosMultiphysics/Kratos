@@ -545,15 +545,34 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_ReplaceIgnoreUndrainedByDrain
                      DrainageType::FULLY_COUPLED);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_ReplaceIgnoreUndrainedByDrainageType_ThrowsException,
+KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_ReplaceIgnoreUndrainedByDrainageType_DefaultsToFullyCoupled,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
     auto properties = Properties{};
 
-    // Act & Asset
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(ConstitutiveLawUtilities::ReplaceIgnoreUndrainedByDrainageType(properties),
-                                      "There is no GEO_DRAINAGE_TYPE for material Id of 0.");
+    // Act
+    ConstitutiveLawUtilities::ReplaceIgnoreUndrainedByDrainageType(properties);
+
+    // Assert
+    EXPECT_FALSE(properties.Has(IGNORE_UNDRAINED));
+    EXPECT_TRUE(properties.Has(GEO_DRAINAGE_TYPE));
+    KRATOS_EXPECT_EQ(ConstitutiveLawUtilities::StringToDrainageType(properties.GetValue(GEO_DRAINAGE_TYPE)),
+                     DrainageType::FULLY_COUPLED);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_ReplaceIgnoreUndrainedByDrainageType_ThrowsExceptionWhenBothKeywordsUsed,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto properties = Properties{};
+    properties.SetValue(IGNORE_UNDRAINED, true);
+    properties.SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
+
+    // Act & Assert
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        ConstitutiveLawUtilities::ReplaceIgnoreUndrainedByDrainageType(properties),
+        "Both IGNORE_UNDRAINED and GEO_DRAINAGE_TYPE are used. Choose the latter only.");
 }
 
 } // namespace Kratos::Testing
