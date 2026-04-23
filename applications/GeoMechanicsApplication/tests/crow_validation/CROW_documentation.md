@@ -135,36 +135,50 @@ G_{\mathrm{sand}} = \frac{3.0 \times 10^7}{2(1+0.30)} = 1.1538 \times 10^7 \math
 
 The interface shear stiffness is taken as:
 
-$$ k_{\mathrm{s}} = \frac{G}{h} $$
+```math
+k_{\mathrm{s}} = \frac{G}{h}
+```
 
 The interface normal stiffness is taken as:
 
-$$ k_{\mathrm{n}} = 10 \, k_{\mathrm{s}} $$
+```math
+k_{\mathrm{n}} = 10\ k_{\mathrm{s}}
+```
 
 with:
 
-* $G$ = shear modulus of the adjacent soil
-* $h$ = element size normal to the interface
+* $`G`$ = shear modulus of the adjacent soil
+* $`h`$ = element size normal to the interface
 
 This formulation is used directly for the clay-side interface. For the sand-side interface, the final values were reduced in the calibrated Kratos model.
+
 
 ### Clay-side interface
 
 Using:
 
-$$ G_{\mathrm{clay}} = 4.615 \times 10^6 ,\mathrm{Pa} $$
+```math
+G_{\mathrm{clay}} = 4.615 \times 10^6\ \mathrm{Pa}
+```
 
 and
 
-$$ h = 1.0 ,\mathrm{m} $$
+```math
+h = 1.0\ \mathrm{m}
+```
 
 the shear stiffness becomes:
 
-$$ k_{\mathrm{s,clay}} = \frac{4.615 \times 10^6}{1.0} = 4.615 \times 10^6 $$
+```math
+k_{\mathrm{s, clay}} = \frac{4.615 \times 10^6}{1.0} = 4.615 \times 10^6
+```
 
 and the normal stiffness becomes:
 
-$$ k_{\mathrm{n,clay}} = 10 \cdot 4.615 \times 10^6 = 4.615 \times 10^7 $$
+```math
+k_{\mathrm{n, clay}} = 10 \cdot 4.615 \times 10^6 = 4.615 \times 10^7
+```
+
 
 ### Sand-side interface
 
