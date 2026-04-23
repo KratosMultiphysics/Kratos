@@ -470,7 +470,7 @@ void NonLinearTimoshenkoBeamElement3D2N::CalculateAll(
     cl_values.SetStressVector(gen_stress_vector);
     cl_values.SetConstitutiveMatrix(gen_constitutive_matrix);
 
-    const double J = 0.5 * L0; // integration weight is 1.0 in Lobatto
+    const double J = 0.5 * L0;
 
     Vector nodal_values(12);
     GetValuesVector(nodal_values);
@@ -479,7 +479,7 @@ void NonLinearTimoshenkoBeamElement3D2N::CalculateAll(
     const double dN1 = -1.0 / L0;
     const double dN2 = -dN1;
     BoundedMatrix<double, 6, 12> b_matrix;
-    const auto& r_integration_points = r_geometry.IntegrationPoints(mThisIntegrationMethod); // Lobatto
+    const auto &r_integration_points = r_geometry.IntegrationPoints(mThisIntegrationMethod);
 
     // Loop over the integration points
     for (IndexType IP = 0; IP < r_integration_points.size(); ++IP) {
@@ -745,8 +745,6 @@ void NonLinearTimoshenkoBeamElement3D2N::CalculateOnIntegrationPoints(
         }
 
         Vector gen_strain_vector(strain_size);
-        ConstitutiveLaw::Parameters cl_values(GetGeometry(), r_props, rCurrentProcessInfo);
-        cl_values.SetStrainVector(gen_strain_vector);
 
         const double L0 = CalculateReferenceLength();
         const double dN1 = -1.0 / L0;
@@ -762,7 +760,7 @@ void NonLinearTimoshenkoBeamElement3D2N::CalculateOnIntegrationPoints(
             N1 = 0.5 * (1.0 - xi);
             N2 = 0.5 * (1.0 + xi);
 
-            gen_strain_vector = CalculateStrainVector(N1, N2, dN1, dN2);
+            noalias(gen_strain_vector) = CalculateStrainVector(N1, N2, dN1, dN2);
             rOutput[IP] = gen_strain_vector[component];
         }
     }
