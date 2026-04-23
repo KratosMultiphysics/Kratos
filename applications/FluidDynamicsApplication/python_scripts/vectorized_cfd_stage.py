@@ -150,28 +150,41 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
         return tau_1, tau_2
 
-    def ComputeElementalConvectiveOperatorSpectralRadius(self, v):
+    def ComputeElementalConvectiveOperatorSpectralRadius(self, v, out=None):
         # Get the average velocity at each element
-        v_elemental = self.ElemData(v, self.connectivity)
+        v_elemental = self.ElemData(v, self.connectivity, out=self.v_el) # shape (num_elements, num_nodes_per_element, dim)
         v_el_mean = xp.sum(v_elemental, axis=1) / self.n_in_el #FIXME: check mean,average and sum performance
+
+        nelem, nnode = self.DN.shape[0], self.DN.shape[1]
+        if out is None:
+            out = xp.empty(nelem, dtype=v_el_mean.dtype)
+
+        advective_proj = self.tmp_n_in_el
 
         # Calculate the advective projection v · ∇N_i for each node in each element representing the discrete convective operator
         # For linear (P1) elements, shape function gradients are constant inside the element and scale like 1/h (i.e., |∇N_i| ~ 1/h_i)
         # In consequence, this term scales like |v|/h_i
-        advective_projection = xp.einsum('ek, enk -> en', v_el_mean, self.DN)
+        # Replace einsum('ek, enk -> en') with matmul: (nelem, 1, dim) @ (nelem, dim, nnode) -> (nelem, 1, nnode)
+        xp.matmul(self.DN, v_el_mean[:, :, xp.newaxis], out=advective_proj[:, :, xp.newaxis])
 
         # # Get the convective spectral radius (inverse time scale) as the average of the values in each direction
         # # Note that this is an approximation of the elemental convective operator spectral radius
-        # return xp.sum(xp.abs(advective_projection), axis=1) / self.n_in_el
+        # return xp.sum(xp.abs(out), axis=1) / self.n_in_el
 
         # # Get the convective operator row-sum as an upper bound of its spectral radius (inverse time scale)
         # # Note that using this as an approximation of the spectral radius results in a conservative estimation of the time increment when computing the CFL
         # # On the contrary, when using it in the subscale stabilization factor calculation (tau_1) results in a smaller contribution of the subscales
-        # return xp.sum(xp.abs(advective_projection), axis=1)
+        # return xp.sum(xp.abs(out), axis=1)
 
         # Get the convective spectral radius (inverse time scale) as the maximum value in each nodal direction
         # This is equivalent to get the maximum eigenvalue of the elemental convective operator
-        return xp.max(xp.abs(advective_projection), axis=1)
+        # In-place absolute value (No allocation)
+        xp.abs(advective_proj, out=advective_proj) 
+
+        # Max reduction into a pre-allocated result array
+        # result_max = xp.empty(out.shape[0])
+        xp.max(advective_proj, axis=1, out=out)
+        return out
 
     def _PrepareModelPart(self):
         super()._PrepareModelPart()
@@ -319,6 +332,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         self.pi_conv = xp.empty((self.nnodes,self.dim), dtype=cfd_utils.PRECISION) #TODO: allocate this once
         self.tmp_n_in_el_sq = xp.empty((self.DN.shape[0], self.n_in_el, self.n_in_el), dtype=cfd_utils.PRECISION)
         self.tmp_n_in_el = xp.empty((self.DN.shape[0], self.n_in_el), dtype=cfd_utils.PRECISION)
+        self.tmp_n_elem = xp.empty(self.DN.shape[0], dtype=cfd_utils.PRECISION)
 
 
     def Initialize(self):
@@ -430,24 +444,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
         self.outfile = open("refres.res", "w")
 
-        # self.vec_elemental_data = xp.asarray(self.vec_elemental_data, dtype=cfd_utils.PRECISION)
-        # self.scalar_elemental_data = xp.asarray(self.scalar_elemental_data, dtype=cfd_utils.PRECISION)
 
-        # Preallocate all outputs
-        # nelem = self.DN.shape[0]
-        # self.grad_v   = xp.empty((nelem, self.dim, self.dim), dtype=cfd_utils.PRECISION)   # gradient of velocity
-        # self.v_gauss  = xp.empty((nelem, self.dim), dtype=cfd_utils.PRECISION)      # velocity at Gauss point
-        # self.aux_res_el = xp.empty((nelem, self.n_in_el, self.dim), dtype=cfd_utils.PRECISION)
-        # self.res        = xp.empty((nelem, 3, self.dim), dtype=cfd_utils.PRECISION)
-        # self.Projection         = xp.empty((self.nnodes, self.dim), dtype=cfd_utils.PRECISION)
-        # self.Proj_el = xp.empty((nelem, 3, self.dim), dtype=cfd_utils.PRECISION)
-
-        # SCRATCH ARRAYS for memory reuse
-        # self.elemental_scalar_scratch = xp.empty((nelem, self.n_in_el), dtype=cfd_utils.PRECISION)
-        # self.nodal_vector_scratch = xp.empty((self.nnodes, self.dim), dtype=cfd_utils.PRECISION)
-        # self.elemental_grad_scratch = xp.empty(self.DN.shape, dtype=cfd_utils.PRECISION)
-        # self.Lel_scratch = xp.empty((nelem, self.n_in_el, self.n_in_el), dtype=cfd_utils.PRECISION)
-        # self.rhs_el_scratch = xp.empty((nelem, self.n_in_el), dtype=cfd_utils.PRECISION)
 
     def Finalize(self):
         super().Finalize()
@@ -563,9 +560,9 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         #xp.cuda.Stream.null.synchronize() #FIXME: remove after debugging, just to be sure we are not measuring asynchronously some previous step computations
 
         # Gather elemental data from the database
-        pel = self.ElemData(p, self.connectivity, self.p_el)
-        vel = self.ElemData(vold, self.connectivity, self.v_el)
-        b_el = self.ElemData(b, self.connectivity, self.b_el)
+        pel = self.ElemData(p, self.connectivity, out=self.p_el)
+        vel = self.ElemData(vold, self.connectivity, out=self.v_el)
+        b_el = self.ElemData(b, self.connectivity, out=self.b_el)
 
         # Compute convective projection
         t0 = time.perf_counter()
@@ -761,7 +758,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         while (self.time - current_time > 1.0e-12):
             print("            =============================== ", self.time, current_time)
             # Compute convective operator spectral radius
-            rho_conv = self.ComputeElementalConvectiveOperatorSpectralRadius(vold)
+            rho_conv = self.ComputeElementalConvectiveOperatorSpectralRadius(vold, self.tmp_n_elem)
 
             # Get maximum allowed time step with previous substep velocity
             max_dt = self._ComputeDeltaTime(rho_conv)
@@ -908,12 +905,49 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         return xp.max(dt * self.dyn_visc / self.rho / self.h**2)
 
     def _ComputeDeltaTime(self, rho_conv):
+        """Compute the time step restricted by CFL, Fourier, and user-defined limits.
 
-        # Compute local time step from the convective operator spectral radius approximation
-        dt_cfl = xp.min(self.max_cfl / (rho_conv + 1.0e-15))
+        This method calculates the maximum allowable time step based on:
+        1. CFL condition from the convective operator spectral radius
+        2. Fourier condition from viscous diffusion (precomputed)
+        3. User-defined maximum time step
 
-        # Return the most restrictive time step among the CFL, viscous Fourier and user-defined conditions
-        return min(min(dt_cfl, self.dt_fourier), self.dt)
+        Parameters
+        ----------
+        rho_conv : ndarray
+            Elemental convective operator spectral radius array (shape: nelem).
+
+        Returns
+        -------
+        float
+            The most restrictive (minimum) time step from all conditions.
+
+        Raises
+        ------
+        ValueError
+            If rho_conv contains negative values or is empty.
+        """
+        # Validate input
+        if rho_conv.size == 0:
+            raise ValueError("rho_conv array is empty; cannot compute CFL time step.")
+        if xp.any(rho_conv < 0):
+            raise ValueError("rho_conv contains negative values; spectral radius must be non-negative.")
+
+        # Compute CFL-limited time step with numerical safeguard against division by zero
+        # Use machine epsilon relative to the data type for robustness
+        eps = xp.finfo(rho_conv.dtype).eps
+
+        # Reuse preallocated scratch array (self.tmp_n_elem) to avoid temporary allocation
+        # This 1D array has shape (nelem,) matching rho_conv, eliminating the intermediate array
+        # that would otherwise be created by self.max_cfl / (rho_conv + eps)
+        # xp.divide(self.max_cfl, (rho_conv + eps), out=self.tmp_n_elem)
+        # dt_cfl = xp.min(self.tmp_n_elem)
+
+        max_rho_conv = xp.max(rho_conv)
+        dt_cfl = self.max_cfl / (max_rho_conv + eps)
+
+        # Return the most restrictive time step from all conditions
+        return float(min(min(dt_cfl, self.dt_fourier), self.dt))
 
     def _InitializePressureLinearSolver(self):
         if USE_CUPY:
