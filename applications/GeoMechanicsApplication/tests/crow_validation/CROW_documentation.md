@@ -18,8 +18,8 @@ From D-Sheet Piling, the following soil properties are given for the clay and sa
 | Unsaturated total unit weight          | 18                   | 20                   | $\mathrm{kN}/\mathrm{m}^3$ |
 | Saturated total unit weight            | 18                   | 20                   | $\mathrm{kN}/\mathrm{m}^3$ |
 | Cohesion                               | 3.0                  | 0.0                  | $\mathrm{kN}/\mathrm{m}^2$ |
-| Friction angle                         | 22.5                 | 32.5                 | $degree$                   |
-| Delta friction angle                   | 11.25                | 20                   | $degree$                   |
+| Friction angle                         | 22.5                 | 32.5                 | $`^{\circ}`$               |
+| Delta friction angle                   | 11.25                | 20                   | $`^{\circ}`$               |
 | OCR                                    | 1.0                  | 1.0                  | $-$                        |
 | Earth pressure coefficient             | 0.62                 | 0.46                 | $-$                        |
 | Modulus of subgrade reaction-Secant k1 | $1.0 \times 10^{3}$  | $1.0 \times 10^{4}$  | $\mathrm{kN}/\mathrm{m}^3$ |
@@ -27,39 +27,6 @@ From D-Sheet Piling, the following soil properties are given for the clay and sa
 | Modulus of subgrade reaction-Secant k3 | $1.0 \times 10^{3}$  | $1.0 \times 10^{4}$  | $\mathrm{kN}/\mathrm{m}^3$ |
 | Horizontal permeability                | $1.0 \times 10^{-4}$ | $1.0 \times 10^{-4}$ | $\mathrm{m}/\mathrm{s}$    |
 
-### Solid density
-
-The bulk density is obtained from the unit weight:
-
-$$ \rho_{\mathrm{bulk}} = \frac{\gamma}{g} $$
-
-with:
-
-$$ g = 9.81 ,\mathrm{m}/\mathrm{s}^2 $$
-
-#### Clay
-
-$$ \rho_{\mathrm{bulk,clay}} = \frac{18000}{9.81} = 1834.86,\mathrm{kg}/\mathrm{m}^3 $$
-
-#### Sand
-
-$$ \rho_{\mathrm{bulk,sand}} = \frac{20000}{9.81} = 2038.74,\mathrm{kg}/\mathrm{m}^3 $$
-
-Solving for the solid density:
-
-$$ \rho_{\mathrm{s}} = \frac{\rho_{\mathrm{bulk}} - n\rho_{\mathrm{w}}}{1-n} $$
-
-#### Clay
-
-$$ \rho_{\mathrm{s,clay}} = \frac{1834.86 - 0.50 \cdot 1019.37}{1 - 0.50} $$
-
-$$ \rho_{\mathrm{s,clay}} = 2650.35,\mathrm{kg}/\mathrm{m}^3 $$
-
-#### Sand
-
-$$ \rho_{\mathrm{s,sand}} = \frac{2038.74 - 0.30 \cdot 1019.37}{1 - 0.30} $$
-
-$$ \rho_{\mathrm{s,sand}} = 2475.61,\mathrm{kg}/\mathrm{m}^3 $$
 
 ### Conversion to intrinsic permeability
 
@@ -106,9 +73,9 @@ Because the Kratos model requires additional parameters, the table below summari
 
 | Property                     | Kratos input parameter |                   Clay |                   Sand | Unit                       |
 |------------------------------|------------------------|-----------------------:|-----------------------:|----------------------------|
-| Solid density                | `DENSITY_SOLID`        |                2650.35 |                2475.61 | $\mathrm{kg}/\mathrm{m}^3$ |
+| Solid density                | `DENSITY_SOLID`        |                1834.86 |                2038.74 | $\mathrm{kg}/\mathrm{m}^3$ |
 | Water density                | `DENSITY_WATER`        |                1019.37 |                1019.37 | $\mathrm{kg}/\mathrm{m}^3$ |
-| Porosity                     | `POROSITY`             |                   0.50 |                   0.30 | $-$                        |
+| Porosity                     | `POROSITY`             |                    0.0 |                    0.0 | $-$                        |
 | Young's modulus              | `YOUNG_MODULUS`        |      $1.2 \times 10^7$ |      $3.0 \times 10^7$ | $\mathrm{Pa}$              |
 | Poisson's ratio              | `POISSON_RATIO`        |                   0.30 |                   0.30 | $-$                        |
 | Intrinsic permeability in xx | `PERMEABILITY_XX`      | $1.02 \times 10^{-11}$ | $1.02 \times 10^{-11}$ | $\mathrm{m}^2$             |
@@ -117,6 +84,12 @@ Because the Kratos model requires additional parameters, the table below summari
 | Saturated saturation         | `SATURATED_SATURATION` |                    1.0 |                    1.0 | $-$                        |
 | Residual saturation          | `RESIDUAL_SATURATION`  |  $1.0 \times 10^{-10}$ |  $1.0 \times 10^{-10}$ | $-$                        |
 | Earth pressure coefficient   | `K0_NC`                |                   0.62 |                   0.46 | $-$                        |
+| Cohesion                     | `GEO_COHESION`         |                 3000.0 |                    0.0 | $\mathrm{Pa}$              |
+| Friction angle               | `GEO_FRICTION_ANGLE`   |                   22.5 |                   32.5 | $`^{\circ}`$               |
+| Dilatancy angle              | `GEO_DILATANCY_ANGLE`  |                    0.0 |                    0.0 | $`^{\circ}`$               |
+| Tensile strength             | `GEO_TENSILE_STRENGTH` |                7242.64 |                    0.0 | $\mathrm{Pa}$              |
+
+In the above table, the value of the tensile strength $`f_{\mathrm{t}}`$ (which fixes the tension cut-off) has been chosen such that it passes through the apex of the Coulomb yield surface.  In other words, it has been calculated as follows: $`f_{\mathrm{t}} = \frac{c}{\mathrm{tan}(\phi)}`$, with $`c`$ the cohesion and $`\phi`$ the friction angle.  Note that this choice effectively disables the tension cut-off. 
 
 
 ## Interface parameters
