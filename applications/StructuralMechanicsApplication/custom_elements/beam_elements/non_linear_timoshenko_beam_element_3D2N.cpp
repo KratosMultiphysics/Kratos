@@ -556,8 +556,8 @@ void NonLinearTimoshenkoBeamElement3D2N::CalculateAndAddKg(
             Km_ab.clear();
 
             for (IndexType i = 0; i < 3; ++i) { // Loop over the vector directors
-                noalias(di_s) = dN[0] * column(mRotationOperators[0], i) + dN[0] * column(mRotationOperators[1], i);
-                noalias(di) = N[0] * column(mRotationOperators[0], i) + N[0] * column(mRotationOperators[1], i);
+                noalias(di_s) = dN[0] * column(mRotationOperators[0], i) + dN[1] * column(mRotationOperators[1], i);
+                noalias(di) = N[0] * column(mRotationOperators[0], i) + N[1] * column(mRotationOperators[1], i);
                 noalias(di_a) = column(mRotationOperators[a], i);
                 noalias(di_b) = column(mRotationOperators[b], i);
 
@@ -571,8 +571,8 @@ void NonLinearTimoshenkoBeamElement3D2N::CalculateAndAddKg(
                 for (IndexType j = 0; j < 3; ++j) {
                     for (IndexType k = 0; k < 3; ++k) {
 
-                        noalias(dk_s) = dN[0] * column(mRotationOperators[0], k) + dN[0] * column(mRotationOperators[1], k);
-                        noalias(dk) = N[0] * column(mRotationOperators[0], k) + N[0] * column(mRotationOperators[1], k);
+                        noalias(dk_s) = dN[0] * column(mRotationOperators[0], k) + dN[1] * column(mRotationOperators[1], k);
+                        noalias(dk) = N[0] * column(mRotationOperators[0], k) + N[1] * column(mRotationOperators[1], k);
 
                         noalias(Gi_ab) += epsilon(j, i, k) *
                                           ((dN[a] * N[b] - N[a] * dN[b]) * CL_utils::CalculateSpinMatrix(column(mRotationOperators[a], k)) +
