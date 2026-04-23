@@ -296,8 +296,8 @@ bool ConstitutiveLawUtilities::IsConstantWaterPressure(const Properties& rProper
 
 void ConstitutiveLawUtilities::ReplaceIgnoreUndrainedByDrainageType(Properties& rProperties)
 {
-    constexpr auto FullyCoupledDrainageType    = "fully_coupled";
-    constexpr auto ConstantPwFieldDrainageType = "constant_pw_field";
+    constexpr auto fully_coupled_drainage_type     = "fully_coupled";
+    constexpr auto constant_pw_field_drainage_type = "constant_pw_field";
 
     const auto has_ignore_undrained = rProperties.Has(IGNORE_UNDRAINED);
     const auto has_drainage_type    = rProperties.Has(GEO_DRAINAGE_TYPE);
@@ -306,8 +306,8 @@ void ConstitutiveLawUtilities::ReplaceIgnoreUndrainedByDrainageType(Properties& 
         KRATOS_WARNING("DEPRECATION")
             << "Soon GEO_DRAINAGE_TYPE will be a mandatory material input. "
                "Currently, the default value is "
-            << FullyCoupledDrainageType << "." << std::endl;
-        rProperties[GEO_DRAINAGE_TYPE] = FullyCoupledDrainageType;
+            << fully_coupled_drainage_type << "." << std::endl;
+        rProperties[GEO_DRAINAGE_TYPE] = fully_coupled_drainage_type;
         return;
     }
 
@@ -322,8 +322,8 @@ void ConstitutiveLawUtilities::ReplaceIgnoreUndrainedByDrainageType(Properties& 
         << "Use of IGNORE_UNDRAINED is deprecated, please change your input to "
            "GEO_DRAINAGE_TYPE"
         << std::endl;
-    rProperties[GEO_DRAINAGE_TYPE] =
-        rProperties[IGNORE_UNDRAINED] ? ConstantPwFieldDrainageType : FullyCoupledDrainageType;
+    rProperties[GEO_DRAINAGE_TYPE] = rProperties[IGNORE_UNDRAINED] ? constant_pw_field_drainage_type
+                                                                   : fully_coupled_drainage_type;
     rProperties.Erase(IGNORE_UNDRAINED);
 }
 
