@@ -583,8 +583,8 @@ void NonLinearTimoshenkoBeamElement3D2N::CalculateAndAddKg(
                 noalias(project(Km_ab, range(3, 6), range(3, 6))) -= prod(Gi_ab, CL_utils::CalculateSpinMatrix(di_b));
             } // i loop
 
-            noalias(project(Kn, range(a * block_size, a * block_size + block_size), range(range(b * block_size, b * block_size + block_size)))) = Kn_ab; // CHECK 1/2 ???
-            noalias(project(Km, range(a * block_size, a * block_size + block_size), range(range(b * block_size, b * block_size + block_size)))) = Km_ab; // CHECK 1/2 ???
+            noalias(project(Kn, range(a * block_size, a * block_size + block_size), range(range(b * block_size, b * block_size + block_size)))) = Kn_ab;
+            noalias(project(Km, range(a * block_size, a * block_size + block_size), range(range(b * block_size, b * block_size + block_size)))) = Km_ab;
         } // b
     } // a
     // We add the geometric stiffness
