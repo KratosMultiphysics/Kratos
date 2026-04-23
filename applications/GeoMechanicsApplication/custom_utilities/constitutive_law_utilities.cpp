@@ -12,8 +12,12 @@
 //
 
 #include "custom_utilities/constitutive_law_utilities.h"
+#include "custom_utilities/string_utilities.h"
 #include "geo_mechanics_application_variables.h"
 #include "utilities/math_utils.h"
+#include <algorithm>
+
+using namespace std::string_literals;
 
 namespace
 {
@@ -42,7 +46,6 @@ double GetValueOfUMatParameter(const Properties& rProperties, const Variable<int
 
 namespace Kratos
 {
-
 int ConstitutiveLawUtilities::GetStateVariableIndex(const Variable<double>& rThisVariable)
 {
     int index = -1;
@@ -112,7 +115,7 @@ void ConstitutiveLawUtilities::ValidateFrictionAngle(const Properties& rProperti
         phi_name = "Phi";
     }
 
-    if (phi_name == "") {
+    if (phi_name.empty()) {
         KRATOS_ERROR << "Properties ( " << rProperties.Id() << ") of element ( " << ElementId
                      << ") does not have GEO_FRICTION_ANGLE nor INDEX_OF_UMAT_PHI_PARAMETER." << std::endl;
     }
@@ -144,10 +147,10 @@ double ConstitutiveLawUtilities::GetFrictionAngleInRadians(const Properties& rPr
     return MathUtils<>::DegreesToRadians(GetFrictionAngleInDegrees(rProperties));
 }
 
-Matrix ConstitutiveLawUtilities::MakeInterfaceConstitutiveMatrix(double      NormalStiffness,
-                                                                 double      ShearStiffness,
-                                                                 std::size_t TractionSize,
-                                                                 std::size_t NumberOfNormalComponents)
+Matrix ConstitutiveLawUtilities::MakeInterfaceElasticConstitutiveTensor(double      NormalStiffness,
+                                                                        double      ShearStiffness,
+                                                                        std::size_t TractionSize,
+                                                                        std::size_t NumberOfNormalComponents)
 {
     auto result = Matrix{ZeroMatrix{TractionSize, TractionSize}};
     for (auto i = std::size_t{0}; i < NumberOfNormalComponents; ++i)
@@ -169,8 +172,8 @@ void ConstitutiveLawUtilities::CheckHasStrainMeasure_Infinitesimal(const Propert
 {
     ConstitutiveLaw::Features LawFeatures;
     rProperties[CONSTITUTIVE_LAW]->GetLawFeatures(LawFeatures);
-    const auto correct_strain_measure = std::any_of(
-        LawFeatures.mStrainMeasures.begin(), LawFeatures.mStrainMeasures.end(), [](auto& strain_measure) {
+    const auto correct_strain_measure =
+        std::ranges::any_of(LawFeatures.mStrainMeasures, [](auto& strain_measure) {
         return strain_measure == ConstitutiveLaw::StrainMeasure_Infinitesimal;
     });
 
@@ -183,6 +186,140 @@ void ConstitutiveLawUtilities::CheckHasStrainMeasure_Infinitesimal(const Propert
 double ConstitutiveLawUtilities::CalculateK0NCFromFrictionAngleInRadians(double FrictionAngleInRadians)
 {
     return 1.0 - std::sin(FrictionAngleInRadians);
+}
+
+double ConstitutiveLawUtilities::CalculateUndrainedYoungsModulus(const Properties& rProperties, double UndrainedPoissonsRatio)
+{
+    const auto denominator = 1.0 + rProperties[POISSON_RATIO];
+    return rProperties[YOUNG_MODULUS] * (1.0 + UndrainedPoissonsRatio) / denominator;
+}
+
+double ConstitutiveLawUtilities::GetOrCalculateUndrainedPoissonsRatio(const Properties& rProperties)
+{
+    const auto result = rProperties.Has(GEO_POISSON_UNDRAINED)
+                            ? rProperties[GEO_POISSON_UNDRAINED]
+                            : CalculateUndrainedPoissonsRatio(rProperties);
+
+    if (constexpr auto max_poisson_ratio = 0.495; result > max_poisson_ratio) {
+        KRATOS_WARNING("Clamping undrained Poisson ratio from ")
+            << result << " to " << max_poisson_ratio << "." << std::endl;
+        return max_poisson_ratio;
+    }
+
+    return result;
+}
+
+double ConstitutiveLawUtilities::CalculateUndrainedPoissonsRatio(const Properties& rProperties)
+{
+    const auto skempton_b       = GetOrCalculateSkemptonB(rProperties);
+    const auto biot_coefficient = rProperties[BIOT_COEFFICIENT];
+    const auto poissons_ratio   = rProperties[POISSON_RATIO];
+    const auto denominator = 3.0 - biot_coefficient * skempton_b * (1.0 - 2.0 * poissons_ratio);
+    KRATOS_ERROR_IF(denominator <= std::numeric_limits<double>::epsilon())
+        << "Non-physical values: denominator < epsilon." << std::endl;
+    return (3.0 * poissons_ratio + biot_coefficient * skempton_b * (1.0 - 2.0 * poissons_ratio)) / denominator;
+}
+
+double ConstitutiveLawUtilities::GetOrCalculateSkemptonB(const Properties& rProperties)
+{
+    if (rProperties.Has(GEO_SKEMPTON_B)) {
+        return rProperties[GEO_SKEMPTON_B];
+    }
+
+    const auto k_f = rProperties[BULK_MODULUS_FLUID];
+    const auto k_s = rProperties[BULK_MODULUS_SOLID]; // assuming the bulk stiffness of the skeleton equals the solid bulk stiffness
+    const auto porosity         = rProperties[POROSITY];
+    const auto biot_coefficient = rProperties[BIOT_COEFFICIENT];
+    const auto denominator = biot_coefficient + porosity * ((k_s / k_f) + biot_coefficient - 1.0);
+    KRATOS_ERROR_IF(denominator <= std::numeric_limits<double>::epsilon())
+        << "Non-physical values: denominator < epsilon." << denominator << std::endl;
+
+    const auto result = biot_coefficient / denominator;
+    KRATOS_ERROR_IF(result < -std::numeric_limits<double>::epsilon() || result > 1.0 + std::numeric_limits<double>::epsilon())
+        << "Calculated Skempton B (" << result << ") is out of range [0,1]." << std::endl;
+
+    return std::clamp(result, 0.0, 1.0);
+}
+
+std::pair<double, double> ConstitutiveLawUtilities::GetOrCalculateElasticProperties(const Properties& rProperties,
+                                                                                    bool Undrained)
+{
+    if (Undrained) {
+        const auto nu = GetOrCalculateUndrainedPoissonsRatio(rProperties);
+        const auto E  = CalculateUndrainedYoungsModulus(rProperties, nu);
+        return {E, nu};
+    }
+    return {rProperties[YOUNG_MODULUS], rProperties[POISSON_RATIO]};
+}
+
+Matrix ConstitutiveLawUtilities::MakeContinuumElasticConstitutiveTensor(double      YoungsModulus,
+                                                                        double      PoissonsRatio,
+                                                                        std::size_t StrainSize,
+                                                                        std::size_t NumberOfNormalComponents)
+{
+    const auto denominator = (1.0 + PoissonsRatio) * (1.0 - 2.0 * PoissonsRatio);
+    KRATOS_ERROR_IF(denominator <= std::numeric_limits<double>::epsilon())
+        << "PoissonsRatio of " << PoissonsRatio << " leads to a nearly zero denominator" << std::endl;
+    const auto prefactor          = YoungsModulus / denominator;
+    const auto diagonal_value     = (1.0 - PoissonsRatio) * prefactor;
+    const auto off_diagonal_value = PoissonsRatio * prefactor;
+
+    auto result = Matrix{ZeroMatrix{StrainSize, StrainSize}};
+    for (auto i = std::size_t{0}; i < NumberOfNormalComponents; ++i) {
+        for (auto j = std::size_t{0}; j < NumberOfNormalComponents; ++j) {
+            result(i, j) = i == j ? diagonal_value : off_diagonal_value;
+        }
+    }
+    const auto shear_modulus = YoungsModulus / (2.0 * (1.0 + PoissonsRatio));
+    for (auto i = NumberOfNormalComponents; i < StrainSize; ++i) {
+        result(i, i) = shear_modulus;
+    }
+    return result;
+}
+
+DrainageType ConstitutiveLawUtilities::StringToDrainageType(const std::string& rDrainageTypeName)
+{
+    using enum DrainageType;
+    static const std::map<std::string, DrainageType, std::less<>> drainage_type_map = {
+        {"drained"s, DRAINED},
+        {"fully_coupled"s, FULLY_COUPLED},
+        {"undrained"s, UNDRAINED},
+        {"constant_pw_field"s, CONSTANT_WATER_PRESSURE}};
+    return drainage_type_map.at(GeoStringUtilities::ToLower(rDrainageTypeName));
+}
+
+bool ConstitutiveLawUtilities::IsConstantWaterPressure(const Properties& rProperties)
+{
+    return ConstitutiveLawUtilities::StringToDrainageType(rProperties[GEO_DRAINAGE_TYPE]) ==
+           DrainageType::CONSTANT_WATER_PRESSURE;
+}
+
+void ConstitutiveLawUtilities::ReplaceIgnoreUndrainedByDrainageType(Properties& rProperties)
+{
+    if (!rProperties.Has(IGNORE_UNDRAINED)) return;
+
+    KRATOS_WARNING("DEPRECATION")
+        << "Use of IGNORE_UNDRAINED is deprecated, please change your input to "
+           "GEO_DRAINAGE_TYPE"
+        << std::endl;
+    if (!rProperties.Has(GEO_DRAINAGE_TYPE))
+        rProperties[GEO_DRAINAGE_TYPE] = rProperties[IGNORE_UNDRAINED] ? "constant_pw_field"s : "fully_coupled"s;
+    rProperties.Erase(IGNORE_UNDRAINED);
+}
+
+double ConstitutiveLawUtilities::CalculateExcessPorePressureIncrement(const Properties& rProperties,
+                                                                      double VolumetricStrainIncrement)
+{
+    const auto bulk_modulus_fluid = rProperties[BULK_MODULUS_FLUID];
+    const auto bulk_modulus_solid = rProperties[BULK_MODULUS_SOLID];
+    const auto porosity           = rProperties[POROSITY];
+    const auto biot_coefficient   = rProperties[BIOT_COEFFICIENT];
+
+    const auto denominator = porosity / bulk_modulus_fluid + (biot_coefficient - porosity) / bulk_modulus_solid;
+    KRATOS_ERROR_IF(std::abs(denominator) <= std::numeric_limits<double>::epsilon())
+        << "Non-physical values: denominator < epsilon for property Id of " << rProperties.Id()
+        << "." << std::endl;
+    return biot_coefficient * VolumetricStrainIncrement / denominator;
 }
 
 } // namespace Kratos
