@@ -710,4 +710,113 @@ void NonLinearTimoshenkoBeamElement3D2N::FinalizeSolutionStep(
 /***********************************************************************************/
 /***********************************************************************************/
 
+void NonLinearTimoshenkoBeamElement3D2N::CalculateOnIntegrationPoints(
+    const Variable<double>& rVariable,
+    std::vector<double>& rOutput,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    const auto& r_integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
+    rOutput.resize(r_integration_points.size());
+
+    if (rVariable == AXIAL_STRAIN ||
+        rVariable == BENDING_STRAIN_X ||
+        rVariable == BENDING_STRAIN_Y ||
+        rVariable == BENDING_STRAIN_Z ||
+        rVariable == SHEAR_STRAIN_Y ||
+        rVariable == SHEAR_STRAIN_Z)
+    {
+        const auto& r_props = GetProperties();
+        const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
+        const SizeType mat_size = GetDoFsPerNode() * GetGeometry().size();
+
+        IndexType component = 0;
+        if (rVariable == AXIAL_STRAIN) {
+            component = 0;
+        } else if (rVariable == BENDING_STRAIN_X) {
+            component = 1;
+        } else if (rVariable == BENDING_STRAIN_Y) {
+            component = 2;
+        } else if (rVariable == BENDING_STRAIN_Z) {
+            component = 3;
+        } else if (rVariable == SHEAR_STRAIN_Y) {
+            component = 4;
+        } else if (rVariable == SHEAR_STRAIN_Z) {
+            component = 5;
+        }
+
+        Vector gen_strain_vector(strain_size);
+        ConstitutiveLaw::Parameters cl_values(GetGeometry(), r_props, rCurrentProcessInfo);
+        cl_values.SetStrainVector(gen_strain_vector);
+
+        const double L0 = CalculateReferenceLength();
+        const double dN1 = -1.0 / L0;
+        const double dN2 = -dN1;
+
+        Vector nodal_values(12);
+        GetValuesVector(nodal_values);
+
+        double N1, N2;
+
+        for (SizeType IP = 0; IP < r_integration_points.size(); ++IP) {
+            const double xi = r_integration_points[IP].X();
+            N1 = 0.5 * (1.0 - xi);
+            N2 = 0.5 * (1.0 + xi);
+
+            gen_strain_vector = CalculateStrainVector(N1, N2, dN1, dN2);
+            rOutput[IP] = gen_strain_vector[component];
+        }
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void NonLinearTimoshenkoBeamElement3D2N::CalculateOnIntegrationPoints(
+    const Variable<array_1d<double, 3>>& rVariable,
+    std::vector<array_1d<double, 3>>& rOutput,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    const auto& r_integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
+    rOutput.resize(r_integration_points.size());
+
+    if (rVariable == LOCAL_AXIS_1 || rVariable == LOCAL_AXIS_2 || rVariable == LOCAL_AXIS_3)
+    {
+        const double L0 = CalculateReferenceLength();
+        const double dN1 = -1.0 / L0;
+        const double dN2 = -dN1;
+
+        array_1d<double, 3> local_axis_1, local_axis_2, local_axis_3;
+
+        double N1, N2;
+
+        for (SizeType IP = 0; IP < r_integration_points.size(); ++IP) {
+            const double xi = r_integration_points[IP].X();
+            N1 = 0.5 * (1.0 - xi);
+            N2 = 0.5 * (1.0 + xi);
+
+            // Interpolate the rotation operator at this integration point
+            BoundedMatrix<double, 3, 3> current_rot;
+            noalias(current_rot) = N1 * mRotationOperators[0] + N2 * mRotationOperators[1];
+
+            // Extract the directors (columns of the rotation matrix) in Kratos convention
+            // The rotation matrices are defined in Romero and Armero convention,
+            // hence we need to swap components
+            noalias(local_axis_3) = column(current_rot, 1);
+            noalias(local_axis_2) = column(current_rot, 0);
+            noalias(local_axis_1) = column(current_rot, 2);
+
+            if (rVariable == LOCAL_AXIS_1) {
+                noalias(rOutput[IP]) = local_axis_1;
+            } else if (rVariable == LOCAL_AXIS_2) {
+                noalias(rOutput[IP]) = local_axis_2;
+            } else {
+                noalias(rOutput[IP]) = local_axis_3;
+            }
+        }
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 } // namespace Kratos

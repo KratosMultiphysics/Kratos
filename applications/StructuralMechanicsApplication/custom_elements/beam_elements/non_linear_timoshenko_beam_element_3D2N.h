@@ -297,6 +297,28 @@ public:
     void GetSecondDerivativesVector(Vector &values, int Step = 0) const;
 
     /**
+     * @brief Calculates a double Variable on the Element (e.g., strain components)
+     * @param rVariable The variable we want to get
+     * @param rOutput The values obtained in the integration points
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void CalculateOnIntegrationPoints(
+        const Variable<double>& rVariable,
+        std::vector<double>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+     * @brief Calculates a vector Variable on the Element (e.g., LOCAL_AXIS_1, LOCAL_AXIS_2)
+     * @param rVariable The variable we want to get
+     * @param rOutput The values obtained in the integration points
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void CalculateOnIntegrationPoints(
+        const Variable<array_1d<double, 3>>& rVariable,
+        std::vector<array_1d<double, 3>>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
      * Returns the value of the Levi-Civita symbol epsilon_ijk.
      * Indices i, j, k are 0-based: {0, 1, 2}.
      */
