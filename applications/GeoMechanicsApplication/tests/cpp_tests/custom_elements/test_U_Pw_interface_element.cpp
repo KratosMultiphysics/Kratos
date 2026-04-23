@@ -88,7 +88,7 @@ std::shared_ptr<Properties> CreateElasticMaterialProperties(double NormalStiffne
     result->GetValue(INTERFACE_SHEAR_STIFFNESS)  = ShearStiffness;
     result->GetValue(CONSTITUTIVE_LAW) = std::make_shared<GeoIncrementalLinearElasticInterfaceLaw>(
         std::make_unique<TConstitutiveLawDimension>());
-    result->SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
+    result->GetValue(GEO_DRAINAGE_TYPE) = "FULLY_COUPLED";
 
     return result;
 }
@@ -1453,6 +1453,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_CalculateRelativeDisplacem
     constexpr auto shear_stiffness  = 10.0;
     const auto     p_properties = CreateElasticMaterialProperties<InterfaceThreeDimensionalSurface>(
         normal_stiffness, shear_stiffness);
+
     const auto first_side_displacement  = array_1d<double, 3>{1.0, 2.0, 3.0};
     const auto prescribed_displacements = PrescribedBoundedArrays{
         {0, first_side_displacement}, {1, first_side_displacement}, {2, first_side_displacement}};
@@ -1484,6 +1485,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElementHorizontal_CalculateRelativ
     constexpr auto shear_stiffness  = 10.0;
     const auto     p_properties = CreateElasticMaterialProperties<InterfaceThreeDimensionalSurface>(
         normal_stiffness, shear_stiffness);
+
     const auto first_side_displacement  = array_1d<double, 3>{0.0, 0.0, 1.0};
     const auto prescribed_displacements = PrescribedBoundedArrays{
         {0, first_side_displacement}, {1, first_side_displacement}, {2, first_side_displacement}};
@@ -1514,6 +1516,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElementInYZPlane_CalculateRelative
     constexpr auto shear_stiffness  = 10.0;
     const auto     p_properties = CreateElasticMaterialProperties<InterfaceThreeDimensionalSurface>(
         normal_stiffness, shear_stiffness);
+
     const auto second_side_displacement = array_1d<double, 3>{1.0, 0.0, 0.0};
     const auto prescribed_displacements = PrescribedBoundedArrays{
         {3, second_side_displacement}, {4, second_side_displacement}, {5, second_side_displacement}};
@@ -1544,6 +1547,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElementInXZPlane_CalculateRelative
     constexpr auto shear_stiffness  = 10.0;
     const auto     p_properties = CreateElasticMaterialProperties<InterfaceThreeDimensionalSurface>(
         normal_stiffness, shear_stiffness);
+
     // The prescribed displacements are in the direction of the normal of the interface
     // which is the -y direction. This results in a positive normal relative displacement,
     // since the second side of the interface is moved.
@@ -1577,6 +1581,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_CalculateEffectiveTraction
     constexpr auto shear_stiffness  = 10.0;
     const auto     p_properties = CreateElasticMaterialProperties<InterfaceThreeDimensionalSurface>(
         normal_stiffness, shear_stiffness);
+
     const auto first_side_displacement  = array_1d<double, 3>{1.0, 2.0, 3.0};
     const auto prescribed_displacements = PrescribedBoundedArrays{
         {0, first_side_displacement}, {1, first_side_displacement}, {2, first_side_displacement}};
@@ -1691,6 +1696,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwInterfaceElement_CheckThrowsWhenElementIsNotInitial
     constexpr auto shear_stiffness  = 10.0;
     const auto     p_properties =
         CreateElasticMaterialProperties<InterfacePlaneStrain>(normal_stiffness, shear_stiffness);
+
     Model model;
     auto  element = CreateHorizontalUnitLength3Plus3NodedLineInterfaceElementWithUPwDoF(
         model, p_properties, IsDiffOrderElement::No, {CalculationContribution::Stiffness});
@@ -1769,7 +1775,6 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_InterpolatesNodalStresses, Kra
     constexpr auto shear_stiffness  = 10.0;
     const auto     p_interface_properties =
         CreateElasticMaterialProperties<InterfacePlaneStrain>(normal_stiffness, shear_stiffness);
-
     auto interface_element = CreateInterfaceElementWithUPwDofs<Interface2D>(
         p_interface_properties, p_geometry, IsDiffOrderElement::No, {CalculationContribution::Stiffness});
     interface_element.SetValue(NEIGHBOUR_ELEMENTS, MakeElementGlobalPtrContainerWith(p_neighbour_element));
