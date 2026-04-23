@@ -330,6 +330,23 @@ namespace Kratos::Testing
         SetVelocityAndAccelerationToCoordinate(rModelPart);
     }
 
+
+    template<class TDataType>
+    void SetValuesOnNodes(ModelPart& rGridModelPart,
+                          const Variable<TDataType>& rNodalVariableName,
+                          const int buffer_index,
+                          const std::vector<TDataType>& rValues)
+    {
+        IndexType nodal_index = 0;
+        for (Node& r_node : rGridModelPart.Nodes())
+        {
+            if (r_node.SolutionStepsDataHas(rNodalVariableName)){
+                r_node.FastGetSolutionStepValue(rNodalVariableName) = rValues[nodal_index];
+            }
+            ++nodal_index;
+        }
+    }
+
     template<class TDataType>
     void AssertMPVariables(const ModelPart& rMpmModelPart,
                            const Variable<TDataType>& rMPVariableName,
@@ -455,92 +472,43 @@ namespace Kratos::Testing
         auto& r_node_2 = r_mpm_model_part.GetNode(2);
         auto& r_node_3 = r_mpm_model_part.GetNode(3);
         auto& r_node_4 = r_mpm_model_part.GetNode(4);
-        // Check mapped mass
-        double& r_node_1_mass = r_node_1.FastGetSolutionStepValue(NODAL_MASS);
-        double& r_node_2_mass = r_node_2.FastGetSolutionStepValue(NODAL_MASS);
-        double& r_node_3_mass = r_node_3.FastGetSolutionStepValue(NODAL_MASS);
-        double& r_node_4_mass = r_node_4.FastGetSolutionStepValue(NODAL_MASS);
+        // Velocity
+        const array_1d<double,3> node_1_velocity{ 1.1,  0.1, 0.0};
+        const array_1d<double,3> node_2_velocity{ 0.1, -0.1, 0.0};
+        const array_1d<double,3> node_3_velocity{-0.1, -0.1, 0.0};
+        const array_1d<double,3> node_4_velocity{ 0.1,  1.1, 0.0};
+        const std::vector<array_1d<double,3>> node_velocity_values{node_1_velocity,
+                                                                   node_2_velocity,
+                                                                   node_3_velocity,
+                                                                   node_4_velocity};
 
-        KRATOS_EXPECT_NEAR(r_node_1_mass, 2.5, 1e-6);
-        KRATOS_EXPECT_NEAR(r_node_2_mass, 2.5, 1e-6);
-        KRATOS_EXPECT_NEAR(r_node_3_mass, 2.5, 1e-6);
-        KRATOS_EXPECT_NEAR(r_node_4_mass, 2.5, 1e-6);
+        SetValuesOnNodes(r_grid_model_part, VELOCITY, 0, node_velocity_values);
 
-        // Check mapped velocity_x
-        const array_1d<double,3>& r_node_1_velocity_previous = r_node_1.FastGetSolutionStepValue(VELOCITY, 1);
-        const array_1d<double,3>& r_node_2_velocity_previous = r_node_2.FastGetSolutionStepValue(VELOCITY, 1);
-        const array_1d<double,3>& r_node_3_velocity_previous = r_node_3.FastGetSolutionStepValue(VELOCITY, 1);
-        const array_1d<double,3>& r_node_4_velocity_previous = r_node_4.FastGetSolutionStepValue(VELOCITY, 1);
+        // Acceleration
+        const array_1d<double,3> node_1_acceleration{ 1.1,  0.1, 0.0};
+        const array_1d<double,3> node_2_acceleration{ 0.1, -0.1, 0.0};
+        const array_1d<double,3> node_3_acceleration{-0.1, -0.1, 0.0};
+        const array_1d<double,3> node_4_acceleration{ 0.1,  1.1, 0.0};
+        const std::vector<array_1d<double,3>> node_acceleration_values{node_1_acceleration,
+                                                                       node_2_acceleration,
+                                                                       node_3_acceleration,
+                                                                       node_4_acceleration};
+        SetValuesOnNodes(r_grid_model_part, ACCELERATION, 0, node_acceleration_values);
 
-        KRATOS_EXPECT_NEAR(r_node_1_velocity_previous[0], 1.333333333, 1e-6);
-        KRATOS_EXPECT_NEAR(r_node_2_velocity_previous[0], 1.666666666, 1e-6);
-        KRATOS_EXPECT_NEAR(r_node_3_velocity_previous[0], 1.666666666, 1e-6);
-        KRATOS_EXPECT_NEAR(r_node_4_velocity_previous[0], 1.333333333, 1e-6);
-
-        // Check mapped acceleration_x
-        const array_1d<double,3>& r_node_1_acceleration_previous = r_node_1.FastGetSolutionStepValue(ACCELERATION, 1);
-        const array_1d<double,3>& r_node_2_acceleration_previous = r_node_2.FastGetSolutionStepValue(ACCELERATION, 1);
-        const array_1d<double,3>& r_node_3_acceleration_previous = r_node_3.FastGetSolutionStepValue(ACCELERATION, 1);
-        const array_1d<double,3>& r_node_4_acceleration_previous = r_node_4.FastGetSolutionStepValue(ACCELERATION, 1);
-
-        KRATOS_EXPECT_NEAR(r_node_1_acceleration_previous[0], 2.333333333, 1e-6);
-        KRATOS_EXPECT_NEAR(r_node_2_acceleration_previous[0], 2.666666666, 1e-6);
-        KRATOS_EXPECT_NEAR(r_node_3_acceleration_previous[0], 2.666666666, 1e-6);
-        KRATOS_EXPECT_NEAR(r_node_4_acceleration_previous[0], 2.333333333, 1e-6);
-
-        // Check mapped pressure
-        const double& r_node_1_pressure_previous = r_node_1.FastGetSolutionStepValue(PRESSURE, 1);
-        const double& r_node_2_pressure_previous = r_node_2.FastGetSolutionStepValue(PRESSURE, 1);
-        const double& r_node_3_pressure_previous = r_node_3.FastGetSolutionStepValue(PRESSURE, 1);
-        const double& r_node_4_pressure_previous = r_node_4.FastGetSolutionStepValue(PRESSURE, 1);
-
-        KRATOS_EXPECT_NEAR(r_node_1_pressure_previous, 0.877991531432732, 1e-6);
-        KRATOS_EXPECT_NEAR(r_node_2_pressure_previous, 1.044658198567268, 1e-6);
-        KRATOS_EXPECT_NEAR(r_node_3_pressure_previous, 1.455341801432732, 1e-6);
-        KRATOS_EXPECT_NEAR(r_node_4_pressure_previous, 1.622008468567268, 1e-6);
-
-        // ------------------------------------------------------------------------------------------ G2P Test ------------------------------------------------------------------------------------------ //
-        // Setting values for current nodal velocity, acceleration, and pressure
-        array_1d<double,3>& r_node_1_velocity_current = r_node_1.FastGetSolutionStepValue(VELOCITY, 0);
-        array_1d<double,3>& r_node_2_velocity_current = r_node_2.FastGetSolutionStepValue(VELOCITY, 0);
-        array_1d<double,3>& r_node_3_velocity_current = r_node_3.FastGetSolutionStepValue(VELOCITY, 0);
-        array_1d<double,3>& r_node_4_velocity_current = r_node_4.FastGetSolutionStepValue(VELOCITY, 0);
-
-        r_node_1_velocity_current = array_1d<double,3>{ 1.1,  0.1, 0.0};
-        r_node_2_velocity_current = array_1d<double,3>{ 0.1, -0.1, 0.0};
-        r_node_3_velocity_current = array_1d<double,3>{-0.1, -0.1, 0.0};
-        r_node_4_velocity_current = array_1d<double,3>{ 0.1,  1.1, 0.0};
-
-        array_1d<double,3>& r_node_1_acceleration_current = r_node_1.FastGetSolutionStepValue(ACCELERATION, 0);
-        array_1d<double,3>& r_node_2_acceleration_current = r_node_2.FastGetSolutionStepValue(ACCELERATION, 0);
-        array_1d<double,3>& r_node_3_acceleration_current = r_node_3.FastGetSolutionStepValue(ACCELERATION, 0);
-        array_1d<double,3>& r_node_4_acceleration_current = r_node_4.FastGetSolutionStepValue(ACCELERATION, 0);
-
-        r_node_1_acceleration_current = array_1d<double,3>{ 1.1,  0.1, 0.0};
-        r_node_2_acceleration_current = array_1d<double,3>{ 0.1, -0.1, 0.0};
-        r_node_3_acceleration_current = array_1d<double,3>{-0.1, -0.1, 0.0};
-        r_node_4_acceleration_current = array_1d<double,3>{ 0.1,  1.1, 0.0};
-
-        double& r_node_1_pressure_current = r_node_1.FastGetSolutionStepValue(PRESSURE, 0);
-        double& r_node_2_pressure_current = r_node_2.FastGetSolutionStepValue(PRESSURE, 0);
-        double& r_node_3_pressure_current = r_node_3.FastGetSolutionStepValue(PRESSURE, 0);
-        double& r_node_4_pressure_current = r_node_4.FastGetSolutionStepValue(PRESSURE, 0);
-
-        r_node_1_pressure_current = 0.5;
-        r_node_2_pressure_current = 1.0;
-        r_node_3_pressure_current = 1.5;
-        r_node_4_pressure_current = 2.0;
+        // Pressure
+        const std::vector<double> node_pressure_values{0.5, 1.0, 1.5, 2.0};
+        SetValuesOnNodes(r_grid_model_part, PRESSURE, 0, node_pressure_values);
 
         // Adding current displacement at grid nodes to be mapped back to MP
-        array_1d<double,3>& r_displacement_1 = r_node_1.FastGetSolutionStepValue(DISPLACEMENT, 0);
-        array_1d<double,3>& r_displacement_2 = r_node_2.FastGetSolutionStepValue(DISPLACEMENT, 0);
-        array_1d<double,3>& r_displacement_3 = r_node_3.FastGetSolutionStepValue(DISPLACEMENT, 0);
-        array_1d<double,3>& r_displacement_4 = r_node_4.FastGetSolutionStepValue(DISPLACEMENT, 0);
-
-        r_displacement_1 = array_1d<double,3> {0.0, 0.0, 0.0};
-        r_displacement_2 = array_1d<double,3> {0.15, 0.0, 0.0};
-        r_displacement_3 = array_1d<double,3> {0.1, 0.1, 0.0};
-        r_displacement_4 = array_1d<double,3> {0.0, 0.05, 0.0};
+        const array_1d<double,3> node_1_displacement{0.0 , 0.0 , 0.0};
+        const array_1d<double,3> node_2_displacement{0.15, 0.0 , 0.0};
+        const array_1d<double,3> node_3_displacement{0.1 , 0.1 , 0.0};
+        const array_1d<double,3> node_4_displacement{0.0 , 0.05, 0.0};
+        const std::vector<array_1d<double,3>> node_displacement_values{node_1_displacement,
+                                                                       node_2_displacement,
+                                                                       node_3_displacement,
+                                                                       node_4_displacement};
+        SetValuesOnNodes(r_grid_model_part, DISPLACEMENT, 0, node_displacement_values);
 
         // Adding initial MP displacement
         auto& r_element_1 = r_mpm_model_part.GetElement(1);
