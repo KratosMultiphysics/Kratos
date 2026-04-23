@@ -348,6 +348,20 @@ namespace Kratos::Testing
     }
 
     template<class TDataType>
+    void SetValuesOnMaterialPoints(ModelPart& rMpmModelPart,
+                                   const Variable<TDataType>& rMPVariableName,
+                                   const std::vector<TDataType>& rValues,
+                                   const ProcessInfo& rProcessInfo)
+    {
+        IndexType mp_index = 0;
+        for (auto& material_point_i : rMpmModelPart.Elements())
+        {
+            material_point_i.SetValuesOnIntegrationPoints(rMPVariableName, {rValues[mp_index]}, rProcessInfo);
+            ++mp_index;
+        }
+    }
+
+    template<class TDataType>
     void AssertMPVariables(const ModelPart& rMpmModelPart,
                            const Variable<TDataType>& rMPVariableName,
                            const std::vector<TDataType>& rReferenceValues,
@@ -511,15 +525,16 @@ namespace Kratos::Testing
         SetValuesOnNodes(r_grid_model_part, DISPLACEMENT, 0, node_displacement_values);
 
         // Adding initial MP displacement
-        auto& r_element_1 = r_mpm_model_part.GetElement(1);
-        auto& r_element_2 = r_mpm_model_part.GetElement(2);
-        auto& r_element_3 = r_mpm_model_part.GetElement(3);
-        auto& r_element_4 = r_mpm_model_part.GetElement(4);
+        const array_1d<double, 3> set_mp_1_displacement{0.1, 0.2, 0.0};
+        const array_1d<double, 3> set_mp_2_displacement{0.3, 0.4, 0.0};
+        const array_1d<double, 3> set_mp_3_displacement{0.5, 0.6, 0.0};
+        const array_1d<double, 3> set_mp_4_displacement{0.7, 0.8, 0.0};
+        const std::vector<array_1d<double,3>> set_mp_displacement_values{set_mp_1_displacement,
+                                                                         set_mp_2_displacement,
+                                                                         set_mp_3_displacement,
+                                                                         set_mp_4_displacement};
 
-        r_element_1.SetValuesOnIntegrationPoints(MP_DISPLACEMENT, {array_1d<double, 3> {0.1, 0.2, 0.0}}, rProcessInfo);
-        r_element_2.SetValuesOnIntegrationPoints(MP_DISPLACEMENT, {array_1d<double, 3> {0.3, 0.4, 0.0}}, rProcessInfo);
-        r_element_3.SetValuesOnIntegrationPoints(MP_DISPLACEMENT, {array_1d<double, 3> {0.5, 0.6, 0.0}}, rProcessInfo);
-        r_element_4.SetValuesOnIntegrationPoints(MP_DISPLACEMENT, {array_1d<double, 3> {0.7, 0.8, 0.0}}, rProcessInfo);
+        SetValuesOnMaterialPoints(r_mpm_model_part, MP_DISPLACEMENT, set_mp_displacement_values, rProcessInfo);
 
         flip_mapping.RunG2PMapping();
 
