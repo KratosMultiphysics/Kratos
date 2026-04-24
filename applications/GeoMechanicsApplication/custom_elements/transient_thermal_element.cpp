@@ -109,9 +109,7 @@ void TransientThermalElement<TDim, TNumNodes>::CalculateLocalSystem(MatrixType& 
     const auto integration_coefficients = mIntegrationCoefficientsCalculator.Run<Vector>(
         GetGeometry().IntegrationPoints(GetIntegrationMethod()), det_J_container, this);
     const auto conductivity_matrix = CalculateConductivityMatrix(dN_dX_container, integration_coefficients);
-    std::cout << "conductivity_matrix" << conductivity_matrix << std::endl;
     const auto capacity_matrix = CalculateCapacityMatrix(integration_coefficients);
-    std::cout << "capacity_matrix" << capacity_matrix << std::endl;
     AddContributionsToLhsMatrix(rLeftHandSideMatrix, conductivity_matrix, capacity_matrix,
                                 rCurrentProcessInfo[DT_TEMPERATURE_COEFFICIENT]);
     AddContributionsToRhsVector(rRightHandSideVector, conductivity_matrix, capacity_matrix);
@@ -158,10 +156,12 @@ int TransientThermalElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentP
     check_properties.Check(SPECIFIC_HEAT_CAPACITY_SOLID);
     check_properties.SingleUseBounds(CheckProperties::Bounds::AllExclusive).Check(THERMAL_CONDUCTIVITY_WATER);
     check_properties.SingleUseBounds(CheckProperties::Bounds::AllExclusive).Check(THERMAL_CONDUCTIVITY_SOLID_XX);
-    check_properties.SingleUseBounds(CheckProperties::Bounds::AllExclusive).Check(THERMAL_CONDUCTIVITY_SOLID_YY);
-    check_properties.Check(THERMAL_CONDUCTIVITY_SOLID_XY);
-
-    if constexpr (TDim == 3) {
+    const auto local_space_dimension = this->GetGeometry().LocalSpaceDimension();
+    if (local_space_dimension > 1) {
+        check_properties.SingleUseBounds(CheckProperties::Bounds::AllExclusive).Check(THERMAL_CONDUCTIVITY_SOLID_YY);
+        check_properties.Check(THERMAL_CONDUCTIVITY_SOLID_XY);
+    }
+    if (local_space_dimension > 2) {
         check_properties.SingleUseBounds(CheckProperties::Bounds::AllExclusive).Check(THERMAL_CONDUCTIVITY_SOLID_ZZ);
         check_properties.Check(THERMAL_CONDUCTIVITY_SOLID_YZ);
         check_properties.Check(THERMAL_CONDUCTIVITY_SOLID_XZ);
