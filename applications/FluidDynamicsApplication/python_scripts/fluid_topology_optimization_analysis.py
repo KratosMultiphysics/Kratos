@@ -869,7 +869,12 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         self.MpiPrint("--|" + self.topology_optimization_stage_str + "| INITIALIZE DOMAIN DESIGN")
         self._InitializeDomainDesignParameter()
         self.MpiPrint("--|" + self.topology_optimization_stage_str + "| INITIALIZE PHYSICS PARAMETERS")
+        self._InitializePhysicsInterpolationDesignParameterCutoff()
         self._InitializePhysicsParameters()
+
+    def _InitializePhysicsInterpolationDesignParameterCutoff(self):
+        cutoff = self.physics_parameters_settings["physics_interpolation_design_parameter_cutoff"].GetDouble()
+        self.physics_interpolation_design_parameter_cutoff = np.clip(cutoff, 0.0, 0.1)
 
     def _InitializePhysicsParameters(self):
         self._InitializeFluidPhysicsParameters()
@@ -1111,6 +1116,9 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         return self._ComputePhysicsParameter(self.resistance_parameters, design_parameter)
     
     def _ComputePhysicsParameter(self, physics_parameters, design_parameter):
+        min_cutoff = self.physics_interpolation_design_parameter_cutoff
+        max_cutoff = 1.0 - self.physics_interpolation_design_parameter_cutoff
+        design_parameter = np.clip((design_parameter-min_cutoff)/(max_cutoff-min_cutoff), 0.0, 1.0)
         parameter = np.zeros(self.n_nodes)
         parameter_derivative_wrt_design_base = np.zeros(self.n_nodes)
         for subdomain_physics_parameters in physics_parameters.values():
@@ -2330,6 +2338,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         ##settings string in json format
         default_physics_parameters_settings = KratosMultiphysics.Parameters("""
         {
+            "physics_interpolation_design_parameter_cutoff": 0.001,
             "resistance": [{
                 "interpolation_method": "hyperbolic",
                 "value_void"        : 0.0,
@@ -2361,6 +2370,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         ##settings string in json format
         base_physics_parameters_settings = KratosMultiphysics.Parameters("""
         {
+            "physics_interpolation_design_parameter_cutoff": {},
             "resistance": [{}],                                                                
             "conductivity": [{}],
             "decay": [{}],
