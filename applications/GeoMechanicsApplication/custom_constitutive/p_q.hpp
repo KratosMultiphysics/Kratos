@@ -21,17 +21,17 @@
 namespace Kratos::Geo
 {
 
-class KRATOS_API(GEO_MECHANICS_APPLICATION) PQ
+class KRATOS_API(GEO_MECHANICS_APPLICATION) PQTheta
 {
 public:
-    static constexpr std::size_t msVectorSize = 2;
+    static constexpr std::size_t msVectorSize = 3;
     using InternalVectorType                  = BoundedVector<double, msVectorSize>;
 
-    PQ() = default;
-    PQ(double P, double Q);
+    PQTheta() = default;
+    PQTheta(double P, double Q, double Theta);
 
     template <typename VectorType>
-    explicit PQ(const VectorType& rValues)
+    explicit PQTheta(const VectorType& rValues)
     {
         // For some reason, the `std::ranges` versions of the below algorithms don't play nicely
         // with UBlas vector expressions. Therefore, we're using the iterator-style algorithms.
@@ -49,6 +49,8 @@ public:
     double&                                 P() noexcept;
     [[nodiscard]] double                    Q() const noexcept;
     double&                                 Q() noexcept;
+    [[nodiscard]] double                    Theta() const noexcept;
+    double&                                 Theta() noexcept;
 
     template <typename VectorType>
     VectorType CopyTo() const
@@ -58,9 +60,9 @@ public:
         return result;
     }
 
-    PQ& operator+=(const PQ& rRhs);
+    PQTheta& operator+=(const PQTheta& rRhs);
     KRATOS_API(GEO_MECHANICS_APPLICATION)
-    friend PQ operator+(PQ Lhs, const PQ& rRhs);
+    friend PQTheta operator+(PQTheta Lhs, const PQTheta& rRhs);
 
 private:
     InternalVectorType mValues = ZeroVector{msVectorSize};

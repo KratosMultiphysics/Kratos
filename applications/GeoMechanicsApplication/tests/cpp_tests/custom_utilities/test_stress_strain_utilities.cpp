@@ -251,11 +251,11 @@ KRATOS_TEST_CASE_IN_SUITE(CheckCalculatePrincipalStressesAndRotationMatrix, Krat
     KRATOS_EXPECT_MATRIX_NEAR(actual_rotation_matrix, expected_rotation_matrix, Defaults::absolute_tolerance)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CheckTransformPrincipalStressesToPandQ, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(CheckTransformPrincipalStressesToPQandTheta, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto principal_stresses = Geo::PrincipalStresses{30.0, 20.0, 10.0};
-    const auto p_q = StressStrainUtilities::TransformPrincipalStressesToPandQ(principal_stresses);
-    const auto expected_solution_pq = Geo::PQ{20.0, std::sqrt(300.0)};
+    const auto p_q = StressStrainUtilities::TransformPrincipalStressesToPQandTheta(principal_stresses);
+    const auto expected_solution_pq = Geo::PQTheta{20.0, std::sqrt(300.0), 0.0};
     KRATOS_EXPECT_VECTOR_NEAR(p_q.Values(), expected_solution_pq.Values(), Defaults::absolute_tolerance)
 }
 

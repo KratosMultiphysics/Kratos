@@ -25,7 +25,7 @@ class CheckProperties;
 
 namespace Geo
 {
-class PQ;
+class PQTheta;
 } // namespace Geo
 
 class KRATOS_API(GEO_MECHANICS_APPLICATION) CompressionCapYieldSurface
@@ -39,8 +39,8 @@ public:
     [[nodiscard]] double GetCapSize() const;
     [[nodiscard]] double GetPreconsolidationStress() const;
 
-    [[nodiscard]] double YieldFunctionValue(const Geo::PQ& rPQ) const;
-    [[nodiscard]] Vector DerivativeOfFlowFunction(const Geo::PQ& rPQ) const;
+    [[nodiscard]] double YieldFunctionValue(const Geo::PQTheta& rPQTheta) const;
+    [[nodiscard]] Vector DerivativeOfFlowFunction(const Geo::PQTheta& rPQTheta) const;
 
 private:
     void InitializeKappaDependentFunctions();

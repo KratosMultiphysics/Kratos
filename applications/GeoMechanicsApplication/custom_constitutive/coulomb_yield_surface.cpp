@@ -140,6 +140,11 @@ double CoulombYieldSurface::YieldFunctionValue(const Geo::PrincipalStresses& rPr
     return YieldFunctionValue(StressStrainUtilities::TransformPrincipalStressesToSigmaTau(rPrincipalStresses));
 }
 
+double CoulombYieldSurface::YieldFunctionValue(const Geo::PQTheta& rPQTheta) const
+{
+    return YieldFunctionValue(StressStrainUtilities::TransformPQThetaToPrincipalStresses(rPQTheta));
+}
+
 Vector CoulombYieldSurface::DerivativeOfFlowFunction(const Geo::SigmaTau&,
                                                      Geo::PrincipalStresses::AveragingType AveragingType) const
 {

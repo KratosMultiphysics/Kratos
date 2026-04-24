@@ -244,11 +244,21 @@ Geo::PrincipalStresses StressStrainUtilities::TransformSigmaTauToPrincipalStress
                                   rSigmaTau.Sigma() - rSigmaTau.Tau()};
 }
 
-Geo::PQ StressStrainUtilities::TransformPrincipalStressesToPandQ(const Geo::PrincipalStresses& rPrincipalStresses)
+Geo::PQTheta StressStrainUtilities::TransformPrincipalStressesToPQandTheta(const Geo::PrincipalStresses& rPrincipalStresses)
 {
     auto stress_vector = Vector(6, 0.0);
     std::ranges::copy(rPrincipalStresses.Values(), stress_vector.begin());
-    return Geo::PQ{CalculateMeanStress(stress_vector), CalculateVonMisesStress(stress_vector)};
+    // this does principal computation again ( at least twice again ) maybe reformulate
+    return Geo::PQTheta{CalculateMeanStress(stress_vector), CalculateVonMisesStress(stress_vector),
+                        CalculateLodeAngle(stress_vector)};
+}
+
+Geo::PrincipalStresses StressStrainUtilities::TransformPQThetaToPrincipalStresses(const Geo::PQTheta& rPQTheta)
+{
+    return Geo::PrincipalStresses{
+        rPQTheta.P() + (2.0 / 3.0) * rPQTheta.Q() * std::sin(rPQTheta.Theta() + (2.0 / 3.0) * Globals::Pi),
+        rPQTheta.P() + (2.0 / 3.0) * rPQTheta.Q() * std::sin(rPQTheta.Theta()),
+        rPQTheta.P() + (2.0 / 3.0) * rPQTheta.Q() * std::sin(rPQTheta.Theta() - (2.0 / 3.0) * Globals::Pi)};
 }
 
 std::vector<Vector> StressStrainUtilities::CalculateStressVectorsFromStrainVectors(

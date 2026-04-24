@@ -15,6 +15,7 @@
 
 #pragma once
 
+#include "custom_constitutive/p_q.hpp"
 #include "custom_constitutive/principal_stresses.hpp"
 #include "custom_constitutive/sigma_tau.hpp"
 #include "geo_aliases.h"
@@ -43,6 +44,7 @@ public:
 
     [[nodiscard]] double YieldFunctionValue(const Geo::SigmaTau& rSigmaTau) const;
     [[nodiscard]] double YieldFunctionValue(const Geo::PrincipalStresses& rPrincipalStresses) const;
+    [[nodiscard]] double YieldFunctionValue(const Geo::PQTheta& rPQTheta) const;
 
     [[nodiscard]] Vector DerivativeOfFlowFunction(const Geo::SigmaTau&,
                                                   Geo::PrincipalStresses::AveragingType AveragingType =

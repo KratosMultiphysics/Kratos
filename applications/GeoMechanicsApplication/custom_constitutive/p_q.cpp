@@ -15,29 +15,34 @@
 namespace Kratos::Geo
 {
 
-PQ::PQ(double P, double Q)
+PQTheta::PQTheta(double P, double Q, double Theta)
 {
     mValues[0] = P;
     mValues[1] = Q;
+    mValues[2] = Theta;
 }
 
-const PQ::InternalVectorType& PQ::Values() const noexcept { return mValues; }
+const PQTheta::InternalVectorType& PQTheta::Values() const noexcept { return mValues; }
 
-double PQ::P() const noexcept { return mValues[0]; }
+double PQTheta::P() const noexcept { return mValues[0]; }
 
-double& PQ::P() noexcept { return mValues[0]; }
+double& PQTheta::P() noexcept { return mValues[0]; }
 
-double PQ::Q() const noexcept { return mValues[1]; }
+double PQTheta::Q() const noexcept { return mValues[1]; }
 
-double& PQ::Q() noexcept { return mValues[1]; }
+double& PQTheta::Q() noexcept { return mValues[1]; }
 
-PQ& PQ::operator+=(const PQ& rRhs)
+double PQTheta::Theta() const noexcept { return mValues[2]; }
+
+double& PQTheta::Theta() noexcept { return mValues[2]; }
+
+PQTheta& PQTheta::operator+=(const PQTheta& rRhs)
 {
     std::ranges::transform(mValues, rRhs.mValues, mValues.begin(), std::plus{});
     return *this;
 }
 
-PQ operator+(PQ Lhs, const PQ& rRhs)
+PQTheta operator+(PQTheta Lhs, const PQTheta& rRhs)
 {
     Lhs += rRhs;
     return Lhs;
