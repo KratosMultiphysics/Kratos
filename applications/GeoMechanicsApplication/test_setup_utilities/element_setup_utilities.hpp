@@ -118,6 +118,8 @@ public:
                                               std::size_t                Id);
     static Element::Pointer Create3D20NElement(const PointerVector<Node>& rNodes,
                                                const Properties::Pointer& rProperties);
+    static Element::Pointer CreateLinearTrussElement2D2N(const PointerVector<Node>& rNodes,
+                                                         const Properties::Pointer& rProperties);
 
     static Condition::Pointer Create2D3NLineCondition(const PointerVector<Node>& rNodes,
                                                       const Properties::Pointer& rProperties);
