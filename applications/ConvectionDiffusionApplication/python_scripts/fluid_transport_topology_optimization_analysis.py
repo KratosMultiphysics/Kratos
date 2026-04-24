@@ -111,7 +111,7 @@ class FluidTransportTopologyOptimizationAnalysis(TransportTopologyOptimizationAn
             self.EvaluateFunctionals(print_functional=False)
             self._SetInitialFunctionals()
             self._SetNormalizationFunctionals()
-            self.functional_weights = self._RescaleFunctionalWeightsByNormalizationValues()
+            self._CreateFunctionalWeights()
         else:
             info_msg = "Calling '_InitializeFunctionalWeights' method before '_ImportFunctionalWeights()'"
             raise RuntimeError("FluidTopologyOptimizationAnalysis: " + info_msg)
@@ -130,6 +130,9 @@ class FluidTransportTopologyOptimizationAnalysis(TransportTopologyOptimizationAn
         coupling_weights[0] = functional_weights_parameters["fluid"].GetDouble()
         coupling_weights[1] = functional_weights_parameters["transport"].GetDouble()
         self.normalized_coupling_functional_weights = self._NormalizeFunctionalWeights(np.asarray(coupling_weights))
+        self.physics_derivatives_weights_type = functional_weights_parameters["derivatives_weights_type"].GetString().lower()
+        if (self.physics_derivatives_weights_type != "log-like"):
+            self.physics_derivatives_weights_type = "constant"
 
     def _SetInitialFunctionals(self):
         super()._SetInitialFunctionals()
@@ -180,12 +183,26 @@ class FluidTransportTopologyOptimizationAnalysis(TransportTopologyOptimizationAn
         self.EvaluateFluidFunctionals(print_functional)
         self.EvaluateTransportFunctionals(print_functional)
 
-    def EvaluateTotalFunctional(self):
+    def _ConcatenatePhysicsFunctionals(self):
         self.functionals = np.concatenate((self.fluid_functionals, self.transport_functionals))
-        self.weighted_functionals = self.functional_weights * self.functionals
-        self.functional = np.sum(self.weighted_functionals)
-        if (self.first_iteration):
-            self.initial_functional = self.functional
+
+    def EvaluatePhysicsFunctional(self):
+        self._EvaluateFluidFunctional()
+        self._EvaluateTransportFunctional()
+
+    def _UpdateFunctionalDerivativeWeights(self):
+        if ((self.physics_derivatives_weights_type).lower() == "log-like"):
+            fluid_functionals_ids = range(0, self.n_fluid_functionals)
+            transport_functionals_ids = range(self.n_fluid_functionals, self.n_functionals)
+            if (abs(self.fluid_functional) > 1e-10):
+                self.functional_derivative_weights[fluid_functionals_ids] /= self.fluid_functional
+            else:
+                self.functional_derivative_weights[fluid_functionals_ids] = 0.0
+            if (abs(self.transport_functional) > 1e-10):
+                self.functional_derivative_weights[transport_functionals_ids] /= self.transport_functional
+            else:
+                self.functional_derivative_weights[transport_functionals_ids] = 0.0
+        super()._UpdateFunctionalDerivativeWeights()
 
     def _ComputeFunctionalDerivativesFunctionalContribution(self):
         fluid_contribution = self._ComputeFunctionalDerivativesFluidFunctionalContribution() 

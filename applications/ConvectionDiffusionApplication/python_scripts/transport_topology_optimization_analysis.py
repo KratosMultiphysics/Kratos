@@ -321,7 +321,7 @@ class TransportTopologyOptimizationAnalysis(FluidTopologyOptimizationAnalysis):
             self.EvaluateFunctionals(print_functional=False)
             self._SetInitialFunctionals()
             self._SetNormalizationFunctionals()
-            self.functional_weights = self._RescaleFunctionalWeightsByNormalizationValues()
+            self._CreateFunctionalWeights()
         else:
             info_msg = "Calling '_InitializeFunctionalWeights' method before '_ImportFunctionalWeights()'"
             raise RuntimeError("TransportTopologyOptimizationAnalysis: " + info_msg)
@@ -429,12 +429,14 @@ class TransportTopologyOptimizationAnalysis(FluidTopologyOptimizationAnalysis):
         if (abs(self.normalized_transport_functional_weights[6]) > 1e-10):
             self.transport_scalar_1st_order_decay_functionals_in_delta_time[time_step_id] = self._EvaluateTransportScalar1stOrderDecayFunctionalInDeltaTime()
 
-    def EvaluateTotalFunctional(self):
+    def _ConcatenatePhysicsFunctionals(self):
         self.functionals = np.concatenate((np.zeros(self.n_functionals-self.n_transport_functionals), self.transport_functionals))
-        self.weighted_functionals = self.functional_weights * self.functionals
-        self.functional = np.sum(self.weighted_functionals)
-        if (self.first_iteration):
-            self.initial_functional = self.functional
+
+    def EvaluatePhysicsFunctional(self):
+        self._EvaluateTransportFunctional()
+    
+    def _EvaluateTransportFunctional(self):
+        self.transport_functional = np.sum(self.weighted_functionals[self.n_fluid_functionals:self.n_functionals])
 
     def _EvaluateOutletTransportScalarFunctional(self, print_functional=False):
         """
@@ -697,11 +699,11 @@ class TransportTopologyOptimizationAnalysis(FluidTopologyOptimizationAnalysis):
         transport_decay_functional_derivatives           = self._ComputeFunctionalDerivativesDecayFunctionalContribution()
         transport_source_functional_derivatives          = self._ComputeFunctionalDerivativesSourceFunctionalContribution()
         transport_1st_order_decay_functional_derivatives = self._ComputeFunctionalDerivatives1stOrderDecayFunctionalContribution()
-        transport_functional_derivatives  = self.functional_weights[5]*transport_diffusion_functional_derivatives
-        transport_functional_derivatives += self.functional_weights[6]*transport_convection_functional_derivatives
-        transport_functional_derivatives += self.functional_weights[7]*transport_decay_functional_derivatives
-        transport_functional_derivatives += self.functional_weights[8]*transport_source_functional_derivatives
-        transport_functional_derivatives += self.functional_weights[9]*transport_1st_order_decay_functional_derivatives
+        transport_functional_derivatives  = self.functional_derivative_weights[5]*transport_diffusion_functional_derivatives
+        transport_functional_derivatives += self.functional_derivative_weights[6]*transport_convection_functional_derivatives
+        transport_functional_derivatives += self.functional_derivative_weights[7]*transport_decay_functional_derivatives
+        transport_functional_derivatives += self.functional_derivative_weights[8]*transport_source_functional_derivatives
+        transport_functional_derivatives += self.functional_derivative_weights[9]*transport_1st_order_decay_functional_derivatives
         return transport_functional_derivatives 
 
     def _ComputeFunctionalDerivativesDiffusionFunctionalContribution(self):

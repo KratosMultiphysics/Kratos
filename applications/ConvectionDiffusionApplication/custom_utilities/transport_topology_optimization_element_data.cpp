@@ -47,8 +47,8 @@ void TransportTopologyOptimizationElementData<TDim, TNumNodes, TElementIntegrate
     // 4: ...
     // 5: ...
     // 5 is just a number big enough to contain the acutal database of functionals
-    Functional_Weights.resize(20, false);       // Resize to length 5
-    this->FillFromProcessInfo(Functional_Weights,FUNCTIONAL_WEIGHTS,rProcessInfo);
+    Functional_Weights.resize(20, false);       // Resize to length 20
+    this->FillFromProcessInfo(Functional_Weights,FUNCTIONAL_DERIVATIVE_WEIGHTS,rProcessInfo);
     this->FillFromHistoricalNodalData(Optimization_Temperature,OPTIMIZATION_TEMPERATURE,r_geometry);
 
     // TRANSPORT VARIABLES

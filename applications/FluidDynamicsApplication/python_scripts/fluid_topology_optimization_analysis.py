@@ -390,10 +390,14 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
             self.EvaluateFunctionals(print_functional=False)
             self._SetInitialFunctionals()
             self._SetNormalizationFunctionals()
-            self.functional_weights = self._RescaleFunctionalWeightsByNormalizationValues()
+            self._CreateFunctionalWeights()
         else:
             info_msg = "Calling '_InitializeFunctionalWeights' method before '_ImportFunctionalWeights()'"
             raise RuntimeError("FluidTopologyOptimizationAnalysis: " + info_msg)
+
+    def _CreateFunctionalWeights(self):
+        self.functional_weights = self._RescaleFunctionalWeightsByNormalizationValues()
+        self.functional_derivative_weights = (self.functional_weights).copy()
 
     def _ImportFunctionalWeights(self):
         self.ImportPhysicsFunctionalWeights()
@@ -728,6 +732,12 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         self.functional_weights_imported = False
         self._InitializeFunctionalsInTime()
         self._ImportFunctionalWeights()
+        self._InitializePhysicsFunctionalValue()
+
+    def _InitializePhysicsFunctionalValue(self):
+        self.fluid_functional = 0.0
+        self.transport_functional = 0.0
+        self.functional = 0.0
 
     def _InitializeFunctionalsInTime(self):
         self._InitializeFluidFunctionalsInTime()
@@ -1320,12 +1330,19 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
             process.ExecuteInitializeSolutionStep()
 
     def UpdateFunctionalWeights(self):
+        temp_functional_weights = self.functional_weights
         if self.IsUnsteadySolution():
-            time_step_functional_weights = self.functional_weights_in_time[self.n_time_steps-self.time_step_counter,:] * self.functional_weights
-            self._GetComputingModelPart().ProcessInfo.SetValue(KratosMultiphysics.FUNCTIONAL_WEIGHTS, time_step_functional_weights)
-        else:
-            self._GetComputingModelPart().ProcessInfo.SetValue(KratosMultiphysics.FUNCTIONAL_WEIGHTS, self.functional_weights)
+            temp_functional_weights *= self.functional_weights_in_time[self.n_time_steps-self.time_step_counter,:]
+        self._GetComputingModelPart().ProcessInfo.SetValue(KratosMultiphysics.FUNCTIONAL_WEIGHTS, temp_functional_weights)
         self._GetMainModelPart().GetCommunicator().SynchronizeNonHistoricalVariable(KratosMultiphysics.FUNCTIONAL_WEIGHTS)
+        self._UpdateFunctionalDerivativeWeights()
+
+    def _UpdateFunctionalDerivativeWeights(self):
+        temp_functional_derivative_weights = (self.functional_derivative_weights).copy()
+        if self.IsUnsteadySolution():
+            temp_functional_derivative_weights *= self.functional_weights_in_time[self.n_time_steps-self.time_step_counter,:]
+        self._GetComputingModelPart().ProcessInfo.SetValue(KratosMultiphysics.FUNCTIONAL_DERIVATIVE_WEIGHTS, temp_functional_derivative_weights)
+        self._GetMainModelPart().GetCommunicator().SynchronizeNonHistoricalVariable(KratosMultiphysics.FUNCTIONAL_DERIVATIVE_WEIGHTS)
         
     def InitializePhysicsSolutionStep(self):
         self._InitializeFluidSolutionStep()
@@ -1517,7 +1534,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
 
     def _ComputeFunctionalDerivativesFluidFunctionalContribution(self):
         resistance_functional_derivatives = self._ComputeFunctionalDerivativesResistanceFunctionalContribution()
-        fluid_functional_derivatives = self.functional_weights[0]*resistance_functional_derivatives
+        fluid_functional_derivatives = self.functional_derivative_weights[0]*resistance_functional_derivatives
         return fluid_functional_derivatives 
 
     def _ComputeFunctionalDerivativesResistanceFunctionalContribution(self):
@@ -2232,11 +2249,21 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
             self.vorticity_functionals_in_delta_time[time_step_id]   = self._EvaluateVorticityFunctionalInDeltaTime()
 
     def EvaluateTotalFunctional(self):
-        self.functionals = np.concatenate((self.fluid_functionals, np.zeros(self.n_functionals-self.n_fluid_functionals)))
+        self._ConcatenatePhysicsFunctionals()
         self.weighted_functionals = self.functional_weights * self.functionals
         self.functional = np.sum(self.weighted_functionals)
         if (self.first_iteration):
             self.initial_functional = self.functional
+        self.EvaluatePhysicsFunctional()
+
+    def _ConcatenatePhysicsFunctionals(self):
+        self.functionals = np.concatenate((self.fluid_functionals, np.zeros(self.n_functionals-self.n_fluid_functionals)))
+
+    def EvaluatePhysicsFunctional(self):
+        self._EvaluateFluidFunctional()
+    
+    def _EvaluateFluidFunctional(self):
+        self.fluid_functional = np.sum(self.weighted_functionals[0:self.n_fluid_functionals])
 
     def _CheckMaterialProperties(self, check = False):
         if (check):
@@ -2469,7 +2496,8 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
                     },
                     "coupling" : {
                         "fluid"    : 1.0,
-                        "transport": 1.0
+                        "transport": 1.0,
+                        "derivatives_weights_type": "constant"
                     }
                 },
                 "constraints_settings": {

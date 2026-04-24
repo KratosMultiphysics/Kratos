@@ -88,8 +88,8 @@ void FluidTopologyOptimizationElementData<TDim, TNumNodes, TElementIntegratesInT
     // |
     // 20: ...
     // 20 is just a number big enough to contain the acutal database of functionals
-    Functional_Weights.resize(20, false);       // Resize to length 5
-    this->FillFromProcessInfo(Functional_Weights,FUNCTIONAL_WEIGHTS,rProcessInfo);
+    Functional_Weights.resize(20, false);       // Resize to length 20
+    this->FillFromProcessInfo(Functional_Weights,FUNCTIONAL_DERIVATIVE_WEIGHTS,rProcessInfo);
 
     // NAVIER-STOKES VARIABLES
     this->FillFromHistoricalNodalData(Velocity,VELOCITY,r_geometry);
