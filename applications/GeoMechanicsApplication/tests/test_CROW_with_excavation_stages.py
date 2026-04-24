@@ -533,10 +533,11 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
     # def test_simulation_without_excavation(self):
     #     self.run_simulation_and_checks("without_excavation")
 
-    @unittest.skip("focus is now on Mohr-Coulomb")
+    #@unittest.skip("focus is now on Mohr-Coulomb")
     def test_simulation_without_excavation(self):
         self.run_simulation_and_checks("with_excavation_stages")
 
+    #@unittest.skip("focus is now on Mohr-Coulomb")
     def test_simulation_with_mohr_coulomb_materials(self):
         self.run_simulation_and_checks("mohr_coulomb")
 
