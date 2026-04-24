@@ -229,7 +229,7 @@ def get_local_stress_vector(simulation):
     :param simulation:
     :return: local stress vector
     """
-    return get_on_integration_points(simulation, KratosGeo.LOCAL_STRESS_TENSOR)
+    return get_on_integration_points(simulation, KratosGeo.LOCAL_STRESS_VECTOR)
 
 def get_hydraylic_head_with_intergration_points(simulation):
     """
