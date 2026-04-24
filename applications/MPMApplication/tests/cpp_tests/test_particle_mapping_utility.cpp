@@ -17,6 +17,7 @@
 // External includes
 
 // Project includes
+#include "includes/debug_helpers.h"
 #include "testing/testing.h"
 #include "containers/model.h"
 #include "mpm_application_variables.h"
@@ -26,12 +27,18 @@
 
 namespace Kratos::Testing
 {
+    void CreateEmptyModels(Model& rCurrentModel)
+    {
+        ModelPart& rGridModelPart = rCurrentModel.CreateModelPart("GridModelPart");
+        ModelPart& rMpmModelPart  = rCurrentModel.CreateModelPart("MpmModelPart");
+        rMpmModelPart.SetProcessInfo(rGridModelPart.pGetProcessInfo());
+    }
+
     void AddVariablesToModelPart(ModelPart& rMpmModelPart, ModelPart& rGridModelPart)
     {
         rGridModelPart.SetBufferSize(2);
         rGridModelPart.AddNodalSolutionStepVariable(DISPLACEMENT);
         rGridModelPart.AddNodalSolutionStepVariable(REACTION);
-        rGridModelPart.AddNodalSolutionStepVariable(PRESSURE);
         rGridModelPart.AddNodalSolutionStepVariable(POSITIVE_FACE_PRESSURE);
         rGridModelPart.AddNodalSolutionStepVariable(VOLUME_ACCELERATION);
         rGridModelPart.AddNodalSolutionStepVariable(NODAL_MASS);
@@ -39,7 +46,12 @@ namespace Kratos::Testing
         rGridModelPart.AddNodalSolutionStepVariable(NODAL_INERTIA);
         rGridModelPart.AddNodalSolutionStepVariable(VELOCITY);
         rGridModelPart.AddNodalSolutionStepVariable(ACCELERATION);
-        rGridModelPart.AddNodalSolutionStepVariable(NODAL_MPRESSURE);
+
+        if (rGridModelPart.GetProcessInfo().GetValue(IS_MIXED_FORMULATION))
+        {
+            rGridModelPart.AddNodalSolutionStepVariable(PRESSURE);
+            rGridModelPart.AddNodalSolutionStepVariable(NODAL_MPRESSURE);
+        }
 
         rMpmModelPart.SetBufferSize(2);
         rMpmModelPart.SetNodes(rGridModelPart.pNodes());
@@ -47,10 +59,11 @@ namespace Kratos::Testing
     }
 
     template<class TDataType>
-    void SetValuesOnNodes(ModelPart& rGridModelPart,
-                          const Variable<TDataType>& rNodalVariableName,
-                          const int buffer_index,
-                          const std::vector<TDataType>& rValues)
+    void SetValuesOnNodes(
+        ModelPart& rGridModelPart,
+        const Variable<TDataType>& rNodalVariableName,
+        const int buffer_index,
+        const std::vector<TDataType>& rValues)
     {
         IndexType nodal_index = 0;
         for (Node& r_node : rGridModelPart.Nodes())
@@ -63,15 +76,48 @@ namespace Kratos::Testing
     }
 
     template<class TDataType>
-    void SetValuesOnMaterialPoints(ModelPart& rMpmModelPart,
-                                   const Variable<TDataType>& rMPVariableName,
-                                   const std::vector<TDataType>& rValues)
+    void SetUniformValueOnNodes(
+        ModelPart& rGridModelPart,
+        const Variable<TDataType>& rNodalVariableName,
+        const int buffer_index,
+        TDataType& rValue)
+    {
+        IndexType nodal_index = 0;
+        for (Node& r_node : rGridModelPart.Nodes())
+        {
+            if (r_node.SolutionStepsDataHas(rNodalVariableName)){
+                r_node.FastGetSolutionStepValue(rNodalVariableName) = rValue;
+            }
+            ++nodal_index;
+        }
+    }
+
+    template<class TDataType>
+    void SetValuesOnMaterialPoints(
+        ModelPart& rMpmModelPart,
+        const Variable<TDataType>& rMPVariableName,
+        const std::vector<TDataType>& rValues)
     {
         const ProcessInfo& rProcessInfo = rMpmModelPart.GetProcessInfo();
         IndexType mp_index = 0;
         for (auto& material_point_i : rMpmModelPart.Elements())
         {
             material_point_i.SetValuesOnIntegrationPoints(rMPVariableName, {rValues[mp_index]}, rProcessInfo);
+            ++mp_index;
+        }
+    }
+
+    template<class TDataType>
+    void SetUniformValueOnMaterialPoints(
+        ModelPart& rMpmModelPart,
+        const Variable<TDataType>& rMPVariableName,
+        const TDataType& rValue)
+    {
+        const ProcessInfo& rProcessInfo = rMpmModelPart.GetProcessInfo();
+        IndexType mp_index = 0;
+        for (auto& material_point_i : rMpmModelPart.Elements())
+        {
+            material_point_i.SetValuesOnIntegrationPoints(rMPVariableName, {rValue}, rProcessInfo);
             ++mp_index;
         }
     }
@@ -96,51 +142,71 @@ namespace Kratos::Testing
     }
 
     template <SizeType TDimension>
-    void CreateMP(ModelPart& rModelPart, ModelPart& rGridModelPart, Properties::Pointer pProperties, const array_1d<double, 3>& rMPCoordinate, const double& rMPVolume)
+    void CreateMP(
+        ModelPart& rMpmModelPart,
+        ModelPart& rGridModelPart,
+        Properties::Pointer pProperties,
+        const array_1d<double, 3>& rMPCoordinate,
+        const double& rMPVolume,
+        const Element& rElementType)
     {
         // Create new material point element
-        unsigned int new_element_id = rModelPart.NumberOfElements() + 1;
+        unsigned int new_element_id = rMpmModelPart.NumberOfElements() + 1;
 
         BinBasedFastPointLocator<TDimension> SearchStructure(rGridModelPart);
         SearchStructure.UpdateSearchDatabase();
         typename BinBasedFastPointLocator<TDimension>::ResultContainerType results(100);
         typename BinBasedFastPointLocator<TDimension>::ResultIteratorType result_begin = results.begin();
-        Element::Pointer pelem;
+        Element::Pointer p_grid_element;
         Vector N;
 
-        bool is_found = SearchStructure.FindPointOnMesh(rMPCoordinate, N, pelem, result_begin);
-        if (!is_found) KRATOS_WARNING("MaterialPointGeneratorUtility") << "::search failed." << std::endl;
+        bool is_found = SearchStructure.FindPointOnMesh(rMPCoordinate, N, p_grid_element, result_begin);
+        if (!is_found) KRATOS_WARNING("MPMTestHelper") << "::search failed." << std::endl;
 
         auto p_new_mp_geometry = CreateQuadraturePointsUtility<Node>::CreateFromCoordinates(
-                            pelem->pGetGeometry(), rMPCoordinate, rMPVolume);
+                            p_grid_element->pGetGeometry(), rMPCoordinate, rMPVolume);
 
-        const Element& element = KratosComponents<Element>::Get("MPMUpdatedLagrangianUP");
-        Element::Pointer p_new_element = element.Create(new_element_id, p_new_mp_geometry, pProperties);
+        Element::Pointer p_new_element = rElementType.Create(new_element_id, p_new_mp_geometry, pProperties);
 
-        p_new_element->SetValuesOnIntegrationPoints(MP_COORD, {rMPCoordinate}, rModelPart.GetProcessInfo());
-        rModelPart.AddElement(p_new_element);
+        p_new_element->SetValuesOnIntegrationPoints(MP_COORD, {rMPCoordinate}, rMpmModelPart.GetProcessInfo());
+        rMpmModelPart.AddElement(p_new_element);
     }
     template <SizeType TDimension>
-    void PrepareMP(
-        ModelPart& rModelPart,
-        ModelPart& rGridModelPart, std::vector<array_1d<double, 3>>& rMPCoordinates,
-        const double& rMPVolume)
+    void CreateMaterialPointsFromCoordinates(
+        ModelPart& rMpmModelPart,
+        ModelPart& rGridModelPart,
+        const std::vector<array_1d<double, 3>>& rMPCoordinates,
+        const double& rMPVolume,
+        const Properties::Pointer pProperties
+        )
     {
-        // Properties
-        Properties::Pointer p_elem_prop = rModelPart.pGetProperties(0);
-
         // Elements
+        std::string element_type_name;
+        if (rMpmModelPart.GetProcessInfo().GetValue(IS_MIXED_FORMULATION))
+            element_type_name = "MPMUpdatedLagrangianUP";
+        else
+            element_type_name = "MPMUpdatedLagrangian";
+
+        const Element& r_element_type = KratosComponents<Element>::Get(element_type_name);
+
         for (auto& mp_coordinate : rMPCoordinates)
         {
-            // array_1d<double, 3> mp_coordinate1{0.211324865,0.211324865, 0.0};
-            CreateMP<TDimension>(rModelPart, rGridModelPart, p_elem_prop, mp_coordinate, rMPVolume);
+            CreateMP<TDimension>(rMpmModelPart, rGridModelPart, pProperties, mp_coordinate, rMPVolume, r_element_type);
         }
     }
 
-    void Prepare2D1ElementMpmModelPart(ModelPart& rMPMModelPart, ModelPart& rGridModelPart)
+    void Prepare2D1ElementMpmModelPart(
+        ModelPart& rMpmModelPart,
+        ModelPart& rGridModelPart,
+        const Properties::Pointer pProperties)
     {
-        // Properties
-        Properties::Pointer p_elem_prop = rMPMModelPart.CreateNewProperties(0);
+        // MP scheme:
+        //  4------3
+        //  | X  X |
+        //  |      |
+        //  | X  X |
+        //  1------2
+        const unsigned int dimension = 2;
 
         // Elements
         array_1d<double, 3> mp_coordinate1{0.211324865,0.211324865, 0.0};
@@ -150,71 +216,45 @@ namespace Kratos::Testing
         std::vector<array_1d<double, 3>> mp_coordinates = {mp_coordinate1, mp_coordinate2, mp_coordinate3, mp_coordinate4};
 
 
-        PrepareMP<2>(rMPMModelPart, rGridModelPart, mp_coordinates, 0.25);
+        CreateMaterialPointsFromCoordinates<dimension>(rMpmModelPart, rGridModelPart, mp_coordinates, 0.25, pProperties);
 
-        auto pElement1 = rMPMModelPart.pGetElement(1);
-        auto pElement2 = rMPMModelPart.pGetElement(2);
-        auto pElement3 = rMPMModelPart.pGetElement(3);
-        auto pElement4 = rMPMModelPart.pGetElement(4);
+        // MP Volume
+        SetUniformValueOnMaterialPoints(rMpmModelPart, MP_VOLUME, 0.25);
 
-        ProcessInfo& r_current_process_info = rMPMModelPart.GetProcessInfo();
+        // MP Density
+        SetUniformValueOnMaterialPoints(rMpmModelPart, MP_DENSITY, 1.0);
 
-        // mass
-        double mp_mass1{ 2.5 };
-        pElement1->SetValuesOnIntegrationPoints(MP_MASS, { mp_mass1 }, r_current_process_info);
-        double mp_mass2{ 2.5 };
-        pElement2->SetValuesOnIntegrationPoints(MP_MASS, { mp_mass2 }, r_current_process_info);
-        double mp_mass3{ 2.5 };
-        pElement3->SetValuesOnIntegrationPoints(MP_MASS, { mp_mass3 }, r_current_process_info);
-        double mp_mass4{ 2.5 };
-        pElement4->SetValuesOnIntegrationPoints(MP_MASS, { mp_mass4 }, r_current_process_info);
+        // MP Mass
+        SetUniformValueOnMaterialPoints(rMpmModelPart, MP_MASS, 0.25);
 
-        // volume
-        double mp_volume1{ 0.25 };
-        pElement1->SetValuesOnIntegrationPoints(MP_VOLUME, { mp_volume1 }, r_current_process_info);
-        double mp_volume2{ 0.25 };
-        pElement2->SetValuesOnIntegrationPoints(MP_VOLUME, { mp_volume2 }, r_current_process_info);
-        double mp_volume3{ 0.25 };
-        pElement3->SetValuesOnIntegrationPoints(MP_VOLUME, { mp_volume3 }, r_current_process_info);
-        double mp_volume4{ 0.25 };
-        pElement4->SetValuesOnIntegrationPoints(MP_VOLUME, { mp_volume4 }, r_current_process_info);
+        // MP Pressure
+        if (rMpmModelPart.GetProcessInfo().GetValue(IS_MIXED_FORMULATION))
+            SetUniformValueOnMaterialPoints(rMpmModelPart, MP_PRESSURE, 0.0);
 
-        // mp velocity
-        array_1d<double, 3> velocity1{1.211324865,0.0, 0.0};
-        array_1d<double, 3> velocity2{1.788675135,0.0, 0.0};
-        array_1d<double, 3> velocity3{1.788675135,0.0, 0.0};
-        array_1d<double, 3> velocity4{1.211324865,0.0, 0.0};
-        pElement1->SetValuesOnIntegrationPoints(MP_VELOCITY, { velocity1 }, r_current_process_info);
-        pElement2->SetValuesOnIntegrationPoints(MP_VELOCITY, { velocity2 }, r_current_process_info);
-        pElement3->SetValuesOnIntegrationPoints(MP_VELOCITY, { velocity3 }, r_current_process_info);
-        pElement4->SetValuesOnIntegrationPoints(MP_VELOCITY, { velocity4 }, r_current_process_info);
+        // Initialize MP Vector Variables to zero
+        const array_1d<double, 3> set_initial_mp_vector_variables = ZeroVector(3);
 
-        // mp acceleration
-        array_1d<double, 3> acceleration1{2.211324865, 0.0, 0.0};
-        array_1d<double, 3> acceleration2{2.788675135, 0.0, 0.0};
-        array_1d<double, 3> acceleration3{2.788675135, 0.0, 0.0};
-        array_1d<double, 3> acceleration4{2.211324865, 0.0, 0.0};
-        pElement1->SetValuesOnIntegrationPoints(MP_ACCELERATION, { acceleration1 }, r_current_process_info);
-        pElement2->SetValuesOnIntegrationPoints(MP_ACCELERATION, { acceleration2 }, r_current_process_info);
-        pElement3->SetValuesOnIntegrationPoints(MP_ACCELERATION, { acceleration3 }, r_current_process_info);
-        pElement4->SetValuesOnIntegrationPoints(MP_ACCELERATION, { acceleration4 }, r_current_process_info);
+        // MP Displacement
+        SetUniformValueOnMaterialPoints(rMpmModelPart, MP_DISPLACEMENT, set_initial_mp_vector_variables);
 
-        // pressure
-        r_current_process_info.SetValue(IS_MIXED_FORMULATION, true);
-        pElement1->SetValuesOnIntegrationPoints(MP_PRESSURE, { 0.5 }, r_current_process_info);
-        pElement2->SetValuesOnIntegrationPoints(MP_PRESSURE, { 1.0 }, r_current_process_info);
-        pElement3->SetValuesOnIntegrationPoints(MP_PRESSURE, { 1.5 }, r_current_process_info);
-        pElement4->SetValuesOnIntegrationPoints(MP_PRESSURE, { 2.0 }, r_current_process_info);
+        // MP Velocity
+        SetUniformValueOnMaterialPoints(rMpmModelPart, MP_VELOCITY, set_initial_mp_vector_variables);
+
+        // MP Acceleration
+        SetUniformValueOnMaterialPoints(rMpmModelPart, MP_ACCELERATION, set_initial_mp_vector_variables);
+
+        // MP Volume Acceleration
+        SetUniformValueOnMaterialPoints(rMpmModelPart, MP_VOLUME_ACCELERATION, set_initial_mp_vector_variables);
 
         // Search and update shape function values
-        MPMSearchElementUtility::SearchElement<dimension>(rGridModelPart, rMPMModelPart, 1000, 1e-6);
+        MPMSearchElementUtility::SearchElement<dimension>(rGridModelPart, rMpmModelPart, 1000, 1e-6);
     }
 
-    void SetVelocityAndAccelerationToCoordinate(ModelPart& rModelPart)
+    void SetVelocityAndAccelerationToCoordinate(ModelPart& rMpmModelPart)
     {
-        ProcessInfo& rProcessInfo = rModelPart.GetProcessInfo();
+        ProcessInfo& rProcessInfo = rMpmModelPart.GetProcessInfo();
         std::vector<array_1d<double, 3>> coordinate;
-        for (auto& element : rModelPart.Elements())
+        for (auto& element : rMpmModelPart.Elements())
         {
             element.CalculateOnIntegrationPoints(MP_COORD       , coordinate, rProcessInfo);
             for (auto& component : coordinate[0])
@@ -229,158 +269,132 @@ namespace Kratos::Testing
             element.SetValuesOnIntegrationPoints(MP_ACCELERATION, coordinate, rProcessInfo);
         }
     }
-    void SetUniformMPMass(ModelPart& rModelPart, double mass)
-    {
-        ProcessInfo& rProcessInfo = rModelPart.GetProcessInfo();
-        for (auto& element : rModelPart.Elements())
-        {
-            element.SetValuesOnIntegrationPoints(MP_MASS, {mass}, rProcessInfo);
-        }
-    }
-    void SetUniformMPVolume(ModelPart& rModelPart, double volume)
-    {
-        ProcessInfo& rProcessInfo = rModelPart.GetProcessInfo();
-        for (auto& element : rModelPart.Elements())
-        {
-            element.SetValuesOnIntegrationPoints(MP_MASS, {volume}, rProcessInfo);
-        }
-    }
-    void Prepare2D9EGridModelPart(ModelPart& rGridModelPart)
-    {
-        // Grid scheme:
-        //  13---14---15---16
-        //  |    |    |    |
-        //  | 7  | 8  | 9  |
-        //  |    |    |    |
-        //  9----10---11---12
-        //  |    |    |    |
-        //  | 4  | 5  | 6  |
-        //  |    |    |    |
-        //  5----6----7----8
-        //  |    |    |    |
-        //  | 1  | 2  | 3  |
-        //  |    |    |    |
-        //  1----2----3----4
 
-        // Nodes
-        auto p_node_1  = rGridModelPart.CreateNewNode( 1,  0.0 ,  0.0 , 0.0);
-        auto p_node_2  = rGridModelPart.CreateNewNode( 2,  1.0 ,  0.0 , 0.0);
-        auto p_node_3  = rGridModelPart.CreateNewNode( 3,  2.0 ,  0.0 , 0.0);
-        auto p_node_4  = rGridModelPart.CreateNewNode( 4,  3.0 ,  0.0 , 0.0);
+    // void Prepare2D9EGridModelPart(ModelPart& rGridModelPart)
+    // {
+    //     // Grid scheme:
+    //     //  13---14---15---16
+    //     //  |    |    |    |
+    //     //  | 7  | 8  | 9  |
+    //     //  |    |    |    |
+    //     //  9----10---11---12
+    //     //  |    |    |    |
+    //     //  | 4  | 5  | 6  |
+    //     //  |    |    |    |
+    //     //  5----6----7----8
+    //     //  |    |    |    |
+    //     //  | 1  | 2  | 3  |
+    //     //  |    |    |    |
+    //     //  1----2----3----4
 
-        auto p_node_5  = rGridModelPart.CreateNewNode( 5,  0.0 ,  1.0 , 0.0);
-        auto p_node_6  = rGridModelPart.CreateNewNode( 6,  1.0 ,  1.0 , 0.0);
-        auto p_node_7  = rGridModelPart.CreateNewNode( 7,  2.0 ,  1.0 , 0.0);
-        auto p_node_8  = rGridModelPart.CreateNewNode( 8,  3.0 ,  1.0 , 0.0);
+    //     // Nodes
+    //     auto p_node_1  = rGridModelPart.CreateNewNode( 1,  0.0 ,  0.0 , 0.0);
+    //     auto p_node_2  = rGridModelPart.CreateNewNode( 2,  1.0 ,  0.0 , 0.0);
+    //     auto p_node_3  = rGridModelPart.CreateNewNode( 3,  2.0 ,  0.0 , 0.0);
+    //     auto p_node_4  = rGridModelPart.CreateNewNode( 4,  3.0 ,  0.0 , 0.0);
 
-        auto p_node_9  = rGridModelPart.CreateNewNode( 9 ,  0.0 ,  2.0 , 0.0);
-        auto p_node_10 = rGridModelPart.CreateNewNode( 10,  1.0 ,  2.0 , 0.0);
-        auto p_node_11 = rGridModelPart.CreateNewNode( 11,  2.0 ,  2.0 , 0.0);
-        auto p_node_12 = rGridModelPart.CreateNewNode( 12,  3.0 ,  2.0 , 0.0);
+    //     auto p_node_5  = rGridModelPart.CreateNewNode( 5,  0.0 ,  1.0 , 0.0);
+    //     auto p_node_6  = rGridModelPart.CreateNewNode( 6,  1.0 ,  1.0 , 0.0);
+    //     auto p_node_7  = rGridModelPart.CreateNewNode( 7,  2.0 ,  1.0 , 0.0);
+    //     auto p_node_8  = rGridModelPart.CreateNewNode( 8,  3.0 ,  1.0 , 0.0);
 
-        auto p_node_13 = rGridModelPart.CreateNewNode( 13,  0.0 ,  3.0 , 0.0);
-        auto p_node_14 = rGridModelPart.CreateNewNode( 14,  1.0 ,  3.0 , 0.0);
-        auto p_node_15 = rGridModelPart.CreateNewNode( 15,  2.0 ,  3.0 , 0.0);
-        auto p_node_16 = rGridModelPart.CreateNewNode( 16,  3.0 ,  3.0 , 0.0);
+    //     auto p_node_9  = rGridModelPart.CreateNewNode( 9 ,  0.0 ,  2.0 , 0.0);
+    //     auto p_node_10 = rGridModelPart.CreateNewNode( 10,  1.0 ,  2.0 , 0.0);
+    //     auto p_node_11 = rGridModelPart.CreateNewNode( 11,  2.0 ,  2.0 , 0.0);
+    //     auto p_node_12 = rGridModelPart.CreateNewNode( 12,  3.0 ,  2.0 , 0.0);
 
-        // Grid Elements
-        rGridModelPart.CreateNewElement("Element2D4N", 1, {  1,  2,  6,  5 }, nullptr);
-        rGridModelPart.CreateNewElement("Element2D4N", 2, {  2,  3,  7,  6 }, nullptr);
-        rGridModelPart.CreateNewElement("Element2D4N", 3, {  3,  4,  8,  7 }, nullptr);
-        rGridModelPart.CreateNewElement("Element2D4N", 4, {  5,  6, 10,  9 }, nullptr);
-        rGridModelPart.CreateNewElement("Element2D4N", 5, {  6,  7, 11, 10 }, nullptr);
-        rGridModelPart.CreateNewElement("Element2D4N", 6, {  7,  8, 12, 11 }, nullptr);
-        rGridModelPart.CreateNewElement("Element2D4N", 7, {  9, 10, 14, 13 }, nullptr);
-        rGridModelPart.CreateNewElement("Element2D4N", 8, { 10, 11, 15, 14 }, nullptr);
-        rGridModelPart.CreateNewElement("Element2D4N", 9, { 11, 12, 16, 15 }, nullptr);
-    }
+    //     auto p_node_13 = rGridModelPart.CreateNewNode( 13,  0.0 ,  3.0 , 0.0);
+    //     auto p_node_14 = rGridModelPart.CreateNewNode( 14,  1.0 ,  3.0 , 0.0);
+    //     auto p_node_15 = rGridModelPart.CreateNewNode( 15,  2.0 ,  3.0 , 0.0);
+    //     auto p_node_16 = rGridModelPart.CreateNewNode( 16,  3.0 ,  3.0 , 0.0);
 
-    void Prepare2D9EModelPart(ModelPart& rModelPart, ModelPart& rGridModelPart)
-    {
-        // Properties
-        Properties::Pointer p_elem_prop = rModelPart.CreateNewProperties(0);
+    //     // Grid Elements
+    //     rGridModelPart.CreateNewElement("Element2D4N", 1, {  1,  2,  6,  5 }, nullptr);
+    //     rGridModelPart.CreateNewElement("Element2D4N", 2, {  2,  3,  7,  6 }, nullptr);
+    //     rGridModelPart.CreateNewElement("Element2D4N", 3, {  3,  4,  8,  7 }, nullptr);
+    //     rGridModelPart.CreateNewElement("Element2D4N", 4, {  5,  6, 10,  9 }, nullptr);
+    //     rGridModelPart.CreateNewElement("Element2D4N", 5, {  6,  7, 11, 10 }, nullptr);
+    //     rGridModelPart.CreateNewElement("Element2D4N", 6, {  7,  8, 12, 11 }, nullptr);
+    //     rGridModelPart.CreateNewElement("Element2D4N", 7, {  9, 10, 14, 13 }, nullptr);
+    //     rGridModelPart.CreateNewElement("Element2D4N", 8, { 10, 11, 15, 14 }, nullptr);
+    //     rGridModelPart.CreateNewElement("Element2D4N", 9, { 11, 12, 16, 15 }, nullptr);
+    // }
 
-        // MP Coordinates
-        // Grid Element 1
-        array_1d<double, 3> mp_coordinate1{0.211324865,0.211324865, 0.0};
-        array_1d<double, 3> mp_coordinate2{0.788675135,0.211324865, 0.0};
-        array_1d<double, 3> mp_coordinate3{0.788675135,0.788675135, 0.0};
-        array_1d<double, 3> mp_coordinate4{0.211324865,0.788675135, 0.0};
-        // Grid Element 2
-        array_1d<double, 3> mp_coordinate5{1.211324865,0.211324865, 0.0};
-        array_1d<double, 3> mp_coordinate6{1.788675135,0.211324865, 0.0};
-        array_1d<double, 3> mp_coordinate7{1.788675135,0.788675135, 0.0};
-        array_1d<double, 3> mp_coordinate8{1.211324865,0.788675135, 0.0};
-        // Grid Element 3
-        array_1d<double, 3> mp_coordinate9{2.211324865,0.211324865, 0.0};
-        array_1d<double, 3> mp_coordinate10{2.788675135,0.211324865, 0.0};
-        array_1d<double, 3> mp_coordinate11{2.788675135,0.788675135, 0.0};
-        array_1d<double, 3> mp_coordinate12{2.211324865,0.788675135, 0.0};
-        // Grid Element 4
-        array_1d<double, 3> mp_coordinate13{0.211324865,1.211324865, 0.0};
-        array_1d<double, 3> mp_coordinate14{0.788675135,1.211324865, 0.0};
-        array_1d<double, 3> mp_coordinate15{0.788675135,1.788675135, 0.0};
-        array_1d<double, 3> mp_coordinate16{0.211324865,1.788675135, 0.0};
-        // Grid Element 5
-        array_1d<double, 3> mp_coordinate17{1.211324865,1.211324865, 0.0};
-        array_1d<double, 3> mp_coordinate18{1.788675135,1.211324865, 0.0};
-        array_1d<double, 3> mp_coordinate19{1.788675135,1.788675135, 0.0};
-        array_1d<double, 3> mp_coordinate20{1.211324865,1.788675135, 0.0};
-        // Grid Element 6
-        array_1d<double, 3> mp_coordinate21{2.211324865,1.211324865, 0.0};
-        array_1d<double, 3> mp_coordinate22{2.788675135,1.211324865, 0.0};
-        array_1d<double, 3> mp_coordinate23{2.788675135,1.788675135, 0.0};
-        array_1d<double, 3> mp_coordinate24{2.211324865,1.788675135, 0.0};
-        // Grid Element 7
-        array_1d<double, 3> mp_coordinate25{0.211324865,2.211324865, 0.0};
-        array_1d<double, 3> mp_coordinate26{0.788675135,2.211324865, 0.0};
-        array_1d<double, 3> mp_coordinate27{0.788675135,2.788675135, 0.0};
-        array_1d<double, 3> mp_coordinate28{0.211324865,2.788675135, 0.0};
-        // Grid Element 8
-        array_1d<double, 3> mp_coordinate29{1.211324865,2.211324865, 0.0};
-        array_1d<double, 3> mp_coordinate30{1.788675135,2.211324865, 0.0};
-        array_1d<double, 3> mp_coordinate31{1.788675135,2.788675135, 0.0};
-        array_1d<double, 3> mp_coordinate32{1.211324865,2.788675135, 0.0};
-        // Grid Element 9
-        array_1d<double, 3> mp_coordinate33{2.211324865,2.211324865, 0.0};
-        array_1d<double, 3> mp_coordinate34{2.788675135,2.211324865, 0.0};
-        array_1d<double, 3> mp_coordinate35{2.788675135,2.788675135, 0.0};
-        array_1d<double, 3> mp_coordinate36{2.211324865,2.788675135, 0.0};
+    // void Prepare2D9EModelPart(ModelPart& rMpmModelPart, ModelPart& rGridModelPart)
+    // {
+    //     // Properties
+    //     Properties::Pointer p_elem_prop = rMpmModelPart.CreateNewProperties(0);
+
+    //     // MP Coordinates
+    //     // Grid Element 1
+    //     array_1d<double, 3> mp_coordinate1{0.211324865,0.211324865, 0.0};
+    //     array_1d<double, 3> mp_coordinate2{0.788675135,0.211324865, 0.0};
+    //     array_1d<double, 3> mp_coordinate3{0.788675135,0.788675135, 0.0};
+    //     array_1d<double, 3> mp_coordinate4{0.211324865,0.788675135, 0.0};
+    //     // Grid Element 2
+    //     array_1d<double, 3> mp_coordinate5{1.211324865,0.211324865, 0.0};
+    //     array_1d<double, 3> mp_coordinate6{1.788675135,0.211324865, 0.0};
+    //     array_1d<double, 3> mp_coordinate7{1.788675135,0.788675135, 0.0};
+    //     array_1d<double, 3> mp_coordinate8{1.211324865,0.788675135, 0.0};
+    //     // Grid Element 3
+    //     array_1d<double, 3> mp_coordinate9{2.211324865,0.211324865, 0.0};
+    //     array_1d<double, 3> mp_coordinate10{2.788675135,0.211324865, 0.0};
+    //     array_1d<double, 3> mp_coordinate11{2.788675135,0.788675135, 0.0};
+    //     array_1d<double, 3> mp_coordinate12{2.211324865,0.788675135, 0.0};
+    //     // Grid Element 4
+    //     array_1d<double, 3> mp_coordinate13{0.211324865,1.211324865, 0.0};
+    //     array_1d<double, 3> mp_coordinate14{0.788675135,1.211324865, 0.0};
+    //     array_1d<double, 3> mp_coordinate15{0.788675135,1.788675135, 0.0};
+    //     array_1d<double, 3> mp_coordinate16{0.211324865,1.788675135, 0.0};
+    //     // Grid Element 5
+    //     array_1d<double, 3> mp_coordinate17{1.211324865,1.211324865, 0.0};
+    //     array_1d<double, 3> mp_coordinate18{1.788675135,1.211324865, 0.0};
+    //     array_1d<double, 3> mp_coordinate19{1.788675135,1.788675135, 0.0};
+    //     array_1d<double, 3> mp_coordinate20{1.211324865,1.788675135, 0.0};
+    //     // Grid Element 6
+    //     array_1d<double, 3> mp_coordinate21{2.211324865,1.211324865, 0.0};
+    //     array_1d<double, 3> mp_coordinate22{2.788675135,1.211324865, 0.0};
+    //     array_1d<double, 3> mp_coordinate23{2.788675135,1.788675135, 0.0};
+    //     array_1d<double, 3> mp_coordinate24{2.211324865,1.788675135, 0.0};
+    //     // Grid Element 7
+    //     array_1d<double, 3> mp_coordinate25{0.211324865,2.211324865, 0.0};
+    //     array_1d<double, 3> mp_coordinate26{0.788675135,2.211324865, 0.0};
+    //     array_1d<double, 3> mp_coordinate27{0.788675135,2.788675135, 0.0};
+    //     array_1d<double, 3> mp_coordinate28{0.211324865,2.788675135, 0.0};
+    //     // Grid Element 8
+    //     array_1d<double, 3> mp_coordinate29{1.211324865,2.211324865, 0.0};
+    //     array_1d<double, 3> mp_coordinate30{1.788675135,2.211324865, 0.0};
+    //     array_1d<double, 3> mp_coordinate31{1.788675135,2.788675135, 0.0};
+    //     array_1d<double, 3> mp_coordinate32{1.211324865,2.788675135, 0.0};
+    //     // Grid Element 9
+    //     array_1d<double, 3> mp_coordinate33{2.211324865,2.211324865, 0.0};
+    //     array_1d<double, 3> mp_coordinate34{2.788675135,2.211324865, 0.0};
+    //     array_1d<double, 3> mp_coordinate35{2.788675135,2.788675135, 0.0};
+    //     array_1d<double, 3> mp_coordinate36{2.211324865,2.788675135, 0.0};
 
 
-        std::vector<array_1d<double, 3>> mp_coordinates = {mp_coordinate1 , mp_coordinate2 , mp_coordinate3 , mp_coordinate4 , // Grid Element 1
-                                                           mp_coordinate5 , mp_coordinate6 , mp_coordinate7 , mp_coordinate8 , // Grid Element 2
-                                                           mp_coordinate9 , mp_coordinate10, mp_coordinate11, mp_coordinate12, // Grid Element 3
-                                                           mp_coordinate13, mp_coordinate14, mp_coordinate15, mp_coordinate16, // Grid Element 4
-                                                           mp_coordinate17, mp_coordinate18, mp_coordinate19, mp_coordinate20, // Grid Element 5
-                                                           mp_coordinate21, mp_coordinate22, mp_coordinate23, mp_coordinate24, // Grid Element 6
-                                                           mp_coordinate25, mp_coordinate26, mp_coordinate27, mp_coordinate28, // Grid Element 7
-                                                           mp_coordinate29, mp_coordinate30, mp_coordinate31, mp_coordinate32, // Grid Element 8
-                                                           mp_coordinate29, mp_coordinate30, mp_coordinate31, mp_coordinate32};// Grid Element 9
+    //     std::vector<array_1d<double, 3>> mp_coordinates = {mp_coordinate1 , mp_coordinate2 , mp_coordinate3 , mp_coordinate4 , // Grid Element 1
+    //                                                        mp_coordinate5 , mp_coordinate6 , mp_coordinate7 , mp_coordinate8 , // Grid Element 2
+    //                                                        mp_coordinate9 , mp_coordinate10, mp_coordinate11, mp_coordinate12, // Grid Element 3
+    //                                                        mp_coordinate13, mp_coordinate14, mp_coordinate15, mp_coordinate16, // Grid Element 4
+    //                                                        mp_coordinate17, mp_coordinate18, mp_coordinate19, mp_coordinate20, // Grid Element 5
+    //                                                        mp_coordinate21, mp_coordinate22, mp_coordinate23, mp_coordinate24, // Grid Element 6
+    //                                                        mp_coordinate25, mp_coordinate26, mp_coordinate27, mp_coordinate28, // Grid Element 7
+    //                                                        mp_coordinate29, mp_coordinate30, mp_coordinate31, mp_coordinate32, // Grid Element 8
+    //                                                        mp_coordinate29, mp_coordinate30, mp_coordinate31, mp_coordinate32};// Grid Element 9
 
-        PrepareMP<2>(rModelPart, rGridModelPart, mp_coordinates, 0.25);
+    //     PrepareMP<2>(rMpmModelPart, rGridModelPart, mp_coordinates, 0.25);
 
-        auto pElement1 = rModelPart.pGetElement(1);
-        auto pElement2 = rModelPart.pGetElement(2);
-        auto pElement3 = rModelPart.pGetElement(3);
-        auto pElement4 = rModelPart.pGetElement(4);
-
-
-        // mass
-        SetUniformMPVolume(rModelPart, 2.5);
-
-        // volume
-        SetUniformMPVolume(rModelPart, 0.25);
-
-        // MP Velocity is set to be coordinate + 1.0, MP Acceleration is set to be -(coordinate + 2.0)
-        SetVelocityAndAccelerationToCoordinate(rModelPart);
-    }
+    //     // MP Velocity is set to be coordinate + 1.0, MP Acceleration is set to be -(coordinate + 2.0)
+    //     SetVelocityAndAccelerationToCoordinate(rMpmModelPart);
+    // }
 
     template<class TDataType>
-    void AssertMPVariables(const ModelPart& rMpmModelPart,
-                           const Variable<TDataType>& rMPVariableName,
-                           const std::vector<TDataType>& rReferenceValues,
-                           const double tolerance)
+    void AssertMPVariables(
+        const ModelPart& rMpmModelPart,
+        const Variable<TDataType>& rMPVariableName,
+        const std::vector<TDataType>& rReferenceValues,
+        const double tolerance)
     {
         const ProcessInfo& rProcessInfo = rMpmModelPart.GetProcessInfo();
         IndexType mp_index = 0;
@@ -398,11 +412,12 @@ namespace Kratos::Testing
     }
 
     template<class TDataType>
-    void AssertNodalVariables(const ModelPart& rGridModelPart,
-                              const Variable<TDataType>& rNodalVariableName,
-                              const int buffer_index,
-                              const std::vector<TDataType>& rReferenceValues,
-                              const double tolerance)
+    void AssertNodalVariables(
+        const ModelPart& rGridModelPart,
+        const Variable<TDataType>& rNodalVariableName,
+        const int buffer_index,
+        const std::vector<TDataType>& rReferenceValues,
+        const double tolerance)
     {
         IndexType nodal_index = 0;
         for (Node& r_node : rGridModelPart.Nodes())
@@ -425,13 +440,53 @@ namespace Kratos::Testing
         KRATOS_TRY;
         // --------------------------------------------------------------------------------------- Model Creation --------------------------------------------------------------------------------------- //
         Model current_model;
-        ModelPart& r_mpm_model_part = current_model.CreateModelPart("MPMModelPart");
-        ModelPart& r_grid_model_part = current_model.CreateModelPart("MPMGridModelPart");
+        CreateEmptyModels(current_model);
+        ModelPart& r_grid_model_part = current_model.GetModelPart("GridModelPart");
+        ModelPart& r_mpm_model_part  = current_model.GetModelPart("MpmModelPart");
+
+        // Activate Pressure DoF
+        r_mpm_model_part.GetProcessInfo().SetValue(IS_MIXED_FORMULATION, true);
+
+        // Properties
+        Properties::Pointer p_elem_prop = r_mpm_model_part.CreateNewProperties(0);
 
         AddVariablesToModelPart(r_mpm_model_part, r_grid_model_part);
 
         Prepare2D1ElementGridModelPart(r_grid_model_part);
-        Prepare2D1ElementMpmModelPart(r_mpm_model_part, r_grid_model_part); // ------------------------------------------------------------
+        Prepare2D1ElementMpmModelPart(r_mpm_model_part, r_grid_model_part, p_elem_prop);
+
+        // Set MP Mass
+        SetUniformValueOnMaterialPoints(r_mpm_model_part, MP_MASS, 2.5);
+
+        // Set MP Velocity
+        const array_1d<double, 3> set_mp_1_velocity{1.211324865,0.0, 0.0};
+        const array_1d<double, 3> set_mp_2_velocity{1.788675135,0.0, 0.0};
+        const array_1d<double, 3> set_mp_3_velocity{1.788675135,0.0, 0.0};
+        const array_1d<double, 3> set_mp_4_velocity{1.211324865,0.0, 0.0};
+
+        const std::vector<array_1d<double,3>> set_mp_velocity_values{set_mp_1_velocity,
+                                                                     set_mp_2_velocity,
+                                                                     set_mp_3_velocity,
+                                                                     set_mp_4_velocity};
+
+        SetValuesOnMaterialPoints(r_mpm_model_part, MP_VELOCITY, set_mp_velocity_values);
+
+        // Set MP Acceleration
+        const array_1d<double, 3> set_mp_1_acceleration{2.211324865, 0.0, 0.0};
+        const array_1d<double, 3> set_mp_2_acceleration{2.788675135, 0.0, 0.0};
+        const array_1d<double, 3> set_mp_3_acceleration{2.788675135, 0.0, 0.0};
+        const array_1d<double, 3> set_mp_4_acceleration{2.211324865, 0.0, 0.0};
+
+        const std::vector<array_1d<double,3>> set_mp_acceleration_values{set_mp_1_acceleration,
+                                                                         set_mp_2_acceleration,
+                                                                         set_mp_3_acceleration,
+                                                                         set_mp_4_acceleration};
+
+        SetValuesOnMaterialPoints(r_mpm_model_part, MP_ACCELERATION, set_mp_acceleration_values);
+
+        // Set MP Pressure
+        const std::vector<double> set_mp_pressure_values{0.5, 1.0, 1.5, 2.0};
+        SetValuesOnMaterialPoints(r_mpm_model_part, MP_PRESSURE, set_mp_pressure_values);
 
         // ------------------------------------------------------------------------------------------ P2G Test ------------------------------------------------------------------------------------------ //
         // Initialize and run FLIP mapping scheme
