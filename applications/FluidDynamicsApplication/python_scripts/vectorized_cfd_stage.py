@@ -436,7 +436,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         self.cfd_utils.AssembleScalarMatrixByCSRIndices(L_el, self.L_assembly_indices, self.L) # assemble the scaled elemental contributions
         #print(f"Setting graph for AMG with {self.L.nnz} nonzeros and {self.L.shape[0]} rows")
         t0 = time.perf_counter()
-        self.graph_sa = cfd_utils.GraphBasedSA_AMG(self.L, max_coarse=300)
+        self.preconditioner = self.cfd_utils.ConstructPreconditioner(self.L)
         print(f"AMG graph setup time: {time.perf_counter()-t0}")
 
         #FIXME: remove after developing
@@ -1093,10 +1093,10 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
                 # precond = JacobiPreconditioner(self.L)
                 if self.update_precond:
                     t0 = time.perf_counter()
-                    self.graph_sa.update_matrix_values(self.L)
+                    self.preconditioner.update_matrix_values(self.L)
                     print(f"AMG graph update time: {time.perf_counter() - t0:.4f} seconds")
                     self.update_precond = True
-                precond = self.graph_sa.aspreconditioner()
+                precond = self.preconditioner.aspreconditioner()
 
                 # Solve and get convergence status
                 t0 = time.perf_counter()
