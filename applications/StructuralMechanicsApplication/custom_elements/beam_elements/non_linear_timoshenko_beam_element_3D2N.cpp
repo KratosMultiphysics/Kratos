@@ -341,7 +341,7 @@ BoundedMatrix<double, 6, 12> NonLinearTimoshenkoBeamElement3D2N::CalculateB(
 
     // Let's start assigning components...
     for (IndexType i = 0; i < 3; ++i) {
-        // Gamma components
+        // Gamma components (shear and axial virtual strains)
         // node 1
         B1(0, i)     = dN1 * d1[i];
         B1(0, i + 3) = N1 * dr[i];
@@ -361,7 +361,7 @@ BoundedMatrix<double, 6, 12> NonLinearTimoshenkoBeamElement3D2N::CalculateB(
         B2(2, i)     = dN2 * d3[i];
         B2(2, i + 9) = N2 * dr[i];
 
-        // Omega components
+        // Omega components (torsion and bending virtual components)
         // node 1
         B1(3, i + 6) = 0.5 * (dN1 * d3[i] - N1 * d3_s[i]);
         B1(3, i + 9) = 0.5 * (N1 * d2_s[i] - dN1 * d2[i]);
@@ -382,7 +382,7 @@ BoundedMatrix<double, 6, 12> NonLinearTimoshenkoBeamElement3D2N::CalculateB(
         B2(5, i + 3) = 0.5 * (dN2 * d2[i] - N2 * d2_s[i]);
         B2(5, i + 6) = 0.5 * (N2 * d1_s[i] - dN2 * d1[i]);
     }
-
+    // In here we map from the virtual (u, d1, d2, d3) to the virtual (u, theta), being di the triad directors
     noalias(project(b_matrix, range(0, 6), range(0, 6)))  = prod(B1, dof_mapper_1);
     noalias(project(b_matrix, range(0, 6), range(6, 12))) = prod(B2, dof_mapper_2);
 
@@ -477,19 +477,19 @@ void NonLinearTimoshenkoBeamElement3D2N::CalculateAll(
 
     double N1, N2;
     const double dN1 = -1.0 / L0;
-    const double dN2 = -dN1;
+    const double dN2 = -dN1; // NOTE: hardcoding linear shape functions
     BoundedMatrix<double, 6, 12> b_matrix;
-    const auto &r_integration_points = r_geometry.IntegrationPoints(mThisIntegrationMethod);
+    const auto &r_integration_points = r_geometry.IntegrationPoints(mThisIntegrationMethod); // GAUSS_1 avoids shear locking
 
     // Loop over the integration points
     for (IndexType IP = 0; IP < r_integration_points.size(); ++IP) {
         const double xi = r_integration_points[IP].X();
         const double weight = r_integration_points[IP].Weight() * J;
-        N1 = 0.5 * (1.0 - xi);
+        N1 = 0.5 * (1.0 - xi); // NOTE: again hardcoding linear shape functions
         N2 = 0.5 * (1.0 + xi);
 
         noalias(gen_strain_vector) = CalculateStrainVector(N1, N2, dN1, dN2);
-        CalculateGeneralizedResponse(IP, cl_values); // here we fill stress and D
+        CalculateGeneralizedResponse(IP, cl_values); // Here we compute stress and constitutive matrix
 
         noalias(b_matrix) = CalculateB(N1, N2, dN1, dN2);
 
@@ -501,8 +501,8 @@ void NonLinearTimoshenkoBeamElement3D2N::CalculateAll(
             // Material stiffness
             BoundedMatrix<double, 12, 6> temp;
             noalias(temp) = prod(trans(b_matrix), gen_constitutive_matrix);
-            // Material
             noalias(rLHS) += prod(temp, b_matrix) * weight;
+
             // Geometric
             CalculateAndAddKg(rLHS, weight, N1, N2, dN1, dN2, gen_stress_vector);
         }
