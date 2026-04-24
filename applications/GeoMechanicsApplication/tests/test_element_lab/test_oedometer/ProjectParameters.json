@@ -8,7 +8,7 @@
     },
     "solver_settings": {
         "time_stepping": {
-            "time_step": 1.0e-2,
+            "time_step": 1.0e-02,
             "max_delta_time_factor": 1.0
         },
         "solver_type": "U_Pw",
@@ -138,7 +138,10 @@
                             "node_output": true,
                             "skin_output": false,
                             "nodal_results": ["DISPLACEMENT", "WATER_PRESSURE"],
-                            "gauss_point_results": ["CAUCHY_STRESS_TENSOR", "ENGINEERING_STRAIN_TENSOR"]
+                            "gauss_point_results": [
+                                "CAUCHY_STRESS_TENSOR",
+                                "ENGINEERING_STRAIN_TENSOR"
+                            ]
                         }
                     }
                 }
