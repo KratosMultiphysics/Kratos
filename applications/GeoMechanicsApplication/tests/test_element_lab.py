@@ -49,6 +49,35 @@ class KratosGeoMechanicsLabElementTests(KratosUnittest.TestCase):
             strain = reader.element_integration_point_values_at_time("ENGINEERING_STRAIN_TENSOR", 1, result, [element+1], [0])[0]
             self._assert_integration_point_tensor_results(strain, expected_strain[element], 4,"ENGINEERING_STRAIN_TENSOR")
 
+    def test_oedometer(self):
+        """
+        Oedometer test on a linear elastic model.
+        Application of additional load on the top leads to a vertical displacement and a change in stresses.
+        """
+        test_name = 'test_oedometer'
+        file_path = test_helper.get_file_path(os.path.join('test_element_lab', test_name))
+        simulation = test_helper.run_kratos(file_path)
+
+        # read the output files from the simulation for comparison
+        reader = GiDOutputFileReader()
+        result = reader.read_output_from(os.path.join(file_path, 'test_oedometer_output.post.res'))
+
+        number_of_elements = 2
+
+        # Assert the normal stresses of both elements (all integration points)
+        expected_stress = [0.0, -1000, 0.0]
+        stress = reader.element_integration_point_values_at_time("CAUCHY_STRESS_TENSOR", 1, result)
+        for element in range(number_of_elements):
+            self._assert_integration_point_tensor_results(stress[element], expected_stress, 6,"CAUCHY_STRESS_TENSOR")
+
+        # Assert the displacement in all top nodes in all directions at 4 different timesteps
+        top_nodes = [7, 8, 9]
+        times = [0.25, 0.5, 0.75, 1.0]
+        for i in range(len(times)):
+            expected_disp = [0.0, -0.1*times[i], 0.0]
+            displacements = GiDOutputFileReader.nodal_values_at_time("DISPLACEMENT", times[i], result, node_ids=top_nodes)
+            self._assert_integration_point_tensor_results(displacements, expected_disp, 6, "DISPLACEMENT")
+
     def test_triaxial_comp_6n(self):
         """
         Drained compression triaxial test on Mohr-Coulomb model with axisymmetric 2D6N elements
