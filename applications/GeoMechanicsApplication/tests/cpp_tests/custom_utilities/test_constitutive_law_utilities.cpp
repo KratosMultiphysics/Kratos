@@ -275,6 +275,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_CalculateElasticProperties, K
 {
     // Arrange: plain properties
     Properties properties;
+    properties.SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
     properties.SetValue(YOUNG_MODULUS, 2.5);
     properties.SetValue(POISSON_RATIO, 0.25);
 
@@ -287,6 +288,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_CalculateElasticProperties, K
 
     // Arrange: properties for undrained computation
     properties = Properties{};
+    properties.SetValue(GEO_DRAINAGE_TYPE, "UNDRAINED");
     properties.SetValue(YOUNG_MODULUS, 1.0);
     properties.SetValue(POISSON_RATIO, 0.2);
     properties.SetValue(BIOT_COEFFICIENT, 1.0);
@@ -296,7 +298,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_CalculateElasticProperties, K
 
     // Act: undrained
     const auto [E_undrained, nu_undrained] =
-        ConstitutiveLawUtilities::GetOrCalculateElasticProperties(properties, true);
+        ConstitutiveLawUtilities::GetOrCalculateElasticProperties(properties);
 
     // Assert
     const auto expected_E  = 10.0 / 9.0;

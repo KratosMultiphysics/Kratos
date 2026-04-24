@@ -21,8 +21,7 @@ namespace Kratos
 
 Matrix ThreeDimensional::CalculateElasticConstitutiveTensor(const Properties& rProperties) const
 {
-    const auto [E, nu] = ConstitutiveLawUtilities::GetOrCalculateElasticProperties(
-        rProperties, ConstitutiveLawUtilities::IsUndrained(rProperties));
+    const auto [E, nu] = ConstitutiveLawUtilities::GetOrCalculateElasticProperties(rProperties);
     return ConstitutiveLawUtilities::MakeContinuumElasticConstitutiveTensor(
         E, nu, ThreeDimensional::GetStrainSize(), ThreeDimensional::GetNumberOfNormalComponents());
 }

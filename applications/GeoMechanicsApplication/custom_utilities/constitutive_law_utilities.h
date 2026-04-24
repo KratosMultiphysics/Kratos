@@ -39,8 +39,7 @@ public:
     static double GetFrictionAngleInDegrees(const Properties& rProperties);
     static double GetFrictionAngleInRadians(const Properties& rProperties);
 
-    static std::pair<double, double> GetOrCalculateElasticProperties(const Properties& rProperties,
-                                                                     bool Undrained = false);
+    static std::pair<double, double> GetOrCalculateElasticProperties(const Properties& rProperties);
 
     static Matrix MakeInterfaceElasticConstitutiveTensor(double      NormalStiffness,
                                                          double      ShearStiffness,
