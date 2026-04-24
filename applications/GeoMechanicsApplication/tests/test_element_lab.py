@@ -33,9 +33,8 @@ class KratosGeoMechanicsLabElementTests(KratosUnittest.TestCase):
         # Assert the displacement in all nodes in all directions
         expected_disp = [[0.0, -0.2, 0.0], [0.0527776, -0.2, 0.0], [0.0, -0.100033, 0.0], [0.0524025, -0.0996931, 0.0], [0.0, 0.0, 0.0], [0.105197, -0.2, 0.0], [0.105114, -0.100049, 0.0], [0.0524406, 0.0, 0.0], [0.104632, 0.0, 0.0]]
         for node in range(number_of_nodes):
-            node_displacement = reader.nodal_values_at_time("DISPLACEMENT", 1, result, [node+1])[0]
-            for direction in range(3):
-                self.assertAlmostEqual(node_displacement[direction], expected_disp[node][direction], 4)
+            node_displacement = reader.nodal_values_at_time("DISPLACEMENT", 1, result, [node+1])
+            self._assert_integration_point_tensor_results(node_displacement, expected_disp[node], 4, "DISPLACEMENT")
         
         # Assert the normal stress for both elements in the first integration point
         expected_stress = [[-99.9808, -252.622, -99.9806, 0.193199, 0.0, 0.0], [-99.9991, -252.668, -99.9991, 0.00846584, 0, 0]]
