@@ -21,6 +21,7 @@
 #include <numbers>
 
 using namespace Kratos;
+using namespace std::string_literals;
 
 namespace Kratos::Testing
 {
@@ -636,7 +637,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_ReplaceIgnoreUndrainedByDrain
 {
     // Arrange
     auto properties = Properties{};
-    properties.SetValue(GEO_DRAINAGE_TYPE, "CONSTANT_PW_FIELD");
+    properties.SetValue(GEO_DRAINAGE_TYPE, "CONSTANT_PW_FIELD"s);
 
     // Act
     ConstitutiveLawUtilities::ReplaceIgnoreUndrainedByDrainageType(properties);
@@ -654,7 +655,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_ReplaceIgnoreUndrainedByDrain
     // Arrange
     auto properties = Properties{};
     properties.SetValue(IGNORE_UNDRAINED, true);
-    properties.SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
+    properties.SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED"s);
 
     // Act & Assert
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(

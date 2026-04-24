@@ -296,8 +296,8 @@ bool ConstitutiveLawUtilities::IsConstantWaterPressure(const Properties& rProper
 
 void ConstitutiveLawUtilities::ReplaceIgnoreUndrainedByDrainageType(Properties& rProperties)
 {
-    constexpr auto fully_coupled_drainage_type     = "FULLY_COUPLED";
-    constexpr auto constant_pw_field_drainage_type = "CONSTANT_PW_FIELD";
+    const auto fully_coupled_drainage_type     = "FULLY_COUPLED"s;
+    const auto constant_pw_field_drainage_type = "CONSTANT_PW_FIELD"s;
 
     const auto has_ignore_undrained = rProperties.Has(IGNORE_UNDRAINED);
     const auto has_drainage_type    = rProperties.Has(GEO_DRAINAGE_TYPE);
