@@ -255,6 +255,7 @@ private:
 
     Vector CalculateInternalForces(ElementVariables&          rVariables,
                                    const std::vector<Matrix>& rBMatrices,
+                                   const std::vector<Vector>& rStrainVectors,
                                    const std::vector<double>& rIntegrationCoefficients,
                                    const std::vector<double>& rBiotCoefficients,
                                    const std::vector<double>& rDegreesOfSaturation,

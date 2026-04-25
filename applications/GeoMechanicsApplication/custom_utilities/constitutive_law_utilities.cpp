@@ -12,10 +12,15 @@
 //
 
 #include "custom_utilities/constitutive_law_utilities.h"
+#include "custom_constitutive/interface_plane_strain.h"
+#include "custom_constitutive/interface_three_dimensional_surface.h"
+#include "custom_constitutive/plane_strain.h"
+#include "custom_constitutive/three_dimensional.h"
 #include "custom_utilities/string_utilities.h"
 #include "geo_mechanics_application_variables.h"
 #include "utilities/math_utils.h"
 #include <algorithm>
+#include <numeric>
 
 using namespace std::string_literals;
 
@@ -288,10 +293,54 @@ DrainageType ConstitutiveLawUtilities::StringToDrainageType(const std::string& r
     return drainage_type_map.at(GeoStringUtilities::ToLower(rDrainageTypeName));
 }
 
+bool ConstitutiveLawUtilities::IsUndrained(const Properties& rProperties)
+{
+    return ConstitutiveLawUtilities::StringToDrainageType(rProperties[GEO_DRAINAGE_TYPE]) ==
+           DrainageType::UNDRAINED;
+}
+
 bool ConstitutiveLawUtilities::IsConstantWaterPressure(const Properties& rProperties)
 {
     return ConstitutiveLawUtilities::StringToDrainageType(rProperties[GEO_DRAINAGE_TYPE]) ==
            DrainageType::CONSTANT_WATER_PRESSURE;
+}
+
+std::size_t ConstitutiveLawUtilities::GetNumberOfNormalStrainComponents(const Properties& rProperties)
+{
+    ConstitutiveLaw::Features law_features;
+    const auto& p_constitutive_law = rProperties[CONSTITUTIVE_LAW];
+    p_constitutive_law->GetLawFeatures(law_features);
+    const auto strain_size = p_constitutive_law->GetStrainSize();
+
+    if (law_features.mOptions.Is(ConstitutiveLaw::THREE_DIMENSIONAL_LAW) &&
+        strain_size == VOIGT_SIZE_3D_INTERFACE) {
+        return InterfaceThreeDimensionalSurface{}.GetNumberOfNormalComponents();
+    }
+    if (law_features.mOptions.Is(ConstitutiveLaw::THREE_DIMENSIONAL_LAW)) {
+        return ThreeDimensional{}.GetNumberOfNormalComponents();
+    }
+    if (law_features.mOptions.Is(ConstitutiveLaw::PLANE_STRAIN_LAW) &&
+        strain_size == VOIGT_SIZE_2D_INTERFACE) {
+        return InterfacePlaneStrain{}.GetNumberOfNormalComponents();
+    }
+    if (law_features.mOptions.Is(ConstitutiveLaw::PLANE_STRAIN_LAW) ||
+        law_features.mOptions.Is(ConstitutiveLaw::AXISYMMETRIC_LAW)) {
+        return PlaneStrain{}.GetNumberOfNormalComponents();
+    }
+
+    KRATOS_ERROR << "Unsupported constitutive law type for obtaining number of normal strain components. "
+                 << "Property Id = " << rProperties.Id() << "." << std::endl;
+}
+
+double ConstitutiveLawUtilities::CalculateVolumetricStrain(const Vector&     rStrainVector,
+                                                                    const Properties& rProperties)
+{
+    const auto number_of_normal_components = GetNumberOfNormalStrainComponents(rProperties);
+    KRATOS_ERROR_IF(number_of_normal_components > rStrainVector.size())
+        << "NumberOfNormalComponents (" << number_of_normal_components
+        << ") exceeds strain vector size (" << rStrainVector.size() << ")." << std::endl;
+
+    return std::accumulate(rStrainVector.begin(), rStrainVector.begin() + number_of_normal_components, 0.0);
 }
 
 void ConstitutiveLawUtilities::ReplaceIgnoreUndrainedByDrainageType(Properties& rProperties)
@@ -320,6 +369,31 @@ double ConstitutiveLawUtilities::CalculateExcessPorePressureIncrement(const Prop
         << "Non-physical values: denominator < epsilon for property Id of " << rProperties.Id()
         << "." << std::endl;
     return biot_coefficient * VolumetricStrainIncrement / denominator;
+}
+
+Vector ConstitutiveLawUtilities::CalculateExcessPorePressureForce(const Properties&     rProperties,
+                                                                  const Vector&         rStrainVector,
+                                                                  const Matrix&         rB,
+                                                                  const Vector&         rStressVector,
+                                                                  double                IntegrationCoefficient,
+                                                                  std::size_t           IntegrationPoint,
+                                                                  const Vector&         rExcessPorePressurePrevious)
+{
+    KRATOS_TRY
+
+    KRATOS_ERROR_IF(IntegrationPoint >= rExcessPorePressurePrevious.size())
+        << "Integration point index (" << IntegrationPoint
+        << ") exceeds cached previous volumetric strain size ("
+        << rExcessPorePressurePrevious.size() << ")." << std::endl;
+
+    const auto volumetric_strain = CalculateVolumetricStrain(rStrainVector, rProperties);
+    const auto volumetric_strain_increment = volumetric_strain - rExcessPorePressurePrevious[IntegrationPoint];
+    const auto excess_pore_pressure_increment = CalculateExcessPorePressureIncrement(rProperties, volumetric_strain_increment);
+    
+    Vector result = prod(trans(rB), rStressVector * excess_pore_pressure_increment) * IntegrationCoefficient;
+    return result;
+
+    KRATOS_CATCH("ConstitutiveLawUtilities::CalculateExcessPorePressureForce")
 }
 
 } // namespace Kratos

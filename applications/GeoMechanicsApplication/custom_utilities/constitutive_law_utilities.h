@@ -68,11 +68,23 @@ public:
                                                                        std::size_t NumberOfNormalComponents);
 
     [[nodiscard]] static DrainageType StringToDrainageType(const std::string& rDrainageTypeName);
+    [[nodiscard]] static bool         IsUndrained(const Properties& rProperties);
     [[nodiscard]] static bool         IsConstantWaterPressure(const Properties& rProperties);
+    [[nodiscard]] static std::size_t  GetNumberOfNormalStrainComponents(const Properties& rProperties);
+    [[nodiscard]] static double       CalculateVolumetricStrain(const Vector&         rStrainVector,
+                                                                         const Properties&     rProperties);
     static void                       ReplaceIgnoreUndrainedByDrainageType(Properties& rProperties);
 
     [[nodiscard]] static double CalculateExcessPorePressureIncrement(const Properties& rProperties,
                                                                      double VolumetricStrainIncrement);
+
+    [[nodiscard]] static Vector CalculateExcessPorePressureForce(const Properties&     rProperties,
+                                                                 const Vector&         rStrainVector,
+                                                                 const Matrix&         rB,
+                                                                 const Vector&         rStressVector,
+                                                                 double                IntegrationCoefficient,
+                                                                 std::size_t           IntegrationPoint,
+                                                                 const Vector&         rExcessPorePressurePrevious);
 }; /* Class ConstitutiveLawUtilities*/
 
 } // namespace Kratos
