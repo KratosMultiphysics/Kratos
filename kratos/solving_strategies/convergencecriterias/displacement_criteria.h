@@ -369,35 +369,6 @@ protected:
         mRatioTolerance = ThisParameters["displacement_relative_tolerance"].GetDouble();
     }
 
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-    ///@}
-private:
-    ///@name Static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
     /**
      * @brief Check if a Degree of Freedom (Dof) is free.
      * @details This function checks if a given Degree of Freedom (Dof) is free.
