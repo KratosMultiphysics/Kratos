@@ -426,7 +426,7 @@ private:
      * @param rModelPart Reference to the ModelPart containing the problem.
      * @todo We should doo as in the residual criteria, and consider the active DoFs (not just free), taking into account the MPC in addition to fixed DoFs
      */
-    void CalculateReferenceNorm(
+    virtual void CalculateReferenceNorm(
         DofsArrayType& rDofSet,
         ModelPart& rModelPart
         )
@@ -459,7 +459,7 @@ private:
      * @param rDx Vector of results (variations on nodal variables)
      * @todo We should doo as in the residual criteria, and consider the active DoFs (not just free), taking into account the MPC in addition to fixed DoFs
      */
-    TDataType CalculateFinalCorrectionNorm(
+    virtual TDataType CalculateFinalCorrectionNorm(
         SizeType& rDofNum,
         DofsArrayType& rDofSet,
         const TSystemVectorType& rDx,
