@@ -64,6 +64,21 @@ public:
     /// The definition of the DoF data type
     using DofType = typename Node::DofType;
 
+    /// The definition of the dofs array type
+    using DofsArrayType = typename BaseType::DofsArrayType;
+
+    /// The sparse matrix type
+    using TSystemMatrixType = typename BaseType::TSystemMatrixType;
+
+    /// The dense vector type
+    using TSystemVectorType = typename BaseType::TSystemVectorType;
+
+    /// Definition of the IndexType
+    using IndexType = std::size_t;
+
+    /// Definition of the size type
+    using SizeType = std::size_t;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -215,6 +230,92 @@ protected:
     void AssignSettings(const Parameters ThisParameters) override
     {
         BaseType::AssignSettings(ThisParameters);
+    }
+
+    /**
+     * @brief This method computes the reference norm
+     * @details It checks if the dof is fixed
+     * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
+     * @param rModelPart Reference to the ModelPart containing the problem.
+     * @todo We should doo as in the residual criteria, and consider the active DoFs (not just free), taking into account the MPC in addition to fixed DoFs
+     */
+    void CalculateReferenceNorm(
+        DofsArrayType& rDofSet,
+        ModelPart& rModelPart
+        ) override
+    {
+        if constexpr (TSparseSpace::LinearAlgebraLibrary() == TrilinosLinearAlgebraLibrary::EPETRA) {
+            BaseType::CalculateReferenceNorm(rDofSet, rModelPart);
+        } else if constexpr (TSparseSpace::LinearAlgebraLibrary() == TrilinosLinearAlgebraLibrary::TPETRA) { // Kokkos conflicts with OpenMP in the block_for_each, so we need to specialize the code for TPETRA
+        #if (HAVE_TPETRA)
+            // Retrieve the data communicator
+            const auto& r_data_communicator = rModelPart.GetCommunicator().GetDataCommunicator();
+
+            // The current MPI rank
+            const int rank = r_data_communicator.Rank();
+
+            TDataType reference_disp_norm = TDataType();
+            for (auto& rDof : rDofSet) {
+                if (this->IsFreeAndLocalDof(rDof, rank)) {
+                    const TDataType dof_value = rDof.GetSolutionStepValue();
+                    reference_disp_norm += std::pow(dof_value, 2);
+                }
+            }
+            BaseType::mReferenceDispNorm = std::sqrt(r_data_communicator.SumAll(reference_disp_norm));
+        #else
+            KRATOS_ERROR << "You must compile Kratos with TPETRA support" << std::endl;
+        #endif
+        } else {
+            KRATOS_ERROR << "Only EPETRA and TPETRA are supported for now" << std::endl;
+        }
+    }
+
+    /**
+     * @brief This method computes the final norm
+     * @details It checks if the dof is fixed
+     * @param rDofNum The number of DoFs
+     * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
+     * @param rDx Vector of results (variations on nodal variables)
+     * @todo We should doo as in the residual criteria, and consider the active DoFs (not just free), taking into account the MPC in addition to fixed DoFs
+     */
+    TDataType CalculateFinalCorrectionNorm(
+        SizeType& rDofNum,
+        DofsArrayType& rDofSet,
+        const TSystemVectorType& rDx,
+        ModelPart& rModelPart
+        ) override
+    {
+        if constexpr (TSparseSpace::LinearAlgebraLibrary() == TrilinosLinearAlgebraLibrary::EPETRA) {
+            return BaseType::CalculateFinalCorrectionNorm(rDofNum, rDofSet, rDx, rModelPart);
+        } else if constexpr (TSparseSpace::LinearAlgebraLibrary() == TrilinosLinearAlgebraLibrary::TPETRA) { // Kokkos conflicts with OpenMP in the block_for_each, so we need to specialize the code for TPETRA
+        #if (HAVE_TPETRA)
+            // Retrieve the data communicator
+            const auto& r_data_communicator = rModelPart.GetCommunicator().GetDataCommunicator();
+
+            // The current MPI rank
+            const int rank = r_data_communicator.Rank();
+
+            // Initialize
+            TDataType final_correction_norm = TDataType();
+            unsigned int dof_num = 0;
+
+            // Loop over Dofs
+            for (auto& rDof : rDofSet) {
+                if (this->IsFreeAndLocalDof(rDof, rank)) {
+                    const TDataType variation_dof_value = TSparseSpace::GetValue(rDx, rDof.EquationId());
+                    final_correction_norm += std::pow(variation_dof_value, 2);
+                    ++dof_num;
+                }
+            }
+
+            rDofNum = static_cast<SizeType>(r_data_communicator.SumAll(dof_num));
+            return std::sqrt(r_data_communicator.SumAll(final_correction_norm));
+        #else
+            KRATOS_ERROR << "You must compile Kratos with TPETRA support" << std::endl;
+        #endif
+        } else {
+            KRATOS_ERROR << "Only EPETRA and TPETRA are supported for now" << std::endl;
+        }
     }
 
     ///@}
