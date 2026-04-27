@@ -615,4 +615,114 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_CalculateExcessPorePressureI
         "Non-physical values: denominator < epsilon for property Id of 0.");
 }
 
+KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_GetNumberOfNormalStrainComponents_ThreeDimensional,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    auto properties = Properties{};
+    auto p_law      = Kratos::make_shared<MockConstitutiveLaw>();
+    p_law->SetThreeDimensionalLaw(true);
+    p_law->SetStrainSize(6);
+    properties.SetValue(CONSTITUTIVE_LAW, p_law);
+
+    KRATOS_EXPECT_EQ(ConstitutiveLawUtilities::GetNumberOfNormalStrainComponents(properties), 3);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_GetNumberOfNormalStrainComponents_PlaneStrain,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    auto properties = Properties{};
+    auto p_law      = Kratos::make_shared<MockConstitutiveLaw>();
+    p_law->SetPlaneStrainLaw(true);
+    p_law->SetStrainSize(4);
+    properties.SetValue(CONSTITUTIVE_LAW, p_law);
+
+    KRATOS_EXPECT_EQ(ConstitutiveLawUtilities::GetNumberOfNormalStrainComponents(properties), 3);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_CalculateVolumetricStrain_UsesNormalComponentsOnly,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    auto properties = Properties{};
+    auto p_law      = Kratos::make_shared<MockConstitutiveLaw>();
+    p_law->SetThreeDimensionalLaw(true);
+    p_law->SetStrainSize(6);
+    properties.SetValue(CONSTITUTIVE_LAW, p_law);
+
+    const auto strain_vector = UblasUtilities::CreateVector({1.0, 2.0, 3.0, 100.0, 200.0, 300.0});
+    KRATOS_EXPECT_DOUBLE_EQ(ConstitutiveLawUtilities::CalculateVolumetricStrain(strain_vector, properties), 6.0);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_CalculateVolumetricStrain_ThrowsForInvalidStrainSize,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    auto properties = Properties{};
+    auto p_law      = Kratos::make_shared<MockConstitutiveLaw>();
+    p_law->SetThreeDimensionalLaw(true);
+    p_law->SetStrainSize(6);
+    properties.SetValue(CONSTITUTIVE_LAW, p_law);
+
+    const auto too_small_strain_vector = UblasUtilities::CreateVector({1.0, 2.0});
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        (void)ConstitutiveLawUtilities::CalculateVolumetricStrain(too_small_strain_vector, properties),
+        "NumberOfNormalComponents (3) exceeds strain vector size (2).");
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_CalculateExcessPorePressureForce_ReturnsExpectedValue,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    auto properties = Properties{};
+    auto p_law      = Kratos::make_shared<MockConstitutiveLaw>();
+    p_law->SetPlaneStrainLaw(true);
+    p_law->SetStrainSize(4);
+    properties.SetValue(CONSTITUTIVE_LAW, p_law);
+
+    properties.SetValue(BIOT_COEFFICIENT, 1.0);
+    properties.SetValue(BULK_MODULUS_FLUID, 1.0e3);
+    properties.SetValue(BULK_MODULUS_SOLID, 2.0e3);
+    properties.SetValue(POROSITY, 0.5);
+
+    const auto strain_vector = UblasUtilities::CreateVector({0.3, 0.1, 0.1, 99.0});
+    const auto voigt_vector  = UblasUtilities::CreateVector({1.0, 1.0, 1.0, 0.0});
+    const auto B = UblasUtilities::CreateMatrix({{1.0, 0.0, 0.0},
+                                                 {0.0, 2.0, 0.0},
+                                                 {0.0, 0.0, 3.0},
+                                                 {0.0, 0.0, 0.0}});
+    const auto excess_pore_pressure_previous = UblasUtilities::CreateVector({0.05});
+    constexpr auto integration_coefficient    = 2.0;
+
+    const auto force = ConstitutiveLawUtilities::CalculateExcessPorePressureForce(
+        properties, strain_vector, B, voigt_vector, integration_coefficient, 0, excess_pore_pressure_previous);
+
+    const auto expected_force = UblasUtilities::CreateVector({1200.0, 2400.0, 3600.0});
+    KRATOS_EXPECT_VECTOR_NEAR(force, expected_force, Defaults::absolute_tolerance);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_CalculateExcessPorePressureForce_ThrowsForInvalidIntegrationPoint,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    auto properties = Properties{};
+    auto p_law      = Kratos::make_shared<MockConstitutiveLaw>();
+    p_law->SetPlaneStrainLaw(true);
+    p_law->SetStrainSize(4);
+    properties.SetValue(CONSTITUTIVE_LAW, p_law);
+
+    properties.SetValue(BIOT_COEFFICIENT, 1.0);
+    properties.SetValue(BULK_MODULUS_FLUID, 1.0e3);
+    properties.SetValue(BULK_MODULUS_SOLID, 2.0e3);
+    properties.SetValue(POROSITY, 0.5);
+
+    const auto strain_vector = UblasUtilities::CreateVector({0.3, 0.1, 0.1, 0.0});
+    const auto voigt_vector  = UblasUtilities::CreateVector({1.0, 1.0, 1.0, 0.0});
+    const auto B = UblasUtilities::CreateMatrix({{1.0, 0.0, 0.0},
+                                                 {0.0, 2.0, 0.0},
+                                                 {0.0, 0.0, 3.0},
+                                                 {0.0, 0.0, 0.0}});
+    const auto excess_pore_pressure_previous = UblasUtilities::CreateVector({0.05});
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        (void)ConstitutiveLawUtilities::CalculateExcessPorePressureForce(
+            properties, strain_vector, B, voigt_vector, 1.0, 1, excess_pore_pressure_previous),
+        "Integration point index (1) exceeds cached previous volumetric strain size (1).");
+}
+
 } // namespace Kratos::Testing

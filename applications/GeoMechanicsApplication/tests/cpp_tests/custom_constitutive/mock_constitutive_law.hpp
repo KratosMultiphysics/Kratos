@@ -28,7 +28,15 @@ public:
         return std::make_shared<MockConstitutiveLaw>();
     }
 
-    [[nodiscard]] SizeType GetStrainSize() const override { return 4; }
+    [[nodiscard]] SizeType GetStrainSize() const override { return mStrainSize; }
+
+    void SetStrainSize(SizeType StrainSize) { mStrainSize = StrainSize; }
+
+    void SetThreeDimensionalLaw(bool IsThreeDimensionalLaw) { mIsThreeDimensionalLaw = IsThreeDimensionalLaw; }
+
+    void SetPlaneStrainLaw(bool IsPlaneStrainLaw) { mIsPlaneStrainLaw = IsPlaneStrainLaw; }
+
+    void SetAxisymmetricLaw(bool IsAxisymmetricLaw) { mIsAxisymmetricLaw = IsAxisymmetricLaw; }
 
     void AddStrainMeasure_Infinitesimal(bool Add_StrainMeasure_Infinitesimal)
     {
@@ -40,6 +48,10 @@ public:
         if (mAdd_StrainMeasure_Infinitesimal)
             rFeatures.mStrainMeasures.push_back(StrainMeasure_Infinitesimal);
         rFeatures.mStrainMeasures.push_back(StrainMeasure_Deformation_Gradient);
+
+        rFeatures.mOptions.Set(ConstitutiveLaw::THREE_DIMENSIONAL_LAW, mIsThreeDimensionalLaw);
+        rFeatures.mOptions.Set(ConstitutiveLaw::PLANE_STRAIN_LAW, mIsPlaneStrainLaw);
+        rFeatures.mOptions.Set(ConstitutiveLaw::AXISYMMETRIC_LAW, mIsAxisymmetricLaw);
     }
 
     void SetValue(const Variable<Vector>& rVariable, const Vector& rValue, const ProcessInfo& rCurrentProcessInfo) override
@@ -73,6 +85,10 @@ public:
     using ConstitutiveLaw::Has;
 
     Vector mStateVariables;
+    SizeType mStrainSize = 4;
     bool   mAdd_StrainMeasure_Infinitesimal = false;
+    bool   mIsThreeDimensionalLaw           = false;
+    bool   mIsPlaneStrainLaw                = false;
+    bool   mIsAxisymmetricLaw               = false;
 };
 } // namespace Kratos::Testing
