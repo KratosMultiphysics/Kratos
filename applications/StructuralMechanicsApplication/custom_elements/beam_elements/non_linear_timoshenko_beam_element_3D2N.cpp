@@ -495,6 +495,16 @@ void NonLinearTimoshenkoBeamElement3D2N::CalculateAll(
 
         if (ComputeRHS) {
             noalias(rRHS) -= prod(trans(b_matrix), gen_stress_vector) * weight;
+
+            // Let's add the body forces
+            auto body_forces = StructuralMechanicsElementUtilities::GetBodyForce(*this, r_integration_points, IP);
+            const double area = GetProperties()[CROSS_AREA];
+            rRHS[0] += N1 * body_forces[0] * weight * area;
+            rRHS[1] += N1 * body_forces[1] * weight * area;
+            rRHS[2] += N1 * body_forces[2] * weight * area;
+            rRHS[6] += N2 * body_forces[0] * weight * area;
+            rRHS[7] += N2 * body_forces[1] * weight * area;
+            rRHS[8] += N2 * body_forces[2] * weight * area;
         }
 
         if (ComputeLHS) {
