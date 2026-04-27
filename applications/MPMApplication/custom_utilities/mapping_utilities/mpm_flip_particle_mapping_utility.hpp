@@ -61,7 +61,7 @@ namespace Kratos
 
     #pragma region Particle to Grid Mapping (P2G)
     /**
-     * Do Particle to Grid mapping for nodal mass.
+     * Do Particle to Grid mapping for nodal momentum.
      */
     void P2GMomentum(Element& rElement, Node& rNode, const double& rN_i) override
     {
