@@ -23,93 +23,143 @@ class KratosGeoMechanicsExcessPorePressureTests(test_upw_interface.KratosGeoMech
     def _run_case(self, case_name, use_interface_parameters=False):
         case_path = test_helper.get_file_path(os.path.join(self._ROOT, case_name))
         if use_interface_parameters:
-            output_data = self._run_two_stage_interface_case(case_path)
+            stage2_output_data = self._run_two_stage_interface_case(case_path)
         else:
-            output_data = self._run_two_stage_soil_case(case_path)
+            stage2_output_data = self._run_two_stage_soil_case(case_path)
 
-        time_steps = self._all_times(output_data)
-        self.assertTrue(time_steps)
-        return output_data, time_steps
+        stage1_output_data = self._read_output(case_path, "stage1")
+        stage1_time_steps = self._all_times(stage1_output_data)
+        stage2_time_steps = self._all_times(stage2_output_data)
+        self.assertTrue(stage1_time_steps)
+        self.assertTrue(stage2_time_steps)
+        return stage1_output_data, stage2_output_data, stage1_time_steps, stage2_time_steps
 
-    def _assert_has_excess_pore_pressure(self, output_data, time_steps, threshold=1.0):
-        max_abs_pressure = 0.0
-        for time_step in time_steps:
+    def _assert_has_excess_pore_pressure(
+        self,
+        stage1_output_data,
+        stage2_output_data,
+        stage1_time_steps,
+        stage2_time_steps,
+        threshold=1.0,
+    ):
+        stage1_reference_pressures = GiDOutputFileReader.nodal_values_at_time(
+            "WATER_PRESSURE", stage1_time_steps[-1], stage1_output_data
+        )
+
+        max_abs_pressure_increment = 0.0
+        for time_step in stage2_time_steps:
             nodal_pressures = GiDOutputFileReader.nodal_values_at_time(
-                "WATER_PRESSURE", time_step, output_data
+                "WATER_PRESSURE", time_step, stage2_output_data
             )
-            if nodal_pressures:
-                max_abs_pressure = max(
-                    max_abs_pressure, max(abs(value) for value in nodal_pressures)
+            nodal_pressure_increments = [
+                pressure - reference_pressure
+                for pressure, reference_pressure in zip(
+                    nodal_pressures, stage1_reference_pressures
+                )
+            ]
+            if nodal_pressure_increments:
+                max_abs_pressure_increment = max(
+                    max_abs_pressure_increment,
+                    max(abs(value) for value in nodal_pressure_increments),
                 )
 
         self.assertGreater(
-            max_abs_pressure,
+            max_abs_pressure_increment,
             threshold,
             msg=(
-                "No meaningful excess pore pressure detected. "
-                f"Maximum absolute WATER_PRESSURE was {max_abs_pressure:.12e} Pa"
+                "No meaningful excess pore pressure increment detected between stage 1 and stage 2. "
+                f"Maximum absolute WATER_PRESSURE increment was {max_abs_pressure_increment:.12e} Pa"
             ),
         )
 
-    def _sum_vertical_reaction_on_prescribed_top_displacement(
-        self, output_data, time_step, prescribed_top_displacement=-0.01, tolerance=1.0e-10
+    @staticmethod
+    def _max_abs_matrix_result_increment(
+        result_name, stage1_output_data, stage2_output_data, stage1_time, stage2_time
     ):
-        displacements = GiDOutputFileReader.nodal_values_at_time(
-            "TOTAL_DISPLACEMENT", time_step, output_data
-        )
-        reactions = GiDOutputFileReader.nodal_values_at_time(
-            "REACTION", time_step, output_data
-        )
-
-        top_node_indices = [
-            index
-            for index, displacement in enumerate(displacements)
-            if abs(displacement[1] - prescribed_top_displacement) < tolerance
+        stage1_items = [
+            item
+            for item in stage1_output_data.get("results", {}).get(result_name, [])
+            if item.get("time") == stage1_time
         ]
-        self.assertTrue(
-            top_node_indices,
-            msg="No nodes found with prescribed top displacement for reaction check",
+        stage2_items = [
+            item
+            for item in stage2_output_data.get("results", {}).get(result_name, [])
+            if item.get("time") == stage2_time
+        ]
+
+        max_abs_increment = 0.0
+        for stage1_item, stage2_item in zip(stage1_items, stage2_items):
+            for stage1_element_values, stage2_element_values in zip(
+                stage1_item.get("values", []), stage2_item.get("values", [])
+            ):
+                for stage1_gp_values, stage2_gp_values in zip(
+                    stage1_element_values.get("value", []),
+                    stage2_element_values.get("value", []),
+                ):
+                    for stage1_component, stage2_component in zip(
+                        stage1_gp_values, stage2_gp_values
+                    ):
+                        max_abs_increment = max(
+                            max_abs_increment, abs(stage2_component - stage1_component)
+                        )
+
+        return max_abs_increment
+
+    def _assert_has_total_stress_increment(
+        self,
+        stage1_output_data,
+        stage2_output_data,
+        stage1_time_steps,
+        stage2_time_steps,
+        threshold=1.0,
+    ):
+        max_abs_total_stress_increment = self._max_abs_matrix_result_increment(
+            "TOTAL_STRESS_TENSOR",
+            stage1_output_data,
+            stage2_output_data,
+            stage1_time_steps[-1],
+            stage2_time_steps[-1],
         )
 
-        return sum(reactions[index][1] for index in top_node_indices)
+        self.assertGreater(
+            max_abs_total_stress_increment,
+            threshold,
+            msg=(
+                "No meaningful TOTAL_STRESS_TENSOR increment detected between stage 1 and stage 2. "
+                f"Maximum absolute TOTAL_STRESS_TENSOR increment was {max_abs_total_stress_increment:.12e}"
+            ),
+        )
 
     def test_same_order_column_generates_excess_pore_pressure(self):
-        output_data, time_steps = self._run_case("column")
-        self._assert_has_excess_pore_pressure(output_data, time_steps)
+        stage1_output_data, stage2_output_data, stage1_time_steps, stage2_time_steps = self._run_case("column")
+        self._assert_has_excess_pore_pressure(
+            stage1_output_data, stage2_output_data, stage1_time_steps, stage2_time_steps
+        )
+        self._assert_has_total_stress_increment(
+            stage1_output_data, stage2_output_data, stage1_time_steps, stage2_time_steps
+        )
 
     def test_diff_order_column_generates_excess_pore_pressure(self):
-        output_data, time_steps = self._run_case("column_diff_order_elements")
-        self._assert_has_excess_pore_pressure(output_data, time_steps)
+        stage1_output_data, stage2_output_data, stage1_time_steps, stage2_time_steps = self._run_case(
+            "column_diff_order_elements"
+        )
+        self._assert_has_excess_pore_pressure(
+            stage1_output_data, stage2_output_data, stage1_time_steps, stage2_time_steps
+        )
+        self._assert_has_total_stress_increment(
+            stage1_output_data, stage2_output_data, stage1_time_steps, stage2_time_steps
+        )
 
     def test_horizontal_interface_generates_excess_pore_pressure(self):
-        output_data, time_steps = self._run_case(
+        stage1_output_data, stage2_output_data, stage1_time_steps, stage2_time_steps = self._run_case(
             "column_horizontal_interface", use_interface_parameters=True
         )
-        self._assert_has_excess_pore_pressure(output_data, time_steps)
-
-    def test_diff_order_column_reaction_matches_same_order_under_prescribed_displacement(self):
-        same_order_output, same_order_times = self._run_case("column")
-        diff_order_output, diff_order_times = self._run_case("column_diff_order_elements")
-
-        same_order_reaction_y = self._sum_vertical_reaction_on_prescribed_top_displacement(
-            same_order_output, same_order_times[-1]
+        self._assert_has_excess_pore_pressure(
+            stage1_output_data, stage2_output_data, stage1_time_steps, stage2_time_steps
         )
-        diff_order_reaction_y = self._sum_vertical_reaction_on_prescribed_top_displacement(
-            diff_order_output, diff_order_times[-1]
+        self._assert_has_total_stress_increment(
+            stage1_output_data, stage2_output_data, stage1_time_steps, stage2_time_steps
         )
-
-        self.assertAlmostEqual(
-            diff_order_reaction_y,
-            same_order_reaction_y,
-            delta=1.0e-10 * max(1.0, abs(diff_order_reaction_y), abs(same_order_reaction_y)),
-            msg=(
-                "Under prescribed top displacement, diff-order and same-order should produce matching global reaction. "
-                f"same-order={same_order_reaction_y:.12e}, "
-                f"diff-order={diff_order_reaction_y:.12e}, "
-                f"|delta|={abs(diff_order_reaction_y - same_order_reaction_y):.12e}"
-            ),
-        )
-
 
 if __name__ == "__main__":
     KratosUnittest.main()

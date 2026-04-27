@@ -17,6 +17,7 @@
                     "POISSON_RATIO": 0.2,
                     "DENSITY_SOLID": 2.0e+03,
                     "DENSITY_WATER": 1.0e+03,
+                    "BIOT_COEFFICIENT": 1.0,
                     "POROSITY": 0.3,
                     "BULK_MODULUS_SOLID": 1.0e+12,
                     "BULK_MODULUS_FLUID": 2.2e+09,
@@ -36,6 +37,7 @@
                 },
                 "Variables": {
                     "GEO_DRAINAGE_TYPE": "UNDRAINED",
+                    "BIOT_COEFFICIENT": 1.0,
                     "INTERFACE_NORMAL_STIFFNESS": 6.4e+9,
                     "INTERFACE_SHEAR_STIFFNESS": 2.6000869565e+9,
                     "TRANSVERSAL_PERMEABILITY": 5.0e-04,

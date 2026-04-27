@@ -24,6 +24,10 @@ Begin Elements Geo_ULineInterfacePlaneStrainElement2Plus2N
     3 2 4 3 8 7
 End Elements
 
+Begin Conditions UPwFaceLoadCondition2D2N
+  1 1 6 5
+End Conditions
+
 Begin SubModelPart Soil
   Begin SubModelPartNodes
      1
@@ -91,4 +95,7 @@ Begin SubModelPart Top
      5
      6
   End SubModelPartNodes
+  Begin SubModelPartConditions
+    1
+  End SubModelPartConditions
 End SubModelPart

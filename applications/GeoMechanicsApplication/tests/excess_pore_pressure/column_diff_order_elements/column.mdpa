@@ -26,6 +26,10 @@ Begin Elements SmallStrainUPwDiffOrderElement2D6N
     4 1 4 6 5 13 14 15
 End Elements
 
+Begin Conditions LineLoadDiffOrderCondition2D3N
+  1 1 6 5 14
+End Conditions
+
 Begin SubModelPart Soil
   Begin SubModelPartNodes
     1
@@ -94,4 +98,7 @@ Begin SubModelPart Top
     6
     14
   End SubModelPartNodes
+  Begin SubModelPartConditions
+    1
+  End SubModelPartConditions
 End SubModelPart
