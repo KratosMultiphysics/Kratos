@@ -606,6 +606,19 @@ namespace Kratos::Testing
 
         AssertMPVariables(r_mpm_model_part, MP_ACCELERATION, ref_mp_accelerations, 1e-6);
 
+        // Check MP velocity
+        array_1d<double, 3> ref_mp_velocity_1 { 3.215620384144269, -1.107987991532836, 0.0};
+        array_1d<double, 3> ref_mp_velocity_2 {-1.747893333334269,  0.541544615857836, 0.0};
+        array_1d<double, 3> ref_mp_velocity_3 { 0.564161282524269, -0.666460341802836, 0.0};
+        array_1d<double, 3> ref_mp_velocity_4 { 1.239221666665731,  2.442513717477836, 0.0};
+
+        const std::vector<array_1d<double, 3>> ref_mp_velocities{ref_mp_velocity_1,
+                                                                 ref_mp_velocity_2,
+                                                                 ref_mp_velocity_3,
+                                                                 ref_mp_velocity_4};
+
+        AssertMPVariables(r_mpm_model_part, MP_VELOCITY, ref_mp_velocities, 1e-6);
+
         // Check MP displacement
         array_1d<double, 3> ref_mp_displacement_1 {0.129465819821637, 0.212799153178363, 0.0};
         array_1d<double, 3> ref_mp_displacement_2 {0.409967936928363, 0.418899576571637, 0.0};
@@ -631,27 +644,6 @@ namespace Kratos::Testing
                                                                   ref_mp_coordinate_4};
 
         AssertMPVariables(r_mpm_model_part, MP_COORD, ref_mp_coordinates, 1e-6);
-
-        // Check MP velocity // -------------------------------------------------------------------------- #ToDo: To be moved to FLIP specific test
-        // std::vector<array_1d<double, 3>> mp_velocity_1{};
-        // std::vector<array_1d<double, 3>> mp_velocity_2{};
-        // std::vector<array_1d<double, 3>> mp_velocity_3{};
-        // std::vector<array_1d<double, 3>> mp_velocity_4{};
-
-        // r_element_1.CalculateOnIntegrationPoints(MP_VELOCITY, mp_velocity_1, rProcessInfo);
-        // r_element_2.CalculateOnIntegrationPoints(MP_VELOCITY, mp_velocity_2, rProcessInfo);
-        // r_element_3.CalculateOnIntegrationPoints(MP_VELOCITY, mp_velocity_3, rProcessInfo);
-        // r_element_4.CalculateOnIntegrationPoints(MP_VELOCITY, mp_velocity_4, rProcessInfo);
-
-        // array_1d<double, 3> ref_mp_velocity_1 {0.0, 0.0, 0.0};
-        // array_1d<double, 3> ref_mp_velocity_2 {0.0, 0.0, 0.0};
-        // array_1d<double, 3> ref_mp_velocity_3 {0.0, 0.0, 0.0};
-        // array_1d<double, 3> ref_mp_velocity_4 {0.0, 0.0, 0.0};
-
-        // KRATOS_WATCH(mp_velocity_1)
-        // KRATOS_WATCH(mp_velocity_2)
-        // KRATOS_WATCH(mp_velocity_3)
-        // KRATOS_WATCH(mp_velocity_4)
 
         // Check MP pressure
         const double ref_mp_pressure_1 = 0.877991531432732;
