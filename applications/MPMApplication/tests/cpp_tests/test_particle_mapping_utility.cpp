@@ -445,6 +445,8 @@ namespace Kratos::Testing
         ModelPart& r_grid_model_part = current_model.GetModelPart("GridModelPart");
         ModelPart& r_mpm_model_part  = current_model.GetModelPart("MpmModelPart");
 
+        // Set delta time
+        r_mpm_model_part.GetProcessInfo()[DELTA_TIME] = 0.01;
         // Activate Pressure DoF
         r_mpm_model_part.GetProcessInfo().SetValue(IS_MIXED_FORMULATION, true);
 
@@ -671,6 +673,8 @@ namespace Kratos::Testing
         ModelPart& r_grid_model_part = current_model.GetModelPart("GridModelPart");
         ModelPart& r_mpm_model_part  = current_model.GetModelPart("MpmModelPart");
 
+        // Set delta time
+        r_mpm_model_part.GetProcessInfo()[DELTA_TIME] = 0.01;
         // Activate Pressure DoF
         r_mpm_model_part.GetProcessInfo().SetValue(IS_MIXED_FORMULATION, true);
 
