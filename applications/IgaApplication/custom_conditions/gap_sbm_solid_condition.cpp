@@ -23,8 +23,8 @@ namespace Kratos
 
 void GapSbmSolidCondition::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
-    InitializeMaterial();
     InitializeMemberVariables();
+    InitializeMaterial();
     InitializeSbmMemberVariables();
 }
 
@@ -84,8 +84,8 @@ void GapSbmSolidCondition::InitializeMemberVariables()
     } 
     else 
     {
-        // Modify the penalty factor: p^2 * penalty / h (NITSCHE APPROACH)
-        mPenalty = mBasisFunctionsOrder * mBasisFunctionsOrder * penalty / h;
+        // Modify the penalty factor: p^2 * penalty / h (NITSCHE APPROACH) (/4 because of the local increase *2 for the enhanced shift operator)
+        mPenalty = mBasisFunctionsOrder * mBasisFunctionsOrder /4* penalty / h;
     }
     // Compute the normals
     mNormalParameterSpace = r_geometry.Normal(0, GetIntegrationMethod());
@@ -583,6 +583,16 @@ void GapSbmSolidCondition::CalculateRightHandSide(
         SetValue(CAUCHY_STRESS_YY, sigma[1]);
         SetValue(CAUCHY_STRESS_XY, sigma[2]);
         // //---------------------
+
+        Vector N_sum_vec = ZeroVector(number_of_control_points);
+        ComputeTaylorExpansionContribution(N_sum_vec);
+
+        array_1d<double, 3> current_displacement = ZeroVector(3);
+        for (IndexType i = 0; i < number_of_control_points; ++i) {
+            current_displacement[0] += N_sum_vec[i] * old_displacement_coefficient_vector[2*i];
+            current_displacement[1] += N_sum_vec[i] * old_displacement_coefficient_vector[2*i + 1];
+        }
+        SetValue(DISPLACEMENT, current_displacement);
     }
 
 void GapSbmSolidCondition::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo){

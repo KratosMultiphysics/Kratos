@@ -570,7 +570,7 @@ void SbmContact2DCondition::CalculateLocalSystem(
                     {
                         const int jglob = 2*j+jdim;
 
-                        // // FLUX STANDARD T<ERM
+                        // // FLUX STANDARD TERM
                         Vector sigma_u_n(2);
                         sigma_u_n[0] = (DB_master(0, jglob)* mNormalMaster[0] + DB_master(2, jglob)* mNormalMaster[1]);
                         sigma_u_n[1] = (DB_master(2, jglob)* mNormalMaster[0] + DB_master(1, jglob)* mNormalMaster[1]);

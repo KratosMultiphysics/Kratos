@@ -131,7 +131,7 @@ namespace Kratos
 
         const int requested_neighbours = mParameters.Has("numbered_considered_neighbours")
             ? mParameters["numbered_considered_neighbours"].GetInt()
-            : 1;
+            : 2;
         KRATOS_ERROR_IF(requested_neighbours <= 0) << "::[IgaContactProcessGapSbm]:: "
             << "\"numbered_considered_neighbours\" must be > 0." << std::endl;
         const SizeType number_of_considered_neighbours = static_cast<SizeType>(requested_neighbours);
@@ -139,10 +139,32 @@ namespace Kratos
             std::min(number_of_considered_neighbours, slave_center_points.size());
 
         const Vector master_knot_step_uv = mrMasterModelPart->GetParentModelPart().GetValue(KNOT_SPAN_SIZES);
-        const double projection_distance_limit = master_knot_step_uv[0] * 1.0;
+        const double projection_distance_limit = master_knot_step_uv[0] * 2.0;
         const double projection_distance_fallback = master_knot_step_uv[0] / 2.0;
         const double projection_distance_limit_sq = projection_distance_limit * projection_distance_limit;
         const double projection_distance_fallback_sq = projection_distance_fallback * projection_distance_fallback;
+
+        array_1d<double, 3> slave_min_coords;
+        array_1d<double, 3> slave_max_coords;
+        for (IndexType i = 0; i < 3; ++i) {
+            slave_min_coords[i] = std::numeric_limits<double>::max();
+            slave_max_coords[i] = -std::numeric_limits<double>::max();
+        }
+        for (const auto& p_slave_center_point : slave_center_points) {
+            slave_min_coords[0] = std::min(slave_min_coords[0], p_slave_center_point->X());
+            slave_min_coords[1] = std::min(slave_min_coords[1], p_slave_center_point->Y());
+            slave_min_coords[2] = std::min(slave_min_coords[2], p_slave_center_point->Z());
+            slave_max_coords[0] = std::max(slave_max_coords[0], p_slave_center_point->X());
+            slave_max_coords[1] = std::max(slave_max_coords[1], p_slave_center_point->Y());
+            slave_max_coords[2] = std::max(slave_max_coords[2], p_slave_center_point->Z());
+        }
+        const double slave_dx = slave_max_coords[0] - slave_min_coords[0];
+        const double slave_dy = slave_max_coords[1] - slave_min_coords[1];
+        const double slave_dz = slave_max_coords[2] - slave_min_coords[2];
+        const double max_bins_search_radius = std::max(
+            std::sqrt(slave_dx * slave_dx + slave_dy * slave_dy + slave_dz * slave_dz)
+                + std::numeric_limits<double>::epsilon(),
+            projection_distance_limit);
 
         IndexType next_projection_node_id = 1;
         if (mpContactModelPart->GetRootModelPart().NumberOfNodes() > 0) {
@@ -151,6 +173,8 @@ namespace Kratos
 
         std::vector<std::pair<double, PointType::Pointer>> candidate_points;
         candidate_points.reserve(slave_center_points.size());
+        PointVector bins_results(slave_center_points.size());
+        DistanceVector bins_distances(slave_center_points.size());
 
         for (auto& r_master_condition : mrMasterModelPart->Conditions()) {
             r_master_condition.SetValue(IDENTIFIER, "INACTIVE");
@@ -180,15 +204,28 @@ namespace Kratos
                 }
                 candidate_points.emplace_back(nearest_distance, p_nearest);
             } else {
-                for (const auto& p_slave_center_point : slave_center_points) {
-                    const double dx = p_slave_center_point->X() - r_master_coords[0];
-                    const double dy = p_slave_center_point->Y() - r_master_coords[1];
-                    const double dz = p_slave_center_point->Z() - r_master_coords[2];
-                    candidate_points.emplace_back(dx*dx + dy*dy + dz*dz, p_slave_center_point);
+                SizeType obtained_results = 0;
+                double search_radius = projection_distance_limit;
+                while (obtained_results < max_considered_neighbours && search_radius <= max_bins_search_radius) {
+                    obtained_results = slave_bins.SearchInRadius(
+                        master_query_point,
+                        search_radius,
+                        bins_results.begin(),
+                        bins_distances.begin(),
+                        bins_results.size());
+                    if (obtained_results >= max_considered_neighbours || search_radius >= max_bins_search_radius) {
+                        break;
+                    }
+                    search_radius = std::min(search_radius * 2.0, max_bins_search_radius);
                 }
 
-                if (candidate_points.empty()) {
+                if (obtained_results == 0) {
                     continue;
+                }
+
+                candidate_points.reserve(obtained_results);
+                for (SizeType i = 0; i < obtained_results; ++i) {
+                    candidate_points.emplace_back(bins_distances[i], bins_results[i]);
                 }
 
                 if (max_considered_neighbours < candidate_points.size()) {

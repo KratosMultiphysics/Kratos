@@ -163,22 +163,22 @@ void GapSbmLoadSolidCondition::CalculateRightHandSide(
     Vector N_sum_vec = ZeroVector(number_of_control_points);
     ComputeTaylorExpansionContribution(N_sum_vec);
 
-    // Vector g_N = this->GetValue(FORCE); 
+    Vector g_N = this->GetValue(FORCE); 
 
-    Vector g_N = ZeroVector(3); 
+    // Vector g_N = ZeroVector(3); 
 
-    double nu = this->GetProperties().GetValue(POISSON_RATIO);
-    double E = this->GetProperties().GetValue(YOUNG_MODULUS);
+    // double nu = this->GetProperties().GetValue(POISSON_RATIO);
+    // double E = this->GetProperties().GetValue(YOUNG_MODULUS);
 
-    const double x = r_true_geometry.Center().X();
-    const double y = r_true_geometry.Center().Y();
+    // const double x = r_true_geometry.Center().X();
+    // const double y = r_true_geometry.Center().Y();
 
-    // // // cosinusoidal
-    g_N[0] = E/(1-nu)*(sin(x)*sinh(y)) * mNormalPhysicalSpace[0]; 
-    g_N[1] = E/(1-nu)*(sin(x)*sinh(y)) * mNormalPhysicalSpace[1]; 
+    // // // // cosinusoidal
+    // g_N[0] = E/(1-nu)*(sin(x)*sinh(y)) * mNormalPhysicalSpace[0]; 
+    // g_N[1] = E/(1-nu)*(sin(x)*sinh(y)) * mNormalPhysicalSpace[1]; 
 
-    // // g_N[0] = E/(1-nu*nu) * mNormalPhysicalSpace[0] +  E/2/(1+nu) * mNormalPhysicalSpace[1]; 
-    // // g_N[1] = E/2/(1+nu) * mNormalPhysicalSpace[0] + E*nu/(1-nu*nu)* mNormalPhysicalSpace[1]; 
+    // g_N[0] = E/(1-nu*nu) * mNormalPhysicalSpace[0] +  E/2/(1+nu) * mNormalPhysicalSpace[1]; 
+    // g_N[1] = E/2/(1+nu) * mNormalPhysicalSpace[0] + E*nu/(1-nu*nu)* mNormalPhysicalSpace[1]; 
 
 
     for (IndexType i = 0; i < number_of_control_points; i++) {
@@ -188,6 +188,36 @@ void GapSbmLoadSolidCondition::CalculateRightHandSide(
 
         }
     }
+
+
+    // FIXME: fix for load and displacement applied on the same boundary
+    // if (this->Has(DIRECTION)){
+    //     // ASSIGN BC BY DIRECTION
+    //     //--------------------------------------------------------------------------------------------
+    //     Vector direction = this->GetValue(DIRECTION);
+    //     direction[0] = -y/(std::sqrt(x*x+y*y));
+    //     direction[1] = x/(std::sqrt(x*x+y*y));
+
+    //     const double g_NN = inner_prod(g_N, direction);
+
+    //     for (IndexType i = 0; i < number_of_control_points; i++) {
+    //         for (IndexType zdim = 0; zdim < 2; zdim++) {
+
+    //             rRightHandSideVector[2*i+zdim] += N_sum_vec(i)*direction[zdim]*g_NN * integration_weight;
+
+    //         }
+    //     }
+    // }
+    // else 
+    // {
+    //     for (IndexType i = 0; i < number_of_control_points; i++) {
+    //         for (IndexType zdim = 0; zdim < 2; zdim++) {
+                
+    //             rRightHandSideVector[2*i+zdim] += N_sum_vec(i)*g_N[zdim] * integration_weight;
+    
+    //         }
+    //     }
+    // }
 
     
     KRATOS_CATCH("")
@@ -342,6 +372,16 @@ void GapSbmLoadSolidCondition::CalculateRightHandSide(
         SetValue(CAUCHY_STRESS_YY, sigma[1]);
         SetValue(CAUCHY_STRESS_XY, sigma[2]);
         // //---------------------
+
+        Vector N_sum_vec = ZeroVector(number_of_control_points);
+        ComputeTaylorExpansionContribution(N_sum_vec);
+
+        array_1d<double, 3> current_displacement = ZeroVector(3);
+        for (IndexType i = 0; i < number_of_control_points; ++i) {
+            current_displacement[0] += N_sum_vec[i] * old_displacement_coefficient_vector[2*i];
+            current_displacement[1] += N_sum_vec[i] * old_displacement_coefficient_vector[2*i + 1];
+        }
+        SetValue(DISPLACEMENT, current_displacement);
     }
 
 void GapSbmLoadSolidCondition::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo){
