@@ -241,6 +241,7 @@ public:
             double & r_nodal_mass     = rNode.FastGetSolutionStepValue(NODAL_MASS);
             array_1d<double, 3 > & r_nodal_momentum = rNode.FastGetSolutionStepValue(NODAL_MOMENTUM);
             array_1d<double, 3 > & r_nodal_inertia  = rNode.FastGetSolutionStepValue(NODAL_INERTIA);
+            array_1d<double, 3 > & r_nodal_cauchy_stress_vector  = rNode.FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_VECTOR);
 
             array_1d<double, 3 > & r_nodal_displacement = rNode.FastGetSolutionStepValue(DISPLACEMENT);
             array_1d<double, 3 > & r_nodal_velocity     = rNode.FastGetSolutionStepValue(VELOCITY,1);
@@ -253,6 +254,7 @@ public:
             r_nodal_mass = 0.0;
             r_nodal_momentum.clear();
             r_nodal_inertia.clear();
+            r_nodal_cauchy_stress_vector.clear();
 
             r_nodal_displacement.clear();
             r_nodal_velocity.clear();
@@ -296,6 +298,7 @@ public:
             {
                 const array_1d<double, 3 > & r_nodal_momentum   = rNode.FastGetSolutionStepValue(NODAL_MOMENTUM);
                 const array_1d<double, 3 > & r_nodal_inertia    = rNode.FastGetSolutionStepValue(NODAL_INERTIA);
+                //array_1d<double, 3 > & r_nodal_cauchy_stress_vector    = rNode.FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_VECTOR);
 
                 array_1d<double, 3 > & r_previous_velocity     = rNode.FastGetSolutionStepValue(VELOCITY,1);
                 array_1d<double, 3 > & r_previous_acceleration = rNode.FastGetSolutionStepValue(ACCELERATION,1);
@@ -312,11 +315,14 @@ public:
 
                 const array_1d<double, 3 > delta_nodal_velocity = r_nodal_momentum/r_nodal_mass;
                 const array_1d<double, 3 > delta_nodal_acceleration = r_nodal_inertia/r_nodal_mass;
+                //const array_1d<double, 3 > delta_nodal_cauchy_stress_vector = r_nodal_cauchy_stress_vector/r_nodal_mass;
 
                 r_previous_velocity += delta_nodal_velocity;
                 r_previous_acceleration += delta_nodal_acceleration;
 
                 r_previous_pressure += delta_nodal_pressure;
+
+                //r_nodal_cauchy_stress_vector = delta_nodal_cauchy_stress_vector;
 
                 // mark nodes which have non-zero momentum in the 1st timestep s.t. these nodes can have
                 // an initial friction state of SLIDING instead of STICK
@@ -406,6 +412,8 @@ public:
         
         // *** 
 
+        
+
         BossakBaseType::FinalizeNonLinIteration(rModelPart, rA, rDx, rb);
 
     }
@@ -491,6 +499,12 @@ public:
             if (mRotationTool.IsConformingSlip(rConstNode) ) {
                 mRotationTool.RotateVector(rNode.FastGetSolutionStepValue(REACTION), rConstNode, true);
             }
+
+            const double & r_nodal_mass = rNode.FastGetSolutionStepValue(NODAL_MASS);
+            if (r_nodal_mass > std::numeric_limits<double>::epsilon())
+            {
+                rNode.FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_VECTOR)/= r_nodal_mass;
+            }    
         });
         
     }
