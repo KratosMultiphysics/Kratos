@@ -884,19 +884,10 @@ Vector SmallStrainUPwDiffOrderElement::CalculateInternalForces(ElementVariables&
 
         this->CalculateAndAddCouplingTerms(result, rVariables);
     }
-    if (ConstitutiveLawUtilities::IsUndrained(this->GetProperties())) {
-        for (unsigned int integration_point = 0; integration_point < rIntegrationCoefficients.size(); ++integration_point) {
-            const auto excess_pore_pressure_force = ConstitutiveLawUtilities::CalculateExcessPorePressureForce(
-                this->GetProperties(),
-                rStrainVectors[integration_point],
-                rBMatrices[integration_point],
-                GetStressStatePolicy().GetVoigtVector(),
-                rIntegrationCoefficients[integration_point],
-                integration_point,
-                mExcessPorePressurePrevious);
-            GeoElementUtilities::AssembleUBlockVector(result, excess_pore_pressure_force);
-        }
-    }
+    ConstitutiveLawUtilities::AssembleExcessPorePressureForces(
+        result, this->GetProperties(), rStrainVectors, rBMatrices,
+        GetStressStatePolicy().GetVoigtVector(), rIntegrationCoefficients,
+        mExcessPorePressurePrevious);
     if (!rVariables.IsConstantWaterPressure) {
         for (unsigned int integration_point = 0;
              integration_point < rIntegrationCoefficients.size(); ++integration_point) {

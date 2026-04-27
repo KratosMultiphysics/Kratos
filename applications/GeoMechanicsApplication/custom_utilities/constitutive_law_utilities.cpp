@@ -12,6 +12,7 @@
 //
 
 #include "custom_utilities/constitutive_law_utilities.h"
+#include "custom_utilities/element_utilities.hpp"
 #include "custom_constitutive/interface_plane_strain.h"
 #include "custom_constitutive/interface_three_dimensional_surface.h"
 #include "custom_constitutive/plane_strain.h"
@@ -389,10 +390,39 @@ Vector ConstitutiveLawUtilities::CalculateExcessPorePressureForce(const Properti
     const auto volumetric_strain = CalculateVolumetricStrain(rStrainVector, rProperties);
     const auto volumetric_strain_increment = volumetric_strain - rExcessPorePressurePrevious[IntegrationPoint];
     const auto excess_pore_pressure_increment = CalculateExcessPorePressureIncrement(rProperties, volumetric_strain_increment);
-
     return prod(trans(rB), rVoigtVector * excess_pore_pressure_increment) * IntegrationCoefficient;
 
     KRATOS_CATCH("ConstitutiveLawUtilities::CalculateExcessPorePressureForce")
+}
+
+void ConstitutiveLawUtilities::AssembleExcessPorePressureForces(Vector&                   rResultVector,
+                                                                const Properties&         rProperties,
+                                                                const std::vector<Vector>& rStrainVectors,
+                                                                const std::vector<Matrix>& rBMatrices,
+                                                                const Vector&             rVoigtVector,
+                                                                const std::vector<double>& rIntegrationCoefficients,
+                                                                const Vector&             rExcessPorePressurePrevious)
+{
+    KRATOS_TRY
+
+    if (!IsUndrained(rProperties)) return;
+
+    KRATOS_ERROR_IF(rStrainVectors.size() != rBMatrices.size())
+        << "Mismatch in number of strain vectors (" << rStrainVectors.size()
+        << ") and B matrices (" << rBMatrices.size() << ")." << std::endl;
+
+    KRATOS_ERROR_IF(rIntegrationCoefficients.size() != rStrainVectors.size())
+        << "Mismatch in number of integration coefficients (" << rIntegrationCoefficients.size()
+        << ") and strain vectors (" << rStrainVectors.size() << ")." << std::endl;
+
+    for (std::size_t gp = 0; gp < rIntegrationCoefficients.size(); ++gp) {
+        const auto excess_force = CalculateExcessPorePressureForce(
+            rProperties, rStrainVectors[gp], rBMatrices[gp], rVoigtVector,
+            rIntegrationCoefficients[gp], gp, rExcessPorePressurePrevious);
+        GeoElementUtilities::AssembleUBlockVector(rResultVector, excess_force);
+    }
+
+    KRATOS_CATCH("ConstitutiveLawUtilities::AssembleExcessPorePressureForces")
 }
 
 } // namespace Kratos

@@ -85,6 +85,14 @@ public:
                                                                  double                IntegrationCoefficient,
                                                                  std::size_t           IntegrationPoint,
                                                                  const Vector&         rExcessPorePressurePrevious);
+
+    static void AssembleExcessPorePressureForces(Vector&                   rResultVector,
+                                                 const Properties&         rProperties,
+                                                 const std::vector<Vector>& rStrainVectors,
+                                                 const std::vector<Matrix>& rBMatrices,
+                                                 const Vector&             rVoigtVector,
+                                                 const std::vector<double>& rIntegrationCoefficients,
+                                                 const Vector&             rExcessPorePressurePrevious);
 }; /* Class ConstitutiveLawUtilities*/
 
 } // namespace Kratos
