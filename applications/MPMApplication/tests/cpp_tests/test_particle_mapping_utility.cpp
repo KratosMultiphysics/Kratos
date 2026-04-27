@@ -459,10 +459,10 @@ namespace Kratos::Testing
         SetUniformValueOnMaterialPoints(r_mpm_model_part, MP_MASS, 2.5);
 
         // Set MP Velocity
-        const array_1d<double, 3> set_mp_1_velocity{1.211324865,0.0, 0.0};
-        const array_1d<double, 3> set_mp_2_velocity{1.788675135,0.0, 0.0};
-        const array_1d<double, 3> set_mp_3_velocity{1.788675135,0.0, 0.0};
-        const array_1d<double, 3> set_mp_4_velocity{1.211324865,0.0, 0.0};
+        const array_1d<double, 3> set_mp_1_velocity{ 3.211,-1.125, 0.0};
+        const array_1d<double, 3> set_mp_2_velocity{-1.788, 0.587, 0.0};
+        const array_1d<double, 3> set_mp_3_velocity{ 0.578,-0.677, 0.0};
+        const array_1d<double, 3> set_mp_4_velocity{ 1.212, 2.439, 0.0};
 
         const std::vector<array_1d<double,3>> set_mp_velocity_values{set_mp_1_velocity,
                                                                      set_mp_2_velocity,
@@ -472,10 +472,10 @@ namespace Kratos::Testing
         SetValuesOnMaterialPoints(r_mpm_model_part, MP_VELOCITY, set_mp_velocity_values);
 
         // Set MP Acceleration
-        const array_1d<double, 3> set_mp_1_acceleration{2.211324865, 0.0, 0.0};
-        const array_1d<double, 3> set_mp_2_acceleration{2.788675135, 0.0, 0.0};
-        const array_1d<double, 3> set_mp_3_acceleration{2.788675135, 0.0, 0.0};
-        const array_1d<double, 3> set_mp_4_acceleration{2.211324865, 0.0, 0.0};
+        const array_1d<double, 3> set_mp_1_acceleration{ 0.211, 3.178, 0.0};
+        const array_1d<double, 3> set_mp_2_acceleration{ 7.788,-9.078, 0.0};
+        const array_1d<double, 3> set_mp_3_acceleration{-2.788, 1.999, 0.0};
+        const array_1d<double, 3> set_mp_4_acceleration{ 5.211, 0.023, 0.0};
 
         const std::vector<array_1d<double,3>> set_mp_acceleration_values{set_mp_1_acceleration,
                                                                          set_mp_2_acceleration,
@@ -500,10 +500,10 @@ namespace Kratos::Testing
         AssertNodalVariables(r_mpm_model_part, NODAL_MASS, 0, ref_nodal_mass, 1e-6);
 
         // Check mapped velocity
-        const array_1d<double, 3> ref_nodal_velocity_1 { 1.333333333, 0.0, 0.0};
-        const array_1d<double, 3> ref_nodal_velocity_2 { 1.666666666, 0.0, 0.0};
-        const array_1d<double, 3> ref_nodal_velocity_3 { 1.666666666, 0.0, 0.0};
-        const array_1d<double, 3> ref_nodal_velocity_4 { 1.333333333, 0.0, 0.0};
+        const array_1d<double, 3> ref_nodal_velocity_1 { 1.927081631476125, -0.225659794942771, 0.0};
+        const array_1d<double, 3> ref_nodal_velocity_2 {-0.426525406021126,  0.173706984442771, 0.0};
+        const array_1d<double, 3> ref_nodal_velocity_3 { 0.406918370566126,  0.032993126017229, 0.0};
+        const array_1d<double, 3> ref_nodal_velocity_4 { 1.305525403978874,  1.242959684482771, 0.0};
 
         const std::vector<array_1d<double, 3>> ref_nodal_velocity{ref_nodal_velocity_1,
                                                                   ref_nodal_velocity_2,
@@ -513,10 +513,10 @@ namespace Kratos::Testing
         AssertNodalVariables(r_mpm_model_part, VELOCITY, 1, ref_nodal_velocity, 1e-6);
 
         // Check mapped acceleration
-        const array_1d<double, 3> ref_nodal_acceleration_1 { 2.333333333, 0.0, 0.0};
-        const array_1d<double, 3> ref_nodal_acceleration_2 { 2.666666666, 0.0, 0.0};
-        const array_1d<double, 3> ref_nodal_acceleration_3 { 2.666666666, 0.0, 0.0};
-        const array_1d<double, 3> ref_nodal_acceleration_4 { 2.333333333, 0.0, 0.0};
+        const array_1d<double, 3> ref_nodal_acceleration_1 { 2.173236726221230,  0.556847987494362, 0.0};
+        const array_1d<double, 3> ref_nodal_acceleration_2 { 4.647415826538770, -4.782732406964361, 0.0};
+        const array_1d<double, 3> ref_nodal_acceleration_3 { 0.441763266491230, -0.123847980835638, 0.0};
+        const array_1d<double, 3> ref_nodal_acceleration_4 { 3.159584180748770,  0.471732400305639, 0.0};
 
         const std::vector<array_1d<double, 3>> ref_nodal_acceleration{ref_nodal_acceleration_1,
                                                                       ref_nodal_acceleration_2,
@@ -536,10 +536,10 @@ namespace Kratos::Testing
         // ------------------------------------------------------------------------------------------ G2P Test ------------------------------------------------------------------------------------------ //
         // Setting values for current nodal velocity, acceleration, and pressure to simulate solving
         // Velocity
-        const array_1d<double,3> node_1_velocity{ 1.1,  0.1, 0.0};
-        const array_1d<double,3> node_2_velocity{ 0.1, -0.1, 0.0};
-        const array_1d<double,3> node_3_velocity{-0.1, -0.1, 0.0};
-        const array_1d<double,3> node_4_velocity{ 0.1,  1.1, 0.0};
+        const array_1d<double,3> node_1_velocity{ 2.1  , 0.1  , 0.0};
+        const array_1d<double,3> node_2_velocity{ 0.1  ,-1.6  , 0.0};
+        const array_1d<double,3> node_3_velocity{-0.5  ,-0.7  , 0.0};
+        const array_1d<double,3> node_4_velocity{ 0.125, 1.175, 0.0};
 
         const std::vector<array_1d<double,3>> node_velocity_values{node_1_velocity,
                                                                    node_2_velocity,
