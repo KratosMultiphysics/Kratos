@@ -374,7 +374,7 @@ double ConstitutiveLawUtilities::CalculateExcessPorePressureIncrement(const Prop
 Vector ConstitutiveLawUtilities::CalculateExcessPorePressureForce(const Properties&     rProperties,
                                                                   const Vector&         rStrainVector,
                                                                   const Matrix&         rB,
-                                                                  const Vector&         rStressVector,
+                                                                  const Vector&         rVoigtVector,
                                                                   double                IntegrationCoefficient,
                                                                   std::size_t           IntegrationPoint,
                                                                   const Vector&         rExcessPorePressurePrevious)
@@ -389,9 +389,8 @@ Vector ConstitutiveLawUtilities::CalculateExcessPorePressureForce(const Properti
     const auto volumetric_strain = CalculateVolumetricStrain(rStrainVector, rProperties);
     const auto volumetric_strain_increment = volumetric_strain - rExcessPorePressurePrevious[IntegrationPoint];
     const auto excess_pore_pressure_increment = CalculateExcessPorePressureIncrement(rProperties, volumetric_strain_increment);
-    
-    Vector result = prod(trans(rB), rStressVector * excess_pore_pressure_increment) * IntegrationCoefficient;
-    return result;
+
+    return prod(trans(rB), rVoigtVector * excess_pore_pressure_increment) * IntegrationCoefficient;
 
     KRATOS_CATCH("ConstitutiveLawUtilities::CalculateExcessPorePressureForce")
 }

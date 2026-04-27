@@ -81,7 +81,7 @@ public:
     [[nodiscard]] static Vector CalculateExcessPorePressureForce(const Properties&     rProperties,
                                                                  const Vector&         rStrainVector,
                                                                  const Matrix&         rB,
-                                                                 const Vector&         rStressVector,
+                                                                 const Vector&         rVoigtVector,
                                                                  double                IntegrationCoefficient,
                                                                  std::size_t           IntegrationPoint,
                                                                  const Vector&         rExcessPorePressurePrevious);

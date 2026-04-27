@@ -890,7 +890,7 @@ Vector SmallStrainUPwDiffOrderElement::CalculateInternalForces(ElementVariables&
                 this->GetProperties(),
                 rStrainVectors[integration_point],
                 rBMatrices[integration_point],
-                mStressVector[integration_point],
+                GetStressStatePolicy().GetVoigtVector(),
                 rIntegrationCoefficients[integration_point],
                 integration_point,
                 mExcessPorePressurePrevious);
