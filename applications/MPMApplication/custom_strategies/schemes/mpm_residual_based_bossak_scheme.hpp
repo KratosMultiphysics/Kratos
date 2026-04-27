@@ -298,8 +298,6 @@ public:
             {
                 const array_1d<double, 3 > & r_nodal_momentum   = rNode.FastGetSolutionStepValue(NODAL_MOMENTUM);
                 const array_1d<double, 3 > & r_nodal_inertia    = rNode.FastGetSolutionStepValue(NODAL_INERTIA);
-                //array_1d<double, 3 > & r_nodal_cauchy_stress_vector    = rNode.FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_VECTOR);
-
                 array_1d<double, 3 > & r_previous_velocity     = rNode.FastGetSolutionStepValue(VELOCITY,1);
                 array_1d<double, 3 > & r_previous_acceleration = rNode.FastGetSolutionStepValue(ACCELERATION,1);
                 double & r_previous_pressure = rNode.FastGetSolutionStepValue(PRESSURE,1);
@@ -315,14 +313,11 @@ public:
 
                 const array_1d<double, 3 > delta_nodal_velocity = r_nodal_momentum/r_nodal_mass;
                 const array_1d<double, 3 > delta_nodal_acceleration = r_nodal_inertia/r_nodal_mass;
-                //const array_1d<double, 3 > delta_nodal_cauchy_stress_vector = r_nodal_cauchy_stress_vector/r_nodal_mass;
 
                 r_previous_velocity += delta_nodal_velocity;
                 r_previous_acceleration += delta_nodal_acceleration;
 
                 r_previous_pressure += delta_nodal_pressure;
-
-                //r_nodal_cauchy_stress_vector = delta_nodal_cauchy_stress_vector;
 
                 // mark nodes which have non-zero momentum in the 1st timestep s.t. these nodes can have
                 // an initial friction state of SLIDING instead of STICK
@@ -411,8 +406,6 @@ public:
         ClearReactionVariable();    
         
         // *** 
-
-        
 
         BossakBaseType::FinalizeNonLinIteration(rModelPart, rA, rDx, rb);
 
