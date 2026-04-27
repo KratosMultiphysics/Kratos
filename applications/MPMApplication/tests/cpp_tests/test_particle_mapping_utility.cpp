@@ -24,6 +24,7 @@
 #include "custom_utilities/material_point_search_utility.h"
 #include "custom_utilities/mapping_utilities/mpm_flip_particle_mapping_utility.hpp"
 #include "custom_utilities/mapping_utilities/mpm_pic_particle_mapping_utility.hpp"
+#include "custom_utilities/mapping_utilities/mpm_tpic_particle_mapping_utility.hpp"
 
 
 namespace Kratos::Testing
@@ -877,7 +878,7 @@ namespace Kratos::Testing
         AssertMPVariables(r_mpm_model_part, MP_COORD, ref_mp_coordinates, 1e-6);
 
         // Check MP pressure
-        const double ref_mp_pressure_1 = 0.877991531432732;//
+        const double ref_mp_pressure_1 = 0.877991531432732;
         const double ref_mp_pressure_2 = 1.044658198567268;
         const double ref_mp_pressure_3 = 1.455341801432732;
         const double ref_mp_pressure_4 = 1.622008468567268;
@@ -889,6 +890,236 @@ namespace Kratos::Testing
 
         AssertMPVariables(r_mpm_model_part, MP_PRESSURE, ref_mp_pressures, 1e-6);
 
+        KRATOS_CATCH("")
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(MPMTpicParticleMappingUtilityOneGridElement2D, KratosMPMFastSuite)
+    {
+        KRATOS_TRY;
+        // --------------------------------------------------------------------------------------- Model Creation --------------------------------------------------------------------------------------- //
+        Model current_model;
+        CreateEmptyModels(current_model);
+        ModelPart& r_grid_model_part = current_model.GetModelPart("GridModelPart");
+        ModelPart& r_mpm_model_part  = current_model.GetModelPart("MpmModelPart");
+
+        // Set delta time
+        r_mpm_model_part.GetProcessInfo()[DELTA_TIME] = 0.01;
+        // Activate Pressure DoF
+        r_mpm_model_part.GetProcessInfo().SetValue(IS_MIXED_FORMULATION, true);
+
+        // Properties
+        Properties::Pointer p_elem_prop = r_mpm_model_part.CreateNewProperties(0);
+
+        AddVariablesToModelPart(r_mpm_model_part, r_grid_model_part);
+
+        Prepare2D1ElementGridModelPart(r_grid_model_part);
+        Prepare2D1ElementMpmModelPart(r_mpm_model_part, r_grid_model_part, p_elem_prop);
+
+        // Set MP Mass
+        SetUniformValueOnMaterialPoints(r_mpm_model_part, MP_MASS, 2.5);
+
+        // Set MP Velocity
+        const array_1d<double, 3> set_mp_1_velocity{ 3.211,-1.125, 0.0};
+        const array_1d<double, 3> set_mp_2_velocity{-1.788, 0.587, 0.0};
+        const array_1d<double, 3> set_mp_3_velocity{ 0.578,-0.677, 0.0};
+        const array_1d<double, 3> set_mp_4_velocity{ 1.212, 2.439, 0.0};
+
+        const std::vector<array_1d<double,3>> set_mp_velocity_values{set_mp_1_velocity,
+                                                                     set_mp_2_velocity,
+                                                                     set_mp_3_velocity,
+                                                                     set_mp_4_velocity};
+
+        SetValuesOnMaterialPoints(r_mpm_model_part, MP_VELOCITY, set_mp_velocity_values);
+
+        // Set MP Acceleration
+        const array_1d<double, 3> set_mp_1_acceleration{ 0.211, 3.178, 0.0};
+        const array_1d<double, 3> set_mp_2_acceleration{ 7.788,-9.078, 0.0};
+        const array_1d<double, 3> set_mp_3_acceleration{-2.788, 1.999, 0.0};
+        const array_1d<double, 3> set_mp_4_acceleration{ 5.211, 0.023, 0.0};
+
+        const std::vector<array_1d<double,3>> set_mp_acceleration_values{set_mp_1_acceleration,
+                                                                         set_mp_2_acceleration,
+                                                                         set_mp_3_acceleration,
+                                                                         set_mp_4_acceleration};
+
+        SetValuesOnMaterialPoints(r_mpm_model_part, MP_ACCELERATION, set_mp_acceleration_values);
+
+        // Set MP Pressure
+        const std::vector<double> set_mp_pressure_values{0.5, 1.0, 1.5, 2.0};
+        SetValuesOnMaterialPoints(r_mpm_model_part, MP_PRESSURE, set_mp_pressure_values);
+
+
+
+        // ------------------------------------------------------------------------------------------ G2P Test ------------------------------------------------------------------------------------------ //
+        // Setting values for current nodal velocity, acceleration, and pressure to simulate solving
+        // Velocity
+        const array_1d<double,3> node_1_velocity{ 1.0, 0.0, 0.0};
+        const array_1d<double,3> node_2_velocity{ 2.0, 0.0, 0.0};
+        const array_1d<double,3> node_3_velocity{ 2.0, 0.0, 0.0};
+        const array_1d<double,3> node_4_velocity{ 1.0, 0.0, 0.0};
+
+        const std::vector<array_1d<double,3>> node_velocity_values{node_1_velocity,
+                                                                   node_2_velocity,
+                                                                   node_3_velocity,
+                                                                   node_4_velocity};
+
+        SetValuesOnNodes(r_grid_model_part, VELOCITY, 0, node_velocity_values);
+
+        // Acceleration
+        const array_1d<double,3> node_1_acceleration{ 2.0, 0.0, 0.0};
+        const array_1d<double,3> node_2_acceleration{ 3.0, 0.0, 0.0};
+        const array_1d<double,3> node_3_acceleration{ 3.0, 0.0, 0.0};
+        const array_1d<double,3> node_4_acceleration{ 2.0, 0.0, 0.0};
+
+        const std::vector<array_1d<double,3>> node_acceleration_values{node_1_acceleration,
+                                                                       node_2_acceleration,
+                                                                       node_3_acceleration,
+                                                                       node_4_acceleration};
+
+        SetValuesOnNodes(r_grid_model_part, ACCELERATION, 0, node_acceleration_values);
+
+        // Pressure
+        const std::vector<double> node_pressure_values{0.5, 1.0, 1.5, 2.0};
+        SetValuesOnNodes(r_grid_model_part, PRESSURE, 0, node_pressure_values);
+
+        // Adding current displacement at grid nodes to be mapped back to MP
+        const array_1d<double,3> node_1_displacement{0.0 , 0.0 , 0.0};
+        const array_1d<double,3> node_2_displacement{0.15, 0.0 , 0.0};
+        const array_1d<double,3> node_3_displacement{0.1 , 0.1 , 0.0};
+        const array_1d<double,3> node_4_displacement{0.0 , 0.05, 0.0};
+        const std::vector<array_1d<double,3>> node_displacement_values{node_1_displacement,
+                                                                       node_2_displacement,
+                                                                       node_3_displacement,
+                                                                       node_4_displacement};
+
+        SetValuesOnNodes(r_grid_model_part, DISPLACEMENT, 0, node_displacement_values);
+
+        // Adding initial MP displacement
+        const array_1d<double, 3> set_mp_1_displacement{0.1, 0.2, 0.0};
+        const array_1d<double, 3> set_mp_2_displacement{0.3, 0.4, 0.0};
+        const array_1d<double, 3> set_mp_3_displacement{0.5, 0.6, 0.0};
+        const array_1d<double, 3> set_mp_4_displacement{0.7, 0.8, 0.0};
+        const std::vector<array_1d<double,3>> set_mp_displacement_values{set_mp_1_displacement,
+                                                                         set_mp_2_displacement,
+                                                                         set_mp_3_displacement,
+                                                                         set_mp_4_displacement};
+
+        SetValuesOnMaterialPoints(r_mpm_model_part, MP_DISPLACEMENT, set_mp_displacement_values);
+
+        // Initialize and run TPIC mapping scheme
+        unsigned int echo_level = 0;
+        MPMTpicParticleMappingUtility tpic_mapping(r_mpm_model_part, r_grid_model_part, echo_level);
+        tpic_mapping.RunG2PMapping();
+
+        // Material points G2P Checks
+
+        // Check MP acceleration
+        array_1d<double, 3> ref_mp_acceleration_1 { 2.211324865, 0.0, 0.0};
+        array_1d<double, 3> ref_mp_acceleration_2 { 2.788675135, 0.0, 0.0};
+        array_1d<double, 3> ref_mp_acceleration_3 { 2.788675135, 0.0, 0.0};
+        array_1d<double, 3> ref_mp_acceleration_4 { 2.211324865, 0.0, 0.0};
+
+        const std::vector<array_1d<double, 3>> ref_mp_accelerations{ref_mp_acceleration_1,
+                                                                    ref_mp_acceleration_2,
+                                                                    ref_mp_acceleration_3,
+                                                                    ref_mp_acceleration_4};
+
+        AssertMPVariables(r_mpm_model_part, MP_ACCELERATION, ref_mp_accelerations, 1e-6);
+
+        // Check MP velocity
+        array_1d<double, 3> ref_mp_velocity_1 { 1.211324865, 0.0, 0.0};
+        array_1d<double, 3> ref_mp_velocity_2 { 1.788675135, 0.0, 0.0};
+        array_1d<double, 3> ref_mp_velocity_3 { 1.788675135, 0.0, 0.0};
+        array_1d<double, 3> ref_mp_velocity_4 { 1.211324865, 0.0, 0.0};
+
+        const std::vector<array_1d<double, 3>> ref_mp_velocities{ref_mp_velocity_1,
+                                                                 ref_mp_velocity_2,
+                                                                 ref_mp_velocity_3,
+                                                                 ref_mp_velocity_4};
+
+        AssertMPVariables(r_mpm_model_part, MP_VELOCITY, ref_mp_velocities, 1e-6);
+
+        // Check MP displacement
+        array_1d<double, 3> ref_mp_displacement_1 {0.129465819821637, 0.212799153178363, 0.0};
+        array_1d<double, 3> ref_mp_displacement_2 {0.409967936928363, 0.418899576571637, 0.0};
+        array_1d<double, 3> ref_mp_displacement_3 {0.587200846821637, 0.670534180178363, 0.0};
+        array_1d<double, 3> ref_mp_displacement_4 {0.723365396428363, 0.847767090071637, 0.0};
+
+        const std::vector<array_1d<double, 3>> ref_mp_displacements{ref_mp_displacement_1,
+                                                                    ref_mp_displacement_2,
+                                                                    ref_mp_displacement_3,
+                                                                    ref_mp_displacement_4};
+
+        AssertMPVariables(r_mpm_model_part, MP_DISPLACEMENT, ref_mp_displacements, 1e-6);
+
+        // Check MP coordinate
+        array_1d<double, 3> ref_mp_coordinate_1 {0.240790684821637, 0.224124018178363, 0.0};
+        array_1d<double, 3> ref_mp_coordinate_2 {0.898643071928363, 0.230224441571637, 0.0};
+        array_1d<double, 3> ref_mp_coordinate_3 {0.875875981821637, 0.859209315178363, 0.0};
+        array_1d<double, 3> ref_mp_coordinate_4 {0.234690261428363, 0.836442225071637, 0.0};
+
+        const std::vector<array_1d<double, 3>> ref_mp_coordinates{ref_mp_coordinate_1,
+                                                                  ref_mp_coordinate_2,
+                                                                  ref_mp_coordinate_3,
+                                                                  ref_mp_coordinate_4};
+
+        AssertMPVariables(r_mpm_model_part, MP_COORD, ref_mp_coordinates, 1e-6);
+
+        // Check MP pressure
+        const double ref_mp_pressure_1 = 0.877991531432732;//
+        const double ref_mp_pressure_2 = 1.044658198567268;
+        const double ref_mp_pressure_3 = 1.455341801432732;
+        const double ref_mp_pressure_4 = 1.622008468567268;
+
+        const std::vector<double> ref_mp_pressures{ref_mp_pressure_1,
+                                                   ref_mp_pressure_2,
+                                                   ref_mp_pressure_3,
+                                                   ref_mp_pressure_4};
+
+        AssertMPVariables(r_mpm_model_part, MP_PRESSURE, ref_mp_pressures, 1e-6);//
+
+        // ------------------------------------------------------------------------------------------ P2G Test ------------------------------------------------------------------------------------------ //
+
+        tpic_mapping.RunP2GMapping();
+
+        // Checking values at the nodes
+        // Check mapped mass
+        const std::vector<double> ref_nodal_mass{2.5, 2.5, 2.5, 2.5};
+        AssertNodalVariables(r_mpm_model_part, NODAL_MASS, 0, ref_nodal_mass, 1e-6);
+
+        // Check mapped velocity
+        const array_1d<double, 3> ref_nodal_velocity_1 {1.0, 0.0, 0.0};
+        const array_1d<double, 3> ref_nodal_velocity_2 {2.0, 0.0, 0.0};
+        const array_1d<double, 3> ref_nodal_velocity_3 {2.0, 0.0, 0.0};
+        const array_1d<double, 3> ref_nodal_velocity_4 {1.0, 0.0, 0.0};
+
+        const std::vector<array_1d<double, 3>> ref_nodal_velocity{ref_nodal_velocity_1,
+                                                                  ref_nodal_velocity_2,
+                                                                  ref_nodal_velocity_3,
+                                                                  ref_nodal_velocity_4};
+
+        AssertNodalVariables(r_mpm_model_part, VELOCITY, 1, ref_nodal_velocity, 1e-6);
+
+        // Check mapped acceleration
+        const array_1d<double, 3> ref_nodal_acceleration_1 {2.0, 0.0, 0.0};
+        const array_1d<double, 3> ref_nodal_acceleration_2 {3.0, 0.0, 0.0};
+        const array_1d<double, 3> ref_nodal_acceleration_3 {3.0, 0.0, 0.0};
+        const array_1d<double, 3> ref_nodal_acceleration_4 {2.0, 0.0, 0.0};
+
+        const std::vector<array_1d<double, 3>> ref_nodal_acceleration{ref_nodal_acceleration_1,
+                                                                      ref_nodal_acceleration_2,
+                                                                      ref_nodal_acceleration_3,
+                                                                      ref_nodal_acceleration_4};
+
+        AssertNodalVariables(r_mpm_model_part, ACCELERATION, 1, ref_nodal_acceleration, 1e-6);
+
+        // Check mapped pressure
+        const std::vector<double> ref_nodal_pressure{0.877991531432732,
+                                                     1.044658198567268,
+                                                     1.455341801432732,
+                                                     1.622008468567268};
+
+        AssertNodalVariables(r_mpm_model_part, PRESSURE, 1, ref_nodal_pressure, 1e-6);
         KRATOS_CATCH("")
     }
     // end of MPMFlipParticleMappingUtilityOneGridElement2D
