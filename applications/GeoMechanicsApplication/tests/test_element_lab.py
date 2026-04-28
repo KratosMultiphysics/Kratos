@@ -13,7 +13,7 @@ class KratosGeoMechanicsLabElementTests(KratosUnittest.TestCase):
         """
         Regression test for the triaxial experiment.
         """
-        test_name = 'test_triaxial'
+        test_name = os.path.join('test_triaxial', 'drained')
         file_path = test_helper.get_file_path(os.path.join('test_element_lab', test_name))
         test_helper.run_kratos(file_path)
 
@@ -48,7 +48,7 @@ class KratosGeoMechanicsLabElementTests(KratosUnittest.TestCase):
         """
         Regression test for the undrained triaxial experiment.
         """
-        test_name = 'test_triaxial/undrained'
+        test_name = os.path.join('test_triaxial', 'undrained')
         file_path = test_helper.get_file_path(os.path.join('test_element_lab', test_name))
         test_helper.run_kratos(file_path)
 
@@ -58,25 +58,26 @@ class KratosGeoMechanicsLabElementTests(KratosUnittest.TestCase):
 
         number_of_elements = 2
         number_of_nodes = 9
+        precision_places = 4
 
         # Assert the displacement in all nodes in all directions
-        expected_disp = [[0, -0.2, 0], [0.045, -0.2, 0], [0.0, -0.1, 0], [ 0.045, -0.1, 0],[0.0, 0.0, 0.0], [0.09, -0.2, 0.0], [0.09, -0.1, 0.0], [0.045, 0.0, 0.0], [0.09, 0.0, 0.0]]
+        expected_disp = [[0.0, -0.2, 0.0], [0.045, -0.2, 0.0], [0.0, -0.1, 0.0], [ 0.045, -0.1, 0.0],[0.0, 0.0, 0.0], [0.09, -0.2, 0.0], [0.09, -0.1, 0.0], [0.045, 0.0, 0.0], [0.09, 0.0, 0.0]]
         for node in range(number_of_nodes):
             node_displacement = reader.nodal_values_at_time("DISPLACEMENT", 1, result, [node+1])[0]
             for direction in range(3):
-                self.assertAlmostEqual(node_displacement[direction], expected_disp[node][direction], 4)
+                self.assertAlmostEqual(node_displacement[direction], expected_disp[node][direction], precision_places)
 
         # Assert the normal stress for both elements in the first integration point
         expected_stress = [[-100.0, -4740.0, -100.0, 0.0, 0.0, 0.0], [-100.0, -4740.0, -100.0, 0.0, 0.0, 0.0]]
         for element in range(number_of_elements):
             stress = reader.element_integration_point_values_at_time("CAUCHY_STRESS_TENSOR", 1, result, [element+1], [0])[0]
-            self._assert_integration_point_tensor_results(stress, expected_stress[element], 4,"CAUCHY_STRESS_TENSOR")
+            self._assert_integration_point_tensor_results(stress, expected_stress[element], precision_places,"CAUCHY_STRESS_TENSOR")
 
         # Assert the engineering strain for both elements in the first integration point
         expected_strain = [[0.09, -0.2, 0.09, 0.0, 0.0, 0.0], [0.09, -0.2, 0.09, 0.0, 0.0, 0.0]]
         for element in range(number_of_elements):
             strain = reader.element_integration_point_values_at_time("ENGINEERING_STRAIN_TENSOR", 1, result, [element+1], [0])[0]
-            self._assert_integration_point_tensor_results(strain, expected_strain[element], 4,"ENGINEERING_STRAIN_TENSOR")
+            self._assert_integration_point_tensor_results(strain, expected_strain[element], precision_places,"ENGINEERING_STRAIN_TENSOR")
 
     def test_triaxial_comp_6n(self):
         """

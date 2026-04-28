@@ -21,6 +21,7 @@
 #include <numbers>
 
 using namespace Kratos;
+using namespace std::string_literals;
 
 namespace Kratos::Testing
 {
@@ -275,7 +276,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_CalculateElasticProperties, K
 {
     // Arrange: plain properties
     Properties properties;
-    properties.SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
+    properties.SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED"s);
     properties.SetValue(YOUNG_MODULUS, 2.5);
     properties.SetValue(POISSON_RATIO, 0.25);
 
@@ -288,7 +289,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_CalculateElasticProperties, K
 
     // Arrange: properties for undrained computation
     properties = Properties{};
-    properties.SetValue(GEO_DRAINAGE_TYPE, "UNDRAINED");
+    properties.SetValue(GEO_DRAINAGE_TYPE, "UNDRAINED"s);
     properties.SetValue(YOUNG_MODULUS, 1.0);
     properties.SetValue(POISSON_RATIO, 0.2);
     properties.SetValue(BIOT_COEFFICIENT, 1.0);

@@ -20,6 +20,7 @@ namespace
 {
 
 using namespace Kratos;
+using namespace std::string_literals;
 
 Vector CalculateStress(GeoIncrementalLinearElasticLaw& rConstitutiveLaw)
 {
@@ -39,7 +40,7 @@ Vector CalculateStress(GeoIncrementalLinearElasticLaw& rConstitutiveLaw)
     Properties properties;
     properties.SetValue(YOUNG_MODULUS, 1.0e7);
     properties.SetValue(POISSON_RATIO, 0.3);
-    properties.SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
+    properties.SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED"s);
     parameters.SetMaterialProperties(properties);
 
     rConstitutiveLaw.CalculateMaterialResponsePK2(parameters);
