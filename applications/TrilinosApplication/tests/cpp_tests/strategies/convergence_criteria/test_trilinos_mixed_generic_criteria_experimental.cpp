@@ -100,8 +100,8 @@ void SetupExperimentalMixedCriteriaDofs(
 ExperimentalConvergenceVariableListType CreateExperimentalConvergenceSettings()
 {
     ExperimentalConvergenceVariableListType convergence_settings;
-    convergence_settings.push_back(std::make_tuple(static_cast<VariableData*>(&PRESSURE), 1.0e-3, 1.0e-5));
-    convergence_settings.push_back(std::make_tuple(static_cast<VariableData*>(&VELOCITY), 1.0e-3, 1.0e-5));
+    convergence_settings.push_back(std::make_tuple(static_cast<const VariableData*>(&PRESSURE), 1.0e-3, 1.0e-5));
+    convergence_settings.push_back(std::make_tuple(static_cast<const VariableData*>(&VELOCITY), 1.0e-3, 1.0e-5));
     return convergence_settings;
 }
 
