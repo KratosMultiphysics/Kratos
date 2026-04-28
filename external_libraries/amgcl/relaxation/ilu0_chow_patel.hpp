@@ -228,6 +228,27 @@ struct ilu0_chow_patel {
             }
         };
 
+        // Parallel CSC rebuild: only the value copy needs updating each
+        // sweep; the structural indexing (Ucptr, Ucrow) stays the same
+        // once built.
+        auto rebuild_ucsc_values = [&]() {
+#ifdef _OPENMP
+#  pragma omp parallel for schedule(guided, 64)
+#endif
+            for (ptrdiff_t i = 0; i < n; ++i) {
+                for (ptr_type k = Uptr[i]; k < Uptr[i + 1]; ++k) {
+                    ptrdiff_t c = Ucol[k];
+                    // Find position: walk Ucptr[c]..Ucptr[c+1] for row i.
+                    for (ptr_type p = Ucptr[c]; p < Ucptr[c + 1]; ++p) {
+                        if (Ucrow[p] == static_cast<col_type>(i)) {
+                            Ucval[p] = Uval[k];
+                            break;
+                        }
+                    }
+                }
+            }
+        };
+
         build_ucsc();
 
         // -----------------------------------------------------------------
@@ -243,11 +264,16 @@ struct ilu0_chow_patel {
         // -----------------------------------------------------------------
         for (int sweep = 0; sweep < prm.sweeps; ++sweep) {
             // Synchronize CSC copy of U with (possibly updated) CSR values.
-            build_ucsc();
+            // First sweep builds full CSC structure; subsequent sweeps only
+            // update the values (structure is invariant).
+            if (sweep == 0)
+                build_ucsc();
+            else
+                rebuild_ucsc_values();
 
             // Update L entries: l_ij for i > j
 #ifdef _OPENMP
-#  pragma omp parallel for schedule(dynamic, 1024)
+#  pragma omp parallel for schedule(guided, 64)
 #endif
             for (ptrdiff_t i = 0; i < n; ++i) {
                 for (ptr_type jj = Lptr[i]; jj < Lptr[i + 1]; ++jj) {
@@ -273,7 +299,7 @@ struct ilu0_chow_patel {
 
             // Update U diagonal and upper entries
 #ifdef _OPENMP
-#  pragma omp parallel for schedule(dynamic, 1024)
+#  pragma omp parallel for schedule(guided, 64)
 #endif
             for (ptrdiff_t i = 0; i < n; ++i) {
                 // u_ii = 1 - sum_{k<i} l_ik u_ki
@@ -338,6 +364,9 @@ struct ilu0_chow_patel {
 
         auto D_out = std::make_shared<backend::numa_vector<value_type>>(n, false);
 
+#ifdef _OPENMP
+#  pragma omp parallel for schedule(guided, 64)
+#endif
         for (ptrdiff_t i = 0; i < n; ++i) {
             value_type a_ii = math::inverse(inv_diag[i]);
 
