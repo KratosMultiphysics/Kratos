@@ -22,7 +22,7 @@ void ComputeVolumeProcess::Execute()
     auto& rGeoms = mrThisModelPart.Geometries();
     auto& rNodes = mrThisModelPart.Nodes();
     
-    SizeType domain_size = 2;
+    SizeType domain_size = mrThisModelPart.GetProcessInfo()[DOMAIN_SIZE];
     
     
     for (auto& node : rNodes){

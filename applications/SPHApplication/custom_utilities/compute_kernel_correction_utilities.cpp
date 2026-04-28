@@ -98,40 +98,21 @@ void ComputeKernelCorrectionUtilities::ComputeGradientCorrection(ModelPart& rThi
     }
 }
 
-void ComputeKernelCorrectionUtilities::ComputeIntegrationCorrectionVector(ModelPart& rThisModelPart)
+void ComputeKernelCorrectionUtilities::ApplyKernelCorrection(Element& IP, double& kernel_target)
 {
-    KRATOS_TRY
+    // kernel becomes corrected kernel
+    kernel_target /= IP.GetValue(VW_KERNEL);
+} 
 
-    //using LinearSolverType = SkylineLUFactorizationSolver<MatrixType, VectorType>;
-    //auto p_solver = Kratos::make_shared<LinearSolverType>();
-
-    auto& rElem = rThisModelPart.Elements();
-    SizeType number_of_elements = rElem.size();
-    int dimension = 2;
-
-    VectorType gamma_vector(number_of_elements);
-    noalias(gamma_vector) = ZeroVector(number_of_elements);
-
-    const SizeType mat_size = number_of_elements * dimension;
-
-    MatrixType rLHS(mat_size, mat_size);
-    noalias(rLHS) = ZeroMatrix(mat_size, mat_size);
-
-    VectorType rRHS(mat_size);
-    noalias(rRHS) = ZeroVector(mat_size);
-
-    VectorType solution(mat_size);
-    noalias(solution) = ZeroVector(mat_size);
-
-    ComputeKernelCorrectionUtilities::CalculateLinearSystemForCorrection(rThisModelPart, rLHS, rRHS);
-
-    //p_solver->Solve(rLHS, solution, rRHS);
-
-    //elem.SetValue(INTEGRATION_CORRECTION, solution[i]);
-
-
-    KRATOS_CATCH("")
-}
+void ComputeKernelCorrectionUtilities::ApplyKernelGradientCorrection(Element& IP, double& kernel_target, VectorType& dkernel_target)
+{
+    // kernel becomes corrected kernel 
+    kernel_target /= IP.GetValue(VW_KERNEL);
+    
+    // kernel gradient becomes corrected kernel gradient
+    VectorType dckernel = dkernel_target / IP.GetValue(VW_KERNEL) - kernel_target * IP.GetValue(VW_DKERNEL) / IP.GetValue(VW_KERNEL);
+    noalias(dkernel_target) = prod(IP.GetValue(GRADIENT_CORRECTION), dckernel);
+} 
 
 bool ComputeKernelCorrectionUtilities::VerifyKernelCorrection(ModelPart& rThisModelPart, Parameters& rThisParameters)
 {
@@ -207,30 +188,47 @@ bool ComputeKernelCorrectionUtilities::VerifyKernelCorrection(ModelPart& rThisMo
     KRATOS_CATCH("")
 }
 
-void ComputeKernelCorrectionUtilities::CalculateLinearSystemForCorrection(ModelPart& rThisModelPart, MatrixType& rLHS, VectorType& rRHS)
+void ComputeKernelCorrectionUtilities::VerifyIntegrationCorrection(ModelPart& rThisModelPart)
 {
-    SizeType mat_size = rRHS.size();
-    noalias(rLHS) = IdentityMatrix(mat_size);
-    for (IndexType i = 0; i < mat_size; ++i){
-        rRHS[i] = 1.0;
+    KRATOS_TRY
+    auto& rElem = rThisModelPart.Elements();
+    const double h = rThisModelPart.GetProcessInfo()[SMOOTHING_LENGTH];
+    const SizeType domain_size = rThisModelPart.GetProcessInfo()[DOMAIN_SIZE];
+
+    for (auto IP = rElem.begin(); IP != rElem.end(); ++IP){
+
+        const auto& r_neighbours = IP->GetValue(NEIGHBOURS);
+        const auto& r_geom = IP->GetGeometry();
+
+        std::vector<double> kernel;
+        std::vector<Vector> dkernel;
+        IP->CalculateOnIntegrationPoints(SPH_KERNEL, kernel, rThisModelPart.GetProcessInfo());
+        IP->CalculateOnIntegrationPoints(SPH_KERNEL_GRADIENT, dkernel, rThisModelPart.GetProcessInfo());
+
+        const auto& IPcoords = r_geom[0].Coordinates();
+
+        Vector control = ZeroVector(domain_size);
+
+        for (IndexType index = 0; index < r_neighbours.size(); index++){
+
+            const auto& JP = r_neighbours[index];
+            const auto& r_geom_neigh = JP->GetGeometry();
+
+            Vector X_AB_target(domain_size);
+            const auto& JPcoords = r_geom_neigh[0].Coordinates();
+            for (IndexType d = 0; d < domain_size; d++){
+                X_AB_target[d] = IPcoords[d] - JPcoords[d];
+            }
+            
+            const double volume = r_geom_neigh[0].GetValue(VOLUME);
+            ComputeKernelCorrectionUtilities::ApplyKernelGradientCorrection(*IP, kernel[index], dkernel[index]);
+
+            control += volume * dkernel[index] - r_geom_neigh[0].GetValue(BOUNDARY_NORMAL_AREA) * kernel[index];
+        }
+
+        KRATOS_WATCH(control);
     }
+    KRATOS_CATCH("")
 }
-
-
-void ComputeKernelCorrectionUtilities::ApplyKernelCorrection(Element& IP, double& kernel_target)
-{
-    // kernel becomes corrected kernel
-    kernel_target /= IP.GetValue(VW_KERNEL);
-} 
-
-void ComputeKernelCorrectionUtilities::ApplyKernelGradientCorrection(Element& IP, double& kernel_target, VectorType& dkernel_target)
-{
-    // kernel becomes corrected kernel 
-    kernel_target /= IP.GetValue(VW_KERNEL);
-    
-    // kernel gradient becomes corrected kernel gradient
-    VectorType dckernel = dkernel_target / IP.GetValue(VW_KERNEL) - kernel_target * IP.GetValue(VW_DKERNEL) / IP.GetValue(VW_KERNEL);
-    noalias(dkernel_target) = prod(IP.GetValue(GRADIENT_CORRECTION), dckernel);
-} 
 
 }

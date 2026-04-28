@@ -8,7 +8,7 @@ namespace Kratos
 void ComputeVolumeUtilities::CalculateBoundaryNetNormal(Geometry<Node>& rGeom)
 {
 
-    std::size_t domain_size = 2;
+    std::size_t domain_size = rGeom.WorkingSpaceDimension();
         
     for (auto& edge : rGeom.GenerateEdges()){
 
@@ -26,7 +26,7 @@ void ComputeVolumeUtilities::CalculateBoundaryNetNormal(Geometry<Node>& rGeom)
         for (IndexType d = 0; d < domain_size; ++d) area_aux[d] = aux[d];
         
         for (IndexType i = 0; i < number_of_points_edge; ++i){
-            auto boundary_normal_area = node_point[i].GetValue(BOUNDARY_NORMAL_AREA);
+            auto& boundary_normal_area = node_point[i].GetValue(BOUNDARY_NORMAL_AREA);
             boundary_normal_area += area_aux;
             node_point[i].SetValue(BOUNDARY_NORMAL_AREA, boundary_normal_area);
         }

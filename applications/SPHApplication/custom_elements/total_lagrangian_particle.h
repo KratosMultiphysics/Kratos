@@ -127,6 +127,18 @@ public:
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
+     * @brief Called at the beginning of each solution step
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+     * @brief Called at the end of each solution step
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
      * @brief Sets on rResult the ID's of the element degrees of freedom
      * @param rResult The vector containing the equation IDs
      */

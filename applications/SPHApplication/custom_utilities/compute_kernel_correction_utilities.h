@@ -29,19 +29,13 @@ public:
 
     static void ComputeGradientCorrection(ModelPart& rThisModelPart);
 
-    static void ComputeIntegrationCorrectionVector(ModelPart& rThisModelPart);
-
-    static void CalculateLinearSystemForCorrection(
-        ModelPart& rThisModelPart, 
-        MatrixType& rLHS,
-        VectorType& rRHS
-    );
-
-    static bool VerifyKernelCorrection(ModelPart& rThisModelPart, Parameters& rThisParameters);
-
     static void ApplyKernelCorrection(Element& IP, double& kernel_target);
     
     static void ApplyKernelGradientCorrection(Element& IP, double& kernel_target, Vector& dkernel_target);
+
+    static bool VerifyKernelCorrection(ModelPart& rThisModelPart, Parameters& rThisParameters);
+
+    static void VerifyIntegrationCorrection(ModelPart& rThisModelPart);
 
 };
 
