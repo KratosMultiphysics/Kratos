@@ -957,10 +957,10 @@ namespace Kratos::Testing
         // ------------------------------------------------------------------------------------------ G2P Test ------------------------------------------------------------------------------------------ //
         // Setting values for current nodal velocity, acceleration, and pressure to simulate solving
         // Velocity
-        const array_1d<double,3> node_1_velocity{ 1.0, 0.0, 0.0};
-        const array_1d<double,3> node_2_velocity{ 2.0, 0.0, 0.0};
-        const array_1d<double,3> node_3_velocity{ 2.0, 0.0, 0.0};
-        const array_1d<double,3> node_4_velocity{ 1.0, 0.0, 0.0};
+        const array_1d<double,3> node_1_velocity{ 1.0, 1.0, 0.0};
+        const array_1d<double,3> node_2_velocity{ 2.0, 1.0, 0.0};
+        const array_1d<double,3> node_3_velocity{ 2.0,-2.5, 0.0};
+        const array_1d<double,3> node_4_velocity{ 1.0,-2.5, 0.0};
 
         const std::vector<array_1d<double,3>> node_velocity_values{node_1_velocity,
                                                                    node_2_velocity,
@@ -970,10 +970,10 @@ namespace Kratos::Testing
         SetValuesOnNodes(r_grid_model_part, VELOCITY, 0, node_velocity_values);
 
         // Acceleration
-        const array_1d<double,3> node_1_acceleration{ 2.0, 0.0, 0.0};
-        const array_1d<double,3> node_2_acceleration{ 3.0, 0.0, 0.0};
-        const array_1d<double,3> node_3_acceleration{ 3.0, 0.0, 0.0};
-        const array_1d<double,3> node_4_acceleration{ 2.0, 0.0, 0.0};
+        const array_1d<double,3> node_1_acceleration{ 2.0,-0.5, 0.0};
+        const array_1d<double,3> node_2_acceleration{ 4.0,-0.5, 0.0};
+        const array_1d<double,3> node_3_acceleration{ 4.0, 3.5, 0.0};
+        const array_1d<double,3> node_4_acceleration{ 2.0, 3.5, 0.0};
 
         const std::vector<array_1d<double,3>> node_acceleration_values{node_1_acceleration,
                                                                        node_2_acceleration,
@@ -1013,15 +1013,40 @@ namespace Kratos::Testing
         // Initialize and run TPIC mapping scheme
         unsigned int echo_level = 0;
         MPMTpicParticleMappingUtility tpic_mapping(r_mpm_model_part, r_grid_model_part, echo_level);
+        tpic_mapping.Initialize(); // initialize velocity and acceleration gradient (currently set to zero)
         tpic_mapping.RunG2PMapping();
 
         // Material points G2P Checks
 
+        // Check MP acceleration gradient
+        Matrix ref_acceleration_gradient = ZeroMatrix(2, 2);
+        ref_acceleration_gradient(0,0) = 2.0;
+        ref_acceleration_gradient(1,1) = 4.0;
+
+        const std::vector<Matrix> ref_acceleration_gradients{ref_acceleration_gradient,
+                                                             ref_acceleration_gradient,
+                                                             ref_acceleration_gradient,
+                                                             ref_acceleration_gradient};
+
+        AssertMPVariables(r_mpm_model_part, MP_ACCELERATION_GRADIENT, ref_acceleration_gradients, 1e-6);
+
+        // Check MP velocity gradient
+        Matrix ref_velocity_gradient = ZeroMatrix(2, 2);
+        ref_velocity_gradient(0,0) = 1.0;
+        ref_velocity_gradient(1,1) =-3.5;
+
+        const std::vector<Matrix> ref_velocity_gradients{ref_velocity_gradient,
+                                                         ref_velocity_gradient,
+                                                         ref_velocity_gradient,
+                                                         ref_velocity_gradient};
+
+        AssertMPVariables(r_mpm_model_part, MP_VELOCITY_GRADIENT, ref_velocity_gradients, 1e-6);
+
         // Check MP acceleration
-        array_1d<double, 3> ref_mp_acceleration_1 { 2.211324865, 0.0, 0.0};
-        array_1d<double, 3> ref_mp_acceleration_2 { 2.788675135, 0.0, 0.0};
-        array_1d<double, 3> ref_mp_acceleration_3 { 2.788675135, 0.0, 0.0};
-        array_1d<double, 3> ref_mp_acceleration_4 { 2.211324865, 0.0, 0.0};
+        array_1d<double, 3> ref_mp_acceleration_1 { 2.422649730000000, 0.345299460000000, 0.0};
+        array_1d<double, 3> ref_mp_acceleration_2 { 3.577350270000000, 0.345299460000000, 0.0};
+        array_1d<double, 3> ref_mp_acceleration_3 { 3.577350270000000, 2.654700540000000, 0.0};
+        array_1d<double, 3> ref_mp_acceleration_4 { 2.422649730000000, 2.654700540000000, 0.0};
 
         const std::vector<array_1d<double, 3>> ref_mp_accelerations{ref_mp_acceleration_1,
                                                                     ref_mp_acceleration_2,
@@ -1031,10 +1056,10 @@ namespace Kratos::Testing
         AssertMPVariables(r_mpm_model_part, MP_ACCELERATION, ref_mp_accelerations, 1e-6);
 
         // Check MP velocity
-        array_1d<double, 3> ref_mp_velocity_1 { 1.211324865, 0.0, 0.0};
-        array_1d<double, 3> ref_mp_velocity_2 { 1.788675135, 0.0, 0.0};
-        array_1d<double, 3> ref_mp_velocity_3 { 1.788675135, 0.0, 0.0};
-        array_1d<double, 3> ref_mp_velocity_4 { 1.211324865, 0.0, 0.0};
+        array_1d<double, 3> ref_mp_velocity_1 { 1.211324865, 0.2603629725, 0.0};
+        array_1d<double, 3> ref_mp_velocity_2 { 1.788675135, 0.2603629725, 0.0};
+        array_1d<double, 3> ref_mp_velocity_3 { 1.788675135,-1.7603629725, 0.0};
+        array_1d<double, 3> ref_mp_velocity_4 { 1.211324865,-1.7603629725, 0.0};
 
         const std::vector<array_1d<double, 3>> ref_mp_velocities{ref_mp_velocity_1,
                                                                  ref_mp_velocity_2,
