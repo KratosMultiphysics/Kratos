@@ -193,7 +193,7 @@
                         "input_type": "use_input_model_part"
                     },
                     "material_import_settings": {
-                        "materials_filename": "MaterialParameters_abc.json"
+                        "materials_filename": "MaterialParameters.json"
                     },
                     "time_stepping": {
                         "time_step": 2.0e-02,
@@ -350,7 +350,7 @@
                         "input_type": "use_input_model_part"
                     },
                     "material_import_settings": {
-                        "materials_filename": "MaterialParameters_abc.json"
+                        "materials_filename": "MaterialParameters.json"
                     },
                     "time_stepping": {
                         "time_step": 2.0e-02,

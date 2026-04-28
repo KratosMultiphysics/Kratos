@@ -9,8 +9,6 @@
                 },
                 "Variables": {
                     "GEO_DRAINAGE_TYPE": "FULLY_COUPLED",
-                    "YOUNG_MODULUS": 1.0e+09,
-                    "POISSON_RATIO": 0.2,
                     "DENSITY_SOLID": 2.0e+03,
                     "DENSITY_WATER": 1.0e+03,
                     "POROSITY": 0.3,
@@ -24,15 +22,18 @@
                     "SATURATED_SATURATION": 1.0,
                     "RESIDUAL_SATURATION": 0.0001,
                     "MINIMUM_RELATIVE_PERMEABILITY": 1.0e-04,
-                    "UDSM_NAME": "../dsettlement/UDSM.dll",
+                    "UDSM_NAME": "../MohrCoulomb64.dll",
                     "UDSM_NUMBER": 1,
                     "IS_FORTRAN_UDSM": true,
                     "UMAT_PARAMETERS": [
-                        4.998729486706428e-02,
-                        0.19999260891644746,
-                        1.999926089164475e-02,
-                        8.64e+04,
-                        1.5
+                        1.0e+09,
+                        0.2,
+                        10000.0,
+                        30.0,
+                        0.0,
+                        1000.0,
+                        1,
+                        0.0
                     ]
                 }
             }

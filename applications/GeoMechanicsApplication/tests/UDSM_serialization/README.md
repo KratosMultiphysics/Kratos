@@ -37,7 +37,7 @@ A K0 stage with a linear elastic model:
 
 ### Stages 2 and 3 (UDSM)
 
-The material is switched to the abc model.
+The material is switched to the MohrCoulomb model.
 
 ## Assertions
  - The test compares final `TOTAL_DISPLACEMENT` and `WATER_PRESSURE` fields from the full run and the restart run for the third stage. Differences should be within numerical tolerance.
