@@ -8,7 +8,7 @@
                     "name": "GeoLinearElasticPlaneStrain2DLaw"
                 },
                 "Variables": {
-                    "GEO_DRAINAGE_TYPE ": "FULLY_COUPLED",
+                    "GEO_DRAINAGE_TYPE": "FULLY_COUPLED",
                     "K0_MAIN_DIRECTION": 1,
                     "K0_VALUE_XX": 0.5,
                     "K0_VALUE_YY": 1.0,
