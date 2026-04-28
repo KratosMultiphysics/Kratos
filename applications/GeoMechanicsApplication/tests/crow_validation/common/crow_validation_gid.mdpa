@@ -15621,7 +15621,7 @@ Begin SubModelPart Master_side
   End SubModelPartNodes
 End SubModelPart
 
-Begin SubModelPart Slave_side_1
+Begin SubModelPart Slave_side
   Begin SubModelPartNodes
     4761
     4762

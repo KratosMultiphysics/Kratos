@@ -173,7 +173,7 @@
                                 "minimum_number_of_neighbouring_nodes": 2,
                                 "reform_constraints_at_each_step": true,
                                 "master_model_part_name": "PorousDomain.Master_side",
-                                "slave_model_part_name": "PorousDomain.Slave_side_1",
+                                "slave_model_part_name": "PorousDomain.Slave_side",
                                 "search_radius": 1.0e-02
                             }
                         }
@@ -381,7 +381,7 @@
                                 "minimum_number_of_neighbouring_nodes": 2,
                                 "reform_constraints_at_each_step": true,
                                 "master_model_part_name": "PorousDomain.Master_side",
-                                "slave_model_part_name": "PorousDomain.Slave_side_1",
+                                "slave_model_part_name": "PorousDomain.Slave_side",
                                 "search_radius": 1.0e-02
                             }
                         }
@@ -561,7 +561,7 @@
                             "kratos_module": "KratosMultiphysics",
                             "process_name": "JsonOutputProcess",
                             "Parameters": {
-                                "model_part_name": "PorousDomain.Slave_side_1",
+                                "model_part_name": "PorousDomain.Slave_side",
                                 "output_file_name": "3_Sheetpile_installation_interface_output.json",
                                 "output_variables": ["GEO_EFFECTIVE_TRACTION_VECTOR"],
                                 "gauss_points_output_variables": [],
@@ -845,7 +845,7 @@
                             "kratos_module": "KratosMultiphysics",
                             "process_name": "JsonOutputProcess",
                             "Parameters": {
-                                "model_part_name": "PorousDomain.Slave_side_1",
+                                "model_part_name": "PorousDomain.Slave_side",
                                 "output_file_name": "4_First_excavation_interface_output.json",
                                 "output_variables": ["GEO_EFFECTIVE_TRACTION_VECTOR"],
                                 "gauss_points_output_variables": [],
@@ -1143,7 +1143,7 @@
                             "kratos_module": "KratosMultiphysics",
                             "process_name": "JsonOutputProcess",
                             "Parameters": {
-                                "model_part_name": "PorousDomain.Slave_side_1",
+                                "model_part_name": "PorousDomain.Slave_side",
                                 "output_file_name": "5_Anchor_installation_interface_output.json",
                                 "output_variables": ["GEO_EFFECTIVE_TRACTION_VECTOR"],
                                 "gauss_points_output_variables": [],
@@ -1447,7 +1447,7 @@
                             "kratos_module": "KratosMultiphysics",
                             "process_name": "JsonOutputProcess",
                             "Parameters": {
-                                "model_part_name": "PorousDomain.Slave_side_1",
+                                "model_part_name": "PorousDomain.Slave_side",
                                 "output_file_name": "6_Second_excavation_interface_output.json",
                                 "output_variables": ["GEO_EFFECTIVE_TRACTION_VECTOR"],
                                 "gauss_points_output_variables": [],
@@ -1752,7 +1752,7 @@
                             "kratos_module": "KratosMultiphysics",
                             "process_name": "JsonOutputProcess",
                             "Parameters": {
-                                "model_part_name": "PorousDomain.Slave_side_1",
+                                "model_part_name": "PorousDomain.Slave_side",
                                 "output_file_name": "7_Third_excavation_interface_output.json",
                                 "output_variables": ["GEO_EFFECTIVE_TRACTION_VECTOR"],
                                 "gauss_points_output_variables": [],
