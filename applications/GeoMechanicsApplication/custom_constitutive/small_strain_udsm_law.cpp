@@ -954,7 +954,7 @@ void SmallStrainUDSMLaw::save(Serializer& rSerializer) const
     rSerializer.save("StateVariablesFinalized", mStateVariablesFinalized);
     rSerializer.save("Sig0", mSig0);
     rSerializer.save("Dimension", mpDimension);
-    rSerializer.save("mMatrixD", mMatrixD);
+    rSerializer.save("MatrixD", mMatrixD);
 }
 
 void SmallStrainUDSMLaw::load(Serializer& rSerializer)
@@ -971,7 +971,7 @@ void SmallStrainUDSMLaw::load(Serializer& rSerializer)
     rSerializer.load("StateVariablesFinalized", mStateVariablesFinalized);
     rSerializer.load("Sig0", mSig0);
     rSerializer.load("Dimension", mpDimension);
-    rSerializer.load("mMatrixD", mMatrixD);
+    rSerializer.load("MatrixD", mMatrixD);
 
     // We set mIsUDSMLoaded false to call loadUDSM(rMaterialProperties) later to re-initialise the functions pointers listed below.
     mIsUDSMLoaded      = false;

@@ -173,7 +173,7 @@ protected:
     array_1d<double, StrainIncrementVectorSize> mDeltaStrainVector{StrainIncrementVectorSize, 0.0};
     array_1d<double, VOIGT_SIZE_3D>             mStrainVectorFinalized{VOIGT_SIZE_3D, 0.0};
 
-    std::array<std::array<double, VOIGT_SIZE_3D>, VOIGT_SIZE_3D> mMatrixD = {}; // all elements equal zero
+    std::array<std::array<double, VOIGT_SIZE_3D>, VOIGT_SIZE_3D> mMatrixD = {}; // all elements are zero-initialized
 
     virtual void UpdateInternalDeltaStrainVector(Parameters& rValues);
     virtual void UpdateInternalStrainVectorFinalized(Parameters& rValues);
