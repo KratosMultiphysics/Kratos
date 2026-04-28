@@ -458,7 +458,7 @@ template <class Block, class Col, class Ptr>
 class ilu_solve< backend::builtin_hybrid<Block, Col, Ptr> >
     : public ilu_solve< backend::builtin<typename math::scalar_of<Block>::type, Col, Ptr> >
 {
-    typedef ilu_solve< backend::builtin<typename math::scalar_of<Block>::type> > Base;
+    typedef ilu_solve< backend::builtin<typename math::scalar_of<Block>::type, Col, Ptr> > Base;
 
     public:
         using Base::Base;
