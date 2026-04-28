@@ -285,6 +285,7 @@ protected:
             "spai0",
             "spai1",
             "ilu0",
+            "ilu0_chow_patel",
             "ilut",
             "iluk",
             "damped_jacobi",
