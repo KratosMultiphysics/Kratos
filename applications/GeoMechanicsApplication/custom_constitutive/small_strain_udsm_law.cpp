@@ -709,7 +709,7 @@ void SmallStrainUDSMLaw::CallUDSM(UDSMTaskId TaskId, Parameters& rValues)
         const Properties& rMaterialProperties = rValues.GetMaterialProperties();
         mIsUDSMLoaded                         = loadUDSM(rMaterialProperties);
         KRATOS_ERROR_IF_NOT(mIsUDSMLoaded)
-            << "Cannot (re)load UDSM " << rMaterialProperties[UDSM_NAME] << std::endl;
+            << "Cannot (re)load UDSM " << rMaterialProperties[UDSM_NAME] << " (material Id of " << rMaterialProperties.Id() << ")."<< std::endl;
     }
     auto task_id_as_int = static_cast<int>(TaskId);
 

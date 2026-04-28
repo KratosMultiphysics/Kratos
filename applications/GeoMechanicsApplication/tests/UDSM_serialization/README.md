@@ -15,7 +15,7 @@ Compact 2D column benchmarks for verifying that a UDSM-based constitutive law se
 ## Geometry and boundary conditions
  - Domain: $1\ \mathrm{m}$ (width) by $2\ \mathrm{m}$ (height).
  - Bottom: fixed in both directions.
- - Left and right faces: fixed in horizontal direction.
+ - Left and right edges: fixed in horizontal direction.
  - Stage 1: gravity loading and $K_0$ initialization.
  - Stages 2 & 3: UDSM constitutive law; top boundary uses a prescribed vertical displacement (table to $-0.001\ \mathrm{m}$) and top water pressure is prescribed to $10000\ \mathrm{Pa}$.
 

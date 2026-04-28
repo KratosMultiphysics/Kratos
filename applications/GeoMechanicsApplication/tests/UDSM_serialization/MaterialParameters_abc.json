@@ -8,7 +8,7 @@
                     "name": "SmallStrainUDSM2DPlaneStrainLaw"
                 },
                 "Variables": {
-                    "IGNORE_UNDRAINED": false,
+                    "GEO_DRAINAGE_TYPE ": "FULLY_COUPLED",
                     "YOUNG_MODULUS": 1.0e+09,
                     "POISSON_RATIO": 0.2,
                     "DENSITY_SOLID": 2.0e+03,
