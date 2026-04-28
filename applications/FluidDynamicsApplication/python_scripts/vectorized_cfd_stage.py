@@ -4,6 +4,7 @@ import numpy as np
 
 import KratosMultiphysics as KM
 import KratosMultiphysics.analysis_stage as analysis_stage
+import KratosMultiphysics.FluidDynamicsApplication.python_pool as python_pool
 import KratosMultiphysics.FluidDynamicsApplication.cfd_utils as cfd_utils
 import KratosMultiphysics.scipy_conversion_tools as scipy_conversion_tools
 import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
@@ -156,13 +157,13 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
     def ComputeElementalConvectiveOperatorSpectralRadius(self, v, out=None):
         # Get the average velocity at each element
         v_elemental = self.ElemData(v, self.connectivity, out=self.v_el) # shape (num_elements, num_nodes_per_element, dim)
-        v_el_mean = xp.sum(v_elemental, axis=1) / self.n_in_el #FIXME: check mean,average and sum performance
+        v_el_mean = xp.sum(v_elemental, axis=1) / self.n_in_el #TODO: avoid allocation     
 
         nelem, nnode = self.DN.shape[0], self.DN.shape[1]
         if out is None:
             out = xp.empty(nelem, dtype=v_el_mean.dtype)
 
-        advective_proj = self.tmp_n_in_el
+        advective_proj = self.pool.Get(0,(nelem, nnode)) #self.tmp_n_in_el
 
         # Calculate the advective projection v · ∇N_i for each node in each element representing the discrete convective operator
         # For linear (P1) elements, shape function gradients are constant inside the element and scale like 1/h (i.e., |∇N_i| ~ 1/h_i)
@@ -187,6 +188,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         # Max reduction into a pre-allocated result array
         # result_max = xp.empty(out.shape[0])
         xp.max(advective_proj, axis=1, out=out)
+        self.pool.Release(advective_proj)
         return out
 
     def _PrepareModelPart(self):
@@ -210,7 +212,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         else:
             raise ValueError('Please provide the name of the .json file containing the materials data as the "materials_filename" (string) parameter within the "material_import_settings" block!')
 
-        # Save dynamic viscosity and density from model part properties
+        # Save dynamic viscosity and density from model part propertiespython_pool
         # Note that we are assuming that they are defined in the first property of the model part
         if not self.GetComputingModelPart().HasProperties(1):
             raise Exception("Fluid material properties must be provided in property with Id 1!")
@@ -315,29 +317,32 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         ##arrays to store elemental values
         self.v_el = xp.empty(self.DN.shape, dtype=cfd_utils.PRECISION)
         self.p_el = xp.empty((self.DN.shape[0], self.n_in_el), dtype=cfd_utils.PRECISION)
-        self.p_old_el = xp.empty(self.p_el.shape, dtype=cfd_utils.PRECISION)
         self.b_el = xp.empty(self.DN.shape, dtype=cfd_utils.PRECISION)
         self.div_proj_el = xp.empty(self.p_el.shape, dtype=cfd_utils.PRECISION)
         self.conv_proj_el = xp.empty(self.DN.shape, dtype=cfd_utils.PRECISION)
+        self.pi_conv = xp.empty((self.nnodes,self.dim), dtype=cfd_utils.PRECISION) 
         self.tau_1 = xp.empty(self.DN.shape[0], dtype=cfd_utils.PRECISION)
         self.tau_2 = xp.empty(self.DN.shape[0], dtype=cfd_utils.PRECISION)
 
-        #arrays to be usef for residual on elements
-        self.res_v_el = xp.empty(self.DN.shape, dtype=cfd_utils.PRECISION)
-        self.res_p_el = xp.empty((self.DN.shape[0],self.DN.shape[1]), dtype=cfd_utils.PRECISION)
-
-        #arrays to be used for assemble residual
-        self.res_v = xp.empty((self.nnodes, self.dim), dtype=cfd_utils.PRECISION)
-        self.res_p = xp.empty((self.nnodes), dtype=cfd_utils.PRECISION)
-
         #work arrays for intermediate computations
-        self.tmp_elem = xp.empty(self.DN.shape, dtype=cfd_utils.PRECISION)
-        self.tmp_elem_2 = xp.empty(self.DN.shape, dtype=cfd_utils.PRECISION)
-        self.tmp_dim_dim = xp.empty((self.DN.shape[0], self.dim, self.dim), dtype=cfd_utils.PRECISION)
-        self.pi_conv = xp.empty((self.nnodes,self.dim), dtype=cfd_utils.PRECISION) #TODO: allocate this once
-        self.tmp_n_in_el_sq = xp.empty((self.DN.shape[0], self.n_in_el, self.n_in_el), dtype=cfd_utils.PRECISION)
-        self.tmp_n_in_el = xp.empty((self.DN.shape[0], self.n_in_el), dtype=cfd_utils.PRECISION)
-        self.tmp_n_elem = xp.empty(self.DN.shape[0], dtype=cfd_utils.PRECISION)
+        self.pool = python_pool.BufferPool(
+            sizes=[self.DN.shape[0]*self.n_in_el*self.n_in_el, #0 -note that the first one is larger
+                   self.DN.shape[0]*self.n_in_el*self.dim, #1
+                   self.DN.shape[0]*self.n_in_el*self.dim, #2
+            ],
+            xp=xp,
+            dtype=cfd_utils.PRECISION
+        ) 
+
+        
+        if USE_CUPY:
+            ##CLEAN FREE GPU MEMORY POOL just in case
+
+            # 1. Clear the main device memory pool
+            xp.get_default_memory_pool().free_all_blocks()
+
+            # 2. Clear the pinned memory pool (CPU memory used for fast transfers)
+            xp.get_default_pinned_memory_pool().free_all_blocks()
 
 
     def Initialize(self):
@@ -348,7 +353,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         self.v_adaptor_n = KM.TensorAdaptors.HistoricalVariableTensorAdaptor(self.model_part.Nodes,KM.VELOCITY,data_shape=[self.dim],step_index=1)
         self.v_adaptor = KM.TensorAdaptors.HistoricalVariableTensorAdaptor(self.model_part.Nodes,KM.VELOCITY,data_shape=[self.dim],step_index=0)
         self.p_adaptor = KM.TensorAdaptors.HistoricalVariableTensorAdaptor(self.model_part.Nodes,KM.PRESSURE,0)
-        self.p_adaptor_n = KM.TensorAdaptors.HistoricalVariableTensorAdaptor(self.model_part.Nodes, KM.PRESSURE, 1) #TODO: most probably this is not required and we can just copy current step data (but just in case while debugging)
+        self.p_adaptor_n = KM.TensorAdaptors.HistoricalVariableTensorAdaptor(self.model_part.Nodes, KM.PRESSURE, 1) 
         self.b_adaptor = KM.TensorAdaptors.HistoricalVariableTensorAdaptor(self.model_part.Nodes, KM.BODY_FORCE, data_shape=[self.dim], step_index=0)
         self.b_adaptor_n = KM.TensorAdaptors.HistoricalVariableTensorAdaptor(self.model_part.Nodes, KM.BODY_FORCE, data_shape=[self.dim], step_index=1)
         self.normals_adaptor = KM.TensorAdaptors.HistoricalVariableTensorAdaptor(self.model_part.Nodes, KM.NORMAL, data_shape=[self.dim], step_index=0)
@@ -468,24 +473,30 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         """
         return self.model_part
 
-    def ComputeVelocityProjection(self, v_elemental):
+    def ComputeVelocityProjection(self, v_elemental, out=None):
+        if out is None:
+            raise ValueError("Output array must be provided to store the pressure projection values!")
+        if out.shape != (self.nnodes,self.dim):
+            raise ValueError(f"Output array has incompatible shape {out.shape}, expected {(self.nnodes,)}")
+        pi_conv = out
 
-        #temporaries
-        tmp_elem = self.tmp_elem
-        tmp_elem_2 = self.tmp_elem_2
-        tmp_dim_dim = self.tmp_dim_dim
-        pi_conv = self.pi_conv #TODO: allocate this once
 
         # Solve (w,pi) = (w,a·∇u)
         # Compute convective contribution at integration points (w,a·∇u)
-        grad_v_elemental = self.cfd_utils.ComputeElementalGradient(self.DN, v_elemental, out=tmp_dim_dim) # Calculate the velocity gradient at each element (assumed constant within the element)
-        a_grad_elemental = self.cfd_utils.ComputeElementalConvectiveOperator(v_elemental, grad_v_elemental, out=tmp_elem) # Calculate the convective operator at each node
-        convective = self.cfd_utils.ComputeConvectiveContribution(a_grad_elemental, out=tmp_elem_2) # Calculate the elemental convective contributions (note that density should be applied outside)
+
+        grad_v_elemental = self.cfd_utils.ComputeElementalGradient(self.DN, v_elemental, out=self.pool.Get(0,(self.DN.shape[0], self.dim, self.dim))) # Calculate the velocity gradient at each element (assumed constant within the element)
+        a_grad_elemental = self.cfd_utils.ComputeElementalConvectiveOperator(v_elemental, grad_v_elemental, out=self.pool.Get(1,self.DN.shape)) # Calculate the convective operator at each node
+        self.pool.Release(grad_v_elemental)
+
+        convective = self.cfd_utils.ComputeConvectiveContribution(a_grad_elemental, out=self.pool.Get(2,self.DN.shape)) # Calculate the elemental convective contributions (note that density should be applied outside)
+        self.pool.Release(a_grad_elemental)
+
         convective *= self.elemental_volumes[:, None, None] # Apply Jacobian determinant to the entire residual
 
         # Do the nodal assembly of the projection elemental contributions
         pi_conv.fill(0.0)
         self.cfd_utils.AssembleVector(self.connectivity, convective, pi_conv)
+        self.pool.Release(convective)
 
         # Solve with the lumped mass matrix to get the nodal values of the projection
         pi_conv = pi_conv.ravel()
@@ -494,29 +505,43 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         # Return the projection as a nodal data array (nnodes*dim)
         return pi_conv.reshape((self.nnodes, self.dim))
 
-    def ComputeDivergenceProjection(self, v_elemental):
+    def ComputeDivergenceProjection(self, v_elemental, out=None): 
+        if out is None:
+            raise ValueError("Output array must be provided to store the pressure projection values!")
+        if out.shape != (self.nnodes,):
+            raise ValueError(f"Output array has incompatible shape {out.shape}, expected {(self.nnodes,)}")
+        pi_div = out
+
         # Solve (q,pi) = (q,∇·v)
         # Calculate the divergence term at the elemental level
-        aux_scalar = self.cfd_utils.ComputeElementwiseNodalDivergence(self.N, self.DN, v_elemental)
+        aux_scalar = self.cfd_utils.ComputeElementwiseNodalDivergence(self.N, self.DN, v_elemental, out=self.pool.Get(1,self.p_el.shape)) # shape (num_elements, num_nodes_per_element)
         aux_scalar *= self.elemental_volumes[:,xp.newaxis]
 
         # Do the nodal assembly of the projection elemental contributions
-        pi_div = xp.zeros((self.nnodes), dtype=cfd_utils.PRECISION)
+        pi_div.fill(0.0) # = xp.zeros((self.nnodes), dtype=cfd_utils.PRECISION) #TODO: can we allocate this once and reuse it?
         self.cfd_utils.AssembleVector(self.connectivity, aux_scalar, pi_div)
+        self.pool.Release(aux_scalar)
 
         # Solve with the lumped mass matrix to get the nodal values of the projection
         pi_div *= self.Minv[::self.dim] # Strided view to take one value every self.dim
         return pi_div
 
-    def ComputePressureProjection(self, p_elemental):
+    def ComputePressureProjection(self, p_elemental, out=None): 
+        if out is None:
+            raise ValueError("Output array must be provided to store the pressure projection values!")
+        if out.shape != (self.nnodes,self.dim):
+            raise ValueError(f"Output array has incompatible shape {pi_press.shape}, expected {(self.nnodes,self.dim)}")
+        pi_press = out
+
         # Solve (w,pi) = (w,∇p)
         # Calculate the elemental pressure gradient projection contributions
-        pi_press_el = self.cfd_utils.ComputeNDN(self.N, self.DN, p_elemental)
+        pi_press_el = self.cfd_utils.ComputeNDN(self.N, self.DN, p_elemental, out=self.pool.Get(0,self.DN.shape)) # shape (num_elements, num_nodes_per_element, dim)
         pi_press_el *= self.elemental_volumes[:,xp.newaxis,xp.newaxis]
 
         # Do the nodal assembly of the projection elemental contributions
-        pi_press = xp.zeros((self.nnodes,self.dim), dtype=cfd_utils.PRECISION)
+        pi_press.fill(0.0)
         self.cfd_utils.AssembleVector(self.connectivity, pi_press_el, pi_press)
+        self.pool.Release(pi_press_el)
 
         # Solve with the lumped mass matrix to get the nodal values of the projection
         pi_press = pi_press.ravel()
@@ -544,8 +569,8 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
             v_fixity_mask = fixity_adaptor.data[:,:-1].ravel() == True
 
             # Apply the fixity masks to the DOF equation indices
-            self.fix_pres_indices = xp.asarray(p_eq_indices[p_fixity_mask], dtype=np.int64) #TODO: can we use int32 here?
-            self.fix_vel_indices = xp.asarray(v_eq_indices.ravel()[v_fixity_mask], dtype=np.int64) #TODO: can we use int32 here?
+            self.fix_pres_indices = xp.asarray(p_eq_indices[p_fixity_mask], dtype=np.int32) 
+            self.fix_vel_indices = xp.asarray(v_eq_indices.ravel()[v_fixity_mask], dtype=np.int32) 
 
     def GetSlipIndices(self):
         # Check if slip indices have been computed
@@ -554,7 +579,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
             # Get SLIP flag nodal data
             slip_adaptor = KM.TensorAdaptors.FlagsTensorAdaptor(self.model_part.Nodes, KM.SLIP)
             slip_adaptor.CollectData()
-            slip_adaptor_data = xp.asarray(slip_adaptor.data, dtype=np.int64) #TODO: can we use int32 here?
+            slip_adaptor_data = xp.asarray(slip_adaptor.data, dtype=np.int32) 
 
             # Compute slip nodes component indices
             slip_node_ids = xp.where(slip_adaptor_data > 0)[0] # Get the ids of the nodes with SLIP flag
@@ -571,14 +596,15 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
         # Compute convective projection
         t0 = time.perf_counter()
-        conv_proj = self.ComputeVelocityProjection(vel)
+        conv_proj = self.ComputeVelocityProjection(vel, self.pi_conv) 
         conv_proj_el = self.ElemData(conv_proj, self.connectivity, out=self.conv_proj_el)
         #print(f"ComputeVelocityProjection time: {time.perf_counter() - t0}")
 
         # Compute divergence projection
         t0 = time.perf_counter()
-        div_proj = self.ComputeDivergenceProjection(vel)
+        div_proj = self.ComputeDivergenceProjection(vel, out=self.pool.Get(0,(self.nnodes,))) # compute the divergence projection at the nodes, reusing pool array for output
         div_proj_el = self.ElemData(div_proj, self.connectivity, out=self.div_proj_el)
+        self.pool.Release(div_proj)
         #print(f"ComputeDivergenceProjection time: {time.perf_counter() - t0}")
 
         # Advance in time by runge kutta
@@ -628,7 +654,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         #print(f"k4 time: {time.perf_counter() - t0}")
 
         # --- final RK4 update ---
-        vnew = vold + (dt/6.0) * (k1 + 2*k2 + 2*k3 + k4)
+        vnew = vold + (dt/6.0) * (k1 + 2*k2 + 2*k3 + k4) #TODO: we can accumulate to save two arrays
         t0 = time.perf_counter()
         self.ApplyVelocitySlipConditions(vnew, self.normals)
         #print(f"Apply SLIP time: {time.perf_counter() - t0}")
@@ -638,50 +664,53 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         return vnew
 
     def SolveStep2(self,vfrac,p,dt):
+
+        nelem = self.DN.shape[0]
         
         # Gather data from the database
         pel = self.ElemData(p, self.connectivity , self.p_el)
         vel_frac = self.ElemData(vfrac, self.connectivity, self.v_el)
 
-        #allocation of temporaries
-        tmp_n_in_el_sq = self.tmp_n_in_el_sq
-        tmp_n_in_el = self.tmp_n_in_el
-        rhs_el_p = self.res_p_el
-        rhs_p = self.res_p
-
         # Compute pressure projection
-        pres_proj = self.ComputePressureProjection(pel)
+        pres_proj = self.ComputePressureProjection(pel, out=self.pool.Get(1,(self.nnodes,self.dim))) # compute the pressure projection at the nodes, reusing pool array for output
         pres_proj_el = self.ElemData(pres_proj, self.connectivity, out=self.conv_proj_el) # reuse conv_proj_el as temporary for the elemental pressure projection
+        self.pool.Release(pres_proj) 
 
         # Assemble pressure LHS (set to zero is done internally)
         t0 = time.perf_counter()
-        L_el = self.cfd_utils.ComputeLaplacianMatrix(self.DN, out=tmp_n_in_el_sq) # elemental laplacian contributions as L_IJ := (∇N_I,∇N_J)
+        L_el = self.cfd_utils.ComputeLaplacianMatrix(self.DN, out=self.pool.Get(0,(nelem,self.n_in_el, self.n_in_el))) # elemental laplacian contributions as L_IJ := (∇N_I,∇N_J)
         #print(f"Time to compute elemental Laplacian contributions: {time.perf_counter()-t0}")
         coef = (dt / self.rho / 2.0 + self.tau_1) * self.elemental_volumes
         L_el *= coef[:, None, None] # scale LHS elemental contributions
         t0 = time.perf_counter()
         self.cfd_utils.AssembleScalarMatrixByCSRIndices(L_el, self.L_assembly_indices, self.L) # assemble the scaled elemental contributions
         #print(f"Time to assemble pressure LHS: {time.perf_counter()-t0}")
+        self.pool.Release(L_el)
 
         # -(q,∇·ufrac)
-        rhs_el = -self.cfd_utils.ComputeElementwiseNodalDivergence(self.N, self.DN, vel_frac, out=rhs_el_p)
+        rhs_el = self.cfd_utils.ComputeElementwiseNodalDivergence(self.N, self.DN, vel_frac, out=self.pool.Get(1,(nelem,self.n_in_el)))
+        xp.negative(rhs_el, out=rhs_el) # in-place negation to avoid allocation
 
         # (dt/rho/2 + tau)*(∇q,∇pold) = (dt/rho/2 + tau)*Lij*pj
-        aux_scalar = self.cfd_utils.ApplyLaplacian(self.DN, pel, out=rhs_el_p)
+        aux_scalar = self.cfd_utils.ApplyLaplacian(self.DN, pel, out=self.pool.Get(0,(nelem,self.n_in_el)))
         aux_scalar *= (dt / self.rho / 2.0)
         rhs_el += aux_scalar
+        self.pool.Release(aux_scalar)
 
         # -tau*(∇q,Pi_pressure)
-        aux_scalar = self.cfd_utils.ComputePressureStabilizationProjectionTerm(self.N, self.DN, pres_proj_el,out=tmp_n_in_el)
+        aux_scalar = self.cfd_utils.ComputePressureStabilizationProjectionTerm(self.N, self.DN, pres_proj_el,out=self.pool.Get(0,(nelem,self.n_in_el)))
         aux_scalar *= self.tau_1[:,xp.newaxis]
         rhs_el -= aux_scalar
+        self.pool.Release(aux_scalar)
 
         # scale RHS elemental contributions by elemental volumes (integration)
         rhs_el *= self.elemental_volumes[:,xp.newaxis]
 
         # Assemble RHS
+        rhs_p = self.pool.Get(2,(p.shape[0],)).ravel() #self.res_p
         rhs_p.fill(0.0)
         self.cfd_utils.AssembleVector(self.connectivity, rhs_el, rhs_p)
+        self.pool.Release(rhs_el)
 
         # Apply pressure BCs
         t0 = time.perf_counter()
@@ -694,6 +723,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         if not is_converged:
             print("CG failed to converge.")
         #print(f"Time to solve pressure: {time.perf_counter()-t0}")
+        self.pool.Release(rhs_p)
 
         # Convert p back to xp for next steps
         # If USE_CUPY, p is already on GPU (cupy array). If numpy, it is numpy array.
@@ -702,26 +732,36 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
         return p
 
-    def SolveStep3(self, vfrac, v_dirichlet, delta_p, dt):
+    def SolveStep3(self, vfrac, v_dirichlet, delta_p, dt, out=None):
+        if out is None:
+            raise ValueError("Output array must be provided to store the pressure projection values!")
+        if out.shape != vfrac.shape:
+            raise ValueError(f"Output array has incompatible shape {pi_press.shape}, expected {(self.nnodes,self.dim)}")
+        v = out
 
         #allocation of temporaries
-        tmp = self.tmp_elem #reusing
-        grad_dp_nodal = self.res_v #reusing
+        #tmp = self.tmp_elem #reusing
+        nelem = self.DN.shape[0]
 
         # Gather elemental pressure increments from the nodal values
-        delta_p_el = self.ElemData(delta_p, self.connectivity, out=self.p_el) # reuse p_old_el as temporary for the elemental pressure increment
+        delta_p_el = self.ElemData(delta_p, self.connectivity, out=self.pool.Get(0,(nelem, self.n_in_el))) 
 
         # Calculate the gradient of the pressure increment at the elemental level
-        grad_dp_el = self.cfd_utils.ComputeDNN(self.N, self.DN, delta_p_el, out=tmp)
+        grad_dp_el = self.cfd_utils.ComputeDNN(self.N, self.DN, delta_p_el, out=self.pool.Get(1,self.DN.shape))
         grad_dp_el *= self.elemental_volumes[:,xp.newaxis,xp.newaxis]
+        self.pool.Release(delta_p_el)
 
         # Assemble the gradient contributions at the nodes
+        grad_dp_nodal = self.pool.Get(2,(delta_p.shape[0], self.dim)) 
         grad_dp_nodal.fill(0.0)
         self.cfd_utils.AssembleVector(self.connectivity, grad_dp_el, grad_dp_nodal)
+        self.pool.Release(grad_dp_el)
 
         # Update the fractional velocity with the pressure gradient contribution
-        v = xp.empty(vfrac.shape, dtype=cfd_utils.PRECISION)
+        v = xp.empty(vfrac.shape, dtype=cfd_utils.PRECISION) #TODO: can we allocate this once and reuse it?
         v.ravel()[:] = vfrac.ravel() + (dt/self.rho) * self.Minv * grad_dp_nodal.ravel()
+        self.pool.Release(grad_dp_nodal)
+
         self.ApplyVelocitySlipConditions(v, self.normals)
         self.ApplyVelocityDirichletConditions(vfrac, v_dirichlet, 1.0, v)
 
@@ -732,6 +772,8 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         # Get boundary condition data
         self.GetSlipIndices()
         self.GetFixityIndices()
+
+        nelem = self.DN.shape[0]
 
         # Get boundary condition masks
         if (self.csr_data_indices is None or self.csr_diag_indices is None):
@@ -763,10 +805,11 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         while (self.time - current_time > 1.0e-12):
             print("            =============================== ", self.time, current_time)
             # Compute convective operator spectral radius
-            rho_conv = self.ComputeElementalConvectiveOperatorSpectralRadius(vold, self.tmp_n_elem)
+            rho_conv = self.ComputeElementalConvectiveOperatorSpectralRadius(vold, out=self.pool.Get(2, (nelem,))) #self.tmp_n_elem)
 
             # Get maximum allowed time step with previous substep velocity
             max_dt = self._ComputeDeltaTime(rho_conv)
+            self.pool.Release(rho_conv)
 
             # Compute current substep time step
             n_substeps = math.ceil((self.time - current_time) / max_dt)
@@ -795,7 +838,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
             self.step_2_total_time += time.perf_counter() - t2
 
             t3 = time.perf_counter()
-            vold = self.SolveStep3(vfrac, v_dirichlet, delta_p, substep_dt) # Note that vnew is assigned to vold in here for the next substep
+            vold = self.SolveStep3(vfrac, v_dirichlet, delta_p, substep_dt, out=vold) # Note that vnew is assigned to vold in here for the next substep
             self.step_3_total_time += time.perf_counter() - t3
 
             # First time clear divergence
@@ -816,53 +859,59 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         ttot = time.perf_counter()
 
         #allocation of temporaries
-        tmp_elem = xp.empty(v_elemental.shape, dtype=cfd_utils.PRECISION)
-        tmp_elem_2 = xp.empty(v_elemental.shape, dtype=cfd_utils.PRECISION)
-        tmp_dim_dim = xp.empty((v_elemental.shape[0], self.dim, self.dim), dtype=cfd_utils.PRECISION)
+        # tmp_elem = xp.empty(v_elemental.shape, dtype=cfd_utils.PRECISION)
+        # tmp_elem_2 = xp.empty(v_elemental.shape, dtype=cfd_utils.PRECISION)
+        # tmp_dim_dim = xp.empty((v_elemental.shape[0], self.dim, self.dim), dtype=cfd_utils.PRECISION)
 
         # Initialize residual
         #res = xp.zeros(v_elemental.shape, dtype=cfd_utils.PRECISION)
 
         #(w,b)
         t0 = time.perf_counter()
-        res = self.rho * self.cfd_utils.ComputeBodyForceContribution(b_elemental, out=tmp_elem)
+        res = self.cfd_utils.ComputeBodyForceContribution(b_elemental, out=self.pool.Get(0,v_elemental.shape))
+        res *= self.rho
         #print(f"\t\ttime {1}: {time.perf_counter() - t0}")
 
         
         t0 = time.perf_counter()
-        grad_v = self.cfd_utils.ComputeElementalGradient(DN, v_elemental, out=tmp_dim_dim)
-        a_grad_elemental = self.cfd_utils.ComputeElementalConvectiveOperator(v_elemental, grad_v, out=tmp_elem)
+        grad_v = self.cfd_utils.ComputeElementalGradient(DN, v_elemental, out=self.pool.Get(1,(v_elemental.shape[0], self.dim, self.dim)))
+        a_grad_elemental = self.cfd_utils.ComputeElementalConvectiveOperator(v_elemental, grad_v, out=self.pool.Get(2,v_elemental.shape))
+        self.pool.Release(grad_v)
         #print(f"\t\ttime {2}: {time.perf_counter() - t0}")
 
         t0 = time.perf_counter()
         # -(w,rho·a·∇u)
-        convective = self.cfd_utils.ComputeConvectiveContribution(a_grad_elemental, out=tmp_elem_2) #a_grad_elemental is actually still tmp_elem here
+        convective = self.cfd_utils.ComputeConvectiveContribution(a_grad_elemental, out=self.pool.Get(1,v_elemental.shape)) #a_grad_elemental is actually still tmp_elem here
         convective *= self.rho
         res -= convective #assemble convective contribution
-        #del convective
-
+        self.pool.Release(convective)
+        
         # -(rho·a·∇w,tau_1·rho·a·∇u) + (rho·a·∇w,tau_1·rho·Pi_conv)
-        convective_stab = self.cfd_utils.ComputeMomentumStabilization(DN, v_elemental, a_grad_elemental, proj_elemental, out=tmp_elem_2) #a_grad_elemental is actually still tmp_elem here
+        convective_stab = self.cfd_utils.ComputeMomentumStabilization(DN, v_elemental, a_grad_elemental, proj_elemental, out=self.pool.Get(1,v_elemental.shape)) #a_grad_elemental is actually still tmp_elem here
         convective_stab *= self.rho * self.rho
         res -= convective_stab * self.tau_1[:, None, None] #assemble convective stabilization contribution
         #print(f"\t\ttime {8}: {time.perf_counter() - t0}")
-        #del convective_stab
+        self.pool.Release(convective_stab)
+        self.pool.Release(a_grad_elemental)
 
         #-(∇w,∇u)
         t0 = time.perf_counter()
-        res -= self.dyn_visc * self.cfd_utils.ApplyLaplacian(DN, v_elemental, out=tmp_elem)
+        res -= self.dyn_visc * self.cfd_utils.ApplyLaplacian(DN, v_elemental, out=self.pool.Get(1,v_elemental.shape))
         #print(f"\t\ttime {9}: {time.perf_counter() - t0}")
+        self.pool.ReleaseByIndex(1)
 
         #+(∇·w,p_gauss)
         t0 = time.perf_counter()
-        res += self.cfd_utils.ComputeDNN(self.N, DN, p_elemental, out=tmp_elem)
+        res += self.cfd_utils.ComputeDNN(self.N, DN, p_elemental, out=self.pool.Get(1,v_elemental.shape))
         #print(f"\t\ttime {10}: {time.perf_counter() - t0}")
+        self.pool.ReleaseByIndex(1)
 
         #-(∇·w,tau_2·∇·v) + (∇·w,tau_2·Pi_div)
         t0 = time.perf_counter()
-        div_div_stab = self.cfd_utils.ComputeDivDivStabilization(self.N, DN, v_elemental, proj_div_el, out=tmp_elem)
+        div_div_stab = self.cfd_utils.ComputeDivDivStabilization(self.N, DN, v_elemental, proj_div_el, out=self.pool.Get(1,v_elemental.shape))
         res -= div_div_stab * self.tau_2[:,np.newaxis,np.newaxis]
         #print(f"\t\ttime {11}: {time.perf_counter() - t0}")
+        self.pool.Release(div_div_stab)
 
         # Multiply by volume
         t0 = time.perf_counter()
@@ -871,8 +920,9 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
         # Vectorized assembly of the elemental contributions into the nodal residual
         t0 = time.perf_counter()
-        res_assembled = xp.zeros((self.nnodes,self.dim),dtype=res.dtype)
+        res_assembled = xp.zeros((self.nnodes,self.dim),dtype=res.dtype) #TODO: can we allocate it once and reuse it?
         self.cfd_utils.AssembleVector(self.connectivity, res, res_assembled)
+        self.pool.Release(res)
         #print(f"\t\ttime {13}: {time.perf_counter() - t0}")
 
         #print(f"\t Time inside ComputeVelocityResidual: {time.perf_counter() - ttot}")
@@ -957,155 +1007,28 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
     def _InitializePressureLinearSolver(self):
         if USE_CUPY:
-            if USE_AMGX:
+            #Create the standard CuPy CG solver
+            self.linear_solver = cfd_utils.sparse_linalg.cg
 
-                cfd_utils.linear_solver.initialize()
-
-                # solver_config = {
-                #     "config_version": 2,
-                #     "solver": {
-                #         "solver": "CG",
-                #         "tolerance": self.pressure_tolerance,
-                #         "max_iters": self.pressure_max_iteration,
-                #         "norm": "L2",
-                #         "monitor_residual": 1,
-                #         "store_res_history": 1,
-                #         "print_solve_stats": 1,
-                #         "preconditioner": {
-                #             "solver": "AMG",
-                #             "algorithm": "CLASSICAL",
-                #             "cycle": "V",
-                #             "selector": "PMIS",
-                #             "strength": "AHAT",
-                #             "strength_threshold": 0.25,
-                #             "max_levels": 10,
-                #             "presweeps": 1,
-                #             "postsweeps": 1,
-                #             "smoother": {
-                #                 "scope": "jacobi",
-                #                 "solver": "BLOCK_JACOBI"
-                #             },
-                #             "coarse_solver": {
-                #                 "solver": "DENSE_LU_SOLVER"
-                #             }
-                #         }
-                #     }
-                # }
-
-                solver_config = {
-                    "config_version": 2,
-                    "solver": {
-                        "solver": "CG",
-                        "max_iters": self.pressure_max_iteration,
-                        "tolerance": self.pressure_tolerance,
-                        "norm": "L2",
-                        "monitor_residual": 1,
-                        "store_res_history" : 1,
-                        "print_solve_stats": 0,
-                        "preconditioner": {
-                            "solver": "AMG",
-                            "algorithm": "AGGREGATION",
-                            "cycle": "V",
-                            "max_levels": 10,
-                            "min_coarse_rows": 32,
-                            "presweeps": 1,
-                            "postsweeps": 1,
-                            "smoother": {
-                                "scope" : "jacobi",
-                                "solver": "BLOCK_JACOBI"
-                            },
-                            "coarse_solver": {
-                                "solver": "DENSE_LU_SOLVER"
-                            }
-                        }
-                    }
-                }
-                self.cfg = cfd_utils.linear_solver.Config().create_from_dict(solver_config)
-
-                self.rsrc = cfd_utils.linear_solver.Resources().create_simple(self.cfg)
-
-                self.linear_solver = cfd_utils.linear_solver.Solver().create(self.rsrc, self.cfg)
-
-                self.A_amgx = cfd_utils.linear_solver.Matrix().create(self.rsrc)
-                self.b_amgx = cfd_utils.linear_solver.Vector().create(self.rsrc)
-                self.x_amgx = cfd_utils.linear_solver.Vector().create(self.rsrc)
-
-                # # Make sure all arrays are on the GPU
-                # indptr = xp.asarray(self.L.indptr, dtype=xp.int32)
-                # indices = xp.asarray(self.L.indices, dtype=xp.int32)
-                # values = xp.asarray(self.L.data, dtype=cfd_utils.PRECISION)
-
-                # # Construct a CuPy CSR matrix
-                # A_cu = cfd_utils.sparse.csr_matrix((values, indices, indptr), shape=self.L.shape)
-
-                # Upload to AMGX
-                self.A_amgx.upload_CSR(self.L)
-
-                # Build AMG hierarchy (only done once as our sparsity never changes here)
-                self.linear_solver.setup(self.A_amgx)
-            else:
-                # Create the standard CuPy CG solver
-                self.linear_solver = cfd_utils.sparse_linalg.cg
-        # else:
-            # pass #FIXME: we need the future linear solvers here
-            # # Set up the AMGCL linear solver
-            # amgcl_settings = KratosMultiphysics.Parameters("""{
-            #     "solver_type"                    : "amgcl",
-            #     "max_iteration"                  : 200,
-            #     "tolerance"                      : 1e-6,
-            #     "provide_coordinates"            : false,
-            #     "smoother_type"                  : "ilu0",
-            #     "krylov_type"                    : "cg",
-            #     "gmres_krylov_space_dimension"   : 100,
-            #     "use_block_matrices_if_possible" : false,
-            #     "coarsening_type"                : "aggregation",
-            #     "scaling"                        : true,
-            #     "verbosity"                      : 0
-            # }""")
-            # self.linear_solver = KM.Future.AMGCL(amgcl_settings)
-
-            # # Initialize the linear solver
-            # b = KM.SystemVector(self.L.Size1()) #FIXME: fake arrays to match the interface
-            # x = KM.SystemVector(self.L.Size1()) #FIXME: fake arrays to match the interface
-            # self.linear_solver.Initialize(self.L, b, x)
 
     def _SolvePressure(self, rhs, previous_p):
         if USE_CUPY:
-            if USE_AMGX:
-                # Update matrix coefficients only
-                values = xp.asarray(self.L.data, dtype=cfd_utils.PRECISION)
-                self.A_amgx.replace_coefficients(values)
-
-                # Upload RHS
-                self.b_amgx.upload(rhs)
-
-                # Optional initial guess
-                self.x_amgx.upload(xp.zeros_like(rhs)) #FIXME: here we should pass p
-
-                # Solve and get convergence status
-                self.A_amgx.upload_CSR(self.L)
-                self.linear_solver.setup(self.A_amgx)
-                self.linear_solver.solve(self.b_amgx, self.x_amgx)
-                is_converged = self.linear_solver.get_residual() <= self.pressure_tolerance
-
-                return self.x_amgx.download(), is_converged
-            else:
-                # precond = JacobiPreconditioner(self.L)
-                if self.update_precond:
-                    t0 = time.perf_counter()
-                    self.preconditioner.update_matrix_values(self.L)
-                    print(f"AMG graph update time: {time.perf_counter() - t0:.4f} seconds")
-                    self.update_precond = True
-                precond = self.preconditioner.aspreconditioner()
-
-                # Solve and get convergence status
+            # precond = JacobiPreconditioner(self.L)
+            if self.update_precond:
                 t0 = time.perf_counter()
-                sol, status = cfd_utils.sparse_linalg.cg(self.L, rhs, x0=previous_p, rtol=self.pressure_tolerance, M=precond)
-                print(f"CG solve time: {time.perf_counter() - t0:.4f} seconds")
-                is_converged = status == 0 # Note that the status is 0 if the solver converged
-                if not is_converged:
-                    print("CG failed to converge.")
-                return sol, is_converged
+                self.preconditioner.update_matrix_values(self.L)
+                print(f"AMG graph update time: {time.perf_counter() - t0:.4f} seconds")
+                self.update_precond = True
+            precond = self.preconditioner.aspreconditioner()
+
+            # Solve and get convergence status
+            t0 = time.perf_counter()
+            sol, status = cfd_utils.sparse_linalg.cg(self.L, rhs, x0=previous_p, rtol=self.pressure_tolerance, M=precond)
+            print(f"CG solve time: {time.perf_counter() - t0:.4f} seconds")
+            is_converged = status == 0 # Note that the status is 0 if the solver converged
+            if not is_converged:
+                print("CG failed to converge.")
+            return sol, is_converged
         else:
             #FIXME: USE AMGCL FROM FUTURE NAMESPACE HERE!
             A_np = cfd_utils.sparse.csr_matrix((
@@ -1126,20 +1049,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
             # return x, self.linear_solver.IsConverged()
 
     def _FinalizePressureLinearSolver(self):
-        if USE_CUPY:
-            if USE_AMGX:
-                self.linear_solver.destroy()
-                self.A_amgx.destroy()
-                self.b_amgx.destroy()
-                self.x_amgx.destroy()
-
-                self.rsrc.destroy()
-                self.cfg.destroy()
-
-                cfd_utils.linear_solver.finalize()
-        # else:
-            # pass #FIXME: we need the future linear solvers here
-            # self.linear_solver.Clear()
+        pass
 
 if __name__ == "__main__":
 
