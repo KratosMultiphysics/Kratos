@@ -241,8 +241,7 @@ public:
             double & r_nodal_mass     = rNode.FastGetSolutionStepValue(NODAL_MASS);
             array_1d<double, 3 > & r_nodal_momentum = rNode.FastGetSolutionStepValue(NODAL_MOMENTUM);
             array_1d<double, 3 > & r_nodal_inertia  = rNode.FastGetSolutionStepValue(NODAL_INERTIA);
-            array_1d<double, 3 > & r_nodal_cauchy_stress_vector  = rNode.FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_VECTOR);
-
+            //vector & r_nodal_cauchy_stress_vector  = rNode.FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_VECTOR);          
             array_1d<double, 3 > & r_nodal_displacement = rNode.FastGetSolutionStepValue(DISPLACEMENT);
             array_1d<double, 3 > & r_nodal_velocity     = rNode.FastGetSolutionStepValue(VELOCITY,1);
             array_1d<double, 3 > & r_nodal_acceleration = rNode.FastGetSolutionStepValue(ACCELERATION,1);
@@ -254,12 +253,12 @@ public:
             r_nodal_mass = 0.0;
             r_nodal_momentum.clear();
             r_nodal_inertia.clear();
-            r_nodal_cauchy_stress_vector.clear();
+            //r_nodal_cauchy_stress_vector.clear();
 
             r_nodal_displacement.clear();
             r_nodal_velocity.clear();
             r_nodal_acceleration.clear();
-            r_nodal_old_pressure = 0.0;
+            r_nodal_old_pressure = 0.0; 
             r_nodal_pressure = 0.0;
 
             // Other additional variables

@@ -859,12 +859,13 @@ void MPMUpdatedLagrangian::AddExplicitContribution(const ProcessInfo& rCurrentPr
 
     if (dimension==2) voigt_dimension=3;
     if (dimension==3) voigt_dimension=6;
-    Vector nodal_cauchy_stress_vector  = ZeroVector(voigt_dimension);
-    
+    Vector nodal_cauchy_stress_vector = ZeroVector(voigt_dimension);    
 
     // Here MP contribution in terms of momentum, inertia and mass are added
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
+        
+
         for (unsigned int j = 0; j < dimension; j++)
         {
             nodal_momentum[j] = r_N(0, i) * mMP.velocity[j] * mMP.mass;
@@ -889,7 +890,14 @@ void MPMUpdatedLagrangian::AddExplicitContribution(const ProcessInfo& rCurrentPr
         r_geometry[i].FastGetSolutionStepValue(NODAL_MOMENTUM, 0) += nodal_momentum;
         r_geometry[i].FastGetSolutionStepValue(NODAL_INERTIA, 0)  += nodal_inertia;
         r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0) += r_N(0, i) * mMP.mass;
-        r_geometry[i].FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_VECTOR, 0) += nodal_cauchy_stress_vector;
+        //r_geometry[i].FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_VECTOR, 0) += nodal_cauchy_stress_vector;
+        auto& r_nodal_stress =
+        r_geometry[i].FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_VECTOR, 0);
+
+        if (r_nodal_stress.size() != voigt_dimension)
+            r_nodal_stress.resize(voigt_dimension, false);
+        noalias(r_nodal_stress) += nodal_cauchy_stress_vector;
+        //KRATOS_WATCH(r_nodal_stress.size());
         r_geometry[i].UnSetLock();
     }
 }

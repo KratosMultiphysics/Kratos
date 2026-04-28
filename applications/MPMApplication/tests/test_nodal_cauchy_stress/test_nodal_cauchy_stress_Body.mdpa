@@ -1,0 +1,35 @@
+Begin ModelPartData
+//  VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 0
+End Properties
+Begin Nodes
+    1 0.0 0.0 0.0
+    2 0.0 1.0 0.0
+    3 1.0 0.0 0.0
+    4 1.0 1.0 0.0
+    5 2.0 0.0 0.0
+    6 2.0 1.0 0.0
+End Nodes
+
+
+Begin Geometries Quadrilateral2D4 // GUI group identifier: Material domain Auto1
+    1      3     4     2     1 
+    2      5     6     4     3 
+End Geometries
+
+Begin SubModelPart Material_domain_Auto1 // Group Material domain Auto1
+    Begin SubModelPartNodes
+            1
+            2
+            3
+            4
+            5
+            6
+    End SubModelPartNodes
+    Begin SubModelPartGeometries
+            1
+            2
+    End SubModelPartGeometries
+End SubModelPart
