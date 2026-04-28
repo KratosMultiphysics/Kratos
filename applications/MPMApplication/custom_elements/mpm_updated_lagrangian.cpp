@@ -1633,6 +1633,25 @@ void MPMUpdatedLagrangian::CalculateOnIntegrationPoints(const Variable<Vector>& 
     }
 }
 
+void MPMUpdatedLagrangian::CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
+    std::vector<Matrix>& rValues,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    if (rValues.size() != 1)
+        rValues.resize(1);
+
+    if (rVariable == MP_VELOCITY_GRADIENT) {
+        rValues[0] = mMP.velocity_gradient;
+    }
+    else if (rVariable == MP_ACCELERATION_GRADIENT) {
+        rValues[0] = mMP.acceleration_gradient;
+    }
+    else
+    {
+        KRATOS_ERROR << "Variable " << rVariable << " is called in CalculateOnIntegrationPoints, but is not implemented." << std::endl;
+    }
+}
+
 ///@}
 ///@name Access Set Values
 ///@{
@@ -1708,6 +1727,26 @@ void MPMUpdatedLagrangian::SetValuesOnIntegrationPoints(const Variable<Vector>& 
     }
     else if (rVariable == MP_ALMANSI_STRAIN_VECTOR) {
         mMP.almansi_strain_vector = rValues[0];
+    }
+    else
+    {
+        KRATOS_ERROR << "Variable " << rVariable << " is called in SetValuesOnIntegrationPoints, but is not implemented." << std::endl;
+    }
+}
+
+void MPMUpdatedLagrangian::SetValuesOnIntegrationPoints(const Variable<Matrix>& rVariable,
+    const std::vector<Matrix>& rValues,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_ERROR_IF(rValues.size() > 1)
+        << "Only 1 value per integration point allowed! Passed values vector size: "
+        << rValues.size() << std::endl;
+
+    if (rVariable == MP_VELOCITY_GRADIENT) {
+        mMP.velocity_gradient = rValues[0];
+    }
+    else if (rVariable == MP_ACCELERATION_GRADIENT) {
+        mMP.acceleration_gradient = rValues[0];
     }
     else
     {

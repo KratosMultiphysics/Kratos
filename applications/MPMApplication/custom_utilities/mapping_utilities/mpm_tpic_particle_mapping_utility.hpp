@@ -71,8 +71,10 @@ namespace Kratos
         {
             const unsigned int dimension = rElement.GetGeometry().WorkingSpaceDimension();
             const Matrix InitiateGradient = ZeroMatrix(dimension, dimension);
-            rElement.SetValue(MP_VELOCITY_GRADIENT, InitiateGradient);
-            rElement.SetValue(MP_ACCELERATION_GRADIENT, InitiateGradient);
+
+            // Initialize gradients to zero (not suitable for simulation with prescribed velocities at MP)
+            rElement.SetValuesOnIntegrationPoints(MP_VELOCITY_GRADIENT, {InitiateGradient}, mrProcessInfo);
+            rElement.SetValuesOnIntegrationPoints(MP_ACCELERATION_GRADIENT, {InitiateGradient}, mrProcessInfo);
         }
     }
 
@@ -176,39 +178,34 @@ namespace Kratos
 
             node_index++;
         }
-
-        KRATOS_WATCH(mp_velocity_gradient)
-
-        rElement.SetValue(MP_VELOCITY_GRADIENT, mp_velocity_gradient);
+        rElement.SetValuesOnIntegrationPoints(MP_VELOCITY_GRADIENT, {mp_velocity_gradient}, mrProcessInfo);
     }
 
-    // void CalculateMPAccelerationGradient(Element& rElement, const Matrix& dN_dX)
-    // {
-    //     const unsigned int dimension = rElement.GetGeometry().WorkingSpaceDimension();
-    //     Matrix mp_velocity_gradient = ZeroMatrix(dimension, dimension);
+    void CalculateMPAccelerationGradient(Element& rElement, const Matrix& dN_dX)
+    {
+        const unsigned int dimension = rElement.GetGeometry().WorkingSpaceDimension();
+        Matrix mp_acceleration_gradient = ZeroMatrix(dimension, dimension);
 
-    //     IndexType node_index = 0;
-    //     for (const Node& node_i : rElement.GetGeometry())
-    //     {
-    //         const array_1d<double,3> velocity_i = node_i.FastGetSolutionStepValue(VELOCITY, 0);
-    //         const Vector& dN_dX_i = row(dN_dX, node_index);
+        IndexType node_index = 0;
+        for (const Node& node_i : rElement.GetGeometry())
+        {
+            const array_1d<double,3> acceleration_i = node_i.FastGetSolutionStepValue(ACCELERATION, 0);
+            const Vector& dN_dX_i = row(dN_dX, node_index);
 
-    //         // calculate velocity gradient for current node
-    //         for ( IndexType dim_i = 0; dim_i < dimension; dim_i++ )
-    //         {
-    //             for ( IndexType dim_j = 0; dim_j < dimension; dim_j++ )
-    //             {
-    //                 mp_velocity_gradient(dim_i,dim_j) += velocity_i[dim_i] * dN_dX_i(dim_j);
-    //             }
-    //         }
+            // calculate acceleration gradient for current node
+            for ( IndexType dim_i = 0; dim_i < dimension; dim_i++ )
+            {
+                for ( IndexType dim_j = 0; dim_j < dimension; dim_j++ )
+                {
+                    mp_acceleration_gradient(dim_i,dim_j) += acceleration_i[dim_i] * dN_dX_i(dim_j);
+                }
+            }
 
-    //         node_index++;
-    //     }
+            node_index++;
+        }
 
-    //     KRATOS_WATCH(mp_velocity_gradient)
-
-    //     rElement.SetValue(MP_VELOCITY_GRADIENT, mp_velocity_gradient);
-    // }
+        rElement.SetValuesOnIntegrationPoints(MP_ACCELERATION_GRADIENT, {mp_acceleration_gradient}, mrProcessInfo);
+    }
 
 
     void G2PAdditionalVariables(Element& rElement) override
@@ -224,7 +221,7 @@ namespace Kratos
         Matrix dN_dX = prod(r_dN_de, InvJ); // cartesian gradients
         // Calculate velocity and acceleration derivatives
         this->CalculateMPVelocityGradient(rElement, dN_dX);
-        // this->CalculateMPAccelerationGradient(rElement, dN_dX);
+        this->CalculateMPAccelerationGradient(rElement, dN_dX);
     }
 
     #pragma endregion

@@ -406,7 +406,11 @@ namespace Kratos::Testing
             material_point_i.CalculateOnIntegrationPoints(rMPVariableName, mp_variable_value, rProcessInfo);
             if constexpr(std::is_same_v<TDataType, double>) {
                 KRATOS_EXPECT_RELATIVE_NEAR(mp_variable_value[0], rReferenceValues[mp_index], tolerance);
-            } else {
+            }
+            else if constexpr(std::is_same_v<TDataType, Matrix>){
+                KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(mp_variable_value[0], rReferenceValues[mp_index], tolerance);
+            }
+            else {
                 KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(mp_variable_value[0], rReferenceValues[mp_index], tolerance);
             }
             ++mp_index;

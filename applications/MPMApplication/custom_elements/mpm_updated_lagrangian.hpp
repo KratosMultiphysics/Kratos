@@ -86,6 +86,10 @@ protected:
     struct MaterialPointVariables
     {
     public:
+        // TPIC related
+        Matrix velocity_gradient;
+        Matrix acceleration_gradient;
+
         // Material Point Position
         CoordinatesArrayType xg;
         // MP_MASS
@@ -458,6 +462,10 @@ public:
         std::vector<Vector>& rValues,
         const ProcessInfo& rCurrentProcessInfo) override;
 
+    void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
+        std::vector<Matrix>& rValues,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
     ///@}
     ///@name Access Set Values
     ///@{
@@ -478,6 +486,9 @@ public:
         const std::vector<Vector>& rValues,
         const ProcessInfo& rCurrentProcessInfo) override;
 
+    void SetValuesOnIntegrationPoints(const Variable<Matrix>& rVariable,
+        const std::vector<Matrix>& rValues,
+        const ProcessInfo& rCurrentProcessInfo) override;
     ///@}
 
 protected:
