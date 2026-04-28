@@ -144,28 +144,40 @@ struct ilu0_chow_patel {
         }
 
         // -----------------------------------------------------------------
-        // 2. Count nonzeros and allocate L (CSR) and U (CSR + diagonal).
+        // 2. Count nonzeros per row and build prefix-sum Lptr / Uptr.
+        //    Doing this in a separate pass lets the fill in step 3 run
+        //    fully in parallel (each row writes to a known, disjoint range).
         //    L is strictly lower triangular (unit diagonal, not stored).
         //    U has its diagonal stored separately in Udiag.
         // -----------------------------------------------------------------
-        size_t Lnz = 0, Unz = 0;
+        std::vector<ptr_type> Lptr(n + 1, 0);
+        std::vector<ptr_type> Uptr(n + 1, 0);
+
         for (ptrdiff_t i = 0; i < n; ++i) {
             for (ptr_type j = A.ptr[i]; j < A.ptr[i + 1]; ++j) {
                 ptrdiff_t c = A.col[j];
-                if (c < i) ++Lnz;
-                else if (c > i) ++Unz;
+                if      (c < i) ++Lptr[i + 1];
+                else if (c > i) ++Uptr[i + 1];
             }
         }
+        for (ptrdiff_t i = 1; i <= n; ++i) {
+            Lptr[i] += Lptr[i - 1];
+            Uptr[i] += Uptr[i - 1];
+        }
 
-        std::vector<ptr_type>    Lptr(n + 1, 0);
-        std::vector<col_type>    Lcol(Lnz);
-        std::vector<value_type>  Lval(Lnz);
+        const size_t Lnz = static_cast<size_t>(Lptr[n]);
+        const size_t Unz = static_cast<size_t>(Uptr[n]);
 
-        std::vector<ptr_type>    Uptr(n + 1, 0);
-        std::vector<col_type>    Ucol(Unz);
-        std::vector<value_type>  Uval(Unz);
+        // Use numa_vector (no zero-fill on allocation) so that the parallel
+        // first-touch in step 3 below places each page on the NUMA node of
+        // the thread that will own it during the sweep loops.
+        backend::numa_vector<col_type>   Lcol(Lnz, false);
+        backend::numa_vector<value_type> Lval(Lnz, false);
 
-        std::vector<value_type>  Udiag(n);
+        backend::numa_vector<col_type>   Ucol(Unz, false);
+        backend::numa_vector<value_type> Uval(Unz, false);
+
+        backend::numa_vector<value_type> Udiag(n, false);
 
         // -----------------------------------------------------------------
         // 3. Standard initial guess (Section 2.3 of the paper):
@@ -173,57 +185,89 @@ struct ilu0_chow_patel {
         //      U^(0)_{ij} = a'_{ij}      (i < j)
         //      U^(0)_{ii} = 1            (unit diagonal after scaling)
         //    where a'_{ij} = a_{ij} / a_{ii}.
+        //
+        //    The loop is parallel so that each thread first-touches its own
+        //    slice of Lcol/Lval, Ucol/Uval, and Udiag – matching the access
+        //    pattern of the sweep loops in step 5.
         // -----------------------------------------------------------------
-        {
-            size_t lh = 0, uh = 0;
-            for (ptrdiff_t i = 0; i < n; ++i) {
-                for (ptr_type j = A.ptr[i]; j < A.ptr[i + 1]; ++j) {
-                    ptrdiff_t c = A.col[j];
-                    value_type v = A.val[j] * inv_diag[i]; // row-scaling
-                    if (c < i) {
-                        Lcol[lh] = c;
-                        Lval[lh] = v;
-                        ++lh;
-                    } else if (c > i) {
-                        Ucol[uh] = c;
-                        Uval[uh] = v;
-                        ++uh;
-                    }
+#ifdef _OPENMP
+#  pragma omp parallel for schedule(guided, 64)
+#endif
+        for (ptrdiff_t i = 0; i < n; ++i) {
+            ptr_type lh = Lptr[i], uh = Uptr[i];
+            for (ptr_type j = A.ptr[i]; j < A.ptr[i + 1]; ++j) {
+                ptrdiff_t c = A.col[j];
+                value_type v = A.val[j] * inv_diag[i]; // row-scaling
+                if (c < i) {
+                    Lcol[lh] = static_cast<col_type>(c);
+                    Lval[lh] = v;
+                    ++lh;
+                } else if (c > i) {
+                    Ucol[uh] = static_cast<col_type>(c);
+                    Uval[uh] = v;
+                    ++uh;
                 }
-                Lptr[i + 1] = lh;
-                Uptr[i + 1] = uh;
-                Udiag[i] = math::identity<value_type>();
             }
+            Udiag[i] = math::identity<value_type>();
         }
 
         // Keep a copy of the scaled matrix entries as RHS of the fixed-point
-        // equations (these do not change during sweeps).
-        std::vector<value_type> a_L(Lval);
-        std::vector<value_type> a_U(Uval);
+        // equations (these do not change during sweeps).  Parallel copy so
+        // that a_L / a_U are first-touched on the same nodes as Lval / Uval.
+        backend::numa_vector<value_type> a_L(Lnz, false);
+        backend::numa_vector<value_type> a_U(Unz, false);
+#ifdef _OPENMP
+#  pragma omp parallel for schedule(guided, 64)
+#endif
+        for (ptrdiff_t i = 0; i < n; ++i) {
+            for (ptr_type j = Lptr[i]; j < Lptr[i + 1]; ++j) a_L[j] = Lval[j];
+            for (ptr_type j = Uptr[i]; j < Uptr[i + 1]; ++j) a_U[j] = Uval[j];
+        }
 
         // -----------------------------------------------------------------
         // 4. Build CSC representation of U for efficient column access.
         //    The sparse-sparse inner products require rows of L (CSR) and
         //    columns of U (CSC).
+        //
+        //    Structure (Ucptr, Ucrow) is built sequentially once; values
+        //    (Ucval) are written by a separate parallel loop so that the
+        //    first-touch for Ucval happens on the threads that will read it
+        //    in rebuild_ucsc_values (which uses the same row-parallel schedule).
         // -----------------------------------------------------------------
         std::vector<ptr_type>    Ucptr(n + 1, 0);
         std::vector<col_type>    Ucrow(Unz);
-        std::vector<value_type>  Ucval(Unz);
+        backend::numa_vector<value_type> Ucval(Unz, false);
 
+        // build_ucsc: rebuild full CSC (structure + values) from current Uval.
+        // Structure is computed sequentially; values are then filled in
+        // parallel (row-parallel over i) to establish NUMA locality.
         auto build_ucsc = [&]() {
+            // --- structural part (sequential) ---
             std::fill(Ucptr.begin(), Ucptr.end(), ptr_type(0));
             for (size_t k = 0; k < Unz; ++k)
                 ++Ucptr[Ucol[k] + 1];
             for (ptrdiff_t j = 1; j <= n; ++j)
                 Ucptr[j] += Ucptr[j - 1];
 
+            // Build Ucrow (maps CSC position → original row).
             std::vector<ptr_type> pos(Ucptr.begin(), Ucptr.end());
+            for (ptrdiff_t i = 0; i < n; ++i)
+                for (ptr_type k = Uptr[i]; k < Uptr[i + 1]; ++k)
+                    Ucrow[pos[Ucol[k]]++] = static_cast<col_type>(i);
+
+            // --- value part (parallel first-touch) ---
+#ifdef _OPENMP
+#  pragma omp parallel for schedule(guided, 64)
+#endif
             for (ptrdiff_t i = 0; i < n; ++i) {
                 for (ptr_type k = Uptr[i]; k < Uptr[i + 1]; ++k) {
                     ptrdiff_t c = Ucol[k];
-                    ptr_type  p = pos[c]++;
-                    Ucrow[p] = i;
-                    Ucval[p] = Uval[k];
+                    for (ptr_type p = Ucptr[c]; p < Ucptr[c + 1]; ++p) {
+                        if (Ucrow[p] == static_cast<col_type>(i)) {
+                            Ucval[p] = Uval[k];
+                            break;
+                        }
+                    }
                 }
             }
         };
