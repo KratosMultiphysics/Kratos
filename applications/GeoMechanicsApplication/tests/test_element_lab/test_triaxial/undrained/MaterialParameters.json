@@ -23,11 +23,7 @@
                     "SATURATED_SATURATION": 1.0,
                     "YOUNG_MODULUS": 2.0e+04,
                     "POISSON_RATIO": 0.25,
-                    "GEO_POISSON_UNDRAINED": 0.45,
-                    "GEO_COHESION": 2.0,
-                    "GEO_FRICTION_ANGLE": 25.0,
-                    "GEO_TENSILE_STRENGTH": 0.0,
-                    "GEO_DILATANCY_ANGLE": 2.0
+                    "GEO_POISSON_UNDRAINED": 0.45
                 }
             }
         }
