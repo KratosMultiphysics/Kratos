@@ -127,21 +127,11 @@ struct ilu0_chow_patel {
         // 1. Diagonal scaling.
         //    Row-scale A so that the diagonal is the identity:
         //      A' = diag(1/a_ii) * A.
-        //    Store inv_diag[i] = 1/a_ii for unscaling later.
+        //    backend::diagonal(A, true) returns a numa_vector of 1/a_ii
+        //    computed in a parallel loop with correct NUMA first-touch.
         // -----------------------------------------------------------------
-        std::vector<value_type> inv_diag(n);
-        for (ptrdiff_t i = 0; i < n; ++i) {
-            value_type d = math::zero<value_type>();
-            for (ptr_type j = A.ptr[i]; j < A.ptr[i + 1]; ++j) {
-                if (A.col[j] == i) {
-                    d = A.val[j];
-                    break;
-                }
-            }
-            precondition(!math::is_zero(d),
-                         "Zero diagonal in ILU0 Chow-Patel scaling");
-            inv_diag[i] = math::inverse(d);
-        }
+        auto inv_diag_ptr = backend::diagonal(A, /*invert=*/true);
+        auto &inv_diag = *inv_diag_ptr;
 
         // -----------------------------------------------------------------
         // 2. Count nonzeros per row and build prefix-sum Lptr / Uptr.
