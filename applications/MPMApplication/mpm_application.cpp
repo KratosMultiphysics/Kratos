@@ -141,7 +141,7 @@ namespace Kratos
         KRATOS_REGISTER_CONDITION( "MPMGridSurfaceLoadCondition3D4N", mMPMGridSurfaceLoadCondition3D4N)
         // MPM Conditions
         KRATOS_REGISTER_CONDITION( "MPMParticlePenaltyDirichletCondition", mMPMParticlePenaltyDirichletCondition)
-        KRATOS_REGISTER_CONDITION( "MPMParticleLagrangeDirichletCondition", mMPMParticleLagrangeDirichletCondition) 
+        KRATOS_REGISTER_CONDITION( "MPMParticleLagrangeDirichletCondition", mMPMParticleLagrangeDirichletCondition)
         KRATOS_REGISTER_CONDITION( "MPMParticlePointLoadCondition", mMPMParticlePointLoadCondition)
 
         // deprecated conditions
@@ -226,6 +226,8 @@ namespace Kratos
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( MP_VOLUME_ACCELERATION )
         KRATOS_REGISTER_VARIABLE( MP_CAUCHY_STRESS_VECTOR )
         KRATOS_REGISTER_VARIABLE( MP_ALMANSI_STRAIN_VECTOR )
+        KRATOS_REGISTER_VARIABLE( MP_VELOCITY_GRADIENT )
+        KRATOS_REGISTER_VARIABLE( MP_ACCELERATION_GRADIENT )
 
         // Registering MP condition variable
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( MPC_COORD )
