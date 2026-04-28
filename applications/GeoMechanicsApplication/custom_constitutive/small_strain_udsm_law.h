@@ -12,6 +12,7 @@
 
 #pragma once
 
+#include <array>
 #include <iostream>
 #include <string>
 
@@ -59,7 +60,7 @@ using pF_UserMod          = void (*)(int*,
                             double*,
                             double*,
                             double*,
-                            double**,
+                            double*,
                             double*,
                             double*,
                             double*,
@@ -172,7 +173,7 @@ protected:
     array_1d<double, StrainIncrementVectorSize> mDeltaStrainVector{StrainIncrementVectorSize, 0.0};
     array_1d<double, VOIGT_SIZE_3D>             mStrainVectorFinalized{VOIGT_SIZE_3D, 0.0};
 
-    double mMatrixD[VOIGT_SIZE_3D][VOIGT_SIZE_3D] = {}; // all elements equal zero
+    std::array<std::array<double, VOIGT_SIZE_3D>, VOIGT_SIZE_3D> mMatrixD = {}; // all elements equal zero
 
     virtual void UpdateInternalDeltaStrainVector(Parameters& rValues);
     virtual void UpdateInternalStrainVectorFinalized(Parameters& rValues);

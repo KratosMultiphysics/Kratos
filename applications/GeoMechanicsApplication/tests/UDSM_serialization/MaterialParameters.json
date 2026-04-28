@@ -14,27 +14,18 @@
                     "POROSITY": 0.3,
                     "BULK_MODULUS_SOLID": 1.0e+12,
                     "BULK_MODULUS_FLUID": 2.2e+09,
-                    "PERMEABILITY_XX": 2.0e-9,
-                    "PERMEABILITY_YY": 2.0e-9,
+                    "PERMEABILITY_XX": 2.0e-09,
+                    "PERMEABILITY_YY": 2.0e-09,
                     "PERMEABILITY_XY": 0.0,
                     "DYNAMIC_VISCOSITY": 1.0e-03,
                     "RETENTION_LAW": "SaturatedBelowPhreaticLevelLaw",
                     "SATURATED_SATURATION": 1.0,
-                    "RESIDUAL_SATURATION": 0.0001,
+                    "RESIDUAL_SATURATION": 1.0e-04,
                     "MINIMUM_RELATIVE_PERMEABILITY": 1.0e-04,
                     "UDSM_NAME": "../MohrCoulomb64.dll",
                     "UDSM_NUMBER": 1,
                     "IS_FORTRAN_UDSM": true,
-                    "UMAT_PARAMETERS": [
-                        1.0e+09,
-                        0.2,
-                        10000.0,
-                        30.0,
-                        0.0,
-                        1000.0,
-                        1,
-                        0.0
-                    ]
+                    "UMAT_PARAMETERS": [1.0e+09, 0.2, 1.0e+04, 30.0, 0.0, 1.0e+03, 1, 0.0]
                 }
             }
         }
