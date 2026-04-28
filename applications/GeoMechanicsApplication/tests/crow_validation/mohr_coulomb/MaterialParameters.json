@@ -311,8 +311,8 @@
                 },
                 "Variables": {
                     "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
-                    "INTERFACE_NORMAL_STIFFNESS": 4.615e+06,
-                    "INTERFACE_SHEAR_STIFFNESS": 4.615e+06,
+                    "INTERFACE_NORMAL_STIFFNESS": 1.1538e+08,
+                    "INTERFACE_SHEAR_STIFFNESS": 1.1538e+07,
                     "GEO_COHESION": 0.0,
                     "GEO_FRICTION_ANGLE": 20.0,
                     "GEO_DILATANCY_ANGLE": 0.0,
@@ -426,8 +426,8 @@
                 },
                 "Variables": {
                     "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
-                    "INTERFACE_NORMAL_STIFFNESS": 4.615e+06,
-                    "INTERFACE_SHEAR_STIFFNESS": 4.615e+06,
+                    "INTERFACE_NORMAL_STIFFNESS": 1.1538e+08,
+                    "INTERFACE_SHEAR_STIFFNESS": 1.1538e+07,
                     "GEO_COHESION": 0.0,
                     "GEO_FRICTION_ANGLE": 20.0,
                     "GEO_DILATANCY_ANGLE": 0.0,
