@@ -57,7 +57,14 @@ class SPHAnalysis(AnalysisStage):
 		}
 		""");
 		kernel_correction_process = SPH.ComputeKernelCorrectionProcess(model_part, params)
-		volume_process = SPH.ComputeVolumeProcess(self.model["Structure.Triangulation"], KM.Parameters("{}"))
+
+		params = KM.Parameters("""
+		{
+			"model_part_name" : "set_model_part_name",
+			"structured_mesh" : false
+		}
+		""");
+		volume_process = SPH.ComputeVolumeProcess(self.model["Structure.Triangulation"], params)
 
 		## Il problema al momento è scrivere in modo più compatto questi input e assegnare quelli di default,
 		## default non assegato perchè non viene richiamata la factory

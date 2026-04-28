@@ -10,6 +10,7 @@ def Factory(settings, Model):
     default_settings = KM.Parameters(
         """{
             "model_part_name": "set_model_part_name"
+            "structured_mesh" : "true"
         }""");
 
     process_settings = settings["Parameters"]

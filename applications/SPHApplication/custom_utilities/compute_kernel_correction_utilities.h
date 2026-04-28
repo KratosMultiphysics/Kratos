@@ -6,6 +6,8 @@
 #include "includes/ublas_interface.h"
 #include "sph_application_variables.h"
 #include "custom_utilities/custom_kernels/kernel_factory.h"
+#include "linear_solvers/linear_solver.h"
+#include "linear_solvers/skyline_lu_factorization_solver.h"
 
 /**
  * @class ComputeKernelCorrectionUtilities
@@ -27,11 +29,13 @@ public:
 
     static void ComputeGradientCorrection(ModelPart& rThisModelPart);
 
-    static bool VerifyKernelCorrection(ModelPart& rThisModelPart, Parameters& rThisParameters);
-
     static void ApplyKernelCorrection(Element& IP, double& kernel_target);
     
     static void ApplyKernelGradientCorrection(Element& IP, double& kernel_target, Vector& dkernel_target);
+
+    static bool VerifyKernelCorrection(ModelPart& rThisModelPart, Parameters& rThisParameters);
+
+    static void VerifyIntegrationCorrection(ModelPart& rThisModelPart);
 
 };
 

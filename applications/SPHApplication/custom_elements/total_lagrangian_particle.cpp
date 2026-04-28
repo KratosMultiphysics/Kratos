@@ -33,6 +33,77 @@ void TotalLagrangianDisplacementParticle<TKernelType>::InitializeMaterial()
 }
 
 template<class TKernelType>
+void TotalLagrangianDisplacementParticle<TKernelType>::InitializeSolutionStep(const ProcessInfo& rProcessInfo)
+{
+    bool required = false;
+    if (mThisConstitutiveLaw->RequiresFinalizeMaterialResponse()) required = true;
+
+    if (required){
+        const auto& r_geom = GetGeometry();
+        const auto& r_prop = GetProperties();
+        const SizeType number_of_neighbours = GetValue(NEIGHBOURS).size();
+        const SizeType dimension = r_geom.WorkingSpaceDimension();
+        const SizeType strain_size = mThisConstitutiveLaw->GetStrainSize();
+
+        KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_neighbours);
+        ConstitutiveVariables this_constitutive_variables(strain_size);
+
+        ConstitutiveLaw::Parameters Values(r_geom, r_prop, rProcessInfo);
+
+        auto& ConstitutiveLawOptions = Values.GetOptions();
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+
+        Values.SetStrainVector(this_constitutive_variables.StrainVector);
+        Values.SetStressVector(this_constitutive_variables.StressVector);
+        Values.SetConstitutiveMatrix(this_constitutive_variables.C);
+
+        CalculateKinematicVariables(this_kinematic_variables, rProcessInfo);
+
+        SetConstitutiveLawVariables(this_constitutive_variables, this_kinematic_variables, Values);
+
+        mThisConstitutiveLaw->InitializeMaterialResponse(Values, ConstitutiveLaw::StressMeasure_PK2);
+
+    }
+}
+
+template<class TKernelType>
+void TotalLagrangianDisplacementParticle<TKernelType>::FinalizeSolutionStep(const ProcessInfo& rProcessInfo)
+{
+    bool required = false;
+    if (mThisConstitutiveLaw->RequiresFinalizeMaterialResponse()) required = true;
+
+    if (required) {
+        const auto& r_geom = GetGeometry();
+        const auto& r_prop = GetProperties();
+        const SizeType number_of_neighbours = GetValue(NEIGHBOURS).size();
+        const SizeType dimension = r_geom.WorkingSpaceDimension();
+        const SizeType strain_size = mThisConstitutiveLaw->GetStrainSize();
+
+        KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_neighbours);
+        ConstitutiveVariables this_constitutive_variables(strain_size);
+
+        ConstitutiveLaw::Parameters Values(r_geom, r_prop, rProcessInfo);
+
+        auto& ConstitutiveLawOptions = Values.GetOptions();
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+
+        Values.SetStrainVector(this_constitutive_variables.StrainVector);
+        Values.SetStressVector(this_constitutive_variables.StressVector);
+        Values.SetConstitutiveMatrix(this_constitutive_variables.C);
+
+        CalculateKinematicVariables(this_kinematic_variables, rProcessInfo);
+        
+        SetConstitutiveLawVariables(this_constitutive_variables, this_kinematic_variables, Values);
+
+        mThisConstitutiveLaw->FinalizeMaterialResponse(Values, ConstitutiveLaw::StressMeasure_PK2);
+    }
+}
+
+template<class TKernelType>
 Element::Pointer TotalLagrangianDisplacementParticle<TKernelType>::Clone( 
     IndexType NewId, 
     NodesArrayType const& rThisNodes
