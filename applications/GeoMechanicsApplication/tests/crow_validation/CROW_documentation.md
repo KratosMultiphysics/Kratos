@@ -167,13 +167,13 @@ and
 h = 1.0\ \mathrm{m}
 ```
 
-the shear stiffness becomes:
+the interface shear stiffness becomes:
 
 ```math
 k_{\mathrm{s, clay}} = \frac{4.615 \times 10^6}{1.0} = 4.615 \times 10^6
 ```
 
-and the normal stiffness becomes:
+and the interface normal stiffness becomes:
 
 ```math
 k_{\mathrm{n, clay}} = 10 \cdot 4.615 \times 10^6 = 4.615 \times 10^7
@@ -194,28 +194,16 @@ and
 h = 1.0\ \mathrm{m}
 ```
 
-the direct estimate from the same formulation would be:
+the interface shear stiffness becomes:
 
 ```math
 k_{\mathrm{s, sand}} = \frac{1.1538 \times 10^7}{1.0} = 1.1538 \times 10^7
 ```
 
-and
+and the interface normal stiffness becomes:
 
 ```math
 k_{\mathrm{n, sand}} = 10 \cdot 1.1538 \times 10^7 = 1.1538 \times 10^8
-```
-
-However, in the current calibrated Kratos model, the adopted sand-side interface values are reduced to:
-
-```math
-k_{\mathrm{s, sand}} = 4.615 \times 10^6
-```
-
-and
-
-```math
-k_{\mathrm{n,sand}} = 4.615 \times 10^6
 ```
 
 
