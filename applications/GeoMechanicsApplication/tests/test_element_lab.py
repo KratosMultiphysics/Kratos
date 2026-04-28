@@ -9,6 +9,46 @@ class KratosGeoMechanicsLabElementTests(KratosUnittest.TestCase):
     """
     This class contains some element tests, such as triaxial and oedometer tests
     """
+    def test_triaxial(self):
+        """
+        Regression test for the triaxial experiment.
+        """
+        test_name = 'test_triaxial'
+        file_path = test_helper.get_file_path(os.path.join('test_element_lab', test_name))
+        simulation = test_helper.run_kratos(file_path)
+
+        # read the output files from the simulation for comparison
+        reader = GiDOutputFileReader()
+        result = reader.read_output_from(os.path.join(file_path, 'triaxial_test_output.post.res'))
+
+        number_of_elements = 2
+        number_of_nodes = 9
+
+        # Assert the displacement in all nodes in all directions
+        expected_disp = [[0.0, -0.2, 0.0], [0.0527776, -0.2, 0.0], [0.0, -0.100033, 0.0], [0.0524025, -0.0996931, 0.0], [0.0, 0.0, 0.0], [0.105197, -0.2, 0.0], [0.105114, -0.100049, 0.0], [0.0524406, 0.0, 0.0], [0.104632, 0.0, 0.0]]
+        for node in range(number_of_nodes):
+            node_displacement = reader.nodal_values_at_time("DISPLACEMENT", 1, result, [node+1])[0]
+            for direction in range(3):
+                self.assertAlmostEqual(node_displacement[direction], expected_disp[node][direction], 4)
+        
+        # Assert the normal stress for both elements in the first integration point
+        expected_stress = [[-99.9808, -252.622, -99.9806, 0.193199, 0.0, 0.0], [-99.9991, -252.668, -99.9991, 0.00846584, 0, 0]]
+        for element in range(number_of_elements):
+            stress = reader.element_integration_point_values_at_time("CAUCHY_STRESS_TENSOR", 1, result, [element+1], [0])[0]
+            for stress_vector in stress:
+                self.assertAlmostEqual(expected_stress[element][0], stress_vector[0], 4)  # sigma_xx
+                self.assertAlmostEqual(expected_stress[element][1], stress_vector[1], 4)  # sigma_yy
+                self.assertAlmostEqual(expected_stress[element][2], stress_vector[2], 4)  # sigma_zz
+        
+        # Assert the engineering strain for both elements in the first integration point
+        expected_strain = [[0.104863, -0.19973, 0.104946, 0.000440186, 0.0, 0.0], [0.1055, -0.200303, 0.104922, 3.84218e-05, 0, 0]]
+        for element in range(number_of_elements):
+            strain = reader.element_integration_point_values_at_time("ENGINEERING_STRAIN_TENSOR", 1, result, [element+1], [0])[0]
+            for strain_component in strain:
+                self.assertAlmostEqual(expected_strain[element][0], strain_component[0], 4)  # eps_xx
+                self.assertAlmostEqual(expected_strain[element][1], strain_component[1], 4)  # eps_yy
+                self.assertAlmostEqual(expected_strain[element][2], strain_component[2], 4)  # eps_zz
+
     def test_triaxial_comp_6n(self):
         """
         Drained compression triaxial test on Mohr-Coulomb model with axisymmetric 2D6N elements

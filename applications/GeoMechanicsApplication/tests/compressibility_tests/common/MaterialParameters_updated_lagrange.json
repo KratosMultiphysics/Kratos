@@ -7,7 +7,7 @@
               "name"             :  "GeoIncrementalLinearElastic3DLaw"
           },
           "Variables": {
-            "IGNORE_UNDRAINED"             :  false,
+            "GEO_DRAINAGE_TYPE"            :  "FULLY_COUPLED",
             "YOUNG_MODULUS"                :  10000,
             "POISSON_RATIO"                :  0.0,
             "DENSITY_SOLID"                :  2.65,
@@ -26,8 +26,7 @@
             "RETENTION_LAW"                : "SaturatedLaw",
             "SATURATED_SATURATION"         :  1.0,
             "CONSIDER_GEOMETRIC_STIFFNESS" : true
-         },
-         "Tables": {}
+         }
       }
    }]
 }

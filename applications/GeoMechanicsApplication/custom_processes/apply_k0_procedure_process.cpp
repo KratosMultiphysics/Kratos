@@ -142,7 +142,7 @@ void ApplyK0ProcedureProcess::CheckOCRorPOP(const Properties& rProperties, Index
             const auto pop = rProperties[POP];
             KRATOS_ERROR_IF(pop < 0.0)
                 << "POP (" << pop << ") should be in the range [0.0,-> for property Id of "
-                << rProperties.Id() << " element " << ElementId << "." << std::endl;
+                << rProperties.Id() << " for element " << ElementId << "." << std::endl;
         }
     }
 }

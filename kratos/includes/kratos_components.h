@@ -122,7 +122,7 @@ public:
      * @brief Removes all components.
      * @details This function removes all components form the ComponentsContainer and leaves it empty.
      */
-    static void Clear() 
+    static void Clear()
     {
         msComponents.clear();
     }
@@ -269,7 +269,7 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(KratosComponents);
 
     /// The map type used to store the components // TODO: Replace std::map with faster alternative
-    using ComponentsContainerType = std::map<std::string, VariableData*>;
+    using ComponentsContainerType = std::map<std::string, const VariableData*>;
 
     /// Component type
     using ValueType = ComponentsContainerType::value_type;
@@ -297,7 +297,7 @@ public:
      * @param rName the name of the element to add
      * @param rComponent the VariableData object to add
      */
-    static void Add(const std::string& rName, VariableData& rComponent)
+    static void Add(const std::string& rName, const VariableData& rComponent)
     {
         msComponents.insert(ValueType(rName, &rComponent));
     }
@@ -328,7 +328,7 @@ public:
      * @return A reference to the retrieved VariableData.
      * @note If the VariableData is not found in debug, an error message will be printed and the program may terminate.
      */
-    static VariableData& Get(const std::string& rName)
+    static const VariableData& Get(const std::string& rName)
     {
         auto it_comp =  msComponents.find(rName);
         KRATOS_DEBUG_ERROR_IF(it_comp == msComponents.end()) << GetMessageUnregisteredVariable(rName) << std::endl;
@@ -340,7 +340,7 @@ public:
      * @param rName the name of the variable
      * @return a pointer to the variable data, or nullptr if not found
      */
-    static VariableData* pGet(const std::string& rName)
+    static const VariableData* pGet(const std::string& rName)
     {
         auto it_comp =  msComponents.find(rName);
         KRATOS_DEBUG_ERROR_IF(it_comp == msComponents.end()) << GetMessageUnregisteredVariable(rName) << std::endl;

@@ -7,7 +7,7 @@
                 "name"             :  "GeoLinearElasticPlaneStrain2DLaw"
             },
             "Variables": {
-                "IGNORE_UNDRAINED"         :  true,
+                "GEO_DRAINAGE_TYPE"        :  "CONSTANT_PW_FIELD",
                 "YOUNG_MODULUS"            :  1.0e4,
                 "POISSON_RATIO"            :  0.0,
                 "DENSITY_SOLID"            :  0.0,
@@ -31,7 +31,7 @@
             "Variables": {
                 "INTERFACE_NORMAL_STIFFNESS":  2.0e3,
                 "INTERFACE_SHEAR_STIFFNESS" :  1.0e3,
-                "IGNORE_UNDRAINED"          : true
+                "GEO_DRAINAGE_TYPE"         :  "CONSTANT_PW_FIELD"
             }
         }
     }]
