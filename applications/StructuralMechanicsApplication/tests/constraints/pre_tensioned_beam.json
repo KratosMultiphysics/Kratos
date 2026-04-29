@@ -23,7 +23,8 @@
         "displacement_absolute_tolerance": 1e-9,
 
         "rotation_dofs" : true,
-        "move_mesh_flag" : true,
+        "move_mesh_flag" : false,
+        "compute_reactions" : true,
 
         "model_import_settings": {
             "input_type": "mdpa",
@@ -72,15 +73,6 @@
                     "constrained": [false, false, true],
                     "value": [null, null, 0]
                 }
-            },
-            {
-                "python_module" : "neumann_pre_tension_process",
-                "kratos_module" : "KratosMultiphysics.StructuralMechanicsApplication",
-                "Parameters" : {
-                    "model_part_name" : "root.pre_tension_surface",
-                    "magnitude" : 2e7,
-                    "verbosity" : 1
-                }
             }
         ],
         "loads_process_list": [
@@ -100,25 +92,25 @@
             }
         ]
     }
-    //,"output_processes": {
-    //"vtk_output": [
-    //  {
-    //    "Parameters": {
-    //      "folder_name": "vtk",
-    //      "model_part_name": "root",
-    //      "nodal_data_value_variables": [],
-    //      "nodal_solution_step_data_variables": [
-    //        "DISPLACEMENT",
-    //        "ROTATION",
-    //        "REACTION"
-    //      ],
-    //      "output_sub_model_parts": false,
-    //      "save_output_files_in_folder": true
-    //    },
-    //    "kratos_module": "KratosMultiphysics",
-    //    "process_name": "VTKOutputProcess",
-    //    "python_module": "vtk_output_process"
-    //  }
-    //]
-    //}
+    ,"output_processes": {
+    "vtk_output": [
+      {
+        "Parameters": {
+          "folder_name": "vtk",
+          "model_part_name": "root",
+          "nodal_data_value_variables": [],
+          "nodal_solution_step_data_variables": [
+            "DISPLACEMENT",
+            "ROTATION",
+            "REACTION"
+          ],
+          "output_sub_model_parts": false,
+          "save_output_files_in_folder": true
+        },
+        "kratos_module": "KratosMultiphysics",
+        "process_name": "VTKOutputProcess",
+        "python_module": "vtk_output_process"
+      }
+    ]
+    }
 }
