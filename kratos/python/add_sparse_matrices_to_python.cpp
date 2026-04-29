@@ -19,6 +19,7 @@
 #include "includes/define_python.h"
 #include "includes/ublas_interface.h"
 #include "python/add_sparse_matrices_to_python.h"
+#include "python/numpy_utils.h"
 #include "containers/nd_data.h"
 #include "containers/sparse_graph.h"
 #include "containers/sparse_contiguous_row_graph.h"
@@ -52,38 +53,49 @@ namespace
      * @param rConnectivities The connectivities of the entities.
      * @return NDData The NDData object containing the indices.
      */
-    NDData<int> GetEquationIdCsrIndices(
+    /**
+     * @brief Get the Equation Id Csr Indices object
+     * @details This function computes the CSR matrix value vector indices corresponding to the equation ids of the entities in the provided container.
+     * @tparam TContainerType Type of the container of the entities.
+     * @param rCsrMatrix The CSR matrix to get the indices from.
+     * @param rConnectivities The connectivities of the entities.
+     * @return pybind11::array_t<int> The numpy array containing the indices.
+     */
+    /**
+     * @brief Get the Equation Id Csr Indices object
+     * @details This function computes the CSR matrix value vector indices corresponding to the equation ids of the entities in the provided container.
+     * @tparam TIndexType The integer type of the indices.
+     * @tparam TContainerType Type of the container of the entities.
+     * @param rCsrMatrix The CSR matrix to get the indices from.
+     * @param rConnectivities The connectivities of the entities.
+     * @return pybind11::array_t<TIndexType> The numpy array containing the indices.
+     */
+    template<class TIndexType>
+    pybind11::array_t<TIndexType> GetEquationIdCsrIndices(
         const CsrMatrixType& rCsrMatrix,
-        const NDData<int>& rConnectivities)
+        const pybind11::array_t<TIndexType>& rConnectivities)
     {
         // Get shapes from the input connectivities
-        const auto& r_shape = rConnectivities.Shape();
-        KRATOS_ERROR_IF(r_shape.size() != 2) << "Input connectivities must have shape (n_entities, local_size)" << std::endl;
-        const std::size_t n_entities = r_shape[0];
-        const std::size_t local_size = r_shape[1];
+        KRATOS_ERROR_IF(rConnectivities.ndim() != 2) << "Input connectivities must have shape (n_entities, local_size)" << std::endl;
+        const std::size_t n_entities = rConnectivities.shape(0);
+        const std::size_t local_size = rConnectivities.shape(1);
 
         // Assign the input NDData to have shape: number of entities * local_size * local_size
-        DenseVector<unsigned int> nd_data_shape(3);
-        nd_data_shape[0] = n_entities;
-        nd_data_shape[1] = local_size;
-        nd_data_shape[2] = local_size;
-        auto eq_ids_data = NDData<int>(nd_data_shape);
+        std::vector<std::size_t> shape = {n_entities, local_size, local_size};
+        auto eq_ids_data = AllocateNumpyArray<TIndexType>(n_entities, {local_size, local_size});
 
         // Loop over the connectivities
-        auto eq_ids_data_view = eq_ids_data.ViewData();
-        auto connectivities_view = rConnectivities.ViewData();
-        IndexPartition<std::size_t>(n_entities).for_each([&](std::size_t i) {
-            // Get current entity position in the connectivities view
-            const std::size_t idx_start = i * local_size;
-            const std::size_t eq_ids_pos = i * (local_size * local_size);
+        auto eq_ids_data_proxy = eq_ids_data.template mutable_unchecked<3>();
+        auto connectivities_proxy = rConnectivities.template unchecked<2>();
 
+        IndexPartition<std::size_t>(n_entities).for_each([&](std::size_t i) {
             // Loop over the DOFs
             for (unsigned int i_local = 0; i_local < local_size; ++i_local) {
-                const unsigned int i_global = connectivities_view[idx_start + i_local]; // Row global equation id
+                const unsigned int i_global = connectivities_proxy(i, i_local); // Row global equation id
                 for(unsigned int j_local = 0; j_local < local_size; ++j_local) {
-                    const unsigned int j_global = connectivities_view[idx_start + j_local]; // Column global equation id
+                    const unsigned int j_global = connectivities_proxy(i, j_local); // Column global equation id
                     const unsigned int csr_index = rCsrMatrix.FindValueIndex(i_global,j_global); // Index in the CSR matrix values vector
-                    eq_ids_data_view[eq_ids_pos + i_local * local_size + j_local] = csr_index;
+                    eq_ids_data_proxy(i, i_local, j_local) = csr_index;
                 }
             }
         });
@@ -99,10 +111,20 @@ namespace
      * @param rCsrMatrix The CSR matrix to get the indices from.
      * @param rContainer The container of the entities.
      * @param rProcessInfo The process info.
-     * @return NDData The NDData object containing the indices.
+     * @return pybind11::array_t<int> The numpy array containing the indices.
      */
-    template<class TContainerType>
-    NDData<int> GetEquationIdCsrIndices(
+    /**
+     * @brief Get the Equation Id Csr Indices object
+     * @details This function computes the CSR matrix value vector indices corresponding to the equation ids of the entities in the provided container.
+     * @tparam TIndexType The integer type of the indices.
+     * @tparam TContainerType Type of the container of the entities.
+     * @param rCsrMatrix The CSR matrix to get the indices from.
+     * @param rContainer The container of the entities.
+     * @param rProcessInfo The process info.
+     * @return pybind11::array_t<TIndexType> The numpy array containing the indices.
+     */
+    template<class TIndexType, class TContainerType>
+    pybind11::array_t<TIndexType> GetEquationIdCsrIndices(
         const CsrMatrixType& rCsrMatrix,
         const TContainerType& rContainer,
         const ProcessInfo& rProcessInfo)
@@ -114,19 +136,15 @@ namespace
 
         // Assign the input NDData to have shape: number of entities * local_size * local_size
         const std::size_t n_entities = std::distance(rContainer.begin(), rContainer.end());
-        DenseVector<unsigned int> nd_data_shape(3);
-        nd_data_shape[0] = n_entities;
-        nd_data_shape[1] = local_size;
-        nd_data_shape[2] = local_size;
-        auto eq_ids_data = NDData<int>(nd_data_shape);
+        
+        auto eq_ids_data = AllocateNumpyArray<TIndexType>(n_entities, {local_size, local_size});
 
         // Loop over the container
         EquationIdVectorType aux_tls;
-        auto eq_ids_data_view = eq_ids_data.ViewData();
+        auto eq_ids_data_proxy = eq_ids_data.template mutable_unchecked<3>();
         IndexPartition<std::size_t>(n_entities).for_each(aux_tls, [&](std::size_t i, EquationIdVectorType& rTLS) {
             // Get current entity
             auto it = rContainer.begin() + i;
-            const std::size_t it_pos = i * (local_size * local_size);
 
             // Get current entity equation ids
             it->EquationIdVector(rTLS, rProcessInfo);
@@ -137,7 +155,7 @@ namespace
                 for(unsigned int j_local = 0; j_local < local_size; ++j_local) {
                     const unsigned int j_global = rTLS[j_local]; // Column global equation id
                     const unsigned int csr_index = rCsrMatrix.FindValueIndex(i_global,j_global); // Index in the CSR matrix values vector
-                    eq_ids_data_view[it_pos + i_local * local_size + j_local] = csr_index;
+                    eq_ids_data_proxy(i, i_local, j_local) = csr_index;
                 }
             }
         });
@@ -152,34 +170,42 @@ namespace
      * @param rElementEqIdsCsrIndices The CSR values vector indices for each left hand side entry.
      * @param rLeftHandSide The global stiffness matrix in which the contributions will be added.
      */
-    void AssembleWithCsrIndices(
-        const NDData<double>& rLeftHandSideElementContributions,
-        const NDData<int>& rElementEqIdsCsrIndices,
+    /**
+     * @brief Assemble the global stiffness matrix from the entities contributions and the equation ids indices.
+     * @param rLeftHandSideElementContributions The left hand side ontributions to the global stiffness matrix for each entity.
+     * @param rElementEqIdsCsrIndices The CSR values vector indices for each left hand side entry.
+     * @param rLeftHandSide The global stiffness matrix in which the contributions will be added.
+     */
+
+
+    template<class TIndexType>
+    void AssembleWithCsrIndicesTemplated(
+        const pybind11::array_t<double>& rLeftHandSideElementContributions,
+        const pybind11::array_t<TIndexType>& rElementEqIdsCsrIndices,
         CsrMatrixType& rLeftHandSide)
     {
         // Get and check the provided data shapes
-        const auto& shape = rElementEqIdsCsrIndices.Shape();
-        const std::size_t n_entities = shape[0];
-        const std::size_t local_size_1 = shape[1];
-        const std::size_t local_size_2 = shape[2];
-        KRATOS_ERROR_IF(shape.size() != rLeftHandSideElementContributions.Shape().size()) << "The shapes of the equation ids indices and left hand side contributions do not match." << std::endl;
-        for (std::size_t i = 0; i < shape.size(); ++i) {
-            KRATOS_ERROR_IF(shape[i] != rLeftHandSideElementContributions.Shape()[i]) << "The shapes of the equation ids indices and left hand side contributions do not match in component " << i << "." << std::endl;
-        }
+        KRATOS_ERROR_IF(rElementEqIdsCsrIndices.ndim() != 3) << "Input element equation IDs CSR indices must have shape (n_entities, local_size, local_size)" << std::endl;
+        const std::size_t n_entities = rElementEqIdsCsrIndices.shape(0);
+        const std::size_t local_size_1 = rElementEqIdsCsrIndices.shape(1);
+        const std::size_t local_size_2 = rElementEqIdsCsrIndices.shape(2);
+        
+        KRATOS_ERROR_IF(rLeftHandSideElementContributions.ndim() != 3) << "Input left hand side contributions must have shape (n_entities, local_size, local_size)" << std::endl;
+        KRATOS_ERROR_IF(rLeftHandSideElementContributions.shape(0) != n_entities) << "Number of entities do not match." << std::endl;
+        KRATOS_ERROR_IF(rLeftHandSideElementContributions.shape(1) != local_size_1) << "Local size 1 do not match." << std::endl;
+        KRATOS_ERROR_IF(rLeftHandSideElementContributions.shape(2) != local_size_2) << "Local size 2 do not match." << std::endl;
 
         // Get the left hand side data
         auto& r_lhs_data = rLeftHandSide.value_data();
-        const auto& r_idx_data = rElementEqIdsCsrIndices.ViewData();
-        const auto& r_lhs_contribution_data = rLeftHandSideElementContributions.ViewData();
+        auto r_idx_proxy = rElementEqIdsCsrIndices.template unchecked<3>();
+        auto r_lhs_contribution_proxy = rLeftHandSideElementContributions.template unchecked<3>();
 
         // Loop over the entities
         IndexPartition<std::size_t>(n_entities).for_each([&](std::size_t i) {
-            const std::size_t entity_pos = i * (local_size_1 * local_size_2);
             for (std::size_t i_local = 0; i_local < local_size_1; ++i_local) {
                 for (std::size_t j_local = 0; j_local < local_size_2; ++j_local) {
-                    const std::size_t aux_idx = entity_pos + i_local * local_size_1 + j_local; // Position in the contributions and equation ids data
-                    const int csr_index = r_idx_data[aux_idx]; // Index in the CSR matrix values vector
-                    const double lhs_contribution = r_lhs_contribution_data[aux_idx]; // Scalar contribution to the left hand side
+                    const int csr_index = r_idx_proxy(i, i_local, j_local); // Index in the CSR matrix values vector
+                    const double lhs_contribution = r_lhs_contribution_proxy(i, i_local, j_local); // Scalar contribution to the left hand side
                     AtomicAdd(r_lhs_data[csr_index], lhs_contribution);
                 }
             }
@@ -192,32 +218,40 @@ namespace
      * @param rElementEqIds The equation ids of each entity.
      * @param rLeftHandSide The global stiffness matrix in which the contributions will be added.
      */
-    void AssembleWithEquationIds(
-        const NDData<double>& rLeftHandSideElementContributions,
-        const NDData<int>& rElementEqIds,
+    /**
+     * @brief Assemble the global stiffness matrix from the entities contributions and the equation ids.
+     * @param rLeftHandSideElementContributions The left hand side contributions to the global stiffness matrix for each entity.
+     * @param rElementEqIds The equation ids of each entity.
+     * @param rLeftHandSide The global stiffness matrix in which the contributions will be added.
+     */
+
+
+    template<class TIndexType>
+    void AssembleWithEquationIdsTemplated(
+        const pybind11::array_t<double>& rLeftHandSideElementContributions,
+        const pybind11::array_t<TIndexType>& rElementEqIds,
         CsrMatrixType& rLeftHandSide)
     {
         // Get and check the provided data shapes
-        const auto& eq_ids_shape = rElementEqIds.Shape();
-        const std::size_t n_entities = eq_ids_shape[0];
-        const std::size_t local_size = eq_ids_shape[1];
-        KRATOS_ERROR_IF(n_entities != rLeftHandSideElementContributions.Shape()[0]) << "The shapes of the equation ids and left hand side contributions refer to different number of entites." << std::endl;
-        KRATOS_ERROR_IF(local_size != rLeftHandSideElementContributions.Shape()[1]) << "The shapes of the equation ids and left hand side contributions do not match in component 1." << std::endl;
-        KRATOS_ERROR_IF(local_size != rLeftHandSideElementContributions.Shape()[2]) << "The shapes of the equation ids and left hand side contributions do not match in component 2." << std::endl;
+        KRATOS_ERROR_IF(rElementEqIds.ndim() != 2) << "Input element equation IDs must have shape (n_entities, local_size)" << std::endl;
+        const std::size_t n_entities = rElementEqIds.shape(0);
+        const std::size_t local_size = rElementEqIds.shape(1);
+
+        KRATOS_ERROR_IF(rLeftHandSideElementContributions.ndim() != 3) << "Input left hand side contributions must have shape (n_entities, local_size, local_size)" << std::endl;
+        KRATOS_ERROR_IF(rLeftHandSideElementContributions.shape(0) != n_entities) << "Number of entities do not match." << std::endl;
+        KRATOS_ERROR_IF(rLeftHandSideElementContributions.shape(1) != local_size) << "Local size 1 do not match." << std::endl;
+        KRATOS_ERROR_IF(rLeftHandSideElementContributions.shape(2) != local_size) << "Local size 2 do not match." << std::endl;
 
         // Get the left hand side data
-        const auto& r_eq_ids_data = rElementEqIds.ViewData();
-        const auto& r_lhs_contribution_data = rLeftHandSideElementContributions.ViewData();
+        auto r_eq_ids_proxy = rElementEqIds.template unchecked<2>();
+        auto r_lhs_contribution_proxy = rLeftHandSideElementContributions.template unchecked<3>();
 
         // Loop over the entities
         IndexPartition<std::size_t>(n_entities).for_each([&](std::size_t i) {
-            const std::size_t eq_id_pos = i * local_size;
-            const std::size_t lhs_pos = i * (local_size * local_size);
             for (std::size_t i_local = 0; i_local < local_size; ++i_local) {
                 for (std::size_t j_local = 0; j_local < local_size; ++j_local) {
-                    const std::size_t aux_idx = lhs_pos + i_local * local_size + j_local; // Position in the LHS contributions data
-                    const double lhs_contribution = r_lhs_contribution_data[aux_idx]; // Scalar contribution to the left hand side
-                    rLeftHandSide.AssembleEntry(lhs_contribution, r_eq_ids_data[eq_id_pos + i_local], r_eq_ids_data[eq_id_pos + j_local]);
+                    const double lhs_contribution = r_lhs_contribution_proxy(i, i_local, j_local); // Scalar contribution to the left hand side
+                    rLeftHandSide.AssembleEntry(lhs_contribution, r_eq_ids_proxy(i, i_local), r_eq_ids_proxy(i, j_local));
                 }
             }
         });
@@ -354,14 +388,17 @@ void AddSparseMatricesToPython(pybind11::module& m)
     .def("__matmul__", [](CsrMatrix<double,IndexType>& rA,CsrMatrix<double,IndexType>& rB){
         return AmgclCSRSpMMUtilities::SparseMultiply(rA,rB);
     }, py::is_operator())
-    .def("GetEquationIdCsrIndices", [](CsrMatrix<double,IndexType>& rA, const NDData<int>& rConnectivities) {
-        return GetEquationIdCsrIndices(rA, rConnectivities);
+    .def("GetEquationIdCsrIndices", [](CsrMatrix<double,IndexType>& rA, const py::array_t<int>& rConnectivities) {
+        return GetEquationIdCsrIndices<int>(rA, rConnectivities);
+    }, py::return_value_policy::move)
+    .def("GetEquationIdCsrIndices", [](CsrMatrix<double,IndexType>& rA, const py::array_t<int64_t>& rConnectivities) {
+        return GetEquationIdCsrIndices<int64_t>(rA, rConnectivities);
     }, py::return_value_policy::move)
     .def("GetEquationIdCsrIndices", [](CsrMatrix<double,IndexType>& rA, const ElementsContainerType& rElements, const ProcessInfo& rProcessInfo) {
-        return GetEquationIdCsrIndices(rA, rElements, rProcessInfo);
+        return GetEquationIdCsrIndices<int, ElementsContainerType>(rA, rElements, rProcessInfo);
     }, py::return_value_policy::move)
     .def("GetEquationIdCsrIndices", [](CsrMatrix<double,IndexType>& rA, const ConditionsContainerType& rConditions, const ProcessInfo& rProcessInfo) {
-        return GetEquationIdCsrIndices(rA, rConditions, rProcessInfo);
+        return GetEquationIdCsrIndices<int, ConditionsContainerType>(rA, rConditions, rProcessInfo);
     }, py::return_value_policy::move)
     .def("Transpose", [](CsrMatrix<double,IndexType>& rA){
         return AmgclCSRConversionUtilities::Transpose<double,IndexType>(rA);
@@ -382,11 +419,17 @@ void AddSparseMatricesToPython(pybind11::module& m)
     .def("AssembleEntry", [](CsrMatrix<double,IndexType>& rA, double value, IndexType I, IndexType J){
         rA.AssembleEntry(value,I,J);
     })
-    .def("AssembleWithCsrIndices", [](CsrMatrix<double,IndexType>& rA, const NDData<double>& rLeftHandSideContributions, const NDData<int>& rEqIdsCsrIndices) {
-        AssembleWithCsrIndices(rLeftHandSideContributions, rEqIdsCsrIndices, rA);
+    .def("AssembleWithCsrIndices", [](CsrMatrix<double,IndexType>& rA, const py::array_t<double>& rLeftHandSideContributions, const py::array_t<int>& rEqIdsCsrIndices) {
+        AssembleWithCsrIndicesTemplated<int>(rLeftHandSideContributions, rEqIdsCsrIndices, rA);
     })
-    .def("AssembleWithEquationIds", [](CsrMatrix<double,IndexType>& rA, const NDData<double>& rLeftHandSideContributions, const NDData<int>& rEqIds) {
-        AssembleWithEquationIds(rLeftHandSideContributions, rEqIds, rA);
+    .def("AssembleWithCsrIndices", [](CsrMatrix<double,IndexType>& rA, const py::array_t<double>& rLeftHandSideContributions, const py::array_t<int64_t>& rEqIdsCsrIndices) {
+        AssembleWithCsrIndicesTemplated<int64_t>(rLeftHandSideContributions, rEqIdsCsrIndices, rA);
+    })
+    .def("AssembleWithEquationIds", [](CsrMatrix<double,IndexType>& rA, const py::array_t<double>& rLeftHandSideContributions, const py::array_t<int>& rEqIds) {
+        AssembleWithEquationIdsTemplated<int>(rLeftHandSideContributions, rEqIds, rA);
+    })
+    .def("AssembleWithEquationIds", [](CsrMatrix<double,IndexType>& rA, const py::array_t<double>& rLeftHandSideContributions, const py::array_t<int64_t>& rEqIds) {
+        AssembleWithEquationIdsTemplated<int64_t>(rLeftHandSideContributions, rEqIds, rA);
     })
     .def("ApplyHomogeneousDirichlet", &CsrMatrix<double,IndexType>::ApplyHomogeneousDirichlet<Vector>)
     .def("ApplyHomogeneousDirichlet", &CsrMatrix<double,IndexType>::ApplyHomogeneousDirichlet<SystemVector<double,IndexType>>)
