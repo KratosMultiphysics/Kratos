@@ -11,6 +11,7 @@
 
 // --- Structural Includes ---
 #include "custom_operations/insert_pre_tension_operation.hpp" // InsertPreTensionOperation
+#include "custom_conditions/point_load_condition_1d_1n.h" // PointLoadCondition1D1N
 #include "structural_mechanics_application_variables.h" // POINT_LOAD_X
 
 // --- Core Includes ---
@@ -21,7 +22,6 @@
 #include "includes/element.h" // Element
 #include "input_output/logger.h" // KRATOS_INFO
 #include "solving_strategies/builder_and_solvers/p_multigrid/linear_multifreedom_constraint.hpp" // LinearMultifreedomConstraint
-#include "geometries/point_2d.h" // Point2D
 
 // --- STL Includes ---
 #include <array> // std::array
@@ -42,8 +42,15 @@ namespace Kratos {
 
 struct InsertPreTensionOperation::Impl {
     ModelPart* mpModelPart;
-    double mPretensionValue;
+    double mPreTensionValue;
     int mVerbosity;
+
+    // Setting NEIGHBOUR_ELEMENTS on data value containers is fucked,
+    // so geometry-element adjacency has to be stored in another manner.
+    std::shared_ptr<std::unordered_map<
+        Geometry<Node>::IndexType,
+        std::vector<Element::Pointer>>
+    > mpAdjacencyMap;
 }; // struct InsertPreTensionOperation::Impl
 
 
@@ -54,7 +61,7 @@ InsertPreTensionOperation::InsertPreTensionOperation(Model& rModel, Parameters S
 
     KRATOS_TRY
         mpImpl->mpModelPart         = &rModel.GetModelPart(Settings["model_part_name"].GetString());
-        mpImpl->mPretensionValue    = Settings["magnitude"].GetDouble();
+        mpImpl->mPreTensionValue    = Settings["magnitude"].GetDouble();
         mpImpl->mVerbosity          = Settings["verbosity"].GetInt();
     KRATOS_CATCH("")
 
@@ -64,6 +71,10 @@ InsertPreTensionOperation::InsertPreTensionOperation(Model& rModel, Parameters S
     KRATOS_ERROR_IF(mpImpl->mpModelPart->Geometries().empty())
         << "InsertPreTensionOperation requires at least one Geometry in the provided ModelPart, "
         << "but there aren't any in '" << mpImpl->mpModelPart->Name() << "'.";
+
+    mpImpl->mpAdjacencyMap = std::make_shared<std::unordered_map<
+        Geometry<Node>::IndexType,
+        std::vector<Element::Pointer>>>();
 }
 
 
@@ -75,117 +86,79 @@ InsertPreTensionOperation::~InsertPreTensionOperation() = default;
 
 struct PreTensionSurfacePartition {
     array_1d<double,3> normal;
-    std::vector<decltype(NEIGHBOUR_ELEMENTS)::Type::pointer> positive_side, negative_side;
+    std::vector<Element::Pointer> positive_side, negative_side;
 }; // struct SurfacePartition
 
 
-void FindElementsAdjacentToGeometries(ModelPart& rModelPart) {
-    using NeighborElements = decltype(NEIGHBOUR_ELEMENTS)::Type;
+template <bool Prune = true>
+void FindElementsAdjacentToGeometries(
+    ModelPart& rModelPart,
+    std::unordered_map<Geometry<Node>::IndexType,std::vector<Element::Pointer>>& rAdjacencyMap) {
+        for (const auto& r_geometry : rModelPart.Geometries())
+            rAdjacencyMap.emplace(r_geometry.Id(), std::vector<Element::Pointer> {});
 
-    // Make sure every node on the pre-tension surface is in the model part.
-    KRATOS_TRY
-        ModelPart::NodesContainerType nodes;
-        for (Geometry<Node>& r_geometry : rModelPart.Geometries()) {
-            nodes.insert(r_geometry.begin(), r_geometry.end());
-        } // for r_geometry in rModelPart.Conditions
-        rModelPart.Nodes().insert(nodes);
-    KRATOS_CATCH("")
+        // Find elements containing geometries.
+        KRATOS_TRY
+            block_for_each(
+                rModelPart.Geometries(),
+                [&rAdjacencyMap] (Geometry<Node>& r_geometry) -> void {
+                    std::vector<Element::Pointer> adjacent_elements;
 
-    KRATOS_TRY
-        // Find elements containing each node in the model part.
-        FindGlobalNodalElementalNeighboursProcess(rModelPart.GetRootModelPart()).Execute();
-
-        block_for_each(
-            rModelPart.Geometries(),
-            [] (Geometry<Node>& r_geometry) -> void {
-                NeighborElements neighbor_elements;
-
-                // Collect all neighbor elements from the geometry's nodes.
-                for (Node& r_node : r_geometry) {
-                    NeighborElements& r_containing_elements = r_node.GetValue(NEIGHBOUR_ELEMENTS);
-                    for (unsigned i_element=0u; i_element<r_containing_elements.size(); ++i_element) {
-                        const auto& rp_element = *(r_containing_elements.ptr_begin() + i_element);
-                        const auto it_element = std::find_if(
-                            neighbor_elements.ptr_begin(),
-                            neighbor_elements.ptr_end(),
-                            [&rp_element](const auto& rp_other_element) -> bool {
-                                return rp_other_element->Id() == rp_element->Id();
-                            });
-                        if (it_element == neighbor_elements.ptr_end()) {
-                            neighbor_elements.push_back(rp_element);
-                        }
-                    }
-                }
-
-                // Filter elements that don't contain all nodes of the geometry.
-                neighbor_elements.erase(std::remove_if(
-                    neighbor_elements.begin(),
-                    neighbor_elements.end(),
-                    [&r_geometry] (const Element& r_element) -> bool {
-                        for (const Node& r_geometry_node : r_geometry) {
-                            const auto it_node = std::find_if(
-                                r_element.GetGeometry().begin(),
-                                r_element.GetGeometry().end(),
-                                [&r_geometry_node] (const Node& r_element_node) -> bool {
-                                    return r_element_node.Id() == r_geometry_node.Id();
+                    // Collect all neighbor elements from the geometry's nodes.
+                    for (Node& r_node : r_geometry) {
+                        auto& r_containing_elements = r_node.GetValue(NEIGHBOUR_ELEMENTS);
+                        for (unsigned i_element=0u; i_element<r_containing_elements.size(); ++i_element) {
+                            auto& rp_element = *(r_containing_elements.ptr_begin() + i_element);
+                            const auto it_element = std::find_if(
+                                adjacent_elements.begin(),
+                                adjacent_elements.end(),
+                                [&rp_element](const auto& rp_other_element) -> bool {
+                                    return rp_other_element->Id() == rp_element->Id();
                                 });
-                            if (it_node == r_element.GetGeometry().end())
-                                return true;
-                        }
-                        return false;
-                    }
-                ), neighbor_elements.end());
+                            if (it_element == adjacent_elements.end()) {
+                                adjacent_elements.emplace_back(Element::Pointer(rp_element.get()));
+                            }
+                        } // for i_element in r_containing_elements.size()
+                    } // for node in geometry
 
-                // Set neighbor elements on the condition.
-                r_geometry.SetValue(NEIGHBOUR_ELEMENTS, neighbor_elements);
-            });
-    KRATOS_CATCH("")
+                    // Set neighbor elements on the geometry.
+                    rAdjacencyMap[r_geometry.Id()] = std::move(adjacent_elements);
+                });
+        KRATOS_CATCH("")
 }
 
 
-template <unsigned SurfaceDimension, bool IsSplit = false>
+template <unsigned SurfaceDimension>
 PreTensionSurfacePartition PartitionPreTensionSurface(
     const ModelPart::GeometryContainerType::iterator itGeometryBegin,
-    const ModelPart::GeometryContainerType::iterator itGeometryEnd) {
+    const ModelPart::GeometryContainerType::iterator itGeometryEnd,
+    const std::unordered_map<
+        Geometry<Node>::IndexType,
+        std::vector<Element::Pointer>
+    >& rAdjacencyMap) {
         PreTensionSurfacePartition surface_partition;
+        std::fill(
+            surface_partition.normal.begin(),
+            surface_partition.normal.end(),
+            0.0);
 
         // There are three valid possibilities here, separately for split and unsplit cases.
         // 1) All surfaces are 0-dimensional (corners)
         //    => expecting exactly 1 geometry
-        //    - unsplit case
-        //          => expecting exactly 2 connected elements, both
-        //             must have line geometries
-        //          => the normal is not well-defined, so it is chosen
-        //             as the average of the connected elements' directions
-        //    - split case
-        //          => expecting exactly 1 connected element that must have a line geometry
-        //          => the normal is not well-defined, so it is chosen
-        //             as the connected element's direction
+        //    => all connected elements must have line geometries
+        //    => the normal is not well-defined, so it is chosen
+        //       as the average of the connected elements' directions
         // 2) All surfaces are 1-dimensional (edges)
         //    => expecting at least 1 geometry
-        //    - unsplit case
-        //          => expecting at least 2 connected elements, all of which
-        //             must be 2-dimensional
-        //          => the normal is not well-defined, so it is chosen as the
-        //             average of the rotated endpoints in 2D, in positive
-        //             direction. This assumes coordinates in z-direction vanish.
-        //             This assumption is checked.
-        //    - split case
-        //          => expecting at least 1 connected element, all of which
-        //             must be 2-dimensional
-        //          => the normal is not well-defined, so it is chosen as the
-        //             average of the rotated endpoints in 2D, in positive
-        //             direction. This assumes coordinates in z-direcion vanish.
-        //             This assumption is checked.
+        //    => all connected elements must be 2-dimensional
+        //    => the normal is not well-defined, so it is chosen as the
+        //       average of the rotated endpoints in 2D, in positive
+        //       direction. This assumes coordinates in z-direction vanish.
+        //       This assumption is checked.
         // 3) All surfaces are 2-dimensional (surfaces)
         //    => expecting at least 1 geometry
         //    => normals are well-defined
-        //    - unsplit case
-        //          => expecting at least 2 connected elements, all
-        //             of which must be 3-dimensional
-        //    - split case
-        //          => expecting at least 1 connected element, all
-        //             of which must be 3-dimensional
+        //    => all connected elements must be 3-dimensional
         //
         // In all unsplit cases, at least one connected element is required on
         // either side of the average pre-tension plane.
@@ -216,44 +189,15 @@ PreTensionSurfacePartition PartitionPreTensionSurface(
                 << "but geometry " << r_geometry.Id() << " on geometry " << r_geometry.Id() << " (" << r_geometry.Name() << ") "
                 << "is " << r_geometry.LocalSpaceDimension() << "-dimensional.";
 
-            if constexpr (IsSplit) {
-                KRATOS_ERROR_IF_NOT(r_geometry.Has(NEIGHBOUR_ELEMENTS))
-                    << "Expecting geometry " << r_geometry.Id() << " to have exactly "
-                    << "1 neighboring element, but found none.";
-            } else {
-                KRATOS_ERROR_IF_NOT(r_geometry.Has(NEIGHBOUR_ELEMENTS))
-                    << "Expecting geometry " << r_geometry.Id() << " to have exactly "
-                    << "2 neighboring elements, but found none.";
-            }
+            const auto it_adjacency = rAdjacencyMap.find(r_geometry.Id());
+            KRATOS_ERROR_IF(it_adjacency == rAdjacencyMap.end())
+                << "no adjacency map is stored for geometry " << r_geometry.Id();
 
-            auto& r_neighbor_elements = r_geometry.GetValue(NEIGHBOUR_ELEMENTS);
-            if (r_neighbor_elements.size() != (IsSplit ? 1 : 2)) {
-                std::stringstream message;
-                message << "Expecting geometry " << r_geometry.Id() << " to have exactly "
-                        << (IsSplit ? '1' : '2')
-                        << " neighboring elements, but found " << r_neighbor_elements.size() << ": [";
-                for (const Element& r_element : r_neighbor_elements) message << r_element.Id() << " ";
-                message << "].";
-                KRATOS_ERROR << message.str();
-            }
-
-            // Check whether the 2 connected elements lie on opposite sides of the surface (only in the unsplit case).
-            const array_1d<double,3>
-                first_connected_direction  = r_neighbor_elements[0].GetGeometry().Center() - r_geometry.Center(),
-                second_connected_direction = r_neighbor_elements[IsSplit ? 0 : 1].GetGeometry().Center() - r_geometry.Center();
-            const double direction_inner_product = std::inner_product(
-                first_connected_direction.begin(),
-                first_connected_direction.end(),
-                second_connected_direction.begin(),
-                0.0);
-            KRATOS_ERROR_IF_NOT(IsSplit || direction_inner_product < 0.0)
-                << "Element " << r_neighbor_elements[0].Id() << " and " << r_neighbor_elements[1].Id() << " "
-                << "do not lie on opposite sides of condition " << r_geometry.Id() << " "
-                << "defining a pre-tension surface.";
+            const std::vector<Element::Pointer>& r_adjacent_elements = it_adjacency->second;
 
             if constexpr (SurfaceDimension == 0u) {
-                for (unsigned i_element=0u; i_element<r_neighbor_elements.size(); ++i_element) {
-                    const Element& r_element = r_neighbor_elements[i_element];
+                for (unsigned i_element=0u; i_element<r_adjacent_elements.size(); ++i_element) {
+                    const Element& r_element = *r_adjacent_elements[i_element];
                     KRATOS_ERROR_IF_NOT(r_element.GetGeometry().GetGeometryFamily() == GeometryData::KratosGeometryFamily::Kratos_Linear)
                         << "Expecting only " << SurfaceDimension + 1 << "-dimensional elements connected to the " << SurfaceDimension << "-dimensional pre-tension surface, "
                         << "but element " << r_element.Id() << " has a geometry of type " << r_element.GetGeometry().Name() << ".";
@@ -271,13 +215,13 @@ PreTensionSurfacePartition PartitionPreTensionSurface(
                             << surface_node_id << " but is not.";
                     }
 
-                    if (IsSplit || i_element % 2) {
-                        surface_partition.positive_side.push_back(*(r_neighbor_elements.ptr_begin() + i_element));
+                    if (i_element % 2) {
+                        surface_partition.positive_side.push_back(*(r_adjacent_elements.begin() + i_element));
                         surface_partition.normal = opposite_node_position - surface_node_position;
                     } else {
-                        surface_partition.negative_side.push_back(*(r_neighbor_elements.ptr_begin() + i_element));
+                        surface_partition.negative_side.push_back(*(r_adjacent_elements.begin() + i_element));
                     }
-                } // for i_element in range(r_neighbor_elements.size())
+                } // for i_element in range(r_adjacent_elements.size())
             } /*if SurfaceDimension == 0*/ else if constexpr (SurfaceDimension == 1u) {
                 // Define the line geometry's plane.
                 const array_1d<double,3>
@@ -300,21 +244,17 @@ PreTensionSurfacePartition PartitionPreTensionSurface(
                 surface_partition.normal += surface_normal;
 
                 // Sort connected elements.
-                for (unsigned i_element=0u; i_element<r_neighbor_elements.size(); ++i_element) {
-                    const Element& r_element = r_neighbor_elements[i_element];
+                for (unsigned i_element=0u; i_element<r_adjacent_elements.size(); ++i_element) {
+                    const Element& r_element = *r_adjacent_elements[i_element];
                     const array_1d<double,3> element_direction = r_element.GetGeometry().Center() - surface_center;
                     const double direction_inner_product = std::inner_product(
                         surface_normal.begin(),
                         surface_normal.end(),
                         element_direction.begin(),
                         0.0);
-                    if (0 < direction_inner_product) surface_partition.negative_side.push_back(*(r_neighbor_elements.ptr_begin() + i_element));
-                    else surface_partition.positive_side.push_back(*(r_neighbor_elements.ptr_begin() + i_element));
-                } // for i_element in range(r_neighbor_elements.size())
-
-                KRATOS_ERROR_IF_NOT(IsSplit || surface_partition.positive_side.size() == surface_partition.negative_side.size())
-                    << "Elements " << r_neighbor_elements[0].Id() << " and " << r_neighbor_elements[1].Id() << " "
-                    << "lie on the same side of geometry " << r_geometry.Id() << " that defines a pre-tension surface.";
+                    if (0 < direction_inner_product) surface_partition.negative_side.push_back(*(r_adjacent_elements.begin() + i_element));
+                    else surface_partition.positive_side.push_back(*(r_adjacent_elements.begin() + i_element));
+                } // for i_element in range(r_adjacent_elements.size())
             } /*else if SurfaceDimension == 1*/ else if constexpr (SurfaceDimension == 2u) {
                 // Define the surface's plane.
                 const array_1d<double,3> surface_center = r_geometry.Center();
@@ -322,21 +262,17 @@ PreTensionSurfacePartition PartitionPreTensionSurface(
                 surface_partition.normal += surface_normal;
 
                 // Sort connected elements.
-                for (unsigned i_element=0u; i_element<r_neighbor_elements.size(); ++i_element) {
-                    const Element& r_element = r_neighbor_elements[i_element];
+                for (unsigned i_element=0u; i_element<r_adjacent_elements.size(); ++i_element) {
+                    const Element& r_element = *r_adjacent_elements[i_element];
                     const array_1d<double,3> element_direction = r_element.GetGeometry().Center() - surface_center;
                     const double direction_inner_product = std::inner_product(
                         surface_normal.begin(),
                         surface_normal.end(),
                         element_direction.begin(),
                         0.0);
-                    if (0 < direction_inner_product) surface_partition.negative_side.push_back(*(r_neighbor_elements.ptr_begin() + i_element));
-                    else surface_partition.positive_side.push_back(*(r_neighbor_elements.ptr_begin() + i_element));
-                } // for i_element in range(r_neighbor_elements.size())
-
-                KRATOS_ERROR_IF_NOT(IsSplit || surface_partition.positive_side.size() == surface_partition.negative_side.size())
-                    << "Elements " << r_neighbor_elements[0].Id() << " and " << r_neighbor_elements[1].Id() << " "
-                    << "lie on the same side of condition " << r_geometry.Id() << " that defines a pre-tension surface.";
+                    if (0 < direction_inner_product) surface_partition.negative_side.push_back(*(r_adjacent_elements.begin() + i_element));
+                    else surface_partition.positive_side.push_back(*(r_adjacent_elements.begin() + i_element));
+                } // for i_element in range(r_adjacent_elements.size())
             } /*else if SurfaceDimension == 2*/
         } // for r_condition in r_model_part.Conditions
 
@@ -376,6 +312,7 @@ public:
         DofPointerVectorType&& rDofs,
         const std::vector<std::size_t>& rConstraintLabels,
         std::shared_ptr<ProtectedNormal> pSharedSurfaceNormal,
+        std::shared_ptr<const std::unordered_map<Geometry<Node>::IndexType,std::vector<Element::Pointer>>> pAdjacencyMap,
         int Verbosity)
             :   MultifreedomConstraint(
                     Id,
@@ -383,6 +320,7 @@ public:
                     rConstraintLabels),
                 mVerbosity(Verbosity),
                 mSurfaceGeometries(rSurfaceGeometries),
+                mpAdjacencyMap(pAdjacencyMap),
                 mpSharedSurfaceNormal(pSharedSurfaceNormal) {
         KRATOS_ERROR_IF(rSurfaceGeometries.empty());
     }
@@ -445,21 +383,24 @@ protected:
                 PreTensionSurfacePartition surface_partition;
                 switch (mSurfaceGeometries.front().LocalSpaceDimension()) {
                     case 0: {
-                        surface_partition = PartitionPreTensionSurface<0,true>(
+                        surface_partition = PartitionPreTensionSurface<0>(
                             mSurfaceGeometries.begin(),
-                            mSurfaceGeometries.end());
+                            mSurfaceGeometries.end(),
+                            *mpAdjacencyMap);
                         break;
                     }
                     case 1: {
-                        surface_partition = PartitionPreTensionSurface<1,true>(
+                        surface_partition = PartitionPreTensionSurface<1>(
                             mSurfaceGeometries.begin(),
-                            mSurfaceGeometries.end());
+                            mSurfaceGeometries.end(),
+                            *mpAdjacencyMap);
                         break;
                     }
                     case 2: {
-                        surface_partition = PartitionPreTensionSurface<2,true>(
+                        surface_partition = PartitionPreTensionSurface<2>(
                             mSurfaceGeometries.begin(),
-                            mSurfaceGeometries.end());
+                            mSurfaceGeometries.end(),
+                            *mpAdjacencyMap);
                         break;
                     }
                     default: KRATOS_ERROR << "Invalid pre-tension surface dimension: " << mSurfaceGeometries.front().LocalSpaceDimension() << ".";
@@ -479,6 +420,11 @@ protected:
     int mVerbosity;
 
     ModelPart::GeometryContainerType mSurfaceGeometries;
+
+    std::shared_ptr<const std::unordered_map<
+        Geometry<Node>::IndexType,
+        std::vector<Element::Pointer>>
+    > mpAdjacencyMap;
 
     /// @details The surface's normal is potentially shared by a set of constraints,
     ///          since each constraint only restricts one pair of nodes. If the surface
@@ -509,6 +455,7 @@ public:
             DofPointerVectorType(this->GetDofs()),
             constraint_labels,
             mpSharedSurfaceNormal,
+            mpAdjacencyMap,
             mVerbosity));
     }
 
@@ -572,11 +519,12 @@ void InsertPreTensionOperation::Execute() {
     ModelPart& r_model_part = *mpImpl->mpModelPart;
 
     // Find elements connected to the pre-tension surface.
-    // => each node will have a NEIGHBOR_ELEMENTS variable
+    // => each node will have a NEIGHBOUR_ELEMENTS variable
     //    in its non-historical storage that lists elements
     //    containing them.
     KRATOS_TRY
-        FindElementsAdjacentToGeometries(r_model_part);
+        FindGlobalNodalElementalNeighboursProcess(r_model_part.GetRootModelPart()).Execute();
+        FindElementsAdjacentToGeometries<false>(r_model_part, *mpImpl->mpAdjacencyMap);
     KRATOS_CATCH("")
 
     // Sort connected elements into 2 categories, lying on either side of
@@ -591,19 +539,22 @@ void InsertPreTensionOperation::Execute() {
             case 0u: {
                 surface_partition = PartitionPreTensionSurface<0>(
                     r_model_part.Geometries().begin(),
-                    r_model_part.Geometries().end());
+                    r_model_part.Geometries().end(),
+                    *mpImpl->mpAdjacencyMap);
                 break;
             }
             case 1u: {
                 surface_partition = PartitionPreTensionSurface<1>(
                     r_model_part.Geometries().begin(),
-                    r_model_part.Geometries().end());
+                    r_model_part.Geometries().end(),
+                    *mpImpl->mpAdjacencyMap);
                 break;
             }
             case 2u: {
                 surface_partition = PartitionPreTensionSurface<2>(
                     r_model_part.Geometries().begin(),
-                    r_model_part.Geometries().end());
+                    r_model_part.Geometries().end(),
+                    *mpImpl->mpAdjacencyMap);
                 break;
             }
             default: KRATOS_ERROR << "Invalid pre-tension surface dimension: " << pre_tension_surface_dimension << ".";
@@ -685,9 +636,32 @@ void InsertPreTensionOperation::Execute() {
         } // for rp_element in surface_partition.negative_side
     KRATOS_CATCH("")
 
-    // Reset NEIGHBOR_ELEMENTS after duplicating nodes.
+    // Prune elements that don't have at least one face on the pre-tension surface.
     KRATOS_TRY
-        FindElementsAdjacentToGeometries(r_model_part);
+        for (auto& [id_geometry, r_adjacent_elements] : *mpImpl->mpAdjacencyMap) {
+            const Geometry<Node>& r_geometry = r_model_part.GetGeometry(id_geometry);
+            r_adjacent_elements.erase(std::remove_if(
+                r_adjacent_elements.begin(),
+                r_adjacent_elements.end(),
+                [&r_geometry] (const Element::Pointer& rp_element) -> bool {
+                    for (const Node& r_geometry_node : r_geometry) {
+                        const auto it_node = std::find_if(
+                            rp_element->GetGeometry().begin(),
+                            rp_element->GetGeometry().end(),
+                            [&r_geometry_node] (const Node& r_element_node) -> bool {
+                                return r_element_node.Id() == r_geometry_node.Id();
+                            });
+                        if (it_node == rp_element->GetGeometry().end())
+                            return true;
+                    } // for r_geometry_node in r_geometry
+                    return false;
+                }
+            ), r_adjacent_elements.end());
+        } // for id_geometry, r_adjacency_elements
+    KRATOS_CATCH("")
+
+    KRATOS_TRY
+        FindGlobalNodalElementalNeighboursProcess(r_model_part.GetRootModelPart()).Execute();
     KRATOS_CATCH("")
 
     // Collect DoFs from elements on the positive side of the pre-tension surface.
@@ -752,6 +726,7 @@ void InsertPreTensionOperation::Execute() {
                 std::move(dofs),
                 constraint_labels,
                 p_protected_surface_normal,
+                mpImpl->mpAdjacencyMap,
                 mpImpl->mVerbosity));
 
             KRATOS_INFO_IF(this->Info(), 3 <= mpImpl->mVerbosity)
@@ -844,6 +819,7 @@ public:
             DofPointerVectorType(this->GetDofs()),
             constraint_labels,
             mpSharedSurfaceNormal,
+            mpAdjacencyMap,
             mVerbosity));
     }
 
@@ -854,18 +830,19 @@ public:
 
             // DoFs are assumed in a specific layout.
             // - DISPLACEMENT_X of node 0
-            // - DISPLACEMENT_Y of node 0
-            // ...
-            // - DISPLACEMENT_Z (depending on the plane's dimension) of node n
             // - DISPLACEMENT_X of node 0's pair (only if relative)
+            // - DISPLACEMENT_Y of node 0
             // - DISPLACEMENT_Y of node 0's pair (only if relative)
             // ...
+            // - DISPLACEMENT_Z (depending on the plane's dimension) of node n
             // - DISPLACEMENT_Z (depending on the plane's dimension) of node n's pair (only if relative)
             // - DoF of the control node
             auto& r_dofs = this->GetDofs();
             KRATOS_ERROR_IF(r_dofs.empty());
 
             const std::size_t controlled_dof_count = r_dofs.size() - 1;
+            KRATOS_ERROR_IF(IsRelative && controlled_dof_count % 2);
+
             const std::size_t positive_side_dof_count = IsRelative
                 ? controlled_dof_count / 2
                 : controlled_dof_count;
@@ -886,10 +863,11 @@ public:
             Matrix constraint_gradient(1, r_dofs.size());
             Vector constraint_gap(1), displacements(r_dofs.size());
 
+            constexpr std::size_t dof_stride = IsRelative ? 2ul : 1ul;
             for (std::size_t i_dof=0ul; i_dof<positive_side_dof_count; ++i_dof) {
-                constraint_gradient(0, i_dof) = normal[i_dof % dimension_count];
+                constraint_gradient(0, dof_stride * i_dof) = normal[(i_dof / dof_stride) % dimension_count];
                 if constexpr (IsRelative)
-                    constraint_gradient(0, i_dof + positive_side_dof_count) = -normal[i_dof % dimension_count];
+                    constraint_gradient(0, dof_stride * i_dof + 1) = -normal[(i_dof / dof_stride) % dimension_count];
             }
 
             constraint_gap[0] = 0.0;
@@ -969,11 +947,12 @@ void InsertDirichletPreTensionOperation::InsertControlNodeConstraints(
                 std::move(dofs),
                 {constraint_id},
                 p_protected_surface_normal,
+                mpImpl->mpAdjacencyMap,
                 mpImpl->mVerbosity));
             mpImpl->mpModelPart->AddMasterSlaveConstraint(p_constraint);
 
             // Set a dirichlet condition on the control node's DoF.
-            p_control_dof->GetSolutionStepValue() = (mpImpl->mPretensionValue - p_control_dof->GetSolutionStepValue()) * rDuplicateNodeMap.size();
+            p_control_dof->GetSolutionStepValue() = (mpImpl->mPreTensionValue - p_control_dof->GetSolutionStepValue()) * rDuplicateNodeMap.size();
             p_control_dof->FixDof();
         KRATOS_CATCH("")
 }
@@ -982,93 +961,6 @@ void InsertDirichletPreTensionOperation::InsertControlNodeConstraints(
 std::string InsertDirichletPreTensionOperation::Info() const {
     return "InsertDirichletPreTensionOperation";
 }
-
-
-class PointLoadCondition1D1N : public Condition {
-public:
-    KRATOS_CLASS_POINTER_DEFINITION(PointLoadCondition1D1N);
-
-    PointLoadCondition1D1N(
-        Condition::IndexType Id,
-        Geometry<Node>::Pointer pGeometry)
-            : Condition(Id, pGeometry)
-    {}
-
-    Condition::Pointer Clone(
-        Condition::IndexType Id,
-        const Condition::NodesArrayType& rNodes) const override {
-            KRATOS_ERROR_IF_NOT(rNodes.size() == 1)
-                << "PointLoadCondition1D1N::Clone expects 1 node but got " << rNodes.size();
-            return Condition::Pointer(new PointLoadCondition1D1N(
-                Id,
-                Geometry<Node>::Pointer(new Point2D<Node>(rNodes))));
-    }
-
-    void EquationIdVector(
-        Condition::EquationIdVectorType& rIndices,
-        const ProcessInfo&) const override {
-            rIndices.resize(1);
-            rIndices[0] = this->GetGeometry()[0].GetDofs()[0]->EquationId();
-    }
-
-    void GetDofList(
-        Condition::DofsVectorType& rDofs,
-        const ProcessInfo&) const override {
-            rDofs.resize(1);
-            rDofs[0] = this->GetGeometry()[0].GetDofs()[0].get();
-    }
-
-    void GetValuesVector(
-        Vector& rOutput,
-        int Step) const override {
-            rOutput.resize(1);
-            rOutput[0] = this->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_X, Step);
-    }
-
-    void GetFirstDerivativesVector(
-        Vector& rOutput,
-        int Step) const override {
-            rOutput.resize(1);
-            rOutput[0] = this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY_X, Step);
-    }
-
-    void GetSecondDerivativesVector(
-        Vector& rOutput,
-        int Step) const override {
-            rOutput.resize(1);
-            rOutput[0] = this->GetGeometry()[0].FastGetSolutionStepValue(ACCELERATION_X, Step);
-    }
-
-    void CalculateRightHandSide(
-        Condition::VectorType& rRhs,
-        const ProcessInfo&) override {
-            rRhs.resize(1);
-            rRhs[0] = this->GetValue(POINT_LOAD_X);
-    }
-
-    void CalculateLocalSystem(
-        Condition::MatrixType& rLhs,
-        Condition::VectorType& rRhs,
-        const ProcessInfo& rProcessInfo) override {
-            rLhs.resize(1, 1, false);
-            rLhs(0, 0) = 0.0;
-            this->CalculateRightHandSide(rRhs, rProcessInfo);
-    }
-
-    void CalculateMassMatrix(
-        Condition::MatrixType& rMatrix,
-        const ProcessInfo&) override {
-            rMatrix.resize(1, 1, false);
-            rMatrix(0, 0) = 0.0;
-    }
-
-    void CalculateDampingMatrix(
-        Condition::MatrixType& rMatrix,
-        const ProcessInfo&) override {
-            rMatrix.resize(1, 1, false);
-            rMatrix(0, 0) = 0.0;
-    }
-}; // class PointLoadCondition1D1N
 
 
 void InsertNeumannPreTensionOperation::InsertControlNodeConstraints(
@@ -1124,6 +1016,9 @@ void InsertNeumannPreTensionOperation::InsertControlNodeConstraints(
                     std::optional<array_1d<double,3>>,
                     LockObject>>();
 
+            Properties::Pointer p_properties = mpImpl->mpModelPart->PropertiesArray().empty()
+                ? Properties::Pointer(new Properties(1))
+                : *mpImpl->mpModelPart->PropertiesArray().begin();
             // Insert the positive side constraint and condition.
             {
                 MasterSlaveConstraint::Pointer p_constraint(new OutOfPlaneDisplacementConstraint<false>(
@@ -1132,11 +1027,13 @@ void InsertNeumannPreTensionOperation::InsertControlNodeConstraints(
                     std::move(positive_side_dofs),
                     {constraint_id},
                     p_protected_surface_normal,
+                    mpImpl->mpAdjacencyMap,
                     mpImpl->mVerbosity));
                 Condition::Pointer p_condition(new PointLoadCondition1D1N(
                     condition_id,
-                    Geometry<Node>::Pointer(new Point2D<Node>(pPositiveSideControlNode))));
-                p_condition->SetValue(POINT_LOAD_X, mpImpl->mPretensionValue);
+                    Geometry<Node>::Pointer(new Point2D<Node>(pPositiveSideControlNode)),
+                    p_properties));
+                p_condition->SetValue(POINT_LOAD_X, mpImpl->mPreTensionValue);
 
                 KRATOS_INFO_IF(this->Info(), 3 <= mpImpl->mVerbosity)
                     << "insert constraint " << p_constraint->Id() <<' '
@@ -1163,11 +1060,13 @@ void InsertNeumannPreTensionOperation::InsertControlNodeConstraints(
                     std::move(negative_side_dofs),
                     {constraint_id},
                     p_protected_surface_normal,
+                    mpImpl->mpAdjacencyMap,
                     mpImpl->mVerbosity));
                 Condition::Pointer p_condition(new PointLoadCondition1D1N(
                     condition_id,
-                    Geometry<Node>::Pointer(new Point2D<Node>(p_negative_side_control_node))));
-                p_condition->SetValue(POINT_LOAD_X, mpImpl->mPretensionValue);
+                    Geometry<Node>::Pointer(new Point2D<Node>(p_negative_side_control_node)),
+                    p_properties));
+                p_condition->SetValue(POINT_LOAD_X, -mpImpl->mPreTensionValue);
 
                 KRATOS_INFO_IF(this->Info(), 3 <= mpImpl->mVerbosity)
                     << "insert constraint " << p_constraint->Id() <<' '
