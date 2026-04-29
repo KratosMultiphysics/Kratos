@@ -42,7 +42,6 @@ namespace Kratos {
 
 struct InsertPreTensionOperation::Impl {
     ModelPart* mpModelPart;
-    double mPreTensionValue;
     int mVerbosity;
 
     // Setting NEIGHBOUR_ELEMENTS on data value containers is fucked,
@@ -61,7 +60,6 @@ InsertPreTensionOperation::InsertPreTensionOperation(Model& rModel, Parameters S
 
     KRATOS_TRY
         mpImpl->mpModelPart         = &rModel.GetModelPart(Settings["model_part_name"].GetString());
-        mpImpl->mPreTensionValue    = Settings["magnitude"].GetDouble();
         mpImpl->mVerbosity          = Settings["verbosity"].GetInt();
     KRATOS_CATCH("")
 
@@ -791,7 +789,6 @@ void InsertPreTensionOperation::Execute() {
 const Parameters InsertPreTensionOperation::GetDefaultParameters() const {
     return Parameters(R"({
         "model_part_name" : "",
-        "magnitude" : 0.0,
         "verbosity" : 1
     })");
 }
@@ -906,7 +903,10 @@ void InsertDirichletPreTensionOperation::InsertControlNodeConstraints(
     array_1d<double,3> SurfaceNormal,
     const std::unordered_map<Node*,Node::Pointer> rDuplicateNodeMap,
     Node::Pointer pControlNode,
-    const std::unordered_set<const Dof<double>*> rPositiveSideDofs) const {
+    const std::unordered_set<const Dof<double>*> rPositiveSideDofs) {
+        mpControlNode = pControlNode;
+        mPreTensionSurfaceSize = rDuplicateNodeMap.size();
+
         KRATOS_TRY
             // Insert a constraint that ties the average out-of-plane relative displacement
             // to a prescribed value.
@@ -931,7 +931,7 @@ void InsertDirichletPreTensionOperation::InsertControlNodeConstraints(
             } // for rp_positive_side_node, rp_negative_side_node
 
             // Add the control node's DoF to the constraint equation.
-            Dof<double>* p_control_dof = pControlNode->GetDofs()[0].get();
+            Dof<double>* p_control_dof = mpControlNode->GetDofs()[0].get();
             dofs.push_back(p_control_dof);
 
             // Construct and register the constraint equation.
@@ -950,11 +950,18 @@ void InsertDirichletPreTensionOperation::InsertControlNodeConstraints(
                 mpImpl->mpAdjacencyMap,
                 mpImpl->mVerbosity));
             mpImpl->mpModelPart->AddMasterSlaveConstraint(p_constraint);
+KRATOS_CATCH("")
+}
 
-            // Set a dirichlet condition on the control node's DoF.
-            p_control_dof->GetSolutionStepValue() = (mpImpl->mPreTensionValue - p_control_dof->GetSolutionStepValue()) * rDuplicateNodeMap.size();
-            p_control_dof->FixDof();
-        KRATOS_CATCH("")
+
+void InsertDirichletPreTensionOperation::Apply(double Magnitude) {
+    KRATOS_ERROR_IF_NOT(mpControlNode);
+    KRATOS_ERROR_IF_NOT(mpControlNode->GetDofs().size() == 1);
+    KRATOS_TRY
+        Dof<double>& r_control_dof = *mpControlNode->GetDofs()[0].get();
+        r_control_dof.GetSolutionStepValue() = (Magnitude - r_control_dof.GetSolutionStepValue()) * mPreTensionSurfaceSize;
+        r_control_dof.FixDof();
+    KRATOS_CATCH("")
 }
 
 
@@ -968,7 +975,7 @@ void InsertNeumannPreTensionOperation::InsertControlNodeConstraints(
     array_1d<double,3> SurfaceNormal,
     const std::unordered_map<Node*,Node::Pointer> rDuplicateNodeMap,
     Node::Pointer pPositiveSideControlNode,
-    const std::unordered_set<const Dof<double>*> rPositiveSideDofs) const {
+    const std::unordered_set<const Dof<double>*> rPositiveSideDofs) {
         KRATOS_TRY
             const std::array<const Variable<double>*,3> all_displacement_components {
                 &DISPLACEMENT_X,
@@ -1029,11 +1036,10 @@ void InsertNeumannPreTensionOperation::InsertControlNodeConstraints(
                     p_protected_surface_normal,
                     mpImpl->mpAdjacencyMap,
                     mpImpl->mVerbosity));
-                Condition::Pointer p_condition(new PointLoadCondition1D1N(
+                mpPositiveSideLoad = Condition::Pointer(new PointLoadCondition1D1N(
                     condition_id,
                     Geometry<Node>::Pointer(new Point2D<Node>(pPositiveSideControlNode)),
                     p_properties));
-                p_condition->SetValue(POINT_LOAD_X, mpImpl->mPreTensionValue);
 
                 KRATOS_INFO_IF(this->Info(), 3 <= mpImpl->mVerbosity)
                     << "insert constraint " << p_constraint->Id() <<' '
@@ -1043,10 +1049,10 @@ void InsertNeumannPreTensionOperation::InsertControlNodeConstraints(
                 mpImpl->mpModelPart->AddMasterSlaveConstraint(p_constraint);
 
                 KRATOS_INFO_IF(this->Info(), 3 <= mpImpl->mVerbosity)
-                    << "insert condition " << p_condition->Id() <<' '
+                    << "insert condition " << mpPositiveSideLoad->Id() <<' '
                     << "loading " << pPositiveSideControlNode->GetDofs()[0]->GetVariable().Name() << ' '
                     << "of node " << pPositiveSideControlNode->Id() << "\n";
-                mpImpl->mpModelPart->AddCondition(p_condition);
+                mpImpl->mpModelPart->AddCondition(mpPositiveSideLoad);
 
                 ++constraint_id;
                 ++condition_id;
@@ -1062,11 +1068,10 @@ void InsertNeumannPreTensionOperation::InsertControlNodeConstraints(
                     p_protected_surface_normal,
                     mpImpl->mpAdjacencyMap,
                     mpImpl->mVerbosity));
-                Condition::Pointer p_condition(new PointLoadCondition1D1N(
+                mpNegativeSideLoad = Condition::Pointer(new PointLoadCondition1D1N(
                     condition_id,
                     Geometry<Node>::Pointer(new Point2D<Node>(p_negative_side_control_node)),
                     p_properties));
-                p_condition->SetValue(POINT_LOAD_X, -mpImpl->mPreTensionValue);
 
                 KRATOS_INFO_IF(this->Info(), 3 <= mpImpl->mVerbosity)
                     << "insert constraint " << p_constraint->Id() <<' '
@@ -1076,15 +1081,24 @@ void InsertNeumannPreTensionOperation::InsertControlNodeConstraints(
                 mpImpl->mpModelPart->AddMasterSlaveConstraint(p_constraint);
 
                 KRATOS_INFO_IF(this->Info(), 3 <= mpImpl->mVerbosity)
-                    << "insert condition " << p_condition->Id() <<' '
+                    << "insert condition " << mpNegativeSideLoad->Id() <<' '
                     << "loading " << p_negative_side_control_node->GetDofs()[0]->GetVariable().Name() << ' '
                     << "of node " << p_negative_side_control_node->Id() << "\n";
-                mpImpl->mpModelPart->AddCondition(p_condition);
+                mpImpl->mpModelPart->AddCondition(mpNegativeSideLoad);
 
                 ++constraint_id;
                 ++condition_id;
             }
         KRATOS_CATCH("")
+}
+
+
+void InsertNeumannPreTensionOperation::Apply(double Magnitude) {
+    KRATOS_ERROR_IF_NOT(mpPositiveSideLoad && mpNegativeSideLoad);
+    KRATOS_TRY
+        mpPositiveSideLoad->SetValue(POINT_LOAD_X, Magnitude);
+        mpNegativeSideLoad->SetValue(POINT_LOAD_X, -Magnitude);
+    KRATOS_CATCH("")
 }
 
 

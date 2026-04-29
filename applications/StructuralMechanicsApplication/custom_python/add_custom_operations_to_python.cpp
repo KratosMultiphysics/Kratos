@@ -14,6 +14,7 @@ void AddCustomOperationsToPython(pybind11::module& rModule) {
             rModule,
             "InsertDirichletPreTensionOperation")
                 .def(pybind11::init<Model&, Parameters>())
+                .def("Apply", &InsertDirichletPreTensionOperation::Apply, pybind11::arg("Magnitude"))
                 ;
     pybind11::class_<
         InsertNeumannPreTensionOperation,
@@ -22,6 +23,7 @@ void AddCustomOperationsToPython(pybind11::module& rModule) {
             rModule,
             "InsertNeumannPreTensionOperation")
                 .def(pybind11::init<Model&, Parameters>())
+                .def("Apply", &InsertNeumannPreTensionOperation::Apply, pybind11::arg("Magnitude"))
                 ;
 }
 

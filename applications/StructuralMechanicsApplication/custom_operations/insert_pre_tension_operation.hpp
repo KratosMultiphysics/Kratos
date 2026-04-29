@@ -23,6 +23,7 @@
 namespace Kratos {
 
 
+/// @brief Operation
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) InsertPreTensionOperation : public Operation {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(InsertPreTensionOperation);
@@ -35,6 +36,8 @@ public:
 
     void Execute() override;
 
+    virtual void Apply(double Magnitude) = 0;
+
     const Parameters GetDefaultParameters() const override;
 
     virtual std::string Info() const;
@@ -45,7 +48,7 @@ protected:
         array_1d<double,3> SurfaceNormal,
         const std::unordered_map<Node*,Node::Pointer> rDuplicateNodeMap,
         Node::Pointer pControlNode,
-        const std::unordered_set<const Dof<double>*> rPositiveSideDofs) const = 0;
+        const std::unordered_set<const Dof<double>*> rPositiveSideDofs) = 0;
 
     struct Impl;
     std::unique_ptr<Impl> mpImpl;
@@ -63,6 +66,8 @@ public:
 
     using InsertPreTensionOperation::InsertPreTensionOperation;
 
+    void Apply(double Magnitude) override;
+
     std::string Info() const override;
 
 protected:
@@ -73,7 +78,12 @@ protected:
         array_1d<double,3> SurfaceNormal,
         const std::unordered_map<Node*,Node::Pointer> rDuplicateNodeMap,
         Node::Pointer pControlNode,
-        const std::unordered_set<const Dof<double>*> rPositiveSideDofs) const override;
+        const std::unordered_set<const Dof<double>*> rPositiveSideDofs) override;
+
+private:
+    Node::Pointer mpControlNode;
+
+    std::size_t mPreTensionSurfaceSize;
 }; // class InsertDirichletPreTensionOperation
 
 
@@ -82,6 +92,8 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(InsertNeumannPreTensionOperation);
 
     using InsertPreTensionOperation::InsertPreTensionOperation;
+
+    void Apply(double Magnitude) override;
 
     std::string Info() const override;
 
@@ -94,7 +106,10 @@ protected:
         array_1d<double,3> SurfaceNormal,
         const std::unordered_map<Node*,Node::Pointer> rDuplicateNodeMap,
         Node::Pointer pControlNode,
-        const std::unordered_set<const Dof<double>*> rPositiveSideDofs) const override;
+        const std::unordered_set<const Dof<double>*> rPositiveSideDofs) override;
+
+private:
+    Condition::Pointer mpPositiveSideLoad, mpNegativeSideLoad;
 }; // class InsertNeumannPreTensionOperation
 
 
