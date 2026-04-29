@@ -80,10 +80,10 @@ namespace Kratos {
 ///          the out-of-plane displacement components on each set of nodes (original or duplicated) are
 ///          averaged and tied to newly inserted virtual DoFs.
 ///          @f[
-///             \begin{align}
-///                 u_v^o - \frac{1}{m} \sum_{i=1}^m{ \left< u_o^i, n \right> } &= 0 \\
-///                 u_v^d - \frac{1}{m} \sum_{i=1}^m{ \left< u_d^i, n \right> } &= 0
-///             \end{align}
+///                 u_v^o - \frac{1}{m} \sum_{i=1}^m{ \left< u_o^i, n \right> } = 0
+///          @f]
+///          @f[
+///                 u_v^d - \frac{1}{m} \sum_{i=1}^m{ \left< u_d^i, n \right> } = 0
 ///          @f]
 ///          where
 ///          - @f$u_v^o@f$ is the newly inserted virtual DoF belonging to the original set of nodes, and
@@ -96,10 +96,10 @@ namespace Kratos {
 ///          Given a pre-tensioning force @f$f@f$, fix the reaction of @f$u_v^o@f$ to @f$f@f$ and
 ///          the reaction of @f$u_v^d@f$ to @f$-f@f$.
 ///          @f[
-///             \begin{align}
-///                 r_v^o - f &= 0 \\
-///                 r_v^d + f &= 0
-///             \end{align}
+///                 r_v^o - f = 0
+///          @f]
+///          @f[
+///                 r_v^d + f = 0
 ///          @f]
 ///          where
 ///          - @f$r_v^0@f$ is the reaction of @f$u_v^o@f$, and
