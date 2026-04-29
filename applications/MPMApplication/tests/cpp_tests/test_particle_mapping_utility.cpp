@@ -133,6 +133,9 @@ namespace Kratos::Testing
         //  |    |
         //  1----2
 
+        const int dimension = 2;
+        rGridModelPart.GetProcessInfo().SetValue(DOMAIN_SIZE, dimension);
+
         // Nodes
         auto p_node_1 = rGridModelPart.CreateNewNode( 1,  0.0 ,  0.0 , 0.0);
         auto p_node_2 = rGridModelPart.CreateNewNode( 2,  1.0 ,  0.0 , 0.0);
@@ -208,7 +211,11 @@ namespace Kratos::Testing
         //  |      |
         //  | X  X |
         //  1------2
-        const unsigned int dimension = 2;
+        const SizeType dimension = 2;
+        KRATOS_ERROR_IF(rGridModelPart.GetProcessInfo().GetValue(DOMAIN_SIZE) != dimension)
+            << "The dimension between rMpmModelPart and rGridModelPart does not match"
+            << "\nrMpmModelPart  dimension: " << dimension
+            << "\nrGridModelPart dimension: " << rGridModelPart.GetProcessInfo().GetValue(DOMAIN_SIZE) << std::endl;
 
         // Elements
         array_1d<double, 3> mp_coordinate1{0.211324865,0.211324865, 0.0};
