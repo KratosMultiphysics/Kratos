@@ -1,7 +1,7 @@
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.MPMApplication as KratosMPM
-from KratosMultiphysics.MPMApplication.particle_mechanics_analysis import ParticleMechanicsAnalysis
+from KratosMultiphysics.MPMApplication.mpm_analysis import MpmAnalysis
 
 
 class TestBodyForceInterpolationMPM(KratosUnittest.TestCase):
@@ -28,7 +28,12 @@ class TestBodyForceInterpolationMPM(KratosUnittest.TestCase):
         # Take first MP
         mp = next(iter(mp_model_part.Elements))
         variable_disp = KratosMultiphysics.KratosGlobals.GetVariable( "MP_DISPLACEMENT" )
+        variable_acce = KratosMultiphysics.KratosGlobals.GetVariable( "MP_VOLUME_ACCELERATION" )
         displacement = mp.CalculateOnIntegrationPoints(variable_disp,mp_model_part.ProcessInfo)[0]
+        acceleration = mp.CalculateOnIntegrationPoints(variable_acce,mp_model_part.ProcessInfo)[0]
+
+        print(acceleration)
+        print(displacement)
 
 
         # Expected (constant field)
@@ -37,20 +42,20 @@ class TestBodyForceInterpolationMPM(KratosUnittest.TestCase):
         self.assertAlmostEqual(displacement[2], 0.0, places=12)
 
 
-class BodyForceTestSimulation(ParticleMechanicsAnalysis):
+class BodyForceTestSimulation(MpmAnalysis):
 
     def __init__(self, model, parameters):
         self.model = model
         self.project_parameters = parameters
 
    
-        self.project_parameters["problem_data"]["end_time"].SetDouble(0.1)
-        self.project_parameters["solver_settings"]["time_stepping"]["time_step"].SetDouble(0.1)
+        #self.project_parameters["problem_data"]["end_time"].SetDouble(0.1)
+        #self.project_parameters["solver_settings"]["time_stepping"]["time_step"].SetDouble(0.1)
 
         super().__init__(self.model, self.project_parameters)
 
-    def ModifyAfterSolverInitialize(self):
-        super().ModifyAfterSolverInitialize()
+    def ModifyBeforeSolutionLoop(self):
+        super().ModifyBeforeSolutionLoop()
 
         grid_model_part = self.model.GetModelPart("Background_Grid")
 
@@ -59,12 +64,6 @@ class BodyForceTestSimulation(ParticleMechanicsAnalysis):
             node.SetSolutionStepValue(KratosMultiphysics.BODY_FORCE_X, 2.0)
             node.SetSolutionStepValue(KratosMultiphysics.BODY_FORCE_Y, -3.0)
             node.SetSolutionStepValue(KratosMultiphysics.BODY_FORCE_Z, 0.0)
-
-
-
-    def ApplyBoundaryConditions(self):
-        super().ApplyBoundaryConditions()
-
 
 
 if __name__ == '__main__':
