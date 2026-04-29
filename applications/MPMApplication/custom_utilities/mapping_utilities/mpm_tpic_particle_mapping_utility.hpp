@@ -89,31 +89,37 @@ namespace Kratos
     /**
      * Calculate and add TPIC affine velocity for the corresponding node
      */
-    void CalculateAndAddAffineVelocity(Element& rElement, Node& rNode, std::vector<array_1d<double, 3 >> rMpVelocity)
+    void CalculateAndAddAffineVelocity(Element& rElement, Node& rNode, std::vector<array_1d<double, 3 >> rNodalAffineVelocity)
     {
-        array_1d<double,3> rMpToNodeVector = ZeroVector(3);
-        this->CalculateMpToNodeVector(rElement, rNode, rMpToNodeVector);
+        array_1d<double,3> mp_to_node_vector = ZeroVector(3);
+        this->CalculateMpToNodeVector(rElement, rNode, mp_to_node_vector);
 
-        // rMpToNodeVector
-        const Matrix mp_velocity_gradient = rElement.GetValue(MP_VELOCITY_GRADIENT);
 
-        // const auto& r_mp_coordinate = rElement.GetGeometry() //.Coordinates();
-        // KRATOS_WATCH(r_mp_coordinate)
-        // rNode.Distance(rElement.GetGeometry())
+
+        std::vector<Matrix> mp_velocity_gradient;
+        rElement.CalculateOnIntegrationPoints(MP_VELOCITY_GRADIENT, mp_velocity_gradient, mrProcessInfo);
+        // KRATOS_WATCH(rElement.Id())
+        // KRATOS_WATCH(rNode.Id())
+        // KRATOS_WATCH(mp_to_node_vector)
+        // KRATOS_WATCH(mp_velocity_gradient[0])
+        // KRATOS_WATCH(rNodalAffineVelocity[0])
+        rNodalAffineVelocity[0] += prod(mp_velocity_gradient[0], mp_to_node_vector);
+        // KRATOS_WATCH(rNodalAffineVelocity[0])
+
     }
 
     /**
      * Calculate and add TPIC affine acceleration for the corresponding node
      */
-    void CalculateAndAddAffineAcceleration(Element& rElement, Node& rNode, std::vector<array_1d<double, 3 >> rMpAcceleration)
+    void CalculateAndAddAffineAcceleration(Element& rElement, Node& rNode, std::vector<array_1d<double, 3 >> rNodalAffineAcceleration)
     {
-        array_1d<double,3> rMpToNodeVector = ZeroVector(3);
-        this->CalculateMpToNodeVector(rElement, rNode, rMpToNodeVector);
+        array_1d<double,3> mp_to_node_vector = ZeroVector(3);
+        this->CalculateMpToNodeVector(rElement, rNode, mp_to_node_vector);
 
-        // rMpToNodeVector
-        // const auto& r_mp_coordinate = rElement.GetGeometry() //.Coordinates();
-        // KRATOS_WATCH(r_mp_coordinate)
-        // rNode.Distance(rElement.GetGeometry())
+        std::vector<Matrix> mp_acceleration_gradient;
+        rElement.CalculateOnIntegrationPoints(MP_ACCELERATION_GRADIENT, mp_acceleration_gradient, mrProcessInfo);
+
+        rNodalAffineAcceleration[0] += prod(mp_acceleration_gradient[0], mp_to_node_vector);
     }
 
     /**
@@ -121,15 +127,16 @@ namespace Kratos
      */
     void P2GMomentum(Element& rElement, Node& rNode, const double& rN_i) override
     {
-        std::vector<array_1d<double, 3 >> mp_velocity;
+        std::vector<array_1d<double, 3 >> node_affine_velocity;
         std::vector<double> mp_mass;
 
-        rElement.CalculateOnIntegrationPoints(MP_VELOCITY, mp_velocity, mrProcessInfo);
-        this->CalculateAndAddAffineVelocity(rElement, rNode, mp_velocity);
+        // node_affine_velocity = mp_velocity + affine contribution
+        rElement.CalculateOnIntegrationPoints(MP_VELOCITY, node_affine_velocity, mrProcessInfo);
+        this->CalculateAndAddAffineVelocity(rElement, rNode, node_affine_velocity);
 
         rElement.CalculateOnIntegrationPoints(MP_MASS, mp_mass, mrProcessInfo);
 
-        array_1d<double,3> r_nodal_momentum = mp_velocity[0] * rN_i * mp_mass[0];
+        array_1d<double,3> r_nodal_momentum = node_affine_velocity[0] * rN_i * mp_mass[0];
         AtomicAdd(rNode.FastGetSolutionStepValue(NODAL_MOMENTUM, 0), r_nodal_momentum);
     }
 
@@ -138,15 +145,16 @@ namespace Kratos
      */
     void P2GInertia(Element& rElement, Node& rNode, const double& rN_i) override
     {
-        std::vector<array_1d<double, 3 >> mp_acceleration;
+        std::vector<array_1d<double, 3 >> node_affine_acceleration;
         std::vector<double> mp_mass;
 
-        rElement.CalculateOnIntegrationPoints(MP_VELOCITY, mp_acceleration, mrProcessInfo);
-        this->CalculateAndAddAffineAcceleration(rElement, rNode, mp_acceleration);
+        // node_affine_acceleration = mp_acceleration + affine contribution
+        rElement.CalculateOnIntegrationPoints(MP_ACCELERATION, node_affine_acceleration, mrProcessInfo);
+        this->CalculateAndAddAffineAcceleration(rElement, rNode, node_affine_acceleration);
+
         rElement.CalculateOnIntegrationPoints(MP_MASS, mp_mass, mrProcessInfo);
 
-
-        array_1d<double,3> r_nodal_inertia = mp_acceleration[0] * rN_i * mp_mass[0];
+        array_1d<double,3> r_nodal_inertia = node_affine_acceleration[0] * rN_i * mp_mass[0];
 
         AtomicAdd(rNode.FastGetSolutionStepValue(NODAL_INERTIA, 0), r_nodal_inertia);
     }
