@@ -110,6 +110,7 @@
 #include "custom_conditions/point_moment_condition_3d.h"
 #include "custom_conditions/displacement_control_condition.h"
 #include "custom_conditions/moving_load_condition.h"
+#include "custom_conditions/point_load_condition_1d_1n.h"
 
 /* Adding the displacement-based SBM condition */
 #include "custom_conditions/displacement_shifted_boundary_condition.h"
@@ -469,6 +470,7 @@ private:
 
     /* CONDITIONS*/
     // Point load
+    const PointLoadCondition1D1N mPointLoadCondition1D1N;
     const PointLoadCondition mPointLoadCondition2D1N;
     const PointLoadCondition mPointLoadCondition3D1N;
     const PointContactCondition mPointContactCondition2D1N;

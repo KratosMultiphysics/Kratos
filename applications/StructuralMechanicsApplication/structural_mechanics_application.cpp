@@ -239,6 +239,7 @@ KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication()
 
       /* CONDITIONS */
       // Adding point load conditions
+      mPointLoadCondition1D1N(0, Condition::GeometryType::Pointer(new Point2D<NodeType>(Condition::GeometryType::PointsArrayType(1))), Properties::Pointer(new Properties(0))),
       mPointLoadCondition2D1N(0, Condition::GeometryType::Pointer(new Point2D<NodeType >(Condition::GeometryType::PointsArrayType(1)))),
       mPointLoadCondition3D1N(0, Condition::GeometryType::Pointer(new Point3D<NodeType >(Condition::GeometryType::PointsArrayType(1)))),
       mPointContactCondition2D1N(0, Condition::GeometryType::Pointer(new Point2D<NodeType >(Condition::GeometryType::PointsArrayType(1)))),
@@ -509,7 +510,7 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(MOVING_LOAD)
     KRATOS_REGISTER_VARIABLE(MOVING_LOAD_LOCAL_DISTANCE)
     KRATOS_REGISTER_VARIABLE(MOTION_TYPE)
-    
+
     // Condition load variables
     KRATOS_REGISTER_VARIABLE(POINT_LOADS_VECTOR)
     KRATOS_REGISTER_VARIABLE(LINE_LOADS_VECTOR)
@@ -756,6 +757,7 @@ void KratosStructuralMechanicsApplication::Register() {
 
     // Register the conditions
     // Point loads
+    KRATOS_REGISTER_CONDITION("PointLoadCondition1D1N", mPointLoadCondition1D1N)
     KRATOS_REGISTER_CONDITION("PointLoadCondition2D1N", mPointLoadCondition2D1N)
     KRATOS_REGISTER_CONDITION("PointLoadCondition3D1N", mPointLoadCondition3D1N)
     KRATOS_REGISTER_CONDITION("PointContactCondition2D1N", mPointContactCondition2D1N)
