@@ -10,13 +10,15 @@ import abc
 
 
 class __PreTensionProcessMeta(type(KratosMultiphysics.Process), type(abc.ABC)):
-     pass
+    pass
 
 
 class PreTensionProcessBase(KratosMultiphysics.Process, abc.ABC, metaclass = __PreTensionProcessMeta):
     """ @brief Common base class of @ref NeumannPreTensionProcess and @ref DirichletPreTensionProcess.
         @see @ref InsertNeumannPreTensionOperation
         @see @ref InsertDirichletPreTensionProcess
+        @see @ref pre_tensioning "Pre-Tensioning"
+        @ingroup pre_tensioning
     """
 
     def __init__(
