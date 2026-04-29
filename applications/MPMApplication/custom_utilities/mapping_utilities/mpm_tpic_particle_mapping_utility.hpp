@@ -79,12 +79,12 @@ namespace Kratos
     }
 
     #pragma region Particle to Grid Mapping (P2G)
-    void CalculateMpToNodeVector(Element& rElement, Node& rNode, array_1d<double,3> rMpToNodeVector)
+    void CalculateMpToNodeVector(Element& rElement, Node& rNode, array_1d<double,3>& rMpToNodeVector)
     {
         std::vector<array_1d<double,3>> mp_coordinate{};
         rElement.CalculateOnIntegrationPoints(MP_COORD, mp_coordinate, mrProcessInfo);
 
-        rMpToNodeVector = mp_coordinate[0] - rNode.Coordinates();
+        rMpToNodeVector = rNode.Coordinates() - mp_coordinate[0];
     }
     /**
      * Calculate and add TPIC affine velocity for the corresponding node
