@@ -272,14 +272,6 @@ def get_pipe_length(simulation):
     elements = model_part.Elements
     return sum([element.GetValue(KratosGeo.PIPE_ELEMENT_LENGTH) for element in elements if element.GetValue(KratosGeo.PIPE_ACTIVE)])
 
-def get_force(simulation):
-    """
-    Gets force on all integration points from Kratos simulation
-    :param simulation:
-    :return: force
-    """
-    return get_on_integration_points(simulation, Kratos.FORCE)
-
 
 def get_bending_moment(simulation):
     """
