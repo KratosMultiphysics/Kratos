@@ -218,6 +218,7 @@ PreTensionSurfacePartition PartitionPreTensionSurface(
                         surface_partition.normal = opposite_node_position - surface_node_position;
                     } else {
                         surface_partition.negative_side.push_back(*(r_adjacent_elements.begin() + i_element));
+                        surface_partition.normal = surface_node_position - opposite_node_position;
                     }
                 } // for i_element in range(r_adjacent_elements.size())
             } /*if SurfaceDimension == 0*/ else if constexpr (SurfaceDimension == 1u) {
@@ -848,9 +849,9 @@ public:
             std::size_t dimension_count = 0ul;
             {
                 std::unordered_set<std::size_t> keys;
-                for (std::size_t i_dof=0ul; i_dof<positive_side_dof_count; ++i_dof) {
+                for (std::size_t i_dof=0ul; i_dof<r_dofs.size()-1; ++i_dof) {
                     keys.insert(r_dofs[i_dof]->GetVariable().Key());
-                } // for i_dof in positive_side_dof_count
+                } // for i_dof in r_dofs.size()-1
                 dimension_count = keys.size();
                 KRATOS_ERROR_IF_NOT(0 < dimension_count && dimension_count < 4)
                     << "unexpected surface dimension " << dimension_count;
@@ -862,9 +863,9 @@ public:
 
             constexpr std::size_t dof_stride = IsRelative ? 2ul : 1ul;
             for (std::size_t i_dof=0ul; i_dof<positive_side_dof_count; ++i_dof) {
-                constraint_gradient(0, dof_stride * i_dof) = normal[(i_dof / dof_stride) % dimension_count];
+                constraint_gradient(0, dof_stride * i_dof) = normal[i_dof % dimension_count];
                 if constexpr (IsRelative)
-                    constraint_gradient(0, dof_stride * i_dof + 1) = -normal[(i_dof / dof_stride) % dimension_count];
+                    constraint_gradient(0, dof_stride * i_dof + 1) = -normal[i_dof % dimension_count];
             }
 
             constraint_gap[0] = 0.0;
@@ -959,7 +960,7 @@ void InsertDirichletPreTensionOperation::Apply(double Magnitude) {
     KRATOS_ERROR_IF_NOT(mpControlNode->GetDofs().size() == 1);
     KRATOS_TRY
         Dof<double>& r_control_dof = *mpControlNode->GetDofs()[0].get();
-        r_control_dof.GetSolutionStepValue() = (Magnitude - r_control_dof.GetSolutionStepValue()) * mPreTensionSurfaceSize;
+        r_control_dof.GetSolutionStepValue() = 0.5 * mPreTensionSurfaceSize * Magnitude - r_control_dof.GetSolutionStepValue();
         r_control_dof.FixDof();
     KRATOS_CATCH("")
 }
