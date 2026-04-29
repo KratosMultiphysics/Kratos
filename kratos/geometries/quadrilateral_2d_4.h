@@ -663,6 +663,10 @@ public:
         return "2 dimensional quadrilateral with four nodes in 2D space";
     }
 
+    std::string Name() const override {
+        return "Quadrilateral2D4";
+    }
+
     /**
      * Print information about this object.
      * @param rOStream Stream to print into it.
