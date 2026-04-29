@@ -2,6 +2,8 @@ import KratosMultiphysics.KratosUnittest as UnitTest
 import KratosMultiphysics.FluidDynamicsApplication
 import numpy as np
 import KratosMultiphysics.FluidDynamicsApplication.python_pool
+import KratosMultiphysics.KratosUnittest as KratosUnittest
+
 
 try:
     import cupy as cp
@@ -9,7 +11,7 @@ try:
 except ImportError:
     HAS_CUPY = False
 
-class TestBufferPoolNumPy(UnitTest.TestCase):
+class TestBufferPoolNumPy(KratosUnittest.TestCase):
 
     def setUp(self):
         self.pool = KratosMultiphysics.FluidDynamicsApplication.python_pool.BufferPool(

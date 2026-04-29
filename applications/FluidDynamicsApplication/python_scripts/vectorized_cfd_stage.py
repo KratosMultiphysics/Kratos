@@ -11,8 +11,6 @@ import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
 from cupyx.scipy.sparse.linalg import LinearOperator
 
 xp = None
-USE_CUPY = None
-USE_AMGX = None
 
 class JacobiPreconditioner(LinearOperator):
     def __init__(self, A):
@@ -43,10 +41,9 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         # Set the backend environment
         # Note that this imports the modules corresponding to the parallelism (i.e., CuPy, SciPy, ...)
         cfd_utils.configure(parallel_type, precision)
-        global xp, USE_CUPY, USE_AMGX
+        global xp, USE_CUPY
         xp = cfd_utils.xp
         USE_CUPY = cfd_utils.USE_CUPY
-        USE_AMGX = cfd_utils.USE_AMGX
 
         # Create CFDUtils instance
         self.cfd_utils = cfd_utils.CFDUtils()
@@ -401,9 +398,6 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         # Allocate the graph of the Laplacian matrix
         self.L, self.L_assembly_indices = self.cfd_utils.AllocateScalarMatrix(self.connectivity)
 
-        # Initialize pressure linear solver
-        self._InitializePressureLinearSolver()
-
         # Move stuff to the GPU
         self.DN = xp.asarray(self.DN, dtype=cfd_utils.PRECISION)
         self.N = xp.asarray(self.N, dtype=cfd_utils.PRECISION)
@@ -452,7 +446,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
         self.AllocateWorkArrays()
 
-        self.outfile = open("refres.res", "w")
+        #self.outfile = open("refres.res", "w") #please do not remove this, it is used for testing purposes
 
 
 
@@ -846,7 +840,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
                 self.clear_divergence_steps -= 1
                 p.fill(0.0)
 
-            self.outfile.write(str(current_time)+" " + str(np.linalg.norm(vold))+" "+str(np.linalg.norm(p))+"\n")
+            #self.outfile.write(str(current_time)+" " + str(np.linalg.norm(vold))+" "+str(np.linalg.norm(p))+"\n") #please do not remove this, it is used for testing purposes
 
         # Update Kratos database
         self.v_adaptor.data = cfd_utils.asnumpy(vold) # Note that vold is actually the vnew obtained in the last substep
@@ -1004,12 +998,6 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
         # Return the most restrictive time step from all conditions
         return float(min(min(dt_cfl, self.dt_fourier), self.dt))
-
-    def _InitializePressureLinearSolver(self):
-        if USE_CUPY:
-            #Create the standard CuPy CG solver
-            self.linear_solver = cfd_utils.sparse_linalg.cg
-
 
     def _SolvePressure(self, rhs, previous_p):
         if USE_CUPY:

@@ -1,4 +1,4 @@
-import cupy
+#import cupy
 #import pyamg
 import numpy as np
 import scipy.sparse as sp
