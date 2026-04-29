@@ -1100,7 +1100,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
 
     def _ResetResistance(self):
         self.resistance = np.zeros(self.n_nodes)
-        self.resistance_derivative_wrt_design = np.zeros(self.n_nodes)
+        self.resistance_derivative_wrt_design_base = np.zeros(self.n_nodes)
     
     def _UpdateResistance(self):
         """
@@ -1108,7 +1108,6 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         """
         self.MpiPrint("--|" + self.topology_optimization_stage_str + "| UPDATE RESISTANCE")
         self.resistance, self.resistance_derivative_wrt_design_base = self._ComputeResistance(self.design_parameter)
-        self._UpdateResistanceDesignDerivative()
         self._UpdateResistanceVariable()
 
     def _ComputeResistance(self, design_parameter):
@@ -1216,10 +1215,6 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
                 else:
                     current_value = final_value
                 subdomain_physics_parameters["value_full"].SetDouble(current_value)
-
-    def _UpdateResistanceDesignDerivative(self):
-        resistance_derivative_wrt_design_projected = self.resistance_derivative_wrt_design_base * self.design_parameter_projected_derivatives
-        self.resistance_derivative_wrt_design = resistance_derivative_wrt_design_projected
     
     def _UpdateResistanceVariable(self):
         self._GetSolver()._UpdateResistanceVariable(self.resistance)

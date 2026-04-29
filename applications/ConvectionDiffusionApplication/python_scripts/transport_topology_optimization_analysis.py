@@ -733,7 +733,8 @@ class TransportTopologyOptimizationAnalysis(FluidTopologyOptimizationAnalysis):
         transport_source_functional_derivatives_in_delta_time = np.zeros((self.n_nodes, self.n_time_steps))
         for istep in range(self.n_time_steps):
             transport_scalar = self.transport_scalar_solutions[istep]
-            transport_source_functional_derivatives_in_delta_time[:,istep] = self.transport_source_derivative_wrt_design_base * transport_scalar * self.nodal_domain_sizes
+            # the source term functional is evalauted with a negative sign, trherfore also its derivartive w.r.t. design will be summed with the minus sign
+            transport_source_functional_derivatives_in_delta_time[:,istep] = -self.transport_source_derivative_wrt_design_base * transport_scalar * self.nodal_domain_sizes
         return (np.einsum('ij,j->i', transport_source_functional_derivatives_in_delta_time, self.transport_scalar_source_functional_time_steps_integration_weights) / self.transport_scalar_source_functional_time_info["time_integral_normalization_factor"])
     
     def _ComputeFunctionalDerivatives1stOrderDecayFunctionalContribution(self):
@@ -754,7 +755,8 @@ class TransportTopologyOptimizationAnalysis(FluidTopologyOptimizationAnalysis):
             transport_physics_functional_derivatives_in_delta_time[:,istep]  = self.conductivity_derivative_wrt_design_base * np.einsum('ij,ij->i', transport_scalar_gradient, transport_scalar_adj_gradient) * self.nodal_domain_sizes
             transport_physics_functional_derivatives_in_delta_time[:,istep] += self.decay_derivative_wrt_design_base * (transport_scalar*transport_scalar_adj) * self.nodal_domain_sizes
             transport_physics_functional_derivatives_in_delta_time[:,istep] += self.convection_coefficient_derivative_wrt_design_base * np.einsum('ij,ij->i', velocity, transport_scalar_gradient) * transport_scalar_adj * self.nodal_domain_sizes
-            transport_physics_functional_derivatives_in_delta_time[:,istep] += self.transport_source_derivative_wrt_design_base * transport_scalar_adj * self.nodal_domain_sizes
+            # the imposed source term is implemented on the rhs in the weak form, therefore in the derivative of the weak form operator it is summed with the minus sign
+            transport_physics_functional_derivatives_in_delta_time[:,istep] -= self.transport_source_derivative_wrt_design_base * transport_scalar_adj * self.nodal_domain_sizes
         return (np.einsum('ij,j->i', transport_physics_functional_derivatives_in_delta_time, self.time_steps_integration_weights) / self.time_integral_normalization_factor)
     
     def _UpdateRelevantPhysicsVariables(self):
@@ -833,7 +835,7 @@ class TransportTopologyOptimizationAnalysis(FluidTopologyOptimizationAnalysis):
 
     def _ResetConductivity(self):
         self.conductivity = np.zeros(self.n_nodes)
-        self.conductivity_derivative_wrt_design = np.zeros(self.n_nodes)
+        self.conductivity_derivative_wrt_design_base = np.zeros(self.n_nodes)
 
     def _ResetDecay(self):
         self.decay = np.zeros(self.n_nodes)
@@ -883,7 +885,6 @@ class TransportTopologyOptimizationAnalysis(FluidTopologyOptimizationAnalysis):
         """
         self.MpiPrint("--|" + self.topology_optimization_stage_str + "| UPDATE CONDUCTIVITY")
         self.conductivity, self.conductivity_derivative_wrt_design_base = self._ComputeConductivity(self.design_parameter)
-        self._UpdateConductivityDesignDerivative()
         self._UpdateConductivityVariable()
 
     def _UpdateDecay(self):
@@ -892,7 +893,6 @@ class TransportTopologyOptimizationAnalysis(FluidTopologyOptimizationAnalysis):
         """
         self.MpiPrint("--|" + self.topology_optimization_stage_str + "| UPDATE DECAY")
         self.decay, self.decay_derivative_wrt_design_base = self._ComputeDecay(self.design_parameter)
-        self._UpdateDecayDesignDerivative()
         self._UpdateDecayVariable()
 
     def _UpdateConvectionCoefficient(self):
@@ -901,7 +901,6 @@ class TransportTopologyOptimizationAnalysis(FluidTopologyOptimizationAnalysis):
         """
         self.MpiPrint("--|" + self.topology_optimization_stage_str + "| UPDATE CONVECTION COEFFICIENT")
         self.convection_coefficient, self.convection_coefficient_derivative_wrt_design_base = self._ComputeConvectionCoefficient(self.design_parameter)
-        self._UpdateConvectionCoefficientDesignDerivative()
         self._UpdateConvectionCoefficientVariable()
 
     def _UpdateTransportSource(self):
@@ -910,7 +909,6 @@ class TransportTopologyOptimizationAnalysis(FluidTopologyOptimizationAnalysis):
         """
         self.MpiPrint("--|" + self.topology_optimization_stage_str + "| UPDATE TRANSPORT SOURCE")
         self.transport_source, self.transport_source_derivative_wrt_design_base = self._ComputeTransportSource(self.design_parameter)
-        self._UpdateTransportSourceDesignDerivative()
         self._UpdateTransportSourceVariable()
     
     def _ComputeConductivity(self, design_parameter):
@@ -924,26 +922,6 @@ class TransportTopologyOptimizationAnalysis(FluidTopologyOptimizationAnalysis):
     
     def _ComputeTransportSource(self, design_parameter):
         return self._ComputePhysicsParameter(self.transport_source_parameters, design_parameter)
-
-    def _UpdateConductivityDesignDerivative(self):
-        conductivity_derivative_wrt_design_projected = self.conductivity_derivative_wrt_design_base * self.design_parameter_projected_derivatives
-        self.conductivity_derivative_wrt_design = conductivity_derivative_wrt_design_projected
-        # self.conductivity_derivative_wrt_design[mask] = self._ApplyDiffusiveFilterDerivative(conductivity_derivative_wrt_design_projected[mask])
-
-    def _UpdateDecayDesignDerivative(self):
-        decay_derivative_wrt_design_projected = self.decay_derivative_wrt_design_base * self.design_parameter_projected_derivatives
-        self.decay_derivative_wrt_design = decay_derivative_wrt_design_projected
-        # self.decay_derivative_wrt_design[mask] = self._ApplyDiffusiveFilterDerivative(decay_derivative_wrt_design_projected[mask])
-
-    def _UpdateConvectionCoefficientDesignDerivative(self):
-        convection_coefficient_derivative_wrt_design_projected = self.convection_coefficient_derivative_wrt_design_base * self.design_parameter_projected_derivatives
-        self.convection_coefficient_derivative_wrt_design = convection_coefficient_derivative_wrt_design_projected
-        # self.convection_coefficient_derivative_wrt_design[mask] = self._ApplyDiffusiveFilterDerivative(convection_coefficient_derivative_wrt_design_projected[mask])
-
-    def _UpdateTransportSourceDesignDerivative(self):
-        transport_source_derivative_wrt_design_projected = self.transport_source_derivative_wrt_design_base * self.design_parameter_projected_derivatives
-        self.transport_source_derivative_wrt_design = transport_source_derivative_wrt_design_projected
-        # self.transport_source_derivative_wrt_design[mask] = self._ApplyDiffusiveFilterDerivative(transport_source_derivative_wrt_design_projected[mask])
 
     def _GetTransportModelPart(self):
         return self._GetMainModelPart()
