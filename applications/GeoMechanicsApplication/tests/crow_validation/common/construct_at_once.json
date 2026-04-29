@@ -15,7 +15,7 @@
                     {
                         "name": "KratosMultiphysics.modelers.import_mdpa_modeler.ImportMDPAModeler",
                         "Parameters": {
-                            "input_filename": "../common/crow_validation_gid",
+                            "input_filename": "../../common/crow_validation_gid",
                             "model_part_name": "PorousDomain"
                         }
                     }
@@ -65,7 +65,7 @@
                         "input_type": "use_input_model_part"
                     },
                     "material_import_settings": {
-                        "materials_filename": "../common/linear_elastic_materials.json"
+                        "materials_filename": "../../common/linear_elastic_materials.json"
                     },
                     "buffer_size": 2,
                     "clear_storage": false,
@@ -273,7 +273,7 @@
                         "input_type": "use_input_model_part"
                     },
                     "material_import_settings": {
-                        "materials_filename": "../common/linear_elastic_materials.json"
+                        "materials_filename": "../../common/linear_elastic_materials.json"
                     },
                     "buffer_size": 2,
                     "clear_storage": false,
@@ -490,7 +490,7 @@
                         "input_type": "use_input_model_part"
                     },
                     "material_import_settings": {
-                        "materials_filename": "../common/linear_elastic_materials.json"
+                        "materials_filename": "../../common/linear_elastic_materials.json"
                     },
                     "buffer_size": 2,
                     "clear_storage": false,
