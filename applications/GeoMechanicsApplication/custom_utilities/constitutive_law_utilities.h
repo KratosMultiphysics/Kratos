@@ -71,6 +71,8 @@ public:
     [[nodiscard]] static bool         IsUndrained(const Properties& rProperties);
     static void                       ReplaceIgnoreUndrainedByDrainageType(Properties& rProperties);
 
+    [[nodiscard]] static double CalculateExcessPorePressureIncrement(const Properties& rProperties,
+                                                                     double VolumetricStrainIncrement);
 }; /* Class ConstitutiveLawUtilities*/
 
 } // namespace Kratos

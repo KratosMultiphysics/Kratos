@@ -548,4 +548,121 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_ReplaceIgnoreUndrainedByDrain
                      DrainageType::FULLY_COUPLED);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_CalculateExcessPorePressureIncrementGivesDeltaPw,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    Properties properties;
+    properties.SetValue(BIOT_COEFFICIENT, 1.0);
+    properties.SetValue(BULK_MODULUS_FLUID, 1.E3);
+    properties.SetValue(BULK_MODULUS_SOLID, 2.E3);
+    properties.SetValue(POROSITY, 0.5);
+    constexpr auto volumetric_strain_increment = 1.0;
+
+    // Act
+    auto excess_pore_pressure_increment = ConstitutiveLawUtilities::CalculateExcessPorePressureIncrement(
+        properties, volumetric_strain_increment);
+
+    // Assert
+    KRATOS_EXPECT_NEAR(excess_pore_pressure_increment, 4.0e3 / 3.0, Defaults::absolute_tolerance);
+
+    // Arrange
+    properties.SetValue(POROSITY, 0.0);
+
+    // Act
+    excess_pore_pressure_increment = ConstitutiveLawUtilities::CalculateExcessPorePressureIncrement(
+        properties, volumetric_strain_increment);
+
+    // Assert
+    KRATOS_EXPECT_NEAR(excess_pore_pressure_increment, properties.GetValue(BULK_MODULUS_SOLID),
+                       Defaults::absolute_tolerance);
+
+    // Arrange
+    properties.SetValue(BIOT_COEFFICIENT, 0.0);
+    properties.SetValue(POROSITY, 0.5);
+
+    // Act
+    excess_pore_pressure_increment = ConstitutiveLawUtilities::CalculateExcessPorePressureIncrement(
+        properties, volumetric_strain_increment);
+
+    // Assert
+    KRATOS_EXPECT_NEAR(excess_pore_pressure_increment, 0.0, Defaults::absolute_tolerance);
+
+    // Arrange
+    properties.SetValue(BIOT_COEFFICIENT, 1.0);
+    properties.SetValue(POROSITY, 1.0);
+
+    // Act
+    excess_pore_pressure_increment = ConstitutiveLawUtilities::CalculateExcessPorePressureIncrement(
+        properties, volumetric_strain_increment);
+
+    // Assert
+    KRATOS_EXPECT_NEAR(excess_pore_pressure_increment, properties.GetValue(BULK_MODULUS_FLUID),
+                       Defaults::absolute_tolerance);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtitlities_CalculateExcessPorePressureIncrementThrowsErrorWhenDenominatorEqualsZero,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    Properties properties;
+    properties.SetValue(BIOT_COEFFICIENT, 0.0);
+    properties.SetValue(BULK_MODULUS_FLUID, 1.E3);
+    properties.SetValue(BULK_MODULUS_SOLID, 2.E3);
+    properties.SetValue(POROSITY, 0.0);
+    constexpr auto volumetric_strain_increment = 1.0;
+
+    // Act & Assert
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        (void)ConstitutiveLawUtilities::CalculateExcessPorePressureIncrement(properties, volumetric_strain_increment),
+        "Non-physical values: denominator < epsilon for property Id of 0.");
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_ReplaceIgnoreUndrainedByDrainageType_DefaultsToFullyCoupled,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto properties = Properties{};
+
+    // Act
+    ConstitutiveLawUtilities::ReplaceIgnoreUndrainedByDrainageType(properties);
+
+    // Assert
+    EXPECT_FALSE(properties.Has(IGNORE_UNDRAINED));
+    ASSERT_TRUE(properties.Has(GEO_DRAINAGE_TYPE));
+    KRATOS_EXPECT_EQ(ConstitutiveLawUtilities::StringToDrainageType(properties.GetValue(GEO_DRAINAGE_TYPE)),
+                     DrainageType::FULLY_COUPLED);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_ReplaceIgnoreUndrainedByDrainageType_DoesNothingWhenOnlyDrainageTypeIsGiven,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto properties = Properties{};
+    properties.SetValue(GEO_DRAINAGE_TYPE, "CONSTANT_PW_FIELD"s);
+
+    // Act
+    ConstitutiveLawUtilities::ReplaceIgnoreUndrainedByDrainageType(properties);
+
+    // Assert
+    EXPECT_FALSE(properties.Has(IGNORE_UNDRAINED));
+    ASSERT_TRUE(properties.Has(GEO_DRAINAGE_TYPE));
+    KRATOS_EXPECT_EQ(ConstitutiveLawUtilities::StringToDrainageType(properties.GetValue(GEO_DRAINAGE_TYPE)),
+                     DrainageType::CONSTANT_WATER_PRESSURE);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_ReplaceIgnoreUndrainedByDrainageType_ThrowsExceptionWhenBothKeywordsUsed,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto properties = Properties{};
+    properties.SetValue(IGNORE_UNDRAINED, true);
+    properties.SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED"s);
+
+    // Act & Assert
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        ConstitutiveLawUtilities::ReplaceIgnoreUndrainedByDrainageType(properties),
+        "Both IGNORE_UNDRAINED and GEO_DRAINAGE_TYPE are used. Choose the latter only.");
+}
+
 } // namespace Kratos::Testing

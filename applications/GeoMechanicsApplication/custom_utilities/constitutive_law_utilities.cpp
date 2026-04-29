@@ -299,15 +299,47 @@ bool ConstitutiveLawUtilities::IsUndrained(const Properties& rProperties)
 
 void ConstitutiveLawUtilities::ReplaceIgnoreUndrainedByDrainageType(Properties& rProperties)
 {
-    if (!rProperties.Has(IGNORE_UNDRAINED)) return;
+    const auto fully_coupled_drainage_type     = "FULLY_COUPLED"s;
+    const auto constant_pw_field_drainage_type = "CONSTANT_PW_FIELD"s;
+
+    const auto has_ignore_undrained = rProperties.Has(IGNORE_UNDRAINED);
+    const auto has_drainage_type    = rProperties.Has(GEO_DRAINAGE_TYPE);
+
+    if (!has_ignore_undrained) {
+        if (!has_drainage_type) {
+            KRATOS_WARNING("DEPRECATION")
+                << "Soon GEO_DRAINAGE_TYPE will be a mandatory material input. "
+                   "Currently, the default value is "
+                << fully_coupled_drainage_type << "." << std::endl;
+            rProperties[GEO_DRAINAGE_TYPE] = fully_coupled_drainage_type;
+        }
+        return;
+    }
+
+    KRATOS_ERROR_IF(has_drainage_type)
+        << "Both IGNORE_UNDRAINED and GEO_DRAINAGE_TYPE are used. Choose the latter only." << std::endl;
 
     KRATOS_WARNING("DEPRECATION")
         << "Use of IGNORE_UNDRAINED is deprecated, please change your input to "
            "GEO_DRAINAGE_TYPE"
         << std::endl;
-    if (!rProperties.Has(GEO_DRAINAGE_TYPE))
-        rProperties[GEO_DRAINAGE_TYPE] = rProperties[IGNORE_UNDRAINED] ? "constant_pw_field"s : "fully_coupled"s;
+    rProperties[GEO_DRAINAGE_TYPE] = rProperties[IGNORE_UNDRAINED] ? constant_pw_field_drainage_type
+                                                                   : fully_coupled_drainage_type;
     rProperties.Erase(IGNORE_UNDRAINED);
+}
 
-} // namespace Kratos
+double ConstitutiveLawUtilities::CalculateExcessPorePressureIncrement(const Properties& rProperties,
+                                                                      double VolumetricStrainIncrement)
+{
+    const auto bulk_modulus_fluid = rProperties[BULK_MODULUS_FLUID];
+    const auto bulk_modulus_solid = rProperties[BULK_MODULUS_SOLID];
+    const auto porosity           = rProperties[POROSITY];
+    const auto biot_coefficient   = rProperties[BIOT_COEFFICIENT];
+
+    const auto denominator = porosity / bulk_modulus_fluid + (biot_coefficient - porosity) / bulk_modulus_solid;
+    KRATOS_ERROR_IF(std::abs(denominator) <= std::numeric_limits<double>::epsilon())
+        << "Non-physical values: denominator < epsilon for property Id of " << rProperties.Id()
+        << "." << std::endl;
+    return biot_coefficient * VolumetricStrainIncrement / denominator;
+}
 } // namespace Kratos
