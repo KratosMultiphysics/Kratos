@@ -69,8 +69,7 @@ namespace Kratos
 
         for (Element& rElement : mrMPMModelPart.Elements())
         {
-            const unsigned int dimension = rElement.GetGeometry().WorkingSpaceDimension();
-            const Matrix InitiateGradient = ZeroMatrix(dimension, dimension);
+            const Matrix InitiateGradient = ZeroMatrix(mDimension, mDimension);
 
             // Initialize gradients to zero (not suitable for simulation with prescribed velocities at MP)
             rElement.SetValuesOnIntegrationPoints(MP_VELOCITY_GRADIENT, {InitiateGradient}, mrProcessInfo);
@@ -166,8 +165,7 @@ namespace Kratos
 
     void CalculateMPVelocityGradient(Element& rElement, const Matrix& dN_dX)
     {
-        const unsigned int dimension = rElement.GetGeometry().WorkingSpaceDimension();
-        Matrix mp_velocity_gradient = ZeroMatrix(dimension, dimension);
+        Matrix mp_velocity_gradient = ZeroMatrix(mDimension, mDimension);
 
         IndexType node_index = 0;
         for (const Node& node_i : rElement.GetGeometry())
@@ -176,9 +174,9 @@ namespace Kratos
             const Vector& dN_dX_i = row(dN_dX, node_index);
 
             // calculate velocity gradient for current node
-            for ( IndexType dim_i = 0; dim_i < dimension; dim_i++ )
+            for ( IndexType dim_i = 0; dim_i < mDimension; dim_i++ )
             {
-                for ( IndexType dim_j = 0; dim_j < dimension; dim_j++ )
+                for ( IndexType dim_j = 0; dim_j < mDimension; dim_j++ )
                 {
                     mp_velocity_gradient(dim_i,dim_j) += velocity_i[dim_i] * dN_dX_i(dim_j);
                 }
@@ -191,8 +189,7 @@ namespace Kratos
 
     void CalculateMPAccelerationGradient(Element& rElement, const Matrix& dN_dX)
     {
-        const unsigned int dimension = rElement.GetGeometry().WorkingSpaceDimension();
-        Matrix mp_acceleration_gradient = ZeroMatrix(dimension, dimension);
+        Matrix mp_acceleration_gradient = ZeroMatrix(mDimension, mDimension);
 
         IndexType node_index = 0;
         for (const Node& node_i : rElement.GetGeometry())
@@ -201,9 +198,9 @@ namespace Kratos
             const Vector& dN_dX_i = row(dN_dX, node_index);
 
             // calculate acceleration gradient for current node
-            for ( IndexType dim_i = 0; dim_i < dimension; dim_i++ )
+            for ( IndexType dim_i = 0; dim_i < mDimension; dim_i++ )
             {
-                for ( IndexType dim_j = 0; dim_j < dimension; dim_j++ )
+                for ( IndexType dim_j = 0; dim_j < mDimension; dim_j++ )
                 {
                     mp_acceleration_gradient(dim_i,dim_j) += acceleration_i[dim_i] * dN_dX_i(dim_j);
                 }

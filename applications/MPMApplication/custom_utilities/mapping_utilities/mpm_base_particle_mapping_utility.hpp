@@ -37,7 +37,9 @@ namespace Kratos
 
     public:
 
-    typedef std::size_t IndexType;
+    using IndexType = std::size_t;
+    using SizeType = std::size_t;
+
     KRATOS_CLASS_POINTER_DEFINITION(MPMBaseParticleMappingUtility);
     ///@name Life Cycle
     ///@{
@@ -56,7 +58,10 @@ namespace Kratos
         , mrProcessInfo(rMPMModelPart.GetProcessInfo())
         , mEchoLevel(EchoLevel)
         , mIsMixedFormulation((mrProcessInfo.Has(IS_MIXED_FORMULATION)) ? mrProcessInfo.GetValue(IS_MIXED_FORMULATION) : false)
+        , mDimension((mrProcessInfo.Has(DOMAIN_SIZE)) ? mrProcessInfo.GetValue(DOMAIN_SIZE) : 0)
     {
+        KRATOS_ERROR_IF_NOT(mrProcessInfo.Has(DOMAIN_SIZE)) << "ProcessInfo does not have DOMAIN_SIZE" << std::endl;
+        KRATOS_ERROR_IF_NOT(mDimension == 2 || mDimension == 3) << "Domain size not supported!" << std::endl;
     }
 
     ///@}
@@ -405,6 +410,7 @@ protected:
     const ProcessInfo& mrProcessInfo;
     const int mEchoLevel{};
     bool mIsMixedFormulation;
+    const SizeType mDimension;
     ///@}
     ///@name Protected Operators
     ///@{
