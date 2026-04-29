@@ -297,6 +297,7 @@ class MPMSolver(PythonSolver):
         model_part.AddNodalSolutionStepVariable(KratosMPM.NODAL_MOMENTUM)
         model_part.AddNodalSolutionStepVariable(KratosMPM.NODAL_INERTIA)
         model_part.AddNodalSolutionStepVariable(KratosMPM.NODAL_CAUCHY_STRESS_VECTOR)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CAUCHY_STRESS_VECTOR)
 
         # Add variables that the user defined in the ProjectParameters
         auxiliary_solver_utilities.AddVariables(model_part, self.settings["auxiliary_variables_list"])
