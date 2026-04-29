@@ -19,6 +19,7 @@
 #include "tests/cpp_tests/test_utilities.h"
 
 using namespace Kratos;
+using namespace std::string_literals;
 
 namespace Kratos::Testing
 {
@@ -33,6 +34,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateMassMatrix2D6NDiffOrderGivesCorrectResults, K
     p_elem_prop->SetValue(DENSITY_WATER, 1000.0);
     p_elem_prop->SetValue(POROSITY, 0.0);
     p_elem_prop->SetValue(DENSITY_SOLID, 1700.0);
+    p_elem_prop->SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED"s);
     // set arbitrary constitutive law
     p_elem_prop->SetValue(CONSTITUTIVE_LAW, LinearElastic2DInterfaceLaw().Clone());
 
@@ -86,7 +88,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateMassMatrix3D4NGivesCorrectResults, KratosGeoM
     p_elem_prop->SetValue(DENSITY_WATER, 1000.0);
     p_elem_prop->SetValue(POROSITY, 0.3);
     p_elem_prop->SetValue(DENSITY_SOLID, 2500.0);
-
+    p_elem_prop->SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED"s);
     ProcessInfo process_info;
 
     auto& r_element = r_model_part.GetElement(1);
