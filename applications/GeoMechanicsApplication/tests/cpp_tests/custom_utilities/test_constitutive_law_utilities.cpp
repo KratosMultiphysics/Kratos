@@ -796,4 +796,74 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_AssembleExcessPorePressureFor
     KRATOS_EXPECT_VECTOR_NEAR(result_vector, UblasUtilities::CreateVector({0.0, 0.0, 0.0}), 1e-12);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_StringToDrainageType_IsCaseInsensitive,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    KRATOS_EXPECT_EQ(ConstitutiveLawUtilities::StringToDrainageType("Undrained"), DrainageType::UNDRAINED);
+    KRATOS_EXPECT_EQ(ConstitutiveLawUtilities::StringToDrainageType("FULLY_COUPLED"), DrainageType::FULLY_COUPLED);
+    KRATOS_EXPECT_EQ(ConstitutiveLawUtilities::StringToDrainageType("constant_pw_field"),
+                     DrainageType::CONSTANT_WATER_PRESSURE);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_DrainageTypeChecks, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    auto properties = Properties{};
+    properties.SetValue(GEO_DRAINAGE_TYPE, "Undrained");
+    KRATOS_EXPECT_EQ(ConstitutiveLawUtilities::IsUndrained(properties), true);
+    KRATOS_EXPECT_EQ(ConstitutiveLawUtilities::IsConstantWaterPressure(properties), false);
+
+    properties.SetValue(GEO_DRAINAGE_TYPE, "constant_pw_field");
+    KRATOS_EXPECT_EQ(ConstitutiveLawUtilities::IsUndrained(properties), false);
+    KRATOS_EXPECT_EQ(ConstitutiveLawUtilities::IsConstantWaterPressure(properties), true);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_HasExcessPorePressureContribution, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    auto properties = Properties{};
+    properties.SetValue(GEO_DRAINAGE_TYPE, "Undrained");
+    properties.SetValue(BULK_MODULUS_FLUID, 1.0e3);
+    properties.SetValue(BULK_MODULUS_SOLID, 2.0e3);
+    properties.SetValue(POROSITY, 0.3);
+
+    KRATOS_EXPECT_EQ(ConstitutiveLawUtilities::HasExcessPorePressureContribution(properties), true);
+
+    properties.Erase(POROSITY);
+    KRATOS_EXPECT_EQ(ConstitutiveLawUtilities::HasExcessPorePressureContribution(properties), false);
+
+    properties.SetValue(POROSITY, 0.3);
+    properties.SetValue(GEO_DRAINAGE_TYPE, "Drained");
+    KRATOS_EXPECT_EQ(ConstitutiveLawUtilities::HasExcessPorePressureContribution(properties), false);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_GetFrictionAngleInRadians, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    auto properties = Properties{};
+    properties.SetValue(GEO_FRICTION_ANGLE, 30.0);
+
+    KRATOS_EXPECT_NEAR(ConstitutiveLawUtilities::GetFrictionAngleInRadians(properties),
+                       std::numbers::pi / 6.0, Defaults::absolute_tolerance);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_CalculateExcessPorePressureTangentMatrix_ReturnsExpectedValue,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    auto properties = Properties{};
+    properties.SetValue(BIOT_COEFFICIENT, 1.0);
+    properties.SetValue(BULK_MODULUS_FLUID, 1.0e3);
+    properties.SetValue(BULK_MODULUS_SOLID, 2.0e3);
+    properties.SetValue(POROSITY, 0.5);
+
+    const auto B =
+        UblasUtilities::CreateMatrix({{1.0, 0.0, 0.0}, {0.0, 2.0, 0.0}, {0.0, 0.0, 3.0}, {0.0, 0.0, 0.0}});
+    const auto voigt_vector = UblasUtilities::CreateVector({1.0, 1.0, 1.0, 0.0});
+
+    const auto tangent = ConstitutiveLawUtilities::CalculateExcessPorePressureTangentMatrix(
+        properties, B, voigt_vector, 2.0);
+
+    const auto expected = UblasUtilities::CreateMatrix({{2666.6666666666665, 5333.333333333333, 8000.0},
+                                                        {5333.333333333333, 10666.666666666666, 16000.0},
+                                                        {8000.0, 16000.0, 24000.0}});
+    KRATOS_EXPECT_MATRIX_NEAR(tangent, expected, 1e-9);
+}
+
 } // namespace Kratos::Testing
