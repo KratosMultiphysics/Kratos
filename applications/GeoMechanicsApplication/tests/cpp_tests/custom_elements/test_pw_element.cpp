@@ -206,7 +206,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement_ReturnsTheExpectedLeftHandSideA
     p_properties->SetValue(RETENTION_LAW, "SaturatedLaw");
     p_properties->SetValue(SATURATED_SATURATION, 1.000000e+00);
     p_properties->SetValue(CROSS_AREA, 1.0);
-    p_properties->SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
+    p_properties->SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED"s);
 
     auto process_info                     = ProcessInfo{};
     process_info[DT_PRESSURE_COEFFICIENT] = 1.5;
@@ -885,7 +885,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement2D3N_CalculateLocalSystem, Krato
     p_element->GetProperties().SetValue(BULK_MODULUS_FLUID, 1.0E6);
     p_element->GetProperties().SetValue(BULK_MODULUS_SOLID, 1.0E6);
     p_element->GetProperties().SetValue(POROSITY, 0.1);
-    p_element->GetProperties().SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
+    p_element->GetProperties().SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED"s);
     const auto dummy_process_info = ProcessInfo{};
     p_element->Initialize(dummy_process_info);
     p_element->InitializeSolutionStep(dummy_process_info);
@@ -919,7 +919,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement2D3N_Case_A1_2D3N, KratosGeoMech
     using enum CalculationContribution;
     const std::vector contributions = {Permeability, Compressibility, FluidBodyFlow};
     auto              properties    = std::make_shared<Properties>();
-    properties->SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
+    properties->SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED"s);
     properties->SetValue(YOUNG_MODULUS, 10000);
     properties->SetValue(POISSON_RATIO, 0.2);
     properties->SetValue(DENSITY_SOLID, 2.65);
@@ -1109,7 +1109,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement3D4N_CalculateLocalSystem, Krato
     p_element->GetProperties().SetValue(BULK_MODULUS_FLUID, 1.0E6);
     p_element->GetProperties().SetValue(BULK_MODULUS_SOLID, 1.0E6);
     p_element->GetProperties().SetValue(POROSITY, 0.1);
-    p_element->GetProperties().SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
+    p_element->GetProperties().SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED"s);
     const auto dummy_process_info = ProcessInfo{};
     p_element->Initialize(dummy_process_info);
     p_element->InitializeSolutionStep(dummy_process_info);
@@ -1233,7 +1233,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement2D3N_SaveLoad, KratosGeoMechanic
     p_element->GetProperties().SetValue(BULK_MODULUS_FLUID, 1.0E6);
     p_element->GetProperties().SetValue(BULK_MODULUS_SOLID, 1.0E6);
     p_element->GetProperties().SetValue(POROSITY, 0.1);
-    p_element->GetProperties().SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
+    p_element->GetProperties().SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED"s);
     const auto dummy_process_info = ProcessInfo{};
     p_element->Initialize(dummy_process_info);
     p_element->InitializeSolutionStep(dummy_process_info);
