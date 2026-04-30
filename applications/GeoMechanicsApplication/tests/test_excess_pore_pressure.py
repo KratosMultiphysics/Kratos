@@ -2,6 +2,7 @@ import os
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import test_helper
+import KratosMultiphysics.GeoMechanicsApplication.run_multiple_stages as run_multiple_stages
 from KratosMultiphysics.GeoMechanicsApplication.gid_output_file_reader import (
     GiDOutputFileReader,
 )
@@ -38,6 +39,136 @@ class KratosGeoMechanicsExcessPorePressureTests(test_upw_interface.KratosGeoMech
         case_path = test_helper.get_file_path(os.path.join(self._ROOT, case_name))
         output_data = self._run_two_stage_soil_case(case_path)
         return case_path, output_data, self._all_times(output_data)
+
+    def _run_soil_case_with_input_folder(self, case_name, input_folder_name):
+        case_path = test_helper.get_file_path(os.path.join(self._ROOT, case_name))
+        input_path = test_helper.get_file_path(os.path.join(self._ROOT, input_folder_name))
+        run_multiple_stages.run_stages(
+            case_path,
+            2,
+            "ProjectParameters_stage{}.json",
+            input_path=input_path,
+        )
+        output_data = self._read_output(case_path, "stage2")
+        return case_path, output_data, self._all_times(output_data)
+
+    def _assert_matrix_result_match_at_time(
+        self,
+        result_name,
+        first_output,
+        second_output,
+        first_time,
+        second_time,
+        time_index,
+        tolerance,
+    ):
+        first_items = self._result_items_at_time(result_name, first_time, first_output)
+        second_items = self._result_items_at_time(result_name, second_time, second_output)
+
+        self.assertEqual(
+            len(first_items),
+            len(second_items),
+            msg=(
+                f"Different number of {result_name} result blocks at time index {time_index}: "
+                f"first={len(first_items)}, second={len(second_items)}"
+            ),
+        )
+
+        max_abs_difference = 0.0
+        for first_item, second_item in zip(first_items, second_items):
+            first_values_by_element = self._element_id_to_integration_values_map(first_item)
+            second_values_by_element = self._element_id_to_integration_values_map(second_item)
+
+            self.assertEqual(
+                sorted(first_values_by_element.keys()),
+                sorted(second_values_by_element.keys()),
+                msg=(
+                    f"Different {result_name} element IDs at time index {time_index} "
+                    f"(time={first_time:.12g})"
+                ),
+            )
+
+            for element_id in sorted(first_values_by_element.keys()):
+                first_integration_values = first_values_by_element[element_id]
+                second_integration_values = second_values_by_element[element_id]
+
+                self.assertEqual(
+                    len(first_integration_values),
+                    len(second_integration_values),
+                    msg=(
+                        f"Different number of {result_name} integration points for element {element_id} "
+                        f"at time index {time_index}"
+                    ),
+                )
+
+                for integration_point_index, (
+                    first_vector,
+                    second_vector,
+                ) in enumerate(zip(first_integration_values, second_integration_values)):
+                    self.assertEqual(len(first_vector), len(second_vector))
+                    for component_index, (first_component, second_component) in enumerate(
+                        zip(first_vector, second_vector)
+                    ):
+                        max_abs_difference = max(
+                            max_abs_difference, abs(first_component - second_component)
+                        )
+
+        self.assertLess(
+            max_abs_difference,
+            tolerance,
+            msg=(
+                f"{result_name} mismatch at time index {time_index} "
+                f"(time={first_time:.12g}). Maximum absolute component difference was "
+                f"{max_abs_difference:.12e}"
+            ),
+        )
+
+    def _assert_case_matches_reference_solution(
+        self,
+        reference_case_name,
+        comparison_case_name,
+        comparison_input_folder_name,
+        min_shared_unique_pairs,
+        displacement_tolerance,
+        pressure_tolerance,
+        flux_tolerance,
+        total_stress_tolerance,
+    ):
+        reference_case_path, reference_output, reference_times = self._run_soil_case(reference_case_name)
+        comparison_case_path, comparison_output, comparison_times = self._run_soil_case_with_input_folder(
+            comparison_case_name, comparison_input_folder_name
+        )
+
+        reference_node_ids, comparison_node_ids = self._shared_unique_node_ids(
+            reference_case_path,
+            comparison_case_path,
+            min_pairs=min_shared_unique_pairs,
+        )
+
+        self._assert_nodal_match(
+            reference_output,
+            comparison_output,
+            reference_times,
+            comparison_times,
+            reference_node_ids,
+            comparison_node_ids,
+            displacement_tolerance=displacement_tolerance,
+            pressure_tolerance=pressure_tolerance,
+            flux_tolerance=flux_tolerance,
+        )
+
+        for time_index, (reference_time, comparison_time) in enumerate(
+            zip(reference_times, comparison_times)
+        ):
+            self._assert_matrix_result_match_at_time(
+                "TOTAL_STRESS_TENSOR",
+                reference_output,
+                comparison_output,
+                reference_time,
+                comparison_time,
+                time_index,
+                total_stress_tolerance,
+            )
 
     def _assert_soil_case_match(
         self,
@@ -220,6 +351,30 @@ class KratosGeoMechanicsExcessPorePressureTests(test_upw_interface.KratosGeoMech
             min_shared_unique_pairs=3,
             displacement_tolerance=1e-6,
             pressure_tolerance=0.11,
+        )
+
+    def test_newton_raphson_column_matches_original_solution(self):
+        self._assert_case_matches_reference_solution(
+            reference_case_name="column",
+            comparison_case_name="column_newton_raphson",
+            comparison_input_folder_name="common_newton_raphson",
+            min_shared_unique_pairs=6,
+            displacement_tolerance=1e-6,
+            pressure_tolerance=0.11,
+            flux_tolerance=5e-6,
+            total_stress_tolerance=1e-5,
+        )
+
+    def test_newton_raphson_diff_order_column_matches_original_solution(self):
+        self._assert_case_matches_reference_solution(
+            reference_case_name="column_diff_order_elements",
+            comparison_case_name="column_diff_order_elements_newton_raphson",
+            comparison_input_folder_name="common_newton_raphson",
+            min_shared_unique_pairs=15,
+            displacement_tolerance=1e-6,
+            pressure_tolerance=0.11,
+            flux_tolerance=5e-6,
+            total_stress_tolerance=1e-5,
         )
 
     def test_horizontal_interface_generates_excess_pore_pressure(self):
