@@ -293,12 +293,6 @@ DrainageType ConstitutiveLawUtilities::StringToDrainageType(const std::string& r
     return drainage_type_map.at(GeoStringUtilities::ToLower(rDrainageTypeName));
 }
 
-bool ConstitutiveLawUtilities::IsUndrained(const Properties& rProperties)
-{
-    return ConstitutiveLawUtilities::StringToDrainageType(rProperties[GEO_DRAINAGE_TYPE]) ==
-           DrainageType::UNDRAINED;
-}
-
 bool ConstitutiveLawUtilities::IsConstantWaterPressure(const Properties& rProperties)
 {
     return StringToDrainageType(rProperties[GEO_DRAINAGE_TYPE]) == DrainageType::CONSTANT_WATER_PRESSURE;
