@@ -93,6 +93,11 @@ public:
                                                  const Vector&             rVoigtVector,
                                                  const std::vector<double>& rIntegrationCoefficients,
                                                  const Vector&             rExcessPorePressurePrevious);
+
+    [[nodiscard]] static Matrix CalculateExcessPorePressureTangentMatrix(const Properties& rProperties,
+                                                                         const Matrix&     rB,
+                                                                         const Vector&     rVoigtVector,
+                                                                         double            IntegrationCoefficient);
 }; /* Class ConstitutiveLawUtilities*/
 
 } // namespace Kratos

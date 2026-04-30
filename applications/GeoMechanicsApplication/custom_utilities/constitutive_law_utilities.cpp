@@ -425,4 +425,20 @@ void ConstitutiveLawUtilities::AssembleExcessPorePressureForces(Vector&         
     KRATOS_CATCH("ConstitutiveLawUtilities::AssembleExcessPorePressureForces")
 }
 
+Matrix ConstitutiveLawUtilities::CalculateExcessPorePressureTangentMatrix(const Properties& rProperties,
+                                                                          const Matrix&     rB,
+                                                                          const Vector&     rVoigtVector,
+                                                                          double            IntegrationCoefficient)
+{
+    KRATOS_TRY
+
+    // Consistent tangent: K_ex = w * C_ex * (B^T * v) ⊗ (B^T * v)
+    // where C_ex = alpha / (n/Kf + (alpha-n)/Ks)
+    const auto C_ex = CalculateExcessPorePressureIncrement(rProperties, 1.0);
+    const Vector a = prod(trans(rB), rVoigtVector);
+    return IntegrationCoefficient * C_ex * outer_prod(a, a);
+
+    KRATOS_CATCH("ConstitutiveLawUtilities::CalculateExcessPorePressureTangentMatrix")
+}
+
 } // namespace Kratos

@@ -1331,7 +1331,7 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddLHS(MatrixType&             
 }
 
 void SmallStrainUPwDiffOrderElement::CalculateAndAddStiffnessMatrix(MatrixType& rLeftHandSideMatrix,
-                                                                    const ElementVariables& rVariables)
+                                                                    const ElementVariables& rVariables) const
 {
     KRATOS_TRY
 
@@ -1340,6 +1340,12 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddStiffnessMatrix(MatrixType& 
 
     GeoEquationOfMotionUtilities::CalculateStiffnessMatrixGPoint(
         stiffness_matrix, rVariables.B, rVariables.ConstitutiveMatrix, rVariables.IntegrationCoefficient);
+
+    if (ConstitutiveLawUtilities::IsUndrained(this->GetProperties())) {
+        stiffness_matrix += ConstitutiveLawUtilities::CalculateExcessPorePressureTangentMatrix(
+            this->GetProperties(), rVariables.B, this->GetStressStatePolicy().GetVoigtVector(),
+            rVariables.IntegrationCoefficient);
+    }
 
     GeoElementUtilities::AssembleUUBlockMatrix(rLeftHandSideMatrix, stiffness_matrix);
 
@@ -1354,13 +1360,13 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddCouplingMatrix(MatrixType& r
     Matrix coupling_matrix(this->GetGeometry().WorkingSpaceDimension() * this->GetGeometry().PointsNumber(),
                            mpPressureGeometry->PointsNumber(), 0.0);
     GeoTransportEquationUtilities::CalculateCouplingMatrix(
-        coupling_matrix, rVariables.B, GetStressStatePolicy().GetVoigtVector(), rVariables.Np,
+        coupling_matrix, rVariables.B, this->GetStressStatePolicy().GetVoigtVector(), rVariables.Np,
         rVariables.BiotCoefficient, rVariables.BishopCoefficient, rVariables.IntegrationCoefficient);
     GeoElementUtilities::AssembleUPBlockMatrix(rLeftHandSideMatrix, coupling_matrix);
 
     if (!rVariables.IsConstantWaterPressure) {
         GeoTransportEquationUtilities::CalculateCouplingMatrix(
-            coupling_matrix, rVariables.B, GetStressStatePolicy().GetVoigtVector(), rVariables.Np,
+            coupling_matrix, rVariables.B, this->GetStressStatePolicy().GetVoigtVector(), rVariables.Np,
             rVariables.BiotCoefficient, rVariables.DegreeOfSaturation, rVariables.IntegrationCoefficient);
         GeoElementUtilities::AssemblePUBlockMatrix(
             rLeftHandSideMatrix,
@@ -1436,14 +1442,14 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddCouplingTerms(VectorType& rR
     Matrix coupling_matrix(this->GetGeometry().WorkingSpaceDimension() * this->GetGeometry().PointsNumber(),
                            mpPressureGeometry->PointsNumber(), 0.0);
     GeoTransportEquationUtilities::CalculateCouplingMatrix(
-        coupling_matrix, rVariables.B, GetStressStatePolicy().GetVoigtVector(), rVariables.Np,
+        coupling_matrix, rVariables.B, this->GetStressStatePolicy().GetVoigtVector(), rVariables.Np,
         rVariables.BiotCoefficient, rVariables.BishopCoefficient, rVariables.IntegrationCoefficient);
     const Vector coupling_force = prod(coupling_matrix, rVariables.PressureVector);
     GeoElementUtilities::AssembleUBlockVector(rRightHandSideVector, coupling_force);
 
     if (!rVariables.IsConstantWaterPressure) {
         GeoTransportEquationUtilities::CalculateCouplingMatrix(
-            coupling_matrix, rVariables.B, GetStressStatePolicy().GetVoigtVector(), rVariables.Np,
+            coupling_matrix, rVariables.B, this->GetStressStatePolicy().GetVoigtVector(), rVariables.Np,
             rVariables.BiotCoefficient, rVariables.DegreeOfSaturation, rVariables.IntegrationCoefficient);
         const Vector coupling_flow =
             PORE_PRESSURE_SIGN_FACTOR * prod(trans(coupling_matrix), rVariables.VelocityVector);
