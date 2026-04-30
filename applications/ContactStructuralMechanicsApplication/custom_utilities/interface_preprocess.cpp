@@ -507,17 +507,17 @@ inline void InterfacePreprocessCondition::GenerateFaceCondition(
                 // We initialize a vector for the IDs
                 std::vector<std::size_t> condition_ids(4);
 
-                Triangle3D3< Node > tri_1(rFaceGeometry(0), rFaceGeometry(1), rFaceGeometry(5));
+                Triangle3D3< Node > tri_1(rFaceGeometry(0), rFaceGeometry(3), rFaceGeometry(5));
                 CreateNewCondition(pThisProperties, tri_1, rConditionId, r_condition);
                 condition_ids[0] = rConditionId;
                 ++rCondCounter;
                 ++rConditionId;
-                Triangle3D3< Node > tri_2(rFaceGeometry(1), rFaceGeometry(2), rFaceGeometry(3));
+                Triangle3D3< Node > tri_2(rFaceGeometry(3), rFaceGeometry(1), rFaceGeometry(4));
                 CreateNewCondition(pThisProperties, tri_2, rConditionId, r_condition);
                 condition_ids[1] = rConditionId;
                 ++rCondCounter;
                 ++rConditionId;
-                Triangle3D3< Node > tri_3(rFaceGeometry(1), rFaceGeometry(3), rFaceGeometry(5));
+                Triangle3D3< Node > tri_3(rFaceGeometry(4), rFaceGeometry(2), rFaceGeometry(5));
                 CreateNewCondition(pThisProperties, tri_3, rConditionId, r_condition);
                 condition_ids[2] = rConditionId;
                 ++rCondCounter;
