@@ -78,73 +78,68 @@ TriangleNearestPointLocation NearestPointUtilities::TriangleNearestPoint(
     Point& rResult
     )
 {
-    // Compute side vectors and normal
-    const array_1d<double, 3> v10 = rTrianglePoint1 - rTrianglePoint0;
-    const array_1d<double, 3> p0 = rPoint - rTrianglePoint0;
-    const array_1d<double, 3> v21 = rTrianglePoint2 - rTrianglePoint1;
-    const array_1d<double, 3> p1 = rPoint - rTrianglePoint1;
-    const array_1d<double, 3> v02 = rTrianglePoint0 - rTrianglePoint2;
-    const array_1d<double, 3> p2 = rPoint - rTrianglePoint2;
-    array_1d<double, 3> normal;
-    MathUtils<double>::CrossProduct(normal, v10, v02);
+    // Winding-order-invariant algorithm based on Voronoi region classification.
+    // Reference: "Real-Time Collision Detection" by Christer Ericson, Chapter 5.1.5
 
-    // Compute the cross product
-    array_1d<double, 3> auxiliary_cross_product;
+    const array_1d<double, 3> ab = rTrianglePoint1 - rTrianglePoint0;
+    const array_1d<double, 3> ac = rTrianglePoint2 - rTrianglePoint0;
+    const array_1d<double, 3> ap = rPoint - rTrianglePoint0;
 
-    // Check first size
-    ClampScenario clamp_scenario = ClampScenario::WITHIN_BOUNDS;
-    MathUtils<double>::CrossProduct(auxiliary_cross_product, v10,normal);
-    if( MathUtils<double>::Dot3(auxiliary_cross_product, p0) < 0.0 ) {
-        const double clamp_value = MathUtils<double>::Clamp( MathUtils<double>::Dot3(p0,v10)/MathUtils<double>::Dot3(v10, v10), 0.0, 1.0, clamp_scenario);
-        noalias(rResult.Coordinates()) =  rTrianglePoint0 + v10 * clamp_value;
-        switch (clamp_scenario) {
-            case ClampScenario::WITHIN_BOUNDS:
-                return TriangleNearestPointLocation::ON_TRIANGLE_EDGE_01;
-            case ClampScenario::BELOW_MINIMUM:
-                return TriangleNearestPointLocation::ON_TRIANGLE_VERTEX_0;
-            case ClampScenario::ABOVE_MAXIMUM:
-                return TriangleNearestPointLocation::ON_TRIANGLE_VERTEX_1;
-            default:
-                KRATOS_ERROR << "Invalid clamp scenario" << std::endl;
-        }
+    // Check if P in vertex region outside A (vertex 0)
+    const double d1 = MathUtils<double>::Dot3(ab, ap);
+    const double d2 = MathUtils<double>::Dot3(ac, ap);
+    if (d1 <= 0.0 && d2 <= 0.0) {
+        noalias(rResult.Coordinates()) = rTrianglePoint0;
+        return TriangleNearestPointLocation::ON_TRIANGLE_VERTEX_0;
     }
 
-    // Check second side
-    MathUtils<double>::CrossProduct(auxiliary_cross_product, v21, normal);
-    if( MathUtils<double>::Dot3(auxiliary_cross_product, p1) < 0.0 ) {
-        const double clamp_value = MathUtils<double>::Clamp( MathUtils<double>::Dot3(p1,v21)/MathUtils<double>::Dot3(v21, v21), 0.0, 1.0, clamp_scenario);
-        noalias(rResult.Coordinates()) =  rTrianglePoint1 + v21 * clamp_value;
-        switch (clamp_scenario) {
-            case ClampScenario::WITHIN_BOUNDS:
-                return TriangleNearestPointLocation::ON_TRIANGLE_EDGE_12;
-            case ClampScenario::BELOW_MINIMUM:
-                return TriangleNearestPointLocation::ON_TRIANGLE_VERTEX_1;
-            case ClampScenario::ABOVE_MAXIMUM:
-                return TriangleNearestPointLocation::ON_TRIANGLE_VERTEX_2;
-            default:
-                KRATOS_ERROR << "Invalid clamp scenario" << std::endl;
-        }
+    // Check if P in vertex region outside B (vertex 1)
+    const array_1d<double, 3> bp = rPoint - rTrianglePoint1;
+    const double d3 = MathUtils<double>::Dot3(ab, bp);
+    const double d4 = MathUtils<double>::Dot3(ac, bp);
+    if (d3 >= 0.0 && d4 <= d3) {
+        noalias(rResult.Coordinates()) = rTrianglePoint1;
+        return TriangleNearestPointLocation::ON_TRIANGLE_VERTEX_1;
     }
 
-    // Check third side
-    MathUtils<double>::CrossProduct(auxiliary_cross_product, v02, normal);
-    if( MathUtils<double>::Dot3(auxiliary_cross_product, p2) < 0.0 ) {
-        const double clamp_value = MathUtils<double>::Clamp( MathUtils<double>::Dot3(p2,v02)/MathUtils<double>::Dot3(v02, v02), 0.0, 1.0, clamp_scenario);
-        noalias(rResult.Coordinates()) = rTrianglePoint2 + v02 * clamp_value;
-        switch (clamp_scenario) {
-            case ClampScenario::WITHIN_BOUNDS:
-                return TriangleNearestPointLocation::ON_TRIANGLE_EDGE_20;
-            case ClampScenario::BELOW_MINIMUM:
-                return TriangleNearestPointLocation::ON_TRIANGLE_VERTEX_2;
-            case ClampScenario::ABOVE_MAXIMUM:
-                return TriangleNearestPointLocation::ON_TRIANGLE_VERTEX_0;
-            default:
-                KRATOS_ERROR << "Invalid clamp scenario" << std::endl;
-        }
+    // Check if P in edge region of AB (edge 01), if so return projection of P onto AB
+    const double vc = d1 * d4 - d3 * d2;
+    if (vc <= 0.0 && d1 >= 0.0 && d3 <= 0.0) {
+        const double v = d1 / (d1 - d3);
+        noalias(rResult.Coordinates()) = rTrianglePoint0 + v * ab;
+        return TriangleNearestPointLocation::ON_TRIANGLE_EDGE_01;
     }
 
-    // Compute the projection
-    noalias(rResult.Coordinates()) = rPoint - normal * MathUtils<double>::Dot3(normal,p0)/MathUtils<double>::Dot3(normal, normal);
+    // Check if P in vertex region outside C (vertex 2)
+    const array_1d<double, 3> cp = rPoint - rTrianglePoint2;
+    const double d5 = MathUtils<double>::Dot3(ab, cp);
+    const double d6 = MathUtils<double>::Dot3(ac, cp);
+    if (d6 >= 0.0 && d5 <= d6) {
+        noalias(rResult.Coordinates()) = rTrianglePoint2;
+        return TriangleNearestPointLocation::ON_TRIANGLE_VERTEX_2;
+    }
+
+    // Check if P in edge region of AC (edge 02), if so return projection of P onto AC
+    const double vb = d5 * d2 - d1 * d6;
+    if (vb <= 0.0 && d2 >= 0.0 && d6 <= 0.0) {
+        const double w = d2 / (d2 - d6);
+        noalias(rResult.Coordinates()) = rTrianglePoint0 + w * ac;
+        return TriangleNearestPointLocation::ON_TRIANGLE_EDGE_20;
+    }
+
+    // Check if P in edge region of BC (edge 12), if so return projection of P onto BC
+    const double va = d3 * d6 - d5 * d4;
+    if (va <= 0.0 && (d4 - d3) >= 0.0 && (d5 - d6) >= 0.0) {
+        const double w = (d4 - d3) / ((d4 - d3) + (d5 - d6));
+        noalias(rResult.Coordinates()) = rTrianglePoint1 + w * (rTrianglePoint2 - rTrianglePoint1);
+        return TriangleNearestPointLocation::ON_TRIANGLE_EDGE_12;
+    }
+
+    // P inside face region. Compute Q through its barycentric coordinates (u, v, w)
+    const double denom = 1.0 / (va + vb + vc);
+    const double v = vb * denom;
+    const double w = vc * denom;
+    noalias(rResult.Coordinates()) = rTrianglePoint0 + ab * v + ac * w;
     return TriangleNearestPointLocation::INSIDE_TRIANGLE;
 }
 
@@ -158,45 +153,9 @@ Point NearestPointUtilities::TriangleNearestPoint(
     const array_1d<double, 3>& rTrianglePoint2
     )
 {
-    // Compute side vectors and normal
-    const array_1d<double, 3> v10 = rTrianglePoint1 - rTrianglePoint0;
-    const array_1d<double, 3> p0 = rPoint - rTrianglePoint0;
-    const array_1d<double, 3> v21 = rTrianglePoint2 - rTrianglePoint1;
-    const array_1d<double, 3> p1 = rPoint - rTrianglePoint1;
-    const array_1d<double, 3> v02 = rTrianglePoint0 - rTrianglePoint2;
-    const array_1d<double, 3> p2 = rPoint - rTrianglePoint2;
-    array_1d<double, 3> normal;
-    MathUtils<double>::CrossProduct(normal, v10, v02);
-
-    // Define the result
+    // Delegate to the overload that also returns location info
     Point result;
-
-    // Compute the cross product
-    array_1d<double, 3> auxiliary_cross_product;
-
-    // Check first size
-    MathUtils<double>::CrossProduct(auxiliary_cross_product, v10,normal);
-    if( MathUtils<double>::Dot3(auxiliary_cross_product, p0) < 0.0 ) {
-        noalias(result.Coordinates()) =  rTrianglePoint0 + v10 * MathUtils<double>::Clamp( MathUtils<double>::Dot3(p0,v10)/MathUtils<double>::Dot3(v10, v10), 0.0, 1.0 );
-        return result;
-    }
-
-    // Check second side
-    MathUtils<double>::CrossProduct(auxiliary_cross_product, v21, normal);
-    if( MathUtils<double>::Dot3(auxiliary_cross_product, p1) < 0.0 ) {
-        noalias(result.Coordinates()) =  rTrianglePoint1 + v21 * MathUtils<double>::Clamp( MathUtils<double>::Dot3(p1,v21)/MathUtils<double>::Dot3(v21, v21), 0.0, 1.0 );
-        return result;
-    }
-
-    // Check third side
-    MathUtils<double>::CrossProduct(auxiliary_cross_product, v02, normal);
-    if( MathUtils<double>::Dot3(auxiliary_cross_product, p2) < 0.0 ) {
-        noalias(result.Coordinates()) = rTrianglePoint2 + v02 * MathUtils<double>::Clamp( MathUtils<double>::Dot3(p2,v02)/MathUtils<double>::Dot3(v02, v02), 0.0, 1.0 );
-        return result;
-    }
-
-    // Compute the projection
-    noalias(result.Coordinates()) = rPoint - normal * MathUtils<double>::Dot3(normal,p0)/MathUtils<double>::Dot3(normal, normal);
+    TriangleNearestPoint(rPoint, rTrianglePoint0, rTrianglePoint1, rTrianglePoint2, result);
     return result;
 }
 
