@@ -604,7 +604,8 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         # Advance in time by runge kutta
         # --- k1 ---
         t0 = time.perf_counter()
-        k1 = self.ComputeVelocityResidual(vel, pel, b_el, conv_proj_el, div_proj_el, self.DN, self.tau_1)
+        k1 = xp.empty((self.nnodes,self.dim), dtype=cfd_utils.PRECISION)
+        k1 = self.ComputeVelocityResidual(vel, pel, b_el, conv_proj_el, div_proj_el, self.DN, self.tau_1, out=k1)
         k1.reshape(-1)[:] *= (1.0/self.rho) * self.Minv
         #print(f"k1 time: {time.perf_counter() - t0}")
 
@@ -617,7 +618,8 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         t_el_data = time.perf_counter()
         vel = self.ElemData(v2, self.connectivity, self.v_el)
         t_k2_res = time.perf_counter()
-        k2 = self.ComputeVelocityResidual(vel, pel, b_el, conv_proj_el, div_proj_el, self.DN,self.tau_1)
+        k2 = xp.empty((self.nnodes,self.dim), dtype=cfd_utils.PRECISION)
+        k2 = self.ComputeVelocityResidual(vel, pel, b_el, conv_proj_el, div_proj_el, self.DN,self.tau_1,out=k2)
         #print(f"\tk2 residual: {time.perf_counter() - t_k2_res}")
         
 
@@ -633,7 +635,8 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         self.ApplyVelocityDirichletConditions(vold,v_dirichlet,0.5,v3)
 
         vel = self.ElemData(v3, self.connectivity, self.v_el)
-        k3 = self.ComputeVelocityResidual(vel, pel, b_el, conv_proj_el, div_proj_el, self.DN,self.tau_1)
+        k3 = xp.empty((self.nnodes,self.dim), dtype=cfd_utils.PRECISION)
+        k3 = self.ComputeVelocityResidual(vel, pel, b_el, conv_proj_el, div_proj_el, self.DN,self.tau_1,out=k3)
         k3.reshape(-1)[:] *= (1.0/self.rho) * self.Minv
         #print(f"k3 time: {time.perf_counter() - t0}")
         # --- k4 ---
@@ -643,7 +646,8 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         self.ApplyVelocityDirichletConditions(vold,v_dirichlet,1.0,v4)
 
         vel = self.ElemData(v4, self.connectivity, self.v_el)
-        k4 = self.ComputeVelocityResidual(vel, pel, b_el, conv_proj_el, div_proj_el, self.DN,self.tau_1)
+        k4 = xp.empty((self.nnodes,self.dim), dtype=cfd_utils.PRECISION)
+        k4 = self.ComputeVelocityResidual(vel, pel, b_el, conv_proj_el, div_proj_el, self.DN,self.tau_1,out=k4)
         k4.reshape(-1)[:] *= (1.0/self.rho) * self.Minv
         #print(f"k4 time: {time.perf_counter() - t0}")
 
@@ -848,17 +852,14 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         self.p_adaptor.data = cfd_utils.asnumpy(p)
         self.p_adaptor.StoreData()
 
-    def ComputeVelocityResidual(self, v_elemental, p_elemental, b_elemental, proj_elemental, proj_div_el, DN, tau):
+    def ComputeVelocityResidual(self, v_elemental, p_elemental, b_elemental, proj_elemental, proj_div_el, DN, tau, out=None):
+        if out is None:
+            raise ValueError("Output array must be provided to store the assembled residual values!")
+        if out.shape != (self.nnodes,self.dim):
+            raise ValueError(f"Output array has incompatible shape {out.shape}, expected {(self.nnodes,self.dim)}")
+        res_assembled = out
 
         ttot = time.perf_counter()
-
-        #allocation of temporaries
-        # tmp_elem = xp.empty(v_elemental.shape, dtype=cfd_utils.PRECISION)
-        # tmp_elem_2 = xp.empty(v_elemental.shape, dtype=cfd_utils.PRECISION)
-        # tmp_dim_dim = xp.empty((v_elemental.shape[0], self.dim, self.dim), dtype=cfd_utils.PRECISION)
-
-        # Initialize residual
-        #res = xp.zeros(v_elemental.shape, dtype=cfd_utils.PRECISION)
 
         #(w,b)
         t0 = time.perf_counter()
@@ -914,7 +915,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
         # Vectorized assembly of the elemental contributions into the nodal residual
         t0 = time.perf_counter()
-        res_assembled = xp.zeros((self.nnodes,self.dim),dtype=res.dtype) #TODO: can we allocate it once and reuse it?
+        res_assembled.fill(0.0)
         self.cfd_utils.AssembleVector(self.connectivity, res, res_assembled)
         self.pool.Release(res)
         #print(f"\t\ttime {13}: {time.perf_counter() - t0}")
