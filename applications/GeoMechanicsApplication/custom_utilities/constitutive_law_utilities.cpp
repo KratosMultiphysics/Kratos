@@ -12,11 +12,11 @@
 //
 
 #include "custom_utilities/constitutive_law_utilities.h"
-#include "custom_utilities/element_utilities.hpp"
 #include "custom_constitutive/interface_plane_strain.h"
 #include "custom_constitutive/interface_three_dimensional_surface.h"
 #include "custom_constitutive/plane_strain.h"
 #include "custom_constitutive/three_dimensional.h"
+#include "custom_utilities/element_utilities.hpp"
 #include "custom_utilities/string_utilities.h"
 #include "geo_mechanics_application_variables.h"
 #include "utilities/math_utils.h"
@@ -309,19 +309,17 @@ bool ConstitutiveLawUtilities::IsConstantWaterPressure(const Properties& rProper
 std::size_t ConstitutiveLawUtilities::GetNumberOfNormalStrainComponents(const Properties& rProperties)
 {
     ConstitutiveLaw::Features law_features;
-    const auto& p_constitutive_law = rProperties[CONSTITUTIVE_LAW];
+    const auto&               p_constitutive_law = rProperties[CONSTITUTIVE_LAW];
     p_constitutive_law->GetLawFeatures(law_features);
     const auto strain_size = p_constitutive_law->GetStrainSize();
 
-    if (law_features.mOptions.Is(ConstitutiveLaw::THREE_DIMENSIONAL_LAW) &&
-        strain_size == VOIGT_SIZE_3D_INTERFACE) {
+    if (law_features.mOptions.Is(ConstitutiveLaw::THREE_DIMENSIONAL_LAW) && strain_size == VOIGT_SIZE_3D_INTERFACE) {
         return InterfaceThreeDimensionalSurface{}.GetNumberOfNormalComponents();
     }
     if (law_features.mOptions.Is(ConstitutiveLaw::THREE_DIMENSIONAL_LAW)) {
         return ThreeDimensional{}.GetNumberOfNormalComponents();
     }
-    if (law_features.mOptions.Is(ConstitutiveLaw::PLANE_STRAIN_LAW) &&
-        strain_size == VOIGT_SIZE_2D_INTERFACE) {
+    if (law_features.mOptions.Is(ConstitutiveLaw::PLANE_STRAIN_LAW) && strain_size == VOIGT_SIZE_2D_INTERFACE) {
         return InterfacePlaneStrain{}.GetNumberOfNormalComponents();
     }
     if (law_features.mOptions.Is(ConstitutiveLaw::PLANE_STRAIN_LAW) ||
@@ -329,12 +327,12 @@ std::size_t ConstitutiveLawUtilities::GetNumberOfNormalStrainComponents(const Pr
         return PlaneStrain{}.GetNumberOfNormalComponents();
     }
 
-    KRATOS_ERROR << "Unsupported constitutive law type for obtaining number of normal strain components. "
-                 << "Property Id = " << rProperties.Id() << "." << std::endl;
+    KRATOS_ERROR
+        << "Unsupported constitutive law type for obtaining number of normal strain components. "
+        << "Property Id = " << rProperties.Id() << "." << std::endl;
 }
 
-double ConstitutiveLawUtilities::CalculateVolumetricStrain(const Vector&     rStrainVector,
-                                                                    const Properties& rProperties)
+double ConstitutiveLawUtilities::CalculateVolumetricStrain(const Vector& rStrainVector, const Properties& rProperties)
 {
     const auto number_of_normal_components = GetNumberOfNormalStrainComponents(rProperties);
     KRATOS_ERROR_IF(number_of_normal_components > rStrainVector.size())
@@ -372,44 +370,44 @@ double ConstitutiveLawUtilities::CalculateExcessPorePressureIncrement(const Prop
     return biot_coefficient * VolumetricStrainIncrement / denominator;
 }
 
-Vector ConstitutiveLawUtilities::CalculateExcessPorePressureForce(const Properties&     rProperties,
-                                                                  const Vector&         rStrainVector,
-                                                                  const Matrix&         rB,
-                                                                  const Vector&         rVoigtVector,
-                                                                  double                IntegrationCoefficient,
-                                                                  std::size_t           IntegrationPoint,
-                                                                  const Vector&         rExcessPorePressurePrevious)
+Vector ConstitutiveLawUtilities::CalculateExcessPorePressureForce(const Properties& rProperties,
+                                                                  const Vector&     rStrainVector,
+                                                                  const Matrix&     rB,
+                                                                  const Vector&     rVoigtVector,
+                                                                  double IntegrationCoefficient,
+                                                                  std::size_t IntegrationPoint,
+                                                                  const Vector& rExcessPorePressurePrevious)
 {
     KRATOS_TRY
 
     KRATOS_ERROR_IF(IntegrationPoint >= rExcessPorePressurePrevious.size())
-        << "Integration point index (" << IntegrationPoint
-        << ") exceeds cached previous volumetric strain size ("
+        << "Integration point index (" << IntegrationPoint << ") exceeds cached previous volumetric strain size ("
         << rExcessPorePressurePrevious.size() << ")." << std::endl;
 
     const auto volumetric_strain = CalculateVolumetricStrain(rStrainVector, rProperties);
     const auto volumetric_strain_increment = volumetric_strain - rExcessPorePressurePrevious[IntegrationPoint];
-    const auto excess_pore_pressure_increment = CalculateExcessPorePressureIncrement(rProperties, volumetric_strain_increment);
+    const auto excess_pore_pressure_increment =
+        CalculateExcessPorePressureIncrement(rProperties, volumetric_strain_increment);
     return prod(trans(rB), rVoigtVector * excess_pore_pressure_increment) * IntegrationCoefficient;
 
     KRATOS_CATCH("ConstitutiveLawUtilities::CalculateExcessPorePressureForce")
 }
 
-void ConstitutiveLawUtilities::AssembleExcessPorePressureForces(Vector&                   rResultVector,
-                                                                const Properties&         rProperties,
+void ConstitutiveLawUtilities::AssembleExcessPorePressureForces(Vector&           rResultVector,
+                                                                const Properties& rProperties,
                                                                 const std::vector<Vector>& rStrainVectors,
                                                                 const std::vector<Matrix>& rBMatrices,
-                                                                const Vector&             rVoigtVector,
+                                                                const Vector& rVoigtVector,
                                                                 const std::vector<double>& rIntegrationCoefficients,
-                                                                const Vector&             rExcessPorePressurePrevious)
+                                                                const Vector& rExcessPorePressurePrevious)
 {
     KRATOS_TRY
 
     if (!IsUndrained(rProperties)) return;
 
     KRATOS_ERROR_IF(rStrainVectors.size() != rBMatrices.size())
-        << "Mismatch in number of strain vectors (" << rStrainVectors.size()
-        << ") and B matrices (" << rBMatrices.size() << ")." << std::endl;
+        << "Mismatch in number of strain vectors (" << rStrainVectors.size() << ") and B matrices ("
+        << rBMatrices.size() << ")." << std::endl;
 
     KRATOS_ERROR_IF(rIntegrationCoefficients.size() != rStrainVectors.size())
         << "Mismatch in number of integration coefficients (" << rIntegrationCoefficients.size()
@@ -426,16 +424,16 @@ void ConstitutiveLawUtilities::AssembleExcessPorePressureForces(Vector&         
 }
 
 Matrix ConstitutiveLawUtilities::CalculateExcessPorePressureTangentMatrix(const Properties& rProperties,
-                                                                          const Matrix&     rB,
-                                                                          const Vector&     rVoigtVector,
-                                                                          double            IntegrationCoefficient)
+                                                                          const Matrix& rB,
+                                                                          const Vector& rVoigtVector,
+                                                                          double IntegrationCoefficient)
 {
     KRATOS_TRY
 
     // Consistent tangent: K_ex = w * C_ex * (B^T * v) ⊗ (B^T * v)
     // where C_ex = alpha / (n/Kf + (alpha-n)/Ks)
-    const auto C_ex = CalculateExcessPorePressureIncrement(rProperties, 1.0);
-    const Vector a = prod(trans(rB), rVoigtVector);
+    const auto   C_ex = CalculateExcessPorePressureIncrement(rProperties, 1.0);
+    const Vector a    = prod(trans(rB), rVoigtVector);
     return IntegrationCoefficient * C_ex * outer_prod(a, a);
 
     KRATOS_CATCH("ConstitutiveLawUtilities::CalculateExcessPorePressureTangentMatrix")

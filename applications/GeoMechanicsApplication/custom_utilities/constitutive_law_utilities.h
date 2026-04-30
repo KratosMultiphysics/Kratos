@@ -70,34 +70,34 @@ public:
     [[nodiscard]] static DrainageType StringToDrainageType(const std::string& rDrainageTypeName);
     [[nodiscard]] static bool         IsUndrained(const Properties& rProperties);
     [[nodiscard]] static bool         IsConstantWaterPressure(const Properties& rProperties);
-    [[nodiscard]] static std::size_t  GetNumberOfNormalStrainComponents(const Properties& rProperties);
-    [[nodiscard]] static double       CalculateVolumetricStrain(const Vector&         rStrainVector,
-                                                                         const Properties&     rProperties);
-    static void                       ReplaceIgnoreUndrainedByDrainageType(Properties& rProperties);
+    [[nodiscard]] static std::size_t GetNumberOfNormalStrainComponents(const Properties& rProperties);
+    [[nodiscard]] static double CalculateVolumetricStrain(const Vector&     rStrainVector,
+                                                          const Properties& rProperties);
+    static void                 ReplaceIgnoreUndrainedByDrainageType(Properties& rProperties);
 
     [[nodiscard]] static double CalculateExcessPorePressureIncrement(const Properties& rProperties,
                                                                      double VolumetricStrainIncrement);
 
-    [[nodiscard]] static Vector CalculateExcessPorePressureForce(const Properties&     rProperties,
-                                                                 const Vector&         rStrainVector,
-                                                                 const Matrix&         rB,
-                                                                 const Vector&         rVoigtVector,
-                                                                 double                IntegrationCoefficient,
-                                                                 std::size_t           IntegrationPoint,
-                                                                 const Vector&         rExcessPorePressurePrevious);
+    [[nodiscard]] static Vector CalculateExcessPorePressureForce(const Properties& rProperties,
+                                                                 const Vector&     rStrainVector,
+                                                                 const Matrix&     rB,
+                                                                 const Vector&     rVoigtVector,
+                                                                 double      IntegrationCoefficient,
+                                                                 std::size_t IntegrationPoint,
+                                                                 const Vector& rExcessPorePressurePrevious);
 
-    static void AssembleExcessPorePressureForces(Vector&                   rResultVector,
-                                                 const Properties&         rProperties,
+    static void AssembleExcessPorePressureForces(Vector&                    rResultVector,
+                                                 const Properties&          rProperties,
                                                  const std::vector<Vector>& rStrainVectors,
                                                  const std::vector<Matrix>& rBMatrices,
-                                                 const Vector&             rVoigtVector,
+                                                 const Vector&              rVoigtVector,
                                                  const std::vector<double>& rIntegrationCoefficients,
-                                                 const Vector&             rExcessPorePressurePrevious);
+                                                 const Vector& rExcessPorePressurePrevious);
 
     [[nodiscard]] static Matrix CalculateExcessPorePressureTangentMatrix(const Properties& rProperties,
-                                                                         const Matrix&     rB,
-                                                                         const Vector&     rVoigtVector,
-                                                                         double            IntegrationCoefficient);
+                                                                         const Matrix& rB,
+                                                                         const Vector& rVoigtVector,
+                                                                         double IntegrationCoefficient);
 }; /* Class ConstitutiveLawUtilities*/
 
 } // namespace Kratos

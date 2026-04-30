@@ -181,9 +181,8 @@ void SmallStrainUPwDiffOrderElement::FinalizeSolutionStep(const ProcessInfo& rCu
             mConstitutiveLawVector[GPoint]->GetValue(STATE_VARIABLES, mStateVariablesFinalized[GPoint]);
 
         if (ConstitutiveLawUtilities::IsUndrained(this->GetProperties())) {
-            mExcessPorePressurePrevious[GPoint] =
-                ConstitutiveLawUtilities::CalculateVolumetricStrain(
-                    strain_vectors[GPoint], this->GetProperties());
+            mExcessPorePressurePrevious[GPoint] = ConstitutiveLawUtilities::CalculateVolumetricStrain(
+                strain_vectors[GPoint], this->GetProperties());
         }
     }
 
@@ -853,19 +852,20 @@ void SmallStrainUPwDiffOrderElement::Calculate(const Variable<Vector>& rVariable
     }
 }
 
-Vector SmallStrainUPwDiffOrderElement::CalculateInternalForces(ElementVariables& rVariables,
-                                                               const std::vector<Matrix>& rBMatrices,
-                                                               const std::vector<Vector>& rStrainVectors,
-                                                               const std::vector<double>& rIntegrationCoefficients,
-                                                               const std::vector<double>& rBiotCoefficients,
-                                                               const std::vector<double>& rDegreesOfSaturation,
-                                                               const std::vector<double>& rBiotModuliInverse,
-                                                               const std::vector<double>& rRelativePermeabilityValues,
-                                                               const std::vector<double>& rBishopCoefficients) const
+Vector SmallStrainUPwDiffOrderElement::CalculateInternalForces(
+    ElementVariables&          rVariables,
+    const std::vector<Matrix>& rBMatrices,
+    const std::vector<Vector>& rStrainVectors,
+    const std::vector<double>& rIntegrationCoefficients,
+    const std::vector<double>& rBiotCoefficients,
+    const std::vector<double>& rDegreesOfSaturation,
+    const std::vector<double>& rBiotModuliInverse,
+    const std::vector<double>& rRelativePermeabilityValues,
+    const std::vector<double>& rBishopCoefficients) const
 {
     KRATOS_ERROR_IF(rBMatrices.size() != rStrainVectors.size())
-        << "Mismatched integration-point data sizes in CalculateInternalForces for element " << this->Id() << "."
-        << std::endl;
+        << "Mismatched integration-point data sizes in CalculateInternalForces for element "
+        << this->Id() << "." << std::endl;
 
     Vector result(this->GetNumberOfDOF(), 0.0);
     for (unsigned int integration_point = 0; integration_point < rIntegrationCoefficients.size(); ++integration_point) {
@@ -886,8 +886,7 @@ Vector SmallStrainUPwDiffOrderElement::CalculateInternalForces(ElementVariables&
     }
     ConstitutiveLawUtilities::AssembleExcessPorePressureForces(
         result, this->GetProperties(), rStrainVectors, rBMatrices,
-        GetStressStatePolicy().GetVoigtVector(), rIntegrationCoefficients,
-        mExcessPorePressurePrevious);
+        GetStressStatePolicy().GetVoigtVector(), rIntegrationCoefficients, mExcessPorePressurePrevious);
     if (!rVariables.IsConstantWaterPressure) {
         for (unsigned int integration_point = 0;
              integration_point < rIntegrationCoefficients.size(); ++integration_point) {
@@ -1023,8 +1022,8 @@ void SmallStrainUPwDiffOrderElement::CalculateAll(MatrixType&        rLeftHandSi
 
     if (CalculateResidualVectorFlag) {
         const auto internal_forces = CalculateInternalForces(
-            Variables, b_matrices, strain_vectors, integration_coefficients, biot_coefficients, degrees_of_saturation,
-            biot_moduli_inverse, relative_permeability_values, bishop_coefficients);
+            Variables, b_matrices, strain_vectors, integration_coefficients, biot_coefficients,
+            degrees_of_saturation, biot_moduli_inverse, relative_permeability_values, bishop_coefficients);
 
         const auto external_forces = CalculateExternalForces(
             Variables, integration_coefficients, integration_coefficients_on_initial_configuration,

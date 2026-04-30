@@ -32,7 +32,10 @@ public:
 
     void SetStrainSize(SizeType StrainSize) { mStrainSize = StrainSize; }
 
-    void SetThreeDimensionalLaw(bool IsThreeDimensionalLaw) { mIsThreeDimensionalLaw = IsThreeDimensionalLaw; }
+    void SetThreeDimensionalLaw(bool IsThreeDimensionalLaw)
+    {
+        mIsThreeDimensionalLaw = IsThreeDimensionalLaw;
+    }
 
     void SetPlaneStrainLaw(bool IsPlaneStrainLaw) { mIsPlaneStrainLaw = IsPlaneStrainLaw; }
 
@@ -84,11 +87,11 @@ public:
 
     using ConstitutiveLaw::Has;
 
-    Vector mStateVariables;
-    SizeType mStrainSize = 4;
-    bool   mAdd_StrainMeasure_Infinitesimal = false;
-    bool   mIsThreeDimensionalLaw           = false;
-    bool   mIsPlaneStrainLaw                = false;
-    bool   mIsAxisymmetricLaw               = false;
+    Vector   mStateVariables;
+    SizeType mStrainSize                      = 4;
+    bool     mAdd_StrainMeasure_Infinitesimal = false;
+    bool     mIsThreeDimensionalLaw           = false;
+    bool     mIsPlaneStrainLaw                = false;
+    bool     mIsAxisymmetricLaw               = false;
 };
 } // namespace Kratos::Testing

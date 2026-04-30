@@ -683,12 +683,10 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_CalculateExcessPorePressureFo
 
     const auto strain_vector = UblasUtilities::CreateVector({0.3, 0.1, 0.1, 99.0});
     const auto voigt_vector  = UblasUtilities::CreateVector({1.0, 1.0, 1.0, 0.0});
-    const auto B = UblasUtilities::CreateMatrix({{1.0, 0.0, 0.0},
-                                                 {0.0, 2.0, 0.0},
-                                                 {0.0, 0.0, 3.0},
-                                                 {0.0, 0.0, 0.0}});
-    const auto excess_pore_pressure_previous = UblasUtilities::CreateVector({0.05});
-    constexpr auto integration_coefficient    = 2.0;
+    const auto B =
+        UblasUtilities::CreateMatrix({{1.0, 0.0, 0.0}, {0.0, 2.0, 0.0}, {0.0, 0.0, 3.0}, {0.0, 0.0, 0.0}});
+    const auto     excess_pore_pressure_previous = UblasUtilities::CreateVector({0.05});
+    constexpr auto integration_coefficient       = 2.0;
 
     const auto force = ConstitutiveLawUtilities::CalculateExcessPorePressureForce(
         properties, strain_vector, B, voigt_vector, integration_coefficient, 0, excess_pore_pressure_previous);
@@ -713,10 +711,8 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_CalculateExcessPorePressureFo
 
     const auto strain_vector = UblasUtilities::CreateVector({0.3, 0.1, 0.1, 0.0});
     const auto voigt_vector  = UblasUtilities::CreateVector({1.0, 1.0, 1.0, 0.0});
-    const auto B = UblasUtilities::CreateMatrix({{1.0, 0.0, 0.0},
-                                                 {0.0, 2.0, 0.0},
-                                                 {0.0, 0.0, 3.0},
-                                                 {0.0, 0.0, 0.0}});
+    const auto B =
+        UblasUtilities::CreateMatrix({{1.0, 0.0, 0.0}, {0.0, 2.0, 0.0}, {0.0, 0.0, 3.0}, {0.0, 0.0, 0.0}});
     const auto excess_pore_pressure_previous = UblasUtilities::CreateVector({0.05});
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
@@ -741,24 +737,15 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_AssembleExcessPorePressureFor
     properties.SetValue(POROSITY, 0.5);
 
     // Two integration points with different strains
-    auto strain_vectors = std::vector<Vector>{
-        UblasUtilities::CreateVector({0.3, 0.1, 0.1, 99.0}),
-        UblasUtilities::CreateVector({0.2, 0.15, 0.05, 99.0})
-    };
+    auto strain_vectors = std::vector<Vector>{UblasUtilities::CreateVector({0.3, 0.1, 0.1, 99.0}),
+                                              UblasUtilities::CreateVector({0.2, 0.15, 0.05, 99.0})};
 
     auto B_matrices = std::vector<Matrix>{
-        UblasUtilities::CreateMatrix({{1.0, 0.0, 0.0},
-                                      {0.0, 2.0, 0.0},
-                                      {0.0, 0.0, 3.0},
-                                      {0.0, 0.0, 0.0}}),
-        UblasUtilities::CreateMatrix({{0.5, 0.0, 0.0},
-                                      {0.0, 1.0, 0.0},
-                                      {0.0, 0.0, 1.5},
-                                      {0.0, 0.0, 0.0}})
-    };
+        UblasUtilities::CreateMatrix({{1.0, 0.0, 0.0}, {0.0, 2.0, 0.0}, {0.0, 0.0, 3.0}, {0.0, 0.0, 0.0}}),
+        UblasUtilities::CreateMatrix({{0.5, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.5}, {0.0, 0.0, 0.0}})};
 
-    const auto voigt_vector  = UblasUtilities::CreateVector({1.0, 1.0, 1.0, 0.0});
-    const auto integration_coefficients = std::vector<double>{2.0, 3.0};
+    const auto voigt_vector                  = UblasUtilities::CreateVector({1.0, 1.0, 1.0, 0.0});
+    const auto integration_coefficients      = std::vector<double>{2.0, 3.0};
     const auto excess_pore_pressure_previous = UblasUtilities::CreateVector({0.05, 0.03});
 
     auto result_vector = Vector(6, 0.0);
@@ -771,8 +758,9 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_AssembleExcessPorePressureFor
     //       force = [1.0*600.0, 2.0*600.0, 3.0*600.0] * 2.0 = [1200, 2400, 3600]
     // GP 1: volumetric_strain = 0.4, increment = 0.37, delta_p = (1.0 * 0.37 / (0.5/1.0e3 + 0.5/2.0e3)) = 493.33...
     //       force = [0.5*493.33, 1.0*493.33, 1.5*493.33] * 3.0 = [740, 1480, 2220]
-    const auto expected = UblasUtilities::CreateVector({1200.0 + 740.0, 2400.0 + 1480.0, 3600.0 + 2220.0, 0.0, 0.0, 0.0});
-    KRATOS_EXPECT_VECTOR_NEAR(result_vector, expected, 5.0);  // 5 Pa tolerance for rounding
+    const auto expected =
+        UblasUtilities::CreateVector({1200.0 + 740.0, 2400.0 + 1480.0, 3600.0 + 2220.0, 0.0, 0.0, 0.0});
+    KRATOS_EXPECT_VECTOR_NEAR(result_vector, expected, 5.0); // 5 Pa tolerance for rounding
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_AssembleExcessPorePressureForces_SkipsWhenNotUndrained,
@@ -783,7 +771,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_AssembleExcessPorePressureFor
     p_law->SetPlaneStrainLaw(true);
     p_law->SetStrainSize(4);
     properties.SetValue(CONSTITUTIVE_LAW, p_law);
-    properties.SetValue(GEO_DRAINAGE_TYPE, "Drained");  // Not undrained
+    properties.SetValue(GEO_DRAINAGE_TYPE, "Drained"); // Not undrained
 
     properties.SetValue(BIOT_COEFFICIENT, 1.0);
     properties.SetValue(BULK_MODULUS_FLUID, 1.0e3);
@@ -791,15 +779,11 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_AssembleExcessPorePressureFor
     properties.SetValue(POROSITY, 0.5);
 
     auto strain_vectors = std::vector<Vector>{UblasUtilities::CreateVector({0.3, 0.1, 0.1, 99.0})};
-    auto B_matrices = std::vector<Matrix>{
-        UblasUtilities::CreateMatrix({{1.0, 0.0, 0.0},
-                                      {0.0, 2.0, 0.0},
-                                      {0.0, 0.0, 3.0},
-                                      {0.0, 0.0, 0.0}})
-    };
+    auto B_matrices     = std::vector<Matrix>{UblasUtilities::CreateMatrix(
+        {{1.0, 0.0, 0.0}, {0.0, 2.0, 0.0}, {0.0, 0.0, 3.0}, {0.0, 0.0, 0.0}})};
 
-    const auto voigt_vector  = UblasUtilities::CreateVector({1.0, 1.0, 1.0, 0.0});
-    const auto integration_coefficients = std::vector<double>{2.0};
+    const auto voigt_vector                  = UblasUtilities::CreateVector({1.0, 1.0, 1.0, 0.0});
+    const auto integration_coefficients      = std::vector<double>{2.0};
     const auto excess_pore_pressure_previous = UblasUtilities::CreateVector({0.05});
 
     auto result_vector = UblasUtilities::CreateVector({0.0, 0.0, 0.0});

@@ -38,8 +38,8 @@
                 "Variables": {
                     "GEO_DRAINAGE_TYPE": "UNDRAINED",
                     "BIOT_COEFFICIENT": 1.0,
-                    "INTERFACE_NORMAL_STIFFNESS": 6.4e+9,
-                    "INTERFACE_SHEAR_STIFFNESS": 2.6000869565e+9,
+                    "INTERFACE_NORMAL_STIFFNESS": 6.4e+09,
+                    "INTERFACE_SHEAR_STIFFNESS": 2.6000869565e+09,
                     "TRANSVERSAL_PERMEABILITY": 5.0e-04,
                     "DYNAMIC_VISCOSITY": 1.0e-03
                 }
