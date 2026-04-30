@@ -63,5 +63,7 @@ Both same-order and diff-order element families are included. The figure below s
 
 ## Assertions
 
-The tests check that the water pressure is non-zero. 
-
+The tests check that 
+- the water pressure is non-zero,
+- the same-order and diff-order elements produce the same solution using line_search and newton_raphson strategies,
+- the interface presence does not affect the pore pressure.

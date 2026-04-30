@@ -1,4 +1,6 @@
 import os
+import json
+import tempfile
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import test_helper
@@ -21,36 +23,94 @@ class KratosGeoMechanicsExcessPorePressureTests(test_upw_interface.KratosGeoMech
 
     _ROOT = "excess_pore_pressure"
 
-    def _run_case(self, case_name, use_interface_parameters=False):
+    @staticmethod
+    def _soil_stage2_settings_for_strategy(strategy_type):
+        line_search_settings = {
+            "strategy_type": "line_search",
+            "max_line_search_iterations": 5,
+            "first_alpha_value": 0.5,
+            "second_alpha_value": 1.0,
+            "min_alpha": 0.1,
+            "max_alpha": 2.0,
+            "line_search_tolerance": 0.5,
+        }
+
+        if strategy_type == "line_search":
+            return line_search_settings
+        if strategy_type == "newton_raphson":
+            return {"strategy_type": "newton_raphson"}
+
+        raise ValueError(f"Unsupported strategy type '{strategy_type}'")
+
+    def _run_soil_case_with_templates(
+        self,
+        case_name,
+        stage1_strategy_type="newton_raphson",
+        stage2_strategy_type="line_search",
+    ):
         case_path = test_helper.get_file_path(os.path.join(self._ROOT, case_name))
+        input_path = test_helper.get_file_path(os.path.join(self._ROOT, "common"))
+
+        with tempfile.TemporaryDirectory(prefix="epp_template_input_") as temporary_input_path:
+            for stage_index in (1, 2):
+                template_filename = os.path.join(
+                    input_path, f"ProjectParameters_stage{stage_index}_template.json"
+                )
+                with open(template_filename, "r") as template_file:
+                    stage_parameters = json.load(template_file)
+
+                strategy_settings = self._soil_stage2_settings_for_strategy(
+                    stage1_strategy_type if stage_index == 1 else stage2_strategy_type
+                )
+                solver_settings = stage_parameters["solver_settings"]
+                solver_settings["strategy_type"] = strategy_settings["strategy_type"]
+
+                line_search_keys = (
+                    "max_line_search_iterations",
+                    "first_alpha_value",
+                    "second_alpha_value",
+                    "min_alpha",
+                    "max_alpha",
+                    "line_search_tolerance",
+                )
+                for key in line_search_keys:
+                    solver_settings.pop(key, None)
+                for key, value in strategy_settings.items():
+                    if key != "strategy_type":
+                        solver_settings[key] = value
+
+                output_filename = os.path.join(
+                    temporary_input_path, f"ProjectParameters_stage{stage_index}.json"
+                )
+                with open(output_filename, "w") as output_file:
+                    json.dump(stage_parameters, output_file, indent=4)
+
+            run_multiple_stages.run_stages(
+                case_path,
+                2,
+                "ProjectParameters_stage{}.json",
+                input_path=temporary_input_path,
+            )
+
+        output_data = self._read_output(case_path, "stage2")
+        return case_path, output_data, self._all_times(output_data)
+
+    def _run_case(self, case_name, use_interface_parameters=False):
         if use_interface_parameters:
+            case_path = test_helper.get_file_path(os.path.join(self._ROOT, case_name))
             stage2_output_data = self._run_two_stage_interface_case(case_path)
+            stage2_time_steps = self._all_times(stage2_output_data)
         else:
-            stage2_output_data = self._run_two_stage_soil_case(case_path)
+            case_path, stage2_output_data, stage2_time_steps = self._run_soil_case_with_templates(case_name)
 
         stage1_output_data = self._read_output(case_path, "stage1")
         stage1_time_steps = self._all_times(stage1_output_data)
-        stage2_time_steps = self._all_times(stage2_output_data)
         self.assertTrue(stage1_time_steps)
         self.assertTrue(stage2_time_steps)
         return stage1_output_data, stage2_output_data, stage1_time_steps, stage2_time_steps
 
     def _run_soil_case(self, case_name):
-        case_path = test_helper.get_file_path(os.path.join(self._ROOT, case_name))
-        output_data = self._run_two_stage_soil_case(case_path)
-        return case_path, output_data, self._all_times(output_data)
-
-    def _run_soil_case_with_input_folder(self, case_name, input_folder_name):
-        case_path = test_helper.get_file_path(os.path.join(self._ROOT, case_name))
-        input_path = test_helper.get_file_path(os.path.join(self._ROOT, input_folder_name))
-        run_multiple_stages.run_stages(
-            case_path,
-            2,
-            "ProjectParameters_stage{}.json",
-            input_path=input_path,
-        )
-        output_data = self._read_output(case_path, "stage2")
-        return case_path, output_data, self._all_times(output_data)
+        return self._run_soil_case_with_templates(case_name)
 
     def _assert_matrix_result_match_at_time(
         self,
@@ -127,7 +187,7 @@ class KratosGeoMechanicsExcessPorePressureTests(test_upw_interface.KratosGeoMech
         self,
         reference_case_name,
         comparison_case_name,
-        comparison_input_folder_name,
+        comparison_stage2_strategy_type,
         min_shared_unique_pairs,
         displacement_tolerance,
         pressure_tolerance,
@@ -135,8 +195,10 @@ class KratosGeoMechanicsExcessPorePressureTests(test_upw_interface.KratosGeoMech
         total_stress_tolerance,
     ):
         reference_case_path, reference_output, reference_times = self._run_soil_case(reference_case_name)
-        comparison_case_path, comparison_output, comparison_times = self._run_soil_case_with_input_folder(
-            comparison_case_name, comparison_input_folder_name
+        comparison_case_path, comparison_output, comparison_times = self._run_soil_case_with_templates(
+            comparison_case_name,
+            stage1_strategy_type="newton_raphson",
+            stage2_strategy_type=comparison_stage2_strategy_type,
         )
 
         reference_node_ids, comparison_node_ids = self._shared_unique_node_ids(
@@ -424,8 +486,8 @@ class KratosGeoMechanicsExcessPorePressureTests(test_upw_interface.KratosGeoMech
     def test_newton_raphson_column_matches_original_solution(self):
         self._assert_case_matches_reference_solution(
             reference_case_name="column",
-            comparison_case_name="column_newton_raphson",
-            comparison_input_folder_name="common_newton_raphson",
+            comparison_case_name="column",
+            comparison_stage2_strategy_type="newton_raphson",
             min_shared_unique_pairs=6,
             displacement_tolerance=1e-6,
             pressure_tolerance=0.11,
@@ -436,8 +498,8 @@ class KratosGeoMechanicsExcessPorePressureTests(test_upw_interface.KratosGeoMech
     def test_newton_raphson_diff_order_column_matches_original_solution(self):
         self._assert_case_matches_reference_solution(
             reference_case_name="column_diff_order_elements",
-            comparison_case_name="column_diff_order_elements_newton_raphson",
-            comparison_input_folder_name="common_newton_raphson",
+            comparison_case_name="column_diff_order_elements",
+            comparison_stage2_strategy_type="newton_raphson",
             min_shared_unique_pairs=15,
             displacement_tolerance=1e-6,
             pressure_tolerance=0.11,
