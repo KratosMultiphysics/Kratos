@@ -966,8 +966,19 @@ template <unsigned int MatrixSize>
 void UPwInterfaceElement::CalculateAndAssignStiffnessMatrix(MatrixType&        rLeftHandSideMatrix,
                                                             const ProcessInfo& rProcessInfo) const
 {
-    GeoElementUtilities::AssignUUBlockMatrix(
-        rLeftHandSideMatrix, CreateStiffnessCalculator<MatrixSize>(rProcessInfo).LHSContribution().value());
+    auto stiffness_matrix = CreateStiffnessCalculator<MatrixSize>(rProcessInfo).LHSContribution().value();
+
+    if (ConstitutiveLawUtilities::HasExcessPorePressureContribution(GetProperties())) {
+        const auto  b_matrices               = CalculateLocalBMatricesAtIntegrationPoints();
+        const auto  integration_coefficients = CalculateIntegrationCoefficients();
+        const auto& voigt_vector             = mpStressStatePolicy->GetVoigtVector();
+        for (std::size_t i = 0; i < b_matrices.size(); ++i) {
+            stiffness_matrix += ConstitutiveLawUtilities::CalculateExcessPorePressureTangentMatrix(
+                GetProperties(), b_matrices[i], voigt_vector, integration_coefficients[i]);
+        }
+    }
+
+    GeoElementUtilities::AssignUUBlockMatrix(rLeftHandSideMatrix, stiffness_matrix);
 }
 
 template <unsigned int MatrixSize>

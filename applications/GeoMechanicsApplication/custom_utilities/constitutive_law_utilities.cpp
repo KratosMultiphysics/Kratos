@@ -355,6 +355,12 @@ void ConstitutiveLawUtilities::ReplaceIgnoreUndrainedByDrainageType(Properties& 
     rProperties.Erase(IGNORE_UNDRAINED);
 }
 
+bool ConstitutiveLawUtilities::HasExcessPorePressureContribution(const Properties& rProperties)
+{
+    return IsUndrained(rProperties) && rProperties.Has(BULK_MODULUS_FLUID) &&
+           rProperties.Has(BULK_MODULUS_SOLID) && rProperties.Has(POROSITY);
+}
+
 double ConstitutiveLawUtilities::CalculateExcessPorePressureIncrement(const Properties& rProperties,
                                                                       double VolumetricStrainIncrement)
 {
