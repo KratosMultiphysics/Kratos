@@ -19,38 +19,6 @@
 #include "includes/mat_variables.h"
 #include "utilities/math_utils.h"
 
-namespace
-{
-
-using namespace Kratos;
-
-void SetEntriesAboveDiagonalToZero(Matrix& rMatrix)
-{
-    for (auto i = std::size_t{0}; i < rMatrix.size1() - 1; ++i) {
-        for (auto j = i + 1; j < rMatrix.size2(); ++j) {
-            rMatrix(i, j) = 0.0;
-        }
-    }
-}
-
-void SetEntriesBelowDiagonalToZero(Matrix& rMatrix)
-{
-    for (auto i = std::size_t{1}; i < rMatrix.size1(); ++i) {
-        for (auto j = std::size_t{0}; j < i; ++j) {
-            rMatrix(i, j) = 0.0;
-        }
-    }
-}
-
-void SetShearEntriesToZero(Matrix& rMatrix, std::size_t NumberOfNormalComponents)
-{
-    for (auto i = NumberOfNormalComponents; i < rMatrix.size1(); ++i) {
-        rMatrix(i, i) = 0.0;
-    }
-}
-
-} // namespace
-
 namespace Kratos
 {
 
@@ -161,9 +129,10 @@ void GeoIncrementalLinearElasticEurLaw::CalculateElasticMatrix(Matrix& C, Consti
         mpConstitutiveDimension->GetNumberOfNormalComponents());
 
     if (this->GetConsiderDiagonalEntriesOnlyAndNoShear()) {
-        SetEntriesAboveDiagonalToZero(C);
-        SetEntriesBelowDiagonalToZero(C);
-        SetShearEntriesToZero(C, mpConstitutiveDimension->GetNumberOfNormalComponents());
+        ConstitutiveLawUtilities::SetEntriesAboveDiagonalToZero(C);
+        ConstitutiveLawUtilities::SetEntriesBelowDiagonalToZero(C);
+        ConstitutiveLawUtilities::SetShearEntriesToZero(
+            C, mpConstitutiveDimension->GetNumberOfNormalComponents());
     }
 
     KRATOS_CATCH("")
