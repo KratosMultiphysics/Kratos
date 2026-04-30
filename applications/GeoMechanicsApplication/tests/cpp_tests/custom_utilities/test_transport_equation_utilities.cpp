@@ -21,13 +21,15 @@ constexpr auto tolerance = 1.0e-12;
 
 }
 
+using namespace std::string_literals;
+
 namespace Kratos::Testing
 {
 
 KRATOS_TEST_CASE_IN_SUITE(CalculateBiotModulusInverse_GivesExpectedResult, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Properties properties;
-    properties[GEO_DRAINAGE_TYPE]                      = "FULLY_COUPLED";
+    properties[GEO_DRAINAGE_TYPE]                      = "FULLY_COUPLED"s;
     properties[POROSITY]                               = 0.5;
     properties[BULK_MODULUS_SOLID]                     = 1.0e9;
     properties[BULK_MODULUS_FLUID]                     = 2.0e6;
@@ -46,7 +48,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateBiotModulusInverse_ReturnsLargeNumber_WhenCon
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Properties properties;
-    properties[GEO_DRAINAGE_TYPE]                      = "CONSTANT_PW_FIELD";
+    properties[GEO_DRAINAGE_TYPE]                      = "CONSTANT_PW_FIELD"s;
     properties[POROSITY]                               = 0.5;
     properties[BULK_MODULUS_SOLID]                     = 1.0e9;
     properties[BULK_MODULUS_FLUID]                     = 2.0e6;

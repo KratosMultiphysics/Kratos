@@ -1,6 +1,6 @@
 {
     "problem_data": {
-        "problem_name": "triaxial",
+        "problem_name": "triaxial_undrained",
         "parallel_type": "OpenMP",
         "echo_level": 1,
         "start_time": -1.0e-02,
@@ -20,7 +20,7 @@
         "echo_level": 1,
         "model_import_settings": {
             "input_type": "mdpa",
-            "input_filename": "mesh"
+            "input_filename": "../common/mesh"
         },
         "material_import_settings": {
             "materials_filename": "MaterialParameters.json"
@@ -31,7 +31,7 @@
         "move_mesh_flag": false,
         "reform_dofs_at_each_step": false,
         "block_builder": true,
-        "reset_displacements": true,
+        "reset_displacements": false,
         "convergence_criterion": "residual_criterion",
         "residual_relative_tolerance": 1.0e-03,
         "residual_absolute_tolerance": 1.0e-09,
@@ -40,8 +40,6 @@
         "number_cycles": 1,
         "reduction_factor": 0.5,
         "increase_factor": 2.0,
-        "desired_iterations": 4,
-        "calculate_reactions": true,
         "max_line_search_iterations": 5,
         "first_alpha_value": 0.5,
         "second_alpha_value": 1.0,
@@ -50,13 +48,6 @@
         "line_search_tolerance": 0.5,
         "rotation_dofs": false,
         "problem_domain_sub_model_part_list": ["Soil"],
-        "processes_sub_model_part_list": [
-            "Fixed_base",
-            "Fixed_side",
-            "Lateral_load",
-            "Top_displacement",
-            "Soil"
-        ],
         "body_domain_sub_model_part_list": ["Soil"],
         "linear_solver_settings": {
             "solver_type": "LinearSolversApplication.sparse_lu",
@@ -70,7 +61,7 @@
                 "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
                 "process_name": "ApplyVectorConstraintTableProcess",
                 "Parameters": {
-                    "model_part_name": "PorousDomain.Fixed_base",
+                    "model_part_name": "PorousDomain.Vertically_fixed_base",
                     "variable_name": "DISPLACEMENT",
                     "active": [false, true, false],
                     "is_fixed": [false, true, false],
@@ -83,7 +74,7 @@
                 "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
                 "process_name": "ApplyVectorConstraintTableProcess",
                 "Parameters": {
-                    "model_part_name": "PorousDomain.Fixed_side",
+                    "model_part_name": "PorousDomain.Symmetry_line",
                     "variable_name": "DISPLACEMENT",
                     "active": [true, false, false],
                     "is_fixed": [true, false, false],
@@ -172,7 +163,7 @@
                             ]
                         }
                     },
-                    "output_name": "triaxial_test_output"
+                    "output_name": "triaxial_undrained_test_output"
                 }
             }
         ]

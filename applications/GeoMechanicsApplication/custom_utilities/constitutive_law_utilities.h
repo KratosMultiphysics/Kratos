@@ -39,8 +39,7 @@ public:
     static double GetFrictionAngleInDegrees(const Properties& rProperties);
     static double GetFrictionAngleInRadians(const Properties& rProperties);
 
-    static std::pair<double, double> GetOrCalculateElasticProperties(const Properties& rProperties,
-                                                                     bool Undrained = false);
+    static std::pair<double, double> GetOrCalculateElasticProperties(const Properties& rProperties);
 
     static Matrix MakeInterfaceElasticConstitutiveTensor(double      NormalStiffness,
                                                          double      ShearStiffness,
@@ -69,6 +68,7 @@ public:
 
     [[nodiscard]] static DrainageType StringToDrainageType(const std::string& rDrainageTypeName);
     [[nodiscard]] static bool         IsConstantWaterPressure(const Properties& rProperties);
+    [[nodiscard]] static bool         IsUndrained(const Properties& rProperties);
     static void                       ReplaceIgnoreUndrainedByDrainageType(Properties& rProperties);
 
     [[nodiscard]] static double CalculateExcessPorePressureIncrement(const Properties& rProperties,

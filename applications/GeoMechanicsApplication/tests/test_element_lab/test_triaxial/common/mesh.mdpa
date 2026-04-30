@@ -37,7 +37,7 @@ Begin Conditions AxisymmetricLineNormalLoadDiffOrderCondition2D3N// GUI group id
     1 0 9 6 7
 End Conditions
 
-Begin SubModelPart Fixed_base // Group Fixed_base // Subtree DISPLACEMENT
+Begin SubModelPart Vertically_fixed_base // Group Fixed_base // Subtree DISPLACEMENT
     Begin SubModelPartNodes
             5
             8
@@ -45,7 +45,7 @@ Begin SubModelPart Fixed_base // Group Fixed_base // Subtree DISPLACEMENT
     End SubModelPartNodes
 End SubModelPart
 
-Begin SubModelPart Fixed_side // Group Fixed_side // Subtree DISPLACEMENT
+Begin SubModelPart Symmetry_line // Group Fixed_side // Subtree DISPLACEMENT
     Begin SubModelPartNodes
             1
             3
