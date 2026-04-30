@@ -15,49 +15,51 @@ class KratosGeoMechanicsLabElementTests(KratosUnittest.TestCase):
             self.assertAlmostEqual(expected_integration_point_tensor[1], ip_tensor[1], places, msg = f"{result_name} component yy at integration point {idx}")
             self.assertAlmostEqual(expected_integration_point_tensor[2], ip_tensor[2], places, msg = f"{result_name} component zz at integration point {idx}")
 
-    def test_triaxial(self):
+    def _assert_first_ip_tensor(self, reader, result, variable_name, expected_values, precision_places, time):
+        for element_id, expected_tensor in enumerate(expected_values, start=1):
+            tensor = reader.element_integration_point_values_at_time(variable_name, time, result, [element_id], [0])[0]
+            self._assert_integration_point_tensor_results(tensor, expected_tensor, precision_places, variable_name)
+
+    def test_triaxial_drained(self):
         """
         Regression test for the triaxial experiment.
         """
         test_name = 'test_triaxial'
-        file_path = test_helper.get_file_path(os.path.join('test_element_lab', test_name))
-        simulation = test_helper.run_kratos(file_path)
+        stage_name = 'drained'
+        file_path = test_helper.get_file_path(os.path.join('test_element_lab', test_name, stage_name))
+        test_helper.run_kratos(file_path)
 
-        # read the output files from the simulation for comparison
+        # Read the output files from the simulation for comparison
         reader = GiDOutputFileReader()
         result = reader.read_output_from(os.path.join(file_path, 'triaxial_test_output.post.res'))
 
-        number_of_elements = 2
-        number_of_nodes = 9
+        time = 1.0
 
         # Assert the displacement in all nodes in all directions
         expected_disp = [[0.0, -0.2, 0.0], [0.0527776, -0.2, 0.0], [0.0, -0.100033, 0.0], [0.0524025, -0.0996931, 0.0], [0.0, 0.0, 0.0], [0.105197, -0.2, 0.0], [0.105114, -0.100049, 0.0], [0.0524406, 0.0, 0.0], [0.104632, 0.0, 0.0]]
-        for node in range(number_of_nodes):
-            node_displacement = reader.nodal_values_at_time("DISPLACEMENT", 1, result, [node+1])
-            self._assert_integration_point_tensor_results(node_displacement, expected_disp[node], 4, "DISPLACEMENT")
+        for node_id, expected_node_displacement in enumerate(expected_disp, start=1):
+            node_displacement = reader.nodal_values_at_time("DISPLACEMENT", time, result, [node_id])[0]
+            self.assertVectorAlmostEqual(node_displacement, expected_node_displacement, 4, f"DISPLACEMENT at node {node_id}")
         
         # Assert the normal stress for both elements in the first integration point
         expected_stress = [[-99.9808, -252.622, -99.9806, 0.193199, 0.0, 0.0], [-99.9991, -252.668, -99.9991, 0.00846584, 0, 0]]
-        for element in range(number_of_elements):
-            stress = reader.element_integration_point_values_at_time("CAUCHY_STRESS_TENSOR", 1, result, [element+1], [0])[0]
-            self._assert_integration_point_tensor_results(stress, expected_stress[element], 4,"CAUCHY_STRESS_TENSOR")
+        self._assert_first_ip_tensor(reader, result, "CAUCHY_STRESS_TENSOR", expected_stress, 4, time)
         
         # Assert the engineering strain for both elements in the first integration point
         expected_strain = [[0.104863, -0.19973, 0.104946, 0.000440186, 0.0, 0.0], [0.1055, -0.200303, 0.104922, 3.84218e-05, 0, 0]]
-        for element in range(number_of_elements):
-            strain = reader.element_integration_point_values_at_time("ENGINEERING_STRAIN_TENSOR", 1, result, [element+1], [0])[0]
-            self._assert_integration_point_tensor_results(strain, expected_strain[element], 4,"ENGINEERING_STRAIN_TENSOR")
+        self._assert_first_ip_tensor(reader, result, "ENGINEERING_STRAIN_TENSOR", expected_strain, 4, time)
 
-    def test_oedometer(self):
+    def test_oedometer_drained(self):
         """
         Oedometer test on a linear elastic model.
         Application of additional load on the top leads to a vertical displacement and a change in stresses.
         """
         test_name = 'test_oedometer'
-        file_path = test_helper.get_file_path(os.path.join('test_element_lab', test_name))
-        simulation = test_helper.run_kratos(file_path)
+        stage_name = 'drained'
+        file_path = test_helper.get_file_path(os.path.join('test_element_lab', test_name, stage_name))
+        test_helper.run_kratos(file_path)
 
-        # read the output files from the simulation for comparison
+        # Read the output files from the simulation for comparison
         reader = GiDOutputFileReader()
         result = reader.read_output_from(os.path.join(file_path, 'test_oedometer_output.post.res'))
 
