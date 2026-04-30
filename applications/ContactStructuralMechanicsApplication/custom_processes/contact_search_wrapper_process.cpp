@@ -36,7 +36,7 @@ ContactSearchWrapperProcess::ContactSearchWrapperProcess(
     const bool predefined_master_slave = ThisParameters["predefined_master_slave"].GetBool();
     SizeType size_1 = 0;
     SizeType size_2 = 0;
-    for (auto& r_cond : rMainModelPart.Conditions()) {
+    for (auto& r_cond : rMainModelPart.GetSubModelPart("Contact").Conditions()) {
 
         if (predefined_master_slave) {
             if (r_cond.Is(MASTER))
@@ -56,6 +56,16 @@ ContactSearchWrapperProcess::ContactSearchWrapperProcess(
     // Simple search bool
     const bool simple_search = ThisParameters["simple_search"].GetBool();
     ThisParameters.RemoveValue("simple_search"); // Removing to avoid problems
+
+    if (size_1 == 6) {
+        KRATOS_WARNING("ContactSearchWrapperProcess") << "It seems that you are using quadratic triangular FE, enforcing size=3 for subtriangulation..." << std::endl;
+        size_1 = 3;
+    }
+    if (size_2 == 6) {
+        KRATOS_WARNING("ContactSearchWrapperProcess") << "It seems that you are using quadratic triangular FE, enforcing size=3 for subtriangulation..." << std::endl;
+        size_2 = 3;
+    }
+    // TODO do the same with quadratic quadrilaterals
 
     // Creating the mapper
     if (dimension == 2) {
