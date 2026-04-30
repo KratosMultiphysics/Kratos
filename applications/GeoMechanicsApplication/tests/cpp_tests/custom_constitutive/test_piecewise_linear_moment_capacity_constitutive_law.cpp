@@ -40,10 +40,10 @@ double CalculateMomentForCurvature(PiecewiseLinearMomentCapacityConstitutiveLaw&
     auto strain_vector = UblasUtilities::CreateVector({Curvature});
     parameters.SetStrainVector(strain_vector);
 
-    Vector stress_vector;
+    auto stress_vector = Vector(1, 0.0);
     parameters.SetStressVector(stress_vector);
 
-    Matrix constitutive_matrix;
+    auto constitutive_matrix = Matrix(1, 1, 0.0);
     parameters.SetConstitutiveMatrix(constitutive_matrix);
 
     parameters.SetMaterialProperties(rProperties);
