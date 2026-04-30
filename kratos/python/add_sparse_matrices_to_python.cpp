@@ -190,10 +190,10 @@ namespace
         const std::size_t local_size_1 = rElementEqIdsCsrIndices.shape(1);
         const std::size_t local_size_2 = rElementEqIdsCsrIndices.shape(2);
         
-        KRATOS_ERROR_IF(rLeftHandSideElementContributions.ndim() != 3) << "Input left hand side contributions must have shape (n_entities, local_size, local_size)" << std::endl;
-        KRATOS_ERROR_IF(rLeftHandSideElementContributions.shape(0) != n_entities) << "Number of entities do not match." << std::endl;
-        KRATOS_ERROR_IF(rLeftHandSideElementContributions.shape(1) != local_size_1) << "Local size 1 do not match." << std::endl;
-        KRATOS_ERROR_IF(rLeftHandSideElementContributions.shape(2) != local_size_2) << "Local size 2 do not match." << std::endl;
+        KRATOS_ERROR_IF(rLeftHandSideElementContributions.ndim()   != 3)            << "Input left hand side contributions must have shape (n_entities, local_size, local_size)" << std::endl;
+        KRATOS_ERROR_IF(static_cast<const std::size_t>(rLeftHandSideElementContributions.shape(0)) != n_entities)   << "Number of entities do not match." << std::endl;
+        KRATOS_ERROR_IF(static_cast<const std::size_t>(rLeftHandSideElementContributions.shape(1)) != local_size_1) << "Local size 1 do not match." << std::endl;
+        KRATOS_ERROR_IF(static_cast<const std::size_t>(rLeftHandSideElementContributions.shape(2)) != local_size_2) << "Local size 2 do not match." << std::endl;
 
         // Get the left hand side data
         auto& r_lhs_data = rLeftHandSide.value_data();
@@ -238,9 +238,9 @@ namespace
         const std::size_t local_size = rElementEqIds.shape(1);
 
         KRATOS_ERROR_IF(rLeftHandSideElementContributions.ndim() != 3) << "Input left hand side contributions must have shape (n_entities, local_size, local_size)" << std::endl;
-        KRATOS_ERROR_IF(rLeftHandSideElementContributions.shape(0) != n_entities) << "Number of entities do not match." << std::endl;
-        KRATOS_ERROR_IF(rLeftHandSideElementContributions.shape(1) != local_size) << "Local size 1 do not match." << std::endl;
-        KRATOS_ERROR_IF(rLeftHandSideElementContributions.shape(2) != local_size) << "Local size 2 do not match." << std::endl;
+        KRATOS_ERROR_IF(static_cast<const std::size_t>(rLeftHandSideElementContributions.shape(0)) != n_entities) << "Number of entities do not match." << std::endl;
+        KRATOS_ERROR_IF(static_cast<const std::size_t>(rLeftHandSideElementContributions.shape(1)) != local_size) << "Local size 1 do not match." << std::endl;
+        KRATOS_ERROR_IF(static_cast<const std::size_t>(rLeftHandSideElementContributions.shape(2)) != local_size) << "Local size 2 do not match." << std::endl;
 
         // Get the left hand side data
         auto r_eq_ids_proxy = rElementEqIds.template unchecked<2>();
