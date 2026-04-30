@@ -27,12 +27,6 @@ class KratosGeoMechanicsLabElementTests(KratosUnittest.TestCase):
         expected_disp = [[0.0, -0.2, 0.0], [0.0527776, -0.2, 0.0], [0.0, -0.100033, 0.0], [0.0524025, -0.0996931, 0.0], [0.0, 0.0, 0.0], [0.105197, -0.2, 0.0], [0.105114, -0.100049, 0.0], [0.0524406, 0.0, 0.0], [0.104632, 0.0, 0.0]]
         expected_stress = [[-99.9808, -252.622, -99.9806, 0.193199, 0.0, 0.0], [-99.9991, -252.668, -99.9991, 0.00846584, 0, 0]]
         expected_strain = [[0.104863, -0.19973, 0.104946, 0.000440186, 0.0, 0.0], [0.1055, -0.200303, 0.104922, 3.84218e-05, 0, 0]]
-        for element in range(number_of_elements):
-            strain = reader.element_integration_point_values_at_time("ENGINEERING_STRAIN_TENSOR", 1, result, [element+1], [0])[0]
-            for strain_component in strain:
-                self.assertAlmostEqual(expected_strain[element][0], strain_component[0], 4)  # eps_xx
-                self.assertAlmostEqual(expected_strain[element][1], strain_component[1], 4)  # eps_yy
-                self.assertAlmostEqual(expected_strain[element][2], strain_component[2], 4)  # eps_zz
     
         self._run_triaxial_regression_test('drained', 'triaxial_test_output.post.res', expected_disp, expected_stress,
                                            expected_strain, 4)
