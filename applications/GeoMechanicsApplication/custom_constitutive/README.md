@@ -61,6 +61,68 @@ Where:
 * $`C`$: The elastic constitutive tensor.
 * $`\Delta \Delta u`$: The incremental relative displacement vector.
 
+### 1.2 Incremental linear elastic E_ur law
+
+This law is an incremental linear elastic continuum model with stress-dependent stiffness.
+It is available for plane strain and 3D through:
+
+- `GeoIncrementalLinearElasticEurPlaneStrain2DLaw`
+- `GeoIncrementalLinearElasticEur3DLaw`
+
+#### 1.2.1 Purpose
+
+Compared to the standard incremental linear elastic law, this model updates Young's modulus at each increment using
+an E_ur-type expression. This allows stiffer behavior at higher confinement while keeping a simple elastic incremental formulation.
+
+#### 1.2.2 Required and optional inputs
+
+Required material parameters:
+
+- `YOUNG_MODULUS`: reference unloading-reloading Young's modulus $`E_{ur}^{ref}`$
+- `POISSON_RATIO`: Poisson's ratio (used if no unloading-reloading Poisson is supplied)
+- `REFERENCE_HARDENING_MODULUS`: reference pressure $`p_{ref}`$
+- `SWELLING_SLOPE`: stiffness exponent $`m`$
+
+Optional material parameters:
+
+- `POISSON_UNLOADING_RELOADING`: unloading-reloading Poisson's ratio $`\nu_{ur}`$ (if present, this is used)
+- `GEO_COHESION` and `GEO_FRICTION_ANGLE`: used to compute a stress shift term
+
+#### 1.2.3 Stress-dependent modulus
+
+The Young's modulus used in the elastic tensor is computed as:
+
+```math
+E = E_{ur}^{ref} \left(\frac{s - p}{s + p_{ref}}\right)^m
+```
+
+with:
+
+- $`p`$: minor principal effective stress $`\sigma_3'`$ from the finalized stress state
+- $`p_{ref}`$: reference pressure (`REFERENCE_HARDENING_MODULUS`)
+- $`m`$: stiffness exponent (`SWELLING_SLOPE`)
+- $`s`$: optional stress shift term
+
+When cohesion and friction angle are provided, the shift term is:
+
+```math
+s = c \cot(\phi)
+```
+
+where $`c`$ is `GEO_COHESION` and $`\phi`$ is `GEO_FRICTION_ANGLE`.
+
+For numerical robustness, the implemented formulation applies lower bounds to the confinement terms.
+
+#### 1.2.4 Incremental stress update
+
+The stress update remains incremental linear elastic:
+
+```math
+\boldsymbol{\sigma}_{n+1} = \boldsymbol{\sigma}_n + \boldsymbol{C}(E,\nu) : \Delta\boldsymbol{\epsilon}
+```
+
+where $`\boldsymbol{C}`$ is assembled with the stress-dependent $`E`$ and the selected Poisson's ratio.
+
 
 ## 2. Mohr-Coulomb with tension cutoff
 
