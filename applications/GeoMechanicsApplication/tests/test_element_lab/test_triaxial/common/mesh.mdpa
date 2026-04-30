@@ -13,6 +13,9 @@ End Table
 Begin Properties 0
 End Properties
 
+Begin Properties 1
+End Properties
+
 Begin Nodes
     1   0.0000000000   1.0000000000   0.0000000000
     2   0.5000000000   1.0000000000   0.0000000000

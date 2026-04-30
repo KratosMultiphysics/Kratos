@@ -12,7 +12,8 @@
               "GEO_COHESION"                     : 10.0,
               "GEO_FRICTION_ANGLE"               : 35.0,
               "GEO_TENSILE_STRENGTH"             : 10.0,
-              "GEO_DILATANCY_ANGLE"              : 0.0
+              "GEO_DILATANCY_ANGLE"              : 0.0,
+              "GEO_DRAINAGE_TYPE"                : "FULLY_COUPLED"
          }
       }
    }]

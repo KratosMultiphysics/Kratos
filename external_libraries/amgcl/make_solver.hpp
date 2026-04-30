@@ -189,6 +189,11 @@ class make_solver : public amgcl::detail::non_copyable {
             return S;
         }
 
+        /// Returns reference to the constructed iterative solver.
+        IterativeSolver& solver() {
+            return S;
+        }
+
         /// Returns the system matrix in the backend format.
         std::shared_ptr<typename Precond::matrix> system_matrix_ptr() const {
             return P.system_matrix_ptr();
