@@ -322,6 +322,19 @@ void AMGCLSolver<TSparse,TDense>::ApplySettings(Parameters Settings)
         mAMGCLParameters.put("precond.npost",  Settings["post_sweeps"].GetInt());
     } // is mUseAMGPreconditioning
 
+    // ILU0 Chow-Patel sweeps setting.
+    {
+        const std::string relax_type = mAMGCLParameters.get<std::string>("precond.relax.type", "");
+        const std::string precond_type = mAMGCLParameters.get<std::string>("precond.type", "");
+        if (relax_type == "ilu0_chow_patel" || precond_type == "ilu0_chow_patel") {
+            const int chow_patel_sweeps = Settings["ilu0_chow_patel_sweeps"].GetInt();
+            if (relax_type == "ilu0_chow_patel")
+                mAMGCLParameters.put("precond.relax.sweeps", chow_patel_sweeps);
+            else
+                mAMGCLParameters.put("precond.sweeps", chow_patel_sweeps);
+        }
+    }
+
     // GPU settings.
     mUseGPGPU = Settings["use_gpgpu"].GetBool();
     if (mUseGPGPU) {
