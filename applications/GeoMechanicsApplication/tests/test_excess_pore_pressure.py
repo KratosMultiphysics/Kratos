@@ -228,6 +228,74 @@ class KratosGeoMechanicsExcessPorePressureTests(test_upw_interface.KratosGeoMech
                 pressure_tolerance,
             )
 
+    def _assert_case_match(
+        self,
+        first_case_name,
+        second_case_name,
+        min_shared_unique_pairs,
+        displacement_tolerance,
+        pressure_tolerance,
+        first_use_interface_parameters=False,
+        second_use_interface_parameters=False,
+    ):
+        _, first_output, _, first_times = self._run_case(
+            first_case_name, use_interface_parameters=first_use_interface_parameters
+        )
+        _, second_output, _, second_times = self._run_case(
+            second_case_name, use_interface_parameters=second_use_interface_parameters
+        )
+
+        first_case_path = test_helper.get_file_path(os.path.join(self._ROOT, first_case_name))
+        second_case_path = test_helper.get_file_path(os.path.join(self._ROOT, second_case_name))
+
+        first_node_ids, second_node_ids = self._shared_unique_node_ids(
+            first_case_path,
+            second_case_path,
+            min_pairs=min_shared_unique_pairs,
+        )
+
+        matched_time_pairs = []
+        used_second_time_indices = set()
+        for first_time in first_times:
+            for second_time_index, second_time in enumerate(second_times):
+                if second_time_index in used_second_time_indices:
+                    continue
+                if test_upw_interface.math.isclose(first_time, second_time):
+                    matched_time_pairs.append((first_time, second_time))
+                    used_second_time_indices.add(second_time_index)
+                    break
+
+        self.assertTrue(
+            matched_time_pairs,
+            msg=(
+                "No shared output time steps found between compared cases. "
+                f"first times={first_times}, second times={second_times}"
+            ),
+        )
+
+        for time_index, (first_time, second_time) in enumerate(matched_time_pairs):
+
+            self._assert_displacement_match_at_time(
+                first_output,
+                second_output,
+                first_time,
+                second_time,
+                first_node_ids,
+                second_node_ids,
+                time_index,
+                displacement_tolerance,
+            )
+            self._assert_pressure_match_at_time(
+                first_output,
+                second_output,
+                first_time,
+                second_time,
+                first_node_ids,
+                second_node_ids,
+                time_index,
+                pressure_tolerance,
+            )
+
     def _assert_has_excess_pore_pressure(
         self,
         stage1_output_data,
@@ -386,6 +454,17 @@ class KratosGeoMechanicsExcessPorePressureTests(test_upw_interface.KratosGeoMech
         )
         self._assert_has_total_stress_increment(
             stage1_output_data, stage2_output_data, stage1_time_steps, stage2_time_steps
+        )
+
+    def test_column_matches_horizontal_interface_on_shared_unique_nodes(self):
+        self._assert_case_match(
+            first_case_name="column",
+            second_case_name="column_horizontal_interface",
+            min_shared_unique_pairs=3,
+            displacement_tolerance=2e-2,
+            pressure_tolerance=3e2,
+            first_use_interface_parameters=False,
+            second_use_interface_parameters=True,
         )
 
 if __name__ == "__main__":
