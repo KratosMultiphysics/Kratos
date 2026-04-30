@@ -23,7 +23,7 @@ class TestBodyForceInterpolationMPM(KratosUnittest.TestCase):
         # --- Get MP model part ---
         mp_model_part = self.model.GetModelPart("MPM_Material")
 
-        self.assertGreater(len(mp_model_part.Elements), 0)
+        self.assertEqual(len(mp_model_part.Elements), 1)
 
         # Take first MP
         mp = next(iter(mp_model_part.Elements))
