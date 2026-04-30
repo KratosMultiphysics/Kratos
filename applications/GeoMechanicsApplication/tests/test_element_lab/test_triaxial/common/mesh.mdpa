@@ -25,16 +25,16 @@ Begin Nodes
     9   1.0000000000   0.0000000000   0.0000000000
 End Nodes
 
-Begin Elements SmallStrainUPwDiffOrderAxisymmetricElement2D6N// GUI group identifier: Soil
+Begin Elements SmallStrainUPwDiffOrderAxisymmetricElement2D6N
         1          0     1     5     9     3     8     4 
         2          0     9     6     1     7     2     4 
 End Elements
 
-Begin Conditions AxisymmetricLineNormalLoadDiffOrderCondition2D3N// GUI group identifier: Lateral_load
+Begin Conditions AxisymmetricLineNormalLoadDiffOrderCondition2D3N
     1 0 9 6 7
 End Conditions
 
-Begin SubModelPart Fixed_base // Group Fixed_base // Subtree DISPLACEMENT
+Begin SubModelPart Vertically_fixed_base
     Begin SubModelPartNodes
             5
             8
@@ -42,7 +42,7 @@ Begin SubModelPart Fixed_base // Group Fixed_base // Subtree DISPLACEMENT
     End SubModelPartNodes
 End SubModelPart
 
-Begin SubModelPart Fixed_side // Group Fixed_side // Subtree DISPLACEMENT
+Begin SubModelPart Symmetry_line
     Begin SubModelPartNodes
             1
             3
@@ -50,7 +50,7 @@ Begin SubModelPart Fixed_side // Group Fixed_side // Subtree DISPLACEMENT
     End SubModelPartNodes
 End SubModelPart
 
-Begin SubModelPart Soil // Group Soil // Subtree Parts_Soil
+Begin SubModelPart Soil
     Begin SubModelPartNodes
             1
             2
@@ -68,7 +68,7 @@ Begin SubModelPart Soil // Group Soil // Subtree Parts_Soil
     End SubModelPartElements
 End SubModelPart
 
-Begin SubModelPart Lateral_load // Group Lateral_load // Subtree Lateral_load
+Begin SubModelPart Lateral_load
     Begin SubModelPartTables
             1
     End SubModelPartTables
@@ -82,7 +82,7 @@ Begin SubModelPart Lateral_load // Group Lateral_load // Subtree Lateral_load
     End SubModelPartConditions
 End SubModelPart
 
-Begin SubModelPart Top_displacement // Group Top_displacement // Subtree DISPLACEMENT
+Begin SubModelPart Top_displacement
     Begin SubModelPartTables
             2
     End SubModelPartTables

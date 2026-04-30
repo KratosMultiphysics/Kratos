@@ -70,7 +70,7 @@ Begin SubModelPart Fixed_base
   End SubModelPartNodes
 End SubModelPart
 
-Begin SubModelPart Sides_L_R
+Begin SubModelPart Sides_rollers
   Begin SubModelPartNodes
     3
     6
