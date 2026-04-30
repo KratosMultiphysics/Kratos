@@ -273,7 +273,7 @@ def get_pipe_length(simulation):
     return sum([element.GetValue(KratosGeo.PIPE_ELEMENT_LENGTH) for element in elements if element.GetValue(KratosGeo.PIPE_ACTIVE)])
 
 
-def get_bending_moment(simulation):
+def get_bending_moments(simulation):
     """
     Gets bending moment on all integration points from Kratos simulation
     :param simulation:
