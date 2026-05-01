@@ -14,7 +14,11 @@
 
 // Application includes
 #include "geo_mechanics_application.h"
+
+#include "custom_constitutive/thermal_filter_law.h"
 #include "custom_retention/saturated_below_phreatic_level_law.h"
+#include "custom_retention/saturated_law.h"
+#include "custom_retention/van_genuchten_law.h"
 
 namespace Kratos
 {
@@ -603,7 +607,17 @@ void KratosGeoMechanicsApplication::Register()
     KRATOS_REGISTER_VARIABLE(GEO_PLASTICITY_STATUS)
 
     Serializer::Register("PlaneStrain", PlaneStrain{});
-    Serializer::Register("PlaneStrainStressState", PlaneStrainStressState{});
+    Serializer::Register("ThreeDimensional", ThreeDimensional{});
     Serializer::Register("SaturatedBelowPhreaticLevelLaw", SaturatedBelowPhreaticLevelLaw{});
+    Serializer::Register("SaturatedLaw", SaturatedLaw{});
+    Serializer::Register("VanGenuchtenLaw", VanGenuchtenLaw{});
+    Serializer::Register("PlaneStrainStressState", PlaneStrainStressState{});
+    Serializer::Register("ThreeDimensionalStressState", ThreeDimensionalStressState{});
+    Serializer::Register("AxisymmetricStressState", AxisymmetricStressState{});
+    Serializer::Register("Line2DInterfaceStressState", Line2DInterfaceStressState{});
+    Serializer::Register("SurfaceInterfaceStressState", SurfaceInterfaceStressState{});
+    Serializer::Register("InterfacePlaneStrain", InterfacePlaneStrain{});
+    Serializer::Register("InterfaceThreeDimensionalSurface", InterfaceThreeDimensionalSurface{});
+    Serializer::Register("GeoThermalFilterLaw", GeoThermalFilterLaw{});
 }
 } // namespace Kratos.
