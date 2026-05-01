@@ -201,7 +201,7 @@ public:
             "max_levels"                     : -1,
             "pre_sweeps"                     : 1,
             "post_sweeps"                    : 1,
-            "ilu0_chow_patel_sweeps"         : 2,
+            "sweeps"                         : 2,
             "use_gpgpu"                      : false
         })");
     }

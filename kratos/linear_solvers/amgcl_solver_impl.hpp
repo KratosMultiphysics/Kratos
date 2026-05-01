@@ -327,7 +327,7 @@ void AMGCLSolver<TSparse,TDense>::ApplySettings(Parameters Settings)
         const std::string relax_type = mAMGCLParameters.get<std::string>("precond.relax.type", "");
         const std::string precond_type = mAMGCLParameters.get<std::string>("precond.type", "");
         if (relax_type == "ilu0_chow_patel" || precond_type == "ilu0_chow_patel") {
-            const int chow_patel_sweeps = Settings["ilu0_chow_patel_sweeps"].GetInt();
+            const int chow_patel_sweeps = Settings["sweeps"].GetInt();
             if (relax_type == "ilu0_chow_patel")
                 mAMGCLParameters.put("precond.relax.sweeps", chow_patel_sweeps);
             else
