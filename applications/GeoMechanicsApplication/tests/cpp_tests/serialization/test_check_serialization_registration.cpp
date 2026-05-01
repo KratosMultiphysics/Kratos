@@ -15,9 +15,11 @@
 #include "custom_elements/plane_strain_stress_state.h"
 #include "custom_elements/three_dimensional_stress_state.h"
 
+#include "custom_constitutive/coulomb_yield_surface.h"
 #include "custom_constitutive/interface_plane_strain.h"
 #include "custom_constitutive/interface_three_dimensional_surface.h"
 #include "custom_constitutive/plane_strain.h"
+#include "custom_constitutive/tension_cutoff.h"
 #include "custom_constitutive/thermal_filter_law.h"
 #include "custom_constitutive/three_dimensional.h"
 #include "custom_retention/saturated_below_phreatic_level_law.h"
@@ -33,8 +35,6 @@ namespace Kratos::Testing
 template <typename TConcrete, typename TBase>
 void CheckSerializable(const std::string& rName)
 {
-    const auto scoped_registration = ScopedSerializerRegistration{std::make_pair(rName, TConcrete{})};
-
     const auto p_obj      = std::unique_ptr<TBase>{std::make_unique<TConcrete>()};
     auto       serializer = StreamSerializer{};
 
@@ -74,6 +74,10 @@ KRATOS_TEST_CASE_IN_SUITE(GeoMechanics_CheckSerializationRegistration, KratosGeo
 
     // Thermal law
     CheckSerializable<GeoThermalFilterLaw, GeoThermalLaw>("GeoThermalFilterLaw");
+
+    // Yield surfaces
+    CheckSerializable<CoulombYieldSurface, CoulombYieldSurface>("CoulombYieldSurface");
+    CheckSerializable<TensionCutoff, TensionCutoff>("TensionCutoff");
 }
 
 } // namespace Kratos::Testing

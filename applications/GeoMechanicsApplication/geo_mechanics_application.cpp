@@ -15,6 +15,8 @@
 // Application includes
 #include "geo_mechanics_application.h"
 
+#include "custom_constitutive/coulomb_yield_surface.h"
+#include "custom_constitutive/tension_cutoff.h"
 #include "custom_constitutive/thermal_filter_law.h"
 #include "custom_retention/saturated_below_phreatic_level_law.h"
 #include "custom_retention/saturated_law.h"
@@ -618,6 +620,8 @@ void KratosGeoMechanicsApplication::Register()
     Serializer::Register("SurfaceInterfaceStressState", SurfaceInterfaceStressState{});
     Serializer::Register("InterfacePlaneStrain", InterfacePlaneStrain{});
     Serializer::Register("InterfaceThreeDimensionalSurface", InterfaceThreeDimensionalSurface{});
+    Serializer::Register("CoulombYieldSurface", CoulombYieldSurface{});
+    Serializer::Register("TensionCutoff", TensionCutoff{});
     Serializer::Register("GeoThermalFilterLaw", GeoThermalFilterLaw{});
 }
 } // namespace Kratos.
