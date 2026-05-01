@@ -181,8 +181,8 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             "third_excavation":   {"end_time":  5.0, "base_name": "7_Third_excavation"},
         }
 
-    def run_staged_construction_analysis_and_checks(self, relative_test_path):
-        self.run_simulation_and_checks(relative_test_path, "staged_construction.json")
+    def run_staged_construction_analysis_and_checks(self, material_model_dir_name):
+        self.run_simulation_and_checks(Path(material_model_dir_name) / "staged_construction", "staged_construction.json")
 
     def run_simulation_and_checks(self, relative_test_path, analysis_filename):
         project_path = test_helper.get_file_path(Path("crow_validation") / relative_test_path)
@@ -534,7 +534,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
     #     self.run_simulation_and_checks("without_excavation")
 
     def test_staged_construction_with_linear_elastic_behavior(self):
-        self.run_staged_construction_analysis_and_checks(Path("linear_elastic") / "staged_construction")
+        self.run_staged_construction_analysis_and_checks("linear_elastic")
 
 
 if __name__ == "__main__":
