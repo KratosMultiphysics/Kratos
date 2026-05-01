@@ -60,7 +60,7 @@
                     "scheme_type": "newmark",
                     "model_part_name": "PorousDomain",
                     "domain_size": 2,
-                    "echo_level": 0,
+                    "echo_level": 1,
                     "model_import_settings": {
                         "input_type": "use_input_model_part"
                     },
@@ -268,7 +268,7 @@
                     "scheme_type": "newmark",
                     "model_part_name": "PorousDomain",
                     "domain_size": 2,
-                    "echo_level": 0,
+                    "echo_level": 1,
                     "model_import_settings": {
                         "input_type": "use_input_model_part"
                     },
@@ -484,7 +484,7 @@
                     "scheme_type": "newmark",
                     "model_part_name": "PorousDomain",
                     "domain_size": 2,
-                    "echo_level": 0,
+                    "echo_level": 1,
                     "model_import_settings": {
                         "input_type": "use_input_model_part"
                     },
