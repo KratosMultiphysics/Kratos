@@ -328,10 +328,17 @@ void AMGCLSolver<TSparse,TDense>::ApplySettings(Parameters Settings)
         const std::string precond_type = mAMGCLParameters.get<std::string>("precond.type", "");
         if (relax_type == "ilu0_chow_patel" || precond_type == "ilu0_chow_patel") {
             const int chow_patel_sweeps = Settings["sweeps"].GetInt();
-            if (relax_type == "ilu0_chow_patel")
+            const double chow_patel_omega = Settings["omega"].GetDouble();
+            const bool chow_patel_sym_scaling = Settings["symmetric_scaling"].GetBool();
+            if (relax_type == "ilu0_chow_patel") {
                 mAMGCLParameters.put("precond.relax.sweeps", chow_patel_sweeps);
-            else
+                mAMGCLParameters.put("precond.relax.omega", chow_patel_omega);
+                mAMGCLParameters.put("precond.relax.symmetric_scaling", chow_patel_sym_scaling);
+            } else {
                 mAMGCLParameters.put("precond.sweeps", chow_patel_sweeps);
+                mAMGCLParameters.put("precond.omega", chow_patel_omega);
+                mAMGCLParameters.put("precond.symmetric_scaling", chow_patel_sym_scaling);
+            }
         }
     }
 

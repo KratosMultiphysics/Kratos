@@ -201,7 +201,9 @@ public:
             "max_levels"                     : -1,
             "pre_sweeps"                     : 1,
             "post_sweeps"                    : 1,
-            "sweeps"                         : 2,
+            "sweeps"                         : 5,
+            "omega"                          : 0.8,
+            "symmetric_scaling"              : false,
             "use_gpgpu"                      : false
         })");
     }
