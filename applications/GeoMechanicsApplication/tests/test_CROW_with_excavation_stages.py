@@ -171,6 +171,9 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
         #     "final_equilibrium": {"end_time": 1.0, "base_name": "3_Final_equilibrium"},
         # }
 
+        self.stages_info = None  # Will be populated by the specific simulation runs
+
+    def run_staged_construction_analysis_and_checks(self, material_model_dir_name):
         self.stages_info = {
             "initial_stage":      {"end_time": -1.0, "base_name": "1_Initial_stage"},
             "null_step":          {"end_time":  0.0, "base_name": "2_Null_step"},
@@ -181,7 +184,6 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             "third_excavation":   {"end_time":  5.0, "base_name": "7_Third_excavation"},
         }
 
-    def run_staged_construction_analysis_and_checks(self, material_model_dir_name):
         self.run_simulation_and_checks(Path(material_model_dir_name) / "staged_construction", "staged_construction.json")
 
     def run_simulation_and_checks(self, relative_test_path, analysis_filename):
