@@ -241,10 +241,9 @@ double ConstitutiveLawUtilities::GetOrCalculateSkemptonB(const Properties& rProp
     return std::clamp(result, 0.0, 1.0);
 }
 
-std::pair<double, double> ConstitutiveLawUtilities::GetOrCalculateElasticProperties(const Properties& rProperties,
-                                                                                    bool Undrained)
+std::pair<double, double> ConstitutiveLawUtilities::GetOrCalculateElasticProperties(const Properties& rProperties)
 {
-    if (Undrained) {
+    if (IsUndrained(rProperties)) {
         const auto nu = GetOrCalculateUndrainedPoissonsRatio(rProperties);
         const auto E  = CalculateUndrainedYoungsModulus(rProperties, nu);
         return {E, nu};
@@ -290,8 +289,12 @@ DrainageType ConstitutiveLawUtilities::StringToDrainageType(const std::string& r
 
 bool ConstitutiveLawUtilities::IsConstantWaterPressure(const Properties& rProperties)
 {
-    return ConstitutiveLawUtilities::StringToDrainageType(rProperties[GEO_DRAINAGE_TYPE]) ==
-           DrainageType::CONSTANT_WATER_PRESSURE;
+    return StringToDrainageType(rProperties[GEO_DRAINAGE_TYPE]) == DrainageType::CONSTANT_WATER_PRESSURE;
+}
+
+bool ConstitutiveLawUtilities::IsUndrained(const Properties& rProperties)
+{
+    return StringToDrainageType(rProperties[GEO_DRAINAGE_TYPE]) == DrainageType::UNDRAINED;
 }
 
 void ConstitutiveLawUtilities::ReplaceIgnoreUndrainedByDrainageType(Properties& rProperties)
