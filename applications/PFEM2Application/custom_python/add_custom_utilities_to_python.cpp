@@ -60,6 +60,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "processes/process.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_utilities/move_particle_utility_pfem2.h"
+#include "custom_utilities/move_particle_utility_pfem2_modified.h"
 
 #include "custom_utilities/visualization.h"
 #include "custom_utilities/calculate_water_fraction.h"
