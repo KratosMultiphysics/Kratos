@@ -27,7 +27,7 @@ THE SOFTWARE.
 
 /**
  * \file   amgcl/mpi/relaxation/ilu0_chow_patel.hpp
- * \author Denis Demidov <dennis.demidov@gmail.com>
+ * \author Vicente Mataix Ferrandiz <vicente.mataix-ferrandiz@siemens.com>
  * \brief  Distributed memory fine-grained parallel ILU(0) (Chow-Patel).
  */
 

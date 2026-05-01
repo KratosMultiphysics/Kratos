@@ -27,7 +27,7 @@ THE SOFTWARE.
 
 /**
  * \file   amgcl/relaxation/ilu0_chow_patel.hpp
- * \author Denis Demidov <dennis.demidov@gmail.com>
+ * \author Vicente Mataix Ferrandiz <vicente.mataix-ferrandiz@siemens.com>
  * \brief  Fine-grained parallel ILU(0) factorization.
  *
  * Parallel ILU(0) factorization based on the iterative algorithm described in:
@@ -42,13 +42,25 @@ THE SOFTWARE.
  * nonzero of L and U can be updated independently, giving fine-grained
  * parallelism that scales well regardless of matrix ordering.
  *
- * The matrix is row-scaled to have a unit diagonal before factorization,
- * as recommended by the paper for convergence.  The scaling is undone
- * when constructing the final factors for the preconditioner.
+ * The matrix is scaled to have a unit diagonal before factorization,
+ * as recommended by the paper for convergence.  Two scaling strategies
+ * are available:
+ *   - Row scaling:       A' = diag(1/a_ii) * A             (default)
+ *   - Symmetric scaling: A' = diag(1/sqrt|a_ii|)*A*diag(1/sqrt|a_ii|)
+ *
+ * Symmetric scaling (DAD) is recommended by the paper (Section 2.3) and
+ * generally gives better convergence because it balances both rows and
+ * columns.  Row scaling is kept as the default for backward compatibility
+ * and because it can be more robust when the diagonal entries have very
+ * large magnitude variation.
+ *
+ * An underrelaxation factor omega can be used to stabilize the
+ * fixed-point iteration for non-diagonally-dominant matrices.
  */
 
 #include <vector>
 #include <cmath>
+#include <limits>
 #include <algorithm>
 
 #ifdef _OPENMP
@@ -91,23 +103,38 @@ struct ilu0_chow_patel {
         /// Number of fixed-point iteration sweeps for computing L and U.
         int sweeps;
 
+        /// Underrelaxation factor for the fixed-point sweeps (0 < omega <= 1).
+        /// Values less than 1 dampen the update and can stabilize convergence
+        /// for non-diagonally-dominant matrices at the cost of slower
+        /// convergence for well-conditioned ones.
+        scalar_type omega;
+
+        /// Use symmetric diagonal scaling (DAD) instead of row scaling (DA).
+        /// Symmetric scaling often improves convergence of the iterative
+        /// factorization (see Section 2.3 of Chow & Patel 2015).
+        bool symmetric_scaling;
+
         /// Parameters for sparse triangular system solver.
         typename ilu_solve::params solve;
 
-        params() : damping(1), sweeps(2) {}
+        params() : damping(1), sweeps(5), omega(0.8), symmetric_scaling(false) {}
 
 #ifndef AMGCL_NO_BOOST
         params(const boost::property_tree::ptree &p)
             : AMGCL_PARAMS_IMPORT_VALUE(p, damping)
             , AMGCL_PARAMS_IMPORT_VALUE(p, sweeps)
+            , AMGCL_PARAMS_IMPORT_VALUE(p, omega)
+            , AMGCL_PARAMS_IMPORT_VALUE(p, symmetric_scaling)
             , AMGCL_PARAMS_IMPORT_CHILD(p, solve)
         {
-            check_params(p, {"damping", "sweeps", "solve"});
+            check_params(p, {"damping", "sweeps", "omega", "symmetric_scaling", "solve"});
         }
 
         void get(boost::property_tree::ptree &p, const std::string &path) const {
             AMGCL_PARAMS_EXPORT_VALUE(p, path, damping);
             AMGCL_PARAMS_EXPORT_VALUE(p, path, sweeps);
+            AMGCL_PARAMS_EXPORT_VALUE(p, path, omega);
+            AMGCL_PARAMS_EXPORT_VALUE(p, path, symmetric_scaling);
             AMGCL_PARAMS_EXPORT_CHILD(p, path, solve);
         }
 #endif
@@ -125,13 +152,42 @@ struct ilu0_chow_patel {
 
         // -----------------------------------------------------------------
         // 1. Diagonal scaling.
-        //    Row-scale A so that the diagonal is the identity:
-        //      A' = diag(1/a_ii) * A.
-        //    backend::diagonal(A, true) returns a numa_vector of 1/a_ii
-        //    computed in a parallel loop with correct NUMA first-touch.
+        //    Compute per-row scale factors so the scaled matrix has unit
+        //    diagonal.  Two strategies are supported:
+        //
+        //    Row scaling (default):
+        //      A' = diag(d_i) * A,  where d_i = 1/a_ii.
+        //
+        //    Symmetric scaling (Section 2.3 of the paper):
+        //      A' = diag(d_i) * A * diag(d_i),  where d_i = 1/sqrt(|a_ii|).
+        //      This balances both rows and columns and generally gives
+        //      better convergence when the matrix is far from diagonally
+        //      dominant.
+        //
+        //    In both cases, scale[i] stores the left (row) scale factor.
+        //    For symmetric scaling col_scale[j] stores the column factor
+        //    (same array – it equals scale[j]).
         // -----------------------------------------------------------------
         auto inv_diag_ptr = backend::diagonal(A, /*invert=*/true);
-        auto &inv_diag = *inv_diag_ptr;
+        auto &inv_diag = *inv_diag_ptr;  // inv_diag[i] = 1/a_ii
+
+        // scale[i] is the left scale factor d_i for row i.
+        backend::numa_vector<value_type> scale(n, false);
+#ifdef _OPENMP
+#  pragma omp parallel for schedule(guided, 64)
+#endif
+        for (ptrdiff_t i = 0; i < n; ++i) {
+            if (prm.symmetric_scaling) {
+                // d_i = 1 / sqrt(|a_ii|)
+                scalar_type abs_aii = math::norm(math::inverse(inv_diag[i]));
+                scale[i] = (abs_aii > std::numeric_limits<scalar_type>::min())
+                    ? static_cast<scalar_type>(1.0 / std::sqrt(abs_aii)) * math::identity<value_type>()
+                    : inv_diag[i];
+            } else {
+                // d_i = 1 / a_ii  (row scaling)
+                scale[i] = inv_diag[i];
+            }
+        }
 
         // -----------------------------------------------------------------
         // 2. Count nonzeros per row and build prefix-sum Lptr / Uptr.
@@ -174,7 +230,9 @@ struct ilu0_chow_patel {
         //      L^(0)_{ij} = a'_{ij}      (i > j)
         //      U^(0)_{ij} = a'_{ij}      (i < j)
         //      U^(0)_{ii} = 1            (unit diagonal after scaling)
-        //    where a'_{ij} = a_{ij} / a_{ii}.
+        //
+        //    Row scaling:       a'_{ij} = a_{ij} * scale[i]
+        //    Symmetric scaling: a'_{ij} = a_{ij} * scale[i] * scale[j]
         //
         //    The loop is parallel so that each thread first-touches its own
         //    slice of Lcol/Lval, Ucol/Uval, and Udiag – matching the access
@@ -187,7 +245,10 @@ struct ilu0_chow_patel {
             ptr_type lh = Lptr[i], uh = Uptr[i];
             for (ptr_type j = A.ptr[i]; j < A.ptr[i + 1]; ++j) {
                 ptrdiff_t c = A.col[j];
-                value_type v = A.val[j] * inv_diag[i]; // row-scaling
+                // Scale: row scaling  a'_ij = a_ij * scale[i]
+                //        sym scaling  a'_ij = a_ij * scale[i] * scale[c]
+                value_type v = A.val[j] * scale[i];
+                if (prm.symmetric_scaling) v = v * scale[c];
                 if (c < i) {
                     Lcol[lh] = static_cast<col_type>(c);
                     Lval[lh] = v;
@@ -283,8 +344,6 @@ struct ilu0_chow_patel {
             }
         };
 
-        build_ucsc();
-
         // -----------------------------------------------------------------
         // 5. Fixed-point iteration sweeps (Algorithm 2 from the paper).
         //
@@ -295,11 +354,26 @@ struct ilu0_chow_patel {
         //
         //    The inner products are sparse-sparse dot products between
         //    row i of L (CSR) and column j of U (CSC).
+        //
+        //    When omega < 1, each update is under-relaxed:
+        //      x_new = omega * G(x) + (1 - omega) * x_old
+        //    This can stabilize convergence for non-diagonally-dominant
+        //    matrices at the cost of slower convergence.
         // -----------------------------------------------------------------
+        const scalar_type omega   = prm.omega;
+        const scalar_type one_m_w = static_cast<scalar_type>(1) - omega;
+
+        // Minimum acceptable pivot norm (relative to identity).
+        // Using sqrt(eps) instead of eps gives much more robust behavior
+        // for ill-conditioned matrices.
+        const scalar_type pivot_tol =
+            std::sqrt(std::numeric_limits<scalar_type>::epsilon())
+            * math::norm(math::identity<value_type>());
+
         for (int sweep = 0; sweep < prm.sweeps; ++sweep) {
             // Synchronize CSC copy of U with (possibly updated) CSR values.
-            // First sweep builds full CSC structure; subsequent sweeps only
-            // update the values (structure is invariant).
+            // First sweep builds the full CSC structure + values; subsequent
+            // sweeps only update the values (structure is invariant).
             if (sweep == 0)
                 build_ucsc();
             else
@@ -327,7 +401,18 @@ struct ilu0_chow_patel {
                         else { s += Lval[lp] * Ucval[up]; ++lp; ++up; }
                     }
 
-                    Lval[jj] = (a_L[jj] - s) * math::inverse(Udiag[j]);
+                    // Guard against zero pivot.
+                    value_type pivot = Udiag[j];
+                    if (math::norm(pivot) < pivot_tol)
+                        pivot = pivot_tol * math::identity<value_type>();
+
+                    value_type l_new = (a_L[jj] - s) * math::inverse(pivot);
+
+                    // Protect against NaN/Inf from numerical blow-up.
+                    if (!std::isfinite(math::norm(l_new))) l_new = a_L[jj];
+
+                    // Under-relaxation.
+                    Lval[jj] = omega * l_new + one_m_w * Lval[jj];
                 }
             }
 
@@ -350,7 +435,10 @@ struct ilu0_chow_patel {
                         else if (lc > uc) { ++up; }
                         else { s += Lval[lp] * Ucval[up]; ++lp; ++up; }
                     }
-                    Udiag[i] = math::identity<value_type>() - s;
+                    value_type u_diag_new = math::identity<value_type>() - s;
+                    if (!std::isfinite(math::norm(u_diag_new)))
+                        u_diag_new = math::identity<value_type>();
+                    Udiag[i] = omega * u_diag_new + one_m_w * Udiag[i];
                 }
 
                 // u_ij for j > i
@@ -370,7 +458,9 @@ struct ilu0_chow_patel {
                         else { s += Lval[lp] * Ucval[up]; ++lp; ++up; }
                     }
 
-                    Uval[jj] = a_U[jj] - s;
+                    value_type u_new = a_U[jj] - s;
+                    if (!std::isfinite(math::norm(u_new))) u_new = a_U[jj];
+                    Uval[jj] = omega * u_new + one_m_w * Uval[jj];
                 }
             }
         }
@@ -378,18 +468,22 @@ struct ilu0_chow_patel {
         // -----------------------------------------------------------------
         // 6. Un-scale and build output factors for ilu_solve.
         //
-        //    We computed L,U for scaled system A' = diag(1/a_ii)*A such that
-        //    L*U ≈ A'.  Therefore  diag(a_ii)*L*U ≈ A.
-        //
         //    ilu_solve expects factors in the form
         //      M = (I + L_s)(diag(pivot) + U_s)
         //    where L_s is strictly lower triangular, U_s is strictly upper
         //    triangular, and it stores D = inv(pivot).
         //
-        //    Decomposing  diag(a_ii)*(I + L_cp)*(diag(Udiag) + U_cp) yields:
-        //      L_s_{ij}  = (a_ii / a_jj) * L_cp_{ij}     (i > j)
-        //      pivot_i   = a_ii * Udiag_i
-        //      U_s_{ij}  = a_ii * U_cp_{ij}               (i < j)
+        //    Row scaling:  A' = diag(1/a_ii)*A,  L'U' ≈ A'.
+        //      (I + L_s)(pivot + U_s) = diag(a_ii)*(I + L')(diag(U'd) + U')
+        //        L_s_{ij}  = (a_ii / a_jj) * L'_{ij}
+        //        pivot_i   = a_ii * U'diag_i
+        //        U_s_{ij}  = a_ii * U'_{ij}
+        //
+        //    Symmetric scaling: A' = D*A*D,  D = diag(1/sqrt|a_ii|).
+        //      (I + L_s)(pivot + U_s) = D^{-1}(I + L')(diag(U'd) + U')D^{-1}
+        //        L_s_{ij}  = sqrt(|a_ii| / |a_jj|) * L'_{ij}
+        //        pivot_i   = |a_ii| * U'diag_i
+        //        U_s_{ij}  = sqrt(|a_ii| * |a_jj|) * U'_{ij}
         // -----------------------------------------------------------------
         auto L_out = std::make_shared<build_matrix>();
         auto U_out = std::make_shared<build_matrix>();
@@ -402,23 +496,55 @@ struct ilu0_chow_patel {
 #  pragma omp parallel for schedule(guided, 64)
 #endif
         for (ptrdiff_t i = 0; i < n; ++i) {
+            // Compute un-scaling factors for row i.
             value_type a_ii = math::inverse(inv_diag[i]);
+            scalar_type abs_aii = math::norm(a_ii);
 
             for (ptr_type jj = Lptr[i]; jj < Lptr[i + 1]; ++jj) {
                 ptrdiff_t j = Lcol[jj];
-                value_type a_jj = math::inverse(inv_diag[j]);
                 L_out->col[jj] = Lcol[jj];
-                L_out->val[jj] = (a_ii * math::inverse(a_jj)) * Lval[jj];
+                if (prm.symmetric_scaling) {
+                    // L_s_{ij} = sqrt(|a_ii| / |a_jj|) * L'_{ij}
+                    scalar_type abs_ajj = math::norm(math::inverse(inv_diag[j]));
+                    scalar_type ratio = (abs_ajj > std::numeric_limits<scalar_type>::min())
+                        ? std::sqrt(abs_aii / abs_ajj)
+                        : static_cast<scalar_type>(1);
+                    L_out->val[jj] = ratio * Lval[jj];
+                } else {
+                    // L_s_{ij} = (a_ii / a_jj) * L'_{ij}
+                    value_type a_jj = math::inverse(inv_diag[j]);
+                    L_out->val[jj] = (a_ii * math::inverse(a_jj)) * Lval[jj];
+                }
             }
             L_out->ptr[i + 1] = Lptr[i + 1];
 
             for (ptr_type jj = Uptr[i]; jj < Uptr[i + 1]; ++jj) {
                 U_out->col[jj] = Ucol[jj];
-                U_out->val[jj] = a_ii * Uval[jj];
+                if (prm.symmetric_scaling) {
+                    // U_s_{ij} = sqrt(|a_ii| * |a_jj|) * U'_{ij}
+                    ptrdiff_t j = Ucol[jj];
+                    scalar_type abs_ajj = math::norm(math::inverse(inv_diag[j]));
+                    scalar_type factor = std::sqrt(abs_aii * abs_ajj);
+                    U_out->val[jj] = factor * Uval[jj];
+                } else {
+                    // U_s_{ij} = a_ii * U'_{ij}
+                    U_out->val[jj] = a_ii * Uval[jj];
+                }
             }
             U_out->ptr[i + 1] = Uptr[i + 1];
 
-            (*D_out)[i] = math::inverse(a_ii * Udiag[i]);
+            // Compute pivot and guard against zero.
+            value_type pivot;
+            if (prm.symmetric_scaling) {
+                // pivot_i = |a_ii| * U'diag_i
+                pivot = abs_aii * Udiag[i];
+            } else {
+                // pivot_i = a_ii * U'diag_i
+                pivot = a_ii * Udiag[i];
+            }
+            if (math::norm(pivot) < pivot_tol)
+                pivot = pivot_tol * math::identity<value_type>();
+            (*D_out)[i] = math::inverse(pivot);
         }
 
         ilu = std::make_shared<ilu_solve>(L_out, U_out, D_out, prm.solve, bprm);
