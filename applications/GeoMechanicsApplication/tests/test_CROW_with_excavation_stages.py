@@ -165,12 +165,6 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
     def setUp(self):
         super().setUp()
 
-        # self.stages_info = {
-        #     "initial_stage": {"end_time": -1.0, "base_name": "1_Initial_stage"},
-        #     "null_step": {"end_time": 0.0, "base_name": "2_Null_step"},
-        #     "final_equilibrium": {"end_time": 1.0, "base_name": "3_Final_equilibrium"},
-        # }
-
         self.stages_info = None  # Will be populated by the specific simulation runs
 
     def run_staged_construction_analysis_and_checks(self, material_model_dir_name):
