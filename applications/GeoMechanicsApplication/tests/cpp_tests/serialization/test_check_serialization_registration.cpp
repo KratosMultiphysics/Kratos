@@ -7,7 +7,7 @@
 //
 //  License:         geo_mechanics_application/license.txt
 //
-//  Main authors:    Automated test
+//  Main authors:    Gennady Markelov
 //
 
 #include "custom_elements/axisymmetric_stress_state.h"
