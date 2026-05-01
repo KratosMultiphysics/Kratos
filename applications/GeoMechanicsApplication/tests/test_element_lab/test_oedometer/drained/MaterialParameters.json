@@ -22,7 +22,7 @@
                     "RETENTION_LAW": "SaturatedLaw",
                     "SATURATED_SATURATION": 0.0,
                     "YOUNG_MODULUS": 1.0e+04,
-                    "POISSON_RATIO": 0.0
+                    "POISSON_RATIO": 0.25
                 }
             }
         }
