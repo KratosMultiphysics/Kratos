@@ -157,11 +157,16 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
     def setUp(self):
         super().setUp()
 
+        self.stages_info = None  # Will be populated by the specific simulation runs
+
+    def run_construct_at_once_analysis_and_checks(self, material_model_dir_name):
         self.stages_info = {
             "initial_stage": {"end_time": -1.0, "base_name": "1_Initial_stage"},
             "null_step": {"end_time": 0.0, "base_name": "2_Null_step"},
             "final_equilibrium": {"end_time": 1.0, "base_name": "3_Final_equilibrium"},
         }
+
+        self.run_simulation_and_checks(Path(material_model_dir_name) / "construct_at_once", "construct_at_once.json")
 
     def run_simulation_and_checks(self, relative_test_path, analysis_filename):
         project_path = test_helper.get_file_path(Path("crow_validation") / relative_test_path)
@@ -492,7 +497,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
         )
 
     def test_simulation_without_excavation(self):
-        self.run_simulation_and_checks(Path("linear_elastic") / "construct_at_once", "construct_at_once.json")
+        self.run_construct_at_once_analysis_and_checks("linear_elastic")
 
 
 if __name__ == "__main__":
