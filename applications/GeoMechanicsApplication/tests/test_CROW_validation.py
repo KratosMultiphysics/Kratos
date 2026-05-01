@@ -163,13 +163,11 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             "final_equilibrium": {"end_time": 1.0, "base_name": "3_Final_equilibrium"},
         }
 
-    def run_simulation_and_checks(self, relative_test_path):
-        project_path = test_helper.get_file_path(
-            Path("crow_validation") / relative_test_path
-        )
+    def run_simulation_and_checks(self, relative_test_path, analysis_filename):
+        project_path = test_helper.get_file_path(Path("crow_validation") / relative_test_path)
 
         with context_managers.set_cwd_to(project_path):
-            with open(Path("..") / ".." / "common" / "construct_at_once.json", 'r') as parameter_file:
+            with open(Path("..") / ".." / "common" / analysis_filename, 'r') as parameter_file:
                 project_parameters = Kratos.Parameters(parameter_file.read())
                 project = Project(project_parameters)
                 orchestrator_reg_entry = Kratos.Registry[project.GetSettings()["orchestrator"]["name"].GetString()]
@@ -494,7 +492,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
         )
 
     def test_simulation_without_excavation(self):
-        self.run_simulation_and_checks(Path("linear_elastic") / "construct_at_once")
+        self.run_simulation_and_checks(Path("linear_elastic") / "construct_at_once", "construct_at_once.json")
 
 
 if __name__ == "__main__":
