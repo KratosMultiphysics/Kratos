@@ -377,7 +377,7 @@
             }
         },
         {
-            "model_part_name": "PorousDomain.Beam",
+            "model_part_name": "PorousDomain.Sheet_Pile_Wall",
             "properties_id": 17,
             "Material": {
                 "constitutive_law": {

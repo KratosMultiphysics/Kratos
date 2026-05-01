@@ -33,7 +33,7 @@
                                 "PorousDomain.Interface_Excavated_Soil_3",
                                 "PorousDomain.Interface_Middle_Left",
                                 "PorousDomain.Interface_Bottom_Left",
-                                "PorousDomain.Beam",
+                                "PorousDomain.Sheet_Pile_Wall",
                                 "PorousDomain.Anchor"
                             ]
                         }
@@ -458,7 +458,7 @@
                                 "PorousDomain.Interface_Bottom_Right",
                                 "PorousDomain.Interface_Middle_Left",
                                 "PorousDomain.Interface_Bottom_Left",
-                                "PorousDomain.Beam",
+                                "PorousDomain.Sheet_Pile_Wall",
                                 "PorousDomain.Anchor"
                             ]
                         }
@@ -526,7 +526,7 @@
                         "Interface_Excavated_Soil_3",
                         "Interface_Middle_Left",
                         "Interface_Bottom_Left",
-                        "Beam",
+                        "Sheet_Pile_Wall",
                         "Anchor"
                     ],
                     "body_domain_sub_model_part_list": [
@@ -543,7 +543,7 @@
                         "Interface_Excavated_Soil_3",
                         "Interface_Middle_Left",
                         "Interface_Bottom_Left",
-                        "Beam",
+                        "Sheet_Pile_Wall",
                         "Anchor"
                     ],
                     "linear_solver_settings": {
@@ -660,7 +660,7 @@
                             "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
                             "process_name": "GeoExtrapolateIntegrationPointValuesToNodesProcess",
                             "Parameters": {
-                                "model_part_name": "PorousDomain.Beam",
+                                "model_part_name": "PorousDomain.Sheet_Pile_Wall",
                                 "list_of_variables": [
                                     "AXIAL_FORCE",
                                     "BENDING_MOMENT",

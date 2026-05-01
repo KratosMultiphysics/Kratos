@@ -15067,7 +15067,7 @@ Begin SubModelPart Interface_Bottom_Left
   End SubModelPartElements
 End SubModelPart
 
-Begin SubModelPart Beam
+Begin SubModelPart Sheet_Pile_Wall
   Begin SubModelPartNodes
     3968
     3982
