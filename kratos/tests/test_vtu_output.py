@@ -1,5 +1,6 @@
 import math, typing
 from pathlib import Path
+import json
 import xml.etree.ElementTree as ET
 
 import KratosMultiphysics as Kratos
@@ -125,7 +126,8 @@ class TestVtuOutputBase:
         for file_path in Path(reference_prefix).iterdir():
             self.assertTrue((Path(output_prefix) / file_path.name).is_file(), msg=f"\"{(Path(output_prefix) / file_path.name)}\" is not a file.")
             check_file(f"{output_prefix}/{file_path.name}", str(file_path))
-        check_file(f"{output_prefix}.pvd", f"{reference_prefix}.pvd")
+        check_file(f"{output_prefix}.vtm.series", f"{reference_prefix}.vtm.series")
+        check_file(f"{output_prefix}_0.vtm", f"{reference_prefix}_0.vtm")
 
 class TestVtuOutput2D(TestVtuOutputBase, kratos_unittest.TestCase):
     @classmethod
@@ -350,7 +352,9 @@ class TestVtuOutput(kratos_unittest.TestCase):
                                         {
                                             "PRESSURE": (1, "Float64")
                                         }))
-        TestVtuOutput.CheckPvdFile(self, "temp/vtu_output/variable_test.pvd", list_of_vtu_file_names, [1 + 1e-9])
+
+        TestVtuOutput.CheckVtmFile(self, f"temp/vtu_output/variable_test_0.vtm", list_of_vtu_file_names)
+        TestVtuOutput.CheckSeriesFile(self, "temp/vtu_output/variable_test.vtm.series", ["variable_test_0.vtm"], [1 + 1e-9])
 
     def test_CellVariableAddition(self):
         vtu_output = Kratos.VtuOutput(self.model_part, output_format=Kratos.VtuOutput.ASCII, output_sub_model_parts=True)
@@ -373,8 +377,8 @@ class TestVtuOutput(kratos_unittest.TestCase):
 
         model_part = vtu_output.GetModelPart()
         unstructured_grid_list = self.GetUnstructuredGridList(model_part, model_part.GetCommunicator().GetDataCommunicator(), True)
-        list_of_vtu_file_names: 'list[str]' = []
         for step in range(2):
+            list_of_vtu_file_names: 'list[str]' = []
             for model_part, use_nodes, container in unstructured_grid_list:
                 vtu_file_name = TestVtuOutput.GetUnstructuredGridName((model_part, use_nodes, container), "temp/vtu_output/time_step_test", step, model_part.GetCommunicator().GetDataCommunicator())
                 list_of_vtu_file_names.append(vtu_file_name)
@@ -402,8 +406,9 @@ class TestVtuOutput(kratos_unittest.TestCase):
                                             {
                                                 "DISPLACEMENT": (3, "Float64")
                                             }))
+            TestVtuOutput.CheckVtmFile(self, f"temp/vtu_output/time_step_test_{step}.vtm", list_of_vtu_file_names)
 
-        TestVtuOutput.CheckPvdFile(self, "temp/vtu_output/time_step_test.pvd", list_of_vtu_file_names, [1, 1 + 1e-9])
+        TestVtuOutput.CheckSeriesFile(self, "temp/vtu_output/time_step_test.vtm.series", ["time_step_test_0.vtm", "time_step_test_1.vtm"], [1, 1 + 1e-9])
 
     @staticmethod
     def GetUnstructuredGridList(model_part: Kratos.ModelPart, data_communicator: Kratos.DataCommunicator, recursively: bool) -> 'list[tuple[Kratos.ModelPart, bool, typing.Optional[typing.Union[Kratos.ConditionsArray, Kratos.ElementsArray]]]]':
@@ -516,25 +521,46 @@ class TestVtuOutput(kratos_unittest.TestCase):
         kratos_utils.DeleteFileIfExisting(vtu_file_name)
 
     @staticmethod
-    def CheckPvdFile(test_class: kratos_unittest.TestCase, pvd_file_name: str, vtu_file_name_list: 'list[str]', time_step_list: 'list[float]'):
-        test_class.assertTrue(Path(pvd_file_name).is_file(), f"The file {pvd_file_name} not found.")
-        tree = ET.parse(pvd_file_name)
+    def CheckVtmFile(test_class: kratos_unittest.TestCase, vtm_file_name: str,  vtu_file_name_list: 'list[str]'):
+        test_class.assertTrue(Path(vtm_file_name).is_file(), f"The file {vtm_file_name} not found.")
+        tree = ET.parse(vtm_file_name)
         root = tree.getroot()
 
         test_class.assertEqual(root.tag, "VTKFile")
-        test_class.assertEqual(root.get("type"), "Collection")
+        test_class.assertEqual(root.get("type"), "vtkMultiBlockDataSet")
         test_class.assertEqual(root.get("version"), "1.0")
 
-        collection = root.find("Collection")
-        datasets = collection.findall("DataSet")
-        test_class.assertEqual(len(datasets), len(vtu_file_name_list), f"file name = {pvd_file_name}, list_of_time_steps = {time_step_list}, list_of_vtu_files = \n" + "\n\t".join(vtu_file_name_list))
-        for i, dataset in enumerate(datasets):
-            relative_path = Path(vtu_file_name_list[i]).absolute().relative_to(Path(pvd_file_name).absolute().parent)
+        collection = root.find("vtkMultiBlockDataSet")
+        blocks = collection.findall("Block")
+        test_class.assertEqual(len(blocks), len(vtu_file_name_list), f"file name = {vtm_file_name}, list_of_vtu_files = \n\t" + "\n\t".join(vtu_file_name_list))
+        for i, block in enumerate(blocks):
+            vtu_file_name = vtu_file_name_list[i]
+            name = vtu_file_name[vtu_file_name.rfind("/")+1:vtu_file_name.rfind("_")]
+            test_class.assertEqual(block.get("index"), f"{i}")
+            test_class.assertEqual(block.get("name"), name)
+
+            datasets = block.findall("DataSet")
+            test_class.assertEqual(len(datasets), 1)
+            dataset = datasets[0]
+
+            relative_path = Path(vtu_file_name_list[i]).absolute().relative_to(Path(vtm_file_name).absolute().parent)
             test_class.assertEqual(dataset.get("file"), str(relative_path))
-            test_class.assertEqual(dataset.get("name"), relative_path.name[:relative_path.name.rfind("_")])
-            test_class.assertEqual(dataset.get("part"), str(i % (len(vtu_file_name_list) // len(time_step_list))))
-            test_class.assertEqual(dataset.get("timestep"), f"{time_step_list[i // (len(vtu_file_name_list) // len(time_step_list))]:0.9e}", f"file name = {relative_path}")
-        kratos_utils.DeleteFileIfExisting(pvd_file_name)
+            test_class.assertEqual(dataset.get("name"), relative_path.name[:relative_path.name.rfind("_") + 1] + "0")
+        kratos_utils.DeleteFileIfExisting(vtm_file_name)
+
+    @staticmethod
+    def CheckSeriesFile(test_class: kratos_unittest.TestCase, series_file_name: str, vtm_file_name_list: 'list[str]', time_step_list: 'list[float]'):
+        test_class.assertTrue(Path(series_file_name).is_file(), f"The file {series_file_name} not found.")
+        with open(series_file_name, "r") as file_input:
+            data = json.loads(file_input.read())
+
+        test_class.assertEqual(data["file-series-version"], "1.0")
+        files = data["files"]
+        test_class.assertEqual(len(files), len(vtm_file_name_list))
+        for i, vtu_file_name in enumerate(vtm_file_name_list):
+            test_class.assertEqual(files[i]["name"], vtu_file_name)
+            test_class.assertEqual(files[i]["time"], time_step_list[i])
+        kratos_utils.DeleteFileIfExisting(series_file_name)
 
     @staticmethod
     def CheckGaussVtuFile(test_class: kratos_unittest.TestCase, model_part: Kratos.ModelPart, container, prefix: str, step_id: int, output_type: str, data_communicator: Kratos.DataCommunicator, point_fields):
