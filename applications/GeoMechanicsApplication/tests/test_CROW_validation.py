@@ -181,7 +181,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
                 orchestrator_instance = orchestrator_class(project)
                 orchestrator_instance.Run()
 
-        self.create_sheetpile_plots(project_path)
+        self.create_wall_plots(project_path)
         self.create_interface_plots(project_path)
 
     def read_json_output(self, project_path, stage):
@@ -444,7 +444,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
 
         return variable_data_collections
 
-    def create_sheetpile_plots(self, project_path):
+    def create_wall_plots(self, project_path):
         plot_stages = self.get_plot_stages()
         plot_titles = [stage["base_name"] for stage in plot_stages]
 
