@@ -1466,7 +1466,7 @@ void VtuOutput::PrintOutput(
             }
         }
 
-        std::ofstream output_file;
+        std::fstream output_file;
         output_file.open(rOutputFileNamePrefix + "_" + std::to_string(Step) + ".vtm", std::ios::out | std::ios::trunc);
         output_file << "<?xml version=\"1.0\"?>" << std::endl;
         vtm_file_element.Write(output_file);
@@ -1487,13 +1487,33 @@ void VtuOutput::PrintOutput(
             output_file << "        { \"name\" : \"" + relative_vtm_file_name + "\", \"time\" : " + str_time.str() << " }" << std::endl;
             output_file << "    ]" << std::endl;
             output_file << "}";
+            output_file.close();
         } else {
             output_file.open(rOutputFileNamePrefix + ".vtm.series", std::ios::in | std::ios::out);
-            output_file.seekp(-8, std::ios::end);
+            output_file.seekg(0, std::ios::end);
+            const auto file_size = output_file.tellg();
+
+            std::streamoff last_object_end_pos = -1;
+            char pattern_buffer[2];
+            for (std::streamoff i = static_cast<std::streamoff>(file_size) - 2; i >= 0; --i) {
+                output_file.seekg(i, std::ios::beg);
+                output_file.read(pattern_buffer, 2);
+                if (output_file.gcount() == 2 && pattern_buffer[0] == ' ' && pattern_buffer[1] == '}') {
+                    last_object_end_pos = i + 2;
+                    break;
+                }
+            }
+
+            KRATOS_ERROR_IF(last_object_end_pos < 0)
+                << "Unable to find the last file entry in '" << rOutputFileNamePrefix << ".vtm.series'.\n";
+
+            output_file.clear();
+            output_file.seekp(last_object_end_pos, std::ios::beg);
             output_file << "," << std::endl;
             output_file << "        { \"name\" : \"" + relative_vtm_file_name + "\", \"time\" : " + str_time.str() << " }" << std::endl;
             output_file << "    ]" << std::endl;
             output_file << "}";
+            output_file.close();
         }
    }
 
