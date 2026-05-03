@@ -134,225 +134,217 @@ namespace Kratos
 		MoveParticleUtilityPFEM2Modified(ModelPart& model_part, int maximum_number_of_particles)
 			: mr_model_part(model_part) , mmaximum_number_of_particles(maximum_number_of_particles)
 		{
-            KRATOS_INFO("MoveParticleUtilityPfem2Modified") << "Initializing utility" << std::endl;
+            KRATOS_INFO("MoveParticleUtilityPfem2") << "Initializing utility" << std::endl;
 
-			Check();
+            Check();
 
 
-			//tools to move the domain, in case we are using a moving domain approach.
-			mintialized_transfer_tool=false;
-			mcalculation_domain_complete_displacement=ZeroVector(3);
-			mcalculation_domain_added_displacement=ZeroVector(3);
+            //tools to move the domain, in case we are using a moving domain approach.
+            mintialized_transfer_tool=false;
+            mcalculation_domain_complete_displacement=ZeroVector(3);
+            mcalculation_domain_added_displacement=ZeroVector(3);
 
             //storing water and air density and their inverses, just in case it is needed for the streamline integration
             ProcessInfo& CurrentProcessInfo = mr_model_part.GetProcessInfo();
-			mDENSITY_AIR = CurrentProcessInfo[DENSITY_AIR];
-			mDENSITY_WATER = CurrentProcessInfo[DENSITY_WATER];
+            mDENSITY_AIR = CurrentProcessInfo[DENSITY_AIR];
+            mDENSITY_WATER = CurrentProcessInfo[DENSITY_WATER];
 
-			//mmaximum_number_of_particles = maximum_number_of_particles;
+            //mmaximum_number_of_particles = maximum_number_of_particles;
 
-			//loop in elements to change their ID to their position in the array. Easier to get information later.
-			//DO NOT PARALLELIZE THIS! IT MUST BE SERIAL!!!!!!!!!!!!!!!!!!!!!!
-			ModelPart::ElementsContainerType::iterator ielembegin = mr_model_part.ElementsBegin();
-			for(unsigned int  ii=0; ii<mr_model_part.Elements().size(); ii++)
-			{
-				ModelPart::ElementsContainerType::iterator ielem = ielembegin+ii;
-				ielem->SetId(ii+1);
-			}
-			mlast_elem_id= (mr_model_part.ElementsEnd()-1)->Id();
-            int node_id=0;
+            //loop in elements to change their ID to their position in the array. Easier to get information later.
+            //DO NOT PARALELIZE THIS! IT MUST BE SERIAL!!!!!!!!!!!!!!!!!!!!!!
+            ModelPart::ElementsContainerType::iterator ielembegin = mr_model_part.ElementsBegin();
+            for(unsigned int  ii=0; ii<mr_model_part.Elements().size(); ii++)
+            {
+                ModelPart::ElementsContainerType::iterator ielem = ielembegin+ii;
+                ielem->SetId(ii+1);
+            }
+            mlast_elem_id= (mr_model_part.ElementsEnd()-1)->Id();
+            // int node_id=0;
             // we look for the smallest edge. could be used as a weighting function when going lagrangian->eulerian instead of traditional shape functions(method currently used)
-			ModelPart::NodesContainerType::iterator inodebegin = mr_model_part.NodesBegin();
-			vector<unsigned int> node_partition;
-			#ifdef _OPENMP
-				int number_of_threads = omp_get_max_threads();
-			#else
-				int number_of_threads = 1;
-			#endif
-			OpenMPUtils::CreatePartition(number_of_threads, mr_model_part.Nodes().size(), node_partition);
+            ModelPart::NodesContainerType::iterator inodebegin = mr_model_part.NodesBegin();
+            vector<unsigned int> node_partition;
+            #ifdef _OPENMP
+                int number_of_threads = omp_get_max_threads();
+            #else
+                int number_of_threads = 1;
+            #endif
+            OpenMPUtils::CreatePartition(number_of_threads, mr_model_part.Nodes().size(), node_partition);
 
-			#pragma omp parallel for
-			for(int kkk=0; kkk<number_of_threads; kkk++)
-			{
-				for(unsigned int ii=node_partition[kkk]; ii<node_partition[kkk+1]; ii++)
-				{
-					ModelPart::NodesContainerType::iterator pnode = inodebegin+ii;
-					array_1d<double,3> position_node;
-					double distance=0.0;
-					position_node = pnode->Coordinates();
-					GlobalPointersVector< Node >& rneigh = pnode->GetValue(NEIGHBOUR_NODES);
-					//we loop all the nodes to check all the edges
-					const double number_of_neighbours = double(rneigh.size());
-					for( GlobalPointersVector<Node >::iterator inode = rneigh.begin(); inode!=rneigh.end(); inode++)
-					{
-						array_1d<double,3> position_difference;
-						position_difference = inode->Coordinates() - position_node;
-						double current_distance= sqrt(pow(position_difference[0],2)+pow(position_difference[1],2)+pow(position_difference[2],2));
-						//if (current_distance>distance)
-						//	distance=current_distance;
-						distance += current_distance / number_of_neighbours;
-					}
-					//and we save the largest edge.
-					pnode->FastGetSolutionStepValue(MEAN_SIZE)=distance;
+            #pragma omp parallel for
+            for(int kkk=0; kkk<number_of_threads; kkk++)
+            {
+                for(unsigned int ii=node_partition[kkk]; ii<node_partition[kkk+1]; ii++)
+                {
+                    ModelPart::NodesContainerType::iterator pnode = inodebegin+ii;
+                    array_1d<double,3> position_node;
+                    double distance=0.0;
+                    position_node = pnode->Coordinates();
+                    GlobalPointersVector< Node >& rneigh = pnode->GetValue(NEIGHBOUR_NODES);
+                    //we loop all the nodes to check all the edges
+                    const double number_of_neighbours = double(rneigh.size());
+                    for( GlobalPointersVector<Node >::iterator inode = rneigh.begin(); inode!=rneigh.end(); inode++)
+                    {
+                        array_1d<double,3> position_difference;
+                        position_difference = inode->Coordinates() - position_node;
+                        double current_distance= sqrt(pow(position_difference[0],2)+pow(position_difference[1],2)+pow(position_difference[2],2));
+                        //if (current_distance>distance)
+                        //  distance=current_distance;
+                        distance += current_distance / number_of_neighbours;
+                    }
+                    //and we save the largest edge.
+                    pnode->FastGetSolutionStepValue(MEAN_SIZE)=distance;
 
-					node_id=pnode->GetId();
-				}
-			}
-			mlast_node_id=node_id;
+                }
+            }
+            ModelPart::NodesContainerType::iterator lastnode=(mr_model_part.NodesEnd()-1);
+            mlast_node_id=lastnode->GetId();
 
-			//we also calculate the element mean size in the same way, for the courant number
-			//also we set the right size to the LHS column for the pressure enrichments, in order to recover correctly the enrichment pressure
-			vector<unsigned int> element_partition;
-			OpenMPUtils::CreatePartition(number_of_threads, mr_model_part.Elements().size(), element_partition);
+            //we also calculate the element mean size in the same way, for the courant number
+            vector<unsigned int> element_partition;
+            OpenMPUtils::CreatePartition(number_of_threads, mr_model_part.Elements().size(), element_partition);
 
-			//before doing anything we must reset the vector of nodes contained by each element (particles that are inside each element.
-			#pragma omp parallel for
-			for(int kkk=0; kkk<number_of_threads; kkk++)
-			{
-				for(unsigned int ii=element_partition[kkk]; ii<element_partition[kkk+1]; ii++)
-				{
-					ModelPart::ElementsContainerType::iterator ielem = ielembegin+ii;
+            //before doing anything we must reset the vector of nodes contained by each element (particles that are inside each element.
+            #pragma omp parallel for
+            for(int kkk=0; kkk<number_of_threads; kkk++)
+            {
+                for(unsigned int ii=element_partition[kkk]; ii<element_partition[kkk+1]; ii++)
+                {
+                    ModelPart::ElementsContainerType::iterator ielem = ielembegin+ii;
 
-					double elem_size;
-					array_1d<double,3> Edge(3,0.0);
-					Edge = ielem->GetGeometry()[1].Coordinates() - ielem->GetGeometry()[0].Coordinates();
-					elem_size = Edge[0]*Edge[0];
-					for (unsigned int d = 1; d < TDim; d++)
-						elem_size += Edge[d]*Edge[d];
+                    double elem_size;
+                    array_1d<double,3> Edge(3,0.0);
+                    Edge = ielem->GetGeometry()[1].Coordinates() - ielem->GetGeometry()[0].Coordinates();
+                    elem_size = Edge[0]*Edge[0];
+                    for (unsigned int d = 1; d < TDim; d++)
+                        elem_size += Edge[d]*Edge[d];
 
-					for (unsigned int i = 2; i < (TDim+1); i++)
-						for(unsigned int j = 0; j < i; j++)
-						{
-							Edge = ielem->GetGeometry()[i].Coordinates() - ielem->GetGeometry()[j].Coordinates();
-							double Length = Edge[0]*Edge[0];
-							for (unsigned int d = 1; d < TDim; d++)
-								Length += Edge[d]*Edge[d];
-							if (Length < elem_size) elem_size = Length;
-						}
-					elem_size = sqrt(elem_size);
-					ielem->SetValue(MEAN_SIZE, elem_size);
+                    for (unsigned int i = 2; i < (TDim+1); i++)
+                        for(unsigned int j = 0; j < i; j++)
+                        {
+                            Edge = ielem->GetGeometry()[i].Coordinates() - ielem->GetGeometry()[j].Coordinates();
+                            double Length = Edge[0]*Edge[0];
+                            for (unsigned int d = 1; d < TDim; d++)
+                                Length += Edge[d]*Edge[d];
+                            if (Length < elem_size) elem_size = Length;
+                        }
+                    elem_size = sqrt(elem_size);
+                    ielem->SetValue(MEAN_SIZE, elem_size);
 
-					//and the matrix column for the enrichments in the pressure.
-					if constexpr (TDim==3)
-                        ielem->SetValue(ENRICH_LHS_ROW_3D, ZeroVector(4));
-					// {
-					// 	Vector & lhs_enrich = ielem->GetValue(ENRICH_LHS_ROW_3D);
-					// 	lhs_enrich.resize(4);
-					// 	lhs_enrich=ZeroVector(4);
-					// }
-					else
-                        ielem->SetValue(ENRICH_LHS_ROW, ZeroVector(3));
-					//KRATOS_WATCH(mElemSize)
-				}
-			}
+                }
+            }
 
 
-            //matrix containing the position of the 4/15/45 particles that we will seed at the beginning
+            //matrix containing the position of the 4/15/45 particles that we will seed at the beggining
+            
+//             BoundedMatrix<double, 2*(1+TDim), 3 > pos;
+//             BoundedMatrix<double, 2*(1+TDim), (1+TDim) > N;
+            
             BoundedMatrix<double, 5*(1+TDim), 3 > pos;
             BoundedMatrix<double, 5*(1+TDim), (1+TDim) > N;
+            
+//             BoundedMatrix<double, 5*(1+TDim)*3, 3 > pos;
+//             BoundedMatrix<double, 5*(1+TDim)*3, (1+TDim) > N;
 
             int particle_id=0;
-			mnelems = mr_model_part.Elements().size();
+            mnelems = mr_model_part.Elements().size();
 
-            KRATOS_INFO("MoveParticleUtilityPfem2Modified") << "About to resize vectors" << std::endl;
+            KRATOS_INFO("MoveParticleUtilityPfem2") << "About to resize vectors" << std::endl;
 
 
-			//setting the right size to the vector containing the particles assigned to each element
-			//particles vector. this vector contains ALL the particles in the simulation.
-			mparticles_vector.resize(mnelems*mmaximum_number_of_particles);
+            //setting the right size to the vector containing the particles assigned to each element
+            //particles vector. this vector contains ALL the particles in the simulation.
+            mparticles_vector.resize(mnelems*mmaximum_number_of_particles);
 
-			//and this vector contains the current number of particles that are in each element (currently zero)
-			mnumber_of_particles_in_elems.resize(mnelems);
-			mnumber_of_particles_in_elems=ZeroVector(mnelems);
+            //and this vector contains the current number of particles that are in each element (currently zero)
+            // mnumber_of_particles_in_elems.resize(mnelems);
+            // mnumber_of_particles_in_elems=ZeroVector(mnelems);
 
-			//when moving the particles, an auxiliary vector is necessary (to store the previous number)
-			mnumber_of_particles_in_elems_aux.resize(mnelems);
+            //when moving the particles, an auxiliary vector is necessary (to store the previous number)
+            // mnumber_of_particles_in_elems_aux.resize(mnelems);
 
-			//each element will have a list of pointers to all the particles that are inside.
-			//this vector contains the pointers to the vector of (particle) pointers of each element.
-			mpointers_to_particle_pointers_vectors.resize(mnelems);
-            KRATOS_INFO("MoveParticleUtilityPfem2Modified") << "About to create particles" << std::endl;
-			//now we seed: LOOP IN ELEMENTS
-			//using loop index, DO NOT parallelize this! change lines : mparticles_in_elems_pointers((ii*mmaximum_number_of_particles)+mparticles_in_elems_integers(ii)) = pparticle; and the next one
 
-			for(unsigned int ii=0; ii<mr_model_part.Elements().size(); ii++)
-			{
-				ModelPart::ElementsContainerType::iterator ielem = ielembegin+ii;
-				ielem->SetValue(FLUID_PARTICLE_POINTERS, ParticlePointerVector( mmaximum_number_of_particles*2) );//, &firstparticle );
-				ParticlePointerVector&  particle_pointers = ielem->GetValue(FLUID_PARTICLE_POINTERS);
-                //now we link the mpointers_to_particle_pointers_vectors to the corresponding element
-				mpointers_to_particle_pointers_vectors(ii) = &particle_pointers;
-				//now we resize the vector of particle pointers. it is double sized because we move the particles from an initial position (first half) to a final position (second half).
-				//for(int j=0; j<(mmaximum_number_of_particles*2); j++)
-				//        particle_pointers.push_back(&firstparticle);
-				int & number_of_particles = ielem->GetValue(NUMBER_OF_FLUID_PARTICLES);
-				number_of_particles=0;
-				//int & number_of_water_particles = ielem->GetValue(NUMBER_OF_WATER_PARTICLES);
+            KRATOS_INFO("MoveParticleUtilityPfem2") << "About to create particles" << std::endl;
+            //now we seed: LOOP IN ELEMENTS
 
-				Geometry< Node >& geom = ielem->GetGeometry();
-				//unsigned int elem_id = ielem->Id();
-				//mareas_vector[i_int]=CalculateArea(geom); UNUSED SO COMMENTED
-				ComputeGaussPointPositions_initial(geom, pos, N); //we also have the standard (4), and 45
-				//now we seed the particles in the current element
-				for (unsigned int j = 0; j < pos.size1(); j++)
-				{
-					++particle_id;
 
-					PFEM_Particle_Fluid& pparticle = mparticles_vector[particle_id-1];
-					pparticle.X()=pos(j,0);
-					pparticle.Y()=pos(j,1);
-					pparticle.Z()=pos(j,2);
+            for(unsigned int ii=0; ii<mr_model_part.Elements().size(); ii++)
+            {
+                ModelPart::ElementsContainerType::iterator ielem = ielembegin+ii;
+                int & number_of_particles = ielem->GetValue(NUMBER_OF_FLUID_PARTICLES);
+                number_of_particles=0;
+                //int & number_of_water_particles = ielem->GetValue(NUMBER_OF_WATER_PARTICLES);
 
-					pparticle.GetEraseFlag()=false;
+                Geometry< Node >& geom = ielem->GetGeometry();
+                unsigned int elem_id = ielem->Id();
+                //mareas_vector[i_int]=CalculateArea(geom); UNUSED SO COMMENTED
+                ComputeGaussPointPositions_initial(geom, pos, N); //we also have the standard (4), and 45
+//                 ComputeGaussPointPositions_45(geom, pos, N); //we also have the standard (4), and 45
+                //now we seed the particles in the current element
+                for (unsigned int j = 0; j < pos.size1(); j++)
+                {
+                    ++particle_id;
 
-					array_1d<float, 3 > & vel = pparticle.GetVelocity();
-					float & distance = pparticle.GetDistance();
-					noalias(vel) = ZeroVector(3);
-					distance = 0.0;
+                    PFEM_Particle_Fluid& pparticle = mparticles_vector[particle_id-1];
+                    pparticle.X()=pos(j,0);
+                    pparticle.Y()=pos(j,1);
+                    pparticle.Z()=pos(j,2);
+
+                    pparticle.GetEraseFlag()=false;
+                    pparticle.GetElementId()=elem_id;
+
+                    array_1d<float, 3 > & vel = pparticle.GetVelocity();
+                    float & distance = pparticle.GetDistance();
+                    noalias(vel) = ZeroVector(3);
+                    distance = 0.0;
 
                     for (unsigned int k = 0; k < (TDim+1); k++)
                     {
-						noalias(vel) += (N(j, k) * geom[k].FastGetSolutionStepValue(VELOCITY));
-						distance +=  N(j, k) * geom[k].FastGetSolutionStepValue(DISTANCE);
-					}
+                        noalias(vel) += (N(j, k) * geom[k].FastGetSolutionStepValue(VELOCITY));
+                        distance +=  N(j, k) * geom[k].FastGetSolutionStepValue(DISTANCE);
+                    }
 
-					if (distance <= 0.0)
-						distance = -1.0;
-					else
-						distance = 1.0;
+                    if (distance <= 0.0)
+                        distance = -1.0;
+                    else
+                        distance = 1.0;
 
-					particle_pointers(j) = &pparticle;
-					number_of_particles++;
-				}
-			}
-
-
-			bool nonzero_mesh_velocity  = false;
-			//seeing if we have to use the mesh_velocity or not
-			for(ModelPart::NodesContainerType::iterator inode = mr_model_part.NodesBegin();
-				inode!=mr_model_part.NodesEnd(); inode++)
-			{
-				const array_1d<double, 3 > velocity = inode->FastGetSolutionStepValue(MESH_VELOCITY);
-				for(unsigned int i = 0; i!=3; i++)
-				{
-					if (fabs(velocity[i])>1.0e-9)
-						nonzero_mesh_velocity=true;
-				}
-				if( nonzero_mesh_velocity==true)
-					break;
-			}
-
-			if ( nonzero_mesh_velocity==true)
-				muse_mesh_velocity_to_convect = true; // if there is mesh velocity, then we have to take it into account when moving the particles
-			else
-				muse_mesh_velocity_to_convect = false; //otherwise, we can avoid reading the values since we know it is zero everywhere (to save time!)
+                    number_of_particles++;
+                }
+            }
 
 
+            bool nonzero_mesh_velocity  = false;
+            //seeing if we have to use the mesh_velocity or not
+            for(ModelPart::NodesContainerType::iterator inode = mr_model_part.NodesBegin();
+                inode!=mr_model_part.NodesEnd(); inode++)
+            {
+                const array_1d<double, 3 > velocity = inode->FastGetSolutionStepValue(MESH_VELOCITY);
+                for(unsigned int i = 0; i!=3; i++)
+                {
+                    if (fabs(velocity[i])>1.0e-9)
+                        nonzero_mesh_velocity=true;
+                }
+                if( nonzero_mesh_velocity==true)
+                    break;
+            }
 
-			m_nparticles=particle_id; //we save the last particle created as the total number of particles we have. For the moment this is true.
-            KRATOS_INFO("MoveParticleUtilityPfem2Modified") << "Number of particles created : " << m_nparticles << std::endl;
-			mparticle_printing_tool_initialized=false;
-		}
+            if ( nonzero_mesh_velocity==true)
+                muse_mesh_velocity_to_convect = true; // if there is mesh velocity, then we have to take it into account when moving the particles
+            else
+                muse_mesh_velocity_to_convect = false; //otherwise, we can avoid reading the values since we know it is zero everywhere (to save time!)
+                
+                
+            //for now, I don't consider the mesh velocity, therefore I put here a throw error   
+            if (muse_mesh_velocity_to_convect == true)
+             KRATOS_THROW_ERROR(std::logic_error, "muse_mesh_velocity_to_convect = true", "");
+
+
+
+            m_nparticles=particle_id; //we save the last particle created as the total number of particles we have. For the moment this is true.
+            KRATOS_INFO("MoveParticleUtilityPfem2") << "Number of particles created : " << m_nparticles << std::endl;
+            mparticle_printing_tool_initialized=false;
+        }
 
 
 		~MoveParticleUtilityPFEM2Modified()
@@ -1245,6 +1237,233 @@ namespace Kratos
 
 			KRATOS_CATCH("")
 		}
+
+	void TransferLagrangianToEulerianSecondOrder() //explicit
+    {
+        KRATOS_TRY
+        ProcessInfo &CurrentProcessInfo = mr_model_part.GetProcessInfo();
+        const double time = CurrentProcessInfo[TIME];
+        const double delta_t = CurrentProcessInfo[DELTA_TIME];
+        const double threshold = 0.0 / (double(TDim) + 1.0);
+        std::cout << "Projecting info to mesh with Least Squares-Second Order" << std::endl;
+        vector<unsigned int> node_partition;
+        vector<unsigned int> particle_partition;
+        vector<unsigned int> element_partition;
+        #ifdef _OPENMP
+        int number_of_threads = omp_get_max_threads();
+        #else
+        int number_of_threads = 1;
+        #endif
+        // number_of_threads = 1; //Forced to be serial. There is too much bottleneck
+        OpenMPUtils::CreatePartition(number_of_threads, mr_model_part.Nodes().size(), node_partition);
+        OpenMPUtils::CreatePartition(number_of_threads, mparticles_vector.size(), particle_partition);
+        OpenMPUtils::CreatePartition(number_of_threads, mr_model_part.Elements().size(), element_partition);
+        ModelPart::NodesContainerType::iterator inodebegin = mr_model_part.NodesBegin();
+        ModelPart::ElementsContainerType::iterator ielembegin = mr_model_part.ElementsBegin();
+        #pragma omp parallel for
+        for (int kkk = 0; kkk < number_of_threads; kkk++)
+        {
+            for (unsigned int ii = node_partition[kkk]; ii < node_partition[kkk + 1]; ii++)
+            {
+                ModelPart::NodesContainerType::iterator inode = inodebegin + ii;
+                inode->FastGetSolutionStepValue(PROJECTED_DISTANCE) = 0.0;
+                inode->FastGetSolutionStepValue(PROJECTED_DELTA_DISTANCE) = 0.0;
+                inode->FastGetSolutionStepValue(PROJECTED_VELOCITY) = ZeroVector(3);
+                inode->FastGetSolutionStepValue(PROJECTED_DELTA_VELOCITY) = ZeroVector(3);
+                inode->FastGetSolutionStepValue(LUMPED_MASS_VALUE) = 0.0;
+            }
+        }
+        //loop on particles and calculate the lumped mass matrix values for the nodes
+        #pragma omp parallel for
+        for (int kkk = 0; kkk < number_of_threads; kkk++)
+        {
+            for (int ii = particle_partition[kkk]; ii < particle_partition[kkk + 1]; ii++)
+            {
+                PFEM_Particle_Fluid &pparticle = mparticles_vector[ii];
+				
+                bool &erase_flag = pparticle.GetEraseFlag();
+                if (erase_flag == false)
+                {
+                    array_1d<double, TDim + 1> N;
+                    const float particle_distance = pparticle.GetDistance();
+					
+                    array_1d<float, 3> particle_velocity = pparticle.GetVelocity();
+                    Element::Pointer pelement(*(ielembegin + pparticle.GetElementId() - 1).base());
+                    Geometry<Node >& geom = pelement->GetGeometry();
+                    array_1d<double, 3> &position = pparticle.Coordinates();
+					
+                    bool isfound = CalculatePosition(geom, position[0], position[1], position[2], N);
+                    // bool isfound = FindNodeOnMesh( position, N, pelement, result_begin, max_results);
+                    //array_1d<double,(TDim+1)> weighting_inverse_divisor;
+                    if (isfound == true)
+                    {
+                        for (int j = 0; j != (TDim + 1); j++) //going through the 3/4 nodes of the element
+                        {
+                            geom[j].SetLock();
+                            double weight = N(j);
+                            if (weight < threshold)
+                                weight = 1e-10;
+                            if (weight < 0.0)
+                            {
+                                KRATOS_WATCH(weight)
+                            }
+                            else
+                            {
+                                for (int k = 0; k != (TDim + 1); k++) //x,y,(z)
+                                {
+                                    geom[j].FastGetSolutionStepValue(LUMPED_MASS_VALUE) += N[j] * N[k];
+                                }
+                            }
+                            geom[j].UnSetLock();
+                        }
+                    }
+                }
+            }
+        }
+ 
+        
+        //iteration for the calculation of the projected velocity and distance is starting
+        bool continue_velocity_iteration = true;
+        bool continue_distance_iteration = true;
+        double eps_velocity = 0.0;
+        double eps_distance = 0.0;
+        int whileloopcounter = 0;
+        double projecteddeltadistanceratio = 0.0;
+        double projecteddeltavelocityratio = 0.0;
+        while (continue_velocity_iteration == true and continue_distance_iteration == true)
+        {
+            whileloopcounter++;
+            #pragma omp parallel for
+            for (int kkk = 0; kkk < number_of_threads; kkk++)
+            {
+                for (unsigned int ii = node_partition[kkk]; ii < node_partition[kkk + 1]; ii++)
+                {
+                    ModelPart::NodesContainerType::iterator inode = inodebegin + ii;
+                    inode->FastGetSolutionStepValue(R_NODE_VELOCITY) = ZeroVector(3);
+                    inode->FastGetSolutionStepValue(R_NODE_DISTANCE) = 0.0;
+                }
+            }
+            //Right hand side is changing in every iteration, therefore they have to be set to zero at every iteration
+            #pragma omp parallel for
+            for (int kkk = 0; kkk < number_of_threads; kkk++)
+            {
+                
+                for (int ii = particle_partition[kkk]; ii < particle_partition[kkk + 1]; ii++)
+                {
+                    PFEM_Particle_Fluid &pparticle = mparticles_vector[ii];
+                    bool &erase_flag = pparticle.GetEraseFlag();
+                    if (erase_flag == false)
+                    {
+                        array_1d<double, TDim + 1> N;
+                        const float particle_distance = pparticle.GetDistance();
+                        array_1d<float, 3> particle_velocity = pparticle.GetVelocity();
+                        Element::Pointer pelement(*(ielembegin + pparticle.GetElementId() - 1).base());
+                         Geometry<Node >& geom = pelement->GetGeometry();
+                        array_1d<double, 3> &position = pparticle.Coordinates();
+                        bool isfound = CalculatePosition(geom, position[0], position[1], position[2], N);
+                        //  bool isfound = FindNodeOnMesh( position, N, pelement, result_begin, max_results);
+                        //array_1d<double,(TDim+1)> weighting_inverse_divisor;
+                        if (isfound == true && pparticle.GetEraseFlag() == false)
+                        {
+                             Geometry<Node >& geom = pelement->GetGeometry();
+                            array_1d<double, 3> &position = pparticle.Coordinates();
+                            const array_1d<float, 3> &velocity = pparticle.GetVelocity();
+                            const float &particle_distance = pparticle.GetDistance(); // -1 if water, +1 if air
+                            for (int j = 0; j != (TDim + 1); j++)                     //going through the 3/4 nodes of the element
+                            {
+                                geom[j].SetLock();
+                                double weight = N(j);
+                                if (weight < threshold)
+                                    weight = 1e-10;
+                                if (weight < 0.0)
+                                {
+                                    KRATOS_WATCH(weight)
+                                }
+                                else
+                                {
+                                    geom[j].FastGetSolutionStepValue(R_NODE_DISTANCE) += N[j] * particle_distance;
+                                    geom[j].FastGetSolutionStepValue(R_NODE_VELOCITY_X) += N[j] * velocity[0];
+                                    geom[j].FastGetSolutionStepValue(R_NODE_VELOCITY_Y) += N[j] * velocity[1];
+                                    geom[j].FastGetSolutionStepValue(R_NODE_VELOCITY_Z) += N[j] * velocity[2];
+                                    for (int k = 0; k != (TDim + 1); k++) //x,y,(z)
+                                    {
+                                        geom[j].FastGetSolutionStepValue(R_NODE_DISTANCE) += -N[j] * N[k] * geom[k].FastGetSolutionStepValue(PROJECTED_DISTANCE);
+                                        geom[j].FastGetSolutionStepValue(R_NODE_VELOCITY_X) += -N[j] * N[k] * geom[k].FastGetSolutionStepValue(PROJECTED_VELOCITY_X);
+                                        geom[j].FastGetSolutionStepValue(R_NODE_VELOCITY_Y) += -N[j] * N[k] * geom[k].FastGetSolutionStepValue(PROJECTED_VELOCITY_Y);
+                                        geom[j].FastGetSolutionStepValue(R_NODE_VELOCITY_Z) += -N[j] * N[k] * geom[k].FastGetSolutionStepValue(PROJECTED_VELOCITY_Z);
+                                    }
+                                }
+                                geom[j].UnSetLock();
+                            }
+                        }
+                    }
+                }
+            }
+            //right hand side, velocity and distance, for the current iteration has been calculated
+            double sumprojecteddeltadistancenorm = 0.0;
+            double sumprojecteddeltavelocitynorm = 0.0;
+            double sumdistancenorm = 0.0;
+            double sumprojectedvelocitynorm = 0.0;
+            #pragma omp parallel for
+            for (int kkk = 0; kkk < number_of_threads; kkk++)
+            {
+                for (unsigned int ii = node_partition[kkk]; ii < node_partition[kkk + 1]; ii++)
+                {
+                    ModelPart::NodesContainerType::iterator inode = inodebegin + ii;
+                    inode->FastGetSolutionStepValue(PROJECTED_DELTA_DISTANCE) = inode->FastGetSolutionStepValue(R_NODE_DISTANCE) / inode->FastGetSolutionStepValue(LUMPED_MASS_VALUE);
+                    inode->FastGetSolutionStepValue(PROJECTED_DELTA_VELOCITY_X) = inode->FastGetSolutionStepValue(R_NODE_VELOCITY_X) / inode->FastGetSolutionStepValue(LUMPED_MASS_VALUE);
+                    inode->FastGetSolutionStepValue(PROJECTED_DELTA_VELOCITY_Y) = inode->FastGetSolutionStepValue(R_NODE_VELOCITY_Y) / inode->FastGetSolutionStepValue(LUMPED_MASS_VALUE);
+                    inode->FastGetSolutionStepValue(PROJECTED_DELTA_VELOCITY_Z) = inode->FastGetSolutionStepValue(R_NODE_VELOCITY_Z) / inode->FastGetSolutionStepValue(LUMPED_MASS_VALUE);
+
+                    inode->FastGetSolutionStepValue(PROJECTED_DISTANCE) += inode->FastGetSolutionStepValue(PROJECTED_DELTA_DISTANCE);
+                    inode->FastGetSolutionStepValue(PROJECTED_VELOCITY_X) += inode->FastGetSolutionStepValue(PROJECTED_DELTA_VELOCITY_X);
+                    inode->FastGetSolutionStepValue(PROJECTED_VELOCITY_Y) += inode->FastGetSolutionStepValue(PROJECTED_DELTA_VELOCITY_Y);
+                    inode->FastGetSolutionStepValue(PROJECTED_VELOCITY_Z) += inode->FastGetSolutionStepValue(PROJECTED_DELTA_VELOCITY_Z);
+
+                    double projecteddeltadistancenorm = sqrt(inode->FastGetSolutionStepValue(PROJECTED_DELTA_DISTANCE) * inode->FastGetSolutionStepValue(PROJECTED_DELTA_DISTANCE));
+                    double projecteddeltavelocitynorm = sqrt(inode->FastGetSolutionStepValue(PROJECTED_DELTA_VELOCITY_X) * inode->FastGetSolutionStepValue(PROJECTED_DELTA_VELOCITY_X) + inode->FastGetSolutionStepValue(PROJECTED_DELTA_VELOCITY_Y) * inode->FastGetSolutionStepValue(PROJECTED_DELTA_VELOCITY_Y) + inode->FastGetSolutionStepValue(PROJECTED_DELTA_VELOCITY_Z) * inode->FastGetSolutionStepValue(PROJECTED_DELTA_VELOCITY_Z));
+
+                    double distancenorm = sqrt(inode->FastGetSolutionStepValue(PROJECTED_DISTANCE) * inode->FastGetSolutionStepValue(PROJECTED_DISTANCE));
+                    double projectedvelocitynorm = sqrt(inode->FastGetSolutionStepValue(PROJECTED_VELOCITY_X) * inode->FastGetSolutionStepValue(PROJECTED_VELOCITY_X) + inode->FastGetSolutionStepValue(PROJECTED_VELOCITY_Y) * inode->FastGetSolutionStepValue(PROJECTED_VELOCITY_Y) + inode->FastGetSolutionStepValue(PROJECTED_VELOCITY_Z) * inode->FastGetSolutionStepValue(PROJECTED_VELOCITY_Z));
+                    #pragma omp critical
+                    {
+                        sumprojecteddeltadistancenorm += projecteddeltadistancenorm;
+                        sumprojecteddeltavelocitynorm += projecteddeltavelocitynorm;
+                        sumdistancenorm += distancenorm;
+                        sumprojectedvelocitynorm += projectedvelocitynorm;
+                    }
+                }
+            }
+            projecteddeltadistanceratio = sumprojecteddeltadistancenorm / sumdistancenorm;
+            projecteddeltavelocityratio = sumprojecteddeltavelocitynorm / sumprojectedvelocitynorm;
+            // if (projecteddeltadistanceratio<0.00001 and projecteddeltavelocityratio<0.00001)
+            //    if (projecteddeltadistanceratio<0.0001 and projecteddeltavelocityratio<0.0001)
+            if (projecteddeltadistanceratio < 0.000001 and projecteddeltavelocityratio < 0.000001)
+            {
+                continue_distance_iteration = false;
+                continue_velocity_iteration = false;
+            }
+
+            KRATOS_WATCH(whileloopcounter);
+            KRATOS_WATCH(projecteddeltadistanceratio);
+            KRATOS_WATCH(projecteddeltavelocityratio);
+        }
+        KRATOS_WATCH(whileloopcounter);
+        KRATOS_WATCH(projecteddeltadistanceratio);
+        KRATOS_WATCH(projecteddeltavelocityratio);
+
+        #pragma omp parallel for
+        for (int kkk = 0; kkk < number_of_threads; kkk++)
+        {
+            for (unsigned int ii = node_partition[kkk]; ii < node_partition[kkk + 1]; ii++)
+            {
+                ModelPart::NodesContainerType::iterator inode = inodebegin + ii;
+                if (inode->IsFixed(DISTANCE))
+                    inode->FastGetSolutionStepValue(PROJECTED_DISTANCE) = inode->GetSolutionStepValue(DISTANCE, 1);
+            }
+        }
+        KRATOS_CATCH("")
+    }
 
 
 

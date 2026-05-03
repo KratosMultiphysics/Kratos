@@ -49,7 +49,7 @@ namespace Kratos
         mMonolithicAutoSlipInlet3D    ( 0, Element::GeometryType::Pointer( new Triangle3D3<Node >(  Element::GeometryType::PointsArrayType (3 ) ) ) ),
 
 		/////////
-        mMonolithicPFEM22DModified ( 0, Element::GeometryType::Pointer( new Triangle3D3<Node >(  Element::GeometryType::PointsArrayType (3 ) ) ) )
+        mMonolithicPFEM22DModified ( 0, Element::GeometryType::Pointer( new Triangle2D3<Node >(  Element::GeometryType::PointsArrayType (3 ) ) ) )
         /////////
 
  	{}
@@ -135,7 +135,19 @@ namespace Kratos
 		KRATOS_REGISTER_VARIABLE(SOLID_YP)
 		KRATOS_REGISTER_VARIABLE(WATER_DISTANCE)
 
-		
+		/////////
+        KRATOS_REGISTER_ELEMENT("MonolithicPFEM22DModified", mMonolithicPFEM22DModified); 
+
+		/////////
+		KRATOS_REGISTER_VARIABLE(ELEMENT_ID)
+		KRATOS_REGISTER_VARIABLE(PROJECTED_DISTANCE)
+		KRATOS_REGISTER_VARIABLE(PROJECTED_DELTA_DISTANCE)
+		KRATOS_REGISTER_VARIABLE(LUMPED_MASS_VALUE)
+		KRATOS_REGISTER_VARIABLE(R_NODE_DISTANCE)
+
+        /////////
+		KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(PROJECTED_DELTA_VELOCITY)
+		KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(R_NODE_VELOCITY)
 
  	}
 
