@@ -401,6 +401,32 @@ protected:
         const ConditionDataStruct& rData,
         const ProcessInfo& rProcessInfo);
 
+    /**
+     * @brief Calculates and adds the RHS directional do-nothing (DDN) outlet contribution
+     * Implements the Braack & Mucha 2014 (doi:10.4208/jcm.1405-m4347) directional
+     * do-nothing condition. The additional boundary term ½ρ(v·n)₋·v activates only
+     * during backflow (v·n < 0) and leaves pure outflow unchanged (DDN = CDN for v·n ≥ 0).
+     * @param rRHS Reference to RHS vector
+     * @param rData Condition data container
+     * @param rProcessInfo Reference to the ProcessInfo container
+     */
+    void ComputeRHSDirectionalDoNothingContribution(
+        array_1d<double, LocalSize>& rRHS,
+        const ConditionDataStruct& rData,
+        const ProcessInfo& rProcessInfo);
+
+    /**
+     * @brief Calculates and adds the LHS directional do-nothing (DDN) outlet contribution
+     * Newton linearization of the DDN RHS term, active only when v·n < 0.
+     * @param rLHS Reference to LHS matrix
+     * @param rData Condition data container
+     * @param rProcessInfo Reference to the ProcessInfo container
+     */
+    void ComputeLHSDirectionalDoNothingContribution(
+        BoundedMatrix<double, LocalSize, LocalSize>& rLHS,
+        const ConditionDataStruct& rData,
+        const ProcessInfo& rProcessInfo);
+
     ///@}
     ///@name Protected  Access
     ///@{

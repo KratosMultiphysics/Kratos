@@ -27,7 +27,8 @@ class ApplyOutletProcess(KratosMultiphysics.Process):
             "h_top"              : 0.0,
             "outlet_inflow_contribution" : false,
             "outlet_inflow_contribution_characteristic_velocity_value" : 0.0,
-            "outlet_inflow_contribution_characteristic_velocity_calculation" : "outlet_average"
+            "outlet_inflow_contribution_characteristic_velocity_calculation" : "outlet_average",
+            "apply_directional_do_nothing_condition" : false
         }
         """)
 
@@ -50,6 +51,7 @@ class ApplyOutletProcess(KratosMultiphysics.Process):
         pres_settings.RemoveValue("outlet_inflow_contribution")
         pres_settings.RemoveValue("outlet_inflow_contribution_characteristic_velocity_value")
         pres_settings.RemoveValue("outlet_inflow_contribution_characteristic_velocity_calculation")
+        pres_settings.RemoveValue("apply_directional_do_nothing_condition")
 
         # Create a copy of the PRESSURE settings to set the EXTERNAL_PRESSURE
         ext_pres_settings = pres_settings.Clone()
@@ -81,6 +83,10 @@ class ApplyOutletProcess(KratosMultiphysics.Process):
             node.Set(KratosMultiphysics.OUTLET, True)
         for condition in self.outlet_model_part.Conditions:
             condition.Set(KratosMultiphysics.OUTLET, True)
+
+        # Directional do-nothing condition (Braack & Mucha 2014)
+        self.outlet_model_part.ProcessInfo[KratosFluid.DIRECTIONAL_DO_NOTHING_SWITCH] = \
+            settings["apply_directional_do_nothing_condition"].GetBool()
 
         # Outlet inflow contribution
         self.__outlet_inflow_contribution = settings["outlet_inflow_contribution"].GetBool()
