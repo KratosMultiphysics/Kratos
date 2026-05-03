@@ -33,7 +33,7 @@
 namespace Kratos::Testing
 {
 template <typename TConcrete, typename TBase>
-void CheckSerializable(const std::string& rName)
+void CheckSerializable()
 {
     const auto p_obj      = std::unique_ptr<TBase>{std::make_unique<TConcrete>()};
     auto       serializer = StreamSerializer{};
@@ -49,35 +49,31 @@ void CheckSerializable(const std::string& rName)
 KRATOS_TEST_CASE_IN_SUITE(GeoMechanics_CheckSerializationRegistration, KratosGeoMechanicsFastSuite)
 {
     // Stress state policies
-    CheckSerializable<PlaneStrainStressState, StressStatePolicy>("PlaneStrainStressState");
-    CheckSerializable<ThreeDimensionalStressState, StressStatePolicy>(
-        "ThreeDimensionalStressState");
-    CheckSerializable<AxisymmetricStressState, StressStatePolicy>("AxisymmetricStressState");
-    CheckSerializable<Line2DInterfaceStressState, StressStatePolicy>("Line2DInterfaceStressState");
-    CheckSerializable<SurfaceInterfaceStressState, StressStatePolicy>(
-        "SurfaceInterfaceStressState");
+    CheckSerializable<PlaneStrainStressState, StressStatePolicy>();
+    CheckSerializable<ThreeDimensionalStressState, StressStatePolicy>();
+    CheckSerializable<AxisymmetricStressState, StressStatePolicy>();
+    CheckSerializable<Line2DInterfaceStressState, StressStatePolicy>();
+    CheckSerializable<SurfaceInterfaceStressState, StressStatePolicy>();
 
     // Constitutive law dimensions already covered elsewhere but include smoke checks
-    CheckSerializable<PlaneStrain, ConstitutiveLawDimension>("PlaneStrain");
-    CheckSerializable<ThreeDimensional, ConstitutiveLawDimension>("ThreeDimensional");
+    CheckSerializable<PlaneStrain, ConstitutiveLawDimension>();
+    CheckSerializable<ThreeDimensional, ConstitutiveLawDimension>();
 
     // Retention laws
-    CheckSerializable<SaturatedBelowPhreaticLevelLaw, RetentionLaw>(
-        "SaturatedBelowPhreaticLevelLaw");
-    CheckSerializable<SaturatedLaw, RetentionLaw>("SaturatedLaw");
-    CheckSerializable<VanGenuchtenLaw, RetentionLaw>("VanGenuchtenLaw");
+    CheckSerializable<SaturatedBelowPhreaticLevelLaw, RetentionLaw>();
+    CheckSerializable<SaturatedLaw, RetentionLaw>();
+    CheckSerializable<VanGenuchtenLaw, RetentionLaw>();
 
     // Constitutive law dimensions
-    CheckSerializable<InterfacePlaneStrain, ConstitutiveLawDimension>("InterfacePlaneStrain");
-    CheckSerializable<InterfaceThreeDimensionalSurface, ConstitutiveLawDimension>(
-        "InterfaceThreeDimensionalSurface");
+    CheckSerializable<InterfacePlaneStrain, ConstitutiveLawDimension>();
+    CheckSerializable<InterfaceThreeDimensionalSurface, ConstitutiveLawDimension>();
 
     // Thermal law
-    CheckSerializable<GeoThermalFilterLaw, GeoThermalLaw>("GeoThermalFilterLaw");
+    CheckSerializable<GeoThermalFilterLaw, GeoThermalLaw>();
 
     // Yield surfaces
-    CheckSerializable<CoulombYieldSurface, CoulombYieldSurface>("CoulombYieldSurface");
-    CheckSerializable<TensionCutoff, TensionCutoff>("TensionCutoff");
+    CheckSerializable<CoulombYieldSurface, CoulombYieldSurface>();
+    CheckSerializable<TensionCutoff, TensionCutoff>();
 }
 
 } // namespace Kratos::Testing
