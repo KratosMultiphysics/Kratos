@@ -62,7 +62,7 @@ private:
                                    const std::vector<Node*>& BoundaryNodes,
                                    double&                   pressure,
                                    double&                   coordinate,
-                                   bool                      isBottom = false);
+                                   bool                      isBottom = false) const;
     void InterpolateBoundaryPressureWithOneContainer(const Node&               rNode,
                                                      const std::vector<Node*>& rBoundaryNodes,
                                                      double&                   rPressure,
@@ -78,7 +78,9 @@ private:
                                            const std::vector<Node*>& rBoundaryNodes,
                                            std::vector<Node*>&       rFoundNodes) const;
 
-    Node* FindClosestNodeOnBoundaryNodes(const Node& rNode, const std::vector<Node*>& BoundaryNodes, const bool isBottom);
+    Node* FindClosestNodeOnBoundaryNodes(const Node&               rNode,
+                                         const std::vector<Node*>& BoundaryNodes,
+                                         const bool                isBottom) const;
 
     void FindTopBoundaryNodes(const Node& rNode, std::vector<Node*>& TopBoundaryNodes) const;
 

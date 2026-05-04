@@ -96,6 +96,14 @@ Matrix GeoElementUtilities::FillPermeabilityMatrix(const Element::PropertiesType
     }
 }
 
+Matrix GeoElementUtilities::FillInterfacePermeabilityMatrix(const Element::PropertiesType& rProperties,
+                                                            std::size_t Dimension)
+{
+    auto result  = Matrix{Dimension, Dimension, 0.0};
+    result(0, 0) = rProperties[TRANSVERSAL_PERMEABILITY];
+    return result;
+}
+
 double GeoElementUtilities::CalculateRadius(const Vector& rN, const GeometryType& rGeometry)
 {
     auto radius = 0.0;
@@ -183,6 +191,27 @@ Vector GeoElementUtilities::EvaluateDeterminantsOfJacobiansAtIntegrationPoints(
         return rGeometry.DeterminantOfJacobian(rIntegrationPoint);
     };
     std::ranges::transform(rIntegrationPoints, result.begin(), evaluate_determinant_of_jacobian);
+    return result;
+}
+
+Vector GeoElementUtilities::GetNodalVariableVector(const Element::GeometryType&         rGeom,
+                                                   const Variable<array_1d<double, 3>>& rVariable,
+                                                   IndexType                            Dimension,
+                                                   IndexType NumberOfDofs)
+{
+    const auto nodal_values = VariablesUtilities::GetNodalValues(rGeom, rVariable);
+    KRATOS_ERROR_IF_NOT(Dimension >= 1 && Dimension <= 3)
+        << "Incorrect dimension value (" << Dimension << ")." << std::endl;
+    KRATOS_ERROR_IF_NOT(nodal_values.size() * Dimension == NumberOfDofs)
+        << "Mismatch between requested number of DOFs (" << NumberOfDofs
+        << ") and computed number of DOFs from nodal values (" << nodal_values.size() * Dimension
+        << ")." << std::endl;
+    auto        result   = Vector(NumberOfDofs);
+    std::size_t position = 0;
+    for (const auto& values : nodal_values) {
+        std::copy(values.begin(), values.begin() + Dimension, result.begin() + position);
+        position += Dimension;
+    }
     return result;
 }
 
