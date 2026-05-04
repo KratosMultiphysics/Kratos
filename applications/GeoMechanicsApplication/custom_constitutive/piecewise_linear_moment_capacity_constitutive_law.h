@@ -17,16 +17,11 @@
 
 // External includes
 
-// Project includes
 #include "includes/constitutive_law.h"
+#include "includes/table.h"
 
 namespace Kratos
 {
-
-struct MomentResponse {
-    double moment;
-    double tangent_modulus;
-};
 
 /**
  * @class PiecewiseLinearMomentCapacityConstitutiveLaw
@@ -54,6 +49,10 @@ public:
 
     void CalculateMaterialResponsePK2(Parameters& rValues) override;
 
+    void InitializeMaterial(const Properties&   rMaterialProperties,
+                            const GeometryType& rElementGeometry,
+                            const Vector&       rShapeFunctionsValues) override;
+
     [[nodiscard]] SizeType GetStrainSize() const override;
 
     [[nodiscard]] int Check(const Properties&   rMaterialProperties,
@@ -63,12 +62,9 @@ public:
     std::string Info() const override;
 
 private:
-    [[nodiscard]] static std::pair<double, double> CalculateScaledMomentCapacities(const Properties& rMaterialProperties);
+    [[nodiscard]] double CalculateMomentResponse(double AbsCurvature) const;
 
-    [[nodiscard]] static MomentResponse CalculateAbsMomentResponse(double AbsCurvature,
-                                                                   const Properties& rMaterialProperties);
-
-    static void CheckCurvaturesAreAscending(const Vector& rCurvatures);
+    Table<double, double> mStressStrainTable;
 
     friend class Serializer;
     void save(Serializer& rSerializer) const override;

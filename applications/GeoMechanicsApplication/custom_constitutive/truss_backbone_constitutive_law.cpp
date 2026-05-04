@@ -13,6 +13,7 @@
 
 // Project includes
 #include "truss_backbone_constitutive_law.h"
+#include "custom_utilities/check_utilities.hpp"
 #include "geo_mechanics_application_variables.h"
 #include "includes/properties.h"
 
@@ -193,21 +194,12 @@ void TrussBackboneConstitutiveLaw::CheckStressStrainDiagram(const Properties& rM
     KRATOS_ERROR_IF(rMaterialProperties[STRAINS_OF_PIECEWISE_LINEAR_LAW].empty())
         << "STRAINS_OF_PIECEWISE_LINEAR_LAW is empty";
 
-    CheckStrainValuesAreAscending(rMaterialProperties[STRAINS_OF_PIECEWISE_LINEAR_LAW]);
+    CheckUtilities::CheckValuesAreAscending(rMaterialProperties[STRAINS_OF_PIECEWISE_LINEAR_LAW],
+                                            "STRAINS_OF_PIECEWISE_LINEAR_LAW");
 
     CheckBackboneStiffnessesDontExceedYoungsModulus(
         rMaterialProperties[STRAINS_OF_PIECEWISE_LINEAR_LAW],
         rMaterialProperties[STRESSES_OF_PIECEWISE_LINEAR_LAW], rMaterialProperties[YOUNG_MODULUS]);
-}
-
-void TrussBackboneConstitutiveLaw::CheckStrainValuesAreAscending(const Vector& rStrains)
-{
-    auto first_ge_second = [](const auto& First, const auto& Second) { return First >= Second; };
-    auto pos             = std::adjacent_find(rStrains.cbegin(), rStrains.cend(), first_ge_second);
-    KRATOS_ERROR_IF(pos != rStrains.cend())
-        << "Values in STRAINS_OF_PIECEWISE_LINEAR_LAW are not ascending: " << *(pos + 1)
-        << " (at index " << std::distance(rStrains.begin(), pos) + 2 << ") does not exceed " << *pos
-        << " (at index " << std::distance(rStrains.begin(), pos) + 1 << ")" << std::endl;
 }
 
 void TrussBackboneConstitutiveLaw::CheckBackboneStiffnessesDontExceedYoungsModulus(const Vector& rStrains,

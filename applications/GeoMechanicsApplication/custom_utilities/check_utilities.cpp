@@ -116,6 +116,27 @@ void CheckProperties::CheckPermeabilityProperties(size_t Dimension) const
     mRangeBoundsType = original_bounds_type;
 }
 
+void CheckUtilities::CheckValuesAreAscending(const Vector& rValues, const std::string& rName, bool AllowEqual)
+{
+    // If AllowEqual==true then allow non-decreasing sequences (duplicates allowed).
+    // Violation predicate: return true when First >= Second (strict ascending) or First > Second (non-decreasing).
+    if (AllowEqual) {
+        auto first_gt_second = [](const auto& First, const auto& Second) { return First > Second; };
+        auto pos = std::adjacent_find(rValues.cbegin(), rValues.cend(), first_gt_second);
+        KRATOS_ERROR_IF(pos != rValues.cend())
+            << "Values in " << rName << " are not non-decreasing: " << *(pos + 1) << " (at index "
+            << std::distance(rValues.begin(), pos) + 2 << ") is less than " << *pos << " (at index "
+            << std::distance(rValues.begin(), pos) + 1 << ")" << std::endl;
+    } else {
+        auto first_ge_second = [](const auto& First, const auto& Second) { return First >= Second; };
+        auto pos = std::adjacent_find(rValues.cbegin(), rValues.cend(), first_ge_second);
+        KRATOS_ERROR_IF(pos != rValues.cend())
+            << "Values in " << rName << " are not ascending: " << *(pos + 1) << " (at index "
+            << std::distance(rValues.begin(), pos) + 2 << ") does not exceed " << *pos
+            << " (at index " << std::distance(rValues.begin(), pos) + 1 << ")" << std::endl;
+    }
+}
+
 void CheckUtilities::CheckForNonZeroZCoordinateIn2D(const Geometry<Node>& rGeometry)
 {
     auto pos = std::ranges::find_if(rGeometry, [](const auto& node) {
