@@ -1248,7 +1248,7 @@ protected:
             for (IndexType i = 0; i != number_of_local_rows; i++) {
                 temp_primary[i] = mFirstMyId + i;
             }
-            Epetra_Map& r_map = GetEpetraMap();
+            auto& r_map = GetMap();
             std::fill(temp_primary.begin(), temp_primary.begin() + number_of_local_rows, 0);
 
             // The T graph
@@ -1519,7 +1519,7 @@ protected:
         for (IndexType i = 0; i != number_of_local_rows; i++) {
             temp_primary[i] = mFirstMyId + i;
         }
-        Epetra_Map& r_map = GetEpetraMap();
+        auto& r_map = GetMap();
         std::fill(temp_primary.begin(), temp_primary.begin() + number_of_local_rows, 0);
 
         // Create and fill the graph of the matrix --> the temp array is
