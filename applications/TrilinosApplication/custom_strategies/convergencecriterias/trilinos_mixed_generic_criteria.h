@@ -20,8 +20,6 @@
 #include "includes/model_part.h"
 #include "solving_strategies/convergencecriterias/mixed_generic_criteria.h"
 
-// Application includes
-
 namespace Kratos
 {
 ///@addtogroup TrilinosApplication
@@ -30,11 +28,14 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Convergence criteria for mixed vector-scalar problems.
 /**
- This class implements a convergence control based on a nodal vector variable and
- a nodal scalar variable. The error is evaluated separately for each of them, and
- relative and absolute tolerances for both must be specified.
+ * @class TrilinosMixedGenericCriteria
+ * @ingroup TrilinosApplication
+ * @brief The TrilinosMixedGenericCriteria class implements a convergence control based on a nodal vector variable and a nodal scalar variable. The error is evaluated separately for each of them, and relative and absolute tolerances for both must be specified.
+ * @details This class implements a convergence control based on a nodal vector variable and a nodal scalar variable. The error is evaluated separately for each of them, and relative and absolute tolerances for both must be specified.
+ * @tparam TSparseSpace The sparse space considered (e.g. for the global system matrix and vectors)
+ * @tparam TDenseSpace The dense space considered (e.g. for the local system matrix and vectors)
+ * @author Jordi Cotela, Riccardo Rossi, Carlos Roig and Ruben Zorrilla
  */
 template< class TSparseSpace, class TDenseSpace >
 class TrilinosMixedGenericCriteria : public MixedGenericCriteria< TSparseSpace, TDenseSpace >
@@ -88,26 +89,6 @@ public:
     ///@name Operations
     ///@{
 
-    /// Compute relative and absoute error.
-    /**
-     * @param rModelPart Reference to the ModelPart containing the fluid problem.
-     * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
-     * @param A System matrix (unused)
-     * @param Dx Vector of results (variations on nodal variables)
-     * @param b RHS vector (residual)
-     * @return true if convergence is achieved, false otherwise
-     */
-    bool PostCriteria(
-        ModelPart& rModelPart,
-        DofsArrayType& rDofSet,
-        const TSystemMatrixType& A,
-        const TSystemVectorType& Dx,
-        const TSystemVectorType& b) override
-    {
-        // Serial base implementation convergence check call
-        return BaseType::PostCriteria(rModelPart, rDofSet, A, Dx, b);
-    }
-
     ///@}
     ///@name Access
     ///@{
@@ -143,13 +124,23 @@ private:
     ///@name Private Operations
     ///@{
 
+    /**
+     * @brief Computes the norms of the solution and its increment for convergence checking.
+     * @param rModelPart Reference to the ModelPart containing the problem.
+     * @param rDofSet Reference to the container of the problem's degrees of freedom.
+     * @param rDx Vector of solution increments.
+     * @param rDofsCount Vector to store the count of dofs for each variable.
+     * @param rSolutionNormsVector Vector to store the norms of the solution for each variable.
+     * @param rIncreaseNormsVector Vector to store the norms of the solution increments for each variable.
+     */
     void GetNormValues(
         const ModelPart& rModelPart,
         const DofsArrayType& rDofSet,
         const TSystemVectorType& rDx,
         std::vector<int>& rDofsCount,
         std::vector<TDataType>& rSolutionNormsVector,
-        std::vector<TDataType>& rIncreaseNormsVector) const override
+        std::vector<TDataType>& rIncreaseNormsVector
+        ) const override
     {
         const int n_dofs = rDofSet.size();
         const auto& r_data_comm = rModelPart.GetCommunicator().GetDataCommunicator();
