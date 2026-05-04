@@ -71,6 +71,7 @@ from test_surface_interface_elements import KratosGeoMechanicsSurfaceInterfaceEl
 from test_dsettlement_validation import  KratosGeoMechanicsDSettlementValidationTests
 from test_dirichlet_u_constant import KratosGeoMechanicsDirichletUConstantTests
 from interface_prestress import KratosGeoMechanicsInterfacePreStressTests
+from test_upw_interface import KratosGeoMechanicsUPwInterfaceTests
 from test_building_pit import KratosGeoMechanicsBuildingPit
 
 def AssembleTestSuites():
@@ -129,6 +130,7 @@ def AssembleTestSuites():
                         KratosGeoMechanicsAvoidSmallEndStepCppRoute,
                         KratosGeoMechanicsDirichletUConstantTests,
                         KratosGeoMechanicsInterfacePreStressTests,
+                        KratosGeoMechanicsUPwInterfaceTests,
                         ]
 
     night_test_cases = [
