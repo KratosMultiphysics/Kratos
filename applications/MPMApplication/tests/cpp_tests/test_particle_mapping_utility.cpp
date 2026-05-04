@@ -929,6 +929,19 @@ namespace Kratos::Testing
         // Set MP Mass
         SetUniformValueOnMaterialPoints(r_mpm_model_part, MP_MASS, 2.5);
 
+        // Adding initial MP displacement
+        const array_1d<double, 3> set_mp_1_displacement{0.1, 0.2, 0.0};
+        const array_1d<double, 3> set_mp_2_displacement{0.3, 0.4, 0.0};
+        const array_1d<double, 3> set_mp_3_displacement{0.5, 0.6, 0.0};
+        const array_1d<double, 3> set_mp_4_displacement{0.7, 0.8, 0.0};
+        const std::vector<array_1d<double,3>> set_mp_displacement_values{set_mp_1_displacement,
+                                                                         set_mp_2_displacement,
+                                                                         set_mp_3_displacement,
+                                                                         set_mp_4_displacement};
+
+        SetValuesOnMaterialPoints(r_mpm_model_part, MP_DISPLACEMENT, set_mp_displacement_values);
+
+        // Set random values to velocity, acceleration and pressure
         // Set MP Velocity
         const array_1d<double, 3> set_mp_1_velocity{ 3.211,-1.125, 0.0};
         const array_1d<double, 3> set_mp_2_velocity{-1.788, 0.587, 0.0};
@@ -956,7 +969,7 @@ namespace Kratos::Testing
         SetValuesOnMaterialPoints(r_mpm_model_part, MP_ACCELERATION, set_mp_acceleration_values);
 
         // Set MP Pressure
-        const std::vector<double> set_mp_pressure_values{0.5, 1.0, 1.5, 2.0};
+        const std::vector<double> set_mp_pressure_values{-0.05, 1.150, 21.5, 2.7789};
         SetValuesOnMaterialPoints(r_mpm_model_part, MP_PRESSURE, set_mp_pressure_values);
 
 
@@ -1004,18 +1017,6 @@ namespace Kratos::Testing
                                                                        node_4_displacement};
 
         SetValuesOnNodes(r_grid_model_part, DISPLACEMENT, 0, node_displacement_values);
-
-        // Adding initial MP displacement
-        const array_1d<double, 3> set_mp_1_displacement{0.1, 0.2, 0.0};
-        const array_1d<double, 3> set_mp_2_displacement{0.3, 0.4, 0.0};
-        const array_1d<double, 3> set_mp_3_displacement{0.5, 0.6, 0.0};
-        const array_1d<double, 3> set_mp_4_displacement{0.7, 0.8, 0.0};
-        const std::vector<array_1d<double,3>> set_mp_displacement_values{set_mp_1_displacement,
-                                                                         set_mp_2_displacement,
-                                                                         set_mp_3_displacement,
-                                                                         set_mp_4_displacement};
-
-        SetValuesOnMaterialPoints(r_mpm_model_part, MP_DISPLACEMENT, set_mp_displacement_values);
 
         // Initialize and run TPIC mapping scheme
         unsigned int echo_level = 0;
@@ -1116,18 +1117,20 @@ namespace Kratos::Testing
 
         // ------------------------------------------------------------------------------------------ P2G Test ------------------------------------------------------------------------------------------ //
 
+        MPMSearchElementUtility::SearchElement<2>(r_grid_model_part, r_mpm_model_part, 1000, 1e-6);
+        tpic_mapping.ResetBackgroundGrid();
         tpic_mapping.RunP2GMapping();
 
         // Checking values at the nodes
         // Check mapped mass
-        const std::vector<double> ref_nodal_mass{2.5, 2.5, 2.5, 2.5};
+        const std::vector<double> ref_nodal_mass{2.024305555557505, 2.600694444442495, 3.024305555557504, 2.350694444442495};
         AssertNodalVariables(r_mpm_model_part, NODAL_MASS, 0, ref_nodal_mass, 1e-6);
 
         // Check mapped velocity
-        const array_1d<double, 3> ref_nodal_velocity_1 {1.0, 0.0, 0.0};
-        const array_1d<double, 3> ref_nodal_velocity_2 {2.0, 0.0, 0.0};
-        const array_1d<double, 3> ref_nodal_velocity_3 {2.0, 0.0, 0.0};
-        const array_1d<double, 3> ref_nodal_velocity_4 {1.0, 0.0, 0.0};
+        const array_1d<double, 3> ref_nodal_velocity_1 {0.962474271088712, 1.070135077036779, 0.0};
+        const array_1d<double, 3> ref_nodal_velocity_2 {1.910383845045354, 1.087464953130831, 0.0};
+        const array_1d<double, 3> ref_nodal_velocity_3 {1.921839839225693,-2.305983065251591, 0.0};
+        const array_1d<double, 3> ref_nodal_velocity_4 {0.966141063590441,-2.348432422412574, 0.0};
 
         const std::vector<array_1d<double, 3>> ref_nodal_velocity{ref_nodal_velocity_1,
                                                                   ref_nodal_velocity_2,
@@ -1137,10 +1140,10 @@ namespace Kratos::Testing
         AssertNodalVariables(r_mpm_model_part, VELOCITY, 1, ref_nodal_velocity, 1e-6);
 
         // Check mapped acceleration
-        const array_1d<double, 3> ref_nodal_acceleration_1 {2.0, 0.0, 0.0};
-        const array_1d<double, 3> ref_nodal_acceleration_2 {3.0, 0.0, 0.0};
-        const array_1d<double, 3> ref_nodal_acceleration_3 {3.0, 0.0, 0.0};
-        const array_1d<double, 3> ref_nodal_acceleration_4 {2.0, 0.0, 0.0};
+        const array_1d<double, 3> ref_nodal_acceleration_1 {1.924948542177424,-0.580154373756319, 0.0};
+        const array_1d<double, 3> ref_nodal_acceleration_2 {3.820767690090707,-0.599959946435236, 0.0};
+        const array_1d<double, 3> ref_nodal_acceleration_3 {3.843679678451385, 3.278266360287533, 0.0};
+        const array_1d<double, 3> ref_nodal_acceleration_4 {1.932282127180882, 3.326779911328657, 0.0};
 
         const std::vector<array_1d<double, 3>> ref_nodal_acceleration{ref_nodal_acceleration_1,
                                                                       ref_nodal_acceleration_2,
@@ -1149,11 +1152,8 @@ namespace Kratos::Testing
 
         AssertNodalVariables(r_mpm_model_part, ACCELERATION, 1, ref_nodal_acceleration, 1e-6);
 
-        // Check mapped pressure
-        const std::vector<double> ref_nodal_pressure{0.877991531432732,
-                                                     1.044658198567268,
-                                                     1.455341801432732,
-                                                     1.622008468567268};
+        // // Check mapped pressure
+        const std::vector<double> ref_nodal_pressure{1.021526585868542, 1.084712950227006, 1.386394948643598, 1.454135894313311};
 
         AssertNodalVariables(r_mpm_model_part, PRESSURE, 1, ref_nodal_pressure, 1e-6);
         KRATOS_CATCH("")

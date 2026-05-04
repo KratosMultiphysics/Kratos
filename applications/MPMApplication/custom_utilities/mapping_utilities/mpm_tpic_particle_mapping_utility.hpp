@@ -88,29 +88,29 @@ namespace Kratos
     /**
      * Calculate and add TPIC affine velocity for the corresponding node
      */
-    void CalculateAndAddAffineVelocity(Element& rElement, Node& rNode, std::vector<array_1d<double, 3 >> rNodalAffineVelocity)
+    void CalculateAndAddAffineVelocity(Element& rElement, Node& rNode, array_1d<double, 3>& rNodalAffineVelocity)
     {
         array_1d<double,3> mp_to_node_vector = ZeroVector(3);
         this->CalculateMpToNodeVector(rElement, rNode, mp_to_node_vector);
 
-
-
         std::vector<Matrix> mp_velocity_gradient;
         rElement.CalculateOnIntegrationPoints(MP_VELOCITY_GRADIENT, mp_velocity_gradient, mrProcessInfo);
-        // KRATOS_WATCH(rElement.Id())
-        // KRATOS_WATCH(rNode.Id())
-        // KRATOS_WATCH(mp_to_node_vector)
-        // KRATOS_WATCH(mp_velocity_gradient[0])
-        // KRATOS_WATCH(rNodalAffineVelocity[0])
-        rNodalAffineVelocity[0] += prod(mp_velocity_gradient[0], mp_to_node_vector);
-        // KRATOS_WATCH(rNodalAffineVelocity[0])
 
+        // prod does not check size before doing the operation
+        // rNodalAffineVelocity[0] += prod(mp_velocity_gradient[0], mp_to_node_vector);
+        for (IndexType dim_i = 0; dim_i < mDimension; dim_i++)
+        {
+            for (IndexType dim_j = 0; dim_j < mDimension; dim_j++)
+            {
+                rNodalAffineVelocity[dim_i] += mp_velocity_gradient[0](dim_i,dim_j) * mp_to_node_vector(dim_j);
+            }
+        }
     }
 
     /**
      * Calculate and add TPIC affine acceleration for the corresponding node
      */
-    void CalculateAndAddAffineAcceleration(Element& rElement, Node& rNode, std::vector<array_1d<double, 3 >> rNodalAffineAcceleration)
+    void CalculateAndAddAffineAcceleration(Element& rElement, Node& rNode, array_1d<double, 3>& rNodalAffineAcceleration)
     {
         array_1d<double,3> mp_to_node_vector = ZeroVector(3);
         this->CalculateMpToNodeVector(rElement, rNode, mp_to_node_vector);
@@ -118,7 +118,15 @@ namespace Kratos
         std::vector<Matrix> mp_acceleration_gradient;
         rElement.CalculateOnIntegrationPoints(MP_ACCELERATION_GRADIENT, mp_acceleration_gradient, mrProcessInfo);
 
-        rNodalAffineAcceleration[0] += prod(mp_acceleration_gradient[0], mp_to_node_vector);
+        // prod does not check size before doing the operation
+        // rNodalAffineAcceleration += prod(mp_acceleration_gradient[0], mp_to_node_vector);
+        for (IndexType dim_i = 0; dim_i < mDimension; dim_i++)
+        {
+            for (IndexType dim_j = 0; dim_j < mDimension; dim_j++)
+            {
+                rNodalAffineAcceleration[dim_i] += mp_acceleration_gradient[0](dim_i,dim_j) * mp_to_node_vector(dim_j);
+            }
+        }
     }
 
     /**
@@ -131,7 +139,7 @@ namespace Kratos
 
         // node_affine_velocity = mp_velocity + affine contribution
         rElement.CalculateOnIntegrationPoints(MP_VELOCITY, node_affine_velocity, mrProcessInfo);
-        this->CalculateAndAddAffineVelocity(rElement, rNode, node_affine_velocity);
+        this->CalculateAndAddAffineVelocity(rElement, rNode, node_affine_velocity[0]);
 
         rElement.CalculateOnIntegrationPoints(MP_MASS, mp_mass, mrProcessInfo);
 
@@ -149,7 +157,7 @@ namespace Kratos
 
         // node_affine_acceleration = mp_acceleration + affine contribution
         rElement.CalculateOnIntegrationPoints(MP_ACCELERATION, node_affine_acceleration, mrProcessInfo);
-        this->CalculateAndAddAffineAcceleration(rElement, rNode, node_affine_acceleration);
+        this->CalculateAndAddAffineAcceleration(rElement, rNode, node_affine_acceleration[0]);
 
         rElement.CalculateOnIntegrationPoints(MP_MASS, mp_mass, mrProcessInfo);
 
