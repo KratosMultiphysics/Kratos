@@ -170,7 +170,8 @@ def get_expected_results_from_csv(csv_filepath):
     with open(csv_filepath, newline="") as csv_file:
         reader = csv.DictReader(csv_file)
         for row in reader:
-            result[int(row["node"])] = {"bending_moment": float(row["bending_moment"])}
+            result[int(row["node"])] = {"bending_moment": float(row["bending_moment"]),
+                                        "shear_force": float(row["shear_force"])}
 
     return result
 
@@ -221,10 +222,12 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
         end_time = 1.0  # this needs to be looked up
         node_ids = get_sheetpile_node_ids()
         bending_moments = reader.nodal_values_at_time("BENDING_MOMENT", end_time, output_data, node_ids=node_ids)
+        shear_forces = reader.nodal_values_at_time("SHEAR_FORCE", end_time, output_data, node_ids=node_ids)
 
-        for node_id, bending_moment in zip(node_ids, bending_moments):
+        for node_id, bending_moment, shear_force in zip(node_ids, bending_moments, shear_forces):
             expected_nodal_results = expected_results[node_id]
             self.assertAlmostEqual(bending_moment, expected_nodal_results["bending_moment"], msg=f"Bending moment at node {node_id}")
+            self.assertAlmostEqual(shear_force, expected_nodal_results["shear_force"], msg=f"Shear force at node {node_id}")
 
 
     def read_json_output(self, project_path, stage):
@@ -569,14 +572,15 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
         end_time = 1.0  # this needs to be looked up
         node_ids = get_sheetpile_node_ids()
         bending_moments = reader.nodal_values_at_time("BENDING_MOMENT", end_time, output_data, node_ids=node_ids)
+        shear_forces = reader.nodal_values_at_time("SHEAR_FORCE", end_time, output_data, node_ids=node_ids)
 
         with open(target_dir / "3_Sheetpile_installation_wall_expected_results.csv", "w", newline="") as csv_file:
-            fieldnames = ["node", "bending_moment"]
+            fieldnames = ["node", "bending_moment", "shear_force"]
             writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
 
             writer.writeheader()
-            for node_id, bending_moment in zip(node_ids, bending_moments):
-                writer.writerow({"node": node_id, "bending_moment": bending_moment})
+            for node_id, bending_moment, shear_force in zip(node_ids, bending_moments, shear_forces):
+                writer.writerow({"node": node_id, "bending_moment": bending_moment, "shear_force": shear_force})
 
 
     # def test_simulation_without_excavation(self):
