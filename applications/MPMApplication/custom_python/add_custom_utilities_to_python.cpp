@@ -26,6 +26,8 @@
 #include "custom_utilities/material_point_generator_utility.cpp"
 #include "custom_utilities/mapping_utilities/mpm_base_particle_mapping_utility.hpp"
 #include "custom_utilities/mapping_utilities/mpm_flip_particle_mapping_utility.hpp"
+#include "custom_utilities/mapping_utilities/mpm_pic_particle_mapping_utility.hpp"
+#include "custom_utilities/mapping_utilities/mpm_tpic_particle_mapping_utility.hpp"
 
 
 namespace Kratos{
@@ -135,6 +137,19 @@ namespace Python{
             .def("RunG2PMapping", &MPMFlipParticleMappingUtility::RunG2PMapping)
             ;
 
+        pybind11::class_<MPMPicParticleMappingUtility, MPMPicParticleMappingUtility::Pointer, MPMBaseParticleMappingUtility>(m, "MPMPicParticleMappingUtility")
+            .def(pybind11::init<ModelPart&, ModelPart&, const unsigned int>(), pybind11::arg("material_point_model_part"), pybind11::arg("grid_model_part"), pybind11::arg("echo_level"))
+            .def("Initialize", &MPMPicParticleMappingUtility::Initialize)
+            .def("RunP2GMapping", &MPMPicParticleMappingUtility::RunP2GMapping)
+            .def("RunG2PMapping", &MPMPicParticleMappingUtility::RunG2PMapping)
+            ;
+
+        pybind11::class_<MPMTpicParticleMappingUtility, MPMTpicParticleMappingUtility::Pointer, MPMBaseParticleMappingUtility>(m, "MPMTpicParticleMappingUtility")
+            .def(pybind11::init<ModelPart&, ModelPart&, const unsigned int>(), pybind11::arg("material_point_model_part"), pybind11::arg("grid_model_part"), pybind11::arg("echo_level"))
+            .def("Initialize", &MPMTpicParticleMappingUtility::Initialize)
+            .def("RunP2GMapping", &MPMTpicParticleMappingUtility::RunP2GMapping)
+            .def("RunG2PMapping", &MPMTpicParticleMappingUtility::RunG2PMapping)
+            ;
     }
 
 }  // namespace Python.
