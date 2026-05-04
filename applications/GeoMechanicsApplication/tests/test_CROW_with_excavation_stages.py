@@ -9,9 +9,12 @@ from KratosMultiphysics.GeoMechanicsApplication.gid_output_file_reader import (
 from KratosMultiphysics.GeoMechanicsApplication.unit_conversions import unit_to_k_unit
 import test_helper
 
+import argparse
+import csv
 import os
 import json
 from pathlib import Path
+import sys
 
 import KratosMultiphysics.GeoMechanicsApplication.geo_plot_utilities as plot_utils
 
@@ -527,6 +530,28 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             ylabel="y [m]",
             )
 
+    def update_expected_results(self):
+        print("Updating the expected results...")
+
+        target_dir = Path(test_helper.get_file_path(Path("crow_validation") / "linear_elastic" / "staged_construction"))
+
+        reader = GiDOutputFileReader()
+        output_data = reader.read_output_from(
+            target_dir / "gid_output" / "3_Sheetpile_installation.post.res"
+        )
+        end_time = 1.0  # this needs to be looked up
+        node_ids = get_sheetpile_node_ids()
+        bending_moments = reader.nodal_values_at_time("BENDING_MOMENT", end_time, output_data, node_ids=node_ids)
+
+        with open(target_dir / "3_Sheetpile_installation_wall_expected_results.csv", "w", newline="") as csv_file:
+            fieldnames = ["node", "bending_moment"]
+            writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
+
+            writer.writeheader()
+            for node_id, bending_moment in zip(node_ids, bending_moments):
+                writer.writerow({"node": node_id, "bending_moment": bending_moment})
+
+
     # def test_simulation_without_excavation(self):
     #     self.run_simulation_and_checks("without_excavation")
 
@@ -535,4 +560,12 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--update-expected-results', action='store_true')
+    args = parser.parse_args()
+
+    if args.update_expected_results:
+        KratosGeoMechanicsCrowValidation().update_expected_results()
+        sys.exit(0)
+
     KratosUnittest.main()
