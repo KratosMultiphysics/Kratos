@@ -357,18 +357,6 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
                 )
             ]
 
-            if (Path(project_path) / f"{stage['base_name']}_comparison.csv").exists():
-                comparison_variable = test_helper.get_data_points_from_file(
-                    Path(project_path) / f"{stage['base_name']}_comparison.csv", data_extractor
-                )
-                data_series_collection.append(
-                    plot_utils.DataSeries(
-                        comparison_variable,
-                        f"{variable_plot_label} [Comparison]",
-                        marker="1",
-                    )
-                )
-
             fem_comparison_csv = Path(project_path) / f"{stage['base_name']}_comparison_FEM.csv"
             if fem_comparison_csv.exists():
                 fem_comparison_variable = test_helper.get_data_points_from_file(
@@ -392,6 +380,18 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
                         fem_comparison_variable,
                         f"{variable_plot_label} [FEM Comparison_with excavation stages]",
                         marker="3",
+                    )
+                )
+
+            if (Path(project_path) / f"{stage['base_name']}_comparison.csv").exists():
+                comparison_variable = test_helper.get_data_points_from_file(
+                    Path(project_path) / f"{stage['base_name']}_comparison.csv", data_extractor
+                )
+                data_series_collection.append(
+                    plot_utils.DataSeries(
+                        comparison_variable,
+                        f"{variable_plot_label} [Comparison]",
+                        marker="1",
                     )
                 )
 
@@ -437,18 +437,6 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
                 )
             ]
 
-            if (Path(project_path) / f"{stage['base_name']}_comparison.csv").exists():
-                comparison_variable = test_helper.get_data_points_from_file(
-                    Path(project_path) / f"{stage['base_name']}_comparison.csv", data_extractor
-                )
-                data_series_collection.append(
-                    plot_utils.DataSeries(
-                        comparison_variable,
-                        "Horizontal displacement [Comparison]",
-                        marker="1",
-                    )
-                )
-
             if (Path(project_path) / f"{stage['base_name']}_wall_comparison.csv").exists():
                 comparison_variable = test_helper.get_data_points_from_file(
                     Path(project_path) / f"{stage['base_name']}_wall_comparison.csv", data_extractor
@@ -470,6 +458,18 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
                         comparison_variable,
                         "Horizontal displacement [FEM Comparison_with_excavation_stages]",
                         marker="3",
+                    )
+                )
+
+            if (Path(project_path) / f"{stage['base_name']}_comparison.csv").exists():
+                comparison_variable = test_helper.get_data_points_from_file(
+                    Path(project_path) / f"{stage['base_name']}_comparison.csv", data_extractor
+                )
+                data_series_collection.append(
+                    plot_utils.DataSeries(
+                        comparison_variable,
+                        "Horizontal displacement [Comparison]",
+                        marker="1",
                     )
                 )
 
