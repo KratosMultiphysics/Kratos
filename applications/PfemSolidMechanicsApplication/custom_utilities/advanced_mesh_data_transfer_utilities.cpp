@@ -677,7 +677,7 @@ namespace Kratos
       }
       catch (int64_t error_Code) {
          if (error_Code != 0) {
-            std::cout << "       In tHE CATCH. Correct. I THink We are here and failed" << std::endl;
+            std::cerr << "Call to triangulate failed with return code " << error_Code << std::endl;
             failed = true;
             return failed;
          }
