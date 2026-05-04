@@ -105,13 +105,13 @@ public:
 
             // Count active indices
             int slave_active_indices = 0;
-            for (unsigned int i = 0; i < rSlaveEquationId.size(); i++) {
+            for (IndexType i = 0; i < rSlaveEquationId.size(); i++) {
                 if (rSlaveEquationId[i] < system_size) {
                     ++slave_active_indices;
                 }
             }
             int master_active_indices = 0;
-            for (unsigned int i = 0; i < rMasterEquationId.size(); i++) {
+            for (IndexType i = 0; i < rMasterEquationId.size(); i++) {
                 if (rMasterEquationId[i] < system_size) {
                     ++master_active_indices;
                 }
@@ -122,12 +122,12 @@ public:
                 std::vector<double> values(master_active_indices);
 
                 // Fill Epetra vectors
-                for (unsigned int i = 0; i < rSlaveEquationId.size(); i++) {
+                for (IndexType i = 0; i < rSlaveEquationId.size(); i++) {
                     if (rSlaveEquationId[i] < system_size) {
                         const int current_global_row = rSlaveEquationId[i];
 
-                        unsigned int loc_j = 0;
-                        for (unsigned int j = 0; j < rMasterEquationId.size(); j++) {
+                        IndexType loc_j = 0;
+                        for (IndexType j = 0; j < rMasterEquationId.size(); j++) {
                             if (rMasterEquationId[j] < system_size) {
                                 indices[loc_j] = rMasterEquationId[j];
                                 values[loc_j] = rTContribution(i, j);
@@ -161,8 +161,8 @@ public:
             const unsigned int system_size = rC.GlobalLength();
 
             // Count active indices
-            unsigned int slave_active_indices = 0;
-            for (unsigned int i = 0; i < rSlaveEquationId.size(); i++)
+            IndexType slave_active_indices = 0;
+            for (IndexType i = 0; i < rSlaveEquationId.size(); i++)
                 if (rSlaveEquationId[i] < system_size)
                     ++slave_active_indices;
 
@@ -172,8 +172,8 @@ public:
                 Epetra_SerialDenseVector values(slave_active_indices);
 
                 // Fill Epetra vectors
-                unsigned int loc_i = 0;
-                for (unsigned int i = 0; i < rSlaveEquationId.size(); i++) {
+                IndexType loc_i = 0;
+                for (IndexType i = 0; i < rSlaveEquationId.size(); i++) {
                     if (rSlaveEquationId[i] < system_size) {
                         indices[loc_i] = rSlaveEquationId[i];
                         values[loc_i] = rConstantContribution[i];
