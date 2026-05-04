@@ -8,7 +8,8 @@
           },
           "Variables": {
               "INTERFACE_NORMAL_STIFFNESS":  30000000,
-              "INTERFACE_SHEAR_STIFFNESS":   15000000
+              "INTERFACE_SHEAR_STIFFNESS":   15000000,
+              "GEO_DRAINAGE_TYPE": "FULLY_COUPLED"
          }
       }
    }]
