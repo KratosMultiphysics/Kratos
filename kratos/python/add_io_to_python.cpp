@@ -252,10 +252,6 @@ void  AddIOToPython(pybind11::module& m)
         .def("__str__", PrintObject<VtuOutput>)
         ;
 
-    vtu_output.attr("NODES") = VtuOutput::NODES;
-    vtu_output.attr("CONDITIONS") = VtuOutput::CONDITIONS;
-    vtu_output.attr("ELEMENTS") = VtuOutput::ELEMENTS;
-
     py::class_<EnSightOutput, EnSightOutput::Pointer, IO>(m, "EnSightOutput")
     .def(py::init<ModelPart&>())
     .def(py::init<ModelPart&, Parameters>())
