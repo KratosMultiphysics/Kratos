@@ -164,6 +164,16 @@ def extract_shear_traction_and_y_from_line(line):
         line, index_of_x=2, index_of_y=0,
     )
 
+
+def get_expected_results_from_csv(csv_filepath):
+    result = {}
+    with open(csv_filepath, newline="") as csv_file:
+        reader = csv.DictReader(csv_file)
+        for row in reader:
+            result[int(row["node"])] = {"bending_moment": float(row["bending_moment"])}
+
+    return result
+
 class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
     def setUp(self):
         super().setUp()
@@ -199,6 +209,23 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
         if test_helper.want_test_plots():
             self.create_wall_plots(project_path)
             self.create_interface_plots(project_path)
+
+        # Check the obtained results
+        csv_filepath = Path(project_path) / "3_Sheetpile_installation_wall_expected_results.csv"
+        expected_results = get_expected_results_from_csv(csv_filepath)
+
+        reader = GiDOutputFileReader()
+        output_data = reader.read_output_from(
+            Path(project_path) / "gid_output" / "3_Sheetpile_installation.post.res"
+        )
+        end_time = 1.0  # this needs to be looked up
+        node_ids = get_sheetpile_node_ids()
+        bending_moments = reader.nodal_values_at_time("BENDING_MOMENT", end_time, output_data, node_ids=node_ids)
+
+        for node_id, bending_moment in zip(node_ids, bending_moments):
+            expected_nodal_results = expected_results[node_id]
+            self.assertAlmostEqual(bending_moment, expected_nodal_results["bending_moment"], msg=f"Bending moment at node {node_id}")
+
 
     def read_json_output(self, project_path, stage):
         with open(
