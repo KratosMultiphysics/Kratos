@@ -24,7 +24,6 @@
 #include "utilities/parallel_utilities.h"
 #include "utilities/atomic_utilities.h"
 
-
 namespace Kratos::Testing {
 
 KRATOS_TEST_CASE(AtomicAdd)
@@ -62,7 +61,7 @@ KRATOS_TEST_CASE(AtomicMult)
     double sum = 5;
 
 #ifdef KRATOS_USE_TBB
-    auto range = std::ranges::views::iota(0uz, size);
+    auto range = std::ranges::views::iota(static_cast<std::size_t>(0), size);
     std::for_each(std::execution::par_unseq, range.begin(), range.end(), [&sum, exp](int x) {
         AtomicMult(sum, exp);
     });

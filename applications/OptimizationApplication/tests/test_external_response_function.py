@@ -15,10 +15,10 @@ class TestExternalResponseFunction(kratos_unittest.TestCase):
             analysis.Run()
 
             model_part = model["CustomMP"]
-            exp = Kratos.Expression.NodalExpression(model_part)
-            Kratos.Expression.VariableExpressionIO.Read(exp, KratosOA.CUSTOM_DESIGN_VARIABLE, False)
+            ta = Kratos.TensorAdaptors.VariableTensorAdaptor(model_part.Nodes, KratosOA.CUSTOM_DESIGN_VARIABLE)
+            ta.CollectData()
 
-            self.assertVectorAlmostEqual(exp.Evaluate(), [2,3,4,5])
+            self.assertVectorAlmostEqual(ta.data, [2,3,4,5])
 
 if __name__ == "__main__":
     kratos_unittest.main()
