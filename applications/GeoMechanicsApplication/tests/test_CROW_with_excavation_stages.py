@@ -193,8 +193,9 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
                 orchestrator_instance = orchestrator_class(project)
                 orchestrator_instance.Run()
 
-        self.create_wall_plots(project_path)
-        self.create_interface_plots(project_path)
+        if test_helper.want_test_plots():
+            self.create_wall_plots(project_path)
+            self.create_interface_plots(project_path)
 
     def read_json_output(self, project_path, stage):
         with open(
