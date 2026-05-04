@@ -11,7 +11,7 @@ class MultiLoadConstraintPreparation(AnalysisStage):
         self.settings = project_parameters["solver_settings"]
         self.scheme_settings = project_parameters["future_scheme_settings"]
         self.model_part_name = self.settings["model_part_name"].GetString()
-
+        
         if self.model_part_name == "":
             raise Exception('Please specify a model_part name!')
         
@@ -32,10 +32,21 @@ class MultiLoadConstraintPreparation(AnalysisStage):
             if self.project_parameters["process_combinations"].Has("fixity_processes"):
                 self.__PrepareFixityDB()
 
+        self.lumped_mass_matrix = False
+        self.consistens_mass_matrix = False
+        if self.project_parameters.Has("mass_matrix"):
+            if self.project_parameters["mass_matrix"].Has("lumped"):
+                self.lumped_mass_matrix = self.project_parameters["mass_matrix"]["lumped"].GetBool()
+            if self.project_parameters["mass_matrix"].Has("consistent"):
+                self.consistens_mass_matrix = self.project_parameters["mass_matrix"]["consistent"].GetBool()
+
     def Initialize(self):
         super().Initialize() # this calls some functions of the base class and also initializes the strategy data and the scheme
+        if self.lumped_mass_matrix:
+            self.__BuildLumpedMassMatrix()
+        if self.consistens_mass_matrix:
+            self.__BuildConsistentMassMatrix()
         self.__BuildLHS()
-        #self.ApplyBoundaryConditions() -> this is now done in buildrhss
         self.__BuildRHSs()
         
 
@@ -56,11 +67,11 @@ class MultiLoadConstraintPreparation(AnalysisStage):
             process = self.__CreateProcess(load_definition) 
             process.ExecuteInitialize()
             process.ExecuteBeforeSolutionLoop()
-            process.ExecuteInitializeSolutionStep() #usually done in ApplyBoundaryConditions()
+            process.ExecuteInitializeSolutionStep()
 
             rhs = self.__BuildRHS()
             self.rhss[process_id] = rhs.copy()
-        KratosMultiphysics.Logger.PrintInfo("::[PreparationStage]:: ", "RHSs built")
+        KratosMultiphysics.Logger.PrintInfo("::[PrepareSubcases]:: ", "RHSs built")
 
     def __ResetRHS(self):
         """Bug was: 
@@ -126,22 +137,38 @@ class MultiLoadConstraintPreparation(AnalysisStage):
     
     def Check(self):
         pass
+    
+    def BaseInitialize(self):
+        super().Initialize()
+    
+    def __BuildConsistentMassMatrix(self):
+        linear_system = self.strategy_data.GetLinearSystem()
+        mass_matrix = linear_system.GetMatrix(KratosMultiphysics.Future.SparseMatrixTag.LHS)
+        self.main_model_part.ProcessInfo[KratosMultiphysics.COMPUTE_LUMPED_MASS_MATRIX] = False
+        mass_matrix.SetValue(0.0)
+        self.scheme.BuildMassMatrix(mass_matrix)
+        KratosMultiphysics.Logger.PrintInfo("::[PrepareSubcases]:: ", "Consistent Massmatrix built")
+    
+    def __BuildLumpedMassMatrix(self):
+        self.main_model_part.ProcessInfo[KratosMultiphysics.COMPUTE_LUMPED_MASS_MATRIX] = True
+        linear_system = self.strategy_data.GetLinearSystem()
+        mass_matrix = linear_system.GetMatrix(KratosMultiphysics.Future.SparseMatrixTag.LHS)
+
+        mass_matrix.SetValue(0.0)
+        self.scheme.BuildMassMatrix(mass_matrix)
+        KratosMultiphysics.Logger.PrintInfo("::[PrepareSubcases]:: ", "Lumped Massmatrix built")
+
 
     def __BuildLHS(self):
         """Construct the lhs"""
         #get linear system container stored inside the strategy data
         linear_system = self.strategy_data.GetLinearSystem()
         #Get the matrix stored under the tag LHS
-        #Can store MassMatrix, DampingMatrix etc.
         lhs = linear_system.GetMatrix(KratosMultiphysics.Future.SparseMatrixTag.LHS)
         lhs.SetValue(0.0)
         self.scheme.Build(lhs)
-        #dofset = self.strategy_data.GetDofSet()
-        #reference_state = dofset.GetValues()
-        #print("refstate",reference_state)
         self.lhs = lhs
-        KratosMultiphysics.Logger.PrintInfo("::[PreparationStage]:: ", "LHS built")
-        #KratosMultiphysics.Logger.PrintInfo(lhs)
+        KratosMultiphysics.Logger.PrintInfo("::[PrepareSubcases]:: ", "LHS built")
         print(KratosMultiphysics.scipy_conversion_tools.to_csr(lhs).todense())
 
     def _InitializeInternals(self):
@@ -167,7 +194,7 @@ class MultiLoadConstraintPreparation(AnalysisStage):
             dofs_and_reactions_to_add.append(["ROTATION_Z", "REACTION_MOMENT_Z"])
 
         KratosMultiphysics.VariableUtils.AddDofsList(dofs_and_reactions_to_add, self.main_model_part)
-        KratosMultiphysics.Logger.PrintInfo("::[PreparationStage]:: ", "DOF's ADDED")
+        KratosMultiphysics.Logger.PrintInfo("::[PrepareSubcases]:: ", "DOF's ADDED")
 
     def _AddVariables(self):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
@@ -190,7 +217,7 @@ class MultiLoadConstraintPreparation(AnalysisStage):
             material_settings = KratosMultiphysics.Parameters("""{"Parameters": {"materials_filename": ""}}""")
             material_settings["Parameters"]["materials_filename"].SetString(materials_filename)
             KratosMultiphysics.ReadMaterialsUtility(material_settings, self.model)
-            KratosMultiphysics.Logger.PrintInfo("::[PreparationStage]:: ", "Materials successfully imported")
+            KratosMultiphysics.Logger.PrintInfo("::[PrepareSubcases]:: ", "Materials successfully imported")
         else:
             raise Exception("Please specify a 'materials_filename'!")
         

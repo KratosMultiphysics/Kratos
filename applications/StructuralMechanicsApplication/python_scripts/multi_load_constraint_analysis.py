@@ -121,8 +121,6 @@ class MultiLoadConstraintAnalysis(AnalysisStage):
             self.__RestoreReferenceState()
             rhs = self.__GetRHS(id)
             lhs = self.__GetRawLHS()
-            #linear_system = self.init_strategy_data.GetLinearSystem()
-            #linear_system.SetVector(rhs, KratosMultiphysics.Future.DenseVectorTag.RHS)
             dx = KratosMultiphysics.SystemVector(rhs.Size())
             linear_system = self.__CreateLinearSystem(lhs, rhs, dx)
             strategy_data = self.__CreateStrategyData()
@@ -136,22 +134,6 @@ class MultiLoadConstraintAnalysis(AnalysisStage):
     def __StorePrimarySolution(self, id, strategy_data):
         dx = strategy_data.GetLinearSystem().GetVector(KratosMultiphysics.Future.DenseVectorTag.Dx)
         self.primitive_solutions[id] = dx.copy()
-
-    #def __OutputSolutionStep(self):
-    #    for combination_id, solution in self.combination_solutions.items():
-    #        current_combination = self.__GetCombination(combination_id)
-    #        if self.project_parameters.Has("output_processes"):
-    #            if self.project_parameters["output_processes"].Has("vtk_output"):
-    #                if current_combination.Has("combination_label"):
-    #                    label = current_combination["combination_label"].GetString()
-    #                    self.project_parameters["output_processes"]["vtk_output"][0]["Parameters"]["output_path"].SetString(f"vtk_output/{label}")
-    #                else:    
-    #                    self.project_parameters["output_processes"]["vtk_output"][0]["Parameters"]["output_path"].SetString(f"vtk_output/combination_{combination_id}")
-    #                order_processes_initialization = self._GetOrderOfOutputProcessesInitialization()
-    #                self._list_of_output_processes = self._CreateProcesses("output_processes", order_processes_initialization)
-    #                for process in self._list_of_output_processes:
-    #                    process.ExecuteBeforeOutputStep()
-    #                    process.PrintOutput()
 
     def GetFinalData(self):
         return self.combination_solutions
@@ -198,7 +180,7 @@ class MultiLoadConstraintAnalysis(AnalysisStage):
 
     def __InitializeScheme(self, strategy_data):
 
-        scheme = KratosMultiphysics.Future.StaticScheme(self.main_model_part, self.scheme_settings) # scheme settings from json file
+        scheme = KratosMultiphysics.Future.StaticScheme(self.main_model_part, self.scheme_settings)
         scheme.Initialize(strategy_data) #initialize the scheme (will reset lhs, rhs and dx...)
         return scheme
 
@@ -209,7 +191,7 @@ class MultiLoadConstraintAnalysis(AnalysisStage):
         # the function "ConstructListOfProcesses" expects a Parameters array, so the process_list is stores in one here
         process_list = KratosMultiphysics.Parameters("[]") 
         process_list.Append(process_definition) 
-        return factory.ConstructListOfProcesses(process_list)[0] # function returns a list, but we create processes one by one so it only holds one entry
+        return factory.ConstructListOfProcesses(process_list)[0]
     
     def GetProjectOutputData(self, stage_name, output_data):
 
