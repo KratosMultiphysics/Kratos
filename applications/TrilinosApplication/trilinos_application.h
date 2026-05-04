@@ -13,12 +13,8 @@
 #pragma once
 
 // System includes
-#include <memory>
 
 // External includes
-#ifdef HAVE_TPETRA
-#include "Tpetra_Core.hpp"
-#endif
 
 // Project includes
 #include "includes/kratos_application.h"
@@ -145,11 +141,6 @@ class KRATOS_API(TRILINOS_APPLICATION) KratosTrilinosApplication : public Kratos
     ///@}
     ///@name Protected member Variables
     ///@{
-
-#ifdef HAVE_TPETRA
-    /// @brief Tpetra/Kokkos scope guard. Initialised in Register() and reset in DeregisterApplication().
-    std::unique_ptr<Tpetra::ScopeGuard> mpTpetraScope = nullptr;
-#endif
 
     ///@}
     ///@name Protected Operators
