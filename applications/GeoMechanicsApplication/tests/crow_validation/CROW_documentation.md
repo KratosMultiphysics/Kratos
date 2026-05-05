@@ -32,11 +32,15 @@ From D-Sheet Piling, the following soil properties are given for the clay and sa
 
 From D-Sheet Piling, the permeability is given as **hydraulic conductivity** for both soils:
 
-$$ K = 1.0 \times 10^{-4},\mathrm{m}/\mathrm{s} $$
+```math
+K = 1.0 \times 10^{-4}\ \mathrm{m}/\mathrm{s}
+```
 
 Kratos requires **intrinsic permeability**:
 
-$$ k ,[\mathrm{m}^2] $$
+```math
+k\ [\mathrm{m}^2]
+```
 
 The relation between hydraulic conductivity and intrinsic permeability is:
 
@@ -51,21 +55,31 @@ where:
 
 The adopted values are:
 
-$$ \mu = 1.0 \times 10^{-3} ,\mathrm{Pa}\cdot\mathrm{s} $$
+```math
+\mu = 1.0 \times 10^{-3}\ \mathrm{Pa}\cdot\mathrm{s}
+```
 
-$$ \rho_{\mathrm{w}} = 1019.37,\mathrm{kg}/\mathrm{m}^3 $$
+```math
+\rho_{\mathrm{w}} = 1019.37\ \mathrm{kg}/\mathrm{m}^3
+```
 
-$$ g = 9.81 ,\mathrm{m}/\mathrm{s}^2 $$
+```math
+g = 9.81\ \mathrm{m}/\mathrm{s}^2
+```
 
 Substituting:
 
 $$ k = \frac{1.0 \times 10^{-4} \cdot 1.0 \times 10^{-3}}{1019.37 \cdot 9.81} $$
 
-$$ k = 9.999 \times 10^{-12} ,\mathrm{m}^2 $$
+```math
+k = 9.999 \times 10^{-12}\ \mathrm{m}^2
+```
 
 This is rounded to:
 
-$$ k \approx 1.0 \times 10^{-11},\mathrm{m}^2 $$
+```math
+k \approx 1.0 \times 10^{-11}\ \mathrm{m}^2
+```
 
 
 ### Final values
@@ -241,17 +255,25 @@ These values are apparently based on the **D-Sheet Piling** section properties f
 
 The Young’s modulus of steel sheet piles is generally considered to be 200 GPa. This is the standard modulus of elasticity for structural steel. Therefore, the reference Young's modulus is taken as:
 
-$$ E_{\mathrm{steel}} = 2.10 \times 10^{11},\mathrm{Pa} $$
+```math
+E_{\mathrm{steel}} = 2.10 \times 10^{11}\ \mathrm{Pa}
+```
 
 The section area is converted as:
 
-$$ A = 198,\mathrm{cm}^2 = 198 \times 10^{-4} = 0.0198,\mathrm{m}^2 $$
+```math
+A = 198\ \mathrm{cm}^2 = 198 \times 10^{-4} = 0.0198\ \mathrm{m}^2
+```
 
 The bending stiffness is converted as:
 
-$$ EI = 8.40000 \times 10^4 ,\mathrm{kN,m}^2/\mathrm{m} $$
+```math
+EI = 8.40000 \times 10^4\ \mathrm{kNm}^2/\mathrm{m}
+```
 
-$$ EI = 8.40000 \times 10^4 \times 10^3 = 8.40 \times 10^7 ,\mathrm{N,m}^2 $$
+```math
+EI = 8.40000 \times 10^4 \times 10^3 = 8.40 \times 10^7\ \mathrm{Nm}^2
+```
 
 The equivalent second moment of area is:
 
@@ -261,7 +283,9 @@ Substituting:
 
 $$ I = \frac{8.40 \times 10^7}{2.10 \times 10^{11}} $$
 
-$$ I = 4.00 \times 10^{-4} ,\mathrm{m}^4 $$
+```math
+I = 4.00 \times 10^{-4}\ \mathrm{m}^4
+```
 
 ### Adopted Kratos beam representation
 
@@ -317,9 +341,13 @@ where:
 
 Converting the D-Sheet translational stiffness to SI units:
 
-$$ k = 1.00000 \times 10^4 ,\mathrm{kN}/\mathrm{m} $$
+```math
+k = 1.00000 \times 10^4\ \mathrm{kN}/\mathrm{m}
+```
 
-$$ k = 1.00000 \times 10^4 \times 10^3 = 1.0 \times 10^7,\mathrm{N}/\mathrm{m} $$
+```math
+k = 1.00000 \times 10^4 \times 10^3 = 1.0 \times 10^7\ \mathrm{N}/\mathrm{m}
+```
 
 ### Adopted Kratos anchor representation
 
@@ -333,7 +361,9 @@ Substituting the current Kratos values:
 
 $$ EA = 4.0 \times 10^{11} \cdot 1.0 \times 10^{-3} $$
 
-$$ EA = 4.0 \times 10^8 ,\mathrm{N} $$
+```math
+EA = 4.0 \times 10^8\ \mathrm{N}
+```
 
 ### Final values
 
@@ -427,8 +457,3 @@ The model in the `without_excavation` directory is defined in a way that the str
 - Deactivate the master-slave constraints, the interface elements will represent the discontinuity in the displacement at the diaphragm wall location.
 - Apply a surface load to a part of the top of the soil on the right-hand side.
 - Activate the anchor.
-
-
-
-
-
