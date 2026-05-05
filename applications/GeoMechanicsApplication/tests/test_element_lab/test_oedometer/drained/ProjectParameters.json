@@ -83,16 +83,16 @@
                 }
             },
             {
-                "python_module": "apply_scalar_constraint_table_process",
+                "python_module": "apply_vector_constraint_table_process",
                 "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
-                "process_name": "ApplyScalarConstraintTableProcess",
+                "process_name": "ApplyVectorConstraintTableProcess",
                 "Parameters": {
                     "model_part_name": "PorousDomain.Fixed_base",
-                    "variable_name": "WATER_PRESSURE",
-                    "is_fixed": true,
-                    "fluid_pressure_type": "Uniform",
-                    "value": 0.0,
-                    "table": 0
+                    "variable_name": "DISPLACEMENT",
+                    "active": [true, true, false],
+                    "is_fixed": [true, true, false],
+                    "value": [0.0, 0.0, 0.0],
+                    "table": [0, 0, 0]
                 }
             }
         ],
