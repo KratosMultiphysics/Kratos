@@ -645,6 +645,18 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
     def update_expected_results(self):
         print("Updating the expected results...")
 
+        # fmt: off
+        self.stages_info = {
+            "initial_stage":      {"end_time": -1.0, "base_name": "1_Initial_stage"},
+            "null_step":          {"end_time":  0.0, "base_name": "2_Null_step"},
+            "wall_installation":  {"end_time":  1.0, "base_name": "3_Sheetpile_installation"},
+            "first_excavation":   {"end_time":  2.0, "base_name": "4_First_excavation"},
+            "strut_installation": {"end_time":  3.0, "base_name": "5_Anchor_installation"},
+            "second_excavation":  {"end_time":  4.0, "base_name": "6_Second_excavation"},
+            "third_excavation":   {"end_time":  5.0, "base_name": "7_Third_excavation"},
+        }
+        # fmt: on
+
         target_dir = Path(
             test_helper.get_file_path(
                 Path("crow_validation") / "linear_elastic" / "staged_construction"
@@ -652,43 +664,51 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
         )
 
         reader = GiDOutputFileReader()
-        output_data = reader.read_output_from(
-            target_dir / "gid_output" / "3_Sheetpile_installation.post.res"
-        )
-        end_time = 1.0  # this needs to be looked up
         node_ids = get_sheetpile_node_ids()
-        bending_moments = reader.nodal_values_at_time(
-            "BENDING_MOMENT", end_time, output_data, node_ids=node_ids
-        )
-        shear_forces = reader.nodal_values_at_time(
-            "SHEAR_FORCE", end_time, output_data, node_ids=node_ids
-        )
-        horizontal_displacements = [
-            displacement_vector[0]
-            for displacement_vector in reader.nodal_values_at_time(
-                "DISPLACEMENT", end_time, output_data, node_ids=node_ids
+
+        for stage_name in ["wall_installation"]:
+            base_name = self.stages_info[stage_name]["base_name"]
+            output_data = reader.read_output_from(
+                target_dir / "gid_output" / f"{base_name}.post.res"
             )
-        ]
-
-        with open(
-            target_dir / "3_Sheetpile_installation_wall_expected_results.csv",
-            "w",
-            newline="",
-        ) as csv_file:
-            writer = csv.DictWriter(csv_file, fieldnames=csv_fieldnames)
-
-            writer.writeheader()
-            for node_id, bending_moment, shear_force, horizontal_displacement in zip(
-                node_ids, bending_moments, shear_forces, horizontal_displacements
-            ):
-                writer.writerow(
-                    {
-                        csv_fieldname_node: node_id,
-                        csv_fieldname_bending_moment: bending_moment,
-                        csv_fieldname_shear_force: shear_force,
-                        csv_fieldname_horizontal_displacement: horizontal_displacement,
-                    }
+            end_time = self.stages_info[stage_name]["end_time"]
+            bending_moments = reader.nodal_values_at_time(
+                "BENDING_MOMENT", end_time, output_data, node_ids=node_ids
+            )
+            shear_forces = reader.nodal_values_at_time(
+                "SHEAR_FORCE", end_time, output_data, node_ids=node_ids
+            )
+            horizontal_displacements = [
+                displacement_vector[0]
+                for displacement_vector in reader.nodal_values_at_time(
+                    "DISPLACEMENT", end_time, output_data, node_ids=node_ids
                 )
+            ]
+
+            with open(
+                target_dir / f"{base_name}_wall_expected_results.csv",
+                "w",
+                newline="",
+            ) as csv_file:
+                writer = csv.DictWriter(csv_file, fieldnames=csv_fieldnames)
+
+                writer.writeheader()
+                for (
+                    node_id,
+                    bending_moment,
+                    shear_force,
+                    horizontal_displacement,
+                ) in zip(
+                    node_ids, bending_moments, shear_forces, horizontal_displacements
+                ):
+                    writer.writerow(
+                        {
+                            csv_fieldname_node: node_id,
+                            csv_fieldname_bending_moment: bending_moment,
+                            csv_fieldname_shear_force: shear_force,
+                            csv_fieldname_horizontal_displacement: horizontal_displacement,
+                        }
+                    )
 
     # def test_simulation_without_excavation(self):
     #     self.run_simulation_and_checks("without_excavation")
