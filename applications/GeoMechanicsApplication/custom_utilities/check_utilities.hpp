@@ -175,7 +175,7 @@ private:
         }
     }
 
-    std::string double_to_string(double value) const;
+    static std::string double_to_string(double value);
 
     std::string print_property_id() const;
 
