@@ -806,7 +806,17 @@ namespace Kratos
             surrogate_integration_points_list.push_back(surrogate_integration_point);
             GeometriesArrayType surrogate_quadrature_list;
 
-            const int number_of_shape_function_derivatives = 5; //FIXME:
+            SizeType number_of_shape_function_derivatives = 3;
+            if (mParameters.Has("shape_function_derivatives_order")) {
+                number_of_shape_function_derivatives = mParameters["shape_function_derivatives_order"].GetInt();
+            }
+
+            const SizeType slave_polynomial_degree = p_slave_brep_curve->PolynomialDegree(0);
+            const SizeType required_derivatives_order = 2 * slave_polynomial_degree + 1;
+            if (number_of_shape_function_derivatives < required_derivatives_order) {
+                number_of_shape_function_derivatives = required_derivatives_order;
+            }
+
             IntegrationInfo surrogate_integration_info = p_slave_brep_curve->GetDefaultIntegrationInfo();
             const auto t_quad_sbm_begin = Clock::now();
             p_slave_brep_curve->pGetCurveOnSurface()->CreateQuadraturePointGeometriesSBM(

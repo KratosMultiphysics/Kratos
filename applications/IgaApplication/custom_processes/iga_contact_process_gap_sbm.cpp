@@ -15,6 +15,7 @@
 #include "iga_application_variables.h"
 #include "includes/global_pointer_variables.h"
 #include "geometries/brep_curve.h"
+#include "geometries/nurbs_curve_geometry.h"
 #include "spatial_containers/bins_dynamic.h"
 #include "containers/pointer_vector.h"
 #include "custom_utilities/iga_sbm_utilities.h"
@@ -110,17 +111,98 @@ namespace Kratos
         using DynamicBins = BinsDynamic<3, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator>;
         using PointerType = DynamicBins::PointerType;
         using BrepCurveType = BrepCurve<PointerVector<NodeType>, PointerVector<Point>>;
+        using DeformedCurveGeometryType = NurbsCurveGeometry<3, PointerVector<NodeType>>;
 
         ModelPart& r_slave_contact = mrSlaveModelPart->GetSubModelPart("contact");
 
-        // Build bins for slave contact geometries (based on centers).
-        // TODO: use deformed coordinates for the centers once available.
+        // Build bins for slave contact geometries based on deformed brep centers.
         PointVector slave_center_points;
+        std::vector<GeometryPointerType> deformed_slave_geometries(r_slave_contact.NumberOfGeometries());
+        std::vector<GeometryPointerType> reference_slave_geometries(r_slave_contact.NumberOfGeometries());
         slave_center_points.reserve(r_slave_contact.NumberOfGeometries());
+        IndexType next_deformed_slave_id = 1;
+        IndexType next_auxiliary_node_id = 1;
         for (auto& r_slave_geometry : r_slave_contact.Geometries()) {
-            const auto& r_center = r_slave_geometry.Center();
+            auto p_slave_brep_curve = std::dynamic_pointer_cast<BrepCurveType>(r_slave_contact.pGetGeometry(r_slave_geometry.Id()));
+            KRATOS_ERROR_IF(!p_slave_brep_curve)
+                << "::[IgaContactProcessGapSbm]:: geometry with id " << r_slave_geometry.Id()
+                << " is not a BrepCurve." << std::endl;
+
+            KRATOS_ERROR_IF_NOT(r_slave_geometry.Has(NEIGHBOUR_GEOMETRIES))
+                << "::[IgaContactProcessGapSbm]:: slave geometry #" << r_slave_geometry.Id()
+                << " missing NEIGHBOUR_GEOMETRIES required to compute deformed positions." << std::endl;
+            const auto& r_reference_geometries = r_slave_geometry.GetValue(NEIGHBOUR_GEOMETRIES);
+            KRATOS_ERROR_IF(r_reference_geometries.empty())
+                << "::[IgaContactProcessGapSbm]:: slave geometry #" << r_slave_geometry.Id()
+                << " has empty NEIGHBOUR_GEOMETRIES." << std::endl;
+
+            GeometryPointerType p_sampling_geometry = p_slave_brep_curve;
+            if (const auto p_background_curve = p_slave_brep_curve->pGetGeometryPart(GeometryType::BACKGROUND_GEOMETRY_INDEX)) {
+                p_sampling_geometry = p_background_curve;
+            }
+
+            std::vector<double> curve_spans;
+            p_sampling_geometry->SpansLocalSpace(curve_spans);
+            KRATOS_ERROR_IF(curve_spans.size() < 2)
+                << "::[IgaContactProcessGapSbm]:: slave geometry #" << r_slave_geometry.Id()
+                << " has invalid span sampling." << std::endl;
+
+            std::vector<double> sample_parameters;
+            sample_parameters.reserve(curve_spans.size() * 2 - 1);
+            sample_parameters.push_back(curve_spans.front());
+            for (IndexType i = 0; i + 1 < curve_spans.size(); ++i) {
+                const double left = curve_spans[i];
+                const double right = curve_spans[i + 1];
+                const double mid = 0.5 * (left + right);
+                sample_parameters.push_back(mid);
+                sample_parameters.push_back(right);
+            }
+
+            PointerVector<NodeType> deformed_curve_points;
+            deformed_curve_points.reserve(sample_parameters.size());
+            Vector deformed_curve_knots(sample_parameters.size());
+            for (IndexType i = 0; i < sample_parameters.size(); ++i) {
+                CoordinatesArrayType sample_local = ZeroVector(3);
+                sample_local[0] = sample_parameters[i];
+
+                CoordinatesArrayType sample_global = ZeroVector(3);
+                p_slave_brep_curve->GlobalCoordinates(sample_global, sample_local);
+
+                auto p_sample_node = Kratos::make_intrusive<NodeType>(
+                    next_auxiliary_node_id++,
+                    sample_global[0],
+                    sample_global[1],
+                    sample_global[2]);
+                p_sample_node->SetValue(NEIGHBOUR_GEOMETRIES, r_reference_geometries);
+
+                CoordinatesArrayType sample_global_deformed = sample_global;
+                IgaSbmUtilities::GetDeformedPosition(*p_sample_node, sample_global_deformed);
+
+                deformed_curve_points.push_back(
+                    Kratos::make_intrusive<NodeType>(
+                        next_auxiliary_node_id++,
+                        sample_global_deformed[0],
+                        sample_global_deformed[1],
+                        sample_global_deformed[2]));
+                deformed_curve_knots[i] = sample_parameters[i];
+            }
+
+            auto p_deformed_curve_geometry = Kratos::make_shared<DeformedCurveGeometryType>(
+                deformed_curve_points,
+                1,
+                deformed_curve_knots);
+            auto p_deformed_brep_curve = Kratos::make_shared<BrepCurveType>(p_deformed_curve_geometry);
+            p_deformed_brep_curve->SetId(next_deformed_slave_id);
+            p_deformed_brep_curve->SetValue(NEIGHBOUR_GEOMETRIES, r_reference_geometries);
+
+            deformed_slave_geometries[next_deformed_slave_id - 1] = p_deformed_brep_curve;
+            reference_slave_geometries[next_deformed_slave_id - 1] = p_slave_brep_curve;
+
+            const auto& r_center = p_deformed_brep_curve->Center();
             slave_center_points.push_back(
-                Kratos::make_intrusive<PointType>(r_slave_geometry.Id(), r_center.X(), r_center.Y(), r_center.Z()));
+                Kratos::make_intrusive<PointType>(next_deformed_slave_id, r_center.X(), r_center.Y(), r_center.Z()));
+
+            ++next_deformed_slave_id;
         }
 
         if (slave_center_points.empty()) {
@@ -185,7 +267,7 @@ namespace Kratos
             master_query_coordinates[1] = center.Y();
             master_query_coordinates[2] = center.Z();
 
-            // IgaSbmUtilities::GetDeformedPosition(r_master_condition, master_query_coordinates);
+            IgaSbmUtilities::GetDeformedPosition(r_master_condition, master_query_coordinates);
             
             PointType master_query_point(
                 0,
@@ -246,19 +328,33 @@ namespace Kratos
 
             GeometryPointerType p_best_slave_geometry = nullptr;
             BrepCurveType::Pointer p_best_slave_brep_curve = nullptr;
-            CoordinatesArrayType best_projection_global = ZeroVector(3);
+            BrepCurveType::Pointer p_best_reference_slave_brep_curve = nullptr;
+            CoordinatesArrayType best_projection_reference_global = ZeroVector(3);
             CoordinatesArrayType best_projection_local = ZeroVector(3);
             double best_projection_distance_sq = std::numeric_limits<double>::max();
 
             for (const auto& r_candidate : candidate_points) {
-                auto p_slave_geometry = r_slave_contact.pGetGeometry(r_candidate.second->Id());
+                const IndexType candidate_id = r_candidate.second->Id();
+                KRATOS_ERROR_IF(candidate_id == 0 || candidate_id > deformed_slave_geometries.size())
+                    << "::[IgaContactProcessGapSbm]:: invalid deformed slave geometry id "
+                    << candidate_id << "." << std::endl;
+
+                auto p_slave_geometry = deformed_slave_geometries[candidate_id - 1];
                 if (!p_slave_geometry) {
+                    continue;
+                }
+                auto p_reference_slave_geometry = reference_slave_geometries[candidate_id - 1];
+                if (!p_reference_slave_geometry) {
                     continue;
                 }
 
                 auto p_slave_brep_curve = std::dynamic_pointer_cast<BrepCurveType>(p_slave_geometry);
                 KRATOS_ERROR_IF(!p_slave_brep_curve)
                     << "::[IgaContactProcessGapSbm]:: geometry with id " << p_slave_geometry->Id()
+                    << " is not a BrepCurve." << std::endl;
+                auto p_reference_slave_brep_curve = std::dynamic_pointer_cast<BrepCurveType>(p_reference_slave_geometry);
+                KRATOS_ERROR_IF(!p_reference_slave_brep_curve)
+                    << "::[IgaContactProcessGapSbm]:: reference geometry with id " << p_reference_slave_geometry->Id()
                     << " is not a BrepCurve." << std::endl;
 
                 CoordinatesArrayType projection_local = ZeroVector(3);
@@ -291,22 +387,23 @@ namespace Kratos
 
                 if (projection_distance_sq < best_projection_distance_sq) {
                     best_projection_distance_sq = projection_distance_sq;
-                    best_projection_global = projection_global;
                     best_projection_local = projection_local;
-                    p_best_slave_geometry = p_slave_geometry;
+                    p_reference_slave_brep_curve->GlobalCoordinates(best_projection_reference_global, projection_local);
+                    p_best_slave_geometry = p_reference_slave_geometry;
                     p_best_slave_brep_curve = p_slave_brep_curve;
+                    p_best_reference_slave_brep_curve = p_reference_slave_brep_curve;
                 }
             }
 
-            if (!p_best_slave_geometry) {
+            if (!p_best_slave_geometry || !p_best_reference_slave_brep_curve) {
                 continue;
             }
 
             auto p_slave_projection_node = Kratos::make_intrusive<NodeType>(
                 next_projection_node_id++,
-                best_projection_global[0],
-                best_projection_global[1],
-                best_projection_global[2]);
+                best_projection_reference_global[0],
+                best_projection_reference_global[1],
+                best_projection_reference_global[2]);
 
             if (p_best_slave_brep_curve) {
                 Matrix jacobian = ZeroMatrix(3, 1);

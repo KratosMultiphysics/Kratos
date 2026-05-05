@@ -30,10 +30,15 @@ class KRATOS_API(IGA_APPLICATION) IgaSbmUtilities
 public:
     using IndexType = std::size_t;
     using SizeType = std::size_t;
+    using NodeType = Node;
     using GeometryType = Geometry<Node>;
 
     static void GetDeformedPosition(
         const Condition& rCondition,
+        array_1d<double, 3>& rPointDeformedCoordinates);
+
+    static void GetDeformedPosition(
+        const NodeType& rNode,
         array_1d<double, 3>& rPointDeformedCoordinates);
 
     static void GetSolutionCoefficientVector(

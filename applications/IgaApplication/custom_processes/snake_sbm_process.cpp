@@ -1380,6 +1380,8 @@ bool SnakeSbmProcess::IsPointInsideSkinBoundary(
     DynamicBins& rPointsBin, 
     const ModelPart& rSkinModelPart)
 {
+    constexpr double geometric_tolerance = 1.0e-4;
+
     // Get the nearest point of the true boundary
     DynamicBinsPointerType p_point_to_search = DynamicBinsPointerType(new PointType(1, rPoint1.X(), rPoint1.Y(), 0.0));
     DynamicBinsPointerType p_nearest_point = rPointsBin.SearchNearestPoint(*p_point_to_search);
@@ -1389,22 +1391,56 @@ bool SnakeSbmProcess::IsPointInsideSkinBoundary(
     const IndexType first_condition_id = rSkinModelPart.ConditionsBegin()->Id();
     const IndexType number_conditions = rSkinModelPart.NumberOfConditions();
 
-    auto compute_cross_product_z = [&](IndexType condition_id) {
+    auto compute_signed_distance = [&](IndexType condition_id) {
         const auto& r_condition = rSkinModelPart.GetCondition(condition_id);
-        const auto& r_third_point = r_condition.GetGeometry()[1].Coordinates();
+        const auto& r_first_point = r_condition.GetGeometry()[0];
+        const auto& r_second_point = r_condition.GetGeometry()[1];
 
-        array_1d<double,3> v_1;
-        array_1d<double,3> v_2;
+        array_1d<double,3> segment = r_second_point.Coordinates() - r_first_point.Coordinates();
+        const double segment_length = std::sqrt(segment[0] * segment[0] + segment[1] * segment[1]);
+        if (segment_length <= std::numeric_limits<double>::epsilon()) {
+            return 0.0;
+        }
 
-        v_1 = r_condition.GetGeometry()[0] - rPoint1;
-        v_2 = r_third_point - rPoint1;
+        array_1d<double,3> point_vector = ZeroVector(3);
+        point_vector[0] = rPoint1.X() - r_first_point.X();
+        point_vector[1] = rPoint1.Y() - r_first_point.Y();
+        point_vector[2] = rPoint1.Z() - r_first_point.Z();
 
-        array_1d<double,3> cross_product;
-        MathUtils<double>::CrossProduct(cross_product, v_1, v_2);
-        return cross_product[2];
+        const double cross_z = segment[0] * point_vector[1] - segment[1] * point_vector[0];
+        return cross_z / segment_length;
     };
 
-    const double cross_product_main_z = compute_cross_product_z(id_1);
+    auto is_point_on_condition = [&](IndexType condition_id) {
+        const auto& r_condition = rSkinModelPart.GetCondition(condition_id);
+        const auto& r_first_point = r_condition.GetGeometry()[0];
+        const auto& r_second_point = r_condition.GetGeometry()[1];
+
+        array_1d<double,3> segment = r_second_point.Coordinates() - r_first_point.Coordinates();
+        const double segment_length_sq = segment[0] * segment[0] + segment[1] * segment[1];
+        if (segment_length_sq <= std::numeric_limits<double>::epsilon()) {
+            const double dx = rPoint1.X() - r_first_point.X();
+            const double dy = rPoint1.Y() - r_first_point.Y();
+            return std::sqrt(dx * dx + dy * dy) <= geometric_tolerance;
+        }
+
+        array_1d<double,3> point_vector = ZeroVector(3);
+        point_vector[0] = rPoint1.X() - r_first_point.X();
+        point_vector[1] = rPoint1.Y() - r_first_point.Y();
+        point_vector[2] = rPoint1.Z() - r_first_point.Z();
+
+        const double segment_length = std::sqrt(segment_length_sq);
+        const double projection = inner_prod(point_vector, segment) / segment_length_sq;
+        const double projection_tolerance = geometric_tolerance / segment_length;
+        if (projection < -projection_tolerance || projection > 1.0 + projection_tolerance) {
+            return false;
+        }
+
+        const double cross_z = segment[0] * point_vector[1] - segment[1] * point_vector[0];
+        return std::abs(cross_z) / segment_length <= geometric_tolerance;
+    };
+
+    const double signed_distance_main = compute_signed_distance(id_1);
 
     IndexType id_2;
     if (id_1 == first_condition_id) {
@@ -1413,9 +1449,26 @@ bool SnakeSbmProcess::IsPointInsideSkinBoundary(
         id_2 = id_1 - 1;
     }
 
-    const double cross_product_previous_z = compute_cross_product_z(id_2);
+    if (is_point_on_condition(id_1) || is_point_on_condition(id_2)) {
+        return true;
+    }
 
-    if (cross_product_main_z * cross_product_previous_z < 0.0) {
+    const double signed_distance_previous = compute_signed_distance(id_2);
+
+    const auto classify_sign = [&](double signed_distance) {
+        if (signed_distance > geometric_tolerance) {
+            return 1;
+        }
+        if (signed_distance < -geometric_tolerance) {
+            return -1;
+        }
+        return 0;
+    };
+
+    const int main_sign = classify_sign(signed_distance_main);
+    const int previous_sign = classify_sign(signed_distance_previous);
+
+    if (main_sign * previous_sign < 0) {
         const auto& r_condition_main = rSkinModelPart.GetCondition(id_1);
         const auto& r_condition_previous = rSkinModelPart.GetCondition(id_2);
 
@@ -1444,11 +1497,21 @@ bool SnakeSbmProcess::IsPointInsideSkinBoundary(
         const Node prev_extended_node(0, prev_extended_coordinates[0], prev_extended_coordinates[1], prev_extended_coordinates[2]);
         
         if (SegmentsIntersect(temp_point, main_extended_node, prev_extended_node, r_prev_second_node)) {
-            return cross_product_previous_z > 0.0;
+            return previous_sign >= 0;
         }
     }
 
-    return cross_product_main_z > 0.0;
+    if (main_sign == 0 && previous_sign == 0) {
+        return true;
+    }
+    if (main_sign == 0) {
+        return previous_sign >= 0;
+    }
+    if (previous_sign == 0) {
+        return main_sign >= 0;
+    }
+
+    return main_sign > 0;
 }
 
 
@@ -1526,7 +1589,7 @@ void SnakeSbmProcess::MarkKnotSpansAvailable(
                 // Create 49 "fake" gauss_points to check if the majority are inside or outside
                 const int num_fake_gauss_points = 10;
                 int number_of_inside_gaussian_points = 0;
-                const double tollerance = rKnotStepUV[0]/1e4; // Tolerance to avoid numerical issues
+                const double tollerance = rKnotStepUV[0]/1e6; // Tolerance to avoid numerical issues
                 for (IndexType i_GPx = 0; i_GPx < num_fake_gauss_points; i_GPx++){
                     double x_coord = (j*rKnotStepUV[0]+tollerance) +
                                      (rKnotStepUV[0]-2*tollerance)/(num_fake_gauss_points-1)*(i_GPx) 
@@ -2179,7 +2242,7 @@ std::vector<std::vector<int>> SnakeSbmProcess::GenerateInnerSurrogateFromOuterKn
         << " cols=" << column_count << std::endl;
     std::vector<std::vector<int>> merged_outer = rOuterKnotSpansAvailable.front();
 
-    constexpr int refinement_patch_size = 2; //FIXME:
+    constexpr int refinement_patch_size = 3; //FIXME:
     std::vector<std::vector<int>> inner_knot_spans(row_count, std::vector<int>(column_count, 0));
 
     auto in_bounds = [row_count, column_count](const int row, const int column) {

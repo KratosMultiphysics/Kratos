@@ -154,7 +154,11 @@ SnakeGapSbmProcess::SnakeGapSbmProcess(
     mLambdaOuter = 1.0;
     mInternalDivisions = ThisParameters["number_internal_divisions"].GetInt();
 
-    if (mUseForMultipatch) mLambdaInner = 0.001;
+    // if (mUseForMultipatch) 
+    // { 
+    //     mLambdaInner = 0.001;
+    //     mLambdaOuter = 0.999;
+    // }
 }
 
 SnakeGapSbmProcess::KnotSpanNodeBinsCSR
@@ -540,9 +544,14 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries(
         }
     }
 
-    auto p_surface = mpIgaModelPart->pGetGeometry(1);    
+    auto p_surface = mpIgaModelPart->pGetGeometry(1);
+    KRATOS_ERROR_IF_NOT(p_surface)
+        << "::[SnakeGapSbmProcess]::CreateSbmExtendedGeometries: geometry with id 1 was not found." << std::endl;
+
     auto p_nurbs_surface = std::dynamic_pointer_cast<NurbsSurfaceType>(
-                            p_surface->pGetGeometryPart(Geometry<typename PointerVector<NodeType>::value_type>::BACKGROUND_GEOMETRY_INDEX));
+        p_surface->pGetGeometryPart(Geometry<typename PointerVector<NodeType>::value_type>::BACKGROUND_GEOMETRY_INDEX));
+    KRATOS_ERROR_IF_NOT(p_nurbs_surface)
+        << "::[SnakeGapSbmProcess]::CreateSbmExtendedGeometries: geometry with id 1 does not expose a NurbsSurfaceType background geometry." << std::endl;
     IntegrationInfo surface_integration_info = p_nurbs_surface->GetDefaultIntegrationInfo();
 
     // Build knot-span lookups and set projections from surrogate to skin
@@ -623,10 +632,15 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries(
 
     for (std::size_t j = 0; j < size_surrogate_loop; ++j) {
         auto p_brep_geometry = mpIgaModelPart->pGetGeometry(starting_brep_id + j);
+        KRATOS_ERROR_IF_NOT(p_brep_geometry)
+            << "::[SnakeGapSbmProcess]::CreateSbmExtendedGeometries: geometry with id "
+            << (starting_brep_id + j) << " was not found." << std::endl;
+
         auto p_brep_curve_on_surface_surrogate1_surrogate2 = std::dynamic_pointer_cast<BrepCurveOnSurfaceType>(p_brep_geometry);
 
-        KRATOS_ERROR_IF(!p_brep_curve_on_surface_surrogate1_surrogate2) <<  ":::[SnakeGapSbmProcess]::: the geometry with id " << p_brep_curve_on_surface_surrogate1_surrogate2->Id() 
-                                            << " is not a BrepCurveOnSurfaceType." << std::endl;
+        KRATOS_ERROR_IF_NOT(p_brep_curve_on_surface_surrogate1_surrogate2)
+            << "::[SnakeGapSbmProcess]::CreateSbmExtendedGeometries: geometry with id "
+            << p_brep_geometry->Id() << " is not a BrepCurveOnSurfaceType." << std::endl;
 
         NurbsInterval brep_domain_interval = p_brep_curve_on_surface_surrogate1_surrogate2->DomainInterval();
         CoordinatesArrayType surrogate_vertex_1 = ZeroVector(3); 
@@ -668,6 +682,10 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries(
         p_brep_curve_on_surface_surrogate1_surrogate2->CreateQuadraturePointGeometries(quadrature_point_list, number_of_shape_functions_derivatives, 
                                                             surrogate_integration_points_list, integration_info);
 
+        KRATOS_ERROR_IF(quadrature_point_list.size() == 0)
+            << "::[SnakeGapSbmProcess]::CreateSbmExtendedGeometries: no quadrature geometries were created for BREP geometry #"
+            << p_brep_geometry->Id() << std::endl;
+
         GeometryType::Pointer surrogate_brep_middle_geometry = quadrature_point_list(0);
 
         // Store the surrogate middle geometry for the lateral Breps
@@ -681,12 +699,12 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries(
         auto it_surrogate_node_1 = surrogate_node_lookup.find(key_vertex_1);
         auto it_surrogate_node_2 = surrogate_node_lookup.find(key_vertex_2);
 
-        {
+        if (it_surrogate_node_1 != surrogate_node_lookup.end()) {
             p_surrogate_node_1 = it_surrogate_node_1->second;
             auto& r_neighbour_geometries = p_surrogate_node_1->GetValue(NEIGHBOUR_GEOMETRIES);
             r_neighbour_geometries.push_back(surrogate_brep_middle_geometry);
         }
-        {
+        if (it_surrogate_node_2 != surrogate_node_lookup.end()) {
             p_surrogate_node_2 = it_surrogate_node_2->second;
             auto& r_neighbour_geometries = p_surrogate_node_2->GetValue(NEIGHBOUR_GEOMETRIES);
             r_neighbour_geometries.push_back(surrogate_brep_middle_geometry);
@@ -720,6 +738,16 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries(
                 }
             }
         }
+
+        KRATOS_ERROR_IF(!p_surrogate_node_1 || !p_surrogate_node_2)
+            << "::[SnakeGapSbmProcess]::CreateSbmExtendedGeometries: failed to match surrogate end nodes "
+            << "for BREP geometry #" << p_brep_curve_on_surface_surrogate1_surrogate2->Id()
+            << ". Vertex 1: " << surrogate_vertex_1
+            << " | Vertex 2: " << surrogate_vertex_2
+            << " | quantized hits: "
+            << (it_surrogate_node_1 != surrogate_node_lookup.end() ? "yes" : "no") << ", "
+            << (it_surrogate_node_2 != surrogate_node_lookup.end() ? "yes" : "no")
+            << std::endl;
 
         //------------------------------------------------------------------
         // check layer projection compatibility and build projection chain if necessary
@@ -765,6 +793,11 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries(
 
         if (!have_common_layer(r_projection_node_1_base, r_projection_node_2_base)) {
             projection_chain = AssestProjectionsFeasibility(rSkinSubModelPart, p_surrogate_node_1, p_surrogate_node_2);
+            // KRATOS_WATCH(*p_surrogate_node_1)
+            // KRATOS_WATCH(*p_surrogate_node_2)
+            // KRATOS_WATCH(rSkinSubModelPart.GetNode(projection_chain[0]))
+            // KRATOS_WATCH(rSkinSubModelPart.GetNode(projection_chain[1]))
+            // KRATOS_WATCH(rSkinSubModelPart.GetNode(projection_chain[2]))
         }
         KRATOS_ERROR_IF(projection_chain.empty())
             << "::[SnakeGapSbmProcess]:: Empty projection chain detected for surrogate nodes "
@@ -833,8 +866,15 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries(
             array_1d<double,3> v_proj_1_base = rSkinSubModelPart.GetNode(proj_id_first_base).Coordinates() - p_first_for_fallback->Coordinates();
             array_1d<double,3> v_proj_2_base = rSkinSubModelPart.GetNode(proj_id_second_base).Coordinates() - p_second_for_fallback->Coordinates();
             
-            double dot1_base = v_proj_1_base[0]*normal_cond[0] + v_proj_1_base[1]*normal_cond[1];
-            double dot2_base = v_proj_2_base[0]*normal_cond[0] + v_proj_2_base[1]*normal_cond[1]; 
+            // FIXME: SERVE DAVVERO?????????????
+            double dot1_base = 1;//v_proj_1_base[0]*normal_cond[0] + v_proj_1_base[1]*normal_cond[1];
+            double dot2_base = 1;//v_proj_2_base[0]*normal_cond[0] + v_proj_2_base[1]*normal_cond[1]; 
+
+            if (mUseForMultipatch)
+            {
+                double dot1_base = 1;
+                double dot2_base = 1;
+            }
 
             std::vector<Node::Pointer> surrogate_segment_nodes{p_first_for_fallback};
 
@@ -922,7 +962,7 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries(
                 // Only one satisfy inner product condition
                 array_1d<double,3> v_pair_1 = rSkinSubModelPart.GetNode(split_pair.first).Coordinates() - p_first_for_fallback->Coordinates();
                 array_1d<double,3> v_pair_2 = rSkinSubModelPart.GetNode(split_pair.second).Coordinates() - p_second_for_fallback->Coordinates();
-
+                
                 const double dot_pair1 = v_pair_1[0]*normal_cond[0] + v_pair_1[1]*normal_cond[1];
                 const double dot_pair2 = v_pair_2[0]*normal_cond[0] + v_pair_2[1]*normal_cond[1]; 
                 
@@ -971,6 +1011,13 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries(
                 const auto& p_first = surrogate_segment_nodes[segment];
                 const auto& p_second = surrogate_segment_nodes[segment + 1];
 
+                // KRATOS_WATCH("elemento gap:")
+                // KRATOS_WATCH(*p_first)
+                // KRATOS_WATCH(*p_second)
+                // KRATOS_WATCH(rSkinSubModelPart.GetNode(p_first->GetValue(PROJECTION_NODE_ID)))
+                // KRATOS_WATCH(rSkinSubModelPart.GetNode(p_second->GetValue(PROJECTION_NODE_ID)))
+
+                // KRATOS_WATCH("------------------------------------------")
                 CreateGapAndSkinQuadraturePoints<TIsInnerLoop>(
                     integration_parameters,
                     p_nurbs_surface,
@@ -1566,8 +1613,8 @@ void SnakeGapSbmProcess::CreateGapAndSkinQuadraturePoints(
         GeometriesArrayType brep_quadrature_point_list_skin;
 
         //FIXME:
-        // const int number_of_integration_points = 20;
-        const int number_of_integration_points = ((2*mGapInterpolationOrder+1));
+        const int number_of_integration_points = 20;
+        // const int number_of_integration_points = ((2*mGapInterpolationOrder+1));
         rIntegrationParameters.CurveIntegrationInfo.SetNumberOfIntegrationPointsPerSpan(0, number_of_integration_points);
 
         p_brep_curve_skin->CreateIntegrationPoints(brep_integration_points_list_skin, rIntegrationParameters.CurveIntegrationInfo);
@@ -2697,11 +2744,12 @@ void SnakeGapSbmProcess::SetSurrogateToSkinProjections(
 
         std::vector<std::string> forced_layers;
 
-        if (has_proj_1 && !has_proj_2) {
-            forced_layers = p_surrogate_node_1->GetValue(CONNECTED_LAYERS);
-        } else if (!has_proj_1 && has_proj_2) {
-            forced_layers = p_surrogate_node_2->GetValue(CONNECTED_LAYERS);
-        }
+        // FIXME:
+        // if (has_proj_1 && !has_proj_2) {
+        //     forced_layers = p_surrogate_node_1->GetValue(CONNECTED_LAYERS);
+        // } else if (!has_proj_1 && has_proj_2) {
+        //     forced_layers = p_surrogate_node_2->GetValue(CONNECTED_LAYERS);
+        // }
 
         if (!has_proj_1) {
             const auto selection = select_candidate(p_surrogate_node_1, forced_layers);
@@ -2718,7 +2766,8 @@ void SnakeGapSbmProcess::SetSurrogateToSkinProjections(
             p_surrogate_node_1->SetValue(CONNECTED_LAYERS, connected_layers);
             p_surrogate_node_1->SetValue(CONNECTED_CONDITIONS, connected_conditions);
 
-            forced_layers = connected_layers;
+            //FIXME:
+            // forced_layers = connected_layers;
         }
 
         if (!has_proj_2) {
