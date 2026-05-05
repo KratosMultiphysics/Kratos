@@ -19,6 +19,11 @@ import sys
 import KratosMultiphysics.GeoMechanicsApplication.geo_plot_utilities as plot_utils
 
 
+csv_field_name_node = "node"
+csv_field_name_bending_moment = "bending_moment"
+csv_field_name_shear_force = "shear_force"
+
+
 def get_sheetpile_node_ids():
     return [
         3968,
@@ -184,9 +189,11 @@ def get_expected_results_from_csv(csv_filepath):
     with open(csv_filepath, newline="") as csv_file:
         reader = csv.DictReader(csv_file)
         for row in reader:
-            result[int(row["node"])] = {
-                "bending_moment": float(row["bending_moment"]),
-                "shear_force": float(row["shear_force"]),
+            result[int(row[csv_field_name_node])] = {
+                csv_field_name_bending_moment: float(
+                    row[csv_field_name_bending_moment]
+                ),
+                csv_field_name_shear_force: float(row[csv_field_name_shear_force]),
             }
 
     return result
@@ -199,15 +206,17 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
         self.stages_info = None  # Will be populated by the specific simulation runs
 
     def run_staged_construction_analysis_and_checks(self, material_model_dir_name):
+        # fmt: off
         self.stages_info = {
-            "initial_stage": {"end_time": -1.0, "base_name": "1_Initial_stage"},
-            "null_step": {"end_time": 0.0, "base_name": "2_Null_step"},
+            "initial_stage":      {"end_time": -1.0, "base_name": "1_Initial_stage"},
+            "null_step":          {"end_time":  0.0, "base_name": "2_Null_step"},
             "wall_installation":  {"end_time":  1.0, "base_name": "3_Sheetpile_installation"},
-            "first_excavation": {"end_time": 2.0, "base_name": "4_First_excavation"},
+            "first_excavation":   {"end_time":  2.0, "base_name": "4_First_excavation"},
             "strut_installation": {"end_time":  3.0, "base_name": "5_Anchor_installation"},
-            "second_excavation": {"end_time": 4.0, "base_name": "6_Second_excavation"},
-            "third_excavation": {"end_time": 5.0, "base_name": "7_Third_excavation"},
+            "second_excavation":  {"end_time":  4.0, "base_name": "6_Second_excavation"},
+            "third_excavation":   {"end_time":  5.0, "base_name": "7_Third_excavation"},
         }
+        # fmt: on
 
         self.run_simulation_and_checks(
             Path(material_model_dir_name) / "staged_construction",
@@ -266,12 +275,12 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             expected_nodal_results = expected_results[node_id]
             self.assertAlmostEqual(
                 bending_moment,
-                expected_nodal_results["bending_moment"],
+                expected_nodal_results[csv_field_name_bending_moment],
                 msg=f"Bending moment at node {node_id}",
             )
             self.assertAlmostEqual(
                 shear_force,
-                expected_nodal_results["shear_force"],
+                expected_nodal_results[csv_field_name_shear_force],
                 msg=f"Shear force at node {node_id}",
             )
 
@@ -644,7 +653,11 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             "w",
             newline="",
         ) as csv_file:
-            fieldnames = ["node", "bending_moment", "shear_force"]
+            fieldnames = [
+                csv_field_name_node,
+                csv_field_name_bending_moment,
+                csv_field_name_shear_force,
+            ]
             writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
 
             writer.writeheader()
@@ -653,9 +666,9 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             ):
                 writer.writerow(
                     {
-                        "node": node_id,
-                        "bending_moment": bending_moment,
-                        "shear_force": shear_force,
+                        csv_field_name_node: node_id,
+                        csv_field_name_bending_moment: bending_moment,
+                        csv_field_name_shear_force: shear_force,
                     }
                 )
 
