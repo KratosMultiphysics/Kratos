@@ -31,11 +31,11 @@ class KratosGeoMechanicsPiecewiseLinearMomentCapacityTests(KratosUnittest.TestCa
         output_data = reader.read_output_from(output_file_name)
 
         times = [1.0, 2.0, 3.0, 4.0]
-        expected_forces_x = [0., 0., 0., 0.]
-        expected_displacements_x = [-1.0, -0.75, -1.0, -2.0]
+        expected_forces_x = [0.81055, -1.08659, 1.20015, 1.5]
+        expected_displacements_x = [1.0, 0.75, 1.0, 2.0]
         for time, expected_force_x, expected_displacement_x in zip(times, expected_forces_x, expected_displacements_x):
             section_force = GiDOutputFileReader.element_integration_point_values_at_time("FORCE", time, output_data, [1], [0])[0][0]
-            self.assertAlmostEqual(section_force[0], expected_force_x, 2)
+            self.assertAlmostEqual(section_force[0], expected_force_x, 4)
             displacement = GiDOutputFileReader.nodal_values_at_time("DISPLACEMENT", time, output_data, [3])[0]
             self.assertAlmostEqual(displacement[0], expected_displacement_x, 2)
 
@@ -52,11 +52,11 @@ class KratosGeoMechanicsPiecewiseLinearMomentCapacityTests(KratosUnittest.TestCa
         output_data = reader.read_output_from(output_file_name)
 
         times = [1.0, 2.0, 3.0, 4.0]
-        expected_forces_x = [0., 0., 0., 0.]
+        expected_forces_x = [-0.81055, 1.08659, -1.20015, -1.5]
         expected_displacements_x = [-1.0, -0.75, -1.0, -2.0]
         for time, expected_force_x, expected_displacement_x in zip(times, expected_forces_x, expected_displacements_x):
             section_force = GiDOutputFileReader.element_integration_point_values_at_time("FORCE", time, output_data, [1], [0])[0][0]
-            self.assertAlmostEqual(section_force[0], expected_force_x, 2)
+            self.assertAlmostEqual(section_force[0], expected_force_x, 4)
             displacement = GiDOutputFileReader.nodal_values_at_time("DISPLACEMENT", time, output_data, [3])[0]
             self.assertAlmostEqual(displacement[0], expected_displacement_x, 2)
 
@@ -73,11 +73,11 @@ class KratosGeoMechanicsPiecewiseLinearMomentCapacityTests(KratosUnittest.TestCa
         output_data = reader.read_output_from(output_file_name)
 
         times = [1.0, 2.0, 3.0, 4.0]
-        expected_forces_x = [0., 0., 0., 0.]
-        expected_displacements_x = [-1.0, -0.75, -1.0, -2.0]
+        expected_forces_x = [0.81055, -1.38546, -1.5, -1.5]
+        expected_displacements_x = [1.0, 0.0, -1.0, 0.0]
         for time, expected_force_x, expected_displacement_x in zip(times, expected_forces_x, expected_displacements_x):
             section_force = GiDOutputFileReader.element_integration_point_values_at_time("FORCE", time, output_data, [1], [0])[0][0]
-            self.assertAlmostEqual(section_force[0], expected_force_x, 2)
+            self.assertAlmostEqual(section_force[0], expected_force_x, 4)
             displacement = GiDOutputFileReader.nodal_values_at_time("DISPLACEMENT", time, output_data, [3])[0]
             self.assertAlmostEqual(displacement[0], expected_displacement_x, 2)
 
@@ -94,11 +94,11 @@ class KratosGeoMechanicsPiecewiseLinearMomentCapacityTests(KratosUnittest.TestCa
         output_data = reader.read_output_from(output_file_name)
 
         times = [1.0, 2.0, 3.0, 4.0]
-        expected_forces_x = [0., 0., 0., 0.]
-        expected_displacements_x = [-1.0, -0.75, -1.0, -2.0]
+        expected_forces_x = [-0.81055, 1.38546, 1.5, 1.5]
+        expected_displacements_x = [-1.0, -0.0, 1.0, 0.0]
         for time, expected_force_x, expected_displacement_x in zip(times, expected_forces_x, expected_displacements_x):
             section_force = GiDOutputFileReader.element_integration_point_values_at_time("FORCE", time, output_data, [1], [0])[0][0]
-            self.assertAlmostEqual(section_force[0], expected_force_x, 2)
+            self.assertAlmostEqual(section_force[0], expected_force_x, 4)
             displacement = GiDOutputFileReader.nodal_values_at_time("DISPLACEMENT", time, output_data, [3])[0]
             self.assertAlmostEqual(displacement[0], expected_displacement_x, 2)
 

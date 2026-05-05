@@ -36,22 +36,22 @@ double& PiecewiseLinearMomentCapacityConstitutiveLaw::CalculateValue(Constitutiv
                                                                      double& rValue)
 {
     if (rVariable == TANGENT_MODULUS) {
-        const auto abs_curvature = std::abs(rParameters.GetStrainVector()[0]);
+        const auto curvature = rParameters.GetStrainVector()[0];
         // If a modulus for un/reload is supplied, use the stored modulus inside the elastic window
         if (mUnReLoadModulus > 0.0) {
-            if (IsWithinUnReLoading(abs_curvature)) {
+            // Use actual curvature (with sign) for unload/reload window checks
+            if (IsWithinUnReLoading(curvature)) {
                 rValue = mUnReLoadModulus;
                 return rValue;
             }
-            // outside the window: compute effective curvature on backbone
+            // outside the window: compute effective curvature on backbone (positive quantity)
             const auto amplitude = CalculateUnReLoadAmplitude();
-            const auto effective =
-                mAccumulatedCurvature + (std::abs(abs_curvature - mUnReLoadCenter) - amplitude);
+            const auto effective = mAccumulatedCurvature + (std::abs(curvature - mUnReLoadCenter) - amplitude);
             rValue = mStressStrainTable.GetDerivative(effective);
             return rValue;
         }
-        // Default: TANGENT_MODULUS is the derivative dM/d(kappa)
-        rValue = mStressStrainTable.GetDerivative(abs_curvature);
+        // Default: TANGENT_MODULUS is the derivative dM/d(kappa) based on absolute curvature
+        rValue = mStressStrainTable.GetDerivative(std::abs(curvature));
         return rValue;
     }
 
