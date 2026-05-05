@@ -36,6 +36,7 @@
 #include "custom_processes/mpc_contact_search_process.h"
 #include "custom_processes/mpc_contact_search_wrapper_process.h"
 #include "custom_processes/assign_parent_element_conditions_process.h"
+#include "custom_processes/prepare_linear_constraints_for_quadratic_contact_process.h"
 
 namespace Kratos::Python
 {
@@ -211,6 +212,11 @@ void  AddCustomProcessesToPython(pybind11::module& m)
     py::class_<AssignParentElementConditionsProcess, AssignParentElementConditionsProcess::Pointer, Process>(m,"AssignParentElementConditionsProcess")
     .def(py::init<ModelPart&,ModelPart&>())
     .def(py::init<Model&, Parameters>())
+    ;
+
+    // PrepareLinearConstraintsForQuadraticContactProcess
+    py::class_<PrepareLinearConstraintsForQuadraticContactProcess, PrepareLinearConstraintsForQuadraticContactProcess::Pointer, Process>(m, "PrepareLinearConstraintsForQuadraticContactProcess")
+    .def(py::init<ModelPart&, ProcessInfo&>())
     ;
 }
 }  // namespace Kratos::Python.
