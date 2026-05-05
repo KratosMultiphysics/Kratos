@@ -371,7 +371,6 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
         return variable_data_collections
 
     def create_interface_plots(self, project_path):
-        # structural_stages = [self.stages_info["final_equilibrium"]]
         structural_stages = self.get_plot_stages()
 
         normal_traction_kratos_label = "GEO_EFFECTIVE_TRACTION_VECTOR"
@@ -412,7 +411,6 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
         )
 
     def get_plot_stages(self):
-        # return [self.stages_info["final_equilibrium"]]
         return [
             self.stages_info["wall_installation"],
             self.stages_info["first_excavation"],
@@ -720,9 +718,6 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
                             csv_fieldname_horizontal_displacement: horizontal_displacement,
                         }
                     )
-
-    # def test_simulation_without_excavation(self):
-    #     self.run_simulation_and_checks("without_excavation")
 
     def test_staged_construction_with_linear_elastic_behavior(self):
         self.run_staged_construction_analysis_and_checks("linear_elastic")
