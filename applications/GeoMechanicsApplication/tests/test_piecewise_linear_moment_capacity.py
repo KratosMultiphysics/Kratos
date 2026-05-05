@@ -6,9 +6,19 @@ import test_helper
 
 
 def run_piecewise_case(project_subpath, times, expected_forces, expected_displacements, tol=1e-4):
-    import os
     project_path = test_helper.get_file_path(os.path.join('piecewise_linear_moment_capacity', project_subpath))
-    test_helper.run_kratos(project_path)
+    project_parameters_file = test_helper.get_file_path(
+        os.path.join('piecewise_linear_moment_capacity', 'common', 'ProjectParameters.json'))
+
+    cwd = os.getcwd()
+    try:
+        os.chdir(project_path)
+        with open(project_parameters_file, 'r') as parameter_file:
+            parameters = test_helper.Kratos.Parameters(parameter_file.read())
+        simulation = test_helper.analysis.GeoMechanicsAnalysis(test_helper.Kratos.Model(), parameters)
+        simulation.Run()
+    finally:
+        os.chdir(cwd)
 
     output_file = os.path.join(project_path, 'piecewise_linear_moment_capacity_mat.post.res')
     reader = GiDOutputFileReader()
@@ -38,7 +48,7 @@ class KratosGeoMechanicsPiecewiseLinearMomentCapacityTests(KratosUnittest.TestCa
         # Code here will be placed AFTER every test in this TestCase.
         pass
 
-    pass
+
     def test_piecewise_linear_moment_capacity_tension(self):
         """
         2 element elongation test for piecewise linear moment capacity material.
