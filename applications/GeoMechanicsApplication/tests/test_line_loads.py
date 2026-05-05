@@ -8,6 +8,7 @@ from KratosMultiphysics.project import Project
 import importlib
 from KratosMultiphysics.GeoMechanicsApplication.gid_output_file_reader import GiDOutputFileReader
 import KratosMultiphysics.GeoMechanicsApplication.run_multiple_stages as run_multiple_stages
+from helper_utilities import _compare_case_outputs
 
 class KratosGeoMechanicsLineLoadTests(KratosUnittest.TestCase):
     """
@@ -20,57 +21,37 @@ class KratosGeoMechanicsLineLoadTests(KratosUnittest.TestCase):
         reactions = GiDOutputFileReader.nodal_values_at_time("REACTION", time, output_data, node_ids=node_ids)
         return sum([reaction[1] for reaction in reactions])
 
-    def test_line_load_3D2N_hex(self):
-        test_name = 'line_load_3D2N_hex'
-        parent_name = 'line_load_tests'
-        file_path = test_helper.get_file_path(os.path.join(parent_name, test_name + '.gid'))
+    def _assert_single_node_y_displacement(
+        self, parent_name, test_name, node_number, expected_value
+    ):
+        file_path = test_helper.get_file_path(
+            os.path.join(parent_name, test_name + '.gid')
+        )
         simulation = test_helper.run_kratos(file_path)
+        y_displacements = [
+            displacement[1] for displacement in test_helper.get_displacement(simulation)
+        ]
+        self.assertAlmostEqual(expected_value, y_displacements[node_number - 1], 6)
 
-        displacements = test_helper.get_displacement(simulation)
-        y_displacements = [displacement[1] for displacement in displacements]
-
-        node_number = 2
-        expected_value = 0.00042943
-        self.assertAlmostEqual(expected_value, y_displacements[node_number-1], 6)
+    def test_line_load_3D2N_hex(self):
+        self._assert_single_node_y_displacement(
+            'line_load_tests', 'line_load_3D2N_hex', 2, 0.00042943
+        )
 
     def test_line_load_3D2N_tet(self):
-        test_name = 'line_load_3D2N_tet'
-        parent_name = 'line_load_tests'
-        file_path = test_helper.get_file_path(os.path.join(parent_name, test_name + '.gid'))
-        simulation = test_helper.run_kratos(file_path)
-
-        displacements = test_helper.get_displacement(simulation)
-        y_displacements = [displacement[1] for displacement in displacements]
-
-        node_number = 4
-        expected_value = 0.00034701
-        self.assertAlmostEqual(expected_value, y_displacements[node_number-1], 6)
+        self._assert_single_node_y_displacement(
+            'line_load_tests', 'line_load_3D2N_tet', 4, 0.00034701
+        )
 
     def test_line_load_3D3N_hex(self):
-        test_name = 'line_load_3D3N_hex'
-        parent_name = 'line_load_tests'
-        file_path = test_helper.get_file_path(os.path.join(parent_name, test_name + '.gid'))
-        simulation = test_helper.run_kratos(file_path)
-
-        displacements = test_helper.get_displacement(simulation)
-        y_displacements = [displacement[1] for displacement in displacements]
-
-        node_number = 5
-        expected_value = 0.0006958
-        self.assertAlmostEqual(expected_value, y_displacements[node_number-1], 6)
+        self._assert_single_node_y_displacement(
+            'line_load_tests', 'line_load_3D3N_hex', 5, 0.0006958
+        )
 
     def test_line_load_3D3N_tet(self):
-        test_name = 'line_load_3D3N_tet'
-        parent_name = 'line_load_tests'
-        file_path = test_helper.get_file_path(os.path.join(parent_name, test_name + '.gid'))
-        simulation = test_helper.run_kratos(file_path)
-
-        displacements = test_helper.get_displacement(simulation)
-        y_displacements = [displacement[1] for displacement in displacements]
-
-        node_number = 11
-        expected_value = 0.00064506
-        self.assertAlmostEqual(expected_value, y_displacements[node_number-1], 6)
+        self._assert_single_node_y_displacement(
+            'line_load_tests', 'line_load_3D3N_tet', 11, 0.00064506
+        )
 
     def test_nonuniform_line_load(self):
         test_name = 'non-uniform_line_load'
@@ -156,6 +137,18 @@ class KratosGeoMechanicsLineLoadTests(KratosUnittest.TestCase):
 
         project_parameters_filename = test_helper.get_file_path(os.path.join(file_path, "ProjectParametersLoadFromCheckpoint.json"))
         self.run_orchestrator_based_workflow(file_path, project_parameters_filename)
+
+        full_run_stage_2 = os.path.join(file_path, "test_stage2.post.res")
+        checkpoint_stage_2 = os.path.join(
+            file_path, "test_stage_2_calculated_from_checkpoint.post.res"
+        )
+        _compare_case_outputs(
+            full_run_stage_2,
+            checkpoint_stage_2,
+            abs_tol=1e-7,
+            rel_tol=0.0,
+            variables=["REACTION"],
+        )
 
         time = 2.0
         bottom_node_ids = [1, 2, 6, 11, 17, 25, 34, 46, 59, 75, 90]
