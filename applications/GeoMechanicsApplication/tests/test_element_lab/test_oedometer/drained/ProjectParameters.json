@@ -38,8 +38,8 @@
         "min_iterations": 6,
         "max_iterations": 50,
         "number_cycles": 1,
-        "reduction_factor": 0.5,
-        "increase_factor": 2.0,
+        "reduction_factor": 1.0,
+        "increase_factor": 1.0,
         "max_line_search_iterations": 5,
         "first_alpha_value": 0.5,
         "second_alpha_value": 1.0,
@@ -83,30 +83,31 @@
                 }
             },
             {
-                "python_module": "apply_scalar_constraint_table_process",
+                "python_module": "apply_vector_constraint_table_process",
                 "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
-                "process_name": "ApplyScalarConstraintTableProcess",
+                "process_name": "ApplyVectorConstraintTableProcess",
                 "Parameters": {
                     "model_part_name": "PorousDomain.Fixed_base",
-                    "variable_name": "WATER_PRESSURE",
-                    "is_fixed": true,
-                    "fluid_pressure_type": "Uniform",
-                    "value": 0.0,
-                    "table": 0
+                    "variable_name": "DISPLACEMENT",
+                    "active": [true, true, false],
+                    "is_fixed": [true, true, false],
+                    "value": [0.0, 0.0, 0.0],
+                    "table": [0, 0, 0]
                 }
             }
         ],
         "loads_process_list": [
             {
-                "python_module": "apply_vector_constraint_table_process",
+                "python_module": "apply_normal_load_table_process",
                 "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
-                "process_name": "ApplyVectorConstraintTableProcess",
+                "process_name": "ApplyNormalLoadTableProcess",
                 "Parameters": {
                     "model_part_name": "PorousDomain.Top_load",
-                    "variable_name": "LINE_LOAD",
-                    "active": [false, true, false],
-                    "value": [0.0, 0.0, 0.0],
-                    "table": [0, 1, 0]
+                    "variable_name": "NORMAL_CONTACT_STRESS",
+                    "active": [true, false],
+                    "value": [0.0, 0.0],
+                    "table": [1, 0],
+                    "fluid_pressure_type": "Uniform"
                 }
             }
         ]

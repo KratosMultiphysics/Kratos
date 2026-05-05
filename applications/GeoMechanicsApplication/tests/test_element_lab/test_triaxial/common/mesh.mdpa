@@ -29,8 +29,8 @@ Begin Nodes
 End Nodes
 
 Begin Elements SmallStrainUPwDiffOrderAxisymmetricElement2D6N
-        1          0     1     5     9     3     8     4 
-        2          0     9     6     1     7     2     4 
+        1          1     1     5     9     3     8     4 
+        2          1     9     6     1     7     2     4 
 End Elements
 
 Begin Conditions AxisymmetricLineNormalLoadDiffOrderCondition2D3N

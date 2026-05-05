@@ -28,12 +28,51 @@
      inkscape:cy="258.91089"
      inkscape:window-width="1920"
      inkscape:window-height="1009"
+<<<<<<< HEAD
      inkscape:window-x="-8"
+=======
+     inkscape:window-x="1912"
+>>>>>>> origin/master
      inkscape:window-y="-8"
      inkscape:window-maximized="1"
      inkscape:current-layer="layer1" />
   <defs
      id="defs1">
+<<<<<<< HEAD
+=======
+    <inkscape:path-effect
+       effect="powerstroke"
+       message=""
+       id="path-effect3"
+       is_visible="true"
+       lpeversion="1.3"
+       scale_width="1"
+       interpolator_type="CubicBezierJohan"
+       interpolator_beta="0.2"
+       start_linecap_type="zerowidth"
+       end_linecap_type="zerowidth"
+       offset_points="1,4.9921382"
+       linejoin_type="extrp_arc"
+       miter_limit="4"
+       not_jump="false"
+       sort_points="true" />
+    <inkscape:path-effect
+       effect="powerstroke"
+       message=""
+       id="path-effect1"
+       is_visible="true"
+       lpeversion="1.3"
+       scale_width="1"
+       interpolator_type="CubicBezierJohan"
+       interpolator_beta="0.2"
+       start_linecap_type="zerowidth"
+       end_linecap_type="zerowidth"
+       offset_points="1,4.9921382"
+       linejoin_type="extrp_arc"
+       miter_limit="4"
+       not_jump="false"
+       sort_points="true" />
+>>>>>>> origin/master
     <marker
        style="overflow:visible"
        id="Triangle-0-8"
@@ -174,6 +213,17 @@
          d="M 5.77,0 -2.88,5 V -5 Z"
          id="path135-7-8-3" />
     </marker>
+<<<<<<< HEAD
+=======
+    <inkscape:path-effect
+       effect="fill_between_many"
+       method="bsplinespiro"
+       autoreverse="false"
+       close="false"
+       join="false"
+       linkedpaths="#path1,0,1"
+       id="path-effect2" />
+>>>>>>> origin/master
   </defs>
   <g
      inkscape:label="Layer 1"
@@ -895,8 +945,31 @@
        transform="matrix(4.4494798,0,0,4.3529564,-527.68434,-199.83333)"><tspan
          x="151.99628"
          y="48.579926"
+<<<<<<< HEAD
          id="tspan16"><tspan
            style="font-size:1.58848px;font-family:Calibri;-inkscape-font-specification:'Calibri, Normal'"
            id="tspan13">σ</tspan></tspan></text>
+=======
+         id="tspan12"><tspan
+           style="font-size:1.58848px;font-family:Calibri;-inkscape-font-specification:'Calibri, Normal'"
+           id="tspan11">σ</tspan></tspan></text>
+    <path
+       inkscape:original-d="M 0,0"
+       inkscape:path-effect="#path-effect2"
+       d="M 50.297029,24.10066 50.035065,126.79043"
+       id="path2"
+       style="fill:#fe0000" />
+    <path
+       style="fill:none;fill-rule:nonzero;stroke:none;stroke-width:0.2;stroke-dasharray:none;stroke-opacity:1"
+       d="m 50.297029,24.10066 c -0.05239,20.537954 -5.201693,82.13908 -5.254086,102.67703 0,0 4.992122,0.0127 4.992122,0.0127 0,0 4.992122,0.0127 4.992122,0.0127 0.05239,-20.53796 -4.782551,-82.164556 -4.730158,-102.70251 z"
+       id="path1"
+       inkscape:path-effect="#path-effect1"
+       inkscape:original-d="M 50.297029,24.10066 50.035065,126.79043"
+       inkscape:linked-fill="path2" />
+    <path
+       style="fill:#f41414;fill-opacity:1;stroke:#ff0000;stroke-width:1.0155;stroke-dasharray:4.06202, 1.0155;stroke-dashoffset:0.71085;stroke-opacity:1"
+       d="m 52.392957,30.38201 0.523491,92.73624"
+       id="path4" />
+>>>>>>> origin/master
   </g>
 </svg>
