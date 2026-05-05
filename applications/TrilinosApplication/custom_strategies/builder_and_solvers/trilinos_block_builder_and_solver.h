@@ -1711,7 +1711,7 @@ private:
      * @brief Generates the Map used for the vectors and matrices
      * @return Returns the Map considered for the graphs
      */
-    typename TSparseSpace::MapType& GetMap()
+    const typename TSparseSpace::MapType& GetMap()
     {
         if (TSparseSpace::IsNull(mpMap)) {
             // Generate map - use the "temp" array here
@@ -1728,7 +1728,7 @@ private:
             }
         }
 
-        return const_cast<typename TSparseSpace::MapType&>(*mpMap);
+        return *mpMap;
     }
 
     /**
