@@ -73,6 +73,7 @@ from test_dirichlet_u_constant import KratosGeoMechanicsDirichletUConstantTests
 from interface_prestress import KratosGeoMechanicsInterfacePreStressTests
 from test_upw_interface import KratosGeoMechanicsUPwInterfaceTests
 from test_building_pit import KratosGeoMechanicsBuildingPit
+from test_CROW_case import KratosGeoMechanicsCrowValidation
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -165,6 +166,7 @@ def AssembleTestSuites():
                         KratosGeoMechanicsTransientThermalValidationTests,
                         KratosGeoMechanicsDSettlementValidationTests,
                         KratosGeoMechanicsBuildingPit,
+                        KratosGeoMechanicsCrowValidation,
                         ]
 
     # Create an array that contains all the tests from every testCase
