@@ -13,7 +13,7 @@ def Factory(settings, Model):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
     
     # Extract the model part name and parameters
-    model_part_name = settings["model_part_name"].GetString()
+    model_part_name = settings["Parameters"]["model_part_name"].GetString()
     model_part = Model[model_part_name]
     process_info = model_part.ProcessInfo
     
