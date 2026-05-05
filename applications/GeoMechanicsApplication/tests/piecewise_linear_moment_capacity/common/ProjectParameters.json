@@ -1,6 +1,6 @@
 {
     "problem_data": {
-        "problem_name": "piecewise_linear_moment_capacity_mat",
+        "problem_name": "piecewise_linear_moment_capacity",
         "start_time": 0.0,
         "end_time": 4.0,
         "echo_level": 1,
@@ -48,8 +48,6 @@
         "reduction_factor": 1.0,
         "increase_factor": 1.0,
         "desired_iterations": 4,
-        "max_radius_factor": 10.0,
-        "min_radius_factor": 0.1,
         "calculate_reactions": true,
         "rotation_dofs": true,
         "problem_domain_sub_model_part_list": ["Truss"],
@@ -63,7 +61,7 @@
                 "process_name": "GiDOutputProcess",
                 "Parameters": {
                     "model_part_name": "PorousDomain.porous_computational_model_part",
-                    "output_name": "piecewise_linear_moment_capacity_mat",
+                    "output_name": "piecewise_linear_moment_capacity",
                     "postprocess_parameters": {
                         "result_file_configuration": {
                             "gidpost_flags": {
