@@ -82,6 +82,12 @@ class L2ProjectionGradientRecoverer(L2ProjectionDerivativesRecoverer, recoverer.
         self.element_type = f"ComputeComponentGradientSimplex3D{self.num_points_element}N"
         self.condition_type = f"ComputeLaplacianSimplexCondition3D{self.num_points_condition}N"
         self.FillUpModelPart(self.element_type, self.condition_type)
+        # ComputeLaplacianSimplexCondition accesses VELOCITY_LAPLACIAN DOFs in GetDofList,
+        # but the gradient recoverer only has VELOCITY_COMPONENT_GRADIENT DOFs. Since these
+        # conditions contribute zero to the system anyway (natural Neumann BCs = zero flux),
+        # removing them is mathematically equivalent and avoids the missing-DOF crash.
+        Kratos.VariableUtils().SetFlag(Kratos.TO_ERASE, True, self.recovery_model_part.Conditions)
+        self.recovery_model_part.RemoveConditions(Kratos.TO_ERASE)
         self.DOFs = (Kratos.VELOCITY_COMPONENT_GRADIENT_X, Kratos.VELOCITY_COMPONENT_GRADIENT_Y, Kratos.VELOCITY_COMPONENT_GRADIENT_Z)
         self.AddDofs(self.DOFs)
         self.calculate_vorticity = (project_parameters["vorticity_calculation_type"].GetInt() > 0

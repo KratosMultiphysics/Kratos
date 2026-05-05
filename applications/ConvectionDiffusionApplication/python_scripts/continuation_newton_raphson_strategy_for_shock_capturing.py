@@ -113,9 +113,9 @@ class ResidualBasedNewtonRaphsonStrategyPython():
         self.convergence_criteria.InitializeNonLinearIteration(self.main_model_part,dof_set,self.A,self.Dx,self.b)
         is_converged = self.convergence_criteria.PreCriteria(self.main_model_part,dof_set,self.A,self.Dx,self.b)
 
-        for node in self.main_model_part.Nodes:
-            if node.Id == 44:
-                print(node.GetSolutionStepValue(self.convection_diffusion_variable))
+        # for node in self.main_model_part.Nodes:
+        #     if node.Id == 44:
+        #         print(node.GetSolutionStepValue(self.convection_diffusion_variable))
 
         if (self.rebuild_level > 0 or self.StiffnessMatrixIsBuilt == False):
             self.space_utils.SetToZeroVector(self.Dx)
@@ -201,6 +201,7 @@ class ResidualBasedNewtonRaphsonStrategyPython():
         self.scheme.Clean()
         if (self.ReformDofSetAtEachStep == True):
             self.Clear()
+        print(f"Finalized shock capturing iterations...")
 
     def Clear(self):
         self.builder_and_solver.SetDofSetIsInitializedFlag(False)
