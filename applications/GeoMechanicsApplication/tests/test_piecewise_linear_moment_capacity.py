@@ -20,7 +20,7 @@ def run_piecewise_case(project_subpath, times, expected_forces, expected_displac
     finally:
         os.chdir(cwd)
 
-    output_file = os.path.join(project_path, 'piecewise_linear_moment_capacity_mat.post.res')
+    output_file = os.path.join(project_path, 'piecewise_linear_moment_capacity.post.res')
     reader = GiDOutputFileReader()
     output_data = reader.read_output_from(output_file)
 
