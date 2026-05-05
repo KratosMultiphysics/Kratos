@@ -12,6 +12,7 @@
 //
 
 #include "custom_utilities/check_utilities.hpp"
+#include "custom_utilities/ublas_utilities.h"
 #include "geo_mechanics_application_variables.h"
 #include "includes/checks.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
@@ -300,4 +301,167 @@ KRATOS_TEST_CASE_IN_SUITE(CheckUtilities_CheckAvailabilityAndSpecified, KratosGe
     properties.SetValue(CONSTITUTIVE_LAW, std::make_shared<StubConstitutiveLaw>());
     EXPECT_NO_THROW(check_properties.CheckAvailabilityAndSpecified(CONSTITUTIVE_LAW));
 }
+
+KRATOS_TEST_CASE_IN_SUITE(CheckValuesAreAscending_ValidAscendingSequence, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    const auto values = UblasUtilities::CreateVector({1.0, 2.5, 5.0, 10.0, 15.5});
+
+    // Act & Assert - should not throw
+    EXPECT_NO_THROW(CheckUtilities::CheckValuesAreAscending(values, "test_values", false));
+}
+
+KRATOS_TEST_CASE_IN_SUITE(CheckValuesAreAscending_ValidAscendingSequenceWithAllowEqual,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    const auto values = UblasUtilities::CreateVector({1.0, 2.5, 5.0, 10.0, 15.5});
+
+    // Act & Assert - should not throw
+    EXPECT_NO_THROW(CheckUtilities::CheckValuesAreAscending(values, "test_values", true));
+}
+
+KRATOS_TEST_CASE_IN_SUITE(CheckValuesAreAscending_ValidNonDecreasingSequence, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    const auto values = UblasUtilities::CreateVector({1.0, 2.5, 2.5, 5.0, 10.0, 10.0, 15.5});
+
+    // Act & Assert - should not throw when AllowEqual=true
+    EXPECT_NO_THROW(CheckUtilities::CheckValuesAreAscending(values, "test_values", true));
+}
+
+KRATOS_TEST_CASE_IN_SUITE(CheckValuesAreAscending_InvalidSequenceWithDuplicatesWhenNotAllowed,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    const auto values        = UblasUtilities::CreateVector({1.0, 2.5, 2.5, 5.0, 10.0});
+    const auto error_message = "Values in test_values are not ascending";
+
+    // Act & Assert - should throw when AllowEqual=false and there are duplicates
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        CheckUtilities::CheckValuesAreAscending(values, "test_values", false), error_message);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(CheckValuesAreAscending_InvalidSequenceDecreasing, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    const auto values        = UblasUtilities::CreateVector({1.0, 5.0, 3.0, 10.0});
+    const auto error_message = "Values in test_values are not ascending";
+
+    // Act & Assert
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        CheckUtilities::CheckValuesAreAscending(values, "test_values", false), error_message);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(CheckValuesAreAscending_InvalidSequenceDecreasingWithAllowEqual,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    const auto values        = UblasUtilities::CreateVector({1.0, 5.0, 3.0, 10.0});
+    const auto error_message = "Values in test_values are not non-decreasing";
+
+    // Act & Assert
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        CheckUtilities::CheckValuesAreAscending(values, "test_values", true), error_message);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(CheckValuesAreAscending_SingleElement, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    const auto values = UblasUtilities::CreateVector({5.0});
+
+    // Act & Assert - single element should always pass
+    EXPECT_NO_THROW(CheckUtilities::CheckValuesAreAscending(values, "test_values", false));
+    EXPECT_NO_THROW(CheckUtilities::CheckValuesAreAscending(values, "test_values", true));
+}
+
+KRATOS_TEST_CASE_IN_SUITE(CheckValuesAreAscending_TwoElementsAscending, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    const auto values = UblasUtilities::CreateVector({1.0, 2.0});
+
+    // Act & Assert
+    EXPECT_NO_THROW(CheckUtilities::CheckValuesAreAscending(values, "test_values", false));
+}
+
+KRATOS_TEST_CASE_IN_SUITE(CheckValuesAreAscending_TwoElementsEqual, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    const auto values        = UblasUtilities::CreateVector({2.0, 2.0});
+    const auto error_message = "Values in test_values are not ascending";
+
+    // Act & Assert - should throw when AllowEqual=false
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        CheckUtilities::CheckValuesAreAscending(values, "test_values", false), error_message);
+
+    // Should pass when AllowEqual=true
+    EXPECT_NO_THROW(CheckUtilities::CheckValuesAreAscending(values, "test_values", true));
+}
+
+KRATOS_TEST_CASE_IN_SUITE(CheckValuesAreAscending_TwoElementsDescending, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    const auto values        = UblasUtilities::CreateVector({2.0, 1.0});
+    const auto error_message = "Values in test_values are not ascending";
+
+    // Act & Assert
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        CheckUtilities::CheckValuesAreAscending(values, "test_values", false), error_message);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(CheckValuesAreAscending_NegativeValues, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    const auto values = UblasUtilities::CreateVector({-10.0, -5.0, 0.0, 5.0, 10.0});
+
+    // Act & Assert
+    EXPECT_NO_THROW(CheckUtilities::CheckValuesAreAscending(values, "test_values", false));
+}
+
+KRATOS_TEST_CASE_IN_SUITE(CheckValuesAreAscending_ErrorMessageContainsIndexInfo, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    const auto values = UblasUtilities::CreateVector({1.0, 3.0, 2.0, 5.0});
+
+    // Act & Assert - error message should include index information
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(CheckUtilities::CheckValuesAreAscending(values, "MyValues", false), "index");
+}
+
+KRATOS_TEST_CASE_IN_SUITE(CheckValuesAreAscending_ErrorMessageContainsParameterName, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    const auto values = UblasUtilities::CreateVector({1.0, 3.0, 2.0, 5.0});
+
+    // Act & Assert - error message should include the parameter name
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        CheckUtilities::CheckValuesAreAscending(values, "CustomParameterName", false),
+        "CustomParameterName");
+}
+
+KRATOS_TEST_CASE_IN_SUITE(CheckValuesAreAscending_LargeAscendingSequence, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange - create a large ascending sequence
+    Vector values(1000);
+    for (int i = 0; i < 1000; ++i) {
+        values[i] = static_cast<double>(i) * 0.1;
+    }
+
+    // Act & Assert
+    EXPECT_NO_THROW(CheckUtilities::CheckValuesAreAscending(values, "large_values", false));
+}
+
+KRATOS_TEST_CASE_IN_SUITE(CheckValuesAreAscending_LargeSequenceWithSingleViolation, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange - create large ascending sequence with one violation
+    Vector values(1000);
+    for (int i = 0; i < 1000; ++i) {
+        values[i] = static_cast<double>(i) * 0.1;
+    }
+    values[500] = values[499]; // Introduce duplicate at index 500
+
+    // Act & Assert
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(CheckUtilities::CheckValuesAreAscending(values, "large_values", false),
+                                      "Values in large_values are not ascending")
+}
+
 } // namespace Kratos::Testing
