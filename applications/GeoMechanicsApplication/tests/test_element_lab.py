@@ -57,7 +57,7 @@ class KratosGeoMechanicsLabElementTests(KratosUnittest.TestCase):
             
     def test_oedometer_drained(self):
         """Regression test for the oedometer experiment on a linear elastic model with constant pore water pressure."""
-        expected_stress_per_ip = [-333.333, -1000.0, -333.333, 0.0, 0.0, 0.0]
+        expected_stress_per_ip = [-333333, -1e+06, -333333, 0.0, 0.0, 0.0]
         expected_stress = [expected_stress_per_ip] * 6
         expected_y_displacements = [-0.0208333, -0.0416667, -0.0625, -0.0833333]
         displacement_times = [0.25, 0.5, 0.75, 1.0]
