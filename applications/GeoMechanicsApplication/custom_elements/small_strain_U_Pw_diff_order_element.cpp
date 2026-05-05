@@ -391,7 +391,7 @@ void SmallStrainUPwDiffOrderElement::SetValuesOnIntegrationPoints(const Variable
                "SmallStrainUPwDiffOrderElement::SetValuesOnIntegrationPoints"
             << std::endl;
         mStressVector.resize(rValues.size());
-        std::copy(rValues.begin(), rValues.end(), mStressVector.begin());
+        std::ranges::copy(rValues, mStressVector.begin());
     } else {
         KRATOS_ERROR_IF(rValues.size() < mConstitutiveLawVector.size())
             << "Insufficient number of values for "
@@ -564,8 +564,8 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
                                              Variables.NuContainer, Variables.DNu_DXContainer,
                                              strain_vectors, mStressVector, constitutive_matrices);
 
-        std::transform(constitutive_matrices.begin(), constitutive_matrices.end(), rOutput.begin(),
-                       [variable_index](const Matrix& constitutive_matrix) {
+        std::ranges::transform(constitutive_matrices, rOutput.begin(),
+                               [variable_index](const Matrix& constitutive_matrix) {
             return constitutive_matrix(variable_index, variable_index);
         });
     } else if (r_properties.Has(rVariable)) {
@@ -1652,15 +1652,15 @@ void SmallStrainUPwDiffOrderElement::CalculateAnyOfMaterialResponse(
 
     if (rStrainVectors.size() != rDeformationGradients.size()) {
         rStrainVectors.resize(rDeformationGradients.size());
-        std::fill(rStrainVectors.begin(), rStrainVectors.end(), ZeroVector(voigt_size));
+        std::ranges::fill(rStrainVectors, ZeroVector(voigt_size));
     }
     if (rStressVectors.size() != rDeformationGradients.size()) {
         rStressVectors.resize(rDeformationGradients.size());
-        std::fill(rStressVectors.begin(), rStressVectors.end(), ZeroVector(voigt_size));
+        std::ranges::fill(rStressVectors, ZeroVector(voigt_size));
     }
     if (rConstitutiveMatrices.size() != rDeformationGradients.size()) {
         rConstitutiveMatrices.resize(rDeformationGradients.size());
-        std::fill(rConstitutiveMatrices.begin(), rConstitutiveMatrices.end(), ZeroMatrix(voigt_size, voigt_size));
+        std::ranges::fill(rConstitutiveMatrices, ZeroMatrix(voigt_size, voigt_size));
     }
 
     const auto determinants_of_deformation_gradients =
