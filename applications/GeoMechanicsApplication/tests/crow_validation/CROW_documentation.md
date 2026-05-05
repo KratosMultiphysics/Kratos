@@ -374,15 +374,10 @@ EA = 4.0 \times 10^8\ \mathrm{N}
 | Cross-sectional area | `CROSS_AREA`           | $1.0 \times 10^{-3}$ | $\mathrm{m}^2$             |
 | Prestress            | `TRUSS_PRESTRESS_PK2`  | 0.0                  | $\mathrm{Pa}$              |
 
+
 ## Staged analysis
 
-This model has been built in two different approaches: one with excavation stages and one without excavation stages.
-The former is more representative of the actual construction process, while the latter is a simplified version that is more similar to the D-Sheet Piling calculation and can be used for preliminary analysis.
-
-### With Excavation Stages model
-
-This model is built in a way that each of the processes/building bits are take into account in separate stages.
-The model is in the `with_excavation_stages` directory and it is defined in seven stages:
+The staged construction analysis consists of seven stages:
 
 1. **Initial stage:**
 
@@ -411,11 +406,9 @@ The model is in the `with_excavation_stages` directory and it is defined in seve
 - Apply a normal contact stress to the first exposed part of the sheet pile as well as the bottom of the excavation pit, representing the water in the pit.
 
 
-
 5. **Installation of an anchor (spring support):**
 
 - Activate the anchor.
-
 
 
 6. **Second excavation stage:**
@@ -425,35 +418,8 @@ The model is in the `with_excavation_stages` directory and it is defined in seve
 - Apply a normal contact stress to the second exposed part of the sheet pile as well as the bottom of the excavation pit, representing the water in the pit.
 
 
-
 7. **Third excavation stage:**
 
 - Excavate the final top portion of clay to the left of the sheet pile.
 - Deactivate corresponding model parts and interface elements.
 - Apply a normal contact stress to the exposed part of the sheet pile as well as the bottom of the excavation pit, representing the water in the pit.
-
-
-### Without Excavation stages model
-
-The model in the `without_excavation` directory is defined in a way that the stress initialization happens and then after that all the processes of activating and deactivating modelparts are done in one stage.
-
-1. **Initial stage:**
-
-- The entire soil domain is active. But the anchor, the sheet pile as well as the interfaces at both sides of the soils are inactive.
-- Master-slave constraints are applied where the soil will later be separated by the sheet pile. This ensures continuity of the displacement field in this early stage of analysis.
-- The only load that is being applied is self-weight.
-- At the end of the stage, a $`K_0`$ procedure is performed to initialize the horizontal stress field.  **Note**, the $`K_0`$ procedure requires the use of linear elastic materials for all soil parts.
-
-
-2. **Null step:**
-
-- This stage is reserved for future test cases, when material models change from linear elastic to, for example, Mohr-Coulomb model. This triggers a stiffness redistribution, and hence a stress redistribution. Currently, the linear elastic model is used for all stages.
-
-
-3. **Final Equilibrium:**
-
-- Deactivate the excavated soil parts entirely.
-- Activation of the sheet pile and the interfaces that are attached to its left and right sides.
-- Deactivate the master-slave constraints, the interface elements will represent the discontinuity in the displacement at the diaphragm wall location.
-- Apply a surface load to a part of the top of the soil on the right-hand side.
-- Activate the anchor.
