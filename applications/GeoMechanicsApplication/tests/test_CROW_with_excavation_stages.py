@@ -25,7 +25,7 @@ csv_fieldname_shear_force = "shear_force"
 csv_fieldname_horizontal_displacement = "horizontal_displacement"
 
 csv_fieldnames = [
-    csv_fieldname_node,
+    csv_fieldname_node,  # this one must come first
     csv_fieldname_bending_moment,
     csv_fieldname_shear_force,
     csv_fieldname_horizontal_displacement,
@@ -193,19 +193,15 @@ def extract_shear_traction_and_y_from_line(line):
 
 
 def get_expected_results_from_csv(csv_filepath):
-    result = {}
+    result_fieldnames = csv_fieldnames[1:]  # node ID is not a result
     with open(csv_filepath, newline="") as csv_file:
         reader = csv.DictReader(csv_file)
-        for row in reader:
-            result[int(row[csv_fieldname_node])] = {
-                csv_fieldname_bending_moment: float(row[csv_fieldname_bending_moment]),
-                csv_fieldname_shear_force: float(row[csv_fieldname_shear_force]),
-                csv_fieldname_horizontal_displacement: float(
-                    row[csv_fieldname_horizontal_displacement]
-                ),
+        return {
+            int(row[csv_fieldname_node]): {
+                fieldname: float(row[fieldname]) for fieldname in result_fieldnames
             }
-
-    return result
+            for row in reader
+        }
 
 
 class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
