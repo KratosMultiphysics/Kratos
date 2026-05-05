@@ -22,6 +22,7 @@ import KratosMultiphysics.GeoMechanicsApplication.geo_plot_utilities as plot_uti
 csv_field_name_node = "node"
 csv_field_name_bending_moment = "bending_moment"
 csv_field_name_shear_force = "shear_force"
+csv_field_name_horizontal_displacement = "horizontal_displacement"
 
 
 def get_sheetpile_node_ids():
@@ -194,6 +195,9 @@ def get_expected_results_from_csv(csv_filepath):
                     row[csv_field_name_bending_moment]
                 ),
                 csv_field_name_shear_force: float(row[csv_field_name_shear_force]),
+                csv_field_name_horizontal_displacement: float(
+                    row[csv_field_name_horizontal_displacement]
+                ),
             }
 
     return result
@@ -268,9 +272,15 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
         shear_forces = reader.nodal_values_at_time(
             "SHEAR_FORCE", end_time, output_data, node_ids=node_ids
         )
+        horizontal_displacements = [
+            displacement_vector[0]
+            for displacement_vector in reader.nodal_values_at_time(
+                "DISPLACEMENT", end_time, output_data, node_ids=node_ids
+            )
+        ]
 
-        for node_id, bending_moment, shear_force in zip(
-            node_ids, bending_moments, shear_forces
+        for node_id, bending_moment, shear_force, horizontal_displacement in zip(
+            node_ids, bending_moments, shear_forces, horizontal_displacements
         ):
             expected_nodal_results = expected_results[node_id]
             self.assertAlmostEqual(
@@ -282,6 +292,11 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
                 shear_force,
                 expected_nodal_results[csv_field_name_shear_force],
                 msg=f"Shear force at node {node_id}",
+            )
+            self.assertAlmostEqual(
+                horizontal_displacement,
+                expected_nodal_results[csv_field_name_horizontal_displacement],
+                msg=f"Horizontal displacement at node {node_id}",
             )
 
     def read_json_output(self, project_path, stage):
@@ -647,6 +662,12 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
         shear_forces = reader.nodal_values_at_time(
             "SHEAR_FORCE", end_time, output_data, node_ids=node_ids
         )
+        horizontal_displacements = [
+            displacement_vector[0]
+            for displacement_vector in reader.nodal_values_at_time(
+                "DISPLACEMENT", end_time, output_data, node_ids=node_ids
+            )
+        ]
 
         with open(
             target_dir / "3_Sheetpile_installation_wall_expected_results.csv",
@@ -657,18 +678,20 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
                 csv_field_name_node,
                 csv_field_name_bending_moment,
                 csv_field_name_shear_force,
+                csv_field_name_horizontal_displacement,
             ]
             writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
 
             writer.writeheader()
-            for node_id, bending_moment, shear_force in zip(
-                node_ids, bending_moments, shear_forces
+            for node_id, bending_moment, shear_force, horizontal_displacement in zip(
+                node_ids, bending_moments, shear_forces, horizontal_displacements
             ):
                 writer.writerow(
                     {
                         csv_field_name_node: node_id,
                         csv_field_name_bending_moment: bending_moment,
                         csv_field_name_shear_force: shear_force,
+                        csv_field_name_horizontal_displacement: horizontal_displacement,
                     }
                 )
 
