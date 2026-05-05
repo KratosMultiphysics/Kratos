@@ -89,7 +89,21 @@ void PiecewiseLinearMomentCapacityConstitutiveLaw::FinalizeMaterialResponsePK2(P
     const auto curvature = rValues.GetStrainVector()[0];
 
     if (mUnReLoadModulus > 0.0) {
-        if (!IsWithinUnReLoading(curvature)) {
+        // Check for sign reversal: if sign of curvature changes, handle specially
+        const bool sign_reversed =
+            mPreviousCurvature != 0.0 && std::signbit(curvature) != std::signbit(mPreviousCurvature);
+
+        if (sign_reversed) {
+            // On sign reversal, reset center and accumulated to stay on the backbone
+            // at the current absolute position (not overshooting)
+            mAccumulatedCurvature = std::abs(curvature);
+            const auto amplitude  = CalculateUnReLoadAmplitude();
+            mUnReLoadCenter       = std::abs(curvature) > amplitude
+                                        ? (curvature > 0.0 ? std::abs(curvature) - amplitude
+                                                           : -(std::abs(curvature) - amplitude))
+                                        : 0.0;
+        } else if (!IsWithinUnReLoading(curvature)) {
+            // Normal unload/reload update (no sign reversal)
             const auto difference = curvature - mUnReLoadCenter;
             const auto amplitude  = CalculateUnReLoadAmplitude();
             mAccumulatedCurvature += std::abs(difference) - amplitude;
