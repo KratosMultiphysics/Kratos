@@ -83,6 +83,7 @@ Add **thermal settings** with desired options:
 		"voronoi_tesselation_frequency"  : 1000,
 		"porosity_update_frequency"      : 1000,
 		"automatic_solve_frequency"      : true or false,
+		"compute_forces"                 : true or false,
 		"compute_motion"                 : true or false,
 		"compute_direct_conduction"      : true or false,
 		"compute_indirect_conduction"    : true or false,
@@ -234,8 +235,12 @@ Add **SubModelPartData** to sub model parts with desired options:
   Boolean for automatically setting the thermal solve frequency based on the maximum allowed time step (it overrides the value set for thermal_solve_frequency).\
   Default: false
 
+- *"compute_forces"*:\
+  Boolean for solving mechanical problem by computing forces. If *"compute_motion"* is set to false, only inter-element forces will be calculated, but not the particle motion.\
+  Default: true
+
 - *"compute_motion"*:\
-  Boolean for solving mechanical problem.\
+  Boolean for solving mechanical problem by computing particle motion. It is mandatory that *"compute_forces"* is also set to true.\
   Default: true
 
 - *"compute_direct_conduction"*:\

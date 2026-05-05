@@ -20,7 +20,6 @@
 #include <sstream>
 #include <cstddef>
 #include <utility>
-#include <type_traits>
 
 // External includes
 #include <boost/iterator/indirect_iterator.hpp>
@@ -147,7 +146,8 @@ public:
     explicit PointerVectorSet(const TContainerType& rContainer) :  mData(rContainer), mSortedPartSize(size_type()), mMaxBufferSize(1)
     {
         Sort();
-        std::unique(mData.begin(), mData.end(), EqualKeyTo());
+        auto last = std::unique(mData.begin(), mData.end(), EqualKeyTo());
+        mData.erase(last, mData.end());
     }
 
     /// Destructor.

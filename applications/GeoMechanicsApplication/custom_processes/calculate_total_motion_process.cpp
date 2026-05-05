@@ -11,25 +11,26 @@
 //
 #include "calculate_total_motion_process.h"
 #include "geo_mechanics_application_variables.h"
+#include "includes/kratos_parameters.h"
 #include "includes/model_part.h"
 #include "includes/node.h"
-#include "includes/variables.h"
 
 namespace Kratos
 {
+using namespace std::string_literals;
 
-CalculateTotalMotionProcess::CalculateTotalMotionProcess(ModelPart& rModelPart, const Parameters& rParameters)
+CalculateTotalMotionProcess::CalculateTotalMotionProcess(ModelPart& rModelPart, const Parameters& rSettings)
     : Process(Flags()), mrModelPart{rModelPart}
 {
-    if (rParameters["variable_name"].GetString() == "DISPLACEMENT") {
+    if (rSettings["variable_name"].GetString() == "DISPLACEMENT") {
         mResultsVariableName     = "TOTAL_DISPLACEMENT";
         mIncrementalVariableName = "INCREMENTAL_DISPLACEMENT";
-    } else if (rParameters["variable_name"].GetString() == "ROTATION") {
+    } else if (rSettings["variable_name"].GetString() == "ROTATION") {
         mResultsVariableName     = "TOTAL_ROTATION";
         mIncrementalVariableName = "INCREMENTAL_ROTATION";
 
     } else {
-        KRATOS_ERROR << "Invalid variable name: " << rParameters["variable_name"].GetString()
+        KRATOS_ERROR << "Invalid variable name: " << rSettings["variable_name"].GetString()
                      << ". Expected DISPLACEMENT or ROTATION." << std::endl;
     }
 }
@@ -53,4 +54,7 @@ void CalculateTotalMotionProcess::Execute()
                      << mIncrementalVariableName << " not found in the model part." << std::endl;
     }
 }
+
+std::string CalculateTotalMotionProcess::Info() const { return "CalculateTotalMotionProcess"s; }
+
 } // namespace Kratos

@@ -33,6 +33,7 @@ namespace Kratos
       void   SetHeatExchangeMechanismInProperties (Properties::Pointer pProp, bool verbose = true) const override;
       double GetSearchDistance                    (const ProcessInfo& r_process_info, ThermalSphericParticle* particle) override;
       double ComputeHeatFlux                      (const ProcessInfo& r_process_info, ThermalSphericParticle* particle) override;
+      double ComputeEffectiveThermalConductivity  (const ProcessInfo& r_process_info, ThermalSphericParticle* particle) override;
 
       // Clone
       HeatExchangeMechanism* CloneRaw() const override {

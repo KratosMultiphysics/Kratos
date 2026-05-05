@@ -35,6 +35,7 @@
 #include "custom_elements/truss_elements/truss_element_linear_3D2N.hpp"
 #include "custom_elements/truss_elements/cable_element_3D2N.hpp"
 #include "custom_elements/truss_elements/linear_truss_element.h"
+#include "custom_elements/truss_elements/total_lagrangian_truss_element.h"
 
 /* Adding beam element */
 #include "custom_elements/beam_elements/cr_beam_element_3D2N.hpp"
@@ -55,11 +56,11 @@
 #include "custom_elements/shell_elements/isotropic_shell_element.hpp"
 #include "custom_elements/membrane_elements/membrane_element.hpp"
 #include "custom_elements/membrane_elements/membrane_element_2D2N.h"
-#include "custom_elements/shell_elements/shell_thick_element_3D4N.hpp"
+#include "custom_elements/shell_elements/mitc_thick_shell_element_3D4N.hpp"
 #include "custom_elements/shell_elements/shell_thin_element_3D4N.hpp"
 #include "custom_elements/shell_elements/shell_thin_element_3D3N.hpp"
 #include "custom_elements/shell_elements/shell_thick_element_3D3N.hpp"
-
+#include "custom_elements/shell_elements/cs_dsg3_thick_shell_element_3D3N.h"
 
 /* Adding the bushing element */
 #include "custom_elements/nodal_elements/bushing_element.h"
@@ -97,6 +98,7 @@
 /* Conditions */
 #include "custom_conditions/base_load_condition.h"
 #include "custom_conditions/point_load_condition.h"
+#include "custom_conditions/imaginary_point_load_condition.h"
 #include "custom_conditions/point_contact_condition.h"
 #include "custom_conditions/axisym_point_load_condition.h"
 #include "custom_conditions/line_load_condition.h"
@@ -123,10 +125,12 @@
 #include "custom_constitutive/linear_plane_strain.h"
 #include "custom_constitutive/linear_plane_stress.h"
 #include "custom_constitutive/user_provided_linear_elastic_law.h"
-// Constitutive laws for the Timoshenko beams
+
+// Constitutive laws for the Timoshenko beams and Reissner-Mindlin shells
 #include "custom_constitutive/timoshenko_beam_elastic_constitutive_law.h"
 #include "custom_constitutive/timoshenko_beam_elastic_constitutive_law_3d.h"
 #include "custom_constitutive/timoshenko_plane_strain_beam_elastic_constitutive_law.h"
+#include "custom_constitutive/reissner_mindlin_shell_elastic_constitutive_law.h"
 
 
 namespace Kratos
@@ -281,6 +285,8 @@ private:
     const LinearTrussElement<2, 3> mLinearTrussElement2D3N;
     const LinearTrussElement<3, 2> mLinearTrussElement3D2N;
     const LinearTrussElement<3, 3> mLinearTrussElement3D3N;
+    const TotalLagrangianTrussElement<2> mTotalLagrangianTrussElement2D2N;
+    const TotalLagrangianTrussElement<3> mTotalLagrangianTrussElement3D2N;
 
     // Adding the beam element
     const CrBeamElement3D2N mCrBeamElement3D2N;
@@ -296,12 +302,20 @@ private:
 
     // Adding the shells elements
     const IsotropicShellElement mIsotropicShellElement3D3N;
-    const ShellThickElement3D4N<ShellKinematics::LINEAR>                 mShellThickElement3D4N;
-    const ShellThickElement3D4N<ShellKinematics::NONLINEAR_COROTATIONAL> mShellThickCorotationalElement3D4N;
-    const ShellThinElement3D4N<ShellKinematics::NONLINEAR_COROTATIONAL>  mShellThinCorotationalElement3D4N;
-    const ShellThinElement3D3N<ShellKinematics::LINEAR>                  mShellThinElement3D3N;
-    const ShellThinElement3D3N<ShellKinematics::NONLINEAR_COROTATIONAL>  mShellThinCorotationalElement3D3N;
+    const MITCThickShellElement3D4N<ShellKinematics::LINEAR> mMITCThickShellElement3D4N;
+    const MITCThickShellElement3D4N<ShellKinematics::NONLINEAR_COROTATIONAL> mMITCThickShellCorotationalElement3D4N;
+
+    // deprecated
+    const MITCThickShellElement3D4N<ShellKinematics::LINEAR> mShellThickElement3D4N;
+    const MITCThickShellElement3D4N<ShellKinematics::NONLINEAR_COROTATIONAL> mShellThickCorotationalElement3D4N;
+
+    const ShellThinElement3D4N<ShellKinematics::NONLINEAR_COROTATIONAL> mShellThinCorotationalElement3D4N;
+    const ShellThinElement3D3N<ShellKinematics::LINEAR> mShellThinElement3D3N;
+    const ShellThinElement3D3N<ShellKinematics::NONLINEAR_COROTATIONAL> mShellThinCorotationalElement3D3N;
     const ShellThickElement3D3N<ShellKinematics::NONLINEAR_COROTATIONAL> mShellThickCorotationalElement3D3N;
+
+    const CSDSG3ThickShellElement3D3N<false> mCSDSG3ThickShellLinearElement3D3N;
+    const CSDSG3ThickShellElement3D3N<true> mCSDSG3ThickShellCorotationalElement3D3N;
 
     // Adding the membrane elements
     const MembraneElement mMembraneElement3D4N;
@@ -464,6 +478,8 @@ private:
     const PointLoadCondition mPointLoadCondition3D1N;
     const PointContactCondition mPointContactCondition2D1N;
     const PointContactCondition mPointContactCondition3D1N;
+    const ImaginaryPointLoadCondition mImaginaryPointLoadCondition2D1N;
+    const ImaginaryPointLoadCondition mImaginaryPointLoadCondition3D1N;
 
     const AxisymPointLoadCondition mAxisymPointLoadCondition2D1N;
 
@@ -536,6 +552,7 @@ private:
     const TimoshenkoBeamElasticConstitutiveLaw mTimoshenkoBeamElasticConstitutiveLaw;
     const TimoshenkoBeamElasticConstitutiveLaw3D mTimoshenkoBeamElasticConstitutiveLaw3D;
     const TimoshenkoBeamPlaneStrainElasticConstitutiveLaw mTimoshenkoBeamPlaneStrainElasticConstitutiveLaw;
+    const ReissnerMindlinShellElasticConstitutiveLaw mReissnerMindlinShellElasticConstitutiveLaw;
 
     ///@}
     ///@name Private Operators

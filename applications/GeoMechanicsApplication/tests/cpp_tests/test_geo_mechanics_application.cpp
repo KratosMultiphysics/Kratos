@@ -72,21 +72,25 @@ KRATOS_TEST_CASE_IN_SUITE(IncrementalLinearElasticConstitutiveLawIsAvailableAfte
     KRATOS_EXPECT_TRUE(KratosComponents<ConstitutiveLaw>::Has(constitutive_law_name))
 }
 
-KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElementsAreAvailableAfterGeoAppRegistration, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(InterfaceElementsAreAvailableAfterGeoAppRegistration, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     KratosGeoMechanicsApplication geo_app;
-    const auto                    element_type_names =
-        std::vector<std::string>{"Geo_ULineInterfacePlaneStrainElement2Plus2N",
-                                 "Geo_ULineInterfacePlaneStrainElement3Plus3N"};
+    const auto element_type_names = std::vector{"Geo_ULineInterfacePlaneStrainElement2Plus2N"s,
+                                                "Geo_ULineInterfacePlaneStrainElement3Plus3N"s,
+                                                "Geo_USurfaceInterfaceElement3Plus3N"s,
+                                                "Geo_USurfaceInterfaceElement4Plus4N"s,
+                                                "Geo_USurfaceInterfaceElement6Plus6N"s,
+                                                "Geo_USurfaceInterfaceElement8Plus8N"s};
 
     for (const auto& r_name : element_type_names) {
-        KRATOS_EXPECT_FALSE(KratosComponents<Element>::Has(r_name))
+        EXPECT_FALSE(KratosComponents<Element>::Has(r_name))
+            << "Element '" << r_name << "' has been registered unexpectedly";
     }
 
     geo_app.Register();
 
     for (const auto& r_name : element_type_names) {
-        KRATOS_EXPECT_TRUE(KratosComponents<Element>::Has(r_name))
+        EXPECT_TRUE(KratosComponents<Element>::Has(r_name)) << "Element '" << r_name << "' has not been registered";
     }
 }
 

@@ -69,6 +69,8 @@ KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication()
       mLinearTrussElement2D3N(0, Element::GeometryType::Pointer(new Line2D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
       mLinearTrussElement3D2N(0, Element::GeometryType::Pointer(new Line3D2<NodeType >(Element::GeometryType::PointsArrayType(2)))),
       mLinearTrussElement3D3N(0, Element::GeometryType::Pointer(new Line3D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
+      mTotalLagrangianTrussElement2D2N(0, Element::GeometryType::Pointer(new Line2D2<NodeType >(Element::GeometryType::PointsArrayType(2)))),
+      mTotalLagrangianTrussElement3D2N(0, Element::GeometryType::Pointer(new Line3D2<NodeType >(Element::GeometryType::PointsArrayType(2)))),
       // Adding the beam elements
       mCrBeamElement3D2N(0, Element::GeometryType::Pointer(new Line3D2<NodeType >(Element::GeometryType::PointsArrayType(2)))),
       mCrLinearBeamElement3D2N(0, Element::GeometryType::Pointer(new Line3D2<NodeType >(Element::GeometryType::PointsArrayType(2)))),
@@ -81,12 +83,19 @@ KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication()
       mLinearTimoshenkoCurvedBeamElement3D3N(0, Element::GeometryType::Pointer(new Line3D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
       // Adding the shells elements
       mIsotropicShellElement3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
+      mMITCThickShellElement3D4N(0, Element::GeometryType::Pointer(new Quadrilateral3D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
+      mMITCThickShellCorotationalElement3D4N(0, Element::GeometryType::Pointer(new Quadrilateral3D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
+      // deprecated names
       mShellThickElement3D4N(0, Element::GeometryType::Pointer(new Quadrilateral3D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
       mShellThickCorotationalElement3D4N(0, Element::GeometryType::Pointer(new Quadrilateral3D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
+    
       mShellThinCorotationalElement3D4N(0, Element::GeometryType::Pointer(new Quadrilateral3D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
       mShellThinElement3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
       mShellThinCorotationalElement3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
       mShellThickCorotationalElement3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
+      mCSDSG3ThickShellLinearElement3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
+      mCSDSG3ThickShellCorotationalElement3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
+
       // Adding the membrane elements
       mMembraneElement3D4N(0, Element::GeometryType::Pointer(new Quadrilateral3D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
       mMembraneElement3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
@@ -239,6 +248,8 @@ KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication()
       mPointLoadCondition3D1N(0, Condition::GeometryType::Pointer(new Point3D<NodeType >(Condition::GeometryType::PointsArrayType(1)))),
       mPointContactCondition2D1N(0, Condition::GeometryType::Pointer(new Point2D<NodeType >(Condition::GeometryType::PointsArrayType(1)))),
       mPointContactCondition3D1N(0, Condition::GeometryType::Pointer(new Point3D<NodeType >(Condition::GeometryType::PointsArrayType(1)))),
+      mImaginaryPointLoadCondition2D1N(0, Condition::GeometryType::Pointer(new Point2D<NodeType >(Condition::GeometryType::PointsArrayType(1)))),
+      mImaginaryPointLoadCondition3D1N(0, Condition::GeometryType::Pointer(new Point3D<NodeType >(Condition::GeometryType::PointsArrayType(1)))),
       mAxisymPointLoadCondition2D1N(0, Condition::GeometryType::Pointer(new Point2D<NodeType >(Condition::GeometryType::PointsArrayType(1)))),
       // Adding line load conditions
       mLineLoadCondition2D2N(0, Condition::GeometryType::Pointer(new Line2D2<NodeType >(Condition::GeometryType::PointsArrayType(2)))),
@@ -317,6 +328,9 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE(EIGENVECTOR_MATRIX)
     KRATOS_REGISTER_VARIABLE(MODAL_MASS_MATRIX)
     KRATOS_REGISTER_VARIABLE(MODAL_STIFFNESS_MATRIX)
+
+    // Harmonic analysis
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(DISPLACEMENT_IMAGINARY)
 
     // Geometrical
     KRATOS_REGISTER_VARIABLE(AXIAL_FORCE)
@@ -494,6 +508,7 @@ void KratosStructuralMechanicsApplication::Register() {
 
     // Nodal load variables
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(POINT_LOAD)
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(POINT_LOAD_IMAGINARY)
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(LINE_LOAD)
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(SURFACE_LOAD)
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(MOVING_LOAD)
@@ -562,6 +577,8 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT("LinearTrussElement2D3N", mLinearTrussElement2D3N)
     KRATOS_REGISTER_ELEMENT("LinearTrussElement3D2N", mLinearTrussElement3D2N)
     KRATOS_REGISTER_ELEMENT("LinearTrussElement3D3N", mLinearTrussElement3D3N)
+    KRATOS_REGISTER_ELEMENT("TotalLagrangianTrussElement2D2N", mTotalLagrangianTrussElement2D2N)
+    KRATOS_REGISTER_ELEMENT("TotalLagrangianTrussElement3D2N", mTotalLagrangianTrussElement3D2N)
 
     // Register the beam element
     KRATOS_REGISTER_ELEMENT("CrBeamElement3D2N", mCrBeamElement3D2N)
@@ -576,12 +593,20 @@ void KratosStructuralMechanicsApplication::Register() {
 
     //Register the shells elements
     KRATOS_REGISTER_ELEMENT("IsotropicShellElement3D3N", mIsotropicShellElement3D3N)
-    KRATOS_REGISTER_ELEMENT("ShellThickElement3D4N", mShellThickElement3D4N)
-    KRATOS_REGISTER_ELEMENT("ShellThickElementCorotational3D4N", mShellThickCorotationalElement3D4N)
+    KRATOS_REGISTER_ELEMENT("MITCThickShellElement3D4N", mMITCThickShellElement3D4N)
+    KRATOS_REGISTER_ELEMENT("MITCThickShellCorotationalElement3D4N", mMITCThickShellCorotationalElement3D4N)
+
+    // deprecated names
+    KRATOS_REGISTER_ELEMENT("ShellThickElement3D4N", mShellThickElement3D4N) // It uses MITC
+    KRATOS_REGISTER_ELEMENT("ShellThickCorotationalElement3D4N", mShellThickCorotationalElement3D4N) // It uses MITC
+
     KRATOS_REGISTER_ELEMENT("ShellThinElementCorotational3D4N", mShellThinCorotationalElement3D4N)
     KRATOS_REGISTER_ELEMENT("ShellThinElement3D3N", mShellThinElement3D3N)
     KRATOS_REGISTER_ELEMENT("ShellThickElementCorotational3D3N", mShellThickCorotationalElement3D3N)
     KRATOS_REGISTER_ELEMENT("ShellThinElementCorotational3D3N", mShellThinCorotationalElement3D3N)
+
+    KRATOS_REGISTER_ELEMENT("CSDSG3ThickShellLinearElement3D3N", mCSDSG3ThickShellLinearElement3D3N)
+    KRATOS_REGISTER_ELEMENT("CSDSG3ThickShellCorotationalElement3D3N", mCSDSG3ThickShellCorotationalElement3D3N)
 
     // Register the membrane element
     KRATOS_REGISTER_ELEMENT("MembraneElement3D4N", mMembraneElement3D4N)
@@ -746,6 +771,8 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_CONDITION("PointLoadCondition3D1N", mPointLoadCondition3D1N)
     KRATOS_REGISTER_CONDITION("PointContactCondition2D1N", mPointContactCondition2D1N)
     KRATOS_REGISTER_CONDITION("PointContactCondition3D1N", mPointContactCondition3D1N)
+    KRATOS_REGISTER_CONDITION("ImaginaryPointLoadCondition2D1N", mImaginaryPointLoadCondition2D1N)
+    KRATOS_REGISTER_CONDITION("ImaginaryPointLoadCondition3D1N", mImaginaryPointLoadCondition3D1N)
 
     KRATOS_REGISTER_CONDITION("AxisymPointLoadCondition2D1N", mAxisymPointLoadCondition2D1N)
 
@@ -818,6 +845,7 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_CONSTITUTIVE_LAW("TimoshenkoBeamElasticConstitutiveLaw", mTimoshenkoBeamElasticConstitutiveLaw);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("TimoshenkoBeamPlaneStrainElasticConstitutiveLaw", mTimoshenkoBeamPlaneStrainElasticConstitutiveLaw);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("TimoshenkoBeamElasticConstitutiveLaw3D", mTimoshenkoBeamElasticConstitutiveLaw3D);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("ReissnerMindlinShellElasticConstitutiveLaw", mReissnerMindlinShellElasticConstitutiveLaw);
 
 }
 }  // namespace Kratos.

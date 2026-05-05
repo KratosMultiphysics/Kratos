@@ -13,15 +13,64 @@ def Factory(settings, Model):
     return MPMJsonOutputProcess(Model, settings["Parameters"])
 
 class MPMJsonOutputProcess(JsonOutputProcess):
+        
+    def __init__(self, model, params):
+        
+        """ The default constructor of the class
 
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        model -- the model used to construct the process.
+        settings -- Kratos parameters containing solver settings.
+        """
+        KratosMultiphysics.Process.__init__(self)
+
+        ## Settings string in json format
+        default_parameters = KratosMultiphysics.Parameters("""
+        {
+            "help"                          : "This process generates a json file containing the solution of a list of variables from a given submodelpart",
+            "output_variables"              : [],
+            "gauss_points_output_variables" : [],
+            "output_file_name"              : "",
+            "model_part_name"               : "",
+            "sub_model_part_name"           : "",
+            "entity_type"                   : "Element",
+            "check_for_flag"                : "",
+            "time_frequency"                : 1.00,
+            "historical_value"              : true,
+            "resultant_solution"            : false,
+            "use_node_coordinates"          : false
+        }
+        """)
+
+        ## Overwrite the default settings with user-provided parameters
+        self.params = params
+        self.params.ValidateAndAssignDefaults(default_parameters)
+
+        self.model = model
+        self.params = params
+
+        self.time_counter = 0.0
+
+        self.entity_type = self.params["entity_type"].GetString()
+        if self.entity_type not in ["Element", "Condition"]:
+            raise RuntimeError('"entity_type" must be "Element" or "Condition"')
+        
     def ExecuteBeforeSolutionLoop(self):
+
+        if self.entity_type == "Condition":
+            model_part_name = self.params["model_part_name"].GetString()
+            if (model_part_name.startswith('Background_Grid.')):
+                model_part_name = model_part_name.replace('Background_Grid.','')
+            mpm_condition_model_part_name = "MPM_Material." + model_part_name
+            self.sub_model_part = self.model[mpm_condition_model_part_name]
 
         data = {}
         data["TIME"] = []
         count = 0
 
-        # Material point elements values
-        for mp in self.sub_model_part.Elements:
+        # material points or boundary particle values
+        for mp in self.__get_entities():
             compute = self.__check_flag(mp)
 
             if compute:
@@ -84,8 +133,8 @@ class MPMJsonOutputProcess(JsonOutputProcess):
             data["TIME"].append(time)
             count = 0
 
-            # Material points values
-            for mp in self.sub_model_part.Elements:
+            # Material points or boundary particle values
+            for mp in self.__get_entities():
                 compute = self.__check_flag(mp)
 
                 if compute:
@@ -154,6 +203,15 @@ class MPMJsonOutputProcess(JsonOutputProcess):
             list.append(value[index])
         return list
 
+    def __get_entities(self):
+
+        if self.entity_type == "Element":
+            return self.sub_model_part.Elements
+        elif self.entity_type == "Condition":
+            return self.sub_model_part.Conditions
+        else:
+            raise RuntimeError('"entity_type" must be "Element" or "Condition"')
+    
     def __check_flag(self, component):
 
         if self.flag != None:

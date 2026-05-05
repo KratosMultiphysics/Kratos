@@ -117,6 +117,12 @@ public:
     ///@name Operations
     ///@{.
 
+    /// @copydoc Process::Create
+    Process::Pointer Create(
+        Model& rModel,
+        Parameters ThisParameters
+        ) override;
+
     /**
      * @brief Execute method is used to execute the AssignScalarFieldToEntitiesProcess algorithms.
      */

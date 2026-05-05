@@ -4,10 +4,10 @@
 //        | |  | | |___ ___) |  _  || || |\  | |_| |
 //        |_|  |_|_____|____/|_| |_|___|_| \_|\____| APPLICATION
 //
-//  License:		 BSD License
-//                       license: MeshingApplication/license.txt
+//  License:         BSD License
+//                   license: MeshingApplication/license.txt
 //
-//  Main authors:
+//  Main authors:    Pooyan Dadvand
 //
 
 // System includes
@@ -15,7 +15,6 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "includes/define_python.h"
 #include "processes/process.h"
 #include "custom_python/add_meshers_to_python.h"
@@ -39,10 +38,7 @@
     #include "external_includes/trigen_cdt.h"
 #endif 
 
-namespace Kratos
-{
-
-namespace Python
+namespace Kratos::Python
 {
 namespace py = pybind11;
 
@@ -139,8 +135,6 @@ void TriRegenerateMeshGLASS(TriGenGLASSModeler& Mesher, char* ElementName, char*
                           KratosComponents<Element>::Get(ElementName),
                           KratosComponents<Condition>::Get(ConditionName),NodeErase, RemNodes, AddNodes, AlphaShape, HFactor     );
 }
-
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 //                                                                                       //
@@ -264,7 +258,5 @@ void  AddMeshersToPython(pybind11::module& m)
 #endif
 }
 
-}  // namespace Python.
-
-} // Namespace Kratos
+} // Namespace Kratos::Python.
 

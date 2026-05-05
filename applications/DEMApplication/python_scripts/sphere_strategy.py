@@ -204,6 +204,9 @@ class ExplicitStrategy():
         if "RadiusExpansionRate" in DEM_parameters.keys():
             self.radius_expansion_rate = DEM_parameters["RadiusExpansionRate"].GetDouble()
 
+        if "RadiusMultiplierStartTime" in DEM_parameters.keys():
+            self.radius_multiplier_start_time = DEM_parameters["RadiusMultiplierStartTime"].GetDouble()
+
         if "RadiusMultiplierMax" in DEM_parameters.keys():
             self.radius_multiplier_max = DEM_parameters["RadiusMultiplierMax"].GetDouble()
 
@@ -320,6 +323,7 @@ class ExplicitStrategy():
         #Radius expansion method
         self.spheres_model_part.ProcessInfo.SetValue(IS_RADIUS_EXPANSION, self.radius_expansion_option)
         self.spheres_model_part.ProcessInfo.SetValue(RADIUS_EXPANSION_RATE, self.radius_expansion_rate)
+        self.spheres_model_part.ProcessInfo.SetValue(RADIUS_MULTIPLIER_START_TIME, self.radius_multiplier_start_time)
         self.spheres_model_part.ProcessInfo.SetValue(RADIUS_MULTIPLIER_MAX, self.radius_multiplier_max)
         self.spheres_model_part.ProcessInfo.SetValue(IS_RADIUS_EXPANSION_RATE_CHANGE, self.radius_expansion_rate_change_option)
         self.spheres_model_part.ProcessInfo.SetValue(RADIUS_EXPANSION_ACCELERATION, self.radius_expansion_acceleration)

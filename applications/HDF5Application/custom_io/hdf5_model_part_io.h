@@ -4,14 +4,14 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 license: HDF5Application/license.txt
+//  License:        BSD License
+//                  license: HDF5Application/license.txt
 //
 //  Main author:    Michael Andre, https://github.com/msandre
+//                  Suneth Warnakulasuriya
 //
 
-#if !defined(KRATOS_HDF5_MODEL_PART_IO_H_INCLUDED)
-#define KRATOS_HDF5_MODEL_PART_IO_H_INCLUDED
+#pragma once
 
 // System includes
 #include <string>
@@ -22,6 +22,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/io.h"
+#include "includes/kratos_parameters.h"
 
 // Application includes
 #include "hdf5_application_define.h"
@@ -51,11 +52,14 @@ public:
     ///@{
 
     /// Constructor.
-    ModelPartIO(File::Pointer pFile, std::string const& rPrefix);
+    ModelPartIO(
+        Parameters Settings,
+        File::Pointer pFile);
 
     ///@}
     ///@name Operations
     ///@{
+
     bool ReadNodes(NodesContainerType& rNodes) override;
 
     std::size_t ReadNodesNumber() override;
@@ -66,15 +70,17 @@ public:
 
     void WriteProperties(PropertiesContainerType const& rThisProperties) override;
 
-    void ReadElements(NodesContainerType& rNodes,
-                      PropertiesContainerType& rProperties,
-                      ElementsContainerType& rElements) override;
+    void ReadElements(
+        NodesContainerType& rNodes,
+        PropertiesContainerType& rProperties,
+        ElementsContainerType& rElements) override;
 
     void WriteElements(ElementsContainerType const& rElements) override;
 
-    void ReadConditions(NodesContainerType& rNodes,
-                        PropertiesContainerType& rProperties,
-                        ConditionsContainerType& rConditions) override;
+    void ReadConditions(
+        NodesContainerType& rNodes,
+        PropertiesContainerType& rProperties,
+        ConditionsContainerType& rConditions) override;
 
     void WriteConditions(ConditionsContainerType const& rConditions) override;
 
@@ -88,30 +94,62 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    virtual std::tuple<unsigned, unsigned> StartIndexAndBlockSize(std::string const& rPath) const;
+    virtual void ReadParitionIndices(ModelPart& rModelPart);
 
-    virtual void StoreWriteInfo(std::string const& rPath, WriteInfo const& rInfo);
+    /**
+     * @brief Set the Communicator for the given @p rModelPart
+     * @details This method sets the communicator of the given @p rModelPart,
+     *          sets the local mesh entities correctly. This is done recursively for
+     *          all the sub model parts as well.
+     *
+     * @param rModelPart Model part to set the communicator.
+     */
+    virtual void SetCommunicator(ModelPart& rModelPart) const;
 
     ///@}
     ///@name Member Variables
     ///@{
 
     File::Pointer mpFile;
-    const std::string mPrefix;
+
+    std::string mPrefix;
 
     ///@}
 
 private:
+    ///@name Private member variables
+    ///@{
+
+    bool mWriteEntityPropertyIds;
+
+    Parameters mCustomAttributes;
+
+    ///@}
+    ///@name Private life cycle
+    ///@{
+
+    ModelPartIO(
+        const std::string& rPrefix,
+        const bool WriteEntityPropertyIds,
+        File::Pointer pFile);
+
+    ///@}
     ///@name Private Operations
     ///@{
 
     std::vector<std::size_t> ReadContainerIds(std::string const& rPath) const;
 
-    std::vector<std::size_t> ReadEntityIds(std::string const& rPath) const;
+    void WriteNodeIds(
+        const std::string& rPath,
+        const NodesContainerType& rNodes);
 
-    void WriteSubModelParts(ModelPart::SubModelPartsContainerType const& rSubModelPartsContainer, const std::string& GroupName);
+    void WriteSubModelParts(
+        const ModelPart::SubModelPartsContainerType& rSubModelPartsContainer,
+        const std::string& GroupName);
 
-    void ReadSubModelParts(ModelPart& rModelPart, const std::string& rPath);
+    void ReadSubModelParts(
+        ModelPart& rModelPart,
+        const std::string& rPath);
 
     ///@}
 };
@@ -120,5 +158,3 @@ private:
 ///@} addtogroup
 } // namespace HDF5.
 } // namespace Kratos.
-
-#endif // KRATOS_HDF5_MODEL_PART_IO_H_INCLUDED defined

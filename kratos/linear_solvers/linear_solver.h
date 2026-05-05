@@ -14,32 +14,14 @@
 
 #pragma once
 
-// System includes
-
-// External includes
-
 // Project includes
 #include "reorderer.h"
 #include "includes/model_part.h"
 
-namespace Kratos
-{
-///@name Kratos Globals
-///@{
 
-///@}
-///@name Type Definitions
-///@{
+namespace Kratos {
 
-///@}
-///@name  Enum's
-///@{
 
-///@}
-///@name  Functions
-///@{
-
-///@}
 ///@name Kratos Classes
 ///@{
 
@@ -61,10 +43,6 @@ template<class TSparseSpaceType, class TDenseSpaceType, class TReordererType = R
 class LinearSolver
 {
 public:
-    ///@name Type Definitions
-    ///@{
-
-    /// Pointer definition of LinearSolver
     KRATOS_CLASS_POINTER_DEFINITION(LinearSolver);
 
     /// Type definition for sparse matrix
@@ -91,33 +69,14 @@ public:
     /// Type definition for index
     using IndexType = typename TSparseSpaceType::IndexType;
 
-    ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
     LinearSolver() : mpReorderer(new TReordererType()) {}
 
-    /// Constructor with specific reorderer.
-    LinearSolver(TReordererType NewReorderer) : mpReorderer(NewReorderer) {}
-
-    /// Copy constructor.
-    LinearSolver(const LinearSolver& Other) : mpReorderer(Other.mpReorderer) {}
-
     /// Destructor.
     virtual ~LinearSolver() = default;
-
-    ///@}
-    ///@name Operators
-    ///@{
-
-    /// Assignment operator.
-    LinearSolver& operator=(const LinearSolver& Other)
-    {
-        mpReorderer = Other.mpReorderer;
-
-        return *this;
-    }
 
     ///@}
     ///@name Operations
@@ -187,8 +146,11 @@ public:
      */
     virtual bool Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
     {
-        KRATOS_ERROR << "Calling linear solver base class" << std::endl;
-        return false;
+        this->InitializeSolutionStep(rA, rX, rB);
+        const auto status = this->PerformSolutionStep(rA, rX, rB);
+        this->FinalizeSolutionStep(rA, rX, rB);
+        this->Clear();
+        return status;
     }
 
     /**
@@ -261,21 +223,21 @@ public:
     ///@{
 
     /**
-     * @brief Virtual function to get the reorderer.
+     * @brief Function to get the reorderer.
      * @details This function returns a pointer to the reorderer used by the linear solver.
      * @return A pointer to the reorderer.
      */
-    virtual typename TReordererType::Pointer GetReorderer()
+    typename TReordererType::Pointer GetReorderer()
     {
         return mpReorderer;
     }
 
     /**
-     * @brief Virtual function to set the reorderer.
+     * @brief Function to set the reorderer.
      * @details This function sets the reorderer used by the linear solver.
      * @param pNewReorderer A pointer to the new reorderer.
      */
-    virtual void SetReorderer(typename TReordererType::Pointer pNewReorderer)
+    void SetReorderer(typename TReordererType::Pointer pNewReorderer)
     {
         mpReorderer = pNewReorderer;
     }
@@ -418,79 +380,13 @@ public:
     }
 
     ///@}
-    ///@name Friends
-    ///@{
 
-    ///@}
-protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-    ///@}
 private:
-    ///@name Static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
     /// A counted pointer to the reorderer object.
     typename TReordererType::Pointer mpReorderer;
+}; // class LinearSolver
 
-    ///@}
-    ///@name Private Operators
-    ///@{
 
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-
-    ///@}
-};
-
-///@}
-
-///@name Type Definitions
-///@{
-
-///@}
 ///@name Input and output
 ///@{
 
@@ -513,6 +409,7 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
     return rOStream;
 }
+
 ///@}
 
-}  // namespace Kratos.
+}  // namespace Kratos

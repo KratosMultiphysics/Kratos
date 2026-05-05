@@ -2,6 +2,7 @@ import os
 
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.GeoMechanicsApplication.geomechanics_analysis as analysis
+from KratosMultiphysics.GeoMechanicsApplication.gid_output_file_reader import GiDOutputFileReader
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
@@ -75,7 +76,7 @@ class KratosGeoMechanicsPartialSaturation(KratosUnittest.TestCase):
         file_path = test_helper.get_file_path(os.path.join('test_partially_saturated', 'test_rising_falling_phreatic_level_pw_quad4N'))
         simulation = test_helper.run_kratos(file_path)
 
-        reader = test_helper.GiDOutputFileReader()
+        reader = GiDOutputFileReader()
         output_data = reader.read_output_from(os.path.join(file_path, 'rising_falling_phreatic_level_pw_quad4n.post.res'))
         coords = test_helper.get_nodal_coordinates(simulation)
         times = [1.0, 5.0, 9.0, 13.0, 17.0, 21.0, 25.0, 29.0]

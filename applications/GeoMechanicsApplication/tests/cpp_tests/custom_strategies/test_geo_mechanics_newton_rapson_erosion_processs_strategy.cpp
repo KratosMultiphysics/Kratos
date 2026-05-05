@@ -11,6 +11,8 @@
 //
 
 // Project includes
+#include "custom_elements/Pw_element.hpp"
+#include "custom_elements/geo_steady_state_Pw_piping_element.h"
 #include "custom_strategies/strategies/geo_mechanics_newton_raphson_erosion_process_strategy.hpp"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/test_utilities.h"
@@ -37,7 +39,7 @@ public:
                                                         typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver,
                                                         Parameters& rParameters)
         : GeoMechanicsNewtonRaphsonErosionProcessStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(
-              rModelPart, pScheme, pNewConvergenceCriteria, pNewBuilderAndSolver, rParameters),
+              rModelPart, std::move(pScheme), std::move(pNewConvergenceCriteria), std::move(pNewBuilderAndSolver), rParameters),
           mrModelPart(rModelPart)
     {
     }
@@ -92,6 +94,20 @@ Geometry<Node>::Pointer CreateQuadrilateral2D4N(ModelPart&              rModelPa
         CreateNodeWithSolutionStepValues(rModelPart, rNodeIds[3], Xmin, y_max, WaterPressureLeft));
 }
 
+Geometry<Node>::Pointer CreateLine2D2N(ModelPart&              rModelPart,
+                                       const std::vector<int>& rNodeIds,
+                                       double                  Xmin,
+                                       double                  Xmax,
+                                       double                  WaterPressureLeft,
+                                       double                  WaterPressureRight)
+{
+    constexpr double y = 0.0;
+
+    return make_shared<Line2D2<Node>>(
+        CreateNodeWithSolutionStepValues(rModelPart, rNodeIds[0], Xmin, y, WaterPressureLeft),
+        CreateNodeWithSolutionStepValues(rModelPart, rNodeIds[1], Xmax, y, WaterPressureRight));
+}
+
 auto SetupPipingStrategy(Model& rModel)
 {
     using SparseSpaceType             = UblasSpace<double, CompressedMatrix, Vector>;
@@ -109,9 +125,10 @@ auto SetupPipingStrategy(Model& rModel)
     auto p_element_props = r_model_part.CreateNewProperties(0);
     p_element_props->SetValue(CONSTITUTIVE_LAW, LinearElastic2DInterfaceLaw().Clone());
 
-    auto p_element = make_intrusive<SteadyStatePwElement<2, 4>>(
+    auto contributions = {CalculationContribution::Permeability, CalculationContribution::FluidBodyFlow};
+    auto p_element = make_intrusive<PwElement<2, 4>>(
         0, CreateQuadrilateral2D4N(r_model_part, std::vector<int>{13, 14, 15, 16}, 3.0, 4.0, 2000.0, 2000.0),
-        p_element_props, std::make_unique<PlaneStrainStressState>(), nullptr);
+        p_element_props, contributions, nullptr);
     p_element->Initialize(r_process_info);
     r_model_part.AddElement(p_element);
 
@@ -126,25 +143,21 @@ auto SetupPipingStrategy(Model& rModel)
     p_piping_element_props->SetValue(PIPE_MODIFIED_D, false);
     p_piping_element_props->SetValue(PIPE_MODEL_FACTOR, 1);
     p_piping_element_props->SetValue(PIPE_START_ELEMENT, 1);
-    p_piping_element_props->SetValue(CONSTITUTIVE_LAW, LinearElastic2DInterfaceLaw().Clone());
 
     // Create the start piping element
-    auto p_piping_element = make_intrusive<SteadyStatePwPipingElement<2, 4>>(
-        1, CreateQuadrilateral2D4N(r_model_part, std::vector<int>{1, 2, 3, 4}, 0.0, 1.0, 0.0, 500.0),
-        p_piping_element_props, std::make_unique<PlaneStrainStressState>(), nullptr);
+    auto p_piping_element = make_intrusive<GeoSteadyStatePwPipingElement<2, 2>>(
+        1, CreateLine2D2N(r_model_part, std::vector{1, 2}, 0.0, 1.0, 0.0, 500.0), p_piping_element_props);
     p_piping_element->Initialize(r_process_info);
     r_model_part.AddElement(p_piping_element);
 
     // Create other piping elements
-    p_piping_element = make_intrusive<SteadyStatePwPipingElement<2, 4>>(
-        2, CreateQuadrilateral2D4N(r_model_part, std::vector<int>{5, 6, 7, 8}, 2.0, 3.0, 500.0, 1000.0),
-        p_piping_element_props, std::make_unique<PlaneStrainStressState>(), nullptr);
+    p_piping_element = make_intrusive<GeoSteadyStatePwPipingElement<2, 2>>(
+        2, CreateLine2D2N(r_model_part, std::vector{3, 4}, 2.0, 3.0, 500.0, 1000.0), p_piping_element_props);
     p_piping_element->Initialize(r_process_info);
     r_model_part.AddElement(p_piping_element);
 
-    p_piping_element = make_intrusive<SteadyStatePwPipingElement<2, 4>>(
-        3, CreateQuadrilateral2D4N(r_model_part, std::vector<int>{9, 10, 11, 12}, 1.0, 2.0, 1000.0, 1500.0),
-        p_piping_element_props, std::make_unique<PlaneStrainStressState>(), nullptr);
+    p_piping_element = make_intrusive<GeoSteadyStatePwPipingElement<2, 2>>(
+        3, CreateLine2D2N(r_model_part, std::vector{5, 6}, 1.0, 2.0, 1000.0, 1500.0), p_piping_element_props);
     p_piping_element->Initialize(r_process_info);
     r_model_part.AddElement(p_piping_element);
 

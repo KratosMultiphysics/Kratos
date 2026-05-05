@@ -15,6 +15,7 @@
 
 // System includes
 #include <string>
+#include <sstream>
 #include <vector>
 
 // External includes
@@ -211,6 +212,39 @@ namespace StringUtilities
         const std::string& rInputString,
         const std::string& rStopCharacter = ""
         );
+
+
+    /**
+     * @brief Joins the values in the given range into a single string, separated by the specified delimiter.
+     * @details This method allows joining the values represented within the range defined by iterator [ @p Begin
+     *          @p End ). The @p TIteratorType should have the @p TIteratorType::operator* defined, and the type
+     *          of the value represented by @p TIteratorType::operator* should have @p operator<< defined.
+     *
+     * @tparam TIteratorType Iterator type for the input range.
+     * @param Begin Iterator pointing to the beginning of the range.
+     * @param End Iterator pointing to the end of the range (one past the last element).
+     * @param rDelimiter String to insert between each value in the range.
+     * @return A string containing the joined values, separated by the delimiter.
+     *
+     * @note The range [Begin, End) must be valid and dereferenceable. The value type must be streamable to std::stringstream.
+     */
+    template<class TIteratorType>
+    [[nodiscard]] std::string JoinValues(
+        TIteratorType Begin,
+        TIteratorType End,
+        const std::string& rDelimiter)
+    {
+        std::stringstream result;
+
+        if (std::distance(Begin, End) > 0) {
+            result << *Begin;
+            for (auto it = Begin + 1; it != End; ++it) {
+                result << rDelimiter << *it;
+            }
+        }
+
+        return result.str();
+    }
 
     /**
      * @brief Prints the data of an object of type TClass to the given output stream with indentation.
