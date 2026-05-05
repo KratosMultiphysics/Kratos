@@ -76,11 +76,9 @@
                             "body_output": true,
                             "node_output": false,
                             "skin_output": false,
-                            "plane_output": [],
                             "nodal_results": ["DISPLACEMENT"],
                             "gauss_point_results": ["STRAIN", "FORCE"]
-                        },
-                        "point_data_configuration": []
+                        }
                     }
                 }
             }
