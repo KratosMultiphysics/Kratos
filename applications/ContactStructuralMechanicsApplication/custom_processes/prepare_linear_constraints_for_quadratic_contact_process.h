@@ -97,8 +97,11 @@ public:
      */
     void ExecuteInitialize() override
     {
-        KRATOS_WATCH("PrepareLinearConstraintsForQuadraticContactProcess: ExecuteInitialize")
-        KRATOS_WATCH(mrModelPart.Conditions().size())
+        for (auto& r_node : mrModelPart.Nodes()) {
+            r_node.Set(VISITED, false);
+        }
+
+        
     }
 
     /**
