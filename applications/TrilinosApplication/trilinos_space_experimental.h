@@ -29,12 +29,14 @@
 #include <Teuchos_CommHelpers.hpp>
 #include <TpetraExt_MatrixMatrix.hpp>
 // #include <TpetraExt_TripleMatrixMultiply.hpp> // NOTE: TripleMatrixMultiply is giving segmentation fault in the version of Trilinos available in Ubuntu 24.04. We cannot use it for the BDB' operation, and instead must do two separate multiplications with an intermediate CrsMatrix. This is less efficient than a single triple-matrix multiply, but it is a temporary workaround until we can upgrade to a newer Trilinos version with a working TpetraExt_TripleMatrixMultiply_def implementation.
-// NOTE: MatrixMarket_Tpetra.hpp is intentionally NOT included here — see
-// custom_utilities/auxiliary_matrix_market.h for the rationale.
+// NOTE: MatrixMarket_Tpetra.hpp is NOT included here because its internal
+// mmio_Tpetra.h declares mm_read_mtx_crd_size(FILE*, size_t*, ...) which
+// conflicts with Kratos' mmio.h version using int* (C linkage, no overloads).
+// The four MatrixMarket helpers live in trilinos_matrix_market_io.cpp instead.
 
 // Project includes
 #include "trilinos_application.h"
-#include "custom_utilities/auxiliary_matrix_market.h"
+#include "custom_utilities/trilinos_matrix_market_io.h"
 #include "includes/ublas_interface.h"
 #include "spaces/ublas_space.h"
 #include "includes/data_communicator.h"
@@ -2390,7 +2392,7 @@ public:
         CommunicatorType& rComm
         )
     {
-        return AuxiliaryMatrixMarket<MatrixType, VectorType>::ReadMatrixMarket(rFileName, rComm);
+        return TpetraMatrixMarketIO::ReadMatrix(rFileName, rComm);
     }
 
     /**
@@ -2406,7 +2408,7 @@ public:
         const int N
         )
     {
-        return AuxiliaryMatrixMarket<MatrixType, VectorType>::ReadMatrixMarketVector(rFileName, pComm, N);
+        return TpetraMatrixMarketIO::ReadVector(rFileName, pComm, N);
     }
 
     /**
@@ -2421,7 +2423,7 @@ public:
         const bool Symmetric
         )
     {
-        AuxiliaryMatrixMarket<MatrixType, VectorType>::WriteMatrixMarketMatrix(pFileName, rA, Symmetric);
+        TpetraMatrixMarketIO::WriteMatrix(pFileName, rA);
     }
 
     /**
@@ -2434,7 +2436,7 @@ public:
         const VectorType& rV
         )
     {
-        AuxiliaryMatrixMarket<MatrixType, VectorType>::WriteMatrixMarketVector(pFileName, rV);
+        TpetraMatrixMarketIO::WriteVector(pFileName, rV);
     }
 
     /**
