@@ -1,13 +1,13 @@
 Begin Table 1 TIME LINE_NORMAL_LOAD_Y
   0.0 0.0
-  0.01 -2.5e+05
-  0.25 -2.5e+05
-  0.26 -5e+05
-  0.50 -5e+05
-  0.51 -7.5e+05
-  0.75 -7.5e+05
-  0.76 -1e+06
-  1.0 -1e+06
+  0.01 2.5e+05
+  0.25 2.5e+05
+  0.26 5e+05
+  0.50 5e+05
+  0.51 7.5e+05
+  0.75 7.5e+05
+  0.76 1e+06
+  1.0 1e+06
 End Table
 
 Begin Properties 0
@@ -28,12 +28,12 @@ Begin Nodes
   9  1.0 1.0 0.0
 End Nodes
 
-Begin Elements SmallStrainUPwDiffOrderElement2D6N
+Begin Elements SmallStrainUPwDiffOrderAxisymmetricElement2D6N
   1   1 7 1 3 4 2 5
   2   1 3 9 7 6 8 5
 End Elements
 
-Begin Conditions LineLoadDiffOrderCondition2D3N
+Begin Conditions AxisymmetricLineNormalLoadDiffOrderCondition2D3N
   1 0 9 7 8 
 End Conditions
 
