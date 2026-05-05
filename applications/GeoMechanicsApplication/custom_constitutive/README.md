@@ -670,3 +670,41 @@ MohrCoulomb64 model uses an ad‑hoc elastic stiffness correction:
 \Delta u = 2G/3 ( \frac{1+\nu_u}{1−2\nu_u} − \frac{1+\nu}{1−2\nu} ) \Delta \epsilon_v,
 ```
 which approximates an undrained − drained bulk modulus difference using an artificial near‑incompressible Poisson ratio $\nu_u = 0.495$. 
+
+## Piecewise linear moment capacity 
+
+- **Description:** A 1D piecewise-linear moment–curvature constitutive law used for section-level bending response. The law is defined by a backbone table of non-negative curvature points and corresponding moment capacities. An implicit origin point $(0,0)$ is assumed and a plateau is appended beyond the last provided curvature so the capacity remains constant for larger curvatures.
+- **Variables:** curvature $\kappa$ (scalar), moment $M$ (scalar). The backbone is denoted $M_b(\kappa)$ for $\kappa\ge0$.
+- **Signed moment:**
+
+$$
+M(\kappa)=\operatorname{sign}(\kappa)\,M_b(|\kappa|),
+$$
+
+- **Tangent modulus:**
+
+$$
+\dfrac{dM}{d\kappa}=M_b'(|\kappa|),
+$$
+
+- **Optional unload/reload ( UNRELOAD_MODULUS ):** If the material property `UNRELOAD_MODULUS` (denoted $E_u$) is provided, the constitutive law activates an elastic unload/reload window centered at $\kappa_c$ with amplitude $A$ computed from the current accumulated backbone state $\kappa_{acc}$:
+
+$$
+A = \dfrac{M_b(\kappa_{acc})}{E_u}.
+$$
+
+Inside the window ($|\kappa-\kappa_c|<A$) the response is linear elastic about the center:
+
+$$
+M(\kappa)=E_u\,(\kappa-\kappa_c),\qquad |\kappa-\kappa_c|<A.
+$$
+
+When loading leaves the elastic window ($|\kappa-\kappa_c|\ge A$) the backbone is followed using an effective backbone curvature
+
+$$
+\kappa_{eff}=\kappa_{acc} + (|\kappa-\kappa_c|-A),
+$$
+
+and the signed moment is recovered from the backbone: $M(\kappa)=\operatorname{sign}(\kappa-\kappa_c)\,M_b(\kappa_{eff})$.
+
+- **State updates:** Upon leaving the elastic window the internal accumulated curvature and center are updated so subsequent cycles are consistent with the backbone; these states are serialized as `mAccumulatedCurvature`, `mPreviousCurvature`, and `mUnReLoadCenter`.

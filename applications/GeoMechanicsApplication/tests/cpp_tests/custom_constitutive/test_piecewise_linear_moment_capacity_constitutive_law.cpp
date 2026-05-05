@@ -67,6 +67,24 @@ double CalculateTangentForCurvature(PiecewiseLinearMomentCapacityConstitutiveLaw
     return tangent;
 }
 
+void FinalizeForCurvature(PiecewiseLinearMomentCapacityConstitutiveLaw& rLaw, const Properties& rProperties, double Curvature)
+{
+    auto parameters    = ConstitutiveLaw::Parameters{};
+    auto strain_vector = UblasUtilities::CreateVector({Curvature});
+    parameters.SetStrainVector(strain_vector);
+
+    auto stress_vector = Vector(1, 0.0);
+    parameters.SetStressVector(stress_vector);
+
+    auto constitutive_matrix = Matrix(1, 1, 0.0);
+    parameters.SetConstitutiveMatrix(constitutive_matrix);
+
+    parameters.SetMaterialProperties(rProperties);
+    parameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
+
+    rLaw.FinalizeMaterialResponsePK2(parameters);
+}
+
 } // namespace
 
 namespace Kratos::Testing
@@ -129,6 +147,35 @@ KRATOS_TEST_CASE_IN_SUITE(MomentCapacityLawReturnsExpectedTangentModulus, Kratos
     KRATOS_EXPECT_NEAR(CalculateTangentForCurvature(law, props, 0.005), 8000.0, Defaults::absolute_tolerance);
     KRATOS_EXPECT_NEAR(CalculateTangentForCurvature(law, props, 0.02), 0.0, Defaults::absolute_tolerance);
     KRATOS_EXPECT_NEAR(CalculateTangentForCurvature(law, props, 0.04), 2400.0, Defaults::absolute_tolerance);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(UnloadReloadWindow_ElasticResponseInsideWindow, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    auto law        = PiecewiseLinearMomentCapacityConstitutiveLaw{};
+    auto properties = CreateValidProperties();
+    properties.SetValue(UNRELOAD_MODULUS, 1000.0);
+
+    const auto geometry = Geometry<Node>{};
+    Vector     dummy_vector;
+    law.InitializeMaterial(properties, geometry, dummy_vector);
+
+    // First, load to a curvature beyond initial zero accumulated curvature
+    FinalizeForCurvature(law, properties, 0.04);
+
+    // After finalize the law should have a non-zero accumulated curvature and an elastic window
+    // Choose a curvature close to the center so it falls inside the elastic window
+    const auto test_kappa = -0.06; // selected to be within the small window created
+
+    // Tangent should equal the UNRELOAD_MODULUS inside the window
+    KRATOS_EXPECT_NEAR(CalculateTangentForCurvature(law, properties, test_kappa), 1000.0,
+                       Defaults::absolute_tolerance);
+
+    // Verify local derivative (finite difference) equals the unload modulus -> elastic linearity
+    const auto eps = 1e-6;
+    const auto s1  = CalculateMomentForCurvature(law, properties, test_kappa);
+    const auto s2  = CalculateMomentForCurvature(law, properties, test_kappa + eps);
+    const auto fd  = (s2 - s1) / eps;
+    KRATOS_EXPECT_NEAR(fd, 1000.0, 1e-6);
 }
 
 } // namespace Kratos::Testing

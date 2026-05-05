@@ -48,6 +48,7 @@ public:
     using BaseType::CalculateValue;
 
     void CalculateMaterialResponsePK2(Parameters& rValues) override;
+    void FinalizeMaterialResponsePK2(Parameters& rValues) override;
 
     void InitializeMaterial(const Properties&   rMaterialProperties,
                             const GeometryType& rElementGeometry,
@@ -63,6 +64,15 @@ public:
 
 private:
     Table<double, double> mStressStrainTable;
+    // Unload/reload state (optional, activated when UNRELOAD_MODULUS property is set)
+    double mAccumulatedCurvature = 0.0;
+    double mPreviousCurvature    = 0.0;
+    double mUnReLoadCenter       = 0.0;
+    // Optional stored modulus value for unload/reload behavior (set in InitializeMaterial)
+    double mUnReLoadModulus = 0.0;
+
+    [[nodiscard]] double CalculateUnReLoadAmplitude() const;
+    [[nodiscard]] bool   IsWithinUnReLoading(double Curvature) const;
 
     friend class Serializer;
     void save(Serializer& rSerializer) const override;
