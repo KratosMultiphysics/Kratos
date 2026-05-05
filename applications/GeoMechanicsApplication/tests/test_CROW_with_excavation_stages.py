@@ -256,49 +256,50 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             self.create_interface_plots(project_path)
 
         # Check the obtained results
-        csv_filepath = (
-            Path(project_path) / "3_Sheetpile_installation_wall_expected_results.csv"
-        )
-        expected_results = get_expected_results_from_csv(csv_filepath)
-
         reader = GiDOutputFileReader()
-        output_data = reader.read_output_from(
-            Path(project_path) / "gid_output" / "3_Sheetpile_installation.post.res"
-        )
-        end_time = 1.0  # this needs to be looked up
         node_ids = get_sheetpile_node_ids()
-        bending_moments = reader.nodal_values_at_time(
-            "BENDING_MOMENT", end_time, output_data, node_ids=node_ids
-        )
-        shear_forces = reader.nodal_values_at_time(
-            "SHEAR_FORCE", end_time, output_data, node_ids=node_ids
-        )
-        horizontal_displacements = [
-            displacement_vector[0]
-            for displacement_vector in reader.nodal_values_at_time(
-                "DISPLACEMENT", end_time, output_data, node_ids=node_ids
-            )
-        ]
 
-        for node_id, bending_moment, shear_force, horizontal_displacement in zip(
-            node_ids, bending_moments, shear_forces, horizontal_displacements
-        ):
-            expected_nodal_results = expected_results[node_id]
-            self.assertAlmostEqual(
-                bending_moment,
-                expected_nodal_results[csv_fieldname_bending_moment],
-                msg=f"Bending moment at node {node_id}",
+        for stage_name in ["wall_installation", "first_excavation"]:
+            base_name = self.stages_info[stage_name]["base_name"]
+            csv_filepath = Path(project_path) / f"{base_name}_wall_expected_results.csv"
+            expected_results = get_expected_results_from_csv(csv_filepath)
+
+            output_data = reader.read_output_from(
+                Path(project_path) / "gid_output" / f"{base_name}.post.res"
             )
-            self.assertAlmostEqual(
-                shear_force,
-                expected_nodal_results[csv_fieldname_shear_force],
-                msg=f"Shear force at node {node_id}",
+            end_time = self.stages_info[stage_name]["end_time"]
+            bending_moments = reader.nodal_values_at_time(
+                "BENDING_MOMENT", end_time, output_data, node_ids=node_ids
             )
-            self.assertAlmostEqual(
-                horizontal_displacement,
-                expected_nodal_results[csv_fieldname_horizontal_displacement],
-                msg=f"Horizontal displacement at node {node_id}",
+            shear_forces = reader.nodal_values_at_time(
+                "SHEAR_FORCE", end_time, output_data, node_ids=node_ids
             )
+            horizontal_displacements = [
+                displacement_vector[0]
+                for displacement_vector in reader.nodal_values_at_time(
+                    "DISPLACEMENT", end_time, output_data, node_ids=node_ids
+                )
+            ]
+
+            for node_id, bending_moment, shear_force, horizontal_displacement in zip(
+                node_ids, bending_moments, shear_forces, horizontal_displacements
+            ):
+                expected_nodal_results = expected_results[node_id]
+                self.assertAlmostEqual(
+                    bending_moment,
+                    expected_nodal_results[csv_fieldname_bending_moment],
+                    msg=f"Bending moment at node {node_id} in stage '{stage_name}'",
+                )
+                self.assertAlmostEqual(
+                    shear_force,
+                    expected_nodal_results[csv_fieldname_shear_force],
+                    msg=f"Shear force at node {node_id} in stage '{stage_name}'",
+                )
+                self.assertAlmostEqual(
+                    horizontal_displacement,
+                    expected_nodal_results[csv_fieldname_horizontal_displacement],
+                    msg=f"Horizontal displacement at node {node_id} in stage '{stage_name}'",
+                )
 
     def read_json_output(self, project_path, stage):
         with open(
@@ -666,7 +667,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
         reader = GiDOutputFileReader()
         node_ids = get_sheetpile_node_ids()
 
-        for stage_name in ["wall_installation"]:
+        for stage_name in ["wall_installation", "first_excavation"]:
             base_name = self.stages_info[stage_name]["base_name"]
             output_data = reader.read_output_from(
                 target_dir / "gid_output" / f"{base_name}.post.res"
