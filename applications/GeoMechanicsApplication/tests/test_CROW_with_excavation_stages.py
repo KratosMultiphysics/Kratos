@@ -259,7 +259,12 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
         reader = GiDOutputFileReader()
         node_ids = get_sheetpile_node_ids()
 
-        for stage_name in ["wall_installation", "first_excavation", "second_excavation"]:
+        for stage_name in [
+            "wall_installation",
+            "first_excavation",
+            "second_excavation",
+            "third_excavation",
+        ]:
             base_name = self.stages_info[stage_name]["base_name"]
             csv_filepath = Path(project_path) / f"{base_name}_wall_expected_results.csv"
             expected_results = get_expected_results_from_csv(csv_filepath)
@@ -667,7 +672,12 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
         reader = GiDOutputFileReader()
         node_ids = get_sheetpile_node_ids()
 
-        for stage_name in ["wall_installation", "first_excavation", "second_excavation"]:
+        for stage_name in [
+            "wall_installation",
+            "first_excavation",
+            "second_excavation",
+            "third_excavation",
+        ]:
             base_name = self.stages_info[stage_name]["base_name"]
             output_data = reader.read_output_from(
                 target_dir / "gid_output" / f"{base_name}.post.res"
