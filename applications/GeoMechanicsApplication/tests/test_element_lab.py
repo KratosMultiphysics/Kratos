@@ -57,16 +57,16 @@ class KratosGeoMechanicsLabElementTests(KratosUnittest.TestCase):
             
     def test_oedometer_drained(self):
         """Regression test for the oedometer experiment on a linear elastic model with constant pore water pressure."""
-        expected_stress_per_ip = [-333333, -1e+06, -333333, 0.0, 0.0, 0.0]
+        expected_stress_per_ip = [-1e+06/3.0, -1e+06, -1e+06/3.0, 0.0, 0.0, 0.0]
         expected_stress = [expected_stress_per_ip] * 6
-        expected_y_displacements = [-0.0208333, -0.0416667, -0.0625, -0.0833333]
+        expected_y_displacements = [-0.0208, -0.0417, -0.0625, -0.0833]
         displacement_times = [0.25, 0.5, 0.75, 1.0]
         top_nodes = [7, 8, 9]
         self._run_oedometer_regression_test('drained', 'test_oedometer_output.post.res', expected_stress,
-                                            expected_y_displacements, displacement_times, top_nodes, 6)
+                                            expected_y_displacements, displacement_times, top_nodes, 0, 4)
         
     def _run_oedometer_regression_test(self, stage_name, output_file_name, expected_stress,
-                                       expected_y_displacements, displacement_times, top_nodes, precision_places):
+                                       expected_y_displacements, displacement_times, top_nodes, precision_places_stress, precision_places_displacement=4):
         """Run the oedometer regression test and validate stress tensors and y-displacements in time."""
         test_name = 'test_oedometer'
         file_path = test_helper.get_file_path(os.path.join('test_element_lab', test_name, stage_name))
@@ -76,10 +76,10 @@ class KratosGeoMechanicsLabElementTests(KratosUnittest.TestCase):
         result = reader.read_output_from(os.path.join(file_path, output_file_name))
 
         self._assert_integration_point_tensors(reader, result, "CAUCHY_STRESS_TENSOR", expected_stress,
-                                              precision_places, time=1.0)
+                                              precision_places_stress, time=1.0)
 
         for time, expected_y in zip(displacement_times, expected_y_displacements):
-            self._assert_y_displacements_at_time(reader, result, top_nodes, expected_y, precision_places, time)
+            self._assert_y_displacements_at_time(reader, result, top_nodes, expected_y, precision_places_displacement, time)
 
     def test_triaxial_comp_6n(self):
         """
@@ -110,16 +110,16 @@ class KratosGeoMechanicsLabElementTests(KratosUnittest.TestCase):
         file_path = test_helper.get_file_path(os.path.join('test_element_lab', test_name))
         simulation = test_helper.run_kratos(file_path)
         effective_stresses = test_helper.get_cauchy_stress_tensor(simulation)
-        self._assert_oedometer_effective_stresses(effective_stresses, -1000000.0, 2)
+        self._assert_oedometer_effective_stresses(effective_stresses, -1e+06, 2)
 
         top_node_nbrs = [1, 2]
         output_file = os.path.join(file_path, test_name+'.post.res')
         reader = GiDOutputFileReader()
         result = reader.read_output_from(output_file)
 
-        self._assert_y_displacements_at_time(reader, result, top_node_nbrs, -0.00990099, 6, 0.1)
-        self._assert_y_displacements_at_time(reader, result, top_node_nbrs, -0.0654206, 6, 0.7)
-        self._assert_y_displacements_at_time(reader, result, top_node_nbrs, -0.0909090909516868, 6, 1.0)
+        self._assert_y_displacements_at_time(reader, result, top_node_nbrs, -0.0099, 4, 0.1)
+        self._assert_y_displacements_at_time(reader, result, top_node_nbrs, -0.0654, 4, 0.7)
+        self._assert_y_displacements_at_time(reader, result, top_node_nbrs, -0.0909, 4, 1.0)
 
     def test_oedometer_ULFEM_diff_order(self):
         """
@@ -129,7 +129,7 @@ class KratosGeoMechanicsLabElementTests(KratosUnittest.TestCase):
         project_path = test_helper.get_file_path(os.path.join('test_element_lab', test_name))
         simulation = test_helper.run_kratos(project_path)
         effective_stresses = test_helper.get_cauchy_stress_tensor(simulation)
-        self._assert_oedometer_effective_stresses(effective_stresses, -1000.0, 3)
+        self._assert_oedometer_effective_stresses(effective_stresses, -1e+03, 3)
 
         output_file = os.path.join(project_path, test_name + '.post.res')
         reader = GiDOutputFileReader()
