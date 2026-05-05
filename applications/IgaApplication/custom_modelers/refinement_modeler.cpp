@@ -92,7 +92,12 @@ namespace Kratos
                             PointsRefined, KnotsURefined, WeightsRefined);
 
                         // Recreate nodes in model part to ensure correct assignment of dofs
-                        IndexType node_id = (r_model_part.NodesEnd() - 1)->Id() + 1;
+                        for (auto& r_point : p_nurbs_surface->Points()) {
+                            r_point.Set(TO_ERASE, true);
+                        }
+                        r_model_part.RemoveNodesFromAllLevels(TO_ERASE);
+                        IndexType node_id = r_model_part.Nodes().empty() ? 1 : (r_model_part.NodesEnd() - 1)->Id() + 1;
+
                         for (IndexType i = 0; i < PointsRefined.size(); ++i) {
                             if (PointsRefined(i)->Id() == 0) {
                                 PointsRefined(i) = r_model_part.CreateNewNode(node_id, PointsRefined[i][0], PointsRefined[i][1], PointsRefined[i][2]);
@@ -133,7 +138,12 @@ namespace Kratos
                             PointsRefined, KnotsVRefined, WeightsRefined);
 
                         // Recreate nodes in model part to ensure correct assignment of dofs
-                        IndexType node_id = (r_model_part.NodesEnd() - 1)->Id() + 1;
+                        for (auto& r_point : p_nurbs_surface->Points()) {
+                            r_point.Set(TO_ERASE, true);
+                        }
+                        r_model_part.RemoveNodesFromAllLevels(TO_ERASE);
+                        IndexType node_id = r_model_part.Nodes().empty() ? 1 : (r_model_part.NodesEnd() - 1)->Id() + 1;
+
                         for (IndexType i = 0; i < PointsRefined.size(); ++i) {
                             if (PointsRefined(i)->Id() == 0) {
                                 PointsRefined(i) = r_model_part.CreateNewNode(node_id, PointsRefined[i][0], PointsRefined[i][1], PointsRefined[i][2]);
@@ -182,7 +192,12 @@ namespace Kratos
                             PointsRefined, KnotsURefined, WeightsRefined);
 
                         // Recreate nodes in model part to ensure correct assignment of dofs
-                        IndexType node_id = (r_model_part.NodesEnd() - 1)->Id() + 1;
+                        for (auto& r_point : p_nurbs_surface->Points()) {
+                            r_point.Set(TO_ERASE, true);
+                        }
+                        r_model_part.RemoveNodesFromAllLevels(TO_ERASE);
+                        IndexType node_id = r_model_part.Nodes().empty() ? 1 : (r_model_part.NodesEnd() - 1)->Id() + 1;
+                        
                         for (IndexType i = 0; i < PointsRefined.size(); ++i) {
                             if (PointsRefined(i)->Id() == 0) {
                                 PointsRefined(i) = r_model_part.CreateNewNode(node_id, PointsRefined[i][0], PointsRefined[i][1], PointsRefined[i][2]);
@@ -231,7 +246,12 @@ namespace Kratos
                         PointsRefined, KnotsVRefined, WeightsRefined);
 
                     // Recreate nodes in model part to ensure correct assignment of dofs
-                    IndexType node_id = (r_model_part.NodesEnd() - 1)->Id() + 1;
+                    for (auto& r_point : p_nurbs_surface->Points()) {
+                        r_point.Set(TO_ERASE, true);
+                    }
+                    r_model_part.RemoveNodesFromAllLevels(TO_ERASE);
+                    IndexType node_id = r_model_part.Nodes().empty() ? 1 : (r_model_part.NodesEnd() - 1)->Id() + 1;
+
                     for (IndexType i = 0; i < PointsRefined.size(); ++i) {
                         if (PointsRefined(i)->Id() == 0) {
                             PointsRefined(i) = r_model_part.CreateNewNode(node_id, PointsRefined[i][0], PointsRefined[i][1], PointsRefined[i][2]);
@@ -255,6 +275,13 @@ namespace Kratos
                     }
                 }
             }
+        }
+
+        // Reassign node ids from 1 to n after refinement
+        std::size_t new_id = 1;
+        for (auto& r_node : r_model_part.Nodes()) {
+            r_node.SetId(new_id);
+            new_id++;
         }
     }
 

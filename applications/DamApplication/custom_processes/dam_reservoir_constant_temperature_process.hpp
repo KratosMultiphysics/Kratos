@@ -48,7 +48,7 @@ class DamReservoirConstantTemperatureProcess : public Process
             {
                 "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
                 "variable_name": "PLEASE_PRESCRIBE_VARIABLE_NAME",
-                "is_fixed"                                         : false,
+                "constrained"                                      : false,
                 "Gravity_Direction"                                : "Y",
                 "Reservoir_Bottom_Coordinate_in_Gravity_Direction" : 0.0,
                 "Water_temp"                                       : 0.0,
@@ -71,7 +71,7 @@ class DamReservoirConstantTemperatureProcess : public Process
         rParameters.ValidateAndAssignDefaults(default_parameters);
 
         mVariableName = rParameters["variable_name"].GetString();
-        mIsFixed = rParameters["is_fixed"].GetBool();
+        mIsFixed = rParameters["constrained"].GetBool();
         mGravityDirection = rParameters["Gravity_Direction"].GetString();
         mReferenceCoordinate = rParameters["Reservoir_Bottom_Coordinate_in_Gravity_Direction"].GetDouble();
         mWaterTemp = rParameters["Water_temp"].GetDouble();
@@ -103,7 +103,7 @@ class DamReservoirConstantTemperatureProcess : public Process
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void ExecuteInitialize() override
+    void ExecuteBeforeSolutionLoop() override
     {
 
         KRATOS_TRY;

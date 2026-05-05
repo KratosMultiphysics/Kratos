@@ -508,7 +508,7 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) SerialParallelRuleOfMixturesLaw
         const ConstitutiveLaw::StressMeasure& rStressMeasure);
 
     /**
-     * This method checks wether the serial stresses are in equilibrium
+     * This method checks whether the serial stresses are in equilibrium
      * @param rStrainVector The total strain of the composite
      * @param rSerialProjector The Serial behaviour projector
      * @param rMatrixStressVector  the stress vector of the matrix

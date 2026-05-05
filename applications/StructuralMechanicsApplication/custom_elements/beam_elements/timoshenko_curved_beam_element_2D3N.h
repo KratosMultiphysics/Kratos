@@ -69,8 +69,9 @@ public:
     static constexpr SizeType SystemSize    = 9;
     static constexpr SizeType NumberOfNodes = 3;
     static constexpr SizeType DoFperNode    = 3;
+    static constexpr double Tolerance       = 1.0e-12;
 
-    using GlobalSizeVector = BoundedVector<double, 9>;
+    using GlobalSizeVector = BoundedVector<double, SystemSize>;
     using array_3 = array_1d<double, 3>;
 
     // Counted pointer of BaseSolidElement

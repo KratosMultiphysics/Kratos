@@ -12,7 +12,12 @@
 //
 
 #include "custom_retention/saturated_below_phreatic_level_law.h"
+#include "custom_utilities/check_utilities.hpp"
 #include "geo_mechanics_application_variables.h"
+
+#include <string>
+
+using namespace std::string_literals;
 
 namespace Kratos
 {
@@ -56,31 +61,19 @@ double SaturatedBelowPhreaticLevelLaw::CalculateBishopCoefficient(Parameters& rP
 
 int SaturatedBelowPhreaticLevelLaw::Check(const Properties& rMaterialProperties, const ProcessInfo&)
 {
-    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(SATURATED_SATURATION))
-        << "SATURATED_SATURATION is not available in the parameters of material "
-        << rMaterialProperties.Id() << "." << std::endl;
-    KRATOS_ERROR_IF(rMaterialProperties[SATURATED_SATURATION] < 0.0 || rMaterialProperties[SATURATED_SATURATION] > 1.0)
-        << "SATURATED_SATURATION (" << rMaterialProperties[SATURATED_SATURATION]
-        << ") must be in the range [0.0, 1.0] for material " << rMaterialProperties.Id() << "."
-        << std::endl;
-
-    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(RESIDUAL_SATURATION))
-        << "RESIDUAL_SATURATION is not available in the parameters of material "
-        << rMaterialProperties.Id() << "." << std::endl;
-    KRATOS_ERROR_IF(rMaterialProperties[RESIDUAL_SATURATION] < 0.0 || rMaterialProperties[RESIDUAL_SATURATION] >= rMaterialProperties[SATURATED_SATURATION])
-        << "RESIDUAL_SATURATION (" << rMaterialProperties[RESIDUAL_SATURATION]
-        << ") must be in the range [0.0, " << rMaterialProperties[SATURATED_SATURATION]
-        << "> for material " << rMaterialProperties.Id() << "." << std::endl;
-
-    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(MINIMUM_RELATIVE_PERMEABILITY))
-        << "MINIMUM_RELATIVE_PERMEABILITY is not available in the parameters of material "
-        << rMaterialProperties.Id() << "." << std::endl;
-    KRATOS_ERROR_IF(rMaterialProperties[MINIMUM_RELATIVE_PERMEABILITY] < 0.0 || rMaterialProperties[MINIMUM_RELATIVE_PERMEABILITY] > 1.0)
-        << "MINIMUM_RELATIVE_PERMEABILITY (" << rMaterialProperties[MINIMUM_RELATIVE_PERMEABILITY]
-        << ") must be in the range [0.0, 1.0] for material " << rMaterialProperties.Id() << "."
-        << std::endl;
+    const CheckProperties check_properties(rMaterialProperties, "parameters of material",
+                                           CheckProperties::Bounds::AllInclusive);
+    constexpr auto        max_value = 1.0;
+    check_properties.Check(SATURATED_SATURATION, max_value);
+    check_properties.SingleUseBounds(CheckProperties::Bounds::InclusiveLowerAndExclusiveUpper)
+        .Check(RESIDUAL_SATURATION, rMaterialProperties[SATURATED_SATURATION]);
+    check_properties.Check(MINIMUM_RELATIVE_PERMEABILITY, max_value);
 
     return 0;
 }
 
+std::string SaturatedBelowPhreaticLevelLaw::Info() const
+{
+    return "SaturatedBelowPhreaticLevelLaw"s;
+}
 } // Namespace Kratos

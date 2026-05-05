@@ -79,7 +79,7 @@ class ExplicitStrategy(BaseStrategy):
     
     #----------------------------------------------------------------------------------------------
     def InitializeSolutionStep(self):
-        if (self.compute_motion_option):
+        if (self.compute_forces_option):
             BaseStrategy.InitializeSolutionStep(self)
         else:
             (self.cplusplus_strategy).InitializeSolutionStep()
@@ -90,13 +90,13 @@ class ExplicitStrategy(BaseStrategy):
     
     #----------------------------------------------------------------------------------------------
     def Predict(self):
-        if (self.compute_motion_option):
+        if (self.compute_forces_option):
             BaseStrategy.Predict(self)
     
     #----------------------------------------------------------------------------------------------
     def SolveSolutionStep(self):
         # Solve step according to motion type
-        if (self.compute_motion_option):
+        if (self.compute_forces_option):
             (self.cplusplus_strategy).SolveSolutionStep()
         else:
             (self.cplusplus_strategy).SolveSolutionStepStatic()
@@ -141,6 +141,7 @@ class ExplicitStrategy(BaseStrategy):
         self.thermal_settings.ValidateAndAssignDefaults(default_settings)
 
         # General options
+        self.compute_forces_option       = self.thermal_settings["compute_forces"].GetBool()
         self.compute_motion_option       = self.thermal_settings["compute_motion"].GetBool()
         self.auto_solve_frequency_option = self.thermal_settings["automatic_solve_frequency"].GetBool()
 
@@ -163,7 +164,7 @@ class ExplicitStrategy(BaseStrategy):
         self.porosity_method           = self.thermal_settings["porosity_method"].GetString()
 
         self.heat_generation_model = []
-        for model in self.thermal_settings["heat_generation_model"]:
+        for model in self.thermal_settings["heat_generation_model"].values():
             self.heat_generation_model.append(model.GetString())
 
         # Active heat transfer mechanisms
@@ -228,6 +229,10 @@ class ExplicitStrategy(BaseStrategy):
 
     #----------------------------------------------------------------------------------------------
     def CheckProjectParameters(self):
+        # Forces and motion calculation
+        if (self.compute_motion_option == True and self.compute_forces_option == False):
+            Logger.PrintWarning('ThermalDEM', '\nActivation of "compute_motion" requires "compute_forces" to be enabled. The simulation will run with "compute_forces" enabled.\n')
+        
         # Time integration scheme
         if (self.thermal_integration_scheme != "forward_euler"):
             raise Exception('ThermalDEM', 'Time integration scheme \'' + self.thermal_integration_scheme + '\' is not implemented.') 
@@ -544,7 +549,8 @@ class ExplicitStrategy(BaseStrategy):
     #----------------------------------------------------------------------------------------------
     def SetThermalVariablesAndOptions(self):
         # General options
-        self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, MOTION_OPTION,               self.compute_motion_option)
+        self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, COMPUTE_FORCES_OPTION, self.compute_forces_option)
+        self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, COMPUTE_MOTION_OPTION, self.compute_motion_option)
         self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, AUTO_SOLVE_FREQUENCY_OPTION, self.auto_solve_frequency_option)
         self.spheres_model_part.ProcessInfo.SetValue(THERMAL_FREQUENCY, self.thermal_solve_frequency)
 

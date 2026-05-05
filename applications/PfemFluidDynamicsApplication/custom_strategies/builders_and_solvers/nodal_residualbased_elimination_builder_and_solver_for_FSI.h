@@ -70,7 +70,7 @@ namespace Kratos
    * the end of the system ordered in reverse order with respect to the DofSet.
    * Imposition of the dirichlet conditions is naturally dealt with as the residual already contains
    * this information.
-   * Calculation of the reactions involves a cost very similiar to the calculation of the total residual
+   * Calculation of the reactions involves a cost very similar to the calculation of the total residual
    * @author Riccardo Rossi
    */
   template <class TSparseSpace,
@@ -988,7 +988,7 @@ namespace Kratos
     /**
      * @brief Builds the list of the DofSets involved in the problem by "asking" to each element
      * and condition its Dofs.
-     * @details The list of dofs is stores insde the BuilderAndSolver as it is closely connected to the
+     * @details The list of dofs is stores inside the BuilderAndSolver as it is closely connected to the
      * way the matrix and RHS are built
      * @param pScheme The integration scheme considered
      * @param rModelPart The model part of the problem to solve
@@ -1092,7 +1092,7 @@ namespace Kratos
 
       BaseType::mDofSet = Doftemp;
 
-      // Throws an execption if there are no Degrees of freedom involved in the analysis
+      // Throws an exception if there are no Degrees of freedom involved in the analysis
       KRATOS_ERROR_IF(BaseType::mDofSet.size() == 0) << "No degrees of freedom!" << std::endl;
 
       BaseType::mDofSetIsInitialized = true;
@@ -1180,7 +1180,7 @@ namespace Kratos
         if (A.size1() != BaseType::mEquationSystemSize || A.size2() != BaseType::mEquationSystemSize)
         {
           KRATOS_WATCH("it should not come here!!!!!!!! ... this is SLOW");
-          KRATOS_ERROR << "The equation system size has changed during the simulation. This is not permited." << std::endl;
+          KRATOS_ERROR << "The equation system size has changed during the simulation. This is not permitted." << std::endl;
           A.resize(BaseType::mEquationSystemSize, BaseType::mEquationSystemSize, true);
           ConstructMatrixStructureForFSI(pScheme, A, rModelPart);
         }

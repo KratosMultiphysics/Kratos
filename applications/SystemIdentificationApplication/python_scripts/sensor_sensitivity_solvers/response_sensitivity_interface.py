@@ -1,7 +1,5 @@
 import abc
 import KratosMultiphysics as Kratos
-from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
-from KratosMultiphysics.SystemIdentificationApplication.utilities.expression_utils import ExpressionUnionType
 
 class ResponseSensitivityInterface(abc.ABC):
     @abc.abstractmethod
@@ -31,21 +29,6 @@ class ResponseSensitivityInterface(abc.ABC):
 
         Returns:
             Kratos.ModelPart: Sensitivity model part on which the sensitivities are computed.
-        """
-        pass
-
-    @abc.abstractmethod
-    def GetSensitivities(self) -> 'dict[SupportedSensitivityFieldVariableTypes, ExpressionUnionType]':
-        """Returns sensitivities as a dict having variable and sensitivities as a pair.
-
-        This method returns the computed sensitivities on the sensitivity model part as a pair (variable, expression).
-        The variable will be the design variable. Not the variable which is used to store the sensitivities.
-
-        Ex: The design variable may be "SHAPE", and the variable used to store the sensitivities is called "SHAPE_SENSITIVITY".
-            In this case, it returns the variable "SHAPE" along with an expression containing the sensitivities.
-
-        Returns:
-            dict[SupportedSensitivityFieldVariableTypes, ExpressionUnionType]: Dictionary of design variable and corresponding sensitivities.
         """
         pass
 

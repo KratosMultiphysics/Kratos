@@ -132,6 +132,17 @@ ApplyConstantVectorValueProcess::ApplyConstantVectorValueProcess(
 /***********************************************************************************/
 /***********************************************************************************/
 
+Process::Pointer ApplyConstantVectorValueProcess::Create(
+    Model& rModel,
+    Parameters ThisParameters
+    )
+{
+    return Kratos::make_shared<ApplyConstantVectorValueProcess>(rModel, ThisParameters);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void ApplyConstantVectorValueProcess::ExecuteInitialize()
 {
     // Compute the Value to be applied

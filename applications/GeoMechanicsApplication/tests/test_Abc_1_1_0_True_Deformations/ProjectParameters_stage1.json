@@ -28,10 +28,9 @@
     "compute_reactions": false,
     "move_mesh_flag": false,
     "reform_dofs_at_each_step": false,
-    "nodal_smoothing": false,
     "block_builder": true,
     "solution_type": "quasi_static",
-    "scheme_type": "Newmark",
+    "scheme_type": "backward_euler",
     "reset_displacements": true,
     "strategy_type": "line_search",
     "convergence_criterion": "displacement_criterion",
@@ -60,15 +59,6 @@
     "problem_domain_sub_model_part_list": [
       "Soil-3",
       "Soil-6"
-    ],
-    "processes_sub_model_part_list": [
-      "Displacement_Geometry",
-      "Gravity_Loading-Initial_saturated",
-      "Gravity_Loading-Overburden_1_unsaturated",
-      "Base_Displacement_Fixed",
-      "Fluid_Pressure-Initial_saturated",
-      "Fluid_Pressure-Overburden_1_unsaturated",
-      "Lower_Drainage_Fluid_Pressure"
     ],
     "body_domain_sub_model_part_list": [
       "Soil-3",

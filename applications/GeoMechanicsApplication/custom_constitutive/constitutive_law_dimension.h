@@ -20,6 +20,7 @@
 namespace Kratos
 {
 
+class Properties;
 class Serializer;
 
 class ConstitutiveLawDimension
@@ -27,7 +28,7 @@ class ConstitutiveLawDimension
 public:
     virtual ~ConstitutiveLawDimension() = default;
 
-    [[nodiscard]] virtual Matrix CalculateElasticMatrix(double YoungsModulus, double PoissonsRatio) const = 0;
+    [[nodiscard]] virtual Matrix CalculateElasticConstitutiveTensor(const Properties& rProperties) const = 0;
     [[nodiscard]] virtual std::unique_ptr<ConstitutiveLawDimension> Clone() const         = 0;
     [[nodiscard]] virtual std::size_t                               GetStrainSize() const = 0;
     [[nodiscard]] virtual std::size_t                               GetDimension() const  = 0;

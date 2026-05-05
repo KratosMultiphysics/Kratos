@@ -70,6 +70,7 @@ namespace Python{
         m.def("SearchElement", SearchElementAccordingToDimension);
         m.def("GenerateMaterialPointElement", GenerateMaterialPointElementAccordingToDimension);
         m.def("GenerateMaterialPointCondition", GenerateMaterialPointConditionAccordingToDimension);
+        m.def("GenerateLagrangeNodes", MaterialPointGeneratorUtility::GenerateLagrangeNodes);
     }
 
 }  // namespace Python.

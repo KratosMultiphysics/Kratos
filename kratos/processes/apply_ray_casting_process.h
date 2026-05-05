@@ -4,14 +4,13 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand, Ruben Zorrilla
 //
 
-#if !defined(KRATOS_APPLY_RAY_CASTING_PROCESS_H_INCLUDED )
-#define  KRATOS_APPLY_RAY_CASTING_PROCESS_H_INCLUDED
+#pragma once
 
 // System includes
 #include <string>
@@ -60,12 +59,11 @@ public:
     using OctreeType = OctreeBinary<CellType>;
     using CellNodeDataType = ConfigurationType::cell_node_data_type;
 
-    typedef Element::GeometryType IntersectionGeometryType;
-    typedef std::vector<std::pair<double, IntersectionGeometryType*> > IntersectionsContainerType;
+    using IntersectionGeometryType = Element::GeometryType;
+    using IntersectionsContainerType = std::vector<std::pair<double, IntersectionGeometryType*>>;
 
-    using NodeType = ModelPart::NodeType;
-    using NodeScalarGetFunctionType = std::function<double&(NodeType& rNode, const Variable<double>& rDistanceVariable)>;
-    using ApplyNodalFunctorType = std::function<void(NodeType&, const double)>;
+    using NodeScalarGetFunctionType = std::function<double&(Node& rNode, const Variable<double>& rDistanceVariable)>;
+    using ApplyNodalFunctorType = std::function<void(Node&, const double)>;
 
     ///@}
     ///@name Life Cycle
@@ -146,17 +144,23 @@ public:
     ///@name Operations
     ///@{
 
+    /// @copydoc Process::Create
+    Process::Pointer Create(
+        Model& rModel,
+        Parameters ThisParameters
+        ) override;
+
     const Parameters GetDefaultParameters() const override;
 
     /**
-     * @brief Computes the raycasting distance for a node
-     * This method computes the raycasting distance for a given node. It casts a ray
+     * @brief Computes the raycasting distance for a point
+     * This method computes the raycasting distance for a given point. It casts a ray
      * in the x and y (as well as z in 3D) directions and computes the distance from
-     * the ray origin point (the node of interest) to each one of the intersecting objects.
-     * @param rNode reference to the node of interest
+     * the ray origin point (the point of interest) to each one of the intersecting objects.
+     * @param rPoint reference to the point of interest
      * @return double raycasting distance value computed
      */
-    virtual double DistancePositionInSpace(const Node &rNode);
+    virtual double DistancePositionInSpace(const Point &rPoint);
 
     /**
      * @brief Get the ray intersecting objects and its distance
@@ -217,7 +221,6 @@ protected:
     ///@name Static Member Variables
     ///@{
 
-
     ///@}
     ///@name Member Variables
     ///@{
@@ -232,11 +235,9 @@ protected:
     const Variable<double>* mpDistanceVariable = nullptr;
     NodeScalarGetFunctionType mDistanceGetterFunctor;
 
-
     ///@}
     ///@name Private Operators
     ///@{
-
 
     ///@}
     ///@name Private Operations
@@ -269,7 +270,6 @@ protected:
         const array_1d<double,3> &rCoords,
         array_1d<array_1d<double,3>, (TDim == 3) ? 9 : 5> &rExtraRayOrigs);
 
-
     /**
      * @brief Trims the extra rays to bounding box
      */
@@ -286,7 +286,6 @@ protected:
     void ComputeExtraRayColors(
         const array_1d<double,3> &rCoords,
         array_1d<double,TDim> &rDistances);
-
 
     /**
      * @brief Calculate the mCharacterisiticLength variable using bounding box of the domain to be used in scaling the epsilons
@@ -316,17 +315,13 @@ protected:
     ///@name Private  Access
     ///@{
 
-
     ///@}
     ///@name Private Inquiry
     ///@{
 
-
     ///@}
     ///@name Un accessible methods
     ///@{
-
-
 
     ///@}
 }; // Class ApplyRayCastingProcess
@@ -334,7 +329,6 @@ protected:
 ///@}
 ///@name Type Definitions
 ///@{
-
 
 ///@}
 ///@name Input and output
@@ -360,5 +354,3 @@ inline std::ostream& operator << (
 ///@} addtogroup block
 
 } // namespace Kratos.
-
-#endif // KRATOS_APPLY_RAY_CASTING_PROCESS_H_INCLUDED  defined

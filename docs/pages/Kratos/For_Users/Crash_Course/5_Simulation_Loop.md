@@ -137,7 +137,6 @@ def RunSolutionLoop(self):
         self.InitializeSolutionStep()
         self._GetSolver().Predict()
         is_converged = self._GetSolver().SolveSolutionStep()
-        self.__CheckIfSolveSolutionStepReturnsAValue(is_converged)
         self.FinalizeSolutionStep()
         self.OutputSolutionStep()
 ```

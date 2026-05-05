@@ -15,6 +15,7 @@
 
 // System includes
 #include <string>
+#include <sstream>
 #include <vector>
 
 // External includes
@@ -150,6 +151,100 @@ namespace StringUtilities
         const std::string& rInputString,
         const bool RemoveNullChar = false);
 
+    /**
+     * @brief Splits a string into a vector of words.
+     * @details This function takes an input string and splits it into individual words using
+     * whitespace as the delimiter. The extraction operator (>>) automatically skips
+     * whitespace characters (such as spaces and tabs), ensuring that each word is properly
+     * isolated and stored in the resulting vector.
+     * @param rText The input string to be split into words.
+     * @return std::vector<std::string> A vector containing all the words extracted from the input string.
+     */
+    [[nodiscard]] std::vector<std::string> KRATOS_API(KRATOS_CORE) SplitStringIntoAVector(const std::string& rText);
+
+    /**
+     * @brief Converts a string representation of a list into a vector of values.
+     * @details This function takes a string that represents a list of values (optionally enclosed
+     * in square brackets) and converts it into a std::vector of type TType. The conversion process
+     * involves the following steps:
+     *   1. Trimming any leading or trailing whitespace from the input string.
+     *   2. Removing the outer square brackets '[' and ']' if present.
+     *   3. Checking if the string is empty after trimming; if so, it returns an empty vector.
+     *   4. Splitting the string by commas to isolate individual elements.
+     *   5. Trimming whitespace from each element and attempting to convert it to type TType.
+     * During the conversion of each element, if the conversion fails (for example, due to
+     * invalid format, extra characters, or out-of-range values), a warning is logged via KRATOS_WARNING.
+     * @tparam TType The type of the elements to be extracted and converted from the string.
+     * @param rInputString The input string containing the list of values.
+     * @return std::vector<TType> A vector containing the converted values of type TType.
+     */
+    template <typename TType>
+    [[nodiscard]] std::vector<TType> KRATOS_API(KRATOS_CORE) StringToVector(const std::string& rInputString);
+
+    /**
+     * @brief Counts space-separated values in a string until a token starting with a specific prefix is found.
+     * @details It reads tokens separated by whitespace from the input string. The count
+     * includes tokens encountered *before* a token that starts with the `rStopPrefix`.
+     * If no token starts with `rStopPrefix`, all tokens are counted.
+     * If `rStopPrefix` is an empty string, it's considered to match the beginning of any token,
+     * so the function will return 0 (as the "stop" condition is met before the first token).
+     * @param rInputString The string containing values to be counted.
+     * @param rStopPrefix The prefix that indicates a token at which counting should stop.
+     * @return The number of values counted before encountering a token starting with `rStopPrefix`.
+     */
+    [[nodiscard]] std::size_t KRATOS_API(KRATOS_CORE) CountValuesUntilPrefix(
+        const std::string& rInputString,
+        const std::string& rStopPrefix = ""
+        );
+
+    /**
+     * @brief Counts space-separated values in a string until a token with a specific character is found.
+     * @details It reads tokens separated by whitespace from the input string. The count
+     * includes tokens encountered *before* a token that starts with the `rStopCharacter`.
+     * If no token starts with `rStopCharacter`, all tokens are counted.
+     * If `rStopCharacter` is an empty string, it's considered to match the beginning of any token,
+     * so the function will return 0 (as the "stop" condition is met before the first token).
+     * @param rInputString The string containing values to be counted.
+     * @param rStopCharacter The character that indicates a token at which counting should stop.
+     * @return The number of values counted before encountering a token with `rStopCharacter`.
+     */
+    [[nodiscard]] std::size_t KRATOS_API(KRATOS_CORE) CountValuesUntilCharacter(
+        const std::string& rInputString,
+        const std::string& rStopCharacter = ""
+        );
+
+
+    /**
+     * @brief Joins the values in the given range into a single string, separated by the specified delimiter.
+     * @details This method allows joining the values represented within the range defined by iterator [ @p Begin
+     *          @p End ). The @p TIteratorType should have the @p TIteratorType::operator* defined, and the type
+     *          of the value represented by @p TIteratorType::operator* should have @p operator<< defined.
+     *
+     * @tparam TIteratorType Iterator type for the input range.
+     * @param Begin Iterator pointing to the beginning of the range.
+     * @param End Iterator pointing to the end of the range (one past the last element).
+     * @param rDelimiter String to insert between each value in the range.
+     * @return A string containing the joined values, separated by the delimiter.
+     *
+     * @note The range [Begin, End) must be valid and dereferenceable. The value type must be streamable to std::stringstream.
+     */
+    template<class TIteratorType>
+    [[nodiscard]] std::string JoinValues(
+        TIteratorType Begin,
+        TIteratorType End,
+        const std::string& rDelimiter)
+    {
+        std::stringstream result;
+
+        if (std::distance(Begin, End) > 0) {
+            result << *Begin;
+            for (auto it = Begin + 1; it != End; ++it) {
+                result << rDelimiter << *it;
+            }
+        }
+
+        return result.str();
+    }
 
     /**
      * @brief Prints the data of an object of type TClass to the given output stream with indentation.

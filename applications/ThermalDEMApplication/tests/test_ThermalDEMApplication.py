@@ -10,6 +10,7 @@ import test_PackingMonodisperse2D
 import test_PackingPolydisperse2D
 import test_ContainerMonodisperse3D
 import test_ContainerPolydisperse3D
+import test_RVEWall2D
 
 def AssembleTestSuites():
     # Suites to run
@@ -194,6 +195,9 @@ def AssembleTestSuites():
     smallSuite.addTest(test_ContainerPolydisperse3D.TestCases('ContainerPolydisperse3D_Porosity_01'))
     smallSuite.addTest(test_ContainerPolydisperse3D.TestCases('ContainerPolydisperse3D_Porosity_02'))
     smallSuite.addTest(test_ContainerPolydisperse3D.TestCases('ContainerPolydisperse3D_Porosity_03'))
+
+    smallSuite.addTest(test_RVEWall2D.TestCases('RVEWall2D_Compression'))
+    smallSuite.addTest(test_RVEWall2D.TestCases('RVEWall2D_Expansion'))
     
     # Nightly tests
     nightSuite.addTests(smallSuite)

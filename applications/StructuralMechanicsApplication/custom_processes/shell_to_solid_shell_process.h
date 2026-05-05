@@ -261,7 +261,7 @@ private:
         );
 
     /**
-     * @brief After we have transfer the information from the previous modelpart we initilize the elements
+     * @brief After we have transfer the information from the previous modelpart we initialize the elements
      */
     void InitializeElements();
 

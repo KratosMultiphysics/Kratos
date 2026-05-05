@@ -11,7 +11,7 @@
 //                   Anne van de Graaf
 //
 
-#include "custom_workflows/strategy_wrapper.hpp"
+#include "custom_workflows/strategy_wrapper.h"
 #include "custom_workflows/time_step_executor.h"
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
@@ -50,7 +50,6 @@ public:
     MOCK_METHOD(void, IncrementStepNumber, (), (override));
     MOCK_METHOD(void, CloneTimeStep, (), (override));
     MOCK_METHOD(void, RestorePositionsAndDOFVectorToStartOfStep, (), (override));
-    MOCK_METHOD(void, SaveTotalDisplacementFieldAtStartOfTimeLoop, (), (override));
     MOCK_METHOD(void, AccumulateTotalDisplacementField, (), (override));
     MOCK_METHOD(void, ComputeIncrementalDisplacementField, (), (override));
     MOCK_METHOD(void, OutputProcess, (), (override));

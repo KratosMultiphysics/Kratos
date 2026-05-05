@@ -66,7 +66,7 @@ class SPRISMProcess(KM.Process):
         self.thickness_compute_process = SMA.SolidShellThickComputeProcess(self.solid_shell_model_part)
 
     def ExecuteInitialize(self):
-        """ This method is executed at the begining to initialize the process
+        """ This method is executed at the beginning to initialize the process
 
         Keyword arguments:
         self -- It signifies an instance of a class.

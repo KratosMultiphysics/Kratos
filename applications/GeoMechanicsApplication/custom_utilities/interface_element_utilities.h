@@ -50,11 +50,5 @@ public:
 
     static void CalculateVoigtVector(array_1d<double, 3>& rVoigtVector);
 
-    static void CalculateLinkPermeabilityMatrix(BoundedMatrix<double, 2, 2>& rPermeabilityMatrix,
-                                                const double&                JointWidth);
-
-    static void CalculateLinkPermeabilityMatrix(BoundedMatrix<double, 3, 3>& rPermeabilityMatrix,
-                                                const double&                JointWidth);
-
 }; /* Class InterfaceElementUtilities*/
 } /* namespace Kratos.*/

@@ -783,9 +783,9 @@ public:
      * @return The resulting norm
      */
     template<class TVectorType>
-    static inline double Norm3(const TVectorType& a)
+    static inline double Norm3(const TVectorType& rA)
     {
-        double temp = std::pow(a[0],2) + std::pow(a[1],2) + std::pow(a[2],2);
+        double temp = rA[0] * rA[0] + rA[1] * rA[1] + rA[2] * rA[2];
         temp = std::sqrt(temp);
         return temp;
     }
@@ -984,13 +984,13 @@ public:
     static inline void OrthonormalBasisFrisvad(const T1& c,T2& a,T3& b ){
         KRATOS_DEBUG_ERROR_IF(norm_2(c) < (1.0 - 1.0e-3) || norm_2(c) > (1.0 + 1.0e-3)) << "Input should be a normal vector" << std::endl;
         if ((c[2] + 1.0) > 1.0e4 * ZeroTolerance) {
-            a[0] = 1.0 - std::pow(c[0], 2)/(1.0 + c[2]);
+            a[0] = 1.0 - (c[0] * c[0])/(1.0 + c[2]);
             a[1] = - (c[0] * c[1])/(1.0 + c[2]);
             a[2] = - c[0];
             const double norm_a = norm_2(a);
             a /= norm_a;
             b[0] = - (c[0] * c[1])/(1.0 + c[2]);
-            b[1] = 1.0 - std::pow(c[1], 2)/(1.0 + c[2]);
+            b[1] = 1.0 - (c[1] * c[1])/(1.0 + c[2]);
             b[2] = -c[1];
             const double norm_b = norm_2(b);
             b /= norm_b;

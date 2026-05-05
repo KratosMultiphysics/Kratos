@@ -51,7 +51,7 @@ SpringDamperElement<TDim>::SpringDamperElement(SpringDamperElement const& rOther
 
 }
 
-//*******************************ASSIGMENT OPERATOR***********************************
+//******************************ASSIGNMENT OPERATOR***********************************
 //************************************************************************************
 template<std::size_t TDim>
 SpringDamperElement<TDim>& SpringDamperElement<TDim>::operator=(SpringDamperElement const& rOther)

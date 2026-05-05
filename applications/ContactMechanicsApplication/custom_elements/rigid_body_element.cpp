@@ -778,7 +778,7 @@ void RigidBodyElement::CalculateSecondDerivativesRHS(VectorType& rRightHandSideV
       //Initialize sizes for the system components:
       this->InitializeSystemMatrices( LeftHandSideMatrix, rRightHandSideVector, LocalSystem.CalculationFlags );
 
-      //RHS reseted to zero
+      //RHS reset to zero
     }
 
 

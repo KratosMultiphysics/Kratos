@@ -1202,6 +1202,7 @@ inline IndexType BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::Per
         const double length_search = SearchFactor * rGeometry.Length();
 
         // Compute max/min points
+        // TODO: Optimize using points, may require to check that it is OK
         Node min_point, max_point;
         rGeometry.BoundingBox(min_point, max_point);
 

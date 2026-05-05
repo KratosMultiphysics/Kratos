@@ -1,0 +1,162 @@
+Begin Table 1 TIME DISPLACEMENT_Y
+  0.0 0.0
+  1.0 0.0
+  2.0 -1.0
+End Table
+
+Begin Table 2 TIME NORMAL_CONTACT_STRESS
+  0.0 0.0
+  1.0 100
+  1000 100
+End Table
+
+Begin Table 3 TIME NORMAL_CONTACT_STRESS
+  0.0 0.0
+  1.0 100
+  1000 100
+End Table
+
+
+Begin Properties 1
+End Properties
+
+
+Begin Nodes
+  1  0.0000000000 1.0000000000 0.0000000000
+  2  0.5000000000 1.0000000000 0.0000000000
+  3  0.0000000000 0.5000000000 0.0000000000
+  4  0.5000000000 0.5000000000 0.0000000000
+  5  0.0000000000 0.0000000000 0.0000000000
+  6  1.0000000000 1.0000000000 0.0000000000
+  7  0.5000000000 0.0000000000 0.0000000000
+  8  1.0000000000 0.5000000000 0.0000000000
+  9  1.0000000000 0.0000000000 0.0000000000
+End Nodes
+
+
+Begin Elements SmallStrainUPwDiffOrderAxisymmetricElement2D6N
+  1  1  5 9 6 7 8 4
+  2  1  6 1 5 2 3 4
+End Elements
+
+
+Begin Conditions AxisymmetricLineNormalLoadDiffOrderCondition2D3N
+  1  1  9 6 8
+End Conditions
+
+Begin Conditions AxisymmetricLineNormalLoadDiffOrderCondition2D3N
+  2  1  6 1 2
+End Conditions
+
+
+Begin SubModelPart Soil
+  Begin SubModelPartTables
+  End SubModelPartTables
+  Begin SubModelPartNodes
+    1
+    2
+    3
+    4
+    5
+    6
+    7
+    8
+    9
+  End SubModelPartNodes
+  Begin SubModelPartElements
+    1
+    2
+  End SubModelPartElements
+  Begin SubModelPartConditions
+  End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart Fixed_Base
+  Begin SubModelPartTables
+  End SubModelPartTables
+  Begin SubModelPartNodes
+    5
+    7
+    9
+  End SubModelPartNodes
+  Begin SubModelPartElements
+  End SubModelPartElements
+  Begin SubModelPartConditions
+  End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart Fixed_Symmetry_X
+  Begin SubModelPartTables
+  End SubModelPartTables
+  Begin SubModelPartNodes
+    1
+    3
+    5
+  End SubModelPartNodes
+  Begin SubModelPartElements
+  End SubModelPartElements
+  Begin SubModelPartConditions
+  End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart Top_Displacement
+  Begin SubModelPartTables
+    1
+  End SubModelPartTables
+  Begin SubModelPartNodes
+    1
+    2
+    6
+  End SubModelPartNodes
+  Begin SubModelPartElements
+  End SubModelPartElements
+  Begin SubModelPartConditions
+  End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart Fixity_right
+  Begin SubModelPartTables
+  End SubModelPartTables
+  Begin SubModelPartNodes
+  9
+  6
+  8
+  End SubModelPartNodes
+  Begin SubModelPartElements
+  End SubModelPartElements
+  Begin SubModelPartConditions
+  End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart Lateral_load
+  Begin SubModelPartTables
+    2
+  End SubModelPartTables
+  Begin SubModelPartNodes
+    6
+    8
+    9
+  End SubModelPartNodes
+  Begin SubModelPartElements
+  End SubModelPartElements
+  Begin SubModelPartConditions
+    1
+  End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart Top_load
+  Begin SubModelPartTables
+    3
+  End SubModelPartTables
+  Begin SubModelPartNodes
+    1
+    2
+    6
+  End SubModelPartNodes
+  Begin SubModelPartElements
+  End SubModelPartElements
+  Begin SubModelPartConditions
+    2
+  End SubModelPartConditions
+End SubModelPart
+

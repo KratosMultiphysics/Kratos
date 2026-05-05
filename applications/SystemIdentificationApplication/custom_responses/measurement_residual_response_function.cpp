@@ -154,6 +154,7 @@ double MeasurementResidualResponseFunction::CalculateValue(ModelPart& rModelPart
 
         p_sensor->SetSensorValue(sensor_value);
         p_sensor->GetNode()->SetValue(SENSOR_ERROR, current_sensor_error);
+        p_sensor->GetNode()->SetValue(SENSOR_RELATIVE_ERROR, current_sensor_error / p_sensor->GetNode()->GetValue(SENSOR_MEASURED_VALUE));
 
         sum += ( std::pow( 0.5 * pow(current_sensor_error, 2) * p_sensor->GetWeight(), mPCoefficient ) );
     }

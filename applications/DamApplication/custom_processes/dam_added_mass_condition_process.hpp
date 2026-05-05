@@ -84,7 +84,7 @@ class DamAddedMassConditionProcess : public Process
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void ExecuteInitialize() override
+    void ExecuteBeforeSolutionLoop() override
     {
         KRATOS_TRY;
 

@@ -24,7 +24,6 @@
 // Project includes
 #include "geometries/line_2d_2.h"
 #include "integration/triangle_gauss_legendre_integration_points.h"
-#include "integration/triangle_collocation_integration_points.h"
 #include "integration/triangle_gauss_lobatto_integration_points.h"
 #include "utilities/intersection_utilities.h"
 
@@ -1551,11 +1550,6 @@ private:
                 Quadrature<TriangleGaussLegendreIntegrationPoints3, 2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
                 Quadrature<TriangleGaussLegendreIntegrationPoints4, 2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
                 Quadrature<TriangleGaussLegendreIntegrationPoints5, 2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
-                Quadrature<TriangleCollocationIntegrationPoints1, 2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
-                Quadrature<TriangleCollocationIntegrationPoints2, 2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
-                Quadrature<TriangleCollocationIntegrationPoints3, 2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
-                Quadrature<TriangleCollocationIntegrationPoints4, 2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
-                Quadrature<TriangleCollocationIntegrationPoints5, 2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
                 Quadrature<TriangleGaussLobattoIntegrationPoints1, 2, IntegrationPoint<3> >::GenerateIntegrationPoints()
             }
         };
@@ -1581,16 +1575,6 @@ private:
                 Triangle2D3<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
                     GeometryData::IntegrationMethod::GI_GAUSS_5 ),
                 Triangle2D3<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_1 ),
-                Triangle2D3<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_2 ),
-                Triangle2D3<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_3 ),
-                Triangle2D3<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_4 ),
-                Triangle2D3<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_5 ),
-                Triangle2D3<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
                     GeometryData::IntegrationMethod::GI_LOBATTO_1 )
             }
         };
@@ -1611,11 +1595,6 @@ private:
                 Triangle2D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_GAUSS_3 ),
                 Triangle2D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_GAUSS_4 ),
                 Triangle2D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_GAUSS_5 ),
-                Triangle2D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_1 ),
-                Triangle2D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_2 ),
-                Triangle2D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_3 ),
-                Triangle2D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_4 ),
-                Triangle2D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_5 ),
                 Triangle2D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_LOBATTO_1 )
             }
         };
@@ -2088,11 +2067,13 @@ private:
         //  the triangle against the AABB
 
         // test in X-direction
-        min_max = std::minmax({vert0[0],vert1[0],vert2[0]});
+        min_max.first = std::min({vert0[0], vert1[0], vert2[0]});
+        min_max.second = std::max({vert0[0], vert1[0], vert2[0]});
         if(min_max.first>rBoxHalfSize[0] || min_max.second<-rBoxHalfSize[0]) return false;
 
         // test in Y-direction
-        min_max = std::minmax({vert0[1],vert1[1],vert2[1]});
+        min_max.first = std::min({vert0[1], vert1[1], vert2[1]});
+        min_max.second = std::max({vert0[1], vert1[1], vert2[1]});
         if(min_max.first>rBoxHalfSize[1] || min_max.second<-rBoxHalfSize[1]) return false;
 
         // test in Z-direction

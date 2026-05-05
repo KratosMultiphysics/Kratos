@@ -50,6 +50,7 @@ class MembraneSinglePatchFourPointSailImplicitDynamic(IgaTestFactory):
     file_name = "membrane_test/Membrane_single_patch_four_point_sail_implicit_dynamic"
 
 # 3p Kirchhoff-Love Shell
+@KratosUnittest.skipIfApplicationsNotAvailable("LinearSolversApplication")
 class ScordelisRoofShell3pTest(IgaTestFactory):
     file_name = "scordelis_roof_test/scordelis_roof_shell_3p"
 
@@ -74,9 +75,11 @@ class ScordelisRoofShell5pTest(IgaTestFactory):
     file_name = "scordelis_roof_test/scordelis_roof_shell_5p"
 
 # Weak support
+@KratosUnittest.skipIfApplicationsNotAvailable("LinearSolversApplication")
 class SinglePatchRefinedSupportPenaltyTest(IgaTestFactory):
     file_name = "weak_support_tests/single_patch_refined_test/single_patch_refined_test_penalty"
 
+@KratosUnittest.skipIfApplicationsNotAvailable("LinearSolversApplication")
 class SinglePatchRefinedSupportLagrangeTest(IgaTestFactory):
     file_name = "weak_support_tests/single_patch_refined_test/single_patch_refined_test_lagrange"
 
@@ -84,18 +87,22 @@ class SinglePatchRefinedSupportNitscheTest(IgaTestFactory):
     file_name = "weak_support_tests/single_patch_refined_test/single_patch_refined_test_nitsche"
 
 # Coupling C_0
+@KratosUnittest.skipIfApplicationsNotAvailable("LinearSolversApplication")
 class TwoPatchCouplingPenaltyShell3pTest(IgaTestFactory):
     file_name = "coupling_condition_tests/two_patch_test/two_patch_test_penalty_shell_3p"
 
+@KratosUnittest.skipIfApplicationsNotAvailable("LinearSolversApplication")
 class TwoPatchCouplingLagrangeShell3pTest(IgaTestFactory):
     file_name = "coupling_condition_tests/two_patch_test/two_patch_test_lagrange_shell_3p"
 
 class TwoPatchCouplingNitscheShell3pTest(IgaTestFactory):
     file_name = "coupling_condition_tests/two_patch_test/two_patch_test_nitsche_shell_3p"
 
+@KratosUnittest.skipIfApplicationsNotAvailable("LinearSolversApplication")
 class TwoPatchRefinedCouplingPenaltyMembraneTest(IgaTestFactory):
     file_name = "coupling_condition_tests/two_patch_refined_test/two_patch_refined_test_penalty_membrane"
 
+@KratosUnittest.skipIfApplicationsNotAvailable("LinearSolversApplication")
 class TwoPatchRefinedCouplingLagrangeMembraneTest(IgaTestFactory):
     file_name = "coupling_condition_tests/two_patch_refined_test/two_patch_refined_test_lagrange_membrane"
 

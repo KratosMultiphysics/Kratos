@@ -163,6 +163,10 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantPhreaticMultilinePressureProcess_AppliesC
     })");
     StructuredMeshGeneratorProcess(domain_geometry, r_model_part, mesher_parameters).Execute();
 
+    for (auto& node : r_model_part.Nodes()) {
+        node.pAddDof(WATER_PRESSURE);
+    }
+
     auto test_parameters = Parameters{R"(
             {
                 "model_part_name": "foo",
@@ -186,4 +190,25 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantPhreaticMultilinePressureProcess_AppliesC
     });
 }
 
+KRATOS_TEST_CASE_IN_SUITE(CheckInfoApplyConstantPhreaticMultilinePressureProcess, KratosGeoMechanicsFastSuite)
+{
+    // Arrange
+    auto  model              = Model{};
+    auto& r_empty_model_part = model.CreateModelPart("foo");
+    auto  test_parameters    = Parameters{R"(
+            {
+                "model_part_name": "foo",
+                "variable_name": "WATER_PRESSURE",
+                "specific_weight": 10000.0,
+                "x_coordinates": [0.0, 1.0, 2.0],
+                "y_coordinates": [1.0, 1.0, 1.0],
+                "z_coordinates": [0.0, 0.0, 0.0],
+                "table": [0, 0, 0],
+                "gravity_direction": 1
+            }  )"};
+    const ApplyConstantPhreaticMultiLinePressureProcess process{r_empty_model_part, test_parameters};
+
+    // Act & assert
+    KRATOS_EXPECT_EQ(process.Info(), "ApplyConstantPhreaticMultiLinePressureProcess");
+}
 } // namespace Kratos::Testing

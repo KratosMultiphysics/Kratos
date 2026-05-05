@@ -1,10 +1,10 @@
-from KratosMultiphysics import *
-from KratosMultiphysics.DamApplication import *
+import KratosMultiphysics
+import KratosMultiphysics.DamApplication as KratosDam
 
 ## In this case, the scalar value is automatically fixed.
 
 def Factory(settings, Model):
-    if not isinstance(settings, Parameters):
+    if not isinstance(settings, KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return ImposeNodalYoungModulusProcess(Model, settings["Parameters"])
 
@@ -12,16 +12,16 @@ class ImposeNodalYoungModulusProcess(Process):
 
     def __init__(self, Model, settings ):
 
-        Process.__init__(self)
+        KratosMultiphysics.Process.__init__(self)
         model_part = Model[settings["model_part_name"].GetString()]
-        settings.AddEmptyValue("is_fixed").SetBool(True)
+        settings.AddEmptyValue("constrained").SetBool(True)
 
-        self.process = DamNodalYoungModulusProcess(model_part, settings)
+        self.process = KratosDam.DamNodalYoungModulusProcess(model_part, settings)
 
 
-    def ExecuteInitialize(self):
+    def ExecuteBeforeSolutionLoop(self):
 
-        self.process.ExecuteInitialize()
+        self.process.ExecuteBeforeSolutionLoop()
 
     def ExecuteInitializeSolutionStep(self):
 

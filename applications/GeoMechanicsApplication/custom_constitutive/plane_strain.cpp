@@ -11,37 +11,18 @@
 //
 
 #include "plane_strain.h"
-
+#include "custom_utilities/constitutive_law_utilities.h"
 #include "geo_mechanics_application_constants.h"
 #include "includes/constitutive_law.h"
 
 namespace Kratos
 {
 
-Matrix PlaneStrain::CalculateElasticMatrix(double YoungsModulus, double PoissonsRatio) const
+Matrix PlaneStrain::CalculateElasticConstitutiveTensor(const Properties& rProperties) const
 {
-    const auto c0 = YoungsModulus / ((1.0 + PoissonsRatio) * (1.0 - 2.0 * PoissonsRatio));
-    const auto c1 = (1.0 - PoissonsRatio) * c0;
-    const auto c2 = PoissonsRatio * c0;
-    const auto c3 = (0.5 - PoissonsRatio) * c0;
-
-    Matrix result = ZeroMatrix(4, 4);
-
-    result(INDEX_2D_PLANE_STRAIN_XX, INDEX_2D_PLANE_STRAIN_XX) = c1;
-    result(INDEX_2D_PLANE_STRAIN_XX, INDEX_2D_PLANE_STRAIN_YY) = c2;
-    result(INDEX_2D_PLANE_STRAIN_XX, INDEX_2D_PLANE_STRAIN_ZZ) = c2;
-
-    result(INDEX_2D_PLANE_STRAIN_YY, INDEX_2D_PLANE_STRAIN_XX) = c2;
-    result(INDEX_2D_PLANE_STRAIN_YY, INDEX_2D_PLANE_STRAIN_YY) = c1;
-    result(INDEX_2D_PLANE_STRAIN_YY, INDEX_2D_PLANE_STRAIN_ZZ) = c2;
-
-    result(INDEX_2D_PLANE_STRAIN_ZZ, INDEX_2D_PLANE_STRAIN_XX) = c2;
-    result(INDEX_2D_PLANE_STRAIN_ZZ, INDEX_2D_PLANE_STRAIN_YY) = c2;
-    result(INDEX_2D_PLANE_STRAIN_ZZ, INDEX_2D_PLANE_STRAIN_ZZ) = c1;
-
-    result(INDEX_2D_PLANE_STRAIN_XY, INDEX_2D_PLANE_STRAIN_XY) = c3;
-
-    return result;
+    const auto [E, nu] = ConstitutiveLawUtilities::GetOrCalculateElasticProperties(rProperties);
+    return ConstitutiveLawUtilities::MakeContinuumElasticConstitutiveTensor(
+        E, nu, PlaneStrain::GetStrainSize(), PlaneStrain::GetNumberOfNormalComponents());
 }
 
 std::unique_ptr<ConstitutiveLawDimension> PlaneStrain::Clone() const

@@ -23,6 +23,7 @@
 #include "custom_python/add_custom_processes_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_python/add_custom_constitutive_laws_to_python.h"
+#include "custom_python/add_custom_constraints_to_python.hpp"
 #include "custom_python/add_custom_response_functions_to_python.h"
 
 namespace Kratos::Python {
@@ -41,6 +42,7 @@ PYBIND11_MODULE(KratosStructuralMechanicsApplication,m)
     AddCustomProcessesToPython(m);
     AddCustomUtilitiesToPython(m);
     AddCustomConstitutiveLawsToPython(m);
+    AddCustomConstraintsToPython(m);
     AddCustomResponseFunctionUtilitiesToPython(m);
 
     py::class_<Variable<ShellCrossSection::Pointer>,VariableData >(m,"ShellCrossSectionVariable");
@@ -63,6 +65,9 @@ PYBIND11_MODULE(KratosStructuralMechanicsApplication,m)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, EIGENVECTOR_MATRIX )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, MODAL_MASS_MATRIX )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, MODAL_STIFFNESS_MATRIX )
+
+    // Nodal variables for harmonic analysis
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, DISPLACEMENT_IMAGINARY)
 
     // Cross section
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, SHELL_CROSS_SECTION_OUTPUT_PLY_ID )
@@ -235,6 +240,7 @@ PYBIND11_MODULE(KratosStructuralMechanicsApplication,m)
 
     //nodal load variables
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m,  POINT_LOAD )
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m,  POINT_LOAD_IMAGINARY )
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m,  LINE_LOAD )
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m,  SURFACE_LOAD )
 

@@ -336,7 +336,7 @@ void ShellCrossSection::CalculateSectionResponse(SectionParameters& rValues, con
     Matrix& LT = variables.LT;
 
     // working matrices to avoid re-allocations when we need to rotate
-    // intput and outputs in composite layups
+    // input and outputs in composite layups
     Matrix R(strain_size, strain_size);
     Matrix DRT(strain_size, strain_size);
     Matrix Rc;
@@ -388,7 +388,7 @@ void ShellCrossSection::CalculateSectionResponse(SectionParameters& rValues, con
     double oop_stress_norm = 0.0;
     bool   converged = false;
 
-    // BEGIN LOOP: Newthon iteration to solve for condensed strains
+    // BEGIN LOOP: Newton iteration to solve for condensed strains
     while (true) {
         noalias(generalizedStressVector) = ZeroVector(strain_size);
         noalias(condensedStressVector) = ZeroVector(condensed_strain_size);
@@ -594,7 +594,7 @@ void ShellCrossSection::CalculateSectionResponse(SectionParameters& rValues, con
             break;
         }
 
-    } // END LOOP: Newthon iteration
+    } // END LOOP: Newton iteration
 
     if (!converged || compute_constitutive_tensor) {
         Matrix LHinv(prod(L, Hinv));
@@ -906,7 +906,7 @@ void ShellCrossSection::UpdateIntegrationPointParameters(const IntegrationPoint&
         rMaterialValues.SetDeformationGradientF(rVariables.DeformationGradientF_2D);
 
         if (mBehavior == Thick) {
-            // get elastic data for the trasverse shear part (treated elastically)
+            // get elastic data for the transverse shear part (treated elastically)
             const Properties& props = rMaterialValues.GetMaterialProperties();
             if (props.Has(SHELL_ORTHOTROPIC_LAYERS)) {
                 rVariables.GXZ = props[SHELL_ORTHOTROPIC_LAYERS](0,5);

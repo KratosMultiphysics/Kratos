@@ -6,7 +6,7 @@ from abc import ABCMeta, abstractmethod
 
 class PythonMapper(metaclass=ABCMeta):
     """Baseclass for python based mappers in Kratos
-    The inteface matches the C++ version ("custom_mappers/mapper.h")
+    The interface matches the C++ version ("custom_mappers/mapper.h")
     The py-mappers are intentionally NOT derived from the c++ version.
     Reasons:
     - Doing so would require some special treatment of the pure virtual functions exposed to python

@@ -22,7 +22,7 @@
 #include "utilities/parallel_utilities.h"
 #include "utilities/variable_utils.h"
 
-// Applicaion includes
+// Application includes
 #include "custom_utilities/local_refine_tetrahedra_mesh.hpp"
 
 

@@ -87,7 +87,7 @@ class DamNoorzaiHeatFluxProcess : public Process
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void ExecuteInitialize() override
+    void ExecuteBeforeSolutionLoop() override
     {
         KRATOS_TRY;
 
@@ -119,7 +119,7 @@ class DamNoorzaiHeatFluxProcess : public Process
     {
         KRATOS_TRY;
 
-        this->ExecuteInitialize();
+        this->ExecuteBeforeSolutionLoop();
 
         KRATOS_CATCH("");
     }

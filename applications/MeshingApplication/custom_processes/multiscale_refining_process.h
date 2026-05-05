@@ -490,7 +490,7 @@ public:
     void IdentifyElementsToErase();
 
     /**
-     * @brief IdentifyConditionsToErase looks for the condtions which should
+     * @brief IdentifyConditionsToErase looks for the conditions which should
      * be removed from the refined model part
      * @detail Sets TO_ERASE flag in the refined model part when a node
      * in the coarse model part is OLD_ENTITY

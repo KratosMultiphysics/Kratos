@@ -9,7 +9,7 @@
 //
 //  Main authors:    Ariadna Cortés
 //
-//System inlcudes
+//System includes
 
 // Project includes
 #include "includes/expect.h"

@@ -10,8 +10,7 @@
 //  Main authors:    Pooyan Dadvand
 //
 
-#if !defined(KRATOS_CONDITION_H_INCLUDED )
-#define  KRATOS_CONDITION_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -985,7 +984,7 @@ public:
     PropertiesType& GetProperties()
     {
         KRATOS_DEBUG_ERROR_IF(mpProperties == nullptr)
-            << "Tryining to get the properties of " << Info()
+            << "Trying to get the properties of " << Info()
             << ", which are uninitialized." << std::endl;
         return *mpProperties;
     }
@@ -993,7 +992,7 @@ public:
     PropertiesType const& GetProperties() const
     {
         KRATOS_DEBUG_ERROR_IF(mpProperties == nullptr)
-            << "Tryining to get the properties of " << Info()
+            << "Trying to get the properties of " << Info()
             << ", which are uninitialized." << std::endl;
         return *mpProperties;
     }
@@ -1216,5 +1215,4 @@ KRATOS_DEFINE_VARIABLE(GlobalPointersVector< Condition >, NEIGHBOUR_CONDITIONS)
 #define KRATOS_EXPORT_MACRO KRATOS_NO_EXPORT
 
 } // namespace Kratos.
-#endif // KRATOS_CONDITION_H_INCLUDED  defined
 
