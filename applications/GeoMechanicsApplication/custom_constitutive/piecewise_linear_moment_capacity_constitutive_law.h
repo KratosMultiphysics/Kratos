@@ -62,8 +62,6 @@ public:
     std::string Info() const override;
 
 private:
-    [[nodiscard]] double CalculateMomentResponse(double AbsCurvature) const;
-
     Table<double, double> mStressStrainTable;
 
     friend class Serializer;
