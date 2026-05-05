@@ -19,10 +19,17 @@ import sys
 import KratosMultiphysics.GeoMechanicsApplication.geo_plot_utilities as plot_utils
 
 
-csv_field_name_node = "node"
-csv_field_name_bending_moment = "bending_moment"
-csv_field_name_shear_force = "shear_force"
-csv_field_name_horizontal_displacement = "horizontal_displacement"
+csv_fieldname_node = "node"
+csv_fieldname_bending_moment = "bending_moment"
+csv_fieldname_shear_force = "shear_force"
+csv_fieldname_horizontal_displacement = "horizontal_displacement"
+
+csv_fieldnames = [
+    csv_fieldname_node,
+    csv_fieldname_bending_moment,
+    csv_fieldname_shear_force,
+    csv_fieldname_horizontal_displacement,
+]
 
 
 def get_sheetpile_node_ids():
@@ -190,13 +197,11 @@ def get_expected_results_from_csv(csv_filepath):
     with open(csv_filepath, newline="") as csv_file:
         reader = csv.DictReader(csv_file)
         for row in reader:
-            result[int(row[csv_field_name_node])] = {
-                csv_field_name_bending_moment: float(
-                    row[csv_field_name_bending_moment]
-                ),
-                csv_field_name_shear_force: float(row[csv_field_name_shear_force]),
-                csv_field_name_horizontal_displacement: float(
-                    row[csv_field_name_horizontal_displacement]
+            result[int(row[csv_fieldname_node])] = {
+                csv_fieldname_bending_moment: float(row[csv_fieldname_bending_moment]),
+                csv_fieldname_shear_force: float(row[csv_fieldname_shear_force]),
+                csv_fieldname_horizontal_displacement: float(
+                    row[csv_fieldname_horizontal_displacement]
                 ),
             }
 
@@ -285,17 +290,17 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             expected_nodal_results = expected_results[node_id]
             self.assertAlmostEqual(
                 bending_moment,
-                expected_nodal_results[csv_field_name_bending_moment],
+                expected_nodal_results[csv_fieldname_bending_moment],
                 msg=f"Bending moment at node {node_id}",
             )
             self.assertAlmostEqual(
                 shear_force,
-                expected_nodal_results[csv_field_name_shear_force],
+                expected_nodal_results[csv_fieldname_shear_force],
                 msg=f"Shear force at node {node_id}",
             )
             self.assertAlmostEqual(
                 horizontal_displacement,
-                expected_nodal_results[csv_field_name_horizontal_displacement],
+                expected_nodal_results[csv_fieldname_horizontal_displacement],
                 msg=f"Horizontal displacement at node {node_id}",
             )
 
@@ -674,13 +679,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             "w",
             newline="",
         ) as csv_file:
-            fieldnames = [
-                csv_field_name_node,
-                csv_field_name_bending_moment,
-                csv_field_name_shear_force,
-                csv_field_name_horizontal_displacement,
-            ]
-            writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
+            writer = csv.DictWriter(csv_file, fieldnames=csv_fieldnames)
 
             writer.writeheader()
             for node_id, bending_moment, shear_force, horizontal_displacement in zip(
@@ -688,10 +687,10 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             ):
                 writer.writerow(
                     {
-                        csv_field_name_node: node_id,
-                        csv_field_name_bending_moment: bending_moment,
-                        csv_field_name_shear_force: shear_force,
-                        csv_field_name_horizontal_displacement: horizontal_displacement,
+                        csv_fieldname_node: node_id,
+                        csv_fieldname_bending_moment: bending_moment,
+                        csv_fieldname_shear_force: shear_force,
+                        csv_fieldname_horizontal_displacement: horizontal_displacement,
                     }
                 )
 
