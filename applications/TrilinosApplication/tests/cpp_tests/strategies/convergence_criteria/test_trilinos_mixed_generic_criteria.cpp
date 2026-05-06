@@ -14,8 +14,6 @@
 
 // External includes
 
-/* Trilinos includes */
-
 // Project includes
 #include "tests/cpp_tests/trilinos_fast_suite.h"
 #include "containers/model.h"
