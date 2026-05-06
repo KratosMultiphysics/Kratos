@@ -131,12 +131,8 @@ def _compare_nodal_value_lists_at_time(
     abs_tol: float,
     rel_tol: float,
 ) -> List[str]:
-    lhs_series: NodalSeries = {
-        time: {node_id: value for node_id, value in zip(node_ids, lhs_values)}
-    }
-    rhs_series: NodalSeries = {
-        time: {node_id: value for node_id, value in zip(node_ids, rhs_values)}
-    }
+    lhs_series: NodalSeries = {time: dict(zip(node_ids, lhs_values))}
+    rhs_series: NodalSeries = {time: dict(zip(node_ids, rhs_values))}
     return _compare_nodal_series_at_time(
         lhs_series, rhs_series, time, abs_tol, rel_tol
     )
