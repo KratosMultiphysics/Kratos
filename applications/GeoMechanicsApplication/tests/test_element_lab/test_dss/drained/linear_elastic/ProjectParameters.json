@@ -3,7 +3,7 @@
         "problem_name": "direct_shear",
         "parallel_type": "OpenMP",
         "echo_level": 1,
-        "start_time": 0.0,
+        "start_time": -0.01,
         "end_time": 1.0
     },
     "solver_settings": {
@@ -20,7 +20,7 @@
         "echo_level": 1,
         "model_import_settings": {
             "input_type": "mdpa",
-            "input_filename": "../common/mesh"
+            "input_filename": "../../common/mesh"
         },
         "material_import_settings": {
             "materials_filename": "MaterialParameters.json"
@@ -94,19 +94,6 @@
                     "value": [0.0, 0.0, 0.0],
                     "table": [2, 0, 0]
                 }
-            },
-            {
-                "python_module": "apply_scalar_constraint_table_process",
-                "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
-                "process_name": "ApplyScalarConstraintTableProcess",
-                "Parameters": {
-                    "model_part_name": "PorousDomain.Soil",
-                    "variable_name": "WATER_PRESSURE",
-                    "is_fixed": true,
-                    "fluid_pressure_type": "Uniform",
-                    "value": 0.0,
-                    "table": 0
-                }
             }
         ],
         "loads_process_list": [
@@ -116,7 +103,7 @@
                 "process_name": "ApplyInitialUniformStressField",
                 "Parameters": {
                     "model_part_name": "PorousDomain.Soil",
-                    "value": [-100.0, -100.0, -100.0, 0.0]
+                    "value": [-1.0e+05, -1.0e+05, -1.0e+05, 0.0]
                 }
             }
         ]
@@ -143,9 +130,10 @@
                             "body_output": true,
                             "node_output": true,
                             "skin_output": false,
-                            "nodal_results": ["DISPLACEMENT", "WATER_PRESSURE"],
+                            "nodal_results": ["DISPLACEMENT"],
                             "gauss_point_results": [
                                 "CAUCHY_STRESS_TENSOR",
+                                "VON_MISES_STRESS",
                                 "MEAN_EFFECTIVE_STRESS",
                                 "ENGINEERING_STRAIN_TENSOR"
                             ]
