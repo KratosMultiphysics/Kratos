@@ -16,7 +16,8 @@ import json
 from pathlib import Path
 import sys
 
-import KratosMultiphysics.GeoMechanicsApplication.geo_plot_utilities as plot_utils
+if test_helper.want_test_plots():
+    import KratosMultiphysics.GeoMechanicsApplication.geo_plot_utilities as plot_utils
 
 
 csv_fieldname_node = "node"
