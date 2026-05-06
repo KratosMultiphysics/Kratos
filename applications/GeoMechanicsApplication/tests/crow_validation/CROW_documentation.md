@@ -230,19 +230,21 @@ k_{\mathrm{n, sand}} = 10 \cdot 1.1538 \times 10^7 = 1.1538 \times 10^8
 
 The clay-side interface values follow directly from the adopted stiffness formulation. For the sand-side interface, the values used in the current Kratos model are reduced calibration values rather than the direct estimate from the adjacent sand shear modulus.
 
+
 ## Sheet pile parameters
 
-This section documents the parameters for the sheet pile, which is represented as a Timoshenko beam in the Kratos model.
+This section documents the parameters of the sheet pile, which is represented as a Timoshenko beam in the Kratos model.
+
 
 ### Given data
 
 From the section data for **AZ26** in D-Sheet Piling, the following properties are given for the sheet pile (except for the weight $`G`$):
 
-| Property                    | Value                | Unit                              |
-|:----------------------------|:---------------------|:----------------------------------|
-| Bending stiffness $`EI`$    | $`8.40 \times 10^4`$ | $`\mathrm{kNm}^2 / \mathrm{m}^1`$ |
-| Section area per meter wall | 198                  | $`\mathrm{cm}^2 / \mathrm{m}^1`$  |
-| Weight $`G`$                | 146.9                | $`\mathrm{kg} / \mathrm{m}`$      |
+| Property                          | Value                | Unit                              |
+|:----------------------------------|:---------------------|:----------------------------------|
+| Bending stiffness $`EI`$          | $`8.40 \times 10^4`$ | $`\mathrm{kNm}^2 / \mathrm{m}^1`$ |
+| Section area per meter wall $`A`$ | 198                  | $`\mathrm{cm}^2 / \mathrm{m}^1`$  |
+| Weight $`G`$                      | 146.9                | $`\mathrm{kg} / \mathrm{m}^1`$    |
 
 The weight $`G`$ of the sheet pile wall has been taken from the following [manufacturer's information sheet](https://sheetpiling.arcelormittal.com/products/az-sections/az-700-and-az-770/az-26-700).
 
@@ -251,16 +253,16 @@ The Young’s modulus of steel sheet piles is generally considered to be $`210\ 
 
 ### Adopted Kratos beam representation
 
-In the current Kratos model, the sheet pile is modeled using a Timoshenko beam with a rectangular cross-section.  To ensure an equivalent bending stiffness $`EI_{\mathrm{beam}}`$ and an equivalent extensional stiffness $`EA_{\mathrm{beam}}`$, the Young's modulus and the thickness of the cross-section have been calculated such that these stiffness values match the ones taken from D-SheetPiling.  The equivalent bending stiffness is calculated as follows:
+In the current Kratos model, the sheet pile is modeled using a Timoshenko beam with a rectangular cross-section.  To ensure an equivalent bending stiffness $`(EI)_{\mathrm{beam}}`$ and an equivalent extensional stiffness $`(EA)_{\mathrm{beam}}`$, the Young's modulus and the thickness of the cross-section have been calculated such that these stiffness values match the ones taken from D-SheetPiling.  The equivalent bending stiffness is calculated as follows:
 
 ```math
-EI_{\mathrm{beam}} = E_{\mathrm{beam}} \cdot \frac{1}{12} \cdot b \cdot t^3 = EI 
+(EI)_{\mathrm{beam}} = E_{\mathrm{beam}} \cdot \frac{1}{12} \cdot b \cdot t^3 = EI 
 ```
 
 The extensional stiffness is calculated as follows:
 
 ```math
-EA_{\mathrm{beam}} = b \cdot t = EA
+(EA)_{\mathrm{beam}} = E_{\mathrm{beam}} \cdot b \cdot t = EA
 ```
 
 In both equations, the width $`b`$ equals $`1.0\ \mathrm{m}`$, since we assume plane strain conditions.  From these two equations, we can solve for the equivalent Young's modulus of the beam $`E_{\mathrm{beam}}`$ and the equivalent wall thickness $`t`$.  The solution is presented in the next section.
