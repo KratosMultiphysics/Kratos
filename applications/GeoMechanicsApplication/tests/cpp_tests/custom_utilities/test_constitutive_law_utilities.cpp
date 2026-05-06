@@ -665,58 +665,6 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_ReplaceIgnoreUndrainedByDrain
         "Both IGNORE_UNDRAINED and GEO_DRAINAGE_TYPE are used. Choose the latter only.");
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_GetNumberOfNormalStrainComponents_ThreeDimensional,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    auto properties = Properties{};
-    auto p_law      = Kratos::make_shared<MockConstitutiveLaw>();
-    p_law->SetThreeDimensionalLaw(true);
-    p_law->SetStrainSize(6);
-    properties.SetValue(CONSTITUTIVE_LAW, p_law);
-
-    KRATOS_EXPECT_EQ(ConstitutiveLawUtilities::GetNumberOfNormalStrainComponents(properties), 3);
-}
-
-KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_GetNumberOfNormalStrainComponents_PlaneStrain,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    auto properties = Properties{};
-    auto p_law      = Kratos::make_shared<MockConstitutiveLaw>();
-    p_law->SetPlaneStrainLaw(true);
-    p_law->SetStrainSize(4);
-    properties.SetValue(CONSTITUTIVE_LAW, p_law);
-
-    KRATOS_EXPECT_EQ(ConstitutiveLawUtilities::GetNumberOfNormalStrainComponents(properties), 3);
-}
-
-KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_CalculateVolumetricStrain_UsesNormalComponentsOnly,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    auto properties = Properties{};
-    auto p_law      = Kratos::make_shared<MockConstitutiveLaw>();
-    p_law->SetThreeDimensionalLaw(true);
-    p_law->SetStrainSize(6);
-    properties.SetValue(CONSTITUTIVE_LAW, p_law);
-
-    const auto strain_vector = UblasUtilities::CreateVector({1.0, 2.0, 3.0, 100.0, 200.0, 300.0});
-    KRATOS_EXPECT_DOUBLE_EQ(ConstitutiveLawUtilities::CalculateVolumetricStrain(strain_vector, properties), 6.0);
-}
-
-KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_CalculateVolumetricStrain_ThrowsForInvalidStrainSize,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    auto properties = Properties{};
-    auto p_law      = Kratos::make_shared<MockConstitutiveLaw>();
-    p_law->SetThreeDimensionalLaw(true);
-    p_law->SetStrainSize(6);
-    properties.SetValue(CONSTITUTIVE_LAW, p_law);
-
-    const auto too_small_strain_vector = UblasUtilities::CreateVector({1.0, 2.0});
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        (void)ConstitutiveLawUtilities::CalculateVolumetricStrain(too_small_strain_vector, properties),
-        "NumberOfNormalComponents (3) exceeds strain vector size (2).");
-}
-
 KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_CalculateExcessPorePressureForce_ReturnsExpectedValue,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {

@@ -243,8 +243,8 @@ void UPwSmallStrainElement<TDim, TNumNodes>::FinalizeSolutionStep(const ProcessI
 
         // Update excess pore pressure previous value for undrained materials
         if (ConstitutiveLawUtilities::IsUndrained(this->GetProperties())) {
-            mVolumetricStrainPrevious[integration_point] = ConstitutiveLawUtilities::CalculateVolumetricStrain(
-                strain_vectors[integration_point], this->GetProperties());
+            mVolumetricStrainPrevious[integration_point] =
+                StressStrainUtilities::CalculateTrace(strain_vectors[integration_point]);
         }
     }
 
