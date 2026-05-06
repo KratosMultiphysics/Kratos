@@ -233,44 +233,6 @@ protected:
     }
 
     /**
-     * @brief This method computes the reference norm
-     * @details It checks if the dof is fixed
-     * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
-     * @param rModelPart Reference to the ModelPart containing the problem.
-     * @todo We should doo as in the residual criteria, and consider the active DoFs (not just free), taking into account the MPC in addition to fixed DoFs
-     */
-    void CalculateReferenceNorm(
-        DofsArrayType& rDofSet,
-        ModelPart& rModelPart
-        ) override
-    {
-        if constexpr (TSparseSpace::LinearAlgebraLibrary() == TrilinosLinearAlgebraLibrary::EPETRA) {
-            BaseType::CalculateReferenceNorm(rDofSet, rModelPart);
-        } else if constexpr (TSparseSpace::LinearAlgebraLibrary() == TrilinosLinearAlgebraLibrary::TPETRA) { // Kokkos conflicts with OpenMP in the block_for_each, so we need to specialize the code for TPETRA
-        #if (HAVE_TPETRA)
-            // Retrieve the data communicator
-            const auto& r_data_communicator = rModelPart.GetCommunicator().GetDataCommunicator();
-
-            // The current MPI rank
-            const int rank = r_data_communicator.Rank();
-
-            TDataType reference_disp_norm = TDataType();
-            for (auto& rDof : rDofSet) {
-                if (this->IsFreeAndLocalDof(rDof, rank)) {
-                    const TDataType dof_value = rDof.GetSolutionStepValue();
-                    reference_disp_norm += std::pow(dof_value, 2);
-                }
-            }
-            BaseType::mReferenceDispNorm = std::sqrt(r_data_communicator.SumAll(reference_disp_norm));
-        #else
-            KRATOS_ERROR << "You must compile Kratos with TPETRA support" << std::endl;
-        #endif
-        } else {
-            KRATOS_ERROR << "Only EPETRA and TPETRA are supported for now" << std::endl;
-        }
-    }
-
-    /**
      * @brief This method computes the final norm
      * @details It checks if the dof is fixed
      * @param rDofNum The number of DoFs
