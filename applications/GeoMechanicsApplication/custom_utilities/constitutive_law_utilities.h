@@ -86,18 +86,6 @@ public:
                                                                  std::size_t IntegrationPoint,
                                                                  const Vector& rExcessPorePressurePrevious);
 
-    static void AssembleExcessPorePressureForces(Vector&                    rResultVector,
-                                                 const Properties&          rProperties,
-                                                 const std::vector<Vector>& rStrainVectors,
-                                                 const std::vector<Matrix>& rBMatrices,
-                                                 const Vector&              rVoigtVector,
-                                                 const std::vector<double>& rIntegrationCoefficients,
-                                                 const Vector& rExcessPorePressurePrevious);
-
-    [[nodiscard]] static Matrix CalculateExcessPorePressureTangentMatrix(const Properties& rProperties,
-                                                                         const Matrix& rB,
-                                                                         const Vector& rVoigtVector,
-                                                                         double IntegrationCoefficient);
 }; /* Class ConstitutiveLawUtilities*/
 
 } // namespace Kratos

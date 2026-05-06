@@ -973,7 +973,7 @@ void UPwInterfaceElement::CalculateAndAssignStiffnessMatrix(MatrixType&        r
         const auto  integration_coefficients = CalculateIntegrationCoefficients();
         const auto& voigt_vector             = mpStressStatePolicy->GetVoigtVector();
         for (std::size_t i = 0; i < b_matrices.size(); ++i) {
-            stiffness_matrix += ConstitutiveLawUtilities::CalculateExcessPorePressureTangentMatrix(
+            stiffness_matrix += GeoElementUtilities::CalculateExcessPorePressureTangentMatrix(
                 GetProperties(), b_matrices[i], voigt_vector, integration_coefficients[i]);
         }
     }

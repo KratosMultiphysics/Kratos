@@ -139,7 +139,7 @@ protected:
 
     std::vector<Vector> mStressVector;
     std::vector<Vector> mStateVariablesFinalized;
-    Vector              mExcessPorePressurePrevious;
+    Vector              mVolumetricStrainPrevious;
 
     virtual void CalculateMaterialStiffnessMatrix(MatrixType& rStiffnessMatrix, const ProcessInfo& CurrentProcessInfo);
 

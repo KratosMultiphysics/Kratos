@@ -122,8 +122,8 @@ void UPwBaseElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
         }
     }
 
-    mExcessPorePressurePrevious.resize(number_of_integration_points, false);
-    std::fill(mExcessPorePressurePrevious.begin(), mExcessPorePressurePrevious.end(), 0.0);
+    mVolumetricStrainPrevious.resize(number_of_integration_points, false);
+    std::fill(mVolumetricStrainPrevious.begin(), mVolumetricStrainPrevious.end(), 0.0);
 
     std::vector<Vector> strain_vectors(number_of_integration_points,
                                        ZeroVector(GetStressStatePolicy().GetVoigtSize()));
@@ -157,7 +157,7 @@ void UPwBaseElement::ResetConstitutiveLaw()
     }
     mStateVariablesFinalized.clear();
 
-    mExcessPorePressurePrevious.clear();
+    mVolumetricStrainPrevious.clear();
 
     KRATOS_CATCH("")
 }
@@ -460,7 +460,7 @@ void UPwBaseElement::save(Serializer& rSerializer) const
     rSerializer.save("StressVector", mStressVector);
     rSerializer.save("ThisIntegrationMethod", static_cast<int>(mThisIntegrationMethod));
     rSerializer.save("IntegrationCoefficientsCalculator", mIntegrationCoefficientsCalculator);
-    rSerializer.save("ExcessPorePressurePrevious", mExcessPorePressurePrevious);
+    rSerializer.save("ExcessPorePressurePrevious", mVolumetricStrainPrevious);
 }
 
 void UPwBaseElement::load(Serializer& rSerializer)
@@ -475,7 +475,7 @@ void UPwBaseElement::load(Serializer& rSerializer)
     rSerializer.load("ThisIntegrationMethod", integration_method);
     mThisIntegrationMethod = static_cast<IntegrationMethod>(integration_method);
     rSerializer.load("IntegrationCoefficientsCalculator", mIntegrationCoefficientsCalculator);
-    rSerializer.load("ExcessPorePressurePrevious", mExcessPorePressurePrevious);
+    rSerializer.load("ExcessPorePressurePrevious", mVolumetricStrainPrevious);
 }
 
 StressStatePolicy& UPwBaseElement::GetStressStatePolicy() const { return *mpStressStatePolicy; }

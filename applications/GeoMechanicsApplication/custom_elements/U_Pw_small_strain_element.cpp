@@ -243,7 +243,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::FinalizeSolutionStep(const ProcessI
 
         // Update excess pore pressure previous value for undrained materials
         if (ConstitutiveLawUtilities::IsUndrained(this->GetProperties())) {
-            mExcessPorePressurePrevious[integration_point] = ConstitutiveLawUtilities::CalculateVolumetricStrain(
+            mVolumetricStrainPrevious[integration_point] = ConstitutiveLawUtilities::CalculateVolumetricStrain(
                 strain_vectors[integration_point], this->GetProperties());
         }
     }
@@ -836,9 +836,9 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLe
     // Add excess pore pressure forces after all integration points are processed
     if (CalculateResidualVectorFlag) {
         Vector excess_forces = ZeroVector(rRightHandSideVector.size());
-        ConstitutiveLawUtilities::AssembleExcessPorePressureForces(
+        GeoElementUtilities::AssembleExcessPorePressureForces(
             excess_forces, this->GetProperties(), strain_vectors, b_matrices,
-            this->GetStressStatePolicy().GetVoigtVector(), integration_coefficients, mExcessPorePressurePrevious);
+            this->GetStressStatePolicy().GetVoigtVector(), integration_coefficients, mVolumetricStrainPrevious);
         rRightHandSideVector -= excess_forces;
     }
 
@@ -999,7 +999,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddStiffnessMatrix(Matr
         rVariables.B, rVariables.ConstitutiveMatrix, rVariables.IntegrationCoefficient);
 
     if (ConstitutiveLawUtilities::IsUndrained(this->GetProperties())) {
-        stiffness_matrix += ConstitutiveLawUtilities::CalculateExcessPorePressureTangentMatrix(
+        stiffness_matrix += GeoElementUtilities::CalculateExcessPorePressureTangentMatrix(
             this->GetProperties(), rVariables.B, this->GetStressStatePolicy().GetVoigtVector(),
             rVariables.IntegrationCoefficient);
     }
