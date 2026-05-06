@@ -28,6 +28,17 @@ From D-Sheet Piling, the following soil properties are given for the clay and sa
 | Horizontal permeability                | $1.0 \times 10^{-4}$ | $1.0 \times 10^{-4}$ | $\mathrm{m}/\mathrm{s}$    |
 
 
+### Elastic properties
+
+Since D-Sheet Piling does not work with Young's modulus $`E`$ directly, we will calculate it based on the modulus of subgrade reaction $`k`$, the width $`b`$ of the soil in $z$ direction, and Poisson's ratio $`\nu`$.  The latter is assumed to be equal to $`0.3`$, and $`b = 1.0\ \mathrm{m}`$ for plane strain conditions.  The Young's modulus is now calculated using the following formula:
+
+```math
+E = k \cdot b \cdot (1 - \nu^2)
+```
+
+For clay, the Young's modulus then becomes $`E_{\mathrm{clay}} = 1.0 \times 10^6\ \mathrm{N} / \mathrm{m}^3 \cdot 1.0\ \mathrm{m} \cdot (1 - 0.3^2) = 9.1 \times 10^5\ \mathrm{N} / \mathrm{m}^2`$.  And for sand, the Young's modulus becomes $`E_{\mathrm{sand}} = 1.0 \times 10^7\ \mathrm{N} / \mathrm{m}^3 \cdot 1.0\ \mathrm{m} \cdot (1 - 0.3^2) = 9.1 \times 10^6\ \mathrm{N} / \mathrm{m}^2`$ 
+
+
 ### Conversion to intrinsic permeability
 
 From D-Sheet Piling, the permeability is given as **hydraulic conductivity** for both soils:
@@ -90,7 +101,7 @@ Because the Kratos model requires additional parameters, the table below summari
 | Solid density                | `DENSITY_SOLID`        | 1834.86                | 2038.74                | $\mathrm{kg}/\mathrm{m}^3$ |
 | Water density                | `DENSITY_WATER`        | 1019.37                | 1019.37                | $\mathrm{kg}/\mathrm{m}^3$ |
 | Porosity                     | `POROSITY`             | 0.0                    | 0.0                    | $-$                        |
-| Young's modulus              | `YOUNG_MODULUS`        | $1.2 \times 10^7$      | $3.0 \times 10^7$      | $\mathrm{Pa}$              |
+| Young's modulus              | `YOUNG_MODULUS`        | $9.1 \times 10^5$      | $9.1 \times 10^6$      | $\mathrm{Pa}$              |
 | Poisson's ratio              | `POISSON_RATIO`        | 0.30                   | 0.30                   | $-$                        |
 | Intrinsic permeability in xx | `PERMEABILITY_XX`      | $1.02 \times 10^{-11}$ | $1.02 \times 10^{-11}$ | $\mathrm{m}^2$             |
 | Intrinsic permeability in yy | `PERMEABILITY_YY`      | $1.02 \times 10^{-11}$ | $1.02 \times 10^{-11}$ | $\mathrm{m}^2$             |
@@ -117,11 +128,11 @@ The interface stiffness values are based on the adjacent soil shear modulus and 
 
 The following values were adopted:
 
-| Property                         | Clay-side interface | Sand-side interface  | Unit            |
-|:---------------------------------|:--------------------|:---------------------|:----------------|
-| Young's modulus of adjacent soil | $`1.2 \times 10^7`$ | $`3.0 \times 10^7`$  | $`\mathrm{Pa}`$ |
-| Poisson's ratio of adjacent soil | 0.30                | 0.30                 | $`-`$           |
-| Element size normal to interface | 1.0                 | 1.0                  | $`\mathrm{m}`$  |
+| Property                         | Clay-side interface | Sand-side interface | Unit            |
+|:---------------------------------|:--------------------|:--------------------|:----------------|
+| Young's modulus of adjacent soil | $`9.1 \times 10^5`$ | $`9.1 \times 10^6`$ | $`\mathrm{Pa}`$ |
+| Poisson's ratio of adjacent soil | 0.30                | 0.30                | $`-`$           |
+| Element size normal to interface | 1.0                 | 1.0                 | $`\mathrm{m}`$  |
 
 
 ### Shear modulus of the adjacent soil
@@ -136,14 +147,14 @@ G = \frac{E}{2 (1 + \nu)}
 #### Clay
 
 ```math
-G_{\mathrm{clay}} = \frac{1.2 \times 10^7}{2 (1 + 0.30)} = 4.615 \times 10^6\ \mathrm{Pa}
+G_{\mathrm{clay}} = \frac{9.1 \times 10^5}{2 (1 + 0.30)} = 3.5 \times 10^5\ \mathrm{Pa}
 ```
 
 
 #### Sand
 
 ```math
-G_{\mathrm{sand}} = \frac{3.0 \times 10^7}{2 (1 + 0.30)} = 1.1538 \times 10^7\ \mathrm{Pa}
+G_{\mathrm{sand}} = \frac{9.1 \times 10^6}{2 (1 + 0.30)} = 3.5 \times 10^6\ \mathrm{Pa}
 ```
 
 
@@ -172,7 +183,7 @@ with:
 Using:
 
 ```math
-G_{\mathrm{clay}} = 4.615 \times 10^6\ \mathrm{Pa}
+G_{\mathrm{clay}} = 3.5 \times 10^5\ \mathrm{Pa}
 ```
 
 and
@@ -184,13 +195,13 @@ h = 1.0\ \mathrm{m}
 the interface shear stiffness becomes:
 
 ```math
-k_{\mathrm{s, clay}} = \frac{4.615 \times 10^6\ \mathrm{Pa}}{1.0\ \mathrm{m}} = 4.615 \times 10^6\ \mathrm{N} / \mathrm{m}^3
+k_{\mathrm{s, clay}} = \frac{3.5 \times 10^5\ \mathrm{Pa}}{1.0\ \mathrm{m}} = 3.5 \times 10^5\ \mathrm{N} / \mathrm{m}^3
 ```
 
 and the interface normal stiffness becomes:
 
 ```math
-k_{\mathrm{n, clay}} = 10 \cdot 4.615 \times 10^6\ \mathrm{N} / \mathrm{m}^3 = 4.615 \times 10^7\ \mathrm{N} / \mathrm{m}^3
+k_{\mathrm{n, clay}} = 10 \cdot 3.5 \times 10^5\ \mathrm{N} / \mathrm{m}^3 = 3.5 \times 10^6\ \mathrm{N} / \mathrm{m}^3
 ```
 
 
@@ -199,7 +210,7 @@ k_{\mathrm{n, clay}} = 10 \cdot 4.615 \times 10^6\ \mathrm{N} / \mathrm{m}^3 = 4
 Using:
 
 ```math
-G_{\mathrm{sand}} = 1.1538 \times 10^7\ \mathrm{Pa}
+G_{\mathrm{sand}} = 3.5 \times 10^6\ \mathrm{Pa}
 ```
 
 and
@@ -211,24 +222,25 @@ h = 1.0\ \mathrm{m}
 the interface shear stiffness becomes:
 
 ```math
-k_{\mathrm{s, sand}} = \frac{1.1538 \times 10^7\ \mathrm{Pa}}{1.0\ \mathrm{m}} = 1.1538 \times 10^7\ \mathrm{N} / \mathrm{m}^3
+k_{\mathrm{s, sand}} = \frac{3.5 \times 10^6\ \mathrm{Pa}}{1.0\ \mathrm{m}} = 3.5 \times 10^6\ \mathrm{N} / \mathrm{m}^3
 ```
 
 and the interface normal stiffness becomes:
 
 ```math
-k_{\mathrm{n, sand}} = 10 \cdot 1.1538 \times 10^7\ \mathrm{N} / \mathrm{m}^3 = 1.1538 \times 10^8\ \mathrm{N} / \mathrm{m}^3
+k_{\mathrm{n, sand}} = 10 \cdot 3.5 \times 10^6\ \mathrm{N} / \mathrm{m}^3 = 3.5 \times 10^7\ \mathrm{N} / \mathrm{m}^3
 ```
 
 
 ### Final values
 
-| Property                             | Kratos input parameter       | Clay-side interface   | Sand-side interface    | Unit                          |
-|:-------------------------------------|:-----------------------------|:----------------------|:-----------------------|:------------------------------|
-| Normal stiffness $`k_{\mathrm{n}}`$  | `INTERFACE_NORMAL_STIFFNESS` | $`4.615 \times 10^7`$ | $`1.1538 \times 10^8`$ | $`\mathrm{N} / \mathrm{m}^3`$ |
-| Shear stiffness $`k_{\mathrm{s}}`$   | `INTERFACE_SHEAR_STIFFNESS`  | $`4.615 \times 10^6`$ | $`1.1538 \times 10^7`$ | $`\mathrm{N} / \mathrm{m}^3`$ |
+The following table lists the adopted stiffness values for the two types of interfaces.
 
-The clay-side interface values follow directly from the adopted stiffness formulation. For the sand-side interface, the values used in the current Kratos model are reduced calibration values rather than the direct estimate from the adjacent sand shear modulus.
+| Property                             | Kratos input parameter       | Clay-side interface | Sand-side interface | Unit                          |
+|:-------------------------------------|:-----------------------------|:--------------------|:--------------------|:------------------------------|
+| Normal stiffness $`k_{\mathrm{n}}`$  | `INTERFACE_NORMAL_STIFFNESS` | $`3.5 \times 10^6`$ | $`3.5 \times 10^7`$ | $`\mathrm{N} / \mathrm{m}^3`$ |
+| Shear stiffness $`k_{\mathrm{s}}`$   | `INTERFACE_SHEAR_STIFFNESS`  | $`3.5 \times 10^5`$ | $`3.5 \times 10^6`$ | $`\mathrm{N} / \mathrm{m}^3`$ |
+
 
 
 ## Sheet pile parameters
