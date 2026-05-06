@@ -68,10 +68,10 @@ double GetL2VectorErrorNorm(ModelPart& r_model_part)
     {
         double local_area = r_node.FastGetSolutionStepValue(NODAL_AREA);
         total_area += local_area;
-        double error_x = r_node.FastGetSolutionStepValue(VECTORIAL_ERROR_X);
-        double error_y = r_node.FastGetSolutionStepValue(VECTORIAL_ERROR_Y);
+        double error_x = r_node.FastGetSolutionStepValue(ERROR_X);
+        double error_y = r_node.FastGetSolutionStepValue(ERROR_Y);
         double error_z = 0.0;
-        if (dim == 3) error_z += r_node.FastGetSolutionStepValue(VECTORIAL_ERROR_Z);
+        if (dim == 3) error_z += r_node.FastGetSolutionStepValue(ERROR_Z);
         double squared_modulus = std::pow(error_x,2)+std::pow(error_y,2)+std::pow(error_z,2);
         result += squared_modulus * local_area;
     }
