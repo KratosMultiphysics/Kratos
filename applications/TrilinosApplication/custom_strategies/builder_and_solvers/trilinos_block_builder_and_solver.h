@@ -120,6 +120,9 @@ public:
     using TSystemMatrixPointerType = typename BaseType::TSystemMatrixPointerType;
     using TSystemVectorPointerType = typename BaseType::TSystemVectorPointerType;
 
+    /// Definition of the linear algebra library
+    static constexpr TrilinosLinearAlgebraLibrary LinearAlgebraLibrary = TSparseSpace::LinearAlgebraLibrary();
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -765,7 +768,7 @@ public:
             ConstructMatrixStructure(pScheme, rpA, rpDx, rpb, rModelPart);
         } else if (TSparseSpace::IsNull(BaseType::mpReactionsVector) && this->mCalculateReactionsFlag) {
             TSystemVectorPointerType pNewReactionsVector = TSparseSpace::CreateEmptyVectorPointer();
-            if constexpr (TSparseSpace::LinearAlgebraLibrary() == TrilinosLinearAlgebraLibrary::EPETRA) {
+            if constexpr (LinearAlgebraLibrary == TrilinosLinearAlgebraLibrary::EPETRA) {
                 pNewReactionsVector = TSystemVectorPointerType(new TSystemVectorType(rpDx->Map()));
             } else {
                 pNewReactionsVector = TSparseSpace::CreateVector(rpDx->getMap());
@@ -811,7 +814,7 @@ public:
         // Refresh RHS to have the correct reactions
         BuildRHS(pScheme, rModelPart, rb);
 
-        if constexpr (TSparseSpace::LinearAlgebraLibrary() == TrilinosLinearAlgebraLibrary::EPETRA) {
+        if constexpr (LinearAlgebraLibrary == TrilinosLinearAlgebraLibrary::EPETRA) {
             // Initialize the Epetra importer
             // TODO: this part of the code has been pasted until a better solution
             // is found
@@ -873,7 +876,7 @@ public:
                 const double react_val = temp_RHS[pDofImporter->TargetMap().LID(i)];
                 (dof_iterator->GetSolutionStepReactionValue()) = -react_val;
             }
-        } else if constexpr (TSparseSpace::LinearAlgebraLibrary() == TrilinosLinearAlgebraLibrary::TPETRA) {
+        } else if constexpr (LinearAlgebraLibrary == TrilinosLinearAlgebraLibrary::TPETRA) {
         #if (HAVE_TPETRA)
             using MapType = typename TSparseSpace::MapType;
             using VectorType = typename TSparseSpace::VectorType;
@@ -970,7 +973,7 @@ public:
         mScaleFactor = TSparseSpace::CheckAndCorrectZeroDiagonalValues(r_process_info, rA, rb, mScalingDiagonal);
 
         // Apply the dirichlet conditions by setting to zero the rows and columns corresponding to the fixed dofs and setting the diagonal entry to 1 (or to the value of mScaleFactor)
-        if constexpr (TSparseSpace::LinearAlgebraLibrary() == TrilinosLinearAlgebraLibrary::EPETRA) {
+        if constexpr (LinearAlgebraLibrary == TrilinosLinearAlgebraLibrary::EPETRA) {
             // Here we construct and fill a vector "fixed local" which cont
             Epetra_Map localmap(-1, global_ids.size(), global_ids.data(), 0, rA.Comm());
             Epetra_IntVector fixed_local(Copy, localmap, is_dirichlet.data());
@@ -1011,7 +1014,7 @@ public:
                     }
                 }
             }
-        } else if constexpr (TSparseSpace::LinearAlgebraLibrary() == TrilinosLinearAlgebraLibrary::TPETRA) {
+        } else if constexpr (LinearAlgebraLibrary == TrilinosLinearAlgebraLibrary::TPETRA) {
         #if (HAVE_TPETRA)
             using GO = typename TSystemMatrixType::global_ordinal_type;
             using LO = typename TSystemMatrixType::local_ordinal_type;
@@ -1111,14 +1114,14 @@ public:
             TSparseSpace::TransposeMult(r_T, *p_copy_b, rb);
 
             // Apply diagonal values on slaves
-            if constexpr (TSparseSpace::LinearAlgebraLibrary() == TrilinosLinearAlgebraLibrary::EPETRA) {
+            if constexpr (LinearAlgebraLibrary == TrilinosLinearAlgebraLibrary::EPETRA) {
                 IndexPartition<std::size_t>(mSlaveIds.size()).for_each([&](std::size_t Index){
                     const IndexType slave_equation_id = mSlaveIds[Index];
                     if (mInactiveSlaveDofs.find(slave_equation_id) == mInactiveSlaveDofs.end()) {
                         TrilinosAssemblingUtilities<TSparseSpace>::SetGlobalValueWithoutGlobalAssembly(rb, slave_equation_id, 0.0);
                     }
                 });
-            } else if constexpr (TSparseSpace::LinearAlgebraLibrary() == TrilinosLinearAlgebraLibrary::TPETRA) { // Kokkos conflict with IndexPartition for now, so we keep it simple
+            } else if constexpr (LinearAlgebraLibrary == TrilinosLinearAlgebraLibrary::TPETRA) { // Kokkos conflict with IndexPartition for now, so we keep it simple
             #if (HAVE_TPETRA)
                 for (std::size_t Index = 0; Index < mSlaveIds.size(); ++Index) {
                     const IndexType slave_equation_id = mSlaveIds[Index];
@@ -1175,7 +1178,7 @@ public:
             mScaleFactor = TSparseSpace::GetScaleNorm(r_process_info, rA, mScalingDiagonal);
 
             // Apply diagonal values on slaves
-            if constexpr (TSparseSpace::LinearAlgebraLibrary() == TrilinosLinearAlgebraLibrary::EPETRA) {
+            if constexpr (LinearAlgebraLibrary == TrilinosLinearAlgebraLibrary::EPETRA) {
                 IndexPartition<std::size_t>(mSlaveIds.size()).for_each([&](std::size_t Index){
                     const IndexType slave_equation_id = mSlaveIds[Index];
                     if (mInactiveSlaveDofs.find(slave_equation_id) == mInactiveSlaveDofs.end()) {
@@ -1183,7 +1186,7 @@ public:
                         TrilinosAssemblingUtilities<TSparseSpace>::SetGlobalValueWithoutGlobalAssembly(rb, slave_equation_id, 0.0);
                     }
                 });
-            } else if constexpr (TSparseSpace::LinearAlgebraLibrary() == TrilinosLinearAlgebraLibrary::TPETRA) { // Kokkos conflict with IndexPartition for now, so we keep it simple
+            } else if constexpr (LinearAlgebraLibrary == TrilinosLinearAlgebraLibrary::TPETRA) { // Kokkos conflict with IndexPartition for now, so we keep it simple
             #if (HAVE_TPETRA)
                 for (std::size_t Index = 0; Index < mSlaveIds.size(); ++Index) {
                     const IndexType slave_equation_id = mSlaveIds[Index];
@@ -1692,7 +1695,7 @@ protected:
             pScheme->EquationId(r_elem, equation_ids_vector, r_current_process_info);
 
             if (!equation_ids_vector.empty()) {
-                if constexpr (TSparseSpace::LinearAlgebraLibrary() == TrilinosLinearAlgebraLibrary::TPETRA) {
+                if constexpr (LinearAlgebraLibrary == TrilinosLinearAlgebraLibrary::TPETRA) {
                     add_to_neighbor_map(equation_ids_vector);
                 }
                 std::vector<int> local_equation_ids;
@@ -1710,7 +1713,7 @@ protected:
             pScheme->EquationId(r_cond, equation_ids_vector, r_current_process_info);
 
             if (!equation_ids_vector.empty()) {
-                if constexpr (TSparseSpace::LinearAlgebraLibrary() == TrilinosLinearAlgebraLibrary::TPETRA) {
+                if constexpr (LinearAlgebraLibrary == TrilinosLinearAlgebraLibrary::TPETRA) {
                     add_to_neighbor_map(equation_ids_vector);
                 }
                 std::vector<int> local_equation_ids;
@@ -1725,7 +1728,7 @@ protected:
 
         // Assemble all constraints.
         Element::EquationIdVectorType slave_equation_ids_vector, master_equation_ids_vector;
-        if constexpr (TSparseSpace::LinearAlgebraLibrary() == TrilinosLinearAlgebraLibrary::EPETRA) {
+        if constexpr (LinearAlgebraLibrary == TrilinosLinearAlgebraLibrary::EPETRA) {
             for (auto& r_const : r_constraints_array) {
                 r_const.EquationIdVector(slave_equation_ids_vector, master_equation_ids_vector, r_current_process_info);
 
@@ -1759,7 +1762,7 @@ protected:
                     all_col_equation_ids.push_back({master_equation_id});
                 }
             }
-        }  else if constexpr (TSparseSpace::LinearAlgebraLibrary() == TrilinosLinearAlgebraLibrary::TPETRA) {
+        }  else if constexpr (LinearAlgebraLibrary == TrilinosLinearAlgebraLibrary::TPETRA) {
             auto sort_unique_ids = [](std::vector<int>& rIds) {
                 std::sort(rIds.begin(), rIds.end());
                 rIds.erase(std::unique(rIds.begin(), rIds.end()), rIds.end());
@@ -2101,9 +2104,9 @@ private:
                 temp_primary[i] = mFirstMyId + i;
             }
 
-            if constexpr (TSparseSpace::LinearAlgebraLibrary() == TrilinosLinearAlgebraLibrary::EPETRA) {
+            if constexpr (LinearAlgebraLibrary == TrilinosLinearAlgebraLibrary::EPETRA) {
                 mpMap = Kratos::make_shared<Epetra_Map>(-1, mLocalSystemSize, temp_primary.data(), 0, mrComm);
-            }  else if constexpr (TSparseSpace::LinearAlgebraLibrary() == TrilinosLinearAlgebraLibrary::TPETRA) {
+            }  else if constexpr (LinearAlgebraLibrary == TrilinosLinearAlgebraLibrary::TPETRA) {
             #if (HAVE_TPETRA)
                 using MapType = typename TSparseSpace::MapType;
                 using GO = typename MapType::global_ordinal_type;
