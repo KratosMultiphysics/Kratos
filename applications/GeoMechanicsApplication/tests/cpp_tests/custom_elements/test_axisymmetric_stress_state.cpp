@@ -14,7 +14,8 @@
 #include "containers/model.h"
 #include "custom_elements/axisymmetric_stress_state.h"
 #include "custom_elements/stress_state_policy.h"
-#include "custom_utilities/registration_utilities.h"
+#include "custom_utilities/registration_utilities.hpp"
+#include "custom_utilities/ublas_utilities.h"
 #include "geometries/geometry.h"
 #include "includes/checks.h"
 #include "includes/stream_serializer.h"
@@ -22,7 +23,6 @@
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/test_utilities.h"
 
-#include <boost/numeric/ublas/assignment.hpp>
 #include <string>
 #include <type_traits>
 
@@ -37,26 +37,18 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateBMatrixWithValidGeometryReturnsCorrectResults
     const std::unique_ptr<StressStatePolicy> p_stress_state_policy =
         std::make_unique<AxisymmetricStressState>();
 
-    Vector Np(3);
-    Np <<= 1.0, 2.0, 3.0;
+    const auto Np = UblasUtilities::CreateVector({1.0, 2.0, 3.0});
 
-    // clang-format off
-    Matrix GradNpT(3, 2);
-    GradNpT <<= 1.0, 2.0,
-                3.0, 4.0,
-                5.0, 6.0;
-    // clang-format on
+    const auto GradNpT = UblasUtilities::CreateMatrix({{1.0, 2.0}, {3.0, 4.0}, {5.0, 6.0}});
 
     const Matrix calculated_matrix = p_stress_state_policy->CalculateBMatrix(
         GradNpT, Np, ModelSetupUtilities::Create2D3NTriangleGeometry());
 
-    // clang-format off
-    Matrix expected_matrix(4, 6);
-    expected_matrix <<= 1   ,0  ,3   ,0 ,5   ,0, // This row contains the first column of GradNpT on columns 1, 3 and 5
-                        0   ,2  ,0   ,4 ,0   ,6, // This row contains the second column of GradNpT on columns 2, 4 and 6
-                        0.2 ,0  ,0.4 ,0 ,0.6 ,0, // This row contains Np/radius on columns 1, 3 and 5, where radius = 5
-                        2   ,1  ,4   ,3 ,6   ,5; // This row contains the first and second columns of GradNpT, swapping x and y
-    // clang-format on
+    const auto expected_matrix = UblasUtilities::CreateMatrix(
+        {{1, 0, 3, 0, 5, 0}, // This row contains the first column of GradNpT on columns 1, 3 and 5
+         {0, 2, 0, 4, 0, 6}, // This row contains the second column of GradNpT on columns 2, 4 and 6
+         {0.2, 0, 0.4, 0, 0.6, 0}, // This row contains Np/radius on columns 1, 3 and 5, where radius = 5
+         {2, 1, 4, 3, 6, 5}}); // This row contains the first and second columns of GradNpT, swapping x and y
 
     KRATOS_CHECK_MATRIX_NEAR(calculated_matrix, expected_matrix, 1e-12)
 }
@@ -99,8 +91,7 @@ KRATOS_TEST_CASE_IN_SUITE(AxisymmetricStressState_GivesCorrectVoigtVector, Krato
         std::make_unique<AxisymmetricStressState>();
     Vector voigt_vector = p_stress_state_policy->GetVoigtVector();
 
-    Vector expected_voigt_vector(4);
-    expected_voigt_vector <<= 1.0, 1.0, 1.0, 0.0;
+    auto expected_voigt_vector = UblasUtilities::CreateVector({1.0, 1.0, 1.0, 0.0});
     KRATOS_EXPECT_VECTOR_NEAR(voigt_vector, expected_voigt_vector, 1.E-10)
 }
 
@@ -134,8 +125,7 @@ KRATOS_TEST_CASE_IN_SUITE(AxisymmetricStressState_CanBeSavedAndLoadedThroughInte
     // Assert
     ASSERT_NE(p_loaded_policy, nullptr);
     KRATOS_EXPECT_EQ(p_loaded_policy->GetVoigtSize(), VOIGT_SIZE_2D_AXISYMMETRIC);
-    auto expected_voigt_vector = Vector{4};
-    expected_voigt_vector <<= 1.0, 1.0, 1.0, 0.0;
+    const auto expected_voigt_vector = UblasUtilities::CreateVector({1.0, 1.0, 1.0, 0.0});
     KRATOS_EXPECT_VECTOR_NEAR(p_loaded_policy->GetVoigtVector(), expected_voigt_vector, Defaults::absolute_tolerance);
 }
 

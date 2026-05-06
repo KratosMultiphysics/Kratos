@@ -49,7 +49,6 @@
             "solver_type":     "LinearSolversApplication.sparse_lu"
         },
         "problem_domain_sub_model_part_list": ["Interfaces"],
-        "processes_sub_model_part_list":      ["FixedNodes","AllNodes","DisplacedNodes"],
         "body_domain_sub_model_part_list":    ["Interfaces"]
     },
     "output_processes": {

@@ -41,6 +41,7 @@ cmake ..                                                                        
 -DCMAKE_BUILD_TYPE="${KRATOS_BUILD_TYPE}"                                                           \
 -DCMAKE_EXE_LINKER_FLAGS="-s"                                                                       \
 -DCMAKE_SHARED_LINKER_FLAGS="-s"                                                                    \
+-DCMAKE_POLICY_VERSION_MINIMUM=3.5                                                                  \
 -H"${KRATOS_SOURCE}"                                                                                \
 -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}"                                                            \
 -DUSE_MPI=OFF                                                                                       \

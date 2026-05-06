@@ -10,8 +10,6 @@
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#pragma once
-
 // System includes
 
 // External includes

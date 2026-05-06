@@ -63,6 +63,27 @@ public:
     }
 
     ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    std::string Info() const override
+    {
+        return "Dummy linear solver";
+    }
+
+    /// Print information about this object.
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << "Dummy linear solver";
+    }
+
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const override
+    {
+    }
+
+    ///@}
 
 }; // Class DummyLinearSolver
 
@@ -100,8 +121,8 @@ KRATOS_TEST_CASE_IN_SUITE(FallbackLinearSolverConstructorSolvers, KratosCoreFast
         A.push_back(i, i, 1.0);
     }
     A.set_filled(size + 1, size);
-    VectorType b(size);
-    VectorType x(size);
+    VectorType b = ZeroVector(size);
+    VectorType x = ZeroVector(size);
 
     // Create a simple fallback solver
     std::vector<LinearSolverType::Pointer> solvers = {p_solver1, p_solver2};
@@ -127,8 +148,8 @@ KRATOS_TEST_CASE_IN_SUITE(FallbackLinearSolverConstructorParameters, KratosCoreF
         A.push_back(i, i, 1.0);
     }
     A.set_filled(size + 1, size);
-    VectorType b(size);
-    VectorType x(size);
+    VectorType b = ZeroVector(size);
+    VectorType x = ZeroVector(size);
 
     // Create a simple fallback solver
     Parameters parameters = Parameters(R"({

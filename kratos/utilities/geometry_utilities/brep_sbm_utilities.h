@@ -69,21 +69,21 @@ public:
     /**
      * @brief Generates integration points for a BREP volume using SBM (Structured Background Mesh) logic.
      * 
-     * @param rIntegrationPoints Output vector to store the computed integration points within the volume.
-     * @param rSpansU Knot spans in the U parametric direction (first parametric axis).
-     * @param rSpansV Knot spans in the V parametric direction (second parametric axis).
-     * @param rSpansW Knot spans in the W parametric direction (third parametric axis).
-     * @param rOuterLoops Geometries representing the outer boundary surfaces of the volume.
-     * @param rInnerLoops Geometries representing internal holes or voids in the volume.
-     * @param rIntegrationInfo Object containing integration settings.
+     * @param rSpansU Knot spans in the U parametric direction.
+     * @param rSpansV Knot spans in the V parametric direction.
+     * @param rSpansW Knot spans in the W parametric direction.
+     * @param rSurrogateOuterLoopGeometries Geometries approximating the outer boundary loop of the surface.
+     * @param rSurrogateInnerLoopGeometries Geometries approximating the inner holes.
+     * @param rIntegrationPoints Output vector of computed integration points on the surface.
+     * @param rIntegrationInfo Object containing integration settings and metadata.
      */
     static void CreateBrepVolumeSbmIntegrationPoints(
-        IntegrationPointsArrayType& rIntegrationPoints,
         const std::vector<double>& rSpansU,
         const std::vector<double>& rSpansV,
         const std::vector<double>& rSpansW,
-        GeometrySurrogateArrayType& rOuterLoops,
-        GeometrySurrogateArrayType& rInnerLoops,
+        const GeometrySurrogateArrayType& rSurrogateOuterLoopGeometries,
+        const GeometrySurrogateArrayType& rSurrogateInnerLoopGeometries,
+        IntegrationPointsArrayType& rIntegrationPoints,
         IntegrationInfo& rIntegrationInfo);
 
 private:

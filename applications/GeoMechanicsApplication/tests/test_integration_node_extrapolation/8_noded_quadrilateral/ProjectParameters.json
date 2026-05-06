@@ -60,7 +60,6 @@
             "scaling":       true
         },
         "problem_domain_sub_model_part_list": ["soil"],
-        "processes_sub_model_part_list":      ["Body_Acceleration-auto-1","Top","Base", "soil"],
         "body_domain_sub_model_part_list":    ["soil"]
     },
     "output_processes": {

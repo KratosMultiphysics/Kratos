@@ -10,7 +10,7 @@
 },
 "stages" : {
     "stage_2" : {
-		"stage_settings" : {
+        "stage_settings" : {
             "analysis_stage": "Stages.KratosMultiphysics.GeoMechanicsApplication.GeoMechanicsAnalysis",
             "problem_data": {
             "problem_name":         "test",
@@ -59,7 +59,6 @@
                 "solver_type":         "LinearSolversApplication.sparse_lu"
             },
             "problem_domain_sub_model_part_list": ["Dummy_soil"],
-            "processes_sub_model_part_list":      ["Bottom_fixed","Side_sliders","Phreatic_line","Second_line_load"],
             "body_domain_sub_model_part_list":    ["Dummy_soil"]
         },
         "output_processes": {

@@ -12,9 +12,9 @@
 //                   Gennady Markelov
 //
 #include "apply_normal_load_table_process.h"
-#include "apply_boundary_hydrostatic_pressure_table_process.hpp"
-#include "apply_boundary_phreatic_line_pressure_table_process.hpp"
-#include "apply_boundary_phreatic_surface_pressure_table_process.hpp"
+#include "apply_boundary_hydrostatic_pressure_table_process.h"
+#include "apply_boundary_phreatic_line_pressure_table_process.h"
+#include "apply_boundary_phreatic_surface_pressure_table_process.h"
 #include "apply_component_table_process.h"
 #include "custom_utilities/parameters_utilities.h"
 #include "geo_apply_constant_scalar_value_process.h"
@@ -23,6 +23,7 @@
 
 namespace Kratos
 {
+using namespace std::string_literals;
 
 constexpr int normalComponentNumber     = 0;
 constexpr int tangentialComponentNumber = 1;
@@ -155,8 +156,6 @@ void ApplyNormalLoadTableProcess::MakeProcessForTangentialComponent(const Parame
     }
 }
 
-ApplyNormalLoadTableProcess::~ApplyNormalLoadTableProcess() = default;
-
 void ApplyNormalLoadTableProcess::ExecuteInitialize()
 {
     for (const auto& process : mProcesses) {
@@ -178,6 +177,6 @@ void ApplyNormalLoadTableProcess::ExecuteFinalize()
     }
 }
 
-std::string ApplyNormalLoadTableProcess::Info() const { return "ApplyNormalLoadTableProcess"; }
+std::string ApplyNormalLoadTableProcess::Info() const { return "ApplyNormalLoadTableProcess"s; }
 
 } // namespace Kratos

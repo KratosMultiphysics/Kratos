@@ -12,13 +12,16 @@
 //
 
 #include "find_neighbour_elements_of_conditions_process.h"
-
+#include "custom_utilities/neighbouring_element_finder.hpp"
 #include "geometries/geometry.h"
+#include "includes/model_part.h"
+
 #include <algorithm>
 #include <iterator>
 
 namespace Kratos
 {
+using namespace std::string_literals;
 
 FindNeighbourElementsOfConditionsProcess::FindNeighbourElementsOfConditionsProcess(ModelPart& rModelPart)
     : mrModelPart(rModelPart)
@@ -29,7 +32,6 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
 {
     if (mrModelPart.Conditions().empty()) return;
 
-    mNeighbouringEntityFinder.InitializeConditionMaps(mrModelPart.Conditions());
     FindNeighbouringElementsForAllBoundaryTypes();
 
     if (!AllConditionsHaveAtLeastOneNeighbour()) {
@@ -39,29 +41,13 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
 
 void FindNeighbourElementsOfConditionsProcess::FindNeighbouringElementsForAllBoundaryTypes()
 {
-    auto generate_generic_boundaries = [](const auto& rGeometry) {
-        return rGeometry.GenerateBoundariesEntities();
-    };
-    auto generate_points   = [](const auto& rGeometry) { return rGeometry.GeneratePoints(); };
-    auto generate_edges_3d = [](const auto& rGeometry) {
-        return rGeometry.LocalSpaceDimension() == 3 ? rGeometry.GenerateEdges()
-                                                    : PointerVector<Geometry<Node>>();
-    };
-    auto generate_edges_1d = [](const auto& rGeometry) {
-        return rGeometry.LocalSpaceDimension() == 1 ? rGeometry.GenerateEdges()
-                                                    : PointerVector<Geometry<Node>>();
-    };
+    NeighbouringElementFinder::BoundaryGeneratorByLocalDim boundary_generator_map;
+    boundary_generator_map[std::size_t{0}] = std::make_unique<PointsGenerator>();
+    boundary_generator_map[std::size_t{1}] = std::make_unique<EdgesGenerator>();
+    boundary_generator_map[std::size_t{2}] = std::make_unique<FacesGenerator>();
 
-    // Note the order in the generators: the 1D elements are only added
-    // as neighbours when the condition is not neighbouring 2D or 3D elements
-    const std::vector<std::function<PointerVector<Geometry<Node>>(const Geometry<Node>&)>> boundary_generators = {
-        generate_generic_boundaries, generate_points, generate_edges_3d, generate_edges_1d};
-
-    for (const auto& r_boundary_generator : boundary_generators) {
-        mNeighbouringEntityFinder.FindConditionNeighboursBasedOnBoundaryType(
-            r_boundary_generator, mrModelPart.Elements());
-        if (AllConditionsHaveAtLeastOneNeighbour()) return;
-    }
+    NeighbouringElementFinder finder;
+    finder.FindEntityNeighbours(mrModelPart.Conditions(), mrModelPart.Elements(), boundary_generator_map);
 }
 
 bool FindNeighbourElementsOfConditionsProcess::AllConditionsHaveAtLeastOneNeighbour() const
@@ -99,7 +85,7 @@ std::ostream& operator<<(std::ostream& rOStream, const FindNeighbourElementsOfCo
 
 std::string FindNeighbourElementsOfConditionsProcess::Info() const
 {
-    return "FindNeighbourElementsOfConditionsProcess";
+    return "FindNeighbourElementsOfConditionsProcess"s;
 }
 
 void FindNeighbourElementsOfConditionsProcess::PrintData(std::ostream& rOStream) const

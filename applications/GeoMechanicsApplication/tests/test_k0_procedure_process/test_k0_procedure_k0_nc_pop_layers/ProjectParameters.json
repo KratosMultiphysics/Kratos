@@ -154,7 +154,6 @@
     "newmark_theta":                      0.5,
     "number_cycles":                      100,
     "problem_domain_sub_model_part_list": ["Soil1", "Soil2", "Soil3"],
-    "processes_sub_model_part_list":      ["Main", "All_Nodes", "Side_Nodes", "Base_Nodes"],
     "rayleigh_k":                         0.0,
     "rayleigh_m":                         0.0,
     "reduction_factor":                   0.5,

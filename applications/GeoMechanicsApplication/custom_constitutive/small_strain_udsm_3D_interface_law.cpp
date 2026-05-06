@@ -19,6 +19,7 @@ namespace
 {
 
 using namespace Kratos;
+using namespace std::string_literals;
 
 indexStress3D GetIndex3D(const indexStress3DInterface Index3D)
 {
@@ -119,7 +120,7 @@ Vector& SmallStrainUDSM3DInterfaceLaw::GetValue(const Variable<Vector>& rVariabl
 {
     if (rVariable == STATE_VARIABLES) {
         SmallStrainUDSMLaw::GetValue(rVariable, rValue);
-    } else if (rVariable == CAUCHY_STRESS_VECTOR) {
+    } else if (rVariable == CAUCHY_STRESS_VECTOR || rVariable == GEO_EFFECTIVE_TRACTION_VECTOR) {
         rValue.resize(GetStrainSize());
 
         auto& r_sig0                  = GetSig0();
@@ -136,7 +137,8 @@ void SmallStrainUDSM3DInterfaceLaw::SetValue(const Variable<Vector>& rVariable,
 {
     if (rVariable == STATE_VARIABLES) {
         SmallStrainUDSMLaw::SetValue(rVariable, rValue, rCurrentProcessInfo);
-    } else if ((rVariable == CAUCHY_STRESS_VECTOR) && (rValue.size() == GetStrainSize())) {
+    } else if ((rVariable == CAUCHY_STRESS_VECTOR || rVariable == GEO_EFFECTIVE_TRACTION_VECTOR) &&
+               rValue.size() == GetStrainSize()) {
         this->SetInternalStressVector(rValue);
     }
 }
@@ -145,7 +147,7 @@ SizeType SmallStrainUDSM3DInterfaceLaw::WorkingSpaceDimension() { return N_DIM_3
 
 SizeType SmallStrainUDSM3DInterfaceLaw::GetStrainSize() const { return VOIGT_SIZE_3D_INTERFACE; }
 
-std::string SmallStrainUDSM3DInterfaceLaw::Info() const { return "SmallStrainUDSM3DInterfaceLaw"; }
+std::string SmallStrainUDSM3DInterfaceLaw::Info() const { return "SmallStrainUDSM3DInterfaceLaw"s; }
 
 void SmallStrainUDSM3DInterfaceLaw::PrintData(std::ostream& rOStream) const
 {

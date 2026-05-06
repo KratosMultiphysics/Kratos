@@ -103,6 +103,9 @@ namespace Kratos
         this-> GetNodalValues(Variables,rCurrentProcessInfo);
         double h = this->ComputeH(DN_DX);
 
+        array_1d<double,TDim> grad_phi_halfstep = prod(trans(DN_DX), 0.5*(Variables.phi+Variables.phi_old));
+        const double norm_grad = norm_2(grad_phi_halfstep);
+
         //Computing the divergence
         for (unsigned int i = 0; i < TNumNodes; i++)
         {
@@ -116,6 +119,11 @@ namespace Kratos
         BoundedMatrix<double,TNumNodes, TNumNodes> aux1 = ZeroMatrix(TNumNodes, TNumNodes); //terms multiplying dphi/dt
         BoundedMatrix<double,TNumNodes, TNumNodes> aux2 = ZeroMatrix(TNumNodes, TNumNodes); //terms multiplying phi
         bounded_matrix<double,TNumNodes, TDim> tmp;
+        // CrossWind variables
+        // Projected velocity
+        array_1d<double,TDim> u_proj;
+        // Diffusion contribution
+        BoundedMatrix<double,TDim,TDim> Dcw;
 
         // Gauss points and Number of nodes coincides in this case.
         for(unsigned int igauss=0; igauss<TNumNodes; igauss++)
@@ -141,6 +149,65 @@ namespace Kratos
             //terms which multiply the gradient of phi
             noalias(aux2) += (1.0+tau*Variables.beta*Variables.div_v)*outer_prod(N, a_dot_grad);
             noalias(aux2) += tau*outer_prod(a_dot_grad, a_dot_grad);
+
+            // Crosswind term according to https://doi.org/10.1016/0045-7825(93)90213-H
+            const double norm_vel2 = norm_vel * norm_vel;
+            if(Variables.crosswind_constant > 0.0 && norm_grad > 1e-3 && norm_vel2 > 1e-9)
+            {
+                // Temporal derivative
+                const double phi_gauss = inner_prod(N, Variables.phi);
+                const double phi_old_gauss = inner_prod(N, Variables.phi_old);
+                const double dphi_dt = Variables.dt_inv * (phi_gauss - phi_old_gauss);
+
+                // Convective term
+                const double convection = inner_prod(vel_gauss, grad_phi_halfstep);
+
+                // Reaction term
+                const double reaction = Variables.beta * Variables.div_v * phi_gauss;
+
+                // Source termn
+                const double source = inner_prod(N, Variables.volumetric_source);
+
+                // Complete residual
+                const double residual = dphi_dt + convection + reaction - source;
+    
+                // //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+                // //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+                // // Peclet's projected formulation was commented after some testing due to 
+                // // residual radial instabilities in 3D cases. 
+                // // It was decided to use a complete approach with 'crosswind_constant' without 
+                // // considering the projection.
+                // //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+                // // Velocity projected in the direction of the solution gradient
+                // u_proj = (convection/std::pow(norm_grad,2)) * grad_phi_halfstep;
+
+                // // Peclet number projected in the direction of the solution gradient
+                // const double Pe_proj = norm_2(u_proj) * h / (2.0 * Variables.conductivity + 1e-12);
+
+                // // Limiter
+                // const double alpha_c = std::max( 0.0, Variables.crosswind_constant - 1.0/(Pe_proj + 1e-12));
+
+                // // Discontinuity capturing coefficient
+                // double k_c = 0.5 * alpha_c * h * std::abs(residual / norm_grad);
+                // //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+                // //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+                
+                // Discontinuity capturing coefficient
+                double k_c = Variables.crosswind_constant * h * std::abs(residual / norm_grad);
+                
+                // Crosswind diffusion tensor
+                Dcw = k_c * IdentityMatrix(TDim);
+
+                // Removing diffusion in streamline direcction
+                const double k_streamline = tau * norm_vel2;
+                const double correction = std::max(k_c - k_streamline, 0.0) - k_c;
+
+                Dcw += (correction / norm_vel2) * outer_prod(vel_gauss, vel_gauss);
+
+                // Add diffusion contribution
+                noalias(tmp) = prod(DN_DX, Dcw);
+                noalias(aux2) += prod(tmp, trans(DN_DX));
+            }
         }
 
         //adding the second and third term in the formulation
@@ -174,6 +241,7 @@ namespace Kratos
     {
         KRATOS_TRY
 
+        rVariables.crosswind_constant = rCurrentProcessInfo[CROSS_WIND_STABILIZATION_FACTOR];
         rVariables.theta = rCurrentProcessInfo[TIME_INTEGRATION_THETA]; //Variable defining the temporal scheme (0: Forward Euler, 1: Backward Euler, 0.5: Crank-Nicolson)
         rVariables.dyn_st_beta = rCurrentProcessInfo[DYNAMIC_TAU];
         const double delta_t = rCurrentProcessInfo[DELTA_TIME];

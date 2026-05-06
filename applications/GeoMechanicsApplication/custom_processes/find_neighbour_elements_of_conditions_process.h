@@ -13,12 +13,13 @@
 
 #pragma once
 
-#include "custom_utilities/neighbouring_entity_finder.h"
-#include "includes/model_part.h"
 #include "processes/process.h"
+
+#include <string>
 
 namespace Kratos
 {
+class ModelPart;
 
 class KRATOS_API(GEO_MECHANICS_APPLICATION) FindNeighbourElementsOfConditionsProcess : public Process
 {
@@ -35,8 +36,7 @@ public:
     void                      PrintData(std::ostream& rOStream) const override;
 
 private:
-    ModelPart&               mrModelPart;
-    NeighbouringEntityFinder mNeighbouringEntityFinder;
+    ModelPart& mrModelPart;
 
     void FindNeighbouringElementsForAllBoundaryTypes();
 

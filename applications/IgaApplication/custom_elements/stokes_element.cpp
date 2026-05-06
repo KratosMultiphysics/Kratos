@@ -131,12 +131,13 @@ void StokesElement::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix, Vector
     const double GaussWeight = integration_points[0].Weight();
 
     // Calculate the B matrix
-    Matrix B = ZeroMatrix(3,number_of_points*mDim);
+    const unsigned int voigt_size = (mDim == 3) ? 6 : 3;
+    Matrix B = ZeroMatrix(voigt_size, number_of_points * mDim);
     CalculateB(B, DN_DX);
 
     // constitutive law
     ConstitutiveLaw::Parameters Values(r_geometry, GetProperties(), rCurrentProcessInfo);
-    ConstitutiveVariables constitutive_variables(3);
+    ConstitutiveVariables constitutive_variables(voigt_size);
     ApplyConstitutiveLaw(B, Values, constitutive_variables);
     Vector& r_stress_vector = Values.GetStressVector();
     const Matrix& r_D = Values.GetConstitutiveMatrix();
@@ -196,7 +197,11 @@ void StokesElement::CalculateTau(double &TauOne, double &TauTwo, double MuEffect
 
 double StokesElement::ElementSize()
 {
-    return 1.128379167 * sqrt(this->GetGeometry().DomainSize()); 
+    const double domain_size = this->GetGeometry().DomainSize();
+    if (mDim == 3) {
+        return 1.240700982 * std::cbrt(domain_size);
+    }
+    return 1.128379167 * std::sqrt(domain_size);
 }
 
 void StokesElement::AddMomentumTerms(MatrixType &rLHS,
@@ -268,9 +273,11 @@ void StokesElement::AddMomentumTerms(MatrixType &rLHS,
         // RHS corresponding term
         double div_u_current = 0.0;
         for(unsigned int j = 0; j < number_of_nodes; ++j) {
-            div_u_current += r_geometry[j].FastGetSolutionStepValue(VELOCITY_X) * rDN_DX(j, 0) + 
-                             r_geometry[j].FastGetSolutionStepValue(VELOCITY_Y) * rDN_DX(j, 1) ;
-        } 
+            const auto& r_velocity = r_geometry[j].FastGetSolutionStepValue(VELOCITY);
+            for (unsigned int d = 0; d < mDim; ++d) {
+                div_u_current += r_velocity[d] * rDN_DX(j, d);
+            }
+        }
         for (unsigned int m = 0; m < mDim; ++m) {
             rRHS(first_row+m) -= TauTwo * Weight * rDN_DX(i,m) * div_u_current ;
         }
@@ -299,12 +306,13 @@ void StokesElement::AddContinuityTerms(MatrixType &rLHS,
 
     double pressure_previous_iteration = 0.0;
     double div_u_current = 0.0;
-    Vector grad_p_previous_iteration = ZeroVector(2);
+    Vector grad_p_previous_iteration = ZeroVector(mDim);
     for(unsigned int j = 0; j < number_of_nodes; ++j) {
-        div_u_current += r_geometry[j].FastGetSolutionStepValue(VELOCITY_X) * rDN_DX(j, 0) +
-                        r_geometry[j].FastGetSolutionStepValue(VELOCITY_Y) * rDN_DX(j, 1) ;
-        grad_p_previous_iteration[0] += r_geometry[j].GetSolutionStepValue(PRESSURE) * rDN_DX(j,0) ;
-        grad_p_previous_iteration[1] += r_geometry[j].GetSolutionStepValue(PRESSURE) * rDN_DX(j,1) ;
+        const auto& r_velocity = r_geometry[j].FastGetSolutionStepValue(VELOCITY);
+        for (unsigned int d = 0; d < mDim; ++d) {
+            div_u_current += r_velocity[d] * rDN_DX(j, d);
+            grad_p_previous_iteration[d] += r_geometry[j].GetSolutionStepValue(PRESSURE) * rDN_DX(j, d);
+        }
         pressure_previous_iteration += r_geometry[j].GetSolutionStepValue(PRESSURE) * rN[j];
     }
 
@@ -351,92 +359,172 @@ void StokesElement::AddContinuityTerms(MatrixType &rLHS,
 }
 
 
-void StokesElement::AddSecondOrderStabilizationTerms(MatrixType &rLeftHandSideMatrix,
-        VectorType &rRightHandSideVector,
-        const array_1d<double,3> &rBodyForce,
-        const double TauOne,
-        const ShapeFunctionsType &rN,
-        const ShapeDerivativesType &rDN_DX,
-        const double GaussWeight,
-        const Matrix& rD)
+void StokesElement::AddSecondOrderStabilizationTerms(
+    MatrixType &rLeftHandSideMatrix,
+    VectorType &rRightHandSideVector,
+    const array_1d<double,3> &rBodyForce,
+    const double TauOne,
+    const ShapeFunctionsType &rN,
+    const ShapeDerivativesType &rDN_DX,
+    const double GaussWeight,
+    const Matrix& rD)
 {
     const unsigned int number_of_points = this->GetGeometry().PointsNumber();
-    const unsigned int block_size = mDim+1;
-    auto &r_geometry = GetGeometry();
-
-    // Add third order term of the stabilization
+    const unsigned int block_size = mDim + 1;
+    // Second-order stabilization: implement for 2D and 3D when basis order > 1
     if (mBasisFunctionsOrder > 1) {
+        // ---------------------------------------------------------------------
+        // DIVERGENCE_STRESS stores the recovered divergence of viscous stress:
+        // 2D: size 2 -> [div_tau_x, div_tau_y]
+        // 3D: size 3 -> [div_tau_x, div_tau_y, div_tau_z]
 
-        Matrix B = ZeroMatrix(3,number_of_points*mDim);
-        CalculateB(B, rDN_DX);
-        const Matrix& DDN_DDe = GetGeometry().ShapeFunctionDerivatives(2, 0, GetGeometry().GetDefaultIntegrationMethod());
-        
+        // ---------------------------------------------------------------------
+        const Vector divergence_of_sigma = this->GetValue(DIVERGENCE_STRESS);
+
+        KRATOS_ERROR_IF(divergence_of_sigma.size() != mDim)
+            << "DIVERGENCE_STRESS must store div(tau) of size " << mDim
+            << " but has size " << divergence_of_sigma.size() << std::endl;
+
+        // Get 2nd derivatives of shape functions in physical space (as provided by the geometry)
+        // For 2D, it is expected to contain 3 components per shape function: [xx, xy, yy] (or equivalent)
+        // For 3D, it is expected to contain 6 components per shape function: [xx, xy, xz, yy, yz, zz] (or equivalent)
+        const Matrix& DDN_DDe = GetGeometry().ShapeFunctionDerivatives(
+            2, 0, GetGeometry().GetDefaultIntegrationMethod());
+
+        // Build derivative B-matrices: B_derivative_x/y/z are of size (strain_size x (mDim*n))
         Matrix B_derivative_x;
         Matrix B_derivative_y;
-        CalculateBDerivativeDx(B_derivative_x, DDN_DDe);
-        CalculateBDerivativeDy(B_derivative_y, DDN_DDe);
+        Matrix B_derivative_z;
 
-        // Computed using the Gauss Points in the same knot span
-        Vector divergence_of_sigma = this->GetValue(DIVERGENCE_STRESS);
-
-        // initilize the div(sigma) matrix 2x(2n)
-        Vector div_sigma_1 = ZeroVector(mDim*number_of_points);
-        Vector div_sigma_2 = ZeroVector(mDim*number_of_points);
-
-        Vector r_D_0(3); Vector r_D_1(3); Vector r_D_2(3);
-        for (std::size_t i = 0; i < 3; ++i) {
-            r_D_0(i) = rD(0, i); 
-            r_D_1(i) = rD(1, i); 
-            r_D_2(i) = rD(2, i);
-        }
-        div_sigma_1 = prod(trans(B_derivative_x), r_D_0) + prod(trans(B_derivative_y), r_D_2);
-        div_sigma_2 = prod(trans(B_derivative_y), r_D_1) + prod(trans(B_derivative_x), r_D_2);
-        
-        // NEW FORMULATION___________________________________________________________________________________________
-        Matrix div_sigma = ZeroMatrix(2, mDim * number_of_points);
-        for (std::size_t i = 0; i < mDim * number_of_points; ++i) {
-            div_sigma(0, i) = div_sigma_1(i);
-            div_sigma(1, i) = div_sigma_2(i);
+        if (mDim == 2) {
+            CalculateBDerivativeDx(B_derivative_x, DDN_DDe);
+            CalculateBDerivativeDy(B_derivative_y, DDN_DDe);
+        } else { // mDim == 3
+            CalculateBDerivativeDx3D(B_derivative_x, DDN_DDe);
+            CalculateBDerivativeDy3D(B_derivative_y, DDN_DDe);
+            CalculateBDerivativeDz3D(B_derivative_z, DDN_DDe);
         }
 
+        // ---------------------------------------------------------------------
+        // Build div_sigma_k vectors mapping velocity dofs -> (div tau)_k at the GP
+        // Each div_sigma_k has size (mDim * number_of_points).
+        // ---------------------------------------------------------------------
+        Vector div_sigma_1 = ZeroVector(mDim * number_of_points);
+        Vector div_sigma_2 = ZeroVector(mDim * number_of_points);
+        Vector div_sigma_3; // only used in 3D
+
+        if (mDim == 2) {
+            // 2D Voigt: [xx, yy, xy]
+            Vector r_D_0(3), r_D_1(3), r_D_2(3);
+            for (std::size_t i = 0; i < 3; ++i) {
+                r_D_0(i) = rD(0, i);
+                r_D_1(i) = rD(1, i);
+                r_D_2(i) = rD(2, i);
+            }
+
+            // div_tau_x = d/dx(tau_xx) + d/dy(tau_xy)
+            // div_tau_y = d/dx(tau_xy) + d/dy(tau_yy)
+            div_sigma_1 = prod(trans(B_derivative_x), r_D_0) + prod(trans(B_derivative_y), r_D_2);
+            div_sigma_2 = prod(trans(B_derivative_x), r_D_2) + prod(trans(B_derivative_y), r_D_1);
+
+        } else {
+            // 3D Voigt: [xx, yy, zz, xy, yz, xz]
+            // div_tau_x = d/dx(tau_xx) + d/dy(tau_xy) + d/dz(tau_xz)
+            // div_tau_y = d/dx(tau_xy) + d/dy(tau_yy) + d/dz(tau_yz)
+            // div_tau_z = d/dx(tau_xz) + d/dy(tau_yz) + d/dz(tau_zz)
+
+            div_sigma_3 = ZeroVector(mDim * number_of_points);
+
+            // Extract the rows of D corresponding to each stress component
+            Vector r_D_xx(6), r_D_yy(6), r_D_zz(6), r_D_xy(6), r_D_yz(6), r_D_xz(6);
+            for (std::size_t i = 0; i < 6; ++i) {
+                r_D_xx(i) = rD(0, i);
+                r_D_yy(i) = rD(1, i);
+                r_D_zz(i) = rD(2, i);
+                r_D_xy(i) = rD(3, i);
+                r_D_yz(i) = rD(4, i);
+                r_D_xz(i) = rD(5, i);
+            }
+
+            // Note: B_derivative_x/y/z map u_dofs -> d/dx(eps_voigt), d/dy(eps_voigt), d/dz(eps_voigt)
+            // Then (d/dx tau) = (B'_x)^T * D_row, etc. assembled per div component.
+
+            // div_tau_x
+            div_sigma_1 =
+                prod(trans(B_derivative_x), r_D_xx) +
+                prod(trans(B_derivative_y), r_D_xy) +
+                prod(trans(B_derivative_z), r_D_xz);
+
+            // div_tau_y
+            div_sigma_2 =
+                prod(trans(B_derivative_x), r_D_xy) +
+                prod(trans(B_derivative_y), r_D_yy) +
+                prod(trans(B_derivative_z), r_D_yz);
+
+            // div_tau_z
+            div_sigma_3 =
+                prod(trans(B_derivative_x), r_D_xz) +
+                prod(trans(B_derivative_y), r_D_yz) +
+                prod(trans(B_derivative_z), r_D_zz);
+        }
+
+        // ---------------------------------------------------------------------
+        // Build DN_DX vectors (one per spatial direction)
+        // ---------------------------------------------------------------------
         Vector DN_DX_vector_1 = ZeroVector(number_of_points);
         Vector DN_DX_vector_2 = ZeroVector(number_of_points);
-        for (std::size_t i = 0; i < number_of_points; ++i) {
-            DN_DX_vector_1(i) = rDN_DX(i, 0); 
-            DN_DX_vector_2(i) = rDN_DX(i, 1); 
-        }
-        Matrix tempMatrix_pressure_term = TauOne * GaussWeight * (outer_prod(div_sigma_1, DN_DX_vector_1) + outer_prod(div_sigma_2, DN_DX_vector_2));
+        Vector DN_DX_vector_3; // 3D only
 
-        for (IndexType i = 0; i < number_of_points; ++i)
-        {
-            for (IndexType j = 0; j < number_of_points; ++j)
-            {
-                for (IndexType dim2 = 0; dim2 < mDim; ++dim2) 
-                {
-                    // Assemble 2nd order stabilization term -> gradQ-sigma // this one
-                    rLeftHandSideMatrix(j * block_size + mDim, i * block_size + dim2) -= tempMatrix_pressure_term(i * mDim + dim2, j);
+        for (std::size_t i = 0; i < number_of_points; ++i) {
+            DN_DX_vector_1(i) = rDN_DX(i, 0);
+            DN_DX_vector_2(i) = rDN_DX(i, 1);
+        }
+        if (mDim == 3) {
+            DN_DX_vector_3 = ZeroVector(number_of_points);
+            for (std::size_t i = 0; i < number_of_points; ++i) {
+                DN_DX_vector_3(i) = rDN_DX(i, 2);
+            }
+        }
+
+        // tempMatrix_pressure_term has size (mDim*n) x n
+        Matrix tempMatrix_pressure_term;
+        if (mDim == 2) {
+            tempMatrix_pressure_term =
+                TauOne * GaussWeight *
+                (outer_prod(div_sigma_1, DN_DX_vector_1) +
+                 outer_prod(div_sigma_2, DN_DX_vector_2));
+        } else {
+            tempMatrix_pressure_term =
+                TauOne * GaussWeight *
+                (outer_prod(div_sigma_1, DN_DX_vector_1) +
+                 outer_prod(div_sigma_2, DN_DX_vector_2) +
+                 outer_prod(div_sigma_3, DN_DX_vector_3));
+        }
+
+        // ---------------------------------------------------------------------
+        // Assemble LHS: q-row (pressure dof) vs u-columns (velocity dofs)
+        // ---------------------------------------------------------------------
+        for (IndexType i = 0; i < number_of_points; ++i) {
+            for (IndexType j = 0; j < number_of_points; ++j) {
+                for (IndexType dim2 = 0; dim2 < mDim; ++dim2) {
+                    rLeftHandSideMatrix(j * block_size + mDim, i * block_size + dim2) -=
+                        tempMatrix_pressure_term(i * mDim + dim2, j);
                 }
             }
         }
 
-        // --- RHS corresponding term ---
-        Vector velocity_previous = ZeroVector(mDim*number_of_points);
-        Vector pressure_previous = ZeroVector(number_of_points);
-        IndexType index = 0;
-        for (IndexType i = 0; i < number_of_points; ++i) { 
-            velocity_previous[index++] = r_geometry[i].GetSolutionStepValue(VELOCITY_X);
-            velocity_previous[index++] = r_geometry[i].GetSolutionStepValue(VELOCITY_Y);
-            pressure_previous[i] = r_geometry[i].GetSolutionStepValue(PRESSURE);
-        }
-
-        // --- RHS corresponding term ---
-        for (IndexType i = 0; i < number_of_points; ++i) {   
+        // ---------------------------------------------------------------------
+        // Assemble RHS: recovered divergence term
+        // rRHS(p_i) += w * TauOne * grad(N_i)·div_tau_rec
+        // ---------------------------------------------------------------------
+        for (IndexType i = 0; i < number_of_points; ++i) {
+            double contrib = 0.0;
             for (IndexType dim1 = 0; dim1 < mDim; ++dim1) {
-                // Assemble 2nd order stabilization term -> gradQ-sigma_u 
-                rRightHandSideVector(i * block_size + mDim) += GaussWeight * TauOne * rDN_DX(i,dim1) * divergence_of_sigma[dim1];
+                contrib += rDN_DX(i, dim1) * divergence_of_sigma[dim1];
             }
+            rRightHandSideVector(i * block_size + mDim) += GaussWeight * TauOne * contrib;
         }
-    } 
+    }
 }
 
 void StokesElement::ApplyConstitutiveLaw(
@@ -463,10 +551,9 @@ void StokesElement::ApplyConstitutiveLaw(
 
 void StokesElement::EquationIdVector(Element::EquationIdVectorType &rResult, const ProcessInfo &rCurrentProcessInfo) const
 {
-    const int dim = 2;
     const GeometryType& rGeom = this->GetGeometry();
     const SizeType number_of_control_points = GetGeometry().size();
-    const unsigned int local_size = (dim + 1) * number_of_control_points;
+    const unsigned int local_size = (mDim + 1) * number_of_control_points;
 
     if (rResult.size() != local_size)
         rResult.resize(local_size);
@@ -476,7 +563,7 @@ void StokesElement::EquationIdVector(Element::EquationIdVectorType &rResult, con
     {
         rResult[Index++] = rGeom[i].GetDof(VELOCITY_X).EquationId();
         rResult[Index++] = rGeom[i].GetDof(VELOCITY_Y).EquationId();
-        if (dim > 2) rResult[Index++] = rGeom[i].GetDof(VELOCITY_Z).EquationId();
+        if (mDim > 2) rResult[Index++] = rGeom[i].GetDof(VELOCITY_Z).EquationId();
         rResult[Index++] = rGeom[i].GetDof(PRESSURE).EquationId();
     }
 }
@@ -492,11 +579,14 @@ void StokesElement::GetDofList(
     const SizeType number_of_control_points = GetGeometry().size();
 
     rElementalDofList.resize(0);
-    rElementalDofList.reserve(3 * number_of_control_points);
+    rElementalDofList.reserve((mDim + 1) * number_of_control_points);
 
     for (IndexType i = 0; i < number_of_control_points; ++i) {
         rElementalDofList.push_back(GetGeometry()[i].pGetDof(VELOCITY_X));
         rElementalDofList.push_back(GetGeometry()[i].pGetDof(VELOCITY_Y));
+        if (mDim == 3) {
+            rElementalDofList.push_back(GetGeometry()[i].pGetDof(VELOCITY_Z));
+        }
         rElementalDofList.push_back(GetGeometry()[i].pGetDof(PRESSURE));
     }
 
@@ -519,14 +609,14 @@ int StokesElement::Check(const ProcessInfo& rCurrentProcessInfo) const
             KRATOS_THROW_ERROR(std::invalid_argument,"missing PRESSURE variable on solution step data for node ",this->GetGeometry()[i].Id());
         if(this->GetGeometry()[i].HasDofFor(VELOCITY_X) == false ||
                 this->GetGeometry()[i].HasDofFor(VELOCITY_Y) == false ||
-                ( this->GetGeometry().WorkingSpaceDimension() == 3 && this->GetGeometry()[i].HasDofFor(VELOCITY_Z) == false ) )
+                ( mDim == 3 && this->GetGeometry()[i].HasDofFor(VELOCITY_Z) == false ) )
             KRATOS_THROW_ERROR(std::invalid_argument,"missing VELOCITY component degree of freedom on node ",this->GetGeometry()[i].Id());
         if(this->GetGeometry()[i].HasDofFor(PRESSURE) == false)
             KRATOS_THROW_ERROR(std::invalid_argument,"missing PRESSURE component degree of freedom on node ",this->GetGeometry()[i].Id());
     }
 
     // If this is a 2D problem, check that nodes are in XY plane
-    if (this->GetGeometry().WorkingSpaceDimension() == 2)
+    if (mDim == 2)
     {
         for (unsigned int i=0; i<this->GetGeometry().size(); ++i)
         {
@@ -548,23 +638,37 @@ void StokesElement::CalculateB(
         const ShapeDerivativesType& r_DN_DX) const
 {
     const SizeType number_of_control_points = GetGeometry().size();
-    const SizeType mat_size = number_of_control_points * 2; // Only 2 DOFs per node in 2D
+    const SizeType mat_size = number_of_control_points * mDim;
+    const SizeType strain_size = (mDim == 3) ? 6 : 3;
 
-    // Resize B matrix to 3 rows (strain vector size) and appropriate number of columns
-    if (rB.size1() != 3 || rB.size2() != mat_size)
-        rB.resize(3, mat_size);
+    // Resize B matrix to Voigt strain size and appropriate number of columns.
+    if (rB.size1() != strain_size || rB.size2() != mat_size)
+        rB.resize(strain_size, mat_size);
 
-    noalias(rB) = ZeroMatrix(3, mat_size);
+    noalias(rB) = ZeroMatrix(strain_size, mat_size);
 
-    for (IndexType i = 0; i < number_of_control_points; ++i)
-    {
-        // x-derivatives of shape functions -> relates to strain component ε_11 (xx component)
-        rB(0, 2 * i)     = r_DN_DX(i, 0); // ∂N_i / ∂x
-        // y-derivatives of shape functions -> relates to strain component ε_22 (yy component)
-        rB(1, 2 * i + 1) = r_DN_DX(i, 1); // ∂N_i / ∂y
-        // Symmetric shear strain component ε_12 (xy component)
-        rB(2, 2 * i)     = r_DN_DX(i, 1); // ∂N_i / ∂y
-        rB(2, 2 * i + 1) = r_DN_DX(i, 0); // ∂N_i / ∂x
+    if (mDim == 2) {
+        for (IndexType i = 0; i < number_of_control_points; ++i)
+        {
+            rB(0, 2 * i)     = r_DN_DX(i, 0);
+            rB(1, 2 * i + 1) = r_DN_DX(i, 1);
+            rB(2, 2 * i)     = r_DN_DX(i, 1);
+            rB(2, 2 * i + 1) = r_DN_DX(i, 0);
+        }
+    } else {
+        // 3D small-strain Voigt order: xx, yy, zz, xy, yz, xz.
+        for (IndexType i = 0; i < number_of_control_points; ++i)
+        {
+            rB(0, 3 * i)     = r_DN_DX(i, 0);
+            rB(1, 3 * i + 1) = r_DN_DX(i, 1);
+            rB(2, 3 * i + 2) = r_DN_DX(i, 2);
+            rB(3, 3 * i)     = r_DN_DX(i, 1);
+            rB(3, 3 * i + 1) = r_DN_DX(i, 0);
+            rB(4, 3 * i + 1) = r_DN_DX(i, 2);
+            rB(4, 3 * i + 2) = r_DN_DX(i, 1);
+            rB(5, 3 * i)     = r_DN_DX(i, 2);
+            rB(5, 3 * i + 2) = r_DN_DX(i, 0);
+        }
     }
 }
 
@@ -612,6 +716,138 @@ void StokesElement::CalculateBDerivativeDy(
     }
 }
 
+void StokesElement::CalculateBDerivativeDx3D(
+    Matrix& BDerivativeDx,
+    const ShapeDerivativesType& r_DDN_DDX) const
+{
+    const SizeType number_of_control_points = GetGeometry().size();
+    const SizeType mat_size = number_of_control_points * 3; // 3 dofs per node
+
+    // Voigt size = 6 in 3D
+    if (BDerivativeDx.size1() != 6 || BDerivativeDx.size2() != mat_size)
+        BDerivativeDx.resize(6, mat_size);
+
+    noalias(BDerivativeDx) = ZeroMatrix(6, mat_size);
+
+    for (IndexType i = 0; i < number_of_control_points; ++i)
+    {
+        const double dxx = r_DDN_DDX(i,0); // d2N/dx2
+        const double dxy = r_DDN_DDX(i,1); // d2N/dxdy
+        const double dxz = r_DDN_DDX(i,2); // d2N/dxdz
+
+        const IndexType col = 3 * i;
+
+        // ε_xx,x
+        BDerivativeDx(0, col    ) = dxx;
+
+        // ε_yy,x
+        BDerivativeDx(1, col + 1) = dxy;
+
+        // ε_zz,x
+        BDerivativeDx(2, col + 2) = dxz;
+
+        // ε_xy,x
+        BDerivativeDx(3, col    ) = dxy;
+        BDerivativeDx(3, col + 1) = dxx;
+
+        // ε_yz,x
+        BDerivativeDx(4, col + 1) = dxz;
+        BDerivativeDx(4, col + 2) = dxy;
+
+        // ε_xz,x
+        BDerivativeDx(5, col    ) = dxz;
+        BDerivativeDx(5, col + 2) = dxx;
+    }
+}
+
+
+void StokesElement::CalculateBDerivativeDy3D(
+    Matrix& BDerivativeDy,
+    const ShapeDerivativesType& r_DDN_DDX) const
+{
+    const SizeType number_of_control_points = GetGeometry().size();
+    const SizeType mat_size = number_of_control_points * 3;
+
+    if (BDerivativeDy.size1() != 6 || BDerivativeDy.size2() != mat_size)
+        BDerivativeDy.resize(6, mat_size);
+
+    noalias(BDerivativeDy) = ZeroMatrix(6, mat_size);
+
+    for (IndexType i = 0; i < number_of_control_points; ++i)
+    {
+        const double dxy = r_DDN_DDX(i,1); // d2N/dxdy
+        const double dyy = r_DDN_DDX(i,3); // d2N/dy2
+        const double dyz = r_DDN_DDX(i,4); // d2N/dydz
+
+        const IndexType col = 3 * i;
+
+        // ε_xx,y
+        BDerivativeDy(0, col    ) = dxy;
+
+        // ε_yy,y
+        BDerivativeDy(1, col + 1) = dyy;
+
+        // ε_zz,y
+        BDerivativeDy(2, col + 2) = dyz;
+
+        // ε_xy,y
+        BDerivativeDy(3, col    ) = dyy;
+        BDerivativeDy(3, col + 1) = dxy;
+
+        // ε_yz,y
+        BDerivativeDy(4, col + 1) = dyz;
+        BDerivativeDy(4, col + 2) = dyy;
+
+        // ε_xz,y
+        BDerivativeDy(5, col    ) = dyz;
+        BDerivativeDy(5, col + 2) = dxy;
+    }
+}
+
+void StokesElement::CalculateBDerivativeDz3D(
+    Matrix& BDerivativeDz,
+    const ShapeDerivativesType& r_DDN_DDX) const
+{
+    const SizeType number_of_control_points = GetGeometry().size();
+    const SizeType mat_size = number_of_control_points * 3;
+
+    if (BDerivativeDz.size1() != 6 || BDerivativeDz.size2() != mat_size)
+        BDerivativeDz.resize(6, mat_size);
+
+    noalias(BDerivativeDz) = ZeroMatrix(6, mat_size);
+
+    for (IndexType i = 0; i < number_of_control_points; ++i)
+    {
+        const double dxz = r_DDN_DDX(i,2); // d2N/dxdz
+        const double dyz = r_DDN_DDX(i,4); // d2N/dydz
+        const double dzz = r_DDN_DDX(i,5); // d2N/dz2
+
+        const IndexType col = 3 * i;
+
+        // ε_xx,z
+        BDerivativeDz(0, col    ) = dxz;
+
+        // ε_yy,z
+        BDerivativeDz(1, col + 1) = dyz;
+
+        // ε_zz,z
+        BDerivativeDz(2, col + 2) = dzz;
+
+        // ε_xy,z
+        BDerivativeDz(3, col    ) = dyz;
+        BDerivativeDz(3, col + 1) = dxz;
+
+        // ε_yz,z
+        BDerivativeDz(4, col + 1) = dzz;
+        BDerivativeDz(4, col + 2) = dyz;
+
+        // ε_xz,z
+        BDerivativeDz(5, col    ) = dzz;
+        BDerivativeDz(5, col + 2) = dxz;
+    }
+}
+
+
 
 void StokesElement::CalculateOnIntegrationPoints(
     const Variable<Vector>& rVariable,
@@ -625,7 +861,7 @@ void StokesElement::CalculateOnIntegrationPoints(
             rOutput.resize(num_integration_points);
         }
 
-        Vector sigma_voigt(3);
+        Vector sigma_voigt((mDim == 3) ? 6 : 3);
         sigma_voigt = this->CalculateStressAtIntegrationPoint(rCurrentProcessInfo);
         rOutput[0] = sigma_voigt;
     }
@@ -635,19 +871,19 @@ void StokesElement::CalculateOnIntegrationPoints(
 Vector StokesElement::CalculateStressAtIntegrationPoint(
     const ProcessInfo& rCurrentProcessInfo)
 {
-    Vector stress_voigt(3);
+    Vector stress_voigt((mDim == 3) ? 6 : 3);
     
     const auto& r_geometry = GetGeometry();
     const SizeType number_of_points = r_geometry.size();
     const GeometryType::ShapeFunctionsGradientsType& DN_De = r_geometry.ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
     const ShapeDerivativesType& DN_DX = DN_De[0];
 
-    Matrix B = ZeroMatrix(3,number_of_points*mDim);
+    Matrix B = ZeroMatrix(stress_voigt.size(), number_of_points * mDim);
     CalculateB(B, DN_DX);
 
     // constitutive law
     ConstitutiveLaw::Parameters Values(r_geometry, GetProperties(), rCurrentProcessInfo);
-    ConstitutiveVariables constitutive_variables(3);
+    ConstitutiveVariables constitutive_variables(stress_voigt.size());
     ApplyConstitutiveLaw(B, Values, constitutive_variables);
     const Matrix& r_D = Values.GetConstitutiveMatrix();
     Matrix DB_voigt = Matrix(prod(r_D, B));
@@ -661,7 +897,7 @@ void StokesElement::GetSolutionCoefficientVector(
         Vector& rValues) const
 {
     const SizeType number_of_control_points = GetGeometry().size();
-    const SizeType mat_size = number_of_control_points * 2;
+    const SizeType mat_size = number_of_control_points * mDim;
 
     if (rValues.size() != mat_size)
         rValues.resize(mat_size, false);
@@ -669,10 +905,11 @@ void StokesElement::GetSolutionCoefficientVector(
     for (IndexType i = 0; i < number_of_control_points; ++i)
     {
         const array_1d<double, 3 >& velocity = GetGeometry()[i].GetSolutionStepValue(VELOCITY);
-        IndexType index = i * 2;
+        IndexType index = i * mDim;
 
-        rValues[index] = velocity[0];
-        rValues[index + 1] = velocity[1];
+        for (IndexType d = 0; d < mDim; ++d) {
+            rValues[index + d] = velocity[d];
+        }
     }
 }
 

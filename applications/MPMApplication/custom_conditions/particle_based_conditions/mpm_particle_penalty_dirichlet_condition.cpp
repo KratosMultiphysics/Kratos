@@ -308,7 +308,7 @@ void MPMParticlePenaltyDirichletCondition::CalculateOnIntegrationPoints(const Va
     if (rValues.size() != 1)
         rValues.resize(1);
 
-    if (rVariable == PENALTY_FACTOR) {
+    if (rVariable == PENALTY_COEFFICIENT) {
         rValues[0] = m_penalty;
     }
     else {
@@ -325,7 +325,7 @@ void MPMParticlePenaltyDirichletCondition::SetValuesOnIntegrationPoints(const Va
         << "Only 1 value per integration point allowed! Passed values vector size: "
         << rValues.size() << std::endl;
 
-    if (rVariable == PENALTY_FACTOR) {
+    if (rVariable == PENALTY_COEFFICIENT) {
         m_penalty = rValues[0];
     }
     else {
