@@ -884,6 +884,88 @@ KRATOS_TEST_CASE_IN_SUITE(KratosParametersVectorInterface, KratosCoreFastSuite)
     KRATOS_EXPECT_VECTOR_EQ(V2,vec);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(KratosParametersGetVectorArrayInterface, KratosCoreFastSuite)
+{
+    // Valid input: 3D vectors
+    Parameters tmp(R"({
+       "not_array":{},
+       "empty_vectors": [],
+        "not_vectors": 5,
+        "first_not_array": [
+            1.0,
+            [2.0, 3.0]
+        ],
+        "vectors3D": [
+            [1.0, 2.0, 3.0],
+            [4.0, 5.0, 6.0],
+            [7.0, 8.0, 9.0]
+        ],
+        "vectors2D": [
+            [1.0, 2.0],
+            [3.0, 4.0]
+        ],
+        "bad_size": [
+            [1.0, 2.0, 3.0],
+            [4.0, 5.0]
+        ],
+        "inner_not_array": [
+            [1.0, 2.0, 3.0],
+            5.0
+        ],
+        "not_number": [
+            [1.0, 2.0, "foo"],
+            [4.0, 5.0, 6.0]
+        ]
+    })");
+
+    const auto vectors3D = tmp["vectors3D"].GetVectorArray();
+    KRATOS_EXPECT_EQ(vectors3D.size(), 3);
+    for (std::size_t i = 0; i < vectors3D.size(); ++i) {
+        KRATOS_EXPECT_EQ(vectors3D[i].size(), 3);
+        for (std::size_t j = 0; j < 3; ++j) {
+            KRATOS_EXPECT_DOUBLE_EQ(vectors3D[i][j], 3.0 * i + j + 1.0);
+        }
+    }
+
+    const auto vectors2D = tmp["vectors2D"].GetVectorArray();
+    KRATOS_EXPECT_EQ(vectors2D.size(), 2);
+    for (std::size_t i = 0; i < vectors2D.size(); ++i) {
+        KRATOS_EXPECT_EQ(vectors2D[i].size(), 2);
+    }
+
+    KRATOS_EXPECT_EQ(tmp["empty_vectors"].GetVectorArray().size(), 0);
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        tmp["not_array"].GetVectorArray(),
+        "Argument must be an array of arrays"
+    );
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+    tmp["not_vectors"].GetVectorArray(),
+    "Argument must be an array of arrays"
+);
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        tmp["first_not_array"].GetVectorArray(),
+        "Entry 0 is not an array"
+    );
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        tmp["bad_size"].GetVectorArray(),
+        "All inner arrays must have the same size"
+    );
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        tmp["inner_not_array"].GetVectorArray(),
+        "Entry 1 is not an array"
+    );
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        tmp["not_number"].GetVectorArray(),
+        "Entry (0,2) is not a number"
+    );
+}
+
 KRATOS_TEST_CASE_IN_SUITE(KratosParametersMatrixInterface, KratosCoreFastSuite)
 {
     // Read and check Matrices from a Parameters-Object
