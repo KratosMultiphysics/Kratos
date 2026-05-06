@@ -253,7 +253,7 @@ The Young’s modulus of steel sheet piles is generally considered to be $`210\ 
 
 ### Adopted Kratos beam representation
 
-In the current Kratos model, the sheet pile is modeled using a Timoshenko beam with a rectangular cross-section.  To ensure an equivalent bending stiffness $`(EI)_{\mathrm{beam}}`$ and an equivalent extensional stiffness $`(EA)_{\mathrm{beam}}`$, the Young's modulus and the thickness of the cross-section have been calculated such that these stiffness values match the ones taken from D-SheetPiling.  The equivalent bending stiffness is calculated as follows:
+In the current Kratos model, the sheet pile is modeled using a Timoshenko beam with a rectangular cross-section.  To ensure an equivalent bending stiffness $`(EI)_{\mathrm{beam}}`$ and an equivalent extensional stiffness $`(EA)_{\mathrm{beam}}`$, the Young's modulus and the thickness of the cross-section have been calculated such that these stiffness values match the ones taken from D-Sheet Piling.  The equivalent bending stiffness is calculated as follows:
 
 ```math
 (EI)_{\mathrm{beam}} = E_{\mathrm{beam}} \cdot \frac{1}{12} \cdot b \cdot t^3 = EI 
@@ -324,7 +324,7 @@ where:
 
 ### Reference translational stiffness from D-Sheet
 
-Converting the D-SheetPiling translational distributed spring stiffness to SI units:
+Converting the D-Sheet Piling translational distributed spring stiffness to SI units:
 
 ```math
 k = 1.0 \times 10^4\ \mathrm{kN} / \mathrm{m} / \mathrm{m} = 1.0 \times 10^7\ \mathrm{N} / \mathrm{m} / \mathrm{m}
