@@ -348,7 +348,7 @@ k = 1.0 \times 10^4\ \mathrm{kN} / \mathrm{m} / \mathrm{m} = 1.0 \times 10^7\ \m
 The cross-sectional area of the anchor per meter of wall width can now be calculated as follows:
 
 ```math
-A = \frac{k \cdot L}{E} = \frac{1.0 \times 10^7\ \mathrm{N} / \mathrm{m} / \mathrm{m} \cdot 1.0\ \mathrm{m}}{2.1 \times 10^11\ \mathrm{N} / \mathrm{m}^2} = 4.7619 \times 10^{-5}\ \mathrm{m}^2 / \mathrm{m}
+A = \frac{k \cdot L}{E} = \frac{1.0 \times 10^7\ \mathrm{N} / \mathrm{m} / \mathrm{m} \cdot 1.0\ \mathrm{m}}{2.1 \times 10^{11}\ \mathrm{N} / \mathrm{m}^2} = 4.7619 \times 10^{-5}\ \mathrm{m}^2 / \mathrm{m}
 ```
 
 
