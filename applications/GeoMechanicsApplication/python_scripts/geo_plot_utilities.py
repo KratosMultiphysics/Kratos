@@ -64,9 +64,8 @@ def make_sub_plots(
     ylabel=None,
     yaxis_inverted=False,
     xscale=None,
-    figsize=(20, 6)
 ):
-    figure, axes = plt.subplots(1, len(data_series_collections), figsize=figsize)
+    figure, axes = plt.subplots(1, len(data_series_collections), figsize=(20, 6))
     axes = np.atleast_1d(axes)
     first_plot = True
     for ax, collection, title in zip(axes, data_series_collections, titles):
