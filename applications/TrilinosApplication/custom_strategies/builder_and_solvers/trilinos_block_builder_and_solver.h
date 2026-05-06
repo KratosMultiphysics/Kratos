@@ -120,6 +120,9 @@ public:
     using TSystemMatrixPointerType = typename BaseType::TSystemMatrixPointerType;
     using TSystemVectorPointerType = typename BaseType::TSystemVectorPointerType;
 
+    /// Definition of the linear algebra library
+    static constexpr TrilinosLinearAlgebraLibrary LinearAlgebraLibrary = TSparseSpace::LinearAlgebraLibrary();
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -765,7 +768,7 @@ public:
             ConstructMatrixStructure(pScheme, rpA, rpDx, rpb, rModelPart);
         } else if (TSparseSpace::IsNull(BaseType::mpReactionsVector) && this->mCalculateReactionsFlag) {
             TSystemVectorPointerType pNewReactionsVector = TSparseSpace::CreateEmptyVectorPointer();
-            if constexpr (TSparseSpace::LinearAlgebraLibrary() == TrilinosLinearAlgebraLibrary::EPETRA) {
+            if constexpr (LinearAlgebraLibrary == TrilinosLinearAlgebraLibrary::EPETRA) {
                 pNewReactionsVector = TSystemVectorPointerType(new TSystemVectorType(rpDx->Map()));
             } else {
                 KRATOS_ERROR << "ResizeAndInitializeVectors not implemented for this linear algebra library" << std::endl;
@@ -811,7 +814,7 @@ public:
         // Refresh RHS to have the correct reactions
         BuildRHS(pScheme, rModelPart, rb);
 
-        if constexpr (TSparseSpace::LinearAlgebraLibrary() == TrilinosLinearAlgebraLibrary::EPETRA) {
+        if constexpr (LinearAlgebraLibrary == TrilinosLinearAlgebraLibrary::EPETRA) {
             // Initialize the Epetra importer
             // TODO: this part of the code has been pasted until a better solution
             // is found
@@ -912,7 +915,7 @@ public:
             ++i_dof;
         }
 
-        if constexpr (TSparseSpace::LinearAlgebraLibrary() == TrilinosLinearAlgebraLibrary::EPETRA) {
+        if constexpr (LinearAlgebraLibrary == TrilinosLinearAlgebraLibrary::EPETRA) {
             // Here we construct and fill a vector "fixed local" which cont
             Epetra_Map localmap(-1, global_ids.size(), global_ids.data(), 0, rA.Comm());
             Epetra_IntVector fixed_local(Copy, localmap, is_dirichlet.data());
@@ -1680,7 +1683,7 @@ private:
                 temp_primary[i] = mFirstMyId + i;
             }
 
-            if constexpr (TSparseSpace::LinearAlgebraLibrary() == TrilinosLinearAlgebraLibrary::EPETRA) {
+            if constexpr (LinearAlgebraLibrary == TrilinosLinearAlgebraLibrary::EPETRA) {
                 mpMap = Kratos::make_shared<Epetra_Map>(-1, mLocalSystemSize, temp_primary.data(), 0, mrComm);
             } else {
                 KRATOS_ERROR << "The map generation is only implemented for Epetra" << std::endl;
