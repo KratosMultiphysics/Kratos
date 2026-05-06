@@ -13,6 +13,7 @@
 #pragma once
 
 // System includes
+#include <mutex>
 
 // External includes
 
@@ -1980,16 +1981,11 @@ public:
         const std::size_t I
         )
     {
-        // Get the local index corresponding to the global index `I`
-        auto map = rX.getMap();
-        IndexType localIndex = map->getLocalElement(static_cast<IndexType>(I));
-
-        // Index must be local to this proc
-        KRATOS_ERROR_IF(localIndex == Tpetra::Details::OrdinalTraits<IndexType>::invalid()) << " non-local id: " << I << "." << std::endl;
-
-        // Get the value at the specified local index via local view (FEMultiVector-compatible)
-        auto localView = rX.getLocalViewHost(Tpetra::Access::ReadOnly);
-        return static_cast<double>(localView(localIndex, 0));
+        static std::mutex get_value_mutex;
+        const std::lock_guard<std::mutex> lock(get_value_mutex);
+        const LO local_index = GetLocalIndex(rX, I);
+        const auto local_data = rX.getData(0);
+        return static_cast<double>(local_data[local_index]);
     }
 
     /**
@@ -2488,6 +2484,26 @@ public:
 
     ///@}
 private:
+    ///@name Private Operations
+    ///@{
+
+    /**
+     * @brief Returns the local index corresponding to a global vector index.
+     * @param rX The vector containing the index.
+     * @param I The global index.
+     * @return The local index on the current rank.
+     */
+    inline static LO GetLocalIndex(
+        const VectorType& rX,
+        const std::size_t I
+        )
+    {
+        const LO local_index = rX.getMap()->getLocalElement(static_cast<GO>(I));
+        KRATOS_ERROR_IF(local_index == Teuchos::OrdinalTraits<LO>::invalid()) << " non-local id: " << I << "." << std::endl;
+        return local_index;
+    }
+
+    ///@}
     ///@name Un accessible methods
     ///@{
 
