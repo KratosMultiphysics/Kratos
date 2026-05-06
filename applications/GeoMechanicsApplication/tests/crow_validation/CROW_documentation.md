@@ -236,40 +236,17 @@ This section documents the parameters for the sheet pile, which is represented a
 
 ### Given data
 
-From the section data for **AZ26** in D-Sheet Piling, the following properties are given for the sheet pile:
+From the section data for **AZ26** in D-Sheet Piling, the following properties are given for the sheet pile (except for the weight $`G`$):
 
-| Property                    | Value                  | Unit                              |
-|:----------------------------|:-----------------------|:----------------------------------|
-| Elastic stiffness           | $`8.40 \times 10^4`$   | $`\mathrm{kNm}^2 / \mathrm{m}^1`$ |
-| Section area per meter wall | 198                    | $`\mathrm{cm}^2 / \mathrm{m}^1`$  |
-| Elastic section modulus     | 2600                   | $`\mathrm{cm}^3 / \mathrm{m}^1`$  |
-| Height                      | 427                    | $`\mathrm{mm}`$                   |
-| Width of sheet piles        | 0.63                   | $`\mathrm{m}`$                    |
+| Property                    | Value                | Unit                              |
+|:----------------------------|:---------------------|:----------------------------------|
+| Bending stiffness $`EI`$    | $`8.40 \times 10^4`$ | $`\mathrm{kNm}^2 / \mathrm{m}^1`$ |
+| Section area per meter wall | 198                  | $`\mathrm{cm}^2 / \mathrm{m}^1`$  |
+| Weight $`G`$                | 146.9                | $`\mathrm{kg} / \mathrm{m}`$      |
 
+The weight $`G`$ of the sheet pile wall has been taken from the following [manufacturer's information sheet](https://sheetpiling.arcelormittal.com/products/az-sections/az-700-and-az-770/az-26-700).
 
-### Note
-
-These values are apparently based on the **D-Sheet Piling** section properties for AZ26. Found this for AZ26: https://sheetpiling.arcelormittal.com/products/az-sections/az-700-and-az-770/az-26-700
-
-### Equivalent second moment of area
-
-The Young’s modulus of steel sheet piles is generally considered to be 210 GPa. This is the standard modulus of elasticity for structural steel. Therefore, the reference Young's modulus is taken as:
-
-```math
-E_{\mathrm{steel}} = 2.10 \times 10^{11}\ \mathrm{Pa}
-```
-
-The section area is converted as:
-
-```math
-A = 198\ \mathrm{cm}^2 / \mathrm{m}^1 = 0.0198\ \mathrm{m}^2 / \mathrm{m}^1
-```
-
-The bending stiffness is converted as:
-
-```math
-EI = 8.40 \times 10^4\ \mathrm{kNm}^2 / \mathrm{m}^1 = 8.40 \times 10^7\ \mathrm{Nm}^2 / mathrm{m}^1
-```
+The Young’s modulus of steel sheet piles is generally considered to be $`210\ \mathrm{GPa}`$.  This is the standard modulus of elasticity for structural steel.
 
 
 ### Adopted Kratos beam representation
@@ -286,18 +263,26 @@ The extensional stiffness is calculated as follows:
 EA_{\mathrm{beam}} = b \cdot t = EA
 ```
 
-From these two equations, we can solve for the equivalent Young's modulus of the beam $`E_{\mathrm{beam}}`$ and the equivalent wall thickness $`t`$.  The solution is presented in the next section. 
+In both equations, the width $`b`$ equals $`1.0\ \mathrm{m}`$, since we assume plane strain conditions.  From these two equations, we can solve for the equivalent Young's modulus of the beam $`E_{\mathrm{beam}}`$ and the equivalent wall thickness $`t`$.  The solution is presented in the next section.
+
+Finally, since the adopted cross-section has a rectangular shape, also the density of steel needs to be modified such that the weight matches the original value.
+
+```math
+\rho_{\mathrm{s}} = \frac{W}{b \cdot t} = \frac{146.9\ \mathrm{kg} / \mathrm{m}}{1.0\ \mathrm{m} \cdot 0.4924\ \mathrm{m}} = 298.36\ \mathrm{kg} / \mathrm{m}^3
+```
 
 
 ### Final values
 
-| Property                           | Kratos input parameter  | Value                    | Unit                       |
-|:-----------------------------------|:------------------------|:-------------------------|:---------------------------|
-| Young's modulus                    | `YOUNG_MODULUS`         | $5.92927061 \times 10^9$ | $\mathrm{Pa}$              |
-| Poisson's ratio                    | `POISSON_RATIO`         | 0.0                      | $-$                        |
-| Thickness                          | `THICKNESS`             | 1.265                    | $\mathrm{m}$               |
-| Effective thickness in y-direction | `THICKNESS_EFFECTIVE_Y` | 10.0                     | $\mathrm{m}$               |
-| Density                            | `DENSITY`               | 805.82                   | $\mathrm{kg}/\mathrm{m}^3$ |
+| Property                           | Kratos input parameter  | Value                    | Unit                           |
+|:-----------------------------------|:------------------------|:-------------------------|:-------------------------------|
+| Young's modulus                    | `YOUNG_MODULUS`         | $`8.4449 \times 10^9`$   | $`\mathrm{Pa}`$                |
+| Poisson's ratio                    | `POISSON_RATIO`         | 0.0                      | $`-`$                          |
+| Thickness                          | `THICKNESS`             | 0.4924                   | $`\mathrm{m}`$                 |
+| Effective thickness in y-direction | `THICKNESS_EFFECTIVE_Y` | 10.0                     | $`\mathrm{m}`$                 |
+| Density                            | `DENSITY`               | 298.36                   | $`\mathrm{kg} / \mathrm{m}^3`$ |
+
+The effective thickness in y-direction accounts for the beam's shear deformation.  It has been given a relatively large value to have a negligible shear deformation.  In this way, the Kratos simulation shows similar beam behavior compared to the one adopted by the comparison FE software package.
 
 
 ## Spring support / anchor parameters
