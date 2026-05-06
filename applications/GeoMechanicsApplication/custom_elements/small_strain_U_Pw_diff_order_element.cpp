@@ -98,8 +98,11 @@ int SmallStrainUPwDiffOrderElement::Check(const ProcessInfo& rCurrentProcessInfo
     const CheckProperties check_properties(r_prop, "parameter list", element_Id,
                                            CheckProperties::Bounds::AllExclusive);
 
-    if (!ConstitutiveLawUtilities::IsConstantWaterPressure(r_prop))
+    if (!ConstitutiveLawUtilities::IsConstantWaterPressure(r_prop)) {
+        check_properties.SingleUseBounds(CheckProperties::Bounds::AllExclusive).Check(BULK_MODULUS_FLUID);
+        check_properties.SingleUseBounds(CheckProperties::Bounds::AllExclusive).Check(DYNAMIC_VISCOSITY);
         check_properties.CheckPermeabilityProperties(r_geom.WorkingSpaceDimension());
+    }
 
     check_properties.CheckAvailabilityAndSpecified(CONSTITUTIVE_LAW);
     r_prop[CONSTITUTIVE_LAW]->Check(r_prop, r_geom, rCurrentProcessInfo);
@@ -180,7 +183,7 @@ void SmallStrainUPwDiffOrderElement::FinalizeSolutionStep(const ProcessInfo& rCu
         mStateVariablesFinalized[GPoint] =
             mConstitutiveLawVector[GPoint]->GetValue(STATE_VARIABLES, mStateVariablesFinalized[GPoint]);
 
-        if (ConstitutiveLawUtilities::IsUndrained(this->GetProperties())) {
+        if (mIsUndrained) {
             mVolumetricStrainPrevious[GPoint] = StressStrainUtilities::CalculateTrace(strain_vectors[GPoint]);
         }
     }
@@ -883,9 +886,10 @@ Vector SmallStrainUPwDiffOrderElement::CalculateInternalForces(
 
         this->CalculateAndAddCouplingTerms(result, rVariables);
     }
-    GeoElementUtilities::AssembleExcessPorePressureForces(
-        result, this->GetProperties(), rStrainVectors, rBMatrices,
-        GetStressStatePolicy().GetVoigtVector(), rIntegrationCoefficients, mVolumetricStrainPrevious);
+    if (mIsUndrained)
+        GeoElementUtilities::AssembleExcessPorePressureForces(
+            result, this->GetProperties(), rStrainVectors, rBMatrices,
+            GetStressStatePolicy().GetVoigtVector(), rIntegrationCoefficients, mVolumetricStrainPrevious);
     if (!rVariables.IsConstantWaterPressure) {
         for (unsigned int integration_point = 0;
              integration_point < rIntegrationCoefficients.size(); ++integration_point) {
@@ -1339,8 +1343,8 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddStiffnessMatrix(MatrixType& 
     GeoEquationOfMotionUtilities::CalculateStiffnessMatrixGPoint(
         stiffness_matrix, rVariables.B, rVariables.ConstitutiveMatrix, rVariables.IntegrationCoefficient);
 
-    if (ConstitutiveLawUtilities::IsUndrained(this->GetProperties())) {
-        stiffness_matrix += GeoElementUtilities::CalculateExcessPorePressureTangentMatrix(
+    if (mIsUndrained) {
+        stiffness_matrix += GeoElementUtilities::CalculateExcessPorePressureBulkStiffnessAtIntegrationPoint(
             this->GetProperties(), rVariables.B, GetStressStatePolicy().GetVoigtVector(),
             rVariables.IntegrationCoefficient);
     }

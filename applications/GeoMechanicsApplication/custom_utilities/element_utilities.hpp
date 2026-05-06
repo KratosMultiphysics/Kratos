@@ -295,12 +295,10 @@ public:
                                                  const std::vector<Matrix>& rBMatrices,
                                                  const Vector&              rVoigtVector,
                                                  const std::vector<double>& rIntegrationCoefficients,
-                                                 const Vector& rExcessPorePressurePrevious);
+                                                 const Vector& rVolumetricStrainPrevious);
 
-    [[nodiscard]] static Matrix CalculateExcessPorePressureTangentMatrix(const Properties& rProperties,
-                                                                         const Matrix& rB,
-                                                                         const Vector& rVoigtVector,
-                                                                         double IntegrationCoefficient);
+    [[nodiscard]] static Matrix CalculateExcessPorePressureBulkStiffnessAtIntegrationPoint(
+        const Properties& rProperties, const Matrix& rB, const Vector& rVoigtVector, double IntegrationCoefficient);
 
 private:
     template <typename VectorType1, typename VectorType2>

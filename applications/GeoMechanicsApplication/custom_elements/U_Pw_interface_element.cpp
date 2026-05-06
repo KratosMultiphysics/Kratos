@@ -462,14 +462,18 @@ void UPwInterfaceElement::GetDofList(DofsVectorType& rElementalDofList, const Pr
 void UPwInterfaceElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     Element::Initialize(rCurrentProcessInfo);
+    auto& r_properties = GetProperties();
     // IGNORE_UNDRAINED is deprecated
-    ConstitutiveLawUtilities::ReplaceIgnoreUndrainedByDrainageType(GetProperties());
+    ConstitutiveLawUtilities::ReplaceIgnoreUndrainedByDrainageType(r_properties);
+    if (ConstitutiveLawUtilities::IsUndrained(r_properties) && r_properties.Has(BULK_MODULUS_FLUID) &&
+        r_properties.Has(BULK_MODULUS_SOLID) && r_properties.Has(POROSITY))
+        mIsUndrained = true;
 
     mConstitutiveLaws.clear();
     mRetentionLaws.clear();
     for (auto i = std::size_t{0}; i < mpIntegrationScheme->GetNumberOfIntegrationPoints(); ++i) {
-        mConstitutiveLaws.push_back(GetProperties()[CONSTITUTIVE_LAW]->Clone());
-        mRetentionLaws.push_back(RetentionLawFactory::Clone(GetProperties()));
+        mConstitutiveLaws.push_back(r_properties[CONSTITUTIVE_LAW]->Clone());
+        mRetentionLaws.push_back(RetentionLawFactory::Clone(r_properties));
     }
     // Only interpolate when neighbouring elements that provide nodal stresses were found
     if (this->Has(NEIGHBOUR_ELEMENTS) && this->GetValue(NEIGHBOUR_ELEMENTS).size() > 0) {
@@ -491,7 +495,7 @@ void UPwInterfaceElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
         GeoElementUtilities::EvaluateShapeFunctionsAtIntegrationPoints(
             mpIntegrationScheme->GetIntegrationPoints(), GetDisplacementGeometry());
     for (auto i = std::size_t{0}; i < mConstitutiveLaws.size(); ++i) {
-        mConstitutiveLaws[i]->InitializeMaterial(GetProperties(), GetDisplacementGeometry(),
+        mConstitutiveLaws[i]->InitializeMaterial(r_properties, GetDisplacementGeometry(),
                                                  shape_function_values_at_integration_points[i]);
     }
 }
@@ -509,6 +513,12 @@ int UPwInterfaceElement::Check(const ProcessInfo& rCurrentProcessInfo) const
         const auto r_properties  = GetProperties();
         const auto expected_size = mpStressStatePolicy->GetVoigtSize();
         ConstitutiveLawUtilities::CheckStrainSize(r_properties, expected_size, Id());
+
+        if (ConstitutiveLawUtilities::IsUndrained(r_properties))
+            KRATOS_INFO_IF("UPwInterfaceElement", !r_properties.Has(BULK_MODULUS_FLUID) ||
+                                                      !r_properties.Has(BULK_MODULUS_SOLID) ||
+                                                      !r_properties.Has(POROSITY))
+                << "there are not enough properties for undrained modelling." << std::endl;
 
         error = r_properties[CONSTITUTIVE_LAW]->Check(r_properties, GetDisplacementGeometry(), rCurrentProcessInfo);
         return error;
@@ -968,12 +978,12 @@ void UPwInterfaceElement::CalculateAndAssignStiffnessMatrix(MatrixType&        r
 {
     auto stiffness_matrix = CreateStiffnessCalculator<MatrixSize>(rProcessInfo).LHSContribution().value();
 
-    if (ConstitutiveLawUtilities::HasExcessPorePressureContribution(GetProperties())) {
+    if (mIsUndrained) {
         const auto  b_matrices               = CalculateLocalBMatricesAtIntegrationPoints();
         const auto  integration_coefficients = CalculateIntegrationCoefficients();
         const auto& voigt_vector             = mpStressStatePolicy->GetVoigtVector();
         for (std::size_t i = 0; i < b_matrices.size(); ++i) {
-            stiffness_matrix += GeoElementUtilities::CalculateExcessPorePressureTangentMatrix(
+            stiffness_matrix += GeoElementUtilities::CalculateExcessPorePressureBulkStiffnessAtIntegrationPoint(
                 GetProperties(), b_matrices[i], voigt_vector, integration_coefficients[i]);
         }
     }

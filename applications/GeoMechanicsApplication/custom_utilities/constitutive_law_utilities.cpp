@@ -336,12 +336,6 @@ void ConstitutiveLawUtilities::ReplaceIgnoreUndrainedByDrainageType(Properties& 
     rProperties.Erase(IGNORE_UNDRAINED);
 }
 
-bool ConstitutiveLawUtilities::HasExcessPorePressureContribution(const Properties& rProperties)
-{
-    return IsUndrained(rProperties) && rProperties.Has(BULK_MODULUS_FLUID) &&
-           rProperties.Has(BULK_MODULUS_SOLID) && rProperties.Has(POROSITY);
-}
-
 double ConstitutiveLawUtilities::CalculateExcessPorePressureIncrement(const Properties& rProperties,
                                                                       double VolumetricStrainIncrement)
 {
@@ -357,26 +351,27 @@ double ConstitutiveLawUtilities::CalculateExcessPorePressureIncrement(const Prop
     return biot_coefficient * VolumetricStrainIncrement / denominator;
 }
 
-Vector ConstitutiveLawUtilities::CalculateExcessPorePressureForce(const Properties& rProperties,
-                                                                  const Vector&     rStrainVector,
-                                                                  const Matrix&     rB,
-                                                                  const Vector&     rVoigtVector,
-                                                                  double IntegrationCoefficient,
-                                                                  std::size_t IntegrationPoint,
-                                                                  const Vector& rExcessPorePressurePrevious)
+Vector ConstitutiveLawUtilities::CalculateExcessPorePressureForceAtIntegrationPoint(
+    const Properties& rProperties,
+    const Vector&     rStrainVector,
+    const Matrix&     rB,
+    const Vector&     rVoigtVector,
+    double            IntegrationCoefficient,
+    std::size_t       IntegrationPoint,
+    const Vector&     rVolumetricStrainPrevious)
 {
     KRATOS_TRY
 
-    KRATOS_ERROR_IF(IntegrationPoint >= rExcessPorePressurePrevious.size())
+    KRATOS_ERROR_IF(IntegrationPoint >= rVolumetricStrainPrevious.size())
         << "Integration point index (" << IntegrationPoint << ") exceeds cached previous volumetric strain size ("
-        << rExcessPorePressurePrevious.size() << ")." << std::endl;
+        << rVolumetricStrainPrevious.size() << ")." << std::endl;
 
-    const auto volumetric_strain = StressStrainUtilities::CalculateTrace(rStrainVector);
-    const auto volumetric_strain_increment = volumetric_strain - rExcessPorePressurePrevious[IntegrationPoint];
+    const auto volumetric_strain_increment = StressStrainUtilities::CalculateTrace(rStrainVector) -
+                                             rVolumetricStrainPrevious[IntegrationPoint];
     const auto excess_pore_pressure_increment =
         CalculateExcessPorePressureIncrement(rProperties, volumetric_strain_increment);
     return prod(trans(rB), rVoigtVector * excess_pore_pressure_increment) * IntegrationCoefficient;
 
-    KRATOS_CATCH("ConstitutiveLawUtilities::CalculateExcessPorePressureForce")
+    KRATOS_CATCH("ConstitutiveLawUtilities::CalculateExcessPorePressureForceAtIntegrationPoint")
 }
 } // namespace Kratos

@@ -243,7 +243,7 @@ INSTANTIATE_TEST_SUITE_P(
         std::make_tuple(GeoElementUtilities::AssemblePPBlockMatrix<Matrix, Matrix>,
                         UblasUtilities::CreateMatrix({{5.0, 5.0, 5.0}, {5.0, 8.0, 8.0}, {5.0, 8.0, 8.0}}))));
 
-KRATOS_TEST_CASE_IN_SUITE(GeoElementUtilities_CalculateExcessPorePressureTangentMatrix_ReturnsExpectedValue,
+KRATOS_TEST_CASE_IN_SUITE(GeoElementUtilities_CalculateExcessPorePressureBulkStiffnessAtIntegrationPoint_ReturnsExpectedValue,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     auto properties = Properties{};
@@ -252,17 +252,18 @@ KRATOS_TEST_CASE_IN_SUITE(GeoElementUtilities_CalculateExcessPorePressureTangent
     properties.SetValue(BULK_MODULUS_SOLID, 2.0e3);
     properties.SetValue(POROSITY, 0.5);
 
-    const auto B =
+    const auto b_matrix =
         UblasUtilities::CreateMatrix({{1.0, 0.0, 0.0}, {0.0, 2.0, 0.0}, {0.0, 0.0, 3.0}, {0.0, 0.0, 0.0}});
     const auto voigt_vector = UblasUtilities::CreateVector({1.0, 1.0, 1.0, 0.0});
 
-    const auto tangent =
-        GeoElementUtilities::CalculateExcessPorePressureTangentMatrix(properties, B, voigt_vector, 2.0);
+    const auto result = GeoElementUtilities::CalculateExcessPorePressureBulkStiffnessAtIntegrationPoint(
+        properties, b_matrix, voigt_vector, 2.0);
 
-    const auto expected = UblasUtilities::CreateMatrix({{2666.6666666666665, 5333.333333333333, 8000.0},
-                                                        {5333.333333333333, 10666.666666666666, 16000.0},
-                                                        {8000.0, 16000.0, 24000.0}});
-    KRATOS_EXPECT_MATRIX_NEAR(tangent, expected, 1e-9);
+    const auto expected_result =
+        UblasUtilities::CreateMatrix({{2666.6666666666665, 5333.333333333333, 8000.0},
+                                      {5333.333333333333, 10666.666666666666, 16000.0},
+                                      {8000.0, 16000.0, 24000.0}});
+    KRATOS_EXPECT_MATRIX_NEAR(result, expected_result, 1e-9);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(GeoElementUtilities_AssembleExcessPorePressureForces_WithUndrainedMaterial,
@@ -284,60 +285,27 @@ KRATOS_TEST_CASE_IN_SUITE(GeoElementUtilities_AssembleExcessPorePressureForces_W
     auto strain_vectors = std::vector<Vector>{UblasUtilities::CreateVector({0.3, 0.1, 0.1, 99.0}),
                                               UblasUtilities::CreateVector({0.2, 0.15, 0.05, 99.0})};
 
-    auto B_matrices = std::vector<Matrix>{
+    auto b_matrices = std::vector<Matrix>{
         UblasUtilities::CreateMatrix({{1.0, 0.0, 0.0}, {0.0, 2.0, 0.0}, {0.0, 0.0, 3.0}, {0.0, 0.0, 0.0}}),
         UblasUtilities::CreateMatrix({{0.5, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.5}, {0.0, 0.0, 0.0}})};
 
-    const auto voigt_vector                  = UblasUtilities::CreateVector({1.0, 1.0, 1.0, 0.0});
-    const auto integration_coefficients      = std::vector<double>{2.0, 3.0};
-    const auto excess_pore_pressure_previous = UblasUtilities::CreateVector({0.05, 0.03});
+    const auto voigt_vector               = UblasUtilities::CreateVector({1.0, 1.0, 1.0, 0.0});
+    const auto integration_coefficients   = std::vector<double>{2.0, 3.0};
+    const auto volumetric_strain_previous = UblasUtilities::CreateVector({0.05, 0.03});
 
     auto result_vector = Vector(6, 0.0);
 
     GeoElementUtilities::AssembleExcessPorePressureForces(
-        result_vector, properties, strain_vectors, B_matrices, voigt_vector,
-        integration_coefficients, excess_pore_pressure_previous);
+        result_vector, properties, strain_vectors, b_matrices, voigt_vector,
+        integration_coefficients, volumetric_strain_previous);
 
     // GP 0: volumetric_strain = 0.5, increment = 0.45, delta_p = (1.0 * 0.45 / (0.5/1.0e3 + (1.0-0.5)/2.0e3)) = 600.0
     //       force = [1.0*600.0, 2.0*600.0, 3.0*600.0] * 2.0 = [1200, 2400, 3600]
     // GP 1: volumetric_strain = 0.4, increment = 0.37, delta_p = (1.0 * 0.37 / (0.5/1.0e3 + 0.5/2.0e3)) = 493.33...
     //       force = [0.5*493.33, 1.0*493.33, 1.5*493.33] * 3.0 = [740, 1480, 2220]
-    const auto expected =
+    const auto expected_result =
         UblasUtilities::CreateVector({1200.0 + 740.0, 2400.0 + 1480.0, 3600.0 + 2220.0, 0.0, 0.0, 0.0});
-    KRATOS_EXPECT_VECTOR_NEAR(result_vector, expected, 5.0); // 5 Pa tolerance for rounding
-}
-
-KRATOS_TEST_CASE_IN_SUITE(GeoElementUtilities_AssembleExcessPorePressureForces_SkipsWhenNotUndrained,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    auto properties = Properties{};
-    auto p_law      = Kratos::make_shared<MockConstitutiveLaw>();
-    p_law->SetPlaneStrainLaw(true);
-    p_law->SetStrainSize(4);
-    properties.SetValue(CONSTITUTIVE_LAW, p_law);
-    properties.SetValue(GEO_DRAINAGE_TYPE, "Drained"); // Not undrained
-
-    properties.SetValue(BIOT_COEFFICIENT, 1.0);
-    properties.SetValue(BULK_MODULUS_FLUID, 1.0e3);
-    properties.SetValue(BULK_MODULUS_SOLID, 2.0e3);
-    properties.SetValue(POROSITY, 0.5);
-
-    auto strain_vectors = std::vector<Vector>{UblasUtilities::CreateVector({0.3, 0.1, 0.1, 99.0})};
-    auto B_matrices     = std::vector<Matrix>{UblasUtilities::CreateMatrix(
-        {{1.0, 0.0, 0.0}, {0.0, 2.0, 0.0}, {0.0, 0.0, 3.0}, {0.0, 0.0, 0.0}})};
-
-    const auto voigt_vector                  = UblasUtilities::CreateVector({1.0, 1.0, 1.0, 0.0});
-    const auto integration_coefficients      = std::vector<double>{2.0};
-    const auto excess_pore_pressure_previous = UblasUtilities::CreateVector({0.05});
-
-    auto result_vector = UblasUtilities::CreateVector({0.0, 0.0, 0.0});
-
-    // Should return early without assembling anything
-    GeoElementUtilities::AssembleExcessPorePressureForces(
-        result_vector, properties, strain_vectors, B_matrices, voigt_vector,
-        integration_coefficients, excess_pore_pressure_previous);
-
-    KRATOS_EXPECT_VECTOR_NEAR(result_vector, UblasUtilities::CreateVector({0.0, 0.0, 0.0}), 1e-12);
+    KRATOS_EXPECT_VECTOR_NEAR(result_vector, expected_result, 5.0); // 5 Pa tolerance for rounding
 }
 
 } // namespace Kratos::Testing

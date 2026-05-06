@@ -140,6 +140,7 @@ protected:
     std::vector<Vector> mStressVector;
     std::vector<Vector> mStateVariablesFinalized;
     Vector              mVolumetricStrainPrevious;
+    bool                mIsUndrained = false;
 
     virtual void CalculateMaterialStiffnessMatrix(MatrixType& rStiffnessMatrix, const ProcessInfo& CurrentProcessInfo);
 
