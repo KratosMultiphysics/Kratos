@@ -397,7 +397,7 @@ protected:
      * @param rModelPart Reference to the ModelPart containing the problem.
      * @todo We should doo as in the residual criteria, and consider the active DoFs (not just free), taking into account the MPC in addition to fixed DoFs
      */
-    virtual void CalculateReferenceNorm(
+    void CalculateReferenceNorm(
         DofsArrayType& rDofSet,
         ModelPart& rModelPart
         )
