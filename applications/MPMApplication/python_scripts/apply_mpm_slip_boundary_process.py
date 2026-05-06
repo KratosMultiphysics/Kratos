@@ -18,6 +18,7 @@ class ApplyMPMSlipBoundaryProcess(KratosMultiphysics.Process):
                 "friction_coefficient"           : 0,
                 "tangential_penalty_coefficient" : 0,
                 "option"                         : "",
+                "contact"                        : false,
                 "avoid_recomputing_normals"      : true
             }  """ )
 
@@ -36,6 +37,7 @@ class ApplyMPMSlipBoundaryProcess(KratosMultiphysics.Process):
         self.friction_coefficient = settings["friction_coefficient"].GetDouble()
         self.tangential_penalty_coefficient = settings["tangential_penalty_coefficient"].GetDouble()
         self.option = settings["option"].GetString()
+        self.contact = settings["contact"].GetBool()
 
         if self.friction_coefficient > 0 and self.tangential_penalty_coefficient > 0:
             # friction active -- set flag on ProcessInfo
@@ -53,6 +55,8 @@ class ApplyMPMSlipBoundaryProcess(KratosMultiphysics.Process):
             node.SetValue(KratosMultiphysics.FRICTION_COEFFICIENT, self.friction_coefficient)
             node.SetValue(KratosMPM.TANGENTIAL_PENALTY_COEFFICIENT, self.tangential_penalty_coefficient)
             node.Set(KratosMultiphysics.MODIFIED, self.flip_normal)
+            node.Set(KratosMultiphysics.CONTACT, self.contact)
+            node.SetValue(KratosMPM.IS_PENETRATING, False)
 
 
 

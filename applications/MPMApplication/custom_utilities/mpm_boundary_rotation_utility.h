@@ -185,12 +185,19 @@ public:
                 // [ non-conforming SLIP BCs are treated within the resp. condition itself ]
 				if( this->IsConformingSlip(rGeometry[itNode]) )
 				{
+                    bool apply_normal_constraint = true;
+                    if (rGeometry[itNode].Is(CONTACT)) {
+                        apply_normal_constraint = rGeometry[itNode].GetValue(IS_PENETRATING);
+                    }
+
 					// We fix the first displacement dof (normal component) for each rotated block
 					unsigned int j = itNode * this->GetBlockSize();
 
 					// Get the displacement of the boundary mesh, this does not assume that the mesh is moving.
 					// If the mesh is moving, need to consider the displacement of the moving mesh into account.
 					const array_1d<double,3> & displacement = rGeometry[itNode].FastGetSolutionStepValue(DISPLACEMENT);
+                    std::cout << "#" << rGeometry[itNode].Id() << ", displacement: " << displacement
+                        << ", is penetrating? " << rGeometry[itNode].GetValue(IS_PENETRATING) << std::endl;
 
 					// Get Normal Vector of the boundary
 					array_1d<double,3> rN = rGeometry[itNode].FastGetSolutionStepValue(NORMAL);
@@ -198,7 +205,8 @@ public:
 
                     // Zero out row/column corresponding to normal displacement DoF except diagonal term (set to 1)
                     // Applied IFF the local matrix passed is not empty [otherwise does nothing -- RHS only case]
-                    if (rLocalMatrix.size1() != 0) {
+                    if ((rLocalMatrix.size1() != 0) && apply_normal_constraint) {
+                        std::cout << "Apply constraints" << std::endl;
                         for( unsigned int i = 0; i < LocalSize; ++i)
                         {
                             rLocalMatrix(i,j) = 0.0;
@@ -253,7 +261,15 @@ public:
                     }
 
                     // Set value of normal displacement at node directly to the normal displacement of the boundary mesh
-					rLocalVector[j] = inner_prod(rN,displacement);
+                    if (apply_normal_constraint) {
+                        if (rGeometry[itNode].Is(CONTACT)) {
+                            rLocalVector[j] = 0.0;
+                            // rGeometry[itNode].FastGetSolutionStepValue(DISPLACEMENT) = ZeroVector(3);
+                            std::cout << "set displacement zero" << std::endl;
+                        } else {
+                            rLocalVector[j] = inner_prod(rN,displacement);
+                        }
+                    }
 				}
 			}
 		}
@@ -289,6 +305,84 @@ public:
     bool IsConformingSlip(const NodeType& rNode) const {
         return rNode.Is(SLIP) && !IsParticleBasedSlip(rNode);
     }
+
+	void IsPenetrating(NodeType& rNode)
+	{
+		const array_1d<double, 3>& nodal_displacement = rNode.FastGetSolutionStepValue(DISPLACEMENT);
+
+		// This assumes that there is no imposed displacement
+        const double penetration = MathUtils<double>::Dot(nodal_displacement, rNode.FastGetSolutionStepValue(NORMAL));
+
+        // If penetrates, apply constraint, otherwise no
+        // Normal is assumed to be outward. Thus positive means there's penetration.
+        if (penetration > 0.0) {
+			rNode.SetValue(IS_PENETRATING, true);
+		} else {
+			rNode.SetValue(IS_PENETRATING, false);
+		}
+        std::cout << "#" << rNode.Id() << ", displacement: " << nodal_displacement
+            << ", penetration: " << penetration
+            << ", is penetrating? " << rNode.GetValue(IS_PENETRATING) << std::endl;
+	}
+
+	// Loops through nodes and check for penetration
+	void PenetrationCheck(ModelPart& rModelPart)
+	{
+		block_for_each(rModelPart.Nodes(), [&](Node& rNode) {
+			if (this->IsConformingSlip(rNode) && rNode.Is(CONTACT)) {
+                this->IsPenetrating(rNode);
+            }
+		});
+	}
+
+	bool UpdateContactState(ModelPart& rModelPart)
+	{
+        // Check if the contact was active or not
+        bool contact_active = false;
+        for (const auto& rNode : rModelPart.Nodes()) {
+            if (rNode.GetValue(IS_PENETRATING)) {
+                contact_active = true;
+                break;
+            }
+        }
+        std::cout << "[[start]] contact active? " << contact_active << std::endl;
+
+        if (contact_active) {
+            // Contact was active
+            // compute normal reaction to determine
+            // if contact is still active or not
+            std::cout << "[[contact active]] compute reactions" << std::endl;
+            block_for_each(rModelPart.Nodes(), [this](Node& rNode) {
+                if (this->IsConformingSlip(rNode) && rNode.Is(CONTACT)) {
+                    const auto& reaction = rNode.FastGetSolutionStepValue(REACTION);
+                    std::cout << "reaction: " << reaction << std::endl;
+                    const double normal_reaction = MathUtils<double>::Dot(reaction, rNode.FastGetSolutionStepValue(NORMAL));
+                    if (normal_reaction < 0.0) {
+                        rNode.SetValue(IS_PENETRATING, true);
+                    } else {
+                        rNode.SetValue(IS_PENETRATING, false);
+                    }
+                }
+            });
+        } else {
+            // Contact was not active
+            // compute gap function
+            // set value of IS_PENETRATING variable
+            std::cout << "[[contact not active]] compute gap function" << std::endl;
+            this->PenetrationCheck(rModelPart);
+        }
+
+        bool current_contact_active = false;
+        for (const auto& rNode : rModelPart.Nodes()) {
+            if (rNode.GetValue(IS_PENETRATING)) {
+                current_contact_active = true;
+                break;
+            }
+        }
+        std::cout << "[[end]] contact active? " << current_contact_active << std::endl;
+
+        return contact_active != current_contact_active;
+	}
 
 	/// Same functionalities as RotateVelocities, just to have a clear function naming
 	virtual	void RotateDisplacements(ModelPart& rModelPart) const

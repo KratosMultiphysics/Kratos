@@ -31,6 +31,7 @@
 #include "custom_utilities/mpm_boundary_rotation_utility.h"
 #include "custom_conditions/particle_based_conditions/mpm_particle_base_condition.h"
 #include "utilities/parallel_utilities.h"
+#include "utilities/atomic_utilities.h"
 
 namespace Kratos
 {
@@ -220,13 +221,13 @@ public:
         KRATOS_TRY;
 
         // Start of TEMP: These are moved here to comply to pr #13432
-        // Particle to Grid mapping for elements is done here because predict needs the velocity field (PR #13432)        
+        // Particle to Grid mapping for elements is done here because predict needs the velocity field (PR #13432)
         const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
         const double delta_time = r_current_process_info[DELTA_TIME];
 
         // Initializing Bossak constants
         // This is not related to our change, but related to Bossak temporary fix.
-        // Bossak scheme  
+        // Bossak scheme
         mBossak.c0 = ( 1.0 / (mBossak.beta * delta_time * delta_time) );
         mBossak.c1 = ( mBossak.gamma / (mBossak.beta * delta_time) );
         mBossak.c2 = ( 1.0 / (mBossak.beta * delta_time) );
@@ -385,26 +386,61 @@ public:
         // Special treatment of particle based dirichlet conditions to calculate the reaction forces at the boundary particles
         // ***
         const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-        
+
         // clear any nodal reaction values
         ClearReactionVariable();
-        
+
         // Calculating as an intermediate step the nodal reaction forces due to the boundary particles
         block_for_each(rModelPart.Conditions(), std::vector<bool>(), [&r_current_process_info](Condition& rCondition, auto& r_dummy)
-        {  
+        {
             rCondition.CalculateOnIntegrationPoints(MPC_CALCULATE_NODAL_REACTIONS, r_dummy, r_current_process_info);
         });
-        
+
         // Calculating the reaction forces at the boundary particles due to the nodal reaction forces
         block_for_each(rModelPart.Conditions(), std::vector<bool>(), [&r_current_process_info](Condition& rCondition, auto& r_dummy)
-        {  
+        {
             rCondition.CalculateOnIntegrationPoints(MPC_CALCULATE_CONTACT_FORCE, r_dummy, r_current_process_info);
-        });  
+        });
 
         // clear nodal reaction values again
-        ClearReactionVariable();    
-        
-        // *** 
+        ClearReactionVariable();
+
+        VariableUtils().SetHistoricalVariableToZero(REACTION, mGridModelPart.Nodes());
+
+        struct TLS
+        {
+            Vector mRHS;
+            Matrix mD;
+            Matrix mM;
+        };
+
+        const IndexType domain_size = rModelPart.GetProcessInfo()[DOMAIN_SIZE];
+        block_for_each(rModelPart.Elements(), TLS(), [&rModelPart, domain_size, this](auto& rElement, auto& rTLS) {
+
+            rElement.CalculateRightHandSide(rTLS.mRHS, rModelPart.GetProcessInfo());
+
+            if(this->mIsDynamic) {
+                rElement.CalculateMassMatrix(rTLS.mM,rModelPart.GetProcessInfo());
+                rElement.CalculateDampingMatrix(rTLS.mD,rModelPart.GetProcessInfo());
+                BossakBaseType::AddDynamicsToRHS(rElement, rTLS.mRHS, rTLS.mD, rTLS.mM, rModelPart.GetProcessInfo());
+            }
+
+            auto& r_geometry = rElement.GetGeometry();
+            for (IndexType i_node = 0; i_node < r_geometry.size(); ++i_node) {
+                auto& r_node = r_geometry[i_node];
+                auto& r_reaction = r_node.FastGetSolutionStepValue(REACTION);
+
+                for (IndexType i_comp = 0; i_comp < domain_size; ++i_comp) {
+                    AtomicAdd<double>(r_reaction[i_comp], -rTLS.mRHS[i_node * domain_size + i_comp]);
+                }
+            }
+        });
+
+        const bool contact_state_changed = this->mRotationTool.UpdateContactState(rModelPart);
+        std::cout << "[Bossak FinalizeNonLinIteration] Has contact state changed? " << contact_state_changed << std::endl;
+        rModelPart.GetProcessInfo()[CONTACT_ACTIVE] = contact_state_changed;
+
+        // ***
 
         BossakBaseType::FinalizeNonLinIteration(rModelPart, rA, rDx, rb);
 
@@ -417,6 +453,21 @@ public:
 
         // clear nodal reaction values again
         ClearReactionVariable();
+
+        block_for_each(rModelPart.Nodes(), [this](Node& rNode)
+        {
+            if (this->mRotationTool.IsConformingSlip(rNode) && rNode.Is(CONTACT)) {
+                // if (rNode.GetValue(IS_PENETRATING)) {
+                //     rNode.FastGetSolutionStepValue(DISPLACEMENT) = ZeroVector(3);
+                // }
+                const double penetration = MathUtils<double>::Dot(
+                        rNode.FastGetSolutionStepValue(DISPLACEMENT),
+                        rNode.FastGetSolutionStepValue(NORMAL));
+                if (penetration > 0.0) {
+                    rNode.FastGetSolutionStepValue(DISPLACEMENT) = ZeroVector(3);
+                }
+            }
+        });
 
         if(mFrictionIsActive) {
             mRotationTool.ComputeFrictionAndResetFlags(rModelPart);
@@ -440,7 +491,7 @@ public:
         TSystemVectorType& rb) override
     {
         KRATOS_TRY
-        
+
         // Particle to Grid mapping for elements is moved to predict because it needs the velocity field (PR #13432)
         ImplicitBaseType::InitializeSolutionStep(rModelPart,rA,rDx,rb);
 
@@ -472,15 +523,15 @@ public:
         TSystemVectorType& rb) override
     {
         BossakBaseType::FinalizeSolutionStep(rModelPart, rA, rDx, rb);
-        
+
         if(mFrictionIsActive) {
             block_for_each(mGridModelPart.Nodes(), [&](Node& rNode)
             {
                 const Node& rConstNode = rNode; // const Node reference to avoid issues with previously unset GetValue()
                 if( mRotationTool.IsConformingSlip(rConstNode) && rConstNode.GetValue(FRICTION_COEFFICIENT) > 0 )
-                    rNode.FastGetSolutionStepValue(REACTION).clear();       
+                    rNode.FastGetSolutionStepValue(REACTION).clear();
             });
-            
+
             mRotationTool.ComputeFrictionAndResetFlags(rModelPart);
         }
 
@@ -492,7 +543,7 @@ public:
                 mRotationTool.RotateVector(rNode.FastGetSolutionStepValue(REACTION), rConstNode, true);
             }
         });
-        
+
     }
 
     /**
