@@ -310,17 +310,17 @@ This section documents the derivation of the Kratos input values for the **sprin
 
 From **D-Sheet Piling**:
 
-| Property                | Value              | Unit                                   |
-|:------------------------|:-------------------|:---------------------------------------|
-| Spring support level    | -1.50              | $\mathrm{m}$                           |
-| Rotational stiffness    | 0                  | $\mathrm{kNm}/\mathrm{rad}/\mathrm{m}$ |
-| Translational stiffness | $1.00 \times 10^4$ | $\mathrm{kN}/\mathrm{m}/\mathrm{m}$    |
+| Property                | Value             | Unit                                   |
+|:------------------------|:------------------|:---------------------------------------|
+| Spring support level    | -1.50             | $\mathrm{m}$                           |
+| Rotational stiffness    | 0                 | $\mathrm{kNm}/\mathrm{rad}/\mathrm{m}$ |
+| Translational stiffness | $1.0 \times 10^4$ | $\mathrm{kN}/\mathrm{m}/\mathrm{m}$    |
 
 Adopted for the truss material:
 
 | Property        | Kratos input parameter | Value                | Unit                       |
 |:----------------|:-----------------------|:---------------------|:---------------------------|
-| Young's modulus | `YOUNG_MODULUS`        | $4.0 \times 10^{11}$ | $\mathrm{Pa}$              |
+| Young's modulus | `YOUNG_MODULUS`        | $2.1 \times 10^{11}$ | $\mathrm{Pa}$              |
 | Density         | `DENSITY`              | 0.0                  | $\mathrm{kg}/\mathrm{m}^3$ |
 | Prestress       | `TRUSS_PRESTRESS_PK2`  | 0.0                  | $\mathrm{Pa}$              |
 
@@ -332,47 +332,34 @@ $$ k = \frac{EA}{L} $$
 
 where:
 
-* $k$ is the axial spring stiffness
-* $E$ is the Young's modulus
-* $A$ is the cross-sectional area
-* $L$ is the truss length
+* $`k`$ is the axial spring stiffness per meter of wall width
+* $`E`$ is the Young's modulus of steel
+* $`A`$ is the cross-sectional area per meter of wall width
+* $`L`$ is the truss length
 
 ### Reference translational stiffness from D-Sheet
 
-Converting the D-Sheet translational stiffness to SI units:
+Converting the D-SheetPiling translational distributed spring stiffness to SI units:
 
 ```math
-k = 1.00000 \times 10^4\ \mathrm{kN}/\mathrm{m}
+k = 1.0 \times 10^4\ \mathrm{kN} / \mathrm{m} / \mathrm{m} = 1.0 \times 10^7\ \mathrm{N} / \mathrm{m} / \mathrm{m}
 ```
+
+The cross-sectional area of the anchor per meter of wall width can now be calculated as follows:
 
 ```math
-k = 1.00000 \times 10^4 \times 10^3 = 1.0 \times 10^7\ \mathrm{N}/\mathrm{m}
+A = \frac{k \cdot L}{E} = \frac{1.0 \times 10^7\ \mathrm{N} / \mathrm{m} / \mathrm{m} \cdot 1.0\ \mathrm{m}}{2.1 \times 10^11\ \mathrm{N} / \mathrm{m}^2} = 4.7619 \times 10^{-5}\ \mathrm{m}^2 / \mathrm{m}
 ```
 
-### Adopted Kratos anchor representation
-
-In the current Kratos model, the spring support is represented with a truss element using an equivalent calibrated stiffness. Therefore, the final truss material values are not a direct one-to-one translation of the D-Sheet spring stiffness for an assumed truss length of $1.0\,\mathrm{m}$, but a calibrated representation that gives a better agreement in the present model.
-
-The adopted axial stiffness of the truss material is:
-
-$$ EA = E \cdot A $$
-
-Substituting the current Kratos values:
-
-$$ EA = 4.0 \times 10^{11} \cdot 1.0 \times 10^{-3} $$
-
-```math
-EA = 4.0 \times 10^8\ \mathrm{N}
-```
 
 ### Final values
 
-| Property             | Kratos input parameter | Value                | Unit                       |
-|:---------------------|:-----------------------|:---------------------|:---------------------------|
-| Young's modulus      | `YOUNG_MODULUS`        | $4.0 \times 10^{11}$ | $\mathrm{Pa}$              |
-| Density              | `DENSITY`              | 0.0                  | $\mathrm{kg}/\mathrm{m}^3$ |
-| Cross-sectional area | `CROSS_AREA`           | $1.0 \times 10^{-3}$ | $\mathrm{m}^2$             |
-| Prestress            | `TRUSS_PRESTRESS_PK2`  | 0.0                  | $\mathrm{Pa}$              |
+| Property             | Kratos input parameter | Value                   | Unit                        |
+|:---------------------|:-----------------------|:------------------------|:----------------------------|
+| Young's modulus      | `YOUNG_MODULUS`        | $2.1 \times 10^{11}$    | $\mathrm{Pa}$               |
+| Density              | `DENSITY`              | 0.0                     | $\mathrm{kg}/\mathrm{m}^3$  |
+| Cross-sectional area | `CROSS_AREA`           | $4.7619 \times 10^{-5}$ | $\mathrm{m}^2 / \mathrm{m}$ |
+| Prestress            | `TRUSS_PRESTRESS_PK2`  | 0.0                     | $\mathrm{Pa}$               |
 
 
 ## Staged analysis
