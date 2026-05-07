@@ -784,12 +784,6 @@ public:
 
         ConstructMasterSlaveConstraintsStructure(rModelPart);
 
-        // Finalize assembly after all structure is built
-        TSparseSpace::GlobalAssemble(*rpA);
-        if (!TSparseSpace::IsNull(mpT)) {
-            TSparseSpace::GlobalAssemble(*mpT);
-        }
-
         KRATOS_CATCH("")
     }
 
@@ -1365,6 +1359,11 @@ protected:
             // Reset flag
             mConstraintsAssembled = false;
 
+            // Finalize assembly after all structure is built
+            if (!TSparseSpace::IsNull(mpT)) {
+                TSparseSpace::GlobalAssemble(*mpT);
+            }
+
             STOP_TIMER("ConstraintsRelationMatrixStructure", 0)
         }
     }
@@ -1599,6 +1598,9 @@ protected:
             BaseType::mEquationSystemSize,
             mpMap
         );
+
+        // Finalize assembly after all structure is built
+        TSparseSpace::GlobalAssemble(*rpA);
 
         STOP_TIMER("MatrixStructure", 0)
     }
