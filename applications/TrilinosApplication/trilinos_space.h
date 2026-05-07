@@ -99,6 +99,10 @@ public:
     /// Class definition
     using ClassType = TrilinosSpace<TMatrixType, TVectorType>;
 
+    /// Definition of the import type
+    using ImportType = Epetra_Import;
+    using ImportPointerType = Kratos::shared_ptr<ImportType>;
+
     /// Define the map type
     using MapType = Epetra_Map;
     using MapPointerType = Kratos::shared_ptr<MapType>;
@@ -118,6 +122,10 @@ public:
     /// Some other definitions
     using DofUpdaterType = TrilinosDofUpdater< TrilinosSpace<TMatrixType,TVectorType>>;
     using DofUpdaterPointerType = typename DofUpdater<TrilinosSpace<TMatrixType,TVectorType>>::UniquePointer;
+
+    /// DoF array type definition
+    using DofType = Dof<double>;
+    using DofsArrayType = PointerVectorSet<DofType>;
 
     ///@}
     ///@name Life Cycle
@@ -1866,6 +1874,50 @@ public:
         KRATOS_TRY;
         return EpetraExt::MultiVectorToMatrixMarketFile(pFileName, rV);
         KRATOS_CATCH("");
+    }
+    
+    /**
+     * @brief Creates a new import object
+     * @param rDofSet The set of degrees of freedom to be imported
+     * @param rDx The vector defining the target map for the import
+     * @return The new import object
+     */
+    static ImportPointerType CreateImport(
+        const DofsArrayType& rDofSet,
+        const VectorType& rDx
+        )
+    {
+        // Getting the global ids of the dofs to be updated
+        const std::size_t number_of_dofs = rDofSet.size();
+        const int system_size = Size(rDx);
+        std::vector<int> index_array(number_of_dofs);
+
+        // Filling the array with the global ids
+        unsigned int counter = 0;
+        for (auto it_dof = rDofSet.begin(); it_dof != rDofSet.end(); ++it_dof) {
+            const int id = it_dof->EquationId();
+            if (id < system_size) {
+                index_array[counter++] = id;
+            }
+        }
+
+        std::sort(index_array.begin(), index_array.end());
+        std::vector<int>::iterator new_end = std::unique(index_array.begin(), index_array.end());
+        index_array.resize(new_end - index_array.begin());
+
+        int check_size = -1;
+        int tot_update_dofs = index_array.size();
+        rDx.Comm().SumAll(&tot_update_dofs, &check_size, 1);
+        KRATOS_ERROR_IF(check_size < system_size)
+            << "DOF count is not correct. There are less dofs then expected.\n"
+            << "Expected number of active dofs: " << system_size << ", DOFs found: " << check_size << std::endl;
+
+        // Defining a map as needed
+        MapType dof_update_map(-1, index_array.size(), &(*(index_array.begin())), 0, rDx.Comm());
+
+        // Defining the import instance
+        ImportPointerType p_dof_import = Kratos::make_shared<ImportType>(dof_update_map, rDx.Map());
+        return p_dof_import;
     }
 
     /**
