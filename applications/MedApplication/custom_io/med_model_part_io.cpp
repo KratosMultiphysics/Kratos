@@ -84,7 +84,7 @@ std::function<void(std::vector<T>&)> GetReorderFunction(const med_geometry_type 
     case MED_TRIA3:
         return [](auto& Connectivities){
             CheckConnectivitiesSize(3, Connectivities);
-            std::swap(Connectivities[1], Connectivities[2]);
+            //std::swap(Connectivities[1], Connectivities[2]);
         };
 
     case MED_TRIA6:
@@ -97,7 +97,7 @@ std::function<void(std::vector<T>&)> GetReorderFunction(const med_geometry_type 
     case MED_QUAD4:
         return [](auto& Connectivities){
             CheckConnectivitiesSize(4, Connectivities);
-            std::swap(Connectivities[1], Connectivities[3]);
+            //std::swap(Connectivities[1], Connectivities[3]);
         };
 
     case MED_QUAD8:
@@ -577,7 +577,6 @@ void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
             << "Using MED implicit numbering." << std::endl;
         std::iota(node_ids.begin(), node_ids.end(), 1);
     }
-    
     for (int i=0; i<num_nodes; ++i) {
         std::array<double, 3> coords{0,0,0};
         for (int j=0; j<dimension; ++j) {coords[j] = node_coords[i*dimension+j];}
