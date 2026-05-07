@@ -1,5 +1,5 @@
 ---
-title: 
+title: GiD Output Process
 keywords: gid output process core
 tags: [process gid output process]
 sidebar: kratos_core_processes

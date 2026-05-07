@@ -28,7 +28,6 @@
     "compute_reactions": true,
     "move_mesh_flag": false,
     "reform_dofs_at_each_step": false,
-    "nodal_smoothing": false,
     "block_builder": true,
     "solution_type": "quasi_static",
     "scheme_type": "Newmark",
@@ -61,19 +60,8 @@
       "solver_type": "LinearSolversApplication.sparse_lu",
       "scaling": true
     },
-    "problem_domain_sub_model_part_list": [
-      "Soil-3"
-    ],
-    "processes_sub_model_part_list": [
-      "Displacement_Geometry",
-      "Gravity_Loading-Initial_saturated",
-      "Base_Displacement_Fixed",
-      "Fluid_Pressure-Initial_saturated",
-      "Lower_Drainage_Fluid_Pressure"
-    ],
-    "body_domain_sub_model_part_list": [
-      "Soil-3"
-    ],
+    "problem_domain_sub_model_part_list": ["Soil-3"],
+    "body_domain_sub_model_part_list"   : ["Soil-3"],
     "newmark_beta": 0.25,
     "newmark_gamma": 0.5,
     "newmark_theta": 0.5,
@@ -236,14 +224,13 @@
         }
       }
     ],
-    "auxilliary_process_list": [
+    "auxiliary_process_list": [
       {
         "python_module": "apply_k0_procedure_process",
         "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
         "process_name": "ApplyK0ProcedureProcess",
         "Parameters": {
-          "model_part_name": "PorousDomain.porous_computational_model_part",
-          "variable_name": "CAUCHY_STRESS_TENSOR"
+          "model_part_name": "PorousDomain.porous_computational_model_part"
         }
       }
     ]

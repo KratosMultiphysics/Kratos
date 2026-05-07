@@ -28,7 +28,6 @@
         "compute_reactions":                  false,
         "move_mesh_flag":                     true,
         "reform_dofs_at_each_step":           false,
-        "nodal_smoothing":                    false,
         "block_builder":                      true,
         "solution_type":                      "Quasi-Static",
         "scheme_type":                        "Newmark",
@@ -70,7 +69,6 @@
             "preconditioner_type": "ilu0"
         },
         "problem_domain_sub_model_part_list": ["Column"],
-        "processes_sub_model_part_list":      ["bottom_fixed","side_slide","zero_pressure","top_load"],
         "body_domain_sub_model_part_list":    ["Column"]
     },
     "output_processes": {
@@ -153,7 +151,6 @@
             "value":           [0.0,-1000.0,0.0],
             "table":           [0,0,0]
         }
-    }],
-        "auxiliar_process_list": []
+    }]
     }
 }

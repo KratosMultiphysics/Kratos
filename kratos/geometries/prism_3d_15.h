@@ -26,6 +26,7 @@
 #include "geometries/quadrilateral_3d_8.h"
 #include "utilities/integration_utilities.h"
 #include "integration/prism_gauss_legendre_integration_points.h"
+#include "integration/prism_gauss_lobatto_integration_points.h"
 
 namespace Kratos
 {
@@ -167,7 +168,7 @@ public:
     typedef typename BaseType::ShapeFunctionsGradientsType ShapeFunctionsGradientsType;
 
     /**
-     * Type of the normal vector used for normal to edges in geomety.
+     * Type of the normal vector used for normal to edges in geometry.
      */
     typedef typename BaseType::NormalType NormalType;
 
@@ -262,7 +263,7 @@ public:
      * Copy constructor from a geometry with other point type.
      * Construct this geometry as a copy of given geometry which
      * has different type of points. The given goemetry's
-     * TOtherPointType* must be implicity convertible to this
+     * TOtherPointType* must be implicitly convertible to this
      * geometry PointType.
      *
      * @note This copy constructor don't copy the points and new
@@ -384,8 +385,8 @@ public:
     }
 
     /**
-     * This method calculate and return length, area or volume of
-     * this geometry depending to it's dimension. For one dimensional
+     * This method calculates and returns length, area or volume of
+     * this geometry depending on its dimension. For one dimensional
      * geometry it returns its length, for two dimensional it gives area
      * and for three dimensional geometries it gives its volume.
      *
@@ -401,7 +402,7 @@ public:
     }
 
     /**
-     * @brief This method calculate and return volume of this geometry.
+     * @brief This method calculates and returns volume of this geometry.
      * @details For one and two dimensional geometry it returns zero and for three dimensional it gives volume of geometry.
      * @return double value contains volume.
      * @see Length()
@@ -530,7 +531,7 @@ public:
     /**
      * @brief This method gives you number of all edges of this geometry.
      * @details For example, for a hexahedron, this would be 12
-     * @return SizeType containes number of this geometry edges.
+     * @return SizeType contains number of this geometry edges.
      * @see EdgesNumber()
      * @see Edges()
      * @see GenerateEdges()
@@ -547,7 +548,7 @@ public:
      * @brief This method gives you all edges of this geometry.
      * @details This method will gives you all the edges with one dimension less than this geometry.
      * For example a triangle would return three lines as its edges or a tetrahedral would return four triangle as its edges but won't return its six edge lines by this method.
-     * @return GeometriesArrayType containes this geometry edges.
+     * @return GeometriesArrayType contains this geometry edges.
      * @see EdgesNumber()
      * @see Edge()
      */
@@ -613,7 +614,7 @@ public:
     /**
      * @brief Returns all faces of the current geometry.
      * @details This is only implemented for 3D geometries, since 2D geometries only have edges but no faces
-     * @return GeometriesArrayType containes this geometry faces.
+     * @return GeometriesArrayType contains this geometry faces.
      * @see EdgesNumber
      * @see GenerateEdges
      * @see FacesNumber
@@ -825,8 +826,8 @@ private:
         }
     }
 
-        /**
-     * This method gives all non-zero shape functions values
+    /**
+     * @brief This method gives all non-zero shape functions values
      * evaluated at the rCoordinates provided
      * @return Vector of values of shape functions \f$ F_{i} \f$ where i is the shape function index (for NURBS it is the index of the local enumeration in the element).
      * @see ShapeFunctionValue
@@ -838,10 +839,15 @@ private:
         const CoordinatesArrayType& rCoordinates
         ) const override
     {
+        // Ensure size is correct
+        rResult.resize(15, false);
+
+        // Get the coordinates
         const double x = rCoordinates[0];
         const double y = rCoordinates[1];
         const double z = rCoordinates[2];
 
+        // Fill shape function vector
         rResult(  0  ) = (1.0/2.0)*(2*z - 2.0)*(2*z - 1)*(-2.0*x - 2.0*y + 1.0)*(-x - y + 1.0) ;
         rResult(  1  ) = (1.0/2.0)*x*(2.0*x - 1.0)*(2*z - 2.0)*(2*z - 1) ;
         rResult(  2  ) = (1.0/2.0)*y*(2.0*y - 1.0)*(2*z - 2.0)*(2*z - 1) ;
@@ -1017,16 +1023,8 @@ private:
                 3, IntegrationPoint<3> >::GenerateIntegrationPoints(),
                 Quadrature < PrismGaussLegendreIntegrationPoints5,
                 3, IntegrationPoint<3> >::GenerateIntegrationPoints(),
-                Quadrature < PrismGaussLegendreIntegrationPointsExt1,
-                3, IntegrationPoint<3> >::GenerateIntegrationPoints(),
-                Quadrature < PrismGaussLegendreIntegrationPointsExt2,
-                3, IntegrationPoint<3> >::GenerateIntegrationPoints(),
-                Quadrature < PrismGaussLegendreIntegrationPointsExt3,
-                3, IntegrationPoint<3> >::GenerateIntegrationPoints(),
-                Quadrature < PrismGaussLegendreIntegrationPointsExt4,
-                3, IntegrationPoint<3> >::GenerateIntegrationPoints(),
-                Quadrature < PrismGaussLegendreIntegrationPointsExt5,
-                3, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                Quadrature < PrismGaussLobattoIntegrationPoints1,
+                3, IntegrationPoint<3> >::GenerateIntegrationPoints()
             }
         };
         return integration_points;
@@ -1048,15 +1046,7 @@ private:
                 Prism3D15<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
                     GeometryData::IntegrationMethod::GI_GAUSS_5 ),
                 Prism3D15<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_1 ),
-                Prism3D15<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_2 ),
-                Prism3D15<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_3 ),
-                Prism3D15<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_4 ),
-                Prism3D15<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_5 )
+                    GeometryData::IntegrationMethod::GI_LOBATTO_1 )
             }
         };
         return shape_functions_values;
@@ -1078,15 +1068,7 @@ private:
                 Prism3D15<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
                     GeometryData::IntegrationMethod::GI_GAUSS_5 ),
                 Prism3D15<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                    GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_1 ),
-                Prism3D15<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                    GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_2 ),
-                Prism3D15<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                    GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_3 ),
-                Prism3D15<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                    GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_4 ),
-                Prism3D15<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                    GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_5 )
+                    GeometryData::IntegrationMethod::GI_LOBATTO_1 )
             }
         };
         return shape_functions_local_gradients;

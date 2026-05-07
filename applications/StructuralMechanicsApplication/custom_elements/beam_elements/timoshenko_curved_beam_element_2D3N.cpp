@@ -112,8 +112,8 @@ void LinearTimoshenkoCurvedBeamElement2D3N::EquationIdVector(
     if (rResult.size() != dofs_per_node * number_of_nodes)
         rResult.resize(dofs_per_node * number_of_nodes, false);
 
-    const IndexType xpos    = this->GetGeometry()[0].GetDofPosition(DISPLACEMENT_X);
-    const IndexType rot_pos = this->GetGeometry()[0].GetDofPosition(ROTATION_Z);
+    const IndexType xpos    = r_geometry[0].GetDofPosition(DISPLACEMENT_X);
+    const IndexType rot_pos = r_geometry[0].GetDofPosition(ROTATION_Z);
 
     for (IndexType i = 0; i < number_of_nodes; ++i) {
         rResult[local_index++] = r_geometry[i].GetDof(DISPLACEMENT_X, xpos    ).EquationId();
@@ -255,11 +255,12 @@ void LinearTimoshenkoCurvedBeamElement2D3N::GetTangentandTransverseUnitVectors(
     noalias(rt) = x_prime / norm_2(x_prime);
 
     noalias(aux) = MathUtils<double>::CrossProduct(x_prime, x_2prime);
-    const double norm = norm_2(MathUtils<double>::CrossProduct(x_prime, x_2prime));
-    if (norm != 0.0) // if the beam is not curved
+    const double norm = norm_2(aux);
+    if (norm > Tolerance) { // if the beam is curved
         noalias(b) = aux / norm;
-    else
+    } else {
         b[2] = 1.0;
+    }
 
     noalias(rn) = MathUtils<double>::CrossProduct(rt, b);
 }
@@ -384,6 +385,7 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateLocalSystem(
     KRATOS_TRY;
     const auto &r_props    = GetProperties();
     const auto &r_geometry = GetGeometry();
+    const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
 
     if (rLHS.size1() != SystemSize || rLHS.size2() != SystemSize) {
         rLHS.resize(SystemSize, SystemSize, false);
@@ -402,11 +404,11 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateLocalSystem(
     r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS             , true);
     r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
 
-    const double area = r_props[CROSS_AREA];
+    const double area = GetCrossArea();
 
     // Let's initialize the constitutive law values
-    VectorType strain_vector(StrainSize), stress_vector(StrainSize);
-    MatrixType constitutive_matrix(StrainSize, StrainSize);
+    VectorType strain_vector(strain_size), stress_vector(strain_size);
+    MatrixType constitutive_matrix(strain_size, strain_size);
     strain_vector.clear();
     cl_values.SetStrainVector(strain_vector);
     cl_values.SetStressVector(stress_vector);
@@ -415,7 +417,7 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateLocalSystem(
     // Initialize required matrices/vectors...
     GlobalSizeVector nodal_values, B_b, dNu, dN_theta, N_shape, Nu, N_theta, dN_shape;
     BoundedMatrix<double, 2, 2> C_gamma, frenet_serret;
-    BoundedVector<double, 2> N_forces, Gamma; // axial ans shear forces, strains
+    BoundedVector<double, 2> N_forces, Gamma; // axial and shear forces, strains
     BoundedMatrix<double, 2, 9> B_s, aux_B_s;
     C_gamma.clear();
 
@@ -492,6 +494,7 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateLeftHandSide(
     KRATOS_TRY;
     const auto &r_props    = GetProperties();
     const auto &r_geometry = GetGeometry();
+    const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
 
     if (rLHS.size1() != SystemSize || rLHS.size2() != SystemSize) {
         rLHS.resize(SystemSize, SystemSize, false);
@@ -506,8 +509,8 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateLeftHandSide(
     r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
 
     // Let's initialize the constitutive law values
-    VectorType strain_vector(StrainSize), stress_vector(StrainSize);
-    MatrixType constitutive_matrix(StrainSize, StrainSize);
+    VectorType strain_vector(strain_size), stress_vector(strain_size);
+    MatrixType constitutive_matrix(strain_size, strain_size);
     strain_vector.clear();
     cl_values.SetStrainVector(strain_vector);
     cl_values.SetStressVector(stress_vector);
@@ -580,6 +583,7 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateRightHandSide(
     KRATOS_TRY;
     const auto &r_props    = GetProperties();
     const auto &r_geometry = GetGeometry();
+    const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
 
     if (rRHS.size() != SystemSize) {
         rRHS.resize(SystemSize, false);
@@ -593,11 +597,11 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateRightHandSide(
     r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS             , true);
     r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
 
-    const double area = r_props[CROSS_AREA];
+    const double area = GetCrossArea();
 
     // Let's initialize the constitutive law values
-    VectorType strain_vector(StrainSize), stress_vector(StrainSize);
-    MatrixType constitutive_matrix(StrainSize, StrainSize);
+    VectorType strain_vector(strain_size), stress_vector(strain_size);
+    MatrixType constitutive_matrix(strain_size, strain_size);
     strain_vector.clear();
     cl_values.SetStrainVector(strain_vector);
     cl_values.SetStressVector(stress_vector);
@@ -672,117 +676,105 @@ void LinearTimoshenkoCurvedBeamElement2D3N::CalculateOnIntegrationPoints(
 {
     const auto& r_integration_points = IntegrationPoints(GetIntegrationMethod());
     rOutput.resize(r_integration_points.size());
-    const auto &r_props = GetProperties();
 
     if (rVariable == AXIAL_FORCE || rVariable == BENDING_MOMENT || rVariable == SHEAR_FORCE) {
-        const auto &r_geometry = GetGeometry();
+        const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
+        ConstitutiveLaw::Parameters cl_values(GetGeometry(), GetProperties(), rProcessInfo);
+        VectorType strain_vector(strain_size), stress_vector(strain_size);
+        StructuralMechanicsElementUtilities::InitializeConstitutiveLawValuesForStressCalculation(cl_values, strain_vector, stress_vector);
 
-        ConstitutiveLaw::Parameters cl_values(r_geometry, r_props, rProcessInfo);
-        auto &r_cl_options = cl_values.GetOptions();
-        r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS             , true);
-        r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+        for (SizeType integration_point = 0; integration_point < r_integration_points.size(); ++integration_point) {
 
-        // Let's initialize the cl values
-        VectorType strain_vector(StrainSize), stress_vector(StrainSize);
-        strain_vector.clear();
-        cl_values.SetStrainVector(strain_vector);
-        cl_values.SetStressVector(stress_vector);
+            noalias(strain_vector) = CalculateStrainVector(r_integration_points[integration_point].X());
 
-        GlobalSizeVector nodal_values, B_b, dNu, dN_theta, N_shape, Nu, N_theta, dN_shape;
-        BoundedMatrix<double, 2, 2> frenet_serret;
-        BoundedVector<double, 2> N_forces, Gamma; // axial and shear forces, strains
-        BoundedMatrix<double, 2, 9> B_s, aux_B_s;
-
-        // Loop over the integration points
-        for (SizeType IP = 0; IP < r_integration_points.size(); ++IP) {
-            const double xi     = r_integration_points[IP].X();
-            const double J      = GetJacobian(xi);
-
-            GetNodalValuesVector(nodal_values);
-
-            const array_3 shape_functions   = GetShapeFunctionsValues(xi);
-            const array_3 d_shape_functions = GetFirstDerivativesShapeFunctionsValues(xi, J);
-
-            GetShapeFunctionsValuesGlobalVectors(shape_functions, N_shape, Nu, N_theta);
-            GetShapeFunctionsValuesGlobalVectors(d_shape_functions, dN_shape, dNu, dN_theta);
-
-            array_3 t, n;
-            GetTangentandTransverseUnitVectors(xi, t, n);
-            noalias(frenet_serret) = GetFrenetSerretMatrix(xi, t, n);
-            noalias(B_b) =  dN_theta;
-
-            // we fill aux_B_s
-            for (IndexType i = 0; i < SystemSize; ++i) {
-                aux_B_s(0, i) = dNu[i] + t[1] * N_theta[i];
-                aux_B_s(1, i) = dN_shape[i] - t[0] * N_theta[i];
-            }
-            noalias(B_s) = prod(frenet_serret, aux_B_s);
-
-            noalias(Gamma) = prod(B_s, nodal_values);
-            strain_vector[0] = Gamma[0]; // axial strain
-            strain_vector[2] = Gamma[1]; // shear strain
-            strain_vector[1] = inner_prod(B_b, nodal_values); // curvature
-
-            mConstitutiveLawVector[IP]->CalculateMaterialResponseCauchy(cl_values);
+            mConstitutiveLawVector[integration_point]->CalculateMaterialResponseCauchy(cl_values);
             const Vector &r_generalized_stresses = cl_values.GetStressVector();
 
             if (rVariable == AXIAL_FORCE) {
-                rOutput[IP] = r_generalized_stresses[0];
+                rOutput[integration_point] = r_generalized_stresses[0];
             } else if (rVariable == BENDING_MOMENT) {
-                rOutput[IP] = r_generalized_stresses[1];
+                rOutput[integration_point] = r_generalized_stresses[1];
             } else if (rVariable == SHEAR_FORCE) {
-                rOutput[IP] = r_generalized_stresses[2];
+                rOutput[integration_point] = r_generalized_stresses[2];
             }
         }
     } else if (rVariable == AXIAL_STRAIN || rVariable == BENDING_STRAIN || rVariable == SHEAR_STRAIN) {
+        const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
+        VectorType strain_vector(strain_size);
 
-        // Let's initialize the cl values
-        VectorType strain_vector(StrainSize);
+        for (SizeType integration_point = 0; integration_point < r_integration_points.size(); ++integration_point) {
 
-        GlobalSizeVector nodal_values, B_b, dNu, dN_theta, N_shape, Nu, N_theta, dN_shape;
-        BoundedMatrix<double, 2, 2> frenet_serret;
-        BoundedVector<double, 2> N_forces, Gamma; // axial and shear forces, strains
-        BoundedMatrix<double, 2, 9> B_s, aux_B_s;
-
-        // Loop over the integration points
-        for (SizeType IP = 0; IP < r_integration_points.size(); ++IP) {
-            const double xi     = r_integration_points[IP].X();
-            const double J      = GetJacobian(xi);
-
-            GetNodalValuesVector(nodal_values);
-
-            const array_3 shape_functions   = GetShapeFunctionsValues(xi);
-            const array_3 d_shape_functions = GetFirstDerivativesShapeFunctionsValues(xi, J);
-
-            GetShapeFunctionsValuesGlobalVectors(shape_functions, N_shape, Nu, N_theta);
-            GetShapeFunctionsValuesGlobalVectors(d_shape_functions, dN_shape, dNu, dN_theta);
-
-            array_3 t, n;
-            GetTangentandTransverseUnitVectors(xi, t, n);
-            noalias(frenet_serret) = GetFrenetSerretMatrix(xi, t, n);
-            noalias(B_b) =  dN_theta;
-
-            // we fill aux_B_s
-            for (IndexType i = 0; i < SystemSize; ++i) {
-                aux_B_s(0, i) = dNu[i] + t[1] * N_theta[i];
-                aux_B_s(1, i) = dN_shape[i] - t[0] * N_theta[i];
-            }
-            noalias(B_s) = prod(frenet_serret, aux_B_s);
-
-            noalias(Gamma) = prod(B_s, nodal_values);
-            strain_vector[0] = Gamma[0]; // axial strain
-            strain_vector[2] = Gamma[1]; // shear strain
-            strain_vector[1] = inner_prod(B_b, nodal_values); // curvature
+            noalias(strain_vector) = CalculateStrainVector(r_integration_points[integration_point].X());
 
             if (rVariable == AXIAL_STRAIN) {
-                rOutput[IP] = strain_vector[0];
+                rOutput[integration_point] = strain_vector[0];
             } else if (rVariable == BENDING_STRAIN) {
-                rOutput[IP] = strain_vector[1];
+                rOutput[integration_point] = strain_vector[1];
             } else if (rVariable == SHEAR_STRAIN) {
-                rOutput[IP] = strain_vector[2];
+                rOutput[integration_point] = strain_vector[2];
             }
         }
     }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void LinearTimoshenkoCurvedBeamElement2D3N::CalculateOnIntegrationPoints(
+    const Variable<Vector>& rVariable,
+    std::vector<Vector>& rOutput,
+    const ProcessInfo& rProcessInfo
+    )
+{
+    const auto& r_integration_points = IntegrationPoints(GetIntegrationMethod());
+    rOutput.resize(r_integration_points.size());
+
+    if (rVariable == PK2_STRESS_VECTOR) {
+        const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
+        ConstitutiveLaw::Parameters cl_values(GetGeometry(), GetProperties(), rProcessInfo);
+        VectorType strain_vector(strain_size), stress_vector(strain_size);
+        StructuralMechanicsElementUtilities::InitializeConstitutiveLawValuesForStressCalculation(cl_values, strain_vector, stress_vector);
+
+        for (SizeType integration_point = 0; integration_point < r_integration_points.size(); ++integration_point) {
+
+            noalias(strain_vector) = CalculateStrainVector(r_integration_points[integration_point].X());
+
+            mConstitutiveLawVector[integration_point]->CalculateMaterialResponsePK2(cl_values);
+
+            rOutput[integration_point] = cl_values.GetStressVector();
+        }
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+Vector LinearTimoshenkoCurvedBeamElement2D3N::CalculateStrainVector(double Xi)
+{
+    GlobalSizeVector nodal_values, dNu, dN_theta, n_shape, nu, n_theta, dN_shape;
+
+    GetNodalValuesVector(nodal_values);
+    GetShapeFunctionsValuesGlobalVectors(GetShapeFunctionsValues(Xi), n_shape, nu, n_theta);
+    GetShapeFunctionsValuesGlobalVectors(GetFirstDerivativesShapeFunctionsValues(Xi, GetJacobian(Xi)), dN_shape, dNu, dN_theta);
+
+    array_3 t, n;
+    GetTangentandTransverseUnitVectors(Xi, t, n);
+    BoundedMatrix<double, 2, 9> aux_B_s;
+    for (IndexType i = 0; i < SystemSize; ++i) {
+        aux_B_s(0, i) = dNu[i] + t[1] * n_theta[i];
+        aux_B_s(1, i) = dN_shape[i] - t[0] * n_theta[i];
+    }
+
+    BoundedMatrix<double, 2, 2> frenet_serret = GetFrenetSerretMatrix(Xi, t, n);
+    BoundedVector<double, 2> gamma = prod(prod(frenet_serret, aux_B_s), nodal_values);
+
+    Vector strain_vector(mConstitutiveLawVector[0]->GetStrainSize());
+    strain_vector.clear();
+    strain_vector[0] = gamma[0]; // axial strain
+    strain_vector[2] = gamma[1]; // shear strain
+    strain_vector[1] = inner_prod(dN_theta, nodal_values); // curvature
+
+    return strain_vector;
 }
 
 /***********************************************************************************/
@@ -838,6 +830,17 @@ void LinearTimoshenkoCurvedBeamElement2D3N::load(Serializer& rSerializer)
     rSerializer.load("IntegrationMethod",IntMethod);
     mThisIntegrationMethod = IntegrationMethod(IntMethod);
     rSerializer.load("ConstitutiveLawVector", mConstitutiveLawVector);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+
+double LinearTimoshenkoCurvedBeamElement2D3N::GetCrossArea()
+{
+    const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
+    const auto& r_props = GetProperties();
+    return (strain_size == 3) ? r_props[CROSS_AREA] : r_props[THICKNESS];
 }
 
 /***********************************************************************************/

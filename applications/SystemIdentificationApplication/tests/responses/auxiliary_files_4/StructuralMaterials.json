@@ -1,0 +1,21 @@
+{
+    "properties": [
+        {
+            "model_part_name": "Structure.Parts_Solid",
+            "properties_id": 1,
+            "Material": {
+                "constitutive_law": {
+                    "name": "ThermalElasticIsotropic3D"
+                },
+                "Variables": {
+                    "DENSITY": 7850.0,
+                    "YOUNG_MODULUS": 2e6,
+                    "POISSON_RATIO": 0.29,
+                    "THERMAL_EXPANSION_COEFFICIENT": 1e-5,
+                    "REFERENCE_TEMPERATURE": 0.0
+                },
+                "Tables": null
+            }
+        }
+    ]
+}

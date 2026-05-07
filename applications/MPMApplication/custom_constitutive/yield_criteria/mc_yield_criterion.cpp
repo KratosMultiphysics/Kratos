@@ -44,7 +44,7 @@ MCYieldCriterion::MCYieldCriterion(HardeningLawPointer pHardeningLaw)
 
 }
 
-//*******************************ASSIGMENT OPERATOR***********************************
+//******************************ASSIGNMENT OPERATOR***********************************
 //************************************************************************************
 
 MCYieldCriterion& MCYieldCriterion::operator=(MCYieldCriterion const& rOther)

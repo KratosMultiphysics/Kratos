@@ -168,7 +168,7 @@ class PFEM2Solver:
                 self.reseed = self.reseed + t4-t3a
                 self.prereseed = self.prereseed + t4-t3a
 
-                #transfering data from the particles to the mesh:
+                #transferring data from the particles to the mesh:
                 (self.moveparticles).TransferLagrangianToEulerian(transfer_pressure);
 
                 t5 = timer.time()
@@ -191,7 +191,7 @@ class PFEM2Solver:
                 (self.moveparticles).CalculateDeltaVelocity();
                 t11 = timer.time()
                 self.implicit_solving = self.implicit_solving + t11-t6
-                #transfering the information to the mesh:
+                #transferring the information to the mesh:
                 modify_particle_pressure=False
                 (self.moveparticles).AccelerateParticlesWithoutMovingUsingDeltaVelocity(modify_particle_pressure);
                 t12 = timer.time()

@@ -5,13 +5,13 @@
 //                   Multi-Physics
 //
 //  License:         BSD License
-//                     Kratos default license: kratos/license.txt
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Vicente Mataix
 //
 //
-#if !defined(KRATOS_RESIDUAL_BASED_BLOCK_BUILDER_AND_SOLVER_WITH_LAGRANGE_MULTIPLIER )
-#define  KRATOS_RESIDUAL_BASED_BLOCK_BUILDER_AND_SOLVER_WITH_LAGRANGE_MULTIPLIER
+
+#pragma once
 
 /* System includes */
 
@@ -113,8 +113,7 @@ public:
     typedef Element::DofsVectorType DofsVectorType;
 
     /// DoF types definition
-    typedef Node NodeType;
-    typedef typename NodeType::DofType DofType;
+    typedef typename Node::DofType DofType;
     typedef typename DofType::Pointer DofPointerType;
 
     ///@}
@@ -805,13 +804,13 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    std::unordered_map<IndexType, IndexType> mCorrespondanceDofsSlave; /// A map of the correspondance between the slave dofs
+    std::unordered_map<IndexType, IndexType> mCorrespondanceDofsSlave; /// A map of the correspondence between the slave dofs
     TSystemVectorType mLagrangeMultiplierVector;                       /// This is vector containing the Lagrange multiplier solution
     double mConstraintFactor = 0.0;                                    /// The constraint scale factor
-    double mAuxiliarConstraintFactor = 0.0;                            /// The auxiliar constraint scale factor
+    double mAuxiliarConstraintFactor = 0.0;                            /// The auxiliary constraint scale factor
 
     CONSTRAINT_FACTOR mConstraintFactorConsidered;                  /// The value considered for the constraint factor
-    AUXILIAR_CONSTRAINT_FACTOR mAuxiliarConstraintFactorConsidered; /// The value considered for the auxiliar constraint factor
+    AUXILIAR_CONSTRAINT_FACTOR mAuxiliarConstraintFactorConsidered; /// The value considered for the auxiliary constraint factor
 
     ///@}
     ///@name Protected Operators
@@ -1195,12 +1194,10 @@ private:
 
 // Here one should use the KRATOS_CREATE_LOCAL_FLAG, but it does not play nice with template parameters
 template<class TSparseSpace, class TDenseSpace, class TLinearSolver>
-const Kratos::Flags ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier<TSparseSpace, TDenseSpace, TLinearSolver>::DOUBLE_LAGRANGE_MULTIPLIER(Kratos::Flags::Create(1));
+const Kratos::Flags ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier<TSparseSpace, TDenseSpace, TLinearSolver>::DOUBLE_LAGRANGE_MULTIPLIER(Kratos::Flags::Create(2));
 template<class TSparseSpace, class TDenseSpace, class TLinearSolver>
-const Kratos::Flags ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier<TSparseSpace, TDenseSpace, TLinearSolver>::TRANSFORMATION_MATRIX_COMPUTED(Kratos::Flags::Create(2));
+const Kratos::Flags ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier<TSparseSpace, TDenseSpace, TLinearSolver>::TRANSFORMATION_MATRIX_COMPUTED(Kratos::Flags::Create(3));
 
 ///@}
 
 } /* namespace Kratos.*/
-
-#endif /* KRATOS_RESIDUAL_BASED_BLOCK_BUILDER_AND_SOLVER  defined */

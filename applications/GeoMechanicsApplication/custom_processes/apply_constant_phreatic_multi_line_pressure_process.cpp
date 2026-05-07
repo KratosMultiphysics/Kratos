@@ -11,10 +11,13 @@
 //                   Jonathan Nuttall
 
 #include "apply_constant_phreatic_multi_line_pressure_process.h"
+#include "geo_mechanics_application_variables.h"
+#include "includes/kratos_flags.h"
 #include "includes/model_part.h"
 
 namespace Kratos
 {
+using namespace std::string_literals;
 
 ApplyConstantPhreaticMultiLinePressureProcess::ApplyConstantPhreaticMultiLinePressureProcess(ModelPart& model_part,
                                                                                              Parameters rParameters)
@@ -41,7 +44,7 @@ ApplyConstantPhreaticMultiLinePressureProcess::ApplyConstantPhreaticMultiLinePre
     KRATOS_CATCH("")
 }
 
-void ApplyConstantPhreaticMultiLinePressureProcess::InitializeParameters(Parameters& rParameters) const
+void ApplyConstantPhreaticMultiLinePressureProcess::InitializeParameters(Parameters& rParameters)
 {
     Parameters default_parameters(R"(
             {
@@ -51,12 +54,12 @@ void ApplyConstantPhreaticMultiLinePressureProcess::InitializeParameters(Paramet
                 "is_seepage": false,
                 "gravity_direction": 1,
                 "out_of_plane_direction": 2,
-                "x_coordinates":           [0.0,1.0],
-                "y_coordinates":           [1.0,0.5],
-				"z_coordinates":           [0.0,0.0],
+                "x_coordinates":           [0.0, 1.0],
+                "y_coordinates":           [1.0, 0.5],
+                "z_coordinates":           [0.0, 0.0],
                 "specific_weight" : 10000.0,
                 "pressure_tension_cut_off" : 0.0,
-                "table" : [0,1]
+                "table" : [0, 0]
             }  )");
 
     // Some values are mandatory, since no meaningful default value exist. For this reason try
@@ -167,12 +170,12 @@ void ApplyConstantPhreaticMultiLinePressureProcess::ExecuteInitialize()
 
 std::string ApplyConstantPhreaticMultiLinePressureProcess::Info() const
 {
-    return "ApplyConstantPhreaticMultiLinePressureProcess";
+    return "ApplyConstantPhreaticMultiLinePressureProcess"s;
 }
 
 void ApplyConstantPhreaticMultiLinePressureProcess::PrintInfo(std::ostream& rOStream) const
 {
-    rOStream << "ApplyConstantPhreaticMultiLinePressureProcess";
+    rOStream << Info();
 }
 
 const std::string& ApplyConstantPhreaticMultiLinePressureProcess::VariableName() const

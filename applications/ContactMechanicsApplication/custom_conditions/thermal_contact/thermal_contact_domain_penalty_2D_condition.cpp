@@ -50,7 +50,7 @@ ThermalContactDomainPenalty2DCondition::ThermalContactDomainPenalty2DCondition( 
 }
 
 
-//*******************************ASSIGMENT OPERATOR***********************************
+//******************************ASSIGNMENT OPERATOR***********************************
 //************************************************************************************
 
 ThermalContactDomainPenalty2DCondition&  ThermalContactDomainPenalty2DCondition::operator=(ThermalContactDomainPenalty2DCondition const& rOther)

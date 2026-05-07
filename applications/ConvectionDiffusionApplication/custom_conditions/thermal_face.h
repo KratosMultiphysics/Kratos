@@ -51,7 +51,7 @@ public:
 
     /**
      * @brief Gauss pt. data structure
-     * Auxiliar data structure to pass the Gauss pt. data
+     * Auxiliary data structure to pass the Gauss pt. data
      */
     struct ConditionDataStruct
     {

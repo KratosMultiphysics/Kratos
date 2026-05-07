@@ -6,8 +6,7 @@
 //  Main authors:  Rafael Rangel (rrangel@cimne.upc.edu)
 //
 
-#if !defined(REAL_CONTACT_MODEL_H_INCLUDED)
-#define REAL_CONTACT_MODEL_H_INCLUDED
+#pragma once
 
 // System includes
 #include <string>
@@ -94,5 +93,3 @@ namespace Kratos
   }
 
 } // namespace Kratos
-
-#endif // REAL_CONTACT_MODEL_H_INCLUDED

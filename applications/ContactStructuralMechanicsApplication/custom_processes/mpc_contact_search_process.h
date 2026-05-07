@@ -43,7 +43,7 @@ namespace Kratos
 /**
  * @class MPCContactSearchProcess
  * @ingroup ContactStructuralMechanicsApplication
- * @brief This utilitiy has as objective to create the contact constraints
+ * @brief This utility has as objective to create the contact constraints
  * @details It uses a KDtree for performing the search
  * @author Vicente Mataix Ferrandiz
  * @tparam TDim The dimension of work

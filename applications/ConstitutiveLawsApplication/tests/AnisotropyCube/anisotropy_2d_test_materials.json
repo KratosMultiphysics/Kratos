@@ -1,0 +1,32 @@
+{
+    "properties" : [{
+        "model_part_name" : "Structure.Parts_Solid_Solid_Auto1",
+        "properties_id"   : 1,
+        "Material"        : {
+            "constitutive_law" : {
+                "name" : "GenericAnisotropicPlaneStress2DLaw"
+            },
+            "Variables"        : {
+				"ORTHOTROPIC_ELASTIC_CONSTANTS" : [10e9, 2.1e9, 2.1e9, 0.29, 0.29, 0.29],
+                "EULER_ANGLES"     : [32,0,0],
+                "ISOTROPIC_ANISOTROPIC_YIELD_RATIO"  : [1,1,1,1,1,1],
+				"DENSITY"         : 7850
+            },
+            "Tables"           : {}
+        },
+        "sub_properties" : [{
+            "properties_id"   : 10,
+            "Material"        : {
+                "constitutive_law" : {
+                    "name" : "LinearElasticPlaneStrain2DLaw"
+                },
+                "Variables"        : {
+                    "DENSITY"         : 2400.0,
+                    "YOUNG_MODULUS"   : 40E9,
+                    "POISSON_RATIO"   : 0.3
+                },
+                "Tables"           : {}
+            }
+        }]
+    }]
+}

@@ -31,12 +31,12 @@ namespace Kratos::Testing {
         for(std::size_t id=1; id<25; id++) {
              auto p_node = r_model_part.CreateNewNode(id, 0.00,0.00,0.00);
              if (id%2!=0) {
-                aux.push_back(p_node);
+                aux.insert(aux.end(), p_node);
              }
             if (id<15) {
-                aux2.push_back(p_node);
+                aux2.insert(aux2.end(), p_node);
              }
-             aux3.push_back(p_node);
+             aux3.insert(aux3.end(), p_node);
         }
         // We check the first one
         r_ssmp.AddNodes(aux.begin(), aux.end());
@@ -63,7 +63,7 @@ namespace Kratos::Testing {
 
         // Here we can go a bit further. No need to be Unique
         for(auto it=aux.begin();it!=aux.end(); it++){
-            aux3.push_back(*(it.base()));
+            aux3.insert(aux3.end(), *(it.base()));
         }
         r_ssmp.AddNodes(aux3.begin(), aux3.end());
         KRATOS_EXPECT_EQ(r_ssmp.NumberOfNodes(), 24);

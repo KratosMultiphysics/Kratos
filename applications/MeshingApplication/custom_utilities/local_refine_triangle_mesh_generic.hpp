@@ -116,7 +116,7 @@ public:
 
             const unsigned int dimension = rGeom.WorkingSpaceDimension();
 
-            // It creates the new conectivities
+            // It creates the new connectivities
             create_object = TriangleSplit::Split_Triangle(EdgeIds, t, &number_object, &splitted_edges, &nint);
 
             // It creates the new objects
@@ -203,7 +203,7 @@ public:
 
     /**
     * It calculates the new edges of the new triangles,
-    * first it calculates the new edges correspondign to the lower face (as a triangle),
+    * first it calculates the new edges correspondingn to the lower face (as a triangle),
     * later it added to the upper face
     * @param rGeom: The triangle element geometry
     * @param EdgeIds: The ids of the edges

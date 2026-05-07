@@ -12,8 +12,7 @@
 //  Ported from the ANurbs library (https://github.com/oberbichler/ANurbs)
 //
 
-#if !defined(KRATOS_NURBS_UTILITY_H_INCLUDED )
-#define  KRATOS_NURBS_UTILITY_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -29,7 +28,7 @@ namespace Kratos {
 
 /// Utility functions for NURBS computation
 /*
-* Provides universal geometrical utiltity functions for the computation of
+* Provides universal geometrical utility functions for the computation of
 * curve and surface NURBS/ B-Spline shape functions.
  */
 namespace NurbsUtilities
@@ -64,10 +63,20 @@ namespace NurbsUtilities
     inline IndexType GetLowerSpan(
         const SizeType PolynomialDegree,
         const Vector& rKnots,
-        const double ParameterT)
+        const double ParameterT,
+        const double tolerance = 1e-12)
     {
+        // Check if the ParameterT (gauss point) is coincident to a knot (laying on an edge of a knot span)
+        double parameter_t_corrected = ParameterT;
+        for (unsigned i = PolynomialDegree; i < rKnots.size(); i++) {
+            if (std::abs(ParameterT-rKnots[i]) < tolerance) {
+                parameter_t_corrected = rKnots[i];
+                break;
+            }
+        }
         const auto span = std::lower_bound(std::begin(rKnots) + PolynomialDegree,
-            std::end(rKnots) - PolynomialDegree, ParameterT) - std::begin(rKnots) - 1;
+            std::end(rKnots) - PolynomialDegree, parameter_t_corrected) - std::begin(rKnots) - 1;
+        
         return span;
     }
 
@@ -127,7 +136,7 @@ namespace NurbsUtilities
 
 
     /*
-    * @brief Computes a vector index from two matrix indicies.
+    * @brief Computes a vector index from two matrix indices.
     * @return index within vector
     */
     static constexpr inline IndexType GetVectorIndexFromMatrixIndices(
@@ -139,7 +148,7 @@ namespace NurbsUtilities
 
     /**
      * @brief Computes a vector index from three matrix indices.
-     * @details Matrix serialization: First walk along rows, then colums, then into depths.
+     * @details Matrix serialization: First walk along rows, then columns, then into depths.
      * @return Index within vector.
      **/
     static constexpr inline IndexType GetVectorIndexFromMatrixIndices(
@@ -166,7 +175,7 @@ namespace NurbsUtilities
 
     /**
      * @brief Computes three matrix indices from vector index.
-     * @details Matrix serialization: First walk along rows, then colums, then into depths.
+     * @details Matrix serialization: First walk along rows, then columns, then into depths.
      * @return indices within Matrix.
      **/
     static inline array_1d<IndexType,3> GetMatrixIndicesFromVectorIndex(
@@ -187,5 +196,3 @@ namespace NurbsUtilities
 }; // class NurbsUtility
 ///@}
 } // namespace Kratos
-
-#endif // KRATOS_NURBS_UTILITY_H_INCLUDED defined

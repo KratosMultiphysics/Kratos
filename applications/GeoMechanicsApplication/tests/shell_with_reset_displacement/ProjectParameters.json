@@ -28,7 +28,6 @@
         "compute_reactions":                  false,
         "move_mesh_flag":                     false,
         "reform_dofs_at_each_step":           false,
-        "nodal_smoothing":                    false,
         "block_builder":                      true,
         "solution_type":                      "Quasi-Static",
         "scheme_type":                        "Backward_Euler",
@@ -70,7 +69,6 @@
             "preconditioner_type": "ilu0"
         },
         "problem_domain_sub_model_part_list": ["shell"],
-        "processes_sub_model_part_list":      ["FixedNodes","ZsupportLoadPoint"],
         "body_domain_sub_model_part_list":    ["shell"]
     },
     "output_processes": {
@@ -141,8 +139,6 @@
             "value":           [0.0,0.0,-20.0],
             "table":           [0,0,0]
         }
-    }],
-    "loads_process_list":    [],
-    "auxiliar_process_list": []
+    }]
     }
 }

@@ -30,8 +30,7 @@ class PrintInfoInFileProcess(KratosMultiphysics.OutputProcess):
 
         default_settings = KratosMultiphysics.Parameters("""
         {
-            "help"                     : "This process prints nodal/elemental/model_part information in a .txt file",
-            "mesh_id"                  : 0,
+            "help"                     : "This process prints nodal/elemental information ina .txt file",
             "model_part_name"          : "please_specify_model_part_name",
             "variable_name"            : "SPECIFY_VARIABLE_NAME",
             "results_type"             : "not_provided_by_default",

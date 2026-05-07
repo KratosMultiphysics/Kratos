@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:     BSD License
+//               Kratos default license: kratos/license.txt
 //
 //  Main authors:    Carlos A. Roig
 //                   Vicente Mataix Ferrandiz
@@ -50,16 +50,8 @@ namespace Testing {
           return "GI_GAUSS_4";
         case GeometryData::IntegrationMethod::GI_GAUSS_5 :
           return "GI_GAUSS_5";
-        case GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_1 :
-          return "GI_EXTENDED_GAUSS_1";
-        case GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_2 :
-          return "GI_EXTENDED_GAUSS_2";
-        case GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_3 :
-          return "GI_EXTENDED_GAUSS_3";
-        case GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_4 :
-          return "GI_EXTENDED_GAUSS_4";
-        case GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_5 :
-          return "GI_EXTENDED_GAUSS_5";
+        case GeometryData::IntegrationMethod::GI_LOBATTO_1 :
+          return "GI_LOBATTO_1";
         case GeometryData::IntegrationMethod::NumberOfIntegrationMethods :
           return "NumberOfIntegrationMethods";
       };
@@ -147,18 +139,26 @@ namespace Testing {
           return "Kratos_Nurbs_Volume";
         case GeometryData::KratosGeometryType::Kratos_Nurbs_Curve_On_Surface:
           return "Kratos_Nurbs_Curve_On_Surface";
+        case GeometryData::KratosGeometryType::Kratos_Nurbs_Surface_On_Volume:
+          return "Kratos_Nurbs_Surface_On_Volume";
         case GeometryData::KratosGeometryType::Kratos_Surface_In_Nurbs_Volume:
           return "Kratos_Surface_In_Nurbs_Volume";
         case GeometryData::KratosGeometryType::Kratos_Brep_Curve:
           return "Kratos_Brep_Curve";
         case GeometryData::KratosGeometryType::Kratos_Brep_Surface:
           return "Kratos_Brep_Surface";
+        case GeometryData::KratosGeometryType::Kratos_Brep_Volume:
+          return "Kratos_Brep_Volume";
         case GeometryData::KratosGeometryType::Kratos_Brep_Curve_On_Surface:
           return "Kratos_Brep_Curve_On_Surface";
+        case GeometryData::KratosGeometryType::Kratos_Brep_Surface_On_Volume:
+          return "Kratos_Brep_Surface_On_Volume";
         case GeometryData::KratosGeometryType::Kratos_Quadrature_Point_Geometry:
           return "Kratos_Quadrature_Point_Geometry";
         case GeometryData::KratosGeometryType::Kratos_Coupling_Geometry:
             return "Kratos_Coupling_Geometry";
+        case GeometryData::KratosGeometryType::Kratos_Quadrature_Point_Curve_Geometry:
+          return "Kratos_Quadrature_Point_Curve_Geometry";
         case GeometryData::KratosGeometryType::Kratos_Quadrature_Point_Curve_On_Surface_Geometry:
           return "Kratos_Quadrature_Point_Curve_On_Surface_Geometry";
         case GeometryData::KratosGeometryType::Kratos_Quadrature_Point_Surface_In_Volume_Geometry:

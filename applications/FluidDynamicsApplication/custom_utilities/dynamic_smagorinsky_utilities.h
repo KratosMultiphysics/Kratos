@@ -130,7 +130,7 @@ public:
         {
             for( std::vector<int>::iterator itIndex = itList->begin(); itIndex != itList->end(); ++itIndex)
             {
-                // Note that instering in map already sorts and checks for uniqueness
+                // Note that inserting in map already sorts and checks for uniqueness
                 NewVal.first = *itIndex;
                 NewVal.second = Counter;
                 Result = mPatchIndices.insert(NewVal);
@@ -303,7 +303,7 @@ public:
      Possible values for the variable: 1.0 inlet, 2.0 bridge surface, 3.0 outlet, 0.0 otherwise
      @param rThisVariable The Kratos variable used to identify the boundary
      */
-    void CorrectFlagValues(Variable<double>& rThisVariable = FLAG_VARIABLE)
+    void CorrectFlagValues(const Variable<double>& rThisVariable = FLAG_VARIABLE)
     {
         // Loop over coarse mesh to evaluate all terms that do not involve the fine mesh
         const int NumThreads = ParallelUtilities::GetNumThreads();
@@ -364,7 +364,7 @@ private:
 
     /// ModelPart of the fluid problem
     ModelPart& mrModelPart;
-    /// Spatial dimenstion
+    /// Spatial dimension
     unsigned int mDomainSize;
     /// Container for the coarse mesh (the fine mesh is stored by the model part)
     ModelPart::ElementsContainerType mCoarseMesh;

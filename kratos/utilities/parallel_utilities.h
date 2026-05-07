@@ -41,16 +41,16 @@
 #define KRATOS_PREPARE_CATCH_THREAD_EXCEPTION std::stringstream err_stream;
 
 #ifndef KRATOS_NO_TRY_CATCH
-    #define KRATOS_CATCH_THREAD_EXCEPTION \
+    #define KRATOS_CATCH_THREAD_EXCEPTION(ThreadNumber) \
     } catch(Exception& e) { \
         KRATOS_CRITICAL_SECTION \
-        err_stream << "Thread #" << i << " caught exception: " << e.what(); \
+        err_stream << "Thread #" << ThreadNumber << " caught exception: " << e.what(); \
     } catch(std::exception& e) { \
         KRATOS_CRITICAL_SECTION \
-        err_stream << "Thread #" << i << " caught exception: " << e.what(); \
+        err_stream << "Thread #" << ThreadNumber << " caught exception: " << e.what(); \
     } catch(...) { \
         KRATOS_CRITICAL_SECTION \
-        err_stream << "Thread #" << i << " caught unknown exception:"; \
+        err_stream << "Thread #" << ThreadNumber << " caught unknown exception:"; \
     }
 #else
     #define KRATOS_CATCH_THREAD_EXCEPTION {}
@@ -189,7 +189,7 @@ public:
             for (auto it = mBlockPartition[i]; it != mBlockPartition[i+1]; ++it) {
                 f(*it); //note that we pass the value to the function, not the iterator
             }
-            KRATOS_CATCH_THREAD_EXCEPTION
+            KRATOS_CATCH_THREAD_EXCEPTION(i)
         }
 
         KRATOS_CHECK_AND_THROW_THREAD_EXCEPTION
@@ -214,7 +214,7 @@ public:
                 local_reducer.LocalReduce(f(*it));
             }
             global_reducer.ThreadSafeReduce(local_reducer);
-            KRATOS_CATCH_THREAD_EXCEPTION
+            KRATOS_CATCH_THREAD_EXCEPTION(i)
         }
 
         KRATOS_CHECK_AND_THROW_THREAD_EXCEPTION
@@ -244,7 +244,7 @@ public:
                 for (auto it = mBlockPartition[i]; it != mBlockPartition[i+1]; ++it){
                     f(*it, thread_local_storage); // note that we pass the value to the function, not the iterator
                 }
-                KRATOS_CATCH_THREAD_EXCEPTION
+                KRATOS_CATCH_THREAD_EXCEPTION(i)
             }
         }
         KRATOS_CHECK_AND_THROW_THREAD_EXCEPTION
@@ -278,7 +278,7 @@ public:
                     local_reducer.LocalReduce(f(*it, thread_local_storage));
                 }
                 global_reducer.ThreadSafeReduce(local_reducer);
-                KRATOS_CATCH_THREAD_EXCEPTION
+                KRATOS_CATCH_THREAD_EXCEPTION(i)
             }
         }
         KRATOS_CHECK_AND_THROW_THREAD_EXCEPTION
@@ -369,7 +369,7 @@ template <class TReduction,
 template <class TContainerType,
           class TFunctionType,
           std::enable_if_t<!std::is_same_v<
-            std::iterator_traits<typename decltype(std::declval<std::remove_cv_t<TContainerType>>().begin())::value_type>,
+            typename std::iterator_traits<decltype(std::declval<std::remove_cv_t<TContainerType>>().begin())>::value_type,
             void
           >, bool> = true
          >
@@ -525,7 +525,7 @@ public:
             for (auto k = mBlockPartition[i]; k < mBlockPartition[i+1]; ++k) {
                 f(k); //note that we pass a reference to the value, not the iterator
             }
-            KRATOS_CATCH_THREAD_EXCEPTION
+            KRATOS_CATCH_THREAD_EXCEPTION(i)
         }
         KRATOS_CHECK_AND_THROW_THREAD_EXCEPTION
     }
@@ -549,7 +549,7 @@ public:
                 local_reducer.LocalReduce(f(k));
             }
             global_reducer.ThreadSafeReduce(local_reducer);
-            KRATOS_CATCH_THREAD_EXCEPTION
+            KRATOS_CATCH_THREAD_EXCEPTION(i)
         }
         KRATOS_CHECK_AND_THROW_THREAD_EXCEPTION
         return global_reducer.GetValue();
@@ -578,7 +578,7 @@ public:
                 for (auto k = mBlockPartition[i]; k < mBlockPartition[i+1]; ++k) {
                     f(k, thread_local_storage); //note that we pass a reference to the value, not the iterator
                 }
-                KRATOS_CATCH_THREAD_EXCEPTION
+                KRATOS_CATCH_THREAD_EXCEPTION(i)
             }
         }
         KRATOS_CHECK_AND_THROW_THREAD_EXCEPTION
@@ -612,7 +612,7 @@ public:
                     local_reducer.LocalReduce(f(k, thread_local_storage));
                 }
                 global_reducer.ThreadSafeReduce(local_reducer);
-                KRATOS_CATCH_THREAD_EXCEPTION
+                KRATOS_CATCH_THREAD_EXCEPTION(i)
             }
         }
         KRATOS_CHECK_AND_THROW_THREAD_EXCEPTION
@@ -626,7 +626,3 @@ private:
 };
 
 } // namespace Kratos.
-
-#undef KRATOS_PREPARE_CATCH_THREAD_EXCEPTION
-#undef KRATOS_CATCH_THREAD_EXCEPTION
-#undef KRATOS_CHECK_AND_THROW_THREAD_EXCEPTION

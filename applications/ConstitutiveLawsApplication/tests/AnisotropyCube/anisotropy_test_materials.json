@@ -24,7 +24,7 @@
                     "YOUNG_MODULUS"   : 40E9,
                     "POISSON_RATIO"   : 0.3,
                     "YIELD_STRESS"    : 0.8e7,
-                    "FRACTURE_ENERGY" : 100000,
+                    "FRACTURE_ENERGY" : 10000,
                     "SOFTENING_TYPE"  : 1
                 },
                 "Tables"           : {}

@@ -1,11 +1,13 @@
 # Ignore everything
 *
 # But not these files...
-!kratos_doxyfile
+!doxyfile
 !doxygen-awesome.css
 !py_filter.sh
-!README
+!readme.md
+!html_layout.xml
 !kratos_small.png
+!mkdocs.sh
 !.gitignore
 
 # ...even if they are in subdirectories

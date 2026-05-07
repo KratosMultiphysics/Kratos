@@ -317,10 +317,19 @@ public:
     /**
      * Called at the beginning of each solution step
      */
-    virtual void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
+    void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
-     * Called at the end of eahc solution step
+     * This is a first and temporary attempt to move Particle to Grid Mapping from InitializeSolutionStep.
+     * This will be moved to an utility in the future, after restructuring of MPM's internal variables data structure.
+     * this is called at predict before doing the actual predict
+      * @param rCurrentProcessInfo the current process info instance
+     */
+    void AddExplicitContribution(const ProcessInfo& rCurrentProcessInfo) override;
+
+
+    /**
+     * Called at the end of each solution step
      */
     void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 

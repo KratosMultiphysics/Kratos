@@ -1,7 +1,7 @@
 import KratosMultiphysics
 
-## This proces sets the value of a vector variable component-by-component.
-## In this case, the fixicity is given set by deffault to true.
+## This process sets the value of a vector variable component-by-component.
+## In this case, the fixicity is given set by default to true.
 import sys
 
 def Factory(custom_settings, Model):

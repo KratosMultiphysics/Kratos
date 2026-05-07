@@ -44,6 +44,7 @@ typedef std::size_t SizeType;
 typedef std::size_t IndexType;
 
 typedef Geometry<Node> GeometryType;
+typedef typename GeometryType::CoordinatesArrayType CoordinatesArrayType;
 
 PairingIndex KRATOS_API(MAPPING_APPLICATION) ProjectOnLine(const GeometryType& rGeometry,
                            const Point& rPointToProject,
@@ -68,6 +69,14 @@ PairingIndex KRATOS_API(MAPPING_APPLICATION) ProjectIntoVolume(const GeometryTyp
                                std::vector<int>& rEquationIds,
                                double& rProjectionDistance,
                                const bool ComputeApproximation=true);
+
+PairingIndex KRATOS_API(MAPPING_APPLICATION) ProjectToIBRA(const GeometryType& rGeometry,
+                     const Point& rPointToProject,
+                     const double LocalCoordTol,
+                     Vector& rShapeFunctionValues,
+                     std::vector<int>& rEquationIds,
+                     double& rProjectionDistance,
+                     const bool ComputeApproximation=true);
 
 bool KRATOS_API(MAPPING_APPLICATION) ComputeProjection(const GeometryType& rGeometry,
                        const Point& rPointToProject,

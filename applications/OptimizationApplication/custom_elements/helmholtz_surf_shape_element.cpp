@@ -427,7 +427,7 @@ void HelmholtzSurfShapeElement::CalculateSurfaceStiffnessMatrix(
 
     }
 
-    //contruct the stifness matrix in all dims
+    //construct the stiffness matrix in all dims
     for(IndexType i=0;i<number_of_nodes;i++)
         for(IndexType j=0;j<dimension;j++)
             for(IndexType k=0;k<number_of_nodes;k++)

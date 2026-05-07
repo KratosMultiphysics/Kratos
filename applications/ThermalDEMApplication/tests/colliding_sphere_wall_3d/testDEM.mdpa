@@ -1,0 +1,46 @@
+Begin ModelPartData
+//  VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 0
+End Properties
+
+Begin Nodes
+	1	-0.2  0.0  0.7
+End Nodes
+
+Begin Elements ThermalSphericParticle // GUI group identifier: Particle
+	1	0	1 
+End Elements
+
+Begin NodalData RADIUS // GUI group identifier: Particle
+	1	0	0.5
+End NodalData
+
+Begin SubModelPart DEMParts_Particle // Group Particle // Subtree DEMParts
+	Begin SubModelPartData
+		TEMPERATURE                       300.0
+		FIXED_TEMPERATURE                 0
+		HEATFLUX                          50.0
+		HEATSOURCE                       -100.0
+		ADIABATIC                         0
+		REAL_YOUNG_MODULUS_RATIO          10.0
+		INITIAL_VELOCITY_X_VALUE          10.0
+		INITIAL_VELOCITY_Y_VALUE          0.0
+		INITIAL_VELOCITY_Z_VALUE         -10.0
+		INITIAL_ANGULAR_VELOCITY_X_VALUE  0.0
+		INITIAL_ANGULAR_VELOCITY_Y_VALUE  1.0
+		INITIAL_ANGULAR_VELOCITY_Z_VALUE  0.0
+		RIGID_BODY_MOTION                 0
+		FORCE_INTEGRATION_GROUP           0
+		IDENTIFIER                        Particle
+	End SubModelPartData
+	Begin SubModelPartNodes
+		1
+	End SubModelPartNodes
+	Begin SubModelPartElements
+		1
+	End SubModelPartElements
+	Begin SubModelPartConditions
+	End SubModelPartConditions
+End SubModelPart

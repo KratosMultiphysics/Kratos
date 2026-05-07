@@ -15,8 +15,7 @@
 // Application includes
 #include "custom_elements/shifted_boundary_fluid_element.h"
 #include "custom_elements/weakly_compressible_navier_stokes.h"
-#include "custom_utilities/embedded_data.h"
-#include "custom_utilities/weakly_compressible_navier_stokes_data.h"
+#include "custom_elements/data_containers/weakly_compressible_navier_stokes/weakly_compressible_navier_stokes_data.h"
 #include <cstddef>
 #include <ostream>
 #include <string>

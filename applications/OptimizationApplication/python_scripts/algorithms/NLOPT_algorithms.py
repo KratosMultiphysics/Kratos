@@ -21,7 +21,7 @@ def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_pro
 
 class NLOPTAlgorithms(Algorithm):
     """
-        A classical steepest descent algorithm to solve unconstrainted optimization problems.
+        A classical steepest descent algorithm to solve unconstrained optimization problems.
     """
 
     @classmethod
@@ -69,7 +69,7 @@ class NLOPTAlgorithms(Algorithm):
         self.__objective = StandardizedNLOPTObjective(parameters["objective"], self.master_control, self._optimization_problem)
         self._optimization_problem.AddComponent(self.__objective)
         self.__constraints = []
-        for constraint_settings in parameters["constraints"]:
+        for constraint_settings in parameters["constraints"].values():
             constraint = StandardizedNLOPTConstraint(constraint_settings, self.master_control, self._optimization_problem)
             self._optimization_problem.AddComponent(constraint)
             self.__constraints.append(constraint)
@@ -128,8 +128,7 @@ class NLOPTAlgorithms(Algorithm):
         self.algorithm_data = ComponentDataView("algorithm", self._optimization_problem)
 
         # create nlopt optimizer
-        self.x0 = self.__control_field.Evaluate()
-        self.x0 = self.x0.reshape(-1)
+        self.x0 = self.__control_field.data.reshape(-1)
         self.nlopt_optimizer = nlopt.opt(self.GetOptimizer(self.algorithm_name), self.x0.size)
 
         # add subsidiary optimization algorithm
@@ -142,7 +141,7 @@ class NLOPTAlgorithms(Algorithm):
         # set nlopt verbosity
         self.nlopt_optimizer.set_param("verbosity",self.nlopt_verbosity)
 
-        # assign objectives and constarints
+        # assign objectives and constraints
         self.nlopt_optimizer.set_min_objective(self.__objective.CalculateStandardizedValueAndGradients)
         for constraint in self.__constraints:
             if constraint.IsEqualityType():

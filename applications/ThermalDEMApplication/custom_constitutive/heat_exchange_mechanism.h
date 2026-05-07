@@ -6,8 +6,7 @@
 //  Main authors:  Rafael Rangel (rrangel@cimne.upc.edu)
 //
 
-#if !defined(HEAT_EXCHANGE_MECHANISM_H_INCLUDED)
-#define HEAT_EXCHANGE_MECHANISM_H_INCLUDED
+#pragma once
 
 // System includes
 #include <string>
@@ -40,6 +39,7 @@ namespace Kratos
       virtual double GetSearchDistance                    (const ProcessInfo& r_process_info, ThermalSphericParticle* particle);
       virtual double ComputeHeatFlux                      (const ProcessInfo& r_process_info, ThermalSphericParticle* particle);
       virtual double FinalizeHeatFlux                     (const ProcessInfo& r_process_info, ThermalSphericParticle* particle);
+      virtual double ComputeEffectiveThermalConductivity  (const ProcessInfo& r_process_info, ThermalSphericParticle* particle);
 
       // Clone
       virtual HeatExchangeMechanism* CloneRaw() const {
@@ -96,5 +96,3 @@ namespace Kratos
   }
 
 } // namespace Kratos
-
-#endif // HEAT_EXCHANGE_MECHANISM_H_INCLUDED

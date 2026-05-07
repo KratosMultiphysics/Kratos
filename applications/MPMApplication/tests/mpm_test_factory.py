@@ -106,6 +106,17 @@ class GravityTimeStepTableTest(MPMTestFactory):
 class PenaltyImpositionBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest(MPMTestFactory):
     file_name = "beam_tests/hyperelastic_cantilever_beam/penalty_self_weight_load_2D_quad_test"
 
+### Lagrange Imposition Tests
+class LagrangeImpositionBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest(MPMTestFactory):
+    file_name = "beam_tests/hyperelastic_cantilever_beam/lagrange_self_weight_load_2D_quad_test"
+
+class LagrangeCenterImpositionBeamCantileverQuasiStaticHyperelasticSelfWeightLoad2DQuadTest(MPMTestFactory):
+    file_name = "beam_tests/hyperelastic_cantilever_beam/lagrange_center_self_weight_load_2D_quad_test"
+
+### Perturbed Lagrange Imposition Tests
+class PerturbedLagrangeImpositionBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest(MPMTestFactory):
+    file_name = "beam_tests/hyperelastic_cantilever_beam/perturbed_lagrange_self_weight_load_2D_quad_test"
+
 ### Slip Boundary Tests
 class SlipBoundaryTest(MPMTestFactory):
     file_name = "slip_tests/conforming/slip_boundary_test"
@@ -156,3 +167,7 @@ class PQMPMExplicitTriTest(MPMTestFactory):
 
 class PQMPMExplicitHexTest(MPMTestFactory):
     file_name = "pqmpm_tests/pqmpm_explicit_hex_test"
+    
+### Initial condition tests
+class InitialConditionPrescribedVelocityTest(MPMTestFactory):
+    file_name = "initial_condition_tests/prescribed_initial_velocity_test"

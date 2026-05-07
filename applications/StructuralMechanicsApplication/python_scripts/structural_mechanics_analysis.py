@@ -12,7 +12,7 @@ class StructuralMechanicsAnalysis(AnalysisStage):
     It can be imported and used as "black-box"
     """
     def __init__(self, model, project_parameters):
-        # Making sure that older cases still work by properly initalizing the parameters
+        # Making sure that older cases still work by properly initializing the parameters
         solver_settings = project_parameters["solver_settings"]
 
         if solver_settings.Has("domain_size") and project_parameters["problem_data"].Has("domain_size"):
@@ -71,7 +71,7 @@ class StructuralMechanicsAnalysis(AnalysisStage):
 
     #### Internal functions ####
     def _CreateSolver(self):
-        """ Create the Solver (and create and import the ModelPart if it is not alread in the model) """
+        """ Create the Solver (and create and import the ModelPart if it is not already in the model) """
         ## Solver construction
         return structural_solvers.CreateSolver(self.model, self.project_parameters)
 

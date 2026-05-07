@@ -357,7 +357,6 @@
             "kratos_module" : "KratosMultiphysics",
             "process_name"  : "AssignScalarVariableProcess",
             "Parameters"    : {
-                "mesh_id"         : 0,
                 "model_part_name" : "FluidModelPart.fixed_pressure",
                 "variable_name"   : "PRESSURE",
                 "value"           : 0,

@@ -27,7 +27,6 @@
         "compute_reactions":                  false,
         "move_mesh_flag":                     false,
         "reform_dofs_at_each_step":           false,
-        "nodal_smoothing":                    false,
         "block_builder":                      true,
         "solution_type":                      "Quasi-Static",
         "scheme_type":                        "Newmark",
@@ -70,7 +69,6 @@
             "scaling":         false
         },
         "problem_domain_sub_model_part_list": ["Truss-auto-1"],
-        "processes_sub_model_part_list":      ["Solid_Displacement-auto-1","Structural_Rotation-auto-1","Point_Load-auto-1"],
         "body_domain_sub_model_part_list":    ["Truss-auto-1"]
     },
     "output_processes": {
@@ -86,7 +84,7 @@
                         "gidpost_flags":       {
                             "WriteDeformedMeshFlag": "WriteUndeformed",
                             "WriteConditionsFlag":   "WriteElementsOnly",
-                            "GiDPostMode":           "GiD_PostBinary",
+                            "GiDPostMode":           "GiD_PostAscii",
                             "MultiFileFlag":         "SingleFile"
                         },
                         "file_label":          "step",
@@ -97,7 +95,7 @@
                         "skin_output":         false,
                         "plane_output":        [],
                         "nodal_results":       ["DISPLACEMENT"],
-                        "gauss_point_results": ["CAUCHY_STRESS_TENSOR"]
+                        "gauss_point_results": []
                     },
                     "point_data_configuration":  []
                 }

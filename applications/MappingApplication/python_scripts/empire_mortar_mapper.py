@@ -63,7 +63,7 @@ class EmpireMortarMapper(PythonMapper):
             EmpireMortarMapper.mapper_lib.deleteMesh(ConvertToChar(self.mesh_name_destination))
 
         EmpireMortarMapper.instances -= 1
-        if EmpireMortarMapper.instances == 0: # last mapper was destoyed
+        if EmpireMortarMapper.instances == 0: # last mapper was destroyed
             if self.echo_level > 1:
                 KM.Logger.PrintInfo('EmpireMortarMapper', 'Destroying last instance, deleting all meshes & mappers')
             #  delete everything to make sure nothing is left

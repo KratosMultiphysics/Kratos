@@ -96,7 +96,7 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Default constuctor.
+    /// Default constructor.
     /**
     * @param NewId Index number of the new element (optional)
     */
@@ -116,7 +116,7 @@ public:
     */
     TwoFluidNavierStokes(IndexType NewId, GeometryType::Pointer pGeometry);
 
-    /// Constuctor using geometry and properties.
+    /// Constructor using geometry and properties.
     /**
     * @param NewId Index of the new element
     * @param pGeometry Pointer to a geometry object
@@ -151,7 +151,7 @@ public:
     /**
     * Returns a pointer to a new FluidElement element, created using given input.
     * @param NewId the ID of the new element
-    * @param pGeom a pointer to the geomerty to be used to create the element
+    * @param pGeom a pointer to the geometry to be used to create the element
     * @param pProperties the properties assigned to the new element
     * @return a Pointer to the new element
     */
@@ -298,7 +298,7 @@ protected:
         MatrixType& rLHS);
 
     /**
-     * @brief Computes the RHS Gaus  pt. contribution
+     * @brief Computes the RHS Gauss pt. contribution
      * This method computes the contribution to the RHS of a Gauss pt.
      * @param rData Reference to the element data container
      * @param rRHS Reference to the Right Hand Side vector to be filled
@@ -310,7 +310,7 @@ protected:
     /**
      * @brief Computes the pressure enrichment contributions
      * This method computes the pressure enrichment contributions for
-     * a Gauss pt. in both the left hand side and righ hand side of the equations.
+     * a Gauss pt. in both the left hand side and right hand side of the equations.
      * @param rData Reference to the element data container
      * @param rV Contribution related to the pressure enrichment DOFs in the N-S standard equations
      * @param rH Contribution related to the standard velocity and pressure DOFs in the enrichment equations

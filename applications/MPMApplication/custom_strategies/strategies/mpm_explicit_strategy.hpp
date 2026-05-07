@@ -150,10 +150,20 @@ namespace Kratos
                 mInitializeWasPerformed = true;
             }
 
-            // Prints informations about the current time
+            // Prints information about the current time
             KRATOS_INFO_IF("MPM_Explicit_Strategy", this->GetEchoLevel() == 2) << "CurrentTime = " << BaseType::GetModelPart().GetProcessInfo()[TIME] << std::endl;
 
             KRATOS_CATCH("")
+        }
+
+        void Predict() override
+        {
+            DofsArrayType dummy_r_dof_set = DofsArrayType();
+            TSystemMatrixType dummyA = TSystemMatrixType();
+            TSystemVectorType dummyDx = TSystemVectorType();
+            TSystemVectorType dummyb = TSystemVectorType();
+
+            GetScheme()->Predict(BaseType::GetModelPart(), dummy_r_dof_set, dummyA, dummyDx, dummyb);
         }
 
         void InitializeSolutionStep() override

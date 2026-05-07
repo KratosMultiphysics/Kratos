@@ -1308,7 +1308,7 @@ class RemoveNodesMesherProcess
 
                 //Path of neighbour conditions in 2D:   (NodeA) ---[0]--- (Node0) ---[1]--- (Node1*) ---[2]--- (Node2) --- [3]--- (NodeB)
 
-                //realease positions:
+                //release positions:
                 node_shared_conditions[nodeId][i]->Set(TO_ERASE); //release condition [1]
                 node_shared_conditions[nodeId][j]->Set(TO_ERASE); //release condition [2]
 

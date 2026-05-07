@@ -15,7 +15,6 @@ class ApplyInletProcess(KratosMultiphysics.Process):
 
         default_settings = KratosMultiphysics.Parameters("""
         {
-            "mesh_id"         : 0,
             "model_part_name" : "",
             "variable_name"   : "VELOCITY",
             "modulus"         : 0.0,
@@ -47,7 +46,7 @@ class ApplyInletProcess(KratosMultiphysics.Process):
                     raise Exception("Inlet scalar value equal to 0.")
             elif (settings["modulus"].IsString()):
                 if (settings["modulus"].GetString == ""):
-                    raise Exception("Inlet function sting is empty.")
+                    raise Exception("Inlet function string is empty.")
 
         # Set the INLET flag in the inlet model part nodes and conditions
         self.inlet_model_part = Model[settings["model_part_name"].GetString()]

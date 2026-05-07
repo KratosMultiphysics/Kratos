@@ -1,7 +1,7 @@
 // KRATOS    ______            __             __  _____ __                  __                   __
 //          / ____/___  ____  / /_____ ______/ /_/ ___// /________  _______/ /___  ___________ _/ /
-//         / /   / __ \/ __ \/ __/ __ `/ ___/ __/\__ \/ __/ ___/ / / / ___/ __/ / / / ___/ __ `/ / 
-//        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
+//         / /   / __ \/ __ \/ __/ __ `/ ___/ __/\__ \/ __/ ___/ / / / ___/ __/ / / / ___/ __ `/ /
+//        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /
 //        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
 //  License:         BSD License
@@ -179,7 +179,7 @@ public:
     {
         KRATOS_TRY
 
-        // Now validate agains defaults -- this also ensures no type mismatch
+        // Now validate against defaults -- this also ensures no type mismatch
         Parameters default_parameters = GetDefaultParameters();
         ThisParameters.ValidateAndAssignDefaults(default_parameters);
 
@@ -264,7 +264,7 @@ public:
             mpSolverDispBlock->Initialize(mKDispModified, mDisp, mResidualDisp);
             mOptions.Set(IS_INITIALIZED, true);
         } else
-            KRATOS_DETAIL("MixedULM Initialize") << "Linear solver intialization is deferred to the moment at which blocks are available" << std::endl;
+            KRATOS_DETAIL("MixedULM Initialize") << "Linear solver initialization is deferred to the moment at which blocks are available" << std::endl;
     }
 
     /**
@@ -297,14 +297,8 @@ public:
         mpSolverDispBlock->InitializeSolutionStep(mKDispModified, mDisp, mResidualDisp);
     }
 
-    /**
-     * @brief This function actually performs the solution work, eventually taking advantage of what was done before in the
-     * @details Initialize and InitializeSolutionStep functions.
-     * @param rA System matrix
-     * @param rX Solution vector. it's also the initial guess for iterative linear solvers.
-     * @param rB Right hand side vector.
-    */
-    void PerformSolutionStep (
+    /// @copydoc LinearSolver::PerformSolutionStep
+    bool PerformSolutionStep (
         SparseMatrixType& rA,
         VectorType& rX,
         VectorType& rB
@@ -352,6 +346,8 @@ public:
             // Write back solution
             SetLMIPart(rX, mLMInactive);
         }
+
+        return false;
     }
 
     /**
@@ -380,7 +376,7 @@ public:
         mpSolverDispBlock->Clear();
 
         // Clear displacement DoFs
-        auto& r_data_dofs = mDisplacementDofs.GetContainer(); 
+        auto& r_data_dofs = mDisplacementDofs.GetContainer();
         for (IndexType i=0; i<r_data_dofs.size(); ++i) {
             delete r_data_dofs[i];
         }
@@ -499,7 +495,7 @@ public:
      * @details To make an example when solving a mixed u-p problem, it is important to identify the row associated to v and p. Another example is the automatic prescription of rotation null-space for smoothed-aggregation solvers which require knowledge on the spatial position of the nodes associated to a given dof. This function is the place to eventually provide such data
      * @param rA System matrix
      * @param rX Solution vector. It's also the initial guess for iterative linear solvers.
-     * @param rB Right hand side vector.     
+     * @param rB Right hand side vector.
      * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
      * @param rModelPart Reference to the ModelPart containing the contact problem.
      */
@@ -775,7 +771,7 @@ public:
      * @brief This method retrieves the displacement DoFs of the system ordered according to the resolution order
      * @return The displacement DoFs of the system
      */
-    const DofsArrayType& GetDisplacementDofs() const 
+    const DofsArrayType& GetDisplacementDofs() const
     {
         return mDisplacementDofs;
     }
@@ -1587,7 +1583,7 @@ private:
     inline void AllocateBlocks()
     {
         // Clear displacement DoFs
-        auto& r_data_dofs = mDisplacementDofs.GetContainer(); 
+        auto& r_data_dofs = mDisplacementDofs.GetContainer();
         for (IndexType i=0; i<r_data_dofs.size(); ++i) {
             delete r_data_dofs[i];
         }

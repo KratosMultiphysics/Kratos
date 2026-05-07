@@ -12,7 +12,7 @@
 
 #include "droplet_dynamics_element.h"
 #include "droplet_dynamics_application_variables.h"
-#include "../../FluidDynamicsApplication/custom_utilities/two_fluid_navier_stokes_data.h"
+#include "custom_elements/data_containers/two_fluid_navier_stokes/two_fluid_navier_stokes_data.h"
 
 namespace Kratos
 {

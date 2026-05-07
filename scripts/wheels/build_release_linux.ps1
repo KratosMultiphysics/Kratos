@@ -1,4 +1,4 @@
-$RELEASE_BRANCH="Release-10.0"
+$RELEASE_BRANCH="Release-10.3.2"
 
 $HOST_SWAP="C:/data_swap_host"
 $GUEST_SWAP="/data_swap_guest"

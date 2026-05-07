@@ -183,7 +183,7 @@ public:
       * @param rMoving_ModelPart: the destination model part where we want to know the values of the variables
       * @param rFixedDomainVariable: the name of the interpolated variable in the origin model part
       * @param rMovingDomainVariable: the name of the interpolated variable in the destination model part
-      * @param node_locator: precomputed bin of objects (elelments of the fixed mesh). It is to be constructed separately @see binbased_nodes_in_element_locator
+      * @param node_locator: precomputed bin of objects (elements of the fixed mesh). It is to be constructed separately @see binbased_nodes_in_element_locator
       */
     // From moving to fixed model part
     template<class TDataType>
@@ -224,7 +224,7 @@ public:
             (node_it)->GetValue(YOUNG_MODULUS) = 0.0;
 // 			}
         }
-        //defintions for spatial search
+        //definitions for spatial search
 //         typedef NodeType PointType;
 //         typedef NodeType::Pointer PointTypePointer;
 
@@ -313,7 +313,7 @@ public:
             ClearVariables(node_it, rFixedDomainVariable);
         }
 
-        //defintions for spatial search
+        //definitions for spatial search
         typedef typename BinBasedNodesInElementLocator<TDim>::PointVector PointVector;
         typedef typename BinBasedNodesInElementLocator<TDim>::DistanceVector DistanceVector;
         const std::size_t max_results = 5000;
@@ -354,7 +354,7 @@ public:
     ///@name Input and output
     ///@{
 
-    /// Turn back information as a stemplate<class T, std::size_t dim> tring.
+    /// Turn back information as a stemplate<class T, std::size_t dim> string.
     virtual std::string Info() const
     {
         return "";
@@ -538,7 +538,7 @@ private:
         {
 
 // 				KRATOS_THROW_ERROR(std::logic_error,"element with zero area found","");
-            //The interpolated node will not be inside an elemente with zero area
+            //The interpolated node will not be inside an element with zero area
             return false;
 
         }
@@ -588,7 +588,7 @@ private:
         {
 
 // 				KRATOS_THROW_ERROR(std::logic_error,"element with zero vol found","");
-            //The interpolated node will not be inside an elemente with zero volume
+            //The interpolated node will not be inside an element with zero volume
             return false;
 // 				KRATOS_WATCH("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
         }

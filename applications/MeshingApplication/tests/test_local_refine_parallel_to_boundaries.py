@@ -54,7 +54,7 @@ class TestLocalRefineParallelToBoundaries(KratosUnittest.TestCase):
         # export to gid commented, uncomment in case you want to see how the refined mesh looks like
         #the initial geometry was a cube with 3X3x3 tets, identical size
         #one of the sides of the cube does not have BCs, so that side will be refined.
-        #in the remaning 5 faces, where triangles are presents, their edges are not cut, so the original number of BCs is kept
+        #in the remaining 5 faces, where triangles are presents, their edges are not cut, so the original number of BCs is kept
 
         # gid_output = GiDOutputProcess(main_model_part,
         #                             "gid_output",

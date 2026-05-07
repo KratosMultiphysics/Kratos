@@ -49,7 +49,7 @@ Both theories are very close and correct and, while the JKR theory is adequate t
 The application includes two types of DEM elements used for different purposes:
 
 * Spheric Particle - Base element used to simulate granular materials (non cohesive or slightly cohesive)
-* Spheric Continuum Particle - With specific build-in variables to simulate fracture in cohesive materials. It can also be understood as a discretization method of the continuum by using spheres.
+* Spheric Continuum Particle - With specific built-in variables to simulate fracture in cohesive materials. It can also be understood as a discretization method of the continuum by using spheres.
 
 And has the following easy-to-use capabilities:
 
@@ -65,7 +65,7 @@ It also includes several predefined cluster formations to be used.
 #### Non-cohesive materials strategy
 
 Once contact between two spheres occurs, the forces at the contact point are computed. The interaction between the two contacting spheres can be represented by two forces with the same module but opposite directions. This force F can be decomposed into its normal and shear components Fn and Fs, respectively.
-The contact interface for the simplest formulation is characterized by the normal and tangential stiffness Kn and Ks, respectively, a frictional device obeying the Couloumb law with a frictional coefficient, and a dashpot defined by a contact damping coefficient.
+The contact interface for the simplest formulation is characterized by the normal and tangential stiffness Kn and Ks, respectively, a frictional device obeying the Coulomb law with a frictional coefficient, and a dashpot defined by a contact damping coefficient.
 
 In order to represent irregular particles with spheres, a numerical correction is used. The rolling friction imposes a virtual moment opposite to particle rotation and dependent on its size.
 
@@ -124,7 +124,7 @@ The DEM application is OPEN SOURCE. The main code and program structure is avail
 
 ## New GIDInterface for Kratos
 
-The new GIDInterface currently under developement can be found [here](https://github.com/KratosMultiphysics/GiDInterface). Based on the customLib, it includes the interfaces for most of the Kratos applications in addition to the new DEM interface.
+The new GIDInterface currently under development can be found [here](https://github.com/KratosMultiphysics/GiDInterface). Based on the customLib, it includes the interfaces for most of the Kratos applications in addition to the new DEM interface.
 
 
 ## FAQ
