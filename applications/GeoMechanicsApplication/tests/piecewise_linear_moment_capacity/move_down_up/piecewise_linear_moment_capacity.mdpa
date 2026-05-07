@@ -1,10 +1,9 @@
-Begin Table 1 TIME DISPLACEMENT_X
-  0.  0.
-  1. -1.
-  2.  0.
-  3.  1.
-  4.  0.
-  5. -1.
+Begin Table 1 TIME DISPLACEMENT_Y
+  0.0  0.0
+  1.0 -0.025
+  2.0  0.0
+  3.0  0.025
+  4.0  0.0
 End Table
 
 Begin Properties 1

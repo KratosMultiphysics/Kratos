@@ -9,10 +9,9 @@
                 },
                 "Variables": {
                     "YOUNG_MODULUS": 200.0,
-                    "CROSS_AREA": 1.0,
+                    "UNRELOAD_MODULUS": 200.0,
                     "POISSON_RATIO": 0.3,
                     "BEAM_PRESTRESS_PK2": [0.0, 0.0, 0.0],
-                    "UNRELOAD_MODULUS": 200.0,
                     "THICKNESS": 0.1,
                     "THICKNESS_EFFECTIVE_Y": 0.1,
                     "KAPPA_PIECEWISE_LINEAR_LAW": [1.0e-02, 0.5, 1.0],
