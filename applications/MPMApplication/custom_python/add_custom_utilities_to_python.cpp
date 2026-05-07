@@ -79,18 +79,18 @@ namespace Kratos::Python{
         py::class_< MPMEnergyCalculationUtility> (m,"EnergyCalculationUtility")
             .def(py::init<>())
             .def_static("CalculatePotentialEnergy", py::overload_cast<Element&>(&MPMEnergyCalculationUtility::CalculatePotentialEnergy), py::arg("element"))
-            .def_static("CalculatePotentialEnergy", py::overload_cast<ModelPart&>(&MPMEnergyCalculationUtility::CalculatePotentialEnergy), py::arg("model_part"))
+            .def_static("CalculatePotentialEnergy", py::overload_cast<ModelPart&>(&MPMEnergyCalculationUtility::CalculatePotentialEnergy), py::arg("mpm_model_part"))
             .def_static("CalculateStrainEnergy", py::overload_cast<Element&>(&MPMEnergyCalculationUtility::CalculateStrainEnergy), py::arg("element"))
-            .def_static("CalculateStrainEnergy", py::overload_cast<ModelPart&>(&MPMEnergyCalculationUtility::CalculateStrainEnergy), py::arg("model_part"))
+            .def_static("CalculateStrainEnergy", py::overload_cast<ModelPart&>(&MPMEnergyCalculationUtility::CalculateStrainEnergy), py::arg("mpm_model_part"))
             .def_static("CalculateKineticEnergy", py::overload_cast<Element&>(&MPMEnergyCalculationUtility::CalculateKineticEnergy), py::arg("element"))
-            .def_static("CalculateKineticEnergy", py::overload_cast<ModelPart&>(&MPMEnergyCalculationUtility::CalculateKineticEnergy), py::arg("model_part"))
+            .def_static("CalculateKineticEnergy", py::overload_cast<ModelPart&>(&MPMEnergyCalculationUtility::CalculateKineticEnergy), py::arg("mpm_model_part"))
             .def_static("CalculateTotalEnergy", py::overload_cast<Element&>(&MPMEnergyCalculationUtility::CalculateTotalEnergy), py::arg("element"))
-            .def_static("CalculateTotalEnergy", py::overload_cast<ModelPart&>(&MPMEnergyCalculationUtility::CalculateTotalEnergy), py::arg("model_part"))
-            .def_static("CalculateAllEnergies", [](ModelPart& model_part) -> py::tuple {
+            .def_static("CalculateTotalEnergy", py::overload_cast<ModelPart&>(&MPMEnergyCalculationUtility::CalculateTotalEnergy), py::arg("mpm_model_part"))
+            .def_static("CalculateAllEnergies", [](ModelPart& mpm_model_part) -> py::tuple {
                     double potential, kinetic, strain, total;
-                    MPMEnergyCalculationUtility().CalculateAllEnergies(model_part, potential, kinetic, strain, total);
+                    MPMEnergyCalculationUtility().CalculateAllEnergies(mpm_model_part, potential, kinetic, strain, total);
                     return py::make_tuple(potential, kinetic, strain, total);
-                }, py::arg("model_part"))
+                }, py::arg("mpm_model_part"))
             ;
     }
 
