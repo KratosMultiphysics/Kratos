@@ -47,9 +47,9 @@ public:
                            double&                      rValue) override;
     using BaseType::CalculateValue;
 
-    void CalculateMaterialResponsePK2(Parameters& rValues) override;
-    void CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
-    void FinalizeMaterialResponsePK2(Parameters& rValues) override;
+    void CalculateMaterialResponsePK2(Parameters& rParameters) override;
+    void CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rParameters) override;
+    void FinalizeMaterialResponsePK2(Parameters& rParameters) override;
 
     void InitializeMaterial(const Properties&   rMaterialProperties,
                             const GeometryType& rElementGeometry,

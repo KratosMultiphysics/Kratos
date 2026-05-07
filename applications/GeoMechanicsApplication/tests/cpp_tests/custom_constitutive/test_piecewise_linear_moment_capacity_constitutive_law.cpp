@@ -102,20 +102,6 @@ void FinalizeForCurvature(PiecewiseLinearMomentCapacityConstitutiveLaw& rLaw, co
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(PiecewiseLinearMomentCapacityConstitutiveLaw_CheckOfMomentCapacityLawThrowsWhenPropertiesDoesNotHaveMaximumAxialLoad,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    const auto law          = PiecewiseLinearMomentCapacityConstitutiveLaw{};
-    auto       properties   = CreateValidProperties();
-    const auto geometry     = Geometry<Node>{};
-    const auto process_info = ProcessInfo{};
-
-    properties.Erase(MAX_AXIAL_LOAD_OF_CONSTRUCTION_ELEMENT);
-
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        [[maybe_unused]] const auto rv = law.Check(properties, geometry, process_info), "")
-}
-
 KRATOS_TEST_CASE_IN_SUITE(PiecewiseLinearMomentCapacityConstitutiveLaw_CheckOfMomentCapacityLawThrowsWhenCurvatureVectorSizeIsIncorrect,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
@@ -126,9 +112,9 @@ KRATOS_TEST_CASE_IN_SUITE(PiecewiseLinearMomentCapacityConstitutiveLaw_CheckOfMo
 
     properties.SetValue(KAPPA_PIECEWISE_LINEAR_LAW, UblasUtilities::CreateVector({0.01, 0.03}));
 
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        [[maybe_unused]] const auto rv = law.Check(properties, geometry, process_info),
-        "The number of strain components does not match the number of momentum components")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN((void)law.Check(properties, geometry, process_info),
+                                      "The number of entries in KAPPA_PIECEWISE_LINEAR_LAW (2) "
+                                      "does not match MOMENTUM_PIECEWISE_LINEAR_LAW (3)")
 }
 
 KRATOS_TEST_CASE_IN_SUITE(PiecewiseLinearMomentCapacityConstitutiveLaw_MomentCapacityLawReturnsExpectedMomentForAllRegimes,

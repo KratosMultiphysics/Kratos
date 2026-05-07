@@ -58,16 +58,16 @@ double& PiecewiseLinearMomentCapacityConstitutiveLaw::CalculateValue(Constitutiv
     return BaseType::CalculateValue(rParameters, rVariable, rValue);
 }
 
-void PiecewiseLinearMomentCapacityConstitutiveLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
+void PiecewiseLinearMomentCapacityConstitutiveLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rParameters)
 {
-    CalculateMaterialResponseCauchy(rValues);
+    CalculateMaterialResponseCauchy(rParameters);
 }
 
-void PiecewiseLinearMomentCapacityConstitutiveLaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
+void PiecewiseLinearMomentCapacityConstitutiveLaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rParameters)
 {
-    const auto& r_cl_law_options      = rValues.GetOptions();
-    auto&       r_material_properties = rValues.GetMaterialProperties();
-    auto&       r_strain_vector       = rValues.GetStrainVector();
+    const auto& r_cl_law_options      = rParameters.GetOptions();
+    auto&       r_material_properties = rParameters.GetMaterialProperties();
+    auto&       r_strain_vector       = rParameters.GetStrainVector();
     AddInitialStrainVectorContribution(r_strain_vector);
 
     const double axial_strain = r_strain_vector[0]; // E_l
@@ -82,7 +82,7 @@ void PiecewiseLinearMomentCapacityConstitutiveLaw::CalculateMaterialResponseCauc
     const double A_s = r_material_properties[THICKNESS_EFFECTIVE_Y]; // Per unit length
 
     if (r_cl_law_options.Is(ConstitutiveLaw::COMPUTE_STRESS)) {
-        auto& r_generalized_stress_vector = rValues.GetStressVector();
+        auto& r_generalized_stress_vector = rParameters.GetStressVector();
         if (r_generalized_stress_vector.size() != strain_size)
             r_generalized_stress_vector.resize(strain_size, false);
 
@@ -118,7 +118,7 @@ void PiecewiseLinearMomentCapacityConstitutiveLaw::CalculateMaterialResponseCauc
         }
 
         if (r_cl_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
-            auto& r_stress_derivatives = rValues.GetConstitutiveMatrix();
+            auto& r_stress_derivatives = rParameters.GetConstitutiveMatrix();
             if (r_stress_derivatives.size1() != strain_size || r_stress_derivatives.size2() != strain_size)
                 r_stress_derivatives.resize(strain_size, strain_size, false);
             noalias(r_stress_derivatives) = ZeroMatrix(strain_size, strain_size);
@@ -145,12 +145,12 @@ void PiecewiseLinearMomentCapacityConstitutiveLaw::CalculateMaterialResponseCauc
     }
 }
 
-void PiecewiseLinearMomentCapacityConstitutiveLaw::FinalizeMaterialResponsePK2(Parameters& rValues)
+void PiecewiseLinearMomentCapacityConstitutiveLaw::FinalizeMaterialResponsePK2(Parameters& rParameters)
 {
     // compute stress first
-    CalculateMaterialResponsePK2(rValues);
+    CalculateMaterialResponsePK2(rParameters);
 
-    const auto curvature = rValues.GetStrainVector()[1];
+    const auto curvature = rParameters.GetStrainVector()[1];
 
     if (mUnReLoadModulus > 0.0) {
         // Check for sign reversal: if sign of curvature changes, handle specially
@@ -187,35 +187,40 @@ int PiecewiseLinearMomentCapacityConstitutiveLaw::Check(const Properties&   rMat
         exit_code != 0)
         return exit_code;
 
-    // Piecewise linear table properties
-    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(KAPPA_PIECEWISE_LINEAR_LAW))
-        << "No KAPPA_PIECEWISE_LINEAR_LAW found" << std::endl;
-    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(MOMENTUM_PIECEWISE_LINEAR_LAW))
-        << "No MOMENTUM_PIECEWISE_LINEAR_LAW found" << std::endl;
-    KRATOS_ERROR_IF(rMaterialProperties[KAPPA_PIECEWISE_LINEAR_LAW].empty())
-        << "KAPPA_PIECEWISE_LINEAR_LAW is empty";
-    KRATOS_ERROR_IF_NOT(rMaterialProperties[KAPPA_PIECEWISE_LINEAR_LAW].size() ==
-                        rMaterialProperties[MOMENTUM_PIECEWISE_LINEAR_LAW].size())
-        << "The number of strain components does not match the number of momentum components" << std::endl;
+    // Use CheckProperties to validate property availability and ranges
+    CheckProperties check_properties(rMaterialProperties, "material properties",
+                                     CheckProperties::Bounds::AllExclusive);
 
-    // Since (0,0) is assumed, the first provided point must be non-zero
-    const auto     first_kappa    = rMaterialProperties[KAPPA_PIECEWISE_LINEAR_LAW][0];
-    const auto     first_momentum = rMaterialProperties[MOMENTUM_PIECEWISE_LINEAR_LAW][0];
+    check_properties.CheckAvailabilityAndNotEmpty(KAPPA_PIECEWISE_LINEAR_LAW);
+    check_properties.CheckAvailabilityAndNotEmpty(MOMENTUM_PIECEWISE_LINEAR_LAW);
+
+    const auto& r_kappa   = rMaterialProperties[KAPPA_PIECEWISE_LINEAR_LAW];
+    const auto& r_moments = rMaterialProperties[MOMENTUM_PIECEWISE_LINEAR_LAW];
+    KRATOS_ERROR_IF(r_kappa.size() != r_moments.size())
+        << "The number of entries in KAPPA_PIECEWISE_LINEAR_LAW (" << r_kappa.size()
+        << ") does not match MOMENTUM_PIECEWISE_LINEAR_LAW (" << r_moments.size() << ")" << std::endl;
+
+    // First provided point must be non-zero since (0,0) is implicitly added
     constexpr auto tolerance      = 1.0e-15;
+    const auto     first_kappa    = r_kappa[0];
+    const auto     first_momentum = r_moments[0];
     KRATOS_ERROR_IF(std::abs(first_kappa) < tolerance || std::abs(first_momentum) < tolerance)
         << "First provided point must be non-zero when assuming implicit (0,0). Got ("
         << first_kappa << ", " << first_momentum << ")" << std::endl;
 
-    CheckUtilities::CheckValuesAreAscending(rMaterialProperties[KAPPA_PIECEWISE_LINEAR_LAW],
-                                            "KAPPA_PIECEWISE_LINEAR_LAW");
+    // Ascending checks
+    CheckUtilities::CheckValuesAreAscending(r_kappa, "KAPPA_PIECEWISE_LINEAR_LAW");
     constexpr auto allow_equal = true;
-    CheckUtilities::CheckValuesAreAscending(rMaterialProperties[MOMENTUM_PIECEWISE_LINEAR_LAW],
-                                            "MOMENTUM_PIECEWISE_LINEAR_LAW", allow_equal);
+    CheckUtilities::CheckValuesAreAscending(r_moments, "MOMENTUM_PIECEWISE_LINEAR_LAW", allow_equal);
 
-    // Validate optional UNRELOAD_MODULUS if provided
+    check_properties.Check(YOUNG_MODULUS);
+    check_properties.Check(THICKNESS);
+    check_properties.Check(THICKNESS_EFFECTIVE_Y);
+    check_properties.Check(POISSON_RATIO, -1.0, 0.5);
+
     if (rMaterialProperties.Has(UNRELOAD_MODULUS)) {
-        const auto value = rMaterialProperties[UNRELOAD_MODULUS];
-        KRATOS_ERROR_IF(value <= 0.0) << "UNRELOAD_MODULUS must be positive. Got " << value << std::endl;
+        // Use a single-use CheckProperties configured for exclusive bounds (>0)
+        check_properties.Check(UNRELOAD_MODULUS);
     }
 
     return 0;
