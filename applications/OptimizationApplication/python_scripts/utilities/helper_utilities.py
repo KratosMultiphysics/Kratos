@@ -1,9 +1,25 @@
+import os, sys
 from pathlib import Path
 from typing import Any
 
 import KratosMultiphysics as Kratos
 from KratosMultiphysics.kratos_utilities import GetListOfAvailableApplications
 from KratosMultiphysics.kratos_utilities import GetKratosMultiphysicsPath
+
+class WorkFolderScope:
+    def __init__(self, work_folder: Path):
+        self.__current_path = Path(os.getcwd()).absolute()
+        self.__working_path = work_folder.absolute()
+
+    def __enter__(self):
+        os.chdir(self.__working_path)
+        sys.path.append(str(self.__working_path))
+
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        os.chdir(self.__current_path)
+        sys.path.remove(str(self.__working_path))
+
 
 def GetClassModuleFromKratos(full_class_name: str) -> str:
     sub_module_paths = full_class_name.split(".")
