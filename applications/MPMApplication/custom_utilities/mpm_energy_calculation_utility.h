@@ -71,20 +71,14 @@ public:
     static double CalculateStrainEnergy(ModelPart& rModelPart);
 
     /**
-     * @brief Compute the total energy of a material point element
-     * @detail The total energy is computed summing the kinetic, strain and potential energy
-     * @param rElement The material point element whose total energy is to be computed
-     * @return The total energy of the input material point element
+     * @brief Compute the kinetic, potential, strain and total energy of a material point element
+     * @param rElement The element whose total energy is to be computed
+     * @return rPotentialEnergy The potential energy of the input element
+     * @return rKineticEnergy The kinetic energy of the input element
+     * @return rStrainEnergy The strain energy of the input element
+     * @return rTotallEnergy The total energy of the input element
      */
-    static double CalculateTotalEnergy(Element& rElement);
-
-    /**
-     * @brief Compute the total energy of a model part
-     * @detail The total energy is computed summing the kinetic, strain and potential energy
-     * @param rModelPart The model part whose total energy is to be computed
-     * @return The total energy of the input model part
-     */
-    static double CalculateTotalEnergy(ModelPart& rModelPart);
+    static std::tuple<double,double,double,double> CalculateAllEnergies(Element& rElement);
 
     /**
      * @brief Compute the kinetic, potential, strain and total energy of a model part
@@ -94,13 +88,7 @@ public:
      * @param rStrainEnergy The strain energy of the input model part
      * @param rTotallEnergy The total energy of the input model part
      */
-    static void CalculateAllEnergies(
-        ModelPart& rModelPart,
-        double& rPotentialEnergy,
-        double& rKineticEnergy,
-        double& rStrainEnergy,
-        double& rTotalEnergy
-    );
+    static std::tuple<double,double,double,double> CalculateAllEnergies(ModelPart& rModelPart);
 
 };
 

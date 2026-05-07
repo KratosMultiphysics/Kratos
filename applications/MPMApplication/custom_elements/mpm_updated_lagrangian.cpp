@@ -1573,7 +1573,7 @@ void MPMUpdatedLagrangian::CalculateOnIntegrationPoints(const Variable<double>& 
         rValues[0] = MPMEnergyCalculationUtility::CalculateStrainEnergy(*this);
     }
     else if (rVariable == MP_TOTAL_ENERGY) {
-        rValues[0] = MPMEnergyCalculationUtility::CalculateTotalEnergy(*this);
+        rValues[0] = std::get<3>(MPMEnergyCalculationUtility::CalculateAllEnergies(*this));
     }
     else if (rVariable == MP_HARDENING_RATIO || rVariable == MP_EQUIVALENT_STRESS ||
         rVariable == MP_EQUIVALENT_PLASTIC_STRAIN || rVariable == MP_EQUIVALENT_PLASTIC_STRAIN_RATE ||

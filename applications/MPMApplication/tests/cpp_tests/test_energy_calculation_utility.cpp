@@ -179,23 +179,45 @@ namespace Kratos::Testing
         KRATOS_EXPECT_NEAR(r_MP_StrainEnergy[0]   , -0.909 , 1e-6);
         KRATOS_EXPECT_NEAR(r_MP_TotalEnergy[0]    ,  4.613 , 1e-6);
 
+        double mp_potential_energy{0};
+        double mp_kinetic_energy{0};
+        double mp_strain_energy{0};
+        double mp_total_energy{0};
+
+        std::tie(mp_potential_energy, mp_kinetic_energy, mp_strain_energy,mp_total_energy) =
+            MPMEnergyCalculationUtility::CalculateAllEnergies(r_model_part.GetElement(1));
+
+        KRATOS_EXPECT_NEAR(mp_potential_energy, 7.35  , 1e-6);
+        KRATOS_EXPECT_NEAR(mp_kinetic_energy  , 10.50 , 1e-6);
+        KRATOS_EXPECT_NEAR(mp_strain_energy   , 11.375, 1e-6);
+        KRATOS_EXPECT_NEAR(mp_total_energy    , 29.225, 1e-6);
+
+        std::tie(mp_potential_energy, mp_kinetic_energy, mp_strain_energy,mp_total_energy) =
+            MPMEnergyCalculationUtility::CalculateAllEnergies(r_model_part.GetElement(2));
+
+        KRATOS_EXPECT_NEAR(mp_potential_energy,  8.82 , 1e-6);
+        KRATOS_EXPECT_NEAR(mp_kinetic_energy  ,  7.41 , 1e-6);
+        KRATOS_EXPECT_NEAR(mp_strain_energy   ,  0.27 , 1e-6);
+        KRATOS_EXPECT_NEAR(mp_total_energy    , 16.50 , 1e-6);
+
+        std::tie(mp_potential_energy, mp_kinetic_energy, mp_strain_energy,mp_total_energy) =
+            MPMEnergyCalculationUtility::CalculateAllEnergies(r_model_part.GetElement(3));
+
+        KRATOS_EXPECT_NEAR(mp_potential_energy,  3.96  , 1e-6);
+        KRATOS_EXPECT_NEAR(mp_kinetic_energy  ,  1.562 , 1e-6);
+        KRATOS_EXPECT_NEAR(mp_strain_energy   , -0.909 , 1e-6);
+        KRATOS_EXPECT_NEAR(mp_total_energy    ,  4.613 , 1e-6);
+
         // Check energy
         const double potential_energy_model_part = MPMEnergyCalculationUtility::CalculatePotentialEnergy(r_model_part);
         const double kinetic_energy_model_part = MPMEnergyCalculationUtility::CalculateKineticEnergy(r_model_part);
         const double strain_energy_model_part = MPMEnergyCalculationUtility::CalculateStrainEnergy(r_model_part);
-        const double total_energy_model_part = MPMEnergyCalculationUtility::CalculateTotalEnergy(r_model_part);
 
         KRATOS_EXPECT_NEAR(potential_energy_model_part, 20.13  , 1e-6);
         KRATOS_EXPECT_NEAR(kinetic_energy_model_part,   19.472 , 1e-6);
         KRATOS_EXPECT_NEAR(strain_energy_model_part,    10.736 , 1e-6);
-        KRATOS_EXPECT_NEAR(total_energy_model_part,     50.338 , 1e-6);
 
-        double p_energy{0};
-        double k_energy{0};
-        double s_energy{0};
-        double t_energy{0};
-
-        MPMEnergyCalculationUtility::CalculateAllEnergies(r_model_part, p_energy, k_energy, s_energy, t_energy);
+        const auto [p_energy, k_energy, s_energy, t_energy] = MPMEnergyCalculationUtility::CalculateAllEnergies(r_model_part);
 
         KRATOS_EXPECT_NEAR(p_energy, 20.13  , 1e-6);
         KRATOS_EXPECT_NEAR(k_energy, 19.472 , 1e-6);

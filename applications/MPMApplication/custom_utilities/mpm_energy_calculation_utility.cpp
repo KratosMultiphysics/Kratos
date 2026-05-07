@@ -99,32 +99,21 @@ namespace Kratos
                 [](auto& r_element) { return MPMEnergyCalculationUtility::CalculateStrainEnergy(r_element); });
     }
 
-    double MPMEnergyCalculationUtility::CalculateTotalEnergy(Element& rElement)
+    std::tuple<double,double,double,double> MPMEnergyCalculationUtility::CalculateAllEnergies(Element& rElement)
     {
         const double r_MP_potential_energy = MPMEnergyCalculationUtility::CalculatePotentialEnergy(rElement);
         const double r_MP_kinetic_energy   = MPMEnergyCalculationUtility::CalculateKineticEnergy(rElement);
         const double r_MP_strain_energy    = MPMEnergyCalculationUtility::CalculateStrainEnergy(rElement);
+        const double r_MP_total_energy     = r_MP_potential_energy + r_MP_kinetic_energy + r_MP_strain_energy;
 
-        return (r_MP_potential_energy + r_MP_kinetic_energy + r_MP_strain_energy);
+        return {r_MP_potential_energy, r_MP_kinetic_energy, r_MP_strain_energy, r_MP_total_energy};
     }
 
-    double MPMEnergyCalculationUtility::CalculateTotalEnergy(ModelPart& rModelPart)
-    {
-        return block_for_each<SumReduction<double>>(rModelPart.Elements(),
-                [](auto& r_element) { return MPMEnergyCalculationUtility::CalculateTotalEnergy(r_element); });
-    }
-
-    void MPMEnergyCalculationUtility::CalculateAllEnergies(
-        ModelPart& rModelPart,
-        double& rPotentialEnergy,
-        double& rKineticEnergy,
-        double& rStrainEnergy,
-        double& rTotalEnergy
-    )
+    std::tuple<double,double,double,double> MPMEnergyCalculationUtility::CalculateAllEnergies(ModelPart& rModelPart)
     {
         using MultipleReduction = CombinedReduction<SumReduction<double>,SumReduction<double>,SumReduction<double>>;
 
-        std::tie(rPotentialEnergy,rKineticEnergy,rStrainEnergy) =
+        const auto [rPotentialEnergy,rKineticEnergy,rStrainEnergy] =
         block_for_each<MultipleReduction>(rModelPart.Elements(),
         [](auto& r_element) {
             auto p_energy = MPMEnergyCalculationUtility::CalculatePotentialEnergy(r_element);
@@ -133,7 +122,9 @@ namespace Kratos
             return std::make_tuple(p_energy, k_energy, s_energy);
         });
 
-        rTotalEnergy = rKineticEnergy + rPotentialEnergy + rStrainEnergy;
+        const double rTotalEnergy = rKineticEnergy + rPotentialEnergy + rStrainEnergy;
+
+        return {rPotentialEnergy, rKineticEnergy, rStrainEnergy, rTotalEnergy};
     }
 
 } // end namespace Kratos

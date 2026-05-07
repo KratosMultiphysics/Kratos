@@ -84,13 +84,8 @@ namespace Kratos::Python{
             .def_static("CalculateStrainEnergy", py::overload_cast<ModelPart&>(&MPMEnergyCalculationUtility::CalculateStrainEnergy), py::arg("mpm_model_part"))
             .def_static("CalculateKineticEnergy", py::overload_cast<Element&>(&MPMEnergyCalculationUtility::CalculateKineticEnergy), py::arg("element"))
             .def_static("CalculateKineticEnergy", py::overload_cast<ModelPart&>(&MPMEnergyCalculationUtility::CalculateKineticEnergy), py::arg("mpm_model_part"))
-            .def_static("CalculateTotalEnergy", py::overload_cast<Element&>(&MPMEnergyCalculationUtility::CalculateTotalEnergy), py::arg("element"))
-            .def_static("CalculateTotalEnergy", py::overload_cast<ModelPart&>(&MPMEnergyCalculationUtility::CalculateTotalEnergy), py::arg("mpm_model_part"))
-            .def_static("CalculateAllEnergies", [](ModelPart& mpm_model_part) -> py::tuple {
-                    double potential, kinetic, strain, total;
-                    MPMEnergyCalculationUtility().CalculateAllEnergies(mpm_model_part, potential, kinetic, strain, total);
-                    return py::make_tuple(potential, kinetic, strain, total);
-                }, py::arg("mpm_model_part"))
+            .def_static("CalculateAllEnergies", py::overload_cast<Element&>(&MPMEnergyCalculationUtility::CalculateAllEnergies), py::arg("element"))
+            .def_static("CalculateAllEnergies", py::overload_cast<ModelPart&>(&MPMEnergyCalculationUtility::CalculateAllEnergies), py::arg("mpm_model_part"))
             ;
     }
 
