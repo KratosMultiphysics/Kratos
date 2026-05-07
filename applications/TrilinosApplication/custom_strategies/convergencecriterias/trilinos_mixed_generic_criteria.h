@@ -29,8 +29,6 @@
 #include "includes/model_part.h"
 #include "solving_strategies/convergencecriterias/mixed_generic_criteria.h"
 
-// Application includes
-
 namespace Kratos
 {
 ///@addtogroup TrilinosApplication
@@ -180,7 +178,8 @@ private:
         const TSystemVectorType& rDx,
         std::vector<int>& rDofsCount,
         std::vector<TDataType>& rSolutionNormsVector,
-        std::vector<TDataType>& rIncreaseNormsVector) const override
+        std::vector<TDataType>& rIncreaseNormsVector
+        ) const override
     {
         const std::size_t n_dofs = rDofSet.size();
         const auto& r_data_comm = rModelPart.GetCommunicator().GetDataCommunicator();
