@@ -82,6 +82,8 @@ KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication()
       mLinearTimoshenkoCurvedBeamElement2D3N(0, Element::GeometryType::Pointer(new Line2D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
       mLinearTimoshenkoCurvedBeamElement3D3N(0, Element::GeometryType::Pointer(new Line3D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
       // Adding the shells elements
+      mShell7pElement3D4N(0, Element::GeometryType::Pointer(new Quadrilateral3D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
+      mShell7pElement3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
       mIsotropicShellElement3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
       mMITCThickShellElement3D4N(0, Element::GeometryType::Pointer(new Quadrilateral3D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
       mMITCThickShellCorotationalElement3D4N(0, Element::GeometryType::Pointer(new Quadrilateral3D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
@@ -592,6 +594,8 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT("LinearTimoshenkoCurvedBeamElement3D3N", mLinearTimoshenkoCurvedBeamElement3D3N)
 
     //Register the shells elements
+    KRATOS_REGISTER_ELEMENT("Shell7pElement3D4N", mShell7pElement3D4N)
+    KRATOS_REGISTER_ELEMENT("Shell7pElement3D3N", mShell7pElement3D3N)  
     KRATOS_REGISTER_ELEMENT("IsotropicShellElement3D3N", mIsotropicShellElement3D3N)
     KRATOS_REGISTER_ELEMENT("MITCThickShellElement3D4N", mMITCThickShellElement3D4N)
     KRATOS_REGISTER_ELEMENT("MITCThickShellCorotationalElement3D4N", mMITCThickShellCorotationalElement3D4N)

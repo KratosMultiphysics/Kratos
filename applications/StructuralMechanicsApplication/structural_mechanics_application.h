@@ -53,6 +53,7 @@
 #include "custom_response_functions/adjoint_elements/adjoint_finite_difference_spring_damper_element_3D2N.h"
 
 /* Adding shells and membranes elements */
+#include "custom_elements/shell_elements/shell_7p_element.hpp"
 #include "custom_elements/shell_elements/isotropic_shell_element.hpp"
 #include "custom_elements/membrane_elements/membrane_element.hpp"
 #include "custom_elements/membrane_elements/membrane_element_2D2N.h"
@@ -301,6 +302,8 @@ private:
 
 
     // Adding the shells elements
+    const Shell7pElement mShell7pElement3D4N;
+    const Shell7pElement mShell7pElement3D3N;
     const IsotropicShellElement mIsotropicShellElement3D3N;
     const MITCThickShellElement3D4N<ShellKinematics::LINEAR> mMITCThickShellElement3D4N;
     const MITCThickShellElement3D4N<ShellKinematics::NONLINEAR_COROTATIONAL> mMITCThickShellCorotationalElement3D4N;
