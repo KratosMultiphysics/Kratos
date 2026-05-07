@@ -597,7 +597,6 @@ KRATOS_TEST_CASE_IN_SUITE(TrilinosExperimentalGetScaleNorm, KratosTrilinosApplic
     KRATOS_EXPECT_DOUBLE_EQ(norm, 1.0);
 }
 
-
 KRATOS_TEST_CASE_IN_SUITE(TrilinosExperimentalScaleAndAddMatrix, KratosTrilinosApplicationMPITestSuite)
 {
     // The data communicator
@@ -654,7 +653,6 @@ KRATOS_TEST_CASE_IN_SUITE(TrilinosExperimentalMatrixMarket, KratosTrilinosApplic
     }
 }
 
-
 KRATOS_TEST_CASE_IN_SUITE(TrilinosExperimentalMatrixMarketVector, KratosTrilinosApplicationMPITestSuite)
 {
     // The data communicator
@@ -685,7 +683,6 @@ KRATOS_TEST_CASE_IN_SUITE(TrilinosExperimentalMatrixMarketVector, KratosTrilinos
     }
 }
 
-
 KRATOS_TEST_CASE_IN_SUITE(TrilinosExperimentalTransposeMultMatrixVector, KratosTrilinosApplicationMPITestSuite)
 {
     // The data communicator
@@ -709,7 +706,6 @@ KRATOS_TEST_CASE_IN_SUITE(TrilinosExperimentalTransposeMultMatrixVector, KratosT
     const TrilinosLocalVectorType multiply_reference = prod(trans(local_matrix), local_vector);
     TrilinosCPPTestExperimentalUtilities::CheckSparseVectorFromLocalVector(mult, multiply_reference);
 }
-
 
 KRATOS_TEST_CASE_IN_SUITE(TrilinosExperimentalMultMatrixMatrix, KratosTrilinosApplicationMPITestSuite)
 {
@@ -744,7 +740,6 @@ KRATOS_TEST_CASE_IN_SUITE(TrilinosExperimentalMultMatrixMatrix, KratosTrilinosAp
     TrilinosCPPTestExperimentalUtilities::CheckSparseMatrixFromLocalMatrix(mult, multiply_reference);
 }
 
-
 KRATOS_TEST_CASE_IN_SUITE(TrilinosExperimentalIsDistributedSpace, KratosTrilinosApplicationMPITestSuite)
 {
     KRATOS_EXPECT_TRUE(TrilinosSparseSpaceType::IsDistributedSpace());
@@ -754,8 +749,6 @@ KRATOS_TEST_CASE_IN_SUITE(TrilinosExperimentalLinearAlgebraLibrary, KratosTrilin
 {
     KRATOS_EXPECT_EQ(TrilinosSparseSpaceType::LinearAlgebraLibrary(), TrilinosLinearAlgebraLibrary::TPETRA);
 }
-
-
 
 KRATOS_TEST_CASE_IN_SUITE(TrilinosExperimentalBtDBProductOperationRealCase, KratosTrilinosApplicationMPITestSuite)
 {
@@ -825,7 +818,6 @@ KRATOS_TEST_CASE_IN_SUITE(TrilinosExperimentalBtDBProductOperationRealCase, Krat
     // Check
     TrilinosCPPTestExperimentalUtilities::CheckSparseMatrix(res, row_indexes, column_indexes, values);
 }
-
 
 KRATOS_TEST_CASE_IN_SUITE(TrilinosExperimentalGetRank, KratosTrilinosApplicationMPITestSuite)
 {
@@ -1397,6 +1389,82 @@ KRATOS_TEST_CASE_IN_SUITE(TrilinosExperimentalAssembleRHS, KratosTrilinosApplica
     if (local_1 != Tpetra::Details::OrdinalTraits<LO>::invalid()) {
         KRATOS_EXPECT_DOUBLE_EQ(3.0, static_cast<double>(localView(local_1, 0)));
     }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(TrilinosExperimentalCreateImport, KratosTrilinosApplicationMPITestSuite)
+{
+    const auto& r_comm = Testing::GetDefaultDataCommunicator();
+    auto raw_mpi_comm = MPIDataCommunicator::GetMPICommunicator(r_comm);
+    TrilinosSparseSpaceType::CommunicatorPointerType tpetra_comm =
+        Teuchos::rcp(new TrilinosSparseSpaceType::CommunicatorType(raw_mpi_comm));
+
+    using LO = TrilinosSparseSpaceType::LO;
+    using GO = TrilinosSparseSpaceType::GO;
+
+    const int local_size = 2;
+    const int rank = r_comm.Rank();
+    const int system_size = local_size * r_comm.Size();
+    const int first_local_id = rank * local_size;
+
+    // Build a distributed vector whose map covers [first_local_id, first_local_id + local_size)
+    std::vector<GO> local_gids(local_size);
+    for (int i = 0; i < local_size; ++i) local_gids[i] = static_cast<GO>(first_local_id + i);
+    TrilinosSparseSpaceType::MapPointerType map = Teuchos::rcp(new TrilinosSparseSpaceType::MapType(
+        Teuchos::OrdinalTraits<Tpetra::global_size_t>::invalid(),
+        Teuchos::ArrayView<const GO>(local_gids.data(), local_size), 0, tpetra_comm));
+    auto p_dx = TrilinosSparseSpaceType::CreateVector(map);
+    auto& dx = *p_dx;
+    for (int i = 0; i < local_size; ++i) {
+        const GO gid = local_gids[i];
+        const LO lid = map->getLocalElement(gid);
+        dx.replaceLocalValue(lid, size_t(0), static_cast<TrilinosSparseSpaceType::ST>(gid));
+    }
+    TrilinosSparseSpaceType::GlobalAssemble(dx);
+
+    // Build a DofsArrayType whose equation ids cover the local global ids
+    Model model;
+    ModelPart& r_model_part = model.CreateModelPart("TestModelPart");
+    r_model_part.AddNodalSolutionStepVariable(PRESSURE);
+    r_model_part.GetNodalSolutionStepVariablesList().AddDof(&PRESSURE);
+
+    TrilinosSparseSpaceType::DofsArrayType dof_set;
+    dof_set.reserve(local_size);
+    for (int i = 0; i < local_size; ++i) {
+        const int global_id = first_local_id + i;
+        auto p_node = r_model_part.CreateNewNode(global_id + 1, 0.0, 0.0, 0.0);
+        p_node->AddDof(PRESSURE);
+        auto p_dof = p_node->pGetDof(PRESSURE);
+        p_dof->SetEquationId(global_id);
+        dof_set.push_back(p_dof);
+    }
+    dof_set.Sort();
+
+    // Create the import object
+    auto p_import = TrilinosSparseSpaceType::CreateImport(dof_set, dx);
+
+    // The import must be created successfully
+    KRATOS_EXPECT_NE(nullptr, p_import.get());
+
+    // The target map must contain exactly the local dof equation ids
+    KRATOS_EXPECT_EQ(static_cast<int>(p_import->getTargetMap()->getNodeNumElements()), local_size);
+
+    // Use the import to gather Dx values locally and verify correctness
+    Tpetra::MultiVector<TrilinosSparseSpaceType::ST, LO, GO, TrilinosSparseSpaceType::NT>
+        local_dx(p_import->getTargetMap(), 1);
+    local_dx.doImport(dx, *p_import, Tpetra::INSERT);
+    auto local_dx_view = local_dx.getLocalViewHost(Tpetra::Access::ReadOnly);
+    for (int i = 0; i < local_size; ++i) {
+        const GO gid = local_gids[i];
+        const LO lid = p_import->getTargetMap()->getLocalElement(gid);
+        KRATOS_EXPECT_GE(lid, LO(0));
+        KRATOS_EXPECT_DOUBLE_EQ(static_cast<double>(gid), static_cast<double>(local_dx_view(lid, 0)));
+    }
+
+    // The source map must match the distributed vector's map
+    KRATOS_EXPECT_TRUE(p_import->getSourceMap()->isSameAs(*dx.getMap()));
+
+    // The global number of entries in the target map must equal the system size
+    KRATOS_EXPECT_EQ(static_cast<int>(p_import->getTargetMap()->getGlobalNumElements()), system_size);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(TrilinosExperimentalCreateDofUpdater, KratosTrilinosApplicationMPITestSuite)
