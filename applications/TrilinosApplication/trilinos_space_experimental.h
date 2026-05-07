@@ -116,7 +116,9 @@ public:
 
     /// Define the import/export types
     using ImportType = Tpetra::Import<LO, GO, NT>;
+    using ImportPointerType = Kratos::shared_ptr<ImportType>;
     using ExportType = Tpetra::Export<LO, GO, NT>;
+    using ExportPointerType = Kratos::shared_ptr<ExportType>;
 
     /// Define the map type
     using MapType = Tpetra::Map<LO, GO, NT>;
@@ -143,6 +145,10 @@ public:
     /// Some other definitions
     using DofUpdaterType = DofUpdater<ClassType>;
     using DofUpdaterPointerType = typename DofUpdater<ClassType>::UniquePointer;
+
+    /// DoF array type definition
+    using DofType = Dof<double>;
+    using DofsArrayType = PointerVectorSet<DofType>;
 
     ///@}
     ///@name Life Cycle
@@ -2433,6 +2439,54 @@ public:
         )
     {
         TpetraMatrixMarketIO::WriteVector(pFileName, rV);
+    }
+
+    /**
+     * @brief Creates a new import object
+     * @param rDofSet The set of degrees of freedom to be imported
+     * @param rDx The vector defining the target map for the import
+     * @return The new import object
+     */
+    static ImportPointerType CreateImport(
+        const DofsArrayType& rDofSet,
+        const VectorType& rDx
+        )
+    {
+        // Getting the global ids of the dofs to be updated
+        const std::size_t number_of_dofs = rDofSet.size();
+        const int system_size = static_cast<int>(Size(rDx));
+        std::vector<GO> index_array(number_of_dofs);
+
+        // Filling the array with the global ids
+        std::size_t counter = 0;
+        for (auto it_dof = rDofSet.begin(); it_dof != rDofSet.end(); ++it_dof) {
+            const int id = static_cast<int>(it_dof->EquationId());
+            if (id < system_size) {
+                index_array[counter++] = static_cast<GO>(id);
+            }
+        }
+
+        std::sort(index_array.begin(), index_array.begin() + counter);
+        auto new_end = std::unique(index_array.begin(), index_array.begin() + counter);
+        index_array.resize(new_end - index_array.begin());
+
+        // Verify that the total number of dofs is consistent across all processes
+        const auto p_comm = rDx.getMap()->getComm();
+        GO tot_update_dofs = static_cast<GO>(index_array.size());
+        GO check_size = 0;
+        Teuchos::reduceAll(*p_comm, Teuchos::REDUCE_SUM, tot_update_dofs, Teuchos::outArg(check_size));
+        KRATOS_ERROR_IF(check_size < static_cast<GO>(system_size))
+            << "DOF count is not correct. There are less dofs than expected.\n"
+            << "Expected number of active dofs: " << system_size << ", DOFs found: " << check_size << std::endl;
+
+        // Defining a map as needed (target map: locally-desired global ids)
+        MapPointerType dof_update_map = Tpetra::createNonContigMapWithNode<LO, GO, NT>(
+            Teuchos::ArrayView<const GO>(index_array.data(), static_cast<int>(index_array.size())),
+            p_comm);
+
+        // Defining the import instance (source = rDx map, target = dof_update_map)
+        ImportPointerType p_dof_import = Kratos::make_shared<ImportType>(rDx.getMap(), dof_update_map);
+        return p_dof_import;
     }
 
     /**
