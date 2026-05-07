@@ -1940,7 +1940,7 @@ namespace Kratos
         rClustersMap.swap(new_ids_map);
     }
 
-    const bool ShiftedBoundaryPointBasedInterfaceUtility::FindClusterElementsUntilFixedDof(
+    bool ShiftedBoundaryPointBasedInterfaceUtility::FindClusterElementsUntilFixedDof(
         const std::size_t ClusterId,
         const NodesSetType& rBoundaryNodes,
         ElementsSetType& rClusterElements)

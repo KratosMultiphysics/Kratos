@@ -279,7 +279,7 @@ protected:
     bool mAddedRightEdge = false;
 
     /// @brief Protected empty constructor for derived classes
-    ShiftedBoundaryPointBasedInterfaceUtility() {}
+    //ShiftedBoundaryPointBasedInterfaceUtility() {}
 
     ///@}
     ///@name Protected Operators
@@ -343,7 +343,7 @@ protected:
     void MergeConnectedClusters(ClustersMapType& rClustersMap);
 
     //TODO
-    const bool FindClusterElementsUntilFixedDof(
+    bool FindClusterElementsUntilFixedDof(
         const std::size_t ClusterId,
         const NodesSetType& rBoundaryNodes,
         ElementsSetType& rClusterElements);

@@ -133,19 +133,19 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const
     {
         return "ShiftedBoundaryMeshlessInterfaceUtility";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const
     {
         rOStream << "ShiftedBoundaryMeshlessInterfaceUtility";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const
     {
     }
 
@@ -154,7 +154,7 @@ public:
     ///@{
 
     ///@}
-protected:
+private:
     ///@name Static Member Variables
     ///@{
 
@@ -175,15 +175,12 @@ protected:
 
     const Condition* mpConditionPrototype;
 
-    /// @brief Protected empty constructor for derived classes
-    ShiftedBoundaryMeshlessInterfaceUtility() {}
-
     ///@}
-    ///@name Protected Operators
+    ///@name Private Operators
     ///@{
 
     ///@}
-    ///@name Protected Operations
+    ///@name Private Operations
     ///@{
 
     /**
@@ -203,7 +200,7 @@ protected:
      * calculation of the MLS (or RBF) approximants at these points. Then, the basis is made conformant by using the meshless
      * approximants to calculate the interpolation at each one of the point conditions location.
      */
-    virtual void CalculateMeshlessBasedConformingExtensionBasis();
+    void CalculateMeshlessBasedConformingExtensionBasis();
 
     /**
      * @brief Calculate the extension basis coefficients
@@ -223,7 +220,7 @@ protected:
      * element BOUNDARY : intersected elements
      * element INTERFACE : positive distance elements owning the surrogate boundary nodes
      */
-    virtual void SetInterfaceFlags();
+    void SetInterfaceFlags();
 
     /**
      * @brief Get the MLS shape functions and gradients factory object
