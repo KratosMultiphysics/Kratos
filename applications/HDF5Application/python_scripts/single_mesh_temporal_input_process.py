@@ -64,16 +64,6 @@ def CreateCoreSettings(user_settings, model):
     core_settings = ParametersWrapper("""
         [{
             "model_part_name" : "",
-            "process_step": "initialize",
-            "io_settings": {
-                "io_type": "serial_hdf5_file_io",
-                "file_name": "<model_part_name>-<time>.h5",
-                "file_access_mode": "read_only"
-            },
-            "list_of_operations": []
-        },
-        {
-            "model_part_name" : "",
             "process_step": "initialize_solution_step",
             "io_settings": {
                 "io_type": "serial_hdf5_file_io",
