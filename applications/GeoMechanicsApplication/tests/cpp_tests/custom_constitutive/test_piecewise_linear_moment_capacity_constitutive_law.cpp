@@ -81,7 +81,7 @@ void FinalizeForCurvature(PiecewiseLinearMomentCapacityConstitutiveLaw& rLaw, co
 {
     auto parameters = ConstitutiveLaw::Parameters{};
     // Curvature is expected at index 1 in the constitutive law's strain vector
-    auto strain_vector = UblasUtilities::CreateVector({0.0, Curvature});
+    auto strain_vector = UblasUtilities::CreateVector({0.0, Curvature, 0.0});
     parameters.SetStrainVector(strain_vector);
 
     const auto cl_strain_size = rLaw.GetStrainSize();
