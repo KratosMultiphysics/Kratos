@@ -30,6 +30,11 @@ Properties CreateValidProperties()
     properties.SetValue(MAX_AXIAL_LOAD_OF_CONSTRUCTION_ELEMENT, 10.0);
     properties.SetValue(MOMENT_CAPACITY_REDUCTION_FACTOR, 0.02);
     properties.SetValue(MINIMUM_MOMENT_CAPACITY_FACTOR, 0.30);
+    // Add elastic/plane-strain properties required by some Check() implementations
+    properties.SetValue(YOUNG_MODULUS, 200.0);
+    properties.SetValue(POISSON_RATIO, 0.2);
+    properties.SetValue(THICKNESS, 1.0);
+    properties.SetValue(THICKNESS_EFFECTIVE_Y, 1.0);
     return properties;
 }
 
@@ -94,7 +99,7 @@ void FinalizeForCurvature(PiecewiseLinearMomentCapacityConstitutiveLaw& rLaw, co
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(CheckOfMomentCapacityLawThrowsWhenPropertiesDoesNotHaveMaximumAxialLoad,
+KRATOS_TEST_CASE_IN_SUITE(PiecewiseLinearMomentCapacityConstitutiveLaw_CheckOfMomentCapacityLawThrowsWhenPropertiesDoesNotHaveMaximumAxialLoad,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto law          = PiecewiseLinearMomentCapacityConstitutiveLaw{};
@@ -108,7 +113,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckOfMomentCapacityLawThrowsWhenPropertiesDoesNotHav
         [[maybe_unused]] const auto rv = law.Check(properties, geometry, process_info), "")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CheckOfMomentCapacityLawThrowsWhenCurvatureVectorSizeIsIncorrect,
+KRATOS_TEST_CASE_IN_SUITE(PiecewiseLinearMomentCapacityConstitutiveLaw_CheckOfMomentCapacityLawThrowsWhenCurvatureVectorSizeIsIncorrect,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto law          = PiecewiseLinearMomentCapacityConstitutiveLaw{};
@@ -123,7 +128,8 @@ KRATOS_TEST_CASE_IN_SUITE(CheckOfMomentCapacityLawThrowsWhenCurvatureVectorSizeI
         "The number of strain components does not match the number of momentum components")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(MomentCapacityLawReturnsExpectedMomentForAllRegimes, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(PiecewiseLinearMomentCapacityConstitutiveLaw_MomentCapacityLawReturnsExpectedMomentForAllRegimes,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     auto       law   = PiecewiseLinearMomentCapacityConstitutiveLaw{};
     const auto props = CreateValidProperties();
@@ -139,7 +145,8 @@ KRATOS_TEST_CASE_IN_SUITE(MomentCapacityLawReturnsExpectedMomentForAllRegimes, K
     KRATOS_EXPECT_NEAR(CalculateMomentForCurvature(law, props, -0.04), -104.0, Defaults::absolute_tolerance); // sign symmetry
 }
 
-KRATOS_TEST_CASE_IN_SUITE(MomentCapacityLawReturnsExpectedTangentModulus, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(PiecewiseLinearMomentCapacityConstitutiveLaw_MomentCapacityLawReturnsExpectedTangentModulus,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     auto       law   = PiecewiseLinearMomentCapacityConstitutiveLaw{};
     const auto props = CreateValidProperties();
@@ -153,7 +160,8 @@ KRATOS_TEST_CASE_IN_SUITE(MomentCapacityLawReturnsExpectedTangentModulus, Kratos
     KRATOS_EXPECT_NEAR(CalculateTangentForCurvature(law, props, 0.04), 2400.0, Defaults::absolute_tolerance);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(UnloadReloadWindow_ElasticResponseInsideWindow, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(PiecewiseLinearMomentCapacityConstitutiveLaw_UnloadReloadWindow_ElasticResponseInsideWindow,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     auto law        = PiecewiseLinearMomentCapacityConstitutiveLaw{};
     auto properties = CreateValidProperties();

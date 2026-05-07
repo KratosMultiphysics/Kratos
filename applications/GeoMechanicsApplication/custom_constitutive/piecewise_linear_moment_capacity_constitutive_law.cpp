@@ -83,8 +83,84 @@ void PiecewiseLinearMomentCapacityConstitutiveLaw::CalculateMaterialResponsePK2(
 
 void PiecewiseLinearMomentCapacityConstitutiveLaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
-    // Delegate to PK2 implementation (small-strain hypothesis used elsewhere)
-    CalculateMaterialResponsePK2(rValues);
+    const auto& r_cl_law_options      = rValues.GetOptions();
+    auto&       r_material_properties = rValues.GetMaterialProperties();
+    auto&       r_strain_vector       = rValues.GetStrainVector();
+    AddInitialStrainVectorContribution(r_strain_vector);
+
+    const double axial_strain = r_strain_vector[0]; // E_l
+    const double curvature    = r_strain_vector[1]; // Kappa
+    const double shear_strain = r_strain_vector[2]; // Gamma_xy
+
+    const double E  = r_material_properties[YOUNG_MODULUS];
+    const double A  = r_material_properties[THICKNESS];
+    const double nu = r_material_properties[POISSON_RATIO];
+
+    const double G   = E / (2.0 * (1.0 + nu));
+    const double A_s = r_material_properties[THICKNESS_EFFECTIVE_Y]; // Per unit length
+
+    if (r_cl_law_options.Is(ConstitutiveLaw::COMPUTE_STRESS)) {
+        auto& r_generalized_stress_vector = rValues.GetStressVector();
+        if (r_generalized_stress_vector.size() != strain_size)
+            r_generalized_stress_vector.resize(strain_size, false);
+
+        const double one_minus_nu_squared = 1.0 - nu * nu;
+        const double EA_nu                = E * A / one_minus_nu_squared;
+        const double GAs                  = G * A_s;
+
+        r_generalized_stress_vector[0] = EA_nu * axial_strain; // Nx
+
+        // Moment calculation using piecewise table with unload/reload logic
+        double moment = 0.0;
+        if (mUnReLoadModulus > 0.0) {
+            if (IsWithinUnReLoading(curvature)) {
+                moment = mUnReLoadModulus * (curvature - mUnReLoadCenter);
+            } else {
+                const auto amplitude = CalculateUnReLoadAmplitude();
+                const auto effective =
+                    mAccumulatedCurvature + (std::abs(curvature - mUnReLoadCenter) - amplitude);
+                moment = mStressStrainTable.GetValue(effective);
+                moment = curvature - mUnReLoadCenter < 0.0 ? -moment : moment;
+            }
+        } else {
+            moment = mStressStrainTable.GetValue(std::abs(curvature));
+            moment = curvature < 0.0 ? -moment : moment;
+        }
+        r_generalized_stress_vector[1] = moment;             // Mz
+        r_generalized_stress_vector[2] = GAs * shear_strain; // Vxy
+
+        AddInitialStressVectorContribution(r_generalized_stress_vector);
+
+        if (r_material_properties.Has(BEAM_PRESTRESS_PK2)) {
+            r_generalized_stress_vector += r_material_properties[BEAM_PRESTRESS_PK2];
+        }
+
+        if (r_cl_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
+            auto& r_stress_derivatives = rValues.GetConstitutiveMatrix();
+            if (r_stress_derivatives.size1() != strain_size || r_stress_derivatives.size2() != strain_size)
+                r_stress_derivatives.resize(strain_size, strain_size, false);
+            noalias(r_stress_derivatives) = ZeroMatrix(strain_size, strain_size);
+
+            // Tangent modulus for moment
+            double tangent_modulus = 0.0;
+            if (mUnReLoadModulus > 0.0) {
+                if (IsWithinUnReLoading(curvature)) {
+                    tangent_modulus = mUnReLoadModulus;
+                } else {
+                    const auto amplitude = CalculateUnReLoadAmplitude();
+                    const auto effective =
+                        mAccumulatedCurvature + (std::abs(curvature - mUnReLoadCenter) - amplitude);
+                    tangent_modulus = mStressStrainTable.GetDerivative(effective);
+                }
+            } else {
+                tangent_modulus = mStressStrainTable.GetDerivative(std::abs(curvature));
+            }
+
+            r_stress_derivatives(0, 0) = EA_nu;           // dN_dEl
+            r_stress_derivatives(1, 1) = tangent_modulus; // dM_dkappa
+            r_stress_derivatives(2, 2) = GAs;             // dV_dGamma_xy
+        }
+    }
 }
 
 void PiecewiseLinearMomentCapacityConstitutiveLaw::FinalizeMaterialResponsePK2(Parameters& rValues)
@@ -129,6 +205,7 @@ int PiecewiseLinearMomentCapacityConstitutiveLaw::Check(const Properties&   rMat
         exit_code != 0)
         return exit_code;
 
+    // Piecewise linear table properties
     KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(KAPPA_PIECEWISE_LINEAR_LAW))
         << "No KAPPA_PIECEWISE_LINEAR_LAW found" << std::endl;
     KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(MOMENTUM_PIECEWISE_LINEAR_LAW))
