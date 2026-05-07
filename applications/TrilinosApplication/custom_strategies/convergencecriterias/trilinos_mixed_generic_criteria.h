@@ -16,6 +16,15 @@
 
 // External includes
 
+/* Epetra includes */
+#include <Epetra_Vector.h>
+#include <Epetra_Import.h>
+
+/* Tpetra includes (only when Tpetra support is compiled in) */
+#ifdef HAVE_TPETRA
+#include <Tpetra_MultiVector.hpp>
+#endif
+
 // Project includes
 #include "includes/model_part.h"
 #include "solving_strategies/convergencecriterias/mixed_generic_criteria.h"
@@ -49,19 +58,29 @@ public:
     /// Pointer definition of TrilinosMixedGenericCriteria
     KRATOS_CLASS_POINTER_DEFINITION(TrilinosMixedGenericCriteria);
 
+    /// The definition of the base class
     using BaseType = MixedGenericCriteria< TSparseSpace, TDenseSpace >;
 
+    /// The definition of the current class
     using TDataType = typename BaseType::TDataType;
 
+    /// DoF array type definition
     using DofsArrayType = typename BaseType::DofsArrayType;
 
+    /// System matrix type definition
     using TSystemMatrixType = typename BaseType::TSystemMatrixType;
 
+    /// Definition of the solution vector type
     using TSystemVectorType = typename BaseType::TSystemVectorType;
 
+    /// Convergence variable list type definition
     using ConvergenceVariableListType = typename BaseType::ConvergenceVariableListType;
 
+    /// Key type definition (used for the map of the norms)
     using KeyType = typename BaseType::KeyType;
+
+    /// Definition of the linear algebra library
+    static constexpr TrilinosLinearAlgebraLibrary LinearAlgebraLibrary = TSparseSpace::LinearAlgebraLibrary();
 
     ///@}
     ///@name Life Cycle
@@ -105,6 +124,11 @@ public:
         const TSystemVectorType& Dx,
         const TSystemVectorType& b) override
     {
+        // If required, initialize the vector import
+        if(mpDofImport == nullptr) {
+            mpDofImport = TSparseSpace::CreateImport(rDofSet, Dx);
+        }
+
         // Serial base implementation convergence check call
         return BaseType::PostCriteria(rModelPart, rDofSet, A, Dx, b);
     }
@@ -113,33 +137,28 @@ public:
     ///@name Access
     ///@{
 
-
     ///@}
     ///@name Inquiry
     ///@{
 
-
     ///@}
     ///@name Input and output
     ///@{
-
 
     ///@}
 private:
     ///@name Static Member Variables
     ///@{
 
-
     ///@}
     ///@name Member Variables
     ///@{
 
-
+    typename TSparseSpace::ImportPointerType mpDofImport = nullptr; /// Importer for the Dx vector to be used in the convergence check
 
     ///@}
     ///@name Private Operators
     ///@{
-
 
     ///@}
     ///@name Private Operations
@@ -163,33 +182,87 @@ private:
         std::vector<TDataType>& rSolutionNormsVector,
         std::vector<TDataType>& rIncreaseNormsVector) const override
     {
-        const int n_dofs = rDofSet.size();
+        const std::size_t n_dofs = rDofSet.size();
         const auto& r_data_comm = rModelPart.GetCommunicator().GetDataCommunicator();
         const int rank = r_data_comm.Rank();
 
-        // Loop over Dofs
-        // Only locally owned (PARTITION_INDEX == rank) dofs are processed.
-        // Their equation IDs are locally owned in rDx, so TSparseSpace::GetValue
-        // can be used directly without any MPI import.
-        for (int i = 0; i < n_dofs; i++) {
-            auto it_dof = rDofSet.begin() + i;
-            if (it_dof->IsFree() && it_dof->GetSolutionStepValue(PARTITION_INDEX) == rank) {
-                const int dof_id = it_dof->EquationId();
-                const TDataType& r_dof_value = it_dof->GetSolutionStepValue(0);
-                const TDataType dof_dx = TSparseSpace::GetValue(rDx, dof_id);
+        // Import Dx into a local vector and compute norms.
+        // Use compile-time branching so this works for both EPETRA and TPETRA spaces.
+        if constexpr (LinearAlgebraLibrary == TrilinosLinearAlgebraLibrary::EPETRA) {
+            // Epetra implementation
+            Epetra_Vector local_dx(mpDofImport->TargetMap());
+            int i_err = local_dx.Import(rDx, *mpDofImport, Insert);
+            KRATOS_ERROR_IF_NOT(i_err == 0) << "Local Dx import failed!" << std::endl;
 
-                int var_local_key;
-                bool key_found = BaseType::FindVarLocalKey(it_dof, var_local_key);
-                if (!key_found) {
-                    // the dof does not belong to the list of variables
-                    // we are checking for convergence, so we skip it
-                    continue;
+            // Local thread variables
+            int dof_id;
+            TDataType dof_dx;
+
+            // Loop over Dofs
+            for (std::size_t i = 0; i < n_dofs; i++) {
+                auto it_dof = rDofSet.begin() + i;
+                if (it_dof->IsFree() && it_dof->GetSolutionStepValue(PARTITION_INDEX) == rank) {
+                    dof_id = it_dof->EquationId();
+                    const TDataType& r_dof_value = it_dof->GetSolutionStepValue(0);
+                    dof_dx = local_dx[mpDofImport->TargetMap().LID(dof_id)];
+
+                    int var_local_key;
+                    bool key_found = BaseType::FindVarLocalKey(it_dof,var_local_key);
+                    if (!key_found) {
+                        continue;
+                    }
+
+                    rSolutionNormsVector[var_local_key] += r_dof_value * r_dof_value;
+                    rIncreaseNormsVector[var_local_key] += dof_dx * dof_dx;
+                    rDofsCount[var_local_key]++;
                 }
-
-                rSolutionNormsVector[var_local_key] += r_dof_value * r_dof_value;
-                rIncreaseNormsVector[var_local_key] += dof_dx * dof_dx;
-                rDofsCount[var_local_key]++;
             }
+        } else if constexpr (LinearAlgebraLibrary == TrilinosLinearAlgebraLibrary::TPETRA) {
+        #if (HAVE_TPETRA)
+            // Tpetra implementation
+            // Create a local vector with the import target map
+            auto p_target_map = mpDofImport->getTargetMap();
+            auto p_local_ptr = TSparseSpace::CreateVector(p_target_map);
+
+            // Perform the import into the local vector
+            p_local_ptr->doImport(rDx, *mpDofImport, Tpetra::INSERT);
+
+            // Access local view for value lookup
+            auto local_view = p_local_ptr->getLocalViewHost(Tpetra::Access::ReadOnly);
+
+            // Local thread variables
+            int dof_id;
+            TDataType dof_dx;
+
+            for (std::size_t i = 0; i < n_dofs; i++) {
+                auto it_dof = rDofSet.begin() + i;
+                if (it_dof->IsFree() && it_dof->GetSolutionStepValue(PARTITION_INDEX) == rank) {
+                    dof_id = it_dof->EquationId();
+                    const TDataType& r_dof_value = it_dof->GetSolutionStepValue(0);
+
+                    // Get local id in the target map
+                    const auto lid = p_target_map->getLocalElement(static_cast<typename TSparseSpace::GO>(dof_id));
+                    KRATOS_ERROR_IF(lid < 0) << "Non-local id in convergence criteria: " << dof_id << std::endl;
+
+                    // For single-vector FEMultiVector/MultiVector the second index is 0
+                    dof_dx = static_cast<TDataType>(local_view(lid, 0));
+
+                    int var_local_key;
+                    bool key_found = BaseType::FindVarLocalKey(it_dof,var_local_key);
+                    if (!key_found) {
+                        continue;
+                    }
+
+                    rSolutionNormsVector[var_local_key] += r_dof_value * r_dof_value;
+                    rIncreaseNormsVector[var_local_key] += dof_dx * dof_dx;
+                    rDofsCount[var_local_key]++;
+                }
+            }
+        #else
+            KRATOS_ERROR << "You must compile Kratos with TPETRA support" << std::endl;
+        #endif
+        } else {
+            KRATOS_ERROR << "Only EPETRA and TPETRA are supported for now" << std::endl;
         }
     }
 
