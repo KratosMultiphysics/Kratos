@@ -58,27 +58,9 @@ double& PiecewiseLinearMomentCapacityConstitutiveLaw::CalculateValue(Constitutiv
     return BaseType::CalculateValue(rParameters, rVariable, rValue);
 }
 
-void PiecewiseLinearMomentCapacityConstitutiveLaw::CalculateMaterialResponsePK2(Parameters& rValues)
+void PiecewiseLinearMomentCapacityConstitutiveLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
 {
-    const auto curvature       = rValues.GetStrainVector()[1];
-    auto&      r_stress_vector = rValues.GetStressVector();
-
-    if (mUnReLoadModulus > 0.0) {
-        if (IsWithinUnReLoading(curvature)) {
-            r_stress_vector[0] = mUnReLoadModulus * (curvature - mUnReLoadCenter);
-            return;
-        }
-        // outside the window: follow backbone
-        const auto amplitude = CalculateUnReLoadAmplitude();
-        const auto effective = mAccumulatedCurvature + (std::abs(curvature - mUnReLoadCenter) - amplitude);
-        const auto moment  = mStressStrainTable.GetValue(effective);
-        r_stress_vector[0] = curvature - mUnReLoadCenter < 0.0 ? -moment : moment;
-        return;
-    }
-
-    // Default behaviour (no unload/reload)
-    const auto moment  = mStressStrainTable.GetValue(std::abs(curvature));
-    r_stress_vector[0] = curvature < 0.0 ? -moment : moment;
+    CalculateMaterialResponseCauchy(rValues);
 }
 
 void PiecewiseLinearMomentCapacityConstitutiveLaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
