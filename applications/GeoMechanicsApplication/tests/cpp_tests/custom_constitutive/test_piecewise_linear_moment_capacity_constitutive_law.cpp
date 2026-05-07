@@ -44,20 +44,22 @@ double CalculateMomentForCurvature(PiecewiseLinearMomentCapacityConstitutiveLaw&
 {
     auto parameters = ConstitutiveLaw::Parameters{};
     // Curvature is expected at index 1 in the constitutive law's strain vector
-    auto strain_vector = UblasUtilities::CreateVector({0.0, Curvature});
+    auto strain_vector = UblasUtilities::CreateVector({0.0, Curvature, 0.0});
     parameters.SetStrainVector(strain_vector);
 
-    auto stress_vector = Vector(1, 0.0);
+    const auto cl_strain_size = rLaw.GetStrainSize();
+    auto       stress_vector  = Vector(cl_strain_size, 0.0);
     parameters.SetStressVector(stress_vector);
 
-    auto constitutive_matrix = Matrix(1, 1, 0.0);
+    auto constitutive_matrix = Matrix(cl_strain_size, cl_strain_size, 0.0);
     parameters.SetConstitutiveMatrix(constitutive_matrix);
 
     parameters.SetMaterialProperties(rProperties);
     parameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
 
     rLaw.CalculateMaterialResponsePK2(parameters);
-    return parameters.GetStressVector()[0];
+    // Moment stored at index 1 (Mz)
+    return parameters.GetStressVector()[1];
 }
 
 double CalculateTangentForCurvature(PiecewiseLinearMomentCapacityConstitutiveLaw& rLaw,
@@ -82,10 +84,11 @@ void FinalizeForCurvature(PiecewiseLinearMomentCapacityConstitutiveLaw& rLaw, co
     auto strain_vector = UblasUtilities::CreateVector({0.0, Curvature});
     parameters.SetStrainVector(strain_vector);
 
-    auto stress_vector = Vector(1, 0.0);
+    const auto cl_strain_size = rLaw.GetStrainSize();
+    auto       stress_vector  = Vector(cl_strain_size, 0.0);
     parameters.SetStressVector(stress_vector);
 
-    auto constitutive_matrix = Matrix(1, 1, 0.0);
+    auto constitutive_matrix = Matrix(cl_strain_size, cl_strain_size, 0.0);
     parameters.SetConstitutiveMatrix(constitutive_matrix);
 
     parameters.SetMaterialProperties(rProperties);
