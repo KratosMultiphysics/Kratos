@@ -243,6 +243,13 @@ void AddCustomIOToPython(pybind11::module& m)
         .def("Close", &HDF5::File::Close)
         .def("GetFileSize",&HDF5::File::GetFileSize)
         .def("GetFileName",&HDF5::File::GetFileName)
+        .def("GetAttributeNames", &HDF5::File::GetAttributeNames, py::arg("object_path"))
+        .def("GetLinkNames", &HDF5::File::GetLinkNames, py::arg("object_path"))
+        .def("GetGroupNames", &HDF5::File::GetGroupNames, py::arg("object_path"))
+        .def("GetDataSetNames", &HDF5::File::GetDataSetNames, py::arg("object_path"))
+        .def("HasAttribute", &HDF5::File::HasAttribute, py::arg("object_path"), py::arg("attribute_name"))
+        .def("DeleteAttribute", &HDF5::File::DeleteAttribute, py::arg("object_path"), py::arg("attribute_name"))
+        .def("WriteAttribute", [](HDF5::File& rSelf, const std::string& rObjectPath, const Parameters Attributes) { rSelf.WriteAttribute(rObjectPath, Attributes); }, py::arg("object_path"), py::arg("attributes"))
         ;
 
     py::class_<HDF5::ModelPartIO, HDF5::ModelPartIO::Pointer, IO>(m,"HDF5ModelPartIO")
