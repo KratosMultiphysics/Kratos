@@ -424,6 +424,23 @@ void TransientPwElement<TDim, TNumNodes>::InitializeElementVariables(ElementVari
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
+void TransientPwElement<TDim, TNumNodes>::InitializeProperties(ElementVariables& rVariables)
+{
+    KRATOS_TRY
+
+    const auto& r_properties = this->GetProperties();
+
+    rVariables.IsConstantWaterPressure    = false;
+    rVariables.UseHenckyStrain            = false;
+    rVariables.ConsiderGeometricStiffness = false;
+
+    rVariables.DynamicViscosityInverse = 1.0 / r_properties[DYNAMIC_VISCOSITY];
+    GeoElementUtilities::FillPermeabilityMatrix(rVariables.PermeabilityMatrix, r_properties);
+
+    KRATOS_CATCH("")
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
 void TransientPwElement<TDim, TNumNodes>::CalculateAndAddLHS(MatrixType&       rLeftHandSideMatrix,
                                                              ElementVariables& rVariables)
 {
