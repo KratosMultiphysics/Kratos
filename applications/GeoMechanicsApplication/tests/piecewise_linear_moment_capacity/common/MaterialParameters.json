@@ -1,7 +1,7 @@
 {
     "properties": [
         {
-            "model_part_name": "PorousDomain.Truss",
+            "model_part_name": "PorousDomain.Beam",
             "properties_id": 1,
             "Material": {
                 "constitutive_law": {
@@ -13,8 +13,8 @@
                     "DENSITY": 1.0,
                     "TRUSS_PRESTRESS_PK2": 0.0,
                     "UNRELOAD_MODULUS": 200.0,
-                    "STRAINS_OF_PIECEWISE_LINEAR_LAW": [1.0e-02, 0.5, 1.0],
-                    "STRESSES_OF_PIECEWISE_LINEAR_LAW": [0.1, 1.0, 1.5]
+                    "KAPPA_PIECEWISE_LINEAR_LAW": [1.0e-02, 0.5, 1.0],
+                    "MOMENTUM_PIECEWISE_LINEAR_LAW": [0.1, 1.0, 1.5]
                 },
                 "Tables": {
 

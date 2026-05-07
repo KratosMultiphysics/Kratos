@@ -35,7 +35,7 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(PiecewiseLinearMomentCapacityConstitutiveLaw);
 
     // Geometry constants
-    static constexpr SizeType strain_size      = 1;
+    static constexpr SizeType strain_size      = 3;
     static constexpr SizeType space_dimenstion = 3;
 
     [[nodiscard]] ConstitutiveLaw::Pointer Clone() const override;
@@ -48,6 +48,7 @@ public:
     using BaseType::CalculateValue;
 
     void CalculateMaterialResponsePK2(Parameters& rValues) override;
+    void CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
     void FinalizeMaterialResponsePK2(Parameters& rValues) override;
 
     void InitializeMaterial(const Properties&   rMaterialProperties,
