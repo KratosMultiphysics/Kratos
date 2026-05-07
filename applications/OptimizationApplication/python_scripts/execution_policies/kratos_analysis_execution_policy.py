@@ -1,5 +1,6 @@
 from importlib import import_module
 from typing import Any
+from pathlib import Path
 
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
@@ -90,6 +91,9 @@ class KratosAnalysisExecutionPolicy(ExecutionPolicy):
         self.analysis.RunSolutionLoop()
 
         self._OutputAnalysisData()
+
+    def GetPath(self) -> str:
+        return Path(".").absolute()
 
     def _OutputAnalysisData(self):
         unbuffered_data = ComponentDataView(self, self.optimization_problem).GetUnBufferedData()
