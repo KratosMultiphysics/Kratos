@@ -25,8 +25,7 @@ def run_piecewise_case(project_subpath, times, expected_forces, expected_displac
     output_data = reader.read_output_from(output_file)
 
     for t, exp_f, exp_d in zip(times, expected_forces, expected_displacements):
-        section_force = GiDOutputFileReader.element_integration_point_values_at_time("FORCE", t, output_data, [1], [0])[0][0]
-        force_x = section_force[0]
+        force_x = GiDOutputFileReader.element_integration_point_values_at_time("AXIAL_FORCE", t, output_data, [1], [0])[0][0]
         displacement = GiDOutputFileReader.nodal_values_at_time("DISPLACEMENT", t, output_data, [3])[0]
         disp_x = displacement[0]
         abs_tol_f = max(1.0e-12, tol * max(1.0, abs(exp_f)))
@@ -54,7 +53,7 @@ class KratosGeoMechanicsPiecewiseLinearMomentCapacityTests(KratosUnittest.TestCa
         2 element elongation test for piecewise linear moment capacity material.
         """
         times = [1.0, 2.0, 3.0, 4.0]
-        expected_forces_x = [0.0, 0.0, 0.0, 0.0]
+        expected_forces_x = [10.989, 8.24176, 10.989, 21.978]
         expected_displacements_x = [1.0, 0.75, 1.0, 2.0]
         run_piecewise_case('tension', times, expected_forces_x, expected_displacements_x, tol=1e-4)
 
@@ -63,7 +62,7 @@ class KratosGeoMechanicsPiecewiseLinearMomentCapacityTests(KratosUnittest.TestCa
         2 element compression test for piecewise linear moment capacity material.
         """
         times = [1.0, 2.0, 3.0, 4.0]
-        expected_forces_x = [0.0, 0.0, 0.0, 0.0]
+        expected_forces_x = [-10.989, -8.24176, -10.989, -21.978]
         expected_displacements_x = [-1.0, -0.75, -1.0, -2.0]
         run_piecewise_case('compression', times, expected_forces_x, expected_displacements_x, tol=1e-4)
 
@@ -72,7 +71,7 @@ class KratosGeoMechanicsPiecewiseLinearMomentCapacityTests(KratosUnittest.TestCa
         Elongation-compression loop test for piecewise linear moment capacity material.
         """
         times = [1.0, 2.0, 3.0, 4.0]
-        expected_forces_x = [0.0, 0.0, 0.0, 0.0]
+        expected_forces_x = [10.989, 0.0, -10.989, 0.0]
         expected_displacements_x = [1.0, 0.0, -1.0, 0.0]
         run_piecewise_case('tension_compression', times, expected_forces_x, expected_displacements_x, tol=1e-4)
 
@@ -81,7 +80,7 @@ class KratosGeoMechanicsPiecewiseLinearMomentCapacityTests(KratosUnittest.TestCa
         Compression-elongation loop test for piecewise linear moment capacity material.
         """
         times = [1.0, 2.0, 3.0, 4.0]
-        expected_forces_x = [0.0, 0.0, 0.0, 0.0]
+        expected_forces_x = [-10.989, -0.0, 10.989, 0.0]
         expected_displacements_x = [-1.0, -0.0, 1.0, 0.0]
         run_piecewise_case('compression_tension', times, expected_forces_x, expected_displacements_x, tol=1e-4)
 
