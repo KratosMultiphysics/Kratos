@@ -117,7 +117,5 @@ KRATOS_TEST_CASE_IN_SUITE(VariablesKeyConstexpr, KratosCoreFastSuite) {
     KRATOS_EXPECT_EQ(func_variable_data(TEMPERATURE), 3);
 }
 
-
-
 }
 } // namespace Kratos.

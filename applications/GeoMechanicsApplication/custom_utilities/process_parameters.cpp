@@ -14,8 +14,8 @@
 
 namespace Kratos
 {
-ProcessParameters::ProcessParameters(const std::string& rName, const Parameters& rParameters)
-    : name{rName}, parameters{rParameters}
+ProcessParameters::ProcessParameters(std::string Name, Parameters Settings)
+    : name{std::move(Name)}, parameters{std::move(Settings)}
 {
 }
 

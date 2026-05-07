@@ -152,6 +152,37 @@ namespace Testing {
             points, p, q, knot_u, knot_v);
     }
 
+    NurbsSurfaceGeometry<3, PointerVector<NodeType>> GenerateReferenceArbitraryNodeSurface() {
+        PointerVector<NodeType> points;
+
+        points.push_back(NodeType::Pointer(new NodeType(10, 0, 5, 0)));
+        points.push_back(NodeType::Pointer(new NodeType(11, 5, 5, 0)));
+        points.push_back(NodeType::Pointer(new NodeType(12, 10, 5, -4)));
+        points.push_back(NodeType::Pointer(new NodeType(13, 0, 2.5, 0)));
+        points.push_back(NodeType::Pointer(new NodeType(14, 5, 2.5, 0)));
+        points.push_back(NodeType::Pointer(new NodeType(15, 10, 2.5, -4)));
+        points.push_back(NodeType::Pointer(new NodeType(16, 0, 0, 0)));
+        points.push_back(NodeType::Pointer(new NodeType(17, 5, 0, 0)));
+        points.push_back(NodeType::Pointer(new NodeType(18, 10, 0, -4)));
+
+        Vector knot_u = ZeroVector(4);
+        knot_u[0] = 0.0;
+        knot_u[1] = 0.0;
+        knot_u[2] = 1.0;
+        knot_u[3] = 1.0;
+        Vector knot_v = ZeroVector(4);
+        knot_v[0] = 0.0;
+        knot_v[1] = 0.0;
+        knot_v[2] = 1.0;
+        knot_v[3] = 1.0;
+
+        int p = 2;
+        int q = 2;
+
+        return NurbsSurfaceGeometry<3, PointerVector<NodeType>>(
+            points, p, q, knot_u, knot_v);
+    }
+
     NurbsSurfaceGeometry<3, PointerVector<Point>> GenerateReferenceQuarterSphereGeometry()
     {
         NurbsSurfaceGeometry<3, PointerVector<Point>>::PointsArrayType points;
@@ -782,12 +813,12 @@ namespace Testing {
 
     KRATOS_TEST_CASE_IN_SUITE(NurbsSurfaceShapeFunctionsValuesAndDerivativesAndCPIndices, KratosCoreNurbsGeometriesFastSuite)
     {
-        using SurfaceType =  NurbsSurfaceGeometry<3, PointerVector<Point>>;
+        using SurfaceType =  NurbsSurfaceGeometry<3, PointerVector<NodeType>>;
         using IntegrationPointsArrayType = typename SurfaceType::IntegrationPointsArrayType;
         using GeometriesArrayType        = typename SurfaceType::GeometriesArrayType;
 
         // Get the NURBS Surface
-        auto surface = GenerateReferenceQuarterSphereGeometry();
+        auto surface = GenerateReferenceArbitraryNodeSurface();
 
         // Pick an interior parametric point 
         array_1d<double, 3> local_coords(0.0);
@@ -865,11 +896,22 @@ namespace Testing {
         KRATOS_EXPECT_EQ(r_qp_geom.PointsNumber(), cp_indices.size());
         for (IndexType j = 0; j < cp_indices.size(); ++j) {
             const auto& P_qp   = r_qp_geom[j];
-            const auto& P_surf = surface.pGetPoint(cp_indices[j]);
+            const auto& P_surf = surface.pGetPoint(j);
             KRATOS_EXPECT_NEAR(P_qp.X(), P_surf->X(), TOLERANCE);
             KRATOS_EXPECT_NEAR(P_qp.Y(), P_surf->Y(), TOLERANCE);
             KRATOS_EXPECT_NEAR(P_qp.Z(), P_surf->Z(), TOLERANCE);
         }
+
+        // Check consistency of node id
+        KRATOS_EXPECT_EQ(cp_indices[0], 10);
+        KRATOS_EXPECT_EQ(cp_indices[1], 11);
+        KRATOS_EXPECT_EQ(cp_indices[2], 12);
+        KRATOS_EXPECT_EQ(cp_indices[3], 13);
+        KRATOS_EXPECT_EQ(cp_indices[4], 14);
+        KRATOS_EXPECT_EQ(cp_indices[5], 15);
+        KRATOS_EXPECT_EQ(cp_indices[6], 16);
+        KRATOS_EXPECT_EQ(cp_indices[7], 17);
+        KRATOS_EXPECT_EQ(cp_indices[8], 18);
     }
 } // namespace Testing.
 } // namespace Kratos.

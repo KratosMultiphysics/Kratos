@@ -21,12 +21,14 @@
 #include "includes/define_python.h"
 
 // Future Extensions
+#include "future/containers/define_linear_algebra_serial.h"
 #include "future/python/add_strategies_to_python.h"
 #include "future/solving_strategies/builders/builder.h"
 #include "future/solving_strategies/schemes/implicit_scheme.h"
 #include "future/solving_strategies/schemes/static_scheme.h"
 #include "future/solving_strategies/strategies/strategy.h"
 #include "future/solving_strategies/strategies/implicit_strategy.h"
+#include "future/solving_strategies/strategies/implicit_strategy_data.h"
 #include "future/solving_strategies/strategies/linear_strategy.h"
 
 namespace Kratos::Future::Python
@@ -36,11 +38,32 @@ namespace py = pybind11;
 
 void AddStrategiesToPython(py::module& m)
 {
-    using BuilderType = Future::Builder<CsrMatrix<>, SystemVector<>, SparseContiguousRowGraph<>>;
+    using ImplicitStrategyDataType = Future::ImplicitStrategyData<Future::SerialLinearAlgebraTraits>;
+    py::class_<ImplicitStrategyDataType, typename ImplicitStrategyDataType::Pointer>(m, "ImplicitStrategyData")
+        .def(py::init<>())
+        .def("Clear", &ImplicitStrategyDataType::Clear)
+        .def("RequiresEffectiveDofSet", &ImplicitStrategyDataType::RequiresEffectiveDofSet)
+        .def("GetLinearSystem", py::overload_cast<>(&ImplicitStrategyDataType::pGetLinearSystem))
+        .def("SetLinearSystem", &ImplicitStrategyDataType::pSetLinearSystem)
+        .def("GetEffectiveLinearSystem", py::overload_cast<>(&ImplicitStrategyDataType::pGetEffectiveLinearSystem))
+        .def("SetEffectiveLinearSystem", &ImplicitStrategyDataType::pSetEffectiveLinearSystem)
+        .def("GetEffectiveT", py::overload_cast<>(&ImplicitStrategyDataType::pGetEffectiveT))
+        .def("SetEffectiveT", &ImplicitStrategyDataType::pSetEffectiveT)
+        .def("GetConstraintsT", py::overload_cast<>(&ImplicitStrategyDataType::pGetConstraintsT))
+        .def("SetConstraintsT", &ImplicitStrategyDataType::pSetConstraintsT)
+        .def("GetConstraintsQ", py::overload_cast<>(&ImplicitStrategyDataType::pGetConstraintsQ))
+        .def("SetConstraintsQ", &ImplicitStrategyDataType::pSetConstraintsQ)
+        .def("GetDofSet", py::overload_cast<>(&ImplicitStrategyDataType::pGetDofSet))
+        .def("SetDofSet", &ImplicitStrategyDataType::pSetDofSet)
+        .def("GetEffectiveDofSet", py::overload_cast<>(&ImplicitStrategyDataType::pGetEffectiveDofSet))
+        .def("SetEffectiveDofSet", &ImplicitStrategyDataType::pSetEffectiveDofSet)
+    ;
+
+    using BuilderType = Future::Builder<Future::SerialLinearAlgebraTraits>;
     py::class_<BuilderType, typename BuilderType::Pointer>(m, "Builder")
         .def(py::init<ModelPart &, Parameters>())
-        .def("AllocateLinearSystem", py::overload_cast<LinearSystemContainer<CsrMatrix<>, SystemVector<>>&>(&BuilderType::AllocateLinearSystem))
-        .def("AllocateLinearSystem", py::overload_cast<const SparseContiguousRowGraph<>&, LinearSystemContainer<CsrMatrix<>, SystemVector<>>&>(&BuilderType::AllocateLinearSystem))
+        .def("AllocateLinearSystem", py::overload_cast<ImplicitStrategyDataType&>(&BuilderType::AllocateLinearSystem))
+        .def("AllocateLinearSystem", py::overload_cast<const Future::SerialLinearAlgebraTraits::SparseGraphType&, ImplicitStrategyDataType&>(&BuilderType::AllocateLinearSystem))
         .def("AllocateLinearSystemConstraints", &BuilderType::AllocateLinearSystemConstraints)
         .def("SetUpSparseMatrixGraph", &BuilderType::SetUpSparseMatrixGraph)
         .def("SetUpMasterSlaveConstraintsGraph", &BuilderType::SetUpMasterSlaveConstraintsGraph)
@@ -51,17 +74,17 @@ void AddStrategiesToPython(py::module& m)
         .def("GetEchoLevel", &BuilderType::GetEchoLevel)
         ;
 
-    using BlockBuilderType = Future::BlockBuilder<CsrMatrix<>, SystemVector<>, SparseContiguousRowGraph<>>;
+    using BlockBuilderType = Future::BlockBuilder<Future::SerialLinearAlgebraTraits>;
     py::class_<BlockBuilderType, typename BlockBuilderType::Pointer>(m, "BlockBuilder")
     .def(py::init<ModelPart &, Parameters>())
     ;
 
-    using EliminationBuilderType = Future::EliminationBuilder<CsrMatrix<>, SystemVector<>, SparseContiguousRowGraph<>>;
+    using EliminationBuilderType = Future::EliminationBuilder<Future::SerialLinearAlgebraTraits>;
     py::class_<EliminationBuilderType, typename EliminationBuilderType::Pointer>(m, "EliminationBuilder")
         .def(py::init<ModelPart &, Parameters>())
         ;
 
-    using ImplicitSchemeType = Future::ImplicitScheme<CsrMatrix<>, SystemVector<>, SparseContiguousRowGraph<>>;
+    using ImplicitSchemeType = Future::ImplicitScheme<Future::SerialLinearAlgebraTraits>;
     py::class_<ImplicitSchemeType, typename ImplicitSchemeType::Pointer>(m, "ImplicitScheme")
         .def(py::init<ModelPart &, Parameters>())
         .def("Initialize", &ImplicitSchemeType::Initialize)
@@ -91,7 +114,7 @@ void AddStrategiesToPython(py::module& m)
         .def("Info", &ImplicitSchemeType::Info)
         ;
 
-    using StaticSchemeType = Future::StaticScheme<CsrMatrix<>, SystemVector<>, SparseContiguousRowGraph<>>;
+    using StaticSchemeType = Future::StaticScheme<Future::SerialLinearAlgebraTraits>;
     py::class_<StaticSchemeType, typename StaticSchemeType::Pointer, ImplicitSchemeType>(m, "StaticScheme")
         .def(py::init<ModelPart&, Parameters>())
     ;
@@ -104,8 +127,8 @@ void AddStrategiesToPython(py::module& m)
         .def("CalculateOutputData", py::overload_cast<const Variable<Matrix>&>(&Strategy::CalculateOutputData, py::const_))
     ;
 
-    using LinearSolverType = Future::LinearSolver<CsrMatrix<>, SystemVector<>>;
-    using ImplicitStrategyType = Future::ImplicitStrategy<CsrMatrix<>, SystemVector<>, SparseContiguousRowGraph<>>;
+    using LinearSolverType = Future::LinearSolver<Future::SerialLinearAlgebraTraits>;
+    using ImplicitStrategyType = Future::ImplicitStrategy<Future::SerialLinearAlgebraTraits>;
     py::class_<ImplicitStrategyType, typename ImplicitStrategyType::Pointer, Strategy>(m, "ImplicitStrategy")
         // .def(py::init<ModelPart&, Parameters>()) //TODO: Expose this one once we fix the registry stuff
         .def(py::init<ModelPart &, typename ImplicitSchemeType::Pointer, typename LinearSolverType::Pointer, bool, bool, bool, bool>())
@@ -125,7 +148,7 @@ void AddStrategiesToPython(py::module& m)
         .def("SetReformDofsAtEachStep", &ImplicitStrategyType::SetReformDofsAtEachStep)
     ;
 
-    using LinearStrategyType = Future::LinearStrategy<CsrMatrix<>, SystemVector<>, SparseContiguousRowGraph<>>;
+    using LinearStrategyType = Future::LinearStrategy<Future::SerialLinearAlgebraTraits>;
     py::class_<LinearStrategyType, typename LinearStrategyType::Pointer, ImplicitStrategyType>(m, "LinearStrategy")
         // .def(py::init<ModelPart&, Parameters>()) //TODO: Expose this one once we fix the registry stuff
         .def(py::init<ModelPart &, typename ImplicitSchemeType::Pointer, typename LinearSolverType::Pointer, bool, bool, bool, bool>())

@@ -715,7 +715,7 @@ public:
 
         rControlPointIndices.resize(cp_indices.size());
         for (IndexType i = 0; i < cp_indices.size(); ++i) {
-            rControlPointIndices[i] = static_cast<IndexType>(cp_indices[i]);
+            rControlPointIndices[i] = pGetPoint(cp_indices[i])->Id();
         }
 
         // Shape Functions

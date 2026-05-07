@@ -22,6 +22,7 @@
 #include <string>
 #include <iostream>
 #include <cstddef>
+#include <concepts>
 
 
 // External includes
@@ -346,16 +347,6 @@ private:
     const VariableData* mpSourceVariable;
 
     bool mIsComponent;
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-    friend class Serializer;
-
-    virtual void save(Serializer& rSerializer) const;
-
-    virtual void load(Serializer& rSerializer);
 
     ///@}
 

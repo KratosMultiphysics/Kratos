@@ -34,7 +34,7 @@ public:
     {
     }
 
-    bool hasWaterPressure() const { return mVariableName == "WATER_PRESSURE"; }
+    [[nodiscard]] bool hasWaterPressure() const { return mVariableName == "WATER_PRESSURE"; }
 
     Kratos::ModelPart& GetModelPart() { return mrModelPart; }
 };
@@ -49,11 +49,11 @@ public:
 
     Kratos::ModelPart& GetModelPart() { return mrModelPart; }
 
-    double GetReferenceCoord() const { return mReferenceCoordinate; }
+    [[nodiscard]] double GetReferenceCoord() const { return mReferenceCoordinate; }
 
     void SetReferenceCoord(double value) { mReferenceCoordinate = value; }
 
-    bool hasWaterPressure() const { return mVariableName == "WATER_PRESSURE"; }
+    [[nodiscard]] bool hasWaterPressure() const { return mVariableName == "WATER_PRESSURE"; }
 };
 
 namespace Kratos
@@ -88,8 +88,8 @@ void KratosExecute::ResetModelParts()
 
 KratosExecute::ConvergenceCriteriaType::Pointer KratosExecute::setup_criteria_dgeoflow()
 {
-    const double  rel_tol      = 1.0e-4;
-    const double  abs_tol      = 1.0e-9;
+    const double        rel_tol      = 1.0e-4;
+    const double        abs_tol      = 1.0e-9;
     const VariableData* p_water_pres = &WATER_PRESSURE;
     KratosExecute::ConvergenceVariableListType convergence_settings{std::make_tuple(p_water_pres, rel_tol, abs_tol)};
     return std::make_shared<KratosExecute::MixedGenericCriteriaType>(convergence_settings);

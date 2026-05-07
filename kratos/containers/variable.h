@@ -93,12 +93,12 @@ public:
      * @brief Constructor for creating a component of other variable
      * @param rNewName The name to be assigned to the compoenent
      */
-    template<typename TSourceVariableType>
+    template <typename TSourceVariableType>
     constexpr explicit Variable(
-        const std::string_view& rNewName,
+        const std::string_view& NewName,
         const TSourceVariableType* pSourceVariable,
         char ComponentIndex)
-        : VariableData(rNewName, sizeof(TDataType), pSourceVariable, ComponentIndex)
+        : VariableData(NewName, sizeof(TDataType), pSourceVariable, ComponentIndex)
     {}
 
     /**
@@ -107,13 +107,13 @@ public:
      * @param pTimeDerivativeVariable Pointer to the time derivative variable
      * @param Zero The value to be assigned to the variable as zero. In case of not definition will take the value given by the constructor of the time
      */
-    template<typename TSourceVariableType>
+    template <typename TSourceVariableType>
     constexpr explicit Variable(
-        const std::string_view& rNewName,
+        const std::string_view& NewName,
         TSourceVariableType* pSourceVariable,
         char ComponentIndex,
         const VariableType* pTimeDerivativeVariable)
-        : VariableData(rNewName, sizeof(TDataType), pSourceVariable, ComponentIndex),
+        : VariableData(NewName, sizeof(TDataType), pSourceVariable, ComponentIndex),
           mpTimeDerivativeVariable(pTimeDerivativeVariable)
     {}
 
@@ -444,32 +444,6 @@ private:
     const TDataType& GetValueByIndex(const TValueType* pValue, std::size_t index) const
     {
         return *static_cast<const TDataType*>(pValue + index);
-    }
-
-    ///@}
-    ///@name Serialization
-    ///@{
-
-    friend class Serializer;
-
-    /**
-     * The save operation which copies the database of the class
-     * @param rSerializer The serializer used to preserve the information
-     */
-    void save(Serializer& rSerializer) const override
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, VariableData );
-        rSerializer.save("TimeDerivativeVariable",mpTimeDerivativeVariable);
-    }
-
-    /**
-     * The load operation which restores the database of the class
-     * @param rSerializer The serializer used to preserve the information
-     */
-    void load(Serializer& rSerializer) override
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, VariableData );
-        rSerializer.load("TimeDerivativeVariable",mpTimeDerivativeVariable);
     }
 
     ///@}

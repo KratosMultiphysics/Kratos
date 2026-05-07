@@ -24,6 +24,7 @@
 #include "containers/periodic_variables_container.h"
 #include "utilities/table_stream_utility.h"
 #include "utilities/adjoint_extensions.h"
+#include "includes/geometrical_object.h"
 
 #undef  KRATOS_EXPORT_MACRO
 #define KRATOS_EXPORT_MACRO KRATOS_API
@@ -454,9 +455,9 @@ namespace Kratos
     //for General kratos application:
 
     //for Structural application:
-    //KRATOS_DEFINE_VARIABLE( GlobalPointersVector< GeometricalObject >, NEIGHBOUR_EMBEDDED_FACES )
-    //KRATOS_DEFINE_VARIABLE( ConvectionDiffusionSettings::Pointer,  CONVECTION_DIFFUSION_SETTINGS )
-    //KRATOS_DEFINE_VARIABLE( RadiationSettings::Pointer,  RADIATION_SETTINGS )
+    KRATOS_DEFINE_VARIABLE( GlobalPointersVector< GeometricalObject >, NEIGHBOUR_EMBEDDED_FACES )
+    // KRATOS_DEFINE_VARIABLE( ConvectionDiffusionSettings::Pointer,  CONVECTION_DIFFUSION_SETTINGS )
+    // KRATOS_DEFINE_VARIABLE( RadiationSettings::Pointer,  RADIATION_SETTINGS )
 
     KRATOS_DEFINE_VARIABLE( PeriodicVariablesContainer, PERIODIC_VARIABLES )
 

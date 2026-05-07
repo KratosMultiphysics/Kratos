@@ -15,6 +15,7 @@
 #include <filesystem>
 #include <numeric>
 #include <type_traits>
+#include <cstdint>
 
 // External includes
 
@@ -43,16 +44,20 @@ namespace Kratos {
 
 namespace {
 
-constexpr std::string GetEndianness()
+bool IsBigEndian()
 {
-    if constexpr(std::endian::native == std::endian::little) {
-        return "LittleEndian";
-    } else if constexpr(std::endian::native == std::endian::big) {
-        return "BigEndian";
-    } else {
-        KRATOS_ERROR << "Unsupported endianess.";
-        return "";
-    }
+    // from: https://stackoverflow.com/a/1001373
+    union {
+        uint32_t i;
+        unsigned char c[4];
+    } bint = {0x01020304};
+
+    return bint.c[0] == 1;
+}
+
+std::string GetEndianness()
+{
+    return IsBigEndian() ? "BigEndian" : "LittleEndian";
 }
 
 template<class T>

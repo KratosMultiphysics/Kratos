@@ -311,7 +311,11 @@ public:
               mRBFTypeEnum(RBFTypeEnum),
               mPolynomialDegree(PolynomialDegree), 
               mDimension(dimension),
-              mNumberOfPolynomialTerms((PolynomialDegree + 3) * (PolynomialDegree + 2) * (PolynomialDegree + 1) / 6),
+              mNumberOfPolynomialTerms(
+                dimension == 2 ?
+                    (PolynomialDegree + 2) * (PolynomialDegree + 1) / 2 :
+                    (PolynomialDegree + 3) * (PolynomialDegree + 2) * (PolynomialDegree + 1) / 6
+              ),
               mpPolynomialEquationIds(pPolynomialEquationIds){}
 
     // Construct from a node
@@ -323,7 +327,11 @@ public:
              mRBFTypeEnum(RBFTypeEnum),
              mPolynomialDegree(PolynomialDegree),
              mDimension(dimension),
-             mNumberOfPolynomialTerms((PolynomialDegree + 3) * (PolynomialDegree + 2) * (PolynomialDegree + 1) / 6),
+             mNumberOfPolynomialTerms(
+                dimension == 2 ?
+                    (PolynomialDegree + 2) * (PolynomialDegree + 1) / 2 :
+                    (PolynomialDegree + 3) * (PolynomialDegree + 2) * (PolynomialDegree + 1) / 6
+             ),
              mpPolynomialEquationIds(pPolynomialEquationIds){}
 
     // Construct from a geometry (e.g. an integration-point “geometry” in IGA)
@@ -335,7 +343,11 @@ public:
              mRBFTypeEnum(RBFTypeEnum),
              mPolynomialDegree(PolynomialDegree),
              mDimension(dimension),
-             mNumberOfPolynomialTerms((PolynomialDegree + 3) * (PolynomialDegree + 2) * (PolynomialDegree + 1) / 6),
+             mNumberOfPolynomialTerms(
+                dimension == 2 ?
+                    (PolynomialDegree + 2) * (PolynomialDegree + 1) / 2 :
+                    (PolynomialDegree + 3) * (PolynomialDegree + 2) * (PolynomialDegree + 1) / 6
+             ),
              mpPolynomialEquationIds(pPolynomialEquationIds){}
 
     void CalculateAll(MatrixType& rLocalMappingMatrix,
