@@ -32,17 +32,12 @@ class DataValuesControl(Control):
         super().__init__(name)
 
         default_settings = Kratos.Parameters("""{
-            "control_variable_name"             : "",
-            "control_variable_bounds"           : [0.0, 0.0],
-            "container_type"                    : "",
-            "output_all_fields"                 : false,
-            "filter_settings"                   : {},
-            "model_part_names": [
-                {
-                    "primal_model_part_name" : "PLEASE_PROVIDE_MODEL_PART_NAME",
-                    "adjoint_model_part_name": "PLEASE_PROVIDE_MODEL_PART_NAME"
-                }
-            ]
+            "control_variable_name"  : "",
+            "control_variable_bounds": [0.0, 0.0],
+            "container_type"         : "",
+            "output_all_fields"      : false,
+            "filter_settings"        : {},
+            "model_part_names"       : []
         }""")
 
         parameters.ValidateAndAssignDefaults(default_settings)
@@ -70,31 +65,24 @@ class DataValuesControl(Control):
             raise RuntimeError(f"{control_variable_name} with {control_variable_type} type is not supported. Only supports double variables")
         self.controlled_physical_variable: SupportedSensitivityFieldVariableTypes = Kratos.KratosGlobals.GetVariable(control_variable_name)
 
-        controlled_model_part_names: 'list[Kratos.Parameters]' = parameters["model_part_names"].values()
+        controlled_model_part_names: 'list[Kratos.Parameters]' = parameters["model_part_names"].GetStringArray()
         if len(controlled_model_part_names) == 0:
             raise RuntimeError(f"No model parts were provided for DataValuesControl. [ control name = \"{self.GetName()}\"]")
 
-        self.primal_model_part_operation = ModelPartOperation(
+        self.model_part_operation = ModelPartOperation(
                                                 self.model,
                                                 ModelPartOperation.OperationType.UNION,
                                                 f"control_primal_{self.GetName()}",
-                                                [param["primal_model_part_name"].GetString() for param in controlled_model_part_names],
+                                                controlled_model_part_names,
                                                 False)
-        self.adjoint_model_part_operation = ModelPartOperation(
-                                                self.model,
-                                                ModelPartOperation.OperationType.UNION,
-                                                f"control_adjoint_{self.GetName()}",
-                                                [param["adjoint_model_part_name"].GetString() for param in controlled_model_part_names],
-                                                False)
-
         # filter needs to be based on the primal model part
         # because, filter may keep pointers for the elements to get their center positions
         # for filtering. The adjoint model part may re-assign adjoint elements based on
         # the primal model part rendering the filter element pointers useless and to segfault.
         # hence filter is using the primal model part to get the locations.
-        self.filter = FilterFactory(self.model, self.primal_model_part_operation.GetModelPartFullName(), self.controlled_physical_variable, self.container_type, self.parameters["filter_settings"])
+        self.filter = FilterFactory(self.model, self.model_part_operation.GetModelPartFullName(), self.controlled_physical_variable, self.container_type, self.parameters["filter_settings"])
 
-        self.primal_model_part: Optional[Kratos.ModelPart] = None
+        self.model_part: Optional[Kratos.ModelPart] = None
         self.adjoint_model_part: Optional[Kratos.ModelPart] = None
 
         control_variable_bounds = parameters["control_variable_bounds"].GetVector()
@@ -104,8 +92,7 @@ class DataValuesControl(Control):
         self.clamper = KratosSI.SmoothClamper(0, 1)
 
     def Initialize(self) -> None:
-        self.primal_model_part = self.primal_model_part_operation.GetModelPart()
-        self.adjoint_model_part = self.adjoint_model_part_operation.GetModelPart()
+        self.model_part = self.model_part_operation.GetModelPart()
 
         # initialize the filter
         self.filter.SetComponentDataView(ComponentDataView(self, self.optimization_problem))
@@ -134,7 +121,7 @@ class DataValuesControl(Control):
         return [self.controlled_physical_variable]
 
     def GetEmptyField(self) -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
-        field = GetTensorAdaptor(self.primal_model_part, self.container_type, self.controlled_physical_variable)
+        field = GetTensorAdaptor(self.model_part, self.container_type, self.controlled_physical_variable)
         field.data[:] = 0.0
         return field
 
@@ -142,7 +129,7 @@ class DataValuesControl(Control):
         return self.control_phi_field.Clone()
 
     def GetPhysicalField(self) -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
-        physical_thickness_field = GetTensorAdaptor(self.primal_model_part, self.container_type, self.controlled_physical_variable)
+        physical_thickness_field = GetTensorAdaptor(self.model_part, self.container_type, self.controlled_physical_variable)
         physical_thickness_field.CollectData()
         return physical_thickness_field
 
@@ -156,7 +143,7 @@ class DataValuesControl(Control):
 
             physical_gradient = physical_variable_gradient_map[self.controlled_physical_variable]
             if physical_gradient.GetContainer() != self.GetEmptyField().GetContainer():
-                raise RuntimeError(f"Gradients for the required element container not found for control \"{self.GetName()}\". [ required model part name: {self.primal_model_part.FullName()} ]")
+                raise RuntimeError(f"Gradients for the required element container not found for control \"{self.GetName()}\". [ required model part name: {self.model_part.FullName()} ]")
 
             # dj/dE -> physical_gradient
             # dj/dphi = dj/dphysical * dphysical/dphi
@@ -166,7 +153,7 @@ class DataValuesControl(Control):
 
     def Update(self, new_control_field: Kratos.TensorAdaptors.DoubleTensorAdaptor) -> bool:
         if new_control_field.GetContainer() != self.GetEmptyField().GetContainer():
-            raise RuntimeError(f"Updates for the required element container not found for control \"{self.GetName()}\". [ required model part name: {self.primal_model_part.FullName()} ]")
+            raise RuntimeError(f"Updates for the required element container not found for control \"{self.GetName()}\". [ required model part name: {self.model_part.FullName()} ]")
 
         update = new_control_field.Clone()
         update.data[:] -= self.control_phi_field.data
@@ -188,7 +175,7 @@ class DataValuesControl(Control):
         physical_field = self.interval_bounder.GetUnboundedTensorAdaptor(self.clamper.ProjectForward(self.physical_phi_field))
 
         # now update physical field
-        ta = GetTensorAdaptor(self.primal_model_part, self.container_type, self.controlled_physical_variable)
+        ta = GetTensorAdaptor(self.model_part, self.container_type, self.controlled_physical_variable)
         ta.data[:] = physical_field.data
         ta.StoreData()
 
@@ -207,4 +194,4 @@ class DataValuesControl(Control):
             un_buffered_data.SetValue(f"{self.controlled_physical_variable.Name()}_physical_phi_derivative", self.physical_phi_derivative_field.Clone(), overwrite=True)
 
     def __str__(self) -> str:
-        return f"Control [type = {self.__class__.__name__}, name = {self.GetName()}, model part name = {self.adjoint_model_part_operation.GetModelPartFullName()}, control variable = {self.controlled_physical_variable.Name()}"
+        return f"Control [type = {self.__class__.__name__}, name = {self.GetName()}, model part name = {self.model_part_operation.GetModelPartFullName()}, control variable = {self.controlled_physical_variable.Name()}"
