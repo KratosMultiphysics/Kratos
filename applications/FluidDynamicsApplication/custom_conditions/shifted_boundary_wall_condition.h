@@ -293,10 +293,10 @@ protected:
      * @param rRightHandSideVector reference to the RHS vector
      * @param rCurrentProcessInfo reference to the ProcessInfo
      */
-    void AddDirichletPenalization(
-        MatrixType& rLHS,
-        VectorType& rRHS,
-        const ProcessInfo& rCurrentProcessInfo);
+    // void AddDirichletPenalization(
+    //     MatrixType& rLHS,
+    //     VectorType& rRHS,
+    //     const ProcessInfo& rCurrentProcessInfo);
 
     /**
      * @brief This function builds the strain matrix from the shape function derivatives utilizing Voigt notation.
