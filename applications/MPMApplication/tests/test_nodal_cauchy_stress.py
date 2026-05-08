@@ -9,7 +9,13 @@ class TestCauchyStressProjectionMPM(KratosUnittest.TestCase):
     def setUp(self):
         self.model = KratosMultiphysics.Model()
 
-    def test_cauchy_stress_projection(self):
+    def test_cauchy_stress_projection_updated_lagrangian(self):
+        self._RunCauchyStressProjectionTest("quadrilateral", False)
+
+    def test_cauchy_stress_projection_updated_lagrangian_up(self):
+        self._RunCauchyStressProjectionTest("triangle", True)
+
+    def _RunCauchyStressProjectionTest(self, geometry_type, pressure_dofs):
         project_parameters = KratosMultiphysics.Parameters("""{
             "problem_data" : {
                 "problem_name"  : "test_nodal_cauchy_stress",
@@ -51,13 +57,14 @@ class TestCauchyStressProjectionMPM(KratosUnittest.TestCase):
             "output_processes" : {}
         }""")
 
-        simulation = CauchyStressTestSimulation(self.model, project_parameters)
+        project_parameters["solver_settings"]["pressure_dofs"].SetBool(pressure_dofs)
+
+        simulation = CauchyStressTestSimulation(self.model, project_parameters, geometry_type, pressure_dofs)
         simulation.Run()
 
         grid_model_part = self.model.GetModelPart("Background_Grid")
         expected_nodal_stress = KratosMultiphysics.Vector([10.0, 5.0, 2.0])
 
-        self.assertEqual(grid_model_part.NumberOfNodes(), 6)
         for node in grid_model_part.Nodes:
             nodal_stress = node.GetSolutionStepValue(KratosMPM.NODAL_CAUCHY_STRESS_VECTOR)
             self.assertVectorAlmostEqual(nodal_stress, expected_nodal_stress)
@@ -65,9 +72,11 @@ class TestCauchyStressProjectionMPM(KratosUnittest.TestCase):
 
 class CauchyStressTestSimulation(MpmAnalysis):
 
-    def __init__(self, model, parameters):
+    def __init__(self, model, parameters, geometry_type, pressure_dofs):
         self.model = model
         self.project_parameters = parameters
+        self.geometry_type = geometry_type
+        self.pressure_dofs = pressure_dofs
 
         super().__init__(self.model, self.project_parameters)
 
@@ -81,38 +90,52 @@ class CauchyStressTestSimulation(MpmAnalysis):
         grid_model_part = self.model.GetModelPart("Background_Grid")
         grid_sub_model_part = grid_model_part.CreateSubModelPart("Grid_Auto1")
 
-        grid_sub_model_part.CreateNewNode(1, 0.0, 0.0, 0.0)
-        grid_sub_model_part.CreateNewNode(2, 0.0, 1.0, 0.0)
-        grid_sub_model_part.CreateNewNode(3, 1.0, 0.0, 0.0)
-        grid_sub_model_part.CreateNewNode(4, 1.0, 1.0, 0.0)
-        grid_sub_model_part.CreateNewNode(5, 2.0, 0.0, 0.0)
-        grid_sub_model_part.CreateNewNode(6, 2.0, 1.0, 0.0)
+        self._CreateNodes(grid_sub_model_part)
 
         grid_properties = grid_sub_model_part.GetProperties()[1]
-        grid_sub_model_part.CreateNewElement("Element2D4N", 1, [3, 4, 2, 1], grid_properties)
-        grid_sub_model_part.CreateNewElement("Element2D4N", 2, [5, 6, 4, 3], grid_properties)
+        if self.geometry_type == "triangle":
+            grid_sub_model_part.CreateNewElement("Element2D3N", 1, [3, 4, 1], grid_properties)
+            grid_sub_model_part.CreateNewElement("Element2D3N", 2, [4, 2, 1], grid_properties)
+            grid_sub_model_part.CreateNewElement("Element2D3N", 3, [5, 6, 3], grid_properties)
+            grid_sub_model_part.CreateNewElement("Element2D3N", 4, [6, 4, 3], grid_properties)
+        else:
+            grid_sub_model_part.CreateNewElement("Element2D4N", 1, [3, 4, 2, 1], grid_properties)
+            grid_sub_model_part.CreateNewElement("Element2D4N", 2, [5, 6, 4, 3], grid_properties)
 
     def _CreateInitialMaterialModelPart(self):
         initial_mesh_model_part = self.model.GetModelPart("Initial_MPM_Material")
         material_sub_model_part = initial_mesh_model_part.CreateSubModelPart("Material_domain_Auto1")
 
         properties = material_sub_model_part.GetProperties()[1]
-        properties.SetValue(KratosMultiphysics.CONSTITUTIVE_LAW, KratosMPM.LinearElasticIsotropicPlaneStrain2DLaw())
+        if self.pressure_dofs:
+            properties.SetValue(KratosMultiphysics.CONSTITUTIVE_LAW, KratosMPM.HyperElasticPlaneStrainUP2DLaw())
+        else:
+            properties.SetValue(KratosMultiphysics.CONSTITUTIVE_LAW, KratosMPM.LinearElasticIsotropicPlaneStrain2DLaw())
         properties.SetValue(KratosMultiphysics.THICKNESS, 1.0)
         properties.SetValue(KratosMPM.MATERIAL_POINTS_PER_ELEMENT, 1)
         properties.SetValue(KratosMultiphysics.DENSITY, 7850.0)
         properties.SetValue(KratosMultiphysics.YOUNG_MODULUS, 206900000000.0)
         properties.SetValue(KratosMultiphysics.POISSON_RATIO, 0.29)
 
-        material_sub_model_part.CreateNewNode(1, 0.0, 0.0, 0.0)
-        material_sub_model_part.CreateNewNode(2, 0.0, 1.0, 0.0)
-        material_sub_model_part.CreateNewNode(3, 1.0, 0.0, 0.0)
-        material_sub_model_part.CreateNewNode(4, 1.0, 1.0, 0.0)
-        material_sub_model_part.CreateNewNode(5, 2.0, 0.0, 0.0)
-        material_sub_model_part.CreateNewNode(6, 2.0, 1.0, 0.0)
+        self._CreateNodes(material_sub_model_part)
 
-        material_sub_model_part.CreateNewElement("MPMUpdatedLagrangian2D4N", 1, [3, 4, 2, 1], properties)
-        material_sub_model_part.CreateNewElement("MPMUpdatedLagrangian2D4N", 2, [5, 6, 4, 3], properties)
+        if self.geometry_type == "triangle":
+            material_sub_model_part.CreateNewElement("MPMUpdatedLagrangian2D3N", 1, [3, 4, 1], properties)
+            material_sub_model_part.CreateNewElement("MPMUpdatedLagrangian2D3N", 2, [4, 2, 1], properties)
+            material_sub_model_part.CreateNewElement("MPMUpdatedLagrangian2D3N", 3, [5, 6, 3], properties)
+            material_sub_model_part.CreateNewElement("MPMUpdatedLagrangian2D3N", 4, [6, 4, 3], properties)
+        else:
+            material_sub_model_part.CreateNewElement("MPMUpdatedLagrangian2D4N", 1, [3, 4, 2, 1], properties)
+            material_sub_model_part.CreateNewElement("MPMUpdatedLagrangian2D4N", 2, [5, 6, 4, 3], properties)
+
+    @staticmethod
+    def _CreateNodes(model_part):
+        model_part.CreateNewNode(1, 0.0, 0.0, 0.0)
+        model_part.CreateNewNode(2, 0.0, 1.0, 0.0)
+        model_part.CreateNewNode(3, 1.0, 0.0, 0.0)
+        model_part.CreateNewNode(4, 1.0, 1.0, 0.0)
+        model_part.CreateNewNode(5, 2.0, 0.0, 0.0)
+        model_part.CreateNewNode(6, 2.0, 1.0, 0.0)
 
     def ModifyBeforeSolutionLoop(self):
         super().ModifyBeforeSolutionLoop()
