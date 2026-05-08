@@ -227,6 +227,9 @@ namespace Kratos {
                 KRATOS_TRY
 
                 const ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
+                const bool compute_nodal_cauchy_stress = (rCurrentProcessInfo.Has(COMPUTE_NODAL_CAUCHY_STRESS))
+                    ? rCurrentProcessInfo.GetValue(COMPUTE_NODAL_CAUCHY_STRESS)
+                    : false;
                 const auto &r_elements_array = rModelPart.Elements();
                 const std::size_t n_elems = r_elements_array.size();
                 
@@ -258,6 +261,9 @@ namespace Kratos {
                         nodal_momentum.clear();
                         nodal_inertia.clear();
                         nodal_force.clear();
+                        if (compute_nodal_cauchy_stress) {
+                            i->FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_VECTOR).clear();
+                        }
 
                         nodal_displacement.clear();
                         nodal_velocity.clear();
@@ -368,7 +374,21 @@ namespace Kratos {
 
                 ElementsArrayType& rElements = rModelPart.Elements();
                 const ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
+                const bool compute_nodal_cauchy_stress = (rCurrentProcessInfo.Has(COMPUTE_NODAL_CAUCHY_STRESS))
+                    ? rCurrentProcessInfo.GetValue(COMPUTE_NODAL_CAUCHY_STRESS)
+                    : false;
                 const auto it_elem_begin = rModelPart.ElementsBegin();
+
+                if (compute_nodal_cauchy_stress) {
+                    #pragma omp parallel for
+                    for (int iter = 0; iter < static_cast<int>(rModelPart.Nodes().size()); ++iter) {
+                        auto i = rModelPart.NodesBegin() + iter;
+                        const double nodal_mass = i->FastGetSolutionStepValue(NODAL_MASS);
+                        if (nodal_mass > numerical_limit) {
+                            i->FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_VECTOR) /= nodal_mass;
+                        }
+                    }
+                }
 
 
                 // map grid to MPs

@@ -29,7 +29,7 @@ class TestCauchyStressProjectionMPM(KratosUnittest.TestCase):
         for node in grid_model_part.Nodes:
             nodal_stress = node.GetSolutionStepValue(KratosMPM.NODAL_CAUCHY_STRESS_VECTOR)
 
-            print(f"Node {node.Id}: {nodal_stress}")
+            #print(f"Node {node.Id}: {nodal_stress}")
 
             self.assertAlmostEqual(nodal_stress[0], 10.0, places=6)
             self.assertAlmostEqual(nodal_stress[1], 5.0, places=6)

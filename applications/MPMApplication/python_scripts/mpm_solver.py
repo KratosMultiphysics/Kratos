@@ -49,6 +49,7 @@ class MPMSolver(PythonSolver):
                 "materials_filename" : ""
             },
             "compute_reactions"                  : false,
+            "compute_nodal_cauchy_stress"        : false,
             "convergence_criterion"              : "Residual_criteria",
             "displacement_relative_tolerance"    : 1.0E-4,
             "displacement_absolute_tolerance"    : 1.0E-9,
@@ -111,6 +112,10 @@ class MPMSolver(PythonSolver):
     def PrepareModelPart(self):
         # Set buffer size
         self._SetAndFillBuffer()
+
+        compute_nodal_cauchy_stress = self.settings["compute_nodal_cauchy_stress"].GetBool()
+        self.grid_model_part.ProcessInfo.SetValue(KratosMPM.COMPUTE_NODAL_CAUCHY_STRESS, compute_nodal_cauchy_stress)
+        self.material_point_model_part.ProcessInfo.SetValue(KratosMPM.COMPUTE_NODAL_CAUCHY_STRESS, compute_nodal_cauchy_stress)
 
         # Executes the check and prepare model process
         self.__ExecuteCheckAndPrepare()

@@ -17,6 +17,7 @@
         "analysis_type"                   : "non_linear",
         "time_integration_method"         : "implicit",
         "scheme_type"                     : "newmark",
+        "compute_nodal_cauchy_stress"     : true,
         "material_import_settings"        : {
             "materials_filename" : "ParticleMaterials.json"
         },

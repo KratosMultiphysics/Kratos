@@ -356,6 +356,9 @@ void MPMUpdatedLagrangianUP::AddExplicitContribution(const ProcessInfo& rCurrent
 
     // Calculating shape function
     const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
+    const bool compute_nodal_cauchy_stress = (rCurrentProcessInfo.Has(COMPUTE_NODAL_CAUCHY_STRESS))
+        ? rCurrentProcessInfo.GetValue(COMPUTE_NODAL_CAUCHY_STRESS)
+        : false;
 
     mFinalizedStep = false;
 
@@ -364,6 +367,10 @@ void MPMUpdatedLagrangianUP::AddExplicitContribution(const ProcessInfo& rCurrent
     array_1d<double,3> nodal_momentum = ZeroVector(3);
     array_1d<double,3> nodal_inertia = ZeroVector(3);
     double aux_MP_pressure = 0.0;
+
+    if (compute_nodal_cauchy_stress) {
+        AddNodalCauchyStressContribution();
+    }
 
     for (unsigned int j=0; j<number_of_nodes; j++)
     {
@@ -1254,4 +1261,3 @@ void MPMUpdatedLagrangianUP::load( Serializer& rSerializer )
 }
 
 } // Namespace Kratos
-

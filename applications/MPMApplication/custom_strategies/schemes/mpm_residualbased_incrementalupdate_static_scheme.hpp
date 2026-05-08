@@ -20,6 +20,7 @@
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 #include "includes/variables.h"
 #include "utilities/entities_utilities.h"
+#include "mpm_application_variables.h"
 
 namespace Kratos
 {
@@ -85,6 +86,15 @@ public:
         KRATOS_TRY
         
         const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+        const bool compute_nodal_cauchy_stress = (r_current_process_info.Has(COMPUTE_NODAL_CAUCHY_STRESS))
+            ? r_current_process_info.GetValue(COMPUTE_NODAL_CAUCHY_STRESS)
+            : false;
+
+        if (compute_nodal_cauchy_stress) {
+            for (auto& r_node : rModelPart.Nodes()) {
+                r_node.FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_VECTOR).clear();
+            }
+        }
 
         const auto &r_elements_array = rModelPart.Elements();
         const std::size_t n_elems = r_elements_array.size();
@@ -93,6 +103,15 @@ public:
 
             it_elem->AddExplicitContribution(r_current_process_info);
         });
+
+        if (compute_nodal_cauchy_stress) {
+            for (auto& r_node : rModelPart.Nodes()) {
+                const double nodal_mass = r_node.FastGetSolutionStepValue(NODAL_MASS);
+                if (nodal_mass > std::numeric_limits<double>::epsilon()) {
+                    r_node.FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_VECTOR) /= nodal_mass;
+                }
+            }
+        }
 
         KRATOS_CATCH("")
     }

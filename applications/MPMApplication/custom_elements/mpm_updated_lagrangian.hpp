@@ -533,6 +533,11 @@ protected:
     ///@name Protected Operations
     ///@{
 
+    /**
+     * Maps the material point Cauchy stress to the grid nodes as mass-weighted
+     * nodal contributions.
+     */
+    void AddNodalCauchyStressContribution();
 
     /**
      * Calculation and addition of the matrices of the LHS

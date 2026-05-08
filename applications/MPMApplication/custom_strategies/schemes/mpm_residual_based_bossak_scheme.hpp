@@ -223,6 +223,9 @@ public:
         // Particle to Grid mapping for elements is done here because predict needs the velocity field (PR #13432)        
         const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
         const double delta_time = r_current_process_info[DELTA_TIME];
+        const bool compute_nodal_cauchy_stress = (r_current_process_info.Has(COMPUTE_NODAL_CAUCHY_STRESS))
+            ? r_current_process_info.GetValue(COMPUTE_NODAL_CAUCHY_STRESS)
+            : false;
 
         // Initializing Bossak constants
         // This is not related to our change, but related to Bossak temporary fix.
@@ -241,7 +244,6 @@ public:
             double & r_nodal_mass     = rNode.FastGetSolutionStepValue(NODAL_MASS);
             array_1d<double, 3 > & r_nodal_momentum = rNode.FastGetSolutionStepValue(NODAL_MOMENTUM);
             array_1d<double, 3 > & r_nodal_inertia  = rNode.FastGetSolutionStepValue(NODAL_INERTIA);
-            //vector & r_nodal_cauchy_stress_vector  = rNode.FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_VECTOR);          
             array_1d<double, 3 > & r_nodal_displacement = rNode.FastGetSolutionStepValue(DISPLACEMENT);
             array_1d<double, 3 > & r_nodal_velocity     = rNode.FastGetSolutionStepValue(VELOCITY,1);
             array_1d<double, 3 > & r_nodal_acceleration = rNode.FastGetSolutionStepValue(ACCELERATION,1);
@@ -253,7 +255,9 @@ public:
             r_nodal_mass = 0.0;
             r_nodal_momentum.clear();
             r_nodal_inertia.clear();
-            //r_nodal_cauchy_stress_vector.clear();
+            if (compute_nodal_cauchy_stress) {
+                rNode.FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_VECTOR).clear();
+            }
 
             r_nodal_displacement.clear();
             r_nodal_velocity.clear();
@@ -472,6 +476,10 @@ public:
         TSystemVectorType& rb) override
     {
         BossakBaseType::FinalizeSolutionStep(rModelPart, rA, rDx, rb);
+        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+        const bool compute_nodal_cauchy_stress = (r_current_process_info.Has(COMPUTE_NODAL_CAUCHY_STRESS))
+            ? r_current_process_info.GetValue(COMPUTE_NODAL_CAUCHY_STRESS)
+            : false;
         
         if(mFrictionIsActive) {
             block_for_each(mGridModelPart.Nodes(), [&](Node& rNode)
@@ -493,7 +501,7 @@ public:
             }
 
             const double & r_nodal_mass = rNode.FastGetSolutionStepValue(NODAL_MASS);
-            if (r_nodal_mass > std::numeric_limits<double>::epsilon())
+            if (compute_nodal_cauchy_stress && r_nodal_mass > std::numeric_limits<double>::epsilon())
             {
                 rNode.FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_VECTOR)/= r_nodal_mass;
             }    
@@ -691,4 +699,3 @@ protected:
 }  /* namespace Kratos.*/
 
 #endif /* KRATOS_MPM_RESIDUAL_BASED_BOSSAK_SCHEME defined */
-

@@ -301,6 +301,7 @@ namespace Kratos
 
         // Solver related variables
         KRATOS_REGISTER_VARIABLE(IGNORE_GEOMETRIC_STIFFNESS);
+        KRATOS_REGISTER_VARIABLE(COMPUTE_NODAL_CAUCHY_STRESS);
         KRATOS_REGISTER_VARIABLE(IS_AXISYMMETRIC);
 
         // Explicit time integration variables
@@ -331,5 +332,4 @@ namespace Kratos
     }
 
 }  // namespace Kratos.
-
 
