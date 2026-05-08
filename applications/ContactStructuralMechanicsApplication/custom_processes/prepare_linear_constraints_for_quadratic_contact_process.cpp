@@ -31,7 +31,7 @@ void PrepareLinearConstraintsForQuadraticContactProcess::ExecuteInitialize()
     max_condition_id++;
 
     for (auto& r_node : mrModelPart.Nodes()) {
-        r_node.Set(VISITED, false);
+        r_node.Set(MARKER, false);
     }
 
     std::vector<std::vector<std::size_t>> master_slave_nodes_ids = {{0, 1, 3}, {1, 2, 4}, {2, 0, 5}};
@@ -57,7 +57,7 @@ void PrepareLinearConstraintsForQuadraticContactProcess::ExecuteInitialize()
 
         if (count == 6) { // quadratic triangles
             for (IndexType edge = 0; edge < 3; ++edge) {
-                if (r_geom[master_slave_nodes_ids[edge][2]].IsNot(VISITED)) {
+                if (r_geom[master_slave_nodes_ids[edge][2]].IsNot(MARKER)) {
 
                     master_dofs[0] = r_geom[master_slave_nodes_ids[edge][0]].pGetDof(DISPLACEMENT_X);
                     master_dofs[1] = r_geom[master_slave_nodes_ids[edge][1]].pGetDof(DISPLACEMENT_X);
@@ -80,14 +80,14 @@ void PrepareLinearConstraintsForQuadraticContactProcess::ExecuteInitialize()
                         max_condition_id, master_dofs, slave_dofs, relation_matrix, constant_vector);
                     ++max_condition_id;
 
-                    r_geom[master_slave_nodes_ids[edge][2]].Set(VISITED, true);
+                    r_geom[master_slave_nodes_ids[edge][2]].Set(MARKER, true);
                 }
             }
         }
     }
-    // for (auto& r_node : mrModelPart.Nodes()) {
-    //     r_node.Set(VISITED, false);
-    // }
+    for (auto& r_node : mrModelPart.Nodes()) {
+        r_node.Set(MARKER, false);
+    }
 }
 
 } // namespace Kratos
