@@ -9,7 +9,6 @@ from KratosMultiphysics.OptimizationApplication.utilities.model_part_utilities i
 from KratosMultiphysics.OptimizationApplication.execution_policies.execution_policy_decorator import ExecutionPolicyDecorator
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
-from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import WorkFolderScope
 from KratosMultiphysics.SystemIdentificationApplication.sensor_sensitivity_solvers.system_identification_rans_analysis import SystemIdentificationRANSAnalysis
 from KratosMultiphysics.SystemIdentificationApplication.utilities.sensor_utils import GetSensors
 
@@ -78,7 +77,8 @@ class DamageDetectionRANSResponse(ResponseFunction):
         self.analysis_model_part_operation = ModelPartOperation(self.model, ModelPartOperation.OperationType.UNION, f"response_test_analysis_{self.GetName()}", [exec.GetAnalysisModelPart().FullName() for exec, _, _ in self.list_of_test_analysis_data], False)
         self.analysis_model_part: Optional[Kratos.ModelPart] = None
 
-        self.adjoint_analysis = SystemIdentificationRANSAnalysis(self.model, parameters["adjoint_parameters"])
+        self.adjoint_analysis = SystemIdentificationRANSAnalysis(self.model, parameters["adjoint_parameters"], optimization_problem, self.p_coefficient)
+        self.model[self.model_part_operation.GetModelPartFullName()].AddNodalSolutionStepVariable(Kratos.VELOCITY)
 
         self.sensor_name_dict: 'dict[str, KratosSI.Sensors.Sensor]' = {}
         self.optimization_problem = optimization_problem
@@ -99,6 +99,7 @@ class DamageDetectionRANSResponse(ResponseFunction):
 
         sensor_group_data = ComponentDataView(self.sensor_group_name, self.optimization_problem)
         self.list_of_sensors = GetSensors(sensor_group_data)
+        self.adjoint_analysis.SetSensors(self.sensor_group_name, self.list_of_sensors)
         for sensor in self.list_of_sensors:
             sensor.GetNode().SetValue(KratosSI.SENSOR_MEASURED_VALUE, 0.0)
             self.damage_response_function.AddSensor(sensor)
@@ -143,12 +144,7 @@ class DamageDetectionRANSResponse(ResponseFunction):
             # read and replace the measurement data for each test scenario
             self.__SetSensorMeasuredValue(sensor_measurement_data_file_name)
 
-            # run a single adjoint for each test scenario
-            self.adjoint_analysis._GetSolver().GetComputingModelPart().ProcessInfo[KratosSI.TEST_ANALYSIS_NAME] = exec_policy.GetName()
-            self.adjoint_analysis._GetSolver().GetComputingModelPart().ProcessInfo[Kratos.STEP] = self.optimization_problem.GetStep()
-
-            with WorkFolderScope(exec_policy.GetPath()):
-                self.adjoint_analysis.CalculateGradient(self.damage_response_function)
+            self.adjoint_analysis.CalculateGradient(self.damage_response_function)
 
             for physical_variable, cta in physical_variable_gradient_map.items():
                 sensitivity_variable = Kratos.KratosGlobals.GetVariable(Kratos.SensitivityUtilities.GetSensitivityVariableName(physical_variable))

@@ -289,6 +289,7 @@ class AdjointRANSSolver(CoupledRANSSolver):
         # add sensitivity variables
         self.main_model_part.AddNodalSolutionStepVariable(Kratos.SHAPE_SENSITIVITY)
         self.main_model_part.AddNodalSolutionStepVariable(Kratos.NORMAL_SENSITIVITY)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosRANS.VELOCITY_SENSITIVITY)
 
         if (self.compute_transient_response_function_interpolation_error):
             self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.RESPONSE_FUNCTION_INTERPOLATION_ERROR_AUX_ADJOINT_FLUID_VECTOR_1)
@@ -581,7 +582,7 @@ class AdjointRANSSolver(CoupledRANSSolver):
 
     def GetResponseFunction(self):
         if not hasattr(self, '_response_function'):
-            self._response_function = self.__CreateResponseFunction()
+            self._response_function = self._CreateResponseFunction()
         return self._response_function
 
     def GetSensitivityBuilder(self):
@@ -589,7 +590,7 @@ class AdjointRANSSolver(CoupledRANSSolver):
             self._sensitivity_builder = self.__CreateSensitivityBuilder()
         return self._sensitivity_builder
 
-    def __CreateResponseFunction(self):
+    def _CreateResponseFunction(self):
         domain_size = self.main_model_part.ProcessInfo[Kratos.DOMAIN_SIZE]
         response_type = self.adjoint_settings["response_function_settings"]["response_type"].GetString()
 
