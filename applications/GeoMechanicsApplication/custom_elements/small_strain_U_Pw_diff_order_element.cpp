@@ -192,7 +192,7 @@ Vector SmallStrainUPwDiffOrderElement::GetPressures(const size_t n_nodes) const
 {
     const auto& r_geom = GetGeometry();
     Vector      pressure(n_nodes);
-    std::transform(r_geom.begin(), r_geom.begin() + n_nodes, pressure.begin(),
+    std::transform(r_geom.begin(), r_geom.begin() + static_cast<std::ptrdiff_t>(n_nodes), pressure.begin(),
                    [](const auto& node) { return node.FastGetSolutionStepValue(WATER_PRESSURE); });
     return pressure;
 }
