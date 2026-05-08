@@ -1,9 +1,12 @@
 Begin Table 1 TIME DISPLACEMENT_Y
   0.0  0.0
-  1.0 -0.025
-  2.0  0.0
-  3.0  0.025
-  4.0  0.0
+  0.05	+0.0060
+  0.10	+0.0040
+  0.15	+0.0075
+  0.20	-0.0050
+  0.25	-0.0125
+  0.30	-0.0075
+  0.35	-0.0200
 End Table
 
 Begin Properties 1
@@ -12,23 +15,19 @@ End Properties
 Begin Nodes
   1  0.0000000000 0.0000000000 0.0000000000
   2  1.0000000000 0.0000000000 0.0000000000
-  3  2.0000000000 0.0000000000 0.0000000000
 End Nodes
 
-Begin Elements LinearTimoshenkoBeamElement2D2N
+Begin Elements GeoLinearTimoshenkoBeamElement2D2N
   1  1  1 2
-  2  1  2 3
 End Elements
 
 Begin SubModelPart Beam
   Begin SubModelPartNodes
     1
     2
-    3
   End SubModelPartNodes
   Begin SubModelPartElements
     1
-    2
   End SubModelPartElements
 End SubModelPart
 
@@ -38,17 +37,11 @@ Begin SubModelPart Fixed_Displacement
   End SubModelPartNodes
 End SubModelPart
 
-Begin SubModelPart Midnode_Displacement
-  Begin SubModelPartNodes
-    2
-  End SubModelPartNodes
-End SubModelPart
-
 Begin SubModelPart Point_Load
   Begin SubModelPartTables
     1
   End SubModelPartTables
   Begin SubModelPartNodes
-    3
+    2
   End SubModelPartNodes
 End SubModelPart

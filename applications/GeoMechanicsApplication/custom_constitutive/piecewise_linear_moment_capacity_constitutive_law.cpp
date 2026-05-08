@@ -36,22 +36,9 @@ double& PiecewiseLinearMomentCapacityConstitutiveLaw::CalculateValue(Constitutiv
                                                                      double& rValue)
 {
     if (rVariable == TANGENT_MODULUS) {
-        const auto curvature = rParameters.GetStrainVector()[1];
-        // If a modulus for un/reload is supplied, use the stored modulus inside the elastic window
-        if (mUnReLoadModulus > 0.0) {
-            // Use actual curvature (with sign) for unload/reload window checks
-            if (IsWithinUnReLoading(curvature)) {
-                rValue = mUnReLoadModulus;
-                return rValue;
-            }
-            // outside the window: compute effective curvature on backbone (positive quantity)
-            const auto amplitude = CalculateUnReLoadAmplitude();
-            const auto effective = mAccumulatedCurvature + (std::abs(curvature - mUnReLoadCenter) - amplitude);
-            rValue = mStressStrainTable.GetDerivative(effective);
-            return rValue;
-        }
-        // Default: TANGENT_MODULUS is the derivative dM/d(kappa) based on absolute curvature
-        rValue = mStressStrainTable.GetDerivative(std::abs(curvature));
+        const auto curvature                 = rParameters.GetStrainVector()[1];
+        const auto [moment, tangent_modulus] = CalculateMomentAndTangentModulus(curvature);
+        rValue                               = tangent_modulus;
         return rValue;
     }
 
@@ -65,51 +52,38 @@ void PiecewiseLinearMomentCapacityConstitutiveLaw::CalculateMaterialResponsePK2(
 
 void PiecewiseLinearMomentCapacityConstitutiveLaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rParameters)
 {
-    const auto& r_cl_law_options      = rParameters.GetOptions();
+    const auto& r_options             = rParameters.GetOptions();
     auto&       r_material_properties = rParameters.GetMaterialProperties();
     auto&       r_strain_vector       = rParameters.GetStrainVector();
     AddInitialStrainVectorContribution(r_strain_vector);
 
-    const double axial_strain = r_strain_vector[0]; // E_l
-    const double curvature    = r_strain_vector[1]; // Kappa
-    const double shear_strain = r_strain_vector[2]; // Gamma_xy
+    const auto axial_strain = r_strain_vector[0]; // E_l
+    const auto curvature    = r_strain_vector[1]; // Kappa
+    const auto shear_strain = r_strain_vector[2]; // Gamma_xy
 
-    const double E  = r_material_properties[YOUNG_MODULUS];
-    const double A  = r_material_properties[THICKNESS];
-    const double nu = r_material_properties[POISSON_RATIO];
+    const auto E  = r_material_properties[YOUNG_MODULUS];
+    const auto A  = r_material_properties[THICKNESS];
+    const auto nu = r_material_properties[POISSON_RATIO];
 
-    const double G   = E / (2.0 * (1.0 + nu));
-    const double A_s = r_material_properties[THICKNESS_EFFECTIVE_Y]; // Per unit length
+    const auto G   = E / (2.0 * (1.0 + nu));
+    const auto A_s = r_material_properties[THICKNESS_EFFECTIVE_Y]; // Per unit length
 
-    if (r_cl_law_options.Is(ConstitutiveLaw::COMPUTE_STRESS)) {
+    if (r_options.Is(ConstitutiveLaw::COMPUTE_STRESS)) {
         auto& r_generalized_stress_vector = rParameters.GetStressVector();
         if (r_generalized_stress_vector.size() != strain_size)
             r_generalized_stress_vector.resize(strain_size, false);
 
-        const double one_minus_nu_squared = 1.0 - nu * nu;
-        const double EA_nu                = E * A / one_minus_nu_squared;
-        const double GAs                  = G * A_s;
+        const auto one_minus_nu_squared = 1.0 - nu * nu;
+        const auto EA_nu                = E * A / one_minus_nu_squared;
+        const auto GAs                  = G * A_s;
 
-        r_generalized_stress_vector[0] = EA_nu * axial_strain; // Nx
+        const auto [moment, tangent_modulus] = CalculateMomentAndTangentModulus(curvature);
 
-        // Moment calculation using piecewise table with unload/reload logic
-        double moment = 0.0;
-        if (mUnReLoadModulus > 0.0) {
-            if (IsWithinUnReLoading(curvature)) {
-                moment = mUnReLoadModulus * (curvature - mUnReLoadCenter);
-            } else {
-                const auto amplitude = CalculateUnReLoadAmplitude();
-                const auto effective =
-                    mAccumulatedCurvature + (std::abs(curvature - mUnReLoadCenter) - amplitude);
-                moment = mStressStrainTable.GetValue(effective);
-                moment = curvature - mUnReLoadCenter < 0.0 ? -moment : moment;
-            }
-        } else {
-            moment = mStressStrainTable.GetValue(std::abs(curvature));
-            moment = curvature < 0.0 ? -moment : moment;
-        }
-        r_generalized_stress_vector[1] = moment;             // Mz
-        r_generalized_stress_vector[2] = GAs * shear_strain; // Vxy
+        std::cout << "CalculateMaterialResponseCauchy: c=" <<  curvature << " m=" << moment << " t=" <<  tangent_modulus << " in=" << IsWithinUnReLoading(curvature) << " acc=" <<  mAccumulatedCurvature << " cen=" << mUnReLoadCenter << " p=" << mPreviousCurvature << std::endl;
+
+        r_generalized_stress_vector[0]       = EA_nu * axial_strain; // Nx
+        r_generalized_stress_vector[1]       = moment;               // Mz
+        r_generalized_stress_vector[2]       = GAs * shear_strain;   // Vxy
 
         AddInitialStressVectorContribution(r_generalized_stress_vector);
 
@@ -117,30 +91,15 @@ void PiecewiseLinearMomentCapacityConstitutiveLaw::CalculateMaterialResponseCauc
             r_generalized_stress_vector += r_material_properties[BEAM_PRESTRESS_PK2];
         }
 
-        if (r_cl_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
+        if (r_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
             auto& r_stress_derivatives = rParameters.GetConstitutiveMatrix();
             if (r_stress_derivatives.size1() != strain_size || r_stress_derivatives.size2() != strain_size)
                 r_stress_derivatives.resize(strain_size, strain_size, false);
+
             noalias(r_stress_derivatives) = ZeroMatrix(strain_size, strain_size);
-
-            // Tangent modulus for moment
-            double tangent_modulus = 0.0;
-            if (mUnReLoadModulus > 0.0) {
-                if (IsWithinUnReLoading(curvature)) {
-                    tangent_modulus = mUnReLoadModulus;
-                } else {
-                    const auto amplitude = CalculateUnReLoadAmplitude();
-                    const auto effective =
-                        mAccumulatedCurvature + (std::abs(curvature - mUnReLoadCenter) - amplitude);
-                    tangent_modulus = mStressStrainTable.GetDerivative(effective);
-                }
-            } else {
-                tangent_modulus = mStressStrainTable.GetDerivative(std::abs(curvature));
-            }
-
-            r_stress_derivatives(0, 0) = EA_nu;           // dN_dEl
-            r_stress_derivatives(1, 1) = tangent_modulus; // dM_dkappa
-            r_stress_derivatives(2, 2) = GAs;             // dV_dGamma_xy
+            r_stress_derivatives(0, 0)    = EA_nu;           // dN_dEl
+            r_stress_derivatives(1, 1)    = tangent_modulus; // dM_dkappa
+            r_stress_derivatives(2, 2)    = GAs;             // dV_dGamma_xy
         }
     }
 }
@@ -166,14 +125,18 @@ void PiecewiseLinearMomentCapacityConstitutiveLaw::FinalizeMaterialResponsePK2(P
                                         ? (curvature > 0.0 ? std::abs(curvature) - amplitude
                                                            : -(std::abs(curvature) - amplitude))
                                         : 0.0;
+            std::cout << "FinalizeMaterialResponsePK2  inside: sign=" <<  sign_reversed << " am=" <<  amplitude << std::endl;
         } else if (!IsWithinUnReLoading(curvature)) {
             // Normal unload/reload update (no sign reversal)
             const auto difference = curvature - mUnReLoadCenter;
             const auto amplitude  = CalculateUnReLoadAmplitude();
             mAccumulatedCurvature += std::abs(difference) - amplitude;
             mUnReLoadCenter = difference > 0.0 ? curvature - amplitude : curvature + amplitude;
+            std::cout << "FinalizeMaterialResponsePK2 outside: d=" <<  difference << " am=" <<  amplitude << std::endl;
+
         }
     }
+    std::cout << "FinalizeMaterialResponsePK2: c=" <<  curvature << " acc=" <<  mAccumulatedCurvature << " cen=" << mUnReLoadCenter << std::endl;
     mPreviousCurvature = curvature;
 }
 
@@ -218,10 +181,7 @@ int PiecewiseLinearMomentCapacityConstitutiveLaw::Check(const Properties&   rMat
     check_properties.Check(THICKNESS_EFFECTIVE_Y);
     check_properties.Check(POISSON_RATIO, -1.0, 0.5);
 
-    if (rMaterialProperties.Has(UNRELOAD_MODULUS)) {
-        // Use a single-use CheckProperties configured for exclusive bounds (>0)
-        check_properties.Check(UNRELOAD_MODULUS);
-    }
+    if (rMaterialProperties.Has(UNRELOAD_MODULUS)) check_properties.Check(UNRELOAD_MODULUS);
 
     return 0;
 }
@@ -288,12 +248,39 @@ void PiecewiseLinearMomentCapacityConstitutiveLaw::InitializeMaterial(const Prop
 double PiecewiseLinearMomentCapacityConstitutiveLaw::CalculateUnReLoadAmplitude() const
 {
     // amplitude is equal to M(accumulated) divided by modulus
-    return mStressStrainTable.GetValue(mAccumulatedCurvature) / mUnReLoadModulus;
+    auto aaa = mStressStrainTable.GetValue(mAccumulatedCurvature) / mUnReLoadModulus;
+    return aaa;
 }
 
 bool PiecewiseLinearMomentCapacityConstitutiveLaw::IsWithinUnReLoading(double Curvature) const
 {
-    return std::abs(Curvature - mUnReLoadCenter) < CalculateUnReLoadAmplitude();
+    auto aaa = std::abs(Curvature - mUnReLoadCenter) < CalculateUnReLoadAmplitude();
+    return aaa;
+}
+
+std::pair<double, double> PiecewiseLinearMomentCapacityConstitutiveLaw::CalculateMomentAndTangentModulus(double curvature) const
+{
+    double moment          = 0.0;
+    double tangent_modulus = 0.0;
+
+    if (mUnReLoadModulus > 0.0) {
+        if (IsWithinUnReLoading(curvature)) {
+            moment          = mUnReLoadModulus * (curvature - mUnReLoadCenter);
+            tangent_modulus = mUnReLoadModulus;
+        } else {
+            const auto amplitude = CalculateUnReLoadAmplitude();
+            const auto effective = mAccumulatedCurvature + (std::abs(curvature - mUnReLoadCenter) - amplitude);
+            moment          = mStressStrainTable.GetValue(effective);
+            moment          = curvature - mUnReLoadCenter < 0.0 ? -moment : moment;
+            tangent_modulus = mStressStrainTable.GetDerivative(effective);
+        }
+    } else {
+        moment          = mStressStrainTable.GetValue(std::abs(curvature));
+        moment          = curvature < 0.0 ? -moment : moment;
+        tangent_modulus = mStressStrainTable.GetDerivative(std::abs(curvature));
+    }
+
+    return {moment, tangent_modulus};
 }
 
 } // namespace Kratos

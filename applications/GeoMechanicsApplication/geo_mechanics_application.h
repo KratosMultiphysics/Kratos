@@ -96,6 +96,7 @@
 #include "custom_elements/transient_Pw_element.h"
 #include "custom_elements/transient_thermal_element.h"
 #include "custom_elements/updated_lagrangian_U_Pw_diff_order_element.h"
+#include "custom_elements/geo_linear_timoshenko_beam_element_2D2N.h"
 
 // Element policies
 #include "custom_elements/axisymmetric_stress_state.h"
@@ -724,6 +725,10 @@ private:
     const TransientThermalElement<3, 3> mTransientThermalLineElement3D3N{
         0, Kratos::make_shared<Line3D3<NodeType>>(Element::GeometryType::PointsArrayType(3)),
         std::make_unique<IntegrationCoefficientModifierForLineElement>()};
+
+    // Geo beam elements
+    const GeoLinearTimoshenkoBeamElement2D2N mGeoLinearTimoshenkoBeamElement2D2N{
+        0, Kratos::make_shared<Line2D2<NodeType>>(Element::GeometryType::PointsArrayType(2))};
 
     // conditions
     const UPwForceCondition<2, 1> mUPwForceCondition2D1N{

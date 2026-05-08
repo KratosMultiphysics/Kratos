@@ -57,6 +57,8 @@ public:
 
     [[nodiscard]] SizeType GetStrainSize() const override;
 
+    bool RequiresFinalizeMaterialResponse() override { return true; }
+
     [[nodiscard]] int Check(const Properties&   rMaterialProperties,
                             const GeometryType& rElementGeometry,
                             const ProcessInfo&  rCurrentProcessInfo) const override;
@@ -74,6 +76,7 @@ private:
 
     [[nodiscard]] double CalculateUnReLoadAmplitude() const;
     [[nodiscard]] bool   IsWithinUnReLoading(double Curvature) const;
+    [[nodiscard]] std::pair<double, double> CalculateMomentAndTangentModulus(double curvature) const;
 
     friend class Serializer;
     void save(Serializer& rSerializer) const override;

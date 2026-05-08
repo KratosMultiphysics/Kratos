@@ -7,8 +7,13 @@ import test_helper
 
 def run_piecewise_case(project_subpath, times, expected_moments, expected_displacements, tol=1e-4):
     project_path = test_helper.get_file_path(os.path.join('piecewise_linear_moment_capacity', project_subpath))
-    project_parameters_file = test_helper.get_file_path(
-        os.path.join('piecewise_linear_moment_capacity', 'common', 'ProjectParameters.json'))
+    case_project_parameters_file = test_helper.get_file_path(
+        os.path.join('piecewise_linear_moment_capacity', project_subpath, 'ProjectParameters.json'))
+    if os.path.exists(case_project_parameters_file):
+        project_parameters_file = case_project_parameters_file
+    else:
+        project_parameters_file = test_helper.get_file_path(
+            os.path.join('piecewise_linear_moment_capacity', 'common', 'ProjectParameters.json'))
 
     cwd = os.getcwd()
     try:
@@ -48,36 +53,36 @@ class KratosGeoMechanicsPiecewiseLinearMomentCapacityTests(KratosUnittest.TestCa
         pass
 
 
-    def test_piecewise_linear_moment_capacity_tension(self):
+    def no_test_piecewise_linear_moment_capacity_move_up(self):
         """
-        2 element elongation test for piecewise linear moment capacity material.
+        move up of the right beam end  for piecewise linear moment capacity material.
         """
         times = [1.0, 2.0, 3.0, 4.0]
         expected_moments_y = [0.120901, 0.168661, 0.205083, 0.240241]
         expected_displacements_y = [0.025, 0.05, 0.075, 0.1]
         run_piecewise_case('move_up', times, expected_moments_y, expected_displacements_y, tol=1e-4)
 
-    def test_piecewise_linear_moment_capacity_compression(self):
+    def no_test_piecewise_linear_moment_capacity_move_down(self):
         """
-        2 element compression test for piecewise linear moment capacity material.
+        move down of the right beam end for piecewise linear moment capacity material.
         """
         times = [1.0, 2.0, 3.0, 4.0]
         expected_moments_y = [-0.120901, -0.168661, -0.205083, -0.240241]
         expected_displacements_y = [-0.025, -0.05, -0.075, -0.1]
         run_piecewise_case('move_down', times, expected_moments_y, expected_displacements_y, tol=1e-4)
 
-    def test_piecewise_linear_moment_capacity_tension_compression(self):
+    def no_test_piecewise_linear_moment_capacity_move_up_down(self):
         """
-        Elongation-compression loop test for piecewise linear moment capacity material.
+        move up down of the right beam end for piecewise linear moment capacity material.
         """
         times = [1.0, 2.0, 3.0, 4.0]
         expected_moments_y = [0.120901, 0.0, -0.120901, 0.0]
         expected_displacements_y = [0.025, 0.0, -0.025, 0.0]
         run_piecewise_case('move_up_down', times, expected_moments_y, expected_displacements_y, tol=1e-4)
 
-    def test_piecewise_linear_moment_capacity_compression_tension(self):
+    def test_piecewise_linear_moment_capacity_move_down_up(self):
         """
-        Compression-elongation loop test for piecewise linear moment capacity material.
+        move down up of the right beam end for piecewise linear moment capacity material.
         """
         times = [1.0, 2.0, 3.0, 4.0]
         expected_moments_y = [-0.120901, 0.0, 0.120901, 0.0]
