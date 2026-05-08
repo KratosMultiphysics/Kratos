@@ -609,7 +609,7 @@ protected:
      * nodal BODY_FORCE values using shape functions.
      * This is mainly used for external loading or MMS-based forcing.
      */
-    Vector ComputeMaterialPointBodyForce();                        
+    array_1d<double, 3> ComputeMaterialPointBodyForce();
     
     /**
      * Initialize Material Properties on the Constitutive Law

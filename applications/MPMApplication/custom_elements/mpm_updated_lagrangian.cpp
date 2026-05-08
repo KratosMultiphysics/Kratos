@@ -262,32 +262,29 @@ void MPMUpdatedLagrangian::SetGeneralVariables(GeneralVariables& rVariables,
 }
 //************************************************************************************
 //************************************************************************************
-Vector MPMUpdatedLagrangian::ComputeMaterialPointBodyForce()
+array_1d<double, 3> MPMUpdatedLagrangian::ComputeMaterialPointBodyForce()
 {
     GeometryType& r_geometry = GetGeometry();
     const Matrix& r_N = r_geometry.ShapeFunctionsValues();
     const unsigned int number_of_nodes = r_geometry.PointsNumber();
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
 
-    Vector body_force = ZeroVector(3);
-
+    array_1d<double, 3> body_force = ZeroVector(3);
 
     for (unsigned int j = 0; j < number_of_nodes; j++)
     {
-
         const auto& r_node = r_geometry[j];
 
         if (r_node.SolutionStepsDataHas(BODY_FORCE))
         {
-            const auto& nodal_body_force =
-            r_node.FastGetSolutionStepValue(BODY_FORCE);
+            const auto& r_nodal_body_force =
+                r_node.FastGetSolutionStepValue(BODY_FORCE);
 
             for (unsigned int k = 0; k < dimension; k++)
             {
-                body_force[k] += r_N(0, j) * nodal_body_force[k];
+                body_force[k] += r_N(0, j) * r_nodal_body_force[k];
             }
         }
-
     }
 
     return body_force;
@@ -1857,4 +1854,3 @@ void MPMUpdatedLagrangian::load( Serializer& rSerializer )
 
 
 } // Namespace Kratos
-

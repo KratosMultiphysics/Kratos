@@ -60,23 +60,26 @@ class TestBodyForceInterpolationMPM(KratosUnittest.TestCase):
 
         # Take first MP
         mp = next(iter(mp_model_part.Elements))
-        variable_disp = KratosMultiphysics.KratosGlobals.GetVariable( "MP_DISPLACEMENT" )
-        variable_body_force = KratosMultiphysics.KratosGlobals.GetVariable( "MP_BODY_FORCE" )
-        displacement = mp.CalculateOnIntegrationPoints(variable_disp,mp_model_part.ProcessInfo)[0]
-        body_force = mp.CalculateOnIntegrationPoints(variable_body_force,mp_model_part.ProcessInfo)[0]
+        body_force = mp.CalculateOnIntegrationPoints(KratosMPM.MP_BODY_FORCE, mp_model_part.ProcessInfo)[0]
+        expected_body_force = self._CalculateExpectedBodyForce(mp)
 
-        #print(body_force)
-        #print(displacement)
+        for i in range(3):
+            self.assertAlmostEqual(body_force[i], expected_body_force[i], places=12)
 
+        expected_result = [2.0, -3.0, 0.0]
+        for i in range(3):
+            self.assertAlmostEqual(expected_body_force[i], expected_result[i], places=12)
 
-        # Expected (constant field)
-        self.assertAlmostEqual(displacement[0], 0.005, places=12)
-        self.assertAlmostEqual(displacement[1], -0.0075, places=12)
-        self.assertAlmostEqual(displacement[2], 0.0, places=12)
+    def _CalculateExpectedBodyForce(self, mp):
+        expected_body_force = [0.0, 0.0, 0.0]
+        shape_functions_values = mp.GetGeometry().ShapeFunctionsValues()
 
-        self.assertAlmostEqual(body_force[0], 2, places=12)
-        self.assertAlmostEqual(body_force[1], -3, places=12)
-        self.assertAlmostEqual(body_force[2], 0, places=12)
+        for i, node in enumerate(mp.GetGeometry()):
+            nodal_body_force = node.GetSolutionStepValue(KratosMultiphysics.BODY_FORCE)
+            for k in range(3):
+                expected_body_force[k] += shape_functions_values[0, i] * nodal_body_force[k]
+
+        return expected_body_force
 
 
 class BodyForceTestSimulation(MpmAnalysis):
@@ -135,11 +138,19 @@ class BodyForceTestSimulation(MpmAnalysis):
 
         grid_model_part = self.model.GetModelPart("Background_Grid")
 
-        # Apply constant BODY_FORCE
+        nodal_body_forces = {
+            6: [0.0, -1.0, 0.0],
+            8: [1.0, -2.0, 0.0],
+            11: [3.0, -4.0, 0.0],
+            9: [4.0, -5.0, 0.0]
+        }
+
+        zero_body_force = [0.0, 0.0, 0.0]
         for node in grid_model_part.Nodes:
-            node.SetSolutionStepValue(KratosMultiphysics.BODY_FORCE_X, 2.0)
-            node.SetSolutionStepValue(KratosMultiphysics.BODY_FORCE_Y, -3.0)
-            node.SetSolutionStepValue(KratosMultiphysics.BODY_FORCE_Z, 0.0)
+            body_force = nodal_body_forces.get(node.Id, zero_body_force)
+            node.SetSolutionStepValue(KratosMultiphysics.BODY_FORCE_X, body_force[0])
+            node.SetSolutionStepValue(KratosMultiphysics.BODY_FORCE_Y, body_force[1])
+            node.SetSolutionStepValue(KratosMultiphysics.BODY_FORCE_Z, body_force[2])
 
 
 if __name__ == '__main__':
