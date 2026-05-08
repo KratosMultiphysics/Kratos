@@ -796,8 +796,8 @@ namespace Kratos
     template <std::size_t TDim>
     void ShiftedBoundaryPointBasedInterfaceUtility::CalculateVariablesAtSkinPointsTemplated()
     {
-        const std::size_t voigt_size = 3 * (TDim-1);
-        const std::size_t block_size = TDim +1;
+        constexpr std::size_t voigt_size = 3 * (TDim-1);
+        constexpr std::size_t block_size = TDim +1;
 
         array_1d<double, 3> force_on_skin = ZeroVector(3);
 
@@ -1118,7 +1118,7 @@ namespace Kratos
         // if (!pElement->Is(SBM_BOUNDARY)) {
         //     return 0;
         // }
-        const std::size_t block_size = TDim +1;
+        constexpr std::size_t block_size = TDim +1;
         const auto& r_geom = pElement->GetGeometry();
         const std::size_t n_nodes = r_geom.PointsNumber();
 
