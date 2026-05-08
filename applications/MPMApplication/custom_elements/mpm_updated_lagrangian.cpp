@@ -360,11 +360,11 @@ void MPMUpdatedLagrangian::CalculateElementalSystem(
 
     if (CalculateResidualVectorFlag) // if calculation of the vector is required
     {
-        Vector body_force = this->ComputeMaterialPointBodyForce();
+        mMP.body_force = this->ComputeMaterialPointBodyForce();
 
         // Contribution to forces (in residual term) are calculated
         Vector volume_force = mMP.volume_acceleration * mMP.mass
-                            + body_force * mMP.mass; 
+                            + mMP.body_force * mMP.mass; 
 
         this->CalculateAndAddRHS(
             rRightHandSideVector,
@@ -1646,6 +1646,9 @@ void MPMUpdatedLagrangian::CalculateOnIntegrationPoints(const Variable<array_1d<
     else if (rVariable == MP_VOLUME_ACCELERATION) {
         rValues[0] = mMP.volume_acceleration;
     }
+    else if (rVariable == MP_BODY_FORCE) {
+        rValues[0] = mMP.body_force;    
+    }
     else
     {
         KRATOS_ERROR << "Variable " << rVariable << " is called in CalculateOnIntegrationPoints, but is not implemented." << std::endl;
@@ -1726,6 +1729,9 @@ void MPMUpdatedLagrangian::SetValuesOnIntegrationPoints(const Variable<array_1d<
     }
     else if (rVariable == MP_VOLUME_ACCELERATION) {
         mMP.volume_acceleration = rValues[0];
+    }
+    else if (rVariable == MP_BODY_FORCE) {
+        mMP.body_force = rValues[0];
     }
     else
     {

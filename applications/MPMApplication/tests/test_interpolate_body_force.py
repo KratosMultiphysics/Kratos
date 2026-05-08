@@ -28,18 +28,22 @@ class TestBodyForceInterpolationMPM(KratosUnittest.TestCase):
         # Take first MP
         mp = next(iter(mp_model_part.Elements))
         variable_disp = KratosMultiphysics.KratosGlobals.GetVariable( "MP_DISPLACEMENT" )
-        variable_acce = KratosMultiphysics.KratosGlobals.GetVariable( "MP_VOLUME_ACCELERATION" )
+        variable_body_force = KratosMultiphysics.KratosGlobals.GetVariable( "MP_BODY_FORCE" )
         displacement = mp.CalculateOnIntegrationPoints(variable_disp,mp_model_part.ProcessInfo)[0]
-        acceleration = mp.CalculateOnIntegrationPoints(variable_acce,mp_model_part.ProcessInfo)[0]
+        body_force = mp.CalculateOnIntegrationPoints(variable_body_force,mp_model_part.ProcessInfo)[0]
 
-        print(acceleration)
-        print(displacement)
+        #print(body_force)
+        #print(displacement)
 
 
         # Expected (constant field)
         self.assertAlmostEqual(displacement[0], 0.005, places=12)
         self.assertAlmostEqual(displacement[1], -0.0075, places=12)
         self.assertAlmostEqual(displacement[2], 0.0, places=12)
+
+        self.assertAlmostEqual(body_force[0], 2, places=12)
+        self.assertAlmostEqual(body_force[1], -3, places=12)
+        self.assertAlmostEqual(body_force[2], 0, places=12)
 
 
 class BodyForceTestSimulation(MpmAnalysis):
