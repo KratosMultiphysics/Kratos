@@ -166,28 +166,6 @@ public:
     ///@name Operations
     ///@{
 
-    void Predict(
-        ModelPart& rModelPart,
-        DofsArrayType& rDofSet,
-        SystemMatrixType& rA,
-        SystemVectorType& rDx,
-        SystemVectorType& rb) override
-    {
-        BaseType::Predict(rModelPart, rDofSet, rA, rDx, rb);
-
-        const double delta_time = rModelPart.GetProcessInfo()[DELTA_TIME];
-
-        KRATOS_ERROR_IF(delta_time < std::numeric_limits<double>::epsilon())
-            << "detected delta_time = 0 in the Bossak Scheme ... "
-               "check if the time step is created correctly for "
-               "the current model part.";
-
-        BossakRelaxationScalarScheme::CalculateBossakConstants(
-            mBossak, mAlphaBossak, delta_time);
-
-        rModelPart.GetProcessInfo()[BOSSAK_ALPHA] = mBossak.Alpha;
-    }
-
     void InitializeSolutionStep(
         ModelPart& rModelPart,
         SystemMatrixType& rA,
@@ -209,6 +187,36 @@ public:
             mBossak, mAlphaBossak, delta_time);
 
         rModelPart.GetProcessInfo()[BOSSAK_ALPHA] = mBossak.Alpha;
+
+        KRATOS_CATCH("");
+    }
+
+    void Predict(
+        ModelPart& rModelPart,
+        DofsArrayType& rDofSet,
+        SystemMatrixType& rA,
+        SystemVectorType& rDx,
+        SystemVectorType& rb) override
+    {
+        KRATOS_TRY
+
+        // update the solving variables
+        BaseType::Predict(rModelPart, rDofSet, rA, rDx, rb);
+
+        const double delta_time = rModelPart.GetProcessInfo()[DELTA_TIME];
+
+        KRATOS_ERROR_IF(delta_time < std::numeric_limits<double>::epsilon())
+            << "detected delta_time = 0 in the Bossak Scheme ... "
+               "check if the time step is created correctly for "
+               "the current model part.";
+
+        BossakRelaxationScalarScheme::CalculateBossakConstants(
+            mBossak, mAlphaBossak, delta_time);
+
+        rModelPart.GetProcessInfo()[BOSSAK_ALPHA] = mBossak.Alpha;
+
+        // update the solving variables time derivatives
+        UpdateScalarRateVariables(rModelPart);
 
         KRATOS_CATCH("");
     }
