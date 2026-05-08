@@ -43,12 +43,12 @@ public:
 
     [[nodiscard]] double YieldFunctionValue(const Geo::SigmaTau& rSigmaTau) const;
     [[nodiscard]] double YieldFunctionValue(const Geo::PrincipalStresses& rPrincipalStresses) const;
-    [[nodiscard]] static Vector DerivativeOfFlowFunction(
-        const Geo::SigmaTau&,
-        Geo::PrincipalStresses::AveragingType AveragingType = Geo::PrincipalStresses::AveragingType::NO_AVERAGING);
-    [[nodiscard]] static Vector DerivativeOfFlowFunction(
-        const Geo::PrincipalStresses&,
-        Geo::PrincipalStresses::AveragingType AveragingType = Geo::PrincipalStresses::AveragingType::NO_AVERAGING);
+    [[nodiscard]] Vector DerivativeOfFlowFunction(const Geo::SigmaTau&,
+                                                  Geo::PrincipalStresses::AveragingType AveragingType =
+                                                      Geo::PrincipalStresses::AveragingType::NO_AVERAGING) const;
+    [[nodiscard]] Vector DerivativeOfFlowFunction(const Geo::PrincipalStresses&,
+                                                  Geo::PrincipalStresses::AveragingType AveragingType =
+                                                      Geo::PrincipalStresses::AveragingType::NO_AVERAGING) const;
 
     [[nodiscard]] double CalculatePlasticMultiplier(const Geo::SigmaTau& rTrialSigmaTau,
                                                     const Vector&        rDerivativeOfFlowFunction,

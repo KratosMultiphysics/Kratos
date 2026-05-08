@@ -34,7 +34,9 @@ double TensionCutoff::YieldFunctionValue(const Geo::PrincipalStresses& rPrincipa
     return rPrincipalStresses.Values()[0] - mTensileStrength;
 }
 
-Vector TensionCutoff::DerivativeOfFlowFunction(const Geo::SigmaTau&, Geo::PrincipalStresses::AveragingType AveragingType)
+// NOLINTBEGIN(readability-convert-member-functions-to-static)
+Vector TensionCutoff::DerivativeOfFlowFunction(const Geo::SigmaTau&,
+                                               Geo::PrincipalStresses::AveragingType AveragingType) const
 {
     switch (AveragingType) {
         using enum Geo::PrincipalStresses::AveragingType;
@@ -48,8 +50,11 @@ Vector TensionCutoff::DerivativeOfFlowFunction(const Geo::SigmaTau&, Geo::Princi
     }
 }
 
+// NOLINTEND(readability-convert-member-functions-to-static)
+
+// NOLINTBEGIN(readability-convert-member-functions-to-static)
 Vector TensionCutoff::DerivativeOfFlowFunction(const Geo::PrincipalStresses&,
-                                               Geo::PrincipalStresses::AveragingType AveragingType)
+                                               Geo::PrincipalStresses::AveragingType AveragingType) const
 {
     switch (AveragingType) {
         using enum Geo::PrincipalStresses::AveragingType;
@@ -62,6 +67,7 @@ Vector TensionCutoff::DerivativeOfFlowFunction(const Geo::PrincipalStresses&,
         KRATOS_ERROR << "Unsupported Averaging Type: " << static_cast<std::size_t>(AveragingType) << "\n";
     }
 }
+// NOLINTEND(readability-convert-member-functions-to-static)
 
 double TensionCutoff::CalculatePlasticMultiplier(const Geo::SigmaTau& rTrialSigmaTau,
                                                  const Vector&        rDerivativeOfFlowFunction,
