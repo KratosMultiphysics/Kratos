@@ -90,13 +90,13 @@
 #include "custom_elements/U_Pw_updated_lagrangian_FIC_element.h"
 #include "custom_elements/U_Pw_updated_lagrangian_element.h"
 #include "custom_elements/contribution_calculators/calculation_contribution.h"
+#include "custom_elements/geo_linear_timoshenko_beam_element_2D2N.h"
 #include "custom_elements/geo_steady_state_Pw_piping_element.h"
 #include "custom_elements/small_strain_U_Pw_diff_order_element.h"
 #include "custom_elements/steady_state_Pw_element.h"
 #include "custom_elements/transient_Pw_element.h"
 #include "custom_elements/transient_thermal_element.h"
 #include "custom_elements/updated_lagrangian_U_Pw_diff_order_element.h"
-#include "custom_elements/geo_linear_timoshenko_beam_element_2D2N.h"
 
 // Element policies
 #include "custom_elements/axisymmetric_stress_state.h"

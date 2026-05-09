@@ -26,10 +26,8 @@ namespace Kratos
  * enabling state-dependent laws (such as PiecewiseLinearMomentCapacityConstitutiveLaw)
  * to commit their internal state at the end of each converged time step.
  */
-class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoLinearTimoshenkoBeamElement2D2N
-    : public LinearTimoshenkoBeamElement2D2N
+class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoLinearTimoshenkoBeamElement2D2N : public LinearTimoshenkoBeamElement2D2N
 {
-
 public:
     using BaseType = LinearTimoshenkoBeamElement2D2N;
 
@@ -42,21 +40,18 @@ public:
     {
     }
 
-    GeoLinearTimoshenkoBeamElement2D2N(IndexType NewId, GeometryType::Pointer pGeometry,
-                                       PropertiesType::Pointer pProperties)
+    GeoLinearTimoshenkoBeamElement2D2N(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
         : BaseType(NewId, pGeometry, pProperties)
     {
     }
 
-    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,
-                            PropertiesType::Pointer pProperties) const override
+    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override
     {
         return Kratos::make_intrusive<GeoLinearTimoshenkoBeamElement2D2N>(
             NewId, GetGeometry().Create(ThisNodes), pProperties);
     }
 
-    Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom,
-                            PropertiesType::Pointer pProperties) const override
+    Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override
     {
         return Kratos::make_intrusive<GeoLinearTimoshenkoBeamElement2D2N>(NewId, pGeom, pProperties);
     }

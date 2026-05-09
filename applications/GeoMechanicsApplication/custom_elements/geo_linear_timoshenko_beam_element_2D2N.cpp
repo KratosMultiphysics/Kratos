@@ -45,8 +45,7 @@ void GeoLinearTimoshenkoBeamElement2D2N::FinalizeSolutionStep(const ProcessInfo&
 
     for (IndexType ip = 0; ip < integration_points.size(); ++ip) {
         if (!mConstitutiveLawVector[ip]->RequiresFinalizeMaterialResponse()) continue;
-        CalculateGeneralizedStrainsVector(strain_vector, length, Phi,
-                                         integration_points[ip].X(), nodal_values);
+        CalculateGeneralizedStrainsVector(strain_vector, length, Phi, integration_points[ip].X(), nodal_values);
         mConstitutiveLawVector[ip]->FinalizeMaterialResponsePK2(cl_values);
     }
 
@@ -54,4 +53,3 @@ void GeoLinearTimoshenkoBeamElement2D2N::FinalizeSolutionStep(const ProcessInfo&
 }
 
 } // namespace Kratos
-
