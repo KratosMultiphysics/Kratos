@@ -77,6 +77,8 @@ private:
     [[nodiscard]] double CalculateUnReLoadAmplitude() const;
     [[nodiscard]] bool   IsWithinUnReLoading(double Curvature) const;
     [[nodiscard]] std::pair<double, double> CalculateMomentAndTangentModulus(double curvature) const;
+    [[nodiscard]] double BackboneTangentModulus(double curvature) const;
+    [[nodiscard]] double BackboneMoment(double curvature) const;
 
     friend class Serializer;
     void save(Serializer& rSerializer) const override;

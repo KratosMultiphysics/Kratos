@@ -79,11 +79,14 @@ void PiecewiseLinearMomentCapacityConstitutiveLaw::CalculateMaterialResponseCauc
 
         const auto [moment, tangent_modulus] = CalculateMomentAndTangentModulus(curvature);
 
-        std::cout << "CalculateMaterialResponseCauchy: c=" <<  curvature << " m=" << moment << " t=" <<  tangent_modulus << " in=" << IsWithinUnReLoading(curvature) << " acc=" <<  mAccumulatedCurvature << " cen=" << mUnReLoadCenter << " p=" << mPreviousCurvature << std::endl;
+        std::cout << "CalculateMaterialResponseCauchy: c=" << curvature << " m=" << moment
+                  << " t=" << tangent_modulus << " in=" << IsWithinUnReLoading(curvature)
+                  << " acc=" << mAccumulatedCurvature << " cen=" << mUnReLoadCenter
+                  << " am=" << CalculateUnReLoadAmplitude() << std::endl;
 
-        r_generalized_stress_vector[0]       = EA_nu * axial_strain; // Nx
-        r_generalized_stress_vector[1]       = moment;               // Mz
-        r_generalized_stress_vector[2]       = GAs * shear_strain;   // Vxy
+        r_generalized_stress_vector[0] = EA_nu * axial_strain; // Nx
+        r_generalized_stress_vector[1] = moment;               // Mz
+        r_generalized_stress_vector[2] = GAs * shear_strain;   // Vxy
 
         AddInitialStressVectorContribution(r_generalized_stress_vector);
 
@@ -112,32 +115,13 @@ void PiecewiseLinearMomentCapacityConstitutiveLaw::FinalizeMaterialResponsePK2(P
     const auto curvature = rParameters.GetStrainVector()[1];
 
     if (mUnReLoadModulus > 0.0) {
-        // Check for sign reversal: if sign of curvature changes, handle specially
-        const bool sign_reversed =
-            mPreviousCurvature != 0.0 && std::signbit(curvature) != std::signbit(mPreviousCurvature);
-
-        if (sign_reversed) {
-            // On sign reversal, reset center and accumulated to stay on the backbone
-            // at the current absolute position (not overshooting)
-            mAccumulatedCurvature = std::abs(curvature);
-            const auto amplitude  = CalculateUnReLoadAmplitude();
-            mUnReLoadCenter       = std::abs(curvature) > amplitude
-                                        ? (curvature > 0.0 ? std::abs(curvature) - amplitude
-                                                           : -(std::abs(curvature) - amplitude))
-                                        : 0.0;
-            std::cout << "FinalizeMaterialResponsePK2  inside: sign=" <<  sign_reversed << " am=" <<  amplitude << std::endl;
-        } else if (!IsWithinUnReLoading(curvature)) {
-            // Normal unload/reload update (no sign reversal)
+        if (!IsWithinUnReLoading(curvature)) {
             const auto difference = curvature - mUnReLoadCenter;
-            const auto amplitude  = CalculateUnReLoadAmplitude();
-            mAccumulatedCurvature += std::abs(difference) - amplitude;
-            mUnReLoadCenter = difference > 0.0 ? curvature - amplitude : curvature + amplitude;
-            std::cout << "FinalizeMaterialResponsePK2 outside: d=" <<  difference << " am=" <<  amplitude << std::endl;
-
+            mAccumulatedCurvature += std::abs(difference) - CalculateUnReLoadAmplitude();
+            mUnReLoadCenter = difference > 0.0 ? curvature - CalculateUnReLoadAmplitude()
+                                               : curvature + CalculateUnReLoadAmplitude();
         }
     }
-    std::cout << "FinalizeMaterialResponsePK2: c=" <<  curvature << " acc=" <<  mAccumulatedCurvature << " cen=" << mUnReLoadCenter << std::endl;
-    mPreviousCurvature = curvature;
 }
 
 SizeType PiecewiseLinearMomentCapacityConstitutiveLaw::GetStrainSize() const { return strain_size; }
@@ -196,7 +180,6 @@ void PiecewiseLinearMomentCapacityConstitutiveLaw::save(Serializer& rSerializer)
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType)
     rSerializer.save("StressStrainTable", mStressStrainTable);
     rSerializer.save("AccumulatedCurvature", mAccumulatedCurvature);
-    rSerializer.save("PreviousCurvature", mPreviousCurvature);
     rSerializer.save("UnReloadCenter", mUnReLoadCenter);
     rSerializer.save("UnReloadModulus", mUnReLoadModulus);
 }
@@ -206,7 +189,6 @@ void PiecewiseLinearMomentCapacityConstitutiveLaw::load(Serializer& rSerializer)
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType)
     rSerializer.load("StressStrainTable", mStressStrainTable);
     rSerializer.load("AccumulatedCurvature", mAccumulatedCurvature);
-    rSerializer.load("PreviousCurvature", mPreviousCurvature);
     rSerializer.load("UnReloadCenter", mUnReLoadCenter);
     rSerializer.load("UnReloadModulus", mUnReLoadModulus);
 }
@@ -235,7 +217,6 @@ void PiecewiseLinearMomentCapacityConstitutiveLaw::InitializeMaterial(const Prop
 
     // Reset unload/reload state
     mAccumulatedCurvature = 0.0;
-    mPreviousCurvature    = 0.0;
     mUnReLoadCenter       = 0.0;
     // Store optional modulus if provided
     if (rMaterialProperties.Has(UNRELOAD_MODULUS)) {
@@ -247,15 +228,12 @@ void PiecewiseLinearMomentCapacityConstitutiveLaw::InitializeMaterial(const Prop
 
 double PiecewiseLinearMomentCapacityConstitutiveLaw::CalculateUnReLoadAmplitude() const
 {
-    // amplitude is equal to M(accumulated) divided by modulus
-    auto aaa = mStressStrainTable.GetValue(mAccumulatedCurvature) / mUnReLoadModulus;
-    return aaa;
+    return BackboneMoment(mAccumulatedCurvature) / mUnReLoadModulus;
 }
 
 bool PiecewiseLinearMomentCapacityConstitutiveLaw::IsWithinUnReLoading(double Curvature) const
 {
-    auto aaa = std::abs(Curvature - mUnReLoadCenter) < CalculateUnReLoadAmplitude();
-    return aaa;
+    return std::abs(Curvature - mUnReLoadCenter) < CalculateUnReLoadAmplitude();
 }
 
 std::pair<double, double> PiecewiseLinearMomentCapacityConstitutiveLaw::CalculateMomentAndTangentModulus(double curvature) const
@@ -270,17 +248,26 @@ std::pair<double, double> PiecewiseLinearMomentCapacityConstitutiveLaw::Calculat
         } else {
             const auto amplitude = CalculateUnReLoadAmplitude();
             const auto effective = mAccumulatedCurvature + (std::abs(curvature - mUnReLoadCenter) - amplitude);
-            moment          = mStressStrainTable.GetValue(effective);
+            moment          = BackboneMoment(effective);
             moment          = curvature - mUnReLoadCenter < 0.0 ? -moment : moment;
-            tangent_modulus = mStressStrainTable.GetDerivative(effective);
+            tangent_modulus = BackboneTangentModulus(effective);
         }
     } else {
-        moment          = mStressStrainTable.GetValue(std::abs(curvature));
+        moment          = BackboneMoment(curvature);
         moment          = curvature < 0.0 ? -moment : moment;
-        tangent_modulus = mStressStrainTable.GetDerivative(std::abs(curvature));
+        tangent_modulus = BackboneTangentModulus(curvature);
     }
 
     return {moment, tangent_modulus};
 }
 
+double PiecewiseLinearMomentCapacityConstitutiveLaw::BackboneMoment(double curvature) const
+{
+    return mStressStrainTable.GetValue(std::abs(curvature));
+}
+
+double PiecewiseLinearMomentCapacityConstitutiveLaw::BackboneTangentModulus(double curvature) const
+{
+    return mStressStrainTable.GetDerivative(std::abs(curvature));
+}
 } // namespace Kratos
