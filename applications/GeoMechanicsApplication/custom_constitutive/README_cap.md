@@ -1,8 +1,14 @@
-### Compression cap hardening
+### Cap concept in constitutive models
 
-The standard Mohr–Coulomb yield surface characterizes shear failure in geomaterials by relating the shear stress $\tau$ on a potential failure plane to the corresponding normal stress $\sigma$. While suitable for frictional materials, the standard Mohr-Coulomb envelope lacks a mechanism to limit the admissible stress space under high compressive pressure. As a result, the standard Mohr-Coulomb model cannot represent the compaction, crushing, and plastic volumetric hardening that occur in soils and rocks under high confining stresses.
+The Mohr–Coulomb yield criterion is commonly used to describe shear failure in geomaterials. It relates the shear stress on a potential failure plane to the corresponding normal stress and is well suited for representing frictional behavior at moderate stress levels.
 
-To address this limitation, a compression cap is introduced. The cap provides a smooth closure of the yield surface in the high-compression regime. Here we describe the combined Mohr-Coulomb and cap yield surfaces.
+However, when materials such as soils or rocks are subjected to high compressive (confining) stresses, additional physical mechanisms become important. These include pore collapse, grain crushing, and irreversible volumetric compaction. The standard Mohr–Coulomb yield surface does not impose an upper limit on compressive stresses and therefore cannot represent these phenomena.
+
+To overcome this limitation, a compression cap is introduced. The compression cap closes the yield surface in the high‑compression regime, thereby restricting the admissible stress space and enabling the model to represent compaction‑dominated plastic deformation. In this formulation, shear failure is still governed by the Mohr–Coulomb criterion, while compressive yielding is controlled by the cap.
+
+Once a compression cap is introduced, it is possible to allow its position to evolve with plastic volumetric strain. This evolution, commonly referred to as cap hardening or softening, enables the model to capture material densification or degradation under continued loading. In the present documentation, the cap is first introduced as a geometric closure of the yield surface, after which optional hardening and softening mechanisms are discussed as a separate modeling choice.
+
+In the Figure below, we have shown the contours of the cap within the Mohr-Coulomb model. This cap is a radial yield surface that joins the shear yield surface and results in a smooth closure of the yield surface in the high-compression regime. Here we describe the combined Mohr-Coulomb and cap yield surfaces.
 
 ### Mohr–Coulomb yield surface
 
@@ -13,12 +19,12 @@ In the $`(\sigma, \tau)`$ stress space, the Mohr-Coulomb yield surface is expres
 ```
 where:
 
-- $`\sigma`$ = normal stress component
-- $`\tau`$ = shear stress component
-- $`c`$ = cohesion of material
+- $`\sigma`$ = normal stress
+- $`\tau`$ = shear stress
+- $`c`$ = cohesion
 - $`\phi`$ = friction angle
 
-In stress-invariant form, the MC yield function is typically written as:
+In stress-invariant form $`(p, q)`$ stress space, the MC yield function is typically written as:
 
 ```math
     F_{MC}(p, q) = q + \frac{6 \sin{\phi}}{3 - \sin{\phi}} p - \frac{6 c \cos⁡{\phi}}{3 - \sin{\phi}}
@@ -28,23 +34,17 @@ where:
 - $`p = \frac{1}{3} tr(\sigma)`$ is the mean effective stress
 - $`q = \sqrt{\frac{3}{2}\sigma':\sigma'}`$ is the norm of deviatoric stress tensor, where $`\sigma' = \sigma - p`$.
 
-This defines a hexagonal pyramid in principal stress space, but is shown as a straight line in the $`(\sigma, \tau)`$ stress space.
 
 ### Compression cap concept
-At high confining pressures, real geomaterials exhibit compaction and crushing rather than unlimited strength. The Mohr-Coulomb envelope alone allows unbounded compressive stresses. A cap yield surface introduces a limit to admissible volumetric compression and establishes a mechanism for volumetric plastic deformation.
-
-In $`p-q`$ stress-invariant space, the cap is defined as an ellipse (or a smooth rounded surface) closing the Mohr-Coulomb yield surface in the compressive regime.
-
-### Cap yield surface
-An elliptical cap can be defined as:
+A cap yield surface introduces a limit to admissible volumetric compression and establishes a mechanism for volumetric plastic deformation. The shape of a cap yield surface depends on the stress space that is used. In this case the $'p-q'$ stress-invariant stress-space is used where the cap is defined as an ellipse of which the Mohr-Coulomb yield surface encloses the compressive regime (limit) (Reason for using p,q should be stated here). In mathematical form, an elliptical cap can be defined as:
 
 ```math
     F_{cap}(p, q) = \left( \frac{q}{X} \right)^2 + p^2 - p_c^2
 ```
 where:
 
-- $`p_c`$ = cap position (preconsolidation pressure),
-- $`X`$ = cap size parameter
+- $`p_c`$ = preconsolidation pressure,
+- $`X`$ = cap size parameter. This defines the cap size and the elliptic shape of the cap.
 
 The cap intersects the MC surface. A linear hardening relation for the cap position can be written as: 
 
@@ -56,6 +56,9 @@ where:
 - $`H`$ = the hardening modulus
 - $`\epsilon^p`$ = the plastic volumetric strain
 
+As plastic volumetric compression increases, the cap translates toward higher compressive stresses, thereby expanding the admissible stress space. This mechanism allows the model to represent irreversible compaction and strengthening under high confining pressure.
+
+<img src="documentation_data/cap_hardening.png" alt="Mohr-Coulomb with cap hardening" title="Mohr-Coulomb with cap hardening" width="400">
 
 ### Combined Mohr–Coulomb + cap yield surface
 
@@ -63,7 +66,7 @@ The figure below shows a typical Mohr–Coulomb yield surface extended with tens
 
 <img src="documentation_data/mohr-coulomb-with-tension-cutoff-and-cap_zones.svg" alt="Mohr-Coulomb with tension cutoff" title="Mohr-Coulomb with tension cutoff" width="800">
 
-Here, we need to convert the compression cap yield surface from $(p, q)$ coordinates to $(\sigma, \tau)$ coordinates. The conversion is to be followed ...
+Here, we need to convert the compression cap yield surface from $(p, q)$ coordinates to $(\sigma, \tau)$ coordinates. The conversion is given in Appendix A.
 
 
 ### Plastic potential for the compression cap
@@ -79,7 +82,7 @@ The derivative of the flow function is:
     \frac{\partial G_{cap}}{\partial \sigma} = \frac{2 q}{X^2} \frac{\partial q}{\partial \sigma} + 2 p \frac{\partial p}{\partial \sigma}
 ```
 
-or
+It gives:
 
 ```math
     \frac{\partial G_{cap}}{\partial \sigma_i} = \frac{1}{3} \frac{\partial G_{cap}}{\partial p} + \frac{3}{2 q} \frac{\partial G_{cap}}{\partial q} \left(\sigma_i - p \right)
@@ -118,7 +121,7 @@ A second order polynomial equation needs to be solved, and the minimum root need
 ```
 then
 ```math
-    q_{corner} = -a_2 p + c_2
+    q_{corner} = -\frac{6  \sin{\phi}}{3 - \sin{\phi}} p + \frac{6 c \cos{\phi}}{3 - \sin{\phi}}
 ```
 
 ### Return mapping from cap compression zone
@@ -134,11 +137,13 @@ The cap compression zone is the region where the trial principal stresses are,
 
 Then the trial principal stresses need to be mapped to the cap yield surface by:
 ```math
-    \sigma = \sigma^{trial} + \lambda C \frac{\partial G_{cap}}{\partial \sigma}
+    \sigma = \sigma^{trial} + \lambda D \frac{\partial G_{cap}}{\partial \sigma}
 ```
 
+where $D$ is the elestic tensor.
+
 ### Return mapping from cap corner zone
-The cap compression zone is the region where the trial $\left(p, q \right)$ stress invariants are demarcated by the following two lines,
+The cap compression zone is the region where the trial $\left(p, q \right)$ stress invariants are created by the following two lines,
 
 1. above the line which passes from the cap corner point and in the direction normal to the cap flow function $G_{cap}$. 
 ```math
@@ -156,7 +161,7 @@ Then the trial principal stresses need to be mapped to the cap yield surface and
     + \lambda_{cap} C \frac{\partial G_{cap}}{\partial \sigma}
 ```
 
-Substuting this trial stresses in compression cap and Coulomb yield surfaces, it leads to two equations and two unknowns.
+Substuting these trial stresses in the compression cap and Coulomb yield surfaces, leads to two equations and two unknowns.
 ```math
     c_1 \lambda_{MC} + c_2 \lambda_{cap} = c_3
 ```
@@ -266,7 +271,44 @@ Subsituting the stresses with the mapped stresses, we get the following relation
 
 the solution of this equation, gives:
 
- ```math
+```math
     \lambda_{cap} = \frac{-B + \sqrt{B^2 - 4 A C}}{2A}
 ```
 
+### Appendix A
+
+Here, the compression cap yield surface is converted from stress‑invariant coordinates $(p,q)$ to the stress components $(\sigma, \tau)$ acting on a plane. 
+
+The stress invariants are defined as:
+```math
+    p = \frac{1}{3} \left( \sigma_1 + \sigma_2 + \sigma_3 \right)
+```
+```math
+    q = \sqrt{\frac{1}{2} \left[ (\sigma_1 - \sigma_2)^2 + (\sigma_2 - \sigma_3)^2 + (\sigma_3 - \sigma_1)^2 \right]}
+```
+For triaxial stress states relevant to the compression ($\sigma_2 = \sigma_3$) cap, the invariants reduce to:
+
+```math
+    p = \frac{1}{3} \left( \sigma_1 + 2 \sigma_3 \right)
+```
+```math
+    q = \sigma_1 - \sigma_3
+```
+
+The normal stress $\sigma$ and shear stress $\tau$ acting on a plane can be expressed in terms of the principal stresses as
+
+```math
+    \sigma = \frac{\sigma_1 + \sigma_3}{2}
+```
+```math
+    \tau = \frac{\sigma_1 - \sigma_3}{2}
+```
+
+Combining these expressions yields the direct mapping between $(p, q)$ and $(\sigma, \tau)$:
+```math
+    \sigma = p - \frac{1}{6} q
+```
+
+```math
+    \tau = \frac{1}{2} q
+```
