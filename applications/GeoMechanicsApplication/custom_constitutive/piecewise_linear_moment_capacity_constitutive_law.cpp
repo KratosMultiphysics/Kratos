@@ -221,16 +221,6 @@ void PiecewiseLinearMomentCapacityConstitutiveLaw::InitializeMaterial(const Prop
     }
 }
 
-double PiecewiseLinearMomentCapacityConstitutiveLaw::CalculateUnReLoadAmplitude() const
-{
-    return BackboneMoment(mAccumulatedCurvature) / mUnReLoadModulus;
-}
-
-bool PiecewiseLinearMomentCapacityConstitutiveLaw::IsWithinUnReLoading(double Curvature) const
-{
-    return std::abs(Curvature - mUnReLoadCenter) < CalculateUnReLoadAmplitude();
-}
-
 std::pair<double, double> PiecewiseLinearMomentCapacityConstitutiveLaw::CalculateMomentAndTangentModulus(double curvature) const
 {
     double moment          = 0.0;
@@ -254,6 +244,16 @@ std::pair<double, double> PiecewiseLinearMomentCapacityConstitutiveLaw::Calculat
     }
 
     return {moment, tangent_modulus};
+}
+
+double PiecewiseLinearMomentCapacityConstitutiveLaw::CalculateUnReLoadAmplitude() const
+{
+    return BackboneMoment(mAccumulatedCurvature) / mUnReLoadModulus;
+}
+
+bool PiecewiseLinearMomentCapacityConstitutiveLaw::IsWithinUnReLoading(double Curvature) const
+{
+    return std::abs(Curvature - mUnReLoadCenter) < CalculateUnReLoadAmplitude();
 }
 
 double PiecewiseLinearMomentCapacityConstitutiveLaw::BackboneMoment(double curvature) const

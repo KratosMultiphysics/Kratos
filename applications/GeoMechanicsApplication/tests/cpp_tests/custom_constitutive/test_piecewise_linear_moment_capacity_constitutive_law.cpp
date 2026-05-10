@@ -26,7 +26,7 @@ Properties CreateValidProperties()
 {
     auto properties = Properties{};
     properties.SetValue(KAPPA_PIECEWISE_LINEAR_LAW, UblasUtilities::CreateVector({0.01, 0.03, 0.05}));
-    properties.SetValue(MOMENTUM_PIECEWISE_LINEAR_LAW, UblasUtilities::CreateVector({80.0, 100.0, 128.0}));
+    properties.SetValue(MOMENTUM_PIECEWISE_LINEAR_LAW, UblasUtilities::CreateVector({80.0, 80.0, 128.0}));
     properties.SetValue(YOUNG_MODULUS, 80.0);
     properties.SetValue(POISSON_RATIO, 0.2);
     properties.SetValue(THICKNESS, 1.0);
@@ -188,15 +188,14 @@ KRATOS_TEST_CASE_IN_SUITE(PiecewiseLinearMomentCapacityConstitutiveLaw_SequenceL
     Vector     dummy_vector;
     law.InitializeMaterial(properties, geometry, dummy_vector);
 
-    const auto curvatures = UblasUtilities::CreateVector({0.0,  0.01,    0.02, 0.03,  0.025, 0.015, 0.035,
-                                            0.01, 0.00825, 0.0,  -0.01, 0.02,  0.022, 0.032});
+    const auto curvatures = UblasUtilities::CreateVector(
+        {0.0, 0.01, 0.02, 0.03, 0.025, 0.015, 0.035, 0.01, 0.00825, 0.0, -0.01, 0.02, 0.022, 0.032});
 
-    const auto expected_moment = UblasUtilities::CreateVector({0.0, 80.0, 90.0, 100.0, 60.0, -20.0, 107.0,
-                                                                -93.0, -107.0, -118.55, -128.0, 112.0, 128.0,
-                                                                128.0});
-    const auto expected_tangent_modulus = UblasUtilities::CreateVector({8000.0, 8000.0, 1000.0, 1000.0, 8000.0,
-                                                                         8000.0, 1400.0, 8000.0, 1400.0, 1400.0,
-                                                                         0.0, 8000.0, 0.0, 0.0});
+    const auto expected_moment = UblasUtilities::CreateVector(
+        {0.0, 80.0, 90.0, 100.0, 60.0, -20.0, 107.0, -93.0, -107.0, -118.55, -128.0, 112.0, 128.0, 128.0});
+    const auto expected_tangent_modulus =
+        UblasUtilities::CreateVector({8000.0, 8000.0, 1000.0, 1000.0, 8000.0, 8000.0, 1400.0,
+                                      8000.0, 1400.0, 1400.0, 0.0, 8000.0, 0.0, 0.0});
     for (auto i = 0; i < curvatures.size(); i++) {
         const auto moment = CalculateMomentForCurvature(law, properties, curvatures(i));
         KRATOS_EXPECT_NEAR(moment, expected_moment(i), Defaults::relative_tolerance);
