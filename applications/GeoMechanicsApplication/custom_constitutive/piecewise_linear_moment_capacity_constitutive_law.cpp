@@ -79,11 +79,6 @@ void PiecewiseLinearMomentCapacityConstitutiveLaw::CalculateMaterialResponseCauc
 
         const auto [moment, tangent_modulus] = CalculateMomentAndTangentModulus(curvature);
 
-        std::cout << "CalculateMaterialResponseCauchy: c=" << curvature << " m=" << moment
-                  << " t=" << tangent_modulus << " in=" << IsWithinUnReLoading(curvature)
-                  << " acc=" << mAccumulatedCurvature << " cen=" << mUnReLoadCenter
-                  << " am=" << CalculateUnReLoadAmplitude() << std::endl;
-
         r_generalized_stress_vector[0] = EA_nu * axial_strain; // Nx
         r_generalized_stress_vector[1] = moment;               // Mz
         r_generalized_stress_vector[2] = GAs * shear_strain;   // Vxy

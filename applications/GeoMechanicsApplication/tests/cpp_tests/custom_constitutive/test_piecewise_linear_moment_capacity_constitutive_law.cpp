@@ -26,12 +26,8 @@ Properties CreateValidProperties()
 {
     auto properties = Properties{};
     properties.SetValue(KAPPA_PIECEWISE_LINEAR_LAW, UblasUtilities::CreateVector({0.01, 0.03, 0.05}));
-    properties.SetValue(MOMENTUM_PIECEWISE_LINEAR_LAW, UblasUtilities::CreateVector({80.0, 80.0, 128.0}));
-    properties.SetValue(MAX_AXIAL_LOAD_OF_CONSTRUCTION_ELEMENT, 10.0);
-    properties.SetValue(MOMENT_CAPACITY_REDUCTION_FACTOR, 0.02);
-    properties.SetValue(MINIMUM_MOMENT_CAPACITY_FACTOR, 0.30);
-    // Add elastic/plane-strain properties required by some Check() implementations
-    properties.SetValue(YOUNG_MODULUS, 200.0);
+    properties.SetValue(MOMENTUM_PIECEWISE_LINEAR_LAW, UblasUtilities::CreateVector({80.0, 100.0, 128.0}));
+    properties.SetValue(YOUNG_MODULUS, 80.0);
     properties.SetValue(POISSON_RATIO, 0.2);
     properties.SetValue(THICKNESS, 1.0);
     properties.SetValue(THICKNESS_EFFECTIVE_Y, 1.0);
@@ -68,7 +64,7 @@ double CalculateTangentForCurvature(PiecewiseLinearMomentCapacityConstitutiveLaw
 {
     auto parameters = ConstitutiveLaw::Parameters{};
     // Curvature is expected at index 1 in the constitutive law's strain vector
-    auto strain_vector = UblasUtilities::CreateVector({0.0, Curvature});
+    auto strain_vector = UblasUtilities::CreateVector({0.0, Curvature, 0.0});
     parameters.SetStrainVector(strain_vector);
     parameters.SetMaterialProperties(rProperties);
 
@@ -176,6 +172,38 @@ KRATOS_TEST_CASE_IN_SUITE(PiecewiseLinearMomentCapacityConstitutiveLaw_UnloadRel
     const auto s1  = CalculateMomentForCurvature(law, properties, test_kappa);
     const auto s2  = CalculateMomentForCurvature(law, properties, test_kappa + eps);
     const auto fd  = (s2 - s1) / eps;
-    KRATOS_EXPECT_NEAR(fd, 1000.0, 1e-6);
+    KRATOS_EXPECT_NEAR(fd, 1000.0, Defaults::relative_tolerance);
 }
+
+KRATOS_TEST_CASE_IN_SUITE(PiecewiseLinearMomentCapacityConstitutiveLaw_SequenceLoadUnloadReload,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    auto law        = PiecewiseLinearMomentCapacityConstitutiveLaw{};
+    auto properties = CreateValidProperties();
+    properties.SetValue(UNRELOAD_MODULUS, 8000.0);
+    properties.SetValue(KAPPA_PIECEWISE_LINEAR_LAW, UblasUtilities::CreateVector({0.01, 0.03, 0.05}));
+    properties.SetValue(MOMENTUM_PIECEWISE_LINEAR_LAW, UblasUtilities::CreateVector({80.0, 100.0, 128.0}));
+
+    const auto geometry = Geometry<Node>{};
+    Vector     dummy_vector;
+    law.InitializeMaterial(properties, geometry, dummy_vector);
+
+    const auto curvatures = UblasUtilities::CreateVector({0.0,  0.01,    0.02, 0.03,  0.025, 0.015, 0.035,
+                                            0.01, 0.00825, 0.0,  -0.01, 0.02,  0.022, 0.032});
+
+    const auto expected_moment = UblasUtilities::CreateVector({0.0, 80.0, 90.0, 100.0, 60.0, -20.0, 107.0,
+                                                                -93.0, -107.0, -118.55, -128.0, 112.0, 128.0,
+                                                                128.0});
+    const auto expected_tangent_modulus = UblasUtilities::CreateVector({8000.0, 8000.0, 1000.0, 1000.0, 8000.0,
+                                                                         8000.0, 1400.0, 8000.0, 1400.0, 1400.0,
+                                                                         0.0, 8000.0, 0.0, 0.0});
+    for (auto i = 0; i < curvatures.size(); i++) {
+        const auto moment = CalculateMomentForCurvature(law, properties, curvatures(i));
+        KRATOS_EXPECT_NEAR(moment, expected_moment(i), Defaults::relative_tolerance);
+        const auto tangent_modulus = CalculateTangentForCurvature(law, properties, curvatures(i));
+        KRATOS_EXPECT_NEAR(tangent_modulus, expected_tangent_modulus(i), Defaults::relative_tolerance);
+        FinalizeForCurvature(law, properties, curvatures(i));
+    }
+}
+
 } // namespace Kratos::Testing
