@@ -196,7 +196,7 @@ KRATOS_TEST_CASE_IN_SUITE(PiecewiseLinearMomentCapacityConstitutiveLaw_SequenceL
     const auto expected_tangent_modulus =
         UblasUtilities::CreateVector({8000.0, 8000.0, 1000.0, 1000.0, 8000.0, 8000.0, 1400.0,
                                       8000.0, 1400.0, 1400.0, 0.0, 8000.0, 0.0, 0.0});
-    for (auto i = 0; i < curvatures.size(); i++) {
+    for (auto i = std::size_t{0}; i < curvatures.size(); i++) {
         const auto moment = CalculateMomentForCurvature(law, properties, curvatures(i));
         KRATOS_EXPECT_NEAR(moment, expected_moment(i), Defaults::relative_tolerance);
         const auto tangent_modulus = CalculateTangentForCurvature(law, properties, curvatures(i));
