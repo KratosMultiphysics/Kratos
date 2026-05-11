@@ -89,10 +89,20 @@ public:
         const bool compute_nodal_cauchy_stress = (r_current_process_info.Has(COMPUTE_NODAL_CAUCHY_STRESS))
             ? r_current_process_info.GetValue(COMPUTE_NODAL_CAUCHY_STRESS)
             : false;
+        const bool is_axisymmetric = (r_current_process_info.Has(IS_AXISYMMETRIC))
+            ? r_current_process_info.GetValue(IS_AXISYMMETRIC)
+            : false;
+        const std::size_t nodal_cauchy_stress_size = (r_current_process_info[DOMAIN_SIZE] == 3)
+            ? 6
+            : (is_axisymmetric ? 4 : 3);
 
         if (compute_nodal_cauchy_stress) {
             for (auto& r_node : rModelPart.Nodes()) {
-                r_node.FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_VECTOR).clear();
+                auto& r_nodal_cauchy_stress_vector = r_node.FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_VECTOR);
+                if (r_nodal_cauchy_stress_vector.size() != nodal_cauchy_stress_size) {
+                    r_nodal_cauchy_stress_vector.resize(nodal_cauchy_stress_size, false);
+                }
+                noalias(r_nodal_cauchy_stress_vector) = ZeroVector(nodal_cauchy_stress_size);
             }
         }
 

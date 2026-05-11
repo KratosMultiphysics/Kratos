@@ -1,13 +1,20 @@
 import KratosMultiphysics
+import KratosMultiphysics.kratos_utilities as kratos_utils
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.MPMApplication as KratosMPM
 from KratosMultiphysics.MPMApplication.mpm_analysis import MpmAnalysis
+
+import pathlib
 
 
 class TestCauchyStressProjectionMPM(KratosUnittest.TestCase):
 
     def setUp(self):
         self.model = KratosMultiphysics.Model()
+        self.vtk_output_path = "test_nodal_cauchy_stress_vtk_output"
+
+    def tearDown(self):
+        kratos_utils.DeleteDirectoryIfExisting(self.vtk_output_path)
 
     def test_cauchy_stress_projection_updated_lagrangian(self):
         self._RunCauchyStressProjectionTest("quadrilateral", False)
@@ -60,14 +67,41 @@ class TestCauchyStressProjectionMPM(KratosUnittest.TestCase):
         project_parameters["solver_settings"]["pressure_dofs"].SetBool(pressure_dofs)
 
         simulation = CauchyStressTestSimulation(self.model, project_parameters, geometry_type, pressure_dofs)
-        simulation.Run()
+        simulation.Initialize()
 
-        grid_model_part = self.model.GetModelPart("Background_Grid")
-        expected_nodal_stress = KratosMultiphysics.Vector([10.0, 5.0, 2.0])
+        try:
+            grid_model_part = self.model.GetModelPart("Background_Grid")
+            self._CheckCoreVtkOutput(grid_model_part)
 
-        for node in grid_model_part.Nodes:
-            nodal_stress = node.GetSolutionStepValue(KratosMPM.NODAL_CAUCHY_STRESS_VECTOR)
-            self.assertVectorAlmostEqual(nodal_stress, expected_nodal_stress)
+            simulation.RunSolutionLoop()
+
+            expected_nodal_stress = KratosMultiphysics.Vector([10.0, 5.0, 2.0])
+
+            for node in grid_model_part.Nodes:
+                nodal_stress = node.GetSolutionStepValue(KratosMPM.NODAL_CAUCHY_STRESS_VECTOR)
+                self.assertVectorAlmostEqual(nodal_stress, expected_nodal_stress)
+
+            self._CheckCoreVtkOutput(grid_model_part)
+        finally:
+            simulation.Finalize()
+
+    def _CheckCoreVtkOutput(self, grid_model_part):
+        vtk_settings = KratosMultiphysics.Parameters("""{
+            "model_part_name"                    : "Background_Grid",
+            "file_format"                        : "ascii",
+            "output_path"                        : "",
+            "save_output_files_in_folder"        : true,
+            "nodal_solution_step_data_variables" : ["DISPLACEMENT","NODAL_INERTIA","NODAL_CAUCHY_STRESS_VECTOR"]
+        }""")
+        vtk_settings["output_path"].SetString(self.vtk_output_path)
+
+        KratosMultiphysics.VtkOutput(grid_model_part, vtk_settings).PrintOutput()
+
+        vtk_file = next(pathlib.Path(self.vtk_output_path).glob("Background_Grid_*.vtk"))
+        with open(vtk_file, "r") as output_file:
+            vtk_output = output_file.read()
+
+        self.assertIn("NODAL_CAUCHY_STRESS_VECTOR 3 6", vtk_output)
 
 
 class CauchyStressTestSimulation(MpmAnalysis):

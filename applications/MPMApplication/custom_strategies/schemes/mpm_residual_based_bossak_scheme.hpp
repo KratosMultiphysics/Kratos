@@ -226,6 +226,12 @@ public:
         const bool compute_nodal_cauchy_stress = (r_current_process_info.Has(COMPUTE_NODAL_CAUCHY_STRESS))
             ? r_current_process_info.GetValue(COMPUTE_NODAL_CAUCHY_STRESS)
             : false;
+        const bool is_axisymmetric = (r_current_process_info.Has(IS_AXISYMMETRIC))
+            ? r_current_process_info.GetValue(IS_AXISYMMETRIC)
+            : false;
+        const std::size_t nodal_cauchy_stress_size = (r_current_process_info[DOMAIN_SIZE] == 3)
+            ? 6
+            : (is_axisymmetric ? 4 : 3);
 
         // Initializing Bossak constants
         // This is not related to our change, but related to Bossak temporary fix.
@@ -256,7 +262,11 @@ public:
             r_nodal_momentum.clear();
             r_nodal_inertia.clear();
             if (compute_nodal_cauchy_stress) {
-                rNode.FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_VECTOR).clear();
+                auto& r_nodal_cauchy_stress_vector = rNode.FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_VECTOR);
+                if (r_nodal_cauchy_stress_vector.size() != nodal_cauchy_stress_size) {
+                    r_nodal_cauchy_stress_vector.resize(nodal_cauchy_stress_size, false);
+                }
+                noalias(r_nodal_cauchy_stress_vector) = ZeroVector(nodal_cauchy_stress_size);
             }
 
             r_nodal_displacement.clear();

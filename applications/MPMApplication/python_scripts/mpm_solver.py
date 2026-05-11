@@ -120,6 +120,9 @@ class MPMSolver(PythonSolver):
         # Executes the check and prepare model process
         self.__ExecuteCheckAndPrepare()
 
+        if compute_nodal_cauchy_stress:
+            self._InitializeNodalCauchyStressVector()
+
         KratosMultiphysics.Logger.PrintInfo("::[MPMSolver]:: ", "ModelPart prepared for Solver.")
 
     def GetComputingModelPart(self):
@@ -342,6 +345,21 @@ class MPMSolver(PythonSolver):
 
         # Add dofs that the user defined in the ProjectParameters
         auxiliary_solver_utilities.AddDofs(model_part, self.settings["auxiliary_dofs_list"], self.settings["auxiliary_reaction_list"])
+
+    def _InitializeNodalCauchyStressVector(self):
+        if self._GetDomainSize() == 3:
+            stress_size = 6
+        elif self.settings["axis_symmetric_flag"].GetBool():
+            stress_size = 4
+        else:
+            stress_size = 3
+
+        zero_stress_vector = KratosMultiphysics.Vector(stress_size)
+        for i in range(stress_size):
+            zero_stress_vector[i] = 0.0
+
+        for node in self.grid_model_part.Nodes:
+            node.SetSolutionStepValue(KratosMPM.NODAL_CAUCHY_STRESS_VECTOR, 0, zero_stress_vector)
 
     def _GetDomainSize(self):
         if not hasattr(self, '_domain_size'):

@@ -230,6 +230,12 @@ namespace Kratos {
                 const bool compute_nodal_cauchy_stress = (rCurrentProcessInfo.Has(COMPUTE_NODAL_CAUCHY_STRESS))
                     ? rCurrentProcessInfo.GetValue(COMPUTE_NODAL_CAUCHY_STRESS)
                     : false;
+                const bool is_axisymmetric = (rCurrentProcessInfo.Has(IS_AXISYMMETRIC))
+                    ? rCurrentProcessInfo.GetValue(IS_AXISYMMETRIC)
+                    : false;
+                const SizeType nodal_cauchy_stress_size = (rCurrentProcessInfo[DOMAIN_SIZE] == 3)
+                    ? 6
+                    : (is_axisymmetric ? 4 : 3);
                 const auto &r_elements_array = rModelPart.Elements();
                 const std::size_t n_elems = r_elements_array.size();
                 
@@ -237,6 +243,14 @@ namespace Kratos {
                 for (int iter = 0; iter < static_cast<int>(mr_grid_model_part.Nodes().size()); ++iter)
                 {
                     auto i = mr_grid_model_part.NodesBegin() + iter;
+
+                    if (compute_nodal_cauchy_stress) {
+                        auto& r_nodal_cauchy_stress_vector = i->FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_VECTOR);
+                        if (r_nodal_cauchy_stress_vector.size() != nodal_cauchy_stress_size) {
+                            r_nodal_cauchy_stress_vector.resize(nodal_cauchy_stress_size, false);
+                        }
+                        noalias(r_nodal_cauchy_stress_vector) = ZeroVector(nodal_cauchy_stress_size);
+                    }
                     
                     if(i->Is(ACTIVE))
                     {
@@ -261,9 +275,6 @@ namespace Kratos {
                         nodal_momentum.clear();
                         nodal_inertia.clear();
                         nodal_force.clear();
-                        if (compute_nodal_cauchy_stress) {
-                            i->FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_VECTOR).clear();
-                        }
 
                         nodal_displacement.clear();
                         nodal_velocity.clear();
