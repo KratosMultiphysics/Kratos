@@ -116,11 +116,16 @@ class PythonLinearSolverFactory(object):
         If the solver belongs to an external application, that application
         is imported first.
 
+        Factory-routing keys (``"kratos_module"``, ``"factory_module"``) are
+        stripped from a clone of ``configuration`` before it is forwarded to
+        the C++ ``LinearSolverFactory``, so the caller does not need to remove
+        them manually.
+
         Args:
             configuration (KratosMultiphysics.Parameters): Parameters object
-                containing at least a "solver_type" entry. Optionally may
-                contain an "inner_solver_settings" block for preconditioners
-                or nested solvers.
+                containing at least a ``"solver_type"`` entry. Optionally may
+                contain an ``"inner_solver_settings"`` block for preconditioners
+                or nested solvers, and factory-routing keys which are ignored.
 
         Returns:
             LinearSolver: A Kratos linear solver instance.
@@ -132,18 +137,25 @@ class PythonLinearSolverFactory(object):
         if type(configuration) != KM.Parameters:
             raise Exception("input is expected to be provided as a Kratos Parameters object")
 
-        solver_type = self.__GetSolverTypeAndImportApplication(configuration["solver_type"].GetString())
+        # Remove factory-routing keys that are not part of the solver configuration
+        # and would be rejected by the C++ LinearSolverFactory
+        solver_configuration = configuration.Clone()
+        for factory_key in ("kratos_module", "factory_module"):
+            if solver_configuration.Has(factory_key):
+                solver_configuration.RemoveValue(factory_key)
 
-        if configuration.Has("inner_solver_settings"):
-            inner_solver_type = configuration["inner_solver_settings"]["solver_type"].GetString()
+        solver_type = self.__GetSolverTypeAndImportApplication(solver_configuration["solver_type"].GetString())
+
+        if solver_configuration.Has("inner_solver_settings"):
+            inner_solver_type = solver_configuration["inner_solver_settings"]["solver_type"].GetString()
             self.__GetSolverTypeAndImportApplication(inner_solver_type)
 
         if KM.ComplexLinearSolverFactory().Has(solver_type):
             KM.Logger.PrintInfo(self.__GetLabel(), "Constructing a complex linear-solver")
-            return KM.ComplexLinearSolverFactory().Create(configuration)
+            return KM.ComplexLinearSolverFactory().Create(solver_configuration)
         else:
             KM.Logger.PrintInfo(self.__GetLabel(), "Constructing a regular (non-complex) linear-solver")
-            return KM.LinearSolverFactory().Create(configuration)
+            return KM.LinearSolverFactory().Create(solver_configuration)
 
     def CreateFastestAvailableDirectLinearSolver(self):
         """Create the fastest available direct linear solver on the current system.
