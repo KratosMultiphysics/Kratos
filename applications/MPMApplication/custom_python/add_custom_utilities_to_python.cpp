@@ -24,6 +24,7 @@
 #include "linear_solvers/linear_solver.h"
 #include "custom_utilities/material_point_search_utility.h"
 #include "custom_utilities/material_point_generator_utility.cpp"
+#include "custom_utilities/mpm_nodal_cauchy_stress_utility.h"
 
 
 namespace Kratos{
@@ -71,8 +72,8 @@ namespace Python{
         m.def("GenerateMaterialPointElement", GenerateMaterialPointElementAccordingToDimension);
         m.def("GenerateMaterialPointCondition", GenerateMaterialPointConditionAccordingToDimension);
         m.def("GenerateLagrangeNodes", MaterialPointGeneratorUtility::GenerateLagrangeNodes);
+        m.def("CalculateNodalCauchyStress", MPMNodalCauchyStressUtility::CalculateNodalCauchyStress);
     }
 
 }  // namespace Python.
 } // Namespace Kratos
-

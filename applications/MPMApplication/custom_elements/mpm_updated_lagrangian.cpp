@@ -849,18 +849,11 @@ void MPMUpdatedLagrangian::AddExplicitContribution(const ProcessInfo& rCurrentPr
     const bool is_explicit_central_difference = (rCurrentProcessInfo.Has(IS_EXPLICIT_CENTRAL_DIFFERENCE))
         ? rCurrentProcessInfo.GetValue(IS_EXPLICIT_CENTRAL_DIFFERENCE)
         : false;
-    const bool compute_nodal_cauchy_stress = (rCurrentProcessInfo.Has(COMPUTE_NODAL_CAUCHY_STRESS))
-        ? rCurrentProcessInfo.GetValue(COMPUTE_NODAL_CAUCHY_STRESS)
-        : false;
 
     // Calculating shape functions
     const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
     array_1d<double,3> nodal_momentum = ZeroVector(3);
     array_1d<double,3> nodal_inertia  = ZeroVector(3);
-
-    if (compute_nodal_cauchy_stress) {
-        AddNodalCauchyStressContribution();
-    }
 
     // Here MP contribution in terms of momentum, inertia and mass are added
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
@@ -888,44 +881,6 @@ void MPMUpdatedLagrangian::AddExplicitContribution(const ProcessInfo& rCurrentPr
         r_geometry[i].FastGetSolutionStepValue(NODAL_INERTIA, 0)  += nodal_inertia;
         r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0) += r_N(0, i) * mMP.mass;
         r_geometry[i].UnSetLock();
-    }
-}
-
-void MPMUpdatedLagrangian::AddNodalCauchyStressContribution()
-{
-    GeometryType& r_geometry = GetGeometry();
-    const SizeType number_of_nodes = r_geometry.PointsNumber();
-    const SizeType stress_size = mMP.cauchy_stress_vector.size();
-
-    if (stress_size == 0) {
-        return;
-    }
-
-    const SizeType number_of_integration_points = r_geometry.IntegrationPointsNumber();
-
-    for (IndexType int_p = 0; int_p < number_of_integration_points; ++int_p) {
-        const double weight = (number_of_integration_points > 1)
-            ? r_geometry.IntegrationPoints()[int_p].Weight()
-            : 1.0;
-
-        for (IndexType i = 0; i < number_of_nodes; ++i) {
-            const double shape_function_value = r_geometry.ShapeFunctionValue(int_p, i);
-            if (shape_function_value < 0.0) {
-                continue;
-            }
-
-            Vector nodal_cauchy_stress_vector = mMP.cauchy_stress_vector;
-            nodal_cauchy_stress_vector *= shape_function_value * mMP.mass * weight;
-
-            r_geometry[i].SetLock();
-            auto& r_nodal_stress = r_geometry[i].FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_VECTOR);
-            if (r_nodal_stress.size() != stress_size) {
-                r_nodal_stress.resize(stress_size, false);
-                noalias(r_nodal_stress) = ZeroVector(stress_size);
-            }
-            noalias(r_nodal_stress) += nodal_cauchy_stress_vector;
-            r_geometry[i].UnSetLock();
-        }
     }
 }
 

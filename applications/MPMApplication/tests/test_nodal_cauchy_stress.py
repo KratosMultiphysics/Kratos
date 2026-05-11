@@ -71,14 +71,17 @@ class TestCauchyStressProjectionMPM(KratosUnittest.TestCase):
 
         try:
             grid_model_part = self.model.GetModelPart("Background_Grid")
+            mp_model_part = self.model.GetModelPart("MPM_Material")
             self._CheckCoreVtkOutput(grid_model_part)
 
-            simulation.RunSolutionLoop()
-
             expected_nodal_stress = KratosMultiphysics.Vector([10.0, 5.0, 2.0])
+            # Assign a known MP stress and project it to the grid nodes.
+            self._SetMaterialPointCauchyStress(mp_model_part, expected_nodal_stress)
+            KratosMPM.CalculateNodalCauchyStress(mp_model_part, grid_model_part)
 
             for node in grid_model_part.Nodes:
                 nodal_stress = node.GetSolutionStepValue(KratosMPM.NODAL_CAUCHY_STRESS_VECTOR)
+                print(nodal_stress)
                 self.assertVectorAlmostEqual(nodal_stress, expected_nodal_stress)
 
             self._CheckCoreVtkOutput(grid_model_part)
@@ -102,6 +105,15 @@ class TestCauchyStressProjectionMPM(KratosUnittest.TestCase):
             vtk_output = output_file.read()
 
         self.assertIn("NODAL_CAUCHY_STRESS_VECTOR 3 6", vtk_output)
+
+    @staticmethod
+    def _SetMaterialPointCauchyStress(mp_model_part, cauchy_stress_vector):
+        for mp in mp_model_part.Elements:
+            mp.SetValuesOnIntegrationPoints(
+                KratosMPM.MP_CAUCHY_STRESS_VECTOR,
+                [cauchy_stress_vector],
+                0,
+                mp_model_part.ProcessInfo)
 
 
 class CauchyStressTestSimulation(MpmAnalysis):
@@ -170,19 +182,6 @@ class CauchyStressTestSimulation(MpmAnalysis):
         model_part.CreateNewNode(4, 1.0, 1.0, 0.0)
         model_part.CreateNewNode(5, 2.0, 0.0, 0.0)
         model_part.CreateNewNode(6, 2.0, 1.0, 0.0)
-
-    def ModifyBeforeSolutionLoop(self):
-        super().ModifyBeforeSolutionLoop()
-
-        mp_model_part = self.model.GetModelPart("MPM_Material")
-        cauchy_stress_vector = [KratosMultiphysics.Vector([10.0, 5.0, 2.0])]
-
-        for mp in mp_model_part.Elements:
-            mp.SetValuesOnIntegrationPoints(
-                KratosMPM.MP_CAUCHY_STRESS_VECTOR,
-                cauchy_stress_vector,
-                0,
-                mp_model_part.ProcessInfo)
 
 
 if __name__ == '__main__':

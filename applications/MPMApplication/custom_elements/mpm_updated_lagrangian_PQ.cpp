@@ -105,15 +105,8 @@ void MPMUpdatedLagrangianPQ::AddExplicitContribution(const ProcessInfo& rCurrent
     GeometryType& r_geometry = GetGeometry();
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
     const unsigned int number_of_nodes = r_geometry.PointsNumber();
-    const bool compute_nodal_cauchy_stress = (rCurrentProcessInfo.Has(COMPUTE_NODAL_CAUCHY_STRESS))
-        ? rCurrentProcessInfo.GetValue(COMPUTE_NODAL_CAUCHY_STRESS)
-        : false;
 
     mFinalizedStep = false;
-
-    if (compute_nodal_cauchy_stress) {
-        AddNodalCauchyStressContribution();
-    }
 
     // Calculating shape functions
     array_1d<double, 3> nodal_momentum = ZeroVector(3);

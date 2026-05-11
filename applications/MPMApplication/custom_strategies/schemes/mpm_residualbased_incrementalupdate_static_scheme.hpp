@@ -21,6 +21,7 @@
 #include "includes/variables.h"
 #include "utilities/entities_utilities.h"
 #include "mpm_application_variables.h"
+#include "custom_utilities/mpm_nodal_cauchy_stress_utility.h"
 
 namespace Kratos
 {
@@ -86,25 +87,6 @@ public:
         KRATOS_TRY
         
         const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-        const bool compute_nodal_cauchy_stress = (r_current_process_info.Has(COMPUTE_NODAL_CAUCHY_STRESS))
-            ? r_current_process_info.GetValue(COMPUTE_NODAL_CAUCHY_STRESS)
-            : false;
-        const bool is_axisymmetric = (r_current_process_info.Has(IS_AXISYMMETRIC))
-            ? r_current_process_info.GetValue(IS_AXISYMMETRIC)
-            : false;
-        const std::size_t nodal_cauchy_stress_size = (r_current_process_info[DOMAIN_SIZE] == 3)
-            ? 6
-            : (is_axisymmetric ? 4 : 3);
-
-        if (compute_nodal_cauchy_stress) {
-            for (auto& r_node : rModelPart.Nodes()) {
-                auto& r_nodal_cauchy_stress_vector = r_node.FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_VECTOR);
-                if (r_nodal_cauchy_stress_vector.size() != nodal_cauchy_stress_size) {
-                    r_nodal_cauchy_stress_vector.resize(nodal_cauchy_stress_size, false);
-                }
-                noalias(r_nodal_cauchy_stress_vector) = ZeroVector(nodal_cauchy_stress_size);
-            }
-        }
 
         const auto &r_elements_array = rModelPart.Elements();
         const std::size_t n_elems = r_elements_array.size();
@@ -114,16 +96,26 @@ public:
             it_elem->AddExplicitContribution(r_current_process_info);
         });
 
-        if (compute_nodal_cauchy_stress) {
-            for (auto& r_node : rModelPart.Nodes()) {
-                const double nodal_mass = r_node.FastGetSolutionStepValue(NODAL_MASS);
-                if (nodal_mass > std::numeric_limits<double>::epsilon()) {
-                    r_node.FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_VECTOR) /= nodal_mass;
-                }
-            }
-        }
-
         KRATOS_CATCH("")
+    }
+
+    void FinalizeSolutionStep(
+        ModelPart& rModelPart,
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb
+        ) override
+    {
+        BaseType::FinalizeSolutionStep(rModelPart, rA, rDx, rb);
+
+        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+        const bool compute_nodal_cauchy_stress = (r_current_process_info.Has(COMPUTE_NODAL_CAUCHY_STRESS))
+            ? r_current_process_info.GetValue(COMPUTE_NODAL_CAUCHY_STRESS)
+            : false;
+
+        if (compute_nodal_cauchy_stress) {
+            MPMNodalCauchyStressUtility::CalculateNodalCauchyStress(rModelPart, rModelPart);
+        }
     }
 
 }; // Class ResidualBasedIncrementalUpdateStaticScheme

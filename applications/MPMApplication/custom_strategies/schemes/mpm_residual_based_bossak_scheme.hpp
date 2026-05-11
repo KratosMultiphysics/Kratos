@@ -29,6 +29,7 @@
 #include "solving_strategies/schemes/residual_based_implicit_time_scheme.h"
 #include "solving_strategies/schemes/residual_based_bossak_displacement_scheme.hpp"
 #include "custom_utilities/mpm_boundary_rotation_utility.h"
+#include "custom_utilities/mpm_nodal_cauchy_stress_utility.h"
 #include "custom_conditions/particle_based_conditions/mpm_particle_base_condition.h"
 #include "utilities/parallel_utilities.h"
 
@@ -223,15 +224,6 @@ public:
         // Particle to Grid mapping for elements is done here because predict needs the velocity field (PR #13432)        
         const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
         const double delta_time = r_current_process_info[DELTA_TIME];
-        const bool compute_nodal_cauchy_stress = (r_current_process_info.Has(COMPUTE_NODAL_CAUCHY_STRESS))
-            ? r_current_process_info.GetValue(COMPUTE_NODAL_CAUCHY_STRESS)
-            : false;
-        const bool is_axisymmetric = (r_current_process_info.Has(IS_AXISYMMETRIC))
-            ? r_current_process_info.GetValue(IS_AXISYMMETRIC)
-            : false;
-        const std::size_t nodal_cauchy_stress_size = (r_current_process_info[DOMAIN_SIZE] == 3)
-            ? 6
-            : (is_axisymmetric ? 4 : 3);
 
         // Initializing Bossak constants
         // This is not related to our change, but related to Bossak temporary fix.
@@ -261,13 +253,6 @@ public:
             r_nodal_mass = 0.0;
             r_nodal_momentum.clear();
             r_nodal_inertia.clear();
-            if (compute_nodal_cauchy_stress) {
-                auto& r_nodal_cauchy_stress_vector = rNode.FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_VECTOR);
-                if (r_nodal_cauchy_stress_vector.size() != nodal_cauchy_stress_size) {
-                    r_nodal_cauchy_stress_vector.resize(nodal_cauchy_stress_size, false);
-                }
-                noalias(r_nodal_cauchy_stress_vector) = ZeroVector(nodal_cauchy_stress_size);
-            }
 
             r_nodal_displacement.clear();
             r_nodal_velocity.clear();
@@ -509,13 +494,11 @@ public:
             if (mRotationTool.IsConformingSlip(rConstNode) ) {
                 mRotationTool.RotateVector(rNode.FastGetSolutionStepValue(REACTION), rConstNode, true);
             }
-
-            const double & r_nodal_mass = rNode.FastGetSolutionStepValue(NODAL_MASS);
-            if (compute_nodal_cauchy_stress && r_nodal_mass > std::numeric_limits<double>::epsilon())
-            {
-                rNode.FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_VECTOR)/= r_nodal_mass;
-            }    
         });
+
+        if (compute_nodal_cauchy_stress) {
+            MPMNodalCauchyStressUtility::CalculateNodalCauchyStress(rModelPart, mGridModelPart);
+        }
         
     }
 
