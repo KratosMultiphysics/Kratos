@@ -38,7 +38,9 @@ public:
     static constexpr SizeType strain_size      = 3;
     static constexpr SizeType space_dimenstion = 3;
 
-    // Move semantics - noexcept to ensure exception-safe moves
+    PiecewiseLinearMomentCapacityConstitutiveLaw() = default;
+    PiecewiseLinearMomentCapacityConstitutiveLaw(const PiecewiseLinearMomentCapacityConstitutiveLaw&) = default;
+    PiecewiseLinearMomentCapacityConstitutiveLaw& operator=(const PiecewiseLinearMomentCapacityConstitutiveLaw&) = default;
     PiecewiseLinearMomentCapacityConstitutiveLaw(PiecewiseLinearMomentCapacityConstitutiveLaw&&) noexcept = default;
     PiecewiseLinearMomentCapacityConstitutiveLaw& operator=(PiecewiseLinearMomentCapacityConstitutiveLaw&&) noexcept = default;
 
