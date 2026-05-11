@@ -71,7 +71,7 @@ namespace Kratos
 
     void G2PVelocity(Element& rElement, const array_1d<double, 3>& rNewMPAcceleration) override
     {
-        array_1d<double,3> new_mp_velocity{};
+        array_1d<double,3> new_mp_velocity = ZeroVector(3);
         MappingBaseType::EvaluateVariableOnMaterialPoint(rElement, VELOCITY, new_mp_velocity);
         rElement.SetValuesOnIntegrationPoints(MP_VELOCITY, {new_mp_velocity}, mrProcessInfo);
     }
