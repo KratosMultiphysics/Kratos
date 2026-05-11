@@ -25,7 +25,7 @@ namespace Kratos
 
 /**
  * @class PiecewiseLinearMomentCapacityConstitutiveLaw
- * @brief 1D moment-curvature law with four regimes and axial-load dependent capacities.
+ * @brief 1D moment-curvature law.
  */
 class KRATOS_API(GEO_MECHANICS_APPLICATION) PiecewiseLinearMomentCapacityConstitutiveLaw : public ConstitutiveLaw
 {
@@ -67,11 +67,9 @@ public:
 
 private:
     Table<double, double> mStressStrainTable;
-    // Unload/reload state (optional, activated when UNRELOAD_MODULUS property is set)
-    double mAccumulatedCurvature = 0.0;
-    double mUnReLoadCenter       = 0.0;
-    // Optional stored modulus value for unload/reload behavior (set in InitializeMaterial)
-    double mUnReLoadModulus = 0.0;
+    double                mAccumulatedCurvature = 0.0;
+    double                mUnReLoadCenter       = 0.0;
+    double                mUnReLoadModulus      = 0.0;
 
     [[nodiscard]] double CalculateUnReLoadAmplitude() const;
     [[nodiscard]] bool   IsWithinUnReLoading(double Curvature) const;

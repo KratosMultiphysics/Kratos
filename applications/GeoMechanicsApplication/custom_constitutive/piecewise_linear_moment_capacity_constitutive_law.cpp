@@ -36,9 +36,9 @@ double& PiecewiseLinearMomentCapacityConstitutiveLaw::CalculateValue(Constitutiv
                                                                      double& rValue)
 {
     if (rVariable == TANGENT_MODULUS) {
-        const auto curvature                 = rParameters.GetStrainVector()[1];
-        const auto [moment, tangent_modulus] = CalculateMomentAndTangentModulus(curvature);
-        rValue                               = tangent_modulus;
+        const auto curvature                     = rParameters.GetStrainVector()[1];
+        const auto [/*moment*/, tangent_modulus] = CalculateMomentAndTangentModulus(curvature);
+        rValue                                   = tangent_modulus;
         return rValue;
     }
 
@@ -66,7 +66,7 @@ void PiecewiseLinearMomentCapacityConstitutiveLaw::CalculateMaterialResponseCauc
     const auto nu = r_material_properties[POISSON_RATIO];
 
     const auto G   = E / (2.0 * (1.0 + nu));
-    const auto A_s = r_material_properties[THICKNESS_EFFECTIVE_Y]; // Per unit length
+    const auto A_s = r_material_properties[THICKNESS_EFFECTIVE_Y];
 
     if (r_options.Is(ConstitutiveLaw::COMPUTE_STRESS)) {
         auto& r_generalized_stress_vector = rParameters.GetStressVector();
@@ -127,7 +127,6 @@ int PiecewiseLinearMomentCapacityConstitutiveLaw::Check(const Properties&   rMat
         exit_code != 0)
         return exit_code;
 
-    // Use CheckProperties to validate property availability and ranges
     CheckProperties check_properties(rMaterialProperties, "material properties",
                                      CheckProperties::Bounds::AllExclusive);
 
@@ -148,7 +147,6 @@ int PiecewiseLinearMomentCapacityConstitutiveLaw::Check(const Properties&   rMat
         << "First provided point must be non-zero when assuming implicit (0,0). Got ("
         << first_kappa << ", " << first_momentum << ")" << std::endl;
 
-    // Ascending checks
     CheckUtilities::CheckValuesAreAscending(r_kappa, "KAPPA_PIECEWISE_LINEAR_LAW");
     constexpr auto allow_equal = true;
     CheckUtilities::CheckValuesAreAscending(r_moments, "MOMENTUM_PIECEWISE_LINEAR_LAW", allow_equal);
