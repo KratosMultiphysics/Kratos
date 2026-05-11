@@ -368,7 +368,7 @@ The staged construction analysis consists of seven stages:
 - The entire soil domain is active. But the anchor, the sheet pile as well as the interfaces at both sides of the soils are inactive.
 - Master-slave constraints are applied where the soil will later be separated by the sheet pile. This ensures continuity of the displacement field in this early stage of analysis.
 - The only load that is being applied is self-weight.
-- At the end of the stage, a $`K_0`$ procedure is performed to initialize the horizontal stress field.  **Note**, the $`K_0`$ procedure requires the use of linear elastic materials for all soil parts.
+- At the end of the stage, a $`K_0`$ procedure is performed to initialize the horizontal stress field.  **Note:** the $`K_0`$ procedure requires the use of linear elastic materials for all soil parts.
 
 
 2. **Null step:**
@@ -379,7 +379,7 @@ The staged construction analysis consists of seven stages:
 3. **Sheet pile installation and applying the external load:**
 
 - Activation of the sheet pile and the interfaces that are attached to its left and right sides.
-- Deactivate the master-slave constraints, the interface elements will represent the discontinuity in the displacement at the diaphragm wall location.
+- Deactivate the master-slave constraints, the interface elements will represent the discontinuity in the displacement at the sheet pile wall location.
 - Apply a surface load to a part of the top of the soil on the right-hand side.
 
 
