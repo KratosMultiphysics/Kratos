@@ -144,6 +144,12 @@ void  AddGeometriesToPython(pybind11::module& m)
     .def("PointsNumber", &GeometryType::PointsNumber)
     .def("PointsNumberInDirection", &GeometryType::PointsNumberInDirection)
     .def("PolynomialDegree", &GeometryType::PolynomialDegree)
+    .def("SpansLocalSpace", [](GeometryType& self, IndexType LocalDirectionIndex)
+    {
+        std::vector<double> spans;
+        self.SpansLocalSpace(spans, LocalDirectionIndex);
+        return spans;
+    }, py::arg("local_direction_index") = 0)
     // Geometry data
     .def("GetDefaultIntegrationMethod", &GeometryType::GetDefaultIntegrationMethod)
     .def("GetGeometryFamily", &GeometryType::GetGeometryFamily)
