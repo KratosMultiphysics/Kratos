@@ -630,9 +630,6 @@ Vector NurbsCurveRefinementUtilities::CreateReducedKnotVector(
     const Vector& rFullKnots,
     const SizeType Degree)
 {
-    const double first = rFullKnots[0];
-    const double last = rFullKnots[rFullKnots.size() - 1];
-
     const SizeType remove_each_side = 1;
 
     Vector reduced_knots(rFullKnots.size() - 2 * remove_each_side);
