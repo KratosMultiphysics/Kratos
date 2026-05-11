@@ -30,13 +30,13 @@ From D-Sheet Piling, the following soil properties are given for the clay and sa
 
 ### Elastic properties
 
-Since D-Sheet Piling does not work with Young's modulus $`E`$ directly, we will calculate it based on the modulus of subgrade reaction $`k`$, the width $`b`$ of the soil in $z$ direction, and Poisson's ratio $`\nu`$.  The latter is assumed to be equal to $`0.3`$, and $`b = 1.0\ \mathrm{m}`$ for plane strain conditions.  The Young's modulus is now calculated using the following formula:
+Since D-Sheet Piling does not work with Young's modulus $`E`$ directly, we will calculate it based on the modulus of subgrade reaction $`k`$, the width $`b`$ of the soil in $z$ direction, and Poisson's ratio $`\nu`$.  The latter is assumed to be equal to $`0.2`$ (for clay) and $`0.3`$ (for sand).  $`b = 1.0\ \mathrm{m}`$, since we assume plane strain conditions.  The Young's modulus is now calculated using the following formula (based on the elastic tensor):
 
 ```math
-E = k \cdot b \cdot (1 - \nu^2)
+E = k \cdot b \cdot \frac{(1 + \nu) (1 - 2 \nu)}{1 - \nu}
 ```
 
-For clay, the Young's modulus then becomes $`E_{\mathrm{clay}} = 1.0 \times 10^6\ \mathrm{N} / \mathrm{m}^3 \cdot 1.0\ \mathrm{m} \cdot (1 - 0.3^2) = 9.1 \times 10^5\ \mathrm{N} / \mathrm{m}^2`$.  And for sand, the Young's modulus becomes $`E_{\mathrm{sand}} = 1.0 \times 10^7\ \mathrm{N} / \mathrm{m}^3 \cdot 1.0\ \mathrm{m} \cdot (1 - 0.3^2) = 9.1 \times 10^6\ \mathrm{N} / \mathrm{m}^2`$ 
+For clay, the Young's modulus then becomes $`E_{\mathrm{clay}} = 1.0 \times 10^6\ \mathrm{N} / \mathrm{m}^3 \cdot 1.0\ \mathrm{m} \cdot \frac{(1 + 0.2) (1 - 2 \cdot 0.2)}{1 - 0.2} = 9.0 \times 10^5\ \mathrm{N} / \mathrm{m}^2`$.  And for sand, the Young's modulus becomes $`E_{\mathrm{sand}} = 1.0 \times 10^7\ \mathrm{N} / \mathrm{m}^3 \cdot 1.0\ \mathrm{m} \cdot \frac{(1 + 0.3) (1 - 2 \cdot 0.3)}{1 - 0.3} = 7.4286 \times 10^6\ \mathrm{N} / \mathrm{m}^2`$. 
 
 
 ### Conversion to intrinsic permeability
@@ -96,23 +96,23 @@ k \approx 1.0 \times 10^{-11}\ \mathrm{m}^2
 ### Final values
 Because the Kratos model requires additional parameters, the table below summarizes the final material properties for the soil layers, including both the calculated values and the assumed values adopted for use in the model.
 
-| Property                     | Kratos input parameter | Clay                   | Sand                   | Unit                       |
-|:-----------------------------|:-----------------------|:-----------------------|:-----------------------|:---------------------------|
-| Solid density                | `DENSITY_SOLID`        | 1834.86                | 2038.74                | $\mathrm{kg}/\mathrm{m}^3$ |
-| Water density                | `DENSITY_WATER`        | 1019.37                | 1019.37                | $\mathrm{kg}/\mathrm{m}^3$ |
-| Porosity                     | `POROSITY`             | 0.0                    | 0.0                    | $-$                        |
-| Young's modulus              | `YOUNG_MODULUS`        | $9.1 \times 10^5$      | $9.1 \times 10^6$      | $\mathrm{Pa}$              |
-| Poisson's ratio              | `POISSON_RATIO`        | 0.30                   | 0.30                   | $-$                        |
-| Intrinsic permeability in xx | `PERMEABILITY_XX`      | $1.02 \times 10^{-11}$ | $1.02 \times 10^{-11}$ | $\mathrm{m}^2$             |
-| Intrinsic permeability in yy | `PERMEABILITY_YY`      | $1.02 \times 10^{-11}$ | $1.02 \times 10^{-11}$ | $\mathrm{m}^2$             |
-| Intrinsic permeability in xy | `PERMEABILITY_XY`      | 0                      | 0                      | $\mathrm{m}^2$             |
-| Saturated saturation         | `SATURATED_SATURATION` | 1.0                    | 1.0                    | $-$                        |
-| Residual saturation          | `RESIDUAL_SATURATION`  | $1.0 \times 10^{-10}$  | $1.0 \times 10^{-10}$  | $-$                        |
-| Earth pressure coefficient   | `K0_NC`                | 0.62                   | 0.46                   | $-$                        |
-| Cohesion                     | `GEO_COHESION`         | 3000.0                 | 0.0                    | $\mathrm{Pa}$              |
-| Friction angle               | `GEO_FRICTION_ANGLE`   | 22.5                   | 32.5                   | $`^{\circ}`$               |
-| Dilatancy angle              | `GEO_DILATANCY_ANGLE`  | 0.0                    | 0.0                    | $`^{\circ}`$               |
-| Tensile strength             | `GEO_TENSILE_STRENGTH` | 7242.64                | 0.0                    | $\mathrm{Pa}$              |
+| Property                     | Kratos input parameter | Clay                     | Sand                     | Unit                         |
+|:-----------------------------|:-----------------------|:-------------------------|:-------------------------|:-----------------------------|
+| Solid density                | `DENSITY_SOLID`        | 1834.86                  | 2038.74                  | $`\mathrm{kg}/\mathrm{m}^3`$ |
+| Water density                | `DENSITY_WATER`        | 1019.37                  | 1019.37                  | $`\mathrm{kg}/\mathrm{m}^3`$ |
+| Porosity                     | `POROSITY`             | 0.0                      | 0.0                      | $`-`$                        |
+| Young's modulus              | `YOUNG_MODULUS`        | $`9.0 \times 10^5`$      | $`7.4286 \times 10^6`$   | $`\mathrm{Pa}`$              |
+| Poisson's ratio              | `POISSON_RATIO`        | 0.2                      | 0.3                      | $`-`$                        |
+| Intrinsic permeability in xx | `PERMEABILITY_XX`      | $`1.02 \times 10^{-11}`$ | $`1.02 \times 10^{-11}`$ | $`\mathrm{m}^2`$             |
+| Intrinsic permeability in yy | `PERMEABILITY_YY`      | $`1.02 \times 10^{-11}`$ | $`1.02 \times 10^{-11}`$ | $`\mathrm{m}^2`$             |
+| Intrinsic permeability in xy | `PERMEABILITY_XY`      | 0                        | 0                        | $`\mathrm{m}^2`$             |
+| Saturated saturation         | `SATURATED_SATURATION` | 1.0                      | 1.0                      | $`-`$                        |
+| Residual saturation          | `RESIDUAL_SATURATION`  | $`1.0 \times 10^{-10}`$  | $`1.0 \times 10^{-10}`$  | $`-`$                        |
+| Earth pressure coefficient   | `K0_NC`                | 0.62                     | 0.46                     | $`-`$                        |
+| Cohesion                     | `GEO_COHESION`         | 3000.0                   | 0.0                      | $`\mathrm{Pa}`$              |
+| Friction angle               | `GEO_FRICTION_ANGLE`   | 22.5                     | 32.5                     | $`^{\circ}`$                 |
+| Dilatancy angle              | `GEO_DILATANCY_ANGLE`  | 0.0                      | 0.0                      | $`^{\circ}`$                 |
+| Tensile strength             | `GEO_TENSILE_STRENGTH` | 7242.64                  | 0.0                      | $`\mathrm{Pa}`$              |
 
 In the above table, the value of the tensile strength $`f_{\mathrm{t}}`$ (which fixes the tension cut-off) has been chosen such that it passes through the apex of the Coulomb yield surface.  In other words, it has been calculated as follows: $`f_{\mathrm{t}} = \frac{c}{\mathrm{tan}(\phi)}`$, with $`c`$ the cohesion and $`\phi`$ the friction angle.  Note that this choice effectively disables the tension cut-off. 
 
@@ -128,11 +128,11 @@ The interface stiffness values are based on the adjacent soil shear modulus and 
 
 The following values were adopted:
 
-| Property                         | Clay-side interface | Sand-side interface | Unit            |
-|:---------------------------------|:--------------------|:--------------------|:----------------|
-| Young's modulus of adjacent soil | $`9.1 \times 10^5`$ | $`9.1 \times 10^6`$ | $`\mathrm{Pa}`$ |
-| Poisson's ratio of adjacent soil | 0.30                | 0.30                | $`-`$           |
-| Element size normal to interface | 1.0                 | 1.0                 | $`\mathrm{m}`$  |
+| Property                         | Clay-side interface | Sand-side interface    | Unit            |
+|:---------------------------------|:--------------------|:-----------------------|:----------------|
+| Young's modulus of adjacent soil | $`9.0 \times 10^5`$ | $`7.4286 \times 10^6`$ | $`\mathrm{Pa}`$ |
+| Poisson's ratio of adjacent soil | 0.2                 | 0.3                    | $`-`$           |
+| Element size normal to interface | 1.0                 | 1.0                    | $`\mathrm{m}`$  |
 
 
 ### Shear modulus of the adjacent soil
@@ -147,14 +147,14 @@ G = \frac{E}{2 (1 + \nu)}
 #### Clay
 
 ```math
-G_{\mathrm{clay}} = \frac{9.1 \times 10^5}{2 (1 + 0.30)} = 3.5 \times 10^5\ \mathrm{Pa}
+G_{\mathrm{clay}} = \frac{9.0 \times 10^5}{2 (1 + 0.2)} = 3.75 \times 10^5\ \mathrm{Pa}
 ```
 
 
 #### Sand
 
 ```math
-G_{\mathrm{sand}} = \frac{9.1 \times 10^6}{2 (1 + 0.30)} = 3.5 \times 10^6\ \mathrm{Pa}
+G_{\mathrm{sand}} = \frac{7.4286 \times 10^6}{2 (1 + 0.3)} = 2.8571 \times 10^6\ \mathrm{Pa}
 ```
 
 
@@ -183,7 +183,7 @@ with:
 Using:
 
 ```math
-G_{\mathrm{clay}} = 3.5 \times 10^5\ \mathrm{Pa}
+G_{\mathrm{clay}} = 3.75 \times 10^5\ \mathrm{Pa}
 ```
 
 and
@@ -195,13 +195,13 @@ h = 1.0\ \mathrm{m}
 the interface shear stiffness becomes:
 
 ```math
-k_{\mathrm{s, clay}} = \frac{3.5 \times 10^5\ \mathrm{Pa}}{1.0\ \mathrm{m}} = 3.5 \times 10^5\ \mathrm{N} / \mathrm{m}^3
+k_{\mathrm{s, clay}} = \frac{3.75 \times 10^5\ \mathrm{Pa}}{1.0\ \mathrm{m}} = 3.75 \times 10^5\ \mathrm{N} / \mathrm{m}^3
 ```
 
 and the interface normal stiffness becomes:
 
 ```math
-k_{\mathrm{n, clay}} = 10 \cdot 3.5 \times 10^5\ \mathrm{N} / \mathrm{m}^3 = 3.5 \times 10^6\ \mathrm{N} / \mathrm{m}^3
+k_{\mathrm{n, clay}} = 10 \cdot 3.75 \times 10^5\ \mathrm{N} / \mathrm{m}^3 = 3.75 \times 10^6\ \mathrm{N} / \mathrm{m}^3
 ```
 
 
@@ -210,7 +210,7 @@ k_{\mathrm{n, clay}} = 10 \cdot 3.5 \times 10^5\ \mathrm{N} / \mathrm{m}^3 = 3.5
 Using:
 
 ```math
-G_{\mathrm{sand}} = 3.5 \times 10^6\ \mathrm{Pa}
+G_{\mathrm{sand}} = 2.8571 \times 10^6\ \mathrm{Pa}
 ```
 
 and
@@ -222,13 +222,13 @@ h = 1.0\ \mathrm{m}
 the interface shear stiffness becomes:
 
 ```math
-k_{\mathrm{s, sand}} = \frac{3.5 \times 10^6\ \mathrm{Pa}}{1.0\ \mathrm{m}} = 3.5 \times 10^6\ \mathrm{N} / \mathrm{m}^3
+k_{\mathrm{s, sand}} = \frac{2.8571 \times 10^6\ \mathrm{Pa}}{1.0\ \mathrm{m}} = 2.8571 \times 10^6\ \mathrm{N} / \mathrm{m}^3
 ```
 
 and the interface normal stiffness becomes:
 
 ```math
-k_{\mathrm{n, sand}} = 10 \cdot 3.5 \times 10^6\ \mathrm{N} / \mathrm{m}^3 = 3.5 \times 10^7\ \mathrm{N} / \mathrm{m}^3
+k_{\mathrm{n, sand}} = 10 \cdot 2.8571 \times 10^6\ \mathrm{N} / \mathrm{m}^3 = 2.8571 \times 10^7\ \mathrm{N} / \mathrm{m}^3
 ```
 
 
@@ -236,10 +236,10 @@ k_{\mathrm{n, sand}} = 10 \cdot 3.5 \times 10^6\ \mathrm{N} / \mathrm{m}^3 = 3.5
 
 The following table lists the adopted stiffness values for the two types of interfaces.
 
-| Property                             | Kratos input parameter       | Clay-side interface | Sand-side interface | Unit                          |
-|:-------------------------------------|:-----------------------------|:--------------------|:--------------------|:------------------------------|
-| Normal stiffness $`k_{\mathrm{n}}`$  | `INTERFACE_NORMAL_STIFFNESS` | $`3.5 \times 10^6`$ | $`3.5 \times 10^7`$ | $`\mathrm{N} / \mathrm{m}^3`$ |
-| Shear stiffness $`k_{\mathrm{s}}`$   | `INTERFACE_SHEAR_STIFFNESS`  | $`3.5 \times 10^5`$ | $`3.5 \times 10^6`$ | $`\mathrm{N} / \mathrm{m}^3`$ |
+| Property                             | Kratos input parameter       | Clay-side interface  | Sand-side interface    | Unit                          |
+|:-------------------------------------|:-----------------------------|:---------------------|:-----------------------|:------------------------------|
+| Normal stiffness $`k_{\mathrm{n}}`$  | `INTERFACE_NORMAL_STIFFNESS` | $`3.75 \times 10^6`$ | $`2.8571 \times 10^7`$ | $`\mathrm{N} / \mathrm{m}^3`$ |
+| Shear stiffness $`k_{\mathrm{s}}`$   | `INTERFACE_SHEAR_STIFFNESS`  | $`3.75 \times 10^5`$ | $`2.8571 \times 10^6`$ | $`\mathrm{N} / \mathrm{m}^3`$ |
 
 
 
