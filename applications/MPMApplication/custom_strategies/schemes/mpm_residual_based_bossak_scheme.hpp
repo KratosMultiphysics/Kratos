@@ -242,6 +242,7 @@ public:
             double & r_nodal_mass     = rNode.FastGetSolutionStepValue(NODAL_MASS);
             array_1d<double, 3 > & r_nodal_momentum = rNode.FastGetSolutionStepValue(NODAL_MOMENTUM);
             array_1d<double, 3 > & r_nodal_inertia  = rNode.FastGetSolutionStepValue(NODAL_INERTIA);
+
             array_1d<double, 3 > & r_nodal_displacement = rNode.FastGetSolutionStepValue(DISPLACEMENT);
             array_1d<double, 3 > & r_nodal_velocity     = rNode.FastGetSolutionStepValue(VELOCITY,1);
             array_1d<double, 3 > & r_nodal_acceleration = rNode.FastGetSolutionStepValue(ACCELERATION,1);
@@ -257,7 +258,7 @@ public:
             r_nodal_displacement.clear();
             r_nodal_velocity.clear();
             r_nodal_acceleration.clear();
-            r_nodal_old_pressure = 0.0; 
+            r_nodal_old_pressure = 0.0;
             r_nodal_pressure = 0.0;
 
             // Other additional variables
@@ -296,6 +297,7 @@ public:
             {
                 const array_1d<double, 3 > & r_nodal_momentum   = rNode.FastGetSolutionStepValue(NODAL_MOMENTUM);
                 const array_1d<double, 3 > & r_nodal_inertia    = rNode.FastGetSolutionStepValue(NODAL_INERTIA);
+
                 array_1d<double, 3 > & r_previous_velocity     = rNode.FastGetSolutionStepValue(VELOCITY,1);
                 array_1d<double, 3 > & r_previous_acceleration = rNode.FastGetSolutionStepValue(ACCELERATION,1);
                 double & r_previous_pressure = rNode.FastGetSolutionStepValue(PRESSURE,1);
@@ -692,3 +694,4 @@ protected:
 }  /* namespace Kratos.*/
 
 #endif /* KRATOS_MPM_RESIDUAL_BASED_BOSSAK_SCHEME defined */
+

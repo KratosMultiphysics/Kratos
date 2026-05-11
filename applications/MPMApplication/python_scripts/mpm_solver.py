@@ -338,7 +338,6 @@ class MPMSolver(PythonSolver):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X, model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y, model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z, model_part)
-    
 
         if self.settings["pressure_dofs"].GetBool():
             KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.PRESSURE, KratosMPM.PRESSURE_REACTION, model_part)

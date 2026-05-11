@@ -858,8 +858,6 @@ void MPMUpdatedLagrangian::AddExplicitContribution(const ProcessInfo& rCurrentPr
     // Here MP contribution in terms of momentum, inertia and mass are added
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
-        
-
         for (unsigned int j = 0; j < dimension; j++)
         {
             nodal_momentum[j] = r_N(0, i) * mMP.velocity[j] * mMP.mass;
@@ -957,8 +955,6 @@ void MPMUpdatedLagrangian::FinalizeStepVariables( GeneralVariables & rVariables,
         mConstitutiveLawVector->GetValue(MP_ACCUMULATED_PLASTIC_VOLUMETRIC_STRAIN, mMP.accumulated_plastic_volumetric_strain);
     if (mConstitutiveLawVector->Has(MP_ACCUMULATED_PLASTIC_DEVIATORIC_STRAIN))
         mConstitutiveLawVector->GetValue(MP_ACCUMULATED_PLASTIC_DEVIATORIC_STRAIN, mMP.accumulated_plastic_deviatoric_strain);
-
-        
 
     const bool is_explicit = (rCurrentProcessInfo.Has(IS_EXPLICIT))
         ? rCurrentProcessInfo.GetValue(IS_EXPLICIT)

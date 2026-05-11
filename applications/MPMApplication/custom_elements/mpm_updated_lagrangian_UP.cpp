@@ -1254,3 +1254,4 @@ void MPMUpdatedLagrangianUP::load( Serializer& rSerializer )
 }
 
 } // Namespace Kratos
+

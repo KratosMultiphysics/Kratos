@@ -198,3 +198,4 @@ void MPMUpdatedLagrangianPQ::load( Serializer& rSerializer )
     KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, MPMUpdatedLagrangian )
 }
 } // Namespace Kratos
+

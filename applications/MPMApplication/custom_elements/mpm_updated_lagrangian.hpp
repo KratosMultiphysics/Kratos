@@ -533,6 +533,7 @@ protected:
     ///@name Protected Operations
     ///@{
 
+
     /**
      * Calculation and addition of the matrices of the LHS
      */

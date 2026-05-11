@@ -374,6 +374,7 @@ namespace Kratos {
                     : false;
                 const auto it_elem_begin = rModelPart.ElementsBegin();
 
+
                 // map grid to MPs
                 #pragma omp parallel for
                 for (int i = 0; i < static_cast<int>(rElements.size()); ++i)
