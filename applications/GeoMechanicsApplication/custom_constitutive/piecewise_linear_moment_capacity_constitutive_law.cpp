@@ -109,13 +109,11 @@ void PiecewiseLinearMomentCapacityConstitutiveLaw::FinalizeMaterialResponsePK2(P
 
     const auto curvature = rParameters.GetStrainVector()[1];
 
-    if (mUnReLoadModulus > 0.0) {
-        if (!IsWithinUnReLoading(curvature)) {
-            const auto difference = curvature - mUnReLoadCenter;
-            mAccumulatedCurvature += std::abs(difference) - CalculateUnReLoadAmplitude();
-            mUnReLoadCenter = difference > 0.0 ? curvature - CalculateUnReLoadAmplitude()
-                                               : curvature + CalculateUnReLoadAmplitude();
-        }
+    if (mUnReLoadModulus > 0.0 && !IsWithinUnReLoading(curvature)) {
+        const auto difference = curvature - mUnReLoadCenter;
+        mAccumulatedCurvature += std::abs(difference) - CalculateUnReLoadAmplitude();
+        mUnReLoadCenter = difference > 0.0 ? curvature - CalculateUnReLoadAmplitude()
+                                           : curvature + CalculateUnReLoadAmplitude();
     }
 }
 
