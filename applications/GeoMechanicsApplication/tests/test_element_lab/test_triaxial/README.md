@@ -12,9 +12,9 @@ A schematic overview of the model is displayed in the figure below:
 The test is performed with the following conditions:
 
 - Constraints:
-    - The displacement in the bottom nodes (5, 8, 9) is fixed in the Y direction.
-    - The displacement in the symmetry axis (i.e. the left nodes 1, 3, 5) is fixed in the X direction.
-    - The displacement of the top nodes (1, 2, 6) is prescribed and moves linearly from y = 0 at t = 0 to y = -0.2 at t = 1.
+    - The bottom nodes (5, 8, 9) are fixed in the Y direction.
+    - The symmetry axis (i.e. the left nodes 1, 3, 5) is fixed in the X direction.
+    - A displacement of -0.2 is prescribed for the top nodes (1, 2, 6). The nodes move linearly from y = 1 at t = 0 to y = 0.8 at t = 1.
 - Material:
     - The material is described by the Mohr-Coulomb model with the following parameters:
         - Poisson ratio = 0.25,
