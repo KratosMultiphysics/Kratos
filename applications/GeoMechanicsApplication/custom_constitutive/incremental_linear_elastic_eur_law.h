@@ -65,7 +65,7 @@ public:
     void ResetMaterial(const Properties&, const GeometryType&, const Vector&) override;
 
 protected:
-    void CalculateElasticMatrix(Matrix& C, ConstitutiveLaw::Parameters& rValues) override;
+    void CalculateElasticMatrix(Matrix& rElasticMatrix, ConstitutiveLaw::Parameters& rValues) override;
 
     void CalculatePK2Stress(const Vector&                rStrainVector,
                             Vector&                      rStressVector,

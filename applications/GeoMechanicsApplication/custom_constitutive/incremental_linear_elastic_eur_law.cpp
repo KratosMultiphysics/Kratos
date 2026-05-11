@@ -116,7 +116,8 @@ int GeoIncrementalLinearElasticEurLaw::Check(const Properties&   rMaterialProper
     return 0;
 }
 
-void GeoIncrementalLinearElasticEurLaw::CalculateElasticMatrix(Matrix& C, ConstitutiveLaw::Parameters& rValues)
+void GeoIncrementalLinearElasticEurLaw::CalculateElasticMatrix(Matrix& rElasticMatrix,
+                                                               ConstitutiveLaw::Parameters& rValues)
 {
     KRATOS_TRY
 
@@ -127,15 +128,15 @@ void GeoIncrementalLinearElasticEurLaw::CalculateElasticMatrix(Matrix& C, Consti
                                    ? r_properties[POISSON_UNLOADING_RELOADING]
                                    : r_properties[POISSON_RATIO];
 
-    C = ConstitutiveLawUtilities::MakeContinuumElasticConstitutiveTensor(
+    rElasticMatrix = ConstitutiveLawUtilities::MakeContinuumElasticConstitutiveTensor(
         young_modulus, poisson_ratio, mpConstitutiveDimension->GetStrainSize(),
         mpConstitutiveDimension->GetNumberOfNormalComponents());
 
     if (this->GetConsiderDiagonalEntriesOnlyAndNoShear()) {
-        ConstitutiveLawUtilities::SetEntriesAboveDiagonalToZero(C);
-        ConstitutiveLawUtilities::SetEntriesBelowDiagonalToZero(C);
+        ConstitutiveLawUtilities::SetEntriesAboveDiagonalToZero(rElasticMatrix);
+        ConstitutiveLawUtilities::SetEntriesBelowDiagonalToZero(rElasticMatrix);
         ConstitutiveLawUtilities::SetShearEntriesToZero(
-            C, mpConstitutiveDimension->GetNumberOfNormalComponents());
+            rElasticMatrix, mpConstitutiveDimension->GetNumberOfNormalComponents());
     }
 
     KRATOS_CATCH("")

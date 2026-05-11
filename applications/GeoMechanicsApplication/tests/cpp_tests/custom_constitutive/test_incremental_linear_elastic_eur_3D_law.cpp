@@ -500,7 +500,6 @@ KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElasticEur3DLaw_UsesReferencePress
     // Compute expected using the production formula (no artificial bounding)
     const auto eur_ref            = properties[YOUNG_MODULUS];
     const auto reference_pressure = properties[REFERENCE_HARDENING_MODULUS];
-    const auto exponent           = properties[SWELLING_SLOPE];
     const auto phi_rad            = properties[GEO_FRICTION_ANGLE] * std::numbers::pi / 180.0;
     const auto stress_shift = properties[GEO_COHESION] * std::cos(phi_rad) / std::sin(phi_rad);
     Vector     principal_stresses;
