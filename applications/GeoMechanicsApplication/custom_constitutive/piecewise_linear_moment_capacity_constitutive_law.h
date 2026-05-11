@@ -38,6 +38,10 @@ public:
     static constexpr SizeType strain_size      = 3;
     static constexpr SizeType space_dimenstion = 3;
 
+    // Move semantics - noexcept to ensure exception-safe moves
+    PiecewiseLinearMomentCapacityConstitutiveLaw(PiecewiseLinearMomentCapacityConstitutiveLaw&&) noexcept = default;
+    PiecewiseLinearMomentCapacityConstitutiveLaw& operator=(PiecewiseLinearMomentCapacityConstitutiveLaw&&) noexcept = default;
+
     [[nodiscard]] ConstitutiveLaw::Pointer Clone() const override;
 
     void GetLawFeatures(Features& rFeatures) override;
