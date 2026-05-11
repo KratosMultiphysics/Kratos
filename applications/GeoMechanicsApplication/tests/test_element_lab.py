@@ -81,6 +81,31 @@ class KratosGeoMechanicsLabElementTests(KratosUnittest.TestCase):
         for time, expected_y in zip(displacement_times, expected_y_displacements):
             self._assert_y_displacements_at_time(reader, result, top_nodes, expected_y, precision_places_displacement, time)
 
+    def test_dss_drained(self):
+        """Regression test for the direct simple shear experiment with constant pore water pressure."""
+        stage_name = 'drained'
+        expected_stress = [[-100000, -100000, -100000, 800000, 0, 0]] * 6
+        expected_strain = [[0.0, 0.0, 0.0, 0.1, 0.0, 0.0]] * 6
+        self._run_dss_regression_test(stage_name, "linear_elastic", "test_dss_lin_elastic_output.post.res", expected_stress, 3, expected_strain, 6, time = 1.0)
+
+        expected_stress = [[-205490, -205490, -152745, 88656.5, 0, 0]] * 6
+        expected_strain = [[0.0, 0.0, 0.0, 0.1, 0.0, 0.0]] * 6
+        self._run_dss_regression_test(stage_name, "mohr_coulomb", "test_dss_mohr_coulomb_output.post.res", expected_stress, 3, expected_strain, 6, time = 1.0)
+    
+    def _run_dss_regression_test(self, stage_name, model_name, output_file_name, expected_stress, places_stress, expected_strain, places_strain, time=1.0):
+        """Run the direct simple shear regression test and validate stress and strain tensors at given times."""
+        test_name = 'test_dss'
+        file_path = test_helper.get_file_path(os.path.join('test_element_lab', test_name, stage_name, model_name))
+        test_helper.run_kratos(file_path)
+
+        reader = GiDOutputFileReader()
+        result = reader.read_output_from(os.path.join(file_path, output_file_name))
+
+        self._assert_integration_point_tensors(reader, result, "CAUCHY_STRESS_TENSOR", expected_stress,
+                                              places_stress, time)
+        self._assert_integration_point_tensors(reader, result, "ENGINEERING_STRAIN_TENSOR", expected_strain,
+                                              places_strain, time)
+
     def test_triaxial_comp_6n(self):
         """
         Drained compression triaxial test on Mohr-Coulomb model with axisymmetric 2D6N elements
