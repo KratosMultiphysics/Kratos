@@ -18,6 +18,7 @@
 #include "geo_mechanics_application_variables.h"
 #include "includes/mat_variables.h"
 #include "utilities/math_utils.h"
+#include <limits>
 
 namespace Kratos
 {
@@ -204,7 +205,7 @@ double GeoIncrementalLinearElasticEurLaw::CalculateMinorPrincipalEffectiveStress
         << "Could not compute principal stresses from stress vector with size "
         << mStressVectorFinalized.size() << "\n";
 
-    return principal_stresses[0];
+    return principal_stresses[2];
 }
 
 double GeoIncrementalLinearElasticEurLaw::CalculateStressDependentYoungsModulus(const Properties& rProperties) const
@@ -219,13 +220,17 @@ double GeoIncrementalLinearElasticEurLaw::CalculateStressDependentYoungsModulus(
     const auto stress_shift =
         rProperties[GEO_COHESION] * std::cos(friction_angle_rad) / std::sin(friction_angle_rad);
 
-    // Keep the law stable for low confinement by enforcing -sigma3' >= p_ref.
-    const auto bounded_minor_principal_effective_stress =
-        std::min(CalculateMinorPrincipalEffectiveStress(), -reference_pressure);
-    const auto numerator = std::max(stress_shift - bounded_minor_principal_effective_stress, epsilon);
-    const auto denominator = std::max(stress_shift + reference_pressure, epsilon);
+    const auto exp_value =
+        (stress_shift - CalculateMinorPrincipalEffectiveStress()) / (stress_shift + reference_pressure);
 
-    return eur_ref * std::pow(numerator / denominator, exponent);
+    KRATOS_ERROR_IF_NOT(exp_value > epsilon)
+        << "GeoIncrementalLinearElasticEurLaw::CalculateStressDependentYoungsModulus expects a "
+           "positive "
+           "base for std::pow (exp_value > epsilon). Computed exp_value="
+        << exp_value << " <= epsilon="
+        << epsilon << ". Check GEO_COHESION, GEO_FRICTION_ANGLE, REFERENCE_HARDENING_MODULUS and the finalized stress state.\n";
+
+    return eur_ref * std::pow(exp_value, exponent);
 }
 
 void GeoIncrementalLinearElasticEurLaw::save(Serializer& rSerializer) const

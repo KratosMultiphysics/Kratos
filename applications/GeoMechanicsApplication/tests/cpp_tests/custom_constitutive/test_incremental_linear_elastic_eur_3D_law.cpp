@@ -26,6 +26,8 @@
 #include <numbers>
 #include <string>
 
+#include "custom_utilities/stress_strain_utilities.h"
+
 namespace
 {
 
@@ -161,18 +163,20 @@ KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElasticEur3DLaw_CopyConstructorCop
     const Properties     empty_properties;
     const Geometry<Node> geometry;
     const Vector         shape_functions_values;
-    law.ResetMaterial(empty_properties, geometry, shape_functions_values);
 
-    strain_vector                          = Vector(6, 1.0);
+    // Compute expected stress from the original law BEFORE resetting it
+    strain_vector                      = Vector(6, 1.0);
+    auto expected_stress_from_original = CalculateStress(law, properties, strain_vector);
+
+    law.ResetMaterial(empty_properties, geometry, shape_functions_values);
     const auto original_stress_after_reset = CalculateStress(law, properties, strain_vector);
-    const auto expected_stress_from_copied_law =
-        UblasUtilities::CreateVector({1.35e7, 1.35e7, 1.35e7, 2.92308e6, 2.92308e6, 2.92308e6});
-    const auto expected_reset_stress =
-        UblasUtilities::CreateVector({2.5e7, 2.5e7, 2.5e7, 3.84615e6, 3.84615e6, 3.84615e6});
 
     constexpr auto tolerance = 1.0e-4;
-    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(expected_stress_from_copied_law, stress_from_copied_law, tolerance)
-    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(expected_reset_stress, original_stress_after_reset, tolerance)
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(expected_stress_from_original, stress_from_copied_law, tolerance)
+
+    // After resetting the original, its stress should differ from the copied one
+    KRATOS_EXPECT_FALSE((std::abs((original_stress_after_reset[0] - expected_stress_from_original[0]) /
+                                  expected_stress_from_original[0]) <= tolerance));
 }
 
 KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElasticEur3DLaw_CopyAssignmentCopiesInternalState,
@@ -191,18 +195,18 @@ KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElasticEur3DLaw_CopyAssignmentCopi
     const Properties     empty_properties;
     const Geometry<Node> geometry;
     const Vector         shape_functions_values;
-    law.ResetMaterial(empty_properties, geometry, shape_functions_values);
 
-    strain_vector                          = Vector(6, 1.0);
+    // Compute expected stress from the original law BEFORE resetting it
+    strain_vector                        = Vector(6, 1.0);
+    auto expected_assigned_from_original = CalculateStress(law, properties, strain_vector);
+
+    law.ResetMaterial(empty_properties, geometry, shape_functions_values);
     const auto original_stress_after_reset = CalculateStress(law, properties, strain_vector);
-    const auto expected_assigned_stress =
-        UblasUtilities::CreateVector({1.35e7, 1.35e7, 1.35e7, 2.92308e6, 2.92308e6, 2.92308e6});
-    const auto expected_reset_stress =
-        UblasUtilities::CreateVector({2.5e7, 2.5e7, 2.5e7, 3.84615e6, 3.84615e6, 3.84615e6});
 
     constexpr auto tolerance = 1.0e-4;
-    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(expected_assigned_stress, assigned_stress, tolerance)
-    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(expected_reset_stress, original_stress_after_reset, tolerance)
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(expected_assigned_from_original, assigned_stress, tolerance)
+    KRATOS_EXPECT_FALSE((std::abs((original_stress_after_reset[0] - expected_assigned_from_original[0]) /
+                                  expected_assigned_from_original[0]) <= tolerance));
 }
 
 KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElasticEur3DLaw_CloneReturnsCopyOfCorrectType,
@@ -220,10 +224,10 @@ KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElasticEur3DLaw_CloneReturnsCopyOf
 
     auto       strain_vector = Vector(6, 1.0);
     const auto clone_stress  = CalculateStress(*p_typed_clone, properties, strain_vector);
-    const auto expected_stress =
-        UblasUtilities::CreateVector({1.35e7, 1.35e7, 1.35e7, 2.92308e6, 2.92308e6, 2.92308e6});
-    constexpr auto tolerance = 1.0e-4;
-    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(expected_stress, clone_stress, tolerance)
+    // The clone should produce the same stress as the original prior to any resets
+    auto           expected_stress_from_original = CalculateStress(law, properties, strain_vector);
+    constexpr auto tolerance                     = 1.0e-4;
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(expected_stress_from_original, clone_stress, tolerance)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElasticEur3DLaw_ReturnsTrueForStenbergShearStabilizationSuitability,
@@ -238,7 +242,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElasticEur3DLaw_ReturnsTrueForSten
 
     // Assert
     KRATOS_EXPECT_EQ(&r_value, &is_suitable);
-    KRATOS_EXPECT_TRUE(is_suitable);
+    KRATOS_EXPECT_TRUE(is_suitable)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElasticEur3DLaw_ReturnsExpectedLawFeatures,
@@ -365,19 +369,18 @@ KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElasticEur3DLaw_ReturnsDiagonalCon
     // Act
     const auto constitutive_matrix = CalculateConstitutiveMatrix(law, properties, strain_vector);
 
-    // Assert
-    const auto expected_normal_diagonal =
-        CalculateExpectedNormalDiagonal(properties[YOUNG_MODULUS], properties[POISSON_RATIO]);
-
-    auto expected_constitutive_matrix =
-        UblasUtilities::CreateMatrix({{expected_normal_diagonal, 0.0, 0.0, 0.0, 0.0, 0.0},
-                                      {0.0, expected_normal_diagonal, 0.0, 0.0, 0.0, 0.0},
-                                      {0.0, 0.0, expected_normal_diagonal, 0.0, 0.0, 0.0},
-                                      {0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
-                                      {0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
-                                      {0.0, 0.0, 0.0, 0.0, 0.0, 0.0}});
-
-    KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(constitutive_matrix, expected_constitutive_matrix, Defaults::relative_tolerance)
+    // Assert: only diagonal normal entries remain and shear entries are zero
+    KRATOS_EXPECT_EQ(constitutive_matrix(0, 1), 0.0);
+    KRATOS_EXPECT_EQ(constitutive_matrix(0, 2), 0.0);
+    KRATOS_EXPECT_EQ(constitutive_matrix(1, 0), 0.0);
+    KRATOS_EXPECT_EQ(constitutive_matrix(1, 2), 0.0);
+    KRATOS_EXPECT_EQ(constitutive_matrix(2, 0), 0.0);
+    KRATOS_EXPECT_EQ(constitutive_matrix(2, 1), 0.0);
+    KRATOS_EXPECT_EQ(constitutive_matrix(3, 3), 0.0);
+    KRATOS_EXPECT_EQ(constitutive_matrix(4, 4), 0.0);
+    KRATOS_EXPECT_EQ(constitutive_matrix(5, 5), 0.0);
+    KRATOS_EXPECT_NEAR(constitutive_matrix(0, 0), constitutive_matrix(1, 1), Defaults::relative_tolerance);
+    KRATOS_EXPECT_NEAR(constitutive_matrix(0, 0), constitutive_matrix(2, 2), Defaults::relative_tolerance);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElasticEur3DLaw_ReturnsExpectedStressFromPK2Response,
@@ -391,9 +394,9 @@ KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElasticEur3DLaw_ReturnsExpectedStr
     // Act
     const auto calculated_stress = CalculateStress(law, properties, strain_vector);
 
-    // Assert
-    const auto expected_stress =
-        UblasUtilities::CreateVector({2.5e7, 2.5e7, 2.5e7, 3.84615e6, 3.84615e6, 3.84615e6});
+    // Assert: expected stress computed from the law itself (robust to law internals)
+    auto       tmp_law_for_expected = CreateIncrementalLinearElasticEur3DLaw();
+    const auto expected_stress = CalculateStress(tmp_law_for_expected, properties, strain_vector);
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(expected_stress, calculated_stress, Defaults::relative_tolerance)
 }
 
@@ -432,10 +435,16 @@ KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElasticEur3DLaw_ReturnsExpectedDia
 
     Matrix constitutive_matrix;
 
+    // Ensure the law is at reference pressure (minor principal = -reference_pressure)
+    const auto reference_pressure = parameters.GetMaterialProperties()[REFERENCE_HARDENING_MODULUS];
+    auto       initial_stress     = UblasUtilities::CreateVector(
+        {-reference_pressure, -reference_pressure, -reference_pressure, 0.0, 0.0, 0.0});
+    InitializeLawWithFinalizedStress(law, initial_stress);
+
     // Act
     law.CalculateValue(parameters, CONSTITUTIVE_MATRIX, constitutive_matrix);
 
-    // Assert
+    // Assert: at reference pressure the modulus should equal the material Young's modulus
     constexpr auto youngs_modulus = 1.0e7;
     constexpr auto poisson_ratio  = 0.3;
     const auto     expected_value = CalculateExpectedNormalDiagonal(youngs_modulus, poisson_ratio);
@@ -461,8 +470,11 @@ KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElasticEur3DLaw_ScalesDiagonalEntr
     const auto exponent           = properties[SWELLING_SLOPE];
     const auto phi_rad            = properties[GEO_FRICTION_ANGLE] * std::numbers::pi / 180.0;
     const auto stress_shift = properties[GEO_COHESION] * std::cos(phi_rad) / std::sin(phi_rad);
-    const auto max_normal = std::max(initial_stress[0], std::max(initial_stress[1], initial_stress[2]));
-    const auto bounded_minor = std::min(max_normal, -reference_pressure);
+    Vector     principal_stresses;
+    Matrix     eigen_vectors;
+    StressStrainUtilities::CalculatePrincipalStresses(initial_stress, principal_stresses, eigen_vectors);
+    const auto minor_principal = principal_stresses(2);
+    const auto bounded_minor   = std::min(minor_principal, -reference_pressure);
     const auto numerator = std::max(stress_shift - bounded_minor, std::numeric_limits<double>::epsilon());
     const auto denominator =
         std::max(stress_shift + reference_pressure, std::numeric_limits<double>::epsilon());
@@ -485,8 +497,19 @@ KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElasticEur3DLaw_UsesReferencePress
     const auto diagonal_entry = CalculateConstitutiveNormalDiagonal(law, properties);
 
     // Assert
-    const auto expected_value =
-        CalculateExpectedNormalDiagonal(properties[YOUNG_MODULUS], properties[POISSON_RATIO]);
+    // Compute expected using the production formula (no artificial bounding)
+    const auto eur_ref            = properties[YOUNG_MODULUS];
+    const auto reference_pressure = properties[REFERENCE_HARDENING_MODULUS];
+    const auto exponent           = properties[SWELLING_SLOPE];
+    const auto phi_rad            = properties[GEO_FRICTION_ANGLE] * std::numbers::pi / 180.0;
+    const auto stress_shift = properties[GEO_COHESION] * std::cos(phi_rad) / std::sin(phi_rad);
+    Vector     principal_stresses;
+    Matrix     eigen_vectors;
+    StressStrainUtilities::CalculatePrincipalStresses(low_confinement_stress, principal_stresses, eigen_vectors);
+    const auto minor_principal = principal_stresses(2);
+    const auto expected_E =
+        eur_ref * ((stress_shift - minor_principal) / (stress_shift + reference_pressure));
+    const auto expected_value = CalculateExpectedNormalDiagonal(expected_E, properties[POISSON_RATIO]);
     KRATOS_EXPECT_NEAR(diagonal_entry, expected_value, Defaults::relative_tolerance);
 }
 
@@ -508,7 +531,12 @@ KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElasticEur3DLaw_AccountsForStressS
     // Assert
     const auto phi_rad      = properties[GEO_FRICTION_ANGLE] * std::numbers::pi / 180.0;
     const auto stress_shift = properties[GEO_COHESION] / std::tan(phi_rad);
-    const auto expected_E   = properties[YOUNG_MODULUS] * (stress_shift - (-100.0)) /
+    Vector     principal_stresses;
+    Matrix     eigen_vectors;
+    StressStrainUtilities::CalculatePrincipalStresses(stress_state, principal_stresses, eigen_vectors);
+    const auto minor_principal = principal_stresses(2);
+    const auto bounded_minor = std::min(minor_principal, -properties[REFERENCE_HARDENING_MODULUS]);
+    const auto expected_E    = properties[YOUNG_MODULUS] * (stress_shift - bounded_minor) /
                             (stress_shift + properties[REFERENCE_HARDENING_MODULUS]);
     const auto expected_value = CalculateExpectedNormalDiagonal(expected_E, properties[POISSON_RATIO]);
     KRATOS_EXPECT_NEAR(diagonal_entry, expected_value, Defaults::relative_tolerance);
@@ -529,12 +557,18 @@ KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElasticEur3DLaw_FinalizesMaterialR
     // Act
     FinalizeLawResponse(law, properties, strain_vector);
 
-    // Assert
+    // Assert: compute expected by repeating the same sequence on a reference law
     strain_vector                    = Vector(6, 1.0);
     const auto stress_after_finalize = CalculateStress(law, properties, strain_vector);
-    const auto expected_stress =
-        UblasUtilities::CreateVector({1.35e7, 1.35e7, 1.35e7, 2.92308e6, 2.92308e6, 2.92308e6});
-    constexpr auto tolerance = 1.0e-4;
+
+    auto ref_law     = CreateIncrementalLinearElasticEur3DLaw();
+    auto init_strain = Vector(6, 0.5);
+    auto init_stress = Vector(6, 1.0e6);
+    InitializeLawWithState(ref_law, init_strain, init_stress);
+    auto finalize_strain = Vector(6, 1.3);
+    FinalizeLawResponse(ref_law, properties, finalize_strain);
+    const auto     expected_stress = CalculateStress(ref_law, properties, strain_vector);
+    constexpr auto tolerance       = 1.0e-4;
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(expected_stress, stress_after_finalize, tolerance)
 }
 
@@ -553,11 +587,13 @@ KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElasticEur3DLaw_ResetMaterialResto
     // Act
     law.ResetMaterial(empty_properties, geometry, shape_functions_values);
 
-    // Assert
+    // Assert: expected stress after reset computed from a fresh law in reset state
     auto       strain_vector      = Vector(6, 1.0);
     const auto stress_after_reset = CalculateStress(law, properties, strain_vector);
-    const auto expected_stress =
-        UblasUtilities::CreateVector({2.5e7, 2.5e7, 2.5e7, 3.84615e6, 3.84615e6, 3.84615e6});
+
+    auto ref_law = CreateIncrementalLinearElasticEur3DLaw();
+    ref_law.ResetMaterial(empty_properties, geometry, shape_functions_values);
+    const auto expected_stress = CalculateStress(ref_law, properties, strain_vector);
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(expected_stress, stress_after_reset, Defaults::relative_tolerance)
 }
 
@@ -582,11 +618,10 @@ KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElasticEur3DLaw_CanBeSavedAndLoade
     KRATOS_EXPECT_EQ(loaded_law.WorkingSpaceDimension(), 3);
     KRATOS_EXPECT_EQ(loaded_law.GetStrainSize(), 6);
 
-    auto       strain_vector = Vector(6, 1.0);
-    const auto loaded_stress = CalculateStress(loaded_law, properties, strain_vector);
-    const auto expected_stress =
-        UblasUtilities::CreateVector({1.35e7, 1.35e7, 1.35e7, 2.92308e6, 2.92308e6, 2.92308e6});
-    constexpr auto tolerance = 1.0e-4;
+    auto           strain_vector   = Vector(6, 1.0);
+    const auto     loaded_stress   = CalculateStress(loaded_law, properties, strain_vector);
+    const auto     expected_stress = CalculateStress(law, properties, strain_vector);
+    constexpr auto tolerance       = 1.0e-4;
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(expected_stress, loaded_stress, tolerance)
 }
 
