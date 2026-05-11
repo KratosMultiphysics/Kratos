@@ -482,14 +482,18 @@ class MPMSolver(PythonSolver):
             if mapping_scheme == "FLIP":
                 return KratosMPM.MPMFlipParticleMappingUtility(mpm_model_part, grid_model_part, mapping_echo_level)
 
-            # elif mapping_scheme == "PIC":
-            #     raise Exception("PIC particle mapping scheme is not implemented yet.")
+            elif mapping_scheme == "PIC":
+                return KratosMPM.MPMPicParticleMappingUtility(mpm_model_part, grid_model_part, mapping_echo_level)
 
-            # elif mapping_scheme == "PIC":
-            #     raise Exception("PIC particle mapping scheme is not implemented yet.")
+            # elif mapping_scheme == "MIXED_FLIP_PIC":
+                # if self.settings.Has("mix_factor"):
+                #     mix_factor = settings["particle_mapping_settings"]["mix_factor"].GetString()
+                # return KratosMPM.MPMMixedFlipPicParticleMappingUtility(mpm_model_part, grid_model_part, mapping_echo_level, mix_factor)
 
-            # elif mapping_scheme == "TPIC":
-            #     raise Exception("TPIC particle mapping scheme is not implemented yet.")
+            #     raise Exception("MIXED_FLIP_PIC particle mapping scheme is not implemented yet.")
+
+            elif mapping_scheme == "TPIC":
+                return KratosMPM.MPMTpicParticleMappingUtility(mpm_model_part, grid_model_part, mapping_echo_level)
 
             # elif mapping_scheme == "APIC":
             #     raise Exception("APIC particle mapping scheme is not implemented yet.")
@@ -497,7 +501,10 @@ class MPMSolver(PythonSolver):
             else:
                 err_msg  = "The requested particle mapping scheme \"" + mapping_scheme
                 err_msg += "\" is not available in MPMApplication!\n"
-                err_msg += "Available options are:\n\"FLIP\"\n"
+                err_msg += "Available options are:\n"
+                err_msg += "\"FLIP\"\n"
+                err_msg += "\"PIC\"\n"
+                err_msg += "\"TPIC\"\n"
                 raise Exception(err_msg)
 
         else:
