@@ -14,6 +14,8 @@
                     "POISSON_UNLOADING_RELOADING": 0.0,
                     "REFERENCE_HARDENING_MODULUS": 50.0,
                     "SWELLING_SLOPE": 1.0,
+					"GEO_COHESION": 1000.0,
+					"GEO_FRICTION_ANGLE" : 20.0,
                     "DENSITY_SOLID": 2.0e+03,
                     "DENSITY_WATER": 1.0e+03,
                     "POROSITY": 0.3,

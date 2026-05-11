@@ -109,6 +109,8 @@ int GeoIncrementalLinearElasticEurLaw::Check(const Properties&   rMaterialProper
                                            CheckProperties::Bounds::AllExclusive);
     check_properties.Check(REFERENCE_HARDENING_MODULUS);
     check_properties.Check(SWELLING_SLOPE);
+    check_properties.Check(GEO_COHESION);
+    check_properties.Check(GEO_FRICTION_ANGLE);
 
     return 0;
 }
@@ -213,13 +215,9 @@ double GeoIncrementalLinearElasticEurLaw::CalculateStressDependentYoungsModulus(
     const auto exponent           = rProperties[SWELLING_SLOPE];
     const auto eur_ref            = rProperties[YOUNG_MODULUS];
 
-    auto stress_shift = 0.0;
-    if (rProperties.Has(GEO_COHESION) && rProperties.Has(GEO_FRICTION_ANGLE)) {
-        const auto friction_angle_rad = MathUtils<>::DegreesToRadians(rProperties[GEO_FRICTION_ANGLE]);
-        if (std::abs(std::sin(friction_angle_rad)) > epsilon) {
-            stress_shift = rProperties[GEO_COHESION] * std::cos(friction_angle_rad) / std::sin(friction_angle_rad);
-        }
-    }
+    const auto friction_angle_rad = ConstitutiveLawUtilities::GetFrictionAngleInRadians(rProperties);
+    const auto stress_shift =
+        rProperties[GEO_COHESION] * std::cos(friction_angle_rad) / std::sin(friction_angle_rad);
 
     // Keep the law stable for low confinement by enforcing -sigma3' >= p_ref.
     const auto bounded_minor_principal_effective_stress =

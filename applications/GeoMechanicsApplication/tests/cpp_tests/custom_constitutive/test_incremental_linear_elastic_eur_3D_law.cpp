@@ -22,6 +22,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <limits>
 #include <numbers>
 #include <string>
 
@@ -50,6 +51,8 @@ Properties CreateValidMaterialProperties(IndexType Id = 0)
     properties.SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED"s);
     properties.SetValue(REFERENCE_HARDENING_MODULUS, 50.0);
     properties.SetValue(SWELLING_SLOPE, 1.0);
+    properties.SetValue(GEO_COHESION, 1000.0);
+    properties.SetValue(GEO_FRICTION_ANGLE, 20.0);
     return properties;
 }
 
@@ -336,6 +339,16 @@ KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElasticEur3DLaw_ChecksAdditionalMa
         "invalid value: 0 is out of the range (0, -).")
 
     properties.SetValue(SWELLING_SLOPE, 1.0);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        law.Check(properties, geometry, process_info),
+        "GEO_COHESION does not exist in the parameters of material with Id 3.")
+
+    properties.SetValue(GEO_COHESION, 20.0);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        law.Check(properties, geometry, process_info),
+        "GEO_FRICTION_ANGLE does not exist in the parameters of material with Id 3.")
+
+    properties.SetValue(GEO_FRICTION_ANGLE, 45.0);
     KRATOS_EXPECT_EQ(law.Check(properties, geometry, process_info), 0);
 }
 
@@ -443,8 +456,17 @@ KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElasticEur3DLaw_ScalesDiagonalEntr
     const auto diagonal_entry = CalculateConstitutiveNormalDiagonal(law, properties);
 
     // Assert
-    const auto eur_ref    = properties[YOUNG_MODULUS];
-    const auto expected_E = eur_ref * 2.0;
+    const auto eur_ref            = properties[YOUNG_MODULUS];
+    const auto reference_pressure = properties[REFERENCE_HARDENING_MODULUS];
+    const auto exponent           = properties[SWELLING_SLOPE];
+    const auto phi_rad            = properties[GEO_FRICTION_ANGLE] * std::numbers::pi / 180.0;
+    const auto stress_shift = properties[GEO_COHESION] * std::cos(phi_rad) / std::sin(phi_rad);
+    const auto max_normal = std::max(initial_stress[0], std::max(initial_stress[1], initial_stress[2]));
+    const auto bounded_minor = std::min(max_normal, -reference_pressure);
+    const auto numerator = std::max(stress_shift - bounded_minor, std::numeric_limits<double>::epsilon());
+    const auto denominator =
+        std::max(stress_shift + reference_pressure, std::numeric_limits<double>::epsilon());
+    const auto expected_E = eur_ref * std::pow(numerator / denominator, exponent);
     const auto expected_value = CalculateExpectedNormalDiagonal(expected_E, properties[POISSON_RATIO]);
     KRATOS_EXPECT_NEAR(diagonal_entry, expected_value, Defaults::relative_tolerance);
 }

@@ -116,13 +116,13 @@ class KratosGeoMechanicsLabElementTests(KratosUnittest.TestCase):
         stage_1_output = reader.read_output_from(os.path.join(project_path, "triaxial_comp_6n_unloading_reloading_stage1.post.res"))
         stage_2_output = reader.read_output_from(os.path.join(project_path, "triaxial_comp_6n_unloading_reloading_stage2.post.res"))
 
-        self._assert_average_stress_component(reader, stage_1_output, 1.0, 1, -47.11041666666667, 3)
-        self._assert_average_stress_component(reader, stage_2_output, 2.0, 1, -99.73931666666665, 3)
+        self._assert_average_stress_component(reader, stage_1_output, 1.0, 1, -46.679233333, 4)
+        self._assert_average_stress_component(reader, stage_2_output, 2.0, 1, -99.995016666, 4)
 
         self._assert_stage_y_displacements(reader, stage_1_output, 1.0, [1, 2, 6],
-                           [3.80361e-06, 3.51101e-06, 2.3696e-06], 9)
+                           [ 5.8523e-06,  5.48069e-06, 3.869e-06], 9)
         self._assert_stage_y_displacements(reader, stage_2_output, 2.0, [1, 2, 6],
-                           [-4.72291e-06, -4.32612e-06, -2.86595e-06], 9)
+                           [ -5.88465e-06, -5.51005e-06, -3.88795e-06], 9)
 
 
     def test_oedometer_ULFEM(self):
