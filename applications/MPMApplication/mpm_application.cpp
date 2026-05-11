@@ -250,7 +250,6 @@ namespace Kratos
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( NODAL_MOMENTUM )
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( NODAL_INERTIA )
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( NODAL_INTERNAL_FORCE )
-        KRATOS_REGISTER_VARIABLE( NODAL_CAUCHY_STRESS_VECTOR )
 
         // Registering Constitutive Laws
         // CL: Linear Elastic laws
@@ -332,4 +331,3 @@ namespace Kratos
     }
 
 }  // namespace Kratos.
-

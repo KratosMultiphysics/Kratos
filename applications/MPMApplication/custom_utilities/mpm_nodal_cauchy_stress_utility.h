@@ -60,7 +60,7 @@ private:
         const std::size_t stress_size = GetStressSize(rCurrentProcessInfo);
 
         block_for_each(rGridModelPart.Nodes(), [&](Node& rNode) {
-            auto& r_nodal_cauchy_stress_vector = rNode.FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_VECTOR);
+            auto& r_nodal_cauchy_stress_vector = rNode.FastGetSolutionStepValue(CAUCHY_STRESS_VECTOR);
             if (r_nodal_cauchy_stress_vector.size() != stress_size) {
                 r_nodal_cauchy_stress_vector.resize(stress_size, false);
             }
@@ -113,7 +113,7 @@ private:
                     nodal_cauchy_stress_vector *= stress_weight;
 
                     r_geometry[i].SetLock();
-                    auto& r_nodal_stress = r_geometry[i].FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_VECTOR);
+                    auto& r_nodal_stress = r_geometry[i].FastGetSolutionStepValue(CAUCHY_STRESS_VECTOR);
                     if (r_nodal_stress.size() != stress_size) {
                         r_nodal_stress.resize(stress_size, false);
                         noalias(r_nodal_stress) = ZeroVector(stress_size);
@@ -133,7 +133,7 @@ private:
         block_for_each(rGridModelPart.Nodes(), [&](Node& rNode) {
             const double nodal_stress_weight = rNodalStressWeights[rNode.Id() - 1];
             if (nodal_stress_weight > std::numeric_limits<double>::epsilon()) {
-                rNode.FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_VECTOR) /= nodal_stress_weight;
+                rNode.FastGetSolutionStepValue(CAUCHY_STRESS_VECTOR) /= nodal_stress_weight;
             }
         });
     }

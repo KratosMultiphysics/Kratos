@@ -304,7 +304,6 @@ class MPMSolver(PythonSolver):
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_MASS)
         model_part.AddNodalSolutionStepVariable(KratosMPM.NODAL_MOMENTUM)
         model_part.AddNodalSolutionStepVariable(KratosMPM.NODAL_INERTIA)
-        model_part.AddNodalSolutionStepVariable(KratosMPM.NODAL_CAUCHY_STRESS_VECTOR)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CAUCHY_STRESS_VECTOR)
 
         # Add variables that the user defined in the ProjectParameters
@@ -358,7 +357,7 @@ class MPMSolver(PythonSolver):
             zero_stress_vector[i] = 0.0
 
         for node in self.grid_model_part.Nodes:
-            node.SetSolutionStepValue(KratosMPM.NODAL_CAUCHY_STRESS_VECTOR, 0, zero_stress_vector)
+            node.SetSolutionStepValue(KratosMultiphysics.CAUCHY_STRESS_VECTOR, 0, zero_stress_vector)
 
     def _GetDomainSize(self):
         if not hasattr(self, '_domain_size'):

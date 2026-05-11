@@ -80,8 +80,7 @@ class TestCauchyStressProjectionMPM(KratosUnittest.TestCase):
             KratosMPM.CalculateNodalCauchyStress(mp_model_part, grid_model_part)
 
             for node in grid_model_part.Nodes:
-                nodal_stress = node.GetSolutionStepValue(KratosMPM.NODAL_CAUCHY_STRESS_VECTOR)
-                print(nodal_stress)
+                nodal_stress = node.GetSolutionStepValue(KratosMultiphysics.CAUCHY_STRESS_VECTOR)
                 self.assertVectorAlmostEqual(nodal_stress, expected_nodal_stress)
 
             self._CheckCoreVtkOutput(grid_model_part)
@@ -94,7 +93,7 @@ class TestCauchyStressProjectionMPM(KratosUnittest.TestCase):
             "file_format"                        : "ascii",
             "output_path"                        : "",
             "save_output_files_in_folder"        : true,
-            "nodal_solution_step_data_variables" : ["DISPLACEMENT","NODAL_INERTIA","NODAL_CAUCHY_STRESS_VECTOR"]
+            "nodal_solution_step_data_variables" : ["DISPLACEMENT","NODAL_INERTIA","CAUCHY_STRESS_VECTOR"]
         }""")
         vtk_settings["output_path"].SetString(self.vtk_output_path)
 
@@ -104,7 +103,7 @@ class TestCauchyStressProjectionMPM(KratosUnittest.TestCase):
         with open(vtk_file, "r") as output_file:
             vtk_output = output_file.read()
 
-        self.assertIn("NODAL_CAUCHY_STRESS_VECTOR 3 6", vtk_output)
+        self.assertIn("CAUCHY_STRESS_VECTOR 3 6", vtk_output)
 
     @staticmethod
     def _SetMaterialPointCauchyStress(mp_model_part, cauchy_stress_vector):
