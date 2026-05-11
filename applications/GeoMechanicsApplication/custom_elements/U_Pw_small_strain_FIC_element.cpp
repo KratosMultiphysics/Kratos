@@ -447,8 +447,6 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLeftHa
     FICElementVariables FICVariables;
     this->InitializeFICElementVariables(FICVariables, Variables.DN_DXContainer, Geom, Prop, CurrentProcessInfo);
 
-    RetentionLaw::Parameters RetentionParameters(this->GetProperties());
-
     const auto b_matrices = this->CalculateBMatrices(Variables.DN_DXContainer, Variables.NContainer);
     const auto integration_coefficients =
         this->CalculateIntegrationCoefficients(IntegrationPoints, Variables.detJContainer);
