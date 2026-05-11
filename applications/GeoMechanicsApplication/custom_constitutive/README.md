@@ -707,4 +707,4 @@ $$
 
 and the signed moment is recovered from the backbone: $M(\kappa)=\operatorname{sign}(\kappa-\kappa_c)\,M_b(\kappa_{eff})$.
 
-- **State updates:** Upon leaving the elastic window the internal accumulated curvature and center are updated so subsequent cycles are consistent with the backbone; these states are serialized as `mAccumulatedCurvature`, `mPreviousCurvature`, and `mUnReLoadCenter`.
+- **State updates:** Upon leaving the elastic window the internal accumulated curvature and center are updated so subsequent cycles are consistent with the backbone; these states are serialized as `mAccumulatedCurvature` and `mUnReLoadCenter`.
