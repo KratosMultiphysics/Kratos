@@ -57,7 +57,7 @@ public:
 
     [[nodiscard]] SizeType GetStrainSize() const override;
 
-    bool RequiresFinalizeMaterialResponse() override { return true; }
+    bool RequiresFinalizeMaterialResponse() override;
 
     [[nodiscard]] int Check(const Properties&   rMaterialProperties,
                             const GeometryType& rElementGeometry,

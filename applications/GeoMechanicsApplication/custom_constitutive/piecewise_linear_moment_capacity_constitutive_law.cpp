@@ -31,14 +31,19 @@ void PiecewiseLinearMomentCapacityConstitutiveLaw::GetLawFeatures(Features& rFea
     rFeatures.mSpaceDimension = space_dimenstion;
 }
 
+bool PiecewiseLinearMomentCapacityConstitutiveLaw::RequiresFinalizeMaterialResponse()
+{
+    return true;
+}
+
 double& PiecewiseLinearMomentCapacityConstitutiveLaw::CalculateValue(ConstitutiveLaw::Parameters& rParameters,
                                                                      const Variable<double>& rVariable,
                                                                      double& rValue)
 {
     if (rVariable == TANGENT_MODULUS) {
-        const auto curvature                     = rParameters.GetStrainVector()[1];
-        const auto [/*moment*/, tangent_modulus] = CalculateMomentAndTangentModulus(curvature);
-        rValue                                   = tangent_modulus;
+        const auto curvature                 = rParameters.GetStrainVector()[1];
+        const auto [moment, tangent_modulus] = CalculateMomentAndTangentModulus(curvature);
+        rValue                               = tangent_modulus;
         return rValue;
     }
 
