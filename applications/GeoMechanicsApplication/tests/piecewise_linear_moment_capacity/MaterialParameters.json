@@ -9,7 +9,6 @@
                 },
                 "Variables": {
                     "YOUNG_MODULUS": 200.0,
-                    "UNRELOAD_MODULUS": 100.0,
                     "POISSON_RATIO": 0.3,
                     "BEAM_PRESTRESS_PK2": [0.0, 0.0, 0.0],
                     "THICKNESS": 0.1,

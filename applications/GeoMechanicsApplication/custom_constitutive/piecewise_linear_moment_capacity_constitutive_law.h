@@ -69,7 +69,6 @@ private:
     Table<double, double> mStressStrainTable;
     // Unload/reload state (optional, activated when UNRELOAD_MODULUS property is set)
     double mAccumulatedCurvature = 0.0;
-    double mPreviousCurvature    = 0.0;
     double mUnReLoadCenter       = 0.0;
     // Optional stored modulus value for unload/reload behavior (set in InitializeMaterial)
     double mUnReLoadModulus = 0.0;

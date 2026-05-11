@@ -52,42 +52,14 @@ class KratosGeoMechanicsPiecewiseLinearMomentCapacityTests(KratosUnittest.TestCa
         # Code here will be placed AFTER every test in this TestCase.
         pass
 
-
-    def no_test_piecewise_linear_moment_capacity_move_up(self):
-        """
-        move up of the right beam end  for piecewise linear moment capacity material.
-        """
-        times = [1.0, 2.0, 3.0, 4.0]
-        expected_moments_y = [0.120901, 0.168661, 0.205083, 0.240241]
-        expected_displacements_y = [0.025, 0.05, 0.075, 0.1]
-        run_piecewise_case('move_up', times, expected_moments_y, expected_displacements_y, tol=1e-4)
-
-    def no_test_piecewise_linear_moment_capacity_move_down(self):
-        """
-        move down of the right beam end for piecewise linear moment capacity material.
-        """
-        times = [1.0, 2.0, 3.0, 4.0]
-        expected_moments_y = [-0.120901, -0.168661, -0.205083, -0.240241]
-        expected_displacements_y = [-0.025, -0.05, -0.075, -0.1]
-        run_piecewise_case('move_down', times, expected_moments_y, expected_displacements_y, tol=1e-4)
-
-    def no_test_piecewise_linear_moment_capacity_move_up_down(self):
-        """
-        move up down of the right beam end for piecewise linear moment capacity material.
-        """
-        times = [1.0, 2.0, 3.0, 4.0]
-        expected_moments_y = [0.120901, 0.0, -0.120901, 0.0]
-        expected_displacements_y = [0.025, 0.0, -0.025, 0.0]
-        run_piecewise_case('move_up_down', times, expected_moments_y, expected_displacements_y, tol=1e-4)
-
-    def test_piecewise_linear_moment_capacity_move_down_up(self):
+    def test_piecewise_linear_moment_capacity(self):
         """
         move down up of the right beam end for piecewise linear moment capacity material.
         """
         times = [1.0, 2.0, 3.0, 4.0]
         expected_moments_y = [-0.120901, 0.0, 0.120901, 0.0]
         expected_displacements_y = [-0.025, 0.0, 0.025, 0.0]
-        run_piecewise_case('move_down_up', times, expected_moments_y, expected_displacements_y, tol=1e-4)
+        run_piecewise_case('.', times, expected_moments_y, expected_displacements_y, tol=1e-4)
 
 
 if __name__ == '__main__':

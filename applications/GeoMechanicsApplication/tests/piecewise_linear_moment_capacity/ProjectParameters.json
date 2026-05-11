@@ -16,7 +16,7 @@
             "input_filename": "piecewise_linear_moment_capacity"
         },
         "material_import_settings": {
-            "materials_filename": "../common/MaterialParameters.json"
+            "materials_filename": "MaterialParameters.json"
         },
         "time_stepping": {
             "time_step": 1.0e-02
