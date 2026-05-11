@@ -156,8 +156,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElasticEur3DLawAccountsForStressSh
     const auto diagonal_entry = CalculateConstitutiveNormalDiagonal(law, properties);
 
     // Assert
-    constexpr auto pi           = 3.14159265358979323846;
-    const auto     phi_rad      = properties[GEO_FRICTION_ANGLE] * pi / 180.0;
+    const auto     phi_rad      = properties[GEO_FRICTION_ANGLE] * std::numbers::pi / 180.0;
     const auto     stress_shift = properties[GEO_COHESION] / std::tan(phi_rad);
     const auto     expected_E   = properties[YOUNG_MODULUS] * (stress_shift - (-100.0)) /
                             (stress_shift + properties[REFERENCE_HARDENING_MODULUS]);
