@@ -1,35 +1,44 @@
 # Piecewise Linear Moment Capacity
 
-This test suite verifies the `PiecewiseLinearMomentCapacityConstitutiveLaw` and its integration with the
-`LinearTimoshenkoBeamElement2D2N` used in the Python test cases under this folder.
+This test setup verifies `PiecewiseLinearMomentCapacityConstitutiveLaw` coupled with
+`GeoLinearTimoshenkoBeamElement2D2N`.
 
 ## Setup
 
-Each case models a 2 m long beam discretised with two 2-node Timoshenko beam elements. The left end is fixed firmly and the right end receives the prescribed displacement. 
+The model is a single 1 m, 2-node beam element:
+
+- Node 1 at x=0.0 (fully fixed displacement and rotation)
+- Node 2 at x=1.0 (prescribed vertical displacement from table)
+- Element: one `GeoLinearTimoshenkoBeamElement2D2N`
 
 ## Material properties
 
-The tests use the property set defined in `common/MaterialParameters.json`. Current values in that file are:
+The tests use `MaterialParameters.json` in this folder. Current baseline values are:
 
 - `YOUNG_MODULUS`: 200.0
 - `POISSON_RATIO`: 0.3
-- `UNRELOAD_MODULUS`: 200.0
+- `BEAM_PRESTRESS_PK2`: [0.0, 0.0, 0.0]
 - `THICKNESS`: 0.1
 - `THICKNESS_EFFECTIVE_Y`: 0.1
-- `KAPPA_PIECEWISE_LINEAR_LAW`: [1.0e-02, 0.5, 1.0]
-- `MOMENTUM_PIECEWISE_LINEAR_LAW`: [0.1, 1.0, 1.5]
+- `KAPPA_PIECEWISE_LINEAR_LAW`: [5.0e-03, 1.0e-02, 2.0e-02, 5.0e-02, 0.1]
+- `MOMENTUM_PIECEWISE_LINEAR_LAW`: [0.1, 0.25, 0.5, 0.8, 1.1]
+
+Note: `UNRELOAD_MODULUS` is not in the baseline material file; it is injected only in the dedicated unload/reload test.
 
 ## Tests (cases)
 
-There are four tests:
+There are two Python tests:
 
-- the right end moves up linearly with time.
-- the right end moves down linearly with time.
-- the right end moves up then down.
-- the right end moves down then up.
+- `test_piecewise_linear_moment_capacity`: backbone-only response (no `UNRELOAD_MODULUS`).
+- `test_piecewise_linear_moment_capacity_with_unreload`: same input files, but adds `UNRELOAD_MODULUS` in-flight before running.
+
+Both tests compare results at times:
+
+- 0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.50
 
 ## Assertions
 
-- checked displacement and bending moment at the right end.
+- Y displacement at node 2 (`DISPLACEMENT` y-component)
+- Bending moment at element 1, first integration point (`BENDING_MOMENT`)
 
 

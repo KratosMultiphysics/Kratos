@@ -75,7 +75,7 @@ class KratosGeoMechanicsPiecewiseLinearMomentCapacityTests(KratosUnittest.TestCa
 
     def test_piecewise_linear_moment_capacity(self):
         """
-        using only backbone moment.
+        Tests only backbone moment during cyclic loading.
         """
         times = [0.05, 0.1, 0.15, 0.2, 0.25, 0.30, 0.35, 0.5]
         expected_moments_y = [0.39487, 0.260425, 0.494529, -0.327648, -0.641928, -0.494529, -0.82985, -1.1]
@@ -84,7 +84,6 @@ class KratosGeoMechanicsPiecewiseLinearMomentCapacityTests(KratosUnittest.TestCa
 
     def test_piecewise_linear_moment_capacity_with_unreload(self):
         """
-        move down up with unload/reload stiffness (UNRELOAD_MODULUS).
         Tests elastic unload/reload behavior during cyclic loading.
         Uses same case files as backbone test but adds UNRELOAD_MODULUS in-flight.
         """

@@ -82,7 +82,6 @@ private:
     [[nodiscard]] bool   IsWithinUnReLoading(double Strain, double YoungsModulus) const;
 
     static void CheckStressStrainDiagram(const Properties& rMaterialProperties);
-    // ascending-values check moved to CheckUtilities::CheckValuesAreAscending
     static void CheckBackboneStiffnessesDontExceedYoungsModulus(const Vector& rStrains,
                                                                 const Vector& rStresses,
                                                                 double        YoungsModulus);
