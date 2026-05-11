@@ -88,8 +88,8 @@ void KratosExecute::ResetModelParts()
 
 KratosExecute::ConvergenceCriteriaType::Pointer KratosExecute::setup_criteria_dgeoflow()
 {
-    const double  rel_tol      = 1.0e-4;
-    const double  abs_tol      = 1.0e-9;
+    const double        rel_tol      = 1.0e-4;
+    const double        abs_tol      = 1.0e-9;
     const VariableData* p_water_pres = &WATER_PRESSURE;
     KratosExecute::ConvergenceVariableListType convergence_settings{std::make_tuple(p_water_pres, rel_tol, abs_tol)};
     return std::make_shared<KratosExecute::MixedGenericCriteriaType>(convergence_settings);

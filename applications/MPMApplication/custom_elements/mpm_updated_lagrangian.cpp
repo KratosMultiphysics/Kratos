@@ -263,6 +263,7 @@ void MPMUpdatedLagrangian::SetGeneralVariables(GeneralVariables& rVariables,
     rValues.SetShapeFunctionsDerivatives(rVariables.DN_DX);
     rValues.SetShapeFunctionsValues(rN);
 
+<<<<<<< HEAD
 }
 //************************************************************************************
 //************************************************************************************
@@ -291,7 +292,39 @@ void MPMUpdatedLagrangian::ComputeMaterialPointBodyForce(
             }
         }
     }
+=======
+>>>>>>> master
 }
+//************************************************************************************
+//************************************************************************************
+array_1d<double, 3> MPMUpdatedLagrangian::ComputeMaterialPointBodyForce()
+{
+    GeometryType& r_geometry = GetGeometry();
+    const Matrix& r_N = r_geometry.ShapeFunctionsValues();
+    const unsigned int number_of_nodes = r_geometry.PointsNumber();
+    const unsigned int dimension = r_geometry.WorkingSpaceDimension();
+
+    array_1d<double, 3> body_force = ZeroVector(3);
+
+    for (unsigned int j = 0; j < number_of_nodes; j++)
+    {
+        const auto& r_node = r_geometry[j];
+
+        if (r_node.SolutionStepsDataHas(BODY_FORCE))
+        {
+            const auto& r_nodal_body_force =
+                r_node.FastGetSolutionStepValue(BODY_FORCE);
+
+            for (unsigned int k = 0; k < dimension; k++)
+            {
+                body_force[k] += r_N(0, j) * r_nodal_body_force[k];
+            }
+        }
+    }
+
+    return body_force;
+}
+
 
 //************************************************************************************
 //************************************************************************************
@@ -359,11 +392,19 @@ void MPMUpdatedLagrangian::CalculateElementalSystem(
 
     if (CalculateResidualVectorFlag) // if calculation of the vector is required
     {
+<<<<<<< HEAD
         this->ComputeMaterialPointBodyForce(Variables, rCurrentProcessInfo);
 
         // Contribution to forces (in residual term) are calculated
         Vector volume_force = (mMP.volume_acceleration * mMP.mass) 
                         + (Variables.BodyForceMP * mMP.mass);
+=======
+        mMP.body_force = this->ComputeMaterialPointBodyForce();
+
+        // Contribution to forces (in residual term) are calculated
+        Vector volume_force = mMP.volume_acceleration * mMP.mass
+                            + mMP.body_force * mMP.mass; 
+>>>>>>> master
 
         this->CalculateAndAddRHS(
             rRightHandSideVector,
@@ -1655,6 +1696,9 @@ void MPMUpdatedLagrangian::CalculateOnIntegrationPoints(const Variable<array_1d<
     else if (rVariable == MP_VOLUME_ACCELERATION) {
         rValues[0] = mMP.volume_acceleration;
     }
+    else if (rVariable == MP_BODY_FORCE) {
+        rValues[0] = mMP.body_force;    
+    }
     else
     {
         KRATOS_ERROR << "Variable " << rVariable << " is called in CalculateOnIntegrationPoints, but is not implemented." << std::endl;
@@ -1735,6 +1779,9 @@ void MPMUpdatedLagrangian::SetValuesOnIntegrationPoints(const Variable<array_1d<
     }
     else if (rVariable == MP_VOLUME_ACCELERATION) {
         mMP.volume_acceleration = rValues[0];
+    }
+    else if (rVariable == MP_BODY_FORCE) {
+        mMP.body_force = rValues[0];
     }
     else
     {
@@ -1860,4 +1907,3 @@ void MPMUpdatedLagrangian::load( Serializer& rSerializer )
 
 
 } // Namespace Kratos
-

@@ -51,7 +51,7 @@ std::shared_ptr<Properties> CreatePropertiesForUPwDiffOrderElementTest()
     p_properties->SetValue(BIOT_COEFFICIENT, 0.000000e+00);
     p_properties->SetValue(RETENTION_LAW, "SaturatedLaw");
     p_properties->SetValue(SATURATED_SATURATION, 1.000000e+00);
-    p_properties->SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
+    p_properties->SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED"s);
 
     return p_properties;
 }
@@ -161,7 +161,7 @@ KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculateShearCapacity,
     p_properties.SetValue(CONSTITUTIVE_LAW, std::make_shared<StubConstitutiveLaw>());
     p_properties.SetValue(GEO_COHESION, 2.0);
     p_properties.SetValue(GEO_FRICTION_ANGLE, 0.0);
-
+    p_properties.SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED"s);
     const auto dummy_process_info = ProcessInfo{};
     p_element->Initialize(dummy_process_info);
 

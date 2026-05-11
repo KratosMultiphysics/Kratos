@@ -42,6 +42,7 @@ namespace Kratos::MaterialPointGeneratorUtility
         std::vector<array_1d<double, 3>> mp_velocity = { ZeroVector(3) };
         std::vector<array_1d<double, 3>> mp_acceleration = { ZeroVector(3) };
         std::vector<array_1d<double, 3>> mp_volume_acceleration = { ZeroVector(3) };
+        std::vector<array_1d<double, 3>> mp_body_force = { ZeroVector(3) };
 
         std::vector<Vector> mp_cauchy_stress_vector = { ZeroVector(6) };
         std::vector<Vector> mp_almansi_strain_vector = { ZeroVector(6) };
@@ -185,6 +186,7 @@ namespace Kratos::MaterialPointGeneratorUtility
                         p_element->SetValuesOnIntegrationPoints(MP_VELOCITY, mp_velocity, process_info);
                         p_element->SetValuesOnIntegrationPoints(MP_ACCELERATION, mp_acceleration, process_info);
                         p_element->SetValuesOnIntegrationPoints(MP_VOLUME_ACCELERATION, mp_volume_acceleration, process_info);
+                        p_element->SetValuesOnIntegrationPoints(MP_BODY_FORCE, mp_body_force, process_info);
                         p_element->SetValuesOnIntegrationPoints(MP_CAUCHY_STRESS_VECTOR, mp_cauchy_stress_vector, process_info);
                         p_element->SetValuesOnIntegrationPoints(MP_ALMANSI_STRAIN_VECTOR, mp_almansi_strain_vector, process_info);
 

@@ -231,7 +231,7 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateRotationOperatorVoigt(
         rVoigtOperator(1, 2) = -c_times_s;
 
         rVoigtOperator(2, 0) = -2.0 * c * s;
-        rVoigtOperator(2, 1) = 2.0 * c * s;
+        rVoigtOperator(2, 1) = -rVoigtOperator(2, 0);
         rVoigtOperator(2, 2) = c_square - s_square;
     } else {
         const double l1 = rEulerOperator(0, 0);
