@@ -263,37 +263,6 @@ void MPMUpdatedLagrangian::SetGeneralVariables(GeneralVariables& rVariables,
     rValues.SetShapeFunctionsDerivatives(rVariables.DN_DX);
     rValues.SetShapeFunctionsValues(rN);
 
-<<<<<<< HEAD
-}
-//************************************************************************************
-//************************************************************************************
-void MPMUpdatedLagrangian::ComputeMaterialPointBodyForce(
-    GeneralVariables& rVariables,
-    const ProcessInfo& rCurrentProcessInfo)
-{
-    GeometryType& r_geometry = GetGeometry();
-    const Matrix& r_N = r_geometry.ShapeFunctionsValues();
-    const unsigned int number_of_nodes = r_geometry.PointsNumber();
-    const unsigned int dimension = r_geometry.WorkingSpaceDimension();
-
-    rVariables.BodyForceMP = ZeroVector(dimension);
-
-    array_1d<double, 3 > nodal_body_force = ZeroVector(3);
-
-    for (unsigned int j = 0; j < number_of_nodes; j++)
-    {
-        if (r_geometry[j].SolutionStepsDataHas(BODY_FORCE))
-        {
-            nodal_body_force = r_geometry[j].FastGetSolutionStepValue(BODY_FORCE,0);
-
-            for (unsigned int k = 0; k < dimension; k++)
-            {
-                rVariables.BodyForceMP[k] += r_N(0, j) * nodal_body_force[k];
-            }
-        }
-    }
-=======
->>>>>>> master
 }
 //************************************************************************************
 //************************************************************************************
@@ -392,19 +361,12 @@ void MPMUpdatedLagrangian::CalculateElementalSystem(
 
     if (CalculateResidualVectorFlag) // if calculation of the vector is required
     {
-<<<<<<< HEAD
-        this->ComputeMaterialPointBodyForce(Variables, rCurrentProcessInfo);
 
-        // Contribution to forces (in residual term) are calculated
-        Vector volume_force = (mMP.volume_acceleration * mMP.mass) 
-                        + (Variables.BodyForceMP * mMP.mass);
-=======
         mMP.body_force = this->ComputeMaterialPointBodyForce();
 
         // Contribution to forces (in residual term) are calculated
         Vector volume_force = mMP.volume_acceleration * mMP.mass
                             + mMP.body_force * mMP.mass; 
->>>>>>> master
 
         this->CalculateAndAddRHS(
             rRightHandSideVector,
