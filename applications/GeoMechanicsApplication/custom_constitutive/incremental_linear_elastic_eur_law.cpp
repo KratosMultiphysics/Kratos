@@ -108,7 +108,7 @@ int GeoIncrementalLinearElasticEurLaw::Check(const Properties&   rMaterialProper
     const CheckProperties check_properties(rMaterialProperties, "parameters of material",
                                            CheckProperties::Bounds::AllExclusive);
     check_properties.Check(REFERENCE_HARDENING_MODULUS);
-    check_properties.Check(SWELLING_SLOPE, 0.0, std::numeric_limits<double>::max());
+    check_properties.Check(SWELLING_SLOPE);
 
     return 0;
 }
