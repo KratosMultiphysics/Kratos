@@ -254,7 +254,6 @@ protected:
         double ShearModulus;
         double BulkModulus;
 
-        Vector BodyForceMP;
     };
 
 public:

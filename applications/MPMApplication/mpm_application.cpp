@@ -257,7 +257,6 @@ namespace Kratos
         // Registering node variable for OSGS stabilization
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( RESPROJ_DISPL )
         KRATOS_REGISTER_VARIABLE( RESPROJ_PRESS )
-        KRATOS_REGISTER_VARIABLE( NODAL_AREA )
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( NODAL_CAUCHY_STRESS_VECTOR )
 
 
@@ -344,5 +343,4 @@ namespace Kratos
     }
 
 }  // namespace Kratos.
-
 

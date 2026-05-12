@@ -365,7 +365,7 @@ void MPMUpdatedLagrangianUP::AddExplicitContribution(const ProcessInfo& rCurrent
     array_1d<double,3> aux_MP_acceleration = ZeroVector(3);
     array_1d<double,3> nodal_momentum = ZeroVector(3);
     array_1d<double,3> nodal_inertia = ZeroVector(3);
-    array_1d<double,6> nodal_cauchy_stress_vector  = ZeroVector(6);
+    array_1d<double,3> nodal_cauchy_stress_vector = ZeroVector(3);
     unsigned int voigt_dimension = 0;
     double aux_MP_pressure = 0.0;
 
@@ -407,7 +407,7 @@ void MPMUpdatedLagrangianUP::AddExplicitContribution(const ProcessInfo& rCurrent
             nodal_inertia[j]  = r_N(0, i) * (mMP.acceleration[j] - aux_MP_acceleration[j]) * mMP.mass;
         }
 
-        for (unsigned int j = 0; j < voigt_dimension; j++){
+        for (unsigned int j = 0; j < std::min<unsigned int>(voigt_dimension, 3); j++){
             nodal_cauchy_stress_vector[j] = r_N(0, i) * mMP.cauchy_stress_vector [j] * mMP.mass;
         }
 
@@ -1317,4 +1317,3 @@ void MPMUpdatedLagrangianUP::load( Serializer& rSerializer )
 }
 
 } // Namespace Kratos
-

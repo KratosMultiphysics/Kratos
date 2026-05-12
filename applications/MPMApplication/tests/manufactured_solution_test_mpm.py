@@ -157,8 +157,8 @@ class ManufacturedSolutionTestMPM(KratosUnittest.TestCase):
 
 
                 # Check obtained solution
-            expected_displacement_errors =  [0.13811251114366857, 0.10989112694618389, 0.04668841129297075, 0.014368072149072656]
-            expected_pressure_errors = [0.8966431547459842, 0.5662128821749041, 0.2215006730602814, 0.06640894005793938]
+            expected_displacement_errors = [0.061741121494231554, 0.01315577912357445, 0.0023808302557733114, 0.0006914797525142623]
+            expected_pressure_errors = [0.3512984202753765, 0.06785187675173988, 0.019846247942924864, 0.010634726964042784]
 
             for i in range(len(self.meshes_list)):
                 self.assertAlmostEqual(err_v[i], expected_displacement_errors[i])
@@ -446,4 +446,3 @@ class ManufacturedSolutionProblem(ParticleMechanicsAnalysis):
 
 if __name__ == '__main__':
     KratosUnittest.main()
-

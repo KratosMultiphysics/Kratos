@@ -734,4 +734,3 @@ protected:
 }  /* namespace Kratos.*/
 
 #endif /* KRATOS_MPM_RESIDUAL_BASED_BOSSAK_SCHEME defined */
-

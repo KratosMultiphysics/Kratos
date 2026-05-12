@@ -196,9 +196,6 @@ void MPMUpdatedLagrangianUPVMS::InitializeGeneralVariables (GeneralVariables& rV
     rVariables.ResProjDisplGP = ZeroVector(dimension);
     rVariables.ResProjPressGP = 0;
 
-    // Set Body forces
-    rVariables.BodyForceMP = ZeroVector(dimension);
-
     KRATOS_CATCH( "" )
 
 }
@@ -281,8 +278,9 @@ void MPMUpdatedLagrangianUPVMS::CalculateElementalSystem(
     if (CalculateResidualVectorFlag) // if calculation of the vector is required
     {
         // Contribution to forces (in residual term) are calculated
-        //#BODYFORCE
-        Vector volume_force = (mMP.volume_acceleration * mMP.mass ) + (Variables.BodyForceMP * mMP.mass); //
+        mMP.body_force = this->ComputeMaterialPointBodyForce();
+
+        Vector volume_force = (mMP.volume_acceleration * mMP.mass ) + (mMP.body_force * mMP.mass); //
         this->CalculateAndAddRHS(
             rRightHandSideVector,
             Variables,
@@ -963,12 +961,11 @@ void MPMUpdatedLagrangianUPVMS::CalculateProjections(const ProcessInfo &rCurrent
     this-> CalculateKinematics(Variables, rCurrentProcessInfo);
     this-> SetGeneralVariables(Variables, Values, r_N);
     this-> SetSpecificVariables(Variables,rCurrentProcessInfo);
-    this-> ComputeMaterialPointBodyForce(Variables, rCurrentProcessInfo);
-
 
 
     mMP.volume = mMP.mass / mMP.density;
-    Vector volume_force = ((mMP.volume_acceleration * mMP.mass ) + (Variables.BodyForceMP * mMP.mass)); ///mMP.volume 
+    mMP.body_force = this->ComputeMaterialPointBodyForce();
+    Vector volume_force = ((mMP.volume_acceleration * mMP.mass ) + (mMP.body_force * mMP.mass)); ///mMP.volume 
 
 
     // Compute the Residual
@@ -1029,4 +1026,3 @@ void MPMUpdatedLagrangianUPVMS::load( Serializer& rSerializer )
     rSerializer.load("Pressure",m_mp_pressure);
 }
 } // Namespace Kratos
-

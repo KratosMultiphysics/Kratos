@@ -197,7 +197,6 @@ void MPMUpdatedLagrangian::InitializeGeneralVariables (GeneralVariables& rVariab
 
     // CurrentDisp is the unknown variable. It represents the nodal delta displacement. When it is predicted is equal to zero.
     rVariables.CurrentDisp = CalculateCurrentDisp(rVariables.CurrentDisp, rCurrentProcessInfo);
-
 }
 //************************************************************************************
 //************************************************************************************
@@ -206,9 +205,6 @@ void MPMUpdatedLagrangian::SetGeneralVariables(GeneralVariables& rVariables,
         ConstitutiveLaw::Parameters& rValues, const Vector& rN)
 {
     GeometryType& r_geometry = GetGeometry();
-    const Matrix& r_N = r_geometry.ShapeFunctionsValues();
-    const unsigned int number_of_nodes = r_geometry.PointsNumber();
-    const unsigned int dimension = r_geometry.WorkingSpaceDimension();
 
     // Variables.detF is the determinant of the incremental total deformation gradient
     rVariables.detF  = MathUtils<double>::Det(rVariables.F);
@@ -361,7 +357,6 @@ void MPMUpdatedLagrangian::CalculateElementalSystem(
 
     if (CalculateResidualVectorFlag) // if calculation of the vector is required
     {
-
         mMP.body_force = this->ComputeMaterialPointBodyForce();
 
         // Contribution to forces (in residual term) are calculated
@@ -895,7 +890,7 @@ void MPMUpdatedLagrangian::AddExplicitContribution(const ProcessInfo& rCurrentPr
     const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
     array_1d<double,3> nodal_momentum = ZeroVector(3);
     array_1d<double,3> nodal_inertia  = ZeroVector(3);
-    array_1d<double,6> nodal_cauchy_stress_vector  = ZeroVector(6);
+    array_1d<double,3> nodal_cauchy_stress_vector = ZeroVector(3);
 
     if (dimension==2) voigt_dimension=3;
     if (dimension==3) voigt_dimension=6;
@@ -909,7 +904,7 @@ void MPMUpdatedLagrangian::AddExplicitContribution(const ProcessInfo& rCurrentPr
             nodal_inertia[j] = r_N(0, i) * mMP.acceleration[j] * mMP.mass;    
         }
 
-        for (unsigned int j = 0; j < voigt_dimension; j++){
+        for (unsigned int j = 0; j < std::min<unsigned int>(voigt_dimension, 3); j++){
             nodal_cauchy_stress_vector[j] = r_N(0, i) * mMP.cauchy_stress_vector [j] * mMP.mass;
         }
 
