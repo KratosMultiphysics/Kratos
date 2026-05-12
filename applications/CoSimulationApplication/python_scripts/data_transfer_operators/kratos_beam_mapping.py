@@ -114,7 +114,7 @@ class KratosBeamMapping(CoSimulationDataTransferOperator):
             "type": "kratos_beam_mapping",
             "echo_level": 0
         }""")
-        this_defaults.AddMissingParameters(super(KratosBeamMapping, cls)._GetDefaultParameterss())
+        this_defaults.AddMissingParameters(super(KratosBeamMapping, cls)._GetDefaultParameters())
         return this_defaults
 
     @classmethod

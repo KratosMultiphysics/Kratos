@@ -209,40 +209,51 @@ void  AddIOToPython(pybind11::module& m)
     py::enum_<VtuOutput::WriterFormat>(vtu_output, "WriterFormat")
         .value("ASCII", VtuOutput::WriterFormat::ASCII)
         .value("BINARY", VtuOutput::WriterFormat::BINARY)
-        .export_values();
-
-    vtu_output
-        .def(py::init<ModelPart&, const bool, const VtuOutput::WriterFormat, const std::size_t>(), py::arg("model_part"), py::arg("is_initial_configuration_considered") = true, py::arg("binary_output") = VtuOutput::WriterFormat::BINARY, py::arg("precision") = 9)
-        .def("AddHistoricalVariable", &VtuOutput::AddHistoricalVariable<int>, py::arg("int_variable"))
-        .def("AddHistoricalVariable", &VtuOutput::AddHistoricalVariable<double>, py::arg("double_variable"))
-        .def("AddHistoricalVariable", &VtuOutput::AddHistoricalVariable<array_1d<double, 3>>, py::arg("array3_variable"))
-        .def("AddHistoricalVariable", &VtuOutput::AddHistoricalVariable<array_1d<double, 4>>, py::arg("array4_variable"))
-        .def("AddHistoricalVariable", &VtuOutput::AddHistoricalVariable<array_1d<double, 6>>, py::arg("array6_variable"))
-        .def("AddHistoricalVariable", &VtuOutput::AddHistoricalVariable<array_1d<double, 9>>, py::arg("array9_variable"))
-        .def("AddNonHistoricalVariable", &VtuOutput::AddNonHistoricalVariable<int>, py::arg("int_variable"), py::arg("entity_flags"))
-        .def("AddNonHistoricalVariable", &VtuOutput::AddNonHistoricalVariable<double>, py::arg("double_variable"), py::arg("entity_flags"))
-        .def("AddNonHistoricalVariable", &VtuOutput::AddNonHistoricalVariable<array_1d<double, 3>>, py::arg("array3_variable"), py::arg("entity_flags"))
-        .def("AddNonHistoricalVariable", &VtuOutput::AddNonHistoricalVariable<array_1d<double, 4>>, py::arg("array4_variable"), py::arg("entity_flags"))
-        .def("AddNonHistoricalVariable", &VtuOutput::AddNonHistoricalVariable<array_1d<double, 6>>, py::arg("array6_variable"), py::arg("entity_flags"))
-        .def("AddNonHistoricalVariable", &VtuOutput::AddNonHistoricalVariable<array_1d<double, 9>>, py::arg("array9_variable"), py::arg("entity_flags"))
-        .def("AddFlagVariable", &VtuOutput::AddFlagVariable, py::arg("flag_variable_name"), py::arg("flag"), py::arg("entity_flags"))
-        .def("AddContainerExpression", &VtuOutput::AddContainerExpression<ModelPart::NodesContainerType>, py::arg("container_expression_name"), py::arg("container_expression"))
-        .def("AddContainerExpression", &VtuOutput::AddContainerExpression<ModelPart::ConditionsContainerType>, py::arg("container_expression_name"), py::arg("container_expression"))
-        .def("AddContainerExpression", &VtuOutput::AddContainerExpression<ModelPart::ElementsContainerType>, py::arg("container_expression_name"), py::arg("container_expression"))
-        .def("ClearHistoricalVariables", &VtuOutput::ClearHistoricalVariables)
-        .def("ClearNodalNonHistoricalVariables", &VtuOutput::ClearNodalNonHistoricalVariables)
-        .def("ClearNodalFlags", &VtuOutput::ClearNodalFlags)
-        .def("ClearCellNonHistoricalVariables", &VtuOutput::ClearCellNonHistoricalVariables)
-        .def("ClearCellFlags", &VtuOutput::ClearCellFlags)
-        .def("ClearNodalContainerExpressions", &VtuOutput::ClearNodalContainerExpressions)
-        .def("ClearCellContainerExpressions", &VtuOutput::ClearCellContainerExpressions)
-        .def("GetModelPart", &VtuOutput::GetModelPart, py::return_value_policy::reference)
-        .def("PrintOutput", &VtuOutput::PrintOutput, py::arg("output_file_name_prefix"))
+        .value("RAW", VtuOutput::WriterFormat::RAW)
+        .value("COMPRESSED_RAW", VtuOutput::WriterFormat::COMPRESSED_RAW)
+        .export_values()
         ;
 
-    vtu_output.attr("NODES") = VtuOutput::NODES;
-    vtu_output.attr("CONDITIONS") = VtuOutput::CONDITIONS;
-    vtu_output.attr("ELEMENTS") = VtuOutput::ELEMENTS;
+    vtu_output
+        .def(py::init<ModelPart&, const bool, const VtuOutput::WriterFormat, const std::size_t, const bool, const bool, const IndexType>(),
+            py::arg("model_part"),
+            py::arg("is_initial_configuration") = true,
+            py::arg("output_format") = VtuOutput::WriterFormat::COMPRESSED_RAW,
+            py::arg("precision") = 9,
+            py::arg("output_sub_model_parts") = false,
+            py::arg("write_ids") = false,
+            py::arg("echo_level") = 0)
+        .def("AddFlag", &VtuOutput::AddFlag, py::arg("flag_name"), py::arg("flag"), py::arg("data_location"))
+        .def("AddVariable", &VtuOutput::AddVariable<int>, py::arg("variable"), py::arg("data_location"))
+        .def("AddVariable", &VtuOutput::AddVariable<double>, py::arg("variable"), py::arg("data_location"))
+        .def("AddVariable", &VtuOutput::AddVariable<array_1d<double, 3>>, py::arg("variable"), py::arg("data_location"))
+        .def("AddVariable", &VtuOutput::AddVariable<array_1d<double, 4>>, py::arg("variable"), py::arg("data_location"))
+        .def("AddVariable", &VtuOutput::AddVariable<array_1d<double, 6>>, py::arg("variable"), py::arg("data_location"))
+        .def("AddVariable", &VtuOutput::AddVariable<array_1d<double, 9>>, py::arg("variable"), py::arg("data_location"))
+        .def("AddVariable", &VtuOutput::AddVariable<Vector>, py::arg("variable"), py::arg("data_location"))
+        .def("AddVariable", &VtuOutput::AddVariable<Matrix>, py::arg("variable"), py::arg("data_location"))
+        .def("AddIntegrationPointVariable", &VtuOutput::AddIntegrationPointVariable<int>, py::arg("variable"), py::arg("data_location"))
+        .def("AddIntegrationPointVariable", &VtuOutput::AddIntegrationPointVariable<double>, py::arg("variable"), py::arg("data_location"))
+        .def("AddIntegrationPointVariable", &VtuOutput::AddIntegrationPointVariable<array_1d<double, 3>>, py::arg("variable"), py::arg("data_location"))
+        .def("AddIntegrationPointVariable", &VtuOutput::AddIntegrationPointVariable<array_1d<double, 4>>, py::arg("variable"), py::arg("data_location"))
+        .def("AddIntegrationPointVariable", &VtuOutput::AddIntegrationPointVariable<array_1d<double, 6>>, py::arg("variable"), py::arg("data_location"))
+        .def("AddIntegrationPointVariable", &VtuOutput::AddIntegrationPointVariable<array_1d<double, 9>>, py::arg("variable"), py::arg("data_location"))
+        .def("AddIntegrationPointVariable", &VtuOutput::AddIntegrationPointVariable<Vector>, py::arg("variable"), py::arg("data_location"))
+        .def("AddIntegrationPointVariable", &VtuOutput::AddIntegrationPointVariable<Matrix>, py::arg("variable"), py::arg("data_location"))
+        .def("AddTensorAdaptor", &VtuOutput::AddTensorAdaptor<TensorAdaptor<bool>::Pointer>, py::arg("tensor_adaptor_name"), py::arg("tensor_adaptor"))
+        .def("AddTensorAdaptor", &VtuOutput::AddTensorAdaptor<TensorAdaptor<int>::Pointer>, py::arg("tensor_adaptor_name"), py::arg("tensor_adaptor"))
+        .def("AddTensorAdaptor", &VtuOutput::AddTensorAdaptor<TensorAdaptor<double>::Pointer>, py::arg("tensor_adaptor_name"), py::arg("tensor_adaptor"))
+        .def("ReplaceTensorAdaptor", &VtuOutput::ReplaceTensorAdaptor<TensorAdaptor<bool>::Pointer>, py::arg("tensor_adaptor_name"), py::arg("tensor_adaptor"))
+        .def("ReplaceTensorAdaptor", &VtuOutput::ReplaceTensorAdaptor<TensorAdaptor<int>::Pointer>, py::arg("tensor_adaptor_name"), py::arg("tensor_adaptor"))
+        .def("ReplaceTensorAdaptor", &VtuOutput::ReplaceTensorAdaptor<TensorAdaptor<double>::Pointer>, py::arg("tensor_adaptor_name"), py::arg("tensor_adaptor"))
+        .def("EmplaceTensorAdaptor", &VtuOutput::EmplaceTensorAdaptor<TensorAdaptor<bool>::Pointer>, py::arg("tensor_adaptor_name"), py::arg("tensor_adaptor"))
+        .def("EmplaceTensorAdaptor", &VtuOutput::EmplaceTensorAdaptor<TensorAdaptor<int>::Pointer>, py::arg("tensor_adaptor_name"), py::arg("tensor_adaptor"))
+        .def("EmplaceTensorAdaptor", &VtuOutput::EmplaceTensorAdaptor<TensorAdaptor<double>::Pointer>, py::arg("tensor_adaptor_name"), py::arg("tensor_adaptor"))
+        .def("GetModelPart", &VtuOutput::GetModelPart, py::return_value_policy::reference)
+        .def("GetOutputContainerList", &VtuOutput::GetOutputContainerList)
+        .def("PrintOutput", &VtuOutput::PrintOutput, py::arg("output_file_name_prefix"))
+        .def("__str__", PrintObject<VtuOutput>)
+        ;
 }
 }  // namespace Kratos::Python.
 

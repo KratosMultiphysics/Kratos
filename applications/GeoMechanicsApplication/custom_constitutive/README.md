@@ -270,7 +270,7 @@ Each trial stress which is outside the tensile-apex zone and follows this condit
 
 We move perpendicular to the tension cutoff yield surface by using the derivative of the flow function related to the tension cutoff surface.
 ```math
-    \dot{\lambda} = \frac{\sigma + \tau - t_c}{\partial G_{tc} / \partial \boldsymbol{\sigma}}
+    \dot{\lambda} = -\frac{\sigma + \tau - t_c}{C_{xx} \frac{\partial G_{tc}}{\partial \sigma} + C_{yy} \frac{\partial G_{tc}}{\partial \tau}}
 ```
 ```math
     \frac{\partial G_{tc}}{\partial \boldsymbol{\sigma}} = 
@@ -278,10 +278,29 @@ We move perpendicular to the tension cutoff yield surface by using the derivativ
     1
     \end{bmatrix}
 ```
+
 ```math
-    \sigma^{map} = \sigma^{trial} + \dot{\lambda} \frac{\partial G_{tc}}{\partial \sigma}
+    \sigma^{map} = \sigma^{trial} + \dot{\lambda} C \frac{\partial G_{tc}}{\partial \sigma}
 ```
-Where $`G_{tc}`$ is the flow function related to tension cutoff surface. Then update the principal stresses based on the mapped values. The updated principal stresses need to be rotated back to the element axes system.
+
+Where $`G_{tc}`$ is the flow function related to tension cutoff surface in $`(\sigma, \tau)`$ coordinates. These formulations can be rewritten in the framework of principal stresses as follows.  
+
+```math
+    \dot{\lambda} = -\frac{\sigma_1 - t_c}{C_{xx} \frac{\partial G_{tc}}{\partial \sigma_1} + C_{xy} \frac{\partial G_{tc}}{\partial \sigma_2}}
+```
+```math
+    \frac{\partial G_{tc}}{\partial \boldsymbol{\sigma}} = 
+    \begin{bmatrix} 1 \\
+                    0 \\
+                    0
+    \end{bmatrix}
+```
+
+```math
+    \sigma^{map} = \sigma^{trial} + \dot{\lambda} C \frac{\partial G_{tc}}{\partial \sigma}
+```
+
+Then update the principal stresses based on the mapped values. The updated principal stresses need to be rotated back to the element axes system.
 
 
 #### Tensile corner return zone
@@ -370,7 +389,7 @@ We use the derivative of the flow function to define the direction and find the 
 
 Then a parametrized line can be defined by:
 ```math
-    \boldsymbol{\sigma} = \boldsymbol{\sigma}^{trial} + \dot{\lambda} \frac{\partial G_{MC}}{\partial \boldsymbol{\sigma}}
+    \boldsymbol{\sigma} = \boldsymbol{\sigma}^{trial} + \dot{\lambda} C \frac{\partial G_{MC}}{\partial \boldsymbol{\sigma}}
 ```
 
 At yield function,
@@ -383,8 +402,23 @@ At yield function,
 
 Solving this 3 equations:
 ```math
-    \dot{\lambda} = \frac{c \cos{\phi} - \sigma^{trial} \sin{\phi} - \tau^{trial}}{\sin(\psi) \sin(\phi) + 1}
+    \dot{\lambda} = - \frac{\tau^{trial} + \sigma^{trial} \sin{\phi} - c \cos{\phi}}{C_{xx} \frac{\partial G_{MC}}{\partial \sigma} \sin(\phi) + C_{yy} \frac{\partial G_{MC}}{\partial \tau}}
 ```
+
+Or in the framework of principal stresses:
+```math
+    \frac{\partial G_{MC}}{\partial \boldsymbol{\sigma}} = 
+    \begin{bmatrix}
+    \frac{1}{2} (\sin{\psi} + 1) \\
+    0                            \\
+    \frac{1}{2} (\sin{\psi} - 1)
+    \end{bmatrix}
+```
+
+```math
+    \dot{\lambda} = -2 \frac{\tau^{trial} + \sigma^{trial} \sin{\phi} - c \cos{\phi}}{(C_x - C_z) \cdot \partial G_{MC} / \partial \sigma + \sin{\phi} (C_x + C_z) \cdot \partial G_{MC} / \partial \sigma} 
+```
+Where $`C_x`$ and $`C_z`$ are the first and third rows of matrix $`C`$.
 
 Then update the principal stresses based on the mapped values. The updated principal stresses need to be rotated back to the element axes system.
 
@@ -581,3 +615,58 @@ The convergence criterion is defined as:
 Where $\epsilon_{tol}$ is a tolerance.
 
 <img src="documentation_data/hardening_flowchart.svg" alt="Hardening flowchart" title="Hardening flowchart" width="400">
+
+## Undrained behaviour
+
+### Undrained effective-stress formulation
+
+#### Definition:
+- Effective-stress undrained analysis using effective strength parameters. 
+
+#### Inputs:
+- Effective stiffness parameters, e.g. Young’s modulus $E'$ and Poisson’s ratio $\nu'$.
+- Effective strength parameters such as cohesion $c'$ and friction angle $\phi'$. 
+- Undrained Poisson's ratio $\nu_u$ or Skempton $B$ can be provided or calculated (see Eqs. below).
+
+#### Behaviour:
+- Pore pressure and effective stress are kept as separate quantities.
+- The resulting effective stress path depends on the constitutive model and may be unrealistic for soft soils.
+
+#### Warnings: 
+- This may overestimate the mobilized undrained shear strength. 
+- Using a nonzero dilatancy angle $\psi$ can give unrealistic pore pressure response and unrealistic shear strength.
+
+#### Equations: 
+
+Undrained Poisson's ratio
+
+```math
+\nu_u = \frac{3 \nu' + \alpha_{Biot} B (1 - 2 \nu')}{3 - \alpha_{Biot} B (1 - 2 \nu')},
+```
+ where $\nu'$ is the effective Poisson's ratio, $\alpha_{Biot}$ is the Biot coefficient.
+
+Undrained Young's module
+
+```math
+E_u = E' \frac{1-2\nu_u} {1-2\nu'}
+```
+
+Skempton B coefficient
+
+```math
+B = \frac{\alpha_{Biot}}{\alpha_{Biot} + n (K'/K_w + \alpha_{Biot} - 1)},
+```
+ where $n$ is the porosity, $K'$ is the drained bulk modulus of the soil skeleton, $K_w$ is the water bulk modulus.
+
+Excess pore pressure increment
+
+```math
+\Delta u = \frac{\alpha_{Biot}}{ (n /K_w + (\alpha_{Biot} - n) / K')}  \Delta \epsilon_v,
+```
+ where $\Delta \epsilon_v$ is the volumetric strain increment.
+
+MohrCoulomb64 model uses an ad‑hoc elastic stiffness correction: 
+```math
+\Delta u = 2G/3 ( \frac{1+\nu_u}{1−2\nu_u} − \frac{1+\nu}{1−2\nu} ) \Delta \epsilon_v,
+```
+which approximates an undrained − drained bulk modulus difference using an artificial near‑incompressible Poisson ratio $\nu_u = 0.495$. 

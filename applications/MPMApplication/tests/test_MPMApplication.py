@@ -73,6 +73,7 @@ from test_mpm_vtk_output_process            import TestMPMVtkOutputProcess      
 from test_static_loading_conditions_point   import TestStaticLoadingConditionsPoint   as TTestStaticLoadingConditionsPoint
 from test_static_loading_conditions_line    import TestStaticLoadingConditionsLine    as TTestStaticLoadingConditionsLine
 from test_static_loading_conditions_surface import TestStaticLoadingConditionsSurface as TTestStaticLoadingConditionsSurface
+from test_interpolate_body_force            import TestBodyForceInterpolationMPM      as TTestBodyForceInterpolation
 from test_material_point_locator            import TestMaterialPointLocator           as TTestMaterialPointLocator
 from test_mpm_point_output_process          import TestMPMPointOutputProcess          as TTestMPMPointOutputProcess
 
@@ -105,6 +106,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestSearchMPElement]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestSearchMPCondition]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestMPMVtkOutputProcess]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestBodyForceInterpolation]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestMaterialPointLocator]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestMPMPointOutputProcess]))
 

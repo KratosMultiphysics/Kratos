@@ -143,7 +143,7 @@ void RadialBasisFunctionMapperLocalSystem::CalculateAll(MatrixType& rLocalMappin
             rLocalMappingMatrix(0, j) = phi;
         }
 
-        const std::vector<double> polynomial = EvaluatePolynomialBasis(this->Coordinates(), mPolynomialDegree);
+        const std::vector<double> polynomial = EvaluatePolynomialBasis(this->Coordinates(), mPolynomialDegree, mDimension);
 
         for (IndexType k = 0; k < mNumberOfPolynomialTerms; ++k) {
             rLocalMappingMatrix(0, rbf_support_points_number + k) = polynomial[k];
@@ -198,7 +198,7 @@ void RadialBasisFunctionMapperLocalSystem::CalculateAll(MatrixType& rLocalMappin
             rLocalMappingMatrix(0, j) = phi;
         }
 
-        const std::vector<double> polynomial = EvaluatePolynomialBasis(this->Coordinates(), mPolynomialDegree);
+        const std::vector<double> polynomial = EvaluatePolynomialBasis(this->Coordinates(), mPolynomialDegree, mDimension);
 
         for (IndexType k = 0; k < mNumberOfPolynomialTerms; ++k) {
             rLocalMappingMatrix(0, rbf_support_points_number + k) = polynomial[k];
@@ -210,25 +210,39 @@ void RadialBasisFunctionMapperLocalSystem::CalculateAll(MatrixType& rLocalMappin
 
 std::vector<double> RadialBasisFunctionMapperLocalSystem::EvaluatePolynomialBasis(
     const CoordinatesArrayType& rCoords, 
-    unsigned int degree) const
+    unsigned int degree,
+    const IndexType dimension) const
 {
     std::vector<double> polynomial_values;
-    polynomial_values.reserve((degree + 3) * (degree + 2) * (degree + 1) / 6); // number of monomials in 3D
+    IndexType number_of_polynomial_terms = 0;
+    if (dimension == 2){
+        number_of_polynomial_terms = (degree + 2) * (degree + 1) / 2;
+    } else{
+        number_of_polynomial_terms = (degree + 3) * (degree + 2) * (degree + 1) / 6;
+    }
+    polynomial_values.reserve(number_of_polynomial_terms); // number of monomials in either 2D or 3D
 
     const double x = rCoords[0];
     const double y = rCoords[1];
     const double z = rCoords[2];
 
-    for (unsigned int n = 0; n <= degree; ++n) {
-        // i = exponente de x
-        for (int i = static_cast<int>(n); i >= 0; --i) {
-            // j = exponente de y
-            for (int j = static_cast<int>(n - i); j >= 0; --j) {
-                unsigned int k = n - i - j; // exponente de z
-                polynomial_values.push_back(std::pow(x, i) * std::pow(y, j) * std::pow(z, k));
+    if (dimension == 2) {
+        for (unsigned int n = 0; n <= degree; ++n) {
+            for (int i = static_cast<int>(n); i >= 0; --i) {
+                const unsigned int j = n - i;
+                polynomial_values.push_back(std::pow(x, i) * std::pow(y, j));
             }
         }
-    }
+    } else if (dimension == 3) {
+        for (unsigned int n = 0; n <= degree; ++n) {
+            for (int i = static_cast<int>(n); i >= 0; --i) {
+                for (int j = static_cast<int>(n - i); j >= 0; --j) {
+                    const unsigned int k = n - i - j;
+                    polynomial_values.push_back(std::pow(x, i) * std::pow(y, j) * std::pow(z, k));
+                }
+            }
+        }
+    } 
 
     return polynomial_values;
 }
@@ -289,9 +303,17 @@ void RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::InitializeInterface(K
 
     mRBFTypeEnum = it->second;
 
-    // Obtain the polynomial degree and calculate number of polynomial terms
+    // Obtain the polynomial degree and the dimension and calculate number of polynomial terms 
     mPolynomialDegree = mMapperSettings["additional_polynomial_degree"].GetInt();
-    mNumberOfPolynomialTerms = (mPolynomialDegree + 3) * (mPolynomialDegree + 2) * (mPolynomialDegree + 1) / 6;
+    mDimension = mMapperSettings["global_space_dimension"].GetInt();
+    KRATOS_ERROR_IF(mDimension > 3) << "global_space_dimension cannot be greater than 3" << std::endl;
+
+    // Calculate the number of polynomial terms depending on the dimension
+     if (mDimension == 2){
+        mNumberOfPolynomialTerms = (mPolynomialDegree + 2) * (mPolynomialDegree + 1) / 2;
+    } else {
+        mNumberOfPolynomialTerms = (mPolynomialDegree + 3) * (mPolynomialDegree + 2) * (mPolynomialDegree + 1) / 6;
+    }
 
     // Determine whether the destination domain is IGA or not
     const bool destination_is_iga = mMapperSettings["destination_is_iga"].GetBool();
@@ -300,7 +322,7 @@ void RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::InitializeInterface(K
     KRATOS_ERROR_IF(destination_is_iga)<< "This mapper is not yet available when the destination domain is discretized with IGA" << std::endl;
 
     bool use_all_support_points = false;
-    if (mMapperSettings["search_settings"].Has("use_all_rbf_support_points")) {
+    if (mMapperSettings.Has("use_all_rbf_support_points")) {
         use_all_support_points = mMapperSettings["use_all_rbf_support_points"].GetBool();
     }
 
@@ -342,8 +364,8 @@ void RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::InitializeInterface(K
     }
 
     // Create dummy local systems for the origin and destination domains
-    RadialBasisFunctionMapperLocalSystem origin_local_system{nullptr, nullptr, true, mOriginIsIga, mRBFTypeEnum, mPolynomialDegree, &mPolynomialEquationIdsOrigin};
-    RadialBasisFunctionMapperLocalSystem destination_local_system{nullptr, nullptr, false, mOriginIsIga, mRBFTypeEnum, mPolynomialDegree, &mPolynomialEquationIdsOrigin};
+    RadialBasisFunctionMapperLocalSystem origin_local_system{nullptr, nullptr, true, mOriginIsIga, mRBFTypeEnum, mPolynomialDegree, mDimension, &mPolynomialEquationIdsOrigin};
+    RadialBasisFunctionMapperLocalSystem destination_local_system{nullptr, nullptr, false, mOriginIsIga, mRBFTypeEnum, mPolynomialDegree, mDimension, &mPolynomialEquationIdsOrigin};
 
     // Create the local systems for the origin and destination domains
     if (mOriginIsIga) {
@@ -609,37 +631,50 @@ void RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::CalculateMappingMatri
         // IGA origin: one center per interface integration point (condition)
         n_support = mpCouplingInterfaceOrigin->NumberOfConditions();
     }
+    
+    // Temporary RHS and solution vectors
+    typename TSparseSpace::VectorType rhs;
+    typename TSparseSpace::VectorType sol;
 
-    // Build GP-based mapping matrix H_tilde: (n_dest x n_support)
+    TSparseSpace::Resize(rhs, system_size);
+    TSparseSpace::Resize(sol, system_size);
+
+    TSparseSpace::SetToZero(rhs);
+    TSparseSpace::SetToZero(sol);
+
+    // Mapping matrix
     auto pMappingMatrixGP = Kratos::make_unique<MappingMatrixType>(n_dest, n_support);
-    noalias(*pMappingMatrixGP) = ZeroMatrix(n_dest, n_support);
 
-    Vector rhs(system_size);
-    Vector solution(system_size);
-    Vector dest_column(n_dest);
-
-    for (IndexType j = 0; j < n_support; ++j)
-    {
-        // rhs = [ e_j ; 0 ]
-        noalias(rhs) = ZeroVector(system_size);
+    // Factorize LHS once
+    mpLinearSolver->InitializeSolutionStep(*mpOriginInterpolationMatrix, sol, rhs);
+    
+    typename TSparseSpace::VectorType column_values(n_dest);
+    TSparseSpace::Resize(column_values, n_dest);
+    
+    for (IndexType j = 0; j < n_support; ++j) {
+    
+        TSparseSpace::SetToZero(rhs);
         rhs[j] = 1.0;
-
-        // Solve A * solution = rhs
-        mpLinearSolver->Solve(*mpOriginInterpolationMatrix, solution, rhs);
-
-        // dest_column = B * solution
-        TSparseSpace::Mult(
-            *mpDestinationEvaluationMatrix,
-            solution,
-            dest_column
-        );
-
-        // Column j of H_tilde
+    
+        // Solve A x = e_j
+        mpLinearSolver->PerformSolutionStep(*mpOriginInterpolationMatrix, sol, rhs);
+    
+        // Compute column j of mapping matrix: column_values = B * sol
+        TSparseSpace::SetToZero(column_values);
+        TSparseSpace::Mult(*mpDestinationEvaluationMatrix, sol, column_values);
+    
+        // Store result into dense mapping matrix
         for (IndexType i = 0; i < n_dest; ++i) {
-            (*pMappingMatrixGP)(i, j) = dest_column[i];
+           const double value = column_values[i];
+            
+           if (std::abs(value) > 1e-15) {
+                (*pMappingMatrixGP)(i, j) = value;
+            }
         }
     }
-
+    
+    mpLinearSolver->FinalizeSolutionStep(*mpOriginInterpolationMatrix, sol, rhs);
+    
     // If IGA origin, project from GP-based to CP-based mapping:
     // M = M_tilde * N_reduced
     if (mOriginIsIga) {
@@ -719,13 +754,41 @@ RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::ComputeMappingMatrixIgaOnC
 template<class TSparseSpace, class TDenseSpace>
 void RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::CreateLinearSolver()
 {
+    // Create the linear solver factory
+    LinearSolverFactory<TSparseSpace, TDenseSpace> solver_factory;
+
     if (mMapperSettings["linear_solver_settings"].Has("solver_type")) {
-        mpLinearSolver = LinearSolverFactory<TSparseSpace, TDenseSpace>().Create(mMapperSettings["linear_solver_settings"]);
+        const std::string solver_type =
+            mMapperSettings["linear_solver_settings"]["solver_type"].GetString();
+
+        KRATOS_INFO("Radial Basis Functions Mapper")
+            << "Using specified linear solver: " << solver_type << std::endl;
+
+        mpLinearSolver = solver_factory.Create(mMapperSettings["linear_solver_settings"]);
     }
     else {
-        // TODO - replicate 'get fastest solver'
-        mMapperSettings.AddString("solver_type", "pardiso_lu");
-        mpLinearSolver = LinearSolverFactory<TSparseSpace, TDenseSpace>().Create(mMapperSettings);
+        if (solver_factory.Has("pardiso_lu")) {
+            KRATOS_INFO("Radial Basis Functions Mapper")
+                << "No linear solver specified. Using PardisoLU." << std::endl;
+
+            Parameters default_settings(R"(
+            {
+                "solver_type": "pardiso_lu"
+            })");
+
+            mpLinearSolver = solver_factory.Create(default_settings);
+        }
+        else {
+            KRATOS_WARNING("Radial Basis Functions Mapper")
+                << "PardisoLU not available. Falling back to skyline_lu_factorization." << std::endl;
+
+            Parameters default_settings(R"(
+            {
+                "solver_type": "skyline_lu_factorization"
+            })");
+
+            mpLinearSolver = solver_factory.Create(default_settings);
+        }
     }
 }
 

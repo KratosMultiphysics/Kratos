@@ -46,7 +46,7 @@ void AddLinearOperatorsToPython(py::module& m)
 
     using SparseMatrixLinearOperatorType = Future::SparseMatrixLinearOperator<Future::SerialLinearAlgebraTraits>;
     py::class_<SparseMatrixLinearOperatorType, py::smart_holder, LinearOperatorType>(m, "SparseMatrixLinearOperator")
-        .def(py::init<typename Future::SerialLinearAlgebraTraits::MatrixType&>())
+        .def(py::init<typename Future::SerialLinearAlgebraTraits::MatrixType::Pointer>())
         ;
 }
 

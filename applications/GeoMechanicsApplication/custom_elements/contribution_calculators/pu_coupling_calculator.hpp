@@ -24,7 +24,7 @@ class PUCouplingCalculator : public ContributionCalculator<NumberOfRows, NumberO
 {
 public:
     struct InputProvider {
-        InputProvider(std::function<const Matrix&()>       GetNpContainer,
+        InputProvider(std::function<const Matrix()>        GetNpContainer,
                       Geo::BMatricesGetter                 GetBMatrices,
                       std::function<Vector()>              GetVoigtVector,
                       Geo::IntegrationCoefficientsGetter   GetIntegrationCoefficients,
@@ -41,7 +41,7 @@ public:
         {
         }
 
-        std::function<const Matrix&()>       GetNpContainer;
+        std::function<const Matrix()>        GetNpContainer;
         Geo::BMatricesGetter                 GetBMatrices;
         std::function<Vector()>              GetVoigtVector;
         Geo::IntegrationCoefficientsGetter   GetIntegrationCoefficients;
@@ -78,14 +78,14 @@ private:
         // For the calculation, we can re-use the calculation of the UP coupling matrix.
         // To do this, the NumberOfColumns and NumberOfRows are swapped because the
         // PU coupling matrix is the transpose of the UP coupling matrix.
-        // Also note that instead of the bishop coefficients, the degrees of saturation are passed.
+        // Also note that instead of the Bishop coefficients, the degrees of saturation are passed.
         // Finally, the nodal water pressure getter is not needed for the matrix calculation, so
         // we pass a dummy function.
-        auto dummy_nodal_water_pressure_function = []() { return Vector(); };
+        auto dummy_nodal_values_getter = [](const Variable<double>&) { return Vector(); };
         typename UPCouplingCalculator<NumberOfColumns, NumberOfRows>::InputProvider input_provider(
             mInputProvider.GetNpContainer, mInputProvider.GetBMatrices, mInputProvider.GetVoigtVector,
             mInputProvider.GetIntegrationCoefficients, mInputProvider.GetBiotCoefficients,
-            mInputProvider.GetDegreesOfSaturation, dummy_nodal_water_pressure_function);
+            mInputProvider.GetDegreesOfSaturation, dummy_nodal_values_getter);
         UPCouplingCalculator<NumberOfColumns, NumberOfRows> up_coupling_calculator(input_provider);
         const auto up_coupling_matrix = up_coupling_calculator.LHSContribution().value();
 

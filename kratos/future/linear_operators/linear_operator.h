@@ -161,6 +161,24 @@ public:
         KRATOS_ERROR << "GetMatrix() is not implemented in base LinearOperator class." << std::endl;
     }
 
+    /**
+     * @brief Get a pointer to the Matrix object
+     * @return typename MatrixType::Pointer Pointer to the underlying matrix.
+     */
+    virtual typename MatrixType::Pointer pGetMatrix()
+    {
+        KRATOS_ERROR << "pGetMatrix() is not implemented in base LinearOperator class." << std::endl;
+    }
+
+    /**
+     * @brief Get a pointer to the Matrix object
+     * @return const typename MatrixType::Pointer Pointer to the underlying matrix.
+     */
+    virtual const typename MatrixType::Pointer pGetMatrix() const
+    {
+        KRATOS_ERROR << "pGetMatrix() is not implemented in base LinearOperator class." << std::endl;
+    }
+
     ///@}
     ///@name Inquiry
     ///@{

@@ -15,7 +15,8 @@
 
 #pragma once
 
-#include "custom_constitutive/yield_surface.h"
+#include "custom_constitutive/principal_stresses.hpp"
+#include "custom_constitutive/sigma_tau.hpp"
 #include "geo_aliases.h"
 #include "includes/properties.h"
 
@@ -26,22 +27,10 @@ namespace Kratos
 
 class CheckProperties;
 
-namespace Geo
-{
-class PrincipalStresses;
-class SigmaTau;
-} // namespace Geo
-
-class KRATOS_API(GEO_MECHANICS_APPLICATION) CoulombYieldSurface : public YieldSurface
+class KRATOS_API(GEO_MECHANICS_APPLICATION) CoulombYieldSurface
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(CoulombYieldSurface);
-
-    enum class CoulombAveragingType {
-        NO_AVERAGING,
-        LOWEST_PRINCIPAL_STRESSES,
-        HIGHEST_PRINCIPAL_STRESSES
-    };
 
     CoulombYieldSurface();
     explicit CoulombYieldSurface(const Properties& rMaterialProperties);
@@ -52,19 +41,30 @@ public:
     [[nodiscard]] double GetKappa() const;
     void                 SetKappa(double kappa);
 
-    [[nodiscard]] double YieldFunctionValue(const Vector& rSigmaTau) const override;
     [[nodiscard]] double YieldFunctionValue(const Geo::SigmaTau& rSigmaTau) const;
     [[nodiscard]] double YieldFunctionValue(const Geo::PrincipalStresses& rPrincipalStresses) const;
 
-    [[nodiscard]] Vector DerivativeOfFlowFunction(const Vector&) const override;
     [[nodiscard]] Vector DerivativeOfFlowFunction(const Geo::SigmaTau&,
-                                                  CoulombAveragingType AveragingType = CoulombAveragingType::NO_AVERAGING) const;
+                                                  Geo::PrincipalStresses::AveragingType AveragingType =
+                                                      Geo::PrincipalStresses::AveragingType::NO_AVERAGING) const;
+    [[nodiscard]] Vector DerivativeOfFlowFunction(const Geo::PrincipalStresses&,
+                                                  Geo::PrincipalStresses::AveragingType AveragingType =
+                                                      Geo::PrincipalStresses::AveragingType::NO_AVERAGING) const;
 
-    [[nodiscard]] double CalculateApex() const;
-    [[nodiscard]] double CalculatePlasticMultiplier(const Geo::SigmaTau& rSigmaTau,
-                                                    const Vector& rDerivativeOfFlowFunction) const;
-    [[nodiscard]] double CalculateEquivalentPlasticStrainIncrement(const Geo::SigmaTau& rSigmaTau,
-                                                                   CoulombAveragingType AveragingType) const;
+    [[nodiscard]] Geo::SigmaTau CalculateApex() const;
+
+    [[nodiscard]] double CalculatePlasticMultiplier(const Geo::SigmaTau& rTrialSigmaTau,
+                                                    const Vector&        rDerivativeOfFlowFunction,
+                                                    const Matrix&        rElasticMatrix) const;
+    [[nodiscard]] double CalculatePlasticMultiplier(const Geo::PrincipalStresses& rTrialPrincipalStresses,
+                                                    const Vector& rDerivativeOfFlowFunction,
+                                                    const Matrix& rElasticMatrix) const;
+    [[nodiscard]] double CalculateEquivalentPlasticStrainIncrement(const Geo::SigmaTau& rTrialSigmaTau,
+                                                                   const Matrix& rElasticMatrix,
+                                                                   Geo::PrincipalStresses::AveragingType AveragingType) const;
+    [[nodiscard]] double CalculateEquivalentPlasticStrainIncrement(const Geo::PrincipalStresses& rTrialPrincipalStresses,
+                                                                   const Matrix& rElasticMatrix,
+                                                                   Geo::PrincipalStresses::AveragingType AveragingType) const;
 
 private:
     void InitializeKappaDependentFunctions();
@@ -73,8 +73,8 @@ private:
                                     const CheckProperties&  rChecker) const;
 
     friend class Serializer;
-    void save(Serializer& rSerializer) const override;
-    void load(Serializer& rSerializer) override;
+    void save(Serializer& rSerializer) const;
+    void load(Serializer& rSerializer);
 
     double                      mKappa = 0.0;
     Properties                  mMaterialProperties;
