@@ -273,22 +273,14 @@ KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElasticEur3DLaw_ReturnsExpectedLaw
     KRATOS_EXPECT_EQ(law_features.mSpaceDimension, 3);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElasticEur3DLaw_ReturnsExpectedWorkingSpaceDimension,
+KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElasticEur3DLaw_ReturnsExpectedSpaceAndStrainDimensions,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange and Act
     auto law = CreateIncrementalLinearElasticEur3DLaw();
+
     // Assert
     KRATOS_EXPECT_EQ(law.WorkingSpaceDimension(), 3);
-}
-
-KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElasticEur3DLaw_ReturnsExpectedStrainSize,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    // Arrange and Act
-    const auto law = CreateIncrementalLinearElasticEur3DLaw();
-
-    // Assert
     KRATOS_EXPECT_EQ(law.GetStrainSize(), 6);
 }
 
@@ -379,7 +371,8 @@ KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElasticEur3DLaw_ReturnsDiagonalCon
                                       {0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
                                       {0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
                                       {0.0, 0.0, 0.0, 0.0, 0.0, 0.0}});
-    KRATOS_EXPECT_MATRIX_NEAR(constitutive_matrix, expected_constitutive_matrix, Defaults::relative_tolerance);
+    KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(constitutive_matrix, expected_constitutive_matrix,
+                                       Defaults::relative_tolerance);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElasticEur3DLaw_ReturnsExpectedStressFromPK2Response,
@@ -400,7 +393,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElasticEur3DLaw_ReturnsExpectedStr
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(expected_stress, calculated_stress, Defaults::relative_tolerance)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElasticEur3DLaw_RequiresInitializeMaterialResponse,
+KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElasticEur3DLaw_ReturnsExpectedCapabilityFlags,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
@@ -408,25 +401,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElasticEur3DLaw_RequiresInitialize
 
     // Act and Assert
     KRATOS_EXPECT_TRUE(law.RequiresInitializeMaterialResponse())
-}
-
-KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElasticEur3DLaw_RequiresFinalizeMaterialResponse,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    // Arrange
-    auto law = CreateIncrementalLinearElasticEur3DLaw();
-
-    // Act and Assert
     KRATOS_EXPECT_TRUE(law.RequiresFinalizeMaterialResponse())
-}
-
-KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElasticEur3DLaw_RequiresIsIncrementalResponse,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    // Arrange
-    auto law = CreateIncrementalLinearElasticEur3DLaw();
-
-    // Act and Assert
     KRATOS_EXPECT_TRUE(law.IsIncremental())
 }
 
