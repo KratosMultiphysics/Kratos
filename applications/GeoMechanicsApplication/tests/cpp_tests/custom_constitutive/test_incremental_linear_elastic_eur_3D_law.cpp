@@ -37,10 +37,28 @@ GeoIncrementalLinearElasticEurLaw CreateIncrementalLinearElasticEur3DLaw()
     return GeoIncrementalLinearElasticEurLaw{std::make_unique<ThreeDimensional>()};
 }
 
-double CalculateExpectedNormalDiagonal(double YoungsModulus, double PoissonsRatio)
+double CalculateExpectedNormalDiagonal(double PoissonsRatio, double YoungsModulus)
 {
     const auto denominator = (1.0 + PoissonsRatio) * (1.0 - 2.0 * PoissonsRatio);
     return YoungsModulus * (1.0 - PoissonsRatio) / denominator;
+}
+
+double CalculateExpectedNormalDiagonal(const Properties& rProperties, const Vector& rStressVector)
+{
+    const auto reference_pressure = rProperties[REFERENCE_HARDENING_MODULUS];
+    const auto phi_rad            = rProperties[GEO_FRICTION_ANGLE] * std::numbers::pi / 180.0;
+    const auto stress_shift       = rProperties[GEO_COHESION] / std::tan(phi_rad);
+
+    Vector principal_stresses;
+    Matrix eigen_vectors;
+    StressStrainUtilities::CalculatePrincipalStresses(rStressVector, principal_stresses, eigen_vectors);
+
+    const auto   minor_principal = principal_stresses(2);
+    const double base = (stress_shift - minor_principal) / (stress_shift + reference_pressure);
+    const auto   expected_youngs_modulus =
+        rProperties[YOUNG_MODULUS] * std::pow(base, rProperties[SWELLING_SLOPE]);
+
+    return CalculateExpectedNormalDiagonal(rProperties[POISSON_RATIO], expected_youngs_modulus);
 }
 
 Properties CreateMaterialPropertiesForEurElasticLaw(IndexType Id = 0)
@@ -134,7 +152,7 @@ void FinalizeEurLawResponse(GeoIncrementalLinearElasticEurLaw& rLaw, const Prope
     parameters.SetMaterialProperties(rProperties);
 
     rLaw.CalculateMaterialResponsePK2(parameters);
-    rLaw.FinalizeMaterialResponseCauchy(parameters);
+    rLaw.FinalizeMaterialResponsePK2(parameters);
 }
 
 void SetEurLawToIncrementalState(GeoIncrementalLinearElasticEurLaw& rLaw, const Properties& rProperties)
@@ -383,8 +401,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElasticEur3DLaw_ReturnsExpectedStr
     // Act
     const auto calculated_stress = CalculateStressForEurElasticLaw(law, properties, strain_vector);
 
-    // Assert: hard-coded expected stress for current low-Eur regime with
-    // REFERENCE_HARDENING_MODULUS=1e12 and default finalized stress state.
+    // Assert
     constexpr auto tolerance = 1.0e-4;
     const auto     expected_stress =
         UblasUtilities::CreateVector({0.0686869, 0.0686869, 0.0686869, 0.0105672, 0.0105672, 0.0105672});
@@ -403,125 +420,77 @@ KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElasticEur3DLaw_ReturnsExpectedCap
     KRATOS_EXPECT_TRUE(law.IsIncremental())
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElasticEur3DLaw_ReturnsExpectedDiagonalEntryAtReferencePressure,
+KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElasticEur3DLaw_ReturnsExpectedDiagonalEntryForMultipleScenarios,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    // Arrange
-    auto law = CreateIncrementalLinearElasticEur3DLaw();
+    // Scenario 1: at reference pressure the modulus should equal YOUNG_MODULUS
+    auto law        = CreateIncrementalLinearElasticEur3DLaw();
+    auto properties = CreateMaterialPropertiesForEurElasticLaw();
 
     ConstitutiveLaw::Parameters parameters;
     auto                        strain = Vector(6, 0.0);
     parameters.SetStrainVector(strain);
-
-    auto properties = CreateMaterialPropertiesForEurElasticLaw();
     parameters.SetMaterialProperties(properties);
 
-    Matrix constitutive_matrix;
-
-    // Ensure the law is at reference pressure (minor principal = -reference_pressure)
-    const auto reference_pressure = parameters.GetMaterialProperties()[REFERENCE_HARDENING_MODULUS];
-    auto       initial_stress     = UblasUtilities::CreateVector(
+    const auto reference_pressure = properties[REFERENCE_HARDENING_MODULUS];
+    auto       stress             = UblasUtilities::CreateVector(
         {-reference_pressure, -reference_pressure, -reference_pressure, 0.0, 0.0, 0.0});
-    InitializeEurLawWithFinalizedStress(law, initial_stress);
+    InitializeEurLawWithFinalizedStress(law, stress);
 
-    // Act
+    Matrix constitutive_matrix;
     law.CalculateValue(parameters, CONSTITUTIVE_MATRIX, constitutive_matrix);
 
-    // Assert: at reference pressure the modulus should equal the material Young's modulus
-    constexpr auto youngs_modulus = 1.0e7;
-    constexpr auto poisson_ratio  = 0.3;
-    const auto     expected_value = CalculateExpectedNormalDiagonal(youngs_modulus, poisson_ratio);
+    auto expected_value =
+        CalculateExpectedNormalDiagonal(properties[POISSON_RATIO], properties[YOUNG_MODULUS]);
     KRATOS_EXPECT_NEAR(constitutive_matrix(0, 0), expected_value, Defaults::relative_tolerance);
-}
 
-KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElasticEur3DLaw_ScalesDiagonalEntryWithConfinement,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    // Arrange
-    auto law        = CreateIncrementalLinearElasticEur3DLaw();
-    auto properties = CreateMaterialPropertiesForEurElasticLaw();
+    // Scenario 2: diagonal entry scales with confinement level
+    law    = CreateIncrementalLinearElasticEur3DLaw();
+    stress = UblasUtilities::CreateVector({-500.0, -300.0, -100.0, 0.0, 0.0, 0.0});
+    InitializeEurLawWithFinalizedStress(law, stress);
 
-    auto initial_stress = UblasUtilities::CreateVector({-500.0, -300.0, -100.0, 0.0, 0.0, 0.0});
-    InitializeEurLawWithFinalizedStress(law, initial_stress);
-
-    // Act
-    const auto diagonal_entry = CalculateConstitutiveNormalDiagonalAtZeroStrain(law, properties);
-
-    // Assert
-    const auto eur_ref            = properties[YOUNG_MODULUS];
-    const auto reference_pressure = properties[REFERENCE_HARDENING_MODULUS];
-    const auto exponent           = properties[SWELLING_SLOPE];
-    const auto phi_rad            = properties[GEO_FRICTION_ANGLE] * std::numbers::pi / 180.0;
-    const auto stress_shift = properties[GEO_COHESION] * std::cos(phi_rad) / std::sin(phi_rad);
-    Vector     principal_stresses;
-    Matrix     eigen_vectors;
-    StressStrainUtilities::CalculatePrincipalStresses(initial_stress, principal_stresses, eigen_vectors);
-    const auto minor_principal = principal_stresses(2);
-    const auto bounded_minor   = std::min(minor_principal, -reference_pressure);
-    const auto numerator = std::max(stress_shift - bounded_minor, std::numeric_limits<double>::epsilon());
-    const auto denominator =
-        std::max(stress_shift + reference_pressure, std::numeric_limits<double>::epsilon());
-    const auto expected_E = eur_ref * std::pow(numerator / denominator, exponent);
-    const auto expected_value = CalculateExpectedNormalDiagonal(expected_E, properties[POISSON_RATIO]);
+    auto diagonal_entry = CalculateConstitutiveNormalDiagonalAtZeroStrain(law, properties);
+    expected_value      = CalculateExpectedNormalDiagonal(properties, stress);
     KRATOS_EXPECT_NEAR(diagonal_entry, expected_value, Defaults::relative_tolerance);
-}
 
-KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElasticEur3DLaw_UsesReferencePressureAtLowConfinement,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    // Arrange
-    auto law        = CreateIncrementalLinearElasticEur3DLaw();
-    auto properties = CreateMaterialPropertiesForEurElasticLaw();
+    // Scenario 3: low confinement uses the production formula directly
+    law    = CreateIncrementalLinearElasticEur3DLaw();
+    stress = UblasUtilities::CreateVector({-20.0, -20.0, -20.0, 0.0, 0.0, 0.0});
+    InitializeEurLawWithFinalizedStress(law, stress);
 
-    auto low_confinement_stress = UblasUtilities::CreateVector({-20.0, -20.0, -20.0, 0.0, 0.0, 0.0});
-    InitializeEurLawWithFinalizedStress(law, low_confinement_stress);
-
-    // Act
-    const auto diagonal_entry = CalculateConstitutiveNormalDiagonalAtZeroStrain(law, properties);
-
-    // Assert
-    // Compute expected using the production formula (no artificial bounding)
-    const auto eur_ref            = properties[YOUNG_MODULUS];
-    const auto reference_pressure = properties[REFERENCE_HARDENING_MODULUS];
-    const auto phi_rad            = properties[GEO_FRICTION_ANGLE] * std::numbers::pi / 180.0;
-    const auto stress_shift = properties[GEO_COHESION] * std::cos(phi_rad) / std::sin(phi_rad);
-    Vector     principal_stresses;
-    Matrix     eigen_vectors;
-    StressStrainUtilities::CalculatePrincipalStresses(low_confinement_stress, principal_stresses, eigen_vectors);
-    const auto minor_principal = principal_stresses(2);
-    const auto expected_E =
-        eur_ref * ((stress_shift - minor_principal) / (stress_shift + reference_pressure));
-    const auto expected_value = CalculateExpectedNormalDiagonal(expected_E, properties[POISSON_RATIO]);
+    diagonal_entry = CalculateConstitutiveNormalDiagonalAtZeroStrain(law, properties);
+    expected_value = CalculateExpectedNormalDiagonal(properties, stress);
     KRATOS_EXPECT_NEAR(diagonal_entry, expected_value, Defaults::relative_tolerance);
-}
 
-KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElasticEur3DLaw_AccountsForStressShiftTerm,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    // Arrange
-    auto law        = CreateIncrementalLinearElasticEur3DLaw();
-    auto properties = CreateMaterialPropertiesForEurElasticLaw();
+    // Scenario 4: stress-shift term impact through cohesion and friction angle
+    law = CreateIncrementalLinearElasticEur3DLaw();
     properties.SetValue(GEO_COHESION, 20.0);
     properties.SetValue(GEO_FRICTION_ANGLE, 45.0);
+    stress = UblasUtilities::CreateVector({-250.0, -150.0, -100.0, 0.0, 0.0, 0.0});
+    InitializeEurLawWithFinalizedStress(law, stress);
 
-    auto stress_state = UblasUtilities::CreateVector({-250.0, -150.0, -100.0, 0.0, 0.0, 0.0});
-    InitializeEurLawWithFinalizedStress(law, stress_state);
-
-    // Act
-    const auto diagonal_entry = CalculateConstitutiveNormalDiagonalAtZeroStrain(law, properties);
-
-    // Assert
-    const auto phi_rad      = properties[GEO_FRICTION_ANGLE] * std::numbers::pi / 180.0;
-    const auto stress_shift = properties[GEO_COHESION] / std::tan(phi_rad);
-    Vector     principal_stresses;
-    Matrix     eigen_vectors;
-    StressStrainUtilities::CalculatePrincipalStresses(stress_state, principal_stresses, eigen_vectors);
-    const auto minor_principal = principal_stresses(2);
-    const auto bounded_minor = std::min(minor_principal, -properties[REFERENCE_HARDENING_MODULUS]);
-    const auto expected_E    = properties[YOUNG_MODULUS] * (stress_shift - bounded_minor) /
-                            (stress_shift + properties[REFERENCE_HARDENING_MODULUS]);
-    const auto expected_value = CalculateExpectedNormalDiagonal(expected_E, properties[POISSON_RATIO]);
+    diagonal_entry = CalculateConstitutiveNormalDiagonalAtZeroStrain(law, properties);
+    expected_value = CalculateExpectedNormalDiagonal(properties, stress);
     KRATOS_EXPECT_NEAR(diagonal_entry, expected_value, Defaults::relative_tolerance);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElasticEur3DLaw_ThrowsWhenPowBaseIsNonPositive,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange: create a state with minor principal stress larger than stress_shift,
+    // forcing base <= epsilon in CalculateStressDependentYoungsModulus.
+    auto law        = CreateIncrementalLinearElasticEur3DLaw();
+    auto properties = CreateMaterialPropertiesForEurElasticLaw();
+    properties.SetValue(GEO_COHESION, 1.0);
+    properties.SetValue(GEO_FRICTION_ANGLE, 45.0);
+
+    auto finalized_stress = UblasUtilities::CreateVector({100.0, 100.0, 100.0, 0.0, 0.0, 0.0});
+    InitializeEurLawWithFinalizedStress(law, finalized_stress);
+
+    auto strain_vector = Vector(6, 1.0);
+
+    // Act & Assert
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(CalculateStressForEurElasticLaw(law, properties, strain_vector), "Negative base for std::pow (-1.94118). Check GEO_COHESION, GEO_FRICTION_ANGLE, REFERENCE_HARDENING_MODULUS and the finalized stress state.")
 }
 
 KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElasticEur3DLaw_FinalizesMaterialResponseCauchyIncrementally,
