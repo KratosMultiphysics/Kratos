@@ -353,7 +353,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
                 )
             )
             fem_comparison_csv = (
-                Path(project_path) / f"{stage['base_name']}_interface_comparison.csv"
+                Path(project_path) / f"{stage['base_name']}__FE_comparison_interface.csv"
             )
             if fem_comparison_csv.exists():
                 fem_comparison_variable = test_helper.get_data_points_from_file(
