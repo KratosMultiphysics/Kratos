@@ -132,7 +132,7 @@ void GeoIncrementalLinearElasticEurLaw::CalculateElasticMatrix(Matrix& rElasticM
         young_modulus, poisson_ratio, mpConstitutiveDimension->GetStrainSize(),
         mpConstitutiveDimension->GetNumberOfNormalComponents());
 
-    if (this->GetConsiderDiagonalEntriesOnlyAndNoShear()) {
+    if (GetConsiderDiagonalEntriesOnlyAndNoShear()) {
         ConstitutiveLawUtilities::SetEntriesAboveDiagonalToZero(rElasticMatrix);
         ConstitutiveLawUtilities::SetEntriesBelowDiagonalToZero(rElasticMatrix);
         ConstitutiveLawUtilities::SetShearEntriesToZero(
@@ -150,10 +150,10 @@ void GeoIncrementalLinearElasticEurLaw::CalculatePK2Stress(const Vector& rStrain
 
     mDeltaStrainVector = rValues.GetStrainVector() - mStrainVectorFinalized;
 
-    Matrix C;
-    this->CalculateElasticMatrix(C, rValues);
+    Matrix constitutive_matrix;
+    CalculateElasticMatrix(constitutive_matrix, rValues);
 
-    noalias(mStressVector) = mStressVectorFinalized + prod(C, mDeltaStrainVector);
+    noalias(mStressVector) = mStressVectorFinalized + prod(constitutive_matrix, mDeltaStrainVector);
     rStressVector          = mStressVector;
 
     KRATOS_CATCH("")
