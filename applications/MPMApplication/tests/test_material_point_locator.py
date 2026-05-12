@@ -29,9 +29,11 @@ class TestMaterialPointLocator(KratosUnittest.TestCase):
         boundary = grid_model_part.CreateSubModelPart("boundary")
         self._create_conditions(boundary, dimension)
 
+        number_mp = 2**dimension
+
         # Create initial mesh element and nodes
         sub_mp = initial_mesh_model_part.CreateSubModelPart("test")
-        sub_mp.GetProperties()[1].SetValue(KratosMPM.MATERIAL_POINTS_PER_ELEMENT, 4)
+        sub_mp.GetProperties()[1].SetValue(KratosMPM.MATERIAL_POINTS_PER_ELEMENT, number_mp)
         self._create_nodes(sub_mp, dimension)
         self._create_elements(sub_mp,dimension)
 
