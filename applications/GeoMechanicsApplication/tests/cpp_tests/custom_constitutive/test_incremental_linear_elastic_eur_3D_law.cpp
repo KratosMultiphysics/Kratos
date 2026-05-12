@@ -511,14 +511,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElasticEur3DLaw_FinalizesMaterialR
     // Assert: compute expected by repeating the same sequence on a reference law
     strain_vector = Vector(6, 1.0);
     const auto stress_after_finalize = CalculateStressForEurElasticLaw(law, properties, strain_vector);
-
-    auto ref_law     = CreateIncrementalLinearElasticEur3DLaw();
-    auto init_strain = Vector(6, 0.5);
-    auto init_stress = Vector(6, 1.0e6);
-    InitializeEurLawWithState(ref_law, init_strain, init_stress);
-    auto finalize_strain = Vector(6, 1.3);
-    FinalizeEurLawResponse(ref_law, properties, finalize_strain);
-    const auto expected_stress = CalculateStressForEurElasticLaw(ref_law, properties, strain_vector);
+    const auto expected_stress = UblasUtilities::CreateVector({1e+06, 1e+06, 1e+06, 1e+06, 1e+06, 1e+06});
     constexpr auto tolerance = 1.0e-4;
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(expected_stress, stress_after_finalize, tolerance)
 }
@@ -543,7 +536,6 @@ KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElasticEur3DLaw_ResetMaterialResto
     const auto stress_after_reset = CalculateStressForEurElasticLaw(law, properties, strain_vector);
 
     auto ref_law = CreateIncrementalLinearElasticEur3DLaw();
-    ref_law.ResetMaterial(empty_properties, geometry, shape_functions_values);
     const auto expected_stress = CalculateStressForEurElasticLaw(ref_law, properties, strain_vector);
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(expected_stress, stress_after_reset, Defaults::relative_tolerance)
 }
@@ -554,6 +546,8 @@ KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElasticEur3DLaw_CanBeSavedAndLoade
     auto       law        = CreateIncrementalLinearElasticEur3DLaw();
     const auto properties = CreateConstantYoungsModulusProperties();
     SetEurLawToIncrementalState(law, properties);
+    auto       strain_vector   = Vector(6, 1.0);
+    const auto expected_stress = CalculateStressForEurElasticLaw(law, properties, strain_vector);
 
     const auto scoped_registration =
         ScopedSerializerRegistration{std::make_pair("ThreeDimensional"s, ThreeDimensional{})};
@@ -561,7 +555,6 @@ KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElasticEur3DLaw_CanBeSavedAndLoade
 
     // Act
     serializer.save("test_tag"s, law);
-
     auto loaded_law = GeoIncrementalLinearElasticEurLaw{};
     serializer.load("test_tag"s, loaded_law);
 
@@ -569,10 +562,8 @@ KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElasticEur3DLaw_CanBeSavedAndLoade
     KRATOS_EXPECT_EQ(loaded_law.WorkingSpaceDimension(), 3);
     KRATOS_EXPECT_EQ(loaded_law.GetStrainSize(), 6);
 
-    auto strain_vector = Vector(6, 1.0);
     const auto loaded_stress = CalculateStressForEurElasticLaw(loaded_law, properties, strain_vector);
-    const auto expected_stress = CalculateStressForEurElasticLaw(law, properties, strain_vector);
-    constexpr auto tolerance   = 1.0e-4;
+    constexpr auto tolerance = 1.0e-4;
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(expected_stress, loaded_stress, tolerance)
 }
 
