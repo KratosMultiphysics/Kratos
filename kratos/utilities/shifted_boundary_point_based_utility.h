@@ -79,7 +79,7 @@ namespace ShiftedBoundaryUtilityInternals {
  * in the Shifted Boundary Method Without Taylor Expansions allowing for a discontinuous interface (thin-walled structure),
  * which is defined by points on the surface of the interface (e.g. IGA integration points).
  */
-class KRATOS_API(KRATOS_CORE) ShiftedBoundaryPointBasedInterfaceUtility
+class KRATOS_API(KRATOS_CORE) ShiftedBoundaryPointBasedUtility
 {
 public:
 
@@ -121,8 +121,8 @@ public:
     ///@}
     ///@name Pointer Definitions
 
-    /// Pointer definition of ShiftedBoundaryPointBasedInterfaceUtility
-    KRATOS_CLASS_POINTER_DEFINITION(ShiftedBoundaryPointBasedInterfaceUtility);
+    /// Pointer definition of ShiftedBoundaryPointBasedUtility
+    KRATOS_CLASS_POINTER_DEFINITION(ShiftedBoundaryPointBasedUtility);
 
     ///@}
     ///@name Life Cycle
@@ -131,19 +131,19 @@ public:
     /// @brief Standard constructor
     /// @param rModel Model container
     /// @param ThisParameters Parameters object encapsulating the settings
-    ShiftedBoundaryPointBasedInterfaceUtility(
+    ShiftedBoundaryPointBasedUtility(
         Model& rModel,
         Parameters ThisParameters);
 
     /// Copy constructor.
-    ShiftedBoundaryPointBasedInterfaceUtility(ShiftedBoundaryPointBasedInterfaceUtility const& rOther) = delete;
+    ShiftedBoundaryPointBasedUtility(ShiftedBoundaryPointBasedUtility const& rOther) = delete;
 
     ///@}
     ///@name Operators
     ///@{
 
     /// Assignment operator.
-    ShiftedBoundaryPointBasedInterfaceUtility& operator=(ShiftedBoundaryPointBasedInterfaceUtility const& rOther) = delete;
+    ShiftedBoundaryPointBasedUtility& operator=(ShiftedBoundaryPointBasedUtility const& rOther) = delete;
 
     ///@}
     ///@name Operations
@@ -196,9 +196,6 @@ public:
     void CalculateVariablesAtSkinPointsAndNodesTemplated();
     void CalculateVariablesAtSkinPointsAndNodes();
 
-    //TODO
-    void CalculateExtensionError();
-
     ///@}
     ///@name Access
     ///@{
@@ -216,13 +213,13 @@ public:
     /// Turn back information as a string.
     std::string Info() const
     {
-        return "ShiftedBoundaryPointBasedInterfaceUtility";
+        return "ShiftedBoundaryPointBasedUtility";
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const
     {
-        rOStream << "ShiftedBoundaryPointBasedInterfaceUtility";
+        rOStream << "ShiftedBoundaryPointBasedUtility";
     }
 
     /// Print object's data.
@@ -279,7 +276,7 @@ protected:
     bool mAddedRightEdge = false;
 
     /// @brief Protected empty constructor for derived classes
-    //ShiftedBoundaryPointBasedInterfaceUtility() {}
+    //ShiftedBoundaryPointBasedUtility() {}
 
     ///@}
     ///@name Protected Operators
@@ -448,28 +445,6 @@ protected:
         Vector& rPositiveSideUnknowns,
         Vector& rNegativeSideUnknowns);
 
-    //TODO
-    // Calculate positive and negative side pressure inside a given SBM_BOUNDARY element using given shape function values.
-    // returns true if pressure of point was calculated successfully
-    //TODO rename to CalculatePressureInsideSplitElement ?
-    // bool CalculatePressureAtSplitElementSkinPoint(
-    //     const ElementType::Pointer pElement,
-    //     const Vector& rPointShapeFunctionValues,
-    //     double& rPositiveSidePressure,
-    //     double& rNegativeSidePressure);
-
-    // bool CalculatePressureGradientAtSplitElementSkinPoint(
-    //     const ElementType::Pointer pElement,
-    //     const Matrix& rPointShapeFunctionDerivatives,
-    //     Vector& rPositiveSidePressureGradient,
-    //     Vector& rNegativeSidePressureGradient);
-
-    // bool CalculateVelocityAtSplitElementSkinPoint(
-    //     const ElementType::Pointer pElement,
-    //     const Vector& rPointShapeFunctionValues,
-    //     array_1d<double,3>& rPositiveSideVelocity,
-    //     array_1d<double,3>& rNegativeSideVelocity);
-
     /**
      * @brief Get the MLS shape functions factory object
      * This function returns a prototype for the MLS shape functions calculation
@@ -527,6 +502,6 @@ protected:
     ///@{
 
     ///@}
-}; // Class ShiftedBoundaryPointBasedInterfaceUtility
+}; // Class ShiftedBoundaryPointBasedUtility
 
 }  // namespace Kratos.

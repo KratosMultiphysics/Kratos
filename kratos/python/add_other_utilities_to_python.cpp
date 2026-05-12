@@ -65,7 +65,7 @@
 #include "utilities/communication_coloring_utilities.h"
 #include "utilities/model_part_graph_utilities.h"
 #include "utilities/shifted_boundary_meshless_interface_utility.h"
-#include "utilities/shifted_boundary_point_based_interface_utility.h"
+#include "utilities/shifted_boundary_point_based_utility.h"
 #include "utilities/particles_utilities.h"
 #include "utilities/string_utilities.h"
 #include "utilities/model_part_operation_utilities.h"
@@ -74,7 +74,7 @@
 namespace Kratos::Python {
 
 /**
- * @brief A thin wrapper for GetSortedListOfFileNameData. 
+ * @brief A thin wrapper for GetSortedListOfFileNameData.
  * @note The reason for having the wrapper is to replace the original lambda implementation as it causes gcc 4.8 to generate bad code on Centos7 which leads to memory corruption.
  * @todo Now that Centos support is dropped this cna be removed
  */
@@ -819,18 +819,17 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def("CalculateExtensionOperator", &ShiftedBoundaryMeshlessInterfaceUtility::CalculateExtensionOperator)
     ;
 
-    py::class_<ShiftedBoundaryPointBasedInterfaceUtility, ShiftedBoundaryPointBasedInterfaceUtility::Pointer>(m,"ShiftedBoundaryPointBasedInterfaceUtility")
+    py::class_<ShiftedBoundaryPointBasedUtility, ShiftedBoundaryPointBasedUtility::Pointer>(m,"ShiftedBoundaryPointBasedUtility")
         .def(py::init<Model&, Parameters>())
-        .def("CalculateAndAddPointBasedInterface", &ShiftedBoundaryPointBasedInterfaceUtility::CalculateAndAddPointBasedInterface, py::arg("deactivate_unstable_clusters"))
-        .def("ResetFlags", &ShiftedBoundaryPointBasedInterfaceUtility::ResetFlags)
-        .def("SetTessellatedBoundaryFlagsAndRelocateSmallDistanceNodes", &ShiftedBoundaryPointBasedInterfaceUtility::SetTessellatedBoundaryFlagsAndRelocateSmallDistanceNodes)
-        .def("LocateSkinPoints", &ShiftedBoundaryPointBasedInterfaceUtility::LocateSkinPoints)
-        .def("SetInterfaceFlags", &ShiftedBoundaryPointBasedInterfaceUtility::SetInterfaceFlags)
-        .def("DeactivateElementsAndNodes", &ShiftedBoundaryPointBasedInterfaceUtility::DeactivateElementsAndNodes, py::arg("deactivate_unstable_clusters"))
-        .def("CalculateAndAddSkinIntegrationPointConditions", &ShiftedBoundaryPointBasedInterfaceUtility::CalculateAndAddSkinIntegrationPointConditions)
-        .def("CalculateVariablesAtSkinPoints", &ShiftedBoundaryPointBasedInterfaceUtility::CalculateVariablesAtSkinPoints)
-        .def("CalculateVariablesAtSkinPointsAndNodes", &ShiftedBoundaryPointBasedInterfaceUtility::CalculateVariablesAtSkinPointsAndNodes)
-        .def("CalculateExtensionError", &ShiftedBoundaryPointBasedInterfaceUtility::CalculateExtensionError)
+        .def("CalculateAndAddPointBasedInterface", &ShiftedBoundaryPointBasedUtility::CalculateAndAddPointBasedInterface, py::arg("deactivate_unstable_clusters"))
+        .def("ResetFlags", &ShiftedBoundaryPointBasedUtility::ResetFlags)
+        .def("SetTessellatedBoundaryFlagsAndRelocateSmallDistanceNodes", &ShiftedBoundaryPointBasedUtility::SetTessellatedBoundaryFlagsAndRelocateSmallDistanceNodes)
+        .def("LocateSkinPoints", &ShiftedBoundaryPointBasedUtility::LocateSkinPoints)
+        .def("SetInterfaceFlags", &ShiftedBoundaryPointBasedUtility::SetInterfaceFlags)
+        .def("DeactivateElementsAndNodes", &ShiftedBoundaryPointBasedUtility::DeactivateElementsAndNodes, py::arg("deactivate_unstable_clusters"))
+        .def("CalculateAndAddSkinIntegrationPointConditions", &ShiftedBoundaryPointBasedUtility::CalculateAndAddSkinIntegrationPointConditions)
+        .def("CalculateVariablesAtSkinPoints", &ShiftedBoundaryPointBasedUtility::CalculateVariablesAtSkinPoints)
+        .def("CalculateVariablesAtSkinPointsAndNodes", &ShiftedBoundaryPointBasedUtility::CalculateVariablesAtSkinPointsAndNodes)
     ;
 
     m.def_submodule("StringUtilities", "Free-floating utility functions for string manipulation.")

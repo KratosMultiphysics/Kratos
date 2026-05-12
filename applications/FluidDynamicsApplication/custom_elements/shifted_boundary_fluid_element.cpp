@@ -385,7 +385,7 @@ const Parameters ShiftedBoundaryFluidElement<TBaseElement>::GetSpecifications() 
             "nodal_non_historical"   : ["EMBEDDED_VELOCITY"],
             "entity"                 : []
         },
-        "required_variables"         : ["VELOCITY","PRESSURE","MESH_VELOCITY","MESH_DISPLACEMENT"],  //NOTE necessary for (dis-)continuous level set: "DISTANCE"
+        "required_variables"         : ["VELOCITY","PRESSURE","MESH_VELOCITY","MESH_DISPLACEMENT","DISTANCE"],
         "required_dofs"              : [],
         "flags_used"                 : [],
         "compatible_geometries"      : ["Triangle2D3","Tetrahedra3D4"],
