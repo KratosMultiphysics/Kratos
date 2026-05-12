@@ -107,6 +107,8 @@ class TestMPMWriteEnergyOutputProcess(KratosUnittest.TestCase):
         output_process = mpm_write_energy_output_process.Factory(mpm_write_energy_output_parameters, self.model)
 
         mpm_model_part = self.model.GetModelPart("MPMModelPart")
+        mpm_model_part.ProcessInfo[KratosMultiphysics.STEP] = 0
+        mpm_model_part.ProcessInfo[KratosMultiphysics.TIME] = 0.0
         time = 0.0
         dt = 0.2
         step = 0

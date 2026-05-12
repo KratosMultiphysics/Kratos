@@ -25,7 +25,6 @@ class MPMWriteEnergyOutputProcess(KratosMultiphysics.OutputProcess):
 
         self.output_file = None
         self.format = self.params["print_format"].GetString()
-        self.controller = KratosMultiphysics.OutputController(self.model, self.params)
 
         # Getting the ModelPart from the Model
         self.model_part_name = self.params["model_part_name"].GetString()
@@ -33,6 +32,12 @@ class MPMWriteEnergyOutputProcess(KratosMultiphysics.OutputProcess):
             raise Exception('No "model_part_name" was specified!')
         elif self.model_part_name.startswith('Background_Grid'):
             self.model_part_name = self.model_part_name.replace('Background_Grid','MPM_Material')
+        elif self.model_part_name.startswith('Initial_MPM_Material.'):
+            self.model_part_name = self.model_part_name.replace('Initial_','')
+
+        controller_settings = self.params.Clone()
+        controller_settings["model_part_name"].SetString(self.model_part_name)
+        self.controller = KratosMultiphysics.OutputController(self.model, controller_settings)
 
     @staticmethod
     def GetDefaultParameters():
@@ -45,6 +50,7 @@ class MPMWriteEnergyOutputProcess(KratosMultiphysics.OutputProcess):
         }''')
 
     def ExecuteBeforeSolutionLoop(self):
+        self.controller.Check()
         self.model_part = self.model[self.model_part_name]
         file_handler_params = KratosMultiphysics.Parameters(self.params["output_file_settings"])
 
