@@ -221,17 +221,16 @@ double GeoIncrementalLinearElasticEurLaw::CalculateStressDependentYoungsModulus(
     const auto stress_shift =
         rProperties[GEO_COHESION] * std::cos(friction_angle_rad) / std::sin(friction_angle_rad);
 
-    const auto exp_value =
+    const auto base =
         (stress_shift - CalculateMinorPrincipalEffectiveStress()) / (stress_shift + reference_pressure);
 
-    KRATOS_ERROR_IF_NOT(exp_value > epsilon)
+    KRATOS_ERROR_IF_NOT(base > epsilon)
         << "GeoIncrementalLinearElasticEurLaw::CalculateStressDependentYoungsModulus expects a "
-           "positive "
-           "base for std::pow (exp_value > epsilon). Computed exp_value="
-        << exp_value << " <= epsilon="
+           "positive base for std::pow (base > epsilon). Computed base="
+        << base << " <= epsilon="
         << epsilon << ". Check GEO_COHESION, GEO_FRICTION_ANGLE, REFERENCE_HARDENING_MODULUS and the finalized stress state.\n";
 
-    return eur_ref * std::pow(exp_value, exponent);
+    return eur_ref * std::pow(base, exponent);
 }
 
 void GeoIncrementalLinearElasticEurLaw::save(Serializer& rSerializer) const
