@@ -98,7 +98,8 @@ Vector CalculateStressForEurElasticLaw(GeoIncrementalLinearElasticEurLaw& rLaw,
     return stress_vector;
 }
 
-double CalculateConstitutiveNormalDiagonal(GeoIncrementalLinearElasticEurLaw& rLaw, const Properties& rProperties)
+double CalculateConstitutiveNormalDiagonalAtZeroStrain(GeoIncrementalLinearElasticEurLaw& rLaw,
+                                                       const Properties& rProperties)
 {
     auto strain_vector = Vector(6, 0.0);
     return CalculateConstitutiveMatrixForEurElasticLaw(rLaw, rProperties, strain_vector)(0, 0);
@@ -125,7 +126,7 @@ void FinalizeEurLawResponse(GeoIncrementalLinearElasticEurLaw& rLaw, const Prope
     parameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
     parameters.SetStrainVector(rStrainVector);
 
-    auto stress_vector = Vector{ScalarVector{rStrainVector.size(), 0.0}};
+    auto stress_vector = Vector(rStrainVector.size(), 0.0);
     parameters.SetStressVector(stress_vector);
 
     Matrix constitutive_matrix;
@@ -157,67 +158,63 @@ KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElasticEur3DLaw_CopyConstructorCop
     auto       law        = CreateIncrementalLinearElasticEur3DLaw();
     const auto properties = CreateConstantYoungsModulusProperties();
     SetEurLawToIncrementalState(law, properties);
+    auto       strain = Vector(6, 1.0);
+    const auto stress = CalculateStressForEurElasticLaw(law, properties, strain);
 
-    auto copied_law    = GeoIncrementalLinearElasticEurLaw{law};
-    auto strain_vector = Vector(6, 1.0);
-    const auto stress_from_copied_law = CalculateStressForEurElasticLaw(copied_law, properties, strain_vector);
+    auto copied_law = GeoIncrementalLinearElasticEurLaw{law};
 
-    const Properties     empty_properties;
-    const Geometry<Node> geometry;
-    const Vector         shape_functions_values;
-
-    // Compute expected stress from the original law BEFORE resetting it
-    strain_vector = Vector(6, 1.0);
-    auto expected_stress_from_original = CalculateStressForEurElasticLaw(law, properties, strain_vector);
-
+    const auto empty_properties       = Properties{};
+    const auto geometry               = Geometry<Node>{};
+    const auto shape_functions_values = Vector{};
     law.ResetMaterial(empty_properties, geometry, shape_functions_values);
-    const auto original_stress_after_reset = CalculateStressForEurElasticLaw(law, properties, strain_vector);
+    const auto stress_after_reset = CalculateStressForEurElasticLaw(law, properties, strain);
 
+    // Act
+    const auto stress_from_copied_law = CalculateStressForEurElasticLaw(copied_law, properties, strain);
+
+    // Assert
     constexpr auto tolerance = 1.0e-4;
-    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(expected_stress_from_original, stress_from_copied_law, tolerance)
-
-    // After resetting the original, its stress should differ from the copied one
-    KRATOS_EXPECT_FALSE((std::abs((original_stress_after_reset[0] - expected_stress_from_original[0]) /
-                                  expected_stress_from_original[0]) <= tolerance))
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(stress, stress_from_copied_law, tolerance)
+    KRATOS_EXPECT_FALSE((std::abs((stress_after_reset[0] - stress[0]) / stress[0]) <= tolerance))
 }
 
 KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElasticEur3DLaw_CopyAssignmentCopiesInternalState,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
+    // Act
     auto       law        = CreateIncrementalLinearElasticEur3DLaw();
     const auto properties = CreateConstantYoungsModulusProperties();
     SetEurLawToIncrementalState(law, properties);
+    auto strain = Vector(6, 1.0);
+    auto stress = CalculateStressForEurElasticLaw(law, properties, strain);
 
     auto assigned_law = CreateIncrementalLinearElasticEur3DLaw();
     assigned_law      = law;
 
-    auto strain_vector = Vector(6, 1.0);
-    const auto assigned_stress = CalculateStressForEurElasticLaw(assigned_law, properties, strain_vector);
-
-    const Properties     empty_properties;
-    const Geometry<Node> geometry;
-    const Vector         shape_functions_values;
-
-    // Compute expected stress from the original law BEFORE resetting it
-    strain_vector = Vector(6, 1.0);
-    auto expected_assigned_from_original = CalculateStressForEurElasticLaw(law, properties, strain_vector);
-
+    const auto empty_properties       = Properties{};
+    const auto geometry               = Geometry<Node>{};
+    const auto shape_functions_values = Vector{};
     law.ResetMaterial(empty_properties, geometry, shape_functions_values);
-    const auto original_stress_after_reset = CalculateStressForEurElasticLaw(law, properties, strain_vector);
+    const auto stress_after_reset = CalculateStressForEurElasticLaw(law, properties, strain);
 
+    // Act
+    const auto stress_assigned_law = CalculateStressForEurElasticLaw(assigned_law, properties, strain);
+
+    // Assert
     constexpr auto tolerance = 1.0e-4;
-    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(expected_assigned_from_original, assigned_stress, tolerance)
-    KRATOS_EXPECT_FALSE((std::abs((original_stress_after_reset[0] - expected_assigned_from_original[0]) /
-                                  expected_assigned_from_original[0]) <= tolerance))
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(stress, stress_assigned_law, tolerance)
+    KRATOS_EXPECT_FALSE((std::abs((stress_after_reset[0] - stress[0]) / stress[0]) <= tolerance))
 }
 
 KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElasticEur3DLaw_CloneReturnsCopyOfCorrectType,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
+    // Act
     auto       law        = CreateIncrementalLinearElasticEur3DLaw();
     const auto properties = CreateConstantYoungsModulusProperties();
     SetEurLawToIncrementalState(law, properties);
 
+    // Act and Assert
     const auto p_clone = law.Clone();
     KRATOS_EXPECT_NE(&law, p_clone.get());
 
@@ -225,11 +222,11 @@ KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElasticEur3DLaw_CloneReturnsCopyOf
     ASSERT_NE(p_typed_clone, nullptr);
 
     auto strain_vector = Vector(6, 1.0);
-    const auto clone_stress = CalculateStressForEurElasticLaw(*p_typed_clone, properties, strain_vector);
+    const auto stress_from_clone = CalculateStressForEurElasticLaw(*p_typed_clone, properties, strain_vector);
     // The clone should produce the same stress as the original prior to any resets
     auto expected_stress_from_original = CalculateStressForEurElasticLaw(law, properties, strain_vector);
     constexpr auto tolerance = 1.0e-4;
-    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(expected_stress_from_original, clone_stress, tolerance)
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(expected_stress_from_original, stress_from_clone, tolerance)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElasticEur3DLaw_ReturnsTrueForStenbergShearStabilizationSuitability,
@@ -413,7 +410,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElasticEur3DLaw_ReturnsExpectedDia
     auto law = CreateIncrementalLinearElasticEur3DLaw();
 
     ConstitutiveLaw::Parameters parameters;
-    auto                        strain = Vector{ScalarVector{6, 0.0}};
+    auto                        strain = Vector(6, 0.0);
     parameters.SetStrainVector(strain);
 
     auto properties = CreateMaterialPropertiesForEurElasticLaw();
@@ -448,7 +445,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElasticEur3DLaw_ScalesDiagonalEntr
     InitializeEurLawWithFinalizedStress(law, initial_stress);
 
     // Act
-    const auto diagonal_entry = CalculateConstitutiveNormalDiagonal(law, properties);
+    const auto diagonal_entry = CalculateConstitutiveNormalDiagonalAtZeroStrain(law, properties);
 
     // Assert
     const auto eur_ref            = properties[YOUNG_MODULUS];
@@ -480,7 +477,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElasticEur3DLaw_UsesReferencePress
     InitializeEurLawWithFinalizedStress(law, low_confinement_stress);
 
     // Act
-    const auto diagonal_entry = CalculateConstitutiveNormalDiagonal(law, properties);
+    const auto diagonal_entry = CalculateConstitutiveNormalDiagonalAtZeroStrain(law, properties);
 
     // Assert
     // Compute expected using the production formula (no artificial bounding)
@@ -511,7 +508,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElasticEur3DLaw_AccountsForStressS
     InitializeEurLawWithFinalizedStress(law, stress_state);
 
     // Act
-    const auto diagonal_entry = CalculateConstitutiveNormalDiagonal(law, properties);
+    const auto diagonal_entry = CalculateConstitutiveNormalDiagonalAtZeroStrain(law, properties);
 
     // Assert
     const auto phi_rad      = properties[GEO_FRICTION_ANGLE] * std::numbers::pi / 180.0;
