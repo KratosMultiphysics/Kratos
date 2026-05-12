@@ -485,7 +485,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
                 )
 
             fem_comparison_csv = (
-                Path(project_path) / f"{stage['base_name']}_wall_comparison.csv"
+                Path(project_path) / f"{stage['base_name']}__FE_comparison_wall.csv"
             )
             if fem_comparison_csv.exists():
                 fem_comparison_variable = test_helper.get_data_points_from_file(
@@ -552,10 +552,10 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             ]
 
             if (
-                Path(project_path) / f"{stage['base_name']}_wall_comparison.csv"
+                Path(project_path) / f"{stage['base_name']}__FE_comparison_wall.csv"
             ).exists():
                 comparison_variable = test_helper.get_data_points_from_file(
-                    Path(project_path) / f"{stage['base_name']}_wall_comparison.csv",
+                    Path(project_path) / f"{stage['base_name']}__FE_comparison_wall.csv",
                     data_extractor,
                 )
                 data_series_collection.append(
