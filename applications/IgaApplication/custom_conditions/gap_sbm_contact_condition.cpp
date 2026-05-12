@@ -104,6 +104,7 @@ void GapSbmContactCondition::InitializeMemberVariables()
 
 
     mPenalty = GetProperties()[PENALTY_FACTOR];
+    UpdateActiveSetCriterionData();
 }
 
 void GapSbmContactCondition::InitializeSbmMemberVariables()
@@ -242,7 +243,6 @@ void GapSbmContactCondition::CalculateLeftHandSide(
 
     // reading integration points and local gradients
     const std::size_t mat_size_master = number_of_control_points_master * mDim;
-    const std::size_t mat_size_slave = number_of_control_points_slave * mDim;
     const std::size_t mat_size = (number_of_control_points_master + number_of_control_points_slave) * mDim;
     const double integration_weight = GetValue(INTEGRATION_WEIGHT);
 
@@ -250,11 +250,6 @@ void GapSbmContactCondition::CalculateLeftHandSide(
     if(rLeftHandSideMatrix.size1() != mat_size)
         rLeftHandSideMatrix.resize(mat_size,mat_size,false);
     noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size,mat_size); //resetting LHS
-
-    if (this->GetValue(ACTIVATION_LEVEL) != 3)
-    {
-        return;
-    }
 
     // /*****************
     const auto& r_surrogate_geometry = *this->GetValue(NEIGHBOUR_GEOMETRIES)[0];
@@ -361,129 +356,145 @@ void GapSbmContactCondition::CalculateLeftHandSide(
     // ASSEMBLE
     const std::size_t shift_dof = mat_size_master;
     //-----------------------------------------------------
-    // MASTER
-    for (IndexType i = 0; i < number_of_control_points_master; i++) {
-        for (IndexType idim = 0; idim < 2; idim++) {
-            const int id1 = 2*idim;
-            const int iglob = 2*i+idim;
+    if (this->GetValue(ACTIVATION_LEVEL) != 3)
+    {
+        // MASTER
+        for (IndexType i = 0; i < number_of_control_points_master; i++) {
+            for (IndexType idim = 0; idim < 2; idim++) {
+                const int id1 = 2*idim;
+                const int iglob = 2*i+idim;
 
-            Vector extended_sigma_w_n = ZeroVector(3);
-            extended_sigma_w_n[0] = (DB_sum_master(0, iglob)* mNormalPhysicalSpaceMaster[0] + DB_sum_master(2, iglob)* mNormalPhysicalSpaceMaster[1]);
-            extended_sigma_w_n[1] = (DB_sum_master(2, iglob)* mNormalPhysicalSpaceMaster[0] + DB_sum_master(1, iglob)* mNormalPhysicalSpaceMaster[1]);
+                Vector extended_sigma_w_n = ZeroVector(3);
+                extended_sigma_w_n[0] = (DB_sum_master(0, iglob)* mNormalPhysicalSpaceMaster[0] + DB_sum_master(2, iglob)* mNormalPhysicalSpaceMaster[1]);
+                extended_sigma_w_n[1] = (DB_sum_master(2, iglob)* mNormalPhysicalSpaceMaster[0] + DB_sum_master(1, iglob)* mNormalPhysicalSpaceMaster[1]);
 
-            const double extended_sigma_w_n_dot_n = extended_sigma_w_n[0]*mNormalPhysicalSpaceMaster[0] + extended_sigma_w_n[1]*mNormalPhysicalSpaceMaster[1];
-            for (IndexType j = 0; j < number_of_control_points_master; j++) {
-                for (IndexType jdim = 0; jdim < 2; jdim++) {
-                    const int id2 = (id1+2)%3;
-                    const int jglob = 2*j+jdim;
+                const double extended_sigma_w_n_dot_n = extended_sigma_w_n[0]*mNormalPhysicalSpaceMaster[0] + extended_sigma_w_n[1]*mNormalPhysicalSpaceMaster[1];
+                for (IndexType j = 0; j < number_of_control_points_master; j++) {
+                    for (IndexType jdim = 0; jdim < 2; jdim++) {
+                        const int jglob = 2*j+jdim;
 
-                    // PENALTY TERM
-                    rLeftHandSideMatrix(iglob, jglob) += N_sum_vec_master(i)*N_sum_vec_master(j)* 
-                                                         mNormalPhysicalSpaceMaster[idim] * mNormalPhysicalSpaceMaster[jdim] * penalty_integration;
+                        Vector extension_sigma_u_n(2);
+                        extension_sigma_u_n[0] = (DB_sum_master(0, jglob)* mNormalPhysicalSpaceMaster[0] + DB_sum_master(2, jglob)* mNormalPhysicalSpaceMaster[1]);
+                        extension_sigma_u_n[1] = (DB_sum_master(2, jglob)* mNormalPhysicalSpaceMaster[0] + DB_sum_master(1, jglob)* mNormalPhysicalSpaceMaster[1]);
 
-                    Vector extension_sigma_u_n(2);
-                    extension_sigma_u_n[0] = (DB_sum_master(0, jglob)* mNormalPhysicalSpaceMaster[0] + DB_sum_master(2, jglob)* mNormalPhysicalSpaceMaster[1]);
-                    extension_sigma_u_n[1] = (DB_sum_master(2, jglob)* mNormalPhysicalSpaceMaster[0] + DB_sum_master(1, jglob)* mNormalPhysicalSpaceMaster[1]);
-
-                    const double extension_sigma_u_n_dot_n = extension_sigma_u_n[0]*mNormalPhysicalSpaceMaster[0] + extension_sigma_u_n[1]*mNormalPhysicalSpaceMaster[1];
-
-                    // FLUX 
-                    // -[sigma(u) \dot n] \dot n * (w1 \dot n1 ....           + w2 \dot n2)
-                    //*********************************************** */
-                    rLeftHandSideMatrix(iglob, jglob) -= extension_sigma_u_n_dot_n * N_sum_vec_master(i) * mNormalPhysicalSpaceMaster[idim] * integration_weight;
-
-                    // // PENALTY FREE FOR NON PENETRABILITY g_n = 0
-                    // // [\sigma_1(w) \dot n] \dot n (u_1 \dot n1 + u_2 \dot n2)
-                    // //*********************************************** */
-                    rLeftHandSideMatrix(iglob, jglob) -= mNitschePenalty *extended_sigma_w_n_dot_n
-                                                         * (N_sum_vec_master(j) * mNormalPhysicalSpaceMaster[jdim]) * integration_weight;
-
-
-                    // // FIXME: extra term 1/penalty * sigma(u) * sigma(v)
-                    // rLeftHandSideMatrix(iglob, jglob) += extension_sigma_u_n_dot_n * extended_sigma_w_n_dot_n
-                    //                                      * integration_weight / penalty; 
-
-                }
-            }
-
-            // SLAVE NON PENETRABILITY PART
-            for (IndexType j = 0; j < number_of_control_points_slave; j++) {
-                for (IndexType jdim = 0; jdim < 2; jdim++) {
-                    const int id2 = (id1+2)%3;
-                    const int jglob = 2*j+jdim + shift_dof;
-
-                    // PENALTY TERM
-                    rLeftHandSideMatrix(iglob, jglob) += N_sum_vec_master(i)*N_sum_vec_slave(j)*
-                                                         mNormalPhysicalSpaceMaster[idim] * (-mNormalPhysicalSpaceMaster[jdim]) * penalty_integration;
-
-                    // // // PENALTY FREE FOR NON PENETRABILITY g_n = 0
-                    // // // [\sigma_1(w) \dot n] \dot n (u_1 \dot n1 + u_2 \dot n2)
-                    // // //*********************************************** */
-                    rLeftHandSideMatrix(iglob, jglob) -= mNitschePenalty *extended_sigma_w_n_dot_n
-                                                         * (N_sum_vec_slave(j) * (-mNormalPhysicalSpaceMaster[jdim])) * integration_weight;
+                        const double extension_sigma_u_n_dot_n = extension_sigma_u_n[0]*mNormalPhysicalSpaceMaster[0] + extension_sigma_u_n[1]*mNormalPhysicalSpaceMaster[1];
+                        
+                        // // stabilization term 1/penalty * sigma(u) * sigma(v)
+                        rLeftHandSideMatrix(iglob, jglob) += extension_sigma_u_n_dot_n * extended_sigma_w_n_dot_n
+                                                             * integration_weight / penalty; 
+                    }
                 }
 
             }
         }
     }
+    else //ACTIVE PART
+    {
+        //-----------------------------------------------------
+        // MASTER
+        for (IndexType i = 0; i < number_of_control_points_master; i++) {
+            for (IndexType idim = 0; idim < 2; idim++) {
+                const int id1 = 2*idim;
+                const int iglob = 2*i+idim;
 
-    //SLAVE
-    for (IndexType i = 0; i < number_of_control_points_slave; i++) {
-        for (IndexType idim = 0; idim < 2; idim++) {
-            const int id1 = 2*idim;
-            const int iloc = 2*i+idim;
-            const int iglob = 2*i+idim + shift_dof;
+                Vector extended_sigma_w_n = ZeroVector(3);
+                extended_sigma_w_n[0] = (DB_sum_master(0, iglob)* mNormalPhysicalSpaceMaster[0] + DB_sum_master(2, iglob)* mNormalPhysicalSpaceMaster[1]);
+                extended_sigma_w_n[1] = (DB_sum_master(2, iglob)* mNormalPhysicalSpaceMaster[0] + DB_sum_master(1, iglob)* mNormalPhysicalSpaceMaster[1]);
+
+                const double extended_sigma_w_n_dot_n = extended_sigma_w_n[0]*mNormalPhysicalSpaceMaster[0] + extended_sigma_w_n[1]*mNormalPhysicalSpaceMaster[1];
+                for (IndexType j = 0; j < number_of_control_points_master; j++) {
+                    for (IndexType jdim = 0; jdim < 2; jdim++) {
+                        const int jglob = 2*j+jdim;
+
+                        // AUGMENTED LAGRANGIAN PENALTY TERM
+                        rLeftHandSideMatrix(iglob, jglob) += N_sum_vec_master(i)*N_sum_vec_master(j)* 
+                                                            mNormalPhysicalSpaceMaster[idim] * mNormalPhysicalSpaceMaster[jdim] * penalty_integration;
+
+                        Vector extension_sigma_u_n(2);
+                        extension_sigma_u_n[0] = (DB_sum_master(0, jglob)* mNormalPhysicalSpaceMaster[0] + DB_sum_master(2, jglob)* mNormalPhysicalSpaceMaster[1]);
+                        extension_sigma_u_n[1] = (DB_sum_master(2, jglob)* mNormalPhysicalSpaceMaster[0] + DB_sum_master(1, jglob)* mNormalPhysicalSpaceMaster[1]);
+
+                        const double extension_sigma_u_n_dot_n = extension_sigma_u_n[0]*mNormalPhysicalSpaceMaster[0] + extension_sigma_u_n[1]*mNormalPhysicalSpaceMaster[1];
+                        
+                        // AUGMENTED LAGRANGIAN STRESS TERM
+                        rLeftHandSideMatrix(iglob, jglob) -= extension_sigma_u_n_dot_n
+                                                            * N_sum_vec_master(i)
+                                                            * mNormalPhysicalSpaceMaster[idim]
+                                                            * integration_weight;
 
 
-            for (IndexType j = 0; j < number_of_control_points_master; j++) {
-                for (IndexType jdim = 0; jdim < 2; jdim++) {
-                    const int id2 = (id1+2)%3;
-                    const int jglob = 2*j+jdim;
-
-                    Vector extension_sigma_u_n(2);
-                    extension_sigma_u_n[0] = (DB_sum_master(0, jglob)* mNormalPhysicalSpaceMaster[0] + DB_sum_master(2, jglob)* mNormalPhysicalSpaceMaster[1]);
-                    extension_sigma_u_n[1] = (DB_sum_master(2, jglob)* mNormalPhysicalSpaceMaster[0] + DB_sum_master(1, jglob)* mNormalPhysicalSpaceMaster[1]);
-
-                    const double extension_sigma_u_n_dot_n = extension_sigma_u_n[0]*mNormalPhysicalSpaceMaster[0] + extension_sigma_u_n[1]*mNormalPhysicalSpaceMaster[1];
-
-                    // FLUX 
-                    // -[sigma(u) \dot n] \dot n * (w1 \dot n1 ....           + w2 \dot n2)
-                    //*********************************************** */
-                    rLeftHandSideMatrix(iglob, jglob) -= extension_sigma_u_n_dot_n * N_sum_vec_slave(i) * (-mNormalPhysicalSpaceMaster[idim]) * integration_weight;
+                        // // PENALTY FREE FOR NON PENETRABILITY g_n = 0
+                        // // [\sigma_1(w) \dot n] \dot n (u_1 \dot n1 + u_2 \dot n2)
+                        // //*********************************************** */
+                        rLeftHandSideMatrix(iglob, jglob) -= mNitschePenalty *extended_sigma_w_n_dot_n
+                                                            * (N_sum_vec_master(j) * mNormalPhysicalSpaceMaster[jdim]) * integration_weight;
+                    }
                 }
 
+                // SLAVE NON PENETRABILITY PART
+                for (IndexType j = 0; j < number_of_control_points_slave; j++) {
+                    for (IndexType jdim = 0; jdim < 2; jdim++) {
+                        const int id2 = (id1+2)%3;
+                        const int jglob = 2*j+jdim + shift_dof;
+
+                        // AUGMENTED LAGRANGIAN PENALTY TERM
+                        rLeftHandSideMatrix(iglob, jglob) += N_sum_vec_master(i)*N_sum_vec_slave(j)*
+                                                            mNormalPhysicalSpaceMaster[idim] * (-mNormalPhysicalSpaceMaster[jdim]) * penalty_integration;
+
+                        // // // PENALTY FREE FOR NON PENETRABILITY g_n = 0
+                        // // // [\sigma_1(w) \dot n] \dot n (u_1 \dot n1 + u_2 \dot n2)
+                        // // //*********************************************** */
+                        rLeftHandSideMatrix(iglob, jglob) -= mNitschePenalty *extended_sigma_w_n_dot_n
+                                                            * (N_sum_vec_slave(j) * (-mNormalPhysicalSpaceMaster[jdim])) * integration_weight;
+                    }
+
+                }
             }
         }
-    }
 
-    // SLAVE rows //PENALTY
-    for (IndexType i = 0; i < number_of_control_points_slave; ++i) {
-        for (IndexType idim = 0; idim < 2; ++idim) {
-            const int iglob = 2*i + idim + shift_dof;
+        //SLAVE
+        for (IndexType i = 0; i < number_of_control_points_slave; i++) {
+            for (IndexType idim = 0; idim < 2; idim++) {
+                const int id1 = 2*idim;
+                const int iglob = 2*i+idim + shift_dof;
 
-            // slave-master block
-            for (IndexType j = 0; j < number_of_control_points_master; ++j) {
-                for (IndexType jdim = 0; jdim < 2; ++jdim) {
-                    const int jglob = 2*j + jdim;
+                for (IndexType j = 0; j < number_of_control_points_master; j++) {
+                    for (IndexType jdim = 0; jdim < 2; jdim++) {
+                        const int jglob = 2*j+jdim;
 
-                    rLeftHandSideMatrix(iglob, jglob) +=
-                        N_sum_vec_slave(i) * N_sum_vec_master(j) *
-                        (-mNormalPhysicalSpaceMaster[idim]) *
-                        mNormalPhysicalSpaceMaster[jdim] *
-                        penalty_integration;
+                        Vector extension_sigma_u_n(2);
+                        extension_sigma_u_n[0] = (DB_sum_master(0, jglob)* mNormalPhysicalSpaceMaster[0] + DB_sum_master(2, jglob)* mNormalPhysicalSpaceMaster[1]);
+                        extension_sigma_u_n[1] = (DB_sum_master(2, jglob)* mNormalPhysicalSpaceMaster[0] + DB_sum_master(1, jglob)* mNormalPhysicalSpaceMaster[1]);
+
+                        const double extension_sigma_u_n_dot_n = extension_sigma_u_n[0]*mNormalPhysicalSpaceMaster[0] + extension_sigma_u_n[1]*mNormalPhysicalSpaceMaster[1];
+
+                        // AUGMENTED LAGRANGIAN STRESS TERM
+                        // -[sigma(u) \dot n] \dot n * (w1 \dot n1 ....           + w2 \dot n2)
+                        //*********************************************** */
+                        rLeftHandSideMatrix(iglob, jglob) -= extension_sigma_u_n_dot_n * N_sum_vec_slave(i) * (-mNormalPhysicalSpaceMaster[idim]) * integration_weight;
+                        
+                        // AUGMENTED LAGRANGIAN PENALTY TERM
+                        rLeftHandSideMatrix(iglob, jglob) +=
+                                                    N_sum_vec_slave(i) * N_sum_vec_master(j) *
+                                                    (-mNormalPhysicalSpaceMaster[idim]) *
+                                                    mNormalPhysicalSpaceMaster[jdim] *
+                                                    penalty_integration;
+                    }
+
                 }
-            }
 
-            // slave-slave block
-            for (IndexType j = 0; j < number_of_control_points_slave; ++j) {
-                for (IndexType jdim = 0; jdim < 2; ++jdim) {
-                    const int jglob = 2*j + jdim + shift_dof;
-
-                    rLeftHandSideMatrix(iglob, jglob) +=
-                        N_sum_vec_slave(i) * N_sum_vec_slave(j) *
-                        (-mNormalPhysicalSpaceMaster[idim]) *
-                        (-mNormalPhysicalSpaceMaster[jdim]) *
-                        penalty_integration;
+                // slave-slave block
+                for (IndexType j = 0; j < number_of_control_points_slave; ++j) {
+                    for (IndexType jdim = 0; jdim < 2; ++jdim) {
+                        const int jglob = 2*j + jdim + shift_dof;
+                        
+                        // AUGMENTED LAGRANGIAN PENALTY TERM
+                        rLeftHandSideMatrix(iglob, jglob) +=
+                            N_sum_vec_slave(i) * N_sum_vec_slave(j) *
+                            (-mNormalPhysicalSpaceMaster[idim]) *
+                            (-mNormalPhysicalSpaceMaster[jdim]) *
+                            penalty_integration;
+                    }
                 }
             }
         }
@@ -526,39 +537,6 @@ void GapSbmContactCondition::CalculateRightHandSide(
     if(rRightHandSideVector.size() != mat_size)
         rRightHandSideVector.resize(mat_size,false);
     noalias(rRightHandSideVector) = ZeroVector(mat_size); //resetting RHS
-
-    if (this->GetValue(ACTIVATION_LEVEL) != 3)
-    {
-        return;
-    }
-
-    //---------------------------------------------------------------------------------------------
-    // // // DEBUG PURPOSE ONLY
-    // MatrixType lhs;
-    // CalculateLeftHandSide(lhs, rCurrentProcessInfo);
-
-    // const std::size_t size = lhs.size1();
-    // KRATOS_ERROR_IF(size == 0) << "SolidCouplingCondition::CalculateRightHandSide: The left hand side matrix has zero size." << std::endl;
-
-    // Vector plus_values;
-    // GetSolutionCoefficientVector(plus_values, 0);
-    // Vector minus_values;
-    // GetSolutionCoefficientVector(minus_values, 1);
-
-    // Vector values(plus_values.size() + minus_values.size());
-    // for (IndexType i = 0; i < plus_values.size(); ++i) {
-    //     values[i] = plus_values[i];
-    // }
-    // for (IndexType i = 0; i < minus_values.size(); ++i) {
-    //     values[plus_values.size() + i] = minus_values[i];
-    // }
-
-    // if (rRightHandSideVector.size() != size) {
-    //     rRightHandSideVector.resize(size, false);
-    // }
-    // noalias(rRightHandSideVector) = -prod(lhs, values);
-
-    // return;
 
     //---------------------------------------------------------------------------------------------
 
@@ -665,47 +643,62 @@ void GapSbmContactCondition::CalculateRightHandSide(
     
     const std::size_t shift_dof = mat_size_master;
 
+    if (this->GetValue(ACTIVATION_LEVEL) != 3)
+    {
+        for (IndexType i = 0; i < number_of_control_points_master; i++) {
+            for (IndexType idim = 0; idim < 2; idim++) {
+                const int iglob = 2*i+idim;
 
-    // MASTER
-    for (IndexType i = 0; i < number_of_control_points_master; i++) {
-        for (IndexType idim = 0; idim < 2; idim++) {
-            const int iglob = 2*i+idim;
+                Vector extended_sigma_w_n = ZeroVector(3);
+                extended_sigma_w_n[0] = (DB_sum_master(0, iglob)* mNormalPhysicalSpaceMaster[0] + DB_sum_master(2, iglob)* mNormalPhysicalSpaceMaster[1]);
+                extended_sigma_w_n[1] = (DB_sum_master(2, iglob)* mNormalPhysicalSpaceMaster[0] + DB_sum_master(1, iglob)* mNormalPhysicalSpaceMaster[1]);
+    
+                const double extended_sigma_w_n_dot_n = extended_sigma_w_n[0]*mNormalPhysicalSpaceMaster[0] + extended_sigma_w_n[1]*mNormalPhysicalSpaceMaster[1];
 
-            // PENALTY TERM
-            rRightHandSideVector(iglob) -= N_sum_vec_master(i) * mNormalPhysicalSpaceMaster[idim] *
-                                           (gap_dot_n+initial_gap_dot_n) * penalty_integration;
-
-            Vector extended_sigma_w_n = ZeroVector(3);
-            extended_sigma_w_n[0] = (DB_sum_master(0, iglob)* mNormalPhysicalSpaceMaster[0] + DB_sum_master(2, iglob)* mNormalPhysicalSpaceMaster[1]);
-            extended_sigma_w_n[1] = (DB_sum_master(2, iglob)* mNormalPhysicalSpaceMaster[0] + DB_sum_master(1, iglob)* mNormalPhysicalSpaceMaster[1]);
-
-            const double extended_sigma_w_n_dot_n = extended_sigma_w_n[0]*mNormalPhysicalSpaceMaster[0] + extended_sigma_w_n[1]*mNormalPhysicalSpaceMaster[1];
-
-            // FLUX
-            rRightHandSideVector(iglob) += stress_normal_dot_n * N_sum_vec_master(i) * mNormalPhysicalSpaceMaster[idim] * integration_weight;
-
-            // // // PENALTY FREE FOR NON PENETRABILITY g_n = 0
-            rRightHandSideVector(iglob) += mNitschePenalty * extended_sigma_w_n_dot_n * (gap_dot_n+initial_gap_dot_n) * integration_weight;
-
-            // // //FIXME: extra term 1/penalty * sigma(u) * sigma(v)
-            // rRightHandSideVector(iglob) -= stress_normal_dot_n * extended_sigma_w_n_dot_n * integration_weight / penalty;
+                // stabilization term 1/penalty * sigma(u) * sigma(v)
+                rRightHandSideVector(iglob) -= stress_normal_dot_n * extended_sigma_w_n_dot_n * integration_weight / penalty;
+            }
         }
     }
+    else 
+    {
+        // MASTER
+        for (IndexType i = 0; i < number_of_control_points_master; i++) {
+            for (IndexType idim = 0; idim < 2; idim++) {
+                const int iglob = 2*i+idim;
+                
+                // PENALTY TERM
+                rRightHandSideVector(iglob) -= N_sum_vec_master(i) * mNormalPhysicalSpaceMaster[idim] *
+                                            (gap_dot_n+initial_gap_dot_n) * penalty_integration;
 
-    // SLAVE
-    for (IndexType i = 0; i < number_of_control_points_slave; i++) {
-        for (IndexType idim = 0; idim < 2; idim++) {
-            const int iglob = 2*i+idim + shift_dof;
+                Vector extended_sigma_w_n = ZeroVector(3);
+                extended_sigma_w_n[0] = (DB_sum_master(0, iglob)* mNormalPhysicalSpaceMaster[0] + DB_sum_master(2, iglob)* mNormalPhysicalSpaceMaster[1]);
+                extended_sigma_w_n[1] = (DB_sum_master(2, iglob)* mNormalPhysicalSpaceMaster[0] + DB_sum_master(1, iglob)* mNormalPhysicalSpaceMaster[1]);
 
-            // FLUX
-            rRightHandSideVector(iglob) += stress_normal_dot_n * N_sum_vec_slave(i) * (-mNormalPhysicalSpaceMaster[idim]) * integration_weight;
-        
-            // PENALTY term
-            rRightHandSideVector(iglob) -=
-                N_sum_vec_slave(i) *
-                mNormalPhysicalSpaceSlave[idim] *
-                (gap_dot_n+initial_gap_dot_n) *
-                penalty_integration;
+                const double extended_sigma_w_n_dot_n = extended_sigma_w_n[0]*mNormalPhysicalSpaceMaster[0] + extended_sigma_w_n[1]*mNormalPhysicalSpaceMaster[1];
+
+                // FLUX
+                rRightHandSideVector(iglob) += stress_normal_dot_n * N_sum_vec_master(i) * mNormalPhysicalSpaceMaster[idim] * integration_weight;
+
+                // // // PENALTY FREE FOR NON PENETRABILITY g_n = 0
+                rRightHandSideVector(iglob) += mNitschePenalty * extended_sigma_w_n_dot_n * (gap_dot_n+initial_gap_dot_n) * integration_weight;
+            }
+        }
+
+        // SLAVE
+        for (IndexType i = 0; i < number_of_control_points_slave; i++) {
+            for (IndexType idim = 0; idim < 2; idim++) {
+                const int iglob = 2*i+idim + shift_dof;
+                // FLUX
+                rRightHandSideVector(iglob) += stress_normal_dot_n * N_sum_vec_slave(i) * (-mNormalPhysicalSpaceMaster[idim]) * integration_weight;
+            
+                // PENALTY term
+                rRightHandSideVector(iglob) -=
+                    N_sum_vec_slave(i) *
+                    (-mNormalPhysicalSpaceMaster[idim]) *
+                    (gap_dot_n+initial_gap_dot_n) *
+                    penalty_integration;
+            }
         }
     }
 
@@ -860,7 +853,7 @@ void GapSbmContactCondition::CalculateRightHandSide(
         }
     }
 
-    void GapSbmContactCondition::SetGap()
+void GapSbmContactCondition::SetGap()
     {
         const auto& r_master_geometry = GetGeometry();
         const auto p_slave_node = pGetProjectionNode();
@@ -889,6 +882,105 @@ void GapSbmContactCondition::CalculateRightHandSide(
 
         const Vector gap_deformed = skin_slave_coord_deformed - skin_master_coord_deformed;
         SetValue(GAP, gap_deformed);
+    }
+
+    void GapSbmContactCondition::UpdateActiveSetCriterionData()
+    {
+        const auto& r_master_properties = GetMasterMaterialProperties();
+        const auto& r_slave_properties = GetSlaveMaterialProperties();
+
+        KRATOS_ERROR_IF_NOT(r_master_properties.Has(YOUNG_MODULUS))
+            << "\"GapSbmContactCondition\" #" << Id()
+            << " missing YOUNG_MODULUS in the master properties." << std::endl;
+        KRATOS_ERROR_IF_NOT(r_slave_properties.Has(YOUNG_MODULUS))
+            << "\"GapSbmContactCondition\" #" << Id()
+            << " missing YOUNG_MODULUS in the slave properties." << std::endl;
+
+        SetValue(YOUNG_MODULUS_MASTER, r_master_properties[YOUNG_MODULUS]);
+        SetValue(YOUNG_MODULUS_SLAVE, r_slave_properties[YOUNG_MODULUS]);
+        SetValue(PENALTY_FACTOR, CalculateScaledPenalty());
+    }
+
+    const GapSbmContactCondition::PropertiesType& GapSbmContactCondition::GetMasterMaterialProperties() const
+    {
+        const auto& r_properties = GetProperties();
+        const auto& r_sub_properties = r_properties.GetSubProperties();
+
+        if (r_sub_properties.size() > 0) {
+            return r_sub_properties.front();
+        }
+
+        return r_properties;
+    }
+
+    const GapSbmContactCondition::PropertiesType& GapSbmContactCondition::GetSlaveMaterialProperties() const
+    {
+        const auto& r_properties = GetProperties();
+        const auto& r_sub_properties = r_properties.GetSubProperties();
+
+        if (r_sub_properties.size() > 1) {
+            return r_sub_properties.back();
+        }
+
+        if (r_sub_properties.size() == 1) {
+            return r_sub_properties.front();
+        }
+
+        return r_properties;
+    }
+
+    double GapSbmContactCondition::CalculateScaledPenalty() const
+    {
+        KRATOS_ERROR_IF_NOT(this->Has(KNOT_SPAN_SIZES))
+            << "\"GapSbmContactCondition\" #" << Id()
+            << " missing KNOT_SPAN_SIZES required to compute the scaled penalty." << std::endl;
+
+        const Vector& r_mesh_size_uv = this->GetValue(KNOT_SPAN_SIZES);
+        KRATOS_ERROR_IF(r_mesh_size_uv.size() == 0)
+            << "\"GapSbmContactCondition\" #" << Id()
+            << " has empty KNOT_SPAN_SIZES." << std::endl;
+
+        double h = r_mesh_size_uv[0];
+        for (IndexType i = 1; i < r_mesh_size_uv.size(); ++i) {
+            h = std::min(h, r_mesh_size_uv[i]);
+        }
+
+        KRATOS_ERROR_IF(h <= 0.0)
+            << "\"GapSbmContactCondition\" #" << Id()
+            << " has non-positive characteristic knot span size." << std::endl;
+
+        return mPenalty / h
+            * static_cast<double>(mBasisFunctionsOrderMaster * mBasisFunctionsOrderMaster) / 4.0;
+    }
+
+    void GapSbmContactCondition::UpdateContactPressure(const Vector& rStressVectorMaster)
+    {
+        KRATOS_ERROR_IF(rStressVectorMaster.size() < 3)
+            << "\"GapSbmContactCondition\" #" << Id()
+            << " requires a 2D stress vector with three components to compute CONTACT_PRESSURE." << std::endl;
+        KRATOS_ERROR_IF_NOT(this->Has(GAP))
+            << "\"GapSbmContactCondition\" #" << Id()
+            << " requires GAP to compute CONTACT_PRESSURE." << std::endl;
+        KRATOS_ERROR_IF_NOT(this->Has(PENALTY_FACTOR))
+            << "\"GapSbmContactCondition\" #" << Id()
+            << " requires the scaled PENALTY_FACTOR to compute CONTACT_PRESSURE." << std::endl;
+
+        const Vector& r_gap = this->GetValue(GAP);
+        KRATOS_ERROR_IF(r_gap.size() < 2)
+            << "\"GapSbmContactCondition\" #" << Id()
+            << " has an invalid GAP vector for CONTACT_PRESSURE." << std::endl;
+
+        Vector sigma_n = ZeroVector(3);
+        sigma_n[0] = rStressVectorMaster[0] * mNormalPhysicalSpaceMaster[0]
+                   + rStressVectorMaster[2] * mNormalPhysicalSpaceMaster[1];
+        sigma_n[1] = rStressVectorMaster[2] * mNormalPhysicalSpaceMaster[0]
+                   + rStressVectorMaster[1] * mNormalPhysicalSpaceMaster[1];
+
+        const double normal_gap = -inner_prod(r_gap, mNormalPhysicalSpaceMaster);
+        const double sigma_nn = sigma_n[0] * mNormalPhysicalSpaceMaster[0]
+                              + sigma_n[1] * mNormalPhysicalSpaceMaster[1];
+
+        SetValue(CONTACT_PRESSURE, this->GetValue(PENALTY_FACTOR) * normal_gap - sigma_nn);
     }
 
     void GapSbmContactCondition::CalculateB(
@@ -944,7 +1036,6 @@ void GapSbmContactCondition::CalculateRightHandSide(
         const auto& r_skin_node_slave = *pGetProjectionNode();
         const auto& r_surrogate_geometry_slave = *r_skin_node_slave.GetValue(NEIGHBOUR_GEOMETRIES)[0];
         const SizeType number_of_control_points_slave = r_surrogate_geometry_slave.size();
-        const SizeType mat_size_slave = number_of_control_points_slave * mDim;
 
         ConstitutiveLaw::Parameters constitutive_law_parameters(
             r_surrogate_geometry_master, GetProperties(), rCurrentProcessInfo);
@@ -987,6 +1078,8 @@ void GapSbmContactCondition::CalculateRightHandSide(
         sigma_n[1] = sigma[2]*mNormalPhysicalSpaceMaster[0] + sigma[1]*mNormalPhysicalSpaceMaster[1];
 
         SetValue(NORMAL_STRESS, sigma_n);
+        SetGap();
+        UpdateContactPressure(sigma);
 
         SetValue(CAUCHY_STRESS_XX, sigma[0]);
         SetValue(CAUCHY_STRESS_YY, sigma[1]);
@@ -1144,6 +1237,7 @@ void GapSbmContactCondition::InitializeNonLinearIteration(const ProcessInfo& rCu
     this->SetValue(STRESS_SLAVE, values_slave.GetStressVector());
 
     SetGap();
+    UpdateContactPressure(values_master.GetStressVector());
 }
 
 void GapSbmContactCondition::FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
@@ -1155,7 +1249,7 @@ void GapSbmContactCondition::ComputeTaylorExpansionContribution(
     const GeometryType& rGeometry,
     const Vector& rDistanceVector,
     const SizeType BasisFunctionsOrder,
-    Vector& H_sum_vec)
+    Vector& H_sum_vec) const
 {
     const SizeType number_of_control_points = rGeometry.PointsNumber();
     const Matrix& r_N = rGeometry.ShapeFunctionsValues(this->GetIntegrationMethod());
@@ -1220,7 +1314,7 @@ void GapSbmContactCondition::ComputeGradientTaylorExpansionContribution(
     const GeometryType& rGeometry,
     const Vector& rDistanceVector,
     const SizeType BasisFunctionsOrder,
-    Matrix& grad_H_sum)
+    Matrix& grad_H_sum) const
 {
     const SizeType number_of_control_points = rGeometry.PointsNumber();
     const auto& r_DN_De = rGeometry.ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
@@ -1314,7 +1408,7 @@ double GapSbmContactCondition::ComputeTaylorTerm(
     const double dx, 
     const IndexType n_k, 
     const double dy, 
-    const IndexType k)
+    const IndexType k) const
 {
     const double result = derivative * std::pow(dx, n_k) * std::pow(dy, k)
         / (MathUtils<double>::Factorial(k) * MathUtils<double>::Factorial(n_k));
@@ -1328,7 +1422,7 @@ double GapSbmContactCondition::ComputeTaylorTerm3D(
     const double dy, 
     const IndexType k_y, 
     const double dz, 
-    const IndexType k_z)
+    const IndexType k_z) const
 {   
     const double result = derivative * std::pow(dx, k_x) * std::pow(dy, k_y) * std::pow(dz, k_z)
         / (MathUtils<double>::Factorial(k_x) * MathUtils<double>::Factorial(k_y) * MathUtils<double>::Factorial(k_z));

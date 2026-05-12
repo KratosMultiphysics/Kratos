@@ -297,13 +297,13 @@ public:
 
             
             // double toll_tangent_distance = 1e-2;
-            double toll_gap = -1e-2;
+            double toll_gap = 0.0;
             for (auto i_cond(r_contact_sub_model_part.Conditions().begin());
                  i_cond != r_contact_sub_model_part.Conditions().end(); ++i_cond)
             {
                 if (i_cond->GetValue(ACTIVATION_LEVEL) > 0)
                 {
-                    toll_gap = 0;
+                    toll_gap = 0.0;
                     break;
                 }
             }
@@ -333,6 +333,16 @@ public:
                     continue;
                 }
 
+                KRATOS_ERROR_IF_NOT(i_cond->Has(YOUNG_MODULUS_MASTER))
+                    << "::[ActiveSetCriteria]:: Condition #" << i_cond->Id()
+                    << " is missing YOUNG_MODULUS_MASTER in its data container." << std::endl;
+                KRATOS_ERROR_IF_NOT(i_cond->Has(YOUNG_MODULUS_SLAVE))
+                    << "::[ActiveSetCriteria]:: Condition #" << i_cond->Id()
+                    << " is missing YOUNG_MODULUS_SLAVE in its data container." << std::endl;
+                KRATOS_ERROR_IF_NOT(i_cond->Has(PENALTY_FACTOR))
+                    << "::[ActiveSetCriteria]:: Condition #" << i_cond->Id()
+                    << " is missing the scaled PENALTY_FACTOR in its data container." << std::endl;
+
                 const Vector& normal_stress_slave = i_cond->GetValue(STRESS_SLAVE);
                 const Vector& normal_slave = i_cond->GetValue(NORMAL_SKIN_SLAVE);
                 const Vector& normal_stress_master = i_cond->GetValue(STRESS_MASTER);
@@ -344,6 +354,7 @@ public:
                     continue;
                 }
                 double normal_gap_master = -inner_prod(gap, normal_master);
+
                 double normal_gap_slave = inner_prod(gap, normal_slave);
 
                 // Vector penalty_master_slave = i_cond->GetValue(PENALTY);
@@ -356,11 +367,10 @@ public:
                                         (normal_stress_slave[2]* normal_slave[0] + normal_stress_slave[1]* normal_slave[1])*normal_slave[1];
 
 
-                double young_modulus_master = 2.1e5; //i_cond->GetValue(YOUNG_MODULUS_MASTER); 
-                double young_modulus_slave  = 2.1e5; //i_cond->GetValue(YOUNG_MODULUS_SLAVE); 
-
-                const double penalty = 0; //FIXME:
-                double check_value_master = normal_gap_master;//*penalty - sigma_nn_master;///young_modulus_master;
+                const double young_modulus_master = i_cond->GetValue(YOUNG_MODULUS_MASTER);
+                const double young_modulus_slave  = i_cond->GetValue(YOUNG_MODULUS_SLAVE);
+                const double penalty = i_cond->GetValue(PENALTY_FACTOR);
+                double check_value_master = normal_gap_master*penalty - sigma_nn_master;///young_modulus_master;
                 double check_value_slave = normal_gap_slave; //*penalty - sigma_nn_slave;///young_modulus_slave;
 
                 double tangent_gap_master = norm_2(gap + normal_master*normal_gap_master);
@@ -458,7 +468,7 @@ public:
                 // continue;
 
 
-
+            // CURRENT VERSION:
                 if (check_value_master >= toll_gap)// && tangent_gap_master < toll_tangent_distance) //FIXME
                 {
                     if (check_value_slave >= toll_gap)// && tangent_gap_slave < toll_tangent_distance) //BOTH ACTIVE
@@ -479,7 +489,6 @@ public:
                     // }
                 } 
                 else if (sigma_nn_master/young_modulus_master > 0)
-                // else if (normal_gap_master*2E5 < -1e-1)
                 {   
                     // KRATOS_WATCH(check_value_master)
                     // KRATOS_WATCH(sigma_nn_master)
@@ -511,11 +520,33 @@ public:
                     }
                 }
 
+
+
+            //--------------------------------------------------------------------------
+
+                // // CHATGPT PENALTY 
+                // double gn = normal_gap_master;   // = (x_m + u_m - x_s - u_s) · n_m
+
+                // if (gn >= toll_gap) {
+                //     if (i_cond->GetValue(ACTIVATION_LEVEL) != 3) {
+                //         i_cond->SetValue(ACTIVATION_LEVEL, 3);
+                //         n_changes++;
+                //     }
+                //     n_active++;
+                // } else {
+                //     if (i_cond->GetValue(ACTIVATION_LEVEL) != 0) {
+                //         i_cond->SetValue(ACTIVATION_LEVEL, 0);
+                //         n_changes++;
+                //     }
+                // }
+            //--------------------------------------------------------------------------
+
                 if (i_cond->GetValue(ACTIVATION_LEVEL) > 0)
                     n_active++;
                 
 
             }
+
 
 
             // count_cond = 0;

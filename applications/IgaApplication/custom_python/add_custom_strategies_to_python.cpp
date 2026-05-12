@@ -26,6 +26,7 @@
 #include "custom_strategies/custom_schemes/iga_contact_scheme.hpp"
 // Criterias
 #include "custom_strategies/custom_convergence_criteria/active_set_criteria.h"
+#include "custom_strategies/custom_convergence_criteria/gap_sbm_alm_active_set_criteria.h"
 
 // Linear solvers
 #include "linear_solvers/linear_solver.h"
@@ -62,6 +63,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     using ConvergenceCriteriaType = ConvergenceCriteria<SparseSpaceType, LocalSpaceType>;
     using BaseSolvingStrategyType = ImplicitSolvingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>;
     typedef ActiveSetCriteria< SparseSpaceType, LocalSpaceType > ActiveSetCriteriaType;
+    typedef GapSbmALMActiveSetCriteria< SparseSpaceType, LocalSpaceType > GapSbmALMActiveSetCriteriaType;
 
     // ********************************************************************************
     // STRATEGIES
@@ -112,9 +114,15 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         .def(py::init<>())
         .def(py::init<Parameters>())
         ;
+
+    py::class_< GapSbmALMActiveSetCriteriaType, typename GapSbmALMActiveSetCriteriaType::Pointer,
+        ConvergenceCriteriaType >
+        (m, "GapSbmALMActiveSetCriteria")
+        .def(py::init<>())
+        .def(py::init<Parameters>())
+        ;
 }
 
 }  // namespace Python.
 } // Namespace Kratos
-
 

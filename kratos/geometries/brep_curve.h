@@ -201,10 +201,65 @@ public:
     ///@name Mathematical Informations
     ///@{
 
+    /* @brief Provides the natural boundaries of the NURBS/B-Spline curve.
+     * @return domain interval.
+     */
+    NurbsInterval DomainInterval() const
+    {
+        return mpNurbsCurve->DomainInterval();
+    }
+
+    /**
+     * @brief Provides the domain interval of the NURBS/B-Spline curve as a Vector.
+     * 
+     * @param domainInterval Vector to store the minimum and maximum parameter values.
+     */
+    void DomainInterval(Vector& domainInterval) const override
+    {
+        
+        if (domainInterval.size() != 2) domainInterval.resize(2);
+        domainInterval[0] = mpNurbsCurve->DomainInterval().MinParameter();
+        domainInterval[1] = mpNurbsCurve->DomainInterval().MaxParameter();
+
+    }
+
     /// Return polynomial degree of the nurbs surface
     SizeType PolynomialDegree(IndexType LocalDirectionIndex) const override
     {
         return mpNurbsCurve->PolynomialDegree(LocalDirectionIndex);
+    }
+
+    ///@}
+
+    ///@name IsInside
+    ///@{
+
+    /* @brief checks and returns if local coordinate rPointLocalCoordinates[0]
+     *        is inside the local/parameter space.
+     * @return on boundary -> 2 - meaning that it is equal to start or end point.
+     *         inside -> 1
+     *         outside -> 0
+     */
+    int IsInsideLocalSpace(
+        const CoordinatesArrayType& rPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+    ) const override
+    {
+        const double min_parameter = mpNurbsCurve->DomainInterval().MinParameter();
+        if (rPointLocalCoordinates[0] < min_parameter) {
+            return 0;
+        } else if (std::abs(rPointLocalCoordinates[0] - min_parameter) < Tolerance) {
+            return 2;
+        }
+
+        const double max_parameter = mpNurbsCurve->DomainInterval().MaxParameter();
+        if (rPointLocalCoordinates[0] > max_parameter) {
+            return 0;
+        } else if (std::abs(rPointLocalCoordinates[0] - max_parameter) < Tolerance) {
+            return 2;
+        }
+
+        return 1;
     }
 
     ///@}

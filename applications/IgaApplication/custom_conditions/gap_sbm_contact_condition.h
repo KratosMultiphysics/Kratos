@@ -252,6 +252,16 @@ void InitializeMemberVariables();
  */
 void InitializeSbmMemberVariables();
 
+void UpdateActiveSetCriterionData();
+
+const Properties& GetMasterMaterialProperties() const;
+
+const Properties& GetSlaveMaterialProperties() const;
+
+double CalculateScaledPenalty() const;
+
+void UpdateContactPressure(const Vector& rStressVectorMaster);
+
 
 /**
  * @brief Calculate the B matrix for the element in the two-dimensional case.
@@ -291,7 +301,7 @@ void ComputeTaylorExpansionContribution(
     const GeometryType& rGeometry,
     const Vector& rDistanceVector,
     const SizeType BasisFunctionsOrder,
-    Vector& H_sum_vec);
+    Vector& H_sum_vec) const;
 
 /**
  * @brief 
@@ -305,7 +315,7 @@ void ComputeGradientTaylorExpansionContribution(
     const GeometryType& rGeometry,
     const Vector& rDistanceVector,
     const SizeType BasisFunctionsOrder,
-    Matrix& grad_H_sum);
+    Matrix& grad_H_sum) const;
 
 /**
  * @brief compute the Taylor expansion for apply the Shifted Boundary Method in 2D
@@ -319,7 +329,7 @@ void ComputeGradientTaylorExpansionContribution(
 double ComputeTaylorTerm(
     double derivative, 
     double dx, IndexType k, 
-    double dy, IndexType n_k);
+    double dy, IndexType n_k) const;
 
 /**
  * @brief compute the Taylor expansion for apply the Shifted Boundary Method in 3D
@@ -334,7 +344,7 @@ double ComputeTaylorTerm3D(
     double derivative, 
     double dx, IndexType k_x, 
     double dy, IndexType k_y, 
-    double dz, IndexType k_z);
+    double dz, IndexType k_z) const;
 
 ///@name Protected member Variables
 ///@{

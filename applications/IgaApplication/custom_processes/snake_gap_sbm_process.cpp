@@ -21,6 +21,70 @@ namespace Kratos
 {
 namespace
 {
+struct ParameterSpaceBounds
+{
+    double MinU = 0.0;
+    double MaxU = 0.0;
+    double MinV = 0.0;
+    double MaxV = 0.0;
+};
+
+ParameterSpaceBounds ReadParameterSpaceBounds(
+    const ModelPart& rModelPart,
+    const char* pCaller)
+{
+    ParameterSpaceBounds bounds;
+
+    if (rModelPart.Has(PATCH_PARAMETER_SPACE_CORNERS)) {
+        const Matrix& r_patch_corners = rModelPart.GetValue(PATCH_PARAMETER_SPACE_CORNERS);
+        KRATOS_ERROR_IF(r_patch_corners.size1() < 2 || r_patch_corners.size2() < 2)
+            << "[" << pCaller << "] PATCH_PARAMETER_SPACE_CORNERS must be at least 2x2.\n";
+
+        bounds.MinU = r_patch_corners(0, 0);
+        bounds.MaxU = r_patch_corners(0, 1);
+        bounds.MinV = r_patch_corners(1, 0);
+        bounds.MaxV = r_patch_corners(1, 1);
+        return bounds;
+    }
+
+    const auto& r_parameter_space_corners = rModelPart.GetValue(PARAMETER_SPACE_CORNERS);
+    KRATOS_ERROR_IF(r_parameter_space_corners.size() < 2)
+        << "[" << pCaller << "] PARAMETER_SPACE_CORNERS must contain at least two vectors.\n";
+    KRATOS_ERROR_IF(r_parameter_space_corners[0].size() < 2 || r_parameter_space_corners[1].size() < 2)
+        << "[" << pCaller << "] PARAMETER_SPACE_CORNERS entries must contain [min, max] values."
+        << " If the model part stores a multipatch rectangle list, use PATCH_PARAMETER_SPACE_CORNERS on the patch model part instead.\n";
+
+    bounds.MinU = r_parameter_space_corners[0][0];
+    bounds.MaxU = r_parameter_space_corners[0][1];
+    bounds.MinV = r_parameter_space_corners[1][0];
+    bounds.MaxV = r_parameter_space_corners[1][1];
+    return bounds;
+}
+
+std::size_t ComputeSpanCount(
+    const double domain_length,
+    const double span_size,
+    const char* pDirection,
+    const char* pCaller)
+{
+    const double spans_real = domain_length / span_size;
+    const double rounded_spans = std::round(spans_real);
+    constexpr double absolute_tolerance = 1.0e-10;
+    constexpr double relative_tolerance = 1.0e-9;
+    const double tolerance = std::max(
+        absolute_tolerance,
+        relative_tolerance * std::max(1.0, std::abs(rounded_spans)));
+
+    KRATOS_ERROR_IF(rounded_spans <= 0.0)
+        << "[" << pCaller << "] Non-positive number of knot spans in " << pDirection << ".\n";
+    KRATOS_ERROR_IF(std::abs(spans_real - rounded_spans) > tolerance)
+        << "[" << pCaller << "] Non-integer number of knot spans in " << pDirection
+        << " (" << std::setprecision(17) << spans_real << ")"
+        << " computed from domain length " << domain_length
+        << " and span size " << span_size << ".\n";
+
+    return static_cast<std::size_t>(rounded_spans);
+}
 } // unnamed namespace
 
 template <bool TIsInnerLoop>
@@ -174,43 +238,35 @@ SnakeGapSbmProcess::CreateSkinNodesPerKnotSpanMatrix(
     const Vector& knot_span_sizes = r_parent_model_part.GetValue(KNOT_SPAN_SIZES);
     KRATOS_ERROR_IF(knot_span_sizes.size() < 2)
         << "[SnakeGapSbmProcess::CreateSkinNodesPerKnotSpanMatrix] KNOT_SPAN_SIZES must have at least two entries.\n";
-
-    const auto& parameter_space_corners = r_parent_model_part.GetValue(PARAMETER_SPACE_CORNERS);
-    KRATOS_ERROR_IF(parameter_space_corners.size() < 2)
-        << "[SnakeGapSbmProcess::CreateSkinNodesPerKnotSpanMatrix] PARAMETER_SPACE_CORNERS must have at least two vectors.\n";
-    KRATOS_ERROR_IF(parameter_space_corners[0].size() < 2 || parameter_space_corners[1].size() < 2)
-        << "[SnakeGapSbmProcess::CreateSkinNodesPerKnotSpanMatrix] PARAMETER_SPACE_CORNERS vectors must contain min and max values.\n";
+    const auto bounds = ReadParameterSpaceBounds(
+        r_parent_model_part,
+        "SnakeGapSbmProcess::CreateSkinNodesPerKnotSpanMatrix");
 
     const double span_size_x = knot_span_sizes[0];
     const double span_size_y = knot_span_sizes[1];
     KRATOS_ERROR_IF(span_size_x <= 0.0 || span_size_y <= 0.0)
         << "[SnakeGapSbmProcess::CreateSkinNodesPerKnotSpanMatrix] Knot span sizes must be positive.\n";
 
-    const double min_u = parameter_space_corners[0][0];
-    const double max_u = parameter_space_corners[0][1];
-    const double min_v = parameter_space_corners[1][0];
-    const double max_v = parameter_space_corners[1][1];
+    const double min_u = bounds.MinU;
+    const double max_u = bounds.MaxU;
+    const double min_v = bounds.MinV;
+    const double max_v = bounds.MaxV;
 
     const double domain_length_u = max_u - min_u;
     const double domain_length_v = max_v - min_v;
     KRATOS_ERROR_IF(domain_length_u <= 0.0 || domain_length_v <= 0.0)
         << "[SnakeGapSbmProcess::CreateSkinNodesPerKnotSpanMatrix] Invalid parameter space extents.\n";
 
-    const double number_of_spans_x_real = domain_length_u / span_size_x;
-    const double number_of_spans_y_real = domain_length_v / span_size_y;
-
-    const auto compute_span_count = [](double spans_real) -> std::size_t {
-        constexpr double tolerance = 1.0e-10;
-        std::size_t span_count = static_cast<std::size_t>(std::round(spans_real));
-        KRATOS_ERROR_IF(span_count <= 0)
-            << "[SnakeGapSbmProcess::CreateSkinNodesPerKnotSpanMatrix] Non-positive number of knot spans.\n";
-        KRATOS_ERROR_IF(std::abs(spans_real - static_cast<double>(span_count)) > tolerance)
-            << "[SnakeGapSbmProcess::CreateSkinNodesPerKnotSpanMatrix] Non-integer number of knot spans (" << spans_real << ").\n";
-        return span_count;
-    };
-
-    const std::size_t number_of_spans_x = compute_span_count(number_of_spans_x_real);
-    const std::size_t number_of_spans_y = compute_span_count(number_of_spans_y_real);
+    const std::size_t number_of_spans_x = ComputeSpanCount(
+        domain_length_u,
+        span_size_x,
+        "u",
+        "SnakeGapSbmProcess::CreateSkinNodesPerKnotSpanMatrix");
+    const std::size_t number_of_spans_y = ComputeSpanCount(
+        domain_length_v,
+        span_size_y,
+        "v",
+        "SnakeGapSbmProcess::CreateSkinNodesPerKnotSpanMatrix");
 
     // --- Fill metadata ---
     knot_span_data.NumberOfSpansX = number_of_spans_x;
@@ -1721,7 +1777,8 @@ void SnakeGapSbmProcess::CreateGapAndSkinQuadraturePoints(
                 neighbour_geometries_skin1_skin2, characteristic_condition_length);
 
             
-            if (condition_name == "GapSbmContactCondition") {
+            if (condition_name == "GapSbmContactCondition" ||
+                condition_name == "GapSbmALMContactCondition") {
                 ModelPart& r_contact_sub_model_part = r_layer_model_part.HasSubModelPart("contact") ?
                                                         r_layer_model_part.GetSubModelPart("contact") :
                                                         r_layer_model_part.CreateSubModelPart("contact");
@@ -2201,7 +2258,8 @@ void SnakeGapSbmProcess::CreateConditions(
 
         new_condition_list.GetContainer()[geometry_count]->SetValue(NEIGHBOUR_GEOMETRIES, pSurrogateReferenceGeometries);
         new_condition_list.GetContainer()[geometry_count]->SetValue(CHARACTERISTIC_GEOMETRY_LENGTH, characteristic_length_vector);
-        if (rConditionName == "GapSbmContactCondition") {
+        if (rConditionName == "GapSbmContactCondition" ||
+            rConditionName == "GapSbmALMContactCondition") {
             new_condition_list.GetContainer()[geometry_count]->SetValue(IDENTIFIER, "INACTIVE");
         }
 
@@ -2510,21 +2568,19 @@ void SnakeGapSbmProcess::SetSurrogateToSkinProjections(
 {
     const auto& r_parent_model_part = rSurrogateSubModelPart.GetParentModelPart();
     const Vector& knot_span_sizes = r_parent_model_part.GetValue(KNOT_SPAN_SIZES);
-    const auto& parameter_space_corners = r_parent_model_part.GetValue(PARAMETER_SPACE_CORNERS);
 
     KRATOS_ERROR_IF(knot_span_sizes.size() < 2)
         << "::[SnakeGapSbmProcess]::SetSurrogateToSkinProjections: KNOT_SPAN_SIZES must contain at least two entries." << std::endl;
-    KRATOS_ERROR_IF(parameter_space_corners.size() < 2)
-        << "::[SnakeGapSbmProcess]::SetSurrogateToSkinProjections: PARAMETER_SPACE_CORNERS must contain two vectors." << std::endl;
-    KRATOS_ERROR_IF(parameter_space_corners[0].size() < 2 || parameter_space_corners[1].size() < 2)
-        << "::[SnakeGapSbmProcess]::SetSurrogateToSkinProjections: PARAMETER_SPACE_CORNERS entries must contain min and max values." << std::endl;
+    const auto bounds = ReadParameterSpaceBounds(
+        r_parent_model_part,
+        "SnakeGapSbmProcess::SetSurrogateToSkinProjections");
 
     const double span_size_x = knot_span_sizes[0];
     const double span_size_y = knot_span_sizes[1];
-    const double min_u = parameter_space_corners[0][0];
-    const double max_u = parameter_space_corners[0][1];
-    const double min_v = parameter_space_corners[1][0];
-    const double max_v = parameter_space_corners[1][1];
+    const double min_u = bounds.MinU;
+    const double max_u = bounds.MaxU;
+    const double min_v = bounds.MinV;
+    const double max_v = bounds.MaxV;
 
     const std::size_t span_count_x = rSkinNodesPerSpan.NumberOfSpansX;
     const std::size_t span_count_y = rSkinNodesPerSpan.NumberOfSpansY;

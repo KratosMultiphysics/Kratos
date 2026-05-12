@@ -169,6 +169,22 @@ class IgaContactMechanicsSolver(MechanicalSolver):
 
         # Printing that inialization is finished
         KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]:: ", "Finished initialization.")
+
+    def AddVariables(self):
+        super().AddVariables()
+
+        if self._UsesGapSbmALMContact():
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SCALAR_LAGRANGE_MULTIPLIER)
+            self.main_model_part.AddNodalSolutionStepVariable(IgaApplication.SCALAR_LAGRANGE_MULTIPLIER_REACTION)
+
+    def AddDofs(self):
+        super().AddDofs()
+
+        if self._UsesGapSbmALMContact():
+            KratosMultiphysics.VariableUtils().AddDof(
+                KratosMultiphysics.SCALAR_LAGRANGE_MULTIPLIER,
+                IgaApplication.SCALAR_LAGRANGE_MULTIPLIER_REACTION,
+                self.main_model_part)
         
     
     def _CreateSolutionStrategy(self):
@@ -257,6 +273,9 @@ class IgaContactMechanicsSolver(MechanicalSolver):
         #                                                                     self.settings["move_mesh_flag"].GetBool())
         strategy.SetUseOldStiffnessInFirstIterationFlag(self.settings["use_old_stiffness_in_first_iteration"].GetBool())
         return strategy
+
+    def _UsesGapSbmALMContact(self):
+        return self.settings["convergence_criterion"].GetString() == "gap_sbm_alm_contact_and_criterion"
     
     
     def _CreateConvergenceCriterion(self):

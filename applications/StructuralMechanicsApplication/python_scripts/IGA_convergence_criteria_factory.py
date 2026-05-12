@@ -133,8 +133,21 @@ class convergence_criterion:
                 DisplacementAndResidual = KratosMultiphysics.AndCriteria(Residual, Displacement)
                 ActiveSet = IgaApplication.ActiveSetCriteria()
                 self.mechanical_convergence_criterion = KratosMultiphysics.AndCriteria(DisplacementAndResidual, ActiveSet)
+
+            elif(convergence_crit == "gap_sbm_alm_contact_and_criterion"):
+                Displacement = KratosMultiphysics.MixedGenericCriteria(
+                    [(KratosMultiphysics.DISPLACEMENT, D_RT, D_AT),
+                     (KratosMultiphysics.SCALAR_LAGRANGE_MULTIPLIER, D_RT, D_AT)])
+                Displacement.SetEchoLevel(echo_level)
+                Residual = StructuralMechanicsApplication.ResidualDisplacementAndOtherDoFCriteria(
+                    R_RT, R_AT, "SCALAR_LAGRANGE_MULTIPLIER")
+                Residual.SetEchoLevel(echo_level)
+                DisplacementAndResidual = KratosMultiphysics.AndCriteria(Residual, Displacement)
+                ActiveSet = IgaApplication.GapSbmALMActiveSetCriteria()
+                self.mechanical_convergence_criterion = KratosMultiphysics.AndCriteria(
+                    DisplacementAndResidual, ActiveSet)
                 
             else:
                 err_msg =  "The requested convergence criterion \"" + convergence_crit + "\" is not available!\n"
-                err_msg += "Available options are: \"displacement_criterion\", \"residual_criterion\", \"and_criterion\", \"or_criterion\""
+                err_msg += "Available options are: \"displacement_criterion\", \"residual_criterion\", \"and_criterion\", \"or_criterion\", \"contact_and_criterion\", \"gap_sbm_alm_contact_and_criterion\""
                 raise Exception(err_msg)

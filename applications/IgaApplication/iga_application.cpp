@@ -96,6 +96,8 @@ KratosIgaApplication::KratosIgaApplication()
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
     , mGapSbmContactCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
+    , mGapSbmALMContactCondition(0, Condition::GeometryType::Pointer(
+        new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
     , mSbmContact2DCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
     , mGapSbmSolidInterfaceCondition(0, Condition::GeometryType::Pointer(
@@ -158,6 +160,7 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_CONDITION("GapSbmSolidCondition", mGapSbmSolidCondition)
     KRATOS_REGISTER_CONDITION("GapSbmLoadSolidCondition", mGapSbmLoadSolidCondition)
     KRATOS_REGISTER_CONDITION("GapSbmContactCondition", mGapSbmContactCondition)
+    KRATOS_REGISTER_CONDITION("GapSbmALMContactCondition", mGapSbmALMContactCondition)
     KRATOS_REGISTER_CONDITION("SbmContact2DCondition", mSbmContact2DCondition)
     KRATOS_REGISTER_CONDITION("GapSbmLoadSolidCondition", mGapSbmLoadSolidCondition)
     KRATOS_REGISTER_CONDITION("GapSbmSolidCondition", mGapSbmSolidCondition)
@@ -238,6 +241,7 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_VARIABLE(INTEGRATE_CONSERVATIVE)
 
     KRATOS_REGISTER_VARIABLE(PENALTY_FACTOR)
+    KRATOS_REGISTER_VARIABLE(SCALAR_LAGRANGE_MULTIPLIER_REACTION)
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(VECTOR_LAGRANGE_MULTIPLIER_REACTION)
 
     KRATOS_REGISTER_VARIABLE(NITSCHE_STABILIZATION_FACTOR)
@@ -276,6 +280,7 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_VARIABLE(PROJECTION_NODE_COORDINATES)
     KRATOS_REGISTER_VARIABLE(PROJECTION_NODE_ID)
     KRATOS_REGISTER_VARIABLE(BREP_ID)
+    KRATOS_REGISTER_VARIABLE(CONTACT_PRESSURE)
 }
 
 }  // namespace Kratos
