@@ -499,15 +499,15 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
                     )
                 )
 
-            if (Path(project_path) / f"{stage['base_name']}_comparison.csv").exists():
+            if (Path(project_path) / f"{stage['base_name']}__DSheetPiling_results.csv").exists():
                 comparison_variable = test_helper.get_data_points_from_file(
-                    Path(project_path) / f"{stage['base_name']}_comparison.csv",
+                    Path(project_path) / f"{stage['base_name']}__DSheetPiling_results.csv",
                     data_extractor,
                 )
                 data_series_collection.append(
                     plot_utils.DataSeries(
                         comparison_variable,
-                        f"{variable_plot_label} [Comparison]",
+                        f"{variable_plot_label} [D-Sheet Piling]",
                         marker="1",
                     )
                 )
@@ -583,15 +583,15 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
                     )
                 )
 
-            if (Path(project_path) / f"{stage['base_name']}_comparison.csv").exists():
+            if (Path(project_path) / f"{stage['base_name']}__DSheetPiling_results.csv").exists():
                 comparison_variable = test_helper.get_data_points_from_file(
-                    Path(project_path) / f"{stage['base_name']}_comparison.csv",
+                    Path(project_path) / f"{stage['base_name']}__DSheetPiling_results.csv",
                     data_extractor,
                 )
                 data_series_collection.append(
                     plot_utils.DataSeries(
                         comparison_variable,
-                        "Horizontal displacement [Comparison]",
+                        "Horizontal displacement [D-Sheet Piling]",
                         marker="1",
                     )
                 )
