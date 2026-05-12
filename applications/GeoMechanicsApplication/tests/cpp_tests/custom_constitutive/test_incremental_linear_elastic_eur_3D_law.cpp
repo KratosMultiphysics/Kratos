@@ -176,7 +176,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElasticEur3DLaw_CopyConstructorCop
 
     // After resetting the original, its stress should differ from the copied one
     KRATOS_EXPECT_FALSE((std::abs((original_stress_after_reset[0] - expected_stress_from_original[0]) /
-                                  expected_stress_from_original[0]) <= tolerance));
+                                  expected_stress_from_original[0]) <= tolerance))
 }
 
 KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElasticEur3DLaw_CopyAssignmentCopiesInternalState,
@@ -206,7 +206,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElasticEur3DLaw_CopyAssignmentCopi
     constexpr auto tolerance = 1.0e-4;
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(expected_assigned_from_original, assigned_stress, tolerance)
     KRATOS_EXPECT_FALSE((std::abs((original_stress_after_reset[0] - expected_assigned_from_original[0]) /
-                                  expected_assigned_from_original[0]) <= tolerance));
+                                  expected_assigned_from_original[0]) <= tolerance))
 }
 
 KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElasticEur3DLaw_CloneReturnsCopyOfCorrectType,
@@ -369,18 +369,15 @@ KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElasticEur3DLaw_ReturnsDiagonalCon
     // Act
     const auto constitutive_matrix = CalculateConstitutiveMatrix(law, properties, strain_vector);
 
-    // Assert: only diagonal normal entries remain and shear entries are zero
-    KRATOS_EXPECT_EQ(constitutive_matrix(0, 1), 0.0);
-    KRATOS_EXPECT_EQ(constitutive_matrix(0, 2), 0.0);
-    KRATOS_EXPECT_EQ(constitutive_matrix(1, 0), 0.0);
-    KRATOS_EXPECT_EQ(constitutive_matrix(1, 2), 0.0);
-    KRATOS_EXPECT_EQ(constitutive_matrix(2, 0), 0.0);
-    KRATOS_EXPECT_EQ(constitutive_matrix(2, 1), 0.0);
-    KRATOS_EXPECT_EQ(constitutive_matrix(3, 3), 0.0);
-    KRATOS_EXPECT_EQ(constitutive_matrix(4, 4), 0.0);
-    KRATOS_EXPECT_EQ(constitutive_matrix(5, 5), 0.0);
-    KRATOS_EXPECT_NEAR(constitutive_matrix(0, 0), constitutive_matrix(1, 1), Defaults::relative_tolerance);
-    KRATOS_EXPECT_NEAR(constitutive_matrix(0, 0), constitutive_matrix(2, 2), Defaults::relative_tolerance);
+    constexpr double expected_diagonal_value = 0.0369853;
+    const auto       expected_constitutive_matrix =
+        UblasUtilities::CreateMatrix({{expected_diagonal_value, 0.0, 0.0, 0.0, 0.0, 0.0},
+                                      {0.0, expected_diagonal_value, 0.0, 0.0, 0.0, 0.0},
+                                      {0.0, 0.0, expected_diagonal_value, 0.0, 0.0, 0.0},
+                                      {0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
+                                      {0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
+                                      {0.0, 0.0, 0.0, 0.0, 0.0, 0.0}});
+    KRATOS_EXPECT_MATRIX_NEAR(constitutive_matrix, expected_constitutive_matrix, Defaults::relative_tolerance);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElasticEur3DLaw_ReturnsExpectedStressFromPK2Response,
@@ -418,6 +415,16 @@ KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElasticEur3DLaw_RequiresFinalizeMa
 
     // Act and Assert
     KRATOS_EXPECT_TRUE(law.RequiresFinalizeMaterialResponse())
+}
+
+KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElasticEur3DLaw_RequiresIsIncrementalResponse,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto law = CreateIncrementalLinearElasticEur3DLaw();
+
+    // Act and Assert
+    KRATOS_EXPECT_TRUE(law.IsIncremental())
 }
 
 KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElasticEur3DLaw_ReturnsExpectedDiagonalEntryAtReferencePressure,
