@@ -31,23 +31,13 @@ def ConstructSolver(Settings):
     if type(Settings) != KM.Parameters:
         raise Exception("input is expected to be provided as a Kratos Parameters object")
 
-    # Ensure the factory settings are defined, and if not assign them with default values
-    minimal_settings = KM.Parameters("""{
-        "kratos_module"  : "KratosMultiphysics",
-        "factory_module" : "python_linear_solver_factory.PythonLinearSolverFactory",
-        "solver_type"    : ""
-    }""")
-
-    # Check minimal settings are defined in the provided settings, manually to avoid errors, and assign if not
-    for name in minimal_settings.keys():
-        if not Settings.Has(name):
-            Settings.AddValue(name, minimal_settings[name])
+    # Default factory settings (do NOT inject these into Settings to avoid polluting the solver config)
+    kratos_module_name = Settings["kratos_module"].GetString() if Settings.Has("kratos_module") else "KratosMultiphysics"
+    factory_module_name = Settings["factory_module"].GetString() if Settings.Has("factory_module") else "python_linear_solver_factory.PythonLinearSolverFactory"
 
     # Generate the python module for the factory
-    kratos_module_name = Settings["kratos_module"].GetString()
     if not kratos_module_name.startswith("KratosMultiphysics"):
         kratos_module_name = "KratosMultiphysics." + kratos_module_name # ensure the correct prefix is added if not provided
-    factory_module_name = Settings["factory_module"].GetString()  # e.g. "python_linear_solver_factory.PythonLinearSolverFactory"
     module_path, class_name = factory_module_name.rsplit(".", 1)
     factory_module = import_module(kratos_module_name + "." + module_path)
 
@@ -78,21 +68,13 @@ def CreateFastestAvailableDirectLinearSolver(Settings = KM.Parameters("{}")):
     Raises:
         Exception: If no suitable direct solver can be found.
     """
-    default_settings = KM.Parameters("""{
-        "kratos_module"  : "KratosMultiphysics",
-        "factory_module" : "python_linear_solver_factory.PythonLinearSolverFactory"
-    }""")
-
-    # Fill in missing factory keys from defaults
-    for name in default_settings.keys():
-        if not Settings.Has(name):
-            Settings.AddValue(name, default_settings[name])
+    # Fill in missing factory keys from defaults (do NOT inject into Settings)
+    kratos_module_name = Settings["kratos_module"].GetString() if Settings.Has("kratos_module") else "KratosMultiphysics"
+    factory_module_name = Settings["factory_module"].GetString() if Settings.Has("factory_module") else "python_linear_solver_factory.PythonLinearSolverFactory"
 
     # Resolve and import the factory module
-    kratos_module_name = Settings["kratos_module"].GetString()
     if not kratos_module_name.startswith("KratosMultiphysics"):
         kratos_module_name = "KratosMultiphysics." + kratos_module_name
-    factory_module_name = Settings["factory_module"].GetString()  # e.g. "python_linear_solver_factory.PythonLinearSolverFactory"
     module_path, class_name = factory_module_name.rsplit(".", 1)
     factory_module = import_module(kratos_module_name + "." + module_path)
 
@@ -116,16 +98,11 @@ class PythonLinearSolverFactory(object):
         If the solver belongs to an external application, that application
         is imported first.
 
-        Factory-routing keys (``"kratos_module"``, ``"factory_module"``) are
-        stripped from a clone of ``configuration`` before it is forwarded to
-        the C++ ``LinearSolverFactory``, so the caller does not need to remove
-        them manually.
-
         Args:
             configuration (KratosMultiphysics.Parameters): Parameters object
                 containing at least a ``"solver_type"`` entry. Optionally may
                 contain an ``"inner_solver_settings"`` block for preconditioners
-                or nested solvers, and factory-routing keys which are ignored.
+                or nested solvers.
 
         Returns:
             LinearSolver: A Kratos linear solver instance.
@@ -137,25 +114,18 @@ class PythonLinearSolverFactory(object):
         if type(configuration) != KM.Parameters:
             raise Exception("input is expected to be provided as a Kratos Parameters object")
 
-        # Remove factory-routing keys that are not part of the solver configuration
-        # and would be rejected by the C++ LinearSolverFactory
-        solver_configuration = configuration.Clone()
-        for factory_key in ("kratos_module", "factory_module"):
-            if solver_configuration.Has(factory_key):
-                solver_configuration.RemoveValue(factory_key)
+        solver_type = self.__GetSolverTypeAndImportApplication(configuration["solver_type"].GetString())
 
-        solver_type = self.__GetSolverTypeAndImportApplication(solver_configuration["solver_type"].GetString())
-
-        if solver_configuration.Has("inner_solver_settings"):
-            inner_solver_type = solver_configuration["inner_solver_settings"]["solver_type"].GetString()
+        if configuration.Has("inner_solver_settings"):
+            inner_solver_type = configuration["inner_solver_settings"]["solver_type"].GetString()
             self.__GetSolverTypeAndImportApplication(inner_solver_type)
 
         if KM.ComplexLinearSolverFactory().Has(solver_type):
             KM.Logger.PrintInfo(self.__GetLabel(), "Constructing a complex linear-solver")
-            return KM.ComplexLinearSolverFactory().Create(solver_configuration)
+            return KM.ComplexLinearSolverFactory().Create(configuration)
         else:
             KM.Logger.PrintInfo(self.__GetLabel(), "Constructing a regular (non-complex) linear-solver")
-            return KM.LinearSolverFactory().Create(solver_configuration)
+            return KM.LinearSolverFactory().Create(configuration)
 
     def CreateFastestAvailableDirectLinearSolver(self):
         """Create the fastest available direct linear solver on the current system.
