@@ -232,7 +232,7 @@
                                         "gidpost_flags": {
                                             "GiDPostMode": "GiD_PostAscii",
                                             "WriteDeformedMeshFlag": "WriteDeformed",
-                                            "WriteConditionsFlag": "WriteConditions",
+                                            "WriteConditionsFlag": "WriteElementsOnly",
                                             "MultiFileFlag": "SingleFile"
                                         },
                                         "file_label": "step",
@@ -426,7 +426,7 @@
                                         "gidpost_flags": {
                                             "GiDPostMode": "GiD_PostAscii",
                                             "WriteDeformedMeshFlag": "WriteDeformed",
-                                            "WriteConditionsFlag": "WriteConditions",
+                                            "WriteConditionsFlag": "WriteElementsOnly",
                                             "MultiFileFlag": "SingleFile"
                                         },
                                         "file_label": "step",
@@ -716,7 +716,7 @@
                                         "gidpost_flags": {
                                             "GiDPostMode": "GiD_PostAscii",
                                             "WriteDeformedMeshFlag": "WriteDeformed",
-                                            "WriteConditionsFlag": "WriteConditions",
+                                            "WriteConditionsFlag": "WriteElementsOnly",
                                             "MultiFileFlag": "SingleFile"
                                         },
                                         "file_label": "step",
@@ -1020,7 +1020,7 @@
                                         "gidpost_flags": {
                                             "GiDPostMode": "GiD_PostAscii",
                                             "WriteDeformedMeshFlag": "WriteDeformed",
-                                            "WriteConditionsFlag": "WriteConditions",
+                                            "WriteConditionsFlag": "WriteElementsOnly",
                                             "MultiFileFlag": "SingleFile"
                                         },
                                         "file_label": "step",
@@ -1326,7 +1326,7 @@
                                         "gidpost_flags": {
                                             "GiDPostMode": "GiD_PostAscii",
                                             "WriteDeformedMeshFlag": "WriteDeformed",
-                                            "WriteConditionsFlag": "WriteConditions",
+                                            "WriteConditionsFlag": "WriteElementsOnly",
                                             "MultiFileFlag": "SingleFile"
                                         },
                                         "file_label": "step",
@@ -1635,7 +1635,7 @@
                                         "gidpost_flags": {
                                             "GiDPostMode": "GiD_PostAscii",
                                             "WriteDeformedMeshFlag": "WriteDeformed",
-                                            "WriteConditionsFlag": "WriteConditions",
+                                            "WriteConditionsFlag": "WriteElementsOnly",
                                             "MultiFileFlag": "SingleFile"
                                         },
                                         "file_label": "step",
@@ -1943,7 +1943,7 @@
                                         "gidpost_flags": {
                                             "GiDPostMode": "GiD_PostAscii",
                                             "WriteDeformedMeshFlag": "WriteDeformed",
-                                            "WriteConditionsFlag": "WriteConditions",
+                                            "WriteConditionsFlag": "WriteElementsOnly",
                                             "MultiFileFlag": "SingleFile"
                                         },
                                         "file_label": "step",

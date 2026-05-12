@@ -1,4 +1,4 @@
-node,bending_moment,shear_force,horizontal_displacement
+node,bending_moment_in_Nm_per_m,shear_force_in_N_per_m,horizontal_displacement_in_m
 3968,-173.154,3794.38,-0.00242729
 3982,-602.287,1716.53,-0.00299737
 3996,-1639.41,-517.296,-0.0035676

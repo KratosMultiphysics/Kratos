@@ -92,6 +92,8 @@ This is rounded to:
 k \approx 1.0 \times 10^{-11}\ \mathrm{m}^2
 ```
 
+**Note:** Since the water pressure field will be completely prescribed, the above permeability values as well as the dynamic viscosity will not have any influence on the simulation results.
+
 
 ### Final values
 Because the Kratos model requires additional parameters, the table below summarizes the final material properties for the soil layers, including both the calculated values and the assumed values adopted for use in the model.
@@ -103,9 +105,6 @@ Because the Kratos model requires additional parameters, the table below summari
 | Porosity                     | `POROSITY`             | 0.0                      | 0.0                      | $`-`$                        |
 | Young's modulus              | `YOUNG_MODULUS`        | $`9.0 \times 10^5`$      | $`7.4286 \times 10^6`$   | $`\mathrm{Pa}`$              |
 | Poisson's ratio              | `POISSON_RATIO`        | 0.2                      | 0.3                      | $`-`$                        |
-| Intrinsic permeability in xx | `PERMEABILITY_XX`      | $`1.02 \times 10^{-11}`$ | $`1.02 \times 10^{-11}`$ | $`\mathrm{m}^2`$             |
-| Intrinsic permeability in yy | `PERMEABILITY_YY`      | $`1.02 \times 10^{-11}`$ | $`1.02 \times 10^{-11}`$ | $`\mathrm{m}^2`$             |
-| Intrinsic permeability in xy | `PERMEABILITY_XY`      | 0                        | 0                        | $`\mathrm{m}^2`$             |
 | Saturated saturation         | `SATURATED_SATURATION` | 1.0                      | 1.0                      | $`-`$                        |
 | Residual saturation          | `RESIDUAL_SATURATION`  | $`1.0 \times 10^{-10}`$  | $`1.0 \times 10^{-10}`$  | $`-`$                        |
 | Earth pressure coefficient   | `K0_NC`                | 0.62                     | 0.46                     | $`-`$                        |
@@ -277,13 +276,25 @@ The extensional stiffness is calculated as follows:
 (EA)_{\mathrm{beam}} = E_{\mathrm{beam}} \cdot b \cdot t = EA
 ```
 
-In both equations, the width $`b`$ equals $`1.0\ \mathrm{m}`$, since we assume plane strain conditions.  From these two equations, we can solve for the equivalent Young's modulus of the beam $`E_{\mathrm{beam}}`$ and the equivalent wall thickness $`t`$.  The solution is presented in the next section.
+In both equations, the width $`b`$ equals $`1.0\ \mathrm{m}`$, since we assume plane strain conditions.  From these two equations, we can solve for the equivalent Young's modulus of the beam $`E_{\mathrm{beam}}`$ and the equivalent wall thickness $`t`$.  We arrive at the following closed-form solution for the equivalent thickness $`t`$:
+
+```math
+t = \sqrt{12 \cdot \frac{EI}{EA}}
+```
+
+Through back-substitution, we can calculate the equivalent Young's modulus of the beam $`E_{\mathrm{beam}}`$:
+
+```math
+E_{\mathrm{beam}} = \frac{EA}{b \cdot t}
+```
 
 Finally, since the adopted cross-section has a rectangular shape, also the density of steel needs to be modified such that the weight matches the original value.
 
 ```math
 \rho_{\mathrm{s}} = \frac{W}{b \cdot t} = \frac{146.9\ \mathrm{kg} / \mathrm{m}}{1.0\ \mathrm{m} \cdot 0.4924\ \mathrm{m}} = 298.36\ \mathrm{kg} / \mathrm{m}^3
 ```
+
+Note that $`\rho_{\mathrm{s}}`$ represents an _apparent_ density of the steel rather than the actual one.
 
 
 ### Final values

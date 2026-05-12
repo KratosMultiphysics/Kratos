@@ -21,9 +21,9 @@ if test_helper.want_test_plots():
 
 
 csv_fieldname_node = "node"
-csv_fieldname_bending_moment = "bending_moment"
-csv_fieldname_shear_force = "shear_force"
-csv_fieldname_horizontal_displacement = "horizontal_displacement"
+csv_fieldname_bending_moment = "bending_moment_in_Nm_per_m"
+csv_fieldname_shear_force = "shear_force_in_N_per_m"
+csv_fieldname_horizontal_displacement = "horizontal_displacement_in_m"
 
 csv_fieldnames = [
     csv_fieldname_node,  # this one must come first
