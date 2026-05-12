@@ -374,6 +374,13 @@ void NavierStokesWallCondition<TDim,TNumNodes,TWallModel...>::ComputeGaussPointL
             CalculateGaussPointSlipTangentialCorrectionLHSContribution(lhs_gauss, data);
         }
     }
+
+    // LHS directional do-nothing linearization (Braack & Mucha 2014)
+    if (rProcessInfo.Has(DIRECTIONAL_DO_NOTHING_SWITCH)) {
+        if (this->Is(OUTLET) && rProcessInfo[DIRECTIONAL_DO_NOTHING_SWITCH]) {
+            this->ComputeLHSDirectionalDoNothingContribution(lhs_gauss, data, rProcessInfo);
+        }
+    }
 }
 
 
@@ -395,6 +402,13 @@ void NavierStokesWallCondition<TDim,TNumNodes,TWallModel...>::ComputeGaussPointR
     if (rProcessInfo.Has(OUTLET_INFLOW_CONTRIBUTION_SWITCH)) {
         if (this->Is(OUTLET) && rProcessInfo[OUTLET_INFLOW_CONTRIBUTION_SWITCH]){
             this->ComputeRHSOutletInflowContribution(rhs_gauss, data, rProcessInfo);
+        }
+    }
+
+    // Gauss pt. directional do-nothing contribution (Braack & Mucha 2014)
+    if (rProcessInfo.Has(DIRECTIONAL_DO_NOTHING_SWITCH)) {
+        if (this->Is(OUTLET) && rProcessInfo[DIRECTIONAL_DO_NOTHING_SWITCH]) {
+            this->ComputeRHSDirectionalDoNothingContribution(rhs_gauss, data, rProcessInfo);
         }
     }
 
@@ -479,6 +493,91 @@ void NavierStokesWallCondition<TDim,TNumNodes,TWallModel...>::ComputeRHSOutletIn
         for (unsigned int d=0; d<TDim; ++d)
         {
             rhs_gauss[row+d] += data.wGauss*data.N[i]*0.5*rho*vGaussSquaredNorm*S_0*data.Normal[d];
+        }
+    }
+}
+
+template<unsigned int TDim, unsigned int TNumNodes, class... TWallModel>
+void NavierStokesWallCondition<TDim,TNumNodes,TWallModel...>::ComputeRHSDirectionalDoNothingContribution(
+    array_1d<double,LocalSize>& rhs_gauss,
+    const ConditionDataStruct& data,
+    const ProcessInfo& rProcessInfo)
+{
+    constexpr SizeType LocalSize = TDim+1;
+    const GeometryType& rGeom = this->GetGeometry();
+
+    // Get density from parent element properties, falling back to nodal data
+    auto& r_neighbours = this->GetValue(NEIGHBOUR_ELEMENTS);
+    const auto& r_properties = r_neighbours[0].GetProperties();
+    double rho = 0.0;
+    if (r_properties.Has(DENSITY) && r_properties.GetValue(DENSITY) > 0.0) {
+        rho = r_properties.GetValue(DENSITY);
+    } else if (rGeom[0].SolutionStepsDataHas(DENSITY)) {
+        for (unsigned int i = 0; i < TNumNodes; ++i)
+            rho += data.N[i] * rGeom[i].FastGetSolutionStepValue(DENSITY);
+    }
+    KRATOS_ERROR_IF(rho <= 0.0)
+        << "Directional do-nothing contribution requires a positive DENSITY either in the parent element properties or as nodal historical data. Condition "
+        << this->Id() << " computed rho = " << rho << std::endl;
+
+    // Interpolate velocity at Gauss point
+    array_1d<double, 3> vGauss = ZeroVector(3);
+    for (unsigned int i = 0; i < TNumNodes; ++i)
+        vGauss += data.N[i] * rGeom[i].FastGetSolutionStepValue(VELOCITY);
+
+    // (v·n)₋ = min(v·n, 0): contribution is zero for pure outflow
+    const double vn_minus = std::min(inner_prod(vGauss, data.Normal), 0.0);
+
+    for (unsigned int i = 0; i < TNumNodes; ++i) {
+        const unsigned int row = i * LocalSize;
+        for (unsigned int d = 0; d < TDim; ++d) {
+            rhs_gauss[row + d] += data.wGauss * data.N[i] * 0.5 * rho * vn_minus * vGauss[d];
+        }
+    }
+}
+
+template<unsigned int TDim, unsigned int TNumNodes, class... TWallModel>
+void NavierStokesWallCondition<TDim,TNumNodes,TWallModel...>::ComputeLHSDirectionalDoNothingContribution(
+    BoundedMatrix<double,LocalSize,LocalSize>& lhs_gauss,
+    const ConditionDataStruct& data,
+    const ProcessInfo& rProcessInfo)
+{
+    constexpr SizeType LocalSize = TDim+1;
+    const GeometryType& rGeom = this->GetGeometry();
+
+    // Get density from parent element properties, falling back to nodal data
+    auto& r_neighbours = this->GetValue(NEIGHBOUR_ELEMENTS);
+    const auto& r_properties = r_neighbours[0].GetProperties();
+    double rho = 0.0;
+    if (r_properties.Has(DENSITY) && r_properties.GetValue(DENSITY) > 0.0) {
+        rho = r_properties.GetValue(DENSITY);
+    } else if (rGeom[0].SolutionStepsDataHas(DENSITY)) {
+        for (unsigned int i = 0; i < TNumNodes; ++i)
+            rho += data.N[i] * rGeom[i].FastGetSolutionStepValue(DENSITY);
+    }
+
+    // Interpolate velocity at Gauss point
+    array_1d<double, 3> vGauss = ZeroVector(3);
+    for (unsigned int i = 0; i < TNumNodes; ++i)
+        vGauss += data.N[i] * rGeom[i].FastGetSolutionStepValue(VELOCITY);
+
+    const double vn = inner_prod(vGauss, data.Normal);
+
+    // Linearization of ½ρ·(v·n)₋·v is only non-zero during backflow
+    if (vn >= 0.0) return;
+
+    // d/d(u_j[e]) [½ρ·(v·n)·v[d]] = ½ρ·N[j]·(vn·δ_{de} + v[d]·n[e])
+    const double coeff = data.wGauss * 0.5 * rho;
+    for (unsigned int i = 0; i < TNumNodes; ++i) {
+        for (unsigned int j = 0; j < TNumNodes; ++j) {
+            const double NiNj = data.N[i] * data.N[j];
+            for (unsigned int d = 0; d < TDim; ++d) {
+                for (unsigned int e = 0; e < TDim; ++e) {
+                    const double delta_de = (d == e) ? 1.0 : 0.0;
+                    lhs_gauss(i*LocalSize + d, j*LocalSize + e) +=
+                        coeff * NiNj * (vn * delta_de + vGauss[d] * data.Normal[e]);
+                }
+            }
         }
     }
 }
