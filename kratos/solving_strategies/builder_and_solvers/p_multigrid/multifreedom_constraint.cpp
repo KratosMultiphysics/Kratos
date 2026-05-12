@@ -16,7 +16,6 @@
 
 // System includes
 #include <algorithm> // std::copy, std::transform
-#include <format> // std::format
 
 
 namespace Kratos {
@@ -80,16 +79,6 @@ void MultifreedomConstraint::EquationIdVector(EquationIdVectorType& rSlaveDofs,
 
 std::size_t MultifreedomConstraint::DofCount() const noexcept {
     return mDofs.size();
-}
-
-
-void MultifreedomConstraint::GetDofs(std::vector<const Dof<IAdjoint::Scalar>*>& rOutput) const {
-    rOutput.clear();
-    rOutput.reserve(mDofs.size());
-    std::copy(
-        mDofs.begin(),
-        mDofs.end(),
-        std::back_inserter(rOutput));
 }
 
 

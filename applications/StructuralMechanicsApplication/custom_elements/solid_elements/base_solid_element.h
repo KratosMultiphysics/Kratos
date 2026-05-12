@@ -669,13 +669,6 @@ public:
     }
 
     ///@}
-    /// @name Adjoint Interface
-    /// @{
-
-    /// @copydoc IAdjointElement::GetDofs
-    void GetDofs(std::vector<const Dof<IAdjoint::Scalar>*>& rOutput) const override;
-
-    /// @}
 
 protected:
 
@@ -967,11 +960,15 @@ protected:
 
 
     /// @copydoc IAdjointElement::GetMassInfluencingVariables
-    void GetMassInfluencingVariables(std::vector<IAdjoint::DynamicVariable>& rOutput) const override;
+    void GetMassInfluencingVariables(
+        std::vector<IAdjoint::DynamicVariable>& rOutput,
+        const ProcessInfo& rProcessInfo) const override;
 
 
     /// @copydoc IAdjointElement::GetDampingInfluencingVariables
-    void GetDampingInfluencingVariables(std::vector<IAdjoint::DynamicVariable>& rOutput) const override;
+    void GetDampingInfluencingVariables(
+        std::vector<IAdjoint::DynamicVariable>& rOutput,
+        const ProcessInfo& rProcessInfo) const override;
 
     /// @}
 

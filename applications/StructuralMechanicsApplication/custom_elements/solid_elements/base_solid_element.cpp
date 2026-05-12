@@ -1678,82 +1678,71 @@ void BaseSolidElement::RotateToGlobalAxes(
 /***********************************************************************************/
 
 
-void BaseSolidElement::GetDofs(std::vector<const Dof<IAdjoint::Scalar>*>& rOutput) const {
-    KRATOS_TRY
-        DofsVectorType dof_list;
-        ProcessInfo process_info;
-        this->GetDofList(dof_list, process_info);
-        rOutput.clear();
-        rOutput.reserve(dof_list.size());
-        std::copy(
-            dof_list.begin(),
-            dof_list.end(),
-            std::back_inserter(rOutput));
-    KRATOS_CATCH("")
+void BaseSolidElement::GetMassInfluencingVariables(
+    std::vector<IAdjoint::DynamicVariable>& rOutput,
+    const ProcessInfo&) const {
+        // This function must be consistent with BaseSolidElement::CalculateMassMatrix
+        KRATOS_TRY
+            rOutput.clear();
+            rOutput.reserve(6);
+
+            // Density-related variables.
+            // The element reroutes calls to StructuralMechanicsElementUtilities::GetDensityForMassMatrixComputation,
+            // and the following bits should reflect the behavior of that function.
+            const Properties& r_properties = this->GetProperties();
+            rOutput.push_back(DENSITY);
+            if (this->Has(MASS_FACTOR) || r_properties.Has(MASS_FACTOR)) rOutput.push_back(MASS_FACTOR);
+
+            // Thickness for solids???
+            if (this->GetGeometry().WorkingSpaceDimension() == 2 && r_properties.Has(THICKNESS)) rOutput.push_back(THICKNESS);
+
+            // Geometry.
+            for (std::size_t i_node=0ul; i_node<this->GetGeometry().size(); ++i_node) {
+                rOutput.push_back(IAdjoint::DynamicVariable(SHAPE_X, i_node));
+                rOutput.push_back(IAdjoint::DynamicVariable(SHAPE_Y, i_node));
+                rOutput.push_back(IAdjoint::DynamicVariable(SHAPE_Z, i_node));
+            } // for i_node in range(geometry.size)
+        KRATOS_CATCH("")
 }
 
 
-void BaseSolidElement::GetMassInfluencingVariables(std::vector<IAdjoint::DynamicVariable>& rOutput) const {
-    // This function must be consistent with BaseSolidElement::CalculateMassMatrix
-    KRATOS_TRY
-        rOutput.clear();
-        rOutput.reserve(6);
+void BaseSolidElement::GetDampingInfluencingVariables(
+    std::vector<IAdjoint::DynamicVariable>& rOutput,
+    const ProcessInfo& rProcessInfo) const {
+        // This function must be consistent with BaseSolidElement::CalculateDampingMatrix
+        KRATOS_TRY
+            rOutput.clear();
+            rOutput.reserve(6);
 
-        // Density-related variables.
-        // The element reroutes calls to StructuralMechanicsElementUtilities::GetDensityForMassMatrixComputation,
-        // and the following bits should reflect the behavior of that function.
-        const Properties& r_properties = this->GetProperties();
-        rOutput.push_back(DENSITY);
-        if (this->Has(MASS_FACTOR) || r_properties.Has(MASS_FACTOR)) rOutput.push_back(MASS_FACTOR);
+            // Rayleigh damping as a linear combination of stiffness and mass matrices.
+            std::vector<IAdjoint::DynamicVariable> buffer;
+            this->GetMassInfluencingVariables(buffer, rProcessInfo);
+            rOutput.insert(
+                rOutput.end(),
+                buffer.begin(),
+                buffer.end());
 
-        // Thickness for solids???
-        if (this->GetGeometry().WorkingSpaceDimension() == 2 && r_properties.Has(THICKNESS)) rOutput.push_back(THICKNESS);
+            this->GetStiffnessInfluencingVariables(buffer, rProcessInfo);
+            rOutput.insert(
+                rOutput.end(),
+                buffer.begin(),
+                buffer.end());
 
-        // Geometry.
-        for (std::size_t i_node=0ul; i_node<this->GetGeometry().size(); ++i_node) {
-            rOutput.push_back(IAdjoint::DynamicVariable(SHAPE_X, i_node));
-            rOutput.push_back(IAdjoint::DynamicVariable(SHAPE_Y, i_node));
-            rOutput.push_back(IAdjoint::DynamicVariable(SHAPE_Z, i_node));
-        } // for i_node in range(geometry.size)
-    KRATOS_CATCH("")
-}
-
-
-void BaseSolidElement::GetDampingInfluencingVariables(std::vector<IAdjoint::DynamicVariable>& rOutput) const {
-    // This function must be consistent with BaseSolidElement::CalculateDampingMatrix
-    KRATOS_TRY
-        rOutput.clear();
-        rOutput.reserve(6);
-
-        // Rayleigh damping as a linear combination of stiffness and mass matrices.
-        std::vector<IAdjoint::DynamicVariable> buffer;
-        this->GetMassInfluencingVariables(buffer);
-        rOutput.insert(
-            rOutput.end(),
-            buffer.begin(),
-            buffer.end());
-
-        this->GetStiffnessInfluencingVariables(buffer);
-        rOutput.insert(
-            rOutput.end(),
-            buffer.begin(),
-            buffer.end());
-
-        std::sort(
-            rOutput.begin(),
-            rOutput.end(),
-            [] (const IAdjoint::DynamicVariable& r_left, const IAdjoint::DynamicVariable& r_right) -> bool {
-                return r_left.Key() < r_right.Key();
-            });
-        rOutput.erase(
-            std::unique(
+            std::sort(
                 rOutput.begin(),
                 rOutput.end(),
                 [] (const IAdjoint::DynamicVariable& r_left, const IAdjoint::DynamicVariable& r_right) -> bool {
-                    return r_left.Key() == r_right.Key();
-                }),
-            rOutput.end());
-    KRATOS_CATCH("")
+                    return r_left.Key() < r_right.Key();
+                });
+            rOutput.erase(
+                std::unique(
+                    rOutput.begin(),
+                    rOutput.end(),
+                    [] (const IAdjoint::DynamicVariable& r_left, const IAdjoint::DynamicVariable& r_right) -> bool {
+                        return r_left.Key() == r_right.Key();
+                    }),
+                rOutput.end());
+        KRATOS_CATCH("")
 }
 
 

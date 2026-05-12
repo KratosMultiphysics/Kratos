@@ -145,9 +145,6 @@ public:
     /// @}
 
 protected:
-    /// @copydoc IAdjointElement::GetDofs
-    void GetDofs(std::vector<const Dof<IAdjoint::Scalar>*>& rOutput) const final override;
-
     [[nodiscard]] std::size_t DofCount() const noexcept;
 
     const MatrixType& GetHessian() const
