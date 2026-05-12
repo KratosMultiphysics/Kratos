@@ -202,9 +202,10 @@ double GeoIncrementalLinearElasticEurLaw::CalculateMinorPrincipalEffectiveStress
     auto eigen_vectors      = Matrix{};
     StressStrainUtilities::CalculatePrincipalStresses(mStressVectorFinalized, principal_stresses, eigen_vectors);
 
-    KRATOS_DEBUG_ERROR_IF(principal_stresses.empty())
+    KRATOS_DEBUG_ERROR_IF(principal_stresses.size() < 3)
         << "Could not compute principal stresses from stress vector with size "
-        << mStressVectorFinalized.size() << "\n";
+        << mStressVectorFinalized.size() << ". Expected at least 3 principal stresses, got "
+        << principal_stresses.size() << "\n";
 
     return principal_stresses[2];
 }
