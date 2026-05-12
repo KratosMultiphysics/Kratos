@@ -65,7 +65,7 @@ template <class T>
 struct is_eigen_type<
     T,
     typename std::enable_if<
-        std::is_arithmetic<typename T::Scalar>::value &&
+        std::is_arithmetic<typename T::RealScalar>::value &&
         std::is_base_of<Eigen::EigenBase<T>, T>::value
         >::type
     > : std::true_type

@@ -50,6 +50,7 @@
 #include "geometries/nurbs_curve_geometry.h"
 #include "geometries/nurbs_curve_on_surface_geometry.h"
 #include "geometries/surface_in_nurbs_volume_geometry.h"
+#include "geometries/brep_surface.h" 
 
 namespace Kratos::Python
 {
@@ -62,6 +63,7 @@ namespace Kratos::Python
     using IntegrationPointsArrayType = typename GeometryType::IntegrationPointsArrayType;
     using GeometriesArrayType = typename GeometryType::GeometriesArrayType;
     using CoordinatesArrayType = typename Point::CoordinatesArrayType;
+    using PointVectorType = Kratos::PointerVector<Kratos::Point>;
 
     const PointerVector< Node >& ConstGetPoints( GeometryType& geom ) { return geom.Points(); }
     PointerVector< Node >& GetPoints( GeometryType& geom ) { return geom.Points(); }
@@ -348,7 +350,7 @@ void  AddGeometriesToPython(pybind11::module& m)
         .def("Weights", &NurbsCurveGeometry<3, NodeContainerType>::Weights)
         ;
 
-    // NurbsCurveGeometry2D
+    // NurbsCurveGeometry2D (constructed with nodes)
     py::class_<NurbsCurveGeometry<2, NodeContainerType>, NurbsCurveGeometry<2, NodeContainerType>::Pointer, GeometryType >(m, "NurbsCurveGeometry2D")
         .def(py::init<const PointsArrayType&, const SizeType, const Vector>())
         .def(py::init<const PointsArrayType&, const SizeType, const Vector, const Vector>())
@@ -359,6 +361,39 @@ void  AddGeometriesToPython(pybind11::module& m)
         .def("IsRational", &NurbsCurveGeometry<2, NodeContainerType>::IsRational)
         .def("Weights", &NurbsCurveGeometry<2, NodeContainerType>::Weights)
         ;
+    
+    // NurbsCurveGeometry2D (constructed with points)
+    using NurbsCurveGeometry2DPointType = Kratos::NurbsCurveGeometry<2, PointVectorType>;
+    py::class_<NurbsCurveGeometry2DPointType,
+            NurbsCurveGeometry2DPointType::Pointer>(m, "NurbsCurveGeometry2DPoint")
+        .def(py::init([](const py::list& py_points, const SizeType degree, const Vector& knot_vector)
+        {
+            typename NurbsCurveGeometry2DPointType::PointsArrayType points;
+
+            for (std::size_t i = 0; i < py_points.size(); ++i) {
+                auto p_point = py::cast<std::shared_ptr<Kratos::Point>>(py_points[i]);
+                points.push_back(p_point);
+            }
+
+            return Kratos::make_shared<NurbsCurveGeometry2DPointType>(points, degree, knot_vector);
+        }))
+        .def(py::init([](const py::list& py_points, const SizeType degree, const Vector& knot_vector, const Vector& weights)
+        {
+            typename NurbsCurveGeometry2DPointType::PointsArrayType points;
+
+            for (std::size_t i = 0; i < py_points.size(); ++i) {
+                auto p_point = py::cast<std::shared_ptr<Kratos::Point>>(py_points[i]);
+                points.push_back(p_point);
+            }
+
+            return Kratos::make_shared<NurbsCurveGeometry2DPointType>(points, degree, knot_vector, weights);
+        }))
+        .def("PolynomialDegree", &NurbsCurveGeometry2DPointType::PolynomialDegree)
+        .def("Knots", &NurbsCurveGeometry2DPointType::Knots)
+        .def("NumberOfKnots", &NurbsCurveGeometry2DPointType::NumberOfKnots)
+        .def("NumberOfControlPoints", &NurbsCurveGeometry2DPointType::NumberOfNonzeroControlPoints)
+        .def("IsRational", &NurbsCurveGeometry2DPointType::IsRational)
+        .def("Weights", &NurbsCurveGeometry2DPointType::Weights);
 
     // NurbsCurveOnSurface3D
     using NurbsCurveOnSurfaceGeometry3DType = Kratos::NurbsCurveOnSurfaceGeometry<3, NodeContainerType, NodeContainerType>;
@@ -368,6 +403,97 @@ void  AddGeometriesToPython(pybind11::module& m)
             NurbsCurveOnSurfaceGeometry3DType::NurbsCurveType::Pointer>())
         ;
 
+    // BrepCurveOnSurface
+    using BrepSurfaceType = Kratos::BrepSurface<NodeContainerType, false, PointVectorType>;
+    using BrepCurveOnSurfaceType = typename BrepSurfaceType::BrepCurveOnSurfaceType;
+    py::class_<BrepCurveOnSurfaceType, typename BrepCurveOnSurfaceType::Pointer, GeometryType>(m, "BrepCurveOnSurface")
+        .def(py::init<
+            typename BrepCurveOnSurfaceType::NurbsSurfaceType::Pointer,
+            typename BrepCurveOnSurfaceType::NurbsCurveType::Pointer,
+            bool>(),
+            py::arg("surface"),
+            py::arg("curve"),
+            py::arg("same_curve_direction") = true
+        );
+
+    // BrepSurface
+    py::class_<BrepSurfaceType, typename BrepSurfaceType::Pointer, GeometryType>(m, "BrepSurface")
+        .def(py::init([](
+            typename BrepSurfaceType::NurbsSurfaceType::Pointer pSurface,
+            const py::list& py_outer_loops,
+            const py::list& py_inner_loops)
+        {
+            using CurvePointerType = typename BrepSurfaceType::BrepCurveOnSurfaceType::Pointer;
+            using LoopType = typename BrepSurfaceType::BrepCurveOnSurfaceLoopType;
+            using LoopArrayType = typename BrepSurfaceType::BrepCurveOnSurfaceLoopArrayType;
+
+            LoopArrayType outer_loops(py_outer_loops.size());
+            LoopArrayType inner_loops(py_inner_loops.size());
+
+            for (std::size_t k = 0; k < py_outer_loops.size(); ++k) {
+                py::list py_loop = py::cast<py::list>(py_outer_loops[k]);
+                LoopType loop(py_loop.size());
+
+                for (std::size_t i = 0; i < py_loop.size(); ++i) {
+                    loop[i] = py::cast<CurvePointerType>(py_loop[i]);
+                }
+
+                outer_loops[k] = loop;
+            }
+
+            for (std::size_t k = 0; k < py_inner_loops.size(); ++k) {
+                py::list py_loop = py::cast<py::list>(py_inner_loops[k]);
+                LoopType loop(py_loop.size());
+
+                for (std::size_t i = 0; i < py_loop.size(); ++i) {
+                    loop[i] = py::cast<CurvePointerType>(py_loop[i]);
+                }
+
+                inner_loops[k] = loop;
+            }
+
+            return Kratos::make_shared<BrepSurfaceType>(pSurface, outer_loops, inner_loops);
+        }))
+        .def("EvaluateShapeFunctionsAtLocalCoordinates",
+            [](const BrepSurfaceType& self, const CoordinatesArrayType& rLocal, const IndexType derivative_order)
+            {
+                std::vector<IndexType> cp_ids;
+                Vector shape_functions_values;
+                self.ShapeFunctionsValuesAndCPIndices(rLocal, cp_ids, shape_functions_values, derivative_order, nullptr);
+                return py::make_tuple(cp_ids, shape_functions_values);
+            },
+            py::arg("local_coordinates"),
+            py::arg("derivative_order") = 0
+        )
+        .def("KnotsU", [](const BrepSurfaceType& self)
+            {
+                return self.KnotsU();
+            }
+        )
+        .def("KnotsV", [](const BrepSurfaceType& self)
+        {
+            return self.KnotsV();
+        }
+        )
+        .def("ComputeSpanTriangulationLocalSpace",
+            [](const BrepSurfaceType& self,
+            const double u0,
+            const double u1,
+            const double v0,
+            const double v1)
+            {
+                std::vector<Matrix> triangles;
+
+                const bool is_trimmed =
+                    self.ComputeSpanTriangulationLocalSpace(u0, u1, v0, v1, triangles);
+
+                return py::make_tuple(is_trimmed, triangles);
+            },
+            py::arg("u0"),
+            py::arg("u1"),
+            py::arg("v0"),
+            py::arg("v1")
+        );
 
     py::class_<SurfaceInNurbsVolumeGeometry<3, NodeContainerType>, SurfaceInNurbsVolumeGeometry<3, NodeContainerType>::Pointer, GeometryType>(m, "SurfaceInNurbsVolumeGeometry")
         .def(py::init<NurbsVolumeGeometry<NodeContainerType>::Pointer, GeometryType::Pointer>())

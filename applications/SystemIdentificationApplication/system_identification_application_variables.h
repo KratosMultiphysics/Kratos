@@ -21,7 +21,6 @@
 // Project includes
 #include "containers/variable.h"
 #include "includes/define.h"
-#include "expression/container_expression.h"
 
 namespace Kratos
 {

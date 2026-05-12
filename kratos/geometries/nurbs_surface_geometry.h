@@ -667,6 +667,93 @@ public:
         }
     }
 
+    /* Returns shape functions values, shape functions derivatives and active CP indices at a given 
+     * position in the surface parameter space. 
+     * @param return rCoordinates parameter space coordinates 
+     * @param rControlPointIndices indices of the active control points
+     * @param rShapeFunctionsValues vector of shape functions
+     * @param NumberOfShapeFunctionDerivatives number of required derivatives
+     * @param pShapeFunctionDerivatives shape functions derivatives
+     */
+    void ShapeFunctionsValuesAndCPIndices(
+        const CoordinatesArrayType& rCoordinates,
+        std::vector<IndexType>& rControlPointIndices,
+        Vector& rShapeFunctionsValues,
+        const IndexType DerivativeOrder = 0,
+        DenseVector<Matrix>* pShapeFunctionDerivatives = nullptr
+    ) const
+    {
+        const double u = rCoordinates[0];
+        const double v = rCoordinates[1];
+
+        const IndexType max_supported_order = std::min(mPolynomialDegreeU, mPolynomialDegreeV);
+
+        KRATOS_WARNING_IF("ShapeFunctionsValuesAndCPIndices",
+            DerivativeOrder > max_supported_order)
+            << "Requested derivative order (" << DerivativeOrder
+            << ") exceeds polynomial degree limit (" << max_supported_order
+            << "). Higher derivatives may be zero or undefined." << std::endl;
+
+        NurbsSurfaceShapeFunction shape_function_container(
+            mPolynomialDegreeU,
+            mPolynomialDegreeV,
+            DerivativeOrder + 1);
+
+        if (mIsRational) {
+            shape_function_container.ComputeNurbsShapeFunctionValues(
+                mKnotsU, mKnotsV, mWeights, u, v);
+        } else {
+            shape_function_container.ComputeBSplineShapeFunctionValues(
+                mKnotsU, mKnotsV, u, v);
+        }
+
+        const SizeType num_nonzero_cps = shape_function_container.NumberOfNonzeroControlPoints();
+
+        // CP indices 
+        const auto cp_indices = shape_function_container.ControlPointIndices(
+            NumberOfControlPointsU(), NumberOfControlPointsV());
+
+        rControlPointIndices.resize(cp_indices.size());
+        for (IndexType i = 0; i < cp_indices.size(); ++i) {
+            rControlPointIndices[i] = pGetPoint(cp_indices[i])->Id();
+        }
+
+        // Shape Functions
+        if (rShapeFunctionsValues.size() != num_nonzero_cps) {
+            rShapeFunctionsValues.resize(num_nonzero_cps, false);
+        }
+        for (IndexType j = 0; j < num_nonzero_cps; ++j) {
+            rShapeFunctionsValues[j] = shape_function_container(j, 0);
+        }
+
+        // Derivatives 
+        if (!pShapeFunctionDerivatives || DerivativeOrder == 0) {
+            return;
+        }
+
+        if (DerivativeOrder > 0) {
+
+            pShapeFunctionDerivatives->resize(DerivativeOrder);
+
+            IndexType shape_derivative_index = 1; // first derivative block starts after values
+
+            for (IndexType n = 0; n < DerivativeOrder; ++n) {
+                const IndexType n_terms = n + 2;
+
+                (*pShapeFunctionDerivatives)[n].resize(num_nonzero_cps, n_terms, false);
+
+                for (IndexType k = 0; k < n_terms; ++k) {
+                    for (IndexType j = 0; j < num_nonzero_cps; ++j) {
+                        (*pShapeFunctionDerivatives)[n](j, k) =
+                            shape_function_container(j, shape_derivative_index + k);
+                    }
+                }
+
+                shape_derivative_index += n_terms;
+            }
+        }
+    }
+
     ///@}
     ///@name Operations
     ///@{
@@ -833,7 +920,7 @@ public:
         Matrix& rResult,
         const CoordinatesArrayType& rCoordinates) const override
     {
-        NurbsSurfaceShapeFunction shape_function_container(mPolynomialDegreeU, mPolynomialDegreeV, 0);
+        NurbsSurfaceShapeFunction shape_function_container(mPolynomialDegreeU, mPolynomialDegreeV, 1);
 
         if (mIsRational) {
             shape_function_container.ComputeNurbsShapeFunctionValues(mKnotsU, mKnotsV, mWeights, rCoordinates[0], rCoordinates[1]);
@@ -842,13 +929,13 @@ public:
             shape_function_container.ComputeBSplineShapeFunctionValues(mKnotsU, mKnotsV, rCoordinates[0], rCoordinates[1]);
         }
 
-        if (rResult.size1() != 2
-            && rResult.size2() != shape_function_container.NumberOfNonzeroControlPoints())
-            rResult.resize(2, shape_function_container.NumberOfNonzeroControlPoints());
+        if (rResult.size2() != 2
+            || rResult.size1() != shape_function_container.NumberOfNonzeroControlPoints())
+            rResult.resize(shape_function_container.NumberOfNonzeroControlPoints(), 2);
 
         for (IndexType i = 0; i < shape_function_container.NumberOfNonzeroControlPoints(); i++) {
-            rResult(0, i) = shape_function_container(i, 1);
-            rResult(1, i) = shape_function_container(i, 2);
+            rResult(i, 0) = shape_function_container(i, 1);
+            rResult(i, 1) = shape_function_container(i, 2);
         }
 
         return rResult;
