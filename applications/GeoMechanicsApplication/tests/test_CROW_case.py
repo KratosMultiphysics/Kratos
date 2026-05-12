@@ -267,7 +267,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             "third_excavation",
         ]:
             base_name = self.stages_info[stage_name]["base_name"]
-            csv_filepath = Path(project_path) / f"{base_name}_wall_expected_results.csv"
+            csv_filepath = Path(project_path) / f"{base_name}__expected_results_wall.csv"
             expected_results = get_expected_results_from_csv(csv_filepath)
 
             output_data = reader.read_output_from(
@@ -696,7 +696,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             ]
 
             with open(
-                target_dir / f"{base_name}_wall_expected_results.csv",
+                target_dir / f"{base_name}__expected_results_wall.csv",
                 "w",
                 newline="",
             ) as csv_file:
