@@ -6,7 +6,7 @@
             "execution_list": [
                 "1_Initial_stage",
                 "2_Null_step",
-                "3_Sheetpile_installation",
+                "3_Wall_installation",
                 "4_First_excavation",
                 "5_Anchor_installation",
                 "6_Second_excavation",
@@ -455,7 +455,7 @@
                 }
             }
         },
-        "3_Sheetpile_installation": {
+        "3_Wall_installation": {
             "stage_preprocess": {
                 "operations": [
                     {
@@ -479,7 +479,7 @@
             "stage_settings": {
                 "analysis_stage": "Stages.KratosMultiphysics.GeoMechanicsApplication.GeoMechanicsAnalysis",
                 "problem_data": {
-                    "problem_name": "3_Sheetpile_installation",
+                    "problem_name": "3_Wall_installation",
                     "parallel_type": "OpenMP",
                     "echo_level": 1,
                     "start_time": 0.0,
@@ -574,7 +574,7 @@
                             "process_name": "JsonOutputProcess",
                             "Parameters": {
                                 "model_part_name": "PorousDomain.Slave_side",
-                                "output_file_name": "3_Sheetpile_installation_interface_output.json",
+                                "output_file_name": "3_Wall_installation_interface_output.json",
                                 "output_variables": ["GEO_EFFECTIVE_TRACTION_VECTOR"],
                                 "gauss_points_output_variables": [],
                                 "time_frequency": 0.9999999999
@@ -745,7 +745,7 @@
                                         ]
                                     }
                                 },
-                                "output_name": "gid_output/3_Sheetpile_installation"
+                                "output_name": "gid_output/3_Wall_installation"
                             }
                         }
                     ]

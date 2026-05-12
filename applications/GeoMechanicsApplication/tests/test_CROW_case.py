@@ -216,7 +216,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
         self.stages_info = {
             "initial_stage":      {"end_time": -1.0, "base_name": "1_Initial_stage"},
             "null_step":          {"end_time":  0.0, "base_name": "2_Null_step"},
-            "wall_installation":  {"end_time":  1.0, "base_name": "3_Sheetpile_installation"},
+            "wall_installation":  {"end_time":  1.0, "base_name": "3_Wall_installation"},
             "first_excavation":   {"end_time":  2.0, "base_name": "4_First_excavation"},
             "strut_installation": {"end_time":  3.0, "base_name": "5_Anchor_installation"},
             "second_excavation":  {"end_time":  4.0, "base_name": "6_Second_excavation"},
@@ -654,7 +654,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
         self.stages_info = {
             "initial_stage":      {"end_time": -1.0, "base_name": "1_Initial_stage"},
             "null_step":          {"end_time":  0.0, "base_name": "2_Null_step"},
-            "wall_installation":  {"end_time":  1.0, "base_name": "3_Sheetpile_installation"},
+            "wall_installation":  {"end_time":  1.0, "base_name": "3_Wall_installation"},
             "first_excavation":   {"end_time":  2.0, "base_name": "4_First_excavation"},
             "strut_installation": {"end_time":  3.0, "base_name": "5_Anchor_installation"},
             "second_excavation":  {"end_time":  4.0, "base_name": "6_Second_excavation"},
