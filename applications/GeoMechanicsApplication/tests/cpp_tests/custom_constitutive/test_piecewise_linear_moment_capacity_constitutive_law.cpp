@@ -224,13 +224,13 @@ KRATOS_TEST_CASE_IN_SUITE(PiecewiseLinearMomentCapacityConstitutiveLaw_ComputeCo
     Vector     dummy_vector;
     law.InitializeMaterial(properties, geometry, dummy_vector);
 
-    auto parameters     = ConstitutiveLaw::Parameters{};
-    auto strain_vector  = UblasUtilities::CreateVector({0.01, 0.02, 0.03});
-    auto stress_vector  = Vector(3, 0.0);
-    auto constit_matrix = Matrix(1, 1, 0.0);
+    auto parameters          = ConstitutiveLaw::Parameters{};
+    auto strain_vector       = UblasUtilities::CreateVector({0.01, 0.02, 0.03});
+    auto stress_vector       = Vector(3, 0.0);
+    auto constitutive_matrix = Matrix(1, 1, 0.0);
     parameters.SetStrainVector(strain_vector);
     parameters.SetStressVector(stress_vector);
-    parameters.SetConstitutiveMatrix(constit_matrix);
+    parameters.SetConstitutiveMatrix(constitutive_matrix);
     parameters.SetMaterialProperties(properties);
     parameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
     parameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
@@ -239,23 +239,16 @@ KRATOS_TEST_CASE_IN_SUITE(PiecewiseLinearMomentCapacityConstitutiveLaw_ComputeCo
     law.CalculateMaterialResponseCauchy(parameters);
 
     // Assert
-    const auto& r_constitutive_matrix = parameters.GetConstitutiveMatrix();
-    ASSERT_EQ(r_constitutive_matrix.size1(), 5);
-    ASSERT_EQ(r_constitutive_matrix.size2(), 5);
+    ASSERT_EQ(constitutive_matrix.size1(), 5);
+    ASSERT_EQ(constitutive_matrix.size2(), 5);
 
-    const auto E                        = properties[YOUNG_MODULUS];
-    const auto A                        = properties[THICKNESS];
-    const auto nu                       = properties[POISSON_RATIO];
-    const auto one_minus_nu_squared     = 1.0 - nu * nu;
-    const auto expected_axial_stiffness = E * A / one_minus_nu_squared;
-    const auto expected_shear_stiffness = (E / (2.0 * (1.0 + nu))) * properties[THICKNESS_EFFECTIVE_Y];
-    constexpr auto expected_bending_tangent = 0.0;
+    auto expected_constitutive_matrix = UblasUtilities::CreateMatrix({{83.333333333333343, 0, 0, 0, 0},
+                                                                      {0, 0, 0, 0, 0},
+                                                                      {0, 0, 33.333333333333336, 0, 0},
+                                                                      {0, 0, 0, 0, 0},
+                                                                      {0, 0, 0, 0, 0}});
 
-    auto expected_constitutive_matrix  = Matrix(5, 5, 0.0);
-    expected_constitutive_matrix(0, 0) = expected_axial_stiffness;
-    expected_constitutive_matrix(1, 1) = expected_bending_tangent;
-    expected_constitutive_matrix(2, 2) = expected_shear_stiffness;
-    KRATOS_EXPECT_MATRIX_NEAR(r_constitutive_matrix, expected_constitutive_matrix, Defaults::absolute_tolerance);
+    KRATOS_EXPECT_MATRIX_NEAR(constitutive_matrix, expected_constitutive_matrix, Defaults::absolute_tolerance);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(PiecewiseLinearMomentCapacityConstitutiveLaw_SaveLoadPreservesInternalState,
