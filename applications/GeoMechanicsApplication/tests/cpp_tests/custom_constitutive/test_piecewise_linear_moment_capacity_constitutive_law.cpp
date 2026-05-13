@@ -191,6 +191,8 @@ KRATOS_TEST_CASE_IN_SUITE(PiecewiseLinearMomentCapacityConstitutiveLaw_CheckThro
     auto       properties   = CreateValidProperties();
     const auto geometry     = Geometry<Node>{};
     const auto process_info = ProcessInfo{};
+    // Keep dM/dKappa below elastic EI so this test reaches the unload-modulus validation.
+    properties.SetValue(YOUNG_MODULUS, 3000.0);
     properties.SetValue(GEO_UNRELOAD_MODULUS, 0.0); // must be strictly positive
 
     // Act & Assert
@@ -205,9 +207,11 @@ KRATOS_TEST_CASE_IN_SUITE(PiecewiseLinearMomentCapacityConstitutiveLaw_CheckPass
 {
     // Arrange
     const auto law          = PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw{};
-    const auto properties   = CreateValidProperties();
+    auto       properties   = CreateValidProperties();
     const auto geometry     = Geometry<Node>{};
     const auto process_info = ProcessInfo{};
+    // Ensure test data satisfies the derivative-vs-elastic-EI check.
+    properties.SetValue(YOUNG_MODULUS, 3000.0);
 
     // Act & Assert
     EXPECT_NO_THROW((void)law.Check(properties, geometry, process_info));

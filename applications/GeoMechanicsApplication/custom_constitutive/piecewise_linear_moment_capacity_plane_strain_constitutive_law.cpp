@@ -157,6 +157,22 @@ int PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw::Check(const Propert
     check_properties.Check(THICKNESS_EFFECTIVE_Y);
     check_properties.Check(POISSON_RATIO, -1.0, 0.5);
 
+    const auto nu = rMaterialProperties[POISSON_RATIO];
+    const auto elastic_EI =
+        rMaterialProperties[YOUNG_MODULUS] * rMaterialProperties[THICKNESS] / (1.0 - nu * nu);
+    auto prev_kappa  = r_kappa[0];
+    auto prev_moment = r_moments[0];
+    for (auto i = std::size_t{1}; i < r_kappa.size(); ++i) {
+        const auto delta_kappa  = r_kappa[i] - prev_kappa;
+        const auto delta_moment = r_moments[i] - prev_moment;
+        const auto dM_dKappa    = delta_moment / delta_kappa;
+        KRATOS_ERROR_IF(dM_dKappa >= elastic_EI)
+            << "Derivative dM/dKappa must be smaller than elastic EI. Segment " << i
+            << " has dM/dKappa = " << dM_dKappa << ", elastic EI = " << elastic_EI << std::endl;
+        prev_kappa  = r_kappa[i];
+        prev_moment = r_moments[i];
+    }
+
     if (rMaterialProperties.Has(GEO_UNRELOAD_MODULUS)) check_properties.Check(GEO_UNRELOAD_MODULUS);
 
     return 0;
