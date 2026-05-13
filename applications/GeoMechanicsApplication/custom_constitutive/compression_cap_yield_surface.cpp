@@ -13,6 +13,7 @@
 //
 
 #include "custom_constitutive/compression_cap_yield_surface.h"
+#include "custom_constitutive/p_q.hpp"
 #include "custom_utilities/check_utilities.hpp"
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "custom_utilities/function_object_utilities.h"
@@ -41,7 +42,8 @@ double GetCapSize(const Properties& rProperties)
     }
 
     if (rProperties.Has(GEO_FRICTION_ANGLE)) {
-        const auto k0_nc = 1.0 - std::sin(ConstitutiveLawUtilities::GetFrictionAngleInRadians(rProperties));
+        const auto k0_nc = ConstitutiveLawUtilities::CalculateK0NCFromFrictionAngleInRadians(
+            MathUtils<>::DegreesToRadians(rProperties[GEO_FRICTION_ANGLE]));
         return CalculateCapSizeFromK0NC(k0_nc);
     }
 
@@ -112,17 +114,14 @@ double CompressionCapYieldSurface::GetPreconsolidationStress() const
     return mPreconsolidationStressCalculator(mKappa);
 }
 
-double CompressionCapYieldSurface::YieldFunctionValue(const Vector& rSigmaTau) const
+double CompressionCapYieldSurface::YieldFunctionValue(const Geo::PQ& rPQ) const
 {
-    // rSigmaTau here contains the values of p and q
-    return std::pow(rSigmaTau[1] / GetCapSize(), 2) + rSigmaTau[0] * rSigmaTau[0] -
-           std::pow(GetPreconsolidationStress(), 2);
+    return std::pow(rPQ.Q() / GetCapSize(), 2) + rPQ.P() * rPQ.P() - std::pow(GetPreconsolidationStress(), 2);
 }
 
-Vector CompressionCapYieldSurface::DerivativeOfFlowFunction(const Vector& rSigmaTau) const
+Vector CompressionCapYieldSurface::DerivativeOfFlowFunction(const Geo::PQ& rPQ) const
 {
-    // rSigmaTau here contains the values of p and q
-    return UblasUtilities::CreateVector({2.0 * rSigmaTau[0], 2.0 * rSigmaTau[1] / std::pow(GetCapSize(), 2)});
+    return UblasUtilities::CreateVector({2.0 * rPQ.P(), 2.0 * rPQ.Q() / std::pow(GetCapSize(), 2)});
 }
 
 void CompressionCapYieldSurface::InitializeKappaDependentFunctions()

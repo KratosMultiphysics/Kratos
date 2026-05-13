@@ -63,17 +63,17 @@ void FillEquationIdVectorIBRA(const GeometryType::Pointer pGeometry,
 {
     KRATOS_TRY;
     // Get the polynomial degree of the nurbs surface
-    IndexType polynomial_degree_u = pGeometry->PolynomialDegree(0);
-    IndexType polynomial_degree_v = pGeometry->PolynomialDegree(1);
+    const IndexType polynomial_degree_u = pGeometry->PolynomialDegree(0);
+    const IndexType polynomial_degree_v = pGeometry->PolynomialDegree(1);
 
-    // Get the knot vectors of the nurbs surface and extend them to be consistent 
+    // Get the knot vectors of the nurbs surface and extend them to be consistent
     std::vector<double> knot_vector_u, knot_vector_v;
     pGeometry->SpansLocalSpace(knot_vector_u, 0);
     pGeometry->SpansLocalSpace(knot_vector_v, 1);
-    knot_vector_u.insert(knot_vector_u.begin(), knot_vector_u.front());
-    knot_vector_u.insert(knot_vector_u.end(), knot_vector_u.back());
-    knot_vector_v.insert(knot_vector_v.begin(), knot_vector_v.front());
-    knot_vector_v.insert(knot_vector_v.end(), knot_vector_v.back());
+    knot_vector_u.insert(knot_vector_u.begin(), polynomial_degree_u - 1, knot_vector_u.front());
+    knot_vector_u.insert(knot_vector_u.end(),   polynomial_degree_u - 1, knot_vector_u.back());
+    knot_vector_v.insert(knot_vector_v.begin(), polynomial_degree_v - 1, knot_vector_v.front());
+    knot_vector_v.insert(knot_vector_v.end(), polynomial_degree_v - 1, knot_vector_v.back());
 
     // shape function container.
     NurbsSurfaceShapeFunction shape_function_container(

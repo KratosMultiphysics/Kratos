@@ -1,3 +1,5 @@
+import numpy
+
 import KratosMultiphysics as KM
 from KratosMultiphysics.OptimizationApplication.filtering.helmholtz_analysis import HelmholtzAnalysis
 from KratosMultiphysics.testing.utilities import ReadModelPart
@@ -252,11 +254,11 @@ class HelmholtzAnalysisTest(TestCase):
         # to get the expected result.
         self.solid_scalar_filter.Initialize()
 
-        unfiltered_uniform_field_nodal = KM.Expression.NodalExpression(self.solid_scalar_model_part)
-        KM.Expression.LiteralExpressionIO.SetData(unfiltered_uniform_field_nodal, 1.0)
+        unfiltered_uniform_field_nodal = KM.TensorAdaptors.VariableTensorAdaptor(self.solid_scalar_model_part.Nodes, KM.PRESSURE)
+        unfiltered_uniform_field_nodal.data[:] = 1.0
 
         filtered_field = self.solid_scalar_filter.FilterField(unfiltered_uniform_field_nodal)
-        self.assertAlmostEqual(KM.Expression.Utils.NormL2(filtered_field), 3.741657, 4)
+        self.assertAlmostEqual(numpy.linalg.norm(filtered_field.data), 3.741657, 4)
 
         for node in self.solid_scalar_model_part.Nodes:
             node.SetValue(KM.NODAL_VOLUME, 0)
@@ -265,13 +267,13 @@ class HelmholtzAnalysisTest(TestCase):
             for node in element.GetNodes():
                 node.SetValue(KM.NODAL_VOLUME, node.GetValue(KM.NODAL_VOLUME)+element.GetGeometry().Volume()/4.0)
 
-        nodal_volume = KM.Expression.NodalExpression(self.solid_scalar_model_part)
-        KM.Expression.VariableExpressionIO.Read(nodal_volume, KM.NODAL_VOLUME, False)
+        nodal_volume = KM.TensorAdaptors.VariableTensorAdaptor(self.solid_scalar_model_part.Nodes, KM.NODAL_VOLUME)
+        nodal_volume.CollectData()
 
         filtered_field = self.solid_scalar_filter.FilterIntegratedField(nodal_volume)
-        self.assertAlmostEqual(KM.Expression.Utils.NormL2(filtered_field), 3.741657, 4)
+        self.assertAlmostEqual(numpy.linalg.norm(filtered_field.data), 3.741657, 4)
         filtered_field = self.solid_scalar_filter.UnFilterField(unfiltered_uniform_field_nodal)
-        self.assertAlmostEqual(KM.Expression.Utils.NormL2(filtered_field), 3.741657, 4)
+        self.assertAlmostEqual(numpy.linalg.norm(filtered_field.data), 3.741657, 4)
 
         self.solid_scalar_filter.Finalize()
 
@@ -282,11 +284,11 @@ class HelmholtzAnalysisTest(TestCase):
         # to get the expected result.
         self.solid_vector_filter.Initialize()
 
-        unfiltered_uniform_field_nodal = KM.Expression.NodalExpression(self.solid_vector_model_part)
-        KM.Expression.LiteralExpressionIO.SetData(unfiltered_uniform_field_nodal, KM.Array3([1, 1, 1]))
+        unfiltered_uniform_field_nodal = KM.TensorAdaptors.VariableTensorAdaptor(self.solid_vector_model_part.Nodes, KM.VELOCITY)
+        unfiltered_uniform_field_nodal.data[:] = 1.0
 
         filtered_field = self.solid_vector_filter.FilterField(unfiltered_uniform_field_nodal)
-        self.assertAlmostEqual(KM.Expression.Utils.NormL2(filtered_field), 6.48074, 4)
+        self.assertAlmostEqual(numpy.linalg.norm(filtered_field.data), 6.48074, 4)
 
         for node in self.solid_vector_model_part.Nodes:
             node.SetValue(KM.VELOCITY, KM.Array3([0, 0, 0]))
@@ -297,13 +299,13 @@ class HelmholtzAnalysisTest(TestCase):
                 node.SetValue(KM.VELOCITY_Y, node.GetValue(KM.VELOCITY_Y)+element.GetGeometry().Volume()/4.0)
                 node.SetValue(KM.VELOCITY_Z, node.GetValue(KM.VELOCITY_Z)+element.GetGeometry().Volume()/4.0)
 
-        nodal_volume = KM.Expression.NodalExpression(self.solid_vector_model_part)
-        KM.Expression.VariableExpressionIO.Read(nodal_volume, KM.VELOCITY, False)
+        nodal_volume = KM.TensorAdaptors.VariableTensorAdaptor(self.solid_vector_model_part.Nodes, KM.VELOCITY)
+        nodal_volume.CollectData()
 
         filtered_field = self.solid_vector_filter.FilterIntegratedField(nodal_volume)
-        self.assertAlmostEqual(KM.Expression.Utils.NormL2(filtered_field), 6.48074, 4)
+        self.assertAlmostEqual(numpy.linalg.norm(filtered_field.data), 6.48074, 4)
         filtered_field = self.solid_vector_filter.UnFilterField(unfiltered_uniform_field_nodal)
-        self.assertAlmostEqual(KM.Expression.Utils.NormL2(filtered_field), 6.48074, 4)
+        self.assertAlmostEqual(numpy.linalg.norm(filtered_field.data), 6.48074, 4)
 
     def test_scalar_closed_shell_filter(self):
         # initialization of the filter done here so that filtering radius is set.
@@ -312,11 +314,11 @@ class HelmholtzAnalysisTest(TestCase):
         # to get the expected result.
         self.closed_shell_scalar_filter.Initialize()
 
-        unfiltered_uniform_field_nodal = KM.Expression.NodalExpression(self.closed_shell_model_part)
-        KM.Expression.LiteralExpressionIO.SetData(unfiltered_uniform_field_nodal, 1.0)
+        unfiltered_uniform_field_nodal = KM.TensorAdaptors.VariableTensorAdaptor(self.closed_shell_model_part.Nodes, KM.PRESSURE)
+        unfiltered_uniform_field_nodal.data[:] = 1.0
 
         filtered_field = self.closed_shell_scalar_filter.FilterField(unfiltered_uniform_field_nodal)
-        self.assertAlmostEqual(KM.Expression.Utils.NormL2(filtered_field), 2.8284271247, 4)
+        self.assertAlmostEqual(numpy.linalg.norm(filtered_field.data), 2.8284271247, 4)
 
         for node in self.closed_shell_model_part.Nodes:
             node.SetValue(KM.NODAL_AREA, 0)
@@ -325,13 +327,13 @@ class HelmholtzAnalysisTest(TestCase):
             for node in element.GetNodes():
                 node.SetValue(KM.NODAL_AREA, node.GetValue(KM.NODAL_AREA)+element.GetGeometry().Area()/4.0)
 
-        nodal_area = KM.Expression.NodalExpression(self.closed_shell_model_part)
-        KM.Expression.VariableExpressionIO.Read(nodal_area, KM.NODAL_AREA, False)
+        nodal_area = KM.TensorAdaptors.VariableTensorAdaptor(self.closed_shell_model_part.Nodes, KM.NODAL_AREA)
+        nodal_area.CollectData()
 
         filtered_field = self.closed_shell_scalar_filter.FilterIntegratedField(nodal_area)
-        self.assertAlmostEqual(KM.Expression.Utils.NormL2(filtered_field), 2.8284271247, 4)
+        self.assertAlmostEqual(numpy.linalg.norm(filtered_field.data), 2.8284271247, 4)
         filtered_field = self.closed_shell_scalar_filter.UnFilterField(unfiltered_uniform_field_nodal)
-        self.assertAlmostEqual(KM.Expression.Utils.NormL2(filtered_field), 2.8284271247, 4)
+        self.assertAlmostEqual(numpy.linalg.norm(filtered_field.data), 2.8284271247, 4)
 
     def test_vector_shell_filter(self):
         # initialization of the filter done here so that filtering radius is set.
@@ -340,15 +342,15 @@ class HelmholtzAnalysisTest(TestCase):
         # to get the expected result.
         self.shell_vector_filter.Initialize()
 
-        unfiltered_uniform_field_nodal = KM.Expression.NodalExpression(self.shell_model_part)
-        KM.Expression.LiteralExpressionIO.SetData(unfiltered_uniform_field_nodal, KM.Array3([1, 1, 1]))
+        unfiltered_uniform_field_nodal = KM.TensorAdaptors.VariableTensorAdaptor(self.shell_model_part.Nodes, KM.VELOCITY)
+        unfiltered_uniform_field_nodal.data[:] = 1.0
 
         filtered_field = self.shell_vector_filter.UnFilterField(unfiltered_uniform_field_nodal)
         filtered_field = self.shell_vector_filter.FilterField(filtered_field)
-        self.assertAlmostEqual(KM.Expression.Utils.NormL2(filtered_field), 5.196153341144455, 4)
+        self.assertAlmostEqual(numpy.linalg.norm(filtered_field.data), 5.196153341144455, 4)
 
         filtered_field = self.shell_vector_filter.FilterField(unfiltered_uniform_field_nodal)
-        self.assertAlmostEqual(KM.Expression.Utils.NormL2(filtered_field), 5.1961524, 4)
+        self.assertAlmostEqual(numpy.linalg.norm(filtered_field.data), 5.1961524, 4)
 
         for node in self.shell_model_part.Nodes:
             node.SetValue(KM.VELOCITY, KM.Array3([0, 0, 0]))
@@ -359,11 +361,11 @@ class HelmholtzAnalysisTest(TestCase):
                 node.SetValue(KM.VELOCITY_Y, node.GetValue(KM.VELOCITY_Y)+element.GetGeometry().Area()/3.0)
                 node.SetValue(KM.VELOCITY_Z, node.GetValue(KM.VELOCITY_Z)+element.GetGeometry().Area()/3.0)
 
-        nodal_area = KM.Expression.NodalExpression(self.shell_model_part)
-        KM.Expression.VariableExpressionIO.Read(nodal_area, KM.VELOCITY, False)
+        nodal_area = KM.TensorAdaptors.VariableTensorAdaptor(self.shell_model_part.Nodes, KM.VELOCITY)
+        nodal_area.CollectData()
 
         filtered_field = self.shell_vector_filter.FilterIntegratedField(nodal_area)
-        self.assertAlmostEqual(KM.Expression.Utils.NormL2(filtered_field), 5.196118198546968, 4)
+        self.assertAlmostEqual(numpy.linalg.norm(filtered_field.data), 5.196118198546968, 4)
 
     def test_bulk_surface_shape(self):
         # initialization of the filter done here so that filtering radius is set.
@@ -372,11 +374,11 @@ class HelmholtzAnalysisTest(TestCase):
         # to get the expected result.
         self.bulk_surface_filter.Initialize()
 
-        unfiltered_uniform_field_nodal = KM.Expression.NodalExpression(self.solid_bulk_surface_model_part)
-        KM.Expression.LiteralExpressionIO.SetData(unfiltered_uniform_field_nodal, KM.Array3([1, 1, 1]))
+        unfiltered_uniform_field_nodal = KM.TensorAdaptors.VariableTensorAdaptor(self.solid_bulk_surface_model_part.Nodes, KM.VELOCITY)
+        unfiltered_uniform_field_nodal.data[:] = 1.0
 
         filtered_field = self.bulk_surface_filter.FilterField(unfiltered_uniform_field_nodal)
-        self.assertAlmostEqual(KM.Expression.Utils.NormL2(filtered_field), 6.4807406, 4)
+        self.assertAlmostEqual(numpy.linalg.norm(filtered_field.data), 6.4807406, 4)
 
         for node in self.solid_bulk_surface_model_part.Nodes:
             node.SetValue(KM.VELOCITY, KM.Array3([0, 0, 0]))
@@ -387,34 +389,34 @@ class HelmholtzAnalysisTest(TestCase):
                 node.SetValue(KM.VELOCITY_Y, node.GetValue(KM.VELOCITY_Y)+element.GetGeometry().Volume()/4.0)
                 node.SetValue(KM.VELOCITY_Z, node.GetValue(KM.VELOCITY_Z)+element.GetGeometry().Volume()/4.0)
 
-        nodal_area = KM.Expression.NodalExpression(self.solid_bulk_surface_model_part)
-        KM.Expression.VariableExpressionIO.Read(nodal_area, KM.VELOCITY, False)
+        nodal_area = KM.TensorAdaptors.VariableTensorAdaptor(self.solid_bulk_surface_model_part.Nodes, KM.VELOCITY)
+        nodal_area.CollectData()
 
         filtered_field = self.bulk_surface_filter.FilterIntegratedField(nodal_area)
-        self.assertAlmostEqual(KM.Expression.Utils.NormL2(filtered_field), 6.4807406, 4)
+        self.assertAlmostEqual(numpy.linalg.norm(filtered_field.data), 6.4807406, 4)
         filtered_field = self.bulk_surface_filter.UnFilterField(unfiltered_uniform_field_nodal)
-        self.assertAlmostEqual(KM.Expression.Utils.NormL2(filtered_field), 6.4807406, 4)
+        self.assertAlmostEqual(numpy.linalg.norm(filtered_field.data), 6.4807406, 4)
 
     def test_shape_surface_shape(self):
         self.shape_bulk_surface_filter.Initialize()
 
-        unfiltered_uniform_field_nodal = KM.Expression.NodalExpression(self.solid_bulk_surface_model_part)
-        KM.Expression.LiteralExpressionIO.SetData(unfiltered_uniform_field_nodal, KM.Array3([1, 1, 1]))
+        unfiltered_uniform_field_nodal = KM.TensorAdaptors.VariableTensorAdaptor(self.solid_bulk_surface_model_part.Nodes, KM.VELOCITY)
+        unfiltered_uniform_field_nodal.data[:] = 1.0
 
         filtered_field = self.shape_bulk_surface_filter.FilterField(unfiltered_uniform_field_nodal)
-        self.assertAlmostEqual(KM.Expression.Utils.NormL2(filtered_field), 6.4807406, 4)
+        self.assertAlmostEqual(numpy.linalg.norm(filtered_field.data), 6.4807406, 4)
 
         self.shape_shell_surface_filter.Initialize()
 
-        unfiltered_uniform_field_nodal = KM.Expression.NodalExpression(self.shell_model_part)
-        KM.Expression.LiteralExpressionIO.SetData(unfiltered_uniform_field_nodal, KM.Array3([1, 1, 1]))
+        unfiltered_uniform_field_nodal = KM.TensorAdaptors.VariableTensorAdaptor(self.shell_model_part.Nodes, KM.VELOCITY)
+        unfiltered_uniform_field_nodal.data[:] = 1.0
 
         filtered_field = self.shape_shell_surface_filter.UnFilterField(unfiltered_uniform_field_nodal)
         filtered_field = self.shape_shell_surface_filter.FilterField(filtered_field)
-        self.assertAlmostEqual(KM.Expression.Utils.NormL2(filtered_field), 5.196153341144455, 4)
+        self.assertAlmostEqual(numpy.linalg.norm(filtered_field.data), 5.196153341144455, 4)
 
         filtered_field = self.shape_shell_surface_filter.FilterField(unfiltered_uniform_field_nodal)
-        self.assertAlmostEqual(KM.Expression.Utils.NormL2(filtered_field), 5.1961524, 4)
+        self.assertAlmostEqual(numpy.linalg.norm(filtered_field.data), 5.1961524, 4)
 
 if __name__ == '__main__':
     KM.KratosUnittest.main()

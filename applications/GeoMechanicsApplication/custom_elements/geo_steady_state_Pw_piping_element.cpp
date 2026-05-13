@@ -285,7 +285,7 @@ void GeoSteadyStatePwPipingElement<TDim, TNumNodes>::AddContributionsToRhsVector
     const array_1d<double, TNumNodes>&                 rFluidBodyVector) const
 {
     const auto permeability_vector = array_1d<double, TNumNodes>{-prod(
-        rPermeabilityMatrix, VariablesUtilities::GetNodalValuesOf<TNumNodes>(WATER_PRESSURE, GetGeometry()))};
+        rPermeabilityMatrix, VariablesUtilities::GetNodalValues<TNumNodes>(GetGeometry(), WATER_PRESSURE))};
     rRightHandSideVector           = permeability_vector + rFluidBodyVector;
 }
 

@@ -15,6 +15,7 @@
 #include "custom_elements/U_Pw_base_element.h"
 #include "custom_retention/retention_law_factory.h"
 #include "custom_utilities/check_utilities.hpp"
+#include "custom_utilities/constitutive_law_utilities.h"
 #include "custom_utilities/dof_utilities.hpp"
 #include "custom_utilities/element_utilities.hpp"
 #include "custom_utilities/equation_of_motion_utilities.hpp"
@@ -38,7 +39,7 @@ UPwBaseElement::UPwBaseElement(IndexType                                       N
                                GeometryType::Pointer                           pGeometry,
                                std::unique_ptr<StressStatePolicy>              pStressStatePolicy,
                                std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier)
-    : Element(NewId, pGeometry),
+    : Element{NewId, std::move(pGeometry)},
       mpStressStatePolicy{std::move(pStressStatePolicy)},
       mIntegrationCoefficientsCalculator{std::move(pCoefficientModifier)}
 {
@@ -49,7 +50,7 @@ UPwBaseElement::UPwBaseElement(IndexType                                       N
                                PropertiesType::Pointer                         pProperties,
                                std::unique_ptr<StressStatePolicy>              pStressStatePolicy,
                                std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier)
-    : Element(NewId, pGeometry, pProperties),
+    : Element{NewId, std::move(pGeometry), std::move(pProperties)},
       mpStressStatePolicy{std::move(pStressStatePolicy)},
       mIntegrationCoefficientsCalculator{std::move(pCoefficientModifier)}
 {
@@ -93,6 +94,9 @@ int UPwBaseElement::Check(const ProcessInfo& rCurrentProcessInfo) const
 void UPwBaseElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
+
+    // IGNORE_UNDRAINED is deprecated.
+    ConstitutiveLawUtilities::ReplaceIgnoreUndrainedByDrainageType(GetProperties());
 
     const auto& r_properties = this->GetProperties();
     const auto& r_geometry   = this->GetGeometry();

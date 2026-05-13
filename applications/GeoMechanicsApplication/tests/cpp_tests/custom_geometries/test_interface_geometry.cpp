@@ -12,6 +12,7 @@
 //
 
 #include "custom_geometries/interface_geometry.hpp"
+#include "custom_utilities/ublas_utilities.h"
 #include "geometries/geometry_data.h"
 #include "geometries/line_2d_2.h"
 #include "geometries/line_2d_3.h"
@@ -22,8 +23,6 @@
 #include "test_setup_utilities/element_setup_utilities.hpp"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/test_utilities.h"
-
-#include <boost/numeric/ublas/assignment.hpp>
 
 namespace
 {
@@ -452,8 +451,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectAllShapeFunctionValues
     geometry.ShapeFunctionsValues(result, xi);
 
     // Note that the shape function values are evaluated per nodal pair!
-    Vector expected_result{2};
-    expected_result <<= 0.25, 0.75;
+    const auto expected_result = UblasUtilities::CreateVector({0.25, 0.75});
     KRATOS_EXPECT_VECTOR_NEAR(result, expected_result, Defaults::absolute_tolerance)
 }
 
@@ -467,8 +465,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectAllShapeFunctionValues
     geometry.ShapeFunctionsValues(result, xi);
 
     // Note that the shape function values are evaluated per nodal pair!
-    Vector expected_result{3};
-    expected_result <<= -0.125, 0.375, 0.75;
+    const auto expected_result = UblasUtilities::CreateVector({-0.125, 0.375, 0.75});
     KRATOS_EXPECT_VECTOR_NEAR(result, expected_result, Defaults::absolute_tolerance)
 }
 
@@ -481,8 +478,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectAllLocalGradientsAtPos
     Matrix result;
     geometry.ShapeFunctionsLocalGradients(result, xi);
 
-    Matrix expected_result(2, 1);
-    expected_result <<= -0.5, 0.5;
+    const auto expected_result = UblasUtilities::CreateMatrix({{-0.5}, {0.5}});
     KRATOS_EXPECT_MATRIX_NEAR(result, expected_result, Defaults::absolute_tolerance)
 }
 
@@ -495,8 +491,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectAllLocalGradientsAtPos
     Matrix result;
     geometry.ShapeFunctionsLocalGradients(result, xi);
 
-    Matrix expected_result(3, 1);
-    expected_result <<= 0.0, 1.0, -1.0;
+    const auto expected_result = UblasUtilities::CreateMatrix({{0.0}, {1.0}, {-1.0}});
     KRATOS_EXPECT_MATRIX_NEAR(result, expected_result, Defaults::absolute_tolerance)
 }
 
@@ -509,8 +504,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectJacobian_ForTwoPlusTwo
     Matrix result;
     geometry.Jacobian(result, xi);
 
-    Matrix expected_result(2, 1);
-    expected_result <<= 3.25, 0.0;
+    const auto expected_result = UblasUtilities::CreateMatrix({{3.25}, {0.0}});
     KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(result, expected_result, Defaults::relative_tolerance)
 }
 
@@ -523,8 +517,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectJacobian_ForThreePlusT
     Matrix result;
     geometry.Jacobian(result, xi);
 
-    Matrix expected_result(2, 1);
-    expected_result <<= 3.0, -0.1;
+    const auto expected_result = UblasUtilities::CreateMatrix({{3.0}, {-0.1}});
     KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(result, expected_result, Defaults::relative_tolerance)
 }
 
@@ -633,8 +626,7 @@ KRATOS_TEST_CASE_IN_SUITE(GetLocalCoordinatesOfAllNodesOfThreePlusThreeNodedLine
     Matrix result;
     geometry.PointsLocalCoordinates(result);
 
-    Matrix expected_result{3, 1};
-    expected_result <<= -1.0, 1.0, 0.0;
+    const auto expected_result = UblasUtilities::CreateMatrix({{-1.0}, {1.0}, {0.0}});
     KRATOS_EXPECT_MATRIX_NEAR(result, expected_result, Defaults::absolute_tolerance)
 }
 
@@ -835,4 +827,5 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_Throws_WhenCallingFunctionsRelatedTo
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         geometry.GlobalSpaceDerivatives(dummy_coordinates, dummy_index, dummy_index), message)
 }
+
 } // namespace Kratos::Testing

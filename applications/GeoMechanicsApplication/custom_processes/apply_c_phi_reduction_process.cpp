@@ -15,6 +15,8 @@
 // Project includes
 #include "custom_processes/apply_c_phi_reduction_process.h"
 #include "containers/model.h"
+#include "custom_constitutive/constitutive_law_dimension.h"
+#include "custom_constitutive/mohr_coulomb_with_tension_cutoff.h"
 #include "custom_utilities/check_utilities.hpp"
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "custom_utilities/process_utilities.h"
@@ -25,6 +27,28 @@
 namespace Kratos
 {
 using namespace std::string_literals;
+
+namespace
+{
+
+bool UsesUmatParameters(const Properties& rProperties)
+{
+    KRATOS_ERROR_IF_NOT(rProperties.Has(CONSTITUTIVE_LAW))
+        << "Properties do not have CONSTITUTIVE_LAW" << std::endl;
+
+    const auto law_name = rProperties[CONSTITUTIVE_LAW]->Info();
+    return law_name.find("UMAT") != std::string::npos || law_name.find("UDSM") != std::string::npos;
+}
+
+bool UsesInternalMohrCoulombModel(const Element& rElement)
+{
+    KRATOS_ERROR_IF_NOT(rElement.GetProperties().Has(CONSTITUTIVE_LAW))
+        << "Properties do not have CONSTITUTIVE_LAW" << std::endl;
+
+    return dynamic_cast<const MohrCoulombWithTensionCutOff*>(
+               rElement.GetProperties()[CONSTITUTIVE_LAW].get()) != nullptr;
+}
+} // namespace
 
 ApplyCPhiReductionProcess::ApplyCPhiReductionProcess(Model& rModel, const Parameters& rProcessSettings)
 {
@@ -92,6 +116,24 @@ int ApplyCPhiReductionProcess::Check()
     KRATOS_ERROR_IF(std::ranges::all_of(mrModelParts, [](const auto& r_model_part) {
         return r_model_part.get().Elements().empty();
     })) << "None of the provided model parts contains at least one element. A c-phi reduction analysis requires at least one element.\n";
+
+    for (const auto& r_model_part : mrModelParts) {
+        for (const auto& r_element : r_model_part.get().Elements()) {
+            auto                  r_properties = r_element.GetProperties();
+            const CheckProperties check_properties(r_properties, "model part property",
+                                                   CheckProperties::Bounds::AllInclusive);
+            if (UsesUmatParameters(r_properties)) {
+                check_properties.CheckAvailability(UMAT_PARAMETERS);
+                check_properties.Check(INDEX_OF_UMAT_PHI_PARAMETER, 1,
+                                       static_cast<int>(r_properties[UMAT_PARAMETERS].size()));
+                check_properties.Check(INDEX_OF_UMAT_C_PARAMETER, 1,
+                                       static_cast<int>(r_properties[UMAT_PARAMETERS].size()));
+            } else {
+                check_properties.Check(GEO_COHESION);
+                check_properties.Check(GEO_FRICTION_ANGLE);
+            }
+        }
+    }
     return 0;
 }
 
@@ -100,12 +142,6 @@ double ApplyCPhiReductionProcess::GetAndCheckPhi(const Properties& rModelPartPro
     // Get the initial properties from the model part. Recall that we create a separate
     // properties object with reduced c and phi for each and every element. Those reduced
     // properties objects are not linked to the original ones.
-
-    const CheckProperties check_properties(rModelPartProperties, "model part property",
-                                           CheckProperties::Bounds::AllInclusive);
-    check_properties.CheckAvailability(UMAT_PARAMETERS);
-    check_properties.Check(INDEX_OF_UMAT_PHI_PARAMETER, 1,
-                           static_cast<int>(rModelPartProperties[UMAT_PARAMETERS].size()));
 
     const auto phi = ConstitutiveLawUtilities::GetFrictionAngleInDegrees(rModelPartProperties);
     KRATOS_ERROR_IF(phi < 0. || phi > 90.)
@@ -128,16 +164,6 @@ double ApplyCPhiReductionProcess::GetAndCheckC(const Properties& rModelPartPrope
     // properties object with reduced c and phi for each and every element. Those reduced
     // properties objects are not linked to the original ones.
 
-    KRATOS_ERROR_IF_NOT(rModelPartProperties.Has(UMAT_PARAMETERS))
-        << "Missing required item UMAT_PARAMETERS" << std::endl;
-    KRATOS_ERROR_IF_NOT(rModelPartProperties.Has(INDEX_OF_UMAT_C_PARAMETER))
-        << "Missing required item INDEX_OF_UMAT_C_PARAMETER" << std::endl;
-
-    KRATOS_ERROR_IF(rModelPartProperties[INDEX_OF_UMAT_C_PARAMETER] < 1 ||
-                    rModelPartProperties[INDEX_OF_UMAT_C_PARAMETER] >
-                        static_cast<int>(rModelPartProperties[UMAT_PARAMETERS].size()))
-        << "invalid INDEX_OF_UMAT_C_PARAMETER: " << rModelPartProperties[INDEX_OF_UMAT_C_PARAMETER]
-        << " (out-of-bounds index)" << std::endl;
     const auto c = ConstitutiveLawUtilities::GetCohesion(rModelPartProperties);
     KRATOS_ERROR_IF(c < 0.) << "Cohesion C out of range: " << c << std::endl;
     return c;
@@ -145,25 +171,39 @@ double ApplyCPhiReductionProcess::GetAndCheckC(const Properties& rModelPartPrope
 
 void ApplyCPhiReductionProcess::SetCPhiAtElement(Element& rElement, double ReducedPhi, double ReducedC)
 {
-    // Get C/Phi material properties of this element
-    const auto& r_prop = rElement.GetProperties();
+    const auto&         r_properties     = rElement.GetProperties();
+    Properties::Pointer p_new_properties = Kratos::make_shared<Properties>(r_properties);
 
-    // Overwrite C and Phi in the UMAT_PARAMETERS
-    auto Umat_parameters                                     = r_prop[UMAT_PARAMETERS];
-    Umat_parameters[r_prop[INDEX_OF_UMAT_PHI_PARAMETER] - 1] = ReducedPhi;
-    Umat_parameters[r_prop[INDEX_OF_UMAT_C_PARAMETER] - 1]   = ReducedC;
+    if (UsesUmatParameters(r_properties)) {
+        // Overwrite C and Phi in the UMAT_PARAMETERS
+        auto& r_updated_umat_parameters = p_new_properties->GetValue(UMAT_PARAMETERS);
+        r_updated_umat_parameters[r_properties[INDEX_OF_UMAT_PHI_PARAMETER] - 1] = ReducedPhi;
+        r_updated_umat_parameters[r_properties[INDEX_OF_UMAT_C_PARAMETER] - 1]   = ReducedC;
+    } else {
+        p_new_properties->SetValue(GEO_FRICTION_ANGLE, ReducedPhi);
+        p_new_properties->SetValue(GEO_COHESION, ReducedC);
+    }
+    rElement.SetProperties(p_new_properties);
 
-    SetValueAtElement(rElement, UMAT_PARAMETERS, Umat_parameters);
+    if (UsesInternalMohrCoulombModel(rElement))
+        InitializeParametersForInternalMohrCoulombModel(rElement);
 }
 
-void ApplyCPhiReductionProcess::SetValueAtElement(Element& rElement, const Variable<Vector>& rVariable, const Vector& rValue)
+void ApplyCPhiReductionProcess::InitializeParametersForInternalMohrCoulombModel(Element& rElement)
 {
-    // Copies properties
-    Properties::Pointer p_new_prop = Kratos::make_shared<Properties>(rElement.GetProperties());
-
-    // Adds new properties to the element
-    p_new_prop->SetValue(rVariable, rValue);
-    rElement.SetProperties(p_new_prop);
+    // Due to current implementation of the internal Mohr-Coulomb model, this function re-initializes material properties in it.
+    // This approach discards kappa value and removes the history. It shall be changed in future.
+    std::vector<ConstitutiveLaw::Pointer> constitutive_laws;
+    const ProcessInfo                     dummy_process_info;
+    rElement.CalculateOnIntegrationPoints(CONSTITUTIVE_LAW, constitutive_laws, dummy_process_info);
+    const auto& r_properties   = rElement.GetProperties();
+    const auto  dummy_geometry = Geometry<Node>{};
+    const auto  dummy_vector   = Vector();
+    for (const auto& p_law : constitutive_laws) {
+        if (const auto p_mohr_coulomb = dynamic_cast<MohrCoulombWithTensionCutOff*>(p_law.get())) {
+            p_mohr_coulomb->InitializeMaterial(r_properties, dummy_geometry, dummy_vector);
+        }
+    }
 }
 
 bool ApplyCPhiReductionProcess::IsStepRestarted() const
