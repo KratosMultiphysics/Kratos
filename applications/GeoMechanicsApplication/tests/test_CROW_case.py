@@ -647,7 +647,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             ylabel="y [m]",
         )
 
-    def update_expected_results(self):
+    def update_all_expected_results(self):
         print("Updating the expected results...")
 
         # fmt: off
@@ -662,9 +662,14 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
         }
         # fmt: on
 
+        for case_name in ["linear_elastic", "mohr_coulomb_clay-sand"]:
+            self.update_expected_results(case_name)
+
+
+    def update_expected_results(self, case_name):
         target_dir = Path(
             test_helper.get_file_path(
-                Path("crow_validation") / "linear_elastic" / "staged_construction"
+                Path("crow_validation") / case_name / "staged_construction"
             )
         )
 
@@ -733,7 +738,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if args.update_expected_results:
-        KratosGeoMechanicsCrowValidation().update_expected_results()
+        KratosGeoMechanicsCrowValidation().update_all_expected_results()
         sys.exit(0)
 
     KratosUnittest.main()
