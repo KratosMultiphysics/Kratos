@@ -98,7 +98,6 @@ int SmallStrainUPwDiffOrderElement::Check(const ProcessInfo& rCurrentProcessInfo
     const CheckProperties check_properties(r_prop, "parameter list", element_Id,
                                            CheckProperties::Bounds::AllExclusive);
 
-    check_properties.CheckAvailability(GEO_DRAINAGE_TYPE); // this is for a unit test
     if (!ConstitutiveLawUtilities::IsConstantWaterPressure(r_prop))
         check_properties.CheckPermeabilityProperties(r_geom.WorkingSpaceDimension());
 

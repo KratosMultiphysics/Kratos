@@ -427,10 +427,6 @@ KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CheckThrowsOnFaultyInpu
         "POROSITY does not exist in the material properties with Id 0 at element with Id 1.");
 
     p_properties->SetValue(POROSITY, 1.000000e-01);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        p_element->Check(dummy_process_info),
-        "GEO_DRAINAGE_TYPE does not exist in the parameter list with Id 0 at element with Id 1.");
-
     p_properties->SetValue(GEO_DRAINAGE_TYPE, "fully_coupled");
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         p_element->Check(dummy_process_info),
