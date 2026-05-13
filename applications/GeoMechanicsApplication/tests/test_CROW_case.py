@@ -723,6 +723,9 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
     def test_staged_construction_with_linear_elastic_behavior(self):
         self.run_staged_construction_analysis_and_checks("linear_elastic")
 
+    def test_staged_construction_with_mohr_coulomb_clay_sand(self):
+        self.run_staged_construction_analysis_and_checks("mohr_coulomb_clay-sand")
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
