@@ -130,14 +130,14 @@ int PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw::Check(const Propert
     CheckProperties check_properties(rMaterialProperties, "material properties",
                                      CheckProperties::Bounds::AllExclusive);
 
-    check_properties.CheckAvailabilityAndNotEmpty(KAPPA_PIECEWISE_LINEAR_LAW);
-    check_properties.CheckAvailabilityAndNotEmpty(MOMENT_PIECEWISE_LINEAR_LAW);
+    check_properties.CheckAvailabilityAndNotEmpty(GEO_KAPPA_PIECEWISE_LINEAR_LAW);
+    check_properties.CheckAvailabilityAndNotEmpty(GEO_MOMENT_PIECEWISE_LINEAR_LAW);
 
-    const auto& r_kappa   = rMaterialProperties[KAPPA_PIECEWISE_LINEAR_LAW];
-    const auto& r_moments = rMaterialProperties[MOMENT_PIECEWISE_LINEAR_LAW];
+    const auto& r_kappa   = rMaterialProperties[GEO_KAPPA_PIECEWISE_LINEAR_LAW];
+    const auto& r_moments = rMaterialProperties[GEO_MOMENT_PIECEWISE_LINEAR_LAW];
     KRATOS_ERROR_IF(r_kappa.size() != r_moments.size())
-        << "The number of entries in KAPPA_PIECEWISE_LINEAR_LAW (" << r_kappa.size()
-        << ") does not match MOMENT_PIECEWISE_LINEAR_LAW (" << r_moments.size() << ")" << std::endl;
+        << "The number of entries in GEO_KAPPA_PIECEWISE_LINEAR_LAW (" << r_kappa.size()
+        << ") does not match GEO_MOMENT_PIECEWISE_LINEAR_LAW (" << r_moments.size() << ")" << std::endl;
 
     // First provided point must be non-zero since (0,0) is implicitly added
     constexpr auto tolerance      = 1.0e-15;
@@ -147,16 +147,16 @@ int PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw::Check(const Propert
         << "First provided point must be non-zero when assuming implicit (0,0). Got ("
         << first_kappa << ", " << first_momentum << ")" << std::endl;
 
-    CheckUtilities::CheckValuesAreAscending(r_kappa, "KAPPA_PIECEWISE_LINEAR_LAW");
+    CheckUtilities::CheckValuesAreAscending(r_kappa, "GEO_KAPPA_PIECEWISE_LINEAR_LAW");
     constexpr auto allow_equal = true;
-    CheckUtilities::CheckValuesAreAscending(r_moments, "MOMENT_PIECEWISE_LINEAR_LAW", allow_equal);
+    CheckUtilities::CheckValuesAreAscending(r_moments, "GEO_MOMENT_PIECEWISE_LINEAR_LAW", allow_equal);
 
     check_properties.Check(YOUNG_MODULUS);
     check_properties.Check(THICKNESS);
     check_properties.Check(THICKNESS_EFFECTIVE_Y);
     check_properties.Check(POISSON_RATIO, -1.0, 0.5);
 
-    if (rMaterialProperties.Has(UNRELOAD_MODULUS)) check_properties.Check(UNRELOAD_MODULUS);
+    if (rMaterialProperties.Has(GEO_UNRELOAD_MODULUS)) check_properties.Check(GEO_UNRELOAD_MODULUS);
 
     return 0;
 }
@@ -191,8 +191,8 @@ void PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw::InitializeMaterial
 
     mStressStrainTable.Clear();
 
-    const auto& r_kappa   = rMaterialProperties[KAPPA_PIECEWISE_LINEAR_LAW];
-    const auto& r_moments = rMaterialProperties[MOMENT_PIECEWISE_LINEAR_LAW];
+    const auto& r_kappa   = rMaterialProperties[GEO_KAPPA_PIECEWISE_LINEAR_LAW];
+    const auto& r_moments = rMaterialProperties[GEO_MOMENT_PIECEWISE_LINEAR_LAW];
     // include implicit origin (0,0) as the first table point
     mStressStrainTable.PushBack(0.0, 0.0);
     for (auto i = std::size_t{0}; i < r_kappa.size(); ++i) {
@@ -209,8 +209,8 @@ void PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw::InitializeMaterial
     mAccumulatedCurvature = 0.0;
     mUnReLoadCenter       = 0.0;
     // Store optional modulus if provided
-    if (rMaterialProperties.Has(UNRELOAD_MODULUS)) {
-        mUnReLoadModulus = rMaterialProperties[UNRELOAD_MODULUS];
+    if (rMaterialProperties.Has(GEO_UNRELOAD_MODULUS)) {
+        mUnReLoadModulus = rMaterialProperties[GEO_UNRELOAD_MODULUS];
     } else {
         mUnReLoadModulus = 0.0;
     }

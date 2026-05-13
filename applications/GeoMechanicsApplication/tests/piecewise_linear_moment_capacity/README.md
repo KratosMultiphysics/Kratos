@@ -19,17 +19,17 @@ The tests use `MaterialParameters.json` in this folder. Current baseline values 
 - `POISSON_RATIO`: 0.3
 - `THICKNESS`: 0.1
 - `THICKNESS_EFFECTIVE_Y`: 0.1
-- `KAPPA_PIECEWISE_LINEAR_LAW`: [5.0e-03, 1.0e-02, 2.0e-02, 5.0e-02, 0.1]
-- `MOMENT_PIECEWISE_LINEAR_LAW`: [0.1, 0.25, 0.5, 0.8, 1.1]
+- `GEO_KAPPA_PIECEWISE_LINEAR_LAW`: [5.0e-03, 1.0e-02, 2.0e-02, 5.0e-02, 0.1]
+- `GEO_MOMENT_PIECEWISE_LINEAR_LAW`: [0.1, 0.25, 0.5, 0.8, 1.1]
 
-Note: `UNRELOAD_MODULUS` is not in the baseline material file; it is injected only in the dedicated unload/reload test.
+Note: `GEO_UNRELOAD_MODULUS` is not in the baseline material file; it is injected only in the dedicated unload/reload test.
 
 ## Tests (cases)
 
 There are two Python tests:
 
-- `test_piecewise_linear_moment_capacity`: backbone-only response (no `UNRELOAD_MODULUS`).
-- `test_piecewise_linear_moment_capacity_with_unreload`: same input files, but adds `UNRELOAD_MODULUS` in-flight before running.
+- `test_piecewise_linear_moment_capacity`: backbone-only response (no `GEO_UNRELOAD_MODULUS`).
+- `test_piecewise_linear_moment_capacity_with_unreload`: same input files, but adds `GEO_UNRELOAD_MODULUS` in-flight before running.
 
 Both tests compare results at times:
 
