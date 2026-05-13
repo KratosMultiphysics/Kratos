@@ -124,16 +124,18 @@ void CheckUtilities::CheckValuesAreAscending(const Vector& rValues, const std::s
         auto first_gt_second = [](const auto& First, const auto& Second) { return First > Second; };
         auto pos = std::adjacent_find(rValues.cbegin(), rValues.cend(), first_gt_second);
         KRATOS_ERROR_IF(pos != rValues.cend())
-            << "Values in " << rName << " are not non-decreasing: " << *(pos + 1) << " (at index "
-            << std::distance(rValues.begin(), pos) + 2 << ") is less than " << *pos << " (at index "
-            << std::distance(rValues.begin(), pos) + 1 << ")" << std::endl;
+            << "Invalid sequence in '" << rName << "': values must be non-decreasing (duplicates allowed). "
+            << "Found " << *(pos + 1) << " at index " << (std::distance(rValues.begin(), pos) + 2)
+            << ", which is less than the previous value " << *pos << " at index "
+            << (std::distance(rValues.begin(), pos) + 1) << "." << std::endl;
     } else {
         auto first_ge_second = [](const auto& First, const auto& Second) { return First >= Second; };
         auto pos = std::adjacent_find(rValues.cbegin(), rValues.cend(), first_ge_second);
         KRATOS_ERROR_IF(pos != rValues.cend())
-            << "Values in " << rName << " are not ascending: " << *(pos + 1) << " (at index "
-            << std::distance(rValues.begin(), pos) + 2 << ") does not exceed " << *pos
-            << " (at index " << std::distance(rValues.begin(), pos) + 1 << ")" << std::endl;
+            << "Invalid sequence in '" << rName << "': values must be strictly increasing. "
+            << "Found " << *(pos + 1) << " at index " << (std::distance(rValues.begin(), pos) + 2)
+            << ", which is not greater than the previous value " << *pos << " at index "
+            << (std::distance(rValues.begin(), pos) + 1) << "." << std::endl;
     }
 }
 
