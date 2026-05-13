@@ -139,7 +139,7 @@
                             ]
                         }
                     },
-                    "output_name": "test_dss_mohr_coulomb_output"
+                    "output_name": "test_dss_output"
                 }
             }
         ]
