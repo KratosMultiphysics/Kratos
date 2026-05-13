@@ -80,49 +80,26 @@ private:
             auto it_elem = r_elements.begin() + i_elem;
             auto& r_geometry = it_elem->GetGeometry();
             const std::size_t number_of_nodes = r_geometry.PointsNumber();
-            const std::size_t number_of_integration_points = r_geometry.IntegrationPointsNumber();
+            const Matrix& r_N = r_geometry.ShapeFunctionsValues();
 
             std::vector<Vector> cauchy_stress_values;
             it_elem->CalculateOnIntegrationPoints(MP_CAUCHY_STRESS_VECTOR, cauchy_stress_values, rCurrentProcessInfo);
-            if (cauchy_stress_values.empty() || cauchy_stress_values[0].size() == 0) {
-                return;
-            }
 
             std::vector<double> mass_values;
             it_elem->CalculateOnIntegrationPoints(MP_MASS, mass_values, rCurrentProcessInfo);
-            if (mass_values.empty()) {
-                return;
-            }
 
-            const Vector& r_cauchy_stress_vector = cauchy_stress_values[0];
-            const double material_point_mass = mass_values[0];
-            const std::size_t stress_size = r_cauchy_stress_vector.size();
+            for (std::size_t i = 0; i < number_of_nodes; ++i) {
 
-            for (std::size_t int_p = 0; int_p < number_of_integration_points; ++int_p) {
-                const double weight = (number_of_integration_points > 1)
-                    ? r_geometry.IntegrationPoints()[int_p].Weight()
-                    : 1.0;
+                Vector nodal_cauchy_stress_vector = cauchy_stress_values[0];
+                const double stress_weight = r_N(0,i) * mass_values[0];
+                nodal_cauchy_stress_vector *= stress_weight;
 
-                for (std::size_t i = 0; i < number_of_nodes; ++i) {
-                    const double shape_function_value = r_geometry.ShapeFunctionValue(int_p, i);
-                    if (shape_function_value < 0.0) {
-                        continue;
-                    }
+                r_geometry[i].SetLock();
+                auto& r_nodal_stress = r_geometry[i].FastGetSolutionStepValue(CAUCHY_STRESS_VECTOR);
 
-                    Vector nodal_cauchy_stress_vector = r_cauchy_stress_vector;
-                    const double stress_weight = shape_function_value * material_point_mass * weight;
-                    nodal_cauchy_stress_vector *= stress_weight;
-
-                    r_geometry[i].SetLock();
-                    auto& r_nodal_stress = r_geometry[i].FastGetSolutionStepValue(CAUCHY_STRESS_VECTOR);
-                    if (r_nodal_stress.size() != stress_size) {
-                        r_nodal_stress.resize(stress_size, false);
-                        noalias(r_nodal_stress) = ZeroVector(stress_size);
-                    }
-                    noalias(r_nodal_stress) += nodal_cauchy_stress_vector;
-                    rNodalStressWeights[r_geometry[i].Id() - 1] += stress_weight;
-                    r_geometry[i].UnSetLock();
-                }
+                noalias(r_nodal_stress) += nodal_cauchy_stress_vector;
+                rNodalStressWeights[r_geometry[i].Id() - 1] += stress_weight;
+                r_geometry[i].UnSetLock();
             }
         });
     }
