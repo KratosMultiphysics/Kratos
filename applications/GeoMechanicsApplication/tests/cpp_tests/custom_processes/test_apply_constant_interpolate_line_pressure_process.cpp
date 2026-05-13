@@ -7,24 +7,21 @@
 //
 //  License:         geo_mechanics_application/license.txt
 //
-//  Main authors:    Richard Faasse
+//  Main authors:    Gennady Markelov
 //
-
-#include "custom_processes/apply_scalar_constraint_table_process.h"
-#include "test_setup_utilities/model_setup_utilities.h"
-#include "tests/cpp_tests/geo_mechanics_fast_suite.h"
-
-#include "geo_mechanics_application_variables.h"
-
-#include "includes/smart_pointers.h"
 
 #include "containers/model.h"
 #include "custom_processes/apply_constant_interpolate_line_pressure_process.h"
+#include "custom_processes/apply_scalar_constraint_table_process.h"
 #include "geo_mechanics_application_variables.h"
 #include "geometries/point.h"
 #include "includes/kratos_flags.h"
 #include "includes/model_part.h"
+#include "test_setup_utilities/model_setup_utilities.h"
 #include "testing/testing.h"
+#include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+
+#include "includes/smart_pointers.h"
 
 namespace
 {
@@ -55,10 +52,11 @@ ModelPart& CreateTestModelPart(Model& rModel)
 
 KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressureProcess_Construction, KratosGeoMechanicsFastSuite)
 {
+    // Arrange
     Model model;
     auto& r_model_part = CreateTestModelPart(model);
 
-    Parameters params(R"({
+    const auto params = Parameters(R"({
         "model_part_name": "TestPart",
         "variable_name": "WATER_PRESSURE",
         "is_fixed": true,
@@ -69,16 +67,17 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressureProcess_Constructi
         "table": 1
     })");
 
+    // Act & Assert
     EXPECT_NO_THROW(ApplyConstantInterpolateLinePressureProcess process(r_model_part, params));
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressureProcess_ThrowsOnInvalidDirections, KratosGeoMechanicsFastSuite)
 {
+    // Arrange
     Model model;
     auto& r_model_part = CreateTestModelPart(model);
 
-    Parameters params(R"({
-
+    const auto params = Parameters(R"({
         "model_part_name": "TestPart",
         "variable_name": "WATER_PRESSURE",
         "is_fixed": true,
@@ -89,6 +88,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressureProcess_ThrowsOnIn
         "table": 1
     })");
 
+    // Act & Assert
     KRATOS_CHECK_EXCEPTION_IS_THROWN(
         ApplyConstantInterpolateLinePressureProcess process(r_model_part, params),
         "Gravity direction cannot be the same as Out-of-Plane directions");
@@ -97,6 +97,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressureProcess_ThrowsOnIn
 KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressureProcess_ExecuteInitializeSolutionStep,
                           KratosGeoMechanicsFastSuite)
 {
+    // Arrange
     Model model;
     auto& r_model_part = CreateTestModelPart(model);
 
@@ -105,7 +106,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressureProcess_ExecuteIni
         r_node.FastGetSolutionStepValue(WATER_PRESSURE) = 10.0 * static_cast<double>(r_node.Id());
     }
 
-    Parameters params(R"({
+    const auto params = Parameters(R"({
         "model_part_name": "TestPart",
         "variable_name": "WATER_PRESSURE",
         "is_fixed": true,
@@ -117,9 +118,11 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressureProcess_ExecuteIni
     })");
 
     ApplyConstantInterpolateLinePressureProcess process(r_model_part, params);
+
+    // Act
     process.ExecuteInitializeSolutionStep();
 
-    // Check that pressure is set and fixed
+    // Assert
     for (auto& r_node : r_model_part.Nodes()) {
         KRATOS_CHECK(r_node.IsFixed(WATER_PRESSURE))
         KRATOS_CHECK_DOUBLE_EQUAL(r_node.FastGetSolutionStepValue(WATER_PRESSURE), 10.0 * r_node.Id());
@@ -128,6 +131,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressureProcess_ExecuteIni
 
 KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressureProcess_SeepageBranch, KratosGeoMechanicsFastSuite)
 {
+    // Arrange
     Model model;
     auto& r_model_part = CreateTestModelPart(model);
 
@@ -140,7 +144,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressureProcess_SeepageBra
     }
 
     // Set a high cut-off so all nodes will be below the cut-off
-    Parameters params_below(R"({
+    const auto params_below = Parameters(R"({
         "model_part_name": "TestPart",
         "variable_name": "WATER_PRESSURE",
         "is_fixed": true,
@@ -152,17 +156,19 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressureProcess_SeepageBra
     })");
 
     ApplyConstantInterpolateLinePressureProcess process_below(r_model_part, params_below);
+
+    // Act and Assert
     process_below.ExecuteInitializeSolutionStep();
 
     // All nodes should be set and fixed (since pressure < cut-off)
-    for (auto& r_node : r_model_part.Nodes()) {
+    for (const auto& r_node : r_model_part.Nodes()) {
         KRATOS_CHECK(r_node.IsFixed(WATER_PRESSURE))
         // The value is set by CalculatePressure, which in this test setup is 0.0
         KRATOS_CHECK_DOUBLE_EQUAL(r_node.FastGetSolutionStepValue(WATER_PRESSURE), 0.0);
     }
 
     // Now set a low cut-off so all nodes will be above the cut-off
-    Parameters params_above(R"({
+    const auto params_above = Parameters(R"({
         "model_part_name": "TestPart",
         "variable_name": "WATER_PRESSURE",
         "is_fixed": true,
@@ -189,10 +195,11 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressureProcess_SeepageBra
 
 KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressureProcess_Info, KratosGeoMechanicsFastSuite)
 {
+    // Arrange
     Model model;
     auto& r_model_part = CreateTestModelPart(model);
 
-    Parameters params(R"({
+    const auto params = Parameters(R"({
         "model_part_name": "TestPart",
         "variable_name": "WATER_PRESSURE",
         "is_fixed": false,
@@ -204,11 +211,140 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressureProcess_Info, Krat
     })");
 
     ApplyConstantInterpolateLinePressureProcess process(r_model_part, params);
+
+    // Act & Assert
     KRATOS_EXPECT_EQ(process.Info(), "ApplyConstantInterpolateLinePressureProcess");
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressureProcess_DoesNotFreeWhenIsFixedIsNotProvided,
+                          KratosGeoMechanicsFastSuite)
+{
+    // Arrange
+    Model model;
+    auto& r_model_part = CreateTestModelPart(model);
+
+    for (auto& r_node : r_model_part.Nodes()) {
+        r_node.AddDof(WATER_PRESSURE);
+        r_node.Fix(WATER_PRESSURE);
+        r_node.FastGetSolutionStepValue(WATER_PRESSURE) = 10.0 * static_cast<double>(r_node.Id());
+    }
+
+    const auto params = Parameters(R"({
+        "model_part_name": "TestPart",
+        "variable_name": "WATER_PRESSURE",
+        "is_seepage": false,
+        "gravity_direction": 1,
+        "out_of_plane_direction": 2,
+        "pressure_tension_cut_off": 1.0e9,
+        "table": 1
+    })");
+
+    ApplyConstantInterpolateLinePressureProcess process(r_model_part, params);
+
+    // Act
+    process.ExecuteInitializeSolutionStep();
+
+    // Assert
+    for (const auto& r_node : r_model_part.Nodes()) {
+        KRATOS_CHECK(r_node.IsFixed(WATER_PRESSURE))
+    }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressureProcess_FreesWhenIsFixedIsExplicitlyFalse,
+                          KratosGeoMechanicsFastSuite)
+{
+    // Arrange
+    Model model;
+    auto& r_model_part = CreateTestModelPart(model);
+
+    for (auto& r_node : r_model_part.Nodes()) {
+        r_node.AddDof(WATER_PRESSURE);
+        r_node.Fix(WATER_PRESSURE);
+        r_node.FastGetSolutionStepValue(WATER_PRESSURE) = 10.0 * static_cast<double>(r_node.Id());
+    }
+
+    const auto params = Parameters(R"({
+        "model_part_name": "TestPart",
+        "variable_name": "WATER_PRESSURE",
+        "is_fixed": false,
+        "is_seepage": false,
+        "gravity_direction": 1,
+        "out_of_plane_direction": 2,
+        "pressure_tension_cut_off": 1.0e9,
+        "table": 1
+    })");
+
+    ApplyConstantInterpolateLinePressureProcess process(r_model_part, params);
+
+    // Act
+    process.ExecuteInitializeSolutionStep();
+
+    // Assert
+    for (const auto& r_node : r_model_part.Nodes()) {
+        KRATOS_CHECK_IS_FALSE(r_node.IsFixed(WATER_PRESSURE))
+    }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressureProcess_ExecuteInitializeSolutionStepRunsOnlyOnce,
+                          KratosGeoMechanicsFastSuite)
+{
+    // Arrange: boundary nodes on top (y=10) and bottom (y=0), plus an interior node (y=5).
+    // CalculatePressure interpolates the interior node to 50.0, which is intentionally
+    // different from the sentinel value set after the first call.  This allows reliable
+    // detection of any accidental re-execution of the process.
+    Model      model;
+    ModelPart& r_model_part = model.CreateModelPart("Main");
+    r_model_part.AddNodalSolutionStepVariable(WATER_PRESSURE);
+
+    // Top boundary (y = 10)
+    r_model_part.CreateNewNode(1, 0.0, 10.0, 0.0)->FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
+    r_model_part.CreateNewNode(2, 10.0, 10.0, 0.0)->FastGetSolutionStepValue(WATER_PRESSURE) = 100.0;
+
+    // Bottom boundary (y = 0)
+    r_model_part.CreateNewNode(3, 0.0, 0.0, 0.0)->FastGetSolutionStepValue(WATER_PRESSURE)  = 0.0;
+    r_model_part.CreateNewNode(4, 10.0, 0.0, 0.0)->FastGetSolutionStepValue(WATER_PRESSURE) = 100.0;
+
+    // Interior node — not part of any element, so not a boundary node.
+    // CalculatePressure will interpolate it to 50.0.
+    auto interior_node = r_model_part.CreateNewNode(5, 5.0, 5.0, 0.0);
+    interior_node->FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
+
+    auto p_props = r_model_part.CreateNewProperties(0);
+    r_model_part.CreateNewElement("Element2D2N", 1, std::vector<ModelPart::IndexType>{1, 2}, p_props);
+    r_model_part.CreateNewElement("Element2D2N", 2, std::vector<ModelPart::IndexType>{3, 4}, p_props);
+
+    const auto params = Parameters(R"({
+        "model_part_name": "Main",
+        "variable_name": "WATER_PRESSURE",
+        "is_fixed": true,
+        "is_seepage": false,
+        "gravity_direction": 1,
+        "out_of_plane_direction": 2,
+        "pressure_tension_cut_off": 1.0e9
+    })");
+
+    ApplyConstantInterpolateLinePressureProcess process(r_model_part, params);
+
+    // Act: first call sets the interior node to the interpolated value (50.0).
+    process.ExecuteInitializeSolutionStep();
+    KRATOS_EXPECT_NEAR(interior_node->FastGetSolutionStepValue(WATER_PRESSURE), 50.0, 1e-10);
+
+    // Reset the interior node to a sentinel that clearly differs from 50.0.
+    constexpr double sentinel = 99999.0;
+    interior_node->Free(WATER_PRESSURE);
+    interior_node->FastGetSolutionStepValue(WATER_PRESSURE) = sentinel;
+
+    // Act: second call must be a no-op (guarded by mIsInitialized).
+    process.ExecuteInitializeSolutionStep();
+
+    // Assert: interior node retains the sentinel value, not the interpolated 50.0.
+    KRATOS_CHECK_IS_FALSE(interior_node->IsFixed(WATER_PRESSURE))
+    KRATOS_EXPECT_NEAR(interior_node->FastGetSolutionStepValue(WATER_PRESSURE), sentinel, 1e-10);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressure_IndirectPrivateCoverage, KratosGeoMechanicsFastSuite)
 {
+    // Arrange
     Model      model;
     ModelPart& r_model_part = model.CreateModelPart("Main");
 
@@ -241,7 +377,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressure_IndirectPrivateCo
     r_model_part.CreateNewElement("Element2D2N", 3, std::vector<ModelPart::IndexType>{4, 5}, p_props);
     r_model_part.CreateNewElement("Element2D2N", 4, std::vector<ModelPart::IndexType>{5, 6}, p_props);
 
-    Parameters params(R"(
+    const auto params = Parameters(R"(
     {
         "model_part_name" : "Main",
         "variable_name"   : "WATER_PRESSURE",
@@ -253,18 +389,20 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressure_IndirectPrivateCo
 
     ApplyConstantInterpolateLinePressureProcess process(r_model_part, params);
 
+    // Act
     process.ExecuteInitializeSolutionStep();
 
-    const double expected_top = 75.0;  // from top boundary
-    const double expected_bot = 175.0; // from bottom boundary
-
-    const double expected = (expected_top - expected_bot) / (10.0 - 0.0) * (5.0 - 0.0) + expected_bot;
+    // Assert
+    constexpr auto expected_top = 75.0;  // from top boundary
+    constexpr auto expected_bot = 175.0; // from bottom boundary
+    constexpr auto expected = (expected_top - expected_bot) / (10.0 - 0.0) * (5.0 - 0.0) + expected_bot;
 
     KRATOS_EXPECT_NEAR(interior_node->FastGetSolutionStepValue(WATER_PRESSURE), expected, 1e-12);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressure_NoBoundaryNodes, KratosGeoMechanicsFastSuite)
 {
+    // Arrange
     Model      model;
     ModelPart& mp = model.CreateModelPart("Main");
     mp.AddNodalSolutionStepVariable(WATER_PRESSURE);
@@ -273,12 +411,13 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressure_NoBoundaryNodes, 
     mp.CreateNewNode(1, 0.0, 0.0, 0.0);
     mp.CreateNewNode(2, 1.0, 0.0, 0.0);
 
-    Parameters params(R"(
+    const auto params = Parameters(R"(
     {
         "model_part_name" : "Main",
         "variable_name"   : "WATER_PRESSURE"
     })");
 
+    // Act & Assert
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(ApplyConstantInterpolateLinePressureProcess(mp, params),
                                       "No boundary node is found");
 }
