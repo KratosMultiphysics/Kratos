@@ -102,133 +102,58 @@ void FinalizeForCurvature(PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLa
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(PiecewiseLinearMomentCapacityConstitutiveLaw_CheckOfMomentCapacityLawThrowsWhenCurvatureVectorSizeIsIncorrect,
+KRATOS_TEST_CASE_IN_SUITE(PiecewiseLinearMomentCapacityConstitutiveLaw_CheckValidation,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    // Arrange
     const auto law          = PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw{};
-    auto       properties   = CreateValidProperties();
     const auto geometry     = Geometry<Node>{};
     const auto process_info = ProcessInfo{};
+    auto       properties   = CreateValidProperties();
 
     properties.SetValue(GEO_KAPPA_PIECEWISE_LINEAR_LAW, UblasUtilities::CreateVector({0.01, 0.03}));
-
-    // Act & Assert
     KRATOS_EXPECT_EXCEPTION_IS_THROWN((void)law.Check(properties, geometry, process_info),
                                       "The number of entries in GEO_KAPPA_PIECEWISE_LINEAR_LAW (2) "
                                       "does not match GEO_MOMENT_PIECEWISE_LINEAR_LAW (3)")
-}
 
-KRATOS_TEST_CASE_IN_SUITE(PiecewiseLinearMomentCapacityConstitutiveLaw_CheckThrowsWhenYoungModulusIsMissing,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    // Arrange
-    const auto law          = PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw{};
-    auto       properties   = CreateValidProperties();
-    const auto geometry     = Geometry<Node>{};
-    const auto process_info = ProcessInfo{};
+    properties = CreateValidProperties();
     properties.Erase(YOUNG_MODULUS);
-
-    // Act & Assert
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         (void)law.Check(properties, geometry, process_info),
         "YOUNG_MODULUS does not exist in the material properties with Id 0.")
-}
 
-KRATOS_TEST_CASE_IN_SUITE(PiecewiseLinearMomentCapacityConstitutiveLaw_CheckThrowsWhenThicknessIsMissing,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    // Arrange
-    const auto law          = PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw{};
-    auto       properties   = CreateValidProperties();
-    const auto geometry     = Geometry<Node>{};
-    const auto process_info = ProcessInfo{};
+    properties = CreateValidProperties();
     properties.Erase(THICKNESS);
-
-    // Act & Assert
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         (void)law.Check(properties, geometry, process_info),
         "THICKNESS does not exist in the material properties with Id 0.")
-}
 
-KRATOS_TEST_CASE_IN_SUITE(PiecewiseLinearMomentCapacityConstitutiveLaw_CheckThrowsWhenThicknessEffectiveYIsMissing,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    // Arrange
-    const auto law          = PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw{};
-    auto       properties   = CreateValidProperties();
-    const auto geometry     = Geometry<Node>{};
-    const auto process_info = ProcessInfo{};
+    properties = CreateValidProperties();
     properties.Erase(THICKNESS_EFFECTIVE_Y);
-
-    // Act & Assert
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         (void)law.Check(properties, geometry, process_info),
         "THICKNESS_EFFECTIVE_Y does not exist in the material properties with Id 0.")
-}
 
-KRATOS_TEST_CASE_IN_SUITE(PiecewiseLinearMomentCapacityConstitutiveLaw_CheckThrowsWhenPoissonRatioIsOutOfRange,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    // Arrange
-    const auto law          = PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw{};
-    auto       properties   = CreateValidProperties();
-    const auto geometry     = Geometry<Node>{};
-    const auto process_info = ProcessInfo{};
-    properties.SetValue(POISSON_RATIO, 0.5); // upper bound exclusive
-
-    // Act & Assert
+    properties = CreateValidProperties();
+    properties.SetValue(POISSON_RATIO, 0.5);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN((void)law.Check(properties, geometry, process_info),
                                       "POISSON_RATIO in the material properties with Id 0 has an "
                                       "invalid value: 0.5 is out of the range (-1, 0.5).")
-}
 
-KRATOS_TEST_CASE_IN_SUITE(PiecewiseLinearMomentCapacityConstitutiveLaw_CheckThrowsWhenDerivativeExceedsElasticEI,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    // Arrange
-    const auto law          = PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw{};
-    auto       properties   = CreateValidProperties();
-    const auto geometry     = Geometry<Node>{};
-    const auto process_info = ProcessInfo{};
-
-    // Act & Assert
+    properties = CreateValidProperties();
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         (void)law.Check(properties, geometry, process_info),
         "Derivative dM/dKappa must be smaller than elastic EI. Segment 2")
-}
 
-KRATOS_TEST_CASE_IN_SUITE(PiecewiseLinearMomentCapacityConstitutiveLaw_CheckThrowsWhenUnreloadModulusIsZero,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    // Arrange
-    const auto law          = PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw{};
-    auto       properties   = CreateValidProperties();
-    const auto geometry     = Geometry<Node>{};
-    const auto process_info = ProcessInfo{};
-    // Keep dM/dKappa below elastic EI so this test reaches the unload-modulus validation.
+    properties = CreateValidProperties();
     properties.SetValue(YOUNG_MODULUS, 3000.0);
-    properties.SetValue(GEO_UNLOADING_RELOADING_MODULUS, 0.0); // must be strictly positive
-
-    // Act & Assert
+    properties.SetValue(GEO_UNLOADING_RELOADING_MODULUS, 0.0);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         (void)law.Check(properties, geometry, process_info),
         "GEO_UNLOADING_RELOADING_MODULUS in the material properties with Id 0 has "
         "an invalid value: 0 is out of the range (0, -).")
-}
 
-KRATOS_TEST_CASE_IN_SUITE(PiecewiseLinearMomentCapacityConstitutiveLaw_CheckPassesWithValidProperties,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    // Arrange
-    const auto law          = PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw{};
-    auto       properties   = CreateValidProperties();
-    const auto geometry     = Geometry<Node>{};
-    const auto process_info = ProcessInfo{};
-    // Ensure test data satisfies the derivative-vs-elastic-EI check.
+    properties = CreateValidProperties();
     properties.SetValue(YOUNG_MODULUS, 3000.0);
-
-    // Act & Assert
     EXPECT_NO_THROW((void)law.Check(properties, geometry, process_info));
 }
 
