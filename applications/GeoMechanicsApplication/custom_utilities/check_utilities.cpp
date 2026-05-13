@@ -118,25 +118,22 @@ void CheckProperties::CheckPermeabilityProperties(size_t Dimension) const
 
 void CheckUtilities::CheckValuesAreAscending(const Vector& rValues, const std::string& rName, bool AllowEqual)
 {
-    // If AllowEqual==true then allow non-decreasing sequences (duplicates allowed).
-    // Violation predicate: return true when First >= Second (strict ascending) or First > Second (non-decreasing).
-    if (AllowEqual) {
-        auto first_gt_second = [](const auto& First, const auto& Second) { return First > Second; };
-        auto pos = std::adjacent_find(rValues.cbegin(), rValues.cend(), first_gt_second);
-        KRATOS_ERROR_IF(pos != rValues.cend())
-            << "Invalid sequence in '" << rName << "': values must be non-decreasing (duplicates allowed). "
-            << "Found " << *(pos + 1) << " at index " << (std::distance(rValues.begin(), pos) + 2)
-            << ", which is less than the previous value " << *pos << " at index "
-            << (std::distance(rValues.begin(), pos) + 1) << "." << std::endl;
-    } else {
-        auto first_ge_second = [](const auto& First, const auto& Second) { return First >= Second; };
-        auto pos = std::adjacent_find(rValues.cbegin(), rValues.cend(), first_ge_second);
-        KRATOS_ERROR_IF(pos != rValues.cend())
-            << "Invalid sequence in '" << rName << "': values must be strictly increasing. "
-            << "Found " << *(pos + 1) << " at index " << (std::distance(rValues.begin(), pos) + 2)
-            << ", which is not greater than the previous value " << *pos << " at index "
-            << (std::distance(rValues.begin(), pos) + 1) << "." << std::endl;
-    }
+    const auto pos = std::ranges::adjacent_find(
+        rValues, [&AllowEqual](double a, double b) { return AllowEqual ? (a > b) : (a >= b); });
+    if (pos == rValues.cend()) return;
+
+    const auto idx            = static_cast<std::size_t>(std::distance(rValues.cbegin(), pos));
+    const auto previous_value = *pos;
+    const auto current_value  = *(pos + 1);
+
+    const auto requirement = AllowEqual ? "non-decreasing (duplicates allowed)" : "strictly increasing";
+
+    const auto relation = AllowEqual ? "less than" : "not greater than";
+
+    KRATOS_ERROR << "Invalid sequence in '" << rName << "': values must be " << requirement
+                 << ". Found " << current_value << " at index " << (idx + 2) << ", which is "
+                 << relation << " the previous value " << previous_value << " at index "
+                 << (idx + 1) << "." << std::endl;
 }
 
 void CheckUtilities::CheckForNonZeroZCoordinateIn2D(const Geometry<Node>& rGeometry)
