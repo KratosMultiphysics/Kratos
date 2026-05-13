@@ -315,8 +315,8 @@ KRATOS_TEST_CASE_IN_SUITE(PiecewiseLinearMomentCapacityConstitutiveLaw_ComputeCo
 
     // Assert
     const auto& r_constitutive_matrix = parameters.GetConstitutiveMatrix();
-    KRATOS_EXPECT_EQ(r_constitutive_matrix.size1(), 3);
-    KRATOS_EXPECT_EQ(r_constitutive_matrix.size2(), 3);
+    ASSERT_EQ(r_constitutive_matrix.size1(), 5);
+    ASSERT_EQ(r_constitutive_matrix.size2(), 5);
 
     const auto E                        = properties[YOUNG_MODULUS];
     const auto A                        = properties[THICKNESS];
@@ -326,7 +326,7 @@ KRATOS_TEST_CASE_IN_SUITE(PiecewiseLinearMomentCapacityConstitutiveLaw_ComputeCo
     const auto expected_shear_stiffness = (E / (2.0 * (1.0 + nu))) * properties[THICKNESS_EFFECTIVE_Y];
     constexpr auto expected_bending_tangent = 0.0;
 
-    auto expected_constitutive_matrix  = Matrix(3, 3, 0.0);
+    auto expected_constitutive_matrix  = Matrix(5, 5, 0.0);
     expected_constitutive_matrix(0, 0) = expected_axial_stiffness;
     expected_constitutive_matrix(1, 1) = expected_bending_tangent;
     expected_constitutive_matrix(2, 2) = expected_shear_stiffness;
