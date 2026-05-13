@@ -40,14 +40,11 @@
         "convergence_criterion": "displacement_criterion",
         "displacement_relative_tolerance": 1.0e-04,
         "displacement_absolute_tolerance": 1.0e-09,
-        "residual_relative_tolerance": 1.0e-04,
-        "residual_absolute_tolerance": 1.0e-09,
         "min_iterations": 1,
         "max_iterations": 30,
         "number_cycles": 5,
         "reduction_factor": 0.5,
         "increase_factor": 2.0,
-        "desired_iterations": 6,
         "calculate_reactions": true,
         "rotation_dofs": true,
         "problem_domain_sub_model_part_list": ["Beam"],
@@ -93,8 +90,8 @@
                 "Parameters": {
                     "model_part_name": "PorousDomain.Fixed_Displacement",
                     "variable_name": "DISPLACEMENT",
-                    "active": [true, true, true],
-                    "is_fixed": [true, true, true],
+                    "active": [true, true, false],
+                    "is_fixed": [true, true, false],
                     "value": [0.0, 0.0, 0.0],
                     "table": [0, 0, 0]
                 }
@@ -121,8 +118,8 @@
                 "Parameters": {
                     "model_part_name": "PorousDomain.Point_Load",
                     "variable_name": "DISPLACEMENT",
-                    "active": [true, true, true],
-                    "is_fixed": [true, true, true],
+                    "active": [false, true, false],
+                    "is_fixed": [false, true, false],
                     "value": [0.0, 0.0, 0.0],
                     "table": [0, 1, 0]
                 }

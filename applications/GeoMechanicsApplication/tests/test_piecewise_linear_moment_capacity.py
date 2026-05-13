@@ -78,7 +78,7 @@ class KratosGeoMechanicsPiecewiseLinearMomentCapacityTests(KratosUnittest.TestCa
         Tests only backbone moment during cyclic loading.
         """
         times = [0.05, 0.1, 0.15, 0.2, 0.25, 0.30, 0.35, 0.5]
-        expected_moments_y = [0.39487, 0.260425, 0.494529, -0.327648, -0.641928, -0.494529, -0.82985, -1.1]
+        expected_moments_y = [0.140187, 0.113432, 0.159435, -0.126937, -0.223594, -0.159435, -0.341482, -0.968531]
         expected_displacements_y = [0.006, 0.004, 0.0075,-0.005, -0.0125, -0.0075, -0.02, -0.0575]
         run_piecewise_case('.', times, expected_moments_y, expected_displacements_y, tol=1e-4)
 
@@ -88,9 +88,9 @@ class KratosGeoMechanicsPiecewiseLinearMomentCapacityTests(KratosUnittest.TestCa
         Uses same case files as backbone test but adds GEO_UNLOADING_RELOADING_MODULUS in-flight.
         """
         times = [0.05, 0.1, 0.15, 0.2, 0.25, 0.30, 0.35, 0.5]
-        expected_moments_y = [0.39487, 0.128681, 0.494529, -0.641293, -0.830108, -0.164635, -0.95597, -1.1]
+        expected_moments_y = [0.139944, 0.033468, 0.159435, -0.244156, -0.368454,  -0.102264, -0.494528, -1.04222]
         expected_displacements_y = [0.006, 0.004, 0.0075, -0.005, -0.0125, -0.0075, -0.02, -0.0575]
-        run_piecewise_case('.', times, expected_moments_y, expected_displacements_y, unreload_modulus=50.0, tol=1e-4)
+        run_piecewise_case('.', times, expected_moments_y, expected_displacements_y, unreload_modulus=20.0, tol=1e-4)
 
 
 if __name__ == '__main__':
