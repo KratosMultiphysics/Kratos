@@ -15,6 +15,7 @@
 #include "custom_utilities/check_utilities.hpp"
 #include "geo_mechanics_application_variables.h"
 #include "includes/properties.h"
+#include <limits>
 
 namespace Kratos
 {
@@ -140,7 +141,7 @@ int PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw::Check(const Propert
         << ") does not match GEO_MOMENT_PIECEWISE_LINEAR_LAW (" << r_moments.size() << ")" << std::endl;
 
     // First provided point must be non-zero since (0,0) is implicitly added
-    constexpr auto tolerance      = 1.0e-15;
+    constexpr auto tolerance      = std::numeric_limits<double>::min();
     const auto     first_kappa    = r_kappa[0];
     const auto     first_momentum = r_moments[0];
     KRATOS_ERROR_IF(std::abs(first_kappa) < tolerance || std::abs(first_momentum) < tolerance)
