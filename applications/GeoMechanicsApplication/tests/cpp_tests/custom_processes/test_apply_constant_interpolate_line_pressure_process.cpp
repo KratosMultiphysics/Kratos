@@ -422,4 +422,190 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressure_NoBoundaryNodes, 
                                       "No boundary node is found");
 }
 
+KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressure_ExtrapolatesWhenNodeIsRightOfAllBoundaryNodes,
+                          KratosGeoMechanicsFastSuite)
+{
+    // Arrange: boundary nodes only at x=[0,5]; interior node at x=10 lies beyond the right edge.
+    // CalculateBoundaryPressure will take the "only-left" branch and call
+    // InterpolateBoundaryPressureWithOneContainer, which extrapolates the pressure.
+    //
+    // Hand-calculated expected pressure for interior node (x=10, y=5):
+    //   Top extrapolation  (from x=0,P=0 and x=5,P=50):  slope=10 → P_top = 10*(10-5)+50 = 100
+    //   Coord_top = y(node2) = 10
+    //   Bottom extrapolation (from x=0,P=100 and x=5,P=150): slope=10 → P_bot = 10*(10-5)+150 = 200
+    //   Coord_bot = 0
+    //   Final: slope_p = (100-200)/(10-0) = -10;  P = -10*(5-0)+200 = 150
+    Model      model;
+    ModelPart& r_model_part = model.CreateModelPart("Main");
+    r_model_part.AddNodalSolutionStepVariable(WATER_PRESSURE);
+
+    r_model_part.CreateNewNode(1, 0.0, 10.0, 0.0)->FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
+    r_model_part.CreateNewNode(2, 5.0, 10.0, 0.0)->FastGetSolutionStepValue(WATER_PRESSURE) = 50.0;
+    r_model_part.CreateNewNode(3, 0.0, 0.0, 0.0)->FastGetSolutionStepValue(WATER_PRESSURE)  = 100.0;
+    r_model_part.CreateNewNode(4, 5.0, 0.0, 0.0)->FastGetSolutionStepValue(WATER_PRESSURE)  = 150.0;
+
+    auto interior_node = r_model_part.CreateNewNode(5, 10.0, 5.0, 0.0);
+    interior_node->FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
+
+    auto p_props = r_model_part.CreateNewProperties(0);
+    r_model_part.CreateNewElement("Element2D2N", 1, std::vector<ModelPart::IndexType>{1, 2}, p_props);
+    r_model_part.CreateNewElement("Element2D2N", 2, std::vector<ModelPart::IndexType>{3, 4}, p_props);
+
+    const auto params = Parameters(R"({
+        "model_part_name": "Main",
+        "variable_name": "WATER_PRESSURE",
+        "gravity_direction": 1,
+        "out_of_plane_direction": 2,
+        "is_fixed": false,
+        "pressure_tension_cut_off": 1e9
+    })");
+
+    ApplyConstantInterpolateLinePressureProcess process(r_model_part, params);
+
+    // Act
+    process.ExecuteInitializeSolutionStep();
+
+    // Assert
+    KRATOS_EXPECT_NEAR(interior_node->FastGetSolutionStepValue(WATER_PRESSURE), 150.0, 1e-10);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressure_ExtrapolatesWhenNodeIsLeftOfAllBoundaryNodes,
+                          KratosGeoMechanicsFastSuite)
+{
+    // Arrange: boundary nodes only at x=[5,10]; interior node at x=0 lies beyond the left edge.
+    // CalculateBoundaryPressure will take the "only-right" branch and call
+    // InterpolateBoundaryPressureWithOneContainer, which extrapolates the pressure.
+    //
+    // Hand-calculated expected pressure for interior node (x=0, y=5):
+    //   Top extrapolation  (from x=5,P=50 and x=10,P=100): slope=10 → P_top = 10*(0-5)+50 = 0
+    //   Coord_top = 10
+    //   Bottom extrapolation (from x=5,P=150 and x=10,P=200): slope=10 → P_bot = 10*(0-5)+150 = 100
+    //   Coord_bot = 0
+    //   Final: slope_p = (0-100)/(10-0) = -10;  P = -10*(5-0)+100 = 50
+    Model      model;
+    ModelPart& r_model_part = model.CreateModelPart("Main");
+    r_model_part.AddNodalSolutionStepVariable(WATER_PRESSURE);
+
+    r_model_part.CreateNewNode(1, 5.0, 10.0, 0.0)->FastGetSolutionStepValue(WATER_PRESSURE) = 50.0;
+    r_model_part.CreateNewNode(2, 10.0, 10.0, 0.0)->FastGetSolutionStepValue(WATER_PRESSURE) = 100.0;
+    r_model_part.CreateNewNode(3, 5.0, 0.0, 0.0)->FastGetSolutionStepValue(WATER_PRESSURE)  = 150.0;
+    r_model_part.CreateNewNode(4, 10.0, 0.0, 0.0)->FastGetSolutionStepValue(WATER_PRESSURE) = 200.0;
+
+    auto interior_node = r_model_part.CreateNewNode(5, 0.0, 5.0, 0.0);
+    interior_node->FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
+
+    auto p_props = r_model_part.CreateNewProperties(0);
+    r_model_part.CreateNewElement("Element2D2N", 1, std::vector<ModelPart::IndexType>{1, 2}, p_props);
+    r_model_part.CreateNewElement("Element2D2N", 2, std::vector<ModelPart::IndexType>{3, 4}, p_props);
+
+    const auto params = Parameters(R"({
+        "model_part_name": "Main",
+        "variable_name": "WATER_PRESSURE",
+        "gravity_direction": 1,
+        "out_of_plane_direction": 2,
+        "is_fixed": false,
+        "pressure_tension_cut_off": 1e9
+    })");
+
+    ApplyConstantInterpolateLinePressureProcess process(r_model_part, params);
+
+    // Act
+    process.ExecuteInitializeSolutionStep();
+
+    // Assert
+    KRATOS_EXPECT_NEAR(interior_node->FastGetSolutionStepValue(WATER_PRESSURE), 50.0, 1e-10);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressure_NodeAtSameXAsBoundaryNode, KratosGeoMechanicsFastSuite)
+{
+    // Arrange: interior node shares the same x-coordinate as the leftmost boundary node.
+    // FindClosestNodeOnBoundaryNodes returns the same node for both the "left" and "right"
+    // candidate sets, so InterpolateBoundaryPressure takes its else-branch (horizontal
+    // distance == 0) and uses the boundary node's pressure directly.
+    //
+    // Hand-calculated expected pressure for interior node (x=0, y=5):
+    //   Top "left" and "right" both resolve to node1(x=0,P=0).
+    //     Else-branch → P_top=0, Coord_top=10.
+    //   Bottom "left" and "right" both resolve to node3(x=0,P=100).
+    //     Else-branch → P_bot=100, Coord_bot=0.
+    //   Final: slope_p = (0-100)/(10-0) = -10;  P = -10*(5-0)+100 = 50
+    Model      model;
+    ModelPart& r_model_part = model.CreateModelPart("Main");
+    r_model_part.AddNodalSolutionStepVariable(WATER_PRESSURE);
+
+    r_model_part.CreateNewNode(1, 0.0, 10.0, 0.0)->FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
+    r_model_part.CreateNewNode(2, 5.0, 10.0, 0.0)->FastGetSolutionStepValue(WATER_PRESSURE) = 50.0;
+    r_model_part.CreateNewNode(3, 0.0, 0.0, 0.0)->FastGetSolutionStepValue(WATER_PRESSURE)  = 100.0;
+    r_model_part.CreateNewNode(4, 5.0, 0.0, 0.0)->FastGetSolutionStepValue(WATER_PRESSURE)  = 150.0;
+
+    // Interior node at x=0: same horizontal coordinate as node1 and node3.
+    auto interior_node = r_model_part.CreateNewNode(5, 0.0, 5.0, 0.0);
+    interior_node->FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
+
+    auto p_props = r_model_part.CreateNewProperties(0);
+    r_model_part.CreateNewElement("Element2D2N", 1, std::vector<ModelPart::IndexType>{1, 2}, p_props);
+    r_model_part.CreateNewElement("Element2D2N", 2, std::vector<ModelPart::IndexType>{3, 4}, p_props);
+
+    const auto params = Parameters(R"({
+        "model_part_name": "Main",
+        "variable_name": "WATER_PRESSURE",
+        "gravity_direction": 1,
+        "out_of_plane_direction": 2,
+        "is_fixed": false,
+        "pressure_tension_cut_off": 1e9
+    })");
+
+    ApplyConstantInterpolateLinePressureProcess process(r_model_part, params);
+
+    // Act
+    process.ExecuteInitializeSolutionStep();
+
+    // Assert
+    KRATOS_EXPECT_NEAR(interior_node->FastGetSolutionStepValue(WATER_PRESSURE), 50.0, 1e-10);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressure_FlatBoundary_ReturnsBoundaryPressure,
+                          KratosGeoMechanicsFastSuite)
+{
+    // Arrange: all boundary nodes are on a single horizontal line (y=5).
+    // Both FindTopBoundaryNodes and FindBottomBoundaryNodes return the same set, so
+    // CoordinateTop == CoordinateBottom.  CalculatePressure takes its else-branch
+    // (|CoordinateTop - CoordinateBottom| <= TINY) and returns PressureBottom directly.
+    //
+    // Hand-calculated expected pressure for interior node (x=5, y=5):
+    //   Top and bottom both interpolate between node1(x=0,P=100) and node2(x=10,P=200):
+    //     slope=10, P=10*(5-0)+100=150, Coord=5.
+    //   Else-branch: P_bottom=150 is returned directly.
+    Model      model;
+    ModelPart& r_model_part = model.CreateModelPart("Main");
+    r_model_part.AddNodalSolutionStepVariable(WATER_PRESSURE);
+
+    r_model_part.CreateNewNode(1, 0.0, 5.0, 0.0)->FastGetSolutionStepValue(WATER_PRESSURE)  = 100.0;
+    r_model_part.CreateNewNode(2, 10.0, 5.0, 0.0)->FastGetSolutionStepValue(WATER_PRESSURE) = 200.0;
+
+    // Interior node on the same horizontal level as the boundary.
+    auto interior_node = r_model_part.CreateNewNode(3, 5.0, 5.0, 0.0);
+    interior_node->FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
+
+    auto p_props = r_model_part.CreateNewProperties(0);
+    r_model_part.CreateNewElement("Element2D2N", 1, std::vector<ModelPart::IndexType>{1, 2}, p_props);
+
+    const auto params = Parameters(R"({
+        "model_part_name": "Main",
+        "variable_name": "WATER_PRESSURE",
+        "gravity_direction": 1,
+        "out_of_plane_direction": 2,
+        "is_fixed": false,
+        "pressure_tension_cut_off": 1e9
+    })");
+
+    ApplyConstantInterpolateLinePressureProcess process(r_model_part, params);
+
+    // Act
+    process.ExecuteInitializeSolutionStep();
+
+    // Assert
+    KRATOS_EXPECT_NEAR(interior_node->FastGetSolutionStepValue(WATER_PRESSURE), 150.0, 1e-10);
+}
+
 } // namespace
