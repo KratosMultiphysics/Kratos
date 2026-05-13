@@ -59,7 +59,6 @@ void PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw::CalculateMaterialR
     const auto& r_options             = rParameters.GetOptions();
     auto&       r_material_properties = rParameters.GetMaterialProperties();
     auto&       r_strain_vector       = rParameters.GetStrainVector();
-    AddInitialStrainVectorContribution(r_strain_vector);
 
     const auto axial_strain = r_strain_vector[0]; // eps
     const auto curvature    = r_strain_vector[1]; // Kappa
@@ -86,12 +85,6 @@ void PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw::CalculateMaterialR
         r_generalized_stress_vector[0] = EA_nu * axial_strain; // Nx
         r_generalized_stress_vector[1] = moment;               // Mz
         r_generalized_stress_vector[2] = GAs * shear_strain;   // Vxy
-
-        AddInitialStressVectorContribution(r_generalized_stress_vector);
-
-        if (r_material_properties.Has(BEAM_PRESTRESS_PK2)) {
-            r_generalized_stress_vector += r_material_properties[BEAM_PRESTRESS_PK2];
-        }
 
         if (r_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
             auto& r_stress_derivatives = rParameters.GetConstitutiveMatrix();
@@ -138,13 +131,13 @@ int PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw::Check(const Propert
                                      CheckProperties::Bounds::AllExclusive);
 
     check_properties.CheckAvailabilityAndNotEmpty(KAPPA_PIECEWISE_LINEAR_LAW);
-    check_properties.CheckAvailabilityAndNotEmpty(MOMENTUM_PIECEWISE_LINEAR_LAW);
+    check_properties.CheckAvailabilityAndNotEmpty(MOMENT_PIECEWISE_LINEAR_LAW);
 
     const auto& r_kappa   = rMaterialProperties[KAPPA_PIECEWISE_LINEAR_LAW];
-    const auto& r_moments = rMaterialProperties[MOMENTUM_PIECEWISE_LINEAR_LAW];
+    const auto& r_moments = rMaterialProperties[MOMENT_PIECEWISE_LINEAR_LAW];
     KRATOS_ERROR_IF(r_kappa.size() != r_moments.size())
         << "The number of entries in KAPPA_PIECEWISE_LINEAR_LAW (" << r_kappa.size()
-        << ") does not match MOMENTUM_PIECEWISE_LINEAR_LAW (" << r_moments.size() << ")" << std::endl;
+        << ") does not match MOMENT_PIECEWISE_LINEAR_LAW (" << r_moments.size() << ")" << std::endl;
 
     // First provided point must be non-zero since (0,0) is implicitly added
     constexpr auto tolerance      = 1.0e-15;
@@ -156,7 +149,7 @@ int PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw::Check(const Propert
 
     CheckUtilities::CheckValuesAreAscending(r_kappa, "KAPPA_PIECEWISE_LINEAR_LAW");
     constexpr auto allow_equal = true;
-    CheckUtilities::CheckValuesAreAscending(r_moments, "MOMENTUM_PIECEWISE_LINEAR_LAW", allow_equal);
+    CheckUtilities::CheckValuesAreAscending(r_moments, "MOMENT_PIECEWISE_LINEAR_LAW", allow_equal);
 
     check_properties.Check(YOUNG_MODULUS);
     check_properties.Check(THICKNESS);
@@ -199,7 +192,7 @@ void PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw::InitializeMaterial
     mStressStrainTable.Clear();
 
     const auto& r_kappa   = rMaterialProperties[KAPPA_PIECEWISE_LINEAR_LAW];
-    const auto& r_moments = rMaterialProperties[MOMENTUM_PIECEWISE_LINEAR_LAW];
+    const auto& r_moments = rMaterialProperties[MOMENT_PIECEWISE_LINEAR_LAW];
     // include implicit origin (0,0) as the first table point
     mStressStrainTable.PushBack(0.0, 0.0);
     for (auto i = std::size_t{0}; i < r_kappa.size(); ++i) {

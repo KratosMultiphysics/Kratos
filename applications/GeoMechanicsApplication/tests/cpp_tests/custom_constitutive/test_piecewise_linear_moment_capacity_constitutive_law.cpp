@@ -28,7 +28,7 @@ Properties CreateValidProperties()
 {
     auto properties = Properties{};
     properties.SetValue(KAPPA_PIECEWISE_LINEAR_LAW, UblasUtilities::CreateVector({0.01, 0.03, 0.05}));
-    properties.SetValue(MOMENTUM_PIECEWISE_LINEAR_LAW, UblasUtilities::CreateVector({80.0, 80.0, 128.0}));
+    properties.SetValue(MOMENT_PIECEWISE_LINEAR_LAW, UblasUtilities::CreateVector({80.0, 80.0, 128.0}));
     properties.SetValue(YOUNG_MODULUS, 80.0);
     properties.SetValue(POISSON_RATIO, 0.2);
     properties.SetValue(THICKNESS, 1.0);
@@ -116,7 +116,7 @@ KRATOS_TEST_CASE_IN_SUITE(PiecewiseLinearMomentCapacityConstitutiveLaw_CheckOfMo
     // Act & Assert
     KRATOS_EXPECT_EXCEPTION_IS_THROWN((void)law.Check(properties, geometry, process_info),
                                       "The number of entries in KAPPA_PIECEWISE_LINEAR_LAW (2) "
-                                      "does not match MOMENTUM_PIECEWISE_LINEAR_LAW (3)")
+                                      "does not match MOMENT_PIECEWISE_LINEAR_LAW (3)")
 }
 
 KRATOS_TEST_CASE_IN_SUITE(PiecewiseLinearMomentCapacityConstitutiveLaw_CheckThrowsWhenYoungModulusIsMissing,
@@ -313,43 +313,6 @@ KRATOS_TEST_CASE_IN_SUITE(PiecewiseLinearMomentCapacityConstitutiveLaw_ComputeCo
     KRATOS_EXPECT_MATRIX_NEAR(r_constitutive_matrix, expected_constitutive_matrix, Defaults::absolute_tolerance);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(PiecewiseLinearMomentCapacityConstitutiveLaw_BeamPrestressIsAddedToStressVector,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    // Arrange
-    auto       law        = PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw{};
-    auto       properties = CreateValidProperties();
-    const auto geometry   = Geometry<Node>{};
-    Vector     dummy_vector;
-    law.InitializeMaterial(properties, geometry, dummy_vector);
-
-    const auto prestress = UblasUtilities::CreateVector({1.5, -2.0, 0.75});
-    properties.SetValue(BEAM_PRESTRESS_PK2, prestress);
-
-    auto parameters    = ConstitutiveLaw::Parameters{};
-    auto strain_vector = UblasUtilities::CreateVector({0.01, 0.02, 0.03});
-    auto stress_vector = Vector(3, 0.0);
-    parameters.SetStrainVector(strain_vector);
-    parameters.SetStressVector(stress_vector);
-    parameters.SetMaterialProperties(properties);
-    parameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
-
-    // Act
-    law.CalculateMaterialResponseCauchy(parameters);
-
-    // Assert
-    const auto  E                      = properties[YOUNG_MODULUS];
-    const auto  A                      = properties[THICKNESS];
-    const auto  nu                     = properties[POISSON_RATIO];
-    const auto  G                      = E / (2.0 * (1.0 + nu));
-    const auto  EA                     = E * A / (1.0 - nu * nu);
-    const auto  GAs                    = G * properties[THICKNESS_EFFECTIVE_Y];
-    const auto& r_stress_vector        = parameters.GetStressVector();
-    const auto  expected_stress_vector = UblasUtilities::CreateVector(
-        {EA * strain_vector[0] + prestress[0], 80.0 + prestress[1], GAs * strain_vector[2] + prestress[2]});
-    KRATOS_EXPECT_VECTOR_NEAR(r_stress_vector, expected_stress_vector, Defaults::absolute_tolerance);
-}
-
 KRATOS_TEST_CASE_IN_SUITE(PiecewiseLinearMomentCapacityConstitutiveLaw_SaveLoadPreservesInternalState,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
@@ -479,7 +442,7 @@ KRATOS_TEST_CASE_IN_SUITE(PiecewiseLinearMomentCapacityConstitutiveLaw_SequenceL
     auto properties = CreateValidProperties();
     properties.SetValue(UNRELOAD_MODULUS, 8000.0);
     properties.SetValue(KAPPA_PIECEWISE_LINEAR_LAW, UblasUtilities::CreateVector({0.01, 0.03, 0.05}));
-    properties.SetValue(MOMENTUM_PIECEWISE_LINEAR_LAW, UblasUtilities::CreateVector({80.0, 100.0, 128.0}));
+    properties.SetValue(MOMENT_PIECEWISE_LINEAR_LAW, UblasUtilities::CreateVector({80.0, 100.0, 128.0}));
 
     const auto geometry = Geometry<Node>{};
     Vector     dummy_vector;

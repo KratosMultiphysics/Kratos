@@ -17,11 +17,10 @@ The tests use `MaterialParameters.json` in this folder. Current baseline values 
 
 - `YOUNG_MODULUS`: 200.0
 - `POISSON_RATIO`: 0.3
-- `BEAM_PRESTRESS_PK2`: [0.0, 0.0, 0.0]
 - `THICKNESS`: 0.1
 - `THICKNESS_EFFECTIVE_Y`: 0.1
 - `KAPPA_PIECEWISE_LINEAR_LAW`: [5.0e-03, 1.0e-02, 2.0e-02, 5.0e-02, 0.1]
-- `MOMENTUM_PIECEWISE_LINEAR_LAW`: [0.1, 0.25, 0.5, 0.8, 1.1]
+- `MOMENT_PIECEWISE_LINEAR_LAW`: [0.1, 0.25, 0.5, 0.8, 1.1]
 
 Note: `UNRELOAD_MODULUS` is not in the baseline material file; it is injected only in the dedicated unload/reload test.
 
