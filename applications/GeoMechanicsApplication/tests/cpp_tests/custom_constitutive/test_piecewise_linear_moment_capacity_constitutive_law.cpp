@@ -183,6 +183,21 @@ KRATOS_TEST_CASE_IN_SUITE(PiecewiseLinearMomentCapacityConstitutiveLaw_CheckThro
                                       "invalid value: 0.5 is out of the range (-1, 0.5).")
 }
 
+KRATOS_TEST_CASE_IN_SUITE(PiecewiseLinearMomentCapacityConstitutiveLaw_CheckThrowsWhenDerivativeExceedsElasticEI,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    const auto law          = PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw{};
+    auto       properties   = CreateValidProperties();
+    const auto geometry     = Geometry<Node>{};
+    const auto process_info = ProcessInfo{};
+
+    // Act & Assert
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        (void)law.Check(properties, geometry, process_info),
+        "Derivative dM/dKappa must be smaller than elastic EI. Segment 2")
+}
+
 KRATOS_TEST_CASE_IN_SUITE(PiecewiseLinearMomentCapacityConstitutiveLaw_CheckThrowsWhenUnreloadModulusIsZero,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
