@@ -254,7 +254,7 @@ void TransientPwElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const Var
         if (rOutput.size() != mRetentionLawVector.size())
             rOutput.resize(mRetentionLawVector.size());
 
-        std::fill(rOutput.begin(), rOutput.end(), 0.0);
+        std::ranges::fill(rOutput, 0.0);
     }
 
     KRATOS_CATCH("")
@@ -334,8 +334,6 @@ void TransientPwElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLeftH
     // Element variables
     ElementVariables Variables;
     this->InitializeElementVariables(Variables, rCurrentProcessInfo);
-
-    RetentionLaw::Parameters RetentionParameters(this->GetProperties());
 
     const auto fluid_pressures = GeoTransportEquationUtilities::CalculateFluidPressures(
         Variables.NContainer, Variables.PressureVector);
