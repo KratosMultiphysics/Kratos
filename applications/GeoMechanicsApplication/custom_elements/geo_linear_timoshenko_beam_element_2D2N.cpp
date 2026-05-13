@@ -7,7 +7,7 @@
 //
 //  License:         geo_mechanics_application/license.txt
 //
-//  Main authors:    Wijtze Pieter Kikstra
+//  Main authors:    AI Agent
 //
 
 // Project includes

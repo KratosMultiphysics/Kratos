@@ -5,7 +5,7 @@
             "properties_id": 1,
             "Material": {
                 "constitutive_law": {
-                    "name": "KratosMultiphysics.GeoMechanicsApplication.PiecewiseLinearMomentCapacityConstitutiveLaw"
+                    "name": "KratosMultiphysics.GeoMechanicsApplication.PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw"
                 },
                 "Variables": {
                     "YOUNG_MODULUS": 200.0,

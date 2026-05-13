@@ -24,25 +24,29 @@ namespace Kratos
 {
 
 /**
- * @class PiecewiseLinearMomentCapacityConstitutiveLaw
- * @brief 1D moment-curvature law.
+ * @class PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw
+ * @brief 1D moment-curvature law (plane-strain specific)
  */
-class KRATOS_API(GEO_MECHANICS_APPLICATION) PiecewiseLinearMomentCapacityConstitutiveLaw : public ConstitutiveLaw
+class KRATOS_API(GEO_MECHANICS_APPLICATION) PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw : public ConstitutiveLaw
 {
 public:
     using BaseType = ConstitutiveLaw;
 
-    KRATOS_CLASS_POINTER_DEFINITION(PiecewiseLinearMomentCapacityConstitutiveLaw);
+    KRATOS_CLASS_POINTER_DEFINITION(PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw);
 
     // Geometry constants
     static constexpr SizeType strain_size      = 3;
     static constexpr SizeType space_dimenstion = 3;
 
-    PiecewiseLinearMomentCapacityConstitutiveLaw() = default;
-    PiecewiseLinearMomentCapacityConstitutiveLaw(const PiecewiseLinearMomentCapacityConstitutiveLaw&) = default;
-    PiecewiseLinearMomentCapacityConstitutiveLaw& operator=(const PiecewiseLinearMomentCapacityConstitutiveLaw&) = default;
-    PiecewiseLinearMomentCapacityConstitutiveLaw(PiecewiseLinearMomentCapacityConstitutiveLaw&&) noexcept = default;
-    PiecewiseLinearMomentCapacityConstitutiveLaw& operator=(PiecewiseLinearMomentCapacityConstitutiveLaw&&) noexcept = default;
+    PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw() = default;
+    PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw(
+        const PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw&) = default;
+    PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw& operator=(
+        const PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw&) = default;
+    PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw(
+        PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw&&) noexcept = default;
+    PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw& operator=(
+        PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw&&) noexcept = default;
 
     [[nodiscard]] ConstitutiveLaw::Pointer Clone() const override;
 

@@ -10,7 +10,7 @@
 //  Main authors:    Gennady Markelov
 //
 
-#include "custom_constitutive/piecewise_linear_moment_capacity_constitutive_law.h"
+#include "custom_constitutive/piecewise_linear_moment_capacity_plane_strain_constitutive_law.h"
 #include "custom_utilities/check_utilities.hpp"
 #include "custom_utilities/registration_utilities.hpp"
 #include "custom_utilities/ublas_utilities.h"
@@ -36,9 +36,9 @@ Properties CreateValidProperties()
     return properties;
 }
 
-double CalculateMomentForCurvature(PiecewiseLinearMomentCapacityConstitutiveLaw& rLaw,
-                                   const Properties&                             rProperties,
-                                   double                                        Curvature)
+double CalculateMomentForCurvature(PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw& rLaw,
+                                   const Properties& rProperties,
+                                   double            Curvature)
 {
     auto parameters = ConstitutiveLaw::Parameters{};
     // Curvature is expected at index 1 in the constitutive law's strain vector
@@ -60,9 +60,9 @@ double CalculateMomentForCurvature(PiecewiseLinearMomentCapacityConstitutiveLaw&
     return parameters.GetStressVector()[1];
 }
 
-double CalculateTangentForCurvature(PiecewiseLinearMomentCapacityConstitutiveLaw& rLaw,
-                                    const Properties&                             rProperties,
-                                    double                                        Curvature)
+double CalculateTangentForCurvature(PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw& rLaw,
+                                    const Properties& rProperties,
+                                    double            Curvature)
 {
     auto parameters = ConstitutiveLaw::Parameters{};
     // Curvature is expected at index 1 in the constitutive law's strain vector
@@ -75,7 +75,9 @@ double CalculateTangentForCurvature(PiecewiseLinearMomentCapacityConstitutiveLaw
     return tangent;
 }
 
-void FinalizeForCurvature(PiecewiseLinearMomentCapacityConstitutiveLaw& rLaw, const Properties& rProperties, double Curvature)
+void FinalizeForCurvature(PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw& rLaw,
+                          const Properties&                                        rProperties,
+                          double                                                   Curvature)
 {
     auto parameters = ConstitutiveLaw::Parameters{};
     // Curvature is expected at index 1 in the constitutive law's strain vector
@@ -104,7 +106,7 @@ KRATOS_TEST_CASE_IN_SUITE(PiecewiseLinearMomentCapacityConstitutiveLaw_CheckOfMo
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    const auto law          = PiecewiseLinearMomentCapacityConstitutiveLaw{};
+    const auto law          = PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw{};
     auto       properties   = CreateValidProperties();
     const auto geometry     = Geometry<Node>{};
     const auto process_info = ProcessInfo{};
@@ -121,7 +123,7 @@ KRATOS_TEST_CASE_IN_SUITE(PiecewiseLinearMomentCapacityConstitutiveLaw_CheckThro
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    const auto law          = PiecewiseLinearMomentCapacityConstitutiveLaw{};
+    const auto law          = PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw{};
     auto       properties   = CreateValidProperties();
     const auto geometry     = Geometry<Node>{};
     const auto process_info = ProcessInfo{};
@@ -137,7 +139,7 @@ KRATOS_TEST_CASE_IN_SUITE(PiecewiseLinearMomentCapacityConstitutiveLaw_CheckThro
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    const auto law          = PiecewiseLinearMomentCapacityConstitutiveLaw{};
+    const auto law          = PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw{};
     auto       properties   = CreateValidProperties();
     const auto geometry     = Geometry<Node>{};
     const auto process_info = ProcessInfo{};
@@ -153,7 +155,7 @@ KRATOS_TEST_CASE_IN_SUITE(PiecewiseLinearMomentCapacityConstitutiveLaw_CheckThro
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    const auto law          = PiecewiseLinearMomentCapacityConstitutiveLaw{};
+    const auto law          = PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw{};
     auto       properties   = CreateValidProperties();
     const auto geometry     = Geometry<Node>{};
     const auto process_info = ProcessInfo{};
@@ -169,7 +171,7 @@ KRATOS_TEST_CASE_IN_SUITE(PiecewiseLinearMomentCapacityConstitutiveLaw_CheckThro
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    const auto law          = PiecewiseLinearMomentCapacityConstitutiveLaw{};
+    const auto law          = PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw{};
     auto       properties   = CreateValidProperties();
     const auto geometry     = Geometry<Node>{};
     const auto process_info = ProcessInfo{};
@@ -185,7 +187,7 @@ KRATOS_TEST_CASE_IN_SUITE(PiecewiseLinearMomentCapacityConstitutiveLaw_CheckThro
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    const auto law          = PiecewiseLinearMomentCapacityConstitutiveLaw{};
+    const auto law          = PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw{};
     auto       properties   = CreateValidProperties();
     const auto geometry     = Geometry<Node>{};
     const auto process_info = ProcessInfo{};
@@ -201,7 +203,7 @@ KRATOS_TEST_CASE_IN_SUITE(PiecewiseLinearMomentCapacityConstitutiveLaw_CheckPass
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    const auto law          = PiecewiseLinearMomentCapacityConstitutiveLaw{};
+    const auto law          = PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw{};
     const auto properties   = CreateValidProperties();
     const auto geometry     = Geometry<Node>{};
     const auto process_info = ProcessInfo{};
@@ -214,7 +216,7 @@ KRATOS_TEST_CASE_IN_SUITE(PiecewiseLinearMomentCapacityConstitutiveLaw_RequiresF
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    auto law = PiecewiseLinearMomentCapacityConstitutiveLaw{};
+    auto law = PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw{};
 
     // Act
     const auto requires_finalize = law.RequiresFinalizeMaterialResponse();
@@ -226,14 +228,15 @@ KRATOS_TEST_CASE_IN_SUITE(PiecewiseLinearMomentCapacityConstitutiveLaw_CloneCrea
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    const auto law = PiecewiseLinearMomentCapacityConstitutiveLaw{};
+    const auto law = PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw{};
 
     // Act
     const auto p_clone = law.Clone();
 
     // Assert
     KRATOS_EXPECT_NE(p_clone.get(), nullptr);
-    KRATOS_EXPECT_TRUE(dynamic_cast<PiecewiseLinearMomentCapacityConstitutiveLaw*>(p_clone.get()) != nullptr)
+    KRATOS_EXPECT_TRUE(
+        dynamic_cast<PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw*>(p_clone.get()) != nullptr)
     KRATOS_EXPECT_EQ(p_clone->Info(), law.Info());
 }
 
@@ -241,20 +244,20 @@ KRATOS_TEST_CASE_IN_SUITE(PiecewiseLinearMomentCapacityConstitutiveLaw_InfoRetur
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    const auto law = PiecewiseLinearMomentCapacityConstitutiveLaw{};
+    const auto law = PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw{};
 
     // Act
     const auto info = law.Info();
 
     // Assert
-    KRATOS_EXPECT_EQ(info, "PiecewiseLinearMomentCapacityConstitutiveLaw");
+    KRATOS_EXPECT_EQ(info, "PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw");
 }
 
 KRATOS_TEST_CASE_IN_SUITE(PiecewiseLinearMomentCapacityConstitutiveLaw_GetLawFeaturesReturnsExpectedDimensions,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    auto law      = PiecewiseLinearMomentCapacityConstitutiveLaw{};
+    auto law      = PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw{};
     auto features = ConstitutiveLaw::Features{};
 
     // Act
@@ -262,14 +265,15 @@ KRATOS_TEST_CASE_IN_SUITE(PiecewiseLinearMomentCapacityConstitutiveLaw_GetLawFea
 
     // Assert
     KRATOS_EXPECT_EQ(features.mStrainSize, law.GetStrainSize());
-    KRATOS_EXPECT_EQ(features.mSpaceDimension, PiecewiseLinearMomentCapacityConstitutiveLaw::space_dimenstion);
+    KRATOS_EXPECT_EQ(features.mSpaceDimension,
+                     PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw::space_dimenstion);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(PiecewiseLinearMomentCapacityConstitutiveLaw_ComputeConstitutiveTensorReturnsExpectedDiagonal,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    auto       law        = PiecewiseLinearMomentCapacityConstitutiveLaw{};
+    auto       law        = PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw{};
     const auto properties = CreateValidProperties();
     const auto geometry   = Geometry<Node>{};
     Vector     dummy_vector;
@@ -313,7 +317,7 @@ KRATOS_TEST_CASE_IN_SUITE(PiecewiseLinearMomentCapacityConstitutiveLaw_BeamPrest
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    auto       law        = PiecewiseLinearMomentCapacityConstitutiveLaw{};
+    auto       law        = PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw{};
     auto       properties = CreateValidProperties();
     const auto geometry   = Geometry<Node>{};
     Vector     dummy_vector;
@@ -350,7 +354,7 @@ KRATOS_TEST_CASE_IN_SUITE(PiecewiseLinearMomentCapacityConstitutiveLaw_SaveLoadP
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    auto law        = PiecewiseLinearMomentCapacityConstitutiveLaw{};
+    auto law        = PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw{};
     auto properties = CreateValidProperties();
     properties.SetValue(UNRELOAD_MODULUS, 1000.0);
     const auto geometry = Geometry<Node>{};
@@ -362,12 +366,13 @@ KRATOS_TEST_CASE_IN_SUITE(PiecewiseLinearMomentCapacityConstitutiveLaw_SaveLoadP
     const auto moment_before_serialize = CalculateMomentForCurvature(law, properties, check_curvature);
     const auto tangent_before_serialize = CalculateTangentForCurvature(law, properties, check_curvature);
 
-    const auto scoped_registration = ScopedSerializerRegistration{std::make_pair(
-        "PiecewiseLinearMomentCapacityConstitutiveLaw", PiecewiseLinearMomentCapacityConstitutiveLaw{})};
-    auto       serializer          = StreamSerializer{};
+    const auto scoped_registration = ScopedSerializerRegistration{
+        std::make_pair("PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw",
+                       PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw{})};
+    auto serializer = StreamSerializer{};
 
     auto p_law = std::unique_ptr<ConstitutiveLaw>{
-        std::make_unique<PiecewiseLinearMomentCapacityConstitutiveLaw>(law)};
+        std::make_unique<PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw>(law)};
 
     // Act
     serializer.save("test_tag", p_law);
@@ -377,7 +382,7 @@ KRATOS_TEST_CASE_IN_SUITE(PiecewiseLinearMomentCapacityConstitutiveLaw_SaveLoadP
     // Assert
     KRATOS_EXPECT_NE(p_loaded_law.get(), nullptr);
     auto p_loaded_piecewise =
-        dynamic_cast<PiecewiseLinearMomentCapacityConstitutiveLaw*>(p_loaded_law.get());
+        dynamic_cast<PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw*>(p_loaded_law.get());
     KRATOS_EXPECT_NE(p_loaded_piecewise, nullptr);
 
     const auto moment_after_serialize =
@@ -393,7 +398,7 @@ KRATOS_TEST_CASE_IN_SUITE(PiecewiseLinearMomentCapacityConstitutiveLaw_MomentCap
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    auto       law        = PiecewiseLinearMomentCapacityConstitutiveLaw{};
+    auto       law        = PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw{};
     const auto properties = CreateValidProperties();
 
     const auto geometry = Geometry<Node>{};
@@ -415,7 +420,7 @@ KRATOS_TEST_CASE_IN_SUITE(PiecewiseLinearMomentCapacityConstitutiveLaw_MomentCap
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    auto       law        = PiecewiseLinearMomentCapacityConstitutiveLaw{};
+    auto       law        = PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw{};
     const auto properties = CreateValidProperties();
 
     const auto geometry = Geometry<Node>{};
@@ -437,7 +442,7 @@ KRATOS_TEST_CASE_IN_SUITE(PiecewiseLinearMomentCapacityConstitutiveLaw_UnloadRel
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    auto law        = PiecewiseLinearMomentCapacityConstitutiveLaw{};
+    auto law        = PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw{};
     auto properties = CreateValidProperties();
     properties.SetValue(UNRELOAD_MODULUS, 1000.0);
 
@@ -470,7 +475,7 @@ KRATOS_TEST_CASE_IN_SUITE(PiecewiseLinearMomentCapacityConstitutiveLaw_SequenceL
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    auto law        = PiecewiseLinearMomentCapacityConstitutiveLaw{};
+    auto law        = PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw{};
     auto properties = CreateValidProperties();
     properties.SetValue(UNRELOAD_MODULUS, 8000.0);
     properties.SetValue(KAPPA_PIECEWISE_LINEAR_LAW, UblasUtilities::CreateVector({0.01, 0.03, 0.05}));

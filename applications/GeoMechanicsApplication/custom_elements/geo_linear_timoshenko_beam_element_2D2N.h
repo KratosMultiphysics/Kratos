@@ -7,7 +7,7 @@
 //
 //  License:         geo_mechanics_application/license.txt
 //
-//  Main authors:    Wijtze Pieter Kikstra
+//  Main authors:    AI Agent
 //
 
 #pragma once
@@ -23,7 +23,7 @@ namespace Kratos
  *
  * This subclass overrides FinalizeSolutionStep to call
  * FinalizeMaterialResponsePK2 on each integration point's constitutive law,
- * enabling state-dependent laws (such as PiecewiseLinearMomentCapacityConstitutiveLaw)
+ * enabling state-dependent laws (such as PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw)
  * to commit their internal state at the end of each converged time step.
  */
 class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoLinearTimoshenkoBeamElement2D2N : public LinearTimoshenkoBeamElement2D2N

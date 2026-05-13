@@ -11,7 +11,7 @@
 //  Main authors:    Gennady Markelov
 
 // Project includes
-#include "piecewise_linear_moment_capacity_constitutive_law.h"
+#include "piecewise_linear_moment_capacity_plane_strain_constitutive_law.h"
 #include "custom_utilities/check_utilities.hpp"
 #include "geo_mechanics_application_variables.h"
 #include "includes/properties.h"
@@ -20,25 +20,24 @@ namespace Kratos
 {
 using namespace std::string_literals;
 
-ConstitutiveLaw::Pointer PiecewiseLinearMomentCapacityConstitutiveLaw::Clone() const
+ConstitutiveLaw::Pointer PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw::Clone() const
 {
-    return make_shared<PiecewiseLinearMomentCapacityConstitutiveLaw>(*this);
+    return make_shared<PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw>(*this);
 }
 
-void PiecewiseLinearMomentCapacityConstitutiveLaw::GetLawFeatures(Features& rFeatures)
+void PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw::GetLawFeatures(Features& rFeatures)
 {
     rFeatures.mStrainSize     = strain_size;
     rFeatures.mSpaceDimension = space_dimenstion;
 }
 
-bool PiecewiseLinearMomentCapacityConstitutiveLaw::RequiresFinalizeMaterialResponse()
+bool PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw::RequiresFinalizeMaterialResponse()
 {
     return true;
 }
 
-double& PiecewiseLinearMomentCapacityConstitutiveLaw::CalculateValue(ConstitutiveLaw::Parameters& rParameters,
-                                                                     const Variable<double>& rVariable,
-                                                                     double& rValue)
+double& PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw::CalculateValue(
+    ConstitutiveLaw::Parameters& rParameters, const Variable<double>& rVariable, double& rValue)
 {
     if (rVariable == TANGENT_MODULUS) {
         const auto curvature                 = rParameters.GetStrainVector()[1];
@@ -50,19 +49,19 @@ double& PiecewiseLinearMomentCapacityConstitutiveLaw::CalculateValue(Constitutiv
     return BaseType::CalculateValue(rParameters, rVariable, rValue);
 }
 
-void PiecewiseLinearMomentCapacityConstitutiveLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rParameters)
+void PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rParameters)
 {
     CalculateMaterialResponseCauchy(rParameters);
 }
 
-void PiecewiseLinearMomentCapacityConstitutiveLaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rParameters)
+void PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rParameters)
 {
     const auto& r_options             = rParameters.GetOptions();
     auto&       r_material_properties = rParameters.GetMaterialProperties();
     auto&       r_strain_vector       = rParameters.GetStrainVector();
     AddInitialStrainVectorContribution(r_strain_vector);
 
-    const auto axial_strain = r_strain_vector[0]; // E_l
+    const auto axial_strain = r_strain_vector[0]; // eps
     const auto curvature    = r_strain_vector[1]; // Kappa
     const auto shear_strain = r_strain_vector[2]; // Gamma_xy
 
@@ -107,7 +106,7 @@ void PiecewiseLinearMomentCapacityConstitutiveLaw::CalculateMaterialResponseCauc
     }
 }
 
-void PiecewiseLinearMomentCapacityConstitutiveLaw::FinalizeMaterialResponsePK2(Parameters& rParameters)
+void PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw::FinalizeMaterialResponsePK2(Parameters& rParameters)
 {
     // compute stress first
     CalculateMaterialResponsePK2(rParameters);
@@ -122,11 +121,14 @@ void PiecewiseLinearMomentCapacityConstitutiveLaw::FinalizeMaterialResponsePK2(P
     }
 }
 
-SizeType PiecewiseLinearMomentCapacityConstitutiveLaw::GetStrainSize() const { return strain_size; }
+SizeType PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw::GetStrainSize() const
+{
+    return strain_size;
+}
 
-int PiecewiseLinearMomentCapacityConstitutiveLaw::Check(const Properties&   rMaterialProperties,
-                                                        const GeometryType& rElementGeometry,
-                                                        const ProcessInfo& rCurrentProcessInfo) const
+int PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw::Check(const Properties& rMaterialProperties,
+                                                                   const GeometryType& rElementGeometry,
+                                                                   const ProcessInfo& rCurrentProcessInfo) const
 {
     if (const auto exit_code = BaseType::Check(rMaterialProperties, rElementGeometry, rCurrentProcessInfo);
         exit_code != 0)
@@ -166,12 +168,12 @@ int PiecewiseLinearMomentCapacityConstitutiveLaw::Check(const Properties&   rMat
     return 0;
 }
 
-std::string PiecewiseLinearMomentCapacityConstitutiveLaw::Info() const
+std::string PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw::Info() const
 {
-    return "PiecewiseLinearMomentCapacityConstitutiveLaw"s;
+    return "PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw"s;
 }
 
-void PiecewiseLinearMomentCapacityConstitutiveLaw::save(Serializer& rSerializer) const
+void PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType)
     rSerializer.save("StressStrainTable", mStressStrainTable);
@@ -180,7 +182,7 @@ void PiecewiseLinearMomentCapacityConstitutiveLaw::save(Serializer& rSerializer)
     rSerializer.save("UnReloadModulus", mUnReLoadModulus);
 }
 
-void PiecewiseLinearMomentCapacityConstitutiveLaw::load(Serializer& rSerializer)
+void PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType)
     rSerializer.load("StressStrainTable", mStressStrainTable);
@@ -189,9 +191,8 @@ void PiecewiseLinearMomentCapacityConstitutiveLaw::load(Serializer& rSerializer)
     rSerializer.load("UnReloadModulus", mUnReLoadModulus);
 }
 
-void PiecewiseLinearMomentCapacityConstitutiveLaw::InitializeMaterial(const Properties& rMaterialProperties,
-                                                                      const ConstitutiveLaw::GeometryType& rElementGeometry,
-                                                                      const Vector& rShapeFunctionsValues)
+void PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw::InitializeMaterial(
+    const Properties& rMaterialProperties, const ConstitutiveLaw::GeometryType& rElementGeometry, const Vector& rShapeFunctionsValues)
 {
     BaseType::InitializeMaterial(rMaterialProperties, rElementGeometry, rShapeFunctionsValues);
 
@@ -222,7 +223,7 @@ void PiecewiseLinearMomentCapacityConstitutiveLaw::InitializeMaterial(const Prop
     }
 }
 
-std::pair<double, double> PiecewiseLinearMomentCapacityConstitutiveLaw::CalculateMomentAndTangentModulus(double curvature) const
+std::pair<double, double> PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw::CalculateMomentAndTangentModulus(double curvature) const
 {
     double moment          = 0.0;
     double tangent_modulus = 0.0;
@@ -247,22 +248,22 @@ std::pair<double, double> PiecewiseLinearMomentCapacityConstitutiveLaw::Calculat
     return {moment, tangent_modulus};
 }
 
-double PiecewiseLinearMomentCapacityConstitutiveLaw::CalculateUnReLoadAmplitude() const
+double PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw::CalculateUnReLoadAmplitude() const
 {
     return BackboneMoment(mAccumulatedCurvature) / mUnReLoadModulus;
 }
 
-bool PiecewiseLinearMomentCapacityConstitutiveLaw::IsWithinUnReLoading(double Curvature) const
+bool PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw::IsWithinUnReLoading(double Curvature) const
 {
     return std::abs(Curvature - mUnReLoadCenter) < CalculateUnReLoadAmplitude();
 }
 
-double PiecewiseLinearMomentCapacityConstitutiveLaw::BackboneMoment(double curvature) const
+double PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw::BackboneMoment(double curvature) const
 {
     return mStressStrainTable.GetValue(std::abs(curvature));
 }
 
-double PiecewiseLinearMomentCapacityConstitutiveLaw::BackboneTangentModulus(double curvature) const
+double PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw::BackboneTangentModulus(double curvature) const
 {
     return mStressStrainTable.GetDerivative(std::abs(curvature));
 }

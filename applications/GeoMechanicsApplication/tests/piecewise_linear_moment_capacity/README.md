@@ -1,6 +1,6 @@
 # Piecewise Linear Moment Capacity
 
-This test setup verifies `PiecewiseLinearMomentCapacityConstitutiveLaw` coupled with
+This test setup verifies `PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw` coupled with
 `GeoLinearTimoshenkoBeamElement2D2N`.
 
 ## Setup

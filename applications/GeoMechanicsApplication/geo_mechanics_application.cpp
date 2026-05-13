@@ -352,8 +352,8 @@ void KratosGeoMechanicsApplication::Register()
     KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElastic3DInterfaceLaw", mLinearElastic3DInterfaceLaw)
 
     KRATOS_REGISTER_CONSTITUTIVE_LAW("TrussBackboneConstitutiveLaw", mTrussBackboneConstitutiveLaw)
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("PiecewiseLinearMomentCapacityConstitutiveLaw",
-                                     mPiecewiseLinearMomentCapacityConstitutiveLaw)
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw",
+                                     mPiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw)
 
     KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoIncrementalLinearElasticInterfaceLaw", mIncrementalLinearElasticInterfaceLaw)
     KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoIncrementalLinearElasticInterface3DSurfaceLaw",
