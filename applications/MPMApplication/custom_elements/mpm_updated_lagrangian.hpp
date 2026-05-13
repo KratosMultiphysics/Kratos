@@ -11,8 +11,7 @@
 //
 
 
-#if !defined(KRATOS_UPDATED_LAGRANGIAN_H_INCLUDED )
-#define  KRATOS_UPDATED_LAGRANGIAN_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -73,15 +72,6 @@ public:
     ///@}
 
 protected:
-
-    /**
-     * Flags related to the element computation
-     */
-
-    KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_RHS_VECTOR );
-    KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_LHS_MATRIX );
-    KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_RHS_VECTOR_WITH_COMPONENTS );
-    KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_LHS_MATRIX_WITH_COMPONENTS );
 
     struct MaterialPointVariables
     {
@@ -319,11 +309,6 @@ public:
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
-     * Called at the beginning of each solution step
-     */
-    void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
      * This is a first and temporary attempt to move Particle to Grid Mapping from InitializeSolutionStep.
      * This will be moved to an utility in the future, after restructuring of MPM's internal variables data structure.
      * this is called at predict before doing the actual predict
@@ -506,12 +491,6 @@ protected:
      * Container for constitutive law instances on each integration point
      */
     ConstitutiveLaw::Pointer mConstitutiveLawVector;
-
-
-    /**
-     * Finalize and Initialize label
-     */
-    bool mFinalizedStep;
 
     ///@}
     ///@name Protected Operators
@@ -763,4 +742,3 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_UPDATED_LAGRANGIAN_H_INCLUDED  defined
