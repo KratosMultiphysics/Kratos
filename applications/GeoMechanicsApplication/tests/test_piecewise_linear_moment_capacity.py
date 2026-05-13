@@ -24,10 +24,10 @@ def run_piecewise_case(project_subpath, times, expected_moments, expected_displa
                 materials_data = json.load(f)
             materials_backup = json.dumps(materials_data)
             
-            # Add GEO_UNRELOAD_MODULUS to all properties
+            # Add GEO_UNLOADING_RELOADING_MODULUS to all properties
             for prop in materials_data.get("properties", []):
                 variables = prop["Material"]["Variables"]
-                variables["GEO_UNRELOAD_MODULUS"] = unreload_modulus
+                variables["GEO_UNLOADING_RELOADING_MODULUS"] = unreload_modulus
             
             # Write modified materials back to file
             with open(materials_file, 'w') as f:
@@ -85,7 +85,7 @@ class KratosGeoMechanicsPiecewiseLinearMomentCapacityTests(KratosUnittest.TestCa
     def test_piecewise_linear_moment_capacity_with_unreload(self):
         """
         Tests elastic unload/reload behavior during cyclic loading.
-        Uses same case files as backbone test but adds GEO_UNRELOAD_MODULUS in-flight.
+        Uses same case files as backbone test but adds GEO_UNLOADING_RELOADING_MODULUS in-flight.
         """
         times = [0.05, 0.1, 0.15, 0.2, 0.25, 0.30, 0.35, 0.5]
         expected_moments_y = [0.39487, 0.128681, 0.494529, -0.641293, -0.830108, -0.164635, -0.95597, -1.1]

@@ -29,7 +29,7 @@ ConstitutiveLaw::Pointer PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw
 void PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw::GetLawFeatures(Features& rFeatures)
 {
     rFeatures.mStrainSize     = strain_size;
-    rFeatures.mSpaceDimension = space_dimenstion;
+    rFeatures.mSpaceDimension = space_dimension;
 }
 
 bool PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw::RequiresFinalizeMaterialResponse()
@@ -173,7 +173,8 @@ int PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw::Check(const Propert
         prev_moment = r_moments[i];
     }
 
-    if (rMaterialProperties.Has(GEO_UNRELOAD_MODULUS)) check_properties.Check(GEO_UNRELOAD_MODULUS);
+    if (rMaterialProperties.Has(GEO_UNLOADING_RELOADING_MODULUS))
+        check_properties.Check(GEO_UNLOADING_RELOADING_MODULUS);
 
     return 0;
 }
@@ -226,8 +227,8 @@ void PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw::InitializeMaterial
     mAccumulatedCurvature = 0.0;
     mUnReLoadCenter       = 0.0;
     // Store optional modulus if provided
-    if (rMaterialProperties.Has(GEO_UNRELOAD_MODULUS)) {
-        mUnReLoadModulus = rMaterialProperties[GEO_UNRELOAD_MODULUS];
+    if (rMaterialProperties.Has(GEO_UNLOADING_RELOADING_MODULUS)) {
+        mUnReLoadModulus = rMaterialProperties[GEO_UNLOADING_RELOADING_MODULUS];
     } else {
         mUnReLoadModulus = 0.0;
     }
@@ -235,19 +236,20 @@ void PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw::InitializeMaterial
 
 std::pair<double, double> PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw::CalculateMomentAndTangentModulus(double curvature) const
 {
-    double moment          = 0.0;
-    double tangent_modulus = 0.0;
+    auto moment          = 0.0;
+    auto tangent_modulus = 0.0;
 
     if (mUnReLoadModulus > 0.0) {
         if (IsWithinUnReLoading(curvature)) {
             moment          = mUnReLoadModulus * (curvature - mUnReLoadCenter);
             tangent_modulus = mUnReLoadModulus;
         } else {
-            const auto amplitude = CalculateUnReLoadAmplitude();
-            const auto effective = mAccumulatedCurvature + (std::abs(curvature - mUnReLoadCenter) - amplitude);
-            moment          = BackboneMoment(effective);
+            const auto curvature_amplitude = CalculateUnReLoadAmplitude();
+            const auto effective_curvature =
+                mAccumulatedCurvature + (std::abs(curvature - mUnReLoadCenter) - curvature_amplitude);
+            moment          = BackboneMoment(effective_curvature);
             moment          = curvature - mUnReLoadCenter < 0.0 ? -moment : moment;
-            tangent_modulus = BackboneTangentModulus(effective);
+            tangent_modulus = BackboneTangentModulus(effective_curvature);
         }
     } else {
         moment          = BackboneMoment(curvature);

@@ -208,12 +208,12 @@ KRATOS_TEST_CASE_IN_SUITE(PiecewiseLinearMomentCapacityConstitutiveLaw_CheckThro
     const auto process_info = ProcessInfo{};
     // Keep dM/dKappa below elastic EI so this test reaches the unload-modulus validation.
     properties.SetValue(YOUNG_MODULUS, 3000.0);
-    properties.SetValue(GEO_UNRELOAD_MODULUS, 0.0); // must be strictly positive
+    properties.SetValue(GEO_UNLOADING_RELOADING_MODULUS, 0.0); // must be strictly positive
 
     // Act & Assert
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         (void)law.Check(properties, geometry, process_info),
-        "GEO_UNRELOAD_MODULUS in the material properties with Id 0 has "
+        "GEO_UNLOADING_RELOADING_MODULUS in the material properties with Id 0 has "
         "an invalid value: 0 is out of the range (0, -).")
 }
 
@@ -286,7 +286,7 @@ KRATOS_TEST_CASE_IN_SUITE(PiecewiseLinearMomentCapacityConstitutiveLaw_GetLawFea
     // Assert
     KRATOS_EXPECT_EQ(features.mStrainSize, law.GetStrainSize());
     KRATOS_EXPECT_EQ(features.mSpaceDimension,
-                     PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw::space_dimenstion);
+                     PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw::space_dimension);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(PiecewiseLinearMomentCapacityConstitutiveLaw_ComputeConstitutiveTensorReturnsExpectedDiagonal,
@@ -339,7 +339,7 @@ KRATOS_TEST_CASE_IN_SUITE(PiecewiseLinearMomentCapacityConstitutiveLaw_SaveLoadP
     // Arrange
     auto law        = PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw{};
     auto properties = CreateValidProperties();
-    properties.SetValue(GEO_UNRELOAD_MODULUS, 1000.0);
+    properties.SetValue(GEO_UNLOADING_RELOADING_MODULUS, 1000.0);
     const auto geometry = Geometry<Node>{};
     Vector     dummy_vector;
     law.InitializeMaterial(properties, geometry, dummy_vector);
@@ -427,7 +427,7 @@ KRATOS_TEST_CASE_IN_SUITE(PiecewiseLinearMomentCapacityConstitutiveLaw_UnloadRel
     // Arrange
     auto law        = PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw{};
     auto properties = CreateValidProperties();
-    properties.SetValue(GEO_UNRELOAD_MODULUS, 1000.0);
+    properties.SetValue(GEO_UNLOADING_RELOADING_MODULUS, 1000.0);
 
     const auto geometry = Geometry<Node>{};
     Vector     dummy_vector;
@@ -441,7 +441,7 @@ KRATOS_TEST_CASE_IN_SUITE(PiecewiseLinearMomentCapacityConstitutiveLaw_UnloadRel
     const auto test_kappa = -0.06; // selected to be within the small window created
 
     // Act & Assert
-    // Tangent should equal the GEO_UNRELOAD_MODULUS inside the window
+    // Tangent should equal the GEO_UNLOADING_RELOADING_MODULUS inside the window
     const auto calculated_tangent_modulus = CalculateTangentForCurvature(law, properties, test_kappa);
     constexpr auto expected_tangent_modulus = 1000.0;
     KRATOS_EXPECT_NEAR(calculated_tangent_modulus, expected_tangent_modulus, Defaults::absolute_tolerance);
@@ -460,7 +460,7 @@ KRATOS_TEST_CASE_IN_SUITE(PiecewiseLinearMomentCapacityConstitutiveLaw_SequenceL
     // Arrange
     auto law        = PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw{};
     auto properties = CreateValidProperties();
-    properties.SetValue(GEO_UNRELOAD_MODULUS, 8000.0);
+    properties.SetValue(GEO_UNLOADING_RELOADING_MODULUS, 8000.0);
     properties.SetValue(GEO_KAPPA_PIECEWISE_LINEAR_LAW, UblasUtilities::CreateVector({0.01, 0.03, 0.05}));
     properties.SetValue(GEO_MOMENT_PIECEWISE_LINEAR_LAW, UblasUtilities::CreateVector({80.0, 100.0, 128.0}));
 

@@ -35,8 +35,8 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw);
 
     // Geometry constants
-    static constexpr SizeType strain_size      = 3;
-    static constexpr SizeType space_dimenstion = 3;
+    static constexpr SizeType strain_size     = 3;
+    static constexpr SizeType space_dimension = 3;
 
     PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw() = default;
     PiecewiseLinearMomentCapacityPlaneStrainConstitutiveLaw(

@@ -693,7 +693,7 @@ $$
 M(\kappa)=\operatorname{sign}(\kappa)\,M_b(|\kappa|).
 $$
 
-Optional unload/reload behaviour: if the property `GEO_UNRELOAD_MODULUS` is provided (denoted $E_u$) an elastic window of half‑amplitude $A$ is used to model unloading/reloading about a center $\kappa_c$ (internal state). The amplitude is computed from the current accumulated backbone state $\kappa_{acc}$ as:
+Optional unload/reload behaviour: if the property `GEO_UNLOADING_RELOADING_MODULUS` is provided (denoted $E_u$) an elastic window of half‑amplitude $A$ is used to model unloading/reloading about a center $\kappa_c$ (internal state). The amplitude is computed from the current accumulated backbone state $\kappa_{acc}$ as:
 
 $$
 A = \dfrac{M_b(\kappa_{acc})}{E_u}.
