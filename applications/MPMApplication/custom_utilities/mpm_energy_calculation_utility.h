@@ -36,7 +36,7 @@ public:
     static double CalculatePotentialEnergy(Element& rElement);
 
     /**
-     * @brief Compute the potential energy of a model part
+     * @brief Compute the sum of potential energy of material points in a model part
      * @param rMpmModelPart The model part whose potential energy is to be computed
      * @return The potential energy of the input model part
      */
