@@ -81,7 +81,7 @@ public:
     static std::tuple<double,double,double,double> CalculateAllEnergies(Element& rElement);
 
     /**
-     * @brief Compute the kinetic, potential, strain and total energy of a model part
+     * @brief Compute the total kinetic, potential, strain and total energy of material points in a model part
      * @param rMpmModelPart The model part whose total energy is to be computed
      * @param rPotentialEnergy The potential energy of the input model part
      * @param rKineticEnergy The kinetic energy of the input model part
