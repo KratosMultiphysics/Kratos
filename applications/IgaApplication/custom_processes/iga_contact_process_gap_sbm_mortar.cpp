@@ -118,6 +118,39 @@ struct CouplingEntity
     double MasterReferenceEnd = 0.0;
 };
 
+struct MortarDebugStats
+{
+    std::size_t CenterSearchCalls = 0;
+    std::size_t CenterSearchEmptyCalls = 0;
+    std::size_t CenterSearchTruncatedCalls = 0;
+    std::size_t CenterSearchDiscardedCandidates = 0;
+
+    std::size_t MasterProjectionSearchCalls = 0;
+    std::size_t MasterProjectionCandidatesVisited = 0;
+    std::size_t MasterProjectionRejectedByNormal = 0;
+    std::size_t MasterProjectionRejectedByProjection = 0;
+    std::size_t MasterProjectionRejectedByDistanceOrdering = 0;
+    std::size_t MasterProjectionSucceeded = 0;
+
+    std::size_t SlaveProjectionSearchCalls = 0;
+    std::size_t SlaveProjectionCandidatesVisited = 0;
+    std::size_t SlaveProjectionRejectedByNormal = 0;
+    std::size_t SlaveProjectionRejectedByProjection = 0;
+    std::size_t SlaveProjectionSucceeded = 0;
+
+    std::size_t SlaveCurvesVisited = 0;
+    std::size_t SlaveCurvesRejectedByEndpointNormal = 0;
+    std::size_t SlaveCurvesRejectedByEndpointProjection = 0;
+
+    std::size_t MissingIntervalsVisited = 0;
+    std::size_t MissingIntervalsRecovered = 0;
+    std::size_t MissingIntervalsRejectedBySlaveProjection = 0;
+
+    std::size_t MasterGaussPointsVisited = 0;
+    std::size_t MasterGaussPointsRejectedBySlaveProjection = 0;
+    std::size_t MasterGaussPointsRejectedByOverlap = 0;
+};
+
 bool HaveCompatibleNormals(
     const GeometryType& rMasterDeformedCurve,
     const GeometryType& rSlaveDeformedCurve);
@@ -454,8 +487,13 @@ void SearchNearestCurveCenterCandidates(
     const double MaxSearchRadius,
     PointVector& rBinsResults,
     DistanceVector& rBinsDistances,
-    std::vector<CandidatePointData>& rCandidatePoints)
+    std::vector<CandidatePointData>& rCandidatePoints,
+    MortarDebugStats* pDebugStats = nullptr)
 {
+    if (pDebugStats != nullptr) {
+        ++pDebugStats->CenterSearchCalls;
+    }
+
     PointType query_point(
         0,
         rQueryPoint[0],
@@ -464,6 +502,9 @@ void SearchNearestCurveCenterCandidates(
 
     rCandidatePoints.clear();
     if (rBinsResults.empty()) {
+        if (pDebugStats != nullptr) {
+            ++pDebugStats->CenterSearchEmptyCalls;
+        }
         return;
     }
 
@@ -499,6 +540,11 @@ void SearchNearestCurveCenterCandidates(
     }
 
     if (rCandidatePoints.size() > MaxConsideredNeighbours) {
+        if (pDebugStats != nullptr) {
+            ++pDebugStats->CenterSearchTruncatedCalls;
+            pDebugStats->CenterSearchDiscardedCandidates +=
+                rCandidatePoints.size() - MaxConsideredNeighbours;
+        }
         auto nth = rCandidatePoints.begin() + MaxConsideredNeighbours;
         std::nth_element(
             rCandidatePoints.begin(),
@@ -531,9 +577,14 @@ bool FindBestMasterProjectionForSlavePoint(
     PointVector& rBinsResults,
     DistanceVector& rBinsDistances,
     std::vector<CandidatePointData>& rCandidatePoints,
-    EndpointProjectionData& rBestProjection)
+    EndpointProjectionData& rBestProjection,
+    MortarDebugStats* pDebugStats = nullptr)
 {
     rBestProjection = EndpointProjectionData();
+
+    if (pDebugStats != nullptr) {
+        ++pDebugStats->MasterProjectionSearchCalls;
+    }
 
     SearchNearestCurveCenterCandidates(
         rSlavePointDeformed,
@@ -543,9 +594,13 @@ bool FindBestMasterProjectionForSlavePoint(
         MaxSearchRadius,
         rBinsResults,
         rBinsDistances,
-        rCandidatePoints);
+        rCandidatePoints,
+        pDebugStats);
 
     for (const auto& r_candidate : rCandidatePoints) {
+        if (pDebugStats != nullptr) {
+            ++pDebugStats->MasterProjectionCandidatesVisited;
+        }
         const IndexType candidate_id = r_candidate.second->Id();
         KRATOS_ERROR_IF(candidate_id == 0 || candidate_id > rMasterCurveData.size())
             << "::[IgaContactProcessGapSbmMortar]:: invalid master candidate id "
@@ -553,6 +608,9 @@ bool FindBestMasterProjectionForSlavePoint(
 
         const auto& r_master_curve = rMasterCurveData[candidate_id - 1];
         if (!HaveCompatibleNormals(*r_master_curve.pDeformedCurve, *rSlaveCurve.pDeformedCurve)) {
+            if (pDebugStats != nullptr) {
+                ++pDebugStats->MasterProjectionRejectedByNormal;
+            }
             continue;
         }
 
@@ -563,14 +621,24 @@ bool FindBestMasterProjectionForSlavePoint(
                 r_master_curve,
                 ProjectionDistanceLimitSquared,
                 candidate_projection)) {
+            if (pDebugStats != nullptr) {
+                ++pDebugStats->MasterProjectionRejectedByProjection;
+            }
             continue;
         }
 
         if (candidate_projection.DistanceSquared >= rBestProjection.DistanceSquared) {
+            if (pDebugStats != nullptr) {
+                ++pDebugStats->MasterProjectionRejectedByDistanceOrdering;
+            }
             continue;
         }
 
         rBestProjection = candidate_projection;
+    }
+
+    if (pDebugStats != nullptr && rBestProjection.IsValid) {
+        ++pDebugStats->MasterProjectionSucceeded;
     }
 
     return rBestProjection.IsValid;
@@ -588,9 +656,14 @@ bool FindBestSlaveProjectionForMasterPoint(
     PointVector& rBinsResults,
     DistanceVector& rBinsDistances,
     std::vector<CandidatePointData>& rCandidatePoints,
-    SlaveProjectionData& rBestProjection)
+    SlaveProjectionData& rBestProjection,
+    MortarDebugStats* pDebugStats = nullptr)
 {
     rBestProjection = SlaveProjectionData();
+
+    if (pDebugStats != nullptr) {
+        ++pDebugStats->SlaveProjectionSearchCalls;
+    }
 
     SearchNearestCurveCenterCandidates(
         rMasterPointDeformed,
@@ -600,9 +673,13 @@ bool FindBestSlaveProjectionForMasterPoint(
         MaxSearchRadius,
         rBinsResults,
         rBinsDistances,
-        rCandidatePoints);
+        rCandidatePoints,
+        pDebugStats);
 
     for (const auto& r_candidate : rCandidatePoints) {
+        if (pDebugStats != nullptr) {
+            ++pDebugStats->SlaveProjectionCandidatesVisited;
+        }
         const IndexType candidate_id = r_candidate.second->Id();
         KRATOS_ERROR_IF(candidate_id == 0 || candidate_id > rSlaveCurveData.size())
             << "::[IgaContactProcessGapSbmMortar]:: invalid slave candidate id "
@@ -610,6 +687,9 @@ bool FindBestSlaveProjectionForMasterPoint(
 
         const auto& r_slave_curve = rSlaveCurveData[candidate_id - 1];
         if (!HaveCompatibleNormals(*rMasterCurve.pDeformedCurve, *r_slave_curve.pDeformedCurve)) {
+            if (pDebugStats != nullptr) {
+                ++pDebugStats->SlaveProjectionRejectedByNormal;
+            }
             continue;
         }
 
@@ -634,6 +714,9 @@ bool FindBestSlaveProjectionForMasterPoint(
 
         if (is_inside == 0 || distance_squared > ProjectionDistanceLimitSquared ||
             distance_squared >= rBestProjection.DistanceSquared) {
+            if (pDebugStats != nullptr) {
+                ++pDebugStats->SlaveProjectionRejectedByProjection;
+            }
             continue;
         }
 
@@ -650,6 +733,9 @@ bool FindBestSlaveProjectionForMasterPoint(
             consistency_distance_sq);
 
         if (consistency_distance_sq > ProjectionDistanceLimitSquared) {
+            if (pDebugStats != nullptr) {
+                ++pDebugStats->SlaveProjectionRejectedByProjection;
+            }
             continue;
         }
 
@@ -664,6 +750,10 @@ bool FindBestSlaveProjectionForMasterPoint(
         rBestProjection.SlaveReferencePoint = slave_reference_point;
         rBestProjection.SlaveNormal = slave_normal;
         rBestProjection.DistanceSquared = distance_squared;
+    }
+
+    if (pDebugStats != nullptr && rBestProjection.IsValid) {
+        ++pDebugStats->SlaveProjectionSucceeded;
     }
 
     return rBestProjection.IsValid;
@@ -1404,8 +1494,6 @@ void IgaContactProcessGapSbmMortar::Execute()
     const double projection_distance_limit =
         master_knot_span_sizes[0] * mParameters["projection_distance_scale"].GetDouble();
 
-    KRATOS_WATCH(projection_distance_limit)
-    exit(0);
     const double projection_distance_fallback =
         master_knot_span_sizes[0] * mParameters["projection_distance_fallback_scale"].GetDouble();
     const double projection_distance_limit_sq = projection_distance_limit * projection_distance_limit;
@@ -1422,6 +1510,17 @@ void IgaContactProcessGapSbmMortar::Execute()
     DistanceVector master_bins_distances(master_center_points.size());
     std::vector<CandidatePointData> candidate_points;
     candidate_points.reserve(std::max(slave_center_points.size(), master_center_points.size()));
+    MortarDebugStats debug_stats;
+
+    KRATOS_INFO_IF("IgaContactProcessGapSbmMortar", mEchoLevel > 0)
+        << "Execute: slave_curves=" << slave_curve_data.size()
+        << ", master_curves=" << master_curve_data.size()
+        << ", max_slave_neighbours=" << max_considered_slave_neighbours
+        << ", max_master_neighbours=" << max_considered_master_neighbours
+        << ", projection_distance_limit=" << projection_distance_limit
+        << ", max_slave_bins_search_radius=" << max_slave_bins_search_radius
+        << ", max_master_bins_search_radius=" << max_master_bins_search_radius
+        << std::endl;
 
     const std::string& r_condition_name = mParameters["contact_condition_name"].GetString();
     KRATOS_ERROR_IF_NOT(KratosComponents<Condition>::Has(r_condition_name))
@@ -1481,6 +1580,7 @@ void IgaContactProcessGapSbmMortar::Execute()
     };
 
     for (const auto& r_slave_curve : slave_curve_data) {
+        ++debug_stats.SlaveCurvesVisited;
         double slave_domain_begin = 0.0;
         double slave_domain_end = 0.0;
         KRATOS_ERROR_IF_NOT(GetCurveDomain(*r_slave_curve.pDeformedCurve, slave_domain_begin, slave_domain_end))
@@ -1500,6 +1600,7 @@ void IgaContactProcessGapSbmMortar::Execute()
         const bool has_slave_normal_end = ComputeCurveNormal(*r_slave_curve.pDeformedCurve, slave_domain_end, slave_normal_end);
 
         if (!has_slave_normal_begin || !has_slave_normal_end) {
+            ++debug_stats.SlaveCurvesRejectedByEndpointNormal;
             continue;
         }
 
@@ -1516,7 +1617,8 @@ void IgaContactProcessGapSbmMortar::Execute()
             master_bins_results,
             master_bins_distances,
             candidate_points,
-            endpoint_projection_begin);
+            endpoint_projection_begin,
+            &debug_stats);
         const bool has_end_projection = FindBestMasterProjectionForSlavePoint(
             slave_deformed_point_end,
             slave_normal_end,
@@ -1530,9 +1632,11 @@ void IgaContactProcessGapSbmMortar::Execute()
             master_bins_results,
             master_bins_distances,
             candidate_points,
-            endpoint_projection_end);
+            endpoint_projection_end,
+            &debug_stats);
 
         if (!has_begin_projection || !has_end_projection) {
+            ++debug_stats.SlaveCurvesRejectedByEndpointProjection;
             continue;
         }
 
@@ -1659,6 +1763,8 @@ void IgaContactProcessGapSbmMortar::Execute()
                 continue;
             }
 
+            ++debug_stats.MissingIntervalsVisited;
+
             const double master_reference_midpoint = 0.5 * (r_missing_interval.first + r_missing_interval.second);
             const CoordinatesArrayType master_midpoint_deformed = EvaluateDeformedReferenceCurvePoint(
                 *r_master_curve.pReferenceCurve,
@@ -1678,11 +1784,15 @@ void IgaContactProcessGapSbmMortar::Execute()
                 slave_bins_results,
                 slave_bins_distances,
                 candidate_points,
-                slave_projection);
+                slave_projection,
+                &debug_stats);
 
             if (!has_slave_projection) {
+                ++debug_stats.MissingIntervalsRejectedBySlaveProjection;
                 continue;
             }
+
+            ++debug_stats.MissingIntervalsRecovered;
 
             append_coupling_entity(
                 slave_projection.pSlaveCurve,
@@ -1731,6 +1841,7 @@ void IgaContactProcessGapSbmMortar::Execute()
             master_integration_info);
 
         for (IndexType i_gp = 0; i_gp < master_qp_geometries.size(); ++i_gp) {
+            ++debug_stats.MasterGaussPointsVisited;
             auto p_master_qp_geometry = master_qp_geometries(i_gp);
             p_master_qp_geometry->SetValue(NEIGHBOUR_GEOMETRIES, r_master_curve.ReferenceGeometries);
 
@@ -1757,9 +1868,11 @@ void IgaContactProcessGapSbmMortar::Execute()
                 slave_bins_results,
                 slave_bins_distances,
                 candidate_points,
-                slave_projection);
+                slave_projection,
+                &debug_stats);
 
             if (!has_slave_projection) {
+                ++debug_stats.MasterGaussPointsRejectedBySlaveProjection;
                 continue;
             }
 
@@ -1777,6 +1890,7 @@ void IgaContactProcessGapSbmMortar::Execute()
                 overlap_data);
 
             if (!has_overlap_data) {
+                ++debug_stats.MasterGaussPointsRejectedByOverlap;
                 continue;
             }
 
@@ -1839,6 +1953,35 @@ void IgaContactProcessGapSbmMortar::Execute()
             new_contact_conditions.end());
         EntitiesUtilities::InitializeEntities<Condition>(r_contact_sub_model_part);
     }
+
+    KRATOS_INFO_IF("IgaContactProcessGapSbmMortar", mEchoLevel > 0)
+        << "Summary:"
+        << "\n  Slave curves visited: " << debug_stats.SlaveCurvesVisited
+        << "\n  Slave curves rejected by endpoint normals: " << debug_stats.SlaveCurvesRejectedByEndpointNormal
+        << "\n  Slave curves rejected by endpoint projections: " << debug_stats.SlaveCurvesRejectedByEndpointProjection
+        << "\n  Coupling entities built: " << coupling_entities.size()
+        << "\n  Missing intervals visited: " << debug_stats.MissingIntervalsVisited
+        << "\n  Missing intervals recovered: " << debug_stats.MissingIntervalsRecovered
+        << "\n  Missing intervals rejected by slave projection: " << debug_stats.MissingIntervalsRejectedBySlaveProjection
+        << "\n  Master Gauss points visited: " << debug_stats.MasterGaussPointsVisited
+        << "\n  Master Gauss points rejected by slave projection: " << debug_stats.MasterGaussPointsRejectedBySlaveProjection
+        << "\n  Master Gauss points rejected by overlap: " << debug_stats.MasterGaussPointsRejectedByOverlap
+        << "\n  Pairing conditions created: " << new_contact_conditions.size()
+        << "\n  Center searches: " << debug_stats.CenterSearchCalls
+        << "\n  Center searches truncated: " << debug_stats.CenterSearchTruncatedCalls
+        << "\n  Center search discarded candidates: " << debug_stats.CenterSearchDiscardedCandidates
+        << "\n  Master projection searches: " << debug_stats.MasterProjectionSearchCalls
+        << "\n  Master projection candidates visited: " << debug_stats.MasterProjectionCandidatesVisited
+        << "\n  Master projection rejected by normal: " << debug_stats.MasterProjectionRejectedByNormal
+        << "\n  Master projection rejected by projection: " << debug_stats.MasterProjectionRejectedByProjection
+        << "\n  Master projection rejected by distance ordering: " << debug_stats.MasterProjectionRejectedByDistanceOrdering
+        << "\n  Master projection succeeded: " << debug_stats.MasterProjectionSucceeded
+        << "\n  Slave projection searches: " << debug_stats.SlaveProjectionSearchCalls
+        << "\n  Slave projection candidates visited: " << debug_stats.SlaveProjectionCandidatesVisited
+        << "\n  Slave projection rejected by normal: " << debug_stats.SlaveProjectionRejectedByNormal
+        << "\n  Slave projection rejected by projection: " << debug_stats.SlaveProjectionRejectedByProjection
+        << "\n  Slave projection succeeded: " << debug_stats.SlaveProjectionSucceeded
+        << std::endl;
 }
 
 } // namespace Kratos

@@ -109,6 +109,48 @@ void EnsureGapKeyFromBase(Parameters& rGapParams, const Parameters& rGeometryBas
     }
 }
 
+void SetOrAddIntValue(Parameters& rParams, const std::string& rKey, const int Value)
+{
+    if (rParams.Has(rKey)) {
+        rParams[rKey].SetInt(Value);
+    } else {
+        rParams.AddEmptyValue(rKey).SetInt(Value);
+    }
+}
+
+void SetOrAddDoubleValue(Parameters& rParams, const std::string& rKey, const double Value)
+{
+    if (rParams.Has(rKey)) {
+        rParams[rKey].SetDouble(Value);
+    } else {
+        rParams.AddEmptyValue(rKey).SetDouble(Value);
+    }
+}
+
+int GetMinimumDegree(const Vector& rDegrees)
+{
+    KRATOS_ERROR_IF(rDegrees.size() == 0)
+        << "MultipatchModeler: polynomial_order array is empty." << std::endl;
+
+    int min_degree = static_cast<int>(rDegrees[0]);
+    for (IndexType i = 1; i < rDegrees.size(); ++i) {
+        min_degree = std::min(min_degree, static_cast<int>(rDegrees[i]));
+    }
+    return min_degree;
+}
+
+int GetMinimumDegree(const std::vector<int>& rDegrees)
+{
+    KRATOS_ERROR_IF(rDegrees.empty())
+        << "MultipatchModeler: polynomial_order array is empty." << std::endl;
+
+    int min_degree = rDegrees[0];
+    for (std::size_t i = 1; i < rDegrees.size(); ++i) {
+        min_degree = std::min(min_degree, rDegrees[i]);
+    }
+    return min_degree;
+}
+
 RectangleType ClipRectangle(const RectangleType& rRectangle, const RectangleType& rBounds)
 {
     RectangleType result;
@@ -218,9 +260,10 @@ void MultipatchModeler::SetupModelPart()
 
         if (!use_gap_sbm_geometry_modeler)
         {
-            const std::array<const char*, 5> gap_only_keys = {
+            const std::array<const char*, 6> gap_only_keys = {
                 "gap_approximation_order",
                 "number_internal_divisions",
+                "gap_relative_tolerance_for_subdivisions",
                 "gap_sbm_type",
                 "gap_element_name",
                 "gap_interface_condition_name"
@@ -231,18 +274,38 @@ void MultipatchModeler::SetupModelPart()
                 }
             }
         } else{
-            Vector geometry_refinement_patch_degrees = r_parameters["refinement_regions"][0]["polynomial_order"].GetVector();
-            const SizeType degree_size = geometry_refinement_patch_degrees.size();
-            double min_degree = geometry_refinement_patch_degrees[0];
-            if (degree_size > 1 && geometry_refinement_patch_degrees[1] < min_degree) {
-                min_degree = geometry_refinement_patch_degrees[1];
+            const auto& r_refinement_regions = r_parameters["refinement_regions"];
+            KRATOS_ERROR_IF(r_refinement_regions.size() == 0)
+                << "MultipatchModeler: gap-sbm refinement patch requested but refinement_regions is empty." << std::endl;
+
+            const Parameters& r_refinement_region = r_refinement_regions[0];
+            int gap_approximation_order = GetMinimumDegree(
+                patch_geometry_refinement_patch["polynomial_order"].GetVector());
+            if (r_refinement_region.Has("polynomial_order")) {
+                gap_approximation_order = GetMinimumDegree(
+                    r_refinement_region["polynomial_order"].GetVector());
             }
-            if (degree_size > 2 && geometry_refinement_patch_degrees[2] < min_degree) {
-                min_degree = geometry_refinement_patch_degrees[2];
+
+            int number_internal_divisions = gap_approximation_order;
+            if (r_refinement_region.Has("number_internal_divisions")) {
+                number_internal_divisions = r_refinement_region["number_internal_divisions"].GetInt();
             }
-            const int min_degree_int = static_cast<int>(min_degree);
-            patch_geometry_refinement_patch["number_internal_divisions"].SetInt(min_degree_int);
-            patch_geometry_refinement_patch["gap_approximation_order"].SetInt(min_degree_int);  
+
+            SetOrAddIntValue(
+                patch_geometry_refinement_patch,
+                "number_internal_divisions",
+                number_internal_divisions);
+            SetOrAddIntValue(
+                patch_geometry_refinement_patch,
+                "gap_approximation_order",
+                gap_approximation_order);
+
+            if (r_refinement_region.Has("gap_relative_tolerance_for_subdivisions")) {
+                SetOrAddDoubleValue(
+                    patch_geometry_refinement_patch,
+                    "gap_relative_tolerance_for_subdivisions",
+                    r_refinement_region["gap_relative_tolerance_for_subdivisions"].GetDouble());
+            }
         }  
 
         // One between inner and outer must be true
@@ -821,6 +884,9 @@ void MultipatchModeler::ProcessRefPatch(
     patch_spans[0] = std::max(1, static_cast<int>(std::round(u_ratio * base_span_u)));
     patch_spans[1] = std::max(1, static_cast<int>(std::round(v_ratio * base_span_v)));
 
+    const bool use_gap_sbm_geometry_modeler =
+        (GetGeometryModelerType(mParameters) == GeometryModelerType::GapSbm);
+
     // Override from refinement_regions if a matching region is found
     auto rect_matches = [&](const RectType& r) -> bool {
         const double tol = 1e-12;
@@ -846,6 +912,39 @@ void MultipatchModeler::ProcessRefPatch(
             patch_geometry["polynomial_order"] = poly_param;
             KRATOS_INFO_IF("MultipatchModeler", mEchoLevel > 1)
                 << "[RefPatch] Overriding polynomial_order from refinement_regions" << std::endl;
+        }
+        if (use_gap_sbm_geometry_modeler) {
+            const int gap_approximation_order = reg.HasPolynomialOrder && !reg.PolynomialOrder.empty()
+                ? GetMinimumDegree(reg.PolynomialOrder)
+                : GetMinimumDegree(patch_geometry["polynomial_order"].GetVector());
+            const int number_internal_divisions = reg.HasNumberOfInternalDivisions
+                ? reg.NumberOfInternalDivisions
+                : gap_approximation_order;
+
+            SetOrAddIntValue(patch_geometry, "gap_approximation_order", gap_approximation_order);
+            SetOrAddIntValue(patch_geometry, "number_internal_divisions", number_internal_divisions);
+            if (reg.HasGapRelativeToleranceForSubdivisions) {
+                SetOrAddDoubleValue(
+                    patch_geometry,
+                    "gap_relative_tolerance_for_subdivisions",
+                    reg.GapRelativeToleranceForSubdivisions);
+            }
+
+            if (reg.HasGapRelativeToleranceForSubdivisions) {
+                KRATOS_INFO_IF("MultipatchModeler", mEchoLevel > 1)
+                    << "[RefPatch] Using "
+                    << (reg.HasNumberOfInternalDivisions ? "explicit" : "default")
+                    << " number_internal_divisions=" << number_internal_divisions
+                    << " | gap_approximation_order=" << gap_approximation_order
+                    << " | explicit gap_relative_tolerance_for_subdivisions="
+                    << reg.GapRelativeToleranceForSubdivisions << std::endl;
+            } else {
+                KRATOS_INFO_IF("MultipatchModeler", mEchoLevel > 1)
+                    << "[RefPatch] Using "
+                    << (reg.HasNumberOfInternalDivisions ? "explicit" : "default")
+                    << " number_internal_divisions=" << number_internal_divisions
+                    << " | gap_approximation_order=" << gap_approximation_order << std::endl;
+            }
         }
         break;
     }
@@ -887,8 +986,6 @@ void MultipatchModeler::ProcessRefPatch(
 
     // Create geometry
     {
-        const bool use_gap_sbm_geometry_modeler =
-            (GetGeometryModelerType(mParameters) == GeometryModelerType::GapSbm);
         if (use_gap_sbm_geometry_modeler) {
             Parameters gap_params = patch_geometry.Clone();
 
@@ -1307,6 +1404,7 @@ MultipatchModeler::PatchPreparationResult MultipatchModeler::PreparePatchGeometr
     EnsureGapKeyFromBase(gap_params, r_geometry_base, "gap_element_name");
     EnsureGapKeyFromBase(gap_params, r_geometry_base, "gap_approximation_order");
     EnsureGapKeyFromBase(gap_params, r_geometry_base, "number_internal_divisions");
+    EnsureGapKeyFromBase(gap_params, r_geometry_base, "gap_relative_tolerance_for_subdivisions");
 
     ConfigureGapSbmParams(gap_params);
     
@@ -1888,6 +1986,23 @@ void MultipatchModeler::GenerateSubdivision()
             for (IndexType j = 0; j < size; ++j) {
                 region_data.NumberOfKnotSpans[j] = span_param.GetArrayItem(j).GetInt();
             }
+        }
+
+        if (refinement_array[i].Has("number_internal_divisions")) {
+            const int number_internal_divisions = refinement_array[i]["number_internal_divisions"].GetInt();
+            KRATOS_ERROR_IF(number_internal_divisions < 0)
+                << "MultipatchModeler: refinement region number_internal_divisions must be >= 0." << std::endl;
+            region_data.HasNumberOfInternalDivisions = true;
+            region_data.NumberOfInternalDivisions = number_internal_divisions;
+        }
+
+        if (refinement_array[i].Has("gap_relative_tolerance_for_subdivisions")) {
+            const double gap_relative_tolerance =
+                refinement_array[i]["gap_relative_tolerance_for_subdivisions"].GetDouble();
+            KRATOS_ERROR_IF(gap_relative_tolerance < 0.0)
+                << "MultipatchModeler: refinement region gap_relative_tolerance_for_subdivisions must be >= 0.0." << std::endl;
+            region_data.HasGapRelativeToleranceForSubdivisions = true;
+            region_data.GapRelativeToleranceForSubdivisions = gap_relative_tolerance;
         }
 
         mRefinementRegions.push_back(region_data);

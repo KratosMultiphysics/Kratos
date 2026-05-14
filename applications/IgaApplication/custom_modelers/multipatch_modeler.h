@@ -41,6 +41,10 @@ public:
         std::vector<int> PolynomialOrder;
         bool HasNumberOfKnotSpans = false;
         std::vector<int> NumberOfKnotSpans;
+        bool HasNumberOfInternalDivisions = false;
+        int NumberOfInternalDivisions = 0;
+        bool HasGapRelativeToleranceForSubdivisions = false;
+        double GapRelativeToleranceForSubdivisions = 0.0;
     };
 
     MultipatchModeler() = default;
