@@ -12,33 +12,23 @@
 
 
 // System includes
-#include <boost/token_functions.hpp>
-#include <omp.h>
-#include <sstream>
 
 // External includes
 
 // Project includes
 #include "includes/define.h"
-#include "custom_elements/mpm_updated_lagrangian_UP.hpp"
-#include "includes/mat_variables.h"
-#include "includes/variables.h"
 #include "utilities/math_utils.h"
+#include "utilities/atomic_utilities.h"
 #include "includes/constitutive_law.h"
-#include "mpm_application_variables.h"
 #include "includes/checks.h"
 #include "includes/cfd_variables.h"
 
+// Application includes
+#include "mpm_application_variables.h"
+#include "custom_elements/mpm_updated_lagrangian_UP.hpp"
+
 namespace Kratos
 {
-
-///**
-//* Flags related to the element computation
-//*/
-//KRATOS_CREATE_LOCAL_FLAG( MPMUpdatedLagrangian, COMPUTE_RHS_VECTOR,                 0 );
-//KRATOS_CREATE_LOCAL_FLAG( MPMUpdatedLagrangian, COMPUTE_LHS_MATRIX,                 1 );
-//KRATOS_CREATE_LOCAL_FLAG( MPMUpdatedLagrangian, COMPUTE_RHS_VECTOR_WITH_COMPONENTS, 2 );
-//KRATOS_CREATE_LOCAL_FLAG( MPMUpdatedLagrangian, COMPUTE_LHS_MATRIX_WITH_COMPONENTS, 3 );
 
 //******************************CONSTRUCTOR*******************************************
 //************************************************************************************
@@ -65,9 +55,6 @@ MPMUpdatedLagrangianUP::MPMUpdatedLagrangianUP( IndexType NewId, GeometryType::P
     : MPMUpdatedLagrangian( NewId, pGeometry, pProperties )
     , m_mp_pressure(1.0)
 {
-    mFinalizedStep = true;
-
-
 }
 //******************************COPY CONSTRUCTOR**************************************
 //************************************************************************************
@@ -355,56 +342,29 @@ void MPMUpdatedLagrangianUP::AddExplicitContribution(const ProcessInfo& rCurrent
     unsigned int dimension = r_geometry.WorkingSpaceDimension();
     const unsigned int number_of_nodes = r_geometry.PointsNumber();
     GeneralVariables Variables;
+    int voigt_dimension = 0;
 
     // Calculating shape function
     const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
 
-    mFinalizedStep = false;
-
-    array_1d<double,3> aux_MP_velocity = ZeroVector(3);
-    array_1d<double,3> aux_MP_acceleration = ZeroVector(3);
     array_1d<double,3> nodal_momentum = ZeroVector(3);
     array_1d<double,3> nodal_inertia = ZeroVector(3);
-    array_1d<double,3> nodal_cauchy_stress_vector = ZeroVector(3);
-    unsigned int voigt_dimension = 0;
-    double aux_MP_pressure = 0.0;
 
-    for (unsigned int j=0; j<number_of_nodes; j++)
-    {
-        // These are the values of nodal velocity and nodal acceleration evaluated in the initialize solution step
-        array_1d<double, 3 > nodal_acceleration = ZeroVector(3);
-        if (r_geometry[j].SolutionStepsDataHas(ACCELERATION))
-            nodal_acceleration = r_geometry[j].FastGetSolutionStepValue(ACCELERATION,1);
-
-        array_1d<double, 3 > nodal_velocity = ZeroVector(3);
-        if (r_geometry[j].SolutionStepsDataHas(VELOCITY))
-            nodal_velocity = r_geometry[j].FastGetSolutionStepValue(VELOCITY,1);
-
-        // These are the values of nodal pressure evaluated in the initialize solution step
-        const double& nodal_pressure = r_geometry[j].FastGetSolutionStepValue(PRESSURE,1);
+    if (dimension==2)  voigt_dimension=3;
+    if (dimension==3)  voigt_dimension=6;
 
 
-        if (dimension==2) voigt_dimension=3;
-        if (dimension==3) voigt_dimension=6;
-
-        aux_MP_pressure += r_N(0, j) * nodal_pressure;
-
-        for (unsigned int k = 0; k < dimension; k++)
-        {
-            aux_MP_velocity[k] += r_N(0, j) * nodal_velocity[k];
-            aux_MP_acceleration[k] += r_N(0, j) * nodal_acceleration[k];
-        }
-    }
+    Vector nodal_cauchy_stress_vector = ZeroVector(voigt_dimension);
 
     // Here MP contribution in terms of momentum, inertia, mass-pressure and mass are added
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
-        double nodal_mpressure = r_N(0, i) * (m_mp_pressure - aux_MP_pressure) * mMP.mass;
+        double nodal_mpressure = r_N(0, i) * m_mp_pressure * mMP.mass;
 
         for (unsigned int j = 0; j < dimension; j++)
         {
-            nodal_momentum[j] = r_N(0, i) * (mMP.velocity[j] - aux_MP_velocity[j]) * mMP.mass;
-            nodal_inertia[j]  = r_N(0, i) * (mMP.acceleration[j] - aux_MP_acceleration[j]) * mMP.mass;
+            nodal_momentum[j] = r_N(0, i) * mMP.velocity[j] * mMP.mass;
+            nodal_inertia[j]  = r_N(0, i) * mMP.acceleration[j] * mMP.mass;
         }
 
         for (unsigned int j = 0; j < std::min<unsigned int>(voigt_dimension, 3); j++){
@@ -412,13 +372,14 @@ void MPMUpdatedLagrangianUP::AddExplicitContribution(const ProcessInfo& rCurrent
         }
 
         r_geometry[i].SetLock();
-        r_geometry[i].FastGetSolutionStepValue(NODAL_MOMENTUM, 0)  += nodal_momentum;
-        r_geometry[i].FastGetSolutionStepValue(NODAL_INERTIA, 0)   += nodal_inertia;
-        r_geometry[i].FastGetSolutionStepValue(NODAL_MPRESSURE, 0) += nodal_mpressure;
         r_geometry[i].FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_VECTOR, 0) += nodal_cauchy_stress_vector;
-
-        r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0) += r_N(0, i) * mMP.mass;
         r_geometry[i].UnSetLock();
+
+        AtomicAdd(r_geometry[i].FastGetSolutionStepValue(NODAL_MOMENTUM, 0), nodal_momentum);
+        AtomicAdd(r_geometry[i].FastGetSolutionStepValue(NODAL_INERTIA, 0), nodal_inertia);
+        AtomicAdd(r_geometry[i].FastGetSolutionStepValue(NODAL_MPRESSURE, 0), nodal_mpressure);
+        AtomicAdd(r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0), r_N(0, i)*mMP.mass);
+
     }
 
 

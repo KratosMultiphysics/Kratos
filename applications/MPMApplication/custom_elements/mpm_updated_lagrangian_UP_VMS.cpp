@@ -60,7 +60,7 @@ MPMUpdatedLagrangianUPVMS::MPMUpdatedLagrangianUPVMS( IndexType NewId, GeometryT
 MPMUpdatedLagrangianUPVMS::MPMUpdatedLagrangianUPVMS( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
     : MPMUpdatedLagrangianUP( NewId, pGeometry, pProperties )
 {
-    mFinalizedStep = true;
+   // mFinalizedStep = true;
 
 
 }
