@@ -506,8 +506,8 @@ class GeoMechanicalSolver(PythonSolver):
 
             solving_strategy = KratosMultiphysics.LineSearchStrategy(self.computing_model_part,
                                                                      self.scheme,
-                                                                     self.linear_solver,
                                                                      self.convergence_criterion,
+                                                                       builder_and_solver,
                                                                      self.strategy_params)
 
         elif strategy_type.lower() == "linear":
