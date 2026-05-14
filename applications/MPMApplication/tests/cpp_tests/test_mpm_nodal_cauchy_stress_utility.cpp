@@ -63,6 +63,9 @@ namespace
         rGridModelPart.GetProcessInfo().SetValue(DOMAIN_SIZE, 2);
 
         rGridModelPart.AddNodalSolutionStepVariable(CAUCHY_STRESS_VECTOR);
+        rGridModelPart.AddNodalSolutionStepVariable(NODAL_MASS);
+        rGridModelPart.AddNodalSolutionStepVariable(NODAL_MOMENTUM);
+        rGridModelPart.AddNodalSolutionStepVariable(NODAL_INERTIA);
 
         rGridModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
         rGridModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
@@ -101,6 +104,10 @@ namespace
         const array_1d<double, 3> mp_coordinates_2{0.6, 0.1, 0.0};
         AddMaterialPointElement( rMaterialPointModelPart,*p_background_element,2, 
             mp_coordinates_2, 4.0, mp_cauchy_stress_2);
+
+        for (auto& r_element : rMaterialPointModelPart.Elements()) {
+            r_element.AddExplicitContribution(rMaterialPointModelPart.GetProcessInfo());
+        }
     }
 
     void CheckNodalStress(

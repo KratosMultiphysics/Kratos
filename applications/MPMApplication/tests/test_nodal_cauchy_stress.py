@@ -77,6 +77,7 @@ class TestCauchyStressProjectionMPM(KratosUnittest.TestCase):
             expected_nodal_stress = KratosMultiphysics.Vector([10.0, 5.0, 2.0])
             # Assign a known MP stress and project it to the grid nodes.
             self._SetMaterialPointCauchyStress(mp_model_part, expected_nodal_stress)
+            simulation._GetSolver().Predict()
             KratosMPM.CalculateNodalCauchyStress(mp_model_part, grid_model_part)
 
             for node in grid_model_part.Nodes:

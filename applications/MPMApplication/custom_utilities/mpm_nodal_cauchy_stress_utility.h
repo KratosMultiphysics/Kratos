@@ -13,7 +13,6 @@
 
 // System includes
 #include <limits>
-#include <unordered_map>
 #include <vector>
 
 // Project includes
@@ -35,25 +34,9 @@ public:
     {
         const ProcessInfo& r_current_process_info = rMaterialPointModelPart.GetProcessInfo();
 
-        std::unordered_map<ModelPart::IndexType, std::size_t> nodal_stress_weight_indices;
-        nodal_stress_weight_indices.reserve(rGridModelPart.NumberOfNodes());
-        std::size_t node_counter = 0;
-        for (const auto& r_node : rGridModelPart.Nodes()) {
-            nodal_stress_weight_indices[r_node.Id()] = node_counter++;
-        }
-
-        Vector nodal_stress_weights(rGridModelPart.NumberOfNodes(), 0.0);
-
         ResetNodalCauchyStress(rGridModelPart, r_current_process_info);
-        AddMaterialPointStressContributions(
-            rMaterialPointModelPart,
-            r_current_process_info,
-            nodal_stress_weight_indices,
-            nodal_stress_weights);
-        NormalizeNodalCauchyStress(
-            rGridModelPart,
-            nodal_stress_weight_indices,
-            nodal_stress_weights);
+        AddMaterialPointStressContributions(rMaterialPointModelPart, r_current_process_info);
+        NormalizeNodalCauchyStress(rGridModelPart);
     }
 
 private:
@@ -83,9 +66,7 @@ private:
 
     static void AddMaterialPointStressContributions(
         ModelPart& rMaterialPointModelPart,
-        const ProcessInfo& rCurrentProcessInfo,
-        const std::unordered_map<ModelPart::IndexType, std::size_t>& rNodalStressWeightIndices,
-        Vector& rNodalStressWeights)
+        const ProcessInfo& rCurrentProcessInfo)
     {
         auto& r_elements = rMaterialPointModelPart.Elements();
 
@@ -104,26 +85,20 @@ private:
             for (std::size_t i = 0; i < number_of_nodes; ++i) {
 
                 Vector nodal_cauchy_stress_vector = cauchy_stress_values[0];
-                const double stress_weight = r_N(0,i) * mass_values[0];
-                nodal_cauchy_stress_vector *= stress_weight;
+                nodal_cauchy_stress_vector *= r_N(0,i) * mass_values[0];
 
                 AtomicAddVector(r_geometry[i].FastGetSolutionStepValue(CAUCHY_STRESS_VECTOR), nodal_cauchy_stress_vector);
-                const auto nodal_stress_weight_index = rNodalStressWeightIndices.at(r_geometry[i].Id());
-                AtomicAdd(rNodalStressWeights[nodal_stress_weight_index], stress_weight);
             }
         });
     }
 
     static void NormalizeNodalCauchyStress(
-        ModelPart& rGridModelPart,
-        const std::unordered_map<ModelPart::IndexType, std::size_t>& rNodalStressWeightIndices,
-        const Vector& rNodalStressWeights)
+        ModelPart& rGridModelPart)
     {
         block_for_each(rGridModelPart.Nodes(), [&](Node& rNode) {
-            const auto nodal_stress_weight_index = rNodalStressWeightIndices.at(rNode.Id());
-            const double nodal_stress_weight = rNodalStressWeights[nodal_stress_weight_index];
-            if (nodal_stress_weight > std::numeric_limits<double>::epsilon()) {
-                rNode.FastGetSolutionStepValue(CAUCHY_STRESS_VECTOR) /= nodal_stress_weight;
+            const double nodal_mass = rNode.FastGetSolutionStepValue(NODAL_MASS);
+            if (nodal_mass > std::numeric_limits<double>::epsilon()) {
+                rNode.FastGetSolutionStepValue(CAUCHY_STRESS_VECTOR) /= nodal_mass;
             }
         });
     }
