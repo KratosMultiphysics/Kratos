@@ -50,7 +50,7 @@ public:
     static double CalculateKineticEnergy(Element& rElement);
 
     /**
-     * @brief Compute the kinetic energy of a model part
+     * @brief Compute the sum of  kinetic energy of material points in a model part   
      * @param rMpmModelPart The model part whose kinetic energy is to be computed
      * @return The kinetic energy of the input model part
      */
