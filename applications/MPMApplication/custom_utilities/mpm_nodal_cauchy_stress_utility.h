@@ -19,6 +19,7 @@
 // Project includes
 #include "includes/model_part.h"
 #include "includes/variables.h"
+#include "utilities/atomic_utilities.h"
 #include "utilities/parallel_utilities.h"
 #include "mpm_application_variables.h"
 
@@ -94,12 +95,8 @@ private:
                 const double stress_weight = r_N(0,i) * mass_values[0];
                 nodal_cauchy_stress_vector *= stress_weight;
 
-                r_geometry[i].SetLock();
-                auto& r_nodal_stress = r_geometry[i].FastGetSolutionStepValue(CAUCHY_STRESS_VECTOR);
-
-                noalias(r_nodal_stress) += nodal_cauchy_stress_vector;
-                rNodalStressWeights[r_geometry[i].Id() - 1] += stress_weight;
-                r_geometry[i].UnSetLock();
+                AtomicAddVector(r_geometry[i].FastGetSolutionStepValue(CAUCHY_STRESS_VECTOR), nodal_cauchy_stress_vector);
+                AtomicAdd(rNodalStressWeights[r_geometry[i].Id() - 1], stress_weight);
             }
         });
     }
