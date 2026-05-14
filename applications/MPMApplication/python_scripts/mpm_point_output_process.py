@@ -98,9 +98,9 @@ class MPMPointOutputProcess(KratosMultiphysics.OutputProcess):
             raise Exception(err_msg)
 
         if entity_id == -1:
-            warn_msg  = f'No "{entity_type}" was found for input {self.point} and '
-            warn_msg += f'tolerance {self.search_tolerance:.12g}. No output is written!'
-            KratosMultiphysics.Logger.PrintWarning("MPMPointOutputProcess", warn_msg)
+            err_msg  = f'No "{entity_type}" was found for input {self.point} and '
+            err_msg += f'tolerance {self.search_tolerance:.12g}. No output is written!'
+            raise Exception(err_msg)
 
         else:
             file_handler_params = KratosMultiphysics.Parameters(self.params["output_file_settings"])
