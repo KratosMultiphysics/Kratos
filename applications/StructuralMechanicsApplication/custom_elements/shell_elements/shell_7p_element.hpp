@@ -22,10 +22,10 @@ namespace Kratos
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) Shell7pElement : public Element
 {
 public:
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(Shell7pElement);
 
-    // A private default constructor necessary for serialization
-    Shell7pElement() = default;
+    using SizeType = Element::SizeType;
+
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(Shell7pElement);
 
     Shell7pElement(IndexType NewId, GeometryType::Pointer pGeometry);
 
@@ -44,6 +44,69 @@ public:
         NodesArrayType const& ThisNodes,
         PropertiesType::Pointer pProperties
     ) const override;
+
+    void GetDofList(
+        DofsVectorType& rElementalDofList,
+        const ProcessInfo& rCurrentProcessInfo
+    ) const override;
+
+    void EquationIdVector(
+        EquationIdVectorType& rResult,
+        const ProcessInfo& rCurrentProcessInfo
+    ) const override;
+
+    int Check(const ProcessInfo& rCurrentProcessInfo
+    ) const override;
+
+    void CalculateLocalSystem(
+        MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo
+    ) override;
+    
+    void CalculateLeftHandSide(
+        MatrixType& rLeftHandSideMatrix,
+        const ProcessInfo& rCurrentProcessInfo
+    ) override;
+
+    void CalculateRightHandSide(
+        VectorType& rRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo
+    ) override;
+
+private:
+
+    enum class ConstitutiveLawType {
+        gStVenantKirchhoff,
+        oStVenantKirchhoff
+        };
+
+    enum class ConfigurationType {
+        Current,
+        Reference
+    };
+
+    void CovariantBaseVectors(array_1d<Vector,3>& rBaseVectors,
+    const Matrix& rShapeFunctionGradientValues, const ConfigurationType& rConfiguration, const double& thickness) const;
+
+    void CovariantMetric(Matrix& rMetric,const array_1d<Vector,3>& rBaseVectorCovariant);
+
+    void ContraVariantBaseVectors(array_1d<Vector,3>& rBaseVectors,const Matrix& rContraVariantMetric,
+    const array_1d<Vector,3> rCovariantBaseVectors);
+
+    void ContravariantMetric(Matrix& rMetric,const Matrix& rCovariantMetric);
+
+    void JacobiDeterminante(double& rDetJacobi, const array_1d<Vector,3>& rReferenceBaseVectors) const;
+
+    void CalculateMaterialLaw(BoundedMatrix<double, 12, 12>& CL, const Matrix& Gmkon, const double& thickness,
+    const ConstitutiveLawType& option);
+
+    void CalculatelinearBOperator(Matrix& bop, const array_1d<Vector,3>& CovariantBaseVectors, const Matrix& ShapeFunctionGradientValues, const Vector& Nshape, const SizeType& number_of_nodes);
+
+    friend class Serializer;
+
+    // A private default constructor necessary for serialization
+    Shell7pElement() = default;
 };
 
 } // namespace Kratos
