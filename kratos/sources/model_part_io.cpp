@@ -2213,12 +2213,6 @@ void ModelPartIO::ReadGeometriesBlock(ModelPart& rModelPart)
         ++number_of_read_geometries;
     }
     
-    // Sort by geometry ID to maintain deterministic ordering (equivalent to std::map behavior)
-    std::sort(aux_geometries.begin(), aux_geometries.end(),
-        [](const GeometryType::Pointer& a, const GeometryType::Pointer& b) {
-            return a->Id() < b->Id();
-        });
-    
     rModelPart.AddGeometries(aux_geometries.begin(), aux_geometries.end());
     KRATOS_INFO("") << number_of_read_geometries << " geometries read] [Type: " <<geometry_name << "]" << std::endl;
 
