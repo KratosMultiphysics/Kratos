@@ -14,6 +14,9 @@
 // Project includes
 #include "shell_7p_element.hpp"
 
+//READ SOLVER SCRIPT*********************************************************************************************************************************
+// https://github.com/KratosMultiphysics/Kratos/blob/master/applications/StructuralMechanicsApplication/python_scripts/structural_mechanics_solver.py
+//***************************************************************************************************************************************************
 namespace Kratos
 {
 
@@ -61,14 +64,14 @@ if (rElementalDofList.size() != local_size) {
     rElementalDofList.resize(local_size);
 }
 
-IndexType index = 0;
 for (SizeType i_node = 0; i_node < number_of_nodes; ++i_node) {
-    rElementalDofList[index++] = r_geom[i_node].pGetDof(DISPLACEMENT_X);
-    rElementalDofList[index++] = r_geom[i_node].pGetDof(DISPLACEMENT_Y);
-    rElementalDofList[index++] = r_geom[i_node].pGetDof(DISPLACEMENT_Z);
-    rElementalDofList[index++] = r_geom[i_node].pGetDof(ROTATION_X);
-    rElementalDofList[index++] = r_geom[i_node].pGetDof(ROTATION_Y);
-    rElementalDofList[index++] = r_geom[i_node].pGetDof(ROTATION_Z);
+    const SizeType index = 6 * i_node;
+    rElementalDofList[index]     = r_geom[i_node].pGetDof(DISPLACEMENT_X);
+    rElementalDofList[index + 1] = r_geom[i_node].pGetDof(DISPLACEMENT_Y);
+    rElementalDofList[index + 2] = r_geom[i_node].pGetDof(DISPLACEMENT_Z);
+    rElementalDofList[index + 3] = r_geom[i_node].pGetDof(ROTATION_X);
+    rElementalDofList[index + 4] = r_geom[i_node].pGetDof(ROTATION_Y);
+    rElementalDofList[index + 5] = r_geom[i_node].pGetDof(ROTATION_Z);
 }
 
 KRATOS_CATCH("");
@@ -84,21 +87,21 @@ KRATOS_TRY
 const auto& r_geom = GetGeometry();
 const SizeType number_of_nodes = r_geom.size();
 const SizeType local_size = number_of_nodes * 6;
-const SizeType d_pos = r_geom[0].GetDofPosition(DISPLACEMENT_X);
-const SizeType r_pos = r_geom[0].GetDofPosition(ROTATION_X);
+const SizeType u_dof = r_geom[0].GetDofPosition(DISPLACEMENT_X);
+const SizeType dir_dof = r_geom[0].GetDofPosition(ROTATION_X);
 
 if (rResult.size() != local_size) {
     rResult.resize(local_size);
 }
 
-IndexType index = 0;
 for (SizeType i_node = 0; i_node < number_of_nodes; ++i_node) {
-     rResult[index++] = r_geom[i_node].GetDof(DISPLACEMENT_X, d_pos).EquationId();
-     rResult[index++] = r_geom[i_node].GetDof(DISPLACEMENT_Y, d_pos + 1).EquationId();
-     rResult[index++] = r_geom[i_node].GetDof(DISPLACEMENT_Z, d_pos + 2).EquationId();
-     rResult[index++] = r_geom[i_node].GetDof(ROTATION_X, r_pos).EquationId();q
-     rResult[index++] = r_geom[i_node].GetDof(ROTATION_Y, r_pos + 1).EquationId();
-     rResult[index++] = r_geom[i_node].GetDof(ROTATION_Z, r_pos + 2).EquationId();
+    const SizeType index = 6 * i_node;
+    rResult[index]     = r_geom[i_node].GetDof(DISPLACEMENT_X, u_dof).EquationId();
+    rResult[index + 1] = r_geom[i_node].GetDof(DISPLACEMENT_Y, u_dof + 1).EquationId();
+    rResult[index + 2] = r_geom[i_node].GetDof(DISPLACEMENT_Z, u_dof + 2).EquationId();
+    rResult[index + 3] = r_geom[i_node].GetDof(ROTATION_X, dir_dof).EquationId();
+    rResult[index + 4] = r_geom[i_node].GetDof(ROTATION_Y, dir_dof + 1).EquationId();
+    rResult[index + 5] = r_geom[i_node].GetDof(ROTATION_Z, dir_dof + 2).EquationId();
 }
 
 KRATOS_CATCH("");
@@ -137,11 +140,32 @@ void Shell7pElement::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
 {
-    const SizeType number_dofs = 6 * GetGeometry().size();
+    const auto& r_geom = GetGeometry();
+    const SizeType number_of_nodes = r_geom.size();
+    const SizeType number_dofs = 6 * number_of_nodes;
+
     if (rRightHandSideVector.size() != number_dofs) {
         rRightHandSideVector.resize(number_dofs, false);
     }
-    noalias(rRightHandSideVector) = ZeroVector(number_dofs);
+
+    MatrixType LHS;
+    CalculateLeftHandSide(LHS, rCurrentProcessInfo);
+
+    Vector current_values = ZeroVector(number_dofs);
+    for (SizeType i_node = 0; i_node < number_of_nodes; ++i_node) {
+        const SizeType index = 6 * i_node;
+        const auto& u_dof = r_geom[i_node].FastGetSolutionStepValue(DISPLACEMENT);
+        const auto& dir_dof = r_geom[i_node].FastGetSolutionStepValue(ROTATION);
+
+        current_values[index] = u_dof[0];
+        current_values[index + 1] = u_dof[1];
+        current_values[index + 2] = u_dof[2];
+        current_values[index + 3] = dir_dof[0];
+        current_values[index + 4] = dir_dof[1];
+        current_values[index + 5] = dir_dof[2];
+    }
+
+    noalias(rRightHandSideVector) = -prod(LHS, current_values);
 }
 
 void Shell7pElement::CalculateLeftHandSide(
@@ -163,6 +187,7 @@ void Shell7pElement::CalculateLeftHandSide(
     const double thickness = GetProperties()[THICKNESS];                // GetProperties() returns the Properties object assigned to the element, not to individual nodes. All nodes of the element share the same thickness value.
 
     array_1d<Vector,3> current_covariant_base_vectors;
+    // array_1d<Vector,2> a3kvp;    
     array_1d<Vector,3> reference_covariant_base_vectors;    // array_1d<array_1d<double,3>,3> reference_covariant_base_vectors;    // outer and inner sizes are compile-time fixed to 3 for better performance (no dynamic memory allocation). access: reference_covariant_base_vectors[i][j]: i = which base vector (0=g1, 1=g2, 2=g3)
     array_1d<Vector,3> reference_contravariant_base_vectors;                                                                                                                                                         // j = spatial component  (0=x,  1=y,  2=z)
     array_1d<Vector,3> transformed_base_vectors;
@@ -183,6 +208,7 @@ void Shell7pElement::CalculateLeftHandSide(
 
         // CovariantBaseVectors(current_covariant_base_vectors,shape_functions_gradients_i,ConfigurationType::Current,thickness);
         CovariantBaseVectors(reference_covariant_base_vectors,shape_functions_gradients_i,ConfigurationType::Reference,thickness);
+        // DirectorDerivatives(a3kvp,reference_covariant_base_vectors,shape_functions_gradients_i);
 
         // CovariantMetric(covariant_metric_current,current_covariant_base_vectors);
         CovariantMetric(covariant_metric_reference,reference_covariant_base_vectors);
@@ -195,14 +221,14 @@ void Shell7pElement::CalculateLeftHandSide(
 
         Matrix material_tangent_modulus = ZeroMatrix(6);
         BoundedMatrix<double, 12, 12> Dmatrix=ZeroMatrix(12,12);
-        Matrix bop = ZeroMatrix(12,number_dofs);             // DOFs vary by geometry type
+        Matrix Bop = ZeroMatrix(12,number_dofs);             // DOFs vary by geometry type
         CalculateMaterialLaw(Dmatrix,contravariant_metric_reference,thickness,ConstitutiveLawType::gStVenantKirchhoff);
-        CalculatelinearBOperator(bop,reference_covariant_base_vectors,shape_functions_gradients_i,Nshape,number_of_nodes);
+        CalculatelinearBOperator(Bop,reference_covariant_base_vectors,shape_functions_gradients_i,Nshape,number_of_nodes);
 
         double weight = integration_weight_i * detJ * thickness*0.5; 
         Matrix DB = ZeroMatrix(12,number_dofs); 
-        noalias(DB) = prod(Dmatrix, bop);
-        rLeftHandSideMatrix += prod(trans(bop), DB) * weight;
+        noalias(DB) = prod(Dmatrix, Bop);
+        rLeftHandSideMatrix += prod(trans(Bop), DB) * weight;
     }
 }
 
@@ -234,6 +260,9 @@ void Shell7pElement::CovariantBaseVectors(array_1d<Vector,3>& rBaseVectors,
     rBaseVectors[1] = g2;
     rBaseVectors[2] = g3*thickness*0.5;   
 }
+
+// void Shell7pElement::DirectorDerivatives(array_1d<Vector,2>& rDirectorDerivatives,const array_1d<Vector,3>& rBaseVectorCovariant,const Matrix& rShapeFunctionGradientValues) const
+
 
 void Shell7pElement::CovariantMetric(Matrix& rMetric,const array_1d<Vector,3>& rBaseVectorCovariant)
 {
@@ -386,31 +415,31 @@ const ConstitutiveLawType& option)
     const double hbar = thickness*thickness*thickness/12.0;
     const double hq = thickness*5.0/6.0;
     const double hq_bar = 0.7*hbar;
-    CL = ZeroMatrix(12);
-    CL(0,0) = Ebar*thickness;
-    CL(1,1) = Ebar*thickness;
-    CL(2,2) = Ebar*thickness;
-    CL(0,1) = lambda*thickness;
-    CL(0,2) = lambda*thickness;
-    CL(1,0) = lambda*thickness;
-    CL(1,2) = lambda*thickness;             // if we use this, then we need to reorder this cartesian consitutive or B-matrix
-    CL(2,0) = lambda*thickness;
-    CL(2,1) = lambda*thickness;
-    CL(3,3) = G*thickness;
-    CL(4,4) = G*hq;
-    CL(5,5) = G*hq;
-    CL(6,6) = Ebar*hbar;
-    CL(7,7) = Ebar*hbar;
-    CL(8,8) = Ebar*hbar;
-    CL(6,7) = lambda*hbar;
-    CL(6,8) = lambda*hbar;
-    CL(7,6) = lambda*hbar;
-    CL(7,8) = lambda*hbar;
-    CL(8,6) = lambda*hbar;
-    CL(8,7) = lambda*hbar;
-    CL(9,9) = G*hbar;
-    CL(10,10) = G*hq_bar;
-    CL(11,11) = G*hq_bar;
+        CL = ZeroMatrix(12);
+        CL(0,0) = Ebar*thickness;
+        CL(1,1) = Ebar*thickness;
+        CL(2,2) = Ebar*thickness;
+        CL(0,1) = lambda*thickness;
+        CL(0,2) = lambda*thickness;
+        CL(1,0) = lambda*thickness;
+        CL(1,2) = lambda*thickness;             // if we use this, then we need to reorder this cartesian consitutive or B-matrix
+        CL(2,0) = lambda*thickness;
+        CL(2,1) = lambda*thickness;
+        CL(3,3) = G*thickness;
+        CL(4,4) = G*hq;
+        CL(5,5) = G*hq;
+        CL(6,6) = Ebar*hbar;
+        CL(7,7) = Ebar*hbar;
+        CL(8,8) = Ebar*hbar;
+        CL(6,7) = lambda*hbar;
+        CL(6,8) = lambda*hbar;
+        CL(7,6) = lambda*hbar;
+        CL(7,8) = lambda*hbar;
+        CL(8,6) = lambda*hbar;
+        CL(8,7) = lambda*hbar;
+        CL(9,9) = G*hbar;
+        CL(10,10) = G*hq_bar;
+        CL(11,11) = G*hq_bar;
     }
 
 
