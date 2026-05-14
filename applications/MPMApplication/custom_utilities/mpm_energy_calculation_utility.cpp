@@ -44,9 +44,9 @@ namespace Kratos
         return mp_potential_energy;
     }
 
-    double MPMEnergyCalculationUtility::CalculatePotentialEnergy(ModelPart& rModelPart)
+    double MPMEnergyCalculationUtility::CalculatePotentialEnergy(ModelPart& rMpmModelPart)
     {
-        return block_for_each<SumReduction<double>>(rModelPart.Elements(),
+        return block_for_each<SumReduction<double>>(rMpmModelPart.Elements(),
                 [](auto& r_element) { return MPMEnergyCalculationUtility::CalculatePotentialEnergy(r_element); });
     }
 
@@ -67,9 +67,9 @@ namespace Kratos
         return MP_kinetic_energy;
     }
 
-    double MPMEnergyCalculationUtility::CalculateKineticEnergy(ModelPart& rModelPart)
+    double MPMEnergyCalculationUtility::CalculateKineticEnergy(ModelPart& rMpmModelPart)
     {
-        return block_for_each<SumReduction<double>>(rModelPart.Elements(),
+        return block_for_each<SumReduction<double>>(rMpmModelPart.Elements(),
                 [](auto& r_element) { return MPMEnergyCalculationUtility::CalculateKineticEnergy(r_element); });
     }
 
@@ -93,9 +93,9 @@ namespace Kratos
         return mp_strain_energy;
     }
 
-    double MPMEnergyCalculationUtility::CalculateStrainEnergy(ModelPart& rModelPart)
+    double MPMEnergyCalculationUtility::CalculateStrainEnergy(ModelPart& rMpmModelPart)
     {
-        return block_for_each<SumReduction<double>>(rModelPart.Elements(),
+        return block_for_each<SumReduction<double>>(rMpmModelPart.Elements(),
                 [](auto& r_element) { return MPMEnergyCalculationUtility::CalculateStrainEnergy(r_element); });
     }
 
@@ -109,12 +109,12 @@ namespace Kratos
         return {r_MP_potential_energy, r_MP_kinetic_energy, r_MP_strain_energy, r_MP_total_energy};
     }
 
-    std::tuple<double,double,double,double> MPMEnergyCalculationUtility::CalculateAllEnergies(ModelPart& rModelPart)
+    std::tuple<double,double,double,double> MPMEnergyCalculationUtility::CalculateAllEnergies(ModelPart& rMpmModelPart)
     {
         using MultipleReduction = CombinedReduction<SumReduction<double>,SumReduction<double>,SumReduction<double>>;
 
         const auto [rPotentialEnergy,rKineticEnergy,rStrainEnergy] =
-        block_for_each<MultipleReduction>(rModelPart.Elements(),
+        block_for_each<MultipleReduction>(rMpmModelPart.Elements(),
         [](auto& r_element) {
             auto p_energy = MPMEnergyCalculationUtility::CalculatePotentialEnergy(r_element);
             auto k_energy = MPMEnergyCalculationUtility::CalculateKineticEnergy(r_element);

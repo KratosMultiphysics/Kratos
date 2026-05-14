@@ -37,10 +37,10 @@ public:
 
     /**
      * @brief Compute the potential energy of a model part
-     * @param rModelPart The model part whose potential energy is to be computed
+     * @param rMpmModelPart The model part whose potential energy is to be computed
      * @return The potential energy of the input model part
      */
-    static double CalculatePotentialEnergy(ModelPart& rModelPart);
+    static double CalculatePotentialEnergy(ModelPart& rMpmModelPart);
 
     /**
      * @brief Compute the kinetic energy of a material point element
@@ -51,10 +51,10 @@ public:
 
     /**
      * @brief Compute the kinetic energy of a model part
-     * @param rModelPart The model part whose kinetic energy is to be computed
+     * @param rMpmModelPart The model part whose kinetic energy is to be computed
      * @return The kinetic energy of the input model part
      */
-    static double CalculateKineticEnergy(ModelPart& rModelPart);
+    static double CalculateKineticEnergy(ModelPart& rMpmModelPart);
 
     /**
      * @brief Compute the strain energy of a material point element
@@ -65,10 +65,10 @@ public:
 
     /**
      * @brief Compute the strain energy of a model part
-     * @param rModelPart The model part whose strain energy is to be computed
+     * @param rMpmModelPart The model part whose strain energy is to be computed
      * @return The strain energy of the input model part
      */
-    static double CalculateStrainEnergy(ModelPart& rModelPart);
+    static double CalculateStrainEnergy(ModelPart& rMpmModelPart);
 
     /**
      * @brief Compute the kinetic, potential, strain and total energy of a material point element
@@ -82,13 +82,13 @@ public:
 
     /**
      * @brief Compute the kinetic, potential, strain and total energy of a model part
-     * @param rModelPart The model part whose total energy is to be computed
+     * @param rMpmModelPart The model part whose total energy is to be computed
      * @param rPotentialEnergy The potential energy of the input model part
      * @param rKineticEnergy The kinetic energy of the input model part
      * @param rStrainEnergy The strain energy of the input model part
      * @param rTotallEnergy The total energy of the input model part
      */
-    static std::tuple<double,double,double,double> CalculateAllEnergies(ModelPart& rModelPart);
+    static std::tuple<double,double,double,double> CalculateAllEnergies(ModelPart& rMpmModelPart);
 
 };
 
