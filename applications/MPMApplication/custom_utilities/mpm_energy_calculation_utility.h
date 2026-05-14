@@ -64,7 +64,8 @@ public:
     static double CalculateStrainEnergy(Element& rElement);
 
     /**
-     * @brief Compute the strain energy of a model part
+     * @brief Compute the sum of strain energy of material points in a model part
+
      * @param rMpmModelPart The model part whose strain energy is to be computed
      * @return The strain energy of the input model part
      */
