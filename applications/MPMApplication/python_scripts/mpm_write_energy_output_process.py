@@ -31,7 +31,9 @@ class MPMWriteEnergyOutputProcess(KratosMultiphysics.OutputProcess):
         if not self.model_part_name:
             raise Exception('No "model_part_name" was specified!')
         elif self.model_part_name.startswith('Background_Grid'):
-            self.model_part_name = self.model_part_name.replace('Background_Grid','MPM_Material')
+            err_msg  = "This process works only with MPM model parts."
+            err_msg += "Model parts whose names begin with \"Background_Grid\" are not allowed."
+            raise Exception(err_msg)
         elif self.model_part_name.startswith('Initial_MPM_Material.'):
             self.model_part_name = self.model_part_name.replace('Initial_','')
 
