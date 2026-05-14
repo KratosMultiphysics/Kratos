@@ -72,7 +72,7 @@ Defines the settings for the [`TimeBasesAsciiFileWriterUtility`](https://github.
 - `"file_extension"`: extension of the output file.
 
 ## Example
-Ouput example:
+Output example:
 
 ```
 # Energy model part 'MPMModelPart'
