@@ -1,15 +1,15 @@
 {
     "problem_data": {
-        "problem_name": "oedometer",
+        "problem_name": "direct_shear",
         "parallel_type": "OpenMP",
         "echo_level": 1,
-        "start_time": 0.0,
+        "start_time": -1.0e-02,
         "end_time": 1.0
     },
     "solver_settings": {
         "time_stepping": {
             "time_step": 1.0e-02,
-            "max_delta_time_factor": 1.0
+            "max_delta_time_factor": 1
         },
         "solver_type": "U_Pw",
         "solution_type": "Quasi-Static",
@@ -20,7 +20,7 @@
         "echo_level": 1,
         "model_import_settings": {
             "input_type": "mdpa",
-            "input_filename": "../common/mesh"
+            "input_filename": "../../common/mesh"
         },
         "material_import_settings": {
             "materials_filename": "MaterialParameters.json"
@@ -74,27 +74,36 @@
                 "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
                 "process_name": "ApplyVectorConstraintTableProcess",
                 "Parameters": {
-                    "model_part_name": "PorousDomain.Sides_rollers",
+                    "model_part_name": "PorousDomain.Top_displacement",
                     "variable_name": "DISPLACEMENT",
-                    "active": [true, false, false],
-                    "is_fixed": [true, false, false],
+                    "active": [true, true, false],
+                    "is_fixed": [true, true, false],
                     "value": [0.0, 0.0, 0.0],
-                    "table": [0, 0, 0]
+                    "table": [1, 0, 0]
+                }
+            },
+            {
+                "python_module": "apply_vector_constraint_table_process",
+                "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+                "process_name": "ApplyVectorConstraintTableProcess",
+                "Parameters": {
+                    "model_part_name": "PorousDomain.Middle_displacement",
+                    "variable_name": "DISPLACEMENT",
+                    "active": [true, true, false],
+                    "is_fixed": [true, true, false],
+                    "value": [0.0, 0.0, 0.0],
+                    "table": [2, 0, 0]
                 }
             }
         ],
         "loads_process_list": [
             {
-                "python_module": "apply_normal_load_table_process",
+                "python_module": "apply_initial_uniform_stress_field",
                 "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
-                "process_name": "ApplyNormalLoadTableProcess",
+                "process_name": "ApplyInitialUniformStressField",
                 "Parameters": {
-                    "model_part_name": "PorousDomain.Top_load",
-                    "variable_name": "NORMAL_CONTACT_STRESS",
-                    "active": [true, false],
-                    "value": [0.0, 0.0],
-                    "table": [1, 0],
-                    "fluid_pressure_type": "Uniform"
+                    "model_part_name": "PorousDomain.Soil",
+                    "value": [-1.0e+05, -1.0e+05, -1.0e+05, 0.0]
                 }
             }
         ]
@@ -107,13 +116,12 @@
                 "process_name": "GiDOutputProcess",
                 "Parameters": {
                     "model_part_name": "PorousDomain.porous_computational_model_part",
-                    "output_name": "test_oedometer_output",
                     "postprocess_parameters": {
                         "result_file_configuration": {
                             "gidpost_flags": {
+                                "GiDPostMode": "GiD_PostAscii",
                                 "WriteDeformedMeshFlag": "WriteDeformed",
                                 "WriteConditionsFlag": "WriteElementsOnly",
-                                "GiDPostMode": "GiD_PostAscii",
                                 "MultiFileFlag": "SingleFile"
                             },
                             "file_label": "step",
@@ -125,10 +133,13 @@
                             "nodal_results": ["DISPLACEMENT"],
                             "gauss_point_results": [
                                 "CAUCHY_STRESS_TENSOR",
+                                "VON_MISES_STRESS",
+                                "MEAN_EFFECTIVE_STRESS",
                                 "ENGINEERING_STRAIN_TENSOR"
                             ]
                         }
-                    }
+                    },
+                    "output_name": "test_dss_output"
                 }
             }
         ]
