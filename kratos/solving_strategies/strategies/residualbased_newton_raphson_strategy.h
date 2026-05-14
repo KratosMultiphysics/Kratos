@@ -948,15 +948,25 @@ class ResidualBasedNewtonRaphsonStrategy
         if (r_model_part.NumberOfElements() > 0) {
             const auto& r_properties = r_model_part.ElementsBegin()->GetProperties();
 
-            const auto& r_c_variable = KratosComponents<Variable<double>>::Get("GEO_COHESION");
-            const auto& r_phi_variable = KratosComponents<Variable<double>>::Get("GEO_FRICTION_ANGLE");
+            const auto& r_umat_parameters_variable = KratosComponents<Variable<Vector>>::Get("UMAT_PARAMETERS");
+            const auto& r_c_index_variable = KratosComponents<Variable<int>>::Get("INDEX_OF_UMAT_C_PARAMETER");
+            const auto& r_phi_index_variable = KratosComponents<Variable<int>>::Get("INDEX_OF_UMAT_PHI_PARAMETER");
 
-            if (r_properties.Has(r_c_variable)) {
-                reduced_c = r_properties[r_c_variable];
-            }
+            if (r_properties.Has(r_umat_parameters_variable) &&
+                r_properties.Has(r_c_index_variable) &&
+                r_properties.Has(r_phi_index_variable)) {
+                const auto& r_umat_parameters = r_properties[r_umat_parameters_variable];
 
-            if (r_properties.Has(r_phi_variable)) {
-                reduced_phi = r_properties[r_phi_variable];
+                const int c_index = r_properties[r_c_index_variable] - 1;
+                const int phi_index = r_properties[r_phi_index_variable] - 1;
+
+                if (c_index >= 0 && c_index < static_cast<int>(r_umat_parameters.size())) {
+                    reduced_c = r_umat_parameters[c_index];
+                }
+
+                if (phi_index >= 0 && phi_index < static_cast<int>(r_umat_parameters.size())) {
+                    reduced_phi = r_umat_parameters[phi_index];
+                }
             }
         }
 
@@ -990,6 +1000,13 @@ class ResidualBasedNewtonRaphsonStrategy
                 non_linear_iterations_gid_io.WriteNodalResults(WATER_PRESSURE, r_model_part.Nodes(), label, 0);
             }
 
+            try {
+                non_linear_iterations_gid_io.PrintOnGaussPoints(GREEN_LAGRANGE_STRAIN_TENSOR, r_model_part, label, 0);
+            } catch (const std::exception& r_error) {
+                KRATOS_WARNING("ResidualBasedNewtonRaphsonStrategy")
+                    << "Could not write GREEN_LAGRANGE_STRAIN_TENSOR for non-linear iteration output: "
+                    << r_error.what() << std::endl;
+            }
             try {
                 non_linear_iterations_gid_io.PrintOnGaussPoints(CAUCHY_STRESS_TENSOR, r_model_part, label, 0);
             } catch (const std::exception& r_error) {
