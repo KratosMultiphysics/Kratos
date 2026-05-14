@@ -54,6 +54,8 @@ class MPMWriteEnergyOutputProcess(KratosMultiphysics.OutputProcess):
     def ExecuteBeforeSolutionLoop(self):
         self.controller.Check()
         self.model_part = self.model[self.model_part_name]
+        if self.model_part.NumberOfElements() == 0:
+            raise Exception(f"No element found in input model part ({self.model_part_name})!")
         file_handler_params = KratosMultiphysics.Parameters(self.params["output_file_settings"])
 
         # if output file name is not specified, use default value: model_part_name_energy.dat
