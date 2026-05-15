@@ -1,5 +1,5 @@
-from KratosMultiphysics import *
-from KratosMultiphysics.GeoMechanicsApplication import *
+import KratosMultiphysics
+import KratosMultiphysics.GeoMechanicsApplication
 
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
