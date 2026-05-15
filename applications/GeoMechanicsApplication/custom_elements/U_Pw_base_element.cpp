@@ -33,6 +33,8 @@ UPwBaseElement::UPwBaseElement(IndexType                                       N
       mpStressStatePolicy{std::move(pStressStatePolicy)},
       mIntegrationCoefficientsCalculator{std::move(pCoefficientModifier)}
 {
+    // this is needed for interface elements
+    mThisIntegrationMethod = this->GetIntegrationMethod();
 }
 
 UPwBaseElement::UPwBaseElement(IndexType                                       NewId,
@@ -43,6 +45,8 @@ UPwBaseElement::UPwBaseElement(IndexType                                       N
       mpStressStatePolicy{std::move(pStressStatePolicy)},
       mIntegrationCoefficientsCalculator{std::move(pCoefficientModifier)}
 {
+    // this is needed for interface elements
+    mThisIntegrationMethod = this->GetIntegrationMethod();
 }
 
 UPwBaseElement::UPwBaseElement(IndexType                                       NewId,
