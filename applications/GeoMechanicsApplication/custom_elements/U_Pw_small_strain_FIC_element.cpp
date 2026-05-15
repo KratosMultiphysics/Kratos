@@ -416,14 +416,13 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::ExtrapolateGPDtStress(const Matr
     for (unsigned int i = 0; i < TDim; ++i)
         noalias(mNodalDtStress[i]) = column(AuxNodalDtStress, i);
 
-    /* info:
-     *
-     *                   ( |S0-0|   |S1-0| )
-     * mNodalDtStress is ( |S0-1|   |S1-1| )
-     *                   ( |S0-2| , |S1-2| )
-     *
-     * S0-0 is S[0] at node 0
-     */
+    // info:
+    //
+    //                   ( |S0-0|   |S1-0| )
+    // mNodalDtStress is ( |S0-1|   |S1-1| )
+    //                   ( |S0-2| , |S1-2| )
+    //
+    // S0-0 is S[0] at node 0
 
     KRATOS_CATCH("")
 }
@@ -1381,16 +1380,15 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::CalculateDtStressGradients(FICEl
             rFICVariables.DimVector[i] += rFICVariables.DtStressGradients[j][i];
     }
 
-    /* info: (2D)
-     *
-     * rFICVariables.DtStressGradients is ( |S0x|   |S1x| )
-     *                                    ( |S0y| , |S1y| )
-     *
-     * rFICVariables.DimVector is |S0x+S1x|
-     *                            |S0y+S1y|
-     *
-     * S0x is aS[0]/ax at current GP
-     */
+    // info: (2D)
+    //
+    // rFICVariables.DtStressGradients is ( |S0x|   |S1x| )
+    //                                    ( |S0y| , |S1y| )
+    //
+    // rFICVariables.DimVector is |S0x+S1x|
+    //                            |S0y+S1y|
+    //
+    // S0x is aS[0]/ax at current GP
 
     KRATOS_CATCH("")
 }
