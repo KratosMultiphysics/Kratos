@@ -415,7 +415,7 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateOnIntegrationPoin
         size_t variable_index;
         if (rVariable == CONFINED_STIFFNESS) {
             if (TDim == 2) {
-                variable_index = static_cast<std::size_t>(INDEX_3D_INTERFACE_ZZ);
+                variable_index = static_cast<std::size_t>(INDEX_2D_INTERFACE_ZZ);
             } else if (TDim == 3) {
                 variable_index = static_cast<std::size_t>(INDEX_3D_INTERFACE_ZZ);
             } else {
