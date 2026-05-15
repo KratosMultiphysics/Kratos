@@ -20,6 +20,7 @@
 
 namespace Kratos
 {
+using enum indexStress3DInterface;
 
 ConstitutiveLaw::Pointer LinearElastic3DInterfaceLaw::Clone() const
 {
@@ -70,9 +71,12 @@ void LinearElastic3DInterfaceLaw::CalculateElasticMatrix(Matrix& C, Constitutive
 
     const double c0 = E / ((1.0 + NU) * (1.0 - 2.0 * NU));
 
-    C(INDEX_3D_INTERFACE_XZ, INDEX_3D_INTERFACE_XZ) = (0.5 - NU) * c0;
-    C(INDEX_3D_INTERFACE_YZ, INDEX_3D_INTERFACE_YZ) = (0.5 - NU) * c0;
-    C(INDEX_3D_INTERFACE_ZZ, INDEX_3D_INTERFACE_ZZ) = (1.0 - NU) * c0;
+    C(static_cast<std::size_t>(INDEX_3D_INTERFACE_XZ), static_cast<std::size_t>(INDEX_3D_INTERFACE_XZ)) =
+        (0.5 - NU) * c0;
+    C(static_cast<std::size_t>(INDEX_3D_INTERFACE_YZ), static_cast<std::size_t>(INDEX_3D_INTERFACE_YZ)) =
+        (0.5 - NU) * c0;
+    C(static_cast<std::size_t>(INDEX_3D_INTERFACE_ZZ), static_cast<std::size_t>(INDEX_3D_INTERFACE_ZZ)) =
+        (1.0 - NU) * c0;
 
     KRATOS_CATCH("")
 }

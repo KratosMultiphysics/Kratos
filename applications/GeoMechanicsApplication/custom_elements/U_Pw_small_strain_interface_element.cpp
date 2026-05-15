@@ -24,6 +24,7 @@
 namespace Kratos
 {
 using enum indexStress2DInterface;
+using enum indexStress3DInterface;
 
 void SetConstitutiveParameters(ConstitutiveLaw::Parameters& rConstitutiveParameters,
                                Matrix&                      rConstitutiveMatrix,
@@ -296,13 +297,16 @@ Vector UPwSmallStrainInterfaceElement<TDim, TNumNodes>::SetFullStressVector(cons
 
     if constexpr (TDim == 2) {
         full_stress_vector[static_cast<std::size_t>(INDEX_3D_ZZ)] =
-            rStressVector[static_cast<std::size_t>(indexStress2DInterface::INDEX_2D_INTERFACE_ZZ)];
+            rStressVector[static_cast<std::size_t>(INDEX_3D_INTERFACE_ZZ)];
         full_stress_vector[static_cast<std::size_t>(INDEX_3D_XZ)] =
-            rStressVector[static_cast<std::size_t>(indexStress2DInterface::INDEX_2D_INTERFACE_XZ)];
+            rStressVector[static_cast<std::size_t>(INDEX_3D_INTERFACE_XZ)];
     } else if constexpr (TDim == 3) {
-        full_stress_vector[static_cast<std::size_t>(INDEX_3D_ZZ)] = rStressVector[INDEX_3D_INTERFACE_ZZ];
-        full_stress_vector[static_cast<std::size_t>(INDEX_3D_YZ)] = rStressVector[INDEX_3D_INTERFACE_YZ];
-        full_stress_vector[static_cast<std::size_t>(INDEX_3D_XZ)] = rStressVector[INDEX_3D_INTERFACE_XZ];
+        full_stress_vector[static_cast<std::size_t>(INDEX_3D_ZZ)] =
+            rStressVector[static_cast<std::size_t>(INDEX_3D_INTERFACE_ZZ)];
+        full_stress_vector[static_cast<std::size_t>(INDEX_3D_YZ)] =
+            rStressVector[static_cast<std::size_t>(INDEX_3D_INTERFACE_YZ)];
+        full_stress_vector[static_cast<std::size_t>(INDEX_3D_XZ)] =
+            rStressVector[static_cast<std::size_t>(INDEX_3D_INTERFACE_XZ)];
     }
     return full_stress_vector;
 }
@@ -411,18 +415,18 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateOnIntegrationPoin
         size_t variable_index;
         if (rVariable == CONFINED_STIFFNESS) {
             if (TDim == 2) {
-                variable_index = static_cast<std::size_t>(indexStress2DInterface::INDEX_2D_INTERFACE_ZZ);
+                variable_index = static_cast<std::size_t>(INDEX_3D_INTERFACE_ZZ);
             } else if (TDim == 3) {
-                variable_index = INDEX_3D_INTERFACE_ZZ;
+                variable_index = static_cast<std::size_t>(INDEX_3D_INTERFACE_ZZ);
             } else {
                 KRATOS_ERROR << "CONFINED_STIFFNESS can not be retrieved for dim " << TDim
                              << " in element: " << this->Id() << std::endl;
             }
         } else if (rVariable == SHEAR_STIFFNESS) {
             if (TDim == 2) {
-                variable_index = static_cast<std::size_t>(indexStress2DInterface::INDEX_2D_INTERFACE_XZ);
+                variable_index = static_cast<std::size_t>(INDEX_3D_INTERFACE_XZ);
             } else if (TDim == 3) {
-                variable_index = INDEX_3D_INTERFACE_XZ;
+                variable_index = static_cast<std::size_t>(INDEX_3D_INTERFACE_XZ);
             } else {
                 KRATOS_ERROR << "SHEAR_STIFFNESS can not be retrieved for dim " << TDim
                              << " in element: " << this->Id() << std::endl;
