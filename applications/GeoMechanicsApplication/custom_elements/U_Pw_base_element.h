@@ -131,8 +131,9 @@ public:
     void PrintInfo(std::ostream& rOStream) const override;
 
 protected:
-    /// Member Variables
-    GeometryData::IntegrationMethod mThisIntegrationMethod;
+    // default to a safe integration method so the member is always initialized;
+    // the correct value (possibly from overrides) is set in Initialize()
+    GeometryData::IntegrationMethod mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
 
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
     std::vector<RetentionLaw::Pointer>    mRetentionLawVector;
