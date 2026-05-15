@@ -232,7 +232,7 @@ const Parameters TwoFluidNavierStokesFractional<TElementData>::GetSpecifications
         "compatible_geometries"      : ["Triangle2D3","Tetrahedra3D4"],
         "element_integrates_in_time" : true,
         "compatible_constitutive_laws": {
-            "type"        : ["NewtonianTwoFluid2DLaw","NewtonianTwoFluid3DLaw"],
+            "type"        : ["NewtonianTwoFluid2DLaw","NewtonianTwoFluid3DLaw","Bingham2DLaw","Bingham3DLaw","HerschelBulkley2DLaw","HerschelBulkley3DLaw"],
             "dimension"   : ["2D","3D"],
             "strain_size" : [3,6]
         },

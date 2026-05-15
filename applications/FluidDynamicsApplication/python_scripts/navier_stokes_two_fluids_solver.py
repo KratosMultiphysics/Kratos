@@ -72,7 +72,8 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                 "dynamic_tau": 1.0,
                 "surface_tension": false,
                 "mass_source":false,
-                "momentum_correction":false
+                "momentum_correction":false,
+                "mass_levelset":false
             },
             "levelset_convection_settings": {
                 "max_CFL" : 1.0,
@@ -235,6 +236,12 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         self.mass_source = False
         if self.settings["formulation"].Has("mass_source"):
             self.mass_source = self.settings["formulation"]["mass_source"].GetBool()
+        
+        # Set the flag for the mass levelset correction
+        self.mass_levelset = False
+        if self.settings["formulation"].Has("mass_levelset"):
+            self.mass_levelset = self.settings["formulation"]["mass_levelset"].GetBool()
+
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Solver initialization finished.")
 
@@ -262,6 +269,11 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
             # System water volume is calculated for current time step considering inlet and outlet discharge.
             system_volume = inlet_volume + self.initial_system_volume - outlet_volume
+        
+        if self.mass_levelset:
+            current_step = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
+            if current_step>2:
+                self._CorrectLevelSet()
 
         # Recompute the BDF2 coefficients
         (self.time_discretization).ComputeAndSaveBDFCoefficients(self.GetComputingModelPart().ProcessInfo)
@@ -625,3 +637,18 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         return KratosCFD.DistanceModificationProcess(
             self.model,
             distance_modification_settings)
+
+    def _CalculateVolumeError(self):
+        water_volume_after_transport = KratosCFD.FluidAuxiliaryUtilities.CalculateFluidNegativeVolume(self.GetComputingModelPart())
+        volume_error = (water_volume_after_transport -  self.initial_system_volume) /  self.initial_system_volume
+        volume_error = (water_volume_after_transport -  self.initial_system_volume) 
+
+        return volume_error
+
+    def _CorrectLevelSet(self):
+        volume_error=self._CalculateVolumeError()
+        interface_area =self.my_energy_process.CalculateInterfaceArea()
+        a = volume_error/interface_area
+        for node in self.main_model_part.Nodes:
+            phi=node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
+            node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, phi+a)

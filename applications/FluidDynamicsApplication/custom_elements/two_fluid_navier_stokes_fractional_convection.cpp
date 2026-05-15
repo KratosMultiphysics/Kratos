@@ -494,6 +494,11 @@ rLHS(11,11)+=crLHS45;
         const double dyn_tau = rData.DynamicTau;
         const auto &vn = rData.VelocityOldStep1;
         const auto &vnn = rData.VelocityOldStep2;
+    
+        auto aaa = (vn-vnn)/dt;
+        KRATOS_WATCH(aaa)
+
+        
         // const auto &vnnn = rData.Velocity_OldStep3; #an bdf2
         const auto &vmesh = rData.MeshVelocity;
         const auto &vfrac = rData.FractionalVelocity;
@@ -502,6 +507,7 @@ rLHS(11,11)+=crLHS45;
         // Get shape function values
         const auto &N = rData.N;
         const auto &DN = rData.DN_DX;
+        KRATOS_WATCH(prod(trans(DN),vn))
 
         // Add RHS Gauss point contribution
         const double w_gauss = rData.Weight;

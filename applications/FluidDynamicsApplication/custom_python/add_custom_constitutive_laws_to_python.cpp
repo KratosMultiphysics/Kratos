@@ -36,6 +36,7 @@
 // 2D constitutive laws
 #include "custom_constitutive/euler_2d_law.h"
 #include "custom_constitutive/newtonian_2d_law.h"
+#include "custom_constitutive/bingham_two_fluid_2d_law.h"
 #include "custom_constitutive/newtonian_two_fluid_2d_law.h"
 #include "custom_constitutive/newtonian_temperature_dependent_2d_law.h"
 

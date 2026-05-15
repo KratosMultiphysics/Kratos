@@ -97,7 +97,7 @@ void  Bingham3DLaw::CalculateMaterialResponseCauchy (Parameters& rValues)
 
     //limit the gamma_dot to a minimum so to ensure that the case of gamma_dot=0 is not problematic
     const double g = std::max(gamma_dot, min_gamma_dot);
-
+    
     double Regularization = 1.0 - std::exp(-m*g);
     const double mu_effective = mu + Regularization * sigma_y / g;
 

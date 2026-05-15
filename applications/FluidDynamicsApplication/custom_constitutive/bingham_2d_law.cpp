@@ -69,30 +69,32 @@ void  Bingham2DLaw::CalculateMaterialResponseCauchy (Parameters& rValues)
 
     const Vector& S                  = rValues.GetStrainVector(); //using the short name S to reduce the length of the expressions
     Vector& StressVector                  = rValues.GetStressVector();
-
-    //-----------------------------//
-
     //1.- Lame constants
     const double mu         = MaterialProperties[DYNAMIC_VISCOSITY];
     const double sigma_y    = MaterialProperties[YIELD_STRESS];
     const double m          = MaterialProperties[REGULARIZATION_COEFFICIENT];
+   
 
     const double gamma_dot = std::sqrt(2.*S[0]*S[0] + 2.*S[1]*S[1] + S[2]*S[2]);
-
+   
     const double min_gamma_dot = 1e-12;
 
     //limit the gamma_dot to a minimum so to ensure that the case of gamma_dot=0 is not problematic
     const double g = std::max(gamma_dot, min_gamma_dot);
+        
+
 
     double Regularization = 1.0 - std::exp(-m*g);
     const double mu_effective = mu + Regularization * sigma_y / g;
-    const double trS = S[0]+S[1]+S[2];
+
+    const double trS = S[0]+S[1];
     const double eps_vol = trS/3.0;
 
     //computation of stress
     StressVector[0] = 2.0*mu_effective*(S[0] - eps_vol);
     StressVector[1] = 2.0*mu_effective*(S[1] - eps_vol);
     StressVector[2] = mu_effective*S[2];
+
 
     if (Options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR))
     {
@@ -122,5 +124,6 @@ int Bingham2DLaw::Check(
 
     return 0;
 }
+
 
 } // Namespace Kratos
