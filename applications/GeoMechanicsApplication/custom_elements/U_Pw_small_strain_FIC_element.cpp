@@ -269,15 +269,15 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::SaveGPConstitutiveTensor(array_1
         }
     }
 
-    /* info on: (Quadrilateral_2D_4 with GI_GAUSS_2)
-     *
-     *                                 ( |D00-0 D01-0 D02-0|   |D10-0 D11-0 D12-0| )
-     * rConstitutiveTensorContainer is ( |D00-1 D01-1 D02-1|   |D10-1 D11-1 D12-1| )
-     *                                 ( |D00-2 D01-2 D02-2|   |D10-2 D11-2 D12-2| )
-     *                                 ( |D00-3 D01-3 D02-3| , |D10-3 D11-3 D12-3| )
-     *
-     * D00-0 is D(0,0) at GP 0
-     */
+    // info on: (Quadrilateral_2D_4 with GI_GAUSS_2)
+    //
+    //                                 ( |D00-0 D01-0 D02-0|   |D10-0 D11-0 D12-0| )
+    // rConstitutiveTensorContainer is ( |D00-1 D01-1 D02-1|   |D10-1 D11-1 D12-1| )
+    //                                 ( |D00-2 D01-2 D02-2|   |D10-2 D11-2 D12-2| )
+    //                                 ( |D00-3 D01-3 D02-3| , |D10-3 D11-3 D12-3| )
+    //
+    // D00-0 is D(0,0) at GP 0
+
     KRATOS_CATCH("")
 }
 
@@ -292,15 +292,14 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::SaveGPDtStress(Matrix&       rDt
         rDtStressContainer(GPoint, i) = StressVector[i];
     }
 
-    /* info on: (Quadrilateral_2D_4 with GI_GAUSS_2)
-     *
-     *                       |S0-0 S1-0|
-     * rDtStressContainer is |S0-1 S1-1|
-     *                       |S0-2 S1-2|
-     *                       |S0-3 S1-3|
-     *
-     * S0-0 is S[0] at GP 0
-     */
+    // info on: (Quadrilateral_2D_4 with GI_GAUSS_2)
+    //
+    //                       |S0-0 S1-0|
+    // rDtStressContainer is |S0-1 S1-1|
+    //                       |S0-2 S1-2|
+    //                       |S0-3 S1-3|
+    //
+    // S0-0 is S[0] at GP 0
 
     KRATOS_CATCH("")
 }
