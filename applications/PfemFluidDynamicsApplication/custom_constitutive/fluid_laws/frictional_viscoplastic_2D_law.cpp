@@ -62,10 +62,38 @@ namespace Kratos
         Vector &r_stress_vector = rValues.GetStressVector();
 
         const double dynamic_viscosity = this->GetEffectiveMaterialParameter(rValues, DYNAMIC_VISCOSITY);
-        const double friction_angle = this->GetEffectiveMaterialParameter(rValues, INTERNAL_FRICTION_ANGLE);
-        const double cohesion = this->GetEffectiveMaterialParameter(rValues, COHESION);
+        double friction_angle = this->GetEffectiveMaterialParameter(rValues, INTERNAL_FRICTION_ANGLE);
+        double cohesion = this->GetEffectiveMaterialParameter(rValues, COHESION);
         const double adaptive_exponent = r_properties[ADAPTIVE_EXPONENT];
         double effective_dynamic_viscosity = 0;
+
+        const GeometryType &r_geometry = rValues.GetElementGeometry();
+        const unsigned int number_of_nodes = r_geometry.size();
+        double minYCoordinate = 1265;
+        bool rigidElementOnRamp = false;
+        for (unsigned int i = 0; i < number_of_nodes; i++)
+        {
+            if (r_geometry[i].Is(RIGID))
+            {
+
+               // if (r_geometry[i].X() < minXCoordinate)
+               // {
+               //     rigidElementOnRamp = true;
+               // }
+                 if (r_geometry[i].Y() > minYCoordinate) {
+                     friction_angle = 20;
+                 }
+                 else {
+                    friction_angle = 25;
+                 }
+            }
+        }
+
+        // if (rigidElementOnRamp == true)
+        // {
+        //     friction_angle = 14;
+        //     cohesion = 0;
+        // }
 
         const double old_pressure = this->CalculateInGaussPoint(PRESSURE, rValues, 1);
         const double new_pressure = this->CalculateInGaussPoint(PRESSURE, rValues, 0);
@@ -139,7 +167,6 @@ namespace Kratos
 
         return 0;
     }
-
 
     double FrictionalViscoplastic2DLaw::GetEffectiveMaterialParameter(ConstitutiveLaw::Parameters &rParameters, const Variable<double> &rVariable) const
     {

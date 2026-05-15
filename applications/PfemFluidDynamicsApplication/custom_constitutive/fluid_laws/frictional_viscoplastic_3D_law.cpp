@@ -62,10 +62,31 @@ namespace Kratos
         Vector &r_stress_vector = rValues.GetStressVector();
 
         const double dynamic_viscosity = this->GetEffectiveMaterialParameter(rValues, DYNAMIC_VISCOSITY);
-        const double friction_angle = this->GetEffectiveMaterialParameter(rValues, INTERNAL_FRICTION_ANGLE);
-        const double cohesion = this->GetEffectiveMaterialParameter(rValues, COHESION);
+        double friction_angle = this->GetEffectiveMaterialParameter(rValues, INTERNAL_FRICTION_ANGLE);
+        double cohesion = this->GetEffectiveMaterialParameter(rValues, COHESION);
         const double adaptive_exponent = r_properties[ADAPTIVE_EXPONENT];
         double effective_dynamic_viscosity = 0;
+
+        const GeometryType &r_geometry = rValues.GetElementGeometry();
+        const unsigned int number_of_nodes = r_geometry.size();
+        double minZCoordinate=1260;
+
+        for (unsigned int i = 0; i < number_of_nodes; i++)
+         {
+            if (r_geometry[i].Is(RIGID)) {
+                cohesion = 0;
+
+                if (r_geometry[i].Z() > minZCoordinate) {
+                    friction_angle = 20;
+                }
+                else {
+                     friction_angle = 25;
+                 }
+             }
+            // first analysis was up 10, down 25            
+            // second analysis was up 15, down 25
+
+         }
 
         const double old_pressure = this->CalculateInGaussPoint(PRESSURE, rValues, 1);
         const double new_pressure = this->CalculateInGaussPoint(PRESSURE, rValues, 0);
