@@ -24,13 +24,15 @@ using namespace std::string_literals;
 std::size_t GetIndex3D(const indexStress3DInterface Index3D)
 {
     using enum indexStress3DInterface;
+    using enum indexStress3D;
+
     switch (Index3D) {
     case INDEX_3D_INTERFACE_ZZ:
-        return static_cast<std::size_t>(indexStress3D::INDEX_3D_ZZ);
+        return static_cast<std::size_t>(INDEX_3D_ZZ);
     case INDEX_3D_INTERFACE_YZ:
-        return static_cast<std::size_t>(indexStress3D::INDEX_3D_YZ);
+        return static_cast<std::size_t>(INDEX_3D_YZ);
     case INDEX_3D_INTERFACE_XZ:
-        return static_cast<std::size_t>(indexStress3D::INDEX_3D_XZ);
+        return static_cast<std::size_t>(INDEX_3D_XZ);
     default:
         KRATOS_ERROR << "invalid index: " << static_cast<int>(Index3D) << std::endl;
     }

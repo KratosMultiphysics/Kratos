@@ -20,7 +20,6 @@
 
 namespace Kratos
 {
-using enum indexStress2DInterface;
 
 ConstitutiveLaw::Pointer LinearElastic2DInterfaceLaw::Clone() const
 {
@@ -62,6 +61,7 @@ SizeType LinearElastic2DInterfaceLaw::GetStrainSize() const { return VOIGT_SIZE_
 void LinearElastic2DInterfaceLaw::CalculateElasticMatrix(Matrix& C, ConstitutiveLaw::Parameters& rValues)
 {
     KRATOS_TRY
+    using enum indexStress2DInterface;
 
     const Properties& r_material_properties = rValues.GetMaterialProperties();
     const double      E                     = r_material_properties[YOUNG_MODULUS];
@@ -70,10 +70,10 @@ void LinearElastic2DInterfaceLaw::CalculateElasticMatrix(Matrix& C, Constitutive
     C = ZeroMatrix(GetStrainSize(), GetStrainSize());
 
     const double c0 = E / ((1.0 + NU) * (1.0 - 2.0 * NU));
-    C(static_cast<std::size_t>(indexStress2DInterface::INDEX_2D_INTERFACE_XZ),
-      static_cast<std::size_t>(indexStress2DInterface::INDEX_2D_INTERFACE_XZ)) = (0.5 - NU) * c0;
-    C(static_cast<std::size_t>(indexStress2DInterface::INDEX_2D_INTERFACE_ZZ),
-      static_cast<std::size_t>(indexStress2DInterface::INDEX_2D_INTERFACE_ZZ)) = (1.0 - NU) * c0;
+    C(static_cast<std::size_t>(INDEX_2D_INTERFACE_XZ), static_cast<std::size_t>(INDEX_2D_INTERFACE_XZ)) =
+        (0.5 - NU) * c0;
+    C(static_cast<std::size_t>(INDEX_2D_INTERFACE_ZZ), static_cast<std::size_t>(INDEX_2D_INTERFACE_ZZ)) =
+        (1.0 - NU) * c0;
 
     KRATOS_CATCH("")
 }

@@ -32,8 +32,6 @@
 
 namespace Kratos
 {
-using enum indexStress2DPlaneStrain;
-
 template <unsigned int TDim, unsigned int TNumNodes>
 UPwSmallStrainElement<TDim, TNumNodes>::UPwSmallStrainElement(IndexType             NewId,
                                                               const NodesArrayType& ThisNodes,
@@ -379,12 +377,15 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const 
                                    nodal_hydraulic_head.begin(), 0.0);
         }
     } else if (rVariable == CONFINED_STIFFNESS || rVariable == SHEAR_STIFFNESS) {
+        using enum indexStress2DPlaneStrain;
+        using enum indexStress3D;
+
         size_t variable_index = 0;
         if (rVariable == CONFINED_STIFFNESS) {
             if (TDim == 2) {
                 variable_index = static_cast<std::size_t>(INDEX_2D_PLANE_STRAIN_XX);
             } else if (TDim == 3) {
-                variable_index = static_cast<std::size_t>(indexStress3D::INDEX_3D_XX);
+                variable_index = static_cast<std::size_t>(INDEX_3D_XX);
             } else {
                 KRATOS_ERROR << "CONFINED_STIFFNESS can not be retrieved for dim " << TDim
                              << " in element: " << this->Id() << std::endl;
@@ -393,7 +394,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const 
             if (TDim == 2) {
                 variable_index = static_cast<std::size_t>(INDEX_2D_PLANE_STRAIN_XY);
             } else if (TDim == 3) {
-                variable_index = static_cast<std::size_t>(indexStress3D::INDEX_3D_XZ);
+                variable_index = static_cast<std::size_t>(INDEX_3D_XZ);
             } else {
                 KRATOS_ERROR << "SHEAR_STIFFNESS can not be retrieved for dim " << TDim
                              << " in element: " << this->Id() << std::endl;

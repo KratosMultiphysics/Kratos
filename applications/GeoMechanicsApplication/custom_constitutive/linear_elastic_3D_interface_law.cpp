@@ -20,7 +20,6 @@
 
 namespace Kratos
 {
-using enum indexStress3DInterface;
 
 ConstitutiveLaw::Pointer LinearElastic3DInterfaceLaw::Clone() const
 {
@@ -62,6 +61,7 @@ SizeType LinearElastic3DInterfaceLaw::GetStrainSize() const { return VOIGT_SIZE_
 void LinearElastic3DInterfaceLaw::CalculateElasticMatrix(Matrix& C, ConstitutiveLaw::Parameters& rValues)
 {
     KRATOS_TRY
+    using enum indexStress3DInterface;
 
     const Properties& r_material_properties = rValues.GetMaterialProperties();
     const double      E                     = r_material_properties[YOUNG_MODULUS];

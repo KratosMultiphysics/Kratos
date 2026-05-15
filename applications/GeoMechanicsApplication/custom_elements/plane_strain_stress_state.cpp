@@ -15,11 +15,12 @@
 
 namespace Kratos
 {
-using enum indexDOF3D;
-using enum indexStress2DPlaneStrain;
 
 Matrix PlaneStrainStressState::CalculateBMatrix(const Matrix& rDN_DX, const Vector&, const Geometry<Node>& rGeometry) const
 {
+    using enum indexDOF3D;
+    using enum indexStress2DPlaneStrain;
+
     const auto dimension       = rGeometry.WorkingSpaceDimension();
     const auto number_of_nodes = rGeometry.size();
     Matrix     result = ZeroMatrix(VOIGT_SIZE_2D_PLANE_STRAIN, dimension * number_of_nodes);
@@ -52,6 +53,9 @@ std::unique_ptr<StressStatePolicy> PlaneStrainStressState::Clone() const
 
 Vector PlaneStrainStressState::ConvertStrainTensorToVector(const Matrix& rStrainTensor)
 {
+    using enum indexDOF3D;
+    using enum indexStress2DPlaneStrain;
+
     const auto strain_vector = MathUtils<double>::StrainTensorToVector(rStrainTensor);
     Vector     result        = ZeroVector(VOIGT_SIZE_2D_PLANE_STRAIN);
     result[static_cast<std::size_t>(INDEX_2D_PLANE_STRAIN_XX)] = strain_vector[0];

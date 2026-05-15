@@ -44,8 +44,6 @@
 
 namespace Kratos
 {
-using enum indexStress2DPlaneStrain;
-
 SmallStrainUPwDiffOrderElement::SmallStrainUPwDiffOrderElement(IndexType             NewId,
                                                                GeometryType::Pointer pGeometry,
                                                                std::unique_ptr<StressStatePolicy> pStressStatePolicy,
@@ -540,14 +538,14 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
             << rVariable.Name() << " can not be retrieved for dim "
             << r_geom.WorkingSpaceDimension() << " in element: " << this->Id() << std::endl;
         size_t variable_index = 0;
+        using enum indexStress2DPlaneStrain;
+        using enum indexStress3D;
         if (rVariable == CONFINED_STIFFNESS) {
-            variable_index = r_geom.WorkingSpaceDimension() == 2
-                                 ? static_cast<size_t>(INDEX_2D_PLANE_STRAIN_XX)
-                                 : static_cast<size_t>(indexStress3D::INDEX_3D_XX);
+            variable_index = r_geom.WorkingSpaceDimension() == 2 ? static_cast<size_t>(INDEX_2D_PLANE_STRAIN_XX)
+                                                                 : static_cast<size_t>(INDEX_3D_XX);
         } else {
-            variable_index = r_geom.WorkingSpaceDimension() == 2
-                                 ? static_cast<size_t>(INDEX_2D_PLANE_STRAIN_XY)
-                                 : static_cast<size_t>(indexStress3D::INDEX_3D_XZ);
+            variable_index = r_geom.WorkingSpaceDimension() == 2 ? static_cast<size_t>(INDEX_2D_PLANE_STRAIN_XY)
+                                                                 : static_cast<size_t>(INDEX_3D_XZ);
         }
 
         ElementVariables Variables;

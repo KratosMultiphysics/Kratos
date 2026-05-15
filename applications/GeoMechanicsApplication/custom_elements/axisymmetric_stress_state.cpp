@@ -17,13 +17,14 @@
 
 namespace Kratos
 {
-using enum indexDOF3D;
-using enum indexStress2DPlaneStrain;
 
 Matrix AxisymmetricStressState::CalculateBMatrix(const Matrix&         rDN_DX,
                                                  const Vector&         rN,
                                                  const Geometry<Node>& rGeometry) const
 {
+    using enum indexDOF3D;
+    using enum indexStress2DPlaneStrain;
+
     const auto radius = GeoElementUtilities::CalculateRadius(rN, rGeometry);
 
     const auto dimension       = rGeometry.WorkingSpaceDimension();

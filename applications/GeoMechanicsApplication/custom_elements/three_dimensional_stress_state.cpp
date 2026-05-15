@@ -16,13 +16,13 @@
 
 namespace Kratos
 {
-using enum indexDOF3D;
-using enum indexStress3D;
-
 Matrix ThreeDimensionalStressState::CalculateBMatrix(const Matrix& rDN_DX,
                                                      const Vector&,
                                                      const Geometry<Node>& rGeometry) const
 {
+    using enum indexDOF3D;
+    using enum indexStress3D;
+
     const auto dimension       = rGeometry.WorkingSpaceDimension();
     const auto number_of_nodes = rGeometry.size();
     Matrix     result          = ZeroMatrix(VOIGT_SIZE_3D, dimension * number_of_nodes);
