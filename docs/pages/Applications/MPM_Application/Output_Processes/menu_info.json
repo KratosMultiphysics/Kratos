@@ -6,6 +6,7 @@
         "mpm_json_output_process.md",
         "mpm_point_output_process.md",
         "mpm_multiple_points_output_process.md",
+        "mpm_write_energy_output_process.md",
         "restart.md"
     ]
 }
