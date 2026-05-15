@@ -60,9 +60,17 @@ public:
                                                     bool        ReformDofSetAtEachStep = false,
                                                     bool        MoveMeshFlag           = false)
         : GeoMechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(
-              model_part, pScheme, pNewConvergenceCriteria, pNewBuilderAndSolver, rParameters, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag)
+              model_part,
+              pScheme,
+              pNewConvergenceCriteria,
+              pNewBuilderAndSolver,
+              rParameters,
+              MaxIterations,
+              CalculateReactions,
+              ReformDofSetAtEachStep,
+              MoveMeshFlag),
+          rank(model_part.GetCommunicator().MyPID())
     {
-        rank              = model_part.GetCommunicator().MyPID();
         mPipingIterations = rParameters["max_piping_iterations"].GetInt();
     }
 
