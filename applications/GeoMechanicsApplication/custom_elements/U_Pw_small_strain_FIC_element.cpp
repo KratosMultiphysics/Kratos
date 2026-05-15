@@ -32,6 +32,19 @@ auto CalculateSquareExtrapolationMatrix(const Kratos::Element* pElement)
     }
     return extrapolation_matrix;
 }
+
+// Helper: contracts GradNpT(l,k) with a nodal tensor container indexed by l
+template <unsigned int TNumNodes>
+inline double ContractGradWithNodal(const Kratos::Matrix&                      rGradNpT,
+                                    const Kratos::array_1d<double, TNumNodes>& rNodalTensor,
+                                    const unsigned int                         k)
+{
+    double result = 0.0;
+    for (unsigned int l = 0; l < TNumNodes; ++l) {
+        result += rGradNpT(l, k) * rNodalTensor[l];
+    }
+    return result;
+}
 } // namespace
 
 namespace Kratos
@@ -256,14 +269,14 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::SaveGPConstitutiveTensor(array_1
         }
     }
 
-    /* INFO: (Quadrilateral_2D_4 with GI_GAUSS_2)
+    /* info on: (Quadrilateral_2D_4 with GI_GAUSS_2)
      *
-     *                                ( |D00-0 D01-0 D02-0|   |D10-0 D11-0 D12-0| )
-     * rConstitutiveTensorContainer = ( |D00-1 D01-1 D02-1|   |D10-1 D11-1 D12-1| )
-     *                                ( |D00-2 D01-2 D02-2|   |D10-2 D11-2 D12-2| )
-     *                                ( |D00-3 D01-3 D02-3| , |D10-3 D11-3 D12-3| )
+     *                                 ( |D00-0 D01-0 D02-0|   |D10-0 D11-0 D12-0| )
+     * rConstitutiveTensorContainer is ( |D00-1 D01-1 D02-1|   |D10-1 D11-1 D12-1| )
+     *                                 ( |D00-2 D01-2 D02-2|   |D10-2 D11-2 D12-2| )
+     *                                 ( |D00-3 D01-3 D02-3| , |D10-3 D11-3 D12-3| )
      *
-     * D00-0 = D(0,0) at GP 0
+     * D00-0 is D(0,0) at GP 0
      */
     KRATOS_CATCH("")
 }
@@ -279,14 +292,14 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::SaveGPDtStress(Matrix&       rDt
         rDtStressContainer(GPoint, i) = StressVector[i];
     }
 
-    /* INFO: (Quadrilateral_2D_4 with GI_GAUSS_2)
+    /* info on: (Quadrilateral_2D_4 with GI_GAUSS_2)
      *
-     *                      |S0-0 S1-0|
-     * rDtStressContainer = |S0-1 S1-1|
-     *                      |S0-2 S1-2|
-     *                      |S0-3 S1-3|
+     *                       |S0-0 S1-0|
+     * rDtStressContainer is |S0-1 S1-1|
+     *                       |S0-2 S1-2|
+     *                       |S0-3 S1-3|
      *
-     * S0-0 = S[0] at GP 0
+     * S0-0 is S[0] at GP 0
      */
 
     KRATOS_CATCH("")
@@ -312,13 +325,13 @@ void UPwSmallStrainFICElement<2, 3>::ExtrapolateGPConstitutiveTensor(const array
     }
 
     // clang-format off
-    /* INFO:
+    /* info:
      *
-     *                            [ ( |D00-0|   |D01-0|   |D02-0| )   ( |D10-0|   |D11-0|   |D12-0| ) ]
-     * mNodalConstitutiveTensor = [ ( |D00-1|   |D01-1|   |D02-1| )   ( |D10-1|   |D11-1|   |D12-1| ) ]
-     *                            [ ( |D00-2| , |D01-2| , |D02-2| ) , ( |D10-2| , |D11-2| , |D12-2| ) ]
+     *                             [ ( |D00-0|   |D01-0|   |D02-0| )   ( |D10-0|   |D11-0|   |D12-0| ) ]
+     * mNodalConstitutiveTensor is [ ( |D00-1|   |D01-1|   |D02-1| )   ( |D10-1|   |D11-1|   |D12-1| ) ]
+     *                             [ ( |D00-2| , |D01-2| , |D02-2| ) , ( |D10-2| , |D11-2| , |D12-2| ) ]
      *
-     * D00-0 = D(0,0) at node 0
+     * D00-0 is D(0,0) at node 0
      */
     // clang-format on
 
@@ -406,13 +419,13 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::ExtrapolateGPDtStress(const Matr
     for (unsigned int i = 0; i < TDim; ++i)
         noalias(mNodalDtStress[i]) = column(AuxNodalDtStress, i);
 
-    /* INFO:
+    /* info:
      *
-     *                  ( |S0-0|   |S1-0| )
-     * mNodalDtStress = ( |S0-1|   |S1-1| )
-     *                  ( |S0-2| , |S1-2| )
+     *                   ( |S0-0|   |S1-0| )
+     * mNodalDtStress is ( |S0-1|   |S1-1| )
+     *                   ( |S0-2| , |S1-2| )
      *
-     * S0-0 = S[0] at node 0
+     * S0-0 is S[0] at node 0
      */
 
     KRATOS_CATCH("")
@@ -593,18 +606,18 @@ void UPwSmallStrainFICElement<2, 4>::ExtrapolateShapeFunctionsGradients(
         rNodalShapeFunctionsGradients[i][7] = AuxNodalShapeFunctionsGradients(3, index + 1);
     }
 
-    /* INFO:
+    /* info:
      *
-     *                                 ( |N0x-0|   |N1x-0|   |N2x-0|   |N3x-0| )
-     *                                 ( |N0y-0|   |N1y-0|   |N2y-0|   |N3y-0| )
-     *                                 ( |N0x-1|   |N1x-1|   |N2x-1|   |N3x-1| )
-     * rNodalShapeFunctionsGradients = ( |N0y-1|   |N1y-1|   |N2y-1|   |N3y-1| )
-     *                                 ( |N0x-2|   |N1x-2|   |N2x-2|   |N3x-2| )
-     *                                 ( |N0y-2|   |N1y-2|   |N2y-2|   |N3y-2| )
-     *                                 ( |N0x-3|   |N1x-3|   |N2x-3|   |N3x-3| )
-     *                                 ( |N0y-3| , |N1y-3| , |N2y-3| , |N3y-3| )
+     *                                  ( |N0x-0|   |N1x-0|   |N2x-0|   |N3x-0| )
+     *                                  ( |N0y-0|   |N1y-0|   |N2y-0|   |N3y-0| )
+     *                                  ( |N0x-1|   |N1x-1|   |N2x-1|   |N3x-1| )
+     * rNodalShapeFunctionsGradients is ( |N0y-1|   |N1y-1|   |N2y-1|   |N3y-1| )
+     *                                  ( |N0x-2|   |N1x-2|   |N2x-2|   |N3x-2| )
+     *                                  ( |N0y-2|   |N1y-2|   |N2y-2|   |N3y-2| )
+     *                                  ( |N0x-3|   |N1x-3|   |N2x-3|   |N3x-3| )
+     *                                  ( |N0y-3| , |N1y-3| , |N2y-3| , |N3y-3| )
      *
-     * N0x-0 = aN0/ax at node 0
+     * N0x-0 is aN0/ax at node 0
      */
     KRATOS_CATCH("")
 }
@@ -822,13 +835,13 @@ void UPwSmallStrainFICElement<2, 4>::CalculateShapeFunctionsSecondOrderGradients
         rFICVariables.StrainGradients(1, index) = rFICVariables.StrainGradients(0, index + 1);
     }
 
-    /* INFO:
+    /* info:
      *
-     *                                                    ( |N0xx|   |N1xx|   |N2xx|   |N3xx| )
-     * rFICVariables.ShapeFunctionsSecondOrderGradients = ( |N0yy|   |N1yy|   |N2yy|   |N3yy| )
-     *                                                    ( |N0xy| , |N1xy| , |N2xy| , |N3xy| )
+     *                                                     ( |N0xx|   |N1xx|   |N2xx|   |N3xx| )
+     * rFICVariables.ShapeFunctionsSecondOrderGradients is ( |N0yy|   |N1yy|   |N2yy|   |N3yy| )
+     *                                                     ( |N0xy| , |N1xy| , |N2xy| , |N3xy| )
      *
-     * N0xx = a2N0/ax2 at current GP
+     * N0xx is a2N0/ax2 at current GP
      */
 
     KRATOS_CATCH("")
@@ -977,26 +990,23 @@ void UPwSmallStrainFICElement<2, 3>::CalculateConstitutiveTensorGradients(FICEle
 {
     KRATOS_TRY
 
-    const SizeType Dim      = 2;
-    const SizeType NumNodes = 3;
+    constexpr auto dimension       = SizeType{2};
+    constexpr auto number_of_nodes = SizeType{3};
 
-    for (unsigned int i = 0; i < Dim; ++i) {
+    for (unsigned int i = 0; i < dimension; ++i) {
         for (unsigned int j = 0; j < this->GetStressStatePolicy().GetVoigtSize(); j++) {
-            for (unsigned int k = 0; k < Dim; k++) {
-                rFICVariables.ConstitutiveTensorGradients[i][j][k] = 0.0;
-
-                for (unsigned int l = 0; l < NumNodes; l++)
-                    (rFICVariables.ConstitutiveTensorGradients[i][j][k]) +=
-                        Variables.GradNpT(l, k) * (mNodalConstitutiveTensor[i][j][l]);
+            for (unsigned int k = 0; k < dimension; k++) {
+                rFICVariables.ConstitutiveTensorGradients[i][j][k] = ContractGradWithNodal<number_of_nodes>(
+                    Variables.GradNpT, mNodalConstitutiveTensor[i][j], k);
             }
         }
     }
 
-    for (unsigned int i = 0; i < Dim; ++i) {
+    for (unsigned int i = 0; i < dimension; ++i) {
         for (unsigned int j = 0; j < this->GetStressStatePolicy().GetVoigtSize(); j++) {
             rFICVariables.DimVoigtMatrix(i, j) = 0.0;
 
-            for (unsigned int k = 0; k < Dim; k++)
+            for (unsigned int k = 0; k < dimension; k++)
                 rFICVariables.DimVoigtMatrix(i, j) += rFICVariables.ConstitutiveTensorGradients[k][j][i];
         }
     }
@@ -1004,15 +1014,15 @@ void UPwSmallStrainFICElement<2, 3>::CalculateConstitutiveTensorGradients(FICEle
     noalias(rFICVariables.DimUMatrix) = prod(rFICVariables.DimVoigtMatrix, Variables.B);
 
     // clang-format off
-    /* INFO:
+    /* info:
      *
-     * rFICVariables.ConstitutiveTensorGradients = [ ( |D00x|   |D01x|   |D02x| )   ( |D10x|   |D11x|   |D12x| ) ]
-     *                                             [ ( |D00y| , |D01y| , |D02y| ) , ( |D10y| , |D11y| , |D12y| ) ]
+     * rFICVariables.ConstitutiveTensorGradients is [ ( |D00x|   |D01x|   |D02x| )   ( |D10x|   |D11x|   |D12x| ) ]
+     *                                              [ ( |D00y| , |D01y| , |D02y| ) , ( |D10y| , |D11y| , |D12y| ) ]
      *
-     * rFICVariables.DimVoigtMatrix = |D00x+D10x D01x+D11x D02x+D12x|
-     *                                |D00y+D10y D01y+D11y D02y+D12y|
+     * rFICVariables.DimVoigtMatrix is |D00x+D10x D01x+D11x D02x+D12x|
+     *                                 |D00y+D10y D01y+D11y D02y+D12y|
      *
-     * D00x = aD(0,0)/ax at current GP
+     * D00x is aD(0,0)/ax at current GP
      */
     // clang-format on
 
@@ -1025,26 +1035,23 @@ void UPwSmallStrainFICElement<2, 4>::CalculateConstitutiveTensorGradients(FICEle
 {
     KRATOS_TRY
 
-    const SizeType Dim      = 2;
-    const SizeType NumNodes = 4;
+    constexpr auto dimension       = SizeType{2};
+    constexpr auto number_of_nodes = SizeType{4};
 
-    for (unsigned int i = 0; i < Dim; ++i) {
+    for (unsigned int i = 0; i < dimension; ++i) {
         for (unsigned int j = 0; j < this->GetStressStatePolicy().GetVoigtSize(); j++) {
-            for (unsigned int k = 0; k < Dim; k++) {
-                rFICVariables.ConstitutiveTensorGradients[i][j][k] = 0.0;
-
-                for (unsigned int l = 0; l < NumNodes; l++)
-                    rFICVariables.ConstitutiveTensorGradients[i][j][k] +=
-                        Variables.GradNpT(l, k) * mNodalConstitutiveTensor[i][j][l];
+            for (unsigned int k = 0; k < dimension; k++) {
+                rFICVariables.ConstitutiveTensorGradients[i][j][k] = ContractGradWithNodal<number_of_nodes>(
+                    Variables.GradNpT, mNodalConstitutiveTensor[i][j], k);
             }
         }
     }
 
-    for (unsigned int i = 0; i < Dim; ++i) {
+    for (unsigned int i = 0; i < dimension; ++i) {
         for (unsigned int j = 0; j < this->GetStressStatePolicy().GetVoigtSize(); j++) {
             rFICVariables.DimVoigtMatrix(i, j) = 0.0;
 
-            for (unsigned int k = 0; k < Dim; k++)
+            for (unsigned int k = 0; k < dimension; k++)
                 rFICVariables.DimVoigtMatrix(i, j) += rFICVariables.ConstitutiveTensorGradients[k][j][i];
         }
     }
@@ -1054,8 +1061,8 @@ void UPwSmallStrainFICElement<2, 4>::CalculateConstitutiveTensorGradients(FICEle
     // Adding ShapeFunctionsSecondOrderGradients terms
     unsigned int index;
 
-    for (unsigned int i = 0; i < NumNodes; ++i) {
-        index = Dim * i;
+    for (unsigned int i = 0; i < number_of_nodes; ++i) {
+        index = dimension * i;
 
         rFICVariables.DimUMatrix(0, index) +=
             rFICVariables.ShapeFunctionsSecondOrderGradients[i][0] *
@@ -1088,26 +1095,23 @@ void UPwSmallStrainFICElement<3, 4>::CalculateConstitutiveTensorGradients(FICEle
 {
     KRATOS_TRY
 
-    const SizeType Dim      = 3;
-    const SizeType NumNodes = 4;
+    constexpr auto dimension       = SizeType{3};
+    constexpr auto number_of_nodes = SizeType{4};
 
-    for (unsigned int i = 0; i < Dim; ++i) {
+    for (unsigned int i = 0; i < dimension; ++i) {
         for (unsigned int j = 0; j < this->GetStressStatePolicy().GetVoigtSize(); j++) {
-            for (unsigned int k = 0; k < Dim; k++) {
-                rFICVariables.ConstitutiveTensorGradients[i][j][k] = 0.0;
-
-                for (unsigned int l = 0; l < NumNodes; l++)
-                    rFICVariables.ConstitutiveTensorGradients[i][j][k] +=
-                        Variables.GradNpT(l, k) * mNodalConstitutiveTensor[i][j][l];
+            for (unsigned int k = 0; k < dimension; k++) {
+                rFICVariables.ConstitutiveTensorGradients[i][j][k] = ContractGradWithNodal<number_of_nodes>(
+                    Variables.GradNpT, mNodalConstitutiveTensor[i][j], k);
             }
         }
     }
 
-    for (unsigned int i = 0; i < Dim; ++i) {
+    for (unsigned int i = 0; i < dimension; ++i) {
         for (unsigned int j = 0; j < this->GetStressStatePolicy().GetVoigtSize(); j++) {
             rFICVariables.DimVoigtMatrix(i, j) = 0.0;
 
-            for (unsigned int k = 0; k < Dim; k++)
+            for (unsigned int k = 0; k < dimension; k++)
                 rFICVariables.DimVoigtMatrix(i, j) += rFICVariables.ConstitutiveTensorGradients[k][j][i];
         }
     }
@@ -1123,26 +1127,23 @@ void UPwSmallStrainFICElement<3, 8>::CalculateConstitutiveTensorGradients(FICEle
 {
     KRATOS_TRY
 
-    const SizeType Dim      = 3;
-    const SizeType NumNodes = 8;
+    constexpr auto dimension       = SizeType{3};
+    constexpr auto number_of_nodes = SizeType{8};
 
-    for (unsigned int i = 0; i < Dim; ++i) {
+    for (unsigned int i = 0; i < dimension; ++i) {
         for (unsigned int j = 0; j < this->GetStressStatePolicy().GetVoigtSize(); j++) {
-            for (unsigned int k = 0; k < Dim; k++) {
-                rFICVariables.ConstitutiveTensorGradients[i][j][k] = 0.0;
-
-                for (unsigned int l = 0; l < NumNodes; l++)
-                    rFICVariables.ConstitutiveTensorGradients[i][j][k] +=
-                        Variables.GradNpT(l, k) * mNodalConstitutiveTensor[i][j][l];
+            for (unsigned int k = 0; k < dimension; k++) {
+                rFICVariables.ConstitutiveTensorGradients[i][j][k] = ContractGradWithNodal<number_of_nodes>(
+                    Variables.GradNpT, mNodalConstitutiveTensor[i][j], k);
             }
         }
     }
 
-    for (unsigned int i = 0; i < Dim; ++i) {
+    for (unsigned int i = 0; i < dimension; ++i) {
         for (unsigned int j = 0; j < this->GetStressStatePolicy().GetVoigtSize(); j++) {
             rFICVariables.DimVoigtMatrix(i, j) = 0.0;
 
-            for (unsigned int k = 0; k < Dim; k++)
+            for (unsigned int k = 0; k < dimension; k++)
                 rFICVariables.DimVoigtMatrix(i, j) += rFICVariables.ConstitutiveTensorGradients[k][j][i];
         }
     }
@@ -1152,8 +1153,8 @@ void UPwSmallStrainFICElement<3, 8>::CalculateConstitutiveTensorGradients(FICEle
     // Adding ShapeFunctionsSecondOrderGradients terms
     unsigned int index;
 
-    for (unsigned int i = 0; i < NumNodes; ++i) {
-        index = Dim * i;
+    for (unsigned int i = 0; i < number_of_nodes; ++i) {
+        index = dimension * i;
 
         rFICVariables.DimUMatrix(0, index) +=
             rFICVariables.ShapeFunctionsSecondOrderGradients[i][0] *
@@ -1388,15 +1389,15 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::CalculateDtStressGradients(FICEl
             rFICVariables.DimVector[i] += rFICVariables.DtStressGradients[j][i];
     }
 
-    /* INFO: (2D)
+    /* info: (2D)
      *
-     * rFICVariables.DtStressGradients = ( |S0x|   |S1x| )
-     *                                   ( |S0y| , |S1y| )
+     * rFICVariables.DtStressGradients is ( |S0x|   |S1x| )
+     *                                    ( |S0y| , |S1y| )
      *
-     * rFICVariables.DimVector = |S0x+S1x|
-     *                           |S0y+S1y|
+     * rFICVariables.DimVector is |S0x+S1x|
+     *                            |S0y+S1y|
      *
-     * S0x = aS[0]/ax at current GP
+     * S0x is aS[0]/ax at current GP
      */
 
     KRATOS_CATCH("")
