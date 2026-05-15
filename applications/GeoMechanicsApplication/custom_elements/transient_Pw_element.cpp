@@ -106,9 +106,8 @@ void TransientPwElement<TDim, TNumNodes>::GetValuesVector(Vector& rValues, int S
 {
     KRATOS_TRY
 
-    const unsigned int n_DoF = this->GetNumberOfDOF();
-
-    if (rValues.size() != n_DoF) rValues.resize(n_DoF, false);
+    if (const unsigned int n_DoF = this->GetNumberOfDOF(); rValues.size() != n_DoF)
+        rValues.resize(n_DoF, false);
 
     // Why are we constructing a zero vector here?
     for (unsigned int i = 0; i < TNumNodes; ++i) {
@@ -123,9 +122,8 @@ void TransientPwElement<TDim, TNumNodes>::GetFirstDerivativesVector(Vector& rVal
 {
     KRATOS_TRY
 
-    const unsigned int n_DoF = this->GetNumberOfDOF();
-
-    if (rValues.size() != n_DoF) rValues.resize(n_DoF, false);
+    if (const unsigned int n_DoF = this->GetNumberOfDOF(); rValues.size() != n_DoF)
+        rValues.resize(n_DoF, false);
 
     // Why are we constructing a zero vector here?
     for (unsigned int i = 0; i < TNumNodes; ++i) {
@@ -140,9 +138,8 @@ void TransientPwElement<TDim, TNumNodes>::GetSecondDerivativesVector(Vector& rVa
 {
     KRATOS_TRY
 
-    const unsigned int n_DoF = this->GetNumberOfDOF();
-
-    if (rValues.size() != n_DoF) rValues.resize(n_DoF, false);
+    if (const unsigned int n_DoF = this->GetNumberOfDOF(); rValues.size() != n_DoF)
+        rValues.resize(n_DoF, false);
 
     // Why are we constructing a zero vector here?
     for (unsigned int i = 0; i < TNumNodes; ++i) {
