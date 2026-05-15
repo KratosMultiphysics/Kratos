@@ -297,9 +297,9 @@ Vector UPwSmallStrainInterfaceElement<TDim, TNumNodes>::SetFullStressVector(cons
 
     if constexpr (TDim == 2) {
         full_stress_vector[static_cast<std::size_t>(INDEX_3D_ZZ)] =
-            rStressVector[static_cast<std::size_t>(INDEX_3D_INTERFACE_ZZ)];
+            rStressVector[static_cast<std::size_t>(INDEX_2D_INTERFACE_ZZ)];
         full_stress_vector[static_cast<std::size_t>(INDEX_3D_XZ)] =
-            rStressVector[static_cast<std::size_t>(INDEX_3D_INTERFACE_XZ)];
+            rStressVector[static_cast<std::size_t>(INDEX_2D_INTERFACE_XZ)];
     } else if constexpr (TDim == 3) {
         full_stress_vector[static_cast<std::size_t>(INDEX_3D_ZZ)] =
             rStressVector[static_cast<std::size_t>(INDEX_3D_INTERFACE_ZZ)];
@@ -424,7 +424,7 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateOnIntegrationPoin
             }
         } else if (rVariable == SHEAR_STIFFNESS) {
             if (TDim == 2) {
-                variable_index = static_cast<std::size_t>(INDEX_3D_INTERFACE_XZ);
+                variable_index = static_cast<std::size_t>(INDEX_2D_INTERFACE_XZ);
             } else if (TDim == 3) {
                 variable_index = static_cast<std::size_t>(INDEX_3D_INTERFACE_XZ);
             } else {
