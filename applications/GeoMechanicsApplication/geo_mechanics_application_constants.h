@@ -67,14 +67,14 @@ enum class indexStress2DPlaneStrain : int {
 };
 
 // stress/strain vector indices (2D plane stress):
-enum indexStress2DPlaneStress : int {
+enum class indexStress2DPlaneStress : int {
     INDEX_2D_PLANE_STRESS_XX,
     INDEX_2D_PLANE_STRESS_YY,
     INDEX_2D_PLANE_STRESS_XY
 };
 
 // stress/strain vector indices (2D axisymmetric):
-enum indexStress2DAxisymmetric : int {
+enum class indexStress2DAxisymmetric : int {
     INDEX_2D_AXI_SYMMETRIC_XX,
     INDEX_2D_AXI_SYMMETRIC_YY,
     INDEX_2D_AXI_SYMMETRIC_RR,
