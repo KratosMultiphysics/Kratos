@@ -975,7 +975,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddLHS(MatrixType& rLef
 
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddStiffnessMatrix(MatrixType& rLeftHandSideMatrix,
-                                                                            const ElementVariables& rVariables)
+                                                                            const ElementVariables& rVariables) const
 {
     KRATOS_TRY
 
@@ -1333,7 +1333,8 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateKinematics(ElementVariable
 
     rVariables.detJ = rVariables.detJContainer[IntegrationPointIndex];
 
-    Matrix J0, InvJ0;
+    Matrix J0;
+    Matrix InvJ0;
     this->CalculateDerivativesOnInitialConfiguration(rVariables.detJInitialConfiguration, J0, InvJ0,
                                                      rVariables.GradNpTInitialConfiguration,
                                                      IntegrationPointIndex);
