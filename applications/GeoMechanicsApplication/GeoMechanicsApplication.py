@@ -1,7 +1,7 @@
 # Application dependent names and paths
 from KratosMultiphysics import _ImportApplication, python_registry_utilities
 import KratosMultiphysics.StructuralMechanicsApplication
-from KratosGeoMechanicsApplication import *
+from KratosGeoMechanicsApplication import KratosGeoMechanicsApplication
 application = KratosGeoMechanicsApplication()
 application_name = "KratosGeoMechanicsApplication"
 
