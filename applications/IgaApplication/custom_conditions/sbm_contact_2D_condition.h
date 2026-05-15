@@ -325,6 +325,10 @@ namespace Kratos
         return *mpPropSlave;
     }
 
+    void UpdateActiveSetCriterionData();
+
+    double CalculateScaledPenalty() const;
+
     void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
     void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;

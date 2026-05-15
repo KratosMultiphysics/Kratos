@@ -33,6 +33,7 @@ void SbmContact2DCondition::Initialize(const ProcessInfo& rCurrentProcessInfo)
     InitializeMaterial();
     InitializeMemberVariables();
     InitializeSbmMemberVariables();
+    UpdateActiveSetCriterionData();
 
     if (mpProjectionNodeMaster != nullptr) {
         const auto& r_geometry_master = GetMasterGeometry();
@@ -259,7 +260,49 @@ void SbmContact2DCondition::InitializeSbmMemberVariables()
     mIntegrationWeightSlave = r_geometry_master.IntegrationPoints()[0].Weight() * det_J_surrogate_skin_master * det_J_skin_master_skin_slave/det_J_surrogate_skin_slave * thickness_slave;
     
 
-    this->SetValue(INTEGRATION_WEIGHT, mIntegrationWeightMaster); 
+    this->SetValue(INTEGRATION_WEIGHT, mIntegrationWeightMaster);
+}
+
+void SbmContact2DCondition::UpdateActiveSetCriterionData()
+{
+    KRATOS_ERROR_IF(mpPropMaster == nullptr || mpPropSlave == nullptr)
+        << "\"SbmContact2DCondition\" #" << Id()
+        << " requires both master and slave properties to update the active set data." << std::endl;
+
+    KRATOS_ERROR_IF_NOT((*mpPropMaster).Has(YOUNG_MODULUS))
+        << "\"SbmContact2DCondition\" #" << Id()
+        << " missing YOUNG_MODULUS in the master properties." << std::endl;
+    KRATOS_ERROR_IF_NOT((*mpPropSlave).Has(YOUNG_MODULUS))
+        << "\"SbmContact2DCondition\" #" << Id()
+        << " missing YOUNG_MODULUS in the slave properties." << std::endl;
+    KRATOS_ERROR_IF_NOT((*mpPropMaster).Has(PENALTY_FACTOR))
+        << "\"SbmContact2DCondition\" #" << Id()
+        << " missing PENALTY_FACTOR in the master properties." << std::endl;
+    KRATOS_ERROR_IF_NOT((*mpPropSlave).Has(PENALTY_FACTOR))
+        << "\"SbmContact2DCondition\" #" << Id()
+        << " missing PENALTY_FACTOR in the slave properties." << std::endl;
+
+    SetValue(YOUNG_MODULUS_MASTER, (*mpPropMaster)[YOUNG_MODULUS]);
+    SetValue(YOUNG_MODULUS_SLAVE, (*mpPropSlave)[YOUNG_MODULUS]);
+    SetValue(PENALTY_FACTOR, CalculateScaledPenalty());
+}
+
+double SbmContact2DCondition::CalculateScaledPenalty() const
+{
+    KRATOS_ERROR_IF(mpPropMaster == nullptr)
+        << "\"SbmContact2DCondition\" #" << Id()
+        << " requires master properties to compute the scaled penalty." << std::endl;
+    KRATOS_ERROR_IF_NOT((*mpPropMaster).Has(PENALTY_FACTOR))
+        << "\"SbmContact2DCondition\" #" << Id()
+        << " missing PENALTY_FACTOR in the master properties." << std::endl;
+
+    const double h = std::min(mMasterCharacteristicLength, mSlaveCharacteristicLength);
+    KRATOS_ERROR_IF(h <= 0.0)
+        << "\"SbmContact2DCondition\" #" << Id()
+        << " has non-positive characteristic length, so the scaled penalty cannot be computed." << std::endl;
+
+    const double basis_order = static_cast<double>(std::max<SizeType>(1, mMasterBasisFunctionsOrder));
+    return (*mpPropMaster)[PENALTY_FACTOR] / h * basis_order * basis_order;
 }
 
 void SbmContact2DCondition::ComputeGradientTaylorExpansionContribution(
@@ -1564,9 +1607,8 @@ void SbmContact2DCondition::CalculateLocalSystem(
         this->InitializeNonLinearIteration(rCurrentProcessInfo);
 
         // #############################################################
-        SetValue(ACTIVATION_LEVEL, 0);  
-        SetValue(YOUNG_MODULUS_MASTER, (*mpPropMaster)[YOUNG_MODULUS]);
-        SetValue(YOUNG_MODULUS_SLAVE, (*mpPropSlave)[YOUNG_MODULUS]);
+        SetValue(ACTIVATION_LEVEL, 0);
+        UpdateActiveSetCriterionData();
     }
 
     /**
@@ -1642,6 +1684,7 @@ void SbmContact2DCondition::CalculateLocalSystem(
         this->SetConstitutiveVariables(strain_vector_slave, 1, rCurrentProcessInfo);
 
         SetGap();
+        UpdateActiveSetCriterionData();
     }
 
     /**
