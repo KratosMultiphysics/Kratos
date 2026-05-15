@@ -54,7 +54,7 @@ void LinearElastic3DInterfaceLaw::GetLawFeatures(Features& rFeatures)
     rFeatures.mSpaceDimension = WorkingSpaceDimension();
 }
 
-SizeType LinearElastic3DInterfaceLaw::WorkingSpaceDimension() { return Dimension; }
+SizeType LinearElastic3DInterfaceLaw::WorkingSpaceDimension() { return N_DIM_3D; }
 
 SizeType LinearElastic3DInterfaceLaw::GetStrainSize() const { return VOIGT_SIZE_3D_INTERFACE; }
 

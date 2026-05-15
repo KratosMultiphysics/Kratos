@@ -54,7 +54,7 @@ void LinearElastic2DInterfaceLaw::GetLawFeatures(Features& rFeatures)
     rFeatures.mSpaceDimension = WorkingSpaceDimension();
 }
 
-SizeType LinearElastic2DInterfaceLaw::WorkingSpaceDimension() { return Dimension; }
+SizeType LinearElastic2DInterfaceLaw::WorkingSpaceDimension() { return N_DIM_2D; }
 
 SizeType LinearElastic2DInterfaceLaw::GetStrainSize() const { return VOIGT_SIZE_2D_INTERFACE; }
 
