@@ -288,7 +288,7 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::ModifyInactiveElementStres
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-Vector UPwSmallStrainInterfaceElement<TDim, TNumNodes>::SetFullStressVector(const Vector& rStressVector)
+Vector UPwSmallStrainInterfaceElement<TDim, TNumNodes>::SetFullStressVector(const Vector& rStressVector) const
 {
     Vector full_stress_vector(6, 0);
 
@@ -505,8 +505,9 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateOnIntegrationPoin
         this->CalculateOnLobattoIntegrationPoints(rVariable, GPValues, rCurrentProcessInfo);
 
         // Printed on standard GiD Gauss points
-        const unsigned int nOutputGPoints = r_geometry.IntegrationPointsNumber(this->GetIntegrationMethod());
-        if (rValues.size() != nOutputGPoints) rValues.resize(nOutputGPoints);
+        if (const unsigned int nOutputGPoints = r_geometry.IntegrationPointsNumber(this->GetIntegrationMethod());
+            rValues.size() != nOutputGPoints)
+            rValues.resize(nOutputGPoints);
 
         this->InterpolateOutputValues<array_1d<double, 3>>(rValues, GPValues);
     } else {
@@ -1622,7 +1623,7 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateAndAddLHS(MatrixT
 
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateAndAddStiffnessMatrix(
-    MatrixType& rLeftHandSideMatrix, const InterfaceElementVariables& rVariables)
+    MatrixType& rLeftHandSideMatrix, const InterfaceElementVariables& rVariables) const
 {
     KRATOS_TRY
 
@@ -1641,7 +1642,7 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateAndAddStiffnessMa
 
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateAndAddCouplingMatrix(
-    MatrixType& rLeftHandSideMatrix, const InterfaceElementVariables& rVariables)
+    MatrixType& rLeftHandSideMatrix, const InterfaceElementVariables& rVariables) const
 {
     KRATOS_TRY
 
@@ -1765,8 +1766,8 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateSoilGamma(Interfa
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateAndAddCouplingTerms(VectorType& rRightHandSideVector,
-                                                                                   InterfaceElementVariables& rVariables)
+void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateAndAddCouplingTerms(
+    VectorType& rRightHandSideVector, InterfaceElementVariables& rVariables) const
 {
     KRATOS_TRY
 
@@ -1875,7 +1876,7 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateRetentionResponse
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-double UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateBulkModulus(const Matrix& ConstitutiveMatrix)
+double UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateBulkModulus(const Matrix& ConstitutiveMatrix) const
 {
     KRATOS_TRY
 
