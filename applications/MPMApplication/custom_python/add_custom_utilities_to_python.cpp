@@ -95,5 +95,4 @@ namespace Kratos::Python{
             ;
     }
 
-} // namespace Python
-} // namespace Kratos
+} // namespace Kratos::Python
