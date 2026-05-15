@@ -59,7 +59,7 @@ enum class indexStress3D : int {
 };
 
 // stress/strain vector indices (2D plane strain):
-enum indexStress2DPlaneStrain : int {
+enum class indexStress2DPlaneStrain : int {
     INDEX_2D_PLANE_STRAIN_XX,
     INDEX_2D_PLANE_STRAIN_YY,
     INDEX_2D_PLANE_STRAIN_ZZ,

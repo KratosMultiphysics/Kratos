@@ -32,6 +32,7 @@
 
 namespace Kratos
 {
+using enum indexStress2DPlaneStrain;
 
 template <unsigned int TDim, unsigned int TNumNodes>
 UPwSmallStrainElement<TDim, TNumNodes>::UPwSmallStrainElement(IndexType             NewId,
@@ -381,7 +382,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const 
         size_t variable_index = 0;
         if (rVariable == CONFINED_STIFFNESS) {
             if (TDim == 2) {
-                variable_index = INDEX_2D_PLANE_STRAIN_XX;
+                variable_index = static_cast<std::size_t>(INDEX_2D_PLANE_STRAIN_XX);
             } else if (TDim == 3) {
                 variable_index = static_cast<std::size_t>(indexStress3D::INDEX_3D_XX);
             } else {
@@ -390,7 +391,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const 
             }
         } else if (rVariable == SHEAR_STIFFNESS) {
             if (TDim == 2) {
-                variable_index = INDEX_2D_PLANE_STRAIN_XY;
+                variable_index = static_cast<std::size_t>(INDEX_2D_PLANE_STRAIN_XY);
             } else if (TDim == 3) {
                 variable_index = static_cast<std::size_t>(indexStress3D::INDEX_3D_XZ);
             } else {

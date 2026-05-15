@@ -44,6 +44,8 @@
 
 namespace Kratos
 {
+using enum indexStress2DPlaneStrain;
+
 SmallStrainUPwDiffOrderElement::SmallStrainUPwDiffOrderElement(IndexType             NewId,
                                                                GeometryType::Pointer pGeometry,
                                                                std::unique_ptr<StressStatePolicy> pStressStatePolicy,

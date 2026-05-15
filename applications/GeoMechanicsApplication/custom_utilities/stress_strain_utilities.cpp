@@ -23,6 +23,7 @@
 
 namespace Kratos
 {
+using enum indexStress2DPlaneStrain;
 
 double StressStrainUtilities::CalculateVonMisesStress(const Vector& rStressVector)
 {
@@ -149,10 +150,10 @@ Vector StressStrainUtilities::CalculateHenckyStrain(const Matrix& rDeformationGr
         Vector StrainVector2D;
         StrainVector2D = MathUtils<double>::StrainTensorToVector(ETensor, 3);
         Vector StrainVector(4);
-        StrainVector[INDEX_2D_PLANE_STRAIN_XX] = StrainVector2D[0];
-        StrainVector[INDEX_2D_PLANE_STRAIN_YY] = StrainVector2D[1];
-        StrainVector[INDEX_2D_PLANE_STRAIN_ZZ] = 0.0;
-        StrainVector[INDEX_2D_PLANE_STRAIN_XY] = StrainVector2D[2];
+        StrainVector[static_cast<std::size_t>(INDEX_2D_PLANE_STRAIN_XX)] = StrainVector2D[0];
+        StrainVector[static_cast<std::size_t>(INDEX_2D_PLANE_STRAIN_YY)] = StrainVector2D[1];
+        StrainVector[static_cast<std::size_t>(INDEX_2D_PLANE_STRAIN_ZZ)] = 0.0;
+        StrainVector[static_cast<std::size_t>(INDEX_2D_PLANE_STRAIN_XY)] = StrainVector2D[2];
         return StrainVector;
     } else {
         return MathUtils<double>::StrainTensorToVector(ETensor, VoigtSize);

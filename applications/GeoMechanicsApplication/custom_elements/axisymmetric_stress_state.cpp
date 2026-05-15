@@ -18,6 +18,7 @@
 namespace Kratos
 {
 using enum indexDOF3D;
+using enum indexStress2DPlaneStrain;
 
 Matrix AxisymmetricStressState::CalculateBMatrix(const Matrix&         rDN_DX,
                                                  const Vector&         rN,
@@ -32,14 +33,15 @@ Matrix AxisymmetricStressState::CalculateBMatrix(const Matrix&         rDN_DX,
     for (IndexType i = 0; i < number_of_nodes; ++i) {
         const IndexType index = dimension * i;
 
-        result(INDEX_2D_PLANE_STRAIN_XX, index + static_cast<IndexType>(INDEX_X)) =
+        result(static_cast<IndexType>(INDEX_2D_PLANE_STRAIN_XX), index + static_cast<IndexType>(INDEX_X)) =
             rDN_DX(i, static_cast<IndexType>(INDEX_X));
-        result(INDEX_2D_PLANE_STRAIN_YY, index + static_cast<IndexType>(INDEX_Y)) =
+        result(static_cast<IndexType>(INDEX_2D_PLANE_STRAIN_YY), index + static_cast<IndexType>(INDEX_Y)) =
             rDN_DX(i, static_cast<IndexType>(INDEX_Y));
-        result(INDEX_2D_PLANE_STRAIN_ZZ, index + static_cast<IndexType>(INDEX_X)) = rN[i] / radius;
-        result(INDEX_2D_PLANE_STRAIN_XY, index + static_cast<IndexType>(INDEX_X)) =
+        result(static_cast<IndexType>(INDEX_2D_PLANE_STRAIN_ZZ), index + static_cast<IndexType>(INDEX_X)) =
+            rN[i] / radius;
+        result(static_cast<IndexType>(INDEX_2D_PLANE_STRAIN_XY), index + static_cast<IndexType>(INDEX_X)) =
             rDN_DX(i, static_cast<IndexType>(INDEX_Y));
-        result(INDEX_2D_PLANE_STRAIN_XY, index + static_cast<IndexType>(INDEX_Y)) =
+        result(static_cast<IndexType>(INDEX_2D_PLANE_STRAIN_XY), index + static_cast<IndexType>(INDEX_Y)) =
             rDN_DX(i, static_cast<IndexType>(INDEX_X));
     }
 
