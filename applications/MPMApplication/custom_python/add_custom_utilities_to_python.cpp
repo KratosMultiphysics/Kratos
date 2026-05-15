@@ -76,7 +76,6 @@ namespace Kratos::Python{
         m.def("GenerateMaterialPointCondition", GenerateMaterialPointConditionAccordingToDimension);
         m.def("GenerateLagrangeNodes", MaterialPointGeneratorUtility::GenerateLagrangeNodes);
         m.def("CalculateNodalCauchyStress", MPMNodalCauchyStressUtility::CalculateNodalCauchyStress);
-    }
 
         // Calculate energy utility
         py::class_< MPMEnergyCalculationUtility> (m,"EnergyCalculationUtility")
@@ -91,5 +90,6 @@ namespace Kratos::Python{
             .def_static("CalculateAllEnergies", py::overload_cast<ModelPart&>(&MPMEnergyCalculationUtility::CalculateAllEnergies), py::arg("mpm_model_part"))
             ;
     }
+
 
 }  // namespace Kratos::Python.
