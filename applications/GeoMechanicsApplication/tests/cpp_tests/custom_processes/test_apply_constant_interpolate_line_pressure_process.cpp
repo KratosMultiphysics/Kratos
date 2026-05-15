@@ -608,4 +608,69 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressure_FlatBoundary_Retu
     KRATOS_EXPECT_NEAR(interior_node->FastGetSolutionStepValue(WATER_PRESSURE), 150.0, 1e-10);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressureProcess_FillListOfBoundaryNodesFast_DynamicAllocation,
+                          KratosGeoMechanicsFastSuite)
+{
+    // Arrange: Create a node shared by 11 elements to trigger dynamic push_back in FillListOfBoundaryNodesFast.
+    Model      model;
+    ModelPart& r_model_part = model.CreateModelPart("Main");
+    r_model_part.AddNodalSolutionStepVariable(WATER_PRESSURE);
+
+    // Create 12 nodes in a line
+    for (std::size_t i = 1; i <= 12; ++i) {
+        r_model_part.CreateNewNode(i, static_cast<double>(i), 0.0, 0.0);
+    }
+    auto p_props = r_model_part.CreateNewProperties(0);
+    // Create 11 elements, all sharing node 1
+    for (std::size_t i = 2; i <= 12; ++i) {
+        r_model_part.CreateNewElement(
+            "Element2D2N", i - 1,
+            std::vector<ModelPart::IndexType>{static_cast<ModelPart::IndexType>(1),
+                                              static_cast<ModelPart::IndexType>(i)},
+            p_props);
+    }
+
+    const auto params = Parameters(R"({
+        "model_part_name": "Main",
+        "variable_name": "WATER_PRESSURE",
+        "gravity_direction": 1,
+        "out_of_plane_direction": 2,
+        "is_fixed": false,
+        "pressure_tension_cut_off": 1e9
+    })");
+
+    // Act & Assert: Should not throw, and should cover the dynamic allocation branch
+    EXPECT_NO_THROW(ApplyConstantInterpolateLinePressureProcess process(r_model_part, params));
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressureProcess_CalculateBoundaryPressure_ErrorBranch,
+                          KratosGeoMechanicsFastSuite)
+{
+    // Arrange: Create a node for which both left and right boundary node searches return empty
+    Model      model;
+    ModelPart& r_model_part = model.CreateModelPart("Main");
+    r_model_part.AddNodalSolutionStepVariable(WATER_PRESSURE);
+
+    // Create a single node (no boundary nodes can be found)
+    auto node                                      = r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+    node->FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
+
+    auto p_props = r_model_part.CreateNewProperties(0);
+    // No elements needed, node is isolated
+
+    const auto params = Parameters(R"({
+        "model_part_name": "Main",
+        "variable_name": "WATER_PRESSURE",
+        "gravity_direction": 1,
+        "out_of_plane_direction": 2,
+        "is_fixed": false,
+        "pressure_tension_cut_off": 1e9
+    })");
+
+    // Act & Assert: Should throw due to lack of boundary nodes for interpolation
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        ApplyConstantInterpolateLinePressureProcess process(r_model_part, params),
+        "No boundary node is found for interpolate line pressure process");
+}
+
 } // namespace
