@@ -21,13 +21,13 @@ namespace
 using namespace Kratos;
 using namespace std::string_literals;
 
-indexStress3D GetIndex3D(const indexStress2DInterface Index2D)
+std::size_t GetIndex3D(const indexStress2DInterface Index2D)
 {
     switch (Index2D) {
     case INDEX_2D_INTERFACE_ZZ:
-        return INDEX_3D_ZZ;
+        return static_cast<std::size_t>(indexStress3D::INDEX_3D_ZZ);
     case INDEX_2D_INTERFACE_XZ:
-        return INDEX_3D_XZ;
+        return static_cast<std::size_t>(indexStress3D::INDEX_3D_XZ);
     default:
         KRATOS_ERROR << "invalid index: " << Index2D << std::endl;
     }
@@ -37,6 +37,7 @@ indexStress3D GetIndex3D(const indexStress2DInterface Index2D)
 
 namespace Kratos
 {
+using enum indexStress3D;
 
 ConstitutiveLaw::Pointer SmallStrainUDSM2DInterfaceLaw::Clone() const
 {
@@ -49,16 +50,16 @@ void SmallStrainUDSM2DInterfaceLaw::UpdateInternalDeltaStrainVector(Parameters& 
 {
     const auto& r_strain_vector = rValues.GetStrainVector();
 
-    mDeltaStrainVector[INDEX_3D_ZZ] =
-        r_strain_vector[INDEX_2D_INTERFACE_ZZ] - mStrainVectorFinalized[INDEX_3D_ZZ];
-    mDeltaStrainVector[INDEX_3D_XZ] =
-        r_strain_vector[INDEX_2D_INTERFACE_XZ] - mStrainVectorFinalized[INDEX_3D_XZ];
+    mDeltaStrainVector[static_cast<std::size_t>(INDEX_3D_ZZ)] =
+        r_strain_vector[INDEX_2D_INTERFACE_ZZ] - mStrainVectorFinalized[static_cast<std::size_t>(INDEX_3D_ZZ)];
+    mDeltaStrainVector[static_cast<std::size_t>(INDEX_3D_XZ)] =
+        r_strain_vector[INDEX_2D_INTERFACE_XZ] - mStrainVectorFinalized[static_cast<std::size_t>(INDEX_3D_XZ)];
 }
 
 void SmallStrainUDSM2DInterfaceLaw::SetExternalStressVector(Vector& rStressVector)
 {
-    rStressVector(INDEX_2D_INTERFACE_ZZ) = mStressVector[INDEX_3D_ZZ];
-    rStressVector(INDEX_2D_INTERFACE_XZ) = mStressVector[INDEX_3D_XZ];
+    rStressVector(INDEX_2D_INTERFACE_ZZ) = mStressVector[static_cast<std::size_t>(INDEX_3D_ZZ)];
+    rStressVector(INDEX_2D_INTERFACE_XZ) = mStressVector[static_cast<std::size_t>(INDEX_3D_XZ)];
 }
 
 void SmallStrainUDSM2DInterfaceLaw::SetInternalStressVector(const Vector& rStressVector)
@@ -67,16 +68,16 @@ void SmallStrainUDSM2DInterfaceLaw::SetInternalStressVector(const Vector& rStres
 
     std::fill_n(r_sig0.begin(), StressVectorSize, 0.0);
 
-    r_sig0[INDEX_3D_ZZ] = rStressVector[INDEX_2D_INTERFACE_ZZ];
-    r_sig0[INDEX_3D_XZ] = rStressVector[INDEX_2D_INTERFACE_XZ];
+    r_sig0[static_cast<std::size_t>(INDEX_3D_ZZ)] = rStressVector[INDEX_2D_INTERFACE_ZZ];
+    r_sig0[static_cast<std::size_t>(INDEX_3D_XZ)] = rStressVector[INDEX_2D_INTERFACE_XZ];
 }
 
 void SmallStrainUDSM2DInterfaceLaw::SetInternalStrainVector(const Vector& rStrainVector)
 {
     std::fill(mStrainVectorFinalized.begin(), mStrainVectorFinalized.end(), 0.0);
 
-    mStrainVectorFinalized[INDEX_3D_ZZ] = rStrainVector[INDEX_2D_INTERFACE_ZZ];
-    mStrainVectorFinalized[INDEX_3D_XZ] = rStrainVector[INDEX_2D_INTERFACE_XZ];
+    mStrainVectorFinalized[static_cast<std::size_t>(INDEX_3D_ZZ)] = rStrainVector[INDEX_2D_INTERFACE_ZZ];
+    mStrainVectorFinalized[static_cast<std::size_t>(INDEX_3D_XZ)] = rStrainVector[INDEX_2D_INTERFACE_XZ];
 }
 
 void SmallStrainUDSM2DInterfaceLaw::CopyConstitutiveMatrix(Parameters& rValues, Matrix& rConstitutiveMatrix)
@@ -117,8 +118,8 @@ Vector& SmallStrainUDSM2DInterfaceLaw::GetValue(const Variable<Vector>& rVariabl
         rValue.resize(GetStrainSize());
 
         auto& r_sig0                  = GetSig0();
-        rValue[INDEX_2D_INTERFACE_ZZ] = r_sig0[INDEX_3D_ZZ];
-        rValue[INDEX_2D_INTERFACE_XZ] = r_sig0[INDEX_3D_XZ];
+        rValue[INDEX_2D_INTERFACE_ZZ] = r_sig0[static_cast<std::size_t>(INDEX_3D_ZZ)];
+        rValue[INDEX_2D_INTERFACE_XZ] = r_sig0[static_cast<std::size_t>(INDEX_3D_XZ)];
     }
     return rValue;
 }

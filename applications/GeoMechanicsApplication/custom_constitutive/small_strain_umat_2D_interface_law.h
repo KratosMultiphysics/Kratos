@@ -167,7 +167,7 @@ private:
     ///@name Static Member Variables
     ///@{
 
-    static indexStress3D getIndex3D(indexStress2DInterface index2D);
+    static std::size_t getIndex3D(indexStress2DInterface index2D);
 
     ///@}
     ///@name Member Variables
