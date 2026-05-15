@@ -101,7 +101,7 @@ std::size_t SmallStrainUMAT3DInterfaceLaw::getIndex3D(const indexStress3DInterfa
     case INDEX_3D_INTERFACE_XZ:
         return static_cast<std::size_t>(INDEX_3D_XZ);
     default:
-        KRATOS_ERROR << "invalid index: " << index3D << std::endl;
+        KRATOS_ERROR << "invalid index: " << static_cast<int>(index3D) << std::endl;
     }
 }
 

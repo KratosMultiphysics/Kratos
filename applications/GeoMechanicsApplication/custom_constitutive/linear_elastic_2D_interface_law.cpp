@@ -20,6 +20,7 @@
 
 namespace Kratos
 {
+using enum indexStress2DInterface;
 
 ConstitutiveLaw::Pointer LinearElastic2DInterfaceLaw::Clone() const
 {
@@ -68,9 +69,11 @@ void LinearElastic2DInterfaceLaw::CalculateElasticMatrix(Matrix& C, Constitutive
 
     C = ZeroMatrix(GetStrainSize(), GetStrainSize());
 
-    const double c0                                 = E / ((1.0 + NU) * (1.0 - 2.0 * NU));
-    C(INDEX_2D_INTERFACE_XZ, INDEX_2D_INTERFACE_XZ) = (0.5 - NU) * c0;
-    C(INDEX_2D_INTERFACE_ZZ, INDEX_2D_INTERFACE_ZZ) = (1.0 - NU) * c0;
+    const double c0 = E / ((1.0 + NU) * (1.0 - 2.0 * NU));
+    C(static_cast<std::size_t>(indexStress2DInterface::INDEX_2D_INTERFACE_XZ),
+      static_cast<std::size_t>(indexStress2DInterface::INDEX_2D_INTERFACE_XZ)) = (0.5 - NU) * c0;
+    C(static_cast<std::size_t>(indexStress2DInterface::INDEX_2D_INTERFACE_ZZ),
+      static_cast<std::size_t>(indexStress2DInterface::INDEX_2D_INTERFACE_ZZ)) = (1.0 - NU) * c0;
 
     KRATOS_CATCH("")
 }

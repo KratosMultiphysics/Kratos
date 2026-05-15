@@ -82,7 +82,7 @@ enum class indexStress2DAxisymmetric : int {
 };
 
 // stress/strain vector indices (2D interface):
-enum indexStress2DInterface : int { INDEX_2D_INTERFACE_XZ, INDEX_2D_INTERFACE_ZZ };
+enum class indexStress2DInterface : int { INDEX_2D_INTERFACE_XZ, INDEX_2D_INTERFACE_ZZ };
 
 // stress/strain vector indices (3D interface):
 enum indexStress3DInterface : int {
