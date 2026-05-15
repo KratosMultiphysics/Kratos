@@ -131,8 +131,6 @@ public:
     void PrintInfo(std::ostream& rOStream) const override;
 
 protected:
-    // default to a safe integration method so the member is always initialized;
-    // the correct value (possibly from overrides) is set in Initialize()
     GeometryData::IntegrationMethod mThisIntegrationMethod;
 
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
