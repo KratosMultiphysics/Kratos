@@ -1,5 +1,3 @@
-# import Kratos
-
 from KratosMultiphysics import *
 from KratosMultiphysics.GeoMechanicsApplication import *
 

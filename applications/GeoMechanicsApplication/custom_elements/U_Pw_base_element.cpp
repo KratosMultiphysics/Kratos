@@ -54,6 +54,8 @@ UPwBaseElement::UPwBaseElement(IndexType                                       N
       mpStressStatePolicy{std::move(pStressStatePolicy)},
       mIntegrationCoefficientsCalculator{std::move(pCoefficientModifier)}
 {
+    // this is needed for interface elements
+    mThisIntegrationMethod = this->GetIntegrationMethod();
 }
 
 int UPwBaseElement::Check(const ProcessInfo& rCurrentProcessInfo) const
@@ -95,9 +97,6 @@ void UPwBaseElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 
     // IGNORE_UNDRAINED is deprecated.
     ConstitutiveLawUtilities::ReplaceIgnoreUndrainedByDrainageType(GetProperties());
-
-    // Ensure the integration method is taken from the final dynamic type (overrides are respected)
-    mThisIntegrationMethod = this->GetIntegrationMethod();
 
     const auto& r_properties = this->GetProperties();
     const auto& r_geometry   = this->GetGeometry();
