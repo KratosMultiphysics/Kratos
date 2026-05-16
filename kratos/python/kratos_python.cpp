@@ -78,6 +78,7 @@
 #include "add_globals_to_python.h"
 #include "add_geometry_data_to_python.h"
 #include "add_tensor_adaptors_to_python.h"
+#include "add_adjoint_interface_to_python.hpp"
 
 #ifdef KRATOS_USE_FUTURE
     #include "future/python/kratos_python.h"
@@ -111,6 +112,7 @@ PYBIND11_MODULE(Kratos, m)
     AddNodeToPython(m);
     AddPropertiesToPython(m);
     AddAccessorsToPython(m);
+    AddAdjointInterfaceToPython(m);
     AddMeshToPython(m);
     AddQuaternionToPython(m);
 
