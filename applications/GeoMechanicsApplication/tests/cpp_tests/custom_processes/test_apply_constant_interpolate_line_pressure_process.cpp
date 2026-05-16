@@ -89,7 +89,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressureProcess_ThrowsOnIn
     })");
 
     // Act & Assert
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         ApplyConstantInterpolateLinePressureProcess process(r_model_part, params),
         "Gravity direction cannot be the same as Out-of-Plane directions");
 }
@@ -124,8 +124,8 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressureProcess_ExecuteIni
 
     // Assert
     for (auto& r_node : r_model_part.Nodes()) {
-        KRATOS_CHECK(r_node.IsFixed(WATER_PRESSURE))
-        KRATOS_CHECK_DOUBLE_EQUAL(r_node.FastGetSolutionStepValue(WATER_PRESSURE), 10.0 * r_node.Id());
+        KRATOS_EXPECT_TRUE(r_node.IsFixed(WATER_PRESSURE))
+        KRATOS_EXPECT_DOUBLE_EQ(r_node.FastGetSolutionStepValue(WATER_PRESSURE), 10.0 * r_node.Id());
     }
 }
 
@@ -162,9 +162,9 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressureProcess_SeepageBra
 
     // All nodes should be set and fixed (since pressure < cut-off)
     for (const auto& r_node : r_model_part.Nodes()) {
-        KRATOS_CHECK(r_node.IsFixed(WATER_PRESSURE))
+        KRATOS_EXPECT_TRUE(r_node.IsFixed(WATER_PRESSURE))
         // The value is set by CalculatePressure, which in this test setup is 0.0
-        KRATOS_CHECK_DOUBLE_EQUAL(r_node.FastGetSolutionStepValue(WATER_PRESSURE), 0.0);
+        KRATOS_EXPECT_DOUBLE_EQ(r_node.FastGetSolutionStepValue(WATER_PRESSURE), 0.0);
     }
 
     // Now set a low cut-off so all nodes will be above the cut-off
@@ -189,7 +189,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressureProcess_SeepageBra
 
     // All nodes should be free (since pressure >= cut-off)
     for (const auto& r_node : r_model_part.Nodes()) {
-        KRATOS_CHECK_IS_FALSE(r_node.IsFixed(WATER_PRESSURE))
+        KRATOS_EXPECT_FALSE(r_node.IsFixed(WATER_PRESSURE))
     }
 }
 
@@ -246,7 +246,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressureProcess_DoesNotFre
 
     // Assert
     for (const auto& r_node : r_model_part.Nodes()) {
-        KRATOS_CHECK(r_node.IsFixed(WATER_PRESSURE))
+        KRATOS_EXPECT_TRUE(r_node.IsFixed(WATER_PRESSURE))
     }
 }
 
@@ -281,7 +281,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressureProcess_FreesWhenI
 
     // Assert
     for (const auto& r_node : r_model_part.Nodes()) {
-        KRATOS_CHECK_IS_FALSE(r_node.IsFixed(WATER_PRESSURE))
+        KRATOS_EXPECT_FALSE(r_node.IsFixed(WATER_PRESSURE))
     }
 }
 
@@ -338,7 +338,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressureProcess_ExecuteIni
     process.ExecuteInitializeSolutionStep();
 
     // Assert: interior node retains the sentinel value, not the interpolated 50.0.
-    KRATOS_CHECK_IS_FALSE(interior_node->IsFixed(WATER_PRESSURE))
+    KRATOS_EXPECT_FALSE(interior_node->IsFixed(WATER_PRESSURE))
     KRATOS_EXPECT_NEAR(interior_node->FastGetSolutionStepValue(WATER_PRESSURE), sentinel, 1e-10);
 }
 
@@ -725,8 +725,8 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressureProcess_CalculateB
     ApplyConstantInterpolateLinePressureProcess process(r_model_part, params);
 
     // Act & Assert: The isolated node triggers the CalculateBoundaryPressure error path.
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(process.ExecuteInitializeSolutionStep(),
-                                     "There is not enough points around interpolation, node Id");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(process.ExecuteInitializeSolutionStep(),
+                                      "There is not enough points around interpolation, node Id");
 }
 
 } // namespace
