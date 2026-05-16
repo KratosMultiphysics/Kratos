@@ -1057,186 +1057,147 @@ namespace Kratos
 		}
 
 		void TransferLagrangianToEulerian() //explicit
-		{
-			KRATOS_TRY
+    {
+        //Parallel. Works!
+        KRATOS_TRY
 
-			ProcessInfo& CurrentProcessInfo = mr_model_part.GetProcessInfo();
-			//const double delta_t =CurrentProcessInfo[DELTA_TIME];
-			const double threshold= 0.0/(double(TDim)+1.0);
+        ProcessInfo &CurrentProcessInfo = mr_model_part.GetProcessInfo();
+        //const double delta_t =CurrentProcessInfo[DELTA_TIME];
+        const double threshold = 0.0 / (double(TDim) + 1.0);
+        // auto t1 = std::chrono::high_resolution_clock::now();
 
+        KRATOS_INFO("MoveParticleUtilityPfem2Modified") << "Projecting info to the mesh - first-order" << std::endl;
 
-            KRATOS_INFO("MoveParticleUtilityPfem2Modified") << "Projecting info to mesh" << std::endl;
+        vector<unsigned int> node_partition;
+        vector<unsigned int> particle_partition;
+        vector<unsigned int> element_partition;
+        #ifdef _OPENMP
+        int number_of_threads = omp_get_max_threads();
+        #else
+        int number_of_threads = 1;
+        #endif
+        OpenMPUtils::CreatePartition(number_of_threads, mr_model_part.Nodes().size(), node_partition);
+        OpenMPUtils::CreatePartition(number_of_threads, mparticles_vector.size(), particle_partition);
+        OpenMPUtils::CreatePartition(number_of_threads, mr_model_part.Elements().size(), element_partition);
+        ModelPart::NodesContainerType::iterator inodebegin = mr_model_part.NodesBegin();
+        ModelPart::ElementsContainerType::iterator ielembegin = mr_model_part.ElementsBegin();
 
+        #pragma omp parallel for
+        for (int kkk = 0; kkk < number_of_threads; kkk++)
+        {
+            for (unsigned int ii = node_partition[kkk]; ii < node_partition[kkk + 1]; ii++)
+            {
+                ModelPart::NodesContainerType::iterator inode = inodebegin + ii;
+                inode->FastGetSolutionStepValue(PROJECTED_DISTANCE) = 0.0;
+                inode->FastGetSolutionStepValue(PROJECTED_VELOCITY) = ZeroVector(3);
+                inode->FastGetSolutionStepValue(YP) = 0.0;
+            }
+        }
 
-			const int offset = CurrentProcessInfo[WATER_PARTICLE_POINTERS_OFFSET]; //the array of pointers for each element has twice the required size so that we use a part in odd timesteps and the other in even ones.
-			//KRATOS_WATCH(offset)																	//(flag managed only by MoveParticles
+        #pragma omp parallel for
+        for (int kkk = 0; kkk < number_of_threads; kkk++)
+        {
+            for (int ii = particle_partition[kkk]; ii < particle_partition[kkk + 1]; ii++)
+            {
+                PFEM_Particle_Fluid &pparticle = mparticles_vector[ii];
+                bool &erase_flag = pparticle.GetEraseFlag();
+                if (erase_flag == false)
+                {
+                    // const unsigned int max_results = 10000;
+                    // ResultContainerType results(max_results);
+                    array_1d<double, 3> &position = pparticle.Coordinates();
+                    array_1d<double, TDim + 1> N;
+                    // ResultIteratorType result_begin = results.begin();
+                    position = pparticle.Coordinates(); //initial coordinates
+                    array_1d<float, 3> particle_velocity = pparticle.GetVelocity();
+                    // array_1d<double, 3> last_useful_vel;
+                    // double sum_Ns_without_other_phase_nodes;
+                    // double only_integral = 0.0;
+                    Element::Pointer pelement(*(ielembegin + pparticle.GetElementId() - 1).base());
+                    Geometry<Node> &geom = pelement->GetGeometry();
+                    bool isfound = CalculatePosition(geom, position[0], position[1], position[2], N);
+                    // bool isfound = FindNodeOnMesh( position, N, pelement, result_begin, max_results);
+                    //array_1d<double,(TDim+1)> weighting_inverse_divisor; 
+                    if (isfound == true)
+                    {
+                        array_1d<double, 3 * (TDim + 1)> nodes_positions;
+                        array_1d<double, 3 * (TDim + 1)> nodes_addedvel = ZeroVector(3 * (TDim + 1));
+                        array_1d<double, (TDim + 1)> nodes_added_distance = ZeroVector((TDim + 1));
+                        array_1d<double, (TDim + 1)> nodes_addedweights = ZeroVector((TDim + 1));
+                        Geometry<Node> &geom = pelement->GetGeometry();
+                        const array_1d<float, 3> &velocity = pparticle.GetVelocity();
+                        const float particle_distance = pparticle.GetDistance(); // -1 if water, +1 if air
+                        for (int j = 0; j != (TDim + 1); j++) //going through the 3/4 nodes of the element
+                        {
+                            //double sq_dist = 0;
+                            //these lines for a weighting function based on the distance (or square distance) from the node insteadof the shape functions
+                            //for (int k=0 ; k!=(TDim); k++) sq_dist += ((position[k] - nodes_positions[j*3+k])*(position[k] - nodes_positions[j*3+k]));
+                            //double weight = (1.0 - (sqrt(sq_dist)*weighting_inverse_divisor[j] ) );
 
-			//we must project data from the particles (lagrangian)  into the eulerian mesh
-			//ValuesVectorType eulerian_nodes_old_temperature;
-			//int nnodes = mr_model_part.Nodes().size();
-			//array_1d<double,(n_nodes)> eulerian_nodes_sumweights;
+                            double weight = N(j);
+                            //weight=N(j)*N(j)*N(j);
+                            if (weight < threshold)
+                                weight = 1e-10;
+                            if (weight < 0.0)
+                            {
+                                KRATOS_WATCH(weight)
+                            } //;weight=0.0;KRATOS_WATCH(velocity);KRATOS_WATCH(N);KRATOS_WATCH(number_of_particles_in_elem);}//{KRATOS_WATCH(weight); KRATOS_WATCH(geom[j].Id()); KRATOS_WATCH(position);}
+                            else
+                            {
+                                nodes_addedweights[j] += weight;
+                                nodes_added_distance[j] += weight * particle_distance;
+                                for (int k = 0; k != (TDim); k++) //x,y,(z)
+                                {
+                                    nodes_addedvel[j * 3 + k] += weight * double(velocity[k]);
+                                }
+                            }
+                        }
 
-			//we save data from previous time step of the eulerian mesh in case we must reuse it later cos no particle was found around the nodes
-			//though we could've use a bigger buffer, to be changed later!
-			//after having saved data, we reset them to zero, this way it's easier to add the contribution of the surrounding particles.
-			ModelPart::NodesContainerType::iterator inodebegin = mr_model_part.NodesBegin();
-			vector<unsigned int> node_partition;
-			#ifdef _OPENMP
-				int number_of_threads = omp_get_max_threads();
-			#else
-				int number_of_threads = 1;
-			#endif
-			OpenMPUtils::CreatePartition(number_of_threads, mr_model_part.Nodes().size(), node_partition);
+                        for (int i = 0; i != (TDim + 1); ++i)
+                        {
+                            geom[i].SetLock();
+                            geom[i].FastGetSolutionStepValue(PROJECTED_DISTANCE) += nodes_added_distance[i];
+                            geom[i].FastGetSolutionStepValue(PROJECTED_VELOCITY_X) += nodes_addedvel[3 * i + 0];
+                            geom[i].FastGetSolutionStepValue(PROJECTED_VELOCITY_Y) += nodes_addedvel[3 * i + 1];
+                            geom[i].FastGetSolutionStepValue(PROJECTED_VELOCITY_Z) += nodes_addedvel[3 * i + 2]; //we are updating info to the previous time step!!
 
-			#pragma omp parallel for
-			for(int kkk=0; kkk<number_of_threads; kkk++)
-			{
-				for(unsigned int ii=node_partition[kkk]; ii<node_partition[kkk+1]; ii++)
-				{
-					ModelPart::NodesContainerType::iterator inode = inodebegin+ii;
-					inode->FastGetSolutionStepValue(DISTANCE)=0.0;
-					inode->FastGetSolutionStepValue(PROJECTED_VELOCITY)=ZeroVector(3);
-					inode->FastGetSolutionStepValue(YP)=0.0;
-				}
+                            geom[i].FastGetSolutionStepValue(YP) += nodes_addedweights[i];
+                            geom[i].UnSetLock();
+                        }
+                    }
+                }
+            }
+        }
 
-			}
+        #pragma omp parallel for
+        for (int kkk = 0; kkk < number_of_threads; kkk++)
+        {
+            for (unsigned int ii = node_partition[kkk]; ii < node_partition[kkk + 1]; ii++)
+            {
+                ModelPart::NodesContainerType::iterator inode = inodebegin + ii;
+                double sum_weights = inode->FastGetSolutionStepValue(YP);
+                if (sum_weights > 0.00001)
+                {
+                    //inode->FastGetSolutionStepValue(TEMPERATURE_OLD_IT)=(inode->FastGetSolutionStepValue(TEMPERATURE_OLD_IT))/sum_weights; //resetting the temperature
+                    double &dist = inode->FastGetSolutionStepValue(PROJECTED_DISTANCE);
+                    dist /= sum_weights;                                                                                                       //resetting the density
+                    inode->FastGetSolutionStepValue(PROJECTED_VELOCITY) = (inode->FastGetSolutionStepValue(PROJECTED_VELOCITY)) / sum_weights; //resetting the velocity
+                }
 
-			//adding contribution, loop on elements, since each element has stored the particles found inside of it
-			vector<unsigned int> element_partition;
-			OpenMPUtils::CreatePartition(number_of_threads, mr_model_part.Elements().size(), element_partition);
+                else //this should never happen because other ways to recover the information have been executed before, but leaving it just in case..
+                {
+                    inode->FastGetSolutionStepValue(PROJECTED_DISTANCE) = 3.0; //resetting the temperature
+                    //inode->FastGetSolutionStepValue(DISTANCE)=inode->GetSolutionStepValue(DISTANCE,1); //resetting the temperature
+                    inode->FastGetSolutionStepValue(PROJECTED_VELOCITY) = inode->GetSolutionStepValue(VELOCITY, 1);
+                }
+                ///finally, if there was an inlet that had a fixed position for the distance function, that has to remain unchanged:
+                if (inode->IsFixed(DISTANCE))
+                    inode->FastGetSolutionStepValue(PROJECTED_DISTANCE) = inode->GetSolutionStepValue(DISTANCE, 1);
+            }
+        }
 
-			ModelPart::ElementsContainerType::iterator ielembegin = mr_model_part.ElementsBegin();
-			#pragma omp parallel for
-			for(int kkk=0; kkk<number_of_threads; kkk++)
-			{
-				for(unsigned int ii=element_partition[kkk]; ii<element_partition[kkk+1]; ii++)
-				{
-					ModelPart::ElementsContainerType::iterator ielem = ielembegin+ii;
-
-					array_1d<double,3*(TDim+1)> nodes_positions;
-					array_1d<double,3*(TDim+1)> nodes_addedvel = ZeroVector(3*(TDim+1));
-
-					array_1d<double,(TDim+1)> nodes_added_distance = ZeroVector((TDim+1));
-					array_1d<double,(TDim+1)> nodes_addedweights = ZeroVector((TDim+1));
-					//array_1d<double,(TDim+1)> weighting_inverse_divisor;
-
-					Geometry<Node >& geom = ielem->GetGeometry();
-
-					for (int i=0 ; i!=(TDim+1) ; ++i)
-					{
-						nodes_positions[i*3+0]=geom[i].X();
-						nodes_positions[i*3+1]=geom[i].Y();
-						nodes_positions[i*3+2]=geom[i].Z();
-						//weighting_inverse_divisor[i]=1.0/((geom[i].FastGetSolutionStepValue(MEAN_SIZE))*1.01);
-					}
-					///KRATOS_WATCH(ielem->Id())
-					///KRATOS_WATCH(ielem->GetValue(NEIGHBOUR_NODES).size());
-
-					int & number_of_particles_in_elem= ielem->GetValue(NUMBER_OF_FLUID_PARTICLES);
-					ParticlePointerVector&  element_particle_pointers =  (ielem->GetValue(FLUID_PARTICLE_POINTERS));
-
-					for (int iii=0; iii<number_of_particles_in_elem ; iii++ )
-					{
-						if (iii==mmaximum_number_of_particles) //it means we are out of our portion of the array, abort loop!
-							break;
-
-						PFEM_Particle_Fluid & pparticle = element_particle_pointers[offset+iii];
-
-						if (pparticle.GetEraseFlag()==false)
-						{
-
-							array_1d<double,3> & position = pparticle.Coordinates();
-
-							const array_1d<float,3>& velocity = pparticle.GetVelocity();
-
-							const float& particle_distance = pparticle.GetDistance();  // -1 if water, +1 if air
-
-							array_1d<double,TDim+1> N;
-							bool is_found = CalculatePosition(nodes_positions,position[0],position[1],position[2],N);
-							if (is_found==false) //something went wrong. if it was close enough to the edge we simply send it inside the element.
-							{
-								KRATOS_WATCH(N);
-								for (int j=0 ; j!=(TDim+1); j++)
-									if (N[j]<0.0 && N[j]> -1e-5)
-										N[j]=1e-10;
-
-							}
-
-							for (int j=0 ; j!=(TDim+1); j++) //going through the 3/4 nodes of the element
-							{
-								//double sq_dist = 0;
-								//these lines for a weighting function based on the distance (or square distance) from the node insteadof the shape functions
-								//for (int k=0 ; k!=(TDim); k++) sq_dist += ((position[k] - nodes_positions[j*3+k])*(position[k] - nodes_positions[j*3+k]));
-								//double weight = (1.0 - (sqrt(sq_dist)*weighting_inverse_divisor[j] ) );
-
-								double weight=N(j);
-								//weight=N(j)*N(j)*N(j);
-								if (weight<threshold) weight=1e-10;
-								if (weight<0.0) {KRATOS_WATCH(weight)}//;weight=0.0;KRATOS_WATCH(velocity);KRATOS_WATCH(N);KRATOS_WATCH(number_of_particles_in_elem);}//{KRATOS_WATCH(weight); KRATOS_WATCH(geom[j].Id()); KRATOS_WATCH(position);}
-								else
-								{
-									nodes_addedweights[j]+= weight;
-									//nodes_addedtemp[j] += weight * particle_temp;
-
-									nodes_added_distance[j] += weight*particle_distance;
-
-									//nodes_added_oxygen[j] += weight*particle_oxygen;
-
-									for (int k=0 ; k!=(TDim); k++) //x,y,(z)
-									{
-										nodes_addedvel[j*3+k] += weight * double(velocity[k]);
-									}
-
-								}//
-							}
-						}
-					}
-
-					for (int i=0 ; i!=(TDim+1) ; ++i) {
-						geom[i].SetLock();
-						geom[i].FastGetSolutionStepValue(DISTANCE) +=nodes_added_distance[i];
-						geom[i].FastGetSolutionStepValue(PROJECTED_VELOCITY_X) +=nodes_addedvel[3*i+0];
-						geom[i].FastGetSolutionStepValue(PROJECTED_VELOCITY_Y) +=nodes_addedvel[3*i+1];
-						geom[i].FastGetSolutionStepValue(PROJECTED_VELOCITY_Z) +=nodes_addedvel[3*i+2];  //we are updating info to the previous time step!!
-
-						geom[i].FastGetSolutionStepValue(YP) +=nodes_addedweights[i];
-						geom[i].UnSetLock();
-					}
-				}
-			}
-
-			#pragma omp parallel for
-			for(int kkk=0; kkk<number_of_threads; kkk++)
-			{
-				for(unsigned int ii=node_partition[kkk]; ii<node_partition[kkk+1]; ii++)
-				{
-					ModelPart::NodesContainerType::iterator inode = inodebegin+ii;
-					double sum_weights = inode->FastGetSolutionStepValue(YP);
-					if (sum_weights>0.00001)
-					{
-						//inode->FastGetSolutionStepValue(TEMPERATURE_OLD_IT)=(inode->FastGetSolutionStepValue(TEMPERATURE_OLD_IT))/sum_weights; //resetting the temperature
-						double & dist = inode->FastGetSolutionStepValue(DISTANCE);
-						 dist /=sum_weights; //resetting the density
-						inode->FastGetSolutionStepValue(PROJECTED_VELOCITY)=(inode->FastGetSolutionStepValue(PROJECTED_VELOCITY))/sum_weights; //resetting the velocity
-
-					}
-
-					else //this should never happen because other ways to recover the information have been executed before, but leaving it just in case..
-					{
-						inode->FastGetSolutionStepValue(DISTANCE)=3.0; //resetting the temperature
-						//inode->FastGetSolutionStepValue(DISTANCE)=inode->GetSolutionStepValue(DISTANCE,1); //resetting the temperature
-						inode->FastGetSolutionStepValue(PROJECTED_VELOCITY)=inode->GetSolutionStepValue(VELOCITY,1);
-
-					}
-					///finally, if there was an inlet that had a fixed position for the distance function, that has to remain unchanged:
-					if (inode->IsFixed(DISTANCE))
-						inode->FastGetSolutionStepValue(DISTANCE)=inode->GetSolutionStepValue(DISTANCE,1);
-				}
-			}
-
-
-			KRATOS_CATCH("")
-		}
+        KRATOS_CATCH("")
+    }
 
 	void TransferLagrangianToEulerianSecondOrder() //explicit
     {
@@ -1438,7 +1399,7 @@ namespace Kratos
             projecteddeltavelocityratio = sumprojecteddeltavelocitynorm / sumprojectedvelocitynorm;
             // if (projecteddeltadistanceratio<0.00001 and projecteddeltavelocityratio<0.00001)
             //    if (projecteddeltadistanceratio<0.0001 and projecteddeltavelocityratio<0.0001)
-            if (projecteddeltadistanceratio < 0.000001 and projecteddeltavelocityratio < 0.000001)
+            if (projecteddeltadistanceratio < 0.0000000000000001 and projecteddeltavelocityratio < 0.0000000000000001)
             {
                 continue_distance_iteration = false;
                 continue_velocity_iteration = false;
