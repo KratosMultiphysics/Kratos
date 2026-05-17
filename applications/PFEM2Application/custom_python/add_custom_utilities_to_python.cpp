@@ -107,8 +107,8 @@ namespace py = pybind11;
    .def("CopyVectorVarToPreviousTimeStep", &MoveParticleUtilityPFEM2<2>::CopyVectorVarToPreviousTimeStep)
    .def("InitializeTransferTool", &MoveParticleUtilityPFEM2<2>::InitializeTransferTool)
    .def("PreReseedUsingTopographicDomain", &MoveParticleUtilityPFEM2<2>::PreReseedUsingTopographicDomain)
-   .def("ExecuteParticlesPritingTool", &MoveParticleUtilityPFEM2<2>::ExecuteParticlesPritingTool)
-   .def("ExecuteParticlesPritingToolForDroppletsOnly", &MoveParticleUtilityPFEM2<2>::ExecuteParticlesPritingToolForDroppletsOnly)
+   .def("ExecuteParticlesPrintingTool", &MoveParticleUtilityPFEM2<2>::ExecuteParticlesPrintingTool)
+   .def("ExecuteParticlesPrintingToolForDroppletsOnly", &MoveParticleUtilityPFEM2<2>::ExecuteParticlesPrintingToolForDroppletsOnly)
    .def("RotateParticlesAndDomainVelocities", &MoveParticleUtilityPFEM2<2>::RotateParticlesAndDomainVelocities)
    ;
 
@@ -126,8 +126,8 @@ namespace py = pybind11;
    .def("CopyVectorVarToPreviousTimeStep", &MoveParticleUtilityPFEM2<3>::CopyVectorVarToPreviousTimeStep)
    .def("InitializeTransferTool", &MoveParticleUtilityPFEM2<3>::InitializeTransferTool)
    .def("PreReseedUsingTopographicDomain", &MoveParticleUtilityPFEM2<3>::PreReseedUsingTopographicDomain)
-   .def("ExecuteParticlesPritingTool", &MoveParticleUtilityPFEM2<3>::ExecuteParticlesPritingTool)
-   .def("ExecuteParticlesPritingToolForDroppletsOnly", &MoveParticleUtilityPFEM2<3>::ExecuteParticlesPritingToolForDroppletsOnly)
+   .def("ExecuteParticlesPrintingTool", &MoveParticleUtilityPFEM2<3>::ExecuteParticlesPrintingTool)
+   .def("ExecuteParticlesPrintingToolForDroppletsOnly", &MoveParticleUtilityPFEM2<3>::ExecuteParticlesPrintingToolForDroppletsOnly)
    .def("AssignNodalVelocityUsingInletConditions", &MoveParticleUtilityPFEM2<3>::AssignNodalVelocityUsingInletConditions)
    .def("RotateParticlesAndDomainVelocities", &MoveParticleUtilityPFEM2<3>::RotateParticlesAndDomainVelocities)
    ;
@@ -147,8 +147,8 @@ namespace py = pybind11;
    .def("CopyVectorVarToPreviousTimeStep", &MoveParticleUtilityPFEM2Modified<2>::CopyVectorVarToPreviousTimeStep)
    .def("InitializeTransferTool", &MoveParticleUtilityPFEM2Modified<2>::InitializeTransferTool)
    .def("PreReseedUsingTopographicDomain", &MoveParticleUtilityPFEM2Modified<2>::PreReseedUsingTopographicDomain)
-   .def("ExecuteParticlesPritingTool", &MoveParticleUtilityPFEM2Modified<2>::ExecuteParticlesPritingTool)
-   .def("ExecuteParticlesPritingToolForDroppletsOnly", &MoveParticleUtilityPFEM2Modified<2>::ExecuteParticlesPritingToolForDroppletsOnly)
+   .def("ExecuteParticlesPrintingTool", &MoveParticleUtilityPFEM2Modified<2>::ExecuteParticlesPrintingTool)
+   .def("ExecuteParticlesPrintingToolForDroppletsOnly", &MoveParticleUtilityPFEM2Modified<2>::ExecuteParticlesPrintingToolForDroppletsOnly)
    .def("RotateParticlesAndDomainVelocities", &MoveParticleUtilityPFEM2Modified<2>::RotateParticlesAndDomainVelocities)
    ;
 
@@ -167,8 +167,8 @@ namespace py = pybind11;
    .def("CopyVectorVarToPreviousTimeStep", &MoveParticleUtilityPFEM2Modified<3>::CopyVectorVarToPreviousTimeStep)
    .def("InitializeTransferTool", &MoveParticleUtilityPFEM2Modified<3>::InitializeTransferTool)
    .def("PreReseedUsingTopographicDomain", &MoveParticleUtilityPFEM2Modified<3>::PreReseedUsingTopographicDomain)
-   .def("ExecuteParticlesPritingTool", &MoveParticleUtilityPFEM2Modified<3>::ExecuteParticlesPritingTool)
-   .def("ExecuteParticlesPritingToolForDroppletsOnly", &MoveParticleUtilityPFEM2Modified<3>::ExecuteParticlesPritingToolForDroppletsOnly)
+   .def("ExecuteParticlesPrintingTool", &MoveParticleUtilityPFEM2Modified<3>::ExecuteParticlesPrintingTool)
+   .def("ExecuteParticlesPrintingToolForDroppletsOnly", &MoveParticleUtilityPFEM2Modified<3>::ExecuteParticlesPrintingToolForDroppletsOnly)
    .def("AssignNodalVelocityUsingInletConditions", &MoveParticleUtilityPFEM2Modified<3>::AssignNodalVelocityUsingInletConditions)
    .def("RotateParticlesAndDomainVelocities", &MoveParticleUtilityPFEM2Modified<3>::RotateParticlesAndDomainVelocities)
    ;  

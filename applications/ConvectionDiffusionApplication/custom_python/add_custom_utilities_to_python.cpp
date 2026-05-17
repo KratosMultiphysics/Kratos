@@ -133,7 +133,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     .def("CalculateVelOverElemSize", &MoveParticleUtilityScalarTransport<2>::CalculateVelOverElemSize)
     .def("CalculateDeltaVariables", &MoveParticleUtilityScalarTransport<2>::CalculateDeltaVariables)
     .def("CopyScalarVarToPreviousTimeStep", &MoveParticleUtilityScalarTransport<2>::CopyScalarVarToPreviousTimeStep)
-    .def("ExecuteParticlesPritingTool", &MoveParticleUtilityScalarTransport<2>::ExecuteParticlesPritingTool)
+    .def("ExecuteParticlesPrintingTool", &MoveParticleUtilityScalarTransport<2>::ExecuteParticlesPrintingTool)
     ;
 
     py::class_< MoveParticleUtilityScalarTransport<3> > (m,"MoveParticleUtilityScalarTransport3D").def(py::init<ModelPart& , int >())
@@ -148,7 +148,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     .def("CalculateVelOverElemSize", &MoveParticleUtilityScalarTransport<3>::CalculateVelOverElemSize)
     .def("CalculateDeltaVariables", &MoveParticleUtilityScalarTransport<3>::CalculateDeltaVariables)
     .def("CopyScalarVarToPreviousTimeStep", &MoveParticleUtilityScalarTransport<3>::CopyScalarVarToPreviousTimeStep)
-    .def("ExecuteParticlesPritingTool", &MoveParticleUtilityScalarTransport<3>::ExecuteParticlesPritingTool)
+    .def("ExecuteParticlesPrintingTool", &MoveParticleUtilityScalarTransport<3>::ExecuteParticlesPrintingTool)
     ;
 
 	py::class_<BFECCLimiterConvection<2> > (m,"BFECCLimiterConvection2D").def(py::init< BinBasedFastPointLocator < 2 >::Pointer >())

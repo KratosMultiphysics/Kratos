@@ -62,7 +62,7 @@ class PFEM2Process(KM.Process):
         self.moveparticles.MountBin()
 
         if self.print_particles:
-            self.moveparticles.ExecuteParticlesPritingTool(self.lagrangian_model_part, self.filter_factor)
+            self.moveparticles.ExecuteParticlesPrintingTool(self.lagrangian_model_part, self.filter_factor)
 
         self.initial_water_volume = self._get_water_volume_utility().Calculate()
 
@@ -91,7 +91,7 @@ class PFEM2Process(KM.Process):
         if self.print_particles:
             self.lagrangian_model_part.ProcessInfo[KM.STEP] = self.model_part.ProcessInfo[KM.STEP]
             self.lagrangian_model_part.ProcessInfo[KM.TIME] = self.model_part.ProcessInfo[KM.TIME]
-            self.moveparticles.ExecuteParticlesPritingTool(self.lagrangian_model_part, self.filter_factor)
+            self.moveparticles.ExecuteParticlesPrintingTool(self.lagrangian_model_part, self.filter_factor)
 
     def compute_mass_correction_factor(self):
         water_volume = self._get_water_volume_utility().Calculate()

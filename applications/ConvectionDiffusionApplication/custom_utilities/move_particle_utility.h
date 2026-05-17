@@ -1277,7 +1277,7 @@ namespace Kratos
 			KRATOS_CATCH("")
 		}
 
-		void ExecuteParticlesPritingTool( ModelPart& lagrangian_model_part, int input_filter_factor )
+		void ExecuteParticlesPrintingTool( ModelPart& lagrangian_model_part, int input_filter_factor )
 		{
 			KRATOS_TRY
 			//mfilter_factor; //we will only print one out of every "filter_factor" particles of the total particle list

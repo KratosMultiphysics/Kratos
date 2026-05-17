@@ -2125,67 +2125,76 @@ namespace Kratos
 			KRATOS_CATCH("")
 		}
 
-		void ExecuteParticlesPritingTool( ModelPart& lagrangian_model_part, int input_filter_factor )
+		void ExecuteParticlesPrintingTool( ModelPart& lagrangian_model_part, int input_filter_factor )
 		{
-			KRATOS_TRY
-			//mfilter_factor; //we will only print one out of every "filter_factor" particles of the total particle list
+        KRATOS_TRY
+        //mfilter_factor; //we will only print one out of every "filter_factor" particles of the total particle list
 
-			if(mparticle_printing_tool_initialized==false)
-			{
-				mfilter_factor=input_filter_factor;
+        //          if(mparticle_printing_tool_initialized==false)
+        //          {
+        mfilter_factor = input_filter_factor;
 
-				if(lagrangian_model_part.NodesBegin()-lagrangian_model_part.NodesEnd()>0)
-					KRATOS_THROW_ERROR(std::logic_error, "AN EMPTY MODEL PART IS REQUIRED FOR THE PRINTING OF PARTICLES", "");
+        //              if(lagrangian_model_part.NodesBegin()-lagrangian_model_part.NodesEnd()>0)
+        //                  KRATOS_THROW_ERROR(std::logic_error, "AN EMPTY MODEL PART IS REQUIRED FOR THE PRINTING OF PARTICLES", "");
 
-				lagrangian_model_part.AddNodalSolutionStepVariable(VELOCITY);
-				lagrangian_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
-				lagrangian_model_part.AddNodalSolutionStepVariable(DISTANCE);
+        lagrangian_model_part.Nodes().clear();
 
-				for (unsigned int i=0; i!=((mmaximum_number_of_particles*mnelems)/mfilter_factor)+mfilter_factor; i++)
-				{
-					Node ::Pointer pnode = lagrangian_model_part.CreateNewNode( i+mlast_node_id+1 , 0.0, 0.0, 0.0);  //recordar que es el nueevo model part!!
-					//pnode->SetBufferSize(mr_model_part.NodesBegin()->GetBufferSize());
-					pnode->SetBufferSize(1);
-				}
-				mparticle_printing_tool_initialized=true;
-			}
+        lagrangian_model_part.AddNodalSolutionStepVariable(VELOCITY);
+        lagrangian_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+        lagrangian_model_part.AddNodalSolutionStepVariable(DISTANCE);
+        lagrangian_model_part.AddNodalSolutionStepVariable(ELEMENT_ID);
+        int counter = 0;
+        for (unsigned int i = 0; i != (mmaximum_number_of_particles * mnelems); i++)
+        {
+            PFEM_Particle_Fluid &pparticle = mparticles_vector[i];
+            if (pparticle.GetEraseFlag() == false)
+            {
+                Node ::Pointer pnode = lagrangian_model_part.CreateNewNode(counter + mlast_node_id + 1, 0.0, 0.0, 0.0); //recordar que es el nueevo model part!!
+                //pnode->SetBufferSize(mr_model_part.NodesBegin()->GetBufferSize());
+                pnode->SetBufferSize(1);
+                counter++;
+            }
+        }
+        mparticle_printing_tool_initialized = true;
+        //          }
 
-			//resetting data of the unused particles
-			const double inactive_particle_position= -10.0;
-			array_1d<double,3>inactive_particle_position_vector;
-			inactive_particle_position_vector(0)=inactive_particle_position;
-			inactive_particle_position_vector(1)=inactive_particle_position;
-			inactive_particle_position_vector(2)=inactive_particle_position;
-			ModelPart::NodesContainerType::iterator inodebegin = lagrangian_model_part.NodesBegin();
-			for(unsigned int ii=0; ii<lagrangian_model_part.Nodes().size(); ii++)
-			{
-				ModelPart::NodesContainerType::iterator inode = inodebegin+ii;
-				inode->FastGetSolutionStepValue(DISTANCE) = 0.0;
-				inode->FastGetSolutionStepValue(VELOCITY) = ZeroVector(3);
-				inode->FastGetSolutionStepValue(DISPLACEMENT) = inactive_particle_position_vector;
-			}
+        //resetting data of the unused particles
+        const double inactive_particle_position = -10.0;
+        array_1d<double, 3> inactive_particle_position_vector;
+        inactive_particle_position_vector(0) = inactive_particle_position;
+        inactive_particle_position_vector(1) = inactive_particle_position;
+        inactive_particle_position_vector(2) = inactive_particle_position;
+        ModelPart::NodesContainerType::iterator inodebegin = lagrangian_model_part.NodesBegin();
+        for (unsigned int ii = 0; ii < lagrangian_model_part.Nodes().size(); ii++)
+        {
+            ModelPart::NodesContainerType::iterator inode = inodebegin + ii;
+            inode->FastGetSolutionStepValue(DISTANCE) = 0.0;
+            inode->FastGetSolutionStepValue(VELOCITY) = ZeroVector(3);
+            inode->FastGetSolutionStepValue(DISPLACEMENT) = inactive_particle_position_vector;
+            inode->FastGetSolutionStepValue(ELEMENT_ID) = 0.0;
+        }
 
+        counter = 0;
+        //ModelPart::NodesContainerType::iterator it_begin = lagrangian_model_part.NodesBegin();
+        for (int i = 0; i != mmaximum_number_of_particles * mnelems; i++)
+        {
+            PFEM_Particle_Fluid &pparticle = mparticles_vector[i];
+            if (pparticle.GetEraseFlag() == false)
+            //                 if(pparticle.GetEraseFlag()==false && i%mfilter_factor==0 && pparticle.X()>-1.0 && pparticle.X()<1.0 && pparticle.Y()>-1.0 && pparticle.Y()>1.0)
+            {
+                ModelPart::NodesContainerType::iterator inode = inodebegin + counter; //copying info from the particle to the (printing) node.
+                inode->FastGetSolutionStepValue(DISTANCE) = pparticle.GetDistance();
+                inode->FastGetSolutionStepValue(VELOCITY) = pparticle.GetVelocity();
+                inode->FastGetSolutionStepValue(DISPLACEMENT) = pparticle.Coordinates();
+                inode->FastGetSolutionStepValue(ELEMENT_ID) = pparticle.GetElementId();
+                counter++;
+            }
+        }
 
-			int counter=0;
-			//ModelPart::NodesContainerType::iterator it_begin = lagrangian_model_part.NodesBegin();
-			for (int i=0; i!=mmaximum_number_of_particles*mnelems; i++)
-			{
-				PFEM_Particle_Fluid& pparticle =mparticles_vector[i];
-				if(pparticle.GetEraseFlag()==false && i%mfilter_factor==0)
-				{
-					ModelPart::NodesContainerType::iterator inode = inodebegin+counter; //copying info from the particle to the (printing) node.
-					inode->FastGetSolutionStepValue(DISTANCE) = pparticle.GetDistance();
-					inode->FastGetSolutionStepValue(VELOCITY) = pparticle.GetVelocity();
-					inode->FastGetSolutionStepValue(DISPLACEMENT) = pparticle.Coordinates();
-					counter++;
-				}
-			}
+        KRATOS_CATCH("")
+    }
 
-			KRATOS_CATCH("")
-
-		}
-
-		void ExecuteParticlesPritingToolForDroppletsOnly( ModelPart& lagrangian_model_part, int input_filter_factor )
+		void ExecuteParticlesPrintingToolForDroppletsOnly( ModelPart& lagrangian_model_part, int input_filter_factor )
 		{
 			KRATOS_TRY
 			//mfilter_factor; //we will only print one out of every "filter_factor" particles of the total particle list
