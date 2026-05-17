@@ -13,6 +13,7 @@
 
 // Project includes
 #include "shell_7p_element.hpp"
+#include "structural_mechanics_application_variables.h"
 
 //READ SOLVER SCRIPT*********************************************************************************************************************************
 // https://github.com/KratosMultiphysics/Kratos/blob/master/applications/StructuralMechanicsApplication/python_scripts/structural_mechanics_solver.py
@@ -28,7 +29,6 @@ Shell7pElement::Shell7pElement(IndexType NewId, GeometryType::Pointer pGeometry)
 Shell7pElement::Shell7pElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
     : Element(NewId, pGeometry, pProperties)
 {
-    KRATOS_WATCH("new element")
 }
 
 Element::Pointer Shell7pElement::Create(
@@ -69,9 +69,9 @@ for (SizeType i_node = 0; i_node < number_of_nodes; ++i_node) {
     rElementalDofList[index]     = r_geom[i_node].pGetDof(DISPLACEMENT_X);
     rElementalDofList[index + 1] = r_geom[i_node].pGetDof(DISPLACEMENT_Y);
     rElementalDofList[index + 2] = r_geom[i_node].pGetDof(DISPLACEMENT_Z);
-    rElementalDofList[index + 3] = r_geom[i_node].pGetDof(ROTATION_X);
-    rElementalDofList[index + 4] = r_geom[i_node].pGetDof(ROTATION_Y);
-    rElementalDofList[index + 5] = r_geom[i_node].pGetDof(ROTATION_Z);
+    rElementalDofList[index + 3] = r_geom[i_node].pGetDof(DIFFERENCE_VECTOR_X);
+    rElementalDofList[index + 4] = r_geom[i_node].pGetDof(DIFFERENCE_VECTOR_Y);
+    rElementalDofList[index + 5] = r_geom[i_node].pGetDof(DIFFERENCE_VECTOR_Z);
 }
 
 KRATOS_CATCH("");
@@ -87,8 +87,8 @@ KRATOS_TRY
 const auto& r_geom = GetGeometry();
 const SizeType number_of_nodes = r_geom.size();
 const SizeType local_size = number_of_nodes * 6;
-const SizeType u_dof = r_geom[0].GetDofPosition(DISPLACEMENT_X);
-const SizeType dir_dof = r_geom[0].GetDofPosition(ROTATION_X);
+const SizeType v_dof = r_geom[0].GetDofPosition(DISPLACEMENT_X);
+const SizeType w_dof = r_geom[0].GetDofPosition(DIFFERENCE_VECTOR_X);
 
 if (rResult.size() != local_size) {
     rResult.resize(local_size);
@@ -96,12 +96,12 @@ if (rResult.size() != local_size) {
 
 for (SizeType i_node = 0; i_node < number_of_nodes; ++i_node) {
     const SizeType index = 6 * i_node;
-    rResult[index]     = r_geom[i_node].GetDof(DISPLACEMENT_X, u_dof).EquationId();
-    rResult[index + 1] = r_geom[i_node].GetDof(DISPLACEMENT_Y, u_dof + 1).EquationId();
-    rResult[index + 2] = r_geom[i_node].GetDof(DISPLACEMENT_Z, u_dof + 2).EquationId();
-    rResult[index + 3] = r_geom[i_node].GetDof(ROTATION_X, dir_dof).EquationId();
-    rResult[index + 4] = r_geom[i_node].GetDof(ROTATION_Y, dir_dof + 1).EquationId();
-    rResult[index + 5] = r_geom[i_node].GetDof(ROTATION_Z, dir_dof + 2).EquationId();
+    rResult[index]     = r_geom[i_node].GetDof(DISPLACEMENT_X, v_dof).EquationId();
+    rResult[index + 1] = r_geom[i_node].GetDof(DISPLACEMENT_Y, v_dof + 1).EquationId();
+    rResult[index + 2] = r_geom[i_node].GetDof(DISPLACEMENT_Z, v_dof + 2).EquationId();
+    rResult[index + 3] = r_geom[i_node].GetDof(DIFFERENCE_VECTOR_X, w_dof).EquationId();
+    rResult[index + 4] = r_geom[i_node].GetDof(DIFFERENCE_VECTOR_Y, w_dof + 1).EquationId();
+    rResult[index + 5] = r_geom[i_node].GetDof(DIFFERENCE_VECTOR_Z, w_dof + 2).EquationId();
 }
 
 KRATOS_CATCH("");
@@ -154,15 +154,15 @@ void Shell7pElement::CalculateRightHandSide(
     Vector current_values = ZeroVector(number_dofs);
     for (SizeType i_node = 0; i_node < number_of_nodes; ++i_node) {
         const SizeType index = 6 * i_node;
-        const auto& u_dof = r_geom[i_node].FastGetSolutionStepValue(DISPLACEMENT);
-        const auto& dir_dof = r_geom[i_node].FastGetSolutionStepValue(ROTATION);
+        const auto& v_dof = r_geom[i_node].FastGetSolutionStepValue(DISPLACEMENT);
+        const auto& w_dof = r_geom[i_node].FastGetSolutionStepValue(DIFFERENCE_VECTOR); // reaction for "ROTATION" variable is a REACTION_MOMENT, and they are computed at the moment not for differential vector, so results for moment are different than should be. vtk output label your difference director as "rotation" and plot it as such
 
-        current_values[index] = u_dof[0];
-        current_values[index + 1] = u_dof[1];
-        current_values[index + 2] = u_dof[2];
-        current_values[index + 3] = dir_dof[0];
-        current_values[index + 4] = dir_dof[1];
-        current_values[index + 5] = dir_dof[2];
+        current_values[index] = v_dof[0];
+        current_values[index + 1] = v_dof[1];
+        current_values[index + 2] = v_dof[2];
+        current_values[index + 3] = w_dof[0];
+        current_values[index + 4] = w_dof[1];
+        current_values[index + 5] = w_dof[2];
     }
 
     noalias(rRightHandSideVector) = -prod(LHS, current_values);
