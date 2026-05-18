@@ -603,8 +603,6 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateOnLobattoIntegrat
         InterfaceElementVariables Variables;
         this->InitializeElementVariables(Variables, r_geometry, r_properties, rCurrentProcessInfo);
 
-        RetentionLaw::Parameters RetentionParameters(r_properties);
-
         // Loop over integration points
         for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
             InterfaceElementUtilities::CalculateNuMatrix(Variables.Nu, NContainer, GPoint);
