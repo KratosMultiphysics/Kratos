@@ -53,6 +53,9 @@ void ParticleContactElement::Initialize(const ProcessInfo& r_process_info) {
     mGlobalContactForce[0] = 0.0;
     mGlobalContactForce[1] = 0.0;
     mGlobalContactForce[2] = 0.0;
+    mGlobalContactForceTangential[0] = 0.0;
+    mGlobalContactForceTangential[1] = 0.0;
+    mGlobalContactForceTangential[2] = 0.0;
     mContactFailure = 0.0;
     mContactSigma = 0.0;
     mContactTau = 0.0;
@@ -62,6 +65,7 @@ void ParticleContactElement::Initialize(const ProcessInfo& r_process_info) {
     array_1d<double, 3> vector_of_zeros(3,0.0);
     this->SetValue(LOCAL_CONTACT_FORCE, vector_of_zeros);
     this->SetValue(GLOBAL_CONTACT_FORCE, vector_of_zeros);
+    this->SetValue(GLOBAL_CONTACT_FORCE_TANGENTIAL, vector_of_zeros);
     this->SetValue(CONTACT_SIGMA, 0.0);
     this->SetValue(CONTACT_TAU, 0.0);
     this->SetValue(CONTACT_FAILURE, 0.0);
@@ -82,6 +86,9 @@ void ParticleContactElement::PrepareForPrinting() {
     this->GetValue(GLOBAL_CONTACT_FORCE)[0] = mGlobalContactForce[0];
     this->GetValue(GLOBAL_CONTACT_FORCE)[1] = mGlobalContactForce[1];
     this->GetValue(GLOBAL_CONTACT_FORCE)[2] = mGlobalContactForce[2];
+    this->GetValue(GLOBAL_CONTACT_FORCE_TANGENTIAL)[0] = mGlobalContactForceTangential[0];
+    this->GetValue(GLOBAL_CONTACT_FORCE_TANGENTIAL)[1] = mGlobalContactForceTangential[1];
+    this->GetValue(GLOBAL_CONTACT_FORCE_TANGENTIAL)[2] = mGlobalContactForceTangential[2];
     this->GetValue(CONTACT_SIGMA)          = mContactSigma;
     this->GetValue(CONTACT_TAU)            = mContactTau;
     this->GetValue(CONTACT_FAILURE)        = mContactFailure;
@@ -120,6 +127,9 @@ void ParticleContactElement::InitializeSolutionStep(const ProcessInfo& r_process
     mGlobalContactForce[0] = 0.0;
     mGlobalContactForce[1] = 0.0;
     mGlobalContactForce[2] = 0.0;
+    mGlobalContactForceTangential[0] = 0.0;
+    mGlobalContactForceTangential[1] = 0.0;
+    mGlobalContactForceTangential[2] = 0.0;
     if (mFailureCriterionState<1.0) {
         mFailureCriterionState = 0.0;
     } // else we keep it at 1.0.
