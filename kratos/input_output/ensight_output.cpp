@@ -590,8 +590,6 @@ void EnSightOutput::WriteGeometryFile(const std::string& rFileName)
     KRATOS_ERROR_IF_NOT(geo_file.is_open()) << "File \"" << full_path << "\" could not be opened!" << std::endl;
     if (mFileFormat == FileFormat::ASCII) {
         geo_file << std::scientific << std::setprecision(mDefaultPrecision); /// Set precision for ASCII output
-    } else {
-        geo_file << std::ios::binary;
     }
 
     // Write Header
@@ -747,11 +745,11 @@ void EnSightOutput::WriteGeometryFile(const std::string& rFileName)
         // Write IDs, then X, then Y, then Z blocks
         for (const auto& r_node : mrModelPart.Nodes()) {
             WriteScalarData(geo_file, r_node.Id(), false);
-            WriteString(geo_file, " ", false);
+            if (mFileFormat == FileFormat::ASCII) WriteString(geo_file, " ", false);
             WriteScalarData(geo_file, r_node.X(),  false);
-            WriteString(geo_file, " ", false);
+            if (mFileFormat == FileFormat::ASCII) WriteString(geo_file, " ", false);
             WriteScalarData(geo_file, r_node.Y(),  false);
-            WriteString(geo_file, " ", false);
+            if (mFileFormat == FileFormat::ASCII) WriteString(geo_file, " ", false);
             WriteScalarData(geo_file, r_node.Z());
         }
 
@@ -768,7 +766,7 @@ void EnSightOutput::WriteGeometryFile(const std::string& rFileName)
             WriteString(geo_file, "part\t" + std::to_string(r_part_data.PartId));
         } else {
             WriteString(geo_file, "part");
-            WriteString(geo_file, "\t\t", false);
+            if (mFileFormat == FileFormat::ASCII) WriteString(geo_file, "\t\t", false);
             WriteScalarData(geo_file, r_part_data.PartId);
         }
         WriteString(geo_file, "Submodelpart\t" + r_part_data.PartName);
@@ -801,7 +799,7 @@ void EnSightOutput::WriteGeometryFile(const std::string& rFileName)
             const auto& r_geometrical_objects = it.second;
 
             WriteString(geo_file, r_ensight_element_type);
-            WriteString(geo_file, "\t", false);
+            if (mFileFormat == FileFormat::ASCII) WriteString(geo_file, "\t", false);
             WriteScalarData(geo_file, r_geometrical_objects.size());
 
             for (const auto* p_geometrical_object : r_geometrical_objects) {
@@ -809,10 +807,10 @@ void EnSightOutput::WriteGeometryFile(const std::string& rFileName)
                 GetGeometryConnectivity(*p_geometrical_object, connectivity);
                 for (const auto index : connectivity) {
                     // WriteScalarData(geo_file, r_part_data.KratosIdToLocalId.at(r_node.Id()));
-                    WriteString(geo_file, "\t\t", false);
+                    if (mFileFormat == FileFormat::ASCII) WriteString(geo_file, "\t\t", false);
                     WriteScalarData(geo_file, index, false);
                 }
-                WriteString(geo_file, "");
+                if (mFileFormat == FileFormat::ASCII) WriteString(geo_file, "");
             }
         }
     }
@@ -845,8 +843,6 @@ void EnSightOutput::WriteNodalVariableToFile(
     KRATOS_ERROR_IF_NOT(var_file.is_open()) << "File \"" << full_path << "\" could not be opened!" << std::endl;
     if (mFileFormat == FileFormat::ASCII) {
         var_file << std::scientific << std::setprecision(mDefaultPrecision); // Set precision for ASCII output
-    } else {
-        var_file << std::ios::binary;
     }
 
     // Write variable information
@@ -1160,7 +1156,7 @@ void EnSightOutput::WriteNodalVariableToFile(
                         KRATOS_ERROR << "Unknown variable type for vector: " << rVariableName << std::endl;
                     }
                 }
-                WriteString(var_file, "");
+                if (mFileFormat == FileFormat::ASCII) WriteString(var_file, "");
             }
         } else { // Non-historical data
             for (const auto& r_part_data : mPartDatas) {
@@ -1306,7 +1302,7 @@ void EnSightOutput::WriteNodalVariableToFile(
                         KRATOS_ERROR << "Unknown variable type for vector: " << rVariableName << std::endl;
                     }
                 }
-                WriteString(var_file, "");
+                if (mFileFormat == FileFormat::ASCII) WriteString(var_file, "");
             }
         }
     } else { // For Ensight 6
@@ -1513,8 +1509,6 @@ void EnSightOutput::WriteNodalFlagToFile(
     KRATOS_ERROR_IF_NOT(var_file.is_open()) << "File \"" << full_path << "\" could not be opened!" << std::endl;
     if (mFileFormat == FileFormat::ASCII) {
         var_file << std::scientific << std::setprecision(mDefaultPrecision); // Set precision for ASCII output
-    } else {
-        var_file << std::ios::binary;
     }
 
     // Write variable information
@@ -1537,7 +1531,7 @@ void EnSightOutput::WriteNodalFlagToFile(
                 const int flag = p_node->IsDefined(r_flag) ? static_cast<int>(p_node->Is(r_flag)) : -1; // Default to -1 if not defined
                 WriteScalarData(var_file, flag);
             }
-            WriteString(var_file, "");
+            if (mFileFormat == FileFormat::ASCII) WriteString(var_file, "");
         }
     } else {
         // Write lambda that check that the counter is 6 for ensight 6
@@ -1590,8 +1584,6 @@ void EnSightOutput::WriteGeometricalVariableToFile(
     KRATOS_ERROR_IF_NOT(var_file.is_open()) << "File \"" << full_path << "\" could not be opened!" << std::endl;
     if (mFileFormat == FileFormat::ASCII) {
         var_file << std::scientific << std::setprecision(mDefaultPrecision); // Set precision for ASCII output
-    } else {
-        var_file << std::ios::binary;
     }
 
     // Write variable information
@@ -1937,7 +1929,7 @@ void EnSightOutput::WriteGeometricalVariableToFile(
 
             // Adding new line if needed
             if (!new_line) {
-                WriteString(var_file, "");
+                if (mFileFormat == FileFormat::ASCII) WriteString(var_file, "");
             }
         }
     }
@@ -1970,8 +1962,6 @@ void EnSightOutput::WriteGeometricalFlagToFile(
     KRATOS_ERROR_IF_NOT(var_file.is_open()) << "File \"" << full_path << "\" could not be opened!" << std::endl;
     if (mFileFormat == FileFormat::ASCII) {
         var_file << std::scientific << std::setprecision(mDefaultPrecision); // Set precision for ASCII output
-    } else {
-        var_file << std::ios::binary;
     }
 
     // Write variable information
@@ -2029,7 +2019,7 @@ void EnSightOutput::WriteGeometricalFlagToFile(
 
             // Adding new line if needed
             if (!new_line) {
-                WriteString(var_file, "");
+                if (mFileFormat == FileFormat::ASCII) WriteString(var_file, "");
             }
         }
     }
@@ -2065,8 +2055,6 @@ void EnSightOutput::WriteGeometricalGaussVariableToFile(
     KRATOS_ERROR_IF_NOT(var_file.is_open()) << "File \"" << full_path << "\" could not be opened!" << std::endl;
     if (mFileFormat == FileFormat::ASCII) {
         var_file << std::scientific << std::setprecision(mDefaultPrecision); // Set precision for ASCII output
-    } else {
-        var_file << std::ios::binary;
     }
 
     // Write variable information
@@ -2349,7 +2337,7 @@ void EnSightOutput::WriteGeometricalGaussVariableToFile(
 
             // Adding new line if needed
             if (!new_line) {
-                WriteString(var_file, "");
+                if (mFileFormat == FileFormat::ASCII) WriteString(var_file, "");
             }
         }
     }
@@ -2509,8 +2497,14 @@ void EnSightOutput::WriteScalarData(
         }
         if (EndOfLine) rFileStream << "\n";
         if (AddEndTabulation) rFileStream << "\t";
-    } else { // Binary
-        rFileStream.write(reinterpret_cast<const char*>(&rData), sizeof(TData));
+    } else { // Binary — EnSight binary uses 32-bit types only
+        if constexpr (std::is_integral_v<TData>) {
+            const int32_t value = static_cast<int32_t>(rData);
+            rFileStream.write(reinterpret_cast<const char*>(&value), sizeof(int32_t));
+        } else {
+            const float value = static_cast<float>(rData);
+            rFileStream.write(reinterpret_cast<const char*>(&value), sizeof(float));
+        }
     }
 
     KRATOS_CATCH("")
@@ -2535,8 +2529,8 @@ void EnSightOutput::WriteVectorData(
         rFileStream << std::scientific << std::setprecision(mDefaultPrecision) << rData[0] << "\t" << rData[1] << "\t" << rData[2] << std::fixed;
         if (EndOfLine) rFileStream << "\n";
         if (AddEndTabulation) rFileStream << "\t";
-    } else { // Binary
-        double buffer[3] = {static_cast<double>(rData[0]), static_cast<double>(rData[1]), static_cast<double>(rData[2])};
+    } else { // Binary — EnSight binary uses 32-bit floats
+        float buffer[3] = {static_cast<float>(rData[0]), static_cast<float>(rData[1]), static_cast<float>(rData[2])};
         rFileStream.write(reinterpret_cast<const char*>(buffer), sizeof(buffer));
     }
 
@@ -2568,22 +2562,22 @@ void EnSightOutput::WriteSymmetricTensorData(
         }
         if (EndOfLine) rFileStream << "\n";
         if (AddEndTabulation) rFileStream << "\t";
-    } else { // Binary
-        double buffer[6];
+    } else { // Binary — EnSight binary uses 32-bit floats
+        float buffer[6];
         if constexpr (std::is_same_v<TData, Matrix>) { // Matrix type
-            buffer[0] = static_cast<double>(rData(0, 0));
-            buffer[1] = static_cast<double>(rData(1, 1));
-            buffer[2] = static_cast<double>(rData(2, 2));
-            buffer[3] = static_cast<double>(rData(0, 1));
-            buffer[4] = static_cast<double>(rData(0, 2));
-            buffer[5] = static_cast<double>(rData(1, 2));
+            buffer[0] = static_cast<float>(rData(0, 0));
+            buffer[1] = static_cast<float>(rData(1, 1));
+            buffer[2] = static_cast<float>(rData(2, 2));
+            buffer[3] = static_cast<float>(rData(0, 1));
+            buffer[4] = static_cast<float>(rData(0, 2));
+            buffer[5] = static_cast<float>(rData(1, 2));
         } else { // Vector or array, last 2 indexes swapped
-            buffer[0] = static_cast<double>(rData[0]);
-            buffer[1] = static_cast<double>(rData[1]);
-            buffer[2] = static_cast<double>(rData[2]);
-            buffer[3] = static_cast<double>(rData[3]);
-            buffer[4] = static_cast<double>(rData[5]);
-            buffer[5] = static_cast<double>(rData[4]);
+            buffer[0] = static_cast<float>(rData[0]);
+            buffer[1] = static_cast<float>(rData[1]);
+            buffer[2] = static_cast<float>(rData[2]);
+            buffer[3] = static_cast<float>(rData[3]);
+            buffer[4] = static_cast<float>(rData[5]);
+            buffer[5] = static_cast<float>(rData[4]);
         }
         rFileStream.write(reinterpret_cast<const char*>(buffer), sizeof(buffer));
     }
