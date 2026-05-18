@@ -72,11 +72,7 @@ class KratosGeoMechanicsSoilWeightTests(KratosUnittest.TestCase):
         total_stresses = test_helper.get_total_stress_tensor(simulation)
         total_stresses_yy = [integration_point[1,1] for element in total_stresses for integration_point in element]
 
-        # Assert integration point information
-        min_total_stresses_yy = 1e10
-        for total_stress_yy in total_stresses_yy:
-            min_total_stresses_yy = min(min_total_stresses_yy, total_stress_yy)
-            
+        min_total_stresses_yy = min(total_stresses_yy)
         self.assertAlmostEqual(expected_value, min_total_stresses_yy)
 
 

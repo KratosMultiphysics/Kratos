@@ -77,7 +77,7 @@ void TransientPwElement<TDim, TNumNodes>::CalculateMassMatrix(MatrixType& rMassM
 {
     KRATOS_TRY
 
-    const unsigned int n_DoF = this->GetNumberOfDOF();
+    const auto n_DoF = this->GetNumberOfDOF();
 
     // Resizing mass matrix
     if (rMassMatrix.size1() != n_DoF) rMassMatrix.resize(n_DoF, n_DoF, false);
@@ -92,7 +92,7 @@ void TransientPwElement<TDim, TNumNodes>::CalculateDampingMatrix(MatrixType& rDa
 {
     KRATOS_TRY
 
-    const unsigned int n_DoF = this->GetNumberOfDOF();
+    const auto n_DoF = this->GetNumberOfDOF();
 
     // Compute Damping Matrix
     if (rDampingMatrix.size1() != n_DoF) rDampingMatrix.resize(n_DoF, n_DoF, false);
@@ -106,7 +106,7 @@ void TransientPwElement<TDim, TNumNodes>::GetValuesVector(Vector& rValues, int S
 {
     KRATOS_TRY
 
-    if (const unsigned int n_DoF = this->GetNumberOfDOF(); rValues.size() != n_DoF)
+    if (const auto n_DoF = this->GetNumberOfDOF(); rValues.size() != n_DoF)
         rValues.resize(n_DoF, false);
 
     // Why are we constructing a zero vector here?
@@ -122,7 +122,7 @@ void TransientPwElement<TDim, TNumNodes>::GetFirstDerivativesVector(Vector& rVal
 {
     KRATOS_TRY
 
-    if (const unsigned int n_DoF = this->GetNumberOfDOF(); rValues.size() != n_DoF)
+    if (const auto n_DoF = this->GetNumberOfDOF(); rValues.size() != n_DoF)
         rValues.resize(n_DoF, false);
 
     // Why are we constructing a zero vector here?
@@ -138,7 +138,7 @@ void TransientPwElement<TDim, TNumNodes>::GetSecondDerivativesVector(Vector& rVa
 {
     KRATOS_TRY
 
-    if (const unsigned int n_DoF = this->GetNumberOfDOF(); rValues.size() != n_DoF)
+    if (const auto n_DoF = this->GetNumberOfDOF(); rValues.size() != n_DoF)
         rValues.resize(n_DoF, false);
 
     // Why are we constructing a zero vector here?

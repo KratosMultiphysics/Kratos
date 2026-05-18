@@ -1,12 +1,7 @@
 # Application dependent names and paths
 from KratosMultiphysics import _ImportApplication, python_registry_utilities
 import KratosMultiphysics.StructuralMechanicsApplication
-import KratosGeoMechanicsApplication as _KratosGeoMechanicsApplication
-
-# Keep module-level exports equivalent to the previous wildcard import.
-for _name in dir(_KratosGeoMechanicsApplication):
-    if not _name.startswith("_"):
-        globals()[_name] = getattr(_KratosGeoMechanicsApplication, _name)
+from KratosGeoMechanicsApplication import KratosGeoMechanicsApplication
 
 application = KratosGeoMechanicsApplication()
 application_name = "KratosGeoMechanicsApplication"
