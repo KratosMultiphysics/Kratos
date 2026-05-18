@@ -15,9 +15,8 @@ class TestEnsightOutputProcess(KratosUnittest.TestCase):
     """
     Unit tests for the Ensight output process in Kratos.
     This test class contains methods to verify the correct functionality of the Ensight output process
-    for various element types and dimensions in ASCII format. The tests cover 2D, 3D, quadratic 3D,
-    quadratic prism 3D, and quadratic hexahedra 3D cases. Binary output tests are present but commented out,
-    indicating that binary support is implemented but not yet tested.
+    for various element types and dimensions in both ASCII and binary formats. The tests cover 2D, 3D,
+    quadratic 3D, quadratic prism 3D, and quadratic hexahedra 3D cases.
     Each test method calls `ExecuteBasicEnsightOutputProcessCheck` with the appropriate format and geometry type.
     The `tearDown` method ensures that the output directory ("test_ensight_output") is deleted after each test run
     to maintain a clean test environment.
@@ -37,21 +36,20 @@ class TestEnsightOutputProcess(KratosUnittest.TestCase):
     def test_ascii_ensight_output_quad_hexahedra_3D(self):
         ExecuteBasicEnsightOutputProcessCheck("ascii", "QuadraticHexahedra3D")
 
-    # TODO: Binary is implemented, but requires testing
-    # def test_binary_ensight_output_2D(self):
-    #     ExecuteBasicEnsightOutputProcessCheck("binary", "2D")
+    def test_binary_ensight_output_2D(self):
+        ExecuteBasicEnsightOutputProcessCheck("binary", "2D")
 
-    # def test_binary_ensight_output_3D(self):
-    #     ExecuteBasicEnsightOutputProcessCheck("binary", "3D")
+    def test_binary_ensight_output_3D(self):
+        ExecuteBasicEnsightOutputProcessCheck("binary", "3D")
 
-    # def test_binary_ensight_output_quad_3D(self):
-    #     ExecuteBasicEnsightOutputProcessCheck("binary", "Quad3D")
+    def test_binary_ensight_output_quad_3D(self):
+        ExecuteBasicEnsightOutputProcessCheck("binary", "Quad3D")
 
-    # def test_binary_ensight_output_quad_prism_3D(self):
-    #     ExecuteBasicEnsightOutputProcessCheck("binary", "QuadraticPrism3D")
+    def test_binary_ensight_output_quad_prism_3D(self):
+        ExecuteBasicEnsightOutputProcessCheck("binary", "QuadraticPrism3D")
 
-    # def test_binary_ensight_output_quad_hexahedra_3D(self):
-    #     ExecuteBasicEnsightOutputProcessCheck("binary", "QuadraticHexahedra3D")
+    def test_binary_ensight_output_quad_hexahedra_3D(self):
+        ExecuteBasicEnsightOutputProcessCheck("binary", "QuadraticHexahedra3D")
 
     def tearDown(self):
         kratos_utils.DeleteDirectoryIfExisting("test_ensight_output")
@@ -126,7 +124,7 @@ def Check(output_file,reference_file, file_format, extension):
     Args:
         output_file (str): The path to the output file to be checked.
         reference_file (str): The path to the reference file to compare against.
-        file_format (str): The format of the files (e.g., "ascii").
+        file_format (str): The format of the files (e.g., "ascii" or "binary").
         extension (str): The file extension or comparison type to use for the check.
     """
     ## Settings string in json format
@@ -136,7 +134,10 @@ def Check(output_file,reference_file, file_format, extension):
     }""")
     params["reference_file_name"].SetString(GetFilePath(reference_file))
     params["output_file_name"].SetString(output_file)
-    if file_format == "ascii":
+    # The .case file is always ASCII text regardless of file_format.
+    # For ascii format, use the named comparison type for all files.
+    # For binary format, binary data files use exact byte comparison (default).
+    if file_format == "ascii" or extension == "case":
         params.AddEmptyValue("comparison_type").SetString(extension)
 
     CompareTwoFilesCheckProcess(params).Execute()
@@ -243,7 +244,7 @@ def ExecuteBasicEnsightOutputProcessCheck(file_format = "ascii", setup = "2D"):
             step = step + 1
 
     Check(os.path.join("test_ensight_output","Main.case"),\
-          os.path.join("auxiliar_files_for_python_unittest", "ensight_output_process_ref_files", file_format + setup, "Main.case"), file_format, "case")
+          os.path.join("auxiliar_files_for_python_unittest", "ensight_output_process_ref_files", file_format + setup, "Main.case"), "ascii", "case")
 
 if __name__ == '__main__':
     KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
