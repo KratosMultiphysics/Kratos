@@ -1,0 +1,21 @@
+{
+  "breps": [
+    {
+      "brep_id": 2,
+      "local_refinement": [
+        "locally_refined": false
+      ]
+    },
+    {
+      "brep_id": 3,
+      "local_refinement": [
+        "locally_refined": true,
+        "refined_region": {
+          "u_range": [ 22.5, 30.0 ],
+          "v_range": [ 15.0, 20.0 ]
+        },
+        "refinement_level": 1
+      ]
+    }
+  ]
+}

@@ -47,6 +47,7 @@
         "echo_level": 0,
         "cad_model_part_name": "IgaModelPart",
         "geometry_file_name": "geometry.cad.json",
+        "local_refinement_file_name": "local_ref.json",
         "output_geometry_file_name": "cantilever_test_kratos_0.georhino.json"
       }
     },
