@@ -839,6 +839,7 @@ void SphericParticle::ComputeBallToBallContactForceAndMoment(SphericParticle::Pa
             double RelVel[3]                         = {0.0};
             double LocalContactForce[3]              = {0.0};
             double GlobalContactForce[3]             = {0.0};
+            double GlobalContactForceTangential[3]   = {0.0};
             double LocalElasticContactForce[3]       = {0.0};
             double LocalElasticExtraContactForce[3]  = {0.0};
             double GlobalElasticContactForce[3]      = {0.0};
@@ -881,7 +882,7 @@ void SphericParticle::ComputeBallToBallContactForceAndMoment(SphericParticle::Pa
             ComputeOtherBallToBallForces(other_ball_to_ball_forces); //These forces can exist even with no indentation.
 
             // Transforming to global forces and adding up
-            AddUpForcesAndProject(data_buffer.mOldLocalCoordSystem, data_buffer.mLocalCoordSystem, LocalContactForce, LocalElasticContactForce, LocalElasticExtraContactForce, GlobalContactForce,
+            AddUpForcesAndProject(data_buffer.mOldLocalCoordSystem, data_buffer.mLocalCoordSystem, LocalContactForce, LocalElasticContactForce, LocalElasticExtraContactForce, GlobalContactForce, GlobalContactForceTangential, 
                                   GlobalElasticContactForce, GlobalElasticExtraContactForce, TotalGlobalElasticContactForce, ViscoDampingLocalContactForce, cohesive_force, other_ball_to_ball_forces, r_elastic_force, r_contact_force, i, r_process_info);
 
             // ROTATION FORCES AND ROLLING FRICTION
@@ -1923,6 +1924,7 @@ void SphericParticle::AddUpForcesAndProject(double OldCoordSystem[3][3],
                                             double LocalElasticContactForce[3],
                                             double LocalElasticExtraContactForce[3],
                                             double GlobalContactForce[3],
+                                            double GlobalContactForceTangential[3],
                                             double GlobalElasticContactForce[3],
                                             double GlobalElasticExtraContactForce[3],
                                             double TotalGlobalElasticContactForce[3],

@@ -346,6 +346,7 @@ namespace Kratos {
                                   LocalElasticContactForce,
                                   LocalElasticExtraContactForce,
                                   GlobalContactForce,
+                                  GlobalContactForceTangential,
                                   GlobalElasticContactForce,
                                   GlobalElasticExtraContactForce,
                                   TotalGlobalElasticContactForce,
