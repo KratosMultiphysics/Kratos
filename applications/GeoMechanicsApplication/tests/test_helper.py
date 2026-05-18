@@ -325,7 +325,7 @@ def get_force(simulation):
         Kratos.FORCE, model_part.ProcessInfo)[0] for element in elements]
 
 
-def get_bending_moment(simulation):
+def get_bending_moments(simulation):
     """
     Gets bending moment on all integration points from Kratos simulation
     :param simulation:
