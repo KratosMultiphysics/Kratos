@@ -35,7 +35,7 @@ Parameters EnSightOutput::GetDefaultParameters()
     {
         "model_part_name"                             : "PLEASE_SPECIFY_MODEL_PART_NAME",
         "ensight_file_format"                         : "gold", // Options: "6", "gold"
-        "file_format"                                 : "ascii", // Options: "ascii", "binary" // TODO: Check if binary is supported
+        "file_format"                                 : "ascii", // Options: "ascii", "binary"
         "output_precision"                            : 6,
         "step_label_precision"                        : 4,
         "output_control_type"                         : "step",
