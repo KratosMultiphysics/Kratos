@@ -914,12 +914,12 @@ void SphericParticle::ComputeBallToBallContactForceAndMoment(SphericParticle::Pa
             if (r_process_info[IS_TIME_TO_PRINT] && r_process_info[CONTACT_MESH_OPTION] == 1) { //TODO: we should avoid calling a processinfo for each neighbour. We can put it once per time step in the buffer??
                 unsigned int neighbour_iterator_id = data_buffer.mpOtherParticle->Id();
                 if ((i < (int)mNeighbourElements.size()) && this->Id() < neighbour_iterator_id) {
-                    CalculateOnContactElements(i, LocalContactForce, GlobalContactForce);
+                    CalculateOnContactElements(i, LocalContactForce, GlobalContactForce, GlobalContactForceTangential);
                 }
             } else if (r_process_info[IS_TIME_TO_UPDATE_CONTACT_ELEMENT] && r_process_info[CONTACT_MESH_OPTION] == 1) {
                 unsigned int neighbour_iterator_id = data_buffer.mpOtherParticle->Id();
                 if ((i < (int)mNeighbourElements.size()) && this->Id() < neighbour_iterator_id) {
-                    CalculateOnContactElements(i, LocalContactForce, GlobalContactForce);
+                    CalculateOnContactElements(i, LocalContactForce, GlobalContactForce, GlobalContactForceTangential);
                 }
             }
 
@@ -2322,7 +2322,7 @@ void SphericParticle::ApplyGlobalDampingToContactForcesAndMoments(array_1d<doubl
     }
 }
 
-void SphericParticle::CalculateOnContactElements(size_t i, double LocalContactForce[3], double GlobalContactForce[3]) {
+void SphericParticle::CalculateOnContactElements(size_t i, double LocalContactForce[3], double GlobalContactForce[3], double GlobalContactForceTangential[3]) {
     KRATOS_TRY
 
     if (!mBondElements.size()) return; // we skip this function if the vector of bonds hasn't been filled yet.
@@ -2337,10 +2337,11 @@ void SphericParticle::CalculateOnContactElements(size_t i, double LocalContactFo
     bond->mGlobalContactForce[1] = GlobalContactForce[1];
     bond->mGlobalContactForce[2] = GlobalContactForce[2];
 
-    //bond->GetValue(GLOBAL_CONTACT_FORCE)[0] = GlobalContactForce[0];
-    //bond->GetValue(GLOBAL_CONTACT_FORCE)[1] = GlobalContactForce[1];
-    //bond->GetValue(GLOBAL_CONTACT_FORCE)[2] = GlobalContactForce[2];
-        
+    // TODO: This not works for ContinuumParticle
+    bond->mGlobalContactForceTangential[0] = GlobalContactForceTangential[0];
+    bond->mGlobalContactForceTangential[1] = GlobalContactForceTangential[1];
+    bond->mGlobalContactForceTangential[2] = GlobalContactForceTangential[2];
+
     KRATOS_CATCH("")
 }
 

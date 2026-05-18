@@ -578,6 +578,7 @@ namespace Kratos {
             double LocalRelVel[3] = {0.0};
             double LocalContactForce[3] = {0.0};
             double GlobalContactForce[3] = {0.0};
+            double GlobalContactForceTangential[3]   = {0.0};
             double LocalUnbondedContactForce[3] = {0.0};// TODO: only works for parallel_bond_CL at the moment
 
             GeometryFunctions::VectorGlobal2Local(data_buffer.mLocalCoordSystem, RelVel, LocalRelVel);
@@ -750,7 +751,7 @@ namespace Kratos {
                     double bond_volume = GetInitialBondVolume(neighbour_iterator_id);
                     CalculateOnContinuumContactElements(i, total_local_elastic_contact_force, contact_sigma, contact_tau, failure_criterion_state, acumulated_damage, time_steps, calculation_area, GlobalContactForce, bond_volume);
                 } else {
-                    CalculateOnContactElements(i, LocalContactForce, GlobalContactForce);
+                    CalculateOnContactElements(i, LocalContactForce, GlobalContactForce, GlobalContactForceTangential);
                 }
             } 
 
