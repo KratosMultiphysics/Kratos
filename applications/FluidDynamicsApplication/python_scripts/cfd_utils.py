@@ -1,7 +1,9 @@
-import pyamg
+#import cupy
+#import pyamg
 import numpy as np
 import scipy.sparse as sp
 import KratosMultiphysics as KM
+import KratosMultiphysics.FluidDynamicsApplication as CFDApp
 
 # Einsum optimization configuration
 opt_type = True
@@ -18,6 +20,7 @@ PRECISION = None
 _configured = False # Auxiliary flag to ensure that backend is configured once
 
 USE_AMGX = False #TODO: auxiliary solution to activate/deactivate AMGX until we have a final implementation
+GraphBasedSA_AMG = None  # Will be set conditionally when GPU backend is selected
 
 def configure(parallel_type : str, precision : str):
     """
@@ -53,6 +56,8 @@ def configure(parallel_type : str, precision : str):
         sparse_linalg = csp_linalg
         asnumpy = cp.asnumpy
         USE_CUPY = True
+
+        import KratosMultiphysics.FluidDynamicsApplication.cupy_amg_linear_solver
 
     elif parallel_type == "MPI" or parallel_type == "mpi":
         raise ValueError("MPI parallelism is not supported yet.")
@@ -115,6 +120,12 @@ class CFDUtils:
 
         # Per-element node×dim — shape (nelem, n_in_el, dim)
         self._tmp_eik = xp.empty((nelem, n_in_el, dim), dtype=PRECISION)
+
+        # Per-element node scalar — shape (nelem, n_in_el)
+        self._tmp_en = xp.empty((nelem, n_in_el), dtype=PRECISION)
+
+        # Per-element dim×dim — shape (nelem, dim, dim)
+        self._tmp_edd = xp.empty((nelem, dim, dim), dtype=PRECISION)
 
     def _ensure_temporaries(self, nelem, n_in_el, dim):
         """Lazily allocate temporaries on first use or if dimensions change."""
@@ -405,7 +416,7 @@ class CFDUtils:
         xp.matmul(DN, DN.swapaxes(1, 2), out=out)
         return out
 
-    def ApplyLaplacian(self, DN: np.ndarray, field: np.ndarray):
+    def ApplyLaplacian(self, DN: np.ndarray, field: np.ndarray, out=None):
         """
         Compute the Laplacian term in a matrix-free manner:
             (∇q, ∇field)   or   (∇w, ∇field)
@@ -433,6 +444,8 @@ class CFDUtils:
             Shape function gradients.
         field : (E, nnode) or (E, nnode, dim)
             Scalar or vector field at element nodes.
+        out : ndarray, optional
+            Pre-allocated output array.
 
         Returns
         -------
@@ -440,34 +453,39 @@ class CFDUtils:
             Laplacian applied to the field.
         """
 
-        nelem, _, dim = DN.shape
+        nelem, nnode, dim = DN.shape
+        self._ensure_temporaries(nelem, nnode, dim)
 
         # Scalar field
         if field.ndim == 2:
-            grad = xp.zeros((nelem, dim), dtype=field.dtype)
-            for m in range(dim):
-                grad[:, m] = xp.sum(DN[:, :, m] * field, axis=1)
+            if out is None:
+                out = xp.empty((nelem, nnode), dtype=field.dtype)
 
-            out = xp.zeros_like(field)
-            for m in range(dim):
-                out += DN[:, :, m] * grad[:, m][:, None]
+            # Use _tmp_eik for intermediate (shape: nelem, nnode, dim)
+            # grad[:, m] = sum_node DN[:, :, m] * field
+            xp.multiply(DN, field[:, :, None], out=self._tmp_eik)
+            xp.sum(self._tmp_eik, axis=1, out=self._tmp_ed)  # (nelem, dim)
+
+            # Accumulate: out[e, i] = sum_m DN[e, i, m] * grad[e, m]
+            # This is: out = DN @ grad[:, :, None] → (nelem, nnode, 1)
+            xp.matmul(DN, self._tmp_ed[:, :, None], out=out[:, :, None])
 
             return out
 
         # Vector field
         elif field.ndim == 3:
             _, _, ncomp = field.shape
+            if out is None:
+                out = xp.empty((nelem, nnode, ncomp), dtype=field.dtype)
 
-            grad = xp.zeros((nelem, dim, ncomp), dtype=field.dtype)
-            for m in range(dim):
-                grad[:, m, :] = xp.sum(
-                    DN[:, :, m][:, :, None] * field,
-                    axis=1
-                )
+            # Use _tmp_edd for grad (shape: nelem, dim, dim) — slice to (nelem, dim, ncomp)
+            grad_view = self._tmp_edd[:, :, :ncomp]
 
-            out = xp.zeros_like(field)
-            for m in range(dim):
-                out += DN[:, :, m][:, :, None] * grad[:, m, :][:, None, :]
+            # grad = DN^T @ field → (nelem, dim, ncomp)
+            xp.matmul(DN.swapaxes(1, 2), field, out=grad_view)
+
+            # out = DN @ grad → (nelem, nnode, ncomp)
+            xp.matmul(DN, grad_view, out=out)
 
             return out
 
@@ -628,7 +646,7 @@ class CFDUtils:
 
         return out
 
-    def ComputeConvectiveContribution(self, elem_conv):
+    def ComputeConvectiveContribution(self, elem_conv, out=None):
         """
         Compute the elemental convective contribution using a factorized formulation
         based on a nodal convective operator.
@@ -683,6 +701,11 @@ class CFDUtils:
             - Vector case: shape (n_elem, n_node, n_comp)
                 elem_conv[e, j, k] = a_j · ∇u_k
 
+        out : ndarray, optional
+            Pre-allocated output array. If None, a new array is allocated.
+            - Scalar case: shape (n_elem, n_node)
+            - Vector case: shape (n_elem, n_node, n_comp)
+
         Returns
         -------
         array
@@ -717,21 +740,34 @@ class CFDUtils:
         """
 
         if elem_conv.ndim == 3: # vector field
-            _, _, n_dim = elem_conv.shape
+            nelem, n_node, n_dim = elem_conv.shape
             M_e = self.GetElementalMassMatrix(n_dim) #elemental mass matrix (n_node, n_node)
-            return xp.einsum('ij,ejk->eik', M_e, elem_conv) # (n_elem, n_node, n_dim)
+
+            if out is None:
+                out = xp.empty((nelem, n_node, n_dim), dtype=elem_conv.dtype)
+            elif out.shape != (nelem, n_node, n_dim):
+                raise ValueError("out must have shape (n_elem, n_node, n_comp)")
+
+            xp.matmul(M_e, elem_conv, out=out)
+            return out
 
         elif elem_conv.ndim == 2: # scalar field
-            _, n_dim = elem_conv.shape
-            M_e = self.GetElementalMassMatrix(n_dim) #elemental mass matrix (n_node, n_node)
-            return xp.einsum('ij,ej->ei', M_e, elem_conv) # (n_elem, n_node)
+            nelem, n_node = elem_conv.shape
+            dim = n_node - 1
+            M_e = self.GetElementalMassMatrix(dim) #elemental mass matrix (n_node, n_node)
+
+            if out is None:
+                out = xp.empty((nelem, n_node), dtype=elem_conv.dtype)
+            elif out.shape != (nelem, n_node):
+                raise ValueError("out must have shape (n_elem, n_node)")
+
+            xp.matmul(elem_conv, M_e.T, out=out)
+            return out
 
         else:
             raise ValueError("Provided elemental nodal convective operator must have 2 dims (scalar) or 3 dims (vector)")
 
-        return _
-
-    def ComputeMomentumStabilization(self, DN, a_elemental, conv_elemental, pi_elemental):
+    def ComputeMomentumStabilization(self, DN, a_elemental, conv_elemental, pi_elemental, out=None):
         """
         Compute the momentum stabilization term:
 
@@ -758,6 +794,8 @@ class CFDUtils:
         a_elemental : (n_elem, n_node, n_dim)
         conv_elemental : (n_elem, n_node, n_dim)
         pi_elemental : (n_elem, n_node, n_dim)
+        out : ndarray, optional
+            Pre-allocated output array of shape (n_elem, n_node, n_dim). If None, a new array is allocated.
 
         Returns
         -------
@@ -767,27 +805,57 @@ class CFDUtils:
         -----
         - Equivalent to Gauss integration under consistent interpolation.
         - Geometric scaling (detJ / volume) applied externally.
+        - Uses batched matrix operations to eliminate loops and temporary 4th-order tensors.
+        - Employs out parameter to avoid implicit temporaries in matmul.
         """
 
         beta = conv_elemental - pi_elemental
         n_elem, n_node, n_dim = beta.shape
 
-        # --- build S[k,l] ---
-        M_e = self.GetElementalMassMatrix(beta.shape[2])
-        S = xp.zeros((n_elem, n_dim, n_dim), dtype=beta.dtype)
-        for j in range(n_node):
-            for m in range(n_node):
-                w = M_e[j, m]
-                S += w * (a_elemental[:, j, :, None] * beta[:, m, None, :]) # a_j,k * beta_m,l
+        if out is None:
+            out = xp.empty((n_elem, n_node, n_dim), dtype=beta.dtype)
+        elif out.shape != (n_elem, n_node, n_dim):
+            raise ValueError(
+                f"out must have shape (n_elem, n_node, n_dim) = ({n_elem}, {n_node}, {n_dim}), "
+                f"but got shape {out.shape}"
+            )
+        # Note: out is fully overwritten by xp.matmul(DN, S, out=out) on line 828,
+        # so no zeroing is needed when reusing pre-allocated arrays.
 
-        # --- contract with DN ---
-        R = xp.zeros((n_elem, n_node, n_dim), dtype=beta.dtype)
-        for k in range(n_dim):
-            R += DN[:, :, k][:, :, None] * S[:, k, :][:, None, :]
+        M_e = self.GetElementalMassMatrix(n_dim)
+        
+        # Original computation (commented for reference):
+        # S = xp.zeros((n_elem, n_dim, n_dim), dtype=beta.dtype)
+        # for j in range(n_node):
+        #     for m in range(n_node):
+        #         w = M_e[j, m]
+        #         S += w * (a_elemental[:, j, :, None] * beta[:, m, None, :])
+        # out = xp.matmul(DN, S, out=out)
+        
+        # Vectorized computation (no loops, no 4th-order tensor):
+        # out[e,i,l] = sum_{j,m,k} DN[e,i,k] * M[j,m] * a[e,j,k] * beta[e,m,l]
+        # Factor as: S[e,k,l] = sum_{j,m} M[j,m] * a[e,j,k] * beta[e,m,l]
+        # Then: out[e,i,l] = sum_k DN[e,i,k] * S[e,k,l]
+        
+        self._ensure_temporaries(n_elem, n_node, n_dim)
+        
+        # Step 1: Compute temp[e,j,l] = sum_m M[j,m] * beta[e,m,l]
+        # Batched matmul: M @ beta[e] for all elements at once
+        # Use _tmp_eik as temp buffer (shape: nelem, n_node, n_dim)
+        xp.matmul(M_e[None, :, :], beta, out=self._tmp_eik)
+        
+        # Step 2: Compute S[e,k,l] = sum_j a[e,j,k] * temp[e,j,l]
+        # Transpose a to (n_elem, n_dim, n_node) then matmul with temp
+        # Use _tmp_edd as S buffer (shape: nelem, dim, dim)
+        xp.matmul(a_elemental.swapaxes(1, 2), self._tmp_eik, out=self._tmp_edd)
+        
+        # Step 3: Compute out[e,i,l] = sum_k DN[e,i,k] * S[e,k,l]
+        # Use out parameter to avoid implicit temporary from matmul
+        xp.matmul(DN, self._tmp_edd, out=out)
 
-        return R
+        return out
 
-    def ComputeDivDivStabilization(self, N: np.array, DN: np.ndarray, u_elemental : np.ndarray, Pi_div_elemental: np.ndarray):
+    def ComputeDivDivStabilization(self, N: np.array, DN: np.ndarray, u_elemental : np.ndarray, Pi_div_elemental: np.ndarray, out=None):
         """
         Compute div-div stabilization term:
 
@@ -805,47 +873,77 @@ class CFDUtils:
         DN : (E, nnode, dim)
         u_elemental : (E, nnode, dim)
         Pi_div_elemental : (E, nnode)
+        out : ndarray, optional
+            Pre-allocated output array of shape (E, nnode, dim).
 
         Returns
         -------
         (E, nnode, dim)
         """
+        nelem, nnode, dim = DN.shape
+        self._ensure_temporaries(nelem, nnode, dim)
+
+        if out is None:
+            out = xp.empty((nelem, nnode, dim), dtype=DN.dtype)
 
         # Step 1: divergence of u → (E,)
-        div_u = xp.sum(DN * u_elemental, axis=(1, 2))
+        # Use _tmp_eik as intermediate buffer for DN * u_elemental
+        xp.multiply(DN, u_elemental, out=self._tmp_eik)
+        xp.sum(self._tmp_eik, axis=(1, 2), out=self._tmp_e)
 
         # Step 2: projection of Π → (E,)
-        proj = xp.sum(N[None, :] * Pi_div_elemental, axis=1)
+        # Use _tmp_en as intermediate buffer for N[None, :] * Pi_div_elemental
+        xp.multiply(N[None, :], Pi_div_elemental, out=self._tmp_en)
+        xp.sum(self._tmp_en, axis=1, out=self._tmp_ed[:, 0])  # reuse _tmp_ed[:, 0] as (E,) view
 
-        # Step 3: scalar residual → (E,)
-        div_res = div_u - proj
+        # Step 3: scalar residual → (E,) — in-place subtraction
+        xp.subtract(self._tmp_e, self._tmp_ed[:, 0], out=self._tmp_e)
 
         # Step 4: apply DN → (E, nnode, dim)
-        return DN * div_res[:, None, None]
+        xp.multiply(DN, self._tmp_e[:, None, None], out=out)
 
-    def ComputePressureStabilizationProjectionTerm(self, N: np.ndarray, DN: np.ndarray, Pi_press_el: np.ndarray):
+        return out
+
+    def ComputePressureStabilizationProjectionTerm(self, N: np.ndarray, DN: np.ndarray, Pi_press_el: np.ndarray, out=None):
         """
         implements (∇q,Pi_pressure)
 
-        this corresponds in einstain notation to
-        out[i,k] = sum_l N_I ∇u_kl a_l
-        on every element
+        using the einsum relation:
+            out[e,I] = sum_{J,k} DN[e,I,k] * N[J] * Pi_press_el[e,J,k]
+            = xp.einsum("eIk,J,eJk->eI",DN,N,Pi_press_el, optimize=opt_type)
 
         Parameters
         ----------
-        N : (nelem, n_in_el)
-            shape function values at the gauss point
+        N : (n_node,)
+            shape function values
+        DN : (nelem, n_node, dim)
+            shape function derivatives
+        Pi_press_el : (nelem, n_node, dim)
+            pressure projection at element nodes
+        out : ndarray, optional
+            Pre-allocated output array of shape (nelem, n_node).
 
-        grad_u : (nelem, ndim, ndim) in the vector case or (nelem, ndim) in the scalar case
-            gradient of the velocity at the gauss point
-
-        a: (nelem,ndim)
-            convective velocity on the gauss point
-
-        out: (nelem, n_in_el, ndim)
-
+        Returns
+        -------
+        (nelem, n_node)
+            Scalar result per element-node pair
         """
-        return xp.einsum("eIk,J,eJk->eI",DN,N,Pi_press_el, optimize=opt_type)
+        nelem, n_node, n_dim = DN.shape
+        self._ensure_temporaries(nelem, n_node, n_dim)
+
+        if out is None:
+            out = xp.empty((nelem, n_node), dtype=DN.dtype)
+
+        # Step 1: Compute temp[e,k] = sum_J N[J] * Pi_press_el[e,J,k]
+        # Using matmul: Pi_press_el.swapaxes(1,2) @ N gives (nelem, dim, n_node) @ (n_node,) -> (nelem, dim)
+        xp.matmul(Pi_press_el.swapaxes(1, 2), N, out=self._tmp_ed)
+
+        # Step 2: Compute out[e,I] = sum_k DN[e,I,k] * temp[e,k]
+        # Use _tmp_eik as intermediate buffer for DN * temp, then sum over k
+        xp.multiply(DN, self._tmp_ed[:, None, :], out=self._tmp_eik)
+        xp.sum(self._tmp_eik, axis=2, out=out)
+
+        return out
 
     #REMARK: this function has to be run on the cpu AND NOT ON THE GPU - it will return a gpu matrix if that is the case
     def AllocateScalarMatrix(self,conn : np.ndarray):
@@ -954,150 +1052,14 @@ class CFDUtils:
         xp.put(RHS, fixed_values, 0.0)
 
         return LHS, RHS
-
-class GraphBasedSA_AMG:
-    def __init__(self, A_pattern_gpu, max_coarse=300):
-        self.shape = A_pattern_gpu.shape
-        self.dtype = A_pattern_gpu.dtype
-        self.max_coarse = max_coarse
-
-        # ---------------------------------------------------------
-        # CPU PHASE: Purely structural graph analysis
-        # ---------------------------------------------------------
-        indptr_cpu = A_pattern_gpu.indptr.get()
-        indices_cpu = A_pattern_gpu.indices.get()
-
-        dummy_data = A_pattern_gpu.data.get()
-        A_dummy_cpu = sp.csr_matrix((dummy_data, indices_cpu, indptr_cpu), shape=self.shape)
-
-        ml_dummy = pyamg.smoothed_aggregation_solver(
-            A_dummy_cpu,
-            max_coarse=max_coarse,
-            strength=('symmetric', {'theta': 0.0}),
-            keep=True
-        )
-
-        # ---------------------------------------------------------
-        # GPU TRANSFER PHASE
-        # ---------------------------------------------------------
-        self.T_operators_gpu = []
-        for i in range(len(ml_dummy.levels) - 1):
-            T_cpu = ml_dummy.levels[i].T.tocsr()
-            # Send T permanently to the GPU
-            T_gpu = sparse.csr_matrix(T_cpu)
-            self.T_operators_gpu.append(T_gpu)
-
-        self.levels = []
-
-    def update_matrix_values(self, A_new):
+    
+    def ConstructPreconditioner(self, A):
         """
-        Phase 2: GPU only - Fast rebuild of P, R, and A_coarse.
+        Constructs an algebraic preconditioner for the given matrix A.
+        For simplicity, we use the Jacobi (diagonal) preconditioner here.
         """
-        self.levels = []
-        A_current = A_new #.tocsr()
-
-        # Lock omegas to prevent Float64 upcasting
-        #omega_prolong = xp.float32(4.0 / 3.0) if self.dtype == xp.float32 else 4.0 / 3.0
-        omega_prolong = PRECISION(4.0/3.0)
-
-        for lvl_idx, T in enumerate(self.T_operators_gpu):
-            lvl_dict = {'A': A_current}
-
-            # Let CuPy find and extract the diagonal natively on the GPU
-            diag = A_current.diagonal()
-
-            # Protect against near-zeros causing float32 explosions
-            #diag[xp.abs(diag) < 1e-7] = 1.0
-            invD = xp.reciprocal(diag) #
-            #invD = PRECISION(1.0) / diag #TODO: check precision!
-            lvl_dict['invD'] = invD
-
-            # Build Smoothed Prolongator using @
-            A_T = A_current @ T
-            scaled_A_T = sparse.spdiags(invD, 0, A_current.shape[0], A_current.shape[1]) * A_T
-
-            P = T - (scaled_A_T * omega_prolong)
-            lvl_dict['P'] = P
-            R = P.T
-            self.levels.append(lvl_dict)
-
-            # Generate the new structure natively on GPU using @
-            A_current = R @ A_current @ P
-
-        # --- Base (Coarsest) Level Handling ---
-        base_dict = {'A': A_current}
-
-        if A_current.shape[0] <= self.max_coarse:
-            base_dict['is_dense_solve'] = True
-            A_dense_64 = A_current.todense().astype(xp.float64)
-            # Use pseudo-inverse to survive singular coarse grids
-            A_inv_64 = xp.linalg.pinv(A_dense_64)
-            base_dict['A_dense_inv'] = A_inv_64.astype(self.dtype)
-
+        if USE_CUPY:
+            return KM.FluidDynamicsApplication.cupy_amg_linear_solver.GraphBasedSA_AMG(A, max_coarse=300)
         else:
-            base_dict['is_dense_solve'] = False
-
-            # Native extraction for the base level
-            diag = A_current.diagonal()
-            diag[xp.abs(diag) < 1e-7] = 1.0
-            base_dict['invD'] = PRECISION(1.0) / diag
-
-        self.levels.append(base_dict)
-
-    def _v_cycle(self, b, level_idx=0):
-        lvl = self.levels[level_idx]
-        A = lvl['A']
-
-        # Base Case Solve
-        if level_idx == len(self.levels) - 1:
-            if lvl['is_dense_solve']:
-                return lvl['A_dense_inv'] @ b
-            else:
-                x = xp.zeros_like(b)
-                omega_jacobi = PRECISION(0.67)
-                for _ in range(20):
-                    r = b - (A @ x)
-                    r *= lvl['invD']
-                    r *= omega_jacobi
-                    x += r
-                return x
-
-        P = lvl['P']
-        invD = lvl['invD']
-        omega = PRECISION(0.67)
-        sweeps = 2
-
-        x = xp.zeros_like(b)
-
-        # Pre-smoothing
-        for _ in range(sweeps):
-            r = b - (A @ x)
-            r *= invD
-            r *= omega
-            x += r
-
-        # Restrict
-        r = b - (A @ x)
-        b_coarse = P.T @ r
-
-        # Coarse grid correction
-        e_coarse = self._v_cycle(b_coarse, level_idx + 1)
-
-        # Prolongate
-        x += P @ e_coarse
-
-        # Post-smoothing
-        for _ in range(sweeps):
-            r = b - (A @ x)
-            r *= invD
-            r *= omega
-            x += r
-
-        return x
-
-    def matvec(self, b):
-        return self._v_cycle(b, level_idx=0)
-
-    def aspreconditioner(self):
-        return sparse_linalg.LinearOperator(shape=self.shape, matvec=self.matvec, dtype=self.dtype)
+            return None
 

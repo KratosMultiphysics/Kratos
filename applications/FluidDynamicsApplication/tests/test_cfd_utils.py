@@ -5,7 +5,7 @@ import KratosMultiphysics.FluidDynamicsApplication.cfd_utils as cfd_utils_module
 
 cfd_utils_module.configure("OpenMP", "float64")
 
-class TestCFDUtilsV2(UnitTest.TestCase):
+class TestCFDUtils(UnitTest.TestCase):
     def ElemData(self, v, connectivities):
         return np.take(v, connectivities, axis=0)
 
@@ -13,6 +13,7 @@ class TestCFDUtilsV2(UnitTest.TestCase):
         #read mdpa
         self.dim = 3
         current_model = KM.Model()
+        
 
         main_model_part = current_model.CreateModelPart("Main")
         self.model_part = main_model_part.CreateSubModelPart("submodelpart")
