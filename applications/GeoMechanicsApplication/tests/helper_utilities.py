@@ -1,11 +1,26 @@
+import importlib
 from pathlib import Path
 from typing import Dict, List, Optional, Union
+
+import KratosMultiphysics as Kratos
+from KratosMultiphysics.project import Project
 
 import test_helper
 
 
 NodalValue = Union[float, List[float]]
 NodalSeries = Dict[float, Dict[int, NodalValue]]
+
+
+def run_orchestrator(project_parameters: Kratos.Parameters) -> None:
+    project = Project(project_parameters)
+    orchestrator_reg_entry = Kratos.Registry[
+        project.GetSettings()["orchestrator"]["name"].GetString()
+    ]
+    orchestrator_module = importlib.import_module(orchestrator_reg_entry["ModuleName"])
+    orchestrator_class = getattr(orchestrator_module, orchestrator_reg_entry["ClassName"])
+    orchestrator_instance = orchestrator_class(project)
+    orchestrator_instance.Run()
 
 
 def _parse_gid_ascii_nodal_variable(filepath: Path, variable_name: str) -> NodalSeries:
@@ -139,8 +154,9 @@ def _compare_nodal_value_lists_at_time(
 
 
 def _compare_case_outputs(
-    full_run_stage3: Path,
-    checkpoint_stage3: Path,
+    output_file_path_1: Path,
+    output_file_path_2: Path,
+    comparison_time: float,
     abs_tol: float,
     rel_tol: float,
     variables: Optional[List[str]] = None,
@@ -152,15 +168,23 @@ def _compare_case_outputs(
 
     for variable in variables:
         full_run_series = _parse_gid_ascii_nodal_variable(
-            full_run_stage3, variable
+            output_file_path_1, variable
         )
         checkpoint_series = _parse_gid_ascii_nodal_variable(
-            checkpoint_stage3, variable
+            output_file_path_2, variable
         )
-        # compare at the final time present in the full-run series
-        compare_time = max(full_run_series.keys())
+        missing_in = []
+        if comparison_time not in full_run_series:
+            missing_in.append(str(output_file_path_1))
+        if comparison_time not in checkpoint_series:
+            missing_in.append(str(output_file_path_2))
+        if missing_in:
+            failures.append(
+                f"Variable {variable}: comparison_time {comparison_time} not found in: {', '.join(missing_in)}"
+            )
+            continue
         errors = _compare_nodal_series_at_time(
-            full_run_series, checkpoint_series, compare_time, abs_tol, rel_tol
+            full_run_series, checkpoint_series, comparison_time, abs_tol, rel_tol
         )
 
         if errors:

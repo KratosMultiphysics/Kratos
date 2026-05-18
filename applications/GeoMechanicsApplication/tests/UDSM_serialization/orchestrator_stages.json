@@ -25,8 +25,8 @@
                 "analysis_stage": "Stages.KratosMultiphysics.GeoMechanicsApplication.GeoMechanicsAnalysis",
                 "problem_data": {
                     "problem_name": "mesh",
-                    "start_time": -1,
-                    "end_time": 0,
+                    "start_time": -1.0,
+                    "end_time": 0.0,
                     "echo_level": 1,
                     "parallel_type": "OpenMP",
                     "number_of_threads": 1
@@ -179,7 +179,7 @@
                 "analysis_stage": "Stages.KratosMultiphysics.GeoMechanicsApplication.GeoMechanicsAnalysis",
                 "problem_data": {
                     "problem_name": "mesh",
-                    "start_time": 0,
+                    "start_time": 0.0,
                     "end_time": 0.1,
                     "echo_level": 1,
                     "parallel_type": "OpenMP",
@@ -337,7 +337,7 @@
                 "problem_data": {
                     "problem_name": "mesh",
                     "start_time": 0.1,
-                    "end_time": 1,
+                    "end_time": 1.0,
                     "echo_level": 1,
                     "parallel_type": "OpenMP",
                     "number_of_threads": 1

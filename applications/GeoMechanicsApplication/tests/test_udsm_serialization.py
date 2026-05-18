@@ -1,4 +1,3 @@
-import importlib
 import copy
 import glob
 import json
@@ -6,8 +5,7 @@ import os
 from pathlib import Path
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-from KratosMultiphysics.project import Project
-from helper_utilities import _compare_case_outputs
+from helper_utilities import _compare_case_outputs, run_orchestrator
 
 
 class KratosGeoMechanicsUDSMSerializationTest(KratosUnittest.TestCase):
@@ -18,19 +16,7 @@ class KratosGeoMechanicsUDSMSerializationTest(KratosUnittest.TestCase):
 
     def _run_orchestrator_with_settings(self, project_settings: dict) -> None:
         project_parameters = Kratos.Parameters(json.dumps(project_settings))
-        project = Project(project_parameters)
-
-        orchestrator_reg_entry = Kratos.Registry[
-            project.GetSettings()["orchestrator"]["name"].GetString()
-        ]
-        orchestrator_module = importlib.import_module(
-            orchestrator_reg_entry["ModuleName"]
-        )
-        orchestrator_class = getattr(
-            orchestrator_module, orchestrator_reg_entry["ClassName"]
-        )
-        orchestrator_instance = orchestrator_class(project)
-        orchestrator_instance.Run()
+        run_orchestrator(project_parameters)
 
     def _make_save_checkpoint_settings(self, base_settings: dict) -> dict:
         settings = copy.deepcopy(base_settings)
@@ -101,6 +87,7 @@ class KratosGeoMechanicsUDSMSerializationTest(KratosUnittest.TestCase):
             _compare_case_outputs(
                 full_run_stage3,
                 checkpoint_stage3,
+                1.0,
                 abs_tol,
                 rel_tol,
                 variables,

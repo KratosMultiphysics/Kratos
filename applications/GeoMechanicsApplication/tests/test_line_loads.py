@@ -4,11 +4,9 @@ import KratosMultiphysics as Kratos
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.StructuralMechanicsApplication as KratosStructural
 import test_helper
-from KratosMultiphysics.project import Project
-import importlib
-from KratosMultiphysics.GeoMechanicsApplication.gid_output_file_reader import GiDOutputFileReader
 import KratosMultiphysics.GeoMechanicsApplication.run_multiple_stages as run_multiple_stages
-from helper_utilities import _compare_case_outputs
+from KratosMultiphysics.GeoMechanicsApplication.gid_output_file_reader import GiDOutputFileReader
+from helper_utilities import _compare_case_outputs, run_orchestrator
 
 class KratosGeoMechanicsLineLoadTests(KratosUnittest.TestCase):
     """
@@ -108,14 +106,8 @@ class KratosGeoMechanicsLineLoadTests(KratosUnittest.TestCase):
            project_parameters = Kratos.Parameters(parameter_file.read())
 
        cwd = os.getcwd()
-       project = Project(project_parameters)
        os.chdir(file_path)
-
-       orchestrator_reg_entry = Kratos.Registry[project.GetSettings()["orchestrator"]["name"].GetString()]
-       orchestrator_module = importlib.import_module(orchestrator_reg_entry["ModuleName"])
-       orchestrator_class = getattr(orchestrator_module, orchestrator_reg_entry["ClassName"])
-       orchestrator_instance = orchestrator_class(project)
-       orchestrator_instance.Run()
+       run_orchestrator(project_parameters)
 
        bottom_node_ids = [1, 2, 6, 11, 17, 25, 34, 46, 59, 75, 90]
        for output_file_name, expected_total_reaction_y, stage_time in comparison_data:
@@ -145,6 +137,7 @@ class KratosGeoMechanicsLineLoadTests(KratosUnittest.TestCase):
         _compare_case_outputs(
             full_run_stage_2,
             checkpoint_stage_2,
+            2.0,
             abs_tol=1e-7,
             rel_tol=0.0,
             variables=["REACTION"],
@@ -161,13 +154,8 @@ class KratosGeoMechanicsLineLoadTests(KratosUnittest.TestCase):
         with open(project_parameters_filename, 'r') as parameter_file:
             project_parameters = Kratos.Parameters(parameter_file.read())
         cwd = os.getcwd()
-        project = Project(project_parameters)
         os.chdir(file_path)
-        orchestrator_reg_entry = Kratos.Registry[project.GetSettings()["orchestrator"]["name"].GetString()]
-        orchestrator_module = importlib.import_module(orchestrator_reg_entry["ModuleName"])
-        orchestrator_class = getattr(orchestrator_module, orchestrator_reg_entry["ClassName"])
-        orchestrator_instance = orchestrator_class(project)
-        orchestrator_instance.Run()
+        run_orchestrator(project_parameters)
         os.chdir(cwd)
 
 
