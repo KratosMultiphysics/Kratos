@@ -23,6 +23,7 @@
 #include "includes/debug_helpers.h"
 #include "structural_mechanics_application_variables.h"
 #include "custom_constitutive/linear_plane_strain.h"
+#include "custom_constitutive/reissner_mindlin_shell_elastic_constitutive_law.h"
 
 
 namespace Kratos {
@@ -66,8 +67,11 @@ void CreateShellTestModelPart(std::string const& rElementName, ModelPart& rModel
         r_node.AddDof(ROTATION_Y);
         r_node.AddDof(ROTATION_Z);
     }
-
-    (*p_prop)[CONSTITUTIVE_LAW] = LinearPlaneStrain::Pointer(new LinearPlaneStrain());
+    if (rElementName == "MITCThickShellElement3D4N") {
+        (*p_prop)[CONSTITUTIVE_LAW] = ReissnerMindlinShellElasticConstitutiveLaw::Pointer(new ReissnerMindlinShellElasticConstitutiveLaw());
+    } else {
+        (*p_prop)[CONSTITUTIVE_LAW] = LinearPlaneStrain::Pointer(new LinearPlaneStrain());
+    }
     (*p_prop)[DENSITY] = 1000.0;
     (*p_prop)[YOUNG_MODULUS] = 1400000.0;
     (*p_prop)[THICKNESS] = 0.1;
@@ -177,7 +181,7 @@ KRATOS_TEST_CASE_IN_SUITE(ShellElementCorotational_4N_LumpedMassMatrix, KratosSt
         ref_mass_matrix(idx+2, idx+2) = ref_val;
     }
 
-    ConductShellMassMatrixTest("ShellThickElementCorotational3D4N", ref_mass_matrix, true);
+    ConductShellMassMatrixTest("MITCThickShellElement3D4N", ref_mass_matrix, true);
     ConductShellMassMatrixTest("ShellThinElementCorotational3D4N", ref_mass_matrix, true);
 }
 
@@ -247,7 +251,7 @@ KRATOS_TEST_CASE_IN_SUITE(ShellElementCorotational_4N_ConsistentMassMatrix, Krat
     ref_mass_matrix(22,16)=0.01851851851852; ref_mass_matrix(22,22)=0.03703703703704; ref_mass_matrix(23,5)=0.01851851851852;
     ref_mass_matrix(23,11)=0.009259259259259; ref_mass_matrix(23,17)=0.01851851851852; ref_mass_matrix(23,23)=0.03703703703704;
 
-    ConductShellMassMatrixTest("ShellThickElementCorotational3D4N", ref_mass_matrix, false);
+    ConductShellMassMatrixTest("MITCThickShellElement3D4N", ref_mass_matrix, false);
     ConductShellMassMatrixTest("ShellThinElementCorotational3D4N", ref_mass_matrix, false);
 }
 
@@ -362,109 +366,132 @@ KRATOS_TEST_CASE_IN_SUITE(ShellThinElementCorotational3D3N_DampingMatrix, Kratos
 }
 
 
-KRATOS_TEST_CASE_IN_SUITE(ShellThickElementCorotational3D4N_DampingMatrix, KratosStructuralMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(MITCThickShellCorotationalElement3D4N_DampingMatrix, KratosStructuralMechanicsFastSuite)
 {
     Matrix ref_damping_matrix(24, 24);
     ref_damping_matrix = ZeroMatrix(24,24);
 
-    ref_damping_matrix(0,0)=2338.538461538; ref_damping_matrix(0,1)=908.6538461538; ref_damping_matrix(0,5)=-269.2307692308;
-    ref_damping_matrix(0,6)=-1326.923076923; ref_damping_matrix(0,7)=302.8846153846; ref_damping_matrix(0,11)=-134.6153846154;
-    ref_damping_matrix(0,12)=-1500; ref_damping_matrix(0,13)=-908.6538461538; ref_damping_matrix(0,17)=-134.6153846154;
-    ref_damping_matrix(0,18)=490.3846153846; ref_damping_matrix(0,19)=-302.8846153846; ref_damping_matrix(0,23)=-269.2307692308;
-    ref_damping_matrix(1,0)=908.6538461538; ref_damping_matrix(1,1)=2338.538461538; ref_damping_matrix(1,5)=269.2307692308;
-    ref_damping_matrix(1,6)=-302.8846153846; ref_damping_matrix(1,7)=490.3846153846; ref_damping_matrix(1,11)=269.2307692308;
-    ref_damping_matrix(1,12)=-908.6538461538; ref_damping_matrix(1,13)=-1500; ref_damping_matrix(1,17)=134.6153846154;
-    ref_damping_matrix(1,18)=302.8846153846; ref_damping_matrix(1,19)=-1326.923076923; ref_damping_matrix(1,23)=134.6153846154;
-    ref_damping_matrix(2,2)=23.88868042527; ref_damping_matrix(2,3)=10.94434021263; ref_damping_matrix(2,4)=-10.94434021263;
-    ref_damping_matrix(2,8)=-5.472170106316; ref_damping_matrix(2,9)=5.472170106316; ref_damping_matrix(2,10)=-10.94434021263;
-    ref_damping_matrix(2,14)=-10.94434021263; ref_damping_matrix(2,15)=5.472170106316; ref_damping_matrix(2,16)=-5.472170106316;
-    ref_damping_matrix(2,20)=-5.472170106316; ref_damping_matrix(2,21)=10.94434021263; ref_damping_matrix(2,22)=-5.472170106316;
-    ref_damping_matrix(3,2)=10.94434021263; ref_damping_matrix(3,3)=12.96357098186; ref_damping_matrix(3,4)=-0.8413461538462;
-    ref_damping_matrix(3,8)=5.472170106316; ref_damping_matrix(3,9)=5.808708567855; ref_damping_matrix(3,10)=0.1682692307692;
-    ref_damping_matrix(3,14)=-5.472170106316; ref_damping_matrix(3,15)=4.462554721701; ref_damping_matrix(3,16)=0.8413461538462;
-    ref_damping_matrix(3,20)=-10.94434021263; ref_damping_matrix(3,21)=9.598186366479; ref_damping_matrix(3,22)=-0.1682692307692;
-    ref_damping_matrix(4,2)=-10.94434021263; ref_damping_matrix(4,3)=-0.8413461538462; ref_damping_matrix(4,4)=12.96357098186;
-    ref_damping_matrix(4,8)=10.94434021263; ref_damping_matrix(4,9)=-0.1682692307692; ref_damping_matrix(4,10)=9.598186366479;
-    ref_damping_matrix(4,14)=5.472170106316; ref_damping_matrix(4,15)=0.8413461538462; ref_damping_matrix(4,16)=4.462554721701;
-    ref_damping_matrix(4,20)=-5.472170106316; ref_damping_matrix(4,21)=0.1682692307692; ref_damping_matrix(4,22)=5.808708567855;
-    ref_damping_matrix(5,0)=-269.2307692308; ref_damping_matrix(5,1)=269.2307692308; ref_damping_matrix(5,5)=717.9487179487;
-    ref_damping_matrix(5,6)=-134.6153846154; ref_damping_matrix(5,7)=-269.2307692308; ref_damping_matrix(5,11)=358.9743589744;
-    ref_damping_matrix(5,12)=134.6153846154; ref_damping_matrix(5,13)=-134.6153846154; ref_damping_matrix(5,17)=179.4871794872;
-    ref_damping_matrix(5,18)=269.2307692308; ref_damping_matrix(5,19)=134.6153846154; ref_damping_matrix(5,23)=358.9743589744;
-    ref_damping_matrix(6,0)=-1326.923076923; ref_damping_matrix(6,1)=-302.8846153846; ref_damping_matrix(6,5)=-134.6153846154;
-    ref_damping_matrix(6,6)=2338.538461538; ref_damping_matrix(6,7)=-908.6538461538; ref_damping_matrix(6,11)=-269.2307692308;
-    ref_damping_matrix(6,12)=490.3846153846; ref_damping_matrix(6,13)=302.8846153846; ref_damping_matrix(6,17)=-269.2307692308;
-    ref_damping_matrix(6,18)=-1500; ref_damping_matrix(6,19)=908.6538461538; ref_damping_matrix(6,23)=-134.6153846154;
-    ref_damping_matrix(7,0)=302.8846153846; ref_damping_matrix(7,1)=490.3846153846; ref_damping_matrix(7,5)=-269.2307692308;
-    ref_damping_matrix(7,6)=-908.6538461538; ref_damping_matrix(7,7)=2338.538461538; ref_damping_matrix(7,11)=-269.2307692308;
-    ref_damping_matrix(7,12)=-302.8846153846; ref_damping_matrix(7,13)=-1326.923076923; ref_damping_matrix(7,17)=-134.6153846154;
-    ref_damping_matrix(7,18)=908.6538461538; ref_damping_matrix(7,19)=-1500; ref_damping_matrix(7,23)=-134.6153846154;
-    ref_damping_matrix(8,2)=-5.472170106316; ref_damping_matrix(8,3)=5.472170106316; ref_damping_matrix(8,4)=10.94434021263;
-    ref_damping_matrix(8,8)=23.88868042527; ref_damping_matrix(8,9)=10.94434021263; ref_damping_matrix(8,10)=10.94434021263;
-    ref_damping_matrix(8,14)=-5.472170106316; ref_damping_matrix(8,15)=10.94434021263; ref_damping_matrix(8,16)=5.472170106316;
-    ref_damping_matrix(8,20)=-10.94434021263; ref_damping_matrix(8,21)=5.472170106316; ref_damping_matrix(8,22)=5.472170106316;
-    ref_damping_matrix(9,2)=5.472170106316; ref_damping_matrix(9,3)=5.808708567855; ref_damping_matrix(9,4)=-0.1682692307692;
-    ref_damping_matrix(9,8)=10.94434021263; ref_damping_matrix(9,9)=12.96357098186; ref_damping_matrix(9,10)=0.8413461538462;
-    ref_damping_matrix(9,14)=-10.94434021263; ref_damping_matrix(9,15)=9.598186366479; ref_damping_matrix(9,16)=0.1682692307692;
-    ref_damping_matrix(9,20)=-5.472170106316; ref_damping_matrix(9,21)=4.462554721701; ref_damping_matrix(9,22)=-0.8413461538462;
-    ref_damping_matrix(10,2)=-10.94434021263; ref_damping_matrix(10,3)=0.1682692307692; ref_damping_matrix(10,4)=9.598186366479;
-    ref_damping_matrix(10,8)=10.94434021263; ref_damping_matrix(10,9)=0.8413461538462; ref_damping_matrix(10,10)=12.96357098186;
-    ref_damping_matrix(10,14)=5.472170106316; ref_damping_matrix(10,15)=-0.1682692307692; ref_damping_matrix(10,16)=5.808708567855;
-    ref_damping_matrix(10,20)=-5.472170106316; ref_damping_matrix(10,21)=-0.8413461538462; ref_damping_matrix(10,22)=4.462554721701;
-    ref_damping_matrix(11,0)=-134.6153846154; ref_damping_matrix(11,1)=269.2307692308; ref_damping_matrix(11,5)=358.9743589744;
-    ref_damping_matrix(11,6)=-269.2307692308; ref_damping_matrix(11,7)=-269.2307692308; ref_damping_matrix(11,11)=717.9487179487;
-    ref_damping_matrix(11,12)=269.2307692308; ref_damping_matrix(11,13)=-134.6153846154; ref_damping_matrix(11,17)=358.9743589744;
-    ref_damping_matrix(11,18)=134.6153846154; ref_damping_matrix(11,19)=134.6153846154; ref_damping_matrix(11,23)=179.4871794872;
-    ref_damping_matrix(12,0)=-1500; ref_damping_matrix(12,1)=-908.6538461538; ref_damping_matrix(12,5)=134.6153846154;
-    ref_damping_matrix(12,6)=490.3846153846; ref_damping_matrix(12,7)=-302.8846153846; ref_damping_matrix(12,11)=269.2307692308;
-    ref_damping_matrix(12,12)=2338.538461538; ref_damping_matrix(12,13)=908.6538461538; ref_damping_matrix(12,17)=269.2307692308;
-    ref_damping_matrix(12,18)=-1326.923076923; ref_damping_matrix(12,19)=302.8846153846; ref_damping_matrix(12,23)=134.6153846154;
-    ref_damping_matrix(13,0)=-908.6538461538; ref_damping_matrix(13,1)=-1500; ref_damping_matrix(13,5)=-134.6153846154;
-    ref_damping_matrix(13,6)=302.8846153846; ref_damping_matrix(13,7)=-1326.923076923; ref_damping_matrix(13,11)=-134.6153846154;
-    ref_damping_matrix(13,12)=908.6538461538; ref_damping_matrix(13,13)=2338.538461538; ref_damping_matrix(13,17)=-269.2307692308;
-    ref_damping_matrix(13,18)=-302.8846153846; ref_damping_matrix(13,19)=490.3846153846; ref_damping_matrix(13,23)=-269.2307692308;
-    ref_damping_matrix(14,2)=-10.94434021263; ref_damping_matrix(14,3)=-5.472170106316; ref_damping_matrix(14,4)=5.472170106316;
-    ref_damping_matrix(14,8)=-5.472170106316; ref_damping_matrix(14,9)=-10.94434021263; ref_damping_matrix(14,10)=5.472170106316;
-    ref_damping_matrix(14,14)=23.88868042527; ref_damping_matrix(14,15)=-10.94434021263; ref_damping_matrix(14,16)=10.94434021263;
-    ref_damping_matrix(14,20)=-5.472170106316; ref_damping_matrix(14,21)=-5.472170106316; ref_damping_matrix(14,22)=10.94434021263;
-    ref_damping_matrix(15,2)=5.472170106316; ref_damping_matrix(15,3)=4.462554721701; ref_damping_matrix(15,4)=0.8413461538462;
-    ref_damping_matrix(15,8)=10.94434021263; ref_damping_matrix(15,9)=9.598186366479; ref_damping_matrix(15,10)=-0.1682692307692;
-    ref_damping_matrix(15,14)=-10.94434021263; ref_damping_matrix(15,15)=12.96357098186; ref_damping_matrix(15,16)=-0.8413461538462;
-    ref_damping_matrix(15,20)=-5.472170106316; ref_damping_matrix(15,21)=5.808708567855; ref_damping_matrix(15,22)=0.1682692307692;
-    ref_damping_matrix(16,2)=-5.472170106316; ref_damping_matrix(16,3)=0.8413461538462; ref_damping_matrix(16,4)=4.462554721701;
-    ref_damping_matrix(16,8)=5.472170106316; ref_damping_matrix(16,9)=0.1682692307692; ref_damping_matrix(16,10)=5.808708567855;
-    ref_damping_matrix(16,14)=10.94434021263; ref_damping_matrix(16,15)=-0.8413461538462; ref_damping_matrix(16,16)=12.96357098186;
-    ref_damping_matrix(16,20)=-10.94434021263; ref_damping_matrix(16,21)=-0.1682692307692; ref_damping_matrix(16,22)=9.598186366479;
-    ref_damping_matrix(17,0)=-134.6153846154; ref_damping_matrix(17,1)=134.6153846154; ref_damping_matrix(17,5)=179.4871794872;
-    ref_damping_matrix(17,6)=-269.2307692308; ref_damping_matrix(17,7)=-134.6153846154; ref_damping_matrix(17,11)=358.9743589744;
-    ref_damping_matrix(17,12)=269.2307692308; ref_damping_matrix(17,13)=-269.2307692308; ref_damping_matrix(17,17)=717.9487179487;
-    ref_damping_matrix(17,18)=134.6153846154; ref_damping_matrix(17,19)=269.2307692308; ref_damping_matrix(17,23)=358.9743589744;
-    ref_damping_matrix(18,0)=490.3846153846; ref_damping_matrix(18,1)=302.8846153846; ref_damping_matrix(18,5)=269.2307692308;
-    ref_damping_matrix(18,6)=-1500; ref_damping_matrix(18,7)=908.6538461538; ref_damping_matrix(18,11)=134.6153846154;
-    ref_damping_matrix(18,12)=-1326.923076923; ref_damping_matrix(18,13)=-302.8846153846; ref_damping_matrix(18,17)=134.6153846154;
-    ref_damping_matrix(18,18)=2338.538461538; ref_damping_matrix(18,19)=-908.6538461538; ref_damping_matrix(18,23)=269.2307692308;
-    ref_damping_matrix(19,0)=-302.8846153846; ref_damping_matrix(19,1)=-1326.923076923; ref_damping_matrix(19,5)=134.6153846154;
-    ref_damping_matrix(19,6)=908.6538461538; ref_damping_matrix(19,7)=-1500; ref_damping_matrix(19,11)=134.6153846154;
-    ref_damping_matrix(19,12)=302.8846153846; ref_damping_matrix(19,13)=490.3846153846; ref_damping_matrix(19,17)=269.2307692308;
-    ref_damping_matrix(19,18)=-908.6538461538; ref_damping_matrix(19,19)=2338.538461538; ref_damping_matrix(19,23)=269.2307692308;
-    ref_damping_matrix(20,2)=-5.472170106316; ref_damping_matrix(20,3)=-10.94434021263; ref_damping_matrix(20,4)=-5.472170106316;
-    ref_damping_matrix(20,8)=-10.94434021263; ref_damping_matrix(20,9)=-5.472170106316; ref_damping_matrix(20,10)=-5.472170106316;
-    ref_damping_matrix(20,14)=-5.472170106316; ref_damping_matrix(20,15)=-5.472170106316; ref_damping_matrix(20,16)=-10.94434021263;
-    ref_damping_matrix(20,20)=23.88868042527; ref_damping_matrix(20,21)=-10.94434021263; ref_damping_matrix(20,22)=-10.94434021263;
-    ref_damping_matrix(21,2)=10.94434021263; ref_damping_matrix(21,3)=9.598186366479; ref_damping_matrix(21,4)=0.1682692307692;
-    ref_damping_matrix(21,8)=5.472170106316; ref_damping_matrix(21,9)=4.462554721701; ref_damping_matrix(21,10)=-0.8413461538462;
-    ref_damping_matrix(21,14)=-5.472170106316; ref_damping_matrix(21,15)=5.808708567855; ref_damping_matrix(21,16)=-0.1682692307692;
-    ref_damping_matrix(21,20)=-10.94434021263; ref_damping_matrix(21,21)=12.96357098186; ref_damping_matrix(21,22)=0.8413461538462;
-    ref_damping_matrix(22,2)=-5.472170106316; ref_damping_matrix(22,3)=-0.1682692307692; ref_damping_matrix(22,4)=5.808708567855;
-    ref_damping_matrix(22,8)=5.472170106316; ref_damping_matrix(22,9)=-0.8413461538462; ref_damping_matrix(22,10)=4.462554721701;
-    ref_damping_matrix(22,14)=10.94434021263; ref_damping_matrix(22,15)=0.1682692307692; ref_damping_matrix(22,16)=9.598186366479;
-    ref_damping_matrix(22,20)=-10.94434021263; ref_damping_matrix(22,21)=0.8413461538462; ref_damping_matrix(22,22)=12.96357098186;
-    ref_damping_matrix(23,0)=-269.2307692308; ref_damping_matrix(23,1)=134.6153846154; ref_damping_matrix(23,5)=358.9743589744;
-    ref_damping_matrix(23,6)=-134.6153846154; ref_damping_matrix(23,7)=-134.6153846154; ref_damping_matrix(23,11)=179.4871794872;
-    ref_damping_matrix(23,12)=134.6153846154; ref_damping_matrix(23,13)=-269.2307692308; ref_damping_matrix(23,17)=358.9743589744;
-    ref_damping_matrix(23,18)=269.2307692308; ref_damping_matrix(23,19)=269.2307692308; ref_damping_matrix(23,23)=717.9487179487;
+ref_damping_matrix(0,0)=1923.1538461538; ref_damping_matrix(0,1)=739.9038461538; ref_damping_matrix(0,5)=-26.9230769231;
+    ref_damping_matrix(0,6)=-1093.2692307692; ref_damping_matrix(0,7)=-47.5961538462; ref_damping_matrix(0,11)=-13.4615384615;
+    ref_damping_matrix(0,12)=-1214.4230769231; ref_damping_matrix(0,13)=-739.9038461538; ref_damping_matrix(0,17)=-13.4615384615;
+    ref_damping_matrix(0,18)=386.5384615385; ref_damping_matrix(0,19)=47.5961538462; ref_damping_matrix(0,23)=-26.9230769231;
 
-    ConductShellDampingMatrixTest("ShellThickElementCorotational3D4N", ref_damping_matrix);
+    ref_damping_matrix(1,0)=739.9038461538; ref_damping_matrix(1,1)=1923.1538461538; ref_damping_matrix(1,5)=26.9230769231;
+    ref_damping_matrix(1,6)=47.5961538462; ref_damping_matrix(1,7)=386.5384615385; ref_damping_matrix(1,11)=26.9230769231;
+    ref_damping_matrix(1,12)=-739.9038461538; ref_damping_matrix(1,13)=-1214.4230769231; ref_damping_matrix(1,17)=13.4615384615;
+    ref_damping_matrix(1,18)=-47.5961538462; ref_damping_matrix(1,19)=-1093.2692307692; ref_damping_matrix(1,23)=13.4615384615;
+
+    ref_damping_matrix(2,2)=23.8886804253; ref_damping_matrix(2,3)=10.9443402126; ref_damping_matrix(2,4)=-10.9443402126;
+    ref_damping_matrix(2,8)=-5.4721701063; ref_damping_matrix(2,9)=5.4721701063; ref_damping_matrix(2,10)=-10.9443402126;
+    ref_damping_matrix(2,14)=-10.9443402126; ref_damping_matrix(2,15)=5.4721701063; ref_damping_matrix(2,16)=-5.4721701063;
+    ref_damping_matrix(2,20)=-5.4721701063; ref_damping_matrix(2,21)=10.9443402126; ref_damping_matrix(2,22)=-5.4721701063;
+
+    ref_damping_matrix(3,2)=10.9443402126; ref_damping_matrix(3,3)=12.6751094434; ref_damping_matrix(3,4)=-0.625;
+    ref_damping_matrix(3,8)=5.4721701063; ref_damping_matrix(3,9)=5.6644777986; ref_damping_matrix(3,10)=-0.0480769231;
+    ref_damping_matrix(3,14)=-5.4721701063; ref_damping_matrix(3,15)=4.6067854909; ref_damping_matrix(3,16)=0.625;
+    ref_damping_matrix(3,20)=-10.9443402126; ref_damping_matrix(3,21)=9.8866479049; ref_damping_matrix(3,22)=0.0480769231;
+
+    ref_damping_matrix(4,2)=-10.9443402126; ref_damping_matrix(4,3)=-0.625; ref_damping_matrix(4,4)=12.6751094434;
+    ref_damping_matrix(4,8)=10.9443402126; ref_damping_matrix(4,9)=0.0480769231; ref_damping_matrix(4,10)=9.8866479049;
+    ref_damping_matrix(4,14)=5.4721701063; ref_damping_matrix(4,15)=0.625; ref_damping_matrix(4,16)=4.6067854909;
+    ref_damping_matrix(4,20)=-5.4721701063; ref_damping_matrix(4,21)=-0.0480769231; ref_damping_matrix(4,22)=5.6644777986;
+
+    ref_damping_matrix(5,0)=-26.9230769231; ref_damping_matrix(5,1)=26.9230769231; ref_damping_matrix(5,5)=71.7948717949;
+    ref_damping_matrix(5,6)=-13.4615384615; ref_damping_matrix(5,7)=-26.9230769231; ref_damping_matrix(5,11)=35.8974358974;
+    ref_damping_matrix(5,12)=13.4615384615; ref_damping_matrix(5,13)=-13.4615384615; ref_damping_matrix(5,17)=17.9487179487;
+    ref_damping_matrix(5,18)=26.9230769231; ref_damping_matrix(5,19)=13.4615384615; ref_damping_matrix(5,23)=35.8974358974;
+
+    ref_damping_matrix(6,0)=-1093.2692307692; ref_damping_matrix(6,1)=47.5961538462; ref_damping_matrix(6,5)=-13.4615384615;
+    ref_damping_matrix(6,6)=1923.1538461538; ref_damping_matrix(6,7)=-739.9038461538; ref_damping_matrix(6,11)=-26.9230769231;
+    ref_damping_matrix(6,12)=386.5384615385; ref_damping_matrix(6,13)=-47.5961538462; ref_damping_matrix(6,17)=-26.9230769231;
+    ref_damping_matrix(6,18)=-1214.4230769231; ref_damping_matrix(6,19)=739.9038461538; ref_damping_matrix(6,23)=-13.4615384615;
+
+    ref_damping_matrix(7,0)=-47.5961538462; ref_damping_matrix(7,1)=386.5384615385; ref_damping_matrix(7,5)=-26.9230769231;
+    ref_damping_matrix(7,6)=-739.9038461538; ref_damping_matrix(7,7)=1923.1538461538; ref_damping_matrix(7,11)=-26.9230769231;
+    ref_damping_matrix(7,12)=47.5961538462; ref_damping_matrix(7,13)=-1093.2692307692; ref_damping_matrix(7,17)=-13.4615384615;
+    ref_damping_matrix(7,18)=739.9038461538; ref_damping_matrix(7,19)=-1214.4230769231; ref_damping_matrix(7,23)=-13.4615384615;
+
+    ref_damping_matrix(8,2)=-5.4721701063; ref_damping_matrix(8,3)=5.4721701063; ref_damping_matrix(8,4)=10.9443402126;
+    ref_damping_matrix(8,8)=23.8886804253; ref_damping_matrix(8,9)=10.9443402126; ref_damping_matrix(8,10)=10.9443402126;
+    ref_damping_matrix(8,14)=-5.4721701063; ref_damping_matrix(8,15)=10.9443402126; ref_damping_matrix(8,16)=5.4721701063;
+    ref_damping_matrix(8,20)=-10.9443402126; ref_damping_matrix(8,21)=5.4721701063; ref_damping_matrix(8,22)=5.4721701063;
+
+    ref_damping_matrix(9,2)=5.4721701063; ref_damping_matrix(9,3)=5.6644777986; ref_damping_matrix(9,4)=0.0480769231;
+    ref_damping_matrix(9,8)=10.9443402126; ref_damping_matrix(9,9)=12.6751094434; ref_damping_matrix(9,10)=0.625;
+    ref_damping_matrix(9,14)=-10.9443402126; ref_damping_matrix(9,15)=9.8866479049; ref_damping_matrix(9,16)=-0.0480769231;
+    ref_damping_matrix(9,20)=-5.4721701063; ref_damping_matrix(9,21)=4.6067854909; ref_damping_matrix(9,22)=-0.625;
+
+    ref_damping_matrix(10,2)=-10.9443402126; ref_damping_matrix(10,3)=-0.0480769231; ref_damping_matrix(10,4)=9.8866479049;
+    ref_damping_matrix(10,8)=10.9443402126; ref_damping_matrix(10,9)=0.625; ref_damping_matrix(10,10)=12.6751094434;
+    ref_damping_matrix(10,14)=5.4721701063; ref_damping_matrix(10,15)=0.0480769231; ref_damping_matrix(10,16)=5.6644777986;
+    ref_damping_matrix(10,20)=-5.4721701063; ref_damping_matrix(10,21)=-0.625; ref_damping_matrix(10,22)=4.6067854909;
+
+    ref_damping_matrix(11,0)=-13.4615384615; ref_damping_matrix(11,1)=26.9230769231; ref_damping_matrix(11,5)=35.8974358974;
+    ref_damping_matrix(11,6)=-26.9230769231; ref_damping_matrix(11,7)=-26.9230769231; ref_damping_matrix(11,11)=71.7948717949;
+    ref_damping_matrix(11,12)=26.9230769231; ref_damping_matrix(11,13)=-13.4615384615; ref_damping_matrix(11,17)=35.8974358974;
+    ref_damping_matrix(11,18)=13.4615384615; ref_damping_matrix(11,19)=13.4615384615; ref_damping_matrix(11,23)=17.9487179487;
+
+    ref_damping_matrix(12,0)=-1214.4230769231; ref_damping_matrix(12,1)=-739.9038461538; ref_damping_matrix(12,5)=13.4615384615;
+    ref_damping_matrix(12,6)=386.5384615385; ref_damping_matrix(12,7)=47.5961538462; ref_damping_matrix(12,11)=26.9230769231;
+    ref_damping_matrix(12,12)=1923.1538461538; ref_damping_matrix(12,13)=739.9038461538; ref_damping_matrix(12,17)=26.9230769231;
+    ref_damping_matrix(12,18)=-1093.2692307692; ref_damping_matrix(12,19)=-47.5961538462; ref_damping_matrix(12,23)=13.4615384615;
+
+    ref_damping_matrix(13,0)=-739.9038461538; ref_damping_matrix(13,1)=-1214.4230769231; ref_damping_matrix(13,5)=-13.4615384615;
+    ref_damping_matrix(13,6)=-47.5961538462; ref_damping_matrix(13,7)=-1093.2692307692; ref_damping_matrix(13,11)=-13.4615384615;
+    ref_damping_matrix(13,12)=739.9038461538; ref_damping_matrix(13,13)=1923.1538461538; ref_damping_matrix(13,17)=-26.9230769231;
+    ref_damping_matrix(13,18)=47.5961538462; ref_damping_matrix(13,19)=386.5384615385; ref_damping_matrix(13,23)=-26.9230769231;
+
+    ref_damping_matrix(14,2)=-10.9443402126; ref_damping_matrix(14,3)=-5.4721701063; ref_damping_matrix(14,4)=5.4721701063;
+    ref_damping_matrix(14,8)=-5.4721701063; ref_damping_matrix(14,9)=-10.9443402126; ref_damping_matrix(14,10)=5.4721701063;
+    ref_damping_matrix(14,14)=23.8886804253; ref_damping_matrix(14,15)=-10.9443402126; ref_damping_matrix(14,16)=10.9443402126;
+    ref_damping_matrix(14,20)=-5.4721701063; ref_damping_matrix(14,21)=-5.4721701063; ref_damping_matrix(14,22)=10.9443402126;
+
+    ref_damping_matrix(15,2)=5.4721701063; ref_damping_matrix(15,3)=4.6067854909; ref_damping_matrix(15,4)=0.625;
+    ref_damping_matrix(15,8)=10.9443402126; ref_damping_matrix(15,9)=9.8866479049; ref_damping_matrix(15,10)=0.0480769231;
+    ref_damping_matrix(15,14)=-10.9443402126; ref_damping_matrix(15,15)=12.6751094434; ref_damping_matrix(15,16)=-0.625;
+    ref_damping_matrix(15,20)=-5.4721701063; ref_damping_matrix(15,21)=5.6644777986; ref_damping_matrix(15,22)=-0.0480769231;
+
+    ref_damping_matrix(16,2)=-5.4721701063; ref_damping_matrix(16,3)=0.625; ref_damping_matrix(16,4)=4.6067854909;
+    ref_damping_matrix(16,8)=5.4721701063; ref_damping_matrix(16,9)=-0.0480769231; ref_damping_matrix(16,10)=5.6644777986;
+    ref_damping_matrix(16,14)=10.9443402126; ref_damping_matrix(16,15)=-0.625; ref_damping_matrix(16,16)=12.6751094434;
+    ref_damping_matrix(16,20)=-10.9443402126; ref_damping_matrix(16,21)=0.0480769231; ref_damping_matrix(16,22)=9.8866479049;
+
+    ref_damping_matrix(17,0)=-13.4615384615; ref_damping_matrix(17,1)=13.4615384615; ref_damping_matrix(17,5)=17.9487179487;
+    ref_damping_matrix(17,6)=-26.9230769231; ref_damping_matrix(17,7)=-13.4615384615; ref_damping_matrix(17,11)=35.8974358974;
+    ref_damping_matrix(17,12)=26.9230769231; ref_damping_matrix(17,13)=-26.9230769231; ref_damping_matrix(17,17)=71.7948717949;
+    ref_damping_matrix(17,18)=13.4615384615; ref_damping_matrix(17,19)=26.9230769231; ref_damping_matrix(17,23)=35.8974358974;
+
+    ref_damping_matrix(18,0)=386.5384615385; ref_damping_matrix(18,1)=-47.5961538462; ref_damping_matrix(18,5)=26.9230769231;
+    ref_damping_matrix(18,6)=-1214.4230769231; ref_damping_matrix(18,7)=739.9038461538; ref_damping_matrix(18,11)=13.4615384615;
+    ref_damping_matrix(18,12)=-1093.2692307692; ref_damping_matrix(18,13)=47.5961538462; ref_damping_matrix(18,17)=13.4615384615;
+    ref_damping_matrix(18,18)=1923.1538461538; ref_damping_matrix(18,19)=-739.9038461538; ref_damping_matrix(18,23)=26.9230769231;
+
+    ref_damping_matrix(19,0)=47.5961538462; ref_damping_matrix(19,1)=-1093.2692307692; ref_damping_matrix(19,5)=13.4615384615;
+    ref_damping_matrix(19,6)=739.9038461538; ref_damping_matrix(19,7)=-1214.4230769231; ref_damping_matrix(19,11)=13.4615384615;
+    ref_damping_matrix(19,12)=-47.5961538462; ref_damping_matrix(19,13)=386.5384615385; ref_damping_matrix(19,17)=26.9230769231;
+    ref_damping_matrix(19,18)=-739.9038461538; ref_damping_matrix(19,19)=1923.1538461538; ref_damping_matrix(19,23)=26.9230769231;
+
+    ref_damping_matrix(20,2)=-5.4721701063; ref_damping_matrix(20,3)=-10.9443402126; ref_damping_matrix(20,4)=-5.4721701063;
+    ref_damping_matrix(20,8)=-10.9443402126; ref_damping_matrix(20,9)=-5.4721701063; ref_damping_matrix(20,10)=-5.4721701063;
+    ref_damping_matrix(20,14)=-5.4721701063; ref_damping_matrix(20,15)=-5.4721701063; ref_damping_matrix(20,16)=-10.9443402126;
+    ref_damping_matrix(20,20)=23.8886804253; ref_damping_matrix(20,21)=-10.9443402126; ref_damping_matrix(20,22)=-10.9443402126;
+
+    ref_damping_matrix(21,2)=10.9443402126; ref_damping_matrix(21,3)=9.8866479049; ref_damping_matrix(21,4)=-0.0480769231;
+    ref_damping_matrix(21,8)=5.4721701063; ref_damping_matrix(21,9)=4.6067854909; ref_damping_matrix(21,10)=-0.625;
+    ref_damping_matrix(21,14)=-5.4721701063; ref_damping_matrix(21,15)=5.6644777986; ref_damping_matrix(21,16)=0.0480769231;
+    ref_damping_matrix(21,20)=-10.9443402126; ref_damping_matrix(21,21)=12.6751094434; ref_damping_matrix(21,22)=0.625;
+
+    ref_damping_matrix(22,2)=-5.4721701063; ref_damping_matrix(22,3)=0.0480769231; ref_damping_matrix(22,4)=5.6644777986;
+    ref_damping_matrix(22,8)=5.4721701063; ref_damping_matrix(22,9)=-0.625; ref_damping_matrix(22,10)=4.6067854909;
+    ref_damping_matrix(22,14)=10.9443402126; ref_damping_matrix(22,15)=-0.0480769231; ref_damping_matrix(22,16)=9.8866479049;
+    ref_damping_matrix(22,20)=-10.9443402126; ref_damping_matrix(22,21)=0.625; ref_damping_matrix(22,22)=12.6751094434;
+
+    ref_damping_matrix(23,0)=-26.9230769231; ref_damping_matrix(23,1)=13.4615384615; ref_damping_matrix(23,5)=35.8974358974;
+    ref_damping_matrix(23,6)=-13.4615384615; ref_damping_matrix(23,7)=-13.4615384615; ref_damping_matrix(23,11)=17.9487179487;
+    ref_damping_matrix(23,12)=13.4615384615; ref_damping_matrix(23,13)=-26.9230769231; ref_damping_matrix(23,17)=35.8974358974;
+    ref_damping_matrix(23,18)=26.9230769231; ref_damping_matrix(23,19)=26.9230769231; ref_damping_matrix(23,23)=71.7948717949;
+
+    ConductShellDampingMatrixTest("MITCThickShellElement3D4N", ref_damping_matrix);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ShellThinElementCorotational3D4N_DampingMatrix, KratosStructuralMechanicsFastSuite)

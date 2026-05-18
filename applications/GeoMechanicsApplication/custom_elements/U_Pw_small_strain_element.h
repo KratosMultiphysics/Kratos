@@ -119,7 +119,7 @@ public:
 protected:
     struct ElementVariables {
         /// Properties variables
-        bool   IgnoreUndrained;
+        bool   IsConstantWaterPressure;
         bool   UseHenckyStrain;
         bool   ConsiderGeometricStiffness;
         double DynamicViscosityInverse;
@@ -234,7 +234,7 @@ protected:
     void InitializeNodalPorePressureVariables(ElementVariables& rVariables);
     void InitializeNodalVolumeAccelerationVariables(ElementVariables& rVariables);
 
-    void InitializeProperties(ElementVariables& rVariables);
+    virtual void InitializeProperties(ElementVariables& rVariables);
 
     [[nodiscard]] std::vector<double> CalculateDegreesOfSaturation(const std::vector<double>& rFluidPressures) const;
     [[nodiscard]] std::vector<double> CalculateDerivativesOfSaturation(const std::vector<double>& rFluidPressures) const;
