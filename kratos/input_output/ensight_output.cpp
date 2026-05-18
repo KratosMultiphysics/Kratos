@@ -855,8 +855,6 @@ void EnSightOutput::WriteNodalVariableToFile(
 {
     KRATOS_TRY
 
-    // TODO: Use IndexPartition in tensors
-
     // Get the variable type and its extension
     const auto variable_type = mVariableTypeMap[rVariableName];
     const std::string file_extension = GetExtensionFile(variable_type);
@@ -1062,15 +1060,15 @@ void EnSightOutput::WriteNodalVariableToFile(
                     const auto& r_variable = KratosComponents<Variable<array_1d<double, 3>>>::Get(rVariableName);
                     std::array<std::vector<double>, 3> components;
                     const std::size_t number_of_nodes = r_part_data.PartNodes.size();
-                    components[0].reserve(number_of_nodes);
-                    components[1].reserve(number_of_nodes);
-                    components[2].reserve(number_of_nodes);
-                    for (const auto* p_node : r_part_data.PartNodes) {
-                        const auto& r_value = p_node->FastGetSolutionStepValue(r_variable);
-                        components[0].push_back(r_value[0]);
-                        components[1].push_back(r_value[1]);
-                        components[2].push_back(r_value[2]);
-                    }
+                    components[0].resize(number_of_nodes);
+                    components[1].resize(number_of_nodes);
+                    components[2].resize(number_of_nodes);
+                    IndexPartition<std::size_t>(number_of_nodes).for_each([&](std::size_t idx) {
+                        const auto& r_value = r_part_data.PartNodes[idx]->FastGetSolutionStepValue(r_variable);
+                        components[0][idx] = r_value[0];
+                        components[1][idx] = r_value[1];
+                        components[2][idx] = r_value[2];
+                    });
                     for (unsigned int i = 0; i < 3; ++i) {
                         for (std::size_t j = 0; j < number_of_nodes; ++j) {
                             WriteScalarData(var_file, components[i][j]);
@@ -1081,15 +1079,15 @@ void EnSightOutput::WriteNodalVariableToFile(
                     if (variable_type == VariableType::VECTOR) {
                         std::array<std::vector<double>, 3> components;
                         const std::size_t number_of_nodes = r_part_data.PartNodes.size();
-                        components[0].reserve(number_of_nodes);
-                        components[1].reserve(number_of_nodes);
-                        components[2].reserve(number_of_nodes);
-                        for (const auto* p_node : r_part_data.PartNodes) {
-                            const auto& r_value = p_node->FastGetSolutionStepValue(r_variable);
-                            components[0].push_back(r_value[0]);
-                            components[1].push_back(r_value[1]);
-                            components[2].push_back(r_value[2]);
-                        }
+                        components[0].resize(number_of_nodes);
+                        components[1].resize(number_of_nodes);
+                        components[2].resize(number_of_nodes);
+                        IndexPartition<std::size_t>(number_of_nodes).for_each([&](std::size_t idx) {
+                            const auto& r_value = r_part_data.PartNodes[idx]->FastGetSolutionStepValue(r_variable);
+                            components[0][idx] = r_value[0];
+                            components[1][idx] = r_value[1];
+                            components[2][idx] = r_value[2];
+                        });
                         for (unsigned int i = 0; i < 3; ++i) {
                             for (std::size_t j = 0; j < number_of_nodes; ++j) {
                                 WriteScalarData(var_file, components[i][j]);
@@ -1098,21 +1096,21 @@ void EnSightOutput::WriteNodalVariableToFile(
                     } else if (variable_type == VariableType::TENSOR_SYMMETRIC) {
                         std::array<std::vector<double>, 6> components;
                         const std::size_t number_of_nodes = r_part_data.PartNodes.size();
-                        components[0].reserve(number_of_nodes);
-                        components[1].reserve(number_of_nodes);
-                        components[2].reserve(number_of_nodes);
-                        components[3].reserve(number_of_nodes);
-                        components[4].reserve(number_of_nodes);
-                        components[5].reserve(number_of_nodes);
-                        for (const auto* p_node : r_part_data.PartNodes) {
-                            const auto& r_value = p_node->FastGetSolutionStepValue(r_variable);
-                            components[0].push_back(r_value[0]);
-                            components[1].push_back(r_value[1]);
-                            components[2].push_back(r_value[2]);
-                            components[3].push_back(r_value[3]);
-                            components[4].push_back(r_value[5]);
-                            components[5].push_back(r_value[4]);
-                        }
+                        components[0].resize(number_of_nodes);
+                        components[1].resize(number_of_nodes);
+                        components[2].resize(number_of_nodes);
+                        components[3].resize(number_of_nodes);
+                        components[4].resize(number_of_nodes);
+                        components[5].resize(number_of_nodes);
+                        IndexPartition<std::size_t>(number_of_nodes).for_each([&](std::size_t idx) {
+                            const auto& r_value = r_part_data.PartNodes[idx]->FastGetSolutionStepValue(r_variable);
+                            components[0][idx] = r_value[0];
+                            components[1][idx] = r_value[1];
+                            components[2][idx] = r_value[2];
+                            components[3][idx] = r_value[3];
+                            components[4][idx] = r_value[5];
+                            components[5][idx] = r_value[4];
+                        });
                         for (unsigned int i = 0; i < 6; ++i) {
                             for (std::size_t j = 0; j < number_of_nodes; ++j) {
                                 WriteScalarData(var_file, components[i][j]);
@@ -1125,21 +1123,21 @@ void EnSightOutput::WriteNodalVariableToFile(
                     const auto& r_variable = KratosComponents<Variable<array_1d<double, 6>>>::Get(rVariableName);
                     std::array<std::vector<double>, 6> components;
                     const std::size_t number_of_nodes = r_part_data.PartNodes.size();
-                    components[0].reserve(number_of_nodes);
-                    components[1].reserve(number_of_nodes);
-                    components[2].reserve(number_of_nodes);
-                    components[3].reserve(number_of_nodes);
-                    components[4].reserve(number_of_nodes);
-                    components[5].reserve(number_of_nodes);
-                    for (const auto* p_node : r_part_data.PartNodes) {
-                        const auto& r_value = p_node->FastGetSolutionStepValue(r_variable);
-                        components[0].push_back(r_value[0]);
-                        components[1].push_back(r_value[1]);
-                        components[2].push_back(r_value[2]);
-                        components[3].push_back(r_value[3]);
-                        components[4].push_back(r_value[5]);
-                        components[5].push_back(r_value[4]);
-                    }
+                    components[0].resize(number_of_nodes);
+                    components[1].resize(number_of_nodes);
+                    components[2].resize(number_of_nodes);
+                    components[3].resize(number_of_nodes);
+                    components[4].resize(number_of_nodes);
+                    components[5].resize(number_of_nodes);
+                    IndexPartition<std::size_t>(number_of_nodes).for_each([&](std::size_t idx) {
+                        const auto& r_value = r_part_data.PartNodes[idx]->FastGetSolutionStepValue(r_variable);
+                        components[0][idx] = r_value[0];
+                        components[1][idx] = r_value[1];
+                        components[2][idx] = r_value[2];
+                        components[3][idx] = r_value[3];
+                        components[4][idx] = r_value[5];
+                        components[5][idx] = r_value[4];
+                    });
                     for (unsigned int i = 0; i < 6; ++i) {
                         for (std::size_t j = 0; j < number_of_nodes; ++j) {
                             WriteScalarData(var_file, components[i][j]);
@@ -1154,21 +1152,21 @@ void EnSightOutput::WriteNodalVariableToFile(
                     if (variable_type == VariableType::TENSOR_SYMMETRIC) {
                         std::array<std::vector<double>, 6> components;
                         const std::size_t number_of_nodes = r_part_data.PartNodes.size();
-                        components[0].reserve(number_of_nodes);
-                        components[1].reserve(number_of_nodes);
-                        components[2].reserve(number_of_nodes);
-                        components[3].reserve(number_of_nodes);
-                        components[4].reserve(number_of_nodes);
-                        components[5].reserve(number_of_nodes);
-                        for (const auto* p_node : r_part_data.PartNodes) {
-                            const auto& r_value = p_node->FastGetSolutionStepValue(r_variable);
-                            components[0].push_back(r_value(0, 0));
-                            components[1].push_back(r_value(1, 1));
-                            components[2].push_back(r_value(2, 2));
-                            components[3].push_back(r_value(0, 1));
-                            components[4].push_back(r_value(0, 2));
-                            components[5].push_back(r_value(1, 2));
-                        }
+                        components[0].resize(number_of_nodes);
+                        components[1].resize(number_of_nodes);
+                        components[2].resize(number_of_nodes);
+                        components[3].resize(number_of_nodes);
+                        components[4].resize(number_of_nodes);
+                        components[5].resize(number_of_nodes);
+                        IndexPartition<std::size_t>(number_of_nodes).for_each([&](std::size_t idx) {
+                            const auto& r_value = r_part_data.PartNodes[idx]->FastGetSolutionStepValue(r_variable);
+                            components[0][idx] = r_value(0, 0);
+                            components[1][idx] = r_value(1, 1);
+                            components[2][idx] = r_value(2, 2);
+                            components[3][idx] = r_value(0, 1);
+                            components[4][idx] = r_value(0, 2);
+                            components[5][idx] = r_value(1, 2);
+                        });
                         for (unsigned int i = 0; i < 6; ++i) {
                             for (std::size_t j = 0; j < number_of_nodes; ++j) {
                                 WriteScalarData(var_file, components[i][j]);
@@ -1208,15 +1206,15 @@ void EnSightOutput::WriteNodalVariableToFile(
                     const auto& r_variable = KratosComponents<Variable<array_1d<double, 3>>>::Get(rVariableName);
                     std::array<std::vector<double>, 3> components;
                     const std::size_t number_of_nodes = r_part_data.PartNodes.size();
-                    components[0].reserve(number_of_nodes);
-                    components[1].reserve(number_of_nodes);
-                    components[2].reserve(number_of_nodes);
-                    for (const auto* p_node : r_part_data.PartNodes) {
-                        const auto& r_value = p_node->GetValue(r_variable);
-                        components[0].push_back(r_value[0]);
-                        components[1].push_back(r_value[1]);
-                        components[2].push_back(r_value[2]);
-                    }
+                    components[0].resize(number_of_nodes);
+                    components[1].resize(number_of_nodes);
+                    components[2].resize(number_of_nodes);
+                    IndexPartition<std::size_t>(number_of_nodes).for_each([&](std::size_t idx) {
+                        const auto& r_value = r_part_data.PartNodes[idx]->GetValue(r_variable);
+                        components[0][idx] = r_value[0];
+                        components[1][idx] = r_value[1];
+                        components[2][idx] = r_value[2];
+                    });
                     for (unsigned int i = 0; i < 3; ++i) {
                         for (std::size_t j = 0; j < number_of_nodes; ++j) {
                             WriteScalarData(var_file, components[i][j]);
@@ -1227,15 +1225,15 @@ void EnSightOutput::WriteNodalVariableToFile(
                     if (variable_type == VariableType::VECTOR) {
                         std::array<std::vector<double>, 3> components;
                         const std::size_t number_of_nodes = r_part_data.PartNodes.size();
-                        components[0].reserve(number_of_nodes);
-                        components[1].reserve(number_of_nodes);
-                        components[2].reserve(number_of_nodes);
-                        for (const auto* p_node : r_part_data.PartNodes) {
-                            const auto& r_value = p_node->GetValue(r_variable);
-                            components[0].push_back(r_value[0]);
-                            components[1].push_back(r_value[1]);
-                            components[2].push_back(r_value[2]);
-                        }
+                        components[0].resize(number_of_nodes);
+                        components[1].resize(number_of_nodes);
+                        components[2].resize(number_of_nodes);
+                        IndexPartition<std::size_t>(number_of_nodes).for_each([&](std::size_t idx) {
+                            const auto& r_value = r_part_data.PartNodes[idx]->GetValue(r_variable);
+                            components[0][idx] = r_value[0];
+                            components[1][idx] = r_value[1];
+                            components[2][idx] = r_value[2];
+                        });
                         for (unsigned int i = 0; i < 3; ++i) {
                             for (std::size_t j = 0; j < number_of_nodes; ++j) {
                                 WriteScalarData(var_file, components[i][j]);
@@ -1244,21 +1242,21 @@ void EnSightOutput::WriteNodalVariableToFile(
                     } else if (variable_type == VariableType::TENSOR_SYMMETRIC) {
                         std::array<std::vector<double>, 6> components;
                         const std::size_t number_of_nodes = r_part_data.PartNodes.size();
-                        components[0].reserve(number_of_nodes);
-                        components[1].reserve(number_of_nodes);
-                        components[2].reserve(number_of_nodes);
-                        components[3].reserve(number_of_nodes);
-                        components[4].reserve(number_of_nodes);
-                        components[5].reserve(number_of_nodes);
-                        for (const auto* p_node : r_part_data.PartNodes) {
-                            const auto& r_value = p_node->GetValue(r_variable);
-                            components[0].push_back(r_value[0]);
-                            components[1].push_back(r_value[1]);
-                            components[2].push_back(r_value[2]);
-                            components[3].push_back(r_value[3]);
-                            components[4].push_back(r_value[5]);
-                            components[5].push_back(r_value[4]);
-                        }
+                        components[0].resize(number_of_nodes);
+                        components[1].resize(number_of_nodes);
+                        components[2].resize(number_of_nodes);
+                        components[3].resize(number_of_nodes);
+                        components[4].resize(number_of_nodes);
+                        components[5].resize(number_of_nodes);
+                        IndexPartition<std::size_t>(number_of_nodes).for_each([&](std::size_t idx) {
+                            const auto& r_value = r_part_data.PartNodes[idx]->GetValue(r_variable);
+                            components[0][idx] = r_value[0];
+                            components[1][idx] = r_value[1];
+                            components[2][idx] = r_value[2];
+                            components[3][idx] = r_value[3];
+                            components[4][idx] = r_value[5];
+                            components[5][idx] = r_value[4];
+                        });
                         for (unsigned int i = 0; i < 6; ++i) {
                             for (std::size_t j = 0; j < number_of_nodes; ++j) {
                                 WriteScalarData(var_file, components[i][j]);
@@ -1271,21 +1269,21 @@ void EnSightOutput::WriteNodalVariableToFile(
                     const auto& r_variable = KratosComponents<Variable<array_1d<double, 6>>>::Get(rVariableName);
                     std::array<std::vector<double>, 6> components;
                     const std::size_t number_of_nodes = r_part_data.PartNodes.size();
-                    components[0].reserve(number_of_nodes);
-                    components[1].reserve(number_of_nodes);
-                    components[2].reserve(number_of_nodes);
-                    components[3].reserve(number_of_nodes);
-                    components[4].reserve(number_of_nodes);
-                    components[5].reserve(number_of_nodes);
-                    for (const auto* p_node : r_part_data.PartNodes) {
-                        const auto& r_value = p_node->GetValue(r_variable);
-                        components[0].push_back(r_value[0]);
-                        components[1].push_back(r_value[1]);
-                        components[2].push_back(r_value[2]);
-                        components[3].push_back(r_value[3]);
-                        components[4].push_back(r_value[5]);
-                        components[5].push_back(r_value[4]);
-                    }
+                    components[0].resize(number_of_nodes);
+                    components[1].resize(number_of_nodes);
+                    components[2].resize(number_of_nodes);
+                    components[3].resize(number_of_nodes);
+                    components[4].resize(number_of_nodes);
+                    components[5].resize(number_of_nodes);
+                    IndexPartition<std::size_t>(number_of_nodes).for_each([&](std::size_t idx) {
+                        const auto& r_value = r_part_data.PartNodes[idx]->GetValue(r_variable);
+                        components[0][idx] = r_value[0];
+                        components[1][idx] = r_value[1];
+                        components[2][idx] = r_value[2];
+                        components[3][idx] = r_value[3];
+                        components[4][idx] = r_value[5];
+                        components[5][idx] = r_value[4];
+                    });
                     for (unsigned int i = 0; i < 6; ++i) {
                         for (std::size_t j = 0; j < number_of_nodes; ++j) {
                             WriteScalarData(var_file, components[i][j]);
@@ -1300,21 +1298,21 @@ void EnSightOutput::WriteNodalVariableToFile(
                     if (variable_type == VariableType::TENSOR_SYMMETRIC) {
                         std::array<std::vector<double>, 6> components;
                         const std::size_t number_of_nodes = r_part_data.PartNodes.size();
-                        components[0].reserve(number_of_nodes);
-                        components[1].reserve(number_of_nodes);
-                        components[2].reserve(number_of_nodes);
-                        components[3].reserve(number_of_nodes);
-                        components[4].reserve(number_of_nodes);
-                        components[5].reserve(number_of_nodes);
-                        for (const auto* p_node : r_part_data.PartNodes) {
-                            const auto& r_value = p_node->GetValue(r_variable);
-                            components[0].push_back(r_value(0, 0));
-                            components[1].push_back(r_value(1, 1));
-                            components[2].push_back(r_value(2, 2));
-                            components[3].push_back(r_value(0, 1));
-                            components[4].push_back(r_value(0, 2));
-                            components[5].push_back(r_value(1, 2));
-                        }
+                        components[0].resize(number_of_nodes);
+                        components[1].resize(number_of_nodes);
+                        components[2].resize(number_of_nodes);
+                        components[3].resize(number_of_nodes);
+                        components[4].resize(number_of_nodes);
+                        components[5].resize(number_of_nodes);
+                        IndexPartition<std::size_t>(number_of_nodes).for_each([&](std::size_t idx) {
+                            const auto& r_value = r_part_data.PartNodes[idx]->GetValue(r_variable);
+                            components[0][idx] = r_value(0, 0);
+                            components[1][idx] = r_value(1, 1);
+                            components[2][idx] = r_value(2, 2);
+                            components[3][idx] = r_value(0, 1);
+                            components[4][idx] = r_value(0, 2);
+                            components[5][idx] = r_value(1, 2);
+                        });
                         for (unsigned int i = 0; i < 6; ++i) {
                             for (std::size_t j = 0; j < number_of_nodes; ++j) {
                                 WriteScalarData(var_file, components[i][j]);
@@ -1596,8 +1594,6 @@ void EnSightOutput::WriteGeometricalVariableToFile(
 {
     KRATOS_TRY
 
-    // TODO: Use IndexPartition in tensors
-
     // Get the variable type and its extension
     const auto variable_type = mVariableTypeMap[rVariableName];
     const std::string file_extension = GetExtensionFile(variable_type);
@@ -1789,15 +1785,15 @@ void EnSightOutput::WriteGeometricalVariableToFile(
                 if (is_ensight_gold) {
                     std::array<std::vector<double>, 3> components;
                     const std::size_t number_of_geometries = r_geometrical_objects.size();
-                    components[0].reserve(number_of_geometries);
-                    components[1].reserve(number_of_geometries);
-                    components[2].reserve(number_of_geometries);
-                    for (const auto* p_geometrical_object : r_geometrical_objects) {
-                        const auto& r_value = p_geometrical_object->GetValue(r_variable);
-                        components[0].push_back(r_value[0]);
-                        components[1].push_back(r_value[1]);
-                        components[2].push_back(r_value[2]);
-                    }
+                    components[0].resize(number_of_geometries);
+                    components[1].resize(number_of_geometries);
+                    components[2].resize(number_of_geometries);
+                    IndexPartition<std::size_t>(number_of_geometries).for_each([&](std::size_t idx) {
+                        const auto& r_value = r_geometrical_objects[idx]->GetValue(r_variable);
+                        components[0][idx] = r_value[0];
+                        components[1][idx] = r_value[1];
+                        components[2][idx] = r_value[2];
+                    });
                     for (unsigned int i = 0; i < 3; ++i) {
                         for (std::size_t j = 0; j < number_of_geometries; ++j) {
                             WriteScalarData(var_file, components[i][j]);
@@ -1816,15 +1812,15 @@ void EnSightOutput::WriteGeometricalVariableToFile(
                     if (variable_type == VariableType::VECTOR) {
                         std::array<std::vector<double>, 3> components;
                         const std::size_t number_of_geometries = r_geometrical_objects.size();
-                        components[0].reserve(number_of_geometries);
-                        components[1].reserve(number_of_geometries);
-                        components[2].reserve(number_of_geometries);
-                        for (const auto* p_geometrical_object : r_geometrical_objects) {
-                            const auto& r_value = p_geometrical_object->GetValue(r_variable);
-                            components[0].push_back(r_value[0]);
-                            components[1].push_back(r_value[1]);
-                            components[2].push_back(r_value[2]);
-                        }
+                        components[0].resize(number_of_geometries);
+                        components[1].resize(number_of_geometries);
+                        components[2].resize(number_of_geometries);
+                        IndexPartition<std::size_t>(number_of_geometries).for_each([&](std::size_t idx) {
+                            const auto& r_value = r_geometrical_objects[idx]->GetValue(r_variable);
+                            components[0][idx] = r_value[0];
+                            components[1][idx] = r_value[1];
+                            components[2][idx] = r_value[2];
+                        });
                         for (unsigned int i = 0; i < 3; ++i) {
                             for (std::size_t j = 0; j < number_of_geometries; ++j) {
                                 WriteScalarData(var_file, components[i][j]);
@@ -1833,21 +1829,21 @@ void EnSightOutput::WriteGeometricalVariableToFile(
                     } else if (variable_type == VariableType::TENSOR_SYMMETRIC) {
                         std::array<std::vector<double>, 6> components;
                         const std::size_t number_of_geometries = r_geometrical_objects.size();
-                        components[0].reserve(number_of_geometries);
-                        components[1].reserve(number_of_geometries);
-                        components[2].reserve(number_of_geometries);
-                        components[3].reserve(number_of_geometries);
-                        components[4].reserve(number_of_geometries);
-                        components[5].reserve(number_of_geometries);
-                        for (const auto* p_geometrical_object : r_geometrical_objects) {
-                            const auto& r_value = p_geometrical_object->GetValue(r_variable);
-                            components[0].push_back(r_value[0]);
-                            components[1].push_back(r_value[1]);
-                            components[2].push_back(r_value[2]);
-                            components[3].push_back(r_value[3]);
-                            components[4].push_back(r_value[5]);
-                            components[5].push_back(r_value[4]);
-                        }
+                        components[0].resize(number_of_geometries);
+                        components[1].resize(number_of_geometries);
+                        components[2].resize(number_of_geometries);
+                        components[3].resize(number_of_geometries);
+                        components[4].resize(number_of_geometries);
+                        components[5].resize(number_of_geometries);
+                        IndexPartition<std::size_t>(number_of_geometries).for_each([&](std::size_t idx) {
+                            const auto& r_value = r_geometrical_objects[idx]->GetValue(r_variable);
+                            components[0][idx] = r_value[0];
+                            components[1][idx] = r_value[1];
+                            components[2][idx] = r_value[2];
+                            components[3][idx] = r_value[3];
+                            components[4][idx] = r_value[5];
+                            components[5][idx] = r_value[4];
+                        });
                         for (unsigned int i = 0; i < 6; ++i) {
                             for (std::size_t j = 0; j < number_of_geometries; ++j) {
                                 WriteScalarData(var_file, components[i][j]);
@@ -1876,21 +1872,21 @@ void EnSightOutput::WriteGeometricalVariableToFile(
                 if (is_ensight_gold) {
                     std::array<std::vector<double>, 6> components;
                     const std::size_t number_of_geometries = r_geometrical_objects.size();
-                    components[0].reserve(number_of_geometries);
-                    components[1].reserve(number_of_geometries);
-                    components[2].reserve(number_of_geometries);
-                    components[3].reserve(number_of_geometries);
-                    components[4].reserve(number_of_geometries);
-                    components[5].reserve(number_of_geometries);
-                    for (const auto* p_geometrical_object : r_geometrical_objects) {
-                        const auto& r_value = p_geometrical_object->GetValue(r_variable);
-                        components[0].push_back(r_value[0]);
-                        components[1].push_back(r_value[1]);
-                        components[2].push_back(r_value[2]);
-                        components[3].push_back(r_value[3]);
-                        components[4].push_back(r_value[5]);
-                        components[5].push_back(r_value[4]);
-                    }
+                    components[0].resize(number_of_geometries);
+                    components[1].resize(number_of_geometries);
+                    components[2].resize(number_of_geometries);
+                    components[3].resize(number_of_geometries);
+                    components[4].resize(number_of_geometries);
+                    components[5].resize(number_of_geometries);
+                    IndexPartition<std::size_t>(number_of_geometries).for_each([&](std::size_t idx) {
+                        const auto& r_value = r_geometrical_objects[idx]->GetValue(r_variable);
+                        components[0][idx] = r_value[0];
+                        components[1][idx] = r_value[1];
+                        components[2][idx] = r_value[2];
+                        components[3][idx] = r_value[3];
+                        components[4][idx] = r_value[5];
+                        components[5][idx] = r_value[4];
+                    });
                     for (unsigned int i = 0; i < 6; ++i) {
                         for (std::size_t j = 0; j < number_of_geometries; ++j) {
                             WriteScalarData(var_file, components[i][j]);
@@ -1911,21 +1907,21 @@ void EnSightOutput::WriteGeometricalVariableToFile(
                     if (variable_type == VariableType::TENSOR_SYMMETRIC) {
                         std::array<std::vector<double>, 6> components;
                         const std::size_t number_of_geometries = r_geometrical_objects.size();
-                        components[0].reserve(number_of_geometries);
-                        components[1].reserve(number_of_geometries);
-                        components[2].reserve(number_of_geometries);
-                        components[3].reserve(number_of_geometries);
-                        components[4].reserve(number_of_geometries);
-                        components[5].reserve(number_of_geometries);
-                        for (const auto* p_geometrical_object : r_geometrical_objects) {
-                            const auto& r_value = p_geometrical_object->GetValue(r_variable);
-                            components[0].push_back(r_value(0, 0));
-                            components[1].push_back(r_value(1, 1));
-                            components[2].push_back(r_value(2, 2));
-                            components[3].push_back(r_value(0, 1));
-                            components[4].push_back(r_value(0, 2));
-                            components[5].push_back(r_value(1, 2));
-                        }
+                        components[0].resize(number_of_geometries);
+                        components[1].resize(number_of_geometries);
+                        components[2].resize(number_of_geometries);
+                        components[3].resize(number_of_geometries);
+                        components[4].resize(number_of_geometries);
+                        components[5].resize(number_of_geometries);
+                        IndexPartition<std::size_t>(number_of_geometries).for_each([&](std::size_t idx) {
+                            const auto& r_value = r_geometrical_objects[idx]->GetValue(r_variable);
+                            components[0][idx] = r_value(0, 0);
+                            components[1][idx] = r_value(1, 1);
+                            components[2][idx] = r_value(2, 2);
+                            components[3][idx] = r_value(0, 1);
+                            components[4][idx] = r_value(0, 2);
+                            components[5][idx] = r_value(1, 2);
+                        });
                     for (unsigned int i = 0; i < 6; ++i) {
                         for (std::size_t j = 0; j < number_of_geometries; ++j) {
                             WriteScalarData(var_file, components[i][j]);
@@ -2180,16 +2176,16 @@ void EnSightOutput::WriteGeometricalGaussVariableToFile(
                 if (is_ensight_gold) {
                     std::array<std::vector<double>, 3> components;
                     const std::size_t number_of_geometries = r_geometrical_objects.size();
-                    components[0].reserve(number_of_geometries);
-                    components[1].reserve(number_of_geometries);
-                    components[2].reserve(number_of_geometries);
-                    for (const auto* p_geometrical_object : r_geometrical_objects) {
-                        const Element& r_element = dynamic_cast<const Element&>(*p_geometrical_object);
+                    components[0].resize(number_of_geometries);
+                    components[1].resize(number_of_geometries);
+                    components[2].resize(number_of_geometries);
+                    IndexPartition<std::size_t>(number_of_geometries).for_each([&](std::size_t idx) {
+                        const Element& r_element = dynamic_cast<const Element&>(*r_geometrical_objects[idx]);
                         const array_1d<double, 3> value = GetAverageIntegrationValue<array_1d<double, 3>>(r_element, r_variable);
-                        components[0].push_back(value[0]);
-                        components[1].push_back(value[1]);
-                        components[2].push_back(value[2]);
-                    }
+                        components[0][idx] = value[0];
+                        components[1][idx] = value[1];
+                        components[2][idx] = value[2];
+                    });
                     for (unsigned int i = 0; i < 3; ++i) {
                         for (std::size_t j = 0; j < number_of_geometries; ++j) {
                             WriteScalarData(var_file, components[i][j]);
@@ -2210,16 +2206,16 @@ void EnSightOutput::WriteGeometricalGaussVariableToFile(
                     if (variable_type == VariableType::VECTOR) {
                         std::array<std::vector<double>, 3> components;
                         const std::size_t number_of_geometries = r_geometrical_objects.size();
-                        components[0].reserve(number_of_geometries);
-                        components[1].reserve(number_of_geometries);
-                        components[2].reserve(number_of_geometries);
-                        for (const auto* p_geometrical_object : r_geometrical_objects) {
-                            const Element& r_element = dynamic_cast<const Element&>(*p_geometrical_object);
+                        components[0].resize(number_of_geometries);
+                        components[1].resize(number_of_geometries);
+                        components[2].resize(number_of_geometries);
+                        IndexPartition<std::size_t>(number_of_geometries).for_each([&](std::size_t idx) {
+                            const Element& r_element = dynamic_cast<const Element&>(*r_geometrical_objects[idx]);
                             const Vector value = GetAverageIntegrationValue<Vector>(r_element, r_variable);
-                            components[0].push_back(value[0]);
-                            components[1].push_back(value[1]);
-                            components[2].push_back(value[2]);
-                        }
+                            components[0][idx] = value[0];
+                            components[1][idx] = value[1];
+                            components[2][idx] = value[2];
+                        });
                         for (unsigned int i = 0; i < 3; ++i) {
                             for (std::size_t j = 0; j < number_of_geometries; ++j) {
                                 WriteScalarData(var_file, components[i][j]);
@@ -2228,22 +2224,22 @@ void EnSightOutput::WriteGeometricalGaussVariableToFile(
                     } else if (variable_type == VariableType::TENSOR_SYMMETRIC) {
                         std::array<std::vector<double>, 6> components;
                         const std::size_t number_of_geometries = r_geometrical_objects.size();
-                        components[0].reserve(number_of_geometries);
-                        components[1].reserve(number_of_geometries);
-                        components[2].reserve(number_of_geometries);
-                        components[3].reserve(number_of_geometries);
-                        components[4].reserve(number_of_geometries);
-                        components[5].reserve(number_of_geometries);
-                        for (const auto* p_geometrical_object : r_geometrical_objects) {
-                            const Element& r_element = dynamic_cast<const Element&>(*p_geometrical_object);
+                        components[0].resize(number_of_geometries);
+                        components[1].resize(number_of_geometries);
+                        components[2].resize(number_of_geometries);
+                        components[3].resize(number_of_geometries);
+                        components[4].resize(number_of_geometries);
+                        components[5].resize(number_of_geometries);
+                        IndexPartition<std::size_t>(number_of_geometries).for_each([&](std::size_t idx) {
+                            const Element& r_element = dynamic_cast<const Element&>(*r_geometrical_objects[idx]);
                             const Vector value = GetAverageIntegrationValue<Vector>(r_element, r_variable);
-                            components[0].push_back(value[0]);
-                            components[1].push_back(value[1]);
-                            components[2].push_back(value[2]);
-                            components[3].push_back(value[3]);
-                            components[4].push_back(value[5]);
-                            components[5].push_back(value[4]);
-                        }
+                            components[0][idx] = value[0];
+                            components[1][idx] = value[1];
+                            components[2][idx] = value[2];
+                            components[3][idx] = value[3];
+                            components[4][idx] = value[5];
+                            components[5][idx] = value[4];
+                        });
                         for (unsigned int i = 0; i < 6; ++i) {
                             for (std::size_t j = 0; j < number_of_geometries; ++j) {
                                 WriteScalarData(var_file, components[i][j]);
@@ -2276,22 +2272,22 @@ void EnSightOutput::WriteGeometricalGaussVariableToFile(
                 if (is_ensight_gold) {
                     std::array<std::vector<double>, 6> components;
                     const std::size_t number_of_geometries = r_geometrical_objects.size();
-                    components[0].reserve(number_of_geometries);
-                    components[1].reserve(number_of_geometries);
-                    components[2].reserve(number_of_geometries);
-                    components[3].reserve(number_of_geometries);
-                    components[4].reserve(number_of_geometries);
-                    components[5].reserve(number_of_geometries);
-                    for (const auto* p_geometrical_object : r_geometrical_objects) {
-                        const Element& r_element = dynamic_cast<const Element&>(*p_geometrical_object);
+                    components[0].resize(number_of_geometries);
+                    components[1].resize(number_of_geometries);
+                    components[2].resize(number_of_geometries);
+                    components[3].resize(number_of_geometries);
+                    components[4].resize(number_of_geometries);
+                    components[5].resize(number_of_geometries);
+                    IndexPartition<std::size_t>(number_of_geometries).for_each([&](std::size_t idx) {
+                        const Element& r_element = dynamic_cast<const Element&>(*r_geometrical_objects[idx]);
                         const array_1d<double, 6> value = GetAverageIntegrationValue<array_1d<double, 6>>(r_element, r_variable);
-                        components[0].push_back(value[0]);
-                        components[1].push_back(value[1]);
-                        components[2].push_back(value[2]);
-                        components[3].push_back(value[3]);
-                        components[4].push_back(value[5]);
-                        components[5].push_back(value[4]);
-                    }
+                        components[0][idx] = value[0];
+                        components[1][idx] = value[1];
+                        components[2][idx] = value[2];
+                        components[3][idx] = value[3];
+                        components[4][idx] = value[5];
+                        components[5][idx] = value[4];
+                    });
                     for (unsigned int i = 0; i < 6; ++i) {
                         for (std::size_t j = 0; j < number_of_geometries; ++j) {
                             WriteScalarData(var_file, components[i][j]);
@@ -2314,22 +2310,22 @@ void EnSightOutput::WriteGeometricalGaussVariableToFile(
                     if (variable_type == VariableType::TENSOR_SYMMETRIC) {
                         std::array<std::vector<double>, 6> components;
                         const std::size_t number_of_geometries = r_geometrical_objects.size();
-                        components[0].reserve(number_of_geometries);
-                        components[1].reserve(number_of_geometries);
-                        components[2].reserve(number_of_geometries);
-                        components[3].reserve(number_of_geometries);
-                        components[4].reserve(number_of_geometries);
-                        components[5].reserve(number_of_geometries);
-                        for (const auto* p_geometrical_object : r_geometrical_objects) {
-                            const Element& r_element = dynamic_cast<const Element&>(*p_geometrical_object);
+                        components[0].resize(number_of_geometries);
+                        components[1].resize(number_of_geometries);
+                        components[2].resize(number_of_geometries);
+                        components[3].resize(number_of_geometries);
+                        components[4].resize(number_of_geometries);
+                        components[5].resize(number_of_geometries);
+                        IndexPartition<std::size_t>(number_of_geometries).for_each([&](std::size_t idx) {
+                            const Element& r_element = dynamic_cast<const Element&>(*r_geometrical_objects[idx]);
                             const Matrix value = GetAverageIntegrationValue<Matrix>(r_element, r_variable);
-                            components[0].push_back(value(0, 0));
-                            components[1].push_back(value(1, 1));
-                            components[2].push_back(value(2, 2));
-                            components[3].push_back(value(0, 1));
-                            components[4].push_back(value(0, 2));
-                            components[5].push_back(value(1, 2));
-                        }
+                            components[0][idx] = value(0, 0);
+                            components[1][idx] = value(1, 1);
+                            components[2][idx] = value(2, 2);
+                            components[3][idx] = value(0, 1);
+                            components[4][idx] = value(0, 2);
+                            components[5][idx] = value(1, 2);
+                        });
                     for (unsigned int i = 0; i < 6; ++i) {
                         for (std::size_t j = 0; j < number_of_geometries; ++j) {
                             WriteScalarData(var_file, components[i][j]);
