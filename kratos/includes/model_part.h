@@ -1990,64 +1990,62 @@ private:
     };
 
     template<class TContainerType>
-    struct EntityChecker
-    {
-        void operator()(const TContainerType& r_entities, const typename TContainerType::value_type * r_entity, std::string_view rModelPartName, std::string_view rRootModelPartName) {
-            KRATOS_TRY
+    static bool IsValidEntity(const TContainerType& r_entities, const typename TContainerType::value_type * r_entity, std::string_view rModelPartName, std::string_view rRootModelPartName) {
+        KRATOS_TRY
 
-            auto it_found = r_entities.find(r_entity->Id());
+        auto it_found = r_entities.find(r_entity->Id());
 
-            if (it_found != r_entities.end()) {
-                auto ref_ptr_entity = &*it_found;
-                if constexpr(std::is_same_v<TContainerType, GeometryContainerType>) {
-                    // For Geometries we need to check the connectivities as well in case of id match, for other entities just checking the pointer is enough.
-                    // Check if the geometry being added is the same as the existing one in case of id match.
-                    // 1 - First check for the geometry type
-                    KRATOS_ERROR_IF_NOT(GeometryType::HasSameGeometryType(r_entity, ref_ptr_entity)) 
+        if (it_found != r_entities.end()) {
+            auto ref_ptr_entity = &*it_found;
+            if constexpr(std::is_same_v<TContainerType, GeometryContainerType>) {
+                // For Geometries we need to check the connectivities as well in case of id match, for other entities just checking the pointer is enough.
+                // Check if the geometry being added is the same as the existing one in case of id match.
+                // 1 - First check for the geometry type
+                KRATOS_ERROR_IF_NOT(GeometryType::HasSameGeometryType(r_entity, ref_ptr_entity)) 
+                    << "attempting to add a new " << Container<TContainerType>::GetEntityName() << " with Id :"
+                    << r_entity->Id() << " to root model part " << rRootModelPartName
+                    << ", unfortunately a (different) " << Container<TContainerType>::GetEntityName()
+                    << " with the same Id already exists. [ Occurred while adding " << Container<TContainerType>::GetEntityName()
+                    << " to " << rModelPartName << " ]."
+                    << std::endl;
+                
+                // 1.5 - Double check that the number of nodes is the same, as this is a common error that can happen when creating geometries.
+                KRATOS_ERROR_IF(r_entity->PointsNumber() != ref_ptr_entity->PointsNumber())
+                    << "attempting to add a new " << Container<TContainerType>::GetEntityName() << " with Id :"
+                    << r_entity->Id() << " to root model part " << rRootModelPartName
+                    << ", unfortunately a (different) " << Container<TContainerType>::GetEntityName()
+                    << " with the same Id already exists but with different number of nodes. [ Occurred while adding " << Container<TContainerType>::GetEntityName()
+                    << " to " << rModelPartName << " ]."
+                    << std::endl;
+
+                // 2 - Check if the geometry connectivities are the same. 
+                // Note: We deliberately check the node ids and not the pointer adresses as there might be very rare situations
+                // (e.g., creating nodes bypassing the model part interface) with same connectivities but different pointer addresses
+                for (IndexType i_node = 0; i_node < r_entity->PointsNumber(); ++i_node) {
+                    KRATOS_ERROR_IF((*r_entity)[i_node].Id() != (*ref_ptr_entity)[i_node].Id())
                         << "attempting to add a new " << Container<TContainerType>::GetEntityName() << " with Id :"
                         << r_entity->Id() << " to root model part " << rRootModelPartName
                         << ", unfortunately a (different) " << Container<TContainerType>::GetEntityName()
-                        << " with the same Id already exists. [ Occurred while adding " << Container<TContainerType>::GetEntityName()
-                        << " to " << rModelPartName << " ]."
-                        << std::endl;
-                    
-                    // 1.5 - Double check that the number of nodes is the same, as this is a common error that can happen when creating geometries.
-                    KRATOS_ERROR_IF(r_entity->PointsNumber() != ref_ptr_entity->PointsNumber())
-                        << "attempting to add a new " << Container<TContainerType>::GetEntityName() << " with Id :"
-                        << r_entity->Id() << " to root model part " << rRootModelPartName
-                        << ", unfortunately a (different) " << Container<TContainerType>::GetEntityName()
-                        << " with the same Id already exists but with different number of nodes. [ Occurred while adding " << Container<TContainerType>::GetEntityName()
-                        << " to " << rModelPartName << " ]."
-                        << std::endl;
-
-                    // 2 - Check if the geometry connectivities are the same. 
-                    // Note: We deliberately check the node ids and not the pointer adresses as there might be very rare situations
-                    // (e.g., creating nodes bypassing the model part interface) with same connectivities but different pointer addresses
-                    for (IndexType i_node = 0; i_node < r_entity->PointsNumber(); ++i_node) {
-                        KRATOS_ERROR_IF((*r_entity)[i_node].Id() != (*ref_ptr_entity)[i_node].Id())
-                            << "attempting to add a new " << Container<TContainerType>::GetEntityName() << " with Id :"
-                            << r_entity->Id() << " to root model part " << rRootModelPartName
-                            << ", unfortunately a (different) " << Container<TContainerType>::GetEntityName()
-                            << " with the same Id already and different connectivities alreadyexists. [ Occurred while adding " << Container<TContainerType>::GetEntityName()
-                            << " to " << rModelPartName << " ]."
-                            << std::endl;
-                    }
-                } else {
-                    // For the other entities just check if the pointer is the same in case of id match.
-                    KRATOS_ERROR_IF_NOT(ref_ptr_entity == r_entity)
-                        << "attempting to add a new " << Container<TContainerType>::GetEntityName() << " with Id :"
-                        << r_entity->Id() << " to root model part " << rRootModelPartName
-                        << ", unfortunately a (different) " << Container<TContainerType>::GetEntityName()
-                        << " with the same Id already exists. [ Occurred while adding " << Container<TContainerType>::GetEntityName()
+                        << " with the same Id already and different connectivities alreadyexists. [ Occurred while adding " << Container<TContainerType>::GetEntityName()
                         << " to " << rModelPartName << " ]."
                         << std::endl;
                 }
+            } else {
+                // For the other entities just check if the pointer is the same in case of id match.
+                KRATOS_ERROR_IF_NOT(ref_ptr_entity == r_entity)
+                    << "attempting to add a new " << Container<TContainerType>::GetEntityName() << " with Id :"
+                    << r_entity->Id() << " to root model part " << rRootModelPartName
+                    << ", unfortunately a (different) " << Container<TContainerType>::GetEntityName()
+                    << " with the same Id already exists. [ Occurred while adding " << Container<TContainerType>::GetEntityName()
+                    << " to " << rModelPartName << " ]."
+                    << std::endl;
             }
-
-            // 3 - If types and nodes are the same, its ok.
-
-            KRATOS_CATCH("");
         }
+
+        // 3 - If types and nodes are the same, its ok.
+        return true;
+
+        KRATOS_CATCH("");
     };
 
     /**
@@ -2067,7 +2065,7 @@ private:
                 const auto& r_entity = ReferenceGetter<typename TContainerType::value_type>::Get(prEntity);
                 const auto& r_entities = Container<TContainerType>::GetContainer(p_root_model_part->GetMesh()); // TODO: This is only required to only trigger a find, not a sort. Once the find is fixed, then we can simplify this.
                 
-                EntityChecker<TContainerType>()(r_entities, &r_entity, pModelPart->FullName(), p_root_model_part->FullName());
+                IsValidEntity(r_entities, &r_entity, pModelPart->FullName(), p_root_model_part->FullName());
             });
             KRATOS_CATCH("");
         }

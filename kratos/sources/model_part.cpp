@@ -1602,7 +1602,7 @@ void ModelPart::AddGeometry(ModelPart::GeometryType::Pointer pNewGeometry)
         const auto& r_entity = ReferenceGetter<typename ModelPart::GeometryType>::Get(pNewGeometry);
         const auto& r_entities = Container<ModelPart::GeometryContainerType>::GetContainer(this->GetMesh());
                 
-        EntityChecker<ModelPart::GeometryContainerType>()(r_entities, &r_entity, this->FullName(), this->GetRootModelPart().FullName());
+        ModelPart::IsValidEntity(r_entities, &r_entity, this->FullName(), this->GetRootModelPart().FullName());
     }
 
     GetMesh(0).AddGeometry(pNewGeometry);
