@@ -1944,8 +1944,11 @@ void SphericParticle::AddUpForcesAndProject(double OldCoordSystem[3][3],
   
     DEM_ADD_SECOND_TO_FIRST(LocalElasticContactForce, other_ball_to_ball_forces);
 
+    double LocalContactForceTangential[3] = {LocalContactForce[0], LocalContactForce[1], 0.0};
+
     GeometryFunctions::VectorLocal2Global(LocalCoordSystem, LocalElasticContactForce, GlobalElasticContactForce);
     GeometryFunctions::VectorLocal2Global(LocalCoordSystem, LocalContactForce, GlobalContactForce);
+    GeometryFunctions::VectorLocal2Global(LocalCoordSystem, LocalContactForceTangential, GlobalContactForceTangential);
     GeometryFunctions::VectorLocal2Global(LocalCoordSystem, LocalElasticExtraContactForce, GlobalElasticExtraContactForce);
 
     // Saving contact forces (We need to, since tangential elastic force is history-dependent)
