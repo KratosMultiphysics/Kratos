@@ -925,6 +925,79 @@ class ContactElementGlobalPhysicsCalculator
         return measured_total_stress_tensor;
     }
 
+    std::vector<std::vector<double>> CalculateTotalStressTensorTangential(ModelPart& r_model_part, double Lx, double Ly, double Lz)
+    {
+        OpenMPUtils::CreatePartition(ParallelUtilities::GetNumThreads(), r_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
+        std::vector<std::vector<double>> measured_total_stress_tensor_tangential(3, std::vector<double>(3));
+
+        double s_00, s_01, s_02, s_10, s_11, s_12, s_20, s_21, s_22;
+        s_00 = s_01 = s_02 = s_10 = s_11 = s_12 = s_20 = s_21 = s_22 = 0.0;
+
+        #pragma omp parallel for reduction(+ : s_00, s_01, s_02, s_10, s_11, s_12, s_20, s_21, s_22)
+        for (int k = 0; k < ParallelUtilities::GetNumThreads(); k++){
+
+            for (ElementsArrayType::iterator it = GetElementPartitionBegin(r_model_part, k); it != GetElementPartitionEnd(r_model_part, k); ++it){
+
+                double x_0 = (it)->GetGeometry()[0].X();
+                double x_1 = (it)->GetGeometry()[1].X();
+                double y_0 = (it)->GetGeometry()[0].Y();
+                double y_1 = (it)->GetGeometry()[1].Y();
+                double z_0 = (it)->GetGeometry()[0].Z();
+                double z_1 = (it)->GetGeometry()[1].Z();
+
+                double dx, dy, dz;
+                
+                dx = x_0 - x_1;
+                if (dx > 0.5 * Lx){
+                    dx -= Lx;
+                }
+                else if (dx < -0.5 * Lx){
+                    dx += Lx;
+                }
+                
+                dy = y_0 - y_1;
+                if (dy > 0.5 * Ly){
+                    dy -= Ly;
+                }
+                else if (dy < -0.5 * Ly){
+                    dy += Ly;
+                }
+
+                dz = z_0 - z_1;
+                if (dz > 0.5 * Lz){
+                    dz -= Lz;
+                }
+                else if (dz < -0.5 * Lz){
+                    dz += Lz;
+                }
+
+                const array_1d<double, 3>& contact_force_tangential = (it)->GetValue(GLOBAL_CONTACT_FORCE_TANGENTIAL);
+
+                s_00 += contact_force_tangential[0] * dx;
+                s_01 += contact_force_tangential[0] * dy;
+                s_02 += contact_force_tangential[0] * dz;
+                s_10 += contact_force_tangential[1] * dx;
+                s_11 += contact_force_tangential[1] * dy;
+                s_12 += contact_force_tangential[1] * dz;
+                s_20 += contact_force_tangential[2] * dx;
+                s_21 += contact_force_tangential[2] * dy;
+                s_22 += contact_force_tangential[2] * dz;
+            }
+        }
+
+        measured_total_stress_tensor_tangential[0][0] = s_00;
+        measured_total_stress_tensor_tangential[0][1] = s_01;
+        measured_total_stress_tensor_tangential[0][2] = s_02;
+        measured_total_stress_tensor_tangential[1][0] = s_10;
+        measured_total_stress_tensor_tangential[1][1] = s_11;
+        measured_total_stress_tensor_tangential[1][2] = s_12;
+        measured_total_stress_tensor_tangential[2][0] = s_20;
+        measured_total_stress_tensor_tangential[2][1] = s_21;
+        measured_total_stress_tensor_tangential[2][2] = s_22;
+
+        return measured_total_stress_tensor_tangential;
+    }
+
     std::vector<std::vector<double>> CalculateTotalStressTensorWithinSphere(ModelPart& contact_model_part, const double radius, const array_1d<double, 3>& center, double Lx, double Ly, double Lz)
     {
         OpenMPUtils::CreatePartition(ParallelUtilities::GetNumThreads(), contact_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);

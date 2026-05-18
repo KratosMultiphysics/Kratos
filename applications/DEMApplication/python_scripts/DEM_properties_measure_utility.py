@@ -173,12 +173,22 @@ class DEMPropertiesMeasureUtility:
         if type == "strain":
             pass
     
+    #TODO: name should be changed to MeasureGlobalStressTensor
     def MeasureSphereForGettingGlobalStressTensor(self, Lx, Ly, Lz):
         if self.DEM_parameters["PostStressStrainOption"].GetBool() and self.DEM_parameters["ContactMeshOption"].GetBool():
             bounding_box_volume = Lx * Ly * Lz
             total_tensor = self.ContactElementGlobalPhysicsCalculator.CalculateTotalStressTensor(self.contact_model_part, Lx, Ly, Lz)
             averaged_total_tensor = np.array(total_tensor) / bounding_box_volume
             return averaged_total_tensor
+        else:
+            raise Exception('The \"PostStressStrainOption\" and \"ContactMeshOption\" in the [ProjectParametersDEM.json] should be [True].')
+        
+    def MeasureGlobalStressTensorTangential(self, Lx, Ly, Lz):
+        if self.DEM_parameters["PostStressStrainOption"].GetBool() and self.DEM_parameters["ContactMeshOption"].GetBool():
+            bounding_box_volume = Lx * Ly * Lz
+            total_tensor = self.ContactElementGlobalPhysicsCalculator.CalculateTotalStressTensorTangential(self.contact_model_part, Lx, Ly, Lz)
+            averaged_total_tensor_tangential = np.array(total_tensor) / bounding_box_volume
+            return averaged_total_tensor_tangential
         else:
             raise Exception('The \"PostStressStrainOption\" and \"ContactMeshOption\" in the [ProjectParametersDEM.json] should be [True].')
     

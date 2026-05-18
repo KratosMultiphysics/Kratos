@@ -879,6 +879,12 @@ class DEMAnalysisStage(AnalysisStage):
         Lz = self.BoundingBoxMaxZ_update - self.BoundingBoxMinZ_update
         return self.DEMPropertiesMeasureUtility.MeasureSphereForGettingGlobalStressTensor(Lx, Ly, Lz)
     
+    def MeasureGlobalStressTensorTangential(self):
+        Lx = self.BoundingBoxMaxX_update - self.BoundingBoxMinX_update
+        Ly = self.BoundingBoxMaxY_update - self.BoundingBoxMinY_update
+        Lz = self.BoundingBoxMaxZ_update - self.BoundingBoxMinZ_update
+        return self.DEMPropertiesMeasureUtility.MeasureGlobalStressTensorTangential(Lx, Ly, Lz)
+    
     def MeasureSphereForGettingRadialDistributionFunction(self, radius, center_x, center_y, center_z, delta_r, d_mean):
         self.DEMPropertiesMeasureUtility.MeasureSphereForGettingRadialDistributionFunction(radius, center_x, center_y, center_z, delta_r, d_mean)
 

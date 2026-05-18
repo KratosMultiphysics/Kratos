@@ -247,6 +247,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
     py::class_<ContactElementGlobalPhysicsCalculator, ContactElementGlobalPhysicsCalculator::Pointer >(m, "ContactElementGlobalPhysicsCalculator")
         .def(py::init<>())
         .def("CalculateTotalStressTensor", &ContactElementGlobalPhysicsCalculator::CalculateTotalStressTensor)
+        .def("CalculateTotalStressTensorTangential", &ContactElementGlobalPhysicsCalculator::CalculateTotalStressTensorTangential)
         .def("CalculateTotalStressTensorWithinSphere", &ContactElementGlobalPhysicsCalculator::CalculateTotalStressTensorWithinSphere)
         .def("CalculateTotalStressTensorWithinCubic", &ContactElementGlobalPhysicsCalculator::CalculateTotalStressTensorWithinCubic)
         .def("CalculateFabricTensorWithinSphere", &ContactElementGlobalPhysicsCalculator::CalculateFabricTensorWithinSphere)
