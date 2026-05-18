@@ -254,7 +254,7 @@ void TransientPwElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const Var
         if (rOutput.size() != mRetentionLawVector.size())
             rOutput.resize(mRetentionLawVector.size());
 
-        std::fill(rOutput.begin(), rOutput.end(), 0.0);
+        std::ranges::fill(rOutput, 0.0);
     }
 
     KRATOS_CATCH("")
@@ -334,8 +334,6 @@ void TransientPwElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLeftH
     // Element variables
     ElementVariables Variables;
     this->InitializeElementVariables(Variables, rCurrentProcessInfo);
-
-    RetentionLaw::Parameters RetentionParameters(this->GetProperties());
 
     const auto fluid_pressures = GeoTransportEquationUtilities::CalculateFluidPressures(
         Variables.NContainer, Variables.PressureVector);
@@ -419,6 +417,23 @@ void TransientPwElement<TDim, TNumNodes>::InitializeElementVariables(ElementVari
     rVariables.DegreeOfSaturation   = 1.0;
     rVariables.RelativePermeability = 1.0;
     rVariables.BishopCoefficient    = 1.0;
+
+    KRATOS_CATCH("")
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void TransientPwElement<TDim, TNumNodes>::InitializeProperties(ElementVariables& rVariables)
+{
+    KRATOS_TRY
+
+    const auto& r_properties = this->GetProperties();
+
+    rVariables.IsConstantWaterPressure    = false;
+    rVariables.UseHenckyStrain            = false;
+    rVariables.ConsiderGeometricStiffness = false;
+
+    rVariables.DynamicViscosityInverse = 1.0 / r_properties[DYNAMIC_VISCOSITY];
+    GeoElementUtilities::FillPermeabilityMatrix(rVariables.PermeabilityMatrix, r_properties);
 
     KRATOS_CATCH("")
 }

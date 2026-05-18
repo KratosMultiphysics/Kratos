@@ -28,7 +28,7 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) ApplyConstantInterpolateLinePressure
 public:
     KRATOS_CLASS_POINTER_DEFINITION(ApplyConstantInterpolateLinePressureProcess);
 
-    ApplyConstantInterpolateLinePressureProcess(ModelPart& model_part, Parameters rParameters);
+    ApplyConstantInterpolateLinePressureProcess(ModelPart& rModelPart, Parameters rParameters);
     ~ApplyConstantInterpolateLinePressureProcess() override = default;
     ApplyConstantInterpolateLinePressureProcess(const ApplyConstantInterpolateLinePressureProcess&) = delete;
     ApplyConstantInterpolateLinePressureProcess& operator=(const ApplyConstantInterpolateLinePressureProcess&) = delete;
@@ -40,7 +40,7 @@ public:
     void ExecuteInitializeSolutionStep() override;
 
     /// Turn back information as a string.
-    std::string Info() const override;
+    [[nodiscard]] std::string Info() const override;
 
 private:
     /// Member Variables
@@ -56,7 +56,7 @@ private:
     std::vector<Node*> mBoundaryNodes;
     double             mPressureTensionCutOff;
 
-    double CalculatePressure(const Node& rNode);
+    [[nodiscard]] double CalculatePressure(const Node& rNode) const;
 
     void CalculateBoundaryPressure(const Node&               rNode,
                                    const std::vector<Node*>& BoundaryNodes,
@@ -78,9 +78,9 @@ private:
                                            const std::vector<Node*>& rBoundaryNodes,
                                            std::vector<Node*>&       rFoundNodes) const;
 
-    Node* FindClosestNodeOnBoundaryNodes(const Node&               rNode,
-                                         const std::vector<Node*>& BoundaryNodes,
-                                         const bool                isBottom) const;
+    [[nodiscard]] Node* FindClosestNodeOnBoundaryNodes(const Node&               rNode,
+                                                       const std::vector<Node*>& BoundaryNodes,
+                                                       bool                      isBottom) const;
 
     void FindTopBoundaryNodes(const Node& rNode, std::vector<Node*>& TopBoundaryNodes) const;
 
@@ -94,15 +94,15 @@ private:
                                 const std::vector<Node*>& rBoundaryNodes,
                                 std::vector<Node*>&       rRightBoundaryNodes) const;
 
-    int GetMaxNodeID();
+    [[nodiscard]] int GetMaxNodeID() const;
 
     void FindBoundaryNodes();
 
-    void FillListOfBoundaryNodesFast(std::vector<int>& BoundaryNodes);
+    void FillListOfBoundaryNodesFast(std::vector<int>& BoundaryNodes) const;
 
-    bool IsMoreThanOneElementWithThisEdgeFast(const std::vector<int>&              rFaceIDs,
-                                              const std::vector<std::vector<int>>& rELementsOfNodes,
-                                              const std::vector<int>& rELementsOfNodesSize) const;
+    static bool IsMoreThanOneElementWithThisEdgeFast(const std::vector<int>& rFaceIDs,
+                                                     const std::vector<std::vector<int>>& rElementsOfNodes,
+                                                     const std::vector<int>& rElementsOfNodesSize);
 
 }; // Class ApplyConstantInterpolateLinePressureProcess
 
