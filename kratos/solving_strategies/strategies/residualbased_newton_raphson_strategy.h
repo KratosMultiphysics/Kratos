@@ -883,7 +883,6 @@ class ResidualBasedNewtonRaphsonStrategy
      */
     bool SolveSolutionStep() override
     {
-        std::cout << "In SolveSolutionStep of residualbased_newton_raphson_strategy.h" << std::endl;
         // Pointers needed in the solution
         ModelPart& r_model_part = BaseType::GetModelPart();
         typename TSchemeType::Pointer p_scheme = GetScheme();

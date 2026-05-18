@@ -424,7 +424,9 @@ class CoupledFluidThermalSolverBoussinesq(CoupledFluidThermalSolver):
         # φ^0 = current concentration on nodes (from previous step / initial condition)
         # Store securely inside non-historical variable AUX_TEMPERATURE
         aux_phi_var = ConvectionDiffusionApplication.AUX_TEMPERATURE
-        KratosMultiphysics.VariableUtils().CopyModelPartNodalVarToNonHistoricalVar(
+        variable_utils = KratosMultiphysics.VariableUtils()
+        variable_utils.SetNonHistoricalVariableToZero(aux_phi_var, self.thermal_solver.main_model_part.Nodes)
+        variable_utils.CopyModelPartNodalVarToNonHistoricalVar(
             phi_var, aux_phi_var, self.thermal_solver.main_model_part, self.thermal_solver.main_model_part, 0)
 
         fluid_converged   = True
