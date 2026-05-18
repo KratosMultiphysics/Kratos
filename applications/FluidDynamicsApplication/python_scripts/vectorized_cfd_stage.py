@@ -76,6 +76,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         # Set time integration parameters for RK4
         self.dt = settings["time_stepping"]["time_step"].GetDouble()
         self.max_cfl = settings["time_stepping"]["max_cfl_number"].GetDouble()
+        self.cfl = self.max_cfl
         self.max_fourier = settings["time_stepping"]["max_fourier_number"].GetDouble()
 
         # Set problem solving parameters
@@ -103,16 +104,27 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
     def ApplyVelocitySlipConditions(self, v, normals):
         # Get velocity and normal view of slip nodes
-        n_slip_nodes = len(self.slip_vel_indices) // self.dim
-        v_slip = v.ravel()[self.slip_vel_indices].reshape((n_slip_nodes,self.dim)) # shape (num_slip, dim)
-        n_unit = normals.ravel()[self.slip_vel_indices].reshape((n_slip_nodes,self.dim)) # shape (num_slip, dim)
+        n_slip_nodes = len(self.slip_node_ids) 
+        v_slip = v[self.slip_node_ids]
+        n_unit = normals[self.slip_node_ids]
 
-        # Normalize normals
-        n_unit /= xp.linalg.norm(n_unit, axis=1, keepdims=True)
+        # Check for zero normals and print corresponding indices
+        normal_norms = xp.linalg.norm(n_unit, axis=1)
+        zero_normal_mask = (normal_norms < 1e-15)
+
+        # Normalize normals (avoid division by zero)
+        normal_norms_clipped = xp.maximum(normal_norms, 1e-15)
+        n_unit /= normal_norms_clipped[:,None]
 
         # Remove normal velocity component
-        v_dot_n = xp.sum(v_slip * n_unit, axis=1, keepdims=True)
-        v.ravel()[self.slip_vel_indices] -= (v_dot_n * n_unit).ravel()
+        v_dot_n = xp.sum(v_slip * n_unit, axis=1)
+        v[self.slip_node_ids] -= (v_dot_n[:,None] * n_unit)
+
+        # Set velocity to zero at nodes with zero normal (i.e., treat them as no-slip)
+        if xp.any(zero_normal_mask):
+            zero_indices = xp.where(zero_normal_mask)
+            #print(f"WARNING: Zero normal found at slip node index {self.slip_node_ids[zero_indices]+1}")
+            v[zero_indices,:] = 0.0
 
     def ComputeH(self,DN):
         return xp.mean(1.0 / xp.linalg.norm(DN, axis=2), axis=1)
@@ -418,7 +430,8 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
         # Declare boundary condition arrays
         self.fix_vel_indices = None
-        self.slip_vel_indices = None
+        #self.slip_vel_indices = None
+        self.slip_node_ids = None
         self.fix_pres_indices = None
 
         # Declare boundary conditions masks
@@ -569,15 +582,15 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
     def GetSlipIndices(self):
         # Check if slip indices have been computed
         # Note that we only compute this once assuming the slip to not change in time
-        if self.slip_vel_indices is None:
+        if self.slip_node_ids is None:
             # Get SLIP flag nodal data
             slip_adaptor = KM.TensorAdaptors.FlagsTensorAdaptor(self.model_part.Nodes, KM.SLIP)
             slip_adaptor.CollectData()
             slip_adaptor_data = xp.asarray(slip_adaptor.data, dtype=np.int32) 
 
             # Compute slip nodes component indices
-            slip_node_ids = xp.where(slip_adaptor_data > 0)[0] # Get the ids of the nodes with SLIP flag
-            self.slip_vel_indices = (slip_node_ids[:, None] * self.dim + xp.arange(self.dim)).ravel() # Broadcast with dimension to get the component indices
+            self.slip_node_ids = xp.where(slip_adaptor_data > 0)[0] # Get the ids of the nodes with SLIP flag
+            #self.slip_vel_indices = (slip_node_ids[:, None] * self.dim + xp.arange(self.dim)).ravel() # Broadcast with dimension to get the component indices
 
     def SolveStep1(self,vold,v_dirichlet,p,b,dt):
 
@@ -801,32 +814,52 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         self.update_precond = True # Update preconditioner at the first substep
         current_time = self.time - self.dt
         while (self.time - current_time > 1.0e-12):
-            print("            =============================== ", self.time, current_time)
-            # Compute convective operator spectral radius
-            rho_conv = self.ComputeElementalConvectiveOperatorSpectralRadius(vold, out=self.pool.Get(2, (nelem,))) #self.tmp_n_elem)
+            ##
+            backup_current_time = current_time
+            vmax = xp.max(xp.linalg.norm(vold, axis=1))
+            repeat_step1 = True
 
-            # Get maximum allowed time step with previous substep velocity
-            max_dt = self._ComputeDeltaTime(rho_conv)
-            self.pool.Release(rho_conv)
+            while(repeat_step1):
+                print("            =============================== ", self.time, current_time)
+                # Compute convective operator spectral radius
+                rho_conv = self.ComputeElementalConvectiveOperatorSpectralRadius(vold, out=self.pool.Get(2, (nelem,))) #self.tmp_n_elem)
 
-            # Compute current substep time step
-            n_substeps = math.ceil((self.time - current_time) / max_dt)
-            substep_dt = (self.time - current_time) / n_substeps
-            current_time += substep_dt
+                # Get maximum allowed time step with previous substep velocity
+                max_dt = self._ComputeDeltaTime(rho_conv)
+                self.pool.Release(rho_conv)
 
-            # Compute current substep Dirichlet velocity and body force values
-            # Note that we assume a linear interpolation within the step
-            substep_dt_factor = 1.0 - (self.time - current_time) / self.dt
-            # print(f"\ttime: {self.time} - current_time: {current_time} - substep_dt: {substep_dt} - substep_dt_factor: {substep_dt_factor}")
-            b = (1.0 - substep_dt_factor) * b_old + substep_dt_factor * b_new
-            v_dirichlet = (1.0 - substep_dt_factor) * v_old_dirichlet + substep_dt_factor * v_new_dirichlet
+                # Compute current substep time step
+                n_substeps = math.ceil((self.time - current_time) / max_dt)
+                substep_dt = (self.time - current_time) / n_substeps
+                current_time += substep_dt
 
-            # Compute stabilization constants
-            self.tau_1, self.tau_2 = self.ComputeTau(self.h, rho_conv, self.dyn_visc, self.rho, substep_dt)
+                # Compute current substep Dirichlet velocity and body force values
+                # Note that we assume a linear interpolation within the step
+                substep_dt_factor = 1.0 - (self.time - current_time) / self.dt
+                # print(f"\ttime: {self.time} - current_time: {current_time} - substep_dt: {substep_dt} - substep_dt_factor: {substep_dt_factor}")
+                b = (1.0 - substep_dt_factor) * b_old + substep_dt_factor * b_new
+                v_dirichlet = (1.0 - substep_dt_factor) * v_old_dirichlet + substep_dt_factor * v_new_dirichlet
 
-            # Perform fractional step
-            t1 = time.perf_counter()
-            vfrac = self.SolveStep1(vold, v_dirichlet, pold, b, substep_dt)
+                # Compute stabilization constants
+                self.tau_1, self.tau_2 = self.ComputeTau(self.h, rho_conv, self.dyn_visc, self.rho, substep_dt)
+
+                # Perform fractional step
+                t1 = time.perf_counter()
+                vfrac = self.SolveStep1(vold, v_dirichlet, pold, b, substep_dt)
+
+                ##check if velocity increased significantly after step 1, if so, reduce CFL and repeat step 1
+                if(self.clear_divergence_steps == 0): # if we are clearing divergence, we expect some velocity increase, so skip the check
+                    vmax_after_step1 = xp.max(xp.linalg.norm(vfrac, axis=1))
+                    if(vmax_after_step1 > 1.5 * vmax):
+                        print(f"----- Warning: local max velocity increased significantly after step 1: {vmax_after_step1} vs {vmax}")
+                        repeat_step1 = True
+                        self.cfl = self.cfl * 0.7 # reduce CFL and repeat step 1
+                        current_time = backup_current_time # reset current time to before step 1 to repeat it with the new CFL
+                    else:
+                        repeat_step1 = False
+                        self.cfl = min(self.cfl*1.01, self.max_cfl) # increase CFL for next step if we are well below the limit
+                else:
+                    repeat_step1 = False
 
             self.step_1_total_time += time.perf_counter() - t1
 
@@ -993,15 +1026,21 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         # xp.divide(self.max_cfl, (rho_conv + eps), out=self.tmp_n_elem)
         # dt_cfl = xp.min(self.tmp_n_elem)
 
+        cfl_factor = 1.0
+        if self.clear_divergence_steps > 0:
+            cfl_factor = 0.1
+            print("Applying stricter CFL condition for divergence clearance step")
+
         #much better version avoiding vector divisions and mostly working with scalars
         max_rho_conv = xp.max(rho_conv)
-        dt_cfl = self.max_cfl / (max_rho_conv + eps)
+        dt_cfl = cfl_factor*self.cfl / (max_rho_conv + eps)
 
         # Return the most restrictive time step from all conditions
         return float(min(min(dt_cfl, self.dt_fourier), self.dt))
 
     def _SolvePressure(self, rhs, previous_p):
         if USE_CUPY:
+
             # precond = JacobiPreconditioner(self.L)
             if self.update_precond:
                 t0 = time.perf_counter()
@@ -1010,9 +1049,16 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
                 self.update_precond = True
             precond = self.preconditioner.aspreconditioner()
 
+            #set a stricter tolerance during the clear divergence steps.
+            factor = 1.0
+            if(self.clear_divergence_steps > 0):
+                factor = 1e-6
+                print("doing div cleareance step")
+            
+
             # Solve and get convergence status
             t0 = time.perf_counter()
-            sol, status = cfd_utils.sparse_linalg.cg(self.L, rhs, x0=previous_p, rtol=self.pressure_tolerance, M=precond)
+            sol, status = cfd_utils.sparse_linalg.cg(self.L, rhs, x0=previous_p, rtol=factor*self.pressure_tolerance, M=precond)
             print(f"CG solve time: {time.perf_counter() - t0:.4f} seconds")
             is_converged = status == 0 # Note that the status is 0 if the solver converged
             if not is_converged:
