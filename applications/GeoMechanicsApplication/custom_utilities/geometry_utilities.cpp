@@ -56,8 +56,8 @@ std::size_t GetNumberOfEdgePoints(GeometryData::KratosGeometryFamily    Geometry
 }
 
 template <std::random_access_iterator InputIt>
-void ReverseNodes(InputIt                               Begin,
-                  InputIt                               End,
+void ReverseNodes(const InputIt&                        Begin,
+                  const InputIt&                        End,
                   GeometryData::KratosGeometryFamily    GeometryFamily,
                   GeometryData::KratosGeometryOrderType GeometryOrderType)
 {

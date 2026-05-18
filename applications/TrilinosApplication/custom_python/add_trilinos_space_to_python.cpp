@@ -178,6 +178,26 @@ AuxiliaryVectorWrapper ReadMatrixMarketVector(TrilinosSparseSpaceType& dummy, co
     return AuxiliaryVectorWrapper(dummy.ReadMatrixMarketVector(FileName, Comm, n));
 }
 
+AuxiliaryVectorWrapper CreateVectorCopy(TrilinosSparseSpaceType& dummy, const TrilinosSparseSpaceType::VectorType& rV)
+{
+    return AuxiliaryVectorWrapper(dummy.CreateVectorCopy(rV));
+}
+
+AuxiliaryVectorWrapper CreateVector(TrilinosSparseSpaceType& dummy, TrilinosSparseSpaceType::MapPointerType& pMap)
+{
+    return AuxiliaryVectorWrapper(dummy.CreateVector(pMap));
+}
+
+AuxiliaryMatrixWrapper CreateMatrix(TrilinosSparseSpaceType& dummy, TrilinosSparseSpaceType::GraphPointerType& pGraph)
+{
+    return AuxiliaryMatrixWrapper(dummy.CreateMatrix(pGraph));
+}
+
+AuxiliaryMatrixWrapper CreateMatrixCopy(TrilinosSparseSpaceType& dummy, const TrilinosSparseSpaceType::MatrixType& rA)
+{
+    return AuxiliaryMatrixWrapper(dummy.CreateMatrixCopy(rA));
+}
+
 Epetra_FECrsMatrix& GetMatRef(AuxiliaryMatrixWrapper& dummy)
 {
     return dummy.GetReference();
@@ -250,6 +270,61 @@ Vector GatherValues(TrilinosSparseSpaceType& dummy,
     dummy.sublist(sublist_name).set(name, value);
 }
 
+bool WriteMatrixMarketMatrixHelper(TrilinosSparseSpaceType& dummy, const char* filename, const TrilinosSparseSpaceType::MatrixType& rM, const bool symmetric)
+{
+    return TrilinosSparseSpaceType::WriteMatrixMarketMatrix(filename, rM, symmetric);
+}
+
+bool WriteMatrixMarketVectorHelper(TrilinosSparseSpaceType& dummy, const char* filename, const TrilinosSparseSpaceType::VectorType& rV)
+{
+    return TrilinosSparseSpaceType::WriteMatrixMarketVector(filename, rV);
+}
+
+void GlobalAssembleMatrix(TrilinosSparseSpaceType& dummy, TrilinosSparseSpaceType::MatrixType& rA)
+{
+    TrilinosSparseSpaceType::GlobalAssemble(rA);
+}
+
+void GlobalAssembleVector(TrilinosSparseSpaceType& dummy, TrilinosSparseSpaceType::VectorType& rV)
+{
+    TrilinosSparseSpaceType::GlobalAssemble(rV);
+}
+
+void SetVector(TrilinosSparseSpaceType& dummy, TrilinosSparseSpaceType::VectorType& rX, double value)
+{
+    TrilinosSparseSpaceType::Set(rX, value);
+}
+
+double GetDiagonalNormHelper(TrilinosSparseSpaceType& dummy, const TrilinosSparseSpaceType::MatrixType& rA)
+{
+    return TrilinosSparseSpaceType::GetDiagonalNorm(rA);
+}
+
+double GetAveragevalueDiagonalHelper(TrilinosSparseSpaceType& dummy, const TrilinosSparseSpaceType::MatrixType& rA)
+{
+    return TrilinosSparseSpaceType::GetAveragevalueDiagonal(rA);
+}
+
+double GetMaxDiagonalHelper(TrilinosSparseSpaceType& dummy, const TrilinosSparseSpaceType::MatrixType& rA)
+{
+    return TrilinosSparseSpaceType::GetMaxDiagonal(rA);
+}
+
+double GetMinDiagonalHelper(TrilinosSparseSpaceType& dummy, const TrilinosSparseSpaceType::MatrixType& rA)
+{
+    return TrilinosSparseSpaceType::GetMinDiagonal(rA);
+}
+
+void CopyMatrixValuesHelper(TrilinosSparseSpaceType& dummy, TrilinosSparseSpaceType::MatrixType& rA, const TrilinosSparseSpaceType::MatrixType& rB)
+{
+    TrilinosSparseSpaceType::CopyMatrixValues(rA, rB);
+}
+
+double GetValue(TrilinosSparseSpaceType& dummy, const TrilinosSparseSpaceType::VectorType& rX, std::size_t I)
+{
+    return TrilinosSparseSpaceType::GetValue(rX, I);
+}
+
 void  AddBasicOperations(pybind11::module& m)
 {
     py::class_< Epetra_MpiComm > (m,"Epetra_MpiComm")
@@ -308,12 +383,28 @@ void  AddBasicOperations(pybind11::module& m)
     .def("ScaleAndAdd", ScaleAndAdd)
     .def("CreateEmptyMatrixPointer", CreateEmptyMatrixPointer)
     .def("CreateEmptyVectorPointer", CreateEmptyVectorPointer)
+    .def("CreateVectorCopy", CreateVectorCopy)
+    .def("CreateVector", CreateVector)
+    .def("CreateMatrix", CreateMatrix)
+    .def("CreateMatrixCopy", CreateMatrixCopy)
     .def("ReadMatrixMarketMatrix", ReadMatrixMarketMatrix)
     .def("ReadMatrixMarketVector", ReadMatrixMarketVector)
+    .def("WriteMatrixMarketMatrix", WriteMatrixMarketMatrixHelper)
+    .def("WriteMatrixMarketVector", WriteMatrixMarketVectorHelper)
     .def("SetValue", SetValue)
     //.def("GetValue", GetValue) //deliberately commented out. Only works for local Ids
     .def("GatherValues", GatherValues)
+    .def("GlobalAssembleMatrix", GlobalAssembleMatrix)
+    .def("GlobalAssembleVector", GlobalAssembleVector)
+    .def("Set", SetVector)
+    .def("TransposeMult", TransposeMult)
+    .def("GetDiagonalNorm", GetDiagonalNormHelper)
+    .def("GetAveragevalueDiagonal", GetAveragevalueDiagonalHelper)
+    .def("GetMaxDiagonal", GetMaxDiagonalHelper)
+    .def("GetMinDiagonal", GetMinDiagonalHelper)
+    .def("CopyMatrixValues", CopyMatrixValuesHelper)
     .def_static("IsDistributed", &TrilinosSparseSpaceType::IsDistributed)
+    .def_static("IsDistributedSpace", &TrilinosSparseSpaceType::IsDistributedSpace)
     .def_static("FastestDirectSolverList", &TrilinosSparseSpaceType::FastestDirectSolverList)
     ;
 
