@@ -19,6 +19,7 @@ namespace
 {
 
 using namespace Kratos;
+using namespace std::string_literals;
 
 indexStress3D GetIndex3D(const indexStress2DInterface Index2D)
 {
@@ -138,7 +139,7 @@ SizeType SmallStrainUDSM2DInterfaceLaw::WorkingSpaceDimension() { return N_DIM_2
 
 SizeType SmallStrainUDSM2DInterfaceLaw::GetStrainSize() const { return VOIGT_SIZE_2D_INTERFACE; }
 
-std::string SmallStrainUDSM2DInterfaceLaw::Info() const { return "SmallStrainUDSM2DInterfaceLaw"; }
+std::string SmallStrainUDSM2DInterfaceLaw::Info() const { return "SmallStrainUDSM2DInterfaceLaw"s; }
 
 void SmallStrainUDSM2DInterfaceLaw::PrintData(std::ostream& rOStream) const
 {

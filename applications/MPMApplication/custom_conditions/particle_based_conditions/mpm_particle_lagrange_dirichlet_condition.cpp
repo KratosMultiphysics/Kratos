@@ -75,7 +75,7 @@ void MPMParticleLagrangeDirichletCondition::InitializeSolutionStep( const Proces
 
     const unsigned int number_of_nodes = r_geometry.PointsNumber();
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
-    
+
     // Prepare variables
     GeneralVariables Variables;
     MPMShapeFunctionPointValues(Variables.N);
@@ -100,7 +100,7 @@ void MPMParticleLagrangeDirichletCondition::InitializeSolutionStep( const Proces
         pLagrangeNode->Set(SLIP);
         pLagrangeNode->FastGetSolutionStepValue(NORMAL) += this->GetIntegrationWeight() * m_normal;
         pLagrangeNode->UnSetLock();
-        
+
 
         // Here MPC contribution of normal vector are added
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
@@ -155,7 +155,7 @@ void MPMParticleLagrangeDirichletCondition::CalculateAll(
 
         noalias( rRightHandSideVector ) = ZeroVector( matrix_size ); //resetting RHS
     }
-    
+
     // Prepare variables
     GeneralVariables Variables;
 
@@ -166,27 +166,27 @@ void MPMParticleLagrangeDirichletCondition::CalculateAll(
 
     auto mp_counter = r_geometry.GetGeometryParent(0).GetValue(MP_COUNTER);
     if (mp_counter < 1 )
-        this->Reset(ACTIVE);  
+        this->Reset(ACTIVE);
 
     if (Is(CONTACT) && this->Is(ACTIVE))
-    {  
+    {
         auto pLagrangeNode = r_geometry.GetGeometryParent(0).GetValue(MPC_LAGRANGE_NODE);
-        array_1d<double, 3>& r_lagrange_multiplier = pLagrangeNode->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER); 
+        array_1d<double, 3>& r_lagrange_multiplier = pLagrangeNode->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
 
         const double normal_force = MathUtils<double>::Dot(r_lagrange_multiplier, m_normal);
-       
+
         if (normal_force > 0.0)
             apply_constraints=false;
-     
+
     }
-   
-    if (apply_constraints && this->Is(ACTIVE))    
+
+    if (apply_constraints && this->Is(ACTIVE))
     {
         Matrix lagrange_matrix = ZeroMatrix(matrix_size, matrix_size);
-        
+
         for (unsigned int i = 0; i < number_of_nodes; i++)
-        {       
-            const unsigned int ibase = dimension * number_of_nodes; 
+        {
+            const unsigned int ibase = dimension * number_of_nodes;
             for (unsigned int k = 0; k < dimension; k++)
             {
                 lagrange_matrix(i* dimension+k, ibase+k) = Variables.N[i];
@@ -196,13 +196,13 @@ void MPMParticleLagrangeDirichletCondition::CalculateAll(
                 if (m_penalty>0)
                     lagrange_matrix(ibase + k, ibase + k) = -1/m_penalty;
 
-                    
+
             }
         }
-         
+
         // Calculate LHS Matrix and RHS Vector
         if ( CalculateStiffnessMatrixFlag == true )
-        {    
+        {
             rLeftHandSideMatrix = lagrange_matrix * this->GetIntegrationWeight();
         }
 
@@ -222,18 +222,18 @@ void MPMParticleLagrangeDirichletCondition::CalculateAll(
                     }
             }
             right_hand_side = prod(lagrange_matrix, gap_function);
-            
+
             //first rows of RHS
             gap_function = ZeroVector(matrix_size);
             auto pLagrangeNode = r_geometry.GetGeometryParent(0).GetValue(MPC_LAGRANGE_NODE);
             const array_1d<double, 3>& r_lagrange_multiplier = pLagrangeNode->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
-           
+
             for (unsigned int j = 0; j < dimension; j++){
                 gap_function[dimension * number_of_nodes+j] = r_lagrange_multiplier[j];
             }
-            
+
             right_hand_side += prod(lagrange_matrix, gap_function);
-        
+
             //add imposed displacement
             for (unsigned int j = 0; j < dimension; j++){
                     right_hand_side[dimension * number_of_nodes+j] -= m_imposed_displacement[j];
@@ -242,12 +242,12 @@ void MPMParticleLagrangeDirichletCondition::CalculateAll(
             right_hand_side *= this->GetIntegrationWeight();
             noalias(rRightHandSideVector) = -right_hand_side;
         }
-        
+
         if (Is(SLIP)){
             auto pLagrangeNode = r_geometry.GetGeometryParent(0).GetValue(MPC_LAGRANGE_NODE);
             // normalize normal at boundary particle node
             MPMMathUtilities<double>::Normalize(pLagrangeNode->FastGetSolutionStepValue(NORMAL));
-            
+
             // rotate to normal-tangential frame
             if (CalculateStiffnessMatrixFlag == true){
                 GetRotationTool().Rotate(rLeftHandSideMatrix, rRightHandSideVector, GetGeometry());
@@ -262,7 +262,7 @@ void MPMParticleLagrangeDirichletCondition::CalculateAll(
                         // erase tangential DoFs
                         if (j > number_of_nodes * dimension)
                             rLeftHandSideMatrix(i, j) = 0.0;
-                       
+
                         if (i > number_of_nodes * dimension)
                             rLeftHandSideMatrix(i, j) = 0.0;
                     }
@@ -290,7 +290,7 @@ void MPMParticleLagrangeDirichletCondition::CalculateAll(
 
         }
     }
-    
+
     KRATOS_CATCH( "" )
 }
 
@@ -299,7 +299,7 @@ void MPMParticleLagrangeDirichletCondition::CalculateAll(
 void MPMParticleLagrangeDirichletCondition::CalculateNodalReactions(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
-        
+
     GeometryType& r_geometry = GetGeometry();
     const unsigned int number_of_nodes = GetGeometry().size();
 
@@ -522,7 +522,7 @@ void MPMParticleLagrangeDirichletCondition::CalculateOnIntegrationPoints(const V
     if (rValues.size() != 1)
         rValues.resize(1);
 
-    if (rVariable == PENALTY_FACTOR) {
+    if (rVariable == PENALTY_COEFFICIENT) {
         rValues[0] = m_penalty;
     }
     else {
@@ -539,8 +539,8 @@ void MPMParticleLagrangeDirichletCondition::SetValuesOnIntegrationPoints(const V
     KRATOS_ERROR_IF(rValues.size() > 1)
         << "Only 1 value per integration point allowed! Passed values vector size: "
         << rValues.size() << std::endl;
-    
-    if (rVariable == PENALTY_FACTOR) {
+
+    if (rVariable == PENALTY_COEFFICIENT) {
         m_penalty = rValues[0];
     }
     else {

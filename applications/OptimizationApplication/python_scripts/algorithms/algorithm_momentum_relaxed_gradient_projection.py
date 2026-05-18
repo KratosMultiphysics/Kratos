@@ -42,21 +42,29 @@ class AlgorithmMomentumRelaxedGradientProjection(AlgorithmRelaxedGradientProject
         self.eta = self.parameters["settings"]["eta"].GetDouble()
 
     @time_decorator()
-    def ComputeControlUpdate(self, alpha):
+    def ComputeControlUpdate(self, alpha: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor):
         # compute the correction part from momentum point
-        search_direction = self.algorithm_data.GetBufferedData()["search_direction"]
-        update = KratosOA.ExpressionUtils.Scale(search_direction, alpha)
+        search_direction: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor = self.algorithm_data.GetBufferedData()["search_direction"]
+        update = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(search_direction, perform_store_data_recursively=False)
+        update.data[:] *= alpha.data
+        update.StoreData()
         # add momentum to the correction update to compute new momentum point.
         if self.prev_update:
-            mom_update = update + self.prev_update * self.eta
-            full_update = update + mom_update * self.eta
-            self.prev_update = KratosOA.ExpressionUtils.Collapse(mom_update)
+            mom_update = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(update, perform_store_data_recursively=False)
+            mom_update.data[:] += self.prev_update.data * self.eta
+            mom_update.StoreData()
+
+            full_update = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(update, perform_collect_data_recursively=False)
+            full_update.data[:] += mom_update.data * self.eta
+            full_update.StoreData()
+            self.prev_update = mom_update
         else:
-            full_update = update * (1 + self.eta)
+            full_update = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(update, perform_collect_data_recursively=False)
+            full_update.data[:] *= (1 + self.eta)
+            full_update.StoreData()
             self.prev_update = update
 
-        self.algorithm_data.GetBufferedData().SetValue("control_field_update", full_update.Clone(), overwrite=True)
+        self.algorithm_data.GetBufferedData().SetValue("control_field_update", full_update, overwrite=True)
 
-        self.prev_update = KratosOA.ExpressionUtils.Collapse(self.prev_update)
 
         return full_update

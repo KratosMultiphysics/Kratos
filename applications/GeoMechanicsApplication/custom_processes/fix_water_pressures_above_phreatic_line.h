@@ -16,6 +16,8 @@
 #include "includes/table.h"
 #include "processes/process.h"
 
+#include <string>
+
 namespace Kratos
 {
 

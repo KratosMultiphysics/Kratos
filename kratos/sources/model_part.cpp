@@ -1599,7 +1599,7 @@ void ModelPart::AddGeometry(ModelPart::GeometryType::Pointer pNewGeometry)
         mpParentModelPart->AddGeometry(pNewGeometry);
         GetMesh(0).AddGeometry(pNewGeometry);
     }
-    else 
+    else
     {
         auto existing_geometry_it = this->GetMesh(0).Geometries().find(pNewGeometry->Id());
         if( existing_geometry_it == GetMesh(0).Geometries().end()) //geometry did not exist
@@ -2395,8 +2395,12 @@ void ModelPart::load(Serializer& rSerializer)
 
     for(const auto& name : submodel_part_names)
     {
-        auto& subpart = CreateSubModelPart(name);
-        rSerializer.load("SubModelPart",subpart);
+        if (!rSerializer.IsDataOnly()) {
+            auto& subpart = CreateSubModelPart(name);
+            rSerializer.load("SubModelPart",subpart);
+        } else {
+            rSerializer.load("SubModelPart",this->GetSubModelPart(name));
+        }
     }
 
     for (SubModelPartIterator i_sub_model_part = SubModelPartsBegin(); i_sub_model_part != SubModelPartsEnd(); i_sub_model_part++)
