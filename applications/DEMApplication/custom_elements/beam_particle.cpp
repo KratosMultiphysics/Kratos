@@ -336,6 +336,7 @@ namespace Kratos {
             // Transforming to global forces and adding up
             double LocalContactForce[3] = {0.0};
             double GlobalContactForce[3] = {0.0};
+            double GlobalContactForceTangential[3] = {0.0};
 
             array_1d<double, 3> other_ball_to_ball_forces(3,0.0);
             ComputeOtherBallToBallForces(other_ball_to_ball_forces);
