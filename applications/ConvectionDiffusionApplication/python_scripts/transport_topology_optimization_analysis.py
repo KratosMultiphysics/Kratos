@@ -785,6 +785,7 @@ class TransportTopologyOptimizationAnalysis(FluidTopologyOptimizationAnalysis):
         target_t = self.target_focus_region_transport_scalar
         for node in self._GetLocalMeshNodes(focus_mp):
             node.SetSolutionStepValue(KratosCD.OPTIMIZATION_TEMPERATURE, node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)-target_t)
+        self._GetMainModelPart().GetCommunicator().SynchronizeVariable(KratosCD.OPTIMIZATION_TEMPERATURE)
         
     def _CheckMaterialProperties(self, check = False):
         if (check):
