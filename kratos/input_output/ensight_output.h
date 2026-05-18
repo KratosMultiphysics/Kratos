@@ -184,7 +184,7 @@ protected:
      * - EnSightGold: The EnSight Gold format, which supports additional features.
      */
     enum class EnSightFileFormat {
-        EnSight5, // TODO: To be added. Very similar to EnSight6
+        EnSight5, ///< Classic EnSight 5 format: per-part coordinates, local node IDs, tabular variable data
         EnSight6,
         EnSightGold
     };

@@ -170,7 +170,7 @@ def ExecuteBasicEnsightOutputProcessCheck(file_format = "ascii", setup = "2D"):
     ensight_output_parameters = KratosMultiphysics.Parameters("""{
         "Parameters" : {
             "model_part_name"                    : "Main",
-            "ensight_file_format"                : "6", // Options: "6", "gold"
+            "ensight_file_format"                : "6", // Options: "5", "6", "gold"
             "file_format"                        : "ascii",
             "output_precision"                   : 6,
             "output_interval"                    : 2,
