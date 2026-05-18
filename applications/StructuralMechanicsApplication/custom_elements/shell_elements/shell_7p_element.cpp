@@ -13,6 +13,7 @@
 
 // Project includes
 #include "shell_7p_element.hpp"
+#include "utilities/math_utils.h"
 #include "structural_mechanics_application_variables.h"
 
 //READ SOLVER SCRIPT*********************************************************************************************************************************
@@ -155,7 +156,7 @@ void Shell7pElement::CalculateRightHandSide(
     for (SizeType i_node = 0; i_node < number_of_nodes; ++i_node) {
         const SizeType index = 6 * i_node;
         const auto& v_dof = r_geom[i_node].FastGetSolutionStepValue(DISPLACEMENT);
-        const auto& w_dof = r_geom[i_node].FastGetSolutionStepValue(DIFFERENCE_VECTOR); // reaction for "ROTATION" variable is a REACTION_MOMENT, and they are computed at the moment not for differential vector, so results for moment are different than should be. vtk output label your difference director as "rotation" and plot it as such
+        const auto& w_dof = r_geom[i_node].FastGetSolutionStepValue(DIFFERENCE_VECTOR); // reaction for "ROTATION" variable is a REACTION_MOMENT, and they are computed at the moment not for differential vector, so results for moment are different than should be. vtk output label difference director as "rotation" and plot it as such
 
         current_values[index] = v_dof[0];
         current_values[index + 1] = v_dof[1];
@@ -182,12 +183,12 @@ void Shell7pElement::CalculateLeftHandSide(
     const Matrix& Ncontainer = r_geom.ShapeFunctionsValues(integration_method);     // Rows: GP, Columns: element nodes. Ncontainer(k,i) = N_i evaluated at GP k. For Quad4: Ncontainer(k,i) = N_i evaluated at GP k, where i=0..3 and k=0..3
     const GeometryType::ShapeFunctionsGradientsType& r_shape_functions_gradients = r_geom.ShapeFunctionsLocalGradients(integration_method); // Stack of matrices: one for each GP. [GP][N_node][derivative direction] Quad4: For GP k: node 0 [ dN0/dξ  dN0/dη ]
     const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geom.IntegrationPoints(integration_method);                                                                                                            // node 1 [ dN1/dξ  dN1/dη ]
-                                                                                                                                                                                                                            // node 2 [ dN2/dξ  dN2/dη ]
-                                                                                                                                                                                                                            // node 3 [ dN3/dξ  dN3/dη ]
+                                                                                                                                                                                                                                    // node 2 [ dN2/dξ  dN2/dη ]
+                                                                                                                                                                                                                                    // node 3 [ dN3/dξ  dN3/dη ]
     const double thickness = GetProperties()[THICKNESS];                // GetProperties() returns the Properties object assigned to the element, not to individual nodes. All nodes of the element share the same thickness value.
 
     array_1d<Vector,3> current_covariant_base_vectors;
-    // array_1d<Vector,2> a3kvp;    
+    array_1d<Vector,2> a3kvp;    
     array_1d<Vector,3> reference_covariant_base_vectors;    // array_1d<array_1d<double,3>,3> reference_covariant_base_vectors;    // outer and inner sizes are compile-time fixed to 3 for better performance (no dynamic memory allocation). access: reference_covariant_base_vectors[i][j]: i = which base vector (0=g1, 1=g2, 2=g3)
     array_1d<Vector,3> reference_contravariant_base_vectors;                                                                                                                                                         // j = spatial component  (0=x,  1=y,  2=z)
     array_1d<Vector,3> transformed_base_vectors;
@@ -207,13 +208,12 @@ void Shell7pElement::CalculateLeftHandSide(
         const Vector& Nshape = row(Ncontainer,point_number);        // Node shape function values at the current integration point. Nshape[i] = N_i evaluated at the current GP
 
         // CovariantBaseVectors(current_covariant_base_vectors,shape_functions_gradients_i,ConfigurationType::Current,thickness);
-        CovariantBaseVectors(reference_covariant_base_vectors,shape_functions_gradients_i,ConfigurationType::Reference,thickness);
-        // DirectorDerivatives(a3kvp,reference_covariant_base_vectors,shape_functions_gradients_i);
+        CovariantBaseVectors(reference_covariant_base_vectors,shape_functions_gradients_i,Nshape,ConfigurationType::Reference,thickness);
+        DirectorDerivatives(a3kvp,reference_covariant_base_vectors,shape_functions_gradients_i,thickness);
 
         // CovariantMetric(covariant_metric_current,current_covariant_base_vectors);
         CovariantMetric(covariant_metric_reference,reference_covariant_base_vectors);
         ContravariantMetric(contravariant_metric_reference,covariant_metric_reference);
-        // later: implement partial derivatives of G3 with respect to inplane parametric coordinates
 
         ContraVariantBaseVectors(reference_contravariant_base_vectors,contravariant_metric_reference,reference_covariant_base_vectors);
 
@@ -223,7 +223,7 @@ void Shell7pElement::CalculateLeftHandSide(
         BoundedMatrix<double, 12, 12> Dmatrix=ZeroMatrix(12,12);
         Matrix Bop = ZeroMatrix(12,number_dofs);             // DOFs vary by geometry type
         CalculateMaterialLaw(Dmatrix,contravariant_metric_reference,thickness,ConstitutiveLawType::gStVenantKirchhoff);
-        CalculatelinearBOperator(Bop,reference_covariant_base_vectors,shape_functions_gradients_i,Nshape,number_of_nodes);
+        CalculatelinearBOperator(Bop,reference_covariant_base_vectors,a3kvp,shape_functions_gradients_i,Nshape,number_of_nodes);
 
         double weight = integration_weight_i * detJ * thickness*0.5; 
         Matrix DB = ZeroMatrix(12,number_dofs); 
@@ -233,11 +233,12 @@ void Shell7pElement::CalculateLeftHandSide(
 }
 
 void Shell7pElement::CovariantBaseVectors(array_1d<Vector,3>& rBaseVectors,
-     const Matrix& rShapeFunctionGradientValues, const ConfigurationType& rConfiguration, const double& thickness) const
+     const Matrix& rShapeFunctionGradientValues, const Vector& rNshape, const ConfigurationType& rConfiguration, const double& thickness) const
 {
     // pass/call this ShapeFunctionsLocalGradients[pnt]
-    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
-    const SizeType number_of_nodes = GetGeometry().size();
+    const auto& r_geom = GetGeometry();
+    const SizeType number_of_nodes = r_geom.size();
+    const SizeType dimension = r_geom.WorkingSpaceDimension();
     Vector g1 = ZeroVector(dimension);
     Vector g2 = ZeroVector(dimension);
     Vector g3 = ZeroVector(dimension);
@@ -247,54 +248,68 @@ void Shell7pElement::CovariantBaseVectors(array_1d<Vector,3>& rBaseVectors,
 
 
     for (SizeType i=0;i<number_of_nodes;++i){
-        g1[0] += GetGeometry().GetPoint( i ).X0() * rShapeFunctionGradientValues(i, 0);
-        g1[1] += GetGeometry().GetPoint( i ).Y0() * rShapeFunctionGradientValues(i, 0);
-        g1[2] += GetGeometry().GetPoint( i ).Z0() * rShapeFunctionGradientValues(i, 0);
 
-        g2[0] += GetGeometry().GetPoint( i ).X0() * rShapeFunctionGradientValues(i, 1);
-        g2[1] += GetGeometry().GetPoint( i ).Y0() * rShapeFunctionGradientValues(i, 1);
-        g2[2] += GetGeometry().GetPoint( i ).Z0() * rShapeFunctionGradientValues(i, 1);
+        const Vector& nodal_normal = r_geom[i].GetValue(NORMAL);        // node.GetValue(NORMAL)
+
+        g1[0] += r_geom.GetPoint( i ).X0() * rShapeFunctionGradientValues(i, 0);
+        g1[1] += r_geom.GetPoint( i ).Y0() * rShapeFunctionGradientValues(i, 0);
+        g1[2] += r_geom.GetPoint( i ).Z0() * rShapeFunctionGradientValues(i, 0);
+
+        g2[0] += r_geom.GetPoint( i ).X0() * rShapeFunctionGradientValues(i, 1);
+        g2[1] += r_geom.GetPoint( i ).Y0() * rShapeFunctionGradientValues(i, 1);
+        g2[2] += r_geom.GetPoint( i ).Z0() * rShapeFunctionGradientValues(i, 1);
+
+        g3[0] += nodal_normal[0] * rNshape[i];
+        g3[1] += nodal_normal[1] * rNshape[i];
+        g3[2] += nodal_normal[2] * rNshape[i];
     }
-    MathUtils<double>::UnitCrossProduct(g3,g1,g2);          // g3 is consistent only if all elements have the same node ordering convention (all counter-clockwise or all clockwise when viewed from one side). i can "trust" that the mesher produces consistently ordered elements, or add a check/correction in Initialize() by comparing g3 against a reference direction if needed
     rBaseVectors[0] = g1;
     rBaseVectors[1] = g2;
-    rBaseVectors[2] = g3*thickness*0.5;   
+    rBaseVectors[2] = g3*thickness*0.5;
 }
 
-// void Shell7pElement::DirectorDerivatives(array_1d<Vector,2>& rDirectorDerivatives,const array_1d<Vector,3>& rBaseVectorCovariant,const Matrix& rShapeFunctionGradientValues) const
+void Shell7pElement::DirectorDerivatives(array_1d<Vector,2>& rDirectorDerivatives,const array_1d<Vector,3>& rBaseVectorCovariant,const Matrix& rShapeFunctionGradientValues, const double& thickness) const
 
+{
+    const auto& r_geom = GetGeometry();
+    const SizeType number_of_nodes = r_geom.size();
+    const SizeType dimension = r_geom.WorkingSpaceDimension();
+    Vector a31 = ZeroVector(dimension);
+    Vector a32 = ZeroVector(dimension);
 
+    for (SizeType i=0;i<number_of_nodes;++i){
+
+        const Vector& nodal_normal = r_geom[i].GetValue(NORMAL);
+        a31[0] += nodal_normal[0]*rShapeFunctionGradientValues(i, 0);
+        a31[1] += nodal_normal[1]*rShapeFunctionGradientValues(i, 0);
+        a31[2] += nodal_normal[2]*rShapeFunctionGradientValues(i, 0);
+
+        a32[0] += nodal_normal[0]*rShapeFunctionGradientValues(i, 1);
+        a32[1] += nodal_normal[1]*rShapeFunctionGradientValues(i, 1);
+        a32[2] += nodal_normal[2]*rShapeFunctionGradientValues(i, 1);
+    }
+    rDirectorDerivatives[0] = a31*thickness*0.5;
+    rDirectorDerivatives[1] = a32*thickness*0.5;
+}
 void Shell7pElement::CovariantMetric(Matrix& rMetric,const array_1d<Vector,3>& rBaseVectorCovariant)
 {
     rMetric = ZeroMatrix(3);
-    for (SizeType i=0;i<2;++i){
-        for (SizeType j=0;j<2;++j){
+    for (SizeType i=0;i<3;++i){
+        for (SizeType j=0;j<3;++j){
             rMetric(i,j) = inner_prod(rBaseVectorCovariant[i],rBaseVectorCovariant[j]);
         }
     }
-    rMetric(2,2)=inner_prod(rBaseVectorCovariant[2],rBaseVectorCovariant[2]); // later change this!! since g3 could be non othogonal to g1 and g2
 }
-
-void Shell7pElement::ContravariantMetric(Matrix& rMetric,const Matrix& rCovariantMetric)
+ 
+void Shell7pElement::ContravariantMetric(Matrix& rMetric, const Matrix& rCovariantMetric)
 {
     rMetric = ZeroMatrix(3);
-    rMetric(0,0) = rCovariantMetric(1,1);
-    rMetric(1,1) = rCovariantMetric(0,0);
-    rMetric(0,1) = -1.0*rCovariantMetric(1,0);
-    rMetric(1,0) = -1.0*rCovariantMetric(0,1);
-    rMetric /= (rCovariantMetric(1,1)*rCovariantMetric(0,0)) - (rCovariantMetric(1,0)*rCovariantMetric(0,1));
-    rMetric(2,2)=1.0/rCovariantMetric(2,2); 
+    double det = 0.0;
+    MathUtils<double>::InvertMatrix3(rCovariantMetric, rMetric, det);         // 1.Uses the general 3×3 inversion 2.Checks determinant 3.Works even if orthogonality assumption fails 4.is clearer and maintainable    
+    if (std::abs(det) < 1e-14) {                                                     // check the determinant for singularity (near-zero = bad matrix condition):
+        KRATOS_ERROR << "Singular contravariant metric detected. det = " << det << std::endl;
+    }
 }
-    // later change this to:
-// void Shell7pElement::ContravariantMetric(Matrix& rMetric, const Matrix& rCovariantMetric)
-// {
-//     rMetric = ZeroMatrix(3);
-//     double det = MathUtils<double>::InvertMatrix(rCovariantMetric, rMetric);         // 1.Uses the general 3×3 inversion 2.Checks determinant 3.Works even if orthogonality assumption fails 4.is clearer and maintainable
-
-//     if (std::abs(det) < 1e-14) {                                                     // check the determinant for singularity (near-zero = bad matrix condition):
-//         KRATOS_ERROR << "Singular covariant metric detected. det = " << det << std::endl;
-//     }
-// }
 
 void Shell7pElement::ContraVariantBaseVectors(array_1d<Vector,3>& rBaseVectors,const Matrix& rContraVariantMetric,
     const array_1d<Vector,3> rCovariantBaseVectors)
@@ -303,12 +318,9 @@ void Shell7pElement::ContraVariantBaseVectors(array_1d<Vector,3>& rBaseVectors,c
     rBaseVectors[1] = ZeroVector(3);
     rBaseVectors[2] = ZeroVector(3);
 
-    rBaseVectors[0] = rContraVariantMetric(0,0)*rCovariantBaseVectors[0] + rContraVariantMetric(0,1)*rCovariantBaseVectors[1];
-    rBaseVectors[1] = rContraVariantMetric(1,0)*rCovariantBaseVectors[0] + rContraVariantMetric(1,1)*rCovariantBaseVectors[1];
-    rBaseVectors[2] = rContraVariantMetric(2,2)*rCovariantBaseVectors[2]; // later change this!!
-    // rBaseVectors[0] = rContraVariantMetric(0,0)*rCovariantBaseVectors[0] + rContraVariantMetric(0,1)*rCovariantBaseVectors[1] + rContraVariantMetric(0,2)*rCovariantBaseVectors[2];
-    // rBaseVectors[1] = rContraVariantMetric(1,0)*rCovariantBaseVectors[0] + rContraVariantMetric(1,1)*rCovariantBaseVectors[1] + rContraVariantMetric(1,2)*rCovariantBaseVectors[2];
-    // rBaseVectors[2] = rContraVariantMetric(2,0)*rCovariantBaseVectors[0] + rContraVariantMetric(2,1)*rCovariantBaseVectors[1] + rContraVariantMetric(2,2)*rCovariantBaseVectors[2]; 
+    rBaseVectors[0] = rContraVariantMetric(0,0)*rCovariantBaseVectors[0] + rContraVariantMetric(0,1)*rCovariantBaseVectors[1] + rContraVariantMetric(0,2)*rCovariantBaseVectors[2];
+    rBaseVectors[1] = rContraVariantMetric(1,0)*rCovariantBaseVectors[0] + rContraVariantMetric(1,1)*rCovariantBaseVectors[1] + rContraVariantMetric(1,2)*rCovariantBaseVectors[2];
+    rBaseVectors[2] = rContraVariantMetric(2,0)*rCovariantBaseVectors[0] + rContraVariantMetric(2,1)*rCovariantBaseVectors[1] + rContraVariantMetric(2,2)*rCovariantBaseVectors[2]; 
 }
 
 void Shell7pElement::JacobiDeterminante(double& rDetJacobi, const array_1d<Vector,3>& rReferenceBaseVectors) const
@@ -445,7 +457,7 @@ const ConstitutiveLawType& option)
 
 }
                                                                                                            // [N_node][derivative direction]          // Nshape[i] = N_i evaluated at the current GP
-void Shell7pElement::CalculatelinearBOperator(Matrix& bop, const array_1d<Vector,3>& CovariantBaseVectors, const Matrix& ShapeFunctionGradientValues, const Vector& Nshape, const SizeType& number_of_nodes)
+void Shell7pElement::CalculatelinearBOperator(Matrix& bop, const array_1d<Vector,3>& CovariantBaseVectors, const array_1d<Vector,2>& DirectorDerivatives, const Matrix& ShapeFunctionGradientValues, const Vector& Nshape, const SizeType& number_of_nodes)
 {
 const double a1x=CovariantBaseVectors[0][0];
 const double a1y=CovariantBaseVectors[0][1];
@@ -456,6 +468,12 @@ const double a2z=CovariantBaseVectors[1][2];
 const double a3x=CovariantBaseVectors[2][0];
 const double a3y=CovariantBaseVectors[2][1];
 const double a3z=CovariantBaseVectors[2][2];
+const double a31x=DirectorDerivatives[0][0];
+const double a31y=DirectorDerivatives[0][1];
+const double a31z=DirectorDerivatives[0][2];
+const double a32x=DirectorDerivatives[1][0];
+const double a32y=DirectorDerivatives[1][1];
+const double a32z=DirectorDerivatives[1][2];
 
     for (SizeType i=0;i<number_of_nodes;++i){
             const SizeType index = i*6;
@@ -505,16 +523,16 @@ const double a3z=CovariantBaseVectors[2][2];
             bop(5,index+4) = N*a3y;
             bop(5,index+5) = N*a3z;
 
-            bop(6,index)   = 0.0;
-            bop(6,index+1) = 0.0;
-            bop(6,index+2) = 0.0;                       // betta 11
+            bop(6,index)   = dNd1*a31x;
+            bop(6,index+1) = dNd1*a31y;
+            bop(6,index+2) = dNd1*a31z;                // betta 11
             bop(6,index+3) = dNd1*a1x;
             bop(6,index+4) = dNd1*a1y;
             bop(6,index+5) = dNd1*a1z;
 
-            bop(7,index)   = 0.0;
-            bop(7,index+1) = 0.0;
-            bop(7,index+2) = 0.0;                       // betta 12
+            bop(7,index)   = dNd2*a31x + dNd1*a32x;
+            bop(7,index+1) = dNd2*a31y + dNd1*a32y;
+            bop(7,index+2) = dNd2*a31z + dNd1*a32z;    // betta 12
             bop(7,index+3) = dNd2*a1x + dNd1*a2x;
             bop(7,index+4) = dNd2*a1y + dNd1*a2y;
             bop(7,index+5) = dNd2*a1z + dNd1*a2z;
@@ -522,13 +540,13 @@ const double a3z=CovariantBaseVectors[2][2];
             bop(8,index)   = 0.0;
             bop(8,index+1) = 0.0;
             bop(8,index+2) = 0.0;                       // betta 13
-            bop(8,index+3) = dNd1*a3x;
-            bop(8,index+4) = dNd1*a3y;
-            bop(8,index+5) = dNd1*a3z;
+            bop(8,index+3) = N*a31x + dNd1*a3x;
+            bop(8,index+4) = N*a31y + dNd1*a3y;
+            bop(8,index+5) = N*a31z + dNd1*a3z;
 
-            bop(9,index)   = 0.0;
-            bop(9,index+1) = 0.0;
-            bop(9,index+2) = 0.0;                       // betta 22
+            bop(9,index)   = dNd2*a32x;
+            bop(9,index+1) = dNd2*a32y;
+            bop(9,index+2) = dNd2*a32z;                 // betta 22
             bop(9,index+3) = dNd2*a2x;
             bop(9,index+4) = dNd2*a2y;
             bop(9,index+5) = dNd2*a2z;
@@ -536,9 +554,9 @@ const double a3z=CovariantBaseVectors[2][2];
             bop(10,index)   = 0.0;
             bop(10,index+1) = 0.0;
             bop(10,index+2) = 0.0;                       // betta 23
-            bop(10,index+3) = dNd2*a3x;
-            bop(10,index+4) = dNd2*a3y;
-            bop(10,index+5) = dNd2*a3z;
+            bop(10,index+3) = N*a32x + dNd2*a3x;
+            bop(10,index+4) = N*a32y + dNd2*a3y;
+            bop(10,index+5) = N*a32z + dNd2*a3z;
 
             bop(11,index)   = 0.0;
             bop(11,index+1) = 0.0;

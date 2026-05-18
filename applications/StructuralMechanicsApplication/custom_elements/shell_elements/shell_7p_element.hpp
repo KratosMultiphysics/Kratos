@@ -86,8 +86,11 @@ private:
         Reference
     };
 
-    void CovariantBaseVectors(array_1d<Vector,3>& rBaseVectors,
-    const Matrix& rShapeFunctionGradientValues, const ConfigurationType& rConfiguration, const double& thickness) const;
+    void CovariantBaseVectors(array_1d<Vector,3>& rBaseVectors, const Matrix& rShapeFunctionGradientValues, const Vector& rNshape, 
+    const ConfigurationType& rConfiguration, const double& thickness) const;
+
+    void DirectorDerivatives(array_1d<Vector,2>& rDirectorDerivatives,const array_1d<Vector,3>& rBaseVectorCovariant,
+    const Matrix& rShapeFunctionGradientValues, const double& thickness) const;
 
     void CovariantMetric(Matrix& rMetric,const array_1d<Vector,3>& rBaseVectorCovariant);
 
@@ -101,7 +104,8 @@ private:
     void CalculateMaterialLaw(BoundedMatrix<double, 12, 12>& CL, const Matrix& Gmkon, const double& thickness,
     const ConstitutiveLawType& option);
 
-    void CalculatelinearBOperator(Matrix& bop, const array_1d<Vector,3>& CovariantBaseVectors, const Matrix& ShapeFunctionGradientValues, const Vector& Nshape, const SizeType& number_of_nodes);
+    void CalculatelinearBOperator(Matrix& bop, const array_1d<Vector,3>& CovariantBaseVectors, const array_1d<Vector,2>& DirectorDerivatives, 
+    const Matrix& ShapeFunctionGradientValues, const Vector& Nshape, const SizeType& number_of_nodes);
 
     friend class Serializer;
 
