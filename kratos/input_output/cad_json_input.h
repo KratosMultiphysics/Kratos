@@ -178,6 +178,18 @@ private:
                 ReadPointsOnGeometries(rParameters[brep_index]["vertices"], rModelPart, EchoLevel);
             }
         }
+
+        for (IndexType brep_index = 0; brep_index < rParameters.size(); brep_index++)
+        {
+            KRATOS_INFO_IF("ReadBreps", (EchoLevel > 0))
+                << "Reading Brep \"" << GetIdOrName(rParameters[brep_index])
+                << "\" - local_refinement." << std::endl;
+
+            if (rParameters[brep_index].Has("local_refinement"))
+            {
+                ReadLocalRefinement(rParameters[brep_index]["local_refinement"], rModelPart, EchoLevel);
+            }
+        }
     }
 
     ///@}
@@ -585,6 +597,28 @@ private:
                 KRATOS_ERROR << "PointOnGeometry did not provide any topology, which is not allowed.\n Parameters are read as following: \n"
                     << rParameters[brep_point_i] << std::endl;
             }
+        }
+    }
+
+    static void ReadLocalRefinement(
+        const Parameters rParameters,
+        ModelPart& rModelPart,
+        SizeType EchoLevel = 0)
+    {
+        auto p_refined_region(ReadNurbsSurface<3, TNodeType>(
+            rParameters["refined_region"], rModelPart, EchoLevel));
+
+        if (rParameters["locally_refined"])
+        {
+            auto p_brep_refined_region =
+                Kratos::make_shared<BrepSurfaceType>(
+                    p_refined_region);
+
+            SetIdOrName<BrepSurfaceType>(rParameters, p_brep_refined_region);
+
+            ReadAndAddEmbeddedEdges(p_brep_refined_region, rParameters, p_refined_region, rModelPart, EchoLevel);
+
+            rModelPart.AddGeometry(p_brep_refined_region);
         }
     }
 
