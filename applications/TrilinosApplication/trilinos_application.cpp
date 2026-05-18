@@ -55,6 +55,10 @@ void KratosTrilinosApplication::DeregisterApplication()
 #endif
 }
 
+void KratosTrilinosApplication::DeregisterApplication()
+{
+}
+
 }  // namespace Kratos.
 
 
