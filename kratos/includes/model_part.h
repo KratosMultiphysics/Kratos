@@ -2011,6 +2011,15 @@ private:
                         << " to " << rModelPartName << " ]."
                         << std::endl;
                     
+                    // 1.5 - Double check that the number of nodes is the same, as this is a common error that can happen when creating geometries.
+                    KRATOS_ERROR_IF(r_entity->PointsNumber() != ref_ptr_entity->PointsNumber())
+                        << "attempting to add a new " << Container<TContainerType>::GetEntityName() << " with Id :"
+                        << r_entity->Id() << " to root model part " << rRootModelPartName
+                        << ", unfortunately a (different) " << Container<TContainerType>::GetEntityName()
+                        << " with the same Id already exists but with different number of nodes. [ Occurred while adding " << Container<TContainerType>::GetEntityName()
+                        << " to " << rModelPartName << " ]."
+                        << std::endl;
+
                     // 2 - Check if the geometry connectivities are the same. 
                     // Note: We deliberately check the node ids and not the pointer adresses as there might be very rare situations
                     // (e.g., creating nodes bypassing the model part interface) with same connectivities but different pointer addresses
@@ -2028,7 +2037,7 @@ private:
                     KRATOS_ERROR_IF_NOT(ref_ptr_entity == r_entity)
                         << "attempting to add a new " << Container<TContainerType>::GetEntityName() << " with Id :"
                         << r_entity->Id() << " to root model part " << rRootModelPartName
-                        << ", unfortunately a different " << Container<TContainerType>::GetEntityName()
+                        << ", unfortunately a (different) " << Container<TContainerType>::GetEntityName()
                         << " with the same Id already exists. [ Occurred while adding " << Container<TContainerType>::GetEntityName()
                         << " to " << rModelPartName << " ]."
                         << std::endl;
