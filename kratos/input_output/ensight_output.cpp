@@ -436,6 +436,10 @@ void EnSightOutput::WriteCaseFile()
     case_file << "FORMAT\n";
     if (mEnSightFileFormat == EnSightFileFormat::EnSightGold) {
         case_file << "type: ensight gold\n\n";
+    // } else if (mEnSightFileFormat == EnSightFileFormat::EnSight6) {
+    //     case_file << "type: ensight 6\n\n";
+    // } else if (mEnSightFileFormat == EnSightFileFormat::EnSight5) {
+    //     case_file << "type: ensight 5\n\n";
     } else {
         case_file << "type: ensight\n\n";
     }
@@ -773,18 +777,40 @@ void EnSightOutput::WriteGeometryFile(const std::string& rFileName)
         WriteScalarData(geo_file, mrModelPart.NumberOfNodes());
 
         std::size_t pos = 1;
-        for (const auto& r_node : mrModelPart.Nodes()) {
-            global_node_position[r_node.Id()] = pos;
-            if (!use_local_ids) {
-                WriteScalarData(geo_file, r_node.Id(), false);
-                if (mFileFormat == FileFormat::ASCII) WriteString(geo_file, " ", false);
+        if (mFileFormat == FileFormat::ASCII) {
+            // ASCII: interleaved (id x y z) per node on one line
+            for (const auto& r_node : mrModelPart.Nodes()) {
+                global_node_position[r_node.Id()] = pos;
+                if (!use_local_ids) {
+                    WriteScalarData(geo_file, r_node.Id(), false);
+                    WriteString(geo_file, " ", false);
+                }
+                WriteScalarData(geo_file, r_node.X(), false);
+                WriteString(geo_file, " ", false);
+                WriteScalarData(geo_file, r_node.Y(), false);
+                WriteString(geo_file, " ", false);
+                WriteScalarData(geo_file, r_node.Z());
+                ++pos;
             }
-            WriteScalarData(geo_file, r_node.X(),  false);
-            if (mFileFormat == FileFormat::ASCII) WriteString(geo_file, " ", false);
-            WriteScalarData(geo_file, r_node.Y(),  false);
-            if (mFileFormat == FileFormat::ASCII) WriteString(geo_file, " ", false);
-            WriteScalarData(geo_file, r_node.Z());
-            ++pos;
+        } else {
+            // Binary: blocked layout — all IDs first (if given), then all X, then Y, then Z
+            for (const auto& r_node : mrModelPart.Nodes()) {
+                global_node_position[r_node.Id()] = pos++;
+            }
+            if (!use_local_ids) {
+                for (const auto& r_node : mrModelPart.Nodes()) {
+                    WriteScalarData(geo_file, r_node.Id(), false);
+                }
+            }
+            for (const auto& r_node : mrModelPart.Nodes()) {
+                WriteScalarData(geo_file, r_node.X(), false);
+            }
+            for (const auto& r_node : mrModelPart.Nodes()) {
+                WriteScalarData(geo_file, r_node.Y(), false);
+            }
+            for (const auto& r_node : mrModelPart.Nodes()) {
+                WriteScalarData(geo_file, r_node.Z(), false);
+            }
         }
     }
 
@@ -802,19 +828,38 @@ void EnSightOutput::WriteGeometryFile(const std::string& rFileName)
 
         // Write coordinates for EnSight 5 (per-part, id x y z on same line) and EnSight Gold (per-part, separate arrays)
         if (is_ensight_5) {
-            // EnSight 5: (id) x y z per node
+            // EnSight 5: per-part coordinates
             WriteString(geo_file, "coordinates");
             WriteScalarData(geo_file, r_part_data.PartNodes.size());
-            for (const auto* p_node : r_part_data.PartNodes) {
-                if (!use_local_ids) {
-                    WriteScalarData(geo_file, p_node->Id(), false);
-                    if (mFileFormat == FileFormat::ASCII) WriteString(geo_file, " ", false);
+            if (mFileFormat == FileFormat::ASCII) {
+                // ASCII: interleaved (id x y z) per node
+                for (const auto* p_node : r_part_data.PartNodes) {
+                    if (!use_local_ids) {
+                        WriteScalarData(geo_file, p_node->Id(), false);
+                        WriteString(geo_file, " ", false);
+                    }
+                    WriteScalarData(geo_file, p_node->X(), false);
+                    WriteString(geo_file, " ", false);
+                    WriteScalarData(geo_file, p_node->Y(), false);
+                    WriteString(geo_file, " ", false);
+                    WriteScalarData(geo_file, p_node->Z());
                 }
-                WriteScalarData(geo_file, p_node->X(), false);
-                if (mFileFormat == FileFormat::ASCII) WriteString(geo_file, " ", false);
-                WriteScalarData(geo_file, p_node->Y(), false);
-                if (mFileFormat == FileFormat::ASCII) WriteString(geo_file, " ", false);
-                WriteScalarData(geo_file, p_node->Z());
+            } else {
+                // Binary: blocked layout — all IDs (if given), all X, all Y, all Z
+                if (!use_local_ids) {
+                    for (const auto* p_node : r_part_data.PartNodes) {
+                        WriteScalarData(geo_file, p_node->Id(), false);
+                    }
+                }
+                for (const auto* p_node : r_part_data.PartNodes) {
+                    WriteScalarData(geo_file, p_node->X(), false);
+                }
+                for (const auto* p_node : r_part_data.PartNodes) {
+                    WriteScalarData(geo_file, p_node->Y(), false);
+                }
+                for (const auto* p_node : r_part_data.PartNodes) {
+                    WriteScalarData(geo_file, p_node->Z(), false);
+                }
             }
         } else if (mEnSightFileFormat == EnSightFileFormat::EnSightGold) {
             // EnSight Gold: coordinates block — IDs (if given), then X, Y, Z arrays
@@ -862,8 +907,8 @@ void EnSightOutput::WriteGeometryFile(const std::string& rFileName)
                 }
             };
 
-            if (mEnSightFileFormat == EnSightFileFormat::EnSightGold && mFileFormat == FileFormat::BINARY) {
-                // EnSight Gold binary: element IDs as a contiguous block (if given), then connectivity flat
+            if (mFileFormat == FileFormat::BINARY) {
+                // Binary (all formats): element IDs as a contiguous block (if given), then connectivity flat
                 if (!use_local_ids) {
                     for (const auto* p_geometrical_object : r_geometrical_objects) {
                         WriteScalarData(geo_file, p_geometrical_object->Id(), false);
@@ -876,7 +921,7 @@ void EnSightOutput::WriteGeometryFile(const std::string& rFileName)
                     }
                 }
             } else {
-                // ASCII or EnSight 5/6 binary: per-element ((id +) connectivity inline)
+                // ASCII only: per-element ((id +) connectivity inline)
                 for (const auto* p_geometrical_object : r_geometrical_objects) {
                     if (!use_local_ids) {
                         WriteScalarData(geo_file, p_geometrical_object->Id(), !is_ensight_5_or_6, is_ensight_5_or_6);
