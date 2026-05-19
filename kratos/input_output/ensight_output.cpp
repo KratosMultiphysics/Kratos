@@ -602,6 +602,8 @@ void EnSightOutput::WriteGeometryFile(const std::string& rFileName)
     KRATOS_ERROR_IF_NOT(geo_file.is_open()) << "File \"" << full_path << "\" could not be opened!" << std::endl;
     if (mFileFormat == FileFormat::ASCII) {
         geo_file << std::scientific << std::setprecision(mDefaultPrecision); /// Set precision for ASCII output
+    } else {
+        WriteString(geo_file, "C Binary"); // Mandatory first record for binary EnSight files
     }
 
     // Write Header
@@ -876,6 +878,8 @@ void EnSightOutput::WriteNodalVariableToFile(
     KRATOS_ERROR_IF_NOT(var_file.is_open()) << "File \"" << full_path << "\" could not be opened!" << std::endl;
     if (mFileFormat == FileFormat::ASCII) {
         var_file << std::scientific << std::setprecision(mDefaultPrecision); // Set precision for ASCII output
+    } else {
+        WriteString(var_file, "C Binary"); // Mandatory first record for binary EnSight files
     }
 
     // Write variable information
@@ -1590,6 +1594,8 @@ void EnSightOutput::WriteNodalFlagToFile(
     KRATOS_ERROR_IF_NOT(var_file.is_open()) << "File \"" << full_path << "\" could not be opened!" << std::endl;
     if (mFileFormat == FileFormat::ASCII) {
         var_file << std::scientific << std::setprecision(mDefaultPrecision); // Set precision for ASCII output
+    } else {
+        WriteString(var_file, "C Binary"); // Mandatory first record for binary EnSight files
     }
 
     // Write variable information
@@ -1663,6 +1669,8 @@ void EnSightOutput::WriteGeometricalVariableToFile(
     KRATOS_ERROR_IF_NOT(var_file.is_open()) << "File \"" << full_path << "\" could not be opened!" << std::endl;
     if (mFileFormat == FileFormat::ASCII) {
         var_file << std::scientific << std::setprecision(mDefaultPrecision); // Set precision for ASCII output
+    } else {
+        WriteString(var_file, "C Binary"); // Mandatory first record for binary EnSight files
     }
 
     // Write variable information
@@ -2069,6 +2077,8 @@ void EnSightOutput::WriteGeometricalFlagToFile(
     KRATOS_ERROR_IF_NOT(var_file.is_open()) << "File \"" << full_path << "\" could not be opened!" << std::endl;
     if (mFileFormat == FileFormat::ASCII) {
         var_file << std::scientific << std::setprecision(mDefaultPrecision); // Set precision for ASCII output
+    } else {
+        WriteString(var_file, "C Binary"); // Mandatory first record for binary EnSight files
     }
 
     // Write variable information
@@ -2161,6 +2171,8 @@ void EnSightOutput::WriteGeometricalGaussVariableToFile(
     KRATOS_ERROR_IF_NOT(var_file.is_open()) << "File \"" << full_path << "\" could not be opened!" << std::endl;
     if (mFileFormat == FileFormat::ASCII) {
         var_file << std::scientific << std::setprecision(mDefaultPrecision); // Set precision for ASCII output
+    } else {
+        WriteString(var_file, "C Binary"); // Mandatory first record for binary EnSight files
     }
 
     // Write variable information
