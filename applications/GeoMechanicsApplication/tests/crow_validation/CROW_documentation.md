@@ -15,11 +15,11 @@ From D-Sheet Piling, the following soil properties are given for the clay and sa
 
 | Property                               | Clay                 | Sand                 | Unit                       |
 |:---------------------------------------|:---------------------|:---------------------|:---------------------------|
-| Unsaturated total unit weight          | 18                   | 20                   | $\mathrm{kN}/\mathrm{m}^3$ |
-| Saturated total unit weight            | 18                   | 20                   | $\mathrm{kN}/\mathrm{m}^3$ |
+| Unsaturated total unit weight          | 18.0                 | 20.0                 | $\mathrm{kN}/\mathrm{m}^3$ |
+| Saturated total unit weight            | 18.0                 | 20.0                 | $\mathrm{kN}/\mathrm{m}^3$ |
 | Cohesion                               | 3.0                  | 0.0                  | $\mathrm{kN}/\mathrm{m}^2$ |
 | Friction angle                         | 22.5                 | 32.5                 | $`^{\circ}`$               |
-| Delta friction angle                   | 11.25                | 20                   | $`^{\circ}`$               |
+| Delta friction angle                   | 11.25                | 20.0                 | $`^{\circ}`$               |
 | OCR                                    | 1.0                  | 1.0                  | $-$                        |
 | Earth pressure coefficient             | 0.62                 | 0.46                 | $-$                        |
 | Modulus of subgrade reaction-Secant k1 | $1.0 \times 10^{3}$  | $1.0 \times 10^{4}$  | $\mathrm{kN}/\mathrm{m}^3$ |
@@ -123,14 +123,30 @@ This section documents the derivation of the Kratos input values for the interfa
 
 ### Given data
 
-The interface stiffness values are based on the adjacent soil shear modulus and a characteristic element size normal to the interface.
+The interface stiffness values are based on the adjacent soil shear modulus and a characteristic element size normal to the interface. The friction angles applied to the interfaces have been taken from the D-Sheet Piling analysis, where they are known as the "Delta friction angle". The cohesion values of the interfaces are related to the cohesion values of the adjacent clay and sand layers using a reduction factor that is derived from the tangent of the friction angles, as follows:
 
-The following values were adopted:
+```math
+c_{\mathrm{interface}} = \frac{\mathrm{tan}(\phi_{\mathrm{interface}})}{\mathrm{tan}(\phi_{\mathrm{soil}})}
+```
+
+By substituting the applicable values for the interface that is connected to the clay, the reduced cohesion is calculated as
+
+```math
+c_{\mathrm{interface, clay}} = \frac{\mathrm{tan}(11.25^{\circ}})}{\mathrm{tan}(22.5^{\circ})} = 1440.65\ \mathrm{Pa}
+```
+
+For the sand-side interface, there is no need to calculate the applicable reduction factor, since the cohesion of the sand equals 0.0 Pa. Consequently, the cohesion applied to the sand-side interface also equals 0.0 Pa.
+
+The following table lists the adopted values.
 
 | Property                         | Clay-side interface | Sand-side interface    | Unit            |
 |:---------------------------------|:--------------------|:-----------------------|:----------------|
 | Young's modulus of adjacent soil | $`9.0 \times 10^5`$ | $`7.4286 \times 10^6`$ | $`\mathrm{Pa}`$ |
 | Poisson's ratio of adjacent soil | 0.2                 | 0.3                    | $`-`$           |
+| Friction angle of adjacent soil  | 22.5                | 32.5                   | $`^{\circ}`$    |
+| Friction angle of interface      | 11.25               | 20.0                   | $`^{\circ}`$    |
+| Cohesion of adjacent soil        | 3000.0              | 0.0                    | $`\mathrm{Pa}`$ |
+| Cohesion of interface            | 1440.65             | 0.0                    | $`\mathrm{Pa}`$ |
 | Element size normal to interface | 1.0                 | 1.0                    | $`\mathrm{m}`$  |
 
 
@@ -233,13 +249,16 @@ k_{\mathrm{n, sand}} = 10 \cdot 2.8571 \times 10^6\ \mathrm{N} / \mathrm{m}^3 = 
 
 ### Final values
 
-The following table lists the adopted stiffness values for the two types of interfaces.
+The following table lists the adopted properties for the two types of interfaces. The values of the friction angle have been taken from the D-Sheet Piling input, where they are listed under "Delta friction angle".  Just like for the adjacent soil, the dilatancy angle has been assumed to be equal to $`0.0^{\circ}`$
 
-| Property                             | Kratos input parameter       | Clay-side interface  | Sand-side interface    | Unit                          |
-|:-------------------------------------|:-----------------------------|:---------------------|:-----------------------|:------------------------------|
-| Normal stiffness $`k_{\mathrm{n}}`$  | `INTERFACE_NORMAL_STIFFNESS` | $`3.75 \times 10^6`$ | $`2.8571 \times 10^7`$ | $`\mathrm{N} / \mathrm{m}^3`$ |
-| Shear stiffness $`k_{\mathrm{s}}`$   | `INTERFACE_SHEAR_STIFFNESS`  | $`3.75 \times 10^5`$ | $`2.8571 \times 10^6`$ | $`\mathrm{N} / \mathrm{m}^3`$ |
-
+| Property                            | Kratos input parameter       | Clay-side interface     | Sand-side interface    | Unit                          |
+|:------------------------------------|:-----------------------------|:------------------------|:-----------------------|:------------------------------|
+| Normal stiffness $`k_{\mathrm{n}}`$ | `INTERFACE_NORMAL_STIFFNESS` | $`3.75 \times 10^6`$    | $`2.8571 \times 10^7`$ | $`\mathrm{N} / \mathrm{m}^3`$ |
+| Shear stiffness $`k_{\mathrm{s}}`$  | `INTERFACE_SHEAR_STIFFNESS`  | $`3.75 \times 10^5`$    | $`2.8571 \times 10^6`$ | $`\mathrm{N} / \mathrm{m}^3`$ |
+| Cohesion $`c`$                      | `GEO_COHESION`               | $`1.44065 \times 10^3`$ | 0.0                    | $`\mathrm{Pa}`$               | 
+| Friction angle $`\phi`$             | `GEO_FRICTION_ANGLE`         | 11.25                   | 20.0                   | $`^{\circ}`$                  |
+| Dilatancy angle $`\psi`$            | `GEO_DILATANCY_ANGLE`        | 0.0                     | 0.0                    | $`^{\circ}`$                  |
+| Tensile strength $`f_{\mathrm{t}}`$ | `GEO_TENSILE_STRENGTH`       | $`7.24263 \times 10^3`$ | 0.0                    | $`\mathrm{Pa}`$               |
 
 
 ## Sheet pile parameters
