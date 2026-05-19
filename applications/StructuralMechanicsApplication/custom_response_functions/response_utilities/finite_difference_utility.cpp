@@ -43,13 +43,13 @@ void AdjointFiniteDifferenceUtility<Term,TEntity>::Perturb(
             Node& r_node = rEntity.GetGeometry()[i_node];
             switch (rVariable.Key()) {
                 case SHAPE_X.Key():
-                    r_node.X() += PerturbationMagnitude;
+                    r_node.X0() += PerturbationMagnitude;
                     break;
                 case SHAPE_Y.Key():
-                    r_node.Y() += PerturbationMagnitude;
+                    r_node.Y0() += PerturbationMagnitude;
                     break;
                 case SHAPE_Z.Key():
-                    r_node.Z() += PerturbationMagnitude;
+                    r_node.Z0() += PerturbationMagnitude;
                     break;
                 default:
                     r_node.GetData().GetValue<double>(rVariable) += PerturbationMagnitude;
