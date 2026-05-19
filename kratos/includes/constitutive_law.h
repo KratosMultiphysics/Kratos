@@ -1481,23 +1481,36 @@ protected:
 
 
     ///@}
-    ///@name Protected  Access
+    ///@name Adjoint Interface
     ///@{
 
+    /// @copydoc IAdjointElement::GetDampingInfluencingVariables
+    void GetDampingInfluencingVariables(
+        std::vector<IAdjoint::DynamicVariable>& rOutput,
+        const ProcessInfo& rProcessInfo) const final override;
+
+    /// @copydoc IAdjointElement::GetMassInfluencingVariables
+    void GetMassInfluencingVariables(
+        std::vector<IAdjoint::DynamicVariable>& rOutput,
+        const ProcessInfo& rProcessInfo) const final override;
+
+    /// @copydoc IAdjointElement::ComputeDampingDerivative
+    void ComputeDampingDerivative(
+        Matrix& rOutput,
+        std::span<const IAdjoint::DynamicVariable> Variables,
+        const Vector& rValues,
+        const ProcessInfo& rProcessInfo,
+        int iBuffer) const final override;
+
+    /// @copydoc IAdjointElement::ComputeMassDerivative
+    void ComputeMassDerivative(
+        Matrix& rOutput,
+        std::span<const IAdjoint::DynamicVariable> Variables,
+        const Vector& rValues,
+        const ProcessInfo& rProcessInfo,
+        int iBuffer) const final override;
 
     ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-
-    ///@}
-
-
 private:
 
     ///@name Static Member Variables

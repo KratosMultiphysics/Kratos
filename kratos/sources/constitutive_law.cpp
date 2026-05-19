@@ -1676,6 +1676,41 @@ double& ConstitutiveLaw::GetConstitutiveComponent(double & rCabcd,
     return rCabcd;
 }
 
+
+void ConstitutiveLaw::GetDampingInfluencingVariables(
+    std::vector<IAdjoint::DynamicVariable>& rOutput,
+    const ProcessInfo&) const {
+        rOutput.clear();
+}
+
+
+void ConstitutiveLaw::GetMassInfluencingVariables(
+    std::vector<IAdjoint::DynamicVariable>& rOutput,
+    const ProcessInfo&) const {
+        rOutput.clear();
+}
+
+
+void ConstitutiveLaw::ComputeDampingDerivative(
+    Matrix& rOutput,
+    std::span<const IAdjoint::DynamicVariable>,
+    const Vector&,
+    const ProcessInfo&,
+    int) const {
+        rOutput.clear();
+}
+
+
+void ConstitutiveLaw::ComputeMassDerivative(
+    Matrix& rOutput,
+    std::span<const IAdjoint::DynamicVariable>,
+    const Vector&,
+    const ProcessInfo&,
+    int) const {
+        rOutput.clear();
+}
+
+
 // VM
 void ConstitutiveLaw::CalculateCauchyStresses(Vector& Cauchy_StressVector,
         const Matrix& F,
