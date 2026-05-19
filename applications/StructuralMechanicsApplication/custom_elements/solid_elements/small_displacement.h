@@ -304,6 +304,13 @@ protected:
         const ProcessInfo& rProcessInfo,
         int iBuffer) const override;
 
+    /// @copydoc IAdjointElement::ComputeLoadDerivative
+    void ComputeLoadDerivative(
+        Matrix& rOutput,
+        std::span<const IAdjoint::DynamicVariable> Variables,
+        const ProcessInfo& rProcessInfo,
+        int iBuffer) const final override;
+
     /// @}
 
 private:
