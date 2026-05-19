@@ -849,15 +849,16 @@ void EnSightOutput::WriteGeometryFile(const std::string& rFileName)
 
             // Helper: resolve node index for connectivity depending on id mode and format
             auto resolve_node_id = [&](std::size_t kratos_id) -> std::size_t {
-                if (use_local_ids) {
-                    // All formats: use per-part sequential index when assigning local IDs
+                if (is_ensight_5) {
+                    // EnSight 5 always uses part-local 1-based IDs for connectivity
                     return r_part_data.KratosIdToLocalId.at(kratos_id);
-                } else if (is_ensight_5) {
-                    return r_part_data.KratosIdToLocalId.at(kratos_id); // EnSight 5 always uses part-local IDs
-                } else if (is_ensight_6) {
-                    return global_node_position.at(kratos_id); // EnSight 6 global: position in global coords block
+                } else if (use_local_ids) {
+                    // assign mode: EnSight 6 uses global sequential position; Gold uses per-part local index
+                    return is_ensight_6 ? global_node_position.at(kratos_id)
+                                       : r_part_data.KratosIdToLocalId.at(kratos_id);
                 } else {
-                    return kratos_id; // EnSight Gold: global Kratos ID
+                    // given mode: connectivity always references the written Kratos ID directly
+                    return kratos_id;
                 }
             };
 
