@@ -1204,8 +1204,9 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
                 subdomain_physics_parameters["value_void"].SetDouble(current_value)
             # Adjust full value
             if (subdomain_physics_parameters["change_value_full"]["change_value"].GetBool()):
-                start_it      = subdomain_physics_parameters["change_value_full"]["iterations"][0].GetInt()
-                end_it      = subdomain_physics_parameters["change_value_full"]["iterations"][1].GetInt()
+                start_it = subdomain_physics_parameters["change_value_full"]["iterations"][0].GetInt()
+                end_it   = subdomain_physics_parameters["change_value_full"]["iterations"][1].GetInt()
+                end_it   = min(self.max_it, end_it)
                 initial_value = subdomain_physics_parameters["change_value_full"]["initial_value"].GetDouble()
                 final_value = subdomain_physics_parameters["change_value_full"]["final_value"].GetDouble()
                 if (self.opt_it < start_it):
@@ -1402,6 +1403,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
 
     def _EvaluateOptimizationProblem(self, design_parameter = [], print_results = False, compute_gradients=True):
         self.MpiPrint("\n--|EVALUATE OPTIMIZATION PROBLEM|")
+        self._SetTopologyOptimizationStage(3)
         if (len(design_parameter) != 0):
             self._UpdateDesignParameterAndPhysicsParameters(design_parameter)
             self.EvaluateOptimizationRequiredGradients(compute_design_gradient=True, compute_physics_gradients=compute_gradients)
@@ -1430,7 +1432,6 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         """
         This method is used to evaluate the functional value and derivatives w.r.t. the design parameter
         """
-        self._SetTopologyOptimizationStage(3)
         self._EvaluateFunctional(print_functional)
         self._EvaluateFunctionalDerivatives()
     
