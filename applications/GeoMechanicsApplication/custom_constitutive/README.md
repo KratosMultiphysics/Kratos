@@ -80,8 +80,8 @@ Required material parameters:
 
 - `YOUNG_MODULUS`: reference unloading-reloading Young's modulus $E_{ur}^{ref}$
 - `POISSON_RATIO`: Poisson's ratio (used if no unloading-reloading Poisson is supplied)
-- `REFERENCE_HARDENING_MODULUS`: reference pressure $p_{ref}$
-- `SWELLING_SLOPE`: stiffness exponent $m$
+- `GEO_PRESSURE_REFERENCE`: reference pressure $p_{ref}$
+- `GEO_STRESS_DEPENDENCY_EXPONENT`: stiffness exponent $m$
 - `GEO_COHESION` and `GEO_FRICTION_ANGLE`: used to compute a stress shift term
   
 Optional material parameters:
@@ -100,8 +100,8 @@ E = E_{ur}^{ref} \left(\frac{s - p}{s + p_{ref}}\right)^m
 with:
 
 - $p$: minor principal effective stress $\sigma_3'$ from the finalized stress state
-- $p_{ref}$: reference pressure (`REFERENCE_HARDENING_MODULUS`)
-- $m$: stiffness exponent (`SWELLING_SLOPE`)
+- $p_{ref}$: reference pressure (`GEO_PRESSURE_REFERENCE`)
+- $m$: stiffness exponent (`GEO_STRESS_DEPENDENCY_EXPONENT`)
 - $s$: optional stress shift term
 
 When cohesion and friction angle are provided, the shift term is:

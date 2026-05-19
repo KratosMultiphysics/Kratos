@@ -108,8 +108,8 @@ int GeoIncrementalLinearElasticEurLaw::Check(const Properties&   rMaterialProper
 
     const CheckProperties check_properties(rMaterialProperties, "parameters of material",
                                            CheckProperties::Bounds::AllExclusive);
-    check_properties.Check(REFERENCE_HARDENING_MODULUS);
-    check_properties.Check(SWELLING_SLOPE);
+    check_properties.Check(GEO_PRESSURE_REFERENCE);
+    check_properties.Check(GEO_STRESS_DEPENDENCY_EXPONENT);
     check_properties.Check(GEO_COHESION);
     check_properties.Check(GEO_FRICTION_ANGLE);
 
@@ -214,8 +214,8 @@ double GeoIncrementalLinearElasticEurLaw::CalculateStressDependentYoungsModulus(
 {
     constexpr auto epsilon = std::numeric_limits<double>::epsilon();
 
-    const auto reference_pressure = rProperties[REFERENCE_HARDENING_MODULUS];
-    const auto exponent           = rProperties[SWELLING_SLOPE];
+    const auto reference_pressure = rProperties[GEO_PRESSURE_REFERENCE];
+    const auto exponent           = rProperties[GEO_STRESS_DEPENDENCY_EXPONENT];
     const auto eur_ref            = rProperties[YOUNG_MODULUS];
 
     const auto friction_angle_rad = ConstitutiveLawUtilities::GetFrictionAngleInRadians(rProperties);
@@ -227,7 +227,7 @@ double GeoIncrementalLinearElasticEurLaw::CalculateStressDependentYoungsModulus(
 
     KRATOS_ERROR_IF_NOT(base > epsilon)
         << "Negative base for std::pow ("
-        << base << "). Check GEO_COHESION, GEO_FRICTION_ANGLE, REFERENCE_HARDENING_MODULUS and the finalized stress state.\n";
+        << base << "). Check GEO_COHESION, GEO_FRICTION_ANGLE, GEO_PRESSURE_REFERENCE and the finalized stress state.\n";
 
     return eur_ref * std::pow(base, exponent);
 }

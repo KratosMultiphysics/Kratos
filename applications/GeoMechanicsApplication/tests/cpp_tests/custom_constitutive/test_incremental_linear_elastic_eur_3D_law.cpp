@@ -45,7 +45,7 @@ double CalculateExpectedNormalDiagonal(double PoissonsRatio, double YoungsModulu
 
 double CalculateExpectedNormalDiagonal(const Properties& rProperties, const Vector& rStressVector)
 {
-    const auto reference_pressure = rProperties[REFERENCE_HARDENING_MODULUS];
+    const auto reference_pressure = rProperties[GEO_PRESSURE_REFERENCE];
     const auto phi_rad            = rProperties[GEO_FRICTION_ANGLE] * std::numbers::pi / 180.0;
     const auto stress_shift       = rProperties[GEO_COHESION] / std::tan(phi_rad);
 
@@ -56,7 +56,7 @@ double CalculateExpectedNormalDiagonal(const Properties& rProperties, const Vect
     const auto   minor_principal = principal_stresses(2);
     const double base = (stress_shift - minor_principal) / (stress_shift + reference_pressure);
     const auto   expected_youngs_modulus =
-        rProperties[YOUNG_MODULUS] * std::pow(base, rProperties[SWELLING_SLOPE]);
+        rProperties[YOUNG_MODULUS] * std::pow(base, rProperties[GEO_STRESS_DEPENDENCY_EXPONENT]);
 
     return CalculateExpectedNormalDiagonal(rProperties[POISSON_RATIO], expected_youngs_modulus);
 }
@@ -67,8 +67,8 @@ Properties CreateMaterialPropertiesForEurElasticLaw(IndexType Id = 0)
     properties.SetValue(YOUNG_MODULUS, 1.0e7);
     properties.SetValue(POISSON_RATIO, 0.3);
     properties.SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED"s);
-    properties.SetValue(REFERENCE_HARDENING_MODULUS, 50.0);
-    properties.SetValue(SWELLING_SLOPE, 1.0);
+    properties.SetValue(GEO_PRESSURE_REFERENCE, 50.0);
+    properties.SetValue(GEO_STRESS_DEPENDENCY_EXPONENT, 1.0);
     properties.SetValue(GEO_COHESION, 1000.0);
     properties.SetValue(GEO_FRICTION_ANGLE, 20.0);
     return properties;
@@ -77,7 +77,7 @@ Properties CreateMaterialPropertiesForEurElasticLaw(IndexType Id = 0)
 Properties CreateConstantYoungsModulusProperties(IndexType Id = 0)
 {
     auto properties = CreateMaterialPropertiesForEurElasticLaw(Id);
-    properties.SetValue(REFERENCE_HARDENING_MODULUS, 1.0e12);
+    properties.SetValue(GEO_PRESSURE_REFERENCE, 1.0e12);
     return properties;
 }
 
@@ -332,26 +332,26 @@ KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElasticEur3DLaw_ChecksAdditionalMa
     properties.SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED"s);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         law.Check(properties, geometry, process_info),
-        "REFERENCE_HARDENING_MODULUS does not exist in the parameters of material with Id 3.")
+        "GEO_PRESSURE_REFERENCE does not exist in the parameters of material with Id 3.")
 
-    properties.SetValue(REFERENCE_HARDENING_MODULUS, 0.0);
+    properties.SetValue(GEO_PRESSURE_REFERENCE, 0.0);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         law.Check(properties, geometry, process_info),
-        "REFERENCE_HARDENING_MODULUS in the parameters of material with Id 3 has an "
+        "GEO_PRESSURE_REFERENCE in the parameters of material with Id 3 has an "
         "invalid value: 0 is out of the range (0, -).")
 
-    properties.SetValue(REFERENCE_HARDENING_MODULUS, 50.0);
+    properties.SetValue(GEO_PRESSURE_REFERENCE, 50.0);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         law.Check(properties, geometry, process_info),
-        "SWELLING_SLOPE does not exist in the parameters of material with Id 3.")
+        "GEO_STRESS_DEPENDENCY_EXPONENT does not exist in the parameters of material with Id 3.")
 
-    properties.SetValue(SWELLING_SLOPE, 0.0);
+    properties.SetValue(GEO_STRESS_DEPENDENCY_EXPONENT, 0.0);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         law.Check(properties, geometry, process_info),
-        "SWELLING_SLOPE in the parameters of material with Id 3 has an "
+        "GEO_STRESS_DEPENDENCY_EXPONENT in the parameters of material with Id 3 has an "
         "invalid value: 0 is out of the range (0, -).")
 
-    properties.SetValue(SWELLING_SLOPE, 1.0);
+    properties.SetValue(GEO_STRESS_DEPENDENCY_EXPONENT, 1.0);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         law.Check(properties, geometry, process_info),
         "GEO_COHESION does not exist in the parameters of material with Id 3.")
@@ -432,7 +432,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElasticEur3DLaw_ReturnsExpectedDia
     parameters.SetStrainVector(strain);
     parameters.SetMaterialProperties(properties);
 
-    const auto reference_pressure = properties[REFERENCE_HARDENING_MODULUS];
+    const auto reference_pressure = properties[GEO_PRESSURE_REFERENCE];
     auto       stress             = UblasUtilities::CreateVector(
         {-reference_pressure, -reference_pressure, -reference_pressure, 0.0, 0.0, 0.0});
     InitializeEurLawWithFinalizedStress(law, stress);
@@ -490,7 +490,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElasticEur3DLaw_ThrowsWhenPowBaseI
     auto strain_vector = Vector(6, 1.0);
 
     // Act & Assert
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(CalculateStressForEurElasticLaw(law, properties, strain_vector), "Negative base for std::pow (-1.94118). Check GEO_COHESION, GEO_FRICTION_ANGLE, REFERENCE_HARDENING_MODULUS and the finalized stress state.")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(CalculateStressForEurElasticLaw(law, properties, strain_vector), "Negative base for std::pow (-1.94118). Check GEO_COHESION, GEO_FRICTION_ANGLE, GEO_PRESSURE_REFERENCE and the finalized stress state.")
 }
 
 KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElasticEur3DLaw_FinalizesMaterialResponseCauchyIncrementally,
