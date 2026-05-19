@@ -471,8 +471,10 @@ void EnSightOutput::WriteCaseFile()
             case_file << "vector per node: 1 " << r_variable_name << " " << base_filename << "." << r_variable_name << "." << asterisk_label << ".node" << file_extension << "\n";
         } else if (variable_type == VariableType::TENSOR_SYMMETRIC) {
             case_file << "tensor symm per node: 1 " << r_variable_name << " " << base_filename << "." << r_variable_name << "." << asterisk_label << ".node" << file_extension << "\n";
+        } else if (variable_type == VariableType::TENSOR_ASYMMETRIC) {
+            case_file << "tensor asym per node: 1 " << r_variable_name << " " << base_filename << "." << r_variable_name << "." << asterisk_label << ".node" << file_extension << "\n";
         } else {
-            KRATOS_ERROR << "Unknown variable type for element data variable: " << r_variable_name << std::endl;
+            KRATOS_ERROR << "Unknown variable type for nodal solution step variable: " << r_variable_name << std::endl;
         }
     }
 
@@ -487,8 +489,10 @@ void EnSightOutput::WriteCaseFile()
             case_file << "vector per node: 1 " << r_variable_name << " " << base_filename << "." << r_variable_name << "." << asterisk_label << ".node" << file_extension << "\n";
         } else if (variable_type == VariableType::TENSOR_SYMMETRIC) {
             case_file << "tensor symm per node: 1 " << r_variable_name << " " << base_filename << "." << r_variable_name << "." << asterisk_label << ".node" << file_extension << "\n";
+        } else if (variable_type == VariableType::TENSOR_ASYMMETRIC) {
+            case_file << "tensor asym per node: 1 " << r_variable_name << " " << base_filename << "." << r_variable_name << "." << asterisk_label << ".node" << file_extension << "\n";
         } else {
-            KRATOS_ERROR << "Unknown variable type for element data variable: " << r_variable_name << std::endl;
+            KRATOS_ERROR << "Unknown variable type for nodal data variable: " << r_variable_name << std::endl;
         }
     }
 
@@ -509,6 +513,8 @@ void EnSightOutput::WriteCaseFile()
             case_file << "vector per element: 1 " << r_variable_name << " " << base_filename << "." << r_variable_name << "." << asterisk_label << ".elem" << file_extension << "\n";
         } else if (variable_type == VariableType::TENSOR_SYMMETRIC) {
             case_file << "tensor symm per element: 1 " << r_variable_name << " " << base_filename << "." << r_variable_name << "." << asterisk_label << ".elem" << file_extension << "\n";
+        } else if (variable_type == VariableType::TENSOR_ASYMMETRIC) {
+            case_file << "tensor asym per element: 1 " << r_variable_name << " " << base_filename << "." << r_variable_name << "." << asterisk_label << ".elem" << file_extension << "\n";
         } else {
             KRATOS_ERROR << "Unknown variable type for element data variable: " << r_variable_name << std::endl;
         }
@@ -531,8 +537,10 @@ void EnSightOutput::WriteCaseFile()
             case_file << "vector per element: 1 " << r_variable_name << " " << base_filename << "." << r_variable_name << "." << asterisk_label << ".gp_elem" << file_extension << "\n";
         } else if (variable_type == VariableType::TENSOR_SYMMETRIC) {
             case_file << "tensor symm per element: 1 " << r_variable_name << " " << base_filename << "." << r_variable_name << "." << asterisk_label << ".gp_elem" << file_extension << "\n";
+        } else if (variable_type == VariableType::TENSOR_ASYMMETRIC) {
+            case_file << "tensor asym per element: 1 " << r_variable_name << " " << base_filename << "." << r_variable_name << "." << asterisk_label << ".gp_elem" << file_extension << "\n";
         } else {
-            KRATOS_ERROR << "Unknown variable type for element data variable: " << r_variable_name << std::endl;
+            KRATOS_ERROR << "Unknown variable type for Gauss point variable: " << r_variable_name << std::endl;
         }
     }
 
@@ -547,6 +555,8 @@ void EnSightOutput::WriteCaseFile()
             case_file << "vector per element: 1 " << r_variable_name << " " << base_filename << "." << r_variable_name << "." << asterisk_label << ".cond" << file_extension << "\n";
         } else if (variable_type == VariableType::TENSOR_SYMMETRIC) {
             case_file << "tensor symm per element: 1 " << r_variable_name << " " << base_filename << "." << r_variable_name << "." << asterisk_label << ".cond" << file_extension << "\n";
+        } else if (variable_type == VariableType::TENSOR_ASYMMETRIC) {
+            case_file << "tensor asym per element: 1 " << r_variable_name << " " << base_filename << "." << r_variable_name << "." << asterisk_label << ".cond" << file_extension << "\n";
         } else {
             KRATOS_ERROR << "Unknown variable type for condition data variable: " << r_variable_name << std::endl;
         }
@@ -1144,9 +1154,19 @@ void EnSightOutput::WriteNodalVariableToFile(
                         }
                     }
                 } else if (KratosComponents<Variable<array_1d<double, 9>>>::Has(rVariableName)) {
-                    // TODO: Implement asymmetric tensor.
-                    // const auto& r_variable = KratosComponents<Variable<array_1d<double, 9>>>::Get(rVariableName);
-                    KRATOS_ERROR << "Asymmetric tensor output is not implemented yet." << std::endl;
+                    const auto& r_variable = KratosComponents<Variable<array_1d<double, 9>>>::Get(rVariableName);
+                    std::array<std::vector<double>, 9> components;
+                    const std::size_t number_of_nodes = r_part_data.PartNodes.size();
+                    for (auto& comp : components) comp.resize(number_of_nodes);
+                    IndexPartition<std::size_t>(number_of_nodes).for_each([&](std::size_t idx) {
+                        const auto& r_value = r_part_data.PartNodes[idx]->FastGetSolutionStepValue(r_variable);
+                        for (unsigned int k = 0; k < 9; ++k) components[k][idx] = r_value[k];
+                    });
+                    for (unsigned int i = 0; i < 9; ++i) {
+                        for (std::size_t j = 0; j < number_of_nodes; ++j) {
+                            WriteScalarData(var_file, components[i][j]);
+                        }
+                    }
                 } else if (KratosComponents<Variable<Matrix>>::Has(rVariableName)) {
                     const auto& r_variable = KratosComponents<Variable<Matrix>>::Get(rVariableName);
                     if (variable_type == VariableType::TENSOR_SYMMETRIC) {
@@ -1173,8 +1193,20 @@ void EnSightOutput::WriteNodalVariableToFile(
                             }
                         }
                     } else if (variable_type == VariableType::TENSOR_ASYMMETRIC) {
-                        // TODO: Implement asymmetric tensor.
-                        KRATOS_ERROR << "Asymmetric tensor output is not implemented yet." << std::endl;
+                        std::array<std::vector<double>, 9> components;
+                        const std::size_t number_of_nodes = r_part_data.PartNodes.size();
+                        for (auto& comp : components) comp.resize(number_of_nodes);
+                        IndexPartition<std::size_t>(number_of_nodes).for_each([&](std::size_t idx) {
+                            const auto& r_value = r_part_data.PartNodes[idx]->FastGetSolutionStepValue(r_variable);
+                            components[0][idx] = r_value(0, 0); components[1][idx] = r_value(0, 1); components[2][idx] = r_value(0, 2);
+                            components[3][idx] = r_value(1, 0); components[4][idx] = r_value(1, 1); components[5][idx] = r_value(1, 2);
+                            components[6][idx] = r_value(2, 0); components[7][idx] = r_value(2, 1); components[8][idx] = r_value(2, 2);
+                        });
+                        for (unsigned int i = 0; i < 9; ++i) {
+                            for (std::size_t j = 0; j < number_of_nodes; ++j) {
+                                WriteScalarData(var_file, components[i][j]);
+                            }
+                        }
                     } else {
                         KRATOS_ERROR << "Unknown variable type for vector: " << rVariableName << std::endl;
                     }
@@ -1290,9 +1322,19 @@ void EnSightOutput::WriteNodalVariableToFile(
                         }
                     }
                 } else if (KratosComponents<Variable<array_1d<double, 9>>>::Has(rVariableName)) {
-                    // TODO: Implement asymmetric tensor.
-                    // const auto& r_variable = KratosComponents<Variable<array_1d<double, 9>>>::Get(rVariableName);
-                    KRATOS_ERROR << "Asymmetric tensor output is not implemented yet." << std::endl;
+                    const auto& r_variable = KratosComponents<Variable<array_1d<double, 9>>>::Get(rVariableName);
+                    std::array<std::vector<double>, 9> components;
+                    const std::size_t number_of_nodes = r_part_data.PartNodes.size();
+                    for (auto& comp : components) comp.resize(number_of_nodes);
+                    IndexPartition<std::size_t>(number_of_nodes).for_each([&](std::size_t idx) {
+                        const auto& r_value = r_part_data.PartNodes[idx]->GetValue(r_variable);
+                        for (unsigned int k = 0; k < 9; ++k) components[k][idx] = r_value[k];
+                    });
+                    for (unsigned int i = 0; i < 9; ++i) {
+                        for (std::size_t j = 0; j < number_of_nodes; ++j) {
+                            WriteScalarData(var_file, components[i][j]);
+                        }
+                    }
                 } else if (KratosComponents<Variable<Matrix>>::Has(rVariableName)) {
                     const auto& r_variable = KratosComponents<Variable<Matrix>>::Get(rVariableName);
                     if (variable_type == VariableType::TENSOR_SYMMETRIC) {
@@ -1319,8 +1361,20 @@ void EnSightOutput::WriteNodalVariableToFile(
                             }
                         }
                     } else if (variable_type == VariableType::TENSOR_ASYMMETRIC) {
-                        // TODO: Implement asymmetric tensor.
-                        KRATOS_ERROR << "Asymmetric tensor output is not implemented yet." << std::endl;
+                        std::array<std::vector<double>, 9> components;
+                        const std::size_t number_of_nodes = r_part_data.PartNodes.size();
+                        for (auto& comp : components) comp.resize(number_of_nodes);
+                        IndexPartition<std::size_t>(number_of_nodes).for_each([&](std::size_t idx) {
+                            const auto& r_value = r_part_data.PartNodes[idx]->GetValue(r_variable);
+                            components[0][idx] = r_value(0, 0); components[1][idx] = r_value(0, 1); components[2][idx] = r_value(0, 2);
+                            components[3][idx] = r_value(1, 0); components[4][idx] = r_value(1, 1); components[5][idx] = r_value(1, 2);
+                            components[6][idx] = r_value(2, 0); components[7][idx] = r_value(2, 1); components[8][idx] = r_value(2, 2);
+                        });
+                        for (unsigned int i = 0; i < 9; ++i) {
+                            for (std::size_t j = 0; j < number_of_nodes; ++j) {
+                                WriteScalarData(var_file, components[i][j]);
+                            }
+                        }
                     } else {
                         KRATOS_ERROR << "Unknown variable type for vector: " << rVariableName << std::endl;
                     }
@@ -1420,9 +1474,10 @@ void EnSightOutput::WriteNodalVariableToFile(
                     WriteSymmetricTensorData(var_file, r_node.FastGetSolutionStepValue(r_variable));
                 }
             } else if (KratosComponents<Variable<array_1d<double, 9>>>::Has(rVariableName)) {
-                // TODO: Implement asymmetric tensor.
-                // const auto& r_variable = KratosComponents<Variable<array_1d<double, 9>>>::Get(rVariableName);
-                KRATOS_ERROR << "Asymmetric tensor output is not implemented yet." << std::endl;
+                const auto& r_variable = KratosComponents<Variable<array_1d<double, 9>>>::Get(rVariableName);
+                for (const auto& r_node : mrModelPart.Nodes()) {
+                    WriteAsymmetricTensorData(var_file, r_node.FastGetSolutionStepValue(r_variable));
+                }
             } else if (KratosComponents<Variable<Matrix>>::Has(rVariableName)) {
                 const auto& r_variable = KratosComponents<Variable<Matrix>>::Get(rVariableName);
                 if (variable_type == VariableType::TENSOR_SYMMETRIC) {
@@ -1430,8 +1485,9 @@ void EnSightOutput::WriteNodalVariableToFile(
                         WriteSymmetricTensorData(var_file, r_node.FastGetSolutionStepValue(r_variable));
                     }
                 } else if (variable_type == VariableType::TENSOR_ASYMMETRIC) {
-                    // TODO: Implement asymmetric tensor.
-                    KRATOS_ERROR << "Asymmetric tensor output is not implemented yet." << std::endl;
+                    for (const auto& r_node : mrModelPart.Nodes()) {
+                        WriteAsymmetricTensorData(var_file, r_node.FastGetSolutionStepValue(r_variable));
+                    }
                 } else {
                     KRATOS_ERROR << "Unknown variable type for vector: " << rVariableName << std::endl;
                 }
@@ -1486,9 +1542,10 @@ void EnSightOutput::WriteNodalVariableToFile(
                     WriteSymmetricTensorData(var_file, r_node.GetValue(r_variable));
                 }
             } else if (KratosComponents<Variable<array_1d<double, 9>>>::Has(rVariableName)) {
-                // TODO: Implement asymmetric tensor.
-                // const auto& r_variable = KratosComponents<Variable<array_1d<double, 9>>>::Get(rVariableName);
-                KRATOS_ERROR << "Asymmetric tensor output is not implemented yet." << std::endl;
+                const auto& r_variable = KratosComponents<Variable<array_1d<double, 9>>>::Get(rVariableName);
+                for (const auto& r_node : mrModelPart.Nodes()) {
+                    WriteAsymmetricTensorData(var_file, r_node.GetValue(r_variable));
+                }
             } else if (KratosComponents<Variable<Matrix>>::Has(rVariableName)) {
                 const auto& r_variable = KratosComponents<Variable<Matrix>>::Get(rVariableName);
                 if (variable_type == VariableType::TENSOR_SYMMETRIC) {
@@ -1496,8 +1553,9 @@ void EnSightOutput::WriteNodalVariableToFile(
                         WriteSymmetricTensorData(var_file, r_node.GetValue(r_variable));
                     }
                 } else if (variable_type == VariableType::TENSOR_ASYMMETRIC) {
-                    // TODO: Implement asymmetric tensor.
-                    KRATOS_ERROR << "Asymmetric tensor output is not implemented yet." << std::endl;
+                    for (const auto& r_node : mrModelPart.Nodes()) {
+                        WriteAsymmetricTensorData(var_file, r_node.GetValue(r_variable));
+                    }
                 } else {
                     KRATOS_ERROR << "Unknown variable type for vector: " << rVariableName << std::endl;
                 }
@@ -1898,9 +1956,25 @@ void EnSightOutput::WriteGeometricalVariableToFile(
                     }
                 }
             } else if (KratosComponents<Variable<array_1d<double, 9>>>::Has(rVariableName)) {
-                // TODO: Implement asymmetric tensor.
-                // const auto& r_variable = KratosComponents<Variable<array_1d<double, 9>>>::Get(rVariableName);
-                KRATOS_ERROR << "Asymmetric tensor output is not implemented yet." << std::endl;
+                const auto& r_variable = KratosComponents<Variable<array_1d<double, 9>>>::Get(rVariableName);
+                if (is_ensight_gold) {
+                    std::array<std::vector<double>, 9> components;
+                    const std::size_t number_of_geometries = r_geometrical_objects.size();
+                    for (auto& comp : components) comp.resize(number_of_geometries);
+                    IndexPartition<std::size_t>(number_of_geometries).for_each([&](std::size_t idx) {
+                        const auto& r_value = r_geometrical_objects[idx]->GetValue(r_variable);
+                        for (unsigned int k = 0; k < 9; ++k) components[k][idx] = r_value[k];
+                    });
+                    for (unsigned int i = 0; i < 9; ++i) {
+                        for (std::size_t j = 0; j < number_of_geometries; ++j) {
+                            WriteScalarData(var_file, components[i][j]);
+                        }
+                    }
+                } else {
+                    for (const auto* p_geometrical_object : r_geometrical_objects) {
+                        WriteAsymmetricTensorData(var_file, p_geometrical_object->GetValue(r_variable), true, true);
+                    }
+                }
             } else if (KratosComponents<Variable<Matrix>>::Has(rVariableName)) {
                 const auto& r_variable = KratosComponents<Variable<Matrix>>::Get(rVariableName);
                 if (is_ensight_gold) {
@@ -1928,8 +2002,20 @@ void EnSightOutput::WriteGeometricalVariableToFile(
                         }
                     }
                     } else if (variable_type == VariableType::TENSOR_ASYMMETRIC) {
-                        // TODO: Implement asymmetric tensor
-                        KRATOS_ERROR << "Asymmetric tensor output is not implemented yet." << std::endl;
+                        std::array<std::vector<double>, 9> components;
+                        const std::size_t number_of_geometries = r_geometrical_objects.size();
+                        for (auto& comp : components) comp.resize(number_of_geometries);
+                        IndexPartition<std::size_t>(number_of_geometries).for_each([&](std::size_t idx) {
+                            const auto& r_value = r_geometrical_objects[idx]->GetValue(r_variable);
+                            components[0][idx] = r_value(0, 0); components[1][idx] = r_value(0, 1); components[2][idx] = r_value(0, 2);
+                            components[3][idx] = r_value(1, 0); components[4][idx] = r_value(1, 1); components[5][idx] = r_value(1, 2);
+                            components[6][idx] = r_value(2, 0); components[7][idx] = r_value(2, 1); components[8][idx] = r_value(2, 2);
+                        });
+                        for (unsigned int i = 0; i < 9; ++i) {
+                            for (std::size_t j = 0; j < number_of_geometries; ++j) {
+                                WriteScalarData(var_file, components[i][j]);
+                            }
+                        }
                     } else {
                         KRATOS_ERROR << "Unknown variable type for matrix: " << rVariableName << std::endl;
                     }
@@ -1939,8 +2025,9 @@ void EnSightOutput::WriteGeometricalVariableToFile(
                             WriteSymmetricTensorData(var_file, p_geometrical_object->GetValue(r_variable), true, true);
                         }
                     } else if (variable_type == VariableType::TENSOR_ASYMMETRIC) {
-                        // TODO: Implement asymmetric tensor
-                        KRATOS_ERROR << "Asymmetric tensor output is not implemented yet." << std::endl;
+                        for (const auto* p_geometrical_object : r_geometrical_objects) {
+                            WriteAsymmetricTensorData(var_file, p_geometrical_object->GetValue(r_variable), true, true);
+                        }
                     } else {
                         KRATOS_ERROR << "Unknown variable type for matrix: " << rVariableName << std::endl;
                     }
@@ -2301,9 +2388,28 @@ void EnSightOutput::WriteGeometricalGaussVariableToFile(
                     }
                 }
             } else if (KratosComponents<Variable<array_1d<double, 9>>>::Has(rVariableName)) {
-                // TODO: Implement asymmetric tensor.
-                // const auto& r_variable = KratosComponents<Variable<array_1d<double, 9>>>::Get(rVariableName);
-                KRATOS_ERROR << "Asymmetric tensor output is not implemented yet." << std::endl;
+                const auto& r_variable = KratosComponents<Variable<array_1d<double, 9>>>::Get(rVariableName);
+                if (is_ensight_gold) {
+                    std::array<std::vector<double>, 9> components;
+                    const std::size_t number_of_geometries = r_geometrical_objects.size();
+                    for (auto& comp : components) comp.resize(number_of_geometries);
+                    IndexPartition<std::size_t>(number_of_geometries).for_each([&](std::size_t idx) {
+                        const Element& r_element = dynamic_cast<const Element&>(*r_geometrical_objects[idx]);
+                        const array_1d<double, 9> value = GetAverageIntegrationValue<array_1d<double, 9>>(r_element, r_variable);
+                        for (unsigned int k = 0; k < 9; ++k) components[k][idx] = value[k];
+                    });
+                    for (unsigned int i = 0; i < 9; ++i) {
+                        for (std::size_t j = 0; j < number_of_geometries; ++j) {
+                            WriteScalarData(var_file, components[i][j]);
+                        }
+                    }
+                } else {
+                    for (const auto* p_geometrical_object : r_geometrical_objects) {
+                        const Element& r_element = dynamic_cast<const Element&>(*p_geometrical_object);
+                        const array_1d<double, 9> value = GetAverageIntegrationValue<array_1d<double, 9>>(r_element, r_variable);
+                        WriteAsymmetricTensorData(var_file, value, true, true);
+                    }
+                }
             } else if (KratosComponents<Variable<Matrix>>::Has(rVariableName)) {
                 const auto& r_variable = KratosComponents<Variable<Matrix>>::Get(rVariableName);
                 if (is_ensight_gold) {
@@ -2332,8 +2438,21 @@ void EnSightOutput::WriteGeometricalGaussVariableToFile(
                         }
                     }
                     } else if (variable_type == VariableType::TENSOR_ASYMMETRIC) {
-                        // TODO: Implement asymmetric tensor
-                        KRATOS_ERROR << "Asymmetric tensor output is not implemented yet." << std::endl;
+                        std::array<std::vector<double>, 9> components;
+                        const std::size_t number_of_geometries = r_geometrical_objects.size();
+                        for (auto& comp : components) comp.resize(number_of_geometries);
+                        IndexPartition<std::size_t>(number_of_geometries).for_each([&](std::size_t idx) {
+                            const Element& r_element = dynamic_cast<const Element&>(*r_geometrical_objects[idx]);
+                            const Matrix value = GetAverageIntegrationValue<Matrix>(r_element, r_variable);
+                            components[0][idx] = value(0, 0); components[1][idx] = value(0, 1); components[2][idx] = value(0, 2);
+                            components[3][idx] = value(1, 0); components[4][idx] = value(1, 1); components[5][idx] = value(1, 2);
+                            components[6][idx] = value(2, 0); components[7][idx] = value(2, 1); components[8][idx] = value(2, 2);
+                        });
+                        for (unsigned int i = 0; i < 9; ++i) {
+                            for (std::size_t j = 0; j < number_of_geometries; ++j) {
+                                WriteScalarData(var_file, components[i][j]);
+                            }
+                        }
                     } else {
                         KRATOS_ERROR << "Unknown variable type for matrix: " << rVariableName << std::endl;
                     }
@@ -2345,8 +2464,11 @@ void EnSightOutput::WriteGeometricalGaussVariableToFile(
                             WriteSymmetricTensorData(var_file, value, true, true);
                         }
                     } else if (variable_type == VariableType::TENSOR_ASYMMETRIC) {
-                        // TODO: Implement asymmetric tensor
-                        KRATOS_ERROR << "Asymmetric tensor output is not implemented yet." << std::endl;
+                        for (const auto* p_geometrical_object : r_geometrical_objects) {
+                            const Element& r_element = dynamic_cast<const Element&>(*p_geometrical_object);
+                            const Matrix value = GetAverageIntegrationValue<Matrix>(r_element, r_variable);
+                            WriteAsymmetricTensorData(var_file, value, true, true);
+                        }
                     } else {
                         KRATOS_ERROR << "Unknown variable type for matrix: " << rVariableName << std::endl;
                     }
@@ -2606,6 +2728,57 @@ void EnSightOutput::WriteSymmetricTensorData(
 /***********************************************************************************/
 /***********************************************************************************/
 
+template <typename TData>
+void EnSightOutput::WriteAsymmetricTensorData(
+    std::ofstream& rFileStream,
+    const TData& rData,
+    const bool EndOfLine,
+    const bool AddInitialTabulation,
+    const bool AddEndTabulation
+    ) const
+{
+    KRATOS_TRY
+
+    // Asymmetric tensor: row-major order 11 12 13 21 22 23 31 32 33
+    if (mFileFormat == FileFormat::ASCII) {
+        if (AddInitialTabulation) rFileStream << "\t";
+        rFileStream << std::scientific << std::setprecision(mDefaultPrecision);
+        if constexpr (std::is_same_v<TData, Matrix>) { // Matrix type
+            rFileStream << rData(0,0) << "\t" << rData(0,1) << "\t" << rData(0,2) << "\t"
+                        << rData(1,0) << "\t" << rData(1,1) << "\t" << rData(1,2) << "\t"
+                        << rData(2,0) << "\t" << rData(2,1) << "\t" << rData(2,2) << std::fixed;
+        } else { // array_1d<double, 9> stored row-major: 11 12 13 21 22 23 31 32 33
+            rFileStream << rData[0] << "\t" << rData[1] << "\t" << rData[2] << "\t"
+                        << rData[3] << "\t" << rData[4] << "\t" << rData[5] << "\t"
+                        << rData[6] << "\t" << rData[7] << "\t" << rData[8] << std::fixed;
+        }
+        if (EndOfLine) rFileStream << "\n";
+        if (AddEndTabulation) rFileStream << "\t";
+    } else { // Binary — EnSight binary uses 32-bit floats
+        float buffer[9];
+        if constexpr (std::is_same_v<TData, Matrix>) { // Matrix type
+            buffer[0] = static_cast<float>(rData(0,0));
+            buffer[1] = static_cast<float>(rData(0,1));
+            buffer[2] = static_cast<float>(rData(0,2));
+            buffer[3] = static_cast<float>(rData(1,0));
+            buffer[4] = static_cast<float>(rData(1,1));
+            buffer[5] = static_cast<float>(rData(1,2));
+            buffer[6] = static_cast<float>(rData(2,0));
+            buffer[7] = static_cast<float>(rData(2,1));
+            buffer[8] = static_cast<float>(rData(2,2));
+        } else { // array_1d<double, 9>
+            for (unsigned int k = 0; k < 9; ++k)
+                buffer[k] = static_cast<float>(rData[k]);
+        }
+        rFileStream.write(reinterpret_cast<const char*>(buffer), sizeof(buffer));
+    }
+
+    KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void EnSightOutput::WriteString(
     std::ofstream& rFileStream,
     const std::string& rString,
@@ -2776,7 +2949,14 @@ EnSightOutput::VariableType EnSightOutput::GetVariableType(
             if (IsHistorical) {
                 noalias(value) = it_node_begin->FastGetSolutionStepValue(r_variable);
             } else {
-                noalias(value) = it_node_begin->GetValue(r_variable);
+                // Scan all nodes to find the first node with a valid (non-empty) value.
+                for (auto& r_node : pModelPart->Nodes()) {
+                    const Vector& r_candidate = std::as_const(r_node).GetValue(r_variable);
+                    if (r_candidate.size() > 0) {
+                        noalias(value) = r_candidate;
+                        break;
+                    }
+                }
             }
         } else if (Entity == EntityType::ELEMENT) {
             auto it_elem_begin = pModelPart->Elements().begin();
@@ -2791,11 +2971,26 @@ EnSightOutput::VariableType EnSightOutput::GetVariableType(
                 it_elem_begin->CalculateOnIntegrationPoints(r_variable, aux_result, r_process_info);
                 noalias(value) = aux_result[0];
             } else {
-                noalias(value) = it_elem_begin->GetValue(r_variable);
+                // Scan all elements to find the first entity with a valid (non-empty) value.
+                // DataValueContainer::GetValue returns a default-constructed (empty) value when
+                // the variable has not been set on an entity, so we must scan to get a valid sample.
+                for (auto& r_elem : pModelPart->Elements()) {
+                    const Vector& r_candidate = std::as_const(r_elem).GetValue(r_variable);
+                    if (r_candidate.size() > 0) {
+                        noalias(value) = r_candidate;
+                        break;
+                    }
+                }
             }
         } else if (Entity == EntityType::CONDITION) {
-            auto it_cond_begin = pModelPart->Conditions().begin();
-            noalias(value) = it_cond_begin->GetValue(r_variable);
+            // Scan all conditions to find the first entity with a valid (non-empty) value.
+            for (auto& r_cond : pModelPart->Conditions()) {
+                const Vector& r_candidate = std::as_const(r_cond).GetValue(r_variable);
+                if (r_candidate.size() > 0) {
+                    noalias(value) = r_candidate;
+                    break;
+                }
+            }
         } else {
             KRATOS_ERROR << "Unknown entity type for variable: " << rVariableName << std::endl;
         }
@@ -2815,19 +3010,32 @@ EnSightOutput::VariableType EnSightOutput::GetVariableType(
         return VariableType::TENSOR_ASYMMETRIC;
     } else if (KratosComponents<Variable<Matrix>>::Has(rVariableName)) {
         // return VariableType::TENSOR_UNDEFINED;
-        // We need to check the variable size manually
+        // We need to check the variable's matrix dimensions to determine symmetry.
         KRATOS_ERROR_IF_NOT(pModelPart) << "Model part pointer is null for variable: " << rVariableName << std::endl;
         KRATOS_ERROR_IF(Entity == EntityType::UNDEFINED) << "Undefined entity type for variable: " << rVariableName << std::endl;
-        // Check if the variable is a vector with size 6 or 9
         const auto& r_variable = KratosComponents<Variable<Matrix>>::Get(rVariableName);
         Matrix value;
+        // Helper: scan a container and return the first non-empty matrix value via the const
+        // GetValue path, which returns the zero value (empty matrix) when the variable is not set.
+        auto find_valid_matrix = [&](auto& r_container) -> bool {
+            for (auto& r_entity : r_container) {
+                const Matrix& r_candidate = std::as_const(r_entity).GetValue(r_variable);
+                if (r_candidate.size1() > 0 && r_candidate.size2() > 0) {
+                    value = r_candidate;
+                    return true;
+                }
+            }
+            return false;
+        };
         // Get the matrix value
+        bool found_valid = false;
         if (Entity == EntityType::NODE) {
             auto it_node_begin = pModelPart->Nodes().begin();
             if (IsHistorical) {
                 noalias(value) = it_node_begin->FastGetSolutionStepValue(r_variable);
+                found_valid = (value.size1() > 0 && value.size2() > 0);
             } else {
-                noalias(value) = it_node_begin->GetValue(r_variable);
+                found_valid = find_valid_matrix(pModelPart->Nodes());
             }
         } else if (Entity == EntityType::ELEMENT) {
             auto it_elem_begin = pModelPart->Elements().begin();
@@ -2841,18 +3049,27 @@ EnSightOutput::VariableType EnSightOutput::GetVariableType(
                 std::vector<Matrix> aux_result(integration_points_number);
                 it_elem_begin->CalculateOnIntegrationPoints(r_variable, aux_result, r_process_info);
                 noalias(value) = aux_result[0];
+                found_valid = (value.size1() > 0 && value.size2() > 0);
             } else {
-                noalias(value) = it_elem_begin->GetValue(r_variable);
+                found_valid = find_valid_matrix(pModelPart->Elements());
             }
         } else if (Entity == EntityType::CONDITION) {
-            auto it_cond_begin = pModelPart->Conditions().begin();
-            noalias(value) = it_cond_begin->GetValue(r_variable);
+            found_valid = find_valid_matrix(pModelPart->Conditions());
         } else {
             KRATOS_ERROR << "Unknown entity type for variable: " << rVariableName << std::endl;
         }
-        // Lambda to check if a matrix is symmetric
-        auto is_symmetric = [](const Matrix& rMatrix) {
-            KRATOS_ERROR_IF(rMatrix.size1() != 3 || rMatrix.size2() != 3) << "Matrix is not 3x3: " << rMatrix.size1() << "x" << rMatrix.size2() << std::endl;
+        // If no entity has the variable set, fall back to symmetric type with a warning.
+        if (!found_valid) {
+            KRATOS_WARNING("EnSightOutput") << "Variable \"" << rVariableName
+                << "\" has no values set on any entity. Assuming symmetric tensor type." << std::endl;
+            return VariableType::TENSOR_SYMMETRIC;
+        }
+        // Lambda to check if a 3x3 matrix is symmetric.
+        auto is_symmetric = [](const Matrix& rMatrix) -> bool {
+            // A matrix that is not yet initialised returns as 0x0 — treat as symmetric (safe default).
+            if (rMatrix.size1() == 0 || rMatrix.size2() == 0) return true;
+            KRATOS_ERROR_IF(rMatrix.size1() != 3 || rMatrix.size2() != 3)
+                << "Matrix is not 3x3: " << rMatrix.size1() << "x" << rMatrix.size2() << std::endl;
             for (std::size_t i = 0; i < 3; ++i) {
                 for (std::size_t j = i + 1; j < 3; ++j) {
                     if (std::abs(rMatrix(i, j) - rMatrix(j, i)) > 1e-12) return false;

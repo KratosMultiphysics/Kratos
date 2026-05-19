@@ -440,6 +440,25 @@ protected:
         ) const;
 
     /**
+     * @brief Writes asymmetric tensor data (9 components) to an output file stream.
+     * @details Outputs asymmetric tensor values (9 components, row-major: 11 12 13 21 22 23 31 32 33) for nodes or elements in the required EnSight 6/Gold format.
+     * @tparam TData The type of the data container (e.g., array_1d<double,9> or Matrix).
+     * @param rFileStream The output file stream.
+     * @param rData The asymmetric tensor data to write.
+     * @param EndOfLine Whether to add a newline at the end (default is true).
+     * @param AddInitialTabulation Whether to add a tabulation before the data (default is false).
+     * @param AddEndTabulation Whether to add a tabulation after the data (default is false).
+     */
+    template <typename TData>
+    void WriteAsymmetricTensorData(
+        std::ofstream& rFileStream,
+        const TData& rData,
+        const bool EndOfLine = true,
+        const bool AddInitialTabulation = false,
+        const bool AddEndTabulation = false
+        ) const;
+
+    /**
      * @brief Writes a string to an output file stream.
      * @details Helper function for writing text lines to EnSight 6/Gold files.
      * @param rFileStream The output file stream.
