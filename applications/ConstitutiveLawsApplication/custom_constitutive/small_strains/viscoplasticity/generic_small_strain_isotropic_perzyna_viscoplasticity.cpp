@@ -61,16 +61,16 @@ void GenericSmallStrainIsotropicPerzynaViscoPlasticity<TConstLawIntegratorType>:
     this->template AddInitialStrainVectorContribution<Vector>(r_strain_vector);
 
     if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_STRESS)) {
-        CalculateElasticMatrix(r_constitutive_matrix, rValues);
+        this->CalculateElasticMatrix(r_constitutive_matrix, rValues);
 
-        double threshold           = GetThreshold();
-        double plastic_dissipation = GetPlasticDissipation();
-        Vector plastic_strain      = GetPlasticStrain();
+        double threshold           = this->GetThreshold();
+        double plastic_dissipation = this->GetPlasticDissipation();
+        Vector plastic_strain      = this->GetPlasticStrain();
 
-        BoundedArrayType predictive_stress_vector, deviatoric_stress_vector;
+        array_1d<double, VoigtSize> predictive_stress_vector, deviatoric_stress_vector;
 
         noalias(predictive_stress_vector) = prod(r_constitutive_matrix, r_strain_vector - plastic_strain);
-        this->template AddInitialStressVectorContribution<BoundedArrayType>(predictive_stress_vector);
+        this->template AddInitialStressVectorContribution<array_1d<double, VoigtSize>>(predictive_stress_vector);
 
         double equivalent_stress;
         ConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress(predictive_stress_vector, r_strain_vector, equivalent_stress, rValues);
@@ -78,10 +78,10 @@ void GenericSmallStrainIsotropicPerzynaViscoPlasticity<TConstLawIntegratorType>:
         const double F = equivalent_stress - threshold;
 
         if (F >= 0.0) {
-            BoundedArrayType deviatoric_stress_vector;
+            array_1d<double, VoigtSize> deviatoric_stress_vector;
             double I1, J2;
-            ConstitutiveLawUtilities<VoigtSize>::CalculateI1Invariant<BoundedArrayType>(predictive_stress_vector, I1);
-            ConstitutiveLawUtilities<VoigtSize>::CalculateJ2Invariant<BoundedArrayType>(predictive_stress_vector, I1, deviatoric_stress_vector, J2);
+            ConstitutiveLawUtilities<VoigtSize>::template CalculateI1Invariant<array_1d<double, VoigtSize>>(predictive_stress_vector, I1);
+            ConstitutiveLawUtilities<VoigtSize>::template CalculateJ2Invariant<array_1d<double, VoigtSize>>(predictive_stress_vector, I1, deviatoric_stress_vector, J2);
 
             const auto& r_props = rValues.GetMaterialProperties();
             const double mu = r_props[MIU];
@@ -405,8 +405,8 @@ void GenericSmallStrainIsotropicPerzynaViscoPlasticity<TConstLawIntegratorType>:
     if (F >= 0.0) {
         BoundedArrayType deviatoric_stress_vector;
         double I1, J2;
-        ConstitutiveLawUtilities<VoigtSize>::CalculateI1Invariant<BoundedArrayType>(predictive_stress_vector, I1);
-        ConstitutiveLawUtilities<VoigtSize>::CalculateJ2Invariant<BoundedArrayType>(predictive_stress_vector, I1, deviatoric_stress_vector, J2);
+        ConstitutiveLawUtilities<VoigtSize>::template CalculateI1Invariant<BoundedArrayType>(predictive_stress_vector, I1);
+        ConstitutiveLawUtilities<VoigtSize>::template CalculateJ2Invariant<BoundedArrayType>(predictive_stress_vector, I1, deviatoric_stress_vector, J2);
 
         const auto& r_props = rValues.GetMaterialProperties();
         const double mu = r_props[MIU];
