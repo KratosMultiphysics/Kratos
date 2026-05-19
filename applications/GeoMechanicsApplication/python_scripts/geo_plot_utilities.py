@@ -43,17 +43,20 @@ def _make_plot(
 
 
 def _plot_data_series_on_axis(axes, data_series_collection):
+    result = []
     for series in data_series_collection:
         # Unpack the data from pairs into two lists. See
         # https://stackoverflow.com/questions/21519203/plotting-a-list-of-x-y-coordinates for details.
-        axes.plot(
+        result.extend(axes.plot(
             *zip(*series.data_points),
             label=series.label,
             linestyle=series.line_style,
             marker=series.marker,
-        )
+        ))
     axes.grid()
     axes.grid(which="minor", color="0.9")
+
+    return result
 
 
 def make_sub_plots(
@@ -67,9 +70,13 @@ def make_sub_plots(
 ):
     figure, axes = plt.subplots(1, len(data_series_collections), figsize=(20, 6))
     axes = np.atleast_1d(axes)
-    first_plot = True
+
+    if ylabel is not None:
+        axes[0].set_ylabel(ylabel)
+
+    lines = []
     for ax, collection, title in zip(axes, data_series_collections, titles):
-        _plot_data_series_on_axis(ax, collection)
+        lines.extend(_plot_data_series_on_axis(ax, collection))
         ax.yaxis.set_inverted(yaxis_inverted)
         if xlabel is not None:
             ax.set_xlabel(xlabel)
@@ -77,11 +84,14 @@ def make_sub_plots(
             ax.set_xscale(xscale)
         ax.set_title(title)
 
-        if first_plot:
-            figure.legend(loc="upper center", bbox_to_anchor=(0.5, 0.0))
-            if ylabel is not None:
-                ax.set_ylabel(ylabel)
-            first_plot = False
+    lines_with_unique_labels = []
+    unique_labels = set()
+    for line in lines:
+        if not line.get_label() in unique_labels:
+            lines_with_unique_labels.append(line)
+            unique_labels.add(line.get_label())
+
+    figure.legend(loc="upper center", bbox_to_anchor=(0.5, 0.0), handles=lines_with_unique_labels)
 
     if isinstance(plot_file_path, pathlib.Path):
         plot_file_path = str(plot_file_path.resolve())
