@@ -371,16 +371,33 @@ public:
 
 protected:
 
-    ///@name Protected static Member Variables
+    ///@name Adjoint Interface
     ///@{
 
-    ///@}
-    ///@name Protected member Variables
-    ///@{
+    /// @copydoc IAdjointElement::GetStiffnessInfluencingVariables
+    void GetStiffnessInfluencingVariables(
+        std::vector<IAdjoint::DynamicVariable>& rOutput,
+        const ProcessInfo& rProcessInfo) const final override;
 
-    ///@}
-    ///@name Protected Operators
-    ///@{
+    /// @copydoc IAdjointElement::GetLoadInfluencingVariables
+    void GetLoadInfluencingVariables(
+        std::vector<IAdjoint::DynamicVariable>& rOutput,
+        const ProcessInfo& rProcessInfo) const final override;
+
+    /// @copydoc IAdjointElement::ComputeStiffnessDerivative
+    void ComputeStiffnessDerivative(
+        Matrix& rOutput,
+        std::span<const IAdjoint::DynamicVariable> Variables,
+        const Vector& rValues,
+        const ProcessInfo& rProcessInfo,
+        int iBuffer) const override;
+
+    /// @copydoc IAdjointElement::ComputeLoadDerivative
+    void ComputeLoadDerivative(
+        Matrix& rOutput,
+        std::span<const IAdjoint::DynamicVariable> Variables,
+        const ProcessInfo& rProcessInfo,
+        int iBuffer) const final override;
 
     ///@}
     ///@name Protected Operations
