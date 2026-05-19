@@ -299,7 +299,14 @@ void AdjointFiniteDifferenceUtility<Term,TEntity>::FiniteDifferenceDerivative(
                 if constexpr (Term == IAdjoint::ResidualTerm::Load) {
                     column(rOutput, i_perturbation) = scale * (perturbed_state - reference_state);
                 } else {
-                    perturbed_state = scale * (perturbed_state - reference_state);
+                    // There's an extra multiplication by -1 because the element
+                    // computes the load vector assuming it's on the right hand
+                    // side of the equations, while the rest of the terms are on
+                    // the left hand side.
+                    // Since we're interested in individual terms of the residual,
+                    // all terms are on the same side:
+                    // R = F - (Ma + Dv + Ku)
+                    perturbed_state = -scale * (perturbed_state - reference_state);
                     column(rOutput, i_perturbation) = prod(perturbed_state, *pValues);
                 }
             } // for r_variable, r_location in variables
