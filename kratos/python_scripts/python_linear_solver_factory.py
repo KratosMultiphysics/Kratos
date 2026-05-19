@@ -32,8 +32,14 @@ def ConstructSolver(Settings):
         raise Exception("input is expected to be provided as a Kratos Parameters object")
 
     # Default factory settings (do NOT inject these into Settings to avoid polluting the solver config)
-    kratos_module_name = Settings["kratos_module"].GetString() if Settings.Has("kratos_module") else "KratosMultiphysics"
-    factory_module_name = Settings["factory_module"].GetString() if Settings.Has("factory_module") else "python_linear_solver_factory.PythonLinearSolverFactory"
+    kratos_module_name = "KratosMultiphysics"
+    if Settings.Has("kratos_module"):
+        kratos_module_name = Settings["kratos_module"].GetString()
+        Settings.RemoveValue("kratos_module")
+    factory_module_name = "python_linear_solver_factory.PythonLinearSolverFactory"
+    if Settings.Has("factory_module"):
+        factory_module_name = Settings["factory_module"].GetString()
+        Settings.RemoveValue("factory_module")
 
     # Generate the python module for the factory
     if not kratos_module_name.startswith("KratosMultiphysics"):
