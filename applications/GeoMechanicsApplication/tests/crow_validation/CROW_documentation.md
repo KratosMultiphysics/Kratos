@@ -126,13 +126,13 @@ This section documents the derivation of the Kratos input values for the interfa
 The interface stiffness values are based on the adjacent soil shear modulus and a characteristic element size normal to the interface. The friction angles applied to the interfaces have been taken from the D-Sheet Piling analysis, where they are known as the "Delta friction angle". The cohesion values of the interfaces are related to the cohesion values of the adjacent clay and sand layers using a reduction factor that is derived from the tangent of the friction angles, as follows:
 
 ```math
-c_{\mathrm{interface}} = \frac{\mathrm{tan}(\phi_{\mathrm{interface}})}{\mathrm{tan}(\phi_{\mathrm{soil}})}
+c_{\mathrm{interface}} = c_{\mathrm{soil}} \cdot \frac{\mathrm{tan}(\phi_{\mathrm{interface}})}{\mathrm{tan}(\phi_{\mathrm{soil}})}
 ```
 
 By substituting the applicable values for the interface that is connected to the clay, the reduced cohesion is calculated as
 
 ```math
-c_{\mathrm{interface, clay}} = \frac{\mathrm{tan}(11.25^{\circ})}{\mathrm{tan}(22.5^{\circ})} = 1440.65\ \mathrm{Pa}
+c_{\mathrm{interface, clay}} = 3000.0\ \mathrm{Pa} \cdot \frac{\mathrm{tan}(11.25^{\circ})}{\mathrm{tan}(22.5^{\circ})} = 1440.65\ \mathrm{Pa}
 ```
 
 For the sand-side interface, there is no need to calculate the applicable reduction factor, since the cohesion of the sand equals 0.0 Pa. Consequently, the cohesion applied to the sand-side interface also equals 0.0 Pa.
