@@ -132,7 +132,7 @@ c_{\mathrm{interface}} = \frac{\mathrm{tan}(\phi_{\mathrm{interface}})}{\mathrm{
 By substituting the applicable values for the interface that is connected to the clay, the reduced cohesion is calculated as
 
 ```math
-c_{\mathrm{interface, clay}} = \frac{\mathrm{tan}(11.25^{\circ}})}{\mathrm{tan}(22.5^{\circ})} = 1440.65\ \mathrm{Pa}
+c_{\mathrm{interface, clay}} = \frac{\mathrm{tan}(11.25^{\circ})}{\mathrm{tan}(22.5^{\circ})} = 1440.65\ \mathrm{Pa}
 ```
 
 For the sand-side interface, there is no need to calculate the applicable reduction factor, since the cohesion of the sand equals 0.0 Pa. Consequently, the cohesion applied to the sand-side interface also equals 0.0 Pa.
