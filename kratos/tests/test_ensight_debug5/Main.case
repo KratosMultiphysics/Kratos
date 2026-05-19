@@ -1,0 +1,17 @@
+FORMAT
+type: ensight gold
+
+GEOMETRY
+model: 1 Main.****.geo
+
+VARIABLE
+scalar per node: 1 PRESSURE Main.PRESSURE.****.node.scl
+vector per node: 1 DISPLACEMENT Main.DISPLACEMENT.****.node.vec
+scalar per element: 1 DENSITY Main.DENSITY.****.elem.scl
+
+TIME
+time set: 1
+number of steps: 1
+filename start number: 0
+filename increment: 1
+time values: 1 

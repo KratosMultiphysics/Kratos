@@ -51,6 +51,58 @@ class TestEnsightOutputProcess(KratosUnittest.TestCase):
     def test_binary_ensight_output_quad_hexahedra_3D(self):
         ExecuteBasicEnsightOutputProcessCheck("binary", "QuadraticHexahedra3D")
 
+    # --- Symmetric tensor (CAUCHY_STRESS_TENSOR, 3x3 symmetric Matrix) ---
+
+    def test_ascii_ensight6_symmetric_tensor_2D(self):
+        ExecuteEnsightTensorOutputProcessCheck("ascii", "6", "2D", "symmetric")
+
+    def test_binary_ensight6_symmetric_tensor_2D(self):
+        ExecuteEnsightTensorOutputProcessCheck("binary", "6", "2D", "symmetric")
+
+    def test_ascii_ensightgold_symmetric_tensor_2D(self):
+        ExecuteEnsightTensorOutputProcessCheck("ascii", "gold", "2D", "symmetric")
+
+    def test_binary_ensightgold_symmetric_tensor_2D(self):
+        ExecuteEnsightTensorOutputProcessCheck("binary", "gold", "2D", "symmetric")
+
+    def test_ascii_ensight6_symmetric_tensor_3D(self):
+        ExecuteEnsightTensorOutputProcessCheck("ascii", "6", "3D", "symmetric")
+
+    def test_binary_ensight6_symmetric_tensor_3D(self):
+        ExecuteEnsightTensorOutputProcessCheck("binary", "6", "3D", "symmetric")
+
+    def test_ascii_ensightgold_symmetric_tensor_3D(self):
+        ExecuteEnsightTensorOutputProcessCheck("ascii", "gold", "3D", "symmetric")
+
+    def test_binary_ensightgold_symmetric_tensor_3D(self):
+        ExecuteEnsightTensorOutputProcessCheck("binary", "gold", "3D", "symmetric")
+
+    # --- Asymmetric tensor (DEFORMATION_GRADIENT, 3x3 asymmetric Matrix) ---
+
+    def test_ascii_ensight6_asymmetric_tensor_2D(self):
+        ExecuteEnsightTensorOutputProcessCheck("ascii", "6", "2D", "asymmetric")
+
+    def test_binary_ensight6_asymmetric_tensor_2D(self):
+        ExecuteEnsightTensorOutputProcessCheck("binary", "6", "2D", "asymmetric")
+
+    def test_ascii_ensightgold_asymmetric_tensor_2D(self):
+        ExecuteEnsightTensorOutputProcessCheck("ascii", "gold", "2D", "asymmetric")
+
+    def test_binary_ensightgold_asymmetric_tensor_2D(self):
+        ExecuteEnsightTensorOutputProcessCheck("binary", "gold", "2D", "asymmetric")
+
+    def test_ascii_ensight6_asymmetric_tensor_3D(self):
+        ExecuteEnsightTensorOutputProcessCheck("ascii", "6", "3D", "asymmetric")
+
+    def test_binary_ensight6_asymmetric_tensor_3D(self):
+        ExecuteEnsightTensorOutputProcessCheck("binary", "6", "3D", "asymmetric")
+
+    def test_ascii_ensightgold_asymmetric_tensor_3D(self):
+        ExecuteEnsightTensorOutputProcessCheck("ascii", "gold", "3D", "asymmetric")
+
+    def test_binary_ensightgold_asymmetric_tensor_3D(self):
+        ExecuteEnsightTensorOutputProcessCheck("binary", "gold", "3D", "asymmetric")
+
     def tearDown(self):
         kratos_utils.DeleteDirectoryIfExisting("test_ensight_output")
 
@@ -245,6 +297,128 @@ def ExecuteBasicEnsightOutputProcessCheck(file_format = "ascii", setup = "2D"):
 
     Check(os.path.join("test_ensight_output","Main.case"),\
           os.path.join("auxiliar_files_for_python_unittest", "ensight_output_process_ref_files", file_format + setup, "Main.case"), "ascii", "case")
+
+def SetSolutionWithMatrixVariables(model_part, tensor_type):
+    """
+    Sets matrix-valued variables on elements and conditions for tensor output testing.
+
+    For 'symmetric' tensor_type, sets CAUCHY_STRESS_TENSOR (symmetric 3x3 Matrix) on elements.
+    For 'asymmetric' tensor_type, sets DEFORMATION_GRADIENT (asymmetric 3x3 Matrix) on elements.
+
+    Args:
+        model_part (kratos.ModelPart): The model part on which to set the solution.
+        tensor_type (str): Either "symmetric" or "asymmetric".
+    """
+    time = model_part.ProcessInfo[KratosMultiphysics.TIME] + 0.158
+    step = model_part.ProcessInfo[KratosMultiphysics.STEP]
+
+    # Also set standard solution step variables so all nodes have values
+    for node in model_part.Nodes:
+        node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT, 0, [node.X * time, node.Y, node.Z * step])
+        node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, 0, [2 * node.X, 2 * node.Y, 2 * node.Z])
+        node.SetSolutionStepValue(KratosMultiphysics.PRESSURE, 0, node.X * time * step)
+
+    for i_elem, elem in enumerate(model_part.Elements):
+        m = KratosMultiphysics.Matrix(3, 3)
+        cx = float(i_elem + 1) * 0.1
+        if tensor_type == "symmetric":
+            # CAUCHY_STRESS_TENSOR: symmetric 3x3
+            m[0, 0] = cx;       m[0, 1] = cx * 0.5; m[0, 2] = cx * 0.2
+            m[1, 0] = cx * 0.5; m[1, 1] = cx * 2.0; m[1, 2] = cx * 0.3
+            m[2, 0] = cx * 0.2; m[2, 1] = cx * 0.3; m[2, 2] = cx * 3.0
+            elem.SetValue(KratosMultiphysics.CAUCHY_STRESS_TENSOR, m)
+        else:
+            # DEFORMATION_GRADIENT: asymmetric 3x3
+            m[0, 0] = 1.0 + cx; m[0, 1] = cx * 0.1; m[0, 2] = cx * 0.2
+            m[1, 0] = cx * 0.3; m[1, 1] = 1.0 + cx; m[1, 2] = cx * 0.4
+            m[2, 0] = cx * 0.5; m[2, 1] = cx * 0.6; m[2, 2] = 1.0 + cx
+            elem.SetValue(KratosMultiphysics.DEFORMATION_GRADIENT, m)
+
+    for i_cond, cond in enumerate(model_part.Conditions):
+        cond.SetValue(KratosMultiphysics.DENSITY, i_cond * step)
+        cond.SetValue(KratosMultiphysics.YOUNG_MODULUS, i_cond * time)
+
+def CheckFileNonEmpty(filepath):
+    """Asserts that the file at filepath exists and has non-zero size."""
+    if not os.path.isfile(filepath):
+        raise AssertionError(f"Expected output file not found: {filepath}")
+    if os.path.getsize(filepath) == 0:
+        raise AssertionError(f"Output file is empty: {filepath}")
+
+def ExecuteEnsightTensorOutputProcessCheck(file_format="ascii", ensight_format="gold", setup="2D", tensor_type="symmetric"):
+    """
+    Tests EnSight tensor (symmetric and asymmetric) variable output for nodes and elements.
+
+    Runs the EnSight output process with a Matrix variable (CAUCHY_STRESS_TENSOR for symmetric,
+    DEFORMATION_GRADIENT for asymmetric) on elements and verifies that the output files are
+    created and non-empty. This covers the 32-bit float binary casting path as well as the
+    ASCII path for both EnSight 6 and EnSight Gold formats.
+
+    Args:
+        file_format (str): "ascii" or "binary".
+        ensight_format (str): "5", "6", or "gold".
+        setup (str): Geometry setup — "2D" or "3D".
+        tensor_type (str): "symmetric" or "asymmetric".
+    """
+    KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
+    current_model = KratosMultiphysics.Model()
+    model_part_name = "Main"
+    model_part = current_model.CreateModelPart(model_part_name)
+
+    if setup == "2D":
+        SetupModelPart2D(model_part)
+    elif setup == "3D":
+        SetupModelPart3D(model_part)
+    else:
+        raise ValueError(f"Unknown setup: {setup}")
+
+    tensor_variable = "CAUCHY_STRESS_TENSOR" if tensor_type == "symmetric" else "DEFORMATION_GRADIENT"
+
+    ensight_output_parameters = KratosMultiphysics.Parameters(f"""{{
+        "Parameters" : {{
+            "model_part_name"                    : "{model_part_name}",
+            "ensight_file_format"                : "{ensight_format}",
+            "file_format"                        : "{file_format}",
+            "output_precision"                   : 6,
+            "output_interval"                    : 1,
+            "output_sub_model_parts"             : false,
+            "evolving_geometry"                  : true,
+            "output_path"                        : "test_ensight_output",
+            "nodal_solution_step_data_variables" : ["PRESSURE", "DISPLACEMENT"],
+            "element_data_value_variables"       : ["{tensor_variable}"]
+        }}
+    }}""")
+
+    ensight_proc = SetupEnsightOutputProcess(current_model, ensight_output_parameters)
+
+    time = 0.0
+    dt = 1.0
+    end_time = 2.0
+    ensight_proc.ExecuteInitialize()
+
+    step = 0
+    while time < end_time:
+        time += dt
+        model_part.ProcessInfo[KratosMultiphysics.STEP] += 1
+        SetSolutionWithMatrixVariables(model_part, tensor_type)
+        ensight_proc.ExecuteInitializeSolutionStep()
+        model_part.CloneTimeStep(time)
+        ensight_proc.ExecuteFinalizeSolutionStep()
+        if ensight_proc.IsOutputStep():
+            ensight_proc.PrintOutput()
+
+            label_step = "000" + str(step)
+
+            # Verify geometry file was produced
+            CheckFileNonEmpty(os.path.join("test_ensight_output", f"Main.{label_step}.geo"))
+
+            # Verify tensor variable file was produced (.ten extension)
+            CheckFileNonEmpty(os.path.join(
+                "test_ensight_output",
+                f"Main.{tensor_variable}.{label_step}.elem.ten"
+            ))
+
+            step += 1
 
 if __name__ == '__main__':
     KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
