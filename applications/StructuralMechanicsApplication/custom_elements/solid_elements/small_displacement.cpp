@@ -17,12 +17,12 @@
 
 // Project includes
 #include "utilities/math_utils.h"
+#include "utilities/adjoint_utilities.hpp"
 
 // Application includes
 #include "small_displacement.h"
 #include "custom_utilities/structural_mechanics_element_utilities.h"
 #include "structural_mechanics_application_variables.h"
-#include "custom_response_functions/response_utilities/finite_difference_utility.h"
 
 
 namespace Kratos
