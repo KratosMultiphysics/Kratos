@@ -269,8 +269,8 @@ void SmallDisplacement::GetStiffnessInfluencingVariables(
                 &SHAPE_Y,
                 &SHAPE_Z}};
         for (const auto& r_variables : variable_sets)
-            for (std::size_t i_dimension=0ul; i_dimension<dimension_count; ++i_dimension)
-                for (std::size_t i_node=0ul; i_node<node_count; ++i_node)
+            for (std::size_t i_node=0ul; i_node<node_count; ++i_node)
+                for (std::size_t i_dimension=0ul; i_dimension<dimension_count; ++i_dimension)
                     rOutput.push_back(IAdjoint::DynamicVariable(
                         *r_variables[i_dimension],
                         i_node));
@@ -345,11 +345,31 @@ void SmallDisplacement::ComputeStiffnessDerivative(
             // robustly, so do try to implement special treatment
             // for every variable you plan to compute derivatives
             // for.
-            const double default_perturbation_magnitude = this->GetProperties().Has(PERTURBATION_SIZE)
-                ? this->GetProperties()[PERTURBATION_SIZE]
-                : rProcessInfo.Has(PERTURBATION_SIZE)
-                    ? rProcessInfo[PERTURBATION_SIZE]
-                    : 1e-6;
+            double default_perturbation_magnitude = 1e-6;
+            double shape_perturbation_magnitude = default_perturbation_magnitude;
+
+            if (this->Has(PERTURBATION_SIZE)) {
+                default_perturbation_magnitude = this->GetValue(PERTURBATION_SIZE);
+                shape_perturbation_magnitude = default_perturbation_magnitude;
+            } else if (this->GetProperties().Has(PERTURBATION_SIZE)) {
+                default_perturbation_magnitude = this->GetProperties()[PERTURBATION_SIZE];
+                shape_perturbation_magnitude = default_perturbation_magnitude;
+            } else if (rProcessInfo.Has(PERTURBATION_SIZE)) {
+                default_perturbation_magnitude = rProcessInfo[PERTURBATION_SIZE];
+                shape_perturbation_magnitude = default_perturbation_magnitude;
+            } else {
+                // Assign a default perturbation magnitude for nodal coordinates if necesssary.
+                const bool require_shape_derivatives = std::find_if(
+                    Variables.begin(),
+                    Variables.end(),
+                    [] (const IAdjoint::DynamicVariable& rVariable) -> bool {
+                        return rVariable.SourceKey() == SHAPE.SourceKey()
+                            || rVariable.SourceKey() == DISPLACEMENT.SourceKey();}
+                ) != Variables.end();
+                if (require_shape_derivatives) {
+                    shape_perturbation_magnitude = std::sqrt(default_perturbation_magnitude) * this->GetGeometry().DomainSize();
+                } // if require_shape_derivatives
+            }
 
             // Assemble a list of perturbations. These include the
             // variable to be perturbed, where it is stored (context)
@@ -367,7 +387,7 @@ void SmallDisplacement::ComputeStiffnessDerivative(
                         perturbations.push_back({
                             .mVariable = r_variable,
                             .mContext = Globals::DataLocation::NodeHistorical,
-                            .mMagnitude = default_perturbation_magnitude});
+                            .mMagnitude = shape_perturbation_magnitude});
                         break;
 
                     // Unbuffered variables in nodes.
@@ -377,16 +397,18 @@ void SmallDisplacement::ComputeStiffnessDerivative(
                         perturbations.push_back({
                             .mVariable = r_variable,
                             .mContext = Globals::DataLocation::NodeNonHistorical,
-                            .mMagnitude = default_perturbation_magnitude});
+                            .mMagnitude = shape_perturbation_magnitude});
                         break;
 
                     // Variables in Properties (that map to elements):
-                    case THICKNESS.Key():
+                    case THICKNESS.Key(): {
+                        const double perturbation_magnitude = default_perturbation_magnitude * this->GetProperties().Data().template GetValue<double>(r_variable);
                         perturbations.push_back({
                             .mVariable = r_variable,
                             .mContext = Globals::DataLocation::Element,
-                            .mMagnitude = default_perturbation_magnitude});
+                            .mMagnitude = perturbation_magnitude});
                         break;
+                    }
 
                     // Unknown variable.
                     default:
@@ -456,11 +478,31 @@ void SmallDisplacement::ComputeLoadDerivative(
             // robustly, so do try to implement special treatment
             // for every variable you plan to compute derivatives
             // for.
-            const double default_perturbation_magnitude = this->GetProperties().Has(PERTURBATION_SIZE)
-                ? this->GetProperties()[PERTURBATION_SIZE]
-                : rProcessInfo.Has(PERTURBATION_SIZE)
-                    ? rProcessInfo[PERTURBATION_SIZE]
-                    : 1e-6;
+            double default_perturbation_magnitude = 1e-6;
+            double shape_perturbation_magnitude = default_perturbation_magnitude;
+
+            if (this->Has(PERTURBATION_SIZE)) {
+                default_perturbation_magnitude = this->GetValue(PERTURBATION_SIZE);
+                shape_perturbation_magnitude = default_perturbation_magnitude;
+            } else if (this->GetProperties().Has(PERTURBATION_SIZE)) {
+                default_perturbation_magnitude = this->GetProperties()[PERTURBATION_SIZE];
+                shape_perturbation_magnitude = default_perturbation_magnitude;
+            } else if (rProcessInfo.Has(PERTURBATION_SIZE)) {
+                default_perturbation_magnitude = rProcessInfo[PERTURBATION_SIZE];
+                shape_perturbation_magnitude = default_perturbation_magnitude;
+            } else {
+                // Assign a default perturbation magnitude for nodal coordinates if necesssary.
+                const bool require_shape_derivatives = std::find_if(
+                    Variables.begin(),
+                    Variables.end(),
+                    [] (const IAdjoint::DynamicVariable& rVariable) -> bool {
+                        return rVariable.SourceKey() == SHAPE.SourceKey()
+                            || rVariable.SourceKey() == DISPLACEMENT.SourceKey();}
+                ) != Variables.end();
+                if (require_shape_derivatives) {
+                    shape_perturbation_magnitude = std::sqrt(default_perturbation_magnitude) * this->GetGeometry().DomainSize();
+                } // if require_shape_derivatives
+            }
 
             // Assemble a list of perturbations. These include the
             // variable to be perturbed, where it is stored (context)
@@ -478,7 +520,7 @@ void SmallDisplacement::ComputeLoadDerivative(
                         perturbations.push_back({
                             .mVariable = r_variable,
                             .mContext = Globals::DataLocation::NodeHistorical,
-                            .mMagnitude = default_perturbation_magnitude});
+                            .mMagnitude = shape_perturbation_magnitude});
                         break;
 
                     // Unbuffered variables in nodes.
@@ -488,17 +530,19 @@ void SmallDisplacement::ComputeLoadDerivative(
                         perturbations.push_back({
                             .mVariable = r_variable,
                             .mContext = Globals::DataLocation::NodeNonHistorical,
-                            .mMagnitude = default_perturbation_magnitude});
+                            .mMagnitude = shape_perturbation_magnitude});
                         break;
 
                     // Variables in Properties (that map to elements):
                     case DENSITY.Key():
-                    case THICKNESS.Key():
+                    case THICKNESS.Key(): {
+                        const double perturbation_magnitude = default_perturbation_magnitude * this->GetProperties().Data().template GetValue<double>(r_variable);
                         perturbations.push_back({
                             .mVariable = r_variable,
                             .mContext = Globals::DataLocation::Element,
-                            .mMagnitude = default_perturbation_magnitude});
+                            .mMagnitude = perturbation_magnitude});
                         break;
+                    }
 
                     // Ambiguous variables.
                     // These may be defined on the element
