@@ -61,21 +61,26 @@ public:
 
     using CLIntegrator = TConstLawIntegratorType;
 
+    static constexpr SizeType VoigtSize = TConstLawIntegratorType::VoigtSize;
     using AdvCLUtils = AdvancedConstitutiveLawUtilities<VoigtSize>;
 
+    
     /// The define the working dimension size, already defined in the integrator
     static constexpr SizeType Dimension = TConstLawIntegratorType::Dimension;
-
+    
     /// The define the Voigt size, already defined in the  integrator
-    static constexpr SizeType VoigtSize = TConstLawIntegratorType::VoigtSize;
-
+    
     static constexpr double time_regularization = 1.0;
-
-
+    
+    
     static constexpr double return_mapping_tol = 1.0e-4;
-
+    
     /// Definition of the base class
     using BaseType = GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>;
+
+    using BoundedArrayType = typename BaseType::BoundedArrayType;
+
+    using GeometryType = typename BaseType::GeometryType;
 
     /// Counted pointer of GenericSmallStrainIsotropicPlasticity
     KRATOS_CLASS_POINTER_DEFINITION(GenericSmallStrainIsotropicCornejoViscoPlasticity);

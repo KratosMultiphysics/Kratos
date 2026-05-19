@@ -62,13 +62,13 @@ void GenericSmallStrainIsotropicCornejoViscoPlasticity<TConstLawIntegratorType>:
     this->template AddInitialStrainVectorContribution<Vector>(r_strain_vector);
 
     if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_STRESS)) {
-        CalculateElasticMatrix(r_constitutive_matrix, rValues);
+        this->CalculateElasticMatrix(r_constitutive_matrix, rValues);
 
         const auto &r_props = rValues.GetMaterialProperties();
 
-        double threshold = GetThreshold();
-        double plastic_dissipation = GetPlasticDissipation();
-        Vector plastic_strain = GetPlasticStrain();
+        double threshold = this->GetThreshold();
+        double plastic_dissipation = this->GetPlasticDissipation();
+        Vector plastic_strain = this->GetPlasticStrain();
         const double time_regularization_factor = r_props.Has(TIME_REGULARIZATION) ? r_props[TIME_REGULARIZATION] : time_regularization;
         const double strain_rate_norm = time_regularization_factor * mStrainRateHistory[0] + (1.0 - time_regularization_factor) * mStrainRateHistory[1];
 
@@ -145,7 +145,7 @@ void GenericSmallStrainIsotropicCornejoViscoPlasticity<TConstLawIntegratorType>:
             KRATOS_WARNING_IF("Backward Euler ViscoPlasticity: ", iteration > max_iter) << "Maximum number of iterations in plasticity loop, F = " << F << std::endl;
 
             if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
-                CalculateTangentTensor(rValues, plastic_strain);
+                this->CalculateTangentTensor(rValues, plastic_strain);
             }
         }
         noalias(rValues.GetStressVector()) = predictive_stress_vector;
@@ -172,15 +172,15 @@ void GenericSmallStrainIsotropicCornejoViscoPlasticity<TConstLawIntegratorType>:
     this->template AddInitialStrainVectorContribution<Vector>(r_strain_vector);
 
     if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_STRESS)) {
-        CalculateElasticMatrix(r_constitutive_matrix, rValues);
+        this->CalculateElasticMatrix(r_constitutive_matrix, rValues);
 
         const auto &r_props = rValues.GetMaterialProperties();
 
         // Retrieve int vars as reference now
-        double& threshold = GetThreshold();
-        double& plastic_dissipation = GetPlasticDissipation();
-        Vector& plastic_strain = GetPlasticStrain();
-    
+        double& threshold = this->GetThreshold();
+        double& plastic_dissipation = this->GetPlasticDissipation();
+        Vector& plastic_strain = this->GetPlasticStrain();
+
         const double time_regularization_factor = r_props.Has(TIME_REGULARIZATION) ? r_props[TIME_REGULARIZATION] : time_regularization;
         const double strain_rate_norm = time_regularization_factor * mStrainRateHistory[0] + (1.0 - time_regularization_factor) * mStrainRateHistory[1];
 

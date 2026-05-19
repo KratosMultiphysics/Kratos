@@ -118,9 +118,9 @@ void GenericSmallStrainIsotropicPerzynaViscoPlasticity<TConstLawIntegratorType>:
     const double nu = r_props[POISSON_RATIO];
     const double mu = r_props[MIU];
     const double sensitivity = r_props.Has(DP_EPSILON) ? r_props[DP_EPSILON] : 1.0; 
-    const double threshold = GetThreshold();
+    const double threshold = this->GetThreshold();
     const auto& r_strain_vector = rValues.GetStrainVector();
-    const auto plastic_strain = GetPlasticStrain();
+    const auto plastic_strain = this->GetPlasticStrain();
 
     auto& r_tangent = rValues.GetConstitutiveMatrix();
 
@@ -386,11 +386,11 @@ void GenericSmallStrainIsotropicPerzynaViscoPlasticity<TConstLawIntegratorType>:
     }
     this->template AddInitialStrainVectorContribution<Vector>(r_strain_vector);
 
-    CalculateElasticMatrix(r_constitutive_matrix, rValues);
+    this->CalculateElasticMatrix(r_constitutive_matrix, rValues);
 
-    double& r_threshold           = GetThreshold();
-    double& r_plastic_dissipation = GetPlasticDissipation();
-    Vector& r_plastic_strain      = GetPlasticStrain();
+    double& r_threshold           = this->GetThreshold();
+    double& r_plastic_dissipation = this->GetPlasticDissipation();
+    Vector& r_plastic_strain      = this->GetPlasticStrain();
 
     BoundedArrayType predictive_stress_vector, deviatoric_stress_vector;
 

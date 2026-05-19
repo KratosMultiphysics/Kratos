@@ -71,8 +71,13 @@ public:
     /// The define the Voigt size, already defined in the  integrator
     static constexpr SizeType VoigtSize = TConstLawIntegratorType::VoigtSize;
 
+    
     /// Definition of the base class
     using BaseType = GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>;
+
+    using BoundedArrayType = typename BaseType::BoundedArrayType;
+
+    using GeometryType = typename BaseType::GeometryType;
 
     /// Counted pointer of GenericSmallStrainIsotropicPlasticity
     KRATOS_CLASS_POINTER_DEFINITION(GenericSmallStrainIsotropicPerzynaViscoPlasticity);
