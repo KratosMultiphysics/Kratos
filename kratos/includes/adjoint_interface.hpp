@@ -38,18 +38,20 @@ public:
     ///          within a composite material.
     class DynamicVariable : public VariableData {
     public:
+        KRATOS_CLASS_POINTER_DEFINITION(DynamicVariable);
+
         constexpr DynamicVariable() noexcept
             : VariableData(),
-              mDynamicIndex(0ul)
+              mDynamicIndex(-1)
         {}
 
         constexpr DynamicVariable(const VariableData& rRhs) noexcept
-            : DynamicVariable(rRhs, 0ul)
+            : DynamicVariable(rRhs, -1)
         {}
 
         constexpr DynamicVariable(
             const VariableData& rRhs,
-            std::size_t DynamicIndex) noexcept
+            int DynamicIndex) noexcept
             : VariableData(rRhs),
               mDynamicIndex(DynamicIndex)
         {}
@@ -57,7 +59,7 @@ public:
         constexpr DynamicVariable(
             std::string_view Name,
             std::size_t Size,
-            std::size_t DynamicIndex = 0ul) noexcept
+            int DynamicIndex = -1) noexcept
             : VariableData(Name, Size),
               mDynamicIndex(DynamicIndex)
         {}
@@ -67,24 +69,33 @@ public:
             std::size_t Size,
             const VariableData* pSourceVariable,
             char ComponentIndex,
-            std::size_t DynamicIndex = 0ul) noexcept
+            int DynamicIndex = -1) noexcept
             : VariableData(Name, Size, pSourceVariable, ComponentIndex),
               mDynamicIndex(DynamicIndex)
         {}
 
-        [[nodiscard]] constexpr std::size_t GetDynamicIndex(std::size_t Index) const noexcept {
+        [[nodiscard]] constexpr int GetDynamicIndex() const noexcept {
             return mDynamicIndex;
         }
 
-        constexpr void SetDynamicIndex(std::size_t Index) noexcept {
+        constexpr void SetDynamicIndex(int Index) noexcept {
             mDynamicIndex = Index;
         }
 
+        [[nodiscard]] friend bool operator==(
+            const DynamicVariable& rLhs,
+            const DynamicVariable& rRhs) noexcept {
+                return static_cast<const VariableData&>(rLhs) == static_cast<const VariableData&>(rRhs)
+                    && rLhs.GetDynamicIndex() == rRhs.GetDynamicIndex();
+        }
+
     private:
-        std::size_t mDynamicIndex;
+        int mDynamicIndex;
     }; // struct DynamicVariable
 
     using Scalar = double;
+
+    KRATOS_CLASS_POINTER_DEFINITION(IAdjoint);
 
     enum class ResidualTerm {
         Load,
@@ -143,6 +154,8 @@ public:
 ///          may disregard specific components of the residual.
 class KRATOS_API(KRATOS_CORE) IAdjointElement : public IAdjoint {
 public:
+    KRATOS_CLASS_POINTER_DEFINITION(IAdjointElement);
+
     /// @name Variable Query Interface
     /// @{
 
