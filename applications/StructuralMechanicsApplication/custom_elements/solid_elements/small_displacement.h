@@ -281,18 +281,30 @@ protected:
         ) const;
 
     ///@}
-    ///@name Protected Operations
-    ///@{
-    ///@}
-    ///@name Protected  Access
-    ///@{
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-    ///@}
+
+protected:
+    /// @name Adjoint Interface
+    /// @{
+
+    /// @copydoc IAdjointElement::GetStiffnessInfluencingVariables
+    void GetStiffnessInfluencingVariables(
+        std::vector<IAdjoint::DynamicVariable>& rOutput,
+        const ProcessInfo& rProcessInfo) const override;
+
+    /// @copydoc IAdjointElement::GetLoadInfluencingVariables
+    void GetLoadInfluencingVariables(
+        std::vector<IAdjoint::DynamicVariable>& rOutput,
+        const ProcessInfo& rProcessInfo) const override;
+
+    /// @copydoc IAdjointElement::ComputeStiffnessDerivative
+    void ComputeStiffnessDerivative(
+        Matrix& rOutput,
+        std::span<const IAdjoint::DynamicVariable> Variables,
+        const Vector& rValues,
+        const ProcessInfo& rProcessInfo,
+        int iBuffer) const override;
+
+    /// @}
 
 private:
     ///@name Static Member Variables
