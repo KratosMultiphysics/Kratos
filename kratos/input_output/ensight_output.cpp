@@ -47,6 +47,7 @@ Parameters EnSightOutput::GetDefaultParameters()
         "entity_type"                                 : "automatic",
         "save_output_files_in_folder"                 : true,
         "evolving_geometry"                           : true, // For meshes with evolving geometry
+        "use_local_ids"                               : false, // When true, use per-part sequential (1-based) IDs instead of global Kratos IDs
         "nodal_solution_step_data_variables"          : [],
         "nodal_data_value_variables"                  : [],
         "nodal_flags"                                 : [],
@@ -734,8 +735,9 @@ void EnSightOutput::WriteGeometryFile(const std::string& rFileName)
     // Options:
     // node id <off/given/assign/ignore>
     // element id <off/given/assign/ignore>
-    WriteString(geo_file, "node id given");    // TODO: Add option to use local IDs
-    WriteString(geo_file, "element id given"); // TODO: Add option to use local IDs
+    const bool use_local_ids = mOutputSettings["use_local_ids"].GetBool();
+    WriteString(geo_file, use_local_ids ? "node id assign"    : "node id given");
+    WriteString(geo_file, use_local_ids ? "element id assign" : "element id given");
 
     // Define extents (optional block for EnSight Gold)
     // extents
@@ -764,26 +766,26 @@ void EnSightOutput::WriteGeometryFile(const std::string& rFileName)
     }
 
     // Global coordinates section: only for EnSight 6 (EnSight 5 writes coords per-part)
+    // Build a global node position map (Kratos ID -> 1-based sequential position) for EnSight 6
+    std::unordered_map<std::size_t, std::size_t> global_node_position;
     if (is_ensight_6) {
-        // Write coordinates
         WriteString(geo_file, "coordinates");
         WriteScalarData(geo_file, mrModelPart.NumberOfNodes());
 
-        // Write IDs, then X, then Y, then Z blocks
+        std::size_t pos = 1;
         for (const auto& r_node : mrModelPart.Nodes()) {
-            WriteScalarData(geo_file, r_node.Id(), false);
-            if (mFileFormat == FileFormat::ASCII) WriteString(geo_file, " ", false);
+            global_node_position[r_node.Id()] = pos;
+            if (!use_local_ids) {
+                WriteScalarData(geo_file, r_node.Id(), false);
+                if (mFileFormat == FileFormat::ASCII) WriteString(geo_file, " ", false);
+            }
             WriteScalarData(geo_file, r_node.X(),  false);
             if (mFileFormat == FileFormat::ASCII) WriteString(geo_file, " ", false);
             WriteScalarData(geo_file, r_node.Y(),  false);
             if (mFileFormat == FileFormat::ASCII) WriteString(geo_file, " ", false);
             WriteScalarData(geo_file, r_node.Z());
+            ++pos;
         }
-
-        // // Write node coordinates // TODO: Add option to write with local IDs
-        // for (const auto& r_node : mrModelPart.Nodes()) {
-        //     WriteVectorData(geo_file, r_node.Coordinates());
-        // }
     }
 
     // Iterate over the parts
@@ -800,12 +802,14 @@ void EnSightOutput::WriteGeometryFile(const std::string& rFileName)
 
         // Write coordinates for EnSight 5 (per-part, id x y z on same line) and EnSight Gold (per-part, separate arrays)
         if (is_ensight_5) {
-            // EnSight 5: id x y z on the same line per node
+            // EnSight 5: (id) x y z per node
             WriteString(geo_file, "coordinates");
             WriteScalarData(geo_file, r_part_data.PartNodes.size());
             for (const auto* p_node : r_part_data.PartNodes) {
-                WriteScalarData(geo_file, p_node->Id(), false);
-                if (mFileFormat == FileFormat::ASCII) WriteString(geo_file, " ", false);
+                if (!use_local_ids) {
+                    WriteScalarData(geo_file, p_node->Id(), false);
+                    if (mFileFormat == FileFormat::ASCII) WriteString(geo_file, " ", false);
+                }
                 WriteScalarData(geo_file, p_node->X(), false);
                 if (mFileFormat == FileFormat::ASCII) WriteString(geo_file, " ", false);
                 WriteScalarData(geo_file, p_node->Y(), false);
@@ -813,13 +817,14 @@ void EnSightOutput::WriteGeometryFile(const std::string& rFileName)
                 WriteScalarData(geo_file, p_node->Z());
             }
         } else if (mEnSightFileFormat == EnSightFileFormat::EnSightGold) {
-            // Write coordinates
+            // EnSight Gold: coordinates block — IDs (if given), then X, Y, Z arrays
             WriteString(geo_file, "coordinates");
             WriteScalarData(geo_file, r_part_data.PartNodes.size(), false, true);
 
-            // Write IDs, then X, then Y, then Z blocks
-            for (const auto* p_node : r_part_data.PartNodes) {
-                WriteScalarData(geo_file, p_node->Id(), false, true);
+            if (!use_local_ids) {
+                for (const auto* p_node : r_part_data.PartNodes) {
+                    WriteScalarData(geo_file, p_node->Id(), false, true);
+                }
             }
             for (const auto* p_node : r_part_data.PartNodes) {
                 WriteScalarData(geo_file, p_node->X());
@@ -842,30 +847,45 @@ void EnSightOutput::WriteGeometryFile(const std::string& rFileName)
             if (mFileFormat == FileFormat::ASCII) WriteString(geo_file, "\t", false);
             WriteScalarData(geo_file, r_geometrical_objects.size());
 
+            // Helper: resolve node index for connectivity depending on id mode and format
+            auto resolve_node_id = [&](std::size_t kratos_id) -> std::size_t {
+                if (use_local_ids) {
+                    // All formats: use per-part sequential index when assigning local IDs
+                    return r_part_data.KratosIdToLocalId.at(kratos_id);
+                } else if (is_ensight_5) {
+                    return r_part_data.KratosIdToLocalId.at(kratos_id); // EnSight 5 always uses part-local IDs
+                } else if (is_ensight_6) {
+                    return global_node_position.at(kratos_id); // EnSight 6 global: position in global coords block
+                } else {
+                    return kratos_id; // EnSight Gold: global Kratos ID
+                }
+            };
+
             if (mEnSightFileFormat == EnSightFileFormat::EnSightGold && mFileFormat == FileFormat::BINARY) {
-                // EnSight Gold binary: element IDs as a contiguous block, then connectivity flat
-                for (const auto* p_geometrical_object : r_geometrical_objects) {
-                    WriteScalarData(geo_file, p_geometrical_object->Id(), false);
+                // EnSight Gold binary: element IDs as a contiguous block (if given), then connectivity flat
+                if (!use_local_ids) {
+                    for (const auto* p_geometrical_object : r_geometrical_objects) {
+                        WriteScalarData(geo_file, p_geometrical_object->Id(), false);
+                    }
                 }
                 for (const auto* p_geometrical_object : r_geometrical_objects) {
                     GetGeometryConnectivity(*p_geometrical_object, connectivity);
                     for (const auto index : connectivity) {
-                        WriteScalarData(geo_file, index, false);
+                        WriteScalarData(geo_file, resolve_node_id(index), false);
                     }
                 }
             } else {
-                // ASCII or EnSight 5/6 binary: per-element (id + connectivity inline)
+                // ASCII or EnSight 5/6 binary: per-element ((id +) connectivity inline)
                 for (const auto* p_geometrical_object : r_geometrical_objects) {
-                    WriteScalarData(geo_file, p_geometrical_object->Id(), !is_ensight_5_or_6, is_ensight_5_or_6);
+                    if (!use_local_ids) {
+                        WriteScalarData(geo_file, p_geometrical_object->Id(), !is_ensight_5_or_6, is_ensight_5_or_6);
+                    } else if (mFileFormat == FileFormat::ASCII) {
+                        WriteString(geo_file, "", false); // no element ID written, no leading tab
+                    }
                     GetGeometryConnectivity(*p_geometrical_object, connectivity);
                     for (const auto index : connectivity) {
                         if (mFileFormat == FileFormat::ASCII) WriteString(geo_file, "\t\t", false);
-                        // EnSight 5 uses local (part-level, 1-based) node IDs; EnSight 6/Gold use global IDs
-                        if (is_ensight_5) {
-                            WriteScalarData(geo_file, r_part_data.KratosIdToLocalId.at(index), false);
-                        } else {
-                            WriteScalarData(geo_file, index, false);
-                        }
+                        WriteScalarData(geo_file, resolve_node_id(index), false);
                     }
                     if (mFileFormat == FileFormat::ASCII) WriteString(geo_file, "");
                 }
