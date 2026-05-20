@@ -14,7 +14,13 @@
 
 // Application includes
 #include "geo_mechanics_application.h"
+
+#include "custom_constitutive/coulomb_yield_surface.h"
+#include "custom_constitutive/tension_cutoff.h"
+#include "custom_constitutive/thermal_filter_law.h"
 #include "custom_retention/saturated_below_phreatic_level_law.h"
+#include "custom_retention/saturated_law.h"
+#include "custom_retention/van_genuchten_law.h"
 
 namespace Kratos
 {
@@ -416,6 +422,10 @@ void KratosGeoMechanicsApplication::Register()
     KRATOS_REGISTER_VARIABLE(OCR)
     KRATOS_REGISTER_VARIABLE(POISSON_UNLOADING_RELOADING)
     KRATOS_REGISTER_VARIABLE(POP)
+    KRATOS_REGISTER_VARIABLE(GEO_POISSON_UNDRAINED)
+    KRATOS_REGISTER_VARIABLE(GEO_SKEMPTON_B)
+
+    KRATOS_REGISTER_VARIABLE(GEO_DRAINAGE_TYPE)
 
     KRATOS_REGISTER_VARIABLE(ACCUMULATED_STRAIN)
 
@@ -599,7 +609,19 @@ void KratosGeoMechanicsApplication::Register()
     KRATOS_REGISTER_VARIABLE(GEO_PLASTICITY_STATUS)
 
     Serializer::Register("PlaneStrain", PlaneStrain{});
-    Serializer::Register("PlaneStrainStressState", PlaneStrainStressState{});
+    Serializer::Register("ThreeDimensional", ThreeDimensional{});
     Serializer::Register("SaturatedBelowPhreaticLevelLaw", SaturatedBelowPhreaticLevelLaw{});
+    Serializer::Register("SaturatedLaw", SaturatedLaw{});
+    Serializer::Register("VanGenuchtenLaw", VanGenuchtenLaw{});
+    Serializer::Register("PlaneStrainStressState", PlaneStrainStressState{});
+    Serializer::Register("ThreeDimensionalStressState", ThreeDimensionalStressState{});
+    Serializer::Register("AxisymmetricStressState", AxisymmetricStressState{});
+    Serializer::Register("Line2DInterfaceStressState", Line2DInterfaceStressState{});
+    Serializer::Register("SurfaceInterfaceStressState", SurfaceInterfaceStressState{});
+    Serializer::Register("InterfacePlaneStrain", InterfacePlaneStrain{});
+    Serializer::Register("InterfaceThreeDimensionalSurface", InterfaceThreeDimensionalSurface{});
+    Serializer::Register("CoulombYieldSurface", CoulombYieldSurface{});
+    Serializer::Register("TensionCutoff", TensionCutoff{});
+    Serializer::Register("GeoThermalFilterLaw", GeoThermalFilterLaw{});
 }
 } // namespace Kratos.

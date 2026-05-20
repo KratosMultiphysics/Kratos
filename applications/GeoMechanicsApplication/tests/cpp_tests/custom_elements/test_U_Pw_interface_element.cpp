@@ -1,4 +1,4 @@
-// KRATOS___
+﻿// KRATOS___
 //     //   ) )
 //    //         ___      ___
 //   //  ____  //___) ) //   ) )
@@ -30,6 +30,7 @@
 #include <numbers>
 
 using namespace std::numbers;
+using namespace std::string_literals;
 
 namespace
 {
@@ -88,6 +89,7 @@ std::shared_ptr<Properties> CreateElasticMaterialProperties(double NormalStiffne
     result->GetValue(INTERFACE_SHEAR_STIFFNESS)  = ShearStiffness;
     result->GetValue(CONSTITUTIVE_LAW) = std::make_shared<GeoIncrementalLinearElasticInterfaceLaw>(
         std::make_unique<TConstitutiveLawDimension>());
+    result->GetValue(GEO_DRAINAGE_TYPE) = "FULLY_COUPLED"s;
 
     return result;
 }
@@ -530,6 +532,8 @@ void GeneralizedCouplingContributionTest(TElementFactory&&                      
     p_properties->SetValue(RESIDUAL_SATURATION, 0.06203);
     p_properties->SetValue(VAN_GENUCHTEN_AIR_ENTRY_PRESSURE, 2.561);
     p_properties->SetValue(VAN_GENUCHTEN_GN, 1.377);
+    p_properties->SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED"s);
+
     Model model;
     auto  interface_element = ElementFactory(model, p_properties, DiffOrder, rContributions);
 
@@ -862,6 +866,7 @@ KRATOS_TEST_CASE_IN_SUITE(GetInitializedConstitutiveLawsAfterElementInitializati
 {
     // Arrange
     const auto p_properties = std::make_shared<Properties>();
+    p_properties->SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED"s);
     p_properties->GetValue(CONSTITUTIVE_LAW) =
         std::make_shared<GeoIncrementalLinearElasticInterfaceLaw>(std::make_unique<InterfacePlaneStrain>());
 
@@ -886,6 +891,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwInterfaceElement_HasCorrectNumberOfConstitutiveLaws
 {
     // Arrange
     const auto p_properties = std::make_shared<Properties>();
+    p_properties->SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED"s);
     p_properties->GetValue(CONSTITUTIVE_LAW) =
         std::make_shared<GeoIncrementalLinearElasticInterfaceLaw>(std::make_unique<InterfacePlaneStrain>());
 
@@ -1360,7 +1366,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_GetInitializedConstitutive
     const auto p_properties = std::make_shared<Properties>();
     p_properties->GetValue(CONSTITUTIVE_LAW) =
         std::make_shared<GeoIncrementalLinearElasticInterfaceLaw>(std::make_unique<InterfacePlaneStrain>());
-
+    p_properties->SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED"s);
     auto element = CreateAndInitializeElement(
         CreateHorizontal3Plus3NodedTriangleInterfaceElementWithUPwDofs, p_properties,
         IsDiffOrderElement::No, {CalculationContribution::Stiffness});
@@ -1385,7 +1391,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_HasCorrectNumberOfConstitu
     const auto p_properties = std::make_shared<Properties>();
     p_properties->GetValue(CONSTITUTIVE_LAW) =
         std::make_shared<GeoIncrementalLinearElasticInterfaceLaw>(std::make_unique<InterfacePlaneStrain>());
-
+    p_properties->SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED"s);
     Model model;
     auto  element = CreateHorizontal3Plus3NodedTriangleInterfaceElementWithUPwDofs(
         model, p_properties, IsDiffOrderElement::No, {CalculationContribution::Stiffness});
@@ -1744,6 +1750,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_InterpolatesNodalStresses, Kra
                                                  std::make_unique<PlaneStrain>()));
     p_properties->SetValue(YOUNG_MODULUS, 1.000000e+07);
     p_properties->SetValue(POISSON_RATIO, 0.000000e+00);
+    p_properties->SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED"s);
     // create a triangle neighbour element
     auto p_neighbour_element = make_intrusive<MockElementWithEffectiveStressVectors>(
         2, std::make_shared<Triangle2D3<Node>>(nodes), p_properties);
@@ -1839,6 +1846,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwPlaneInterfaceElement_InterpolatesNodalStresses, Kr
                                                  std::make_unique<ThreeDimensional>()));
     p_properties->SetValue(YOUNG_MODULUS, 1.000000e+07);
     p_properties->SetValue(POISSON_RATIO, 0.000000e+00);
+    p_properties->SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED"s);
     // create a hexagonal neighbour element
     auto p_neighbour_element = make_intrusive<MockElementWithEffectiveStressVectors>(
         2, std::make_shared<Hexahedra3D8<Node>>(nodes), p_properties);

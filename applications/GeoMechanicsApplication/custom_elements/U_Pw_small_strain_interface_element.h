@@ -108,7 +108,7 @@ protected:
 
     struct InterfaceElementVariables {
         /// Properties variables
-        bool   IgnoreUndrained;
+        bool   IsConstantWaterPressure;
         double DynamicViscosityInverse;
         double BiotCoefficient;
         double BiotModulusInverse;
