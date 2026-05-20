@@ -356,3 +356,139 @@ def CreateStreamlines(modelPart, velocityVariable="VELOCITY", sourceCenter=None,
         n_points=nPoints,
         integration_direction=integrationDirection
     )
+
+
+def CreateThresholdedMesh(modelPart, variable, thresholdValue, thresholdType="above", nodalVariables=[], elementVariables=[]):
+    """Extracts a subset of the mesh where a scalar variable satisfies a threshold condition.
+
+    Parameters:
+    modelPart (KM.ModelPart): The Kratos ModelPart to convert and filter.
+    variable (KM.Variable or str): Nodal or cell scalar variable to threshold by.
+    thresholdValue (float or tuple): The threshold value (float) or range (tuple/list of two floats).
+    thresholdType (str): Type of threshold: 'above', 'below', or 'between'.
+    nodalVariables (list): Additional nodal variables to export.
+    elementVariables (list): Additional elemental variables to export.
+
+    Returns:
+    pyvista.UnstructuredGrid: The thresholded mesh subset.
+    """
+    varName = variable if isinstance(variable, str) else variable.Name()
+
+    grid = ModelPartToPyVista(
+        modelPart,
+        useDeformedConfiguration=False,
+        nodalVariables=nodalVariables + [variable],
+        elementVariables=elementVariables + [variable],
+        exportElements=True,
+        exportConditions=False
+    )
+    if isinstance(grid, pv.MultiBlock):
+        grid = grid["elements"]
+
+    if grid.n_points == 0:
+        return grid
+
+    # Determine if variable is in point_data or cell_data
+    if varName in grid.point_data:
+        preference = 'point'
+    elif varName in grid.cell_data:
+        preference = 'cell'
+    else:
+        # Fallback to point
+        preference = 'point'
+
+    if thresholdType == "above":
+        return grid.threshold(value=thresholdValue, scalars=varName, method='upper', preference=preference)
+    elif thresholdType == "below":
+        return grid.threshold(value=thresholdValue, scalars=varName, method='lower', preference=preference)
+    elif thresholdType == "between":
+        if not isinstance(thresholdValue, (list, tuple)) or len(thresholdValue) != 2:
+            raise ValueError("For 'between' thresholdType, thresholdValue must be a tuple/list of (lower_limit, upper_limit).")
+        return grid.threshold(value=thresholdValue, scalars=varName, preference=preference)
+    else:
+        raise ValueError(f"Unknown thresholdType '{thresholdType}'. Supported types are 'above', 'below', 'between'.")
+
+
+def CreateVectorGlyphs(modelPart, vectorVariable, scaleFactor=1.0, glyphType="arrow", nodalVariables=[]):
+    """Generates 3D glyphs (e.g. arrows) at nodes of a Kratos ModelPart oriented and scaled by a vector variable.
+
+    Parameters:
+    modelPart (KM.ModelPart): The Kratos ModelPart to convert and generate glyphs for.
+    vectorVariable (KM.Variable or str): Nodal vector variable to orient and scale glyphs by.
+    scaleFactor (float): Scaling factor for the glyphs.
+    glyphType (str): Type of glyph: 'arrow', 'cone', 'sphere', 'cylinder'.
+    nodalVariables (list): Additional nodal variables to export.
+
+    Returns:
+    pyvista.PolyData: The generated glyphs.
+    """
+    varName = vectorVariable if isinstance(vectorVariable, str) else vectorVariable.Name()
+
+    grid = ModelPartToPyVista(
+        modelPart,
+        useDeformedConfiguration=False,
+        nodalVariables=nodalVariables + [vectorVariable],
+        exportElements=True,
+        exportConditions=False
+    )
+    if isinstance(grid, pv.MultiBlock):
+        grid = grid["elements"]
+
+    if grid.n_points == 0:
+        return pv.PolyData()
+
+    if varName not in grid.point_data:
+        raise ValueError(f"Vector variable '{varName}' not found in the converted mesh point data.")
+
+    # Determine glyph geometry
+    if glyphType == "arrow":
+        geom = pv.Arrow()
+    elif glyphType == "cone":
+        geom = pv.Cone()
+    elif glyphType == "sphere":
+        geom = pv.Sphere()
+    elif glyphType == "cylinder":
+        geom = pv.Cylinder()
+    else:
+        geom = pv.Arrow()
+
+    return grid.glyph(orient=varName, scale=varName, factor=scaleFactor, geom=geom)
+
+
+def CreateClippedMesh(modelPart, normal=[0.0, 0.0, 1.0], origin=None, nodalVariables=[], elementVariables=[]):
+    """Clips a Kratos ModelPart domain by a plane defined by an origin and normal vector.
+
+    Parameters:
+    modelPart (KM.ModelPart): The Kratos ModelPart to convert and clip.
+    normal (tuple or list): 3D normal vector of the clipping plane.
+    origin (tuple or list): 3D point defining the origin of the clipping plane. If None, uses the center of the mesh bounds.
+    nodalVariables (list): Nodal variables to export.
+    elementVariables (list): Elemental variables to export.
+
+    Returns:
+    pyvista.UnstructuredGrid: The clipped mesh subset.
+    """
+    grid = ModelPartToPyVista(
+        modelPart,
+        useDeformedConfiguration=False,
+        nodalVariables=nodalVariables,
+        elementVariables=elementVariables,
+        exportElements=True,
+        exportConditions=False
+    )
+    if isinstance(grid, pv.MultiBlock):
+        grid = grid["elements"]
+
+    if grid.n_points == 0:
+        return grid
+
+    if origin is None:
+        bounds = grid.bounds
+        origin = [
+            0.5 * (bounds[0] + bounds[1]),
+            0.5 * (bounds[2] + bounds[3]),
+            0.5 * (bounds[4] + bounds[5])
+        ]
+
+    return grid.clip(normal=normal, origin=origin)
+

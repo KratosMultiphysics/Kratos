@@ -174,6 +174,128 @@ class TestPyVistaUtilities(KratosUnittest.TestCase):
             pv_utils.SaveModelPart(mp, file_path)
             self.assertTrue(os.path.exists(file_path))
 
+    def test_ComputeWarpedMesh(self):
+        mp = self.model.CreateModelPart("WarpPart")
+        mp.AddNodalSolutionStepVariable(KM.DISPLACEMENT)
+        n1 = mp.CreateNewNode(1, 0.0, 0.0, 0.0)
+        n2 = mp.CreateNewNode(2, 1.0, 0.0, 0.0)
+        n3 = mp.CreateNewNode(3, 0.0, 1.0, 0.0)
+        prop = mp.GetProperties()[0]
+        mp.CreateNewElement("Element2D3N", 1, [1, 2, 3], prop)
+
+        n1.SetSolutionStepValue(KM.DISPLACEMENT, 0, [0.1, 0.2, 0.0])
+        n2.SetSolutionStepValue(KM.DISPLACEMENT, 0, [0.1, 0.2, 0.0])
+        n3.SetSolutionStepValue(KM.DISPLACEMENT, 0, [0.1, 0.2, 0.0])
+
+        warped_grid = pv_utils.ComputeWarpedMesh(mp, KM.DISPLACEMENT, factor=2.0)
+        self.assertIsInstance(warped_grid, pv.UnstructuredGrid)
+        self.assertEqual(warped_grid.n_points, 3)
+        expected_warped_points = np.array([
+            [0.2, 0.4, 0.0],
+            [1.2, 0.4, 0.0],
+            [0.2, 1.4, 0.0]
+        ])
+        self.assertTrue(np.allclose(warped_grid.points, expected_warped_points))
+
+    def test_CreateOrthogonalSlices(self):
+        mp = self.model.CreateModelPart("SlicePart")
+        for i, coords in enumerate([
+            [0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [1.0, 1.0, 0.0], [0.0, 1.0, 0.0],
+            [0.0, 0.0, 1.0], [1.0, 0.0, 1.0], [1.0, 1.0, 1.0], [0.0, 1.0, 1.0]
+        ], 1):
+            mp.CreateNewNode(i, *coords)
+        prop = mp.GetProperties()[0]
+        mp.CreateNewElement("Element3D8N", 1, list(range(1, 9)), prop)
+
+        slices = pv_utils.CreateOrthogonalSlices(mp, x=0.5, y=0.5, z=0.5)
+        self.assertIsInstance(slices, pv.MultiBlock)
+        self.assertTrue(len(slices) > 0)
+
+    def test_CreateIsosurfaces(self):
+        mp = self.model.CreateModelPart("ContourPart")
+        mp.AddNodalSolutionStepVariable(KM.TEMPERATURE)
+        for i, coords in enumerate([
+            [0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [1.0, 1.0, 0.0], [0.0, 1.0, 0.0],
+            [0.0, 0.0, 1.0], [1.0, 0.0, 1.0], [1.0, 1.0, 1.0], [0.0, 1.0, 1.0]
+        ], 1):
+            n = mp.CreateNewNode(i, *coords)
+            n.SetSolutionStepValue(KM.TEMPERATURE, 0, float(i))
+        prop = mp.GetProperties()[0]
+        mp.CreateNewElement("Element3D8N", 1, list(range(1, 9)), prop)
+
+        contours = pv_utils.CreateIsosurfaces(mp, KM.TEMPERATURE, valuesOrNumber=3)
+        self.assertIsInstance(contours, pv.PolyData)
+
+    def test_CreateStreamlines(self):
+        mp = self.model.CreateModelPart("StreamlinePart")
+        mp.AddNodalSolutionStepVariable(KM.VELOCITY)
+        for i, coords in enumerate([
+            [0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [1.0, 1.0, 0.0], [0.0, 1.0, 0.0],
+            [0.0, 0.0, 1.0], [1.0, 0.0, 1.0], [1.0, 1.0, 1.0], [0.0, 1.0, 1.0]
+        ], 1):
+            n = mp.CreateNewNode(i, *coords)
+            n.SetSolutionStepValue(KM.VELOCITY, 0, [1.0, 0.0, 0.0])
+        prop = mp.GetProperties()[0]
+        mp.CreateNewElement("Element3D8N", 1, list(range(1, 9)), prop)
+
+        streamlines = pv_utils.CreateStreamlines(
+            mp,
+            velocityVariable=KM.VELOCITY,
+            sourceCenter=[0.1, 0.5, 0.5],
+            sourceRadius=0.1,
+            nPoints=5
+        )
+        self.assertIsInstance(streamlines, pv.PolyData)
+
+    def test_CreateThresholdedMesh(self):
+        mp = self.model.CreateModelPart("ThresholdPart")
+        mp.AddNodalSolutionStepVariable(KM.TEMPERATURE)
+        for i, coords in enumerate([
+            [0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [1.0, 1.0, 0.0], [0.0, 1.0, 0.0],
+            [0.0, 0.0, 1.0], [1.0, 0.0, 1.0], [1.0, 1.0, 1.0], [0.0, 1.0, 1.0]
+        ], 1):
+            n = mp.CreateNewNode(i, *coords)
+            n.SetSolutionStepValue(KM.TEMPERATURE, 0, float(i))
+        prop = mp.GetProperties()[0]
+        mp.CreateNewElement("Element3D8N", 1, list(range(1, 9)), prop)
+
+        # Test above
+        threshed_above = pv_utils.CreateThresholdedMesh(mp, KM.TEMPERATURE, thresholdValue=4.5, thresholdType="above")
+        self.assertIsInstance(threshed_above, pv.UnstructuredGrid)
+        # Test below
+        threshed_below = pv_utils.CreateThresholdedMesh(mp, KM.TEMPERATURE, thresholdValue=4.5, thresholdType="below")
+        self.assertIsInstance(threshed_below, pv.UnstructuredGrid)
+        # Test between
+        threshed_between = pv_utils.CreateThresholdedMesh(mp, KM.TEMPERATURE, thresholdValue=[2.5, 6.5], thresholdType="between")
+        self.assertIsInstance(threshed_between, pv.UnstructuredGrid)
+
+    def test_CreateVectorGlyphs(self):
+        mp = self.model.CreateModelPart("GlyphPart")
+        mp.AddNodalSolutionStepVariable(KM.VELOCITY)
+        for i, coords in enumerate([
+            [0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [1.0, 1.0, 0.0], [0.0, 1.0, 0.0]
+        ], 1):
+            n = mp.CreateNewNode(i, *coords)
+            n.SetSolutionStepValue(KM.VELOCITY, 0, [1.0, 2.0, 0.0])
+        prop = mp.GetProperties()[0]
+        mp.CreateNewElement("Element2D4N", 1, [1, 2, 3, 4], prop)
+
+        glyphs = pv_utils.CreateVectorGlyphs(mp, KM.VELOCITY, scaleFactor=0.5, glyphType="cone")
+        self.assertIsInstance(glyphs, pv.PolyData)
+
+    def test_CreateClippedMesh(self):
+        mp = self.model.CreateModelPart("ClipPart")
+        for i, coords in enumerate([
+            [0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [1.0, 1.0, 0.0], [0.0, 1.0, 0.0],
+            [0.0, 0.0, 1.0], [1.0, 0.0, 1.0], [1.0, 1.0, 1.0], [0.0, 1.0, 1.0]
+        ], 1):
+            mp.CreateNewNode(i, *coords)
+        prop = mp.GetProperties()[0]
+        mp.CreateNewElement("Element3D8N", 1, list(range(1, 9)), prop)
+
+        clipped = pv_utils.CreateClippedMesh(mp, normal=[1.0, 0.0, 0.0], origin=[0.5, 0.5, 0.5])
+        self.assertIsInstance(clipped, pv.UnstructuredGrid)
+
 if __name__ == '__main__':
     KM.Logger.GetDefaultOutput().SetSeverity(KM.Logger.Severity.WARNING)
     KratosUnittest.main()
