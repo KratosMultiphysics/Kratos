@@ -93,6 +93,7 @@ def get_sheetpile_node_ids():
 
 def get_soil_side_node_ids_of_right_interfaces():
     return [
+        4757,
         4761,
         4762,
         4763,
