@@ -45,10 +45,12 @@ def _CreateUnstructuredGrid(modelPart, entities, useDeformedConfiguration, nodal
     if numNodes == 0:
         return pv.UnstructuredGrid()
 
-    # 1. Build points array
+    # 1. Build points array, id→index dict, and flat node-ID array for vectorised remapping
     points = np.zeros((numNodes, 3), dtype=np.float64)
     nodeIdToIdx = {}
+    nodeIdArr = np.empty(numNodes, dtype=np.int64)
     for idx, node in enumerate(modelPart.Nodes):
+        nodeIdArr[idx] = node.Id
         nodeIdToIdx[node.Id] = idx
         if useDeformedConfiguration:
             points[idx, 0] = node.X
@@ -59,27 +61,56 @@ def _CreateUnstructuredGrid(modelPart, entities, useDeformedConfiguration, nodal
             points[idx, 1] = node.Y0
             points[idx, 2] = node.Z0
 
+    # idToIdx[kratos_node_id] = 0-based point index, for O(1) vectorised lookup
+    maxNodeId = int(nodeIdArr.max())
+    idToIdx = np.empty(maxNodeId + 1, dtype=np.int32)
+    idToIdx[nodeIdArr] = np.arange(numNodes, dtype=np.int32)
+
     # 2. Build cells and cell types
-    cells = []
-    cellTypes = []
+    # Fast path: ConnectivityIdsTensorAdaptor fills a (N, K) numpy array of node IDs
+    # in parallel C++. Check() verifies uniform geometry; throws for mixed meshes.
+    cells = None
+    cellTypes = None
 
-    for entity in entities:
-        geom = entity.GetGeometry()
-        geomType = geom.GetGeometryType()
-        vtkType = GEOMETRY_TYPE_TO_VTK_CELL_TYPE.get(geomType)
+    firstGeomType = next(iter(entities)).GetGeometry().GetGeometryType()
+    firstVtkType = GEOMETRY_TYPE_TO_VTK_CELL_TYPE.get(firstGeomType)
+    if firstVtkType is not None:
+        try:
+            adaptor = KM.TensorAdaptors.ConnectivityIdsTensorAdaptor(entities)
+            adaptor.Check()
+            adaptor.CollectData()
+            nodeIds = adaptor.data  # shape (N, K): Kratos node IDs (1-based, int32)
+            N, K = nodeIds.shape
+            nodeIndices = idToIdx[nodeIds]  # vectorised remap to 0-based point indices
+            countCol = np.full((N, 1), K, dtype=np.int32)
+            cells = np.hstack([countCol, nodeIndices]).ravel().astype(np.int32)
+            cellTypes = np.full(N, firstVtkType, dtype=np.uint8)
+        except Exception:
+            pass  # mixed geometry or unsupported type; fall through to slow path
 
-        if vtkType is None:
-            continue
+    if cells is None:
+        # Slow path: mixed or unsupported geometry types
+        cellsList = []
+        cellTypesList = []
+        for entity in entities:
+            geom = entity.GetGeometry()
+            geomType = geom.GetGeometryType()
+            vtkType = GEOMETRY_TYPE_TO_VTK_CELL_TYPE.get(geomType)
+            if vtkType is None:
+                continue
+            cellNodes = [nodeIdToIdx[node.Id] for node in geom]
+            cellsList.append(len(cellNodes))
+            cellsList.extend(cellNodes)
+            cellTypesList.append(vtkType)
+        if len(cellsList) == 0:
+            return pv.UnstructuredGrid()
+        cells = np.array(cellsList, dtype=np.int32)
+        cellTypes = np.array(cellTypesList, dtype=np.uint8)
 
-        cellNodes = [nodeIdToIdx[node.Id] for node in geom]
-        cells.append(len(cellNodes))
-        cells.extend(cellNodes)
-        cellTypes.append(vtkType)
-
-    if len(cells) == 0:
+    if len(cellTypes) == 0:
         return pv.UnstructuredGrid()
 
-    grid = pv.UnstructuredGrid(np.array(cells, dtype=np.int32), np.array(cellTypes, dtype=np.uint8), points)
+    grid = pv.UnstructuredGrid(cells, cellTypes, points)
 
     # 3. Add point (nodal) variables
     for var in nodalVariables:
