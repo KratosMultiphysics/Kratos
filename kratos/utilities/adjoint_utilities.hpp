@@ -25,6 +25,7 @@
 namespace Kratos {
 
 
+/// @ingroup adjoints
 template <IAdjoint::ResidualTerm Term, class TEntity>
 requires (std::is_same_v<TEntity,Element> || std::is_same_v<TEntity,Condition>)
 class AdjointFiniteDifferenceUtility {

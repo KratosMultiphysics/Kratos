@@ -15,7 +15,6 @@
 // --- Kratos Core Includes ---
 #include "includes/kratos_export_api.h" // KRATOS_API
 #include "containers/variable_data.h" // VariableData
-#include "includes/dof.h" // Dof
 #include "includes/process_info.h" // ProcessInfo
 
 // --- STL Includes ---
@@ -27,6 +26,7 @@ namespace Kratos {
 
 
 /// @brief Basic interface for adjoint problems.
+/// @ingroup adjoints
 class KRATOS_API(KRATOS_CORE) IAdjoint {
 public:
     /// @brief An extension of @ref VariableData "kratos variables" with a runtime index.
@@ -152,6 +152,7 @@ public:
 ///          The derivatives are exposed as the derivatives of individual components
 ///          @f$F@f$, @f$M@f$, @f$D@f$ and @f$K@f$ because different @ref Scheme "time integration schemes"
 ///          may disregard specific components of the residual.
+/// @ingroup adjoints
 class KRATOS_API(KRATOS_CORE) IAdjointElement : public IAdjoint {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(IAdjointElement);
