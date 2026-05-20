@@ -86,28 +86,45 @@ public:
 
     void GetValue(std::vector<int>& rValue, const InfoType ValueType) const override
     {
-        rValue.clear();
+        rValue = mNodeIds;
     }
 
     void GetValue(int& rValue, const InfoType ValueType) const override
     {
-        rValue = 0;
+        rValue = static_cast<int>(mPairingIndex);
     }
 
     void GetValue(GeometryType& rValue, const InfoType ValueType) const override
     {
+        KRATOS_ERROR_IF_NOT(mpInterfaceObject)
+            << "BeamSplineMapperInterfaceInfo does not hold an interface object." << std::endl;
+        rValue = *(mpInterfaceObject->pGetBaseGeometry());
     }
 
     void GetValue(
-        MatrixType& rRotationMatrix_G_L,
+        MatrixType& rRotationMatrix_L_G,
         VectorType& rProjectionPointValue,
         VectorType& rLinearShapeValues,
         GeometryType& rGeometryValue) const
     {
+        KRATOS_ERROR_IF_NOT(mpInterfaceObject)
+            << "BeamSplineMapperInterfaceInfo does not hold an interface object." << std::endl;
+        KRATOS_ERROR_IF(mLinearShapeFunctionValues.size() != 2)
+            << "Expected two linear shape-function values for a 2-node beam, got "
+            << mLinearShapeFunctionValues.size() << "." << std::endl;
+
+        rRotationMatrix_G_L = mRotationMatrix_L_G;
+        rProjectionPointValue(0) = mProjectionOfPoint[0];
+        rProjectionPointValue(1) = mProjectionOfPoint[1];
+        rProjectionPointValue(2) = mProjectionOfPoint[2];
+        rLinearShapeValues(0) = mLinearShapeFunctionValues[0];
+        rLinearShapeValues(1) = mLinearShapeFunctionValues[1];
+        rGeometryValue = *(mpInterfaceObject->pGetBaseGeometry());
     }
 
     void ComputeRotationMatrixInterfaceObject()
     {
+        ComputeRotationMatrix();
     }
 
 private:
@@ -119,7 +136,7 @@ private:
     double mClosestProjectionDistance = std::numeric_limits<double>::max();
     ProjectionUtilities::PairingIndex mPairingIndex = ProjectionUtilities::PairingIndex::Unspecified;
     InterfaceObjectPointerType mpInterfaceObject;
-    MatrixType mRotationMatrix_G_L;
+    MatrixType mRotationMatrix_L_G;
 
     void SaveSearchResult(const InterfaceObject& rInterfaceObject, const bool ComputeApproximation);
 
