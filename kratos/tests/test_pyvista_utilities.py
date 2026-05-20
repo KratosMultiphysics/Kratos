@@ -49,10 +49,10 @@ class TestPyVistaUtilities(KratosUnittest.TestCase):
         mp.CreateNewElement("Element2D3N", 2, [2, 4, 3], prop)
 
         # 1. Test undeformed configuration
-        grid = pv_utils.model_part_to_pyvista(
+        grid = pv_utils.ModelPartToPyVista(
             mp,
-            use_deformed_configuration=False,
-            nodal_variables=[KM.PRESSURE, KM.DISPLACEMENT]
+            useDeformedConfiguration=False,
+            nodalVariables=[KM.PRESSURE, KM.DISPLACEMENT]
         )
 
         self.assertIsInstance(grid, pv.UnstructuredGrid)
@@ -83,10 +83,10 @@ class TestPyVistaUtilities(KratosUnittest.TestCase):
         self.assertTrue(np.allclose(grid.point_data["DISPLACEMENT"], expected_displacement))
 
         # 2. Test deformed configuration
-        grid_deformed = pv_utils.model_part_to_pyvista(
+        grid_deformed = pv_utils.ModelPartToPyVista(
             mp,
-            use_deformed_configuration=True,
-            nodal_variables=[KM.PRESSURE]
+            useDeformedConfiguration=True,
+            nodalVariables=[KM.PRESSURE]
         )
         expected_points_deformed = np.array([
             [0.5, 0.5, 0.0],
@@ -113,9 +113,9 @@ class TestPyVistaUtilities(KratosUnittest.TestCase):
         # Assign non-historical elemental variable
         elem.SetValue(KM.DENSITY, 7800.0)
 
-        grid = pv_utils.model_part_to_pyvista(
+        grid = pv_utils.ModelPartToPyVista(
             mp,
-            element_variables=[KM.DENSITY]
+            elementVariables=[KM.DENSITY]
         )
 
         self.assertIsInstance(grid, pv.UnstructuredGrid)
@@ -140,10 +140,10 @@ class TestPyVistaUtilities(KratosUnittest.TestCase):
         mp.CreateNewCondition("LineCondition2D2N", 1, [1, 2], prop)
 
         # Convert both
-        blocks = pv_utils.model_part_to_pyvista(
+        blocks = pv_utils.ModelPartToPyVista(
             mp,
-            export_elements=True,
-            export_conditions=True
+            exportElements=True,
+            exportConditions=True
         )
 
         self.assertIsInstance(blocks, pv.MultiBlock)
@@ -161,7 +161,7 @@ class TestPyVistaUtilities(KratosUnittest.TestCase):
         # Condition cell type VTK_LINE (3)
         self.assertEqual(cond_grid.celltypes[0], 3)
 
-    def test_save_model_part(self):
+    def test_SaveModelPart(self):
         mp = self.model.CreateModelPart("SavePart")
         mp.CreateNewNode(1, 0.0, 0.0, 0.0)
         mp.CreateNewNode(2, 1.0, 0.0, 0.0)
@@ -171,7 +171,7 @@ class TestPyVistaUtilities(KratosUnittest.TestCase):
 
         with tempfile.TemporaryDirectory() as tmp_dir:
             file_path = os.path.join(tmp_dir, "mesh.vtu")
-            pv_utils.save_model_part(mp, file_path)
+            pv_utils.SaveModelPart(mp, file_path)
             self.assertTrue(os.path.exists(file_path))
 
 if __name__ == '__main__':
