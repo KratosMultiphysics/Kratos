@@ -27,7 +27,6 @@ CALL :add_app %KRATOS_APP_DIR%\ConstitutiveLawsApplication;
 CALL :add_app %KRATOS_APP_DIR%\MeshingApplication;
 CALL :add_app %KRATOS_APP_DIR%\DemStructuresCouplingApplication;
 CALL :add_app %KRATOS_APP_DIR%\MeshMovingApplication;
-CALL :add_app %KRATOS_APP_DIR%\CSharpWrapperApplication;
 CALL :add_app %KRATOS_APP_DIR%\ShapeOptimizationApplication;
 CALL :add_app %KRATOS_APP_DIR%\CoSimulationApplication;
 CALL :add_app %KRATOS_APP_DIR%\CableNetApplication;
