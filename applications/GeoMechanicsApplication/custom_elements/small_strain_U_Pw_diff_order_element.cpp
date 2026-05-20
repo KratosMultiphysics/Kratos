@@ -573,6 +573,8 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
         std::fill_n(rOutput.begin(), number_of_integration_points, r_properties.GetValue(rVariable));
     } else if (rVariable == GEO_SHEAR_CAPACITY) {
         OutputUtilities::CalculateShearCapacityValues(mStressVector, rOutput.begin(), GetProperties());
+    } else if (rVariable == MOHR_COULOMB_YIELD_INDICATOR) {
+        OutputUtilities::CalculateMohrCoulombYieldFunctionValues(mStressVector, rOutput.begin(), GetProperties());
     } else {
         for (unsigned int integration_point = 0; integration_point < number_of_integration_points;
              ++integration_point) {

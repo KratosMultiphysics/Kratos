@@ -38,6 +38,7 @@ public:
     static double CalculateMeanStress(const Vector& rStressVector);
     static double CalculateLodeAngle(const Vector& rStressVector);
     static double CalculateMohrCoulombShearCapacity(const Vector& rStressVector, double C, double PhiInRadians);
+    static double CalculateMohrCoulombYieldFunction(const Vector& rStressVector, double C, double PhiInRadians);
     static double CalculateMohrCoulombPressureCapacity(const Vector& rStressVector, double C, double PhiInRadians);
     static double CalculateVonMisesStrain(const Vector& rStrainVector);
     static Vector CalculateHenckyStrain(const Matrix& rDeformationGradient, size_t VoigtSize);

@@ -423,6 +423,8 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const 
         });
     } else if (rVariable == GEO_SHEAR_CAPACITY) {
         OutputUtilities::CalculateShearCapacityValues(mStressVector, rOutput.begin(), r_properties);
+    } else if (rVariable == MOHR_COULOMB_YIELD_INDICATOR) {
+        OutputUtilities::CalculateMohrCoulombYieldFunctionValues(mStressVector, rOutput.begin(), r_properties);
     } else if (r_properties.Has(rVariable)) {
         // Map initial material property to gauss points, as required for the output
         std::fill_n(rOutput.begin(), number_of_integration_points, r_properties.GetValue(rVariable));

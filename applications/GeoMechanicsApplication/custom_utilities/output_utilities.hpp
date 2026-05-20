@@ -37,6 +37,19 @@ public:
         };
         std::ranges::transform(rStressVectors, Destination, calculate_shear_capacity);
     }
+
+    template <typename StressVectorContainer, typename OutputIter>
+    static void CalculateMohrCoulombYieldFunctionValues(const StressVectorContainer& rStressVectors,
+                                                        OutputIter                   Destination,
+                                                        const Properties&            rProperties)
+    {
+        const auto c = ConstitutiveLawUtilities::GetCohesion(rProperties);
+        const auto phi_in_radians = ConstitutiveLawUtilities::GetFrictionAngleInRadians(rProperties);
+        auto calculate_yield_function = [c, phi_in_radians](const auto& rStressVector) {
+            return StressStrainUtilities::CalculateMohrCoulombYieldFunction(rStressVector, c, phi_in_radians);
+        };
+        std::ranges::transform(rStressVectors, Destination, calculate_yield_function);
+    }
 };
 
 } // namespace Kratos
