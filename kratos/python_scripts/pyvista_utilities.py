@@ -452,7 +452,12 @@ def CreateVectorGlyphs(modelPart, vectorVariable, scaleFactor=1.0, glyphType="ar
     else:
         geom = pv.Arrow()
 
-    return grid.glyph(orient=varName, scale=varName, factor=scaleFactor, geom=geom)
+    glyphs = grid.glyph(orient=varName, scale=varName, factor=scaleFactor, geom=geom)
+    if 'GlyphVector' in glyphs.point_data:
+        glyphs.point_data[varName] = glyphs.point_data['GlyphVector']
+    if 'GlyphScale' in glyphs.point_data:
+        glyphs.point_data[varName + "_magnitude"] = glyphs.point_data['GlyphScale']
+    return glyphs
 
 
 def CreateClippedMesh(modelPart, normal=[0.0, 0.0, 1.0], origin=None, nodalVariables=[], elementVariables=[]):

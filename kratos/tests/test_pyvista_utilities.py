@@ -282,6 +282,8 @@ class TestPyVistaUtilities(KratosUnittest.TestCase):
 
         glyphs = pv_utils.CreateVectorGlyphs(mp, KM.VELOCITY, scaleFactor=0.5, glyphType="cone")
         self.assertIsInstance(glyphs, pv.PolyData)
+        self.assertIn("VELOCITY", glyphs.point_data)
+        self.assertIn("VELOCITY_magnitude", glyphs.point_data)
 
     def test_CreateClippedMesh(self):
         mp = self.model.CreateModelPart("ClipPart")
