@@ -948,7 +948,11 @@ void EnSightOutput::WriteNodalVariableToFile(
     const bool is_ensight_gold = mEnSightFileFormat == EnSightFileFormat::EnSightGold;
     const std::string label = is_ensight_gold ? "EnSightGold" : (mEnSightFileFormat == EnSightFileFormat::EnSight5 ? "EnSight5" : "EnSight6");
     const std::string type_label = GetTypeLabel(variable_type);
-    WriteString(var_file, "Per_node " + type_label + " values for the " + label + " geometry. Nodal variable: " + rVariableName);
+    // In binary mode, "C Binary" IS the sole description line that readers skip before "part" sections.
+    // Writing an additional description line would cause readers to mis-parse it as float data.
+    if (mFileFormat == FileFormat::ASCII) {
+        WriteString(var_file, "Per_node " + type_label + " values for the " + label + " geometry. Nodal variable: " + rVariableName);
+    }
 
     // For EnSightGold
     if (is_ensight_gold) {
@@ -1664,7 +1668,10 @@ void EnSightOutput::WriteNodalFlagToFile(
     const bool is_ensight_gold = mEnSightFileFormat == EnSightFileFormat::EnSightGold;
     const std::string label = is_ensight_gold ? "EnSightGold" : (mEnSightFileFormat == EnSightFileFormat::EnSight5 ? "EnSight5" : "EnSight6");
     const std::string type_label = GetTypeLabel(variable_type);
-    WriteString(var_file, "Per_node " + type_label + " values for the " + label + " geometry. Nodal variable: " + rFlagName);
+    // In binary mode, "C Binary" IS the sole description line that readers skip before "part" sections.
+    if (mFileFormat == FileFormat::ASCII) {
+        WriteString(var_file, "Per_node " + type_label + " values for the " + label + " geometry. Nodal variable: " + rFlagName);
+    }
 
     // Get flag
     const auto& r_flag = KratosComponents<Flags>::Get(rFlagName);
@@ -1740,7 +1747,10 @@ void EnSightOutput::WriteGeometricalVariableToFile(
     const std::string label = is_ensight_gold ? "EnSightGold" : (mEnSightFileFormat == EnSightFileFormat::EnSight5 ? "EnSight5" : "EnSight6");
     const std::string type_label = GetTypeLabel(variable_type);
     const std::string entity_label = IsElement ? "Elemental" : "Conditional";
-    WriteString(var_file, "Per_elem " + type_label + " values for the " + label + " geometry. " + entity_label + " variable: " + rVariableName);
+    // In binary mode, "C Binary" IS the sole description line that readers skip before "part" sections.
+    if (mFileFormat == FileFormat::ASCII) {
+        WriteString(var_file, "Per_elem " + type_label + " values for the " + label + " geometry. " + entity_label + " variable: " + rVariableName);
+    }
 
     /* EnSight5 / EnSight6 */
 
@@ -1865,6 +1875,9 @@ void EnSightOutput::WriteGeometricalVariableToFile(
     std::function<bool(unsigned int&)> check_counter = is_ensight_gold
         ? std::function<bool(unsigned int&)>(check_counter_ensight_gold)
         : std::function<bool(unsigned int&)>(check_counter_ensight_6);
+
+    // For binary mode: element IDs must precede element data when geometry uses 'element id given'
+    const bool write_element_ids_binary = (mFileFormat == FileFormat::BINARY) && !mOutputSettings["use_local_ids"].GetBool();
 
     // Write the geometrical data for the parts
     for (const auto& r_part_data : mPartDatas) {
@@ -2148,7 +2161,10 @@ void EnSightOutput::WriteGeometricalFlagToFile(
     const std::string label = is_ensight_gold ? "EnSightGold" : (mEnSightFileFormat == EnSightFileFormat::EnSight5 ? "EnSight5" : "EnSight6");
     const std::string type_label = GetTypeLabel(variable_type);
     const std::string entity_label = IsElement ? "Elemental" : "Conditional";
-    WriteString(var_file, "Per_elem " + type_label + " values for the " + label + " geometry. " + entity_label + " variable: " + rFlagName);
+    // In binary mode, "C Binary" IS the sole description line that readers skip before "part" sections.
+    if (mFileFormat == FileFormat::ASCII) {
+        WriteString(var_file, "Per_elem " + type_label + " values for the " + label + " geometry. " + entity_label + " variable: " + rFlagName);
+    }
 
     // Write lambda that check that the counter is 6 for ensight 5/6 and gold
     auto check_counter_ensight_6 = [](unsigned int& rCounter) -> bool {
@@ -2165,6 +2181,9 @@ void EnSightOutput::WriteGeometricalFlagToFile(
     std::function<bool(unsigned int&)> check_counter = is_ensight_gold
         ? std::function<bool(unsigned int&)>(check_counter_ensight_gold)
         : std::function<bool(unsigned int&)>(check_counter_ensight_6);
+
+    // For binary mode: element IDs must precede element data when geometry uses 'element id given'
+    const bool write_element_ids_binary = (mFileFormat == FileFormat::BINARY) && !mOutputSettings["use_local_ids"].GetBool();
 
     // Write the geometrical data for the parts
     for (const auto& r_part_data : mPartDatas) {
@@ -2242,7 +2261,10 @@ void EnSightOutput::WriteGeometricalGaussVariableToFile(
     const std::string label = is_ensight_gold ? "EnSightGold" : (mEnSightFileFormat == EnSightFileFormat::EnSight5 ? "EnSight5" : "EnSight6");
     const std::string type_label = GetTypeLabel(variable_type);
     const std::string entity_label = IsElement ? "Elemental" : "Conditional";
-    WriteString(var_file, "Per_elem " + type_label + " values for the " + label + " geometry. " + entity_label + " variable: " + rVariableName);
+    // In binary mode, "C Binary" IS the sole description line that readers skip before "part" sections.
+    if (mFileFormat == FileFormat::ASCII) {
+        WriteString(var_file, "Per_elem " + type_label + " values for the " + label + " geometry. " + entity_label + " variable: " + rVariableName);
+    }
 
     // Write lambda that check that the counter is 6 for ensight 5/6 and gold
     auto check_counter_ensight_6 = [](unsigned int& rCounter) -> bool {
@@ -2259,6 +2281,9 @@ void EnSightOutput::WriteGeometricalGaussVariableToFile(
     std::function<bool(unsigned int&)> check_counter = is_ensight_gold
         ? std::function<bool(unsigned int&)>(check_counter_ensight_gold)
         : std::function<bool(unsigned int&)>(check_counter_ensight_6);
+
+    // For binary mode: element IDs must precede element data when geometry uses 'element id given'
+    const bool write_element_ids_binary = (mFileFormat == FileFormat::BINARY) && !mOutputSettings["use_local_ids"].GetBool();
 
     // Write the geometrical data for the parts
     for (const auto& r_part_data : mPartDatas) {
