@@ -364,7 +364,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
                 data_series_collection.append(
                     plot_utils.DataSeries(
                         fem_comparison_variable,
-                        "Some commercial FE package",
+                        "Commercial FE package",
                         marker="3",
                     )
                 )
@@ -480,7 +480,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
                 data_series_collection.append(
                     plot_utils.DataSeries(
                         fem_comparison_variable,
-                        "Some commercial FE package",
+                        "Commercial FE package",
                         marker="3",
                     )
                 )
@@ -547,7 +547,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
                 data_series_collection.append(
                     plot_utils.DataSeries(
                         comparison_variable,
-                        "Some commercial FE package",
+                        "Commercial FE package",
                         marker="2",
                     )
                 )
