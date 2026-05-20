@@ -3,10 +3,12 @@ import math
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.MPMApplication as KratosMPM
-from KratosMultiphysics.MPMApplication.apply_body_forces_to_material_point_process import AssignBodyForcesToMaterialPointProcess
+from KratosMultiphysics.MPMApplication.assign_body_acceleration_to_material_point_process import (
+    AssignBodyAccelerationToMaterialPointProcess
+)
 
 
-class TestApplyBodyForcesToMaterialPointProcess(KratosUnittest.TestCase):
+class TestAssignBodyAccelerationToMaterialPointProcess(KratosUnittest.TestCase):
 
     def test_assigns_time_and_space_dependent_value_to_volume_acceleration(self):
         model = KratosMultiphysics.Model()
@@ -24,7 +26,7 @@ class TestApplyBodyForcesToMaterialPointProcess(KratosUnittest.TestCase):
             "value"           : ["2.0*t", "sin(t)", "x+y+t"]
         }""")
 
-        process = AssignBodyForcesToMaterialPointProcess(model, settings)
+        process = AssignBodyAccelerationToMaterialPointProcess(model, settings)
         process.ExecuteInitializeSolutionStep()
 
         mp_coord = element.CalculateOnIntegrationPoints(KratosMPM.MP_COORD, mp_model_part.ProcessInfo)[0]
@@ -52,7 +54,7 @@ class TestApplyBodyForcesToMaterialPointProcess(KratosUnittest.TestCase):
             "set_initial_mp_acceleration": true
         }""")
 
-        process = AssignBodyForcesToMaterialPointProcess(model, settings)
+        process = AssignBodyAccelerationToMaterialPointProcess(model, settings)
         process.ExecuteBeforeSolutionLoop()
 
         element = next(iter(mp_model_part.Elements))

@@ -7,10 +7,10 @@ def Factory(settings, Model):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     if not isinstance(Model, KratosMultiphysics.Model):
         raise Exception("expected input shall be a Model object")
-    return AssignBodyForcesToMaterialPointProcess(Model, settings["Parameters"])
+    return AssignBodyAccelerationToMaterialPointProcess(Model, settings["Parameters"])
 
 
-class AssignBodyForcesToMaterialPointProcess(KratosMultiphysics.Process):
+class AssignBodyAccelerationToMaterialPointProcess(KratosMultiphysics.Process):
     """Assigns a body acceleration field directly to material point elements."""
 
     @staticmethod
