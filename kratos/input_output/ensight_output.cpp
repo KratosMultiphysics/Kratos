@@ -1876,9 +1876,6 @@ void EnSightOutput::WriteGeometricalVariableToFile(
         ? std::function<bool(unsigned int&)>(check_counter_ensight_gold)
         : std::function<bool(unsigned int&)>(check_counter_ensight_6);
 
-    // For binary mode: element IDs must precede element data when geometry uses 'element id given'
-    const bool write_element_ids_binary = (mFileFormat == FileFormat::BINARY) && !mOutputSettings["use_local_ids"].GetBool();
-
     // Write the geometrical data for the parts
     for (const auto& r_part_data : mPartDatas) {
         // Check if the part is of the correct type (element or condition)
@@ -2182,9 +2179,6 @@ void EnSightOutput::WriteGeometricalFlagToFile(
         ? std::function<bool(unsigned int&)>(check_counter_ensight_gold)
         : std::function<bool(unsigned int&)>(check_counter_ensight_6);
 
-    // For binary mode: element IDs must precede element data when geometry uses 'element id given'
-    const bool write_element_ids_binary = (mFileFormat == FileFormat::BINARY) && !mOutputSettings["use_local_ids"].GetBool();
-
     // Write the geometrical data for the parts
     for (const auto& r_part_data : mPartDatas) {
         // Check if the part is of the correct type (element or condition)
@@ -2281,9 +2275,6 @@ void EnSightOutput::WriteGeometricalGaussVariableToFile(
     std::function<bool(unsigned int&)> check_counter = is_ensight_gold
         ? std::function<bool(unsigned int&)>(check_counter_ensight_gold)
         : std::function<bool(unsigned int&)>(check_counter_ensight_6);
-
-    // For binary mode: element IDs must precede element data when geometry uses 'element id given'
-    const bool write_element_ids_binary = (mFileFormat == FileFormat::BINARY) && !mOutputSettings["use_local_ids"].GetBool();
 
     // Write the geometrical data for the parts
     for (const auto& r_part_data : mPartDatas) {
