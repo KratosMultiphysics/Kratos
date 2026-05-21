@@ -1527,6 +1527,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         temp_functional_derivatives_wrt_design = self._ComputeFunctionalDerivativesFunctionalContribution()
         temp_functional_derivatives_wrt_design += self._ComputeFunctionalDerivativesPhysicsContribution()
         temp_functional_derivatives_wrt_design_projected = temp_functional_derivatives_wrt_design * self.design_parameter_projected_derivatives
+        self.MpiPrint("--|" + self.topology_optimization_stage_str + "| --> Apply Diffusive Filter for Derivatives: Functional")
         temp_functional_derivatives_wrt_design[mask] = self._ApplyDiffusiveFilterDerivative(temp_functional_derivatives_wrt_design_projected)
         return temp_functional_derivatives_wrt_design
 
@@ -2025,12 +2026,12 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         scalar_variable_in_opt_domain = scalar_variable[self._GetOptimizationDomainNodesMask()]
         if self.apply_diffusive_filter:
             if (self.diffusive_filter_type == "pde"):
-                self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ----> PDE Filter for Design Parameter")
+                self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ----> PDE Filter for Design Parameter", min_echo=2)
                 self._InitializePdeDiffusiveFilterExecution(scalar_variable)
                 self.pde_diffusive_filter_process.Execute()
                 return self._FinalizePdeDiffusiveFilterExecution()
             else:
-                self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ----> Discrete Filter for Design Parameter")
+                self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ----> Discrete Filter for Design Parameter", min_echo=2)
                 return (self.nodes_connectivity_matrix @ scalar_variable_in_opt_domain)
         else:
             return scalar_variable_in_opt_domain
@@ -2045,12 +2046,12 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         scalar_variable_derivative_in_opt_domain = scalar_variable_derivative[self._GetOptimizationDomainNodesMask()]
         if self.apply_diffusive_filter:
             if (self.diffusive_filter_type == "pde"):
-                self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ----> PDE Filter for Functional Derivative")
+                self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ----> PDE Filter for Design Parameter Derivatives", min_echo=2)
                 self._InitializePdeDiffusiveFilterExecution(scalar_variable_derivative)
                 self.pde_diffusive_filter_process.Execute()
                 return self._FinalizePdeDiffusiveFilterExecution()
             else:
-                self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ----> Discrete Filter for Functional Derivative")
+                self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ----> Discrete Filter for Design Parameter Derivatives", min_echo=2)
                 return self.nodes_connectivity_matrix_for_derivatives @ scalar_variable_derivative_in_opt_domain
         else:
             return scalar_variable_derivative_in_opt_domain
@@ -2672,6 +2673,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         self.volume_constraint = self.volume_fraction - self.max_volume_fraction
         volume_constraint_derivatives_wrt_design_projected = volume_constraint_derivatives_wrt_design_base * self.design_parameter_projected_derivatives
         self.constraints[self.volume_constraint_id] = self.volume_constraint
+        self.MpiPrint("--|" + self.topology_optimization_stage_str + "| --> Apply Diffusive Filter for Derivatives: Volume Constraint")
         self.constraints_derivatives_wrt_design[self.volume_constraint_id,:] = self._ApplyDiffusiveFilterDerivative(volume_constraint_derivatives_wrt_design_projected)
 
     def EvaluateDesignParameterIntegralInOptimizationDomain(self):
