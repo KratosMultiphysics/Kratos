@@ -103,31 +103,94 @@ public:
         KRATOS_ERROR_IF(first_valid_index >= nelements)
             << "BDF2HigherOrderVMSScheme: no 2D/3D elements found to use as reference." << std::endl;
 
-        const auto& r_reference_geometry = (el_begin + first_valid_index)->GetGeometry();
-        const unsigned int gauss_point_per_knot_span = r_reference_geometry.size();
-        const unsigned int number_of_control_points = r_reference_geometry.size();
-        const unsigned int reference_dim = r_reference_geometry.LocalSpaceDimension();
-        const unsigned int reference_basis_order =
-            (reference_dim == 3)
-                ? static_cast<unsigned int>(std::cbrt(number_of_control_points) - 1.0)
-                : static_cast<unsigned int>(std::sqrt(number_of_control_points) - 1.0);
-
-        if (reference_basis_order <= 1) {
-            return;
-        }
-
-        const unsigned int stress_size = (reference_dim == 3) ? 6 : 3;
-        Matrix collected_stress(gauss_point_per_knot_span, stress_size);
-        Matrix collected_shape_functions(gauss_point_per_knot_span, number_of_control_points);
-        Matrix collected_shape_functions_dx(gauss_point_per_knot_span, number_of_control_points);
-        Matrix collected_shape_functions_dy(gauss_point_per_knot_span, number_of_control_points);
+        Matrix collected_stress;
+        Matrix collected_shape_functions;
+        Matrix collected_shape_functions_dx;
+        Matrix collected_shape_functions_dy;
         Matrix collected_shape_functions_dz;
-        if (reference_dim == 3) {
-            collected_shape_functions_dz.resize(gauss_point_per_knot_span, number_of_control_points, false);
-        }
         std::vector<Element*> collected_elements;
-        collected_elements.reserve(gauss_point_per_knot_span);
         unsigned int collected_count = 0;
+        unsigned int current_block_size = 0;
+        unsigned int current_control_point_count = 0;
+        unsigned int current_dim = 0;
+        bool has_open_block = false;
+
+        auto initialize_block = [&](
+            const unsigned int BlockSize,
+            const unsigned int ControlPointCount,
+            const unsigned int Dim)
+        {
+            current_block_size = BlockSize;
+            current_control_point_count = ControlPointCount;
+            current_dim = Dim;
+
+            const unsigned int stress_size = (Dim == 3) ? 6 : 3;
+            collected_stress.resize(BlockSize, stress_size, false);
+            collected_shape_functions.resize(BlockSize, ControlPointCount, false);
+            collected_shape_functions_dx.resize(BlockSize, ControlPointCount, false);
+            collected_shape_functions_dy.resize(BlockSize, ControlPointCount, false);
+            if (Dim == 3) {
+                collected_shape_functions_dz.resize(BlockSize, ControlPointCount, false);
+            }
+
+            collected_elements.clear();
+            collected_elements.reserve(BlockSize);
+            collected_count = 0;
+            has_open_block = true;
+        };
+
+        auto finalize_block = [&]()
+        {
+            KRATOS_ERROR_IF_NOT(has_open_block)
+                << "BDF2HigherOrderVMSScheme: trying to finalize a non-existing higher-order block."
+                << std::endl;
+            KRATOS_ERROR_IF(collected_count != current_block_size)
+                << "BDF2HigherOrderVMSScheme: collected " << collected_count
+                << " active elements for a higher-order block that requires "
+                << current_block_size << " elements." << std::endl;
+
+            ComputeDivSigmaUtility div_sigma_utility;
+            Matrix collected_divergence;
+
+            if (current_dim == 3) {
+                collected_divergence = div_sigma_utility.ComputeDivergence(
+                    collected_stress,
+                    collected_shape_functions,
+                    collected_shape_functions_dx,
+                    collected_shape_functions_dy,
+                    collected_shape_functions_dz);
+            } else {
+                collected_divergence = div_sigma_utility.ComputeDivergence(
+                    collected_stress,
+                    collected_shape_functions,
+                    collected_shape_functions_dx,
+                    collected_shape_functions_dy);
+            }
+
+            KRATOS_ERROR_IF(collected_divergence.size1() != collected_elements.size())
+                << "BDF2HigherOrderVMSScheme: divergence recovery size mismatch. Got "
+                << collected_divergence.size1() << " values for "
+                << collected_elements.size() << " collected elements." << std::endl;
+            KRATOS_ERROR_IF(collected_divergence.size2() != current_dim)
+                << "BDF2HigherOrderVMSScheme: divergence recovery component mismatch. Got "
+                << collected_divergence.size2() << " values for dimension " << current_dim << "."
+                << std::endl;
+
+            for (size_t i = 0; i < collected_elements.size(); ++i) {
+                Vector divergence_value(current_dim);
+                for (unsigned int d = 0; d < current_dim; ++d) {
+                    divergence_value[d] = collected_divergence(i, d);
+                }
+                collected_elements[i]->SetValue(r_divergence_stress_variable, divergence_value);
+            }
+
+            collected_elements.clear();
+            collected_count = 0;
+            current_block_size = 0;
+            current_control_point_count = 0;
+            current_dim = 0;
+            has_open_block = false;
+        };
 
         // Iterate over all elements, skipping any with LocalSpaceDimension()==1
         for (int k = first_valid_index; k < nelements; ++k) {
@@ -139,8 +202,35 @@ public:
             const unsigned int gauss_point_per_knot_span = (it_elem)->GetGeometry().size();
             const unsigned int number_of_control_points  = (it_elem)->GetGeometry().size();
             const unsigned int elem_dim = it_elem->GetGeometry().LocalSpaceDimension();
+            const unsigned int linear_control_point_count = (elem_dim == 3) ? 8u : 4u;
 
             if (it_elem->IsActive()) {
+                if (number_of_control_points <= linear_control_point_count) {
+                    KRATOS_ERROR_IF(has_open_block && collected_count != 0)
+                        << "BDF2HigherOrderVMSScheme: encountered linear element " << it_elem->Id()
+                        << " while a higher-order block with " << current_block_size
+                        << " elements is still incomplete (" << collected_count << " collected)."
+                        << std::endl;
+                    continue;
+                }
+
+                if (!has_open_block) {
+                    initialize_block(gauss_point_per_knot_span, number_of_control_points, elem_dim);
+                } else {
+                    KRATOS_ERROR_IF(elem_dim != current_dim)
+                        << "BDF2HigherOrderVMSScheme: mixed element dimensions are not supported." << std::endl;
+                    KRATOS_ERROR_IF(gauss_point_per_knot_span != current_block_size)
+                        << "BDF2HigherOrderVMSScheme: encountered element " << it_elem->Id()
+                        << " with knot-span size " << gauss_point_per_knot_span
+                        << " while the current higher-order block expects " << current_block_size << "."
+                        << std::endl;
+                    KRATOS_ERROR_IF(number_of_control_points != current_control_point_count)
+                        << "BDF2HigherOrderVMSScheme: encountered element " << it_elem->Id()
+                        << " with " << number_of_control_points
+                        << " control points while the current higher-order block expects "
+                        << current_control_point_count << "." << std::endl;
+                }
+
                 std::vector<Vector> stress_vector;
                 it_elem->CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, stress_vector, CurrentProcessInfo);
                 KRATOS_ERROR_IF(stress_vector.empty())
@@ -150,14 +240,9 @@ public:
                     << "BDF2HigherOrderVMSScheme: element " << it_elem->Id()
                     << " returned CAUCHY_STRESS_VECTOR of size " << stress_vector[0].size()
                     << " for dimension " << elem_dim << "." << std::endl;
-                KRATOS_ERROR_IF(elem_dim != reference_dim)
-                    << "BDF2HigherOrderVMSScheme: mixed element dimensions are not supported." << std::endl;
-                KRATOS_ERROR_IF(gauss_point_per_knot_span != collected_stress.size1())
-                    << "BDF2HigherOrderVMSScheme: inconsistent knot-span size." << std::endl;
-                KRATOS_ERROR_IF(number_of_control_points != collected_shape_functions.size2())
-                    << "BDF2HigherOrderVMSScheme: inconsistent number of control points." << std::endl;
 
                 const unsigned int row_index = collected_count;
+                const unsigned int stress_size = (elem_dim == 3) ? 6 : 3;
                 for (std::size_t s = 0; s < stress_size; ++s) {
                     collected_stress(row_index, s) = stress_vector[0][s];
                 }
@@ -185,47 +270,7 @@ public:
 
                 // When the Gauss points are collected, call the utility and reset the containers
                 if (collected_count == gauss_point_per_knot_span) {
-                    // Call the utility passing the data of the GPs of the current knot span
-                    ComputeDivSigmaUtility div_sigma_utility;
-                    Matrix collected_divergence;
-
-                    if (elem_dim == 3) {
-                        collected_divergence = div_sigma_utility.ComputeDivergence(
-                            collected_stress,
-                            collected_shape_functions,
-                            collected_shape_functions_dx,
-                            collected_shape_functions_dy,
-                            collected_shape_functions_dz);
-                    } else {
-                        collected_divergence = div_sigma_utility.ComputeDivergence(
-                            collected_stress,
-                            collected_shape_functions,
-                            collected_shape_functions_dx,
-                            collected_shape_functions_dy);
-                    }
-
-                    KRATOS_ERROR_IF(collected_divergence.size1() != collected_elements.size())
-                        << "BDF2HigherOrderVMSScheme: divergence recovery size mismatch. Got "
-                        << collected_divergence.size1() << " values for "
-                        << collected_elements.size() << " collected elements." << std::endl;
-                    KRATOS_ERROR_IF(collected_divergence.size2() != elem_dim)
-                        << "BDF2HigherOrderVMSScheme: divergence recovery component mismatch. Got "
-                        << collected_divergence.size2() << " values for dimension " << elem_dim << "."
-                        << std::endl;
-
-                    // setValue of DIVERGENCE(SIGMA) to the Gauss Point
-                    for (size_t i = 0; i < collected_elements.size(); ++i) {
-                        Vector divergence_value(elem_dim);
-                        for (unsigned int d = 0; d < elem_dim; ++d) {
-                            divergence_value[d] = collected_divergence(i, d);
-                        }
-
-                        collected_elements[i]->SetValue(r_divergence_stress_variable, divergence_value);
-                    }
-
-                    // Reset the collections for the next set of gauss points
-                    collected_elements.clear();
-                    collected_count = 0;
+                    finalize_block();
                 }
             }
         }
@@ -233,7 +278,7 @@ public:
         KRATOS_ERROR_IF(collected_count != 0)
             << "BDF2HigherOrderVMSScheme: collected " << collected_count
             << " active non-1D elements that do not complete a knot-span block of size "
-            << gauss_point_per_knot_span << '.' << std::endl;
+            << current_block_size << '.' << std::endl;
     }
 };
 

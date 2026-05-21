@@ -463,23 +463,26 @@ private:
         auto p_curve_3 = Kratos::make_shared<NurbsCurveGeometry<2, PointerVector<Point>>>(segment3, p, knot_vector);
         auto p_curve_4 = Kratos::make_shared<NurbsCurveGeometry<2, PointerVector<Point>>>(segment4, p, knot_vector);
         
-        auto brep_curve_on_surface = BrepCurveOnSurface< PointerVector<TNodeType>, true, PointerVector<Point>>(pSurfaceGeometry, p_curve_1);
-        auto p_brep_curve_on_surface = Kratos::make_shared<BrepCurveOnSurfaceType>(pSurfaceGeometry, p_curve_1);
+        using BodyFittedBrepCurveOnSurfaceType =
+            BrepCurveOnSurface<PointerVector<TNodeType>, false, PointerVector<Point>>;
+
+        auto brep_curve_on_surface = BodyFittedBrepCurveOnSurfaceType(pSurfaceGeometry, p_curve_1);
+        auto p_brep_curve_on_surface = Kratos::make_shared<BodyFittedBrepCurveOnSurfaceType>(pSurfaceGeometry, p_curve_1);
         p_brep_curve_on_surface->SetId(rLastGeometryId);
         rModelPart.AddGeometry(p_brep_curve_on_surface);
         
-        brep_curve_on_surface = BrepCurveOnSurface< PointerVector<TNodeType>, true, PointerVector<Point>>(pSurfaceGeometry, p_curve_2);
-        p_brep_curve_on_surface = Kratos::make_shared<BrepCurveOnSurfaceType>(pSurfaceGeometry, p_curve_2);
+        brep_curve_on_surface = BodyFittedBrepCurveOnSurfaceType(pSurfaceGeometry, p_curve_2);
+        p_brep_curve_on_surface = Kratos::make_shared<BodyFittedBrepCurveOnSurfaceType>(pSurfaceGeometry, p_curve_2);
         p_brep_curve_on_surface->SetId(++rLastGeometryId);
         rModelPart.AddGeometry(p_brep_curve_on_surface);
 
-        brep_curve_on_surface = BrepCurveOnSurface< PointerVector<TNodeType>, true, PointerVector<Point>>(pSurfaceGeometry, p_curve_3);
-        p_brep_curve_on_surface = Kratos::make_shared<BrepCurveOnSurfaceType>(pSurfaceGeometry, p_curve_3);
+        brep_curve_on_surface = BodyFittedBrepCurveOnSurfaceType(pSurfaceGeometry, p_curve_3);
+        p_brep_curve_on_surface = Kratos::make_shared<BodyFittedBrepCurveOnSurfaceType>(pSurfaceGeometry, p_curve_3);
         p_brep_curve_on_surface->SetId(++rLastGeometryId);
         rModelPart.AddGeometry(p_brep_curve_on_surface);
         
-        brep_curve_on_surface = BrepCurveOnSurface< PointerVector<TNodeType>, true, PointerVector<Point>>(pSurfaceGeometry, p_curve_4);
-        p_brep_curve_on_surface = Kratos::make_shared<BrepCurveOnSurfaceType>(pSurfaceGeometry, p_curve_4);
+        brep_curve_on_surface = BodyFittedBrepCurveOnSurfaceType(pSurfaceGeometry, p_curve_4);
+        p_brep_curve_on_surface = Kratos::make_shared<BodyFittedBrepCurveOnSurfaceType>(pSurfaceGeometry, p_curve_4);
         p_brep_curve_on_surface->SetId(++rLastGeometryId);
         rModelPart.AddGeometry(p_brep_curve_on_surface);
 

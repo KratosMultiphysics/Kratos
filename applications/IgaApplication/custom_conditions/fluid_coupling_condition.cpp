@@ -184,7 +184,7 @@ void FluidCouplingCondition::CalculateLeftHandSide(
     r_patch_A.Calculate(LOCAL_TANGENT, tangent_patch_A);
     Vector determinant_factor_patch_A = prod(jacobian_patch_A, tangent_patch_A);
     determinant_factor_patch_A[2] = 0.0;
-    const double detJ_patch_A = norm_2(determinant_factor_patch_A);
+    const double detJ_patch_A = norm_2(determinant_factor_patch_A); // always = 1
     KRATOS_ERROR_IF(detJ_patch_A <= std::numeric_limits<double>::epsilon())
         << "FluidCouplingCondition: degenerate Jacobian for patch A (determinant ~ 0)." << std::endl;
     const double weight = integration_points_patch_A[0].Weight() * detJ_patch_A;

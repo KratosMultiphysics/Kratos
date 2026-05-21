@@ -156,8 +156,10 @@ namespace Kratos
             rIntersectionParameters.push_back(Start);
 
             // linearise polygon
+            // The polygonal approximation must be fine enough to avoid crossing
+            // multiple surface knot spans in one tessellated segment.
             const auto polygon = CurveTesselationType::ComputePolygon(
-                rGeometry, 100, Start, End);
+                rGeometry, 10991, Start, End);
 
             KRATOS_ERROR_IF(rAxis1.size() < 2)
                 << "Size of axis vector 1 is: " << rAxis1.size() << ". It needs to be at least of size 2. "
