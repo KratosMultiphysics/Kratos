@@ -11,6 +11,7 @@
 // System includes
 #include <array>
 #include <limits>
+#include <vector>
 
 // Project includes
 #include "custom_conditions/stabilization_penalty_condition_3p.h"
@@ -31,17 +32,17 @@ namespace Kratos
         const double stabilization_translation_factor =
             GetProperties()[STABILIZATION_TRANSLATION_FACTOR];
 
-        const double initial_distance_to_first_stable_point =
-            GetProperties()[INITIAL_DISTANCE_TO_FIRST_STABLE_POINT];
-
-        const double initial_distance_first_to_second_stable_point =
-            GetProperties()[INITIAL_DISTANCE_FIRST_TO_SECOND_STABLE_POINT];
-
         auto& r_geometry = GetGeometry();
         const SizeType number_of_nodes = r_geometry.size();
 
-        KRATOS_ERROR_IF(number_of_nodes != 3)
-            << "StabilizationPenaltyCondition3P requires exactly 3 nodes [A, R1, R2]." << std::endl;
+        KRATOS_ERROR_IF(number_of_nodes < 3 || number_of_nodes % 2 == 0)
+            << "StabilizationPenaltyCondition3P requires node ordering "
+            << "[A, R1_1, R2_1, ..., R1_nd, R2_nd], "
+            << "therefore the number of nodes must be odd and >= 3. Got "
+            << number_of_nodes << std::endl;
+
+        const SizeType number_of_directions = (number_of_nodes - 1) / 2;
+        const double inv_nd = 1.0 / static_cast<double>(number_of_directions);
 
         const SizeType mat_size = 3 * number_of_nodes;
 
@@ -59,15 +60,54 @@ namespace Kratos
             noalias(rRightHandSideVector) = ZeroVector(mat_size);
         }
 
-        KRATOS_ERROR_IF(initial_distance_first_to_second_stable_point <= std::numeric_limits<double>::epsilon())
-            << "INITIAL_DISTANCE_FIRST_TO_SECOND_STABLE_POINT must be > 0.0" << std::endl;
+        // node 0 = A
+        // nodes 1,2 = R1_1, R2_1
+        // nodes 3,4 = R1_2, R2_2
+        // ...
+        std::vector<double> c_t(number_of_nodes, 0.0);
+        c_t[0] = 1.0;
 
-        const double r = initial_distance_to_first_stable_point /
-                         initial_distance_first_to_second_stable_point;
+        array_1d<double, 3> XA;
+        XA[0] = r_geometry[0].X0();
+        XA[1] = r_geometry[0].Y0();
+        XA[2] = r_geometry[0].Z0();
 
-        // node order must be [A, R1, R2]
-        // g_t = u_A - (1+r) u_R1 + r u_R2
-        const std::array<double, 3> c_t{{1.0, -(1.0 + r), r}};
+        for (SizeType k = 0; k < number_of_directions; ++k) {
+            const SizeType iR1 = 1 + 2 * k;
+            const SizeType iR2 = 2 + 2 * k;
+
+            array_1d<double, 3> XR1;
+            array_1d<double, 3> XR2;
+
+            XR1[0] = r_geometry[iR1].X0();
+            XR1[1] = r_geometry[iR1].Y0();
+            XR1[2] = r_geometry[iR1].Z0();
+
+            XR2[0] = r_geometry[iR2].X0();
+            XR2[1] = r_geometry[iR2].Y0();
+            XR2[2] = r_geometry[iR2].Z0();
+
+            array_1d<double, 3> dA1;
+            array_1d<double, 3> d12;
+
+            for (IndexType d = 0; d < 3; ++d) {
+                dA1[d] = XA[d] - XR1[d];
+                d12[d] = XR1[d] - XR2[d];
+            }
+
+            const double L1  = norm_2(dA1);
+            const double L12 = norm_2(d12);
+
+            KRATOS_ERROR_IF(L12 <= std::numeric_limits<double>::epsilon())
+                << "Distance L12 must be > 0.0 for direction " << k
+                << " in StabilizationPenaltyCondition3P" << std::endl;
+
+            const double r = L1 / L12;
+
+            // g_t = u_A - (1/n_d) * sum_k [ (1+r_k) u_R1,k - r_k u_R2,k ]
+            c_t[iR1] += -(1.0 + r) * inv_nd;
+            c_t[iR2] +=  (r)       * inv_nd;
+        }
 
         array_1d<double, 3> g_t = ZeroVector(3);
 
@@ -81,6 +121,7 @@ namespace Kratos
         }
 
         const double gt_norm = norm_2(g_t);
+        KRATOS_WATCH(number_of_directions)
         KRATOS_WATCH(gt_norm)
 
         // K = beta_t * (dg/dd)^T * (dg/dd)
@@ -98,10 +139,6 @@ namespace Kratos
                     }
                 }
             }
-
-            KRATOS_WATCH(rLeftHandSideMatrix(0,0))
-            KRATOS_WATCH(rLeftHandSideMatrix(0,3))
-            KRATOS_WATCH(rLeftHandSideMatrix(0,6))
         }
 
         // RHS = - beta_t * (dg/dd)^T * g_t
@@ -159,14 +196,13 @@ namespace Kratos
         KRATOS_ERROR_IF_NOT(GetProperties().Has(STABILIZATION_TRANSLATION_FACTOR))
             << "Missing STABILIZATION_TRANSLATION_FACTOR in property of StabilizationPenaltyCondition3P" << std::endl;
 
-        KRATOS_ERROR_IF_NOT(GetProperties().Has(INITIAL_DISTANCE_TO_FIRST_STABLE_POINT))
-            << "Missing INITIAL_DISTANCE_TO_FIRST_STABLE_POINT in property of StabilizationPenaltyCondition3P" << std::endl;
+        const SizeType number_of_nodes = GetGeometry().size();
 
-        KRATOS_ERROR_IF_NOT(GetProperties().Has(INITIAL_DISTANCE_FIRST_TO_SECOND_STABLE_POINT))
-            << "Missing INITIAL_DISTANCE_FIRST_TO_SECOND_STABLE_POINT in property of StabilizationPenaltyCondition3P" << std::endl;
-
-        KRATOS_ERROR_IF(GetGeometry().size() != 3)
-            << "StabilizationPenaltyCondition3P requires exactly 3 nodes [A, R1, R2]." << std::endl;
+        KRATOS_ERROR_IF(number_of_nodes < 3 || number_of_nodes % 2 == 0)
+            << "StabilizationPenaltyCondition3P requires node ordering "
+            << "[A, R1_1, R2_1, ..., R1_nd, R2_nd], "
+            << "therefore the number of nodes must be odd and >= 3. Got "
+            << number_of_nodes << std::endl;
 
         return 0;
     }
