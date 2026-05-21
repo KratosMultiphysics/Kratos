@@ -56,11 +56,13 @@ namespace Kratos {
 
 
 // "Hey compiler trust me, my arrays are aligned so try vectorizing my loops over them."
-#if defined(__GNUC__) || defined(__clang__)
+// Note: Intel LLVM (icx-cl) defines __clang__ but __builtin_assume_aligned triggers an ICE
+// in its clang frontend, so we exclude it via __INTEL_LLVM_COMPILER.
+#if (defined(__GNUC__) || defined(__clang__)) && !defined(__INTEL_LLVM_COMPILER)
 #define KRATOS_GET_ALIGNED_INDEX_ARRAY(POINTER_TYPE, POINTER_NAME, POINTER_VALUE)                                                   \
     POINTER_TYPE __restrict POINTER_NAME = (POINTER_TYPE) __builtin_assume_aligned(POINTER_VALUE, CHAR_BIT * sizeof(POINTER_TYPE));
 #else
-// Someone can figure out how to encourage AVX on MSVC, I won't.
+// Someone can figure out how to encourage AVX on MSVC/Intel LLVM, I won't.
 #define KRATOS_GET_ALIGNED_INDEX_ARRAY(POINTER_TYPE, POINTER_NAME, POINTER_VALUE)   \
     POINTER_TYPE POINTER_NAME = POINTER_VALUE;
 #endif
