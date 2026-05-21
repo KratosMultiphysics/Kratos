@@ -10,12 +10,7 @@
 //  Main authors:
 //
 
-#ifndef ADJOINT_RESPONSE_FUNCTION_H
-#define ADJOINT_RESPONSE_FUNCTION_H
-
-// System includes
-
-// External includes
+#pragma once
 
 // Project includes
 #include "includes/define.h"
@@ -25,57 +20,29 @@
 #include "includes/ublas_interface.h"
 #include "containers/array_1d.h"
 #include "containers/variable.h"
+#include "includes/adjoint_interface.hpp"
 
 
-// Application includes
+namespace Kratos {
 
-namespace Kratos
-{
-///@name Kratos Classes
-///@{
 
 /// A base class for adjoint response functions.
-class AdjointResponseFunction
-{
+class AdjointResponseFunction : public IAdjoint {
 public:
-    ///@name Type Definitions
-    ///@{
-
     KRATOS_CLASS_POINTER_DEFINITION(AdjointResponseFunction);
 
-    ///@}
-    ///@name Life Cycle
-    ///@{
+    AdjointResponseFunction() noexcept = default;
 
-    /// Constructor.
-    AdjointResponseFunction()
-    {
-    }
+    virtual ~AdjointResponseFunction() = default;
 
-    /// Destructor.
-    virtual ~AdjointResponseFunction()
-    {
-    }
-
-    ///@}
-    ///@name Operators
-    ///@{
-
-    ///@}
     ///@name Operations
     ///@{
 
-    virtual void Initialize()
-    {
-    }
+    virtual void Initialize() {}
 
-    virtual void InitializeSolutionStep()
-    {
-    }
+    virtual void InitializeSolutionStep() {}
 
-    virtual void FinalizeSolutionStep()
-    {
-    }
+    virtual void FinalizeSolutionStep() {}
 
     /// Calculate the local gradient w.r.t. primal solution.
     /**
@@ -88,9 +55,8 @@ public:
     virtual void CalculateGradient(const Element& rAdjointElement,
                                    const Matrix& rResidualGradient,
                                    Vector& rResponseGradient,
-                                   const ProcessInfo& rProcessInfo)
-    {
-        KRATOS_ERROR << "Calling base class response function method.\n";
+                                   const ProcessInfo& rProcessInfo) {
+        KRATOS_ERROR << KRATOS_CODE_LOCATION.CleanFunctionName() << " is not implemented";
     }
 
     /// Calculate the local gradient w.r.t. primal solution.
@@ -104,9 +70,8 @@ public:
     virtual void CalculateGradient(const Condition& rAdjointCondition,
                                    const Matrix& rResidualGradient,
                                    Vector& rResponseGradient,
-                                   const ProcessInfo& rProcessInfo)
-    {
-        KRATOS_ERROR << "Calling base class response function method.\n";
+                                   const ProcessInfo& rProcessInfo) {
+        KRATOS_ERROR << KRATOS_CODE_LOCATION.CleanFunctionName() << " is not implemented";
     }
 
     /// Calculate the local gradient w.r.t. first derivatives of primal solution.
@@ -120,9 +85,8 @@ public:
     virtual void CalculateFirstDerivativesGradient(const Element& rAdjointElement,
                                                    const Matrix& rResidualGradient,
                                                    Vector& rResponseGradient,
-                                                   const ProcessInfo& rProcessInfo)
-    {
-        KRATOS_ERROR << "Calling base class response function method.\n";
+                                                   const ProcessInfo& rProcessInfo) {
+        KRATOS_ERROR << KRATOS_CODE_LOCATION.CleanFunctionName() << " is not implemented";
     }
 
     /// Calculate the local gradient w.r.t. first derivatives of primal solution.
@@ -136,9 +100,8 @@ public:
     virtual void CalculateFirstDerivativesGradient(const Condition& rAdjointCondition,
                                                    const Matrix& rResidualGradient,
                                                    Vector& rResponseGradient,
-                                                   const ProcessInfo& rProcessInfo)
-    {
-        KRATOS_ERROR << "Calling base class response function method.\n";
+                                                   const ProcessInfo& rProcessInfo) {
+        KRATOS_ERROR << KRATOS_CODE_LOCATION.CleanFunctionName() << " is not implemented";
     }
 
     /// Calculate the local gradient w.r.t. second derivatives of primal solution.
@@ -152,9 +115,8 @@ public:
     virtual void CalculateSecondDerivativesGradient(const Element& rAdjointElement,
                                                     const Matrix& rResidualGradient,
                                                     Vector& rResponseGradient,
-                                                    const ProcessInfo& rProcessInfo)
-    {
-        KRATOS_ERROR << "Calling base class response function method.\n";
+                                                    const ProcessInfo& rProcessInfo) {
+        KRATOS_ERROR << KRATOS_CODE_LOCATION.CleanFunctionName() << " is not implemented";
     }
 
     /// Calculate the local gradient w.r.t. second derivatives of primal solution.
@@ -168,9 +130,8 @@ public:
     virtual void CalculateSecondDerivativesGradient(const Condition& rAdjointCondition,
                                                     const Matrix& rResidualGradient,
                                                     Vector& rResponseGradient,
-                                                    const ProcessInfo& rProcessInfo)
-    {
-        KRATOS_ERROR << "Calling base class response function method.\n";
+                                                    const ProcessInfo& rProcessInfo) {
+        KRATOS_ERROR << KRATOS_CODE_LOCATION.CleanFunctionName() << " is not implemented";
     }
 
     /// Calculate the partial sensitivity w.r.t. design variable.
@@ -186,9 +147,8 @@ public:
                                              const Variable<double>& rVariable,
                                              const Matrix& rSensitivityMatrix,
                                              Vector& rSensitivityGradient,
-                                             const ProcessInfo& rProcessInfo)
-    {
-        KRATOS_ERROR << "Calling base class response function method.\n";
+                                             const ProcessInfo& rProcessInfo) {
+        KRATOS_ERROR << KRATOS_CODE_LOCATION.CleanFunctionName() << " is not implemented";
     }
 
     /// Calculate the partial sensitivity w.r.t. design variable.
@@ -204,9 +164,8 @@ public:
                                              const Variable<double>& rVariable,
                                              const Matrix& rSensitivityMatrix,
                                              Vector& rSensitivityGradient,
-                                             const ProcessInfo& rProcessInfo)
-    {
-        KRATOS_ERROR << "Calling base class response function method.\n";
+                                             const ProcessInfo& rProcessInfo) {
+        KRATOS_ERROR << KRATOS_CODE_LOCATION.CleanFunctionName() << " is not implemented";
     }
 
     /// Calculate the partial sensitivity w.r.t. design variable.
@@ -222,9 +181,8 @@ public:
                                              const Variable<array_1d<double, 3>>& rVariable,
                                              const Matrix& rSensitivityMatrix,
                                              Vector& rSensitivityGradient,
-                                             const ProcessInfo& rProcessInfo)
-    {
-        KRATOS_ERROR << "Calling base class response function method.\n";
+                                             const ProcessInfo& rProcessInfo) {
+        KRATOS_ERROR << KRATOS_CODE_LOCATION.CleanFunctionName() << " is not implemented";
     }
 
     /// Calculate the partial sensitivity w.r.t. design variable.
@@ -240,47 +198,26 @@ public:
                                              const Variable<array_1d<double, 3>>& rVariable,
                                              const Matrix& rSensitivityMatrix,
                                              Vector& rSensitivityGradient,
-                                             const ProcessInfo& rProcessInfo)
-    {
-        KRATOS_ERROR << "Calling base class response function method.\n";
+                                             const ProcessInfo& rProcessInfo) {
+        KRATOS_ERROR << KRATOS_CODE_LOCATION.CleanFunctionName() << " is not implemented";
     }
 
     /// Calculate the scalar valued response function.
     virtual double CalculateValue(ModelPart& rModelPart) = 0;
 
     ///@}
+    /// @name External Adjoint Interface
+    /// @{
+
+
+
+    /// @}
 
 protected:
-    ///@name Protected member Variables
-    ///@{
+    /// @name Internal Adjoint Interface
+    /// @{
 
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    ///@}
-
-private:
-    ///@name Member Variables
-    ///@{
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-    ///@}
+    /// @}
 };
 
-///@} // Kratos Classes
-
-} /* namespace Kratos.*/
-
-#endif /* ADJOINT_RESPONSE_FUNCTION_H defined */
+} // namespace Kratos
