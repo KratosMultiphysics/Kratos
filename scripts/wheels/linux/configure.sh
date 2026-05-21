@@ -6,8 +6,8 @@ add_app () {
 }
 
 # Temporal fix until gcc 14 comdad group regression is fixed
-export MPICH_CC=clang
-export MPICH_CXX=clang++
+dnf install -y gcc-toolset-15-gcc gcc-toolset-15-gcc-c++ gcc-toolset-15-gcc-gfortran
+source /opt/rh/gcc-toolset-15/enable
 
 export MPI_HOME=/usr/lib64/mpich/bin
 export PATH=${PATH}:${MPI_HOME}
@@ -73,8 +73,8 @@ cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}"    \
 -DUSE_TRIANGLE_NONFREE_TPL=ON                                          \
 -DUSE_MPI=ON                                                           \
 -DMAKE_TRILINOS_OPTIONAL=ON                                            \
--DCMAKE_C_COMPILER=clang                                               \
--DCMAKE_CXX_COMPILER=clang++                                           \
+-DCMAKE_C_COMPILER=gcc                                                 \
+-DCMAKE_CXX_COMPILER=g++                                               \
 -DCMAKE_CXX_FLAGS="-msse3 -std=c++11 "                                 \
 -DCMAKE_C_FLAGS="-msse3"                                               \
 -DBOOST_ROOT="/workspace/boost/boost_1_87_0"                           \
