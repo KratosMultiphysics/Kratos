@@ -215,7 +215,7 @@ class TestStrainSensorShell(UnitTest.TestCase):
         cls.sensor_model_part = cls.model.CreateModelPart("SensorModelPart")
         cls.adjoint_model_part = cls.model.CreateModelPart("TestAdjoint")
 
-        cls.model_part.ProcessInfo[KratosStruct.PERTURBATION_SIZE] = 1e-10
+        cls.model_part.ProcessInfo[Kratos.PERTURBATION_SIZE] = 1e-10
 
         cls.model_part.AddNodalSolutionStepVariable(Kratos.DISPLACEMENT)
         cls.model_part.AddNodalSolutionStepVariable(Kratos.ROTATION)
@@ -353,7 +353,7 @@ class TestStrainSensorSolids(UnitTest.TestCase):
         cls.adjoint_model_part = cls.model.CreateModelPart("TestAdjoint")
 
         cls.model_part.ProcessInfo[Kratos.DOMAIN_SIZE] = 3
-        cls.model_part.ProcessInfo[KratosStruct.PERTURBATION_SIZE] = 1e-10
+        cls.model_part.ProcessInfo[Kratos.PERTURBATION_SIZE] = 1e-10
         cls.model_part.AddNodalSolutionStepVariable(Kratos.DISPLACEMENT)
         cls.model_part.AddNodalSolutionStepVariable(KratosStruct.ADJOINT_DISPLACEMENT)
 

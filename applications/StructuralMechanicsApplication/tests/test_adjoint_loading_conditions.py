@@ -35,8 +35,8 @@ class TestAdjointLoadingConditions(KratosUnittest.TestCase):
         sen_matrix = KratosMultiphysics.Matrix(0,0)
 
         # settings for finite differencing
-        mp.ProcessInfo[StructuralMechanicsApplication.ADAPT_PERTURBATION_SIZE] = True
-        mp.ProcessInfo[StructuralMechanicsApplication.PERTURBATION_SIZE] = 1e-5
+        mp.ProcessInfo[KratosMultiphysics.ADAPT_PERTURBATION_SIZE] = True
+        mp.ProcessInfo[KratosMultiphysics.PERTURBATION_SIZE] = 1e-5
 
         # check w.r.t. to design variable SURFACE_LOAD
         reference_res_1 = KratosMultiphysics.Matrix(3, 12)
@@ -111,8 +111,8 @@ class TestAdjointLoadingConditions(KratosUnittest.TestCase):
         sen_matrix = KratosMultiphysics.Matrix(0,0)
 
         # settings for finite differencing
-        mp.ProcessInfo[StructuralMechanicsApplication.ADAPT_PERTURBATION_SIZE] = False
-        mp.ProcessInfo[StructuralMechanicsApplication.PERTURBATION_SIZE] = 1e-6
+        mp.ProcessInfo[KratosMultiphysics.ADAPT_PERTURBATION_SIZE] = False
+        mp.ProcessInfo[KratosMultiphysics.PERTURBATION_SIZE] = 1e-6
 
         # check w.r.t. to design variable SURFACE_LOAD
         reference_res_1 = KratosMultiphysics.Matrix(3, 6)

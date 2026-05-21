@@ -18,8 +18,8 @@ class SensorSensitivityAdjointStaticSolver(StructuralMechanicsAdjointStaticSolve
         model_part = self.GetComputingModelPart()
 
         response_function_settings: Kratos.Parameters = self.settings["response_function_settings"]
-        model_part.ProcessInfo[KratosSI.PERTURBATION_SIZE] = response_function_settings["perturbation_size"].GetDouble()
-        model_part.ProcessInfo[KratosSI.ADAPT_PERTURBATION_SIZE] = response_function_settings["adapt_perturbation_size"].GetBool()
+        model_part.ProcessInfo[Kratos.PERTURBATION_SIZE] = response_function_settings["perturbation_size"].GetDouble()
+        model_part.ProcessInfo[Kratos.ADAPT_PERTURBATION_SIZE] = response_function_settings["adapt_perturbation_size"].GetBool()
 
         # create sensitivity builder
         self.sensitivity_builder = Kratos.SensitivityBuilder(self.settings["sensitivity_settings"], self.main_model_part, None)
