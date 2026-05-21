@@ -34,6 +34,9 @@ from iga_test_factory import Shell5pHierarchicLinearScordelisTest as TShell5pHie
 from iga_test_factory import Shell5pHierarchicNonLinearThickBeamTest as TShell5pHierarchicNonLinearThickBeamTest
 # 5p Shell
 from iga_test_factory import ScordelisRoofShell5pTest as ScordelisRoofShell5pTest
+# 6p Shell RM - python based
+from shell_6p_element_tests import Shell6pElementTests as TShell6pElementTests
+
 # Weak support tests
 from iga_test_factory import SinglePatchRefinedSupportPenaltyTest as SinglePatchRefinedSupportPenaltyTest
 from iga_test_factory import SinglePatchRefinedSupportLagrangeTest as SinglePatchRefinedSupportLagrangeTest
@@ -54,15 +57,11 @@ from test_nurbs_volume_element import TestNurbsVolumeElement as TTestNurbsVolume
 from test_modelers import TestModelers as TTestModelers
 from test_modelers_sbm import TestModelersSbm as TTestModelersSbm
 from test_import_nurbs_modeler import TestImportNurbsModeler as TTestImportNurbsModeler
-from test_nurbs_geometry_modeler_gap_sbm import TestNurbsGeometryModelerGapSbm as TTestNurbsGeometryModelerGapSbm
-from test_sbm_laplacian_3d import TestSbmLaplacian3D as TTestSbmLaplacian3D
 # Processes tests
 from test_map_nurbs_volume_results_to_embedded_geometry_process import TestMapNurbsVolumeResultsToEmbeddedGeometryProcess as TTestMapNurbsVolumeResultsToEmbeddedGeometryProcess
 # Fluid Element and Conditions tests
-from test_stokes_elements_and_conditions import FluidTests as TTestFluid
-from test_stokes_sbm_conditions_3d import SbmStokes3DTests as TTestSbmStokes
-# Iga geometries python bindings tests
-from test_python_bindings_iga_geometries import TestPythonBindingsIGAGeometries
+from applications.IgaApplication.tests.test_stokes_elements_and_conditions import FluidTests as TTestFluid
+from applications.IgaApplication.tests.test_stokes_sbm_conditions import SbmStokesTests as TTestSbmStokes
 
 has_linear_solvers_application = kratos_utilities.CheckIfApplicationsAvailable("LinearSolversApplication")
 
@@ -100,6 +99,8 @@ def AssembleTestSuites():
         LinearBeamShell3pAdditiveSchwarzTest,
         # 5p Shell Director
         ScordelisRoofShell5pTest,
+        # 6p Shell
+        TShell6pElementTests,
         # Weak support tests
         SinglePatchRefinedSupportPenaltyTest,
         SinglePatchRefinedSupportLagrangeTest,
@@ -116,14 +117,10 @@ def AssembleTestSuites():
         # Modelers
         TTestModelers,
         TTestModelersSbm,
-        TTestNurbsGeometryModelerGapSbm,
-        TTestSbmLaplacian3D,
         TTestMapNurbsVolumeResultsToEmbeddedGeometryProcess,
         # Fluids
         TTestFluid,
-        TTestSbmStokes,
-        # Iga geometries python bindings
-        TestPythonBindingsIGAGeometries
+        TTestSbmStokes
     ]))
 
     if has_linear_solvers_application:

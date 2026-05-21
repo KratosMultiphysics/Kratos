@@ -32,6 +32,8 @@ KratosIgaApplication::KratosIgaApplication()
         new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
     , mShell5pElement(0, Element::GeometryType::Pointer(
         new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
+    , mShell6pElement(0, Element::GeometryType::Pointer(
+        new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
     , mLaplacianElement(0, Element::GeometryType::Pointer(
         new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
     , mSolidElement(0, Element::GeometryType::Pointer(
@@ -96,6 +98,7 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_ELEMENT("Shell3pElement", mShell3pElement)
     KRATOS_REGISTER_ELEMENT("Shell5pHierarchicElement", mShell5pHierarchicElement)
     KRATOS_REGISTER_ELEMENT("Shell5pElement", mShell5pElement)
+    KRATOS_REGISTER_ELEMENT("Shell6pElement", mShell6pElement)
     KRATOS_REGISTER_ELEMENT("LaplacianElement", mLaplacianElement)
     KRATOS_REGISTER_ELEMENT("SolidElement", mSolidElement)
     KRATOS_REGISTER_ELEMENT("StokesElement", mStokesElement)
@@ -133,7 +136,7 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
 
     // VARIABLES
     KRATOS_REGISTER_VARIABLE(CROSS_AREA)
-      
+
     KRATOS_REGISTER_VARIABLE(TRUSS_PRESTRESS_CAUCHY)
     KRATOS_REGISTER_VARIABLE(TRUSS_PRESTRESS_PK2)
     KRATOS_REGISTER_VARIABLE(TRUSS_STRESS_CAUCHY)
@@ -200,7 +203,7 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_VARIABLE(EIGENVALUE_NITSCHE_STABILIZATION_VECTOR)
     KRATOS_REGISTER_VARIABLE(BUILD_LEVEL)
 
-    // SBM Variables 
+    // SBM Variables
     KRATOS_REGISTER_VARIABLE(INTEGRATION_POINTS)
     KRATOS_REGISTER_VARIABLE(INTEGRATION_WEIGHTS)
     KRATOS_REGISTER_VARIABLE(BOUNDARY_CONDITION_TYPE)
