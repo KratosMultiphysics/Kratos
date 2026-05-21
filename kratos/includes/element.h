@@ -20,6 +20,7 @@
 #include "includes/properties.h"
 #include "includes/process_info.h"
 #include "includes/geometrical_object.h"
+#include "includes/adjoint_interface.hpp"
 #include "includes/constitutive_law.h"
 #include "includes/kratos_parameters.h"
 #include "containers/global_pointers_vector.h"
@@ -55,8 +56,7 @@ namespace Kratos
  * not all of them have to be implemented if they are not needed for
  * the actual problem
  */
-class Element : public GeometricalObject
-{
+class Element : public GeometricalObject, public IAdjointElement {
 public:
     ///@name Type Definitions
     ///@{

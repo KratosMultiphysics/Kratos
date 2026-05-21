@@ -18,6 +18,7 @@
 // Project includes
 #include "includes/define_python.h"
 #include "includes/ublas_interface.h"
+#include "spaces/ublas_space.h"
 #include "includes/ublas_complex_interface.h"
 #include "add_matrix_to_python.h"
 #include "containers/array_1d.h"
@@ -67,6 +68,100 @@ namespace Kratos::Python
 
     void  AddMatrixToPython(pybind11::module& m)
     {
+        using Space = TUblasSparseSpace<double>;
+
+        pybind11::class_<Space::MatrixType::index_array_type,pybind11::smart_holder>(
+                m,
+                "UblasIndexArray",
+                pybind11::buffer_protocol())
+            .def(pybind11::init<>())
+            .def(pybind11::init<std::size_t>())
+            .def_buffer([] (Space::MatrixType::index_array_type& rThis) -> pybind11::buffer_info {
+                return pybind11::buffer_info(
+                    rThis.size() ? &*rThis.begin() : nullptr,
+                    sizeof(Space::MatrixType::index_array_type::value_type),
+                    pybind11::format_descriptor<Space::MatrixType::index_array_type::value_type>::format(),
+                    1,
+                    {rThis.size()},
+                    {sizeof(Space::MatrixType::index_array_type::value_type)});})
+            .def("assign", [] (
+                Space::MatrixType::index_array_type& rThis,
+                pybind11::buffer Rhs) {
+                    pybind11::buffer_info info = Rhs.request();
+                    KRATOS_ERROR_IF_NOT(info.ndim == 1);
+                    KRATOS_ERROR_IF_NOT(info.size == rThis.size());
+                    auto copy_functor = [] (auto* p_source, Space::MatrixType::index_array_type::value_type* p_destination, std::size_t count) {
+                        IndexPartition<std::size_t>(count).for_each([&] (std::size_t i_entry) {
+                            p_destination[i_entry] = p_source[i_entry];
+                        });
+                    };
+                    if (info.item_type_is_equivalent_to<std::uint64_t>()) {
+                        copy_functor(
+                            static_cast<const std::uint64_t*>(info.ptr),
+                            &rThis[0],
+                            rThis.size());
+                    } else if (info.item_type_is_equivalent_to<std::int64_t>()) {
+                        copy_functor(
+                            static_cast<const std::int64_t*>(info.ptr),
+                            &rThis[0],
+                            rThis.size());
+                    } else if (info.item_type_is_equivalent_to<std::uint32_t>()) {
+                        copy_functor(
+                            static_cast<const std::uint32_t*>(info.ptr),
+                            &rThis[0],
+                            rThis.size());
+                    } else if (info.item_type_is_equivalent_to<std::int32_t>()) {
+                        copy_functor(
+                            static_cast<const std::int32_t*>(info.ptr),
+                            &rThis[0],
+                            rThis.size());
+                    } else {
+                        KRATOS_ERROR << "unsupported item type ";
+                    }
+                })
+            ;
+
+        pybind11::class_<Space::MatrixType::value_array_type,pybind11::smart_holder>(
+                m,
+                "UblasValueArray",
+                pybind11::buffer_protocol())
+            .def(pybind11::init<>())
+            .def(pybind11::init<std::size_t>())
+            .def_buffer([] (Space::MatrixType::value_array_type& rInstance) -> pybind11::buffer_info {
+                return pybind11::buffer_info(
+                    rInstance.size() ? &*rInstance.begin() : nullptr,
+                    sizeof(Space::MatrixType::value_array_type::value_type),
+                    pybind11::format_descriptor<Space::MatrixType::value_array_type::value_type>::format(),
+                    1,
+                    {rInstance.size()},
+                    {sizeof(Space::MatrixType::value_array_type::value_type)});})
+            .def("assign", [] (
+                Space::MatrixType::value_array_type& rThis,
+                pybind11::buffer Rhs) {
+                    pybind11::buffer_info info = Rhs.request();
+                    KRATOS_ERROR_IF_NOT(info.ndim == 1);
+                    KRATOS_ERROR_IF_NOT(info.size == rThis.size());
+                    auto copy_functor = [] (auto* p_source, Space::MatrixType::value_array_type::value_type* p_destination, std::size_t count) {
+                        IndexPartition<std::size_t>(count).for_each([&] (std::size_t i_entry) {
+                            p_destination[i_entry] = p_source[i_entry];
+                        });
+                    };
+                    if (info.item_type_is_equivalent_to<float>()) {
+                        copy_functor(
+                            static_cast<const float*>(info.ptr),
+                            &rThis[0],
+                            rThis.size());
+                    } else if (info.item_type_is_equivalent_to<double>()) {
+                        copy_functor(
+                            static_cast<const double*>(info.ptr),
+                            &rThis[0],
+                            rThis.size());
+                    } else {
+                        KRATOS_ERROR << "unsupported item type ";
+                    }
+                })
+            ;
+
         //here we add the dense matrix
         auto matrix_binder = CreateMatrixInterface< DenseMatrix<double> >(m,"Matrix");
         matrix_binder.def(py::init<const DenseMatrix<double>::size_type, const DenseMatrix<double>::size_type>());
@@ -128,23 +223,26 @@ namespace Kratos::Python
 
         //here we add the sparse matrix
         auto compressed_matrix_binder = CreateMatrixInterface< CompressedMatrix >(m,"CompressedMatrix");
-        compressed_matrix_binder.def(py::init<const CompressedMatrix::size_type, const CompressedMatrix::size_type>());
+        compressed_matrix_binder.def(py::init<
+            const CompressedMatrix::size_type,
+            const CompressedMatrix::size_type>());
+        compressed_matrix_binder.def(py::init<
+            const CompressedMatrix::size_type,
+            const CompressedMatrix::size_type,
+            const CompressedMatrix::size_type>());
         compressed_matrix_binder.def(py::init<const CompressedMatrix& >());
-        compressed_matrix_binder.def("value_data", [](const CompressedMatrix& rA) ->  std::vector<double>
-                                                    {return std::vector<double>(
-                                                        rA.value_data().begin(),
-                                                        rA.value_data().end()
-                                                        ) ;});
-        compressed_matrix_binder.def("index1_data", [](const CompressedMatrix& rA) -> std::vector<std::size_t>
-                                                    {return std::vector<std::size_t>(
-                                                        rA.index1_data().begin(),
-                                                        rA.index1_data().end()
-                                                        ) ;});
-        compressed_matrix_binder.def("index2_data", [](const CompressedMatrix& rA) -> std::vector<std::size_t>
-                                                    {return std::vector<std::size_t>(
-                                                        rA.index2_data().begin(),
-                                                        rA.index2_data().end()
-                                                        ) ;});
+        compressed_matrix_binder.def(
+            "index1_data",
+            [](Space::MatrixType& rThis) -> Space::MatrixType::index_array_type* {return &rThis.index1_data();},
+            pybind11::return_value_policy::reference_internal);
+        compressed_matrix_binder.def(
+            "index2_data",
+            [](Space::MatrixType& rThis) -> Space::MatrixType::index_array_type* {return &rThis.index2_data();},
+            pybind11::return_value_policy::reference_internal);
+        compressed_matrix_binder.def(
+            "value_data",
+            [](Space::MatrixType& rThis) -> Space::MatrixType::value_array_type* {return &rThis.value_data();},
+            pybind11::return_value_policy::reference_internal);
 
         //here we add the complex dense matrix
         auto cplx_matrix_binder = CreateMatrixInterface< ComplexMatrix >(m,"ComplexMatrix");

@@ -29,6 +29,7 @@
 #include "custom_solvers/eigen_cholmod_solver.hpp" // EigenCholmodSolver
 #include "custom_solvers/eigen_spqr_solver.hpp" // EigenSPQRSolver
 #include "custom_solvers/eigen_umfpack_solver.hpp" // EigenUmfPackSolver
+#include "custom_solvers/substitution_preconditioner.hpp" // EigenUmfPackSolver
 
 #if defined USE_EIGEN_MKL
 #include "custom_solvers/eigen_pardiso_lu_solver.h"
@@ -216,6 +217,23 @@ void AddCustomSolversToPython(pybind11::module& m)
     namespace py = pybind11;
 
     using complex = std::complex<double>;
+
+    // --- preconditioners
+
+    {
+        using TSparse = TUblasSparseSpace<double>;
+        using TDense = TUblasDenseSpace<double>;
+        py::class_<
+            SubstitutionPreconditioner<TSparse,TDense>,
+            SubstitutionPreconditioner<TSparse,TDense>::Pointer,
+            Preconditioner<TSparse,TDense>>(m, "SubstitutionPreconditioner")
+                .def(py::init<>())
+                .def(py::init<std::shared_ptr<typename TSparse::MatrixType>>())
+                .def(py::init<
+                    std::shared_ptr<typename TSparse::MatrixType>,
+                    std::shared_ptr<typename TSparse::MatrixType>>())
+                ;
+    }
 
     // --- direct solvers
 

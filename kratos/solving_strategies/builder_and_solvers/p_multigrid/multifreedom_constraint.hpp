@@ -145,10 +145,7 @@ public:
     /// @}
 
 protected:
-    const DofArray& GetDofs() const noexcept
-    {
-        return mDofs;
-    }
+    [[nodiscard]] std::size_t DofCount() const noexcept;
 
     const MatrixType& GetHessian() const
     {

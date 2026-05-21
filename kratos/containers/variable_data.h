@@ -62,7 +62,8 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Copy constructor
+    VariableData() noexcept = default;
+
     constexpr VariableData(const VariableData& rOtherVariable)
         : mName(rOtherVariable.mName),
           mKey(rOtherVariable.mKey),
@@ -71,10 +72,29 @@ public:
           mIsComponent(rOtherVariable.mIsComponent)
     {}
 
+    constexpr VariableData(
+        const std::string_view& NewName,
+        const std::size_t NewSize)
+        : mName(NewName),
+          mKey(GenerateKey(mName, NewSize, false, 0)),
+          mSize(NewSize),
+          mpSourceVariable(this),
+          mIsComponent(false)
+    {}
 
-    /// Destructor.
-    constexpr virtual ~VariableData() {}
+    constexpr VariableData(
+        const std::string_view& NewName,
+        const std::size_t NewSize,
+        const VariableData* pSourceVariable,
+        const char ComponentIndex)
+        : mName(NewName),
+          mKey(GenerateKey(pSourceVariable->mName, NewSize, true, ComponentIndex)),
+          mSize(NewSize),
+          mpSourceVariable(pSourceVariable),
+          mIsComponent(true)
+    {}
 
+    constexpr virtual ~VariableData() = default;
 
     ///@}
     ///@name Operators
@@ -86,6 +106,8 @@ public:
     {
         return mKey;
     }
+
+    VariableData& operator=(const VariableData& rOtherVariable) noexcept = default;
 
     ///@}
     ///@name Operations
@@ -310,61 +332,6 @@ public:
     }
 
     ///@}
-
-protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    VariableData& operator=(const VariableData& rOtherVariable)
-    {
-        mName = rOtherVariable.mName;
-        mKey = rOtherVariable.mKey;
-        mSize = rOtherVariable.mSize;
-        mpSourceVariable = rOtherVariable.mpSourceVariable;
-        mIsComponent = rOtherVariable.mIsComponent;
-
-        return *this;
-    }
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-    /// Constructor for variables.
-    constexpr VariableData(
-        const std::string_view& NewName,
-        const std::size_t NewSize)
-        : mName(NewName),
-          mKey(GenerateKey(mName, NewSize, false, 0)),
-          mSize(NewSize),
-          mpSourceVariable(this),
-          mIsComponent(false)
-    {}
-
-    /// Constructor for variables components.
-    constexpr VariableData(
-        const std::string_view& NewName,
-        const std::size_t NewSize,
-        const VariableData* pSourceVariable,
-        const char ComponentIndex)
-        : mName(NewName),
-          mKey(GenerateKey(pSourceVariable->mName, NewSize, true, ComponentIndex)),
-          mSize(NewSize),
-          mpSourceVariable(pSourceVariable),
-          mIsComponent(true)
-    {}
-
-    /** default constructor is to be used only with serialization due to the fact that
-    each variable must have a name defined.*/
-    constexpr VariableData() {}
-
-    ///@}
-
 private:
     ///@name Member Variables
     ///@{

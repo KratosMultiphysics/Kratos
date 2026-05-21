@@ -348,6 +348,47 @@ void ElasticIsotropic3D::PrintInfo(std::ostream& rOStream) const
 /***********************************************************************************/
 /***********************************************************************************/
 
+
+void ElasticIsotropic3D::GetStiffnessInfluencingVariables(
+        std::vector<IAdjoint::DynamicVariable>& rOutput,
+        const ProcessInfo&) const {
+            rOutput.clear();
+            rOutput.push_back(YOUNG_MODULUS);
+            rOutput.push_back(POISSON_RATIO);
+}
+
+
+void ElasticIsotropic3D::GetLoadInfluencingVariables(
+        std::vector<IAdjoint::DynamicVariable>& rOutput,
+        const ProcessInfo&) const {
+            rOutput.clear();
+            rOutput.push_back(YOUNG_MODULUS);
+            rOutput.push_back(POISSON_RATIO);
+}
+
+
+void ElasticIsotropic3D::ComputeStiffnessDerivative(
+    [[maybe_unused]] Matrix& rOutput,
+    [[maybe_unused]] std::span<const IAdjoint::DynamicVariable> Variables,
+    [[maybe_unused]] const Vector& rValues,
+    [[maybe_unused]] const ProcessInfo& rProcessInfo,
+    [[maybe_unused]] int iBuffer) const {
+        KRATOS_ERROR << KRATOS_CODE_LOCATION.CleanFunctionName() << " is not implemented";
+}
+
+
+void ElasticIsotropic3D::ComputeLoadDerivative(
+    [[maybe_unused]] Matrix& rOutput,
+    [[maybe_unused]] std::span<const IAdjoint::DynamicVariable> Variables,
+    [[maybe_unused]] const ProcessInfo& rProcessInfo,
+    [[maybe_unused]] int iBuffer) const {
+        KRATOS_ERROR << KRATOS_CODE_LOCATION.CleanFunctionName() << " is not implemented";
+}
+
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void ElasticIsotropic3D::CheckClearElasticMatrix(ConstitutiveLaw::VoigtSizeMatrixType& rConstitutiveMatrix)
 {
     const SizeType size_system = this->GetStrainSize();

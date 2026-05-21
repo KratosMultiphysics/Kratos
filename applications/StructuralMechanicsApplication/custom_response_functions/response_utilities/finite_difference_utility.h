@@ -18,11 +18,11 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/element.h"
-#include "includes/condition.h"
 #include "structural_mechanics_application_variables.h"
 
-namespace Kratos
-{
+
+namespace Kratos {
+
 
 /** \brief FiniteDifferenceUtility
  *

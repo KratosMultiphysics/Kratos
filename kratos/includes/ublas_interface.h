@@ -34,9 +34,6 @@
 #include <boost/numeric/ublas/operation.hpp>
 #include <boost/numeric/ublas/operation_sparse.hpp>
 
-// Project includes
-#include "includes/define.h"
-
 namespace Kratos
 {
 

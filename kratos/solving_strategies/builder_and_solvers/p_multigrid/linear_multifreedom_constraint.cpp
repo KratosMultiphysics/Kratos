@@ -30,8 +30,8 @@ LinearMultifreedomConstraint::LinearMultifreedomConstraint(const IndexType Id,
         << "relation matrix (" << rRelationMatrix.size1() << "x" << rRelationMatrix.size2() << ") "
         << "is incompatible with its constraint gap vector (" << rConstraintGaps.size() << ")";
 
-    KRATOS_ERROR_IF_NOT(this->GetDofs().size() == rRelationMatrix.size2())
-        << "provided number of DoFs (" << this->GetDofs().size() << ") "
+    KRATOS_ERROR_IF_NOT(this->DofCount() == rRelationMatrix.size2())
+        << "provided number of DoFs (" << this->DofCount() << ") "
         << "is incompatible with the relation matrix "
         << "(" << rRelationMatrix.size1() << "x" << rRelationMatrix.size2() << ")";
 

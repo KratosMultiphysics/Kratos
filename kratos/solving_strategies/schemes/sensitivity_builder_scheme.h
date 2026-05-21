@@ -37,13 +37,13 @@ namespace Kratos
  *
  * This scheme calculates sensitivities according to following equation
  *
- * \[
- *      \frac{dJ}{d\underline{x}} =
- *              \frac{\partial J}{\partial \underline{x}}
- *              + \underline{\lambda}^T \frac{\partial \underline{R}}{\partial \underline{x}}
- * \]
+ * \f[
+ *      \frac{dJ}{dx} =
+ *              \frac{\partial J}{\partial x}
+ *              + \lambda^T \frac{\partial R}{\partial x}
+ * \f]
  *
- * Where $J$ is the response function, $\underline{R}$ are the discrete residuals, and $\underline{x}$ are the
+ * Where @f$J@f$ is the response function, @f$R@f$ are the discrete residuals, and @f$x@f$ are the
  * parameter w.r.t. the sensitivities are computed.
  *
  * @see SensitivityBuilder
@@ -569,17 +569,17 @@ private:
 
         this->CalculateLocalSensitivity(rEntity, rResponseFunction,
                                         rSensitivityVector, rVariable, rProcessInfo);
-        
+
         if (rSensitivityVector.size() > 0) {
             auto& r_geometry = rEntity.GetGeometry();
 
             rGPSensitivityVector.resize(r_geometry.PointsNumber());
-            
+
             for (unsigned int i = 0; i < r_geometry.PointsNumber(); ++i) {
                 rGPSensitivityVector(i) = mGlobalPointerNodalMap[r_geometry[i].Id()];
             }
         }
-        
+
         KRATOS_CATCH("");
     }
 

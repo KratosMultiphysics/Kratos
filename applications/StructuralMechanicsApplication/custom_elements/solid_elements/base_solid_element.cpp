@@ -26,6 +26,9 @@
 #include "custom_utilities/structural_mechanics_element_utilities.h"
 #include "custom_utilities/constitutive_law_utilities.h"
 
+// --- STL Includes ---
+#include <format> // std::format
+
 namespace Kratos
 {
 
@@ -1134,7 +1137,7 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
         } else {
             CalculateOnConstitutiveLaw(rVariable, rOutput, rCurrentProcessInfo);
         }
-        
+
 
     }
 }
@@ -1222,7 +1225,7 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
 
                 noalias(rOutput[point_number]) = this_constitutive_variables.D;
             }
-        } else if ( rVariable == DEFORMATION_GRADIENT ) { // VARIABLE SET FOR TRANSFER PURPOUSES
+        } else if ( rVariable == DEFORMATION_GRADIENT ) { // DynamicVariable SET FOR TRANSFER PURPOUSES
             // Create and initialize element variables:
             const SizeType number_of_nodes = r_geom.size();
             const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
@@ -1670,6 +1673,78 @@ void BaseSolidElement::RotateToGlobalAxes(
         rValues.SetDeformationGradientF(rThisKinematicVariables.F);
     }
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+
+void BaseSolidElement::GetMassInfluencingVariables(
+    std::vector<IAdjoint::DynamicVariable>& rOutput,
+    const ProcessInfo&) const {
+        // This function must be consistent with BaseSolidElement::CalculateMassMatrix
+        KRATOS_TRY
+            rOutput.clear();
+            rOutput.reserve(6);
+
+            // Density-related variables.
+            // The element reroutes calls to StructuralMechanicsElementUtilities::GetDensityForMassMatrixComputation,
+            // and the following bits should reflect the behavior of that function.
+            const Properties& r_properties = this->GetProperties();
+            rOutput.push_back(DENSITY);
+            if (this->Has(MASS_FACTOR) || r_properties.Has(MASS_FACTOR)) rOutput.push_back(MASS_FACTOR);
+
+            // Thickness for solids???
+            if (this->GetGeometry().WorkingSpaceDimension() == 2 && r_properties.Has(THICKNESS)) rOutput.push_back(THICKNESS);
+
+            // Geometry.
+            for (std::size_t i_node=0ul; i_node<this->GetGeometry().size(); ++i_node) {
+                rOutput.push_back(IAdjoint::DynamicVariable(SHAPE_X, i_node));
+                rOutput.push_back(IAdjoint::DynamicVariable(SHAPE_Y, i_node));
+                rOutput.push_back(IAdjoint::DynamicVariable(SHAPE_Z, i_node));
+            } // for i_node in range(geometry.size)
+        KRATOS_CATCH("")
+}
+
+
+void BaseSolidElement::GetDampingInfluencingVariables(
+    std::vector<IAdjoint::DynamicVariable>& rOutput,
+    const ProcessInfo& rProcessInfo) const {
+        // This function must be consistent with BaseSolidElement::CalculateDampingMatrix
+        KRATOS_TRY
+            rOutput.clear();
+            rOutput.reserve(6);
+
+            // Rayleigh damping as a linear combination of stiffness and mass matrices.
+            std::vector<IAdjoint::DynamicVariable> buffer;
+            this->GetMassInfluencingVariables(buffer, rProcessInfo);
+            rOutput.insert(
+                rOutput.end(),
+                buffer.begin(),
+                buffer.end());
+
+            this->GetStiffnessInfluencingVariables(buffer, rProcessInfo);
+            rOutput.insert(
+                rOutput.end(),
+                buffer.begin(),
+                buffer.end());
+
+            std::sort(
+                rOutput.begin(),
+                rOutput.end(),
+                [] (const IAdjoint::DynamicVariable& r_left, const IAdjoint::DynamicVariable& r_right) -> bool {
+                    return r_left.Key() < r_right.Key();
+                });
+            rOutput.erase(
+                std::unique(
+                    rOutput.begin(),
+                    rOutput.end(),
+                    [] (const IAdjoint::DynamicVariable& r_left, const IAdjoint::DynamicVariable& r_right) -> bool {
+                        return r_left.Key() == r_right.Key();
+                    }),
+                rOutput.end());
+        KRATOS_CATCH("")
+}
+
 
 /***********************************************************************************/
 /***********************************************************************************/

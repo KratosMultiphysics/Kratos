@@ -106,6 +106,7 @@ endif()
 ## generate variables with the sources
 target_sources(KratosLinearSolversCore PRIVATE
                ${CMAKE_CURRENT_SOURCE_DIR}/linear_solvers_application.cpp
+               "${CMAKE_CURRENT_SOURCE_DIR}/custom_solvers/substitution_preconditioner.cpp"
                ${CMAKE_CURRENT_SOURCE_DIR}/custom_factories/dense_linear_solver_factory.cpp)
 
 # Sources for the Python module

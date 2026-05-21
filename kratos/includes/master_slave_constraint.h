@@ -22,6 +22,7 @@
 #include "containers/variable.h"
 #include "includes/process_info.h"
 #include "includes/indexed_object.h"
+#include "includes/adjoint_interface.hpp"
 
 namespace Kratos
 {
@@ -72,8 +73,7 @@ namespace Kratos
  * @author Aditya Ghantasala
  */
 class KRATOS_API(KRATOS_CORE) MasterSlaveConstraint
-    :  public IndexedObject, public Flags
-{
+    :  public IndexedObject, public Flags, public IAdjointElement {
 public:
     ///@name Type Definitions
     ///@{

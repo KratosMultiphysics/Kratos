@@ -278,6 +278,20 @@ public:
     ///@name Operations
     ///@{
 
+    template <class T>
+    T& GetValue(const VariableData& rVariable, SizeType iQueue) {
+        KRATOS_ERROR_IF_NOT(mpVariablesList);
+        KRATOS_ERROR_IF_NOT(mpVariablesList->Has(rVariable));
+        return *(reinterpret_cast<T*>(Position(rVariable)) + rVariable.GetComponentIndex());
+    }
+
+    template <class T>
+    const T& GetValue(const VariableData& rVariable, SizeType iQueue) const {
+        KRATOS_ERROR_IF_NOT(mpVariablesList);
+        KRATOS_ERROR_IF_NOT(mpVariablesList->Has(rVariable));
+        return *(reinterpret_cast<const T*>(Position(rVariable)) + rVariable.GetComponentIndex());
+    }
+
     template<class TDataType>
     TDataType& GetValue(const Variable<TDataType>& rThisVariable)
     {
@@ -679,7 +693,7 @@ public:
     {
         KRATOS_DEBUG_ERROR_IF(!mpVariablesList) << "This container don't have a variables list assigned. A possible reason is creating a node without a model part." << std::endl;
         for(VariablesList::const_iterator it_variable = mpVariablesList->begin(); it_variable != mpVariablesList->end() ; it_variable++) {
-            it_variable->AssignZero(mpCurrentPosition + LocalOffset(*it_variable)); 
+            it_variable->AssignZero(mpCurrentPosition + LocalOffset(*it_variable));
         }
     }
 

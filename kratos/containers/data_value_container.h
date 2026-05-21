@@ -252,6 +252,31 @@ public:
 
     /**
      * @brief Gets the value associated with a given variable.
+     * @tparam T The data type of the variable.
+     * @param rVariable The variable for which the value is to be retrieved.
+     * @return Reference to the value of the provided variable.
+     */
+    template<class T>
+    T& GetValue(const VariableData& rVariable)
+    {
+        typename ContainerType::iterator i;
+
+        if ((i = std::find_if(mData.begin(), mData.end(), IndexCheck(rVariable.SourceKey())))  != mData.end())
+            return *(static_cast<T*>(i->second) + rVariable.GetComponentIndex());
+
+#ifdef KRATOS_DEBUG
+        if(OpenMPUtils::IsInParallel() != 0)
+            KRATOS_ERROR << "attempting to do a GetValue for: " << rVariable << " unfortunately the variable is not in the database and the operations is not threadsafe (this function is being called from within a parallel region)" << std::endl;
+#endif
+
+        auto p_source_variable = &rVariable.GetSourceVariable();
+        mData.push_back(ValueType(p_source_variable,p_source_variable->Clone(p_source_variable->pZero())));
+
+        return *(static_cast<T*>(mData.back().second) + rVariable.GetComponentIndex());
+    }
+
+    /**
+     * @brief Gets the value associated with a given variable.
      * @tparam TDataType The data type of the variable.
      * @param rThisVariable The variable for which the value is to be retrieved.
      * @return Reference to the value of the provided variable.
@@ -332,6 +357,24 @@ public:
             *p_value = rInitValue;
             return *p_value;
         }
+    }
+
+    /**
+     * @brief Gets the value associated with a given variable (const version).
+     * @tparam TDataType The data type of the variable.
+     * @param rVariable The variable for which the value is to be retrieved.
+     * @return Const reference to the value of the provided variable.
+     * @todo Make the variable of the constant version consistent with the one of the "classical" one
+     */
+    template<class T>
+    T GetValue(const VariableData& rVariable) const
+    {
+        typename ContainerType::const_iterator i;
+
+        if ((i = std::find_if(mData.begin(), mData.end(), IndexCheck(rVariable.SourceKey())))  != mData.end())
+            return *(static_cast<const T*>(i->second) + rVariable.GetComponentIndex());
+
+        return T {};
     }
 
     /**

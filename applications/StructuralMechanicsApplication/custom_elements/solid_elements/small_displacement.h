@@ -184,6 +184,16 @@ public:
     ///@}
 
 protected:
+    /// @name Adjoint Interface
+    /// @{
+
+    //virtual void ComputeStiffnessDerivative(
+    //    std::span<const IAdjoint::DynamicVariable> Variables,
+    //    const ProcessInfo& rProcessInfo,
+    //    Matrix& rOutput) const override;
+
+    /// @}
+
     ///@name Protected static Member Variables
     ///@{
     ///@}
@@ -271,18 +281,37 @@ protected:
         ) const;
 
     ///@}
-    ///@name Protected Operations
-    ///@{
-    ///@}
-    ///@name Protected  Access
-    ///@{
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-    ///@}
+
+protected:
+    /// @name Adjoint Interface
+    /// @{
+
+    /// @copydoc IAdjointElement::GetStiffnessInfluencingVariables
+    void GetStiffnessInfluencingVariables(
+        std::vector<IAdjoint::DynamicVariable>& rOutput,
+        const ProcessInfo& rProcessInfo) const override;
+
+    /// @copydoc IAdjointElement::GetLoadInfluencingVariables
+    void GetLoadInfluencingVariables(
+        std::vector<IAdjoint::DynamicVariable>& rOutput,
+        const ProcessInfo& rProcessInfo) const override;
+
+    /// @copydoc IAdjointElement::ComputeStiffnessDerivative
+    void ComputeStiffnessDerivative(
+        Matrix& rOutput,
+        std::span<const IAdjoint::DynamicVariable> Variables,
+        const Vector& rValues,
+        const ProcessInfo& rProcessInfo,
+        int iBuffer) const override;
+
+    /// @copydoc IAdjointElement::ComputeLoadDerivative
+    void ComputeLoadDerivative(
+        Matrix& rOutput,
+        std::span<const IAdjoint::DynamicVariable> Variables,
+        const ProcessInfo& rProcessInfo,
+        int iBuffer) const final override;
+
+    /// @}
 
 private:
     ///@name Static Member Variables

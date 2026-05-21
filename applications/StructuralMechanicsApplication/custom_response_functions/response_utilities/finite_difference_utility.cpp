@@ -16,9 +16,11 @@
 // Project includes
 #include "finite_difference_utility.h"
 #include "utilities/openmp_utils.h"
+#include <boost/numeric/ublas/matrix_expression.hpp>
 
-namespace Kratos
-{
+namespace Kratos {
+
+
     void FiniteDifferenceUtility::CalculateRightHandSideDerivative(Element& rElement,
                                                 const Vector& rRHS,
                                                 const Variable<double>& rDesignVariable,
