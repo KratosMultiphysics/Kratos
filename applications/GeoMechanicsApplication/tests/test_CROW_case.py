@@ -182,6 +182,10 @@ def extract_shear_force_and_y_from_line(line):
     )
 
 
+def extract_normal_force_and_y_from_line(line):
+    return _extract_x_and_y_from_line(line, index_of_x=4, index_of_y=0)
+
+
 def extract_normal_traction_and_y_from_line(line):
     return _extract_x_and_y_from_line(line, index_of_x=1, index_of_y=0)
 
@@ -474,13 +478,13 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
                 Path(project_path) / f"{stage['base_name']}__FE_comparison_wall.csv"
             )
             if fem_comparison_csv.exists():
-                fem_comparison_variable = test_helper.get_data_points_from_file(
+                data_points = test_helper.get_data_points_from_file(
                     fem_comparison_csv, data_extractor
                 )
                 data_series_collection.append(
                     plot_utils.DataSeries(
-                        fem_comparison_variable,
-                        "Commercial FE package",
+                        data_points,
+                        label="Commercial FE package",
                         marker="3",
                     )
                 )
@@ -501,6 +505,14 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             variable_data_collections.append(data_series_collection)
 
         return variable_data_collections
+
+
+    def get_bending_moments_data_series_per_stage(self, project_path):
+        return self.get_wall_variable_collections_per_stage("BENDING_MOMENT",
+                                                            "Bending moment",
+                                                            project_path,
+                                                            self.get_plot_stages(),
+                                                            extract_bending_moment_and_y_from_line)
 
     def get_wall_horizontal_displacement_collections_per_stage(
         self, project_path, plot_stages, data_extractor
@@ -573,13 +585,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
         plot_stages = self.get_plot_stages()
         plot_titles = [stage["base_name"] for stage in plot_stages]
 
-        bending_moment_collections = self.get_wall_variable_collections_per_stage(
-            "BENDING_MOMENT",
-            "Bending moment",
-            project_path,
-            plot_stages,
-            extract_bending_moment_and_y_from_line,
-        )
+        bending_moment_collections = self.get_bending_moments_data_series_per_stage(project_path)
         plot_utils.make_sub_plots(
             bending_moment_collections,
             Path(project_path) / "bending_moments.svg",
@@ -602,6 +608,9 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             xlabel="Shear force [kN/m]",
             ylabel="y [m]",
         )
+
+        # normal_force_collections = self.get_wall_variable_collections_per_stage("AXIAL_FORCE", "Normal force", project_path, plot_stages, extract_normal_force_and_y_from_line)
+        # plot_utils.make_sub_plots(normal_force_collections, Path(project_path) / "normal_forces.svg", titles=plot_titles, xlabel="Normal force [kN/m]", ylabel="y [m]")
 
         horizontal_displacement_collections = (
             self.get_wall_horizontal_displacement_collections_per_stage(
