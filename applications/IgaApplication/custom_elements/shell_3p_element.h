@@ -112,7 +112,7 @@ protected:
     void GetMassInfluencingVariables(
         std::vector<IAdjoint::DynamicVariable>& rOutput,
         const ProcessInfo& rProcessInfo) const final override;
-    
+
     void GetStiffnessInfluencingVariables(
         std::vector<IAdjoint::DynamicVariable>& rOutput,
         const ProcessInfo& rProcessInfo) const final override;
@@ -123,7 +123,7 @@ protected:
         const Vector& rValues,
         const ProcessInfo& rProcessInfo,
         int iBuffer) const final override;
-    
+
     void ComputeMassDerivative(
         Matrix& rOutput,
         std::span<const IAdjoint::DynamicVariable> Variables,
@@ -131,6 +131,7 @@ protected:
         const ProcessInfo& rProcessInfo,
         int iBuffer) const final override;
 
+    ///@}
 public:
     ///@name Type Definitions
     ///@{
@@ -197,6 +198,10 @@ public:
         return Kratos::make_intrusive< Shell3pElement >(
             NewId, GetGeometry().Create(ThisNodes), pProperties);
     };
+
+    Element::Pointer Clone(
+        IndexType Id,
+        const NodesArrayType& rNodes) const override;
 
     ///@}
     ///@name Obligatory KRATOS Operations
@@ -443,7 +448,7 @@ private:
         const KinematicVariables& rKinematicVariables,
         Matrix& rT) const;
 
-    // Computes transformation for the stress tensor 
+    // Computes transformation for the stress tensor
     void CalculateTransformationFromCovariantToCartesian(
         const KinematicVariables& rKinematicVariables,
         Matrix& rTCovToCar) const;
@@ -502,14 +507,14 @@ private:
     // Calculation of the Cauchy stress by transforming the PK2 stress
     void CalculateCauchyStress(
         const IndexType IntegrationPointIndex,
-        array_1d<double, 3>& rCauchyMembraneStressesCartesian, 
-        array_1d<double, 3>& rCauchyBendingStressesCartesian, 
+        array_1d<double, 3>& rCauchyMembraneStressesCartesian,
+        array_1d<double, 3>& rCauchyBendingStressesCartesian,
         const ProcessInfo& rCurrentProcessInfo) const;
 
     // Calculation of the shear force, shear force = derivative of moment
     void CalculateShearForce(
         const IndexType IntegrationPointIndex,
-        array_1d<double, 2>& rq, 
+        array_1d<double, 2>& rq,
         const ProcessInfo& rCurrentProcessInfo) const;
 
     void CalculateDerivativeOfCurvatureInitial(
