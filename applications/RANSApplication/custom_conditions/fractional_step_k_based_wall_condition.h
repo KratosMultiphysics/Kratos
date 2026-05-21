@@ -60,7 +60,7 @@ public:
     /// Pointer definition of FractionalStepKBasedWallCondition
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(FractionalStepKBasedWallCondition);
 
-    using NodeType = Node<3>;
+    using NodeType = Node;
 
     using PropertiesType = Properties;
 

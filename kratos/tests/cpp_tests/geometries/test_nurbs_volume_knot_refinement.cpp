@@ -26,7 +26,7 @@
 namespace Kratos {
 namespace Testing {
 
-typedef Node<3> NodeType;
+typedef Node NodeType;
 typedef NurbsVolumeGeometry<PointerVector<NodeType>> NurbsVolumeGeometryType;
 typedef typename NurbsVolumeGeometry<PointerVector<NodeType>>::Pointer NurbsVolumeGeometryPointerType;
 
@@ -43,15 +43,14 @@ NurbsVolumeGeometryPointerType GenerateVolume(IndexType Direction) {
         z_direction = {0, 0.333, 0.444, 0.555, 0.666, 1.0};
     }
 
-    std::size_t id = 1;
     for( auto i : z_direction){
         for( auto j : y_direction) {
             for( auto k : x_direction) {
                 points.push_back(Kratos::make_intrusive<NodeType>(0, k, j, i));
-                id++;
             }
         }
     }
+
     // Polynomial orders
     SizeType polynomial_degree_1 = 3;
     SizeType polynomial_degree_2 = 1;
@@ -106,40 +105,40 @@ KRATOS_TEST_CASE_IN_SUITE(NurbsVolumeKnotRefinementU, KratosCoreNurbsGeometriesF
     volume_u->SetInternals(points_refined, volume_u->PolynomialDegreeU(), volume_u->PolynomialDegreeV(), volume_u->PolynomialDegreeW(),
                         knots_u_refined, volume_u->KnotsV(), volume_u->KnotsW() );
     // Check polynomial degree
-    KRATOS_CHECK_EQUAL(volume_u->PolynomialDegreeU(),3);
-    KRATOS_CHECK_EQUAL(volume_u->PolynomialDegreeV(),1);
-    KRATOS_CHECK_EQUAL(volume_u->PolynomialDegreeW(),1);
+    KRATOS_EXPECT_EQ(volume_u->PolynomialDegreeU(),3);
+    KRATOS_EXPECT_EQ(volume_u->PolynomialDegreeV(),1);
+    KRATOS_EXPECT_EQ(volume_u->PolynomialDegreeW(),1);
     // Check knot vectors
     std::vector<double> knots_u_ref = {0, 0, 0, 0.1, 0.1, 0.2, 0.22, 0.22, 0.5, 0.7, 1.0, 1.0, 1.0};
     std::vector<double> knots_v_ref = {0, 1.0};
     std::vector<double> knots_w_ref = {0, 1.0};
-    KRATOS_CHECK_VECTOR_NEAR(volume_u->KnotsU(), knots_u_ref, TOLERANCE);
-    KRATOS_CHECK_VECTOR_NEAR(volume_u->KnotsV(), knots_v_ref, TOLERANCE);
-    KRATOS_CHECK_VECTOR_NEAR(volume_u->KnotsW(), knots_w_ref, TOLERANCE);
+    KRATOS_EXPECT_VECTOR_NEAR(volume_u->KnotsU(), knots_u_ref, TOLERANCE);
+    KRATOS_EXPECT_VECTOR_NEAR(volume_u->KnotsV(), knots_v_ref, TOLERANCE);
+    KRATOS_EXPECT_VECTOR_NEAR(volume_u->KnotsW(), knots_w_ref, TOLERANCE);
     // Check number of CP's
-    KRATOS_CHECK_EQUAL(volume_u->NumberOfControlPointsU(),11);
-    KRATOS_CHECK_EQUAL(volume_u->NumberOfControlPointsV(),2);
-    KRATOS_CHECK_EQUAL(volume_u->NumberOfControlPointsW(),2);
+    KRATOS_EXPECT_EQ(volume_u->NumberOfControlPointsU(),11);
+    KRATOS_EXPECT_EQ(volume_u->NumberOfControlPointsV(),2);
+    KRATOS_EXPECT_EQ(volume_u->NumberOfControlPointsW(),2);
 
     // Check positions of CP's
     IndexType k = 0;
     for( std::size_t i = 0; i < 4; ++i){
-        KRATOS_CHECK_NEAR((*volume_u)[k+0][0], 0.0, TOLERANCE);
-        KRATOS_CHECK_NEAR((*volume_u)[k+1][0], 0.1665, TOLERANCE);
-        KRATOS_CHECK_NEAR((*volume_u)[k+2][0], 0.26085, TOLERANCE);
-        KRATOS_CHECK_NEAR((*volume_u)[k+3][0], 0.37518, TOLERANCE);
-        KRATOS_CHECK_NEAR((*volume_u)[k+4][0], 0.39915599999999996, TOLERANCE);
-        KRATOS_CHECK_NEAR((*volume_u)[k+5][0], 0.41993519999999995, TOLERANCE);
-        KRATOS_CHECK_NEAR((*volume_u)[k+6][0], 0.470653875, TOLERANCE);
-        KRATOS_CHECK_NEAR((*volume_u)[k+7][0], 0.524266875, TOLERANCE);
-        KRATOS_CHECK_NEAR((*volume_u)[k+8][0], 0.624375, TOLERANCE);
-        KRATOS_CHECK_NEAR((*volume_u)[k+9][0], 0.7996, TOLERANCE);
-        KRATOS_CHECK_NEAR((*volume_u)[k+10][0], 1.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR((*volume_u)[k+0][0], 0.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR((*volume_u)[k+1][0], 0.1665, TOLERANCE);
+        KRATOS_EXPECT_NEAR((*volume_u)[k+2][0], 0.26085, TOLERANCE);
+        KRATOS_EXPECT_NEAR((*volume_u)[k+3][0], 0.37518, TOLERANCE);
+        KRATOS_EXPECT_NEAR((*volume_u)[k+4][0], 0.39915599999999996, TOLERANCE);
+        KRATOS_EXPECT_NEAR((*volume_u)[k+5][0], 0.41993519999999995, TOLERANCE);
+        KRATOS_EXPECT_NEAR((*volume_u)[k+6][0], 0.470653875, TOLERANCE);
+        KRATOS_EXPECT_NEAR((*volume_u)[k+7][0], 0.524266875, TOLERANCE);
+        KRATOS_EXPECT_NEAR((*volume_u)[k+8][0], 0.624375, TOLERANCE);
+        KRATOS_EXPECT_NEAR((*volume_u)[k+9][0], 0.7996, TOLERANCE);
+        KRATOS_EXPECT_NEAR((*volume_u)[k+10][0], 1.0, TOLERANCE);
         k += 11;
     }
     // Check ID's
     for( long unsigned int i = 0; i < volume_u->size(); ++i){
-        KRATOS_CHECK_EQUAL((*volume_u)[i].Id(), 0);
+        KRATOS_EXPECT_EQ((*volume_u)[i].Id(), 0);
     }
 }
 
@@ -154,41 +153,41 @@ KRATOS_TEST_CASE_IN_SUITE(NurbsVolumeKnotRefinementV, KratosCoreNurbsGeometriesF
                         volume_v->KnotsU(), knots_v_refined, volume_v->KnotsW() );
 
     // Check polynomial degree
-    KRATOS_CHECK_EQUAL(volume_v->PolynomialDegreeU(),1);
-    KRATOS_CHECK_EQUAL(volume_v->PolynomialDegreeV(),3);
-    KRATOS_CHECK_EQUAL(volume_v->PolynomialDegreeW(),1);
+    KRATOS_EXPECT_EQ(volume_v->PolynomialDegreeU(),1);
+    KRATOS_EXPECT_EQ(volume_v->PolynomialDegreeV(),3);
+    KRATOS_EXPECT_EQ(volume_v->PolynomialDegreeW(),1);
     // Check knot vectors
     std::vector<double> knots_u_ref = {0, 1.0};
     std::vector<double> knots_v_ref = {0, 0, 0, 0.1, 0.1, 0.2, 0.22, 0.22, 0.5, 0.7, 1.0, 1.0, 1.0};
     std::vector<double> knots_w_ref = {0, 1.0};
-    KRATOS_CHECK_VECTOR_NEAR(volume_v->KnotsU(), knots_u_ref, TOLERANCE);
-    KRATOS_CHECK_VECTOR_NEAR(volume_v->KnotsV(), knots_v_ref, TOLERANCE);
-    KRATOS_CHECK_VECTOR_NEAR(volume_v->KnotsW(), knots_w_ref, TOLERANCE);
+    KRATOS_EXPECT_VECTOR_NEAR(volume_v->KnotsU(), knots_u_ref, TOLERANCE);
+    KRATOS_EXPECT_VECTOR_NEAR(volume_v->KnotsV(), knots_v_ref, TOLERANCE);
+    KRATOS_EXPECT_VECTOR_NEAR(volume_v->KnotsW(), knots_w_ref, TOLERANCE);
     // Check number of CP's
-    KRATOS_CHECK_EQUAL(volume_v->NumberOfControlPointsU(),2);
-    KRATOS_CHECK_EQUAL(volume_v->NumberOfControlPointsV(),11);
-    KRATOS_CHECK_EQUAL(volume_v->NumberOfControlPointsW(),2);
+    KRATOS_EXPECT_EQ(volume_v->NumberOfControlPointsU(),2);
+    KRATOS_EXPECT_EQ(volume_v->NumberOfControlPointsV(),11);
+    KRATOS_EXPECT_EQ(volume_v->NumberOfControlPointsW(),2);
     // Check position of CP's
     IndexType k = 0;
     for( std::size_t i = 0; i < 2; ++i){
         for( std::size_t j = 0; j < 2; ++j){
-            KRATOS_CHECK_NEAR((*volume_v)[k+j+0][1], 0.0, TOLERANCE);
-            KRATOS_CHECK_NEAR((*volume_v)[k+j+2][1], 0.1665, TOLERANCE);
-            KRATOS_CHECK_NEAR((*volume_v)[k+j+4][1], 0.26085, TOLERANCE);
-            KRATOS_CHECK_NEAR((*volume_v)[k+j+6][1], 0.37518, TOLERANCE);
-            KRATOS_CHECK_NEAR((*volume_v)[k+j+8][1], 0.39915599999999996, TOLERANCE);
-            KRATOS_CHECK_NEAR((*volume_v)[k+j+10][1], 0.41993519999999995, TOLERANCE);
-            KRATOS_CHECK_NEAR((*volume_v)[k+j+12][1], 0.470653875, TOLERANCE);
-            KRATOS_CHECK_NEAR((*volume_v)[k+j+14][1], 0.524266875, TOLERANCE);
-            KRATOS_CHECK_NEAR((*volume_v)[k+j+16][1], 0.624375, TOLERANCE);
-            KRATOS_CHECK_NEAR((*volume_v)[k+j+18][1], 0.7996, TOLERANCE);
-            KRATOS_CHECK_NEAR((*volume_v)[k+j+20][1], 1.0, TOLERANCE);
+            KRATOS_EXPECT_NEAR((*volume_v)[k+j+0][1], 0.0, TOLERANCE);
+            KRATOS_EXPECT_NEAR((*volume_v)[k+j+2][1], 0.1665, TOLERANCE);
+            KRATOS_EXPECT_NEAR((*volume_v)[k+j+4][1], 0.26085, TOLERANCE);
+            KRATOS_EXPECT_NEAR((*volume_v)[k+j+6][1], 0.37518, TOLERANCE);
+            KRATOS_EXPECT_NEAR((*volume_v)[k+j+8][1], 0.39915599999999996, TOLERANCE);
+            KRATOS_EXPECT_NEAR((*volume_v)[k+j+10][1], 0.41993519999999995, TOLERANCE);
+            KRATOS_EXPECT_NEAR((*volume_v)[k+j+12][1], 0.470653875, TOLERANCE);
+            KRATOS_EXPECT_NEAR((*volume_v)[k+j+14][1], 0.524266875, TOLERANCE);
+            KRATOS_EXPECT_NEAR((*volume_v)[k+j+16][1], 0.624375, TOLERANCE);
+            KRATOS_EXPECT_NEAR((*volume_v)[k+j+18][1], 0.7996, TOLERANCE);
+            KRATOS_EXPECT_NEAR((*volume_v)[k+j+20][1], 1.0, TOLERANCE);
         }
         k += 22;
     }
     // Check ID's
     for( long unsigned int i = 0; i < volume_v->size(); ++i){
-        KRATOS_CHECK_EQUAL((*volume_v)[i].Id(), 0);
+        KRATOS_EXPECT_EQ((*volume_v)[i].Id(), 0);
     }
 }
 
@@ -203,39 +202,39 @@ KRATOS_TEST_CASE_IN_SUITE(NurbsVolumeKnotRefinementW, KratosCoreNurbsGeometriesF
                         volume_w->KnotsU(), volume_w->KnotsV(), knots_w_refined );
 
     // Check polynomial degree
-    KRATOS_CHECK_EQUAL(volume_w->PolynomialDegreeU(),1);
-    KRATOS_CHECK_EQUAL(volume_w->PolynomialDegreeV(),1);
-    KRATOS_CHECK_EQUAL(volume_w->PolynomialDegreeW(),3);
+    KRATOS_EXPECT_EQ(volume_w->PolynomialDegreeU(),1);
+    KRATOS_EXPECT_EQ(volume_w->PolynomialDegreeV(),1);
+    KRATOS_EXPECT_EQ(volume_w->PolynomialDegreeW(),3);
     // Check knot vectors
     std::vector<double> knots_u_ref = {0, 1.0};
     std::vector<double> knots_v_ref = {0, 1.0};
     std::vector<double> knots_w_ref = {0, 0, 0, 0.1, 0.1, 0.2, 0.22, 0.22, 0.5, 0.7, 1.0, 1.0, 1.0};
-    KRATOS_CHECK_VECTOR_NEAR(volume_w->KnotsU(), knots_u_ref, TOLERANCE);
-    KRATOS_CHECK_VECTOR_NEAR(volume_w->KnotsV(), knots_v_ref, TOLERANCE);
-    KRATOS_CHECK_VECTOR_NEAR(volume_w->KnotsW(), knots_w_ref, TOLERANCE);
+    KRATOS_EXPECT_VECTOR_NEAR(volume_w->KnotsU(), knots_u_ref, TOLERANCE);
+    KRATOS_EXPECT_VECTOR_NEAR(volume_w->KnotsV(), knots_v_ref, TOLERANCE);
+    KRATOS_EXPECT_VECTOR_NEAR(volume_w->KnotsW(), knots_w_ref, TOLERANCE);
     // Check number of CP's
-    KRATOS_CHECK_EQUAL(volume_w->NumberOfControlPointsU(),2);
-    KRATOS_CHECK_EQUAL(volume_w->NumberOfControlPointsV(),2);
-    KRATOS_CHECK_EQUAL(volume_w->NumberOfControlPointsW(),11);
+    KRATOS_EXPECT_EQ(volume_w->NumberOfControlPointsU(),2);
+    KRATOS_EXPECT_EQ(volume_w->NumberOfControlPointsV(),2);
+    KRATOS_EXPECT_EQ(volume_w->NumberOfControlPointsW(),11);
 
     // Check position of CP's
     for( std::size_t i = 0; i < 4; ++i){
-        KRATOS_CHECK_NEAR((*volume_w)[i+0][2], 0.0, TOLERANCE);
-        KRATOS_CHECK_NEAR((*volume_w)[i+4][2], 0.1665, TOLERANCE);
-        KRATOS_CHECK_NEAR((*volume_w)[i+8][2], 0.26085, TOLERANCE);
-        KRATOS_CHECK_NEAR((*volume_w)[i+12][2], 0.37518, TOLERANCE);
-        KRATOS_CHECK_NEAR((*volume_w)[i+16][2], 0.39915599999999996, TOLERANCE);
-        KRATOS_CHECK_NEAR((*volume_w)[i+20][2], 0.41993519999999995, TOLERANCE);
-        KRATOS_CHECK_NEAR((*volume_w)[i+24][2], 0.470653875, TOLERANCE);
-        KRATOS_CHECK_NEAR((*volume_w)[i+28][2], 0.524266875, TOLERANCE);
-        KRATOS_CHECK_NEAR((*volume_w)[i+32][2], 0.624375, TOLERANCE);
-        KRATOS_CHECK_NEAR((*volume_w)[i+36][2], 0.7996, TOLERANCE);
-        KRATOS_CHECK_NEAR((*volume_w)[i+40][2], 1.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR((*volume_w)[i+0][2], 0.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR((*volume_w)[i+4][2], 0.1665, TOLERANCE);
+        KRATOS_EXPECT_NEAR((*volume_w)[i+8][2], 0.26085, TOLERANCE);
+        KRATOS_EXPECT_NEAR((*volume_w)[i+12][2], 0.37518, TOLERANCE);
+        KRATOS_EXPECT_NEAR((*volume_w)[i+16][2], 0.39915599999999996, TOLERANCE);
+        KRATOS_EXPECT_NEAR((*volume_w)[i+20][2], 0.41993519999999995, TOLERANCE);
+        KRATOS_EXPECT_NEAR((*volume_w)[i+24][2], 0.470653875, TOLERANCE);
+        KRATOS_EXPECT_NEAR((*volume_w)[i+28][2], 0.524266875, TOLERANCE);
+        KRATOS_EXPECT_NEAR((*volume_w)[i+32][2], 0.624375, TOLERANCE);
+        KRATOS_EXPECT_NEAR((*volume_w)[i+36][2], 0.7996, TOLERANCE);
+        KRATOS_EXPECT_NEAR((*volume_w)[i+40][2], 1.0, TOLERANCE);
     }
 
     // Check ID's
     for( long unsigned int i = 0; i < volume_w->size(); ++i){
-        KRATOS_CHECK_EQUAL((*volume_w)[i].Id(), 0);
+        KRATOS_EXPECT_EQ((*volume_w)[i].Id(), 0);
     }
 }
 

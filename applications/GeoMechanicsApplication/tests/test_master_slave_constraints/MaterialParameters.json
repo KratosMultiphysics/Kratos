@@ -1,0 +1,21 @@
+{
+   "properties": [{
+      "model_part_name":         "PorousDomain.Soil",
+      "properties_id":           1,
+      "Material": {
+          "constitutive_law": {
+              "name"             :  "GeoLinearElasticPlaneStrain2DLaw" 
+          },
+          "Variables": {
+              "IGNORE_UNDRAINED"         :  true,
+              "YOUNG_MODULUS"            :  1.0e6,
+              "POISSON_RATIO"            :  0.0,
+              "DENSITY_SOLID"            :  2650,
+              "DENSITY_WATER"            :  1000,
+              "POROSITY"                 :  0.0,
+              "BULK_MODULUS_SOLID"       :  1.0e9,
+              "BULK_MODULUS_FLUID"       :  2.0e6
+         }
+      }
+   }]
+}

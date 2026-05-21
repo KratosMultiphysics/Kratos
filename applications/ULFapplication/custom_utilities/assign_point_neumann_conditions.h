@@ -109,12 +109,12 @@ namespace Kratos
 	      			       temp.reserve(1);
 				       temp.push_back(*(it.base()));	
 		
-					if (TDim==3)
+					if constexpr (TDim==3)
 						{
 						Condition::Pointer p_cond = (KratosComponents<Condition>::Get("PointNeumann3D")).Create(id, temp, properties);	
 						(ThisModelPart.Conditions()).push_back(p_cond);
 						}
-					else if (TDim==2)
+					else if constexpr (TDim==2)
 						{
 						Condition::Pointer p_cond = (KratosComponents<Condition>::Get("PointNeumann2D")).Create(id, temp, properties);	
 						(ThisModelPart.Conditions()).push_back(p_cond);
@@ -195,11 +195,11 @@ namespace Kratos
 				       temp.reserve(1);
 				       temp.push_back(*(it.base()));	
 		
-					if (TDim==3)
+					if constexpr (TDim==3)
 						{
 						KRATOS_ERROR(std::logic_error,"Method not implemented for 3D","");
 						}
-					else if (TDim==2)
+					else if constexpr (TDim==2)
 						{
 						Condition::Pointer p_cond = (KratosComponents<Condition>::Get("PointNeumannMonolithic2D")).Create(id, temp, properties);	
 						(ThisModelPart.Conditions()).push_back(p_cond);

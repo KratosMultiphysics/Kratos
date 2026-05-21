@@ -35,7 +35,6 @@ class AutomaticRayleighComputationProcess(KM.Process):
         default_parameters = KM.Parameters("""
         {
             "help"                           :"This class is used in order to compute automatically the Rayleigh damping parameters computing in first place the eigenvalues of the system",
-            "mesh_id"                        : 0,
             "model_part_name"                : "Structure",
             "echo_level"                     : 0,
             "write_on_properties"            : true,
@@ -55,7 +54,7 @@ class AutomaticRayleighComputationProcess(KM.Process):
         else:
             settings.AddValue("eigen_system_settings", default_parameters["eigen_system_settings"])
         solver_type = settings["eigen_system_settings"]["solver_type"].GetString()
-        eigen_system_settings = self._auxiliar_eigen_settings(solver_type)
+        eigen_system_settings = self._auxiliary_eigen_settings(solver_type)
         default_parameters["eigen_system_settings"] = eigen_system_settings["eigen_system_settings"]
 
         # Overwrite the default settings with user-provided parameters
@@ -81,7 +80,7 @@ class AutomaticRayleighComputationProcess(KM.Process):
         current_process_info = self.main_model_part.ProcessInfo
         existing_computation = current_process_info.Has(SMA.EIGENVALUE_VECTOR)
 
-        # Create auxiliar parameters
+        # Create auxiliary parameters
         compute_damping_coefficients_settings = KM.Parameters("""
         {
             "echo_level"          : 0,
@@ -154,7 +153,7 @@ class AutomaticRayleighComputationProcess(KM.Process):
             else:
                 current_process_info.SetValue(SMA.RAYLEIGH_BETA, coefficients_vector[1])
 
-    def _auxiliar_eigen_settings(self, solver_type):
+    def _auxiliary_eigen_settings(self, solver_type):
         """ This method returns the settings for the eigenvalues computations
 
         Keyword arguments:

@@ -10,24 +10,17 @@
 //  Main author:     Jordi Cotela
 //
 
-#ifndef KRATOS_ADD_MPI_DATA_COMMUNICATOR_TO_PYTHON_H_INCLUDED
-#define KRATOS_ADD_MPI_DATA_COMMUNICATOR_TO_PYTHON_H_INCLUDED
+#pragma once
 
 // System includes
-#include <pybind11/pybind11.h>
 
 // External includes
+#include <pybind11/pybind11.h>
 
 // Project includes
 
-namespace Kratos {
-
-namespace Python {
+namespace Kratos::Python {
 
 void AddMPIDataCommunicatorToPython(pybind11::module &m);
 
-} // namespace Python.
-
-} // namespace Kratos.
-
-#endif // KRATOS_ADD_MPI_DATA_COMMUNICATOR_TO_PYTHON_H_INCLUDED  defined
+} // namespace Kratos::Python.

@@ -55,7 +55,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// An impelementation of the Windkessel model for boundary condition of incompressible flows.
+/// An implementation of the Windkessel model for boundary condition of incompressible flows.
 /** Detail class definition.
  */
 
@@ -109,9 +109,9 @@ public:
     {
         KRATOS_TRY
         double Flow_total=0.0;
-        double Resistence = 5e9;
-        if ((Resistence <=0.0)){
-             KRATOS_THROW_ERROR(std::logic_error, "Resistece must be higer than cero:", Resistence);
+        double Resistance = 5e9;
+        if ((Resistance <=0.0)){
+             KRATOS_THROW_ERROR(std::logic_error, "Resistance must be higher than zero:", Resistance);
             }
         ModelPart::ConditionsContainerType rConditions = mr_model_part.Conditions();
         //1_Compute Flow in the outlew area
@@ -144,7 +144,7 @@ public:
             }
         }
         //2_Compute the Pressure according to the Windkessel Model
-        double Update_Pressure = Flow_total * Resistence;
+        double Update_Pressure = Flow_total * Resistance;
         //KRATOS_WATCH(Flow_total)
         //3_Assign Pressure over the outlet area
         ModelPart::NodesContainerType rNodes = mr_model_part.Nodes();

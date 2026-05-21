@@ -4,11 +4,11 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Riccardo Rossi
-//
+//  Main authors:    Pooyan Dadvand
+//                   Riccardo Rossi
 //
 
 // Project includes
@@ -30,13 +30,13 @@ void Flags::load(Serializer& rSerializer)
     rSerializer.load("Flags",  mFlags);
 }
 
-void Flags::Set(Flags ThisFlag)
+void Flags::Set(const Flags ThisFlag)
 {
     mIsDefined |= ThisFlag.mIsDefined;
     mFlags = (mFlags & ~ThisFlag.mIsDefined) | (ThisFlag.mIsDefined & ThisFlag.mFlags);
 }
 
-void Flags::Set(Flags ThisFlag, bool value)
+void Flags::Set(const Flags ThisFlag, bool value)
 {
     mIsDefined |= ThisFlag.mIsDefined;
     mFlags = (mFlags & ~ThisFlag.mIsDefined) | (ThisFlag.mIsDefined * BlockType(value));

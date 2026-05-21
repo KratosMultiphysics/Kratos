@@ -54,7 +54,7 @@ public:
     ///@name Type Definitions
     ///@{
 
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     ///@}
     ///@name Pointer Definitions

@@ -15,7 +15,6 @@ RUN apt-get update -y && apt-get upgrade -y && \
     apt-get -y update && \
     apt-get install -y \
         build-essential \
-        ccache \
         clang-9 \
         cmake \
         gfortran-7 \
@@ -41,8 +40,6 @@ RUN apt-get update -y && apt-get upgrade -y && \
         python3-h5py \
         python3-pip \
         valgrind && \
-    /usr/sbin/update-ccache-symlinks && \
-    echo 'export PATH="/usr/lib/ccache:$PATH"' | tee -a ~/.bashrc && \
     python3 -m pip install --upgrade pip && \
     pip3 install \
         numpy \

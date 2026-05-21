@@ -1,3 +1,4 @@
+import KratosMultiphysics as KM
 from KratosMultiphysics import Testing
 from KratosMultiphysics.kratos_utilities import GetNotAvailableApplications
 
@@ -110,7 +111,7 @@ class TestCase(TestCase):
             def __init__(self, idx_1, idx_2, aux_message=None):
                 self.idx_1 = idx_1
                 self.idx_2 = idx_2
-                self.aux_msg = aux_message
+                self.aux_message = aux_message
 
             def __str__(self):
                 err_msg  = '\nCheck failed because matrix arguments are not equal in component ({},{})'.format(self.idx_1, self.idx_2)
@@ -229,7 +230,13 @@ def runTests(tests):
     # parse command line options
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('-l', '--level', default='all', choices=['all', 'nightly', 'small', 'validation'])
+    # Depending of serial/MPI the level can be different, so we have to parse it
+    if KM.IsDistributedRun():
+        parser.add_argument('-l', '--level', default='mpi_small',
+            choices=['mpi_all', 'mpi_nightly', 'mpi_small', 'mpi_validation', 'all', 'nightly', 'small', 'validation'],
+            help="For distributed runs, options that don't start with mpi_ will be replaced by the corresponding mpi version")
+    else:
+        parser.add_argument('-l', '--level', default='small', choices=['all', 'nightly', 'small', 'validation'])
     parser.add_argument('-v', '--verbosity', default=2, type=int, choices=[0, 1, 2])
     parser.add_argument('--timing', action='store_true')
     parser.add_argument('--using-mpi', action='store_true')
@@ -238,7 +245,8 @@ def runTests(tests):
 
     level = args.level
     if args.using_mpi:
-        level = "mpi_" + level
+        if not "mpi_" in level:
+            level = "mpi_" + level
 
     if tests[level].countTestCases() == 0:
         print('[Warning]: "{}" test suite is empty'.format(level),file=sys.stderr)

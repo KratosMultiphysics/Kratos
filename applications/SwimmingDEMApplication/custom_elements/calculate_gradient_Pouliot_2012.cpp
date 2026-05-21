@@ -58,7 +58,7 @@ void ComputeGradientPouliot2012<TDim, TNumNodes>::GetDofList(DofsVectorType& rEl
     for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode){
         rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(VELOCITY_COMPONENT_GRADIENT_X);
         rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(VELOCITY_COMPONENT_GRADIENT_Y);
-        if (TDim == 3){
+        if constexpr (TDim == 3){
             rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(VELOCITY_COMPONENT_GRADIENT_Z);
         }
     }
@@ -100,7 +100,7 @@ void ComputeGradientPouliot2012<TDim, TNumNodes>::EquationIdVector(EquationIdVec
     for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode){
         rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_COMPONENT_GRADIENT_X,pos).EquationId();
         rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_COMPONENT_GRADIENT_Y,pos+1).EquationId();
-        if (TDim == 3){
+        if constexpr (TDim == 3){
             rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_COMPONENT_GRADIENT_Z,pos+2).EquationId();
         }
     }

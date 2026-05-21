@@ -25,7 +25,7 @@ def GeometryDataFactory(geometry_name, ngauss=None):
 
 class GeometryData:
     nnodes = None                   # Number of nodes
-    ndims = None                    # Dimension the geometry is embeded in
+    ndims = None                    # Dimension the geometry is embedded in
     blocksize = None                # Number of Dof per node. Generally = ndims+2
     ndofs = None                    # Number of Dof per element. Generally = blocksize*nnodes
 

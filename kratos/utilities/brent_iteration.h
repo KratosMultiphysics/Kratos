@@ -1,17 +1,18 @@
-//    |  /           | 
-//    ' /   __| _` | __|  _ \   __| 
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ \.
-//   _|\_\_|  \__,_|\__|\___/ ____/ 
-//                   Multi-Physics  
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:		 BSD License 
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Jordi Cotela
+//  Main authors:    Michael Andre
+//
+//  Contributors:    Jordi Cotela Dalmau
 //
 
-#if !defined(KRATOS_BRENT_ITERATION_H_INCLUDED)
-#define  KRATOS_BRENT_ITERATION_H_INCLUDED
+#pragma once
 
 #include <cmath>
 #include <algorithm>
@@ -86,7 +87,7 @@ public:
 			tol1 = 2.*eps*std::fabs(b) + 0.5*Tolerance;
 			xm = 0.5*(c-b);
 
-			if (std::fabs(xm) < tol1 || std::fabs(b) < eps)
+			if (std::fabs(xm) < tol1 || std::fabs(fb) < eps)
 				return b;
 
 			if (std::fabs(e) > tol1 && std::fabs(fa) > std::fabs(fb) )
@@ -107,7 +108,7 @@ public:
 				}
 
 				// Change sign of update if necessary
-				if ( p > 0.0 ) 
+				if ( p > 0.0 )
 					q = -q;
 				p = std::fabs(p);
 
@@ -156,5 +157,3 @@ public:
 };
 
 }
-
-#endif // KRATOS_BRENT_ITERATION_H_INCLUDED

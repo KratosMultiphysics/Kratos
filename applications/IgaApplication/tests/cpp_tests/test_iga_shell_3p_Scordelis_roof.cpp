@@ -33,7 +33,7 @@ namespace Testing
 
     typename Element::Pointer GetShell3pElementScordelis(
         ModelPart& rModelPart, SizeType PolynomialDegree, IntegrationPoint<3> IntegrationPoint)
-    {
+    {        
         // Set the element properties
         auto p_elem_prop = rModelPart.CreateNewProperties(0);
         p_elem_prop->SetValue(YOUNG_MODULUS, 4.32e8);
@@ -51,6 +51,8 @@ namespace Testing
     // Tests the stiffness matrix of the Shell3pElement with a polynomial degree of p=4 (Scordelis Lo Roof).
     KRATOS_TEST_CASE_IN_SUITE(IgaShell3pElementP4Scordelis, KratosIgaFastSuite)
     {
+        KRATOS_SKIP_TEST_IF_NOT(KratosComponents<ConstitutiveLaw>::Has("LinearElasticPlaneStress2DLaw")) << "This test needs the StructuralMechanicsApplication" << std::endl;
+
         Model current_model;
         auto &r_model_part = current_model.CreateModelPart("ModelPart");
         r_model_part.GetProcessInfo().SetValue(DOMAIN_SIZE, 3);
@@ -79,22 +81,24 @@ namespace Testing
         const std::array<double, 75> expected_RHS{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 
         for (unsigned int i = 0; i < left_hand_side_matrix.size1(); i++) {
-          KRATOS_CHECK_NEAR(left_hand_side_matrix(72,i), expected_LHS_row_72[i], tolerance);
+          KRATOS_EXPECT_NEAR(left_hand_side_matrix(72,i), expected_LHS_row_72[i], tolerance);
         }
         for (unsigned int i = 0; i < left_hand_side_matrix.size1(); i++) {
-          KRATOS_CHECK_NEAR(left_hand_side_matrix(73,i), expected_LHS_row_73[i], tolerance);
+          KRATOS_EXPECT_NEAR(left_hand_side_matrix(73,i), expected_LHS_row_73[i], tolerance);
         }
         for (unsigned int i = 0; i < left_hand_side_matrix.size1(); i++) {
-          KRATOS_CHECK_NEAR(left_hand_side_matrix(74,i), expected_LHS_row_74[i], tolerance);
+          KRATOS_EXPECT_NEAR(left_hand_side_matrix(74,i), expected_LHS_row_74[i], tolerance);
         }
         for (unsigned int i = 0; i < right_hand_side_vector.size(); i++) {
-          KRATOS_CHECK_NEAR(right_hand_side_vector(i), expected_RHS[i], tolerance);
+          KRATOS_EXPECT_NEAR(right_hand_side_vector(i), expected_RHS[i], tolerance);
         }
     }
 
     // Tests the stiffness matrix of the Shell3pElement with a polynomial degree of p=5 (Scordelis Lo Roof).
     KRATOS_TEST_CASE_IN_SUITE(IgaShell3pElementP5Scordelis, KratosIgaFastSuite)
     {
+        KRATOS_SKIP_TEST_IF_NOT(KratosComponents<ConstitutiveLaw>::Has("LinearElasticPlaneStress2DLaw")) << "This test needs the StructuralMechanicsApplication" << std::endl;
+
         Model current_model;
         auto &r_model_part = current_model.CreateModelPart("ModelPart");
         r_model_part.GetProcessInfo().SetValue(DOMAIN_SIZE, 3);
@@ -123,16 +127,16 @@ namespace Testing
         const std::array<double, 108> expected_RHS{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 
         for (unsigned int i = 0; i < left_hand_side_matrix.size1(); i++) {
-          KRATOS_CHECK_NEAR(left_hand_side_matrix(105,i), expected_LHS_row_105[i], tolerance);
+          KRATOS_EXPECT_NEAR(left_hand_side_matrix(105,i), expected_LHS_row_105[i], tolerance);
         }
         for (unsigned int i = 0; i < left_hand_side_matrix.size1(); i++) {
-          KRATOS_CHECK_NEAR(left_hand_side_matrix(106,i), expected_LHS_row_106[i], tolerance);
+          KRATOS_EXPECT_NEAR(left_hand_side_matrix(106,i), expected_LHS_row_106[i], tolerance);
         }
         for (unsigned int i = 0; i < left_hand_side_matrix.size1(); i++) {
-          KRATOS_CHECK_NEAR(left_hand_side_matrix(107,i), expected_LHS_row_107[i], tolerance);
+          KRATOS_EXPECT_NEAR(left_hand_side_matrix(107,i), expected_LHS_row_107[i], tolerance);
         }
         for (unsigned int i = 0; i < right_hand_side_vector.size(); i++) {
-          KRATOS_CHECK_NEAR(right_hand_side_vector(i), expected_RHS[i], tolerance);
+          KRATOS_EXPECT_NEAR(right_hand_side_vector(i), expected_RHS[i], tolerance);
         }
     }
 }

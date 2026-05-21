@@ -4,15 +4,13 @@
 //        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
 //        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
-//  License:		 BSD License
-//					 license: ContactStructuralMechanicsApplication/license.txt
+//  License:         BSD License
+//                   license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-
-#if !defined(KRATOS_INTERFACE_PREPROCESS_CONDITION_H_INCLUDED )
-#define  KRATOS_INTERFACE_PREPROCESS_CONDITION_H_INCLUDED
+#pragma once
 
 // System includes
 #include <iostream>
@@ -59,22 +57,21 @@ public:
     ///@{
 
     /// Geometric definitions
-    typedef Point                                              PointType;
-    typedef Node<3>                                             NodeType;
-    typedef Geometry<NodeType>                              GeometryType;
-    typedef Geometry<PointType>                        GeometryPointType;
+    using PointType = Point;
+    using GeometryType = Geometry<Node>;
+    using GeometryPointType = Geometry<PointType>;
 
     /// The index type
-    typedef std::size_t                                        IndexType;
+    using IndexType = std::size_t;
 
     /// The size type
-    typedef std::size_t                                         SizeType;
+    using SizeType = std::size_t;
 
     /// Definition of the entities container
-    typedef ModelPart::NodesContainerType                 NodesArrayType;
-    typedef ModelPart::ElementsContainerType           ElementsArrayType;
-    typedef ModelPart::ConditionsContainerType       ConditionsArrayType;
-
+    using NodesArrayType = ModelPart::NodesContainerType;
+    using ElementsArrayType = ModelPart::ElementsContainerType;
+    using ConditionsArrayType = ModelPart::ConditionsContainerType;
+    
     /// Pointer definition of ExactMortarIntegrationUtility
     KRATOS_CLASS_POINTER_DEFINITION(InterfacePreprocessCondition);
 
@@ -296,4 +293,3 @@ private:
     ///@}
 }; // Class InterfacePreprocessCondition
 }
-#endif  /* KRATOS_INTERFACE_PREPROCESS_CONDITION_H_INCLUDED defined */

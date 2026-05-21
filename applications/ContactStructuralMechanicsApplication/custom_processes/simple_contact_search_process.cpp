@@ -4,8 +4,8 @@
 //        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
 //        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
-//  License:		 BSD License
-//					 license: ContactStructuralMechanicsApplication/license.txt
+//  License:         BSD License
+//                   license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
@@ -35,7 +35,7 @@ SimpleContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SimpleContactSearc
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 void SimpleContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SetActiveNode(
-    NodeType& rNode,
+    Node& rNode,
     const double CommonEpsilon,
     const double ScaleFactor
     )
@@ -48,7 +48,7 @@ void SimpleContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SetActiveNode
 
     // In case of penetration
     if (normal_gap < 0.0) {
-        // Auxiliar values
+        // Auxiliary values
         const double epsilon = (rNode.Has(INITIAL_PENALTY) ? rNode.GetValue(INITIAL_PENALTY) : CommonEpsilon)/ScaleFactor;
         const double nodal_area = rNode.Has(NODAL_AREA) ? rNode.GetValue(NODAL_AREA) : 1.0;
 

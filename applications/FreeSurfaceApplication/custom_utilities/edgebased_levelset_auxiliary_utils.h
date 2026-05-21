@@ -95,9 +95,9 @@ public:
         const double max_distance
     )
     {
-        if(TDim == 2)
+        if constexpr (TDim == 2)
             CalculateDistances2D(r_model_part, rDistanceVar, max_distance);
-        else if (TDim == 3)
+        else if constexpr (TDim == 3)
             CalculateDistances3D(r_model_part, rDistanceVar, max_distance);
 
      //   r_model_part.GetCommunicator().SynchronizeCurrentDataToMin(rDistanceVar);
@@ -367,7 +367,7 @@ public:
             double zc = in->Z();
 
             double h = 0.0;
-            for (GlobalPointersVector< Node < 3 > >::iterator i = in->GetValue(NEIGHBOUR_NODES).begin();
+            for (GlobalPointersVector< Node >::iterator i = in->GetValue(NEIGHBOUR_NODES).begin();
                     i != in->GetValue(NEIGHBOUR_NODES).end(); i++)
             {
                 double x = i->X();

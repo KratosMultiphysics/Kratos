@@ -113,9 +113,6 @@ namespace Kratos
       double grain_diameter = 0;
       double grain_density = 0;
       double regularization_coefficient = 0;
-      double infinite_friction = 0;
-      double inertial_number_one = 0;
-      double alpha_parameter = 0;
       double friction_angle = 0;
       double cohesion = 0;
 
@@ -147,24 +144,12 @@ namespace Kratos
           }
           else if (elemProperties.Has(STATIC_FRICTION)) // Mu(I)-rheology
           {
-
             static_friction = elemProperties[STATIC_FRICTION];
             dynamic_friction = elemProperties[DYNAMIC_FRICTION];
             inertial_number_zero = elemProperties[INERTIAL_NUMBER_ZERO];
             grain_diameter = elemProperties[GRAIN_DIAMETER];
             grain_density = elemProperties[GRAIN_DENSITY];
-
-            if (elemProperties.Has(INERTIAL_NUMBER_ONE))
-            {
-              inertial_number_one = elemProperties[INERTIAL_NUMBER_ONE];
-              infinite_friction = elemProperties[INFINITE_FRICTION];
-              alpha_parameter = elemProperties[ALPHA_PARAMETER];
-            }
-
-            if (elemProperties.Has(REGULARIZATION_COEFFICIENT))
-            {
-              regularization_coefficient = elemProperties[REGULARIZATION_COEFFICIENT];
-            }
+            regularization_coefficient = elemProperties[REGULARIZATION_COEFFICIENT];
           }
           break;
         }
@@ -219,15 +204,6 @@ namespace Kratos
 
           if (mrFluidModelPart.GetNodalSolutionStepVariablesList().Has(GRAIN_DENSITY))
             iNode->FastGetSolutionStepValue(GRAIN_DENSITY) = grain_density;
-
-          if (mrFluidModelPart.GetNodalSolutionStepVariablesList().Has(INERTIAL_NUMBER_ONE))
-            iNode->FastGetSolutionStepValue(INERTIAL_NUMBER_ONE) = inertial_number_one;
-
-          if (mrFluidModelPart.GetNodalSolutionStepVariablesList().Has(INFINITE_FRICTION))
-            iNode->FastGetSolutionStepValue(INFINITE_FRICTION) = infinite_friction;
-
-          if (mrFluidModelPart.GetNodalSolutionStepVariablesList().Has(ALPHA_PARAMETER))
-            iNode->FastGetSolutionStepValue(ALPHA_PARAMETER) = alpha_parameter;
 
           if (mrFluidModelPart.GetNodalSolutionStepVariablesList().Has(REGULARIZATION_COEFFICIENT))
             iNode->FastGetSolutionStepValue(REGULARIZATION_COEFFICIENT) = regularization_coefficient;

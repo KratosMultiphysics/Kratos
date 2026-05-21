@@ -1,4 +1,3 @@
-from __future__ import absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 # Importing the Kratos Library
 import KratosMultiphysics
@@ -8,12 +7,12 @@ import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 import KratosMultiphysics.PFEM2Application as KratosPFEM2
 
 # Import base class file
-from navier_stokes_solver_vmsmonolithic import NavierStokesSolverMonolithic
+from KratosCFD.navier_stokes_monolithic_solver import NavierStokesMonolithicSolver
 
 def CreateSolver(model, custom_settings):
     return PFEM2NavierStokesMonolithicSolver(model, custom_settings)
 
-class PFEM2NavierStokesMonolithicSolver(NavierStokesSolverMonolithic):
+class PFEM2NavierStokesMonolithicSolver(NavierStokesMonolithicSolver):
 
     def __init__(self, model, custom_settings):
         super(PFEM2NavierStokesMonolithicSolver,self).__init__(model,custom_settings)

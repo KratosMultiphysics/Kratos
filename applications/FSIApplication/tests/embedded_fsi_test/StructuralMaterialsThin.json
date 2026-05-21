@@ -1,0 +1,15 @@
+{
+    "properties" : [{
+        "model_part_name" : "Structure.Membrane",
+        "properties_id"   : 1,
+        "Material"        : {
+            "Variables"        : {
+                "DENSITY" : 1.0e0,
+                "THICKNESS" : 0.05,
+                "YOUNG_MODULUS" : 200.0e3,
+                "PRESTRESS_VECTOR" : [5.0e5]
+            },
+            "Tables"           : null
+        }
+    }]
+}

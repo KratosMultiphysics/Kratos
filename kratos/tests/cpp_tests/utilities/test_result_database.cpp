@@ -18,7 +18,7 @@
 // Project includes
 #include "containers/model.h"
 #include "testing/testing.h"
-#include "utilities/cpp_tests_utilities.h"
+#include "tests/test_utilities/cpp_tests_utilities.h"
 #include "utilities/result_dabatase.h"
 
 namespace Kratos {
@@ -101,7 +101,7 @@ KRATOS_TEST_CASE_IN_SUITE(ResultDatabase, KratosCoreFastSuite)
                 const double result = it_node->FastGetSolutionStepValue(*p_var_double);
                 const double reference = r_var_database.GetValue(i, time);
 
-                KRATOS_CHECK_NEAR(result, reference, 1.0e-12);
+                KRATOS_EXPECT_NEAR(result, reference, 1.0e-12);
             }
         }
     }

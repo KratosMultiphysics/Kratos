@@ -197,7 +197,7 @@ void WallCondition<3,3>::GetDofList(DofsVectorType& rElementalDofList,
 template <>
  void WallCondition<2,2>::CalculateNormal(array_1d<double,3>& An)
     {
-        Geometry<Node<3> >& pGeometry = this->GetGeometry();
+        Geometry<Node >& pGeometry = this->GetGeometry();
 
         An[0] =   pGeometry[1].Y() - pGeometry[0].Y();
         An[1] = - (pGeometry[1].X() - pGeometry[0].X());
@@ -208,7 +208,7 @@ template <>
 template <>
 void WallCondition<3,3>::CalculateNormal(array_1d<double,3>& An )
     {
-        Geometry<Node<3> >& pGeometry = this->GetGeometry();
+        Geometry<Node >& pGeometry = this->GetGeometry();
 
         array_1d<double,3> v1,v2;
         v1[0] = pGeometry[1].X() - pGeometry[0].X();

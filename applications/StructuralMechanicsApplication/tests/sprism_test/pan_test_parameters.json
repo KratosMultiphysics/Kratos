@@ -56,7 +56,6 @@
         "help"          : "This process fixes the selected components of a given vector variable",
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
-            "mesh_id"         : 0,
             "model_part_name" : "Structure.DISPLACEMENT_Displacement_Auto1",
             "variable_name"   : "DISPLACEMENT",
             "constrained"     : [true,false,false],
@@ -69,7 +68,6 @@
         "help"          : "This process fixes the selected components of a given vector variable",
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
-            "mesh_id"         : 0,
             "model_part_name" : "Structure.DISPLACEMENT_Displacement_Auto2",
             "variable_name"   : "DISPLACEMENT",
             "constrained"     : [false,true,false],
@@ -82,7 +80,6 @@
         "help"          : "This process fixes the selected components of a given vector variable",
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
-            "mesh_id"         : 0,
             "model_part_name" : "Structure.DISPLACEMENT_Displacement_Auto3",
             "variable_name"   : "DISPLACEMENT",
             "constrained"     : [false,false,true],
@@ -95,7 +92,6 @@
         "kratos_module" : "KratosMultiphysics",
         "process_name"  : "AssignVectorByDirectionToConditionProcess",
         "Parameters"    : {
-            "mesh_id"         : 0,
             "model_part_name" : "Structure.POINTLOAD_PointLoad_Auto4",
             "variable_name"   : "POINT_LOAD",
             "modulus"         : -1.0e3,

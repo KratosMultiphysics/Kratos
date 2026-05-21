@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 import KratosMultiphysics
 import KratosMultiphysics.FluidDynamicsApplication
@@ -42,7 +41,7 @@ class TwoFluidHydrostaticPoolTest(UnitTest.TestCase):
         # switch here for output
         self.print_output = False
 
-    # runs the two dimensinal test case
+    # runs the two dimensional test case
     def runTwoFluidHydrostaticTest2D(self):
         with open("TwoFluidStaticPoolTest/TwoFluidStaticPoolTest2D.json",'r') as parameter_file:
             parameters = KratosMultiphysics.Parameters(parameter_file.read())

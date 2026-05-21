@@ -15,7 +15,6 @@
 // Project includes
 #include "testing/testing.h"
 #include "utilities/stl_vector_io.h"
-#include "includes/shared_pointers.h"
 
 namespace Kratos {
 namespace Testing {
@@ -30,15 +29,15 @@ KRATOS_TEST_CASE_IN_SUITE(StdVectorOutputStream, KratosCoreFastSuite)
 
     std::stringstream ss_int;
     ss_int << int_vector;
-    KRATOS_CHECK_STRING_EQUAL(ss_int.str(), "[1, 5, -63, 581, 6]");
+    KRATOS_EXPECT_EQ(ss_int.str(), "[1, 5, -63, 581, 6]");
 
     std::stringstream ss_double;
     ss_double << double_vector;
-    KRATOS_CHECK_STRING_EQUAL(ss_double.str(), "[4.335, 8.639, -888.47, 9874]");
+    KRATOS_EXPECT_EQ(ss_double.str(), "[4.335, 8.639, -888.47, 9874]");
 
     std::stringstream ss_string;
     ss_string << string_vector;
-    KRATOS_CHECK_STRING_EQUAL(ss_string.str(), "[val_1, custom, again_test]");
+    KRATOS_EXPECT_EQ(ss_string.str(), "[val_1, custom, again_test]");
 }
 
 KRATOS_TEST_CASE_IN_SUITE(StdWeakPtrOutputStream, KratosCoreFastSuite)
@@ -52,12 +51,12 @@ KRATOS_TEST_CASE_IN_SUITE(StdWeakPtrOutputStream, KratosCoreFastSuite)
       wp=sp;
       std::stringstream ss_wp;
       ss_wp << wp;
-      KRATOS_CHECK_STRING_EQUAL(ss_wp.str(), "42");
+      KRATOS_EXPECT_EQ(ss_wp.str(), "42");
     }
 
     std::stringstream ss_wp;
     ss_wp << wp;
-    KRATOS_CHECK_STRING_EQUAL(ss_wp.str(), " expired weak_ptr ");
+    KRATOS_EXPECT_EQ(ss_wp.str(), " expired weak_ptr ");
 }
 
 }   // namespace Testing

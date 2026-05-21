@@ -3,17 +3,17 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
 
 // Project includes
 #include "containers/model.h"
-#include "testing/testing.h"
+#include "structural_mechanics_fast_suite.h"
 #include "structural_mechanics_application_variables.h"
-#include "custom_elements/total_lagrangian.h"
+#include "custom_elements/solid_elements/total_lagrangian.h"
 
 namespace Kratos
 {
@@ -115,9 +115,9 @@ namespace Testing
             std::vector<double> output_von_mises(1);
             p_element->CalculateOnIntegrationPoints(VON_MISES_STRESS,output_von_mises, r_model_part.GetProcessInfo());
 
-            KRATOS_CHECK_VECTOR_EQUAL(output_strains[0], reference_strain);
-            KRATOS_CHECK_VECTOR_EQUAL(output_stress[0], reference_stress);
-            KRATOS_CHECK_NEAR((output_von_mises[0]-reference_von_mises_pk2)/reference_von_mises_pk2, 0.0,1e-14);
+            KRATOS_EXPECT_VECTOR_EQ(output_strains[0], reference_strain);
+            KRATOS_EXPECT_VECTOR_EQ(output_stress[0], reference_stress);
+            KRATOS_EXPECT_NEAR((output_von_mises[0]-reference_von_mises_pk2)/reference_von_mises_pk2, 0.0,1e-14);
         }
     }
 }

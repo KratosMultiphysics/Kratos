@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 from KratosMultiphysics import *
 from KratosMultiphysics.FluidDynamicsApplication import *
 from KratosMultiphysics.MeshingApplication import *
@@ -19,7 +18,7 @@ class DynamicSmagorinsky:
         else:
             self.refinement_tool = LocalRefineTetrahedraMesh(model_part)
 
-        # Neigbour search tool instance
+        # Neighbour search tool instance
         AvgElemNum = 10
         AvgNodeNum = 10
         self.nodal_neighbour_search = FindNodalNeighboursProcess(model_part,

@@ -27,7 +27,7 @@ template <class TGaussPointContainer = GidGaussPointsContainer, class TMeshConta
 class PfemFluidGidIO : public GidIO<TGaussPointContainer, TMeshContainer>
 {
 
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
     typedef Properties PropertiesType;
     typedef Element ElementType;
     typedef Condition ConditionType;

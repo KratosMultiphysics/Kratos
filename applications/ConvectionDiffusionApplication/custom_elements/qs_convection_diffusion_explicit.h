@@ -74,7 +74,7 @@ public:
     ///@{
 
         typedef Element BaseType;
-        typedef Node < 3 > NodeType;
+        typedef Node NodeType;
         typedef Geometry<NodeType> GeometryType;
 
     /// Pointer definition of QSConvectionDiffusionExplicit
@@ -94,7 +94,7 @@ public:
         GeometryType::Pointer pGeometry,
         Properties::Pointer pProperties);
 
-    /// Default constuctor.
+    /// Default constructor.
 
     /// Destructor.
     virtual ~QSConvectionDiffusionExplicit();

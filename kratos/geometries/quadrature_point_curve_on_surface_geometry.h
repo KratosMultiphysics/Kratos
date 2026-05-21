@@ -28,14 +28,14 @@ namespace Kratos
 /**
  * @class QuadraturePointGeometry
  * @ingroup KratosCore
- * @brief A sinlge quadrature point, that can be used for geometries without
+ * @brief A single quadrature point, that can be used for geometries without
  *        a predefined integration scheme, i.e. they can handle material point elements,
  *        isogeometric analysis elements or standard finite elements which are defined
  *        at a single quadrature point.
  *        This point defines a line segment described on a underlying surface.
  *        Shape functions and integration types have to be precomputed and are set from
  *        from outside.
- *        The parent pointer can provide the adress to the owner of this quadrature point.
+ *        The parent pointer can provide the address to the owner of this quadrature point.
  */
 template<class TPointType>
 class QuadraturePointCurveOnSurfaceGeometry
@@ -263,11 +263,21 @@ public:
     ///@name Kratos Geometry Families
     ///@{
 
+    /**
+     * @brief Gets the geometry family.
+     * @details This function returns the family type of the geometry. The geometry family categorizes the geometry into a broader classification, aiding in its identification and processing.
+     * @return GeometryData::KratosGeometryFamily The geometry family.
+     */
     GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
         return GeometryData::KratosGeometryFamily::Kratos_Quadrature_Geometry;
     }
 
+    /**
+     * @brief Gets the geometry type.
+     * @details This function returns the specific type of the geometry. The geometry type provides a more detailed classification of the geometry.
+     * @return GeometryData::KratosGeometryType The specific geometry type.
+     */
     GeometryData::KratosGeometryType GetGeometryType() const override
     {
         return GeometryData::KratosGeometryType::Kratos_Quadrature_Point_Curve_On_Surface_Geometry;

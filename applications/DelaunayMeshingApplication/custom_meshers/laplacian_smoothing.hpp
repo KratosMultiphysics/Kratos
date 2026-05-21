@@ -316,7 +316,7 @@ namespace Kratos
 
 	//create the list of the nodes to be check during the search (new positions after the laplacian smoothing)
 
-	std::vector<Node<3>::Pointer> list_of_nodes;
+	std::vector<Node::Pointer> list_of_nodes;
 
 	for(NodesContainerType::iterator i_node = rModelPart.NodesBegin() ; i_node != rModelPart.NodesEnd() ; i_node++)
 	  {
@@ -334,8 +334,8 @@ namespace Kratos
 
 
 	//defintions for spatial search
-	typedef Node<3>                                  PointType;
-	typedef Node<3>::Pointer                  PointPointerType;
+	typedef Node                                  PointType;
+	typedef Node::Pointer                  PointPointerType;
 	typedef std::vector<PointPointerType>          PointVector;
 	typedef PointVector::iterator                PointIterator;
 	//typedef std::vector<double>                 DistanceVector;
@@ -372,10 +372,10 @@ namespace Kratos
 
 	//find the center and "radius" of the element
 	double  radius = 0;
-	Node<3> center(0,0.0,0.0,0.0);
+	Node center(0,0.0,0.0,0.0);
 
 	unsigned int MaximumNumberOfPointsInRadius = list_of_nodes.size();
-	std::vector<Node<3>::Pointer> PointsInRadius (MaximumNumberOfPointsInRadius);
+	std::vector<Node::Pointer> PointsInRadius (MaximumNumberOfPointsInRadius);
 	std::vector<double>  PointsInRadiusDistances (MaximumNumberOfPointsInRadius);
 
 	//geometry
@@ -415,7 +415,7 @@ namespace Kratos
 	    //std::cout<<"[ID:"<<ie->Id()<<"]: NumberOfPointsInRadius "<<NumberOfPointsInRadius<<" Radius "<<Radius<<std::endl;
 
 	    //check if inside and eventually interpolate
-	    for(std::vector<Node<3>::Pointer>::iterator it_found = PointsInRadius.begin(); it_found != (PointsInRadius.begin() + NumberOfPointsInRadius) ; ++it_found)
+	    for(std::vector<Node::Pointer>::iterator it_found = PointsInRadius.begin(); it_found != (PointsInRadius.begin() + NumberOfPointsInRadius) ; ++it_found)
 	      {
 
 		if((*it_found)->IsNot(TO_ERASE)){

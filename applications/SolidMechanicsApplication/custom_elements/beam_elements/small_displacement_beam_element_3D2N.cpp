@@ -1462,7 +1462,7 @@ int  SmallDisplacementBeamElement3D2N::Check(const ProcessInfo& rCurrentProcessI
     for(unsigned int i=0; i<this->GetGeometry().size(); ++i)
       {
 	// Nodal data
-	const Node<3> &rNode = this->GetGeometry()[i];
+	const Node &rNode = this->GetGeometry()[i];
 	KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT,rNode);
 	KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ROTATION,rNode);
 

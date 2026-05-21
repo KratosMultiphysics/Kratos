@@ -473,7 +473,7 @@ class VolumeShapingProcess : public Process
       for (int i=0; i<NumberOfElements; ++i)
       {
         ModelPart::ElementsContainerType::iterator i_elem = it_begin + i;
-        if( i_elem->GetGeometry().Dimension() == 2 && i_elem->Is(VISITED) )
+        if( i_elem->GetGeometry().WorkingSpaceDimension() == 2 && i_elem->Is(VISITED) )
           TotalVolume += i_elem->GetGeometry().Area();
       }
     }
@@ -486,7 +486,7 @@ class VolumeShapingProcess : public Process
       for (int i=0; i<NumberOfElements; ++i)
       {
         ModelPart::ElementsContainerType::iterator i_elem = it_begin + i;
-        if( i_elem->GetGeometry().Dimension() == 3 && i_elem->Is(VISITED) )
+        if( i_elem->GetGeometry().WorkingSpaceDimension() == 3 && i_elem->Is(VISITED) )
           TotalVolume += i_elem->GetGeometry().Volume();
       }
     }
@@ -518,7 +518,7 @@ class VolumeShapingProcess : public Process
       {
         ModelPart::ElementsContainerType::iterator i_elem = it_begin + i;
         GeometryType& rGeometry = i_elem->GetGeometry();
-        if( rGeometry.Dimension() == 2 && i_elem->Is(VISITED) ){
+        if( rGeometry.WorkingSpaceDimension() == 2 && i_elem->Is(VISITED) ){
           for(unsigned int j=0; j<rGeometry.size()-1; ++j)
           {
             if(rGeometry[j].Is(VISITED)){
@@ -549,7 +549,7 @@ class VolumeShapingProcess : public Process
 
         GeometryType& rGeometry = i_elem->GetGeometry();
 
-        if( rGeometry.Dimension() == 3 && i_elem->Is(VISITED) ){
+        if( rGeometry.WorkingSpaceDimension() == 3 && i_elem->Is(VISITED) ){
 
           rGeometry.NodesInFaces(lpofa);
           rGeometry.NumberNodesInFaces(lnofa);
@@ -641,7 +641,7 @@ class VolumeShapingProcess : public Process
 
             rVariables.NodalVolume[id] += ie->GetGeometry().Area() / double(ie->GetGeometry().size());
 
-            if( rGeometry.Dimension() == 2 ){
+            if( rGeometry.WorkingSpaceDimension() == 2 ){
               for(unsigned int j=0; j<rGeometry.size()-1; ++j)
               {
                 if(rGeometry[j].Is(VISITED)){
@@ -682,7 +682,7 @@ class VolumeShapingProcess : public Process
 
             rVariables.NodalVolume[id] += ie->GetGeometry().Volume() / double(ie->GetGeometry().size());
 
-            if( rGeometry.Dimension() == 3 ){
+            if( rGeometry.WorkingSpaceDimension() == 3 ){
 
               rGeometry.NodesInFaces(lpofa);
               rGeometry.NumberNodesInFaces(lnofa);
@@ -775,7 +775,7 @@ class VolumeShapingProcess : public Process
   //*******************************************************************************************
 
 
-  bool MatchControlFlags(const Node<3>::Pointer& pNode)
+  bool MatchControlFlags(const Node::Pointer& pNode)
   {
 
     for(unsigned int i = 0; i<mControlFlags.size(); i++)

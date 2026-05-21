@@ -17,23 +17,20 @@
 
 // Project includes
 #include "includes/process_info.h"
-#include "testing/testing.h"
 #include "containers/model.h"
 
 // Application includes
 #include "structural_mechanics_application_variables.h"
 #include "constitutive_laws_application_variables.h"
+#include "tests/cpp_tests/constitutive_laws_fast_suite.h"
 
 // Constitutive law
-#include "custom_constitutive/small_strain_isotropic_damage_implex_3d.h"
+#include "custom_constitutive/small_strains/damage/small_strain_isotropic_damage_implex_3d.h"
 #include "includes/model_part.h"
 #include "geometries/tetrahedra_3d_4.h"
 
-namespace Kratos
+namespace Kratos::Testing
 {
-namespace Testing
-{
-typedef Node<3> NodeType;
 
 KRATOS_TEST_CASE_IN_SUITE(_ConstitutiveLaw_SmallStrainIsotropicDamageImplex3D, KratosConstitutiveLawsFastSuite)
 {
@@ -50,11 +47,11 @@ KRATOS_TEST_CASE_IN_SUITE(_ConstitutiveLaw_SmallStrainIsotropicDamageImplex3D, K
     Model current_model;
     ModelPart& test_model_part = current_model.CreateModelPart("Main");
     test_model_part.SetBufferSize(2);
-    NodeType::Pointer p_node_1 = test_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
-    NodeType::Pointer p_node_2 = test_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
-    NodeType::Pointer p_node_3 = test_model_part.CreateNewNode(3, 0.0, 1.0, 0.0);
-    NodeType::Pointer p_node_4 = test_model_part.CreateNewNode(4, 0.0, 0.0, 1.0);
-    Tetrahedra3D4<NodeType> geometry = Tetrahedra3D4<NodeType>(p_node_1, p_node_2, p_node_3, p_node_4);
+    Node::Pointer p_node_1 = test_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+    Node::Pointer p_node_2 = test_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
+    Node::Pointer p_node_3 = test_model_part.CreateNewNode(3, 0.0, 1.0, 0.0);
+    Node::Pointer p_node_4 = test_model_part.CreateNewNode(4, 0.0, 0.0, 1.0);
+    Tetrahedra3D4<Node> geometry = Tetrahedra3D4<Node>(p_node_1, p_node_2, p_node_3, p_node_4);
     // Set material properties
     material_properties.SetValue(YOUNG_MODULUS, 6);
     material_properties.SetValue(POISSON_RATIO, 0.3);
@@ -88,22 +85,22 @@ KRATOS_TEST_CASE_IN_SUITE(_ConstitutiveLaw_SmallStrainIsotropicDamageImplex3D, K
     //
     // Test: check correct behavior of internal and calculated variables
     //
-    KRATOS_CHECK_IS_FALSE(cl.Check(material_properties, geometry, test_model_part.GetProcessInfo()));
+    KRATOS_EXPECT_FALSE(cl.Check(material_properties, geometry, test_model_part.GetProcessInfo()));
 
-    KRATOS_CHECK_IS_FALSE(cl.Has(STRAIN_ENERGY));  // false
-    KRATOS_CHECK_IS_FALSE(cl.Has(DAMAGE_VARIABLE));  // false
-    KRATOS_CHECK_IS_FALSE(cl.Has(SCALE_FACTOR));  // false
-    KRATOS_CHECK_IS_FALSE(cl.Has(STRAIN));  // false
-    KRATOS_CHECK(cl.Has(INTERNAL_VARIABLES));  // true
+    KRATOS_EXPECT_FALSE(cl.Has(STRAIN_ENERGY));  // false
+    KRATOS_EXPECT_FALSE(cl.Has(DAMAGE_VARIABLE));  // false
+    KRATOS_EXPECT_FALSE(cl.Has(SCALE_FACTOR));  // false
+    KRATOS_EXPECT_FALSE(cl.Has(STRAIN));  // false
+    KRATOS_EXPECT_TRUE(cl.Has(INTERNAL_VARIABLES));  // true
     Vector internal_variables_w(2);
     internal_variables_w[0] = 0.123;
     internal_variables_w[1] = 0.456;
     cl.SetValue(INTERNAL_VARIABLES, internal_variables_w, test_model_part.GetProcessInfo());
     Vector internal_variables_r;
     cl.GetValue(INTERNAL_VARIABLES, internal_variables_r);  // CL resizes it
-    KRATOS_CHECK_NEAR(internal_variables_r.size(), 2., 1.e-5);
-    KRATOS_CHECK_NEAR(internal_variables_r[0], 0.123, 1.e-5);
-    KRATOS_CHECK_NEAR(internal_variables_r[1], 0.456, 1.e-5);
+    KRATOS_EXPECT_NEAR(internal_variables_r.size(), 2., 1.e-5);
+    KRATOS_EXPECT_NEAR(internal_variables_r[0], 0.123, 1.e-5);
+    KRATOS_EXPECT_NEAR(internal_variables_r[1], 0.456, 1.e-5);
 
     //
     // Test: exponential hardening model, load in traction
@@ -144,21 +141,21 @@ KRATOS_TEST_CASE_IN_SUITE(_ConstitutiveLaw_SmallStrainIsotropicDamageImplex3D, K
     Vector value_vector;
 
     cl.CalculateValue(cl_parameters, DAMAGE_VARIABLE, value_double);
-    KRATOS_CHECK_NEAR(0.56273, value_double, tolerance);
+    KRATOS_EXPECT_NEAR(0.56273, value_double, tolerance);
     
     cl.CalculateValue(cl_parameters, STRAIN_ENERGY, value_double);
-    KRATOS_CHECK_NEAR(1.36795, value_double, tolerance);
+    KRATOS_EXPECT_NEAR(1.36795, value_double, tolerance);
 
     cl.CalculateValue(cl_parameters, SCALE_FACTOR, value_double);
-    KRATOS_CHECK_NEAR(0.24946, value_double, tolerance);
+    KRATOS_EXPECT_NEAR(0.24946, value_double, tolerance);
 
     cl.CalculateValue(cl_parameters, STRAIN, value_vector);
-    KRATOS_CHECK_VECTOR_NEAR(value_vector, imposed_strain, tolerance);
+    KRATOS_EXPECT_VECTOR_NEAR(value_vector, imposed_strain, tolerance);
 
     cl.GetValue(INTERNAL_VARIABLES, internal_variables_r);
-    KRATOS_CHECK_NEAR(internal_variables_r.size(), 2., tolerance);
-    KRATOS_CHECK_NEAR(internal_variables_r[0], 2.50135, tolerance);  // r_{t}
-    KRATOS_CHECK_NEAR(internal_variables_r[1], 0.61237, tolerance);  // r_{t-1}
+    KRATOS_EXPECT_NEAR(internal_variables_r.size(), 2., tolerance);
+    KRATOS_EXPECT_NEAR(internal_variables_r[0], 2.50135, tolerance);  // r_{t}
+    KRATOS_EXPECT_NEAR(internal_variables_r[1], 0.61237, tolerance);  // r_{t-1}
 
     Vector ref_stress = ZeroVector(6);
     ref_stress(0) =  2.62765;
@@ -167,7 +164,7 @@ KRATOS_TEST_CASE_IN_SUITE(_ConstitutiveLaw_SmallStrainIsotropicDamageImplex3D, K
     ref_stress(3) =  1.24408;
     ref_stress(4) =  0.01454;
     ref_stress(5) = -0.75969;
-    KRATOS_CHECK_VECTOR_NEAR(stress_vector, ref_stress, tolerance);
+    KRATOS_EXPECT_VECTOR_NEAR(stress_vector, ref_stress, tolerance);
 
     Matrix ref_C = ZeroMatrix(6, 6);
     ref_C(0,0) =  8.07692; ref_C(0,1) =3.46154; ref_C(0,2) = 3.46154; ref_C(0,3) = 0      ; ref_C(0,4) = 0      ; ref_C(0,5) = 0      ;
@@ -176,7 +173,7 @@ KRATOS_TEST_CASE_IN_SUITE(_ConstitutiveLaw_SmallStrainIsotropicDamageImplex3D, K
     ref_C(3,0) =  0      ; ref_C(3,1) =0      ; ref_C(3,2) = 0      ; ref_C(3,3) = 2.30769; ref_C(3,4) = 0      ; ref_C(3,5) = 0      ;
     ref_C(4,0) =  0      ; ref_C(4,1) =0      ; ref_C(4,2) = 0      ; ref_C(4,3) = 0      ; ref_C(4,4) = 2.30769; ref_C(4,5) = 0      ;
     ref_C(5,0) =  0      ; ref_C(5,1) =0      ; ref_C(5,2) = 0      ; ref_C(5,3) = 0      ; ref_C(5,4) = 0      ; ref_C(5,5) = 2.30769;
-    KRATOS_CHECK_MATRIX_NEAR(const_matrix, ref_C, tolerance);
+    KRATOS_EXPECT_MATRIX_NEAR(const_matrix, ref_C, tolerance);
 
 
     //
@@ -226,18 +223,18 @@ KRATOS_TEST_CASE_IN_SUITE(_ConstitutiveLaw_SmallStrainIsotropicDamageImplex3D, K
 
     // Checks
     cl.CalculateValue(cl_parameters, DAMAGE_VARIABLE, value_double);
-    KRATOS_CHECK_NEAR(0.51037, value_double, tolerance);
+    KRATOS_EXPECT_NEAR(0.51037, value_double, tolerance);
 
     cl.CalculateValue(cl_parameters, STRAIN_ENERGY, value_double);
-    KRATOS_CHECK_NEAR(1.53176, value_double, tolerance);
+    KRATOS_EXPECT_NEAR(1.53176, value_double, tolerance);
 
     cl.CalculateValue(cl_parameters, SCALE_FACTOR, value_double);
-    KRATOS_CHECK_NEAR(0.36976, value_double, tolerance);
+    KRATOS_EXPECT_NEAR(0.36976, value_double, tolerance);
 
     cl.GetValue(INTERNAL_VARIABLES, internal_variables_r);
-    KRATOS_CHECK_NEAR(internal_variables_r.size(), 2., tolerance);
-    KRATOS_CHECK_NEAR(internal_variables_r[0], 2.50135, tolerance);  // r_{t}
-    KRATOS_CHECK_NEAR(internal_variables_r[1], 0.61237, tolerance);  // r_{t-1}
+    KRATOS_EXPECT_NEAR(internal_variables_r.size(), 2., tolerance);
+    KRATOS_EXPECT_NEAR(internal_variables_r[0], 2.50135, tolerance);  // r_{t}
+    KRATOS_EXPECT_NEAR(internal_variables_r[1], 0.61237, tolerance);  // r_{t-1}
 
     ref_stress(0) =  2.62765;
     ref_stress(1) =  6.43165;
@@ -245,7 +242,7 @@ KRATOS_TEST_CASE_IN_SUITE(_ConstitutiveLaw_SmallStrainIsotropicDamageImplex3D, K
     ref_stress(3) =  1.24408;
     ref_stress(4) =  0.01454;
     ref_stress(5) = -0.759692;
-    KRATOS_CHECK_VECTOR_NEAR(stress_vector, ref_stress, tolerance);
+    KRATOS_EXPECT_VECTOR_NEAR(stress_vector, ref_stress, tolerance);
 
     ref_C(0,0) =  8.07692; ref_C(0,1) =3.46154; ref_C(0,2) = 3.46154; ref_C(0,3) = 0      ; ref_C(0,4) = 0      ; ref_C(0,5) = 0      ;
     ref_C(1,0) =  3.46154; ref_C(1,1) =8.07692; ref_C(1,2) = 3.46154; ref_C(1,3) = 0      ; ref_C(1,4) = 0      ; ref_C(1,5) = 0      ;
@@ -253,7 +250,7 @@ KRATOS_TEST_CASE_IN_SUITE(_ConstitutiveLaw_SmallStrainIsotropicDamageImplex3D, K
     ref_C(3,0) =  0      ; ref_C(3,1) =0      ; ref_C(3,2) = 0      ; ref_C(3,3) = 2.30769; ref_C(3,4) = 0      ; ref_C(3,5) = 0      ;
     ref_C(4,0) =  0      ; ref_C(4,1) =0      ; ref_C(4,2) = 0      ; ref_C(4,3) = 0      ; ref_C(4,4) = 2.30769; ref_C(4,5) = 0      ;
     ref_C(5,0) =  0      ; ref_C(5,1) =0      ; ref_C(5,2) = 0      ; ref_C(5,3) = 0      ; ref_C(5,4) = 0      ; ref_C(5,5) = 2.30769;
-    KRATOS_CHECK_MATRIX_NEAR(const_matrix, ref_C, tolerance);
+    KRATOS_EXPECT_MATRIX_NEAR(const_matrix, ref_C, tolerance);
 }
-} // namespace Testing
-} // namespace Kratos
+
+} // namespace Kratos::Testing

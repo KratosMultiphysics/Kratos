@@ -1,4 +1,3 @@
-from __future__ import absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 from sys import argv
 
@@ -51,7 +50,7 @@ class FluidDynamicsAnalysis(AnalysisStage):
             else: # Processes are given in the new format
                 for process_name in processes_block_names:
                     if (self.project_parameters.Has(process_name) is True):
-                        raise Exception("Mixing of process initialization is not alowed!")
+                        raise Exception("Mixing of process initialization is not allowed!")
         elif parameter_name == "output_processes":
             if self.project_parameters.Has("output_configuration"):
                 info_msg  = "Using the old way to create the gid-output, this was removed!\n"

@@ -23,7 +23,7 @@ namespace Kratos
  */
 template <>
 void EmbeddedAusasNavierStokesWallCondition<2,2>::EquationIdVector(EquationIdVectorType& rResult,
-                                                                   const ProcessInfo& rCurrentProcessInfo) const 
+                                                                   const ProcessInfo& rCurrentProcessInfo) const
 {
     const unsigned int NumNodes = 2;
     const unsigned int LocalSize = 6;
@@ -45,7 +45,7 @@ void EmbeddedAusasNavierStokesWallCondition<2,2>::EquationIdVector(EquationIdVec
  */
 template <>
 void EmbeddedAusasNavierStokesWallCondition<3,3>::EquationIdVector(EquationIdVectorType& rResult,
-                                                                   const ProcessInfo& rCurrentProcessInfo) const 
+                                                                   const ProcessInfo& rCurrentProcessInfo) const
 {
     const SizeType NumNodes = 3;
     const SizeType LocalSize = 12;
@@ -68,7 +68,7 @@ void EmbeddedAusasNavierStokesWallCondition<3,3>::EquationIdVector(EquationIdVec
  */
 template <>
 void EmbeddedAusasNavierStokesWallCondition<2,2>::GetDofList(DofsVectorType& rElementalDofList,
-                                                             const ProcessInfo& rCurrentProcessInfo) const 
+                                                             const ProcessInfo& rCurrentProcessInfo) const
 {
     const SizeType NumNodes = 2;
     const SizeType LocalSize = 6;
@@ -91,7 +91,7 @@ void EmbeddedAusasNavierStokesWallCondition<2,2>::GetDofList(DofsVectorType& rEl
  */
 template <>
 void EmbeddedAusasNavierStokesWallCondition<3,3>::GetDofList(DofsVectorType& rElementalDofList,
-                                                             const ProcessInfo& rCurrentProcessInfo) const 
+                                                             const ProcessInfo& rCurrentProcessInfo) const
 {
     const SizeType NumNodes = 3;
     const SizeType LocalSize = 12;
@@ -156,8 +156,7 @@ void EmbeddedAusasNavierStokesWallCondition<TDim,TNumNodes>::ComputeGaussPointRH
     this->ComputeRHSNeumannContribution(rhs_gauss, rData);
 
     // Gauss pt. outlet inflow prevention contribution
-    if (this->Is(OUTLET))
-    {
+    if (this->Is(OUTLET) && rData.OutletInflowPreventionSwitch){
         this->ComputeRHSOutletInflowContribution(rhs_gauss, rData);
     }
 

@@ -53,7 +53,7 @@ namespace Kratos
     ///@name Type Definitions
     ///@{
 
-    typedef Geometry<Node<3>>                                 GeometryType;
+    typedef Geometry<Node>                                 GeometryType;
     typedef IntegrationPoint<3>                       IntegrationPointType;
     typedef std::vector<IntegrationPointType>   IntegrationPointsArrayType;
 

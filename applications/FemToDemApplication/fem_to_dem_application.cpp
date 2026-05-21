@@ -23,48 +23,48 @@
 namespace Kratos {
 
 KratosFemToDemApplication::KratosFemToDemApplication(): KratosApplication("FemToDemApplication"),
-mSmallStrainModifiedMohrCoulombFemDemElement2D(0, Element::GeometryType::Pointer(new Triangle2D3 <Node<3> >(Element::GeometryType::PointsArrayType(3)))),
-mSmallStrainModifiedMohrCoulombFemDemElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node<3> >(Element::GeometryType::PointsArrayType(4)))),
-mSmallStrainRankineFemDemElement2D(0, Element::GeometryType::Pointer(new Triangle2D3 <Node<3> >(Element::GeometryType::PointsArrayType(3)))),
-mSmallStrainRankineFemDemElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node<3> >(Element::GeometryType::PointsArrayType(4)))),
-mSmallStrainSimoJuFemDemElement2D(0, Element::GeometryType::Pointer(new Triangle2D3 <Node<3> >(Element::GeometryType::PointsArrayType(3)))),
-mSmallStrainSimoJuFemDemElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node<3> >(Element::GeometryType::PointsArrayType(4)))),
-mSmallStrainDruckerPragerFemDemElement2D(0, Element::GeometryType::Pointer(new Triangle2D3 <Node<3> >(Element::GeometryType::PointsArrayType(3)))),
-mSmallStrainDruckerPragerFemDemElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node<3> >(Element::GeometryType::PointsArrayType(4)))),
-mSmallStrainVonMisesFemDemElement2D(0, Element::GeometryType::Pointer(new Triangle2D3 <Node<3> >(Element::GeometryType::PointsArrayType(3)))),
-mSmallStrainVonMisesFemDemElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node<3> >(Element::GeometryType::PointsArrayType(4)))),
-mSmallStrainTrescaFemDemElement2D(0, Element::GeometryType::Pointer(new Triangle2D3 <Node<3> >(Element::GeometryType::PointsArrayType(3)))),
-mSmallStrainTrescaFemDemElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node<3> >(Element::GeometryType::PointsArrayType(4)))),
-mSmallStrainMohrCoulombFemDemElement2D(0, Element::GeometryType::Pointer(new Triangle2D3 <Node<3> >(Element::GeometryType::PointsArrayType(3)))),
-mSmallStrainMohrCoulombFemDemElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node<3> >(Element::GeometryType::PointsArrayType(4)))),
-mTotalLagrangianModifiedMohrCoulombFemDemElement2D(0, Element::GeometryType::Pointer(new Triangle2D3 <Node<3> >(Element::GeometryType::PointsArrayType(3)))),
-mTotalLagrangianModifiedMohrCoulombFemDemElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node<3> >(Element::GeometryType::PointsArrayType(4)))),
-mTotalLagrangianRankineFemDemElement2D(0, Element::GeometryType::Pointer(new Triangle2D3 <Node<3> >(Element::GeometryType::PointsArrayType(3)))),
-mTotalLagrangianRankineFemDemElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node<3> >(Element::GeometryType::PointsArrayType(4)))),
-mTotalLagrangianSimoJuFemDemElement2D(0, Element::GeometryType::Pointer(new Triangle2D3 <Node<3> >(Element::GeometryType::PointsArrayType(3)))),
-mTotalLagrangianSimoJuFemDemElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node<3> >(Element::GeometryType::PointsArrayType(4)))),
-mTotalLagrangianDruckerPragerFemDemElement2D(0, Element::GeometryType::Pointer(new Triangle2D3 <Node<3> >(Element::GeometryType::PointsArrayType(3)))),
-mTotalLagrangianDruckerPragerFemDemElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node<3> >(Element::GeometryType::PointsArrayType(4)))),
-mTotalLagrangianVonMisesFemDemElement2D(0, Element::GeometryType::Pointer(new Triangle2D3 <Node<3> >(Element::GeometryType::PointsArrayType(3)))),
-mTotalLagrangianVonMisesFemDemElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node<3> >(Element::GeometryType::PointsArrayType(4)))),
-mTotalLagrangianTrescaFemDemElement2D(0, Element::GeometryType::Pointer(new Triangle2D3 <Node<3> >(Element::GeometryType::PointsArrayType(3)))),
-mTotalLagrangianTrescaFemDemElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node<3> >(Element::GeometryType::PointsArrayType(4)))),
-mTotalLagrangianMohrCoulombFemDemElement2D(0, Element::GeometryType::Pointer(new Triangle2D3 <Node<3> >(Element::GeometryType::PointsArrayType(3)))),
-mTotalLagrangianMohrCoulombFemDemElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node<3> >(Element::GeometryType::PointsArrayType(4)))),
-mTotalLagrangianMixturesModifiedMohrCoulombFemDemElement2D(0, Element::GeometryType::Pointer(new Triangle2D3 <Node<3> >(Element::GeometryType::PointsArrayType(3)))),
-mTotalLagrangianMixturesModifiedMohrCoulombFemDemElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node<3> >(Element::GeometryType::PointsArrayType(4)))),
-mTotalLagrangianMixturesRankineFemDemElement2D(0, Element::GeometryType::Pointer(new Triangle2D3 <Node<3> >(Element::GeometryType::PointsArrayType(3)))),
-mTotalLagrangianMixturesRankineFemDemElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node<3> >(Element::GeometryType::PointsArrayType(4)))),
-mTotalLagrangianMixturesSimoJuFemDemElement2D(0, Element::GeometryType::Pointer(new Triangle2D3 <Node<3> >(Element::GeometryType::PointsArrayType(3)))),
-mTotalLagrangianMixturesSimoJuFemDemElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node<3> >(Element::GeometryType::PointsArrayType(4)))),
-mTotalLagrangianMixturesDruckerPragerFemDemElement2D(0, Element::GeometryType::Pointer(new Triangle2D3 <Node<3> >(Element::GeometryType::PointsArrayType(3)))),
-mTotalLagrangianMixturesDruckerPragerFemDemElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node<3> >(Element::GeometryType::PointsArrayType(4)))),
-mTotalLagrangianMixturesVonMisesFemDemElement2D(0, Element::GeometryType::Pointer(new Triangle2D3 <Node<3> >(Element::GeometryType::PointsArrayType(3)))),
-mTotalLagrangianMixturesVonMisesFemDemElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node<3> >(Element::GeometryType::PointsArrayType(4)))),
-mTotalLagrangianMixturesTrescaFemDemElement2D(0, Element::GeometryType::Pointer(new Triangle2D3 <Node<3> >(Element::GeometryType::PointsArrayType(3)))),
-mTotalLagrangianMixturesTrescaFemDemElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node<3> >(Element::GeometryType::PointsArrayType(4)))),
-mTotalLagrangianMixturesMohrCoulombFemDemElement2D(0, Element::GeometryType::Pointer(new Triangle2D3 <Node<3> >(Element::GeometryType::PointsArrayType(3)))),
-mTotalLagrangianMixturesMohrCoulombFemDemElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node<3> >(Element::GeometryType::PointsArrayType(4))))
+mSmallStrainModifiedMohrCoulombFemDemElement2D(0, Element::GeometryType::Pointer(new Triangle2D3 <Node >(Element::GeometryType::PointsArrayType(3)))),
+mSmallStrainModifiedMohrCoulombFemDemElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node >(Element::GeometryType::PointsArrayType(4)))),
+mSmallStrainRankineFemDemElement2D(0, Element::GeometryType::Pointer(new Triangle2D3 <Node >(Element::GeometryType::PointsArrayType(3)))),
+mSmallStrainRankineFemDemElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node >(Element::GeometryType::PointsArrayType(4)))),
+mSmallStrainSimoJuFemDemElement2D(0, Element::GeometryType::Pointer(new Triangle2D3 <Node >(Element::GeometryType::PointsArrayType(3)))),
+mSmallStrainSimoJuFemDemElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node >(Element::GeometryType::PointsArrayType(4)))),
+mSmallStrainDruckerPragerFemDemElement2D(0, Element::GeometryType::Pointer(new Triangle2D3 <Node >(Element::GeometryType::PointsArrayType(3)))),
+mSmallStrainDruckerPragerFemDemElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node >(Element::GeometryType::PointsArrayType(4)))),
+mSmallStrainVonMisesFemDemElement2D(0, Element::GeometryType::Pointer(new Triangle2D3 <Node >(Element::GeometryType::PointsArrayType(3)))),
+mSmallStrainVonMisesFemDemElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node >(Element::GeometryType::PointsArrayType(4)))),
+mSmallStrainTrescaFemDemElement2D(0, Element::GeometryType::Pointer(new Triangle2D3 <Node >(Element::GeometryType::PointsArrayType(3)))),
+mSmallStrainTrescaFemDemElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node >(Element::GeometryType::PointsArrayType(4)))),
+mSmallStrainMohrCoulombFemDemElement2D(0, Element::GeometryType::Pointer(new Triangle2D3 <Node >(Element::GeometryType::PointsArrayType(3)))),
+mSmallStrainMohrCoulombFemDemElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node >(Element::GeometryType::PointsArrayType(4)))),
+mTotalLagrangianModifiedMohrCoulombFemDemElement2D(0, Element::GeometryType::Pointer(new Triangle2D3 <Node >(Element::GeometryType::PointsArrayType(3)))),
+mTotalLagrangianModifiedMohrCoulombFemDemElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node >(Element::GeometryType::PointsArrayType(4)))),
+mTotalLagrangianRankineFemDemElement2D(0, Element::GeometryType::Pointer(new Triangle2D3 <Node >(Element::GeometryType::PointsArrayType(3)))),
+mTotalLagrangianRankineFemDemElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node >(Element::GeometryType::PointsArrayType(4)))),
+mTotalLagrangianSimoJuFemDemElement2D(0, Element::GeometryType::Pointer(new Triangle2D3 <Node >(Element::GeometryType::PointsArrayType(3)))),
+mTotalLagrangianSimoJuFemDemElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node >(Element::GeometryType::PointsArrayType(4)))),
+mTotalLagrangianDruckerPragerFemDemElement2D(0, Element::GeometryType::Pointer(new Triangle2D3 <Node >(Element::GeometryType::PointsArrayType(3)))),
+mTotalLagrangianDruckerPragerFemDemElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node >(Element::GeometryType::PointsArrayType(4)))),
+mTotalLagrangianVonMisesFemDemElement2D(0, Element::GeometryType::Pointer(new Triangle2D3 <Node >(Element::GeometryType::PointsArrayType(3)))),
+mTotalLagrangianVonMisesFemDemElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node >(Element::GeometryType::PointsArrayType(4)))),
+mTotalLagrangianTrescaFemDemElement2D(0, Element::GeometryType::Pointer(new Triangle2D3 <Node >(Element::GeometryType::PointsArrayType(3)))),
+mTotalLagrangianTrescaFemDemElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node >(Element::GeometryType::PointsArrayType(4)))),
+mTotalLagrangianMohrCoulombFemDemElement2D(0, Element::GeometryType::Pointer(new Triangle2D3 <Node >(Element::GeometryType::PointsArrayType(3)))),
+mTotalLagrangianMohrCoulombFemDemElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node >(Element::GeometryType::PointsArrayType(4)))),
+mTotalLagrangianMixturesModifiedMohrCoulombFemDemElement2D(0, Element::GeometryType::Pointer(new Triangle2D3 <Node >(Element::GeometryType::PointsArrayType(3)))),
+mTotalLagrangianMixturesModifiedMohrCoulombFemDemElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node >(Element::GeometryType::PointsArrayType(4)))),
+mTotalLagrangianMixturesRankineFemDemElement2D(0, Element::GeometryType::Pointer(new Triangle2D3 <Node >(Element::GeometryType::PointsArrayType(3)))),
+mTotalLagrangianMixturesRankineFemDemElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node >(Element::GeometryType::PointsArrayType(4)))),
+mTotalLagrangianMixturesSimoJuFemDemElement2D(0, Element::GeometryType::Pointer(new Triangle2D3 <Node >(Element::GeometryType::PointsArrayType(3)))),
+mTotalLagrangianMixturesSimoJuFemDemElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node >(Element::GeometryType::PointsArrayType(4)))),
+mTotalLagrangianMixturesDruckerPragerFemDemElement2D(0, Element::GeometryType::Pointer(new Triangle2D3 <Node >(Element::GeometryType::PointsArrayType(3)))),
+mTotalLagrangianMixturesDruckerPragerFemDemElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node >(Element::GeometryType::PointsArrayType(4)))),
+mTotalLagrangianMixturesVonMisesFemDemElement2D(0, Element::GeometryType::Pointer(new Triangle2D3 <Node >(Element::GeometryType::PointsArrayType(3)))),
+mTotalLagrangianMixturesVonMisesFemDemElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node >(Element::GeometryType::PointsArrayType(4)))),
+mTotalLagrangianMixturesTrescaFemDemElement2D(0, Element::GeometryType::Pointer(new Triangle2D3 <Node >(Element::GeometryType::PointsArrayType(3)))),
+mTotalLagrangianMixturesTrescaFemDemElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node >(Element::GeometryType::PointsArrayType(4)))),
+mTotalLagrangianMixturesMohrCoulombFemDemElement2D(0, Element::GeometryType::Pointer(new Triangle2D3 <Node >(Element::GeometryType::PointsArrayType(3)))),
+mTotalLagrangianMixturesMohrCoulombFemDemElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node >(Element::GeometryType::PointsArrayType(4))))
 {}
 
 void KratosFemToDemApplication::Register()
@@ -80,6 +80,8 @@ void KratosFemToDemApplication::Register()
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(RELAXED_VELOCITY)
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(FSI_INTERFACE_RESIDUAL)
 
+    KRATOS_REGISTER_VARIABLE(MAX_DAMAGE_ERASE)
+    KRATOS_REGISTER_VARIABLE(SMOOTHING_OF_STRESSES)
     KRATOS_REGISTER_VARIABLE(HARDENING_MODULUS)
     KRATOS_REGISTER_VARIABLE(PRESSURE_VOLUME)
     KRATOS_REGISTER_VARIABLE(PRESSURE_INITIAL_VOLUME)
@@ -93,7 +95,7 @@ void KratosFemToDemApplication::Register()
     KRATOS_REGISTER_VARIABLE(DISPLACEMENT_INCREMENT)
     KRATOS_REGISTER_VARIABLE(DAMAGE_ELEMENT)
     KRATOS_REGISTER_VARIABLE(TIME_UNIT_CONVERTER)
-    KRATOS_REGISTER_VARIABLE(STRESS_VECTOR)
+    KRATOS_REGISTER_VARIABLE(FEMDEM_STRESS_VECTOR)
     KRATOS_REGISTER_VARIABLE(YIELD_STRESS_C)
     KRATOS_REGISTER_VARIABLE(YIELD_STRESS_T)
     KRATOS_REGISTER_VARIABLE(FRAC_ENERGY_T)
@@ -104,7 +106,7 @@ void KratosFemToDemApplication::Register()
     // KRATOS_REGISTER_VARIABLE(THRESHOLD)
     KRATOS_REGISTER_VARIABLE(SMOOTHED_STRESS_VECTOR)
     KRATOS_REGISTER_VARIABLE(YIELD_SURFACE)
-    KRATOS_REGISTER_VARIABLE(STRAIN_VECTOR)
+    KRATOS_REGISTER_VARIABLE(FEMDEM_STRAIN_VECTOR)
     KRATOS_REGISTER_VARIABLE(SMOOTHING)
     KRATOS_REGISTER_VARIABLE(IS_DAMAGED)
     KRATOS_REGISTER_VARIABLE(TANGENT_CONSTITUTIVE_TENSOR)

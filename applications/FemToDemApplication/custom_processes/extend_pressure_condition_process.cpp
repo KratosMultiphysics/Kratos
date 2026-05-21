@@ -311,7 +311,7 @@ void ExtendPressureConditionProcess<TDim>::Execute()
 {
     // We search the neighbours for the generation of line loads
     auto find_neigh = GenericFindElementalNeighboursProcess(mrModelPart);
-    find_neigh.ExecuteInitialize();
+    find_neigh.Execute();
     auto& r_process_info = mrModelPart.GetProcessInfo();
 
     // Remove previous line loads-> Only the 1st iteration

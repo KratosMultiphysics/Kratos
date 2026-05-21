@@ -4,15 +4,13 @@
 //        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
 //        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
-//  License:		 BSD License
-//					 license: ContactStructuralMechanicsApplication/license.txt
+//  License:         BSD License
+//                   license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-
-#if !defined(KRATOS_SELF_CONTACT_UTILITIES)
-#define KRATOS_SELF_CONTACT_UTILITIES
+#pragma once
 
 // System includes
 
@@ -73,4 +71,3 @@ namespace SelfContactUtilities
 
 }; // namespace SelfContactUtilities
 }  // namespace Kratos
-#endif /* KRATOS_SELF_CONTACT_UTILITIES defined */

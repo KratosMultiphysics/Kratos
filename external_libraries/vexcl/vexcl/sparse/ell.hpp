@@ -117,7 +117,7 @@ class ell {
             if (ell_width == 0) {
                 csr_nnz = nnz;
 
-                csr_ptr = backend::device_vector<Col>(q[0], n + 1,   &ptr[0]);
+                csr_ptr = backend::device_vector<Ptr>(q[0], n + 1,   &ptr[0]);
                 csr_col = backend::device_vector<Col>(q[0], csr_nnz, &col[0]);
                 csr_val = backend::device_vector<Val>(q[0], csr_nnz, &val[0]);
 
@@ -170,7 +170,7 @@ class ell {
             ell_val = backend::device_vector<Val>(q[0], ell_pitch * ell_width, _ell_val.data());
 
             if (csr_nnz) {
-                csr_ptr = backend::device_vector<Col>(q[0], n + 1,   _csr_ptr.data());
+                csr_ptr = backend::device_vector<Ptr>(q[0], n + 1,   _csr_ptr.data());
                 csr_col = backend::device_vector<Col>(q[0], csr_nnz, _csr_col.data());
                 csr_val = backend::device_vector<Val>(q[0], csr_nnz, _csr_val.data());
             }

@@ -1,0 +1,117 @@
+{
+    "problem_data"             : {
+        "problem_name"    : "semi_rigid_linear_3D2NBeamCr_test",
+        "parallel_type"   : "OpenMP",
+        "start_time"      : 0.0,
+        "end_time"        : 1.0,
+        "echo_level"      : 2
+    },
+    "solver_settings"          : {
+        "solver_type"                        : "Static",
+        "echo_level"                         : 2,
+        "model_part_name" : "Structure",
+        "domain_size"     : 3,
+        "time_stepping"                      : {
+            "time_step" : 1.1
+        },
+        "analysis_type"                      : "linear",
+        "model_import_settings"              : {
+            "input_type"     : "mdpa",
+            "input_filename" : "beam_test/semi_rigid_linear_3D2NBeamCr_test"
+        },
+        "material_import_settings"           : {
+            "materials_filename": "beam_test/semi_rigid_linear_3D2NBeamCr_test_material.json"
+        },
+		"line_search"                        : false,
+        "compute_reactions"					 : true,
+        "convergence_criterion"              : "residual_criterion",
+        "displacement_relative_tolerance"    : 1e-12,
+        "displacement_absolute_tolerance"    : 1e-12,
+        "residual_relative_tolerance"        : 1e-12,
+        "residual_absolute_tolerance"        : 1e-12,
+        "max_iteration"                      : 100,
+        "rotation_dofs"                      : true
+    },
+    "processes" : {
+    "constraints_process_list" : [{
+        "python_module" : "assign_vector_variable_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"                  : "This process fixes the selected components of a given vector variable",
+        "process_name"          : "AssignVectorVariableProcess",
+        "Parameters"            : {
+            "model_part_name" : "Structure.DISPLACEMENT_dirichletXYZ",
+            "variable_name"   : "DISPLACEMENT",
+            "constrained"	  : [true,true,true],
+            "value"           : [0.0,0.0,0.0]
+        }
+    },{
+        "python_module" : "assign_vector_variable_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"                  : "This process fixes the selected components of a given vector variable",
+        "process_name"          : "AssignVectorVariableProcess",
+        "Parameters"            : {
+            "model_part_name" : "Structure.DISPLACEMENT_dirichletYZ",
+            "variable_name"   : "DISPLACEMENT",
+            "constrained"	  : [false,false,false],
+            "value"           : [0.0,0.0,0.0]
+        }
+    },{
+        "python_module" : "assign_vector_variable_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"                  : "This process fixes the selected components of a given vector variable",
+        "process_name"          : "AssignVectorVariableProcess",
+        "Parameters"            : {
+            "model_part_name" : "Structure.ROTATION_dirrot",
+            "variable_name"   : "ROTATION",
+            "constrained"	  : [true,true,true],
+            "value"           : [0.0,0.0,0.0]
+        }
+    },{
+        "python_module" : "assign_scalar_variable_to_entities_process",
+        "kratos_module" : "KratosMultiphysics",
+        "process_name"          : "AssignScalarVariableToEntitiesProcess",
+        "Parameters"            : {
+            "model_part_name" : "Structure.Parts_semi_rigid_hinge",
+            "variable_name"   : "ROTATIONAL_STIFFNESS_AXIS_2",
+            "value"           : 0.0,
+            "entities"        : ["nodes"]
+        }
+    },{
+        "python_module" : "assign_scalar_variable_to_entities_process",
+        "kratos_module" : "KratosMultiphysics",
+        "process_name"          : "AssignScalarVariableToEntitiesProcess",
+        "Parameters"            : {
+            "model_part_name" : "Structure.Parts_semi_rigid_hinge",
+            "variable_name"   : "ROTATIONAL_STIFFNESS_AXIS_3",
+            "value"           : 1.0e7,
+            "entities"        : ["nodes"]
+        }
+    }],
+    "loads_process_list"       : [{
+        "python_module" : "assign_vector_by_direction_to_condition_process",
+        "kratos_module" : "KratosMultiphysics",
+        "process_name"          : "AssignVectorByDirectionToConditionProcess",
+        "Parameters"            : {
+            "model_part_name" : "Structure.PointLoad3D_neumann",
+            "variable_name"   : "POINT_LOAD",
+            "modulus"          : 400000,
+            "direction"       : [0.0,-1.0,0.0]
+        }
+    }],
+    "list_other_processes": [
+    {
+        "python_module"   : "from_json_check_result_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"                  : "",
+        "process_name"          : "FromJsonCheckResultProcess",
+        "Parameters"            : {
+            "check_variables"  : ["DISPLACEMENT_Y","REACTION_Y"],
+            "input_file_name"  : "beam_test/semi_rigid_linear_3D2NBeamCr_test_results.json",
+            "model_part_name"  : "Structure",
+            "time_frequency"   : 0.9,
+            "relative_tolerance": 1e-7,
+            "tolerance": 1e-7
+        }
+    }
+    ]}
+}

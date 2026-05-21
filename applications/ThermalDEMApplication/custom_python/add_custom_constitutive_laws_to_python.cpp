@@ -33,12 +33,15 @@
 #include "custom_constitutive/radiation/radiation_model.h"
 #include "custom_constitutive/radiation/radiation_continuum_krause.h"
 #include "custom_constitutive/radiation/radiation_continuum_zhou.h"
-#include "custom_constitutive/friction/friction_model.h"
-#include "custom_constitutive/friction/friction_coulomb.h"
+#include "custom_constitutive/generation/generation_model.h"
+#include "custom_constitutive/generation/generation_dissipation.h"
 #include "custom_constitutive/real_contact/real_contact_model.h"
 #include "custom_constitutive/real_contact/real_contact_lu.h"
-#include "custom_constitutive/real_contact/real_contact_morris.h"
 #include "custom_constitutive/real_contact/real_contact_zhou.h"
+#include "custom_constitutive/real_contact/real_contact_morris_area.h"
+#include "custom_constitutive/real_contact/real_contact_morris_area_time.h"
+#include "custom_constitutive/real_contact/real_contact_rangel_area.h"
+#include "custom_constitutive/real_contact/real_contact_rangel_area_time.h"
 #include "custom_constitutive/sintering_continuum.h"
 #include "custom_constitutive/DEM_KDEM_CL.h"
 
@@ -146,11 +149,11 @@ namespace Kratos
         .def(py::init<>());
 
 
-      // Friction -------------------------------------------------------------------------------------------------------------------
-      py::class_<FrictionModel, FrictionModel::Pointer, HeatGenerationMechanism>(m, "FrictionModel")
+      // Generation -------------------------------------------------------------------------------------------------------------------
+      py::class_<GenerationModel, GenerationModel::Pointer, HeatGenerationMechanism>(m, "GenerationModel")
         .def(py::init<>());
 
-      py::class_<FrictionCoulomb, FrictionCoulomb::Pointer, FrictionModel>(m, "FrictionCoulomb")
+      py::class_<GenerationDissipation, GenerationDissipation::Pointer, GenerationModel>(m, "GenerationDissipation")
         .def(py::init<>());
 
 
@@ -158,10 +161,19 @@ namespace Kratos
       py::class_<RealContactLu, RealContactLu::Pointer, RealContactModel>(m, "RealContactLu")
         .def(py::init<>());
 
-      py::class_<RealContactMorris, RealContactMorris::Pointer, RealContactModel>(m, "RealContactMorris")
+      py::class_<RealContactZhou, RealContactZhou::Pointer, RealContactModel>(m, "RealContactZhou")
         .def(py::init<>());
 
-      py::class_<RealContactZhou, RealContactZhou::Pointer, RealContactModel>(m, "RealContactZhou")
+      py::class_<RealContactMorrisArea, RealContactMorrisArea::Pointer, RealContactModel>(m, "RealContactMorrisArea")
+        .def(py::init<>());
+
+      py::class_<RealContactMorrisAreaTime, RealContactMorrisAreaTime::Pointer, RealContactModel>(m, "RealContactMorrisAreaTime")
+        .def(py::init<>());
+
+      py::class_<RealContactRangelArea, RealContactRangelArea::Pointer, RealContactModel>(m, "RealContactRangelArea")
+        .def(py::init<>());
+
+      py::class_<RealContactRangelAreaTime, RealContactRangelAreaTime::Pointer, RealContactModel>(m, "RealContactRangelAreaTime")
         .def(py::init<>());
 
       // Sintering ---------------------------------------------------------------------------------------------------------------

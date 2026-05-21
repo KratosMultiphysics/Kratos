@@ -57,7 +57,7 @@ public:
     typedef BeamMathUtils<double>                   BeamMathUtilsType;
     typedef Quaternion<double>                         QuaternionType;
 
-    typedef GlobalPointersVector<Node<3> >         NodeWeakPtrVectorType;
+    typedef GlobalPointersVector<Node >         NodeWeakPtrVectorType;
     typedef GlobalPointersVector<Element>       ElementWeakPtrVectorType;
     typedef GlobalPointersVector<Condition>   ConditionWeakPtrVectorType;
     /// Pointer definition of BuildStringSkinProcess
@@ -298,7 +298,7 @@ private:
       SearchNeighbours();
 
       //SEARCH INITIAL NODE OF THE STRING
-      Node<3>::Pointer Starter;
+      Node::Pointer Starter;
       for(auto i_node(mrModelPart.NodesBegin()); i_node != mrModelPart.NodesEnd(); ++i_node)
       {
         NodeWeakPtrVectorType& nNodes = i_node->GetValue(NEIGHBOUR_NODES);
@@ -1235,7 +1235,7 @@ private:
       for(auto i_nelem(nElements.begin()); i_nelem != nElements.end(); ++i_nelem)
       {
         //look for the nodes of the neighbour faces
-        Geometry<Node<3> >& nGeometry = i_nelem->GetGeometry();
+        Geometry<Node >& nGeometry = i_nelem->GetGeometry();
         if(nGeometry.LocalSpaceDimension() == 1){
           for(unsigned int node_i = 0; node_i < nGeometry.size(); ++node_i)
           {
@@ -1292,7 +1292,7 @@ private:
             if( rGeometry[i].Id() != i_node.Id() )
             {
               NodeWeakPtrVectorType& nNodes = i_nelem.GetValue(NEIGHBOUR_NODES);
-              AddUniquePointer< Node<3> >(nNodes, rGeometry(i));
+              AddUniquePointer< Node >(nNodes, rGeometry(i));
             }
 
           }
@@ -1307,7 +1307,7 @@ private:
       for(auto i_elem(rElements.begin()); i_elem != rElements.end(); ++i_elem)
       {
         //face nodes
-        Geometry<Node<3> >& rGeometry = i_elem->GetGeometry();
+        Geometry<Node >& rGeometry = i_elem->GetGeometry();
         if( rGeometry.FacesNumber() == 2 ){
 
           ElementWeakPtrVectorType& nElements = i_elem->GetValue(NEIGHBOUR_ELEMENTS);

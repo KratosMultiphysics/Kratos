@@ -34,23 +34,23 @@ namespace Kratos
 namespace KOmegaSSTElementData
 {
 template <unsigned int TDim>
-class KElementData : public ConvectionDiffusionReactionElementData
+class KElementData : public ConvectionDiffusionReactionElementData<TDim>
 {
 public:
-    using BaseType = ConvectionDiffusionReactionElementData;
-    using NodeType = Node<3>;
-    using GeomtryType = BaseType::GeometryType;
+    ///@name Type Definitions
+    ///@{
 
-    static const Variable<double>& GetScalarVariable();
+    using BaseType = ConvectionDiffusionReactionElementData<TDim>;
 
-    static void Check(
-        const GeometryType& rGeometry,
-        const ProcessInfo& rCurrentProcessInfo);
+    using NodeType = Node;
 
-    static const std::string GetName()
-    {
-        return "KOmegaSSTKElementData";
-    }
+    using GeometryType = typename BaseType::GeometryType;
+
+    using ArrayD = typename BaseType::ArrayD;
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
 
     KElementData(
         const GeometryType& rGeometry,
@@ -59,6 +59,27 @@ public:
         : BaseType(rGeometry, rProperties, rProcessInfo)
     {
     }
+
+    ~KElementData() override = default;
+
+    ///@}
+    ///@name Static Operations
+    ///@{
+
+    static const Variable<double>& GetScalarVariable();
+
+    static void Check(
+        const Element& rElement,
+        const ProcessInfo& rCurrentProcessInfo);
+
+    static const std::string GetName()
+    {
+        return "KOmegaSSTKElementData";
+    }
+
+    ///@}
+    ///@name Operations
+    ///@{
 
     void Calculate(
         const Variable<double>& rVariable,
@@ -73,30 +94,20 @@ public:
         const Matrix& rShapeFunctionDerivatives,
         const int Step = 0);
 
-    array_1d<double, 3> CalculateEffectiveVelocity(
-        const Vector& rShapeFunctions,
-        const Matrix& rShapeFunctionDerivatives) const;
-
-    double CalculateEffectiveKinematicViscosity(
-        const Vector& rShapeFunctions,
-        const Matrix& rShapeFunctionDerivatives) const;
-
-    double CalculateReactionTerm(
-        const Vector& rShapeFunctions,
-        const Matrix& rShapeFunctionDerivatives) const;
-
-    double CalculateSourceTerm(
-        const Vector& rShapeFunctions,
-        const Matrix& rShapeFunctionDerivatives) const;
-
-    double CalculateEffectiveViscosity(
-        const ProcessInfo& rCurrentProcessInfo);
+    ///@}
 
 protected:
+    ///@name Protected Members
+    ///@{
+
+    using BaseType::mEffectiveVelocity;
+    using BaseType::mEffectiveKinematicViscosity;
+    using BaseType::mReactionTerm;
+    using BaseType::mSourceTerm;
+
     BoundedMatrix<double, TDim, TDim> mVelocityGradient;
-    array_1d<double, 3> mEffectiveVelocity;
-    array_1d<double, 3> mTurbulentKineticEnergyGradient;
-    array_1d<double, 3> mTurbulentSpecificEnergyDissipationRateGradient;
+    ArrayD mTurbulentKineticEnergyGradient;
+    ArrayD mTurbulentSpecificEnergyDissipationRateGradient;
 
     double mSigmaK1;
     double mSigmaK2;
@@ -111,6 +122,15 @@ protected:
     double mBlendedSimgaK;
     double mVelocityDivergence;
     double mDensity;
+
+    ///@}
+    ///@name Protected Operations
+    ///@{
+
+    double CalculateEffectiveViscosity(
+        const ProcessInfo& rCurrentProcessInfo);
+
+    ///@}
 };
 
 ///@}

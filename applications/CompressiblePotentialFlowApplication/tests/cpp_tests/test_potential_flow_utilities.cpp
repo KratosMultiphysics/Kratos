@@ -102,8 +102,8 @@ KRATOS_TEST_CASE_IN_SUITE(ComputePerturbedVelocity, CompressiblePotentialApplica
     const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
     array_1d<double, 2> perturbed_velocity = PotentialFlowUtilities::ComputePerturbedVelocity<2,3>(*p_element, r_current_process_info);
 
-    KRATOS_CHECK_RELATIVE_NEAR(perturbed_velocity[0], 303.0, 1e-15);
-    KRATOS_CHECK_RELATIVE_NEAR(perturbed_velocity[1], 50.0, 1e-15);
+    KRATOS_EXPECT_RELATIVE_NEAR(perturbed_velocity[0], 303.0, 1e-15);
+    KRATOS_EXPECT_RELATIVE_NEAR(perturbed_velocity[1], 50.0, 1e-15);
 }
 
 // checks the function ComputeVelocityMagnitude from utilities
@@ -119,7 +119,7 @@ KRATOS_TEST_CASE_IN_SUITE(ComputeVelocityMagnitude, CompressiblePotentialApplica
 
     const double reference_velocity_squared = 232356.0;
 
-    KRATOS_CHECK_RELATIVE_NEAR(local_velocity_squared, reference_velocity_squared, 1e-15);
+    KRATOS_EXPECT_RELATIVE_NEAR(local_velocity_squared, reference_velocity_squared, 1e-15);
 }
 
 // Checks the function ComputeMaximumVelocitySquared from the utilities
@@ -135,7 +135,7 @@ KRATOS_TEST_CASE_IN_SUITE(ComputeMaximumVelocitySquared, CompressiblePotentialAp
     const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
     const double max_velocity_squared = PotentialFlowUtilities::ComputeMaximumVelocitySquared<2, 3>(r_current_process_info);
 
-    KRATOS_CHECK_RELATIVE_NEAR(max_velocity_squared, reference_max_velocity_squared, 1e-15);
+    KRATOS_EXPECT_RELATIVE_NEAR(max_velocity_squared, reference_max_velocity_squared, 1e-15);
 }
 
 // Checks the function ComputeVacuumVelocitySquared from the utilities
@@ -150,7 +150,7 @@ KRATOS_TEST_CASE_IN_SUITE(ComputeVacuumVelocitySquared, CompressiblePotentialApp
     const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
     const double vacuum_velocity_squared = PotentialFlowUtilities::ComputeVacuumVelocitySquared(r_current_process_info);
 
-    KRATOS_CHECK_RELATIVE_NEAR(vacuum_velocity_squared, reference_max_velocity_squared, 1e-15);
+    KRATOS_EXPECT_RELATIVE_NEAR(vacuum_velocity_squared, reference_max_velocity_squared, 1e-15);
 }
 
 // Checks the function ComputeLocalSpeedOfSound from the utilities
@@ -166,7 +166,7 @@ KRATOS_TEST_CASE_IN_SUITE(ComputeLocalSpeedOfSound, CompressiblePotentialApplica
     const double local_speed_of_sound =
         PotentialFlowUtilities::ComputeLocalSpeedOfSound<2, 3>(
             *p_element, r_current_process_info);
-    KRATOS_CHECK_NEAR(local_speed_of_sound, 333.801138, 1e-6);
+    KRATOS_EXPECT_NEAR(local_speed_of_sound, 333.801138, 1e-6);
 }
 
 // Checks ComputeLocalSpeedofSoundSquared in utilities, local velocity that should be clamped
@@ -189,7 +189,7 @@ KRATOS_TEST_CASE_IN_SUITE(ComputeLocalSpeedofSoundSquared, CompressiblePotential
 
     const double reference_local_speed_sound_squared = 77452.0;
 
-    KRATOS_CHECK_RELATIVE_NEAR(local_speed_sound_squared, reference_local_speed_sound_squared, 1e-15);
+    KRATOS_EXPECT_RELATIVE_NEAR(local_speed_sound_squared, reference_local_speed_sound_squared, 1e-15);
 }
 
 // Checks the function ComputeLocalMachNumber from the utilities
@@ -205,7 +205,7 @@ KRATOS_TEST_CASE_IN_SUITE(ComputeLocalMachNumber, CompressiblePotentialApplicati
     const double local_mach_number =
         PotentialFlowUtilities::ComputeLocalMachNumber<2, 3>(
             *p_element, r_current_process_info);
-    KRATOS_CHECK_NEAR(local_mach_number, 0.748948914, 1e-6);
+    KRATOS_EXPECT_NEAR(local_mach_number, 0.748948914, 1e-6);
 }
 
 // Checks ComputeLocalMachNumberSquared in utilities, local velocity that should be clamped
@@ -227,7 +227,7 @@ KRATOS_TEST_CASE_IN_SUITE(ComputeLocalMachNumberSquared, CompressiblePotentialAp
     // computes mach number with clamping
     const double local_mach_squared = PotentialFlowUtilities::ComputeLocalMachNumberSquared<2, 3>(velocity, r_current_process_info);
 
-    KRATOS_CHECK_RELATIVE_NEAR(local_mach_squared, reference_local_mach_squared, 1e-15);
+    KRATOS_EXPECT_RELATIVE_NEAR(local_mach_squared, reference_local_mach_squared, 1e-15);
 }
 
 // Checks the function ComputeDerivativeLocalMachSquaredWRTVelocitySquared from the utilities, transonic local Mach number
@@ -254,7 +254,7 @@ KRATOS_TEST_CASE_IN_SUITE(ComputeDerivativeLocalMachSquaredWRTVelocitySquaredTra
 
     const double reference_derivative = 1.1620100191086091883e-05;
 
-    KRATOS_CHECK_RELATIVE_NEAR(mach_derivative, reference_derivative, 1e-16);
+    KRATOS_EXPECT_RELATIVE_NEAR(mach_derivative, reference_derivative, 1e-16);
 }
 
 // Checks the function ComputeDerivativeLocalMachSquaredWRTVelocitySquared from the utilities, supersonic local Mach number
@@ -281,7 +281,7 @@ KRATOS_TEST_CASE_IN_SUITE(ComputeDerivativeLocalMachSquaredWRTVelocitySquaredSup
 
     const double reference_derivative = 2.0657955895264170124e-05;
 
-    KRATOS_CHECK_RELATIVE_NEAR(mach_derivative, reference_derivative, 1e-16);
+    KRATOS_EXPECT_RELATIVE_NEAR(mach_derivative, reference_derivative, 1e-16);
 }
 
 // Checks the function ComputeIncompressiblePerturbationPressureCoefficient from the utilities
@@ -298,7 +298,7 @@ KRATOS_TEST_CASE_IN_SUITE(ComputePerturbationIncompressiblePressureCoefficient, 
         PotentialFlowUtilities::ComputePerturbationIncompressiblePressureCoefficient<2, 3>(
             *p_element, r_current_process_info);
 
-    KRATOS_CHECK_NEAR(pressure_coefficient, -1.266171664744329, 1e-15);
+    KRATOS_EXPECT_NEAR(pressure_coefficient, -1.266171664744329, 1e-15);
 }
 
 // Checks the function ComputePerturbationCompressiblePressureCoefficient from the utilities
@@ -315,7 +315,7 @@ KRATOS_TEST_CASE_IN_SUITE(ComputePerturbationCompressiblePressureCoefficient, Co
         PotentialFlowUtilities::ComputePerturbationCompressiblePressureCoefficient<2, 3>(
             *p_element, r_current_process_info);
 
-    KRATOS_CHECK_NEAR(pressure_coefficient, -1.128385779511008, 1e-15);
+    KRATOS_EXPECT_NEAR(pressure_coefficient, -1.128385779511008, 1e-15);
 }
 
 // Checks the function ComputePerturbationCompressiblePressureCoefficient from the utilities
@@ -356,7 +356,7 @@ KRATOS_TEST_CASE_IN_SUITE(ComputePerturbationLocalSpeedOfSound, CompressiblePote
         PotentialFlowUtilities::ComputePerturbationLocalSpeedOfSound<2, 3>(
             *p_element, r_current_process_info);
 
-    KRATOS_CHECK_NEAR(local_speed_of_sound, 324.1317633309022, 1e-13);
+    KRATOS_EXPECT_NEAR(local_speed_of_sound, 324.1317633309022, 1e-13);
 }
 
 // Checks the function ComputePerturbationLocalMachNumber from the utilities
@@ -373,7 +373,7 @@ KRATOS_TEST_CASE_IN_SUITE(ComputePerturbationLocalMachNumber, CompressiblePotent
         PotentialFlowUtilities::ComputePerturbationLocalMachNumber<2, 3>(
             *p_element, r_current_process_info);
 
-    KRATOS_CHECK_NEAR(local_mach_number, 0.9474471158469713, 1e-16);
+    KRATOS_EXPECT_NEAR(local_mach_number, 0.9474471158469713, 1e-16);
 }
 
 // tests the function ComputeUpwindFactor from the utilities
@@ -388,7 +388,7 @@ KRATOS_TEST_CASE_IN_SUITE(ComputeUpwindFactor, CompressiblePotentialApplicationF
     const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
     const double upwind_factor = PotentialFlowUtilities::ComputeUpwindFactor<2, 3>(local_mach_squared, r_current_process_info);
 
-    KRATOS_CHECK_RELATIVE_NEAR(upwind_factor, 0.6733, 1e-15);
+    KRATOS_EXPECT_RELATIVE_NEAR(upwind_factor, 0.6733, 1e-15);
 }
 
 // tests the function SelectMaxUpwindFactor from the utilities
@@ -418,7 +418,7 @@ KRATOS_TEST_CASE_IN_SUITE(SelectMaxUpwindFactor, CompressiblePotentialApplicatio
     // find max of current element upwind factor, upwind element upwind factor, and 0
     const double upwind_factor = PotentialFlowUtilities::SelectMaxUpwindFactor<2, 3>(current_velocity, upwind_velocity, r_current_process_info);
 
-    KRATOS_CHECK_RELATIVE_NEAR(upwind_factor, 0.6733, 1e-15);
+    KRATOS_EXPECT_RELATIVE_NEAR(upwind_factor, 0.6733, 1e-15);
 }
 
 // tests the function ComputeUpwindFactorCase from the utilities
@@ -436,7 +436,7 @@ KRATOS_TEST_CASE_IN_SUITE(ComputeUpwindFactorCase0, CompressiblePotentialApplica
 
     const auto upwind_factor_case = PotentialFlowUtilities::ComputeUpwindFactorCase<2,3>(upwind_factor_options);
 
-    KRATOS_CHECK_RELATIVE_NEAR(upwind_factor_case, 0.0, 1e-15);
+    KRATOS_EXPECT_RELATIVE_NEAR(upwind_factor_case, 0.0, 1e-15);
 }
 
 // tests the function ComputeUpwindFactorCase from the utilities
@@ -454,7 +454,7 @@ KRATOS_TEST_CASE_IN_SUITE(ComputeUpwindFactorCase1, CompressiblePotentialApplica
 
     const auto upwind_factor_case = PotentialFlowUtilities::ComputeUpwindFactorCase<2,3>(upwind_factor_options);
 
-    KRATOS_CHECK_RELATIVE_NEAR(upwind_factor_case, 1.0, 1e-15);
+    KRATOS_EXPECT_RELATIVE_NEAR(upwind_factor_case, 1.0, 1e-15);
 }
 
 // tests the function ComputeUpwindFactorCase from the utilities
@@ -472,7 +472,7 @@ KRATOS_TEST_CASE_IN_SUITE(ComputeUpwindFactorCase2, CompressiblePotentialApplica
 
     const auto upwind_factor_case = PotentialFlowUtilities::ComputeUpwindFactorCase<2,3>(upwind_factor_options);
 
-    KRATOS_CHECK_RELATIVE_NEAR(upwind_factor_case, 2.0, 1e-15);
+    KRATOS_EXPECT_RELATIVE_NEAR(upwind_factor_case, 2.0, 1e-15);
 }
 
 // tests the function ComputeUpwindFactorCase from the utilities
@@ -490,7 +490,7 @@ KRATOS_TEST_CASE_IN_SUITE(ComputeUpwindFactorCaseSubsonicElement, CompressiblePo
 
     const auto upwind_factor_case = PotentialFlowUtilities::ComputeUpwindFactorCase<2,3>(upwind_factor_options);
 
-    KRATOS_CHECK_RELATIVE_NEAR(upwind_factor_case, 0.0, 1e-15);
+    KRATOS_EXPECT_RELATIVE_NEAR(upwind_factor_case, 0.0, 1e-15);
 }
 
 // tests the function ComputeUpwindFactorDerivativeWRTMachSquared from utilities
@@ -505,7 +505,7 @@ KRATOS_TEST_CASE_IN_SUITE(ComputeUpwindFactorDerivativeWRTMachSquared, Compressi
     const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
     const double upwind_factor_derivative = PotentialFlowUtilities::ComputeUpwindFactorDerivativeWRTMachSquared<2,3>(local_mach_number_squared,r_current_process_info);
 
-    KRATOS_CHECK_RELATIVE_NEAR(upwind_factor_derivative, 0.1089, 1e-15);
+    KRATOS_EXPECT_RELATIVE_NEAR(upwind_factor_derivative, 0.1089, 1e-15);
 }
 
 // tests the function ComputeUpwindFactorDerivativeWRTVelocitySquared from utilities
@@ -529,7 +529,7 @@ KRATOS_TEST_CASE_IN_SUITE(ComputeUpwindFactorDerivativeWRTVelocitySquared, Compr
     const double mach_derivative_ref = 2.0657955895264163348e-05;
     const double upwind_factor_ref = 0.1089;
 
-    KRATOS_CHECK_RELATIVE_NEAR(upwind_factor_derivative, mach_derivative_ref * upwind_factor_ref, 1e-15);
+    KRATOS_EXPECT_RELATIVE_NEAR(upwind_factor_derivative, mach_derivative_ref * upwind_factor_ref, 1e-15);
 }
 
 // tests the function ComputeDensity from the utilities
@@ -544,7 +544,7 @@ KRATOS_TEST_CASE_IN_SUITE(ComputeDensity, CompressiblePotentialApplicationFastSu
     const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
     const double density = PotentialFlowUtilities::ComputeDensity<2, 3>(local_mach_number_squared, r_current_process_info);
 
-    KRATOS_CHECK_RELATIVE_NEAR(density, 0.450114595263459, 1e-15);
+    KRATOS_EXPECT_RELATIVE_NEAR(density, 0.450114595263459, 1e-15);
 }
 
 // tests the function ComputeDensity from the utilities
@@ -573,7 +573,7 @@ KRATOS_TEST_CASE_IN_SUITE(ComputeUpwindedDensity, CompressiblePotentialApplicati
 
     const double upwinded_density = PotentialFlowUtilities::ComputeUpwindedDensity<2,3>(current_velocity, upwind_velocity, r_current_process_info);
 
-    KRATOS_CHECK_RELATIVE_NEAR(upwinded_density, 0.92388212928098, 1e-15);
+    KRATOS_EXPECT_RELATIVE_NEAR(upwinded_density, 0.92388212928098, 1e-15);
 }
 
 // tests the function ComputeDensityDerivativeWRTVelocitySquared from the utilities
@@ -588,7 +588,7 @@ KRATOS_TEST_CASE_IN_SUITE(ComputeDensityDerivativeWRTVelocitySquared, Compressib
     const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
     const double density_derivative = PotentialFlowUtilities::ComputeDensityDerivativeWRTVelocitySquared<2,3>(local_mach_number_squared, r_current_process_info);
 
-    KRATOS_CHECK_RELATIVE_NEAR(density_derivative, -2.905764830239754E-06, 1e-15);
+    KRATOS_EXPECT_RELATIVE_NEAR(density_derivative, -2.905764830239754E-06, 1e-15);
 }
 
 // tests the function ComputeUpwindedDensityDerivativeWRTVelocitySquaredSupersonicAccelerating from the utilities
@@ -614,7 +614,7 @@ KRATOS_TEST_CASE_IN_SUITE(ComputeUpwindedDensityDerivativeWRTVelocitySquaredSupe
 
     const double reference = 6.33653798760679499e-07;
 
-    KRATOS_CHECK_RELATIVE_NEAR(density_derivative_accel, reference, 1e-13);
+    KRATOS_EXPECT_RELATIVE_NEAR(density_derivative_accel, reference, 1e-13);
 }
 
 // tests the function ComputeUpwindedDensityDerivativeWRTVelocitySquaredSupersonicDeaccelerating from the utilities
@@ -632,7 +632,7 @@ KRATOS_TEST_CASE_IN_SUITE(ComputeUpwindedDensityDerivativeWRTVelocitySquaredSupe
     const double density_derivative_deaccel = PotentialFlowUtilities::ComputeUpwindedDensityDerivativeWRTVelocitySquaredSupersonicDeaccelerating<2,3>(
         local_mach_number_squared, upwind_mach_number_squared, r_current_process_info);
 
-    KRATOS_CHECK_RELATIVE_NEAR(density_derivative_deaccel, -1.3584190201217436E-06, 1e-15);
+    KRATOS_EXPECT_RELATIVE_NEAR(density_derivative_deaccel, -1.3584190201217436E-06, 1e-15);
 }
 
 // tests the function ComputeUpwindedDensityDerivativeWRTUpwindVelocitySquaredSupersonicAccelerating from the utilities
@@ -650,7 +650,7 @@ KRATOS_TEST_CASE_IN_SUITE(ComputeUpwindedDensityDerivativeWRTUpwindVelocitySquar
     const double density_derivative_accel = PotentialFlowUtilities::ComputeUpwindedDensityDerivativeWRTUpwindVelocitySquaredSupersonicAccelerating<2,3>(
         local_mach_number_squared, upwind_mach_number_squared, r_current_process_info);
 
-    KRATOS_CHECK_RELATIVE_NEAR(density_derivative_accel, -3.441482308103857E-06, 1e-15);
+    KRATOS_EXPECT_RELATIVE_NEAR(density_derivative_accel, -3.441482308103857E-06, 1e-15);
 }
 
 // tests the function ComputeUpwindedDensityDerivativeWRTUpwindVelocitySquaredSupersonicDeaccelerating from the utilities
@@ -674,7 +674,7 @@ KRATOS_TEST_CASE_IN_SUITE(ComputeUpwindedDensityDerivativeWRTUpwindVelocitySquar
     const double density_derivative_deaccel = PotentialFlowUtilities::ComputeUpwindedDensityDerivativeWRTUpwindVelocitySquaredSupersonicDeaccelerating<2,3>(
         upwind_velocity, local_mach_number_squared, upwind_mach_number_squared, r_current_process_info);
 
-    KRATOS_CHECK_RELATIVE_NEAR(density_derivative_deaccel, -2.7838255012122669E-06, 1e-15);
+    KRATOS_EXPECT_RELATIVE_NEAR(density_derivative_deaccel, -2.7838255012122669E-06, 1e-15);
 }
 
 } // namespace Testing

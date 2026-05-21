@@ -1,0 +1,90 @@
+@startuml
+'https://plantuml.com/class-diagram
+
+class Element
+
+'UPW
+class UPwBaseElement
+
+class UPwSmallStrainElement
+class DrainedUPwSmallStrainElement
+class TransientPwElement
+class SteadyStatePwElement
+class UndrainedUPwSmallStrainElement
+class UPwSmallStrainFICElement
+class UPwUpdatedLagrangianFICElement
+class UPwUpdatedLagrangianElement
+
+class UPwSmallStrainInterfaceElement
+class TransientPwInterfaceElement
+class SteadyStatePwInterfaceElement
+class SteadyStatePwPipingElement
+class UPwSmallStrainLinkInterfaceElement
+
+Element <|-- UPwBaseElement
+UPwBaseElement <|-- UPwSmallStrainElement
+
+UPwSmallStrainElement <|-- DrainedUPwSmallStrainElement
+UPwSmallStrainElement <|-- TransientPwElement
+TransientPwElement <|-- SteadyStatePwElement
+UPwSmallStrainElement <|-- UndrainedUPwSmallStrainElement
+UPwSmallStrainElement <|-- UPwSmallStrainFICElement
+UPwSmallStrainFICElement <|-- UPwUpdatedLagrangianFICElement
+UPwSmallStrainElement <|-- UPwUpdatedLagrangianElement
+
+'
+'
+'Diff Order
+class SmallStrainUPwDiffOrderElement
+class UpdatedLagrangianUPwDiffOrderElement
+
+UPwBaseElement <|-- SmallStrainUPwDiffOrderElement
+SmallStrainUPwDiffOrderElement <|-- UpdatedLagrangianUPwDiffOrderElement
+
+UPwBaseElement <|-- UPwSmallStrainInterfaceElement
+UPwSmallStrainInterfaceElement <|-- TransientPwInterfaceElement
+TransientPwInterfaceElement <|-- SteadyStatePwInterfaceElement
+SteadyStatePwInterfaceElement <|-- SteadyStatePwPipingElement
+UPwSmallStrainInterfaceElement <|-- UPwSmallStrainLinkInterfaceElement
+
+class LineInterfaceElement
+Element <|-- LineInterfaceElement
+
+'Pw Elements
+class TransientPwLineElement
+class GeoSteadyStatePwPipingElement
+
+Element <|-- TransientPwLineElement
+Element <|-- GeoSteadyStatePwPipingElement
+
+''Thermal
+class TransientThermalElement
+Element <|-- TransientThermalElement
+'
+'
+'Structural
+class CrBeamElement2D2N_Structural
+class GeoCrBeamElement2D2N
+class CrBeamElementLinear2D2N_Structural
+class GeoCrBeamElementLinear2D2N
+
+Element <|-- CrBeamElement2D2N_Structural
+CrBeamElement2D2N_Structural <|-- GeoCrBeamElement2D2N
+CrBeamElement2D2N_Structural <|-- CrBeamElementLinear2D2N_Structural
+CrBeamElementLinear2D2N_Structural <|-- GeoCrBeamElementLinear2D2N
+
+class CrBeamElement3D2N_Structural
+class GeoCrBeamElement3D2N
+class GeoCrBeamElementLinear3D2N
+
+Element <|-- CrBeamElement3D2N_Structural
+CrBeamElement3D2N_Structural <|-- GeoCrBeamElement3D2N
+CrBeamElement3D2N_Structural <|-- GeoCrBeamElementLinear3D2N
+
+class GeoStructuralBaseElement
+class GeoCurvedBeamElement
+
+Element <|-- GeoStructuralBaseElement
+GeoStructuralBaseElement <|-- GeoCurvedBeamElement
+
+@enduml

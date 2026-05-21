@@ -74,7 +74,7 @@ void MPINormalCalculationUtils::OrientFaces(ModelPart& rModelPart,
 
     for (ModelPart::ElementIterator itElem = rModelPart.ElementsBegin(); itElem != rModelPart.ElementsEnd(); itElem++)
     {
-        Geometry< Node<3> >& rGeom = itElem->GetGeometry();
+        Geometry< Node >& rGeom = itElem->GetGeometry();
         GeometryData::KratosGeometryType GeoType = rGeom.GetGeometryType();
 
         if (GeoType == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4 || GeoType == GeometryData::KratosGeometryType::Kratos_Triangle2D3)
@@ -106,7 +106,7 @@ void MPINormalCalculationUtils::OrientFaces(ModelPart& rModelPart,
 
     for (ModelPart::ConditionIterator itCond = rModelPart.ConditionsBegin(); itCond != rModelPart.ConditionsEnd(); itCond++)
     {
-        Geometry< Node<3> >& rGeom = itCond->GetGeometry();
+        Geometry< Node >& rGeom = itCond->GetGeometry();
         GeometryData::KratosGeometryType GeoType = rGeom.GetGeometryType();
         array_1d<double,3> FaceNormal(3,0.0);
 
@@ -231,8 +231,8 @@ void MPINormalCalculationUtils::IdentifyFaces(ModelPart& rModelPart,
     {
         if ( iCond->GetValue(rVariable) != 0.0 ) // Only use marked conditions to calculate nodal normals
         {
-            Geometry< Node<3> >& rGeom = iCond->GetGeometry();
-            for (Geometry< Node<3> >::iterator iNode = rGeom.begin(); iNode != rGeom.end(); iNode++)
+            Geometry< Node >& rGeom = iCond->GetGeometry();
+            for (Geometry< Node >::iterator iNode = rGeom.begin(); iNode != rGeom.end(); iNode++)
                 (iNode->FastGetSolutionStepValue(NODAL_PAUX) )++;
         }
     }
@@ -279,14 +279,14 @@ void MPINormalCalculationUtils::InitializeNormalData(ModelPart& rModelPart,
     array_1d<double,3> normal(3,0.0);
     for (ModelPart::ConditionIterator i_condition = rModelPart.ConditionsBegin(); i_condition != rModelPart.ConditionsEnd(); i_condition++)
     {
-        Geometry< Node<3> >& r_geometry = i_condition->GetGeometry();
+        Geometry< Node >& r_geometry = i_condition->GetGeometry();
         this->FaceNormal3D(normal,r_geometry);
         normal *= 0.5; // Triangle area is 1/2 of the cross product of its sides
         i_condition->SetValue(NORMAL,normal);
 
         if ( i_condition->GetValue(rVariable) != 0.0 )
         {
-            for (Geometry< Node<3> >::iterator i_node = r_geometry.begin(); i_node != r_geometry.end(); i_node++)
+            for (Geometry< Node >::iterator i_node = r_geometry.begin(); i_node != r_geometry.end(); i_node++)
             {
                 const int node_index = static_cast<int>(i_node->FastGetSolutionStepValue(AUX_INDEX));
                 //if (node_index == 0) std::cout << rModelPart.GetCommunicator().MyPID() << " found AUX_INDEX 0: node " << i_node->Id() << std::endl;
@@ -504,7 +504,7 @@ void MPINormalCalculationUtils::DetectEdges(ModelPart &rModelPart,
 
 ///////////////////////////////////////////////////////////////////////////////
 
-bool MPINormalCalculationUtils::OrientElement(Geometry<Node<3> > &rGeom)
+bool MPINormalCalculationUtils::OrientElement(Geometry<Node > &rGeom)
 {
     const unsigned int PointIndex = 0;
     const GeometryData::IntegrationMethod Method = GeometryData::IntegrationMethod::GI_GAUSS_1;
@@ -523,7 +523,7 @@ bool MPINormalCalculationUtils::OrientElement(Geometry<Node<3> > &rGeom)
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void MPINormalCalculationUtils::NormalContribution(Geometry<Node<3> > &rGeom)
+void MPINormalCalculationUtils::NormalContribution(Geometry<Node > &rGeom)
 {
     const unsigned int NumNodes = rGeom.PointsNumber();
     const unsigned int Dim = rGeom.WorkingSpaceDimension();
@@ -532,7 +532,7 @@ void MPINormalCalculationUtils::NormalContribution(Geometry<Node<3> > &rGeom)
     const GeometryData::IntegrationMethod Method = GeometryData::IntegrationMethod::GI_GAUSS_1;
     double DetJ = rGeom.DeterminantOfJacobian(PointIndex,Method);
 
-    Geometry< Node<3> >::ShapeFunctionsGradientsType DN_DX;
+    Geometry< Node >::ShapeFunctionsGradientsType DN_DX;
     rGeom.ShapeFunctionsIntegrationPointsGradients(DN_DX,Method);
     Matrix& rDN_DX = DN_DX[0];
 
@@ -547,7 +547,7 @@ void MPINormalCalculationUtils::NormalContribution(Geometry<Node<3> > &rGeom)
 ///////////////////////////////////////////////////////////////////////////////
 
 void MPINormalCalculationUtils::FaceNormal2D(array_1d<double,3> &An,
-                                             Geometry<Node<3> > &rGeometry)
+                                             Geometry<Node > &rGeometry)
 {
     An[0] =   rGeometry[1].Y() - rGeometry[0].Y();
     An[1] = - (rGeometry[1].X() - rGeometry[0].X());
@@ -558,7 +558,7 @@ void MPINormalCalculationUtils::FaceNormal2D(array_1d<double,3> &An,
 ///////////////////////////////////////////////////////////////////////////////
 
 void MPINormalCalculationUtils::FaceNormal3D(array_1d<double,3> &An,
-                                             Geometry<Node<3> > &rGeometry)
+                                             Geometry<Node > &rGeometry)
 {
 
     array_1d<double,3> v1,v2;
@@ -599,7 +599,7 @@ void MPINormalCalculationUtils::UpdateNodeNormals(ModelPart &rModelPart,
     {
         if ( iCond->GetValue(rVariable) != 0.0 ) // Only use marked conditions to calculate nodal normals
         {
-            Geometry< Node<3> >& rGeom = iCond->GetGeometry();
+            Geometry< Node >& rGeom = iCond->GetGeometry();
             if (Dimension == 2)
             {
                 this->FaceNormal2D(Normal,rGeom);
@@ -613,7 +613,7 @@ void MPINormalCalculationUtils::UpdateNodeNormals(ModelPart &rModelPart,
 
             double NodalArea = std::sqrt(Normal[0]*Normal[0] + Normal[1]*Normal[1] + Normal[2]*Normal[2]);
 
-            for (Geometry< Node<3> >::iterator iNode = rGeom.begin(); iNode != rGeom.end(); iNode++)
+            for (Geometry< Node >::iterator iNode = rGeom.begin(); iNode != rGeom.end(); iNode++)
             {
                 iNode->FastGetSolutionStepValue(NORMAL) += Normal;
                 iNode->FastGetSolutionStepValue(NODAL_PAUX) += NodalArea;

@@ -91,7 +91,7 @@ namespace Internals {
         /// Definition of the container type
         typedef typename EntityContainerType::ContainerType ContainerType;
 
-        /// Defintion of the pointer type
+        /// Definition of the pointer type
         typedef typename ContainerType::value_type PointerType;
 
         /// Definition of the cell node data
@@ -166,7 +166,7 @@ namespace Internals {
             PointType& rHighPoint
             )
         {
-            // Getting the geoemtry
+            // Getting the geometry
             auto& r_geometry = pObject->GetGeometry();
 
             // Initializing the highest and lowest point
@@ -195,7 +195,7 @@ namespace Internals {
             double* rHighPoint
             )
         {
-            // Getting the geoemtry
+            // Getting the geometry
             auto& r_geometry = pObject->GetGeometry();
 
             // Initializing the highest and lowest point
@@ -247,7 +247,7 @@ namespace Internals {
         }
 
         /**
-         * @brief This method checks if the objects intersects the low and hight points provided
+         * @brief This method checks if the objects intersects the low and height points provided
          * @param pObject The pointer to the object of interest
          * @param Tolerance The tolerance considered
          * @param rLowPoint The lowest point of the box
@@ -311,7 +311,7 @@ namespace Internals {
  * @class FindIntersectedGeometricalObjectsProcess
  * @ingroup KratosCore
  * @brief This class takes two modelparts and marks the intersected ones with SELECTED flag.
- * @details It creates a spatial datastructure and search for interaction. It also provides some helper methods for derived classes to check individual element or condition interesections.
+ * @details It creates a spatial datastructure and search for interaction. It also provides some helper methods for derived classes to check individual element or condition intersections.
  * @author Pooyan Dadvand
  * @author Ruben Zorrilla Martinez
  * @author Vicente Mataix Ferrandiz
@@ -350,7 +350,7 @@ public:
     typedef Point PointType;
 
     /// Definition of the node type
-    using NodeType = Node<3>;
+    using NodeType = Node;
 
     /// Definition of the geometry type
     using GeometryType = Geometry<NodeType>;
@@ -438,7 +438,7 @@ public:
     virtual ModelPart& GetModelPart2();
 
     /**
-     * @brief This method returns the Octree conatined in the class
+     * @brief This method returns the Octree contained in the class
      * @return The octree contained in this process
      */
     virtual OctreePointerType& GetOctreePointer();

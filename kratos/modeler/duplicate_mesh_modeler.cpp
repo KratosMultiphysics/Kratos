@@ -14,6 +14,8 @@
 
 // Project includes
 #include "duplicate_mesh_modeler.h"
+#include "utilities/parallel_utilities.h"
+#include "utilities/reduction_utilities.h"
 #include "utilities/timer.h"
 
 namespace Kratos
@@ -87,9 +89,44 @@ void DuplicateMeshModeler::GenerateMesh(
 
     Timer::Stop("Generating Conditions");
 
+    GenerateSubModelParts(mrModelPart, rThisModelPart);
+
     Timer::Stop("Generating Mesh");
 
     KRATOS_CATCH("");
+}
+
+void DuplicateMeshModeler::GenerateSubModelParts(
+    ModelPart& rOriginModelPart,
+    ModelPart& rDestinationModelpart)
+{
+    for (auto& r_ori_sub_model_part : rOriginModelPart.SubModelParts()) {
+        const std::string sub_model_part_name = r_ori_sub_model_part.Name();
+        auto& r_dest_sub_model_part = rDestinationModelpart.HasSubModelPart(sub_model_part_name) ?
+            rDestinationModelpart.GetSubModelPart(sub_model_part_name) :
+            rDestinationModelpart.CreateSubModelPart(sub_model_part_name);
+
+        std::vector<std::size_t> new_nodes, new_elems, new_conds;
+
+        new_nodes = block_for_each<AccumReduction<std::size_t>>(
+            r_ori_sub_model_part.Nodes(),[](Node& rNode){
+                return rNode.Id();
+            });
+        new_elems = block_for_each<AccumReduction<std::size_t>>(
+            r_ori_sub_model_part.Elements(),[](Element& rElement){
+                return rElement.Id();
+            });
+        new_conds = block_for_each<AccumReduction<std::size_t>>(
+            r_ori_sub_model_part.Conditions(),[](Condition& rCondition){
+                return rCondition.Id();
+            });
+        r_dest_sub_model_part.AddNodes(new_nodes);
+        r_dest_sub_model_part.AddElements(new_elems);
+        r_dest_sub_model_part.AddConditions(new_conds);
+
+        GenerateSubModelParts(r_ori_sub_model_part, r_dest_sub_model_part);
+    }
+
 }
 
 }

@@ -55,7 +55,7 @@ class DamBofangConditionTemperatureProcess : public Process
                 "Bottom_Temp"                                      : 0.0,
                 "Height_Dam"                                       : 0.0,
                 "Temperature_Amplitude"                            : 0.0,
-                "Day_Ambient_Temp"                                 : 1,
+                "Day_Max_Temp"                                     : 1,
                 "Water_level"                                      : 0.0,
                 "Water_level_Table"                                : 0,
                 "Month"                                            : 1.0,
@@ -83,7 +83,7 @@ class DamBofangConditionTemperatureProcess : public Process
         mBottomTemp = rParameters["Bottom_Temp"].GetDouble();
         mHeight = rParameters["Height_Dam"].GetDouble();
         mAmplitude = rParameters["Temperature_Amplitude"].GetDouble();
-        mDay = rParameters["Day_Ambient_Temp"].GetInt();
+        mDayMaxTemp = rParameters["Day_Max_Temp"].GetInt();
         mWaterLevel = rParameters["Water_level"].GetDouble();
         mMonth = rParameters["Month"].GetDouble();
         mFreq = 0.52323;
@@ -139,7 +139,7 @@ class DamBofangConditionTemperatureProcess : public Process
             {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
 
-                double aux = (mReferenceCoordinate + mWaterLevel) - it->Coordinates()[direction];
+                double aux = mWaterLevel - it->Coordinates()[direction];
                 if (aux >= 0.0)
                 {
                     if (mIsFixed)
@@ -147,7 +147,7 @@ class DamBofangConditionTemperatureProcess : public Process
                         it->Fix(var);
                     }
                     double aux1 = ((mBottomTemp - (mSurfaceTemp * exp(-0.04 * mHeight))) / (1 - (exp(-0.04 * mHeight))));
-                    double Temperature = (aux1 + ((mSurfaceTemp - aux1) * (exp(-0.04 * aux))) + (mAmplitude * (exp(-0.018 * aux)) * (cos(mFreq * (mMonth - (mDay / 30.0) - 2.15 + (1.30 * exp(-0.085 * aux)))))));
+                    double Temperature = (aux1 + ((mSurfaceTemp - aux1) * (exp(-0.04 * aux))) + (mAmplitude * (exp(-0.018 * aux)) * (cos(mFreq * (mMonth - (mDayMaxTemp / 30.0) - 2.15 + (1.30 * exp(-0.085 * aux)))))));
 
                     it->FastGetSolutionStepValue(var) = Temperature;
                 }
@@ -200,7 +200,7 @@ class DamBofangConditionTemperatureProcess : public Process
             {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
 
-                double aux = (mReferenceCoordinate + mWaterLevel) - it->Coordinates()[direction];
+                double aux = mWaterLevel - it->Coordinates()[direction];
                 if (aux >= 0.0)
                 {
                     if (mIsFixed)
@@ -208,7 +208,7 @@ class DamBofangConditionTemperatureProcess : public Process
                         it->Fix(var);
                     }
                     double aux1 = ((mBottomTemp - (mSurfaceTemp * exp(-0.04 * mHeight))) / (1 - (exp(-0.04 * mHeight))));
-                    double Temperature = (aux1 + ((mSurfaceTemp - aux1) * (exp(-0.04 * aux))) + (mAmplitude * (exp(-0.018 * aux)) * (cos(mFreq * (mMonth - (mDay / 30.0) - 2.15 + (1.30 * exp(-0.085 * aux)))))));
+                    double Temperature = (aux1 + ((mSurfaceTemp - aux1) * (exp(-0.04 * aux))) + (mAmplitude * (exp(-0.018 * aux)) * (cos(mFreq * (mMonth - (mDayMaxTemp / 30.0) - 2.15 + (1.30 * exp(-0.085 * aux)))))));
 
                     it->FastGetSolutionStepValue(var) = Temperature;
                 }
@@ -276,7 +276,7 @@ class DamBofangConditionTemperatureProcess : public Process
     double mBottomTemp;
     double mHeight;
     double mAmplitude;
-    int mDay;
+    int mDayMaxTemp;
     double mMonth;
     double mWaterLevel;
     double mFreq;

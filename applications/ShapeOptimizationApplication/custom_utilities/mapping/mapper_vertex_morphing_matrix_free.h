@@ -61,8 +61,8 @@ public:
     ///@{
 
     // Type definitions for better reading later
-    typedef Node < 3 > NodeType;
-    typedef Node < 3 > ::Pointer NodeTypePointer;
+    typedef Node NodeType;
+    typedef Node ::Pointer NodeTypePointer;
     typedef std::vector<NodeType::Pointer> NodeVector;
     typedef std::vector<NodeType::Pointer>::iterator NodeIterator;
     typedef std::vector<double>::iterator DoubleVectorIterator;
@@ -128,6 +128,7 @@ public:
     ///@name Access
     ///@{
 
+    FilterFunction::UniquePointer mpFilterFunction;
 
     ///@}
     ///@name Inquiry
@@ -215,7 +216,6 @@ private:
     Parameters mMapperSettings;
     double mFilterRadius;
     unsigned int mMaxNumberOfNeighbors;
-    FilterFunction::UniquePointer mpFilterFunction;
 
     // Variables for spatial search
     unsigned int mBucketSize = 100;
@@ -254,13 +254,17 @@ private:
     void ThrowWarningIfNumberOfNeighborsExceedsLimit(ModelPart::NodeType& given_node, unsigned int number_of_neighbors);
 
     // --------------------------------------------------------------------------
-    void ComputeWeightForAllNeighbors(  ModelPart::NodeType& design_node,
-                                        NodeVector& neighbor_nodes,
-                                        unsigned int number_of_neighbors,
+    virtual void ComputeWeightForAllNeighbors(  const ModelPart::NodeType& design_node,
+                                        const NodeVector& neighbor_nodes,
+                                        const unsigned int number_of_neighbors,
                                         std::vector<double>& list_of_weights,
                                         double& sum_of_weights );
 
     // --------------------------------------------------------------------------
+    double GetVertexMorphingRadius(const NodeType& rNode) const override
+    {
+        return mFilterRadius;
+    }
 
     ///@}
     ///@name Private  Access

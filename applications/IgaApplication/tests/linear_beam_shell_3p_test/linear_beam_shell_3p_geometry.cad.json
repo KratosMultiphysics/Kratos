@@ -9,7 +9,7 @@
             "brep_id": 1,
             "swapped_surface_normal": false,
             "surface": {
-                "is_trimmed": true,
+                "is_trimmed": false,
                 "is_rational": false,
                 "degrees": [4, 4],
                 "knot_vectors": [

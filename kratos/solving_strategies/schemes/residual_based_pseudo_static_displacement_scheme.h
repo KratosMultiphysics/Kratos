@@ -1,21 +1,22 @@
 //    |  /           |
 //    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ \.
+//    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:          BSD License
-//  Main authors:  Vicente Mataix Ferrandiz
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+//
+//  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_RESIDUAL_PSEUDO_STATIC_DISPLACEMENT_SCHEME )
-#define  KRATOS_RESIDUAL_PSEUDO_STATIC_DISPLACEMENT_SCHEME
+#pragma once
 
-/* System includes */
+// System includes
 
-/* External includes */
+// External includes
 
-/* Project includes */
+// Project includes
 #include "solving_strategies/schemes/residual_based_bossak_displacement_scheme.hpp"
 
 namespace Kratos
@@ -176,7 +177,7 @@ public:
 
         // Updating time derivatives (nodally for efficiency)
         array_1d<double, 3 > delta_displacement;
-        block_for_each(rModelPart.Nodes(), delta_displacement, [&](Node<3>& rNode, array_1d<double,3>& rDeltaDisplacementTLS){
+        block_for_each(rModelPart.Nodes(), delta_displacement, [&](Node& rNode, array_1d<double,3>& rDeltaDisplacementTLS){
 
             noalias(rDeltaDisplacementTLS) = rNode.FastGetSolutionStepValue(DISPLACEMENT) - rNode.FastGetSolutionStepValue(DISPLACEMENT, 1);
 
@@ -229,7 +230,7 @@ public:
         const int disppos_z = it_node_begin->HasDofFor(DISPLACEMENT_Z) ? static_cast<int>(it_node_begin->GetDofPosition(DISPLACEMENT_Z)) : -1;
         const int velpos_z = it_node_begin->HasDofFor(VELOCITY_Z) ? static_cast<int>(it_node_begin->GetDofPosition(VELOCITY_Z)) : -1;
 
-        block_for_each(rModelPart.Nodes(), delta_displacement, [&](Node<3>& rNode, array_1d<double,3>& rDeltaDisplacementTLS){
+        block_for_each(rModelPart.Nodes(), delta_displacement, [&](Node& rNode, array_1d<double,3>& rDeltaDisplacementTLS){
 
             bool predicted_x = false;
             bool predicted_y = false;
@@ -507,5 +508,3 @@ private:
     ///@}
 }; /* Class ResidualBasedPseudoStaticDisplacementScheme */
 }  /* namespace Kratos.*/
-
-#endif /* KRATOS_RESIDUAL_PSEUDO_STATIC_DISPLACEMENT_SCHEME E defined */

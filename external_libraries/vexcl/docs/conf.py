@@ -25,9 +25,6 @@ sys.path.append('.')
 from git_version import git_version
 
 if on_rtd:
-    pip.main(['install', 'sphinx_bootstrap_theme'])
-    pip.main(['install', 'breathe'])
-
     subprocess.call('doxygen', shell=True)
 
 import sphinx_bootstrap_theme
@@ -45,7 +42,7 @@ import sphinx_bootstrap_theme
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = ['breathe', 'sphinx.ext.mathjax',
+extensions = ['breathe', 'sphinx.ext.mathjax', 'sphinx.ext.autodoc',
         'matplotlib.sphinxext.plot_directive']
 
 breathe_projects = {'VEXCL' : 'xml'}

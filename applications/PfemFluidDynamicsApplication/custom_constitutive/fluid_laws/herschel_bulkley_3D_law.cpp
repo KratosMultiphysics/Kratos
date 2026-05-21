@@ -49,7 +49,7 @@ namespace Kratos
 
     ConstitutiveLaw::SizeType HerschelBulkley3DLaw::WorkingSpaceDimension() { return 3; }
 
-    ConstitutiveLaw::SizeType HerschelBulkley3DLaw::GetStrainSize() { return 6; }
+    ConstitutiveLaw::SizeType HerschelBulkley3DLaw::GetStrainSize() const { return 6; }
 
     void HerschelBulkley3DLaw::CalculateMaterialResponseCauchy(Parameters &rValues)
     {
@@ -61,12 +61,11 @@ namespace Kratos
         Vector &r_strain_vector = rValues.GetStrainVector();
         Vector &r_stress_vector = rValues.GetStressVector();
 
-        const double dynamic_viscosity = this->GetEffectiveDynamicViscosity(rValues);
-        const double yield_shear = this->GetEffectiveYieldShear(rValues);
+        const double dynamic_viscosity = this->GetEffectiveMaterialParameter(rValues, DYNAMIC_VISCOSITY);
+        const double yield_shear = this->GetEffectiveMaterialParameter(rValues, YIELD_SHEAR);
         const double adaptive_exponent = r_properties[ADAPTIVE_EXPONENT];
-        double effective_dynamic_viscosity;
-        const double flow_index = this->GetFlowIndex(rValues);
-
+        const double flow_index = r_properties[FLOW_INDEX];
+        double effective_dynamic_viscosity = 0;
 
         const double equivalent_strain_rate =
             std::sqrt(2.0 * r_strain_vector[0] * r_strain_vector[0] + 2.0 * r_strain_vector[1] * r_strain_vector[1] +
@@ -82,7 +81,7 @@ namespace Kratos
         else
         {
             double regularization = 1.0 - std::exp(-adaptive_exponent * equivalent_strain_rate);
-            effective_dynamic_viscosity = dynamic_viscosity * pow(equivalent_strain_rate,flow_index - 1) + regularization * yield_shear / equivalent_strain_rate;
+            effective_dynamic_viscosity = dynamic_viscosity * std::pow(equivalent_strain_rate, flow_index - 1) + regularization * yield_shear / equivalent_strain_rate;
         }
 
         const double strain_trace = r_strain_vector[0] + r_strain_vector[1] + r_strain_vector[2];
@@ -106,65 +105,35 @@ namespace Kratos
     //*****************************************************************************
 
     int HerschelBulkley3DLaw::Check(const Properties &rMaterialProperties, const GeometryType &rElementGeometry,
-                            const ProcessInfo &rCurrentProcessInfo)
+                                    const ProcessInfo &rCurrentProcessInfo) const
     {
 
-        if (rMaterialProperties[DYNAMIC_VISCOSITY] < 0.0)
-        {
-            KRATOS_ERROR << "Incorrect or missing DYNAMIC_VISCOSITY provided in process info for HerschelBulkley3DLaw: "
-                         << rMaterialProperties[DYNAMIC_VISCOSITY] << std::endl;
-        }
+        KRATOS_ERROR_IF(rMaterialProperties[DYNAMIC_VISCOSITY] < 0.0)
+            << "Incorrect or missing DYNAMIC_VISCOSITY provided in process info for HerschelBulkley3DLaw: "
+            << rMaterialProperties[DYNAMIC_VISCOSITY] << std::endl;
 
-        if (rMaterialProperties[YIELD_SHEAR] < 0.0)
-        {
-            KRATOS_ERROR << "Incorrect or missing YIELD_SHEAR provided in process info for HerschelBulkley3DLaw: "
-                         << rMaterialProperties[YIELD_SHEAR] << std::endl;
-        }
+        KRATOS_ERROR_IF(rMaterialProperties[YIELD_SHEAR] < 0.0)
+            << "Incorrect or missing YIELD_SHEAR provided in process info for HerschelBulkley3DLaw: "
+            << rMaterialProperties[YIELD_SHEAR] << std::endl;
 
-        if (rMaterialProperties[ADAPTIVE_EXPONENT] < 0.0)
-        {
-            KRATOS_ERROR << "Incorrect or missing ADAPTIVE_EXPONENT provided in process info for HerschelBulkley3DLaw: "
-                         << rMaterialProperties[ADAPTIVE_EXPONENT] << std::endl;
-        }
+        KRATOS_ERROR_IF(rMaterialProperties[FLOW_INDEX] < 0.0)
+            << "Incorrect or missing FLOW_INDEX provided in process info for HerschelBulkley3DLaw: "
+            << rMaterialProperties[FLOW_INDEX] << std::endl;
 
-        if (rMaterialProperties[BULK_MODULUS] <= 0.0)
-        {
-            KRATOS_ERROR << "Incorrect or missing BULK_MODULUS provided in process info for HerschelBulkley3DLaw: "
-                         << rMaterialProperties[BULK_MODULUS] << std::endl;
-        }
+        KRATOS_ERROR_IF(rMaterialProperties[ADAPTIVE_EXPONENT] < 0.0)
+            << "Incorrect or missing ADAPTIVE_EXPONENT provided in process info for HerschelBulkley3DLaw: "
+            << rMaterialProperties[ADAPTIVE_EXPONENT] << std::endl;
 
-        if (rMaterialProperties[FLOW_INDEX] <= 0.0)
-        {
-            KRATOS_ERROR << "Incorrect or missing FLOW_INDEX provided in process info for HerschelBulkley3DLaw: "
-                         << rMaterialProperties[FLOW_INDEX] << std::endl;
-        }
+        KRATOS_ERROR_IF(rMaterialProperties[BULK_MODULUS] < 0.0)
+            << "Incorrect or missing BULK_MODULUS provided in process info for HerschelBulkley3DLaw: "
+            << rMaterialProperties[BULK_MODULUS] << std::endl;
 
         return 0;
     }
 
-    double HerschelBulkley3DLaw::GetEffectiveViscosity(ConstitutiveLaw::Parameters &rParameters) const
+    double HerschelBulkley3DLaw::GetEffectiveMaterialParameter(ConstitutiveLaw::Parameters &rParameters, const Variable<double> &rVariable) const
     {
-        return rParameters.GetConstitutiveMatrix()(5, 5);
-    }
-
-    double HerschelBulkley3DLaw::GetEffectiveDensity(ConstitutiveLaw::Parameters &rParameters) const
-    {
-        return rParameters.GetMaterialProperties()[DENSITY];
-    }
-
-    double HerschelBulkley3DLaw::GetEffectiveDynamicViscosity(ConstitutiveLaw::Parameters &rParameters) const
-    {
-        return rParameters.GetMaterialProperties()[DYNAMIC_VISCOSITY];
-    }
-
-    double HerschelBulkley3DLaw::GetEffectiveYieldShear(ConstitutiveLaw::Parameters &rParameters) const
-    {
-        return rParameters.GetMaterialProperties()[YIELD_SHEAR];
-    }
-
-    double HerschelBulkley3DLaw::GetFlowIndex(ConstitutiveLaw::Parameters &rParameters) const
-    {
-        return rParameters.GetMaterialProperties()[FLOW_INDEX];
+        return rParameters.GetMaterialProperties()[rVariable];
     }
 
     void HerschelBulkley3DLaw::save(Serializer &rSerializer) const

@@ -43,8 +43,8 @@ public:
 
     using BaseType = ConvectionDiffusionReactionElement<TDim, TNumNodes, TConvectionDiffusionReactionData>;
 
-    /// Node type (default is: Node<3>)
-    using NodeType = Node<3>;
+    /// Node type (default is: Node)
+    using NodeType = Node;
 
     /// Geometry type (using with given NodeType)
     using GeometryType = Geometry<NodeType>;
@@ -281,42 +281,6 @@ public:
 protected:
     ///@name Protected Operations
     ///@{
-
-    double GetScalarVariableGradientNorm(
-        const Matrix& rShapeFunctionDerivatives,
-        const int Step = 0) const;
-
-    /**
-     * @brief Calculate gradient matrix for a vector
-     *
-     * Calculates the gradient matrix for a given vector variable.
-     *
-     * @param rOutput            Output matrix, rows contain the given vector indices, columns containt physical coordinate dimensions
-     * @param rVariable          Vector variable
-     * @param rShapeDerivatives  Shape function derivatives at the gauss point
-     * @param Step               Time step
-     */
-    void CalculateGradient(
-        BoundedMatrix<double, TDim, TDim>& rOutput,
-        const Variable<array_1d<double, 3>>& rVariable,
-        const Matrix& rShapeDerivatives,
-        const int Step = 0) const;
-
-    /**
-     * @brief Calculate gradient vector for a scalar
-     *
-     * Calculates the gradient vector for a given scalar variable.
-     *
-     * @param rOutput            Output vector
-     * @param rVariable          Scalar variable
-     * @param rShapeDerivatives  Shape function derivatives at the gauss point
-     * @param Step               Time step
-     */
-    void CalculateGradient(
-        array_1d<double, 3>& rOutput,
-        const Variable<double>& rVariable,
-        const Matrix& rShapeDerivatives,
-        const int Step = 0) const;
 
     virtual double GetDeltaTime(const ProcessInfo& rProcessInfo) const;
 

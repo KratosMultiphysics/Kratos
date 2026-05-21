@@ -360,7 +360,7 @@ void MetricDivergenceFreeProcess<TDim>::CalculateMetric()
             double factor = mGlobalErrorStrategyMeshConstant*std::abs(divergencefree_interp_value)/mGlobalErrorStrategyGlobalTolerance;
 
             // Check with max and min size
-            aux_element_size = MathUtils<double>::Min(MathUtils<double>::Max(factor, max_ratio), min_ratio);
+            aux_element_size = std::min(std::max(factor, max_ratio), min_ratio);
 
             // Set metric
             BoundedMatrix<double, TDim, TDim> metric_matrix = ZeroMatrix(TDim, TDim);

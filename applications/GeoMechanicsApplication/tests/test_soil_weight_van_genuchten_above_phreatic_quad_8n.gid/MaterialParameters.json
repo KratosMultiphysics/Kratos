@@ -4,7 +4,7 @@
       "properties_id":           1,
       "Material": {
           "constitutive_law": {
-              "name"             :  "LinearElasticPlaneStrainK02DLaw" 
+              "name"             :  "GeoLinearElasticPlaneStrain2DLaw"
           },
           "Variables": {
               "IGNORE_UNDRAINED"         :  true,
@@ -20,10 +20,6 @@
               "PERMEABILITY_XY"          :  0.0,
               "DYNAMIC_VISCOSITY"        :  1.0e-3,
               "THICKNESS"                :  1.0,
-              "K0_MAIN_DIRECTION"        :  1,
-              "K0_VALUE_XX"              :  0.5,
-              "K0_VALUE_YY"              :  0.5,
-              "K0_VALUE_ZZ"              :  0.5,
               "BIOT_COEFFICIENT"         :  1.0,
               "RETENTION_LAW"                    : "VanGenuchtenLaw",
               "SATURATED_SATURATION"             :  1.0,

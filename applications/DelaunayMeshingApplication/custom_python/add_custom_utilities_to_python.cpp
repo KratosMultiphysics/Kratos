@@ -270,11 +270,15 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
       .def("SetBoundingBoxLowerPoint",&MesherUtilities::MeshingParameters::SetBoundingBoxLowerPoint)
       .def("SetBoundingBoxUpperPoint",&MesherUtilities::MeshingParameters::SetBoundingBoxUpperPoint)
       .def("SetBoundingBoxTimeInterval",&MesherUtilities::MeshingParameters::SetBoundingBoxTimeInterval)
-      .def("SetUseRefiningBox",&MesherUtilities::MeshingParameters::SetUseRefiningBox)
+      .def("InitializeRefiningBoxParameters",&MesherUtilities::MeshingParameters::InitializeRefiningBoxParameters)
+      .def("SetUseRefiningBox",&MesherUtilities::MeshingParameters::SetUseRefiningBox)      
       .def("SetRefiningBoxMinimumPoint",&MesherUtilities::MeshingParameters::SetRefiningBoxMinimumPoint)
+      .def("SetRefiningBoxShiftedMinimumPoint",&MesherUtilities::MeshingParameters::SetRefiningBoxShiftedMinimumPoint)
       .def("SetRefiningBoxMaximumPoint",&MesherUtilities::MeshingParameters::SetRefiningBoxMaximumPoint)
+      .def("SetRefiningBoxShiftedMaximumPoint",&MesherUtilities::MeshingParameters::SetRefiningBoxShiftedMaximumPoint)
       .def("SetRefiningBoxTimeInterval",&MesherUtilities::MeshingParameters::SetRefiningBoxTimeInterval)
       .def("SetRefiningBoxMeshSize",&MesherUtilities::MeshingParameters::SetRefiningBoxMeshSize)
+      .def("SetRefiningBoxElementsInTransitionZone",&MesherUtilities::MeshingParameters::SetRefiningBoxElementsInTransitionZone)
       ;
 
 }

@@ -30,11 +30,12 @@ GenerateInitialSkinDEMProcess::GenerateInitialSkinDEMProcess(
 
 void GenerateInitialSkinDEMProcess::Execute()
 {
-    FindNodalNeighboursProcess nodal_neigh_process (mrModelPart);
+    FindGlobalNodalNeighboursProcess nodal_neigh_process(mrModelPart);
     nodal_neigh_process.Execute();
     auto p_DEM_properties = mrDEMModelPart.pGetProperties(1);
 
     auto &r_submodel_part = mrModelPart.GetSubModelPart("SkinDEMModelPart");
+
     const auto it_node_begin = r_submodel_part.NodesBegin();
     double num_DEM = 0;
     const int max_id_FEM_nodes = this->GetMaximumFEMId();

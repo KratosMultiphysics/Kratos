@@ -10,10 +10,13 @@
 //  Main author:     Jordi Cotela
 //
 
-#include "data_communicator_factory.h"
+// System includes
 
+// External includes
 #include "mpi.h"
 
+// Project includes
+#include "data_communicator_factory.h"
 #include "includes/parallel_environment.h"
 #include "mpi/includes/mpi_data_communicator.h"
 

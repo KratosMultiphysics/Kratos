@@ -828,7 +828,7 @@ namespace Kratos {
             }
         }
 
-        void AssemblePeriodicContributionToProjections(Geometry< Node<3> >& rGeometry)
+        void AssemblePeriodicContributionToProjections(Geometry< Node >& rGeometry)
         {
             unsigned int nodes_in_cond = rGeometry.PointsNumber();
 
@@ -860,7 +860,7 @@ namespace Kratos {
             }
         }
 
-        void CorrectContributionsOnPeriodicNode(Node<3>& rNode)
+        void CorrectContributionsOnPeriodicNode(Node& rNode)
         {
             if (rNode.GetValue(NODAL_AREA) != 0.0) // Only periodic nodes will have a non-historical NODAL_AREA set.
             {
@@ -908,7 +908,7 @@ namespace Kratos {
                               const ProcessInfo& CurrentProcessInfo)
         {
 
-            //multipling time scheme factor
+            //multiplying time scheme factor
             LHS_Contribution *= ma1;
 
             // adding mass contribution to the dynamic stiffness

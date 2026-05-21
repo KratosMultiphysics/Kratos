@@ -92,7 +92,7 @@ public:
     /// Pointer definition of MonolithicAutoSlipInlet3D
     KRATOS_CLASS_POINTER_DEFINITION(MonolithicAutoSlipInlet3D);
 
-    typedef Node < 3 > NodeType;
+    typedef Node NodeType;
 
     typedef Properties PropertiesType;
 

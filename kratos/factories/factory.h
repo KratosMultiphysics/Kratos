@@ -21,7 +21,6 @@
 #include "includes/define.h"
 #include "includes/kratos_parameters.h"
 #include "includes/kratos_components.h"
-#include "includes/shared_pointers.h"
 
 namespace Kratos
 {

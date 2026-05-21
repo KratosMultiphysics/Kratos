@@ -19,17 +19,17 @@
 // Project includes
 #include "includes/process_info.h"
 #include "containers/model.h"
-#include "testing/testing.h"
 #include "utilities/math_utils.h"
-#include "custom_utilities/tangent_operator_calculator_utility.h"
 
-namespace Kratos
-{
-namespace Testing
+// Application includes
+#include "custom_utilities/tangent_operator_calculator_utility.h"
+#include "tests/cpp_tests/constitutive_laws_fast_suite.h"
+
+namespace Kratos::Testing
 {
 
 /// Node definition
-typedef Node<3> NodeType;
+typedef Node NodeType;
 
 /**
  * @brief This sets the basic case
@@ -72,8 +72,9 @@ void SettingBasicCase(
         rMaterialProperties.SetValue(SOFTENING_TYPE, 1);
         rMaterialProperties.SetValue(FRACTURE_ENERGY, 1000.0);
         rMaterialProperties.SetValue(HARDENING_CURVE, 0);
+        rMaterialProperties.SetValue(SOFTENING_TYPE, 1);
 
-        rStrainVector[1] = 1.0e-5;
+        rStrainVector[1] = 1.0e-4;
     }
 
     // Compute equivalent F
@@ -107,7 +108,7 @@ void SettingBasicCase(
  */
 void Create3DGeometryHexahedra(
     ModelPart& rThisModelPart,
-    const std::string ElementName = "SmallDisplacementElement3D8N"
+    const std::string& ElementName = "SmallDisplacementElement3D8N"
     )
 {
     auto& process_info = rThisModelPart.GetProcessInfo();
@@ -144,7 +145,7 @@ void Create3DGeometryHexahedra(
  */
 void Create3DGeometryTetrahedra(
     ModelPart& rThisModelPart,
-    const std::string ElementName = "SmallDisplacementElement3D4N"
+    const std::string& ElementName = "SmallDisplacementElement3D4N"
     )
 {
     rThisModelPart.GetProcessInfo()[STEP] = 2;
@@ -294,7 +295,7 @@ void ComputingConvergenceRate(
                 if (Debug) {
                     KRATOS_WATCH(slope)
                 } else { // Check
-                    KRATOS_CHECK_GREATER_EQUAL(slope, quadratic_threshold);
+                    KRATOS_EXPECT_GE(slope, quadratic_threshold);
                 }
             }
         }
@@ -305,7 +306,7 @@ void ComputingConvergenceRate(
             if (Debug) {
                 KRATOS_WATCH(slope)
             } else { // Check
-                KRATOS_CHECK_GREATER_EQUAL(slope, quadratic_threshold);
+                KRATOS_EXPECT_GE(slope, quadratic_threshold);
             }
         }
     }
@@ -314,7 +315,7 @@ void ComputingConvergenceRate(
 /**
  * @brief This test tests that the perturbation utility is valid for computing the elastic linear tensor
  */
-KRATOS_TEST_CASE_IN_SUITE(LinearElasticCasePertubationTensorUtility, KratosConstitutiveLawsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(LinearElasticCasePertubationTensorUtility, KratosConstitutiveLawsWithStructuralElementsSuite)
 {
     Model this_model;
     ModelPart& r_model_part = this_model.CreateModelPart("Main");
@@ -338,7 +339,7 @@ KRATOS_TEST_CASE_IN_SUITE(LinearElasticCasePertubationTensorUtility, KratosConst
     for (std::size_t i = 0; i < 6; ++i) {
         for (std::size_t j = 0; j < 6; ++j) {
             if (std::abs(C(i, j)) > 0.0) {
-                KRATOS_CHECK_LESS_EQUAL((tangent_moduli(i, j) - C(i, j))/C(i, j), tolerance);
+                KRATOS_EXPECT_LE((tangent_moduli(i, j) - C(i, j))/C(i, j), tolerance);
             } else if (std::abs(tangent_moduli(i, j)) > 1.0e-6) {
                 KRATOS_WARNING("LinearElasticCasePertubationTensorUtility") << "Be careful tangent_moduli(" << i << " ," << j << ") is greater than 0: " <<  tangent_moduli(i, j) << std::endl;
             }
@@ -373,7 +374,7 @@ KRATOS_TEST_CASE_IN_SUITE(HyperElasticCasePertubationTensorUtility, KratosConsti
     for (std::size_t i = 0; i < 6; ++i) {
         for (std::size_t j = 0; j < 6; ++j) {
             if (std::abs(C(i, j)) > 0.0) {
-                KRATOS_CHECK_LESS_EQUAL((tangent_moduli(i, j) - C(i, j))/C(i, j), tolerance);
+                KRATOS_EXPECT_LE((tangent_moduli(i, j) - C(i, j))/C(i, j), tolerance);
             } else if (std::abs(tangent_moduli(i, j)) > 1.0e-6) {
                 KRATOS_WARNING("HyperElasticCasePertubationTensorUtility") << "Be careful tangent_moduli(" << i << " ," << j << ") is greater than 0: " <<  tangent_moduli(i, j) << std::endl;
             }
@@ -384,7 +385,7 @@ KRATOS_TEST_CASE_IN_SUITE(HyperElasticCasePertubationTensorUtility, KratosConsti
 /**
  * @brief This test tests that the perturbation utility is valid for computing the elastic linear tensor
  */
-KRATOS_TEST_CASE_IN_SUITE(QuadraticLinearElasticCasePertubationTensorUtility, KratosConstitutiveLawsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(QuadraticLinearElasticCasePertubationTensorUtility, KratosConstitutiveLawsWithStructuralElementsSuite)
 {
     Model this_model;
     ModelPart& r_model_part = this_model.CreateModelPart("Main");
@@ -426,7 +427,7 @@ KRATOS_TEST_CASE_IN_SUITE(QuadraticKirchhoffHyperElasticCasePertubationTensorUti
 /**
  * @brief This test tests that the perturbation utility is valid for computing the ehyper lastic tensor
  */
-KRATOS_TEST_CASE_IN_SUITE(QuadraticSmallStrainIsotropicPlasticity3DVonMisesVonMisesFirstOrderCasePertubationTensorUtility, KratosConstitutiveLawsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(QuadraticSmallStrainIsotropicPlasticity3DVonMisesVonMisesFirstOrderCasePertubationTensorUtility, KratosConstitutiveLawsWithStructuralElementsSuite)
 {
     Model this_model;
     ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
@@ -462,7 +463,7 @@ KRATOS_TEST_CASE_IN_SUITE(QuadraticSmallStrainIsotropicPlasticity3DVonMisesVonMi
 /**
  * @brief This test tests that the perturbation utility is valid for computing the ehyper lastic tensor
  */
-KRATOS_TEST_CASE_IN_SUITE(QuadraticSmallStrainIsotropicPlasticity3DVonMisesVonMisesCaseSecondOrderPertubationTensorUtility, KratosConstitutiveLawsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(QuadraticSmallStrainIsotropicPlasticity3DVonMisesVonMisesCaseSecondOrderPertubationTensorUtility, KratosConstitutiveLawsWithStructuralElementsSuite)
 {
     Model this_model;
     ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
@@ -495,5 +496,44 @@ KRATOS_TEST_CASE_IN_SUITE(QuadraticSmallStrainIsotropicPlasticity3DVonMisesVonMi
     ComputingConvergenceRate(p_constitutive_law, cl_configuration_values, stress_vector, strain_vector, tangent_moduli, deformation_gradient_F, det_deformation_gradient_F, false, false, false, 1.0, 4);
 }
 
-} // namespace Testing
-} // namespace Kratos
+/**
+ * @brief This test tests that the perturbation utility is valid for computing the ehyper lastic tensor
+ */
+KRATOS_TEST_CASE_IN_SUITE(QuadraticSmallStrainIsotropicDamage3DsVonMisesCaseAutomaticDiffTensorUtility, KratosConstitutiveLawsWithStructuralElementsSuite)
+{
+    Model this_model;
+    ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
+
+    r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+
+    ConstitutiveLaw::Parameters cl_configuration_values;
+    Properties::Pointer p_material_properties = r_model_part.CreateNewProperties(1);
+    Vector stress_vector, strain_vector;
+    Matrix tangent_moduli, deformation_gradient_F;
+    double det_deformation_gradient_F;
+    SettingBasicCase(r_model_part, cl_configuration_values, *p_material_properties, stress_vector, strain_vector, tangent_moduli, deformation_gradient_F, det_deformation_gradient_F, true, 2);
+
+    // Creating constitutive law
+    auto p_constitutive_law = KratosComponents<ConstitutiveLaw>().Get("SmallStrainIsotropicDamage3DVonMises").Clone();
+    p_material_properties->SetValue(CONSTITUTIVE_LAW, p_constitutive_law);
+
+    // Here we asses the convergence rate of the autom. diff. tangent
+    p_material_properties->SetValue(TANGENT_OPERATOR_ESTIMATION, 0);
+
+    // Creating geometry
+    Create3DGeometryHexahedra(r_model_part);
+
+    // Assigning geometry
+    auto& r_geom = r_model_part.Elements().begin()->GetGeometry();
+    cl_configuration_values.SetElementGeometry(r_geom);
+
+    // Initializing law
+    p_constitutive_law->InitializeMaterialResponse(cl_configuration_values, ConstitutiveLaw::StressMeasure::StressMeasure_PK2);
+    p_constitutive_law->CalculateMaterialResponse(cl_configuration_values, ConstitutiveLaw::StressMeasure::StressMeasure_PK2);
+    p_constitutive_law->FinalizeMaterialResponse(cl_configuration_values, ConstitutiveLaw::StressMeasure::StressMeasure_PK2);
+
+    // Computing convergence rate
+    ComputingConvergenceRate(p_constitutive_law, cl_configuration_values, stress_vector, strain_vector, tangent_moduli, deformation_gradient_F, det_deformation_gradient_F, false, false, false, 1.0, 4);
+}
+
+} // namespace Kratos::Testing

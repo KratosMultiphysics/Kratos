@@ -46,7 +46,7 @@ namespace Kratos
  * @class FindIntersectedGeometricalObjectsWithOBBProcess
  * @ingroup KratosCore
  * @brief This class takes two modelparts and marks the intersected ones with SELECTED flag. Does the check considering an OBB for the intersection
- * @details It creates a spatial datastructure and search for interaction. It also provides some helper methods for derived classes to check individual element or condition interesections.
+ * @details It creates a spatial datastructure and search for interaction. It also provides some helper methods for derived classes to check individual element or condition intersections.
  * @todo Add possibility to use conditions with elements and vice versa (add second template argument)
  * @author Vicente Mataix Ferrandiz
 */
@@ -81,7 +81,7 @@ public:
     typedef typename BaseType::OctreeType OctreeType;
 
     /// Definition of the node type
-    using NodeType = Node<3>;
+    using NodeType = Node;
 
     /// Definition of the geometry type
     using GeometryType = Geometry<NodeType>;
@@ -262,9 +262,9 @@ protected:
         );
 
     /**
-     * @brief This sets the interesection flag
+     * @brief This sets the intersection flag
      * @param rString The string that you want to comvert in the equivalent enum
-     * @return OBBHasIntersectionType: The equivalent enum (this requires less memmory than a std::string)
+     * @return OBBHasIntersectionType: The equivalent enum (this requires less memory than a std::string)
      */
     void ConvertIntersection(const std::string& rString)
     {
@@ -277,8 +277,8 @@ protected:
     }
 
     /**
-     * @brief This returns the interesection type from the flag
-     * @return OBBHasIntersectionType: The equivalent enum (this requires less memmory than a std::string)
+     * @brief This returns the intersection type from the flag
+     * @return OBBHasIntersectionType: The equivalent enum (this requires less memory than a std::string)
      */
     OBBHasIntersectionType GetOBBHasIntersectionType()
     {

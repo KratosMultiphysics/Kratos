@@ -114,7 +114,7 @@ void SearchPointsImplementation(
     PointSetType::ContainerType nodes_temp;
     PointSetType::ContainerType nodes_to_find_temp;
 
-    std::map<Point::Pointer, Node<3>::Pointer> map_point_to_node;
+    std::map<Point::Pointer, Node::Pointer> map_point_to_node;
 
     nodes_temp.reserve(nodes.size());
 

@@ -110,7 +110,7 @@ namespace Kratos
       ElementSize = 4.0/ ElementSize; 
 
 
-      double Permeability = rVariables.GetProperties().GetValue(PERMEABILITY); 
+      double Permeability = rVariables.GetProperties().GetValue(PERMEABILITY_WATER); 
       double StabilizationFactor = rVariables.GetProperties().GetValue( STABILIZATION_FACTOR_WP);
 
       mPPP = true;
@@ -1014,12 +1014,12 @@ namespace Kratos
       unsigned int thisSize = rF.size1();
       (rPermeabilityTensor) = ZeroMatrix( thisSize, thisSize);
 
-      double scalarPermeability = rProperties.GetValue(PERMEABILITY);
+      double scalarPermeability = rProperties.GetValue(PERMEABILITY_WATER);
 
       bool KozenyCarman = rProperties.GetValue(KOZENY_CARMAN);
       if ( KozenyCarman == true)
       {
-         double Permeability = rProperties.GetValue( PERMEABILITY );
+         double Permeability = rProperties.GetValue( PERMEABILITY_WATER );
          // vale, això no serveix pels elements mixtes -.
          //double Jacobian = MathUtils<double>::Det( rF);
          double Porosity = 1.0 - (1.0 - rInitialPorosity) / rVolumeChange;

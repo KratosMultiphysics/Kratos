@@ -23,21 +23,21 @@
 
 namespace Kratos
 {
-void BaseSolidElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
+
+void BaseSolidElement::Initialize(const ProcessInfo &rCurrentProcessInfo)
 {
     KRATOS_TRY
 
-
     mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
-    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
+    const GeometryType::IntegrationPointsArrayType &integration_points = GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
 
-    //Constitutive Law initialisation
-    if ( mConstitutiveLawVector.size() != integration_points.size() )
-        mConstitutiveLawVector.resize( integration_points.size() );
+    // Constitutive Law initialisation
+    if (mConstitutiveLawVector.size() != integration_points.size())
+        mConstitutiveLawVector.resize(integration_points.size());
 
     InitializeMaterial();
 
-    KRATOS_CATCH( "" )
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/

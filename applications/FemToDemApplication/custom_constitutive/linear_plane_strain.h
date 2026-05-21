@@ -48,7 +48,7 @@ namespace Kratos
  * @author Riccardo Rossi
  * @author Vicente Mataix Ferrandiz
  */
-class LinearPlaneStrainFEMDEM
+class KRATOS_API(FEM_TO_DEM_APPLICATION) LinearPlaneStrainFEMDEM
     : public ElasticIsotropic3DFEMDEM
 {
 public:

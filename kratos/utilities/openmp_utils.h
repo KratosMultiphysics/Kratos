@@ -154,6 +154,7 @@ public:
      @param Partitions This object will contain the begin and end positions
      for each thread.
      */
+    KRATOS_DEPRECATED_MESSAGE("This is legacy, please use the \"ParallelUtilities\" instead")
     static inline void DivideInPartitions(
         const int NumTerms,
         const int NumThreads,
@@ -174,6 +175,7 @@ public:
       * @param rEnd Iterator pointing to the end position for the current thread in rVector.
       */
     template< class TVector >
+    KRATOS_DEPRECATED_MESSAGE("This is legacy, please use the \"ParallelUtilities\" instead")
     static void PartitionedIterators(TVector& rVector,
                                      typename TVector::iterator& rBegin,
                                      typename TVector::iterator& rEnd)
@@ -262,6 +264,7 @@ public:
     }
 
     template<class T>
+    KRATOS_DEPRECATED_MESSAGE("This is legacy, please use the \"ParallelUtilities\" instead")
     static inline void CreatePartition(unsigned int number_of_threads, const int number_of_rows, T& partitions)
     {
         partitions.resize(number_of_threads+1);

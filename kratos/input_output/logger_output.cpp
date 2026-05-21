@@ -19,7 +19,7 @@
 
 // Project includes
 #include "input_output/logger_output.h"
-#include "includes/kratos_version.h"
+#include "includes/kernel.h"
 
 #if defined(KRATOS_COLORED_OUTPUT)
 #include "utilities/color_utilities.h"
@@ -42,11 +42,12 @@ namespace Kratos
     void LoggerOutput::WriteHeader()
     {
         auto& r_stream = GetStream();
-        r_stream << " |  /           |             " << std::endl;
-        r_stream << " ' /   __| _` | __|  _ \\   __|" << std::endl;
-        r_stream << " . \\  |   (   | |   (   |\\__ \\ " << std::endl;
-        r_stream << "_|\\_\\_|  \\__,_|\\__|\\___/ ____/" << std::endl;
-        r_stream << "           Multi-Physics "<< GetVersionString() << std::endl;
+        r_stream << " |  /           |                  \n" 
+                 << " ' /   __| _` | __|  _ \\   __|    \n" 
+                 << " . \\  |   (   | |   (   |\\__ \\  \n" 
+                 << "_|\\_\\_|  \\__,_|\\__|\\___/ ____/\n"
+                 << "           Multi-Physics " << Kernel::Version() << "\n"
+                 << "           Compiled for "  << Kernel::OSName()  << " and " << Kernel::PythonVersion() << " with " << Kernel::Compiler() << std::endl;
     }
 
     void LoggerOutput::WriteMessage(LoggerMessage const& TheMessage)

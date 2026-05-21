@@ -36,7 +36,10 @@ void PointsData::CreateNodes(NodesContainerType& rNodes)
         const array_1d<double, 3>& r_coord = mCoords[i];
         NodeType::Pointer p_node = Kratos::make_intrusive<NodeType>(
             mIds[i], r_coord[0], r_coord[1], r_coord[2]);
-        rNodes.push_back(p_node);
+        // here we can safely use the insert with the rNodes.end() as the hint
+        // because, when reading, we can assume that it was written in the
+        // sorted order within HDF5.
+        rNodes.insert(rNodes.end(), p_node);
     }
     KRATOS_CATCH("");
 }

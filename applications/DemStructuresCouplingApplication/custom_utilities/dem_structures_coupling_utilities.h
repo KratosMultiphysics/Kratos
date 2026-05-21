@@ -67,7 +67,7 @@ void TransferStructuresSkinToDem(ModelPart& r_source_model_part, ModelPart& r_de
     // Adding conditions
     for (unsigned int i = 0; i < source_conditions.size(); i++) {
         ModelPart::ConditionsContainerType::iterator it = r_source_model_part.ConditionsBegin() + i;
-        Geometry< Node<3> >::Pointer p_geometry =  it->pGetGeometry();
+        Geometry< Node >::Pointer p_geometry =  it->pGetGeometry();
         Condition::Pointer cond;
         if (dimension == 2) {
             cond = Condition::Pointer(new RigidEdge2D(id, p_geometry, props));
@@ -107,7 +107,7 @@ void SmoothLoadTrasferredToFem(ModelPart& r_model_part, const double portion_of_
     }
 }
 
-void ComputeSandProduction(ModelPart& dem_model_part, ModelPart& outer_walls_model_part, const double time) {
+double ComputeSandProduction(ModelPart& dem_model_part, ModelPart& outer_walls_model_part, const double time) {
 
     const std::string sand_prod_filename = "sand_production_graph.txt";
     static std::ofstream ofs_sand_prod_file;
@@ -142,6 +142,8 @@ void ComputeSandProduction(ModelPart& dem_model_part, ModelPart& outer_walls_mod
     static std::ofstream sand_prod_file("sand_production_graph.txt", std::ios_base::out | std::ios_base::app);
     sand_prod_file << time << " " << face_pressure_in_psi << " " << cumulative_sand_mass_in_grams << '\n';
     sand_prod_file.flush();
+
+    return cumulative_sand_mass_in_grams;
 }
 
 void MarkBrokenSpheres(ModelPart& dem_model_part) {
@@ -168,7 +170,7 @@ void MarkBrokenSpheres(ModelPart& dem_model_part) {
     }
 }
 
-void ComputeSandProductionWithDepthFirstSearchNonRecursiveImplementation(ModelPart& dem_model_part, ModelPart& outer_walls_model_part, const double time) {
+double ComputeSandProductionWithDepthFirstSearchNonRecursiveImplementation(ModelPart& dem_model_part, ModelPart& outer_walls_model_part, const double time) {
 
     const std::string sand_prod_filename = "sand_production_graph_with_chunks_non_recursive.txt";
     static std::ofstream ofs_sand_prod_file;
@@ -237,16 +239,20 @@ void ComputeSandProductionWithDepthFirstSearchNonRecursiveImplementation(ModelPa
     ofs_sand_prod_file << time << " " << face_pressure_in_psi << " " << cumulative_sand_mass_in_grams << '\n';
     ofs_sand_prod_file.flush();
 
-    unsigned int number_of_time_steps_between_granulometry_prints = 1e9;
+    unsigned int number_of_time_steps_between_granulometry_prints = 1e9; //TODO: For the time being, we are not interested in printing this
     static unsigned int printing_counter = 0;
     if (printing_counter == number_of_time_steps_between_granulometry_prints) {
         ofs_granulometry_distr_file << time;
-        for (unsigned int k = 0; k < chunks_masses.size(); k++) ofs_granulometry_distr_file << " " << chunks_masses[k];
+        for (unsigned int k = 0; k < chunks_masses.size(); k++) {
+            ofs_granulometry_distr_file << " " << chunks_masses[k];
+        }
         ofs_granulometry_distr_file << '\n';
         printing_counter = 0;
     }
     printing_counter++;
     ofs_granulometry_distr_file.flush();
+
+    return cumulative_sand_mass_in_grams;
 }
 
 void ComputeSandProductionWithDepthFirstSearch(ModelPart& dem_model_part, ModelPart& outer_walls_model_part, const double time) {

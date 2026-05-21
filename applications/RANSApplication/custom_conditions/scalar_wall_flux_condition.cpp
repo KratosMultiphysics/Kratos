@@ -179,7 +179,9 @@ int ScalarWallFluxCondition<TDim, TNumNodes, TScalarWallFluxConditionData>::Chec
     KRATOS_TRY
 
     int check = BaseType::Check(rCurrentProcessInfo);
-    TScalarWallFluxConditionData::Check(this->GetGeometry(), rCurrentProcessInfo);
+    if (RansCalculationUtilities::IsWallFunctionActive(*this)) {
+        TScalarWallFluxConditionData::Check(*this, rCurrentProcessInfo);
+    }
 
     KRATOS_ERROR_IF(!this->Has(NEIGHBOUR_ELEMENTS))
         << "NEIGHBOUR_ELEMENTS were not assigned properly for condition "

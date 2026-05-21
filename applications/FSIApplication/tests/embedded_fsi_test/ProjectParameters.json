@@ -1,0 +1,185 @@
+ {
+    "analysis_stage" : "KratosMultiphysics.FSIApplication.fsi_analysis",
+    "problem_data": {
+        "problem_name": "embedded_fsi_test",
+        "parallel_type": "OpenMP",
+        "echo_level": 0,
+        "start_time": 0.0,
+        "end_time": 1.99e-1
+    },
+    "solver_settings": {
+        "solver_type": "partitioned_embedded",
+        "coupling_scheme": "dirichlet_neumann",
+        "echo_level": 1,
+        "structure_solver_settings": {
+            "solver_type"                        : "Dynamic",
+            "model_part_name"                    : "Structure",
+            "domain_size"                        : 2,
+            "echo_level"                         : 0,
+            "analysis_type"                      : "non_linear",
+            "time_integration_method"            : "implicit",
+            "scheme_type"                        : "bossak",
+            "model_import_settings"              : {
+                "input_type": "mdpa",
+                "input_filename": "TO_BE_SET"
+            },
+            "material_import_settings": {
+                "materials_filename": "TO_BE_SET"
+            },
+            "time_stepping": {
+                "time_step": 1.0e-1
+            },
+            "line_search"                        : false,
+            "convergence_criterion"              : "residual_criterion",
+            "displacement_relative_tolerance"    : 1e-5,
+            "displacement_absolute_tolerance"    : 1e-7,
+            "residual_relative_tolerance"        : 1e-5,
+            "residual_absolute_tolerance"        : 1e-7,
+            "max_iteration"                      : 20
+        },
+        "fluid_solver_settings":{
+            "model_part_name"             : "FluidModelPart",
+            "domain_size"                 : 2,
+            "solver_type"                 : "Embedded",
+            "model_import_settings"       : {
+                "input_type"     : "mdpa",
+                "input_filename" : "embedded_fsi_test_fluid"
+            },
+            "material_import_settings": {
+                "materials_filename": "FluidMaterials.json"
+            },
+            "distance_modification_settings": {
+                "distance_threshold": 1.0e-3
+            },
+            "echo_level"                  : 0,
+            "compute_reactions"           : true,
+            "maximum_iterations"          : 25,
+            "relative_velocity_tolerance" : 1e-5,
+            "absolute_velocity_tolerance" : 1e-7,
+            "relative_pressure_tolerance" : 1e-5,
+            "absolute_pressure_tolerance" : 1e-7,
+            "assign_neighbour_elements_to_conditions" : true,
+            "volume_model_part_name"      : "FluidModelPart.FluidParts_Fluid",
+            "skin_parts"                  : ["FluidModelPart.NoSlip2D_Walls"],
+            "no_skin_parts"               : [],
+            "time_stepping"               : {
+                "automatic_time_step": false,
+                "time_step": 1.0e-1
+            },
+            "formulation": {
+            },
+            "fm_ale_settings": {
+                "fm_ale_step_frequency": 1,
+                "mesh_movement": "implicit",
+                "fm_ale_solver_settings": {
+                    "structure_model_part_name": "FSICouplingInterfaceFluid",
+                    "virtual_model_part_name": "VirtualModelPart",
+                    "linear_solver_settings": {
+                        "preconditioner_type": "amg",
+                        "solver_type": "amgcl",
+                        "smoother_type": "ilu0",
+                        "krylov_type": "cg",
+                        "max_iteration": 2000,
+                        "verbosity": 0,
+                        "tolerance": 1e-8,
+                        "scaling": false,
+                        "use_block_matrices_if_possible": true
+                    },
+                    "embedded_nodal_variable_settings": {
+                        "gradient_penalty_coefficient": 5.0e-2,
+                        "linear_solver_settings": {
+                            "preconditioner_type": "amg",
+                            "solver_type": "amgcl",
+                            "smoother_type": "ilu0",
+                            "krylov_type": "cg",
+                            "max_iteration": 2000,
+                            "verbosity": 0,
+                            "tolerance": 1e-8,
+                            "scaling": false,
+                            "block_size": 1,
+                            "use_block_matrices_if_possible": true
+                        }
+                    }
+                }
+            }
+        },
+        "coupling_settings":{
+            "nl_tol": 1e-6,
+            "nl_max_it": 5,
+            "coupling_strategy_settings": {
+                "solver_type": "MVQN"
+            },
+            "structure_interfaces_list": ["Structure.FluidInterface"]
+        }
+	},
+    "processes":{
+        "structure_constraints_process_list" : [{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "AssignVectorVariableProcess",
+            "Parameters"    : {
+                "model_part_name" : "Structure.Fixed",
+                "variable_name"   : "DISPLACEMENT",
+                "interval"        : [0.0,"End"],
+                "constrained"     : [true,true,false],
+                "value"           : [0.0,0.0,null]
+            }
+        }],
+        "structure_loads_process_list"       : [],
+        "fluid_initial_conditions_process_list"  : [],
+        "fluid_boundary_conditions_process_list" : [{
+            "python_module" : "apply_noslip_process",
+            "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+            "process_name"  : "ApplyNoSlipProcess",
+            "Parameters"    : {
+                "model_part_name" : "FluidModelPart.NoSlip2D_Walls"
+            }
+        },{
+            "python_module" : "assign_scalar_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "AssignScalarVariableProcess",
+            "Parameters"    : {
+                "model_part_name" : "FluidModelPart.PressureConstraints2D_TopRightCorner",
+                "variable_name"   : "PRESSURE",
+                "interval"        : [0.0,"End"],
+                "constrained"     : true,
+                "value"           : 0.0
+            }
+        },{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "AssignVectorVariableProcess",
+            "Parameters"    : {
+                "model_part_name" : "FluidModelPart.NoSlip2D_Walls",
+                "variable_name"   : "MESH_DISPLACEMENT",
+                "interval"        : [0.0,"End"],
+                "constrained"     : [true,true,false],
+                "value"           : [0.0,0.0,null]
+            }
+        }],
+        "fluid_gravity" : [{
+            "python_module" : "assign_vector_by_direction_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "AssignVectorByDirectionProcess",
+            "Parameters"    : {
+                "model_part_name" : "FluidModelPart.FluidParts_Fluid",
+                "variable_name"   : "BODY_FORCE",
+                "modulus"         : 10,
+                "constrained"     : false,
+                "direction"       : [0.0,-1.0,0.0]
+            }
+        }],
+        "fluid_auxiliar_process_list" : [{
+            "python_module": "apply_embedded_postprocess_process",
+            "kratos_module": "KratosMultiphysics.FluidDynamicsApplication",
+            "process_name": "ApplyEmbeddedPostprocessrocess",
+            "Parameters": {
+                "model_part_name": "FluidModelPart.FluidParts_Fluid"
+            }
+        }],
+        "json_check_process_list" : []
+    },
+    "output_processes":{
+        "gid_output" : []
+    }
+}

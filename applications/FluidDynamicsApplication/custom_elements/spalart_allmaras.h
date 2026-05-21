@@ -141,7 +141,7 @@ public:
     /**
      * @param rLeftHandSideMatrix Elemental left hand side matrix
      * @param rRightHandSideVector Elemental right hand side vector
-     * @param rCurrentProcessInfo Reference to the ProcessInfo from the ModelPart containg the element
+     * @param rCurrentProcessInfo Reference to the ProcessInfo from the ModelPart containing the element
      */
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
@@ -238,7 +238,7 @@ protected:
     void AddModelTerms(MatrixType& rLHS,
                        const double MolecularViscosity,
                        const double LastEddyViscosity,
-                       const array_1d<double,3> rLastEddyViscosityGradient,
+                       const array_1d<double,3>& rLastEddyViscosityGradient,
                        const double Distance,
                        const array_1d<double,3>& rVelocity,
                        const ShapeFunctionsType& N,

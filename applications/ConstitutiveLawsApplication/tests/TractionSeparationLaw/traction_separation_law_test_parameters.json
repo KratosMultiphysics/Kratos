@@ -1,0 +1,88 @@
+{
+    "problem_data"     : {
+        "problem_name"  : "traction_separation_law_test",
+        "parallel_type" : "OpenMP",
+        "echo_level"    : 1,
+        "start_time"    : 0.0,
+        "end_time"      : 5
+    },
+    "solver_settings"  : {
+        "solver_type"                     : "Static",
+        "model_part_name"                 : "Structure",
+        "domain_size"                     : 3,
+        "echo_level"                      : 0,
+        "analysis_type"                   : "non_linear",
+        "model_import_settings"           : {
+            "input_type"     : "mdpa",
+            "input_filename" : "TractionSeparationLaw/traction_separation_law_test"
+        },
+        "material_import_settings"        : {
+            "materials_filename" : "TractionSeparationLaw/traction_separation_law_test_materials.json"
+        },
+        "time_stepping"                   : {
+            "time_step" : 0.1
+        },
+		"use_old_stiffness_in_first_iteration"  : true,
+        "line_search"                     : false,
+        "convergence_criterion"           : "residual_criterion",
+        "displacement_relative_tolerance" : 0.0001,
+        "displacement_absolute_tolerance" : 1e-9,
+        "residual_relative_tolerance"     : 0.0001,
+        "residual_absolute_tolerance"     : 1e-9,
+        "max_iteration"                   : 10,
+        "rotation_dofs"                   : false,
+        "volumetric_strain_dofs"          : false
+    },
+    "processes"        : {
+        "constraints_process_list" : [{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "AssignVectorVariableProcess",
+            "Parameters"    : {
+                "model_part_name" : "Structure.DISPLACEMENT_BottomSurf",
+                "variable_name"   : "DISPLACEMENT",
+                "interval"        : [0.0,"End"],
+                "constrained"     : [true,false,true],
+                "value"           : [0.0,null,0.0]
+            }
+        },{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "AssignVectorVariableProcess",
+            "Parameters"    : {
+                "model_part_name" : "Structure.DISPLACEMENT_SideSurf",
+                "variable_name"   : "DISPLACEMENT",
+                "interval"        : [0.0,"End"],
+                "constrained"     : [false,true,false],
+                "value"           : [null,0.0,null]
+            }
+        },{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "AssignVectorVariableProcess",
+            "Parameters"    : {
+                "model_part_name" : "Structure.DISPLACEMENT_TopSurf",
+                "variable_name"   : "DISPLACEMENT",
+                "interval"        : [0.0,"End"],
+                "constrained"     : [true,false,true],
+                "value"           : ["0.001*t",null,"0.0005*t"]
+            }
+        }],
+        "loads_process_list"       : [],
+        "list_other_processes"     : [],
+		"json_check_process" : [
+        {
+            "python_module"   : "from_json_check_result_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"                  : "",
+            "process_name"          : "FromJsonCheckResultProcess",
+            "Parameters"            : {
+                "gauss_points_check_variables" : ["DELAMINATION_DAMAGE_VECTOR_MODE_ONE","DELAMINATION_DAMAGE_VECTOR_MODE_TWO"],
+                "input_file_name"              : "TractionSeparationLaw/TSL_test_results.json",
+                "model_part_name"              : "Structure.Parts_Solid_CubePart",
+                "time_frequency"               : 1.0
+            }
+        }
+        ]
+    }
+}

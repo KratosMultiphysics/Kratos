@@ -67,7 +67,7 @@ public:
     /// Local Flags
     KRATOS_DEFINE_LOCAL_FLAG(TO_COPY);
 
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
 

@@ -47,7 +47,7 @@ namespace Kratos
  * More info https://en.wikipedia.org/wiki/Neo-Hookean_solid
  * @author Vicente Mataix Ferrandiz
  */
-class HyperElasticIsotropicNeoHookean3DFEMDEM
+class KRATOS_API(FEM_TO_DEM_APPLICATION) HyperElasticIsotropicNeoHookean3DFEMDEM
     : public ConstitutiveLaw
 {
 public:

@@ -34,12 +34,12 @@ KRATOS_TEST_CASE_IN_SUITE(ShallowWaterUtilitiesComputeVelocity, ShallowWaterAppl
 {
     Model model;
 
-    Node<3>::Pointer p_point_1 = Kratos::make_intrusive<Node<3>>(1, 0.0, 0.0, 0.0);
-    Node<3>::Pointer p_point_2 = Kratos::make_intrusive<Node<3>>(2, 0.0, 1.0, 0.0);
-    Node<3>::Pointer p_point_3 = Kratos::make_intrusive<Node<3>>(3, 1.0, 1.0, 0.0);
-    Node<3>::Pointer p_point_4 = Kratos::make_intrusive<Node<3>>(4, 1.0, 0.0, 0.0);
+    Node::Pointer p_point_1 = Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0);
+    Node::Pointer p_point_2 = Kratos::make_intrusive<Node>(2, 0.0, 1.0, 0.0);
+    Node::Pointer p_point_3 = Kratos::make_intrusive<Node>(3, 1.0, 1.0, 0.0);
+    Node::Pointer p_point_4 = Kratos::make_intrusive<Node>(4, 1.0, 0.0, 0.0);
 
-    Quadrilateral2D4<Node<3>> geometry(p_point_1, p_point_2, p_point_3, p_point_4);
+    Quadrilateral2D4<Node> geometry(p_point_1, p_point_2, p_point_3, p_point_4);
 
     Parameters mesher_parameters(R"(
     {
@@ -80,23 +80,23 @@ KRATOS_TEST_CASE_IN_SUITE(ShallowWaterUtilitiesComputeVelocity, ShallowWaterAppl
     std::vector<double> velocity70 = {0.0, 0.0, 0.0};
     std::vector<double> velocity80 = {0.0, 0.0, 0.0};
 
-    KRATOS_CHECK_VECTOR_RELATIVE_NEAR(
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(
         r_model_part.GetNode(1).FastGetSolutionStepValue(VELOCITY), velocity1, tolerance)
-    KRATOS_CHECK_VECTOR_RELATIVE_NEAR(
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(
         r_model_part.GetNode(10).FastGetSolutionStepValue(VELOCITY), velocity10, tolerance)
-    KRATOS_CHECK_VECTOR_RELATIVE_NEAR(
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(
         r_model_part.GetNode(20).FastGetSolutionStepValue(VELOCITY), velocity20, tolerance)
-    KRATOS_CHECK_VECTOR_RELATIVE_NEAR(
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(
         r_model_part.GetNode(30).FastGetSolutionStepValue(VELOCITY), velocity30, tolerance)
-    KRATOS_CHECK_VECTOR_RELATIVE_NEAR(
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(
         r_model_part.GetNode(40).FastGetSolutionStepValue(VELOCITY), velocity40, tolerance)
-    KRATOS_CHECK_VECTOR_RELATIVE_NEAR(
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(
         r_model_part.GetNode(50).FastGetSolutionStepValue(VELOCITY), velocity50, tolerance)
-    KRATOS_CHECK_VECTOR_RELATIVE_NEAR(
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(
         r_model_part.GetNode(60).FastGetSolutionStepValue(VELOCITY), velocity60, tolerance)
-    KRATOS_CHECK_VECTOR_RELATIVE_NEAR(
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(
         r_model_part.GetNode(70).FastGetSolutionStepValue(VELOCITY), velocity70, tolerance)
-    KRATOS_CHECK_VECTOR_RELATIVE_NEAR(
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(
         r_model_part.GetNode(80).FastGetSolutionStepValue(VELOCITY), velocity80, tolerance)
 }
 
@@ -105,12 +105,12 @@ KRATOS_TEST_CASE_IN_SUITE(ShallowWaterUtilitiesHydrostaticForce, ShallowWaterApp
 {
     Model model;
 
-    Node<3>::Pointer p_point_1 = Kratos::make_intrusive<Node<3>>(1, 0.0, 0.0, 0.0);
-    Node<3>::Pointer p_point_2 = Kratos::make_intrusive<Node<3>>(2, 0.0, 1.0, 0.0);
-    Node<3>::Pointer p_point_3 = Kratos::make_intrusive<Node<3>>(3, 1.0, 1.0, 0.0);
-    Node<3>::Pointer p_point_4 = Kratos::make_intrusive<Node<3>>(4, 1.0, 0.0, 0.0);
+    Node::Pointer p_point_1 = Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0);
+    Node::Pointer p_point_2 = Kratos::make_intrusive<Node>(2, 0.0, 1.0, 0.0);
+    Node::Pointer p_point_3 = Kratos::make_intrusive<Node>(3, 1.0, 1.0, 0.0);
+    Node::Pointer p_point_4 = Kratos::make_intrusive<Node>(4, 1.0, 0.0, 0.0);
 
-    Quadrilateral2D4<Node<3>> geometry(p_point_1, p_point_2, p_point_3, p_point_4);
+    Quadrilateral2D4<Node> geometry(p_point_1, p_point_2, p_point_3, p_point_4);
 
     Parameters mesher_parameters(R"(
     {
@@ -147,8 +147,8 @@ KRATOS_TEST_CASE_IN_SUITE(ShallowWaterUtilitiesHydrostaticForce, ShallowWaterApp
     const std::vector<double> ref_horizontal_force = {1128.15, 2256.3, 0.0};
 
     const double tolerance = 1e-10;
-    KRATOS_CHECK_VECTOR_RELATIVE_NEAR(vertical_force, ref_vertical_force, tolerance)
-    KRATOS_CHECK_VECTOR_RELATIVE_NEAR(horizontal_force, ref_horizontal_force, tolerance)
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(vertical_force, ref_vertical_force, tolerance)
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(horizontal_force, ref_horizontal_force, tolerance)
 }
 
 } // namespace Testing

@@ -66,7 +66,7 @@ namespace Kratos
 				if ((inode->IsFixed(VELOCITY_X)) || (inode->IsFixed(VELOCITY_Y)) || (inode->IsFixed(VELOCITY_Z)) )
 				{
 					Condition const& rReferenceCondition = KratosComponents<Condition>::Get("FixedVelocity2D");         //condition type
-					Point2D<Node<3> > geometry(Node<3>::Pointer( *inode.base() ));//mr_model_part.Nodes().(inode->Id()));//Node<3>::Pointer( *inode.base() ));
+					Point2D<Node > geometry(Node::Pointer( *inode.base() ));//mr_model_part.Nodes().(inode->Id()));//Node::Pointer( *inode.base() ));
 					Properties::Pointer properties = mr_model_part.GetMesh().pGetProperties(0); 		//this will allow us later to turn this layer on/off in GID
 					Condition::Pointer p_condition = rReferenceCondition.Create(condition_number, geometry, properties); 
 					mr_model_part.Conditions().push_back(p_condition);
@@ -129,7 +129,7 @@ namespace Kratos
 				if ((inode->IsFixed(VELOCITY_X)) || (inode->IsFixed(VELOCITY_Y)) || (inode->IsFixed(VELOCITY_Z)) )
 				{
 					Condition const& rReferenceCondition = KratosComponents<Condition>::Get("FixedVelocity3D");         //condition type
-					Point3D<Node<3> > geometry(Node<3>::Pointer( *inode.base() ));//mr_model_part.Nodes().(inode->Id()));//Node<3>::Pointer( *inode.base() ));
+					Point3D<Node > geometry(Node::Pointer( *inode.base() ));//mr_model_part.Nodes().(inode->Id()));//Node::Pointer( *inode.base() ));
 					Properties::Pointer properties = mr_model_part.GetMesh().pGetProperties(0); 		//this will allow us later to turn this layer on/off in GID
 					Condition::Pointer p_condition = rReferenceCondition.Create(condition_number, geometry, properties); 
 					mr_model_part.Conditions().push_back(p_condition);
@@ -193,7 +193,7 @@ namespace Kratos
 				if (inode->IsFixed(PRESSURE) && ( (inode->IsFixed(VELOCITY_X))==false || (inode->IsFixed(VELOCITY_Y))  ) )
 				{
 					Condition const& rReferenceCondition = KratosComponents<Condition>::Get("FixedPressure2D");         //condition type
-					Point2D<Node<3> > geometry(Node<3>::Pointer( *inode.base() ));//mr_model_part.Nodes().(inode->Id()));//Node<3>::Pointer( *inode.base() ));
+					Point2D<Node > geometry(Node::Pointer( *inode.base() ));//mr_model_part.Nodes().(inode->Id()));//Node::Pointer( *inode.base() ));
 					Properties::Pointer properties = mr_model_part.GetMesh().pGetProperties(0); 		//this will allow us later to turn this layer on/off in GID
 					Condition::Pointer p_condition = rReferenceCondition.Create(condition_number, geometry, properties); 
 					mr_model_part.Conditions().push_back(p_condition);
@@ -256,7 +256,7 @@ namespace Kratos
 				if (inode->IsFixed(PRESSURE) && ( (inode->IsFixed(VELOCITY_X))==false || (inode->IsFixed(VELOCITY_Y)) || (inode->IsFixed(VELOCITY_Z)) ) )
 				{
 					Condition const& rReferenceCondition = KratosComponents<Condition>::Get("FixedPressure3D");         //condition type
-					Point3D<Node<3> > geometry(Node<3>::Pointer( *inode.base() ));//mr_model_part.Nodes().(inode->Id()));//Node<3>::Pointer( *inode.base() ));
+					Point3D<Node > geometry(Node::Pointer( *inode.base() ));//mr_model_part.Nodes().(inode->Id()));//Node::Pointer( *inode.base() ));
 					Properties::Pointer properties = mr_model_part.GetMesh().pGetProperties(0); 		//this will allow us later to turn this layer on/off in GID
 					Condition::Pointer p_condition = rReferenceCondition.Create(condition_number, geometry, properties); 
 					mr_model_part.Conditions().push_back(p_condition);
@@ -317,7 +317,7 @@ namespace Kratos
 				if ((inode->IsFixed(WATER_VELOCITY_X)) || (inode->IsFixed(WATER_VELOCITY_Y)) || (inode->IsFixed(WATER_VELOCITY_Z)) )
 				{
 					Condition const& rReferenceCondition = KratosComponents<Condition>::Get("WaterFixedVelocity2D");         //condition type
-					Point2D<Node<3> > geometry(Node<3>::Pointer( *inode.base() ));//mr_model_part.Nodes().(inode->Id()));//Node<3>::Pointer( *inode.base() ));
+					Point2D<Node > geometry(Node::Pointer( *inode.base() ));//mr_model_part.Nodes().(inode->Id()));//Node::Pointer( *inode.base() ));
 					Properties::Pointer properties = mr_model_part.GetMesh().pGetProperties(0); 		//this will allow us later to turn this layer on/off in GID
 					Condition::Pointer p_condition = rReferenceCondition.Create(condition_number, geometry, properties); 
 					mr_model_part.Conditions().push_back(p_condition);

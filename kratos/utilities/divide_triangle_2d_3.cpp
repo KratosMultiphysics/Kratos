@@ -142,30 +142,30 @@ namespace Kratos
 
             // Call the splitting mode computation function
             std::vector<int> edge_ids(3);
-            TriangleSplitMode(gl_ids_split_edges.data(), edge_ids.data());
+            TriangleSplit::TriangleSplitMode(gl_ids_split_edges.data(), edge_ids.data());
 
             // Call the splitting function
             std::vector<int> t(12);     // Ids of the generated subdivisions
             int n_int = 0;              // Number of internal nodes (set to 0 since it is not needed for triangle splitting)
-            Split_Triangle(edge_ids.data(), t.data(), &this->mDivisionsNumber, &this->mSplitEdgesNumber, &n_int);
+            TriangleSplit::Split_Triangle(edge_ids.data(), t.data(), &this->mDivisionsNumber, &this->mSplitEdgesNumber, &n_int);
 
             // Fill the subdivisions arrays
             for (int idivision = 0; idivision < this->mDivisionsNumber; ++idivision) {
                 // Get the subdivision indices
                 int i0, i1, i2;
-                TriangleGetNewConnectivityGID(idivision, t.data(), this->mSplitEdges.data(), &i0, &i1, &i2);
+                TriangleSplit::TriangleGetNewConnectivityGID(idivision, t.data(), this->mSplitEdges.data(), &i0, &i1, &i2);
 
                 // Generate a pointer to an auxiliar triangular geometry made with the subdivision points
                 IndexedPointGeometryPointerType p_aux_partition = GenerateAuxiliaryPartitionTriangle(i0, i1, i2);
 
-                // Determine if the subdivision is wether in the negative or the positive side
+                // Determine if the subdivision is whether in the negative or the positive side
+                // Note that zero distance nodes are also identified and stored in here
                 unsigned int neg = 0, pos = 0;
-                if(i0 <= 2) {nodal_distances(i0) < 0.0 ? neg++ : pos++;}
-                if(i1 <= 2) {nodal_distances(i1) < 0.0 ? neg++ : pos++;}
-                if(i2 <= 2) {nodal_distances(i2) < 0.0 ? neg++ : pos++;}
+                if(i0 <= 2) {if(nodal_distances(i0) < 0.0) neg++; else if(nodal_distances(i0) > 0.0) pos++; else this->mNodeIsCut.set(i0);};
+                if(i1 <= 2) {if(nodal_distances(i1) < 0.0) neg++; else if(nodal_distances(i1) > 0.0) pos++; else this->mNodeIsCut.set(i1);};
+                if(i2 <= 2) {if(nodal_distances(i2) < 0.0) neg++; else if(nodal_distances(i2) > 0.0) pos++; else this->mNodeIsCut.set(i2);};
 
-                if(neg > 0 && pos > 0)
-                    KRATOS_ERROR << "The subgeometry " << i0 << " " << i1 << " " << i2 << " in triange has nodes in both positive and negative sides." << std::endl;
+                KRATOS_ERROR_IF(neg > 0 && pos > 0) << "The subgeometry " << i0 << " " << i1 << " " << i2 << " in triangle has nodes in both positive and negative sides." << std::endl;
 
                 bool is_positive = false;
                 if(pos > 0) {is_positive = true;}
@@ -188,7 +188,6 @@ namespace Kratos
     void DivideTriangle2D3<TPointType>::GenerateIntersectionsSkin() {
 
         // Set some geometry constant parameters
-        const int n_nodes = 3;
         const unsigned int n_faces = 3;
 
         // Clear the interfaces vectors
@@ -218,8 +217,9 @@ namespace Kratos
                     int node_j_key = r_subdivision_geom[mEdgeNodeJ[i_face]].Id();
 
                     // Check the nodal keys to state which nodes belong to the interface
-                    // If the indexed keys is larger or equal to the number of nodes means that they are the auxiliar interface points
-                    if ((node_i_key >= n_nodes) && (node_j_key >= n_nodes)) {
+                    // If the indexed keys is larger or equal to the number of nodes means that they are the auxiliary interface points
+                    // For the zero distance case, the corresponding node is considered as part of the interface
+                    if (NodeIsInterface(node_i_key) && NodeIsInterface(node_j_key)) {
                         // Generate an indexed point line geometry pointer with the two interface nodes
                         IndexedPointGeometryPointerType p_intersection_line = this->GenerateIntersectionLine(node_i_key, node_j_key);
                         this->mPositiveInterfaces.push_back(p_intersection_line);
@@ -243,8 +243,9 @@ namespace Kratos
                     int node_j_key = r_subdivision_geom[mEdgeNodeJ[i_face]].Id();
 
                     // Check the nodal keys to state which nodes belong to the interface
-                    // If the indexed keys is larger or equal to the number of nodes means that they are the auxiliar interface points
-                    if ((node_i_key >= n_nodes) && (node_j_key >= n_nodes)) {
+                    // If the indexed keys is larger or equal to the number of nodes means that they are the auxiliary interface points
+                    // For the zero distance case, the corresponding node is considered as part of the interface
+                    if (NodeIsInterface(node_i_key) && NodeIsInterface(node_j_key)) {
                         // Generate an indexed point line geometry pointer with the two interface nodes
                         IndexedPointGeometryPointerType p_intersection_line = this->GenerateIntersectionLine(node_i_key ,node_j_key);
                         this->mNegativeInterfaces.push_back(p_intersection_line);
@@ -368,7 +369,15 @@ namespace Kratos
             this->mAuxPointsContainer(I1));
     };
 
-    template class DivideTriangle2D3<Node<3>>;
+    template<class TPointType>
+    bool DivideTriangle2D3<TPointType>::NodeIsInterface(int NodeKey) const
+    {
+        constexpr int num_nodes = 3;
+        return NodeKey >= num_nodes || mNodeIsCut[NodeKey];
+    }
+
+
+    template class DivideTriangle2D3<Node>;
     template class DivideTriangle2D3<IndexedPoint>;
 
 };

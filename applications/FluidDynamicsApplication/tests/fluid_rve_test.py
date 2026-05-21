@@ -1,6 +1,6 @@
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-from KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis_rve import FluidDynamicsAnalysisRVE
+from KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis_rve import FluidDynamicsAnalysisRve
 
 class TestFluidRVETest(KratosUnittest.TestCase):
 
@@ -8,7 +8,7 @@ class TestFluidRVETest(KratosUnittest.TestCase):
         # Change to True to generate GiD Output
         self.print_output = False
 
-        # Change to True if no refence value file exists
+        # Change to True if no reference value file exists
         self.check_tolerance = 1e-6
         self.check_relative_tolerance = 1e-8
         self.print_reference_values = False
@@ -59,7 +59,7 @@ class TestFluidRVETest(KratosUnittest.TestCase):
 
         # Run RVE simulation
         model = KratosMultiphysics.Model()
-        self.simulation = FluidDynamicsAnalysisRVE(model, self.parameters)
+        self.simulation = FluidDynamicsAnalysisRve(model, self.parameters)
         self.simulation.Run()
 
     def _AddOutput(self):

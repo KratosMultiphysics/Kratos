@@ -3,8 +3,8 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
@@ -31,6 +31,8 @@
 #include "custom_strategies/custom_schemes/explicit_central_differences_scheme.hpp"
 #include "custom_strategies/custom_schemes/explicit_multi_stage_kim_scheme.hpp"
 #include "custom_strategies/custom_schemes/eigensolver_dynamic_scheme.hpp"
+#include "custom_strategies/custom_schemes/structural_mechanics_bossak_scheme.h"
+#include "custom_strategies/custom_schemes/structural_mechanics_static_scheme.h"
 
 // Convergence criterias
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
@@ -42,8 +44,7 @@
 // Linear solvers
 #include "linear_solvers/linear_solver.h"
 
-namespace Kratos {
-namespace Python {
+namespace Kratos::Python {
 
 void  AddCustomStrategiesToPython(pybind11::module& m)
 {
@@ -52,6 +53,8 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>> SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
     typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
+    using BaseBossakSchemeType = ResidualBasedBossakDisplacementScheme<SparseSpaceType, LocalSpaceType>;
+    using BaseStaticSchemeType = ResidualBasedIncrementalUpdateStaticScheme<SparseSpaceType, LocalSpaceType>;
 
     // Base types
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
@@ -76,7 +79,8 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     typedef EigensolverDynamicScheme< SparseSpaceType, LocalSpaceType > EigensolverDynamicSchemeType;
     typedef ExplicitCentralDifferencesScheme< SparseSpaceType, LocalSpaceType >  ExplicitCentralDifferencesSchemeType;
     typedef ExplicitMultiStageKimScheme< SparseSpaceType, LocalSpaceType >  ExplicitMultiStageKimSchemeType;
-
+    using StructuralMechanicsBossakSchemeType = StructuralMechanicsBossakScheme<SparseSpaceType, LocalSpaceType>;
+    using StructuralMechanicsStaticSchemeType = StructuralMechanicsStaticScheme<SparseSpaceType, LocalSpaceType>;
 
     // Custom convergence criterion types
     typedef ResidualDisplacementAndOtherDoFCriteria< SparseSpaceType,  LocalSpaceType > ResidualDisplacementAndOtherDoFCriteriaType;
@@ -156,7 +160,15 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         .def(py::init< Parameters>())
         ;
 
+    // Implicit Bossak Scheme Type
+    py::class_<StructuralMechanicsBossakSchemeType, typename StructuralMechanicsBossakSchemeType::Pointer, BaseBossakSchemeType>(m, "StructuralMechanicsBossakScheme")
+        .def(py::init<Parameters>())
+        ;
 
+    // Implicit Static Scheme Type
+    py::class_<StructuralMechanicsStaticSchemeType, typename StructuralMechanicsStaticSchemeType::Pointer, BaseStaticSchemeType>(m, "StructuralMechanicsStaticScheme")
+        .def(py::init<Parameters>())
+        ;
 
     //********************************************************************
     //*******************CONVERGENCE CRITERIA CLASSES*********************
@@ -178,6 +190,5 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     //********************************************************************
 }
 
-}  // namespace Python.
-} // Namespace Kratos
+}  // namespace Kratos::Python.
 

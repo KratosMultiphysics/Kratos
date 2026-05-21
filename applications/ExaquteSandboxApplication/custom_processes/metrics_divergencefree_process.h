@@ -66,7 +66,7 @@ public:
     typedef ModelPart::ConditionsContainerType                           ConditionsArrayType;
 
     /// The definition of the node type
-    typedef Node <3>                                                                NodeType;
+    typedef Node                                                                NodeType;
 
     /// Definition of the iterators
     typedef WeakPointerVector< Element >::iterator                         WeakElementItType;

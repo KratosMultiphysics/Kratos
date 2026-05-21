@@ -30,7 +30,7 @@ public:
     /// Pointer definition of Process
     KRATOS_CLASS_POINTER_DEFINITION(ComputeEmbeddedLiftProcess);
 
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
     typedef Geometry<NodeType>::Pointer GeomPointerType;
 
     // Constructor for ComputeEmbeddedLiftProcess Process

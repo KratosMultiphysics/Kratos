@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //
@@ -26,10 +26,7 @@
 #include "includes/kratos_parameters.h"
 #include "containers/model.h"
 
-namespace Kratos
-{
-
-namespace Python
+namespace Kratos::Python
 {
 
 namespace py = pybind11;
@@ -87,6 +84,10 @@ void  AddSerializerToPython(pybind11::module& m)
     .def("LoadFromBeginning",SerializerLoadFromBeginning<Model>)
     .def("Save",SerializerSave<Model>)
 
+    .def("Load",SerializerLoad<Flags>)
+    .def("LoadFromBeginning",SerializerLoadFromBeginning<Flags>)
+    .def("Save",SerializerSave<Flags>)
+
     .def("Set",   &Serializer::Set)
     .def("Print", SerializerPrint)
     ;
@@ -140,7 +141,5 @@ void  AddSerializerToPython(pybind11::module& m)
 
 }
 
-}  // namespace Python.
-
-} // Namespace Kratos
+}  // namespace Kratos::Python.
 

@@ -18,7 +18,7 @@
 // System includes
 #include <string>
 #include <iostream>
-#include <stdlib.h>
+#include <cstdlib>
 
 // Project includes
 #include "includes/define.h"
@@ -79,7 +79,7 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(BinBasedMeshTransfer<TDim >);
 
     /// Node type definition
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
     typedef Geometry<NodeType> GeometryType;
 
     ///@}
@@ -321,7 +321,7 @@ public:
         boost::numeric::ublas::vector<int> positions(max_results);
         PointVector work_results(max_results);
         DistanceVector work_distances(max_results);
-        Node<3> work_point(0,0.0,0.0,0.0);
+        Node work_point(0,0.0,0.0,0.0);
         for(ModelPart::ElementsContainerType::iterator elem_it = rMoving_ModelPart.ElementsBegin(); elem_it != rMoving_ModelPart.ElementsEnd(); ++elem_it)
         {
             std::size_t nfound = node_locator.FindNodesInElement(*(elem_it.base()), positions, Nmat, max_results, work_results.begin(), work_distances.begin(), work_point);

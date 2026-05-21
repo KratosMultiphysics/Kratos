@@ -31,7 +31,7 @@ namespace Kratos
 ///@{
 
 /// The definition of the node
-typedef Node<3> NodeType;
+typedef Node NodeType;
 
 /// The definition of the geometry
 typedef Geometry<NodeType> GeometryType;
@@ -73,7 +73,7 @@ public:
     typedef std::size_t SizeType;
 
     /// Definition of the node type
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     // Definition of the geometry
     typedef Geometry<NodeType> GeometryType;
@@ -90,7 +90,7 @@ public:
     TetrahedralMeshOrientationCheck(
         ModelPart& rModelPart,
         bool ThrowErrors,
-        Flags options = COMPUTE_NODAL_NORMALS.AsFalse() | COMPUTE_CONDITION_NORMALS.AsFalse() | ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS.AsFalse() | ALLOW_REPEATED_CONDITIONS.AsFalse()
+        const Flags options = COMPUTE_NODAL_NORMALS.AsFalse() | COMPUTE_CONDITION_NORMALS.AsFalse() | ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS.AsFalse() | ALLOW_REPEATED_CONDITIONS.AsFalse()
         ):  Process(),
             mrModelPart(rModelPart),
             mThrowErrors(ThrowErrors), //to be changed to a flag
@@ -101,7 +101,7 @@ public:
 
     TetrahedralMeshOrientationCheck(
         ModelPart& rModelPart,
-        Flags options = COMPUTE_NODAL_NORMALS.AsFalse() | COMPUTE_CONDITION_NORMALS.AsFalse() | ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS.AsFalse() | ALLOW_REPEATED_CONDITIONS.AsFalse()
+        const Flags options = COMPUTE_NODAL_NORMALS.AsFalse() | COMPUTE_CONDITION_NORMALS.AsFalse() | ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS.AsFalse() | ALLOW_REPEATED_CONDITIONS.AsFalse()
         ):  Process(),
             mrModelPart(rModelPart),
             mThrowErrors(false),
@@ -173,6 +173,53 @@ public:
 
 
     ///@}
+
+protected:
+
+/**
+     * @brief tells if the element is linear or higher order
+     * @param rGeometry The element geometry
+     * @return true if linear, false if not
+     */
+    bool LinearElement(const GeometryType& rGeometry);
+
+    /**
+     * @brief tells if the element is supported for the process
+     * @param rGeometry The element geometry
+     * @return true if supported, false if not
+     */
+    bool SupportedElement(const GeometryType& rGeometry);
+
+    /**
+     * @brief tells if the condition is supported for the process
+     * @param rGeometry The condition geometry
+     * @return true if supported, false if not
+     */
+    bool SupportedCondition(const GeometryType& rGeometry);
+
+    /**
+     * @brief Finds how many boundaries an element has
+     * @param rGeometry The element geometry
+     * @return the number of boundaries
+     */
+    SizeType BoundariesEntitiesNumber(const GeometryType& rGeometry);
+
+    /**
+     * @brief how many nodes each of the boundaries of the element contains
+     * @param rGeometry The element geometry
+     * @return number of nodes per boundary
+     */
+    SizeType NumberOfNodesInEachBoundary(const GeometryType& rGeometry);
+
+
+
+
+    /**
+     * @brief Finds the nodes of each of the boundaries of the element
+     * @param rGeometry The element geometry
+     * @param rNodesIds the retured matrix with the IDs
+     */
+    void NodesOfBoundaries(const GeometryType& rGeometry, DenseMatrix<int>& rNodesIds);
 
 
 private:

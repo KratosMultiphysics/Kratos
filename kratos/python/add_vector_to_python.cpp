@@ -5,13 +5,11 @@
 //                   Multi-Physics
 //
 //  License:         BSD License
-//                     Kratos default license: kratos/license.txt
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
 //
-
-
 
 // System includes
 
@@ -25,15 +23,13 @@
 #include "containers/array_1d.h"
 #include "python/add_vector_to_python.h"
 
-namespace Kratos
-{
-
-namespace Python
+namespace Kratos::Python
 {
 
 namespace py = pybind11;
 
-template< typename TVectorType > py::class_< TVectorType > CreateVectorInterface(pybind11::module& m, std::string Name )
+template< typename TVectorType > 
+py::class_< TVectorType > CreateVectorInterface(pybind11::module& m, std::string Name )
 {
     py::class_< TVectorType, std::shared_ptr<TVectorType> > binder(m,Name.c_str(), py::buffer_protocol());
     binder.def(py::init<>());
@@ -153,29 +149,6 @@ template< typename TVectorType > py::class_< TVectorType > CreateVectorInterface
         }
     });
 
-#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
-    binder.def("__getitem__", [](TVectorType &self, pybind11::slice this_slice) -> AMatrix::SubVector<TVectorType>
-    {
-        size_t start, stop, step, slicelength;
-        if (!this_slice.compute(self.size(), &start, &stop, &step, &slicelength))
-            throw pybind11::error_already_set();
-        KRATOS_ERROR_IF(step != 1) << "The AMatrix only supports continuous slices with step == 1" << std::endl;
-        AMatrix::SubVector<TVectorType> sliced_self(self, start, slicelength);
-        return sliced_self;
-    });
-    binder.def("fill", [](TVectorType& self, const typename TVectorType::value_type value)
-    {
-        self.fill(value);
-    });
-    binder.def("norm_1", [](TVectorType& self)
-    {
-        return norm_1(self);
-    });
-    binder.def("norm_2", [](TVectorType& self)
-    {
-        return norm_2(self);
-    });
-#else
     binder.def("__getitem__", [](TVectorType &self, pybind11::slice this_slice) -> boost::numeric::ublas::vector_slice<TVectorType>
     {
         size_t start, stop, step, slicelength;
@@ -201,7 +174,6 @@ template< typename TVectorType > py::class_< TVectorType > CreateVectorInterface
     {
         return boost::numeric::ublas::norm_inf(self);
     });
-#endif // KRATOS_USE_AMATRIX
     binder.def("__iter__", [](TVectorType& self)
     {
         return py::make_iterator(self.begin(), self.end(), py::return_value_policy::reference_internal);
@@ -280,11 +252,7 @@ void CreateArray1DInterface(pybind11::module& m, const std::string& Name )
 
 void  AddVectorToPython(pybind11::module& m)
 {
-#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
-    using VectorSlice = AMatrix::SubVector<Vector>;
-#else
     typedef boost::numeric::ublas::vector_slice<Vector> VectorSlice;
-#endif // KRATOS_USE_AMATRIX
     py::class_< VectorSlice >(m, "VectorSlice")
     .def("Size", [](const VectorSlice& self)
     {
@@ -355,17 +323,10 @@ void  AddVectorToPython(pybind11::module& m)
         aux -= vec2;
         return aux;
     }, py::is_operator())
-#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
-    .def("__setitem__", [](VectorSlice& self, const unsigned int i, const typename VectorSlice::data_type value)
-    {
-        self[i] = value;
-    })
-#else
     .def("__setitem__", [](VectorSlice& self, const unsigned int i, const typename VectorSlice::value_type value)
     {
         self[i] = value;
     })
-#endif // KRATOS_USE_AMATRIX
     .def("__getitem__", [](const VectorSlice& self, const unsigned int i)
     {
         return self[i];
@@ -396,17 +357,10 @@ void  AddVectorToPython(pybind11::module& m)
             start += step;
         }
     })
-#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
-    .def("__iter__", [](VectorSlice& self)
-    {
-        return py::make_iterator(self.data(), self.data() + self.size(), py::return_value_policy::reference_internal);
-    }, py::keep_alive<0,1>() )
-#else
     .def("__iter__", [](VectorSlice& self)
     {
         return py::make_iterator(self.begin(), self.end(), py::return_value_policy::reference_internal);
     }, py::keep_alive<0,1>() )
-#endif // ifdef KRATOS_USE_AMATRIX
     .def("__str__", PrintObject<VectorSlice>)
     ;
 
@@ -455,6 +409,51 @@ void  AddVectorToPython(pybind11::module& m)
     py::implicitly_convertible<py::list, Vector>();
     py::implicitly_convertible<array_1d<double,3>, Vector>();
 
+    //***********************************************************************************
+        //***********************************************************************************
+    py::class_< DenseVector<bool>, std::shared_ptr<DenseVector<bool>> > bool_vector_binder(m,"BoolVector", py::buffer_protocol());
+    bool_vector_binder.def(py::init<>());
+    bool_vector_binder.def(py::init<const DenseVector<bool>&>());
+    bool_vector_binder.def(py::init< DenseVector<bool>::size_type>());
+    bool_vector_binder.def(py::init< DenseVector<bool>::size_type, bool>());
+    bool_vector_binder.def(py::init( [](const py::list& input)
+    {
+        DenseVector<bool> tmp(input.size());
+        for(unsigned int i=0; i<tmp.size(); ++i)
+            tmp[i] = py::cast<bool>(input[i]);
+        return tmp;
+    }));
+    bool_vector_binder.def("Size", [](const DenseVector<bool>& self)
+    {
+        return self.size();
+    } );
+    bool_vector_binder.def("Resize", [](DenseVector<bool>& self, const typename DenseVector<bool>::size_type  new_size)
+    {
+        if(self.size() != new_size) self.resize(new_size, false);
+    } );
+    bool_vector_binder.def("__len__", [](const DenseVector<bool>& self)
+    {
+        return self.size();
+    } );
+    bool_vector_binder.def("__setitem__", [](DenseVector<bool>& self,
+                                            const unsigned int i,
+                                            const bool value)
+    {
+        self[i] = value;
+    } );
+    bool_vector_binder.def("__getitem__", [](const DenseVector<bool>& self, const unsigned int i)
+    {
+        return self[i];
+    } );
+    bool_vector_binder.def("__iter__", [](DenseVector<bool>& self)
+    {
+        return py::make_iterator(self.begin(), self.end(), py::return_value_policy::reference_internal);
+    }, py::keep_alive<0,1>() ) ;
+    bool_vector_binder.def("__str__", PrintObject<DenseVector<bool>>);
+
+    py::implicitly_convertible<py::list, DenseVector<bool>>();
+
+    //***********************************************************************************
     auto int_vector_binder = CreateVectorInterface<DenseVector<int>>(m, "DenseVectorInt");
     int_vector_binder.def(py::init<typename DenseVector<int>::size_type>());
     int_vector_binder.def(py::init<typename DenseVector<int>::size_type, int>());
@@ -493,6 +492,46 @@ void  AddVectorToPython(pybind11::module& m)
     });
     py::implicitly_convertible<py::list, DenseVector<int>>();
 
+//***********************************************************************************
+    auto unsigned_int_vector_binder = CreateVectorInterface<DenseVector<unsigned int>>(m, "DenseVectorUnsignedInt");
+    unsigned_int_vector_binder.def(py::init<typename DenseVector<unsigned int>::size_type>());
+    unsigned_int_vector_binder.def(py::init<typename DenseVector<unsigned int>::size_type, int>());
+    unsigned_int_vector_binder.def(py::init<DenseVector<unsigned int>>());
+    unsigned_int_vector_binder.def(py::init( [](const py::list& input)
+    {
+        DenseVector<unsigned int> tmp(input.size());
+        for(unsigned int i=0; i<tmp.size(); ++i)
+            tmp[i] = py::cast<int>(input[i]);
+        return tmp;
+    }));
+    unsigned_int_vector_binder.def(py::init( [](py::buffer b)
+    {
+        py::buffer_info info = b.request();
+        KRATOS_ERROR_IF( info.format != py::format_descriptor<typename DenseVector<unsigned int>::value_type >::value ) << "Expected a double array\n";
+        KRATOS_ERROR_IF( info.ndim != 1 ) << "Buffer dimension of 1 is required, got: " << info.ndim << std::endl;
+        DenseVector<unsigned int> vec(info.shape[0]);
+
+        for( unsigned int i=0; i<info.shape[0]; ++i ) {
+            vec[i]= static_cast<typename DenseVector<unsigned int>::value_type *>(info.ptr)[i];
+        }
+
+        return vec;
+    }));
+    unsigned_int_vector_binder.def_buffer( [](DenseVector<unsigned int>& self)-> py::buffer_info
+    {
+        return py::buffer_info(
+            self.data().begin(),
+            sizeof(typename DenseVector<unsigned int>::value_type),
+            py::format_descriptor<typename DenseVector<unsigned int>::value_type>::format(),
+            1,
+        {self.size()},
+        {sizeof(typename DenseVector<unsigned int>::value_type)}
+        );
+    });
+    py::implicitly_convertible<py::list, DenseVector<unsigned int>>();
+
+
+    //***********************************************************************************
     auto cplx_vector_binder = CreateVectorInterface<ComplexVector>(m, "ComplexVector");
     cplx_vector_binder.def(py::init<typename ComplexVector::size_type>());
     cplx_vector_binder.def(py::init<typename ComplexVector::size_type, double>());
@@ -515,6 +554,4 @@ void  AddVectorToPython(pybind11::module& m)
     CreateArray1DInterface< 9 >(m,"Array9");
 
 }
-}  // namespace Python.
-
-} // Namespace Kratos
+}  // namespace Kratos::Python.

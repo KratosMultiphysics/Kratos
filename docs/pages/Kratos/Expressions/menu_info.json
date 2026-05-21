@@ -1,0 +1,13 @@
+{
+    "side_bar_name": "kratos_expressions",
+    "landing_page": "General/Overview.md",
+    "additional_menu_options": {
+        "product": "Expressions",
+        "title": "sidebar"
+    },
+    "custom_entries": [
+        "General",
+        "Utilities",
+        "IOs"
+    ]
+}

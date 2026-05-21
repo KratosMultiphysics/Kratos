@@ -1,17 +1,15 @@
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics
+// KRATOS  ___|  |                   |                   |
+//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
+//             | |   |    |   | (    |   |   | |   (   | |
+//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Armin Geiser
 //
 
-#if !defined(KRATOS_DISTRIBUTE_LOAD_ON_SURFACE_PROCESS_H_INCLUDED )
-#define  KRATOS_DISTRIBUTE_LOAD_ON_SURFACE_PROCESS_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -35,7 +33,8 @@ namespace Kratos {
 /** This process distributes a force on a all surface load conditions belonging to a modelpart.
  *  The surface load is computed by equally distributing the force over the surface area
  */
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) DistributeLoadOnSurfaceProcess : public Process
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) DistributeLoadOnSurfaceProcess
+    : public Process
 {
 public:
     ///@name Type Definitions
@@ -85,8 +84,8 @@ private:
     ///@name Member Variables
     ///@{
 
-    ModelPart& mrModelPart;
-    Parameters mParameters;
+    ModelPart& mrModelPart; /// The model part
+    Parameters mParameters; /// The parameters
 
     ///@}
     ///@name Private Operations
@@ -99,5 +98,3 @@ private:
 ///@}
 
 }  // namespace Kratos.
-
-#endif // KRATOS_DISTRIBUTE_LOAD_ON_SURFACE_PROCESS_H_INCLUDED  defined

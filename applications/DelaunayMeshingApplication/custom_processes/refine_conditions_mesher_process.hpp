@@ -778,7 +778,7 @@ public:
 	  if( i_cond->Is(TO_REFINE) )
 	    {
 
-	      Geometry< Node<3> >& rGeometry = i_cond->GetGeometry();
+	      Geometry< Node >& rGeometry = i_cond->GetGeometry();
 
 	      size = rGeometry.size();
 
@@ -801,7 +801,7 @@ public:
 	      this->SetNodalPosition(*(i_cond.base()), rCurrentProcessInfo, xc, yc, zc);
 
 	      //create a new node
-	      pNode = Kratos::make_intrusive<Node<3>>( id, xc, yc, zc );
+	      pNode = Kratos::make_intrusive<Node>( id, xc, yc, zc );
 
 	      //giving model part variables list to the node
 	      pNode->SetSolutionStepVariablesList(&VariablesList);
@@ -810,7 +810,7 @@ public:
 	      pNode->SetBufferSize(rModelPart.GetBufferSize());
 
 	      //generating the dofs
-	      for(Node<3>::DofsContainerType::iterator i_dof = ReferenceDofs.begin(); i_dof != ReferenceDofs.end(); ++i_dof)
+	      for(Node::DofsContainerType::iterator i_dof = ReferenceDofs.begin(); i_dof != ReferenceDofs.end(); ++i_dof)
 		{
 		  NodeType::DofType& rDof = **i_dof;
 		  NodeType::DofType::Pointer pNewDof = pNode->pAddDof( rDof );
@@ -864,7 +864,7 @@ public:
       KRATOS_TRY
 
       //set variables:
-      Geometry< Node<3> >& rGeometry = pCondition->GetGeometry();
+      Geometry< Node >& rGeometry = pCondition->GetGeometry();
 
 
       //set model part
@@ -920,7 +920,7 @@ public:
 
       for(std::vector<ConditionType::Pointer>::iterator i_cond = list_of_conditions.begin(); i_cond!= list_of_conditions.end(); ++i_cond)
 	{
-	  Geometry< Node<3> >& rGeometry = (*i_cond)->GetGeometry();
+	  Geometry< Node >& rGeometry = (*i_cond)->GetGeometry();
 
 	  size = rGeometry.size();
 

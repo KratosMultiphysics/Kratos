@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
@@ -16,8 +16,6 @@
 
 // Project includes
 #include "processes/simple_mortar_mapper_process.h"
-
-/* Custom utilities */
 #include "utilities/geometrical_projection_utilities.h"
 #include "utilities/mortar_utilities.h"
 #include "utilities/normal_calculation_utils.h"
@@ -184,11 +182,11 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>:: Exe
         auto& r_nodes_array = mDestinationModelPart.Nodes();
 
         if (mOptions.Is(DESTINATION_IS_HISTORICAL)){
-            block_for_each(r_nodes_array, [this](Node<3>& rNode){
+            block_for_each(r_nodes_array, [this](Node& rNode){
                 rNode.FastGetSolutionStepValue(*mpDestinationVariable) *= mMappingCoefficient;
             });
         } else {
-            block_for_each(r_nodes_array, [this](Node<3>& rNode){
+            block_for_each(r_nodes_array, [this](Node& rNode){
                 rNode.GetValue(*mpDestinationVariable) *= mMappingCoefficient;
             });
         }
@@ -203,7 +201,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>:: Exe
 template<SizeType TDim, SizeType TNumNodes, class TVarType, const SizeType TNumNodesMaster>
 void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::CheckAndPerformSearch()
 {
-    // If we froce to update the database
+    // If we force to update the database
     const bool update_interface = mThisParameters["update_interface"].GetBool();
 
     // First we check if search already exists
@@ -458,7 +456,7 @@ inline BoundedMatrix<double, TNumNodes, TNumNodes> SimpleMortarMapperProcess<TDi
     const IntegrationMethod& rThisIntegrationMethod
     )
 {
-    // We initilize the Ae components
+    // We initialize the Ae components
     DualLagrangeMultiplierOperatorsType Ae_data;
     Ae_data.Initialize();
 

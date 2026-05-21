@@ -4,14 +4,13 @@
 //        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
 //        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
-//  License:		 BSD License
-//					 license: ContactStructuralMechanicsApplication/license.txt
+//  License:         BSD License
+//                   license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_ADVANCED_CONTACT_SEARCH_PROCESS_H_INCLUDED )
-#define  KRATOS_ADVANCED_CONTACT_SEARCH_PROCESS_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -30,7 +29,7 @@ namespace Kratos
 ///@{
 
     /// The definition of the size type
-    typedef std::size_t SizeType;
+    using SizeType = std::size_t;
 
 ///@}
 ///@name  Enum's
@@ -64,16 +63,15 @@ public:
     ///@{
 
     /// The definition of the base type
-    typedef BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster> BaseType;
+    using BaseType = BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>;
 
     /// General type definitions
-    typedef typename BaseType::NodesArrayType           NodesArrayType;
-    typedef typename BaseType::ConditionsArrayType ConditionsArrayType;
-    typedef typename BaseType::NodeType                       NodeType;
-    typedef typename BaseType::GeometryType               GeometryType;
+    using NodesArrayType = typename BaseType::NodesArrayType;
+    using ConditionsArrayType = typename BaseType::ConditionsArrayType;
+    using GeometryType = typename BaseType::GeometryType;
 
     /// Index type definition
-    typedef std::size_t IndexType;
+    using IndexType= std::size_t;
 
     /// The definition of zero tolerance
     static constexpr double ZeroTolerance = std::numeric_limits<double>::epsilon();
@@ -237,7 +235,7 @@ private:
      * @param b The second component of the regression
      */
     void SetActiveNodeWithRegression(
-        NodeType& rNode,
+        Node& rNode,
         const double a,
         const double b
         );
@@ -249,7 +247,7 @@ private:
      * @param b The second component of the regression
      */
     void CorrectScalarMortarLM(
-        NodeType& rNode,
+        Node& rNode,
         const double a,
         const double b
         );
@@ -261,7 +259,7 @@ private:
      * @param b The second component of the regression
      */
     void CorrectComponentsMortarLM(
-        NodeType& rNode,
+        Node& rNode,
         const double a,
         const double b
         );
@@ -273,7 +271,7 @@ private:
      * @param b The second component of the regression
      */
     void CorrectALMFrictionlessMortarLM(
-        NodeType& rNode,
+        Node& rNode,
         const double a,
         const double b
         );
@@ -285,7 +283,7 @@ private:
      * @param b The second component of the regression
      */
     void CorrectALMFrictionlessComponentsMortarLM(
-        NodeType& rNode,
+        Node& rNode,
         const double a,
         const double b
         );
@@ -297,7 +295,7 @@ private:
      * @param b The second component of the regression
      */
     void CorrectALMFrictionalMortarLM(
-        NodeType& rNode,
+        Node& rNode,
         const double a,
         const double b
         );
@@ -309,7 +307,7 @@ private:
      * @param b The second component of the regression
      */
     void PredictScalarMortarLM(
-        NodeType& rNode,
+        Node& rNode,
         const double a,
         const double b
         );
@@ -321,7 +319,7 @@ private:
      * @param b The second component of the regression
      */
     void PredictComponentsMortarLM(
-        NodeType& rNode,
+        Node& rNode,
         const double a,
         const double b
         );
@@ -333,7 +331,7 @@ private:
      * @param b The second component of the regression
      */
     void PredictALMFrictionlessMortarLM(
-        NodeType& rNode,
+        Node& rNode,
         const double a,
         const double b
         );
@@ -345,7 +343,7 @@ private:
      * @param b The second component of the regression
      */
     void PredictALMFrictionlessComponentsMortarLM(
-        NodeType& rNode,
+        Node& rNode,
         const double a,
         const double b
         );
@@ -357,7 +355,7 @@ private:
      * @param b The second component of the regression
      */
     void PredictALMFrictionalMortarLM(
-        NodeType& rNode,
+        Node& rNode,
         const double a,
         const double b
         );
@@ -408,5 +406,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 ///@}
 
 }  // namespace Kratos.
-
-#endif // KRATOS_ADVANCED_CONTACT_SEARCH_PROCESS_H_INCLUDED  defined

@@ -26,7 +26,7 @@ def RecursiveFindTrueBoolInParameters(parameters, key):
 
     elif CanBeIterated(parameters): # there could be lists
 
-        for i, _ in enumerate(parameters):
+        for i, _ in enumerate(parameters.values()):
             if RecursiveFindTrueBoolInParameters(parameters[i], key):
                 return True
         return False
@@ -54,7 +54,7 @@ def RecursiveFindParametersWithCondition(parameters, key, condition=lambda value
 
     elif CanBeIterated(parameters): # there could be lists
 
-        for i, _ in enumerate(parameters):
+        for i, _ in enumerate(parameters.values()):
             if RecursiveFindParametersWithCondition(parameters[i], key, condition):
                 return True
         return False

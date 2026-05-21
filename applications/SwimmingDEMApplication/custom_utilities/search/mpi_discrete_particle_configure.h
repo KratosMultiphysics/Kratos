@@ -60,17 +60,9 @@ public:
         typedef  ElementsContainerType::ContainerType            ResultContainerType;       // std vector de punters a elements
         typedef  ResultContainerType::value_type                 ResultPointerType;
         typedef  ResultContainerType::iterator                   ResultIteratorType;
-        typedef  ContactPair<PointerType>                        ContactPairType;
-        typedef  std::vector<ContactPairType>                    ContainerContactType;
-        typedef  ContainerContactType::iterator                  IteratorContactType;
-        typedef  ContainerContactType::value_type                PointerContactType;
+
 
         typedef  std::vector<PointerType>::iterator              PointerTypeIterator;
-
-
-
-
-
 
       /// Pointer definition of SpatialContainersConfigure
       KRATOS_CLASS_POINTER_DEFINITION(MpiDiscreteParticleConfigure);

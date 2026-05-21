@@ -81,7 +81,7 @@ int TimeAveragingProcess::Check()
         std::string msg;
         msg = mrModel.Info() + " doesn't have " + mModelPartName +
               ". Available model parts are: \n";
-        for (std::string model_part_name : r_model_part_names)
+        for (const std::string& model_part_name : r_model_part_names)
             msg += "     " + model_part_name + "\n";
 
         KRATOS_ERROR << msg;
@@ -374,7 +374,7 @@ void TimeAveragingProcess::CalculateTimeIntegratedNodalHistoricalQuantity(
     const std::function<void(const TDataType&, TDataType&, const double)> averaging_method =
         this->GetTimeAveragingMethod<TDataType>();
 
-    block_for_each(rNodes, [&](Node<3>& rNode){
+    block_for_each(rNodes, [&](Node& rNode){
         const TDataType& r_temporal_value = rNode.FastGetSolutionStepValue(rVariable);
         TDataType& r_integrated_value = rNode.GetValue(rAveragedVariable);
         averaging_method(r_temporal_value, r_integrated_value, DeltaTime);

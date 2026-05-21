@@ -3,8 +3,8 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Michael Andre, https://github.com/msandre
 //
@@ -19,7 +19,6 @@
 
 // Project includes
 #include "containers/model.h"
-#include "includes/shared_pointers.h"
 #include "linear_solvers/skyline_lu_custom_scalar_solver.h"
 #include "solving_strategies/convergencecriterias/residual_criteria.h"
 #include "solving_strategies/schemes/residual_based_adjoint_static_scheme.h"
@@ -27,7 +26,7 @@
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
 #include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
 #include "spaces/ublas_space.h"
-#include "testing/testing.h"
+#include "structural_mechanics_fast_suite.h"
 #include "utilities/sensitivity_builder.h"
 
 // Application includes
@@ -120,7 +119,7 @@ KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian2D3_SaintVenantPlaneStrain_StaticSensit
             const double adjoint_sensitivity =
                 adjoint_solver.CalculateSensitivityValue(i_node, dir);
             const double tol = std::max(0.001 * std::abs(finite_diff_sensitivity), 1e-8);
-            KRATOS_CHECK_NEAR(finite_diff_sensitivity, adjoint_sensitivity, tol);
+            KRATOS_EXPECT_NEAR(finite_diff_sensitivity, adjoint_sensitivity, tol);
         }
     }
 }
@@ -164,7 +163,7 @@ KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian2D6_SaintVenantPlaneStress_StaticSensit
             const double adjoint_sensitivity =
                 adjoint_solver.CalculateSensitivityValue(i_node, dir);
             const double tol = std::max(0.001 * std::abs(finite_diff_sensitivity), 1e-8);
-            KRATOS_CHECK_NEAR(finite_diff_sensitivity, adjoint_sensitivity, tol);
+            KRATOS_EXPECT_NEAR(finite_diff_sensitivity, adjoint_sensitivity, tol);
         }
     }
 }
@@ -210,7 +209,7 @@ KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian3D4_SaintVenant_StaticSensitivity, Krat
             const double adjoint_sensitivity =
                 adjoint_solver.CalculateSensitivityValue(i_node, dir);
             const double tol = std::max(0.001 * std::abs(finite_diff_sensitivity), 1e-8);
-            KRATOS_CHECK_NEAR(finite_diff_sensitivity, adjoint_sensitivity, tol);
+            KRATOS_EXPECT_NEAR(finite_diff_sensitivity, adjoint_sensitivity, tol);
         }
     }
 }
@@ -255,7 +254,7 @@ KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian2D4_SaintVenantPlaneStress_StaticSensit
             const double adjoint_sensitivity =
                 adjoint_solver.CalculateSensitivityValue(i_node, dir);
             const double tol = std::max(0.001 * std::abs(finite_diff_sensitivity), 1e-8);
-            KRATOS_CHECK_NEAR(finite_diff_sensitivity, adjoint_sensitivity, tol);
+            KRATOS_EXPECT_NEAR(finite_diff_sensitivity, adjoint_sensitivity, tol);
         }
     }
 }
@@ -285,6 +284,7 @@ PrimalTestSolver::PrimalTestSolver(ModelPart* pPrimalModelPart, unsigned Respons
 double PrimalTestSolver::CalculateResponseValue()
 {
     auto p_solver = CreateSolvingStrategy();
+    p_solver->SetEchoLevel(0);
     p_solver->Initialize();
     p_solver->Solve();
     auto p_response_function = ResponseFunctionFactory(mpPrimalModelPart, mResponseNodeId);
@@ -336,6 +336,7 @@ AdjointTestSolver::AdjointTestSolver(ModelPart* pAdjointModelPart, unsigned Resp
     auto p_adjoint_response_function =
         ResponseFunctionFactory(mpAdjointModelPart, mResponseNodeId);
     auto p_adjoint_solver = CreateAdjointSolvingStrategy(p_adjoint_response_function);
+    p_adjoint_solver->SetEchoLevel(0);
     p_adjoint_solver->Initialize();
     p_adjoint_solver->Solve();
     SensitivityBuilder sensitivity_builder(

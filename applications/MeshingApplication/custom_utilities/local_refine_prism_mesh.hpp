@@ -109,22 +109,22 @@ public:
             noalias(Coord_Node_6) = geom[5].Coordinates();
 
             unsigned int step_data_size = this_model_part.GetNodalSolutionStepDataSize();
-            Node < 3 > ::DofsContainerType& reference_dofs = (this_model_part.NodesBegin())->GetDofs();
+            Node ::DofsContainerType& reference_dofs = (this_model_part.NodesBegin())->GetDofs();
             noalias(Coordinate_center_node) = 0.16666666666666666 * (Coord_Node_1 + Coord_Node_2 + Coord_Node_3 +
                                                                      Coord_Node_4 + Coord_Node_5 + Coord_Node_6);
 
             /* Inserting the new node in the model part */
-            Node < 3 > ::Pointer pnode = this_model_part.CreateNewNode(Id_Center, Coordinate_center_node[0], Coordinate_center_node[1], Coordinate_center_node[2]);
+            Node ::Pointer pnode = this_model_part.CreateNewNode(Id_Center, Coordinate_center_node[0], Coordinate_center_node[1], Coordinate_center_node[2]);
             pnode->SetBufferSize(this_model_part.NodesBegin()->GetBufferSize());
 
             pnode->X0() = 0.16666666666666666 * (geom[0].X0() + geom[1].X0() + geom[2].X0() + geom[3].X0() + geom[4].X0() + geom[5].X0());
             pnode->Y0() = 0.16666666666666666 * (geom[0].Y0() + geom[1].Y0() + geom[2].Y0() + geom[3].Y0() + geom[4].Y0() + geom[5].Y0());
             pnode->Z0() = 0.16666666666666666 * (geom[0].Z0() + geom[1].Z0() + geom[2].Z0() + geom[3].Z0() + geom[4].Z0() + geom[5].Z0());
 
-            for (Node < 3 > ::DofsContainerType::iterator iii = reference_dofs.begin(); iii != reference_dofs.end(); iii++)
+            for (Node ::DofsContainerType::iterator iii = reference_dofs.begin(); iii != reference_dofs.end(); iii++)
             {
-                Node < 3 > ::DofType& rDof = **iii;
-                Node < 3 > ::DofType::Pointer p_new_dof = pnode->pAddDof(rDof);
+                Node ::DofType& rDof = **iii;
+                Node ::DofType::Pointer p_new_dof = pnode->pAddDof(rDof);
                 if (geom[0].IsFixed(rDof.GetVariable()) && geom[1].IsFixed(rDof.GetVariable()) && geom[2].IsFixed(rDof.GetVariable()) && geom[3].IsFixed(rDof.GetVariable())
                  && geom[4].IsFixed(rDof.GetVariable()) && geom[5].IsFixed(rDof.GetVariable()))
                 {
@@ -228,7 +228,7 @@ public:
                     unsigned int i4 = aux[t[base + 4]];
                     unsigned int i5 = aux[t[base + 5]];
 
-                    Prism3D6<Node < 3 > > geom(
+                    Prism3D6<Node > geom(
                         this_model_part.Nodes()(i0),
                         this_model_part.Nodes()(i1),
                         this_model_part.Nodes()(i2),
@@ -250,7 +250,7 @@ public:
                     }
 
                     // Transfer elemental variables
-                    p_element->Data() = it->Data();
+                    p_element->GetData() = it->GetData();
                     p_element->GetValue(SPLIT_ELEMENT) = false;
                     New_Elements.push_back(p_element);
 
@@ -330,12 +330,12 @@ public:
                     {
                         to_be_deleted++;
 
-			Line3D2<Node < 3 > > newgeom1(
+			Line3D2<Node > newgeom1(
 			    this_model_part.Nodes()(geom[0].Id()),
 			    this_model_part.Nodes()(new_id)
 			);
 
-			Line3D2<Node < 3 > > newgeom2(
+			Line3D2<Node > newgeom2(
 			    this_model_part.Nodes()(new_id),
 			    this_model_part.Nodes()(geom[1].Id())
 			);
@@ -343,8 +343,8 @@ public:
 			Condition::Pointer pcond1 = it->Create(current_id++, newgeom1, it->pGetProperties());
 			Condition::Pointer pcond2 = it->Create(current_id++, newgeom2, it->pGetProperties());
 
-			pcond1->Data() = it->Data();
-			pcond2->Data() = it->Data();
+			pcond1->GetData() = it->GetData();
+			pcond2->GetData() = it->GetData();
 
 			New_Conditions.push_back(pcond1);
 			New_Conditions.push_back(pcond2);
@@ -407,18 +407,18 @@ public:
         aux.resize(12, false);
 
         // Lower face
-        int index_0 = geom[0].Id() - 1;
-        int index_1 = geom[1].Id() - 1;
-        int index_2 = geom[2].Id() - 1;
+        int index_0 = mMapNodeIdToPos[geom[0].Id()];
+        int index_1 = mMapNodeIdToPos[geom[1].Id()];
+        int index_2 = mMapNodeIdToPos[geom[2].Id()];
 
         aux[0] = geom[0].Id();
         aux[1] = geom[1].Id();
         aux[2] = geom[2].Id();
 
         // Upper face
-        int index_3 = geom[3].Id() - 1;
-        int index_4 = geom[4].Id() - 1;
-        int index_5 = geom[5].Id() - 1;
+        int index_3 = mMapNodeIdToPos[geom[3].Id()];
+        int index_4 = mMapNodeIdToPos[geom[4].Id()];
+        int index_5 = mMapNodeIdToPos[geom[5].Id()];
 
         aux[3] = geom[3].Id();
         aux[4] = geom[4].Id();

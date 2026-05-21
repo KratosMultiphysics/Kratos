@@ -55,7 +55,7 @@ public:
     ///Type definition for quaternion
     typedef Quaternion<double>                            QuaternionType;
     ///Type for nodes
-    typedef Node<3>                                             NodeType;
+    typedef Node                                             NodeType;
     ///Type for nodes container
     typedef PointerVectorSet<NodeType, IndexedObject> NodesContainerType;
     ///Type for size
@@ -262,7 +262,7 @@ public:
 
 
     /**
-     * Called at the end of eahc solution step
+     * Called at the end of each solution step
      */
     void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 

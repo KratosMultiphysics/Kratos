@@ -54,7 +54,7 @@ namespace py = pybind11;
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 //tetgen pfem refine
-void TetRegenerateMesh(TetGenPfemModeler& Mesher, char* ElementName, char* ConditionName, ModelPart& rModelPart, NodeEraseProcess& NodeErase,bool RemNodes, bool AddNodes, double AlphaShape, double HFactor)
+void TetRegenerateMesh(TetGenPfemModeler& Mesher, char* ElementName, char* ConditionName, ModelPart& rModelPart, EntitiesEraseProcess<Node>& NodeErase,bool RemNodes, bool AddNodes, double AlphaShape, double HFactor)
 {
     Mesher.ReGenerateMesh(rModelPart,
                           KratosComponents<Element>::Get(ElementName),
@@ -75,7 +75,7 @@ void GenerateCDT(TetGenCDT& Mesher, ModelPart& rModelPart, char* ElementName, bo
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 //tetgen pfem refine
-void TetRegenerateMeshWithFace(TetGenPfemRefineFace& Mesher, char* ElementName, char* ConditionName, ModelPart& rModelPart, ModelPart::ElementsContainerType& rElements, NodeEraseProcess& NodeErase, bool RemNodes, bool AddNodes, double AlphaShape, double HFactor )
+void TetRegenerateMeshWithFace(TetGenPfemRefineFace& Mesher, char* ElementName, char* ConditionName, ModelPart& rModelPart, ModelPart::ElementsContainerType& rElements, EntitiesEraseProcess<Node>& NodeErase, bool RemNodes, bool AddNodes, double AlphaShape, double HFactor )
 {
     Mesher.ReGenerateMesh(rModelPart,rElements,
                           KratosComponents<Element>::Get(ElementName),
@@ -102,7 +102,7 @@ void TetRegenerateMeshContact(TetGenPfemContact& Mesher, char* ElementName, char
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 //tetgen pfem refine
-void TetRegenerateMeshVMS(TetGenPfemModelerVms& Mesher, char* ElementName, char* ConditionName, ModelPart& rModelPart, NodeEraseProcess& NodeErase,bool RemNodes, bool AddNodes, double AlphaShape, double HFactor)
+void TetRegenerateMeshVMS(TetGenPfemModelerVms& Mesher, char* ElementName, char* ConditionName, ModelPart& rModelPart, EntitiesEraseProcess<Node>& NodeErase,bool RemNodes, bool AddNodes, double AlphaShape, double HFactor)
 {
     Mesher.ReGenerateMesh(rModelPart,
                           KratosComponents<Element>::Get(ElementName),
@@ -120,7 +120,7 @@ void TetRegenerateMeshVMS(TetGenPfemModelerVms& Mesher, char* ElementName, char*
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 //trigen pfem refine
-void TriRegenerateMesh(TriGenPFEMModeler& Mesher, char* ElementName, char* ConditionName, ModelPart& rModelPart,NodeEraseProcess& NodeErase, bool RemNodes, bool AddNodes, double AlphaShape, double HFactor )
+void TriRegenerateMesh(TriGenPFEMModeler& Mesher, char* ElementName, char* ConditionName, ModelPart& rModelPart,EntitiesEraseProcess<Node>& NodeErase, bool RemNodes, bool AddNodes, double AlphaShape, double HFactor )
 {
     Mesher.ReGenerateMesh(rModelPart,
                           KratosComponents<Element>::Get(ElementName),
@@ -133,7 +133,7 @@ void TriRegenerateMesh(TriGenPFEMModeler& Mesher, char* ElementName, char* Condi
 //                                                                                       //
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-void TriRegenerateMeshGLASS(TriGenGLASSModeler& Mesher, char* ElementName, char* ConditionName, ModelPart& rModelPart,NodeEraseProcess& NodeErase, bool RemNodes, bool AddNodes, double AlphaShape, double HFactor )
+void TriRegenerateMeshGLASS(TriGenGLASSModeler& Mesher, char* ElementName, char* ConditionName, ModelPart& rModelPart,EntitiesEraseProcess<Node>& NodeErase, bool RemNodes, bool AddNodes, double AlphaShape, double HFactor )
 {
     Mesher.ReGenerateMesh(rModelPart,
                           KratosComponents<Element>::Get(ElementName),
@@ -148,7 +148,7 @@ void TriRegenerateMeshGLASS(TriGenGLASSModeler& Mesher, char* ElementName, char*
 //                                                                                       //
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-void TriRegenerateMeshDroplet(TriGenDropletModeler& Mesher, char* ElementName, char* ConditionName, ModelPart& rModelPart,NodeEraseProcess& NodeErase, bool RemNodes, bool AddNodes, double AlphaShape, double HFactor )
+void TriRegenerateMeshDroplet(TriGenDropletModeler& Mesher, char* ElementName, char* ConditionName, ModelPart& rModelPart,EntitiesEraseProcess<Node>& NodeErase, bool RemNodes, bool AddNodes, double AlphaShape, double HFactor )
 {
     Mesher.ReGenerateMeshDroplet(rModelPart,
                           KratosComponents<Element>::Get(ElementName),
@@ -176,7 +176,7 @@ void TriGenCDTFluid(TriGenCDT& Mesher,ModelPart& rModelPart)
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 //trigen pfem refine segment
-void TriRegenerateMeshWithSegment(TriGenPFEMRefineSegment& Mesher, char* ElementName, char* ConditionName, ModelPart& rModelPart,NodeEraseProcess& NodeErase, bool RemNodes, bool AddNodes, double AlphaShape, double HFactor )
+void TriRegenerateMeshWithSegment(TriGenPFEMRefineSegment& Mesher, char* ElementName, char* ConditionName, ModelPart& rModelPart,EntitiesEraseProcess<Node>& NodeErase, bool RemNodes, bool AddNodes, double AlphaShape, double HFactor )
 {
     Mesher.ReGenerateMesh(rModelPart,
                           KratosComponents<Element>::Get(ElementName),
@@ -190,7 +190,7 @@ void TriRegenerateMeshWithSegment(TriGenPFEMRefineSegment& Mesher, char* Element
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 //trigen pfem vms refine
-void TriRegenerateMeshVMS(TriGenPFEMModelerVMS& Mesher, char* ElementName, char* ConditionName, ModelPart& rModelPart,NodeEraseProcess& NodeErase, bool RemNodes, bool AddNodes, double AlphaShape, double HFactor )
+void TriRegenerateMeshVMS(TriGenPFEMModelerVMS& Mesher, char* ElementName, char* ConditionName, ModelPart& rModelPart,EntitiesEraseProcess<Node>& NodeErase, bool RemNodes, bool AddNodes, double AlphaShape, double HFactor )
 {
     Mesher.ReGenerateMesh(rModelPart,
                           KratosComponents<Element>::Get(ElementName),

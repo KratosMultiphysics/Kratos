@@ -2,36 +2,35 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 message("**** configuring KratosFluidDynamicsBiomedicalApplication ****")
 
+kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/FluidDynamicsApplication)
+
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 include_directories( ${CMAKE_SOURCE_DIR}/kratos/applications/FluidDynamicsApplication)
 
 ## define application core sources (pure C++ parts)
-set( KRATOS_FLUID_DYNAMICS_BIOMEDICAL_APPLICATION_CORE_SOURCES
+file(GLOB_RECURSE KRATOS_FLUID_DYNAMICS_BIOMEDICAL_APPLICATION_CORE_SOURCES
 
   # application class and variables
   ${CMAKE_CURRENT_SOURCE_DIR}/fluid_dynamics_biomedical_application.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/fluid_dynamics_biomedical_application_variables.cpp
 
   # utilities
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/parabolic_profile_utilities.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/wss_statistics_utilities.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/*.cpp
 
 )
 
 ## define python interface sources
-set( KRATOS_FLUID_DYNAMICS_BIOMEDICAL_PYTHON_INTERFACE_SOURCES
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/fluid_dynamics_biomedical_python_application.cpp
-)
+file(GLOB_RECURSE KRATOS_FLUID_DYNAMICS_BIOMEDICAL_PYTHON_INTERFACE_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.cpp)
 
 ## define fluid dynamics biomedical test sources
 if(${KRATOS_BUILD_TESTING} MATCHES ON)
- 	file(GLOB_RECURSE KRATOS_FLUID_DYNAMICS_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
+ 	file(GLOB_RECURSE KRATOS_FLUID_DYNAMICS_BIOMEDICAL_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
+  kratos_add_gtests(TARGET KratosFluidDynamicsBiomedicalCore SOURCES "${KRATOS_FLUID_DYNAMICS_BIOMEDICAL_TESTING_SOURCES}")
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 ###############################################################################
 ## FluidDynamicsBiomedicalApplication core library (C++ parts)
-add_library( KratosFluidDynamicsBiomedicalCore SHARED ${KRATOS_FLUID_DYNAMICS_BIOMEDICAL_APPLICATION_CORE_SOURCES} ${KRATOS_FLUID_DYNAMICS_TESTING_SOURCES} )
+add_library( KratosFluidDynamicsBiomedicalCore SHARED ${KRATOS_FLUID_DYNAMICS_BIOMEDICAL_APPLICATION_CORE_SOURCES})
 target_link_libraries( KratosFluidDynamicsBiomedicalCore PUBLIC KratosCore KratosFluidDynamicsCore)
 set_target_properties( KratosFluidDynamicsBiomedicalCore PROPERTIES COMPILE_DEFINITIONS "FLUID_DYNAMICS_BIOMEDICAL_APPLICATION=EXPORT,API")
 

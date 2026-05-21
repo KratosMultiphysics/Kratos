@@ -81,7 +81,7 @@ public:
     ///@{
 
     // Node definition
-    typedef Node<3>                NodeType;
+    typedef Node                NodeType;
 
     /// Definition of geometries
     typedef Geometry<NodeType> GeometryType;
@@ -399,7 +399,7 @@ private:
      */
     void RotateNode3D(
         array_1d<double, 3>& rCoords,
-        BoundedMatrix<double, 4, 4> rInvertedRotationMatrix
+        const BoundedMatrix<double, 4, 4>& rInvertedRotationMatrix
         ) const;
 
     /**

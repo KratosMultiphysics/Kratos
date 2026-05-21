@@ -4,13 +4,14 @@ import KratosMultiphysics
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
-# Import the tests o test_classes to create the suits:
+# Import the tests o test_classes to create the suites:
 
 # SMALL TESTS
 import SmallTests
 
 # NIGTHLY TESTS
 import NightTests
+from test_cut_pfem_2d import TestCutPfem
 
 def AssembleTestSuites():
 
@@ -19,6 +20,7 @@ def AssembleTestSuites():
 
     # SMALL TESTS
     small_suite = SmallTests.SetTestSuite(suites)
+    small_suite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCutPfem]))
 
     # NIGHTLY TESTS
     night_suite = NightTests.SetTestSuite(suites)

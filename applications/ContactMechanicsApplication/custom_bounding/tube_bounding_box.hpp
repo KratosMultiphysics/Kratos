@@ -64,7 +64,7 @@ public:
 
     //typedef BoundedVector<double, 3>                     PointType;
     typedef array_1d<double, 3>                             PointType;
-    typedef Node<3>                                          NodeType;
+    typedef Node                                          NodeType;
     typedef ModelPart::NodesContainerType          NodesContainerType;
     typedef NodesContainerType::Pointer     NodesContainerTypePointer;
     typedef ModelPart::ElementsContainerType    ElementsContainerType;
@@ -124,7 +124,7 @@ public:
 
       if(CustomParameters["parameters_list"].IsArray() == true && CustomParameters["parameters_list"].size() != 1)
         {
-	  KRATOS_THROW_ERROR(std::runtime_error,"paramters_list for the Tube BBX must contain only one term",CustomParameters.PrettyPrintJsonString());
+	  KRATOS_THROW_ERROR(std::runtime_error,"parameters_list for the Tube BBX must contain only one term",CustomParameters.PrettyPrintJsonString());
         }
 
       mBox.Initialize();

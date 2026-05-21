@@ -30,40 +30,48 @@
             "time_step"                : 0.03
         }
     },
-    "_output_processes" : {
-        "output_process_list" : [{
-            "kratos_module"        : "KratosMultiphysics",
-            "python_module"        : "gid_output_process",
-            "process_name"         : "GidOutputProcess",
-            "Parameters"           : {
-                "model_part_name"        : "main_model_part",
-                "output_name"            : "boussinesq_2d_3n",
-                "postprocess_parameters" : {
-                    "result_file_configuration" : {
-                        "gidpost_flags"         : {
-                            "GiDPostMode"           : "GiD_PostBinary",
-                            "WriteDeformedMeshFlag" : "WriteDeformed",
-                            "WriteConditionsFlag"   : "WriteElementsOnly",
-                            "MultiFileFlag"         : "SingleFile"
-                        },
-                        "output_control_type"   : "step",
-                        "output_interval"       : 1,
-                        "body_output"           : true,
-                        "node_output"           : false,
-                        "skin_output"           : false,
-                        "plane_output"          : [],
-                        "nodal_results"         : ["MOMENTUM","VELOCITY","HEIGHT","FREE_SURFACE_ELEVATION","BATHYMETRY"],
-                        "gauss_point_results"   : []
-                    },
-                    "point_data_configuration"  :  []
-                }
-            }
-        }]
-    },
+    // "output_processes" : {
+    //     "output_process_list" : [{
+    //         "kratos_module"        : "KratosMultiphysics",
+    //         "python_module"        : "gid_output_process",
+    //         "process_name"         : "GidOutputProcess",
+    //         "Parameters"           : {
+    //             "model_part_name"        : "main_model_part",
+    //             "output_name"            : "boussinesq_2d_3n",
+    //             "postprocess_parameters" : {
+    //                 "result_file_configuration" : {
+    //                     "gidpost_flags"         : {
+    //                         "GiDPostMode"           : "GiD_PostBinary",
+    //                         "WriteDeformedMeshFlag" : "WriteDeformed",
+    //                         "WriteConditionsFlag"   : "WriteElementsOnly",
+    //                         "MultiFileFlag"         : "SingleFile"
+    //                     },
+    //                     "output_control_type"   : "step",
+    //                     "output_interval"       : 1,
+    //                     "body_output"           : true,
+    //                     "node_output"           : false,
+    //                     "skin_output"           : false,
+    //                     "plane_output"          : [],
+    //                     "nodal_results"         : ["MOMENTUM","VELOCITY","HEIGHT","FREE_SURFACE_ELEVATION","BATHYMETRY"],
+    //                     "gauss_point_results"   : []
+    //                 },
+    //                 "point_data_configuration"  :  []
+    //             }
+    //         }
+    //     }]
+    // },
     "processes" : {
-        "initial_conditions_process_list"   : [{
-            "python_module"   : "set_initial_water_level_process",
+        "topography_process_list"     : [{
             "kratos_module"   : "KratosMultiphysics.ShallowWaterApplication",
+            "python_module"   : "set_topography_process",
+            "Parameters"      : {
+                "model_part_name" : "main_model_part.Body_Part-auto-1",
+                "value"           : -1.0
+            }
+        }],
+        "initial_conditions_process_list"   : [{
+            "kratos_module"   : "KratosMultiphysics.ShallowWaterApplication",
+            "python_module"   : "set_initial_water_level_process",
             "Parameters"      : {
                 "model_part_name" : "main_model_part.Initial_water_level-auto-1",
                 "variable_name"   : "FREE_SURFACE_ELEVATION",
@@ -71,36 +79,22 @@
             }
         }],
         "boundary_conditions_process_list"  : [{
-            "python_module"   : "process_factory",
             "kratos_module"   : "KratosMultiphysics",
-            "process_name"    : "ApplyConstantVectorValueProcess",
+            "python_module"   : "assign_vector_variable_process",
             "Parameters"      : {
                 "model_part_name" : "main_model_part.Imposed_flux-auto-1",
                 "variable_name"   : "VELOCITY",
-                "modulus"         : 0.0,
-                "direction"       : [1.0, 0.0, 0.0],
-                "is_fixed_x"      : true,
-                "is_fixed_y"      : false
+                "value"           : [0.0, null, null],
+                "constrained"     : [true, false, false]
             }
         },{
-            "python_module"   : "process_factory",
             "kratos_module"   : "KratosMultiphysics",
-            "process_name"    : "ApplyConstantVectorValueProcess",
+            "python_module"   : "assign_vector_variable_process",
             "Parameters"      : {
                 "model_part_name" : "main_model_part.Imposed_flux-auto-2",
                 "variable_name"   : "VELOCITY",
-                "modulus"         : 0.0,
-                "direction"       : [0.0, 1.0, 0.0],
-                "is_fixed_x"      : false,
-                "is_fixed_y"      : true
-            }
-        }],
-        "topography_process_list"     : [{
-            "python_module"   : "set_topography_process",
-            "kratos_module"   : "KratosMultiphysics.ShallowWaterApplication",
-            "Parameters"      : {
-                "model_part_name" : "main_model_part.Body_Part-auto-1",
-                "value"           : -1.0
+                "value"           : [null, 0.0, null],
+                "constrained"     : [false, true, false]
             }
         }],
         "json_output_and_check_process" : [{

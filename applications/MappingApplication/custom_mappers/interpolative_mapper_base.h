@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Philipp Bucher, Jordi Cotela
 //
@@ -13,8 +13,7 @@
 // "Development and Implementation of a Parallel
 //  Framework for Non-Matching Grid Mapping"
 
-#if !defined(KRATOS_INTERPOLATIVE_MAPPER_BASE_H_INCLUDED )
-#define  KRATOS_INTERPOLATIVE_MAPPER_BASE_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -40,6 +39,42 @@ namespace Kratos
 {
 ///@name Kratos Classes
 ///@{
+
+/// Definition of an accessor auxiliary class
+template<class TMapperBackend>
+class AccessorInterpolativeMapperBase
+{
+public:
+    ///@name Type Definitions
+    ///@{
+
+    /// Interface definitions
+    typedef typename TMapperBackend::InterfaceCommunicatorType InterfaceCommunicatorType;
+    typedef typename InterfaceCommunicator::MapperInterfaceInfoUniquePointerType MapperInterfaceInfoUniquePointerType;
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    template<class TMapper>
+    static void CreateMapperLocalSystems(
+        TMapper& rMapper,
+        const Communicator& rModelPartCommunicator,
+        std::vector<Kratos::unique_ptr<MapperLocalSystem>>& rLocalSystems
+        )
+    {
+        rMapper.CreateMapperLocalSystems(rModelPartCommunicator, rLocalSystems);
+    }
+
+    template<class TMapper>
+    static MapperInterfaceInfoUniquePointerType GetMapperInterfaceInfo(const TMapper& rMapper)
+    {
+        return rMapper.GetMapperInterfaceInfo();
+    }
+
+    ///@}
+
+}; // Class AccessorInterpolativeMapperBase
 
 template<class TSparseSpace, class TDenseSpace, class TMapperBackend>
 class KRATOS_API(MAPPING_APPLICATION) InterpolativeMapperBase : public Mapper<TSparseSpace, TDenseSpace>
@@ -216,6 +251,8 @@ protected:
 
     int mMeshesAreConforming = false;
 
+    TMappingMatrixUniquePointerType mpMappingMatrix;
+
    /**
     * @brief Initializing the Mapper
     * This has to be called in the constructor of the
@@ -274,6 +311,30 @@ protected:
         }
     }
 
+    ///@}
+    ///@name Protected Access
+    ///@{
+
+    /**
+     * @brief This function origin model part
+     * @return The origin model part
+     */
+    ModelPart& GetOriginModelPart()
+    {
+        return mrModelPartOrigin;
+    }
+
+    /**
+     * @brief This function destination model part
+     * @return The destination model part
+     */
+    ModelPart& GetDestinationModelPart()
+    {
+        return mrModelPartDestination;
+    }
+
+    ///@}
+    
 private:
     ///@name Member Variables
     ///@{
@@ -284,8 +345,6 @@ private:
     Parameters mMapperSettings;
 
     MapperUniquePointerType mpInverseMapper = nullptr;
-
-    TMappingMatrixUniquePointerType mpMappingMatrix;
 
     MapperLocalSystemPointerVector mMapperLocalSystems;
 
@@ -500,13 +559,15 @@ private:
 
             VtkOutput(mrModelPartDestination, vtk_params).PrintOutput(file_name);
 
-            block_for_each(mrModelPartDestination.Nodes(), [&](Node<3>& rNode){
+            block_for_each(mrModelPartDestination.Nodes(), [&](Node& rNode){
                 rNode.GetData().Erase(PAIRING_STATUS);
             });
         }
 
         KRATOS_CATCH("");
     }
+
+    friend class AccessorInterpolativeMapperBase<TMapperBackend>;
 
     // functions for customizing the behavior of this Mapper
     virtual void CreateMapperLocalSystems(
@@ -547,5 +608,3 @@ private:
 }; // Class InterpolativeMapperBase
 
 }  // namespace Kratos.
-
-#endif // KRATOS_INTERPOLATIVE_MAPPER_BASE_H_INCLUDED  defined

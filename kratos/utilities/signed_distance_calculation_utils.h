@@ -113,9 +113,9 @@ public:
         const double max_distance
     )
     {
-        if(TDim == 2)
+        if constexpr (TDim == 2)
             CalculateDistances2D(r_model_part, rDistanceVar, max_distance);
-        else if (TDim == 3)
+        else if constexpr (TDim == 3)
             CalculateDistances3D(r_model_part, rDistanceVar, max_distance);
 
      //   r_model_part.GetCommunicator().SynchronizeCurrentDataToMin(rDistanceVar);
@@ -191,7 +191,7 @@ public:
 //
 //                                    //generate list of virtual points on the free surface (for the element divided)
 //                                    //and compute the distance of all of the nodes in the element from such list
-//                                    if(TDim == 2)
+//                                    if constexpr (TDim == 2)
 //                                        KRATOS_THROW_ERROR(std::logic_error,"2d not yet implemented","")
 //                                    else
 //                                    {
@@ -289,7 +289,7 @@ public:
                 //const array_1d<double,3>& center_coords = it->Coordinates();
 
                 //now loop all of its neighbours and calculate the distance value
-//                for (GlobalPointersVector< Node<3> >::iterator in = it->GetValue(NEIGHBOUR_NODES).begin();
+//                for (GlobalPointersVector< Node >::iterator in = it->GetValue(NEIGHBOUR_NODES).begin();
 //                        in != it->GetValue(NEIGHBOUR_NODES).end(); in++)
 //                {
 //                    const array_1d<double,3>& coords = in->Coordinates();
@@ -472,7 +472,7 @@ public:
             double zc = in->Z();
 
             double h = 0.0;
-            for (GlobalPointersVector< Node < 3 > >::iterator i = in->GetValue(NEIGHBOUR_NODES).begin();
+            for (GlobalPointersVector< Node >::iterator i = in->GetValue(NEIGHBOUR_NODES).begin();
                     i != in->GetValue(NEIGHBOUR_NODES).end(); i++)
             {
                 double x = i->X();
@@ -525,7 +525,7 @@ private:
     /**@name Private Operators*/
     /*@{ */
 //                 void ComputeDistancesFromVirtualPoint3D(
-//                                 Geometry< Node<3> >& geom,
+//                                 Geometry< Node >& geom,
 //                                 double xi, double eta,
 //                                 array_1d<double, 3 > N,
 //                                 const BoundedMatrix<double, TDim, TDim> free_surface_points,

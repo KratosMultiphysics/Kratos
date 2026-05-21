@@ -218,14 +218,14 @@ public:
         BaseType::Initialize();
 
         // Initialize the postprocess non-historical variables
-        block_for_each(r_model_part.Nodes(), [](Node<3>& rNode){
+        block_for_each(r_model_part.Nodes(), [](Node& rNode){
             rNode.SetValue(MACH, 0.0);
             rNode.SetValue(SOUND_VELOCITY, 0.0);
         });
 
         // If required, initialize the OSS projection variables
         if (r_process_info[OSS_SWITCH]) {
-            block_for_each(r_model_part.Nodes(), [](Node<3>& rNode){
+            block_for_each(r_model_part.Nodes(), [](Node& rNode){
                 rNode.SetValue(DENSITY_PROJECTION, 0.0);
                 rNode.SetValue(TOTAL_ENERGY_PROJECTION, 0.0);
                 rNode.SetValue(MOMENTUM_PROJECTION, ZeroVector(3));
@@ -382,7 +382,7 @@ protected:
         const auto& r_lumped_mass_vector = p_explicit_bs->GetLumpedMassMatrixVector();
 
         // Initialize the projection values
-        block_for_each(r_model_part.Nodes(), [](Node<3>& rNode){
+        block_for_each(r_model_part.Nodes(), [](Node& rNode){
             rNode.GetValue(DENSITY_PROJECTION) = 0.0;
             rNode.GetValue(MOMENTUM_PROJECTION) = ZeroVector(3);
             rNode.GetValue(TOTAL_ENERGY_PROJECTION) = 0.0;
@@ -430,7 +430,7 @@ protected:
 
         // Loop the nodes to calculate the non-conservative magnitudes
         array_1d<double,3> aux_vel;
-        block_for_each(r_model_part.Nodes(), aux_vel,[&] (Node<3> &rNode, array_1d<double,3>&rVelocity) {
+        block_for_each(r_model_part.Nodes(), aux_vel,[&] (Node &rNode, array_1d<double,3>&rVelocity) {
             const auto& r_mom = rNode.FastGetSolutionStepValue(MOMENTUM);
             const double& r_rho = rNode.FastGetSolutionStepValue(DENSITY);
             const double& r_tot_ener = rNode.FastGetSolutionStepValue(TOTAL_ENERGY);
@@ -446,7 +446,7 @@ protected:
     }
 
     /**
-     * @brief Appy the slip condition
+     * @brief Apply the slip condition
      * This method substracts the normal projection of the momentum for all the nodes flagged as SLIP
      * The correction is computed as m_slip = m - (m·n) x n. It is intended to be called after each substep
      */
@@ -454,7 +454,7 @@ protected:
     {
         auto &r_model_part = BaseType::GetModelPart();
 
-        block_for_each(r_model_part.Nodes(), [](Node<3>& rNode){
+        block_for_each(r_model_part.Nodes(), [](Node& rNode){
             if (rNode.Is(SLIP)) {
                 auto unit_normal = rNode.FastGetSolutionStepValue(NORMAL);
                 unit_normal /= norm_2(unit_normal);

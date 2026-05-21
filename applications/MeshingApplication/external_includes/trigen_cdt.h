@@ -15,7 +15,7 @@
 // System includes
 #include <string>
 #include <iostream>
-#include <stdlib.h>
+#include <cstdlib>
 
 // External includes
 #include "triangle.h"
@@ -137,7 +137,7 @@ public:
         {
             int base = el * 3;
 
-            Geometry<Node<3> >& geom = (elem_begin+el)->GetGeometry();
+            Geometry<Node >& geom = (elem_begin+el)->GetGeometry();
 
 
             in.trianglelist[base] = geom[0].Id();
@@ -192,7 +192,7 @@ public:
             int id = el + 1;
             int base = el * 3;
 
-            Geometry<Node<3> > temp;
+            Geometry<Node > temp;
             temp.push_back( *((ModelNodes).find( out.trianglelist[base]).base()	) );
             temp.push_back( *((ModelNodes).find( out.trianglelist[base+1]).base()	) );
             temp.push_back( *((ModelNodes).find( out.trianglelist[base+2]).base()	) );

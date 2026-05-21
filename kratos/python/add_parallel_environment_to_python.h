@@ -7,11 +7,10 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main author:     Jordi Cotela
+//  Main authors:    Jordi Cotela
 //
 
-#ifndef KRATOS_ADD_PARALLEL_ENVIRONMENT_TO_PYTHON_H_INCLUDED
-#define KRATOS_ADD_PARALLEL_ENVIRONMENT_TO_PYTHON_H_INCLUDED
+#pragma once
 
 // System includes
 #include <pybind11/pybind11.h>
@@ -20,14 +19,9 @@
 
 // Project includes
 
-namespace Kratos {
-
-namespace Python {
+namespace Kratos::Python
+{
 
 void AddParallelEnvironmentToPython(pybind11::module &m);
 
-} // namespace Python.
-
-} // namespace Kratos.
-
-#endif // KRATOS_ADD_PARALLEL_ENVIRONMENT_TO_PYTHON_H_INCLUDED  defined
+}  // namespace Kratos::Python.

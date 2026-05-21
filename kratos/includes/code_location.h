@@ -4,15 +4,14 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Author1 Pooyan Dadvand
+//  Main authors:    Pooyan Dadvand
 //
 //
 
-#if !defined(KRATOS_CODE_LOCATION_H_INCLUDED )
-#define  KRATOS_CODE_LOCATION_H_INCLUDED
+#pragma once
 
 // System includes
 #include <string>
@@ -22,90 +21,90 @@
 
 namespace Kratos
 {
-	///@addtogroup KratosCore
-	///@{
+    ///@addtogroup KratosCore
+    ///@{
 
-	/// This class keeps a code location consist of filename, function name and line number.
-	/// It also provides methods to get cleaned version of filename and function name.
-	class KRATOS_API(KRATOS_CORE) CodeLocation
-	{
-	public:
+    /// This class keeps a code location consist of filename, function name and line number.
+    /// It also provides methods to get cleaned version of filename and function name.
+    class KRATOS_API(KRATOS_CORE) CodeLocation
+    {
+    public:
 
-		CodeLocation();
+        CodeLocation();
 
-		CodeLocation(CodeLocation const & Other);
+        CodeLocation(CodeLocation&& rOther) noexcept = default;
 
-		CodeLocation(std::string const& FileName, std::string const& FunctionName, std::size_t LineNumber);
+        CodeLocation(CodeLocation const & Other) = default;
+
+        CodeLocation(std::string const& FileName, std::string const& FunctionName, std::size_t LineNumber);
 
          ///@}
-		///@name Private Operators
-	    ///@{
+        ///@name Private Operators
+        ///@{
 
         CodeLocation& operator=(CodeLocation const& Other) {
-			mFileName = Other.mFileName;
-			mFunctionName = Other.mFunctionName;
+            mFileName = Other.mFileName;
+            mFunctionName = Other.mFunctionName;
             mLineNumber = Other.mLineNumber;
 
             return *this;
         }
 
 
-		///@name Operations
-		///@{
+        ///@name Operations
+        ///@{
 
-		/// This function removes the path before the Kratos root
-		std::string CleanFileName() const;
+        /// This function removes the path before the Kratos root
+        std::string CleanFileName() const;
 
-		/// This method cleans many template arguments and namespaces from the function name gives by compiler
-		std::string CleanFunctionName() const;
-
-
-		///@}
-		///@name Access
-		///@{
-
-		const std::string& GetFileName() const;
-
-		const std::string& GetFunctionName() const;
-
-		int GetLineNumber() const;
+        /// This method cleans many template arguments and namespaces from the function name gives by compiler
+        std::string CleanFunctionName() const;
 
 
-		///@}
+        ///@}
+        ///@name Access
+        ///@{
 
-	private:
-		///@name Member Variables
-		///@{
+        const std::string& GetFileName() const;
 
-		std::string mFileName;
-		std::string mFunctionName;
-		std::size_t mLineNumber;
+        const std::string& GetFunctionName() const;
 
-		///@}
-		///@name Private Operations
-	    ///@{
+        int GetLineNumber() const;
 
-		static void RemoveNamespace(std::string& FunctionName, const std::string& Namespace);
 
-		static void ReduceTemplateArgumentsToFirstN(std::string& FunctionName, const std::string& TemplateName, std::size_t NumberOfArgumentsToKeep);
+        ///@}
 
-		static std::size_t GetNextPositionSkippingWhiteSpaces(std::string const& ThisString, std::size_t Position);
+    private:
+        ///@name Member Variables
+        ///@{
 
-		static bool IsWhiteSpace(char C);
+        std::string mFileName;
+        std::string mFunctionName;
+        std::size_t mLineNumber;
 
-		static void ReplaceAll(std::string& ThisString, const std::string& FromString, const std::string& ToString);
+        ///@}
+        ///@name Private Operations
+        ///@{
 
-		///@}
+        static void RemoveNamespace(std::string& FunctionName, const std::string& Namespace);
 
-	}; // Class CodeLocation
-	   ///@}
-	   ///@name Input and output
-	   ///@{
+        static void ReduceTemplateArgumentsToFirstN(std::string& FunctionName, const std::string& TemplateName, std::size_t NumberOfArgumentsToKeep);
 
-	/// output stream function
-	std::ostream & operator <<(std::ostream& rOStream,
-		const CodeLocation& rThis);
-	///@}
+        static std::size_t GetNextPositionSkippingWhiteSpaces(std::string const& ThisString, std::size_t Position);
+
+        static void ReplaceAll(std::string& ThisString, const std::string& FromString, const std::string& ToString);
+
+        ///@}
+
+    }; // Class CodeLocation
+       ///@}
+       ///@name Input and output
+       ///@{
+
+    /// output stream function
+    std::ostream & operator <<(std::ostream& rOStream,
+        const CodeLocation& rThis);
+    ///@}
 
 #if defined(KRATOS_CODE_LOCATION)
 #undef KRATOS_CODE_LOCATION
@@ -127,12 +126,8 @@ namespace Kratos
 #define KRATOS_CURRENT_FUNCTION "unknown function"
 #endif
 
-
 #define KRATOS_CODE_LOCATION Kratos::CodeLocation(__FILE__, KRATOS_CURRENT_FUNCTION, __LINE__)
-
 
   ///@} addtogroup block
 
 }  // namespace Kratos.
-
-#endif // KRATOS_CODE_LOCATION_H_INCLUDED  defined

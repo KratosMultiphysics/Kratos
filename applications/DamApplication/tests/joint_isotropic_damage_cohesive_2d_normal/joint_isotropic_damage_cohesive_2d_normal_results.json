@@ -1,0 +1,137 @@
+{
+  "TIME": [
+    40.0
+  ],
+  "NODE_2": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_3": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_5": {
+    "DISPLACEMENT_X": [
+      -1.049366320613368e-09
+    ],
+    "DISPLACEMENT_Y": [
+      7.896608768450906e-10
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_6": {
+    "DISPLACEMENT_X": [
+      -1.0493715993183889e-09
+    ],
+    "DISPLACEMENT_Y": [
+      -7.81700019103502e-10
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_9": {
+    "DISPLACEMENT_X": [
+      -3.5051175718457432e-09
+    ],
+    "DISPLACEMENT_Y": [
+      1.3945787211663381e-09
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_10": {
+    "DISPLACEMENT_X": [
+      -3.4910221376030815e-09
+    ],
+    "DISPLACEMENT_Y": [
+      -1.3923365101128718e-09
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_14": {
+    "DISPLACEMENT_X": [
+      -6.999274262956368e-09
+    ],
+    "DISPLACEMENT_Y": [
+      1.8226709720714363e-09
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_15": {
+    "DISPLACEMENT_X": [
+      -6.982865004033981e-09
+    ],
+    "DISPLACEMENT_Y": [
+      -1.8319184447215472e-09
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_18": {
+    "DISPLACEMENT_X": [
+      -1.117890449689054e-08
+    ],
+    "DISPLACEMENT_Y": [
+      2.072396284014701e-09
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_19": {
+    "DISPLACEMENT_X": [
+      -1.1178914346244637e-08
+    ],
+    "DISPLACEMENT_Y": [
+      -2.0995371650997374e-09
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_22": {
+    "DISPLACEMENT_X": [
+      -1.5696970629763403e-08
+    ],
+    "DISPLACEMENT_Y": [
+      2.1380885529617396e-09
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_23": {
+    "DISPLACEMENT_X": [
+      -1.569721677474103e-08
+    ],
+    "DISPLACEMENT_Y": [
+      -2.175882768791195e-09
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ]
+  }
+}

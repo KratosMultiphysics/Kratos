@@ -12,7 +12,7 @@
 #include "includes/serializer.h"
 
 // Application includes
-#include "custom_constitutive/local_damage_3D_law.hpp"
+#include "custom_constitutive/continuum_laws/local_damage_3D_law.hpp"
 #include "dam_application_variables.h"
 
 namespace Kratos

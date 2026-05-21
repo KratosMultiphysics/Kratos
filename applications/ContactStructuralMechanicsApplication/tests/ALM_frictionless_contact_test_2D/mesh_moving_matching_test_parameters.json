@@ -27,7 +27,6 @@
         "time_stepping"                      : {
             "time_step" : 0.1
         },
-        "line_search"                        : false,
         "clear_storage"                      : true,
         "reform_dofs_at_each_step"           : true,
         "convergence_criterion"              : "contact_mixed_criterion",
@@ -47,7 +46,6 @@
             "help"          : "This process fixes the selected components of a given vector variable",
             "process_name"  : "AssignVectorVariableProcess",
             "Parameters"    : {
-                "mesh_id"         : 0,
                 "model_part_name" : "Structure.DISPLACEMENT_Displacement_Auto1",
                 "variable_name"   : "DISPLACEMENT",
                 "value"           : [0.0,0.0,0.0],
@@ -59,7 +57,6 @@
             "help"          : "This process fixes the selected components of a given vector variable",
             "process_name"  : "AssignVectorVariableProcess",
             "Parameters"    : {
-                "mesh_id"         : 0,
                 "model_part_name" : "Structure.DISPLACEMENT_Displacement_Auto2",
                 "variable_name"   : "DISPLACEMENT",
                 "value"           : [0.0,null,0.0],
@@ -71,7 +68,6 @@
             "help"          : "This process fixes the selected components of a given vector variable",
             "process_name"  : "AssignVectorVariableProcess",
             "Parameters"    : {
-                "mesh_id"         : 0,
                 "model_part_name" : "Structure.CUSTOM",
                 "variable_name"   : "DISPLACEMENT",
                 "value"           : [0.0,null,0.0],
@@ -82,7 +78,6 @@
             "kratos_module" : "KratosMultiphysics",
             "process_name"          : "AssignScalarVariableProcess",
             "Parameters"            : {
-                "mesh_id"         : 0,
                 "model_part_name" : "Structure.CUSTOM",
                 "variable_name"   : "DISPLACEMENT_X",
                 "value"           : 0.0,
@@ -93,7 +88,6 @@
             "kratos_module" : "KratosMultiphysics",
             "process_name"          : "AssignScalarVariableProcess",
             "Parameters"            : {
-                "mesh_id"         : 0,
                 "model_part_name" : "Structure.CUSTOM",
                 "variable_name"   : "DISPLACEMENT_X",
                 "value"           : "1.0*(t-2.0)/8.0",
@@ -104,7 +98,6 @@
             "kratos_module" : "KratosMultiphysics",
             "process_name"          : "AssignScalarVariableProcess",
             "Parameters"            : {
-                "mesh_id"         : 0,
                 "model_part_name" : "Structure.CUSTOM",
                 "variable_name"   : "DISPLACEMENT_X",
                 "value"           : "1.0 - 1.0*(t-10.0)/8.0",
@@ -119,7 +112,6 @@
             "check"                 : "DirectorVectorNonZero direction",
             "process_name"          : "AssignVectorVariableToConditionProcess",
             "Parameters"            : {
-                "mesh_id"         : 0,
                 "model_part_name" : "Structure.CUSTOM",
                 "variable_name"   : "LINE_LOAD",
                 "interval"             : [0.0, 1e0],
@@ -132,7 +124,6 @@
             "check"                 : "DirectorVectorNonZero direction",
             "process_name"          : "AssignVectorVariableToConditionProcess",
             "Parameters"            : {
-                "mesh_id"         : 0,
                 "model_part_name" : "Structure.CUSTOM",
                 "variable_name"   : "LINE_LOAD",
                 "interval"             : [1.0e0, 18e0],

@@ -70,8 +70,8 @@ namespace Kratos
 
     typedef UpdatedLagrangianElement<TDim> BaseType;
 
-    /// Node type (default is: Node<3>)
-    typedef Node<3> NodeType;
+    /// Node type (default is: Node)
+    typedef Node NodeType;
 
     /// Geometry type (using with given NodeType)
     typedef Geometry<NodeType> GeometryType;
@@ -120,40 +120,40 @@ namespace Kratos
     ///@name Life Cycle
     ///@{
 
-    //Constructors.
+    // Constructors.
 
     /// Default constuctor.
     /**
-       * @param NewId Index number of the new element (optional)
-       */
+     * @param NewId Index number of the new element (optional)
+     */
     ThreeStepUpdatedLagrangianElement(IndexType NewId = 0) : BaseType(NewId)
     {
     }
 
     /// Constructor using an array of nodes.
     /**
-       * @param NewId Index of the new element
-       * @param ThisNodes An array containing the nodes of the new element
-       */
+     * @param NewId Index of the new element
+     * @param ThisNodes An array containing the nodes of the new element
+     */
     ThreeStepUpdatedLagrangianElement(IndexType NewId, const NodesArrayType &ThisNodes) : BaseType(NewId, ThisNodes)
     {
     }
 
     /// Constructor using a geometry object.
     /**
-       * @param NewId Index of the new element
-       * @param pGeometry Pointer to a geometry object
-       */
+     * @param NewId Index of the new element
+     * @param pGeometry Pointer to a geometry object
+     */
     ThreeStepUpdatedLagrangianElement(IndexType NewId, GeometryType::Pointer pGeometry) : BaseType(NewId, pGeometry)
     {
     }
 
     /// Constuctor using geometry and properties.
     /**
-       * @param NewId Index of the new element
-       * @param pGeometry Pointer to a geometry object
-       * @param pProperties Pointer to the element's properties
-       */
+     * @param NewId Index of the new element
+     * @param pGeometry Pointer to a geometry object
+     * @param pProperties Pointer to the element's properties
+     */
     ThreeStepUpdatedLagrangianElement(IndexType NewId, GeometryType::Pointer pGeometry, pPropertiesType pProperties) : BaseType(NewId, pGeometry, pProperties)
     {
     }
@@ -177,12 +177,12 @@ namespace Kratos
 
     /// Create a new element of this type
     /**
-       * Returns a pointer to a new ThreeStepUpdatedLagrangianElement element, created using given input
-       * @param NewId: the ID of the new element
-       * @param ThisNodes: the nodes of the new element
-       * @param pProperties: the properties assigned to the new element
-       * @return a Pointer to the new element
-       */
+     * Returns a pointer to a new ThreeStepUpdatedLagrangianElement element, created using given input
+     * @param NewId: the ID of the new element
+     * @param ThisNodes: the nodes of the new element
+     * @param pProperties: the properties assigned to the new element
+     * @return a Pointer to the new element
+     */
     Element::Pointer Create(IndexType NewId, NodesArrayType const &ThisNodes,
                             pPropertiesType pProperties) const override
     {
@@ -248,42 +248,31 @@ namespace Kratos
 
     double ElementSize();
 
-    void CalculateLeftHandSide(MatrixType &rLeftHandSideMatrix,
-                               const ProcessInfo &rCurrentProcessInfo) override
-    {
-      KRATOS_TRY;
-      KRATOS_THROW_ERROR(std::logic_error, "ThreeStepUpdatedLagrangianElement::CalculateLeftHandSide not implemented", "");
-      KRATOS_CATCH("");
-    }
-
     /**
-         * @param rVariable Use ADVPROJ or VELOCITY
-         * @param Output (unused)
-         * @param rCurrentProcessInfo Process info instance (unused)
-         */
+     * @param rVariable Use ADVPROJ or VELOCITY
+     * @param Output (unused)
+     * @param rCurrentProcessInfo Process info instance (unused)
+     */
     virtual void Calculate(const Variable<array_1d<double, 3>> &rVariable,
                            array_1d<double, 3> &rOutput,
                            const ProcessInfo &rCurrentProcessInfo) override{};
 
-    void CalculateRightHandSide(VectorType &rRightHandSideVector,
-                                const ProcessInfo &rCurrentProcessInfo) override{};
-
     // The following methods have different implementations depending on TDim
     /// Provides the global indices for each one of this element's local rows
     /**
-       * this determines the elemental equation ID vector for all elemental
-       * DOFs
-       * @param rResult A vector containing the global Id of each row
-       * @param rCurrentProcessInfo the current process info object (unused)
-       */
+     * this determines the elemental equation ID vector for all elemental
+     * DOFs
+     * @param rResult A vector containing the global Id of each row
+     * @param rCurrentProcessInfo the current process info object (unused)
+     */
     void EquationIdVector(EquationIdVectorType &rResult,
                           const ProcessInfo &rCurrentProcessInfo) const override;
 
     /// Returns a list of the element's Dofs
     /**
-       * @param ElementalDofList the list of DOFs
-       * @param rCurrentProcessInfo the current process info instance
-       */
+     * @param ElementalDofList the list of DOFs
+     * @param rCurrentProcessInfo the current process info instance
+     */
     void GetDofList(DofsVectorType &rElementalDofList,
                     const ProcessInfo &rCurrentProcessInfo) const override;
 
@@ -301,13 +290,13 @@ namespace Kratos
 
     /// Checks the input and that all required Kratos variables have been registered.
     /**
-       * This function provides the place to perform checks on the completeness of the input.
-       * It is designed to be called only once (or anyway, not often) typically at the beginning
-       * of the calculations, so to verify that nothing is missing from the input
-       * or that no common error is found.
-       * @param rCurrentProcessInfo The ProcessInfo of the ModelPart that contains this element.
-       * @return 0 if no errors were found.
-       */
+     * This function provides the place to perform checks on the completeness of the input.
+     * It is designed to be called only once (or anyway, not often) typically at the beginning
+     * of the calculations, so to verify that nothing is missing from the input
+     * or that no common error is found.
+     * @param rCurrentProcessInfo The ProcessInfo of the ModelPart that contains this element.
+     * @return 0 if no errors were found.
+     */
     int Check(const ProcessInfo &rCurrentProcessInfo) const override { return 0; };
 
     ///@}
@@ -377,7 +366,7 @@ namespace Kratos
                           const double Density,
                           const double Viscosity,
                           const ProcessInfo &rCurrentProcessInfo);
-                          
+
     virtual double GetThetaMomentum() override
     {
       std::cout << "I SHOULD NOT ENTER HERE!" << std::endl;
@@ -401,9 +390,15 @@ namespace Kratos
                            const ShapeFunctionsType &rN,
                            const double Weight) override;
 
-    virtual void CalcElasticPlasticCauchySplitted(ElementalVariables &rElementalVariables, double TimeStep,
-                                                  unsigned int g, const ProcessInfo &rCurrentProcessInfo, double &Density,
-                                                  double &DeviatoricCoeff, double &VolumetricCoeff) override{};
+    virtual void CalcElasticPlasticCauchySplitted(
+        ElementalVariables &rElementalVariables,
+        const unsigned int g,
+        const Vector& rN,
+        const ProcessInfo &rCurrentProcessInfo,
+        double &Density,
+        double &DeviatoricCoeff,
+        double &VolumetricCoeff) override
+    {};
 
     ///@}
     ///@name Protected  Access

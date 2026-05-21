@@ -527,7 +527,7 @@ namespace Kratos
                         i_node = static_cast<unsigned int>(node_it->FastGetSolutionStepValue(AUX_INDEX));
 
                         // determining its neighbours
-                        GlobalPointersVector<Node<3>> &neighb_nodes = node_it->GetValue(NEIGHBOUR_NODES);
+                        GlobalPointersVector<Node> &neighb_nodes = node_it->GetValue(NEIGHBOUR_NODES);
 
                         // number of neighbours of node i determines row start index for the following node
                         unsigned int n_neighbours = neighb_nodes.size();
@@ -539,7 +539,7 @@ namespace Kratos
                         // DIAGONAL TERMS
 
                         // nested loop over the neighbouring nodes
-                        for (GlobalPointersVector<Node<3>>::iterator neighb_it = neighb_nodes.begin(); neighb_it != neighb_nodes.end(); neighb_it++)
+                        for (GlobalPointersVector<Node>::iterator neighb_it = neighb_nodes.begin(); neighb_it != neighb_nodes.end(); neighb_it++)
                         {
                             // getting global index of the neighbouring node
                             work_array.push_back(static_cast<unsigned int>(neighb_it->FastGetSolutionStepValue(AUX_INDEX)));

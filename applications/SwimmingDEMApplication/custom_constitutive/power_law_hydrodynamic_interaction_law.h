@@ -13,7 +13,7 @@ namespace Kratos {
 class KRATOS_API(SWIMMING_DEM_APPLICATION) PowerLawFluidHydrodynamicInteractionLaw : public HydrodynamicInteractionLaw {
 
 public:
-    typedef Node <3> NodeType;
+    typedef Node NodeType;
 
     // Pointer types for PowerLawFluidHydrodynamicInteractionLaw
     KRATOS_CLASS_POINTER_DEFINITION(PowerLawFluidHydrodynamicInteractionLaw);

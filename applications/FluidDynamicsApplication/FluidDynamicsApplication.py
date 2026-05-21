@@ -1,8 +1,11 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 from KratosFluidDynamicsApplication import *
 
-from KratosMultiphysics import _ImportApplication
+from KratosMultiphysics import _ImportApplication, python_registry_utilities
+
 application = KratosFluidDynamicsApplication()
 application_name = "KratosFluidDynamicsApplication"
 
 _ImportApplication(application, application_name)
+
+from . import python_registry_lists
+python_registry_utilities.RegisterAll("KratosMultiphysics.FluidDynamicsApplication", python_registry_lists)

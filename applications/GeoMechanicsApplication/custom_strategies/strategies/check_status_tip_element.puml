@@ -1,0 +1,16 @@
+@startuml
+ :grow = true;
+ if (n_open_elements < PipeElements.size()) then
+ :PIPE_HEIGHT of PipeElements(n_open_elements - 1);
+ if (PIPE_HEIGHT > max_pipe_height ||
+     PIPE_HEIGHT < accuracy) then
+     :grow = false;
+     :Set PIPE_EROSION=false;
+     :Set PIPE_ACTIVE= false;
+     :n_open_elements --;
+ endif
+ else
+     :grow = false;
+
+endif
+@enduml

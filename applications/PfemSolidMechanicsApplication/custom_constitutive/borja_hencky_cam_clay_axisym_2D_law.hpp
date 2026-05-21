@@ -116,7 +116,7 @@ public:
     void SetValue( const Variable<Vector>& rThisVariable, const Vector& rVector, const ProcessInfo& rCurrentProcessInfo) override;
 
 
-    int Check( const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo) override; 
+    int Check( const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo) const override; 
     /**
      * Input and output
      */

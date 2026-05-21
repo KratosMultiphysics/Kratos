@@ -3,14 +3,13 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Mahmoud Zidan
 //
 
-#if !defined(KRATOS_DISPLACEMENT_CONTROL_CONDITION_H_INCLUDED )
-#define  KRATOS_DISPLACEMENT_CONTROL_CONDITION_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -360,5 +359,3 @@ private:
 ///@{
 
 } // namespace Kratos.
-
-#endif // KRATOS_DISPLACEMENT_CONTROL_CONDITION_H_INCLUDED  defined

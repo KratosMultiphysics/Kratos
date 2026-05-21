@@ -22,7 +22,6 @@
 #include "includes/define.h"
 #include "includes/kratos_parameters.h"
 #include "includes/kratos_components.h"
-#include "includes/shared_pointers.h"
 #include "linear_solvers/linear_solver.h"
 #include "spaces/ublas_space.h"
 
@@ -103,7 +102,7 @@ public:
         std::string solver_name = Settings["solver_type"].GetString();
         // remove name of the application (if passed)
         // e.g. "LinearSolversApplication.sparse_lu" => "sparse_lu"
-        solver_name = solver_name.substr(solver_name.find(".") + 1);
+        solver_name = solver_name.substr(solver_name.find('.') + 1);
 
         KRATOS_ERROR_IF_NOT(Has(solver_name))
             << "Trying to construct a Linear solver with solver_type:\n\""
@@ -158,6 +157,10 @@ typedef TUblasDenseSpace<double> LocalSparseSpaceType;
 typedef LinearSolverFactory<SparseSpaceType,  LocalSparseSpaceType> LinearSolverFactoryType;
 
 KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<LinearSolverFactoryType>;
+KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<LinearSolverFactory<
+    TUblasSparseSpace<float>,
+    TUblasDenseSpace<double>
+>>;
 
 #ifdef KRATOS_REGISTER_LINEAR_SOLVER
 #undef KRATOS_REGISTER_LINEAR_SOLVER

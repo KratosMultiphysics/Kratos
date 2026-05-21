@@ -80,7 +80,7 @@ class ReadCsvTableUtility:
                         raise Exception(msg)
                     table.AddRow(self._Float(row[self.first_column_id], row_id), self._Float(row[self.second_column_id], row_id))
         if self.table_id > -1:
-            if model_part:
+            if model_part != None:
                 model_part.AddTable(self.table_id, table)
             else:
                 err_msg = "Asking to save table with id {} but no model part is provided.".format(self.table_id)

@@ -387,7 +387,7 @@ public:
                     }
 
                     // running this in parallel assuming rApplyProxy.mrApplyFunctor is thread safe
-                    BlockPartition<std::vector<GlobalPointerValueVectorPair>>(gp_value_pair_list).for_each([&](GlobalPointerValueVectorPair& rItem) {
+                    block_for_each(gp_value_pair_list, [&](GlobalPointerValueVectorPair& rItem) {
                         auto& r_pointer_data_type_entity = *(rItem.first);
                         for (IndexType i = 0; i < rItem.second.size(); ++i) {
                             // it is safer to call the serial update method here

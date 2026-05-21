@@ -60,27 +60,37 @@ class SerialOutputProcess(KM.OutputProcess):
         if self.destination_rank >= self.data_comm.Size():
             raise Exception("Destination rank %i larger than available size %i" %(self.destination_rank, self.data_comm.Size()))
 
-        if self.data_comm.Rank() == self.destination_rank:
-            if mdpa_file_name_destination != "":
+        # optionally read mdpa (only on one rank)
+        if mdpa_file_name_destination != "":
+            if self.data_comm.Rank() == self.destination_rank:
                 import_flags = KM.ModelPartIO.READ | KM.ModelPartIO.SKIP_TIMER
                 KM.ModelPartIO(mdpa_file_name_destination, import_flags).ReadModelPart(self.model_part_destination)
 
-            self.output_process = None
-            if len(settings["output_process_settings"].keys()) > 0:
-                output_proc_params = KM.Parameters('''{ "dummy" : [] }''')
-                output_proc_params["dummy"].Append(settings["output_process_settings"])
-                self.output_process = KratosProcessFactory(model).ConstructListOfProcesses(output_proc_params["dummy"])[0]
+            # properly initialize in MPI (on other ranks)
+            if model_part_origin.IsDistributed():
+                import KratosMultiphysics.mpi as KratosMPI
 
+                # initialize SubModelPartStructure on other ranks
+                KratosMPI.DistributedModelPartInitializer(self.model_part_destination, self.data_comm, self.destination_rank).CopySubModelPartStructure()
+
+                data_comm_destination = KratosMPI.DataCommunicatorFactory.CreateFromRanksAndRegister(
+                    self.data_comm,
+                    [self.destination_rank],
+                    "destination_mapping")
+
+                if self.data_comm.Rank() != self.destination_rank:
+                    KratosMPI.ModelPartCommunicatorUtilities.SetMPICommunicatorRecursively(self.model_part_destination, data_comm_destination)
+
+        # optionally create output process (only on one rank)
+        self.output_process = None
+        if len(settings["output_process_settings"].keys()) > 0 and self.data_comm.Rank() == self.destination_rank:
+            output_proc_params = KM.Parameters('''{ "dummy" : [] }''')
+            output_proc_params["dummy"].Append(settings["output_process_settings"])
+            self.output_process = KratosProcessFactory(model).ConstructListOfProcesses(output_proc_params["dummy"])[0]
+
+        # create mapper
         if model_part_origin.IsDistributed():
-            import KratosMultiphysics.mpi as KratosMPI
             from KratosMultiphysics.MappingApplication.MPIExtension import MPIMapperFactory
-            data_comm_destination = KratosMPI.DataCommunicatorFactory.CreateFromRanksAndRegister(
-                self.data_comm,
-                [self.destination_rank],
-                "destination_mapping")
-
-            if self.data_comm.Rank() != self.destination_rank:
-                KratosMPI.ModelPartCommunicatorUtilities.SetMPICommunicator(self.model_part_destination, data_comm_destination)
 
             self.mapper = MPIMapperFactory.CreateMapper(
                 model_part_origin,

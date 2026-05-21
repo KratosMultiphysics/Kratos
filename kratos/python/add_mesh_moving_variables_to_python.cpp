@@ -4,10 +4,10 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    msandre
+//  Main authors:    Michael Andre
 //
 
 // System includes
@@ -19,10 +19,7 @@
 #include "includes/mesh_moving_variables.h"
 #include "python/add_mesh_moving_variables_to_python.h"
 
-namespace Kratos
-{
-
-namespace Python
+namespace Kratos::Python
 {
     namespace py = pybind11;
 
@@ -37,5 +34,4 @@ namespace Python
         KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,MESH_POISSON_RATIO)
 
     }
-}  // namespace Python.
-} // Namespace Kratos
+}  // namespace Kratos::Python.

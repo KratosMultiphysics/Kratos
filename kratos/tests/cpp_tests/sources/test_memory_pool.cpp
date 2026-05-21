@@ -52,8 +52,8 @@ namespace Kratos {
 					thread_fixed_size_memory_pool.Deallocate(*i_pointer);
 				}
 				std::size_t number_of_chunks = i_repeat;// ((i_repeat / ParallelUtilities::GetNumThreads()) + 1) *  ParallelUtilities::GetNumThreads();
-				KRATOS_CHECK_EQUAL(thread_fixed_size_memory_pool.GetNumberOfChunks(), number_of_chunks) << " (number_of_chunks = " << number_of_chunks << ")";
-				KRATOS_CHECK_EQUAL(thread_fixed_size_memory_pool.ChunkSize(), default_chunk_size);
+				KRATOS_EXPECT_EQ(thread_fixed_size_memory_pool.GetNumberOfChunks(), number_of_chunks) << " (number_of_chunks = " << number_of_chunks << ")";
+				KRATOS_EXPECT_EQ(thread_fixed_size_memory_pool.ChunkSize(), default_chunk_size);
 			}
 		}
 
@@ -62,8 +62,8 @@ namespace Kratos {
 			std::size_t block_size = 5;
 			std::size_t default_chunk_size = 1024 * 1024; // 1M
 			FixedSizeMemoryPool fixed_size_memory_pool(block_size);
-			KRATOS_CHECK_EQUAL(fixed_size_memory_pool.GetNumberOfAllocatedChunks(), 0);
-			KRATOS_CHECK_EQUAL(fixed_size_memory_pool.ChunkSize(), default_chunk_size);
+			KRATOS_EXPECT_EQ(fixed_size_memory_pool.GetNumberOfAllocatedChunks(), 0);
+			KRATOS_EXPECT_EQ(fixed_size_memory_pool.ChunkSize(), default_chunk_size);
 		}
 
 		KRATOS_TEST_CASE_IN_SUITE(FixedSizeMemoryPoolAllocationDeallocation, KratosCoreFastSuite)
@@ -92,13 +92,14 @@ namespace Kratos {
 					fixed_size_memory_pool.Deallocate(*i_pointer);
 				}
 				std::size_t number_of_chunks = i_repeat;// ((i_repeat / ParallelUtilities::GetNumThreads()) + 1) *  ParallelUtilities::GetNumThreads();
-				KRATOS_CHECK_EQUAL(fixed_size_memory_pool.GetNumberOfAllocatedChunks(), number_of_chunks) << " (number_of_chunks = " << number_of_chunks << ")";
-				KRATOS_CHECK_EQUAL(fixed_size_memory_pool.ChunkSize(), default_chunk_size);
+				KRATOS_EXPECT_EQ(fixed_size_memory_pool.GetNumberOfAllocatedChunks(), number_of_chunks) << " (number_of_chunks = " << number_of_chunks << ")";
+				KRATOS_EXPECT_EQ(fixed_size_memory_pool.ChunkSize(), default_chunk_size);
 			}
 		}
 
-		KRATOS_DISABLED_TEST_CASE_IN_SUITE(FixedSizeMemoryPoolStressTest, KratosCoreStressSuite)
+		KRATOS_TEST_CASE_IN_SUITE(FixedSizeMemoryPoolStressTest, KratosCoreStressSuite)
 		{
+			GTEST_SKIP() << "This test is disabled" << std::endl;
 			std::size_t block_size = 64;
 			std::size_t default_chunk_size = 128 ;// 1M
 			std::size_t number_of_blocks = (default_chunk_size ) / block_size;
@@ -112,7 +113,7 @@ namespace Kratos {
 					for (std::size_t i_block = 0; i_block < number_of_blocks; i_block++)
 					{
 						void* p = fixed_size_memory_pool.Allocate();
-						KRATOS_CHECK_NOT_EQUAL(p, nullptr) << " i_repeat : " << i_repeat << " , i_chunk : " << i_chunk << " , i_block : " << i_block;
+						KRATOS_EXPECT_NE(p, nullptr) << " i_repeat : " << i_repeat << " , i_chunk : " << i_chunk << " , i_block : " << i_block;
 						pointer_vector.push_back(p);
 
 					}
@@ -183,8 +184,9 @@ namespace{
 			// std::cout << MemoryPool::Info() << std::endl;
 		}
 
-		KRATOS_DISABLED_TEST_CASE_IN_SUITE(NewDeleteComparison, KratosCoreStressSuite)
+		KRATOS_TEST_CASE_IN_SUITE(NewDeleteComparison, KratosCoreStressSuite)
 		{
+			GTEST_SKIP() << "This test is disabled" << std::endl;
 			auto repeat_number = 256;
 			Timer::Start("Pool");
 // #pragma omp parallel for
@@ -237,8 +239,9 @@ namespace{
 
 		}
 
-		KRATOS_DISABLED_TEST_CASE_IN_SUITE(ChunkNewDeleteComparison, KratosCoreStressSuite)
+		KRATOS_TEST_CASE_IN_SUITE(ChunkNewDeleteComparison, KratosCoreStressSuite)
 		{
+			GTEST_SKIP() << "This test is disabled" << std::endl;
 			auto repeat_number = 128;
 			std::size_t block_size_in_bytes = 230;
 		    std::size_t chunk_size_in_bytes =  1024*1024;

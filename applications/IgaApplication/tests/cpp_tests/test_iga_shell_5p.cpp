@@ -81,9 +81,9 @@ namespace Testing
         array_1d<double, 3> director = ZeroVector(3);
         director[2] = 1.0;
 
-        KRATOS_CHECK_VECTOR_NEAR(r_model_part.GetNode(4).GetValue(DIRECTOR), director, tolerance);
-        KRATOS_CHECK_VECTOR_NEAR(r_model_part.GetNode(4).GetValue(DIRECTOR), director, tolerance);
-        KRATOS_CHECK_VECTOR_NEAR(r_model_part.GetNode(8).GetValue(DIRECTOR), director, tolerance);
+        KRATOS_EXPECT_VECTOR_NEAR(r_model_part.GetNode(4).GetValue(DIRECTOR), director, tolerance);
+        KRATOS_EXPECT_VECTOR_NEAR(r_model_part.GetNode(4).GetValue(DIRECTOR), director, tolerance);
+        KRATOS_EXPECT_VECTOR_NEAR(r_model_part.GetNode(8).GetValue(DIRECTOR), director, tolerance);
     }
 
     // Tests the stiffness matrix of the Shell3pElement with a polynomial degree of p=3.
@@ -124,16 +124,16 @@ namespace Testing
                                                  ,0,0,0,0,0,0,0,0,0,0};
 
         for (unsigned int i = 0; i < left_hand_side_matrix.size1(); i++) {
-            KRATOS_CHECK_NEAR(left_hand_side_matrix(0,i), expected_LHS_row_0[i], tolerance);
+            KRATOS_EXPECT_NEAR(left_hand_side_matrix(0,i), expected_LHS_row_0[i], tolerance);
         }
         for (unsigned int i = 0; i < left_hand_side_matrix.size1(); i++) {
-            KRATOS_CHECK_NEAR(left_hand_side_matrix(1,i), expected_LHS_row_1[i], tolerance);
+            KRATOS_EXPECT_NEAR(left_hand_side_matrix(1,i), expected_LHS_row_1[i], tolerance);
         }
         for (unsigned int i = 0; i < left_hand_side_matrix.size1(); i++) {
-            KRATOS_CHECK_NEAR(left_hand_side_matrix(2,i), expected_LHS_row_2[i], tolerance);
+            KRATOS_EXPECT_NEAR(left_hand_side_matrix(2,i), expected_LHS_row_2[i], tolerance);
         }
         for (unsigned int i = 0; i < right_hand_side_vector.size(); i++) {
-            KRATOS_CHECK_NEAR(right_hand_side_vector(i), expected_RHS[i], tolerance);
+            KRATOS_EXPECT_NEAR(right_hand_side_vector(i), expected_RHS[i], tolerance);
         }
     }
 
@@ -175,16 +175,16 @@ namespace Testing
                                                   ,0,0,0,0,0,0,0,0,0,0 };
 
         for (unsigned int i = 0; i < left_hand_side_matrix.size1(); i++) {
-            KRATOS_CHECK_NEAR(left_hand_side_matrix(0,i), expected_LHS_row_0[i], tolerance);
+            KRATOS_EXPECT_NEAR(left_hand_side_matrix(0,i), expected_LHS_row_0[i], tolerance);
         }
         for (unsigned int i = 0; i < left_hand_side_matrix.size1(); i++) {
-            KRATOS_CHECK_NEAR(left_hand_side_matrix(1,i), expected_LHS_row_1[i], tolerance);
+            KRATOS_EXPECT_NEAR(left_hand_side_matrix(1,i), expected_LHS_row_1[i], tolerance);
         }
         for (unsigned int i = 0; i < left_hand_side_matrix.size1(); i++) {
-            KRATOS_CHECK_NEAR(left_hand_side_matrix(2,i), expected_LHS_row_2[i], tolerance);
+            KRATOS_EXPECT_NEAR(left_hand_side_matrix(2,i), expected_LHS_row_2[i], tolerance);
         }
         for (unsigned int i = 0; i < right_hand_side_vector.size(); i++) {
-            KRATOS_CHECK_NEAR(right_hand_side_vector(i), expected_RHS[i], tolerance);
+            KRATOS_EXPECT_NEAR(right_hand_side_vector(i), expected_RHS[i], tolerance);
         }
     }
 
@@ -227,16 +227,16 @@ namespace Testing
                                                   ,0,0,0,0,0,0,0,0,0,0 };
 
         for (unsigned int i = 0; i < left_hand_side_matrix.size1(); i++) {
-            KRATOS_CHECK_NEAR(left_hand_side_matrix(0,i), expected_LHS_row_0[i], tolerance);
+            KRATOS_EXPECT_NEAR(left_hand_side_matrix(0,i), expected_LHS_row_0[i], tolerance);
         }
         for (unsigned int i = 0; i < left_hand_side_matrix.size1(); i++) {
-            KRATOS_CHECK_NEAR(left_hand_side_matrix(1,i), expected_LHS_row_1[i], tolerance);
+            KRATOS_EXPECT_NEAR(left_hand_side_matrix(1,i), expected_LHS_row_1[i], tolerance);
         }
         for (unsigned int i = 0; i < left_hand_side_matrix.size1(); i++) {
-            KRATOS_CHECK_NEAR(left_hand_side_matrix(2,i), expected_LHS_row_2[i], tolerance);
+            KRATOS_EXPECT_NEAR(left_hand_side_matrix(2,i), expected_LHS_row_2[i], tolerance);
         }
         for (unsigned int i = 0; i < right_hand_side_vector.size(); i++) {
-            KRATOS_CHECK_NEAR(right_hand_side_vector(i), expected_RHS[i], tolerance);
+            KRATOS_EXPECT_NEAR(right_hand_side_vector(i), expected_RHS[i], tolerance);
         }
     }
 
@@ -291,16 +291,16 @@ namespace Testing
         const std::array<double, 40> expected_RHS{ 0.00288127048596413,5.104804942162921e-13,7.165046390521992,-2.22252097587773,-3.668470065476827e-17,-0.002451313962638624,-4.343042315271281e-13,-6.095844996524769,-0.4974823042471772,-8.211391303132552e-18,-0.0004139164951875832,-7.333441904232834e-14,-1.029313598489092,-0.03711830630249979,-6.12670913029941e-19,-1.604002564640936e-05,-2.841843646835727e-15,-0.03988779550812917,-0.0009231609184914462,-1.523759834827438e-20,0.0007720340973440014,1.367828361770958e-13,1.919868394071895,-0.595522700647668,-9.829635915022635e-18,-0.0006568275972539793,-1.163714681071132e-13,-1.633376744004111,-0.1332999816718051,-2.200235668410309e-18,-0.0001109085906619495,-1.964989835979741e-14,-0.2758037474735249,-0.009945820198165862,-1.641646763724112e-19,-4.297911919587286e-06,-7.614697101851492e-16,-0.01068790259426097,-0.0002473602225937563,-4.082902172009926e-21};
 
         for (unsigned int i = 0; i < left_hand_side_matrix.size1(); i++) {
-          KRATOS_CHECK_NEAR(left_hand_side_matrix(0,i), expected_LHS_row_0[i], tolerance);
+          KRATOS_EXPECT_NEAR(left_hand_side_matrix(0,i), expected_LHS_row_0[i], tolerance);
         }
         for (unsigned int i = 0; i < left_hand_side_matrix.size1(); i++) {
-          KRATOS_CHECK_NEAR(left_hand_side_matrix(1,i), expected_LHS_row_1[i], tolerance);
+          KRATOS_EXPECT_NEAR(left_hand_side_matrix(1,i), expected_LHS_row_1[i], tolerance);
         }
         for (unsigned int i = 0; i < left_hand_side_matrix.size1(); i++) {
-          KRATOS_CHECK_NEAR(left_hand_side_matrix(2,i), expected_LHS_row_2[i], tolerance);
+          KRATOS_EXPECT_NEAR(left_hand_side_matrix(2,i), expected_LHS_row_2[i], tolerance);
         }
         for (unsigned int i = 0; i < right_hand_side_vector.size(); i++) {
-          KRATOS_CHECK_NEAR(right_hand_side_vector(i), expected_RHS[i], tolerance);
+          KRATOS_EXPECT_NEAR(right_hand_side_vector(i), expected_RHS[i], tolerance);
         }
     }
 
@@ -360,16 +360,16 @@ namespace Testing
         const std::array<double, 50> expected_RHS{ 0.001222175032142404,4.816042666670712e-13,4.446556340576824,-1.059491929987973,8.632006757436571e-18,-0.001041712546895015,-4.104921101857641e-13,-3.789991953217198,-0.2085882846993699,1.699432937698264e-18,-0.0001715803110911822,-6.761209142137841e-14,-0.6242489832782576,-0.01539974182990685,1.254664351620343e-19,-8.73644868549722e-06,-3.442641894280185e-15,-0.03178522742185168,-0.0005053059934035036,4.116883410033861e-21,-1.457237073918238e-07,-5.742316564844739e-17,-0.0005301766595157847,-6.217656514709396e-06,5.065716078743543e-23,0.0003274808110271593,1.290454743248247e-13,1.191451180557047,-0.2838900070275687,2.312939239715121e-18,-0.0002791260360490991,-1.099910294236229e-13,-1.015525283185001,-0.05589106243578924,4.553616832471e-19,-4.597480582077843e-05,-1.811660529493758e-14,-0.1672670109453585,-0.004126348386971319,3.361862997887889e-20,-2.340924370874805e-06,-9.224531154019257e-16,-0.008516826018924731,-0.0001353963328630749,1.103115585051659e-21,-3.904654972453512e-08,-1.538649086234006e-17,-0.0001420604077630848,-1.666016041930491e-06,1.357354532384685e-23 };
 
         for (unsigned int i = 0; i < left_hand_side_matrix.size1(); i++) {
-          KRATOS_CHECK_NEAR(left_hand_side_matrix(0,i), expected_LHS_row_0[i], tolerance);
+          KRATOS_EXPECT_NEAR(left_hand_side_matrix(0,i), expected_LHS_row_0[i], tolerance);
         }
         for (unsigned int i = 0; i < left_hand_side_matrix.size1(); i++) {
-          KRATOS_CHECK_NEAR(left_hand_side_matrix(1,i), expected_LHS_row_1[i], tolerance);
+          KRATOS_EXPECT_NEAR(left_hand_side_matrix(1,i), expected_LHS_row_1[i], tolerance);
         }
         for (unsigned int i = 0; i < left_hand_side_matrix.size1(); i++) {
-          KRATOS_CHECK_NEAR(left_hand_side_matrix(2,i), expected_LHS_row_2[i], tolerance);
+          KRATOS_EXPECT_NEAR(left_hand_side_matrix(2,i), expected_LHS_row_2[i], tolerance);
         }
         for (unsigned int i = 0; i < right_hand_side_vector.size(); i++) {
-          KRATOS_CHECK_NEAR(right_hand_side_vector(i), expected_RHS[i], tolerance);
+          KRATOS_EXPECT_NEAR(right_hand_side_vector(i), expected_RHS[i], tolerance);
         }
     }
 
@@ -434,16 +434,16 @@ namespace Testing
         const std::array<double, 60> expected_RHS{ 0.0005839978454105505,1.593836517207118e-12,2.932140369516759,-0.5666271650679264,-3.199913269787143e-17,-0.0005023662132058553,-1.371048931691938e-12,-2.522283733491812,-0.09900442786158557,-5.591076496376472e-18,-7.73526802724566e-05,-2.111095586934594e-13,-0.38837286807849,-0.006919454159967685,-3.907622957595076e-19,-4.17926158646332e-06,-1.14059663593173e-14,-0.02098326525615573,-0.0002418015381030824,-1.365525689786227e-20,-9.881482505137843e-08,-2.696836622697073e-16,-0.0004961301517459051,-4.22489855972176e-06,-2.385926725404626e-22,-8.708836395387572e-10,-2.376800132825633e-18,-4.372538553667234e-06,-2.952796409811002e-08,-1.667532550014852e-24,0.0001564817461075064,4.270672076528801e-13,0.7856646441067073,-0.1518272912894872,-8.574141764890973e-18,-0.0001346086219983917,-3.673714540304082e-13,-0.6758438894712882,-0.02652815649261718,-1.498124432024705e-18,-2.072658827185682e-05,-5.656663576640311e-14,-0.1040641963637903,-0.001854062154227513,-1.047044415812915e-19,-1.119829769164367e-06,-3.056219474875622e-15,-0.005622448979954957,-6.479052686332424e-05,-3.65891505822171e-21,-2.647735260966098e-08,-7.226151951703566e-17,-0.0001329376735010455,-1.132058157180858e-06,-6.393071392720023e-23,-2.333525681739323e-10,-6.368616761608131e-19,-1.171618174329084e-06,-7.911994134223759e-09,-4.468140001290899e-25 };
 
         for (unsigned int i = 0; i < left_hand_side_matrix.size1(); i++) {
-          KRATOS_CHECK_NEAR(left_hand_side_matrix(0,i), expected_LHS_row_0[i], tolerance);
+          KRATOS_EXPECT_NEAR(left_hand_side_matrix(0,i), expected_LHS_row_0[i], tolerance);
         }
         for (unsigned int i = 0; i < left_hand_side_matrix.size1(); i++) {
-          KRATOS_CHECK_NEAR(left_hand_side_matrix(1,i), expected_LHS_row_1[i], tolerance);
+          KRATOS_EXPECT_NEAR(left_hand_side_matrix(1,i), expected_LHS_row_1[i], tolerance);
         }
         for (unsigned int i = 0; i < left_hand_side_matrix.size1(); i++) {
-          KRATOS_CHECK_NEAR(left_hand_side_matrix(2,i), expected_LHS_row_2[i], tolerance);
+          KRATOS_EXPECT_NEAR(left_hand_side_matrix(2,i), expected_LHS_row_2[i], tolerance);
         }
         for (unsigned int i = 0; i < right_hand_side_vector.size(); i++) {
-          KRATOS_CHECK_NEAR(right_hand_side_vector(i), expected_RHS[i], tolerance);
+          KRATOS_EXPECT_NEAR(right_hand_side_vector(i), expected_RHS[i], tolerance);
         }
     }
 }

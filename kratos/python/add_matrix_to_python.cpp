@@ -4,12 +4,11 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //
-
 
 // System includes
 
@@ -23,9 +22,7 @@
 #include "add_matrix_to_python.h"
 #include "containers/array_1d.h"
 
-namespace Kratos
-{
-namespace Python
+namespace Kratos::Python
 {
     namespace py = pybind11;
 
@@ -78,12 +75,12 @@ namespace Python
           KRATOS_ERROR_IF( info.format != py::format_descriptor<double>::value ) << "Expected a double array\n";
           KRATOS_ERROR_IF( info.ndim != 2 ) << "Buffer dimension of 2 is required, got: " << info.ndim << std::endl;
           DenseMatrix<double> matrix = DenseMatrix<double>(info.shape[0], info.shape[1]);
+          std::array<std::size_t,2> strides {info.strides[0] / static_cast<std::size_t>(info.itemsize),
+                                             info.strides[1] / static_cast<std::size_t>(info.itemsize)};
 
-          std::size_t count = 0;
           for( int i=0; i<info.shape[0]; ++i ) {
             for( int j=0; j<info.shape[1]; ++j ) {
-              matrix(i,j) = static_cast<double *>(info.ptr)[count];
-              count++;
+              matrix(i,j) = static_cast<double *>(info.ptr)[i * strides[0] + j * strides[1]];
             }
           }
 
@@ -108,18 +105,10 @@ namespace Python
           }
         }));
 
-
-      #ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
-        // This constructor is not supported by AMatrix
-        //matrix_binder.def(py::init<const DenseMatrix<double>::size_type, const DenseMatrix<double>::size_type, const DenseMatrix<double>::value_type >());
-        matrix_binder.def("fill", [](DenseMatrix<double>& self, const typename DenseMatrix<double>::value_type value) { self.fill(value); });
-        matrix_binder.def("fill_identity", [](DenseMatrix<double>& self) { self.fill_identity(); });
-      #else
         matrix_binder.def(py::init<const DenseMatrix<double>::size_type, const DenseMatrix<double>::size_type, const DenseMatrix<double>::value_type >());
         matrix_binder.def("fill", [](DenseMatrix<double>& self, const typename DenseMatrix<double>::value_type value) { noalias(self) = DenseMatrix<double>(self.size1(),self.size2(),value); });
         matrix_binder.def("fill_identity", [](DenseMatrix<double>& self) { noalias(self) = IdentityMatrix(self.size1()); });
         matrix_binder.def("transpose", [](DenseMatrix<double>& self) { return Matrix(trans(self)); });
-      #endif // KRATOS_USE_AMATRIX
         matrix_binder.def(py::init<const DenseMatrix<double>& >());
         matrix_binder.def("__mul__", [](const DenseMatrix<double>& m1, const Vector& v){ return Vector(prod(m1,v));}, py::is_operator());
         matrix_binder.def("__mul__", [](const DenseMatrix<double>& m1, const array_1d<double,3>& v){ if(m1.size2() != 3) KRATOS_ERROR << "matrix size2 is not 3!" << std::endl; return Vector(prod(m1,v));}, py::is_operator());
@@ -195,17 +184,9 @@ namespace Python
 
         py::implicitly_convertible<py::buffer, DenseMatrix<double>>();
 
-
-      #ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
-        // This constructor is not supported by AMatrix
-        //cplx_matrix_binder.def(py::init<const ComplexMatrix::size_type, const ComplexMatrix::size_type, const ComplexMatrix::value_type >());
-        cplx_matrix_binder.def("fill", [](ComplexMatrix& self, const typename ComplexMatrix::value_type value) { self.fill(value); });
-        cplx_matrix_binder.def("fill_identity", [](ComplexMatrix& self) { self.fill_identity(); });
-      #else
         cplx_matrix_binder.def(py::init<const ComplexMatrix::size_type, const ComplexMatrix::size_type, const ComplexMatrix::value_type >());
         cplx_matrix_binder.def("fill", [](ComplexMatrix& self, const typename ComplexMatrix::value_type value) { noalias(self) = ComplexMatrix(self.size1(),self.size2(),value); });
         cplx_matrix_binder.def("fill_identity", [](ComplexMatrix& self) { noalias(self) = IdentityMatrix(self.size1()); });
-      #endif // KRATOS_USE_AMATRIX
         cplx_matrix_binder.def(py::init<const ComplexMatrix& >());
         cplx_matrix_binder.def("__mul__", [](const ComplexMatrix& m1, const ComplexVector& v){ return ComplexVector(prod(m1,v));}, py::is_operator());
         cplx_matrix_binder.def_buffer( [](ComplexMatrix& self)-> py::buffer_info{
@@ -244,7 +225,5 @@ namespace Python
 
     }
 
-}  // namespace Python.
-
-} // Namespace Kratos
+}  // namespace Kratos::Python.
 

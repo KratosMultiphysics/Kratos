@@ -12,7 +12,7 @@ class EmbeddedSolverDirichletCircleAnalysis(ConvectionDiffusionAnalysis):
         super().__init__(model, parameters)
 
     def ModifyInitialGeometry(self):
-        # Set the levelset function (circle of radius 1.0)
+        # Set the level set function (circle of radius 1.0)
         for node in self._GetSolver().GetComputingModelPart().Nodes:
             dist = 1.0 - math.sqrt((node.X)**2 + (node.Y)**2 + (node.Z)**2)
             node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, 0, dist)
@@ -25,10 +25,11 @@ class EmbeddedSolverDirichletCircleAnalysis(ConvectionDiffusionAnalysis):
             node.SetSolutionStepValue(KratosMultiphysics.HEAT_FLUX, 0, 1.0)
 
         # Set penalty coefficient
-        self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.ConvectionDiffusionApplication.PENALTY_DIRICHLET] = 1.0e0
+        self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.PENALTY_COEFFICIENT] = 1.0e0
         # Set boundary value for Nitsche imposition of DBC
         for elem in self._GetSolver().GetComputingModelPart().Elements:
             elem.SetValue(KratosMultiphysics.ConvectionDiffusionApplication.EMBEDDED_SCALAR, 0.0)
+
 
 @KratosUnittest.skipIfApplicationsNotAvailable("LinearSolversApplication")
 class TestEmbeddedSolver(KratosUnittest.TestCase):
@@ -47,6 +48,42 @@ class TestEmbeddedSolver(KratosUnittest.TestCase):
         # If required, add the output process to the test settings
         if self.print_output:
             self._addOutput()
+
+        # If required, add the reference values output process to the test settings
+        if self.print_reference_values:
+            self._addReferenceValuesOutput()
+        else:
+            self._addReferenceValuesCheck()
+
+    def _readAndCustomizeTestSettingsDistanceModification(self):
+        # Read the simulation settings
+        with KratosUnittest.WorkFolderScope(self.work_folder,__file__):
+            with open(self.file_name,'r') as parameter_file:
+                self.parameters = KratosMultiphysics.Parameters(parameter_file.read())
+        self.parameters["solver_settings"]["use_distance_modification"].SetBool(True)
+
+        # If required, add the output process to the test settings
+        if self.print_output:
+            self._addOutput()
+            self.parameters["output_processes"]["gid_output"][0]["Parameters"]["output_name"].SetString("square_distance_modification")
+
+        # If required, add the reference values output process to the test settings
+        if self.print_reference_values:
+            self._addReferenceValuesOutput()
+        else:
+            self._addReferenceValuesCheck()
+
+    def _readAndCustomizeTestSettingsMLSConstraints(self):
+        # Read the simulation settings
+        with KratosUnittest.WorkFolderScope(self.work_folder,__file__):
+            with open(self.file_name,'r') as parameter_file:
+                self.parameters = KratosMultiphysics.Parameters(parameter_file.read())
+        self.parameters["solver_settings"]["use_mls_constraints"].SetBool(True)
+
+        # If required, add the output process to the test settings
+        if self.print_output:
+            self._addOutput()
+            self.parameters["output_processes"]["gid_output"][0]["Parameters"]["output_name"].SetString("square_mls_constraints")
 
         # If required, add the reference values output process to the test settings
         if self.print_reference_values:
@@ -119,15 +156,43 @@ class TestEmbeddedSolver(KratosUnittest.TestCase):
         self.parameters["processes"]["json_check_process_list"].Append(json_check_settings)
 
     def tearDown(self):
-        with KratosUnittest.WorkFolderScope(self.work_folder, __file__):
-            KratosUtilities.DeleteFileIfExisting("square.post.bin")
-            KratosUtilities.DeleteFileIfExisting("test_convection_diffusion_embedded_solver.post.lst")
+        if not self.print_output:
+            with KratosUnittest.WorkFolderScope(self.work_folder, __file__):
+                KratosUtilities.DeleteFileIfExisting("square.post.bin")
+                KratosUtilities.DeleteFileIfExisting("square_distance_modification.post.bin")
+                KratosUtilities.DeleteFileIfExisting("square_mls_constraints.post.bin")
+                KratosUtilities.DeleteFileIfExisting("test_convection_diffusion_embedded_solver.post.lst")
+                KratosUtilities.DeleteFileIfExisting("test_convection_diffusion_embedded_solver_distance_modification.post.lst")
+                KratosUtilities.DeleteFileIfExisting("test_convection_diffusion_embedded_solver_mls_constraints.post.lst")
 
     def testEmbeddedSolverDirichletCircle(self):
         self.file_name = "ProjectParameters.json"
 
         self._readAndCustomizeTestSettings()
-        
+
+        # test solver without distance modification and without MLS constraints
+        with KratosUnittest.WorkFolderScope(self.work_folder,__file__):
+            self.model = KratosMultiphysics.Model()
+            embedded_simulation = EmbeddedSolverDirichletCircleAnalysis(self.model, self.parameters)
+            embedded_simulation.Run()
+
+    def testEmbeddedSolverDirichletCircleDistanceModification(self):
+        self.file_name = "ProjectParameters.json"
+
+        self._readAndCustomizeTestSettingsDistanceModification()
+
+        # test solver without distance modification and without MLS constraints
+        with KratosUnittest.WorkFolderScope(self.work_folder,__file__):
+            self.model = KratosMultiphysics.Model()
+            embedded_simulation = EmbeddedSolverDirichletCircleAnalysis(self.model, self.parameters)
+            embedded_simulation.Run()
+
+    def testEmbeddedSolverDirichletCircleMLSConstraints(self):
+        self.file_name = "ProjectParameters.json"
+
+        self._readAndCustomizeTestSettingsMLSConstraints()
+
+        # test solver without distance modification and without MLS constraints
         with KratosUnittest.WorkFolderScope(self.work_folder,__file__):
             self.model = KratosMultiphysics.Model()
             embedded_simulation = EmbeddedSolverDirichletCircleAnalysis(self.model, self.parameters)

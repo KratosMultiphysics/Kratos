@@ -4,27 +4,20 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Philipp Bucher (https://github.com/philbucher)
 //
 
-
-#if !defined(KRATOS_DISTRIBUTED_MODEL_PART_INITIALIZER_H_INCLUDED )
-#define  KRATOS_DISTRIBUTED_MODEL_PART_INITIALIZER_H_INCLUDED
-
+#pragma once
 
 // System includes
 
-
 // External includes
 
-
 // Project includes
-#include "includes/define.h"
 #include "includes/model_part.h"
-
 
 namespace Kratos
 {
@@ -58,8 +51,10 @@ public:
     /// Constructor.
     DistributedModelPartInitializer(
         ModelPart& rModelPart,
-        const int SourceRank)
+        const DataCommunicator& rDataComm,
+        int SourceRank)
         : mrModelPart(rModelPart),
+          mrDataComm(rDataComm),
           mSourceRank(SourceRank)
         { }
 
@@ -70,6 +65,8 @@ public:
     ///@name Operations
     ///@{
 
+    void CopySubModelPartStructure();
+
     void Execute();
 
     ///@}
@@ -79,6 +76,7 @@ private:
     ///@{
 
     ModelPart& mrModelPart;
+    const DataCommunicator& mrDataComm;
     int mSourceRank;
 
     ///@}
@@ -90,5 +88,3 @@ private:
 ///@} addtogroup block
 
 }  // namespace Kratos.
-
-#endif // KRATOS_DISTRIBUTED_MODEL_PART_INITIALIZER_H_INCLUDED defined

@@ -1,0 +1,255 @@
+{
+    "analysis_stage"             : "KratosMultiphysics.DamApplication.dam_analysis",
+    "problem_data"               : {
+        "problem_name"          : "construction",
+        "model_part_name"       : "MainModelPart",
+        "domain_size"           : 3,
+        "parallel_type"         : "OpenMP",
+        "number_of_threads"     : 4,
+        "start_time"            : 0.0,
+        "end_time"              : 18000,
+        "time_step"             : 3600,
+        "time_scale"            : "Seconds",
+        "consider_selfweight"   : false,
+        "consider_construction" : true,
+        "streamlines_utility"   : false
+    },
+    "solver_settings"            : {
+        "solver_type"                   : "dam_thermo_mechanic_solver",
+        "model_import_settings"         : {
+            "input_type"       : "mdpa",
+            "input_filename"   : "construction/construction",
+            "input_file_label" : 0
+        },
+        "echo_level"                    : 1,
+        "buffer_size"                   : 2,
+        "processes_sub_model_part_list" : ["DISPLACEMENT_Displacement_Auto1","INITIALTEMPERATURE_Temperature_Auto1","CONSTANTRESERVOIRTEMPERATURE_Reservoir_temperature:_Constant_Parts_Auto1","HydroSurfacePressure3D_Hydrostatic_Pressure_Parts_Auto1","HydroSurfacePressure3D_Hydrostatic_Pressure_Parts_Auto2","HydroSurfacePressure3D_Hydrostatic_Pressure_Parts_Auto3","ThermalParameters3D_Thermal_Parameters_Parts_Auto1","TAmbientFlux3D_T_Ambient_Heat_Flux_Parts_Auto1","TAmbientFlux3D_T_Ambient_Heat_Flux_Parts_Auto2","TAmbientFlux3D_T_Ambient_Heat_Flux_Parts_Auto3"],
+        "thermal_solver_settings"       : {
+            "echo_level"                         : 1,
+            "reform_dofs_at_each_step"           : true,
+            "clear_storage"                      : false,
+            "compute_reactions"                  : false,
+            "move_mesh_flag"                     : true,
+            "compute_norm_dx_flag"               : false,
+            "theta_scheme"                       : 1.0,
+            "block_builder"                      : true,
+            "linear_solver_settings"             : {
+                "solver_type"         : "bicgstab",
+                "max_iteration"       : 200,
+                "tolerance"           : 1e-7,
+                "preconditioner_type" : "ilu0",
+                "scaling"             : false
+            },
+            "problem_domain_sub_model_part_list" : ["Thermal_Parts_Auto1","Thermal_Parts_Auto2","Thermal_Parts_Auto3"],
+            "thermal_loads_sub_model_part_list"  : ["ThermalParameters3D_Thermal_Parameters_Parts_Auto1","TAmbientFlux3D_T_Ambient_Heat_Flux_Parts_Auto1","TAmbientFlux3D_T_Ambient_Heat_Flux_Parts_Auto2","TAmbientFlux3D_T_Ambient_Heat_Flux_Parts_Auto3"]
+        },
+        "mechanical_solver_settings"    : {
+            "solution_type"                        : "Quasi-Static",
+            "strategy_type"                        : "Newton-Raphson",
+            "scheme_type"                          : "Newmark",
+            "convergence_criterion"                : "And_criterion",
+            "displacement_relative_tolerance"      : 0.0001,
+            "displacement_absolute_tolerance"      : 1e-9,
+            "residual_relative_tolerance"          : 0.0001,
+            "residual_absolute_tolerance"          : 1e-9,
+            "max_iteration"                        : 10,
+            "echo_level"                           : 0,
+            "buffer_size"                          : 2,
+            "compute_reactions"                    : true,
+            "reform_dofs_at_each_step"             : false,
+            "move_mesh_flag"                       : true,
+            "block_builder"                        : true,
+            "clear_storage"                        : false,
+            "rayleigh_m"                           : 0.0,
+            "rayleigh_k"                           : 0.0,
+            "nonlocal_damage"                      : false,
+            "linear_solver_settings"               : {
+                "solver_type"         : "bicgstab",
+                "max_iteration"       : 200,
+                "tolerance"           : 1e-7,
+                "preconditioner_type" : "ilu0",
+                "scaling"             : false
+            },
+            "problem_domain_sub_model_part_list"   : ["Parts_Parts_Auto1","Parts_Parts_Auto2","Parts_Parts_Auto3"],
+            "body_domain_sub_model_part_list"      : ["Parts_Parts_Auto1","Parts_Parts_Auto2","Parts_Parts_Auto3"],
+            "mechanical_loads_sub_model_part_list" : ["HydroSurfacePressure3D_Hydrostatic_Pressure_Parts_Auto1","HydroSurfacePressure3D_Hydrostatic_Pressure_Parts_Auto2","HydroSurfacePressure3D_Hydrostatic_Pressure_Parts_Auto3"],
+            "loads_sub_model_part_list"            : [],
+            "loads_variable_list"                  : []
+        }
+    },
+    "output_configuration"       : {},
+    "constraints_process_list"   : [{
+        "python_module" : "apply_constraint_vector_dam_table_process",
+        "kratos_module" : "KratosMultiphysics.DamApplication",
+        "process_name"  : "ApplyConstraintVectorDamTableProcess",
+        "Parameters"    : {
+            "model_part_name" : "MainModelPart.DISPLACEMENT_Displacement_Auto1",
+            "variable_name"   : "DISPLACEMENT",
+            "interval"        : [0.0,0.0],
+            "is_fixed"        : [true,true,true],
+            "value"           : [0.0,0.0,0.0],
+            "Value_Table"     : [0,0,0]
+        }
+    },{
+        "python_module" : "impose_uniform_temperature_process",
+        "kratos_module" : "KratosMultiphysics.DamApplication",
+        "process_name"  : "ImposeUniformTemperatureProcess",
+        "Parameters"    : {
+            "model_part_name" : "MainModelPart.INITIALTEMPERATURE_Temperature_Auto1",
+            "variable_name"   : "TEMPERATURE",
+            "interval"        : [0.0,0.0],
+            "is_fixed"        : false,
+            "value"           : 8.3,
+            "table"           : 0
+        }
+    },{
+        "python_module" : "impose_reservoir_temperature_condition_process",
+        "kratos_module" : "KratosMultiphysics.DamApplication",
+        "process_name"  : "ImposeReservoirConstantTemperatureConditionProcess",
+        "Parameters"    : {
+            "model_part_name"                                  : "MainModelPart.CONSTANTRESERVOIRTEMPERATURE_Reservoir_temperature:_Constant_Parts_Auto1",
+            "variable_name"                                    : "TEMPERATURE",
+            "interval"                                         : [0.0,0.0],
+            "is_fixed"                                         : true,
+            "Gravity_Direction"                                : "Z",
+            "Reservoir_Bottom_Coordinate_in_Gravity_Direction" : 0.0,
+            "Water_temp"                                       : 0.0,
+            "Water_temp_Table"                                 : 3,
+            "Water_level"                                      : -1.0,
+            "Water_level_Table"                                : 1
+        }
+    }],
+    "loads_process_list"         : [{
+        "python_module" : "impose_water_loads_condition_process",
+        "kratos_module" : "KratosMultiphysics.DamApplication",
+        "process_name"  : "HydrostaticConditionsProcess",
+        "Parameters"    : {
+            "model_part_name"                                  : "MainModelPart.HydroSurfacePressure3D_Hydrostatic_Pressure_Parts_Auto1",
+            "variable_name"                                    : "POSITIVE_FACE_PRESSURE",
+            "interval"                                         : [0.0,0.0],
+            "Modify"                                           : true,
+            "Gravity_Direction"                                : "Z",
+            "Reservoir_Bottom_Coordinate_in_Gravity_Direction" : 0.0,
+            "Spe_weight"                                       : 10000,
+            "Water_level"                                      : 0.0,
+            "Water_Table"                                      : 1
+        }
+    },{
+        "python_module" : "impose_water_loads_condition_process",
+        "kratos_module" : "KratosMultiphysics.DamApplication",
+        "process_name"  : "HydrostaticConditionsProcess",
+        "Parameters"    : {
+            "model_part_name"                                  : "MainModelPart.HydroSurfacePressure3D_Hydrostatic_Pressure_Parts_Auto2",
+            "variable_name"                                    : "POSITIVE_FACE_PRESSURE",
+            "interval"                                         : [0.0,0.0],
+            "Modify"                                           : true,
+            "Gravity_Direction"                                : "Z",
+            "Reservoir_Bottom_Coordinate_in_Gravity_Direction" : 0.0,
+            "Spe_weight"                                       : 10000,
+            "Water_level"                                      : 0.0,
+            "Water_Table"                                      : 1
+        }
+    },{
+        "python_module" : "impose_water_loads_condition_process",
+        "kratos_module" : "KratosMultiphysics.DamApplication",
+        "process_name"  : "HydrostaticConditionsProcess",
+        "Parameters"    : {
+            "model_part_name"                                  : "MainModelPart.HydroSurfacePressure3D_Hydrostatic_Pressure_Parts_Auto3",
+            "variable_name"                                    : "POSITIVE_FACE_PRESSURE",
+            "interval"                                         : [0.0,0.0],
+            "Modify"                                           : true,
+            "Gravity_Direction"                                : "Z",
+            "Reservoir_Bottom_Coordinate_in_Gravity_Direction" : 0.0,
+            "Spe_weight"                                       : 10000,
+            "Water_level"                                      : 0.0,
+            "Water_Table"                                      : 1
+        }
+    },{
+        "python_module" : "impose_thermal_parameters_scalar_value_process",
+        "kratos_module" : "KratosMultiphysics.DamApplication",
+        "process_name"  : "ImposeThermalParametersScalarValueProcess",
+        "Parameters"    : {
+            "model_part_name" : "MainModelPart.ThermalParameters3D_Thermal_Parameters_Parts_Auto1",
+            "variable_name"   : "THERMAL_PARAMETERS",
+            "interval"        : [0.0,0.0],
+            "ThermalDensity"  : 2400,
+            "Conductivity"    : 2.2,
+            "SpecificHeat"    : 1000.0
+        }
+    },{
+        "python_module" : "impose_face_heat_flux_process",
+        "kratos_module" : "KratosMultiphysics.DamApplication",
+        "process_name"  : "ImposeTAmbientHeatFluxProcess",
+        "Parameters"    : {
+            "model_part_name"           : "MainModelPart.TAmbientFlux3D_T_Ambient_Heat_Flux_Parts_Auto1",
+            "variable_name"             : "FACE_HEAT_FLUX",
+            "interval"                  : [0.0,0.0],
+            "h_0"                       : 15.0,
+            "ambient_temperature"       : 8.3,
+            "table_ambient_temperature" : 2
+        }
+    },{
+        "python_module" : "impose_face_heat_flux_process",
+        "kratos_module" : "KratosMultiphysics.DamApplication",
+        "process_name"  : "ImposeTAmbientHeatFluxProcess",
+        "Parameters"    : {
+            "model_part_name"           : "MainModelPart.TAmbientFlux3D_T_Ambient_Heat_Flux_Parts_Auto2",
+            "variable_name"             : "FACE_HEAT_FLUX",
+            "interval"                  : [0.0,0.0],
+            "h_0"                       : 15.0,
+            "ambient_temperature"       : 10.0,
+            "table_ambient_temperature" : 2
+        }
+    },{
+        "python_module" : "impose_face_heat_flux_process",
+        "kratos_module" : "KratosMultiphysics.DamApplication",
+        "process_name"  : "ImposeTAmbientHeatFluxProcess",
+        "Parameters"    : {
+            "model_part_name"           : "MainModelPart.TAmbientFlux3D_T_Ambient_Heat_Flux_Parts_Auto3",
+            "variable_name"             : "FACE_HEAT_FLUX",
+            "interval"                  : [0.0,0.0],
+            "h_0"                       : 15.0,
+            "ambient_temperature"       : 10.0,
+            "table_ambient_temperature" : 2
+        }
+    }],
+    "construction_process"       : {
+        "gravity_direction"                                : "Z",
+        "reservoir_bottom_coordinate_in_gravity_direction" : 2.0,
+        "lift_height"                                      : 2.0,
+        "h_0"                                              : 15.0,
+        "aging"                                            : false,
+        "construction_input_file_name"                     : "construction/construction.txt",
+        "ambient_input_file_name"                          : "construction/ambient.txt",
+        "activate_soil_part"                               : true,
+        "name_soil_part"                                   : "Parts_Auto1",
+        "activate_existing_part"                           : true,
+        "name_existing_part"                               : "Parts_Auto2",
+        "activate_check_temperature"                       : false,
+        "maximum_temperature_increment"                    : 0,
+        "maximum_temperature"                              : 0,
+        "minimum_temperature"                              : 0,
+        "source_type"                                      : "Adiabatic",
+        "density"                                          : 2400.0,
+        "specific_heat"                                    : 1000.0,
+        "alpha"                                            : 5e-6,
+        "tmax"                                             : 25.0
+    },
+    "transfer_results_process"   : {
+        "save_intermediate_mechanical_variables" : false,
+        "save_intermediate_thermal_variables"    : false,
+        "save_intermediate_variables_step"       : 0,
+        "save_final_mechanical_variables"        : false,
+        "save_final_thermal_variables"           : false,
+        "add_previous_results"                   : false,
+        "type_of_results"                        : "Thermo-Mechanical",
+        "add_displacement"                       : false,
+        "add_stress"                             : false,
+        "add_temperature"                        : false,
+        "add_reference_temperature"              : false,
+        "file_name_mechanical"                   : "- No File -",
+        "file_name_thermal"                      : "- No File -"
+    },
+    "temperature_by_device_list" : [],
+    "output_device_list"         : []
+}

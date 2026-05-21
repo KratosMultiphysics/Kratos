@@ -52,15 +52,15 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(ModifiedShapeFunctions);
 
     // General type definitions
-    typedef Geometry < Node<3> >                                                                    GeometryType;
+    typedef Geometry < Node >                                                                    GeometryType;
     typedef GeometryType::Pointer                                                                   GeometryPointerType;
     typedef GeometryType::CoordinatesArrayType                                                      CoordinatesArrayType;
     typedef GeometryData::IntegrationMethod                                                         IntegrationMethodType;
     typedef GeometryData::ShapeFunctionsGradientsType                                               ShapeFunctionsGradientsType;
     typedef std::vector<array_1d<double,3>> AreaNormalsContainerType;
 
-    typedef DivideGeometry<Node<3>>::IndexedPointGeometryType                                                IndexedPointGeometryType;
-    typedef DivideGeometry<Node<3>>::IndexedPointGeometryPointerType                                         IndexedPointGeometryPointerType;
+    typedef DivideGeometry<Node>::IndexedPointGeometryType                                                IndexedPointGeometryType;
+    typedef DivideGeometry<Node>::IndexedPointGeometryPointerType                                         IndexedPointGeometryPointerType;
 
     typedef IntegrationPoint<3>                                                                     IntegrationPointType;
     typedef std::vector<IntegrationPointType>                                                       IntegrationPointsArrayType;
@@ -108,7 +108,7 @@ public:
     /**
     * Returns the member pointer to the splitting utility.
     */
-    virtual const DivideGeometry<Node<3>>::Pointer pGetSplittingUtil() const;
+    virtual const DivideGeometry<Node>::Pointer pGetSplittingUtil() const;
 
     /**
     * Returns a the member pointer to the input geometry.

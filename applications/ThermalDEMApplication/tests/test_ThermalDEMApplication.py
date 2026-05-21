@@ -1,29 +1,208 @@
-import KratosMultiphysics
-import KratosMultiphysics.DEMApplication
-import KratosMultiphysics.ThermalDEMApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-import SmallTests
-import NightTests
+from KratosMultiphysics import Logger
 
-KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
+# Import the tests to create the suits
+import test_TouchingSpheres3D
+import test_TouchingSphereWall3D
+import test_CollidingSpheres3D
+import test_CollidingSphereWall3D
+import test_PackingMonodisperse2D
+import test_PackingPolydisperse2D
+import test_ContainerMonodisperse3D
+import test_ContainerPolydisperse3D
 
 def AssembleTestSuites():
     # Suites to run
     suites = KratosUnittest.KratosSuites
+    smallSuite = suites['small']
+    nightSuite = suites['nightly']
+    allSuite   = suites['all']
     
-    # Small and nightly tests
-    small_suite = SmallTests.SetTestSuite(suites)
-    night_suite = NightTests.SetTestSuite(suites)
+    # Small tests
+    smallSuite.addTest(test_TouchingSpheres3D.TestCases('TouchingSpheres3D_Mixed_01'))
+    smallSuite.addTest(test_TouchingSpheres3D.TestCases('TouchingSpheres3D_ConductionDir_01'))
+    smallSuite.addTest(test_TouchingSpheres3D.TestCases('TouchingSpheres3D_ConductionDir_02'))
+    smallSuite.addTest(test_TouchingSpheres3D.TestCases('TouchingSpheres3D_ConductionDir_03'))
+    smallSuite.addTest(test_TouchingSpheres3D.TestCases('TouchingSpheres3D_ConductionDir_04'))
+    smallSuite.addTest(test_TouchingSpheres3D.TestCases('TouchingSpheres3D_ConductionDir_05'))
+    smallSuite.addTest(test_TouchingSpheres3D.TestCases('TouchingSpheres3D_ConductionIndir_01'))
+    smallSuite.addTest(test_TouchingSpheres3D.TestCases('TouchingSpheres3D_ConductionIndir_02'))
+    smallSuite.addTest(test_TouchingSpheres3D.TestCases('TouchingSpheres3D_ConductionIndir_03'))
+    smallSuite.addTest(test_TouchingSpheres3D.TestCases('TouchingSpheres3D_ConductionIndir_04'))
+    smallSuite.addTest(test_TouchingSpheres3D.TestCases('TouchingSpheres3D_Convection_01'))
+    smallSuite.addTest(test_TouchingSpheres3D.TestCases('TouchingSpheres3D_Convection_02'))
+    smallSuite.addTest(test_TouchingSpheres3D.TestCases('TouchingSpheres3D_Convection_03'))
+    smallSuite.addTest(test_TouchingSpheres3D.TestCases('TouchingSpheres3D_Convection_04'))
+    smallSuite.addTest(test_TouchingSpheres3D.TestCases('TouchingSpheres3D_Radiation_01'))
+    smallSuite.addTest(test_TouchingSpheres3D.TestCases('TouchingSpheres3D_Radiation_02'))
+    smallSuite.addTest(test_TouchingSpheres3D.TestCases('TouchingSpheres3D_ContactAdjust_01'))
+    smallSuite.addTest(test_TouchingSpheres3D.TestCases('TouchingSpheres3D_ContactAdjust_02'))
+    smallSuite.addTest(test_TouchingSpheres3D.TestCases('TouchingSpheres3D_ContactAdjust_03'))
     
-    # Include small suite in night suite
-    night_suite.addTests(small_suite)
+    smallSuite.addTest(test_TouchingSphereWall3D.TestCases('TouchingSphereWall3D_Mixed_01'))
+    smallSuite.addTest(test_TouchingSphereWall3D.TestCases('TouchingSphereWall3D_ConductionDir_01'))
+    smallSuite.addTest(test_TouchingSphereWall3D.TestCases('TouchingSphereWall3D_ConductionDir_02'))
+    smallSuite.addTest(test_TouchingSphereWall3D.TestCases('TouchingSphereWall3D_ConductionDir_03'))
+    smallSuite.addTest(test_TouchingSphereWall3D.TestCases('TouchingSphereWall3D_ConductionDir_04'))
+    smallSuite.addTest(test_TouchingSphereWall3D.TestCases('TouchingSphereWall3D_ConductionDir_05'))
+    smallSuite.addTest(test_TouchingSphereWall3D.TestCases('TouchingSphereWall3D_ConductionIndir_01'))
+    smallSuite.addTest(test_TouchingSphereWall3D.TestCases('TouchingSphereWall3D_ConductionIndir_02'))
+    smallSuite.addTest(test_TouchingSphereWall3D.TestCases('TouchingSphereWall3D_ConductionIndir_03'))
+    smallSuite.addTest(test_TouchingSphereWall3D.TestCases('TouchingSphereWall3D_ConductionIndir_04'))
+    smallSuite.addTest(test_TouchingSphereWall3D.TestCases('TouchingSphereWall3D_Convection_01'))
+    smallSuite.addTest(test_TouchingSphereWall3D.TestCases('TouchingSphereWall3D_Convection_02'))
+    smallSuite.addTest(test_TouchingSphereWall3D.TestCases('TouchingSphereWall3D_Convection_03'))
+    smallSuite.addTest(test_TouchingSphereWall3D.TestCases('TouchingSphereWall3D_Convection_04'))
+    smallSuite.addTest(test_TouchingSphereWall3D.TestCases('TouchingSphereWall3D_Radiation_01'))
+    smallSuite.addTest(test_TouchingSphereWall3D.TestCases('TouchingSphereWall3D_Radiation_02'))
+    smallSuite.addTest(test_TouchingSphereWall3D.TestCases('TouchingSphereWall3D_ContactAdjust_01'))
+    smallSuite.addTest(test_TouchingSphereWall3D.TestCases('TouchingSphereWall3D_ContactAdjust_02'))
+    smallSuite.addTest(test_TouchingSphereWall3D.TestCases('TouchingSphereWall3D_ContactAdjust_03'))
+
+    smallSuite.addTest(test_CollidingSpheres3D.TestCases('CollidingSpheres3D_Mixed_01'))
+    smallSuite.addTest(test_CollidingSpheres3D.TestCases('CollidingSpheres3D_ConductionDir_01'))
+    smallSuite.addTest(test_CollidingSpheres3D.TestCases('CollidingSpheres3D_ConductionDir_02'))
+    smallSuite.addTest(test_CollidingSpheres3D.TestCases('CollidingSpheres3D_ConductionDir_03'))
+    smallSuite.addTest(test_CollidingSpheres3D.TestCases('CollidingSpheres3D_ConductionDir_04'))
+    smallSuite.addTest(test_CollidingSpheres3D.TestCases('CollidingSpheres3D_ConductionDir_05'))
+    smallSuite.addTest(test_CollidingSpheres3D.TestCases('CollidingSpheres3D_ConductionIndir_01'))
+    smallSuite.addTest(test_CollidingSpheres3D.TestCases('CollidingSpheres3D_ConductionIndir_02'))
+    smallSuite.addTest(test_CollidingSpheres3D.TestCases('CollidingSpheres3D_ConductionIndir_03'))
+    smallSuite.addTest(test_CollidingSpheres3D.TestCases('CollidingSpheres3D_ConductionIndir_04'))
+    smallSuite.addTest(test_CollidingSpheres3D.TestCases('CollidingSpheres3D_Convection_01'))
+    smallSuite.addTest(test_CollidingSpheres3D.TestCases('CollidingSpheres3D_Convection_02'))
+    smallSuite.addTest(test_CollidingSpheres3D.TestCases('CollidingSpheres3D_Convection_03'))
+    smallSuite.addTest(test_CollidingSpheres3D.TestCases('CollidingSpheres3D_Convection_04'))
+    smallSuite.addTest(test_CollidingSpheres3D.TestCases('CollidingSpheres3D_Radiation_01'))
+    smallSuite.addTest(test_CollidingSpheres3D.TestCases('CollidingSpheres3D_Radiation_02'))
+    smallSuite.addTest(test_CollidingSpheres3D.TestCases('CollidingSpheres3D_ContactAdjust_01'))
+    smallSuite.addTest(test_CollidingSpheres3D.TestCases('CollidingSpheres3D_ContactAdjust_02'))
+    smallSuite.addTest(test_CollidingSpheres3D.TestCases('CollidingSpheres3D_ContactAdjust_03'))
+
+    smallSuite.addTest(test_CollidingSphereWall3D.TestCases('CollidingSphereWall3D_Mixed_01'))
+    smallSuite.addTest(test_CollidingSphereWall3D.TestCases('CollidingSphereWall3D_ConductionDir_01'))
+    smallSuite.addTest(test_CollidingSphereWall3D.TestCases('CollidingSphereWall3D_ConductionDir_02'))
+    smallSuite.addTest(test_CollidingSphereWall3D.TestCases('CollidingSphereWall3D_ConductionDir_03'))
+    smallSuite.addTest(test_CollidingSphereWall3D.TestCases('CollidingSphereWall3D_ConductionDir_04'))
+    smallSuite.addTest(test_CollidingSphereWall3D.TestCases('CollidingSphereWall3D_ConductionDir_05'))
+    smallSuite.addTest(test_CollidingSphereWall3D.TestCases('CollidingSphereWall3D_ConductionIndir_01'))
+    smallSuite.addTest(test_CollidingSphereWall3D.TestCases('CollidingSphereWall3D_ConductionIndir_02'))
+    smallSuite.addTest(test_CollidingSphereWall3D.TestCases('CollidingSphereWall3D_ConductionIndir_03'))
+    smallSuite.addTest(test_CollidingSphereWall3D.TestCases('CollidingSphereWall3D_ConductionIndir_04'))
+    smallSuite.addTest(test_CollidingSphereWall3D.TestCases('CollidingSphereWall3D_Convection_01'))
+    smallSuite.addTest(test_CollidingSphereWall3D.TestCases('CollidingSphereWall3D_Convection_02'))
+    smallSuite.addTest(test_CollidingSphereWall3D.TestCases('CollidingSphereWall3D_Convection_03'))
+    smallSuite.addTest(test_CollidingSphereWall3D.TestCases('CollidingSphereWall3D_Convection_04'))
+    smallSuite.addTest(test_CollidingSphereWall3D.TestCases('CollidingSphereWall3D_Radiation_01'))
+    smallSuite.addTest(test_CollidingSphereWall3D.TestCases('CollidingSphereWall3D_Radiation_02'))
+    smallSuite.addTest(test_CollidingSphereWall3D.TestCases('CollidingSphereWall3D_ContactAdjust_01'))
+    smallSuite.addTest(test_CollidingSphereWall3D.TestCases('CollidingSphereWall3D_ContactAdjust_02'))
+    smallSuite.addTest(test_CollidingSphereWall3D.TestCases('CollidingSphereWall3D_ContactAdjust_03'))
+
+    smallSuite.addTest(test_PackingMonodisperse2D.TestCases('PackingMonodisperse2D_Mixed_01'))
+    smallSuite.addTest(test_PackingMonodisperse2D.TestCases('PackingMonodisperse2D_Mixed_02'))
+    smallSuite.addTest(test_PackingMonodisperse2D.TestCases('PackingMonodisperse2D_ConductionDir_01'))
+    smallSuite.addTest(test_PackingMonodisperse2D.TestCases('PackingMonodisperse2D_ConductionDir_02'))
+    smallSuite.addTest(test_PackingMonodisperse2D.TestCases('PackingMonodisperse2D_ConductionDir_03'))
+    smallSuite.addTest(test_PackingMonodisperse2D.TestCases('PackingMonodisperse2D_ConductionDir_04'))
+    smallSuite.addTest(test_PackingMonodisperse2D.TestCases('PackingMonodisperse2D_ConductionDir_05'))
+    smallSuite.addTest(test_PackingMonodisperse2D.TestCases('PackingMonodisperse2D_ConductionIndir_01'))
+    smallSuite.addTest(test_PackingMonodisperse2D.TestCases('PackingMonodisperse2D_ConductionIndir_02'))
+    smallSuite.addTest(test_PackingMonodisperse2D.TestCases('PackingMonodisperse2D_ConductionIndir_03'))
+    smallSuite.addTest(test_PackingMonodisperse2D.TestCases('PackingMonodisperse2D_ConductionIndir_04'))
+    smallSuite.addTest(test_PackingMonodisperse2D.TestCases('PackingMonodisperse2D_Convection_01'))
+    smallSuite.addTest(test_PackingMonodisperse2D.TestCases('PackingMonodisperse2D_Convection_02'))
+    smallSuite.addTest(test_PackingMonodisperse2D.TestCases('PackingMonodisperse2D_Convection_03'))
+    smallSuite.addTest(test_PackingMonodisperse2D.TestCases('PackingMonodisperse2D_Convection_04'))
+    smallSuite.addTest(test_PackingMonodisperse2D.TestCases('PackingMonodisperse2D_Radiation_01'))
+    smallSuite.addTest(test_PackingMonodisperse2D.TestCases('PackingMonodisperse2D_Radiation_02'))
+    smallSuite.addTest(test_PackingMonodisperse2D.TestCases('PackingMonodisperse2D_ContactAdjust_01'))
+    smallSuite.addTest(test_PackingMonodisperse2D.TestCases('PackingMonodisperse2D_ContactAdjust_02'))
+    smallSuite.addTest(test_PackingMonodisperse2D.TestCases('PackingMonodisperse2D_ContactAdjust_03'))
+    smallSuite.addTest(test_PackingMonodisperse2D.TestCases('PackingMonodisperse2D_Porosity_01'))
+    smallSuite.addTest(test_PackingMonodisperse2D.TestCases('PackingMonodisperse2D_Porosity_02'))
+    smallSuite.addTest(test_PackingMonodisperse2D.TestCases('PackingMonodisperse2D_Porosity_03'))
+
+    smallSuite.addTest(test_PackingPolydisperse2D.TestCases('PackingPolydisperse2D_Mixed_01'))
+    smallSuite.addTest(test_PackingPolydisperse2D.TestCases('PackingPolydisperse2D_Mixed_02'))
+    smallSuite.addTest(test_PackingPolydisperse2D.TestCases('PackingPolydisperse2D_ConductionDir_01'))
+    smallSuite.addTest(test_PackingPolydisperse2D.TestCases('PackingPolydisperse2D_ConductionDir_02'))
+    smallSuite.addTest(test_PackingPolydisperse2D.TestCases('PackingPolydisperse2D_ConductionDir_03'))
+    smallSuite.addTest(test_PackingPolydisperse2D.TestCases('PackingPolydisperse2D_ConductionDir_04'))
+    smallSuite.addTest(test_PackingPolydisperse2D.TestCases('PackingPolydisperse2D_ConductionDir_05'))
+    smallSuite.addTest(test_PackingPolydisperse2D.TestCases('PackingPolydisperse2D_ConductionIndir_01'))
+    smallSuite.addTest(test_PackingPolydisperse2D.TestCases('PackingPolydisperse2D_ConductionIndir_02'))
+    smallSuite.addTest(test_PackingPolydisperse2D.TestCases('PackingPolydisperse2D_ConductionIndir_03'))
+    smallSuite.addTest(test_PackingPolydisperse2D.TestCases('PackingPolydisperse2D_ConductionIndir_04'))
+    smallSuite.addTest(test_PackingPolydisperse2D.TestCases('PackingPolydisperse2D_Convection_01'))
+    smallSuite.addTest(test_PackingPolydisperse2D.TestCases('PackingPolydisperse2D_Convection_02'))
+    smallSuite.addTest(test_PackingPolydisperse2D.TestCases('PackingPolydisperse2D_Convection_03'))
+    smallSuite.addTest(test_PackingPolydisperse2D.TestCases('PackingPolydisperse2D_Convection_04'))
+    smallSuite.addTest(test_PackingPolydisperse2D.TestCases('PackingPolydisperse2D_Radiation_01'))
+    smallSuite.addTest(test_PackingPolydisperse2D.TestCases('PackingPolydisperse2D_Radiation_02'))
+    smallSuite.addTest(test_PackingPolydisperse2D.TestCases('PackingPolydisperse2D_ContactAdjust_01'))
+    smallSuite.addTest(test_PackingPolydisperse2D.TestCases('PackingPolydisperse2D_ContactAdjust_02'))
+    smallSuite.addTest(test_PackingPolydisperse2D.TestCases('PackingPolydisperse2D_ContactAdjust_03'))
+    smallSuite.addTest(test_PackingPolydisperse2D.TestCases('PackingPolydisperse2D_Porosity_01'))
+    smallSuite.addTest(test_PackingPolydisperse2D.TestCases('PackingPolydisperse2D_Porosity_02'))
+    smallSuite.addTest(test_PackingPolydisperse2D.TestCases('PackingPolydisperse2D_Porosity_03'))
+
+    smallSuite.addTest(test_ContainerMonodisperse3D.TestCases('ContainerMonodisperse3D_Mixed_01'))
+    smallSuite.addTest(test_ContainerMonodisperse3D.TestCases('ContainerMonodisperse3D_Mixed_02'))
+    smallSuite.addTest(test_ContainerMonodisperse3D.TestCases('ContainerMonodisperse3D_ConductionDir_01'))
+    smallSuite.addTest(test_ContainerMonodisperse3D.TestCases('ContainerMonodisperse3D_ConductionDir_02'))
+    smallSuite.addTest(test_ContainerMonodisperse3D.TestCases('ContainerMonodisperse3D_ConductionDir_03'))
+    smallSuite.addTest(test_ContainerMonodisperse3D.TestCases('ContainerMonodisperse3D_ConductionDir_04'))
+    smallSuite.addTest(test_ContainerMonodisperse3D.TestCases('ContainerMonodisperse3D_ConductionDir_05'))
+    smallSuite.addTest(test_ContainerMonodisperse3D.TestCases('ContainerMonodisperse3D_ConductionIndir_01'))
+    smallSuite.addTest(test_ContainerMonodisperse3D.TestCases('ContainerMonodisperse3D_ConductionIndir_02'))
+    smallSuite.addTest(test_ContainerMonodisperse3D.TestCases('ContainerMonodisperse3D_ConductionIndir_03'))
+    smallSuite.addTest(test_ContainerMonodisperse3D.TestCases('ContainerMonodisperse3D_ConductionIndir_04'))
+    smallSuite.addTest(test_ContainerMonodisperse3D.TestCases('ContainerMonodisperse3D_Convection_01'))
+    smallSuite.addTest(test_ContainerMonodisperse3D.TestCases('ContainerMonodisperse3D_Convection_02'))
+    smallSuite.addTest(test_ContainerMonodisperse3D.TestCases('ContainerMonodisperse3D_Convection_03'))
+    smallSuite.addTest(test_ContainerMonodisperse3D.TestCases('ContainerMonodisperse3D_Convection_04'))
+    smallSuite.addTest(test_ContainerMonodisperse3D.TestCases('ContainerMonodisperse3D_Radiation_01'))
+    smallSuite.addTest(test_ContainerMonodisperse3D.TestCases('ContainerMonodisperse3D_Radiation_02'))
+    smallSuite.addTest(test_ContainerMonodisperse3D.TestCases('ContainerMonodisperse3D_ContactAdjust_01'))
+    smallSuite.addTest(test_ContainerMonodisperse3D.TestCases('ContainerMonodisperse3D_ContactAdjust_02'))
+    smallSuite.addTest(test_ContainerMonodisperse3D.TestCases('ContainerMonodisperse3D_ContactAdjust_03'))
+    smallSuite.addTest(test_ContainerMonodisperse3D.TestCases('ContainerMonodisperse3D_Porosity_01'))
+    smallSuite.addTest(test_ContainerMonodisperse3D.TestCases('ContainerMonodisperse3D_Porosity_02'))
+    smallSuite.addTest(test_ContainerMonodisperse3D.TestCases('ContainerMonodisperse3D_Porosity_03'))
+
+    smallSuite.addTest(test_ContainerPolydisperse3D.TestCases('ContainerPolydisperse3D_Mixed_01'))
+    smallSuite.addTest(test_ContainerPolydisperse3D.TestCases('ContainerPolydisperse3D_Mixed_02'))
+    smallSuite.addTest(test_ContainerPolydisperse3D.TestCases('ContainerPolydisperse3D_ConductionDir_01'))
+    smallSuite.addTest(test_ContainerPolydisperse3D.TestCases('ContainerPolydisperse3D_ConductionDir_02'))
+    smallSuite.addTest(test_ContainerPolydisperse3D.TestCases('ContainerPolydisperse3D_ConductionDir_03'))
+    smallSuite.addTest(test_ContainerPolydisperse3D.TestCases('ContainerPolydisperse3D_ConductionDir_04'))
+    smallSuite.addTest(test_ContainerPolydisperse3D.TestCases('ContainerPolydisperse3D_ConductionDir_05'))
+    smallSuite.addTest(test_ContainerPolydisperse3D.TestCases('ContainerPolydisperse3D_ConductionIndir_01'))
+    smallSuite.addTest(test_ContainerPolydisperse3D.TestCases('ContainerPolydisperse3D_ConductionIndir_02'))
+    smallSuite.addTest(test_ContainerPolydisperse3D.TestCases('ContainerPolydisperse3D_ConductionIndir_03'))
+    smallSuite.addTest(test_ContainerPolydisperse3D.TestCases('ContainerPolydisperse3D_ConductionIndir_04'))
+    smallSuite.addTest(test_ContainerPolydisperse3D.TestCases('ContainerPolydisperse3D_Convection_01'))
+    smallSuite.addTest(test_ContainerPolydisperse3D.TestCases('ContainerPolydisperse3D_Convection_02'))
+    smallSuite.addTest(test_ContainerPolydisperse3D.TestCases('ContainerPolydisperse3D_Convection_03'))
+    smallSuite.addTest(test_ContainerPolydisperse3D.TestCases('ContainerPolydisperse3D_Convection_04'))
+    smallSuite.addTest(test_ContainerPolydisperse3D.TestCases('ContainerPolydisperse3D_Radiation_01'))
+    smallSuite.addTest(test_ContainerPolydisperse3D.TestCases('ContainerPolydisperse3D_Radiation_02'))
+    smallSuite.addTest(test_ContainerPolydisperse3D.TestCases('ContainerPolydisperse3D_ContactAdjust_01'))
+    smallSuite.addTest(test_ContainerPolydisperse3D.TestCases('ContainerPolydisperse3D_ContactAdjust_02'))
+    smallSuite.addTest(test_ContainerPolydisperse3D.TestCases('ContainerPolydisperse3D_ContactAdjust_03'))
+    smallSuite.addTest(test_ContainerPolydisperse3D.TestCases('ContainerPolydisperse3D_Porosity_01'))
+    smallSuite.addTest(test_ContainerPolydisperse3D.TestCases('ContainerPolydisperse3D_Porosity_02'))
+    smallSuite.addTest(test_ContainerPolydisperse3D.TestCases('ContainerPolydisperse3D_Porosity_03'))
     
+    # Nightly tests
+    nightSuite.addTests(smallSuite)
+
     # All tests
-    all_suite = suites['all']
-    all_suite.addTests(night_suite)
-    
+    allSuite.addTests(nightSuite)
+
     return suites
 
 if __name__ == '__main__':
-    KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
+    Logger.GetDefaultOutput().SetSeverity(Logger.Severity.WARNING)
     KratosUnittest.runTests(AssembleTestSuites())

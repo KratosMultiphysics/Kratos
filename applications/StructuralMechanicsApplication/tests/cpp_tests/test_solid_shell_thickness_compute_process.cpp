@@ -3,8 +3,8 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
@@ -16,8 +16,8 @@
 
 // Project includes
 #include "containers/model.h"
-#include "testing/testing.h"
-#include "includes/checks.h"
+#include "structural_mechanics_fast_suite.h"
+#include "includes/expect.h"
 #include "geometries/prism_3d_6.h"
 
 /* Processes */
@@ -27,7 +27,7 @@ namespace Kratos
 {
     namespace Testing
     {
-        typedef Node<3> NodeType;
+        typedef Node NodeType;
 
         void SolidShellProcessCreateModelPart(ModelPart& ThisModelPart)
         {
@@ -69,7 +69,7 @@ namespace Kratos
             thickness_process.Execute();
 
             for (auto& node : this_model_part.Nodes())
-                KRATOS_CHECK_NEAR(node.GetValue(THICKNESS), 1.0, std::numeric_limits<double>::epsilon());
+                KRATOS_EXPECT_NEAR(node.GetValue(THICKNESS), 1.0, std::numeric_limits<double>::epsilon());
         }
 
     } // namespace Testing

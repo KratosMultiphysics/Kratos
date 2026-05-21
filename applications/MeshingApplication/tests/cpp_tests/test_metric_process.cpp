@@ -20,7 +20,7 @@
 // #include "includes/gid_io.h"
 #include "containers/model.h"
 #include "meshing_application_variables.h"
-#include "utilities/cpp_tests_utilities.h"
+#include "tests/test_utilities/cpp_tests_utilities.h"
 
 /* Processes */
 #include "processes/compute_nodal_gradient_process.h"
@@ -32,7 +32,7 @@ namespace Kratos
 {
     namespace Testing
     {
-        typedef Node<3> NodeType;
+        typedef Node NodeType;
 
 //         void GiDIODebugMetric(ModelPart& rModelPart)
 //         {
@@ -113,10 +113,10 @@ namespace Kratos
             ref_metric[0] = 100;
             ref_metric[1] = 100;
             ref_metric[2] = 0;
-            KRATOS_CHECK_LESS_EQUAL(norm_2(r_model_part.pGetNode(1)->GetValue(METRIC_TENSOR_2D) - ref_metric), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(norm_2(r_model_part.pGetNode(2)->GetValue(METRIC_TENSOR_2D) - ref_metric), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(norm_2(r_model_part.pGetNode(5)->GetValue(METRIC_TENSOR_2D) - ref_metric), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(norm_2(r_model_part.pGetNode(6)->GetValue(METRIC_TENSOR_2D) - ref_metric), tolerance);
+            KRATOS_EXPECT_LE(norm_2(r_model_part.pGetNode(1)->GetValue(METRIC_TENSOR_2D) - ref_metric), tolerance);
+            KRATOS_EXPECT_LE(norm_2(r_model_part.pGetNode(2)->GetValue(METRIC_TENSOR_2D) - ref_metric), tolerance);
+            KRATOS_EXPECT_LE(norm_2(r_model_part.pGetNode(5)->GetValue(METRIC_TENSOR_2D) - ref_metric), tolerance);
+            KRATOS_EXPECT_LE(norm_2(r_model_part.pGetNode(6)->GetValue(METRIC_TENSOR_2D) - ref_metric), tolerance);
         }
 
         /**
@@ -165,14 +165,14 @@ namespace Kratos
             ref_metric[0] = 100;
             ref_metric[1] = 100;
             ref_metric[2] = 100;
-            KRATOS_CHECK_LESS_EQUAL(norm_2(r_model_part.pGetNode(1)->GetValue(METRIC_TENSOR_3D) - ref_metric), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(norm_2(r_model_part.pGetNode(2)->GetValue(METRIC_TENSOR_3D) - ref_metric), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(norm_2(r_model_part.pGetNode(3)->GetValue(METRIC_TENSOR_3D) - ref_metric), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(norm_2(r_model_part.pGetNode(5)->GetValue(METRIC_TENSOR_3D) - ref_metric), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(norm_2(r_model_part.pGetNode(9)->GetValue(METRIC_TENSOR_3D) - ref_metric), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(norm_2(r_model_part.pGetNode(10)->GetValue(METRIC_TENSOR_3D) - ref_metric), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(norm_2(r_model_part.pGetNode(11)->GetValue(METRIC_TENSOR_3D) - ref_metric), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(norm_2(r_model_part.pGetNode(12)->GetValue(METRIC_TENSOR_3D) - ref_metric), tolerance);
+            KRATOS_EXPECT_LE(norm_2(r_model_part.pGetNode(1)->GetValue(METRIC_TENSOR_3D) - ref_metric), tolerance);
+            KRATOS_EXPECT_LE(norm_2(r_model_part.pGetNode(2)->GetValue(METRIC_TENSOR_3D) - ref_metric), tolerance);
+            KRATOS_EXPECT_LE(norm_2(r_model_part.pGetNode(3)->GetValue(METRIC_TENSOR_3D) - ref_metric), tolerance);
+            KRATOS_EXPECT_LE(norm_2(r_model_part.pGetNode(5)->GetValue(METRIC_TENSOR_3D) - ref_metric), tolerance);
+            KRATOS_EXPECT_LE(norm_2(r_model_part.pGetNode(9)->GetValue(METRIC_TENSOR_3D) - ref_metric), tolerance);
+            KRATOS_EXPECT_LE(norm_2(r_model_part.pGetNode(10)->GetValue(METRIC_TENSOR_3D) - ref_metric), tolerance);
+            KRATOS_EXPECT_LE(norm_2(r_model_part.pGetNode(11)->GetValue(METRIC_TENSOR_3D) - ref_metric), tolerance);
+            KRATOS_EXPECT_LE(norm_2(r_model_part.pGetNode(12)->GetValue(METRIC_TENSOR_3D) - ref_metric), tolerance);
         }
 
         KRATOS_TEST_CASE_IN_SUITE(LevelSetPiecewiseInterpolationMetricProcess, KratosMeshingApplicationFastSuite)
@@ -223,9 +223,9 @@ namespace Kratos
             array_1d<double, 3> ref_metric1{100.0, 100.0, 0.0};
             array_1d<double, 3> ref_metric2{4.0, 4.0, 0.0};
             array_1d<double, 3> ref_metric5{1.0, 1.0, 0.0};
-            KRATOS_CHECK_VECTOR_NEAR(r_model_part.pGetNode(1)->GetValue(METRIC_TENSOR_2D), ref_metric1, tolerance);
-            KRATOS_CHECK_VECTOR_NEAR(r_model_part.pGetNode(2)->GetValue(METRIC_TENSOR_2D), ref_metric2, tolerance);
-            KRATOS_CHECK_VECTOR_NEAR(r_model_part.pGetNode(5)->GetValue(METRIC_TENSOR_2D), ref_metric5, tolerance);
+            KRATOS_EXPECT_VECTOR_NEAR(r_model_part.pGetNode(1)->GetValue(METRIC_TENSOR_2D), ref_metric1, tolerance);
+            KRATOS_EXPECT_VECTOR_NEAR(r_model_part.pGetNode(2)->GetValue(METRIC_TENSOR_2D), ref_metric2, tolerance);
+            KRATOS_EXPECT_VECTOR_NEAR(r_model_part.pGetNode(5)->GetValue(METRIC_TENSOR_2D), ref_metric5, tolerance);
         }
 
         /**
@@ -269,10 +269,10 @@ namespace Kratos
             ref_metric[0] = 100;
             ref_metric[1] = 100;
             ref_metric[2] = 0;
-            KRATOS_CHECK_LESS_EQUAL(norm_2(r_model_part.pGetNode(1)->GetValue(METRIC_TENSOR_2D) - ref_metric), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(norm_2(r_model_part.pGetNode(2)->GetValue(METRIC_TENSOR_2D) - ref_metric), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(norm_2(r_model_part.pGetNode(5)->GetValue(METRIC_TENSOR_2D) - ref_metric), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(norm_2(r_model_part.pGetNode(6)->GetValue(METRIC_TENSOR_2D) - ref_metric), tolerance);
+            KRATOS_EXPECT_LE(norm_2(r_model_part.pGetNode(1)->GetValue(METRIC_TENSOR_2D) - ref_metric), tolerance);
+            KRATOS_EXPECT_LE(norm_2(r_model_part.pGetNode(2)->GetValue(METRIC_TENSOR_2D) - ref_metric), tolerance);
+            KRATOS_EXPECT_LE(norm_2(r_model_part.pGetNode(5)->GetValue(METRIC_TENSOR_2D) - ref_metric), tolerance);
+            KRATOS_EXPECT_LE(norm_2(r_model_part.pGetNode(6)->GetValue(METRIC_TENSOR_2D) - ref_metric), tolerance);
 
             // Compute metric
             parameters = Parameters(R"({
@@ -286,10 +286,10 @@ namespace Kratos
 //             // DEBUG
 //             GiDIODebugMetric(r_model_part);
 
-            KRATOS_CHECK_VECTOR_RELATIVE_NEAR(r_model_part.pGetNode(1)->GetValue(METRIC_TENSOR_2D), ref_metric, tolerance);
-            KRATOS_CHECK_VECTOR_RELATIVE_NEAR(r_model_part.pGetNode(2)->GetValue(METRIC_TENSOR_2D), ref_metric, tolerance);
-            KRATOS_CHECK_VECTOR_RELATIVE_NEAR(r_model_part.pGetNode(5)->GetValue(METRIC_TENSOR_2D), ref_metric, tolerance);
-            KRATOS_CHECK_VECTOR_RELATIVE_NEAR(r_model_part.pGetNode(6)->GetValue(METRIC_TENSOR_2D), ref_metric, tolerance);
+            KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(r_model_part.pGetNode(1)->GetValue(METRIC_TENSOR_2D), ref_metric, tolerance);
+            KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(r_model_part.pGetNode(2)->GetValue(METRIC_TENSOR_2D), ref_metric, tolerance);
+            KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(r_model_part.pGetNode(5)->GetValue(METRIC_TENSOR_2D), ref_metric, tolerance);
+            KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(r_model_part.pGetNode(6)->GetValue(METRIC_TENSOR_2D), ref_metric, tolerance);
 
             // Compute metric
             parameters = Parameters(R"({
@@ -303,10 +303,10 @@ namespace Kratos
 //             // DEBUG
 //             GiDIODebugMetric(r_model_part);
 
-            KRATOS_CHECK_VECTOR_RELATIVE_NEAR(r_model_part.pGetNode(1)->GetValue(METRIC_TENSOR_2D), ref_metric, tolerance);
-            KRATOS_CHECK_VECTOR_RELATIVE_NEAR(r_model_part.pGetNode(2)->GetValue(METRIC_TENSOR_2D), ref_metric, tolerance);
-            KRATOS_CHECK_VECTOR_RELATIVE_NEAR(r_model_part.pGetNode(5)->GetValue(METRIC_TENSOR_2D), ref_metric, tolerance);
-            KRATOS_CHECK_VECTOR_RELATIVE_NEAR(r_model_part.pGetNode(6)->GetValue(METRIC_TENSOR_2D), ref_metric, tolerance);
+            KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(r_model_part.pGetNode(1)->GetValue(METRIC_TENSOR_2D), ref_metric, tolerance);
+            KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(r_model_part.pGetNode(2)->GetValue(METRIC_TENSOR_2D), ref_metric, tolerance);
+            KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(r_model_part.pGetNode(5)->GetValue(METRIC_TENSOR_2D), ref_metric, tolerance);
+            KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(r_model_part.pGetNode(6)->GetValue(METRIC_TENSOR_2D), ref_metric, tolerance);
         }
 
         /**
@@ -350,14 +350,14 @@ namespace Kratos
             ref_metric[0] = 100;
             ref_metric[1] = 100;
             ref_metric[2] = 100;
-            KRATOS_CHECK_LESS_EQUAL(norm_2(r_model_part.pGetNode(1)->GetValue(METRIC_TENSOR_3D) - ref_metric), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(norm_2(r_model_part.pGetNode(2)->GetValue(METRIC_TENSOR_3D) - ref_metric), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(norm_2(r_model_part.pGetNode(3)->GetValue(METRIC_TENSOR_3D) - ref_metric), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(norm_2(r_model_part.pGetNode(5)->GetValue(METRIC_TENSOR_3D) - ref_metric), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(norm_2(r_model_part.pGetNode(9)->GetValue(METRIC_TENSOR_3D) - ref_metric), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(norm_2(r_model_part.pGetNode(10)->GetValue(METRIC_TENSOR_3D) - ref_metric), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(norm_2(r_model_part.pGetNode(11)->GetValue(METRIC_TENSOR_3D) - ref_metric), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(norm_2(r_model_part.pGetNode(12)->GetValue(METRIC_TENSOR_3D) - ref_metric), tolerance);
+            KRATOS_EXPECT_LE(norm_2(r_model_part.pGetNode(1)->GetValue(METRIC_TENSOR_3D) - ref_metric), tolerance);
+            KRATOS_EXPECT_LE(norm_2(r_model_part.pGetNode(2)->GetValue(METRIC_TENSOR_3D) - ref_metric), tolerance);
+            KRATOS_EXPECT_LE(norm_2(r_model_part.pGetNode(3)->GetValue(METRIC_TENSOR_3D) - ref_metric), tolerance);
+            KRATOS_EXPECT_LE(norm_2(r_model_part.pGetNode(5)->GetValue(METRIC_TENSOR_3D) - ref_metric), tolerance);
+            KRATOS_EXPECT_LE(norm_2(r_model_part.pGetNode(9)->GetValue(METRIC_TENSOR_3D) - ref_metric), tolerance);
+            KRATOS_EXPECT_LE(norm_2(r_model_part.pGetNode(10)->GetValue(METRIC_TENSOR_3D) - ref_metric), tolerance);
+            KRATOS_EXPECT_LE(norm_2(r_model_part.pGetNode(11)->GetValue(METRIC_TENSOR_3D) - ref_metric), tolerance);
+            KRATOS_EXPECT_LE(norm_2(r_model_part.pGetNode(12)->GetValue(METRIC_TENSOR_3D) - ref_metric), tolerance);
         }
 
         /**
@@ -420,8 +420,8 @@ namespace Kratos
 //             GiDIODebugMetricSPR(r_model_part);
 
             const double tolerance = 1.0e-4;
-            KRATOS_CHECK_LESS_EQUAL(r_model_part.pGetNode(2)->GetValue(METRIC_SCALAR) - std::sqrt(1.0/246.507)/r_model_part.pGetNode(2)->GetValue(METRIC_SCALAR), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(r_model_part.pGetNode(3)->GetValue(METRIC_SCALAR) - std::sqrt(1.0/246.507)/r_model_part.pGetNode(3)->GetValue(METRIC_SCALAR), tolerance);
+            KRATOS_EXPECT_LE(r_model_part.pGetNode(2)->GetValue(METRIC_SCALAR) - std::sqrt(1.0/246.507)/r_model_part.pGetNode(2)->GetValue(METRIC_SCALAR), tolerance);
+            KRATOS_EXPECT_LE(r_model_part.pGetNode(3)->GetValue(METRIC_SCALAR) - std::sqrt(1.0/246.507)/r_model_part.pGetNode(3)->GetValue(METRIC_SCALAR), tolerance);
         }
 
         /**
@@ -484,10 +484,10 @@ namespace Kratos
 //             GiDIODebugMetricSPR(r_model_part);
 
             const double tolerance = 1.0e-4;
-            KRATOS_CHECK_LESS_EQUAL(r_model_part.pGetNode(3)->GetValue(METRIC_SCALAR) - std::sqrt(1.0/(0.4807502774165066 * 4190.45))/r_model_part.pGetNode(3)->GetValue(METRIC_SCALAR), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(r_model_part.pGetNode(6)->GetValue(METRIC_SCALAR) - std::sqrt(1.0/4190.45)/r_model_part.pGetNode(6)->GetValue(METRIC_SCALAR), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(r_model_part.pGetNode(7)->GetValue(METRIC_SCALAR) - std::sqrt(1.0/4190.45)/r_model_part.pGetNode(7)->GetValue(METRIC_SCALAR), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(r_model_part.pGetNode(8)->GetValue(METRIC_SCALAR) - std::sqrt(1.0/4190.45)/r_model_part.pGetNode(8)->GetValue(METRIC_SCALAR), tolerance);
+            KRATOS_EXPECT_LE(r_model_part.pGetNode(3)->GetValue(METRIC_SCALAR) - std::sqrt(1.0/(0.4807502774165066 * 4190.45))/r_model_part.pGetNode(3)->GetValue(METRIC_SCALAR), tolerance);
+            KRATOS_EXPECT_LE(r_model_part.pGetNode(6)->GetValue(METRIC_SCALAR) - std::sqrt(1.0/4190.45)/r_model_part.pGetNode(6)->GetValue(METRIC_SCALAR), tolerance);
+            KRATOS_EXPECT_LE(r_model_part.pGetNode(7)->GetValue(METRIC_SCALAR) - std::sqrt(1.0/4190.45)/r_model_part.pGetNode(7)->GetValue(METRIC_SCALAR), tolerance);
+            KRATOS_EXPECT_LE(r_model_part.pGetNode(8)->GetValue(METRIC_SCALAR) - std::sqrt(1.0/4190.45)/r_model_part.pGetNode(8)->GetValue(METRIC_SCALAR), tolerance);
         }
     } // namespace Testing
 }  // namespace Kratos.

@@ -270,7 +270,7 @@ void DistanceModificationProcess::ModifyDistance()
         }
     }
 
-    // Syncronize data between partitions (the modified distance has always a lower value)
+    // Synchronize data between partitions (the modified distance has always a lower value)
     mrModelPart.GetCommunicator().SynchronizeCurrentDataToMin(DISTANCE);
 
     // Update the TO_SPLIT flag
@@ -482,7 +482,7 @@ void DistanceModificationProcess::RecoverOriginalDistance()
         mrModelPart.GetNode(node_id).FastGetSolutionStepValue(DISTANCE) = mModifiedDistancesValues[i];
     }
 
-    // Syncronize data between partitions (the modified distance has always a lower value)
+    // Synchronize data between partitions (the modified distance has always a lower value)
     mrModelPart.GetCommunicator().SynchronizeCurrentDataToMin(DISTANCE);
 
     // Empty the modified distance vectors

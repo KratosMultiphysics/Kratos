@@ -19,14 +19,12 @@
               "DYNAMIC_VISCOSITY"        :  1.0e-3,
               "UDSM_NAME"                :  "../../MohrCoulombUMAT.dll",
               "IS_FORTRAN_UDSM"          :  true,
-              "NUMBER_OF_UMAT_PARAMETERS":  6,
               "UMAT_PARAMETERS"          :  [30000000,
                                              0.2,
                                              1000.0,
                                              30,
                                              0.0,
                                              1000],
-              "NUMBER_OF_UMAT_STATE_VARIABLES":  1,
               "STATE_VARIABLES"         :  [0.0]
          },
          "Tables": {}
@@ -51,14 +49,12 @@
               "DYNAMIC_VISCOSITY"        :  1.0e-3,
               "UDSM_NAME"                :  "../../MohrCoulombUMAT.dll",
               "IS_FORTRAN_UDSM"          :  true,
-              "NUMBER_OF_UMAT_PARAMETERS":  6,
               "UMAT_PARAMETERS"          :  [10000000,
                                              0.2,
                                              5000,
                                              20,
                                              0.0,
                                              1000],
-              "NUMBER_OF_UMAT_STATE_VARIABLES":  1,
               "STATE_VARIABLES"         :  [0.0]
          },
          "Tables": {}

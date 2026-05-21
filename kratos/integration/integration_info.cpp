@@ -51,8 +51,8 @@ namespace Kratos
     }
 
     IntegrationInfo::IntegrationInfo(
-        std::vector<SizeType> NumberOfIntegrationPointsPerSpanVector,
-        std::vector<QuadratureMethod> ThisQuadratureMethodVector)
+        const std::vector<SizeType>& NumberOfIntegrationPointsPerSpanVector,
+        const std::vector<QuadratureMethod>& ThisQuadratureMethodVector)
         : mNumberOfIntegrationPointsPerSpanVector(NumberOfIntegrationPointsPerSpanVector),
           mQuadratureMethodVector(ThisQuadratureMethodVector)
     {
@@ -109,6 +109,10 @@ namespace Kratos
         case IntegrationMethod::GI_EXTENDED_GAUSS_5:
             mNumberOfIntegrationPointsPerSpanVector[DimensionIndex] = 5;
             mQuadratureMethodVector[DimensionIndex] = QuadratureMethod::EXTENDED_GAUSS;
+            break;
+        case IntegrationMethod::GI_LOBATTO_1:
+            mNumberOfIntegrationPointsPerSpanVector[DimensionIndex] = 2;
+            mQuadratureMethodVector[DimensionIndex] = QuadratureMethod::LOBATTO;
             break;
         case IntegrationMethod::NumberOfIntegrationMethods:
             mNumberOfIntegrationPointsPerSpanVector[DimensionIndex] = 0;

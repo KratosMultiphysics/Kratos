@@ -130,7 +130,7 @@ namespace Kratos
 	    {
 	      if (im->FastGetSolutionStepValue(IS_INTERFACE) != 0.0 && im->FastGetSolutionStepValue(IS_LAGRANGIAN_INLET) < 1e-15)
 	      {
-		GlobalPointersVector< Node<3> >& neighb = im->GetValue(NEIGHBOUR_NODES);
+		GlobalPointersVector< Node >& neighb = im->GetValue(NEIGHBOUR_NODES);
 		x0 = im->X();
 		y0 = im->Y();
 		neighnum = 0;
@@ -231,7 +231,7 @@ namespace Kratos
 		array_1d<double,2> n1 = ZeroVector(2);
 		array_1d<double,2> struct_dist = ZeroVector(2);
 		double dist_struct = 0.0;
-		GlobalPointersVector< Node<3> >& neighb = im->GetValue(NEIGHBOUR_NODES);
+		GlobalPointersVector< Node >& neighb = im->GetValue(NEIGHBOUR_NODES);
 		for (unsigned int i = 0; i < neighb.size(); i++)
 		{
 		  if (neighb[i].FastGetSolutionStepValue(IS_INTERFACE) != 0.0)
@@ -449,7 +449,7 @@ namespace Kratos
 	      {
 		double neigh_fs = 0.0;
 		double mean_curv = 0.0;
-		GlobalPointersVector< Node<3> >& neighb = im->GetValue(NEIGHBOUR_NODES);
+		GlobalPointersVector< Node >& neighb = im->GetValue(NEIGHBOUR_NODES);
 		for (unsigned int i = 0; i < neighb.size(); i++)
 		{
 		  if (neighb[i].FastGetSolutionStepValue(IS_FREE_SURFACE) != 0.0)
@@ -486,7 +486,7 @@ namespace Kratos
 		double yk = 0.0;
 		
 		int neighnum = 0;
-		GlobalPointersVector< Node<3> >& neighb = im->GetValue(NEIGHBOUR_NODES);
+		GlobalPointersVector< Node >& neighb = im->GetValue(NEIGHBOUR_NODES);
 		for (unsigned int i = 0; i < neighb.size(); i++)
 		{
 		    if (neighb[i].FastGetSolutionStepValue(TRIPLE_POINT) != 0.0)
@@ -567,7 +567,7 @@ namespace Kratos
 		//double L = 0.0;
 		array_1d<double,6> terms_func = ZeroVector(6);
 		array_1d<double,10> terms_func_der = ZeroVector(10);
-		GlobalPointersVector< Node<3> >& neighb = im->GetValue(NEIGHBOUR_NODES);
+		GlobalPointersVector< Node >& neighb = im->GetValue(NEIGHBOUR_NODES);
 		array_1d<double,3> dij = ZeroVector(3);
 		
 		double kappa_H = im->FastGetSolutionStepValue(MEAN_CURVATURE_3D);
@@ -1209,7 +1209,7 @@ namespace Kratos
       }
     }
     
-    bool GetNeighbours(array_1d<double,2> n_node,GlobalPointersVector< Node<3> >& neighb,double& x1,double& y1,double& x2,double& y2, int& i_neck, int& neighnum)
+    bool GetNeighbours(array_1d<double,2> n_node,GlobalPointersVector< Node >& neighb,double& x1,double& y1,double& x2,double& y2, int& i_neck, int& neighnum)
     {
       bool neck = false;
       double theta = 0.0;

@@ -7,14 +7,12 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:  Josep Maria Carbonell
+//  Main authors:    Josep Maria Carbonell
 //
-
 
 // System includes
 
 // External includes
-
 
 // Project includes
 #include "includes/define_python.h"
@@ -24,11 +22,8 @@
 
 //commented variables are registered in add_containers_to_python.cpp
 
-namespace Kratos
+namespace Kratos::Python
 {
-
-  namespace Python
-  {
     namespace py = pybind11;
 
     void  AddMATVariablesToPython(pybind11::module& m)
@@ -150,8 +145,9 @@ namespace Kratos
       KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, INITIAL_STRAIN_VECTOR )
       KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, INITIAL_STRESS_VECTOR )
       KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, INITIAL_DEFORMATION_GRADIENT_MATRIX )
+
+      KRATOS_REGISTER_IN_PYTHON_SYMMETRIC_3D_TENSOR_VARIABLE_WITH_COMPONENTS(m, STRAIN_VECTOR)
     }
-  }  // namespace Python.
-} // Namespace Kratos
+} // Namespace Kratos::Python.
 
 

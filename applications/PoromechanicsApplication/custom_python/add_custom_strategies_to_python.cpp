@@ -24,11 +24,12 @@
 //builders and solvers
 
 //schemes
-#include "custom_strategies/schemes/newmark_quasistatic_U_Pw_scheme.hpp"
-#include "custom_strategies/schemes/newmark_quasistatic_damped_U_Pw_scheme.hpp"
-#include "custom_strategies/schemes/newmark_dynamic_U_Pw_scheme.hpp"
-#include "custom_strategies/schemes/poro_explicit_cd_scheme.hpp"
-#include "custom_strategies/schemes/poro_explicit_vv_scheme.hpp"
+#include "custom_strategies/schemes/one-phase_flow/poro_explicit_cd_scheme.hpp"
+#include "custom_strategies/schemes/one-phase_flow/poro_explicit_vv_scheme.hpp"
+
+#include "custom_strategies/schemes/one-phase_flow/poro_newmark_quasistatic_U_Pl_scheme.hpp"
+#include "custom_strategies/schemes/one-phase_flow/poro_newmark_quasistatic_damped_U_Pl_scheme.hpp"
+#include "custom_strategies/schemes/one-phase_flow/poro_newmark_dynamic_U_Pl_scheme.hpp"
 
 //linear solvers
 #include "linear_solvers/linear_solver.h"
@@ -53,11 +54,12 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverType;
     typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > ConvergenceCriteriaType;
 
-    typedef NewmarkQuasistaticUPwScheme< SparseSpaceType, LocalSpaceType >  NewmarkQuasistaticUPwSchemeType;
-    typedef NewmarkQuasistaticDampedUPwScheme< SparseSpaceType, LocalSpaceType >  NewmarkQuasistaticDampedUPwSchemeType;
-    typedef NewmarkDynamicUPwScheme< SparseSpaceType, LocalSpaceType >  NewmarkDynamicUPwSchemeType;
     typedef PoroExplicitCDScheme< SparseSpaceType, LocalSpaceType >  PoroExplicitCDSchemeType;
     typedef PoroExplicitVVScheme< SparseSpaceType, LocalSpaceType >  PoroExplicitVVSchemeType;
+
+    typedef PoroNewmarkQuasistaticUPlScheme< SparseSpaceType, LocalSpaceType >  PoroNewmarkQuasistaticUPlSchemeType;
+    typedef PoroNewmarkQuasistaticDampedUPlScheme< SparseSpaceType, LocalSpaceType >  PoroNewmarkQuasistaticDampedUPlSchemeType;
+    typedef PoroNewmarkDynamicUPlScheme< SparseSpaceType, LocalSpaceType >  PoroNewmarkDynamicUPlSchemeType;
 
     typedef PoromechanicsNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > PoromechanicsNewtonRaphsonStrategyType;
     typedef PoromechanicsRammArcLengthStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > PoromechanicsRammArcLengthStrategyType;
@@ -68,21 +70,22 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    py::class_< NewmarkQuasistaticUPwSchemeType, typename NewmarkQuasistaticUPwSchemeType::Pointer, BaseSchemeType >
-    (m, "NewmarkQuasistaticUPwScheme")
-    .def( py::init<  double, double, double >());
-    py::class_< NewmarkQuasistaticDampedUPwSchemeType, typename NewmarkQuasistaticDampedUPwSchemeType::Pointer, BaseSchemeType >
-    (m, "NewmarkQuasistaticDampedUPwScheme")
-    .def( py::init<  double, double, double >());
-    py::class_< NewmarkDynamicUPwSchemeType,typename NewmarkDynamicUPwSchemeType::Pointer, BaseSchemeType >
-    (m, "NewmarkDynamicUPwScheme")
-    .def( py::init<  double, double, double >());
     py::class_< PoroExplicitCDSchemeType,typename PoroExplicitCDSchemeType::Pointer, BaseSchemeType >
     (m,"PoroExplicitCDScheme")
     .def(py::init< >());
     py::class_< PoroExplicitVVSchemeType,typename PoroExplicitVVSchemeType::Pointer, BaseSchemeType >
     (m,"PoroExplicitVVScheme")
     .def(py::init< >());
+    
+    py::class_< PoroNewmarkQuasistaticUPlSchemeType, typename PoroNewmarkQuasistaticUPlSchemeType::Pointer, BaseSchemeType >
+    (m, "PoroNewmarkQuasistaticUPlScheme")
+    .def( py::init<  double, double, double, double >());
+    py::class_< PoroNewmarkQuasistaticDampedUPlSchemeType, typename PoroNewmarkQuasistaticDampedUPlSchemeType::Pointer, BaseSchemeType >
+    (m, "PoroNewmarkQuasistaticDampedUPlScheme")
+    .def( py::init<  double, double, double, double >());
+    py::class_< PoroNewmarkDynamicUPlSchemeType,typename PoroNewmarkDynamicUPlSchemeType::Pointer, BaseSchemeType >
+    (m, "PoroNewmarkDynamicUPlScheme")
+    .def( py::init<  double, double, double, double >());
 
     py::class_< PoromechanicsNewtonRaphsonStrategyType, typename PoromechanicsNewtonRaphsonStrategyType::Pointer, BaseSolvingStrategyType >
     (m, "PoromechanicsNewtonRaphsonStrategy")
@@ -110,5 +113,5 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
 }
 
-}  // namespace Python.
+} // namespace Python.
 } // Namespace Kratos

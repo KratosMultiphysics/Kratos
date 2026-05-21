@@ -4,10 +4,10 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
-//  Main authors:
+//  Main authors:    Michael Andre
 //
 
 // System includes
@@ -20,10 +20,7 @@
 #include "response_functions/adjoint_response_function.h"
 #include "includes/model_part.h"
 
-namespace Kratos
-{
-
-namespace Python
+namespace Kratos::Python
 {
 
 class PyAdjointResponseFunction : public AdjointResponseFunction
@@ -69,6 +66,4 @@ void AddResponseFunctionsToPython(pybind11::module& m)
         ;
 }
 
-}  // namespace Python.
-
-} // Namespace Kratos
+}  // namespace Kratos::Python.

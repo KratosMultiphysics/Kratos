@@ -804,7 +804,7 @@ def _set_up_dynamic_solver(mp):
                                                                     reform_step_dofs,
                                                                     move_mesh_flag)
     strategy.SetEchoLevel(0)
-
+    strategy.Initialize()
     strategy.Check()
     return strategy
 

@@ -70,8 +70,8 @@ namespace Kratos
         if (rParameters["geometry_type"].GetString() == "NurbsSurface") {
             for (IndexType n = 0; n < geometry_list.size(); ++n) {
                 auto p_nurbs_surface = (geometry_list[n].size() > 0)
-                    ? dynamic_pointer_cast<NurbsSurfaceGeometry<3, PointerVector<Node<3>>>>(geometry_list(n))
-                    : dynamic_pointer_cast<NurbsSurfaceGeometry<3, PointerVector<Node<3>>>>(geometry_list(n)->pGetGeometryPart(GeometryType::BACKGROUND_GEOMETRY_INDEX));
+                    ? dynamic_pointer_cast<NurbsSurfaceGeometry<3, PointerVector<Node>>>(geometry_list(n))
+                    : dynamic_pointer_cast<NurbsSurfaceGeometry<3, PointerVector<Node>>>(geometry_list(n)->pGetGeometryPart(GeometryType::BACKGROUND_GEOMETRY_INDEX));
 
                 if (rParameters["parameters"].Has("increase_degree_u")) {
                     SizeType increase_degree_u = rParameters["parameters"]["increase_degree_u"].GetInt();

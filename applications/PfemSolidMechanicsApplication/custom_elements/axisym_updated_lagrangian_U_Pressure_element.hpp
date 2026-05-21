@@ -123,14 +123,14 @@ namespace Kratos
           * or that no common error is found.
           * @param rCurrentProcessInfo
           */
-         int Check(const ProcessInfo& rCurrentProcessInfo) override;
+         int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
 
          /**
           * Called to initialize the element.
           * Must be called before any calculation is done
           */
-         virtual void Initialize() override;
+         virtual void Initialize(const ProcessInfo & rCurrentProcessInfo) override;
 
          ///@}
          ///@name Access

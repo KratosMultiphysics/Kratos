@@ -64,7 +64,7 @@ public:
     /// Pointer definition of EmbeddedNodesInitializationProcess
     KRATOS_CLASS_POINTER_DEFINITION(EmbeddedNodesInitializationProcess);
 
-    typedef Node<3>                     NodeType;
+    typedef Node                     NodeType;
     typedef NodeType::Pointer    NodePointerType;
     typedef Geometry<NodeType>      GeometryType;
 

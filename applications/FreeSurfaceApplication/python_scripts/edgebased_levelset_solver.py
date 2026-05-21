@@ -143,12 +143,12 @@ class EdgeBasedLevelSetSolver(PythonSolver):
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.BODY_FORCE)
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESS_PROJ)
-        self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.POROSITY)
-        self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DENSITY)
-        self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DIAMETER)
+        self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
+        self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.POROSITY)
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.LIN_DARCY_COEF)
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NONLIN_DARCY_COEF)
+        self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DIAMETER)
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.STRUCTURE_VELOCITY)
 
@@ -164,6 +164,10 @@ class EdgeBasedLevelSetSolver(PythonSolver):
 
     def PrepareModelPart(self) -> None:
         self.model_part.SetBufferSize(self.GetMinimumBufferSize())
+
+        # Set ProcessInfo variables
+        self.model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, 0)
+        self.model_part.ProcessInfo.SetValue(KratosMultiphysics.STEP, 0)
 
     def Check(self) -> None:
         super().Check()
@@ -196,14 +200,12 @@ class EdgeBasedLevelSetSolver(PythonSolver):
             self.fluid_solver.ActivateWallResistance(self.wall_law_y)
 
     def InitializeSolutionStep(self) -> None:
-        # Transfer density and viscosity to the nodes
+        # Transfer density to the nodes
         for node in self.model_part.Nodes:
             if node.GetSolutionStepValue(KratosMultiphysics.DISTANCE) <= 0.0:
                 node.SetSolutionStepValue(KratosMultiphysics.DENSITY, self.density)
-                node.SetSolutionStepValue(KratosMultiphysics.VISCOSITY, self.viscosity)
             else:
                 node.SetSolutionStepValue(KratosMultiphysics.DENSITY, 0.0)
-                node.SetSolutionStepValue(KratosMultiphysics.VISCOSITY, 0.0)
 
     def AdvanceInTime(self, current_time: float) -> float:
         """

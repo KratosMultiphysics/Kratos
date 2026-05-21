@@ -182,7 +182,7 @@ public:
 		  unsigned int    count_boundary = 0;
 		  unsigned int    count_contact_boundary = 0;
 
-		  Geometry<Node<3> > vertices;
+		  Geometry<Node > vertices;
 
 		  for(unsigned int pn=0; pn<nds; pn++)
 		    {
@@ -408,7 +408,7 @@ public:
 	    {
 	      if(mrRemesh.PreservedElements[el])
 		{
-		  Geometry<Node<3> > vertices;
+		  Geometry<Node > vertices;
 		  for(unsigned int pn=0; pn<nds; pn++)
 		    {
 

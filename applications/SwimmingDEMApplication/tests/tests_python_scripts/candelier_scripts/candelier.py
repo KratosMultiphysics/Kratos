@@ -124,7 +124,7 @@ class AnalyticSimulator:
         suma = sum([A[i] * X[i] for i in range(4)])
 
         for i in range(4):
-            NDxy += A[i] / X[i] * scipy.exp(X[i] ** 2 * t) * scipy.special.erfc(- X[i] * math.sqrt(t))
+            NDxy += A[i] / X[i] * np.exp(X[i] ** 2 * t) * scipy.special.erfc(- X[i] * math.sqrt(t))
 
         NDcoors[0] = float(NDxy.real)
         NDcoors[1] = float(NDxy.imag)
@@ -134,7 +134,7 @@ class AnalyticSimulator:
             NDvel = [0.] * 3
             NDxy = 0.0
             for i in range(4):
-                NDxy += A[i] * X[i] * scipy.exp(X[i] ** 2 * t) * scipy.special.erfc(- X[i] * math.sqrt(t))
+                NDxy += A[i] * X[i] * np.exp(X[i] ** 2 * t) * scipy.special.erfc(- X[i] * math.sqrt(t))
             NDvel[0] = float(NDxy.real)
             NDvel[1] = float(NDxy.imag)
             NDvel[2] = float(NDw0)

@@ -112,7 +112,7 @@ namespace Kratos
             }
         }
 
-        //Some auxilary definitions
+        //Some auxiliary definitions
         BoundedMatrix<double,TNumNodes, TNumNodes> aux1 = ZeroMatrix(TNumNodes, TNumNodes); //terms multiplying dphi/dt
         BoundedMatrix<double,TNumNodes, TNumNodes> aux2 = ZeroMatrix(TNumNodes, TNumNodes); //terms multiplying phi
         bounded_matrix<double,TNumNodes, TDim> tmp;
@@ -122,7 +122,7 @@ namespace Kratos
         {
             noalias(N) = row(Ncontainer,igauss);
 
-            //obtain the velocity in the middle of the tiem step
+            //obtain the velocity in the middle of the time step
             array_1d<double, TDim > vel_gauss=ZeroVector(TDim);
             for (unsigned int i = 0; i < TNumNodes; i++)
             {

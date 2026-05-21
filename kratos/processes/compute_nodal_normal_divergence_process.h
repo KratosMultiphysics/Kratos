@@ -206,7 +206,7 @@ private:
      * @brief This returns the normalized vector field
      */
     static array_1d<double,3> GetHistoricalNormalVectorField(
-        const Node<3>& rNode,
+        const Node& rNode,
         const Variable<array_1d<double,3>>& rVariable
     );
 
@@ -214,7 +214,7 @@ private:
      * @brief This returns the normalized vector field
      */
     static array_1d<double,3> GetNonHistoricalNormalVectorField(
-        const Node<3>& rNode,
+        const Node& rNode,
         const Variable<array_1d<double,3>>& rVariable
     );
 
@@ -222,7 +222,7 @@ private:
      * @brief This returns the vector field
      */
     static array_1d<double,3> GetHistoricalVectorField(
-        const Node<3>& rNode,
+        const Node& rNode,
         const Variable<array_1d<double,3>>& rVariable
     );
 
@@ -230,7 +230,7 @@ private:
      * @brief This returns the vector field
      */
     static array_1d<double,3> GetNonHistoricalVectorField(
-        const Node<3>& rNode,
+        const Node& rNode,
         const Variable<array_1d<double,3>>& rVariable
     );
 

@@ -1,0 +1,62 @@
+{
+  "TIME": [
+    1.1
+  ],
+  "NODE_1": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_2": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      -8.557106781186548e-07
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_3": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "ELEMENT_1": {
+    "AXIAL_FORCE": {
+      "0": [
+        -85.57106781186548
+      ]
+    },
+    "AXIAL_STRAIN": {
+      "0": [
+        -4.278553390593274e-07
+      ]
+    }
+  },
+  "ELEMENT_2": {
+    "AXIAL_FORCE": {
+      "0": [
+        -85.57106781186548
+      ]
+    },
+    "AXIAL_STRAIN": {
+      "0": [
+        -4.278553390593274e-07
+      ]
+    }
+  }
+}

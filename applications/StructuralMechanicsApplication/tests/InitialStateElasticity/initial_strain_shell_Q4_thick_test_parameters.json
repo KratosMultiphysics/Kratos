@@ -83,12 +83,11 @@
             "kratos_module" : "KratosMultiphysics",
             "process_name"  : "set_initial_state_process",
             "Parameters"    : {
-            "mesh_id"         : 0,
             "model_part_name" : "Structure.Parts_Shell_Slab",
             "dimension"       : 2,
             "imposed_strain"  : [1.0e-4,-5.0e-5,-2e-4],
             "imposed_stress"  : [0,0,0],
-            "imposed_deformation_gradient" : [[1,0,0],[0,1,0],[0,0,1]],
+            "imposed_deformation_gradient" : [[1,0],[0,1]],
             "interval"        : [0.0,"End"]
             }
         }],

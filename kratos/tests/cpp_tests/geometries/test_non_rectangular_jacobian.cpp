@@ -45,10 +45,10 @@ namespace Kratos
         
         KRATOS_TEST_CASE_IN_SUITE(LineJacobianTest, KratosNonRectangularJacobianFastSuite) 
         {
-            Node<3>::Pointer PointA = GeneratePoint<Node<3>>();
-            Node<3>::Pointer PointB = GeneratePoint<Node<3>>();
+            Node::Pointer PointA = GeneratePoint<Node>();
+            Node::Pointer PointB = GeneratePoint<Node>();
             
-            auto geom = Line2D2<Node<3>>(PointA,PointB);
+            auto geom = Line2D2<Node>(PointA,PointB);
 
             IntegrationMethod ThisMethod = geom.GetDefaultIntegrationMethod();
             
@@ -58,7 +58,7 @@ namespace Kratos
             
             const double detJ = geom.DeterminantOfJacobian(0, ThisMethod);
             
-            KRATOS_CHECK_NEAR(detJ, MathUtils<double>::GeneralizedDet(jacobian), TOLERANCE);
+            KRATOS_EXPECT_NEAR(detJ, MathUtils<double>::GeneralizedDet(jacobian), TOLERANCE);
         }
         
         /** Checks if it gives you the absolute value of a given value
@@ -67,11 +67,11 @@ namespace Kratos
         
         KRATOS_TEST_CASE_IN_SUITE(TriangleJacobianTest, KratosNonRectangularJacobianFastSuite) 
         {
-            Node<3>::Pointer PointA = GeneratePoint<Node<3>>();
-            Node<3>::Pointer PointB = GeneratePoint<Node<3>>();
-            Node<3>::Pointer PointC = GeneratePoint<Node<3>>();
+            Node::Pointer PointA = GeneratePoint<Node>();
+            Node::Pointer PointB = GeneratePoint<Node>();
+            Node::Pointer PointC = GeneratePoint<Node>();
             
-            auto geom = Triangle3D3<Node<3>>(PointA,PointB,PointC);
+            auto geom = Triangle3D3<Node>(PointA,PointB,PointC);
 
             IntegrationMethod ThisMethod = geom.GetDefaultIntegrationMethod();
             
@@ -81,7 +81,7 @@ namespace Kratos
             
             const double detJ = geom.DeterminantOfJacobian(0, ThisMethod);
             
-            KRATOS_CHECK_NEAR(detJ, MathUtils<double>::GeneralizedDet(jacobian), TOLERANCE);
+            KRATOS_EXPECT_NEAR(detJ, MathUtils<double>::GeneralizedDet(jacobian), TOLERANCE);
         }
         
         /** Checks if it gives you the minimum value of a given value
@@ -90,12 +90,12 @@ namespace Kratos
         
         KRATOS_TEST_CASE_IN_SUITE(QuadrilateralJacobianTest, KratosNonRectangularJacobianFastSuite) 
         {
-            Node<3>::Pointer PointA = Node<3>::Pointer(new Node<3>(1, 0.1, 0.2, 0.3));
-            Node<3>::Pointer PointB = Node<3>::Pointer(new Node<3>(2, 0.4, 0.25, 0.35));
-            Node<3>::Pointer PointC = Node<3>::Pointer(new Node<3>(3, 0.4, 0.55, 0.3));
-            Node<3>::Pointer PointD = Node<3>::Pointer(new Node<3>(4, 0.15, 0.45, 0.45));
+            Node::Pointer PointA = Node::Pointer(new Node(1, 0.1, 0.2, 0.3));
+            Node::Pointer PointB = Node::Pointer(new Node(2, 0.4, 0.25, 0.35));
+            Node::Pointer PointC = Node::Pointer(new Node(3, 0.4, 0.55, 0.3));
+            Node::Pointer PointD = Node::Pointer(new Node(4, 0.15, 0.45, 0.45));
             
-            auto geom = Quadrilateral3D4<Node<3>>(PointA,PointB,PointC,PointD);
+            auto geom = Quadrilateral3D4<Node>(PointA,PointB,PointC,PointD);
 
             IntegrationMethod ThisMethod = geom.GetDefaultIntegrationMethod();
             
@@ -105,7 +105,7 @@ namespace Kratos
             
             const double detJ = geom.DeterminantOfJacobian(0, ThisMethod);
             
-            KRATOS_CHECK_NEAR(detJ, MathUtils<double>::GeneralizedDet(jacobian), TOLERANCE);
+            KRATOS_EXPECT_NEAR(detJ, MathUtils<double>::GeneralizedDet(jacobian), TOLERANCE);
         }
     } // namespace Testing
 }  // namespace Kratos.

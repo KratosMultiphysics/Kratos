@@ -4,30 +4,23 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
 //
 
-
-
 // System includes
 
 // External includes
-
 
 // Project includes
 #include "includes/define_python.h"
 #include "includes/cfd_variables.h"
 #include "python/add_cfd_variables_to_python.h"
 
-namespace Kratos
-{
-//KRATOS_CREATE_FLAG(STRUCTURE,   63);
-
-namespace Python
+namespace Kratos::Python
 {
     namespace py = pybind11;
 
@@ -49,6 +42,10 @@ namespace Python
         KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, TURBULENT_VISCOSITY );
         KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, Y_WALL);
         KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PRESSURE_COEFFICIENT);
+        KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ARTIFICIAL_MASS_DIFFUSIVITY);
+        KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ARTIFICIAL_CONDUCTIVITY);
+        KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ARTIFICIAL_BULK_VISCOSITY);
+        KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ARTIFICIAL_DYNAMIC_VISCOSITY);
         KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, OSS_SWITCH );
 
         // Legacy variables
@@ -63,6 +60,5 @@ namespace Python
         KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, CROSS_WIND_STABILIZATION_FACTOR );
 
     }
-}  // namespace Python.
-} // Namespace Kratos
+}  // namespace Kratos::Python.
 

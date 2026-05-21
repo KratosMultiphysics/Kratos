@@ -153,7 +153,7 @@ namespace Kratos
 
       ProcessInfo SomeProcessInfo; 
       std::vector< double> Mmodulus;
-      GetValueOnIntegrationPoints( M_MODULUS, Mmodulus, SomeProcessInfo);
+      this->CalculateOnIntegrationPoints( M_MODULUS, Mmodulus, SomeProcessInfo);
       double ConstrainedModulus = Mmodulus[0];
       if ( ConstrainedModulus < 1e-5)
       {
@@ -229,7 +229,7 @@ namespace Kratos
 
       ProcessInfo SomeProcessInfo; 
       std::vector< double> Mmodulus;
-      GetValueOnIntegrationPoints( M_MODULUS, Mmodulus, SomeProcessInfo);
+      this->CalculateOnIntegrationPoints( M_MODULUS, Mmodulus, SomeProcessInfo);
       double ConstrainedModulus = Mmodulus[0];
       if ( ConstrainedModulus < 1e-5)
       {
@@ -256,7 +256,7 @@ namespace Kratos
       if (WaterDensity > 1e-3)
          tau_factor = (CurrentDensity-WaterDensity)*porosity/WaterDensity/(porosity-1);
 
-      const double & rPermeability = GetProperties()[PERMEABILITY];
+      const double & rPermeability = GetProperties()[PERMEABILITY_WATER];
 
       if ( fabs(StabFactor) > 1.0e-9)  {
 

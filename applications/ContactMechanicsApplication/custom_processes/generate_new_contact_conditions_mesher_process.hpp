@@ -159,7 +159,7 @@ namespace Kratos
 	{
 	  if(mrRemesh.PreservedElements[el])
 	    {
-	      Geometry<Node<3> > Vertices;
+	      Geometry<Node > Vertices;
 	      for(unsigned int i=0; i<nds; ++i)
 		{
 		  //note that OutElementList, starts from node 1, not from node 0, it can be directly assigned to mrRemesh.NodalPreIds.
@@ -214,9 +214,9 @@ namespace Kratos
 		if( pContactCondition->Is(SELECTED) ){ //two master nodes needed
 
 		  Element::ElementType& rMasterElement  = pMasterCondition->GetValue(MASTER_ELEMENTS).back();
-		  Geometry< Node<3> >&  rMasterGeometry = rMasterElement.GetGeometry();
+		  Geometry< Node >&  rMasterGeometry = rMasterElement.GetGeometry();
 		  Element::NodeType&    rMasterNode     = pContactCondition->GetValue(MASTER_NODES).back();
-		  Geometry< Node<3> >&  rGeometry       = pContactCondition->GetGeometry();
+		  Geometry< Node >&  rGeometry       = pContactCondition->GetGeometry();
 
 		  std::vector<bool> edge_nodes(4);
 		  std::fill(edge_nodes.begin(), edge_nodes.end(), false);

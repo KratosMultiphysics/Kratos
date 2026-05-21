@@ -120,7 +120,7 @@ public:
      * @param ThisSpaces The number of spaces to consider
      */
         
-    void AddColumn(std::string ThisName, unsigned int ThisSpaces)
+    void AddColumn(const std::string& ThisName, unsigned int ThisSpaces)
     {
         mTable.AddColumn(ThisName, ThisSpaces);
     }

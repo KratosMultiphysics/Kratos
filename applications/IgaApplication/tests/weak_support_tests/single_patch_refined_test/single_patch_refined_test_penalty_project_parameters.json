@@ -8,7 +8,7 @@
     },
     "solver_settings": {
         "model_part_name": "IgaModelPart",
-        "domain_size": 1,
+        "domain_size": 3,
         "echo_level": 0,
         "buffer_size": 2,
         "analysis_type": "non_linear",
@@ -63,7 +63,6 @@
             "kratos_module": "KratosMultiphysics",
             "python_module": "assign_vector_variable_to_conditions_process",
             "Parameters": {
-                "mesh_id": 0,
                 "model_part_name": "IgaModelPart.Support_2",
                 "variable_name": "DISPLACEMENT",
                 "value": [0, 0, 0],
@@ -74,7 +73,6 @@
             "kratos_module": "KratosMultiphysics",
             "python_module": "assign_vector_variable_to_conditions_process",
             "Parameters": {
-                "mesh_id": 0,
                 "model_part_name": "IgaModelPart.Load_3",
                 "variable_name": "DEAD_LOAD",
                 "value": [1, 0, 0],

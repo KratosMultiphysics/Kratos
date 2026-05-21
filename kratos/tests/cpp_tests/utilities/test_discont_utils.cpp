@@ -14,7 +14,7 @@
 // Project includes
 #include "testing/testing.h"
 #include "containers/model.h"
-#include "includes/checks.h"
+#include "includes/expect.h"
 #include "geometries/triangle_2d_3.h"
 #include "geometries/tetrahedra_3d_4.h"
 #include "utilities/discont_utils.h"
@@ -76,74 +76,74 @@ namespace Kratos
 																												 edge_areas);
 
 			// Number of divisions check
-			KRATOS_CHECK_EQUAL(ndivisions, 3);
+			KRATOS_EXPECT_EQ(ndivisions, 3);
 
 			// Continuous shape functions derivatives check
-			KRATOS_CHECK_NEAR(continuous_N_gradients(0,0), -1.0, 1e-6);
-			KRATOS_CHECK_NEAR(continuous_N_gradients(0,1), -1.0, 1e-6);
-			KRATOS_CHECK_NEAR(continuous_N_gradients(1,0),  1.0, 1e-6);
-			KRATOS_CHECK_NEAR(continuous_N_gradients(1,1),  0.0, 1e-6);
-			KRATOS_CHECK_NEAR(continuous_N_gradients(2,0),  0.0, 1e-6);
-			KRATOS_CHECK_NEAR(continuous_N_gradients(2,1),  1.0, 1e-6);
+			KRATOS_EXPECT_NEAR(continuous_N_gradients(0,0), -1.0, 1e-6);
+			KRATOS_EXPECT_NEAR(continuous_N_gradients(0,1), -1.0, 1e-6);
+			KRATOS_EXPECT_NEAR(continuous_N_gradients(1,0),  1.0, 1e-6);
+			KRATOS_EXPECT_NEAR(continuous_N_gradients(1,1),  0.0, 1e-6);
+			KRATOS_EXPECT_NEAR(continuous_N_gradients(2,0),  0.0, 1e-6);
+			KRATOS_EXPECT_NEAR(continuous_N_gradients(2,1),  1.0, 1e-6);
 
 			// Partition volumes (areas) check
-			KRATOS_CHECK_NEAR(partition_volumes(0), 0.250, 1e-6);
-			KRATOS_CHECK_NEAR(partition_volumes(1), 0.125, 1e-6);
-			KRATOS_CHECK_NEAR(partition_volumes(2), 0.125, 1e-6);
+			KRATOS_EXPECT_NEAR(partition_volumes(0), 0.250, 1e-6);
+			KRATOS_EXPECT_NEAR(partition_volumes(1), 0.125, 1e-6);
+			KRATOS_EXPECT_NEAR(partition_volumes(2), 0.125, 1e-6);
 			const double total_volume = partition_volumes(0) + partition_volumes(1) + partition_volumes(2);
-			KRATOS_CHECK_NEAR(total_volume, 0.5, 1e-6);
+			KRATOS_EXPECT_NEAR(total_volume, 0.5, 1e-6);
 
 			// Gauss points shape function values check
-			KRATOS_CHECK_NEAR(gauss_pt_continuous_N_values(0,0), 1.0/3.0, 1e-6);
-			KRATOS_CHECK_NEAR(gauss_pt_continuous_N_values(0,1), 0.5, 1e-6);
-			KRATOS_CHECK_NEAR(gauss_pt_continuous_N_values(0,2), 1.0/6.0, 1e-6);
-			KRATOS_CHECK_NEAR(gauss_pt_continuous_N_values(1,0), 1.0/6.0, 1e-6);
-			KRATOS_CHECK_NEAR(gauss_pt_continuous_N_values(1,1), 1.0/6.0, 1e-6);
-			KRATOS_CHECK_NEAR(gauss_pt_continuous_N_values(1,2), 2.0/3.0, 1e-6);
-			KRATOS_CHECK_NEAR(gauss_pt_continuous_N_values(2,0), 0.5, 1e-6);
-			KRATOS_CHECK_NEAR(gauss_pt_continuous_N_values(2,1), 1.0/6.0, 1e-6);
-			KRATOS_CHECK_NEAR(gauss_pt_continuous_N_values(2,2), 1.0/3.0, 1e-6);
+			KRATOS_EXPECT_NEAR(gauss_pt_continuous_N_values(0,0), 1.0/3.0, 1e-6);
+			KRATOS_EXPECT_NEAR(gauss_pt_continuous_N_values(0,1), 0.5, 1e-6);
+			KRATOS_EXPECT_NEAR(gauss_pt_continuous_N_values(0,2), 1.0/6.0, 1e-6);
+			KRATOS_EXPECT_NEAR(gauss_pt_continuous_N_values(1,0), 1.0/6.0, 1e-6);
+			KRATOS_EXPECT_NEAR(gauss_pt_continuous_N_values(1,1), 1.0/6.0, 1e-6);
+			KRATOS_EXPECT_NEAR(gauss_pt_continuous_N_values(1,2), 2.0/3.0, 1e-6);
+			KRATOS_EXPECT_NEAR(gauss_pt_continuous_N_values(2,0), 0.5, 1e-6);
+			KRATOS_EXPECT_NEAR(gauss_pt_continuous_N_values(2,1), 1.0/6.0, 1e-6);
+			KRATOS_EXPECT_NEAR(gauss_pt_continuous_N_values(2,2), 1.0/3.0, 1e-6);
 
 			// Check partition signs
-			KRATOS_CHECK_EQUAL(partition_signs(0), -1);
-			KRATOS_CHECK_EQUAL(partition_signs(1),  1);
-			KRATOS_CHECK_EQUAL(partition_signs(2), -1);
+			KRATOS_EXPECT_EQ(partition_signs(0), -1);
+			KRATOS_EXPECT_EQ(partition_signs(1),  1);
+			KRATOS_EXPECT_EQ(partition_signs(2), -1);
 
 			// Check partition gradients values
-			KRATOS_CHECK_NEAR(enriched_N_gradients_values[0](0,0), -1.0, 1e-6);
-			KRATOS_CHECK_NEAR(enriched_N_gradients_values[0](0,1), -1.0, 1e-6);
-			KRATOS_CHECK_NEAR(enriched_N_gradients_values[0](1,0),  1.0, 1e-6);
-			KRATOS_CHECK_NEAR(enriched_N_gradients_values[0](1,1),  1.0, 1e-6);
-			KRATOS_CHECK_NEAR(enriched_N_gradients_values[0](2,0),  0.0, 1e-6);
-			KRATOS_CHECK_NEAR(enriched_N_gradients_values[0](2,1),  0.0, 1e-6);
-			KRATOS_CHECK_NEAR(enriched_N_gradients_values[1](0,0),  0.0, 1e-6);
-			KRATOS_CHECK_NEAR(enriched_N_gradients_values[1](0,1),  0.0, 1e-6);
-			KRATOS_CHECK_NEAR(enriched_N_gradients_values[1](1,0),  0.0, 1e-6);
-			KRATOS_CHECK_NEAR(enriched_N_gradients_values[1](1,1),  0.0, 1e-6);
-			KRATOS_CHECK_NEAR(enriched_N_gradients_values[1](2,0),  0.0, 1e-6);
-			KRATOS_CHECK_NEAR(enriched_N_gradients_values[1](2,1),  0.0, 1e-6);
-			KRATOS_CHECK_NEAR(enriched_N_gradients_values[2](0,0), -2.0, 1e-6);
-			KRATOS_CHECK_NEAR(enriched_N_gradients_values[2](0,1),  0.0, 1e-6);
-			KRATOS_CHECK_NEAR(enriched_N_gradients_values[2](1,0),  2.0, 1e-6);
-			KRATOS_CHECK_NEAR(enriched_N_gradients_values[2](1,1),  0.0, 1e-6);
-			KRATOS_CHECK_NEAR(enriched_N_gradients_values[2](2,0),  0.0, 1e-6);
-			KRATOS_CHECK_NEAR(enriched_N_gradients_values[2](2,1),  0.0, 1e-6);
+			KRATOS_EXPECT_NEAR(enriched_N_gradients_values[0](0,0), -1.0, 1e-6);
+			KRATOS_EXPECT_NEAR(enriched_N_gradients_values[0](0,1), -1.0, 1e-6);
+			KRATOS_EXPECT_NEAR(enriched_N_gradients_values[0](1,0),  1.0, 1e-6);
+			KRATOS_EXPECT_NEAR(enriched_N_gradients_values[0](1,1),  1.0, 1e-6);
+			KRATOS_EXPECT_NEAR(enriched_N_gradients_values[0](2,0),  0.0, 1e-6);
+			KRATOS_EXPECT_NEAR(enriched_N_gradients_values[0](2,1),  0.0, 1e-6);
+			KRATOS_EXPECT_NEAR(enriched_N_gradients_values[1](0,0),  0.0, 1e-6);
+			KRATOS_EXPECT_NEAR(enriched_N_gradients_values[1](0,1),  0.0, 1e-6);
+			KRATOS_EXPECT_NEAR(enriched_N_gradients_values[1](1,0),  0.0, 1e-6);
+			KRATOS_EXPECT_NEAR(enriched_N_gradients_values[1](1,1),  0.0, 1e-6);
+			KRATOS_EXPECT_NEAR(enriched_N_gradients_values[1](2,0),  0.0, 1e-6);
+			KRATOS_EXPECT_NEAR(enriched_N_gradients_values[1](2,1),  0.0, 1e-6);
+			KRATOS_EXPECT_NEAR(enriched_N_gradients_values[2](0,0), -2.0, 1e-6);
+			KRATOS_EXPECT_NEAR(enriched_N_gradients_values[2](0,1),  0.0, 1e-6);
+			KRATOS_EXPECT_NEAR(enriched_N_gradients_values[2](1,0),  2.0, 1e-6);
+			KRATOS_EXPECT_NEAR(enriched_N_gradients_values[2](1,1),  0.0, 1e-6);
+			KRATOS_EXPECT_NEAR(enriched_N_gradients_values[2](2,0),  0.0, 1e-6);
+			KRATOS_EXPECT_NEAR(enriched_N_gradients_values[2](2,1),  0.0, 1e-6);
 
 			// Check enriched shape function partition Gauss pts. values
-			KRATOS_CHECK_NEAR(enriched_N_values(0,0), 1.0/3.0, 1e-6);
-			KRATOS_CHECK_NEAR(enriched_N_values(0,1), 2.0/3.0, 1e-6);
-			KRATOS_CHECK_NEAR(enriched_N_values(0,2), 0.0, 1e-6);
-			KRATOS_CHECK_NEAR(enriched_N_values(1,0), 0.0, 1e-6);
-			KRATOS_CHECK_NEAR(enriched_N_values(1,1), 0.0, 1e-6);
-			KRATOS_CHECK_NEAR(enriched_N_values(1,2), 1.0, 1e-6);
-			KRATOS_CHECK_NEAR(enriched_N_values(2,0), 2.0/3.0, 1e-6);
-			KRATOS_CHECK_NEAR(enriched_N_values(2,1), 1.0/3.0, 1e-6);
-			KRATOS_CHECK_NEAR(enriched_N_values(2,2), 0.0, 1e-6);
+			KRATOS_EXPECT_NEAR(enriched_N_values(0,0), 1.0/3.0, 1e-6);
+			KRATOS_EXPECT_NEAR(enriched_N_values(0,1), 2.0/3.0, 1e-6);
+			KRATOS_EXPECT_NEAR(enriched_N_values(0,2), 0.0, 1e-6);
+			KRATOS_EXPECT_NEAR(enriched_N_values(1,0), 0.0, 1e-6);
+			KRATOS_EXPECT_NEAR(enriched_N_values(1,1), 0.0, 1e-6);
+			KRATOS_EXPECT_NEAR(enriched_N_values(1,2), 1.0, 1e-6);
+			KRATOS_EXPECT_NEAR(enriched_N_values(2,0), 2.0/3.0, 1e-6);
+			KRATOS_EXPECT_NEAR(enriched_N_values(2,1), 1.0/3.0, 1e-6);
+			KRATOS_EXPECT_NEAR(enriched_N_values(2,2), 0.0, 1e-6);
 
 			// Check edge areas
-			KRATOS_CHECK_NEAR(edge_areas(0),  0.0, 1e-6);
-			KRATOS_CHECK_NEAR(edge_areas(1), 0.25, 1e-6);
-			KRATOS_CHECK_NEAR(edge_areas(2), 0.25, 1e-6);
+			KRATOS_EXPECT_NEAR(edge_areas(0),  0.0, 1e-6);
+			KRATOS_EXPECT_NEAR(edge_areas(1), 0.25, 1e-6);
+			KRATOS_EXPECT_NEAR(edge_areas(2), 0.25, 1e-6);
 		}
 
 		KRATOS_TEST_CASE_IN_SUITE(TriangleVerticalDiscontUtils, KratosCoreFastSuite)
@@ -198,74 +198,74 @@ namespace Kratos
 																												 edge_areas);
 
 			// Number of divisions check
-			KRATOS_CHECK_EQUAL(ndivisions, 3);
+			KRATOS_EXPECT_EQ(ndivisions, 3);
 
 			// Continuous shape functions derivatives check
-			KRATOS_CHECK_NEAR(continuous_N_gradients(0,0), -1.0, 1e-6);
-			KRATOS_CHECK_NEAR(continuous_N_gradients(0,1), -1.0, 1e-6);
-			KRATOS_CHECK_NEAR(continuous_N_gradients(1,0),  1.0, 1e-6);
-			KRATOS_CHECK_NEAR(continuous_N_gradients(1,1),  0.0, 1e-6);
-			KRATOS_CHECK_NEAR(continuous_N_gradients(2,0),  0.0, 1e-6);
-			KRATOS_CHECK_NEAR(continuous_N_gradients(2,1),  1.0, 1e-6);
+			KRATOS_EXPECT_NEAR(continuous_N_gradients(0,0), -1.0, 1e-6);
+			KRATOS_EXPECT_NEAR(continuous_N_gradients(0,1), -1.0, 1e-6);
+			KRATOS_EXPECT_NEAR(continuous_N_gradients(1,0),  1.0, 1e-6);
+			KRATOS_EXPECT_NEAR(continuous_N_gradients(1,1),  0.0, 1e-6);
+			KRATOS_EXPECT_NEAR(continuous_N_gradients(2,0),  0.0, 1e-6);
+			KRATOS_EXPECT_NEAR(continuous_N_gradients(2,1),  1.0, 1e-6);
 
 			// Partition volumes (areas) check
-			KRATOS_CHECK_NEAR(partition_volumes(0), 0.250, 1e-6);
-			KRATOS_CHECK_NEAR(partition_volumes(1), 0.125, 1e-6);
-			KRATOS_CHECK_NEAR(partition_volumes(2), 0.125, 1e-6);
+			KRATOS_EXPECT_NEAR(partition_volumes(0), 0.250, 1e-6);
+			KRATOS_EXPECT_NEAR(partition_volumes(1), 0.125, 1e-6);
+			KRATOS_EXPECT_NEAR(partition_volumes(2), 0.125, 1e-6);
 			const double total_volume = partition_volumes(0) + partition_volumes(1) + partition_volumes(2);
-			KRATOS_CHECK_NEAR(total_volume, 0.5, 1e-6);
+			KRATOS_EXPECT_NEAR(total_volume, 0.5, 1e-6);
 
 			// Gauss points shape function values check
-			KRATOS_CHECK_NEAR(gauss_pt_continuous_N_values(0,0), 0.5, 1e-6);
-			KRATOS_CHECK_NEAR(gauss_pt_continuous_N_values(0,1), 1.0/6.0, 1e-6);
-			KRATOS_CHECK_NEAR(gauss_pt_continuous_N_values(0,2), 1.0/3.0, 1e-6);
-			KRATOS_CHECK_NEAR(gauss_pt_continuous_N_values(1,0), 1.0/6.0, 1e-6);
-			KRATOS_CHECK_NEAR(gauss_pt_continuous_N_values(1,1), 2.0/3.0, 1e-6);
-			KRATOS_CHECK_NEAR(gauss_pt_continuous_N_values(1,2), 1.0/6.0, 1e-6);
-			KRATOS_CHECK_NEAR(gauss_pt_continuous_N_values(2,0), 1.0/6.0, 1e-6);
-			KRATOS_CHECK_NEAR(gauss_pt_continuous_N_values(2,1), 1.0/3.0, 1e-6);
-			KRATOS_CHECK_NEAR(gauss_pt_continuous_N_values(2,2), 0.5, 1e-6);
+			KRATOS_EXPECT_NEAR(gauss_pt_continuous_N_values(0,0), 0.5, 1e-6);
+			KRATOS_EXPECT_NEAR(gauss_pt_continuous_N_values(0,1), 1.0/6.0, 1e-6);
+			KRATOS_EXPECT_NEAR(gauss_pt_continuous_N_values(0,2), 1.0/3.0, 1e-6);
+			KRATOS_EXPECT_NEAR(gauss_pt_continuous_N_values(1,0), 1.0/6.0, 1e-6);
+			KRATOS_EXPECT_NEAR(gauss_pt_continuous_N_values(1,1), 2.0/3.0, 1e-6);
+			KRATOS_EXPECT_NEAR(gauss_pt_continuous_N_values(1,2), 1.0/6.0, 1e-6);
+			KRATOS_EXPECT_NEAR(gauss_pt_continuous_N_values(2,0), 1.0/6.0, 1e-6);
+			KRATOS_EXPECT_NEAR(gauss_pt_continuous_N_values(2,1), 1.0/3.0, 1e-6);
+			KRATOS_EXPECT_NEAR(gauss_pt_continuous_N_values(2,2), 0.5, 1e-6);
 
 			// Check partition signs
-			KRATOS_CHECK_EQUAL(partition_signs(0), -1);
-			KRATOS_CHECK_EQUAL(partition_signs(1),  1);
-			KRATOS_CHECK_EQUAL(partition_signs(2), -1);
+			KRATOS_EXPECT_EQ(partition_signs(0), -1);
+			KRATOS_EXPECT_EQ(partition_signs(1),  1);
+			KRATOS_EXPECT_EQ(partition_signs(2), -1);
 
 			// Check partition gradients values
-			KRATOS_CHECK_NEAR(enriched_N_gradients_values[0](0,0),  0.0, 1e-6);
-			KRATOS_CHECK_NEAR(enriched_N_gradients_values[0](0,1), -1.0, 1e-6);
-			KRATOS_CHECK_NEAR(enriched_N_gradients_values[0](1,0),  0.0, 1e-6);
-			KRATOS_CHECK_NEAR(enriched_N_gradients_values[0](1,1),  0.0, 1e-6);
-			KRATOS_CHECK_NEAR(enriched_N_gradients_values[0](2,0),  0.0, 1e-6);
-			KRATOS_CHECK_NEAR(enriched_N_gradients_values[0](2,1),  1.0, 1e-6);
-			KRATOS_CHECK_NEAR(enriched_N_gradients_values[1](0,0),  0.0, 1e-6);
-			KRATOS_CHECK_NEAR(enriched_N_gradients_values[1](0,1),  0.0, 1e-6);
-			KRATOS_CHECK_NEAR(enriched_N_gradients_values[1](1,0),  0.0, 1e-6);
-			KRATOS_CHECK_NEAR(enriched_N_gradients_values[1](1,1),  0.0, 1e-6);
-			KRATOS_CHECK_NEAR(enriched_N_gradients_values[1](2,0),  0.0, 1e-6);
-			KRATOS_CHECK_NEAR(enriched_N_gradients_values[1](2,1),  0.0, 1e-6);
-			KRATOS_CHECK_NEAR(enriched_N_gradients_values[2](0,0), -2.0, 1e-6);
-			KRATOS_CHECK_NEAR(enriched_N_gradients_values[2](0,1), -2.0, 1e-6);
-			KRATOS_CHECK_NEAR(enriched_N_gradients_values[2](1,0),  0.0, 1e-6);
-			KRATOS_CHECK_NEAR(enriched_N_gradients_values[2](1,1),  0.0, 1e-6);
-			KRATOS_CHECK_NEAR(enriched_N_gradients_values[2](2,0),  2.0, 1e-6);
-			KRATOS_CHECK_NEAR(enriched_N_gradients_values[2](2,1),  2.0, 1e-6);
+			KRATOS_EXPECT_NEAR(enriched_N_gradients_values[0](0,0),  0.0, 1e-6);
+			KRATOS_EXPECT_NEAR(enriched_N_gradients_values[0](0,1), -1.0, 1e-6);
+			KRATOS_EXPECT_NEAR(enriched_N_gradients_values[0](1,0),  0.0, 1e-6);
+			KRATOS_EXPECT_NEAR(enriched_N_gradients_values[0](1,1),  0.0, 1e-6);
+			KRATOS_EXPECT_NEAR(enriched_N_gradients_values[0](2,0),  0.0, 1e-6);
+			KRATOS_EXPECT_NEAR(enriched_N_gradients_values[0](2,1),  1.0, 1e-6);
+			KRATOS_EXPECT_NEAR(enriched_N_gradients_values[1](0,0),  0.0, 1e-6);
+			KRATOS_EXPECT_NEAR(enriched_N_gradients_values[1](0,1),  0.0, 1e-6);
+			KRATOS_EXPECT_NEAR(enriched_N_gradients_values[1](1,0),  0.0, 1e-6);
+			KRATOS_EXPECT_NEAR(enriched_N_gradients_values[1](1,1),  0.0, 1e-6);
+			KRATOS_EXPECT_NEAR(enriched_N_gradients_values[1](2,0),  0.0, 1e-6);
+			KRATOS_EXPECT_NEAR(enriched_N_gradients_values[1](2,1),  0.0, 1e-6);
+			KRATOS_EXPECT_NEAR(enriched_N_gradients_values[2](0,0), -2.0, 1e-6);
+			KRATOS_EXPECT_NEAR(enriched_N_gradients_values[2](0,1), -2.0, 1e-6);
+			KRATOS_EXPECT_NEAR(enriched_N_gradients_values[2](1,0),  0.0, 1e-6);
+			KRATOS_EXPECT_NEAR(enriched_N_gradients_values[2](1,1),  0.0, 1e-6);
+			KRATOS_EXPECT_NEAR(enriched_N_gradients_values[2](2,0),  2.0, 1e-6);
+			KRATOS_EXPECT_NEAR(enriched_N_gradients_values[2](2,1),  2.0, 1e-6);
 
 			// Check enriched shape function partition Gauss pts. values
-			KRATOS_CHECK_NEAR(enriched_N_values(0,0), 2.0/3.0, 1e-6);
-			KRATOS_CHECK_NEAR(enriched_N_values(0,1), 0.0, 1e-6);
-			KRATOS_CHECK_NEAR(enriched_N_values(0,2), 1.0/3.0, 1e-6);
-			KRATOS_CHECK_NEAR(enriched_N_values(1,0), 0.0, 1e-6);
-			KRATOS_CHECK_NEAR(enriched_N_values(1,1), 1.0, 1e-6);
-			KRATOS_CHECK_NEAR(enriched_N_values(1,2), 0.0, 1e-6);
-			KRATOS_CHECK_NEAR(enriched_N_values(2,0), 1.0/3.0, 1e-6);
-			KRATOS_CHECK_NEAR(enriched_N_values(2,1), 0.0, 1e-6);
-			KRATOS_CHECK_NEAR(enriched_N_values(2,2), 2.0/3.0, 1e-6);
+			KRATOS_EXPECT_NEAR(enriched_N_values(0,0), 2.0/3.0, 1e-6);
+			KRATOS_EXPECT_NEAR(enriched_N_values(0,1), 0.0, 1e-6);
+			KRATOS_EXPECT_NEAR(enriched_N_values(0,2), 1.0/3.0, 1e-6);
+			KRATOS_EXPECT_NEAR(enriched_N_values(1,0), 0.0, 1e-6);
+			KRATOS_EXPECT_NEAR(enriched_N_values(1,1), 1.0, 1e-6);
+			KRATOS_EXPECT_NEAR(enriched_N_values(1,2), 0.0, 1e-6);
+			KRATOS_EXPECT_NEAR(enriched_N_values(2,0), 1.0/3.0, 1e-6);
+			KRATOS_EXPECT_NEAR(enriched_N_values(2,1), 0.0, 1e-6);
+			KRATOS_EXPECT_NEAR(enriched_N_values(2,2), 2.0/3.0, 1e-6);
 
 			// Check edge areas
-			KRATOS_CHECK_NEAR(edge_areas(0), 0.25, 1e-6);
-			KRATOS_CHECK_NEAR(edge_areas(1), 0.25, 1e-6);
-			KRATOS_CHECK_NEAR(edge_areas(2),  0.0, 1e-6);
+			KRATOS_EXPECT_NEAR(edge_areas(0), 0.25, 1e-6);
+			KRATOS_EXPECT_NEAR(edge_areas(1), 0.25, 1e-6);
+			KRATOS_EXPECT_NEAR(edge_areas(2),  0.0, 1e-6);
 		}
 
 		KRATOS_TEST_CASE_IN_SUITE(TriangleNoIntersectionDiscontUtils, KratosCoreFastSuite)
@@ -320,10 +320,10 @@ namespace Kratos
 																												 edge_areas);
 
 			// Number of divisions check
-			KRATOS_CHECK_EQUAL(ndivisions, 1);
+			KRATOS_EXPECT_EQ(ndivisions, 1);
 
 			// Partition volumes (areas) check
-			KRATOS_CHECK_NEAR(partition_volumes(0), 0.5, 1e-6);
+			KRATOS_EXPECT_NEAR(partition_volumes(0), 0.5, 1e-6);
 		}
 	}
 }  // namespace Kratos.

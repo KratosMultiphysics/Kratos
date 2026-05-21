@@ -4,16 +4,14 @@ from KratosMultiphysics.FluidDynamicsApplication import *
 import KratosMultiphysics.KratosUnittest as UnitTest
 import KratosMultiphysics.kratos_utilities as KratosUtilities
 
-import KratosMultiphysics.FluidDynamicsApplication.navier_stokes_solver_vmsmonolithic as navier_stokes_solver
+import KratosMultiphysics.FluidDynamicsApplication.navier_stokes_monolithic_solver as navier_stokes_solver
 
 class FluidElementTest(UnitTest.TestCase):
 
     def setUp(self):
         self.domain_size = 2
         self.input_file = "cavity10"
-        self.reference_file = "reference10_qasgs"
         self.work_folder = "FluidElementTest"
-        self.element = "qsvms"
         self.is_time_integrated = False
 
         self.nsteps = 10

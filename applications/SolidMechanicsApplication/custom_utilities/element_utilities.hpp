@@ -31,8 +31,8 @@ class ElementUtilities
   //definition of the size type
   typedef std::size_t SizeType;
 
-  ///definition of node type (default is: Node<3>)
-  typedef Node<3> NodeType;
+  ///definition of node type (default is: Node)
+  typedef Node NodeType;
 
   ///definition of the geometry type with given NodeType
   typedef Geometry<NodeType> GeometryType;

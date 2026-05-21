@@ -124,7 +124,114 @@ struct vector_type2 {
         struct { T s0, s1; };
         struct { T x, y; };
     };
+
+    template <class O>
+    const vector_type2& operator=(O o) {
+        s0 = o;
+        s1 = o;
+        return *this;
+    }
+
+    const vector_type2& operator*=(const vector_type2 &o) {
+        s0 *= o.s0;
+        s1 *= o.s1;
+        return *this;
+    }
+
+    template <typename U>
+    const vector_type2& operator*=(U o) {
+        s0 *= o;
+        s1 *= o;
+        return *this;
+    }
+
+    const vector_type2& operator/=(const vector_type2 &o) {
+        s0 /= o.s0;
+        s1 /= o.s1;
+        return *this;
+    }
+
+    template <typename U>
+    const vector_type2& operator/=(U o) {
+        s0 /= o;
+        s1 /= o;
+        return *this;
+    }
+
+    const vector_type2& operator+=(const vector_type2 &o) {
+        s0 += o.s0;
+        s1 += o.s1;
+        return *this;
+    }
+
+    template <typename U>
+    const vector_type2& operator+=(U o) {
+        s0 += o;
+        s1 += o;
+        return *this;
+    }
+
+    const vector_type2& operator-=(const vector_type2 &o) {
+        s0 -= o.s0;
+        s1 -= o.s1;
+        return *this;
+    }
+
+    template <typename U>
+    const vector_type2& operator-=(U o) {
+        s0 -= o;
+        s1 -= o;
+        return *this;
+    }
 };
+
+template <typename T>
+vector_type2<T> operator*(vector_type2<T> a, const vector_type2<T> &b) {
+    a *= b;
+    return a;
+}
+
+template <typename T, typename U>
+vector_type2<T> operator*(vector_type2<T> a, U b) {
+    a *= b;
+    return a;
+}
+
+template <typename T>
+vector_type2<T> operator/(vector_type2<T> a, const vector_type2<T> &b) {
+    a /= b;
+    return a;
+}
+
+template <typename T, typename U>
+vector_type2<T> operator/(vector_type2<T> a, U b) {
+    a /= b;
+    return a;
+}
+
+template <typename T>
+vector_type2<T> operator+(vector_type2<T> a, const vector_type2<T> &b) {
+    a += b;
+    return a;
+}
+
+template <typename T, typename U>
+vector_type2<T> operator+(vector_type2<T> a, U b) {
+    a += b;
+    return a;
+}
+
+template <typename T>
+vector_type2<T> operator-(vector_type2<T> a, const vector_type2<T> &b) {
+    a -= b;
+    return a;
+}
+
+template <typename T, typename U>
+vector_type2<T> operator-(vector_type2<T> a, U b) {
+    a -= b;
+    return a;
+}
 
 template <typename T>
 struct vector_type4 {
@@ -133,7 +240,132 @@ struct vector_type4 {
         struct { T s0, s1, s2, s3; };
         struct { T x, y, z, w; };
     };
+
+    template <class O>
+    const vector_type4& operator=(O o) {
+        s0 = o;
+        s1 = o;
+        s2 = o;
+        s3 = o;
+        return *this;
+    }
+
+    const vector_type4& operator*=(const vector_type4 &o) {
+        s0 *= o.s0;
+        s1 *= o.s1;
+        s2 *= o.s2;
+        s3 *= o.s3;
+        return *this;
+    }
+
+    template <typename U>
+    const vector_type4& operator*=(U o) {
+        s0 *= o;
+        s1 *= o;
+        s2 *= o;
+        s3 *= o;
+        return *this;
+    }
+
+    const vector_type4& operator/=(const vector_type4 &o) {
+        s0 /= o.s0;
+        s1 /= o.s1;
+        s2 /= o.s2;
+        s3 /= o.s3;
+        return *this;
+    }
+
+    template <typename U>
+    const vector_type4& operator/=(U o) {
+        s0 /= o;
+        s1 /= o;
+        s2 /= o;
+        s3 /= o;
+        return *this;
+    }
+
+    const vector_type4& operator+=(const vector_type4 &o) {
+        s0 += o.s0;
+        s1 += o.s1;
+        s2 += o.s2;
+        s3 += o.s3;
+        return *this;
+    }
+
+    template <typename U>
+    const vector_type4& operator+=(U o) {
+        s0 += o;
+        s1 += o;
+        s2 += o;
+        s3 += o;
+        return *this;
+    }
+
+    const vector_type4& operator-=(const vector_type4 &o) {
+        s0 -= o.s0;
+        s1 -= o.s1;
+        s2 -= o.s2;
+        s3 -= o.s3;
+        return *this;
+    }
+
+    template <typename U>
+    const vector_type4& operator-=(U o) {
+        s0 -= o;
+        s1 -= o;
+        s2 -= o;
+        s3 -= o;
+        return *this;
+    }
 };
+
+template <typename T>
+vector_type4<T> operator*(vector_type4<T> a, const vector_type4<T> &b) {
+    a *= b;
+    return a;
+}
+
+template <typename T, typename U>
+vector_type4<T> operator*(vector_type4<T> a, U b) {
+    a *= b;
+    return a;
+}
+
+template <typename T>
+vector_type4<T> operator/(vector_type4<T> a, const vector_type4<T> &b) {
+    a /= b;
+    return a;
+}
+
+template <typename T, typename U>
+vector_type4<T> operator/(vector_type4<T> a, U b) {
+    a /= b;
+    return a;
+}
+
+template <typename T>
+vector_type4<T> operator+(vector_type4<T> a, const vector_type4<T> &b) {
+    a += b;
+    return a;
+}
+
+template <typename T, typename U>
+vector_type4<T> operator+(vector_type4<T> a, U b) {
+    a += b;
+    return a;
+}
+
+template <typename T>
+vector_type4<T> operator-(vector_type4<T> a, const vector_type4<T> &b) {
+    a -= b;
+    return a;
+}
+
+template <typename T, typename U>
+vector_type4<T> operator-(vector_type4<T> a, U b) {
+    a -= b;
+    return a;
+}
 
 #define VECTOR_TYPES(T) \
     typedef vector_type2<T> T ## 2; \

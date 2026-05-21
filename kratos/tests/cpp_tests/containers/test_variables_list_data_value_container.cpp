@@ -30,8 +30,8 @@ KRATOS_TEST_CASE_IN_SUITE(VariablesListDataValueContainerHas, KratosCoreFastSuit
     p_variables_list->Add(NODAL_AREA);
     VariablesListDataValueContainer container(p_variables_list);
 
-    KRATOS_CHECK(container.Has(NODAL_AREA));
-    KRATOS_CHECK_IS_FALSE(container.Has(DISPLACEMENT));
+    KRATOS_EXPECT_TRUE(container.Has(NODAL_AREA));
+    KRATOS_EXPECT_FALSE(container.Has(DISPLACEMENT));
 }
 
 KRATOS_TEST_CASE_IN_SUITE(VariablesListDataValueContainerHasComponent, KratosCoreFastSuite) {
@@ -39,13 +39,13 @@ KRATOS_TEST_CASE_IN_SUITE(VariablesListDataValueContainerHasComponent, KratosCor
     p_variables_list->Add(DISPLACEMENT);
     VariablesListDataValueContainer container(p_variables_list);
  
-    KRATOS_CHECK_IS_FALSE(container.Has(VELOCITY_X));
-    KRATOS_CHECK_IS_FALSE(container.Has(VELOCITY_Y));
-    KRATOS_CHECK_IS_FALSE(container.Has(VELOCITY_Z));
+    KRATOS_EXPECT_FALSE(container.Has(VELOCITY_X));
+    KRATOS_EXPECT_FALSE(container.Has(VELOCITY_Y));
+    KRATOS_EXPECT_FALSE(container.Has(VELOCITY_Z));
 
-    KRATOS_CHECK(container.Has(DISPLACEMENT_X));
-    KRATOS_CHECK(container.Has(DISPLACEMENT_Y));
-    KRATOS_CHECK(container.Has(DISPLACEMENT_Z));
+    KRATOS_EXPECT_TRUE(container.Has(DISPLACEMENT_X));
+    KRATOS_EXPECT_TRUE(container.Has(DISPLACEMENT_Y));
+    KRATOS_EXPECT_TRUE(container.Has(DISPLACEMENT_Z));
 }
 
 KRATOS_TEST_CASE_IN_SUITE(VariablesListDataValueContainerGetValue, KratosCoreFastSuite) {
@@ -61,7 +61,7 @@ KRATOS_TEST_CASE_IN_SUITE(VariablesListDataValueContainerGetValue, KratosCoreFas
     auto& distances = container.GetValue(ELEMENTAL_DISTANCES);
 
     for (std::size_t i = 0; i < distances.size(); i++)
-        KRATOS_CHECK_EQUAL(distances[i], original_distances[i]);
+        KRATOS_EXPECT_EQ(distances[i], original_distances[i]);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(VariablesListDataValueContainerAddComponent, KratosCoreFastSuite) {
@@ -75,9 +75,9 @@ KRATOS_TEST_CASE_IN_SUITE(VariablesListDataValueContainerAddComponent, KratosCor
 
     container.SetValue(VELOCITY, original_velocity);
 
-    KRATOS_CHECK_EQUAL(container.GetValue(VELOCITY_X), original_velocity[0]);
-    KRATOS_CHECK_EQUAL(container.GetValue(VELOCITY_Y), original_velocity[1]);
-    KRATOS_CHECK_EQUAL(container.GetValue(VELOCITY_Z), original_velocity[2]);
+    KRATOS_EXPECT_EQ(container.GetValue(VELOCITY_X), original_velocity[0]);
+    KRATOS_EXPECT_EQ(container.GetValue(VELOCITY_Y), original_velocity[1]);
+    KRATOS_EXPECT_EQ(container.GetValue(VELOCITY_Z), original_velocity[2]);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(VariablesListDataValueContainerGetComponentValue, KratosCoreFastSuite) {
@@ -91,9 +91,9 @@ KRATOS_TEST_CASE_IN_SUITE(VariablesListDataValueContainerGetComponentValue, Krat
 
     container.SetValue(VELOCITY, original_velocity);
 
-    KRATOS_CHECK_EQUAL(container.GetValue(VELOCITY_X), original_velocity[0]);
-    KRATOS_CHECK_EQUAL(container.GetValue(VELOCITY_Y), original_velocity[1]);
-    KRATOS_CHECK_EQUAL(container.GetValue(VELOCITY_Z), original_velocity[2]);
+    KRATOS_EXPECT_EQ(container.GetValue(VELOCITY_X), original_velocity[0]);
+    KRATOS_EXPECT_EQ(container.GetValue(VELOCITY_Y), original_velocity[1]);
+    KRATOS_EXPECT_EQ(container.GetValue(VELOCITY_Z), original_velocity[2]);
 }
 
 }

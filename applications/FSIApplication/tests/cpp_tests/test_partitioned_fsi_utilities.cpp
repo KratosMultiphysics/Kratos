@@ -172,7 +172,7 @@ namespace Testing {
         for (auto &r_node : main_model_part.Nodes()) {
             const auto &r_fsi_int_res = r_node.FastGetSolutionStepValue(FSI_INTERFACE_RESIDUAL);
             for (unsigned int i = 0; i < 3; ++i) {
-                KRATOS_CHECK_NEAR(r_fsi_int_res[i], expected_values[3 * aux_count + i], tol);
+                KRATOS_EXPECT_NEAR(r_fsi_int_res[i], expected_values[3 * aux_count + i], tol);
             }
             aux_count++;
         }
@@ -216,7 +216,7 @@ namespace Testing {
         for (auto &r_node : main_model_part.Nodes()) {
             const auto &r_fsi_int_res = r_node.FastGetSolutionStepValue(FSI_INTERFACE_RESIDUAL);
             for (unsigned int i = 0; i < 3; ++i) {
-                KRATOS_CHECK_NEAR(r_fsi_int_res[i], expected_values[3 * aux_count + i], tol);
+                KRATOS_EXPECT_NEAR(r_fsi_int_res[i], expected_values[3 * aux_count + i], tol);
             }
             aux_count++;
         }
@@ -237,9 +237,9 @@ namespace Testing {
         partitioned_fsi_utilities.CreateCouplingSkin(main_model_part, element_based_skin);
 
         // Check results
-        KRATOS_CHECK_EQUAL(element_based_skin.NumberOfNodes(), 4);
-        KRATOS_CHECK_EQUAL(element_based_skin.NumberOfElements(), 0);
-        KRATOS_CHECK_EQUAL(element_based_skin.NumberOfConditions(), 3);
+        KRATOS_EXPECT_EQ(element_based_skin.NumberOfNodes(), 4);
+        KRATOS_EXPECT_EQ(element_based_skin.NumberOfElements(), 0);
+        KRATOS_EXPECT_EQ(element_based_skin.NumberOfConditions(), 3);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(PartitionedFSIUtilitiesDoubleGetInterfaceResidualsize, FSIApplicationFastSuite)
@@ -252,7 +252,7 @@ namespace Testing {
         // Test GetInterfaceResidualsize()
         PartitionedFSIUtilities<SpaceType, double, 2> part_fsi_utils_double_2D;
         const int residual_size = part_fsi_utils_double_2D.GetInterfaceResidualSize(r_test_model_part);
-        KRATOS_CHECK_EQUAL(residual_size, 4);
+        KRATOS_EXPECT_EQ(residual_size, 4);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(PartitionedFSIUtilitiesArray2DGetInterfaceResidualsize, FSIApplicationFastSuite)
@@ -265,7 +265,7 @@ namespace Testing {
         // Test GetInterfaceResidualsize()
         PartitionedFSIUtilities<SpaceType, array_1d<double,3>, 2> part_fsi_utils_array_2D;
         const int residual_size = part_fsi_utils_array_2D.GetInterfaceResidualSize(r_test_model_part);
-        KRATOS_CHECK_EQUAL(residual_size, 8);
+        KRATOS_EXPECT_EQ(residual_size, 8);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(PartitionedFSIUtilitiesArray3DGetInterfaceResidualsize, FSIApplicationFastSuite)
@@ -278,7 +278,7 @@ namespace Testing {
         // Test GetInterfaceResidualsize()
         PartitionedFSIUtilities<SpaceType, array_1d<double,3>, 3> part_fsi_utils_array_3D;
         const int residual_size = part_fsi_utils_array_3D.GetInterfaceResidualSize(r_test_model_part);
-        KRATOS_CHECK_EQUAL(residual_size, 12);
+        KRATOS_EXPECT_EQ(residual_size, 12);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(PartitionedFSIUtilitiesDoubleSetUpInterfaceVector, FSIApplicationFastSuite)
@@ -291,7 +291,7 @@ namespace Testing {
         // Test SetUpInterfaceVector()
         PartitionedFSIUtilities<SpaceType, double, 2> part_fsi_utils_array_2D;
         auto p_interface_vector = part_fsi_utils_array_2D.SetUpInterfaceVector(r_test_model_part);
-        KRATOS_CHECK_EQUAL(p_interface_vector->size(), 4);
+        KRATOS_EXPECT_EQ(p_interface_vector->size(), 4);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(PartitionedFSIUtilitiesArray2DSetUpInterfaceVector, FSIApplicationFastSuite)
@@ -304,7 +304,7 @@ namespace Testing {
         // Test SetUpInterfaceVector()
         PartitionedFSIUtilities<SpaceType, array_1d<double,3>, 2> part_fsi_utils_array_2D;
         auto p_interface_vector = part_fsi_utils_array_2D.SetUpInterfaceVector(r_test_model_part);
-        KRATOS_CHECK_EQUAL(p_interface_vector->size(), 8);
+        KRATOS_EXPECT_EQ(p_interface_vector->size(), 8);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(PartitionedFSIUtilitiesArray3DSetUpInterfaceVector, FSIApplicationFastSuite)
@@ -317,7 +317,7 @@ namespace Testing {
         // Test SetUpInterfaceVector()
         PartitionedFSIUtilities<SpaceType, array_1d<double,3>, 3> part_fsi_utils_array_3D;
         auto p_interface_vector = part_fsi_utils_array_3D.SetUpInterfaceVector(r_test_model_part);
-        KRATOS_CHECK_EQUAL(p_interface_vector->size(), 12);
+        KRATOS_EXPECT_EQ(p_interface_vector->size(), 12);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(PartitionedFSIUtilitiesDouble2DComputeInterfaceResidualVector, FSIApplicationFastSuite)
@@ -340,7 +340,7 @@ namespace Testing {
 
         const double tolerance = 1.0e-8;
         std::vector<double> expected_values = {1.0,1.0,1.0,1.0};
-        KRATOS_CHECK_VECTOR_NEAR(expected_values, (*p_interface_vector), tolerance)
+        KRATOS_EXPECT_VECTOR_NEAR(expected_values, (*p_interface_vector), tolerance)
     }
 
     KRATOS_TEST_CASE_IN_SUITE(PartitionedFSIUtilitiesArray2DComputeInterfaceResidualVectorNodal, FSIApplicationFastSuite)
@@ -364,7 +364,7 @@ namespace Testing {
 
         const double tolerance = 1.0e-8;
         std::vector<double> expected_values = {0.0,0.0,1.0,1.0,2.0,2.0,3.0,3.0};
-        KRATOS_CHECK_VECTOR_NEAR(expected_values, (*p_interface_vector), tolerance)
+        KRATOS_EXPECT_VECTOR_NEAR(expected_values, (*p_interface_vector), tolerance)
     }
 
     KRATOS_TEST_CASE_IN_SUITE(PartitionedFSIUtilitiesArray2DComputeInterfaceResidualVectorConsistent, FSIApplicationFastSuite)
@@ -391,7 +391,7 @@ namespace Testing {
         const double tolerance = 1.0e-8;
         std::vector<double> expected_values = {-0.166666667,-0.166666667,-1.0,-1.0,-2.0,-2.0,-1.333333333,-1.333333333};
         for (unsigned int i = 0; i < expected_values.size(); ++i) {
-            KRATOS_CHECK_NEAR(expected_values[i], (*p_interface_vector)[i], tolerance);
+            KRATOS_EXPECT_NEAR(expected_values[i], (*p_interface_vector)[i], tolerance);
         }
     }
 
@@ -425,7 +425,7 @@ namespace Testing {
         // Check results
         const double tolerance = 1.0e-8;
         std::vector<double> expected_results = {1.0,2.0,2.0,4.0,3.0,6.0,4.0,8.0};
-        KRATOS_CHECK_VECTOR_NEAR(expected_results, interface_vector, tolerance)
+        KRATOS_EXPECT_VECTOR_NEAR(expected_results, interface_vector, tolerance)
     }
 
     KRATOS_TEST_CASE_IN_SUITE(PartitionedFSIUtilitiesArray2DEmbeddedToPositiveFacePressureInterpolator, FSIApplicationFastSuite)
@@ -444,12 +444,12 @@ namespace Testing {
         ModelPart &r_background_model_part = model.CreateModelPart("BackgroundModelPart");
         r_background_model_part.AddNodalSolutionStepVariable(PRESSURE);
 
-        auto p_point_1 = Kratos::make_intrusive<Node<3>>(1, -2.0, -2.0, 0.0);
-        auto p_point_2 = Kratos::make_intrusive<Node<3>>(2, -2.0,  3.0, 0.0);
-        auto p_point_3 = Kratos::make_intrusive<Node<3>>(3,  3.0,  3.0, 0.0);
-        auto p_point_4 = Kratos::make_intrusive<Node<3>>(4,  3.0, -3.0, 0.0);
+        auto p_point_1 = Kratos::make_intrusive<Node>(1, -2.0, -2.0, 0.0);
+        auto p_point_2 = Kratos::make_intrusive<Node>(2, -2.0,  3.0, 0.0);
+        auto p_point_3 = Kratos::make_intrusive<Node>(3,  3.0,  3.0, 0.0);
+        auto p_point_4 = Kratos::make_intrusive<Node>(4,  3.0, -3.0, 0.0);
 
-        Quadrilateral2D4<Node<3>> geometry(p_point_1, p_point_2, p_point_3, p_point_4);
+        Quadrilateral2D4<Node> geometry(p_point_1, p_point_2, p_point_3, p_point_4);
 
         Parameters mesher_parameters(R"(
         {
@@ -474,7 +474,7 @@ namespace Testing {
         const double tolerance = 1.0e-4;
         std::array<double, 8> expected_results = {26.5105,37.8462,39.0974,27.8053};
         for (const auto &r_node : r_skin_model_part.Nodes()) {
-            KRATOS_CHECK_NEAR(r_node.FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE), expected_results[i], tolerance);
+            KRATOS_EXPECT_NEAR(r_node.FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE), expected_results[i], tolerance);
             i++;
         }
     }

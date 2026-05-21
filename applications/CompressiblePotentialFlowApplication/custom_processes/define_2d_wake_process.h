@@ -35,7 +35,7 @@ public:
     /// Pointer definition of Define2DWakeProcess
     KRATOS_CLASS_POINTER_DEFINITION(Define2DWakeProcess);
 
-    typedef Node <3> NodeType;
+    typedef Node NodeType;
 
     ///@}
     ///@name Life Cycle
@@ -90,7 +90,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    // The airfoil model part conatining the trailing edge
+    // The airfoil model part containing the trailing edge
     ModelPart& mrBodyModelPart;
     // Tolerance to avoid nodes laying exactly on the wake
     const double mTolerance;

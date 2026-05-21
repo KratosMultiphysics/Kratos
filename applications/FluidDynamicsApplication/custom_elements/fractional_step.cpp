@@ -820,7 +820,7 @@ int FractionalStep<TDim>::Check(const ProcessInfo &rCurrentProcessInfo) const
 
         KRATOS_CHECK_DOF_IN_NODE(VELOCITY_X,rNode);
         KRATOS_CHECK_DOF_IN_NODE(VELOCITY_Y,rNode);
-        if (TDim == 3) KRATOS_CHECK_DOF_IN_NODE(VELOCITY_Z,rNode);
+        if constexpr (TDim == 3) KRATOS_CHECK_DOF_IN_NODE(VELOCITY_Z,rNode);
         KRATOS_CHECK_DOF_IN_NODE(PRESSURE,rNode);
     }
 
@@ -862,7 +862,7 @@ const Parameters FractionalStep<TDim>::GetSpecifications() const
         "documentation"   : "This implements a fractional-step Navier-Stokes formulation with quasi-static Variational MultiScales (VMS) stabilization."
     })");
 
-    if (TDim == 2) {
+    if constexpr (TDim == 2) {
         std::vector<std::string> dofs_2d({"VELOCITY_X","VELOCITY_Y","PRESSURE"});
         specifications["required_dofs"].SetStringArray(dofs_2d);
     } else {

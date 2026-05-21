@@ -1,14 +1,21 @@
+// KRATOS  ___|  |                   |                   |
+//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
+//             | |   |    |   | (    |   |   | |   (   | |
+//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: Massimo Petracca $
-//   Date:                $Date: 2013-12-29 23:00:00 $
-//   Revision:            $Revision: 1.00 $
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
+//  Main authors:    Massimo Petracca
 //
 
-#if !defined(KRATOS_SHELLQ4_COROTATIONAL_COORDINATE_TRANSFORMATION_H_INCLUDED )
-#define  KRATOS_SHELLQ4_COROTATIONAL_COORDINATE_TRANSFORMATION_H_INCLUDED
+#pragma once
 
+// System includes
+
+// External includes
+
+// Project includes
 #include "EICR.hpp"
 #include "shellq4_coordinate_transformation.hpp"
 
@@ -582,6 +589,3 @@ private:
 };
 
 }
-
-
-#endif // KRATOS_SHELLQ4_COROTATIONAL_COORDINATE_TRANSFORMATION_H_INCLUDED

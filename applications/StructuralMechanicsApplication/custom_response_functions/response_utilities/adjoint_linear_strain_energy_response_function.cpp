@@ -3,8 +3,8 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Martin Fusseder, https://github.com/MFusseder
 //
@@ -14,6 +14,7 @@
 // External includes
 
 // Project includes
+#include "utilities/entities_utilities.h"
 #include "adjoint_linear_strain_energy_response_function.h"
 
 namespace Kratos
@@ -34,21 +35,7 @@ namespace Kratos
         BaseType::Initialize();
 
         // It is necessary to initialize the elements/conditions since no adjoint problem is solved for this response type.
-
-        const auto& r_process_info = mrModelPart.GetProcessInfo();
-
-        #pragma omp parallel for
-        for(int i=0; i< static_cast<int>(mrModelPart.Elements().size()); ++i)
-        {
-            auto it = mrModelPart.ElementsBegin() + i;
-            it->Initialize(r_process_info);
-        }
-        #pragma omp parallel for
-        for(int i=0; i< static_cast<int>(mrModelPart.Conditions().size()); ++i)
-        {
-            auto it = mrModelPart.ConditionsBegin() + i;
-            it->Initialize(r_process_info);
-        }
+        EntitiesUtilities::InitializeAllEntities(mrModelPart);
 
         KRATOS_CATCH("");
     }

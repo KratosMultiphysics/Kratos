@@ -97,7 +97,6 @@ class MainCouplingPfemFemDem_Solution:
 #============================================================================================================================
     def SolveSolutionStepPFEM(self):
         is_converged = self.PFEM_Solution._GetSolver().SolveSolutionStep()
-        # self.PFEM_Solution.__CheckIfSolveSolutionStepReturnsAValue(is_converged)
 
 #============================================================================================================================
     def SolveSolutionStepFEMDEM(self):
@@ -109,9 +108,6 @@ class MainCouplingPfemFemDem_Solution:
         self.FEMDEM_Solution.DEM_Solution.step           = 0
         self.FEMDEM_Solution.DEM_Solution.time           = 0.0
         self.FEMDEM_Solution.DEM_Solution.time_old_print = 0.0
-
-        if self.FEMDEM_Solution.DoRemeshing:
-            self.FEMDEM_Solution.RemeshingProcessMMG.ExecuteBeforeSolutionLoop()
 
 #============================================================================================================================
     def FinalizeSolutionStep(self):
@@ -175,7 +171,7 @@ class MainCouplingPfemFemDem_Solution:
                                                                                self.FEMDEM_Solution.SkinDetectionProcessParameters)
         else: # 3D
             skin_detection_process = KM.SkinDetectionProcess3D(self.FEMDEM_Solution.FEM_Solution.main_model_part,
-                                                                               self.FEMDEM_Solution.SkinDetectionProcessParameters)    
+                                                                               self.FEMDEM_Solution.SkinDetectionProcessParameters)
         skin_detection_process.Execute()
 
 #============================================================================================================================

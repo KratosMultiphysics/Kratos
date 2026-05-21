@@ -35,7 +35,7 @@ void CalculateMeshVelocitiesGeneralizedAlpha(ModelPart& rModelPart,
     const double const_a = delta_time * (1.0 - Gamma / (2.0 * Beta));
 
     block_for_each(rModelPart.GetCommunicator().LocalMesh().Nodes(),
-        [&](Node<3>& rNode){
+        [&](Node& rNode){
             const auto& r_mesh_u0 = rNode.FastGetSolutionStepValue(MESH_DISPLACEMENT);
             auto&       r_mesh_v0 = rNode.FastGetSolutionStepValue(MESH_VELOCITY);
             auto&       r_mesh_a0 = rNode.FastGetSolutionStepValue(MESH_ACCELERATION);
@@ -59,7 +59,7 @@ void CalculateMeshVelocities(ModelPart& rModelPart,
     const auto coeffs = rBDF.ComputeBDFCoefficients(rModelPart.GetProcessInfo());
 
     block_for_each(rModelPart.GetCommunicator().LocalMesh().Nodes(),
-        [&]( Node<3>& rNode ){
+        [&]( Node& rNode ){
             auto& r_mesh_v0     = rNode.FastGetSolutionStepValue(MESH_VELOCITY);
             noalias(r_mesh_v0)  = coeffs[0] * rNode.FastGetSolutionStepValue(MESH_DISPLACEMENT);
             noalias(r_mesh_v0) += coeffs[1] * rNode.FastGetSolutionStepValue(MESH_DISPLACEMENT, 1);
@@ -74,7 +74,7 @@ void CalculateMeshVelocities(ModelPart& rModelPart,
     const auto coeffs = rBDF.ComputeBDFCoefficients(rModelPart.GetProcessInfo());
 
     block_for_each(rModelPart.GetCommunicator().LocalMesh().Nodes(),
-        [&](Node<3>& rNode){
+        [&](Node& rNode){
             auto& r_mesh_v0     = rNode.FastGetSolutionStepValue(MESH_VELOCITY);
             noalias(r_mesh_v0)  = coeffs[0] * rNode.FastGetSolutionStepValue(MESH_DISPLACEMENT);
             noalias(r_mesh_v0) += coeffs[1] * rNode.FastGetSolutionStepValue(MESH_DISPLACEMENT, 1);

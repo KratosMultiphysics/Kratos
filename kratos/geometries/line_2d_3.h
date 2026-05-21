@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //                   Janosch Stascheit
@@ -14,8 +14,7 @@
 //                   Josep Maria Carbonell
 //
 
-#if !defined(KRATOS_LINE_2D_3_H_INCLUDED )
-#define  KRATOS_LINE_2D_3_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -124,7 +123,7 @@ public:
     typedef typename BaseType::IntegrationPointsContainerType IntegrationPointsContainerType;
 
     /** A third order tensor used as shape functions' values
-    continer.
+    container.
     */
     typedef typename BaseType::ShapeFunctionsValuesContainerType ShapeFunctionsValuesContainerType;
 
@@ -145,7 +144,7 @@ public:
     */
     typedef typename BaseType::ShapeFunctionsGradientsType ShapeFunctionsGradientsType;
 
-    /** Type of the normal vector used for normal to edges in geomety.
+    /** Type of the normal vector used for normal to edges in geometry.
      */
     typedef typename BaseType::NormalType NormalType;
 
@@ -217,7 +216,7 @@ public:
     /** Copy constructor from a geometry with other point type.
      * Construct this geometry as a copy of given geometry which
      * has different type of points. The given goemetry's
-     * TOtherPointType* must be implicity convertible to this
+     * TOtherPointType* must be implicitly convertible to this
      * geometry PointType.
      * @note This copy constructor don't copy the points and new
      * geometry shares points with given source geometry. It's
@@ -232,14 +231,34 @@ public:
     /// Destructor. Do nothing!!!
     ~Line2D3() override {}
 
+    /**
+     * @brief Gets the geometry family.
+     * @details This function returns the family type of the geometry. The geometry family categorizes the geometry into a broader classification, aiding in its identification and processing.
+     * @return GeometryData::KratosGeometryFamily The geometry family.
+     */
     GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
         return GeometryData::KratosGeometryFamily::Kratos_Linear;
     }
 
+    /**
+     * @brief Gets the geometry type.
+     * @details This function returns the specific type of the geometry. The geometry type provides a more detailed classification of the geometry.
+     * @return GeometryData::KratosGeometryType The specific geometry type.
+     */
     GeometryData::KratosGeometryType GetGeometryType() const override
     {
         return GeometryData::KratosGeometryType::Kratos_Line2D3;
+    }
+
+    /**
+     * @brief Gets the geometry order type.
+     * @details This function returns the order type of the geometry. The order type relates to the polynomial degree of the geometry.
+     * @return GeometryData::KratosGeometryOrderType The geometry order type.
+     */
+    GeometryData::KratosGeometryOrderType GetGeometryOrderType() const override
+    {
+        return GeometryData::KratosGeometryOrderType::Kratos_Quadratic_Order;
     }
 
     ///@}
@@ -336,8 +355,8 @@ public:
     ///@name Informations
     ///@{
 
-    /** This method calculate and return Length or charactereistic
-    length of this geometry depending to it's dimension. For one
+    /** This method calculates and returns Length or charactereistic
+    length of this geometry depending on its dimension. For one
     dimensional geometry for example Line it returns length of it
     and for the other geometries it gives Characteristic length
     otherwise.
@@ -350,21 +369,12 @@ public:
     */
     double Length() const override
     {
-        Vector temp;
         const IntegrationMethod integration_method = IntegrationUtilities::GetIntegrationMethodForExactMassMatrixEvaluation(*this);
-        this->DeterminantOfJacobian( temp, integration_method );
-        const IntegrationPointsArrayType& r_integration_points = this->IntegrationPoints( integration_method );
-        double length = 0.0;
-
-        for (std::size_t i = 0; i < r_integration_points.size(); ++i) {
-            length += temp[i] * r_integration_points[i].Weight();
-        }
-
-        return length;
+        return IntegrationUtilities::ComputeDomainSize(*this, integration_method);
     }
 
-    /** This method calculate and return area or surface area of
-    this geometry depending to it's dimension. For one dimensional
+    /** This method calculates and returns area or surface area of
+    this geometry depending on its dimension. For one dimensional
     geometry it returns length, for two dimensional it gives area
     and for three dimensional geometries it gives surface area.
 
@@ -380,8 +390,8 @@ public:
     }
 
 
-    /** This method calculate and return length, area or volume of
-    this geometry depending to it's dimension. For one dimensional
+    /** This method calculates and returns length, area or volume of
+    this geometry depending on its dimension. For one dimensional
     geometry it returns its length, for two dimensional it gives area
     and for three dimensional geometries it gives its volume.
 
@@ -504,6 +514,7 @@ public:
      *
      * @see DeterminantOfJacobian
      * @see InverseOfJacobian
+     * @todo We must check if this override methods are faster than the base class methods
      */
     JacobiansType& Jacobian( JacobiansType& rResult, IntegrationMethod ThisMethod ) const override
     {
@@ -548,6 +559,7 @@ public:
      *
      * @see DeterminantOfJacobian
      * @see InverseOfJacobian
+     * @todo We must check if this override methods are faster than the base class methods
      */
     JacobiansType& Jacobian( JacobiansType& rResult, IntegrationMethod ThisMethod, Matrix& rDeltaPosition ) const override
     {
@@ -580,7 +592,7 @@ public:
     }
 
     /** Jacobian in specific integration point of given integration
-     * method. This method calculate jacobian matrix in given
+     * method. This method calculates jacobian matrix in given
      * integration point of given integration method.
      *
      * @param IntegrationPointIndex index of integration point which jacobians has to
@@ -594,6 +606,7 @@ public:
      * integration method.
      * @see DeterminantOfJacobian
      * @see InverseOfJacobian
+     * @todo We must check if this override methods are faster than the base class methods
      */
     Matrix& Jacobian( Matrix& rResult, IndexType IntegrationPointIndex, IntegrationMethod ThisMethod ) const override
     {
@@ -620,7 +633,7 @@ public:
         return rResult;
     }
 
-    /** Jacobian in given point. This method calculate jacobian
+    /** Jacobian in given point. This method calculates jacobian
      * matrix in given point.
      *
      * @param rPoint point which jacobians has to
@@ -630,6 +643,7 @@ public:
      *
      * @see DeterminantOfJacobian
      * @see InverseOfJacobian
+     * @todo We must check if this override methods are faster than the base class methods
      */
     Matrix& Jacobian( Matrix& rResult, const CoordinatesArrayType& rPoint ) const override
     {
@@ -654,7 +668,7 @@ public:
 
     /**
      * @brief Determinant of jacobians for given integration method.
-     * @details This method calculate determinant of jacobian in all integrations points of given integration method.
+     * @details This method calculates determinant of jacobian in all integrations points of given integration method.
      * @return Vector of double which is vector of determinants of jacobians \f$ |J|_i \f$ where \f$ i=1,2,...,n \f$ is the integration point index of given integration method.
      * @see Jacobian
      * @see InverseOfJacobian
@@ -674,7 +688,7 @@ public:
     }
 
     /**
-     * @brief Determinant of jacobian in specific integration point of given integration method. This method calculate determinant of jacobian in given integration point of given integration method.
+     * @brief Determinant of jacobian in specific integration point of given integration method. This method calculates determinant of jacobian in given integration point of given integration method.
      * @param IntegrationPointIndex index of integration point which jacobians has to be calculated in it.
      * @param IntegrationPointIndex index of integration point which determinant of jacobians has to be calculated in it.
      * @return Determinamt of jacobian matrix \f$ |J|_i \f$ where \f$ i \f$ is the given integration point index of given integration method.
@@ -689,7 +703,7 @@ public:
     }
 
     /**
-     * @brief Determinant of jacobian in given point. This method calculate determinant of jacobian matrix in given point.
+     * @brief Determinant of jacobian in given point. This method calculates determinant of jacobian matrix in given point.
      * @param rPoint point which determinant of jacobians has to be calculated in it.
      * @return Determinamt of jacobian matrix \f$ |J| \f$ in given point.
      * @see DeterminantOfJacobian
@@ -702,8 +716,12 @@ public:
         return std::sqrt(std::pow(J(0,0), 2) + std::pow(J(1,0), 2));
     }
 
+    ///@}
+    ///@name Edges and faces
+    ///@{
+
     /** EdgesNumber
-    @return SizeType containes number of this geometry edges.
+    @return SizeType contains number of this geometry edges.
     */
     SizeType EdgesNumber() const override
     {
@@ -712,11 +730,11 @@ public:
 
 
     /** FacesNumber
-    @return SizeType containes number of this geometry edges/faces.
+    @return SizeType contains number of this geometry faces.
     */
     SizeType FacesNumber() const override
     {
-      return EdgesNumber();
+      return 0;
     }
 
     ///@}
@@ -777,27 +795,14 @@ public:
     }
 
     ///@}
-    ///@name Shape Function Integration Points Gradient
-    ///@{
-
-    void ShapeFunctionsIntegrationPointsGradients(
-        ShapeFunctionsGradientsType &rResult,
-        IntegrationMethod ThisMethod) const override
-    {
-        KRATOS_ERROR << "Jacobian is not square" << std::endl;
-    }
-
-    void ShapeFunctionsIntegrationPointsGradients(
-        ShapeFunctionsGradientsType &rResult,
-        Vector &rDeterminantsOfJacobian,
-        IntegrationMethod ThisMethod) const override
-    {
-        KRATOS_ERROR << "Jacobian is not square" << std::endl;
-    }
-
-    ///@}
     ///@name Input and output
     ///@{
+
+    /// @copydoc Geometry::Name
+    std::string Name() const override
+    {
+        return "Line2D3N";
+    }
 
     /** Turn back information as a string.
 
@@ -831,11 +836,16 @@ public:
     */
     void PrintData( std::ostream& rOStream ) const override
     {
+        // Base Geometry class PrintData call
         BaseType::PrintData( rOStream );
         std::cout << std::endl;
-        Matrix jacobian;
-        Jacobian( jacobian, PointType() );
-        rOStream << "    Jacobian\t : " << jacobian;
+
+        // If the geometry has valid points, calculate and output its data
+        if (this->AllPointsAreValid()) {
+            Matrix jacobian;
+            this->Jacobian( jacobian, PointType() );
+            rOStream << "    Jacobian\t : " << jacobian;
+        }
     }
 
     /**
@@ -1168,9 +1178,6 @@ const GeometryData Line2D3<TPointType>::msGeometryData(
         AllShapeFunctionsLocalGradients() );
 
 template<class TPointType>
-const GeometryDimension Line2D3<TPointType>::msGeometryDimension(
-    2, 2, 1);
+const GeometryDimension Line2D3<TPointType>::msGeometryDimension(2, 1);
 
 }  // namespace Kratos.
-
-#endif // KRATOS_LINE_2D_3_H_INCLUDED  defined

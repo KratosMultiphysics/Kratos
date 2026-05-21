@@ -6,7 +6,6 @@ from KratosMultiphysics.gid_output_process import GiDOutputProcess
 from KratosMultiphysics.vtk_output_process import VtkOutputProcess
 
 import os
-import math
 from decimal import Decimal
 
 def GetFilePath(fileName):

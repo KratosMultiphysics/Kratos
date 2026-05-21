@@ -14,7 +14,7 @@
 #include "heat_exchange_mechanism.h"
 
 namespace Kratos {
-  //-----------------------------------------------------------------------------------------------------------------------
+  //------------------------------------------------------------------------------------------------------------
   HeatExchangeMechanism::HeatExchangeMechanism() {}
   HeatExchangeMechanism::~HeatExchangeMechanism() {}
 

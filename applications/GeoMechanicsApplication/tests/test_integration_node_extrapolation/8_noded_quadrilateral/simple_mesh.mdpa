@@ -1,0 +1,86 @@
+Begin Table 1 X WATER_PRESSURE
+    0.0000000000 0.0000000000
+    0.5000000000 -2500
+    1.0000000000 -5000
+End Table
+
+Begin Table 2 X WATER_PRESSURE
+    0.0000000000 -40000
+    0.5000000000 -35000
+    1.0000000000 -30000
+End Table
+
+Begin Properties 1
+End Properties
+
+Begin Nodes
+  1  0.0000000000 -2.0000000000 0.0000000000
+  2  1.0000000000 -2.0000000000 0.0000000000
+  3  1.0000000000  0.0000000000 0.0000000000
+  4  0.0000000000  0.0000000000 0.0000000000
+  5  0.5000000000 -2.0000000000 0.0000000000
+  6  1.0000000000 -1.0000000000 0.0000000000
+  7  0.5000000000  0.0000000000 0.0000000000
+  8  0.0000000000 -1.0000000000 0.0000000000
+End Nodes
+
+Begin Elements UPwSmallStrainElement2D8N
+  1  1  1 2 3 4 5 6 7 8
+End Elements
+
+Begin SubModelPart soil
+  Begin SubModelPartNodes
+    1
+    2
+    3
+    4
+    5
+    6
+    7
+    8
+  End SubModelPartNodes
+  Begin SubModelPartElements
+    1
+  End SubModelPartElements
+End SubModelPart
+
+Begin SubModelPart Body_Acceleration-auto-1
+  Begin SubModelPartNodes
+    1
+    2
+    3
+    4
+    5
+    6
+    7
+    8
+  End SubModelPartNodes
+  Begin SubModelPartElements
+    1
+  End SubModelPartElements
+End SubModelPart
+
+Begin SubModelPart Top
+  Begin SubModelPartTables
+    1
+  End SubModelPartTables
+  Begin SubModelPartNodes
+    3
+    4
+    7
+  End SubModelPartNodes
+End SubModelPart
+
+Begin SubModelPart Base
+  Begin SubModelPartTables
+    2
+  End SubModelPartTables
+  Begin SubModelPartNodes
+    1
+    2
+    5
+  End SubModelPartNodes
+End SubModelPart
+
+
+

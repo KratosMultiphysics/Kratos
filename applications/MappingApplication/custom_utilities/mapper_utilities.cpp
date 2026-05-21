@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Philipp Bucher, Jordi Cotela
 //
@@ -23,6 +23,7 @@
 #include "utilities/reduction_utilities.h"
 #include "mapper_utilities.h"
 #include "mapping_application_variables.h"
+#include "utilities/search_utilities.h"
 
 namespace Kratos {
 namespace MapperUtilities {
@@ -55,10 +56,10 @@ double ComputeMaxEdgeLengthLocal(const TContainer& rEntityContainer)
 {
     // Loop through each edge of a geometrical entity ONCE
     return block_for_each<MaxReduction<double>>(rEntityContainer, [](const typename TContainer::value_type& rEntity){
-        for (std::size_t i = 0; i < (rEntity.GetGeometry().size() - 1); ++i) {
-            for (std::size_t j = i + 1; j < rEntity.GetGeometry().size(); ++j) {
-                return ComputeDistance(rEntity.GetGeometry()[i].Coordinates(),
-                                       rEntity.GetGeometry()[j].Coordinates());
+        const auto& r_geometry = rEntity.GetGeometry();
+        for (std::size_t i = 0; i < (r_geometry.size() - 1); ++i) {
+            for (std::size_t j = i + 1; j < r_geometry.size(); ++j) {
+                return r_geometry[i].Distance(r_geometry[j]);
             }
         }
         return 0.0; // in case the geometry is a point
@@ -219,29 +220,6 @@ BoundingBoxType ComputeGlobalBoundingBox(const ModelPart& rModelPart)
     return global_bounding_box;
 }
 
-void ComputeBoundingBoxesWithTolerance(const std::vector<double>& rBoundingBoxes,
-                                       const double Tolerance,
-                                       std::vector<double>& rBoundingBoxesWithTolerance)
-{
-    const SizeType size_vec = rBoundingBoxes.size();
-
-    KRATOS_DEBUG_ERROR_IF_NOT(std::fmod(size_vec, 6) == 0)
-        << "Bounding Boxes size has to be a multiple of 6!" << std::endl;
-
-    if (rBoundingBoxesWithTolerance.size() != size_vec) {
-        rBoundingBoxesWithTolerance.resize(size_vec);
-    }
-
-    // Apply Tolerances
-    for (IndexType i=0; i<size_vec; i+=2) {
-        rBoundingBoxesWithTolerance[i] = rBoundingBoxes[i] + Tolerance;
-    }
-
-    for (IndexType i=1; i<size_vec; i+=2) {
-        rBoundingBoxesWithTolerance[i] = rBoundingBoxes[i] - Tolerance;
-    }
-}
-
 std::string BoundingBoxStringStream(const BoundingBoxType& rBoundingBox)
 {
     // xmax, xmin,  ymax, ymin,  zmax, zmin
@@ -253,16 +231,6 @@ std::string BoundingBoxStringStream(const BoundingBoxType& rBoundingBox)
                   << rBoundingBox[2] << " "    // ymax
                   << rBoundingBox[4] << "]";   // zmax
     return buffer.str();
-}
-
-bool PointIsInsideBoundingBox(const BoundingBoxType& rBoundingBox,
-                              const array_1d<double, 3>& rCoords)
-{   // The Bounding Box should have some tolerance already!
-    if (rCoords[0] < rBoundingBox[0] && rCoords[0] > rBoundingBox[1])   // check x-direction
-        if (rCoords[1] < rBoundingBox[2] && rCoords[1] > rBoundingBox[3])   // check y-direction
-            if (rCoords[2] < rBoundingBox[4] && rCoords[2] > rBoundingBox[5])   // check z-direction
-                return true;
-    return false;
 }
 
 void CreateMapperLocalSystemsFromNodes(const MapperLocalSystem& rMapperLocalSystemPrototype,
@@ -313,7 +281,7 @@ void SaveCurrentConfiguration(ModelPart& rModelPart)
 {
     KRATOS_TRY;
 
-    block_for_each(rModelPart.Nodes(), [&](Node<3>& rNode){
+    block_for_each(rModelPart.Nodes(), [&](Node& rNode){
         rNode.SetValue(CURRENT_COORDINATES, rNode.Coordinates());
     });
 
@@ -327,7 +295,7 @@ void RestoreCurrentConfiguration(ModelPart& rModelPart)
     if (rModelPart.NumberOfNodes() > 0) {
         KRATOS_ERROR_IF_NOT(rModelPart.NodesBegin()->Has(CURRENT_COORDINATES)) << "Nodes do not have CURRENT_COORDINATES for restoring the current configuration!" << std::endl;
 
-        block_for_each(rModelPart.Nodes(), [&](Node<3>& rNode){
+        block_for_each(rModelPart.Nodes(), [&](Node& rNode){
             noalias(rNode.Coordinates()) = rNode.GetValue(CURRENT_COORDINATES);
             rNode.GetData().Erase(CURRENT_COORDINATES);
         });
@@ -364,7 +332,7 @@ void FillBufferBeforeLocalSearch(const MapperLocalSystemPointerVector& rMapperLo
 
             if (!rp_local_sys->IsDoneSearching()) {
                 const auto& r_coords = rp_local_sys->Coordinates();
-                if (MapperUtilities::PointIsInsideBoundingBox(bounding_box, r_coords)) {
+                if (SearchUtilities::PointIsInsideBoundingBox(bounding_box, r_coords)) {
                     // These push_backs are threadsafe bcs only one vector is accessed per thread!
                     r_rank_buffer.push_back(static_cast<double>(i_local_sys)); // this it the "mSourceLocalSystemIndex" of the MapperInterfaceInfo
                     r_rank_buffer.push_back(r_coords[0]);

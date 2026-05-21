@@ -604,7 +604,7 @@ protected:
     ///@}
 
 private:
-    class CompareKey : public std::binary_function<value_type, key_type, bool>
+    class CompareKey
     {
     public:
         bool operator()(value_type const& a, key_type b) const
@@ -625,7 +625,7 @@ private:
 //       bool operator()(value_type& a, value_type& b) const
 //       {return TCompareType()(a.first, b.first);}
 //     };
-    class EqualKeyTo : public std::binary_function<value_type&, value_type&, bool>
+    class EqualKeyTo
     {
         key_type mKey;
     public:
@@ -639,9 +639,6 @@ private:
             return a.first == mKey;
         }
     };
-
-//        static typename TCompareType::result_type TCompareType(TDataType const & a, TDataType const & b)
-//        {return TCompareType()(KeyOf(a), KeyOf(b));}
 
     ///@name Static Member Variables
     ///@{

@@ -120,7 +120,7 @@ public:
         for(NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); ++in)
         {
             (in->GetValue(NEIGHBOUR_NODES)).reserve(mavg_nodes);
-            GlobalPointersVector<Node<3> >& rN = in->GetValue(NEIGHBOUR_NODES);
+            GlobalPointersVector<Node >& rN = in->GetValue(NEIGHBOUR_NODES);
             rN.erase(rN.begin(),rN.end() );
 	    
             (in->GetValue(NEIGHBOUR_CONDITIONS)).reserve(mavg_conds);
@@ -155,7 +155,7 @@ public:
 //                         Element::NodeType::WeakPointer temp = pGeom(i);
 			//NOT SURE ABOUT THIS!!!!!!!!!
                         Condition::NodeType::WeakPointer temp = pGeom(i);			
-                        AddUniqueWeakPointer< Node<3> >(in->GetValue(NEIGHBOUR_NODES), temp);
+                        AddUniqueWeakPointer< Node >(in->GetValue(NEIGHBOUR_NODES), temp);
                     }
                 }
             }
@@ -170,7 +170,7 @@ public:
             GlobalPointersVector<Condition >& rC = in->GetValue(NEIGHBOUR_CONDITIONS);
             rC.erase(rC.begin(),rC.end());
 
-            GlobalPointersVector<Node<3> >& rN = in->GetValue(NEIGHBOUR_NODES);
+            GlobalPointersVector<Node >& rN = in->GetValue(NEIGHBOUR_NODES);
             rN.erase(rN.begin(),rN.end() );
         }
     }

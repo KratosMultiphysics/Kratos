@@ -145,7 +145,7 @@ void UniversalFileIO::WriteAllElementsButNoConditions()
         ModelPart::ConditionType::GeometryType element_geometry = element_i.GetGeometry();
 
         // Write triangles
-        if( element_geometry.size()==3 && element_geometry.Dimension()==2 )
+        if( element_geometry.size()==3 && element_geometry.WorkingSpaceDimension()==2 )
         {
             const int feDescriptorId = 41; // Plane Stress Linear Triangle
             const int numberOfNodes = 3;
@@ -160,7 +160,7 @@ void UniversalFileIO::WriteAllElementsButNoConditions()
             outputFile << std::setw(10) << element_geometry[2].Id() << "\n";
         }
         // Write quads
-        else if( element_geometry.size()==4 && element_geometry.Dimension()==2 )
+        else if( element_geometry.size()==4 && element_geometry.WorkingSpaceDimension()==2 )
         {
             const int feDescriptorId = 44; // Plane Stress Linear Quadrilateral
             const int numberOfNodes = 4;
@@ -176,7 +176,7 @@ void UniversalFileIO::WriteAllElementsButNoConditions()
             outputFile << std::setw(10) << element_geometry[3].Id() << "\n";
         }
         // Write tetrahedras
-        else if( element_geometry.size()==4 && element_geometry.Dimension()==3 )
+        else if( element_geometry.size()==4 && element_geometry.WorkingSpaceDimension()==3 )
         {
             const int feDescriptorId = 111; // Solid linear tetrahedron
             const int numberOfNodes = 4;

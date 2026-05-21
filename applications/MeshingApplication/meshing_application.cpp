@@ -28,8 +28,8 @@ namespace Kratos {
 
 KratosMeshingApplication::KratosMeshingApplication()
     : KratosApplication("MeshingApplication"),
-      mTestElement2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
-      mTestElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4))))
+      mTestElement2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node >(Element::GeometryType::PointsArrayType(3)))),
+      mTestElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4))))
       {}
 
 void KratosMeshingApplication::Register() {

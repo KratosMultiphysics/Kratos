@@ -8,7 +8,7 @@ def Factory(parameters: KratosMultiphysics.Parameters,
             model: KratosMultiphysics.Model):
     if not isinstance(parameters, KratosMultiphysics.Parameters):
         raise Exception("expecting input parameters of type KratosMultiphysics.Parameters, but got {}".format(type(parameters)))
-    return LineOutputProcess(model, parameters)
+    return LineOutputProcess(model, parameters["Parameters"])
 
 
 class LineOutputProcess(KratosMultiphysics.OutputProcess):
@@ -49,7 +49,6 @@ class LineOutputProcess(KratosMultiphysics.OutputProcess):
             "file_parameters"       : {
                 "file_name"         : "",
                 "file_access_mode"  : "read_write",
-                "file_driver"       : "sec2",
                 "echo_level"        : 0
             }
         }""")

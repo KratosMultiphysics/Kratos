@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 import KratosMultiphysics
 import KratosMultiphysics.FluidDynamicsApplication
@@ -54,7 +53,7 @@ class TwoFluidMassConservationTest(UnitTest.TestCase):
         self.print_output = False
         self.print_reference_values = False
 
-    # runs the two dimensinal test case
+    # runs the two dimensional test case
     @UnitTest.expectedFailure #To be fixed in #9592
     def testTwoFluidMassConservationTest2D(self):
         self._has_inlet = False

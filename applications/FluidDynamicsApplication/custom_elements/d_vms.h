@@ -59,8 +59,11 @@ public:
     /// Pointer definition of DVMS
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(DVMS);
 
-    /// Node type (default is: Node<3>)
-    typedef Node<3> NodeType;
+    /// Base type definition
+    using BaseType = QSVMS<TElementData>;
+
+    /// Node type (default is: Node)
+    typedef Node NodeType;
 
     /// Geometry type (using with given NodeType)
     typedef Geometry<NodeType> GeometryType;
@@ -93,11 +96,11 @@ public:
     /// Type for an array of shape function gradient matrices
     typedef GeometryType::ShapeFunctionsGradientsType ShapeFunctionDerivativesArrayType;
 
-    constexpr static unsigned int Dim = QSVMS<TElementData>::Dim;
-    constexpr static unsigned int NumNodes = QSVMS<TElementData>::NumNodes;
-    constexpr static unsigned int BlockSize = QSVMS<TElementData>::BlockSize;
-    constexpr static unsigned int LocalSize = QSVMS<TElementData>::LocalSize;
-    constexpr static unsigned int StrainSize = QSVMS<TElementData>::StrainSize;
+    constexpr static unsigned int Dim = BaseType::Dim;
+    constexpr static unsigned int NumNodes = BaseType::NumNodes;
+    constexpr static unsigned int BlockSize = BaseType::BlockSize;
+    constexpr static unsigned int LocalSize = BaseType::LocalSize;
+    constexpr static unsigned int StrainSize = BaseType::StrainSize;
 
     ///@}
     ///@name Life Cycle
@@ -105,7 +108,7 @@ public:
 
     //Constructors.
 
-    /// Default constuctor.
+    /// Default constructor.
     /**
      * @param NewId Index number of the new element (optional)
      */
@@ -125,7 +128,7 @@ public:
      */
     DVMS(IndexType NewId, GeometryType::Pointer pGeometry);
 
-    /// Constuctor using geometry and properties.
+    /// Constructor using geometry and properties.
     /**
      * @param NewId Index of the new element
      * @param pGeometry Pointer to a geometry object
@@ -162,7 +165,7 @@ public:
     /**
      * Returns a pointer to a new DVMS element, created using given input
      * @param NewId the ID of the new element
-     * @param pGeom a pointer to the geomerty to be used to create the element
+     * @param pGeom a pointer to the geometry to be used to create the element
      * @param pProperties the properties assigned to the new element
      * @return a Pointer to the new element
      */

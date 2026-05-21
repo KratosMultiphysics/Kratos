@@ -23,9 +23,9 @@
 #include <fstream>
 #include <vector>
 #include <ctime>
-#include <stdlib.h>
+#include <cstdlib>
 #include <iomanip>
-#include <math.h>
+#include <cmath>
 
 
 // External includes
@@ -99,8 +99,8 @@ public:
     ///base type: an IndexedObject that automatically has a unique number
     typedef IndexedObject BaseType;
 
-    ///definition of node type (default is: Node<3>)
-    typedef Node < 3 > NodeType;
+    ///definition of node type (default is: Node)
+    typedef Node NodeType;
 
     /**
      * Properties are used to store any parameters
@@ -407,7 +407,7 @@ public:
 
 	// Surface tension contribution
 	int k = 0;
-	if(TDim < 3)
+	if constexpr (TDim < 3)
 	{
 	    array_1d<double,3> node_indx;
 	    node_indx[0] = 0.0;
@@ -479,7 +479,7 @@ public:
 	    k++;
 	  }
 	}
-	if(TDim < 3 && k > 2)
+	if constexpr (TDim < 3 && k > 2)
 	    this->AddViscousStress2D();
 
         // Now calculate an additional contribution to the residual: r -= rDampingMatrix * (u,p)
@@ -910,7 +910,7 @@ public:
         // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
         for(unsigned int i=0; i<this->GetGeometry().size(); ++i)
         {
-            Node<3> &rNode = this->GetGeometry()[i];
+            Node &rNode = this->GetGeometry()[i];
             KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY,rNode);
             KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(PRESSURE,rNode);
             KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(MESH_VELOCITY,rNode);
@@ -922,7 +922,7 @@ public:
 
             KRATOS_CHECK_DOF_IN_NODE(VELOCITY_X,rNode);
             KRATOS_CHECK_DOF_IN_NODE(VELOCITY_Y,rNode);
-            if (TDim == 3) KRATOS_CHECK_DOF_IN_NODE(VELOCITY_Z,rNode);
+            if constexpr (TDim == 3) KRATOS_CHECK_DOF_IN_NODE(VELOCITY_Z,rNode);
             KRATOS_CHECK_DOF_IN_NODE(PRESSURE,rNode);
         }
         // Not checking OSS related variables NODAL_AREA, ADVPROJ, DIVPROJ, which are only required as SolutionStepData if OSS_SWITCH == 1
@@ -2384,7 +2384,7 @@ protected:
 	    fsign4 = fsign4/abs(fsign4);
 
 	    int num_neighs_l = 0;
-	    GlobalPointersVector< Node<3> >& neighb_l = this->GetGeometry()[ll].GetValue(NEIGHBOUR_NODES);
+	    GlobalPointersVector< Node >& neighb_l = this->GetGeometry()[ll].GetValue(NEIGHBOUR_NODES);
 	    for (unsigned int i = 0; i < neighb_l.size(); i++)
 	    {
 	      if (neighb_l[i].FastGetSolutionStepValue(IS_BOUNDARY) != 0.0)

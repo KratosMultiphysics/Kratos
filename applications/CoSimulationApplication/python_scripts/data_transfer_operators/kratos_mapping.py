@@ -9,13 +9,28 @@ from KratosMultiphysics.MappingApplication import python_mapper_factory
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 import KratosMultiphysics.CoSimulationApplication.colors as colors
 
-# other imports
+# Other imports
 from KratosMultiphysics.CoSimulationApplication.utilities import data_communicator_utilities
 from time import time
+from dataclasses import dataclass
+from typing import Union, Tuple
+
+@dataclass
+class SolverData:
+    model_part_origin: KM.ModelPart
+    model_part_destination: KM.ModelPart
+    model_part_origin_name: str
+    model_part_destination_name: str
+    variable_origin: Union[KM.DoubleVariable, KM.Array1DVariable3]
+    variable_destination: Union[KM.DoubleVariable, KM.Array1DVariable3]
+    mapper_flags: KM.Flags
+    identifier_origin: str
+    identifier_destination: str
+    identifier_tuple: Tuple[str, str]
+    inverse_identifier_tuple: Tuple[str, str]
 
 def Create(*args):
     return KratosMappingDataTransferOperator(*args)
-
 class KratosMappingDataTransferOperator(CoSimulationDataTransferOperator):
     """DataTransferOperator that maps values from one interface (ModelPart) to another.
     The mappers of the Kratos-MappingApplication are used
@@ -37,48 +52,34 @@ class KratosMappingDataTransferOperator(CoSimulationDataTransferOperator):
         if not settings.Has("mapper_settings"):
             raise Exception('No "mapper_settings" provided!')
         super().__init__(settings, parent_coupled_solver_data_communicator)
-        self.__mappers = {}
+        self._mappers = {}
 
     def _ExecuteTransferData(self, from_solver_data, to_solver_data, transfer_options):
-        model_part_origin_name = from_solver_data.model_part_name
-        variable_origin        = from_solver_data.variable
-        identifier_origin      = from_solver_data.solver_name + "." + model_part_origin_name
+        solver_data = self._PrepareSolverData(from_solver_data, to_solver_data, transfer_options)
 
-        model_part_destination_name = to_solver_data.model_part_name
-        variable_destination        = to_solver_data.variable
-        identifier_destination      = to_solver_data.solver_name + "." + model_part_destination_name
-
-        mapper_flags = self.__GetMapperFlags(transfer_options, from_solver_data, to_solver_data)
-
-        identifier_tuple         = (identifier_origin, identifier_destination)
-        inverse_identifier_tuple = (identifier_destination, identifier_origin)
-
-        if identifier_tuple in self.__mappers:
-            self.__mappers[identifier_tuple].Map(variable_origin, variable_destination, mapper_flags)
-        elif inverse_identifier_tuple in self.__mappers:
-            self.__mappers[inverse_identifier_tuple].InverseMap(variable_destination, variable_origin, mapper_flags)
+        if solver_data.identifier_tuple in self._mappers:
+            self._mappers[solver_data.identifier_tuple].Map(solver_data.variable_origin, solver_data.variable_destination, solver_data.mapper_flags)
+        elif solver_data.inverse_identifier_tuple in self._mappers:
+            self._mappers[solver_data.inverse_identifier_tuple].InverseMap(solver_data.variable_destination, solver_data.variable_origin, solver_data.mapper_flags)
         else:
-            model_part_origin      = self.__GetModelPartFromInterfaceData(from_solver_data)
-            model_part_destination = self.__GetModelPartFromInterfaceData(to_solver_data)
+            model_part_origin      = self._GetModelPartFromInterfaceData(from_solver_data)
+            model_part_destination = self._GetModelPartFromInterfaceData(to_solver_data)
 
-            if model_part_origin.IsDistributed() or model_part_destination.IsDistributed():
-                mapper_create_fct = python_mapper_factory.CreateMPIMapper
-            else:
-                mapper_create_fct = python_mapper_factory.CreateMapper
+            mapper_create_fct = self._DefineMapperFunction(model_part_origin, model_part_destination)
 
             if self.echo_level > 0:
                 info_msg  = "Creating Mapper:\n"
-                info_msg += '    Origin: ModelPart "{}" of solver "{}"\n'.format(model_part_origin_name, from_solver_data.solver_name)
-                info_msg += '    Destination: ModelPart "{}" of solver "{}"'.format(model_part_destination_name, to_solver_data.solver_name)
+                info_msg += '    Origin: ModelPart "{}" of solver "{}"\n'.format(solver_data.model_part_origin_name, from_solver_data.solver_name)
+                info_msg += '    Destination: ModelPart "{}" of solver "{}"'.format(solver_data.model_part_destination_name, to_solver_data.solver_name)
 
                 cs_tools.cs_print_info(colors.bold(self._ClassName()), info_msg)
 
             mapper_creation_start_time = time()
-            self.__mappers[identifier_tuple] = mapper_create_fct(model_part_origin, model_part_destination, self.settings["mapper_settings"].Clone()) # Clone is necessary because the settings are validated and defaults assigned, which could influence the creation of other mappers
+            self._mappers[solver_data.identifier_tuple] = mapper_create_fct(model_part_origin, model_part_destination, self.settings["mapper_settings"].Clone()) # Clone is necessary because the settings are validated and defaults assigned, which could influence the creation of other mappers
 
             if self.echo_level > 2:
                 cs_tools.cs_print_info(colors.bold(self._ClassName()), "Creating Mapper took: {0:.{1}f} [s]".format(time()-mapper_creation_start_time,2))
-            self.__mappers[identifier_tuple].Map(variable_origin, variable_destination, mapper_flags)
+            self._mappers[solver_data.identifier_tuple].Map(solver_data.variable_origin, solver_data.variable_destination, solver_data.mapper_flags)
 
     def _Check(self, from_solver_data, to_solver_data):
         def CheckData(data_to_check):
@@ -102,6 +103,83 @@ class KratosMappingDataTransferOperator(CoSimulationDataTransferOperator):
     def _GetListAvailableTransferOptions(cls):
         return cls.__mapper_flags_dict.keys()
 
+    def _DefineMapperFunction(self, model_part_origin, model_part_destination):
+        """
+        Define the mapper function to be used
+
+        Args:
+            self: The instance of the class.
+            model_part_origin (ModelPart): The model part to transfer from.
+            model_part_destination (ModelPart): The model part to transfer to.
+
+        Returns:
+            function: The function to be used for the mapping
+        """
+        if model_part_origin.IsDistributed() or model_part_destination.IsDistributed():
+            return python_mapper_factory.CreateMPIMapper
+        else:
+            return python_mapper_factory.CreateMapper
+
+    def _PrepareSolverData(self, from_solver_data, to_solver_data, transfer_options):
+        """
+        Prepare the solver data
+
+        Args:
+            self: The instance of the class.
+            from_solver_data (CoSimulationData): The data from the solver to transfer from.
+            to_solver_data (CoSimulationData): The data from the solver to transfer to.
+            transfer_options (KM.Flags): The flags to be used for the mapping.
+
+        Returns:
+            SolverData: Named tuple containing all the extracted values.
+        """
+        # Get the from solver data
+        model_part_origin_name = from_solver_data.model_part_name
+        variable_origin        = from_solver_data.variable
+        identifier_origin      = from_solver_data.solver_name + "." + model_part_origin_name
+
+        # Get the to solver data
+        model_part_destination_name = to_solver_data.model_part_name
+        variable_destination        = to_solver_data.variable
+        identifier_destination      = to_solver_data.solver_name + "." + model_part_destination_name
+
+        # Get the mapper flags
+        mapper_flags = self.__GetMapperFlags(transfer_options, from_solver_data, to_solver_data)
+
+        # Get the identifier tuple
+        identifier_tuple         = (identifier_origin, identifier_destination)
+        inverse_identifier_tuple = (identifier_destination, identifier_origin)
+
+        # Get the model parts
+        model_part_origin      = self._GetModelPartFromInterfaceData(from_solver_data)
+        model_part_destination = self._GetModelPartFromInterfaceData(to_solver_data)
+
+        # Return the solver data as data class
+        return SolverData(
+            model_part_origin=model_part_origin,
+            model_part_destination=model_part_destination,
+            model_part_origin_name=model_part_origin_name,
+            model_part_destination_name=model_part_destination_name,
+            variable_origin=variable_origin,
+            variable_destination=variable_destination,
+            mapper_flags=mapper_flags,
+            identifier_origin=identifier_origin,
+            identifier_destination=identifier_destination,
+            identifier_tuple=identifier_tuple,
+            inverse_identifier_tuple=inverse_identifier_tuple
+        )
+
+    @staticmethod
+    def _GetModelPartFromInterfaceData(interface_data):
+        """If the solver does not exist on this rank, then pass a
+        dummy ModelPart to the Mapper that has a DataCommunicator
+        that is not defined on this rank
+        """
+        if interface_data.IsDefinedOnThisRank():
+            return interface_data.GetModelPart()
+        else:
+            return KratosMappingDataTransferOperator.__GetRankZeroModelPart()
+
     def __GetMapperFlags(self, transfer_options, from_solver_data, to_solver_data):
         mapper_flags = KM.Flags()
         for flag_name in transfer_options.GetStringArray():
@@ -112,17 +190,6 @@ class KratosMappingDataTransferOperator(CoSimulationDataTransferOperator):
             mapper_flags |= KM.Mapper.TO_NON_HISTORICAL
 
         return mapper_flags
-
-    @staticmethod
-    def __GetModelPartFromInterfaceData(interface_data):
-        """If the solver does not exist on this rank, then pass a
-        dummy ModelPart to the Mapper that has a DataCommunicator
-        that is not defined on this rank
-        """
-        if interface_data.IsDefinedOnThisRank():
-            return interface_data.GetModelPart()
-        else:
-            return KratosMappingDataTransferOperator.__GetRankZeroModelPart()
 
     @staticmethod
     def __GetRankZeroModelPart():

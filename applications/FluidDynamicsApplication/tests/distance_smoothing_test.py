@@ -41,7 +41,7 @@ class TestDistanceSmoothing(KratosUnittest.TestCase):
                 kratos_comm, model_part).Execute()
 
         KratosMultiphysics.GenericFindElementalNeighboursProcess(
-            model_part).ExecuteInitialize()
+            model_part).Execute()
 
         # Set IS_STRUCTURE to define contact with solid
         for node in model_part.Nodes:

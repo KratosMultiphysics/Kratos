@@ -288,7 +288,7 @@ private:
 
       for(ModelPart::ConditionsContainerType::iterator ic = TemporaryConditions.begin(); ic!= TemporaryConditions.end(); ic++)
 	{
-	  Geometry< Node<3> > rGeometry =ic->GetGeometry();
+	  Geometry< Node > rGeometry =ic->GetGeometry();
 	  for(unsigned int i=0; i<rGeometry.size(); ++i)
 	    {
               rGeometry[i].Reset(TO_SPLIT);
@@ -317,14 +317,14 @@ private:
       KRATOS_TRY
 
       //node to get the DOFs from
-      Node<3>::DofsContainerType& reference_dofs = (rModelPart.NodesBegin())->GetDofs();
+      Node::DofsContainerType& reference_dofs = (rModelPart.NodesBegin())->GetDofs();
       //unsigned int step_data_size = rModelPart.GetNodalSolutionStepDataSize();
       double z = 0.0;
 
       unsigned int initial_node_size = mrModelPart.Nodes().size()+1; //total model part node size
       unsigned int initial_cond_size = mrModelPart.Conditions().size()+1; //total model part node size
 
-      Node<3> new_point(0,0.0,0.0,0.0);
+      Node new_point(0,0.0,0.0,0.0);
 
       int id=0;
       //if points were added, new nodes must be added to ModelPart
@@ -335,7 +335,7 @@ private:
 	  double& x= list_of_points[i].X();
 	  double& y= list_of_points[i].Y();
 
-	  Node<3>::Pointer pnode = rModelPart.CreateNewNode(id,x,y,z);
+	  Node::Pointer pnode = rModelPart.CreateNewNode(id,x,y,z);
 
 	  pnode->SetBufferSize(rModelPart.NodesBegin()->GetBufferSize() );
 
@@ -343,14 +343,14 @@ private:
 	  //assign data to dofs
 
 	  //2D edges:
-	  Geometry< Node<3> >& rConditionGeometry  = list_of_conditions[i]->GetGeometry();
+	  Geometry< Node >& rConditionGeometry  = list_of_conditions[i]->GetGeometry();
 
 
 	  //generating the dofs
-	  for(Node<3>::DofsContainerType::iterator iii = reference_dofs.begin(); iii != reference_dofs.end(); ++iii)
+	  for(Node::DofsContainerType::iterator iii = reference_dofs.begin(); iii != reference_dofs.end(); ++iii)
 	    {
-              Node<3>::DofType& rDof = **iii;
-              Node<3>::DofType::Pointer p_new_dof = pnode->pAddDof( rDof );
+              Node::DofType& rDof = **iii;
+              Node::DofType::Pointer p_new_dof = pnode->pAddDof( rDof );
 
               if( rConditionGeometry[0].IsFixed(rDof.GetVariable()) && rConditionGeometry[1].IsFixed(rDof.GetVariable()) )
 		(p_new_dof)->FixDof();
@@ -365,7 +365,7 @@ private:
 	  PointsArray.push_back( rConditionGeometry(0) );
 	  PointsArray.push_back( rConditionGeometry(1) );
 
-	  Geometry<Node<3> > geom( PointsArray );
+	  Geometry<Node > geom( PointsArray );
 
 	  std::vector<double> N(2);
 	  N[0] = 0.5;
@@ -375,7 +375,7 @@ private:
 	  DataTransferUtilities.Interpolate( geom, N, variables_list, pnode);
 
 	  // //int cond_id = list_of_points[i].Id();
-	  // //Geometry< Node<3> >& rConditionGeometry = (*(rModelPart.Conditions().find(cond_id).base()))->GetGeometry();
+	  // //Geometry< Node >& rConditionGeometry = (*(rModelPart.Conditions().find(cond_id).base()))->GetGeometry();
 
 	  //set specific control values and flags:
 	  pnode->Set(BOUNDARY);
@@ -520,7 +520,7 @@ private:
       bool tool_project        = false;
 
       std::vector<bool> semi_active_nodes;
-      Node<3> new_point(0,0.0,0.0,0.0);
+      Node new_point(0,0.0,0.0,0.0);
 
 
       for(ModelPart::ConditionsContainerType::iterator ic = mrModelPart.ConditionsBegin(); ic!= mrModelPart.ConditionsEnd(); ic++)
@@ -534,7 +534,7 @@ private:
 	  tool_radius    = 0;
 	  side_length    = 0;
 
-	  Geometry< Node<3> > rConditionGeometry;
+	  Geometry< Node > rConditionGeometry;
 	  array_1d<double,3> tip_center;
 	  tip_center.clear();
 
@@ -543,7 +543,7 @@ private:
 	  if( ic->Is(CONTACT) )   //Refine radius on the workpiece for the ContactDomain zone
 	    {
 
-              Node<3>  MasterNode;
+              Node  MasterNode;
               bool condition_found = false;
               ConditionType::Pointer MasterCondition  = mMesherUtilities.FindMasterCondition(*(ic.base()),MasterNode,rModelPart.Conditions(),condition_found);
 
@@ -789,7 +789,7 @@ private:
       bool contact_semi_active = false;
       bool tool_project = false;
 
-      Node<3> new_point(0,0.0,0.0,0.0);
+      Node new_point(0,0.0,0.0,0.0);
 
       std::vector<bool> semi_active_nodes;
 
@@ -832,7 +832,7 @@ private:
 	    plastic_power = 0;
 
 	    //double condition_radius = 0;
-	    Geometry< Node<3> > rConditionGeometry;
+	    Geometry< Node > rConditionGeometry;
 	    array_1d<double,3> tip_center;
 
 	    if( ic->IsNot(TO_ERASE) ){
@@ -912,7 +912,7 @@ private:
 
 		  if( on_radius && on_tip ) //master node in tool -->  refine workpiece  // (tool_radius ==0 in workpiece nodes)
 		    {
-		      Node<3> center (0,tip_center[0],tip_center[1],tip_center[2]);
+		      Node center (0,tip_center[0],tip_center[1],tip_center[2]);
 		      array_1d<double, 3 > radius;
 		      radius[0]=rConditionGeometry[0].X()-center.X();
 		      radius[1]=rConditionGeometry[0].Y()-center.Y();
@@ -960,10 +960,10 @@ private:
 		plastic_power=0;
 		std::vector<double> Value(1);
 
-		MasterElement.GetValueOnIntegrationPoints(mrRemesh.Refine->GetThresholdVariable(),Value,CurrentProcessInfo);
+		MasterElement.CalculateOnIntegrationPoints(mrRemesh.Refine->GetThresholdVariable(),Value,CurrentProcessInfo);
 
 
-		Geometry<Node<3> >& pGeom = MasterElement.GetGeometry();
+		Geometry<Node >& pGeom = MasterElement.GetGeometry();
 		plastic_power = Value[0] * pGeom.Area();
 
 		// if( Value[0] > 0 )
@@ -1010,7 +1010,7 @@ private:
 		//std::cout<<" MASTER_ELEMENT "<<MasterElement.Id()<<std::endl;
 
 
-		Geometry<Node<3> >& vertices = MasterElement.GetGeometry();
+		Geometry<Node >& vertices = MasterElement.GetGeometry();
 		double Alpha =  mrRemesh.Refine->Alpha;
 
 		bool accepted = mMesherUtilities.AlphaShape(Alpha,vertices,2);

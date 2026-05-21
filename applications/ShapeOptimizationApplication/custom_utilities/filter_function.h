@@ -69,7 +69,7 @@ class KRATOS_API(SHAPE_OPTIMIZATION_APPLICATION) FilterFunction
     ///@{
 
     /// Default constructor.
-    FilterFunction(const std::string FilterFunctionType, const double Radius);
+    FilterFunction(const std::string FilterFunctionType);
 
     /// Destructor.
     virtual ~FilterFunction()
@@ -84,7 +84,7 @@ class KRATOS_API(SHAPE_OPTIMIZATION_APPLICATION) FilterFunction
     ///@name Operations
     ///@{
 
-    double ComputeWeight(const Array3DType& ICoord, const Array3DType& JCoord) const;
+    double ComputeWeight(const Array3DType& ICoord, const Array3DType& JCoord, const double Radius) const;
 
     ///@}
     ///@name Access
@@ -129,7 +129,6 @@ class KRATOS_API(SHAPE_OPTIMIZATION_APPLICATION) FilterFunction
     ///@name Member Variables
     ///@{
 
-    double mRadius;
     std::function<double (double, double)> mFilterFunctional;
 
     ///@}

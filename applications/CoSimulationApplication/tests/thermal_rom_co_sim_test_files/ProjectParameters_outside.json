@@ -1,0 +1,194 @@
+{
+    "analysis_stage": "KratosMultiphysics.ConvectionDiffusionApplication.convection_diffusion_analysis",
+    "output_processes": {
+        "rom_output": [
+            {
+                "Parameters": {
+                    "model_part_name": "ThermalModelPart",
+                    "nodal_unknowns": [
+                        "TEMPERATURE"
+                    ],
+                    "rom_basis_output_folder": "rom_data_outside",
+                    "rom_basis_output_format": "json",
+                    "rom_basis_output_name": "RomParameters_outside",
+                    "snapshots_control_type": "step",
+                    "snapshots_interval": 1.0,
+                    "svd_truncation_tolerance": 0.0
+                },
+                "kratos_module": "KratosMultiphysics.RomApplication",
+                "process_name": "CalculateRomBasisOutputProcess",
+                "python_module": "calculate_rom_basis_output_process"
+            }
+        ],
+        "testing_processes": [
+            {
+                "Parameters": {
+                    "entity_type": "node",
+                    "model_part_name": "ThermalModelPart",
+                    "output_file_settings": {
+                        "file_name": "outside_output.dat"
+                    },
+                    "output_variables": [
+                        "TEMPERATURE",
+                        "REACTION_FLUX"
+                    ],
+                    "position": [
+                        0.5,
+                        0.8,
+                        0.0
+                    ]
+                },
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "PointOutputProcess",
+                "python_module": "point_output_process"
+            }
+        ]
+    },
+    "problem_data": {
+        "echo_level": 0,
+        "end_time": 1.0,
+        "parallel_type": "OpenMP",
+        "problem_name": "GUI_test_outside",
+        "start_time": 0.0,
+        "time_step": 1.0
+    },
+    "processes": {
+        "constraints_process_list": [
+            {
+                "Parameters": {
+                    "constrained": true,
+                    "interval": [
+                        0.0,
+                        "End"
+                    ],
+                    "model_part_name": "ThermalModelPart.ImposedTemperature2D_Left_Wall",
+                    "value": 1.0,
+                    "variable_name": "TEMPERATURE"
+                },
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "AssignScalarVariableProcess",
+                "python_module": "assign_scalar_variable_process"
+            },
+            {
+                "Parameters": {
+                    "constrained": true,
+                    "interval": [
+                        0.0,
+                        "End"
+                    ],
+                    "model_part_name": "ThermalModelPart.ImposedTemperature2D_Bottom_Wall",
+                    "value": 1.0,
+                    "variable_name": "TEMPERATURE"
+                },
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "AssignScalarVariableProcess",
+                "python_module": "assign_scalar_variable_process"
+            },
+            {
+                "Parameters": {
+                    "constrained": true,
+                    "interval": [
+                        0.0,
+                        "End"
+                    ],
+                    "model_part_name": "ThermalModelPart.ImposedTemperature2D_Right_Wall",
+                    "value": 1.0,
+                    "variable_name": "TEMPERATURE"
+                },
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "AssignScalarVariableProcess",
+                "python_module": "assign_scalar_variable_process"
+            },
+            {
+                "Parameters": {
+                    "constrained": true,
+                    "interval": [
+                        0.0,
+                        0.0
+                    ],
+                    "model_part_name": "ThermalModelPart.ImposedTemperature2D_Top_Wall",
+                    "value": 0.0,
+                    "variable_name": "TEMPERATURE"
+                },
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "AssignScalarVariableProcess",
+                "python_module": "assign_scalar_variable_process"
+            }
+        ],
+        "initial_conditions_process_list": [
+            {
+                "Parameters": {
+                    "constrained": false,
+                    "interval": [
+                        0.0,
+                        0.0
+                    ],
+                    "model_part_name": "ThermalModelPart.TEMPERATURE_Body",
+                    "value": 0.0,
+                    "variable_name": "TEMPERATURE"
+                },
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "AssignScalarVariableProcess",
+                "python_module": "assign_scalar_variable_process"
+            }
+        ],
+        "list_other_processes": [
+            {
+                "Parameters": {
+                    "constrained": false,
+                    "model_part_name": "ThermalModelPart.CNVDFFParts_Body",
+                    "value": 0.0,
+                    "variable_name": "HEAT_FLUX"
+                },
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "AssignScalarVariableProcess",
+                "python_module": "assign_scalar_variable_process"
+            }
+        ]
+    },
+    "restart_options": {
+        "LoadRestart": false,
+        "RestartFrequency": 0,
+        "Restart_Step": 0,
+        "SaveRestart": false
+    },
+    "solver_settings": {
+        "analysis_type": "linear",
+        "compute_reactions": false,
+        "convergence_criterion": "residual_criterion",
+        "domain_size": 2,
+        "echo_level": 0,
+        "element_replace_settings": {
+            "condition_name": "ThermalFace",
+            "element_name": "LaplacianElement"
+        },
+        "line_search": false,
+        "material_import_settings": {
+            "materials_filename": "ConvectionDiffusionMaterials_outside.json"
+        },
+        "max_iteration": 10,
+        "model_import_settings": {
+            "input_filename": "GUI_test_outside",
+            "input_type": "mdpa"
+        },
+        "model_part_name": "ThermalModelPart",
+        "problem_domain_sub_model_part_list": [
+            "CNVDFFParts_Body"
+        ],
+        "processes_sub_model_part_list": [
+            "TEMPERATURE_Body",
+            "HeatFlux2D_Top_Wall",
+            "HeatFlux2D_Bottom_Wall",
+            "ImposedTemperature2D_Left_Wall",
+            "ThermalFace2D_Right_Wall"
+        ],
+        "residual_absolute_tolerance": 1e-12,
+        "residual_relative_tolerance": 1e-08,
+        "solution_absolute_tolerance": 1e-12,
+        "solution_relative_tolerance": 1e-08,
+        "solver_type": "transient",
+        "time_stepping": {
+            "time_step": 1.0
+        }
+    }
+}

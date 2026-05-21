@@ -100,7 +100,7 @@ public:
     typedef Kratos::Matrix ShapeDerivativesType;
 
     /// Type for geometry calls
-    typedef Kratos::Geometry< Node<3> > GeometryType;
+    typedef Kratos::Geometry< Node > GeometryType;
 
     ///@}
     ///@name Life Cycle
@@ -158,7 +158,7 @@ public:
     /**
      * @param rLeftHandSideMatrix Elemental left hand side matrix
      * @param rRightHandSideVector Elemental right hand side vector
-     * @param rCurrentProcessInfo Reference to the ProcessInfo from the ModelPart containg the element
+     * @param rCurrentProcessInfo Reference to the ProcessInfo from the ModelPart containing the element
      */
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 

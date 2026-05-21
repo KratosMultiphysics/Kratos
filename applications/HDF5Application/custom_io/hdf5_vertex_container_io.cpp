@@ -28,7 +28,7 @@ VertexContainerIO::VertexContainerIO(Parameters parameters, File::Pointer pFile)
 {
     KRATOS_TRY
 
-    parameters.ValidateAndAssignDefaults(VertexContainerIO::GetDefaultParameters());
+    parameters.AddMissingParameters(VertexContainerIO::GetDefaultParameters());
 
     KRATOS_CATCH("");
 }
@@ -48,7 +48,7 @@ Parameters VertexContainerIO::FormatParameters(Parameters parameters)
     KRATOS_TRY
 
     Parameters output = parameters.Clone();
-    output.ValidateAndAssignDefaults(VertexContainerIO::GetDefaultParameters());
+    output.AddMissingParameters(VertexContainerIO::GetDefaultParameters());
     output["prefix"].SetString("");
     return output;
 
@@ -60,7 +60,7 @@ std::string VertexContainerIO::GetPath(Parameters parameters)
 {
     KRATOS_TRY
 
-    parameters.ValidateAndAssignDefaults(VertexContainerIO::GetDefaultParameters());
+    parameters.AddMissingParameters(VertexContainerIO::GetDefaultParameters());
     return parameters["prefix"].GetString();
 
     KRATOS_CATCH("");
@@ -73,7 +73,7 @@ VertexContainerCoordinateIO::VertexContainerCoordinateIO(Parameters parameters,
 {
     KRATOS_TRY
 
-    parameters.ValidateAndAssignDefaults(VertexContainerCoordinateIO::GetDefaultParameters());
+    parameters.AddMissingParameters(VertexContainerCoordinateIO::GetDefaultParameters());
     mWriteIDs = parameters["write_vertex_ids"].GetBool();
 
     KRATOS_CATCH("");
@@ -164,7 +164,7 @@ Parameters VertexContainerCoordinateIO::FormatParameters(Parameters parameters)
 {
     KRATOS_TRY
 
-    parameters.ValidateAndAssignDefaults(VertexContainerCoordinateIO::GetDefaultParameters());
+    parameters.AddMissingParameters(VertexContainerCoordinateIO::GetDefaultParameters());
 
     Parameters output = parameters.Clone();
     output.RemoveValue("write_vertex_ids");
@@ -172,7 +172,6 @@ Parameters VertexContainerCoordinateIO::FormatParameters(Parameters parameters)
     return output;
 
     KRATOS_CATCH("");
-
 }
 
 

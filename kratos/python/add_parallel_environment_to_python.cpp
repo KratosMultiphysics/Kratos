@@ -18,9 +18,7 @@
 #include "add_parallel_environment_to_python.h"
 #include "includes/parallel_environment.h"
 
-namespace Kratos {
-
-namespace Python {
+namespace Kratos::Python {
 
 void AddParallelEnvironmentToPython(pybind11::module &m)
 {
@@ -54,6 +52,4 @@ void AddParallelEnvironmentToPython(pybind11::module &m)
     });
 }
 
-} // namespace Python.
-
-} // Namespace Kratos
+} // namespace Kratos::Python.

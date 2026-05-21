@@ -148,7 +148,7 @@ void CalculateRodriguesMatrices(const double time, const double initial_time=0.0
     noalias(mRp) = - mOmega * sin_theta * mI + mOmega * cos_theta * mUx + mOmega * sin_theta * mUU;
 }
 
-void RotateNode(Kratos::Node<3>::Pointer p_node, array_1d<double, 3>& P0, array_1d<double, 3>& P)
+void RotateNode(Kratos::Node::Pointer p_node, array_1d<double, 3>& P0, array_1d<double, 3>& P)
 {
     P0[0] = p_node->X0();
     P0[1] = p_node->Y0();

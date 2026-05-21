@@ -3,8 +3,8 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:
 //
@@ -20,7 +20,6 @@
 #include "utilities/indirect_scalar.h"
 
 // Application includes
-#include "custom_elements/total_lagrangian.h"
 #include "custom_response_functions/adjoint_elements/adjoint_solid_element.h"
 
 namespace Kratos

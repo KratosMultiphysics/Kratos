@@ -155,7 +155,7 @@ void ApplyPeriodicConditionProcess::ApplyConstraintsForPeriodicConditions()
 
     IndexType num_slaves_found = 0;
 
-    num_slaves_found = block_for_each<SumReduction<IndexType>>(mrSlaveModelPart.Nodes(), [&](Node<3>& rNode){
+    num_slaves_found = block_for_each<SumReduction<IndexType>>(mrSlaveModelPart.Nodes(), [&](Node& rNode){
         IndexType counter = 0;
         Condition::Pointer p_host_cond;
         VectorType shape_function_values;
@@ -226,7 +226,7 @@ void ApplyPeriodicConditionProcess::ConstraintSlaveNodeWithConditionForVectorVar
             mrMasterModelPart.AddMasterSlaveConstraint(constraint6);
 
 
-            if (TDim == 3)
+            if (TDim == 3) // TODO: This function can be optimized using template specialization. if constexpr will fail due to unused variables declared
             {
                 auto constraint7 = r_clone_constraint.Create(++current_num_constraint, master_node, r_var_x, rSlaveNode, r_var_z, master_weight * mTransformationMatrixVariable(2,0), constant_z);
                 auto constraint8 = r_clone_constraint.Create(++current_num_constraint, master_node, r_var_y, rSlaveNode, r_var_z, master_weight * mTransformationMatrixVariable(2,1), constant_z);

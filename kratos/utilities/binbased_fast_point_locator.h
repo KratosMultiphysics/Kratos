@@ -4,28 +4,24 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//                       license: license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
-//  License:          BSD License
-//  Main authors:     Riccardo Rossi
-//                    Pablo Becker
-//                    Carlos Roig
-//                    Vicente Mataix Ferrandiz
+//  Main authors:    Riccardo Rossi
+//                   Pablo Becker
+//                   Carlos Roig
+//                   Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_BINBASED_FAST_POINT_LOCATOR_INCLUDED )
-#define  KRATOS_BINBASED_FAST_POINT_LOCATOR_INCLUDED
+#pragma once
 
 // System includes
 
 // External includes
 
-
 // Project includes
-#include "includes/define.h"
 #include "includes/node.h"
-
+#include "includes/condition.h"
 #include "spatial_containers/spatial_containers.h"
 #include "spatial_containers/cell.h"
 #include "spatial_containers/bins_dynamic_objects.h"
@@ -40,9 +36,6 @@ namespace Kratos
 ///@}
 ///@name Type Definitions
 ///@{
-
-    /// The size definition
-    typedef std::size_t SizeType;
 
 ///@}
 ///@name  Enum's
@@ -86,11 +79,16 @@ public:
     typedef typename ConfigureType::ResultContainerType ResultContainerType;
     typedef typename ConfigureType::ResultIteratorType ResultIteratorType;
 
-    /// The definition of the node
-    typedef Node<3> NodeType;
+    // The definition of the bins
+    typedef BinsObjectDynamic<ConfigureType> BinsType;
+    typedef typename BinsObjectDynamic<ConfigureType>::CoordinateType BinsCoordinateType;
+    typedef typename BinsObjectDynamic<ConfigureType>::PointType BinsPointType;
 
     /// The definition of the geometry
-    typedef Geometry<NodeType> GeometryType;
+    typedef Geometry<Node> GeometryType;
+
+    /// The size definition
+    typedef std::size_t SizeType;
 
     /// The index definition
     typedef std::size_t IndexType;
@@ -114,6 +112,14 @@ public:
     /// Destructor.
     virtual ~BinBasedFastPointLocator() = default;
 
+    /// Copy constructor.
+    BinBasedFastPointLocator(BinBasedFastPointLocator const& rOther)
+        : mrModelPart(rOther.mrModelPart)
+    {
+        auto paux = typename BinsType::Pointer(new BinsType(*rOther.mpBinsObjectDynamic));
+        paux.swap(mpBinsObjectDynamic);
+    }
+
     ///@}
     ///@name Operators
     ///@{
@@ -129,13 +135,13 @@ public:
     {
         KRATOS_TRY
 
-        // Copy the entities to a new container, as the list will be shuffled duringthe construction of the tree
+        // Copy the entities to a new container, as the list will be shuffled during the construction of the tree
         ContainerType entities_array;
         GetContainer(mrModelPart, entities_array);
         IteratorType it_begin = entities_array.begin();
         IteratorType it_end = entities_array.end();
 
-        auto paux = typename BinsObjectDynamic<ConfigureType>::Pointer(new BinsObjectDynamic<ConfigureType > (it_begin, it_end));
+        auto paux = typename BinsType::Pointer(new BinsType(it_begin, it_end));
         paux.swap(mpBinsObjectDynamic);
 
         KRATOS_CATCH("")
@@ -145,7 +151,7 @@ public:
      * @brief Function to construct or update the search database
      * @param CellSize The current size of the cell used for search
      */
-    void UpdateSearchDatabaseAssignedSize(double CellSize)
+    void UpdateSearchDatabaseAssignedSize(const BinsCoordinateType CellSize)
     {
         KRATOS_TRY
 
@@ -155,7 +161,7 @@ public:
         IteratorType it_begin = entities_array.begin();
         IteratorType it_end = entities_array.end();
 
-        auto paux = typename BinsObjectDynamic<ConfigureType>::Pointer(new BinsObjectDynamic<ConfigureType > (it_begin, it_end, CellSize));
+        auto paux = typename BinsType::Pointer(new BinsType(it_begin, it_end, CellSize));
         paux.swap(mpBinsObjectDynamic);
 
         KRATOS_CATCH("")
@@ -185,7 +191,7 @@ public:
         )
     {
         // Ask to the container for the list of candidate entities
-        SizeType results_found = mpBinsObjectDynamic->SearchObjectsInCell(PointType{rCoordinates}, ItResultBegin, MaxNumberOfResults);
+        SizeType results_found = mpBinsObjectDynamic->SearchObjectsInCell(BinsPointType{rCoordinates}, ItResultBegin, MaxNumberOfResults);
 
         if (results_found > 0) {
             // Loop over the candidate entities and check if the particle falls within
@@ -234,7 +240,7 @@ public:
         )
     {
         // Ask to the container for the list of candidate entities
-        const SizeType results_found = mpBinsObjectDynamic->SearchObjectsInCell(typename BinsObjectDynamic<ConfigureType>::PointType{rCoordinates}, ItResultBegin, MaxNumberOfResults);
+        const SizeType results_found = mpBinsObjectDynamic->SearchObjectsInCell(BinsPointType{rCoordinates}, ItResultBegin, MaxNumberOfResults);
 
         if (results_found > 0) {
             // Loop over the candidate entities and check if the particle falls within
@@ -357,7 +363,7 @@ private:
 
     ModelPart& mrModelPart; /// The model part containing the mesh for the search
 
-    typename BinsObjectDynamic<ConfigureType>::Pointer mpBinsObjectDynamic; /// The pointer of the bins used for the search
+    typename BinsType::Pointer mpBinsObjectDynamic; /// The pointer of the bins used for the search
 
     ///@}
     ///@name Private Operators
@@ -412,5 +418,3 @@ private:
 };
 
 } // namespace Kratos.
-
-#endif // KRATOS_BINBASED_FAST_POINT_LOCATOR_INCLUDED  defined

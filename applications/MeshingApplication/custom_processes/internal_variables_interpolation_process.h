@@ -42,7 +42,7 @@ namespace Kratos
 ///@{
 
     /// Definition of node type
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     /// Definition of the geometry type with given NodeType
     typedef Geometry<NodeType> GeometryType;
@@ -95,7 +95,7 @@ public:
     typedef ModelPart::NodesContainerType                    NodesArrayType;
     typedef ModelPart::ElementsContainerType              ElementsArrayType;
     typedef ModelPart::ConditionsContainerType          ConditionsArrayType;
-    typedef Node<3>                                                NodeType;
+    typedef Node                                                NodeType;
     typedef Geometry<NodeType>                                 GeometryType;
 
     /// Pointer definition of InternalVariablesInterpolationProcess
@@ -621,7 +621,7 @@ private:
 
         /* Nodes */
         block_for_each(r_nodes_array, auxiliar_search<TDim>(mrOriginMainModelPart),
-        [this](Node<3>& rNode, auxiliar_search<TDim>& aux) {
+        [this](Node& rNode, auxiliar_search<TDim>& aux) {
 
             const bool old_entity = rNode.IsDefined(OLD_ENTITY) ? rNode.Is(OLD_ENTITY) : false;
             if (!old_entity) {

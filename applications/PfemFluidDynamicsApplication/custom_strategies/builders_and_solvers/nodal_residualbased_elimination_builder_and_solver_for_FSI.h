@@ -35,6 +35,8 @@
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 #include "includes/model_part.h"
 
+#include "nodal_residualbased_elimination_builder_and_solver.h"
+
 #include "pfem_fluid_dynamics_application_variables.h"
 
 namespace Kratos
@@ -75,15 +77,14 @@ namespace Kratos
             class TDenseSpace,  //= DenseSpace<double>,
             class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
             >
-  class NodalResidualBasedEliminationBuilderAndSolverForFSI
-      : public BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>
+  class NodalResidualBasedEliminationBuilderAndSolverForFSI : public NodalResidualBasedEliminationBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>
   {
   public:
     ///@name Type Definitions
     ///@{
     KRATOS_CLASS_POINTER_DEFINITION(NodalResidualBasedEliminationBuilderAndSolverForFSI);
 
-    typedef BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
+    typedef NodalResidualBasedEliminationBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
     typedef typename BaseType::TSchemeType TSchemeType;
 
@@ -102,7 +103,7 @@ namespace Kratos
     typedef typename BaseType::TSystemMatrixPointerType TSystemMatrixPointerType;
     typedef typename BaseType::TSystemVectorPointerType TSystemVectorPointerType;
 
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     typedef typename BaseType::NodesArrayType NodesArrayType;
     typedef typename BaseType::ElementsArrayType ElementsArrayType;
@@ -111,23 +112,23 @@ namespace Kratos
     typedef typename BaseType::ElementsContainerType ElementsContainerType;
 
     typedef Vector VectorType;
-    typedef GlobalPointersVector<Node<3>> NodeWeakPtrVectorType;
+    typedef GlobalPointersVector<Node> NodeWeakPtrVectorType;
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /** Constructor.
-       */
+     */
     NodalResidualBasedEliminationBuilderAndSolverForFSI(
         typename TLinearSolver::Pointer pNewLinearSystemSolver)
-        : BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>(pNewLinearSystemSolver)
+        : NodalResidualBasedEliminationBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>(pNewLinearSystemSolver)
     {
       //         KRATOS_INFO("NodalResidualBasedEliminationBuilderAndSolverForFSI") << "Using the standard builder and solver " << std::endl;
     }
 
     /** Destructor.
-       */
+     */
     ~NodalResidualBasedEliminationBuilderAndSolverForFSI() override
     {
     }
@@ -139,45 +140,6 @@ namespace Kratos
     ///@}
     ///@name Operations
     ///@{
-
-    void SetMaterialPropertiesToFluid(
-        ModelPart::NodeIterator itNode,
-        double &density,
-        double &deviatoricCoeff,
-        double &volumetricCoeff,
-        double timeInterval,
-        double nodalVolume)
-    {
-
-      density = itNode->FastGetSolutionStepValue(DENSITY);
-      deviatoricCoeff = itNode->FastGetSolutionStepValue(DYNAMIC_VISCOSITY);
-
-      double yieldShear = itNode->FastGetSolutionStepValue(YIELD_SHEAR);
-      if (yieldShear > 0)
-      {
-        double adaptiveExponent = itNode->FastGetSolutionStepValue(ADAPTIVE_EXPONENT);
-        double equivalentStrainRate = itNode->FastGetSolutionStepValue(NODAL_EQUIVALENT_STRAIN_RATE);
-        double exponent = -adaptiveExponent * equivalentStrainRate;
-        if (equivalentStrainRate != 0)
-        {
-          deviatoricCoeff += (yieldShear / equivalentStrainRate) * (1 - exp(exponent));
-        }
-        if (equivalentStrainRate < 0.00001 && yieldShear != 0 && adaptiveExponent != 0)
-        {
-          // for gamma_dot very small the limit of the Papanastasiou viscosity is mu=m*tau_yield
-          deviatoricCoeff = adaptiveExponent * yieldShear;
-        }
-      }
-
-      volumetricCoeff = timeInterval * itNode->FastGetSolutionStepValue(BULK_MODULUS);
-
-      if (volumetricCoeff > 0)
-      {
-        volumetricCoeff = timeInterval * itNode->FastGetSolutionStepValue(BULK_MODULUS);
-        double bulkReduction = density * nodalVolume / (timeInterval * volumetricCoeff);
-        volumetricCoeff *= bulkReduction;
-      }
-    }
 
     void SetMaterialPropertiesToSolid(
         ModelPart::NodeIterator itNode,
@@ -192,9 +154,7 @@ namespace Kratos
       double youngModulus = itNode->FastGetSolutionStepValue(YOUNG_MODULUS);
       double poissonRatio = itNode->FastGetSolutionStepValue(POISSON_RATIO);
 
-      //deviatoricCoeff=deltaT*secondLame
       deviatoricCoeff = timeInterval * youngModulus / (1.0 + poissonRatio) * 0.5;
-      //volumetricCoeff=bulk*deltaT=deltaT*(firstLame+2*secondLame/3)
       volumetricCoeff = timeInterval * poissonRatio * youngModulus / ((1.0 + poissonRatio) * (1.0 - 2.0 * poissonRatio)) + 2.0 * deviatoricCoeff / 3.0;
     }
 
@@ -209,11 +169,11 @@ namespace Kratos
 
       KRATOS_ERROR_IF(!pScheme) << "No scheme provided!" << std::endl;
 
-      //contributions to the system
+      // contributions to the system
       LocalSystemMatrixType solidLHS_Contribution = LocalSystemMatrixType(0, 0);
       LocalSystemVectorType solidRHS_Contribution = LocalSystemVectorType(0);
 
-      //vector containing the localization in the system of the different terms
+      // vector containing the localization in the system of the different terms
       Element::EquationIdVectorType solidEquationId;
       ProcessInfo &CurrentProcessInfo = rModelPart.GetProcessInfo();
 
@@ -222,7 +182,6 @@ namespace Kratos
       const double FourThirds = 4.0 / 3.0;
       const double nTwoThirds = -2.0 / 3.0;
 
-      //double theta = 0.5;
       double theta = 1.0;
       array_1d<double, 3> Acc(3, 0.0);
 
@@ -240,7 +199,6 @@ namespace Kratos
       double volumetricCoeff = 0;
 
       double dynamics = 1.0;
-      //dynamics=0.0; // static problem without intertial effects
       /* #pragma omp parallel */
       //    {
       ModelPart::NodeIterator NodesBegin;
@@ -291,7 +249,6 @@ namespace Kratos
         {
           NodeWeakPtrVectorType &neighb_nodes = itNode->GetValue(NEIGHBOUR_NODES);
           Vector solidNodalSFDneighboursId = itNode->FastGetSolutionStepValue(SOLID_NODAL_SFD_NEIGHBOURS_ORDER);
-          // const unsigned int neighSize = neighb_nodes.size()+1;
           const unsigned int neighSize = solidNodalSFDneighboursId.size();
 
           const double nodalVolume = itNode->FastGetSolutionStepValue(SOLID_NODAL_VOLUME);
@@ -302,10 +259,10 @@ namespace Kratos
             const unsigned int localSize = itNode->FastGetSolutionStepValue(SOLID_NODAL_SFD_NEIGHBOURS).size();
 
             if (solidLHS_Contribution.size1() != localSize)
-              solidLHS_Contribution.resize(localSize, localSize, false); //false says not to preserve existing storage!!
+              solidLHS_Contribution.resize(localSize, localSize, false); // false says not to preserve existing storage!!
 
             if (solidRHS_Contribution.size() != localSize)
-              solidRHS_Contribution.resize(localSize, false); //false says not to preserve existing storage!!
+              solidRHS_Contribution.resize(localSize, false); // false says not to preserve existing storage!!
 
             if (solidEquationId.size() != localSize)
               solidEquationId.resize(localSize, false);
@@ -355,12 +312,12 @@ namespace Kratos
               ///////////////LOAD CONDITIONS FOR BELYTSCHKO CASE
               //  if(itNode->X0()>24.999){
               // solidRHS_Contribution[1]+=40.0/2.0;  // mesh 4      (1 element per edge)
-              //solidRHS_Contribution[1]+=40.0/3.0;  // mesh 2      (2 element per edge)
-              //solidRHS_Contribution[1]+=40.0/5.0;  // mesh 1      (4 element per edge)
-              //solidRHS_Contribution[1]+=40.0/9.0;  // mesh 0.5    (8 element per edge)
+              // solidRHS_Contribution[1]+=40.0/3.0;  // mesh 2      (2 element per edge)
+              // solidRHS_Contribution[1]+=40.0/5.0;  // mesh 1      (4 element per edge)
+              // solidRHS_Contribution[1]+=40.0/9.0;  // mesh 0.5    (8 element per edge)
               //  solidRHS_Contribution[1]+=40.0/17.0; // mesh 0.25   (16 element per edge)
               // solidRHS_Contribution[1]+=40.0/33.0; // mesh 0.125  (32 element per edge)
-              //solidRHS_Contribution[1]+=40.0/65.0; // mesh 0.0625 (64 element per edge)
+              // solidRHS_Contribution[1]+=40.0/65.0; // mesh 0.0625 (64 element per edge)
               //}
 
               if (belytsckoCase == true)
@@ -415,11 +372,9 @@ namespace Kratos
                 if (itNode->FastGetSolutionStepValue(INTERFACE_NODE) == true && indexNode < neighSize)
                 {
                   unsigned int other_neigh_nodes_id = solidNodalSFDneighboursId[indexNode];
-                  // std::cout<<"other_neigh_nodes_id= "<<other_neigh_nodes_id<<" within "<<nodalSFDneighboursId<<std::endl;
                   for (unsigned int k = 0; k < neighb_nodes.size(); k++)
                   {
                     unsigned int neigh_nodes_id = neighb_nodes[k].Id();
-                    // std::cout<<" neigh_nodes_id= "<< neigh_nodes_id<<std::endl;
 
                     if (neigh_nodes_id == other_neigh_nodes_id)
                     {
@@ -435,7 +390,6 @@ namespace Kratos
                   solidEquationId[firstCol + 1] = neighb_nodes[i].GetDof(VELOCITY_Y, xDofPos + 1).EquationId();
                 }
               }
-              /* std::cout << "LHS_Contribution = " << LHS_Contribution << std::endl; */
             }
             else if (dimension == 3)
             {
@@ -475,9 +429,6 @@ namespace Kratos
 
               array_1d<double, 6> Sigma(6, 0.0);
               Sigma = itNode->FastGetSolutionStepValue(SOLID_NODAL_CAUCHY_STRESS);
-              // if(itNode->FastGetSolutionStepValue(INTERFACE_NODE)==true){
-              //   Sigma=itNode->FastGetSolutionStepValue(SOLID_NODAL_CAUCHY_STRESS);
-              // }
 
               const unsigned int xDofPos = itNode->GetDofPosition(VELOCITY_X);
               solidEquationId[0] = itNode->GetDof(VELOCITY_X, xDofPos).EquationId();
@@ -523,11 +474,9 @@ namespace Kratos
                 if (itNode->FastGetSolutionStepValue(INTERFACE_NODE) == true && indexNode < neighSize)
                 {
                   unsigned int other_neigh_nodes_id = solidNodalSFDneighboursId[indexNode];
-                  // std::cout<<"other_neigh_nodes_id= "<<other_neigh_nodes_id<<" within "<<nodalSFDneighboursId<<std::endl;
                   for (unsigned int k = 0; k < neighb_nodes.size(); k++)
                   {
                     unsigned int neigh_nodes_id = neighb_nodes[k].Id();
-                    // std::cout<<" neigh_nodes_id= "<< neigh_nodes_id<<std::endl;
 
                     if (neigh_nodes_id == other_neigh_nodes_id)
                     {
@@ -573,11 +522,11 @@ namespace Kratos
 
       /* std::cout<<"Building LHS and RHS of Momentum Equation Nodally"<<std::endl; */
 
-      //contributions to the system
+      // contributions to the system
       LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
       LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
 
-      //vector containing the localization in the system of the different terms
+      // vector containing the localization in the system of the different terms
       Element::EquationIdVectorType EquationId;
       ProcessInfo &CurrentProcessInfo = rModelPart.GetProcessInfo();
 
@@ -588,7 +537,6 @@ namespace Kratos
 
       double theta = 0.5;
       array_1d<double, 3> Acc(3, 0.0);
-      // array_1d<double,6> Sigma(6,0.0);
       double pressure = 0;
       double dNdXi = 0;
       double dNdYi = 0;
@@ -617,7 +565,6 @@ namespace Kratos
 
           NodeWeakPtrVectorType &neighb_nodes = itNode->GetValue(NEIGHBOUR_NODES);
           Vector nodalSFDneighboursId = itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS_ORDER);
-          // const unsigned int neighSize = neighb_nodes.size()+1;
           const unsigned int neighSize = nodalSFDneighboursId.size();
           const double nodalVolume = itNode->FastGetSolutionStepValue(NODAL_VOLUME);
 
@@ -627,10 +574,10 @@ namespace Kratos
             const unsigned int localSize = itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS).size();
 
             if (LHS_Contribution.size1() != localSize)
-              LHS_Contribution.resize(localSize, localSize, false); //false says not to preserve existing storage!!
+              LHS_Contribution.resize(localSize, localSize, false); // false says not to preserve existing storage!!
 
             if (RHS_Contribution.size() != localSize)
-              RHS_Contribution.resize(localSize, false); //false says not to preserve existing storage!!
+              RHS_Contribution.resize(localSize, false); // false says not to preserve existing storage!!
 
             if (EquationId.size() != localSize)
               EquationId.resize(localSize, false);
@@ -639,13 +586,7 @@ namespace Kratos
             noalias(RHS_Contribution) = ZeroVector(localSize);
 
             this->SetMaterialPropertiesToFluid(itNode, density, deviatoricCoeff, volumetricCoeff, timeInterval, nodalVolume);
-            // if(itNode->FastGetSolutionStepValue(INTERFACE_NODE)==true){
-            //   // std::cout<<"density,deviatoricCoeff,volumetricCoeff "<<density<<" "<<deviatoricCoeff<<" "<<volumetricCoeff<<std::endl;
-            //   std::cout<<"INTERFACE nodalVolume "<<nodalVolume<<std::endl;
-            // }else{
-            //   std::cout<<"nodalVolume "<<nodalVolume<<std::endl;
 
-            // }
             firstRow = 0;
             firstCol = 0;
 
@@ -687,9 +628,6 @@ namespace Kratos
               //-------- INTERNAL FORCES TERM -------//
               array_1d<double, 3> Sigma(3, 0.0);
               Sigma = itNode->FastGetSolutionStepValue(NODAL_CAUCHY_STRESS);
-              // if(itNode->FastGetSolutionStepValue(INTERFACE_NODE)==true){
-              //   Sigma=itNode->FastGetSolutionStepValue(SOLID_NODAL_CAUCHY_STRESS);
-              // }
 
               if (itNode->IsNot(SOLID) || itNode->FastGetSolutionStepValue(INTERFACE_NODE) == true)
               {
@@ -731,11 +669,9 @@ namespace Kratos
                 if (itNode->FastGetSolutionStepValue(INTERFACE_NODE) == true && indexNode < neighSize)
                 {
                   unsigned int other_neigh_nodes_id = nodalSFDneighboursId[indexNode];
-                  // std::cout<<"other_neigh_nodes_id= "<<other_neigh_nodes_id<<" within "<<nodalSFDneighboursId<<std::endl;
                   for (unsigned int k = 0; k < neighb_nodes.size(); k++)
                   {
                     unsigned int neigh_nodes_id = neighb_nodes[k].Id();
-                    // std::cout<<" neigh_nodes_id= "<< neigh_nodes_id<<std::endl;
 
                     if (neigh_nodes_id == other_neigh_nodes_id)
                     {
@@ -751,7 +687,6 @@ namespace Kratos
                   EquationId[firstCol + 1] = neighb_nodes[i].GetDof(VELOCITY_Y, xDofPos + 1).EquationId();
                 }
               }
-              /* std::cout << "LHS_Contribution = " << LHS_Contribution << std::endl; */
             }
             else if (dimension == 3)
             {
@@ -781,9 +716,6 @@ namespace Kratos
 
               array_1d<double, 6> Sigma(6, 0.0);
               Sigma = itNode->FastGetSolutionStepValue(NODAL_CAUCHY_STRESS);
-              // if(itNode->FastGetSolutionStepValue(INTERFACE_NODE)==true){
-              //   Sigma=itNode->FastGetSolutionStepValue(SOLID_NODAL_CAUCHY_STRESS);
-              // }
 
               if (itNode->IsNot(SOLID) || itNode->FastGetSolutionStepValue(INTERFACE_NODE) == true)
               {
@@ -876,90 +808,15 @@ namespace Kratos
     }
 
     /**
-       * @brief This is a call to the linear system solver
-       * @param A The LHS matrix
-       * @param Dx The Unknowns vector
-       * @param b The RHS vector
-       */
-    void SystemSolve(
-        TSystemMatrixType &A,
-        TSystemVectorType &Dx,
-        TSystemVectorType &b) override
-    {
-      KRATOS_TRY
-
-      double norm_b;
-      if (TSparseSpace::Size(b) != 0)
-        norm_b = TSparseSpace::TwoNorm(b);
-      else
-        norm_b = 0.00;
-
-      if (norm_b != 0.00)
-      {
-        //do solve
-        BaseType::mpLinearSystemSolver->Solve(A, Dx, b);
-      }
-      else
-        TSparseSpace::SetToZero(Dx);
-
-      // Prints informations about the current time
-      KRATOS_INFO_IF("NodalResidualBasedEliminationBuilderAndSolverForFSI", this->GetEchoLevel() > 1) << *(BaseType::mpLinearSystemSolver) << std::endl;
-
-      KRATOS_CATCH("")
-    }
-
-    /**
-       *@brief This is a call to the linear system solver (taking into account some physical particularities of the problem)
-       * @param A The LHS matrix
-       * @param Dx The Unknowns vector
-       * @param b The RHS vector
-       * @param rModelPart The model part of the problem to solve
-       */
-    void SystemSolveWithPhysics(
-        TSystemMatrixType &A,
-        TSystemVectorType &Dx,
-        TSystemVectorType &b,
-        ModelPart &rModelPart)
-    {
-      KRATOS_TRY
-
-      double norm_b;
-      if (TSparseSpace::Size(b) != 0)
-        norm_b = TSparseSpace::TwoNorm(b);
-      else
-        norm_b = 0.00;
-
-      if (norm_b != 0.00)
-      {
-        //provide physical data as needed
-        if (BaseType::mpLinearSystemSolver->AdditionalPhysicalDataIsNeeded())
-          BaseType::mpLinearSystemSolver->ProvideAdditionalData(A, Dx, b, BaseType::mDofSet, rModelPart);
-
-        //do solve
-        BaseType::mpLinearSystemSolver->Solve(A, Dx, b);
-      }
-      else
-      {
-        TSparseSpace::SetToZero(Dx);
-        KRATOS_WARNING_IF("NodalResidualBasedEliminationBuilderAndSolverForFSI", rModelPart.GetCommunicator().MyPID() == 0) << "ATTENTION! setting the RHS to zero!" << std::endl;
-      }
-
-      // Prints informations about the current time
-      KRATOS_INFO_IF("NodalResidualBasedEliminationBuilderAndSolverForFSI", this->GetEchoLevel() > 1 && rModelPart.GetCommunicator().MyPID() == 0) << *(BaseType::mpLinearSystemSolver) << std::endl;
-
-      KRATOS_CATCH("")
-    }
-
-    /**
-       * @brief Function to perform the building and solving phase at the same time.
-       * @details It is ideally the fastest and safer function to use when it is possible to solve
-       * just after building
-       * @param pScheme The integration scheme considered
-       * @param rModelPart The model part of the problem to solve
-       * @param A The LHS matrix
-       * @param Dx The Unknowns vector
-       * @param b The RHS vector
-       */
+     * @brief Function to perform the building and solving phase at the same time.
+     * @details It is ideally the fastest and safer function to use when it is possible to solve
+     * just after building
+     * @param pScheme The integration scheme considered
+     * @param rModelPart The model part of the problem to solve
+     * @param A The LHS matrix
+     * @param Dx The Unknowns vector
+     * @param b The RHS vector
+     */
     void BuildAndSolve(
         typename TSchemeType::Pointer pScheme,
         ModelPart &rModelPart,
@@ -984,28 +841,18 @@ namespace Kratos
 
       BuildFluidNodally(pScheme, rModelPart, A, b);
 
-      // std::cout << "MOMENTUM EQ: build_time : " << m_build_time.elapsed() << std::endl;
 
       Timer::Stop("Build");
 
       //         ApplyPointLoads(pScheme,rModelPart,b);
 
       // Does nothing...dirichlet conditions are naturally dealt with in defining the residual
-      ApplyDirichletConditions(pScheme, rModelPart, A, Dx, b);
+      this->ApplyDirichletConditions(pScheme, rModelPart, A, Dx, b);
 
       KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", (this->GetEchoLevel() == 3)) << "Before the solution of the system"
                                                                                         << "\nSystem Matrix = " << A << "\nUnknowns vector = " << Dx << "\nRHS vector = " << b << std::endl;
 
-      // const double start_solve = OpenMPUtils::GetCurrentTime();
-      // Timer::Start("Solve");
-
-      /* boost::timer m_solve_time; */
-      SystemSolveWithPhysics(A, Dx, b, rModelPart);
-      /* std::cout << "MOMENTUM EQ: solve_time : " << m_solve_time.elapsed() << std::endl; */
-
-      // Timer::Stop("Solve");
-      // const double stop_solve = OpenMPUtils::GetCurrentTime();
-      // KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "System solve time: " << stop_solve - start_solve << std::endl;
+      this->SystemSolveWithPhysics(A, Dx, b, rModelPart);
 
       KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", (this->GetEchoLevel() == 3)) << "After the solution of the system"
                                                                                         << "\nSystem Matrix = " << A << "\nUnknowns vector = " << Dx << "\nRHS vector = " << b << std::endl;
@@ -1023,22 +870,22 @@ namespace Kratos
 
       KRATOS_ERROR_IF(!pScheme) << "No scheme provided!" << std::endl;
 
-      //getting the elements from the model
+      // getting the elements from the model
       const int nelements = static_cast<int>(rModelPart.Elements().size());
 
-      //getting the array of the conditions
+      // getting the array of the conditions
       const int nconditions = static_cast<int>(rModelPart.Conditions().size());
 
       const ProcessInfo &CurrentProcessInfo = rModelPart.GetProcessInfo();
       ModelPart::ElementsContainerType::iterator el_begin = rModelPart.ElementsBegin();
       ModelPart::ConditionsContainerType::iterator cond_begin = rModelPart.ConditionsBegin();
 
-      //contributions to the system
+      // contributions to the system
       LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
       LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
 
-      //vector containing the localization in the system of the different
-      //terms
+      // vector containing the localization in the system of the different
+      // terms
       Element::EquationIdVectorType EquationId;
       // const double start_build = OpenMPUtils::GetCurrentTime();
 
@@ -1050,18 +897,18 @@ namespace Kratos
         {
           ModelPart::ElementsContainerType::iterator it = el_begin + k;
 
-          //detect if the element is active or not. If the user did not make any choice the element
-          //is active by default
+          // detect if the element is active or not. If the user did not make any choice the element
+          // is active by default
           bool element_is_active = true;
           if ((it)->IsDefined(ACTIVE))
             element_is_active = (it)->Is(ACTIVE);
 
           if (element_is_active)
           {
-            //calculate elemental contribution
+            // calculate elemental contribution
             pScheme->CalculateSystemContributions(*it, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
 
-            //assemble the elemental contribution
+            // assemble the elemental contribution
 #ifdef USE_LOCKS_IN_ASSEMBLY
             AssembleElementally(rA, rb, LHS_Contribution, RHS_Contribution, EquationId, mLockArray);
 #else
@@ -1075,15 +922,15 @@ namespace Kratos
         {
           ModelPart::ConditionsContainerType::iterator it = cond_begin + k;
 
-          //detect if the element is active or not. If the user did not make any choice the element
-          //is active by default
+          // detect if the element is active or not. If the user did not make any choice the element
+          // is active by default
           bool condition_is_active = true;
           if ((it)->IsDefined(ACTIVE))
             condition_is_active = (it)->Is(ACTIVE);
 
           if (condition_is_active)
           {
-            //calculate elemental contribution
+            // calculate elemental contribution
             pScheme->CalculateSystemContributions(*it, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
 
 #ifdef USE_LOCKS_IN_ASSEMBLY
@@ -1094,9 +941,6 @@ namespace Kratos
           }
         }
       }
-      // const double stop_build = OpenMPUtils::GetCurrentTime();
-      // KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolver", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "System build time: " << stop_build - start_build << std::endl;
-
       KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolver", this->GetEchoLevel() > 2 && rModelPart.GetCommunicator().MyPID() == 0) << "Finished building" << std::endl;
 
       KRATOS_CATCH("")
@@ -1137,18 +981,18 @@ namespace Kratos
           omp_unset_lock(&rLockArray[i_global]);
 #endif
         }
-        //note that computation of reactions is not performed here!
+        // note that computation of reactions is not performed here!
       }
     }
 
     /**
-       * @brief Builds the list of the DofSets involved in the problem by "asking" to each element
-       * and condition its Dofs.
-       * @details The list of dofs is stores insde the BuilderAndSolver as it is closely connected to the
-       * way the matrix and RHS are built
-       * @param pScheme The integration scheme considered
-       * @param rModelPart The model part of the problem to solve
-       */
+     * @brief Builds the list of the DofSets involved in the problem by "asking" to each element
+     * and condition its Dofs.
+     * @details The list of dofs is stores insde the BuilderAndSolver as it is closely connected to the
+     * way the matrix and RHS are built
+     * @param pScheme The integration scheme considered
+     * @param rModelPart The model part of the problem to solve
+     */
     void SetUpDofSet(
         typename TSchemeType::Pointer pScheme,
         ModelPart &rModelPart) override
@@ -1157,7 +1001,7 @@ namespace Kratos
 
       KRATOS_INFO_IF("NodalResidualBasedEliminationBuilderAndSolverForFSI", this->GetEchoLevel() > 1 && rModelPart.GetCommunicator().MyPID() == 0) << "Setting up the dofs" << std::endl;
 
-      //Gets the array of elements from the modeler
+      // Gets the array of elements from the modeler
       ElementsArrayType &pElements = rModelPart.Elements();
       const int nelements = static_cast<int>(pElements.size());
 
@@ -1181,14 +1025,12 @@ namespace Kratos
       //
 
       std::vector<set_type> dofs_aux_list(nthreads);
-      //         std::vector<allocator_type> allocators(nthreads);
 
       for (int i = 0; i < static_cast<int>(nthreads); i++)
       {
 #ifdef USE_GOOGLE_HASH
         dofs_aux_list[i].set_empty_key(NodeType::DofType::Pointer());
 #else
-        //             dofs_aux_list[i] = set_type( allocators[i]);
         dofs_aux_list[i].reserve(nelements);
 #endif
       }
@@ -1218,22 +1060,11 @@ namespace Kratos
         dofs_aux_list[this_thread_id].insert(ElementalDofList.begin(), ElementalDofList.end());
       }
 
-
-      //here we do a reduction in a tree so to have everything on thread 0
+      // here we do a reduction in a tree so to have everything on thread 0
       unsigned int old_max = nthreads;
       unsigned int new_max = ceil(0.5 * static_cast<double>(old_max));
       while (new_max >= 1 && new_max != old_max)
       {
-        //          //just for debugging
-        //          std::cout << "old_max" << old_max << " new_max:" << new_max << std::endl;
-        //          for (int i = 0; i < new_max; i++)
-        //          {
-        //             if (i + new_max < old_max)
-        //             {
-        //                std::cout << i << " - " << i + new_max << std::endl;
-        //             }
-        //          }
-        //          std::cout << "********************" << std::endl;
 
 #pragma omp parallel for
         for (int i = 0; i < static_cast<int>(new_max); i++)
@@ -1299,32 +1130,6 @@ namespace Kratos
       KRATOS_CATCH("");
     }
 
-    /**
-       * @brief Organises the dofset in order to speed up the building phase
-       * @param rModelPart The model part of the problem to solve
-       */
-    void SetUpSystem(
-        ModelPart &rModelPart) override
-    {
-      // Set equation id for degrees of freedom
-      // the free degrees of freedom are positioned at the beginning of the system,
-      // while the fixed one are at the end (in opposite order).
-      //
-      // that means that if the EquationId is greater than "mEquationSystemSize"
-      // the pointed degree of freedom is restrained
-      //
-      int free_id = 0;
-      int fix_id = BaseType::mDofSet.size();
-
-      for (typename DofsArrayType::iterator dof_iterator = BaseType::mDofSet.begin(); dof_iterator != BaseType::mDofSet.end(); ++dof_iterator)
-        if (dof_iterator->IsFixed())
-          dof_iterator->SetEquationId(--fix_id);
-        else
-          dof_iterator->SetEquationId(free_id++);
-
-      BaseType::mEquationSystemSize = fix_id;
-    }
-
     //**************************************************************************
     //**************************************************************************
 
@@ -1339,22 +1144,22 @@ namespace Kratos
 
       //  boost::timer m_contruct_matrix;
 
-      if (pA == NULL) //if the pointer is not initialized initialize it to an empty matrix
+      if (pA == NULL) // if the pointer is not initialized initialize it to an empty matrix
       {
         TSystemMatrixPointerType pNewA = TSystemMatrixPointerType(new TSystemMatrixType(0, 0));
         pA.swap(pNewA);
       }
-      if (pDx == NULL) //if the pointer is not initialized initialize it to an empty matrix
+      if (pDx == NULL) // if the pointer is not initialized initialize it to an empty matrix
       {
         TSystemVectorPointerType pNewDx = TSystemVectorPointerType(new TSystemVectorType(0));
         pDx.swap(pNewDx);
       }
-      if (pb == NULL) //if the pointer is not initialized initialize it to an empty matrix
+      if (pb == NULL) // if the pointer is not initialized initialize it to an empty matrix
       {
         TSystemVectorPointerType pNewb = TSystemVectorPointerType(new TSystemVectorType(0));
         pb.swap(pNewb);
       }
-      if (BaseType::mpReactionsVector == NULL) //if the pointer is not initialized initialize it to an empty matrix
+      if (BaseType::mpReactionsVector == NULL) // if the pointer is not initialized initialize it to an empty matrix
       {
         TSystemVectorPointerType pNewReactionsVector = TSystemVectorPointerType(new TSystemVectorType(0));
         BaseType::mpReactionsVector.swap(pNewReactionsVector);
@@ -1364,8 +1169,8 @@ namespace Kratos
       TSystemVectorType &Dx = *pDx;
       TSystemVectorType &b = *pb;
 
-      //resizing the system vectors and matrix
-      if (A.size1() == 0 || BaseType::GetReshapeMatrixFlag() == true) //if the matrix is not initialized
+      // resizing the system vectors and matrix
+      if (A.size1() == 0 || BaseType::GetReshapeMatrixFlag() == true) // if the matrix is not initialized
       {
         A.resize(BaseType::mEquationSystemSize, BaseType::mEquationSystemSize, false);
         ConstructMatrixStructureForFSI(pScheme, A, rModelPart);
@@ -1385,14 +1190,13 @@ namespace Kratos
       if (b.size() != BaseType::mEquationSystemSize)
         b.resize(BaseType::mEquationSystemSize, false);
 
-      //if needed resize the vector for the calculation of reactions
+      // if needed resize the vector for the calculation of reactions
       if (BaseType::mCalculateReactionsFlag == true)
       {
         unsigned int ReactionsVectorSize = BaseType::mDofSet.size();
         if (BaseType::mpReactionsVector->size() != ReactionsVectorSize)
           BaseType::mpReactionsVector->resize(ReactionsVectorSize, false);
       }
-      // std::cout << "MOMENTUM EQ: contruct_matrix : " << m_contruct_matrix.elapsed() << std::endl;
 
       KRATOS_CATCH("")
     }
@@ -1489,58 +1293,6 @@ namespace Kratos
     }
 
     //**************************************************************************
-    //**************************************************************************
-
-    /**
-       * @brief Applies the dirichlet conditions. This operation may be very heavy or completely
-       * unexpensive depending on the implementation choosen and on how the System Matrix is built.
-       * @details For explanation of how it works for a particular implementation the user
-       * should refer to the particular Builder And Solver choosen
-       * @param pScheme The integration scheme considered
-       * @param rModelPart The model part of the problem to solve
-       * @param A The LHS matrix
-       * @param Dx The Unknowns vector
-       * @param b The RHS vector
-       */
-    void ApplyDirichletConditions(
-        typename TSchemeType::Pointer pScheme,
-        ModelPart &rModelPart,
-        TSystemMatrixType &A,
-        TSystemVectorType &Dx,
-        TSystemVectorType &b) override
-    {
-    }
-
-    /**
-       * @brief This function is intended to be called at the end of the solution step to clean up memory storage not needed
-       */
-    void Clear() override
-    {
-      this->mDofSet = DofsArrayType();
-
-      if (this->mpReactionsVector != NULL)
-        TSparseSpace::Clear((this->mpReactionsVector));
-      //             this->mReactionsVector = TSystemVectorType();
-
-      this->mpLinearSystemSolver->Clear();
-
-      KRATOS_INFO_IF("NodalResidualBasedEliminationBuilderAndSolverForFSI", this->GetEchoLevel() > 1) << "Clear Function called" << std::endl;
-    }
-
-    /**
-       * @brief This function is designed to be called once to perform all the checks needed
-       * on the input provided. Checks can be "expensive" as the function is designed
-       * to catch user's errors.
-       * @param rModelPart The model part of the problem to solve
-       * @return 0 all ok
-       */
-    int Check(ModelPart &rModelPart) override
-    {
-      KRATOS_TRY
-
-      return 0;
-      KRATOS_CATCH("");
-    }
 
     ///@}
     ///@name Access
@@ -1608,7 +1360,7 @@ namespace Kratos
           omp_unset_lock(&lock_array[i_global]);
 #endif
         }
-        //note that assembly on fixed rows is not performed here
+        // note that assembly on fixed rows is not performed here
       }
     }
 
@@ -1619,7 +1371,7 @@ namespace Kratos
         ModelPart &rModelPart)
     {
 
-      //filling with zero the matrix (creating the structure)
+      // filling with zero the matrix (creating the structure)
       Timer::Start("MatrixStructure");
 
       ProcessInfo &CurrentProcessInfo = rModelPart.GetProcessInfo();
@@ -1833,8 +1585,8 @@ namespace Kratos
           }
         }
       }
-      
-      //count the row sizes
+
+      // count the row sizes
       unsigned int nnz = 0;
       for (unsigned int i = 0; i < indices.size(); i++)
         nnz += indices[i].size();
@@ -1845,7 +1597,7 @@ namespace Kratos
       std::size_t *Arow_indices = A.index1_data().begin();
       std::size_t *Acol_indices = A.index2_data().begin();
 
-      //filling the index1 vector - DO NOT MAKE PARALLEL THE FOLLOWING LOOP!
+      // filling the index1 vector - DO NOT MAKE PARALLEL THE FOLLOWING LOOP!
       Arow_indices[0] = 0;
       for (int i = 0; i < static_cast<int>(A.size1()); i++)
         Arow_indices[i + 1] = Arow_indices[i] + indices[i].size();
@@ -1952,7 +1704,7 @@ namespace Kratos
         {
           const unsigned int i_global = EquationId[i_local];
 
-          if (i_global < BaseType::mEquationSystemSize) //free dof
+          if (i_global < BaseType::mEquationSystemSize) // free dof
           {
             // ASSEMBLING THE SYSTEM VECTOR
             double &b_value = b[i_global];
@@ -1970,7 +1722,7 @@ namespace Kratos
         {
           const unsigned int i_global = EquationId[i_local];
 
-          if (i_global < BaseType::mEquationSystemSize) //free dof
+          if (i_global < BaseType::mEquationSystemSize) // free dof
           {
             // ASSEMBLING THE SYSTEM VECTOR
             double &b_value = b[i_global];
@@ -1979,7 +1731,7 @@ namespace Kratos
 #pragma omp atomic
             b_value += rhs_value;
           }
-          else //fixed dof
+          else // fixed dof
           {
             double &b_value = ReactionsVector[i_global - BaseType::mEquationSystemSize];
             const double &rhs_value = RHS_Contribution[i_local];

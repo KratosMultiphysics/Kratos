@@ -3,16 +3,17 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Iñigo López Canalejo
 //                   Klaus B. Sautter
 //
 
-#if !defined(KRATOS_FORMFINDING_STRATEGY )
-#define  KRATOS_FORMFINDING_STRATEGY
+#pragma once
+
 // System includes
+#include <filesystem>
 
 // External includes
 
@@ -20,7 +21,6 @@
 #include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
 #include "custom_utilities/project_vector_on_surface_utility.h"
 #include "includes/model_part_io.h"
-#include "includes/kratos_filesystem.h"
 #include "input_output/vtk_output.h"
 #include "includes/gid_io.h"
 #include "structural_mechanics_application_variables.h"
@@ -188,10 +188,10 @@ private:
 
         // initialize i/o
         if (mPrintingFormat=="all" || mPrintingFormat=="vtk"){
-            if (Kratos::filesystem::exists("formfinding_results_vtk")){
-                Kratos::filesystem::remove_all("formfinding_results_vtk");
+            if (std::filesystem::exists("formfinding_results_vtk")){
+                std::filesystem::remove_all("formfinding_results_vtk");
             }
-            Kratos::filesystem::create_directory("formfinding_results_vtk");
+            std::filesystem::create_directory("formfinding_results_vtk");
             PrintVtkFiles(mIterationNumber);
         }
 
@@ -221,5 +221,3 @@ private:
 
 }; /* Class FormfindingStrategy */
 } /* namespace Kratos. */
-
-#endif /* KRATOS_FORMFINDING_UPDATED_REFERENCE_STRATEGY defined */

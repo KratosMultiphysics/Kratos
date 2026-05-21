@@ -1,0 +1,135 @@
+{
+    "problem_data"         : {
+        "problem_name"             : "solitary_wave_validation",
+        "start_time"               : 0.0,
+        "end_time"                 : 15.0,
+        "echo_level"               : 0,
+        "parallel_type"            : "OpenMP"
+    },
+    "modelers"             : [{
+        "kratos_module"            : "KratosMultiphysics",
+        "modeler_name"             : "import_mdpa_modeler",
+        "Parameters"               : {
+            "model_part_name"          : "model_part",
+            "input_filename"           : "long_channel"
+        }
+    }],
+    "solver_settings"      : {
+        "solver_type"              : "boussinesq_solver",
+        "model_part_name"          : "model_part",
+        "domain_size"              : 2,
+        "gravity"                  : 9.81,
+        "time_integration_scheme"  : "Adams-Moulton",
+        "time_integration_order"   : 4,
+        "echo_level"               : 0,
+        "stabilization_factor"     : 0.005,
+        "shock_capturing_factor"   : 0.0,
+        "relative_tolerance"       : 1.0E-6,
+        "absolute_tolerance"       : 1.0E-9,
+        "maximum_iterations"       : 5,
+        "compute_reactions"        : false,
+        "reform_dofs_at_each_step" : false,
+        "move_mesh_flag"           : false,
+        "linear_solver_settings"   : {
+            "solver_type"              : "amgcl"
+        },
+        "time_stepping"            : {
+            "automatic_time_step"      : true,
+            "adaptive_time_step"       : false,
+            "courant_number"           : 1.0
+        }
+    },
+    // "output_processes" : {
+    //     "output_process_list" : [{
+    //         "kratos_module"        : "KratosMultiphysics",
+    //         "python_module"        : "gid_output_process",
+    //         "process_name"         : "GidOutputProcess",
+    //         "Parameters"           : {
+    //             "model_part_name"        : "model_part",
+    //             "output_name"            : "solitary_wave_validation",
+    //             "postprocess_parameters" : {
+    //                 "result_file_configuration" : {
+    //                     "output_control_type"   : "step",
+    //                     "output_interval"       : 1,
+    //                     "body_output"           : true,
+    //                     "node_output"           : false,
+    //                     "skin_output"           : false,
+    //                     "plane_output"          : [],
+    //                     "nodal_results"         : ["MOMENTUM","VELOCITY","FREE_SURFACE_ELEVATION","TOPOGRAPHY"],
+    //                     "gauss_point_results"   : [],
+    //                     "nodal_nonhistorical_results" : ["EXACT_FREE_SURFACE"]
+    //                 },
+    //                 "point_data_configuration"  :  []
+    //             }
+    //         }
+    //     }]
+    // },
+    "processes" : {
+        "topography_process_list"           : [{
+            "kratos_module"   : "KratosMultiphysics.ShallowWaterApplication",
+            "python_module"   : "set_topography_process",
+            "Parameters"      : {
+                "model_part_name"  : "model_part",
+                "value"            : "-1.0"
+            }
+        }],
+        "initial_conditions_process_list"   : [],
+        "boundary_conditions_process_list"  : [{
+            "kratos_module"   : "KratosMultiphysics",
+            "python_module"   : "assign_vector_variable_process",
+            "Parameters"      : {
+                "model_part_name" : "model_part.walls",
+                "variable_name"   : "VELOCITY",
+                "value"           : [null, 0.0, null],
+                "constrained"     : [false, true, false]
+            }
+        },{
+            "kratos_module"   : "KratosMultiphysics",
+            "python_module"   : "assign_vector_variable_process",
+            "Parameters"      : {
+                "model_part_name" : "model_part.downstream",
+                "variable_name"   : "VELOCITY",
+                "value"           : [0.0, null, null],
+                "constrained"     : [true, false, false]
+            }
+        }],
+        "benchmark_process_list"  : [{
+            "kratos_module"   : "KratosMultiphysics.ShallowWaterApplication.benchmarks",
+            "python_module"   : "solitary_wave_benchmark",
+            "Parameters"      : {
+                "model_part_name"      : "model_part",
+                "variables_list"       : ["FREE_SURFACE_ELEVATION"],
+                "exact_variables_list" : ["EXACT_FREE_SURFACE"],
+                "error_variables_list" : ["FREE_SURFACE_ERROR"],
+                "benchmark_settings"   : {
+                    "boundary_model_part_name" : "model_part.upstream",
+                    "wave_specifications"      : {
+                        "wave_theory"               : "boussinesq",
+                        "get_depth_from_model_part" : true,
+                        "amplitude"                 : 0.02,
+                        "x_shift"                   : 0.0,
+                        "t_shift"                   : 0.0
+                    }
+                }
+            }
+        },{
+            "kratos_module"   : "KratosMultiphysics",
+            "python_module"   : "from_json_check_result_process",
+            "Parameters"      : {
+                "model_part_name"  : "model_part",
+                "check_variables"  : ["HEIGHT"],
+                "input_file_name"  : "solitary_wave_validation_reference.json",
+                "time_frequency"   : 4.9,
+                "tolerance"        : 1e-6
+            }
+            // "kratos_module"   : "KratosMultiphysics",
+            // "python_module"   : "json_output_process",
+            // "Parameters"      : {
+            //     "model_part_name"  : "model_part",
+            //     "output_variables" : ["HEIGHT"],
+            //     "output_file_name" : "solitary_wave_validation_reference.json",
+            //     "time_frequency"   : 4.9
+            // }
+        }]
+    }
+}

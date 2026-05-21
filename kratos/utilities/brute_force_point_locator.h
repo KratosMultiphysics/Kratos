@@ -162,7 +162,7 @@ private:
      * @param DistanceThreshold threshold for the distance
      * @return whether the rNode is close to rThePoint
      */
-    bool NodeIsCloseEnough(const Node<3>& rNode,
+    bool NodeIsCloseEnough(const Node& rNode,
                            const Point& rThePoint,
                            const Globals::Configuration configuration,
                            const double DistanceThreshold) const;

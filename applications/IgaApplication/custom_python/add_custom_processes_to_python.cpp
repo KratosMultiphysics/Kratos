@@ -45,8 +45,7 @@ void AddCustomProcessesToPython(
 
     py::class_<MapNurbsVolumeResultsToEmbeddedGeometryProcess, MapNurbsVolumeResultsToEmbeddedGeometryProcess::Pointer, Process>(m, "MapNurbsVolumeResultsToEmbeddedGeometryProcess")
         .def(py::init<Model&, Parameters >())
-        .def("MapNodalValues", [](MapNurbsVolumeResultsToEmbeddedGeometryProcess& self, const Variable<array_1d<double,3>>& rVariable){
-            self.MapNodalValues(rVariable);})
+        .def("MapVariables", &MapNurbsVolumeResultsToEmbeddedGeometryProcess::MapVariables )
         ;
 
     py::class_<AssignIntegrationPointsToBackgroundElementsProcess, AssignIntegrationPointsToBackgroundElementsProcess::Pointer, Process>(m, "AssignIntegrationPointsToBackgroundElementsProcess")

@@ -18,7 +18,7 @@
 // System includes
 #include <string>
 #include <iostream>
-#include <stdlib.h>
+#include <cstdlib>
 
 // Project includes
 #include "includes/define.h"
@@ -137,8 +137,8 @@ public:
         Properties::Pointer properties = rDestination_ModelPart.GetMesh().pGetProperties(1);
 
         //defintions for spatial search
-        typedef Node<3> PointType;
-        typedef Node<3>::Pointer PointTypePointer;
+        typedef Node PointType;
+        typedef Node::Pointer PointTypePointer;
         typedef std::vector<PointType::Pointer>           PointVector;
         typedef std::vector<PointType::Pointer>::iterator PointIterator;
         typedef std::vector<double>               DistanceVector;
@@ -175,7 +175,7 @@ public:
                 node_it != rDestination_ModelPart.NodesEnd(); ++node_it)
         {
             //PointType::Pointer pnode(new PointType(*node_it));
-            Node<3>::Pointer pnode = *(node_it.base());
+            Node::Pointer pnode = *(node_it.base());
 
             //putting the nodes of the destination_model part in an auxiliary list
             list_of_new_nodes.push_back( pnode );
@@ -191,7 +191,7 @@ public:
 
 
         //work arrays
-        Node<3> work_point(0,0.0,0.0,0.0);
+        Node work_point(0,0.0,0.0,0.0);
         unsigned int MaximumNumberOfResults = 10000;
         PointVector Results(MaximumNumberOfResults);
         DistanceVector ResultsDistances(MaximumNumberOfResults);
@@ -209,11 +209,11 @@ public:
         for( ModelPart::ElementsContainerType::iterator el_it = rOrigin_ModelPart.ElementsBegin();
                 el_it != rOrigin_ModelPart.ElementsEnd(); el_it++)
         {
-            Geometry<Node<3> >&geom = el_it->GetGeometry();
+            Geometry<Node >&geom = el_it->GetGeometry();
 
             //find the center and "radius" of the element
 // 				double xc,  yc,  radius;
-// 				if(TDim == 2)
+// 				if constexpr (TDim == 2)
 // 				{
 // 					 CalculateCenterAndSearchRadius( geom[0].X(), geom[0].Y(),
 // 								geom[1].X(), geom[1].Y(),
@@ -253,7 +253,7 @@ public:
 
                 bool is_inside = false;
                 //once we are sure the node in inside the circle we have to see if it is inside the triangle i.e. if all the Origin element shape functions are >1
-// 				        if(TDim == 2)
+// 				        if constexpr (TDim == 2)
 // 				        {
 // 					       is_inside = CalculatePosition(geom[0].X(), geom[0].Y(),
 // 									       geom[1].X(), geom[1].Y(),
@@ -314,8 +314,8 @@ public:
         Properties::Pointer properties = rDestination_ModelPart.GetMesh().pGetProperties(1);
 
         //defintions for spatial search
-        typedef Node<3> PointType;
-        typedef Node<3>::Pointer PointTypePointer;
+        typedef Node PointType;
+        typedef Node::Pointer PointTypePointer;
         typedef std::vector<PointType::Pointer>           PointVector;
         typedef std::vector<PointType::Pointer>::iterator PointIterator;
         typedef std::vector<double>               DistanceVector;
@@ -362,7 +362,7 @@ public:
 
 
             //PointType::Pointer pnode(new PointType(*node_it));
-            Node<3>::Pointer pnode = *(node_it.base());
+            Node::Pointer pnode = *(node_it.base());
 
             //putting the nodes of the destination_model part in an auxiliary list
             list_of_new_nodes.push_back( pnode );
@@ -379,7 +379,7 @@ public:
         tree nodes_tree(list_of_new_nodes.begin(),list_of_new_nodes.end(),bucket_size);
 
         //work arrays
-        Node<3> work_point(0,0.0,0.0,0.0);
+        Node work_point(0,0.0,0.0,0.0);
         unsigned int MaximumNumberOfResults = 10000;
         PointVector Results(MaximumNumberOfResults);
         DistanceVector ResultsDistances(MaximumNumberOfResults);
@@ -392,11 +392,11 @@ public:
         for( ModelPart::ElementsContainerType::iterator el_it = rOrigin_ModelPart.ElementsBegin();
                 el_it != rOrigin_ModelPart.ElementsEnd(); el_it++)
         {
-            Geometry<Node<3> >&geom = el_it->GetGeometry();
+            Geometry<Node >&geom = el_it->GetGeometry();
 
             //find the center and "radius" of the element
 // 				double xc,  yc,  radius;
-// 				if(TDim == 2)
+// 				if constexpr (TDim == 2)
 // 				{
 // 					 CalculateCenterAndSearchRadius( geom[0].X(), geom[0].Y(),
 // 								geom[1].X(), geom[1].Y(),
@@ -436,7 +436,7 @@ public:
 // KRATOS_WATCH("line 402")
                 bool is_inside = false;
                 //once we are sure the node in inside the circle we have to see if it is inside the triangle i.e. if all the Origin element shape functions are >1
-// 					 if(TDim == 2)
+// 					 if constexpr (TDim == 2)
 // 					 {
 // 						is_inside = CalculatePosition(geom[0].X(), geom[0].Y(),
 // 										geom[1].X(), geom[1].Y(),
@@ -559,7 +559,7 @@ private:
 
 
 
-    inline void CalculateCenterAndSearchRadius(Geometry<Node<3> >&geom,
+    inline void CalculateCenterAndSearchRadius(Geometry<Node >&geom,
             double& xc, double& yc, double& zc, double& R, array_1d<double,3>& N
                                               )
     {
@@ -587,7 +587,7 @@ private:
     }
     //***************************************
     //***************************************
-    inline void CalculateCenterAndSearchRadius(Geometry<Node<3> >&geom,
+    inline void CalculateCenterAndSearchRadius(Geometry<Node >&geom,
             double& xc, double& yc, double& zc, double& R, array_1d<double,4>& N
 
                                               )
@@ -658,7 +658,7 @@ private:
     }
     //***************************************
     //***************************************
-    inline bool CalculatePosition(	Geometry<Node<3> >&geom,
+    inline bool CalculatePosition(	Geometry<Node >&geom,
                                     const double xc, const double yc, const double zc,
                                     array_1d<double,3>& N
                                  )
@@ -700,7 +700,7 @@ private:
     //***************************************
     //***************************************
 
-    inline bool CalculatePosition(	Geometry<Node<3> >&geom,
+    inline bool CalculatePosition(	Geometry<Node >&geom,
                                     const double xc, const double yc, const double zc,
                                     array_1d<double,4>& N
                                  )
@@ -758,10 +758,10 @@ private:
         ModelPart::ElementsContainerType::iterator el_it,
         const array_1d<double,3>& N,
         int step_data_size,
-        Node<3>::Pointer pnode)
+        Node::Pointer pnode)
     {
         //Geometry element of the rOrigin_ModelPart
-        Geometry< Node<3> >& geom = el_it->GetGeometry();
+        Geometry< Node >& geom = el_it->GetGeometry();
 
         unsigned int buffer_size = pnode->GetBufferSize();
 
@@ -788,10 +788,10 @@ private:
         ModelPart::ElementsContainerType::iterator el_it,
         const array_1d<double,4>& N,
         int step_data_size,
-        Node<3>::Pointer pnode)//dimension or number of nodes???
+        Node::Pointer pnode)//dimension or number of nodes???
     {
         //Geometry element of the rOrigin_ModelPart
-        Geometry< Node<3> >& geom = el_it->GetGeometry();
+        Geometry< Node >& geom = el_it->GetGeometry();
 
         unsigned int buffer_size = pnode->GetBufferSize();
 
@@ -820,12 +820,12 @@ private:
     void Interpolate(
         ModelPart::ElementsContainerType::iterator el_it,
         const array_1d<double,3>& N,
-        Node<3>::Pointer pnode,
+        Node::Pointer pnode,
         Variable<array_1d<double,3> >& rOriginVariable,
         Variable<array_1d<double,3> >& rDestinationVariable)
     {
         //Geometry element of the rOrigin_ModelPart
-        Geometry< Node<3> >& geom = el_it->GetGeometry();
+        Geometry< Node >& geom = el_it->GetGeometry();
 
         unsigned int buffer_size = pnode->GetBufferSize();
 
@@ -852,13 +852,13 @@ private:
     void Interpolate(
         ModelPart::ElementsContainerType::iterator el_it,
         const array_1d<double,4>& N,
-        Node<3>::Pointer pnode,
+        Node::Pointer pnode,
         Variable<array_1d<double,3> >& rOriginVariable,
         Variable<array_1d<double,3> >& rDestinationVariable)
 
     {
         //Geometry element of the rOrigin_ModelPart
-        Geometry< Node<3> >& geom = el_it->GetGeometry();
+        Geometry< Node >& geom = el_it->GetGeometry();
 
         unsigned int buffer_size = pnode->GetBufferSize();
 
@@ -885,12 +885,12 @@ private:
     void Interpolate(
         ModelPart::ElementsContainerType::iterator el_it,
         const array_1d<double,3>& N,
-        Node<3>::Pointer pnode,
+        Node::Pointer pnode,
         Variable<double>& rOriginVariable,
         Variable<double>& rDestinationVariable)
     {
         //Geometry element of the rOrigin_ModelPart
-        Geometry< Node<3> >& geom = el_it->GetGeometry();
+        Geometry< Node >& geom = el_it->GetGeometry();
 
         unsigned int buffer_size = pnode->GetBufferSize();
         //facendo un loop sugli step temporali step_data come salva i dati al passo anteriore? Cioś dove passiamo l'informazione ai nodi???
@@ -915,12 +915,12 @@ private:
     void Interpolate(
         ModelPart::ElementsContainerType::iterator el_it,
         const array_1d<double,4>& N,
-        Node<3>::Pointer pnode,
+        Node::Pointer pnode,
         Variable<double>& rOriginVariable,
         Variable<double>& rDestinationVariable)
     {
         //Geometry element of the rOrigin_ModelPart
-        Geometry< Node<3> >& geom = el_it->GetGeometry();
+        Geometry< Node >& geom = el_it->GetGeometry();
 
         unsigned int buffer_size = pnode->GetBufferSize();
         //facendo un loop sugli step temporali step_data come salva i dati al passo anteriore? Cioś dove passiamo l'informazione ai nodi???

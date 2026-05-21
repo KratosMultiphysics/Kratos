@@ -1,4 +1,3 @@
-from __future__ import absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.FluidDynamicsApplication as KFluid
@@ -12,33 +11,35 @@ class AdjointFluidAnalysis(AnalysisStage):
     '''Main script for adjoint sensitivity optimization in fluid dynamics simulations.'''
 
     def __init__(self,model,parameters):
-        # Deprecation warnings
-        solver_settings = parameters["solver_settings"]
-        if not solver_settings.Has("domain_size"):
-            Kratos.Logger.PrintWarning(self.__class__.__name__, "Using the old way to pass the domain_size, this will be removed!")
-            solver_settings.AddEmptyValue("domain_size")
-            solver_settings["domain_size"].SetInt(parameters["problem_data"]["domain_size"].GetInt())
+        super().__init__(model, parameters)
 
-        if not solver_settings.Has("model_part_name"):
-            Kratos.Logger.PrintWarning(self.__class__.__name__, "Using the old way to pass the model_part_name, this will be removed!")
-            solver_settings.AddEmptyValue("model_part_name")
-            solver_settings["model_part_name"].SetString(parameters["problem_data"]["model_part_name"].GetString())
+        problem_data = self.project_parameters["problem_data"]
 
-        if not parameters["problem_data"].Has("end_time"):
-            parameters["problem_data"].AddEmptyValue("end_time")
-            parameters["problem_data"]["end_time"].SetDouble( \
-                            parameters["problem_data"]["start_step"].GetDouble() + \
-                            parameters["problem_data"]["nsteps"].GetInt()*solver_settings["time_stepping"]["time_step"].GetDouble()
-                        )
+        # check that old input is not provided
+        if problem_data.Has("nsteps"):
+            raise Exception("'nsteps' is no longer supported. Use 'start_time' and 'end_time' instead")
+        if problem_data.Has("start_step"):
+            raise Exception("'start_step' is no longer supported. Use 'start_time' and 'end_time' instead")
+        if problem_data.Has("end_step"):
+            raise Exception("'end_step' is no longer supported. Use 'start_time' and 'end_time' instead")
 
-        if not parameters["problem_data"].Has("start_time"):
-            parameters["problem_data"].AddEmptyValue("start_time")
-            parameters["problem_data"]["start_time"].SetDouble( \
-                            parameters["problem_data"]["start_step"].GetDouble() \
-                            )
-        self.number_of_steps = parameters["problem_data"]["nsteps"].GetInt()
+        # compute delta time
+        delta_time = self._GetSolver()._ComputeDeltaTime()
+        if delta_time >= 0.0:
+            raise Exception("Adjoints are solved in reverse in time. Hence, delta_time should be negative. [ delta_time = " + str(delta_time) + "].")
 
-        super(AdjointFluidAnalysis, self).__init__(model, parameters)
+        # update start time and end time. Adjoints are solved reverse in time,
+        # hence we include an additional time step at the end
+        # to properly initialize initial conditions for adjoint problem
+        # and start time is also shifted by one to keep the same number
+        # of steps
+        delta_time *= -1.0
+        self.start_time = problem_data["start_time"].GetDouble() + delta_time
+        self.end_time = problem_data["end_time"].GetDouble() + delta_time
+
+        # now set start_time, end_time of the problem_data bt flipping them
+        self.project_parameters["problem_data"]["start_time"].SetDouble(self.end_time)
+        self.project_parameters["problem_data"]["end_time"].SetDouble(self.start_time)
 
     def Initialize(self):
         super(AdjointFluidAnalysis, self).Initialize()
@@ -49,61 +50,11 @@ class AdjointFluidAnalysis(AnalysisStage):
     def _CreateSolver(self):
         return python_solvers_wrapper_adjoint_fluid.CreateSolver(self.model, self.project_parameters)
 
-    def _CreateProcesses(self, parameter_name, initialization_order):
-        """Create a list of Processes
-        This method is TEMPORARY to not break existing code
-        It will be removed in the future
+    def KeepAdvancingSolutionLoop(self):
+        """This function specifies the stopping criteria for breaking the solution loop
+        Note that as the adjoint problem is solved backward in time, the stopping criteria is current time being larger than the start one
         """
-        list_of_processes = super(AdjointFluidAnalysis, self)._CreateProcesses(parameter_name, initialization_order)
-
-        # The list of processes will contain a list with each individual process already constructed (boundary conditions, initial conditions and gravity)
-        # Note 1: gravity is constructed first. Outlet process might need its information.
-        # Note 2: initial conditions are constructed before BCs. Otherwise, they may overwrite the BCs information.
-        if parameter_name == "processes":
-            processes_block_names = ["gravity", "initial_conditions_process_list", "boundary_conditions_process_list", "auxiliar_process_list"]
-            if len(list_of_processes) == 0: # Processes are given in the old format
-                Kratos.Logger.PrintWarning(self.__class__.__name__, "Using the old way to create the processes, this will be removed!")
-                factory = KratosProcessFactory(self.model)
-                for process_name in processes_block_names:
-                    if (self.project_parameters.Has(process_name) is True):
-                        list_of_processes += factory.ConstructListOfProcesses(self.project_parameters[process_name])
-            else: # Processes are given in the new format
-                for process_name in processes_block_names:
-                    if (self.project_parameters.Has(process_name) is True):
-                        raise Exception("Mixing of process initialization is not alowed!")
-        elif parameter_name == "output_processes":
-            if self.project_parameters.Has("output_configuration"):
-                Kratos.Logger.PrintWarning(self.__class__.__name__, "Using the old way to create the gid-output, this will be removed!")
-                gid_output= self._SetUpGiDOutput()
-                list_of_processes += [gid_output,]
-        else:
-            raise NameError("wrong parameter name")
-
-        return list_of_processes
-
-    def _SetUpGiDOutput(self):
-        '''Initialize a GiD output instance'''
-        if self.parallel_type == "OpenMP":
-            from KratosMultiphysics.gid_output_process import GiDOutputProcess as OutputProcess
-        elif self.parallel_type == "MPI":
-            from KratosMultiphysics.mpi.distributed_gid_output_process import DistributedGiDOutputProcess as OutputProcess
-
-        output = OutputProcess(self._GetSolver().GetComputingModelPart(),
-                                self.project_parameters["problem_data"]["problem_name"].GetString() ,
-                                self.project_parameters["output_configuration"])
-
-        return output
-
-    def RunSolutionLoop(self):
-        """Note that the adjoint problem is solved in reverse time
-        """
-        for step in range(self.number_of_steps):
-            self.time = self._GetSolver().AdvanceInTime(self.time)
-            self.InitializeSolutionStep()
-            self._GetSolver().Predict()
-            self._GetSolver().SolveSolutionStep()
-            self.FinalizeSolutionStep()
-            self.OutputSolutionStep()
+        return self.time > self.start_time
 
     def _GetOrderOfProcessesInitialization(self):
         return ["gravity",

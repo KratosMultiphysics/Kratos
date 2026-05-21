@@ -13,8 +13,6 @@
 // System includes
 #include <iostream>
 
-// External includes
-
 // Project includes
 #include "custom_constitutive/linear_elastic_3D_interface_law.h"
 
@@ -23,37 +21,10 @@
 namespace Kratos
 {
 
-//******************************CONSTRUCTOR*******************************************
-/***********************************************************************************/
-
-LinearElastic3DInterfaceLaw::
-    LinearElastic3DInterfaceLaw()
-    : LinearElastic2DInterfaceLaw()
-{
-}
-
-//******************************COPY CONSTRUCTOR**************************************
-/***********************************************************************************/
-
-LinearElastic3DInterfaceLaw::
-    LinearElastic3DInterfaceLaw(const LinearElastic3DInterfaceLaw& rOther)
-    : LinearElastic2DInterfaceLaw(rOther) {}
-
-//********************************CLONE***********************************************
-/***********************************************************************************/
-
 ConstitutiveLaw::Pointer LinearElastic3DInterfaceLaw::Clone() const
 {
-    return Kratos::make_shared< LinearElastic3DInterfaceLaw>(*this);
+    return Kratos::make_shared<LinearElastic3DInterfaceLaw>(*this);
 }
-
-//*******************************DESTRUCTOR*******************************************
-/***********************************************************************************/
-
-    LinearElastic3DInterfaceLaw::~LinearElastic3DInterfaceLaw() {}
-
-/***********************************************************************************/
-/***********************************************************************************/
 
 bool& LinearElastic3DInterfaceLaw::GetValue(const Variable<bool>& rThisVariable, bool& rValue)
 {
@@ -65,75 +36,54 @@ bool& LinearElastic3DInterfaceLaw::GetValue(const Variable<bool>& rThisVariable,
     return rValue;
 }
 
-//*************************CONSTITUTIVE LAW GENERAL FEATURES *************************
-/***********************************************************************************/
-
 void LinearElastic3DInterfaceLaw::GetLawFeatures(Features& rFeatures)
 {
-    //Set the type of law
-    rFeatures.mOptions.Set( PLANE_STRAIN_LAW);
-    rFeatures.mOptions.Set( INFINITESIMAL_STRAINS );
-    rFeatures.mOptions.Set( ISOTROPIC );
+    // Set the type of law
+    rFeatures.mOptions.Set(PLANE_STRAIN_LAW);
+    rFeatures.mOptions.Set(INFINITESIMAL_STRAINS);
+    rFeatures.mOptions.Set(ISOTROPIC);
 
-    //Set strain measure required by the consitutive law
+    // Set strain measure required by the consitutive law
     rFeatures.mStrainMeasures.push_back(StrainMeasure_Infinitesimal);
     rFeatures.mStrainMeasures.push_back(StrainMeasure_Deformation_Gradient);
 
-    //Set the strain size
-    // for the time being
+    // Set the strain size
     rFeatures.mStrainSize = GetStrainSize();
 
-    //Set the spacedimension
+    // Set the space dimension
     rFeatures.mSpaceDimension = WorkingSpaceDimension();
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
-void LinearElastic3DInterfaceLaw::
-    CalculateElasticMatrix(Matrix& C, ConstitutiveLaw::Parameters& rValues)
+void LinearElastic3DInterfaceLaw::CalculateElasticMatrix(Matrix& C, ConstitutiveLaw::Parameters& rValues)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     const Properties& r_material_properties = rValues.GetMaterialProperties();
-    const double E = r_material_properties[YOUNG_MODULUS];
-    const double NU = r_material_properties[POISSON_RATIO];
+    const double      E                     = r_material_properties[YOUNG_MODULUS];
+    const double      NU                    = r_material_properties[POISSON_RATIO];
 
-    this->CheckClearElasticMatrix(C);
+    C = ZeroMatrix(GetStrainSize(), GetStrainSize());
 
-    const double c0 = E / ((1.00 + NU)*(1 - 2 * NU));
+    const double c0 = E / ((1.0 + NU) * (1.0 - 2.0 * NU));
 
-    C(INDEX_3D_INTERFACE_ZZ, INDEX_3D_INTERFACE_ZZ) = (1.00 - NU)*c0;
-    C(INDEX_3D_INTERFACE_XZ, INDEX_3D_INTERFACE_XZ) = (0.5 - NU)*c0;
-    C(INDEX_3D_INTERFACE_YZ, INDEX_3D_INTERFACE_YZ) = (0.5 - NU)*c0;
+    C(INDEX_3D_INTERFACE_XZ, INDEX_3D_INTERFACE_XZ) = (0.5 - NU) * c0;
+    C(INDEX_3D_INTERFACE_YZ, INDEX_3D_INTERFACE_YZ) = (0.5 - NU) * c0;
+    C(INDEX_3D_INTERFACE_ZZ, INDEX_3D_INTERFACE_ZZ) = (1.0 - NU) * c0;
 
-    KRATOS_CATCH("");
+    KRATOS_CATCH("")
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
-void LinearElastic3DInterfaceLaw::
-    CalculatePK2Stress(const Vector& rStrainVector,
-                       Vector& rStressVector,
-                       ConstitutiveLaw::Parameters& rValues)
+void LinearElastic3DInterfaceLaw::CalculatePK2Stress(const Vector&                rStrainVector,
+                                                     Vector&                      rStressVector,
+                                                     ConstitutiveLaw::Parameters& rValues)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
-    const Properties& r_material_properties = rValues.GetMaterialProperties();
-    const double E = r_material_properties[YOUNG_MODULUS];
-    const double NU = r_material_properties[POISSON_RATIO];
+    Matrix C;
+    this->CalculateElasticMatrix(C, rValues);
+    rStressVector = prod(C, rStrainVector);
 
-    const double c0 = E / ((1.00 + NU)*(1 - 2 * NU));
-    const double c1 = (1.00 - NU)*c0;
-    const double c3 = (0.5 - NU)*c0;
-
-    rStressVector[INDEX_3D_INTERFACE_XZ] = c3 * rStrainVector[INDEX_3D_INTERFACE_XZ];
-    rStressVector[INDEX_3D_INTERFACE_YZ] = c3 * rStrainVector[INDEX_3D_INTERFACE_YZ];
-    rStressVector[INDEX_3D_INTERFACE_ZZ] = c1 * rStrainVector[INDEX_3D_INTERFACE_ZZ];
-
-    KRATOS_CATCH("");
+    KRATOS_CATCH("")
 }
-
 
 } // Namespace Kratos

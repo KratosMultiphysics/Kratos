@@ -22,170 +22,157 @@
 // Project includes
 #include "includes/constitutive_law.h"
 
-namespace Kratos {
+namespace Kratos
+{
 
-///@addtogroup FluidDynamicsApplication
-///@{
-
-///@name Kratos Classes
-///@{
-
-/// This class contains the common infrastructure for solid constitutive laws.
-class KRATOS_API(PFEM_FLUID_DYNAMICS_APPLICATION) PfemSolidConstitutiveLaw : public ConstitutiveLaw {
-   public:
-    ///@name Type Definitions
+    ///@addtogroup FluidDynamicsApplication
     ///@{
 
-    KRATOS_CLASS_POINTER_DEFINITION(PfemSolidConstitutiveLaw);
-
-    typedef ConstitutiveLaw BaseType;
-    typedef std::size_t SizeType;
-
-    ///@}
-    ///@name Life Cycle
+    ///@name Kratos Classes
     ///@{
 
-    /// Default constructor.
-    PfemSolidConstitutiveLaw();
+    /// This class contains the common infrastructure for solid constitutive laws.
+    class KRATOS_API(PFEM_FLUID_DYNAMICS_APPLICATION) PfemSolidConstitutiveLaw : public ConstitutiveLaw
+    {
+    public:
+        ///@name Type Definitions
+        ///@{
 
-    /// Copy constructor.
-    PfemSolidConstitutiveLaw(const PfemSolidConstitutiveLaw& rOther);
+        KRATOS_CLASS_POINTER_DEFINITION(PfemSolidConstitutiveLaw);
 
-    /// Destructor
-    ~PfemSolidConstitutiveLaw() override;
+        typedef ConstitutiveLaw BaseType;
+        typedef std::size_t SizeType;
 
-    ///@}
-    ///@name Operations
-    ///@{
+        ///@}
+        ///@name Life Cycle
+        ///@{
 
-    /// Initialize a new instance of this type of law
-    ConstitutiveLaw::Pointer Clone() const override;
+        /// Default constructor.
+        PfemSolidConstitutiveLaw();
 
-    /// Calculate the response of the material for the current strain rate.
-    /** This is the main method for solid constitutive laws.
-     *  @note Besides computing the response, derived constitutive laws are responsible for setting the
-     *  effective young modulus and poisson ratio for the material, which will be used by the element.
-     */
-    void CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
+        /// Copy constructor.
+        PfemSolidConstitutiveLaw(const PfemSolidConstitutiveLaw &rOther);
 
-    /// Validate the data received by the constitutive law
-    /** @param rMaterialProperties Properties of the parent Element.
-     *  @param rElementGeometry Geometry of the parent Element.
-     *  @param rCurrentProcessInfo ProcessInfo for the problem.
-     *  @return 0 if everything is fine, other values indicate problems.
-     */
-    int Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry,
-              const ProcessInfo& rCurrentProcessInfo) const override;
+        /// Destructor
+        ~PfemSolidConstitutiveLaw() override;
 
-    ///@}
-    ///@name Access
-    ///@{
+        ///@}
+        ///@name Operations
+        ///@{
 
-    /// This always returns this->GetEffectiveDensity() or this->GetEffectiveYoungModulus() or
-    /// this->GetEffectivePoissonRatio() and copies the result to rValue.
-    /** @return The effective density
-     */
-    double& CalculateValue(ConstitutiveLaw::Parameters& rParameters, const Variable<double>& rThisVariable,
-                           double& rValue) override;
+        /// Initialize a new instance of this type of law
+        ConstitutiveLaw::Pointer Clone() const override;
 
-    ///@}
-    ///@name Inquiry
-    ///@{
+        /// Calculate the response of the material for the current strain rate.
+        /** This is the main method for solid constitutive laws.
+         *  @note Besides computing the response, derived constitutive laws are responsible for setting the
+         *  effective young modulus and poisson ratio for the material, which will be used by the element.
+         */
+        void CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters &rValues) override;
 
-    /// This lets user classes know if the constitutive law is defined for 1D, 2D or 3D.
-    /** @return The number of spatial dimensions (1, 2 or 3).
-     */
-    SizeType WorkingSpaceDimension() override;
+        /// Validate the data received by the constitutive law
+        /** @param rMaterialProperties Properties of the parent Element.
+         *  @param rElementGeometry Geometry of the parent Element.
+         *  @param rCurrentProcessInfo ProcessInfo for the problem.
+         *  @return 0 if everything is fine, other values indicate problems.
+         */
+        int Check(const Properties &rMaterialProperties, const GeometryType &rElementGeometry,
+                  const ProcessInfo &rCurrentProcessInfo) const override;
 
-    /// This lets the user know the size of the strain rate vector (in Voigt notation) used by the constitutive law.
-    /** @return The size of the strain rate vector.
-     */
-    SizeType GetStrainSize() const override;
+        ///@}
+        ///@name Access
+        ///@{
 
-    ///@}
-    ///@name Input and output
-    ///@{
+        /** @return The effective density
+         */
+        double &CalculateValue(ConstitutiveLaw::Parameters &rParameters, const Variable<double> &rThisVariable,
+                               double &rValue) override;
 
-    /// @return A short string identifying this constitutive law instance.
-    std::string Info() const override;
+        ///@}
+        ///@name Inquiry
+        ///@{
 
-    /// Print basic information about this constitutive law instance.
-    void PrintInfo(std::ostream& rOStream) const override;
+        /// This lets user classes know if the constitutive law is defined for 1D, 2D or 3D.
+        /** @return The number of spatial dimensions (1, 2 or 3).
+         */
+        SizeType WorkingSpaceDimension() override;
 
-    /// Print detailed information about this constitutive law instance and its managed data.
-    void PrintData(std::ostream& rOStream) const override;
+        /// This lets the user know the size of the strain rate vector (in Voigt notation) used by the constitutive law.
+        /** @return The size of the strain rate vector.
+         */
+        SizeType GetStrainSize() const override;
 
-    ///@}
+        ///@}
+        ///@name Input and output
+        ///@{
 
-   protected:
-    ///@name Protected Operations
-    ///@{
+        /// @return A short string identifying this constitutive law instance.
+        std::string Info() const override;
 
-    ///@}
-    ///@name Protected  Access
-    ///@{
+        /// Print basic information about this constitutive law instance.
+        void PrintInfo(std::ostream &rOStream) const override;
 
-    /**
-     * @brief Get the Effective Young Modulus object
-     * @param rParameters constitutive law parameters
-     * @return double obtained effective young modulus
-     */
-    virtual double GetEffectiveYoungModulus(ConstitutiveLaw::Parameters& rParameters) const;
+        /// Print detailed information about this constitutive law instance and its managed data.
+        void PrintData(std::ostream &rOStream) const override;
 
-    /**
-     * @brief Get the Poisson Ratio Modulus object
-     * @param rParameters constitutive law parameters
-     * @return double obtained effective Poisson Ratio
-     */
-    virtual double GetEffectivePoissonRatio(ConstitutiveLaw::Parameters& rParameters) const;
+        ///@}
 
-    /**
-     * @brief Get the Density object
-     * @param rParameters constitutive law parameters
-     * @return double obtained effective density
-     */
-    virtual double GetEffectiveDensity(ConstitutiveLaw::Parameters& rParameters) const;
+    protected:
+        ///@name Protected Operations
+        ///@{
 
-    /**
-     * @brief Get the averaged value of the Input Variable
-     * @param rParameters input variable, constitutive law parameters, step in which the variable is to evaluated
-     * @return double obtained averaged variable
-     */
-    virtual double CalculateAveragedVariable(const Variable<double>& rVariableInput,
-                                             ConstitutiveLaw::Parameters& rParameters, unsigned int step) const;
+        ///@}
+        ///@name Protected  Access
+        ///@{
 
-    /**
-     * @brief Get the Value From Table object
-     * For an table independent variable, this method returns the table dependent variable
-     * value. Note that the properties container must have a table relating the two variables.
-     * @param rIndependentVariable independent variable
-     * @param rDependentVariable dependent variable
-     * @param rParameters constitutive law parameters container
-     * @return double output variable value
-     */
-    virtual double GetValueFromTable(const Variable<double>& rIndependentVariable, const Variable<double>& rDependentVariable,
-                                     ConstitutiveLaw::Parameters& rParameters) const;
+        /**
+         * @brief Get the Effective Density object
+         * Get the effective density for the fluid.
+         * @param rParameters constitutive law parameters
+         * @return double obtained effective density
+         */
+        virtual double GetEffectiveMaterialParameter(ConstitutiveLaw::Parameters &rParameters, const Variable<double> &rVariable) const;
 
-    ///@}
+        /**
+         * @brief Get the averaged value of the Input Variable
+         * @param rParameters input variable, constitutive law parameters, step in which the variable is to evaluated
+         * @return double obtained averaged variable
+         */
+        virtual double CalculateAveragedVariable(const Variable<double> &rVariableInput,
+                                                 ConstitutiveLaw::Parameters &rParameters, unsigned int step) const;
 
-   private:
-    ///@name Member Variables
-    ///@{
+        /**
+         * @brief Get the Value From Table object
+         * For an table independent variable, this method returns the table dependent variable
+         * value. Note that the properties container must have a table relating the two variables.
+         * @param rIndependentVariable independent variable
+         * @param rDependentVariable dependent variable
+         * @param rParameters constitutive law parameters container
+         * @return double output variable value
+         */
+        virtual double GetValueFromTable(const Variable<double> &rIndependentVariable, const Variable<double> &rDependentVariable,
+                                         ConstitutiveLaw::Parameters &rParameters) const;
 
-    ///@}
-    ///@name Serialization
-    ///@{
+        ///@}
 
-    friend class Serializer;
+    private:
+        ///@name Member Variables
+        ///@{
 
-    void save(Serializer& rSerializer) const override;
+        ///@}
+        ///@name Serialization
+        ///@{
 
-    void load(Serializer& rSerializer) override;
+        friend class Serializer;
 
-    ///@}
+        void save(Serializer &rSerializer) const override;
 
-};  // Class PfemSolidConstitutiveLaw
+        void load(Serializer &rSerializer) override;
 
-}  // namespace Kratos.
+        ///@}
 
-#endif  // KRATOS_PFEM_SOLID_CONSTITUTIVE_LAW  defined
+    }; // Class PfemSolidConstitutiveLaw
+
+} // namespace Kratos.
+
+#endif // KRATOS_PFEM_SOLID_CONSTITUTIVE_LAW  defined

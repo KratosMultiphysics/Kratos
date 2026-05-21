@@ -1,0 +1,29 @@
+{
+    "properties" : [{
+        "model_part_name" : "FluidModelPart.FluidParts_Fluid",
+        "properties_id"   : 1,
+        "Material"        : {
+            "constitutive_law" : {
+                "name" : "NewtonianTwoFluid2DLaw"
+            },
+            "Variables"        : {
+                "DENSITY": 1.0E+03,
+                "DYNAMIC_VISCOSITY": 1.0E-03
+            },
+            "Tables"           : {}
+        }
+    },{
+        "model_part_name" : "FluidModelPart.FluidParts_Fluid",
+        "properties_id"   : 2,
+        "Material"        : {
+            "constitutive_law" : {
+                "name" : "NewtonianTwoFluid2DLaw"
+            },
+            "Variables"        : {
+                "DENSITY": 1.0E+00,
+                "DYNAMIC_VISCOSITY": 1.0E-03
+            },
+            "Tables"           : {}
+        }
+    }]
+}

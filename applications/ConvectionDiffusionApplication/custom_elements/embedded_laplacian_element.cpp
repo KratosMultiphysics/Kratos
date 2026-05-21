@@ -103,7 +103,7 @@ void EmbeddedLaplacianElement<TTDim>::CalculateLocalSystem(
 
         // Calculate and add local system for the positive side of the element
         AddPositiveElementSide(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo, data);
-        
+
         // Calculate and add interface terms
         AddPositiveInterfaceTerms(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo, data);
 
@@ -217,28 +217,28 @@ void EmbeddedLaplacianElement<TTDim>::AddPositiveElementSide(
         temp[n] = r_geom[n].GetSolutionStepValue(r_unknown_var);
     }
 
-    // Iterate over the positive side volume integration points 
+    // Iterate over the positive side volume integration points
     // = number of integration points * number of subdivisions on positive side of element
     const std::size_t number_of_positive_gauss_points = rData.PositiveSideWeights.size();
     for (std::size_t g = 0; g < number_of_positive_gauss_points; ++g) {
 
-        const auto& N = row(rData.PositiveSideN, g); 
+        const auto& N = row(rData.PositiveSideN, g);
         const auto& DN_DX = rData.PositiveSideDNDX[g];
-        const double weight_gauss = rData.PositiveSideWeights[g]; 
+        const double weight_gauss = rData.PositiveSideWeights[g];
 
         //Calculate the local conductivity
         const double conductivity_gauss = inner_prod(N, nodal_conductivity);
 
-        noalias(rLeftHandSideMatrix) += weight_gauss * conductivity_gauss * prod(DN_DX, trans(DN_DX)); 
+        noalias(rLeftHandSideMatrix) += weight_gauss * conductivity_gauss * prod(DN_DX, trans(DN_DX));
 
         // Calculate the local RHS (external source)
         const double q_gauss = inner_prod(N, heat_flux_local);
 
         noalias(rRightHandSideVector) += weight_gauss * q_gauss * N;
     }
-    
+
     //RHS -= K*temp
-    noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix,temp);  
+    noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix,temp);
 }
 
 template<std::size_t TTDim>
@@ -262,13 +262,13 @@ void EmbeddedLaplacianElement<TTDim>::AddPositiveInterfaceTerms(
         temp[n] = r_geom[n].GetSolutionStepValue(r_unknown_var);
     }
 
-    // Iterate over the positive side interface integration points 
+    // Iterate over the positive side interface integration points
     const std::size_t number_of_positive_gauss_points = rData.PositiveInterfaceWeights.size();
     for (std::size_t g = 0; g < number_of_positive_gauss_points; ++g) {
 
-        const auto& N = row(rData.PositiveInterfaceN, g); 
+        const auto& N = row(rData.PositiveInterfaceN, g);
         const auto& DN_DX = rData.PositiveInterfaceDNDX[g];
-        const double weight_gauss = rData.PositiveInterfaceWeights[g]; 
+        const double weight_gauss = rData.PositiveInterfaceWeights[g];
         const auto& unit_normal = rData.PositiveInterfaceUnitNormals[g];
 
         //Calculate the local conductivity
@@ -311,19 +311,19 @@ void EmbeddedLaplacianElement<TTDim>::AddNitscheBoundaryTerms(
     }
 
     // Nitsche penalty constant
-    const double gamma = rCurrentProcessInfo[PENALTY_DIRICHLET]; 
+    const double gamma = rCurrentProcessInfo[PENALTY_COEFFICIENT];
     // Dirichlet boundary value
     const double temp_bc = GetValue(EMBEDDED_SCALAR);
     // Measure of element size
     const double h = ElementSizeCalculator<TTDim,NumNodes>::AverageElementSize(r_geom);
 
-    // Iterate over the positive side interface integration points 
+    // Iterate over the positive side interface integration points
     const std::size_t number_of_positive_gauss_points = rData.PositiveInterfaceWeights.size();
     for (std::size_t g = 0; g < number_of_positive_gauss_points; ++g) {
 
-        const auto& N = row(rData.PositiveInterfaceN, g); 
+        const auto& N = row(rData.PositiveInterfaceN, g);
         const auto& DN_DX = rData.PositiveInterfaceDNDX[g];
-        const double weight_gauss = rData.PositiveInterfaceWeights[g]; 
+        const double weight_gauss = rData.PositiveInterfaceWeights[g];
         const auto& unit_normal = rData.PositiveInterfaceUnitNormals[g];
 
         //Calculate the local conductivity and temperature (at Gauss point)
@@ -341,7 +341,7 @@ void EmbeddedLaplacianElement<TTDim>::AddNitscheBoundaryTerms(
             for (std::size_t d = 0; d < TTDim; ++d) {
                 aux_bc_2 += weight_gauss * conductivity_gauss * DN_DX(i, d) * unit_normal(d);
             }
-            
+
             // Add contribution of Nitsche boundary condition to LHS
             for (std::size_t j = 0; j < NumNodes; ++j) {
                 rLeftHandSideMatrix(i, j) += aux_bc_1 * N(j) - aux_bc_2 * N(j);

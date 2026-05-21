@@ -95,8 +95,8 @@ KRATOS_TEST_CASE_IN_SUITE(CurveTessellationNurbsCurve3D,
     unsigned counter = 0;
     for (auto it = tessellation.begin(); it != tessellation.end(); it++) 
     {
-        KRATOS_CHECK_NEAR(it->first, point_expected[counter][0], TOLERANCE);
-        KRATOS_CHECK_VECTOR_NEAR(it->second, Point(point_expected[counter][1], point_expected[counter][2]), TOLERANCE)
+        KRATOS_EXPECT_NEAR(it->first, point_expected[counter][0], TOLERANCE);
+        KRATOS_EXPECT_VECTOR_NEAR(it->second, Point(point_expected[counter][1], point_expected[counter][2]), TOLERANCE)
         counter++;
     }
 }

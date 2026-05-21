@@ -10,8 +10,7 @@
 //  Main authors:    @{KRATOS_APP_AUTHOR}
 //
 
-#if !defined(KRATOS_@{APP_NAME_CAPS}_APPLICATION_VARIABLES_H_INCLUDED )
-#define  KRATOS_@{APP_NAME_CAPS}_APPLICATION_VARIABLES_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -25,5 +24,3 @@ namespace Kratos
 {
 @{KRATOS_APP_DEFINE_VARIABLE_LIST}
 }
-
-#endif	/* KRATOS_@{APP_NAME_CAPS}_APPLICATION_VARIABLES_H_INCLUDED */

@@ -5,18 +5,16 @@
 //                   Multi-Physics
 //
 //  License:         BSD License
-//                     Kratos default license: kratos/license.txt
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //
 //
 
-
 // System includes
 
 // External includes
 #include <pybind11/stl.h>
-
 
 // Project includes
 #include "includes/define_python.h"
@@ -28,10 +26,7 @@
 #include "python/add_model_part_to_python.h"
 #include "python/containers_interface.h"
 
-namespace Kratos
-{
-
-namespace Python
+namespace Kratos::Python
 {
 
 template<class TDataType>
@@ -82,17 +77,17 @@ ModelPart::MeshType::Pointer ModelPartGetMesh2(ModelPart& rModelPart, ModelPart:
     return rModelPart.pGetMesh(MeshIndex);
 }
 
-Node < 3 > ::Pointer ModelPartCreateNewNode(ModelPart& rModelPart, int Id, double x, double y, double z)
+Node ::Pointer ModelPartCreateNewNode(ModelPart& rModelPart, int Id, double x, double y, double z)
 {
     return rModelPart.CreateNewNode(Id, x, y, z);
 }
 
-Geometry<Node<3>>::Pointer ModelPartCreateNewGeometry1(
+Geometry<Node>::Pointer ModelPartCreateNewGeometry1(
     ModelPart& rModelPart,
     const std::string& GeometryTypeName,
     std::vector< ModelPart::IndexType >& NodeIdList)
 {
-    Geometry<Node<3>>::PointsArrayType pGeometryNodeList;
+    Geometry<Node>::PointsArrayType pGeometryNodeList;
     for (std::size_t i = 0; i < NodeIdList.size(); i++) {
         pGeometryNodeList.push_back(rModelPart.pGetNode(NodeIdList[i]));
     }
@@ -100,13 +95,13 @@ Geometry<Node<3>>::Pointer ModelPartCreateNewGeometry1(
     return rModelPart.CreateNewGeometry(GeometryTypeName, pGeometryNodeList);
 }
 
-Geometry<Node<3>>::Pointer ModelPartCreateNewGeometry2(
+Geometry<Node>::Pointer ModelPartCreateNewGeometry2(
     ModelPart& rModelPart,
     const std::string& GeometryTypeName,
     ModelPart::IndexType GeometryId,
     std::vector< ModelPart::IndexType >& NodeIdList)
 {
-    Geometry<Node<3>>::PointsArrayType pGeometryNodeList;
+    Geometry<Node>::PointsArrayType pGeometryNodeList;
     for(std::size_t i = 0; i < NodeIdList.size(); i++) {
         pGeometryNodeList.push_back(rModelPart.pGetNode(NodeIdList[i]));
     }
@@ -114,13 +109,13 @@ Geometry<Node<3>>::Pointer ModelPartCreateNewGeometry2(
     return rModelPart.CreateNewGeometry(GeometryTypeName, GeometryId, pGeometryNodeList);
 }
 
-Geometry<Node<3>>::Pointer ModelPartCreateNewGeometry3(
+Geometry<Node>::Pointer ModelPartCreateNewGeometry3(
     ModelPart& rModelPart,
     const std::string& GeometryTypeName,
     const std::string& GeometryIdentifierName,
     std::vector< ModelPart::IndexType >& NodeIdList)
 {
-    Geometry<Node<3>>::PointsArrayType pGeometryNodeList;
+    Geometry<Node>::PointsArrayType pGeometryNodeList;
     for (std::size_t i = 0; i < NodeIdList.size(); i++) {
         pGeometryNodeList.push_back(rModelPart.pGetNode(NodeIdList[i]));
     }
@@ -128,7 +123,7 @@ Geometry<Node<3>>::Pointer ModelPartCreateNewGeometry3(
     return rModelPart.CreateNewGeometry(GeometryTypeName, GeometryIdentifierName, pGeometryNodeList);
 }
 
-Geometry<Node<3>>::Pointer ModelPartCreateNewGeometry4(
+Geometry<Node>::Pointer ModelPartCreateNewGeometry4(
     ModelPart& rModelPart,
     const std::string& GeometryTypeName,
     ModelPart::GeometryType::Pointer pGeometry)
@@ -136,7 +131,7 @@ Geometry<Node<3>>::Pointer ModelPartCreateNewGeometry4(
     return rModelPart.CreateNewGeometry(GeometryTypeName, pGeometry);
 }
 
-Geometry<Node<3>>::Pointer ModelPartCreateNewGeometry5(
+Geometry<Node>::Pointer ModelPartCreateNewGeometry5(
     ModelPart& rModelPart,
     const std::string& GeometryTypeName,
     ModelPart::IndexType GeometryId,
@@ -145,7 +140,7 @@ Geometry<Node<3>>::Pointer ModelPartCreateNewGeometry5(
     return rModelPart.CreateNewGeometry(GeometryTypeName, GeometryId, pGeometry);
 }
 
-Geometry<Node<3>>::Pointer ModelPartCreateNewGeometry6(
+Geometry<Node>::Pointer ModelPartCreateNewGeometry6(
     ModelPart& rModelPart,
     const std::string& GeometryTypeName,
     const std::string& GeometryIdentifierName,
@@ -164,7 +159,7 @@ Element::Pointer ModelPartCreateNewElement(ModelPart& rModelPart, const std::str
         KRATOS_ERROR << "The Element \"" << ElementName << "\" is not registered!\nMaybe you need to import the application where it is defined?\nThe following Elements are registered:\n" << msg.str() << std::endl;
     }
 
-    Geometry< Node < 3 > >::PointsArrayType pElementNodeList;
+    Geometry< Node >::PointsArrayType pElementNodeList;
 
     for(unsigned int i = 0; i < NodeIdList.size(); i++) {
         pElementNodeList.push_back(rModelPart.pGetNode(NodeIdList[i]));
@@ -183,7 +178,7 @@ Condition::Pointer ModelPartCreateNewCondition(ModelPart& rModelPart, const std:
         KRATOS_ERROR << "The Condition \"" << ConditionName << "\" is not registered!\nMaybe you need to import the application where it is defined?\nThe following Conditions are registered:\n" << msg.str() << std::endl;
     }
 
-    Geometry< Node < 3 > >::PointsArrayType pConditionNodeList;
+    Geometry< Node >::PointsArrayType pConditionNodeList;
 
     for(unsigned int i = 0; i <NodeIdList.size(); i++) {
         pConditionNodeList.push_back(rModelPart.pGetNode(NodeIdList[i]));
@@ -288,140 +283,14 @@ void ModelPartRemoveNodesFromAllLevels(ModelPart& rModelPart, Flags identifier_f
 
 // Properties
 
-ModelPart::SizeType  ModelPartNumberOfProperties1(ModelPart& rModelPart)
-{
-    return rModelPart.NumberOfProperties();
-}
-
-void ModelPartAddProperties1(ModelPart& rModelPart, Properties::Pointer pNewProperties)
-{
-    rModelPart.AddProperties(pNewProperties);
-}
-
-void ModelPartAddProperties2(ModelPart& rModelPart, Properties::Pointer pNewProperties, ModelPart::IndexType ThisIndex)
-{
-    rModelPart.AddProperties(pNewProperties, ThisIndex);
-}
-
-bool ModelPartHasProperties1(const ModelPart& rModelPart, const unsigned int PropertiesId, const unsigned int MeshId)
-{
-    return rModelPart.HasProperties(PropertiesId, MeshId);
-}
-
-bool ModelPartHasProperties2(const ModelPart& rModelPart, const unsigned int PropertiesId)
-{
-    return rModelPart.HasProperties(PropertiesId, 0);
-}
-
-bool ModelPartHasSubProperties1(const ModelPart& rModelPart, const std::string& rAdress, const unsigned int MeshId)
-{
-    return rModelPart.HasProperties(rAdress, MeshId);
-}
-
-bool ModelPartHasSubProperties2(const ModelPart& rModelPart, const std::string& rAdress)
-{
-    return rModelPart.HasProperties(rAdress, 0);
-}
-
-bool ModelPartRecursivelyHasProperties1(const ModelPart& rModelPart, const unsigned int PropertiesId, const unsigned int MeshId)
-{
-    return rModelPart.RecursivelyHasProperties(PropertiesId, MeshId);
-}
-
-bool ModelPartRecursivelyHasProperties2(const ModelPart& rModelPart, const unsigned int PropertiesId)
-{
-    return rModelPart.RecursivelyHasProperties(PropertiesId, 0);
-}
-
-Properties::Pointer ModelPartCreateNewProperties1(ModelPart& rModelPart, unsigned int PropertiesId, unsigned int MeshId)
-{
-    return rModelPart.CreateNewProperties(PropertiesId, MeshId);
-}
-
-Properties::Pointer ModelPartCreateNewProperties2(ModelPart& rModelPart, unsigned int PropertiesId)
-{
-    return rModelPart.CreateNewProperties(PropertiesId, 0);
-}
-
-Properties::Pointer ModelPartGetPropertiesDirect1(ModelPart& rModelPart, unsigned int PropertiesId, unsigned int MeshId)
-{
-    return rModelPart.pGetProperties(PropertiesId, MeshId);
-}
-
-Properties::Pointer ModelPartGetPropertiesDirect2(ModelPart& rModelPart, unsigned int PropertiesId)
-{
-    return rModelPart.pGetProperties(PropertiesId);
-}
-
-Properties::Pointer ModelPartGetSubProperties1(ModelPart& rModelPart, const std::string& rAdress, unsigned int MeshId)
-{
-    return rModelPart.pGetProperties(rAdress, MeshId);
-}
-
-Properties::Pointer ModelPartSubProperties2(ModelPart& rModelPart, const std::string& rAdress)
-{
-    return rModelPart.pGetProperties(rAdress);
-}
-
-ModelPart::PropertiesContainerType::Pointer ModelPartGetProperties1(ModelPart& rModelPart)
+ModelPart::PropertiesContainerType::Pointer ModelPartGetPropertiesContainer(ModelPart& rModelPart)
 {
     return rModelPart.pProperties();
 }
 
-ModelPart::PropertiesContainerType::Pointer ModelPartGetProperties2(ModelPart& rModelPart, ModelPart::IndexType ThisIndex)
-{
-    return rModelPart.pProperties(ThisIndex);
-}
-
-void ModelPartSetProperties1(ModelPart& rModelPart, ModelPart::PropertiesContainerType::Pointer pOtherProperties)
+void ModelPartSetPropertiesContainer(ModelPart& rModelPart, ModelPart::PropertiesContainerType::Pointer pOtherProperties)
 {
     rModelPart.SetProperties(pOtherProperties);
-}
-
-void ModelPartSetProperties2(ModelPart& rModelPart, ModelPart::PropertiesContainerType::Pointer pOtherProperties, ModelPart::IndexType ThisIndex)
-{
-    rModelPart.SetProperties(pOtherProperties, ThisIndex);
-}
-
-void ModelPartRemoveProperties1(ModelPart& rModelPart, ModelPart::IndexType PropertiesId)
-{
-    rModelPart.RemoveProperties(PropertiesId);
-}
-
-void ModelPartRemoveProperties2(ModelPart& rModelPart, ModelPart::IndexType PropertiesId, ModelPart::IndexType ThisIndex)
-{
-    rModelPart.RemoveProperties(PropertiesId, ThisIndex);
-}
-
-void ModelPartRemoveProperties3(ModelPart& rModelPart, ModelPart::PropertiesType::Pointer pThisProperties)
-{
-    rModelPart.RemoveProperties(pThisProperties);
-}
-
-void ModelPartRemoveProperties4(ModelPart& rModelPart, ModelPart::PropertiesType::Pointer pThisProperties, ModelPart::IndexType ThisIndex)
-{
-    rModelPart.RemoveProperties(pThisProperties, ThisIndex);
-}
-
-
-void ModelPartRemovePropertiesFromAllLevels1(ModelPart& rModelPart, ModelPart::IndexType PropertiesId)
-{
-    rModelPart.RemovePropertiesFromAllLevels(PropertiesId);
-}
-
-void ModelPartRemovePropertiesFromAllLevels2(ModelPart& rModelPart, ModelPart::IndexType PropertiesId, ModelPart::IndexType ThisIndex)
-{
-    rModelPart.RemovePropertiesFromAllLevels(PropertiesId, ThisIndex);
-}
-
-void ModelPartRemovePropertiesFromAllLevels3(ModelPart& rModelPart, ModelPart::PropertiesType::Pointer pThisProperties)
-{
-    rModelPart.RemovePropertiesFromAllLevels(pThisProperties);
-}
-
-void ModelPartRemovePropertiesFromAllLevels4(ModelPart& rModelPart, ModelPart::PropertiesType::Pointer pThisProperties, ModelPart::IndexType ThisIndex)
-{
-    rModelPart.RemovePropertiesFromAllLevels(pThisProperties, ThisIndex);
 }
 
 // Elements
@@ -776,19 +645,39 @@ void RemoveSubModelPart2(ModelPart& rModelPart, ModelPart& ThisSubModelPart)
     rModelPart.RemoveSubModelPart(ThisSubModelPart);
 }
 
+void AddNode1(ModelPart& rModelPart, ModelPart::NodeType::Pointer pNode)
+{
+    rModelPart.AddNode(pNode);
+}
+
+void AddNode2(ModelPart& rModelPart, ModelPart::NodeType::Pointer pNode, const ModelPart::IndexType MeshId )
+{
+    rModelPart.AddNode(pNode, MeshId);
+}
+
 void AddNodesByIds(ModelPart& rModelPart, std::vector< ModelPart::IndexType >& NodesIds )
 {
     rModelPart.AddNodes(NodesIds);
 }
 
-void AddConditionsByIds(ModelPart& rModelPart,std::vector< ModelPart::IndexType >& ConditionsIds )
+void AddElement1(ModelPart& rModelPart, Element::Pointer pElement)
 {
-    rModelPart.AddConditions(ConditionsIds);
+    rModelPart.AddElement(pElement);
+}
+
+void AddElement2(ModelPart& rModelPart, Element::Pointer pElement, const ModelPart::IndexType MeshId )
+{
+    rModelPart.AddElement(pElement, MeshId);
 }
 
 void AddElementsByIds(ModelPart& rModelPart, std::vector< ModelPart::IndexType >& ElementsIds )
 {
     rModelPart.AddElements(ElementsIds);
+}
+
+void AddConditionsByIds(ModelPart& rModelPart,std::vector< ModelPart::IndexType >& ConditionsIds )
+{
+    rModelPart.AddConditions(ConditionsIds);
 }
 
 const ModelPart::SubModelPartIterator GetSubModelPartBegin(ModelPart& rModelPart)
@@ -835,6 +724,21 @@ const std::unordered_set<std::string> GetNonHistoricalVariablesNames(ModelPart& 
     return variable_names;
 }
 
+class SubModelPartView {
+public:
+    using iterator = ModelPart::SubModelPartsContainerType::const_iterator;
+
+    SubModelPartView(const ModelPart::SubModelPartsContainerType& rSubModelParts)
+        : mrSubModelParts(rSubModelParts) {}
+
+    iterator begin() const { return mrSubModelParts.begin(); }
+    iterator end() const { return mrSubModelParts.end(); }
+
+    std::size_t size() const { return mrSubModelParts.size(); }
+private:
+    const ModelPart::SubModelPartsContainerType& mrSubModelParts;
+};
+
 void AddModelPartToPython(pybind11::module& m)
 {
 
@@ -855,7 +759,23 @@ void AddModelPartToPython(pybind11::module& m)
     MapInterface<ModelPart::GeometriesMapType>().CreateInterface(m,"GeometriesMapType");
     PointerVectorSetPythonInterface<ModelPart::MasterSlaveConstraintContainerType>().CreateInterface(m,"MasterSlaveConstraintsArray");
 
-    py::class_<ModelPart, Kratos::shared_ptr<ModelPart>, DataValueContainer, Flags >(m,"ModelPart")
+    py::class_<Kratos::Python::SubModelPartView>(m, "SubModelPartView")
+        .def("__iter__", [](const Kratos::Python::SubModelPartView &self) {
+            return py::make_iterator<py::return_value_policy::reference_internal,
+                                    SubModelPartView::iterator, SubModelPartView::iterator>(
+                self.begin(), self.end()); }, py::keep_alive<0, 1>())
+        .def("__len__", &Kratos::Python::SubModelPartView::size)
+        .def("__getitem__", [](const Kratos::Python::SubModelPartView &self, std::size_t i) -> const ModelPart& {
+            if (i >= self.size())
+                throw py::index_error();
+            return *std::next(self.begin(), i); }, py::return_value_policy::reference_internal)
+        ;
+
+    py::class_<ModelPart, Kratos::shared_ptr<ModelPart>, DataValueContainer, Flags>(m, "ModelPart")
+        .def("__copy__", [](const ModelPart &) {
+        throw py::type_error("ModelPart cannot be copied");})
+        .def("__deepcopy__", [](const ModelPart &, py::dict) {
+            throw py::type_error("ModelPart cannot be deep-copied");})
         .def_property("Name", GetModelPartName, SetModelPartName)
         .def("FullName", &ModelPart::FullName)
         //  .def_property("ProcessInfo", GetProcessInfo, SetProcessInfo)
@@ -880,8 +800,7 @@ void AddModelPartToPython(pybind11::module& m)
         .def("NumberOfMasterSlaveConstraints", ModelPartNumberOfMasterSlaveConstraints1)
         .def("NumberOfMasterSlaveConstraints", &ModelPart::NumberOfMasterSlaveConstraints)
         .def("NumberOfMeshes", &ModelPart::NumberOfMeshes)
-        .def("NumberOfProperties", &ModelPart::NumberOfProperties)
-        .def("NumberOfProperties", ModelPartNumberOfProperties1)
+        .def("NumberOfProperties", &ModelPart::NumberOfProperties, py::arg("ThisIndex") = 0)
         .def("GetMesh", ModelPartGetMesh)
         .def("GetMesh", ModelPartGetMesh2)
         .def_property("Nodes", ModelPartGetNodes1, ModelPartSetNodes1)
@@ -893,6 +812,8 @@ void AddModelPartToPython(pybind11::module& m)
         .def("SetNodes", ModelPartSetNodes1)
         .def("GetNodes", ModelPartGetNodes2)
         .def("SetNodes", ModelPartSetNodes2)
+        .def("AddNode", AddNode1)
+        .def("AddNode", AddNode2)
         .def("RemoveNode", ModelPartRemoveNode1)
         .def("RemoveNode", ModelPartRemoveNode2)
         .def("RemoveNode", ModelPartRemoveNode3)
@@ -907,31 +828,32 @@ void AddModelPartToPython(pybind11::module& m)
         .def("NumberOfTables", &ModelPart::NumberOfTables)
         .def("AddTable", &ModelPart::AddTable)
         .def("GetTable", &ModelPart::pGetTable)
-        .def("HasProperties", ModelPartHasProperties1)
-        .def("HasProperties", ModelPartHasProperties2)
-        .def("HasProperties", ModelPartHasSubProperties1)
-        .def("HasProperties", ModelPartHasSubProperties2)
-        .def("RecursivelyHasProperties", ModelPartRecursivelyHasProperties1)
-        .def("RecursivelyHasProperties", ModelPartRecursivelyHasProperties2)
-        .def("CreateNewProperties", ModelPartCreateNewProperties1)
-        .def("CreateNewProperties", ModelPartCreateNewProperties2)
-        .def("GetProperties", ModelPartGetPropertiesDirect1)
-        .def("GetProperties", ModelPartGetSubProperties1)
-        .def_property("Properties", ModelPartGetProperties1, ModelPartSetProperties1)
-        .def("AddProperties", ModelPartAddProperties1)
-        .def("AddProperties", ModelPartAddProperties2)
-        .def("GetProperties", ModelPartGetProperties1)
-        .def("SetProperties", ModelPartSetProperties1)
-        .def("GetProperties", ModelPartGetProperties2)
-        .def("SetProperties", ModelPartSetProperties2)
-        .def("RemoveProperties", ModelPartRemoveProperties1)
-        .def("RemoveProperties", ModelPartRemoveProperties2)
-        .def("RemoveProperties", ModelPartRemoveProperties3)
-        .def("RemoveProperties", ModelPartRemoveProperties4)
-        .def("RemovePropertiesFromAllLevels", ModelPartRemovePropertiesFromAllLevels1)
-        .def("RemovePropertiesFromAllLevels", ModelPartRemovePropertiesFromAllLevels2)
-        .def("RemovePropertiesFromAllLevels", ModelPartRemovePropertiesFromAllLevels3)
-        .def("RemovePropertiesFromAllLevels", ModelPartRemovePropertiesFromAllLevels4)
+        .def("HasProperties", [](ModelPart &rSelf, int Id)
+             { return rSelf.HasProperties(Id); })
+        .def("HasProperties", [](ModelPart &rSelf, const std::string &rAddress)
+             { return rSelf.HasProperties(rAddress); })
+        .def("RecursivelyHasProperties", [](ModelPart &rSelf, int Id)
+             { return rSelf.RecursivelyHasProperties(Id); })
+        .def("CreateNewProperties", [](ModelPart &rSelf, int Id)
+             { return rSelf.CreateNewProperties(Id); })
+        .def("GetProperties", [](ModelPart &rSelf, int Id)
+             { return rSelf.pGetProperties(Id); })
+        .def("GetProperties", [](ModelPart &rSelf, const std::string &rAddress)
+             { return rSelf.pGetProperties(rAddress); })
+        .def("GetProperties", [](ModelPart &rSelf)
+             { return rSelf.pProperties(); })
+        .def("AddProperties", [](ModelPart &rSelf, Properties::Pointer pProperties)
+             { rSelf.AddProperties(pProperties); })
+        .def("RemoveProperties", [](ModelPart &rSelf, int Id)
+             { return rSelf.RemoveProperties(Id); })
+        .def("RemoveProperties", [](ModelPart &rSelf, Properties::Pointer pProperties)
+             { return rSelf.RemoveProperties(pProperties); })
+        .def("RemovePropertiesFromAllLevels", [](ModelPart &rSelf, int Id)
+             { return rSelf.RemovePropertiesFromAllLevels(Id); })
+        .def("RemovePropertiesFromAllLevels", [](ModelPart &rSelf, Properties::Pointer pProperties)
+             { return rSelf.RemovePropertiesFromAllLevels(pProperties); })
+        .def_property("Properties", ModelPartGetPropertiesContainer, ModelPartSetPropertiesContainer)
+        .def("SetProperties", ModelPartSetPropertiesContainer)
         .def("PropertiesArray", &ModelPart::PropertiesArray, py::return_value_policy::reference_internal)
         .def_property("Elements", ModelPartGetElements1, ModelPartSetElements1)
         .def("HasElement", ModelPartHasElement1)
@@ -942,6 +864,8 @@ void AddModelPartToPython(pybind11::module& m)
         .def("SetElements", ModelPartSetElements1)
         .def("GetElements", ModelPartGetElements2)
         .def("SetElements", ModelPartSetElements2)
+        .def("AddElement", AddElement1)
+        .def("AddElement", AddElement2)
         .def("RemoveElement", ModelPartRemoveElement1)
         .def("RemoveElement", ModelPartRemoveElement2)
         .def("RemoveElement", ModelPartRemoveElement3)
@@ -983,30 +907,31 @@ void AddModelPartToPython(pybind11::module& m)
         .def("RemoveGeometry", ModelPartRemoveGeometry2)
         .def("RemoveGeometryFromAllLevels", ModelPartRemoveGeometryFromAllLevels1)
         .def("RemoveGeometryFromAllLevels", ModelPartRemoveGeometryFromAllLevels2)
-        .def_property("Geometries", [](ModelPart& self) { return self.Geometries(); },
-            [](ModelPart& self, ModelPart::GeometriesMapType& geometries) {
-                KRATOS_ERROR << "Setting geometries is not allowed! Trying to set value of ModelPart::Geometries."; })
+        .def_property("Geometries", [](ModelPart &self)
+                      { return self.Geometries(); }, [](ModelPart &self, ModelPart::GeometriesMapType &geometries)
+                      { KRATOS_ERROR << "Setting geometries is not allowed! Trying to set value of ModelPart::Geometries."; })
         .def("CreateSubModelPart", &ModelPart::CreateSubModelPart, py::return_value_policy::reference_internal)
         .def("NumberOfSubModelParts", &ModelPart::NumberOfSubModelParts)
-        .def("GetSubModelPart", &ModelPart::GetSubModelPart, py::return_value_policy::reference_internal)
+        .def("GetSubModelPart", py::overload_cast<const std::string &>(&ModelPart::GetSubModelPart), py::return_value_policy::reference_internal) // non-const version
         .def("RemoveSubModelPart", RemoveSubModelPart1)
         .def("RemoveSubModelPart", RemoveSubModelPart2)
         .def("HasSubModelPart", &ModelPart::HasSubModelPart)
+        .def("GetSubModelPartNames", &ModelPart::GetSubModelPartNames)
         .def("ConditionsArray", &ModelPart::ConditionsArray, py::return_value_policy::reference_internal)
         .def("AddNodalSolutionStepVariable", AddNodalSolutionStepVariable<bool>)
         .def("AddNodalSolutionStepVariable", AddNodalSolutionStepVariable<int>)
         .def("AddNodalSolutionStepVariable", AddNodalSolutionStepVariable<double>)
-        .def("AddNodalSolutionStepVariable", AddNodalSolutionStepVariable<array_1d<double, 3 > >)
+        .def("AddNodalSolutionStepVariable", AddNodalSolutionStepVariable<array_1d<double, 3>>)
         .def("AddNodalSolutionStepVariable", AddNodalSolutionStepVariable<Vector>)
         .def("AddNodalSolutionStepVariable", AddNodalSolutionStepVariable<Matrix>)
-        .def("AddNodalSolutionStepVariable", AddNodalSolutionStepVariable<Quaternion<double> >)
+        .def("AddNodalSolutionStepVariable", AddNodalSolutionStepVariable<Quaternion<double>>)
         .def("HasNodalSolutionStepVariable", HasNodalSolutionStepVariable<bool>)
         .def("HasNodalSolutionStepVariable", HasNodalSolutionStepVariable<int>)
         .def("HasNodalSolutionStepVariable", HasNodalSolutionStepVariable<double>)
-        .def("HasNodalSolutionStepVariable", HasNodalSolutionStepVariable<array_1d<double, 3 > >)
+        .def("HasNodalSolutionStepVariable", HasNodalSolutionStepVariable<array_1d<double, 3>>)
         .def("HasNodalSolutionStepVariable", HasNodalSolutionStepVariable<Vector>)
         .def("HasNodalSolutionStepVariable", HasNodalSolutionStepVariable<Matrix>)
-        .def("HasNodalSolutionStepVariable", HasNodalSolutionStepVariable<Quaternion<double> >)
+        .def("HasNodalSolutionStepVariable", HasNodalSolutionStepVariable<Quaternion<double>>)
         .def("GetNodalSolutionStepDataSize", &ModelPart::GetNodalSolutionStepDataSize)
         .def("GetNodalSolutionStepTotalDataSize", &ModelPart::GetNodalSolutionStepTotalDataSize)
         .def("OverwriteSolutionStepData", &ModelPart::OverwriteSolutionStepData)
@@ -1018,45 +943,43 @@ void AddModelPartToPython(pybind11::module& m)
         .def("CreateNewGeometry", ModelPartCreateNewGeometry5)
         .def("CreateNewGeometry", ModelPartCreateNewGeometry6)
         .def("CreateNewElement", ModelPartCreateNewElement)
-        .def("CreateNewElement", [](ModelPart& rModelPart, const std::string& ElementName, ModelPart::IndexType Id,
-            ModelPart::GeometryType::Pointer pGeometry, ModelPart::PropertiesType::Pointer pProperties)
-            {return rModelPart.CreateNewElement(ElementName, Id, pGeometry, pProperties);})
+        .def("CreateNewElement", [](ModelPart &rModelPart, const std::string &ElementName, ModelPart::IndexType Id, ModelPart::GeometryType::Pointer pGeometry, ModelPart::PropertiesType::Pointer pProperties)
+             { return rModelPart.CreateNewElement(ElementName, Id, pGeometry, pProperties); })
         .def("CreateNewCondition", ModelPartCreateNewCondition)
-        .def("CreateNewCondition", [](ModelPart& rModelPart, const std::string& ConditionName, ModelPart::IndexType Id,
-            ModelPart::GeometryType::Pointer pGeometry, ModelPart::PropertiesType::Pointer pProperties)
-            {return rModelPart.CreateNewCondition(ConditionName, Id, pGeometry, pProperties);})
+        .def("CreateNewCondition", [](ModelPart &rModelPart, const std::string &ConditionName, ModelPart::IndexType Id, ModelPart::GeometryType::Pointer pGeometry, ModelPart::PropertiesType::Pointer pProperties)
+             { return rModelPart.CreateNewCondition(ConditionName, Id, pGeometry, pProperties); })
         .def("GetCommunicator", ModelPartGetCommunicator, py::return_value_policy::reference_internal)
         .def("Check", &ModelPart::Check)
         .def("IsSubModelPart", &ModelPart::IsSubModelPart)
         .def("IsDistributed", &ModelPart::IsDistributed)
-        .def("AddNode", &ModelPart::AddNode)
-        .def("AddNodes",AddNodesByIds)
-        .def("AddCondition", &ModelPart::AddCondition)
-        .def("AddConditions",AddConditionsByIds)
-        .def("AddElement", &ModelPart::AddElement)
-        .def("AddElements",AddElementsByIds)
-        .def("GetParentModelPart", [](ModelPart& self) -> ModelPart& {return self.GetParentModelPart();}, py::return_value_policy::reference_internal)
-        .def("GetRootModelPart",   [](ModelPart& self) -> ModelPart& {return self.GetRootModelPart();},   py::return_value_policy::reference_internal)
-        .def("GetModel",           [](ModelPart& self) -> Model& {return self.GetModel();}, py::return_value_policy::reference_internal)
-        .def_property("SubModelParts",  [](ModelPart& self){ return self.SubModelParts(); },
-                                        [](ModelPart& self, ModelPart::SubModelPartsContainerType& subs){ KRATOS_ERROR << "setting submodelparts is not allowed"; })
+        .def("AddNodes", AddNodesByIds)
+        .def("AddConditions", AddConditionsByIds)
+        .def("AddElements", AddElementsByIds)
+        .def("AddGeometries", [](ModelPart &rModelPart, std::vector<ModelPart::IndexType>& rGeometriesIds) {rModelPart.AddGeometries(rGeometriesIds);})
+        .def("GetParentModelPart", [](ModelPart &self) -> ModelPart &
+             { return self.GetParentModelPart(); }, py::return_value_policy::reference_internal)
+        .def("GetRootModelPart", [](ModelPart &self) -> ModelPart &
+             { return self.GetRootModelPart(); }, py::return_value_policy::reference_internal)
+        .def("GetModel", [](ModelPart &self) -> Model &
+             { return self.GetModel(); }, py::return_value_policy::reference_internal)
+        .def_property_readonly("SubModelParts", [](ModelPart &self) 
+            { return Kratos::Python::SubModelPartView(self.SubModelParts()); }, py::keep_alive<0, 1>())  // Keep self alive as long as SubModelPartView exists
         .def_property_readonly("MasterSlaveConstraints", ModelPartGetMasterSlaveConstraints1)
-        .def("GetHistoricalVariablesNames", [](ModelPart& rModelPart) -> std::unordered_set<std::string> {
+        .def("GetHistoricalVariablesNames", [](ModelPart &rModelPart) -> std::unordered_set<std::string>
+             {
             std::unordered_set<std::string> variable_names;
             for(auto & variable: rModelPart.GetNodalSolutionStepVariablesList()) {
                 variable_names.insert(variable.Name());
             }
-            return variable_names;
-        })
-        .def("GetNonHistoricalVariablesNames", [](ModelPart& rModelPart, ModelPart::NodesContainerType& rContainer, bool doFullSearch=false) -> std::unordered_set<std::string> {
-            return GetNonHistoricalVariablesNames(rModelPart, rContainer, doFullSearch);
-        })
-        .def("GetNonHistoricalVariablesNames", [](ModelPart& rModelPart, ModelPart::ElementsContainerType& rContainer, bool doFullSearch=false) -> std::unordered_set<std::string> {
-            return GetNonHistoricalVariablesNames(rModelPart, rContainer, doFullSearch);
-        })
-        .def("GetNonHistoricalVariablesNames", [](ModelPart& rModelPart, ModelPart::ConditionsContainerType& rContainer, bool doFullSearch=false) -> std::unordered_set<std::string> {
-            return GetNonHistoricalVariablesNames(rModelPart, rContainer, doFullSearch);
-        })
+            return variable_names; })
+        .def("GetNonHistoricalVariablesNames", [](ModelPart &rModelPart, ModelPart::NodesContainerType &rContainer, bool doFullSearch = false) -> std::unordered_set<std::string>
+             { return GetNonHistoricalVariablesNames(rModelPart, rContainer, doFullSearch); })
+        .def("GetNonHistoricalVariablesNames", [](ModelPart &rModelPart, ModelPart::ElementsContainerType &rContainer, bool doFullSearch = false) -> std::unordered_set<std::string>
+             { return GetNonHistoricalVariablesNames(rModelPart, rContainer, doFullSearch); })
+        .def("GetNonHistoricalVariablesNames", [](ModelPart &rModelPart, ModelPart::ConditionsContainerType &rContainer, bool doFullSearch = false) -> std::unordered_set<std::string>
+             { return GetNonHistoricalVariablesNames(rModelPart, rContainer, doFullSearch); })
+        .def("HasMasterSlaveConstraint", [](ModelPart &rModelPart, ModelPart::IndexType MasterSlaveConstraintId) -> bool
+             { return rModelPart.HasMasterSlaveConstraint(MasterSlaveConstraintId); })
         .def("GetMasterSlaveConstraint", ModelPartGetMasterSlaveConstraint1)
         .def("GetMasterSlaveConstraints", ModelPartGetMasterSlaveConstraints1)
         .def("RemoveMasterSlaveConstraint", ModelPartRemoveMasterSlaveConstraint1)
@@ -1067,12 +990,10 @@ void AddModelPartToPython(pybind11::module& m)
         .def("RemoveMasterSlaveConstraintsFromAllLevels", &ModelPart::RemoveMasterSlaveConstraintsFromAllLevels)
         .def("AddMasterSlaveConstraint", ModelPartAddMasterSlaveConstraint)
         .def("AddMasterSlaveConstraints", AddMasterSlaveConstraintsByIds)
-        .def("CreateNewMasterSlaveConstraint",CreateNewMasterSlaveConstraint1, py::return_value_policy::reference_internal)
-        .def("CreateNewMasterSlaveConstraint",CreateNewMasterSlaveConstraint2, py::return_value_policy::reference_internal)
+        .def("CreateNewMasterSlaveConstraint", CreateNewMasterSlaveConstraint1, py::return_value_policy::reference_internal)
+        .def("CreateNewMasterSlaveConstraint", CreateNewMasterSlaveConstraint2, py::return_value_policy::reference_internal)
         .def("__str__", PrintObject<ModelPart>)
         ;
 }
 
-} // namespace Python.
-
-} // Namespace Kratos
+} // namespace Kratos::Python.

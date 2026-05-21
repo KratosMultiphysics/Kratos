@@ -1,0 +1,134 @@
+{
+    "problem_data": {
+        "parallel_type": "OpenMP",
+        "echo_level": 0
+    },
+    "model_parts": [
+        {
+            "type": "mdpa_model_part_controller",
+            "settings": {
+                "model_part_name": "AdjointStructure",
+                "domain_size": 3,
+                "input_filename": "auxiliary_files_3/Structure"
+            }
+        },
+        {
+            "type": "connectivity_preserving_model_part_controller",
+            "settings": {
+                "transformation_settings": [
+                    {
+                        "source_model_part_name": "AdjointStructure",
+                        "destination_model_part_name": "Structure",
+                        "destination_element_name": "ShellThinElement3D3N",
+                        "destination_condition_name": "LineLoadCondition3D2N"
+                    }
+                ]
+            }
+        }
+    ],
+    "analyses": [
+        {
+            "name": "Structure_static",
+            "type": "kratos_analysis_execution_policy",
+            "settings": {
+                "model_part_names": [
+                    "Structure"
+                ],
+                "analysis_module": "KratosMultiphysics.StructuralMechanicsApplication",
+                "analysis_type": "StructuralMechanicsAnalysis",
+                "analysis_settings": {
+                    "@include_json": "auxiliary_files_3/primal_project_parameters.json"
+                }
+            }
+        }
+    ],
+    "responses": [
+        {
+            "name": "temperature_response",
+            "type": "temperature_detection_response",
+            "module": "KratosMultiphysics.SystemIdentificationApplication.responses",
+            "settings": {
+                "evaluated_model_part_names": [
+                    "AdjointStructure"
+                ],
+                "adjoint_parameters": {
+                    "@include_json": "auxiliary_files_3/adjoint_project_parameters_p_norm.json"
+                },
+                "test_analysis_list": [
+                    {
+                        "primal_analysis_name": "Structure_static",
+                        "sensor_measurement_csv_file": "auxiliary_files_3/measured_data.csv",
+                        "weight": 1.0
+                    }
+                ]
+            }
+        }
+    ],
+    "controls": [
+        {
+            "name": "temperature_control",
+            "type": "data_values_control",
+            "module": "KratosMultiphysics.SystemIdentificationApplication.controls",
+            "settings": {
+                "model_part_names": [
+                    {
+                        "primal_model_part_name": "Structure",
+                        "adjoint_model_part_name": "AdjointStructure"
+                    }
+                ],
+                "control_variable_name": "TEMPERATURE",
+                "container_type": "nodal_historical",
+                "control_variable_bounds": [
+                    -50.0,
+                    100.0
+                ],
+                "filter_settings": {
+                    "filter_type": "explicit_filter",
+                    "filter_radius_settings": {
+                        "filter_radius": 5.0,
+                        "filter_radius_type": "constant"
+                    }
+                }
+            }
+        }
+    ],
+    "algorithm_settings": {
+        "type": "algorithm_steepest_descent",
+        "settings": {
+            "echo_level": 0,
+            "line_search": {
+                "type": "const_step",
+                "init_step": 0.01,
+                "gradient_scaling": "inf_norm"
+            },
+            "conv_settings": {
+                "type": "max_iter",
+                "max_iter": 5
+            }
+        },
+        "controls": [
+            "temperature_control"
+        ],
+        "objective": {
+            "response_name": "temperature_response",
+            "type": "minimization",
+            "scaling": 1.0
+        }
+    },
+    "processes": {
+        "kratos_processes": {},
+        "optimization_data_processes": {
+            "output_processes": [
+                {
+                    "type": "optimization_problem_ascii_output_process",
+                    "module": "KratosMultiphysics.OptimizationApplication.processes",
+                    "settings": {
+                        "output_file_name": "auxiliary_files_3/summary.csv",
+                        "write_kratos_version": false,
+                        "write_time_stamp": false
+                    }
+                }
+            ]
+        }
+    }
+}

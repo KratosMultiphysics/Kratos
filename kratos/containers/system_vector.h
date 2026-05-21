@@ -62,7 +62,12 @@ class SystemVector final
 public:
     ///@name Type Definitions
     ///@{
-    typedef TIndexType IndexType;
+
+    using DataType = TDataType;
+
+    using IndexType = TIndexType;
+
+    using value_type = TDataType;
 
     /// Pointer definition of SystemVector
     KRATOS_CLASS_POINTER_DEFINITION(SystemVector);
@@ -70,6 +75,8 @@ public:
     ///@}
     ///@name Life Cycle
     ///@{
+
+    SystemVector() = default;
 
     SystemVector(const SparseGraph<IndexType>& rGraph){
         mpComm = rGraph.pGetComm();
@@ -178,7 +185,11 @@ public:
     }
 
     /// Assignment operator.
-    SystemVector& operator=(SystemVector const& rOtherVector){
+    SystemVector& operator=(SystemVector const& rOtherVector)
+    {
+        mpComm = rOtherVector.mpComm;
+        mData.resize(rOtherVector.size(), false);
+
         IndexPartition<IndexType>(size()).for_each([&](IndexType i){
             (*this)[i] = rOtherVector[i];
         });
@@ -218,6 +229,14 @@ public:
         return *this;
     }
 
+    TDataType Norm() const
+    {
+        TDataType sum_squared = IndexPartition<TIndexType>(size()).template for_each<SumReduction<TDataType>>([this](TIndexType i){
+            return std::pow((*this)[i], 2);
+        });
+        return std::sqrt(sum_squared);
+    }
+
     TDataType Dot(const SystemVector& rOtherVector, IndexType gather_on_rank=0)
     {
         KRATOS_WARNING_IF("SystemVector", gather_on_rank != 0) << "the parameter gather_on_rank essentially does nothing for a non-distribued vector. It is added to have the same interface as for the distributed_system_vector" << std::endl;
@@ -248,11 +267,17 @@ public:
 
         for(unsigned int i=0; i<EquationId.size(); ++i){
             IndexType global_i = EquationId[i];
-            KRATOS_DEBUG_ERROR_IF(global_i > mData.size());
-            AtomicAdd(mData[global_i] , rVectorInput[i]);
+            AssembleEntry(rVectorInput[i], global_i);
         }
     }
 
+    void AssembleEntry(
+        const TDataType rValue,
+        const IndexType GlobalI)
+    {
+        KRATOS_DEBUG_ERROR_IF(GlobalI > mData.size());
+        AtomicAdd(mData[GlobalI] , rValue);
+    }
 
     ///@}
     ///@name Access

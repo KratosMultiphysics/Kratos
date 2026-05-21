@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 # Importing the Kratos Library
 import KratosMultiphysics
@@ -6,12 +5,12 @@ import KratosMultiphysics.ChimeraApplication as KratosChimera
 from KratosMultiphysics.ChimeraApplication import chimera_setup_utils
 
 # Import base class file
-from KratosMultiphysics.FluidDynamicsApplication.navier_stokes_solver_vmsmonolithic import NavierStokesSolverMonolithic
+from KratosMultiphysics.FluidDynamicsApplication.navier_stokes_monolithic_solver import NavierStokesMonolithicSolver
 
 def CreateSolver(main_model_part, custom_settings):
     return NavierStokesSolverMonolithicChimera(main_model_part, custom_settings)
 
-class NavierStokesSolverMonolithicChimera(NavierStokesSolverMonolithic):
+class NavierStokesSolverMonolithicChimera(NavierStokesMonolithicSolver):
     def __init__(self, model, custom_settings):
         [self.chimera_settings, self.chimera_internal_parts, custom_settings] = chimera_setup_utils.SeparateAndValidateChimeraSettings(custom_settings)
         super(NavierStokesSolverMonolithicChimera,self).__init__(model,custom_settings)

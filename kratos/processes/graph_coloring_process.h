@@ -31,7 +31,7 @@ namespace Kratos
 
 /// Getting a graph of connectivities (of domains) and performs a coloring procedure.
 /** This class takes a graph of connectivites in form of a dense matrix and
-    calculates a coloring schem where no neighbours with the same color are
+    calculates a coloring scheme where no neighbours with the same color are
   allowed.
   This process uses a very simple algorithm that for each domain make a loop over its
   neighbours and finds the first unused color for this pair of domain. The cost of this

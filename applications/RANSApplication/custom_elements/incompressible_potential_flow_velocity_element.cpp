@@ -20,7 +20,7 @@
 #include "includes/variables.h"
 
 // Application includes
-#include "custom_utilities/rans_calculation_utilities.h"
+#include "custom_utilities/fluid_calculation_utilities.h"
 #include "rans_application_variables.h"
 
 // Include base h
@@ -53,8 +53,10 @@ void IncompressiblePotentialFlowVelocityElement<TDim, TNumNodes>::CalculateOnInt
             const Matrix& r_shape_derivatives = shape_derivatives[g];
 
             array_1d<double, 3> velocity;
-            RansCalculationUtilities::CalculateGradient(
-                velocity, r_geometry, VELOCITY_POTENTIAL, r_shape_derivatives);
+            FluidCalculationUtilities::EvaluateGradientInPoint(
+                r_geometry, r_shape_derivatives,
+                std::tie(velocity, VELOCITY_POTENTIAL));
+
             rValues[g] = velocity;
         }
     } else {

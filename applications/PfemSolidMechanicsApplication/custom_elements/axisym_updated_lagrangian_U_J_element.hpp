@@ -115,7 +115,7 @@ namespace Kratos
           * Called to initialize the element.
           * Must be called before any calculation is done
           */
-         void Initialize() override;
+         void Initialize(const ProcessInfo & rCurrentProcessInfo) override;
 
          //************* COMPUTING  METHODS
 
@@ -126,7 +126,7 @@ namespace Kratos
           * @param rCurrentProcessInfo: the current process info instance
           */
          void CalculateMassMatrix(MatrixType& rMassMatrix, 
-               ProcessInfo& rCurrentProcessInfo) override;
+               const ProcessInfo& rCurrentProcessInfo) override;
 
 
          //************************************************************************************
@@ -138,7 +138,7 @@ namespace Kratos
           * or that no common error is found.
           * @param rCurrentProcessInfo
           */
-         int Check(const ProcessInfo& rCurrentProcessInfo) override;
+         int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
          /**
           * Calculate Element Kinematics

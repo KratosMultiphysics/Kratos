@@ -3,14 +3,13 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Klaus B. Sautter
 //
 
-#if !defined (KRATOS_TRUSS_CONSTITUTIVE_LAW_H_INCLUDED)
-#define  KRATOS_TRUSS_CONSTITUTIVE_LAW_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -202,4 +201,3 @@ private:
 
 }; // Class TrussConstitutiveLaw
 }  // namespace Kratos.
-#endif // KRATOS_TRUSS_CONSTITUTIVE_LAW_H_INCLUDED  defined

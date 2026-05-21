@@ -208,7 +208,7 @@ private:
     ///@name Member Variables
     ///@{
     ModelPart& mr_model_part;
-    PointerVector<Node<3> > mTrashedNodes;
+    PointerVector<Node > mTrashedNodes;
 
 
     ///@}

@@ -50,7 +50,7 @@ ContactDomainLM2DCondition::ContactDomainLM2DCondition( ContactDomainLM2DConditi
 }
 
 
-//*******************************ASSIGMENT OPERATOR***********************************
+//******************************ASSIGNMENT OPERATOR***********************************
 //************************************************************************************
 
 ContactDomainLM2DCondition&  ContactDomainLM2DCondition::operator=(ContactDomainLM2DCondition const& rOther)
@@ -370,7 +370,7 @@ void ContactDomainLM2DCondition::CalculatePreviousGap() //prediction of the lagr
 
 void ContactDomainLM2DCondition::CalculateContactFactor(const ProcessInfo& rCurrentProcessInfo )
 {
-    //Initilialize Tau for the stabilization
+    //Initialize Tau for the stabilization
     double alpha_stab = 0.1;
     alpha_stab = GetProperties()[TAU_STAB];
 

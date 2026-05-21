@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
@@ -36,7 +36,10 @@
 #include "add_geometries_to_python.h"
 #include "add_bounding_box_to_python.h"
 #include "add_containers_to_python.h"
+#include "add_controllers_to_python.h"
+#include "add_operations_to_python.h"
 #include "add_processes_to_python.h"
+#include "add_properties_to_python.h"
 #include "add_model_to_python.h"
 #include "add_io_to_python.h"
 #include "add_mesh_to_python.h"
@@ -69,17 +72,27 @@
 #include "add_dofs_to_python.h"
 #include "add_mapper_to_python.h"
 #include "add_sparse_matrices_to_python.h"
+#include "add_registry_to_python.h"
+#include "add_container_expression_to_python.h"
+#include "add_accessors_to_python.h"
+#include "add_globals_to_python.h"
+#include "add_geometry_data_to_python.h"
 
-namespace Kratos
-{
+#ifdef KRATOS_USE_FUTURE
+    #include "future/python/kratos_python.h"
+#endif
 
-namespace Python
+#ifdef KRATOS_USE_LEGACY
+    #include "legacy/python/kratos_python.h"
+#endif
+
+namespace Kratos::Python
 {
 
 std::string Hello()
 {
     std::stringstream header;
-    header << "Hello, I am Kratos Multi-Physics " << GetVersionString() << " ;-)";
+    header << "Hello, I am Kratos Multi-Physics " << GetVersionString() << "for" << GetOSName() << " ;-)\n";
     return header.str();
 }
 
@@ -96,6 +109,7 @@ PYBIND11_MODULE(Kratos, m)
     AddDofsToPython(m);
     AddNodeToPython(m);
     AddPropertiesToPython(m);
+    AddAccessorsToPython(m);
     AddMeshToPython(m);
     AddQuaternionToPython(m);
 
@@ -108,6 +122,8 @@ PYBIND11_MODULE(Kratos, m)
     AddDeprecatedVariablesToPython(m);
     AddGlobalPointersToPython(m);
 
+    AddOperationsToPython(m);
+    AddControllersToPython(m);
     AddProcessesToPython(m);
     AddIOToPython(m);
     AddModelToPython(m);
@@ -127,6 +143,7 @@ PYBIND11_MODULE(Kratos, m)
     AddConstitutiveLawToPython(m);
     AddSerializerToPython(m);
     AddTableToPython(m);
+    AddGeometryDataToPython(m);
     AddGeometriesToPython(m);
     AddBoundingBoxToPython(m);
 
@@ -144,11 +161,21 @@ PYBIND11_MODULE(Kratos, m)
     AddParallelEnvironmentToPython(m);
     AddMapperToPython(m);
     AddSparseMatricesToPython(m);
+    AddRegistryToPython(m);
+    AddContainerExpressionToPython(m);
+    AddGlobalsToPython(m);
+
+#ifdef KRATOS_USE_FUTURE
+    auto future = m.def_submodule("Future", "Kratos Future submodule containing experimental features");
+    Future::Python::AddFutureToPython(future);
+#endif
+
+#ifdef KRATOS_USE_LEGACY
+    auto legacy = m.def_submodule("Legacy", "Kratos Legacy submodule containing legacy features");
+    Legacy::Python::AddLegacyToPython(legacy);
+#endif
 
     m.def("Hello", Hello);
 }
 
-
-}  // namespace Python.
-
-}  // namespace Kratos.
+}  // namespace Kratos::Python.

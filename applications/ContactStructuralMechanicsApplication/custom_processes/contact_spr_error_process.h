@@ -4,15 +4,14 @@
 //        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
 //        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
-//  License:		 BSD License
-//					 license: ContactStructuralMechanicsApplication/license.txt
+//  License:         BSD License
+//                   license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Anna Rehr
 //  Co-author   :    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_CONTACT_SPR_ERROR_PROCESS)
-#define KRATOS_CONTACT_SPR_ERROR_PROCESS
+#pragma once
 
 // System includes
 
@@ -31,7 +30,7 @@ namespace Kratos
 ///@{
 
     /// Definition of the size type
-    typedef std::size_t SizeType;
+    using SizeType = std::size_t;
 
 ///@}
 ///@name  Enum's
@@ -48,7 +47,7 @@ namespace Kratos
 /**
  * @class ContactSPRErrorProcess
  * @ingroup ContactStructuralMechanicsApplication
- * @brief This class is can be used to compute the metrics of the model part with a superconvergent patch recovery (SPR) approach
+ * @brief This class can be used to compute the metrics of the model part with a superconvergent patch recovery (SPR) approach
  * @details The formulation employed in order to compute the super patch recovery is based on the work of O. C. Zienkiewicz
 J. Z. Zhu, and extended for contact mechanics. In the papers:
  * - The superconvergent patch recovery and a posteriori error estimates. Part 1: The recovery technique https://onlinelibrary.wiley.com/doi/abs/10.1002/nme.1620330702
@@ -66,24 +65,21 @@ public:
     ///@name Type Definitions
     ///@{
 
-    // Basetype definition
-    typedef SPRErrorProcess<TDim>                                                   BaseType;
+    /// Basetype definition
+    using BaseType = SPRErrorProcess<TDim>;
 
     /// Containers definition
-    typedef ModelPart::NodesContainerType                                     NodesArrayType;
-    typedef ModelPart::ElementsContainerType                               ElementsArrayType;
-    typedef ModelPart::ConditionsContainerType                           ConditionsArrayType;
-
-    /// The definition of the node type
-    typedef Node <3>                                                                NodeType;
+    using NodesArrayType = ModelPart::NodesContainerType;
+    using ElementsArrayType = ModelPart::ElementsContainerType;
+    using ConditionsArrayType = ModelPart::ConditionsContainerType;
 
     /// Definition of the iterators
-    typedef GlobalPointersVector< Element >::iterator                      WeakElementItType;
-    typedef NodesArrayType::iterator                                              NodeItType;
-    typedef ElementsArrayType::iterator                                        ElementItType;
+    using WeakElementItType = GlobalPointersVector<Element>::iterator;
+    using NodeItType = NodesArrayType::iterator;
+    using ElementItType = ElementsArrayType::iterator;
 
     /// Definition of the indextype
-    typedef std::size_t                                                            IndexType;
+    using IndexType = std::size_t;
 
     /// Pointer definition of ContactSPRErrorProcess
     KRATOS_CLASS_POINTER_DEFINITION(ContactSPRErrorProcess);
@@ -268,4 +264,3 @@ private:
 };// class ContactSPRErrorProcess
 
 };// namespace Kratos.
-#endif /* KRATOS_CONTACT_SPR_ERROR_PROCESS defined */

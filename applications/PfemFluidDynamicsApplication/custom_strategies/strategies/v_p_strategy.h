@@ -24,7 +24,7 @@
 #include "pfem_fluid_dynamics_application_variables.h"
 
 #include <stdio.h>
-#include <math.h>
+#include <cmath>
 
 namespace Kratos
 {
@@ -162,27 +162,27 @@ namespace Kratos
 
           if (dimension == 3)
           {
-            double a1 = 0; //slope x for plane on the first triangular face of the tetrahedra (nodes A,B,C)
-            double b1 = 0; //slope y for plane on the first triangular face of the tetrahedra (nodes A,B,C)
-            double c1 = 0; //slope z for plane on the first triangular face of the tetrahedra (nodes A,B,C)
+            double a1 = 0; // slope x for plane on the first triangular face of the tetrahedra (nodes A,B,C)
+            double b1 = 0; // slope y for plane on the first triangular face of the tetrahedra (nodes A,B,C)
+            double c1 = 0; // slope z for plane on the first triangular face of the tetrahedra (nodes A,B,C)
             a1 = (nodesCoordinates[1][1] - nodesCoordinates[0][1]) * (nodesCoordinates[2][2] - nodesCoordinates[0][2]) - (nodesCoordinates[2][1] - nodesCoordinates[0][1]) * (nodesCoordinates[1][2] - nodesCoordinates[0][2]);
             b1 = (nodesCoordinates[1][2] - nodesCoordinates[0][2]) * (nodesCoordinates[2][0] - nodesCoordinates[0][0]) - (nodesCoordinates[2][2] - nodesCoordinates[0][2]) * (nodesCoordinates[1][0] - nodesCoordinates[0][0]);
             c1 = (nodesCoordinates[1][0] - nodesCoordinates[0][0]) * (nodesCoordinates[2][1] - nodesCoordinates[0][1]) - (nodesCoordinates[2][0] - nodesCoordinates[0][0]) * (nodesCoordinates[1][1] - nodesCoordinates[0][1]);
-            double a2 = 0; //slope x for plane on the second triangular face of the tetrahedra (nodes A,B,D)
-            double b2 = 0; //slope y for plane on the second triangular face of the tetrahedra (nodes A,B,D)
-            double c2 = 0; //slope z for plane on the second triangular face of the tetrahedra (nodes A,B,D)
+            double a2 = 0; // slope x for plane on the second triangular face of the tetrahedra (nodes A,B,D)
+            double b2 = 0; // slope y for plane on the second triangular face of the tetrahedra (nodes A,B,D)
+            double c2 = 0; // slope z for plane on the second triangular face of the tetrahedra (nodes A,B,D)
             a2 = (nodesCoordinates[1][1] - nodesCoordinates[0][1]) * (nodesCoordinates[3][2] - nodesCoordinates[0][2]) - (nodesCoordinates[3][1] - nodesCoordinates[0][1]) * (nodesCoordinates[1][2] - nodesCoordinates[0][2]);
             b2 = (nodesCoordinates[1][2] - nodesCoordinates[0][2]) * (nodesCoordinates[3][0] - nodesCoordinates[0][0]) - (nodesCoordinates[3][2] - nodesCoordinates[0][2]) * (nodesCoordinates[1][0] - nodesCoordinates[0][0]);
             c2 = (nodesCoordinates[1][0] - nodesCoordinates[0][0]) * (nodesCoordinates[3][1] - nodesCoordinates[0][1]) - (nodesCoordinates[3][0] - nodesCoordinates[0][0]) * (nodesCoordinates[1][1] - nodesCoordinates[0][1]);
-            double a3 = 0; //slope x for plane on the third triangular face of the tetrahedra (nodes B,C,D)
-            double b3 = 0; //slope y for plane on the third triangular face of the tetrahedra (nodes B,C,D)
-            double c3 = 0; //slope z for plane on the third triangular face of the tetrahedra (nodes B,C,D)
+            double a3 = 0; // slope x for plane on the third triangular face of the tetrahedra (nodes B,C,D)
+            double b3 = 0; // slope y for plane on the third triangular face of the tetrahedra (nodes B,C,D)
+            double c3 = 0; // slope z for plane on the third triangular face of the tetrahedra (nodes B,C,D)
             a3 = (nodesCoordinates[1][1] - nodesCoordinates[2][1]) * (nodesCoordinates[3][2] - nodesCoordinates[2][2]) - (nodesCoordinates[3][1] - nodesCoordinates[2][1]) * (nodesCoordinates[1][2] - nodesCoordinates[2][2]);
             b3 = (nodesCoordinates[1][2] - nodesCoordinates[2][2]) * (nodesCoordinates[3][0] - nodesCoordinates[2][0]) - (nodesCoordinates[3][2] - nodesCoordinates[2][2]) * (nodesCoordinates[1][0] - nodesCoordinates[2][0]);
             c3 = (nodesCoordinates[1][0] - nodesCoordinates[2][0]) * (nodesCoordinates[3][1] - nodesCoordinates[2][1]) - (nodesCoordinates[3][0] - nodesCoordinates[2][0]) * (nodesCoordinates[1][1] - nodesCoordinates[2][1]);
-            double a4 = 0; //slope x for plane on the fourth triangular face of the tetrahedra (nodes A,C,D)
-            double b4 = 0; //slope y for plane on the fourth triangular face of the tetrahedra (nodes A,C,D)
-            double c4 = 0; //slope z for plane on the fourth triangular face of the tetrahedra (nodes A,C,D)
+            double a4 = 0; // slope x for plane on the fourth triangular face of the tetrahedra (nodes A,C,D)
+            double b4 = 0; // slope y for plane on the fourth triangular face of the tetrahedra (nodes A,C,D)
+            double c4 = 0; // slope z for plane on the fourth triangular face of the tetrahedra (nodes A,C,D)
             a4 = (nodesCoordinates[0][1] - nodesCoordinates[2][1]) * (nodesCoordinates[3][2] - nodesCoordinates[2][2]) - (nodesCoordinates[3][1] - nodesCoordinates[2][1]) * (nodesCoordinates[0][2] - nodesCoordinates[2][2]);
             b4 = (nodesCoordinates[0][2] - nodesCoordinates[2][2]) * (nodesCoordinates[3][0] - nodesCoordinates[2][0]) - (nodesCoordinates[3][2] - nodesCoordinates[2][2]) * (nodesCoordinates[0][0] - nodesCoordinates[2][0]);
             c4 = (nodesCoordinates[0][0] - nodesCoordinates[2][0]) * (nodesCoordinates[3][1] - nodesCoordinates[2][1]) - (nodesCoordinates[3][0] - nodesCoordinates[2][0]) * (nodesCoordinates[0][1] - nodesCoordinates[2][1]);
@@ -402,23 +402,26 @@ namespace Kratos
       for (ModelPart::NodeIterator i = rModelPart.NodesBegin();
            i != rModelPart.NodesEnd(); ++i)
       {
+        if ((i)->IsNot(PFEMFlags::EULERIAN_INLET))
 
-        array_1d<double, 3> &CurrentVelocity = (i)->FastGetSolutionStepValue(VELOCITY, 0);
-        array_1d<double, 3> &PreviousVelocity = (i)->FastGetSolutionStepValue(VELOCITY, 1);
+        {
+          array_1d<double, 3> &CurrentVelocity = (i)->FastGetSolutionStepValue(VELOCITY, 0);
+          array_1d<double, 3> &PreviousVelocity = (i)->FastGetSolutionStepValue(VELOCITY, 1);
 
-        array_1d<double, 3> &CurrentDisplacement = (i)->FastGetSolutionStepValue(DISPLACEMENT, 0);
-        array_1d<double, 3> &PreviousDisplacement = (i)->FastGetSolutionStepValue(DISPLACEMENT, 1);
+          array_1d<double, 3> &CurrentDisplacement = (i)->FastGetSolutionStepValue(DISPLACEMENT, 0);
+          array_1d<double, 3> &PreviousDisplacement = (i)->FastGetSolutionStepValue(DISPLACEMENT, 1);
 
-        /* if( i->IsFixed(DISPLACEMENT_X) == false ) */
-        CurrentDisplacement[0] = 0.5 * TimeStep * (CurrentVelocity[0] + PreviousVelocity[0]) + PreviousDisplacement[0];
+          if(!i->IsFixed(DISPLACEMENT_X))
+            CurrentDisplacement[0] = 0.5 * TimeStep * (CurrentVelocity[0] + PreviousVelocity[0]) + PreviousDisplacement[0];
 
-        /* if( i->IsFixed(DISPLACEMENT_Y) == false ) */
-        CurrentDisplacement[1] = 0.5 * TimeStep * (CurrentVelocity[1] + PreviousVelocity[1]) + PreviousDisplacement[1];
+          if(!i->IsFixed(DISPLACEMENT_Y))
+            CurrentDisplacement[1] = 0.5 * TimeStep * (CurrentVelocity[1] + PreviousVelocity[1]) + PreviousDisplacement[1];
 
-        /* if( i->IsFixed(DISPLACEMENT_Z) == false ) */
-        CurrentDisplacement[2] = 0.5 * TimeStep * (CurrentVelocity[2] + PreviousVelocity[2]) + PreviousDisplacement[2];
+          if(!i->IsFixed(DISPLACEMENT_Z))
+            CurrentDisplacement[2] = 0.5 * TimeStep * (CurrentVelocity[2] + PreviousVelocity[2]) + PreviousDisplacement[2];
 
-        // currentFluidFractionRate = (currentFluidFraction - previousFluidFraction)/TimeStep;
+          // currentFluidFractionRate = (currentFluidFraction - previousFluidFraction)/TimeStep;
+        }
       }
     }
 
@@ -503,7 +506,7 @@ namespace Kratos
       return false;
     }
 
-    void ComputeErrorL2Norm(double tensilStressSign) //tensilStressSign = 1.0 for FIC, tensilStressSign = -1.0 for FS
+    void ComputeErrorL2Norm(double tensilStressSign) // tensilStressSign = 1.0 for FIC, tensilStressSign = -1.0 for FS
     {
       ModelPart &rModelPart = BaseType::GetModelPart();
       const ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
@@ -546,7 +549,7 @@ namespace Kratos
           long double eleErrorL2VelocityY = 0;
           long double eleErrorL2Pressure = 0;
 
-          //ShapeFunctionDerivativesArrayType DN_DX;
+          // ShapeFunctionDerivativesArrayType DN_DX;
           Matrix NContainer;
           NContainer = geometry.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_1);
 
@@ -695,10 +698,8 @@ namespace Kratos
           long double eleErrorL2VelocityY = 0;
           long double eleErrorL2Pressure = 0;
 
-          //ShapeFunctionDerivativesArrayType DN_DX;
           Matrix NContainer;
           NContainer = geometry.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_1);
-          //this->CalculateGeometryData(DN_DX,NContainer,GaussWeights);
 
           const Vector &N = row(NContainer, 0);
           //  itElem->EvaluateInPoint(elementalPressure,PRESSURE,N);
@@ -867,11 +868,11 @@ namespace Kratos
 
     // Fractional step index.
     /*  1 : Momentum step (calculate fractional step velocity)
-      * 2-3 : Unused (reserved for componentwise calculation of frac step velocity)
-      * 4 : Pressure step
-      * 5 : Computation of projections
-      * 6 : End of step velocity
-      */
+     * 2-3 : Unused (reserved for componentwise calculation of frac step velocity)
+     * 4 : Pressure step
+     * 5 : Computation of projections
+     * 6 : End of step velocity
+     */
     //    unsigned int mStepId;
 
     ///@}

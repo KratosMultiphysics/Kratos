@@ -39,8 +39,8 @@ namespace Kratos
 
         // Auxiliar vectors to store pointers to the new entities
         // These vectors will be use when renumbering the entities ids.
-        ModelPart::NodesContainerType new_nodes_vect;
-        ModelPart::ConditionsContainerType new_conds_vect;
+        std::vector<Node::Pointer> new_nodes_vect;
+        std::vector<Condition::Pointer> new_conds_vect;
 
         // Set the new condition properties
         Properties::Pointer p_cond_prop = this->SetSkinEntitiesProperties();
@@ -121,12 +121,12 @@ namespace Kratos
         unsigned int &rTempNodeId,
         unsigned int &rTempCondId,
         Properties::Pointer pCondProp,
-        ModelPart::NodesContainerType &rNewNodesVect,
-        ModelPart::ConditionsContainerType &rNewCondsVect)
+        std::vector<Node::Pointer> &rNewNodesVect,
+        std::vector<Condition::Pointer> &rNewCondsVect)
     {
         // Set the split utility and compute the splitting pattern
         const auto &r_geom = pElement->GetGeometry();
-        DivideGeometry<Node<3>>::Pointer p_split_utility = this->SetDivideGeometryUtility(r_geom, rNodalDistances);
+        DivideGeometry<Node>::Pointer p_split_utility = this->SetDivideGeometryUtility(r_geom, rNodalDistances);
         p_split_utility->GenerateDivision();
         p_split_utility->GenerateIntersectionsSkin();
 
@@ -178,8 +178,8 @@ namespace Kratos
 
     template<std::size_t TDim>
     void EmbeddedSkinUtility<TDim>::RenumberAndAddSkinEntities(
-        const ModelPart::NodesContainerType &rNewNodesVect,
-        const ModelPart::ConditionsContainerType &rNewCondsVect)
+        const std::vector<Node::Pointer> &rNewNodesVect,
+        const std::vector<Condition::Pointer> &rNewCondsVect)
     {
         // Once all the entities have been created, renumber the ids.
         // Created entities local number partial reduction
@@ -207,13 +207,13 @@ namespace Kratos
         for (int i_node = 0; i_node < static_cast<int>(rNewNodesVect.size()); ++i_node){
             auto it_node = new_nodes_begin + i_node;
             const unsigned int new_id = new_node_id + i_node;
-            it_node->SetId(new_id);
+            (*it_node)->SetId(new_id);
         }
 
         for (int i_cond = 0; i_cond < static_cast<int>(rNewCondsVect.size()); ++i_cond){
             auto it_cond = new_conds_begin + i_cond;
             const unsigned int new_id = new_cond_id + i_cond;
-            it_cond->SetId(new_id);
+            (*it_cond)->SetId(new_id);
         }
 
         // Add the created conditions to the skin model part
@@ -224,15 +224,15 @@ namespace Kratos
     }
 
     template<std::size_t TDim>
-    Geometry< Node<3> >::Pointer EmbeddedSkinUtility<TDim>::pCreateNewConditionGeometry(
+    Geometry< Node >::Pointer EmbeddedSkinUtility<TDim>::pCreateNewConditionGeometry(
         const GeometryData::KratosGeometryType &rOriginGeometryType,
         const Condition::NodesArrayType &rNewNodesArray)
     {
         switch(rOriginGeometryType){
             case GeometryData::KratosGeometryType::Kratos_Line2D2:
-                return Kratos::make_shared<Line2D2< Node<3> > >(rNewNodesArray);
+                return Kratos::make_shared<Line2D2< Node > >(rNewNodesArray);
             case GeometryData::KratosGeometryType::Kratos_Triangle3D3:
-                return Kratos::make_shared<Triangle3D3< Node<3> > >(rNewNodesArray);
+                return Kratos::make_shared<Triangle3D3< Node > >(rNewNodesArray);
             default:
                 KRATOS_ERROR << "Implement the skin generation for the intersection geometry type: " << static_cast<int>(rOriginGeometryType);
         }
@@ -282,7 +282,7 @@ namespace Kratos
 
     template<std::size_t TDim>
     bool inline EmbeddedSkinUtility<TDim>::ElementIsSplit(
-        const Geometry<Node<3>> &rGeometry,
+        const Geometry<Node> &rGeometry,
         const Vector &rNodalDistances)
     {
         unsigned int n_pos (0), n_neg(0);
@@ -319,8 +319,8 @@ namespace Kratos
     }
 
     template<std::size_t TDim>
-    typename DivideGeometry<Node<3>>::Pointer EmbeddedSkinUtility<TDim>::SetDivideGeometryUtility(
-        const Geometry<Node<3>> &rGeometry,
+    typename DivideGeometry<Node>::Pointer EmbeddedSkinUtility<TDim>::SetDivideGeometryUtility(
+        const Geometry<Node> &rGeometry,
         const Vector& rNodalDistances)
     {
         // Get the geometry type
@@ -329,9 +329,9 @@ namespace Kratos
         // Return the divide geometry utility
         switch (geometry_type){
             case GeometryData::KratosGeometryType::Kratos_Triangle2D3:
-                return Kratos::make_shared<DivideTriangle2D3<Node<3>>>(rGeometry, rNodalDistances);
+                return Kratos::make_shared<DivideTriangle2D3<Node>>(rGeometry, rNodalDistances);
             case GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4:
-                return Kratos::make_shared<DivideTetrahedra3D4<Node<3>>>(rGeometry, rNodalDistances);
+                return Kratos::make_shared<DivideTetrahedra3D4<Node>>(rGeometry, rNodalDistances);
             default:
                 KRATOS_ERROR << "Asking for a non-implemented divide geometry utility.";
         }
@@ -339,7 +339,7 @@ namespace Kratos
 
     template<std::size_t TDim>
     ModifiedShapeFunctions::UniquePointer EmbeddedSkinUtility<TDim>::pCreateModifiedShapeFunctions(
-        const Geometry<Node<3>>::Pointer pGeometry,
+        const Geometry<Node>::Pointer pGeometry,
         const Vector& rNodalDistances)
     {
         // Get the geometry type

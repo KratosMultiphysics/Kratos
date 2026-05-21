@@ -1,6 +1,26 @@
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.StatisticsApplication as Statistics
 
+from KratosMultiphysics.StatisticsApplication.method_utilities import GetNormTypeContainer
+from KratosMultiphysics.StatisticsApplication.method_utilities import GetMethod
+
+def GetFormattedValue(value, length: int, precision: int) -> str:
+    if isinstance(value, int):
+        fixed_format = ("{: " + str(length) + ".0f}").format(value)
+        if len(fixed_format) <= length:
+            return [fixed_format]
+        else:
+            return [("{: " + str(length) + "." + str(precision) + "e}").format(value)]
+    elif isinstance(value, float):
+        fixed_format = ("{: " + str(length) + "." + str(precision) + "f}").format(value)
+        if len(fixed_format) <= length:
+            return [fixed_format]
+        else:
+            return [("{: " + str(length) + "." + str(precision) + "e}").format(value)]
+
+    elif isinstance(value, Kratos.Array3):
+        return [GetFormattedValue(value[0], length, precision)[0], GetFormattedValue(value[1], length, precision)[0], GetFormattedValue(value[2], length, precision)[0]]
+
 def GetItemContainer(item_container_name):
     item_container_types = [
         ["nodal_historical", Statistics.SpatialMethods.Historical],
@@ -20,67 +40,6 @@ def GetItemContainer(item_container_name):
 
     return item_container_types_list[item_container_names_list.index(item_container_name)]
 
-def GetMethodHeaders(method_name, parameters):
-    method_headers = [
-        ["sum", ["_Sum"]],
-        ["mean", ["_Mean"]],
-        ["rootmeansquare", ["_RootMeanSquare"]],
-        ["variance", ["_Mean", "_Variance"]],
-        ["min", ["_Min", "_Id"]],
-        ["max", ["_Max", "_Id"]],
-        ["median", ["_Median"]],
-        ["distribution", ["_Min", "_Max"]]
-    ]
-
-    if (method_name == "distribution"):
-        method_headers_list = method_headers[6][1]
-        number_of_groups = parameters["number_of_value_groups"].GetInt()
-        method_headers_list.append(" < Min")
-        for i in range(number_of_groups-1):
-            method_headers_list.append(" < " + str((i+1) / number_of_groups))
-        method_headers_list.append(" <= Max")
-        method_headers_list.append(" > Max")
-
-    method_header_names = [ method_headers[i][0] for i in range(len(method_headers)) ]
-    return method_headers[method_header_names.index(method_name)][1]
-
-def GetMethodValues(method_name, norm_type, variable_name, output):
-    if norm_type == "none":
-        variable_sub_list = GetVariableHeaders(norm_type, variable_name)
-        if (method_name in ["sum", "mean", "rootmeansquare"]):
-            if (len(variable_sub_list) == 1):
-                return str(output)
-            else:
-                str_output = ""
-                for i in range(len(variable_sub_list)):
-                    str_output += str(output[i]) + " "
-                str_output = str_output[:-1]
-                return str_output
-        elif (method_name in ["variance"]):
-            if (len(variable_sub_list) == 1):
-                return str(output[0]) + " " + str(output[1])
-            else:
-                str_output = ""
-                for i in range(len(variable_sub_list)):
-                    str_output += str(output[0][i]) + " "
-                for i in range(len(variable_sub_list)):
-                    str_output += str(output[1][i]) + " "
-                str_output = str_output[:-1]
-                return str_output
-        else:
-            raise Exception("Unknown value method " + method_name)
-    else:
-        if (method_name in ["sum", "mean", "median", "rootmeansquare"]):
-            return str(output)
-        elif (method_name in ["min", "max", "variance"]):
-            return str(output[0]) + " " + str(output[1])
-        elif (method_name == "distribution"):
-            msg = str(output[0]) + " " + str(output[1])
-            for _v in output[4]:
-                msg += " " + str(_v)
-            return msg
-        else:
-            raise Exception("Unknown norm method " + method_name)
 
 def GetVariableHeaders(norm_type, variable_name):
     if (norm_type == "none"):
@@ -93,4 +52,175 @@ def GetVariableHeaders(norm_type, variable_name):
             raise Exception("Unsupported variable type " + variable_type)
     else:
         return [variable_name]
+
+class SpatialMethodOutput:
+    def __init__(self, method_name, container_type, norm_type, variable_name, method_settings = Kratos.Parameters("""{}""")):
+        self.method_name = method_name
+        self.container_type = container_type
+        self.norm_type = norm_type
+        self.variable_name = variable_name
+        self.method_settings = method_settings
+        self.variable = Kratos.KratosGlobals.GetVariable(self.variable_name)
+
+        self.container = GetItemContainer(self.container_type)
+        self.norm_type_container = GetNormTypeContainer(self.container, norm_type)
+        method = GetMethod(self.norm_type_container, self.method_name)
+
+        if method_settings.IsEquivalentTo(Kratos.Parameters("""{}""")):
+            if norm_type == "none":
+                self.norm_type_container = self.container.ValueMethods
+                self.method = lambda model_part: method(model_part, self.variable)
+            else:
+                self.norm_type_container = self.container.NormMethods
+                self.method = lambda model_part: method(model_part, self.variable, norm_type)
+        else:
+            if norm_type == "none":
+                self.norm_type_container = self.container.ValueMethods
+                self.method = lambda model_part: method(model_part, self.variable, method_settings)
+            else:
+                self.norm_type_container = self.container.NormMethods
+                self.method = lambda model_part: method(model_part, self.variable, norm_type, method_settings)
+
+    def Evaluate(self, model_part):
+        self.data = self.method(model_part)
+
+    def GetValues(self, length, precision):
+        if isinstance(self.data, float):
+            return GetFormattedValue(self.data, length, precision)
+        else:
+            values = []
+            for v in self.data:
+                values.extend(GetFormattedValue(v, length, precision))
+            return values
+
+    def GetValueLengths(self, value_length):
+        return [value_length]
+
+    def __str__(self):
+        return self.__class__.__name__ + "(container: {:s}, norm_type: {:s}, variable: {:s})".format(self.container_type, self.norm_type, self.variable_name)
+
+
+class SpatialSumOutput(SpatialMethodOutput):
+    def __init__(self, container_type, norm_type, variable_name, method_settings = Kratos.Parameters("""{}""")):
+        super().__init__("sum", container_type, norm_type, variable_name)
+
+    def GetHeaders(self):
+        return ["sum"]
+
+
+class SpatialMeanOutput(SpatialMethodOutput):
+    def __init__(self, container_type, norm_type, variable_name, method_settings = Kratos.Parameters("""{}""")):
+        super().__init__("mean", container_type, norm_type, variable_name)
+
+    def GetHeaders(self):
+        return ["mean"]
+
+
+class SpatialRootMeanSquareOutput(SpatialMethodOutput):
+    def __init__(self, container_type, norm_type, variable_name, method_settings = Kratos.Parameters("""{}""")):
+        super().__init__("rootmeansquare", container_type, norm_type, variable_name)
+
+    def GetHeaders(self):
+        return ["rootmeansquare"]
+
+
+class SpatialMinOutput(SpatialMethodOutput):
+    def __init__(self, container_type, norm_type, variable_name, method_settings = Kratos.Parameters("""{}""")):
+        super().__init__("min", container_type, norm_type, variable_name)
+
+    def GetHeaders(self):
+        return ["min_value", "min_id"]
+
+    def GetValueLengths(self, value_length):
+        return [value_length, value_length]
+
+
+class SpatialMaxOutput(SpatialMethodOutput):
+    def __init__(self, container_type, norm_type, variable_name, method_settings = Kratos.Parameters("""{}""")):
+        super().__init__("max", container_type, norm_type, variable_name)
+
+    def GetHeaders(self):
+        return ["max_value", "max_id"]
+
+    def GetValueLengths(self, value_length):
+        return [value_length, value_length]
+
+
+class SpatialMedianOutput(SpatialMethodOutput):
+    def __init__(self, container_type, norm_type, variable_name, method_settings = Kratos.Parameters("""{}""")):
+        super().__init__("median", container_type, norm_type, variable_name)
+
+    def GetHeaders(self):
+        return ["median"]
+
+
+class SpatialVarianceOutput(SpatialMethodOutput):
+    def __init__(self, container_type, norm_type, variable_name, method_settings = Kratos.Parameters("""{}""")):
+        super().__init__("variance", container_type, norm_type, variable_name)
+
+    def GetHeaders(self):
+        return ["mean", "variance"]
+
+    def GetValueLengths(self, value_length):
+        return [value_length, value_length]
+
+
+class SpatialDistributionOutput(SpatialMethodOutput):
+    def __init__(self, container_type, norm_type, variable_name, method_settings):
+        super().__init__("distribution", container_type, norm_type, variable_name, method_settings)
+        default_parameters = Kratos.Parameters("""{ "number_of_value_groups": 10 }""")
+        self.method_settings.AddMissingParameters(default_parameters)
+
+        self.write_min_value = True
+        if self.method_settings.Has("min_value") and self.method_settings["min_value"].IsDouble():
+            self.write_min_value = False
+
+        self.write_max_value = True
+        if self.method_settings.Has("max_value") and self.method_settings["max_value"].IsDouble():
+            self.write_max_value = False
+
+    def Evaluate(self, *args):
+        super().Evaluate(*args)
+        (self.min_value, self.max_value, self.group_upper_values, self.group_histogram, self.group_percentage_distribution, self.group_means, self.group_variances) = self.data
+
+    def GetHeaders(self):
+        number_of_groups = self.method_settings["number_of_value_groups"].GetInt()
+        headers = []
+        if self.write_min_value:
+            headers.append("min")
+        if self.write_max_value:
+            headers.append("max")
+
+        headers.append("group_below_min {mean|variance}")
+        headers.extend(["group_{:d}".format(i+1) + " {mean|variance}" for i in range(number_of_groups)])
+        headers.append("group_above_max {mean|variance}")
+        return headers
+
+    def GetValues(self, length, precision):
+        values = []
+        if self.write_min_value:
+            values.append(GetFormattedValue(self.min_value, length, precision)[0])
+        if self.write_max_value:
+            values.append(GetFormattedValue(self.max_value, length, precision)[0])
+
+        def get_formatted_group_value(hist_v, percentage_v, upper_v, mean_v, variance_v):
+            s = "{:s} [#] = {:s} [%] < {:s}".format(GetFormattedValue(hist_v, length, precision)[0], GetFormattedValue(percentage_v * 100.0, length, precision)[0], GetFormattedValue(upper_v, length, precision)[0])
+            s += " { " + GetFormattedValue(mean_v, length, precision)[0] + " | " + GetFormattedValue(variance_v, length, precision)[0] + " }"
+            return s
+        values.extend([get_formatted_group_value(hist_v, percentage_v, upper_v, mean_v, variance_v) for hist_v, percentage_v, upper_v, mean_v, variance_v in zip(self.group_histogram, self.group_percentage_distribution, self.group_upper_values, self.group_means, self.group_variances)])
+        values[-1] = values[-1].replace(" <", ">=")
+        return values
+
+    def GetValueLengths(self, value_length):
+        values_per_header = []
+        if self.write_min_value:
+            values_per_header.append(value_length)
+        if self.write_max_value:
+            values_per_header.append(value_length)
+
+        number_of_groups = self.method_settings["number_of_value_groups"].GetInt()
+        for _ in range(number_of_groups + 2):
+            values_per_header.append(22 + value_length * 5)
+        return values_per_header
+
 

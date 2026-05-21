@@ -1,0 +1,19 @@
+{
+   "properties": [{
+      "model_part_name":         "PorousDomain.shell",
+      "properties_id":           1,
+      "Material": {
+                    "name": "Vloerbeton",
+                    "constitutive_law": {
+                            "name": "LinearElasticPlaneStress2DLaw"
+                    },
+                    "Variables": {
+                            "YOUNG_MODULUS": 4.32e8,
+                            "POISSON_RATIO": 0.0,
+                            "THICKNESS": 1300,
+                            "DENSITY": 3.6e2
+                    },
+                    "Tables": {}
+            }
+   }]
+}

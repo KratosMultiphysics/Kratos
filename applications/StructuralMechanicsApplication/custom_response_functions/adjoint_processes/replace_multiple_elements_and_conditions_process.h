@@ -3,14 +3,13 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Armin Geiser
 //
 
-#if !defined(KRATOS_REPLACE_MULTIPLE_ELEMENTS_AND_CONDITIONS_PROCESS_H_INCLUDED )
-#define  KRATOS_REPLACE_MULTIPLE_ELEMENTS_AND_CONDITIONS_PROCESS_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -168,5 +167,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 ///@}
 
 }  // namespace Kratos.
-
-#endif // KRATOS_REPLACE_MULTIPLE_ELEMENTS_AND_CONDITIONS_PROCESS_H_INCLUDED  defined

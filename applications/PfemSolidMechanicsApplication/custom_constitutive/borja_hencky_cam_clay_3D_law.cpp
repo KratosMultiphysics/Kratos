@@ -293,7 +293,7 @@ namespace Kratos
    }
 
 
-   int BorjaHenckyCamClayPlastic3DLaw::Check( const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo)
+   int BorjaHenckyCamClayPlastic3DLaw::Check( const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo) const
    {
 
       return 0;

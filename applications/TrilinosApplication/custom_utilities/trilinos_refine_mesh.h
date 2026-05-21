@@ -50,8 +50,8 @@ public:
     typedef vector<Matrix> Matrix_Order_Tensor;
     typedef vector<Vector> Vector_Order_Tensor;
     typedef vector<Vector_Order_Tensor> Node_Vector_Order_Tensor;
-    typedef Node < 3 > PointType;
-    typedef Node < 3 > ::Pointer PointPointerType;
+    typedef Node PointType;
+    typedef Node ::Pointer PointPointerType;
     typedef std::vector<PointType::Pointer> PointVector;
     typedef PointVector::iterator PointIterator;
 
@@ -168,7 +168,7 @@ public:
         }
 
         //fill the communicator
-        ParallelFillCommunicator(mr_model_part).Execute();
+        ParallelFillCommunicator(mr_model_part, mr_model_part.GetCommunicator().GetDataCommunicator()).Execute();
         if (mrComm.MyPID() == 0) std::cout << "recalculation of communication plan completed" << std::endl;
 
         //clean up the data
@@ -264,7 +264,7 @@ public:
         int aux_ids[4]; //this works both for 2d and 3d
         for (ModelPart::ElementsContainerType::iterator it = this_model_part.ElementsBegin(); it != this_model_part.ElementsEnd(); it++)
         {
-            Geometry<Node < 3 > >& geom = it->GetGeometry();
+            Geometry<Node >& geom = it->GetGeometry();
             for (unsigned int i = 0; i < geom.size(); i++)
                 aux_ids[i] = geom[i].Id() - 1;
 
@@ -273,7 +273,7 @@ public:
         }
         for (ModelPart::ConditionsContainerType::iterator it = this_model_part.ConditionsBegin(); it != this_model_part.ConditionsEnd(); it++)
         {
-            Geometry<Node < 3 > >& geom = it->GetGeometry();
+            Geometry<Node >& geom = it->GetGeometry();
             for (unsigned int i = 0; i < geom.size(); i++)
                 aux_ids[i] = geom[i].Id() - 1;
 
@@ -569,7 +569,7 @@ public:
         vector< array_1d<double, 3 > > Coordinate_New_Node;
         Coordinate_New_Node.resize(father_node_ids.size());
         unsigned int step_data_size = this_model_part.GetNodalSolutionStepDataSize();
-        Node < 3 > ::DofsContainerType& reference_dofs = (this_model_part.NodesBegin())->GetDofs();
+        Node ::DofsContainerType& reference_dofs = (this_model_part.NodesBegin())->GetDofs();
 
         //check that all of the nodes have the same number of dofs
         for (ModelPart::NodesContainerType::iterator it = this_model_part.NodesBegin(); it != this_model_part.NodesEnd(); it++)
@@ -580,7 +580,7 @@ public:
                 KRATOS_THROW_ERROR(std::logic_error, "list of dofs is not the same on all of the nodes!", "")
             }
 
-        PointerVector< Node < 3 > > new_nodes;
+        PointerVector< Node > new_nodes;
 
         for (unsigned int i = 0; i < father_node_ids.size(); i++)
         {
@@ -621,8 +621,8 @@ public:
 //                }
 
 
-            //                Node < 3 > ::Pointer pnode = this_model_part.CreateNewNode(List_New_Nodes[i], Coordinate_New_Node[i][0], Coordinate_New_Node[i][1], Coordinate_New_Node[i][2]);
-            Node < 3 > ::Pointer pnode = AuxCreateNewNode(this_model_part, List_New_Nodes[i], Coordinate_New_Node[i][0], Coordinate_New_Node[i][1], Coordinate_New_Node[i][2]);
+            //                Node ::Pointer pnode = this_model_part.CreateNewNode(List_New_Nodes[i], Coordinate_New_Node[i][0], Coordinate_New_Node[i][1], Coordinate_New_Node[i][2]);
+            Node ::Pointer pnode = AuxCreateNewNode(this_model_part, List_New_Nodes[i], Coordinate_New_Node[i][0], Coordinate_New_Node[i][1], Coordinate_New_Node[i][2]);
             new_nodes.push_back(pnode);
 
 
@@ -631,18 +631,18 @@ public:
             it_node2 = this_model_part.NodesBegin() + pos2;
 
             pnode->GetValue(FATHER_NODES).resize(0);
-            pnode->GetValue(FATHER_NODES).push_back(Node < 3 > ::WeakPointer(*it_node1.base()));
-            pnode->GetValue(FATHER_NODES).push_back(Node < 3 > ::WeakPointer(*it_node2.base()));
+            pnode->GetValue(FATHER_NODES).push_back(Node ::WeakPointer(*it_node1.base()));
+            pnode->GetValue(FATHER_NODES).push_back(Node ::WeakPointer(*it_node2.base()));
 
             pnode->X0() = 0.5 * (it_node1->X0() + it_node2->X0());
             pnode->Y0() = 0.5 * (it_node1->Y0() + it_node2->Y0());
             pnode->Z0() = 0.5 * (it_node1->Z0() + it_node2->Z0());
 
 
-            for (Node < 3 > ::DofsContainerType::iterator iii = reference_dofs.begin(); iii != reference_dofs.end(); iii++)
+            for (Node ::DofsContainerType::iterator iii = reference_dofs.begin(); iii != reference_dofs.end(); iii++)
             {
-                Node < 3 > ::DofType& rDof = **iii;
-                Node < 3 > ::DofType::Pointer p_new_dof = pnode->pAddDof(rDof);
+                Node ::DofType& rDof = **iii;
+                Node ::DofType::Pointer p_new_dof = pnode->pAddDof(rDof);
                 if (it_node1->IsFixed(rDof.GetVariable()) == true && it_node2->IsFixed(rDof.GetVariable()) == true)
                     (p_new_dof)->FixDof();
                 else
@@ -671,7 +671,7 @@ public:
 
             /// WARNING =  only for reactions;
             //                const double zero = 0.00;
-            //                for (Node < 3 > ::DofsContainerType::iterator iii = pnode->GetDofs().begin(); iii != pnode->GetDofs().end(); iii++)
+            //                for (Node ::DofsContainerType::iterator iii = pnode->GetDofs().begin(); iii != pnode->GetDofs().end(); iii++)
             //                {
             //                    if (pnode->IsFixed(iii->GetVariable()) == false)
             //                    {
@@ -683,7 +683,7 @@ public:
 
         }
 
-        for (PointerVector<Node < 3 > >::iterator it = new_nodes.begin(); it != new_nodes.end(); it++)
+        for (PointerVector<Node >::iterator it = new_nodes.begin(); it != new_nodes.end(); it++)
         {
 //                cout << (*it.base())->Id() << endl;
 
@@ -745,7 +745,7 @@ public:
             Calculate_Triangle_Edges(geom, p_edge_ids, edge_ids, aux);
 
             ///* crea las nuevas conectividades
-            create_element = Split_Triangle(edge_ids, t, &nel, &splitted_edges, &nint);
+            create_element = TriangleSplit::Split_Triangle(edge_ids, t, &nel, &splitted_edges, &nint);
 
             ///* crea los nuevos elementos
             if (create_element == true)
@@ -754,9 +754,9 @@ public:
                 for (int i = 0; i < nel; i++)
                 {
                     int i0, i1, i2;
-                    TriangleGetNewConnectivityGID(i, t, aux, &i0, &i1, &i2);
+                    TriangleSplit::TriangleGetNewConnectivityGID(i, t, aux, &i0, &i1, &i2);
 
-                    Triangle2D3<Node < 3 > > geom(
+                    Triangle2D3<Node > geom(
                         this_model_part.Nodes()(i0),
                         this_model_part.Nodes()(i1),
                         this_model_part.Nodes()(i2)
@@ -775,7 +775,7 @@ public:
                         InterpolateInternalVariables(nel, *it.base(), p_element, rCurrentProcessInfo);
 
                     // Transfer elemental variables
-                    p_element->Data() = it->Data();
+                    p_element->GetData() = it->GetData();
                     //const unsigned int& level = it->GetValue(REFINEMENT_LEVEL);
                     p_element->GetValue(SPLIT_ELEMENT) = false;
                     //p_element->SetValue(REFINEMENT_LEVEL, 1);
@@ -855,7 +855,7 @@ public:
         aux[4] = GetUpperTriangularMatrixValue(p_edge_ids, index_1, index_2, MaxNumEntries, NumEntries, Indices, id_values);
         aux[5] = GetUpperTriangularMatrixValue(p_edge_ids, index_2, index_0, MaxNumEntries, NumEntries, Indices, id_values);
 
-        TriangleSplitMode(aux, edge_ids);
+        TriangleSplit::TriangleSplitMode(aux, edge_ids);
 
 
         KRATOS_CATCH("")
@@ -1123,7 +1123,7 @@ protected:
                         // KRATOS_WATCH("-------------------------------------------" )
 
 
-                        Tetrahedra3D4<Node < 3 > > geom(
+                        Tetrahedra3D4<Node > geom(
                             this_model_part.Nodes()(i0),
                             this_model_part.Nodes()(i1),
                             this_model_part.Nodes()(i2),
@@ -1142,7 +1142,7 @@ protected:
                             InterpolateInternalVariables(nel, *it.base(), p_element, rCurrentProcessInfo);
 
                         // Transfer elemental variables
-                        p_element->Data() = it->Data();
+                        p_element->GetData() = it->GetData();
                         p_element->GetValue(SPLIT_ELEMENT) = false;
 
                         current_id++;
@@ -1204,7 +1204,7 @@ protected:
 
     }
 
-    unsigned int CreateCenterNode(Geometry<Node < 3 > >& geom, ModelPart& model_part, ModelPart::NodesContainerType& center_nodes)
+    unsigned int CreateCenterNode(Geometry<Node >& geom, ModelPart& model_part, ModelPart::NodesContainerType& center_nodes)
     {
         //determine a new unique id
         unsigned int new_id = (model_part.NodesEnd() - 1)->Id() + 1;
@@ -1223,20 +1223,20 @@ protected:
         double Z0 = (geom[0].Z0() + geom[1].Z0() + geom[2].Z0() + geom[3].Z0()) / 4.0;
 
         //generate the new node
-        Node < 3 >::Pointer pnode = AuxCreateNewNode(model_part,new_id,X,Y,Z);
+        Node::Pointer pnode = AuxCreateNewNode(model_part,new_id,X,Y,Z);
 
         pnode->X0() = X0;
         pnode->Y0() = Y0;
         pnode->Z0() = Z0;
 
         //add the dofs
-        Node < 3 > ::DofsContainerType& reference_dofs = (model_part.NodesBegin())->GetDofs();
+        Node ::DofsContainerType& reference_dofs = (model_part.NodesBegin())->GetDofs();
         unsigned int step_data_size = model_part.GetNodalSolutionStepDataSize();
 
-        for (Node < 3 > ::DofsContainerType::iterator iii = reference_dofs.begin(); iii != reference_dofs.end(); iii++)
+        for (Node ::DofsContainerType::iterator iii = reference_dofs.begin(); iii != reference_dofs.end(); iii++)
         {
-            Node < 3 > ::DofType& rDof = **iii;
-            Node < 3 > ::DofType::Pointer p_new_dof = pnode->pAddDof(rDof);
+            Node ::DofType& rDof = **iii;
+            Node ::DofType::Pointer p_new_dof = pnode->pAddDof(rDof);
 
             //the variables are left as free for the internal node
             (p_new_dof)->FreeDof();
@@ -1346,7 +1346,7 @@ protected:
                 Calculate_Triangle_Edges(geom, p_edge_ids, edge_ids, aux);
 
                 ///* crea las nuevas conectividades
-                create_Condition = Split_Triangle(edge_ids, t, &nel, &splitted_edges, &nint);
+                create_Condition = TriangleSplit::Split_Triangle(edge_ids, t, &nel, &splitted_edges, &nint);
 
                 ///* crea los nuevos Conditionos
                 if (create_Condition == true)
@@ -1355,11 +1355,11 @@ protected:
                     for (int i = 0; i < nel; i++)
                     {
                         int i0, i1, i2;
-                        TriangleGetNewConnectivityGID(i, t, aux, &i0, &i1, &i2);
+                        TriangleSplit::TriangleGetNewConnectivityGID(i, t, aux, &i0, &i1, &i2);
 
 //                            cout << i0 << " " << i1 << " " << i2 << endl;
 
-                        Triangle3D3<Node < 3 > > geom(
+                        Triangle3D3<Node > geom(
                             this_model_part.Nodes()(i0),
                             this_model_part.Nodes()(i1),
                             this_model_part.Nodes()(i2)
@@ -1378,7 +1378,7 @@ protected:
                         //                            InterpolateInternalVariables(nel, *it.base(), p_Condition, rCurrentProcessInfo);
 
                         // Transfer Conditional variables
-                        p_Condition->Data() = it->Data();
+                        p_Condition->GetData() = it->GetData();
                         //p_Condition->SetValue(REFINEMENT_LEVEL, 1);
                         New_Conditions.push_back(p_Condition);
                         current_id++;
@@ -1435,10 +1435,10 @@ protected:
         KRATOS_CATCH("")
     }
 
-    Node<3>::Pointer AuxCreateNewNode(ModelPart& r_model_part, int Id, double x, double y, double z)
+    Node::Pointer AuxCreateNewNode(ModelPart& r_model_part, int Id, double x, double y, double z)
     {
         //create a new node
-        Node<3>::Pointer p_new_node = Node<3>::Pointer(new Node<3>(Id, x, y, z));
+        Node::Pointer p_new_node = Node::Pointer(new Node(Id, x, y, z));
 
         // Giving model part's variables list to the node
         p_new_node->SetSolutionStepVariablesList(&(r_model_part.GetNodalSolutionStepVariablesList()));

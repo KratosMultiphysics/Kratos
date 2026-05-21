@@ -59,7 +59,7 @@ class KRATOS_API(KRATOS_CORE) RVEPeriodicityUtility
     typedef std::vector< DofType::Pointer > DofPointerVectorType;
 
     /// Definition of the node
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     /// Definition of the component of variable type
     typedef Variable<double> DoubleVariableType;

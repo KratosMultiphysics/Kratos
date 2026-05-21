@@ -79,7 +79,7 @@ namespace Kratos
  * The splitting keeps the sub model parts
  * @author Miguel Maso Sotomayor
  */
-class UniformRefinementUtility
+class KRATOS_API(MESHING_APPLICATION) UniformRefinementUtility
 {
 public:
     ///@name Type Definitions
@@ -88,7 +88,7 @@ public:
     /**
      * Node type
      */
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     /**
      * Type of edge geometry

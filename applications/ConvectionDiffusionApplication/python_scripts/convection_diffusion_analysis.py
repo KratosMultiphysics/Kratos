@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 # Importing Kratos
 import KratosMultiphysics
@@ -17,7 +16,7 @@ class ConvectionDiffusionAnalysis(AnalysisStage):
     It can be imported and used as "black-box"
     """
     def __init__(self, model, project_parameters):
-        # Making sure that older cases still work by properly initalizing the parameters
+        # Making sure that older cases still work by properly initializing the parameters
         solver_settings = project_parameters["solver_settings"]
 
         if not solver_settings.Has("domain_size"):
@@ -29,7 +28,7 @@ class ConvectionDiffusionAnalysis(AnalysisStage):
 
     #### Internal functions ####
     def _CreateSolver(self):
-        """ Create the Solver (and create and import the ModelPart if it is not alread in the model) """
+        """ Create the Solver (and create and import the ModelPart if it is not already in the model) """
         ## Solver construction
         return solver_wrapper.CreateSolverByParameters(self.model, self.project_parameters["solver_settings"],self.project_parameters["problem_data"]["parallel_type"].GetString())
 

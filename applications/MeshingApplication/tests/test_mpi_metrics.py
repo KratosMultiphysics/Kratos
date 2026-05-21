@@ -24,7 +24,7 @@ class TestMPIMetrics(KratosUnittest.TestCase):
         main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
 
         # We import the model main_model_part
-        file_path = GetFilePath("/mmg_lagrangian_test/remesh_rectangle")
+        file_path = GetFilePath("/mmg_rectangle_test/remesh_rectangle")
         ReadModelPart(file_path, main_model_part)
 
         # We calculate the gradient of the distance variable
@@ -33,7 +33,7 @@ class TestMPIMetrics(KratosUnittest.TestCase):
         KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosMultiphysics.NODAL_AREA, 0.0, main_model_part.Nodes)
 
         ## Read reference
-        file_name = "mmg_lagrangian_test/rectangle_distance_values.json"
+        file_name = "mmg_rectangle_test/rectangle_distance_values.json"
         distance_values_file_name = GetFilePath(file_name)
 
         with open(distance_values_file_name, 'r') as f:
@@ -61,7 +61,7 @@ class TestMPIMetrics(KratosUnittest.TestCase):
         metric_process.Execute()
 
         ## Read reference
-        file_name = "mmg_lagrangian_test/rectangle_pre_metric_result.json"
+        file_name = "mmg_rectangle_test/rectangle_pre_metric_result.json"
         reference_file_name = GetFilePath(file_name)
         with open(reference_file_name, 'r') as f:
             reference_values = json.load(f)

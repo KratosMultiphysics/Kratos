@@ -15,6 +15,14 @@ namespace Kratos {
         KRATOS_CLASS_POINTER_DEFINITION(DEM_KDEM_with_damage);
 
         DEM_KDEM_with_damage() {}
+
+
+
+
+
+
+
+
         ~DEM_KDEM_with_damage() {}
 
         DEMContinuumConstitutiveLaw::Pointer Clone() const override;
@@ -35,6 +43,7 @@ namespace Kratos {
                             double equiv_young,
                             double equiv_shear,
                             double indentation,
+                            double indentation_particle,
                             double calculation_area,
                             double& acumulated_damage,
                             SphericContinuumParticle* element1,
@@ -51,6 +60,7 @@ namespace Kratos {
             const double kn_el,
             double equiv_young,
             double indentation,
+            double indentation_particle,
             double calculation_area,
             double& acumulated_damage,
             SphericContinuumParticle* element1,
@@ -90,12 +100,14 @@ namespace Kratos {
                                                     double equiv_poisson,
                                                     double indentation) override;
 
-        void FindMaximumValueOfNormalAndTangentialDamageComponents();
+
+        void CalculateNormalAndTangentialDamageComponents();
 
         double mDamageNormal = 0.0;
         double mDamageTangential = 0.0;
         double mDamageMoment = 0.0;
-        const double mDamageThresholdTolerance = 0.9999;
+        const double mDamageThresholdTolerance = 0.999;
+        double mDamageReal = 0.0;
 
     private:
 

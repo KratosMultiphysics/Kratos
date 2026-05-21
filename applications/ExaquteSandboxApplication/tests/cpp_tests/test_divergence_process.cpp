@@ -82,8 +82,8 @@ namespace Kratos {
                 auto it_elem = elements_begin + i_elem;
                 double divergence_value = it_elem->GetValue(DIVERGENCE);
                 double velocity_seminorm_value = it_elem->GetValue(VELOCITY_H1_SEMINORM);
-                KRATOS_CHECK_NEAR(divergence_value, 8.0, 1e-10);
-                KRATOS_CHECK_NEAR(velocity_seminorm_value, 8.125, 1e-10);
+                KRATOS_EXPECT_NEAR(divergence_value, 8.0, 1e-10);
+                KRATOS_EXPECT_NEAR(velocity_seminorm_value, 8.125, 1e-10);
             }
         }
 

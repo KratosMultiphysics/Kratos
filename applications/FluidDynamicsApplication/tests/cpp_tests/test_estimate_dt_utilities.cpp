@@ -16,13 +16,13 @@
 // External includes
 
 // Project includes
-#include "testing/testing.h"
 #include "containers/model.h"
 #include "includes/cfd_variables.h"
 
 // Application includes
 #include "fluid_dynamics_application_variables.h"
 #include "custom_utilities/estimate_dt_utilities.h"
+#include "tests/cpp_tests/fluid_dynamics_fast_suite.h"
 
 namespace Kratos {
 namespace Testing  {
@@ -91,7 +91,7 @@ KRATOS_TEST_CASE_IN_SUITE(EstimateDtUtilitiesEstimateDt, FluidDynamicsApplicatio
     // Check results
     const double tolerance = 2.0e-6;
     const double expected_dt = 0.126211;
-    KRATOS_CHECK_NEAR(expected_dt, obtained_dt, tolerance);
+    KRATOS_EXPECT_NEAR(expected_dt, obtained_dt, tolerance);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(EstimateDtUtilitiesEstimateDtCompressibleFlow, FluidDynamicsApplicationFastSuite)
@@ -122,7 +122,7 @@ KRATOS_TEST_CASE_IN_SUITE(EstimateDtUtilitiesEstimateDtCompressibleFlow, FluidDy
     // Check results
     const double tolerance = 1.0e-6;
     const double expected_dt = 0.0013017675;
-    KRATOS_CHECK_NEAR(expected_dt, obtained_dt, tolerance);
+    KRATOS_EXPECT_NEAR(expected_dt, obtained_dt, tolerance);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(EstimateDtUtilitiesEstimateDtThermal, FluidDynamicsApplicationFastSuite)
@@ -152,7 +152,7 @@ KRATOS_TEST_CASE_IN_SUITE(EstimateDtUtilitiesEstimateDtThermal, FluidDynamicsApp
     // Check results
     const double tolerance = 1.0e-6;
     const double expected_dt = 0.01;
-    KRATOS_CHECK_NEAR(expected_dt, obtained_dt, tolerance);
+    KRATOS_EXPECT_NEAR(expected_dt, obtained_dt, tolerance);
 }
 
 }

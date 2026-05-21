@@ -459,7 +459,7 @@ Begin Nodes
 End Nodes
 
 
-Begin Elements UpdatedLagrangian2D4N// GUI group identifier: particle
+Begin Elements MPMUpdatedLagrangian2D4N// GUI group identifier: particle
         1          0        428        429        440        439 
         2          0        417        418        429        428 
         3          0        406        407        418        417 

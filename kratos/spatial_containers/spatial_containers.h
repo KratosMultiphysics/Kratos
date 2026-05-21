@@ -4,15 +4,13 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    clabra
 //
 
-#if !defined(KRATOS_SPACIAL_SEARCH_H_INCLUDED )
-#define  KRATOS_SPACIAL_SEARCH_H_INCLUDED
-
+#pragma once
 
 // External includes
 
@@ -41,8 +39,3 @@
 #include "bins_dynamic.h"
 #include "bins_dynamic_objects.h"
 #include "bins_static_objects.h"
-
-
-#endif // KRATOS_SPACIAL_SEARCH_H_INCLUDED  defined 
-
-

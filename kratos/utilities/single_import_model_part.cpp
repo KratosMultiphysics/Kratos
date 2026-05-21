@@ -11,20 +11,20 @@
 //
 
 // System includes
+#include <filesystem>
 
 // External includes
 
 // Project includes
 #include "includes/model_part_io.h"
-#include "includes/kratos_filesystem.h"
 #include "includes/reorder_consecutive_model_part_io.h"
 #include "utilities/single_import_model_part.h"
 #include "processes/reorder_and_optimize_modelpart_process.h"
 
-namespace Kratos 
+namespace Kratos
 {
 void SingleImportModelPart::Import(
-    ModelPart& rModelPart, 
+    ModelPart& rModelPart,
     Parameters ModelPartImportParameters,
     const std::string& InputType
     )
@@ -55,7 +55,7 @@ void SingleImportModelPart::Import(
             import_flags = ModelPartIO::IGNORE_VARIABLES_ERROR|import_flags;
         }
 
-        KRATOS_INFO("SingleImportModelPart") << "Reading model part from file: " << FilesystemExtensions::CurrentWorkingDirectory()<< "/" << input_filename << ".mdpa" << std::endl;
+        KRATOS_INFO("SingleImportModelPart") << "Reading model part from file: " << std::filesystem::current_path() / input_filename << ".mdpa" << std::endl;
 
         if (ModelPartImportParameters["reorder_consecutive"].GetBool()) {
             ReorderConsecutiveModelPartIO(input_filename, import_flags).ReadModelPart(rModelPart);

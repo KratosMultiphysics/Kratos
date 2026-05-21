@@ -8,8 +8,7 @@
 //  Original author:  Ruben Zorrilla
 //
 
-#if !defined(KRATOS_TRILINOS_MVQN_RECURSIVE_CONVERGENCE_ACCELERATOR)
-#define  KRATOS_TRILINOS_MVQN_RECURSIVE_CONVERGENCE_ACCELERATOR
+#pragma once
 
 /* System includes */
 
@@ -133,10 +132,10 @@ public:
      * Copy Constructor.
      */
     TrilinosJacobianEmulator( const TrilinosJacobianEmulator& rOther )
+        : mrInterfaceModelPart(rOther.mrInterfaceModelPart),
+          mrEpetraCommunicator(rOther.mrEpetraCommunicator),
+          mpOldJacobianEmulator(rOther.mpOldJacobianEmulator)
     {
-        mrInterfaceModelPart = rOther.mrInterfaceModelPart;
-        mrEpetraCommunicator = rOther.mrEpetraCommunicator;
-        mpOldJacobianEmulator = rOther.mpOldJacobianEmulator;
     }
 
     /**
@@ -508,11 +507,11 @@ public:
      * Copy Constructor.
      */
     TrilinosMVQNRecursiveJacobianConvergenceAccelerator( const TrilinosMVQNRecursiveJacobianConvergenceAccelerator& rOther )
+        : mrInterfaceModelPart(rOther.mrBInterfaceModelPart),
+          mrEpetraCommunicator(rOther.mrEpetraCommunicator),
+          mOmega_0(rOther.mOmega_0),
+          mJacobianBufferSize(rOther.mJacobianBufferSize)
     {
-        mrInterfaceModelPart = rOther.mrInterfaceModelPart;
-        mrEpetraCommunicator = rOther.mrEpetraCommunicator;
-        mOmega_0 = rOther.mOmega_0;
-        mJacobianBufferSize = rOther.mJacobianBufferSize;
         mConvergenceAcceleratorStep = 0;
         mConvergenceAcceleratorIteration = 0;
         mConvergenceAcceleratorFirstCorrectionPerformed = false;
@@ -778,5 +777,3 @@ private:
 ///@}
 
 }  /* namespace Kratos.*/
-
-#endif /* KRATOS_TRILINOS_MVQN_RECURSIVE_CONVERGENCE_ACCELERATOR defined */

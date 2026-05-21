@@ -168,16 +168,6 @@ try {                                                                           
             << "Got:" << std::endl << e.what() << std::endl;                            \
 }
 
-// this macro is to be removed, as it is no longer required to check the keys of Variables (are now assigned at compiletime)
-#if defined(_MSC_VER)
-#define KRATOS_CHECK_VARIABLE_KEY(TheVariable) \
-    __pragma(message("\"'KRATOS_CHECK_VARIABLE_KEY' macro is no longer needed and can be safely removed\""));
-#else
-#define KRATOS_CHECK_VARIABLE_KEY(TheVariable) \
-    _Pragma ("message( \"'KRATOS_CHECK_VARIABLE_KEY' macro is no longer needed and can be safely removed\")"); \
-    TheVariable.Key(); // adding dummy usage to avoid unused variable warnings
-#endif
-
 #define KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TheVariable, TheNode)                          \
     KRATOS_ERROR_IF_NOT(TheNode.SolutionStepsDataHas(TheVariable))                         \
         << "Missing " << TheVariable.Name() << " variable in solution step data for node " \
@@ -217,7 +207,6 @@ try {                                                                           
 
 #define KRATOS_DEBUG_CHECK_EXCEPTION_IS_THROWN(TheStatement, TheErrorMessage) KRATOS_CHECK_EXCEPTION_IS_THROWN(TheStatement, TheErrorMessage)
 
-#define KRATOS_DEBUG_CHECK_VARIABLE_KEY(TheVariable) KRATOS_CHECK_VARIABLE_KEY(TheVariable)
 #define KRATOS_DEBUG_CHECK_VARIABLE_IN_NODAL_DATA(TheVariable, TheNode) KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TheVariable, TheNode)
 #define KRATOS_DEBUG_CHECK_DOF_IN_NODE(TheVariable, TheNode) KRATOS_CHECK_DOF_IN_NODE(TheVariable, TheNode)
 
@@ -250,7 +239,6 @@ try {                                                                           
 
 #define KRATOS_DEBUG_CHECK_EXCEPTION_IS_THROWN(TheStatement, TheErrorMessage) if(false) KRATOS_CHECK_EXCEPTION_IS_THROWN(TheStatement, TheErrorMessage)
 
-#define KRATOS_DEBUG_CHECK_VARIABLE_KEY(TheVariable) if(false) KRATOS_CHECK_VARIABLE_KEY(TheVariable)
 #define KRATOS_DEBUG_CHECK_VARIABLE_IN_NODAL_DATA(TheVariable, TheNode) if(false) KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TheVariable, TheNode)
 #define KRATOS_DEBUG_CHECK_DOF_IN_NODE(TheVariable, TheNode) if(false) KRATOS_CHECK_DOF_IN_NODE(TheVariable, TheNode)
 #endif

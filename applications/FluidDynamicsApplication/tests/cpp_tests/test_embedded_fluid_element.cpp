@@ -14,7 +14,6 @@
 #include <iomanip> // for std::setprecision
 
 // Project includes
-#include "testing/testing.h"
 #include "containers/model.h"
 #include "includes/model_part.h"
 #include "includes/cfd_variables.h"
@@ -22,6 +21,7 @@
 // Application includes
 #include "fluid_dynamics_application_variables.h"
 #include "custom_constitutive/newtonian_2d_law.h"
+#include "tests/cpp_tests/fluid_dynamics_fast_suite.h"
 
 namespace Kratos {
 namespace Testing {
@@ -42,6 +42,7 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedElement2D3N, FluidDynamicsApplicationFastSuite
     model_part.AddNodalSolutionStepVariable(ACCELERATION);
     model_part.AddNodalSolutionStepVariable(EXTERNAL_PRESSURE);
     model_part.AddNodalSolutionStepVariable(REACTION_WATER_PRESSURE);
+    model_part.AddNodalSolutionStepVariable(SOLID_FRACTION_VELOCITY);
 
     // For VMS comparison
     model_part.AddNodalSolutionStepVariable(NODAL_AREA);
@@ -145,7 +146,7 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedElement2D3N, FluidDynamicsApplicationFastSuite
         // KRATOS_WATCH(RHS);
 
         for (unsigned int j = 0; j < RHS.size(); j++) {
-            KRATOS_CHECK_NEAR(RHS[j], output_uncut[counter][j], 1e-6);
+            KRATOS_EXPECT_NEAR(RHS[j], output_uncut[counter][j], 1e-6);
         }
 
         counter++;
@@ -173,7 +174,7 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedElement2D3N, FluidDynamicsApplicationFastSuite
         //KRATOS_WATCH(RHS);
 
         for (unsigned int j = 0; j < RHS.size(); j++) {
-            KRATOS_CHECK_NEAR(RHS[j], output_cut[counter][j], 1e-6);
+            KRATOS_EXPECT_NEAR(RHS[j], output_cut[counter][j], 1e-6);
         }
 
         counter++;
@@ -199,7 +200,7 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedElement2D3N, FluidDynamicsApplicationFastSuite
         //KRATOS_WATCH(RHS);
 
         for (unsigned int j = 0; j < RHS.size(); j++) {
-            KRATOS_CHECK_NEAR(RHS[j], output_slip_cut[counter][j], 1e-6);
+            KRATOS_EXPECT_NEAR(RHS[j], output_slip_cut[counter][j], 1e-6);
         }
 
         counter++;
@@ -234,7 +235,7 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedElement2D3N, FluidDynamicsApplicationFastSuite
         //KRATOS_WATCH(RHS);
 
         for (unsigned int j = 0; j < RHS.size(); j++) {
-            KRATOS_CHECK_NEAR(RHS[j], output_embedded_velocity[counter][j], 1e-6);
+            KRATOS_EXPECT_NEAR(RHS[j], output_embedded_velocity[counter][j], 1e-6);
         }
 
         counter++;
@@ -265,7 +266,7 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedElement2D3N, FluidDynamicsApplicationFastSuite
         //KRATOS_WATCH(RHS);
 
         for (unsigned int j = 0; j < RHS.size(); j++) {
-            KRATOS_CHECK_NEAR(RHS[j], output_slip_embedded_velocity[counter][j], 1e-6);
+            KRATOS_EXPECT_NEAR(RHS[j], output_slip_embedded_velocity[counter][j], 1e-6);
         }
 
         counter++;

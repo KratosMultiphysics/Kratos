@@ -1,0 +1,132 @@
+{
+    "problem_data" :
+    {
+        "start_time" : 0.0,
+        "end_time" : 1,
+        "echo_level" : 1,
+        "print_colors" : true,
+        "parallel_type" : "OpenMP"
+    },
+    "solver_settings" :
+    {
+        "type" : "coupled_solvers.gauss_seidel_strong",
+        "echo_level" : 1,
+        "num_coupling_iterations" : 2,
+        "predictors" : [
+            {
+                "type" : "average_value_based",
+                "solver"         : "outside",
+                "data_name"      : "flux"
+            }
+        ],
+        "convergence_accelerators" : [
+            {
+                "type"      : "mvqn",
+                "solver"    : "center",
+                "data_name" : "flux"
+            }
+        ],
+        "convergence_criteria" : [
+            {
+                "type"          : "relative_norm_initial_residual",
+                "solver"        : "outside",
+                "data_name"     : "temp",
+                "abs_tolerance" : 1e-1,
+                "rel_tolerance" : 1e-1
+            }
+        ],
+        "data_transfer_operators" : {
+            "mapper" : {
+                "type" : "kratos_mapping",
+                "mapper_settings" : {
+                    "mapper_type" : "nearest_neighbor"
+                }
+            }
+        },
+        "coupling_operations" : {
+            "distribute_point_values" : {
+                "type" : "distribute_point_values",
+                "solver"    : "center",
+                "redistribution_iterations" : 100,
+                "redistribution_tolerance" : 1e-6,
+                "data_point_values" : "flux",
+                "data_distributed_values" : "aux_flux",
+                "entities" : "conditions"
+            }
+        },
+        "coupling_sequence":
+        [
+        {
+            "name": "outside",
+            "input_data_list": [
+                {
+                "data"              : "face_flux",
+                "from_solver"       : "center",
+                "from_solver_data"  : "aux_flux",
+                "data_transfer_operator" : "mapper",
+                "data_transfer_operator_options" : [ "swap_sign" ],
+                "before_data_transfer_operations" : ["distribute_point_values"]
+                }
+            ],
+            "output_data_list": [
+                {
+                "data"           : "temp",
+                "to_solver"      : "center",
+                "to_solver_data" : "temp",
+                "data_transfer_operator" : "mapper"
+                }
+            ]
+        },
+        {
+            "name": "center",
+            "output_data_list": [],
+            "input_data_list": []
+        }
+        ],
+        "solvers" :
+        {
+            "outside":
+            {
+                "type" : "solver_wrappers.kratos.rom_wrapper",
+                "solver_wrapper_settings" : {
+                    "input_file"  : "ProjectParameters_outside"
+                },
+                "data" : {
+                    "temp" : {
+                        "model_part_name" : "ThermalModelPart.GENERIC_Interface_outside",
+                        "variable_name" : "TEMPERATURE"
+                    },
+                    "face_flux" : {
+                        "model_part_name" : "ThermalModelPart.GENERIC_Interface_outside",
+                        "variable_name" : "FACE_HEAT_FLUX"
+                    },
+                    "flux" : {
+                        "model_part_name" : "ThermalModelPart.GENERIC_Interface_outside",
+                        "variable_name" : "REACTION_FLUX"
+                    }
+                }
+            },
+            "center" :
+            {
+                "type" : "solver_wrappers.kratos.rom_wrapper",
+                "solver_wrapper_settings" : {
+                    "input_file"  : "ProjectParameters_center"
+                },
+                "data" : {
+                    "temp" : {
+                        "model_part_name" : "ThermalModelPart.GENERIC_Interface_center",
+                        "variable_name" : "TEMPERATURE"
+                    },
+                    "flux" : {
+                        "model_part_name" : "ThermalModelPart.GENERIC_Interface_center",
+                        "variable_name" : "REACTION_FLUX" 
+                    },
+                    "aux_flux" : {
+                        "model_part_name" : "ThermalModelPart.GENERIC_Interface_center",
+                        "variable_name" : "AUX_FLUX"
+                    }
+                }
+            }
+        }
+    }
+}

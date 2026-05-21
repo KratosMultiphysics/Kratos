@@ -4,25 +4,25 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    clabra
 //
 
+#pragma once
 
+// System includes
 
-#if !defined(KRATOS_BINS_CONTAINER_H_INCLUDE)
-#define KRATOS_BINS_CONTAINER_H_INCLUDE
+// External includes
 
+// Project includes
 #include "tree.h"
 #include "utilities/parallel_utilities.h"
 
 
 namespace Kratos
 {
-
-
 
 template<  std::size_t TDimension,
            class TPointType,
@@ -88,16 +88,13 @@ public:
 
     /**
      * @brief Default Constructor
-     * 
      */
     Bins() : mPointBegin(this->NullIterator()), mPointEnd(this->NullIterator()) {};
 
 
     /**
      * @brief Constructs a new BinsStatic
-     * 
      * Construct a new BinsStatic using a list of points and an automatically calculate cell size.
-     * 
      * @param PointBegin Iterator to the first object of the bins
      * @param PointEnd Iterator to the last object of the bins
      * @param BucketSize Unused.
@@ -118,9 +115,7 @@ public:
 
     /**
      * @brief Constructs a new BinsStatic
-     * 
      * Construct a new BinsStatic using a list of points and an automatically calculate cell size and a custom bounding box.
-     * 
      * @param PointBegin Iterator to the first object of the bins
      * @param PointEnd Iterator to the last object of the bins
      * @param MinPoint Lower point of the custom bounding box
@@ -201,7 +196,6 @@ public:
 
     /**
      * @brief Get the Divisions object
-     * 
      * @return SizeArray& Array containing the number of Cells in each dimension
      */
     SizeArray& GetDivisions() {
@@ -210,7 +204,6 @@ public:
 
     /**
      * @brief Get the Cell Size object
-     * 
      * @return CoordinateArray& Array containing the size of the Cell in each dimension
      */
     CoordinateArray& GetCellSize() {
@@ -219,7 +212,6 @@ public:
 
     /**
      * @brief Get the Min Point object
-     * 
      * @return PointType& Min point of the bins
      */
     PointType& GetMinPoint() {
@@ -228,7 +220,6 @@ public:
 
     /**
      * @brief Get the Max Point object
-     * 
      * @return PointType& Max point of the bins
      */
     PointType& GetMaxPoint() {
@@ -260,18 +251,16 @@ private:
 
     /** 
      * @brief Calculates the cell size of the bins.
-     * 
      * Calculates the cell size of the bins using an average aproximation of the objects in the bins.
-     * 
      * @param ApproximatedSize Aproximate number of objects that will be stored in the bins
      */
     void CalculateCellSize(std::size_t ApproximatedSize) 
     {
         std::size_t average_number_of_cells = static_cast<std::size_t>(std::pow(static_cast<double>(ApproximatedSize), 1.00 / Dimension));
-        
+
         std::array<double, 3> lengths;
         double average_length = 0.00;
-        
+
         for (int i = 0; i < Dimension; i++) {
             lengths[i] = mMaxPoint[i] - mMinPoint[i];
             average_length += lengths[i];
@@ -287,7 +276,7 @@ private:
 
         for (int i = 0; i < Dimension; i++) {
              mN[i] = static_cast<std::size_t>(lengths[i] / average_length * (double)average_number_of_cells) + 1;
-            
+
             if (mN[i] > 1) {
                 mCellSize[i] = lengths[i] / mN[i];
             } else {
@@ -423,7 +412,6 @@ public:
 
     /**
      * @brief Return the closest point to ThisPoint in case it exists or a null pointer otherwise
-     * 
      * @param ThisPoint Searched Point.
      * @param Tolerance Tolerance of the search.
      * @return PointerType a pointer to the nearest point in case it exists or nullptr otherwise.
@@ -442,7 +430,6 @@ public:
 
     /**
      * @brief Return the nearest point to ThisPoint. This function can not return the same point.
-     * 
      * @param ThisPoint Searched Point.
      * @return PointerType Pointer to the nearest element. Cannot return the same point as the one given as input.
      */
@@ -457,7 +444,6 @@ public:
 
     /**
      * @brief Return the nearest point to ThisPoint. This function can return the same point with distance 0.
-     * 
      * @param ThisPoint Searched Point.
      * @return PointerType Pointer to the nearest element. ThisPoint in case it exists inside the bins.
      */
@@ -511,9 +497,9 @@ public:
         Box.Set( CalculateCell(ThisPoint), mN, mIndexCellBegin );
         SearchNearestPointLocal( ThisPoint, rResult, rResultDistance, Box );
     }
-    
+
     //************************************************************************
-    
+
     void SearchNearestPoint( PointerType const& ThisPoints, SizeType const& NumberOfPoints, IteratorType &Results, std::vector<CoordinateType> ResultsDistances)
     {
         IndexPartition<SizeType>(NumberOfPoints).for_each(
@@ -536,7 +522,7 @@ public:
         // initial search
         ++Box;
         SearchNearestInBox( ThisPoint, rResult, rResultDistance, Box, Found );
-        
+
         // increase mBox and try again
         while(!Found)
         {
@@ -611,9 +597,9 @@ public:
         Box.Set( CalculateCell(ThisPoint,-Radius), CalculateCell(ThisPoint,Radius), mN, mIndexCellBegin );
         SearchInRadiusLocal( ThisPoint, Radius, Radius2, Results, ResultsDistances, NumberOfResults, MaxNumberOfResults, Box);
     }
-    
+
     //************************************************************************
-    
+
    void SearchInRadius( PointerType const& ThisPoints, SizeType const& NumberOfPoints, std::vector<CoordinateType> const& Radius, std::vector<IteratorType> Results,
                         std::vector<DistanceIteratorType> ResultsDistances, std::vector<SizeType>& NumberOfResults, SizeType const& MaxNumberOfResults )
     {
@@ -804,7 +790,6 @@ public:
         }
     }
 
-
     //************************************************************************
     //************************************************************************
 
@@ -962,8 +947,4 @@ std::ostream & operator<<( std::ostream& rOStream, Bins<TDimension,TPointType,TC
     return rOStream;
 }
 
-
-
 }
-
-#endif // KRATOS_BINS_CONTAINER_H_INCLUDE

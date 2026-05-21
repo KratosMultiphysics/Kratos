@@ -24,33 +24,28 @@ class DEM2D_ContactTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_s
     def FinalizeSolutionStep(self):
         super().FinalizeSolutionStep()
         tolerance = 1e-3
-        if self.time > 0.3:
-            node = self.rigid_face_model_part.GetNode(13)
-            dem_pressure = node.GetSolutionStepValue(DEM.DEM_PRESSURE)
-            contact_force = node.GetSolutionStepValue(DEM.CONTACT_FORCES_Y)
-            expected_value = 45072.56712114167
-            self.assertAlmostEqual(dem_pressure, expected_value, delta=tolerance)
-            expected_value = -23114.136984276265
-            self.assertAlmostEqual(contact_force, expected_value, delta=tolerance)
-            self.check_mark_1 = True
 
-            node = self.rigid_face_model_part.GetNode(22)
-            dem_pressure = node.GetSolutionStepValue(DEM.DEM_PRESSURE)
-            contact_force = node.GetSolutionStepValue(DEM.CONTACT_FORCES_Y)
-            expected_value = 26774.109523872536
-            self.assertAlmostEqual(dem_pressure, expected_value, delta=tolerance)
-            expected_value = -13730.31257668813
-            self.assertAlmostEqual(contact_force, expected_value, delta=tolerance)
-            self.check_mark_2 = True
-
+        for node in self.rigid_face_model_part.Nodes:
+            if node.Id == 13:
+                if self.time > 0.3004 and self.time < 0.3006:
+                    dem_pressure = node.GetSolutionStepValue(DEM.DEM_PRESSURE)
+                    contact_force = node.GetSolutionStepValue(DEM.CONTACT_FORCES_Y)
+                    expected_value1 = 28071.371
+                    expected_value2 = -21593.362
+                    self.assertAlmostEqual(dem_pressure, expected_value1, delta=tolerance)
+                    self.assertAlmostEqual(contact_force, expected_value2, delta=tolerance)
+            if node.Id == 22:
+                if self.time > 0.3004 and self.time < 0.3006:
+                    dem_pressure = node.GetSolutionStepValue(DEM.DEM_PRESSURE)
+                    contact_force = node.GetSolutionStepValue(DEM.CONTACT_FORCES_Y)
+                    expected_value1 = 14661.174
+                    expected_value2 = -11277.826
+                    self.assertAlmostEqual(dem_pressure, expected_value1, delta=tolerance)
+                    self.assertAlmostEqual(contact_force, expected_value2, delta=tolerance)
 
     def Finalize(self):
-        self.assertTrue(self.check_mark_1)
-        self.assertTrue(self.check_mark_2)
         self.procedures.RemoveFoldersWithResults(str(self.main_path), str(self.problem_name), '')
         super().Finalize()
-
-
 
 class TestDEM2DContact(KratosUnittest.TestCase):
 

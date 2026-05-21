@@ -106,7 +106,7 @@ class TestPatchTestShells(KratosUnittest.TestCase):
                                                                   calculate_norm_dx,
                                                                   move_mesh_flag)
         strategy.SetEchoLevel(0)
-
+        strategy.Initialize()
         strategy.Check()
         strategy.Solve()
 

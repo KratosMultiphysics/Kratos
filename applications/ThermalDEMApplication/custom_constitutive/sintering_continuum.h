@@ -12,8 +12,7 @@
 		It is intended to be used with the sintering continuun particle, which also came from the DEMApp.
 */
 
-#if !defined(SINTERING_CONTINUUM_H_INCLUDED)
-#define SINTERING_CONTINUUM_H_INCLUDED
+#pragma once
 
 // System includes
 #include <string>
@@ -104,6 +103,7 @@ namespace Kratos
                            double             equiv_young,
                            double             equiv_shear,
                            double             indentation,
+                           double             indentation_particle,
                            double             calculation_area,
                            double&            acumulated_damage,
                            SphericContinuumParticle* element1,
@@ -131,16 +131,16 @@ namespace Kratos
 				                     double& kn,
 				                     double  sintering_displ);
 
-			void ComputeParticleRotationalMoments(SphericContinuumParticle* element,
-                                            SphericContinuumParticle* neighbor,
-                                            double equiv_young,
-                                            double distance,
-                                            double calculation_area,
-                                            double LocalCoordSystem[3][3],
-                                            double ElasticLocalRotationalMoment[3],
-                                            double ViscoLocalRotationalMoment[3],
-                                            double equiv_poisson,
-                                            double indentation) override;
+    // void ComputeParticleRotationalMoments(SphericContinuumParticle* element,
+    //                                       SphericContinuumParticle* neighbor,
+    //                                       double equiv_young,
+    //                                       double distance,
+    //                                       double calculation_area,
+    //                                       double LocalCoordSystem[3][3],
+    //                                       double ElasticLocalRotationalMoment[3],
+    //                                       double ViscoLocalRotationalMoment[3],
+    //                                       double equiv_poisson,
+    //                                       double indentation) override;
 
 		private:
 
@@ -158,5 +158,3 @@ namespace Kratos
 
 	}; // class SinteringContinuum
 } // namespace Kratos
-
-#endif // SINTERING_CONTINUUM_H_INCLUDED defined

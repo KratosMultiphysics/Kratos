@@ -109,7 +109,7 @@ public:
     ///@name Access
     ///@{
 
-    /// The overide of the base class what method
+    /// The override of the base class what method
     /** This method returns the entire message with where information
     */
 

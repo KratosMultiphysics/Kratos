@@ -15,6 +15,7 @@ file(
 ## Python module
 pybind11_add_module( KratosMeshMovingTrilinosExtension MODULE THIN_LTO ${KRATOS_MESH_MOVING_TRILINOS_EXTENSION_PYTHON_INTERFACE_SOURCES} )
 
+target_include_directories(KratosMeshMovingTrilinosExtension SYSTEM PUBLIC ${TRILINOS_INCLUDE_DIR})
 target_link_libraries( KratosMeshMovingTrilinosExtension PRIVATE KratosMeshMovingCore KratosTrilinosCore KratosMPICore )
 set_target_properties( KratosMeshMovingTrilinosExtension PROPERTIES PREFIX "")
 

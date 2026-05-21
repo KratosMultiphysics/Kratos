@@ -22,12 +22,11 @@
 
 // Application includes
 #include "custom_python/add_custom_utilities_to_python.h"
-#include "custom_utilities/explicit_fixed_mesh_ale_utilities.h"
 #include "custom_utilities/fixed_mesh_ale_utilities.h"
 #include "custom_utilities/mesh_velocity_calculation.h"
 #include "custom_utilities/move_mesh_utilities.h"
-#include "custom_utilities/linear_transform.h"
-#include "custom_utilities/parametric_linear_transform.h"
+#include "custom_utilities/affine_transform.h"
+#include "custom_utilities/parametric_affine_transform.h"
 
 namespace Kratos {
 namespace Python {
@@ -37,7 +36,6 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
 
     py::class_<FixedMeshALEUtilities, FixedMeshALEUtilities::Pointer>(m, "FixedMeshALEUtilities")
         .def(py::init<Model &, Parameters &>())
-        .def(py::init<ModelPart &, ModelPart &>())
         .def("Initialize", &FixedMeshALEUtilities::Initialize)
         .def("SetVirtualMeshValuesFromOriginMesh", &FixedMeshALEUtilities::SetVirtualMeshValuesFromOriginMesh)
         .def("ComputeMeshMovement", &FixedMeshALEUtilities::ComputeMeshMovement)
@@ -45,32 +43,22 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
         .def("ProjectVirtualValues3D", &FixedMeshALEUtilities::ProjectVirtualValues<3>)
         .def("UndoMeshMovement", &FixedMeshALEUtilities::UndoMeshMovement);
 
-    py::class_<ExplicitFixedMeshALEUtilities, ExplicitFixedMeshALEUtilities::Pointer, FixedMeshALEUtilities>(m, "ExplicitFixedMeshALEUtilities")
-        .def(py::init<Model &, Parameters &>())
-        .def(py::init<ModelPart &, ModelPart &, const double>())
-        .def("Initialize", &ExplicitFixedMeshALEUtilities::Initialize)
-        .def("SetVirtualMeshValuesFromOriginMesh", &ExplicitFixedMeshALEUtilities::SetVirtualMeshValuesFromOriginMesh)
-        .def("ComputeMeshMovement", &ExplicitFixedMeshALEUtilities::ComputeMeshMovement)
-        .def("ProjectVirtualValues2D", &ExplicitFixedMeshALEUtilities::ProjectVirtualValues<2>)
-        .def("ProjectVirtualValues3D", &ExplicitFixedMeshALEUtilities::ProjectVirtualValues<3>)
-        .def("UndoMeshMovement", &ExplicitFixedMeshALEUtilities::UndoMeshMovement);
-
-    py::class_<LinearTransform, LinearTransform::Pointer>(m, "LinearTransform")
+    py::class_<AffineTransform, AffineTransform::Pointer>(m, "AffineTransform")
         .def(py::init<const array_1d<double,3>&, const double, const array_1d<double,3>&, const array_1d<double,3>&>())
         .def(py::init<const array_1d<double,3>&, const array_1d<double,3>&, const array_1d<double,3>&>())
         .def(py::init<const Quaternion<double>&, const array_1d<double,3>&, const array_1d<double,3>&>())
-        .def("SetRotation", static_cast<void (LinearTransform::*)(const array_1d<double,3>&, const double, const array_1d<double,3>&)>(&LinearTransform::SetRotation))
-        .def("SetRotation", [](LinearTransform& rThis, const array_1d<double,3>& rAxis, const double angle, const array_1d<double,3>& rReferencePoint){rThis.SetRotation(rAxis, angle, rReferencePoint);})
-        .def("SetRotation", [](LinearTransform& rThis, const array_1d<double,3>& rEulerAngles, const array_1d<double,3>& rReferencePoint){rThis.SetRotation(rEulerAngles, rReferencePoint);})
-        .def("SetRotation", [](LinearTransform& rThis, const Quaternion<double>& rQuaternion, const array_1d<double,3>& rReferencePoint){rThis.SetRotation(rQuaternion, rReferencePoint);})
-        .def("SetTranslation", &LinearTransform::SetTranslation)
-        .def("Apply", &LinearTransform::Apply)
+        .def("SetRotation", static_cast<void (AffineTransform::*)(const array_1d<double,3>&, const double, const array_1d<double,3>&)>(&AffineTransform::SetRotation))
+        .def("SetRotation", [](AffineTransform& rThis, const array_1d<double,3>& rAxis, const double angle, const array_1d<double,3>& rReferencePoint){rThis.SetRotation(rAxis, angle, rReferencePoint);})
+        .def("SetRotation", [](AffineTransform& rThis, const array_1d<double,3>& rEulerAngles, const array_1d<double,3>& rReferencePoint){rThis.SetRotation(rEulerAngles, rReferencePoint);})
+        .def("SetRotation", [](AffineTransform& rThis, const Quaternion<double>& rQuaternion, const array_1d<double,3>& rReferencePoint){rThis.SetRotation(rQuaternion, rReferencePoint);})
+        .def("SetTranslation", &AffineTransform::SetTranslation)
+        .def("Apply", &AffineTransform::Apply)
         ;
 
-    py::class_<ParametricLinearTransform, ParametricLinearTransform::Pointer>(m, "ParametricLinearTransform")
+    py::class_<ParametricAffineTransform, ParametricAffineTransform::Pointer>(m, "ParametricAffineTransform")
         .def(py::init<const Parameters, const Parameters, const Parameters, const Parameters>())
         .def(py::init<const Parameters, const Parameters, const Parameters>())
-        .def("Apply", &ParametricLinearTransform::Apply)
+        .def("Apply", &ParametricAffineTransform::Apply)
         ;
 
     void (*CalculateMeshVelocitiesBDF1)(ModelPart&, const TimeDiscretization::BDF1&) = &MeshVelocityCalculation::CalculateMeshVelocities;
@@ -88,8 +76,8 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
     m.def("MoveMesh", &MoveMeshUtilities::MoveMesh );
     m.def("MoveModelPart", static_cast<void(*)(ModelPart&, const array_1d<double,3>&, const double, const array_1d<double,3>&, const array_1d<double,3>&)>(&MoveMeshUtilities::MoveModelPart));
     m.def("MoveModelPart", static_cast<void(*)(ModelPart&, const Parameters, const Parameters, const Parameters, const Parameters)>(&MoveMeshUtilities::MoveModelPart));
-    m.def("MoveModelPart", static_cast<void(*)(ModelPart&, const LinearTransform&)>(&MoveMeshUtilities::MoveModelPart));
-    m.def("MoveModelPart", static_cast<void(*)(ModelPart&, ParametricLinearTransform&)>(&MoveMeshUtilities::MoveModelPart));
+    m.def("MoveModelPart", static_cast<void(*)(ModelPart&, const AffineTransform&)>(&MoveMeshUtilities::MoveModelPart));
+    m.def("MoveModelPart", static_cast<void(*)(ModelPart&, ParametricAffineTransform&)>(&MoveMeshUtilities::MoveModelPart));
     m.def("SuperImposeMeshDisplacement", &MoveMeshUtilities::SuperImposeMeshDisplacement );
     m.def("SuperImposeMeshVelocity", &MoveMeshUtilities::SuperImposeMeshVelocity);
 

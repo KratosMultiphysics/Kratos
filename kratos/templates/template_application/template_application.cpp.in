@@ -32,6 +32,7 @@ void Kratos@{APP_NAME_CAMEL}Application::Register()
 {
      KRATOS_INFO("") << "Initializing Kratos@{APP_NAME_CAMEL}Application..." << std::endl;
 
-@{KRATOS_APP_REGISTER_VARIABLE_LIST}
+    @{KRATOS_APP_REGISTER_VARIABLE_LIST}
 }
+
 }  // namespace Kratos.

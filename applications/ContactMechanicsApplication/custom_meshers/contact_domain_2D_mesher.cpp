@@ -204,7 +204,7 @@ namespace Kratos
     int base = 0;
     for(unsigned int i = 0; i<rModelPart.Conditions().size(); i++)
       {
-	Geometry< Node<3> >& rGeometry = (conditions_begin + i)->GetGeometry();
+	Geometry< Node >& rGeometry = (conditions_begin + i)->GetGeometry();
 	in.segmentlist[base]   = rGeometry[0].Id();
 	in.segmentlist[base+1] = rGeometry[1].Id();
 	//std::cout<<" Facet["<<i<<"]: ("<<in.segmentlist[base]<<" "<<in.segmentlist[base+1]<<")"<<std::endl;

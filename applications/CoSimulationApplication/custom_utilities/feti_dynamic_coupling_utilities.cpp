@@ -260,7 +260,7 @@ namespace Kratos
 
         DenseMatrixType temp(rInterfaceMP.NumberOfNodes() * dim, domain_dofs, 0.0);
 
-        block_for_each(rInterfaceMP.Nodes(), [&](const Node<3>& rNode)
+        block_for_each(rInterfaceMP.Nodes(), [&](const Node& rNode)
             {
                 IndexType interface_equation_id = rNode.GetValue(INTERFACE_EQUATION_ID);
                 IndexType domain_equation_id = (is_implicit)
@@ -430,7 +430,7 @@ namespace Kratos
 
         if (IsImplicit)
         {
-            block_for_each(pDomain->Nodes(), [&](Node<3>& rNode)
+            block_for_each(pDomain->Nodes(), [&](Node& rNode)
                 {
                     IndexType equation_id = rNode.GetDof(DISPLACEMENT_X).EquationId();
                     array_1d<double, 3>& r_nodal_quantity = rNode.FastGetSolutionStepValue(rVariable);
@@ -441,7 +441,7 @@ namespace Kratos
         }
         else
         {
-            block_for_each(pDomain->Nodes(), [&](Node<3>& rNode)
+            block_for_each(pDomain->Nodes(), [&](Node& rNode)
                 {
                     if (rNode.Has(EXPLICIT_EQUATION_ID))
                     {
@@ -476,7 +476,7 @@ namespace Kratos
         KRATOS_ERROR_IF_NOT(r_slave_modelpart.NumberOfNodes() * dim == rLagrange.size())
             << "Trying to set Lagrange Multiplier results on the wrong domain!\n";
 
-        block_for_each(r_slave_modelpart.Nodes(), [&](Node<3>& rNode)
+        block_for_each(r_slave_modelpart.Nodes(), [&](Node& rNode)
             {
                 IndexType interface_id = rNode.GetValue(INTERFACE_EQUATION_ID);
 
@@ -511,7 +511,7 @@ namespace Kratos
             << "This is created by the mapper.\n";
 
         // Fill up container
-        block_for_each(rInterface.Nodes(), [&](Node<3>& rNode)
+        block_for_each(rInterface.Nodes(), [&](Node& rNode)
             {
                 IndexType interface_id = rNode.GetValue(INTERFACE_EQUATION_ID);
                 array_1d<double, 3>& r_quantity = rNode.FastGetSolutionStepValue(rVariable);
@@ -541,7 +541,7 @@ namespace Kratos
             << "This is created by the mapper.\n";
 
         // Fill up container
-        block_for_each(rInterface.Nodes(), [&](Node<3>& rNode)
+        block_for_each(rInterface.Nodes(), [&](Node& rNode)
             {
                 IndexType interface_id = rNode.GetValue(INTERFACE_EQUATION_ID);
                 rContainer[interface_id] = rNode.FastGetSolutionStepValue(rVariable);
@@ -752,7 +752,7 @@ namespace Kratos
 
             ModelPart& r_interface = (solverIndex == SolverIndex::Origin) ? mrOriginInterfaceModelPart : mrDestinationInterfaceModelPart;
 
-            block_for_each(r_interface.Nodes(), [&](Node<3>& rNode)
+            block_for_each(r_interface.Nodes(), [&](Node& rNode)
                 {
                     IndexType interface_id = rNode.GetValue(INTERFACE_EQUATION_ID);
                     array_1d<double, 3>& vel = rNode.FastGetSolutionStepValue(rVariable);

@@ -4,14 +4,13 @@
 //        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
 //        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
-//  License:		 BSD License
-//					 license: ContactStructuralMechanicsApplication/license.txt
+//  License:         BSD License
+//                   license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_ALM_VARIABLES_CALCULATION_PROCESS)
-#define KRATOS_ALM_VARIABLES_CALCULATION_PROCESS
+#pragma once
 
 // System includes
 
@@ -58,22 +57,19 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(ALMVariablesCalculationProcess);
 
     /// Size type definition
-    typedef std::size_t SizeType;
+    using SizeType = std::size_t;
 
     /// Index type definition
-    typedef std::size_t IndexType;
-
-    /// Node type definition
-    typedef Node<3> NodeType;
+    using IndexType= std::size_t;
 
     /// Geometry type definition
-    typedef Geometry<NodeType> GeometryType;
+    using GeometryType = Geometry<Node>;
 
     /// Nodes container definition
-    typedef ModelPart::NodesContainerType NodesArrayType;
+    using NodesArrayType = ModelPart::NodesContainerType;
 
     /// Conditions container definition
-    typedef ModelPart::ConditionsContainerType ConditionsArrayType;
+    using ConditionsArrayType = ModelPart::ConditionsContainerType;
 
     ///@}
     ///@name Life Cycle
@@ -91,8 +87,11 @@ public:
 
         ThisParameters.ValidateAndAssignDefaults(GetDefaultParameters());
 
+        // Assign members variables from parameters
         mFactorStiffness = ThisParameters["stiffness_factor"].GetDouble();
         mPenaltyScale = ThisParameters["penalty_scale_factor"].GetDouble();
+        mComputeScaleFactor = ThisParameters["compute_scale_factor"].GetBool();
+        mComputePenalty = ThisParameters["compute_penalty"].GetBool();
 
         KRATOS_ERROR_IF_NOT(rThisModelPart.HasNodalSolutionStepVariable( rNodalLengthVariable )) << "Missing variable " << rNodalLengthVariable;
 
@@ -100,8 +99,7 @@ public:
     }
 
     /// Destructor.
-    ~ALMVariablesCalculationProcess() override
-    = default;
+    ~ALMVariablesCalculationProcess() override = default;
 
     ///@}
     ///@name Access
@@ -112,17 +110,12 @@ public:
     ///@{
 
     ///@}
-    ///@name Input and output
-    ///@{
-
-    ///@}
-    ///@name Friends
-    ///@{
-
-    ///@}
     ///@name Operators
     ///@{
 
+    /**
+     * @brief Executes the process
+     */
     void operator()()
     {
         Execute();
@@ -132,6 +125,9 @@ public:
     ///@name Operations
     ///@{
 
+    /**
+     * @brief Executes the process
+     */
     void Execute() override;
 
     /**
@@ -141,8 +137,10 @@ public:
     {
         const Parameters default_parameters = Parameters(R"(
         {
-            "stiffness_factor"                     : 10.0,
-            "penalty_scale_factor"                 : 1.0
+            "stiffness_factor"     : 10.0,
+            "penalty_scale_factor" : 1.0,
+            "compute_scale_factor" : true,
+            "compute_penalty"      : true
         })" );
 
         return default_parameters;
@@ -152,11 +150,9 @@ public:
     ///@name Access
     ///@{
 
-
     ///@}
     ///@name Inquiry
     ///@{
-
 
     ///@}
     ///@name Input and output
@@ -180,61 +176,20 @@ public:
     }
 
     ///@}
-    ///@name Friends
-    ///@{
-
-
-    ///@}
-
-protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-
-    ///@}
-
 private:
     ///@name Static Member Variables
     ///@{
-
 
     ///@}
     ///@name Member Variables
     ///@{
 
-    ModelPart& mrThisModelPart;              // The main model part
-    Variable<double>& mrNodalLengthVariable; // The variable used to messure the lenght of the element
-    double mFactorStiffness;                 // The proportion between stiffness and penalty/scale factor
-    double mPenaltyScale;                    // The penalty/scale factor proportion
+    ModelPart& mrThisModelPart;              /// The main model part
+    Variable<double>& mrNodalLengthVariable; /// The variable used to messure the lenght of the element
+    double mFactorStiffness;                 /// The proportion between stiffness and penalty/scale factor
+    double mPenaltyScale;                    /// The penalty/scale factor proportion
+    bool mComputeScaleFactor;                /// If compute the scale factor
+    bool mComputePenalty;                    /// If compute the penalty
 
     ///@}
     ///@name Private Operators
@@ -244,16 +199,13 @@ private:
     ///@name Private Operations
     ///@{
 
-
     ///@}
     ///@name Private  Access
     ///@{
 
-
     ///@}
     ///@name Private Inquiry
     ///@{
-
 
     ///@}
     ///@name Un accessible methods
@@ -265,35 +217,31 @@ private:
     /// Copy constructor.
     //ALMVariablesCalculationProcess(ALMVariablesCalculationProcess const& rOther);
 
-
     ///@}
 
 }; // Class ALMVariablesCalculationProcess
 
 ///@}
-
 ///@name Type Definitions
 ///@{
-
 
 ///@}
 ///@name Input and output
 ///@{
 
 /// input stream function
-// inline std::istream& operator >> (std::istream& rIStream,
-//                                   ALMVariablesCalculationProcess& rThis);
-//
-// /// output stream function
-// inline std::ostream& operator << (std::ostream& rOStream,
-//                                   const ALMVariablesCalculationProcess& rThis)
-// {
-//     rThis.PrintInfo(rOStream);
-//     rOStream << std::endl;
-//     rThis.PrintData(rOStream);
-//
-//     return rOStream;
-// }
+inline std::istream& operator >> (std::istream& rIStream,
+                                  ALMVariablesCalculationProcess& rThis);
+
+/// output stream function
+inline std::ostream& operator << (std::ostream& rOStream,
+                                  const ALMVariablesCalculationProcess& rThis)
+{
+    rThis.PrintInfo(rOStream);
+    rOStream << std::endl;
+    rThis.PrintData(rOStream);
+
+    return rOStream;
+}
 
 }
-#endif /* KRATOS_ALM_VARIABLES_CALCULATION_PROCESS defined */

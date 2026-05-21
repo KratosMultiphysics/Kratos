@@ -62,8 +62,11 @@ public:
     /// Pointer definition of FIC
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(FIC);
 
-    /// Node type (default is: Node<3>)
-    typedef Node<3> NodeType;
+    /// Base type definition
+    using BaseType = FluidElement<TElementData>;
+
+    /// Node type (default is: Node)
+    typedef Node NodeType;
 
     /// Geometry type (using with given NodeType)
     typedef Geometry<NodeType> GeometryType;
@@ -96,11 +99,11 @@ public:
     /// Type for an array of shape function gradient matrices
     typedef GeometryType::ShapeFunctionsGradientsType ShapeFunctionDerivativesArrayType;
 
-    constexpr static unsigned int Dim = FluidElement<TElementData>::Dim;
-    constexpr static unsigned int NumNodes = FluidElement<TElementData>::NumNodes;
-    constexpr static unsigned int BlockSize = FluidElement<TElementData>::BlockSize;
-    constexpr static unsigned int LocalSize = FluidElement<TElementData>::LocalSize;
-    constexpr static unsigned int StrainSize = FluidElement<TElementData>::StrainSize;
+    constexpr static unsigned int Dim = BaseType::Dim;
+    constexpr static unsigned int NumNodes = BaseType::NumNodes;
+    constexpr static unsigned int BlockSize = BaseType::BlockSize;
+    constexpr static unsigned int LocalSize = BaseType::LocalSize;
+    constexpr static unsigned int StrainSize = BaseType::StrainSize;
 
     ///@}
     ///@name Life Cycle
@@ -108,7 +111,7 @@ public:
 
     //Constructors.
 
-    /// Default constuctor.
+    /// Default constructor.
     /**
      * @param NewId Index number of the new element (optional)
      */
@@ -128,7 +131,7 @@ public:
      */
     FIC(IndexType NewId, GeometryType::Pointer pGeometry);
 
-    /// Constuctor using geometry and properties.
+    /// Constructor using geometry and properties.
     /**
      * @param NewId Index of the new element
      * @param pGeometry Pointer to a geometry object
@@ -165,7 +168,7 @@ public:
     /**
      * Returns a pointer to a new FluidElement element, created using given input
      * @param NewId the ID of the new element
-     * @param pGeom a pointer to the geomerty to be used to create the element
+     * @param pGeom a pointer to the geometry to be used to create the element
      * @param pProperties the properties assigned to the new element
      * @return a Pointer to the new element
      */

@@ -14,9 +14,7 @@
 //                   Josep Maria Carbonell
 //
 
-#if !defined(KRATOS_QUADRILATERAL_2D_8_H_INCLUDED )
-#define  KRATOS_QUADRILATERAL_2D_8_H_INCLUDED
-
+#pragma once
 
 // System includes
 
@@ -24,8 +22,8 @@
 
 // Project includes
 #include "geometries/line_2d_3.h"
+#include "utilities/integration_utilities.h"
 #include "integration/quadrilateral_gauss_legendre_integration_points.h"
-
 
 namespace Kratos
 {
@@ -179,7 +177,7 @@ public:
     ShapeFunctionsThirdDerivativesType;
 
     /**
-     * Type of the normal vector used for normal to edges in geomety.
+     * Type of the normal vector used for normal to edges in geometry.
      */
     typedef typename BaseType::NormalType NormalType;
 
@@ -268,7 +266,7 @@ public:
      * Copy constructor from a geometry with other point type.
      * Construct this geometry as a copy of given geometry which
      * has different type of points. The given goemetry's
-     * TOtherPointType* must be implicity convertible to this
+     * TOtherPointType* must be implicitly convertible to this
      * geometry PointType.
      *
      * @note This copy constructor don't copy the points and new
@@ -286,14 +284,34 @@ public:
      */
     ~Quadrilateral2D8() override {}
 
+    /**
+     * @brief Gets the geometry family.
+     * @details This function returns the family type of the geometry. The geometry family categorizes the geometry into a broader classification, aiding in its identification and processing.
+     * @return GeometryData::KratosGeometryFamily The geometry family.
+     */
     GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
         return GeometryData::KratosGeometryFamily::Kratos_Quadrilateral;
     }
 
+    /**
+     * @brief Gets the geometry type.
+     * @details This function returns the specific type of the geometry. The geometry type provides a more detailed classification of the geometry.
+     * @return GeometryData::KratosGeometryType The specific geometry type.
+     */
     GeometryData::KratosGeometryType GetGeometryType() const override
     {
         return GeometryData::KratosGeometryType::Kratos_Quadrilateral2D8;
+    }
+
+    /**
+     * @brief Gets the geometry order type.
+     * @details This function returns the order type of the geometry. The order type relates to the polynomial degree of the geometry.
+     * @return GeometryData::KratosGeometryOrderType The geometry order type.
+     */
+    GeometryData::KratosGeometryOrderType GetGeometryOrderType() const override
+    {
+        return GeometryData::KratosGeometryOrderType::Kratos_Quadratic_Order;
     }
 
     /**
@@ -410,7 +428,7 @@ public:
     }
 
     /** This method calculates and returns area or surface area of
-     * this geometry depending to it's dimension. For one dimensional
+     * this geometry depending on its dimension. For one dimensional
      * geometry it returns zero, for two dimensional it gives area
      * and for three dimensional geometries it gives surface area.
      *
@@ -423,20 +441,25 @@ public:
      */
     double Area() const override
     {
-        Vector temp;
-        this->DeterminantOfJacobian( temp, msGeometryData.DefaultIntegrationMethod() );
-        const IntegrationPointsArrayType& integration_points = this->IntegrationPoints( msGeometryData.DefaultIntegrationMethod() );
-        double Area = 0.0;
-
-        for ( unsigned int i = 0; i < integration_points.size(); i++ ) {
-            Area += temp[i] * integration_points[i].Weight();
-        }
-
-        return Area;
+        return IntegrationUtilities::ComputeArea2DGeometry(*this);
     }
 
+    // TODO: Code activated in June 2023
+    // /**
+    //  * @brief This method calculates and returns the volume of this geometry.
+    //  * @return Error, the volume of a 2D geometry is not defined
+    //  * @see Length()
+    //  * @see Area()
+    //  * @see Volume()
+    //  */
+    // double Volume() const override
+    // {
+    //     KRATOS_ERROR << "Quadrilateral2D8:: Method not well defined. Replace with DomainSize() instead." << std::endl;
+    //     return 0.0;
+    // }
+
     /** This method calculates and returns length, area or volume of
-     * this geometry depending to it's dimension. For one dimensional
+     * this geometry depending on its dimension. For one dimensional
      * geometry it returns its length, for two dimensional it gives area
      * and for three dimensional geometries it gives its volume.
      *
@@ -486,7 +509,7 @@ public:
      */
     /**
      * Jacobians for given  method.
-     * This method claculates the jacobian matrices in all
+     * This method calculates the jacobian matrices in all
      * integrations points of given integration method.
      *
      * @param ThisMethod integration method which jacobians has to
@@ -541,7 +564,7 @@ public:
 
     /**
      * Jacobians for given  method.
-     * This method claculates the jacobian matrices in all
+     * This method calculates the jacobian matrices in all
      * integrations points of given integration method.
      *
      * @param ThisMethod integration method which jacobians has to
@@ -603,7 +626,7 @@ public:
      */
     /**
      * Jacobian in specific integration point of given integration
-     * method. This method calculate jacobian matrix in given
+     * method. This method calculates jacobian matrix in given
      * integration point of given integration method.
      *
      * @param IntegrationPointIndex index of integration point which jacobians has to
@@ -688,11 +711,8 @@ public:
     }
 
     /**
-     * TODO: implemented but not yet tested
-     */
-    /**
      * Determinant of jacobians for given integration method.
-     * This method calculate determinant of jacobian in all
+     * This method calculates determinant of jacobian in all
      * integrations points of given integration method.
      *
      * @return Vector of double which is vector of determinants of
@@ -707,21 +727,14 @@ public:
         IntegrationMethod ThisMethod
         ) const override
     {
-        // Workaround by riccardo
-        if ( rResult.size() != this->IntegrationPointsNumber( ThisMethod ) )
-        {
-            // KLUDGE: While there is a bug in ublas
-            // vector resize, I have to put this beside resizing!!
-            Vector temp( this->IntegrationPointsNumber( ThisMethod ) );
-            rResult.swap( temp );
-        }
+        if( rResult.size() != this->IntegrationPointsNumber( ThisMethod ) )
+            rResult.resize( this->IntegrationPointsNumber( ThisMethod ), false );
 
-        //for all integration points
-        for ( unsigned int pnt = 0; pnt < this->IntegrationPointsNumber( ThisMethod ); pnt++ )
-        {
-            rResult[pnt] = DeterminantOfJacobian( pnt, ThisMethod );
+        Matrix J( this->WorkingSpaceDimension(), this->LocalSpaceDimension());
+        for ( unsigned int pnt = 0; pnt < this->IntegrationPointsNumber( ThisMethod ); pnt++ ) {
+            this->Jacobian( J, pnt, ThisMethod);
+            rResult[pnt] = (( J( 0, 0 )*J( 1, 1 ) ) - ( J( 0, 1 )*J( 1, 0 ) ) );
         }
-
         return rResult;
     }
 
@@ -730,7 +743,7 @@ public:
      */
     /**
      * Determinant of jacobian in specific integration point of
-     * given integration method. This method calculate determinant
+     * given integration method. This method calculates determinant
      * of jacobian in given integration point of given integration
      * method.
      *
@@ -749,7 +762,7 @@ public:
      */
     double DeterminantOfJacobian( IndexType IntegrationPointIndex, IntegrationMethod ThisMethod ) const override
     {
-        Matrix jacobian = ZeroMatrix( 2, 2 );
+        Matrix jacobian( 2, 2 );
         jacobian = Jacobian( jacobian, IntegrationPointIndex, ThisMethod );
         return(( jacobian( 0, 0 )*jacobian( 1, 1 ) ) - ( jacobian( 0, 1 )*jacobian( 1, 0 ) ) );
     }
@@ -759,7 +772,7 @@ public:
      */
     /**
      * Determinant of jacobian in given point.
-     * This method calculate determinant of jacobian
+     * This method calculates determinant of jacobian
      * matrix in given point.
      *
      * @param rPoint point which determinant of jacobians has to
@@ -773,7 +786,7 @@ public:
      */
     double DeterminantOfJacobian( const CoordinatesArrayType& rPoint ) const override
     {
-        Matrix jacobian = ZeroMatrix( 2, 2 );
+        Matrix jacobian( 2, 2 );
         jacobian = Jacobian( jacobian, rPoint );
         return(( jacobian( 0, 0 )*jacobian( 1, 1 ) ) - ( jacobian( 0, 1 )*jacobian( 1, 0 ) ) );
     }
@@ -824,7 +837,7 @@ public:
      */
     /**
      * Inverse of jacobian in specific integration point of given integration
-     * method. This method calculate Inverse of jacobian matrix in given
+     * method. This method calculates Inverse of jacobian matrix in given
      * integration point of given integration method.
      *
      * @param IntegrationPointIndex index of integration point which
@@ -876,7 +889,7 @@ public:
      */
     /**
      * Inverse of jacobian in given point.
-     * This method calculate inverse of jacobian
+     * This method calculates inverse of jacobian
      * matrix in given point.
      *
      * @param rPoint point which inverse of jacobians has to
@@ -925,7 +938,7 @@ public:
     /**
      * @brief This method gives you number of all edges of this geometry.
      * @details For example, for a hexahedron, this would be 12
-     * @return SizeType containes number of this geometry edges.
+     * @return SizeType contains number of this geometry edges.
      * @see EdgesNumber()
      * @see Edges()
      * @see GenerateEdges()
@@ -942,17 +955,17 @@ public:
      * @brief This method gives you all edges of this geometry.
      * @details This method will gives you all the edges with one dimension less than this geometry.
      * For example a triangle would return three lines as its edges or a tetrahedral would return four triangle as its edges but won't return its six edge lines by this method.
-     * @return GeometriesArrayType containes this geometry edges.
+     * @return GeometriesArrayType contains this geometry edges.
      * @see EdgesNumber()
      * @see Edge()
      */
     GeometriesArrayType GenerateEdges() const override
     {
         GeometriesArrayType edges = GeometriesArrayType();
-        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 0 ), this->pGetPoint( 4 ), this->pGetPoint( 1 ) ) );
-        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 1 ), this->pGetPoint( 5 ), this->pGetPoint( 2 ) ) );
-        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 2 ), this->pGetPoint( 6 ), this->pGetPoint( 3 ) ) );
-        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 3 ), this->pGetPoint( 7 ), this->pGetPoint( 0 ) ) );
+        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 0 ), this->pGetPoint( 1 ), this->pGetPoint( 4 ) ) );
+        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 1 ), this->pGetPoint( 2 ), this->pGetPoint( 5 ) ) );
+        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 2 ), this->pGetPoint( 3 ), this->pGetPoint( 6 ) ) );
+        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 3 ), this->pGetPoint( 0 ), this->pGetPoint( 7 ) ) );
         return edges;
     }
 
@@ -1152,11 +1165,16 @@ public:
      */
     void PrintData( std::ostream& rOStream ) const override
     {
+        // Base Geometry class PrintData call
         BaseType::PrintData( rOStream );
         std::cout << std::endl;
-        Matrix jacobian;
-        Jacobian( jacobian, PointType() );
-        rOStream << "    Jacobian in the origin\t : " << jacobian;
+
+        // If the geometry has valid points, calculate and output its data
+        if (this->AllPointsAreValid()) {
+            Matrix jacobian;
+            this->Jacobian( jacobian, PointType() );
+            rOStream << "    Jacobian in the origin\t : " << jacobian;
+        }
     }
 
     /**
@@ -1759,9 +1777,6 @@ const GeometryData Quadrilateral2D8<TPointType>::msGeometryData(
 );
 
 template<class TPointType>
-const GeometryDimension Quadrilateral2D8<TPointType>::msGeometryDimension(
-    2, 2, 2);
+const GeometryDimension Quadrilateral2D8<TPointType>::msGeometryDimension(2, 2);
 
 }  // namespace Kratos.
-
-#endif // KRATOS_QUADRILATERAL_2D_8_H_INCLUDED  defined

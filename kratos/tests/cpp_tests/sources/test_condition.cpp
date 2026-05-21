@@ -43,12 +43,12 @@ namespace Kratos {
 
             Condition::Pointer p_clone_of_cond = p_cond->Clone(2, p_cond->GetGeometry());
 
-            KRATOS_CHECK_EQUAL(p_clone_of_cond->Id(), 2);
-            KRATOS_CHECK_DOUBLE_EQUAL(p_clone_of_cond->GetValue(DISTANCE), 12.1);
-            KRATOS_CHECK_DOUBLE_EQUAL(p_clone_of_cond->GetValue(VELOCITY_X), 32.4);
-            KRATOS_CHECK_DOUBLE_EQUAL(p_clone_of_cond->GetValue(VELOCITY_Y), 0.0);
-            KRATOS_CHECK_DOUBLE_EQUAL(p_clone_of_cond->GetValue(VELOCITY_Z), 0.0);
-            KRATOS_CHECK(p_clone_of_cond->Is(ACTIVE));
+            KRATOS_EXPECT_EQ(p_clone_of_cond->Id(), 2);
+            KRATOS_EXPECT_DOUBLE_EQ(p_clone_of_cond->GetValue(DISTANCE), 12.1);
+            KRATOS_EXPECT_DOUBLE_EQ(p_clone_of_cond->GetValue(VELOCITY_X), 32.4);
+            KRATOS_EXPECT_DOUBLE_EQ(p_clone_of_cond->GetValue(VELOCITY_Y), 0.0);
+            KRATOS_EXPECT_DOUBLE_EQ(p_clone_of_cond->GetValue(VELOCITY_Z), 0.0);
+            KRATOS_EXPECT_TRUE(p_clone_of_cond->Is(ACTIVE));
         }
     }  // namespace Testing.
 }  // namespace Kratos.

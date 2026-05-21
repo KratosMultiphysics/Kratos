@@ -49,7 +49,7 @@ class SdofSolverWrapper(CoSimulationSolverWrapper):
         self.mp[KMC.SCALAR_VOLUME_ACCELERATION] = self._sdof_solver.GetSolutionStepValue("VOLUME_ACCELERATION", 0)
 
     def Check(self):
-        # making sure only a set of vaiables can be used
+        # making sure only a set of variables can be used
         admissible_variables = [
             "SCALAR_ROOT_POINT_DISPLACEMENT",
             "SCALAR_FORCE",

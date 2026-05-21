@@ -71,11 +71,11 @@ class RemoveNodesMesherProcess
   typedef ModelPart::ConditionType         ConditionType;
   typedef ModelPart::PropertiesType       PropertiesType;
   typedef ConditionType::GeometryType       GeometryType;
-  typedef Bucket<3, Node<3>, std::vector<Node<3>::Pointer>, Node<3>::Pointer, std::vector<Node<3>::Pointer>::iterator, std::vector<double>::iterator > BucketType;
+  typedef Bucket<3, Node, std::vector<Node::Pointer>, Node::Pointer, std::vector<Node::Pointer>::iterator, std::vector<double>::iterator > BucketType;
   typedef Tree< KDTreePartition<BucketType> >                          KdtreeType; //Kdtree
   typedef ModelPart::MeshType::GeometryType::PointsArrayType      PointsArrayType;
 
-  typedef GlobalPointersVector<Node<3> >          NodeWeakPtrVectorType;
+  typedef GlobalPointersVector<Node >          NodeWeakPtrVectorType;
   typedef GlobalPointersVector<Element>        ElementWeakPtrVectorType;
   typedef GlobalPointersVector<Condition>    ConditionWeakPtrVectorType;
   ///@}
@@ -367,7 +367,7 @@ class RemoveNodesMesherProcess
     unsigned int bucket_size = 20;
 
     //create the list of the nodes to be check during the search
-    std::vector<Node<3>::Pointer> list_of_nodes;
+    std::vector<Node::Pointer> list_of_nodes;
     list_of_nodes.reserve(rModelPart.NumberOfNodes());
     for(auto i_node(rModelPart.Nodes().begin()); i_node != rModelPart.Nodes().end(); ++i_node)
     {
@@ -381,13 +381,13 @@ class RemoveNodesMesherProcess
     //all of the nodes in this list will be preserved
     unsigned int num_neighbours = 100;
 
-    std::vector<Node<3>::Pointer> neighbours         (num_neighbours);
+    std::vector<Node::Pointer> neighbours         (num_neighbours);
     std::vector<double>           neighbour_distances(num_neighbours);
 
 
     //radius means the distance, if the distance between two nodes is closer to radius -> mark for removing
     double radius=0;
-    Node<3> work_point(0,0.0,0.0,0.0);
+    Node work_point(0,0.0,0.0,0.0);
     unsigned int n_points_in_radius;
 
 
@@ -443,7 +443,7 @@ class RemoveNodesMesherProcess
             //with BOUNDARY flag and closer than 0.2*nodal_h from our node, we remove the node we are considering
             unsigned int k = 0;
             unsigned int counter = 0;
-            for(std::vector<Node<3>::Pointer>::iterator i_nnode=neighbours.begin(); i_nnode!=neighbours.begin() + n_points_in_radius ; ++i_nnode)
+            for(std::vector<Node::Pointer>::iterator i_nnode=neighbours.begin(); i_nnode!=neighbours.begin() + n_points_in_radius ; ++i_nnode)
             {
               bool nn_on_contact_tip = false;
               bool contact_active = false;
@@ -503,7 +503,7 @@ class RemoveNodesMesherProcess
   //**************************************************************************
   //**************************************************************************
 
-  virtual bool CheckEngagedNode(Node<3>& rNode, std::vector<Node<3>::Pointer>& rNeighbours, std::vector<double>& rNeighbourDistances, unsigned int& rn_points_in_radius)
+  virtual bool CheckEngagedNode(Node& rNode, std::vector<Node::Pointer>& rNeighbours, std::vector<double>& rNeighbourDistances, unsigned int& rn_points_in_radius)
   {
     KRATOS_TRY
 
@@ -531,7 +531,7 @@ class RemoveNodesMesherProcess
     else{
       counter = 0;
       unsigned int erased_node = 0;
-      for(std::vector<Node<3>::Pointer>::iterator i_nnode=rNeighbours.begin(); i_nnode!=rNeighbours.begin()+rn_points_in_radius; ++i_nnode)
+      for(std::vector<Node::Pointer>::iterator i_nnode=rNeighbours.begin(); i_nnode!=rNeighbours.begin()+rn_points_in_radius; ++i_nnode)
       {
         if( (*i_nnode)->IsNot(BOUNDARY) && (*i_nnode)->Is(TO_ERASE) )
         {
@@ -658,7 +658,7 @@ class RemoveNodesMesherProcess
     unsigned int bucket_size = 20;
 
     //create the list of the nodes to be check during the search
-    std::vector<Node<3>::Pointer> list_of_nodes;
+    std::vector<Node::Pointer> list_of_nodes;
     list_of_nodes.reserve(mrModelPart.NumberOfNodes());
     for(auto i_node(mrModelPart.Nodes().begin()); i_node != mrModelPart.Nodes().end(); ++i_node)
     {
@@ -672,13 +672,13 @@ class RemoveNodesMesherProcess
     //all of the nodes in this list will be preserved
     unsigned int num_neighbours = 100;
 
-    std::vector<Node<3>::Pointer> neighbours         (num_neighbours);
+    std::vector<Node::Pointer> neighbours         (num_neighbours);
     std::vector<double>           neighbour_distances(num_neighbours);
 
 
     //radius means the distance, if the distance between two nodes is closer to radius -> mark for removing
     double radius=0;
-    Node<3> work_point(0,0.0,0.0,0.0);
+    Node work_point(0,0.0,0.0,0.0);
     unsigned int n_points_in_radius;
 
 
@@ -716,7 +716,7 @@ class RemoveNodesMesherProcess
               unsigned int erased_nodes = 0;
               unsigned int near_to_contact_nodes = 0;
               unsigned int kk = 0;
-              for(std::vector<Node<3>::Pointer>::iterator nn=neighbours.begin(); nn!=neighbours.begin() + n_points_in_radius ; ++nn)
+              for(std::vector<Node::Pointer>::iterator nn=neighbours.begin(); nn!=neighbours.begin() + n_points_in_radius ; ++nn)
               {
                 if( (*nn)->Is(BOUNDARY) && (*nn)->Is(CONTACT) )
                   contact_nodes += 1;
@@ -755,7 +755,7 @@ class RemoveNodesMesherProcess
             //with BOUNDARY flag and closer than 0.2*nodal_h from our node, we remove the node we are considering
             unsigned int k = 0;
             unsigned int counterC2 = 0, counterC3 = 0;
-            for(std::vector<Node<3>::Pointer>::iterator nn=neighbours.begin(); nn!=neighbours.begin() + n_points_in_radius ; ++nn)
+            for(std::vector<Node::Pointer>::iterator nn=neighbours.begin(); nn!=neighbours.begin() + n_points_in_radius ; ++nn)
             {
 
 
@@ -838,7 +838,7 @@ class RemoveNodesMesherProcess
           {
             unsigned int k = 0;
             unsigned int counterC4 = 0;
-            for (std::vector<Node<3>::Pointer>::iterator  nn = neighbours.begin(); nn!=neighbours.begin() + n_points_in_radius; ++nn)
+            for (std::vector<Node::Pointer>::iterator  nn = neighbours.begin(); nn!=neighbours.begin() + n_points_in_radius; ++nn)
             {
               bool nn_on_contact_tip = false;
               array_1d<double, 3 > & ContactForceNormal  = (*nn)->FastGetSolutionStepValue(CONTACT_FORCE);
@@ -914,7 +914,7 @@ class RemoveNodesMesherProcess
     for(auto i_cond(rModelPart.Conditions().begin()); i_cond != rModelPart.Conditions().end(); ++i_cond)
     {
       if(i_cond->IsNot(NEW_ENTITY) && i_cond->IsNot(TO_ERASE)){
-        Geometry< Node<3> >& rConditionGeom = i_cond->GetGeometry();
+        Geometry< Node >& rConditionGeom = i_cond->GetGeometry();
         for(unsigned int i=0; i<rConditionGeom.size(); ++i){
           //std::cout<<"["<<i_cond->Id()<<"] i "<<i<<" condition "<<rConditionGeom[i].Id()<<std::endl;
           if(rConditionGeom[i].Is(TO_ERASE)){
@@ -965,13 +965,13 @@ class RemoveNodesMesherProcess
             }
 
 
-            Geometry< Node<3> >& rConditionGeom1 = node_shared_conditions[nodeId][i]->GetGeometry();
-            Geometry< Node<3> >& rConditionGeom2 = node_shared_conditions[nodeId][j]->GetGeometry();
+            Geometry< Node >& rConditionGeom1 = node_shared_conditions[nodeId][i]->GetGeometry();
+            Geometry< Node >& rConditionGeom2 = node_shared_conditions[nodeId][j]->GetGeometry();
 
             //node in id Node1;
 
-            Node<3>::Pointer pNode0 = rConditionGeom1(0); // other node in condition [1]
-            Node<3>::Pointer pNode2 = rConditionGeom2(1); // other node in condition [2]
+            Node::Pointer pNode0 = rConditionGeom1(0); // other node in condition [1]
+            Node::Pointer pNode2 = rConditionGeom2(1); // other node in condition [2]
 
             node_shared_conditions[nodeId][i]->Set(TO_ERASE); //release condition [1]
             node_shared_conditions[nodeId][j]->Set(TO_ERASE); //release condition [2]
@@ -1095,7 +1095,7 @@ class RemoveNodesMesherProcess
     for(ModelPart::ConditionsContainerType::iterator ic = rModelPart.ConditionsBegin(); ic!= rModelPart.ConditionsEnd(); ++ic)
     {
       if(ic->IsNot(NEW_ENTITY) && ic->IsNot(TO_ERASE)){
-        Geometry< Node<3> >& rConditionGeom = ic->GetGeometry();
+        Geometry< Node >& rConditionGeom = ic->GetGeometry();
         for(unsigned int i=0; i<rConditionGeom.size(); ++i){
           //std::cout<<"["<<ic->Id()<<"] i "<<i<<" condition "<<rConditionGeom[i].Id()<<std::endl;
           if(rConditionGeom[i].Is(TO_ERASE))
@@ -1181,13 +1181,13 @@ class RemoveNodesMesherProcess
             // std::cout<<"     N2 "<<N2<<std::endl;
 
 
-            Geometry< Node<3> >& rConditionGeom1 = node_shared_conditions[nodeId][i]->GetGeometry();
-            Geometry< Node<3> >& rConditionGeom2 = node_shared_conditions[nodeId][j]->GetGeometry();
+            Geometry< Node >& rConditionGeom1 = node_shared_conditions[nodeId][i]->GetGeometry();
+            Geometry< Node >& rConditionGeom2 = node_shared_conditions[nodeId][j]->GetGeometry();
 
             //node in id Node1;
 
-            Node<3>::Pointer pNode0 = rConditionGeom1(0); // other node in condition [1]
-            Node<3>::Pointer pNode2 = rConditionGeom2(1); // other node in condition [2]
+            Node::Pointer pNode0 = rConditionGeom1(0); // other node in condition [1]
+            Node::Pointer pNode2 = rConditionGeom2(1); // other node in condition [2]
 
 
             // std::cout<<"     Node0: "<<rConditionGeom1[0].Id()<<" Node 1: "<<rConditionGeom1[1].Id()<<std::endl;
@@ -1331,7 +1331,7 @@ class RemoveNodesMesherProcess
                 //PointsArray.push_back( pNode2 );
                 PointsArray.push_back( rConditionGeom2(1) );
 
-                Geometry<Node<3> > geom( PointsArray );
+                Geometry<Node > geom( PointsArray );
 
                 std::vector<double> ShapeFunctionsN(2);
                 std::fill( ShapeFunctionsN.begin(), ShapeFunctionsN.end(), 0.0 );
@@ -1353,8 +1353,8 @@ class RemoveNodesMesherProcess
                   i = 0;
                 }
 
-                Geometry<Node<3> >& rConditionGeom0 = node_shared_conditions[pNode0->Id()][i]->GetGeometry();
-                Node<3>::Pointer pNodeA = rConditionGeom0(0);
+                Geometry<Node >& rConditionGeom0 = node_shared_conditions[pNode0->Id()][i]->GetGeometry();
+                Node::Pointer pNodeA = rConditionGeom0(0);
 
                 //search shared condition of Node2 and Node B
                 if(node_shared_conditions[pNode2->Id()][0]->Id() == pNode2->Id()){
@@ -1368,8 +1368,8 @@ class RemoveNodesMesherProcess
 
                 Condition::Pointer NewCond = node_shared_conditions[pNode2->Id()][i];
                 NewCond->Set(TO_ERASE);
-                Geometry<Node<3> >& rConditionGeom3 = NewCond->GetGeometry();
-                Node<3>::Pointer pNodeB = rConditionGeom3(1);
+                Geometry<Node >& rConditionGeom3 = NewCond->GetGeometry();
+                Node::Pointer pNodeB = rConditionGeom3(1);
 
                 pNodeA->Set(MODIFIED);
                 pNodeB->Set(MODIFIED);

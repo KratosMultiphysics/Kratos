@@ -23,7 +23,7 @@ namespace Kratos {
         return type_of_law;
     }
 
-    void LothRotationInducedLiftLaw::ComputeForce(Geometry<Node<3> >& r_geometry,
+    void LothRotationInducedLiftLaw::ComputeForce(Geometry<Node >& r_geometry,
                                                   const double reynolds_number,
                                                   double particle_radius,
                                                   double fluid_density,
@@ -43,7 +43,7 @@ namespace Kratos {
                                               r_current_process_info);
 
         // Then apply Loth's correction
-        Node<3>& node = r_geometry[0];
+        Node& node = r_geometry[0];
         const array_1d<double, 3> minus_slip_rot = (0.5 * node.FastGetSolutionStepValue(FLUID_VORTICITY_PROJECTED)
                                               - node.FastGetSolutionStepValue(ANGULAR_VELOCITY));
         const double norm_of_slip_vel = SWIMMING_MODULUS_3(minus_slip_velocity);

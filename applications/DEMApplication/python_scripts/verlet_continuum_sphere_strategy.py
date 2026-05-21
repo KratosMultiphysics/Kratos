@@ -27,7 +27,6 @@ class ExplicitStrategy(BaseExplicitStrategy):
 
         # SIMULATION FLAGS
         self.model_part.ProcessInfo.SetValue(VIRTUAL_MASS_OPTION, self.virtual_mass_option)
-        self.model_part.ProcessInfo.SetValue(CASE_OPTION, self.case_option)
         self.model_part.ProcessInfo.SetValue(TRIHEDRON_OPTION, self.trihedron_option)
         self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, ROTATION_OPTION, self.rotation_option)
         self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, BOUNDING_BOX_OPTION, self.bounding_box_option) #TODO: check that this is finding the function in base classes
@@ -35,6 +34,7 @@ class ExplicitStrategy(BaseExplicitStrategy):
         self.model_part.ProcessInfo.SetValue(FIX_VELOCITIES_FLAG, self.fix_velocities_flag)
         self.model_part.ProcessInfo.SetValue(NEIGH_INITIALIZED, 0)
         self.model_part.ProcessInfo.SetValue(CLEAN_INDENT_OPTION, self.clean_init_indentation_option)
+        self.model_part.ProcessInfo.SetValue(CLEAN_INDENT_V2_OPTION, self.clean_init_indentation_v2_option)
         self.model_part.ProcessInfo.SetValue(COMPUTE_STRESS_TENSOR_OPTION, self.compute_stress_tensor_option)
 
         # GLOBAL PHISICAL ASPECTS

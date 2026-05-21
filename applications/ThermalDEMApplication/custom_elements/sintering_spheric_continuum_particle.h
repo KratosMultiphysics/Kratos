@@ -15,8 +15,7 @@
     template thermal_spheric_particle.
 */
 
-#if !defined(KRATOS_SINTERING_SPHERIC_CONTINUUM_PARTICLE_H_INCLUDED)
-#define KRATOS_SINTERING_SPHERIC_CONTINUUM_PARTICLE_H_INCLUDED
+#pragma once
 
 // System includes
 #include <string>
@@ -49,10 +48,10 @@ namespace Kratos
       typedef ParticleWeakVectorType::ptr_iterator    ParticleWeakIteratorType_ptr;
       typedef GlobalPointersVector<Element>::iterator ParticleWeakIteratorType;
 
-      typedef Node<3>                             NodeType;
+      typedef Node                             NodeType;
       typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
       typedef std::size_t                         IndexType;
-      typedef Geometry<Node<3>>                   GeometryType;
+      typedef Geometry<Node>                   GeometryType;
       typedef Properties                          PropertiesType;
 
       // Constructor
@@ -85,5 +84,3 @@ namespace Kratos
 
     }; // Class SinteringSphericContinuumParticle
 } // namespace Kratos
-
-#endif // KRATOS_SINTERING_SPHERIC_CONTINUUM_PARTICLE_H_INCLUDED defined

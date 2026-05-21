@@ -114,7 +114,7 @@ public:
     															it != structural_model_part.ConditionsEnd();
     															it ++ )
     			{
-    				Geometry< Node<3> >::Pointer pgeom =it->pGetGeometry();
+    				Geometry< Node >::Pointer pgeom =it->pGetGeometry();
     				Properties::Pointer props = structural_model_part.GetMesh().pGetProperties(1);
 
     				unsigned int id = (structural_model_part.Elements().end() - 1)->Id() + 1;

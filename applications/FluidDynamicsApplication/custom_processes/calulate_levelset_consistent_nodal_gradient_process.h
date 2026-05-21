@@ -61,7 +61,7 @@ public:
     ///@{
 
     /**
-     * @brief Constructor with separate paramters
+     * @brief Constructor with separate parameters
      *
      * @param rModelPart Complete model part (including boundaries) for the process to operate on
      */

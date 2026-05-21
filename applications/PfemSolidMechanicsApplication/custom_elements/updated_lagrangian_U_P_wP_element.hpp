@@ -116,12 +116,12 @@ namespace Kratos
          /**
           * Sets on rElementalDofList the degrees of freedom of the considered element geometry
           */
-         void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo) override;
+         void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const override;
 
          /**
           * Sets on rResult the ID's of the element degrees of freedom
           */
-         void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
+         void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
 
          /**
           * Sets on rValues the nodal displacements
@@ -141,7 +141,7 @@ namespace Kratos
          /**
           * Called at the end of eahc solution step
           */
-         void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+      void FinalizeSolutionStep(const ProcessInfo &rCurrentProcessInfo) override;
 
          //************************************************************************************
          //************************************************************************************
@@ -152,7 +152,7 @@ namespace Kratos
           * or that no common error is found.
           * @param rCurrentProcessInfo
           */
-         int Check(const ProcessInfo& rCurrentProcessInfo) override;
+      int Check(const ProcessInfo &rCurrentProcessInfo) const override;
 
          ///@}
          ///@name Access
@@ -187,7 +187,7 @@ namespace Kratos
           * \f$ r^e \f$
           */
          void CalculateElementalSystem(LocalSystemComponents& rLocalSystem,
-               ProcessInfo& rCurrentProcessInfo) override;
+                                    const ProcessInfo &rCurrentProcessInfo) override;
 
          ///@}
          ///@name Protected Operations
@@ -213,7 +213,8 @@ namespace Kratos
          /**
           * Initialize Element General Variables
           */
-         void InitializeElementData(ElementDataType & rVariables, const ProcessInfo& rCurrentProcessInfo) override;
+      void InitializeElementData(ElementDataType &rVariables,
+                                 const ProcessInfo &rCurrentProcessInfo) override;
 
          /**
           * Calculation of the geometric terms due to the water pressure 

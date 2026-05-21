@@ -76,7 +76,7 @@ void ApplyChimeraProcessFractionalStep<TDim>::ApplyContinuityWithMpcs(ModelPart&
     for (int i_bn = 0; i_bn < n_boundary_nodes; ++i_bn) {
         ModelPart::NodesContainerType::iterator i_boundary_node =
             rBoundaryModelPart.NodesBegin() + i_bn;
-        Node<3>::Pointer p_boundary_node = *(i_boundary_node.base());
+        Node::Pointer p_boundary_node = *(i_boundary_node.base());
 
         BaseType::mNodeIdToConstraintIdsMap[p_boundary_node->Id()].reserve(150);
     }

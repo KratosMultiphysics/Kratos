@@ -47,24 +47,21 @@ void ConnectivitiesData::WriteData(File& rFile, const std::string& rPath, WriteI
     rFile.WriteDataSet(rPath + "/Ids", mIds, rInfo);
     rFile.WriteDataSet(rPath + "/PropertiesIds", mPropertiesIds, rInfo);
     rFile.WriteDataSet(rPath + "/Connectivities", mConnectivities, rInfo);
-    int ws_dim, dim, num_nodes;
+    int ws_dim, num_nodes;
     if (KratosComponents<ElementType>::Has(mName))
     {
         const auto& r_geom = KratosComponents<ElementType>::Get(mName).GetGeometry();
         ws_dim = r_geom.WorkingSpaceDimension();
-        dim = r_geom.Dimension();
         num_nodes = r_geom.size();
     }
     else
     {
         const auto& r_geom = KratosComponents<ConditionType>::Get(mName).GetGeometry();
         ws_dim = r_geom.WorkingSpaceDimension();
-        dim = r_geom.Dimension();
         num_nodes = r_geom.size();
     }
     rFile.WriteAttribute(rPath, "Name", mName);
     rFile.WriteAttribute(rPath, "WorkingSpaceDimension", ws_dim);
-    rFile.WriteAttribute(rPath, "Dimension", dim);
     rFile.WriteAttribute(rPath, "NumberOfNodes", num_nodes);
     KRATOS_CATCH("");
 }
@@ -93,7 +90,10 @@ void ConnectivitiesData::CreateEntities(NodesContainerType& rNodes,
         }
         ElementType::Pointer p_elem =
             r_elem.Create(mIds[i], nodes, rProperties(mPropertiesIds[i]));
-        rElements.push_back(p_elem);
+        // here we can safely use the insert with the rElements.end() as the hint
+        // because, when reading, we can assume that it was written in the
+        // sorted order within HDF5.
+        rElements.insert(rElements.end(), p_elem);
     }
     KRATOS_CATCH("");
 }
@@ -122,7 +122,10 @@ void ConnectivitiesData::CreateEntities(NodesContainerType& rNodes,
         }
         Condition::Pointer p_cond =
             r_cond.Create(mIds[i], nodes, rProperties(mPropertiesIds[i]));
-        rConditions.push_back(p_cond);
+        // here we can safely use the insert with the rConditions.end() as the hint
+        // because, when reading, we can assume that it was written in the
+        // sorted order within HDF5.
+        rConditions.insert(rConditions.end(), p_cond);
     }
     KRATOS_CATCH("");
 }

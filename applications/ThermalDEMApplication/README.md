@@ -2,14 +2,14 @@
 
 This application is an extension of the [DEM Application](https://github.com/KratosMultiphysics/Kratos/tree/master/applications/DEMApplication) to include **thermal effects** such as:
 
-- Heat transfer between particle-particle, particle-rigid wall, and particle-surrounding fluid.
+- Heat transfer between particle-particle, particle-wall, and particle-surrounding fluid.
 - Heat transfer mechanisms by conduction, convection, and radiation.
-- Heat generation by friction, collision, and internal sources.
+- Heat generation by energy dissipation and internal sources.
 - Temperature dependent material properties.
 
-Theoretical information on thermal DEM analysis can be found [here](./ThermalDEMTheory.pdf).
+Theoretical information on thermal DEM analysis can be found [here](https://doi.org/10.5281/zenodo.13846126).
 
-A [Matlab version](https://gitlab.com/rafaelrangel/demlab) of this application is also available.
+A [Matlab version](https://github.com/rlrangel/DEMLab) of this application is also available.
 
 ## Table of Contents
 - [Authorship](#authorship)
@@ -88,14 +88,14 @@ Add **thermal settings** with desired options:
 		"compute_indirect_conduction"    : true or false,
 		"compute_convection"             : true or false,
 		"compute_radiation"              : true or false,
-		"compute_friction_heat"          : true or false,
+		"compute_heat_generation"        : true or false,
 		"compute_adjusted_contact"       : true or false,
 		"direct_conduction_model"        : "batchelor_obrien_simple" or "batchelor_obrien_complete" or "batchelor_obrien_modified" or "thermal_pipe" or "collisional",
 		"indirect_conduction_model"      : "surrounding_layer" or "voronoi_a" or "voronoi_b" or "vargas_mccarthy",
 		"nusselt_correlation"            : "sphere_hanz_marshall" or "sphere_whitaker" or "sphere_gunn" or "sphere_li_mason",
 		"radiation_model"                : "continuum_zhou" or "continuum_krause",
-		"friction_model"                 : "coulomb",
-		"adjusted_contact_model"         : "zhou" or "lu" or "morris",
+		"heat_generation_model"          : ["sliding_friction","rolling_friction","contact_damping"],
+		"adjusted_contact_model"         : "zhou" or "lu" or "morris_area" or "morris_area_time" or "rangel_area" or "rangel_area_time",
 		"voronoi_method"                 : "tesselation" or "porosity",
 		"porosity_method"                : "global" or "average_convex_hull" or "average_alpha_shape",
 		"min_conduction_distance"        : 0.0000000275,
@@ -104,10 +104,12 @@ Add **thermal settings** with desired options:
 		"fluid_layer_thickness"          : 0.4,
 		"isothermal_core_radius"         : 0.5,
 		"max_radiation_distance"         : 2.0,
-		"friction_heat_conversion_ratio" : 1.0,
+		"heat_generation_ratio"          : 1.0,
 		"global_porosity"                : 0.0,
 		"alpha_shape_parameter"          : 1.2,
 		"integral_tolerance"             : 0.000001,
+		"heat_map_corners"               : [[0,0,0],[1,1,1]],
+		"heat_map_subdivisions"          : [10,10,10],
 		"global_fluid_properties"        : {
 			"fluid_density"              : 1.0,
 			"fluid_viscosity"            : 1.0,
@@ -122,14 +124,21 @@ Add **thermal settings** with desired options:
 
 Add **post options** with desired options:
 
-	"PostTemperature"                : true or false,
-	"PostHeatFlux"                   : true or false,
-	"PostGraphParticleTempMin"       : true or false,
-	"PostGraphParticleTempMax"       : true or false,
-	"PostGraphParticleTempAvg"       : true or false,
-	"PostGraphParticleTempDev"       : true or false,
-	"PostGraphModelTempAvg"          : true or false,
-	"PostGraphHeatFluxContributions" : true or false
+	"PostTemperature"                      : true or false,
+	"PostHeatFlux"                         : true or false,
+	"PostGraphParticleTempAll"             : true or false,
+	"PostGraphParticleTempMin"             : true or false,
+	"PostGraphParticleTempMax"             : true or false,
+	"PostGraphParticleTempAvg"             : true or false,
+	"PostGraphParticleTempAvgVol"          : true or false,
+	"PostGraphParticleTempDev"             : true or false,
+	"PostGraphMechanicalEnergy"            : true or false,
+	"PostGraphDissipatedEnergy"            : true or false,
+	"PostGraphThermalEnergy"               : true or false,
+	"PostGraphHeatFluxContributions"       : true or false,
+	"PostGraphHeatGenerationValues"        : true or false,
+	"PostGraphHeatGenerationContributions" : true or false,
+	"PostHeatMapGeneration"                : true or false
 
 ### Materials (json file)
 
@@ -204,19 +213,19 @@ Add **SubModelPartData** to sub model parts with desired options:
 - *"thermal_integration_scheme"*:\
   Selected scheme for time integration of thermal problem.\
   Default: "forward_euler"
-  
+
 - *"numerical_integration_method"*:\
   Selected metohd for solving integration expressions numerically.\
   Default: "adaptive_simpson"
-  
+
 - *"thermal_solve_frequency"*:\
   Number of steps in which thermal problem is solved.\
   Default: 1
-  
+
 - *"voronoi_tesselation_frequency"*:\
   Number of steps in which Voronoi diagram is built, in case it is required.\
   Default: 1000
-  
+
 - *"porosity_update_frequency"*:\
   Number of steps in which porosity is computed, in case it is required.\
   Default: 1000
@@ -224,7 +233,7 @@ Add **SubModelPartData** to sub model parts with desired options:
 - *"automatic_solve_frequency"*:\
   Boolean for automatically setting the thermal solve frequency based on the maximum allowed time step (it overrides the value set for thermal_solve_frequency).\
   Default: false
-  
+
 - *"compute_motion"*:\
   Boolean for solving mechanical problem.\
   Default: true
@@ -232,7 +241,7 @@ Add **SubModelPartData** to sub model parts with desired options:
 - *"compute_direct_conduction"*:\
   Boolean for computing heat transfer between elements by direct conduction.\
   Default: true
-  
+
 - *"compute_indirect_conduction"*:\
   Boolean for computing heat transfer between elements by indirect conduction.\
   Default: false
@@ -245,8 +254,8 @@ Add **SubModelPartData** to sub model parts with desired options:
   Boolean for computing heat transfer between elements by radiation.\
   Default: false
 
-- *"compute_friction_heat"*:\
-  Boolean for computing heat generation by friction between elements.\
+- *"compute_heat_generation"*:\
+  Boolean for computing heat generation by energy dissipation between elements.\
   Default: false
 
 - *"compute_adjusted_contact"*:\
@@ -269,10 +278,10 @@ Add **SubModelPartData** to sub model parts with desired options:
   Selected model for simulating heat transfer by radiation.\
   Default: "continuum_zhou"
 
-- *"friction_model"*:\
-  Selected model for simulating heat generated by friction.\
-  Default: "coulomb"
-  
+- *"heat_generation_model"*:\
+  List of selected models for simulating heat generation by energy dissipation.\
+  Default: ["sliding_friction"]
+
 - *"adjusted_contact_model"*:\
   Selected model for adjusting contact geometry.\
   Default: "zhou"
@@ -296,7 +305,7 @@ Add **SubModelPartData** to sub model parts with desired options:
 - *"conduction_radius"*:\
   Radius of cylindrical conductive region (ratio of particles radii) required for conduction model "batchelor_obrien_complete" and "batchelor_obrien_modified".\
   Default: 1.0
-  
+
 - *"fluid_layer_thickness"*:\
   Thickness of particle fluid layer (ratio of particles radii) required for conduction model "surrounding_layer".\
   Default: 0.4
@@ -309,8 +318,8 @@ Add **SubModelPartData** to sub model parts with desired options:
   Maximum distance for heat radiation (ratio of particles radii) required for all radiation models.\
   Default: 2.0
 
-- *"friction_heat_conversion_ratio"*:\
-  Ratio of the work done by frictional forces that is converted into heat.\
+- *"heat_generation_ratio"*:\
+  Ratio of dissipated energy that is converted into heat.\
   Default: 1.0
 
 - *"global_porosity"*:\
@@ -324,6 +333,14 @@ Add **SubModelPartData** to sub model parts with desired options:
 - *"integral_tolerance"*:\
   Numerical tolerance for numerical integration, in case it is required.\
   Default: 0.000001
+
+- *"heat_map_corners"*:\
+  Coordinates of two opposite corners of a cuboid that define the region where heat map is evaluated.\
+  Default: [[0,0,0],[1,1,1]]
+
+- *"heat_map_subdivisions"*:\
+  Number of subdivisions in X,Y,Z directions to defined the grid of the heat map.\
+  Default: [10,10,10]
 
 - *"global_fluid_properties"*:\
   Prescribed values for the properties of the interstitial fluid, assumed as constant throughout all the analysis (fluid behavior does not change as it is not simulated).
@@ -364,33 +381,61 @@ Add **SubModelPartData** to sub model parts with desired options:
 - *"PostTemperature"*:\
   Boolean for showing elements temperature in post processing.\
   Default: false
-  
+
 - *"PostHeatFlux"*:\
   Boolean for showing elements heat flux in post processing.\
   Default: false
-  
+
+- *"PostGraphParticleTempAll"*:\
+  Boolean for writing a graph with the temperature of all particles.\
+  Default: false
+
 - *"PostGraphParticleTempMin"*:\
   Boolean for writing a graph with the minimum particle temperature.\
   Default: false
-  
+
 - *"PostGraphParticleTempMax"*:\
   Boolean for writing a graph with the maximum particle temperature.\
   Default: false
-  
+
 - *"PostGraphParticleTempAvg"*:\
   Boolean for writing a graph with the average temperature of all particles.\
   Default: false
-  
+
+- *"PostGraphParticleTempAvgVol"*:\
+  Boolean for writing a graph with the volume-weighted average temperature of all particles.\
+  Default: false
+
 - *"PostGraphParticleTempDev"*:\
   Boolean for writing a graph with the standard deviation of the temperature of all particles.\
   Default: false
-  
-- *"PostGraphModelTempAvg"*:\
-  Boolean for writing a graph with the weighted average of the temperature of all particles (taking the particles volume into account).\
+
+- *"PostGraphMechanicalEnergy"*:\
+  Boolean for writing a graph with the mechanical energy components of all partilces.\
   Default: false
-  
+
+- *"PostGraphDissipatedEnergy"*:\
+  Boolean for writing a graph with the accumulated energy dissipation of all partilces.\
+  Default: false
+
+- *"PostGraphThermalEnergy"*:\
+  Boolean for writing a graph with the accumulated thermal energy (from heat generation by energy dissipation) of all partilces.\
+  Default: false
+
 - *"PostGraphHeatFluxContributions"*:\
   Boolean for writing a graph with the contribution of each heat transfer mechanism to the total heat transfer.\
+  Default: false
+
+- *"PostGraphHeatGenerationValues"*:\
+  Boolean for writing a graph with the total values of  each heat generation mechanism.\
+  Default: false
+
+- *"PostGraphHeatGenerationContributions"*:\
+  Boolean for writing a graph with the contribution of each heat generation mechanism to the total heat generation.\
+  Default: false
+
+- *"PostHeatMapGeneration"*:\
+  Boolean for assemblying and writing the heat map of heat generation.\
   Default: false
 
 **Material properties**
@@ -416,7 +461,7 @@ Add **SubModelPartData** to sub model parts with desired options:
   Points of the curve given by the table.
 
 - *"material_relations.Variables.DYNAMIC_FRICTION"*:\
-  Dynamic friction coefficient between materials (required by frictional heat generation).
+  Dynamic friction coefficient between materials (required by heat generation by sliding friction).
 
 **SubModelPartData**
 - *TEMPERATURE*:\

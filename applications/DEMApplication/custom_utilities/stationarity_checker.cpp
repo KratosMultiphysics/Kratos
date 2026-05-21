@@ -1,5 +1,6 @@
 // Author: Salva Latorre
 
+#include "custom_elements/spheric_continuum_particle.h"
 #include "stationarity_checker.h"
 
 namespace Kratos {
@@ -39,16 +40,38 @@ namespace Kratos {
         } else return false;
     }
 
-    bool StationarityChecker::CheckIfVariableIsNullInModelPart(const ModelPart& r_spheres_modelPart,
-                                                    const Variable<double>& r_var,
-                                                    const double& tolerance){
+    bool StationarityChecker::CheckIfVariableIsNullInModelPart(ModelPart& r_spheres_modelPart, const Variable<double>& r_var,
+                                                               const double tolerance, const bool ignore_isolated_particles) {
 
-        KRATOS_ERROR_IF(!r_spheres_modelPart.HasNodalSolutionStepVariable(r_var))<<"Variable "<<r_var.Name()<<" is not added to the nodes of the ModelPart. Steadiness cannot be assessed with this variable"<<std::endl;
+        KRATOS_ERROR_IF(!r_spheres_modelPart.HasNodalSolutionStepVariable(r_var)) << "Variable " << r_var.Name() << " is not added to the nodes of the ModelPart. Steadiness cannot be assessed with this variable" << std::endl;
 
-        const size_t number_of_nodes = r_spheres_modelPart.Nodes().size();
-        for (size_t i = 0; i < number_of_nodes; i++) {
-            const auto node_it = r_spheres_modelPart.Nodes().begin() + i;
-            const double& value = node_it->FastGetSolutionStepValue(r_var);
+        typedef ModelPart::ElementsContainerType ElementsArrayType;
+        ElementsArrayType& pElements = r_spheres_modelPart.Elements();
+
+        for (int k = 0; k < (int)pElements.size(); k++) {
+
+            ElementsArrayType::iterator it = pElements.ptr_begin() + k;
+            Element* p_element = &(*it);
+            SphericContinuumParticle* p_sphere = dynamic_cast<SphericContinuumParticle*>(p_element);
+            const double value = p_sphere->GetGeometry()[0].FastGetSolutionStepValue(r_var);
+
+            const unsigned int initial_cont_neigh_size = p_sphere->mContinuumInitialNeighborsSize;
+            if (ignore_isolated_particles) {
+                if (!initial_cont_neigh_size) {
+                    continue;
+                } else {
+                    unsigned int damaged_bonds = 0;
+                    for (int l = 0; l < (int)initial_cont_neigh_size; l++) {
+                        if (p_sphere->mIniNeighbourFailureId[l]) {
+                            damaged_bonds++;
+                        }
+                    }
+                    if (damaged_bonds == initial_cont_neigh_size) {
+                        continue;
+                    }
+                }
+            } 
+            
             if (std::abs(value) > tolerance) {
                 return false;
             }

@@ -39,7 +39,11 @@ THE SOFTWARE.
 #include <vexcl/detail/backtrace.hpp>
 
 #include <vexcl/backend/opencl/defines.hpp>
-#include <CL/cl.hpp>
+#ifdef VEXCL_HAVE_OPENCL_HPP
+#  include <CL/opencl.hpp>
+#else
+#  include <CL/cl2.hpp>
+#endif
 
 namespace vex {
 namespace backend {
@@ -58,13 +62,12 @@ inline void save_program_binaries(
     if (!bfile) return;
 
     std::vector<size_t> sizes    = program.getInfo<CL_PROGRAM_BINARY_SIZES>();
-    std::vector<char*>  binaries = program.getInfo<CL_PROGRAM_BINARIES>();
+    std::vector<std::vector<unsigned char>> binaries = program.getInfo<CL_PROGRAM_BINARIES>();
 
     assert(sizes.size() == 1);
 
     bfile.write((char*)&sizes[0], sizeof(size_t));
-    bfile.write(binaries[0], sizes[0]);
-    delete[] binaries[0];
+    bfile.write((char*)binaries[0].data(), sizes[0]);
 }
 
 /// Tries to read program binaries from file cache.
@@ -78,14 +81,13 @@ inline boost::optional<cl::Program> load_program_binaries(
     if (!bfile) return boost::optional<cl::Program>();
 
     size_t n;
-    std::vector<char> buf;
+    std::vector<std::vector<unsigned char>> buf(1);
 
     bfile.read((char*)&n, sizeof(size_t));
-    buf.resize(n);
-    bfile.read(buf.data(), n);
+    buf[0].resize(n);
+    bfile.read((char*)buf[0].data(), n);
 
-    cl::Program program(context, device, cl::Program::Binaries(
-                 1, std::make_pair(static_cast<const void*>(buf.data()), n)));
+    cl::Program program(context, device, cl::Program::Binaries(buf));
 
     try {
         program.build(device, options.c_str());

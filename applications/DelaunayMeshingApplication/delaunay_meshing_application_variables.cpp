@@ -42,7 +42,7 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE( int, PROPERTY_ID )
 
   //custom neighbor and masters
-  KRATOS_CREATE_VARIABLE(GlobalPointer<Node<3>>,                    MASTER_NODE )
+  KRATOS_CREATE_VARIABLE(GlobalPointer<Node>,                    MASTER_NODE )
   KRATOS_CREATE_VARIABLE(ElementWeakPtrType,              MASTER_ELEMENT )
   KRATOS_CREATE_VARIABLE(ConditionWeakPtrType,          MASTER_CONDITION )
 

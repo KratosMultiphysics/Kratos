@@ -36,7 +36,7 @@ namespace Kratos {
 
 			std::size_t block_size_after_alignment = 8;
 			std::size_t available_blocks_should_be = (chunk_size_in_bytes) / block_size_after_alignment;
-			KRATOS_CHECK_EQUAL(chunk.GetNumberOfAvailableBlocks(), available_blocks_should_be) << " Available block :" << chunk.GetNumberOfAvailableBlocks() << " vs " << available_blocks_should_be;
+			KRATOS_EXPECT_EQ(chunk.GetNumberOfAvailableBlocks(), available_blocks_should_be) << " Available block :" << chunk.GetNumberOfAvailableBlocks() << " vs " << available_blocks_should_be;
 		}
 
 		KRATOS_TEST_CASE_IN_SUITE(ChunkInitializeSmallBlock, KratosCoreFastSuite)
@@ -47,7 +47,7 @@ namespace Kratos {
 			Chunk too_small_chunk(block_size_in_bytes, chunk_size_in_bytes);
 			too_small_chunk.Initialize();
 
-			KRATOS_CHECK_EQUAL(too_small_chunk.GetNumberOfAvailableBlocks(), 0) << " Available block :" << too_small_chunk.GetNumberOfAvailableBlocks();
+			KRATOS_EXPECT_EQ(too_small_chunk.GetNumberOfAvailableBlocks(), 0) << " Available block :" << too_small_chunk.GetNumberOfAvailableBlocks();
 		}
 
 
@@ -61,15 +61,15 @@ namespace Kratos {
 
 			std::size_t block_size_after_alignment = 8;
 			std::size_t available_blocks_should_be = (chunk_size_in_bytes) / block_size_after_alignment;
-			KRATOS_CHECK_EQUAL(chunk.GetNumberOfAvailableBlocks(), available_blocks_should_be) << " Available block :" << chunk.GetNumberOfAvailableBlocks() << " vs " << available_blocks_should_be;
+			KRATOS_EXPECT_EQ(chunk.GetNumberOfAvailableBlocks(), available_blocks_should_be) << " Available block :" << chunk.GetNumberOfAvailableBlocks() << " vs " << available_blocks_should_be;
 
 			for(std::size_t i = 0 ; i < available_blocks_should_be; i++) {
 				const void* pointer = chunk.pGetData() + i*block_size_after_alignment / sizeof(Chunk::BlockType);
-				KRATOS_CHECK_EQUAL(chunk.Has(pointer), true) << chunk << " should have the pointer " << pointer << std::endl;
+				KRATOS_EXPECT_EQ(chunk.Has(pointer), true) << chunk << " should have the pointer " << pointer << std::endl;
 			}
 			for(std::size_t i = available_blocks_should_be ; i < available_blocks_should_be + 5; i++) {
 				const void* pointer = chunk.pGetData() + i*block_size_after_alignment / sizeof(Chunk::BlockType);
-				KRATOS_CHECK_EQUAL(chunk.Has(pointer), false) << chunk << " should Not have the pointer " << pointer << std::endl;
+				KRATOS_EXPECT_EQ(chunk.Has(pointer), false) << chunk << " should Not have the pointer " << pointer << std::endl;
 			}
 		}
 
@@ -88,7 +88,7 @@ namespace Kratos {
 				Chunk chunk(block_size_in_bytes, chunk_size_in_bytes);
 				chunk.Initialize();
 
-				KRATOS_CHECK_EQUAL(chunk.GetNumberOfAvailableBlocks(), available_blocks_should_be) << " Available block :" << chunk.GetNumberOfAvailableBlocks() << " vs " << available_blocks_should_be;
+				KRATOS_EXPECT_EQ(chunk.GetNumberOfAvailableBlocks(), available_blocks_should_be) << " Available block :" << chunk.GetNumberOfAvailableBlocks() << " vs " << available_blocks_should_be;
 			}
 		}
 
@@ -104,7 +104,7 @@ namespace Kratos {
 				Chunk too_small_chunk(block_size_in_bytes, chunk_size_in_bytes);
 				too_small_chunk.Initialize();
 
-				KRATOS_CHECK_EQUAL(too_small_chunk.GetNumberOfAvailableBlocks(), 0) << " Available block :" << too_small_chunk.GetNumberOfAvailableBlocks();
+				KRATOS_EXPECT_EQ(too_small_chunk.GetNumberOfAvailableBlocks(), 0) << " Available block :" << too_small_chunk.GetNumberOfAvailableBlocks();
 			}
 		}
 
@@ -123,12 +123,12 @@ namespace Kratos {
 				KRATOS_ERROR_IF(pointer_set.find(p) != pointer_set.end()) << "The allocated position #" << pointer_set.size() + 1 << " was allocated before";
 				pointer_set.insert(p);
 			}
-			KRATOS_CHECK_EQUAL(pointer_set.size(), chunk.GetNumberOfBlocks()) << " (pointer set size : " << pointer_set.size() << ")" << std::endl;
+			KRATOS_EXPECT_EQ(pointer_set.size(), chunk.GetNumberOfBlocks()) << " (pointer set size : " << pointer_set.size() << ")" << std::endl;
 
 			for (auto i_pointer = pointer_set.begin(); i_pointer != pointer_set.end(); i_pointer++) {
 				chunk.Deallocate(*i_pointer);
 			}
-			KRATOS_CHECK_EQUAL(chunk.GetNumberOfAvailableBlocks(), chunk.GetNumberOfBlocks());
+			KRATOS_EXPECT_EQ(chunk.GetNumberOfAvailableBlocks(), chunk.GetNumberOfBlocks());
 		}
 
 		KRATOS_TEST_CASE_IN_SUITE(ChunkParallelAllocate, KratosCoreFastSuite)
@@ -151,7 +151,7 @@ namespace Kratos {
 					{
 						if (chunk.HasAvailableBlock()) {
 							void* p = chunk.Allocate();
-							KRATOS_CHECK_NOT_EQUAL(p, nullptr);
+							KRATOS_EXPECT_NE(p, nullptr);
 						}
 					}
 				}
@@ -170,8 +170,9 @@ namespace Kratos {
 		}
 
 
-		KRATOS_TEST_CASE_IN_SUITE(ChunkParallelAllocateDeallocate, EXCLUDED_KratosCoreFastSuite)
+		KRATOS_TEST_CASE_IN_SUITE(ChunkParallelAllocateDeallocate, KratosCoreFastSuite)
 		{
+			GTEST_SKIP() << "This test is disabled" << std::endl;
 			std::size_t block_size_in_bytes = 5;
 		  	std::size_t chunk_size_in_bytes =  1024;
 
@@ -191,7 +192,7 @@ namespace Kratos {
 					for (std::size_t i = 0; i < size; i++)
 					{
 							the_vector[i] = chunk.Allocate();
-							KRATOS_CHECK_NOT_EQUAL(the_vector[i], nullptr) << " for i = " << i << " and repeat = " << i_repeat;
+							KRATOS_EXPECT_NE(the_vector[i], nullptr) << " for i = " << i << " and repeat = " << i_repeat;
 
 					}
 

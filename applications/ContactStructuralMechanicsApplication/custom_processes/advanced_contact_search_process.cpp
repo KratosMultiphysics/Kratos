@@ -4,8 +4,8 @@
 //        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
 //        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
-//  License:		 BSD License
-//					 license: ContactStructuralMechanicsApplication/license.txt
+//  License:         BSD License
+//                   license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
@@ -47,7 +47,7 @@ void AdvancedContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CheckPairin
     ModelPart& r_master_model_part = r_sub_contact_model_part.GetSubModelPart("MasterSubModelPart" + BaseType::mThisParameters["id_name"].GetString());
     ModelPart& r_slave_model_part = r_sub_contact_model_part.GetSubModelPart("SlaveSubModelPart" + BaseType::mThisParameters["id_name"].GetString());
 
-    // We compute the maximal nodal h and some auxiliar values  // TODO: Think about this criteria
+    // We compute the maximal nodal h and some auxiliary values  // TODO: Think about this criteria
     const double distance_threshold = std::max(ContactUtilities::CalculateMeanNodalH(r_slave_model_part), ContactUtilities::CalculateMeanNodalH(r_master_model_part));
 //     const double distance_threshold = 2.0/3.0 * ContactUtilities::CalculateMeanNodalH(mrMainModelPart);
 //     const double distance_threshold = ContactUtilities::CalculateMeanNodalH(mrMainModelPart);
@@ -73,11 +73,11 @@ void AdvancedContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ComputeActi
     // The penalty value
     const double common_epsilon = r_process_info[INITIAL_PENALTY];
 
-    // Some auxiliar values
+    // Some auxiliary values
     const double active_check_factor = BaseType::mrMainModelPart.GetProcessInfo()[ACTIVE_CHECK_FACTOR];
     const double distance_threshold = BaseType::mrMainModelPart.GetProcessInfo()[DISTANCE_THRESHOLD];
-    double reference_auxiliar_length = distance_threshold * active_check_factor;
-    double auxiliar_length = reference_auxiliar_length;
+    double reference_auxiliary_length = distance_threshold * active_check_factor;
+    double auxiliary_length = reference_auxiliary_length;
 
     // Compute linear regression
     const bool predict_correct_lagrange_multiplier = BaseType::mThisParameters["predict_correct_lagrange_multiplier"].GetBool();
@@ -97,16 +97,16 @@ void AdvancedContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ComputeActi
     const bool consider_gap_threshold = BaseType::mThisParameters["consider_gap_threshold"].GetBool();
 
     // We compute now the normal gap and set the nodes under certain threshold as active
-    struct auxiliar {bool auxiliar_check = false; bool has_weighted_gap = false; double auxiliar_length = 0.0;};
-    block_for_each(r_nodes_array, auxiliar(), [this, &reference_auxiliar_length, &consider_gap_threshold, &static_check_movement, &predict_correct_lagrange_multiplier, &a, &b, &common_epsilon](NodeType& rNode, auxiliar& aux) {
+    struct auxiliary {bool auxiliary_check = false; bool has_weighted_gap = false; double auxiliary_length = 0.0;};
+    block_for_each(r_nodes_array, auxiliary(), [this, &reference_auxiliary_length, &consider_gap_threshold, &static_check_movement, &predict_correct_lagrange_multiplier, &a, &b, &common_epsilon](Node& rNode, auxiliary& aux) {
         if (rNode.Is(SLAVE) == this->IsNotInvertedSearch()) {
-            aux.auxiliar_check = false;
-            aux.auxiliar_length = reference_auxiliar_length;
+            aux.auxiliary_check = false;
+            aux.auxiliary_length = reference_auxiliary_length;
             aux.has_weighted_gap = rNode.SolutionStepsDataHas(WEIGHTED_GAP);
             const double weighted_gap = aux.has_weighted_gap ? rNode.FastGetSolutionStepValue(WEIGHTED_GAP) : 0.0;
             if (rNode.Is(ACTIVE) && aux.has_weighted_gap) {
                 const double nodal_area = rNode.Has(NODAL_AREA) ? rNode.GetValue(NODAL_AREA) : 1.0;
-                aux.auxiliar_check = (weighted_gap/nodal_area < aux.auxiliar_length) ? true : false;
+                aux.auxiliary_check = (weighted_gap/nodal_area < aux.auxiliary_length) ? true : false;
             }
             // We do the static check
             if (static_check_movement && aux.has_weighted_gap) {
@@ -114,13 +114,13 @@ void AdvancedContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ComputeActi
                 if (movement_check > -(std::abs(weighted_gap) * 1.0e-3)) {
                     // If we consider the threshold
                     if (consider_gap_threshold) {
-                        if (aux.auxiliar_length < GapThreshold) {
-                            aux.auxiliar_length = GapThreshold;
+                        if (aux.auxiliary_length < GapThreshold) {
+                            aux.auxiliary_length = GapThreshold;
                         }
                     }
                 }
             }
-            if ((rNode.GetValue(NORMAL_GAP) < aux.auxiliar_length) || aux.auxiliar_check) {
+            if ((rNode.GetValue(NORMAL_GAP) < aux.auxiliary_length) || aux.auxiliary_check) {
                 if (predict_correct_lagrange_multiplier) {
                     SetActiveNodeWithRegression(rNode, a, b);
                 } else { // We just mark it
@@ -141,7 +141,7 @@ void AdvancedContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ComputeActi
         debug_buffer.open("gap_active_nodes_debug_" + r_sub_contact_model_part.Name() + "_step=" + std::to_string( r_sub_contact_model_part.GetProcessInfo()[STEP]) + ".out",std::ios::out);
         std::ostream os(&debug_buffer);
         for (const auto& r_node : r_nodes_array) {
-            os << "Node " << r_node.Id() << "\tNORMAL GAP:" << "\t" << r_node.GetValue(NORMAL_GAP) << "\tTHRESHOLD:\t" << auxiliar_length;
+            os << "Node " << r_node.Id() << "\tNORMAL GAP:" << "\t" << r_node.GetValue(NORMAL_GAP) << "\tTHRESHOLD:\t" << auxiliary_length;
             os << "\tNORMAL:" << "\t" << r_node.FastGetSolutionStepValue(NORMAL_X) << "\t" << r_node.FastGetSolutionStepValue(NORMAL_Y) << "\t" << r_node.FastGetSolutionStepValue(NORMAL_Z);
 //             os << "\tDISPLACEMENT:" << "\t" << r_node.FastGetSolutionStepValue(DISPLACEMENT_X) << "\t" << r_node.FastGetSolutionStepValue(DISPLACEMENT_Y) << "\t" << r_node.FastGetSolutionStepValue(DISPLACEMENT_Z);
             os << "\tAUXILIAR_COORDINATES:" << "\t" << r_node.GetValue(AUXILIAR_COORDINATES_X) << "\t" << r_node.GetValue(AUXILIAR_COORDINATES_Y) << "\t" << r_node.GetValue(AUXILIAR_COORDINATES_Z);
@@ -184,7 +184,7 @@ void AdvancedContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ComputeLine
 
     // We compute now the normal gap and set the nodes under certain threshold as active
     using FiveReduction = CombinedReduction<SumReduction<double>, SumReduction<double>, SumReduction<double>, SumReduction<double>, SumReduction<SizeType>>;
-    std::tie(sum_x,sum_xsq,sum_y,sum_xy,n) = block_for_each<FiveReduction>(r_nodes_array, AuxValues(), [&](NodeType& rNode, AuxValues& aux_values) {
+    std::tie(sum_x,sum_xsq,sum_y,sum_xy,n) = block_for_each<FiveReduction>(r_nodes_array, AuxValues(), [&](Node& rNode, AuxValues& aux_values) {
         // We get the condition geometry
         if (rNode.Is(ACTIVE)) {
             aux_values.xi = rNode.FastGetSolutionStepValue(WEIGHTED_GAP);
@@ -236,7 +236,7 @@ void AdvancedContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ComputeLine
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 void AdvancedContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SetActiveNodeWithRegression(
-    NodeType& rNode,
+    Node& rNode,
     const double a,
     const double b
     )
@@ -303,7 +303,7 @@ void AdvancedContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SetActiveNo
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 void AdvancedContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CorrectScalarMortarLM(
-    NodeType& rNode,
+    Node& rNode,
     const double a,
     const double b
     )
@@ -316,7 +316,7 @@ void AdvancedContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CorrectScal
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 void AdvancedContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CorrectComponentsMortarLM(
-    NodeType& rNode,
+    Node& rNode,
     const double a,
     const double b
     )
@@ -329,7 +329,7 @@ void AdvancedContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CorrectComp
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 void AdvancedContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CorrectALMFrictionlessMortarLM(
-    NodeType& rNode,
+    Node& rNode,
     const double a,
     const double b
     )
@@ -379,7 +379,7 @@ void AdvancedContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CorrectALMF
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 void AdvancedContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CorrectALMFrictionlessComponentsMortarLM(
-    NodeType& rNode,
+    Node& rNode,
     const double a,
     const double b
     )
@@ -431,7 +431,7 @@ void AdvancedContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CorrectALMF
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 void AdvancedContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CorrectALMFrictionalMortarLM(
-    NodeType& rNode,
+    Node& rNode,
     const double a,
     const double b
     )
@@ -450,7 +450,7 @@ void AdvancedContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CorrectALMF
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 void AdvancedContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::PredictScalarMortarLM(
-    NodeType& rNode,
+    Node& rNode,
     const double a,
     const double b
     )
@@ -463,7 +463,7 @@ void AdvancedContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::PredictScal
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 void AdvancedContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::PredictComponentsMortarLM(
-    NodeType& rNode,
+    Node& rNode,
     const double a,
     const double b
     )
@@ -476,7 +476,7 @@ void AdvancedContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::PredictComp
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 void AdvancedContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::PredictALMFrictionlessMortarLM(
-    NodeType& rNode,
+    Node& rNode,
     const double a,
     const double b
     )
@@ -511,7 +511,7 @@ void AdvancedContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::PredictALMF
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 void AdvancedContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::PredictALMFrictionlessComponentsMortarLM(
-    NodeType& rNode,
+    Node& rNode,
     const double a,
     const double b
     )
@@ -548,7 +548,7 @@ void AdvancedContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::PredictALMF
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 void AdvancedContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::PredictALMFrictionalMortarLM(
-    NodeType& rNode,
+    Node& rNode,
     const double a,
     const double b
     )

@@ -16,7 +16,7 @@ namespace Kratos {
     class KRATOS_API(SWIMMING_DEM_APPLICATION) HistoryForceLaw : public Flags {
 
     public:
-        typedef Node <3> NodeType;
+        typedef Node NodeType;
         KRATOS_CLASS_POINTER_DEFINITION(HistoryForceLaw);
 
         HistoryForceLaw(): mLastHistoryForceAddedMass(0.0){}
@@ -33,7 +33,7 @@ namespace Kratos {
 
         virtual std::string GetTypeOfLaw();
 
-        virtual void ComputeForce(Geometry<Node<3> >& r_geometry,
+        virtual void ComputeForce(Geometry<Node >& r_geometry,
                                   const double reynolds_number,
                                   double particle_radius,
                                   double fluid_density,
@@ -42,7 +42,7 @@ namespace Kratos {
                                   array_1d<double, 3>& history_force,
                                   const ProcessInfo& r_current_process_info){}
 
-        virtual double GetAddedMass(Geometry<Node<3> >& r_geometry,
+        virtual double GetAddedMass(Geometry<Node >& r_geometry,
                                     const ProcessInfo& r_current_process_info){return mLastHistoryForceAddedMass;}
 
     protected:

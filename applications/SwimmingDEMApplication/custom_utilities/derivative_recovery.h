@@ -11,7 +11,7 @@
 // System includes
 #include <string>
 #include <iostream>
-#include <stdlib.h>
+#include <cstdlib>
 
 // Project includes
 #include "includes/define.h"
@@ -76,7 +76,7 @@ typedef std::vector<ResultElementsContainerType>              VectorResultElemen
 typedef ModelPart::NodesContainerType                         NodesArrayType;
 typedef NodesArrayType::ContainerType                         ResultNodesContainerType;
 typedef std::vector<ResultNodesContainerType>                 VectorResultNodesContainerType;
-typedef std::vector<Node<3>::Pointer>                         NodalPointersContainerType;
+typedef std::vector<Node::Pointer>                         NodalPointersContainerType;
 typedef ModelPart::NodesContainerType::iterator               NodeIteratorType;
 
 typedef std::size_t                                           ListIndexType;
@@ -272,15 +272,15 @@ struct IsCloser{
 
 void SetNeighboursAndWeights(ModelPart& r_model_part);
 void SetNeighboursAndWeightsForTheLaplacian(ModelPart& r_model_part);
-void OrderByDistance(Node<3>::Pointer &p_node, GlobalPointersVector<Node<3> >& neigh_nodes);
-bool SetInitialNeighboursAndWeights(ModelPart& r_model_part, Node<3>::Pointer &p_node);
-bool SetNeighboursAndWeights(ModelPart& r_model_part, Node<3>::Pointer& p_node);
+void OrderByDistance(Node::Pointer &p_node, GlobalPointersVector<Node >& neigh_nodes);
+bool SetInitialNeighboursAndWeights(ModelPart& r_model_part, Node::Pointer &p_node);
+bool SetNeighboursAndWeights(ModelPart& r_model_part, Node::Pointer& p_node);
 double SecondDegreeTestPolynomial(const array_1d <double, 3>& coordinates);
 double SecondDegreeGenericPolynomial(DenseMatrix<double> C, const array_1d <double, 3>& coordinates);
 inline int Factorial(const unsigned int n);
-bool SetWeightsAndRunLeastSquaresTest(ModelPart& r_model_part, Node<3>::Pointer& p_node);
+bool SetWeightsAndRunLeastSquaresTest(ModelPart& r_model_part, Node::Pointer& p_node);
 unsigned int GetNumberOfUniqueNeighbours(const int my_id, const GlobalPointersVector<Element>& my_neighbour_elements);
-double CalculateTheMaximumDistanceToNeighbours(Node<3>::Pointer& p_node);
+double CalculateTheMaximumDistanceToNeighbours(Node::Pointer& p_node);
 double CalculateTheMaximumEdgeLength(ModelPart& r_model_part);
 double CalculateTheMinumumEdgeLength(ModelPart& r_model_part);
 

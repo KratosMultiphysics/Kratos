@@ -75,7 +75,6 @@ namespace Kratos {
         const double my_poisson      = element1->GetPoisson();
         const double other_poisson   = element2->GetPoisson();
         const double equiv_young     = my_young * other_young / (other_young * (1.0 - my_poisson * my_poisson) + my_young * (1.0 - other_poisson * other_poisson));
-
         //Get equivalent Shear Modulus
         const double my_shear_modulus = 0.5 * my_young / (1.0 + my_poisson);
         const double other_shear_modulus = 0.5 * other_young / (1.0 + other_poisson);
@@ -162,6 +161,7 @@ namespace Kratos {
         ViscoDampingLocalContactForce[0] = - equiv_visco_damp_coeff_tangential * LocalRelVel[0];
         ViscoDampingLocalContactForce[1] = - equiv_visco_damp_coeff_tangential * LocalRelVel[1];
         ViscoDampingLocalContactForce[2] = - equiv_visco_damp_coeff_normal     * LocalRelVel[2];
+
     }
 
     /////////////////////////
@@ -265,7 +265,6 @@ namespace Kratos {
 
         AuxElasticShearForce = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0] + LocalElasticContactForce[1] * LocalElasticContactForce[1]);
 
-
         const double equiv_tg_of_static_fri_ang = properties_of_this_contact[STATIC_FRICTION];
         const double equiv_tg_of_dynamic_fri_ang = properties_of_this_contact[DYNAMIC_FRICTION];
         const double equiv_friction_decay_coefficient = properties_of_this_contact[FRICTION_DECAY];
@@ -282,7 +281,7 @@ namespace Kratos {
 
         if (ActualTotalShearForce > MaximumAdmisibleShearForce) {
 
-            const double ActualElasticShearForce = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0] + LocalElasticContactForce[1] * LocalElasticContactForce[1]);
+            const double ActualElasticShearForce = AuxElasticShearForce;
 
             const double dot_product = LocalElasticContactForce[0] * ViscoDampingLocalContactForce[0] + LocalElasticContactForce[1] * ViscoDampingLocalContactForce[1];
             const double ViscoDampingLocalContactForceModule = sqrt(ViscoDampingLocalContactForce[0] * ViscoDampingLocalContactForce[0] +\
@@ -327,7 +326,7 @@ namespace Kratos {
                                                                 SphericParticle* const element,
                                                                 Condition* const wall) {
 
-        const double my_mass    = element->GetMass();
+        const double my_mass = element->GetMass();
 
         Properties& properties_of_this_contact = element->GetProperties().GetSubProperties(wall->GetProperties().Id());
         const double damping_gamma = properties_of_this_contact[DAMPING_GAMMA];
@@ -338,10 +337,10 @@ namespace Kratos {
         ViscoDampingLocalContactForce[0] = - tangential_damping_coefficient * LocalRelVel[0];
         ViscoDampingLocalContactForce[1] = - tangential_damping_coefficient * LocalRelVel[1];
         ViscoDampingLocalContactForce[2] = - normal_damping_coefficient     * LocalRelVel[2];
-
     }
 
     double DEM_D_Hertz_viscous_Coulomb::CalculateNormalForce(const double indentation) {
+
         return 0.666666666666666666667 * mKn * indentation;
     }
 
@@ -392,6 +391,10 @@ namespace Kratos {
     {
         double viscodamping_energy = sqrt(ViscoDampingLocalContactForce[0]*ViscoDampingLocalContactForce[0]*LocalDeltDisp[0]*LocalDeltDisp[0]+ViscoDampingLocalContactForce[1]*ViscoDampingLocalContactForce[1]*LocalDeltDisp[1]*LocalDeltDisp[1]+ViscoDampingLocalContactForce[2]*ViscoDampingLocalContactForce[2]*LocalDeltDisp[2]*LocalDeltDisp[2]);
         inelastic_viscodamping_energy += viscodamping_energy;
+    }
+
+    double DEM_D_Hertz_viscous_Coulomb::GetTangentialStiffness() {
+        return mKt;
     }
 
 } // namespace Kratos

@@ -60,7 +60,7 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Conctructor for B-Spline curves
+    /// Constructor for B-Spline curves
     NurbsCurveGeometry(
         const PointsArrayType& rThisPoints,
         const SizeType PolynomialDegree,
@@ -72,7 +72,7 @@ public:
         CheckAndFitKnotVectors();
     }
 
-    /// Conctructor for NURBS curves
+    /// Constructor for NURBS curves
     NurbsCurveGeometry(
         const PointsArrayType& rThisPoints,
         const SizeType PolynomialDegree,
@@ -332,7 +332,7 @@ public:
     ///@name ClosestPoint
     ///@{
 
-    /* @brief Makes a check if the provided paramater rPointLocalCoordinates[0]
+    /* @brief Makes a check if the provided parameter rPointLocalCoordinates[0]
      *        is inside the curve, or on the boundary or if it lays outside.
      *        If it is outside, it is set to the boundary which is closer to it.
      * @return if rPointLocalCoordinates[0] was before the projection:
@@ -703,11 +703,21 @@ public:
     ///@name Geometry Family
     ///@{
 
+    /**
+     * @brief Gets the geometry family.
+     * @details This function returns the family type of the geometry. The geometry family categorizes the geometry into a broader classification, aiding in its identification and processing.
+     * @return GeometryData::KratosGeometryFamily The geometry family.
+     */
     GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
         return GeometryData::KratosGeometryFamily::Kratos_Nurbs;
     }
 
+    /**
+     * @brief Gets the geometry type.
+     * @details This function returns the specific type of the geometry. The geometry type provides a more detailed classification of the geometry.
+     * @return GeometryData::KratosGeometryType The specific geometry type.
+     */
     GeometryData::KratosGeometryType GetGeometryType() const override
     {
         return GeometryData::KratosGeometryType::Kratos_Nurbs_Curve;
@@ -818,8 +828,7 @@ const GeometryData NurbsCurveGeometry<TWorkingSpaceDimension, TContainerPointTyp
     {}, {}, {});
 
 template<int TWorkingSpaceDimension, class TContainerPointType>
-const GeometryDimension NurbsCurveGeometry<TWorkingSpaceDimension, TContainerPointType>::msGeometryDimension(
-    1, TWorkingSpaceDimension, 1);
+const GeometryDimension NurbsCurveGeometry<TWorkingSpaceDimension, TContainerPointType>::msGeometryDimension(TWorkingSpaceDimension, 1);
 
 } // namespace Kratos
 

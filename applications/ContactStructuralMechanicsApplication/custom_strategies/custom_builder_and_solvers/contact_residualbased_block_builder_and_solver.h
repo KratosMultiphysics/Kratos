@@ -4,20 +4,20 @@
 //        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
 //        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
-//  License:		 BSD License
-//					 license: ContactStructuralMechanicsApplication/license.txt
+//  License:         BSD License
+//                   license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 //
-#if !defined(KRATOS_CONTACT_RESIDUAL_BASED_BLOCK_BUILDER_AND_SOLVER )
-#define  KRATOS_CONTACT_RESIDUAL_BASED_BLOCK_BUILDER_AND_SOLVER
 
-/* System includes */
+#pragma once
 
-/* External includes */
+// System includes
 
-/* Project includes */
+// External includes
+
+// Project includes
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
 
 namespace Kratos
@@ -70,23 +70,28 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(ContactResidualBasedBlockBuilderAndSolver);
 
     /// Builder and solver base class
-    typedef BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> BaseBuilderAndSolverType;
+    using BaseBuilderAndSolverType = BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>;
 
-    /// Definitions dependent of the base class
-    typedef TBuilderAndSolver BaseType;
+    /// Definitions dependent on the base class
+    using BaseType = TBuilderAndSolver;
 
     /// The definition of the current class
-    typedef ContactResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver, TBuilderAndSolver> ClassType;
+    using ClassType = ContactResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver, TBuilderAndSolver>;
 
-    typedef typename BaseType::TSchemeType TSchemeType;
+    /// Type alias for the scheme used in the base class
+    using TSchemeType = typename BaseType::TSchemeType;
 
-    typedef typename BaseType::TDataType TDataType;
+    /// Type alias for the data type used in the base class
+    using TDataType = typename BaseType::TDataType;
 
-    typedef typename BaseType::DofsArrayType DofsArrayType;
+    /// Type alias for the collection of degrees of freedom used in the base class
+    using DofsArrayType = typename BaseType::DofsArrayType;
 
-    typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
+    /// Type alias for the system matrix used in the base class
+    using TSystemMatrixType = typename BaseType::TSystemMatrixType;
 
-    typedef typename BaseType::TSystemVectorType TSystemVectorType;
+    /// Type alias for the system vector used in the base class
+    using TSystemVectorType = typename BaseType::TSystemVectorType;
 
     ///@}
     ///@name Life Cycle
@@ -293,7 +298,7 @@ private:
 
         // We reset the flag
         auto& r_nodes_array = r_contact_model_part.Nodes();
-        block_for_each(r_nodes_array, [&](NodeType& rNode) {
+        block_for_each(r_nodes_array, [&](Node& rNode) {
             rNode.Set(VISITED, false);
             rNode.Set(ISOLATED, false);
         });
@@ -315,7 +320,7 @@ private:
         });
 
         // We fix the LM
-        block_for_each(r_nodes_array, [&](NodeType& rNode) {
+        block_for_each(r_nodes_array, [&](Node& rNode) {
             if (rNode.Is(ISOLATED)) {
                 if (rNode.SolutionStepsDataHas(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE)) {
                     rNode.Fix(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE);
@@ -339,7 +344,7 @@ private:
 
         // We release the LM
         auto& r_nodes_array = r_contact_model_part.Nodes();
-        block_for_each(r_nodes_array, [&](NodeType& rNode) {
+        block_for_each(r_nodes_array, [&](Node& rNode) {
             if (rNode.Is(ISOLATED)) {
                 if (rNode.SolutionStepsDataHas(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE)) {
                     rNode.Free(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE);
@@ -381,5 +386,3 @@ private:
 ///@}
 
 } /* namespace Kratos.*/
-
-#endif /* KRATOS_CONTACT_RESIDUAL_BASED_BLOCK_BUILDER_AND_SOLVER  defined */

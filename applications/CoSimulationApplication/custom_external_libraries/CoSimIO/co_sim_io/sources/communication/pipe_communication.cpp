@@ -140,7 +140,9 @@ PipeCommunication::BidirectionalPipe::BidirectionalPipe(
         CO_SIM_IO_ERROR_IF((mPipeHandleWrite = open(mPipeNameWrite.c_str(), O_WRONLY)) < 0) << "Pipe " << mPipeNameWrite << " could not be opened!" << std::endl;
     }
 
-    #ifdef CO_SIM_IO_COMPILED_IN_LINUX
+    // if possible try to resize the pipes to the buffer size
+    // not resizing still works but leads to communication in more chunks
+    #if defined(F_GETPIPE_SZ) && defined(F_SETPIPE_SZ) // some old kernels don't define this
     const int pipe_buffer_size_read = fcntl(mPipeHandleRead, F_GETPIPE_SZ);
     const int pipe_buffer_size_write = fcntl(mPipeHandleWrite, F_GETPIPE_SZ);
 

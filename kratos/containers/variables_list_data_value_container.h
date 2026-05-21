@@ -4,15 +4,14 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //
 //
 
-#if !defined(KRATOS_VARIABLES_LIST_DATA_VALUE_CONTAINER_H_INCLUDED )
-#define KRATOS_VARIABLES_LIST_DATA_VALUE_CONTAINER_H_INCLUDED
+#pragma once
 
 // System includes
 #include <string>
@@ -26,7 +25,6 @@
 #include "includes/define.h"
 #include "containers/variable.h"
 #include "containers/variables_list.h"
-#include "includes/global_variables.h"
 
 namespace Kratos
 {
@@ -68,14 +66,17 @@ public:
     /// Pointer definition of VariablesListDataValueContainer
     KRATOS_CLASS_POINTER_DEFINITION(VariablesListDataValueContainer);
 
-    typedef VariablesList::BlockType BlockType;
+    /// The block type definition
+    using BlockType = VariablesList::BlockType;
 
     /// Type of the container used for variables
-    typedef BlockType* ContainerType;
+    using ContainerType= BlockType*;
 
-    typedef std::size_t IndexType;
+    /// The index type definition
+    using IndexType = std::size_t;
 
-    typedef std::size_t SizeType;
+    /// The size type definition
+    using SizeType = std::size_t;
 
     ///@}
     ///@name Life Cycle
@@ -695,7 +696,12 @@ public:
     ///@name Inquiry
     ///@{
 
-    template<class TDataType> bool Has(const Variable<TDataType>& rThisVariable) const
+    /**
+     * @brief This method returns if a certain variable is stored in the data value container
+     * @param rThisVariable The variable to be checked
+     * @return True if the variable is stored, false otherwise
+     */
+    bool Has(const VariableData& rThisVariable) const
     {
         if(!mpVariablesList)
             return false;
@@ -993,5 +999,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 
 }  // namespace Kratos.
-
-#endif // KRATOS_VARIABLES_LIST_DATA_VALUE_CONTAINER_H_INCLUDED  defined

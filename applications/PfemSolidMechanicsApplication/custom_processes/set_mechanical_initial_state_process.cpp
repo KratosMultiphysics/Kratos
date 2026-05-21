@@ -341,7 +341,7 @@ namespace Kratos
 
       for (ModelPart::ElementsContainerType::const_iterator pElement = rModelPart.ElementsBegin(); pElement!=rModelPart.ElementsEnd() ; ++pElement)
       {
-         Geometry<Node <3> >&  rGeom = (pElement)->GetGeometry();
+         Geometry<Node >&  rGeom = (pElement)->GetGeometry();
          double Y = 0;
          for (unsigned int i = 0; i < rGeom.size(); ++i) {
             Y += rGeom[i].Y();
@@ -396,7 +396,7 @@ namespace Kratos
 
       for (ModelPart::ElementsContainerType::const_iterator pElement = rModelPart.ElementsBegin(); pElement!=rModelPart.ElementsEnd() ; ++pElement)
       {
-         Geometry<Node <3> >&  rGeom = (pElement)->GetGeometry();
+         Geometry<Node >&  rGeom = (pElement)->GetGeometry();
          double Y = 0;
          for (unsigned int i = 0; i < rGeom.size(); ++i)
             Y += rGeom[i].Y();
@@ -497,7 +497,7 @@ namespace Kratos
 
       for (ModelPart::ElementsContainerType::const_iterator pElement = rModelPart.ElementsBegin(); pElement!=rModelPart.ElementsEnd() ; ++pElement)
       {
-         Geometry<Node <3> >&  rGeom = (pElement)->GetGeometry();
+         Geometry<Node >&  rGeom = (pElement)->GetGeometry();
          double Y = 0;
          for (unsigned int i = 0; i < rGeom.size(); ++i)
             Y += rGeom[i].Y();

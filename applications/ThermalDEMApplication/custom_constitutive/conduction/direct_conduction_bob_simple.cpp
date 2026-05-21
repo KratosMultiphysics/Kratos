@@ -14,7 +14,7 @@
 #include "direct_conduction_bob_simple.h"
 
 namespace Kratos {
-  //-----------------------------------------------------------------------------------------------------------------------
+  //------------------------------------------------------------------------------------------------------------
   DirectConductionBOBSimple::DirectConductionBOBSimple() {}
   DirectConductionBOBSimple::~DirectConductionBOBSimple() {}
 

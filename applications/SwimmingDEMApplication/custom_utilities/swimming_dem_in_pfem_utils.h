@@ -70,7 +70,7 @@ void TransferWalls(ModelPart& r_source_model_part, ModelPart& r_destination_mode
 
   for (unsigned int i = 0; i < source_elements.size(); i++) {
     ModelPart::ElementsContainerType::iterator it = r_source_model_part.ElementsBegin() + i;
-    Geometry< Node<3> >::Pointer p_geometry =  it->pGetGeometry();
+    Geometry< Node >::Pointer p_geometry =  it->pGetGeometry();
     Condition::Pointer cond = Condition::Pointer(new RigidFace3D(id, p_geometry, props));
     r_destination_model_part.AddCondition(cond);
     id++;

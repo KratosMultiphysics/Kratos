@@ -33,19 +33,20 @@ vex::Context& vexcl_context() {
     return ctx;
 }
 
-template <int TBlockSize>
+template <class TValue, int TBlockSize>
 void register_vexcl_static_matrix_type() {
     static vex::scoped_program_header header(vexcl_context(),
-            amgcl::backend::vexcl_static_matrix_declaration<double,TBlockSize>());
+            amgcl::backend::vexcl_static_matrix_declaration<TValue,TBlockSize>());
 }
 #endif
 
+template <class TValue>
 void AMGCLScalarSolve(
-    TUblasSparseSpace<double>::MatrixType& rA,
-    TUblasSparseSpace<double>::VectorType& rX,
-    TUblasSparseSpace<double>::VectorType& rB,
-    TUblasSparseSpace<double>::IndexType& rIterationNumber,
-    double& rResidual,
+    typename TUblasSparseSpace<TValue>::MatrixType& rA,
+    typename TUblasSparseSpace<TValue>::VectorType& rX,
+    typename TUblasSparseSpace<TValue>::VectorType& rB,
+    typename TUblasSparseSpace<TValue>::IndexType& rIterationNumber,
+    TValue& rResidual,
     const boost::property_tree::ptree &amgclParams,
     int verbosity_level,
     bool use_gpgpu
@@ -55,24 +56,24 @@ void AMGCLScalarSolve(
     if (use_gpgpu && vexcl_context()) {
         auto &ctx = vexcl_context();
 
-        typedef amgcl::backend::vexcl<double> Backend;
+        typedef amgcl::backend::vexcl<TValue> Backend;
         typedef amgcl::make_solver<
             amgcl::runtime::preconditioner<Backend>,
             amgcl::runtime::solver::wrapper<Backend>
             > Solver;
 
-        Backend::params bprm;
+        typename Backend::params bprm;
         bprm.q = ctx;
 
         Solver solve(amgcl::adapter::zero_copy(
-                    TUblasSparseSpace<double>::Size1(rA),
+                    TUblasSparseSpace<TValue>::Size1(rA),
                     rA.index1_data().begin(),
                     rA.index2_data().begin(),
                     rA.value_data().begin()),
                 amgclParams, bprm);
 
-        vex::vector<double> b(ctx, rB.size(), &rB[0]);
-        vex::vector<double> x(ctx, rX.size(), &rX[0]);
+        vex::vector<TValue> b(ctx, rB.size(), &rB[0]);
+        vex::vector<TValue> x(ctx, rX.size(), &rX[0]);
 
         std::tie(rIterationNumber, rResidual) = solve(b, x);
 
@@ -83,7 +84,7 @@ void AMGCLScalarSolve(
     } else
 #endif
     {
-        typedef amgcl::backend::builtin<double> Backend;
+        typedef amgcl::backend::builtin<TValue> Backend;
         typedef amgcl::make_solver<
             amgcl::runtime::preconditioner<Backend>,
             amgcl::runtime::solver::wrapper<Backend>
@@ -103,13 +104,13 @@ void AMGCLScalarSolve(
     }
 }
 
-template <int TBlockSize>
+template <class TValue, int TBlockSize>
 void AMGCLBlockSolve(
-    TUblasSparseSpace<double>::MatrixType & rA,
-    TUblasSparseSpace<double>::VectorType& rX,
-    TUblasSparseSpace<double>::VectorType& rB,
-    TUblasSparseSpace<double>::IndexType& rIterationNumber,
-    double& rResidual,
+    typename TUblasSparseSpace<TValue>::MatrixType & rA,
+    typename TUblasSparseSpace<TValue>::VectorType& rX,
+    typename TUblasSparseSpace<TValue>::VectorType& rB,
+    typename TUblasSparseSpace<TValue>::IndexType& rIterationNumber,
+    TValue& rResidual,
     boost::property_tree::ptree amgclParams,
     int verbosity_level,
     bool use_gpgpu
@@ -120,16 +121,16 @@ void AMGCLBlockSolve(
     else
         amgclParams.put("precond.coarsening.aggr.block_size",1);
 
-    typedef amgcl::static_matrix<double, TBlockSize, TBlockSize> value_type;
-    typedef amgcl::static_matrix<double, TBlockSize, 1> rhs_type;
+    typedef amgcl::static_matrix<TValue, TBlockSize, TBlockSize> value_type;
+    typedef amgcl::static_matrix<TValue, TBlockSize, 1> rhs_type;
 
-    std::size_t n = TUblasSparseSpace<double>::Size1(rA);
+    std::size_t n = TUblasSparseSpace<TValue>::Size1(rA);
     std::size_t nb = n / TBlockSize;
 
 #ifdef AMGCL_GPGPU
     if (use_gpgpu && vexcl_context()) {
         auto &ctx = vexcl_context();
-        register_vexcl_static_matrix_type<TBlockSize>();
+        register_vexcl_static_matrix_type<TValue,TBlockSize>();
 
         typedef amgcl::backend::vexcl<value_type> Backend;
 
@@ -186,13 +187,18 @@ void AMGCLBlockSolve(
     }
 }
 
+
+namespace detail {
+
+
+template <class TValue>
 void AMGCLSolve(
     int block_size,
-    TUblasSparseSpace<double>::MatrixType& rA,
-    TUblasSparseSpace<double>::VectorType& rX,
-    TUblasSparseSpace<double>::VectorType& rB,
-    TUblasSparseSpace<double>::IndexType& rIterationNumber,
-    double& rResidual,
+    typename TUblasSparseSpace<TValue>::MatrixType& rA,
+    typename TUblasSparseSpace<TValue>::VectorType& rX,
+    typename TUblasSparseSpace<TValue>::VectorType& rB,
+    typename TUblasSparseSpace<TValue>::IndexType& rIterationNumber,
+    TValue& rResidual,
     boost::property_tree::ptree amgclParams,
     int verbosity_level,
     bool use_gpgpu
@@ -210,18 +216,60 @@ void AMGCLSolve(
 
     switch (block_size) {
         case 2:
-            AMGCLBlockSolve<2>(rA, rX, rB, rIterationNumber, rResidual, amgclParams, verbosity_level, use_gpgpu);
+            AMGCLBlockSolve<TValue,2>(rA, rX, rB, rIterationNumber, rResidual, amgclParams, verbosity_level, use_gpgpu);
             return;
         case 3:
-            AMGCLBlockSolve<3>(rA, rX, rB, rIterationNumber, rResidual, amgclParams, verbosity_level, use_gpgpu);
+            AMGCLBlockSolve<TValue,3>(rA, rX, rB, rIterationNumber, rResidual, amgclParams, verbosity_level, use_gpgpu);
             return;
         case 4:
-            AMGCLBlockSolve<4>(rA, rX, rB, rIterationNumber, rResidual, amgclParams, verbosity_level, use_gpgpu);
+            AMGCLBlockSolve<TValue,4>(rA, rX, rB, rIterationNumber, rResidual, amgclParams, verbosity_level, use_gpgpu);
             return;
         default:
-            AMGCLScalarSolve(rA, rX, rB, rIterationNumber, rResidual, amgclParams, verbosity_level, use_gpgpu);
+            AMGCLScalarSolve<TValue>(rA, rX, rB, rIterationNumber, rResidual, amgclParams, verbosity_level, use_gpgpu);
             return;
     }
 }
+
+
+} // namespace detail
+
+
+void AMGCLSolve(
+    int block_size,
+    TUblasSparseSpace<double>::MatrixType& rA,
+    TUblasSparseSpace<double>::VectorType& rX,
+    TUblasSparseSpace<double>::VectorType& rB,
+    TUblasSparseSpace<double>::IndexType& rIterationNumber,
+    double& rResidual,
+    boost::property_tree::ptree amgclParams,
+    int verbosity_level,
+    bool use_gpgpu
+    )
+{
+    detail::AMGCLSolve<double>(block_size,
+                               rA, rX, rB,
+                               rIterationNumber, rResidual,
+                               amgclParams, verbosity_level, use_gpgpu);
+}
+
+
+void AMGCLSolve(
+    int block_size,
+    TUblasSparseSpace<float>::MatrixType& rA,
+    TUblasSparseSpace<float>::VectorType& rX,
+    TUblasSparseSpace<float>::VectorType& rB,
+    TUblasSparseSpace<float>::IndexType& rIterationNumber,
+    float& rResidual,
+    boost::property_tree::ptree amgclParams,
+    int verbosity_level,
+    bool use_gpgpu
+    )
+{
+    detail::AMGCLSolve<float>(block_size,
+                              rA, rX, rB,
+                              rIterationNumber, rResidual,
+                              amgclParams, verbosity_level, use_gpgpu);
+}
+
 
 }

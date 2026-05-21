@@ -16,7 +16,6 @@
 // External includes
 
 // Project includes
-#include "testing/testing.h"
 #include "containers/model.h"
 #include "includes/cfd_variables.h"
 #include "utilities/element_size_calculator.h"
@@ -24,6 +23,7 @@
 // Application includes
 #include "fluid_dynamics_application_variables.h"
 #include "custom_utilities/fluid_characteristic_numbers_utilities.h"
+#include "tests/cpp_tests/fluid_dynamics_fast_suite.h"
 
 namespace Kratos {
 namespace Testing  {
@@ -101,8 +101,8 @@ KRATOS_TEST_CASE_IN_SUITE(FluidCharacteristicNumbersCalculateLocalCFL, FluidDyna
 
     // Check results
     const double tolerance = 2.0e-6;
-    KRATOS_CHECK_NEAR(r_model_part.GetElement(1).GetValue(CFL_NUMBER), 0.186339, tolerance);
-    KRATOS_CHECK_NEAR(r_model_part.GetElement(2).GetValue(CFL_NUMBER), 0.792324, tolerance);
+    KRATOS_EXPECT_NEAR(r_model_part.GetElement(1).GetValue(CFL_NUMBER), 0.186339, tolerance);
+    KRATOS_EXPECT_NEAR(r_model_part.GetElement(2).GetValue(CFL_NUMBER), 0.792324, tolerance);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(FluidCharacteristicNumbersCalculateElementCFLWithSoundVelocity, FluidDynamicsApplicationFastSuite)
@@ -138,7 +138,7 @@ KRATOS_TEST_CASE_IN_SUITE(FluidCharacteristicNumbersCalculateElementCFLWithSound
     constexpr double expected_cfl = (V + c) * dt / min_h;
     
     const double tolerance = 1.0e-8;
-    KRATOS_CHECK_NEAR(element_cfl, expected_cfl, tolerance);
+    KRATOS_EXPECT_NEAR(element_cfl, expected_cfl, tolerance);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(FluidCharacteristicNumbersCalculateElementPrandtlNumber, FluidDynamicsApplicationFastSuite)
@@ -153,7 +153,7 @@ KRATOS_TEST_CASE_IN_SUITE(FluidCharacteristicNumbersCalculateElementPrandtlNumbe
 
     // Check results
     const double tolerance = 1.0e-8;
-    KRATOS_CHECK_NEAR(prandtl_number, 0.5, tolerance);
+    KRATOS_EXPECT_NEAR(prandtl_number, 0.5, tolerance);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(FluidCharacteristicNumbersCalculateElementPecletNumbers, FluidDynamicsApplicationFastSuite)
@@ -164,15 +164,15 @@ KRATOS_TEST_CASE_IN_SUITE(FluidCharacteristicNumbersCalculateElementPecletNumber
     TestFluidCharacteristicNumberElementSet(r_model_part);
 
     // Calculate the element Peclet numbers
-    std::function<double(const Geometry<Node<3>>&)> avg_elem_function = ElementSizeCalculator<2,3>::AverageElementSize;
+    std::function<double(const Geometry<Node>&)> avg_elem_function = ElementSizeCalculator<2,3>::AverageElementSize;
     const auto peclet_numbers = FluidCharacteristicNumbersUtilities::CalculateElementPecletNumbers<true, false>(
         r_model_part.GetElement(1),
         avg_elem_function);
 
     // Check results
     const double tolerance = 1.0e-8;
-    KRATOS_CHECK_NEAR(std::get<0>(peclet_numbers), 0.055555555555, tolerance);
-    KRATOS_CHECK_NEAR(std::get<1>(peclet_numbers), 0.027777777777, tolerance);
+    KRATOS_EXPECT_NEAR(std::get<0>(peclet_numbers), 0.055555555555, tolerance);
+    KRATOS_EXPECT_NEAR(std::get<1>(peclet_numbers), 0.027777777777, tolerance);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(FluidCharacteristicNumbersCalculateElementThermalPecletNumber, FluidDynamicsApplicationFastSuite)
@@ -183,14 +183,14 @@ KRATOS_TEST_CASE_IN_SUITE(FluidCharacteristicNumbersCalculateElementThermalPecle
     TestFluidCharacteristicNumberElementSet(r_model_part);
 
     // Calculate the element Peclet numbers
-    std::function<double(const Geometry<Node<3>>&)> avg_elem_function = ElementSizeCalculator<2,3>::AverageElementSize;
+    std::function<double(const Geometry<Node>&)> avg_elem_function = ElementSizeCalculator<2,3>::AverageElementSize;
     const double k_peclet_number = FluidCharacteristicNumbersUtilities::CalculateElementThermalPecletNumber<true, false>(
         r_model_part.GetElement(1),
         avg_elem_function);
 
     // Check results
     const double tolerance = 1.0e-8;
-    KRATOS_CHECK_NEAR(k_peclet_number, 0.027777777777, tolerance);
+    KRATOS_EXPECT_NEAR(k_peclet_number, 0.027777777777, tolerance);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(FluidCharacteristicNumbersCalculateElementViscousPecletNumber, FluidDynamicsApplicationFastSuite)
@@ -201,14 +201,14 @@ KRATOS_TEST_CASE_IN_SUITE(FluidCharacteristicNumbersCalculateElementViscousPecle
     TestFluidCharacteristicNumberElementSet(r_model_part);
 
     // Calculate the element Peclet numbers
-    std::function<double(const Geometry<Node<3>>&)> avg_elem_function = ElementSizeCalculator<2,3>::AverageElementSize;
+    std::function<double(const Geometry<Node>&)> avg_elem_function = ElementSizeCalculator<2,3>::AverageElementSize;
     const double mu_peclet_number = FluidCharacteristicNumbersUtilities::CalculateElementViscousPecletNumber<true, false>(
         r_model_part.GetElement(1),
         avg_elem_function);
 
     // Check results
     const double tolerance = 1.0e-8;
-    KRATOS_CHECK_NEAR(mu_peclet_number, 0.055555555555, tolerance);
+    KRATOS_EXPECT_NEAR(mu_peclet_number, 0.055555555555, tolerance);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(FluidCharacteristicNumbersCalculateElementFourierNumbers, FluidDynamicsApplicationFastSuite)
@@ -222,7 +222,7 @@ KRATOS_TEST_CASE_IN_SUITE(FluidCharacteristicNumbersCalculateElementFourierNumbe
     TestFluidCharacteristicNumberElementSet(r_model_part);
 
     // Calculate the element Peclet numbers
-    std::function<double(const Geometry<Node<3>>&)> min_elem_function = ElementSizeCalculator<2,3>::MinimumElementSize;
+    std::function<double(const Geometry<Node>&)> min_elem_function = ElementSizeCalculator<2,3>::MinimumElementSize;
     const auto fourier_numbers = FluidCharacteristicNumbersUtilities::CalculateElementFourierNumbers<true, false>(
         r_model_part.GetElement(1),
         min_elem_function,
@@ -230,8 +230,8 @@ KRATOS_TEST_CASE_IN_SUITE(FluidCharacteristicNumbersCalculateElementFourierNumbe
 
     // Check results
     const double tolerance = 1.0e-8;
-    KRATOS_CHECK_NEAR(std::get<0>(fourier_numbers), 3.75, tolerance);
-    KRATOS_CHECK_NEAR(std::get<1>(fourier_numbers), 7.5, tolerance);
+    KRATOS_EXPECT_NEAR(std::get<0>(fourier_numbers), 3.75, tolerance);
+    KRATOS_EXPECT_NEAR(std::get<1>(fourier_numbers), 7.5, tolerance);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(FluidCharacteristicNumbersCalculateElementThermalFourierNumber, FluidDynamicsApplicationFastSuite)
@@ -245,7 +245,7 @@ KRATOS_TEST_CASE_IN_SUITE(FluidCharacteristicNumbersCalculateElementThermalFouri
     TestFluidCharacteristicNumberElementSet(r_model_part);
 
     // Calculate the element Peclet numbers
-    std::function<double(const Geometry<Node<3>>&)> min_elem_function = ElementSizeCalculator<2,3>::MinimumElementSize;
+    std::function<double(const Geometry<Node>&)> min_elem_function = ElementSizeCalculator<2,3>::MinimumElementSize;
     const double thermal_fourier_number = FluidCharacteristicNumbersUtilities::CalculateElementThermalFourierNumber<true, false>(
         r_model_part.GetElement(1),
         min_elem_function,
@@ -253,7 +253,7 @@ KRATOS_TEST_CASE_IN_SUITE(FluidCharacteristicNumbersCalculateElementThermalFouri
 
     // Check results
     const double tolerance = 1.0e-8;
-    KRATOS_CHECK_NEAR(thermal_fourier_number, 7.5, tolerance);
+    KRATOS_EXPECT_NEAR(thermal_fourier_number, 7.5, tolerance);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(FluidCharacteristicNumbersCalculateElementViscousFourierNumber, FluidDynamicsApplicationFastSuite)
@@ -267,7 +267,7 @@ KRATOS_TEST_CASE_IN_SUITE(FluidCharacteristicNumbersCalculateElementViscousFouri
     TestFluidCharacteristicNumberElementSet(r_model_part);
 
     // Calculate the element Peclet numbers
-    std::function<double(const Geometry<Node<3>>&)> min_elem_function = ElementSizeCalculator<2,3>::MinimumElementSize;
+    std::function<double(const Geometry<Node>&)> min_elem_function = ElementSizeCalculator<2,3>::MinimumElementSize;
     const double viscous_fourier_number = FluidCharacteristicNumbersUtilities::CalculateElementViscousFourierNumber<true, false>(
         r_model_part.GetElement(1),
         min_elem_function,
@@ -275,7 +275,7 @@ KRATOS_TEST_CASE_IN_SUITE(FluidCharacteristicNumbersCalculateElementViscousFouri
 
     // Check results
     const double tolerance = 1.0e-8;
-    KRATOS_CHECK_NEAR(viscous_fourier_number, 3.75, tolerance);
+    KRATOS_EXPECT_NEAR(viscous_fourier_number, 3.75, tolerance);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(FluidCharacteristicNumbersCalculateElementMachNumber, FluidDynamicsApplicationFastSuite)
@@ -295,7 +295,7 @@ KRATOS_TEST_CASE_IN_SUITE(FluidCharacteristicNumbersCalculateElementMachNumber, 
 
     // Check results
     const double tolerance = 1.0e-6;
-    KRATOS_CHECK_NEAR(mach_number, 0.357143, tolerance);
+    KRATOS_EXPECT_NEAR(mach_number, 0.357143, tolerance);
 }
 
 }

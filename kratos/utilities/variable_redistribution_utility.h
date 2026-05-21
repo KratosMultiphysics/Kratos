@@ -66,7 +66,7 @@ namespace Kratos
       ///@name Type Definitions
       ///@{
 
-      typedef Node<3> NodeType;
+      typedef Node NodeType;
 
       /// Pointer definition of VariableRedistributionUtility
       KRATOS_CLASS_POINTER_DEFINITION(VariableRedistributionUtility);

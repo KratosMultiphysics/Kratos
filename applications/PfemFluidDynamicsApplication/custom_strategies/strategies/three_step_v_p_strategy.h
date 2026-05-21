@@ -34,7 +34,7 @@
 #include "v_p_strategy.h"
 
 #include <stdio.h>
-#include <math.h>
+#include <cmath>
 
 namespace Kratos
 {
@@ -321,7 +321,7 @@ namespace Kratos
         OpenMPUtils::PartitionedIterators(rModelPart.Elements(), ElemBegin, ElemEnd);
         for (ModelPart::ElementIterator itElem = ElemBegin; itElem != ElemEnd; ++itElem)
         {
-          itElem->InitializeSolutionStep(rCurrentProcessInfo);
+          itElem->InitializeNonLinearIteration(rCurrentProcessInfo);
         }
       }
 

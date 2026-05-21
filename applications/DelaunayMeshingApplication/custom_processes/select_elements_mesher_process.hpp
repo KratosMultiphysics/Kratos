@@ -418,7 +418,7 @@ class SelectElementsMesherProcess
     }
 
     //counter method
-    void CountFlags(const Node<3>& rNode)
+    void CountFlags(const Node& rNode)
     {
       if(rNode.Is(SOLID))
         ++Solid;
@@ -1086,7 +1086,7 @@ class SelectElementsMesherProcess
       int sliver = 0;
       if(rDimension == 3 && NumberOfVertices==4){
 
-        Tetrahedra3D4<Node<3> > Tetrahedron(rVertices);
+        Tetrahedra3D4<Node > Tetrahedron(rVertices);
 
         MesherUtilities MesherUtils;
         accepted = MesherUtils.CheckGeometryShape(Tetrahedron,sliver);
@@ -1160,7 +1160,7 @@ class SelectElementsMesherProcess
 
         if( rVerticesFlags.FreeSurface >=2 || (rVerticesFlags.Boundary == 4 && rVerticesFlags.NoWallFreeSurface !=4) ){
 
-          Tetrahedra3D4<Node<3> > Tetrahedron(rVertices);
+          Tetrahedra3D4<Node > Tetrahedron(rVertices);
           double Volume = Tetrahedron.Volume();
 
           if( Volume < 0.01*pow(4.0*mrRemesh.Refine->CriticalRadius,rDimension) ){

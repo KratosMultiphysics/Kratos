@@ -4,14 +4,13 @@
 //        | |  | | |___ ___) |  _  || || |\  | |_| |
 //        |_|  |_|_____|____/|_| |_|___|_| \_|\____| APPLICATION
 //
-//  License:		 BSD License
-//                       license: MeshingApplication/license.txt
+//  License:         BSD License
+//                   license: MeshingApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_NODAL_VALUES_INTERPOLATION_PROCESS )
-#define  KRATOS_NODAL_VALUES_INTERPOLATION_PROCESS
+#pragma once
 
 // System includes
 #include <unordered_set>
@@ -54,6 +53,19 @@ namespace Kratos
 ///@}
 ///@name  Functions
 ///@{
+
+namespace NodalInterpolationFunctions
+{
+    /**
+     * @brief This methoid creates the list of non-historical variables fro nodal interpolation
+     * @param rModelPart The model part to extract the non-historical variables
+     * @param rVariableList The list of non-historical variables
+     */
+    void KRATOS_API(MESHING_APPLICATION) GetListNonHistoricalVariables(
+        const ModelPart& rModelPart,
+        std::unordered_set<std::string>& rVariableList
+        );
+};
 
 ///@}
 ///@name Kratos Classes
@@ -178,11 +190,7 @@ public:
      */
     void UpdatePoint()
     {
-#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
-        this->Coordinates() = mpOriginCond->GetGeometry().Center().Coordinates();
-#else
         noalias(this->Coordinates()) = mpOriginCond->GetGeometry().Center().Coordinates();
-#endif // ifdef KRATOS_USE_AMATRIX
     }
 
 private:
@@ -212,7 +220,7 @@ public:
     typedef ModelPart::NodesContainerType                    NodesArrayType;
     typedef ModelPart::ElementsContainerType              ElementsArrayType;
     typedef ModelPart::ConditionsContainerType          ConditionsArrayType;
-    typedef Node<3>                                                NodeType;
+    typedef Node                                                NodeType;
     typedef Geometry<NodeType>                                 GeometryType;
     typedef Point                                                 PointType;
     typedef PointType::CoordinatesArrayType            CoordinatesArrayType;
@@ -251,7 +259,6 @@ public:
      * @param rDestinationMainModelPart The model part where we want to interpolate the values
      * @param ThisParameters The parameters containing all the information needed
      */
-
     NodalValuesInterpolationProcess(
         ModelPart& rOriginMainModelPart,
         ModelPart& rDestinationMainModelPart,
@@ -317,39 +324,6 @@ public:
     ///@{
 
     ///@}
-
-protected:
-
-    ///@name Protected static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-    ///@}
-
 private:
     ///@name Static Member Variables
     ///@{
@@ -410,63 +384,58 @@ private:
         for (IndexType i = 0; i < number_of_nodes; ++i) {
             aux_coeff += rShapeFunctions[i];
         }
-        for (auto& var_name : mListVariables) {
-            if (KratosComponents<Variable<double>>::Has(var_name)) {
-                const Variable<double>& var = KratosComponents<Variable<double>>::Get(var_name);
+        for (auto& r_variable_name : mListVariables) {
+            if (KratosComponents<Variable<double>>::Has(r_variable_name)) {
+                const Variable<double>& r_variable = KratosComponents<Variable<double>>::Get(r_variable_name);
                 if (std::abs(aux_coeff) > std::numeric_limits<double>::epsilon()) {
                     aux_coeff = 1.0/aux_coeff;
                     double aux_value = 0.0;
                     for (IndexType i = 0; i < number_of_nodes; ++i) {
-                        if (r_geometry[i].Has(var)) {
-                            aux_value += rShapeFunctions[i] * r_geometry[i].GetValue(var);
+                        if (r_geometry[i].Has(r_variable)) {
+                            aux_value += rShapeFunctions[i] * r_geometry[i].GetValue(r_variable);
                         }
                     }
-                    pNode->SetValue(var, aux_coeff * aux_value);
+                    pNode->SetValue(r_variable, aux_coeff * aux_value);
                 }
-            } else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(var_name)) {
-                const Variable<array_1d<double, 3>>& var = KratosComponents<Variable<array_1d<double, 3>>>::Get(var_name);
+            } else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(r_variable_name)) {
+                const Variable<array_1d<double, 3>>& r_variable = KratosComponents<Variable<array_1d<double, 3>>>::Get(r_variable_name);
                 if (std::abs(aux_coeff) > std::numeric_limits<double>::epsilon()) {
                     aux_coeff = 1.0/aux_coeff;
                     array_1d<double, 3> aux_value = ZeroVector(3);
                     for (IndexType i = 0; i < number_of_nodes; ++i) {
-                        if (r_geometry[i].Has(var)) {
-                            aux_value += rShapeFunctions[i] * r_geometry[i].GetValue(var);
+                        if (r_geometry[i].Has(r_variable)) {
+                            aux_value += rShapeFunctions[i] * r_geometry[i].GetValue(r_variable);
                         }
                     }
-                    pNode->SetValue(var, aux_coeff * aux_value);
+                    pNode->SetValue(r_variable, aux_coeff * aux_value);
                 }
-            } else if (KratosComponents<Variable<Vector>>::Has(var_name)) {
-                const Variable<Vector>& var = KratosComponents<Variable<Vector>>::Get(var_name);
+            } else if (KratosComponents<Variable<Vector>>::Has(r_variable_name)) {
+                const Variable<Vector>& r_variable = KratosComponents<Variable<Vector>>::Get(r_variable_name);
                 if (std::abs(aux_coeff) > std::numeric_limits<double>::epsilon()) {
                     aux_coeff = 1.0/aux_coeff;
-                    Vector aux_value = ZeroVector(r_geometry[0].GetValue(var).size());
+                    Vector aux_value = ZeroVector(r_geometry[0].GetValue(r_variable).size());
                     for (IndexType i = 0; i < number_of_nodes; ++i) {
-                        if (r_geometry[i].Has(var)) {
-                            aux_value += rShapeFunctions[i] * r_geometry[i].GetValue(var);
+                        if (r_geometry[i].Has(r_variable)) {
+                            aux_value += rShapeFunctions[i] * r_geometry[i].GetValue(r_variable);
                         }
                     }
-                    pNode->SetValue(var, aux_coeff * aux_value);
+                    pNode->SetValue(r_variable, aux_coeff * aux_value);
                 }
-            } else if (KratosComponents<Variable<Matrix>>::Has(var_name)) {
-                const Variable<Matrix>& var = KratosComponents<Variable<Matrix>>::Get(var_name);
+            } else if (KratosComponents<Variable<Matrix>>::Has(r_variable_name)) {
+                const Variable<Matrix>& r_variable = KratosComponents<Variable<Matrix>>::Get(r_variable_name);
                 if (std::abs(aux_coeff) > std::numeric_limits<double>::epsilon()) {
                     aux_coeff = 1.0/aux_coeff;
-                    Matrix aux_value = ZeroMatrix(r_geometry[0].GetValue(var).size1(), r_geometry[0].GetValue(var).size2());
+                    Matrix aux_value = ZeroMatrix(r_geometry[0].GetValue(r_variable).size1(), r_geometry[0].GetValue(r_variable).size2());
                     for (IndexType i = 0; i < number_of_nodes; ++i) {
-                        if (r_geometry[i].Has(var)) {
-                            aux_value += rShapeFunctions[i] * r_geometry[i].GetValue(var);
+                        if (r_geometry[i].Has(r_variable)) {
+                            aux_value += rShapeFunctions[i] * r_geometry[i].GetValue(r_variable);
                         }
                     }
-                    pNode->SetValue(var, aux_coeff * aux_value);
+                    pNode->SetValue(r_variable, aux_coeff * aux_value);
                 }
             }
         }
     }
-
-    /**
-     * @brief This methoid creates the list of non-historical variables fro nodal interpolation
-     */
-    void GetListNonHistoricalVariables();
 
     /**
      * @brief It calculates the Step data interpolated to the node
@@ -578,5 +547,3 @@ private:
 ///@}
 
 }  // namespace Kratos.
-
-#endif // KRATOS_NODAL_VALUES_INTERPOLATION_PROCESS  defined

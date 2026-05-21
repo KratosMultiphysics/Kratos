@@ -56,7 +56,7 @@ class FSICouplingInterface:
 
         # Check and get the output variable(s) data type
         aux_list = []
-        for variable in self.output_variable_list:
+        for variable in self.output_variable_list.values():
             if KratosMultiphysics.KratosGlobals.Kernel.HasDoubleVariable(variable.GetString()):
                 aux_list.append(True)
             elif KratosMultiphysics.KratosGlobals.Kernel.HasArrayVariable(variable.GetString()):
@@ -274,13 +274,13 @@ class FSICouplingInterface:
         self._fsi_interface_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = domain_size
 
         # Add the required variables to the FSI coupling interface model part
-        for variable_name in self.input_variable_list:
+        for variable_name in self.input_variable_list.values():
             input_variable = KratosMultiphysics.KratosGlobals.GetVariable(variable_name.GetString())
             self._fsi_interface_model_part.AddNodalSolutionStepVariable(input_variable)
-        for variable_name in self.output_variable_list:
+        for variable_name in self.output_variable_list.values():
             output_variable = KratosMultiphysics.KratosGlobals.GetVariable(variable_name.GetString())
             self._fsi_interface_model_part.AddNodalSolutionStepVariable(output_variable)
-        for variable_name in self.auxiliary_variable_list:
+        for variable_name in self.auxiliary_variable_list.values():
             auxiliary_variable = KratosMultiphysics.KratosGlobals.GetVariable(variable_name.GetString())
             self._fsi_interface_model_part.AddNodalSolutionStepVariable(auxiliary_variable)
 
@@ -324,7 +324,9 @@ class FSICouplingInterface:
 
         # Create the communication plan for the current coupling interface
         # Note that we retrieve the fill communicator from the ParallelEnvironment so nothing would be done if non MPI
-        fill_communicator = KratosMultiphysics.ParallelEnvironment.CreateFillCommunicator(self._fsi_interface_model_part)
+        fill_communicator = KratosMultiphysics.ParallelEnvironment.CreateFillCommunicatorFromGlobalParallelism(
+            self._fsi_interface_model_part,
+            self._fsi_interface_model_part.GetCommunicator().GetDataCommunicator())
         fill_communicator.Execute()
 
         return self._fsi_interface_model_part

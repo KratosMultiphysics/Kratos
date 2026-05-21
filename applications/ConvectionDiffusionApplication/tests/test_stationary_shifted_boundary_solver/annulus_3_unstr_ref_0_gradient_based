@@ -1,0 +1,1005 @@
+{
+  "TIME": [],
+  "NODE_1": {
+    "TEMPERATURE": []
+  },
+  "NODE_2": {
+    "TEMPERATURE": []
+  },
+  "NODE_3": {
+    "TEMPERATURE": []
+  },
+  "NODE_4": {
+    "TEMPERATURE": []
+  },
+  "NODE_5": {
+    "TEMPERATURE": []
+  },
+  "NODE_6": {
+    "TEMPERATURE": []
+  },
+  "NODE_7": {
+    "TEMPERATURE": []
+  },
+  "NODE_8": {
+    "TEMPERATURE": []
+  },
+  "NODE_9": {
+    "TEMPERATURE": []
+  },
+  "NODE_10": {
+    "TEMPERATURE": []
+  },
+  "NODE_11": {
+    "TEMPERATURE": []
+  },
+  "NODE_12": {
+    "TEMPERATURE": []
+  },
+  "NODE_13": {
+    "TEMPERATURE": []
+  },
+  "NODE_14": {
+    "TEMPERATURE": []
+  },
+  "NODE_15": {
+    "TEMPERATURE": []
+  },
+  "NODE_16": {
+    "TEMPERATURE": []
+  },
+  "NODE_17": {
+    "TEMPERATURE": []
+  },
+  "NODE_18": {
+    "TEMPERATURE": []
+  },
+  "NODE_19": {
+    "TEMPERATURE": []
+  },
+  "NODE_20": {
+    "TEMPERATURE": []
+  },
+  "NODE_21": {
+    "TEMPERATURE": []
+  },
+  "NODE_22": {
+    "TEMPERATURE": []
+  },
+  "NODE_23": {
+    "TEMPERATURE": []
+  },
+  "NODE_24": {
+    "TEMPERATURE": []
+  },
+  "NODE_25": {
+    "TEMPERATURE": []
+  },
+  "NODE_26": {
+    "TEMPERATURE": []
+  },
+  "NODE_27": {
+    "TEMPERATURE": []
+  },
+  "NODE_28": {
+    "TEMPERATURE": []
+  },
+  "NODE_29": {
+    "TEMPERATURE": []
+  },
+  "NODE_30": {
+    "TEMPERATURE": []
+  },
+  "NODE_31": {
+    "TEMPERATURE": []
+  },
+  "NODE_32": {
+    "TEMPERATURE": []
+  },
+  "NODE_33": {
+    "TEMPERATURE": []
+  },
+  "NODE_34": {
+    "TEMPERATURE": []
+  },
+  "NODE_35": {
+    "TEMPERATURE": []
+  },
+  "NODE_36": {
+    "TEMPERATURE": []
+  },
+  "NODE_37": {
+    "TEMPERATURE": []
+  },
+  "NODE_38": {
+    "TEMPERATURE": []
+  },
+  "NODE_39": {
+    "TEMPERATURE": []
+  },
+  "NODE_40": {
+    "TEMPERATURE": []
+  },
+  "NODE_41": {
+    "TEMPERATURE": []
+  },
+  "NODE_42": {
+    "TEMPERATURE": []
+  },
+  "NODE_43": {
+    "TEMPERATURE": []
+  },
+  "NODE_44": {
+    "TEMPERATURE": []
+  },
+  "NODE_45": {
+    "TEMPERATURE": []
+  },
+  "NODE_46": {
+    "TEMPERATURE": []
+  },
+  "NODE_47": {
+    "TEMPERATURE": []
+  },
+  "NODE_48": {
+    "TEMPERATURE": []
+  },
+  "NODE_49": {
+    "TEMPERATURE": []
+  },
+  "NODE_50": {
+    "TEMPERATURE": []
+  },
+  "NODE_51": {
+    "TEMPERATURE": []
+  },
+  "NODE_52": {
+    "TEMPERATURE": []
+  },
+  "NODE_53": {
+    "TEMPERATURE": []
+  },
+  "NODE_54": {
+    "TEMPERATURE": []
+  },
+  "NODE_55": {
+    "TEMPERATURE": []
+  },
+  "NODE_56": {
+    "TEMPERATURE": []
+  },
+  "NODE_57": {
+    "TEMPERATURE": []
+  },
+  "NODE_58": {
+    "TEMPERATURE": []
+  },
+  "NODE_59": {
+    "TEMPERATURE": []
+  },
+  "NODE_60": {
+    "TEMPERATURE": []
+  },
+  "NODE_61": {
+    "TEMPERATURE": []
+  },
+  "NODE_62": {
+    "TEMPERATURE": []
+  },
+  "NODE_63": {
+    "TEMPERATURE": []
+  },
+  "NODE_64": {
+    "TEMPERATURE": []
+  },
+  "NODE_65": {
+    "TEMPERATURE": []
+  },
+  "NODE_66": {
+    "TEMPERATURE": []
+  },
+  "NODE_67": {
+    "TEMPERATURE": []
+  },
+  "NODE_68": {
+    "TEMPERATURE": []
+  },
+  "NODE_69": {
+    "TEMPERATURE": []
+  },
+  "NODE_70": {
+    "TEMPERATURE": []
+  },
+  "NODE_71": {
+    "TEMPERATURE": []
+  },
+  "NODE_72": {
+    "TEMPERATURE": []
+  },
+  "NODE_73": {
+    "TEMPERATURE": []
+  },
+  "NODE_74": {
+    "TEMPERATURE": []
+  },
+  "NODE_75": {
+    "TEMPERATURE": []
+  },
+  "NODE_76": {
+    "TEMPERATURE": []
+  },
+  "NODE_77": {
+    "TEMPERATURE": []
+  },
+  "NODE_78": {
+    "TEMPERATURE": []
+  },
+  "NODE_79": {
+    "TEMPERATURE": []
+  },
+  "NODE_80": {
+    "TEMPERATURE": []
+  },
+  "NODE_81": {
+    "TEMPERATURE": []
+  },
+  "NODE_82": {
+    "TEMPERATURE": []
+  },
+  "NODE_83": {
+    "TEMPERATURE": []
+  },
+  "NODE_84": {
+    "TEMPERATURE": []
+  },
+  "NODE_85": {
+    "TEMPERATURE": []
+  },
+  "NODE_86": {
+    "TEMPERATURE": []
+  },
+  "NODE_87": {
+    "TEMPERATURE": []
+  },
+  "NODE_88": {
+    "TEMPERATURE": []
+  },
+  "NODE_89": {
+    "TEMPERATURE": []
+  },
+  "NODE_90": {
+    "TEMPERATURE": []
+  },
+  "NODE_91": {
+    "TEMPERATURE": []
+  },
+  "NODE_92": {
+    "TEMPERATURE": []
+  },
+  "NODE_93": {
+    "TEMPERATURE": []
+  },
+  "NODE_94": {
+    "TEMPERATURE": []
+  },
+  "NODE_95": {
+    "TEMPERATURE": []
+  },
+  "NODE_96": {
+    "TEMPERATURE": []
+  },
+  "NODE_97": {
+    "TEMPERATURE": []
+  },
+  "NODE_98": {
+    "TEMPERATURE": []
+  },
+  "NODE_99": {
+    "TEMPERATURE": []
+  },
+  "NODE_100": {
+    "TEMPERATURE": []
+  },
+  "NODE_101": {
+    "TEMPERATURE": []
+  },
+  "NODE_102": {
+    "TEMPERATURE": []
+  },
+  "NODE_103": {
+    "TEMPERATURE": []
+  },
+  "NODE_104": {
+    "TEMPERATURE": []
+  },
+  "NODE_105": {
+    "TEMPERATURE": []
+  },
+  "NODE_106": {
+    "TEMPERATURE": []
+  },
+  "NODE_107": {
+    "TEMPERATURE": []
+  },
+  "NODE_108": {
+    "TEMPERATURE": []
+  },
+  "NODE_109": {
+    "TEMPERATURE": []
+  },
+  "NODE_110": {
+    "TEMPERATURE": []
+  },
+  "NODE_111": {
+    "TEMPERATURE": []
+  },
+  "NODE_112": {
+    "TEMPERATURE": []
+  },
+  "NODE_113": {
+    "TEMPERATURE": []
+  },
+  "NODE_114": {
+    "TEMPERATURE": []
+  },
+  "NODE_115": {
+    "TEMPERATURE": []
+  },
+  "NODE_116": {
+    "TEMPERATURE": []
+  },
+  "NODE_117": {
+    "TEMPERATURE": []
+  },
+  "NODE_118": {
+    "TEMPERATURE": []
+  },
+  "NODE_119": {
+    "TEMPERATURE": []
+  },
+  "NODE_120": {
+    "TEMPERATURE": []
+  },
+  "NODE_121": {
+    "TEMPERATURE": []
+  },
+  "NODE_122": {
+    "TEMPERATURE": []
+  },
+  "NODE_123": {
+    "TEMPERATURE": []
+  },
+  "NODE_124": {
+    "TEMPERATURE": []
+  },
+  "NODE_125": {
+    "TEMPERATURE": []
+  },
+  "NODE_126": {
+    "TEMPERATURE": []
+  },
+  "NODE_127": {
+    "TEMPERATURE": []
+  },
+  "NODE_128": {
+    "TEMPERATURE": []
+  },
+  "NODE_129": {
+    "TEMPERATURE": []
+  },
+  "NODE_130": {
+    "TEMPERATURE": []
+  },
+  "NODE_131": {
+    "TEMPERATURE": []
+  },
+  "NODE_132": {
+    "TEMPERATURE": []
+  },
+  "NODE_133": {
+    "TEMPERATURE": []
+  },
+  "NODE_134": {
+    "TEMPERATURE": []
+  },
+  "NODE_135": {
+    "TEMPERATURE": []
+  },
+  "NODE_136": {
+    "TEMPERATURE": []
+  },
+  "NODE_137": {
+    "TEMPERATURE": []
+  },
+  "NODE_138": {
+    "TEMPERATURE": []
+  },
+  "NODE_139": {
+    "TEMPERATURE": []
+  },
+  "NODE_140": {
+    "TEMPERATURE": []
+  },
+  "NODE_141": {
+    "TEMPERATURE": []
+  },
+  "NODE_142": {
+    "TEMPERATURE": []
+  },
+  "NODE_143": {
+    "TEMPERATURE": []
+  },
+  "NODE_144": {
+    "TEMPERATURE": []
+  },
+  "NODE_145": {
+    "TEMPERATURE": []
+  },
+  "NODE_146": {
+    "TEMPERATURE": []
+  },
+  "NODE_147": {
+    "TEMPERATURE": []
+  },
+  "NODE_148": {
+    "TEMPERATURE": []
+  },
+  "NODE_149": {
+    "TEMPERATURE": []
+  },
+  "NODE_150": {
+    "TEMPERATURE": []
+  },
+  "NODE_151": {
+    "TEMPERATURE": []
+  },
+  "NODE_152": {
+    "TEMPERATURE": []
+  },
+  "NODE_153": {
+    "TEMPERATURE": []
+  },
+  "NODE_154": {
+    "TEMPERATURE": []
+  },
+  "NODE_155": {
+    "TEMPERATURE": []
+  },
+  "NODE_156": {
+    "TEMPERATURE": []
+  },
+  "NODE_157": {
+    "TEMPERATURE": []
+  },
+  "NODE_158": {
+    "TEMPERATURE": []
+  },
+  "NODE_159": {
+    "TEMPERATURE": []
+  },
+  "NODE_160": {
+    "TEMPERATURE": []
+  },
+  "NODE_161": {
+    "TEMPERATURE": []
+  },
+  "NODE_162": {
+    "TEMPERATURE": []
+  },
+  "NODE_163": {
+    "TEMPERATURE": []
+  },
+  "NODE_164": {
+    "TEMPERATURE": []
+  },
+  "NODE_165": {
+    "TEMPERATURE": []
+  },
+  "NODE_166": {
+    "TEMPERATURE": []
+  },
+  "NODE_167": {
+    "TEMPERATURE": []
+  },
+  "NODE_168": {
+    "TEMPERATURE": []
+  },
+  "NODE_169": {
+    "TEMPERATURE": []
+  },
+  "NODE_170": {
+    "TEMPERATURE": []
+  },
+  "NODE_171": {
+    "TEMPERATURE": []
+  },
+  "NODE_172": {
+    "TEMPERATURE": []
+  },
+  "NODE_173": {
+    "TEMPERATURE": []
+  },
+  "NODE_174": {
+    "TEMPERATURE": []
+  },
+  "NODE_175": {
+    "TEMPERATURE": []
+  },
+  "NODE_176": {
+    "TEMPERATURE": []
+  },
+  "NODE_177": {
+    "TEMPERATURE": []
+  },
+  "NODE_178": {
+    "TEMPERATURE": []
+  },
+  "NODE_179": {
+    "TEMPERATURE": []
+  },
+  "NODE_180": {
+    "TEMPERATURE": []
+  },
+  "NODE_181": {
+    "TEMPERATURE": []
+  },
+  "NODE_182": {
+    "TEMPERATURE": []
+  },
+  "NODE_183": {
+    "TEMPERATURE": []
+  },
+  "NODE_184": {
+    "TEMPERATURE": []
+  },
+  "NODE_185": {
+    "TEMPERATURE": []
+  },
+  "NODE_186": {
+    "TEMPERATURE": []
+  },
+  "NODE_187": {
+    "TEMPERATURE": []
+  },
+  "NODE_188": {
+    "TEMPERATURE": []
+  },
+  "NODE_189": {
+    "TEMPERATURE": []
+  },
+  "NODE_190": {
+    "TEMPERATURE": []
+  },
+  "NODE_191": {
+    "TEMPERATURE": []
+  },
+  "NODE_192": {
+    "TEMPERATURE": []
+  },
+  "NODE_193": {
+    "TEMPERATURE": []
+  },
+  "NODE_194": {
+    "TEMPERATURE": []
+  },
+  "NODE_195": {
+    "TEMPERATURE": []
+  },
+  "NODE_196": {
+    "TEMPERATURE": []
+  },
+  "NODE_197": {
+    "TEMPERATURE": []
+  },
+  "NODE_198": {
+    "TEMPERATURE": []
+  },
+  "NODE_199": {
+    "TEMPERATURE": []
+  },
+  "NODE_200": {
+    "TEMPERATURE": []
+  },
+  "NODE_201": {
+    "TEMPERATURE": []
+  },
+  "NODE_202": {
+    "TEMPERATURE": []
+  },
+  "NODE_203": {
+    "TEMPERATURE": []
+  },
+  "NODE_204": {
+    "TEMPERATURE": []
+  },
+  "NODE_205": {
+    "TEMPERATURE": []
+  },
+  "NODE_206": {
+    "TEMPERATURE": []
+  },
+  "NODE_207": {
+    "TEMPERATURE": []
+  },
+  "NODE_208": {
+    "TEMPERATURE": []
+  },
+  "NODE_209": {
+    "TEMPERATURE": []
+  },
+  "NODE_210": {
+    "TEMPERATURE": []
+  },
+  "NODE_211": {
+    "TEMPERATURE": []
+  },
+  "NODE_212": {
+    "TEMPERATURE": []
+  },
+  "NODE_213": {
+    "TEMPERATURE": []
+  },
+  "NODE_214": {
+    "TEMPERATURE": []
+  },
+  "NODE_215": {
+    "TEMPERATURE": []
+  },
+  "NODE_216": {
+    "TEMPERATURE": []
+  },
+  "NODE_217": {
+    "TEMPERATURE": []
+  },
+  "NODE_218": {
+    "TEMPERATURE": []
+  },
+  "NODE_219": {
+    "TEMPERATURE": []
+  },
+  "NODE_220": {
+    "TEMPERATURE": []
+  },
+  "NODE_221": {
+    "TEMPERATURE": []
+  },
+  "NODE_222": {
+    "TEMPERATURE": []
+  },
+  "NODE_223": {
+    "TEMPERATURE": []
+  },
+  "NODE_224": {
+    "TEMPERATURE": []
+  },
+  "NODE_225": {
+    "TEMPERATURE": []
+  },
+  "NODE_226": {
+    "TEMPERATURE": []
+  },
+  "NODE_227": {
+    "TEMPERATURE": []
+  },
+  "NODE_228": {
+    "TEMPERATURE": []
+  },
+  "NODE_229": {
+    "TEMPERATURE": []
+  },
+  "NODE_230": {
+    "TEMPERATURE": []
+  },
+  "NODE_231": {
+    "TEMPERATURE": []
+  },
+  "NODE_232": {
+    "TEMPERATURE": []
+  },
+  "NODE_233": {
+    "TEMPERATURE": []
+  },
+  "NODE_234": {
+    "TEMPERATURE": []
+  },
+  "NODE_235": {
+    "TEMPERATURE": []
+  },
+  "NODE_236": {
+    "TEMPERATURE": []
+  },
+  "NODE_237": {
+    "TEMPERATURE": []
+  },
+  "NODE_238": {
+    "TEMPERATURE": []
+  },
+  "NODE_239": {
+    "TEMPERATURE": []
+  },
+  "NODE_240": {
+    "TEMPERATURE": []
+  },
+  "NODE_241": {
+    "TEMPERATURE": []
+  },
+  "NODE_242": {
+    "TEMPERATURE": []
+  },
+  "NODE_243": {
+    "TEMPERATURE": []
+  },
+  "NODE_244": {
+    "TEMPERATURE": []
+  },
+  "NODE_245": {
+    "TEMPERATURE": []
+  },
+  "NODE_246": {
+    "TEMPERATURE": []
+  },
+  "NODE_247": {
+    "TEMPERATURE": []
+  },
+  "NODE_248": {
+    "TEMPERATURE": []
+  },
+  "NODE_249": {
+    "TEMPERATURE": []
+  },
+  "NODE_250": {
+    "TEMPERATURE": []
+  },
+  "NODE_251": {
+    "TEMPERATURE": []
+  },
+  "NODE_252": {
+    "TEMPERATURE": []
+  },
+  "NODE_253": {
+    "TEMPERATURE": []
+  },
+  "NODE_254": {
+    "TEMPERATURE": []
+  },
+  "NODE_255": {
+    "TEMPERATURE": []
+  },
+  "NODE_256": {
+    "TEMPERATURE": []
+  },
+  "NODE_257": {
+    "TEMPERATURE": []
+  },
+  "NODE_258": {
+    "TEMPERATURE": []
+  },
+  "NODE_259": {
+    "TEMPERATURE": []
+  },
+  "NODE_260": {
+    "TEMPERATURE": []
+  },
+  "NODE_261": {
+    "TEMPERATURE": []
+  },
+  "NODE_262": {
+    "TEMPERATURE": []
+  },
+  "NODE_263": {
+    "TEMPERATURE": []
+  },
+  "NODE_264": {
+    "TEMPERATURE": []
+  },
+  "NODE_265": {
+    "TEMPERATURE": []
+  },
+  "NODE_266": {
+    "TEMPERATURE": []
+  },
+  "NODE_267": {
+    "TEMPERATURE": []
+  },
+  "NODE_268": {
+    "TEMPERATURE": []
+  },
+  "NODE_269": {
+    "TEMPERATURE": []
+  },
+  "NODE_270": {
+    "TEMPERATURE": []
+  },
+  "NODE_271": {
+    "TEMPERATURE": []
+  },
+  "NODE_272": {
+    "TEMPERATURE": []
+  },
+  "NODE_273": {
+    "TEMPERATURE": []
+  },
+  "NODE_274": {
+    "TEMPERATURE": []
+  },
+  "NODE_275": {
+    "TEMPERATURE": []
+  },
+  "NODE_276": {
+    "TEMPERATURE": []
+  },
+  "NODE_277": {
+    "TEMPERATURE": []
+  },
+  "NODE_278": {
+    "TEMPERATURE": []
+  },
+  "NODE_279": {
+    "TEMPERATURE": []
+  },
+  "NODE_280": {
+    "TEMPERATURE": []
+  },
+  "NODE_281": {
+    "TEMPERATURE": []
+  },
+  "NODE_282": {
+    "TEMPERATURE": []
+  },
+  "NODE_283": {
+    "TEMPERATURE": []
+  },
+  "NODE_284": {
+    "TEMPERATURE": []
+  },
+  "NODE_285": {
+    "TEMPERATURE": []
+  },
+  "NODE_286": {
+    "TEMPERATURE": []
+  },
+  "NODE_287": {
+    "TEMPERATURE": []
+  },
+  "NODE_288": {
+    "TEMPERATURE": []
+  },
+  "NODE_289": {
+    "TEMPERATURE": []
+  },
+  "NODE_290": {
+    "TEMPERATURE": []
+  },
+  "NODE_291": {
+    "TEMPERATURE": []
+  },
+  "NODE_292": {
+    "TEMPERATURE": []
+  },
+  "NODE_293": {
+    "TEMPERATURE": []
+  },
+  "NODE_294": {
+    "TEMPERATURE": []
+  },
+  "NODE_295": {
+    "TEMPERATURE": []
+  },
+  "NODE_296": {
+    "TEMPERATURE": []
+  },
+  "NODE_297": {
+    "TEMPERATURE": []
+  },
+  "NODE_298": {
+    "TEMPERATURE": []
+  },
+  "NODE_299": {
+    "TEMPERATURE": []
+  },
+  "NODE_300": {
+    "TEMPERATURE": []
+  },
+  "NODE_301": {
+    "TEMPERATURE": []
+  },
+  "NODE_302": {
+    "TEMPERATURE": []
+  },
+  "NODE_303": {
+    "TEMPERATURE": []
+  },
+  "NODE_304": {
+    "TEMPERATURE": []
+  },
+  "NODE_305": {
+    "TEMPERATURE": []
+  },
+  "NODE_306": {
+    "TEMPERATURE": []
+  },
+  "NODE_307": {
+    "TEMPERATURE": []
+  },
+  "NODE_308": {
+    "TEMPERATURE": []
+  },
+  "NODE_309": {
+    "TEMPERATURE": []
+  },
+  "NODE_310": {
+    "TEMPERATURE": []
+  },
+  "NODE_311": {
+    "TEMPERATURE": []
+  },
+  "NODE_312": {
+    "TEMPERATURE": []
+  },
+  "NODE_313": {
+    "TEMPERATURE": []
+  },
+  "NODE_314": {
+    "TEMPERATURE": []
+  },
+  "NODE_315": {
+    "TEMPERATURE": []
+  },
+  "NODE_316": {
+    "TEMPERATURE": []
+  },
+  "NODE_317": {
+    "TEMPERATURE": []
+  },
+  "NODE_318": {
+    "TEMPERATURE": []
+  },
+  "NODE_319": {
+    "TEMPERATURE": []
+  },
+  "NODE_320": {
+    "TEMPERATURE": []
+  },
+  "NODE_321": {
+    "TEMPERATURE": []
+  },
+  "NODE_322": {
+    "TEMPERATURE": []
+  },
+  "NODE_323": {
+    "TEMPERATURE": []
+  },
+  "NODE_324": {
+    "TEMPERATURE": []
+  },
+  "NODE_325": {
+    "TEMPERATURE": []
+  },
+  "NODE_326": {
+    "TEMPERATURE": []
+  },
+  "NODE_327": {
+    "TEMPERATURE": []
+  },
+  "NODE_328": {
+    "TEMPERATURE": []
+  },
+  "NODE_329": {
+    "TEMPERATURE": []
+  },
+  "NODE_330": {
+    "TEMPERATURE": []
+  },
+  "NODE_331": {
+    "TEMPERATURE": []
+  },
+  "NODE_332": {
+    "TEMPERATURE": []
+  },
+  "NODE_333": {
+    "TEMPERATURE": []
+  },
+  "NODE_334": {
+    "TEMPERATURE": []
+  }
+}

@@ -4,15 +4,14 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Philipp Bucher
 //                   Tobias Teschemachen
 //
 
-#if !defined(KRATOS_COUPLING_GEOMETRY_MAPPER_H_INCLUDED)
-#define  KRATOS_COUPLING_GEOMETRY_MAPPER_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -382,5 +381,3 @@ private:
 
 ///@} addtogroup block
 }  // namespace Kratos.
-
-#endif // KRATOS_COUPLING_GEOMETRY_MAPPER_H_INCLUDED defined

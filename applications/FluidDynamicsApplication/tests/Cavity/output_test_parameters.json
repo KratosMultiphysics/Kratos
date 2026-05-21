@@ -107,7 +107,6 @@
             "kratos_module" : "KratosMultiphysics",
             "process_name"  : "AssignScalarVariableProcess",
             "Parameters"    : {
-                "mesh_id"         : 0,
                 "model_part_name" : "MainModelPart.Pressure_lower_left_corner",
                 "variable_name"   : "PRESSURE",
                 "value"           : 0,

@@ -31,7 +31,6 @@ class PrintInfoInFileProcess(KratosMultiphysics.OutputProcess):
         default_settings = KratosMultiphysics.Parameters("""
         {
             "help"                     : "This process prints nodal/elemental information ina .txt file",
-            "mesh_id"                  : 0,
             "model_part_name"          : "please_specify_model_part_name",
             "variable_name"            : "SPECIFY_VARIABLE_NAME",
             "results_type"             : "not_provided_by_default",
@@ -94,7 +93,7 @@ class PrintInfoInFileProcess(KratosMultiphysics.OutputProcess):
         else:
             for elem in self.model_part.Elements:
                 array_values = self.GetValueToPrint(elem)[self.integration_point]
-                if not isinstance(array_values, float): # Can be an scalar entity...
+                if not isinstance(array_values, (float, int)): # Can be an scalar entity...
                     for comp in range(len(array_values)):
                         array_values[comp] = 0.0
                 else:
@@ -103,11 +102,11 @@ class PrintInfoInFileProcess(KratosMultiphysics.OutputProcess):
             for elem in self.model_part.Elements:
                 if self.sum_results_from_multiple_entites:
                     for ip in range(len(self.GetValueToPrint(elem))):
-                        if not isinstance(array_values, float):
+                        if not isinstance(array_values, (float, int)):
                             for comp in range(len(array_values)):
                                 array_values[comp] += self.GetValueToPrint(elem)[ip][comp]
                         else:
-                            array_values += self.GetValueToPrint(elem)[ip]
+                            array_values += float(self.GetValueToPrint(elem)[ip])
                 else:
                     array_values = self.GetValueToPrint(elem)[self.integration_point]
                     break
@@ -141,7 +140,7 @@ class PrintInfoInFileProcess(KratosMultiphysics.OutputProcess):
 
     def PrintInFile(self, values):
         self.ascii_writer.write("{0:.4e}".format(self.__GetTime()).rjust(11) + "\t")
-        if not isinstance(values, float):
+        if not isinstance(values, (float, int)):
             for value in values:
                 self.ascii_writer.write("{0:.4e}".format(value).rjust(11) + "\t")
         else:

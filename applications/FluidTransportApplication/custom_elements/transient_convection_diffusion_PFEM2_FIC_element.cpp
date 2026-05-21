@@ -209,7 +209,7 @@ void TransientConvectionDiffusionPFEM2FICElement<TDim,TNumNodes>::CalculateDiffu
     KRATOS_TRY
 
     // GeometryType& rGeom = this->GetGeometry();
-    const Geometry<Node<3> >& rGeom = this->GetGeometry();
+    const Geometry<Node >& rGeom = this->GetGeometry();
 
     ConvectionDiffusionSettings::Pointer my_settings = CurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
 
@@ -331,12 +331,12 @@ void TransientConvectionDiffusionPFEM2FICElement<TDim,TNumNodes>::CalculateDiffu
 
     double Domain = rGeom.DomainSize();
 
-    if (TDim == 2)
+    if constexpr (TDim == 2)
     {
         rVariables.lv = std::sqrt(2.0*Domain);
         rVariables.lsc = rVariables.lv;
 
-        if (TNumNodes == 3)
+        if constexpr (TNumNodes == 3)
         {
             for (unsigned int i = 0; i < TNumNodes; i++)
             {

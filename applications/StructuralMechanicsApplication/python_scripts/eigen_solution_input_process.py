@@ -42,4 +42,4 @@ class EigenSolutionInputProcess(KratosMultiphysics.Process):
         nodal_data_value_io.ReadNodalResults(self._model_part.Nodes, self._model_part.GetCommunicator())
 
     def _GetFile(self):
-        return KratosHDF5.HDF5FileSerial(self.settings["file_settings"])
+        return KratosHDF5.HDF5File(self.settings["file_settings"])

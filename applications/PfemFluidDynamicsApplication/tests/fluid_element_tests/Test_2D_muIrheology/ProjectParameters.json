@@ -51,7 +51,7 @@
             "parts_list" : ["Parts_Parts_Auto2"]
         }],
         "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto1","Parts_Parts_Auto2"],
-        "constitutive_laws_list" : ["PapanastasiouMuIRheology2DLaw","None"],
+        "constitutive_laws_list" : ["MuIRheology2DLaw","None"],
         "processes_sub_model_part_list"      : ["VELOCITY_Velocity_Auto1"]
     },
     "problem_process_list"     : [{

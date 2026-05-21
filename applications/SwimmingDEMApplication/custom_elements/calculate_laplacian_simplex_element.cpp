@@ -17,7 +17,7 @@ void ComputeLaplacianSimplex<TDim, TNumNodes>::EquationIdVector(EquationIdVector
     {
         rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_LAPLACIAN_X,lappos).EquationId();
         rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_LAPLACIAN_Y,lappos+1).EquationId();
-        if (TDim == 3){
+        if constexpr (TDim == 3){
             rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_LAPLACIAN_Z,lappos+2).EquationId();
         }
     }
@@ -36,7 +36,7 @@ void ComputeLaplacianSimplex<TDim, TNumNodes>::GetDofList(DofsVectorType& rEleme
     {
         rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(VELOCITY_LAPLACIAN_X);
         rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(VELOCITY_LAPLACIAN_Y);
-        if (TDim == 3){
+        if constexpr (TDim == 3){
             rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(VELOCITY_LAPLACIAN_Z);
         }
     }

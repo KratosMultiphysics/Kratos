@@ -27,7 +27,7 @@ typedef std::size_t SizeType;
  * @brief updates the volume according to a pressure load
  * @author Alejandro Cornejo
  */
-class UpdatePressureVolumeProcess : public Process 
+class KRATOS_API(FEM_TO_DEM_APPLICATION) UpdatePressureVolumeProcess : public Process 
 {
  public:
 

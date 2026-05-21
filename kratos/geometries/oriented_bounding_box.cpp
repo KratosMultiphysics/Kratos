@@ -112,7 +112,7 @@ OrientedBoundingBox<3>::OrientedBoundingBox(
         noalias(mOrientationVectors[0]) = rGeometry.UnitNormal(aux_coords);
         MathUtils<double>::OrthonormalBasis(mOrientationVectors[0], mOrientationVectors[1], mOrientationVectors[2]);
 
-        // Getting the farest node
+        // Getting the farthest node
         double distance = 0.0;
         const Point center = rGeometry.Center();
         Point aux_point;
@@ -316,7 +316,7 @@ bool OrientedBoundingBox<TDim>::DirectHasIntersection(const OrientedBoundingBox<
     auto geom2 = rOtherOrientedBoundingBox.GetEquivalentGeometry();
 
     // Id 2D we check edges
-    if (TDim == 2) {
+    if constexpr (TDim == 2) {
         const auto r_edges_1 = geom1.GenerateEdges();
         const auto r_edges_2 = geom2.GenerateEdges();
         Point int_pt(0.0,0.0,0.0);
@@ -354,7 +354,7 @@ bool OrientedBoundingBox<TDim>::DirectHasIntersection(const OrientedBoundingBox<
 template<>
 bool OrientedBoundingBox<2>::SeparatingAxisTheoremHasIntersection(const OrientedBoundingBox<2>& rOtherOrientedBoundingBox) const
 {
-    // Auxiliar values
+    // Auxiliary values
     const auto& r_orientation_vectors_2 = rOtherOrientedBoundingBox.GetOrientationVectors();
     const array_1d<double, 3> relative_position = rOtherOrientedBoundingBox.GetCenter() - mPointCenter;
 
@@ -382,7 +382,7 @@ bool OrientedBoundingBox<2>::SeparatingAxisTheoremHasIntersection(const Oriented
 template<>
 bool OrientedBoundingBox<3>::SeparatingAxisTheoremHasIntersection(const OrientedBoundingBox<3>& rOtherOrientedBoundingBox) const
 {
-    // Auxiliar values
+    // Auxiliary values
     const auto& r_orientation_vectors_2 = rOtherOrientedBoundingBox.GetOrientationVectors();
     const array_1d<double, 3> relative_position = rOtherOrientedBoundingBox.GetCenter() - mPointCenter;
 
@@ -427,7 +427,7 @@ bool OrientedBoundingBox<TDim>::GetSeparatingPlane(
     ) const
 {
     // 2D/3D computation
-    if (TDim == 2) {
+    if constexpr (TDim == 2) {
         return GetSeparatingPlane2D(rRelativePosition, rPlane, rOtherOrientedBoundingBox);
     } else {
         return GetSeparatingPlane3D(rRelativePosition, rPlane, rOtherOrientedBoundingBox);
@@ -590,7 +590,7 @@ void OrientedBoundingBox<TDim>::RotateNode2D(array_1d<double, 3>& rCoords) const
 template<std::size_t TDim>
 void OrientedBoundingBox<TDim>::RotateNode3D(
     array_1d<double, 3>& rCoords,
-    BoundedMatrix<double, 4, 4> rInvertedRotationMatrix
+    const BoundedMatrix<double, 4, 4>& rInvertedRotationMatrix
     ) const
 {
     array_1d<double, 4> old_coords;

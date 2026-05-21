@@ -36,7 +36,7 @@ typedef ModelPart::NodesContainerType                      NodesContainerType;
 typedef ModelPart::ElementsContainerType                ElementsContainerType;
 typedef ModelPart::MeshType::GeometryType::PointsArrayType    PointsArrayType;
 
-typedef GlobalPointersVector<Node<3> >       NodeWeakPtrVectorType;
+typedef GlobalPointersVector<Node >       NodeWeakPtrVectorType;
 typedef GlobalPointersVector<Element>     ElementWeakPtrVectorType;
 typedef GlobalPointersVector<Condition> ConditionWeakPtrVectorType;
 ///@}
@@ -334,7 +334,7 @@ class TimeDiscretizationProcessTimeDiscretizationProcess
 //         const unsigned int dimension = (itElem)->GetGeometry().WorkingSpaceDimension();
 //         if(dimension==2){
 //           currentElementalArea =  (itElem)->GetGeometry().Area();
-//           Geometry<Node<3> >  updatedElementCoordinates;
+//           Geometry<Node >  updatedElementCoordinates;
 //           bool solidElement=false;
 //           for(unsigned int i=0; i<itElem->GetGeometry().size(); ++i)
 //           {
@@ -344,15 +344,15 @@ class TimeDiscretizationProcessTimeDiscretizationProcess
 
 //             const array_1d<double,3> &Vel = itElem->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
 //             Point updatedNodalCoordinates=itElem->GetGeometry()[i].Coordinates()+Vel*temporaryTimeInterval;
-//             updatedElementCoordinates.push_back(Kratos::make_shared<Node<3> >(i,updatedNodalCoordinates.X(),updatedNodalCoordinates.Y(),updatedNodalCoordinates.Z()));
+//             updatedElementCoordinates.push_back(Kratos::make_shared<Node >(i,updatedNodalCoordinates.X(),updatedNodalCoordinates.Y(),updatedNodalCoordinates.Z()));
 //           }
 
 //           double newArea=0;
 //           if(itElem->GetGeometry().size()==3){
-//             Triangle2D3<Node<3> > myGeometry(updatedElementCoordinates);
+//             Triangle2D3<Node > myGeometry(updatedElementCoordinates);
 //             newArea=myGeometry.Area();
 //           }else if(itElem->GetGeometry().size()==6){
-//             Triangle2D6<Node<3> > myGeometry(updatedElementCoordinates);
+//             Triangle2D6<Node > myGeometry(updatedElementCoordinates);
 //             newArea=myGeometry.Area();
 //           }else{
 //             std::cout<<"GEOMETRY NOT DEFINED"<<std::endl;
@@ -373,21 +373,21 @@ class TimeDiscretizationProcessTimeDiscretizationProcess
 //               break;
 //             }
 //           }else{
-//             Geometry<Node<3> >  updatedEnlargedElementCoordinates;
+//             Geometry<Node >  updatedEnlargedElementCoordinates;
 
 //             for(unsigned int i=0; i<itElem->GetGeometry().size(); ++i)
 //             {
 //               const array_1d<double,3> &Vel = itElem->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
 //               Point updatedNodalCoordinates=itElem->GetGeometry()[i].Coordinates()+Vel*temporaryTimeInterval*2.5;
-//               updatedEnlargedElementCoordinates.push_back(Kratos::make_shared<Node<3> >(i,updatedNodalCoordinates.X(),updatedNodalCoordinates.Y(),updatedNodalCoordinates.Z()));
+//               updatedEnlargedElementCoordinates.push_back(Kratos::make_shared<Node >(i,updatedNodalCoordinates.X(),updatedNodalCoordinates.Y(),updatedNodalCoordinates.Z()));
 
 //             }
 
 //             if(itElem->GetGeometry().size()==3){
-//               Triangle2D3<Node<3> > myGeometry(updatedEnlargedElementCoordinates);
+//               Triangle2D3<Node > myGeometry(updatedEnlargedElementCoordinates);
 //               newArea=myGeometry.Area();
 //             }else if(itElem->GetGeometry().size()==6){
-//               Triangle2D6<Node<3> > myGeometry(updatedEnlargedElementCoordinates);
+//               Triangle2D6<Node > myGeometry(updatedEnlargedElementCoordinates);
 //               newArea=myGeometry.Area();
 //             }else{
 //               std::cout<<"GEOMETRY NOT DEFINED"<<std::endl;
@@ -402,7 +402,7 @@ class TimeDiscretizationProcessTimeDiscretizationProcess
 //         }
 //         else if(dimension==3){
 //           double currentElementalVolume =  (itElem)->GetGeometry().Volume();
-//           Geometry<Node<3> >  updatedElementCoordinates;
+//           Geometry<Node >  updatedElementCoordinates;
 //           bool solidElement=false;
 //           for(unsigned int i=0; i<itElem->GetGeometry().size(); ++i)
 //           {
@@ -411,15 +411,15 @@ class TimeDiscretizationProcessTimeDiscretizationProcess
 //             }
 //             const array_1d<double,3> &Vel = itElem->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
 //             Point updatedNodalCoordinates=itElem->GetGeometry()[i].Coordinates()+Vel*temporaryTimeInterval;
-//             updatedElementCoordinates.push_back(Kratos::make_shared<Node<3> >(i,updatedNodalCoordinates.X(),updatedNodalCoordinates.Y(),updatedNodalCoordinates.Z()));
+//             updatedElementCoordinates.push_back(Kratos::make_shared<Node >(i,updatedNodalCoordinates.X(),updatedNodalCoordinates.Y(),updatedNodalCoordinates.Z()));
 //           }
 
 //           double newVolume=0;
 //           if(itElem->GetGeometry().size()==4){
-//             Tetrahedra3D4<Node<3> > myGeometry(updatedElementCoordinates);
+//             Tetrahedra3D4<Node > myGeometry(updatedElementCoordinates);
 //             newVolume=myGeometry.Volume();
 //           }else if(itElem->GetGeometry().size()==10){
-//             Tetrahedra3D10<Node<3> > myGeometry(updatedElementCoordinates);
+//             Tetrahedra3D10<Node > myGeometry(updatedElementCoordinates);
 //             newVolume=myGeometry.Volume();
 //           }else{
 //             std::cout<<"GEOMETRY NOT DEFINED"<<std::endl;
@@ -440,20 +440,20 @@ class TimeDiscretizationProcessTimeDiscretizationProcess
 //               break;
 //             }
 //           }else{
-//             Geometry<Node<3> >  updatedEnlargedElementCoordinates;
+//             Geometry<Node >  updatedEnlargedElementCoordinates;
 
 //             for(unsigned int i=0; i<itElem->GetGeometry().size(); ++i)
 //             {
 //               const array_1d<double,3> &Vel = itElem->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
 //               Point updatedNodalCoordinates=itElem->GetGeometry()[i].Coordinates()+Vel*temporaryTimeInterval*2.5;
-//               updatedEnlargedElementCoordinates.push_back(Kratos::make_shared<Node<3> >(i,updatedNodalCoordinates.X(),updatedNodalCoordinates.Y(),updatedNodalCoordinates.Z()));
+//               updatedEnlargedElementCoordinates.push_back(Kratos::make_shared<Node >(i,updatedNodalCoordinates.X(),updatedNodalCoordinates.Y(),updatedNodalCoordinates.Z()));
 //             }
 
 //             if(itElem->GetGeometry().size()==4){
-//               Tetrahedra3D4<Node<3> > myGeometry(updatedEnlargedElementCoordinates);
+//               Tetrahedra3D4<Node > myGeometry(updatedEnlargedElementCoordinates);
 //               newVolume=myGeometry.Volume();
 //             }else if(itElem->GetGeometry().size()==10){
-//               Tetrahedra3D10<Node<3> > myGeometry(updatedEnlargedElementCoordinates);
+//               Tetrahedra3D10<Node > myGeometry(updatedEnlargedElementCoordinates);
 //               newVolume=myGeometry.Volume();
 //             }else{
 //               std::cout<<"GEOMETRY NOT DEFINED"<<std::endl;

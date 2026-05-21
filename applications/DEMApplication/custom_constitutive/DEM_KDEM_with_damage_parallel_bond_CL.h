@@ -47,6 +47,7 @@ namespace Kratos {
                                 double equiv_young,
                                 double equiv_shear,
                                 double indentation,
+                                double indentation_particle,
                                 double calculation_area,
                                 double& acumulated_damage,
                                 SphericContinuumParticle* element1,
@@ -78,6 +79,7 @@ namespace Kratos {
             const double kn_el,
             double equiv_young,
             double indentation,
+            double indentation_particle,
             double calculation_area,
             double& acumulated_damage,
             SphericContinuumParticle* element1,
@@ -110,7 +112,7 @@ namespace Kratos {
 
         virtual double LocalMaxSearchDistance(const int i, SphericContinuumParticle* element1, SphericContinuumParticle* element2) override;
 
-        virtual void FindMaximumValueOfNormalAndTangentialDamageComponents(SphericContinuumParticle* element1, SphericContinuumParticle* element2);
+        virtual void CalculateNormalAndTangentialDamageComponents(SphericContinuumParticle* element1, SphericContinuumParticle* element2);
 
         double mUnbondedLocalElasticContactForce2 = 0.0;
         double mUnbondedNormalElasticConstant = 0.0;
@@ -123,6 +125,8 @@ namespace Kratos {
         double mDamageEnergyCoeff = 0.0;
         double mUnbondedEquivViscoDampCoeffTangential = 0.0;
         double mUnbondedEquivViscoDampCoeffNormal = 0.0;
+        double mInitialIndentationForBondedPart = 0.0;
+        double mAccumulatedBondedTangentialLocalDisplacement[2] = {0.0};
 
     private:
 

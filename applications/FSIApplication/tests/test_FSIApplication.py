@@ -9,9 +9,9 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 ## SMALL TESTS
 from convergence_accelerator_test import ConvergenceAcceleratorTest
 from convergence_accelerator_spring_test import ConvergenceAcceleratorSpringTest
+from embedded_fsi_test import EmbeddedFsiTest
 from fsi_coupling_interface_test import FSICouplingInterfaceTest
 from FSI_problem_emulator_test import FSIProblemEmulatorTest
-from non_conformant_one_side_map_test import NonConformantOneSideMapTest
 
 ## NIGTHLY TESTS
 
@@ -35,13 +35,10 @@ def AssembleTestSuites():
     # Create a test suit with the selected tests (Small tests):
     smallSuite = suites['small']
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([ConvergenceAcceleratorTest]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([EmbeddedFsiTest]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FSICouplingInterfaceTest]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FSIProblemEmulatorTest]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([ConvergenceAcceleratorSpringTest]))
-    smallSuite.addTest(NonConformantOneSideMapTest('test2D_1'))
-    smallSuite.addTest(NonConformantOneSideMapTest('test2D_2'))
-    smallSuite.addTest(NonConformantOneSideMapTest('test3D_1'))
-    smallSuite.addTest(NonConformantOneSideMapTest('test3D_two_faces'))
 
     # Create a test suit with the selected tests plus all small tests
     nightSuite = suites['nightly']

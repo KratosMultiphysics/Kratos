@@ -61,8 +61,8 @@ namespace Kratos
     ///base type:
     typedef TwoStepUpdatedLagrangianVPImplicitSolidElement<TDim> BaseType;
 
-    /// Node type (default is: Node<3>)
-    typedef Node<3> NodeType;
+    /// Node type (default is: Node)
+    typedef Node NodeType;
 
     /// Geometry type (using with given NodeType)
     typedef Geometry<NodeType> GeometryType;
@@ -184,39 +184,6 @@ namespace Kratos
 
     Element::Pointer Clone(IndexType NewId, NodesArrayType const &ThisNodes) const override;
 
-    /* virtual void Initialize(); */
-
-    void CalculateLeftHandSide(MatrixType &rLeftHandSideMatrix,
-                               const ProcessInfo &rCurrentProcessInfo) override
-    {
-      KRATOS_TRY;
-      KRATOS_THROW_ERROR(std::logic_error, "UpdatedLagrangianVImplicitSolidElement::CalculateLeftHandSide not implemented", "");
-      KRATOS_CATCH("");
-    }
-
-    void CalculateRightHandSide(VectorType &rRightHandSideVector,
-                                const ProcessInfo &rCurrentProcessInfo) override
-    {
-      KRATOS_TRY;
-      KRATOS_THROW_ERROR(std::logic_error, "UpdatedLagrangianVImplicitSolidElement::CalculateRightHandSide not implemented", "");
-      KRATOS_CATCH("");
-    }
-
-    // The following methods have different implementations depending on TDim
-    /// Provides the global indices for each one of this element's local rows
-    /**
-       * this determines the elemental equation ID vector for all elemental
-       * DOFs
-       * @param rResult A vector containing the global Id of each row
-       * @param rCurrentProcessInfo the current process info object (unused)
-       */
-
-    /// Returns a list of the element's Dofs
-    /**
-       * @param ElementalDofList the list of DOFs
-       * @param rCurrentProcessInfo the current process info instance
-       */
-
     ///@}
     ///@name Access
     ///@{
@@ -292,9 +259,14 @@ namespace Kratos
        * @param Weight Multiplication coefficient for the matrix, typically Density times integration point weight.
        */
 
-    void CalcElasticPlasticCauchySplitted(ElementalVariables &rElementalVariables, double TimeStep, unsigned int g,
-                                          const ProcessInfo &rCurrentProcessInfo, double &Density,
-                                          double &DeviatoricCoeff, double &VolumetricCoeff) override;
+    void CalcElasticPlasticCauchySplitted(
+        ElementalVariables &rElementalVariables,
+        const unsigned int g,
+        const Vector& rN,
+        const ProcessInfo &rCurrentProcessInfo,
+        double &Density,
+        double &DeviatoricCoeff,
+        double &VolumetricCoeff) override;
 
     double GetThetaMomentum() override { return 1.0; };
 

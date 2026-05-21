@@ -65,11 +65,6 @@ public:
         int ierr = Scheme<TSparseSpace,TDenseSpace>::Check(r_model_part);
         if(ierr != 0) return ierr;
 
-        if ( RAYLEIGH_ALPHA.Key() == 0 )
-            KRATOS_THROW_ERROR( std::invalid_argument, "RAYLEIGH_ALPHA has Key zero! (check if the application is correctly registered", "" )
-        if ( RAYLEIGH_BETA.Key() == 0 )
-            KRATOS_THROW_ERROR( std::invalid_argument, "RAYLEIGH_BETA has Key zero! (check if the application is correctly registered", "" )
-
         // Check rayleigh coefficients
         if( mRayleighAlpha < 0.0 || mRayleighBeta < 0.0 )
             KRATOS_THROW_ERROR( std::invalid_argument,"Some of the rayleigh coefficients has an invalid value ", "" )
@@ -102,6 +97,15 @@ public:
 
         r_model_part.GetProcessInfo()[RAYLEIGH_ALPHA] = mRayleighAlpha;
         r_model_part.GetProcessInfo()[RAYLEIGH_BETA] = mRayleighBeta;
+
+        // Initialize INITIAL_STRESS_TENSOR
+        block_for_each(r_model_part.Nodes(), [](Node& rNode){
+            auto& r_initial_stress = rNode.FastGetSolutionStepValue(INITIAL_STRESS_TENSOR);
+            if (r_initial_stress.size1() != 3 || r_initial_stress.size2() != 3) {
+                r_initial_stress.resize(3,3,false);
+            }
+            r_initial_stress.clear();
+        });
 
         mSchemeIsInitialized = true;
 
@@ -168,23 +172,17 @@ public:
         KRATOS_TRY;
 
         int NumThreads = ParallelUtilities::GetNumThreads();
-        OpenMPUtils::PartitionVector DofSetPartition;
-        OpenMPUtils::DivideInPartitions(rDofSet.size(), NumThreads, DofSetPartition);
 
-        #pragma omp parallel
-        {
-            int k = OpenMPUtils::ThisThread();
-
-            typename DofsArrayType::iterator DofsBegin = rDofSet.begin() + DofSetPartition[k];
-            typename DofsArrayType::iterator DofsEnd = rDofSet.begin() + DofSetPartition[k+1];
-
-            //Update Displacement and Pressure (DOFs)
-            for (typename DofsArrayType::iterator itDof = DofsBegin; itDof != DofsEnd; ++itDof)
+        // Initialize
+        block_for_each(rDofSet, [&Dx](auto& dof)
             {
-                if (itDof->IsFree())
-                    itDof->GetSolutionStepValue() += TSparseSpace::GetValue(Dx, itDof->EquationId());
+                if (dof.IsFree())
+                {
+                    dof.GetSolutionStepValue() += TSparseSpace::GetValue(Dx, dof.EquationId());
+                }
+
             }
-        }
+        );
 
         // Updating time derivatives (nodally for efficiency)
         OpenMPUtils::PartitionVector NodePartition;

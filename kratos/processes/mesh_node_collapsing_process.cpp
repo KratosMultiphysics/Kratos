@@ -62,14 +62,14 @@ namespace Kratos
 				CollapseNode(*i_node);
 	}
 
-	void MeshNodeCollapsingProcess::CollapseNode(Node<3>& rThisNode) {
+	void MeshNodeCollapsingProcess::CollapseNode(Node& rThisNode) {
 		auto& r_neighbours = rThisNode.GetValue(NEIGHBOUR_NODES);
 		auto i_coarse_node = r_neighbours.end();
 
 		//TetrahedraBall node_ball(rThisNode);
-		//double current_quality = node_ball.CalculateMinQuality(Geometry<Node<3> >::QualityCriteria::AVERAGE_LENGTH_VOLUME_RATIO);
+		//double current_quality = node_ball.CalculateMinQuality(Geometry<Node >::QualityCriteria::AVERAGE_LENGTH_VOLUME_RATIO);
 
-		// initializing the min quality of the current mesh as the treshold and also check if there is an
+		// initializing the min quality of the current mesh as the threshold and also check if there is an
 		// element in the ball which is already set to be erased
 		double current_quality = std::numeric_limits<double>::max();
 		auto& neighbour_elements = rThisNode.GetValue(NEIGHBOUR_ELEMENTS);
@@ -102,7 +102,7 @@ namespace Kratos
 		}
 	}
 
-	double MeshNodeCollapsingProcess::CalculateQualityIfNodeCollapses(Node<3>& rThisNode, Node<3> const& rCoarseNode) {
+	double MeshNodeCollapsingProcess::CalculateQualityIfNodeCollapses(Node& rThisNode, Node const& rCoarseNode) {
 		Point original_coordinates = rThisNode;
 		rThisNode.Coordinates() = rCoarseNode.Coordinates();
 		double min_quality = CalculateMinQualityOfNeighbourElements(rThisNode, rCoarseNode);
@@ -110,7 +110,7 @@ namespace Kratos
 		return min_quality;
 	}
 
-	double MeshNodeCollapsingProcess::CalculateMinQualityOfNeighbourElements(Node<3>& rThisNode, Node<3> const& rCoarseNode) {
+	double MeshNodeCollapsingProcess::CalculateMinQualityOfNeighbourElements(Node& rThisNode, Node const& rCoarseNode) {
 		auto& neighbour_elements = rThisNode.GetValue(NEIGHBOUR_ELEMENTS);
 		double min_quality = std::numeric_limits<double>::max();
 
@@ -122,7 +122,7 @@ namespace Kratos
 		return min_quality;
 	}
 
-	bool MeshNodeCollapsingProcess::ElementHas(Element& rElement, Node<3> const& rCoarseNode) {
+	bool MeshNodeCollapsingProcess::ElementHas(Element& rElement, Node const& rCoarseNode) {
 		for (auto i_node = rElement.GetGeometry().begin(); i_node != rElement.GetGeometry().end(); i_node++)
 			if (i_node->Id() == rCoarseNode.Id())
 				return true;
@@ -131,7 +131,7 @@ namespace Kratos
 	}
 
 	void MeshNodeCollapsingProcess::SwapElementNode(Element& rElement, 
-		Node<3> const& rThisNode, Node<3>::Pointer pCoarseNode) {
+		Node const& rThisNode, Node::Pointer pCoarseNode) {
 		std::size_t number_of_nodes = rElement.GetGeometry().size();
 		auto& geometry = rElement.GetGeometry();
 		for (std::size_t i = 0; i < number_of_nodes; i++)

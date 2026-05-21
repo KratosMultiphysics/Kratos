@@ -110,7 +110,7 @@ void DampingUtilities::SetDampingFactorsForAllDampingRegions()
         const auto& dampingFunctionType = r_region_parameters["damping_function_type"].GetString();
         const double dampingRadius = r_region_parameters["damping_radius"].GetDouble();
 
-        const auto p_damping_function = CreateDampingFunction(dampingFunctionType, dampingRadius );
+        const auto p_damping_function = CreateDampingFunction(dampingFunctionType );
 
         // Loop over all nodes in specified damping sub-model part
         block_for_each(dampingRegion.Nodes(), [&](const ModelPart::NodeType& rNode) {
@@ -126,7 +126,7 @@ void DampingUtilities::SetDampingFactorsForAllDampingRegions()
             for(unsigned int j_itr = 0 ; j_itr<number_of_neighbors ; j_itr++)
             {
                 ModelPart::NodeType& neighbor_node = *neighbor_nodes[j_itr];
-                const double dampingFactor = 1.0 - p_damping_function->ComputeWeight( rNode.Coordinates(), neighbor_node.Coordinates());
+                const double dampingFactor = 1.0 - p_damping_function->ComputeWeight( rNode.Coordinates(), neighbor_node.Coordinates(), dampingRadius);
 
                 // For every specified damping direction we check if new damping factor is smaller than the assigned one for current node.
                 // In case yes, we overwrite the value. This ensures that the damping factor of a node is computed by its closest distance to the damping region
@@ -146,9 +146,9 @@ void DampingUtilities::SetDampingFactorsForAllDampingRegions()
     KRATOS_INFO("ShapeOpt") << "Finished preparation of damping in: " << timer.ElapsedSeconds() << " s" << std::endl;
 }
 
-FilterFunction::Pointer DampingUtilities::CreateDampingFunction( std::string damping_type, double damping_radius ) const
+FilterFunction::Pointer DampingUtilities::CreateDampingFunction( std::string damping_type ) const
 {
-    return Kratos::make_unique<FilterFunction>(damping_type, damping_radius);
+    return Kratos::make_unique<FilterFunction>(damping_type);
 }
 
 void DampingUtilities::ThrowWarningIfNodeNeighborsExceedLimit( const ModelPart::NodeType& given_node, const unsigned int number_of_neighbors ) const

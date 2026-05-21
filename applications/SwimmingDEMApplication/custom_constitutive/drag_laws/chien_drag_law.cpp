@@ -24,7 +24,7 @@ namespace Kratos {
                                        array_1d<double, 3>& drag_force,
                                        const ProcessInfo& r_current_process_info)
     {
-        Geometry<Node<3> > geometry = p_particle->GetGeometry();
+        Geometry<Node > geometry = p_particle->GetGeometry();
         const double sphericity = geometry[0].FastGetSolutionStepValue(PARTICLE_SPHERICITY);
         double drag_coeff       = 0.5 * Globals::Pi * SWIMMING_POW_2(particle_radius) * fluid_density * SWIMMING_MODULUS_3(minus_slip_velocity);
         drag_coeff *= 30 / reynolds_number + 67.289 * exp(- 5.03 * sphericity);

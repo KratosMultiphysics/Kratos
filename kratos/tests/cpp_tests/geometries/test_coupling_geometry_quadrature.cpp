@@ -26,7 +26,7 @@
 namespace Kratos {
     namespace Testing {
 
-        typedef Node<3> NodeType;
+        typedef Node NodeType;
         typedef Geometry<NodeType> GeometryType;
 
         /// Generates a coupling geometry containing two nurbs curve geometries.
@@ -165,13 +165,13 @@ namespace Kratos {
             p_coupling_geometry->CreateIntegrationPoints(integration_points, integration_info);
 
             // 2 span intersections and each time (p=1) + 1 = 2 integration points.
-            KRATOS_CHECK_EQUAL(integration_points.size(), 4);
+            KRATOS_EXPECT_EQ(integration_points.size(), 4);
 
             double length = 0;
             for (IndexType i = 0; i < integration_points.size(); ++i) {
                 length += integration_points[i].Weight();
             }
-            KRATOS_CHECK_NEAR(length, 0.8, TOLERANCE);
+            KRATOS_EXPECT_NEAR(length, 0.8, TOLERANCE);
         }
 
         /// Create quadrature point geometries on nurbs curve.
@@ -183,7 +183,7 @@ namespace Kratos {
             p_coupling_geometry->CreateQuadraturePointGeometries(quadrature_points, 2, integration_info);
 
             // 2 span intersections and each time (p=1) + 1 integration point.
-            KRATOS_CHECK_EQUAL(quadrature_points.size(), 4);
+            KRATOS_EXPECT_EQ(quadrature_points.size(), 4);
 
             double length = 0;
             for (IndexType i = 0; i < quadrature_points.size(); ++i) {
@@ -191,7 +191,7 @@ namespace Kratos {
                     length += quadrature_points[i].IntegrationPoints()[j].Weight();
                 }
             }
-            KRATOS_CHECK_NEAR(length, 0.8, TOLERANCE);
+            KRATOS_EXPECT_NEAR(length, 0.8, TOLERANCE);
         }
 
         /// Create integration point geometries on nurbs curve on surface.
@@ -200,37 +200,37 @@ namespace Kratos {
 
             std::vector<double> spans;
             p_coupling_geometry->SpansLocalSpace(spans, 0);
-            KRATOS_CHECK_EQUAL(spans.size(), 3);
-            KRATOS_CHECK_NEAR(spans[0], 0.0, TOLERANCE);
-            KRATOS_CHECK_NEAR(spans[1], 0.355753, TOLERANCE);
-            KRATOS_CHECK_NEAR(spans[2], 1.570796, TOLERANCE);
+            KRATOS_EXPECT_EQ(spans.size(), 3);
+            KRATOS_EXPECT_NEAR(spans[0], 0.0, TOLERANCE);
+            KRATOS_EXPECT_NEAR(spans[1], 0.355753, TOLERANCE);
+            KRATOS_EXPECT_NEAR(spans[2], 1.570796, TOLERANCE);
 
             typename GeometryType::IntegrationPointsArrayType integration_points;
             IntegrationInfo integration_info = p_coupling_geometry->GetDefaultIntegrationInfo();
             p_coupling_geometry->CreateIntegrationPoints(integration_points, integration_info);
 
             // 2 span intersections and each time (p=1) + (q=2) + 1 integration point.
-            KRATOS_CHECK_EQUAL(integration_info.GetNumberOfIntegrationPointsPerSpan(0), 4);
-            KRATOS_CHECK_EQUAL(integration_points.size(), 8);
+            KRATOS_EXPECT_EQ(integration_info.GetNumberOfIntegrationPointsPerSpan(0), 4);
+            KRATOS_EXPECT_EQ(integration_points.size(), 8);
 
             double length = 0;
             for (IndexType i = 0; i < integration_points.size(); ++i) {
                 length += integration_points[i].Weight();
             }
-            KRATOS_CHECK_NEAR(length, 1.5707963, TOLERANCE);
+            KRATOS_EXPECT_NEAR(length, 1.5707963, TOLERANCE);
 
             // Check with modified number of integration points per span.
             integration_info.SetNumberOfIntegrationPointsPerSpan(0, 8);
             p_coupling_geometry->CreateIntegrationPoints(integration_points, integration_info);
 
-            KRATOS_CHECK_EQUAL(integration_info.GetNumberOfIntegrationPointsPerSpan(0), 8);
-            KRATOS_CHECK_EQUAL(integration_points.size(), 16);
+            KRATOS_EXPECT_EQ(integration_info.GetNumberOfIntegrationPointsPerSpan(0), 8);
+            KRATOS_EXPECT_EQ(integration_points.size(), 16);
 
             double length2 = 0;
             for (IndexType i = 0; i < integration_points.size(); ++i) {
                 length2 += integration_points[i].Weight();
             }
-            KRATOS_CHECK_NEAR(length2, 1.5707963, TOLERANCE);
+            KRATOS_EXPECT_NEAR(length2, 1.5707963, TOLERANCE);
         }
 
         /// Create quadrature points on nurbs curve on surface.
@@ -242,7 +242,7 @@ namespace Kratos {
             p_coupling_geometry->CreateQuadraturePointGeometries(quadrature_points, 2, integration_info);
 
             // 2 span intersections and each time (p=1) + (q=2) + 1 integration point.
-            KRATOS_CHECK_EQUAL(quadrature_points.size(), 8);
+            KRATOS_EXPECT_EQ(quadrature_points.size(), 8);
 
             double length = 0;
             for (IndexType i = 0; i < quadrature_points.size(); ++i) {
@@ -250,7 +250,7 @@ namespace Kratos {
                     length += quadrature_points[i].IntegrationPoints()[j].Weight();
                 }
             }
-            KRATOS_CHECK_NEAR(length, 1.5707963, TOLERANCE);
+            KRATOS_EXPECT_NEAR(length, 1.5707963, TOLERANCE);
         }
     } // namespace Testing.
 } // namespace Kratos.

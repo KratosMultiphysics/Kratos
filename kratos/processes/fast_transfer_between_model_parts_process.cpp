@@ -36,7 +36,7 @@ FastTransferBetweenModelPartsProcess::FastTransferBetweenModelPartsProcess(
 {
     KRATOS_TRY
 
-    // If the entities are replicated or transfered
+    // If the entities are replicated or transferred
     if (ReplicateEntities) {
         this->Set(MODIFIED, true);
     } else {
@@ -182,7 +182,7 @@ void FastTransferBetweenModelPartsProcess::TransferWithFlags()
             for(int i = 0; i < num_geometries; ++i) {
                 auto it_geom = it_geom_begin;
                 for (int j = 0; j < i; ++j) it_geom++;
-                geometries_buffer_vector.insert(it_geom.operator->());
+                geometries_buffer_vector.insert(*(it_geom.base()));
             }
         }
 

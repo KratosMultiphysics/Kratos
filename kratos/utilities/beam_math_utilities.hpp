@@ -841,7 +841,7 @@ public:
    * @param Name Name of the checked tensor to be verbosed
    * @param Verbose Set verbosity for the check
    */
-  static inline bool CheckOrthogonality( const Matrix& rTensor, std::string Name, bool Verbose )
+  static inline bool CheckOrthogonality( const Matrix& rTensor, const std::string& Name, bool Verbose )
   {  
     KRATOS_TRY
     	

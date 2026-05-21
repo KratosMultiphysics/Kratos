@@ -30,8 +30,8 @@ namespace Kratos
 
   KratosPfemApplication::KratosPfemApplication    ():
       KratosApplication("PfemApplication"),
-      mUpdatedLagrangianSegregatedFluidElement2D3N(0, Kratos::make_shared< Triangle2D3<Node<3> > >(Element::GeometryType::PointsArrayType(3))),
-      mUpdatedLagrangianSegregatedFluidElement3D4N(0, Kratos::make_shared< Tetrahedra3D4<Node<3> > >(Element::GeometryType::PointsArrayType(4)))
+      mUpdatedLagrangianSegregatedFluidElement2D3N(0, Kratos::make_shared< Triangle2D3<Node > >(Element::GeometryType::PointsArrayType(3))),
+      mUpdatedLagrangianSegregatedFluidElement3D4N(0, Kratos::make_shared< Tetrahedra3D4<Node > >(Element::GeometryType::PointsArrayType(4)))
   {}
 
   void KratosPfemApplication::Register()

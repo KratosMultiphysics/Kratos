@@ -3,8 +3,8 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Martin Fusseder, https://github.com/MFusseder
 //
@@ -200,7 +200,7 @@ namespace Kratos
 
         ModelPart& response_part = mrModelPart.GetSubModelPart(mResponsePartName);
         GenericFindElementalNeighboursProcess neighbour_elements_finder(mrModelPart);
-        neighbour_elements_finder.ExecuteInitialize();
+        neighbour_elements_finder.Execute();
 
         for(auto& node_i : response_part.Nodes()) {
             auto const& r_neighbours = node_i.GetValue(NEIGHBOUR_ELEMENTS);

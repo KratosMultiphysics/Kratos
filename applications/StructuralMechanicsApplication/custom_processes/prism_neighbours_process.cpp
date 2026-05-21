@@ -3,8 +3,8 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:             BSD License
-//                                       license: StructuralMechanicsApplication/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
@@ -14,6 +14,7 @@
 // External includes
 
 // Project includes
+#include "utilities/parallel_utilities.h"
 #include "custom_processes/prism_neighbours_process.h"
 #include "structural_mechanics_application_variables.h"
 #include "includes/global_pointer_variables.h"
@@ -257,56 +258,50 @@ void PrismNeighboursProcess::Execute()
 
 void PrismNeighboursProcess::ExecuteInitialize()
 {
-    const auto it_elem_begin = mrModelPart.Elements().begin();
-    #pragma omp parallel for schedule(guided, 512)
-    for(int i = 0; i < static_cast<int>(mrModelPart.Elements().size()); ++i) {
-        auto it_elem = it_elem_begin + i;
-        if (it_elem->Has(NEIGHBOUR_NODES)) {
-            NodePointerVector& r_neighbour_nodes = it_elem->GetValue(NEIGHBOUR_NODES);
+    block_for_each(mrModelPart.Elements(), [](auto& rElem){
+        if (rElem.Has(NEIGHBOUR_NODES)) {
+            NodePointerVector& r_neighbour_nodes = rElem.GetValue(NEIGHBOUR_NODES);
             r_neighbour_nodes.reserve(6); // Just in-plane neighbours
             r_neighbour_nodes.erase(r_neighbour_nodes.begin(),r_neighbour_nodes.end() );
         } else {
             NodePointerVector empty_vector;
             empty_vector.reserve(6); // Just it_node-plane neighbours
-            it_elem->SetValue(NEIGHBOUR_NODES, empty_vector);
+            rElem.SetValue(NEIGHBOUR_NODES, empty_vector);
         }
 
-        if (it_elem->Has(NEIGHBOUR_ELEMENTS)) {
-            ElementPointerVector& r_neighbour_elements = it_elem->GetValue(NEIGHBOUR_ELEMENTS);
+        if (rElem.Has(NEIGHBOUR_ELEMENTS)) {
+            ElementPointerVector& r_neighbour_elements = rElem.GetValue(NEIGHBOUR_ELEMENTS);
             r_neighbour_elements.reserve(3); // Just in-plane neighbours
             r_neighbour_elements.erase(r_neighbour_elements.begin(),r_neighbour_elements.end() );
         } else {
             ElementPointerVector empty_vector;
             empty_vector.reserve(3); // Just it_node-plane neighbours
-            it_elem->SetValue(NEIGHBOUR_ELEMENTS, empty_vector);
+            rElem.SetValue(NEIGHBOUR_ELEMENTS, empty_vector);
         }
-    }
+    });
 
     if (mComputeOnNodes) {
-        const auto it_node_begin = mrModelPart.Nodes().begin();
-        #pragma omp parallel for schedule(guided, 512)
-        for(int i = 0; i < static_cast<int>(mrModelPart.Nodes().size()); ++i) {
-            auto it_node = it_node_begin + i;
-            if (it_node->Has(NEIGHBOUR_NODES)) {
-                NodePointerVector& r_neighbour_nodes = it_node->GetValue(NEIGHBOUR_NODES);
+        block_for_each(mrModelPart.Nodes(), [](auto& rNode){
+            if (rNode.Has(NEIGHBOUR_NODES)) {
+                NodePointerVector& r_neighbour_nodes = rNode.GetValue(NEIGHBOUR_NODES);
                 r_neighbour_nodes.reserve(6); // Just it_node-plane neighbours
                 r_neighbour_nodes.erase(r_neighbour_nodes.begin(),r_neighbour_nodes.end() );
             } else {
                 NodePointerVector empty_vector;
                 empty_vector.reserve(6); // Just it_node-plane neighbours
-                it_node->SetValue(NEIGHBOUR_NODES, empty_vector);
+                rNode.SetValue(NEIGHBOUR_NODES, empty_vector);
             }
 
-            if (it_node->Has(NEIGHBOUR_ELEMENTS)) {
-                ElementPointerVector& r_neighbour_elements = it_node->GetValue(NEIGHBOUR_ELEMENTS);
+            if (rNode.Has(NEIGHBOUR_ELEMENTS)) {
+                ElementPointerVector& r_neighbour_elements = rNode.GetValue(NEIGHBOUR_ELEMENTS);
                 r_neighbour_elements.reserve(3); // Just it_node-plane neighbours
                 r_neighbour_elements.erase(r_neighbour_elements.begin(),r_neighbour_elements.end() );
             } else {
                 ElementPointerVector empty_vector;
                 empty_vector.reserve(3); // Just it_node-plane neighbours
-                it_node->SetValue(NEIGHBOUR_ELEMENTS, empty_vector);
+                rNode.SetValue(NEIGHBOUR_ELEMENTS, empty_vector);
             }
-        }
+        });
     }
 }
 
@@ -323,25 +318,19 @@ void PrismNeighboursProcess::ExecuteFinalize()
 
 void PrismNeighboursProcess::ClearNeighbours()
 {
-    const auto it_elem_begin = mrModelPart.Elements().begin();
-    #pragma omp parallel for schedule(guided, 512)
-    for(int i = 0; i < static_cast<int>(mrModelPart.Elements().size()); ++i) {
-        auto it_elem = it_elem_begin + i;
-        ElementPointerVector& r_neighbour_elements = it_elem->GetValue(NEIGHBOUR_ELEMENTS);
+    block_for_each(mrModelPart.Elements(), [](auto& rElem){
+        ElementPointerVector& r_neighbour_elements = rElem.GetValue(NEIGHBOUR_ELEMENTS);
         r_neighbour_elements.erase(r_neighbour_elements.begin(),r_neighbour_elements.end());
-    }
+    });
 
     if (mComputeOnNodes) {
-        const auto it_node_begin = mrModelPart.Nodes().begin();
-        #pragma omp parallel for schedule(guided, 512)
-        for(int i = 0; i < static_cast<int>(mrModelPart.Nodes().size()); ++i) {
-            auto it_node = it_node_begin + i;
-            NodePointerVector& r_neighbour_nodes = it_node->GetValue(NEIGHBOUR_NODES);
+        block_for_each(mrModelPart.Nodes(), [](auto& rNode){
+            NodePointerVector& r_neighbour_nodes = rNode.GetValue(NEIGHBOUR_NODES);
             r_neighbour_nodes.erase(r_neighbour_nodes.begin(),r_neighbour_nodes.end() );
 
-            ElementPointerVector& r_neighbour_elements = it_node->GetValue(NEIGHBOUR_ELEMENTS);
+            ElementPointerVector& r_neighbour_elements = rNode.GetValue(NEIGHBOUR_ELEMENTS);
             r_neighbour_elements.erase(r_neighbour_elements.begin(),r_neighbour_elements.end());
-        }
+        });
     }
 }
 

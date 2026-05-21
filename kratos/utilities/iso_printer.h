@@ -25,7 +25,7 @@
 // System includes
 #include <string>
 #include <iostream>
-#include <stdlib.h>
+#include <cstdlib>
 #include <cmath>
 #include <algorithm>
 
@@ -100,8 +100,8 @@ public:
     typedef DenseVector<Matrix> Matrix_Order_Tensor;
     typedef DenseVector<Vector> Vector_Order_Tensor;
     typedef DenseVector<Vector_Order_Tensor> Node_Vector_Order_Tensor;
-    typedef Node < 3 > PointType;
-    typedef Node < 3 > ::Pointer PointPointerType;
+    typedef Node PointType;
+    typedef Node ::Pointer PointPointerType;
     typedef std::vector<PointType::Pointer> PointVector;
     typedef PointVector::iterator PointIterator;
 
@@ -151,7 +151,7 @@ public:
         int number_of_local_conditions=0;
         for (ModelPart::ConditionsContainerType::iterator it = this_model_part.ConditionsBegin(); it != this_model_part.ConditionsEnd(); it++)
         {
-            Geometry<Node < 3 > >& geom = it->GetGeometry();
+            Geometry<Node >& geom = it->GetGeometry();
             if (geom.size()==3)
             {
                 ++number_of_local_conditions; //conditions are always owned
@@ -211,7 +211,7 @@ public:
             number_of_cuts = 0;
             exact_nodes = 0;
             outside_nodes = 0;
-            Geometry<Node < 3 > >&geom = it->GetGeometry(); //geometry of the element
+            Geometry<Node >&geom = it->GetGeometry(); //geometry of the element
             for (unsigned int i = 0; i < it->GetGeometry().size(); i++) //size = 4 ; nodes per element. NOTICE WE'LL BE LOOPING THE EDGES TWICE. THIS IS A WASTE OF TIME BUT MAKES IT EASIER TO IDENTITY ELEMENTS. LOOK BELOW.
                 //when we have a triangle inside a thetraedra, its edges (or nodes) must be cut 3 times by the plane. if we loop all 2 times we can have a counter. when it's = 6 then we have a triangle. when tetraedras are cutted 8 times then we have 2 triangles (or a cuatrilateral, the same)
             {
@@ -304,7 +304,7 @@ public:
             number_of_cuts = 0;
             exact_nodes = 0;
             outside_nodes = 0;
-            Geometry<Node < 3 > >&geom = it->GetGeometry(); //geometry of the element
+            Geometry<Node >&geom = it->GetGeometry(); //geometry of the element
             for (unsigned int i = 0; i < it->GetGeometry().size(); i++) //size = 4 ; nodes per element. NOTICE WE'LL BE LOOPING THE EDGES TWICE. THIS IS A WASTE OF TIME BUT MAKES IT EASIER TO IDENTITY ELEMENTS. LOOK BELOW.
                 //when we have a triangle inside a thetraedra, its edges (or nodes) must be cut 3 times by the plane. if we loop all 2 times we can have a counter. when it's = 6 then we have a triangle. when tetraedras are cutted 8 times then we have 2 triangles (or a cuatrilateral, the same)
             {
@@ -409,7 +409,7 @@ public:
             number_of_cuts = 0;
             exact_nodes = 0;
             outside_nodes = 0;
-            Geometry<Node < 3 > >&geom = it->GetGeometry(); //geometry of the element
+            Geometry<Node >&geom = it->GetGeometry(); //geometry of the element
             for (unsigned int i = 0; i < it->GetGeometry().size(); i++) //size = 4 ; nodes per element. NOTICE WE'LL BE LOOPING THE EDGES TWICE. THIS IS A WASTE OF TIME BUT MAKES IT EASIER TO IDENTITY ELEMENTS. LOOK BELOW.
                 //when we have a triangle inside a thetraedra, its edges (or nodes) must be cut 3 times by the plane. if we loop all 2 times we can have a counter. when it's = 6 then we have a triangle. when tetraedras are cutted 8 times then we have 2 triangles (or a cuatrilateral, the same)
             {

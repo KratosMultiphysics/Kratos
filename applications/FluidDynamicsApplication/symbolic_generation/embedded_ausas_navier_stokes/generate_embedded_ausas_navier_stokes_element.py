@@ -4,7 +4,7 @@ from KratosMultiphysics.sympy_fe_utilities import *
 
 ## Settings explanation
 # DIMENSION TO COMPUTE:
-# This symbolic generator is valid for both 2D and 3D cases. Since the element has been programed with a dimension template in Kratos,
+# This symbolic generator is valid for both 2D and 3D cases. Since the element has been programmed with a dimension template in Kratos,
 # it is advised to set the dim_to_compute flag as "Both". In this case the generated .cpp file will contain both 2D and 3D implementations.
 # LINEARISATION SETTINGS:
 # FullNR considers the convective velocity as "v-vmesh", hence v is taken into account in the derivation of the LHS and RHS.
@@ -70,7 +70,7 @@ for dim in dim_vector:
     ## Stress vector definition
     stress = DefineVector('stress',strain_size)
 
-    ## Other simbols definition
+    ## Other symbol definitions
     c   = sympy.Symbol('c',positive= True)            # Wave length number
     dt  = sympy.Symbol('dt', positive = True)         # Time increment
     rho = sympy.Symbol('rho', positive = True)        # Density

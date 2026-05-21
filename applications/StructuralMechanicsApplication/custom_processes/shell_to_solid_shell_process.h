@@ -3,14 +3,13 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:             BSD License
-//                                       license: StructuralMechanicsApplication/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_SHELL_TO_SOLID_SHELL_PROCESS_PROCESS)
-#define KRATOS_SHELL_TO_SOLID_SHELL_PROCESS_PROCESS
+#pragma once
 
 // System includes
 #include <unordered_set>
@@ -69,7 +68,7 @@ public:
     typedef std::size_t                                     IndexType;
 
     /// Geometric type definitions
-    typedef Node<3>                                          NodeType;
+    typedef Node                                          NodeType;
     typedef Geometry<NodeType>                           GeometryType;
 
     /// The definition of the containers
@@ -244,11 +243,11 @@ private:
     /**
      * @brief This replaces the previous geometry
      * @param rGeometryModelPart The previous model part
-     * @param rAuxiliarModelPart The new created model part
+     * @param rAuxiliaryModelPart The new created model part
      */
     void ReplacePreviousGeometry(
         ModelPart& rGeometryModelPart,
-        ModelPart& rAuxiliarModelPart
+        ModelPart& rAuxiliaryModelPart
         );
 
     /**
@@ -272,7 +271,7 @@ private:
     void ExportToMDPA();
 
     /**
-     * @brief After we have created the new elements we delete the auxiliar model parts
+     * @brief After we have created the new elements we delete the auxiliary model parts
      */
     void CleanModel();
 
@@ -342,4 +341,3 @@ private:
 // }
 
 }
-#endif /* KRATOS_SHELL_TO_SOLID_SHELL_PROCESS_PROCESS defined */

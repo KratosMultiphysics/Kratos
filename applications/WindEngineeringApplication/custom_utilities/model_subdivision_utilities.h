@@ -62,7 +62,7 @@ public:
      */
     static void SortNodes(
         ModelPart& rModelPart,
-        std::function<ModelPart*(const Node<3>&)> sortFunction,
+        std::function<ModelPart*(const Node&)> sortFunction,
         std::vector<ModelPart*>& rSubModelParts);
 
     /** Sort elements into sub model parts

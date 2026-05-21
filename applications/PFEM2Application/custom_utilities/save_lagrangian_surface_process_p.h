@@ -128,7 +128,7 @@ public:
         for(ModelPart::ConditionsContainerType::iterator ic = lagrangian_model_part.ConditionsBegin() ; ic != lagrangian_model_part.ConditionsEnd() ; ++ic)
         {
 	    //surface_model_part.Conditions().push_back(*(ic.base()));
-	    Geometry< Node<3> >& geom = ic->GetGeometry();
+	    Geometry< Node >& geom = ic->GetGeometry();
 
             std::vector<std::size_t> NodeIds(3);
 

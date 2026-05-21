@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 #import kratos core and applications
 import KratosMultiphysics
 import KratosMultiphysics.PfemFluidDynamicsApplication as KratosPfemFluid
@@ -15,7 +14,7 @@ class PfemFluidNoneMesher(fluid_mesher.FluidMesher):
 
         if(self.echo_level>0):
             print("::[fluid_mesher]:: -START SetPreMeshingProcesses-")
-        
+
         unactive_peak_elements = False
         unactive_sliver_elements = False
         set_active_flag = KratosPfemFluid.SetActiveFlagMesherProcess(self.main_model_part,unactive_peak_elements,unactive_sliver_elements,self.echo_level)

@@ -1,0 +1,33 @@
+{
+   "properties": [{
+      "model_part_name":         "PorousDomain.Soil",
+      "properties_id":           1,
+      "Material": {
+          "constitutive_law": {
+              "name"             :  "GeoIncrementalLinearElastic3DLaw"
+          },
+          "Variables": {
+            "IGNORE_UNDRAINED"             :  false,
+            "YOUNG_MODULUS"                :  10000,
+            "POISSON_RATIO"                :  0.0,
+            "DENSITY_SOLID"                :  2.65,
+            "DENSITY_WATER"                :  1.0,
+            "POROSITY"                     :  0.36,
+            "BULK_MODULUS_SOLID"           :  1.0e9,
+            "BULK_MODULUS_FLUID"           :  175500,
+            "PERMEABILITY_XX"              :  0.1521,
+            "PERMEABILITY_YY"              :  0.1521,
+            "PERMEABILITY_XY"              :  0.0,
+            "PERMEABILITY_ZZ"              :  0.1521,
+            "PERMEABILITY_YZ"              :  0.0,
+            "PERMEABILITY_ZX"              :  0.0,
+            "DYNAMIC_VISCOSITY"            :  9.81,
+            "BIOT_COEFFICIENT"             :  1.0,
+            "RETENTION_LAW"                : "SaturatedLaw",
+            "SATURATED_SATURATION"         :  1.0,
+            "CONSIDER_GEOMETRIC_STIFFNESS" : true
+         },
+         "Tables": {}
+      }
+   }]
+}

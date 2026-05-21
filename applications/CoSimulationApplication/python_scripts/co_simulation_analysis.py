@@ -107,6 +107,16 @@ class CoSimulationAnalysis(AnalysisStage):
         problem_name = self.cosim_settings["problem_data"]["problem_name"].GetString()
         return solver_wrapper_factory.CreateSolverWrapper(self.cosim_settings["solver_settings"], self.models, problem_name)
 
+    def _GetSimulationName(self):
+        """Returns the name of the Simulation
+        """
+        simulation_name = type(self).__name__ + ": " + self._GetSolver()._ClassName() + " coupling "
+        list_solvers = self.cosim_settings["solver_settings"]["solvers"].keys()
+        for solver_name in list_solvers:
+            simulation_name += self._GetSolver(solver_name)._ClassName() + " - "
+        simulation_name = simulation_name[0:-3] # Removing last " - "
+        return simulation_name
+
 if __name__ == '__main__':
     if len(sys.argv) != 2:
         err_msg  = 'Wrong number of input arguments!\n'

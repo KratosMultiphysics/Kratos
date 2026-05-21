@@ -43,13 +43,11 @@ public:
     /// Pointer definition of MapNurbsVolumeResultsToEmbeddedGeometryProcess
     KRATOS_CLASS_POINTER_DEFINITION(MapNurbsVolumeResultsToEmbeddedGeometryProcess);
 
-    typedef Node<3>                                             NodeType;
+    typedef Node                                                NodeType;
     typedef Geometry<NodeType>                                  GeometryType;
     typedef GeometryType::Pointer                               GeometryPointerType;
     typedef typename GeometryType::GeometriesArrayType          GeometriesArrayType;
     typedef typename GeometryType::CoordinatesArrayType         CoordinatesArrayType;
-    typedef NurbsVolumeGeometry<PointerVector<NodeType>>        NurbsVolumeGeometryType;
-    typedef NurbsVolumeGeometryType::Pointer                    NurbsVolumeGeometryPointerType;
     typedef typename GeometryType::IntegrationPointsArrayType   IntegrationPointsArrayType;
     typedef std::size_t IndexType;
     typedef std::size_t SizeType;
@@ -70,8 +68,11 @@ public:
     ///@name Operations
     ///@{
 
-    void MapNodalValues(const Variable<array_1d<double,3>>& rVariable);
+    /// @brief  Maps all values from 'main_model_part_name' to 'embedded_model_part_name'.
+    void MapVariables();
 
+    /// @brief Returns default parameters.
+    /// @return const Parameters.
     const Parameters GetDefaultParameters() const override
     {
         const Parameters default_parameters = Parameters(R"(
@@ -79,7 +80,8 @@ public:
             "main_model_part_name"                    : "main_model_part",
             "nurbs_volume_name"                       : "nurbs_volume",
             "embedded_model_part_name"                : "embedded_model_part",
-            "nodal_results": []
+            "nodal_results": [],
+            "gauss_point_results" : []
         })" );
 
         return default_parameters;
@@ -114,6 +116,15 @@ private:
     Model& mrModel;
     Parameters mThisParameters;
 
+    // Nodal values
+    std::vector<const Variable<double>*> mDoubleVariableNode;              /// The double variables.
+    std::vector<const Variable<array_1d<double, 3>>*> mArrayVariableNode;  /// The array variables to compute.
+
+    // Gauss point values
+    std::vector<const Variable<double>*> mDoubleVariableGauss;             /// The double variables.
+    std::vector<const Variable<array_1d<double, 3>>*> mArrayVariableGauss; /// The array variables to compute.
+    std::vector<const Variable<Vector>*> mVectorVariableGauss;             /// The vector variables to compute.
+    std::vector<const Variable<Matrix>*> mMatrixVariableGauss;             /// The matrix variables to compute.
     ///@}
 
 }; // Class MapNurbsVolumeResultsToEmbeddedGeometryProcess

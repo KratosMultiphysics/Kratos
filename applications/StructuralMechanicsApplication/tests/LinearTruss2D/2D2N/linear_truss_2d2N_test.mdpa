@@ -1,0 +1,54 @@
+Begin ModelPartData
+//  VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 0
+End Properties
+Begin Nodes
+    1   0.0000000000   0.0000000000   0.0000000000
+    2   1.0000000000   1.0000000000   0.0000000000
+    3   2.0000000000   0.0000000000   0.0000000000
+End Nodes
+
+
+Begin Elements LinearTrussElement2D2N// GUI group identifier: Truss Auto1
+        1          0     1     2 
+        2          0     2     3 
+End Elements
+
+Begin Conditions PointLoadCondition2D1N// GUI group identifier: Load on points Auto1
+    2 0 2
+End Conditions
+
+Begin SubModelPart Parts_Truss_Truss_Auto1 // Group Truss Auto1 // Subtree Parts_Truss
+    Begin SubModelPartNodes
+            1
+            2
+            3
+    End SubModelPartNodes
+    Begin SubModelPartElements
+            1
+            2
+    End SubModelPartElements
+End SubModelPart
+Begin SubModelPart DISPLACEMENT_Displacement_Auto1 // Group Displacement Auto1 // Subtree DISPLACEMENT
+    Begin SubModelPartNodes
+            1
+            3
+    End SubModelPartNodes
+End SubModelPart
+Begin SubModelPart SelfWeight2D_Self_weight_Auto1 // Group Self weight Auto1 // Subtree SelfWeight2D
+    Begin SubModelPartNodes
+            1
+            2
+            3
+    End SubModelPartNodes
+End SubModelPart
+Begin SubModelPart PointLoad2D_Load_on_points_Auto1 // Group Load on points Auto1 // Subtree PointLoad2D
+    Begin SubModelPartNodes
+            2
+    End SubModelPartNodes
+    Begin SubModelPartConditions
+            2
+    End SubModelPartConditions
+End SubModelPart

@@ -4,24 +4,19 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Abel
 //
 
-
-#if !defined(KRATOS_OCTREE_BYNARY_CELL_H_INCLUDED )
-#define  KRATOS_OCTREE_BYNARY_CELL_H_INCLUDED
-
-
+#pragma once
 
 // System includes
 #include <string>
-#include <iostream> 
+#include <iostream>
 
-// External includes 
-
+// External includes
 
 // Project includes
 #ifdef KRATOS_INDEPENDENT
@@ -82,21 +77,19 @@ namespace Kratos {
 
         typedef typename TConfiguration::data_type data_type;
 
-        typedef TConfiguration configuration_type;                
-        
+        typedef TConfiguration configuration_type;
+
         typedef typename TConfiguration::pointer_type pointer_type;
 
         typedef std::vector<pointer_type> object_container_type;
 
         typedef std::size_t key_type;
 
-        enum {
-            CHILDREN_NUMBER = 8,
-            DIMENSION = TConfiguration::DIMENSION,
-            MAX_LEVEL = TConfiguration::MAX_LEVEL,
-            ROOT_LEVEL = MAX_LEVEL - 1,
-            MIN_LEVEL = TConfiguration::MIN_LEVEL
-        };
+        static constexpr std::size_t CHILDREN_NUMBER = 8;
+        static constexpr std::size_t DIMENSION = TConfiguration::DIMENSION;
+        static constexpr std::size_t MAX_LEVEL = TConfiguration::MAX_LEVEL;
+        static constexpr std::size_t ROOT_LEVEL = MAX_LEVEL - 1;
+        static constexpr std::size_t MIN_LEVEL = TConfiguration::MIN_LEVEL;
 
         enum {
             LEFT = 0,
@@ -296,7 +289,7 @@ namespace Kratos {
             keys[1] = min_key_[1] + y_offset[direction] + y_coef[direction] * size;
             keys[2] = min_key_[2] + z_offset[direction] + z_coef[direction] * size;
 
-            for(int i = 0 ; i < DIMENSION ; i++){
+            for(unsigned int i = 0 ; i < DIMENSION ; i++){
                 if(keys[i] == 0)
                     return 0; // There is no neighbour
                 else
@@ -318,7 +311,7 @@ namespace Kratos {
             keys[1] += (direction & 2);
             keys[2] += (direction & 4) >> 1;
 
-            for(int i = 0 ; i < DIMENSION ; i++){
+            for(unsigned int i = 0 ; i < DIMENSION ; i++){
                 if(keys[i] == 0)
                     return 0; // There is no neighbour
                 else
@@ -662,7 +655,5 @@ namespace Kratos {
     ///@} addtogroup block
 
 } // namespace Kratos.
-
-#endif // KRATOS_OCTREE_BYNARY_CELL_H_INCLUDED  defined
 
 
