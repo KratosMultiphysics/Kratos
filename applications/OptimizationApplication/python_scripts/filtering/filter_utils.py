@@ -1,5 +1,5 @@
 import typing
-
+import numpy as np
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
 
@@ -23,6 +23,37 @@ def FilterRadiusFactory(model_part: Kratos.ModelPart, container_type: Kratos.Glo
             return Kratos.TensorAdaptors.DoubleTensorAdaptor(model_part.Elements, Kratos.DoubleNDData([model_part.NumberOfElements()], filter_radius_settings["filter_radius"].GetDouble()), copy=False)
         else:
             raise RuntimeError(f"Unsupported container_type.")
+    elif filter_radius_type == "adaptive":
+        defaults = Kratos.Parameters("""{
+            "filter_radius_type": "adaptive",
+            "filter_radius_profile": "ABL",
+            "adaptive_filter_settings":{
+                "filter_radius_min": 1e-8,
+                "filter_radius_modulus": 1.0,
+                "filter_length_scale": 1.0,
+                "filter_radius_exponent": 1.0
+                                     }
+        }""")
+        filter_radius_settings.ValidateAndAssignDefaults(defaults)
+        if filter_radius_settings["filter_radius_profile"].GetString() != "ABL":
+            raise RuntimeError(f"Unsupported filter_radius_profile = \"{filter_radius_settings['filter_radius_profile'].GetString()}\". Currently only \"ABL\" is supported.")
+        adaptive_filter_settings = filter_radius_settings["adaptive_filter_settings"]
+        adaptive_filter_settings.ValidateAndAssignDefaults(defaults["adaptive_filter_settings"])
+        filter_radius_exponent = adaptive_filter_settings["filter_radius_exponent"].GetDouble()
+        filter_length_scale = adaptive_filter_settings["filter_length_scale"].GetDouble()
+        filter_radius_min = adaptive_filter_settings["filter_radius_min"].GetDouble()
+        filter_radius_modulus = adaptive_filter_settings["filter_radius_modulus"].GetDouble()
+
+        if container_type == Kratos.Globals.DataLocation.NodeHistorical or container_type == Kratos.Globals.DataLocation.NodeNonHistorical:
+            radius_vector = np.zeros(model_part.NumberOfNodes())
+            for idx, node in enumerate(model_part.Nodes):
+                y = node.Y
+                radius_vector[idx] = filter_radius_min + filter_radius_modulus * (y / filter_length_scale) ** filter_radius_exponent
+
+            return Kratos.TensorAdaptors.DoubleTensorAdaptor(model_part.Nodes, Kratos.DoubleNDData( radius_vector), copy=False)
+        else:
+            raise RuntimeError(f"Unsupported container_type = \"{container_type}\" for adaptive filter radius. Currently only supports NodeHistorical and NodeNonHistorical.")
+
     else:
         raise RuntimeError(f"Unsupported filter_radius_type = \"{filter_radius_type}\".")
 
