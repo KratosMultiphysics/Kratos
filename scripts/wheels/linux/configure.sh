@@ -5,6 +5,10 @@ add_app () {
     export KRATOS_APPLICATIONS="${KRATOS_APPLICATIONS}$1;"
 }
 
+# Temporal fix until gcc 14 comdad group regression is fixed
+export MPICH_CC=clang
+export MPICH_CXX=clang++
+
 export MPI_HOME=/usr/lib64/mpich/bin
 export PATH=${PATH}:${MPI_HOME}
 
