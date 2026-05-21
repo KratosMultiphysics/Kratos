@@ -5,6 +5,11 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.GeoMechanicsApplication.gid_output_file_reader import GiDOutputFileReader
 import KratosMultiphysics.GeoMechanicsApplication.run_multiple_stages as run_multiple_stages
 import test_helper
+import KratosMultiphysics as Kratos
+from KratosMultiphysics.project import Project
+from KratosMultiphysics.GeoMechanicsApplication import context_managers
+from pathlib import Path
+import importlib
 
 class KratosGeoMechanicsLabElementTests(KratosUnittest.TestCase):
     """
@@ -84,7 +89,7 @@ class KratosGeoMechanicsLabElementTests(KratosUnittest.TestCase):
     def test_dss_drained(self):
         """Regression test for the direct simple shear experiment with constant pore water pressure."""
         stage_name = 'drained'
-        expected_stress = [[-100000, -100000, -100000, 800000, 0, 0]] * 6
+        expected_stress = [[-1e+05, -1e+05, -1e+05, 8e+05, 0, 0]] * 6
         expected_strain = [[0.0, 0.0, 0.0, 0.1, 0.0, 0.0]] * 6
         self._run_dss_regression_test(stage_name, "linear_elastic", "test_dss_output.post.res", expected_stress, 3, expected_strain, 6, time = 1.0)
 
@@ -106,6 +111,52 @@ class KratosGeoMechanicsLabElementTests(KratosUnittest.TestCase):
                                               places_stress, time)
         self._assert_integration_point_tensors(reader, result, "ENGINEERING_STRAIN_TENSOR", expected_strain,
                                               places_strain, time)
+        
+    def test_crs_drained(self):
+        """Regression test for the CRS experiment with constant pore water pressure."""
+        stage_name = 'drained'
+        nr_of_phases = 5
+        expected_strains = [[[0.0, -0.1, 0.0, 0.0, 0.0, 0.0]] * 6, [[0.0, -0.05, 0.0, 0.0, 0.0, 0.0]] * 6, [[0.0, -0.25, 0.0, 0.0, 0.0, 0.0]] * 6, [[0.0, -0.25, 0.0, 0.0, 0.0, 0.0]] * 6, [[0.0, -0.40, 0.0, 0.0, 0.0, 0.0]] * 6]
+        expected_water_pressures = [[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]] * nr_of_phases
+        # linear elastic expectations per stage
+        expected_stress_1 = [[-4e+05, -12e+05, -4e+05, 0.0, 0.0, 0.0]] * 6
+        expected_stress_2 = [[-2e+05, -6e+05, -2e+05, 0.0, 0.0, 0.0]] * 6
+        expected_stress_3 = [[-1e+06, -3e+06, -1e+06, 0.0, 0.0, 0.0]] * 6
+        expected_stress_4 = [[-1e+06, -3e+06, -1e+06, 0.0, 0.0, 0.0]] * 6
+        expected_stress_5 = [[-1.6e+06, -4.8e+06, -1.6e+06, 0.0, 0.0, 0.0]] * 6
+        expected_stresses = [expected_stress_1, expected_stress_2, expected_stress_3, expected_stress_4, expected_stress_5]
+        
+        self._run_crs_test_for_model(stage_name, "linear_elastic")
+        self._check_crs_results(stage_name, "linear_elastic", nr_of_phases, expected_stresses, expected_strains, expected_water_pressures)
+        
+        # mohr coulomb expectations per stage
+        expected_stress_1 = [[-901875, -2228420, -901875, -2.80682, 0.0, 0.0],[-901875, -2228420, -901875, -0.353492, 0.0, 0.0],[-901880, -2228430, -901880, 1.04, 0.0, 0.0],[-901878, -2228430, -901878, 2.1263, 0.0, 0.0],[-901878, -2228430, -901878, -0.29981, 0.0, 0.0],[-901881, -2228430, -901881, -3.62626, 0.0, 0.0]]
+        expected_stress_2 = [[-501876, -1028420, -501876, -1.88671, 0.0, 0.0], [-501876, -1028420, -501876, -0.239855, 0.0, 0.0], [-501880, -1028430, -501880, 0.68808, 0.0, 0.0], [-501877, -1028430, -501878, 1.40525, 0.0, 0.0], [-501879, -1028430, -501878, -0.17863, 0.0, 0.0], [-501878, -1028430, -501880, -2.29931, 0.0, 0.0]]
+        expected_stress_3 = [[-2256960, -5567230, -2256960, -5.78773, 0.0, 0.0], [-2256960, -5567230, -2256960, -0.722985, 0.0, 0.0], [-2256970, -5567250, -2256970, 2.17338, 0.0, 0.0], [-2256970, -5567250, -2256970, 4.40707, 0.0, 0.0], [-2256970, -5567250, -2256970, -0.656207, 0.0, 0.0], [-2256970, -5567260, -2256970, -7.68891, 0.0, 0.0]]
+        expected_stress_4 = [[-2256970, -5567230, -2256970, -3.05917, 0.0, 0.0], [-2256960, -5567230, -2256960, -0.478967, 0.0, 0.0], [-2256970, -5567250, -2256970, 0.664904, 0.0, 0.0], [-2256970, -5567250, -2256970, 1.78406, 0.0, 0.0], [-2256970, -5567240, -2256970, -0.308447, 0.0, 0.0], [-2256970, -5567260, -2256970, -3.32709, 0.0, 0.0]]
+        expected_stress_5 = [[-3612050, -8906050, -3612050, -4.15402, 0.0, 0.0], [-3612050, -8906050, -3612050, -0.523644, 0.0, 0.0], [-3612060, -8906070, -3612060, 1.53631, 0.0, 0.0], [-3612050, -8906070, -3612050, 3.14004, 0.0, 0.0], [-3612050, -8906070, -3612050, -0.43816, 0.0, 0.0], [-3612060, -8906080, -3612060, -5.33157, 0.0, 0.0]]
+        expected_stresses = [expected_stress_1, expected_stress_2, expected_stress_3, expected_stress_4, expected_stress_5]
+
+        self._run_crs_test_for_model(stage_name, "mohr_coulomb")
+        self._check_crs_results(stage_name, "mohr_coulomb", nr_of_phases, expected_stresses, expected_strains, expected_water_pressures)
+
+    def _run_crs_test_for_model(self, stage_name, model_name):
+        test_name =  "test_crs"
+        common_file_path = test_helper.get_file_path(os.path.join('test_element_lab', test_name, "common"))
+        material_file_path = test_helper.get_file_path(os.path.join('test_element_lab', test_name, stage_name, model_name))
+        run_multiple_stages.run_stages(material_file_path, 1, filename_pattern="ProjectParameters.json", input_path=common_file_path)
+    
+    def _check_crs_results(self, stage_name, model_name, nr_of_phases, expected_stresses, expected_strains, expected_water_pressures, times = [3600.0, 7200.0, 10800.0, 14400.0, 18000.0], places_stress=1, places_strain=4, places_water_pressure=2):
+        reader = GiDOutputFileReader()
+        file_path = test_helper.get_file_path(Path('test_element_lab') / "test_crs" / stage_name / model_name)
+        result = reader.read_output_from(Path(file_path) / "test_crs_output.post.res")
+        for i in range(nr_of_phases):
+            expected_stress = expected_stresses[i]
+            expected_strain = expected_strains[i]
+            expected_water_pressure = expected_water_pressures[i]
+            self._assert_integration_point_tensors(reader, result, "CAUCHY_STRESS_TENSOR", expected_stress, places_stress, time=times[i])
+            self._assert_integration_point_tensors(reader, result, "ENGINEERING_STRAIN_TENSOR", expected_strain, places_strain, time=times[i])
+            self._assert_node_values_at_time(reader, result, "WATER_PRESSURE", expected_water_pressure, places_water_pressure, time=times[i])
 
     def test_triaxial_comp_6n(self):
         """
@@ -174,6 +225,11 @@ class KratosGeoMechanicsLabElementTests(KratosUnittest.TestCase):
         displacements = reader.nodal_values_at_time("DISPLACEMENT", time, result, node_ids=node_ids)
         for displacement in displacements:
             self.assertAlmostEqual(expected_y, displacement[1], places)
+
+    def _assert_node_values_at_time(self, reader, result, variable_name, expected_values, places, time=1.0):
+            for node_id, expected_node_values in enumerate(expected_values, start=1):
+                result_values = reader.nodal_values_at_time(variable_name, time, result, [node_id])[0]
+                self.assertAlmostEqual(result_values, expected_node_values, places)
 
     def _assert_integration_point_tensor_results(self, integration_point_tensors, expected_integration_point_tensor, places, result_name):
         for idx, ip_tensor in enumerate(integration_point_tensors):
