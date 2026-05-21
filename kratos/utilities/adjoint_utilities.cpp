@@ -206,6 +206,7 @@ void AdjointFiniteDifferenceUtility<Term,TEntity>::FiniteDifferenceDerivative(
 
                 // Copy the entity's properties.
                 Properties::Pointer p_properties_clone(new Properties(rEntity.GetProperties()));
+                p_entity_clone->SetProperties(p_properties_clone);
             }
 
             // Compute the unperturbed reference state

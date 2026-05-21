@@ -21,7 +21,7 @@ Given a minimization problem
     \begin{align}
         j(s, u^n .. u^b, \dot u^n .. \dot u^b, \ddot u^n .. \ddot u^b) \rightarrow min!&    \\
         \text{subject to} \quad&                                                            \\
-        r^k(s, u^k, \dot u^k, \ddot u) = 0 \quad &\forall \quad k \in \{ b .. n \}          \\
+        r^k(s, u^k, \dot u^k, \ddot u^k) = 0 \quad &\forall \quad k \in \{ b .. n \}        \\
         g^k(u^k .. u^{k-b}, \dot u^k .. \dot u^{k-b}, \ddot u^k .. \ddot u^{k-b}) = 0 \quad &\forall \quad k \in \{ b .. n \} \\
         h^k(\dot u^k .. \dot u^{k-b}, \ddot u^k .. \ddot u^{k-b}) = 0 \quad &\forall \quad k \in \{ b .. n \} \\
         i^k(u^b .. u^0, \dot u^b .. \dot u^0, \ddot u^b .. \ddot u^0) = 0 \quad &\forall \quad k \in \{ 0 .. b-1 \}
