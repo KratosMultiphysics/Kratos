@@ -85,6 +85,8 @@ namespace Kratos
         mMPMGridAxisymLineLoadCondition2D2N(0, Condition::GeometryType::Pointer(new Line2D2<Node>(Condition::GeometryType::PointsArrayType(2)))),
         mMPMGridSurfaceLoadCondition3D3N(0, Condition::GeometryType::Pointer(new Triangle3D3<Node>(Condition::GeometryType::PointsArrayType(3)))),
         mMPMGridSurfaceLoadCondition3D4N(0, Condition::GeometryType::Pointer(new Quadrilateral3D4<Node>(Condition::GeometryType::PointsArrayType(4)))),
+        mMPMGridPenaltyCondition2D(0, Element::GeometryType::Pointer(new Line2D2<Node>(Element::GeometryType::PointsArrayType(2)))),
+        mMPMGridPenaltyCondition3D(0, Element::GeometryType::Pointer(new Triangle3D3<Node>(Element::GeometryType::PointsArrayType(3)))),
         // MPM Conditions
         /// Conditions, using QuadraturePointGeometries:
         mMPMParticlePenaltyDirichletCondition(0, Condition::GeometryType::Pointer(new GeometryType(Condition::GeometryType::PointsArrayType(0)))),
@@ -139,6 +141,8 @@ namespace Kratos
         KRATOS_REGISTER_CONDITION( "MPMGridAxisymLineLoadCondition2D2N", mMPMGridAxisymLineLoadCondition2D2N)
         KRATOS_REGISTER_CONDITION( "MPMGridSurfaceLoadCondition3D3N", mMPMGridSurfaceLoadCondition3D3N)
         KRATOS_REGISTER_CONDITION( "MPMGridSurfaceLoadCondition3D4N", mMPMGridSurfaceLoadCondition3D4N)
+        KRATOS_REGISTER_CONDITION( "MPMGridPenaltyCondition2D2N", mMPMGridPenaltyCondition2D);
+        KRATOS_REGISTER_CONDITION( "MPMGridPenaltyCondition3D3N", mMPMGridPenaltyCondition3D);
         // MPM Conditions
         KRATOS_REGISTER_CONDITION( "MPMParticlePenaltyDirichletCondition", mMPMParticlePenaltyDirichletCondition)
         KRATOS_REGISTER_CONDITION( "MPMParticleLagrangeDirichletCondition", mMPMParticleLagrangeDirichletCondition) 

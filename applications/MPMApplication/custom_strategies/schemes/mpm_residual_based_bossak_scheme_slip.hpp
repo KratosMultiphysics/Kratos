@@ -12,7 +12,8 @@
 //
 
 
-#pragma once
+#if !defined(KRATOS_MPM_RESIDUAL_BASED_BOSSAK_SCHEME )
+#define      KRATOS_MPM_RESIDUAL_BASED_BOSSAK_SCHEME
 
 /* System includes */
 
@@ -35,7 +36,7 @@ namespace Kratos
 {
 
 /**
- * @class MPMResidualBasedBossakScheme
+ * @class MPMResidualBasedBossakSchemeSlip
  * @ingroup KratosMPM
  * @brief Bossak integration scheme (for linear and nonlinear dynamic problems) for displacements adjusted for Material Point Method
  * @details This is an implicit scheme based of the Bossak algorithm for displacements suitable for quasi-static and dynamic problems.
@@ -47,13 +48,13 @@ namespace Kratos
  * The parameter Alpha of Bossak introduces damping, the value of Bossak is from 0 to -0.5 (negative)
  */
 template<class TSparseSpace,  class TDenseSpace >
-class MPMResidualBasedBossakScheme
+class MPMResidualBasedBossakSchemeSlip
     : public ResidualBasedBossakDisplacementScheme<TSparseSpace,TDenseSpace>
 {
 public:
     ///@name Type Definitions
     ///@{
-    KRATOS_CLASS_POINTER_DEFINITION( MPMResidualBasedBossakScheme );
+    KRATOS_CLASS_POINTER_DEFINITION( MPMResidualBasedBossakSchemeSlip );
 
     typedef Scheme<TSparseSpace,TDenseSpace>                                      BaseType;
 
@@ -100,11 +101,11 @@ public:
      * @param Alpha is the Bossak parameter. Default value is 0, which is the Newmark method
      * @param NewmarkBeta the Newmark parameter. Default value is 0.25, for mean constant acceleration.
      */
-    MPMResidualBasedBossakScheme(ModelPart& rGridModelPart, unsigned int DomainSize,
+    MPMResidualBasedBossakSchemeSlip(ModelPart& rGridModelPart, unsigned int DomainSize,
         unsigned int BlockSize, double Alpha = 0.0,
         double NewmarkBeta = 0.25, bool IsDynamic = true)
                 :ResidualBasedBossakDisplacementScheme<TSparseSpace,TDenseSpace>(Alpha, NewmarkBeta),
-                mGridModelPart(rGridModelPart)
+                mGridModelPart(rGridModelPart), mRotationTool(DomainSize, BlockSize)
     {
         // To distinguish quasi-static and dynamic
         mIsDynamic = IsDynamic;
@@ -113,14 +114,18 @@ public:
         mDomainSize = DomainSize;
         mBlockSize  = BlockSize;
 
+        // For friction-related info
+        mFrictionIsActive = mGridModelPart.GetProcessInfo()[FRICTION_ACTIVE];
     }
 
     /**
      * @brief Copy Constructor.
      */
-     MPMResidualBasedBossakScheme(MPMResidualBasedBossakScheme& rOther)
+     MPMResidualBasedBossakSchemeSlip(MPMResidualBasedBossakSchemeSlip& rOther)
         :BossakBaseType(rOther)
         ,mGridModelPart(rOther.mGridModelPart)
+        ,mFrictionIsActive(rOther.mFrictionIsActive)
+        ,mRotationTool(rOther.mDomainSize,rOther.mBlockSize)
     {
     }
 
@@ -129,12 +134,12 @@ public:
      */
     BaseTypePointer Clone() override
     {
-        return BaseTypePointer( new MPMResidualBasedBossakScheme(*this) );
+        return BaseTypePointer( new MPMResidualBasedBossakSchemeSlip(*this) );
     }
 
     /** Destructor.
      */
-    virtual ~MPMResidualBasedBossakScheme
+    virtual ~MPMResidualBasedBossakSchemeSlip
     () {}
 
 
@@ -142,6 +147,7 @@ public:
     //***************************************************************************
 
     void Initialize(ModelPart& rModelPart) override {
+        MPMParticleBaseCondition::SetRotationUtility(&mRotationTool);
 
         BossakBaseType::Initialize(rModelPart);
     }
@@ -165,8 +171,14 @@ public:
     {
         KRATOS_TRY
 
+        // Rotate the current displacement to the modified coordinate system since rDx is currently at the modified coordinate system
+        mRotationTool.RotateDisplacements(rModelPart);
+
         // Update of displacement (by DOF)
         mpDofUpdater->UpdateDofs(rDofSet, rDx);
+
+        // Rotate the displacement back to the original coordinate system to calculate the velocity and acceleration
+        mRotationTool.RecoverDisplacements(rModelPart);
 
         // Updating time derivatives (nodally for efficiency)
         block_for_each(rModelPart.Nodes(), [&](Node& rNode)
@@ -258,6 +270,12 @@ public:
                 r_nodal_mpressure = 0.0;
             }
 
+            // friction-related
+            if(mFrictionIsActive){
+                rNode.FastGetSolutionStepValue(STICK_FORCE).clear();
+                rNode.FastGetSolutionStepValue(FRICTION_STATE) = mRotationTool.GetSlidingState();
+                rNode.SetValue(FRICTION_ASSIGNED, false);
+            }
 		});
 
         // Extrapolate from Material Point Elements and Conditions (P2G Mapping)
@@ -300,6 +318,12 @@ public:
 
                 r_previous_pressure += delta_nodal_pressure;
 
+                // mark nodes which have non-zero momentum in the 1st timestep s.t. these nodes can have
+                // an initial friction state of SLIDING instead of STICK
+                if(mFrictionIsActive){
+                    const bool has_initial_momentum = (mGridModelPart.GetProcessInfo()[STEP] ==  1 && norm_2(r_nodal_momentum) > std::numeric_limits<double>::epsilon());
+                    rNode.SetValue(HAS_INITIAL_MOMENTUM, has_initial_momentum);
+                }
             }
         });
         // End of TEMP: These are moved here to comply to pr #13432
@@ -394,6 +418,9 @@ public:
         // clear nodal reaction values again
         ClearReactionVariable();
 
+        if(mFrictionIsActive) {
+            mRotationTool.ComputeFrictionAndResetFlags(rModelPart);
+        }
     }
 
     /**
@@ -444,13 +471,28 @@ public:
         TSystemVectorType& rDx,
         TSystemVectorType& rb) override
     {
-
-        block_for_each(mGridModelPart.Nodes(), [](Node& rNode) {
-            if (rNode.Is(SLIP))
-                rNode.FastGetSolutionStepValue(REACTION).clear();
-        });
-
         BossakBaseType::FinalizeSolutionStep(rModelPart, rA, rDx, rb);
+        
+        if(mFrictionIsActive) {
+            block_for_each(mGridModelPart.Nodes(), [&](Node& rNode)
+            {
+                const Node& rConstNode = rNode; // const Node reference to avoid issues with previously unset GetValue()
+                if( mRotationTool.IsConformingSlip(rConstNode) && rConstNode.GetValue(FRICTION_COEFFICIENT) > 0 )
+                    rNode.FastGetSolutionStepValue(REACTION).clear();       
+            });
+            
+            mRotationTool.ComputeFrictionAndResetFlags(rModelPart);
+        }
+
+        block_for_each(mGridModelPart.Nodes(), [&](Node& rNode) {
+            const Node& rConstNode = rNode; // const Node reference to avoid issues with previously unset GetValue()
+
+            // rotate forces stored in REACTION to global coordinates on conforming boundaries
+            if (mRotationTool.IsConformingSlip(rConstNode) ) {
+                mRotationTool.RotateVector(rNode.FastGetSolutionStepValue(REACTION), rConstNode, true);
+            }
+        });
+        
     }
 
     /**
@@ -483,6 +525,14 @@ public:
             BossakBaseType::AddDynamicsToRHS(rCurrentElement, RHS_Contribution, mMatrix.D[this_thread], mMatrix.M[this_thread], rCurrentProcessInfo);
         }
 
+        // Rotate contributions (to match coordinates for slip conditions)
+        if(!mRotationTool.IsParticleBasedSlip(rCurrentElement.GetGeometry())){
+            // prevent rotation in case of particle-based slip (handled by condition itself)
+            mRotationTool.Rotate(LHS_Contribution, RHS_Contribution, rCurrentElement.GetGeometry());
+            mRotationTool.ApplySlipCondition(LHS_Contribution,RHS_Contribution,rCurrentElement.GetGeometry());
+        }
+
+
         KRATOS_CATCH( "" )
     }
 
@@ -514,6 +564,13 @@ public:
             rCurrentElement.CalculateMassMatrix(mMatrix.M[this_thread],rCurrentProcessInfo);
             rCurrentElement.CalculateDampingMatrix(mMatrix.D[this_thread],rCurrentProcessInfo);
             BossakBaseType::AddDynamicsToRHS(rCurrentElement, RHS_Contribution, mMatrix.D[this_thread], mMatrix.M[this_thread], rCurrentProcessInfo);
+        }
+
+        // Rotate contributions (to match coordinates for slip conditions)
+        if(!mRotationTool.IsParticleBasedSlip(rCurrentElement.GetGeometry())){
+            // prevent rotation in case of particle-based slip (handled by condition itself)
+            mRotationTool.Rotate(RHS_Contribution, rCurrentElement.GetGeometry());
+            mRotationTool.ApplySlipCondition(RHS_Contribution,rCurrentElement.GetGeometry());
         }
 
         KRATOS_CATCH( "" )
@@ -551,6 +608,14 @@ public:
             BossakBaseType::AddDynamicsToRHS(rCurrentCondition, RHS_Contribution, mMatrix.D[this_thread], mMatrix.M[this_thread], rCurrentProcessInfo);
         }
 
+        // Rotate contributions (to match coordinates for slip conditions)
+        if(!mRotationTool.IsParticleBasedSlip(rCurrentCondition.GetGeometry())){
+            // prevent rotation in case of particle-based slip (handled by condition itself)
+            mRotationTool.Rotate(LHS_Contribution, RHS_Contribution, rCurrentCondition.GetGeometry());
+            mRotationTool.ApplySlipCondition(LHS_Contribution,RHS_Contribution,rCurrentCondition.GetGeometry());
+        }
+
+
         KRATOS_CATCH( "" )
     }
 
@@ -581,6 +646,14 @@ public:
             BossakBaseType::AddDynamicsToRHS(rCurrentCondition, RHS_Contribution, mMatrix.D[this_thread], mMatrix.M[this_thread], rCurrentProcessInfo);
         }
 
+        // Rotate contributions (to match coordinates for slip conditions)
+        if(!mRotationTool.IsParticleBasedSlip(rCurrentCondition.GetGeometry())){
+            // prevent rotation in case of particle-based slip (handled by condition itself)
+            mRotationTool.Rotate(RHS_Contribution, rCurrentCondition.GetGeometry());
+            mRotationTool.ApplySlipCondition(RHS_Contribution,rCurrentCondition.GetGeometry());
+        }
+
+
         KRATOS_CATCH( "" )
     }
 
@@ -592,9 +665,13 @@ protected:
     // To distinguish quasi-static and dynamic
     bool mIsDynamic;
 
+    // Identifies cases where friction is active in at least 1 slip boundary
+    bool mFrictionIsActive;
+
     // For Rotation Utility
     unsigned int mDomainSize;
     unsigned int mBlockSize;
+    MPMBoundaryRotationUtility<LocalSystemMatrixType,LocalSystemVectorType> mRotationTool;
 
     void ClearReactionVariable() const
     {
@@ -604,5 +681,8 @@ protected:
         });
     }
 
-}; /* Class MPMResidualBasedBossakScheme */
+}; /* Class MPMResidualBasedBossakSchemeSlip */
 }  /* namespace Kratos.*/
+
+#endif /* KRATOS_MPM_RESIDUAL_BASED_BOSSAK_SCHEME defined */
+

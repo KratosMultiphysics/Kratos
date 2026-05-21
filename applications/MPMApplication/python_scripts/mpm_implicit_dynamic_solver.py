@@ -59,8 +59,14 @@ class MPMImplicitDynamicSolver(MPMSolver):
             raise Exception(err_msg)
 
         is_dynamic = self._IsDynamic()
+        is_slip = self.settings["is_slip"].GetBool()
 
-        return KratosMPM.MPMResidualBasedBossakScheme( grid_model_part,
+        if is_slip:
+            scheme = KratosMPM.MPMResidualBasedBossakSchemeSlip
+        else:
+            scheme = KratosMPM.MPMResidualBasedBossakScheme
+
+        return scheme( grid_model_part,
                                                             domain_size,
                                                             block_size,
                                                             damp_factor_m,

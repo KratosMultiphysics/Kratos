@@ -286,6 +286,10 @@ namespace Kratos::MaterialPointGeneratorUtility
                                     KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(STICK_FORCE, r_node);
                                 }
                             }
+                        } else {
+                            std::cout << "*** SUB MODEL PART: " << submodelpart_name << std::endl;
+                            ModelPart& rMPMSubModelPart = rMPMModelPart.CreateSubModelPart(submodelpart_name);
+                            rMPMSubModelPart.AddConditions(submodelpart.ConditionsBegin(), submodelpart.ConditionsEnd());
                         }
                     }
                     else {

@@ -33,6 +33,7 @@
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 
 //---schemes
+#include "custom_strategies/schemes/mpm_residual_based_bossak_scheme_slip.hpp"
 #include "custom_strategies/schemes/mpm_residual_based_bossak_scheme.hpp"
 #include "custom_strategies/schemes/mpm_explicit_scheme.hpp"
 #include "custom_strategies/schemes/mpm_residualbased_incrementalupdate_static_scheme.hpp"
@@ -65,11 +66,17 @@ namespace Python{
         typedef MPMExplicitStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType> MPMExplicitStrategyType;
 
         //custom scheme types
+        typedef MPMResidualBasedBossakSchemeSlip< SparseSpaceType, LocalSpaceType >  MPMResidualBasedBossakSchemeSlipType;
         typedef MPMResidualBasedBossakScheme< SparseSpaceType, LocalSpaceType >  MPMResidualBasedBossakSchemeType;
         typedef MPMExplicitScheme< SparseSpaceType, LocalSpaceType >  MPMExplicitSchemeType;
         typedef MPMResidualBasedIncrementalUpdateStaticScheme< SparseSpaceType, LocalSpaceType >  MPMResidualBasedIncrementalUpdateStaticSchemeType;
 
         // MPM Residual Based Bossak Scheme Type
+        py::class_< MPMResidualBasedBossakSchemeSlipType,typename MPMResidualBasedBossakSchemeSlipType::Pointer, BaseSchemeType >(m,"MPMResidualBasedBossakSchemeSlip")
+            .def(py::init < ModelPart&, unsigned int, unsigned int, double, double, bool>())
+            .def("Initialize", &MPMResidualBasedBossakSchemeSlipType::Initialize)
+            ;
+
         py::class_< MPMResidualBasedBossakSchemeType,typename MPMResidualBasedBossakSchemeType::Pointer, BaseSchemeType >(m,"MPMResidualBasedBossakScheme")
             .def(py::init < ModelPart&, unsigned int, unsigned int, double, double, bool>())
             .def("Initialize", &MPMResidualBasedBossakSchemeType::Initialize)

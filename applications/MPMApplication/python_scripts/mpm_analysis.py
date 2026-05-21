@@ -35,6 +35,8 @@ class MpmAnalysis(AnalysisStage):
         # add auxiliary variables required for Lagrange condition automatically to the project_parameters
         self._AddLagrangeAuxiliaryVariables(project_parameters)
 
+        self._CheckSlipType(project_parameters)
+
         super(MpmAnalysis, self).__init__(model, project_parameters)
 
     #### Internal functions ####
@@ -99,6 +101,20 @@ class MpmAnalysis(AnalysisStage):
                 project_parameters["solver_settings"].AddEmptyValue("auxiliary_reaction_list").SetStringArray([])
                 aux_reaction_list_new = list(set(aux_reaction_lagrange))
             project_parameters["solver_settings"]["auxiliary_reaction_list"].SetStringArray(aux_reaction_list_new)
+
+    def _CheckSlipType(self, project_parameters):
+        is_slip = False
+        for proc_list in project_parameters["processes"].values():
+            for proc in proc_list.values():
+                if proc.Has("python_module") and proc["python_module"].GetString() == "apply_mpm_slip_boundary_process":
+                    is_slip = True
+                    break
+
+        if not project_parameters["solver_settings"].Has("is_slip"):
+            project_parameters["solver_settings"].AddBool("is_slip", is_slip)
+        else:
+            project_parameters["solver_settings"]["is_slip"].SetBool(is_slip)
+
 
     def _CreateSolver(self):
         """ Create the Solver (and create and import the ModelPart if it is not already in the model) """

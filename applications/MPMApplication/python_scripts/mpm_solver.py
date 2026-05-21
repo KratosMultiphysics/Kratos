@@ -67,6 +67,7 @@ class MPMSolver(PythonSolver):
             "auxiliary_variables_list"           : [],
             "auxiliary_dofs_list"                : [],
             "auxiliary_reaction_list"            : [],
+            "is_slip"                            : false,
             "element_search_settings"            : {
                 "search_algorithm_type"          : "bin_based",
                 "max_number_of_results"          : 1000,
