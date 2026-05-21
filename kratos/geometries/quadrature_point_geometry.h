@@ -274,6 +274,14 @@ public:
         return p_geometry;
     }
 
+    BaseType::Pointer Clone() const override {
+        auto p_clone = typename BaseType::Pointer(new QuadraturePointGeometry(
+            this->Points(),
+            mGeometryData.GetGeometryShapeFunctionContainer(),
+            mpGeometryParent));
+        return p_clone;
+    }
+
     ///@}
     ///@name Dynamic access to internals
     ///@{

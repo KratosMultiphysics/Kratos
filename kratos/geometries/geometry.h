@@ -991,6 +991,10 @@ public:
             *i = typename PointType::Pointer( new PointType( **i ) );
     }
 
+    virtual Pointer Clone() const {
+        KRATOS_ERROR << KRATOS_CODE_LOCATION.CleanFunctionName() << " is not implemented";
+    }
+
     ///@}
     ///@name Geometry Data and Geometry Shape Function Container
     ///@{
