@@ -18,6 +18,7 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
                 "material_points_per_condition" : 0,
                 "imposition_type"               : "penalty",
                 "penalty_coefficient"           : 0,
+                "friction_coefficient"          : 0,
                 "variable_name"                 : "DISPLACEMENT",
                 "constrained"                   : "fixed",
                 "value"                         : [0.0, "0*t", 0.0],
@@ -84,11 +85,11 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
             err_msg += 'and assigned negative values. \nPlease assign: "penalty_coefficient" > 0 or = 0!\n'
             raise Exception(err_msg)
 
-
         # check constraint
         self.constrained = settings["constrained"].GetString()
         self.is_slip_boundary = False
         self.is_contact_boundary = False
+        self.is_friction = False
         if (self.constrained == "fixed"):
             pass
         elif (self.constrained == "contact"):
@@ -98,9 +99,17 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
         elif (self.constrained == "contact_slip"):
             self.is_contact_boundary = True
             self.is_slip_boundary = True
+        elif (self.constrained == "friction"):
+            self.is_friction = True
+            self.is_contact_boundary = True
         else:
             err_msg =  "The requested type of constrain: \"" + self.constrained + "\" is not available!\n"
             err_msg += "Available options are: \"fixed\", \"contact\" and \"slip\"."
+            raise Exception(err_msg)
+
+        self.friction_coefficient = settings["friction_coefficient"].GetDouble() if self.is_friction else 0.0
+        if self.is_friction and self.friction_coefficient < 0.0:
+            err_msg = "The friction coefficient must be positive!"
             raise Exception(err_msg)
 
         # get variable imposed and check
@@ -143,6 +152,7 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
                 condition.Set(KratosMultiphysics.SLIP, self.is_slip_boundary)
                 condition.Set(KratosMultiphysics.CONTACT, self.is_contact_boundary)
                 condition.Set(KratosMultiphysics.MODIFIED, self.modified_normal)
+                condition.SetValue(KratosMultiphysics.FRICTION_COEFFICIENT, self.friction_coefficient)
                 condition.SetValue(KratosMPM.MATERIAL_POINTS_PER_CONDITION, self.material_points_per_condition)
                 condition.SetValue(KratosMPM.IS_EQUAL_DISTRIBUTED, self.is_equal_distributed)
                 condition.SetValue(KratosMPM.MPC_IS_NEUMANN, self.is_neumann_boundary)

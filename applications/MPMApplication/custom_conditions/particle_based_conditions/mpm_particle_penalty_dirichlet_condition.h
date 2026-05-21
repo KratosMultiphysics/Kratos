@@ -189,6 +189,8 @@ protected:
 private:
     ///@name Static Member Variables
     ///@{
+    const int STICK = 0;
+    const int SLIDE = 1;
 
     ///@}
     ///@name Member Variables

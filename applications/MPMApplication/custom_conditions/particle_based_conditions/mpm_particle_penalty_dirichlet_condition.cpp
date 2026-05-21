@@ -19,7 +19,7 @@
 #include "includes/define.h"
 #include "custom_conditions/particle_based_conditions/mpm_particle_penalty_dirichlet_condition.h"
 #include "includes/kratos_flags.h"
-
+#include "custom_utilities/mpm_math_utilities.h"
 
 
 namespace Kratos
@@ -91,6 +91,9 @@ void MPMParticlePenaltyDirichletCondition::InitializeSolutionStep( const Process
             r_geometry[i].UnSetLock();
         }
     }
+
+    this->SetValue(FRICTION_ACTIVE, false);
+
 }
 
 //************************************************************************************
@@ -159,75 +162,182 @@ void MPMParticlePenaltyDirichletCondition::CalculateAll(
 
     }
 
+    array_1d<double, 3> nnormal = m_normal;
+    MPMMathUtilities<double>::Normalize(nnormal);
+
+    double penetration;
+    double normal_force;
+    array_1d<double, 3 > tangential_displacement;
+    array_1d<double, 3 > trial_tangential_stress;
+
     if (apply_constraints)
     {
-        // Arrange shape function
-        Matrix shape_function = ZeroMatrix(block_size, matrix_size);
-        for (unsigned int i = 0; i < number_of_nodes; i++)
-        {
-            // constrain only the movement of the nodes which are conntected to the body
-            if (r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0) >= std::numeric_limits<double>::epsilon() )
-            {
-                for (unsigned int j = 0; j < dimension; j++)
-                {
-                    shape_function(j, block_size * i + j) = Variables.N[i];
+        const double friction_coefficient = this->GetValue(FRICTION_COEFFICIENT);
+
+        int friction_state = this->STICK; // Assume default stick behavior
+
+        if (friction_coefficient >= 0.0) {
+            if (this->GetValue(FRICTION_ACTIVE)) {
+                // determine stick/slip behavior
+
+                array_1d<double, 3 > field_displacement = ZeroVector(3);
+                for ( unsigned int i = 0; i < number_of_nodes; i++ ) {
+                    for ( unsigned int j = 0; j < dimension; j++) {
+                        field_displacement[j] += Variables.N[i] * Variables.CurrentDisp(i,j);
+                    }
                 }
-            }
-        }
+                penetration = MathUtils<double>::Dot((field_displacement - m_imposed_displacement), nnormal);
+                tangential_displacement = field_displacement - penetration * nnormal;
+                trial_tangential_stress = m_penalty * tangential_displacement;
+                normal_force = std::abs(m_penalty * penetration);
+                const double stick_slip_criterion = sqrt(
+                        trial_tangential_stress[0]*trial_tangential_stress[0]
+                      + trial_tangential_stress[1]*trial_tangential_stress[1]
+                      + trial_tangential_stress[2]*trial_tangential_stress[2])
+                    - friction_coefficient * normal_force;
 
-        // Calculate gap_function: nodal_displacement - imposed_displacement
-        Vector gap_function = ZeroVector(matrix_size);
-        for (unsigned int i = 0; i < number_of_nodes; i++)
-        {
-            for ( unsigned int j = 0; j < dimension; j++)
-                gap_function[block_size * i + j] = (Variables.CurrentDisp(i,j) - m_imposed_displacement[j]);
+                if (stick_slip_criterion > 0.0) {
+                    friction_state = this->SLIDE;
+                }
 
-        }
-
-        // Calculate LHS Matrix and RHS Vector
-        if ( CalculateStiffnessMatrixFlag == true )
-        {
-            noalias(rLeftHandSideMatrix)  += prod(trans(shape_function), shape_function);
-            rLeftHandSideMatrix  *= m_penalty * this->GetIntegrationWeight();
-
-        }
-
-        if ( CalculateResidualVectorFlag == true )
-        {
-            noalias(rRightHandSideVector) -= prod(prod(trans(shape_function), shape_function), gap_function);
-            rRightHandSideVector *= m_penalty * this->GetIntegrationWeight();
-        }
-
-        if (Is(SLIP)){
-            // rotate to normal-tangential frame
-            if (CalculateStiffnessMatrixFlag == true){
-                GetRotationTool().Rotate(rLeftHandSideMatrix, rRightHandSideVector, GetGeometry());
             } else {
-                GetRotationTool().Rotate(rRightHandSideVector, GetGeometry());
+                // start using stick behavior at contact interface
+                // the next NR iteration will determine the stick/slip behavior
+                this->SetValue(FRICTION_ACTIVE, true);
             }
+        }
 
-            if (CalculateStiffnessMatrixFlag == true) {
-                for (unsigned int i = 0; i < matrix_size; ++i) {
-                    for (unsigned int j = 0; j < matrix_size; ++j) {
-                        // erase tangential DoFs
-                        if (j%block_size != 0 || i%block_size != 0)
-                            rLeftHandSideMatrix(i, j) = 0;
+        if (friction_state == this->SLIDE) {
+
+            array_1d<double, 3 > tangential_displacement_direction = trial_tangential_stress;
+            MPMMathUtilities<double>::Normalize(tangential_displacement_direction);
+            array_1d<double, 3 > tangential_stress = friction_coefficient * normal_force * tangential_displacement_direction;
+            array_1d<double, 3 > tangent_vector = ZeroVector(3);
+            tangent_vector[0] =  nnormal[1];
+            tangent_vector[1] = -nnormal[0];
+            const double ntr = MathUtils<double>::Dot(tangent_vector, tangential_displacement_direction);
+
+            // Arrange shape function
+            Matrix normal_shape_function = ZeroMatrix(1, matrix_size);
+            Matrix tangent_shape_function = ZeroMatrix(1, matrix_size);
+            for (unsigned int i = 0; i < number_of_nodes; i++) {
+                // constrain only the movement of the nodes which are conntected to the body
+                if (r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0) >= std::numeric_limits<double>::epsilon() ) {
+                    for (unsigned int j = 0; j < dimension; j++) {
+                        normal_shape_function(0, block_size * i + j) = Variables.N[i] * nnormal[j];
+                        tangent_shape_function(0, block_size * i + j) = Variables.N[i] * tangent_vector[j];
                     }
                 }
             }
 
-            if (CalculateResidualVectorFlag == true) {
-                for (unsigned int j = 0; j < matrix_size; j++) {
-                    if (j % block_size != 0) // tangential DoF
-                        rRightHandSideVector[j] = 0.0;
+            // Calculate gap_function: nodal_displacement - imposed_displacement
+            Vector gap_function = ZeroVector(matrix_size);
+            for (unsigned int i = 0; i < number_of_nodes; i++) {
+                for ( unsigned int j = 0; j < dimension; j++)
+                    gap_function[block_size * i + j] = (Variables.CurrentDisp(i,j) - m_imposed_displacement[j]);
+            }
+
+            // Try different implementation
+            // Calculate LHS Matrix and RHS Vector
+            if (CalculateStiffnessMatrixFlag)
+            {
+                noalias(rLeftHandSideMatrix)  += prod(trans(normal_shape_function), normal_shape_function);
+                rLeftHandSideMatrix  *= m_penalty * this->GetIntegrationWeight();
+                std::cout << "ID: " << this->Id() << " [LHS] " << rLeftHandSideMatrix << std::endl;
+                rLeftHandSideMatrix += (- friction_coefficient * m_penalty * ntr * this->GetIntegrationWeight()) * prod(trans(tangent_shape_function), normal_shape_function);
+                std::cout << "ID: " << this->Id() << " [LHS] " << rLeftHandSideMatrix << std::endl;
+            }
+
+            if (CalculateResidualVectorFlag)
+            {
+                noalias(rRightHandSideVector) -= prod(prod(trans(normal_shape_function), normal_shape_function), gap_function); // penetration * normal_shape_function
+                rRightHandSideVector *= m_penalty * this->GetIntegrationWeight();
+                std::cout << "ID: " << this->Id() << " [RHS] " << rRightHandSideVector << std::endl;
+                for (unsigned int i = 0; i < matrix_size; i++) {
+                    rRightHandSideVector(i) -= (friction_coefficient * normal_force * this->GetIntegrationWeight() * ntr) * tangent_shape_function(0,i);
+                }
+                std::cout << "ID: " << this->Id() << " [RHS] " << rRightHandSideVector << std::endl;
+            }
+
+
+        } else { // stick behavior
+
+            // Arrange shape function
+            Matrix shape_function = ZeroMatrix(block_size, matrix_size);
+            for (unsigned int i = 0; i < number_of_nodes; i++)
+            {
+                // constrain only the movement of the nodes which are conntected to the body
+                if (r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0) >= std::numeric_limits<double>::epsilon() )
+                {
+                    for (unsigned int j = 0; j < dimension; j++)
+                    {
+                        shape_function(j, block_size * i + j) = Variables.N[i];
+                    }
                 }
             }
 
-            // rotate back to global frame
-            if (CalculateStiffnessMatrixFlag == true){
-                GetRotationTool().RevertRotate(rLeftHandSideMatrix, rRightHandSideVector, GetGeometry());
-            } else {
-                GetRotationTool().RevertRotate(rRightHandSideVector, GetGeometry());
+            // Calculate gap_function: nodal_displacement - imposed_displacement
+            Vector gap_function = ZeroVector(matrix_size);
+            for (unsigned int i = 0; i < number_of_nodes; i++)
+            {
+                for ( unsigned int j = 0; j < dimension; j++)
+                    gap_function[block_size * i + j] = (Variables.CurrentDisp(i,j) - m_imposed_displacement[j]);
+
+            }
+
+            // Calculate LHS Matrix and RHS Vector
+            if ( CalculateStiffnessMatrixFlag == true )
+            {
+                noalias(rLeftHandSideMatrix)  += prod(trans(shape_function), shape_function);
+                rLeftHandSideMatrix  *= m_penalty * this->GetIntegrationWeight();
+
+            }
+
+            if ( CalculateResidualVectorFlag == true )
+            {
+                noalias(rRightHandSideVector) -= prod(prod(trans(shape_function), shape_function), gap_function);
+                rRightHandSideVector *= m_penalty * this->GetIntegrationWeight();
+            }
+
+            if (Is(SLIP)){
+                // rotate to normal-tangential frame
+                if (CalculateStiffnessMatrixFlag == true){
+                    GetRotationTool().Rotate(rLeftHandSideMatrix, rRightHandSideVector, GetGeometry());
+                } else {
+                    GetRotationTool().Rotate(rRightHandSideVector, GetGeometry());
+                }
+
+                if (CalculateStiffnessMatrixFlag == true) {
+                    for (unsigned int i = 0; i < matrix_size; ++i) {
+                        for (unsigned int j = 0; j < matrix_size; ++j) {
+                            // erase tangential DoFs
+                            if (j%block_size != 0 || i%block_size != 0)
+                                rLeftHandSideMatrix(i, j) = 0;
+                        }
+                    }
+                }
+
+                if (CalculateResidualVectorFlag == true) {
+                    for (unsigned int j = 0; j < matrix_size; j++) {
+                        if (j % block_size != 0) // tangential DoF
+                            rRightHandSideVector[j] = 0.0;
+                    }
+                }
+
+                // rotate back to global frame
+                if (CalculateStiffnessMatrixFlag == true){
+                    GetRotationTool().RevertRotate(rLeftHandSideMatrix, rRightHandSideVector, GetGeometry());
+                } else {
+                    GetRotationTool().RevertRotate(rRightHandSideVector, GetGeometry());
+                }
+
+                if (CalculateStiffnessMatrixFlag == true){
+                    std::cout << "ID: " << this->Id() << " [LHS] " << rLeftHandSideMatrix << std::endl;
+                }
+                if (CalculateResidualVectorFlag == true) {
+                    std::cout << "ID: " << this->Id() << " [RHS] " << rRightHandSideVector << std::endl;
+                }
+
             }
 
         }

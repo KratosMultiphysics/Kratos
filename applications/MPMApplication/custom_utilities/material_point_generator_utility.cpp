@@ -380,6 +380,7 @@ namespace Kratos::MaterialPointGeneratorUtility
                         const bool is_contact = r_cond.Is(CONTACT);
                         const bool is_interface = r_cond.Is(INTERFACE);
                         const bool flip_normal_direction = r_cond.Is(MODIFIED);
+                        const double friction_coefficient = r_cond.GetValue(FRICTION_COEFFICIENT);
 
                         std::string condition_type_name;
 
@@ -543,6 +544,8 @@ namespace Kratos::MaterialPointGeneratorUtility
                                         p_condition->Set(CONTACT);
                                     if (is_interface)
                                         p_condition->Set(INTERFACE);
+
+                                    p_condition->SetValue(FRICTION_COEFFICIENT, friction_coefficient);
 
                                     // Add the MP Condition to the model part
                                     rMPMModelPart.GetSubModelPart(submodelpart_name).AddCondition(p_condition);

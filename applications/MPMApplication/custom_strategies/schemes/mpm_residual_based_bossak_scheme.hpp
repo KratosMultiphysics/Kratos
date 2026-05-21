@@ -177,6 +177,8 @@ public:
         // Update of displacement (by DOF)
         mpDofUpdater->UpdateDofs(rDofSet, rDx);
 
+        std::cout << "DX: " << rDx << std::endl;
+
         // Rotate the displacement back to the original coordinate system to calculate the velocity and acceleration
         mRotationTool.RecoverDisplacements(rModelPart);
 
