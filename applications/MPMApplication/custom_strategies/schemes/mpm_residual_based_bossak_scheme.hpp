@@ -436,11 +436,9 @@ public:
             }
         });
 
-        const bool contact_state_changed = this->mRotationTool.UpdateContactState(rModelPart);
-        std::cout << "[Bossak FinalizeNonLinIteration] Has contact state changed? " << contact_state_changed << std::endl;
-        rModelPart.GetProcessInfo()[CONTACT_ACTIVE] = contact_state_changed;
-
-        // ***
+        // const bool contact_state_changed = this->mRotationTool.UpdateContactState(rModelPart);
+        // std::cout << "[Bossak FinalizeNonLinIteration] Has contact state changed? " << contact_state_changed << std::endl;
+        // rModelPart.GetProcessInfo()[CONTACT_ACTIVE] = contact_state_changed;
 
         BossakBaseType::FinalizeNonLinIteration(rModelPart, rA, rDx, rb);
 
@@ -454,20 +452,20 @@ public:
         // clear nodal reaction values again
         ClearReactionVariable();
 
-        block_for_each(rModelPart.Nodes(), [this](Node& rNode)
-        {
-            if (this->mRotationTool.IsConformingSlip(rNode) && rNode.Is(CONTACT)) {
-                // if (rNode.GetValue(IS_PENETRATING)) {
-                //     rNode.FastGetSolutionStepValue(DISPLACEMENT) = ZeroVector(3);
-                // }
-                const double penetration = MathUtils<double>::Dot(
-                        rNode.FastGetSolutionStepValue(DISPLACEMENT),
-                        rNode.FastGetSolutionStepValue(NORMAL));
-                if (penetration > 0.0) {
-                    rNode.FastGetSolutionStepValue(DISPLACEMENT) = ZeroVector(3);
-                }
-            }
-        });
+        // block_for_each(rModelPart.Nodes(), [this](Node& rNode)
+        // {
+        //     if (this->mRotationTool.IsConformingSlip(rNode) && rNode.Is(CONTACT)) {
+        //         // if (rNode.GetValue(IS_PENETRATING)) {
+        //         //     rNode.FastGetSolutionStepValue(DISPLACEMENT) = ZeroVector(3);
+        //         // }
+        //         const double penetration = MathUtils<double>::Dot(
+        //                 rNode.FastGetSolutionStepValue(DISPLACEMENT),
+        //                 rNode.FastGetSolutionStepValue(NORMAL));
+        //         if (penetration > 0.0) {
+        //             rNode.FastGetSolutionStepValue(DISPLACEMENT) = ZeroVector(3);
+        //         }
+        //     }
+        // });
 
         if(mFrictionIsActive) {
             mRotationTool.ComputeFrictionAndResetFlags(rModelPart);

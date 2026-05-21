@@ -187,7 +187,15 @@ public:
 				{
                     bool apply_normal_constraint = true;
                     if (rGeometry[itNode].Is(CONTACT)) {
-                        apply_normal_constraint = rGeometry[itNode].GetValue(IS_PENETRATING);
+                        const double normal_reaction = MathUtils<double>::Dot(
+                                rGeometry[itNode].FastGetSolutionStepValue(REACTION),
+                                rGeometry[itNode].FastGetSolutionStepValue(NORMAL));
+                        if (normal_reaction <= 0.0) {
+                            apply_normal_constraint = true;
+                            std::cout << "Apply constraint!" << std::endl;
+                        } else {
+                            apply_normal_constraint = false;
+                        }
                     }
 
 					// We fix the first displacement dof (normal component) for each rotated block
@@ -196,8 +204,8 @@ public:
 					// Get the displacement of the boundary mesh, this does not assume that the mesh is moving.
 					// If the mesh is moving, need to consider the displacement of the moving mesh into account.
 					const array_1d<double,3> & displacement = rGeometry[itNode].FastGetSolutionStepValue(DISPLACEMENT);
-                    std::cout << "#" << rGeometry[itNode].Id() << ", displacement: " << displacement
-                        << ", is penetrating? " << rGeometry[itNode].GetValue(IS_PENETRATING) << std::endl;
+                    // std::cout << "#" << rGeometry[itNode].Id() << ", displacement: " << displacement
+                        // << ", is penetrating? " << rGeometry[itNode].GetValue(IS_PENETRATING) << std::endl;
 
 					// Get Normal Vector of the boundary
 					array_1d<double,3> rN = rGeometry[itNode].FastGetSolutionStepValue(NORMAL);
@@ -206,7 +214,7 @@ public:
                     // Zero out row/column corresponding to normal displacement DoF except diagonal term (set to 1)
                     // Applied IFF the local matrix passed is not empty [otherwise does nothing -- RHS only case]
                     if ((rLocalMatrix.size1() != 0) && apply_normal_constraint) {
-                        std::cout << "Apply constraints" << std::endl;
+                        // std::cout << "Apply constraints" << std::endl;
                         for( unsigned int i = 0; i < LocalSize; ++i)
                         {
                             rLocalMatrix(i,j) = 0.0;
@@ -265,7 +273,7 @@ public:
                         if (rGeometry[itNode].Is(CONTACT)) {
                             rLocalVector[j] = 0.0;
                             // rGeometry[itNode].FastGetSolutionStepValue(DISPLACEMENT) = ZeroVector(3);
-                            std::cout << "set displacement zero" << std::endl;
+                            // std::cout << "set displacement zero" << std::endl;
                         } else {
                             rLocalVector[j] = inner_prod(rN,displacement);
                         }

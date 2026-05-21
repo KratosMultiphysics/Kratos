@@ -220,8 +220,8 @@ public:
         p_scheme->Update(BaseType::GetModelPart(), r_dof_set, rA, rDx, rb);
         p_scheme->FinalizeNonLinIteration(BaseType::GetModelPart(), rA, rDx, rb);
 
-        const bool contact_state_changed = BaseType::GetModelPart().GetProcessInfo()[CONTACT_ACTIVE];
-        std::cout << "[NR] contact state changed? " << contact_state_changed << std::endl;
+        // const bool contact_state_changed = BaseType::GetModelPart().GetProcessInfo()[CONTACT_ACTIVE];
+        // std::cout << "[NR] contact state changed? " << contact_state_changed << std::endl;
 
         // Move the mesh if needed
         if (BaseType::MoveMeshFlag() == true) BaseType::MoveMesh();
@@ -250,9 +250,9 @@ public:
         }
         KRATOS_INFO_IF("MPMNewtonRaphsonStrategy", this->GetEchoLevel() >= 3 && !is_converged) << "Starting Nonlinear iteration" << std::endl;
 
-        std::cout << "NR (no contact check): convergence achieved? " << is_converged << std::endl;
-        is_converged = contact_state_changed ? false : is_converged;
-        std::cout << "NR (contact check): convergence achieved? " << is_converged << std::endl;
+        // std::cout << "NR (no contact check): convergence achieved? " << is_converged << std::endl;
+        // is_converged = contact_state_changed ? false : is_converged;
+        // std::cout << "NR (contact check): convergence achieved? " << is_converged << std::endl;
 
         // Iteration Loop
         while (is_converged == false &&
@@ -395,8 +395,8 @@ private:
         p_scheme->Update(BaseType::GetModelPart(), r_dof_set, rA, rDx, rb);
         p_scheme->FinalizeNonLinIteration(BaseType::GetModelPart(), rA, rDx, rb);
 
-        const bool contact_state_changed = BaseType::GetModelPart().GetProcessInfo()[CONTACT_ACTIVE];
-        std::cout << "[NR] contact state changed? " << contact_state_changed << std::endl;
+        // const bool contact_state_changed = BaseType::GetModelPart().GetProcessInfo()[CONTACT_ACTIVE];
+        // std::cout << "[NR] contact state changed? " << contact_state_changed << std::endl;
 
         // Move the mesh if needed
         if (BaseType::MoveMeshFlag() == true) BaseType::MoveMesh();
@@ -424,9 +424,9 @@ private:
             is_converged = this->mpConvergenceCriteria->PostCriteria(BaseType::GetModelPart(), r_dof_set, rA, rDx, rb);
         }
 
-        std::cout << "NR (no contact check): convergence achieved? " << is_converged << std::endl;
-        is_converged = contact_state_changed ? false : is_converged;
-        std::cout << "NR (contact check): convergence achieved? " << is_converged << std::endl;
+        // std::cout << "NR (no contact check): convergence achieved? " << is_converged << std::endl;
+        // is_converged = contact_state_changed ? false : is_converged;
+        // std::cout << "NR (contact check): convergence achieved? " << is_converged << std::endl;
     }
 
 }; /* Class MPMResidualBasedNewtonRaphsonStrategy */
