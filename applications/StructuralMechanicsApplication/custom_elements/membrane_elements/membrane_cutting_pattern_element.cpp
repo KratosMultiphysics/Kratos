@@ -178,7 +178,7 @@ namespace Kratos
   void MembraneCuttingPatternElement::InternalForcesLeastSquare(Vector& rInternalForces, const IntegrationMethod& ThisMethod, ConstitutiveLaw::Parameters& rValues) {
 
 
-     /*const auto& r_geom = GetGeometry();
+     const auto& r_geom = GetGeometry();
      const SizeType dimension = r_geom.WorkingSpaceDimension();
      const SizeType number_of_nodes = r_geom.size();
      const SizeType number_dofs = dimension * number_of_nodes;
@@ -225,10 +225,10 @@ namespace Kratos
 
          double product_internal_forces = 0.0;
 
-         for (cint m = 0; m < 2; m++) {
-           for (cint n = 0; n < 2; n++) {
-             for (cint l = 0; l < 2; l++) {
-               for (cint k = 0; k < 2; k++) {
+         for (SizeType m = 0; m < 2; m++) {
+           for (SizeType n = 0; n < 2; n++) {
+             for (SizeType l = 0; l < 2; l++) {
+               for (SizeType k = 0; k < 2; k++) {
 
                  product_internal_forces += ((cauchy_stress(m, n) - prestress(m, n)) * derivative_cauchy_stress(l, k)) * covariant_metric_current(m, l) * covariant_metric_current(n, k);
 
@@ -239,7 +239,7 @@ namespace Kratos
 
          rInternalForces[dof_r] += product_internal_forces * detJ * integration_weight_i * thickness;
        }
-     }*/
+     }
   }
 
 
