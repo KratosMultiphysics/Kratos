@@ -100,7 +100,7 @@ public:
      *          - @p rVWgt has size @p n (may be empty → uniform weights)
      *          - @p rAdjcWgt has size @p rXAdj[n] (may be empty → uniform weights)
      *
-     * @param n              Number of graph vertices
+     * @param NGraphVertices Number of graph vertices
      * @param rXAdj          CSR row offsets
      * @param rAdjncy        CSR column indices (0-indexed)
      * @param rVWgt          Vertex weights (empty = uniform)
@@ -109,12 +109,13 @@ public:
      * @return Partition assignment vector of size @p n; part[i] ∈ [0, k)
      */
     std::vector<int> PartitionGraph(
-        int n,
+        const int NGraphVertices,
         std::vector<kahip_idx>& rXAdj,
         std::vector<kahip_idx>& rAdjncy,
         std::vector<int>& rVWgt,
         std::vector<kahip_idx>& rAdjcWgt,
-        int NumPartitions);
+        const int NumPartitions
+        );
 
     /**
      * @brief Return the KaHIP mode integer corresponding to the current preconfiguration.

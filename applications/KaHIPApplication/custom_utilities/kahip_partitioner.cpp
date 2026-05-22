@@ -46,33 +46,33 @@ KaHIPPartitioner::KaHIPPartitioner(Parameters rSettings)
 /***********************************************************************************/
 
 std::vector<int> KaHIPPartitioner::PartitionGraph(
-    int n,
+    const int NGraphVertices,
     std::vector<kahip_idx>& rXAdj,
     std::vector<kahip_idx>& rAdjncy,
     std::vector<int>& rVWgt,
     std::vector<kahip_idx>& rAdjcWgt,
-    int NumPartitions
+    const int NumPartitions
     )
 {
-    KRATOS_ERROR_IF(n <= 0)
-        << "KaHIPPartitioner: number of vertices n must be > 0, got " << n << std::endl;
+    KRATOS_ERROR_IF(NGraphVertices <= 0)
+        << "KaHIPPartitioner: number of vertices n must be > 0, got " << NGraphVertices << std::endl;
 
     KRATOS_ERROR_IF(NumPartitions < 1)
         << "KaHIPPartitioner: NumPartitions must be >= 1, got " << NumPartitions << std::endl;
 
-    KRATOS_ERROR_IF(static_cast<int>(rXAdj.size()) != n + 1)
+    KRATOS_ERROR_IF(static_cast<int>(rXAdj.size()) != NGraphVertices + 1)
         << "KaHIPPartitioner: xadj size " << rXAdj.size()
-        << " != n+1 = " << (n + 1) << std::endl;
+        << " != n+1 = " << (NGraphVertices + 1) << std::endl;
 
     // Pointers for optional weight arrays (nullptr triggers KaHIP uniform weighting)
     int*        p_vwgt    = rVWgt.empty()    ? nullptr : rVWgt.data();
     kahip_idx*  p_adjcwgt = rAdjcWgt.empty() ? nullptr : rAdjcWgt.data();
 
     // Storage for the best result across all trials
-    std::vector<int> best_part(n);
+    std::vector<int> best_part(NGraphVertices);
     kahip_idx        best_cut = std::numeric_limits<kahip_idx>::max();
 
-    std::vector<int> trial_part(n);
+    std::vector<int> trial_part(NGraphVertices);
     double imbalance = mImbalance; // kaffpa takes a pointer, must be non-const
 
     for (int trial = 0; trial < mNumTrials; ++trial) {
@@ -80,7 +80,7 @@ std::vector<int> KaHIPPartitioner::PartitionGraph(
         kahip_idx edgecut = 0;
 
         kaffpa(
-            &n,
+            &NGraphVertices,
             p_vwgt,
             rXAdj.data(),
             p_adjcwgt,
