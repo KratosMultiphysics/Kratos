@@ -9,8 +9,9 @@ add_app () {
 dnf install -y gcc-toolset-15-gcc gcc-toolset-15-gcc-c++ gcc-toolset-15-gcc-gfortran
 source /opt/rh/gcc-toolset-15/enable
 
-export MPI_HOME=/usr/lib64/mpich/bin
+export MPI_HOME=/usr/local/mpich-4.2/bin
 export PATH=${PATH}:${MPI_HOME}
+export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${MPI_HOME}
 
 export MPI_C=`which mpicc`
 export MPI_CXX=`which mpicxx`
