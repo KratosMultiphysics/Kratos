@@ -7,6 +7,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # Import the test classes to create the suites
 from test_kahip_partitioner import TestKaHIPPartitioner
+from test_kahip_modeler import TestKaHIPModeler
 
 def AssembleTestSuites():
     """Populate the test suites to run.
@@ -22,6 +23,7 @@ def AssembleTestSuites():
     small_suite = suites['small']
     small_suite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([
         TestKaHIPPartitioner,
+        TestKaHIPModeler,
     ]))
 
     # Nightly tests (include small)
