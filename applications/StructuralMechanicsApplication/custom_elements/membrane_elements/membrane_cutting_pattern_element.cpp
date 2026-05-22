@@ -481,8 +481,8 @@ namespace Kratos
 
   void MembraneCuttingPatternElement::StrainEulerAlmansi(Matrix& rStrain, const Matrix& rReferenceCoVariantMetric, const Matrix& rCurrentCoVariantMetric)
   {
-    /*rStrain = ZeroMatrix(2);
-    noalias(rStrain) = 0.50 * (rCurrentCoVariantMetric - rReferenceCoVariantMetric);*/
+    rStrain = ZeroMatrix(2);
+    noalias(rStrain) = 0.50 * (rCurrentCoVariantMetric - rReferenceCoVariantMetric);
   }
 
 
