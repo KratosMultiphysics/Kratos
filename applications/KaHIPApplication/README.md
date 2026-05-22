@@ -1,5 +1,7 @@
 # KaHIPApplication
 
+![Logo](https://raw.githubusercontent.com/KaHIP/.github/main/profile/kahip-logo.png)
+
 KaHIP-based graph-partitioning application for Kratos Multiphysics.
 
 ## What it does
@@ -17,6 +19,8 @@ serving as a drop-in alternative to `MetisApplication`. It:
    distributes the per-rank data in-memory via MPI Scatterv (no intermediate files).
 
 ## Why KaHIP instead of METIS?
+
+![](https://github.com/KaHIP/KaHIP/raw/master/img/MGPall_en_new.png)
 
 - KaHIP typically produces lower edge cuts (fewer inter-partition communication
   edges), especially with the `eco` and `strong` preconfigurations.
@@ -160,11 +164,11 @@ modeler.SetupModelPart()
 
 | Modeler parameter          | Type   | Default  | Description                                      |
 |----------------------------|--------|----------|--------------------------------------------------|
-| `model_part_name`          | string | `"Main"` | Name of the model part to populate              |
+| `model_part_name`          | string | `"Main"` | Name of the model part to populate               |
 | `input_filename`           | string | `""`     | Path to the .mdpa file (without extension)       |
-| `number_of_partitions`     | int    | `0`      | 0 = use MPI communicator size                   |
+| `number_of_partitions`     | int    | `0`      | 0 = use MPI communicator size                    |
 | `dimension`                | int    | `3`      | Spatial dimension (informational)                |
-| `verbosity`                | int    | `0`      | 0 = silent, 1 = info                            |
+| `verbosity`                | int    | `0`      | 0 = silent, 1 = info                             |
 | `synchronize_conditions`   | bool   | `false`  | Co-locate conditions with parent element         |
 | `partition_in_memory`      | bool   | `false`  | Use MPI Scatterv instead of per-rank files       |
 | `perform_partitioning`     | bool   | `true`   | If false, read the mesh directly (no partition)  |
@@ -175,25 +179,25 @@ modeler.SetupModelPart()
 
 ## Partitioner Settings (`kahip_settings`)
 
-| Key                      | Type    | Default | Description                                                  |
-|--------------------------|---------|---------|--------------------------------------------------------------|
+| Key                      | Type    | Default | Description                                                                    |
+|--------------------------|---------|---------|--------------------------------------------------------------------------------|
 | `preconfiguration`       | string  | `"eco"` | KaHIP mode: `fast`, `eco`, `strong`, `fastsocial`, `ecosocial`, `strongsocial` |
-| `imbalance`              | double  | `0.03`  | Allowed weight imbalance fraction (0.03 = 3 %)             |
-| `seed`                   | int     | `0`     | Base random seed; trial i uses seed+i                       |
-| `suppress_output`        | bool    | `true`  | Suppress KaHIP's stdout                                      |
-| `num_trials`             | int     | `1`     | Run KaHIP this many times; keep the best (lowest edge cut)  |
-| `verbosity`              | int     | `0`     | 0=silent, 1=info, 2=debug, 3=full debug                     |
-| `synchronize_conditions` | bool    | `false` | Co-locate boundary conditions with their parent element      |
+| `imbalance`              | double  | `0.03`  | Allowed weight imbalance fraction (0.03 = 3 %)                                 |
+| `seed`                   | int     | `0`     | Base random seed; trial i uses seed+i                                          |
+| `suppress_output`        | bool    | `true`  | Suppress KaHIP's stdout                                                        |
+| `num_trials`             | int     | `1`     | Run KaHIP this many times; keep the best (lowest edge cut)                     |
+| `verbosity`              | int     | `0`     | 0=silent, 1=info, 2=debug, 3=full debug                                        |
+| `synchronize_conditions` | bool    | `false` | Co-locate boundary conditions with their parent element                        |
 
 ---
 
 ## Classes
 
-| Class | Description |
-|---|---|
-| `KaHIPDivideHeterogeneousInputProcess` | Serial partitioner — drop-in for `MetisDivideHeterogeneousInputProcess` |
+| Class                                          | Description                                                                            |
+|------------------------------------------------|----------------------------------------------------------------------------------------|
+| `KaHIPDivideHeterogeneousInputProcess`         | Serial partitioner — drop-in for `MetisDivideHeterogeneousInputProcess`                |
 | `KaHIPDivideHeterogeneousInputInMemoryProcess` | MPI in-memory partitioner — drop-in for `MetisDivideHeterogeneousInputInMemoryProcess` |
-| `KaHIPPartitioningModeler` | High-level modeler: partition + read in one call |
+| `KaHIPPartitioningModeler`                     | High-level modeler: partition + read in one call                                       |
 
 ---
 
