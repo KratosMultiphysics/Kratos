@@ -44,6 +44,7 @@ include_directories(${KAHIP_INCLUDE_DIRS})
 file(GLOB KRATOS_KAHIP_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/kahip_application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/kahip_application_variables.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_modeler/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/*.cpp
 )
