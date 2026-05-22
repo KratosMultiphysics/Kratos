@@ -23,18 +23,18 @@ The test is performed under the following conditions:
 
 - **Constraints**:
     - The bottom nodes (1, 2, 3) are fixed in the X and Y directions.
-    - The side nodes (3, 6, 9) are fixed in the X direction but free to move in teh Y direction.
-    - The nodes on the symmetry axis (1, 4, 7) are fixed in the X direction but free to move in teh Y direction.
+    - The side nodes (3, 6, 9) are fixed in the X direction but free to move in the Y direction.
+    - The nodes on the symmetry axis (1, 4, 7) are fixed in the X direction but free to move in the Y direction.
     - The top nodes (7, 8, 9) have prescribed displacements in the Y-direction for each phase.
 
 The displacements per phase are:
-| Phase | Y-Displacement |
-| -------------: | -------------: |
-| 1 | -10.0% |
-| 2 | +5.0% |
-| 3 | -20.0% |
-| 4 | +0.0% |
-| 5 | -15.0% |
+| Phase | Time | Y-Displacement |
+| -------------: | ------------- | -------------: |
+| 1 | 0.0 - 3600.0s | -10.0% |
+| 2 | 3600.0 - 7200.0s | +5.0% |
+| 3 | 7200.0 - 10800.0s | -20.0% |
+| 4 | 10800.0 - 14400.0s | +0.0% |
+| 5 | 14400.0 - 18000.0s | -15.0% |
 
 ## Assertions
 For this test, the **Cauchy stress tensor**, the **Engineering strain tensor** and the **Pore water pressure** are verified at the end of each phase.

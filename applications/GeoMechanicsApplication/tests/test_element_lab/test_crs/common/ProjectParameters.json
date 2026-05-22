@@ -9,7 +9,7 @@
     "solver_settings": {
         "time_stepping": {
             "time_step": 36.0,
-            "max_delta_time_factor": 1
+            "max_delta_time_factor": 1.0
         },
         "solver_type": "U_Pw",
         "solution_type": "Quasi-Static",

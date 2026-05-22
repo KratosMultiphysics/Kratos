@@ -5,11 +5,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.GeoMechanicsApplication.gid_output_file_reader import GiDOutputFileReader
 import KratosMultiphysics.GeoMechanicsApplication.run_multiple_stages as run_multiple_stages
 import test_helper
-import KratosMultiphysics as Kratos
-from KratosMultiphysics.project import Project
-from KratosMultiphysics.GeoMechanicsApplication import context_managers
 from pathlib import Path
-import importlib
 
 class KratosGeoMechanicsLabElementTests(KratosUnittest.TestCase):
     """
@@ -116,26 +112,38 @@ class KratosGeoMechanicsLabElementTests(KratosUnittest.TestCase):
         """Regression test for the CRS experiment with constant pore water pressure."""
         stage_name = 'drained'
         nr_of_phases = 5
-        expected_strains = [[[0.0, -0.1, 0.0, 0.0, 0.0, 0.0]] * 6, [[0.0, -0.05, 0.0, 0.0, 0.0, 0.0]] * 6, [[0.0, -0.25, 0.0, 0.0, 0.0, 0.0]] * 6, [[0.0, -0.25, 0.0, 0.0, 0.0, 0.0]] * 6, [[0.0, -0.40, 0.0, 0.0, 0.0, 0.0]] * 6]
-        expected_water_pressures = [[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]] * nr_of_phases
-        # linear elastic expectations per stage
-        expected_stress_1 = [[-4e+05, -12e+05, -4e+05, 0.0, 0.0, 0.0]] * 6
-        expected_stress_2 = [[-2e+05, -6e+05, -2e+05, 0.0, 0.0, 0.0]] * 6
-        expected_stress_3 = [[-1e+06, -3e+06, -1e+06, 0.0, 0.0, 0.0]] * 6
-        expected_stress_4 = [[-1e+06, -3e+06, -1e+06, 0.0, 0.0, 0.0]] * 6
-        expected_stress_5 = [[-1.6e+06, -4.8e+06, -1.6e+06, 0.0, 0.0, 0.0]] * 6
-        expected_stresses = [expected_stress_1, expected_stress_2, expected_stress_3, expected_stress_4, expected_stress_5]
-        
+        nr_of_elements = 2
+        nr_of_integration_points_per_element = 3
+        total_integration_points = nr_of_elements * nr_of_integration_points_per_element
+
+        expected_strains = [
+            self._repeat_tensor([0.0, -0.1, 0.0, 0.0, 0.0, 0.0], total_integration_points),
+            self._repeat_tensor([0.0, -0.05, 0.0, 0.0, 0.0, 0.0], total_integration_points),
+            self._repeat_tensor([0.0, -0.25, 0.0, 0.0, 0.0, 0.0], total_integration_points),
+            self._repeat_tensor([0.0, -0.25, 0.0, 0.0, 0.0, 0.0], total_integration_points),
+            self._repeat_tensor([0.0, -0.40, 0.0, 0.0, 0.0, 0.0], total_integration_points),
+        ]
+        expected_water_pressures = [[0.0] * 9 for _ in range(nr_of_phases)]
+
+        expected_stresses = [
+            self._repeat_tensor([-4e5, -12e5, -4e5, 0.0, 0.0, 0.0], total_integration_points),
+            self._repeat_tensor([-2e5, -6e5, -2e5, 0.0, 0.0, 0.0], total_integration_points),
+            self._repeat_tensor([-1e6, -3e6, -1e6, 0.0, 0.0, 0.0], total_integration_points),
+            self._repeat_tensor([-1e6, -3e6, -1e6, 0.0, 0.0, 0.0], total_integration_points),
+            self._repeat_tensor([-1.6e6, -4.8e6, -1.6e6, 0.0, 0.0, 0.0], total_integration_points),
+        ]
+
         self._run_crs_test_for_model(stage_name, "linear_elastic")
         self._check_crs_results(stage_name, "linear_elastic", nr_of_phases, expected_stresses, expected_strains, expected_water_pressures)
-        
-        # mohr coulomb expectations per stage
-        expected_stress_1 = [[-901875, -2228420, -901875, -2.80682, 0.0, 0.0],[-901875, -2228420, -901875, -0.353492, 0.0, 0.0],[-901880, -2228430, -901880, 1.04, 0.0, 0.0],[-901878, -2228430, -901878, 2.1263, 0.0, 0.0],[-901878, -2228430, -901878, -0.29981, 0.0, 0.0],[-901881, -2228430, -901881, -3.62626, 0.0, 0.0]]
-        expected_stress_2 = [[-501876, -1028420, -501876, -1.88671, 0.0, 0.0], [-501876, -1028420, -501876, -0.239855, 0.0, 0.0], [-501880, -1028430, -501880, 0.68808, 0.0, 0.0], [-501877, -1028430, -501878, 1.40525, 0.0, 0.0], [-501879, -1028430, -501878, -0.17863, 0.0, 0.0], [-501878, -1028430, -501880, -2.29931, 0.0, 0.0]]
-        expected_stress_3 = [[-2256960, -5567230, -2256960, -5.78773, 0.0, 0.0], [-2256960, -5567230, -2256960, -0.722985, 0.0, 0.0], [-2256970, -5567250, -2256970, 2.17338, 0.0, 0.0], [-2256970, -5567250, -2256970, 4.40707, 0.0, 0.0], [-2256970, -5567250, -2256970, -0.656207, 0.0, 0.0], [-2256970, -5567260, -2256970, -7.68891, 0.0, 0.0]]
-        expected_stress_4 = [[-2256970, -5567230, -2256970, -3.05917, 0.0, 0.0], [-2256960, -5567230, -2256960, -0.478967, 0.0, 0.0], [-2256970, -5567250, -2256970, 0.664904, 0.0, 0.0], [-2256970, -5567250, -2256970, 1.78406, 0.0, 0.0], [-2256970, -5567240, -2256970, -0.308447, 0.0, 0.0], [-2256970, -5567260, -2256970, -3.32709, 0.0, 0.0]]
-        expected_stress_5 = [[-3612050, -8906050, -3612050, -4.15402, 0.0, 0.0], [-3612050, -8906050, -3612050, -0.523644, 0.0, 0.0], [-3612060, -8906070, -3612060, 1.53631, 0.0, 0.0], [-3612050, -8906070, -3612050, 3.14004, 0.0, 0.0], [-3612050, -8906070, -3612050, -0.43816, 0.0, 0.0], [-3612060, -8906080, -3612060, -5.33157, 0.0, 0.0]]
-        expected_stresses = [expected_stress_1, expected_stress_2, expected_stress_3, expected_stress_4, expected_stress_5]
+
+        # mohr coulomb expectations per phase
+        expected_stresses = [
+            [[-901875, -2228420, -901875, -2.80682, 0.0, 0.0], [-901875, -2228420, -901875, -0.353492, 0.0, 0.0], [-901880, -2228430, -901880, 1.04, 0.0, 0.0], [-901878, -2228430, -901878, 2.1263, 0.0, 0.0], [-901878, -2228430, -901878, -0.29981, 0.0, 0.0], [-901881, -2228430, -901881, -3.62626, 0.0, 0.0]],
+            [[-501876, -1028420, -501876, -1.88671, 0.0, 0.0], [-501876, -1028420, -501876, -0.239855, 0.0, 0.0], [-501880, -1028430, -501880, 0.68808, 0.0, 0.0], [-501877, -1028430, -501878, 1.40525, 0.0, 0.0], [-501879, -1028430, -501878, -0.17863, 0.0, 0.0], [-501878, -1028430, -501880, -2.29931, 0.0, 0.0]],
+            [[-2256960, -5567230, -2256960, -5.78773, 0.0, 0.0], [-2256960, -5567230, -2256960, -0.722985, 0.0, 0.0], [-2256970, -5567250, -2256970, 2.17338, 0.0, 0.0], [-2256970, -5567250, -2256970, 4.40707, 0.0, 0.0], [-2256970, -5567250, -2256970, -0.656207, 0.0, 0.0], [-2256970, -5567260, -2256970, -7.68891, 0.0, 0.0]],
+            [[-2256970, -5567230, -2256970, -3.05917, 0.0, 0.0], [-2256960, -5567230, -2256960, -0.478967, 0.0, 0.0], [-2256970, -5567250, -2256970, 0.664904, 0.0, 0.0], [-2256970, -5567250, -2256970, 1.78406, 0.0, 0.0], [-2256970, -5567240, -2256970, -0.308447, 0.0, 0.0], [-2256970, -5567260, -2256970, -3.32709, 0.0, 0.0]],
+            [[-3612050, -8906050, -3612050, -4.15402, 0.0, 0.0], [-3612050, -8906050, -3612050, -0.523644, 0.0, 0.0], [-3612060, -8906070, -3612060, 1.53631, 0.0, 0.0], [-3612050, -8906070, -3612050, 3.14004, 0.0, 0.0], [-3612050, -8906070, -3612050, -0.43816, 0.0, 0.0], [-3612060, -8906080, -3612060, -5.33157, 0.0, 0.0]],
+        ]
 
         self._run_crs_test_for_model(stage_name, "mohr_coulomb")
         self._check_crs_results(stage_name, "mohr_coulomb", nr_of_phases, expected_stresses, expected_strains, expected_water_pressures)
@@ -234,6 +242,9 @@ class KratosGeoMechanicsLabElementTests(KratosUnittest.TestCase):
     def _assert_integration_point_tensor_results(self, integration_point_tensors, expected_integration_point_tensor, places, result_name):
         for idx, ip_tensor in enumerate(integration_point_tensors):
             self.assertVectorAlmostEqual(expected_integration_point_tensor, ip_tensor, places, msg = f"{result_name} components at integration point {idx}")
+
+    def _repeat_tensor(self, tensor, count):
+        return [list(tensor) for _ in range(count)]
 
     def _assert_integration_point_tensors(self, reader, result, variable_name, expected_tensors, places, time):
         """Assert tensor values for all integration points across both elements."""
