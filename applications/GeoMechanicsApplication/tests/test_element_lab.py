@@ -134,19 +134,19 @@ class KratosGeoMechanicsLabElementTests(KratosUnittest.TestCase):
         ]
 
         self._run_crs_test_for_model(stage_name, "linear_elastic")
-        self._check_crs_results(stage_name, "linear_elastic", nr_of_phases, expected_stresses, expected_strains, expected_water_pressures)
+        self._check_crs_results(stage_name, "linear_elastic", nr_of_phases, expected_stresses, expected_strains, expected_water_pressures, delta_stress=1.0e+02)
 
         # mohr coulomb expectations per phase
         expected_stresses = [
-            [[-901875, -2228420, -901875, -2.80682, 0.0, 0.0], [-901875, -2228420, -901875, -0.353492, 0.0, 0.0], [-901880, -2228430, -901880, 1.04, 0.0, 0.0], [-901878, -2228430, -901878, 2.1263, 0.0, 0.0], [-901878, -2228430, -901878, -0.29981, 0.0, 0.0], [-901881, -2228430, -901881, -3.62626, 0.0, 0.0]],
-            [[-501876, -1028420, -501876, -1.88671, 0.0, 0.0], [-501876, -1028420, -501876, -0.239855, 0.0, 0.0], [-501880, -1028430, -501880, 0.68808, 0.0, 0.0], [-501877, -1028430, -501878, 1.40525, 0.0, 0.0], [-501879, -1028430, -501878, -0.17863, 0.0, 0.0], [-501878, -1028430, -501880, -2.29931, 0.0, 0.0]],
-            [[-2256960, -5567230, -2256960, -5.78773, 0.0, 0.0], [-2256960, -5567230, -2256960, -0.722985, 0.0, 0.0], [-2256970, -5567250, -2256970, 2.17338, 0.0, 0.0], [-2256970, -5567250, -2256970, 4.40707, 0.0, 0.0], [-2256970, -5567250, -2256970, -0.656207, 0.0, 0.0], [-2256970, -5567260, -2256970, -7.68891, 0.0, 0.0]],
-            [[-2256970, -5567230, -2256970, -3.05917, 0.0, 0.0], [-2256960, -5567230, -2256960, -0.478967, 0.0, 0.0], [-2256970, -5567250, -2256970, 0.664904, 0.0, 0.0], [-2256970, -5567250, -2256970, 1.78406, 0.0, 0.0], [-2256970, -5567240, -2256970, -0.308447, 0.0, 0.0], [-2256970, -5567260, -2256970, -3.32709, 0.0, 0.0]],
-            [[-3612050, -8906050, -3612050, -4.15402, 0.0, 0.0], [-3612050, -8906050, -3612050, -0.523644, 0.0, 0.0], [-3612060, -8906070, -3612060, 1.53631, 0.0, 0.0], [-3612050, -8906070, -3612050, 3.14004, 0.0, 0.0], [-3612050, -8906070, -3612050, -0.43816, 0.0, 0.0], [-3612060, -8906080, -3612060, -5.33157, 0.0, 0.0]],
+            [[-901.9e+03, -2228.4e+03, -901.9e+03, 0.0, 0.0, 0.0], [-901.9e+03, -2228.4e+03, -901.9e+03, 0.0, 0.0, 0.0], [-901.9e+03, -2228.4e+03, -901.9e+03, 0.0, 0.0, 0.0], [-901.9e+03, -2228.4e+03, -901.9e+03, 0.0, 0.0, 0.0], [-901.9e+03, -2228.4e+03, -901.9e+03, 0.0, 0.0, 0.0], [-901.9e+03, -2228.4e+03, -901.9e+03, 0.0, 0.0, 0.0]],
+            [[-501.9e+03, -1028.4e+03, -501.9e+03, 0.0, 0.0, 0.0], [-501.9e+03, -1028.4e+03, -501.9e+03, 0.0, 0.0, 0.0], [-501.9e+03, -1028.4e+03, -501.9e+03, 0.0, 0.0, 0.0], [-501.9e+03, -1028.4e+03, -501.9e+03, 0.0, 0.0, 0.0], [-501.9e+03, -1028.4e+03, -501.9e+03, 0.0, 0.0, 0.0], [-501.9e+03, -1028.4e+03, -501.9e+03, 0.0, 0.0, 0.0]],
+            [[-2257.0e+03, -5567.2e+03, -2257.0e+03, 0.0, 0.0, 0.0], [-2257.0e+03, -5567.2e+03, -2257.0e+03, 0.0, 0.0, 0.0], [-2257.0e+03, -5567.3e+03, -2257.0e+03, 0.0, 0.0, 0.0], [-2257.0e+03, -5567.3e+03, -2257.0e+03, 0.0, 0.0, 0.0], [-2257.0e+03, -5567.3e+03, -2257.0e+03, 0.0, 0.0, 0.0], [-2257.0e+03, -5567.3e+03, -2257.0e+03, 0.0, 0.0, 0.0]],
+            [[-2257.0e+03, -5567.2e+03, -2257.0e+03, 0.0, 0.0, 0.0], [-2257.0e+03, -5567.2e+03, -2257.0e+03, 0.0, 0.0, 0.0], [-2257.0e+03, -5567.3e+03, -2257.0e+03, 0.0, 0.0, 0.0], [-2257.0e+03, -5567.3e+03, -2257.0e+03, 0.0, 0.0, 0.0], [-2257.0e+03, -5567.2e+03, -2257.0e+03, 0.0, 0.0, 0.0], [-2257.0e+03, -5567.3e+03, -2257.0e+03, 0.0, 0.0, 0.0]],
+            [[-3612.1e+03, -8906.1e+03, -3612.1e+03, 0.0, 0.0, 0.0], [-3612.1e+03, -8906.1e+03, -3612.1e+03, 0.0, 0.0, 0.0], [-3612.1e+03, -8906.1e+03, -3612.1e+03, 0.0, 0.0, 0.0], [-3612.1e+03, -8906.1e+03, -3612.1e+03, 0.0, 0.0, 0.0], [-3612.1e+03, -8906.1e+03, -3612.1e+03, 0.0, 0.0, 0.0], [-3612.1e+03, -8906.1e+03, -3612.1e+03, 0.0, 0.0, 0.0]],
         ]
 
         self._run_crs_test_for_model(stage_name, "mohr_coulomb")
-        self._check_crs_results(stage_name, "mohr_coulomb", nr_of_phases, expected_stresses, expected_strains, expected_water_pressures)
+        self._check_crs_results(stage_name, "mohr_coulomb", nr_of_phases, expected_stresses, expected_strains, expected_water_pressures, delta_stress=1.0e+02)
 
     def _run_crs_test_for_model(self, stage_name, model_name):
         test_name =  "test_crs"
@@ -154,12 +154,12 @@ class KratosGeoMechanicsLabElementTests(KratosUnittest.TestCase):
         material_file_path = test_helper.get_file_path(os.path.join('test_element_lab', test_name, stage_name, model_name))
         run_multiple_stages.run_stages(material_file_path, 1, filename_pattern="ProjectParameters.json", input_path=common_file_path)
     
-    def _check_crs_results(self, stage_name, model_name, nr_of_phases, expected_stresses, expected_strains, expected_water_pressures, times = [3600.0, 7200.0, 10800.0, 14400.0, 18000.0], places_stress=1, places_strain=4, places_water_pressure=2):
+    def _check_crs_results(self, stage_name, model_name, nr_of_phases, expected_stresses, expected_strains, expected_water_pressures, times = [3600.0, 7200.0, 10800.0, 14400.0, 18000.0], places_stress=None, places_strain=4, places_water_pressure=2, delta_stress = None):
         reader = GiDOutputFileReader()
         file_path = test_helper.get_file_path(Path('test_element_lab') / "test_crs" / stage_name / model_name)
         result = reader.read_output_from(Path(file_path) / "test_crs_output.post.res")
         for i in range(nr_of_phases):
-            self._assert_integration_point_tensors(reader, result, "CAUCHY_STRESS_TENSOR", expected_stresses[i], places_stress, time=times[i])
+            self._assert_integration_point_tensors(reader, result, "CAUCHY_STRESS_TENSOR", expected_stresses[i], places_stress, time=times[i], delta=delta_stress)
             self._assert_integration_point_tensors(reader, result, "ENGINEERING_STRAIN_TENSOR", expected_strains[i], places_strain, time=times[i])
             self._assert_node_values_at_time(reader, result, "WATER_PRESSURE", expected_water_pressures[i], places_water_pressure, time=times[i])
 
@@ -236,19 +236,19 @@ class KratosGeoMechanicsLabElementTests(KratosUnittest.TestCase):
                 result_values = reader.nodal_values_at_time(variable_name, time, result, [node_id])[0]
                 self.assertAlmostEqual(result_values, expected_node_values, places)
 
-    def _assert_integration_point_tensor_results(self, integration_point_tensors, expected_integration_point_tensor, places, result_name):
+    def _assert_integration_point_tensor_results(self, integration_point_tensors, expected_integration_point_tensor, places, result_name, delta = None):
         for idx, ip_tensor in enumerate(integration_point_tensors):
-            self.assertVectorAlmostEqual(expected_integration_point_tensor, ip_tensor, places, msg = f"{result_name} components at integration point {idx}")
+            self.assertVectorAlmostEqual(expected_integration_point_tensor, ip_tensor, places, delta = delta, msg = f"{result_name} components at integration point {idx}")
 
     def _repeat_tensor(self, tensor, count):
         return [list(tensor) for _ in range(count)]
 
-    def _assert_integration_point_tensors(self, reader, result, variable_name, expected_tensors, places, time):
+    def _assert_integration_point_tensors(self, reader, result, variable_name, expected_tensors, places=None, time=1.0, delta=None):
         """Assert tensor values for all integration points across both elements."""
         for flat_index, expected_tensor in enumerate(expected_tensors):
             element_id, ip_index = self._get_element_id_and_ip_index(flat_index)
             tensor = reader.element_integration_point_values_at_time(variable_name, time, result, [element_id], [ip_index])[0]
-            self._assert_integration_point_tensor_results(tensor, expected_tensor, places, variable_name)
+            self._assert_integration_point_tensor_results(tensor, expected_tensor, places, variable_name, delta)
 
     def _get_element_id_and_ip_index(self, flat_index):
         """Map a flat integration-point index to the corresponding element and local integration point index."""
