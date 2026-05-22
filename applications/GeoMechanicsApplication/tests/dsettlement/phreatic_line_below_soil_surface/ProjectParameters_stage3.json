@@ -18,7 +18,7 @@
             "materials_filename": "MaterialParameters_abc.json"
         },
         "time_stepping": {
-            "time_step": 8.640000000000002e+03,
+            "time_step": 8.64e+03,
             "max_delta_time_factor": 8.64e+07
         },
         "buffer_size": 2,
