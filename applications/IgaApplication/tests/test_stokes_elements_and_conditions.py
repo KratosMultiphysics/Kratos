@@ -152,7 +152,13 @@ class FluidTests(KratosUnittest.TestCase):
         props.SetValue(KM.DYNAMIC_VISCOSITY, 0.8)
         props.SetValue(KM.CONSTITUTIVE_LAW, DFA.Newtonian3DLaw())
 
-        geometry = TestCreationUtility.GetQuadraturePointGeometryFromRectangularVolumeP2(model_part, integration_point)
+        volume = TestCreationUtility.GenerateNurbsVolumeP2Rectangular(model_part)
+        volume.SetId(1)
+        quadrature_point_geometries = KM.GeometriesVector()
+        volume.CreateQuadraturePointGeometries(quadrature_point_geometries, 3)
+        model_part.AddGeometry(volume)
+
+        geometry = quadrature_point_geometries[0]
         element = model_part.CreateNewElement("NavierStokesElement", 1, geometry, props)
 
         bf = KM.Vector(3)
@@ -161,13 +167,66 @@ class FluidTests(KratosUnittest.TestCase):
         bf[2] = 0.25
         element.SetValue(KM.BODY_FORCE, bf)
 
-        divergence_stress = KM.Vector(3)
-        divergence_stress[0] = 0.2
-        divergence_stress[1] = -0.15
-        divergence_stress[2] = 0.05
+        divergence_stress = FluidTests._compute_divergence_stress_3d(
+            volume,
+            quadrature_point_geometries)
         element.SetValue(IGA.DIVERGENCE_STRESS, divergence_stress)
 
         return element
+
+    @staticmethod
+    def _compute_divergence_stress_3d(volume, quadrature_point_geometries):
+        num_gauss_points = len(quadrature_point_geometries)
+        sigma_values = KM.Matrix(num_gauss_points, 6)
+        shape_function_values = KM.Matrix(num_gauss_points, num_gauss_points)
+        shape_function_values_dx = KM.Matrix(num_gauss_points, num_gauss_points)
+        shape_function_values_dy = KM.Matrix(num_gauss_points, num_gauss_points)
+        shape_function_values_dz = KM.Matrix(num_gauss_points, num_gauss_points)
+
+        sigma_coefficients_xx = [0.1 * node.X for node in volume]
+        sigma_coefficients_yy = [-0.15 * node.Y for node in volume]
+        sigma_coefficients_zz = [0.1 * node.Z for node in volume]
+
+        for i, quadrature_point_geometry in enumerate(quadrature_point_geometries):
+            shape_functions = quadrature_point_geometry.ShapeFunctionsValues()
+            shape_function_derivatives = quadrature_point_geometry.ShapeFunctionDerivatives(1, 0)
+
+            sigma_xx = 0.0
+            sigma_yy = 0.0
+            sigma_zz = 0.0
+
+            for j in range(num_gauss_points):
+                shape_function_value = shape_functions[0, j]
+                shape_function_values[i, j] = shape_function_value
+                shape_function_values_dx[i, j] = shape_function_derivatives[j, 0]
+                shape_function_values_dy[i, j] = shape_function_derivatives[j, 1]
+                shape_function_values_dz[i, j] = shape_function_derivatives[j, 2]
+
+                sigma_xx += shape_function_value * sigma_coefficients_xx[j]
+                sigma_yy += shape_function_value * sigma_coefficients_yy[j]
+                sigma_zz += shape_function_value * sigma_coefficients_zz[j]
+
+            sigma_values[i, 0] = sigma_xx
+            sigma_values[i, 1] = sigma_yy
+            sigma_values[i, 2] = sigma_zz
+            sigma_values[i, 3] = 0.0
+            sigma_values[i, 4] = 0.0
+            sigma_values[i, 5] = 0.0
+
+        div_sigma_utility = DFA.ComputeDivSigmaUtility()
+        divergence_matrix = div_sigma_utility.ComputeDivergence(
+            sigma_values,
+            shape_function_values,
+            shape_function_values_dx,
+            shape_function_values_dy,
+            shape_function_values_dz)
+
+        divergence_stress = KM.Vector(3)
+        divergence_stress[0] = divergence_matrix[0, 0]
+        divergence_stress[1] = divergence_matrix[0, 1]
+        divergence_stress[2] = divergence_matrix[0, 2]
+
+        return divergence_stress
 
     @staticmethod
     def create_stokes_element_3d(model_part, integration_point):
@@ -519,6 +578,11 @@ class FluidTests(KratosUnittest.TestCase):
 
         ipt = [0.23, 0.61, 0.37, 0.42]
         element = self.create_navier_stokes_element_3d(model_part, ipt)
+        divergence_stress = element.GetValue(IGA.DIVERGENCE_STRESS)
+
+        self.assertAlmostEqual(divergence_stress[0], 0.2, delta=1e-10)
+        self.assertAlmostEqual(divergence_stress[1], -0.15, delta=1e-10)
+        self.assertAlmostEqual(divergence_stress[2], 0.05, delta=1e-10)
 
         for node in model_part.Nodes:
             node.AddDof(KM.VELOCITY_X)
