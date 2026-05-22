@@ -449,7 +449,7 @@ namespace Kratos
     const SizeType& rPositionJ, const Matrix& rShapeFunctionGradientValues,
     const array_1d<Vector, 2>& rCurrentCovariantBaseVectors, const Matrix& rTransformationMatrix)
   {
-    /*const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
 
     Vector strain_derivative = ZeroVector(dimension);
     this->DerivativeStrainGreenLagrange(strain_derivative, rShapeFunctionGradientValues, rPositionI,
@@ -460,7 +460,7 @@ namespace Kratos
     this->DerivativeStrainGreenLagrange(strain_derivative, rShapeFunctionGradientValues, rPositionJ,
       rCurrentCovariantBaseVectors, rTransformationMatrix);
 
-    rEntryIJ += inner_prod(stress_derivative, strain_derivative);*/
+    rEntryIJ += inner_prod(stress_derivative, strain_derivative);
   }
 
 
