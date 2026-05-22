@@ -19,6 +19,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/kratos_application.h"
+#include "custom_modeler/kahip_partitioning_modeler.h"
 
 namespace Kratos
 {
@@ -113,6 +114,9 @@ private:
 
     /// Copy constructor.
     KratosKaHIPApplication(KratosKaHIPApplication const& rOther) = delete;
+
+    /// Prototype modeler instance used for factory registration.
+    const KaHIPPartitioningModeler mKaHIPPartitioningModeler;
 
     ///@}
 

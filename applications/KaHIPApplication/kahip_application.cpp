@@ -20,7 +20,8 @@
 namespace Kratos {
 
 KratosKaHIPApplication::KratosKaHIPApplication()
-    : KratosApplication("KaHIPApplication") {}
+    : KratosApplication("KaHIPApplication"),
+      mKaHIPPartitioningModeler() {}
 
 void KratosKaHIPApplication::Register()
 {
@@ -30,6 +31,8 @@ void KratosKaHIPApplication::Register()
                     << "            | . \\ (_| | || || ||  __/\n"
                     << "            |_|\\_\\__,_|_||_|___|_|\n"
                     << "Initializing KratosKaHIPApplication..." << std::endl;
+
+    KRATOS_REGISTER_MODELER("KaHIPPartitioningModeler", mKaHIPPartitioningModeler);
 }
 
 }  // namespace Kratos
