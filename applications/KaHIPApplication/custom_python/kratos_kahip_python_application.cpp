@@ -20,6 +20,7 @@
 #include "includes/define_python.h"
 #include "kahip_application.h"
 #include "custom_python/add_custom_processes_to_python.h"
+#include "custom_python/add_custom_modeler_to_python.h"
 
 namespace Kratos::Python {
 
@@ -34,6 +35,7 @@ PYBIND11_MODULE(KratosKaHIPApplication, m)
         ;
 
     AddCustomProcessesToPython(m);
+    AddCustomModelerToPython(m);
 }
 
 } // namespace Kratos::Python
