@@ -245,7 +245,7 @@ namespace Kratos
 
   void MembraneCuttingPatternElement::ResponseFunction_Least_Square(double& rResponseLS, const IntegrationMethod& ThisMethod, ConstitutiveLaw::Parameters& rValues) {
 
-     /*const auto& r_geom = GetGeometry();
+     const auto& r_geom = GetGeometry();
      const SizeType dimension = r_geom.WorkingSpaceDimension();
 
      const GeometryType::ShapeFunctionsGradientsType& r_shape_functions_gradients = r_geom.ShapeFunctionsLocalGradients(ThisMethod);
@@ -302,69 +302,69 @@ namespace Kratos
 
        rResponseLS += 0.5 * product_delta_sigma;
         
-     }*/
+     }
   }
 
 
   void MembraneCuttingPatternElement::InternalForces(Vector& rInternalForces, const IntegrationMethod& ThisMethod, const ProcessInfo& rCurrentProcessInfo)
   {
-    //const auto& r_geom = GetGeometry();
-    //const SizeType dimension = r_geom.WorkingSpaceDimension();
-    //const SizeType number_of_nodes = r_geom.size();
-    //const SizeType number_dofs = dimension * number_of_nodes;
-    //rInternalForces = ZeroVector(number_dofs);
+    const auto& r_geom = GetGeometry();
+    const SizeType dimension = r_geom.WorkingSpaceDimension();
+    const SizeType number_of_nodes = r_geom.size();
+    const SizeType number_dofs = dimension * number_of_nodes;
+    rInternalForces = ZeroVector(number_dofs);
 
-    //const GeometryType::ShapeFunctionsGradientsType& r_shape_functions_gradients = r_geom.ShapeFunctionsLocalGradients(ThisMethod);
-    //const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geom.IntegrationPoints(ThisMethod);
+    const GeometryType::ShapeFunctionsGradientsType& r_shape_functions_gradients = r_geom.ShapeFunctionsLocalGradients(ThisMethod);
+    const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geom.IntegrationPoints(ThisMethod);
 
-    //const double thickness = GetProperties()[THICKNESS];
+    const double thickness = GetProperties()[THICKNESS];
 
-    //array_1d<Vector, 2> current_covariant_base_vectors;
-    //array_1d<Vector, 2> reference_covariant_base_vectors;
-    //array_1d<Vector, 2> reference_contravariant_base_vectors;
+    array_1d<Vector, 2> current_covariant_base_vectors;
+    array_1d<Vector, 2> reference_covariant_base_vectors;
+    array_1d<Vector, 2> reference_contravariant_base_vectors;
 
-    //array_1d<Vector, 2> transformed_base_vectors;
+    array_1d<Vector, 2> transformed_base_vectors;
 
-    //Matrix covariant_metric_current = ZeroMatrix(3);
-    //Matrix covariant_metric_reference = ZeroMatrix(3);
-    //Matrix contravariant_metric_reference = ZeroMatrix(3);
-    //Matrix inplane_transformation_matrix_material = ZeroMatrix(3);
-    //double detJ = 0.0;
-    //Vector stress = ZeroVector(3);
-    //Vector derivative_strain = ZeroVector(3);
+    Matrix covariant_metric_current = ZeroMatrix(3);
+    Matrix covariant_metric_reference = ZeroMatrix(3);
+    Matrix contravariant_metric_reference = ZeroMatrix(3);
+    Matrix inplane_transformation_matrix_material = ZeroMatrix(3);
+    double detJ = 0.0;
+    Vector stress = ZeroVector(3);
+    Vector derivative_strain = ZeroVector(3);
 
-    //for (SizeType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
-    //  // getting information for integration
-    //  const double integration_weight_i = r_integration_points[point_number].Weight();
-    //  const Matrix& shape_functions_gradients_i = r_shape_functions_gradients[point_number];
+    for (SizeType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
+      // getting information for integration
+      const double integration_weight_i = r_integration_points[point_number].Weight();
+      const Matrix& shape_functions_gradients_i = r_shape_functions_gradients[point_number];
 
-    //  this->CovariantBaseVectors(current_covariant_base_vectors, shape_functions_gradients_i, ConfigurationType::Current);
-    //  this->CovariantBaseVectors(reference_covariant_base_vectors, shape_functions_gradients_i, ConfigurationType::Reference);
+      this->CovariantBaseVectors(current_covariant_base_vectors, shape_functions_gradients_i, ConfigurationType::Current);
+      this->CovariantBaseVectors(reference_covariant_base_vectors, shape_functions_gradients_i, ConfigurationType::Reference);
 
-    //  this->CovariantMetric(covariant_metric_current, current_covariant_base_vectors);
-    //  this->CovariantMetric(covariant_metric_reference, reference_covariant_base_vectors);
-    //  this->ContravariantMetric(contravariant_metric_reference, covariant_metric_reference);
+      this->CovariantMetric(covariant_metric_current, current_covariant_base_vectors);
+      this->CovariantMetric(covariant_metric_reference, reference_covariant_base_vectors);
+      this->ContravariantMetric(contravariant_metric_reference, covariant_metric_reference);
 
-    //  this->ContraVariantBaseVectors(reference_contravariant_base_vectors, contravariant_metric_reference, reference_covariant_base_vectors);
+      this->ContraVariantBaseVectors(reference_contravariant_base_vectors, contravariant_metric_reference, reference_covariant_base_vectors);
 
-    //  this->TransformBaseVectors(transformed_base_vectors, reference_contravariant_base_vectors);
+      this->TransformBaseVectors(transformed_base_vectors, reference_contravariant_base_vectors);
 
-    //  this->InPlaneTransformationMatrix(inplane_transformation_matrix_material, transformed_base_vectors, reference_contravariant_base_vectors);
+      this->InPlaneTransformationMatrix(inplane_transformation_matrix_material, transformed_base_vectors, reference_contravariant_base_vectors);
 
 
-    //  this->JacobiDeterminante(detJ, reference_covariant_base_vectors);
-    //  Matrix material_tangent_modulus = ZeroMatrix(dimension);
-    //  this->MaterialResponse(stress, contravariant_metric_reference, covariant_metric_reference, covariant_metric_current,
-    //    transformed_base_vectors, inplane_transformation_matrix_material, point_number, material_tangent_modulus,
-    //    rCurrentProcessInfo);
+      this->JacobiDeterminante(detJ, reference_covariant_base_vectors);
+      Matrix material_tangent_modulus = ZeroMatrix(dimension);
+      this->MaterialResponse(stress, contravariant_metric_reference, covariant_metric_reference, covariant_metric_current,
+        transformed_base_vectors, inplane_transformation_matrix_material, point_number, material_tangent_modulus,
+        rCurrentProcessInfo);
 
-    //  for (SizeType dof_r = 0; dof_r < number_dofs; ++dof_r)
-    //  {
-    //    this->DerivativeStrainGreenLagrange(derivative_strain, shape_functions_gradients_i,
-    //      dof_r, current_covariant_base_vectors, inplane_transformation_matrix_material);
-    //    rInternalForces[dof_r] += inner_prod(stress, derivative_strain) * detJ * integration_weight_i * thickness;
-    //  }
-    //}
+      for (SizeType dof_r = 0; dof_r < number_dofs; ++dof_r)
+      {
+        this->DerivativeStrainGreenLagrange(derivative_strain, shape_functions_gradients_i,
+          dof_r, current_covariant_base_vectors, inplane_transformation_matrix_material);
+        rInternalForces[dof_r] += inner_prod(stress, derivative_strain) * detJ * integration_weight_i * thickness;
+      }
+    }
   }
 
 
