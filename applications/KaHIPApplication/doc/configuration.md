@@ -147,24 +147,24 @@ The `PartitionConfig` struct (in `lib/partition/partition_config.h`) exposes all
 
 ### Parallel Memetic (kaffpaE) Parameters
 
-| Parameter | Type | Description |
-|---|---|---|
-| `time_limit` | double | Wall-clock time limit |
-| `mh_enable_gal_combine` | bool | Enable Galinier combine |
-| `mh_enable_tabu_search` | bool | Enable tabu search |
-| `mh_enable_kabapE` | bool | Enable KaBaPE |
-| `mh_initial_population_fraction` | double | Population size fraction |
-| `mh_flip_coin` | int | Mutation probability |
-| `mh_num_ncs_to_compute` | int | Number of non-connected samples |
+| Parameter                        | Type   | Description                     |
+|----------------------------------|--------|---------------------------------|
+| `time_limit`                     | double | Wall-clock time limit           |
+| `mh_enable_gal_combine`          | bool   | Enable Galinier combine         |
+| `mh_enable_tabu_search`          | bool   | Enable tabu search              |
+| `mh_enable_kabapE`               | bool   | Enable KaBaPE                   |
+| `mh_initial_population_fraction` | double | Population size fraction        |
+| `mh_flip_coin`                   | int    | Mutation probability            |
+| `mh_num_ncs_to_compute`          | int    | Number of non-connected samples |
 
 ### Special Features
 
-| Parameter | Type | Description |
-|---|---|---|
-| `connected_blocks` | bool | Enforce connectivity in each block |
-| `balance_edges` | bool | Balance edge count in addition to node weight |
-| `kaffpa_perfectly_balance` | bool | Enforce exact node weight balance |
-| `disable_reductions` | bool | Skip nested dissection reduction rules |
+| Parameter                  | Type | Description                                   |
+|----------------------------|------|-----------------------------------------------|
+| `connected_blocks`         | bool | Enforce connectivity in each block            |
+| `balance_edges`            | bool | Balance edge count in addition to node weight |
+| `kaffpa_perfectly_balance` | bool | Enforce exact node weight balance             |
+| `disable_reductions`       | bool | Skip nested dissection reduction rules        |
 
 ---
 

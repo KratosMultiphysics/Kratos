@@ -33,13 +33,13 @@ The `fmt` field is a 3-digit number `xyz` where:
 - `y` = 0: no vertex weights; 1: vertex weights present
 - `x` = 0: no vertex sizes; 1: vertex sizes present
 
-| `fmt` value | Meaning |
-|---|---|
-| `0` or absent | Unweighted graph |
-| `1` | Edge-weighted graph |
-| `10` | Vertex-weighted graph |
-| `11` | Both vertex and edge weights |
-| `100` | Vertex sizes only |
+| `fmt` value   | Meaning                      |
+|---------------|------------------------------|
+| `0` or absent | Unweighted graph             |
+| `1`           | Edge-weighted graph          |
+| `10`          | Vertex-weighted graph        |
+| `11`          | Both vertex and edge weights |
+| `100`         | Vertex sizes only            |
 
 ### Unweighted Graph Example
 
@@ -200,12 +200,12 @@ adjncy = [1, 4,      ← node 0 connects to 1, 4
 
 The repository includes several example graphs in `examples/`:
 
-| File | Nodes | Edges | Description |
-|---|---|---|---|
-| `rgg_n_2_15_s0.graph` | 32,768 | ~160K | Random geometric graph (mesh-like) |
-| `rgg_n_2_15_s0.bgf` | 32,768 | ~160K | Same graph in binary BGF format |
-| `delaunay_n15.graph` | 32,768 | ~98K | Delaunay triangulation graph |
-| `example_weighted.graph` | small | small | Small graph with both vertex and edge weights |
+| File                     | Nodes  | Edges | Description                                   |
+|--------------------------|--------|-------|-----------------------------------------------|
+| `rgg_n_2_15_s0.graph`    | 32,768 | ~160K | Random geometric graph (mesh-like)            |
+| `rgg_n_2_15_s0.bgf`      | 32,768 | ~160K | Same graph in binary BGF format               |
+| `delaunay_n15.graph`     | 32,768 | ~98K  | Delaunay triangulation graph                  |
+| `example_weighted.graph` | small  | small | Small graph with both vertex and edge weights |
 
 These are suitable for quick testing:
 ```bash
@@ -216,12 +216,12 @@ These are suitable for quick testing:
 
 ## Common Graph Sources
 
-| Source | URL / Tool |
-|---|---|
+| Source                        | URL / Tool                                          |
+|-------------------------------|-----------------------------------------------------|
 | SuiteSparse Matrix Collection | https://sparse.tamu.edu/ (download in METIS format) |
-| SNAP (Stanford) | http://snap.stanford.edu/data/ (need conversion) |
-| 10th DIMACS Challenge | http://www.cc.gatech.edu/dimacs10/ |
-| KaGen (graph generator) | https://github.com/KaHIP/KaGen |
+| SNAP (Stanford)               | http://snap.stanford.edu/data/ (need conversion)    |
+| 10th DIMACS Challenge         | http://www.cc.gatech.edu/dimacs10/                  |
+| KaGen (graph generator)       | https://github.com/KaHIP/KaGen                      |
 
 ### Converting SNAP Format to METIS
 
