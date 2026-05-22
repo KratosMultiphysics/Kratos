@@ -469,12 +469,12 @@ namespace Kratos
     const SizeType& rPositionJ, const Matrix& rShapeFunctionGradientValues,
     const Matrix& rTransformationMatrix)
   {
-    /*const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
 
     Vector strain_derivative_2 = ZeroVector(dimension);
     this->Derivative2StrainGreenLagrange(strain_derivative_2, rShapeFunctionGradientValues, rPositionI, rPositionJ,
       rTransformationMatrix);
-    rEntryIJ += inner_prod(rStressVector, strain_derivative_2);*/
+    rEntryIJ += inner_prod(rStressVector, strain_derivative_2);
   }
 
 
