@@ -131,6 +131,32 @@ def _add_fluid_dofs_and_set_3d_state(model_part):
         node.SetSolutionStepValue(KM.PRESSURE, 1.0 + 0.2 * node.X - 0.1 * node.Y + 0.05 * node.Z)
 
 
+def _assign_fluid_properties(current_model):
+    properties_settings = KM.Parameters(
+        """
+        {
+            "properties" : [
+                {
+                    "model_part_name": "IgaModelPart.SBM_Support_outer",
+                    "properties_id": 1,
+                    "Material": {
+                        "name": "fluid",
+                        "constitutive_law": { "name": "Newtonian3DLaw" },
+                        "Variables": {
+                            "PENALTY_FACTOR": 100.0,
+                            "DENSITY": 1.0,
+                            "DYNAMIC_VISCOSITY": 0.8
+                        },
+                        "Tables": {}
+                    }
+                }
+            ]
+        }
+        """
+    )
+    KM.ReadMaterialsUtility(current_model).ReadMaterials(properties_settings)
+
+
 class SbmStokes3DTests(KratosUnittest.TestCase):
 
     def test_SbmFluidConditionDirichlet3D(self):
@@ -150,29 +176,7 @@ class SbmStokes3DTests(KratosUnittest.TestCase):
             value[2] = 0.3 - 0.04 * node.Z
             node.SetValue(KM.VELOCITY, value)
 
-        properties_settings = KM.Parameters(
-            """
-            {
-                "properties" : [
-                    {
-                        "model_part_name": "IgaModelPart.SBM_Support_outer",
-                        "properties_id": 1,
-                        "Material": {
-                            "name": "fluid",
-                            "constitutive_law": { "name": "Newtonian3DLaw" },
-                            "Variables": {
-                                "PENALTY_FACTOR": 100.0,
-                                "DENSITY": 1.0,
-                                "DYNAMIC_VISCOSITY": 0.8
-                            },
-                            "Tables": {}
-                        }
-                    }
-                ]
-            }
-            """
-        )
-        KM.ReadMaterialsUtility(current_model).ReadMaterials(properties_settings)
+        _assign_fluid_properties(current_model)
 
         condition = next(iter(support_model_part.Conditions))
 
@@ -204,6 +208,69 @@ class SbmStokes3DTests(KratosUnittest.TestCase):
 
         for i, expected_value in enumerate(expected_rhs):
             self.assertAlmostEqual(rhs[i], expected_value, delta=tolerance)
+
+    def test_SbmFluidConditionDirichlet3DReadsNormalStress(self):
+        current_model, support_model_part = _create_outer_support_model_part()
+
+        iga_model_part = current_model.GetModelPart("IgaModelPart")
+        skin_model_part = current_model.GetModelPart("skin_model_part")
+
+        _add_fluid_dofs_and_set_3d_state(iga_model_part)
+
+        for node in skin_model_part.Nodes:
+            value = KM.Vector(3)
+            value[0] = 0.4 + 0.1 * node.X
+            value[1] = -0.2 + 0.05 * node.Y
+            value[2] = 0.3 - 0.04 * node.Z
+            node.SetValue(KM.VELOCITY, value)
+
+        _assign_fluid_properties(current_model)
+
+        condition = next(iter(support_model_part.Conditions))
+        process_info = iga_model_part.ProcessInfo
+        condition.Initialize(process_info)
+
+        rhs_without_normal_stress = KM.Vector()
+        condition.CalculateRightHandSide(rhs_without_normal_stress, process_info)
+
+        normal_stress = KM.Vector(3)
+        normal_stress[0] = 0.7
+        normal_stress[1] = -0.2
+        normal_stress[2] = 0.5
+        condition.SetValue(KM.NORMAL_STRESS, normal_stress)
+
+        stored_normal_stress = condition.GetValue(KM.NORMAL_STRESS)
+        for i in range(3):
+            self.assertAlmostEqual(stored_normal_stress[i], normal_stress[i], delta=1e-12)
+
+        rhs_with_normal_stress = KM.Vector()
+        condition.CalculateRightHandSide(rhs_with_normal_stress, process_info)
+
+        geometry = condition.GetGeometry()
+        shape_functions = geometry.ShapeFunctionsValues()
+
+        tolerance = 1e-10
+        total_increment_per_component = [0.0, 0.0, 0.0]
+        for j in range(geometry.PointsNumber()):
+            for idim in range(3):
+                equation_index = 4 * j + idim
+                total_increment_per_component[idim] += (
+                    rhs_with_normal_stress[equation_index] - rhs_without_normal_stress[equation_index]
+                )
+
+        for j in range(geometry.PointsNumber()):
+            for idim in range(3):
+                equation_index = 4 * j + idim
+                expected_increment = shape_functions[0, j] * total_increment_per_component[idim]
+                actual_increment = rhs_with_normal_stress[equation_index] - rhs_without_normal_stress[equation_index]
+                self.assertAlmostEqual(actual_increment, expected_increment, delta=tolerance)
+
+            pressure_equation_index = 4 * j + 3
+            self.assertAlmostEqual(
+                rhs_with_normal_stress[pressure_equation_index] - rhs_without_normal_stress[pressure_equation_index],
+                0.0,
+                delta=tolerance,
+            )
 
 
 if __name__ == "__main__":
