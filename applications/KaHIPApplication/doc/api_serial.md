@@ -26,21 +26,21 @@ Node-related parameters (`n`, `vwgt`, `nparts`, `part`) always use `int`.
 
 ### Partitioning Modes
 
-| Constant | Value | Description |
-|---|---|---|
-| `FAST` | 0 | Speed-optimized; good for meshes |
-| `ECO` | 1 | Balanced quality/speed; good default |
-| `STRONG` | 2 | High quality; slower |
-| `FASTSOCIAL` | 3 | Speed-optimized for social/scale-free graphs |
-| `ECOSOCIAL` | 4 | Balanced for social graphs |
-| `STRONGSOCIAL` | 5 | High quality for social graphs |
+| Constant       | Value | Description                                  |
+|----------------|-------|----------------------------------------------|
+| `FAST`         | 0     | Speed-optimized; good for meshes             |
+| `ECO`          | 1     | Balanced quality/speed; good default         |
+| `STRONG`       | 2     | High quality; slower                         |
+| `FASTSOCIAL`   | 3     | Speed-optimized for social/scale-free graphs |
+| `ECOSOCIAL`    | 4     | Balanced for social graphs                   |
+| `STRONGSOCIAL` | 5     | High quality for social graphs               |
 
 ### Mapping Modes
 
-| Constant | Value | Description |
-|---|---|---|
-| `MAPMODE_MULTISECTION` | 0 | Global multisection process mapping |
-| `MAPMODE_BISECTION` | 1 | Bisection-based process mapping |
+| Constant               | Value | Description                         |
+|------------------------|-------|-------------------------------------|
+| `MAPMODE_MULTISECTION` | 0     | Global multisection process mapping |
+| `MAPMODE_BISECTION`    | 1     | Bisection-based process mapping     |
 
 ---
 

@@ -11,20 +11,20 @@ KaHIP is organized as a layered library with public C interfaces wrapping a rich
 │   C/C++ Interface  │  Python Interface  │  CLI Executables      │
 │  kaHIP_interface.h │  kahip (PyPI)      │  kaffpa, parhip, …    │
 ├────────────────────┴────────────────────┴───────────────────────┤
-│                    Partitioning Engine                           │
+│                    Partitioning Engine                          │
 │  ┌───────────────────────────────────────────────────────────┐  │
-│  │                   graph_partitioner                        │  │
-│  │  ┌──────────────┐  ┌────────────────┐  ┌──────────────┐  │  │
-│  │  │  Coarsening  │→ │    Initial     │→ │ Uncoarsening │  │  │
-│  │  │  Phase       │  │  Partitioning  │  │ + Refinement │  │  │
-│  │  └──────────────┘  └────────────────┘  └──────────────┘  │  │
+│  │                   graph_partitioner                       │  │
+│  │  ┌──────────────┐  ┌────────────────┐  ┌──────────────┐   │  │
+│  │  │  Coarsening  │→ │    Initial     │→ │ Uncoarsening │   │  │
+│  │  │  Phase       │  │  Partitioning  │  │ + Refinement │   │  │
+│  │  └──────────────┘  └────────────────┘  └──────────────┘   │  │
 │  └───────────────────────────────────────────────────────────┘  │
 ├─────────────────────────────────────────────────────────────────┤
-│              Supporting Library Modules                          │
+│              Supporting Library Modules                         │
 │   algorithms/   data_structure/   tools/   io/   mapping/       │
 │   node_ordering/   spac/   parallel_mh/                         │
 ├─────────────────────────────────────────────────────────────────┤
-│            Parallel Layer (MPI)                                  │
+│            Parallel Layer (MPI)                                 │
 │   parallel_mh/   parallel/parallel_src/   lib/tools/mpi_tools   │
 └─────────────────────────────────────────────────────────────────┘
 ```

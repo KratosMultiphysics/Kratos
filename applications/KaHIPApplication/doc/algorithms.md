@@ -37,24 +37,24 @@ Partition of G₀    (final result)
 
 Before matching, each edge is assigned an importance score. Highly-rated edges are more likely to be contracted (their endpoints merged). Available ratings:
 
-| Rating | Description |
-|---|---|
-| `EXPANSIONSTAR` | `c(u,v) / (deg(u) * deg(v))` — favors edges between low-degree nodes |
-| `EXPANSIONSTAR2` | Variation of EXPANSIONSTAR |
-| `WEIGHT` | Raw edge weight `c(u,v)` |
-| `PSEUDOGEOM` | Geometry-inspired heuristic for mesh graphs |
-| `SEPARATOR_*` | Variants tuned for node separator computation |
+| Rating           | Description                                                          |
+|------------------|----------------------------------------------------------------------|
+| `EXPANSIONSTAR`  | `c(u,v) / (deg(u) * deg(v))` — favors edges between low-degree nodes |
+| `EXPANSIONSTAR2` | Variation of EXPANSIONSTAR                                           |
+| `WEIGHT`         | Raw edge weight `c(u,v)`                                             |
+| `PSEUDOGEOM`     | Geometry-inspired heuristic for mesh graphs                          |
+| `SEPARATOR_*`    | Variants tuned for node separator computation                        |
 
 ### Matching Algorithms
 
 After rating edges, a matching is computed: a set of disjoint edges whose endpoints will be merged.
 
-| Algorithm | Description |
-|---|---|
-| `RANDOM_MATCHING` | Random matching — each node randomly picks a neighbor |
-| `GPA_MATCHING` | Global Path Algorithm — computes a near-optimal maximum weighted matching by finding augmenting paths in a path graph |
-| `RANDOM_GPA` | Randomized GPA — combines randomness with GPA quality |
-| `CLUSTER_COARSENING` | Label propagation with size constraints — assigns nodes to clusters rather than pairs; better for social networks |
+| Algorithm            | Description                                                                                                           |
+|----------------------|-----------------------------------------------------------------------------------------------------------------------|
+| `RANDOM_MATCHING`    | Random matching — each node randomly picks a neighbor                                                                 |
+| `GPA_MATCHING`       | Global Path Algorithm — computes a near-optimal maximum weighted matching by finding augmenting paths in a path graph |
+| `RANDOM_GPA`         | Randomized GPA — combines randomness with GPA quality                                                                 |
+| `CLUSTER_COARSENING` | Label propagation with size constraints — assigns nodes to clusters rather than pairs; better for social networks     |
 
 **GPA (Global Path Algorithm)**: The key insight is that paths and cycles in the matching graph can be handled optimally in linear time. GPA first computes a maximal path partition of the graph and then extracts a maximum weight matching from each path. This yields near-optimal matchings without the cubic cost of general maximum matching.
 

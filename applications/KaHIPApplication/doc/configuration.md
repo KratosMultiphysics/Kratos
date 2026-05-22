@@ -4,13 +4,13 @@
 
 Preconfigurations are the recommended entry point. Each sets a bundle of `PartitionConfig` parameters tuned for a specific trade-off.
 
-| Mode | Flag | Quality | Speed | Graph type |
-|---|---|---|---|---|
-| Fast | `--preconfiguration=fast` | ★★☆☆☆ | ★★★★★ | Meshes |
-| Eco | `--preconfiguration=eco` | ★★★☆☆ | ★★★☆☆ | Meshes |
-| Strong | `--preconfiguration=strong` | ★★★★★ | ★★☆☆☆ | Meshes |
-| Fast Social | `--preconfiguration=fsocial` | ★★☆☆☆ | ★★★★★ | Social/scale-free |
-| Eco Social | `--preconfiguration=esocial` | ★★★☆☆ | ★★★☆☆ | Social/scale-free |
+| Mode          | Flag                         | Quality  | Speed   | Graph type        |
+|---------------|------------------------------|----------|---------|-------------------|
+| Fast          | `--preconfiguration=fast`    | ★★☆☆☆ | ★★★★★ | Meshes            |
+| Eco           | `--preconfiguration=eco`     | ★★★☆☆ | ★★★☆☆ | Meshes            |
+| Strong        | `--preconfiguration=strong`  | ★★★★★ | ★★☆☆☆ | Meshes            |
+| Fast Social   | `--preconfiguration=fsocial` | ★★☆☆☆ | ★★★★★ | Social/scale-free |
+| Eco Social    | `--preconfiguration=esocial` | ★★★☆☆ | ★★★☆☆ | Social/scale-free |
 | Strong Social | `--preconfiguration=ssocial` | ★★★★★ | ★★☆☆☆ | Social/scale-free |
 
 ---
