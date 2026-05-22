@@ -37,17 +37,17 @@ KaHIPPartitioningModeler::KaHIPPartitioningModeler(Model& rModel, Parameters rPa
 const Parameters KaHIPPartitioningModeler::GetDefaultParameters() const
 {
     return Parameters(R"({
-        "model_part_name":                           "Main",
-        "input_filename":                            "",
-        "number_of_partitions":                       0,
-        "dimension":                                  3,
-        "verbosity":                                  0,
-        "synchronize_conditions":                     false,
-        "partition_in_memory":                        false,
-        "perform_partitioning":                       true,
-        "skip_timer":                                 true,
-        "ignore_variables_not_in_solution_step_data": false,
-        "data_communicator_name":                    "",
+        "model_part_name"                            : "Main",
+        "input_filename"                             : "",
+        "number_of_partitions"                       : 0,
+        "dimension"                                  : 3,
+        "verbosity"                                  : 0,
+        "synchronize_conditions"                     : false,
+        "partition_in_memory"                        : false,
+        "perform_partitioning"                       : true,
+        "skip_timer"                                 : true,
+        "ignore_variables_not_in_solution_step_data" : false,
+        "data_communicator_name"                     : "",
         "kahip_settings": {
             "preconfiguration": "eco",
             "imbalance":         0.03,

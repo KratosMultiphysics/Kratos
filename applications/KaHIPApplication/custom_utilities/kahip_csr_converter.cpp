@@ -20,7 +20,8 @@
 #include "custom_utilities/kahip_csr_converter.h"
 #include "includes/exception.h"
 
-namespace Kratos {
+namespace Kratos 
+{
 
 void KaHIPCSRConverter::ConvertToCSRFormat(
     const ConnectivitiesContainerType& rKratosFormatConnectivities,
@@ -52,6 +53,9 @@ void KaHIPCSRConverter::ConvertToCSRFormat(
     }
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 void KaHIPCSRConverter::ConvertToCSRFormatWithWeights(
     const ConnectivitiesContainerType& rKratosFormatConnectivities,
     std::vector<kahip_idx>& rXAdj,
@@ -68,6 +72,9 @@ void KaHIPCSRConverter::ConvertToCSRFormatWithWeights(
     rVWgt.assign(num_nodes, 1);
     rAdjcWgt.assign(num_edges, 1);
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 bool KaHIPCSRConverter::ValidateCSRGraph(
     int n,

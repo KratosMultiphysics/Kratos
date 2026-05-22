@@ -13,6 +13,10 @@
 
 #pragma once
 
+// System includes
+
+// External includes
+
 // Project includes
 #include "includes/data_communicator.h"
 #include "includes/model_part_io.h"
@@ -59,6 +63,7 @@ public:
     /// Pointer definition
     KRATOS_CLASS_POINTER_DEFINITION(KaHIPDivideHeterogeneousInputInMemoryProcess);
 
+    /// Definition of the base class
     using BaseType = KaHIPDivideHeterogeneousInputProcess;
     using BaseType::SizeType;
     using BaseType::idxtype;

@@ -13,6 +13,8 @@
 
 #pragma once
 
+// System includes
+
 // External includes
 #include "kaHIP_interface.h"
 
@@ -61,7 +63,8 @@ namespace Kratos
  *
  * @author Vicente Mataix Ferrandiz
  */
-class KRATOS_API(KAHIP_APPLICATION) KaHIPDivideHeterogeneousInputProcess : public Process
+class KRATOS_API(KAHIP_APPLICATION) KaHIPDivideHeterogeneousInputProcess 
+    : public Process
 {
 public:
     ///@name Type Definitions
@@ -70,6 +73,7 @@ public:
     /// Pointer definition of KaHIPDivideHeterogeneousInputProcess
     KRATOS_CLASS_POINTER_DEFINITION(KaHIPDivideHeterogeneousInputProcess);
 
+    /// Some IO definitions
     using SizeType                       = IO::SizeType;
     using GraphType                      = IO::GraphType;
     using PartitioningInfo               = IO::PartitioningInfo;
@@ -143,23 +147,38 @@ public:
      */
     virtual void GetNodesPartitions(
         std::vector<idxtype>& rNodePartition,
-        SizeType& rNumNodes);
+        SizeType& rNumNodes
+        );
 
     ///@}
     ///@name Input and output
     ///@{
 
+    /**
+     * @brief Retrieves the name of the class
+     * @return Name of the class string 
+     */
     std::string Info() const override
     {
         return "KaHIPDivideHeterogeneousInputProcess";
     }
 
+    /**
+     * @brief Prints the info to stream
+     * @param rOStream The stream considered
+     */
     void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Info();
     }
 
-    void PrintData(std::ostream& rOStream) const override {}
+    /**
+     * @brief Prints the data to stream
+     * @param rOStream The stream considered
+     */
+    void PrintData(std::ostream& rOStream) const override 
+    {
+    }
 
     ///@}
 
@@ -167,11 +186,11 @@ protected:
     ///@name Member Variables
     ///@{
 
-    IO&          mrIO;
-    SizeType     mNumberOfPartitions;
-    bool         mSynchronizeConditions;
-    int          mVerbosity;
-    int          mNumNodes;
+    IO&          mrIO;                     /// The IO instance considered
+    SizeType     mNumberOfPartitions;      /// The number of partitions
+    bool         mSynchronizeConditions;   /// The bool to know if the conditiosn are synced
+    int          mVerbosity;               /// Verbosity level
+    int          mNumNodes;                /// The number of nodes
 
     /// Adjacency sets built while reading the nodal graph (cached for subclass access)
     std::vector<std::unordered_set<std::size_t>> mNodeConnectivities;
@@ -193,7 +212,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    KaHIPPartitioner mPartitioner;
+    KaHIPPartitioner mPartitioner; /// The KaHIP partitioner used
 
     ///@}
     ///@name Private Operations

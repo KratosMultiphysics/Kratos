@@ -22,7 +22,8 @@
 #include "custom_utilities/kahip_partitioner.h"
 #include "includes/exception.h"
 
-namespace Kratos {
+namespace Kratos 
+{
 
 KaHIPPartitioner::KaHIPPartitioner(Parameters rSettings)
 {
@@ -41,13 +42,17 @@ KaHIPPartitioner::KaHIPPartitioner(Parameters rSettings)
         << "KaHIPPartitioner: num_trials must be >= 1, got " << mNumTrials << std::endl;
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 std::vector<int> KaHIPPartitioner::PartitionGraph(
     int n,
     std::vector<kahip_idx>& rXAdj,
     std::vector<kahip_idx>& rAdjncy,
     std::vector<int>& rVWgt,
     std::vector<kahip_idx>& rAdjcWgt,
-    int NumPartitions)
+    int NumPartitions
+    )
 {
     KRATOS_ERROR_IF(n <= 0)
         << "KaHIPPartitioner: number of vertices n must be > 0, got " << n << std::endl;
@@ -106,6 +111,9 @@ std::vector<int> KaHIPPartitioner::PartitionGraph(
     return best_part;
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 Parameters KaHIPPartitioner::GetDefaultParameters()
 {
     Parameters defaults(R"({
@@ -117,6 +125,9 @@ Parameters KaHIPPartitioner::GetDefaultParameters()
     })");
     return defaults;
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 int KaHIPPartitioner::PreconfigurationToMode(const std::string& rPreconfiguration)
 {

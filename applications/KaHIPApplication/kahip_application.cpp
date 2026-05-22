@@ -18,7 +18,8 @@
 // Project includes
 #include "kahip_application.h"
 
-namespace Kratos {
+namespace Kratos 
+{
 
 KratosKaHIPApplication::KratosKaHIPApplication()
     : KratosApplication("KaHIPApplication"),
