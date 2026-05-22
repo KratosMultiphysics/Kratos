@@ -27,338 +27,1365 @@
 
 namespace Kratos
 {
+  
+  MembraneCuttingPatternElement::MembraneCuttingPatternElement(IndexType NewId, GeometryType::Pointer pGeometry)
+    : Element(NewId, pGeometry)
+  {
 
-  void MembraneCuttingPatternElement::comp_Relaxation(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) {
-
-    // KRATOS_TRY;
-
-    // const auto& r_geom = GetGeometry();
-    // const SizeType dimension = r_geom.WorkingSpaceDimension();
-    // const SizeType number_of_nodes = r_geom.size();
-    // const SizeType number_dofs = dimension * number_of_nodes;
-
-    // const IntegrationMethod integration_method = r_geom.GetDefaultIntegrationMethod();
+  }
 
 
-    // Vector rRightHandSideVector = ZeroVector(number_dofs);
+  MembraneCuttingPatternElement::MembraneCuttingPatternElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
+    : Element(NewId, pGeometry, pProperties)
+  {
 
-    // Vector InternalForces = ZeroVector(3);
-    // this->InternalForces(InternalForces, integration_method, rCurrentProcessInfo);
-
-    // rRightHandSideVector = -InternalForces;
-
-
-    // Matrix rLeftHandSideMatrix = ZeroMatrix(number_dofs);
-    // this->TotalStiffnessMatrix(rLeftHandSideMatrix, integration_method, rCurrentProcessInfo);
+  }
 
 
-    // KRATOS_CATCH("");
+
+  void MembraneCuttingPatternElement::Relaxation(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) {
+
+  
+    /*KRATOS_TRY;
+
+     const auto& r_geom = GetGeometry();
+     const SizeType dimension = r_geom.WorkingSpaceDimension();
+     const SizeType number_of_nodes = r_geom.size();
+     const SizeType number_dofs = dimension * number_of_nodes;
+
+     const IntegrationMethod integration_method = r_geom.GetDefaultIntegrationMethod();
+
+
+     Vector rRightHandSideVector = ZeroVector(number_dofs);
+
+     Vector internal_forces = ZeroVector(3);
+     this->InternalForces(internal_forces, integration_method, rCurrentProcessInfo);
+
+     rRightHandSideVector = -internal_forces;
+
+
+     Matrix rLeftHandSideMatrix = ZeroMatrix(number_dofs);
+     this->TotalStiffnessMatrix(rLeftHandSideMatrix, integration_method, rCurrentProcessInfo);
+
+
+    KRATOS_CATCH("");*/
+  }
+
+
+  void MembraneCuttingPatternElement::OptimizationLeastSquare(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, double& rResponse, ConstitutiveLaw::Parameters& rValues) {
+
+
+    /*KRATOS_TRY;
+
+    const auto& r_geom = GetGeometry();
+    const SizeType dimension = r_geom.WorkingSpaceDimension();
+    const SizeType number_of_nodes = r_geom.size();
+    const SizeType number_dofs = dimension * number_of_nodes;
+
+    const IntegrationMethod integration_method = r_geom.GetDefaultIntegrationMethod();
+
+    rLeftHandSideMatrix = ZeroMatrix(number_dofs);
+
+    rRightHandSideVector = ZeroVector(number_dofs);
+
+    rResponse = 0.0;
+
+    this->StiffnessMatrixLeastSquare(rLeftHandSideMatrix, integration_method, rValues);
+    
+    this->InternalForcesLeastSquare(rRightHandSideVector, integration_method, rValues);
+
+    this->ResponseFunction_Least_Square(rResponse, integration_method, rValues);
+
+    KRATOS_CATCH("");*/
+  }
+
+
+  void MembraneCuttingPatternElement::StiffnessMatrixLeastSquare(Matrix& rStiffnessMatrix, const IntegrationMethod& ThisMethod, ConstitutiveLaw::Parameters& rValues) {
+
+    /*const auto& r_geom = GetGeometry();
+    const SizeType dimension = r_geom.WorkingSpaceDimension();
+    const SizeType number_of_nodes = r_geom.size();
+    const SizeType number_dofs = dimension * number_of_nodes;
+
+    const GeometryType::ShapeFunctionsGradientsType& r_shape_functions_gradients = r_geom.ShapeFunctionsLocalGradients(ThisMethod);
+    const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geom.IntegrationPoints(ThisMethod);
+
+    const double thickness = GetProperties()[THICKNESS];
+
+    double young_modulus = rValues.GetMaterialProperties()[YOUNG_MODULUS];
+    double poisson_ratio = rValues.GetMaterialProperties()[POISSON_RATIO];
+
+    array_1d<Vector, 2> current_covariant_base_vectors;
+    Matrix covariant_metric_current = ZeroMatrix(2);
+
+    double detJ = 0.0;
+
+    Matrix cauchy_stress = ZeroMatrix(2);
+    Matrix derivative_cauchy_stress_r = ZeroMatrix(2);
+    Matrix derivative_cauchy_stress_s = ZeroMatrix(2);
+    Matrix derivative2_cauchy_stress = ZeroMatrix(2);
+    Matrix prestress = ZeroMatrix(2);
+
+    rStiffnessMatrix = ZeroMatrix(number_dofs);
+
+
+    for (SizeType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
+
+      const double integration_weight_i = r_integration_points[point_number].Weight();
+      const Matrix& shape_functions_gradients_i = r_shape_functions_gradients[point_number];
+
+      this->CovariantBaseVectors(current_covariant_base_vectors, shape_functions_gradients_i, ConfigurationType::Current);
+      this->CovariantMetric(covariant_metric_current, current_covariant_base_vectors);
+
+      this->JacobiDeterminante(detJ, current_covariant_base_vectors);
+
+      this->CauchyStress(cauchy_stress, shape_functions_gradients_i, young_modulus, poisson_ratio);
+
+      this->PreStress(prestress);
+
+      for (SizeType dof_r = 0; dof_r < number_dofs; ++dof_r) {
+
+        this->DerivativeCauchyStress(derivative_cauchy_stress_r, shape_functions_gradients_i, dof_r, young_modulus, poisson_ratio);
+
+        for (SizeType dof_s = 0; dof_s < number_dofs; ++dof_s) {
+
+          this->DerivativeCauchyStress(derivative_cauchy_stress_s, shape_functions_gradients_i, dof_s, young_modulus, poisson_ratio);
+
+          this->Derivative2CauchyStress(derivative2_cauchy_stress, shape_functions_gradients_i, dof_r, dof_s, young_modulus, poisson_ratio);
+
+          cfloat k_elm = 0.0;
+
+          for (SizeType m = 0; m < 2; m++) {
+            for (SizeType n = 0; n < 2; n++) {
+              for (SizeType l = 0; l < 2; l++) {
+                for (SizeType k = 0; k < 2; k++) {
+                  k_elm += ((derivative_cauchy_stress_s(m, n) * derivative_cauchy_stress_r(l, k)) + ((cauchy_stress(m, n) - prestress(m, n)) * derivative2_cauchy_stress(l, k))) * covariant_metric_current(m, l) * covariant_metric_current(n, k);
+                }
+              }
+            }
+          }
+
+          rStiffnessMatrix(dof_r, dof_s) += k_elm * detJ * integration_weight_i * thickness;
+
+        }
+      }
+    }*/
   }
 
 
   
 
-  void MembraneCuttingPatternElement::InternalForces_Least_Square(Vector& rInternalForces, const IntegrationMethod& ThisMethod, const ProcessInfo& rCurrentProcessInfo) {
+  void MembraneCuttingPatternElement::InternalForcesLeastSquare(Vector& rInternalForces, const IntegrationMethod& ThisMethod, ConstitutiveLaw::Parameters& rValues) {
 
 
-    // const auto& r_geom = GetGeometry();
-    // const SizeType dimension = r_geom.WorkingSpaceDimension();
-    // const SizeType number_of_nodes = r_geom.size();
-    // const SizeType number_dofs = dimension * number_of_nodes;
-    // rInternalForces = ZeroVector(number_dofs);
+     /*const auto& r_geom = GetGeometry();
+     const SizeType dimension = r_geom.WorkingSpaceDimension();
+     const SizeType number_of_nodes = r_geom.size();
+     const SizeType number_dofs = dimension * number_of_nodes;
+     rInternalForces = ZeroVector(number_dofs);
 
-    // const GeometryType::ShapeFunctionsGradientsType& r_shape_functions_gradients = r_geom.ShapeFunctionsLocalGradients(ThisMethod);
-    // const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geom.IntegrationPoints(ThisMethod);
+     const GeometryType::ShapeFunctionsGradientsType& r_shape_functions_gradients = r_geom.ShapeFunctionsLocalGradients(ThisMethod);
+     const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geom.IntegrationPoints(ThisMethod);
 
-    // const double thickness = GetProperties()[THICKNESS];
+     const double thickness = GetProperties()[THICKNESS];
 
-    // array_1d<Vector, 2> current_covariant_base_vectors;
-    // array_1d<Vector, 2> current_contravariant_base_vectors;
-    // array_1d<Vector, 2> reference_covariant_base_vectors;
-    // array_1d<Vector, 2> reference_contravariant_base_vectors;
+     double young_modulus = rValues.GetMaterialProperties()[YOUNG_MODULUS];
+     double poisson_ratio = rValues.GetMaterialProperties()[POISSON_RATIO];
 
-    // array_1d<Vector, 2> transformed_base_vectors;
-    // array_1d<Vector, 2> transformed_base_vectors_current;
-
-    // Matrix covariant_metric_current = ZeroMatrix(3);
-    // Matrix covariant_metric_reference = ZeroMatrix(3);
-    // Matrix contravariant_metric_reference = ZeroMatrix(3);
-    // Matrix contravariant_metric_current = ZeroMatrix(3);
-    // Matrix inplane_transformation_matrix_material = ZeroMatrix(3);
-    // Matrix inplane_transformation_matrix_material_current = ZeroMatrix(3);
-
-    // Matrix material_tangent_modulus = ZeroMatrix(dimension);
-    // Matrix material_tangent_modulus_Cauchy = ZeroMatrix(dimension);
-    // double detJ = 0.0;
-    // Vector stress = ZeroVector(3);
-    // Vector sigma_pre = ZeroVector(3);
-    // Vector derivative_strain = ZeroVector(3);
-
-    // Matrix deformation_gradient = ZeroMatrix(3);
-    // double det_deformation_gradient = 0.0;
+     array_1d<Vector, 2> current_covariant_base_vectors;
+     Matrix covariant_metric_current = ZeroMatrix(2);
     
+     double detJ = 0.0;
 
-    // for (SizeType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
-    //   // getting information for integration
-    //   const double integration_weight_i = r_integration_points[point_number].Weight();
-    //   const Matrix& shape_functions_gradients_i = r_shape_functions_gradients[point_number];
+     Matrix cauchy_stress = ZeroMatrix(2);
+     Matrix derivative_cauchy_stress = ZeroMatrix(2);
+     Matrix prestress = ZeroMatrix(2);
 
-    //   this->CovariantBaseVectors(current_covariant_base_vectors, shape_functions_gradients_i, ConfigurationType::Current);
-    //   this->CovariantBaseVectors(reference_covariant_base_vectors, shape_functions_gradients_i, ConfigurationType::Reference);
 
-    //   this->CovariantMetric(covariant_metric_current, current_covariant_base_vectors);
-    //   this->CovariantMetric(covariant_metric_reference, reference_covariant_base_vectors);
-    //   this->ContravariantMetric(contravariant_metric_reference, covariant_metric_reference);
-    //   this->ContravariantMetric(contravariant_metric_current, covariant_metric_current);
+     for (SizeType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
+       
+       const double integration_weight_i = r_integration_points[point_number].Weight();
+       const Matrix& shape_functions_gradients_i = r_shape_functions_gradients[point_number];
 
-    //   this->ContraVariantBaseVectors(reference_contravariant_base_vectors, contravariant_metric_reference, reference_covariant_base_vectors);
-    //   this->ContraVariantBaseVectors(current_contravariant_base_vectors, contravariant_metric_current, current_covariant_base_vectors);
+       this->CovariantBaseVectors(current_covariant_base_vectors, shape_functions_gradients_i, ConfigurationType::Current);
+       this->CovariantMetric(covariant_metric_current, current_covariant_base_vectors);
 
-    //   this->TransformBaseVectors(transformed_base_vectors, reference_contravariant_base_vectors);//****** transforming reference contravariant base vectors to local cartesian systems *******
-    //   this->TransformBaseVectors(transformed_base_vectors_current, current_contravariant_base_vectors);
+       this->JacobiDeterminante(detJ, current_covariant_base_vectors);
 
-    //   this->InPlaneTransformationMatrix(inplane_transformation_matrix_material, transformed_base_vectors, reference_contravariant_base_vectors);//***** inner product betn local cartesian of ref_contra, make the transformation matrix applicable for Voigt notation *****
-    //   this->InPlaneTransformationMatrix(inplane_transformation_matrix_material_current, transformed_base_vectors_current, current_contravariant_base_vectors);
+       this->CauchyStress(cauchy_stress, shape_functions_gradients_i, young_modulus, poisson_ratio);
 
-    //   this->JacobiDeterminante(detJ, current_covariant_base_vectors);
+       this->PreStress(prestress);
 
-    //   this->MaterialResponse(stress, contravariant_metric_reference, covariant_metric_reference, covariant_metric_current,
-    //     transformed_base_vectors, inplane_transformation_matrix_material, point_number, material_tangent_modulus,
-    //     rCurrentProcessInfo); // uses Green-Lagrange strain tensor to compute PK2 and C
+       for (SizeType dof_r = 0; dof_r < number_dofs; ++dof_r)
+       {
 
-    //   this->DeformationGradient(deformation_gradient, det_deformation_gradient, current_covariant_base_vectors, reference_contravariant_base_vectors);
+         this->DerivativeCauchyStress(derivative_cauchy_stress, shape_functions_gradients_i, dof_r, young_modulus, poisson_ratio);
 
-    //   Matrix stress_matrix_local_cs = MathUtils<double>::StressVectorToTensor(stress);
+         Matrix delta_sigma = cauchy_stress - prestress;
 
-    //   material_tangent_modulus_Cauchy = (1.0 / det_deformation_gradient) * material_tangent_modulus; //****** this operation might not be suitable for tangent modulus for vectors in Voigt notation *******
+         double product_internal_forces = 0.0;
 
-    //   //transform stresses to original bases
-    //   Matrix stress_matrix = ZeroMatrix(3);
-    //   for (SizeType i = 0; i < 2; ++i) {
-    //     for (SizeType j = 0; j < 2; ++j) {
-    //       stress_matrix += outer_prod(transformed_base_vectors[i], transformed_base_vectors[j]) * stress_matrix_local_cs(i, j);
-    //     }
-    //   }
+         for (cint m = 0; m < 2; m++) {
+           for (cint n = 0; n < 2; n++) {
+             for (cint l = 0; l < 2; l++) {
+               for (cint k = 0; k < 2; k++) {
 
-    //   // calculate cauchy (this needs to be done in the original base)
-    //   Matrix temp_stress_matrix = prod(deformation_gradient, stress_matrix);
-    //   Matrix temp_stress_matrix_2 = prod(temp_stress_matrix, trans(deformation_gradient));
-    //   Matrix cauchy_stress_matrix = temp_stress_matrix_2 / det_deformation_gradient; // Dieringer - equation 2.57, page 39
+                 product_internal_forces += ((cauchy_stress(m, n) - prestress(m, n)) * derivative_cauchy_stress(l, k)) * covariant_metric_current(m, l) * covariant_metric_current(n, k);
 
-    //   // transform stresses to local orthogonal base
-    //   Matrix local_stress = ZeroMatrix(2);
-    //   for (SizeType i = 0; i < 2; ++i) {
-    //     for (SizeType j = 0; j < 2; ++j) {
-    //       local_stress(i, j) = inner_prod(transformed_base_vectors_current[i], prod(cauchy_stress_matrix, transformed_base_vectors_current[j]));
-    //     }
-    //   }
-    //   stress = MathUtils<double>::StressTensorToVector(local_stress, 3);
+               }
+             }
+           }
+         }
 
-    //   this->PreStress(sigma_pre, transformed_base_vectors_current); //****** is it necessary to convert pre-stress as PK2 is converted to Cauchy? ********
-
-    //   for (SizeType dof_r = 0; dof_r < number_dofs; ++dof_r)
-    //   {
-    //     DerivativeStrainEulerAlmansi(derivative_strain, shape_functions_gradients_i,
-    //       dof_r, reference_covariant_base_vectors, inplane_transformation_matrix_material_current);
-
-    //     Vector stress_derivative = prod(material_tangent_modulus_Cauchy, derivative_strain); // ********* derivative of inverse det_deformation_gradient is not zero!!! **********
-
-    //     Vector delta_sigma = stress - sigma_pre;
-
-    //     rInternalForces[dof_r] += inner_prod(delta_sigma, stress_derivative) * detJ * integration_weight_i * thickness;
-    //   }
-    // }
+         rInternalForces[dof_r] += product_internal_forces * detJ * integration_weight_i * thickness;
+       }
+     }*/
   }
 
 
-  void MembraneCuttingPatternElement::ResponseFunction_Least_Square(double& rResponseLS, const IntegrationMethod& ThisMethod, const ProcessInfo& rCurrentProcessInfo) {
+  void MembraneCuttingPatternElement::ResponseFunction_Least_Square(double& rResponseLS, const IntegrationMethod& ThisMethod, ConstitutiveLaw::Parameters& rValues) {
 
-    // const auto& r_geom = GetGeometry();
-    // const SizeType dimension = r_geom.WorkingSpaceDimension();
+     /*const auto& r_geom = GetGeometry();
+     const SizeType dimension = r_geom.WorkingSpaceDimension();
 
-    // const GeometryType::ShapeFunctionsGradientsType& r_shape_functions_gradients = r_geom.ShapeFunctionsLocalGradients(ThisMethod);
-    // const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geom.IntegrationPoints(ThisMethod);
+     const GeometryType::ShapeFunctionsGradientsType& r_shape_functions_gradients = r_geom.ShapeFunctionsLocalGradients(ThisMethod);
+     const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geom.IntegrationPoints(ThisMethod);
 
-    // const double thickness = GetProperties()[THICKNESS];
+     const double thickness = GetProperties()[THICKNESS];
 
-    // array_1d<Vector, 2> current_covariant_base_vectors;
-    // array_1d<Vector, 2> current_contravariant_base_vectors;
-    // array_1d<Vector, 2> reference_covariant_base_vectors;
-    // array_1d<Vector, 2> reference_contravariant_base_vectors;
+     double young_modulus = rValues.GetMaterialProperties()[YOUNG_MODULUS];
+     double poisson_ratio = rValues.GetMaterialProperties()[POISSON_RATIO];
 
-    // array_1d<Vector, 2> transformed_base_vectors;
-    // array_1d<Vector, 2> transformed_base_vectors_current;
+     array_1d<Vector, 2> current_covariant_base_vectors;
 
-    // Matrix covariant_metric_current = ZeroMatrix(3);
-    // Matrix covariant_metric_reference = ZeroMatrix(3);
-    // Matrix contravariant_metric_reference = ZeroMatrix(3);
-    // Matrix contravariant_metric_current = ZeroMatrix(3);
-    // Matrix inplane_transformation_matrix_material = ZeroMatrix(3);
-    
-    // Matrix material_tangent_modulus = ZeroMatrix(dimension);
-    
-    // double detJ = 0.0;
-    // Vector stress = ZeroVector(3);
-    // Vector sigma_pre = ZeroVector(3);
+     Matrix covariant_metric_current = ZeroMatrix(2);
 
-    // Matrix deformation_gradient = ZeroMatrix(3);
-    // double det_deformation_gradient = 0.0;
+     double detJ = 0.0;
 
-    // rResponseLS = 0.0;
+     Matrix cauchy_stress = ZeroMatrix(2);
+     Matrix prestress = ZeroMatrix(2);
 
 
-    // for (SizeType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
-    //   // getting information for integration
-    //   const double integration_weight_i = r_integration_points[point_number].Weight();
-    //   const Matrix& shape_functions_gradients_i = r_shape_functions_gradients[point_number];
+     rResponseLS = 0.0;
 
-    //   this->CovariantBaseVectors(current_covariant_base_vectors, shape_functions_gradients_i, ConfigurationType::Current);
-    //   this->CovariantBaseVectors(reference_covariant_base_vectors, shape_functions_gradients_i, ConfigurationType::Reference);
 
-    //   this->CovariantMetric(covariant_metric_current, current_covariant_base_vectors);
-    //   this->CovariantMetric(covariant_metric_reference, reference_covariant_base_vectors);
-    //   this->ContravariantMetric(contravariant_metric_reference, covariant_metric_reference);
-    //   this->ContravariantMetric(contravariant_metric_current, covariant_metric_current);
+     for (SizeType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
+       
+       const double integration_weight_i = r_integration_points[point_number].Weight();
+       const Matrix& shape_functions_gradients_i = r_shape_functions_gradients[point_number];
 
-    //   this->ContraVariantBaseVectors(reference_contravariant_base_vectors, contravariant_metric_reference, reference_covariant_base_vectors);
-    //   this->ContraVariantBaseVectors(current_contravariant_base_vectors, contravariant_metric_current, current_covariant_base_vectors);
+       this->CovariantBaseVectors(current_covariant_base_vectors, shape_functions_gradients_i, ConfigurationType::Current);
 
-    //   this->TransformBaseVectors(transformed_base_vectors, reference_contravariant_base_vectors);//****** transforming reference contravariant base vectors to local cartesian systems *******
-    //   this->TransformBaseVectors(transformed_base_vectors_current, current_contravariant_base_vectors);
+       this->CovariantMetric(covariant_metric_current, current_covariant_base_vectors);
+       
+       this->JacobiDeterminante(detJ, current_covariant_base_vectors);
+       
+       this->CauchyStress(cauchy_stress, shape_functions_gradients_i, young_modulus, poisson_ratio);
+       this->PreStress(prestress);
 
-    //   this->InPlaneTransformationMatrix(inplane_transformation_matrix_material, transformed_base_vectors, reference_contravariant_base_vectors);//***** inner product betn local cartesian of ref_contra, make the transformation matrix applicable for Voigt notation *****
+       Matrix delta_sigma = cauchy_stress - prestress;
 
-    //   this->JacobiDeterminante(detJ, current_covariant_base_vectors);
+       double product_delta_sigma = 0.0;
+       
+       for (SizeType m = 0; m < 2; m++) {
+         for (SizeType n = 0; n < 2; n++) {
+           for (SizeType l = 0; l < 2; l++) {
+             for (SizeType k = 0; k < 2; k++) {
 
-    //   this->MaterialResponse(stress, contravariant_metric_reference, covariant_metric_reference, covariant_metric_current,
-    //     transformed_base_vectors, inplane_transformation_matrix_material, point_number, material_tangent_modulus,
-    //     rCurrentProcessInfo); // use Green-Lagrange strain tensor to compute PK2 and C
+               product_delta_sigma += (delta_sigma(m, n) * delta_sigma(l, k)) * covariant_metric_current(m,l) * covariant_metric_current(n, k);
+             }
+           }
+         }
+       }
+       
+       product_delta_sigma *=  detJ * integration_weight_i * thickness;
 
-    //   this->DeformationGradient(deformation_gradient, det_deformation_gradient, current_covariant_base_vectors, reference_contravariant_base_vectors);
-
-    //   Matrix stress_matrix_local_cs = MathUtils<double>::StressVectorToTensor(stress);
-
-    //   //transform stresses to original bases
-    //   Matrix stress_matrix = ZeroMatrix(3);
-    //   for (SizeType i = 0; i < 2; ++i) {
-    //     for (SizeType j = 0; j < 2; ++j) {
-    //       stress_matrix += outer_prod(transformed_base_vectors[i], transformed_base_vectors[j]) * stress_matrix_local_cs(i, j);
-    //     }
-    //   }
-
-    //   // calculate cauchy (this needs to be done in the original base)
-    //   Matrix temp_stress_matrix = prod(deformation_gradient, stress_matrix);
-    //   Matrix temp_stress_matrix_2 = prod(temp_stress_matrix, trans(deformation_gradient));
-    //   Matrix cauchy_stress_matrix = temp_stress_matrix_2 / det_deformation_gradient; // Dieringer - equation 2.57, page 39
-
-    //   // transform stresses to local orthogonal base
-    //   Matrix local_stress = ZeroMatrix(2);
-    //   for (SizeType i = 0; i < 2; ++i) {
-    //     for (SizeType j = 0; j < 2; ++j) {
-    //       local_stress(i, j) = inner_prod(transformed_base_vectors_current[i], prod(cauchy_stress_matrix, transformed_base_vectors_current[j]));
-    //     }
-    //   }
-    //   stress = MathUtils<double>::StressTensorToVector(local_stress, 3);
-
-    //   this->PreStress(sigma_pre, transformed_base_vectors_current);
-
-    //   Vector delta_sigma = stress - sigma_pre;
-    //   double product_delta_sigma = ((delta_sigma[0] * delta_sigma[0]) + (delta_sigma[1] * delta_sigma[1]) + (2.0 * delta_sigma[2] * delta_sigma[2])) * detJ * integration_weight_i * thickness; 
-
-    //   rResponseLS += 0.5 * product_delta_sigma;
+       rResponseLS += 0.5 * product_delta_sigma;
         
-    // }
+     }*/
   }
 
 
+  void MembraneCuttingPatternElement::InternalForces(Vector& rInternalForces, const IntegrationMethod& ThisMethod, const ProcessInfo& rCurrentProcessInfo)
+  {
+    //const auto& r_geom = GetGeometry();
+    //const SizeType dimension = r_geom.WorkingSpaceDimension();
+    //const SizeType number_of_nodes = r_geom.size();
+    //const SizeType number_dofs = dimension * number_of_nodes;
+    //rInternalForces = ZeroVector(number_dofs);
 
-  void MembraneCuttingPatternElement::StrainEulerAlmansi(Vector& rStrain, const Matrix& rReferenceCoVariantMetric, const Matrix& rCurrentCoVariantMetric,
+    //const GeometryType::ShapeFunctionsGradientsType& r_shape_functions_gradients = r_geom.ShapeFunctionsLocalGradients(ThisMethod);
+    //const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geom.IntegrationPoints(ThisMethod);
+
+    //const double thickness = GetProperties()[THICKNESS];
+
+    //array_1d<Vector, 2> current_covariant_base_vectors;
+    //array_1d<Vector, 2> reference_covariant_base_vectors;
+    //array_1d<Vector, 2> reference_contravariant_base_vectors;
+
+    //array_1d<Vector, 2> transformed_base_vectors;
+
+    //Matrix covariant_metric_current = ZeroMatrix(3);
+    //Matrix covariant_metric_reference = ZeroMatrix(3);
+    //Matrix contravariant_metric_reference = ZeroMatrix(3);
+    //Matrix inplane_transformation_matrix_material = ZeroMatrix(3);
+    //double detJ = 0.0;
+    //Vector stress = ZeroVector(3);
+    //Vector derivative_strain = ZeroVector(3);
+
+    //for (SizeType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
+    //  // getting information for integration
+    //  const double integration_weight_i = r_integration_points[point_number].Weight();
+    //  const Matrix& shape_functions_gradients_i = r_shape_functions_gradients[point_number];
+
+    //  this->CovariantBaseVectors(current_covariant_base_vectors, shape_functions_gradients_i, ConfigurationType::Current);
+    //  this->CovariantBaseVectors(reference_covariant_base_vectors, shape_functions_gradients_i, ConfigurationType::Reference);
+
+    //  this->CovariantMetric(covariant_metric_current, current_covariant_base_vectors);
+    //  this->CovariantMetric(covariant_metric_reference, reference_covariant_base_vectors);
+    //  this->ContravariantMetric(contravariant_metric_reference, covariant_metric_reference);
+
+    //  this->ContraVariantBaseVectors(reference_contravariant_base_vectors, contravariant_metric_reference, reference_covariant_base_vectors);
+
+    //  this->TransformBaseVectors(transformed_base_vectors, reference_contravariant_base_vectors);
+
+    //  this->InPlaneTransformationMatrix(inplane_transformation_matrix_material, transformed_base_vectors, reference_contravariant_base_vectors);
+
+
+    //  this->JacobiDeterminante(detJ, reference_covariant_base_vectors);
+    //  Matrix material_tangent_modulus = ZeroMatrix(dimension);
+    //  this->MaterialResponse(stress, contravariant_metric_reference, covariant_metric_reference, covariant_metric_current,
+    //    transformed_base_vectors, inplane_transformation_matrix_material, point_number, material_tangent_modulus,
+    //    rCurrentProcessInfo);
+
+    //  for (SizeType dof_r = 0; dof_r < number_dofs; ++dof_r)
+    //  {
+    //    this->DerivativeStrainGreenLagrange(derivative_strain, shape_functions_gradients_i,
+    //      dof_r, current_covariant_base_vectors, inplane_transformation_matrix_material);
+    //    rInternalForces[dof_r] += inner_prod(stress, derivative_strain) * detJ * integration_weight_i * thickness;
+    //  }
+    //}
+  }
+
+
+  void MembraneCuttingPatternElement::TotalStiffnessMatrix(Matrix& rStiffnessMatrix, const IntegrationMethod& ThisMethod,
+    const ProcessInfo& rCurrentProcessInfo)
+  {
+    //const auto& r_geom = GetGeometry();
+    //const SizeType dimension = r_geom.WorkingSpaceDimension();
+    //const SizeType number_of_nodes = r_geom.size();
+    //const SizeType number_dofs = dimension * number_of_nodes;
+    //rStiffnessMatrix = ZeroMatrix(number_dofs);
+
+    //const GeometryType::ShapeFunctionsGradientsType& r_shape_functions_gradients = r_geom.ShapeFunctionsLocalGradients(ThisMethod);
+    //const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geom.IntegrationPoints(ThisMethod);
+
+    //const double thickness = GetProperties()[THICKNESS];
+
+    //array_1d<Vector, 2> current_covariant_base_vectors;
+    //array_1d<Vector, 2> reference_covariant_base_vectors;
+    //array_1d<Vector, 2> reference_contravariant_base_vectors;
+    //array_1d<Vector, 2> transformed_base_vectors;
+
+    //Matrix covariant_metric_current = ZeroMatrix(3);
+    //Matrix covariant_metric_reference = ZeroMatrix(3);
+    //Matrix contravariant_metric_reference = ZeroMatrix(3);
+    //Matrix inplane_transformation_matrix_material = ZeroMatrix(3);
+    //double detJ = 0.0;
+    //double temp_stiffness_entry;
+    //Vector stress = ZeroVector(3);
+
+    //for (SizeType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
+    //  // getting information for integration
+    //  const double integration_weight_i = r_integration_points[point_number].Weight();
+    //  const Matrix& shape_functions_gradients_i = r_shape_functions_gradients[point_number];
+
+    //  this->CovariantBaseVectors(current_covariant_base_vectors, shape_functions_gradients_i, ConfigurationType::Current);
+    //  this->CovariantBaseVectors(reference_covariant_base_vectors, shape_functions_gradients_i, ConfigurationType::Reference);
+
+    //  this->CovariantMetric(covariant_metric_current, current_covariant_base_vectors);
+    //  this->CovariantMetric(covariant_metric_reference, reference_covariant_base_vectors);
+    //  this->ContravariantMetric(contravariant_metric_reference, covariant_metric_reference);
+
+    //  this->ContraVariantBaseVectors(reference_contravariant_base_vectors, contravariant_metric_reference, reference_covariant_base_vectors);
+
+    //  this->TransformBaseVectors(transformed_base_vectors, reference_contravariant_base_vectors);
+
+    //  this->InPlaneTransformationMatrix(inplane_transformation_matrix_material, transformed_base_vectors, reference_contravariant_base_vectors);
+
+    //  this->JacobiDeterminante(detJ, reference_covariant_base_vectors);
+
+    //  Matrix material_tangent_modulus = ZeroMatrix(dimension);
+    //  this->MaterialResponse(stress, contravariant_metric_reference, covariant_metric_reference, covariant_metric_current,
+    //    transformed_base_vectors, inplane_transformation_matrix_material, point_number, material_tangent_modulus,
+    //    rCurrentProcessInfo);
+
+
+    //  for (SizeType dof_s = 0; dof_s < number_dofs; ++dof_s) {
+    //    for (SizeType dof_r = 0; dof_r < number_dofs; ++dof_r) {
+
+    //      //do not calculate symmetric entries
+    //      if (dof_s > dof_r) {
+    //        if (point_number == (r_integration_points.size() - 1)) rStiffnessMatrix(dof_s, dof_r) = rStiffnessMatrix(dof_r, dof_s);
+    //      }
+    //      else {
+    //        temp_stiffness_entry = 0.0;
+    //        this->MaterialStiffnessMatrixEntryIJ(temp_stiffness_entry,
+    //          material_tangent_modulus, dof_s, dof_r, shape_functions_gradients_i,
+    //          current_covariant_base_vectors, inplane_transformation_matrix_material);
+    //        this->InitialStressStiffnessMatrixEntryIJ(temp_stiffness_entry,
+    //          stress, dof_s, dof_r, shape_functions_gradients_i,
+    //          inplane_transformation_matrix_material);
+    //        rStiffnessMatrix(dof_s, dof_r) += temp_stiffness_entry * detJ * integration_weight_i * thickness;
+    //      }
+    //    }
+    //  }
+    //}
+  }
+
+
+  void MembraneCuttingPatternElement::MaterialStiffnessMatrixEntryIJ(double& rEntryIJ,
+    const Matrix& rMaterialTangentModulus, const SizeType& rPositionI,
+    const SizeType& rPositionJ, const Matrix& rShapeFunctionGradientValues,
+    const array_1d<Vector, 2>& rCurrentCovariantBaseVectors, const Matrix& rTransformationMatrix)
+  {
+    /*const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+
+    Vector strain_derivative = ZeroVector(dimension);
+    this->DerivativeStrainGreenLagrange(strain_derivative, rShapeFunctionGradientValues, rPositionI,
+      rCurrentCovariantBaseVectors, rTransformationMatrix);
+
+    Vector stress_derivative = prod(rMaterialTangentModulus, strain_derivative);
+
+    this->DerivativeStrainGreenLagrange(strain_derivative, rShapeFunctionGradientValues, rPositionJ,
+      rCurrentCovariantBaseVectors, rTransformationMatrix);
+
+    rEntryIJ += inner_prod(stress_derivative, strain_derivative);*/
+  }
+
+
+  void MembraneCuttingPatternElement::InitialStressStiffnessMatrixEntryIJ(double& rEntryIJ,
+    const Vector& rStressVector, const SizeType& rPositionI,
+    const SizeType& rPositionJ, const Matrix& rShapeFunctionGradientValues,
     const Matrix& rTransformationMatrix)
   {
-    // Matrix strain_matrix = 0.50 * (rCurrentCoVariantMetric - rReferenceCoVariantMetric);
-    // Vector current_strain = MathUtils<double>::StrainTensorToVector(strain_matrix, 3);
-    // this->TransformStrains(rStrain, current_strain, rTransformationMatrix); //transforms to local Cartesian coordinate system
+    /*const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+
+    Vector strain_derivative_2 = ZeroVector(dimension);
+    this->Derivative2StrainGreenLagrange(strain_derivative_2, rShapeFunctionGradientValues, rPositionI, rPositionJ,
+      rTransformationMatrix);
+    rEntryIJ += inner_prod(rStressVector, strain_derivative_2);*/
   }
 
 
-  void MembraneCuttingPatternElement::DerivativeStrainEulerAlmansi(Vector& rStrain, const Matrix& rShapeFunctionGradientValues, const SizeType DofR,
-    const array_1d<Vector, 2> rReferenceCovariantBaseVectors, const Matrix& rTransformationMatrix)
+
+  void MembraneCuttingPatternElement::StrainEulerAlmansi(Matrix& rStrain, const Matrix& rReferenceCoVariantMetric, const Matrix& rCurrentCoVariantMetric)
   {
-    // Matrix reference_covariant_metric_derivative = ZeroMatrix(2);
-    // this->DerivativeCurrentCovariantMetric(reference_covariant_metric_derivative, rShapeFunctionGradientValues, DofR, rReferenceCovariantBaseVectors);
-
-    // Matrix strain_matrix_derivative = -0.50 * reference_covariant_metric_derivative;
-    // Vector current_strain = MathUtils<double>::StrainTensorToVector(strain_matrix_derivative, 3);
-    // TransformStrains(rStrain, current_strain, rTransformationMatrix);
+    /*rStrain = ZeroMatrix(2);
+    noalias(rStrain) = 0.50 * (rCurrentCoVariantMetric - rReferenceCoVariantMetric);*/
   }
 
 
+  void MembraneCuttingPatternElement::DerivativeStrainEulerAlmansi(Matrix& rStrain, const Matrix& rShapeFunctionGradientValues, const SizeType DofR,
+    const array_1d<Vector, 2> rReferenceCovariantBaseVectors)
+  {
 
-  void MembraneCuttingPatternElement::Elasticity_Tensor_Kirchhoff(double rC_reference[2][2][2][2], double rc_current[2][2][2][2], const IntegrationMethod& ThisMethod, const double YoungModulus, const double PoissonRatio) {
+    /*rStrain = ZeroMatrix(2);
 
+    Matrix reference_covariant_metric_derivative = ZeroMatrix(2);
+    this->DerivativeCurrentCovariantMetric(reference_covariant_metric_derivative, rShapeFunctionGradientValues, DofR, rReferenceCovariantBaseVectors);
 
-    // const auto& r_geom = GetGeometry();
-    // const GeometryType::ShapeFunctionsGradientsType& r_shape_functions_gradients = r_geom.ShapeFunctionsLocalGradients(ThisMethod);
-    // const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geom.IntegrationPoints(ThisMethod);
+    rStrain = -0.50 * reference_covariant_metric_derivative;*/
+  
+  }
+
+  void MembraneCuttingPatternElement::Derivative2StrainEulerAlmansi(Matrix& rStrain, const Matrix& rShapeFunctionGradientValues, const SizeType DofR, const SizeType DofS)
+  {
     
-    // array_1d<Vector, 2> reference_covariant_base_vectors;
-    // array_1d<Vector, 2> reference_contravariant_base_vectors;
-    // array_1d<Vector, 2> current_covariant_base_vectors;
+    /*rStrain = ZeroMatrix(2);
     
-    // Matrix covariant_metric_reference = ZeroMatrix(3);
-    // Matrix contravariant_metric_reference = ZeroMatrix(3);
+    Matrix reference_covariant_metric_derivative2 = ZeroMatrix(2);
+    this->Derivative2CurrentCovariantMetric(reference_covariant_metric_derivative2, rShapeFunctionGradientValues, DofR, DofS);
 
-    // Matrix deformation_gradient = ZeroMatrix(3);
-    // double det_deformation_gradient = 0.0;
+    rStrain = -0.50 * reference_covariant_metric_derivative2;*/
 
-    // double E = YoungModulus;
-    // double NU = PoissonRatio;
-    // const double lambda = E * NU / (1.0 - NU * NU);
-    // const double MU = E / (2.0 * (1.0 + NU));
+  }
 
 
-    // for (SizeType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
+  void MembraneCuttingPatternElement::StrainGreenLagrange(Vector& rStrain, const Matrix& rReferenceCoVariantMetric, const Matrix& rCurrentCoVariantMetric,
+    const Matrix& rTransformationMatrix)
+  {
+    /*Matrix strain_matrix = 0.50 * (rCurrentCoVariantMetric - rReferenceCoVariantMetric);
+    Vector reference_strain = MathUtils<double>::StrainTensorToVector(strain_matrix, 3);
+    TransformStrains(rStrain, reference_strain, rTransformationMatrix);*/
+  }
 
-    //   const Matrix& shape_functions_gradients_i = r_shape_functions_gradients[point_number];
 
-    //   this->CovariantBaseVectors(current_covariant_base_vectors, shape_functions_gradients_i, ConfigurationType::Current);
-    //   this->CovariantBaseVectors(reference_covariant_base_vectors, shape_functions_gradients_i, ConfigurationType::Reference);
+  void MembraneCuttingPatternElement::DerivativeStrainGreenLagrange(Vector& rStrain, const Matrix& rShapeFunctionGradientValues, const SizeType DofR,
+    const array_1d<Vector, 2> rCurrentCovariantBaseVectors, const Matrix& rTransformationMatrix)
+  {
+    /*Matrix current_covariant_metric_derivative = ZeroMatrix(2);
+    DerivativeCurrentCovariantMetric(current_covariant_metric_derivative, rShapeFunctionGradientValues, DofR, rCurrentCovariantBaseVectors);
+    Matrix strain_matrix_derivative = 0.50 * current_covariant_metric_derivative;
+    Vector reference_strain = MathUtils<double>::StrainTensorToVector(strain_matrix_derivative, 3);
+    TransformStrains(rStrain, reference_strain, rTransformationMatrix);*/
+  }
+
+
+  void MembraneCuttingPatternElement::Derivative2StrainGreenLagrange(Vector& rStrain,
+    const Matrix& rShapeFunctionGradientValues, const SizeType DofR, const SizeType DofS,
+    const Matrix& rTransformationMatrix)
+  {
+    /*Matrix current_covariant_metric_derivative = ZeroMatrix(2);
+    Derivative2CurrentCovariantMetric(current_covariant_metric_derivative, rShapeFunctionGradientValues, DofR, DofS);
+
+    Matrix strain_matrix_derivative = 0.50 * current_covariant_metric_derivative;
+
+    Vector reference_strain = MathUtils<double>::StrainTensorToVector(strain_matrix_derivative, 3);
+    TransformStrains(rStrain, reference_strain, rTransformationMatrix);*/
+  }
+
+
+  void MembraneCuttingPatternElement::TransformStrains(Vector& rStrains,
+    Vector& rReferenceStrains, const Matrix& rTransformationMatrix)
+  {
+    //// use contravariant basevectors here
+    //// transform base vecs needs only G3 which is equal for co and contra if it is orthogonal
+    //// tranform strains needs contra-variant !
+    //rStrains = ZeroVector(3);
+    //rReferenceStrains[2] /= 2.0; // extract E12 from voigt strain vector
+    //noalias(rStrains) = prod(rTransformationMatrix, rReferenceStrains);
+    //rStrains[2] *= 2.0; // include E12 and E21 for voigt strain vector
+  }
+
+
+  void MembraneCuttingPatternElement::Elasticity_Tensor_Kirchhoff(double rC_reference[2][2][2][2], double rc_current[2][2][2][2], const Matrix& rShapeFunctionGradientValues, const double YoungModulus, const double PoissonRatio) {
+
+    
+     /*array_1d<Vector, 2> reference_covariant_base_vectors;
+     array_1d<Vector, 2> reference_contravariant_base_vectors;
+     array_1d<Vector, 2> current_covariant_base_vectors;
+    
+     Matrix covariant_metric_reference = ZeroMatrix(2);
+     Matrix contravariant_metric_reference = ZeroMatrix(2);
+
+     Matrix deformation_gradient = ZeroMatrix(3);
+     double det_deformation_gradient = 0.0;
+
+     double E = YoungModulus;
+     double NU = PoissonRatio;
+     const double lambda = E * NU / (1.0 - NU * NU);
+     const double MU = E / (2.0 * (1.0 + NU));
+
+
+     this->CovariantBaseVectors(current_covariant_base_vectors, rShapeFunctionGradientValues, ConfigurationType::Current);
+     this->CovariantBaseVectors(reference_covariant_base_vectors, rShapeFunctionGradientValues, ConfigurationType::Reference);
       
-    //   this->CovariantMetric(covariant_metric_reference, reference_covariant_base_vectors);
-    //   this->ContravariantMetric(contravariant_metric_reference, covariant_metric_reference);
+     this->CovariantMetric(covariant_metric_reference, reference_covariant_base_vectors);
+     this->ContravariantMetric(contravariant_metric_reference, covariant_metric_reference);
 
-    //   this->ContraVariantBaseVectors(reference_contravariant_base_vectors, contravariant_metric_reference, reference_covariant_base_vectors);
+     this->ContraVariantBaseVectors(reference_contravariant_base_vectors, contravariant_metric_reference, reference_covariant_base_vectors);
       
-    //   this->DeformationGradient(deformation_gradient, det_deformation_gradient, current_covariant_base_vectors, reference_contravariant_base_vectors);
+     this->DeformationGradient(deformation_gradient, det_deformation_gradient, current_covariant_base_vectors, reference_contravariant_base_vectors);
 
-    //   for (SizeType alpha = 0; alpha < 2; ++alpha) {
-    //     for (SizeType beta = 0; beta < 2; ++beta) {
-    //       for (SizeType gamma = 0; gamma < 2; ++gamma) {
-    //         for (SizeType delta = 0; delta < 2; ++delta) {
-    //           rC_reference[alpha][beta][gamma][delta] =
-    //             (lambda * (contravariant_metric_reference(alpha, beta) * contravariant_metric_reference(gamma, delta))) +
-    //             (MU * ((contravariant_metric_reference(alpha, gamma) * contravariant_metric_reference(beta, delta)) +
-    //               (contravariant_metric_reference(alpha, delta) * contravariant_metric_reference(beta, gamma))));
+     for (SizeType alpha = 0; alpha < 2; ++alpha) {
+       for (SizeType beta = 0; beta < 2; ++beta) {
+         for (SizeType gamma = 0; gamma < 2; ++gamma) {
+           for (SizeType delta = 0; delta < 2; ++delta) {
+             rC_reference[alpha][beta][gamma][delta] = (lambda * (contravariant_metric_reference(alpha, beta) * contravariant_metric_reference(gamma, delta))) 
+               + (MU * ((contravariant_metric_reference(alpha, gamma) * contravariant_metric_reference(beta, delta)) 
+                 + (contravariant_metric_reference(alpha, delta) * contravariant_metric_reference(beta, gamma))));
 
-    //           rc_current[alpha][beta][gamma][delta] = (1 / det_deformation_gradient) * rC_reference[alpha][beta][gamma][delta];
 
-    //         }
-    //       }
-    //     }
-    //   }
-    // }
+             rc_current[alpha][beta][gamma][delta] = (1.0 / det_deformation_gradient) * rC_reference[alpha][beta][gamma][delta];
+
+             
+           }
+         }
+       }
+     }*/
          
   }
 
 
-  void MembraneCuttingPatternElement::PreStress(Vector& rPreStress, const array_1d<Vector, 2>& rTransformedBaseVectors)//TO DO
+  void MembraneCuttingPatternElement::DerivativeElasticity_Tensor_Kirchhoff(double rDerivC_reference[2][2][2][2], double rDerivc_current[2][2][2][2], const Matrix& rShapeFunctionGradientValues, const SizeType DofR, const double YoungModulus, const double PoissonRatio) {
+
+
+    /*array_1d<Vector, 2> reference_covariant_base_vectors;
+    array_1d<Vector, 2> current_covariant_base_vectors;
+    array_1d<Vector, 2> reference_contravariant_base_vectors;
+    
+    Matrix covariant_metric_reference = ZeroMatrix(2);
+    Matrix contravariant_metric_reference = ZeroMatrix(2); 
+    Matrix derivative_contravariant_metric_reference = ZeroMatrix(2);
+
+    Matrix deformation_gradient = ZeroMatrix(3);
+    double det_deformation_gradient = 0.0;
+    double derivative_inverse_det_deformation_gradient = 0.0;
+
+    double rC_reference[2][2][2][2] = { {{{0.0}}} };
+    double rc_current[2][2][2][2] = { {{{0.0}}} };
+    
+    
+    double E = YoungModulus;
+    double NU = PoissonRatio;
+    const double lambda = E * NU / (1.0 - NU * NU);
+    const double MU = E / (2.0 * (1.0 + NU));
+
+      
+    this->CovariantBaseVectors(reference_covariant_base_vectors, rShapeFunctionGradientValues, ConfigurationType::Reference);
+    this->CovariantBaseVectors(current_covariant_base_vectors, rShapeFunctionGradientValues, ConfigurationType::Current);
+      
+    this->CovariantMetric(covariant_metric_reference, reference_covariant_base_vectors);
+    this->ContravariantMetric(contravariant_metric_reference, covariant_metric_reference);
+
+    this->ContraVariantBaseVectors(reference_contravariant_base_vectors, contravariant_metric_reference, reference_covariant_base_vectors);
+
+    this->DerivativeContravariantMetric(derivative_contravariant_metric_reference, rShapeFunctionGradientValues, DofR, reference_covariant_base_vectors);
+
+    this->DeformationGradient(deformation_gradient, det_deformation_gradient, current_covariant_base_vectors, reference_contravariant_base_vectors);
+    this->DerivativeInvDetDeformationGradient(derivative_inverse_det_deformation_gradient, rShapeFunctionGradientValues, current_covariant_base_vectors, reference_covariant_base_vectors, DofR);
+
+    this->Elasticity_Tensor_Kirchhoff(rC_reference, rc_current, rShapeFunctionGradientValues, YoungModulus, PoissonRatio);
+      
+      
+            
+    for (SizeType alpha = 0; alpha < 2; alpha++) {
+      for (SizeType beta = 0; beta < 2; beta++) {
+        for (SizeType gamma = 0; gamma < 2; gamma++) {
+          for (SizeType delta = 0; delta < 2; delta++)
+          {
+            rDerivC_reference[alpha][beta][gamma][delta] = lambda * (derivative_contravariant_metric_reference(alpha, beta) * contravariant_metric_reference(gamma, delta) 
+              + contravariant_metric_reference(alpha, beta) * derivative_contravariant_metric_reference(gamma, delta))
+              + MU * (derivative_contravariant_metric_reference(alpha, gamma) * contravariant_metric_reference(beta, delta) 
+                + derivative_contravariant_metric_reference(alpha, delta) * contravariant_metric_reference(beta, gamma) 
+                + contravariant_metric_reference(alpha, gamma) * derivative_contravariant_metric_reference(beta, delta) 
+                + contravariant_metric_reference(alpha, delta) * derivative_contravariant_metric_reference(beta, gamma));
+
+              rDerivc_current[alpha][beta][gamma][delta] = derivative_inverse_det_deformation_gradient * rC_reference[alpha][beta][gamma][delta] +
+                ((1.0 / det_deformation_gradient) * rDerivC_reference[alpha][beta][gamma][delta]);
+            
+          }
+        }
+      }
+    }*/
+              
+  }
+
+
+  void MembraneCuttingPatternElement::Derivative2Elasticity_Tensor_Kirchhoff(double rDeriv2C_reference[2][2][2][2], double rDeriv2c_current[2][2][2][2], const Matrix& rShapeFunctionGradientValues, const SizeType DofR, const SizeType DofS, const double YoungModulus, const double PoissonRatio) {
+
+    /*double E = YoungModulus;
+    double NU = PoissonRatio;
+    const double lambda = E * NU / (1.0 - NU * NU);
+    const double MU = E / (2.0 * (1.0 + NU));
+
+    array_1d<Vector, 2> reference_covariant_base_vectors;
+    array_1d<Vector, 2> current_covariant_base_vectors;
+    array_1d<Vector, 2> reference_contravariant_base_vectors;
+    
+    Matrix covariant_metric_reference = ZeroMatrix(2);
+    Matrix contravariant_metric_reference = ZeroMatrix(2);
+
+    Matrix derivative_contravariant_metric_reference_r = ZeroMatrix(2);
+    Matrix derivative_contravariant_metric_reference_s = ZeroMatrix(2);
+    Matrix derivative2_contravariant_metric_reference = ZeroMatrix(2);
+
+    Matrix deformation_gradient = ZeroMatrix(3);
+    double det_deformation_gradient = 0.0;
+
+    double derivative_r_inverse_det_deformation_gradient = 0.0;
+    double derivative_s_inverse_det_deformation_gradient = 0.0;
+
+    double derivative2_inverse_det_deformation_gradient = 0.0;
+
+    double rC_reference[2][2][2][2] = { {{{0.0}}} };
+    double rc_current[2][2][2][2] = { {{{0.0}}} };
+
+    double deriv_r_C_reference[2][2][2][2] = { {{{0.0}}} };
+    double deriv_r_c_current[2][2][2][2] = { {{{0.0}}} };
+
+    double deriv_s_C_reference[2][2][2][2] = { {{{0.0}}} };
+    double deriv_s_c_current[2][2][2][2] = { {{{0.0}}} };
+
+    this->CovariantBaseVectors(reference_covariant_base_vectors, rShapeFunctionGradientValues, ConfigurationType::Reference);
+    this->CovariantBaseVectors(current_covariant_base_vectors, rShapeFunctionGradientValues, ConfigurationType::Current);
+    
+    this->CovariantMetric(covariant_metric_reference, reference_covariant_base_vectors);
+    this->ContravariantMetric(contravariant_metric_reference, covariant_metric_reference);
+
+    this->ContraVariantBaseVectors(reference_contravariant_base_vectors, contravariant_metric_reference, reference_covariant_base_vectors);
+
+    this->DerivativeContravariantMetric(derivative_contravariant_metric_reference_r, rShapeFunctionGradientValues, DofR, reference_covariant_base_vectors);
+    this->DerivativeContravariantMetric(derivative_contravariant_metric_reference_s, rShapeFunctionGradientValues, DofS, reference_covariant_base_vectors);
+    this->Derivative2ContravariantMetric(derivative2_contravariant_metric_reference, rShapeFunctionGradientValues, DofR, DofS, reference_covariant_base_vectors);
+
+    this->DeformationGradient(deformation_gradient, det_deformation_gradient, current_covariant_base_vectors, reference_contravariant_base_vectors);
+
+    this->DerivativeInvDetDeformationGradient(derivative_r_inverse_det_deformation_gradient, rShapeFunctionGradientValues, current_covariant_base_vectors, reference_covariant_base_vectors, DofR);
+    this->DerivativeInvDetDeformationGradient(derivative_s_inverse_det_deformation_gradient, rShapeFunctionGradientValues, current_covariant_base_vectors, reference_covariant_base_vectors, DofS);
+
+    this->Derivative2InvDetDeformationGradient(derivative2_inverse_det_deformation_gradient, rShapeFunctionGradientValues, current_covariant_base_vectors, reference_covariant_base_vectors, DofR, DofS);
+
+    this->Elasticity_Tensor_Kirchhoff(rC_reference, rc_current, rShapeFunctionGradientValues, YoungModulus, PoissonRatio);
+
+    this->DerivativeElasticity_Tensor_Kirchhoff(deriv_r_C_reference, deriv_r_c_current, rShapeFunctionGradientValues, DofR, YoungModulus, PoissonRatio);
+    this->DerivativeElasticity_Tensor_Kirchhoff(deriv_s_C_reference, deriv_s_c_current, rShapeFunctionGradientValues, DofS, YoungModulus, PoissonRatio);
+
+    
+    for (SizeType alpha = 0; alpha < 2; alpha++) {
+      for (SizeType beta = 0; beta < 2; beta++) {
+        for (SizeType gamma = 0; gamma < 2; gamma++) {
+          for (SizeType delta = 0; delta < 2; delta++)
+          {
+
+            rDeriv2C_reference[alpha][beta][gamma][delta] =
+              lambda * (derivative2_contravariant_metric_reference(alpha, beta) * contravariant_metric_reference(gamma, delta) +
+                derivative_contravariant_metric_reference_r(alpha, beta) * derivative_contravariant_metric_reference_s(gamma, delta) +
+                derivative_contravariant_metric_reference_s(alpha, beta) * derivative_contravariant_metric_reference_r(gamma, delta) +
+                contravariant_metric_reference(alpha, beta) * derivative2_contravariant_metric_reference(gamma, delta)) +
+              MU * (derivative2_contravariant_metric_reference(alpha, gamma) * contravariant_metric_reference(beta, delta) +
+                derivative_contravariant_metric_reference_r(alpha, gamma) * derivative_contravariant_metric_reference_s(beta, delta) +
+                derivative_contravariant_metric_reference_s(alpha, gamma) * derivative_contravariant_metric_reference_r(beta, delta) +
+                contravariant_metric_reference(alpha, gamma) * derivative2_contravariant_metric_reference(beta, delta) +
+                derivative2_contravariant_metric_reference(alpha, delta) * contravariant_metric_reference(beta, gamma) +
+                derivative_contravariant_metric_reference_r(alpha, delta) * derivative_contravariant_metric_reference_s(beta, gamma) +
+                derivative_contravariant_metric_reference_s(alpha, delta) * derivative_contravariant_metric_reference_r(beta, gamma) +
+                contravariant_metric_reference(alpha, delta) * derivative2_contravariant_metric_reference(beta, gamma));
+
+
+            rDeriv2c_current[alpha][beta][gamma][delta] = derivative2_inverse_det_deformation_gradient * rC_reference[alpha][beta][gamma][delta] +
+              derivative_r_inverse_det_deformation_gradient * deriv_s_C_reference[alpha][beta][gamma][delta] +
+              derivative_s_inverse_det_deformation_gradient * deriv_r_C_reference[alpha][beta][gamma][delta] +
+              ((1.0/ det_deformation_gradient)*rDeriv2C_reference[alpha][beta][gamma][delta]);
+
+
+          }
+        }
+      }
+    }*/
+
+
+  }
+
+
+  void MembraneCuttingPatternElement::CauchyStress(Matrix& rStress, const Matrix& rShapeFunctionGradientValues, const double YoungModulus, const double PoissonRatio) {
+
+    /*double rC_reference[2][2][2][2] = { {{{0.0}}} };
+    double rc_current[2][2][2][2] = { {{{0.0}}} };
+
+    array_1d<Vector, 2> reference_covariant_base_vectors;
+    array_1d<Vector, 2> current_covariant_base_vectors;
+    
+    Matrix covariant_metric_reference = ZeroMatrix(2);
+    Matrix covariant_metric_current = ZeroMatrix(2);
+
+    Matrix e = ZeroMatrix(2);
+
+    rStress = ZeroMatrix(2);
+
+    this->Elasticity_Tensor_Kirchhoff(rC_reference, rc_current, rShapeFunctionGradientValues, YoungModulus, PoissonRatio);
+
+    this->CovariantBaseVectors(current_covariant_base_vectors, rShapeFunctionGradientValues, ConfigurationType::Current);
+    this->CovariantBaseVectors(reference_covariant_base_vectors, rShapeFunctionGradientValues, ConfigurationType::Reference);
+
+    this->CovariantMetric(covariant_metric_current, current_covariant_base_vectors);
+    this->CovariantMetric(covariant_metric_reference, reference_covariant_base_vectors);
+
+    this->StrainEulerAlmansi(e, covariant_metric_reference, covariant_metric_current);
+
+
+    for (SizeType alpha = 0; alpha < 2; alpha++) {
+      for (SizeType beta = 0; beta < 2; beta++) {
+        for (SizeType gamma = 0; gamma < 2; gamma++) {
+          for (SizeType delta = 0; delta < 2; delta++) {
+
+            rStress(alpha, beta) += rc_current[alpha][beta][gamma][delta] * e(gamma, delta);
+
+          }
+        }
+      }
+    }*/
+
+  }
+
+
+  void MembraneCuttingPatternElement::DerivativeCauchyStress(Matrix& rStress, const Matrix& rShapeFunctionGradientValues, const SizeType DofR, const double YoungModulus, const double PoissonRatio) {
+
+
+    /*array_1d<Vector, 2> reference_covariant_base_vectors;
+    array_1d<Vector, 2> current_covariant_base_vectors;
+
+    Matrix covariant_metric_reference = ZeroMatrix(2);
+    Matrix covariant_metric_current = ZeroMatrix(2);
+    
+    double rC_reference[2][2][2][2] = { {{{0.0}}} };
+    double rc_current[2][2][2][2] = { {{{0.0}}} };
+
+    double rDerivC_reference[2][2][2][2] = { {{{0.0}}} };
+    double rDerivc_current[2][2][2][2] = { {{{0.0}}} };
+
+    Matrix e = ZeroMatrix(2);
+    Matrix derivative_e = ZeroMatrix(2);
+
+    rStress = ZeroMatrix(2);
+
+    this->CovariantBaseVectors(current_covariant_base_vectors, rShapeFunctionGradientValues, ConfigurationType::Current);
+    this->CovariantBaseVectors(reference_covariant_base_vectors, rShapeFunctionGradientValues, ConfigurationType::Reference);
+
+    this->CovariantMetric(covariant_metric_current, current_covariant_base_vectors);
+    this->CovariantMetric(covariant_metric_reference, reference_covariant_base_vectors);
+
+    this->Elasticity_Tensor_Kirchhoff(rC_reference, rc_current, rShapeFunctionGradientValues, YoungModulus, PoissonRatio);
+
+    this->DerivativeElasticity_Tensor_Kirchhoff(rDerivC_reference, rDerivc_current, rShapeFunctionGradientValues, DofR, YoungModulus, PoissonRatio);
+
+    this->StrainEulerAlmansi(e, covariant_metric_reference, covariant_metric_current);
+    this->DerivativeStrainEulerAlmansi(derivative_e, rShapeFunctionGradientValues, DofR, reference_covariant_base_vectors);
+
+    for (SizeType alpha = 0; alpha < 2; alpha++) {
+      for (SizeType beta = 0; beta < 2; beta++) {
+        for (SizeType gamma = 0; gamma < 2; gamma++) {
+          for (SizeType delta = 0; delta < 2; delta++) {
+
+            rStress(alpha, beta) += rDerivc_current[alpha][beta][gamma][delta] * e(gamma, delta) + rc_current[alpha][beta][gamma][delta] * derivative_e(gamma, delta);
+
+          }
+        }
+      }
+    }*/
+
+  }
+
+
+  void MembraneCuttingPatternElement::Derivative2CauchyStress(Matrix& rStress, const Matrix& rShapeFunctionGradientValues, const SizeType DofR, const SizeType DofS, const double YoungModulus, const double PoissonRatio) {
+
+   /* array_1d<Vector, 2> reference_covariant_base_vectors;
+    array_1d<Vector, 2> current_covariant_base_vectors;
+
+    Matrix covariant_metric_reference = ZeroMatrix(2);
+    Matrix covariant_metric_current = ZeroMatrix(2);
+
+    double C_reference[2][2][2][2] = { {{{0.0}}} };
+    double c_current[2][2][2][2] = { {{{0.0}}} };
+
+    double deriv_r_C_reference[2][2][2][2] = { {{{0.0}}} };
+    double deriv_r_c_current[2][2][2][2] = { {{{0.0}}} };
+
+    double deriv_s_C_reference[2][2][2][2] = { {{{0.0}}} };
+    double deriv_s_c_current[2][2][2][2] = { {{{0.0}}} };
+
+    double deriv2_C_reference[2][2][2][2] = { {{{0.0}}} };
+    double deriv2_c_current[2][2][2][2] = { {{{0.0}}} };
+
+    Matrix e = ZeroMatrix(2);
+    Matrix deriv_r_e = ZeroMatrix(2);
+    Matrix deriv_s_e = ZeroMatrix(2);
+    Matrix deriv2_e = ZeroMatrix(2);
+
+    rStress = ZeroMatrix(2);
+
+    this->CovariantBaseVectors(current_covariant_base_vectors, rShapeFunctionGradientValues, ConfigurationType::Current);
+    this->CovariantBaseVectors(reference_covariant_base_vectors, rShapeFunctionGradientValues, ConfigurationType::Reference);
+
+    this->CovariantMetric(covariant_metric_current, current_covariant_base_vectors);
+    this->CovariantMetric(covariant_metric_reference, reference_covariant_base_vectors);
+
+    this->Elasticity_Tensor_Kirchhoff(C_reference, c_current, rShapeFunctionGradientValues, YoungModulus, PoissonRatio);
+
+    this->DerivativeElasticity_Tensor_Kirchhoff(deriv_r_C_reference, deriv_r_c_current, rShapeFunctionGradientValues, DofR, YoungModulus, PoissonRatio);
+    this->DerivativeElasticity_Tensor_Kirchhoff(deriv_s_C_reference, deriv_s_c_current, rShapeFunctionGradientValues, DofS, YoungModulus, PoissonRatio);
+
+    this->Derivative2Elasticity_Tensor_Kirchhoff(deriv2_C_reference, deriv2_c_current, rShapeFunctionGradientValues, DofR, DofS, YoungModulus, PoissonRatio);
+
+    this->StrainEulerAlmansi(e, covariant_metric_reference, covariant_metric_current);
+    this->DerivativeStrainEulerAlmansi(deriv_r_e, rShapeFunctionGradientValues, DofR, reference_covariant_base_vectors);
+    this->DerivativeStrainEulerAlmansi(deriv_s_e, rShapeFunctionGradientValues, DofS, reference_covariant_base_vectors);
+    this->Derivative2StrainEulerAlmansi(deriv2_e, rShapeFunctionGradientValues, DofR, DofS);
+
+    for (SizeType alpha = 0; alpha < 2; alpha++) {
+      for (SizeType beta = 0; beta < 2; beta++) {
+        for (SizeType gamma = 0; gamma < 2; gamma++) {
+          for (SizeType delta = 0; delta < 2; delta++) {
+
+            rStress(alpha, beta) += deriv2_c_current[alpha][beta][gamma][delta] * e(gamma, delta) +
+              deriv_r_c_current[alpha][beta][gamma][delta] * deriv_s_e(gamma, delta) +
+              deriv_s_c_current[alpha][beta][gamma][delta] * deriv_r_e(gamma, delta) +
+              c_current[alpha][beta][gamma][delta] * deriv2_e(gamma, delta);
+
+          }
+        }
+      }
+    }*/
+
+  }
+
+
+  void MembraneCuttingPatternElement::AddPreStressPk2(Vector& rStress, const array_1d<Vector, 2>& rTransformedBaseVectors) {
+
+    /*Vector pre_stress = ZeroVector(3);
+    if (GetProperties().Has(PRESTRESS_VECTOR)) {
+      pre_stress = GetProperties()(PRESTRESS_VECTOR);
+
+      if (Has(LOCAL_PRESTRESS_AXIS_1) && Has(LOCAL_PRESTRESS_AXIS_2)) {
+
+        array_1d<array_1d<double, 3>, 2> local_prestress_axis;
+        local_prestress_axis[0] = GetValue(LOCAL_PRESTRESS_AXIS_1) / MathUtils<double>::Norm(GetValue(LOCAL_PRESTRESS_AXIS_1));
+        local_prestress_axis[1] = GetValue(LOCAL_PRESTRESS_AXIS_2) / MathUtils<double>::Norm(GetValue(LOCAL_PRESTRESS_AXIS_2));
+
+        Matrix transformation_matrix = ZeroMatrix(3);
+        InPlaneTransformationMatrix(transformation_matrix, rTransformedBaseVectors, local_prestress_axis);
+        pre_stress = prod(transformation_matrix, pre_stress);
+
+      }
+      else if (Has(LOCAL_PRESTRESS_AXIS_1)) {
+
+        Vector base_3 = ZeroVector(3);
+        MathUtils<double>::UnitCrossProduct(base_3, rTransformedBaseVectors[0], rTransformedBaseVectors[1]);
+
+        array_1d<array_1d<double, 3>, 2> local_prestress_axis;
+        local_prestress_axis[0] = GetValue(LOCAL_PRESTRESS_AXIS_1) / MathUtils<double>::Norm(GetValue(LOCAL_PRESTRESS_AXIS_1));
+
+        MathUtils<double>::UnitCrossProduct(local_prestress_axis[1], base_3, local_prestress_axis[0]);
+
+        Matrix transformation_matrix = ZeroMatrix(3);
+        InPlaneTransformationMatrix(transformation_matrix, rTransformedBaseVectors, local_prestress_axis);
+        pre_stress = prod(transformation_matrix, pre_stress);
+      }
+    }
+    noalias(rStress) += pre_stress;*/
+  }
+
+
+  void MembraneCuttingPatternElement::MaterialResponse(Vector& rStress,
+    const Matrix& rReferenceContraVariantMetric, const Matrix& rReferenceCoVariantMetric, const Matrix& rCurrentCoVariantMetric,
+    const array_1d<Vector, 2>& rTransformedBaseVectors, const Matrix& rTransformationMatrix, const SizeType& rIntegrationPointNumber,
+    Matrix& rTangentModulus, const ProcessInfo& rCurrentProcessInfo)
+  {
+    //Vector strain_vector = ZeroVector(3);
+    //noalias(rStress) = ZeroVector(3);
+    //StrainGreenLagrange(strain_vector, rReferenceCoVariantMetric,
+    //  rCurrentCoVariantMetric, rTransformationMatrix);
+
+    //// do this to consider the pre-stress influence in the check of the membrane state in the claw
+    //Vector initial_stress = ZeroVector(3);
+    //if (Has(MEMBRANE_PRESTRESS)) {
+    //  const Matrix& r_stress_input = GetValue(MEMBRANE_PRESTRESS);
+    //  initial_stress += column(r_stress_input, rIntegrationPointNumber);
+    //}
+    //else {
+    //  AddPreStressPk2(initial_stress, rTransformedBaseVectors);
+    //}
+    //rStress += initial_stress;
+
+    //ConstitutiveLaw::Parameters element_parameters(GetGeometry(), GetProperties(), rCurrentProcessInfo);
+    //element_parameters.SetStrainVector(strain_vector);
+    //element_parameters.SetStressVector(rStress);
+    //element_parameters.SetConstitutiveMatrix(rTangentModulus);
+    //element_parameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
+    //element_parameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+    //element_parameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+    //mConstitutiveLawVector[rIntegrationPointNumber]->CalculateMaterialResponse(element_parameters, ConstitutiveLaw::StressMeasure_PK2);
+
+    //// do this to include the pre-stress in the actual stress state
+    //// rStress is reset in the claw and thus does not consider the initial stress anymore
+    //rStress += initial_stress;
+  }
+
+
+  void MembraneCuttingPatternElement::Derivative2ContravariantMetric(Matrix& rMetric, const Matrix& rShapeFunctionGradientValues, const SizeType DofR, const SizeType DofS, const array_1d<Vector, 2>& rCovariantBaseVectors) {
+
+    /*Matrix covariant_metric = ZeroMatrix(2);
+
+    Matrix derivative_covariant_metric_r = ZeroMatrix(2);
+    Matrix derivative_covariant_metric_s = ZeroMatrix(2);
+
+    Matrix derivative2_covariant_metric = ZeroMatrix(2);
+    
+    rMetric = ZeroMatrix(2);
+
+    this->CovariantMetric(covariant_metric, rCovariantBaseVectors);
+
+    double determinant_covariant_metric = (covariant_metric(1, 1) * covariant_metric(0, 0)) - (covariant_metric(1, 0) * covariant_metric(0, 1));
+    double inverse_determinant_covariant_metric = 1.0 / determinant_covariant_metric;
+
+    this->DerivativeCurrentCovariantMetric(derivative_covariant_metric_r, rShapeFunctionGradientValues, DofR, rCovariantBaseVectors);
+    this->DerivativeCurrentCovariantMetric(derivative_covariant_metric_s, rShapeFunctionGradientValues, DofS, rCovariantBaseVectors);
+
+    this->Derivative2CurrentCovariantMetric(derivative2_covariant_metric, rShapeFunctionGradientValues, DofR, DofS);
+
+    double derivative_r_determinant_covariant_metric = derivative_covariant_metric_r(0, 0) * covariant_metric(1, 1) + covariant_metric(0, 0) * derivative_covariant_metric_r(1, 1)
+      - derivative_covariant_metric_r(1, 0) * covariant_metric(0, 1) - covariant_metric(1, 0) * derivative_covariant_metric_r(0, 1);
+    double derivative_s_determinant_covariant_metric = derivative_covariant_metric_s(0, 0) * covariant_metric(1, 1) + covariant_metric(0, 0) * derivative_covariant_metric_s(1, 1)
+      - derivative_covariant_metric_s(1, 0) * covariant_metric(0, 1) - covariant_metric(1, 0) * derivative_covariant_metric_s(0, 1);
+
+    double derivative2_determinant_covariant_metric = derivative2_covariant_metric(0, 0) * covariant_metric(1, 1) + derivative_covariant_metric_r(0, 0) * derivative_covariant_metric_s(1, 1)
+      + derivative_covariant_metric_s(0, 0) * derivative_covariant_metric_r(1, 1) + covariant_metric(0, 0) * derivative2_covariant_metric(1, 1)
+      - derivative2_covariant_metric(0, 1) * covariant_metric(1, 0) - derivative_covariant_metric_r(0, 1) * derivative_covariant_metric_s(1, 0)
+      - derivative_covariant_metric_s(0, 1) * derivative_covariant_metric_r(1, 0) - covariant_metric(0, 1) * derivative2_covariant_metric(1, 0);
+
+    double derivative_r_inverse_determinant_covariant_metric = -derivative_r_determinant_covariant_metric / (determinant_covariant_metric * determinant_covariant_metric);
+    double derivative_r_inverse_determinant_covariant_metric = -derivative_r_determinant_covariant_metric / (determinant_covariant_metric * determinant_covariant_metric);
+
+    double derivative2_inverse_determinant_covariant_metric = (-derivative2_determinant_covariant_metric * determinant_covariant_metric
+      + 2 * derivative_r_determinant_covariant_metric * derivative_s_determinant_covariant_metric) / (determinant_covariant_metric * determinant_covariant_metric * determinant_covariant_metric);
+
+
+    rMetric(0, 0) = derivative2_inverse_determinant_covariant_metric * covariant_metric(1, 1)
+      + derivative_r_inverse_determinant_covariant_metric * derivative_covariant_metric_s(1, 1)
+      + derivative_s_inverse_determinant_covariant_metric * derivative_covariant_metric_r(1, 1)
+      + inverse_determinant_covariant_metric * derivative2_covariant_metric(1, 1);
+
+    rMetric(0, 1) = -derivative2_inverse_determinant_covariant_metric * covariant_metric(0, 1)
+      - derivative_r_inverse_determinant_covariant_metric * derivative_covariant_metric_s(0, 1)
+      - derivative_s_inverse_determinant_covariant_metric * derivative_covariant_metric_r(0, 1)
+      - inverse_determinant_covariant_metric * derivative2_covariant_metric(0, 1);
+
+    rMetric(1, 0) = -derivative2_inverse_determinant_covariant_metric * covariant_metric(1, 0)
+      - derivative_r_inverse_determinant_covariant_metric * derivative_covariant_metric_s(1, 0)
+      - derivative_s_inverse_determinant_covariant_metric * derivative_covariant_metric_r(1, 0)
+      - inverse_determinant_covariant_metric * derivative2_covariant_metric(1, 0);
+
+    rMetric(1, 1) = derivative2_inverse_determinant_covariant_metric * covariant_metric(0, 0)
+      + derivative_r_inverse_determinant_covariant_metric * derivative_covariant_metric_s(0, 0)
+      + derivative_s_inverse_determinant_covariant_metric * derivative_covariant_metric_r(0, 0)
+      + inverse_determinant_covariant_metric * derivative2_covariant_metricv(0, 0);*/
+
+  }
+
+
+  void MembraneCuttingPatternElement::DerivativeContravariantMetric(Matrix& rMetric, const Matrix& rShapeFunctionGradientValues, const SizeType DofR, const array_1d<Vector, 2>& rCovariantBaseVectors) {
+
+    /*Matrix covariant_metric = ZeroMatrix(2);
+    Matrix derivative_covariant_metric = ZeroMatrix(2);
+
+    rMetric = ZeroMatrix(2);
+
+    this->CovariantMetric(covariant_metric, rCovariantBaseVectors);
+
+    double determinant_covariant_metric = (covariant_metric(1, 1) * covariant_metric(0, 0)) - (covariant_metric(1, 0) * covariant_metric(0, 1));
+    double inverse_determinant_covariant_metric = 1.0 / determinant_covariant_metric;
+
+    this->DerivativeCurrentCovariantMetric(derivative_covariant_metric, rShapeFunctionGradientValues, DofR, rCovariantBaseVectors);
+
+    double derivative_determinant_covariant_metric = derivative_covariant_metric(0, 0) * covariant_metric(1, 1) + covariant_metric(0, 0) * derivative_covariant_metric(1, 1)
+      - derivative_covariant_metric(1, 0) * covariant_metric(0, 1) - covariant_metric(1, 0) * derivative_covariant_metric(0, 1);
+    double derivative_inverse_determinant_covariant_metric = -derivative_determinant_covariant_metric / (determinant_covariant_metric * determinant_covariant_metric);
+
+    rMetric(0, 0) = derivative_inverse_determinant_covariant_metric * covariant_metric(1, 1) + inverse_determinant_covariant_metric * derivative_covariant_metric(1, 1);
+    rMetric(0, 1) = -derivative_inverse_determinant_covariant_metric * covariant_metric(0, 1) - inverse_determinant_covariant_metric * derivative_covariant_metric(0, 1);
+    rMetric(1, 0) = -derivative_inverse_determinant_covariant_metric * covariant_metric(1, 0) - inverse_determinant_covariant_metric * derivative_covariant_metric(1, 0);
+    rMetric(1, 1) = derivative_inverse_determinant_covariant_metric * covariant_metric(0, 0) + inverse_determinant_covariant_metric * derivative_covariant_metric(0, 0);*/
+
+  }
+
+
+  void MembraneCuttingPatternElement::ContravariantMetric(Matrix& rMetric, const Matrix& rCovariantMetric)
+  {
+    /*rMetric = ZeroMatrix(2);
+    rMetric(0, 0) = rCovariantMetric(1, 1);
+    rMetric(1, 1) = rCovariantMetric(0, 0);
+    rMetric(0, 1) = -1.0 * rCovariantMetric(0, 1);
+    rMetric(1, 0) = -1.0 * rCovariantMetric(1, 0);
+    rMetric /= (rCovariantMetric(1, 1) * rCovariantMetric(0, 0)) - (rCovariantMetric(1, 0) * rCovariantMetric(0, 1));*/
+
+  }
+
+
+  void MembraneCuttingPatternElement::ContraVariantBaseVectors(array_1d<Vector, 2>& rBaseVectors, const Matrix& rContraVariantMetric,
+    const array_1d<Vector, 2> rCovariantBaseVectors)
+  {
+    /*const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+    rBaseVectors[0] = ZeroVector(dimension);
+    rBaseVectors[1] = ZeroVector(dimension);
+
+    rBaseVectors[0] = rContraVariantMetric(0, 0) * rCovariantBaseVectors[0] + rContraVariantMetric(0, 1) * rCovariantBaseVectors[1];
+    rBaseVectors[1] = rContraVariantMetric(1, 0) * rCovariantBaseVectors[0] + rContraVariantMetric(1, 1) * rCovariantBaseVectors[1];*/
+  }
+
+
+  void MembraneCuttingPatternElement::CovariantMetric(Matrix& rMetric, const array_1d<Vector, 2>& rBaseVectorCovariant)
+  {
+    /*rMetric = ZeroMatrix(2);
+    for (SizeType i = 0; i < 2; ++i) {
+      for (SizeType j = 0; j < 2; ++j) {
+        rMetric(i, j) = inner_prod(rBaseVectorCovariant[i], rBaseVectorCovariant[j]);
+      }
+    }*/
+  }
+
+
+  void MembraneCuttingPatternElement::Derivative2CurrentCovariantMetric(Matrix& rMetric,
+    const Matrix& rShapeFunctionGradientValues, const SizeType DofR, const SizeType DofS)
+  {
+    /*rMetric = ZeroMatrix(2);
+    array_1d<Vector, 2> derivative_covariant_base_vectors_dur;
+    DeriveCurrentCovariantBaseVectors(derivative_covariant_base_vectors_dur, rShapeFunctionGradientValues, DofR);
+    array_1d<Vector, 2> derivative_covariant_base_vectors_dus;
+    DeriveCurrentCovariantBaseVectors(derivative_covariant_base_vectors_dus, rShapeFunctionGradientValues, DofS);
+
+    for (SizeType i = 0; i < 2; ++i) {
+      for (SizeType j = 0; j < 2; ++j) {
+        rMetric(i, j) = inner_prod(derivative_covariant_base_vectors_dur[i], derivative_covariant_base_vectors_dus[j]);
+        rMetric(i, j) += inner_prod(derivative_covariant_base_vectors_dus[i], derivative_covariant_base_vectors_dur[j]);
+      }
+    }*/
+  }
+  
+  
+  void MembraneCuttingPatternElement::DerivativeCurrentCovariantMetric(Matrix& rMetric,
+    const Matrix& rShapeFunctionGradientValues, const SizeType DofR, const array_1d<Vector, 2> rCurrentCovariantBaseVectors)
+  {
+    /*rMetric = ZeroMatrix(2);
+    array_1d<Vector, 2> derivative_covariant_base_vectors;
+    DeriveCurrentCovariantBaseVectors(derivative_covariant_base_vectors, rShapeFunctionGradientValues, DofR);
+
+
+    for (SizeType i = 0; i < 2; ++i) {
+      for (SizeType j = 0; j < 2; ++j) {
+        rMetric(i, j) = inner_prod(derivative_covariant_base_vectors[i], rCurrentCovariantBaseVectors[j]);
+        rMetric(i, j) += inner_prod(derivative_covariant_base_vectors[j], rCurrentCovariantBaseVectors[i]);
+      }
+    }*/
+  }
+
+
+  void MembraneCuttingPatternElement::DeriveCurrentCovariantBaseVectors(array_1d<Vector, 2>& rBaseVectors,
+    const Matrix& rShapeFunctionGradientValues, const SizeType DofR)
+  {
+    /*const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType dof_nr = DofR % dimension;
+    const SizeType node_nr = (DofR - dof_nr) / dimension;
+    for (SizeType i = 0; i < 2; ++i) {
+      rBaseVectors[i] = ZeroVector(dimension);
+      rBaseVectors[i][dof_nr] = rShapeFunctionGradientValues(node_nr, i);
+    }*/
+  }
+
+
+  void MembraneCuttingPatternElement::CovariantBaseVectors(array_1d<Vector, 2>& rBaseVectors,
+    const Matrix& rShapeFunctionGradientValues, const ConfigurationType& rConfiguration) const
+  {
+    // pass/call this ShapeFunctionsLocalGradients[pnt]
+    /*const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes = GetGeometry().size();
+    Vector g1 = ZeroVector(dimension);
+    Vector g2 = ZeroVector(dimension);
+
+    Vector current_displacement = ZeroVector(dimension * number_of_nodes);
+    if (rConfiguration == ConfigurationType::Current) GetValuesVector(current_displacement);
+
+
+    for (SizeType i = 0; i < number_of_nodes; ++i) {
+      g1[0] += (GetGeometry().GetPoint(i).X0() + current_displacement[i * dimension]) * rShapeFunctionGradientValues(i, 0);
+      g1[1] += (GetGeometry().GetPoint(i).Y0() + current_displacement[(i * dimension) + 1]) * rShapeFunctionGradientValues(i, 0);
+      g1[2] += (GetGeometry().GetPoint(i).Z0() + current_displacement[(i * dimension) + 2]) * rShapeFunctionGradientValues(i, 0);
+
+      g2[0] += (GetGeometry().GetPoint(i).X0() + current_displacement[i * dimension]) * rShapeFunctionGradientValues(i, 1);
+      g2[1] += (GetGeometry().GetPoint(i).Y0() + current_displacement[(i * dimension) + 1]) * rShapeFunctionGradientValues(i, 1);
+      g2[2] += (GetGeometry().GetPoint(i).Z0() + current_displacement[(i * dimension) + 2]) * rShapeFunctionGradientValues(i, 1);
+    }
+    rBaseVectors[0] = g1;
+    rBaseVectors[1] = g2;*/
+  }
+
+
+  void MembraneCuttingPatternElement::TransformBaseVectors(array_1d<Vector, 2>& rBaseVectors,
+    const array_1d<Vector, 2>& rLocalBaseVectors) {
+
+    //// create local cartesian coordinate system aligned to global material vectors (orthotropic)
+    //if (Has(LOCAL_MATERIAL_AXIS_1) && Has(LOCAL_MATERIAL_AXIS_2)) {
+    //  rBaseVectors[0] = GetValue(LOCAL_MATERIAL_AXIS_1) / MathUtils<double>::Norm(GetValue(LOCAL_MATERIAL_AXIS_1));
+    //  rBaseVectors[1] = GetValue(LOCAL_MATERIAL_AXIS_2) / MathUtils<double>::Norm(GetValue(LOCAL_MATERIAL_AXIS_2));
+    //}
+    //else if (Has(LOCAL_MATERIAL_AXIS_1)) {
+    //  Vector base_3 = ZeroVector(3);
+    //  MathUtils<double>::UnitCrossProduct(base_3, rLocalBaseVectors[0], rLocalBaseVectors[1]);
+
+    //  rBaseVectors[0] = GetValue(LOCAL_MATERIAL_AXIS_1) / MathUtils<double>::Norm(GetValue(LOCAL_MATERIAL_AXIS_1));
+    //  MathUtils<double>::UnitCrossProduct(rBaseVectors[1], base_3, rBaseVectors[0]);
+
+    //}
+    //else {
+    //  // create local cartesian coordinate system
+    //  rBaseVectors[0] = ZeroVector(3);
+    //  rBaseVectors[1] = ZeroVector(3);
+    //  rBaseVectors[0] = rLocalBaseVectors[0] / MathUtils<double>::Norm(rLocalBaseVectors[0]);
+    //  rBaseVectors[1] = rLocalBaseVectors[1] - (inner_prod(rLocalBaseVectors[1], rBaseVectors[0]) * rBaseVectors[0]);
+    //  rBaseVectors[1] /= MathUtils<double>::Norm(rBaseVectors[1]);
+    //}
+  }
+
+
+  template <class T>
+  void MembraneCuttingPatternElement::InPlaneTransformationMatrix(Matrix& rTransformationMatrix, const array_1d<Vector, 2>& rTransformedBaseVectors,
+    const T& rLocalReferenceBaseVectors)
+  {
+    /*const double e_g_11 = inner_prod(rTransformedBaseVectors[0], rLocalReferenceBaseVectors[0]);
+    const double e_g_12 = inner_prod(rTransformedBaseVectors[0], rLocalReferenceBaseVectors[1]);
+    const double e_g_21 = inner_prod(rTransformedBaseVectors[1], rLocalReferenceBaseVectors[0]);
+    const double e_g_22 = inner_prod(rTransformedBaseVectors[1], rLocalReferenceBaseVectors[1]);
+    rTransformationMatrix = ZeroMatrix(3);
+    rTransformationMatrix(0, 0) = e_g_11 * e_g_11;
+    rTransformationMatrix(0, 1) = e_g_12 * e_g_12;
+    rTransformationMatrix(0, 2) = 2.0 * e_g_11 * e_g_12;
+    rTransformationMatrix(1, 0) = e_g_21 * e_g_21;
+    rTransformationMatrix(1, 1) = e_g_22 * e_g_22;
+    rTransformationMatrix(1, 2) = 2.0 * e_g_21 * e_g_22;
+    rTransformationMatrix(2, 0) = e_g_11 * e_g_21;
+    rTransformationMatrix(2, 1) = e_g_12 * e_g_22;
+    rTransformationMatrix(2, 2) = (e_g_11 * e_g_22) + (e_g_12 * e_g_21);*/
+  }
+
+
+  void MembraneCuttingPatternElement::JacobiDeterminante(double& rDetJacobi, const array_1d<Vector, 2>& rReferenceBaseVectors) const
+  {
+    /*Vector3 g3 = ZeroVector(3);
+    MathUtils<double>::CrossProduct(g3, rReferenceBaseVectors[0], rReferenceBaseVectors[1]);
+    rDetJacobi = MathUtils<double>::Norm(g3);
+    KRATOS_ERROR_IF(rDetJacobi < std::numeric_limits<double>::epsilon()) << "det of Jacobi smaller 0 for element with id" << Id() << std::endl;*/
+  }
+
+
+  void MembraneCuttingPatternElement::DeformationGradient(Matrix& rDeformationGradient, double& rDetDeformationGradient,
+    const array_1d<Vector, 2>& rCurrentCovariantBase, const array_1d<Vector, 2>& rReferenceContraVariantBase)
+  {
+    // attention: this is not in the local orthonogal coordinate system
+
+    // calculate out of plane local vectors (membrane has no thickness change so g3 and G3 are normalized)
+    //Vector current_cov_3 = ZeroVector(3);
+    //MathUtils<double>::UnitCrossProduct(current_cov_3, rCurrentCovariantBase[0], rCurrentCovariantBase[1]);
+
+    //Vector reference_contra_3 = ZeroVector(3);
+    //MathUtils<double>::UnitCrossProduct(reference_contra_3, rReferenceContraVariantBase[0], rReferenceContraVariantBase[1]);
+
+    //// calculate deformation gradient
+    //rDeformationGradient = ZeroMatrix(3);
+    //for (SizeType i = 0; i < 2; ++i) {
+    //  rDeformationGradient += outer_prod(rCurrentCovariantBase[i], rReferenceContraVariantBase[i]);
+    //}
+
+    //// add contribution of out of plane base vectors
+    //rDeformationGradient += outer_prod(current_cov_3, reference_contra_3);
+
+
+    //// calculate det(F)
+    //rDetDeformationGradient = MathUtils<double>::Det(rDeformationGradient);
+
+
+  }
+
+
+  void MembraneCuttingPatternElement::DerivativeInvDetDeformationGradient(double& rDerivInvDetDeformationGradient, const Matrix& rShapeFunctionGradientValues, const array_1d<Vector, 2>& rCurrentCovariantBaseVectors, const array_1d<Vector, 2>& rReferenceCovariantBaseVectors, const SizeType DofR) {
+
+
+    /*array_1d<Vector, 2> derivative_reference_covariant_base_vectors;
+
+    Vector cross_G1G2 = ZeroVector(3);
+    Vector cross_g1g2 = ZeroVector(3);
+
+    Vector total_deriv_cross_G1G2 = ZeroVector(3);
+    Vector deriv_cross_G1G2_1 = ZeroVector(3);
+    Vector deriv_cross_G1G2_2 = ZeroVector(3);
+
+    double norm_cross_g1g2 = 0.0;
+    double norm_cross_G1G2 = 0.0;
+    double deriv_norm_cross_G1G2 = 0.0;
+
+
+    MathUtils<double>::CrossProduct(cross_G1G2, rReferenceCovariantBaseVectors[0], rReferenceCovariantBaseVectors[1]);
+    norm_cross_G1G2 = MathUtils<double>::Norm(cross_G1G2);
+
+    MathUtils<double>::CrossProduct(cross_g1g2, rCurrentCovariantBaseVectors[0], rCurrentCovariantBaseVectors[1]);
+    norm_cross_g1g2 = MathUtils<double>::Norm(cross_g1g2);
+
+    this->DeriveCurrentCovariantBaseVectors(derivative_reference_covariant_base_vectors, rShapeFunctionGradientValues, DofR);
+
+    MathUtils<double>::CrossProduct(deriv_cross_G1G2_1, derivative_reference_covariant_base_vectors[0], rReferenceCovariantBaseVectors[1]);
+    MathUtils<double>::CrossProduct(deriv_cross_G1G2_2, rReferenceCovariantBaseVectors[0], derivative_reference_covariant_base_vectors[1]);
+    total_deriv_cross_G1G2 = deriv_cross_G1G2_1 + deriv_cross_G1G2_2;
+
+    deriv_norm_cross_G1G2 = inner_prod(cross_G1G2, total_deriv_cross_G1G2) / norm_cross_G1G2;
+
+    
+    rDerivInvDetDeformationGradient = deriv_norm_cross_G1G2 / norm_cross_g1g2;*/
+
+
+  }
+
+
+  void MembraneCuttingPatternElement::Derivative2InvDetDeformationGradient(double& rDeriv2InvDetDeformationGradient, const Matrix& rShapeFunctionGradientValues, const array_1d<Vector, 2>& rCurrentCovariantBaseVectors, const array_1d<Vector, 2>& rReferenceCovariantBaseVectors, const SizeType DofR, const SizeType DofS) {
+
+    /*array_1d<Vector, 2> derivative_r_reference_covariant_base_vectors;
+    array_1d<Vector, 2> derivative_s_reference_covariant_base_vectors;
+
+    Vector cross_G1G2 = ZeroVector(3);
+    Vector cross_g1g2 = ZeroVector(3);
+
+    Vector total_deriv_r_cross_G1G2 = ZeroVector(3);
+    Vector deriv_cross_r_G1G2_1 = ZeroVector(3);
+    Vector deriv_cross_r_G1G2_2 = ZeroVector(3);
+
+    Vector total_deriv_s_cross_G1G2 = ZeroVector(3);
+    Vector deriv_cross_s_G1G2_1 = ZeroVector(3);
+    Vector deriv_cross_s_G1G2_2 = ZeroVector(3);
+
+    Vector total_deriv2_cross_G1G2 = ZeroVector(3);
+    Vector deriv2_cross_G1G2_1 = ZeroVector(3);
+    Vector deriv2_cross_G1G2_2 = ZeroVector(3);
+
+    double norm_cross_g1g2 = 0.0;
+    double norm_cross_G1G2 = 0.0;
+
+    double deriv2_norm_cross_G1G2 = 0.0;
+    double deriv2_norm_cross_G1G2_1 = 0.0;
+    double deriv2_norm_cross_G1G2_2 = 0.0;
+
+    rDeriv2InvDetDeformationGradient = 0.0;
+
+    MathUtils<double>::CrossProduct(cross_g1g2, rCurrentCovariantBaseVectors[0], rCurrentCovariantBaseVectors[1]);
+    norm_cross_g1g2 = MathUtils<double>::Norm(cross_g1g2);
+
+    MathUtils<double>::CrossProduct(cross_G1G2, rReferenceCovariantBaseVectors[0], rReferenceCovariantBaseVectors[1]);
+    norm_cross_G1G2 = MathUtils<double>::Norm(cross_G1G2);
+
+    this->DeriveCurrentCovariantBaseVectors(derivative_r_reference_covariant_base_vectors, rShapeFunctionGradientValues, DofR);
+    this->DeriveCurrentCovariantBaseVectors(derivative_s_reference_covariant_base_vectors, rShapeFunctionGradientValues, DofS);
+
+    MathUtils<double>::CrossProduct(deriv_cross_r_G1G2_1, derivative_r_reference_covariant_base_vectors[0], rReferenceCovariantBaseVectors[1]);
+    MathUtils<double>::CrossProduct(deriv_cross_r_G1G2_2, rReferenceCovariantBaseVectors[0], derivative_r_reference_covariant_base_vectors[1]);
+    total_deriv_r_cross_G1G2 = deriv_cross_r_G1G2_1 + deriv_cross_r_G1G2_2;
+
+    MathUtils<double>::CrossProduct(deriv_cross_s_G1G2_1, derivative_s_reference_covariant_base_vectors[0], rReferenceCovariantBaseVectors[1]);
+    MathUtils<double>::CrossProduct(deriv_cross_s_G1G2_2, rReferenceCovariantBaseVectors[0], derivative_s_reference_covariant_base_vectors[1]);
+    total_deriv_s_cross_G1G2 = deriv_cross_s_G1G2_1 + deriv_cross_s_G1G2_2;
+
+    MathUtils<double>::CrossProduct(deriv2_cross_G1G2_1, derivative_r_reference_covariant_base_vectors[0], derivative_s_reference_covariant_base_vectors[1]);
+    MathUtils<double>::CrossProduct(deriv2_cross_G1G2_2, derivative_s_reference_covariant_base_vectors[0], derivative_r_reference_covariant_base_vectors[1]);
+    total_deriv2_cross_G1G2 = deriv2_cross_G1G2_1 + deriv2_cross_G1G2_2;
+
+    deriv2_norm_cross_G1G2_1 = (inner_prod(total_deriv_s_cross_G1G2, total_deriv_r_cross_G1G2) + inner_prod(cross_G1G2, total_deriv2_cross_G1G2))/ norm_cross_G1G2;
+    deriv2_norm_cross_G1G2_2 = (inner_prod(cross_G1G2, total_deriv_r_cross_G1G2) * inner_prod(cross_G1G2, total_deriv_s_cross_G1G2))/ (norm_cross_G1G2 * norm_cross_G1G2 * norm_cross_G1G2);
+    deriv2_norm_cross_G1G2 = deriv2_norm_cross_G1G2_1 - deriv2_norm_cross_G1G2_2;
+
+
+    rDeriv2InvDetDeformationGradient = deriv2_norm_cross_G1G2 / norm_cross_g1g2;*/
+
+  }
+
+
+  void MembraneCuttingPatternElement::PreStress(Matrix& rPreStress/*, const array_1d<Vector, 2>& rTransformedBaseVectors*/)//TO DO
   {
 
-    // rPreStress = ZeroVector(3);
+    //rPreStress = ZeroMatrix(2);
+    // 
+    //Vector rPreStress_vector = ZeroVector(3);
     // if (GetProperties().Has(PRESTRESS_VECTOR)) {
-    //   rPreStress = GetProperties()(PRESTRESS_VECTOR);
+    //   rPreStress_vector = GetProperties()(PRESTRESS_VECTOR);
 
-    //   if (Has(LOCAL_PRESTRESS_AXIS_1) && Has(LOCAL_PRESTRESS_AXIS_2)) {
+    //   rPreStress = MathUtils<double>::StressVectorToTensor(rPreStress_vector);
+
+    //   /*if (Has(LOCAL_PRESTRESS_AXIS_1) && Has(LOCAL_PRESTRESS_AXIS_2)) {
 
     //     array_1d<array_1d<double, 3>, 2> local_prestress_axis;
     //     local_prestress_axis[0] = GetValue(LOCAL_PRESTRESS_AXIS_1) / MathUtils<double>::Norm(GetValue(LOCAL_PRESTRESS_AXIS_1));
@@ -382,835 +1409,33 @@ namespace Kratos
     //     Matrix transformation_matrix = ZeroMatrix(3);
     //     InPlaneTransformationMatrix(transformation_matrix, rTransformedBaseVectors, local_prestress_axis);
     //     rPreStress = prod(transformation_matrix, rPreStress);
-    //   }
+    //   }*/
     // }
   }
 
 
-  ////***********************************************************************************
-  //// comp_Optimization_Least_Square - calculation of the optimized cutting patterning
-  ////***********************************************************************************
-
-  void MembraneCuttingPatternElement::comp_Optimization_Least_Square(
-    Matrix& rLeftHandSideMatrix,
-    Vector& rRightHandSideVector,
-    ConstitutiveLaw::Parameters& rValues,
-    const Properties& rMaterialProperties,
-    double& rArea3DElem,
-    double& rArea2DElem,
-    double& rResponse,
-    const Matrix& rFiberDirectionsRef,
-    const ProcessInfo& rCurrentProcessInfo)
+  /*void MembraneCuttingPatternElement::TensorTransformationMatrix(Matrix& rTransMat, const array_1d<Vector, 2>& rTransformedBaseVectors, const T& rCurvilinearBaseVectors)
   {
-    // KRATOS_TRY;
-
-    
-
-
-    // const auto& r_geom = GetGeometry();
-    // SizeType dimension = r_geom.WorkingSpaceDimension();
-    // SizeType number_of_nodes = r_geom.size();
-    // SizeType number_dofs  = dimension * number_of_nodes; 
-
-    // IntegrationMethod integration_method = r_geom.GetDefaultIntegrationMethod();
-
-    // rArea3DElem = 0.0;
-    // rArea2DElem = 0.0;
-    // rResponse = 0.0;
-    // rLeftHandSideMatrix = ZeroMatrix(number_dofs);
-    // rRightHandSideVector.resize(number_dofs);
-
-
-    // Vector InternalForces_LestSquare = ZeroVector(3);
-    // this->InternalForces_Least_Square(InternalForces_LestSquare, integration_method, rCurrentProcessInfo);
-
-    // rResponse = 0.0;
-    // this->ResponseFunction_Least_Square(rResponse, integration_method, rCurrentProcessInfo);
-
-
-    // //get all integration points
-
-    
-    // const GeometryType::IntegrationPointsArrayType& r_integrations_points = r_geom.IntegrationPoints(integration_method);
-    
-    // //const auto& N_values = r_geom.ShapeFunctionsValues(integration_method);
-    // const GeometryType::ShapeFunctionsGradientsType& r_shape_functions_gradients = r_geom.ShapeFunctionsLocalGradients(integration_method);
-
-
-    // // ---------------------------------------------------------------------
-    // // Material parameters for full continuum mechanics description
-    // // ---------------------------------------------------------------------
-    // const double thickness = GetProperties()[THICKNESS];
-
-    // //const bool is_orthotropic = GetProperties().Has(ORTHOTROPIC_LAW); //***CHECK LATER ***
-    // //const bool is_isotropic = !is_orthotropic; //***CHECK LATER ***
-
-    // // Isotropic material parameters
-
-    // //if (is_isotropic)//***CHECK LATER *** 
-    // //{
-
-    //   //linear_plane_stress.cpp, CalcualteElasticMatrixPlaneStresss from constitutive_law_utilities.cpp cannot be used because it calculates C for small Deformation
-    // const auto& r_props = rValues.GetMaterialProperties();
-    // double E = r_props[YOUNG_MODULUS];
-    // double NU = r_props[POISSON_RATIO];
-    // double lambda = E * NU / (1.0 - NU * NU);
-    // const double MU = E / (2.0 * (1.0 + NU));
-    // //}
-
-    // // Orthotropic parameters (Muensch-Reinhardt style)
-
-    // //if (is_orthotropic)//***CHECK LATER *** 
-    // //{
-
-    // //  //advanced_constitutive_law_utilities.cpp, why not using CalculateOrthotropicElasticMatrix?!
-    // //  const Vector& r_ortho_elastic_constants = rMaterialProperties[ORTHOTROPIC_ELASTIC_CONSTANTS];
-    // //  const double E1 = r_ortho_elastic_constants[0];
-    // //  const double E2 = r_ortho_elastic_constants[1];
-    // //  const double NU12 = r_ortho_elastic_constants[3];
-    // //  //const double G = ConstitutiveLawUtilities<3>::CalculateShearModulus(r_material_properties);
-    // //  double G12 = (rMaterialProperties.Has(SHEAR_MODULUS_XY)) ? rMaterialProperties[SHEAR_MODULUS_XY] : 1.0 / ((1.0 + NU21) / E1 + (1.0 + NU12) / E2);
-
-    // //  const double NU21 = NU12 * E2 / E1;
-
-    // //  KRATOS_ERROR_IF(NU21 > 0.5) << "The Poisson_yx is greater than 0.5." << std::endl;
-
-    // //  double coeff_C[2][2][2][2] = { {{{0.0}}} };
-
-    // //  coeff_C[0][0][0][0] = 1.0 / (1.0 - NU12 * NU21) * E1;
-    // //  coeff_C[0][0][1][1] = 1.0 / (1.0 - NU12 * NU21) * NU12 * E1;
-    // //  coeff_C[0][1][0][1] = G12;
-    // //  coeff_C[0][1][1][0] = G12;
-    // //  coeff_C[1][0][0][1] = G12;
-    // //  coeff_C[1][0][1][0] = G12;
-    // //  coeff_C[1][1][0][0] = 1.0 / (1.0 - NU12 * NU21) * NU21 * E2;
-    // //  coeff_C[1][1][1][1] = 1.0 / (1.0 - NU12 * NU21) * E2;
-
-    // //}
-    
-    
-   
-
-    // // ---------------------------------------------------------------------
-    // // Prestress in Cartesian basis on current 3D surface
-    // // ---------------------------------------------------------------------
-    // double sigma11_pre = 0.0;
-    // double sigma22_pre = 0.0;
-    // double sigma12_pre = 0.0;
-
-
-    // // ======================================================================
-    // // Gauss loop
-    // // ======================================================================
-    // for (IndexType t = 0; t < r_integrations_points.size(); ++t)
-    // {
-    //   // --------------------------------------------------------------------
-    //   // Get prestress information for each Gauss point
-    //   // assuming constant prestress over the whole element
-    //   // ---------------------------------------------------------------------
-
-    //   Vector pre_stress = ZeroVector(3);
-    //   if (GetProperties().Has(PRESTRESS_VECTOR)) {
-
-    //     pre_stress = GetProperties()(PRESTRESS_VECTOR);
-
-    //     sigma11_pre += pre_stress[0];
-    //     sigma22_pre += pre_stress[1];
-    //     sigma12_pre += pre_stress[2];
-    //   }
-
-
-    //   const Matrix& shape_functions_gradients_i = r_shape_functions_gradients[t];
-    //   double integration_weight_i = r_integrations_points[t].Weight();
-
-    //   // ------------------------------------------------------------
-    //   // 1. Covariant base vectors in 3D actual configuration
-    //   // ------------------------------------------------------------
-
-    //   array_1d<Vector, 2> current_covariant_base_vectors;
-    //   this->CovariantBaseVectors(current_covariant_base_vectors, shape_functions_gradients_i, ConfigurationType::Current);
-
-    //   // ------------------------------------------------------------
-    //   // 2. Covariant base vectors in reference configuration
-    //   // ------------------------------------------------------------
-    //   array_1d<Vector, 2> reference_covariant_base_vectors;
-    //   this->CovariantBaseVectors(reference_covariant_base_vectors, shape_functions_gradients_i, ConfigurationType::Reference);
-
-    //   // ------------------------------------------------------------
-    //   // 3. Covariant metric in the current confliguration 
-    //   // ------------------------------------------------------------
-    //   Matrix covariant_metric_current = ZeroMatrix(3);
-    //   this->CovariantMetric(covariant_metric_current, current_covariant_base_vectors);
-
-    //   // ------------------------------------------------------------
-    //   // 4. Covariant metric in the reference configuration covariant
-    //   // ------------------------------------------------------------
-    //   Matrix covariant_metric_reference = ZeroMatrix(3);
-    //   this->CovariantMetric(covariant_metric_reference, reference_covariant_base_vectors);
-
-    //   // ------------------------------------------------------------
-    //   // 5. Contravariant metric in the 3D actual configuration
-    //   // ------------------------------------------------------------
-    //   Matrix contravariant_metric_current = ZeroMatrix(3);
-    //   this->ContravariantMetric(contravariant_metric_current, covariant_metric_current);
-
-    //   // ------------------------------------------------------------
-    //   // 6. Contravariant metric in reference configuration 
-    //   // ------------------------------------------------------------
-    //   Matrix contravariant_metric_reference = ZeroMatrix(3);
-    //   this->ContravariantMetric(contravariant_metric_reference, covariant_metric_reference);
-
-    //   // ---------------------------------------------------------------------
-    //   // 7. Determinant of covariant metric in reference configuration
-    //   // ---------------------------------------------------------------------
-    //   double det_covariant_metric_reference = (covariant_metric_reference(0, 0) * covariant_metric_reference(1, 1)) - (covariant_metric_reference(1, 0) * covariant_metric_reference(0, 1));
-    //   double det_contravariant_metric_reference = 1.0 / det_covariant_metric_reference;
-
-    //   // ------------------------------------------------------------
-    //   // 8. Contravariant base vectors in 3D actual configuration
-    //   // ------------------------------------------------------------
-    //   array_1d<Vector, 2> current_contravariant_base_vectors;
-    //   this->ContraVariantBaseVectors(current_contravariant_base_vectors, contravariant_metric_current, current_covariant_base_vectors);
-
-    //   // ------------------------------------------------------------
-    //   // 9. Contravariant base vectors in reference configuration
-    //   // ------------------------------------------------------------
-    //   array_1d<Vector, 2> reference_contravariant_base_vectors;
-    //   this->ContraVariantBaseVectors(reference_contravariant_base_vectors, contravariant_metric_reference, reference_covariant_base_vectors);
-
-    //   // ------------------------------------------------------------
-    //   // 10. Transformation matrix for orthotropic material
-    //   // ***** rFiberDirectionsReference has to be defined in CuttingPatternStrategy ******
-    //   // ------------------------------------------------------------
-    //   //Matrix transformation_matrix_orthotropic = ZeroMatrix(2);
-    //   //this->comp_Transformation_Matrix(transformation_matrix_orthotropic, reference_contravariant_base_vectors, rFiberDirectionsReference);
-
-    //   // ---------------------------------------------------------------------------------
-    //   // 11. calculation of local cartesian coordinate system in the current configuration
-    //   // ---------------------------------------------------------------------------------
-    //   array_1d<Vector, 2> current_Euclidean_base_vectors;
-    //   this->TransformBaseVectors(current_Euclidean_base_vectors, current_covariant_base_vectors);
-
-
-    //   // ---------------------------------------------------------------------------------
-    //   // 12. Transformation between current contravariant and cartesian
-    //   // ---------------------------------------------------------------------------------
-    //   Matrix transformation_matrix_current_contra = ZeroMatrix(2);
-    //   this->comp_Transformation_Matrix(transformation_matrix_current_contra, current_contravariant_base_vectors, current_Euclidean_base_vectors);
-    //   const double g1e1 = transformation_matrix_current_contra(0, 0);
-    //   const double g1e2 = transformation_matrix_current_contra(0, 1);
-    //   const double g2e1 = transformation_matrix_current_contra(1, 0);
-    //   const double g2e2 = transformation_matrix_current_contra(1, 1);
-
-    //   // ------------------------------------------------------------
-    //   // 13. Elemental area in current configuration
-    //   // ------------------------------------------------------------
-    //   array_1d<double, 3> cross_g1g2_cov;
-    //   cross_g1g2_cov.clear();
-    //   MathUtils<double>::CrossProduct(cross_g1g2_cov, current_covariant_base_vectors[0], current_covariant_base_vectors[1]);
-    //   double VectorNorm_g1g2_cov = MathUtils<double>::Norm(cross_g1g2_cov);
-
-    //   double da_current = VectorNorm_g1g2_cov;
-    //   rArea3DElem += da_current * integration_weight_i;
-
-    //   // ------------------------------------------------------------
-    //   // 14. Elemental area in reference configuration
-    //   // ------------------------------------------------------------
-    //   array_1d<double, 3> cross_G1G2_cov;
-    //   MathUtils<double>::CrossProduct(cross_G1G2_cov, reference_covariant_base_vectors[0], reference_covariant_base_vectors[1]);
-    //   double VectorNorm_G1G2_cov = MathUtils<double>::Norm(cross_G1G2_cov);
-
-    //   double dA_reference = VectorNorm_G1G2_cov;
-    //   rArea2DElem += dA_reference * integration_weight_i;
-
-    //   // ------------------------------------------------------------
-    //   // 15. Determinant of deformation gradient and it's inverse
-    //   // ------------------------------------------------------------
-    //   double DetF = da_current / dA_reference;
-    //   double InverseDetF = 1.0 / DetF;
-
-    //   // ------------------------------------------------------------
-    //   // 16. Euler-Almansi-Strain-Tensor
-    //   // ------------------------------------------------------------
-    //   Matrix e = ZeroMatrix(2);
-    //   e(0, 0) = 0.5 * (covariant_metric_current(0, 0) - covariant_metric_reference(0, 0));
-    //   e(0, 1) = 0.5 * (covariant_metric_current(0, 1) - covariant_metric_reference(0, 1));
-    //   e(1, 0) = 0.5 * (covariant_metric_current(1, 0) - covariant_metric_reference(1, 0));
-    //   e(1, 1) = 0.5 * (covariant_metric_current(1, 1) - covariant_metric_reference(1, 1));
-
-    //   // ------------------------------------------------------------
-    //   // 17. Elastic Cauchy stress in current configuration
-    //   // ------------------------------------------------------------
-    //   Matrix sigma = ZeroMatrix(2);
-
-    //   double C_reference[2][2][2][2] = { {{{0.0}}} };
-    //   double c_current[2][2][2][2] = { {{{0.0}}} };
-
-    //   for (SizeType alpha = 0; alpha < 2; ++alpha) {
-    //     for (SizeType beta = 0; beta < 2; ++beta) {
-    //       for (SizeType gamma = 0; gamma < 2; ++gamma) {
-    //         for (SizeType delta = 0; delta < 2; ++delta) {
-
-    //           //if (is_isotropic) //*********** need to check whether 'is_isotropic' would really work ************
-    //           //{
-    //             C_reference[alpha][beta][gamma][delta] =
-    //               (lambda * (contravariant_metric_reference(alpha, beta) * contravariant_metric_reference(gamma, delta))) +
-    //               (MU * ((contravariant_metric_reference(alpha, gamma) * contravariant_metric_reference(beta, delta)) +
-    //                 (contravariant_metric_reference(alpha, delta) * contravariant_metric_reference(beta, gamma))));
-    //           //}
-    //           /*else if (is_orthotropic) {
-    //             for (SizeType eps = 0; eps < 2; ++eps) {
-    //               for (SizeType zet = 0; zet < 2; ++zet) {
-    //                 for (SizeType eta = 0; eta < 2; ++eta) {
-    //                   for (SizeType the = 0; the < 2; ++the) {
-    //                     C_reference[alpha][beta][gamma][delta] +=
-    //                       coeff_C[eps][zet][eta][the] *
-    //                       transformation_matrix_orthotropic(alpha, eps) *
-    //                       transformation_matrix_orthotropic(beta, zet) *
-    //                       transformation_matrix_orthotropic(gamma, eta) *
-    //                       transformation_matrix_orthotropic(delta, the);
-    //                   }
-    //                 }
-    //               }
-    //             }
-    //           }*/
-
-    //           c_current[alpha][beta][gamma][delta] = InverseDetF * C_reference[alpha][beta][gamma][delta];
-
-    //           sigma(alpha, beta) += c_current[alpha][beta][gamma][delta] * e(gamma, delta);
-    //         }
-    //       }
-    //     }
-    //   }
-
-    //   // ------------------------------------------------------------------------------------------------------------------------
-    //   // 18. Prestress transformed from Cartesian to covariant basis (contravariant coefficient) in the current configuration
-    //   // ------------------------------------------------------------------------------------------------------------------------
-    //   Matrix sigma_pre_current_contra = ZeroMatrix(2);
-    //   sigma_pre_current_contra(0, 0) = sigma11_pre * (g1e1 * g1e1) + sigma12_pre * (g1e1 * g1e2)
-    //     + sigma12_pre * (g1e2 * g1e1) + sigma22_pre * (g1e2 * g1e2);
-
-    //   sigma_pre_current_contra(0, 1) = sigma11_pre * (g1e1 * g2e1) + sigma12_pre * (g1e1 * g2e2)
-    //     + sigma12_pre * (g1e2 * g2e1) + sigma22_pre * (g1e2 * g2e2);
-
-    //   sigma_pre_current_contra(1, 0) = sigma_pre_current_contra(0, 1);
-
-    //   sigma_pre_current_contra(1, 1) = sigma11_pre * (g2e1 * g2e1) + sigma12_pre * (g2e1 * g2e2)
-    //     + sigma12_pre * (g2e2 * g2e1) + sigma22_pre * (g2e2 * g2e2);
-
-
-    //   // =================================================================
-    //   // 19. Loop over design DOFs X_r
-    //   // =================================================================
-
-    //   for (SizeType r = 0; r < number_dofs; ++r)
-    //   {
-
-    //     // -------------------------------------------------------------------------------------
-    //     // 1. first derivative of covariant base vectors in reference configuration w.r.t DOFs
-    //     // -------------------------------------------------------------------------------------
-    //     array_1d<Vector, 2> ref_cov_base_vectors_rDeriv;
-    //     this->DeriveCurrentCovariantBaseVectors(ref_cov_base_vectors_rDeriv, shape_functions_gradients_i, r);
-
-    //     // -------------------------------------------------------------------------------------
-    //     // 2. first derivative of covariant metric in reference configuration w.r.t DOFs
-    //     // -------------------------------------------------------------------------------------
-    //     Matrix ref_cov_metric_rDeriv = ZeroMatrix(2);
-    //     this->DerivativeCurrentCovariantMetric(ref_cov_metric_rDeriv, shape_functions_gradients_i, r, reference_covariant_base_vectors);
-
-    //     // -------------------------------------------------------------------------------------
-    //     // 3. first derivative of Euler Almansi strain tensor w.r.t DOFs
-    //     // -------------------------------------------------------------------------------------
-    //     Matrix e_rDeriv = ZeroMatrix(2);
-    //     e_rDeriv(0, 0) = -0.5 * ref_cov_metric_rDeriv(0, 0);
-    //     e_rDeriv(0, 1) = -0.5 * ref_cov_metric_rDeriv(0, 1);
-    //     e_rDeriv(1, 0) = -0.5 * ref_cov_metric_rDeriv(1, 0);
-    //     e_rDeriv(1, 1) = -0.5 * ref_cov_metric_rDeriv(1, 1);
-
-    //     // -------------------------------------------------------------------------------------
-    //     // 4. first derivative of determinant of reference covariant metric w.r.t DOFs
-    //     // -------------------------------------------------------------------------------------
-    //     double rDeriv_det_cov_metric_ref = ref_cov_metric_rDeriv(0, 0) * covariant_metric_reference(1, 1) + covariant_metric_reference(0, 0) * ref_cov_metric_rDeriv(1, 1)
-    //       - ref_cov_metric_rDeriv(1, 0) * covariant_metric_reference(0, 1) - covariant_metric_reference(1, 0) * ref_cov_metric_rDeriv(0, 1);
-
-    //     // -------------------------------------------------------------------------------------
-    //     // 5. first derivative of determinant of reference contravariant metric w.r.t DOFs
-    //     // -------------------------------------------------------------------------------------
-    //     double rDeriv_det_contra_metric_ref = -rDeriv_det_cov_metric_ref / (det_covariant_metric_reference * det_covariant_metric_reference);
-
-    //     // -------------------------------------------------------------------------------------
-    //     // 6. first derivative of contravariant metric in reference configuration w.r.t DOFs
-    //     // -------------------------------------------------------------------------------------
-    //     Matrix ref_contra_metric_rDeriv = ZeroMatrix(2);
-
-    //     ref_contra_metric_rDeriv(0, 0) = rDeriv_det_contra_metric_ref * covariant_metric_reference(1, 1) + det_contravariant_metric_reference * ref_cov_metric_rDeriv(1, 1);
-    //     ref_contra_metric_rDeriv(0, 1) = -rDeriv_det_contra_metric_ref * covariant_metric_reference(0, 1) - det_contravariant_metric_reference * ref_cov_metric_rDeriv(0, 1);
-    //     ref_contra_metric_rDeriv(1, 0) = -rDeriv_det_contra_metric_ref * covariant_metric_reference(1, 0) - det_contravariant_metric_reference * ref_cov_metric_rDeriv(1, 0);
-    //     ref_contra_metric_rDeriv(1, 1) = rDeriv_det_contra_metric_ref * covariant_metric_reference(0, 0) + det_contravariant_metric_reference * ref_cov_metric_rDeriv(0, 0);
-
-    //     // ----------------------------------------------------------------------------------------
-    //     // 7. first derivative of contravariant base vectors in reference configuration w.r.t DOFs
-    //     // ----------------------------------------------------------------------------------------
-    //     array_1d<Vector, 2> ref_contra_base_vectors_rDeriv;
-
-    //     for (SizeType alpha = 0; alpha < 2; ++alpha) {
-    //       ref_contra_base_vectors_rDeriv[alpha] = ZeroVector(3);
-
-    //       for (SizeType beta = 0; beta < 2; ++beta) {
-    //         ref_contra_base_vectors_rDeriv[alpha] +=
-    //           ref_contra_metric_rDeriv(alpha, beta) * reference_covariant_base_vectors[beta]
-    //           + contravariant_metric_reference(alpha, beta) * ref_cov_base_vectors_rDeriv[beta];
-    //       }
-    //     }
-
-    //     // ---------------------------------------------------------------------------------------
-    //     // 8. first derivative of elemental area in reference configuration w.r.t DOFs
-    //     // ---------------------------------------------------------------------------------------
-    //     double dA_reference_rDeriv = 0.0;
-    //     this->DerivativeElementalArea(dA_reference_rDeriv, reference_covariant_base_vectors, ref_cov_base_vectors_rDeriv);
-
-    //     // ---------------------------------------------------------------------------------------
-    //     // 9. first derivative of inverse of deformation gradient w.r.t DOFs
-    //     // ---------------------------------------------------------------------------------------
-    //     double InverseDetF_rDeriv = dA_reference_rDeriv / da_current;
-
-
-    //     // ---------------------------------------------------------------------------------------
-    //     // 10. first derivative of transformation matrix for orthotropic material w.r.t DOFs
-    //     // ---------------------------------------------------------------------------------------
-    //     //Matrix transformation_matrix_orthotropic_rDeriv = ZeroMatrix(2);
-    //     //this->comp_Transformation_Matrix(transformation_matrix_orthotropic_rDeriv, ref_contra_base_vectors_rDeriv, rFiberDirectionsReference);
-
-    //     // ---------------------------------------------------------------------------------------
-    //     // 11. first derivative of Cauchy stress tensor w.r.t DOFs
-    //     // ---------------------------------------------------------------------------------------
-    //     Matrix sigma_rDeriv = ZeroMatrix(2);
-
-
-    //     double C_reference_rDeriv[2][2][2][2] = { {{{0.0}}} };
-    //     double c_current_rDeriv[2][2][2][2] = { {{{0.0}}} };
-
-    //     for (SizeType alpha = 0; alpha < 2; ++alpha) {
-    //       for (SizeType beta = 0; beta < 2; ++beta) {
-    //         for (SizeType gamma = 0; gamma < 2; ++gamma) {
-    //           for (SizeType delta = 0; delta < 2; ++delta) {
-
-    //             //if (is_isotropic) //************************ check whether 'is_isotropic works' *************************
-    //             //{
-    //               C_reference_rDeriv[alpha][beta][gamma][delta] =
-    //                 lambda * (ref_contra_metric_rDeriv(alpha, beta) * contravariant_metric_reference(gamma, delta) +
-    //                   contravariant_metric_reference(alpha, beta) * ref_contra_metric_rDeriv(gamma, delta))
-    //                 + MU * (ref_contra_metric_rDeriv(alpha, gamma) * contravariant_metric_reference(beta, delta) +
-    //                   ref_contra_metric_rDeriv(alpha, delta) * contravariant_metric_reference(beta, gamma) +
-    //                   contravariant_metric_reference(alpha, gamma) * ref_contra_metric_rDeriv(beta, delta) +
-    //                   contravariant_metric_reference(alpha, delta) * ref_contra_metric_rDeriv(beta, gamma));
-    //             /*}*/
-    //             //else if (is_orthotropic) //************************ check whether 'is_orthotropic works' *************************
-    //             //{
-    //             //  for (SizeType eps = 0; eps < 2; ++eps) {
-    //             //    for (SizeType zet = 0; zet < 2; ++zet) {
-    //             //      for (SizeType eta = 0; eta < 2; ++eta) {
-    //             //        for (SizeType the = 0; the < 2; ++the) {
-    //             //          C_reference_rDeriv[alpha][beta][gamma][delta] +=
-    //             //            coeff_C[eps][zet][eta][the] *
-    //             //            (
-    //             //              transformation_matrix_orthotropic_rDeriv(alpha, eps) * transformation_matrix_orthotropic(beta, zet) * transformation_matrix_orthotropic(gamma, eta) * transformation_matrix_orthotropic(delta, the) +
-    //             //              transformation_matrix_orthotropic(alpha, eps) * transformation_matrix_orthotropic_rDeriv(beta, zet) * transformation_matrix_orthotropic(gamma, eta) * transformation_matrix_orthotropic(delta, the) +
-    //             //              transformation_matrix_orthotropic(alpha, eps) * transformation_matrix_orthotropic(beta, zet) * transformation_matrix_orthotropic_rDeriv(gamma, eta) * transformation_matrix_orthotropic(delta, the) +
-    //             //              transformation_matrix_orthotropic(alpha, eps) * transformation_matrix_orthotropic(beta, zet) * transformation_matrix_orthotropic(gamma, eta) * transformation_matrix_orthotropic_rDeriv(delta, the)
-    //             //              );
-    //             //        }
-    //             //      }
-    //             //    }
-    //             //  }
-    //             //}
-
-    //             c_current_rDeriv[alpha][beta][gamma][delta] =
-    //               InverseDetF_rDeriv * C_reference[alpha][beta][gamma][delta] +
-    //               InverseDetF * C_reference_rDeriv[alpha][beta][gamma][delta];
-
-    //             sigma_rDeriv(alpha, beta) +=
-    //               c_current_rDeriv[alpha][beta][gamma][delta] * e(gamma, delta) +
-    //               c_current[alpha][beta][gamma][delta] * e_rDeriv(gamma, delta);
-    //           }
-    //         }
-    //       }
-    //     }
-    //     // =================================================================
-    //     // 19. Loop over design DOFs X_r
-    //     // =================================================================
-    //     for (SizeType s = 0; s < number_dofs; ++s)
-    //     {
-
-    //       // -------------------------------------------------------------------------------------
-    //       // 1. first derivative of covariant base vectors in reference configuration w.r.t DOFs
-    //       // -------------------------------------------------------------------------------------
-    //       array_1d<Vector, 2> ref_cov_base_vectors_sDeriv;
-    //       this->DeriveCurrentCovariantBaseVectors(ref_cov_base_vectors_sDeriv, shape_functions_gradients_i, s);
-
-
-    //       // -------------------------------------------------------------------------------------
-    //       // 2. first derivative of covariant metric in reference configuration w.r.t DOFs
-    //       // -------------------------------------------------------------------------------------
-    //       Matrix ref_cov_metric_sDeriv = ZeroMatrix(2);
-    //       this->DerivativeCurrentCovariantMetric(ref_cov_metric_sDeriv, shape_functions_gradients_i, s, reference_covariant_base_vectors);
-
-    //       //second derivative of covariant metric in reference configuration w.r.t DOFs       
-    //       Matrix ref_cov_metric_rsDeriv = ZeroMatrix(2);
-    //       this->Derivative2CurrentCovariantMetric(ref_cov_metric_rsDeriv, shape_functions_gradients_i, r, s);
-
-
-    //       // -------------------------------------------------------------------------------------
-    //       // 3. first derivative of Euler Almansi strain tensor w.r.t DOFs
-    //       // -------------------------------------------------------------------------------------
-    //       Matrix e_sDeriv = ZeroMatrix(2);
-    //       e_sDeriv(0, 0) = -0.5 * ref_cov_metric_sDeriv(0, 0);
-    //       e_sDeriv(0, 1) = -0.5 * ref_cov_metric_sDeriv(0, 1);
-    //       e_sDeriv(1, 0) = -0.5 * ref_cov_metric_sDeriv(1, 0);
-    //       e_sDeriv(1, 1) = -0.5 * ref_cov_metric_sDeriv(1, 1);
-
-    //       // second derivative of Euler Almansi strain tensor w.r.t DOFs
-    //       Matrix e_rsDeriv = ZeroMatrix(2);
-    //       e_rsDeriv(0, 0) = -0.5 * ref_cov_metric_rsDeriv(0, 0);
-    //       e_rsDeriv(0, 1) = -0.5 * ref_cov_metric_rsDeriv(0, 1);
-    //       e_rsDeriv(1, 0) = -0.5 * ref_cov_metric_rsDeriv(1, 0);
-    //       e_rsDeriv(1, 1) = -0.5 * ref_cov_metric_rsDeriv(1, 1);
-
-
-    //       // -------------------------------------------------------------------------------------
-    //       // 4. first derivative of determinant of reference covariant metric w.r.t DOFs
-    //       // -------------------------------------------------------------------------------------
-    //       double sDeriv_det_cov_metric_ref = ref_cov_metric_sDeriv(0, 0) * covariant_metric_reference(1, 1) + covariant_metric_reference(0, 0) * ref_cov_metric_sDeriv(1, 1)
-    //         - ref_cov_metric_sDeriv(1, 0) * covariant_metric_reference(0, 1) - covariant_metric_reference(1, 0) * ref_cov_metric_sDeriv(0, 1);
-
-    //       // second derivative of determinant of reference covariant metric w.r.t DOFs
-    //       double rsDeriv_det_cov_metric_ref = ref_cov_metric_rsDeriv(0, 0) * covariant_metric_reference(1, 1) + ref_cov_metric_rDeriv(0, 0) * ref_cov_metric_sDeriv(1, 1)
-    //         + ref_cov_metric_sDeriv(0, 0) * ref_cov_metric_rDeriv(1, 1) + covariant_metric_reference(0, 0) * ref_cov_metric_rsDeriv(1, 1)
-    //         - ref_cov_metric_rsDeriv(0, 1) * covariant_metric_reference(1, 0) - ref_cov_metric_rDeriv(0, 1) * ref_cov_metric_sDeriv(1, 0)
-    //         - ref_cov_metric_sDeriv(0, 1) * ref_cov_metric_rDeriv(1, 0) - covariant_metric_reference(0, 1) * ref_cov_metric_rsDeriv(1, 0);
-
-
-    //       // -------------------------------------------------------------------------------------
-    //       // 5. first derivative of determinant of reference contravariant metric w.r.t DOFs
-    //       // -------------------------------------------------------------------------------------
-    //       double sDeriv_det_contra_metric_ref = -sDeriv_det_cov_metric_ref / (det_covariant_metric_reference * det_covariant_metric_reference);
-
-    //       // second derivative of determinant of reference contravariant metric w.r.t DOFs
-    //       double rsDeriv_det_contra_metric_ref = (-rsDeriv_det_cov_metric_ref * det_covariant_metric_reference
-    //         + 2 * rDeriv_det_cov_metric_ref * sDeriv_det_cov_metric_ref) / (det_covariant_metric_reference * det_covariant_metric_reference * det_covariant_metric_reference);
-
-
-    //       // -------------------------------------------------------------------------------------
-    //       // 6. first derivative of contravariant metric in reference configuration w.r.t DOFs
-    //       // -------------------------------------------------------------------------------------
-    //       Matrix ref_contra_metric_sDeriv = ZeroMatrix(2);
-
-    //       ref_contra_metric_sDeriv(0, 0) = sDeriv_det_contra_metric_ref * covariant_metric_reference(1, 1) + det_contravariant_metric_reference * ref_cov_metric_sDeriv(1, 1);
-    //       ref_contra_metric_sDeriv(0, 1) = -sDeriv_det_contra_metric_ref * covariant_metric_reference(0, 1) - det_contravariant_metric_reference * ref_cov_metric_sDeriv(0, 1);
-    //       ref_contra_metric_sDeriv(1, 0) = -sDeriv_det_contra_metric_ref * covariant_metric_reference(1, 0) - det_contravariant_metric_reference * ref_cov_metric_sDeriv(1, 0);
-    //       ref_contra_metric_sDeriv(1, 1) = sDeriv_det_contra_metric_ref * covariant_metric_reference(0, 0) + det_contravariant_metric_reference * ref_cov_metric_sDeriv(0, 0);
-
-    //       // second derivative of contravariant metric in reference configuration w.r.t DOFs
-    //       Matrix ref_contra_metric_rsDeriv = ZeroMatrix(2);
-
-    //       ref_contra_metric_rsDeriv(0, 0) = rsDeriv_det_contra_metric_ref * covariant_metric_reference(1, 1)
-    //         + rDeriv_det_contra_metric_ref * ref_cov_metric_sDeriv(1, 1)
-    //         + sDeriv_det_contra_metric_ref * ref_cov_metric_rDeriv(1, 1)
-    //         + det_contravariant_metric_reference * ref_cov_metric_rsDeriv(1, 1);
-
-    //       ref_contra_metric_rsDeriv(0, 1) = -rsDeriv_det_contra_metric_ref * covariant_metric_reference(0, 1)
-    //         - rDeriv_det_contra_metric_ref * ref_cov_metric_sDeriv(0, 1)
-    //         - sDeriv_det_contra_metric_ref * ref_cov_metric_rDeriv(0, 1)
-    //         - det_contravariant_metric_reference * ref_cov_metric_rsDeriv(0, 1);
-
-    //       ref_contra_metric_rsDeriv(1, 0) = -rsDeriv_det_contra_metric_ref * covariant_metric_reference(1, 0)
-    //         - rDeriv_det_contra_metric_ref * ref_cov_metric_sDeriv(1, 0)
-    //         - sDeriv_det_contra_metric_ref * ref_cov_metric_rDeriv(1, 0)
-    //         - det_contravariant_metric_reference * ref_cov_metric_rsDeriv(1, 0);
-
-    //       ref_contra_metric_rsDeriv(1, 1) = rsDeriv_det_contra_metric_ref * covariant_metric_reference(0, 0)
-    //         + rDeriv_det_contra_metric_ref * ref_cov_metric_sDeriv(0, 0)
-    //         + sDeriv_det_contra_metric_ref * ref_cov_metric_sDeriv(0, 0)
-    //         + det_contravariant_metric_reference * ref_cov_metric_rsDeriv(0, 0);
-
-
-    //       // ----------------------------------------------------------------------------------------
-    //       // 7. first derivative of contravariant base vectors in reference configuration w.r.t DOFs
-    //       // ----------------------------------------------------------------------------------------
-    //       array_1d<Vector, 2> ref_contra_base_vectors_sDeriv;
-
-    //       for (SizeType alpha = 0; alpha < 2; ++alpha) {
-    //         ref_contra_base_vectors_sDeriv[alpha] = ZeroVector(3);
-
-    //         for (SizeType beta = 0; beta < 2; ++beta) {
-    //           ref_contra_base_vectors_sDeriv[alpha] +=
-    //             ref_contra_metric_sDeriv(alpha, beta) * reference_covariant_base_vectors[beta]
-    //             + contravariant_metric_reference(alpha, beta) * ref_cov_base_vectors_sDeriv[beta];
-    //         }
-    //       }
-
-    //       // second derivative of contravariant base vectors in reference configuration w.r.t DOFs
-    //       array_1d<Vector, 2> ref_contra_base_vectors_rsDeriv;
-
-
-    //       // ---------------------------------------------------------------------------------------
-    //       // 8. first derivative of elemental area in reference configuration w.r.t DOFs
-    //       // ---------------------------------------------------------------------------------------
-    //       double dA_reference_sDeriv = 0.0;
-    //       this->DerivativeElementalArea(dA_reference_sDeriv, reference_covariant_base_vectors, ref_cov_base_vectors_sDeriv);
-
-    //       // second derivative of elemental area in reference configuration w.r.t DOFs
-    //       double dA_reference_rsDeriv = 0.0;
-    //       this->Derivative2ElementalArea(dA_reference_rsDeriv, reference_covariant_base_vectors, ref_cov_base_vectors_rDeriv, ref_cov_base_vectors_sDeriv);
-
-
-    //       // ---------------------------------------------------------------------------------------
-    //       // 9. first derivative of inverse of determinant of deformation gradient w.r.t DOFs
-    //       // ---------------------------------------------------------------------------------------
-    //       double InverseDetF_sDeriv = dA_reference_sDeriv / da_current;
-
-    //       // second derivative of inverse of determinant of deformation gradient w.r.t DOFs
-    //       double InverseDetF_rsDeriv = dA_reference_rsDeriv / da_current;
-
-
-    //       // ---------------------------------------------------------------------------------------
-    //       // 10. first derivative of transformation matrix for orthotropic material w.r.t DOFs
-    //       // ---------------------------------------------------------------------------------------
-    //       //Matrix transformation_matrix_orthotropic_sDeriv = ZeroMatrix(2);
-    //       //this->comp_Transformation_Matrix(transformation_matrix_orthotropic_sDeriv, ref_contra_base_vectors_sDeriv, rFiberDirectionsReference);
-
-    //       // second derivative of transformation matrix for orthotropic material w.r.t DOFs
-    //       // ************************ Check for accuracy **************************
-    //       //Matrix transformation_matrix_orthotropic_rsDeriv = ZeroMatrix(2);
-    //       //this->comp_Transformation_Matrix(transformation_matrix_orthotropic_rsDeriv, ref_contra_base_vectors_rsDeriv, rFiberDirectionsReference);
-
-
-    //       // ---------------------------------------------------------------------------------------
-    //       // 11. first derivative of Cauchy stress tensor w.r.t DOFs
-    //       // ---------------------------------------------------------------------------------------
-    //       Matrix sigma_sDeriv = ZeroMatrix(2);
-    //       Matrix sigma_rsDeriv = ZeroMatrix(2);
-
-    //       double C_reference_sDeriv[2][2][2][2] = { {{{0.0}}} };
-    //       double c_current_sDeriv[2][2][2][2] = { {{{0.0}}} };
-
-    //       double C_reference_rsDeriv[2][2][2][2] = { {{{0.0}}} };
-    //       double c_current_rsDeriv[2][2][2][2] = { {{{0.0}}} };
-
-    //       for (SizeType alpha = 0; alpha < 2; ++alpha) {
-    //         for (SizeType beta = 0; beta < 2; ++beta) {
-    //           for (SizeType gamma = 0; gamma < 2; ++gamma) {
-    //             for (SizeType delta = 0; delta < 2; ++delta) {
-
-    //               //if (is_isotropic) //************************ check whether 'is_isotropic works' *************************
-    //               //{
-    //                 C_reference_sDeriv[alpha][beta][gamma][delta] =
-    //                   lambda * (ref_contra_metric_sDeriv(alpha, beta) * contravariant_metric_reference(gamma, delta) +
-    //                     contravariant_metric_reference(alpha, beta) * ref_contra_metric_sDeriv(gamma, delta))
-    //                   + MU * (ref_contra_metric_sDeriv(alpha, gamma) * contravariant_metric_reference(beta, delta) +
-    //                     ref_contra_metric_sDeriv(alpha, delta) * contravariant_metric_reference(beta, gamma) +
-    //                     contravariant_metric_reference(alpha, gamma) * ref_contra_metric_sDeriv(beta, delta) +
-    //                     contravariant_metric_reference(alpha, delta) * ref_contra_metric_sDeriv(beta, gamma));
-
-    //                 C_reference_rsDeriv[alpha][beta][gamma][delta] =
-    //                   lambda * (ref_contra_metric_rsDeriv(alpha, beta) * contravariant_metric_reference(gamma, delta) +
-    //                     ref_contra_metric_rDeriv(alpha, beta) * ref_contra_metric_sDeriv(gamma, delta) +
-    //                     ref_contra_metric_sDeriv(alpha, beta) * ref_contra_metric_rDeriv(gamma, delta) +
-    //                     contravariant_metric_reference(alpha, beta) * ref_contra_metric_rsDeriv(gamma, delta)) +
-    //                   MU * (ref_contra_metric_rsDeriv(alpha, gamma) * contravariant_metric_reference(beta, delta) +
-    //                     ref_contra_metric_rDeriv(alpha, gamma) * ref_contra_metric_sDeriv(beta, delta) +
-    //                     ref_contra_metric_sDeriv(alpha, gamma) * ref_contra_metric_rDeriv(beta, delta) +
-    //                     contravariant_metric_reference(alpha, gamma) * ref_contra_metric_rsDeriv(beta, delta) +
-    //                     ref_contra_metric_rsDeriv(alpha, delta) * contravariant_metric_reference(beta, gamma) +
-    //                     ref_contra_metric_rDeriv(alpha, delta) * ref_contra_metric_sDeriv(beta, gamma) +
-    //                     ref_contra_metric_sDeriv(alpha, delta) * ref_contra_metric_rDeriv(beta, gamma) +
-    //                     contravariant_metric_reference(alpha, delta) * ref_contra_metric_rsDeriv(beta, gamma));
-    //               /*}*/
-    //               //else if (is_orthotropic) //************************ check whether 'is_orthotropic works' *************************
-    //               //{
-    //               //  for (SizeType eps = 0; eps < 2; ++eps) {
-    //               //    for (SizeType zet = 0; zet < 2; ++zet) {
-    //               //      for (SizeType eta = 0; eta < 2; ++eta) {
-    //               //        for (SizeType the = 0; the < 2; ++the) {
-    //               //          C_reference_sDeriv[alpha][beta][gamma][delta] +=
-    //               //            coeff_C[eps][zet][eta][the] *
-    //               //            (
-    //               //              transformation_matrix_orthotropic_sDeriv(alpha, eps) * transformation_matrix_orthotropic(beta, zet) * transformation_matrix_orthotropic(gamma, eta) * transformation_matrix_orthotropic(delta, the) +
-    //               //              transformation_matrix_orthotropic(alpha, eps) * transformation_matrix_orthotropic_sDeriv(beta, zet) * transformation_matrix_orthotropic(gamma, eta) * transformation_matrix_orthotropic(delta, the) +
-    //               //              transformation_matrix_orthotropic(alpha, eps) * transformation_matrix_orthotropic(beta, zet) * transformation_matrix_orthotropic_sDeriv(gamma, eta) * transformation_matrix_orthotropic(delta, the) +
-    //               //              transformation_matrix_orthotropic(alpha, eps) * transformation_matrix_orthotropic(beta, zet) * transformation_matrix_orthotropic(gamma, eta) * transformation_matrix_orthotropic_sDeriv(delta, the)
-    //               //              );
-
-    //               //          C_reference_rsDeriv[alpha][beta][gamma][delta] +=
-    //               //            coeff_C[eps][zet][eta][the] *
-    //               //            (
-          
-    //               //              transformation_matrix_orthotropic_rsDeriv(alpha, eps) * transformation_matrix_orthotropic(beta, zet) * transformation_matrix_orthotropic(gamma, eta) * transformation_matrix_orthotropic(delta, the) + 
-    //               //              transformation_matrix_orthotropic(alpha, eps) * transformation_matrix_orthotropic_rsDeriv(beta, zet) * transformation_matrix_orthotropic(gamma, eta) * transformation_matrix_orthotropic(delta, the) + 
-    //               //              transformation_matrix_orthotropic(alpha, eps) * transformation_matrix_orthotropic(beta, zet) * transformation_matrix_orthotropic_rsDeriv(gamma, eta) * transformation_matrix_orthotropic(delta, the) + 
-    //               //              transformation_matrix_orthotropic(alpha, eps) * transformation_matrix_orthotropic(beta, zet) * transformation_matrix_orthotropic(gamma, eta) * transformation_matrix_orthotropic_rsDeriv(delta, the) + 
-    //               //              transformation_matrix_orthotropic_rDeriv(alpha, eps) * transformation_matrix_orthotropic_sDeriv(beta, zet) * transformation_matrix_orthotropic(gamma, eta) * transformation_matrix_orthotropic(delta, the) + 
-    //               //              transformation_matrix_orthotropic_sDeriv(alpha, eps) * transformation_matrix_orthotropic_rDeriv(beta, zet) * transformation_matrix_orthotropic(gamma, eta) * transformation_matrix_orthotropic(delta, the) + 
-    //               //              transformation_matrix_orthotropic_rDeriv(alpha, eps) * transformation_matrix_orthotropic(beta, zet) * transformation_matrix_orthotropic_sDeriv(gamma, eta) * transformation_matrix_orthotropic(delta, the) + 
-    //               //              transformation_matrix_orthotropic_sDeriv(alpha, eps) * transformation_matrix_orthotropic(beta, zet) * transformation_matrix_orthotropic_rDeriv(gamma, eta) * transformation_matrix_orthotropic(delta, the) + 
-    //               //              transformation_matrix_orthotropic_rDeriv(alpha, eps) * transformation_matrix_orthotropic(beta, zet) * transformation_matrix_orthotropic(gamma, eta) * transformation_matrix_orthotropic_sDeriv(delta, the) + 
-    //               //              transformation_matrix_orthotropic_sDeriv(alpha, eps) * transformation_matrix_orthotropic(beta, zet) * transformation_matrix_orthotropic(gamma, eta) * transformation_matrix_orthotropic_rDeriv(delta, the) + 
-    //               //              transformation_matrix_orthotropic(alpha, eps) * transformation_matrix_orthotropic_rDeriv(beta, zet) * transformation_matrix_orthotropic_sDeriv(gamma, eta) * transformation_matrix_orthotropic(delta, the) + 
-    //               //              transformation_matrix_orthotropic(alpha, eps) * transformation_matrix_orthotropic_sDeriv(beta, zet) * transformation_matrix_orthotropic_rDeriv(gamma, eta) * transformation_matrix_orthotropic(delta, the) + 
-    //               //              transformation_matrix_orthotropic(alpha, eps) * transformation_matrix_orthotropic_rDeriv(beta, zet) * transformation_matrix_orthotropic(gamma, eta) * transformation_matrix_orthotropic_sDeriv(delta, the) + 
-    //               //              transformation_matrix_orthotropic(alpha, eps) * transformation_matrix_orthotropic_sDeriv(beta, zet) * transformation_matrix_orthotropic(gamma, eta) * transformation_matrix_orthotropic_rDeriv(delta, the) + 
-    //               //              transformation_matrix_orthotropic(alpha, eps) * transformation_matrix_orthotropic(beta, zet) * transformation_matrix_orthotropic_rDeriv(gamma, eta) * transformation_matrix_orthotropic_sDeriv(delta, the) + 
-    //               //              transformation_matrix_orthotropic(alpha, eps) * transformation_matrix_orthotropic(beta, zet) * transformation_matrix_orthotropic_sDeriv(gamma, eta) * transformation_matrix_orthotropic_rDeriv(delta, the)
-    //               //              );
-    //               //         
-
-    //               //        }
-    //               //      }
-    //               //    }
-    //               //  }
-    //               //}
-
-    //               c_current_sDeriv[alpha][beta][gamma][delta] = InverseDetF_sDeriv * C_reference[alpha][beta][gamma][delta] + InverseDetF * C_reference_sDeriv[alpha][beta][gamma][delta];
-
-    //               c_current_rsDeriv[alpha][beta][gamma][delta] = InverseDetF_rsDeriv * C_reference[alpha][beta][gamma][delta] +
-    //                 InverseDetF_rDeriv * C_reference_sDeriv[alpha][beta][gamma][delta] +
-    //                 InverseDetF_sDeriv * C_reference_rDeriv[alpha][beta][gamma][delta] +
-    //                 InverseDetF * C_reference_rsDeriv[alpha][beta][gamma][delta];
-
-
-    //               sigma_sDeriv(alpha, beta) +=
-    //                 c_current_sDeriv[alpha][beta][gamma][delta] * e(gamma, delta) +
-    //                 c_current[alpha][beta][gamma][delta] * e_sDeriv(gamma, delta);
-
-    //               sigma_rsDeriv(alpha, beta) += c_current_rsDeriv[alpha][beta][gamma][delta] * e(gamma, delta) +
-    //                 c_current_rDeriv[alpha][beta][gamma][delta] * e_sDeriv(gamma, delta) +
-    //                 c_current_sDeriv[alpha][beta][gamma][delta] * e_rDeriv(gamma, delta) +
-    //                 c_current[alpha][beta][gamma][delta] * e_rsDeriv(gamma, delta);
-    //             }
-    //           }
-    //         }
-    //       }
-
-
-    //       // =================================================================
-    //       // elemental stiffness matrix (Dieringer - equation 5.15)
-    //       // =================================================================
-    //       double k_elm = 0.0;
-    //       for (SizeType m = 0; m < 2; m++){
-    //         for (SizeType n = 0; n < 2; n++) {
-    //           for (SizeType l = 0; l < 2; l++) {
-    //             for (SizeType k = 0; k < 2; k++) {
-    //               k_elm += ((sigma_sDeriv(m, n) * sigma_rDeriv(l, k)) + ((sigma(m, n) - sigma_pre_current_contra(m, n)) * sigma_rsDeriv(l, k))) * covariant_metric_current(m, l) * covariant_metric_current(n, k);
-    //             }
-    //           }
-    //         }
-    //       }
-
-    //       rLeftHandSideMatrix(r, s) += (k_elm * integration_weight_i * da_current);
-
-    //     }
-
-    //   }
-
-
-    //   // =================================================================
-    //   // calculation of response function (Dieringer - equation 5.12)
-    //   // =================================================================
-
-    //   /*Matrix delta_sigma = ZeroMatrix(2);
-    //   delta_sigma = sigma - sigma_pre_current_contra;
-
-    //   double delta_sigma_2 = 0.0;
-
-    //   for (SizeType m = 0; m < 2; m++) {
-    //     for (SizeType n = 0; n < 2; n++) {
-    //       for (SizeType l = 0; l < 2; l++) {
-    //         for (SizeType k = 0; k < 2; k++) {
-    //           delta_sigma_2 += delta_sigma(m, n) * delta_sigma(l, k) * covariant_metric_current(m, l) * covariant_metric_current(n, k);
-    //         }
-    //       }
-    //     }
-    //   }
-
-    //   delta_sigma_2 = delta_sigma_2 * integration_weight_i * da_current;
-
-    //   rResponse += 0.5 * delta_sigma_2;*/
-    // }
-
-    // KRATOS_CATCH("");
+     rTransMat = ZeroMatrix(2);
+     rTransMat(0, 0) = inner_prod(rTransformedBaseVectors[0], rCurvilinearBaseVectors[0]);
+     rTransMat(0, 1) = inner_prod(rTransformedBaseVectors[0], rCurvilinearBaseVectors[1]);
+     rTransMat(1, 0) = inner_prod(rTransformedBaseVectors[1], rCurvilinearBaseVectors[0]);
+     rTransMat(1, 1) = inner_prod(rTransformedBaseVectors[1], rCurvilinearBaseVectors[1]);
+  }*/
+
+
+  void MembraneCuttingPatternElement::save(Serializer& rSerializer) const
+  {
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
+    rSerializer.save("mConstitutiveLawVector", mConstitutiveLawVector);
+  }
+
+  void MembraneCuttingPatternElement::load(Serializer& rSerializer)
+  {
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
+    rSerializer.load("mConstitutiveLawVector", mConstitutiveLawVector);
   }
 
 
-
-  
-  void MembraneCuttingPatternElement::comp_Transformation_Matrix(Matrix& rTransMat, const array_1d<Vector, 2>& rBaseVector1, const array_1d<Vector, 2>& rBaseVector2)
-  {
-    // rTransMat = ZeroMatrix(2);
-    // rTransMat(0, 0) = inner_prod(rBaseVector1[0], rBaseVector2[0]);
-    // rTransMat(0, 1) = inner_prod(rBaseVector1[0], rBaseVector2[1]);
-    // rTransMat(1, 0) = inner_prod(rBaseVector1[1], rBaseVector2[0]);
-    // rTransMat(1, 1) = inner_prod(rBaseVector1[1], rBaseVector2[1]);
-  }
-
-
-
-  void MembraneCuttingPatternElement::DerivativeElementalArea(double& rDerivElementalArea, const array_1d<Vector, 2>& rCovariantBaseVectors, const array_1d<Vector, 2>& rCovariantBaseVectorsDerivative)
-  {
-    // Vector cross_G1G2 = ZeroVector(3);
-    // MathUtils<double>::CrossProduct(cross_G1G2, rCovariantBaseVectors[0], rCovariantBaseVectors[1]);
-
-    // const double dA = MathUtils<double>::Norm(cross_G1G2);
-
-    // Vector cross_dG1_G2 = ZeroVector(3);
-    // MathUtils<double>::CrossProduct(cross_dG1_G2, rCovariantBaseVectorsDerivative[0], rCovariantBaseVectors[1]);
-
-    // Vector cross_G1_dG2 = ZeroVector(3);
-    // MathUtils<double>::CrossProduct(cross_G1_dG2, rCovariantBaseVectors[0], rCovariantBaseVectorsDerivative[1]);
-
-    // Vector cross_derivative = cross_dG1_G2 + cross_G1_dG2;
-
-    // rDerivElementalArea = inner_prod(cross_derivative, cross_G1G2) / dA;
-  }
-
-
-
-  void MembraneCuttingPatternElement::Derivative2ElementalArea(double& rDeriv2ElementalArea, const array_1d<Vector, 2>& rCovariantBaseVectors, const array_1d<Vector, 2>& rCovariantBaseVectorsDerivativeR, const array_1d<Vector, 2>& rCovariantBaseVectorsDerivativeS)
-  {
-    // Vector cross_G1G2 = ZeroVector(3);
-    // MathUtils<double>::CrossProduct(cross_G1G2, rCovariantBaseVectors[0], rCovariantBaseVectors[1]);
-
-    // const double dA = MathUtils<double>::Norm(cross_G1G2);
-
-    // Vector cross_rG1_G2 = ZeroVector(3);
-    // MathUtils<double>::CrossProduct(cross_rG1_G2, rCovariantBaseVectorsDerivativeR[0], rCovariantBaseVectors[1]);
-
-    // Vector cross_G1_rG2 = ZeroVector(3);
-    // MathUtils<double>::CrossProduct(cross_G1_rG2, rCovariantBaseVectors[0], rCovariantBaseVectorsDerivativeR[1]);
-
-    // const Vector cross_rDeriv = cross_rG1_G2 + cross_G1_rG2;
-
-    // Vector cross_sG1_G2 = ZeroVector(3);
-    // MathUtils<double>::CrossProduct(cross_sG1_G2, rCovariantBaseVectorsDerivativeS[0], rCovariantBaseVectors[1]);
-
-    // Vector cross_G1_sG2 = ZeroVector(3);
-    // MathUtils<double>::CrossProduct(cross_G1_sG2, rCovariantBaseVectors[0], rCovariantBaseVectorsDerivativeS[1]);
-
-    // const Vector cross_sDeriv = cross_sG1_G2 + cross_G1_sG2;
-
-    // Vector cross_rG1_sG2 = ZeroVector(3);
-    // MathUtils<double>::CrossProduct(cross_rG1_sG2, rCovariantBaseVectorsDerivativeR[0], rCovariantBaseVectorsDerivativeS[1]);
-
-    // Vector cross_sG1_rG2 = ZeroVector(3);
-    // MathUtils<double>::CrossProduct(cross_sG1_rG2, rCovariantBaseVectorsDerivativeS[0], rCovariantBaseVectorsDerivativeR[1]);
-
-    // const Vector cross_rsDeriv = cross_rG1_sG2 + cross_sG1_rG2;
-
-    // const double cross_r_dot_cross = inner_prod(cross_rDeriv, cross_G1G2);
-    // const double cross_s_dot_cross = inner_prod(cross_sDeriv, cross_G1G2);
-
-    // rDeriv2ElementalArea =
-    //   (inner_prod(cross_rsDeriv, cross_G1G2) + inner_prod(cross_rDeriv, cross_sDeriv)) / dA
-    //   - (cross_r_dot_cross * cross_s_dot_cross) / (dA * dA * dA);
-  }
 
 }

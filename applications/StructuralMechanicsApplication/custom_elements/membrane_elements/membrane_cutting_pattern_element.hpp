@@ -40,7 +40,7 @@ namespace Kratos
 
 
 
-    enum class VoigtType {
+    /*enum class VoigtType {
       Strain,
       Stress
     };
@@ -48,7 +48,7 @@ namespace Kratos
     enum class ConfigurationType {
       Current,
       Reference
-    };
+    };*/
 
     // Name Operations
 
@@ -59,11 +59,11 @@ namespace Kratos
      * @param pProperties The pointer to property
      * @return The pointer to the created element
      */
-    Element::Pointer Create(
+    /*Element::Pointer Create(
         IndexType NewId,
         GeometryType::Pointer pGeom,
         PropertiesType::Pointer pProperties
-        ) const override;
+        ) const override;*/
 
     /**
      * @brief Creates a new element
@@ -72,23 +72,23 @@ namespace Kratos
      * @param pProperties The pointer to property
      * @return The pointer to the created element
      */
-    Element::Pointer Create(
+    /*Element::Pointer Create(
         IndexType NewId,
         NodesArrayType const& ThisNodes,
         PropertiesType::Pointer pProperties
-        ) const override;
+        ) const override;*/
 
-    void EquationIdVector(
+    /*void EquationIdVector(
       EquationIdVectorType& rResult,
       const ProcessInfo& rCurrentProcessInfo) const override;
 
     void GetDofList(
       DofsVectorType& ElementalDofList,
-      const ProcessInfo& rCurrentProcessInfo) const override;
+      const ProcessInfo& rCurrentProcessInfo) const override;*/
 
-    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
+    /*void Initialize(const ProcessInfo& rCurrentProcessInfo) override;*/
 
-    void CalculateLeftHandSide(
+    /*void CalculateLeftHandSide(
       MatrixType& rLeftHandSideMatrix,
       const ProcessInfo& rCurrentProcessInfo) override;
 
@@ -153,76 +153,106 @@ namespace Kratos
     void CalculateDampingMatrix(MatrixType& rDampingMatrix,
       const ProcessInfo& rCurrentProcessInfo) override;
 
-    const Parameters GetSpecifications() const override;
+    const Parameters GetSpecifications() const override;*/
 
     // ---------------------------------------------------------------------
     // functions for cutting-pattern generation
     // ---------------------------------------------------------------------
     
-    void comp_Relaxation(
+    void Relaxation(
       MatrixType& rLeftHandSideMatrix, 
       VectorType& rRightHandSideVector, 
       const ProcessInfo& rCurrentProcessInfo);
 
-    void InternalForces_Least_Square(
+    void OptimizationLeastSquare(
+      MatrixType& rLeftHandSideMatrix,
+      VectorType& rRightHandSideVector,
+      double& rResponse,
+      ConstitutiveLaw::Parameters& rValues);
+
+    void StiffnessMatrixLeastSquare(
+      Matrix& rStiffnessMatrix,
+      const IntegrationMethod& ThisMethod,
+      ConstitutiveLaw::Parameters& rValues);
+
+    void InternalForcesLeastSquare(
       Vector& rInternalForces, 
       const IntegrationMethod& ThisMethod, 
-      const ProcessInfo& rCurrentProcessInfo);
+      ConstitutiveLaw::Parameters& rValues);
 
     void ResponseFunction_Least_Square(
-      double& rResponse,
-      const IntegrationMethod& ThisMethod,
-      const ProcessInfo& rCurrentProcessInfo);
+      double& rResponseLS, 
+      const IntegrationMethod& ThisMethod, 
+      ConstitutiveLaw::Parameters& rValues);
 
     void StrainEulerAlmansi(
-      Vector& rStrain,
+      Matrix& rStrain,
       const Matrix& rReferenceCoVariantMetric,
-      const Matrix& rCurrentCoVariantMetric,
-      const Matrix& rTransformationMatrix);
+      const Matrix& rCurrentCoVariantMetric);
 
     void DerivativeStrainEulerAlmansi(
-      Vector& rStrain, const Matrix& rShapeFunctionGradientValues,
+      Matrix& rStrain, 
+      const Matrix& rShapeFunctionGradientValues, 
       const SizeType DofR,
-      const array_1d<Vector, 2> rReferenceCovariantBaseVectors,
-      const Matrix& rTransformationMatrix);
+      const array_1d<Vector, 2> rReferenceCovariantBaseVectors);
+
+    void Derivative2StrainEulerAlmansi(
+      Matrix& rStrain,
+      const Matrix& rShapeFunctionGradientValues,
+      const SizeType DofR, const SizeType DofS);
 
     void Elasticity_Tensor_Kirchhoff(
       double rC_reference[2][2][2][2],
       double rc_current[2][2][2][2],
-      const IntegrationMethod& ThisMethod,
+      const Matrix& rShapeFunctionGradientValues,
+      const double YoungModulus,
+      const double PoissonRatio);
+
+    void DerivativeElasticity_Tensor_Kirchhoff(
+      double rDerivC_reference[2][2][2][2],
+      double rDerivc_current[2][2][2][2],
+      const Matrix& rShapeFunctionGradientValues,
+      const SizeType DofR,
+      const double YoungModulus,
+      const double PoissonRatio);
+
+    void Derivative2Elasticity_Tensor_Kirchhoff(
+      double rDeriv2C_reference[2][2][2][2],
+      double rDeriv2c_current[2][2][2][2],
+      const Matrix& rShapeFunctionGradientValues,
+      const SizeType DofR, const SizeType DofS,
+      const double YoungModulus,
+      const double PoissonRatio);
+
+    void CauchyStress(
+      Matrix& rStress,
+      const Matrix& rShapeFunctionGradientValues,
+      const double YoungModulus,
+      const double PoissonRatio);
+
+    void DerivativeCauchyStress(
+      Matrix& rStress,
+      const Matrix& rShapeFunctionGradientValues,
+      const SizeType DofR,
+      const double YoungModulus,
+      const double PoissonRatio);
+
+    void Derivative2CauchyStress(
+      Matrix& rStress,
+      const Matrix& rShapeFunctionGradientValues,
+      const SizeType DofR,
+      const SizeType DofS,
       const double YoungModulus,
       const double PoissonRatio);
 
     void PreStress(
-      Vector& rPreStress,
-      const array_1d<Vector, 2>& rTransformedBaseVectors);
+      Matrix& rPreStress/*,
+      const array_1d<Vector, 2>& rTransformedBaseVectors*/);
 
-    void comp_Optimization_Least_Square(
-      Matrix& rLeftHandSideMatrix,
-      Vector& rRightHandSideVector,
-      ConstitutiveLaw::Parameters& rValues,
-      const Properties& rMaterialProperties,
-      double& rArea3DElem,
-      double& rArea2DElem,
-      double& rResponse,
-      const Matrix& rFiberDirectionsRef,
-      const ProcessInfo& rCurrentProcessInfo);
-
-    void comp_Transformation_Matrix(
+    /*void TensorTransformationMatrix(
       Matrix& rTransMat,
-      const array_1d<Vector, 2>& rBaseVector1,
-      const array_1d<Vector, 2>& rBaseVector2);
-
-    void DerivativeElementalArea(
-      double& rDerivElementalArea, 
-      const array_1d<Vector, 2>& rCovariantBaseVectors, 
-      const array_1d<Vector, 2>& rCovariantBaseVectorsDerivative);
-
-    void Derivative2ElementalArea(
-      double& rDeriv2ElementalArea, 
-      const array_1d<Vector, 2>& rCovariantBaseVectors, 
-      const array_1d<Vector, 2>& rCovariantBaseVectorsDerivativeR, 
-      const array_1d<Vector, 2>& rCovariantBaseVectorsDerivativeS);
+      const array_1d<Vector, 2>& rTransformedBaseVectors,
+      const T& rCurvilinearBaseVectors);*/
 
 
   private:
@@ -357,6 +387,10 @@ namespace Kratos
     void DerivativeCurrentCovariantMetric(Matrix& rMetric,
       const Matrix& rShapeFunctionGradientValues, const SizeType DofR, const array_1d<Vector,2> rCurrentCovariantBaseVectors);
 
+    void DerivativeContravariantMetric(Matrix& rMetric, const Matrix& rShapeFunctionGradientValues, const SizeType DofR, const array_1d<Vector, 2>& rCovariantBaseVectors);
+
+    void Derivative2ContravariantMetric(Matrix& rMetric, const Matrix& rShapeFunctionGradientValues, const SizeType DofR, const SizeType DofS, const array_1d<Vector, 2>& rCovariantBaseVectors);
+
 
       /**
      * @brief Calculates the internal forces
@@ -441,22 +475,35 @@ namespace Kratos
      * @param rPrincipalVector the principal vectors
      * @param rNonPrincipalVector reference state
      */
-    void PrincipalVector(Vector& rPrincipalVector, const Vector& rNonPrincipalVector);
+    /*void PrincipalVector(Vector& rPrincipalVector, const Vector& rNonPrincipalVector);*/
 
 
-    void CalculateOnIntegrationPoints(const Variable<Vector >& rVariable,
-        std::vector< Vector >& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
+    /*void CalculateOnIntegrationPoints(const Variable<Vector >& rVariable,
+        std::vector< Vector >& rOutput, const ProcessInfo& rCurrentProcessInfo) override;*/
 
     void DeformationGradient(Matrix& rDeformationGradient, double& rDetDeformationGradient,
        const array_1d<Vector,2>& rCurrentCovariantBase, const array_1d<Vector,2>& rReferenceContraVariantBase);
 
+    void DerivativeInvDetDeformationGradient(
+      double& rDerivInvDetDeformationGradient,
+      const Matrix& rShapeFunctionGradientValues,
+      const array_1d<Vector, 2>& rCurrentCovariantBaseVectors,
+      const array_1d<Vector, 2>& rReferenceCovariantBaseVectors,
+      const SizeType DofR);
 
-    void CalculateAndAddBodyForce(VectorType& rRightHandSideVector,const ProcessInfo& rCurrentProcessInfo) const;
+    void Derivative2InvDetDeformationGradient(
+      double& rDeriv2InvDetDeformationGradient,
+      const Matrix& rShapeFunctionGradientValues,
+      const array_1d<Vector, 2>& rCurrentCovariantBaseVectors,
+      const array_1d<Vector, 2>& rReferenceCovariantBaseVectors,
+      const SizeType DofR, const SizeType DofS);
 
-    void ReferenceLumpingFactors(Vector& rResult) const;
+   /* void CalculateAndAddBodyForce(VectorType& rRightHandSideVector,const ProcessInfo& rCurrentProcessInfo) const;*/
+
+    /*void ReferenceLumpingFactors(Vector& rResult) const;*/
 
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector; /// The vector containing the constitutive laws
-    double CalculateReferenceArea() const;
+    /*double CalculateReferenceArea() const;*/
 
     ///@}
     ///@name Serialization
