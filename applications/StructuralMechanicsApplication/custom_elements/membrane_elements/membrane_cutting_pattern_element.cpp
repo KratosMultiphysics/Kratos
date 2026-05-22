@@ -490,12 +490,12 @@ namespace Kratos
     const array_1d<Vector, 2> rReferenceCovariantBaseVectors)
   {
 
-    /*rStrain = ZeroMatrix(2);
+    rStrain = ZeroMatrix(2);
 
     Matrix reference_covariant_metric_derivative = ZeroMatrix(2);
     this->DerivativeCurrentCovariantMetric(reference_covariant_metric_derivative, rShapeFunctionGradientValues, DofR, rReferenceCovariantBaseVectors);
 
-    rStrain = -0.50 * reference_covariant_metric_derivative;*/
+    rStrain = -0.50 * reference_covariant_metric_derivative;
   
   }
 
