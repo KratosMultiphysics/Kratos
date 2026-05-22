@@ -12,14 +12,11 @@
 
 #include "containers/model.h"
 #include "custom_processes/apply_constant_interpolate_line_pressure_process.h"
-#include "custom_processes/apply_scalar_constraint_table_process.h"
-#include "geo_mechanics_application_variables.h"
-#include "geometries/point.h"
-#include "includes/kratos_flags.h"
 #include "includes/model_part.h"
 #include "test_setup_utilities/model_setup_utilities.h"
 #include "testing/testing.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include "tests/cpp_tests/test_utilities.h"
 
 #include "includes/smart_pointers.h"
 
@@ -103,7 +100,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressureProcess_ExecuteIni
 
     // Set initial pressure values for boundary nodes
     for (auto& r_node : r_model_part.Nodes()) {
-        r_node.FastGetSolutionStepValue(WATER_PRESSURE) = 10.0 * static_cast<double>(r_node.Id());
+        r_node.FastGetSolutionStepValue(WATER_PRESSURE) = -10.0 * static_cast<double>(r_node.Id());
     }
 
     const auto params = Parameters(R"({
@@ -125,7 +122,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressureProcess_ExecuteIni
     // Assert
     for (auto& r_node : r_model_part.Nodes()) {
         KRATOS_EXPECT_TRUE(r_node.IsFixed(WATER_PRESSURE))
-        KRATOS_EXPECT_DOUBLE_EQ(r_node.FastGetSolutionStepValue(WATER_PRESSURE), 10.0 * r_node.Id());
+        KRATOS_EXPECT_DOUBLE_EQ(r_node.FastGetSolutionStepValue(WATER_PRESSURE), -10.0 * r_node.Id());
     }
 }
 
@@ -226,7 +223,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressureProcess_DoesNotFre
     for (auto& r_node : r_model_part.Nodes()) {
         r_node.AddDof(WATER_PRESSURE);
         r_node.Fix(WATER_PRESSURE);
-        r_node.FastGetSolutionStepValue(WATER_PRESSURE) = 10.0 * static_cast<double>(r_node.Id());
+        r_node.FastGetSolutionStepValue(WATER_PRESSURE) = -10.0 * static_cast<double>(r_node.Id());
     }
 
     const auto params = Parameters(R"({
@@ -260,7 +257,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressureProcess_FreesWhenI
     for (auto& r_node : r_model_part.Nodes()) {
         r_node.AddDof(WATER_PRESSURE);
         r_node.Fix(WATER_PRESSURE);
-        r_node.FastGetSolutionStepValue(WATER_PRESSURE) = 10.0 * static_cast<double>(r_node.Id());
+        r_node.FastGetSolutionStepValue(WATER_PRESSURE) = -10.0 * static_cast<double>(r_node.Id());
     }
 
     const auto params = Parameters(R"({
@@ -298,11 +295,11 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressureProcess_ExecuteIni
 
     // Top boundary (y = 10)
     r_model_part.CreateNewNode(1, 0.0, 10.0, 0.0)->FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
-    r_model_part.CreateNewNode(2, 10.0, 10.0, 0.0)->FastGetSolutionStepValue(WATER_PRESSURE) = 100.0;
+    r_model_part.CreateNewNode(2, 10.0, 10.0, 0.0)->FastGetSolutionStepValue(WATER_PRESSURE) = -100.0;
 
     // Bottom boundary (y = 0)
-    r_model_part.CreateNewNode(3, 0.0, 0.0, 0.0)->FastGetSolutionStepValue(WATER_PRESSURE)  = 0.0;
-    r_model_part.CreateNewNode(4, 10.0, 0.0, 0.0)->FastGetSolutionStepValue(WATER_PRESSURE) = 100.0;
+    r_model_part.CreateNewNode(3, 0.0, 0.0, 0.0)->FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
+    r_model_part.CreateNewNode(4, 10.0, 0.0, 0.0)->FastGetSolutionStepValue(WATER_PRESSURE) = -100.0;
 
     // Interior node — not part of any element, so not a boundary node.
     // CalculatePressure will interpolate it to 50.0.
@@ -325,24 +322,28 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressureProcess_ExecuteIni
 
     ApplyConstantInterpolateLinePressureProcess process(r_model_part, params);
 
-    // Act: first call sets the interior node to the interpolated value (50.0).
+    // Act: first call sets the interior node to the interpolated value (-50.0).
     process.ExecuteInitializeSolutionStep();
-    KRATOS_EXPECT_NEAR(interior_node->FastGetSolutionStepValue(WATER_PRESSURE), 50.0, 1e-10);
+    constexpr auto tolerance                   = Defaults::absolute_tolerance * 100.0;
+    constexpr auto expected_interpolated_value = -50;
+    KRATOS_EXPECT_NEAR(interior_node->FastGetSolutionStepValue(WATER_PRESSURE),
+                       expected_interpolated_value, tolerance);
 
-    // Reset the interior node to a sentinel that clearly differs from 50.0.
-    constexpr double sentinel = 99999.0;
+    // Reset the interior node to a sentinel that clearly differs from -50.0.
+    constexpr auto sentinel = -99999.0;
     interior_node->Free(WATER_PRESSURE);
     interior_node->FastGetSolutionStepValue(WATER_PRESSURE) = sentinel;
 
     // Act: second call must be a no-op (guarded by mIsInitialized).
     process.ExecuteInitializeSolutionStep();
 
-    // Assert: interior node retains the sentinel value, not the interpolated 50.0.
+    // Assert: interior node retains the sentinel value, not the interpolated -50.0.
     KRATOS_EXPECT_FALSE(interior_node->IsFixed(WATER_PRESSURE))
-    KRATOS_EXPECT_NEAR(interior_node->FastGetSolutionStepValue(WATER_PRESSURE), sentinel, 1e-10);
+    KRATOS_EXPECT_NEAR(interior_node->FastGetSolutionStepValue(WATER_PRESSURE), sentinel, tolerance);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressure_IndirectPrivateCoverage, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressure_InterpolatesInteriorFromTopAndBottomBoundaries,
+                          KratosGeoMechanicsFastSuite)
 {
     // Arrange
     Model      model;
@@ -356,17 +357,17 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressure_IndirectPrivateCo
     auto top_node_3 = r_model_part.CreateNewNode(3, 10.0, 10.0, 0.0);
 
     top_node_1->FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
-    top_node_2->FastGetSolutionStepValue(WATER_PRESSURE) = 50.0;
-    top_node_3->FastGetSolutionStepValue(WATER_PRESSURE) = 100.0;
+    top_node_2->FastGetSolutionStepValue(WATER_PRESSURE) = -50.0;
+    top_node_3->FastGetSolutionStepValue(WATER_PRESSURE) = -100.0;
 
     // BOTTOM boundary (y = 0)
     auto bottom_node_1 = r_model_part.CreateNewNode(4, 0.0, 0.0, 0.0);
     auto bottom_node_2 = r_model_part.CreateNewNode(5, 5.0, 0.0, 0.0);
     auto bottom_node_3 = r_model_part.CreateNewNode(6, 10.0, 0.0, 0.0);
 
-    bottom_node_1->FastGetSolutionStepValue(WATER_PRESSURE) = 100.0;
-    bottom_node_2->FastGetSolutionStepValue(WATER_PRESSURE) = 150.0;
-    bottom_node_3->FastGetSolutionStepValue(WATER_PRESSURE) = 200.0;
+    bottom_node_1->FastGetSolutionStepValue(WATER_PRESSURE) = -100.0;
+    bottom_node_2->FastGetSolutionStepValue(WATER_PRESSURE) = -150.0;
+    bottom_node_3->FastGetSolutionStepValue(WATER_PRESSURE) = -200.0;
 
     auto interior_node = r_model_part.CreateNewNode(7, 7.5, 5.0, 0.0);
 
@@ -393,11 +394,12 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressure_IndirectPrivateCo
     process.ExecuteInitializeSolutionStep();
 
     // Assert
-    constexpr auto expected_top = 75.0;  // from top boundary
-    constexpr auto expected_bot = 175.0; // from bottom boundary
-    constexpr auto expected = (expected_top - expected_bot) / (10.0 - 0.0) * (5.0 - 0.0) + expected_bot;
+    constexpr auto expected_top = -75.0;  // from top boundary
+    constexpr auto expected_bot = -175.0; // from bottom boundary
+    constexpr auto expected_value = (expected_top - expected_bot) / (10.0 - 0.0) * (5.0 - 0.0) + expected_bot;
 
-    KRATOS_EXPECT_NEAR(interior_node->FastGetSolutionStepValue(WATER_PRESSURE), expected, 1e-12);
+    KRATOS_EXPECT_NEAR(interior_node->FastGetSolutionStepValue(WATER_PRESSURE), expected_value,
+                       Defaults::absolute_tolerance);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressure_NoBoundaryNodes, KratosGeoMechanicsFastSuite)
@@ -440,9 +442,9 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressure_ExtrapolatesWhenN
     r_model_part.AddNodalSolutionStepVariable(WATER_PRESSURE);
 
     r_model_part.CreateNewNode(1, 0.0, 10.0, 0.0)->FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
-    r_model_part.CreateNewNode(2, 5.0, 10.0, 0.0)->FastGetSolutionStepValue(WATER_PRESSURE) = 50.0;
-    r_model_part.CreateNewNode(3, 0.0, 0.0, 0.0)->FastGetSolutionStepValue(WATER_PRESSURE)  = 100.0;
-    r_model_part.CreateNewNode(4, 5.0, 0.0, 0.0)->FastGetSolutionStepValue(WATER_PRESSURE)  = 150.0;
+    r_model_part.CreateNewNode(2, 5.0, 10.0, 0.0)->FastGetSolutionStepValue(WATER_PRESSURE) = -50.0;
+    r_model_part.CreateNewNode(3, 0.0, 0.0, 0.0)->FastGetSolutionStepValue(WATER_PRESSURE) = -100.0;
+    r_model_part.CreateNewNode(4, 5.0, 0.0, 0.0)->FastGetSolutionStepValue(WATER_PRESSURE) = -150.0;
 
     auto interior_node = r_model_part.CreateNewNode(5, 10.0, 5.0, 0.0);
     interior_node->FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
@@ -466,7 +468,9 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressure_ExtrapolatesWhenN
     process.ExecuteInitializeSolutionStep();
 
     // Assert
-    KRATOS_EXPECT_NEAR(interior_node->FastGetSolutionStepValue(WATER_PRESSURE), 150.0, 1e-10);
+    constexpr auto expected_value = -150.0;
+    constexpr auto tolerance      = Defaults::absolute_tolerance * 100.0;
+    KRATOS_EXPECT_NEAR(interior_node->FastGetSolutionStepValue(WATER_PRESSURE), expected_value, tolerance);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressure_ExtrapolatesWhenNodeIsLeftOfAllBoundaryNodes,
@@ -486,10 +490,10 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressure_ExtrapolatesWhenN
     ModelPart& r_model_part = model.CreateModelPart("Main");
     r_model_part.AddNodalSolutionStepVariable(WATER_PRESSURE);
 
-    r_model_part.CreateNewNode(1, 5.0, 10.0, 0.0)->FastGetSolutionStepValue(WATER_PRESSURE) = 50.0;
-    r_model_part.CreateNewNode(2, 10.0, 10.0, 0.0)->FastGetSolutionStepValue(WATER_PRESSURE) = 100.0;
-    r_model_part.CreateNewNode(3, 5.0, 0.0, 0.0)->FastGetSolutionStepValue(WATER_PRESSURE)  = 150.0;
-    r_model_part.CreateNewNode(4, 10.0, 0.0, 0.0)->FastGetSolutionStepValue(WATER_PRESSURE) = 200.0;
+    r_model_part.CreateNewNode(1, 5.0, 10.0, 0.0)->FastGetSolutionStepValue(WATER_PRESSURE) = -50.0;
+    r_model_part.CreateNewNode(2, 10.0, 10.0, 0.0)->FastGetSolutionStepValue(WATER_PRESSURE) = -100.0;
+    r_model_part.CreateNewNode(3, 5.0, 0.0, 0.0)->FastGetSolutionStepValue(WATER_PRESSURE) = -150.0;
+    r_model_part.CreateNewNode(4, 10.0, 0.0, 0.0)->FastGetSolutionStepValue(WATER_PRESSURE) = -200.0;
 
     auto interior_node = r_model_part.CreateNewNode(5, 0.0, 5.0, 0.0);
     interior_node->FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
@@ -513,7 +517,9 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressure_ExtrapolatesWhenN
     process.ExecuteInitializeSolutionStep();
 
     // Assert
-    KRATOS_EXPECT_NEAR(interior_node->FastGetSolutionStepValue(WATER_PRESSURE), 50.0, 1e-10);
+    constexpr auto expected_value = -50.0;
+    constexpr auto tolerance      = Defaults::absolute_tolerance * 100.0;
+    KRATOS_EXPECT_NEAR(interior_node->FastGetSolutionStepValue(WATER_PRESSURE), expected_value, tolerance);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressure_NodeAtSameXAsBoundaryNode, KratosGeoMechanicsFastSuite)
@@ -534,9 +540,9 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressure_NodeAtSameXAsBoun
     r_model_part.AddNodalSolutionStepVariable(WATER_PRESSURE);
 
     r_model_part.CreateNewNode(1, 0.0, 10.0, 0.0)->FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
-    r_model_part.CreateNewNode(2, 5.0, 10.0, 0.0)->FastGetSolutionStepValue(WATER_PRESSURE) = 50.0;
-    r_model_part.CreateNewNode(3, 0.0, 0.0, 0.0)->FastGetSolutionStepValue(WATER_PRESSURE)  = 100.0;
-    r_model_part.CreateNewNode(4, 5.0, 0.0, 0.0)->FastGetSolutionStepValue(WATER_PRESSURE)  = 150.0;
+    r_model_part.CreateNewNode(2, 5.0, 10.0, 0.0)->FastGetSolutionStepValue(WATER_PRESSURE) = -50.0;
+    r_model_part.CreateNewNode(3, 0.0, 0.0, 0.0)->FastGetSolutionStepValue(WATER_PRESSURE) = -100.0;
+    r_model_part.CreateNewNode(4, 5.0, 0.0, 0.0)->FastGetSolutionStepValue(WATER_PRESSURE) = -150.0;
 
     // Interior node at x=0: same horizontal coordinate as node1 and node3.
     auto interior_node = r_model_part.CreateNewNode(5, 0.0, 5.0, 0.0);
@@ -561,7 +567,9 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressure_NodeAtSameXAsBoun
     process.ExecuteInitializeSolutionStep();
 
     // Assert
-    KRATOS_EXPECT_NEAR(interior_node->FastGetSolutionStepValue(WATER_PRESSURE), 50.0, 1e-10);
+    constexpr auto expected_value = -50.0;
+    constexpr auto tolerance      = Defaults::absolute_tolerance * 100.0;
+    KRATOS_EXPECT_NEAR(interior_node->FastGetSolutionStepValue(WATER_PRESSURE), expected_value, tolerance);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressure_OneContainerVerticalFallback_WhenHorizontalDifferenceIsTiny,
@@ -578,16 +586,16 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressure_OneContainerVerti
     r_model_part.AddNodalSolutionStepVariable(WATER_PRESSURE);
 
     // GeoMechanics TINY is 1e-60, so use a smaller spacing to force the fallback branch.
-    constexpr double dx = 1.0e-80;
+    constexpr auto dx = 1.0e-80;
 
     // Top boundary (y=10): both nodes have equal pressure, making the expected value
     // independent of FoundNodes ordering inside the fallback branch.
-    r_model_part.CreateNewNode(1, -2.0 * dx, 10.0, 0.0)->FastGetSolutionStepValue(WATER_PRESSURE) = 120.0;
-    r_model_part.CreateNewNode(2, -dx, 10.0, 0.0)->FastGetSolutionStepValue(WATER_PRESSURE) = 120.0;
+    r_model_part.CreateNewNode(1, -2.0 * dx, 10.0, 0.0)->FastGetSolutionStepValue(WATER_PRESSURE) = -120.0;
+    r_model_part.CreateNewNode(2, -dx, 10.0, 0.0)->FastGetSolutionStepValue(WATER_PRESSURE) = -120.0;
 
     // Bottom boundary (y=0): same rationale as top boundary.
-    r_model_part.CreateNewNode(3, -2.0 * dx, 0.0, 0.0)->FastGetSolutionStepValue(WATER_PRESSURE) = 220.0;
-    r_model_part.CreateNewNode(4, -dx, 0.0, 0.0)->FastGetSolutionStepValue(WATER_PRESSURE) = 220.0;
+    r_model_part.CreateNewNode(3, -2.0 * dx, 0.0, 0.0)->FastGetSolutionStepValue(WATER_PRESSURE) = -220.0;
+    r_model_part.CreateNewNode(4, -dx, 0.0, 0.0)->FastGetSolutionStepValue(WATER_PRESSURE) = -220.0;
 
     auto interior_node = r_model_part.CreateNewNode(5, 0.0, 5.0, 0.0);
     interior_node->FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
@@ -612,7 +620,9 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressure_OneContainerVerti
 
     // Assert: top value is 120 at y=10 and bottom value is 220 at y=0.
     // Linear interpolation at y=5 gives 170.
-    KRATOS_EXPECT_NEAR(interior_node->FastGetSolutionStepValue(WATER_PRESSURE), 170.0, 1e-10);
+    constexpr auto expected_value = -170.0;
+    constexpr auto tolerance      = Defaults::absolute_tolerance * 100.0;
+    KRATOS_EXPECT_NEAR(interior_node->FastGetSolutionStepValue(WATER_PRESSURE), expected_value, tolerance);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressure_FlatBoundary_ReturnsBoundaryPressure,
@@ -631,8 +641,8 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressure_FlatBoundary_Retu
     ModelPart& r_model_part = model.CreateModelPart("Main");
     r_model_part.AddNodalSolutionStepVariable(WATER_PRESSURE);
 
-    r_model_part.CreateNewNode(1, 0.0, 5.0, 0.0)->FastGetSolutionStepValue(WATER_PRESSURE)  = 100.0;
-    r_model_part.CreateNewNode(2, 10.0, 5.0, 0.0)->FastGetSolutionStepValue(WATER_PRESSURE) = 200.0;
+    r_model_part.CreateNewNode(1, 0.0, 5.0, 0.0)->FastGetSolutionStepValue(WATER_PRESSURE) = -100.0;
+    r_model_part.CreateNewNode(2, 10.0, 5.0, 0.0)->FastGetSolutionStepValue(WATER_PRESSURE) = -200.0;
 
     // Interior node on the same horizontal level as the boundary.
     auto interior_node = r_model_part.CreateNewNode(3, 5.0, 5.0, 0.0);
@@ -656,7 +666,9 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressure_FlatBoundary_Retu
     process.ExecuteInitializeSolutionStep();
 
     // Assert
-    KRATOS_EXPECT_NEAR(interior_node->FastGetSolutionStepValue(WATER_PRESSURE), 150.0, 1e-10);
+    constexpr auto expected_value = -150.0;
+    constexpr auto tolerance      = Defaults::absolute_tolerance * 100.0;
+    KRATOS_EXPECT_NEAR(interior_node->FastGetSolutionStepValue(WATER_PRESSURE), expected_value, tolerance);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressureProcess_FillListOfBoundaryNodesFast_DynamicAllocation,
@@ -706,8 +718,8 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressureProcess_CalculateB
     auto p_node_2 = r_model_part.CreateNewNode(2, 0.0, 1.0, 0.0);
     auto p_node_3 = r_model_part.CreateNewNode(3, 0.0, 2.0, 0.0); // isolated node
 
-    p_node_1->FastGetSolutionStepValue(WATER_PRESSURE) = 100.0;
-    p_node_2->FastGetSolutionStepValue(WATER_PRESSURE) = 50.0;
+    p_node_1->FastGetSolutionStepValue(WATER_PRESSURE) = -100.0;
+    p_node_2->FastGetSolutionStepValue(WATER_PRESSURE) = -50.0;
     p_node_3->FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
 
     auto p_props = r_model_part.CreateNewProperties(0);
