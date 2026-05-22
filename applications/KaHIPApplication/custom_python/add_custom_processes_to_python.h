@@ -24,6 +24,7 @@ namespace Kratos::Python {
  * @brief Register KaHIPApplication process classes with the Python module.
  * @details Exposes:
  *          - KaHIPDivideHeterogeneousInputProcess
+ *          - KaHIPDivideHeterogeneousInputInMemoryProcess
  * @param m  The pybind11 module object
  */
 void AddCustomProcessesToPython(pybind11::module& m);
