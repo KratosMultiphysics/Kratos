@@ -117,6 +117,67 @@ def _create_outer_support_model_part():
     return current_model, current_model.GetModelPart("IgaModelPart.SBM_Support_outer")
 
 
+def _create_support_pressure_condition_model_part():
+    current_model = KM.Model()
+    iga_model_part = current_model.CreateModelPart("IgaModelPart")
+    iga_model_part.SetBufferSize(2)
+    iga_model_part.AddNodalSolutionStepVariable(KM.VELOCITY)
+    iga_model_part.AddNodalSolutionStepVariable(KM.PRESSURE)
+    iga_model_part.ProcessInfo.SetValue(KM.DOMAIN_SIZE, 3)
+
+    skin_model_part_outer_initial = current_model.CreateModelPart("skin_model_part_outer_initial")
+    skin_model_part_outer_initial.AddNodalSolutionStepVariable(KM.VELOCITY)
+    _create_cube_outer_skin(skin_model_part_outer_initial)
+
+    modeler_settings = KM.Parameters(
+        """
+        [
+            {
+                "modeler_name": "NurbsGeometryModelerSbm",
+                "Parameters": {
+                    "model_part_name" : "IgaModelPart",
+                    "lower_point_xyz": [0.0, 0.0, 0.0],
+                    "upper_point_xyz": [2.0, 2.0, 2.0],
+                    "lower_point_uvw": [0.0, 0.0, 0.0],
+                    "upper_point_uvw": [2.0, 2.0, 2.0],
+                    "polynomial_order" : [1, 1, 1],
+                    "number_of_knot_spans" : [4, 4, 4],
+                    "lambda_outer": 0.5,
+                    "number_of_inner_loops": 0,
+                    "skin_model_part_outer_initial_name": "skin_model_part_outer_initial",
+                    "skin_model_part_name": "skin_model_part",
+                    "echo_level": 0
+                }
+            },
+            {
+                "modeler_name": "IgaModelerSbm",
+                "Parameters": {
+                    "echo_level": 0,
+                    "skin_model_part_name": "skin_model_part",
+                    "analysis_model_part_name": "IgaModelPart",
+                    "element_condition_list": [
+                        {
+                            "geometry_type": "SurfaceEdge",
+                            "iga_model_part": "Support_outer",
+                            "type": "condition",
+                            "name": "SupportPressureCondition",
+                            "shape_function_derivatives_order": 3,
+                            "sbm_parameters": {
+                                "is_inner" : false
+                            }
+                        }
+                    ]
+                }
+            }
+        ]
+        """
+    )
+
+    _run_modelers(current_model, modeler_settings)
+    support_model_part = current_model.GetModelPart("IgaModelPart.Support_outer")
+    return current_model, support_model_part, next(iter(support_model_part.Conditions))
+
+
 def _add_fluid_dofs_and_set_3d_state(model_part):
     for node in model_part.Nodes:
         node.AddDof(KM.VELOCITY_X)
@@ -249,6 +310,64 @@ class SbmStokes3DTests(KratosUnittest.TestCase):
         geometry = condition.GetGeometry()
         shape_functions = geometry.ShapeFunctionsValues()
 
+        tolerance = 1e-10
+        total_increment_per_component = [0.0, 0.0, 0.0]
+        for j in range(geometry.PointsNumber()):
+            for idim in range(3):
+                equation_index = 4 * j + idim
+                total_increment_per_component[idim] += (
+                    rhs_with_normal_stress[equation_index] - rhs_without_normal_stress[equation_index]
+                )
+
+        for j in range(geometry.PointsNumber()):
+            for idim in range(3):
+                equation_index = 4 * j + idim
+                expected_increment = shape_functions[0, j] * total_increment_per_component[idim]
+                actual_increment = rhs_with_normal_stress[equation_index] - rhs_without_normal_stress[equation_index]
+                self.assertAlmostEqual(actual_increment, expected_increment, delta=tolerance)
+
+            pressure_equation_index = 4 * j + 3
+            self.assertAlmostEqual(
+                rhs_with_normal_stress[pressure_equation_index] - rhs_without_normal_stress[pressure_equation_index],
+                0.0,
+                delta=tolerance,
+            )
+
+    def test_SupportPressureCondition3DReadsNormalStress(self):
+        current_model, _, condition = _create_support_pressure_condition_model_part()
+        iga_model_part = current_model.GetModelPart("IgaModelPart")
+
+        condition.SetValue(KM.PRESSURE, 2.5)
+        condition.SetValue(IGA.KNOT_SPAN_SIZES, [0.1, 0.1, 0.1])
+
+        geometry = condition.GetGeometry()
+        for i in range(geometry.PointsNumber()):
+            node = geometry[i]
+            node.AddDof(KM.VELOCITY_X)
+            node.AddDof(KM.VELOCITY_Y)
+            node.AddDof(KM.VELOCITY_Z)
+            node.AddDof(KM.PRESSURE)
+
+        process_info = iga_model_part.ProcessInfo
+        condition.Initialize(process_info)
+
+        rhs_without_normal_stress = KM.Vector()
+        condition.CalculateRightHandSide(rhs_without_normal_stress, process_info)
+
+        normal_stress = KM.Vector(3)
+        normal_stress[0] = 0.7
+        normal_stress[1] = -0.2
+        normal_stress[2] = 0.5
+        condition.SetValue(KM.NORMAL_STRESS, normal_stress)
+
+        stored_normal_stress = condition.GetValue(KM.NORMAL_STRESS)
+        for i in range(3):
+            self.assertAlmostEqual(stored_normal_stress[i], normal_stress[i], delta=1e-12)
+
+        rhs_with_normal_stress = KM.Vector()
+        condition.CalculateRightHandSide(rhs_with_normal_stress, process_info)
+
+        shape_functions = geometry.ShapeFunctionsValues()
         tolerance = 1e-10
         total_increment_per_component = [0.0, 0.0, 0.0]
         for j in range(geometry.PointsNumber()):
