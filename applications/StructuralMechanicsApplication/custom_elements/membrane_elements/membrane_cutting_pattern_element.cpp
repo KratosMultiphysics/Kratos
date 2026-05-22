@@ -46,7 +46,7 @@ namespace Kratos
   void MembraneCuttingPatternElement::Relaxation(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) {
 
   
-    /*KRATOS_TRY;
+    KRATOS_TRY;
 
      const auto& r_geom = GetGeometry();
      const SizeType dimension = r_geom.WorkingSpaceDimension();
@@ -68,14 +68,14 @@ namespace Kratos
      this->TotalStiffnessMatrix(rLeftHandSideMatrix, integration_method, rCurrentProcessInfo);
 
 
-    KRATOS_CATCH("");*/
+    KRATOS_CATCH("");
   }
 
 
   void MembraneCuttingPatternElement::OptimizationLeastSquare(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, double& rResponse, ConstitutiveLaw::Parameters& rValues) {
 
 
-    /*KRATOS_TRY;
+    KRATOS_TRY;
 
     const auto& r_geom = GetGeometry();
     const SizeType dimension = r_geom.WorkingSpaceDimension();
@@ -96,7 +96,7 @@ namespace Kratos
 
     this->ResponseFunction_Least_Square(rResponse, integration_method, rValues);
 
-    KRATOS_CATCH("");*/
+    KRATOS_CATCH("");
   }
 
 

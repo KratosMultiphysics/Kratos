@@ -43,12 +43,12 @@ namespace Kratos
     /*enum class VoigtType {
       Strain,
       Stress
-    };
+    };*/
 
     enum class ConfigurationType {
       Current,
       Reference
-    };*/
+    };
 
     // Name Operations
 
