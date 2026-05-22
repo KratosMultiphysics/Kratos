@@ -26,6 +26,8 @@ def CreateMapper(origin_model_part, destination_model_part, mapper_settings):
         "improved_integration"       : false,
         "mesh_independent"           : false,
         "mesh_independent_weighting" : false,
+        "mesh_independent_weighting_full_mass_origin" : false,
+        "mesh_independent_weighting_full_mass_destination" : false,
         "integration_method"         : "gauss_integration",
         "number_of_gauss_points"     : 5,
         "in_plane_morphing"          : false,

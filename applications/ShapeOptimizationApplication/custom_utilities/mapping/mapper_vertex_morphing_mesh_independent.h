@@ -21,8 +21,11 @@
 // Project includes
 // ------------------------------------------------------------------------------
 #include "mapper_vertex_morphing.h"
+#include "linear_solvers/skyline_lu_factorization_solver.h"
+#include "linear_solvers/amgcl_solver.h"
 #include "processes/find_conditions_neighbours_process.h"
 #include "utilities/math_utils.h"
+#include "custom_utilities/optimization_utilities.h"
 
 // ==============================================================================
 
@@ -35,6 +38,12 @@ namespace Kratos
 ///@}
 ///@name Type Definitions
 ///@{
+using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;
+using LocalSpaceType = UblasSpace<double, Matrix, Vector>;
+using ReordererType = Reorderer<SparseSpaceType, LocalSpaceType>;
+using LinearSolverType = LinearSolver<SparseSpaceType, LocalSpaceType>;
+using SkylineLUFactorizationSolverType = SkylineLUFactorizationSolver<SparseSpaceType, LocalSpaceType, ReordererType>;
+using AMGCLSolverType = AMGCLSolver<SparseSpaceType, LocalSpaceType, ReordererType>;
 
 ///@}
 ///@name  Enum's
@@ -70,6 +79,11 @@ public:
         : MapperVertexMorphing(rOriginModelPart, rDestinationModelPart, MapperSettings)
     {
         mWeighting = MapperSettings["mesh_independent_weighting"].GetBool();
+        mWeightingFullMassOrigin = MapperSettings["mesh_independent_weighting_full_mass_origin"].GetBool();
+        mWeightingFullMassDestination = MapperSettings["mesh_independent_weighting_full_mass_destination"].GetBool();
+        if (mWeightingFullMassOrigin || mWeightingFullMassDestination) {
+            mWeightingFullMass = true;
+        }
     }
 
     /// Destructor.
@@ -144,12 +158,23 @@ public:
         if (mIsMappingInitialized == false)
             Initialize();
 
+        if (mWeightingFullMassDestination) {
+            WeightDestinationValues(rDestinationVariable);
+        }
+
         MapperVertexMorphing::InverseMap(rDestinationVariable, rOriginVariable);
-        ScaleOriginValues(rOriginVariable);
-        if (mWeighting)
-        {
+
+        if (mWeightingFullMassOrigin) {
+            WeightOriginValues(rOriginVariable);
+        }
+
+        if (!mWeightingFullMass) {
             ScaleOriginValues(rOriginVariable);
-            KRATOS_WARNING("ShapeOpt::MapperVertexMorphing") << "Sensitivity Weighting!" << std::endl;
+            if (mWeighting)
+            {
+                ScaleOriginValues(rOriginVariable);
+                KRATOS_WARNING("ShapeOpt::MapperVertexMorphing") << "Sensitivity Weighting!" << std::endl;
+            }
         }
 
     }
@@ -159,12 +184,23 @@ public:
         if (mIsMappingInitialized == false)
             Initialize();
 
+        // if (mWeightingFullMassDestination) {
+        //     WeightDestinationValues(rDestinationVariable);
+        // }
+
         MapperVertexMorphing::InverseMap(rDestinationVariable, rOriginVariable);
-        ScaleOriginValues(rOriginVariable);
-        if (mWeighting)
-        {
+
+        // if (mWeightingFullMassOrigin) {
+        //     WeightOriginValues(rOriginVariable);
+        // }
+
+        if (!mWeightingFullMass) {
             ScaleOriginValues(rOriginVariable);
-            KRATOS_WARNING("ShapeOpt::MapperVertexMorphing") << "Sensitivity Weighting!" << std::endl;
+            if (mWeighting)
+            {
+                ScaleOriginValues(rOriginVariable);
+                KRATOS_WARNING("ShapeOpt::MapperVertexMorphing") << "Sensitivity Weighting!" << std::endl;
+            }
         }
 
     }
@@ -258,6 +294,33 @@ protected:
 
         ComputeNodalAreas(mrOriginModelPart, mOriginNodalAreas);
         ComputeNodalAreas(mrDestinationModelPart, mDestinationNodalAreas);
+
+        const unsigned int origin_node_number = mrOriginModelPart.Nodes().size();
+        const unsigned int destination_node_number = mrDestinationModelPart.Nodes().size();
+
+        if (mWeightingFullMass) {
+            KRATOS_WARNING("ShapeOpt::MapperVertexMorphingMeshIndependent") << "Computing full mass matrix!" << std::endl;
+            mOriginMassMatrix.resize(destination_node_number,origin_node_number,false);
+            mOriginMassMatrix.clear();
+
+            mDestinationMassMatrix.resize(destination_node_number,origin_node_number,false);
+            mDestinationMassMatrix.clear();
+
+            ComputeMassMatrix(mrOriginModelPart, mOriginMassMatrix);
+            ComputeMassMatrix(mrDestinationModelPart, mDestinationMassMatrix);
+
+            for (unsigned int i = 0; i < 10; i++) {
+                for (unsigned int j = 0; j < 10; j++) {
+                    std::cout << "mOriginMassMatrix(" << i << "," << j << "): " << mOriginMassMatrix(i,j) << " " << std::endl;
+                }
+            }
+            for (unsigned int i = 0; i < 10; i++) {
+                for (unsigned int j = 0; j < 10; j++) {
+                    std::cout << "mDestinationMassMatrix(" << i << "," << j << "): " << mOriginMassMatrix(i,j) << " " << std::endl;
+                }
+            }
+        }
+
     }
     ///@}
     ///@name Protected  Access
@@ -288,6 +351,12 @@ private:
     Vector mOriginNodalAreas;
     Vector mDestinationNodalAreas;
     bool mWeighting = false;
+
+    SparseMatrixType mOriginMassMatrix;
+    SparseMatrixType mDestinationMassMatrix;
+    bool mWeightingFullMass = false;
+    bool mWeightingFullMassOrigin = false;
+    bool mWeightingFullMassDestination = false;
 
     ///@}
     ///@name Private Operators
@@ -325,12 +394,110 @@ private:
         }
     }
 
+    void ComputeMassMatrix(ModelPart& rModelPart, SparseMatrixType& rMassMatrix)
+    {
+        for (const auto& rCondition : rModelPart.Conditions())
+        {
+            const auto& rGeometry = rCondition.GetGeometry();
+            const double element_area = rGeometry.DomainSize();
+
+            for (const auto& rNodeI : rGeometry)
+            {
+                const int i = rNodeI.GetValue(MAPPING_ID);
+
+                for (const auto& rNodeJ : rGeometry)
+                {
+                    const int j = rNodeJ.GetValue(MAPPING_ID);
+
+                    if (j < i)
+                        continue; // only compute upper triangle, the matrix is symmetric
+
+                    if (i == j)
+                    {
+                        rMassMatrix(i, j) += (2.0 / 12.0) * element_area;
+                    }
+                    else
+                    {
+                        rMassMatrix(i, j) += (1.0 / 12.0) * element_area;
+                        rMassMatrix(j, i) += (1.0 / 12.0) * element_area;
+                    }
+                }
+            }
+        }
+    }
+
+
     template <typename T>
     void ScaleOriginValues(const T& rOriginVariable) {
         for (auto& node_i : mrOriginModelPart.Nodes())
         {
             node_i.FastGetSolutionStepValue(rOriginVariable) *= node_i.GetValue(VARIABLE_SCALING_FACTOR);
         }
+    }
+
+    // template <typename T>
+    void WeightOriginValues(const Variable<array_3d>& rOriginVariable) {
+
+        Parameters empty_parameters =  Parameters(R"({})");
+        LinearSolverType::Pointer psolver = LinearSolverType::Pointer( new AMGCLSolverType(empty_parameters) );
+
+        Vector raw_sens = ZeroVector(mrOriginModelPart.Nodes().size()*3);
+        Vector weighted_sens = ZeroVector(mrOriginModelPart.Nodes().size()*3);
+        OptimizationUtilities::AssembleVector(mrOriginModelPart, raw_sens, rOriginVariable);
+
+        for (int dim = 0; dim < 3; dim++) {
+
+            Vector raw_sens_dim = ZeroVector(mrOriginModelPart.Nodes().size());
+            for (int i = 0; i < mrOriginModelPart.Nodes().size(); i++) {
+                raw_sens_dim[i] = raw_sens[i*3 + dim];
+                if (i < 10) {
+                    std::cout << "raw_sens_dim[" << i << "]: " << raw_sens_dim[i] << " " << std::endl;
+                }
+            }
+
+            Vector weighted_sens_dim = ZeroVector(mrOriginModelPart.Nodes().size());
+            psolver->Solve(mOriginMassMatrix, weighted_sens_dim, raw_sens_dim);
+
+            for (int i = 0; i < mrOriginModelPart.Nodes().size(); i++) {
+                weighted_sens[i*3 + dim] = weighted_sens_dim[i];
+                if (i < 10) {
+                    std::cout << "weighted_sens_dim[" << i << "]: " << weighted_sens_dim[i] << " " << std::endl;
+                }
+            }
+        }
+        OptimizationUtilities::AssignVectorToVariable(mrOriginModelPart, weighted_sens, rOriginVariable);
+    }
+
+    // template <typename T>
+    void WeightDestinationValues(const Variable<array_3d>& rDestinationVariable) {
+        Parameters empty_parameters =  Parameters(R"({})");
+        LinearSolverType::Pointer psolver = LinearSolverType::Pointer( new AMGCLSolverType(empty_parameters) );
+
+        Vector raw_sens = ZeroVector(mrDestinationModelPart.Nodes().size()*3);
+        Vector weighted_sens = ZeroVector(mrDestinationModelPart.Nodes().size()*3);
+        OptimizationUtilities::AssembleVector(mrDestinationModelPart, raw_sens, rDestinationVariable);
+
+        for (int dim = 0; dim < 3; dim++) {
+
+            Vector raw_sens_dim = ZeroVector(mrDestinationModelPart.Nodes().size());
+            for (int i = 0; i < mrDestinationModelPart.Nodes().size(); i++) {
+                raw_sens_dim[i] = raw_sens[i*3 + dim];
+                if (i < 10) {
+                    std::cout << "raw_sens_dim[" << i << "]: " << raw_sens_dim[i] << " " << std::endl;
+                }
+            }
+
+            Vector weighted_sens_dim = ZeroVector(mrDestinationModelPart.Nodes().size());
+            psolver->Solve(mDestinationMassMatrix, weighted_sens_dim, raw_sens_dim);
+
+            for (int i = 0; i < mrDestinationModelPart.Nodes().size(); i++) {
+                weighted_sens[i*3 + dim] = weighted_sens_dim[i];
+                if (i < 10) {
+                    std::cout << "weighted_sens_dim[" << i << "]: " << weighted_sens_dim[i] << " " << std::endl;
+                }
+            }
+        }
+        OptimizationUtilities::AssignVectorToVariable(mrDestinationModelPart, weighted_sens, rDestinationVariable);
     }
 
     ///@}
