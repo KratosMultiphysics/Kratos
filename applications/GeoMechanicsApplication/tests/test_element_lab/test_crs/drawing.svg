@@ -28,7 +28,7 @@
      inkscape:cy="177.34976"
      inkscape:window-width="1920"
      inkscape:window-height="1009"
-     inkscape:window-x="139"
+     inkscape:window-x="2059"
      inkscape:window-y="-8"
      inkscape:window-maximized="1"
      inkscape:current-layer="layer1" />
@@ -318,7 +318,7 @@
     <g
        id="g7-2"
        inkscape:label="Axes"
-       transform="matrix(1.1789298,0,0,1.1720933,9.7048377,-103.45066)"
+       transform="matrix(1.1789298,0,0,1.1720933,38.940325,-134.20402)"
        style="display:inline">
       <path
          style="fill:none;stroke:#000000;stroke-width:0.878929;stroke-dasharray:none;stroke-opacity:1;marker-start:url(#Triangle-0-8)"
@@ -331,23 +331,23 @@
       <text
          xml:space="preserve"
          style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:7.05556px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#000000;stroke:#000000;stroke-width:0;stroke-dasharray:none;stroke-opacity:1"
-         x="16.694675"
-         y="205.15634"
+         x="9.5147028"
+         y="215.20413"
          id="text5-4-0"><tspan
            sodipodi:role="line"
-           id="tspan6-2"
-           x="16.694675"
-           y="205.15634">y</tspan></text>
+           id="tspan11"
+           x="9.5147028"
+           y="215.20413">Y</tspan></text>
       <text
          xml:space="preserve"
          style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:7.05556px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#000000;stroke:#000000;stroke-width:0;stroke-dasharray:none;stroke-opacity:1"
-         x="37.213131"
-         y="227.39787"
+         x="26.91143"
+         y="237.13167"
          id="text5-4-2-4"><tspan
            sodipodi:role="line"
-           id="tspan7-8"
-           x="37.213131"
-           y="227.39787">x</tspan></text>
+           id="tspan12"
+           x="26.91143"
+           y="237.13167">X</tspan></text>
     </g>
     <path
        style="display:inline;fill:#ffffff;stroke:#000024;stroke-width:0.874751;marker-start:url(#Triangle-5-6);marker-end:url(#Triangle-5-6)"
@@ -359,28 +359,26 @@
        id="path3-8-1" />
     <text
        xml:space="preserve"
-       style="font-size:8.3601px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';display:inline;fill:#000000;fill-opacity:1;stroke:#000024;stroke-width:0;stroke-dasharray:none"
-       x="107.59946"
-       y="158.87418"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:8.3601px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;display:inline;fill:#000000;fill-opacity:1;stroke:#000024;stroke-width:0;stroke-dasharray:none"
+       x="113.26617"
+       y="158.15712"
        id="text3-4"
        transform="scale(0.97418953,1.0264943)"><tspan
          sodipodi:role="line"
-         id="tspan3"
-         x="107.59946"
-         y="158.87418"
-         style="stroke-width:0">1.0 m</tspan></text>
+         id="tspan16"
+         x="113.26617"
+         y="158.15712">1.0</tspan></text>
     <text
        xml:space="preserve"
-       style="font-size:8.3601px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';display:inline;fill:#000000;fill-opacity:1;stroke:#000024;stroke-width:0;stroke-dasharray:none"
-       x="14.682807"
-       y="76.867729"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:8.3601px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;display:inline;fill:#000000;fill-opacity:1;stroke:#000024;stroke-width:0;stroke-dasharray:none"
+       x="23.371758"
+       y="78.301849"
        id="text3-4-4"
        transform="scale(0.97418953,1.0264943)"><tspan
          sodipodi:role="line"
-         id="tspan3-2"
-         x="14.682807"
-         y="76.867729"
-         style="stroke-width:0">1.0 m</tspan></text>
+         id="tspan13"
+         x="23.371758"
+         y="78.301849">1.0</tspan></text>
     <ellipse
        style="fill:#000000;stroke-width:0.121218"
        id="path10"
@@ -755,8 +753,8 @@
       </g>
     </g>
     <path
-       style="fill:#ff0500;fill-opacity:1;stroke:#ff0000;stroke-width:1;stroke-dasharray:4.00002, 1;stroke-dashoffset:0.7;stroke-opacity:1"
-       d="M 59.988846,20.609665 V 138.74721"
+       style="fill:#ff0500;fill-opacity:1;stroke:#ff0000;stroke-width:1;stroke-dasharray:4, 2, 2, 2;stroke-dashoffset:0.8;stroke-opacity:1"
+       d="M 59.988846,20.241636 V 138.37918"
        id="path1" />
     <path
        style="fill:none;fill-rule:evenodd;stroke:#7e7e7e;stroke-width:0.910629;stroke-linecap:butt;stroke-linejoin:miter;stroke-dasharray:none;stroke-opacity:1;marker-start:url(#Triangle-0-8);marker-end:url(#Triangle-5-6-2)"

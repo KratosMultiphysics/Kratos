@@ -85,11 +85,11 @@ class KratosGeoMechanicsLabElementTests(KratosUnittest.TestCase):
     def test_dss_drained(self):
         """Regression test for the direct simple shear experiment with constant pore water pressure."""
         stage_name = 'drained'
-        expected_stress = [[-1e+05, -1e+05, -1e+05, 8e+05, 0, 0]] * 6
+        expected_stress = [[-1.0e+05, -1.0e+05, -1.0e+05, 8.0e+05, 0.0, 0.0]] * 6
         expected_strain = [[0.0, 0.0, 0.0, 0.1, 0.0, 0.0]] * 6
         self._run_dss_regression_test(stage_name, "linear_elastic", "test_dss_output.post.res", expected_stress, 3, expected_strain, 6, time = 1.0)
 
-        expected_stress = [[-205490, -205490, -152745, 88656.5, 0, 0]] * 6
+        expected_stress = [[-205490, -205490, -152745, 88656.5, 0.0, 0.0]] * 6
         expected_strain = [[0.0, 0.0, 0.0, 0.1, 0.0, 0.0]] * 6
         self._run_dss_regression_test(stage_name, "mohr_coulomb", "test_dss_output.post.res", expected_stress, 3, expected_strain, 6, time = 1.0)
     
@@ -159,12 +159,9 @@ class KratosGeoMechanicsLabElementTests(KratosUnittest.TestCase):
         file_path = test_helper.get_file_path(Path('test_element_lab') / "test_crs" / stage_name / model_name)
         result = reader.read_output_from(Path(file_path) / "test_crs_output.post.res")
         for i in range(nr_of_phases):
-            expected_stress = expected_stresses[i]
-            expected_strain = expected_strains[i]
-            expected_water_pressure = expected_water_pressures[i]
-            self._assert_integration_point_tensors(reader, result, "CAUCHY_STRESS_TENSOR", expected_stress, places_stress, time=times[i])
-            self._assert_integration_point_tensors(reader, result, "ENGINEERING_STRAIN_TENSOR", expected_strain, places_strain, time=times[i])
-            self._assert_node_values_at_time(reader, result, "WATER_PRESSURE", expected_water_pressure, places_water_pressure, time=times[i])
+            self._assert_integration_point_tensors(reader, result, "CAUCHY_STRESS_TENSOR", expected_stresses[i], places_stress, time=times[i])
+            self._assert_integration_point_tensors(reader, result, "ENGINEERING_STRAIN_TENSOR", expected_strains[i], places_strain, time=times[i])
+            self._assert_node_values_at_time(reader, result, "WATER_PRESSURE", expected_water_pressures[i], places_water_pressure, time=times[i])
 
     def test_triaxial_comp_6n(self):
         """
