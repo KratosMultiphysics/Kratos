@@ -102,7 +102,7 @@ namespace Kratos
 
   void MembraneCuttingPatternElement::StiffnessMatrixLeastSquare(Matrix& rStiffnessMatrix, const IntegrationMethod& ThisMethod, ConstitutiveLaw::Parameters& rValues) {
 
-    /*const auto& r_geom = GetGeometry();
+    const auto& r_geom = GetGeometry();
     const SizeType dimension = r_geom.WorkingSpaceDimension();
     const SizeType number_of_nodes = r_geom.size();
     const SizeType number_dofs = dimension * number_of_nodes;
@@ -153,7 +153,7 @@ namespace Kratos
 
           this->Derivative2CauchyStress(derivative2_cauchy_stress, shape_functions_gradients_i, dof_r, dof_s, young_modulus, poisson_ratio);
 
-          cfloat k_elm = 0.0;
+          double k_elm = 0.0;
 
           for (SizeType m = 0; m < 2; m++) {
             for (SizeType n = 0; n < 2; n++) {
@@ -169,7 +169,7 @@ namespace Kratos
 
         }
       }
-    }*/
+    }
   }
 
 
