@@ -99,25 +99,13 @@ The point where the compression cap yield surface intersects the Mohr-Coulomb yi
 then subsituting in the cap yield surface, it leads to the following equation:
 
 ```math
-    A p_{corner}^2 + B p_{corner} + C = 0
+    \left[ 1 + \left( \frac{6  \sin{\phi}}{X(3 - \sin{\phi})} \right) ^2 \right] p_{corner}^2 + \left[ -\frac{72}{X^2} \frac{c \sin{\phi} \cos{\phi}}{\left( 3 - \sin{\phi} \right)^2} \right] p_{corner} + \left[ \left( \frac{6 c \cos{\phi}}{X(3 - \sin{\phi})} \right)^2 - p_c^2 \right] = 0
 ```
 
-Where,
+A second order polynomial equation needs to be solved, and the minimum root needs to be selected, considering a form of $a p_{corner}^2 + b p_{corner} + c = 0$, then
 
 ```math
-    A = 1 + \frac{1}{X^2} \left( \frac{6  \sin{\phi}}{3 - \sin{\phi}} \right) ^2
-```
-```math
-    B = -\frac{72}{X^2} \frac{c \sin{\phi} \cos{\phi}}{\left( 3 - \sin{\phi} \right)^2}
-```
-```math
-    C = \frac{1}{X^2} \left( \frac{6 c \cos{\phi}}{3 - \sin{\phi}} \right)^2 - p_c^2
-```
-
-A second order polynomial equation needs to be solved, and the minimum root needs to be selected,
-
-```math
-    p_{corner} = \frac{ -B - \sqrt{B^2 - 4 A C}}{2A}
+    p_{corner} = \frac{ -b - \sqrt{b^2 - 4 a c}}{2a}
 ```
 then
 ```math
@@ -173,7 +161,7 @@ Substuting these trial stresses in the compression cap and Coulomb yield surface
 Combining those two equations, it leads to a second order polynomial equation for $\lambda_{cap}$.
 
 ```math
-    A \lambda_{cap}^2 + B \lambda_{cap} + C = 0
+    a \lambda_{cap}^2 + b \lambda_{cap} + c = 0
 ```
 
 where,
@@ -217,18 +205,18 @@ where,
 ```
 
 ```math
-    A = \frac{c_2}{c_1} \left( \frac{c_2 c_4}{c_1} - c_8 \right) + c_5
+    a = \frac{c_2}{c_1} \left( \frac{c_2 c_4}{c_1} - c_8 \right) + c_5
 ```
 ```math
-    B = \frac{1}{c_1} \left( -2 \frac{c_2 c_3 c_4}{c_1} - c_2 c_6 + c_3 c_8 \right) + c_7
+    b = \frac{1}{c_1} \left( -2 \frac{c_2 c_3 c_4}{c_1} - c_2 c_6 + c_3 c_8 \right) + c_7
 ```
 ```math
-    C = \frac{c_3}{c_1} \left( \frac{c_3 c_4}{c_1} + c_6 \right) - c_9
+    c = \frac{c_3}{c_1} \left( \frac{c_3 c_4}{c_1} + c_6 \right) - c_9
 ```
     
 Then, solving the second order polynomial, it gives 
 ```math
-    \lambda_{cap} = \frac{-B + \sqrt{B^2 - 4 A C}}{2A}
+    \lambda_{cap} = \frac{-b + \sqrt{b^2 - 4 a c}}{2a}
 ```
 ```math
     \lambda_{MC} = \frac{c_3 - c_2  \lambda_{cap}}{c_1}
@@ -260,19 +248,19 @@ where
 Subsituting the stresses with the mapped stresses, we get the following relations.
 
 ```math
-    A = \frac{\sigma_{diff}^{cor} \cdot \sigma_{diff}^{cor}}{2 X^2} + \frac{1}{9} \left( \sum_{i=1}^3{\sigma_i^{cor}} \right)^2
+    a = \frac{\sigma_{diff}^{cor} \cdot \sigma_{diff}^{cor}}{2 X^2} + \frac{1}{9} \left( \sum_{i=1}^3{\sigma_i^{cor}} \right)^2
 ```
 ```math
-    B = \frac{\sigma_{diff} \cdot \sigma_{diff}^{cor}}{X^2} + \frac{2}{9} \sum_{i=1}^3{\sigma_i} \sum_{i=1}^3{\sigma_i^{cor}}
+    b = \frac{\sigma_{diff} \cdot \sigma_{diff}^{cor}}{X^2} + \frac{2}{9} \sum_{i=1}^3{\sigma_i} \sum_{i=1}^3{\sigma_i^{cor}}
 ```
 ```math
-    C = F_{cap} \left( \sigma^{trial} \right)
+    c = F_{cap} \left( \sigma^{trial} \right)
 ```
 
 the solution of this equation, gives:
 
 ```math
-    \lambda_{cap} = \frac{-B + \sqrt{B^2 - 4 A C}}{2A}
+    \lambda_{cap} = \frac{-b + \sqrt{b^2 - 4 a c}}{2a}
 ```
 
 ### Appendix A
