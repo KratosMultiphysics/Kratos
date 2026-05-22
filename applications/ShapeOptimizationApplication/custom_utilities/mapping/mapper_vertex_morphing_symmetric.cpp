@@ -226,7 +226,7 @@ void MapperVertexMorphingSymmetric::ComputeMappingMatrix()
         }
     };
 
-    block_for_each(mrDestinationModelPart.Nodes(), tls_vecs(max_number_of_neighbors), [&](const NodeType& rNode_i, tls_vecs& rTLS){
+    block_for_each(mrDestinationModelPart.Nodes(), tls_vecs(max_number_of_neighbors), [&](NodeType& rNode_i, tls_vecs& rTLS){
         rTLS.transform.clear();
         rTLS.total_neighbor_nodes.clear();
         rTLS.total_list_of_weights.clear();
@@ -235,8 +235,8 @@ void MapperVertexMorphingSymmetric::ComputeMappingMatrix()
         unsigned int total_number_of_neighbors = 0;
         double total_sum_of_weights = 0;
         for (auto& pair_i : search_nodes) {
-            const NodeType search_node(0, pair_i.first);
-            const unsigned int number_of_neighbors = mpSearchTree->SearchInRadius(search_node,
+            NodeType search_node(0, pair_i.first);
+            unsigned int number_of_neighbors = mpSearchTree->SearchInRadius(search_node,
                                                                             filter_radius,
                                                                             rTLS.neighbor_nodes.begin(),
                                                                             max_number_of_neighbors );
@@ -314,9 +314,9 @@ void MapperVertexMorphingSymmetric::AllocateMatrix() {
 }
 
 void MapperVertexMorphingSymmetric::ComputeWeightForAllNeighbors(
-    const ModelPart::NodeType& destination_node,
-    const NodeVectorType& neighbor_nodes,
-    const unsigned int number_of_neighbors,
+    ModelPart::NodeType& destination_node,
+    NodeVectorType& neighbor_nodes,
+    unsigned int number_of_neighbors,
     std::vector<double>& list_of_weights,
     double& sum_of_weights )
 {
@@ -331,12 +331,12 @@ void MapperVertexMorphingSymmetric::ComputeWeightForAllNeighbors(
 }
 
 void MapperVertexMorphingSymmetric::FillMappingMatrixWithWeights(
-    const ModelPart::NodeType& destination_node,
-    const NodeVectorType& neighbor_nodes,
-    const unsigned int number_of_neighbors,
-    const std::vector<double>& list_of_weights,
-    const std::vector<bool>& transform,
-    const double& sum_of_weights )
+    ModelPart::NodeType& destination_node,
+    NodeVectorType& neighbor_nodes,
+    unsigned int number_of_neighbors,
+    std::vector<double>& list_of_weights,
+    std::vector<bool>& transform,
+    double& sum_of_weights )
 {
     const unsigned int row_id = destination_node.GetValue(MAPPING_ID);
 

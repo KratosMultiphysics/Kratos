@@ -278,21 +278,21 @@ private:
     void CreateSearchTreeWithAllNodesInOriginModelPart();
 
     // --------------------------------------------------------------------------
-    void ComputeMappingMatrix();
+    // void ComputeMappingMatrix();
 
-    // --------------------------------------------------------------------------
-    virtual void ComputeWeightForAllNeighbors(  const ModelPart::NodeType& origin_node,
-                                        const NodeVector& neighbor_nodes,
-                                        const unsigned int number_of_neighbors,
-                                        std::vector<double>& list_of_weights,
-                                        double& sum_of_weights );
+    // // --------------------------------------------------------------------------
+    // virtual void ComputeWeightForAllNeighbors(  const ModelPart::NodeType& origin_node,
+    //                                     const NodeVector& neighbor_nodes,
+    //                                     const unsigned int number_of_neighbors,
+    //                                     std::vector<double>& list_of_weights,
+    //                                     double& sum_of_weights );
 
-    // --------------------------------------------------------------------------
-    void FillMappingMatrixWithWeights(  ModelPart::NodeType& origin_node,
-                                        NodeVector& neighbor_nodes,
-                                        unsigned int number_of_neighbors,
-                                        std::vector<double>& list_of_weights,
-                                        double& sum_of_weights );
+    // // --------------------------------------------------------------------------
+    // void FillMappingMatrixWithWeights(  ModelPart::NodeType& origin_node,
+    //                                     NodeVector& neighbor_nodes,
+    //                                     unsigned int number_of_neighbors,
+    //                                     std::vector<double>& list_of_weights,
+    //                                     double& sum_of_weights );
 
     // --------------------------------------------------------------------------
 

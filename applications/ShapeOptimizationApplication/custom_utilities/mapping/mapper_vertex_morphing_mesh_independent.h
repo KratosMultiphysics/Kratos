@@ -240,7 +240,7 @@ protected:
             ModelPart::NodeType& node_j = *neighbor_nodes[j_itr];
 
             // Get all neighbour conditions
-            double Aij = mpFilterFunction->ComputeWeight(node_j.Coordinates(),node_i.Coordinates());
+            double Aij = mpFilterFunction->ComputeWeight(node_j.Coordinates(),node_i.Coordinates(), GetVertexMorphingRadius(node_i));
             Aij *= mOriginNodalAreas[node_j.GetValue(MAPPING_ID)];
 
             // Add values to list

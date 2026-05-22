@@ -169,18 +169,18 @@ private:
 
     void AllocateMatrix();
 
-    virtual void ComputeWeightForAllNeighbors(  const ModelPart::NodeType& destination_node,
-                                                const NodeVectorType& neighbor_nodes,
-                                                const unsigned int number_of_neighbors,
+    virtual void ComputeWeightForAllNeighbors(  ModelPart::NodeType& destination_node,
+                                                NodeVectorType& neighbor_nodes,
+                                                unsigned int number_of_neighbors,
                                                 std::vector<double>& list_of_weights,
                                                 double& sum_of_weights );
 
-    void FillMappingMatrixWithWeights(  const ModelPart::NodeType& destination_node,
-                                        const NodeVectorType& neighbor_nodes,
-                                        const unsigned int number_of_neighbors,
-                                        const std::vector<double>& list_of_weights,
-                                        const std::vector<bool>& transform,
-                                        const double& sum_of_weights );
+    void FillMappingMatrixWithWeights(  ModelPart::NodeType& destination_node,
+                                        NodeVectorType& neighbor_nodes,
+                                        unsigned int number_of_neighbors,
+                                        std::vector<double>& list_of_weights,
+                                        std::vector<bool>& transform,
+                                        double& sum_of_weights );
 
     double GetVertexMorphingRadius(const NodeType& rNode) const override
     {
