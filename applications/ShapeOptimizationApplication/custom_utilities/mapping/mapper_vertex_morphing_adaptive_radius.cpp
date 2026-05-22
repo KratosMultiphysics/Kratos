@@ -115,13 +115,16 @@ double MapperVertexMorphingAdaptiveRadius<TBaseVertexMorphingMapper>::CurvatureF
     // => r = pow(4 / delta_K, 0.25)
     if (mRadiusFunctionType == "analytic")
     {
-        double delta_K_max = 4 / pow(mMinimumFilterRadius/rElementSize, 4);
+        // double delta_K_max = 4 / pow(mMinimumFilterRadius/rElementSize, 4);
+        double delta_K_max = 4 / pow(mMinimumFilterRadius, 4);
 
         double b = (mRadiusFunctionParameter * mCurvatureLimit) / (delta_K_max - mRadiusFunctionParameter);
         double a = b * delta_K_max;
         double delta_K = a / (std::abs(rCurvature) + b);
 
-        double filter_radius = (delta_K > 0) ? rElementSize * pow(4/delta_K, 0.25) : mMinimumFilterRadius;
+        // double filter_radius = (delta_K > 0) ? rElementSize * pow(4/delta_K, 0.25) : mMinimumFilterRadius;
+        double filter_radius = (delta_K > 0) ? pow(4/delta_K, 0.25) : mMinimumFilterRadius;
+
         return filter_radius;
     }
     // Using linear function r = r_min + a * h * kappa
@@ -135,7 +138,8 @@ double MapperVertexMorphingAdaptiveRadius<TBaseVertexMorphingMapper>::CurvatureF
     }
     // Using fourth root function r = r_min + a * h * kappa**0.25
     else if (mRadiusFunctionType == "fourth_root") {
-        return mMinimumFilterRadius + mRadiusFunctionParameter * rElementSize * pow(std::abs(rCurvature), 0.25);
+        // return mMinimumFilterRadius + mRadiusFunctionParameter * rElementSize * pow(std::abs(rCurvature), 0.25);
+        return mMinimumFilterRadius + mRadiusFunctionParameter * pow(std::abs(rCurvature), 0.25);
     } else {
         KRATOS_ERROR << "ShapeOpt Adaptive Filter: Curvature function type " << mRadiusFunctionType << " not supported for adaptive filter vertex morphing method." << std::endl;
     }
@@ -255,7 +259,7 @@ void MapperVertexMorphingAdaptiveRadius<TBaseVertexMorphingMapper>::SmoothenCurv
         IndexPartition<IndexType>(number_of_nodes).for_each([&](const IndexType iNode) {
             auto& r_node_i = *(mrDestinationModelPart.NodesBegin() + iNode);
             double& radius = r_node_i.FastGetSolutionStepValue(VERTEX_MORPHING_RADIUS);
-
+            radius = mMinimumFilterRadius;
             NodeVector neighbor_nodes(mMaxNumberOfNeighbors);
             std::vector<double> resulting_squared_distances(mMaxNumberOfNeighbors);
 

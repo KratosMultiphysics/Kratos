@@ -469,7 +469,12 @@ void GeometryUtilities::CalculateGaussianCurvature() {
                         ++counter;
                     }
                 }
-                r_gaussian_curvature /= counter;
+                if (counter > 0) {
+                    r_gaussian_curvature /= counter;
+                }
+                else {
+                    r_gaussian_curvature = 0;
+                }
             }
         }
     });
@@ -526,7 +531,11 @@ double GeometryUtilities::GaussianCurvatureForNodeMeyer(const NodeType &rNode) {
             gaussian_curvature -= element_angle;
             A_mixed += element_a_mixed;
         }
-        gaussian_curvature /= A_mixed;
+        if (A_mixed > 0) {
+            gaussian_curvature /= A_mixed;
+        } else {
+            gaussian_curvature = 0;
+        }
         return gaussian_curvature;
     }
 }
