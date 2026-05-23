@@ -524,11 +524,11 @@ namespace Kratos
   void MembraneCuttingPatternElement::DerivativeStrainGreenLagrange(Vector& rStrain, const Matrix& rShapeFunctionGradientValues, const SizeType DofR,
     const array_1d<Vector, 2> rCurrentCovariantBaseVectors, const Matrix& rTransformationMatrix)
   {
-    /*Matrix current_covariant_metric_derivative = ZeroMatrix(2);
+    Matrix current_covariant_metric_derivative = ZeroMatrix(2);
     DerivativeCurrentCovariantMetric(current_covariant_metric_derivative, rShapeFunctionGradientValues, DofR, rCurrentCovariantBaseVectors);
     Matrix strain_matrix_derivative = 0.50 * current_covariant_metric_derivative;
     Vector reference_strain = MathUtils<double>::StrainTensorToVector(strain_matrix_derivative, 3);
-    TransformStrains(rStrain, reference_strain, rTransformationMatrix);*/
+    TransformStrains(rStrain, reference_strain, rTransformationMatrix);
   }
 
 
