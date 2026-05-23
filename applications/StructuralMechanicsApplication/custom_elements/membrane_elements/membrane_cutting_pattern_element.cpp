@@ -1056,7 +1056,7 @@ namespace Kratos
 
   void MembraneCuttingPatternElement::DerivativeContravariantMetric(Matrix& rMetric, const Matrix& rShapeFunctionGradientValues, const SizeType DofR, const array_1d<Vector, 2>& rCovariantBaseVectors) {
 
-    /*Matrix covariant_metric = ZeroMatrix(2);
+    Matrix covariant_metric = ZeroMatrix(2);
     Matrix derivative_covariant_metric = ZeroMatrix(2);
 
     rMetric = ZeroMatrix(2);
@@ -1075,7 +1075,7 @@ namespace Kratos
     rMetric(0, 0) = derivative_inverse_determinant_covariant_metric * covariant_metric(1, 1) + inverse_determinant_covariant_metric * derivative_covariant_metric(1, 1);
     rMetric(0, 1) = -derivative_inverse_determinant_covariant_metric * covariant_metric(0, 1) - inverse_determinant_covariant_metric * derivative_covariant_metric(0, 1);
     rMetric(1, 0) = -derivative_inverse_determinant_covariant_metric * covariant_metric(1, 0) - inverse_determinant_covariant_metric * derivative_covariant_metric(1, 0);
-    rMetric(1, 1) = derivative_inverse_determinant_covariant_metric * covariant_metric(0, 0) + inverse_determinant_covariant_metric * derivative_covariant_metric(0, 0);*/
+    rMetric(1, 1) = derivative_inverse_determinant_covariant_metric * covariant_metric(0, 0) + inverse_determinant_covariant_metric * derivative_covariant_metric(0, 0);
 
   }
 
