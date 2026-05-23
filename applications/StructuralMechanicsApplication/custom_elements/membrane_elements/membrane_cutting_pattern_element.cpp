@@ -923,7 +923,7 @@ namespace Kratos
 
   void MembraneCuttingPatternElement::AddPreStressPk2(Vector& rStress, const array_1d<Vector, 2>& rTransformedBaseVectors) {
 
-    /*Vector pre_stress = ZeroVector(3);
+    Vector pre_stress = ZeroVector(3);
     if (GetProperties().Has(PRESTRESS_VECTOR)) {
       pre_stress = GetProperties()(PRESTRESS_VECTOR);
 
@@ -953,7 +953,7 @@ namespace Kratos
         pre_stress = prod(transformation_matrix, pre_stress);
       }
     }
-    noalias(rStress) += pre_stress;*/
+    noalias(rStress) += pre_stress;
   }
 
 
