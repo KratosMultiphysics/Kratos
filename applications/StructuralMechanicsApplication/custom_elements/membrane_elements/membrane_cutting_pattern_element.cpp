@@ -1167,7 +1167,7 @@ namespace Kratos
     const Matrix& rShapeFunctionGradientValues, const ConfigurationType& rConfiguration) const
   {
     // pass/call this ShapeFunctionsLocalGradients[pnt]
-    /*const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
     const SizeType number_of_nodes = GetGeometry().size();
     Vector g1 = ZeroVector(dimension);
     Vector g2 = ZeroVector(dimension);
@@ -1186,7 +1186,7 @@ namespace Kratos
       g2[2] += (GetGeometry().GetPoint(i).Z0() + current_displacement[(i * dimension) + 2]) * rShapeFunctionGradientValues(i, 1);
     }
     rBaseVectors[0] = g1;
-    rBaseVectors[1] = g2;*/
+    rBaseVectors[1] = g2;
   }
 
 
