@@ -719,6 +719,22 @@ void BeamSplineMapper<TSparseSpace, TDenseSpace>::InitializeInformationBeams(
             evaluation_rotation_matrix_local_to_global,
             local_displacement);
 
+        // TEMP DEBUG OUTPUT - REMOVE AFTER VERIFICATION
+        VectorType initial_destination_displacement(3, 0.0);
+        for (IndexType i = 0; i < 3; ++i) {
+            initial_destination_displacement(i) =
+                projection_data.pNode->FastGetSolutionStepValue(GetComponentVariable(rDestinationVariableDisplacement, i));
+        }
+        // TEMP DEBUG OUTPUT - REMOVE AFTER VERIFICATION
+        std::cout << "[BeamSplineMapper DEBUG] MapDisplacements::destination_node_id = "
+                  << projection_data.pNode->Id() << std::endl;
+        // TEMP DEBUG OUTPUT - REMOVE AFTER VERIFICATION
+        PrintDebugVector("MapDisplacements::initial_destination_displacement_global", initial_destination_displacement);
+        // TEMP DEBUG OUTPUT - REMOVE AFTER VERIFICATION
+        PrintDebugVector("MapDisplacements::final_destination_displacement_local", local_displacement);
+        // TEMP DEBUG OUTPUT - REMOVE AFTER VERIFICATION
+        PrintDebugVector("MapDisplacements::final_destination_displacement_global", global_displacement);
+
         for (IndexType i = 0; i < 3; ++i) {
             projection_data.pNode->FastGetSolutionStepValue(GetComponentVariable(rDestinationVariableDisplacement, i)) =
                 global_displacement(i);
@@ -820,6 +836,7 @@ BeamSplineMapper<TSparseSpace, TDenseSpace>::BuildEvaluationRow(
     evaluation_row(2 * number_of_source_nodes) = 1.0;
     evaluation_row(2 * number_of_source_nodes + 1) = ProjectionCoordinate;
 
+    /*
     // TEMP DEBUG OUTPUT - REMOVE AFTER VERIFICATION
     PrintDebugVector("BuildEvaluationRow::source_coordinates", rSourceCoordinates);
     // TEMP DEBUG OUTPUT - REMOVE AFTER VERIFICATION
@@ -827,6 +844,7 @@ BeamSplineMapper<TSparseSpace, TDenseSpace>::BuildEvaluationRow(
               << ProjectionCoordinate << std::endl;
     // TEMP DEBUG OUTPUT - REMOVE AFTER VERIFICATION
     PrintDebugVector("BuildEvaluationRow::C_f_[Mfs_Mprimefs_Pf]", evaluation_row);
+    */
 
     return evaluation_row;
 }
@@ -851,12 +869,14 @@ BeamSplineMapper<TSparseSpace, TDenseSpace>::BuildRightHandSide(
         right_hand_side(number_of_source_nodes + i) = rRotations[i];
     }
 
+    /*
     // TEMP DEBUG OUTPUT - REMOVE AFTER VERIFICATION
     PrintDebugVector("BuildRightHandSide::displacements", rDisplacements);
     // TEMP DEBUG OUTPUT - REMOVE AFTER VERIFICATION
     PrintDebugVector("BuildRightHandSide::rotations", rRotations);
     // TEMP DEBUG OUTPUT - REMOVE AFTER VERIFICATION
     PrintDebugVector("BuildRightHandSide::right_hand_side", right_hand_side);
+    */
 
     return right_hand_side;
 }
@@ -897,6 +917,7 @@ void BeamSplineMapper<TSparseSpace, TDenseSpace>::BuildLocalSourceData(
         }
     }
 
+    /*
     // TEMP DEBUG OUTPUT - REMOVE AFTER VERIFICATION
     PrintDebugVector("BuildLocalSourceData::local_displacements_x", rLocalDisplacements[0]);
     // TEMP DEBUG OUTPUT - REMOVE AFTER VERIFICATION
@@ -909,6 +930,7 @@ void BeamSplineMapper<TSparseSpace, TDenseSpace>::BuildLocalSourceData(
     PrintDebugVector("BuildLocalSourceData::local_rotations_y", rLocalRotations[1]);
     // TEMP DEBUG OUTPUT - REMOVE AFTER VERIFICATION
     PrintDebugVector("BuildLocalSourceData::local_rotations_z", rLocalRotations[2]);
+    */
 }
 
 template<class TSparseSpace, class TDenseSpace>
@@ -1017,8 +1039,10 @@ std::string BeamSplineMapper<TSparseSpace, TDenseSpace>::CreateBeamChainKey(
         key_stream << node_id << '-';
     }
 
+    /*
     // TEMP DEBUG OUTPUT - REMOVE AFTER VERIFICATION
     PrintDebugVector("CreateBeamChainKey::support_node_ids", rSupportNodeIds);
+    */
 
     return key_stream.str();
 }
@@ -1070,10 +1094,12 @@ BeamSplineMapper<TSparseSpace, TDenseSpace>::BuildSplineSystemMatrix(
             ps_first_derivative(i, 1);
     }
 
+    /*
     // TEMP DEBUG OUTPUT - REMOVE AFTER VERIFICATION
     PrintDebugVector("BuildSplineSystemMatrix::source_coordinates", rSourceCoordinates);
     // TEMP DEBUG OUTPUT - REMOVE AFTER VERIFICATION
     PrintDebugMatrix("BuildSplineSystemMatrix::A", spline_system);
+    */
 
     return spline_system;
 }
@@ -1151,6 +1177,7 @@ void BeamSplineMapper<TSparseSpace, TDenseSpace>::ComputeSupportReferenceData(
         }
     }
 
+    /*
     // TEMP DEBUG OUTPUT - REMOVE AFTER VERIFICATION
     PrintDebugVector("ComputeSupportReferenceData::support_node_ids", rSupportNodeIds);
     // TEMP DEBUG OUTPUT - REMOVE AFTER VERIFICATION
@@ -1160,6 +1187,7 @@ void BeamSplineMapper<TSparseSpace, TDenseSpace>::ComputeSupportReferenceData(
         PrintDebugMatrix("ComputeSupportReferenceData::support_frame_local_to_global[" + std::to_string(i) + "]",
             rSupportFramesLocalToGlobal[i]);
     }
+    */
 }
 
 template<class TSparseSpace, class TDenseSpace>
@@ -1356,12 +1384,14 @@ BeamSplineMapper<TSparseSpace, TDenseSpace>::SolveSplineCoefficients(
 
     MathUtils<double>::Solve(rSplineSystemMatrix, coefficients, rRightHandSide);
 
+    /*
     // TEMP DEBUG OUTPUT - REMOVE AFTER VERIFICATION
     PrintDebugMatrix("SolveSplineCoefficients::A", rSplineSystemMatrix);
     // TEMP DEBUG OUTPUT - REMOVE AFTER VERIFICATION
     PrintDebugVector("SolveSplineCoefficients::right_hand_side", rRightHandSide);
     // TEMP DEBUG OUTPUT - REMOVE AFTER VERIFICATION
     PrintDebugVector("SolveSplineCoefficients::coefficients", coefficients);
+    */
 
     return coefficients;
 }

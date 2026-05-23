@@ -113,7 +113,7 @@ public:
             << "Expected two linear shape-function values for a 2-node beam, got "
             << mLinearShapeFunctionValues.size() << "." << std::endl;
 
-        rRotationMatrix_G_L = mRotationMatrix_L_G;
+        rRotationMatrix_L_G = mRotationMatrix_L_G;
         rProjectionPointValue(0) = mProjectionOfPoint[0];
         rProjectionPointValue(1) = mProjectionOfPoint[1];
         rProjectionPointValue(2) = mProjectionOfPoint[2];

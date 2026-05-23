@@ -37,6 +37,7 @@
 #include "custom_mappers/barycentric_mapper.h"
 #include "custom_mappers/projection_3D_2D_mapper.h"
 #include "custom_mappers/beam_mapper.h"
+#include "custom_mappers/beam_spline_mapper.h"
 #include "custom_mappers/coupling_geometry_mapper.h"
 #include "custom_mappers/radial_basis_function_mapper.h"
 #include "custom_mappers/nearest_neighbor_mapper_iga.h"
@@ -99,6 +100,7 @@ void KratosMappingApplication::Register()
     KRATOS_REGISTER_MAPPER(RadialBasisFunctionMapper,  "radial_basis_function");
     KRATOS_REGISTER_MAPPER(CouplingGeometryMapper,  "coupling_geometry");
     KRATOS_REGISTER_MAPPER(BeamMapper,  "beam_mapper");
+    KRATOS_REGISTER_MAPPER(BeamSplineMapper,  "beam_spline_mapper");
 
     KRATOS_REGISTER_MODELER("MappingGeometriesModeler", mMappingGeometriesModeler);
     KRATOS_REGISTER_MODELER("IgaFEMMappingGeometriesModeler", mIgaFEMMappingGeometriesModeler);
