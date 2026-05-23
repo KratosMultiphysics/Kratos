@@ -1082,12 +1082,12 @@ namespace Kratos
 
   void MembraneCuttingPatternElement::ContravariantMetric(Matrix& rMetric, const Matrix& rCovariantMetric)
   {
-    /*rMetric = ZeroMatrix(2);
+    rMetric = ZeroMatrix(2);
     rMetric(0, 0) = rCovariantMetric(1, 1);
     rMetric(1, 1) = rCovariantMetric(0, 0);
     rMetric(0, 1) = -1.0 * rCovariantMetric(0, 1);
     rMetric(1, 0) = -1.0 * rCovariantMetric(1, 0);
-    rMetric /= (rCovariantMetric(1, 1) * rCovariantMetric(0, 0)) - (rCovariantMetric(1, 0) * rCovariantMetric(0, 1));*/
+    rMetric /= (rCovariantMetric(1, 1) * rCovariantMetric(0, 0)) - (rCovariantMetric(1, 0) * rCovariantMetric(0, 1));
 
   }
 
