@@ -1095,12 +1095,12 @@ namespace Kratos
   void MembraneCuttingPatternElement::ContraVariantBaseVectors(array_1d<Vector, 2>& rBaseVectors, const Matrix& rContraVariantMetric,
     const array_1d<Vector, 2> rCovariantBaseVectors)
   {
-    /*const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
     rBaseVectors[0] = ZeroVector(dimension);
     rBaseVectors[1] = ZeroVector(dimension);
 
     rBaseVectors[0] = rContraVariantMetric(0, 0) * rCovariantBaseVectors[0] + rContraVariantMetric(0, 1) * rCovariantBaseVectors[1];
-    rBaseVectors[1] = rContraVariantMetric(1, 0) * rCovariantBaseVectors[0] + rContraVariantMetric(1, 1) * rCovariantBaseVectors[1];*/
+    rBaseVectors[1] = rContraVariantMetric(1, 0) * rCovariantBaseVectors[0] + rContraVariantMetric(1, 1) * rCovariantBaseVectors[1];
   }
 
 
