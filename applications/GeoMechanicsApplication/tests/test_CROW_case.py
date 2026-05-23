@@ -514,7 +514,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
                                                             self.get_plot_stages(),
                                                             extract_bending_moment_and_y_from_line)
 
-    def get_wall_horizontal_displacement_collections_per_stage(
+    def get_wall_horizontal_total_displacement_collections_per_stage(
         self, project_path, plot_stages, data_extractor
     ):
         node_ids = get_sheetpile_node_ids()
@@ -531,18 +531,18 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
                 Path(project_path) / "gid_output" / f"{stage['base_name']}.post.res"
             )
 
-            displacements = reader.nodal_values_at_time(
-                "DISPLACEMENT",
+            total_displacement_vectors = reader.nodal_values_at_time(
+                "TOTAL_DISPLACEMENT",
                 stage["end_time"],
                 output_data,
                 node_ids=node_ids,
             )
 
-            horizontal_displacements = [value[0] for value in displacements]
+            horizontal_total_displacements = [value[0] for value in total_displacement_vectors]
 
             data_series_collection = [
                 plot_utils.DataSeries(
-                    zip(horizontal_displacements, y_coords),
+                    zip(horizontal_total_displacements, y_coords),
                     "Kratos",
                     line_style="-",
                     marker=".",
@@ -612,16 +612,16 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
         # normal_force_collections = self.get_wall_variable_collections_per_stage("AXIAL_FORCE", "Normal force", project_path, plot_stages, extract_normal_force_and_y_from_line)
         # plot_utils.make_sub_plots(normal_force_collections, Path(project_path) / "normal_forces.svg", titles=plot_titles, xlabel="Normal force [kN/m]", ylabel="y [m]")
 
-        horizontal_displacement_collections = (
-            self.get_wall_horizontal_displacement_collections_per_stage(
+        horizontal_total_displacement_collections = (
+            self.get_wall_horizontal_total_displacement_collections_per_stage(
                 project_path, plot_stages, extract_horizontal_displacements_from_line
             )
         )
         plot_utils.make_sub_plots(
-            horizontal_displacement_collections,
-            Path(project_path) / "horizontal_displacements.svg",
+            horizontal_total_displacement_collections,
+            Path(project_path) / "horizontal_total_displacements.svg",
             titles=plot_titles,
-            xlabel="Horizontal displacement [m]",
+            xlabel="Horizontal total displacement [m]",
             ylabel="y [m]",
         )
 
