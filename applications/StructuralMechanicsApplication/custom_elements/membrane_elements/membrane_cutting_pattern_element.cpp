@@ -1118,7 +1118,7 @@ namespace Kratos
   void MembraneCuttingPatternElement::Derivative2CurrentCovariantMetric(Matrix& rMetric,
     const Matrix& rShapeFunctionGradientValues, const SizeType DofR, const SizeType DofS)
   {
-    /*rMetric = ZeroMatrix(2);
+    rMetric = ZeroMatrix(2);
     array_1d<Vector, 2> derivative_covariant_base_vectors_dur;
     DeriveCurrentCovariantBaseVectors(derivative_covariant_base_vectors_dur, rShapeFunctionGradientValues, DofR);
     array_1d<Vector, 2> derivative_covariant_base_vectors_dus;
@@ -1129,7 +1129,7 @@ namespace Kratos
         rMetric(i, j) = inner_prod(derivative_covariant_base_vectors_dur[i], derivative_covariant_base_vectors_dus[j]);
         rMetric(i, j) += inner_prod(derivative_covariant_base_vectors_dus[i], derivative_covariant_base_vectors_dur[j]);
       }
-    }*/
+    }
   }
   
   
