@@ -771,7 +771,7 @@ namespace Kratos
 
   void MembraneCuttingPatternElement::CauchyStress(Matrix& rStress, const Matrix& rShapeFunctionGradientValues, const double YoungModulus, const double PoissonRatio) {
 
-    /*double rC_reference[2][2][2][2] = { {{{0.0}}} };
+    double rC_reference[2][2][2][2] = { {{{0.0}}} };
     double rc_current[2][2][2][2] = { {{{0.0}}} };
 
     array_1d<Vector, 2> reference_covariant_base_vectors;
@@ -805,7 +805,7 @@ namespace Kratos
           }
         }
       }
-    }*/
+    }
 
   }
 
