@@ -549,20 +549,20 @@ namespace Kratos
   void MembraneCuttingPatternElement::TransformStrains(Vector& rStrains,
     Vector& rReferenceStrains, const Matrix& rTransformationMatrix)
   {
-    //// use contravariant basevectors here
-    //// transform base vecs needs only G3 which is equal for co and contra if it is orthogonal
-    //// tranform strains needs contra-variant !
-    //rStrains = ZeroVector(3);
-    //rReferenceStrains[2] /= 2.0; // extract E12 from voigt strain vector
-    //noalias(rStrains) = prod(rTransformationMatrix, rReferenceStrains);
-    //rStrains[2] *= 2.0; // include E12 and E21 for voigt strain vector
+    // use contravariant basevectors here
+    // transform base vecs needs only G3 which is equal for co and contra if it is orthogonal
+    // tranform strains needs contra-variant !
+    rStrains = ZeroVector(3);
+    rReferenceStrains[2] /= 2.0; // extract E12 from voigt strain vector
+    noalias(rStrains) = prod(rTransformationMatrix, rReferenceStrains);
+    rStrains[2] *= 2.0; // include E12 and E21 for voigt strain vector
   }
 
 
   void MembraneCuttingPatternElement::Elasticity_Tensor_Kirchhoff(double rC_reference[2][2][2][2], double rc_current[2][2][2][2], const Matrix& rShapeFunctionGradientValues, const double YoungModulus, const double PoissonRatio) {
 
     
-     /*array_1d<Vector, 2> reference_covariant_base_vectors;
+     array_1d<Vector, 2> reference_covariant_base_vectors;
      array_1d<Vector, 2> reference_contravariant_base_vectors;
      array_1d<Vector, 2> current_covariant_base_vectors;
     
@@ -603,7 +603,7 @@ namespace Kratos
            }
          }
        }
-     }*/
+     }
          
   }
 
