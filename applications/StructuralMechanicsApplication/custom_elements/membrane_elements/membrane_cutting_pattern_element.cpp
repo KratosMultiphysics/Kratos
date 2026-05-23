@@ -502,12 +502,12 @@ namespace Kratos
   void MembraneCuttingPatternElement::Derivative2StrainEulerAlmansi(Matrix& rStrain, const Matrix& rShapeFunctionGradientValues, const SizeType DofR, const SizeType DofS)
   {
     
-    /*rStrain = ZeroMatrix(2);
+    rStrain = ZeroMatrix(2);
     
     Matrix reference_covariant_metric_derivative2 = ZeroMatrix(2);
     this->Derivative2CurrentCovariantMetric(reference_covariant_metric_derivative2, rShapeFunctionGradientValues, DofR, DofS);
 
-    rStrain = -0.50 * reference_covariant_metric_derivative2;*/
+    rStrain = -0.50 * reference_covariant_metric_derivative2;
 
   }
 
