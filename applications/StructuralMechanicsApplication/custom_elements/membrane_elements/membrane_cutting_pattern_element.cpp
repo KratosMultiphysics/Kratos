@@ -1316,7 +1316,7 @@ namespace Kratos
 
   void MembraneCuttingPatternElement::Derivative2InvDetDeformationGradient(double& rDeriv2InvDetDeformationGradient, const Matrix& rShapeFunctionGradientValues, const array_1d<Vector, 2>& rCurrentCovariantBaseVectors, const array_1d<Vector, 2>& rReferenceCovariantBaseVectors, const SizeType DofR, const SizeType DofS) {
 
-    /*array_1d<Vector, 2> derivative_r_reference_covariant_base_vectors;
+    array_1d<Vector, 2> derivative_r_reference_covariant_base_vectors;
     array_1d<Vector, 2> derivative_s_reference_covariant_base_vectors;
 
     Vector cross_G1G2 = ZeroVector(3);
@@ -1369,7 +1369,7 @@ namespace Kratos
     deriv2_norm_cross_G1G2 = deriv2_norm_cross_G1G2_1 - deriv2_norm_cross_G1G2_2;
 
 
-    rDeriv2InvDetDeformationGradient = deriv2_norm_cross_G1G2 / norm_cross_g1g2;*/
+    rDeriv2InvDetDeformationGradient = deriv2_norm_cross_G1G2 / norm_cross_g1g2;
 
   }
 
