@@ -201,14 +201,14 @@ namespace Kratos
       const Matrix& rShapeFunctionGradientValues,
       const SizeType DofR, const SizeType DofS);
 
-    void Elasticity_Tensor_Kirchhoff(
+    void ElasticityTensorKirchhoff(
       double rC_reference[2][2][2][2],
       double rc_current[2][2][2][2],
       const Matrix& rShapeFunctionGradientValues,
       const double YoungModulus,
       const double PoissonRatio);
 
-    void DerivativeElasticity_Tensor_Kirchhoff(
+    void DerivativeElasticityTensorKirchhoff(
       double rDerivC_reference[2][2][2][2],
       double rDerivc_current[2][2][2][2],
       const Matrix& rShapeFunctionGradientValues,
@@ -216,7 +216,7 @@ namespace Kratos
       const double YoungModulus,
       const double PoissonRatio);
 
-    void Derivative2Elasticity_Tensor_Kirchhoff(
+    void Derivative2ElasticityTensorKirchhoff(
       double rDeriv2C_reference[2][2][2][2],
       double rDeriv2c_current[2][2][2][2],
       const Matrix& rShapeFunctionGradientValues,

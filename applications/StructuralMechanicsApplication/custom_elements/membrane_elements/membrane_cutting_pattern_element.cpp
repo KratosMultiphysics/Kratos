@@ -559,7 +559,7 @@ namespace Kratos
   }
 
 
-  void MembraneCuttingPatternElement::Elasticity_Tensor_Kirchhoff(double rC_reference[2][2][2][2], double rc_current[2][2][2][2], const Matrix& rShapeFunctionGradientValues, const double YoungModulus, const double PoissonRatio) {
+  void MembraneCuttingPatternElement::ElasticityTensorKirchhoff(double rC_reference[2][2][2][2], double rc_current[2][2][2][2], const Matrix& rShapeFunctionGradientValues, const double YoungModulus, const double PoissonRatio) {
 
     
      array_1d<Vector, 2> reference_covariant_base_vectors;
@@ -608,10 +608,10 @@ namespace Kratos
   }
 
 
-  void MembraneCuttingPatternElement::DerivativeElasticity_Tensor_Kirchhoff(double rDerivC_reference[2][2][2][2], double rDerivc_current[2][2][2][2], const Matrix& rShapeFunctionGradientValues, const SizeType DofR, const double YoungModulus, const double PoissonRatio) {
+  void MembraneCuttingPatternElement::DerivativeElasticityTensorKirchhoff(double rDerivC_reference[2][2][2][2], double rDerivc_current[2][2][2][2], const Matrix& rShapeFunctionGradientValues, const SizeType DofR, const double YoungModulus, const double PoissonRatio) {
 
 
-    /*array_1d<Vector, 2> reference_covariant_base_vectors;
+    array_1d<Vector, 2> reference_covariant_base_vectors;
     array_1d<Vector, 2> current_covariant_base_vectors;
     array_1d<Vector, 2> reference_contravariant_base_vectors;
     
@@ -646,7 +646,7 @@ namespace Kratos
     this->DeformationGradient(deformation_gradient, det_deformation_gradient, current_covariant_base_vectors, reference_contravariant_base_vectors);
     this->DerivativeInvDetDeformationGradient(derivative_inverse_det_deformation_gradient, rShapeFunctionGradientValues, current_covariant_base_vectors, reference_covariant_base_vectors, DofR);
 
-    this->Elasticity_Tensor_Kirchhoff(rC_reference, rc_current, rShapeFunctionGradientValues, YoungModulus, PoissonRatio);
+    this->ElasticityTensorKirchhoff(rC_reference, rc_current, rShapeFunctionGradientValues, YoungModulus, PoissonRatio);
       
       
             
@@ -668,12 +668,12 @@ namespace Kratos
           }
         }
       }
-    }*/
+    }
               
   }
 
 
-  void MembraneCuttingPatternElement::Derivative2Elasticity_Tensor_Kirchhoff(double rDeriv2C_reference[2][2][2][2], double rDeriv2c_current[2][2][2][2], const Matrix& rShapeFunctionGradientValues, const SizeType DofR, const SizeType DofS, const double YoungModulus, const double PoissonRatio) {
+  void MembraneCuttingPatternElement::Derivative2ElasticityTensorKirchhoff(double rDeriv2C_reference[2][2][2][2], double rDeriv2c_current[2][2][2][2], const Matrix& rShapeFunctionGradientValues, const SizeType DofR, const SizeType DofS, const double YoungModulus, const double PoissonRatio) {
 
     /*double E = YoungModulus;
     double NU = PoissonRatio;
@@ -727,10 +727,10 @@ namespace Kratos
 
     this->Derivative2InvDetDeformationGradient(derivative2_inverse_det_deformation_gradient, rShapeFunctionGradientValues, current_covariant_base_vectors, reference_covariant_base_vectors, DofR, DofS);
 
-    this->Elasticity_Tensor_Kirchhoff(rC_reference, rc_current, rShapeFunctionGradientValues, YoungModulus, PoissonRatio);
+    this->ElasticityTensorKirchhoff(rC_reference, rc_current, rShapeFunctionGradientValues, YoungModulus, PoissonRatio);
 
-    this->DerivativeElasticity_Tensor_Kirchhoff(deriv_r_C_reference, deriv_r_c_current, rShapeFunctionGradientValues, DofR, YoungModulus, PoissonRatio);
-    this->DerivativeElasticity_Tensor_Kirchhoff(deriv_s_C_reference, deriv_s_c_current, rShapeFunctionGradientValues, DofS, YoungModulus, PoissonRatio);
+    this->DerivativeElasticityTensorKirchhoff(deriv_r_C_reference, deriv_r_c_current, rShapeFunctionGradientValues, DofR, YoungModulus, PoissonRatio);
+    this->DerivativeElasticityTensorKirchhoff(deriv_s_C_reference, deriv_s_c_current, rShapeFunctionGradientValues, DofS, YoungModulus, PoissonRatio);
 
     
     for (SizeType alpha = 0; alpha < 2; alpha++) {
@@ -784,7 +784,7 @@ namespace Kratos
 
     rStress = ZeroMatrix(2);
 
-    this->Elasticity_Tensor_Kirchhoff(rC_reference, rc_current, rShapeFunctionGradientValues, YoungModulus, PoissonRatio);
+    this->ElasticityTensorKirchhoff(rC_reference, rc_current, rShapeFunctionGradientValues, YoungModulus, PoissonRatio);
 
     this->CovariantBaseVectors(current_covariant_base_vectors, rShapeFunctionGradientValues, ConfigurationType::Current);
     this->CovariantBaseVectors(reference_covariant_base_vectors, rShapeFunctionGradientValues, ConfigurationType::Reference);
@@ -836,9 +836,9 @@ namespace Kratos
     this->CovariantMetric(covariant_metric_current, current_covariant_base_vectors);
     this->CovariantMetric(covariant_metric_reference, reference_covariant_base_vectors);
 
-    this->Elasticity_Tensor_Kirchhoff(rC_reference, rc_current, rShapeFunctionGradientValues, YoungModulus, PoissonRatio);
+    this->ElasticityTensorKirchhoff(rC_reference, rc_current, rShapeFunctionGradientValues, YoungModulus, PoissonRatio);
 
-    this->DerivativeElasticity_Tensor_Kirchhoff(rDerivC_reference, rDerivc_current, rShapeFunctionGradientValues, DofR, YoungModulus, PoissonRatio);
+    this->DerivativeElasticityTensorKirchhoff(rDerivC_reference, rDerivc_current, rShapeFunctionGradientValues, DofR, YoungModulus, PoissonRatio);
 
     this->StrainEulerAlmansi(e, covariant_metric_reference, covariant_metric_current);
     this->DerivativeStrainEulerAlmansi(derivative_e, rShapeFunctionGradientValues, DofR, reference_covariant_base_vectors);
@@ -891,12 +891,12 @@ namespace Kratos
     this->CovariantMetric(covariant_metric_current, current_covariant_base_vectors);
     this->CovariantMetric(covariant_metric_reference, reference_covariant_base_vectors);
 
-    this->Elasticity_Tensor_Kirchhoff(C_reference, c_current, rShapeFunctionGradientValues, YoungModulus, PoissonRatio);
+    this->ElasticityTensorKirchhoff(C_reference, c_current, rShapeFunctionGradientValues, YoungModulus, PoissonRatio);
 
-    this->DerivativeElasticity_Tensor_Kirchhoff(deriv_r_C_reference, deriv_r_c_current, rShapeFunctionGradientValues, DofR, YoungModulus, PoissonRatio);
-    this->DerivativeElasticity_Tensor_Kirchhoff(deriv_s_C_reference, deriv_s_c_current, rShapeFunctionGradientValues, DofS, YoungModulus, PoissonRatio);
+    this->DerivativeElasticityTensorKirchhoff(deriv_r_C_reference, deriv_r_c_current, rShapeFunctionGradientValues, DofR, YoungModulus, PoissonRatio);
+    this->DerivativeElasticityTensorKirchhoff(deriv_s_C_reference, deriv_s_c_current, rShapeFunctionGradientValues, DofS, YoungModulus, PoissonRatio);
 
-    this->Derivative2Elasticity_Tensor_Kirchhoff(deriv2_C_reference, deriv2_c_current, rShapeFunctionGradientValues, DofR, DofS, YoungModulus, PoissonRatio);
+    this->Derivative2ElasticityTensorKirchhoff(deriv2_C_reference, deriv2_c_current, rShapeFunctionGradientValues, DofR, DofS, YoungModulus, PoissonRatio);
 
     this->StrainEulerAlmansi(e, covariant_metric_reference, covariant_metric_current);
     this->DerivativeStrainEulerAlmansi(deriv_r_e, rShapeFunctionGradientValues, DofR, reference_covariant_base_vectors);
