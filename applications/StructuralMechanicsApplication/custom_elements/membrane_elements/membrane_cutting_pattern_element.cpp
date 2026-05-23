@@ -675,7 +675,7 @@ namespace Kratos
 
   void MembraneCuttingPatternElement::Derivative2ElasticityTensorKirchhoff(double rDeriv2C_reference[2][2][2][2], double rDeriv2c_current[2][2][2][2], const Matrix& rShapeFunctionGradientValues, const SizeType DofR, const SizeType DofS, const double YoungModulus, const double PoissonRatio) {
 
-    /*double E = YoungModulus;
+    double E = YoungModulus;
     double NU = PoissonRatio;
     const double lambda = E * NU / (1.0 - NU * NU);
     const double MU = E / (2.0 * (1.0 + NU));
@@ -763,7 +763,7 @@ namespace Kratos
           }
         }
       }
-    }*/
+    }
 
 
   }
