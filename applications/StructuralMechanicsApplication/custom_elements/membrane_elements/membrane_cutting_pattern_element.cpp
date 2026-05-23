@@ -1193,27 +1193,27 @@ namespace Kratos
   void MembraneCuttingPatternElement::TransformBaseVectors(array_1d<Vector, 2>& rBaseVectors,
     const array_1d<Vector, 2>& rLocalBaseVectors) {
 
-    //// create local cartesian coordinate system aligned to global material vectors (orthotropic)
-    //if (Has(LOCAL_MATERIAL_AXIS_1) && Has(LOCAL_MATERIAL_AXIS_2)) {
-    //  rBaseVectors[0] = GetValue(LOCAL_MATERIAL_AXIS_1) / MathUtils<double>::Norm(GetValue(LOCAL_MATERIAL_AXIS_1));
-    //  rBaseVectors[1] = GetValue(LOCAL_MATERIAL_AXIS_2) / MathUtils<double>::Norm(GetValue(LOCAL_MATERIAL_AXIS_2));
-    //}
-    //else if (Has(LOCAL_MATERIAL_AXIS_1)) {
-    //  Vector base_3 = ZeroVector(3);
-    //  MathUtils<double>::UnitCrossProduct(base_3, rLocalBaseVectors[0], rLocalBaseVectors[1]);
+    // create local cartesian coordinate system aligned to global material vectors (orthotropic)
+    if (Has(LOCAL_MATERIAL_AXIS_1) && Has(LOCAL_MATERIAL_AXIS_2)) {
+      rBaseVectors[0] = GetValue(LOCAL_MATERIAL_AXIS_1) / MathUtils<double>::Norm(GetValue(LOCAL_MATERIAL_AXIS_1));
+      rBaseVectors[1] = GetValue(LOCAL_MATERIAL_AXIS_2) / MathUtils<double>::Norm(GetValue(LOCAL_MATERIAL_AXIS_2));
+    }
+    else if (Has(LOCAL_MATERIAL_AXIS_1)) {
+      Vector base_3 = ZeroVector(3);
+      MathUtils<double>::UnitCrossProduct(base_3, rLocalBaseVectors[0], rLocalBaseVectors[1]);
 
-    //  rBaseVectors[0] = GetValue(LOCAL_MATERIAL_AXIS_1) / MathUtils<double>::Norm(GetValue(LOCAL_MATERIAL_AXIS_1));
-    //  MathUtils<double>::UnitCrossProduct(rBaseVectors[1], base_3, rBaseVectors[0]);
+      rBaseVectors[0] = GetValue(LOCAL_MATERIAL_AXIS_1) / MathUtils<double>::Norm(GetValue(LOCAL_MATERIAL_AXIS_1));
+      MathUtils<double>::UnitCrossProduct(rBaseVectors[1], base_3, rBaseVectors[0]);
 
-    //}
-    //else {
-    //  // create local cartesian coordinate system
-    //  rBaseVectors[0] = ZeroVector(3);
-    //  rBaseVectors[1] = ZeroVector(3);
-    //  rBaseVectors[0] = rLocalBaseVectors[0] / MathUtils<double>::Norm(rLocalBaseVectors[0]);
-    //  rBaseVectors[1] = rLocalBaseVectors[1] - (inner_prod(rLocalBaseVectors[1], rBaseVectors[0]) * rBaseVectors[0]);
-    //  rBaseVectors[1] /= MathUtils<double>::Norm(rBaseVectors[1]);
-    //}
+    }
+    else {
+      // create local cartesian coordinate system
+      rBaseVectors[0] = ZeroVector(3);
+      rBaseVectors[1] = ZeroVector(3);
+      rBaseVectors[0] = rLocalBaseVectors[0] / MathUtils<double>::Norm(rLocalBaseVectors[0]);
+      rBaseVectors[1] = rLocalBaseVectors[1] - (inner_prod(rLocalBaseVectors[1], rBaseVectors[0]) * rBaseVectors[0]);
+      rBaseVectors[1] /= MathUtils<double>::Norm(rBaseVectors[1]);
+    }
   }
 
 
