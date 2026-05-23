@@ -995,7 +995,7 @@ namespace Kratos
 
   void MembraneCuttingPatternElement::Derivative2ContravariantMetric(Matrix& rMetric, const Matrix& rShapeFunctionGradientValues, const SizeType DofR, const SizeType DofS, const array_1d<Vector, 2>& rCovariantBaseVectors) {
 
-    /*Matrix covariant_metric = ZeroMatrix(2);
+    Matrix covariant_metric = ZeroMatrix(2);
 
     Matrix derivative_covariant_metric_r = ZeroMatrix(2);
     Matrix derivative_covariant_metric_s = ZeroMatrix(2);
@@ -1025,7 +1025,7 @@ namespace Kratos
       - derivative_covariant_metric_s(0, 1) * derivative_covariant_metric_r(1, 0) - covariant_metric(0, 1) * derivative2_covariant_metric(1, 0);
 
     double derivative_r_inverse_determinant_covariant_metric = -derivative_r_determinant_covariant_metric / (determinant_covariant_metric * determinant_covariant_metric);
-    double derivative_r_inverse_determinant_covariant_metric = -derivative_r_determinant_covariant_metric / (determinant_covariant_metric * determinant_covariant_metric);
+    double derivative_s_inverse_determinant_covariant_metric = -derivative_s_determinant_covariant_metric / (determinant_covariant_metric * determinant_covariant_metric);
 
     double derivative2_inverse_determinant_covariant_metric = (-derivative2_determinant_covariant_metric * determinant_covariant_metric
       + 2 * derivative_r_determinant_covariant_metric * derivative_s_determinant_covariant_metric) / (determinant_covariant_metric * determinant_covariant_metric * determinant_covariant_metric);
@@ -1049,7 +1049,7 @@ namespace Kratos
     rMetric(1, 1) = derivative2_inverse_determinant_covariant_metric * covariant_metric(0, 0)
       + derivative_r_inverse_determinant_covariant_metric * derivative_covariant_metric_s(0, 0)
       + derivative_s_inverse_determinant_covariant_metric * derivative_covariant_metric_r(0, 0)
-      + inverse_determinant_covariant_metric * derivative2_covariant_metricv(0, 0);*/
+      + inverse_determinant_covariant_metric * derivative2_covariant_metric(0, 0);
 
   }
 
