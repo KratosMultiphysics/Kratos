@@ -1240,37 +1240,37 @@ namespace Kratos
 
   void MembraneCuttingPatternElement::JacobiDeterminante(double& rDetJacobi, const array_1d<Vector, 2>& rReferenceBaseVectors) const
   {
-    /*Vector3 g3 = ZeroVector(3);
+    Vector3 g3 = ZeroVector(3);
     MathUtils<double>::CrossProduct(g3, rReferenceBaseVectors[0], rReferenceBaseVectors[1]);
     rDetJacobi = MathUtils<double>::Norm(g3);
-    KRATOS_ERROR_IF(rDetJacobi < std::numeric_limits<double>::epsilon()) << "det of Jacobi smaller 0 for element with id" << Id() << std::endl;*/
+    KRATOS_ERROR_IF(rDetJacobi < std::numeric_limits<double>::epsilon()) << "det of Jacobi smaller 0 for element with id" << Id() << std::endl;
   }
 
 
   void MembraneCuttingPatternElement::DeformationGradient(Matrix& rDeformationGradient, double& rDetDeformationGradient,
     const array_1d<Vector, 2>& rCurrentCovariantBase, const array_1d<Vector, 2>& rReferenceContraVariantBase)
   {
-    // attention: this is not in the local orthonogal coordinate system
+     //attention: this is not in the local orthonogal coordinate system
 
-    // calculate out of plane local vectors (membrane has no thickness change so g3 and G3 are normalized)
-    //Vector current_cov_3 = ZeroVector(3);
-    //MathUtils<double>::UnitCrossProduct(current_cov_3, rCurrentCovariantBase[0], rCurrentCovariantBase[1]);
+     //calculate out of plane local vectors (membrane has no thickness change so g3 and G3 are normalized)
+    Vector current_cov_3 = ZeroVector(3);
+    MathUtils<double>::UnitCrossProduct(current_cov_3, rCurrentCovariantBase[0], rCurrentCovariantBase[1]);
 
-    //Vector reference_contra_3 = ZeroVector(3);
-    //MathUtils<double>::UnitCrossProduct(reference_contra_3, rReferenceContraVariantBase[0], rReferenceContraVariantBase[1]);
+    Vector reference_contra_3 = ZeroVector(3);
+    MathUtils<double>::UnitCrossProduct(reference_contra_3, rReferenceContraVariantBase[0], rReferenceContraVariantBase[1]);
 
-    //// calculate deformation gradient
-    //rDeformationGradient = ZeroMatrix(3);
-    //for (SizeType i = 0; i < 2; ++i) {
-    //  rDeformationGradient += outer_prod(rCurrentCovariantBase[i], rReferenceContraVariantBase[i]);
-    //}
+    // calculate deformation gradient
+    rDeformationGradient = ZeroMatrix(3);
+    for (SizeType i = 0; i < 2; ++i) {
+      rDeformationGradient += outer_prod(rCurrentCovariantBase[i], rReferenceContraVariantBase[i]);
+    }
 
-    //// add contribution of out of plane base vectors
-    //rDeformationGradient += outer_prod(current_cov_3, reference_contra_3);
+    // add contribution of out of plane base vectors
+    rDeformationGradient += outer_prod(current_cov_3, reference_contra_3);
 
 
-    //// calculate det(F)
-    //rDetDeformationGradient = MathUtils<double>::Det(rDeformationGradient);
+    // calculate det(F)
+    rDetDeformationGradient = MathUtils<double>::Det(rDeformationGradient);
 
 
   }
