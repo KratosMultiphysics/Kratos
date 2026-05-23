@@ -1106,12 +1106,12 @@ namespace Kratos
 
   void MembraneCuttingPatternElement::CovariantMetric(Matrix& rMetric, const array_1d<Vector, 2>& rBaseVectorCovariant)
   {
-    /*rMetric = ZeroMatrix(2);
+    rMetric = ZeroMatrix(2);
     for (SizeType i = 0; i < 2; ++i) {
       for (SizeType j = 0; j < 2; ++j) {
         rMetric(i, j) = inner_prod(rBaseVectorCovariant[i], rBaseVectorCovariant[j]);
       }
-    }*/
+    }
   }
 
 
