@@ -962,34 +962,34 @@ namespace Kratos
     const array_1d<Vector, 2>& rTransformedBaseVectors, const Matrix& rTransformationMatrix, const SizeType& rIntegrationPointNumber,
     Matrix& rTangentModulus, const ProcessInfo& rCurrentProcessInfo)
   {
-    //Vector strain_vector = ZeroVector(3);
-    //noalias(rStress) = ZeroVector(3);
-    //StrainGreenLagrange(strain_vector, rReferenceCoVariantMetric,
-    //  rCurrentCoVariantMetric, rTransformationMatrix);
+    Vector strain_vector = ZeroVector(3);
+    noalias(rStress) = ZeroVector(3);
+    StrainGreenLagrange(strain_vector, rReferenceCoVariantMetric,
+      rCurrentCoVariantMetric, rTransformationMatrix);
 
-    //// do this to consider the pre-stress influence in the check of the membrane state in the claw
-    //Vector initial_stress = ZeroVector(3);
-    //if (Has(MEMBRANE_PRESTRESS)) {
-    //  const Matrix& r_stress_input = GetValue(MEMBRANE_PRESTRESS);
-    //  initial_stress += column(r_stress_input, rIntegrationPointNumber);
-    //}
-    //else {
-    //  AddPreStressPk2(initial_stress, rTransformedBaseVectors);
-    //}
-    //rStress += initial_stress;
+    // do this to consider the pre-stress influence in the check of the membrane state in the claw
+    Vector initial_stress = ZeroVector(3);
+    if (Has(MEMBRANE_PRESTRESS)) {
+      const Matrix& r_stress_input = GetValue(MEMBRANE_PRESTRESS);
+      initial_stress += column(r_stress_input, rIntegrationPointNumber);
+    }
+    else {
+      AddPreStressPk2(initial_stress, rTransformedBaseVectors);
+    }
+    rStress += initial_stress;
 
-    //ConstitutiveLaw::Parameters element_parameters(GetGeometry(), GetProperties(), rCurrentProcessInfo);
-    //element_parameters.SetStrainVector(strain_vector);
-    //element_parameters.SetStressVector(rStress);
-    //element_parameters.SetConstitutiveMatrix(rTangentModulus);
-    //element_parameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
-    //element_parameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
-    //element_parameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
-    //mConstitutiveLawVector[rIntegrationPointNumber]->CalculateMaterialResponse(element_parameters, ConstitutiveLaw::StressMeasure_PK2);
+    ConstitutiveLaw::Parameters element_parameters(GetGeometry(), GetProperties(), rCurrentProcessInfo);
+    element_parameters.SetStrainVector(strain_vector);
+    element_parameters.SetStressVector(rStress);
+    element_parameters.SetConstitutiveMatrix(rTangentModulus);
+    element_parameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
+    element_parameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+    element_parameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+    mConstitutiveLawVector[rIntegrationPointNumber]->CalculateMaterialResponse(element_parameters, ConstitutiveLaw::StressMeasure_PK2);
 
-    //// do this to include the pre-stress in the actual stress state
-    //// rStress is reset in the claw and thus does not consider the initial stress anymore
-    //rStress += initial_stress;
+    // do this to include the pre-stress in the actual stress state
+    // rStress is reset in the claw and thus does not consider the initial stress anymore
+    rStress += initial_stress;
   }
 
 
