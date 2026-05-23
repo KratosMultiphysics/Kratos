@@ -536,13 +536,13 @@ namespace Kratos
     const Matrix& rShapeFunctionGradientValues, const SizeType DofR, const SizeType DofS,
     const Matrix& rTransformationMatrix)
   {
-    /*Matrix current_covariant_metric_derivative = ZeroMatrix(2);
+    Matrix current_covariant_metric_derivative = ZeroMatrix(2);
     Derivative2CurrentCovariantMetric(current_covariant_metric_derivative, rShapeFunctionGradientValues, DofR, DofS);
 
     Matrix strain_matrix_derivative = 0.50 * current_covariant_metric_derivative;
 
     Vector reference_strain = MathUtils<double>::StrainTensorToVector(strain_matrix_derivative, 3);
-    TransformStrains(rStrain, reference_strain, rTransformationMatrix);*/
+    TransformStrains(rStrain, reference_strain, rTransformationMatrix);
   }
 
 
