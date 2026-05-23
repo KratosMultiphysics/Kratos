@@ -395,7 +395,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             Path(project_path) / "normal_tractions_all_stages.svg",
             titles=plot_titles,
             xlabel=r"Normal Traction [$\mathrm{kN} / \mathrm{m}^2$]",
-            ylabel="y [m]",
+            ylabel=r"$y$ [m]",
         )
 
         shear_traction_plot_label = "Shear traction"
@@ -413,7 +413,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             Path(project_path) / "shear_tractions_all_stages.svg",
             titles=plot_titles,
             xlabel=r"Shear Traction [$\mathrm{kN} / \mathrm{m}^2$]",
-            ylabel="y [m]",
+            ylabel=r"$y$ [m]",
         )
 
     def get_plot_stages(self):
@@ -591,7 +591,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             Path(project_path) / "bending_moments.svg",
             titles=plot_titles,
             xlabel="Bending moment [kNm/m]",
-            ylabel="y [m]",
+            ylabel=r"$y$ [m]",
         )
 
         shear_force_collections = self.get_wall_variable_collections_per_stage(
@@ -606,7 +606,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             Path(project_path) / "shear_forces.svg",
             titles=plot_titles,
             xlabel="Shear force [kN/m]",
-            ylabel="y [m]",
+            ylabel=r"$y$ [m]",
         )
 
         # normal_force_collections = self.get_wall_variable_collections_per_stage("AXIAL_FORCE", "Normal force", project_path, plot_stages, extract_normal_force_and_y_from_line)
@@ -622,7 +622,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             Path(project_path) / "horizontal_total_displacements.svg",
             titles=plot_titles,
             xlabel="Horizontal total displacement [m]",
-            ylabel="y [m]",
+            ylabel=r"$y$ [m]",
         )
 
     def update_all_expected_results(self):
