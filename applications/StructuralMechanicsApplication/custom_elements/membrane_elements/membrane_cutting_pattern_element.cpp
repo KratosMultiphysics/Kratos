@@ -1221,7 +1221,7 @@ namespace Kratos
   void MembraneCuttingPatternElement::InPlaneTransformationMatrix(Matrix& rTransformationMatrix, const array_1d<Vector, 2>& rTransformedBaseVectors,
     const T& rLocalReferenceBaseVectors)
   {
-    /*const double e_g_11 = inner_prod(rTransformedBaseVectors[0], rLocalReferenceBaseVectors[0]);
+    const double e_g_11 = inner_prod(rTransformedBaseVectors[0], rLocalReferenceBaseVectors[0]);
     const double e_g_12 = inner_prod(rTransformedBaseVectors[0], rLocalReferenceBaseVectors[1]);
     const double e_g_21 = inner_prod(rTransformedBaseVectors[1], rLocalReferenceBaseVectors[0]);
     const double e_g_22 = inner_prod(rTransformedBaseVectors[1], rLocalReferenceBaseVectors[1]);
@@ -1234,7 +1234,7 @@ namespace Kratos
     rTransformationMatrix(1, 2) = 2.0 * e_g_21 * e_g_22;
     rTransformationMatrix(2, 0) = e_g_11 * e_g_21;
     rTransformationMatrix(2, 1) = e_g_12 * e_g_22;
-    rTransformationMatrix(2, 2) = (e_g_11 * e_g_22) + (e_g_12 * e_g_21);*/
+    rTransformationMatrix(2, 2) = (e_g_11 * e_g_22) + (e_g_12 * e_g_21);
   }
 
 
