@@ -515,9 +515,9 @@ namespace Kratos
   void MembraneCuttingPatternElement::StrainGreenLagrange(Vector& rStrain, const Matrix& rReferenceCoVariantMetric, const Matrix& rCurrentCoVariantMetric,
     const Matrix& rTransformationMatrix)
   {
-    /*Matrix strain_matrix = 0.50 * (rCurrentCoVariantMetric - rReferenceCoVariantMetric);
+    Matrix strain_matrix = 0.50 * (rCurrentCoVariantMetric - rReferenceCoVariantMetric);
     Vector reference_strain = MathUtils<double>::StrainTensorToVector(strain_matrix, 3);
-    TransformStrains(rStrain, reference_strain, rTransformationMatrix);*/
+    TransformStrains(rStrain, reference_strain, rTransformationMatrix);
   }
 
 
