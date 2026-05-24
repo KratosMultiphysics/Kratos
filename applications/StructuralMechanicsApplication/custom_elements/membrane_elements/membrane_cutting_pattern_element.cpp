@@ -1377,40 +1377,40 @@ namespace Kratos
   void MembraneCuttingPatternElement::PreStress(Matrix& rPreStress/*, const array_1d<Vector, 2>& rTransformedBaseVectors*/)//TO DO
   {
 
-    //rPreStress = ZeroMatrix(2);
-    // 
-    //Vector rPreStress_vector = ZeroVector(3);
-    // if (GetProperties().Has(PRESTRESS_VECTOR)) {
-    //   rPreStress_vector = GetProperties()(PRESTRESS_VECTOR);
+    rPreStress = ZeroMatrix(2);
+     
+    Vector rPreStress_vector = ZeroVector(3);
+     if (GetProperties().Has(PRESTRESS_VECTOR)) {
+       rPreStress_vector = GetProperties()(PRESTRESS_VECTOR);
 
-    //   rPreStress = MathUtils<double>::StressVectorToTensor(rPreStress_vector);
+       rPreStress = MathUtils<double>::StressVectorToTensor(rPreStress_vector);
 
-    //   /*if (Has(LOCAL_PRESTRESS_AXIS_1) && Has(LOCAL_PRESTRESS_AXIS_2)) {
+       /*if (Has(LOCAL_PRESTRESS_AXIS_1) && Has(LOCAL_PRESTRESS_AXIS_2)) {
 
-    //     array_1d<array_1d<double, 3>, 2> local_prestress_axis;
-    //     local_prestress_axis[0] = GetValue(LOCAL_PRESTRESS_AXIS_1) / MathUtils<double>::Norm(GetValue(LOCAL_PRESTRESS_AXIS_1));
-    //     local_prestress_axis[1] = GetValue(LOCAL_PRESTRESS_AXIS_2) / MathUtils<double>::Norm(GetValue(LOCAL_PRESTRESS_AXIS_2));
+         array_1d<array_1d<double, 3>, 2> local_prestress_axis;
+         local_prestress_axis[0] = GetValue(LOCAL_PRESTRESS_AXIS_1) / MathUtils<double>::Norm(GetValue(LOCAL_PRESTRESS_AXIS_1));
+         local_prestress_axis[1] = GetValue(LOCAL_PRESTRESS_AXIS_2) / MathUtils<double>::Norm(GetValue(LOCAL_PRESTRESS_AXIS_2));
 
-    //     Matrix transformation_matrix = ZeroMatrix(3);
-    //     InPlaneTransformationMatrix(transformation_matrix, rTransformedBaseVectors, local_prestress_axis);
-    //     rPreStress = prod(transformation_matrix, rPreStress);
+         Matrix transformation_matrix = ZeroMatrix(3);
+         InPlaneTransformationMatrix(transformation_matrix, rTransformedBaseVectors, local_prestress_axis);
+         rPreStress = prod(transformation_matrix, rPreStress);
 
-    //   }
-    //   else if (Has(LOCAL_PRESTRESS_AXIS_1)) {
+       }
+       else if (Has(LOCAL_PRESTRESS_AXIS_1)) {
 
-    //     Vector base_3 = ZeroVector(3);
-    //     MathUtils<double>::UnitCrossProduct(base_3, rTransformedBaseVectors[0], rTransformedBaseVectors[1]);
+         Vector base_3 = ZeroVector(3);
+         MathUtils<double>::UnitCrossProduct(base_3, rTransformedBaseVectors[0], rTransformedBaseVectors[1]);
 
-    //     array_1d<array_1d<double, 3>, 2> local_prestress_axis;
-    //     local_prestress_axis[0] = GetValue(LOCAL_PRESTRESS_AXIS_1) / MathUtils<double>::Norm(GetValue(LOCAL_PRESTRESS_AXIS_1));
+         array_1d<array_1d<double, 3>, 2> local_prestress_axis;
+         local_prestress_axis[0] = GetValue(LOCAL_PRESTRESS_AXIS_1) / MathUtils<double>::Norm(GetValue(LOCAL_PRESTRESS_AXIS_1));
 
-    //     MathUtils<double>::UnitCrossProduct(local_prestress_axis[1], base_3, local_prestress_axis[0]);
+         MathUtils<double>::UnitCrossProduct(local_prestress_axis[1], base_3, local_prestress_axis[0]);
 
-    //     Matrix transformation_matrix = ZeroMatrix(3);
-    //     InPlaneTransformationMatrix(transformation_matrix, rTransformedBaseVectors, local_prestress_axis);
-    //     rPreStress = prod(transformation_matrix, rPreStress);
-    //   }*/
-    // }
+         Matrix transformation_matrix = ZeroMatrix(3);
+         InPlaneTransformationMatrix(transformation_matrix, rTransformedBaseVectors, local_prestress_axis);
+         rPreStress = prod(transformation_matrix, rPreStress);
+       }*/
+     }
   }
 
 
