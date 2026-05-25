@@ -691,6 +691,11 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         self.design_parameter_max_value = self.optimizer_settings["values_range"][1].GetDouble()
         self.optimizer_max_outer_it = self.optimizer_settings["max_outer_it"].GetInt()
         self.optimizer_kkt_tolerance = self.optimizer_settings["kkt_tolerance"].GetDouble()
+        self.optimizer_min_slack_variable_penalty = self.optimizer_settings["slack_variable_penalty_range"][0].GetDouble()
+        self.optimizer_max_slack_variable_penalty = self.optimizer_settings["slack_variable_penalty_range"][1].GetDouble()
+        self.old_slack_variable_residual = 1.0
+        self.slack_variable_residual = 1.0
+        self.slack_variable_penalty  = self.optimizer_min_slack_variable_penalty
 
     def _InitializeConstraints(self):
         self.constraints_settings = self.optimization_settings["optimization_problem_settings"]["constraints_settings"]
@@ -2386,7 +2391,8 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
                 "optimizer"    : "mma",
                 "values_range" : [0.0,1.0],
                 "max_outer_it" : 1,
-                "kkt_tolerance": 1e-12
+                "kkt_tolerance": 1e-12,
+                "slack_variable_penalty_range": [1e3, 1e4]
             },
             "diffusive_filter_settings": {
                 "use_filter" : false,
@@ -2817,33 +2823,6 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         self._GetMainModelPart().GetCommunicator().SynchronizeNonHistoricalVariable(KratosCFD.RESISTANCE)
 
     def _SolveMMA(self, design_parameter, n_opt_variables, n_opt_constraints, min_value, max_value, max_outer_it, kkt_tolerance):
-        """
-        Solves the MMA (Method of Moving Asymptotes) subproblem in parallel.
-        
-        Algorithm:
-        - Initializes MMA parameters and variable bounds (xmin/xmax, low/upp, move, a0, a, c, d).
-        - Iterates the MMA outer loop until the KKT norm is below `kkt_tolerance` or the maximum number of iterations
-        (`max_outer_it`) is reached:
-            * Solves the MMA subproblem using `MMA.mmasub(...)` to update `xval`.
-            * Re-evaluates the objective and constraints and their gradients.
-            * Checks the KKT residuals with `MMA.kktcheck(...)`.
-        - Extracts the portion of `xval` corresponding to the current rank and maps it back to the local design parameter
-        vector using `_InsertDesignParameterFromOptimizationDomain(...)`, then updates the model and physical parameters
-        through `_UpdateDesignParameterAndPhysicsParameters(...)`.
-
-        MPI logic:
-        - Gathers per-rank sizes with `AllGatherInts([n_opt_variables])` to obtain the global number of design variables
-        and the rank offsets.
-        - Gathers the per-rank design vectors with `AllGathervDoubles(design_parameter)` and concatenates them into the
-        global design vector `xval` of size N = sum(n_opt_variables_in_rank).
-        - Each rank operates on its own slice `xval[offset[rank]:offset[rank+1]]` when evaluating the objective and
-        constraint functions via `_UpdateOptimizationProblem`, while the corresponding gradients are assembled globally
-        with `CreateFunctionalAndConstraintsDerivativesCompleteArrays(...)`.
-        As a result, all ranks hold identical global arrays for `f0val`, `df0dx`, `fval`, and `dfdx`.
-
-        - In serial execution, the gather operations are trivial: `N == n_opt_variables` and the offsets are [0, N].
-        - `min_value` and `max_value` define the global bounds applied to all design variables.
-        """
         self.MpiPrint("--|" + self.topology_optimization_stage_str + "| SOLVE MMA", min_echo=0)
         # MMA PARAMETERS INITIALIZATION
         rank = self.data_communicator.Rank()
@@ -2871,7 +2850,8 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         low = xmin.copy()
         upp = xmax.copy()
         move = 0.4
-        c = 1000 * eeem
+        self._EvaluateSlackVariablePenalizationForMMA()
+        c = self.slack_variable_penalty * eeem
         d = eeem.copy()
         a0 = 1
         a = zerom.copy()
@@ -2912,6 +2892,19 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         new_design_parameter = self._InsertDesignParameterFromOptimizationDomain(curr_rank_design.flatten())
         self._UpdateDesignParameterAndPhysicsParameters(new_design_parameter)
 
+    def _EvaluateSlackVariablePenalizationForMMA(self, delta_it = 1, slack_variable_residual_toll = 1e-3, slack_penalty_adaptation_factor=2.0):
+        self.old_slack_variable_residual = self.slack_variable_residual
+        self.slack_variable_residual = max(self.volume_constraint, 0.0)
+        if ((self.opt_it % delta_it) == 0):
+            if (self.slack_variable_residual > slack_variable_residual_toll):
+                if (min(self.slack_variable_residual/self.old_slack_variable_residual, 1.0) > 0.95):
+                    self.slack_variable_penalty *= slack_penalty_adaptation_factor
+                    self.MpiPrint("increase penalty: " + str(self.slack_variable_penalty), min_echo=0)
+                elif (min(self.slack_variable_residual/self.old_slack_variable_residual, 1.0) < 0.05):
+                    self.slack_variable_penalty /= slack_penalty_adaptation_factor
+                    self.MpiPrint("decrease penalty: " + str(self.slack_variable_penalty), min_echo=0)
+        self.slack_variable_penalty = max(self.optimizer_min_slack_variable_penalty, min(self.slack_variable_penalty, self.optimizer_max_slack_variable_penalty))
+        
     def CreateFunctionalDerivativesCompleteArrays(self, local_value, n_ranks, n_opt_variables_in_rank):
         """
         Gathers and concatenates the objective function derivatives (df0/dx) from all MPI ranks
