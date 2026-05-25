@@ -49,7 +49,7 @@ add_app ${KRATOS_APP_DIR}/CableNetApplication;
 add_app ${KRATOS_APP_DIR}/RANSApplication;
 add_app ${KRATOS_APP_DIR}/MappingApplication;
 add_app ${KRATOS_APP_DIR}/CompressiblePotentialFlowApplication;
-# add_app ${KRATOS_APP_DIR}/HDF5Application;
+add_app ${KRATOS_APP_DIR}/HDF5Application;
 add_app ${KRATOS_APP_DIR}/MedApplication;
 add_app ${KRATOS_APP_DIR}/IgaApplication;
 add_app ${KRATOS_APP_DIR}/ChimeraApplication;
@@ -79,6 +79,7 @@ cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}"    \
 -DCMAKE_CXX_FLAGS="-msse3 -std=c++20 "                                 \
 -DCMAKE_C_FLAGS="-msse3 -std=gnu99"                                    \
 -DBOOST_ROOT="/workspace/boost/boost_1_87_0"                           \
+-DINSTALL_TPL_LIBRARIES=ON                                             \
 -DINCLUDE_MMG=ON                                                       \
 -DMMG_ROOT="/workspace/external_libraries/mmg/mmg_5_5_1"               \
 -DHDF5_ROOT="/workspace/hdf5/bin"                                      \
