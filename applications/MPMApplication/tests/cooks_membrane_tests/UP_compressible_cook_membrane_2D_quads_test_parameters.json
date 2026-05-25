@@ -62,8 +62,7 @@
                 "direction"       : [0.0,0.0625,0.0]
             }
         }],
-        "list_other_processes"     : [
-        {
+        "list_other_processes"     : [{
             "python_module"   : "from_json_check_result_process",
             "kratos_module" : "KratosMultiphysics",
             "help"                  : "",
@@ -76,18 +75,6 @@
             }
         }]
     },
-    "print_output_process" : [{
-        "python_module"   : "json_output_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"                  : "",
-        "process_name"          : "JsonOutputProcess",
-        "Parameters"            : {
-            "output_variables"  : ["DISPLACEMENT","PRESSURE"],
-            "output_file_name"  : "cooks_membrane_tests/UP_compressible_cook_membrane_2D_quads_test_results.json",
-            "model_part_name"   : "Background_Grid",
-            "time_frequency"    : 1.0
-        }
-    }],
     "modelers"         : [{
         "name"       : "Modelers.KratosMultiphysics.ImportMDPAModeler",
         "parameters" : {
