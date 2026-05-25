@@ -160,6 +160,21 @@ private:
         const std::string& rVariableName,
         const double& value,
         Condition::Pointer p_condition);
+    
+    /**
+     * @brief Sets one component of the NORMAL_STRESS vector stored on a condition.
+     */
+    void SetNormalStressComponent(
+        const std::size_t ComponentIndex,
+        const double& value,
+        Condition::Pointer p_condition)
+    {
+        Vector normal_stress = p_condition->Has(NORMAL_STRESS) ? p_condition->GetValue(NORMAL_STRESS) : ZeroVector(3);
+        KRATOS_ERROR_IF(normal_stress.size() != 3)
+            << "NORMAL_STRESS must have size 3 in AssignIgaExternalConditionsProcess." << std::endl;
+        normal_stress[ComponentIndex] = value;
+        p_condition->SetValue(NORMAL_STRESS, normal_stress);
+    }
 
     ///@}
     ///@name Input and output
