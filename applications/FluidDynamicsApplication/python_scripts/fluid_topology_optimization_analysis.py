@@ -2899,10 +2899,10 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
             if (self.slack_variable_residual > slack_variable_residual_toll):
                 if (min(self.slack_variable_residual/self.old_slack_variable_residual, 1.0) > 0.95):
                     self.slack_variable_penalty *= slack_penalty_adaptation_factor
-                    self.MpiPrint("increase penalty: " + str(self.slack_variable_penalty), min_echo=0)
+                    self.MpiPrint("--|" + self.topology_optimization_stage_str + "|--> Increase Slack Varible Penalty. New value: " + str(self.slack_variable_penalty), min_echo=0)
                 elif (min(self.slack_variable_residual/self.old_slack_variable_residual, 1.0) < 0.05):
                     self.slack_variable_penalty /= slack_penalty_adaptation_factor
-                    self.MpiPrint("decrease penalty: " + str(self.slack_variable_penalty), min_echo=0)
+                    self.MpiPrint("--|" + self.topology_optimization_stage_str + "|--> Decrease Slack Varible Penalty. New value: " + str(self.slack_variable_penalty), min_echo=0)
         self.slack_variable_penalty = max(self.optimizer_min_slack_variable_penalty, min(self.slack_variable_penalty, self.optimizer_max_slack_variable_penalty))
         
     def CreateFunctionalDerivativesCompleteArrays(self, local_value, n_ranks, n_opt_variables_in_rank):
