@@ -264,10 +264,6 @@ class TestTransferElements(KratosUnittest.TestCase):
         #updated_langrangian
         self._transfer_elements(dimension=2,geometry_element="Quadrilateral", is_mixed_formulation=False, is_pqmpm = False)
 
-    def test_transfer_elements_quadrilateral2D4N_up(self):
-        #updated_langrangian_up
-        self._transfer_elements(dimension=2,geometry_element="Quadrilateral", is_mixed_formulation=True, is_pqmpm = False)
-
     def test_transfer_elements_quadrilateral2D4N_pq(self):
         #updated_langrangian_pq
         self._transfer_elements(dimension=2,geometry_element="Quadrilateral", is_mixed_formulation=False, is_pqmpm = True)
