@@ -1,0 +1,120 @@
+{
+    "problem_data"     : {
+        "problem_name"  : "UP_compressible_cook_membrane_2D_quads_test",
+        "parallel_type" : "OpenMP",
+        "echo_level"    : 0,
+        "start_time"    : 0.0,
+        "end_time"      : 1.0
+    },
+    "solver_settings"  : {
+        "time_stepping"                   : {
+            "time_step" : 1.1
+        },
+        "solver_type"                     : "Static",
+        "model_part_name"                 : "MPM_Material",
+        "domain_size"                     : 2,
+        "echo_level"                      : 0,
+        "analysis_type"                   : "non_linear",
+        "material_import_settings"        : {
+            "materials_filename" : "cooks_membrane_tests/UP_compressible_cook_membrane_2D_quads_test_materials.json"
+        },
+        "compute_reactions"               : true,
+        "convergence_criterion"           : "residual_criterion",
+        "displacement_relative_tolerance" : 0.0001,
+        "displacement_absolute_tolerance" : 1e-9,
+        "residual_relative_tolerance"     : 0.0001,
+        "residual_absolute_tolerance"     : 1e-9,
+        "max_iteration"                   : 4,
+        "model_import_settings"           : {
+            "input_type" : "use_input_model_part"
+        },
+        "grid_model_import_settings"      : {
+            "input_type" : "use_input_model_part"
+        },
+        "pressure_dofs"                   : true,
+        "stabilization"                   : "none",
+        "linear_solver_settings"          : {
+            "solver_type" : "LinearSolversApplication.sparse_lu"
+        },
+        "auxiliary_variables_list"        : ["NORMAL","IS_STRUCTURE"]
+    },
+    "processes"        : {
+        "constraints_process_list" : [{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "AssignVectorVariableProcess",
+            "Parameters"    : {
+                "model_part_name" : "Background_Grid.Fixed_disp",
+                "variable_name"   : "DISPLACEMENT",
+                "constrained"     : [true,true,true],
+                "value"           : [0.0,0.0,0.0]
+            }
+        }],
+        "loads_process_list"       : [{
+            "python_module" : "assign_vector_by_direction_to_condition_process",
+            "kratos_module" : "KratosMultiphysics",
+            "check"         : "DirectorVectorNonZero direction",
+            "process_name"  : "AssignVectorByDirectionToConditionProcess",
+            "Parameters"    : {
+                "model_part_name" : "Background_Grid.Traction",
+                "variable_name"   : "LINE_LOAD",
+                "modulus"         : 1.0,
+                "direction"       : [0.0,0.0625,0.0]
+            }
+        }],
+        "list_other_processes"     : [
+        {
+            "python_module"   : "from_json_check_result_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"                  : "",
+            "process_name"          : "FromJsonCheckResultProcess",
+            "Parameters"            : {
+                "check_variables"  : ["DISPLACEMENT","PRESSURE"],
+                "input_file_name"  : "cooks_membrane_tests/UP_compressible_cook_membrane_2D_quads_test_results.json",
+                "model_part_name"  : "Background_Grid",
+                "time_frequency"   : 1.0
+            }
+        }]
+    },
+    "print_output_process" : [{
+        "python_module"   : "json_output_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"                  : "",
+        "process_name"          : "JsonOutputProcess",
+        "Parameters"            : {
+            "output_variables"  : ["DISPLACEMENT","PRESSURE"],
+            "output_file_name"  : "cooks_membrane_tests/UP_compressible_cook_membrane_2D_quads_test_results.json",
+            "model_part_name"   : "Background_Grid",
+            "time_frequency"    : 1.0
+        }
+    }],
+    "modelers"         : [{
+        "name"       : "Modelers.KratosMultiphysics.ImportMDPAModeler",
+        "parameters" : {
+            "input_filename"  : "cooks_membrane_tests/cook_membrane_2D_quads_test_Grid",
+            "model_part_name" : "Background_Grid"
+        }
+    },{
+        "name"       : "Modelers.KratosMultiphysics.ImportMDPAModeler",
+        "parameters" : {
+            "input_filename"  : "cooks_membrane_tests/cook_membrane_2D_quads_test_Body",
+            "model_part_name" : "Initial_MPM_Material"
+        }
+    },{
+        "name"       : "Modelers.KratosMultiphysics.CreateEntitiesFromGeometriesModeler",
+        "parameters" : {
+            "elements_list"   : [{
+                "model_part_name" : "Initial_MPM_Material.Membrane",
+                "element_name"    : "MPMUpdatedLagrangianUP2D4N"
+            },{
+                "model_part_name" : "Background_Grid.Grid",
+                "element_name"    : "Element2D4N"
+            }],
+            "conditions_list" : [{
+                "model_part_name" : "Background_Grid.Traction",
+                "condition_name"  : "MPMGridLineLoadCondition2D2N"
+            }]
+        }
+    }],
+    "analysis_stage"   : "KratosMultiphysics.MPMApplication.mpm_analysis"
+}

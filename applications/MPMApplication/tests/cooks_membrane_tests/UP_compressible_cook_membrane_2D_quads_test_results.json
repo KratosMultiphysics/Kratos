@@ -1,0 +1,229 @@
+{
+  "TIME": [
+    1.1
+  ],
+  "NODE_1": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "PRESSURE": [
+      0.6828247049180536
+    ]
+  },
+  "NODE_3": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "PRESSURE": [
+      0.8740919287354136
+    ]
+  },
+  "NODE_4": {
+    "DISPLACEMENT_X": [
+      0.17561885027696053
+    ],
+    "DISPLACEMENT_Y": [
+      0.4158356654746717
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "PRESSURE": [
+      1.1527225700338795
+    ]
+  },
+  "NODE_5": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "PRESSURE": [
+      0.029413235503853993
+    ]
+  },
+  "NODE_6": {
+    "DISPLACEMENT_X": [
+      0.1349970078638396
+    ],
+    "DISPLACEMENT_Y": [
+      0.43810776684510006
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "PRESSURE": [
+      0.279711821546184
+    ]
+  },
+  "NODE_7": {
+    "DISPLACEMENT_X": [
+      -0.09811387755529834
+    ],
+    "DISPLACEMENT_Y": [
+      0.420284985162777
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "PRESSURE": [
+      0.08646507912099351
+    ]
+  },
+  "NODE_8": {
+    "DISPLACEMENT_X": [
+      0.23323850348180145
+    ],
+    "DISPLACEMENT_Y": [
+      1.456482548355177
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "PRESSURE": [
+      1.4068220400907703
+    ]
+  },
+  "NODE_9": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "PRESSURE": [
+      -3.1066620181362707
+    ]
+  },
+  "NODE_10": {
+    "DISPLACEMENT_X": [
+      -0.16647171661613502
+    ],
+    "DISPLACEMENT_Y": [
+      1.4947222272121024
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "PRESSURE": [
+      0.4580631526571759
+    ]
+  },
+  "NODE_11": {
+    "DISPLACEMENT_X": [
+      -0.7119814027276822
+    ],
+    "DISPLACEMENT_Y": [
+      0.5172330236633701
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "PRESSURE": [
+      -1.1124919956607986
+    ]
+  },
+  "NODE_12": {
+    "DISPLACEMENT_X": [
+      -0.7856289057262491
+    ],
+    "DISPLACEMENT_Y": [
+      1.545108469419551
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "PRESSURE": [
+      -0.022812764044888346
+    ]
+  },
+  "NODE_13": {
+    "DISPLACEMENT_X": [
+      -1.56784149182502
+    ],
+    "DISPLACEMENT_Y": [
+      1.5606352665832375
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "PRESSURE": [
+      -0.7429276343518023
+    ]
+  },
+  "NODE_14": {
+    "DISPLACEMENT_X": [
+      -0.726504028982795
+    ],
+    "DISPLACEMENT_Y": [
+      3.309464430356609
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "PRESSURE": [
+      0.9388032613998172
+    ]
+  },
+  "NODE_15": {
+    "DISPLACEMENT_X": [
+      -1.213064335327728
+    ],
+    "DISPLACEMENT_Y": [
+      3.340004358668966
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "PRESSURE": [
+      0.5419904517470874
+    ]
+  },
+  "NODE_16": {
+    "DISPLACEMENT_X": [
+      -1.7592283143586627
+    ],
+    "DISPLACEMENT_Y": [
+      3.369664884281813
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "PRESSURE": [
+      0.4918012803170378
+    ]
+  },
+  "NODE_17": {
+    "DISPLACEMENT_X": [
+      -2.374930057834273
+    ],
+    "DISPLACEMENT_Y": [
+      3.354426207814316
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "PRESSURE": [
+      0.05827540802252233
+    ]
+  }
+}
