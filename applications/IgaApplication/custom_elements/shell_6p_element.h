@@ -347,17 +347,12 @@ private:
         const IndexType IntegrationPointIndex,
         KinematicVariables& rKinematicVariables) const;
 
-    // Computes transformation
-    void CalculateTransformation(
+    // Compute the transformation matrix from local to global cartesian coordinates
+    void CalculateTransformationFromLocalToGlobalCartesian(
         const KinematicVariables& rKinematicVariables,
-        Matrix& rT) const;
+        Matrix& rTransformationMatrix) const; 
     
-    // Computes transformation for the stress tensor 
-    void CalculateTransformationFromCovariantToCartesian(
-        const KinematicVariables& rKinematicVariables,
-        Matrix& rTCovToCar) const;
-
-    void CalculateB(
+    void CalculateBOperator(
         const IndexType IntegrationPointIndex,
         Matrix& rB,
         double zeta,
@@ -384,7 +379,7 @@ private:
         Matrix& dn,
         double& area) const;
 
-    void CalculateBDrill(
+    void CalculateBDrilling(
         const IndexType IntegrationPointIndex,
         Matrix& rBd,
         Matrix& DN_De_Jn,
