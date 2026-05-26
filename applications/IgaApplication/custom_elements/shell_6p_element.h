@@ -356,7 +356,6 @@ private:
         const IndexType IntegrationPointIndex,
         Matrix& rB,
         double zeta,
-        Matrix& DN_De_Jn,
         Matrix& J_inv,
         Matrix& dn,
         const KinematicVariables& rActualKinematic) const;
@@ -365,7 +364,6 @@ private:
         const IndexType IntegrationPointIndex,
         Matrix& rB,
         double zeta,
-        Matrix& DN_De_Jn,
         Matrix& J_inv,
         Matrix& dn,
         const KinematicVariables& rActualKinematic) const;
@@ -375,19 +373,10 @@ private:
         KinematicVariables& rKinematicVariables,
         Matrix& DerivativeNormalMatrix) const;
 
-    void CalculateJn(
-        const IndexType IntegrationPointIndex,
-        KinematicVariables& rKinematicVariables,
-        double zeta,
-        Matrix& DN_De_Jn,
-        Matrix& J_inv,
-        Matrix& dn,
-        double& area) const;
-
     void CalculateBDrilling(
         const IndexType IntegrationPointIndex,
         Matrix& rBd,
-        Matrix& DN_De_Jn,
+        Matrix& J_inv,
         const KinematicVariables& rActualKinematic) const;
 
     void CalculateStressMatrix(

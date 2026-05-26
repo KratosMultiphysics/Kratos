@@ -305,18 +305,21 @@ namespace Kratos
         const ProcessInfo& rCurrentProcessInfo
     )
     {
+        // Retrieve geometry and integration points
         const GeometryType& r_geometry = GetGeometry();
+        const auto& r_integration_points = r_geometry.IntegrationPoints();
 
-        // definition of problem size
+        // Definition of problem size
         const std::size_t number_of_nodes = r_geometry.size();
         const std::size_t mat_size = number_of_nodes * 6;
 
-        const auto& r_integration_points = r_geometry.IntegrationPoints();
-
+        // Provide a default empty implementation: resize and set zeros
         if (rOutput.size() != r_integration_points.size())
         {
             rOutput.resize(r_integration_points.size());
         }
+
+        double thickness = this->GetProperties().GetValue(THICKNESS); 
 
         // Initialize components for non-linear analysis
         Vector current_displacement = ZeroVector(6*number_of_nodes);
@@ -326,11 +329,14 @@ namespace Kratos
      
         for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
 
-            // Compute Kinematics and Metric
+            // 1. Compute Kinematics and Metric components
             KinematicVariables kinematic_variables(GetGeometry().WorkingSpaceDimension());
             CalculateKinematics(point_number, kinematic_variables);
+
+            Matrix normal_vector_derivatives = ZeroMatrix(3, 3);
+            CalculateNormalVectorDerivatives(point_number, kinematic_variables, normal_vector_derivatives);
             
-            // Create constitutive law parameters
+            // 2a. Create constitutive law parameters:
             ConstitutiveLaw::Parameters constitutive_law_parameters(
                 GetGeometry(), GetProperties(), rCurrentProcessInfo);
             ConstitutiveVariables constitutive_variables(6);
@@ -338,25 +344,34 @@ namespace Kratos
             CalculateConstitutiveVariables(point_number, kinematic_variables, constitutive_variables,
                 constitutive_law_parameters, ConstitutiveLaw::StressMeasure_PK2);
             
-            // Transform the constitutive matrix to global cartesian coordinates
+            // 2b. Transform the constitutive matrix to global cartesian coordinates
             constitutive_variables.ConstitutiveMatrix = prod(m_T_vector[point_number], 
                 Matrix(prod(constitutive_variables.ConstitutiveMatrix, trans(m_T_vector[point_number]))));
               
-            // Loop for zeta
+            // 3. Loop for zeta
             for (IndexType Gauss_index = 0; Gauss_index < mGaussIntegrationThickness.num_GP_thickness; Gauss_index++)
             {
-                // Initialization
-                Matrix B = ZeroMatrix(6, mat_size);
-                Matrix dn = ZeroMatrix(3, 3);
-                Matrix DN_De_Jn = ZeroMatrix(number_of_nodes,3);
-                Matrix J_inv = ZeroMatrix(3, 3);
-                double area = 0.0;
+                // Retrieve zeta for the current Gauss point in thickness direction
+                mZeta = mGaussIntegrationThickness.zeta(Gauss_index);
 
-                CalculateJn(point_number, kinematic_variables, mZeta, DN_De_Jn, J_inv, dn, area);
+                // Compute the Jacobian matrix at the current Gauss point in thickness direction
+                Matrix jacobian = ZeroMatrix(3,3);
+                Matrix jacobian_inv = ZeroMatrix(3,3);
+                double jacobian_det = 0.0;
 
-                CalculateBOperator(point_number, B, mZeta, DN_De_Jn, J_inv, dn, kinematic_variables);
+                for (int i = 0; i < 3; i++) {
+                    jacobian(0, i) = kinematic_variables.BaseVector1[i] + (thickness/2) * mZeta * normal_vector_derivatives(0, i); 
+                    jacobian(1, i) = kinematic_variables.BaseVector2[i] + (thickness/2) * mZeta * normal_vector_derivatives(1, i) ; 
+                    jacobian(2, i) = kinematic_variables.NormalVector[i] * (thickness/2) ;
+                }
 
-                strain_cau_cart[Gauss_index] = prod(B, current_displacement);
+                MathUtils<double>::InvertMatrix(jacobian, jacobian_inv, jacobian_det);
+
+                // Compute the b-operator at the current Gauss point in thickness direction
+                Matrix b_operator = ZeroMatrix(6, mat_size);
+                CalculateBOperator(point_number, b_operator, mZeta, jacobian_inv, normal_vector_derivatives, kinematic_variables);
+
+                strain_cau_cart[Gauss_index] = prod(b_operator, current_displacement);
                 stress_cau_cart[Gauss_index] = prod(constitutive_variables.ConstitutiveMatrix,strain_cau_cart[Gauss_index]);
             }
         }
@@ -542,6 +557,8 @@ namespace Kratos
         const std::size_t number_of_nodes = r_geometry.size();
         const std::size_t mat_size = number_of_nodes * 6;
 
+        double thickness = this->GetProperties().GetValue(THICKNESS); 
+
         // Loop over integration points
         for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
 
@@ -566,32 +583,36 @@ namespace Kratos
                 
             // 3. Loop for zeta
             for (IndexType Gauss_index = 0; Gauss_index < mGaussIntegrationThickness.num_GP_thickness; Gauss_index++)
-            {            
-                // Initialization
-                Matrix B_operator = ZeroMatrix(6, mat_size);
-                Matrix B_drilling = ZeroMatrix(1, mat_size);
-                Matrix B_geometric = ZeroMatrix(9, mat_size);
-
-                Matrix dn = ZeroMatrix(3, 3);
-                Matrix DN_De_Jn = ZeroMatrix(number_of_nodes,3);
-                Matrix J_inv = ZeroMatrix(3, 3);
-                double area = 0.0;
-
-                Matrix stress_matrix = ZeroMatrix(9,9);
-                
+            {
                 // Retrieve zeta for the current Gauss point in thickness direction
                 mZeta = mGaussIntegrationThickness.zeta(Gauss_index);
 
-                CalculateJn(point_number, kinematic_variables, mZeta, DN_De_Jn, J_inv, dn, area);
+                // Compute the Jacobian matrix at the current Gauss point in thickness direction
+                Matrix jacobian = ZeroMatrix(3,3);
+                Matrix jacobian_inv = ZeroMatrix(3,3);
+                double jacobian_det = 0.0;
+
+                for (int i = 0; i < 3; i++) {
+                    jacobian(0, i) = kinematic_variables.BaseVector1[i] + (thickness/2) * mZeta * normal_vector_derivatives(0, i); 
+                    jacobian(1, i) = kinematic_variables.BaseVector2[i] + (thickness/2) * mZeta * normal_vector_derivatives(1, i) ; 
+                    jacobian(2, i) = kinematic_variables.NormalVector[i] * (thickness/2) ;
+                }
+
+                MathUtils<double>::InvertMatrix(jacobian, jacobian_inv, jacobian_det);
+
+                // Initialization
+                Matrix b_operator = ZeroMatrix(6, mat_size);
+                Matrix b_drilling = ZeroMatrix(1, mat_size);
+                Matrix b_geometric = ZeroMatrix(9, mat_size);
 
                 // Material stiffness part
-                CalculateBOperator(point_number, B_operator, mZeta, DN_De_Jn, J_inv, dn, kinematic_variables);
+                CalculateBOperator(point_number, b_operator, mZeta, jacobian_inv, normal_vector_derivatives, kinematic_variables);
 
                 // Drilling stiffness part
-                CalculateBDrilling(point_number, B_drilling, DN_De_Jn, kinematic_variables);
+                CalculateBDrilling(point_number, b_drilling, jacobian_inv, kinematic_variables);
 
                 // Geometric stiffness part
-                CalculateBGeometric(point_number, B_geometric, mZeta, DN_De_Jn, J_inv, dn, kinematic_variables);
+                CalculateBGeometric(point_number, b_geometric, mZeta, jacobian_inv, normal_vector_derivatives, kinematic_variables);
 
                 // Initialize strain and stress
                 std::vector<array_1d<double, 6>> strain_cau_cart(mGaussIntegrationThickness.num_GP_thickness);
@@ -599,35 +620,34 @@ namespace Kratos
                 Vector current_displacement = ZeroVector(6*number_of_nodes);
                 GetValuesVector(current_displacement,0);
 
-                strain_cau_cart[Gauss_index] = prod(B_operator, current_displacement);
+                strain_cau_cart[Gauss_index] = prod(b_operator, current_displacement);
                 stress_cau_cart[Gauss_index] = prod(constitutive_variables.ConstitutiveMatrix,strain_cau_cart[Gauss_index]);
 
+                Matrix stress_matrix = ZeroMatrix(9,9);
                 CalculateStressMatrix(stress_cau_cart[Gauss_index],stress_matrix);
                 
-                double integration_weight =
-                    r_integration_points[point_number].Weight()
-                    * area; // * m_dA_vector[point_number]; 
+                double integration_weight = r_integration_points[point_number].Weight() * jacobian_det; 
 
                 Matrix rKm = ZeroMatrix(mat_size, mat_size);
                 Matrix rKd = ZeroMatrix(mat_size, mat_size);
 
                 if (CalculateStiffnessMatrixFlag == true)
                 {
-                    CalculateAndAddKm(rKm, B_operator, constitutive_variables.ConstitutiveMatrix);
+                    CalculateAndAddKm(rKm, b_operator, constitutive_variables.ConstitutiveMatrix);
 
-                    CalculateAndAddKmBd(rKd, B_drilling);
+                    CalculateAndAddKmBd(rKd, b_drilling);
 
                     CalculateAndAddK(rLeftHandSideMatrix, rKm, rKd, integration_weight,
                         mGaussIntegrationThickness.integration_weight_thickness(Gauss_index));
 
-                    CalculateAndAddNonlinearKm(rLeftHandSideMatrix, B_geometric,stress_matrix,
+                    CalculateAndAddNonlinearKm(rLeftHandSideMatrix, b_geometric,stress_matrix,
                        integration_weight, mGaussIntegrationThickness.integration_weight_thickness(Gauss_index));
                 }
                 
                 if (CalculateResidualVectorFlag == true) //calculation of the matrix is required
                 {
                     // operation performed: rRightHandSideVector -= Weight*IntForce
-                    noalias(rRightHandSideVector) -= integration_weight * prod(trans(B_operator), stress_cau_cart[Gauss_index]);
+                    noalias(rRightHandSideVector) -= integration_weight * prod(trans(b_operator), stress_cau_cart[Gauss_index]);
                 }
 
             } 
@@ -794,106 +814,10 @@ namespace Kratos
         }
     }
 
-    void Shell6pElement::CalculateJn(
-        const IndexType IntegrationPointIndex,
-        KinematicVariables& rKinematicVariables,
-        double zeta,
-        Matrix& DN_De_Jn,
-        Matrix& J_inv,
-        Matrix& dn,
-        double& area) const
-    {
-        const Matrix& r_DN_De = GetGeometry().ShapeFunctionLocalGradient(IntegrationPointIndex);
-        const Matrix& r_DDN_DDe = GetGeometry().ShapeFunctionDerivatives(2, IntegrationPointIndex, GetGeometry().GetDefaultIntegrationMethod());
-
-        double thickness = this->GetProperties().GetValue(THICKNESS);  
-
-        Matrix J;
-        GetGeometry().Jacobian(J, IntegrationPointIndex);
-        const std::size_t number_of_control_points = GetGeometry().size();
-
-        rKinematicVariables.BaseVector1 = column(J, 0);
-        rKinematicVariables.BaseVector2 = column(J, 1);
-        MathUtils<double>::CrossProduct(rKinematicVariables.NormalVectorTilde, rKinematicVariables.BaseVector1, rKinematicVariables.BaseVector2);
-        rKinematicVariables.DifferentialArea = norm_2(rKinematicVariables.NormalVectorTilde);
-        noalias(rKinematicVariables.NormalVector) = rKinematicVariables.NormalVectorTilde / rKinematicVariables.DifferentialArea;
-
-
-        Matrix da3 = ZeroMatrix(3, 3);
-        double inv_dA = 1 / rKinematicVariables.DifferentialArea;
-        double inv_dA3 = 1 / std::pow(rKinematicVariables.DifferentialArea, 3);
-
-        //compute da3
-        array_1d<double, 3> da1_d1;
-        array_1d<double, 3> da1_d2; //da1_d2 = da2_d1
-        array_1d<double, 3> da2_d2;
-
-        for (std::size_t i=0;i<number_of_control_points;++i){
-            da1_d1[0] += (GetGeometry().GetPoint( i ).X0()) * r_DDN_DDe(i, 0);
-            da1_d1[1] += (GetGeometry().GetPoint( i ).Y0()) * r_DDN_DDe(i, 0);
-            da1_d1[2] += (GetGeometry().GetPoint( i ).Z0()) * r_DDN_DDe(i, 0);
-
-            da1_d2[0] += (GetGeometry().GetPoint( i ).X0()) * r_DDN_DDe(i, 1);
-            da1_d2[1] += (GetGeometry().GetPoint( i ).Y0()) * r_DDN_DDe(i, 1);
-            da1_d2[2] += (GetGeometry().GetPoint( i ).Z0()) * r_DDN_DDe(i, 1);
-
-            da2_d2[0] += (GetGeometry().GetPoint( i ).X0()) * r_DDN_DDe(i, 2);
-            da2_d2[1] += (GetGeometry().GetPoint( i ).Y0()) * r_DDN_DDe(i, 2);
-            da2_d2[2] += (GetGeometry().GetPoint( i ).Z0()) * r_DDN_DDe(i, 2);
-        }
-
-        array_1d<double, 3> da3_tilde_d1;
-        array_1d<double, 3> da3_tilde_d1_1;
-        array_1d<double, 3> da3_tilde_d1_2;
-        array_1d<double, 3> da3_tilde_d2;
-        array_1d<double, 3> da3_tilde_d2_1;
-        array_1d<double, 3> da3_tilde_d2_2;
-
-        MathUtils<double>::CrossProduct(da3_tilde_d1_1, da1_d1, rKinematicVariables.BaseVector2);
-        MathUtils<double>::CrossProduct(da3_tilde_d1_2, rKinematicVariables.BaseVector1, da1_d2);
-        da3_tilde_d1 = da3_tilde_d1_1 + da3_tilde_d1_2;
-
-        MathUtils<double>::CrossProduct(da3_tilde_d2_1, da1_d2, rKinematicVariables.BaseVector2);
-        MathUtils<double>::CrossProduct(da3_tilde_d2_2, rKinematicVariables.BaseVector1, da2_d2);
-        da3_tilde_d2 = da3_tilde_d2_1 + da3_tilde_d2_2;
-
-        for (IndexType j = 0; j < 3; j++)
-        {
-            dn(0, j) = da3_tilde_d1[j] * inv_dA - rKinematicVariables.NormalVectorTilde[j] * inner_prod(rKinematicVariables.NormalVectorTilde, da3_tilde_d1) * inv_dA3;
-            dn(1, j) = da3_tilde_d2[j] * inv_dA - rKinematicVariables.NormalVectorTilde[j] * inner_prod(rKinematicVariables.NormalVectorTilde, da3_tilde_d2) * inv_dA3;
-            dn(2, j) = 0.0;
-        }
-
-        Matrix Jn = ZeroMatrix(3,3);
-        for (int i = 0; i < 3; i++) {
-            Jn(0, i) = rKinematicVariables.BaseVector1[i] + (thickness/2) * zeta * dn(0, i); 
-            Jn(1, i) = rKinematicVariables.BaseVector2[i] + (thickness/2) * zeta * dn(1, i) ; 
-            Jn(2, i) = rKinematicVariables.NormalVector[i] * (thickness/2) ;
-        }
-
-        // Jn(0,0) = 4.0; //Jn must be computed in the reference configuration! Warning: This is just a hard coded test
-
-        Matrix Jn_inv = ZeroMatrix(3,3);
-        double det_Jn = 0.0;
-        MathUtils<double>::InvertMatrix(Jn, Jn_inv, det_Jn);
-
-        Matrix new_DN_De = ZeroMatrix(number_of_control_points,3);
-        for (IndexType i = 0; i < number_of_control_points; ++i) {
-            new_DN_De(i, 0) = r_DN_De(i, 0);  // Copy first column
-            new_DN_De(i, 1) = r_DN_De(i, 1);  // Copy second column
-            new_DN_De(i, 2) = 0.0;            // Set third column to zero
-        }
-
-        DN_De_Jn = trans(prod(Jn_inv, trans(new_DN_De)));  // DN_De_Jn = Jn_inv * r_DN_De that has 3 columns
-        J_inv = Jn_inv;
-        area = det_Jn;
-    }
-
     void Shell6pElement::CalculateBOperator(
         const IndexType IntegrationPointIndex,
         Matrix& rB,
         double zeta,
-        Matrix& DN_De_Jn,
         Matrix& J_inv,
         Matrix& dn,
         const KinematicVariables& rActualKinematic) const
@@ -902,9 +826,19 @@ namespace Kratos
         const std::size_t mat_size = number_of_control_points * 6;
         const auto& r_N = GetGeometry().ShapeFunctionsValues();
         const Matrix& r_DN_De = GetGeometry().ShapeFunctionLocalGradient(IntegrationPointIndex);
-        double thickness = this->GetProperties().GetValue(THICKNESS);   
+        double thickness = this->GetProperties().GetValue(THICKNESS);
+        
+        // Membrane part
+        Matrix DN_De_Jn = ZeroMatrix(number_of_control_points,3);
+        Matrix new_DN_De = ZeroMatrix(number_of_control_points,3);
+        for (IndexType i = 0; i < number_of_control_points; ++i) {
+            new_DN_De(i, 0) = r_DN_De(i, 0);  // Copy first column
+            new_DN_De(i, 1) = r_DN_De(i, 1);  // Copy second column
+            new_DN_De(i, 2) = 0.0;            // Set third column to zero
+        }
+        DN_De_Jn = trans(prod(J_inv, trans(new_DN_De)));
 
-        //Bending part
+        // Bending part
         Matrix DN_De_Jn_bending = ZeroMatrix(number_of_control_points,3);
         Matrix new_DN_De_bending = ZeroMatrix(number_of_control_points,3);
         for (IndexType i = 0; i < number_of_control_points; ++i) {
@@ -1019,13 +953,24 @@ namespace Kratos
     void Shell6pElement::CalculateBDrilling(                                                                                         
         const IndexType IntegrationPointIndex,
         Matrix& rBd,
-        Matrix& DN_De_Jn,
+        Matrix& J_inv,
         const KinematicVariables& rActualKinematic) const
     {
         const std::size_t number_of_control_points = GetGeometry().size();
         const std::size_t mat_size = number_of_control_points * 6;
 
         const auto& r_N = GetGeometry().ShapeFunctionsValues();
+        const Matrix& r_DN_De = GetGeometry().ShapeFunctionLocalGradient(IntegrationPointIndex);
+
+        // Membrane part
+        Matrix DN_De_Jn = ZeroMatrix(number_of_control_points,3);
+        Matrix new_DN_De = ZeroMatrix(number_of_control_points,3);
+        for (IndexType i = 0; i < number_of_control_points; ++i) {
+            new_DN_De(i, 0) = r_DN_De(i, 0);  // Copy first column
+            new_DN_De(i, 1) = r_DN_De(i, 1);  // Copy second column
+            new_DN_De(i, 2) = 0.0;            // Set third column to zero
+        }
+        DN_De_Jn = trans(prod(J_inv, trans(new_DN_De)));
 
         if (rBd.size1() != 1|| rBd.size2() != mat_size)                                 
             rBd.resize(1, mat_size);                                                     
@@ -1040,7 +985,7 @@ namespace Kratos
             rBd(0, index + 2) = 0;
             rBd(0, index + 3) = 0;
             rBd(0, index + 4) = 0;
-            rBd(0, index + 5) = - r_N (i);
+            rBd(0, index + 5) = - r_N(i);
         }
     }
 
@@ -1048,7 +993,6 @@ namespace Kratos
         const IndexType IntegrationPointIndex,
         Matrix& rB,
         double zeta,
-        Matrix& DN_De_Jn,
         Matrix& J_inv,
         Matrix& dn,
         const KinematicVariables& rActualKinematic) const
@@ -1057,9 +1001,19 @@ namespace Kratos
         const std::size_t mat_size = number_of_control_points * 6;
         const auto& r_N = GetGeometry().ShapeFunctionsValues();
         const Matrix& r_DN_De = GetGeometry().ShapeFunctionLocalGradient(IntegrationPointIndex);
-        double thickness = this->GetProperties().GetValue(THICKNESS);   
+        double thickness = this->GetProperties().GetValue(THICKNESS); 
+        
+        // Membrane part
+        Matrix DN_De_Jn = ZeroMatrix(number_of_control_points,3);
+        Matrix new_DN_De = ZeroMatrix(number_of_control_points,3);
+        for (IndexType i = 0; i < number_of_control_points; ++i) {
+            new_DN_De(i, 0) = r_DN_De(i, 0);  // Copy first column
+            new_DN_De(i, 1) = r_DN_De(i, 1);  // Copy second column
+            new_DN_De(i, 2) = 0.0;            // Set third column to zero
+        }
+        DN_De_Jn = trans(prod(J_inv, trans(new_DN_De)));
 
-        //Bending part
+        // Bending part
         Matrix DN_De_Jn_bending = ZeroMatrix(number_of_control_points,3);
         Matrix new_DN_De_bending = ZeroMatrix(number_of_control_points,3);
         for (IndexType i = 0; i < number_of_control_points; ++i) {
