@@ -81,7 +81,6 @@ const std::string testParameters = R"(
             "scaling":         true
         },
         "problem_domain_sub_model_part_list": ["Clay_after_excavation","Excavated_clay"],
-        "processes_sub_model_part_list":      ["Side_sliders","Bottom_fixed","Head_line","Bottom_pressure","Gravitational_load"],
         "body_domain_sub_model_part_list":    ["Clay_after_excavation","Excavated_clay"]
     }
 )";

@@ -19,7 +19,7 @@
 // Project includes
 #include "python/add_other_utilities_to_python.h"
 #include "spaces/ublas_space.h"
-#include "linear_solvers/linear_solver.h"
+#include "linear_solvers/linear_solver_ublas.h"
 #include "includes/define_python.h"
 #include "processes/process.h"
 #include "includes/fill_communicator.h"

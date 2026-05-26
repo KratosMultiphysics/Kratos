@@ -10,7 +10,7 @@
 //  Main authors:    Wijtze Pieter Kikstra
 //                   Richard Faasse
 
-#include "test_setup_utilities/element_setup_utilities.h"
+#include "test_setup_utilities/element_setup_utilities.hpp"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 
 namespace Kratos::Testing

@@ -12,7 +12,7 @@
 
 #include "custom_workflow_factory.h"
 #include "dgeoflow.h"
-#include "dgeosettlement.h"
+#include "dgeosettlement.hpp"
 #include "time_loop_executor.h"
 
 #include "custom_utilities/file_input_utility.h"

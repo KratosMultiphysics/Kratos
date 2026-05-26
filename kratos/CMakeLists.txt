@@ -7,7 +7,7 @@ else(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
 endif(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
 include_directories( ${KRATOS_SOURCE_DIR}/external_libraries/tinyexpr )
 
-SET(LIST_FOLDER sources conditions constraints containers elements factories geometries includes integration linear_solvers mappers modeler modified_shape_functions operations processes controllers response_functions solving_strategies spaces spatial_containers utilities)
+SET(LIST_FOLDER sources conditions constraints containers elements factories geometries includes integration linear_solvers mappers modeler modified_shape_functions operations processes controllers response_functions solving_strategies spaces spatial_containers utilities tensor_adaptors)
 SET(LIST_FUTURE future)
 SET(LIST_LEGACY legacy)
 
@@ -193,6 +193,7 @@ if(CMAKE_UNITY_BUILD MATCHES ON)
 
     ## this cannot be compiled with unity build because calculate_discontinuous_distance_to_skin_process.cpp does implicit instantiation before specialization
     set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/processes/find_global_nodal_entity_neighbours_process.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
+    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/linear_solvers/linear_solver_ublas.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
 
     ## The following are conflicting due to KratosComponents
     file(GLOB_RECURSE KRATOS_STRATEGIES_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/solving_strategies/*.cpp)

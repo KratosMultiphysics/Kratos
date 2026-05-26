@@ -153,13 +153,40 @@ def _CreateListOfProcesses(model, parameters, main_model_part):
         for process_type in process_types:
             if parameters["processes"].Has(process_type):
                 for process in parameters["processes"][process_type].values():
-                    python_module = process["python_module"].GetString()
-                    kratos_module = process["kratos_module"].GetString()
-                    process_module = import_module(kratos_module + "." + python_module)
-                    list_of_processes.append(process_module.Factory(process, model))
+                    if process.Has("name"):
+                        registry_entry = process["name"].GetString()
+                        if KM.Registry.HasItem(registry_entry):
+                            # Get already stored prototype
+                            if KM.Registry.HasItem(f"{registry_entry}.Prototype"):
+                                prototype = KM.Registry[f"{registry_entry}.Prototype"]
+                                instance = prototype.Create(model, process["Parameters"])
+                            # Get prototype from stored Python module
+                            elif KM.Registry.HasItem(f"{registry_entry}.ModuleName"):
+                                class_name = registry_entry.split(".")[-1]
+                                module_name = KM.Registry[f"{registry_entry}.ModuleName"]
+                                module = import_module(module_name)
+                                if hasattr(module, class_name):
+                                    prototype = getattr(module, class_name)
+                                    instance = prototype(model, process["Parameters"])
+                                else:
+                                    #TODO: In here we're assuming that the registry last key is the class name
+                                    #TODO: We should enforce this. Now an error happens but as we populate we should throw a warning and search for a ClassName item
+                                    err_msg = f"The '{class_name}' class name cannot be found within the '{module_name}' module."
+                                    raise Exception(err_msg)
+                            else:
+                                err_msg = f"Registry process '{registry_entry}' cannot be constructed."
+                                raise Exception(err_msg)
+                        else:
+                            KM.Logger.PrintWarning(f"Asking to construct the non-registered 'name' '{registry_entry}'.")
+                    else:
+                        python_module = process["python_module"].GetString()
+                        kratos_module = process["kratos_module"].GetString()
+                        process_module = import_module(kratos_module + "." + python_module)
+                        instance = process_module.Factory(process, model)
+                    # Construct the process from the obtained prototype and append it to the list
+                    list_of_processes.append(instance)
     
     return list_of_processes
-
 
 def _CreateListOfOutputProcesses(model, parameters):
     # This function creates all the output processes stated in the project parameters

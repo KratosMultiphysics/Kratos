@@ -145,7 +145,7 @@ class TestTemperatureDetectionResponse(kratos_unittest.TestCase):
 
             response.CalculateGradient(var)
 
-            gradients = var[Kratos.TEMPERATURE].Evaluate()
+            gradients = var[Kratos.TEMPERATURE].data
 
             delta = 1e-5
             for index, node in enumerate(model_part.Nodes):
@@ -179,7 +179,7 @@ class TestTemperatureDetectionResponseStrainSensor(kratos_unittest.TestCase):
 
             response.CalculateGradient(var)
 
-            gradients = var[Kratos.TEMPERATURE].Evaluate()
+            gradients = var[Kratos.TEMPERATURE].data
 
             delta = 1e-4
             for index, node in enumerate(model_part.Nodes):

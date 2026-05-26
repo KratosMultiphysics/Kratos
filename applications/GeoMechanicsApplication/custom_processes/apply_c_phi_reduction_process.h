@@ -14,15 +14,17 @@
 
 #pragma once
 
-#include "geo_mechanics_application_variables.h"
 #include "includes/element.h"
 #include "includes/kratos_export_api.h"
 #include "processes/process.h"
+
+#include <string>
 
 namespace Kratos
 {
 
 class Model;
+class Parameters;
 
 class KRATOS_API(GEO_MECHANICS_APPLICATION) ApplyCPhiReductionProcess : public Process
 {
@@ -43,15 +45,14 @@ private:
     double                                         mPreviousReductionFactor = 1.0;
     double                                         mReductionIncrement      = 0.1;
 
-    [[nodiscard]] double GetAndCheckPhi(const Properties& rModelPartProperties, IndexType ElementPropertyId) const;
+    [[nodiscard]] static double GetAndCheckPhi(const Properties& rModelPartProperties, IndexType ElementPropertyId);
 
     [[nodiscard]] double ComputeReducedPhi(double Phi) const;
 
-    [[nodiscard]] double GetAndCheckC(const Properties& rModelPartProperties) const;
+    [[nodiscard]] static double GetAndCheckC(const Properties& rModelPartProperties);
 
-    void SetCPhiAtElement(Element& rElement, double ReducedPhi, double ReducedC) const;
-
-    void SetValueAtElement(Element& rElement, const Variable<Vector>& rVariable, const Vector& rValue) const;
+    static void SetCPhiAtElement(Element& rElement, double ReducedPhi, double ReducedC);
+    static void InitializeParametersForInternalMohrCoulombModel(Element& rElement);
 
     [[nodiscard]] bool IsStepRestarted() const;
 };

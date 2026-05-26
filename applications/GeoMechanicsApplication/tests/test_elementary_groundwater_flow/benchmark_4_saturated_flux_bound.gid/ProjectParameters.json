@@ -67,7 +67,6 @@
             "preconditioner_type": "ilu0"
         },
         "problem_domain_sub_model_part_list": ["soil"],
-        "processes_sub_model_part_list":      ["Fluid_Pressure-auto-2","Normal_Fluid_Flux-auto-1","Body_Acceleration-auto-1"],
         "body_domain_sub_model_part_list":    ["soil"]
     },
     "output_processes": {

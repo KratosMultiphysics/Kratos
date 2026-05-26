@@ -64,7 +64,6 @@
       "preconditioner_type"              : "ilu0"
     },
     "problem_domain_sub_model_part_list" : ["soil1"],
-    "processes_sub_model_part_list"      : ["start","observation_point","top_boundary","bot_boundary"],
     "body_domain_sub_model_part_list"    : ["soil1"]
   },
   "output_processes" : {

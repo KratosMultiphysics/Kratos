@@ -64,7 +64,6 @@
       "scaling"                          : true
     },
     "problem_domain_sub_model_part_list" : ["filter"],
-    "processes_sub_model_part_list"      : ["Start","Gravity","top","bottom"],
     "body_domain_sub_model_part_list"    : ["filter"]
   },
   "output_processes" : {

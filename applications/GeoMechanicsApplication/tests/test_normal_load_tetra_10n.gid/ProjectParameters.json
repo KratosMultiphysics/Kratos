@@ -63,7 +63,6 @@
             "scaling":       true
         },
         "problem_domain_sub_model_part_list": ["Soil_drained-auto-2"],
-        "processes_sub_model_part_list":      ["Solid_Displacement-auto-2","Solid_Displacement-auto-1","Fluid_Pressure-auto-1","Normal_Load-auto-1"],
         "body_domain_sub_model_part_list":    ["Soil_drained-auto-2"]
     },
     "output_processes": {

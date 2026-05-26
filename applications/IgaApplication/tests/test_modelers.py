@@ -67,7 +67,7 @@ class TestModelers(KratosUnittest.TestCase):
         self.assertEqual(support_2_Variation_model_part.GetNodes()[5].Id, 5)
         self.assertEqual(support_2_Variation_model_part.GetNodes()[6].Id, 6)
 
-    def test_RefinementModeler(self):
+    def test_RefinementModeler_mesh(self):
         current_model = KratosMultiphysics.Model()
         modelers_list = KratosMultiphysics.Parameters(
         """ [{
@@ -80,7 +80,7 @@ class TestModelers(KratosUnittest.TestCase):
             "modeler_name": "RefinementModeler",
             "Parameters": {
                 "echo_level":  0,
-                "refinements_file_name": "modeler_tests/refinements.iga.json"
+                "refinements_file_name": "modeler_tests/h_refinements.iga.json"
             } }] """ )
 
         run_modelers(current_model, modelers_list)
@@ -88,8 +88,81 @@ class TestModelers(KratosUnittest.TestCase):
         model_part = current_model.GetModelPart("IgaModelPart")
 
         # Check if all needed node are within the model parts
-        self.assertEqual(model_part.NumberOfNodes(), 40)
-        self.assertEqual(model_part.GetGeometry(1).GetGeometryPart(KratosMultiphysics.Geometry.BACKGROUND_GEOMETRY_INDEX).PointsNumber(), 28)
+        self.assertEqual(model_part.NumberOfNodes(), 42)
+        self.assertEqual(model_part.GetGeometry(1).GetGeometryPart(KratosMultiphysics.Geometry.BACKGROUND_GEOMETRY_INDEX).PointsNumber(), 42)
+    
+    def test_RefinementModeler_polynomial(self):
+        current_model = KratosMultiphysics.Model()
+        modelers_list = KratosMultiphysics.Parameters(
+        """ [{
+            "modeler_name": "CadIoModeler",
+            "Parameters": {
+                "echo_level": 0,
+                "cad_model_part_name": "IgaModelPart",
+                "geometry_file_name": "modeler_tests/surface_geometry.cad.json"
+            } }, {
+            "modeler_name": "RefinementModeler",
+            "Parameters": {
+                "echo_level":  0,
+                "refinements_file_name": "modeler_tests/p_refinements.iga.json"
+            } }] """ )
+
+        run_modelers(current_model, modelers_list)
+
+        model_part = current_model.GetModelPart("IgaModelPart")
+
+        # Check if all needed node are within the model parts
+        self.assertEqual(model_part.NumberOfNodes(), 30)
+        self.assertEqual(model_part.GetGeometry(1).GetGeometryPart(KratosMultiphysics.Geometry.BACKGROUND_GEOMETRY_INDEX).PointsNumber(), 30)
+    
+    def test_RefinementModeler_both(self):
+        current_model = KratosMultiphysics.Model()
+        modelers_list = KratosMultiphysics.Parameters(
+        """ [{
+            "modeler_name": "CadIoModeler",
+            "Parameters": {
+                "echo_level": 0,
+                "cad_model_part_name": "IgaModelPart",
+                "geometry_file_name": "modeler_tests/surface_geometry.cad.json"
+            } }, {
+            "modeler_name": "RefinementModeler",
+            "Parameters": {
+                "echo_level":  0,
+                "refinements_file_name": "modeler_tests/k_refinements.iga.json"
+            } }] """ )
+
+        run_modelers(current_model, modelers_list)
+
+        model_part = current_model.GetModelPart("IgaModelPart")
+
+        # Check if all needed node are within the model parts
+        self.assertEqual(model_part.NumberOfNodes(), 72)
+        self.assertEqual(model_part.GetGeometry(1).GetGeometryPart(KratosMultiphysics.Geometry.BACKGROUND_GEOMETRY_INDEX).PointsNumber(), 72)
+
+    def test_RefinementModeler_multipatch(self):
+        current_model = KratosMultiphysics.Model()
+        modelers_list = KratosMultiphysics.Parameters(
+        """ [{
+            "modeler_name": "CadIoModeler",
+            "Parameters": {
+                "echo_level": 0,
+                "cad_model_part_name": "IgaModelPart",
+                "geometry_file_name": "modeler_tests/multipatch_geometry.cad.json"
+            } }, {
+            "modeler_name": "RefinementModeler",
+            "Parameters": {
+                "echo_level":  0,
+                "refinements_file_name": "modeler_tests/multipatch_refinements.iga.json"
+            } }] """ )
+
+        run_modelers(current_model, modelers_list)
+
+        model_part = current_model.GetModelPart("IgaModelPart")
+
+        # Check if all needed node are within the model parts
+        self.assertEqual(model_part.NumberOfNodes(), 50)
+        self.assertEqual(model_part.GetGeometry(2).GetGeometryPart(KratosMultiphysics.Geometry.BACKGROUND_GEOMETRY_INDEX).PointsNumber(), 30)
+        self.assertEqual(model_part.GetGeometry(3).GetGeometryPart(KratosMultiphysics.Geometry.BACKGROUND_GEOMETRY_INDEX).PointsNumber(), 20)
 
     def test_nurbs_geometry_2d_modeler_control_points(self):
         current_model = KratosMultiphysics.Model()
@@ -570,8 +643,161 @@ class TestModelers(KratosUnittest.TestCase):
             param[0] += 0.1
             param[1] = 0.0
 
+    def get_brep_curve(self, model_part, geometry_id=2):
+        return model_part.GetGeometry(geometry_id)
 
+    def get_curve_degree(self, curve):
+        return curve.PolynomialDegree(0)
 
+    def get_curve_spans(self, curve):
+        return curve.SpansLocalSpace()
+
+    def get_curve_number_of_control_points(self, curve):
+        return curve.GetGeometryPart(
+            KratosMultiphysics.Geometry.BACKGROUND_GEOMETRY_INDEX
+        ).PointsNumber()
+
+    def count_nonzero_spans(self, spans):
+        return len(spans) - 1
+
+    def run_curve_refinement_test(self, refinement_file_name):
+        current_model = KratosMultiphysics.Model()
+
+        modelers_list = KratosMultiphysics.Parameters(
+        """ [{
+            "modeler_name": "CadIoModeler",
+            "Parameters": {
+                "echo_level": 0,
+                "cad_model_part_name": "IgaModelPart",
+                "geometry_file_name": "modeler_tests/curve_geometry.cad.json"
+            } }, {
+            "modeler_name": "RefinementModeler",
+            "Parameters": {
+                "echo_level":  0,
+                "refinements_file_name": "%s"
+            } }] """ % refinement_file_name)
+
+        run_modelers(current_model, modelers_list)
+
+        model_part = current_model.GetModelPart("IgaModelPart")
+        curve = self.get_brep_curve(model_part, 2)
+
+        return model_part, curve
+
+    def run_curve_reference_test(self):
+        current_model = KratosMultiphysics.Model()
+
+        modelers_list = KratosMultiphysics.Parameters(
+        """ [{
+            "modeler_name": "CadIoModeler",
+            "Parameters": {
+                "echo_level": 0,
+                "cad_model_part_name": "IgaModelPart",
+                "geometry_file_name": "modeler_tests/curve_geometry.cad.json"
+            } }] """)
+
+        run_modelers(current_model, modelers_list)
+
+        model_part = current_model.GetModelPart("IgaModelPart")
+        curve = self.get_brep_curve(model_part, 2)
+
+        return model_part, curve
+
+    def test_RefinementModeler_nurbs_curve_mesh(self):
+        reference_model_part, reference_curve = self.run_curve_reference_test()
+
+        model_part, curve = self.run_curve_refinement_test(
+            "modeler_tests/curve_h_refinements.iga.json"
+        )
+
+        reference_spans = self.get_curve_spans(reference_curve)
+        refined_spans = self.get_curve_spans(curve)
+
+        reference_number_of_spans = self.count_nonzero_spans(reference_spans)
+        insert_nb_per_span = 2
+
+        expected_number_of_points = (
+            self.get_curve_number_of_control_points(reference_curve)
+            + reference_number_of_spans * insert_nb_per_span
+        )
+
+        expected_number_of_spans = (
+            reference_number_of_spans * (insert_nb_per_span + 1)
+        )
+
+        self.assertEqual(model_part.NumberOfNodes(), expected_number_of_points)
+        self.assertEqual(
+            self.get_curve_number_of_control_points(curve),
+            expected_number_of_points
+        )
+
+        self.assertEqual(
+            self.get_curve_degree(curve),
+            self.get_curve_degree(reference_curve)
+        )
+
+        self.assertEqual(len(refined_spans), expected_number_of_spans + 1)
+
+        param = KratosMultiphysics.Vector(3)
+        param[1] = 0.0
+        param[2] = 0.0
+
+        u_min = reference_spans[0]
+        u_max = reference_spans[-1]
+
+        for i in range(101):
+            param[0] = u_min + (u_max - u_min) * i / 100.0
+
+            reference_coord = reference_curve.GlobalCoordinates(param)
+            refined_coord = curve.GlobalCoordinates(param)
+
+            self.assertVectorAlmostEqual(reference_coord, refined_coord)
+
+    def test_RefinementModeler_nurbs_curve_polynomial(self):
+        reference_model_part, reference_curve = self.run_curve_reference_test()
+
+        model_part, curve = self.run_curve_refinement_test(
+            "modeler_tests/curve_p_refinements.iga.json"
+        )
+
+        reference_spans = self.get_curve_spans(reference_curve)
+        refined_spans = self.get_curve_spans(curve)
+
+        reference_degree = self.get_curve_degree(reference_curve)
+        increase_degree = 1
+        expected_degree = reference_degree + increase_degree
+
+        reference_number_of_spans = self.count_nonzero_spans(reference_spans)
+
+        expected_number_of_points = (
+            self.get_curve_number_of_control_points(reference_curve)
+            + reference_number_of_spans * increase_degree
+        )
+
+        self.assertEqual(self.get_curve_degree(curve), expected_degree)
+        self.assertEqual(
+            self.get_curve_number_of_control_points(curve),
+            expected_number_of_points
+        )
+        self.assertEqual(model_part.NumberOfNodes(), expected_number_of_points)
+
+        # p-refinement changes the degree but should not split the knot spans.
+        self.assertVectorAlmostEqual(refined_spans, reference_spans)
+
+        param = KratosMultiphysics.Vector(3)
+        param[1] = 0.0
+        param[2] = 0.0
+
+        u_min = reference_spans[0]
+        u_max = reference_spans[-1]
+
+        for i in range(101):
+            param[0] = u_min + (u_max - u_min) * i / 100.0
+
+            reference_coord = reference_curve.GlobalCoordinates(param)
+            refined_coord = curve.GlobalCoordinates(param)
+
+            self.assertVectorAlmostEqual(reference_coord, refined_coord)
 
 if __name__ == '__main__':
     KratosUnittest.main()
