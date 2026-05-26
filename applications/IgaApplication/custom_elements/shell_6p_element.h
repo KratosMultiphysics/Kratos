@@ -186,18 +186,6 @@ public:
     ) override;
 
     /**
-    * @brief Calculate a Vector Variable on the Element Constitutive Law
-    * @param rVariable The variable we want to get
-    * @param rValues The values obtained int the integration points
-    * @param rCurrentProcessInfo the current process info instance
-    */
-    void CalculateOnIntegrationPoints(
-        const Variable<array_1d<double, 3>>& rVariable,
-        std::vector<array_1d<double, 3>>& rOutput,
-        const ProcessInfo& rCurrentProcessInfo
-    ) override;
-
-    /**
     * @brief Sets on rResult the ID's of the element degrees of freedom
     * @param rResult The vector containing the equation id
     * @param rCurrentProcessInfo The current process info instance

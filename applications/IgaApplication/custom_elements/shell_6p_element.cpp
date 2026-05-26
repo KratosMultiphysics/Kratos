@@ -305,13 +305,18 @@ namespace Kratos
         const ProcessInfo& rCurrentProcessInfo
     )
     {
-        // Retrieve geometry and integration points
+        // Retrieve geometry, integration points and definition of problem size
         const GeometryType& r_geometry = GetGeometry();
         const auto& r_integration_points = r_geometry.IntegrationPoints();
 
-        // Definition of problem size
         const std::size_t number_of_nodes = r_geometry.size();
         const std::size_t mat_size = number_of_nodes * 6;
+        double thickness = this->GetProperties().GetValue(THICKNESS);
+
+        std::vector<array_1d<double, 6>> strain_cau_cart(mGaussIntegrationThickness.num_GP_thickness);
+        std::vector<array_1d<double, 6>> stress_cau_cart(mGaussIntegrationThickness.num_GP_thickness);
+        Vector current_displacement = ZeroVector(6*number_of_nodes);
+        GetValuesVector(current_displacement,0);
 
         // Provide a default empty implementation: resize and set zeros
         if (rOutput.size() != r_integration_points.size())
@@ -319,24 +324,17 @@ namespace Kratos
             rOutput.resize(r_integration_points.size());
         }
 
-        double thickness = this->GetProperties().GetValue(THICKNESS); 
-
-        // Initialize components for non-linear analysis
-        Vector current_displacement = ZeroVector(6*number_of_nodes);
-        GetValuesVector(current_displacement,0);
-        std::vector<array_1d<double, 6>> strain_cau_cart(mGaussIntegrationThickness.num_GP_thickness);
-        std::vector<array_1d<double, 6>> stress_cau_cart(mGaussIntegrationThickness.num_GP_thickness);
-     
+        //// Loop over integration points
         for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
 
-            // 1. Compute Kinematics and Metric components
+            // Compute Kinematics and Metric components
             KinematicVariables kinematic_variables(GetGeometry().WorkingSpaceDimension());
             CalculateKinematics(point_number, kinematic_variables);
 
             Matrix normal_vector_derivatives = ZeroMatrix(3, 3);
             CalculateNormalVectorDerivatives(point_number, kinematic_variables, normal_vector_derivatives);
             
-            // 2a. Create constitutive law parameters:
+            // Create constitutive law parameters:
             ConstitutiveLaw::Parameters constitutive_law_parameters(
                 GetGeometry(), GetProperties(), rCurrentProcessInfo);
             ConstitutiveVariables constitutive_variables(6);
@@ -344,11 +342,11 @@ namespace Kratos
             CalculateConstitutiveVariables(point_number, kinematic_variables, constitutive_variables,
                 constitutive_law_parameters, ConstitutiveLaw::StressMeasure_PK2);
             
-            // 2b. Transform the constitutive matrix to global cartesian coordinates
+            // Transform the constitutive matrix to global cartesian coordinates
             constitutive_variables.ConstitutiveMatrix = prod(m_T_vector[point_number], 
                 Matrix(prod(constitutive_variables.ConstitutiveMatrix, trans(m_T_vector[point_number]))));
               
-            // 3. Loop for zeta
+            //// Loop for zeta (thickness integration points)
             for (IndexType Gauss_index = 0; Gauss_index < mGaussIntegrationThickness.num_GP_thickness; Gauss_index++)
             {
                 // Retrieve zeta for the current Gauss point in thickness direction
@@ -410,21 +408,6 @@ namespace Kratos
                 KRATOS_WATCH("No results for desired variable available in Calculate of Shell6pElement.")
             }
         }   
-    }
-
-    void Shell6pElement::CalculateOnIntegrationPoints(
-        const Variable<array_1d<double, 3 >>& rVariable,
-        std::vector<array_1d<double, 3 >>& rOutput,
-        const ProcessInfo& rCurrentProcessInfo
-    )
-    {
-        const auto& r_geometry = GetGeometry();
-        const auto& r_integration_points = r_geometry.IntegrationPoints();
-
-        if (rOutput.size() != r_integration_points.size())
-        {
-            rOutput.resize(r_integration_points.size());
-        }
     }
 
     void Shell6pElement::EquationIdVector(
@@ -557,6 +540,11 @@ namespace Kratos
         const std::size_t mat_size = number_of_nodes * 6;
         double thickness = this->GetProperties().GetValue(THICKNESS); 
 
+        std::vector<array_1d<double, 6>> strain_cau_cart(mGaussIntegrationThickness.num_GP_thickness);
+        std::vector<array_1d<double, 6>> stress_cau_cart(mGaussIntegrationThickness.num_GP_thickness);
+        Vector current_displacement = ZeroVector(6*number_of_nodes);
+        GetValuesVector(current_displacement,0);
+
         //// Loop over integration points
         for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
 
@@ -606,11 +594,6 @@ namespace Kratos
                 CalculateBDrilling(point_number, b_drilling, jacobian_inv, kinematic_variables);
 
                 // 3.5. Geometric stiffness part
-                std::vector<array_1d<double, 6>> strain_cau_cart(mGaussIntegrationThickness.num_GP_thickness);
-                std::vector<array_1d<double, 6>> stress_cau_cart(mGaussIntegrationThickness.num_GP_thickness);
-                Vector current_displacement = ZeroVector(6*number_of_nodes);
-                GetValuesVector(current_displacement,0);
-
                 strain_cau_cart[Gauss_index] = prod(b_operator, current_displacement);
                 stress_cau_cart[Gauss_index] = prod(constitutive_variables.ConstitutiveMatrix,strain_cau_cart[Gauss_index]);
                 Matrix stress_matrix = ZeroMatrix(9,9);
