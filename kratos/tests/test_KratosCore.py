@@ -106,6 +106,7 @@ import test_tensor_adaptors
 import test_geometries_tensor_adaptor
 import test_connectivity_ids_tensor_adaptor
 import test_constraint_restart
+import test_ensight_output_process
 import test_pyvista_utilities
 
 # Import modules required for sequential orchestrator test
@@ -236,6 +237,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_geometries_tensor_adaptor.TestGeometriesTensorAdaptor]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_connectivity_ids_tensor_adaptor.TestConnectivityIdsTensorAdaptor]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_constraint_restart.TestConstraintRestart]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_ensight_output_process.TestEnsightOutputProcess]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_pyvista_utilities.TestPyVistaUtilities]))
 
     if sympy_available:
