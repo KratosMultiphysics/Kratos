@@ -731,7 +731,7 @@ void MPMUpdatedLagrangianUP::CalculateAndAddKup (MatrixType& rLeftHandSideMatrix
         {
             for ( unsigned int k = 0; k < dimension; k++ )
             {
-                rLeftHandSideMatrix(index_up+k,index_p) +=  rVariables.DN_DX ( i, k ) * r_N(0, j) * rIntegrationWeight * rVariables.detF;
+                rLeftHandSideMatrix(index_up+k,index_p) +=  rVariables.DN_DX ( i, k ) * r_N(0, j) * rIntegrationWeight;
             }
             index_p += (dimension + 1);
         }
