@@ -232,7 +232,7 @@ namespace Kratos
         rElement.CalculateOnIntegrationPoints(MP_MASS, mp_mass, mrProcessInfo);
 
         const double nodal_mass_pressure = rN_i * mp_pressure[0] * mp_mass[0];
-        rNode.FastGetSolutionStepValue(NODAL_MPRESSURE, 0) += nodal_mass_pressure;
+        AtomicAdd(rNode.FastGetSolutionStepValue(NODAL_MPRESSURE, 0), nodal_mass_pressure);
 
         KRATOS_CATCH("")
     }
