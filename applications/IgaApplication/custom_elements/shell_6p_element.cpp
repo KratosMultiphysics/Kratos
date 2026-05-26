@@ -146,17 +146,6 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-    void Shell6pElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
-    {
-        ConstitutiveLaw::Parameters constitutive_law_parameters(
-            GetGeometry(), GetProperties(), rCurrentProcessInfo);
-
-        for (IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number) {
-            mConstitutiveLawVector[point_number]->FinalizeMaterialResponse(
-                constitutive_law_parameters, ConstitutiveLaw::StressMeasure_PK2);
-        }
-    }
-
     void Shell6pElement::CalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
@@ -206,6 +195,104 @@ namespace Kratos
 
         CalculateAll(left_hand_side_matrix, rRightHandSideVector,
             rCurrentProcessInfo, false, true);
+    }
+
+    void Shell6pElement::CalculateMassMatrix(
+        MatrixType& rMassMatrix,
+        const ProcessInfo& rCurrentProcessInfo
+    )
+    {
+        KRATOS_TRY;
+
+        const auto& r_geometry = GetGeometry();
+
+        // definition of problem size
+        const std::size_t number_of_nodes = r_geometry.size();
+        const std::size_t mat_size = number_of_nodes * 6;
+
+        const auto& r_integration_points = r_geometry.IntegrationPoints();
+
+        // Shape function values for all integration points
+        const Matrix& r_N = r_geometry.ShapeFunctionsValues();
+
+        for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
+
+            double integration_weight = r_integration_points[point_number].Weight();
+
+            double thickness = this->GetProperties().GetValue(THICKNESS);
+            double density = this->GetProperties().GetValue(DENSITY);
+            double mass = thickness * density * m_dA_vector[point_number] * integration_weight;
+
+            if (rMassMatrix.size1() != mat_size)
+                rMassMatrix.resize(mat_size, mat_size, false);
+
+            rMassMatrix = ZeroMatrix(mat_size, mat_size);
+
+            for (unsigned int r = 0; r<number_of_nodes; r++)
+            {
+                for (unsigned int s = 0; s<number_of_nodes; s++)
+                {
+                    rMassMatrix(6 * s, 6 * r) = r_N(point_number, s)*r_N(point_number, r) * mass;
+                    rMassMatrix(6 * s + 1, 6 * r + 1) = rMassMatrix(6 * s, 6 * r);
+                    rMassMatrix(6 * s + 2, 6 * r + 2) = rMassMatrix(6 * s, 6 * r);
+                    rMassMatrix(6 * s + 3, 6 * r + 3) = rMassMatrix(6 * s, 6 * r) * thickness * thickness / 12.0;
+                    rMassMatrix(6 * s + 4, 6 * r + 4) = rMassMatrix(6 * s, 6 * r) * thickness * thickness / 12.0;
+                    rMassMatrix(6 * s + 5, 6 * r + 5) = rMassMatrix(6 * s, 6 * r) * thickness * thickness / 12.0;
+                }
+            }
+        }
+        KRATOS_CATCH("")
+    }
+
+    void Shell6pElement::CalculateDampingMatrix(
+        MatrixType& rDampingMatrix,
+        const ProcessInfo& rCurrentProcessInfo
+    )
+    {
+        KRATOS_TRY;
+        // Rayleigh Damping Matrix: alpha*M + beta*K
+
+        // 1.-Get Damping Coeffitients (RAYLEIGH_ALPHA, RAYLEIGH_BETA)
+        double alpha = 0.0;
+        if (GetProperties().Has(RAYLEIGH_ALPHA))
+            alpha = GetProperties()[RAYLEIGH_ALPHA];
+        else if (rCurrentProcessInfo.Has(RAYLEIGH_ALPHA))
+            alpha = rCurrentProcessInfo[RAYLEIGH_ALPHA];
+
+        double beta = 0.0;
+        if (GetProperties().Has(RAYLEIGH_BETA))
+            beta = GetProperties()[RAYLEIGH_BETA];
+        else if (rCurrentProcessInfo.Has(RAYLEIGH_BETA))
+            beta = rCurrentProcessInfo[RAYLEIGH_BETA];
+
+        // 2.-Calculate StiffnessMatrix and MassMatrix:
+        if (std::abs(alpha) < 1E-12 && std::abs(beta) < 1E-12) {
+            // no damping specified, only setting the matrix to zero
+            const std::size_t number_of_nodes = GetGeometry().size();
+            const std::size_t mat_size = number_of_nodes * 6;
+            if (rDampingMatrix.size1() != mat_size || rDampingMatrix.size2() != mat_size) {
+                rDampingMatrix.resize(mat_size, mat_size, false);
+            }
+            noalias(rDampingMatrix) = ZeroMatrix(mat_size, mat_size);
+        } else if (std::abs(alpha) > 1E-12 && std::abs(beta) < 1E-12) {
+            // damping only required with the mass matrix
+            CalculateMassMatrix(rDampingMatrix, rCurrentProcessInfo); // pass damping matrix to avoid creating a temporary
+            rDampingMatrix *= alpha;
+        } else if (std::abs(alpha) < 1E-12 && std::abs(beta) > 1E-12) {
+            // damping only required with the stiffness matrix
+            CalculateLeftHandSide(rDampingMatrix, rCurrentProcessInfo); // pass damping matrix to avoid creating a temporary
+            rDampingMatrix *= beta;
+        } else {
+            // damping with both mass matrix and stiffness matrix required
+            CalculateLeftHandSide(rDampingMatrix, rCurrentProcessInfo); // pass damping matrix to avoid creating a temporary
+            rDampingMatrix *= beta;
+
+            Matrix mass_matrix;
+            CalculateMassMatrix(mass_matrix, rCurrentProcessInfo);
+            noalias(rDampingMatrix) += alpha  * mass_matrix;
+        }
+
+        KRATOS_CATCH("")
     }
 
     ///@}
@@ -327,9 +414,116 @@ namespace Kratos
         }
     }
 
+     void Shell6pElement::EquationIdVector(
+        EquationIdVectorType& rResult,
+        const ProcessInfo& rCurrentProcessInfo
+    ) const
+    {
+        KRATOS_TRY;
+
+        const std::size_t number_of_control_points = GetGeometry().size();
+
+        if (rResult.size() != 6 * number_of_control_points)
+            rResult.resize(6 * number_of_control_points, false);
+
+        const IndexType pos = this->GetGeometry()[0].GetDofPosition(VELOCITY_X);
+
+        for (IndexType i = 0; i < number_of_control_points; ++i) {
+            const IndexType index = i * 6;
+            rResult[index]     = GetGeometry()[i].GetDof(DISPLACEMENT_X, pos).EquationId();                        
+            rResult[index + 1] = GetGeometry()[i].GetDof(DISPLACEMENT_Y, pos + 1).EquationId();                    
+            rResult[index + 2] = GetGeometry()[i].GetDof(DISPLACEMENT_Z, pos + 2).EquationId();                    
+            rResult[index + 3] = GetGeometry()[i].GetDof(ROTATION_X, pos + 3).EquationId();
+            rResult[index + 4] = GetGeometry()[i].GetDof(ROTATION_Y, pos + 4).EquationId(); 
+            rResult[index + 5] = GetGeometry()[i].GetDof(ROTATION_Z, pos + 5).EquationId();
+        }
+
+        KRATOS_CATCH("")
+    };
+
+    void Shell6pElement::GetDofList(
+        DofsVectorType& rElementalDofList,
+        const ProcessInfo& rCurrentProcessInfo
+    ) const
+    {
+        KRATOS_TRY;
+
+        const std::size_t number_of_control_points = GetGeometry().size();
+
+        rElementalDofList.resize(0);
+        rElementalDofList.reserve(6 * number_of_control_points);
+
+        for (IndexType i = 0; i < number_of_control_points; ++i) {
+            rElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_X));
+            rElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Y));
+            rElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Z));
+            rElementalDofList.push_back(GetGeometry()[i].pGetDof(ROTATION_X));
+            rElementalDofList.push_back(GetGeometry()[i].pGetDof(ROTATION_Y));
+            rElementalDofList.push_back(GetGeometry()[i].pGetDof(ROTATION_Z));
+        }
+
+        KRATOS_CATCH("")
+    };
+
+    void Shell6pElement::GetValuesVector(
+        Vector& rValues,
+        int Step) const
+    {
+        const std::size_t number_of_control_points = GetGeometry().size();
+        const std::size_t mat_size = number_of_control_points * 6;
+
+        if (rValues.size() != mat_size)
+            rValues.resize(mat_size, false);
+
+        for (IndexType i = 0; i < number_of_control_points; ++i)
+        {
+            const array_1d<double, 3 >& displacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT, Step);
+            const array_1d<double, 3 >& rotation = GetGeometry()[i].FastGetSolutionStepValue(ROTATION, Step);
+            IndexType index = i * 6;
+
+            rValues[index] = displacement[0];
+            rValues[index + 1] = displacement[1];
+            rValues[index + 2] = displacement[2];
+            rValues[index + 3] = rotation[0];
+            rValues[index + 4] = rotation[1];
+            rValues[index + 5] = rotation[2];
+        }
+    }
+
+    void Shell6pElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
+    {
+        ConstitutiveLaw::Parameters constitutive_law_parameters(
+            GetGeometry(), GetProperties(), rCurrentProcessInfo);
+
+        for (IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number) {
+            mConstitutiveLawVector[point_number]->FinalizeMaterialResponse(
+                constitutive_law_parameters, ConstitutiveLaw::StressMeasure_PK2);
+        }
+    }
+
+    int Shell6pElement::Check(const ProcessInfo& rCurrentProcessInfo) const
+    {
+        // Verify that the constitutive law exists
+        if (this->GetProperties().Has(CONSTITUTIVE_LAW) == false)
+        {
+            KRATOS_ERROR << "Constitutive law not provided for property " << this->GetProperties().Id() << std::endl;
+        }
+        else
+        {
+            // Verify that the constitutive law has the correct dimension
+            KRATOS_ERROR_IF_NOT(this->GetProperties().Has(THICKNESS))
+                << "THICKNESS not provided for element " << this->Id() << std::endl;
+
+            // Check whether ConstitutiveLaw is 3D
+            KRATOS_ERROR_IF_NOT(this->GetProperties().GetValue(CONSTITUTIVE_LAW)->GetStrainSize() == 6)
+                << "Wrong constitutive law used. Expected strain size is 3 (el id = ) "
+                << this->Id() << std::endl;
+        }
+        return 0;
+    }
 
     ///@}
-    ///@name Assembly
+    ///@name Internal functions
     ///@{
 
     void Shell6pElement::CalculateAll(
@@ -434,112 +628,6 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-    ///@}
-    ///@name Implicit
-    ///@{
-    
-    void Shell6pElement::CalculateDampingMatrix(
-        MatrixType& rDampingMatrix,
-        const ProcessInfo& rCurrentProcessInfo
-    )
-    {
-        KRATOS_TRY;
-        // Rayleigh Damping Matrix: alpha*M + beta*K
-
-        // 1.-Get Damping Coeffitients (RAYLEIGH_ALPHA, RAYLEIGH_BETA)
-        double alpha = 0.0;
-        if (GetProperties().Has(RAYLEIGH_ALPHA))
-            alpha = GetProperties()[RAYLEIGH_ALPHA];
-        else if (rCurrentProcessInfo.Has(RAYLEIGH_ALPHA))
-            alpha = rCurrentProcessInfo[RAYLEIGH_ALPHA];
-
-        double beta = 0.0;
-        if (GetProperties().Has(RAYLEIGH_BETA))
-            beta = GetProperties()[RAYLEIGH_BETA];
-        else if (rCurrentProcessInfo.Has(RAYLEIGH_BETA))
-            beta = rCurrentProcessInfo[RAYLEIGH_BETA];
-
-        // 2.-Calculate StiffnessMatrix and MassMatrix:
-        if (std::abs(alpha) < 1E-12 && std::abs(beta) < 1E-12) {
-            // no damping specified, only setting the matrix to zero
-            const std::size_t number_of_nodes = GetGeometry().size();
-            const std::size_t mat_size = number_of_nodes * 6;
-            if (rDampingMatrix.size1() != mat_size || rDampingMatrix.size2() != mat_size) {
-                rDampingMatrix.resize(mat_size, mat_size, false);
-            }
-            noalias(rDampingMatrix) = ZeroMatrix(mat_size, mat_size);
-        } else if (std::abs(alpha) > 1E-12 && std::abs(beta) < 1E-12) {
-            // damping only required with the mass matrix
-            CalculateMassMatrix(rDampingMatrix, rCurrentProcessInfo); // pass damping matrix to avoid creating a temporary
-            rDampingMatrix *= alpha;
-        } else if (std::abs(alpha) < 1E-12 && std::abs(beta) > 1E-12) {
-            // damping only required with the stiffness matrix
-            CalculateLeftHandSide(rDampingMatrix, rCurrentProcessInfo); // pass damping matrix to avoid creating a temporary
-            rDampingMatrix *= beta;
-        } else {
-            // damping with both mass matrix and stiffness matrix required
-            CalculateLeftHandSide(rDampingMatrix, rCurrentProcessInfo); // pass damping matrix to avoid creating a temporary
-            rDampingMatrix *= beta;
-
-            Matrix mass_matrix;
-            CalculateMassMatrix(mass_matrix, rCurrentProcessInfo);
-            noalias(rDampingMatrix) += alpha  * mass_matrix;
-        }
-
-        KRATOS_CATCH("")
-    }
-
-    void Shell6pElement::CalculateMassMatrix(
-        MatrixType& rMassMatrix,
-        const ProcessInfo& rCurrentProcessInfo
-    )
-    {
-        KRATOS_TRY;
-
-        const auto& r_geometry = GetGeometry();
-
-        // definition of problem size
-        const std::size_t number_of_nodes = r_geometry.size();
-        const std::size_t mat_size = number_of_nodes * 6;
-
-        const auto& r_integration_points = r_geometry.IntegrationPoints();
-
-        // Shape function values for all integration points
-        const Matrix& r_N = r_geometry.ShapeFunctionsValues();
-
-        for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
-
-            double integration_weight = r_integration_points[point_number].Weight();
-
-            double thickness = this->GetProperties().GetValue(THICKNESS);
-            double density = this->GetProperties().GetValue(DENSITY);
-            double mass = thickness * density * m_dA_vector[point_number] * integration_weight;
-
-            if (rMassMatrix.size1() != mat_size)
-                rMassMatrix.resize(mat_size, mat_size, false);
-
-            rMassMatrix = ZeroMatrix(mat_size, mat_size);
-
-            for (unsigned int r = 0; r<number_of_nodes; r++)
-            {
-                for (unsigned int s = 0; s<number_of_nodes; s++)
-                {
-                    rMassMatrix(6 * s, 6 * r) = r_N(point_number, s)*r_N(point_number, r) * mass;
-                    rMassMatrix(6 * s + 1, 6 * r + 1) = rMassMatrix(6 * s, 6 * r);
-                    rMassMatrix(6 * s + 2, 6 * r + 2) = rMassMatrix(6 * s, 6 * r);
-                    rMassMatrix(6 * s + 3, 6 * r + 3) = rMassMatrix(6 * s, 6 * r) * thickness * thickness / 12.0;
-                    rMassMatrix(6 * s + 4, 6 * r + 4) = rMassMatrix(6 * s, 6 * r) * thickness * thickness / 12.0;
-                    rMassMatrix(6 * s + 5, 6 * r + 5) = rMassMatrix(6 * s, 6 * r) * thickness * thickness / 12.0;
-                }
-            }
-        }
-        KRATOS_CATCH("")
-    }
-
-    ///@}
-    ///@name Kinematics
-    ///@{
-
     void Shell6pElement::CalculateKinematics(
         const IndexType IntegrationPointIndex,
         KinematicVariables& rKinematicVariables
@@ -643,7 +731,6 @@ namespace Kratos
             trans(rThisConstitutiveVariables.ConstitutiveMatrix), rThisConstitutiveVariables.StrainVector);
     }
 
-
     void Shell6pElement::CalculateJn(
         const IndexType IntegrationPointIndex,
         KinematicVariables& rKinematicVariables,
@@ -653,7 +740,6 @@ namespace Kratos
         Matrix& dn,
         double& area) const
     {
-
         const Matrix& r_DN_De = GetGeometry().ShapeFunctionLocalGradient(IntegrationPointIndex);
         const Matrix& r_DDN_DDe = GetGeometry().ShapeFunctionDerivatives(2, IntegrationPointIndex, GetGeometry().GetDefaultIntegrationMethod());
 
@@ -1080,7 +1166,6 @@ namespace Kratos
         noalias(rLeftHandSideMatrix) +=  IntegrationWeight * IntegrationWeight_zeta * (rKm + rKd );                            
     }
 
- 
     inline void Shell6pElement::CalculateAndAddKm(
         MatrixType& rKm,
         const Matrix& rB,
@@ -1090,7 +1175,6 @@ namespace Kratos
         noalias(rKm) += prod(trans(rB), Matrix(prod(rD, rB)));                                              
     }
 
-    
     inline void Shell6pElement::CalculateAndAddKmBd(                                                              
         MatrixType& rKd,
         const Matrix& rBd                                                                                                              
@@ -1100,7 +1184,6 @@ namespace Kratos
         noalias(rKd) += 0.05 * E  * prod(trans(rBd), Matrix((rBd)));                  
     }
 
-
     inline void Shell6pElement::CalculateAndAddNonlinearKm(
         Matrix& rLeftHandSideMatrix,
         const Matrix& rB,
@@ -1109,159 +1192,6 @@ namespace Kratos
         const double IntegrationWeight_zeta) const
     {
         noalias(rLeftHandSideMatrix) +=  IntegrationWeight * IntegrationWeight_zeta * prod(trans(rB), Matrix(prod(rD, rB))); 
-    }
-
-
-    ///@}
-    ///@name Stress recovery
-    ///@{
-
-    ///@}
-    ///@name Dynamic Functions
-    ///@{
-
-    void Shell6pElement::GetValuesVector(
-        Vector& rValues,
-        int Step) const
-    {
-        const std::size_t number_of_control_points = GetGeometry().size();
-        const std::size_t mat_size = number_of_control_points * 6;
-
-        if (rValues.size() != mat_size)
-            rValues.resize(mat_size, false);
-
-        for (IndexType i = 0; i < number_of_control_points; ++i)
-        {
-            const array_1d<double, 3 >& displacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT, Step);
-            const array_1d<double, 3 >& rotation = GetGeometry()[i].FastGetSolutionStepValue(ROTATION, Step);
-            IndexType index = i * 6;
-
-            rValues[index] = displacement[0];
-            rValues[index + 1] = displacement[1];
-            rValues[index + 2] = displacement[2];
-            rValues[index + 3] = rotation[0];
-            rValues[index + 4] = rotation[1];
-            rValues[index + 5] = rotation[2];
-        }
-    }
-
-    // TO DO
-    void Shell6pElement::GetFirstDerivativesVector(
-        Vector& rValues,
-        int Step) const
-    {
-        const std::size_t number_of_control_points = GetGeometry().size();
-        const std::size_t mat_size = number_of_control_points * 3;
-
-        if (rValues.size() != mat_size)
-            rValues.resize(mat_size, false);
-
-        for (IndexType i = 0; i < number_of_control_points; ++i) {
-            const array_1d<double, 3 >& velocity = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY, Step);
-            const IndexType index = i * 3;
-
-            rValues[index] = velocity[0];
-            rValues[index + 1] = velocity[1];
-            rValues[index + 2] = velocity[2];
-        }
-    }
-
-    // TO DO
-    void Shell6pElement::GetSecondDerivativesVector(
-        Vector& rValues,
-        int Step) const
-    {
-        const std::size_t number_of_control_points = GetGeometry().size();
-        const std::size_t mat_size = number_of_control_points * 3;
-
-        if (rValues.size() != mat_size)
-            rValues.resize(mat_size, false);
-
-        for (IndexType i = 0; i < number_of_control_points; ++i) {
-            const array_1d<double, 3 >& acceleration = GetGeometry()[i].FastGetSolutionStepValue(ACCELERATION, Step);
-            const IndexType index = i * 3;
-
-            rValues[index] = acceleration[0];
-            rValues[index + 1] = acceleration[1];
-            rValues[index + 2] = acceleration[2];
-        }
-    }
-
-    void Shell6pElement::EquationIdVector(
-        EquationIdVectorType& rResult,
-        const ProcessInfo& rCurrentProcessInfo
-    ) const
-    {
-        KRATOS_TRY;
-
-        const std::size_t number_of_control_points = GetGeometry().size();
-
-        if (rResult.size() != 6 * number_of_control_points)
-            rResult.resize(6 * number_of_control_points, false);
-
-        const IndexType pos = this->GetGeometry()[0].GetDofPosition(VELOCITY_X);
-
-        for (IndexType i = 0; i < number_of_control_points; ++i) {
-            const IndexType index = i * 6;
-            rResult[index]     = GetGeometry()[i].GetDof(DISPLACEMENT_X, pos).EquationId();                        
-            rResult[index + 1] = GetGeometry()[i].GetDof(DISPLACEMENT_Y, pos + 1).EquationId();                    
-            rResult[index + 2] = GetGeometry()[i].GetDof(DISPLACEMENT_Z, pos + 2).EquationId();                    
-            rResult[index + 3] = GetGeometry()[i].GetDof(ROTATION_X, pos + 3).EquationId();
-            rResult[index + 4] = GetGeometry()[i].GetDof(ROTATION_Y, pos + 4).EquationId(); 
-            rResult[index + 5] = GetGeometry()[i].GetDof(ROTATION_Z, pos + 5).EquationId();
-        }
-
-        KRATOS_CATCH("")
-    };
-
-    void Shell6pElement::GetDofList(
-        DofsVectorType& rElementalDofList,
-        const ProcessInfo& rCurrentProcessInfo
-    ) const
-    {
-        KRATOS_TRY;
-
-        const std::size_t number_of_control_points = GetGeometry().size();
-
-        rElementalDofList.resize(0);
-        rElementalDofList.reserve(6 * number_of_control_points);
-
-        for (IndexType i = 0; i < number_of_control_points; ++i) {
-            rElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_X));
-            rElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Y));
-            rElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Z));
-            rElementalDofList.push_back(GetGeometry()[i].pGetDof(ROTATION_X));
-            rElementalDofList.push_back(GetGeometry()[i].pGetDof(ROTATION_Y));
-            rElementalDofList.push_back(GetGeometry()[i].pGetDof(ROTATION_Z));
-        }
-
-        KRATOS_CATCH("")
-    };
-
-    ///@}
-    ///@name Check
-    ///@{
-
-    int Shell6pElement::Check(const ProcessInfo& rCurrentProcessInfo) const
-    {
-        // Verify that the constitutive law exists
-        if (this->GetProperties().Has(CONSTITUTIVE_LAW) == false)
-        {
-            KRATOS_ERROR << "Constitutive law not provided for property " << this->GetProperties().Id() << std::endl;
-        }
-        else
-        {
-            // Verify that the constitutive law has the correct dimension
-            KRATOS_ERROR_IF_NOT(this->GetProperties().Has(THICKNESS))
-                << "THICKNESS not provided for element " << this->Id() << std::endl;
-
-            // Check whether ConstitutiveLaw is 3D
-            KRATOS_ERROR_IF_NOT(this->GetProperties().GetValue(CONSTITUTIVE_LAW)->GetStrainSize() == 6)
-                << "Wrong constitutive law used. Expected strain size is 3 (el id = ) "
-                << this->Id() << std::endl;
-        }
-
-        return 0;
     }
 
     ///@}

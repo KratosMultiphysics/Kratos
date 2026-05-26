@@ -115,16 +115,21 @@ public:
     ) const override;
 
     ///@}
-    ///@name Obligatory KRATOS Operations
+    ///@name Operations
     ///@{
 
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
+
     /**
-    * @brief This is called during the assembling process in order
-    *        to calculate the condition right hand side matrix
-    * @param rLeftHandSideMatrix the condition right hand side matrix
-    * @param rCurrentProcessInfo the current process info
-    */
-    void CalculateRightHandSide(
+     * @brief This function provides a more general interface to the element.
+     * @details It is designed so that rLHSvariables and rRHSvariables are
+     *          passed to the element thus telling what is the desired output
+     * @param rLeftHandSideMatrix container with the output Left Hand Side matrix
+     * @param rRightHandSideVector container for the desired RHS output
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void CalculateLocalSystem(
+        MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         const ProcessInfo& rCurrentProcessInfo) override;
 
@@ -139,15 +144,12 @@ public:
         const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
-     * @brief This function provides a more general interface to the element.
-     * @details It is designed so that rLHSvariables and rRHSvariables are
-     *          passed to the element thus telling what is the desired output
-     * @param rLeftHandSideMatrix container with the output Left Hand Side matrix
-     * @param rRightHandSideVector container for the desired RHS output
-     * @param rCurrentProcessInfo the current process info instance
-     */
-    void CalculateLocalSystem(
-        MatrixType& rLeftHandSideMatrix,
+    * @brief This is called during the assembling process in order
+    *        to calculate the condition right hand side matrix
+    * @param rLeftHandSideMatrix the condition right hand side matrix
+    * @param rCurrentProcessInfo the current process info
+    */
+    void CalculateRightHandSide(
         VectorType& rRightHandSideVector,
         const ProcessInfo& rCurrentProcessInfo) override;
 
@@ -170,46 +172,6 @@ public:
         MatrixType& rDampingMatrix,
         const ProcessInfo& rCurrentProcessInfo
     ) override;
-
-    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
-    * @brief Sets on rResult the ID's of the element degrees of freedom
-    * @param rResult The vector containing the equation id
-    * @param rCurrentProcessInfo The current process info instance
-    */
-    void EquationIdVector(
-        EquationIdVectorType& rResult,
-        const ProcessInfo& rCurrentProcessInfo
-    ) const override;
-
-    /**
-    * @brief Sets on rConditionDofList the degrees of freedom of the considered element geometry
-    * @param rElementalDofList The vector containing the dof of the element
-    * @param rCurrentProcessInfo The current process info instance
-    */
-    void GetDofList(
-        DofsVectorType& rElementalDofList,
-        const ProcessInfo& rCurrentProcessInfo
-    ) const override;
-
-    ///@}
-    ///@name Base Class Operations
-    ///@{
-
-    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
-
-    void GetValuesVector(
-        Vector& rValues,
-        int Step) const override;
-
-    void GetFirstDerivativesVector(
-        Vector& rValues,
-        int Step) const override;
-
-    void GetSecondDerivativesVector(
-        Vector& rValues,
-        int Step) const override;
 
     /**
     * @brief Calculate a double Variable on the Element Constitutive Law
@@ -234,6 +196,32 @@ public:
         std::vector<array_1d<double, 3>>& rOutput,
         const ProcessInfo& rCurrentProcessInfo
     ) override;
+
+    /**
+    * @brief Sets on rResult the ID's of the element degrees of freedom
+    * @param rResult The vector containing the equation id
+    * @param rCurrentProcessInfo The current process info instance
+    */
+    void EquationIdVector(
+        EquationIdVectorType& rResult,
+        const ProcessInfo& rCurrentProcessInfo
+    ) const override;
+
+    /**
+    * @brief Sets on rConditionDofList the degrees of freedom of the considered element geometry
+    * @param rElementalDofList The vector containing the dof of the element
+    * @param rCurrentProcessInfo The current process info instance
+    */
+    void GetDofList(
+        DofsVectorType& rElementalDofList,
+        const ProcessInfo& rCurrentProcessInfo
+    ) const override;
+
+    void GetValuesVector(
+        Vector& rValues,
+        int Step) const override;
+
+    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Check
