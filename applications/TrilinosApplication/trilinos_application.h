@@ -19,8 +19,8 @@
 // Project includes
 #include "includes/kratos_application.h"
 
-namespace Kratos {
-
+namespace Kratos
+{
 ///@name Kratos Globals
 ///@{
 
@@ -39,7 +39,7 @@ namespace Kratos {
 enum class TrilinosLinearAlgebraLibrary
 {
     EPETRA, /// Epetra linear algebra library
-    TPETRA  /// Tpetra linear algebra library (TO BE IMPLEMENTED)
+    TPETRA  /// Tpetra linear algebra library
 };
 
 ///@}
@@ -88,6 +88,12 @@ class KRATOS_API(TRILINOS_APPLICATION) KratosTrilinosApplication : public Kratos
      */
     void Register() override;
 
+    /**
+     * @brief This method is used to unregister specific application components.
+     * @details This method is used to unregister specific application components.
+     */
+    void DeregisterApplication() override;
+
     ///@}
     ///@name Access
     ///@{
@@ -128,7 +134,6 @@ class KRATOS_API(TRILINOS_APPLICATION) KratosTrilinosApplication : public Kratos
     ///@{
 
     ///@}
-
    protected:
     ///@name Protected static Member Variables
     ///@{

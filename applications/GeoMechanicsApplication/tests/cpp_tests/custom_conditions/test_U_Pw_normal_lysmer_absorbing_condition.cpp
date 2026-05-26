@@ -43,9 +43,8 @@ public:
 
         if (geometry_family == GeometryData::KratosGeometryFamily::Kratos_Triangle) {
             number_of_integration_points = 3;
-        } else if (geometry_family == GeometryData::KratosGeometryFamily::Kratos_Quadrilateral) {
-            number_of_integration_points = 4;
-        } else if (geometry_family == GeometryData::KratosGeometryFamily::Kratos_Tetrahedra) {
+        } else if (geometry_family == GeometryData::KratosGeometryFamily::Kratos_Quadrilateral ||
+                   geometry_family == GeometryData::KratosGeometryFamily::Kratos_Tetrahedra) {
             number_of_integration_points = 4;
         } else if (geometry_family == GeometryData::KratosGeometryFamily::Kratos_Hexahedra) {
             number_of_integration_points = 8;
@@ -472,8 +471,8 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateLocalSystemUPwNormalLysmerAbsorbingCondition2
 
     // set expected_results
 
-    const double shear_stiffness_over_virt_thickness    = 5.0 / 100;
-    const double confined_stiffness_over_virt_thickness = 4.0 / 100;
+    constexpr auto shear_stiffness_over_virt_thickness    = 5.0 / 100;
+    constexpr auto confined_stiffness_over_virt_thickness = 4.0 / 100;
 
     Matrix expected_matrix = ZeroMatrix(condition_size, condition_size);
     expected_matrix(0, 0)  = shear_stiffness_over_virt_thickness / 9;
@@ -619,8 +618,8 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateLocalSystemUPwNormalLysmerAbsorbingCondition3
 
     // set expected_results
 
-    const double shear_stiffness_over_virt_thickness    = 5.0 / 100;
-    const double confined_stiffness_over_virt_thickness = 4.0 / 100;
+    constexpr auto shear_stiffness_over_virt_thickness    = 5.0 / 100;
+    constexpr auto confined_stiffness_over_virt_thickness = 4.0 / 100;
 
     Matrix expected_matrix = ZeroMatrix(condition_size, condition_size);
     expected_matrix(0, 0)  = shear_stiffness_over_virt_thickness / 81;
@@ -938,8 +937,8 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateLocalSystemUPwNormalLysmerAbsorbingCondition3
     p_cond->CalculateLocalSystem(rLeftHandSideMatrix, right_hand_side_vector, r_process_info);
 
     // set expected_results
-    const double shear_stiffness_over_virt_thickness    = 5.0 / 100;
-    const double confined_stiffness_over_virt_thickness = 4.0 / 100;
+    constexpr auto shear_stiffness_over_virt_thickness    = 5.0 / 100;
+    constexpr auto confined_stiffness_over_virt_thickness = 4.0 / 100;
 
     Matrix expected_matrix = ZeroMatrix(condition_size, condition_size);
     expected_matrix(0, 0)  = shear_stiffness_over_virt_thickness / 30;
