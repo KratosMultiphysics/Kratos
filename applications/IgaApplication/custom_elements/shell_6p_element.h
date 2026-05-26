@@ -27,27 +27,20 @@
 
 namespace Kratos
 {
+///@}
 ///@name Kratos Classes
 ///@{
-/// Short class definition.
-/** Reissner–Mindlin shell element for isogeometric B-Rep analysis based on degenerated solid theory.
-    The element uses a curvilinear geometry representation from the IGA framework.
-    Employing six kinematic parameters per control point (three translational and three rotational degrees of freedom). 
-
-    The present implementation is inspired by the formulations in Benson et al. and Du et al. , but does not follow any 
-    single reference verbatim; the kinematic assumptions, strain measures and numerical integration are adapted to the 
-    Kratos IGA framework and to geometrically nonlinear analysis of thin to moderately thick CAD-based shell structures.  
-
-    For further details, see:
-     [1] Benson, D.J., Bazilevs, Y., Hsu, M.C., & Hughes, T.J.R. (2010).
-     "Isogeometric shell analysis: The Reissner–Mindlin shell."
-     Computer Methods in Applied Mechanics and Engineering, 199, 276-289
-
-     [2] Du, X., Li, J., Wang, W., Zhao, G., Liu, Y., & Zhang, P. (2024).
-     "Isogeometric Shape Optimization of Reissner–Mindlin Shell with Analytical Sensitivity 
-      and Application to Cellular Sandwich Structures."
-     Composite Structures, Elsevier.
-*/
+/**
+ * @class Shell6pElement
+ * @ingroup IgaApplication
+ * @brief This class defines a Reissner–Mindlin shell element for isogeometric analysis based on degenerated solid theory.
+ * Theory behind this implementation can be found in Benson et al. "Isogeometric shell analysis: The Reissner–Mindlin shell" (2010),
+ * DOI:10.1016/j.cma.2009.05.011 
+ * 
+ * @details The element uses a curvilinear geometry representation from the IGA framework and employing six kinematic parameters per control point (three translational and three rotational degrees of freedom). 
+ * The present implementation is modified by the formulations in Benson et al, in terms of using displacements as the primal variable, instead of velocities.
+ * Moreover, it is enhanced for geometrically nonlinear analysis by applying co-rotational method.
+ */
 
 class Shell6pElement
     : public Element
@@ -57,13 +50,13 @@ protected:
     /// @brief Internal structs
     struct KinematicVariables
     {
-        array_1d<double, 3> a_ab_covariant;
-        array_1d<double, 3> b_ab_covariant;
-        array_1d<double, 3> a1;
-        array_1d<double, 3> a2;
-        array_1d<double, 3> a3;
-        array_1d<double, 3> a3_tilde;
-        double dA;
+        array_1d<double, 3> MetricCovariant;
+        array_1d<double, 3> CurvatureCovariant;
+        array_1d<double, 3> BaseVector1;
+        array_1d<double, 3> BaseVector2;
+        array_1d<double, 3> NormalVector;
+        array_1d<double, 3> NormalVectorTilde;
+        double DifferentialArea;
         KinematicVariables(std::size_t Dimension);
     };
 
@@ -75,15 +68,6 @@ protected:
         Matrix ConstitutiveMatrix;
         ConstitutiveVariables(std::size_t StrainSize);
     };
-
-
-    struct SecondVariations
-    {
-        Matrix B11;
-        Matrix B22;
-        Matrix B12;
-        SecondVariations(const int& mat_size);
-    }; 
 
 public:
     ///@name Type Definitions
@@ -475,12 +459,6 @@ private:
         Matrix& stress_matrix
     ) const;
 
-    void CalculateSecondVariationStrainCurvature(
-        const IndexType IntegrationPointIndex,
-        SecondVariations& rSecondVariationsStrain,
-        SecondVariations& rSecondVariationsCurvature,
-        const KinematicVariables& rActualKinematic) const;
-
     /**
     * This functions updates the constitutive variables
     * @param rActualMetric: The actual metric
@@ -519,45 +497,6 @@ private:
         const double IntegrationWeight,
         const double IntegrationWeight_zeta) const;
 
-    // Calculation of the PK2 stress
-    void CalculatePK2Stress(
-        const IndexType IntegrationPointIndex,
-        array_1d<double, 3>& rPK2MembraneStressCartesian,
-        array_1d<double, 3>& rPK2BendingStressCartesian,
-        const ProcessInfo& rCurrentProcessInfo) const;
-
-    // Calculation of the Cauchy stress by transforming the PK2 stress
-    void CalculateCauchyStress(
-        const IndexType IntegrationPointIndex,
-        array_1d<double, 3>& rCauchyMembraneStressesCartesian, 
-        array_1d<double, 3>& rCauchyBendingStressesCartesian, 
-        const ProcessInfo& rCurrentProcessInfo) const;
-
-    // Calculation of the shear force, shear force = derivative of moment
-    void CalculateShearForce(
-        const IndexType IntegrationPointIndex,
-        array_1d<double, 2>& rq, 
-        const ProcessInfo& rCurrentProcessInfo) const;
-
-    void CalculateDerivativeOfCurvatureInitial(
-        const IndexType IntegrationPointIndex,
-        array_1d<double, 3>& rDCurvature_D1,
-        array_1d<double, 3>& rDCurvature_D2,
-        const Matrix& rHessian) const;
-
-    void CalculateDerivativeOfCurvatureActual(
-        const IndexType IntegrationPointIndex,
-        array_1d<double, 3>& rDCurvature_D1,
-        array_1d<double, 3>& rDCurvature_D2,
-        const Matrix& rHessian,
-        const KinematicVariables& rKinematicVariables) const;
-
-    void CalculateDerivativeTransformationMatrices(
-        const IndexType IntegrationPointIndex,
-        std::vector<Matrix>& rDQ_Dalpha_init,
-        std::vector<Matrix>& rDTransCartToCov_Dalpha_init,
-        const Matrix& rHessian) const;
-
     /**
      * @brief This method gets a value directly from the CL
      * @details Avoids code repetition
@@ -581,17 +520,6 @@ private:
     ///@}
     ///@name Geometrical Functions
     ///@{
-
-    // void CalculateHessian(
-    //     Matrix& Hessian,
-    //     const Matrix& rDDN_DDe) const;
-
-    // void CalculateSecondDerivativesOfBaseVectors(
-    //     const Matrix& rDDDN_DDDe,
-    //     array_1d<double, 3>& rDDa1_DD11,
-    //     array_1d<double, 3>& rDDa1_DD12,
-    //     array_1d<double, 3>& rDDa2_DD21,
-    //     array_1d<double, 3>& rDDa2_DD22) const;
 
     ///@}
     ///@name Serialization

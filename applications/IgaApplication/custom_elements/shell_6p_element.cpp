@@ -26,18 +26,18 @@ namespace Kratos
    Shell6pElement::KinematicVariables::KinematicVariables(std::size_t Dimension)
     {
         // covariant metric
-        noalias(a_ab_covariant) = ZeroVector(Dimension);
-        noalias(b_ab_covariant) = ZeroVector(Dimension);
+        noalias(MetricCovariant) = ZeroVector(Dimension);
+        noalias(CurvatureCovariant) = ZeroVector(Dimension);
         //base vector 1
-        noalias(a1) = ZeroVector(Dimension);
+        noalias(BaseVector1) = ZeroVector(Dimension);
         //base vector 2
-        noalias(a2) = ZeroVector(Dimension);
+        noalias(BaseVector2) = ZeroVector(Dimension);
         //base vector 3 normalized
-        noalias(a3) = ZeroVector(Dimension);
+        noalias(NormalVector) = ZeroVector(Dimension);
         //not-normalized base vector 3
-        noalias(a3_tilde) = ZeroVector(Dimension);
+        noalias(NormalVectorTilde) = ZeroVector(Dimension);
         //differential area
-        dA = 1.0;
+        DifferentialArea = 1.0;
     }
 
     Shell6pElement::ConstitutiveVariables::ConstitutiveVariables(std::size_t StrainSize)
@@ -46,14 +46,6 @@ namespace Kratos
         StressVector       = ZeroVector(StrainSize);
         ConstitutiveMatrix = ZeroMatrix(StrainSize, StrainSize);
     }
-
-    Shell6pElement::SecondVariations::SecondVariations(const int& mat_size)
-    {
-        B11 = ZeroMatrix(mat_size, mat_size);
-        B22 = ZeroMatrix(mat_size, mat_size);
-        B12 = ZeroMatrix(mat_size, mat_size);
-    }
-
 
     ///@name Initialize Functions
     ///@{
@@ -85,10 +77,10 @@ namespace Kratos
                 point_number,
                 kinematic_variables);
 
-            m_A_ab_covariant_vector[point_number] = kinematic_variables.a_ab_covariant;
-            m_B_ab_covariant_vector[point_number] = kinematic_variables.b_ab_covariant;
+            m_A_ab_covariant_vector[point_number] = kinematic_variables.MetricCovariant;
+            m_B_ab_covariant_vector[point_number] = kinematic_variables.CurvatureCovariant;
 
-            m_dA_vector[point_number] = kinematic_variables.dA;
+            m_dA_vector[point_number] = kinematic_variables.DifferentialArea;
 
             CalculateTransformation(kinematic_variables, m_T_vector[point_number]);
         }
@@ -472,29 +464,22 @@ namespace Kratos
         Matrix J;
         GetGeometry().Jacobian(J, IntegrationPointIndex);
 
-        rKinematicVariables.a1 = column(J, 0);
-        rKinematicVariables.a2 = column(J, 1);
+        rKinematicVariables.BaseVector1 = column(J, 0);
+        rKinematicVariables.BaseVector2 = column(J, 1);
 
         //not-normalized base vector 3
-        MathUtils<double>::CrossProduct(rKinematicVariables.a3_tilde, rKinematicVariables.a1, rKinematicVariables.a2);
+        MathUtils<double>::CrossProduct(rKinematicVariables.NormalVectorTilde, rKinematicVariables.BaseVector1, rKinematicVariables.BaseVector2);
 
-        //differential area dA
-        rKinematicVariables.dA = norm_2(rKinematicVariables.a3_tilde);
+        //differential area DifferentialArea
+        rKinematicVariables.DifferentialArea = norm_2(rKinematicVariables.NormalVectorTilde);
 
         //base vector 3 normalized
-        noalias(rKinematicVariables.a3) = rKinematicVariables.a3_tilde / rKinematicVariables.dA;
+        noalias(rKinematicVariables.NormalVector) = rKinematicVariables.NormalVectorTilde / rKinematicVariables.DifferentialArea;
 
         //GetCovariantMetric
-        rKinematicVariables.a_ab_covariant[0] = pow(rKinematicVariables.a1[0], 2) + pow(rKinematicVariables.a1[1], 2) + pow(rKinematicVariables.a1[2], 2);
-        rKinematicVariables.a_ab_covariant[1] = pow(rKinematicVariables.a2[0], 2) + pow(rKinematicVariables.a2[1], 2) + pow(rKinematicVariables.a2[2], 2);
-        rKinematicVariables.a_ab_covariant[2] = rKinematicVariables.a1[0] * rKinematicVariables.a2[0] + rKinematicVariables.a1[1] * rKinematicVariables.a2[1] + rKinematicVariables.a1[2] * rKinematicVariables.a2[2];
-
-        // Matrix H = ZeroMatrix(3, 3);
-        // CalculateHessian(H, GetGeometry().ShapeFunctionDerivatives(2, IntegrationPointIndex, GetGeometry().GetDefaultIntegrationMethod()));
-
-        // rKinematicVariables.b_ab_covariant[0] = H(0, 0) * rKinematicVariables.a3[0] + H(1, 0) * rKinematicVariables.a3[1] + H(2, 0) * rKinematicVariables.a3[2];
-        // rKinematicVariables.b_ab_covariant[1] = H(0, 1) * rKinematicVariables.a3[0] + H(1, 1) * rKinematicVariables.a3[1] + H(2, 1) * rKinematicVariables.a3[2];
-        // rKinematicVariables.b_ab_covariant[2] = H(0, 2) * rKinematicVariables.a3[0] + H(1, 2) * rKinematicVariables.a3[1] + H(2, 2) * rKinematicVariables.a3[2];
+        rKinematicVariables.MetricCovariant[0] = pow(rKinematicVariables.BaseVector1[0], 2) + pow(rKinematicVariables.BaseVector1[1], 2) + pow(rKinematicVariables.BaseVector1[2], 2);
+        rKinematicVariables.MetricCovariant[1] = pow(rKinematicVariables.BaseVector2[0], 2) + pow(rKinematicVariables.BaseVector2[1], 2) + pow(rKinematicVariables.BaseVector2[2], 2);
+        rKinematicVariables.MetricCovariant[2] = rKinematicVariables.BaseVector1[0] * rKinematicVariables.BaseVector2[0] + rKinematicVariables.BaseVector1[1] * rKinematicVariables.BaseVector2[1] + rKinematicVariables.BaseVector1[2] * rKinematicVariables.BaseVector2[2];
     }
 
     // Computes the transformation matrix
@@ -504,9 +489,9 @@ namespace Kratos
     ) const
     {
         //Local cartesian coordinates
-        double l_a1 = norm_2(rKinematicVariables.a1);
-        array_1d<double, 3> e1 = rKinematicVariables.a1 / l_a1;
-        array_1d<double, 3> e3 =  rKinematicVariables.a3;
+        double l_a1 = norm_2(rKinematicVariables.BaseVector1);
+        array_1d<double, 3> e1 = rKinematicVariables.BaseVector1 / l_a1;
+        array_1d<double, 3> e3 =  rKinematicVariables.NormalVector;
         array_1d<double, 3> e2;
         MathUtils<double>::CrossProduct(e2, e3, e1);
         
@@ -594,16 +579,16 @@ namespace Kratos
         GetGeometry().Jacobian(J, IntegrationPointIndex);
         const std::size_t number_of_control_points = GetGeometry().size();
 
-        rKinematicVariables.a1 = column(J, 0);
-        rKinematicVariables.a2 = column(J, 1);
-        MathUtils<double>::CrossProduct(rKinematicVariables.a3_tilde, rKinematicVariables.a1, rKinematicVariables.a2);
-        rKinematicVariables.dA = norm_2(rKinematicVariables.a3_tilde);
-        noalias(rKinematicVariables.a3) = rKinematicVariables.a3_tilde / rKinematicVariables.dA;
+        rKinematicVariables.BaseVector1 = column(J, 0);
+        rKinematicVariables.BaseVector2 = column(J, 1);
+        MathUtils<double>::CrossProduct(rKinematicVariables.NormalVectorTilde, rKinematicVariables.BaseVector1, rKinematicVariables.BaseVector2);
+        rKinematicVariables.DifferentialArea = norm_2(rKinematicVariables.NormalVectorTilde);
+        noalias(rKinematicVariables.NormalVector) = rKinematicVariables.NormalVectorTilde / rKinematicVariables.DifferentialArea;
 
 
         Matrix da3 = ZeroMatrix(3, 3);
-        double inv_dA = 1 / rKinematicVariables.dA;
-        double inv_dA3 = 1 / std::pow(rKinematicVariables.dA, 3);
+        double inv_dA = 1 / rKinematicVariables.DifferentialArea;
+        double inv_dA3 = 1 / std::pow(rKinematicVariables.DifferentialArea, 3);
 
         //compute da3
         array_1d<double, 3> da1_d1;
@@ -631,26 +616,26 @@ namespace Kratos
         array_1d<double, 3> da3_tilde_d2_1;
         array_1d<double, 3> da3_tilde_d2_2;
 
-        MathUtils<double>::CrossProduct(da3_tilde_d1_1, da1_d1, rKinematicVariables.a2);
-        MathUtils<double>::CrossProduct(da3_tilde_d1_2, rKinematicVariables.a1, da1_d2);
+        MathUtils<double>::CrossProduct(da3_tilde_d1_1, da1_d1, rKinematicVariables.BaseVector2);
+        MathUtils<double>::CrossProduct(da3_tilde_d1_2, rKinematicVariables.BaseVector1, da1_d2);
         da3_tilde_d1 = da3_tilde_d1_1 + da3_tilde_d1_2;
 
-        MathUtils<double>::CrossProduct(da3_tilde_d2_1, da1_d2, rKinematicVariables.a2);
-        MathUtils<double>::CrossProduct(da3_tilde_d2_2, rKinematicVariables.a1, da2_d2);
+        MathUtils<double>::CrossProduct(da3_tilde_d2_1, da1_d2, rKinematicVariables.BaseVector2);
+        MathUtils<double>::CrossProduct(da3_tilde_d2_2, rKinematicVariables.BaseVector1, da2_d2);
         da3_tilde_d2 = da3_tilde_d2_1 + da3_tilde_d2_2;
 
         for (IndexType j = 0; j < 3; j++)
         {
-            dn(0, j) = da3_tilde_d1[j] * inv_dA - rKinematicVariables.a3_tilde[j] * inner_prod(rKinematicVariables.a3_tilde, da3_tilde_d1) * inv_dA3;
-            dn(1, j) = da3_tilde_d2[j] * inv_dA - rKinematicVariables.a3_tilde[j] * inner_prod(rKinematicVariables.a3_tilde, da3_tilde_d2) * inv_dA3;
+            dn(0, j) = da3_tilde_d1[j] * inv_dA - rKinematicVariables.NormalVectorTilde[j] * inner_prod(rKinematicVariables.NormalVectorTilde, da3_tilde_d1) * inv_dA3;
+            dn(1, j) = da3_tilde_d2[j] * inv_dA - rKinematicVariables.NormalVectorTilde[j] * inner_prod(rKinematicVariables.NormalVectorTilde, da3_tilde_d2) * inv_dA3;
             dn(2, j) = 0.0;
         }
 
         Matrix Jn = ZeroMatrix(3,3);
         for (int i = 0; i < 3; i++) {
-            Jn(0, i) = rKinematicVariables.a1[i] + (thickness/2) * zeta * dn(0, i); 
-            Jn(1, i) = rKinematicVariables.a2[i] + (thickness/2) * zeta * dn(1, i) ; 
-            Jn(2, i) = rKinematicVariables.a3[i] * (thickness/2) ;
+            Jn(0, i) = rKinematicVariables.BaseVector1[i] + (thickness/2) * zeta * dn(0, i); 
+            Jn(1, i) = rKinematicVariables.BaseVector2[i] + (thickness/2) * zeta * dn(1, i) ; 
+            Jn(2, i) = rKinematicVariables.NormalVector[i] * (thickness/2) ;
         }
 
         // Jn(0,0) = 4.0; //Jn must be computed in the reference configuration! Warning: This is just a hard coded test
@@ -697,9 +682,9 @@ namespace Kratos
         DN_De_Jn_bending = trans(prod(J_inv, trans(new_DN_De_bending)));
                                                 
         // y hat 
-        const double y1= rActualKinematic.a3[0];
-        const double y2= rActualKinematic.a3[1];
-        const double y3= rActualKinematic.a3[2];
+        const double y1= rActualKinematic.NormalVector[0];
+        const double y2= rActualKinematic.NormalVector[1];
+        const double y3= rActualKinematic.NormalVector[2];
 
         Matrix da3 = ZeroMatrix(3, 3);
         Matrix Dn = ZeroMatrix(3, 3);
@@ -852,9 +837,9 @@ namespace Kratos
         DN_De_Jn_bending = trans(prod(J_inv, trans(new_DN_De_bending)));
                                                 
         // y hat 
-        const double y1= rActualKinematic.a3[0];
-        const double y2= rActualKinematic.a3[1];
-        const double y3= rActualKinematic.a3[2];
+        const double y1= rActualKinematic.NormalVector[0];
+        const double y2= rActualKinematic.NormalVector[1];
+        const double y3= rActualKinematic.NormalVector[2];
 
         Matrix da3 = ZeroMatrix(3, 3);
         Matrix Dn = ZeroMatrix(3, 3);
@@ -1194,53 +1179,6 @@ namespace Kratos
 
         return 0;
     }
-
-    // void Shell6pElement::CalculateHessian(
-    //     Matrix& Hessian,
-    //     const Matrix& rDDN_DDe) const
-    // {
-    //     const std::size_t number_of_points = GetGeometry().size();
-    //     const std::size_t working_space_dimension = 3;
-    //     Hessian.resize(working_space_dimension, working_space_dimension);
-    //     Hessian = ZeroMatrix(working_space_dimension, working_space_dimension);
-
-    //     for (IndexType k = 0; k < number_of_points; k++)
-    //     {
-    //         const array_1d<double, 3> coords = GetGeometry()[k].Coordinates();
-
-    //         Hessian(0, 0) += rDDN_DDe(k, 0)*coords[0];
-    //         Hessian(0, 1) += rDDN_DDe(k, 2)*coords[0];
-    //         Hessian(0, 2) += rDDN_DDe(k, 1)*coords[0];
-
-    //         Hessian(1, 0) += rDDN_DDe(k, 0)*coords[1];
-    //         Hessian(1, 1) += rDDN_DDe(k, 2)*coords[1];
-    //         Hessian(1, 2) += rDDN_DDe(k, 1)*coords[1];
-
-    //         Hessian(2, 0) += rDDN_DDe(k, 0)*coords[2];
-    //         Hessian(2, 1) += rDDN_DDe(k, 2)*coords[2];
-    //         Hessian(2, 2) += rDDN_DDe(k, 1)*coords[2];
-    //     }
-    // }
-
-    // void Shell6pElement::CalculateSecondDerivativesOfBaseVectors(
-    //     const Matrix& rDDDN_DDDe,
-    //     array_1d<double, 3>& rDDa1_DD11,
-    //     array_1d<double, 3>& rDDa1_DD12,
-    //     array_1d<double, 3>& rDDa2_DD21,
-    //     array_1d<double, 3>& rDDa2_DD22) const
-    // {
-    //     const std::size_t number_of_points = GetGeometry().size();
-    
-    //     for (IndexType k = 0; k < number_of_points; k++)
-    //     {
-    //         const array_1d<double, 3> coords = GetGeometry()[k].Coordinates();
-
-    //         rDDa1_DD11 += rDDDN_DDDe(k, 0) * coords;
-    //         rDDa1_DD12 += rDDDN_DDDe(k, 1) * coords;
-    //         rDDa2_DD21 += rDDDN_DDDe(k, 2) * coords;
-    //         rDDa2_DD22 += rDDDN_DDDe(k, 3) * coords;
-    //     }
-    // }
 
     ///@}
 
