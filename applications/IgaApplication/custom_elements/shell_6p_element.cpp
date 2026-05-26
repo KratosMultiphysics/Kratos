@@ -50,6 +50,39 @@ namespace Kratos
     ///@name Initialize Functions
     ///@{
 
+    Shell6pElement::Shell6pElement(
+        IndexType NewId,
+        GeometryType::Pointer pGeometry)
+        : Element(NewId, pGeometry)
+    {
+    }
+
+    Shell6pElement::Shell6pElement(
+        IndexType NewId,
+        GeometryType::Pointer pGeometry,
+        PropertiesType::Pointer pProperties)
+        : Element(NewId, pGeometry, pProperties)
+    {
+    }
+
+    Element::Pointer Shell6pElement::Create(
+        IndexType NewId,
+        GeometryType::Pointer pGeom,
+        PropertiesType::Pointer pProperties
+    ) const 
+    {
+        return Kratos::make_intrusive<Shell6pElement>(NewId, pGeom, pProperties);
+    }
+
+    Element::Pointer Shell6pElement::Create(
+        IndexType NewId,
+        NodesArrayType const& ThisNodes,
+        PropertiesType::Pointer pProperties
+    ) const 
+    {
+        return Kratos::make_intrusive< Shell6pElement >(NewId, GetGeometry().Create(ThisNodes), pProperties);
+    }
+
     void Shell6pElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
@@ -122,6 +155,57 @@ namespace Kratos
             mConstitutiveLawVector[point_number]->FinalizeMaterialResponse(
                 constitutive_law_parameters, ConstitutiveLaw::StressMeasure_PK2);
         }
+    }
+
+    void Shell6pElement::CalculateLocalSystem(
+        MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo)
+    {
+        const std::size_t mat_size = GetGeometry().size() * 6;
+
+        if (rRightHandSideVector.size() != mat_size)
+            rRightHandSideVector.resize(mat_size);
+        noalias(rRightHandSideVector) = ZeroVector(mat_size);
+
+        if (rLeftHandSideMatrix.size1() != mat_size)
+            rLeftHandSideMatrix.resize(mat_size, mat_size);
+        noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size, mat_size);
+
+        CalculateAll(rLeftHandSideMatrix, rRightHandSideVector,
+            rCurrentProcessInfo, true, true);
+    }
+
+    void Shell6pElement::CalculateLeftHandSide(
+        MatrixType& rLeftHandSideMatrix,
+        const ProcessInfo& rCurrentProcessInfo)
+    {
+        const std::size_t mat_size = GetGeometry().size() * 6;
+        
+        if (rLeftHandSideMatrix.size1() != mat_size)
+            rLeftHandSideMatrix.resize(mat_size, mat_size);
+        noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size, mat_size);
+
+        VectorType right_hand_side_vector;
+        CalculateAll(rLeftHandSideMatrix, right_hand_side_vector,
+            rCurrentProcessInfo, true, false);
+    }
+
+    void Shell6pElement::CalculateRightHandSide(
+        VectorType& rRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo)
+    {
+        const std::size_t number_of_nodes = GetGeometry().size();
+        const std::size_t mat_size = number_of_nodes * 6;
+
+        if (rRightHandSideVector.size() != mat_size)
+            rRightHandSideVector.resize(mat_size);
+        noalias(rRightHandSideVector) = ZeroVector(mat_size);
+
+        MatrixType left_hand_side_matrix;
+
+        CalculateAll(left_hand_side_matrix, rRightHandSideVector,
+            rCurrentProcessInfo, false, true);
     }
 
     ///@}

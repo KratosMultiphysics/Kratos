@@ -60,7 +60,6 @@ protected:
         KinematicVariables(std::size_t Dimension);
     };
 
-
     struct ConstitutiveVariables
     {
         Vector StrainVector;
@@ -86,21 +85,16 @@ public:
     /// Constructor using an array of nodes
     Shell6pElement(
         IndexType NewId,
-        GeometryType::Pointer pGeometry)
-        : Element(NewId, pGeometry)
-    {};
+        GeometryType::Pointer pGeometry);
 
     /// Constructor using an array of nodes with properties
     Shell6pElement(
         IndexType NewId,
         GeometryType::Pointer pGeometry,
-        PropertiesType::Pointer pProperties)
-        : Element(NewId, pGeometry, pProperties)
-    {};
+        PropertiesType::Pointer pProperties);
 
     /// Default constructor necessary for serialization
     Shell6pElement() = default;
-
 
     ///@}
     ///@name Life Cycle
@@ -111,22 +105,14 @@ public:
         IndexType NewId,
         GeometryType::Pointer pGeom,
         PropertiesType::Pointer pProperties
-    ) const override
-    {
-        return Kratos::make_intrusive<Shell6pElement>(
-            NewId, pGeom, pProperties);
-    };
+    ) const override;
 
     /// Create with Id, pointer to geometry and pointer to property
     Element::Pointer Create(
         IndexType NewId,
         NodesArrayType const& ThisNodes,
         PropertiesType::Pointer pProperties
-    ) const override
-    {
-        return Kratos::make_intrusive< Shell6pElement >(
-            NewId, GetGeometry().Create(ThisNodes), pProperties);
-    };
+    ) const override;
 
     ///@}
     ///@name Obligatory KRATOS Operations
@@ -140,20 +126,7 @@ public:
     */
     void CalculateRightHandSide(
         VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo) override
-    {
-        const std::size_t number_of_nodes = GetGeometry().size();
-        const std::size_t mat_size = number_of_nodes * 6;
-
-        if (rRightHandSideVector.size() != mat_size)
-            rRightHandSideVector.resize(mat_size);
-        noalias(rRightHandSideVector) = ZeroVector(mat_size);
-
-        MatrixType left_hand_side_matrix;
-
-        CalculateAll(left_hand_side_matrix, rRightHandSideVector,
-            rCurrentProcessInfo, false, true);
-    }
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
     * @brief This is called during the assembling process in order
@@ -163,18 +136,7 @@ public:
     */
     void CalculateLeftHandSide(
         MatrixType& rLeftHandSideMatrix,
-        const ProcessInfo& rCurrentProcessInfo) override
-    {
-        const std::size_t mat_size = GetGeometry().size() * 6;
-        
-        if (rLeftHandSideMatrix.size1() != mat_size)
-            rLeftHandSideMatrix.resize(mat_size, mat_size);
-        noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size, mat_size);
-
-        VectorType right_hand_side_vector;
-        CalculateAll(rLeftHandSideMatrix, right_hand_side_vector,
-            rCurrentProcessInfo, true, false);
-    }
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * @brief This function provides a more general interface to the element.
@@ -187,21 +149,7 @@ public:
     void CalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo) override
-    {
-        const std::size_t mat_size = GetGeometry().size() * 6;
-
-        if (rRightHandSideVector.size() != mat_size)
-            rRightHandSideVector.resize(mat_size);
-        noalias(rRightHandSideVector) = ZeroVector(mat_size);
-
-        if (rLeftHandSideMatrix.size1() != mat_size)
-            rLeftHandSideMatrix.resize(mat_size, mat_size);
-        noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size, mat_size);
-
-        CalculateAll(rLeftHandSideMatrix, rRightHandSideVector,
-            rCurrentProcessInfo, true, true);
-    }
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
     * @brief This is called during the assembling process in order to calculate the elemental mass matrix
