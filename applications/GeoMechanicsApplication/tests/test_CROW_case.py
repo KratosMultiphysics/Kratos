@@ -23,13 +23,13 @@ if test_helper.want_test_plots():
 csv_fieldname_node = "node"
 csv_fieldname_bending_moment = "bending_moment_in_Nm_per_m"
 csv_fieldname_shear_force = "shear_force_in_N_per_m"
-csv_fieldname_horizontal_displacement = "horizontal_displacement_in_m"
+csv_fieldname_horizontal_total_displacement = "horizontal_total_displacement_in_m"
 
 csv_fieldnames = [
     csv_fieldname_node,  # this one must come first
     csv_fieldname_bending_moment,
     csv_fieldname_shear_force,
-    csv_fieldname_horizontal_displacement,
+    csv_fieldname_horizontal_total_displacement,
 ]
 
 
@@ -285,15 +285,15 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             shear_forces = reader.nodal_values_at_time(
                 "SHEAR_FORCE", end_time, output_data, node_ids=node_ids
             )
-            horizontal_displacements = [
-                displacement_vector[0]
-                for displacement_vector in reader.nodal_values_at_time(
-                    "DISPLACEMENT", end_time, output_data, node_ids=node_ids
+            horizontal_total_displacements = [
+                total_displacement_vector[0]
+                for total_displacement_vector in reader.nodal_values_at_time(
+                    "TOTAL_DISPLACEMENT", end_time, output_data, node_ids=node_ids
                 )
             ]
 
-            for node_id, bending_moment, shear_force, horizontal_displacement in zip(
-                node_ids, bending_moments, shear_forces, horizontal_displacements
+            for node_id, bending_moment, shear_force, horizontal_total_displacement in zip(
+                node_ids, bending_moments, shear_forces, horizontal_total_displacements
             ):
                 expected_nodal_results = expected_results[node_id]
                 self.assertAlmostEqual(
@@ -307,9 +307,9 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
                     msg=f"Shear force at node {node_id} in stage '{stage_name}'",
                 )
                 self.assertAlmostEqual(
-                    horizontal_displacement,
-                    expected_nodal_results[csv_fieldname_horizontal_displacement],
-                    msg=f"Horizontal displacement at node {node_id} in stage '{stage_name}'",
+                    horizontal_total_displacement,
+                    expected_nodal_results[csv_fieldname_horizontal_total_displacement],
+                    msg=f"Horizontal total displacement at node {node_id} in stage '{stage_name}'",
                 )
 
     def read_json_output(self, project_path, stage):
@@ -671,10 +671,10 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             shear_forces = reader.nodal_values_at_time(
                 "SHEAR_FORCE", end_time, output_data, node_ids=node_ids
             )
-            horizontal_displacements = [
-                displacement_vector[0]
-                for displacement_vector in reader.nodal_values_at_time(
-                    "DISPLACEMENT", end_time, output_data, node_ids=node_ids
+            horizontal_total_displacements = [
+                total_displacement_vector[0]
+                for total_displacement_vector in reader.nodal_values_at_time(
+                    "TOTAL_DISPLACEMENT", end_time, output_data, node_ids=node_ids
                 )
             ]
 
@@ -690,16 +690,16 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
                     node_id,
                     bending_moment,
                     shear_force,
-                    horizontal_displacement,
+                    horizontal_total_displacement,
                 ) in zip(
-                    node_ids, bending_moments, shear_forces, horizontal_displacements
+                    node_ids, bending_moments, shear_forces, horizontal_total_displacements
                 ):
                     writer.writerow(
                         {
                             csv_fieldname_node: node_id,
                             csv_fieldname_bending_moment: bending_moment,
                             csv_fieldname_shear_force: shear_force,
-                            csv_fieldname_horizontal_displacement: horizontal_displacement,
+                            csv_fieldname_horizontal_total_displacement: horizontal_total_displacement,
                         }
                     )
 
