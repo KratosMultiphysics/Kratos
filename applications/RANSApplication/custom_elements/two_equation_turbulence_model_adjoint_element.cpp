@@ -479,6 +479,63 @@ void TwoEquationTurbulenceModelAdjointElement<TDim, TNumNodes, TAdjointElementDa
 
 template <unsigned int TDim, unsigned int TNumNodes, class TAdjointElementData>
 void TwoEquationTurbulenceModelAdjointElement<TDim, TNumNodes, TAdjointElementData>::CalculateSensitivityMatrix(
+    const Variable<double>& rSensitivityVariable,
+    Matrix& rOutput,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    if (rSensitivityVariable == TURBULENT_KINETIC_ENERGY_SENSITIVITY) {
+        if (rOutput.size1() != TNumNodes || rOutput.size2() != TElementLocalSize) {
+            rOutput.resize(TNumNodes, TElementLocalSize, false);
+        }
+
+        rOutput.clear();
+
+        // compute the lhs which is \partial R \ partial u
+        Matrix lhs(TElementLocalSize, TElementLocalSize);
+        lhs.clear();
+        AddFluidFirstDerivatives(lhs, rCurrentProcessInfo);
+        AddTurbulenceFirstDerivatives(lhs, rCurrentProcessInfo);
+
+        // now need to take a sub set of this matrix
+        for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
+            const BoundedVector<double, TElementLocalSize>& row_values = row(lhs, i_node * TBlockSize + TDim);
+            AssembleSubVectorToMatrix(rOutput, i_node , 0, row_values);
+        }
+        KRATOS_WATCH(rSensitivityVariable)
+        KRATOS_WATCH(rOutput)
+    } else if (rSensitivityVariable == TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_SENSITIVITY) {
+        if (rOutput.size1() != TNumNodes || rOutput.size2() != TElementLocalSize) {
+            rOutput.resize(TNumNodes, TElementLocalSize, false);
+        }
+
+        rOutput.clear();
+
+        // compute the lhs which is \partial R \ partial u
+        Matrix lhs(TElementLocalSize, TElementLocalSize);
+        lhs.clear();
+        AddFluidFirstDerivatives(lhs, rCurrentProcessInfo);
+        AddTurbulenceFirstDerivatives(lhs, rCurrentProcessInfo);
+
+        // now need to take a sub set of this matrix
+        for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
+            const BoundedVector<double, TElementLocalSize>& row_values = row(lhs, i_node * TBlockSize + TDim + 1);
+            AssembleSubVectorToMatrix(rOutput, i_node , 0, row_values);
+        }
+        KRATOS_WATCH(rSensitivityVariable)
+        KRATOS_WATCH(rOutput)
+    }
+     else {
+        KRATOS_ERROR << "Sensitivity variable " << rSensitivityVariable
+                     << " not supported." << std::endl;
+    }
+
+    KRATOS_CATCH("")
+}
+
+template <unsigned int TDim, unsigned int TNumNodes, class TAdjointElementData>
+void TwoEquationTurbulenceModelAdjointElement<TDim, TNumNodes, TAdjointElementData>::CalculateSensitivityMatrix(
     const Variable<array_1d<double, 3>>& rSensitivityVariable,
     Matrix& rOutput,
     const ProcessInfo& rCurrentProcessInfo)
@@ -497,6 +554,9 @@ void TwoEquationTurbulenceModelAdjointElement<TDim, TNumNodes, TAdjointElementDa
         if (rOutput.size1() != TCoordLocalSize || rOutput.size2() != TElementLocalSize) {
             rOutput.resize(TCoordLocalSize, TElementLocalSize, false);
         }
+        KRATOS_WATCH(TDim)
+        KRATOS_WATCH(TCoordLocalSize)
+        KRATOS_WATCH(TElementLocalSize)
 
         rOutput.clear();
 

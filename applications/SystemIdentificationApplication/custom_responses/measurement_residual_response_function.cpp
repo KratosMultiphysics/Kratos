@@ -156,10 +156,10 @@ double MeasurementResidualResponseFunction::CalculateValue(ModelPart& rModelPart
         p_sensor->GetNode()->SetValue(SENSOR_ERROR, current_sensor_error);
         p_sensor->GetNode()->SetValue(SENSOR_RELATIVE_ERROR, current_sensor_error / p_sensor->GetNode()->GetValue(SENSOR_MEASURED_VALUE));
 
-        // unnormalized 
-        //sum += ( std::pow( 0.5 * pow(current_sensor_error, 2) * p_sensor->GetWeight(), mPCoefficient ) );
+        // unnormalized
+        sum += ( std::pow( 0.5 * pow(current_sensor_error, 2) * p_sensor->GetWeight(), mPCoefficient ) );
         // normalized
-        sum += ( std::pow( 0.5 * pow(current_sensor_error / p_sensor->GetNode()->GetValue(SENSOR_NORMALIZATION_FACTOR), 2) * p_sensor->GetWeight(), mPCoefficient ) );
+        //sum += ( std::pow( 0.5 * pow(current_sensor_error / p_sensor->GetNode()->GetValue(SENSOR_NORMALIZATION_FACTOR), 2) * p_sensor->GetWeight(), mPCoefficient ) );
     }
 
     mC1 = std::pow( sum, 1 / mPCoefficient - 1 ) / std::pow(2, mPCoefficient - 1);
@@ -188,9 +188,10 @@ void MeasurementResidualResponseFunction::CalculateDerivative(
     for (auto& p_sensor : mpSensorsList) {
         TCalculationType::Calculate(*p_sensor, local_sensor_response_gradient, rResidualGradient, rArgs...);
         // unnormalized
-        //noalias(rResponseGradient) += local_sensor_response_gradient * mC1 * (std::pow(p_sensor->GetWeight(), mPCoefficient) * std::pow(p_sensor->GetNode()->GetValue(SENSOR_ERROR), mPCoefficient * 2 - 1 ) );
-        // normalized 
-        noalias(rResponseGradient) += local_sensor_response_gradient * mC1 * (std::pow(p_sensor->GetWeight(), mPCoefficient) * (1 / std::pow( p_sensor->GetNode()->GetValue(SENSOR_NORMALIZATION_FACTOR), 2 * mPCoefficient )) * std::pow(p_sensor->GetNode()->GetValue(SENSOR_ERROR), mPCoefficient * 2 - 1 ) );
+        noalias(rResponseGradient) += local_sensor_response_gradient * mC1 * (std::pow(p_sensor->GetWeight(), mPCoefficient) * std::pow(p_sensor->GetNode()->GetValue(SENSOR_ERROR), mPCoefficient * 2 - 1 ) );
+        // normalized
+        //noalias(rResponseGradient) += local_sensor_response_gradient * mC1 * (std::pow(p_sensor->GetWeight(), mPCoefficient) * (1 / std::pow( p_sensor->GetNode()->GetValue(SENSOR_NORMALIZATION_FACTOR), 2 * mPCoefficient )) * std::pow(p_sensor->GetNode()->GetValue(SENSOR_ERROR), mPCoefficient * 2 - 1 ) );
+        //KRATOS_WATCH(p_sensor->GetNode()->GetValue(SENSOR_NORMALIZATION_FACTOR))
     }
 
     KRATOS_CATCH("");

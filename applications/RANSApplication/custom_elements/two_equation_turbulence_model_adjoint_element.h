@@ -249,6 +249,11 @@ public:
         const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateSensitivityMatrix(
+        const Variable<double>& rSensitivityVariable,
+        Matrix& rOutput,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateSensitivityMatrix(
         const Variable<array_1d<double, 3>>& rSensitivityVariable,
         Matrix& rOutput,
         const ProcessInfo& rCurrentProcessInfo) override;

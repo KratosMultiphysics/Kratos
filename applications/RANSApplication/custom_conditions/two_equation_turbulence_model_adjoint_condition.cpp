@@ -478,6 +478,86 @@ void TwoEquationTurbulenceModelAdjointCondition<TDim, TNumNodes, TAdjointConditi
 
 template <unsigned int TDim, unsigned int TNumNodes, class TAdjointConditionData>
 void TwoEquationTurbulenceModelAdjointCondition<TDim, TNumNodes, TAdjointConditionData>::CalculateSensitivityMatrix(
+    const Variable<double>& rSensitivityVariable,
+    Matrix& rOutput,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    if (rSensitivityVariable == TURBULENT_KINETIC_ENERGY_SENSITIVITY) {
+        if (RansCalculationUtilities::IsWallFunctionActive(this->GetGeometry())) {
+            auto& r_parent_element = this->GetValue(NEIGHBOUR_ELEMENTS)[0];
+            const IndexType coords_size = r_parent_element.GetGeometry().PointsNumber();
+
+            if (rOutput.size1() != coords_size || rOutput.size2() != TConditionLocalSize) {
+                rOutput.resize(coords_size, TConditionLocalSize, false);
+            }
+
+            rOutput.clear();
+
+            // compute the lhs which is \partial R \ partial u
+            Matrix lhs(TConditionLocalSize, TConditionLocalSize);
+            lhs.clear();
+            AddFluidFirstDerivatives(lhs, r_parent_element, rCurrentProcessInfo);
+            AddTurbulenceFirstDerivatives(lhs, r_parent_element, rCurrentProcessInfo);
+
+            // now need to take a sub set of this matrix
+            for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
+                const BoundedVector<double, TConditionLocalSize>& row_values = row(lhs, i_node * TBlockSize + TDim);
+                AssembleSubVectorToMatrix(rOutput, i_node, 0, row_values);
+                }
+
+        } else {
+            constexpr IndexType coords_size = TNumNodes;
+
+            if (rOutput.size1() != coords_size || rOutput.size2() != TConditionLocalSize) {
+                rOutput.resize(coords_size, TConditionLocalSize, false);
+            }
+
+            rOutput.clear();
+        }
+    } else if (rSensitivityVariable == TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_SENSITIVITY) {
+        if (RansCalculationUtilities::IsWallFunctionActive(this->GetGeometry())) {
+            auto& r_parent_element = this->GetValue(NEIGHBOUR_ELEMENTS)[0];
+            const IndexType coords_size = r_parent_element.GetGeometry().PointsNumber();
+
+            if (rOutput.size1() != coords_size || rOutput.size2() != TConditionLocalSize) {
+                rOutput.resize(coords_size, TConditionLocalSize, false);
+            }
+
+            rOutput.clear();
+
+            // compute the lhs which is \partial R \ partial u
+            Matrix lhs(TConditionLocalSize, TConditionLocalSize);
+            lhs.clear();
+            AddFluidFirstDerivatives(lhs, r_parent_element, rCurrentProcessInfo);
+            AddTurbulenceFirstDerivatives(lhs, r_parent_element, rCurrentProcessInfo);
+
+            // now need to take a sub set of this matrix
+            for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
+                const BoundedVector<double, TConditionLocalSize>& row_values = row(lhs, i_node * TBlockSize + TDim + 1);
+                AssembleSubVectorToMatrix(rOutput, i_node, 0, row_values);
+                }
+
+        } else {
+            constexpr IndexType coords_size = TNumNodes;
+
+            if (rOutput.size1() != coords_size || rOutput.size2() != TConditionLocalSize) {
+                rOutput.resize(coords_size, TConditionLocalSize, false);
+            }
+
+            rOutput.clear();
+        }
+    } else {
+        KRATOS_ERROR << "Sensitivity variable " << rSensitivityVariable
+                     << " not supported." << std::endl;
+    }
+
+    KRATOS_CATCH("")
+}
+
+template <unsigned int TDim, unsigned int TNumNodes, class TAdjointConditionData>
+void TwoEquationTurbulenceModelAdjointCondition<TDim, TNumNodes, TAdjointConditionData>::CalculateSensitivityMatrix(
     const Variable<array_1d<double, 3>>& rSensitivityVariable,
     Matrix& rOutput,
     const ProcessInfo& rCurrentProcessInfo)

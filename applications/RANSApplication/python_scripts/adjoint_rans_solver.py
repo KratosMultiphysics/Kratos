@@ -290,6 +290,11 @@ class AdjointRANSSolver(CoupledRANSSolver):
         self.main_model_part.AddNodalSolutionStepVariable(Kratos.SHAPE_SENSITIVITY)
         self.main_model_part.AddNodalSolutionStepVariable(Kratos.NORMAL_SENSITIVITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosRANS.VELOCITY_SENSITIVITY)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosRANS.TURBULENT_KINETIC_ENERGY_SENSITIVITY)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosRANS.TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_SENSITIVITY)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosRANS.LOW_FIDELITY_INLET_1_SENSITIVITY)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosRANS.LOW_FIDELITY_INLET_2_SENSITIVITY)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosRANS.LOW_FIDELITY_INLET_3_SENSITIVITY)
 
         if (self.compute_transient_response_function_interpolation_error):
             self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.RESPONSE_FUNCTION_INTERPOLATION_ERROR_AUX_ADJOINT_FLUID_VECTOR_1)

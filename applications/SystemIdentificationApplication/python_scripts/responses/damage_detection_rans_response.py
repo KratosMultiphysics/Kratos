@@ -3,6 +3,7 @@ import csv
 import math
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.SystemIdentificationApplication as KratosSI
+import KratosMultiphysics.RANSApplication as KratosRANS
 from KratosMultiphysics.OptimizationApplication.responses.response_function import ResponseFunction
 from KratosMultiphysics.OptimizationApplication.responses.response_function import SupportedSensitivityFieldVariableTypes
 from KratosMultiphysics.OptimizationApplication.utilities.model_part_utilities import ModelPartOperation
@@ -88,7 +89,9 @@ class DamageDetectionRANSResponse(ResponseFunction):
         self.optimization_problem = optimization_problem
 
     def GetImplementedPhysicalKratosVariables(self) -> 'list[SupportedSensitivityFieldVariableTypes]':
-        return [Kratos.VELOCITY_X, Kratos.VELOCITY_Y, Kratos.VELOCITY_Z]
+        return [Kratos.VELOCITY_X, Kratos.VELOCITY_Y, Kratos.VELOCITY_Z, 
+                KratosRANS.TURBULENT_KINETIC_ENERGY, KratosRANS.TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE, 
+                KratosRANS.LOW_FIDELITY_INLET_1_SENSITIVITY, KratosRANS.LOW_FIDELITY_INLET_2_SENSITIVITY, KratosRANS.LOW_FIDELITY_INLET_3_SENSITIVITY]
 
     def Initialize(self) -> None:
         self.model_part = self.model_part_operation.GetModelPart()
@@ -154,6 +157,10 @@ class DamageDetectionRANSResponse(ResponseFunction):
             self.adjoint_analysis.CalculateGradient(self.damage_response_function)
 
             for physical_variable, cta in physical_variable_gradient_map.items():
+                # Temporary for low fidelity. Will provide Inlet Velocity gradients to control, who will aply chain rule during mapping.
+                if physical_variable in [KratosRANS.LOW_FIDELITY_INLET_1_SENSITIVITY, KratosRANS.LOW_FIDELITY_INLET_2_SENSITIVITY, KratosRANS.LOW_FIDELITY_INLET_3_SENSITIVITY]:
+                    physical_variable = Kratos.VELOCITY_X
+
                 sensitivity_variable = Kratos.KratosGlobals.GetVariable(Kratos.SensitivityUtilities.GetSensitivityVariableName(physical_variable))
                 for ta in cta.GetTensorAdaptors():
                     current_gradient = ta.Clone()
