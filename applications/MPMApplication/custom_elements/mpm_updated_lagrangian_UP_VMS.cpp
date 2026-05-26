@@ -705,7 +705,7 @@ void MPMUpdatedLagrangianUPVMS::CalculateAndAddStabilizedPressure(VectorType& rR
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
     unsigned int index_p = dimension;
     double VolumetricStrainFunction = this->CalculateVolumetricStrainFunction( VolumetricStrainFunction, rVariables );
-    double functionJ = this->CalculateFunctionFromLinearizarionOfVolumetricStrain( functionJ, rVariables );
+    double functionJ = this->CalculateFunctionFromLinearizationOfVolumetricStrain( functionJ, rVariables );
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
@@ -782,7 +782,7 @@ void MPMUpdatedLagrangianUPVMS::CalculateAndAddKuuStab (MatrixType& rLeftHandSid
     Vector Kuustab2 = prod( Matrix(trans(prod(rVariables.TensorIdentityMatrix,rVariables.B))),rVariables.PressureGradientVoigt);
     Vector testf1   = Kuustab1;
     Vector testf2   = prod( Matrix(prod(trans(rVariables.B),rVariables.TensorIdentityMatrix)),rVariables.PressureGradientVoigt);
-    double functionJ = this->CalculateFunctionFromLinearizarionOfVolumetricStrain( functionJ, rVariables );
+    double functionJ = this->CalculateFunctionFromLinearizationOfVolumetricStrain( functionJ, rVariables );
 
 
     unsigned int indexi = 0;
@@ -830,7 +830,7 @@ void MPMUpdatedLagrangianUPVMS::CalculateAndAddKupStab (MatrixType& rLeftHandSid
     const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
     Vector Stab1 = prod(rVariables.DN_DX, rVariables.PressureGradient);
     Vector Stab2 = prod(Matrix(trans(prod(rVariables.TensorIdentityMatrix,rVariables.B))),rVariables.PressureGradientVoigt);
-    double functionJ = this->CalculateFunctionFromLinearizarionOfVolumetricStrain( functionJ, rVariables );
+    double functionJ = this->CalculateFunctionFromLinearizationOfVolumetricStrain( functionJ, rVariables );
 
     // Assemble components considering added DOF matrix system
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
@@ -910,7 +910,7 @@ void MPMUpdatedLagrangianUPVMS::CalculateAndAddKppStab (MatrixType& rLeftHandSid
     const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
     unsigned int indexpi = dimension;
     Matrix Stab1 = prod(rVariables.DN_DX, trans(rVariables.DN_DX));
-    double functionJ = this->CalculateFunctionFromLinearizarionOfVolumetricStrain( functionJ, rVariables );
+    double functionJ = this->CalculateFunctionFromLinearizationOfVolumetricStrain( functionJ, rVariables );
 
     for (unsigned int i = 0; i < number_of_nodes; i++)
     {
