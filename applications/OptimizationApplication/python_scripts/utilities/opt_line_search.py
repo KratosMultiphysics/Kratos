@@ -3,6 +3,7 @@ from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem i
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import DictLogger
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import time_decorator
+from KratosMultiphysics.OptimizationApplication.algorithms.algorithm_data_manager import AlgorithmDataManager
 import numpy
 
 import math
@@ -35,12 +36,12 @@ class ConstStep():
         self.unscaled_step = self._init_step
 
     def ComputeScaleFactor(self) -> float:
-        algorithm_buffered_data = ComponentDataView("algorithm", self._optimization_problem).GetBufferedData()
+        algorithm_data_manager = AlgorithmDataManager(self._optimization_problem)
 
-        if not algorithm_buffered_data.HasValue("search_direction"):
-            raise RuntimeError(f"Algorithm data does not contain computed \"search_direction\".\nData:\n{algorithm_buffered_data}" )
+        if not algorithm_data_manager.HasValue("search_direction"):
+            raise RuntimeError(f"Algorithm data does not contain computed \"search_direction\".\nData:\n{algorithm_data_manager}" )
 
-        search_direction: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor = algorithm_buffered_data["search_direction"]
+        search_direction: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor = algorithm_data_manager.GetValue("search_direction")
         if self._gradient_scaling == "inf_norm":
             return numpy.max(numpy.abs(search_direction.data))
         elif self._gradient_scaling == "l2_norm":
@@ -60,8 +61,8 @@ class ConstStep():
 
         DictLogger("Line Search info",self.GetInfo())
 
-        algorithm_buffered_data = ComponentDataView("algorithm", self._optimization_problem).GetBufferedData()
-        step = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(algorithm_buffered_data["search_direction"])
+        algorithm_data_manager = AlgorithmDataManager(self._optimization_problem)
+        step = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(algorithm_data_manager.GetValue("search_direction"))
         step.data[:] = self.step
         return step
 
@@ -90,17 +91,17 @@ class BBStep(ConstStep):
 
     @time_decorator()
     def ComputeStep(self) -> Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor:
-        algorithm_buffered_data = ComponentDataView("algorithm", self._optimization_problem).GetBufferedData()
+        algorithm_data_manager = AlgorithmDataManager(self._optimization_problem)
         norm = self.ComputeScaleFactor()
         if math.isclose(norm, 0.0, abs_tol=1e-16):
             norm = 1.0
         if self._optimization_problem.GetStep() == 0:
             self.step = self._init_step / norm
         else:
-            current_search_direction: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor = algorithm_buffered_data.GetValue("search_direction", 0)
-            previous_search_direction: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor = algorithm_buffered_data.GetValue("search_direction", 1)
+            current_search_direction: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor = algorithm_data_manager.GetValue("search_direction", step_index=0)
+            previous_search_direction: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor = algorithm_data_manager.GetValue("search_direction", step_index=1)
             y = previous_search_direction.data - current_search_direction.data
-            d: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor = algorithm_buffered_data.GetValue("control_field_update", 1)
+            d: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor = algorithm_data_manager.GetValue("control_field_update", step_index=1)
             dy = numpy.inner(d.data[:].ravel(), y.ravel())
             dd = numpy.inner(d.data[:].ravel(), d.data[:].ravel())
             if math.isclose(dy, 0.0, abs_tol=1e-16):
@@ -113,8 +114,7 @@ class BBStep(ConstStep):
 
         DictLogger("Line Search info",self.GetInfo())
 
-        algorithm_buffered_data = ComponentDataView("algorithm", self._optimization_problem).GetBufferedData()
-        step = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(algorithm_buffered_data["search_direction"])
+        step = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(algorithm_data_manager.GetValue("search_direction"))
         step.data[:] = self.step
         return step
 
@@ -129,22 +129,22 @@ class BBStep(ConstStep):
 class QNBBStep(BBStep):
     @time_decorator()
     def ComputeStep(self) -> Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor:
-        algorithm_buffered_data = ComponentDataView("algorithm", self._optimization_problem).GetBufferedData()
+        algorithm_data_manager = AlgorithmDataManager(self._optimization_problem)
         norm = self.ComputeScaleFactor()
         if math.isclose(norm, 0.0, abs_tol=1e-16):
             norm = 1.0
-        self.step = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(algorithm_buffered_data.GetValue("search_direction", 0), perform_store_data_recursively=False)
+        self.step = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(algorithm_data_manager.GetValue("search_direction", step_index=0), perform_store_data_recursively=False)
         self.step.data[:] = 0.0
-        if not algorithm_buffered_data.HasValue("step_size"):
-            algorithm_buffered_data["step_size"] = self.step
+        if not algorithm_data_manager.HasValue("step_size"):
+            algorithm_data_manager.SetValue("step_size", self.step)
 
         if self._optimization_problem.GetStep() == 0:
             self.step.data[:] = self._init_step / norm
         else:
-            current_search_direction: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor = algorithm_buffered_data.GetValue("search_direction", 0)
-            previous_search_direction: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor = algorithm_buffered_data.GetValue("search_direction", 1)
+            current_search_direction: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor = algorithm_data_manager.GetValue("search_direction", step_index=0)
+            previous_search_direction: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor = algorithm_data_manager.GetValue("search_direction", step_index=1)
             y = previous_search_direction.data - current_search_direction.data
-            d: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor = algorithm_buffered_data.GetValue("control_field_update", 1)
+            d: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor = algorithm_data_manager.GetValue("control_field_update", step_index=1)
             d = d.data[:]
             for i in range(len(y)):
                 dy = numpy.dot(d[i], y[i])

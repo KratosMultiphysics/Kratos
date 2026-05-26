@@ -4,6 +4,7 @@ from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem i
 from KratosMultiphysics.OptimizationApplication.algorithms.standardized_objective import StandardizedObjective
 from KratosMultiphysics.OptimizationApplication.controls.master_control import MasterControl
 from KratosMultiphysics.OptimizationApplication.algorithms.algorithm_gradient_projection import AlgorithmGradientProjection
+from KratosMultiphysics.OptimizationApplication.algorithms.algorithm_data_manager import AlgorithmDataManager
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 from KratosMultiphysics.OptimizationApplication.utilities.opt_line_search import CreateLineSearch
 from KratosMultiphysics.OptimizationApplication.algorithms.standardized_rgp_constraint import StandardizedRGPConstraint
@@ -64,6 +65,9 @@ class AlgorithmRelaxedGradientProjection(AlgorithmGradientProjection):
         self.echo_level = settings["echo_level"].GetInt()
 
         ComponentDataView("algorithm", self._optimization_problem).SetDataBuffer(self.GetMinimumBufferSize())
+        algorithm_data = ComponentDataView("algorithm", self._optimization_problem)
+        algorithm_data.GetUnBufferedData().SetValue("controls", ",".join([control.GetName() for control in self.master_control.GetListOfControls()]))
+        self.algorithm_data_manager = AlgorithmDataManager(self._optimization_problem)
 
         # self.__convergence_criteria = CreateConvergenceCriteria(settings["conv_settings"], self._optimization_problem)
         self.__line_search_method = CreateLineSearch(settings["line_search"], self._optimization_problem)
@@ -150,9 +154,9 @@ class AlgorithmRelaxedGradientProjection(AlgorithmGradientProjection):
             projected_direction.data[:] = - (scaled_obj_grad.data - self._CollectiveListVectorProduct(scaled_constr_grad, lagrangian_multiplier).data)
             correction.data[:] = - self._CollectiveListVectorProduct(scaled_constr_grad, w_c).data
             search_direction.data[:] = projected_direction.data + correction.data
-        self.algorithm_data.GetBufferedData().SetValue("search_direction", search_direction, overwrite=True)
-        self.algorithm_data.GetBufferedData().SetValue("correction", correction, overwrite=True)
-        self.algorithm_data.GetBufferedData().SetValue("projected_direction", projected_direction, overwrite=True)
+        self.algorithm_data_manager.SetValue("search_direction", search_direction, overwrite=True)
+        self.algorithm_data_manager.SetValue("correction", correction, overwrite=True)
+        self.algorithm_data_manager.SetValue("projected_direction", projected_direction, overwrite=True)
 
     def ComputeBufferCoefficients(self):
         active_constraints_list = self.GetActiveConstraintsList()
@@ -171,11 +175,11 @@ class AlgorithmRelaxedGradientProjection(AlgorithmGradientProjection):
 
     @time_decorator()
     def ComputeControlUpdate(self, alpha: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor) -> Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor:
-        search_direction: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor = self.algorithm_data.GetBufferedData()["search_direction"]
+        search_direction: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor = self.algorithm_data_manager.GetValue("search_direction")
         update = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(search_direction, perform_collect_data_recursively=False, perform_store_data_recursively=False)
         update.data[:] = search_direction.data * alpha.data
         update.StoreData()
-        self.algorithm_data.GetBufferedData().SetValue("control_field_update", update, overwrite=True)
+        self.algorithm_data_manager.SetValue("control_field_update", update, overwrite=True)
         return update
 
     def CheckLinearizedConstraints(self, active_constr_grad: 'list[Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor]', update: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor, w_r, w_c) -> bool:
@@ -209,10 +213,10 @@ class AlgorithmRelaxedGradientProjection(AlgorithmGradientProjection):
 
                 self._obj_val = self._objective.CalculateStandardizedValue(self._control_field)
                 obj_info = self._objective.GetInfo()
-                self.algorithm_data.GetBufferedData()["std_obj_value"] = obj_info["std_value"]
-                self.algorithm_data.GetBufferedData()["rel_change[%]"] = obj_info["rel_change [%]"]
+                self.algorithm_data_manager.SetValue("std_obj_value", = obj_info["std_value"])
+                self.algorithm_data_manager.SetValue("rel_change[%]", = obj_info["rel_change [%]"])
                 if "abs_change [%]" in obj_info:
-                    self.algorithm_data.GetBufferedData()["abs_change[%]"] = obj_info["abs_change [%]"]
+                    self.algorithm_data_manager.SetValue("abs_change[%]", = obj_info["abs_change [%]"])
 
                 obj_grad = self._objective.CalculateStandardizedGradient()
 
@@ -223,7 +227,7 @@ class AlgorithmRelaxedGradientProjection(AlgorithmGradientProjection):
                     constraint.UpdateBufferSize()
                     self.__constr_value.append(value)
                     constr_name = constraint.GetResponseName()
-                    self.algorithm_data.GetBufferedData()[f"std_constr_{constr_name}_value"] = value
+                    self.algorithm_data_manager.SetValue(f"std_constr_{constr_name}_value", value)
                     msg = "active" if constraint.IsActive() else "non-active"
                     print(f"RGP Constraint {constraint.GetResponseName()} is {msg}")
                     if constraint.IsActive():
