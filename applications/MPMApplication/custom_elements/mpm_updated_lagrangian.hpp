@@ -11,8 +11,7 @@
 //
 
 
-#if !defined(KRATOS_UPDATED_LAGRANGIAN_H_INCLUDED )
-#define  KRATOS_UPDATED_LAGRANGIAN_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -74,15 +73,6 @@ public:
 
 protected:
 
-    /**
-     * Flags related to the element computation
-     */
-
-    KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_RHS_VECTOR );
-    KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_LHS_MATRIX );
-    KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_RHS_VECTOR_WITH_COMPONENTS );
-    KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_LHS_MATRIX_WITH_COMPONENTS );
-
     struct MaterialPointVariables
     {
     public:
@@ -108,6 +98,8 @@ protected:
 
         // MP_VOLUME_ACCELERATION
         array_1d<double, 3> volume_acceleration;
+        // MP_BODY_FORCE
+        array_1d<double, 3> body_force;
 
         // MP_CAUCHY_STRESS_VECTOR
         Vector cauchy_stress_vector;
@@ -147,7 +139,7 @@ protected:
             // MP_ACCUMULATED_PLASTIC_VOLUMETRIC_STRAIN
             accumulated_plastic_volumetric_strain = 1.0;
             // MP_ACCUMULATED_PLASTIC_DEVIATORIC_STRAIN
-            accumulated_plastic_deviatoric_strain = 1.0;
+            accumulated_plastic_deviatoric_strain = 1.0;    
         }
 
     private:
@@ -167,6 +159,7 @@ protected:
             rSerializer.save("velocity",velocity);
             rSerializer.save("acceleration",acceleration);
             rSerializer.save("volume_acceleration",volume_acceleration);
+            rSerializer.save("body_force",body_force);
             rSerializer.save("cauchy_stress_vector",cauchy_stress_vector);
             rSerializer.save("almansi_strain_vector",almansi_strain_vector);
             rSerializer.save("delta_plastic_strain",delta_plastic_strain);
@@ -187,6 +180,7 @@ protected:
             rSerializer.load("velocity",velocity);
             rSerializer.load("acceleration",acceleration);
             rSerializer.load("volume_acceleration",volume_acceleration);
+            rSerializer.load("body_force",body_force);
             rSerializer.load("cauchy_stress_vector",cauchy_stress_vector);
             rSerializer.load("almansi_strain_vector",almansi_strain_vector);
             rSerializer.load("delta_plastic_strain",delta_plastic_strain);
@@ -317,11 +311,6 @@ public:
       * Must be called before any calculation is done
       */
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
-     * Called at the beginning of each solution step
-     */
-    void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * This is a first and temporary attempt to move Particle to Grid Mapping from InitializeSolutionStep.
@@ -514,12 +503,6 @@ protected:
      */
     ConstitutiveLaw::Pointer mConstitutiveLawVector;
 
-
-    /**
-     * Finalize and Initialize label
-     */
-    bool mFinalizedStep;
-
     ///@}
     ///@name Protected Operators
     ///@{
@@ -611,7 +594,13 @@ protected:
     virtual void SetGeneralVariables(GeneralVariables& rVariables,
                                      ConstitutiveLaw::Parameters& rValues, const Vector& rN);
 
-
+    /**
+     * Computes the body force at the material point by interpolating
+     * nodal BODY_FORCE values using shape functions.
+     * This is mainly used for external loading or MMS-based forcing.
+     */
+    array_1d<double, 3> ComputeMaterialPointBodyForce();
+    
     /**
      * Initialize Material Properties on the Constitutive Law
      */
@@ -764,4 +753,3 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_UPDATED_LAGRANGIAN_H_INCLUDED  defined

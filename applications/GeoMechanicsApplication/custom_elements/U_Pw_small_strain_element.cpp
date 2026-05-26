@@ -258,7 +258,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::SetValuesOnIntegrationPoints(const 
                "UPwSmallStrainElement::SetValuesOnIntegrationPoints"
             << std::endl;
         mStressVector.resize(rValues.size());
-        std::copy(rValues.begin(), rValues.end(), mStressVector.begin());
+        std::ranges::copy(rValues, mStressVector.begin());
     } else {
         KRATOS_ERROR_IF(rValues.size() < mConstitutiveLawVector.size())
             << "Insufficient number of values for "
@@ -1363,19 +1363,16 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAnyOfMaterialResponse(
 {
     if (rStrainVectors.size() != rDeformationGradients.size()) {
         rStrainVectors.resize(rDeformationGradients.size());
-        std::fill(rStrainVectors.begin(), rStrainVectors.end(),
-                  ZeroVector(this->GetStressStatePolicy().GetVoigtSize()));
+        std::ranges::fill(rStrainVectors, ZeroVector(this->GetStressStatePolicy().GetVoigtSize()));
     }
     if (rStressVectors.size() != rDeformationGradients.size()) {
         rStressVectors.resize(rDeformationGradients.size());
-        std::fill(rStressVectors.begin(), rStressVectors.end(),
-                  ZeroVector(this->GetStressStatePolicy().GetVoigtSize()));
+        std::ranges::fill(rStressVectors, ZeroVector(this->GetStressStatePolicy().GetVoigtSize()));
     }
     if (rConstitutiveMatrices.size() != rDeformationGradients.size()) {
         rConstitutiveMatrices.resize(rDeformationGradients.size());
-        std::fill(rConstitutiveMatrices.begin(), rConstitutiveMatrices.end(),
-                  ZeroMatrix(this->GetStressStatePolicy().GetVoigtSize(),
-                             this->GetStressStatePolicy().GetVoigtSize()));
+        std::ranges::fill(rConstitutiveMatrices, ZeroMatrix(this->GetStressStatePolicy().GetVoigtSize(),
+                                                            this->GetStressStatePolicy().GetVoigtSize()));
     }
 
     const auto determinants_of_deformation_gradients =
