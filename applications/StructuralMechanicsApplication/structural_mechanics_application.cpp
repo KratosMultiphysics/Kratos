@@ -598,7 +598,7 @@ void KratosStructuralMechanicsApplication::Register() {
 
     // deprecated names
     KRATOS_REGISTER_ELEMENT("ShellThickElement3D4N", mShellThickElement3D4N) // It uses MITC
-    KRATOS_REGISTER_ELEMENT("ShellThickCorotationalElement3D4N", mShellThickCorotationalElement3D4N) // It uses MITC
+    KRATOS_REGISTER_ELEMENT("ShellThickElementCorotational3D4N", mShellThickCorotationalElement3D4N) // It uses MITC
 
     KRATOS_REGISTER_ELEMENT("ShellThinElementCorotational3D4N", mShellThinCorotationalElement3D4N)
     KRATOS_REGISTER_ELEMENT("ShellThinElement3D3N", mShellThinElement3D3N)
