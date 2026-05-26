@@ -376,7 +376,7 @@ protected:
     /**
      * Calculation of the constitutive coefficient derivative for pressure  of the Element
      */
-    virtual double& CalculateFunctionFromLinearizarionOfVolumetricStrain(double& rCoefficient, GeneralVariables & rVariables);
+    virtual double& CalculateFunctionFromLinearizationOfVolumetricStrain(double& rCoefficient, GeneralVariables & rVariables);
 
 
     /**
