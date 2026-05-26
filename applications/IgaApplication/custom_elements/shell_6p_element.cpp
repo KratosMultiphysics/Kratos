@@ -548,6 +548,10 @@ namespace Kratos
             // 1. Compute Kinematics and Metric components
             KinematicVariables kinematic_variables(GetGeometry().WorkingSpaceDimension());
             CalculateKinematics(point_number, kinematic_variables);
+
+            Matrix normal_vector_derivatives = ZeroMatrix(3, 3);
+            CalculateNormalVectorDerivatives(point_number, kinematic_variables, normal_vector_derivatives);
+            
             // 2a. Create constitutive law parameters:
             ConstitutiveLaw::Parameters constitutive_law_parameters(
                 GetGeometry(), GetProperties(), rCurrentProcessInfo);
@@ -732,6 +736,62 @@ namespace Kratos
         //Local Cartesian Stresses
         noalias(rThisConstitutiveVariables.StressVector) = prod(
             trans(rThisConstitutiveVariables.ConstitutiveMatrix), rThisConstitutiveVariables.StrainVector);
+    }
+
+    void Shell6pElement::CalculateNormalVectorDerivatives(
+        const IndexType IntegrationPointIndex,
+        KinematicVariables& rKinematicVariables,
+        Matrix& rNormalVectorDerivatives) const
+    {
+        // Get the shape function of second derivatives
+        const Matrix& r_DDN_DDe = GetGeometry().ShapeFunctionDerivatives(2, IntegrationPointIndex, GetGeometry().GetDefaultIntegrationMethod());
+
+        // Get the area of the element
+        double inv_differential_area = 1 / rKinematicVariables.DifferentialArea;
+        double inv_differential_area_cube = 1 / std::pow(rKinematicVariables.DifferentialArea, 3);
+
+        // Compute base vector derivatives
+        array_1d<double, 3> base_vector1_derivative_11;
+        array_1d<double, 3> base_vector1_derivative_12; 
+        array_1d<double, 3> base_vector2_derivative_22;
+
+        for (std::size_t i = 0; i < GetGeometry().size(); ++i)
+        {
+            base_vector1_derivative_11[0] += (GetGeometry().GetPoint( i ).X0()) * r_DDN_DDe(i, 0);
+            base_vector1_derivative_11[1] += (GetGeometry().GetPoint( i ).Y0()) * r_DDN_DDe(i, 0);
+            base_vector1_derivative_11[2] += (GetGeometry().GetPoint( i ).Z0()) * r_DDN_DDe(i, 0);
+
+            base_vector1_derivative_12[0] += (GetGeometry().GetPoint( i ).X0()) * r_DDN_DDe(i, 1);
+            base_vector1_derivative_12[1] += (GetGeometry().GetPoint( i ).Y0()) * r_DDN_DDe(i, 1);
+            base_vector1_derivative_12[2] += (GetGeometry().GetPoint( i ).Z0()) * r_DDN_DDe(i, 1);
+
+            base_vector2_derivative_22[0] += (GetGeometry().GetPoint( i ).X0()) * r_DDN_DDe(i, 2);
+            base_vector2_derivative_22[1] += (GetGeometry().GetPoint( i ).Y0()) * r_DDN_DDe(i, 2);
+            base_vector2_derivative_22[2] += (GetGeometry().GetPoint( i ).Z0()) * r_DDN_DDe(i, 2);
+        }
+
+        // Compute normal vector derivatives
+        array_1d<double, 3> normal_tilde_derivative_1;
+        array_1d<double, 3> normal_tilde_derivative_1_term1;
+        array_1d<double, 3> normal_tilde_derivative_1_term2;
+        array_1d<double, 3> normal_tilde_derivative_2;
+        array_1d<double, 3> normal_tilde_derivative_2_term1;
+        array_1d<double, 3> normal_tilde_derivative_2_term2;
+
+        MathUtils<double>::CrossProduct(normal_tilde_derivative_1_term1, base_vector1_derivative_11, rKinematicVariables.BaseVector2);
+        MathUtils<double>::CrossProduct(normal_tilde_derivative_1_term2, rKinematicVariables.BaseVector1, base_vector1_derivative_12);
+        normal_tilde_derivative_1 = normal_tilde_derivative_1_term1 + normal_tilde_derivative_1_term2;
+
+        MathUtils<double>::CrossProduct(normal_tilde_derivative_2_term1, base_vector1_derivative_12, rKinematicVariables.BaseVector2);
+        MathUtils<double>::CrossProduct(normal_tilde_derivative_2_term2, rKinematicVariables.BaseVector1, base_vector2_derivative_22);
+        normal_tilde_derivative_2 = normal_tilde_derivative_2_term1 + normal_tilde_derivative_2_term2;
+
+        for (IndexType j = 0; j < 3; j++)
+        {
+            rNormalVectorDerivatives(0, j) = normal_tilde_derivative_1[j] * inv_differential_area - rKinematicVariables.NormalVectorTilde[j] * inner_prod(rKinematicVariables.NormalVectorTilde, normal_tilde_derivative_1) * inv_differential_area_cube;
+            rNormalVectorDerivatives(1, j) = normal_tilde_derivative_2[j] * inv_differential_area - rKinematicVariables.NormalVectorTilde[j] * inner_prod(rKinematicVariables.NormalVectorTilde, normal_tilde_derivative_2) * inv_differential_area_cube;
+            rNormalVectorDerivatives(2, j) = 0.0;
+        }
     }
 
     void Shell6pElement::CalculateJn(

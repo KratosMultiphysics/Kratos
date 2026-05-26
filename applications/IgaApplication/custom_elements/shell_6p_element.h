@@ -370,6 +370,11 @@ private:
         Matrix& dn,
         const KinematicVariables& rActualKinematic) const;
 
+    void CalculateNormalVectorDerivatives(
+        const IndexType IntegrationPointIndex,
+        KinematicVariables& rKinematicVariables,
+        Matrix& DerivativeNormalMatrix) const;
+
     void CalculateJn(
         const IndexType IntegrationPointIndex,
         KinematicVariables& rKinematicVariables,
