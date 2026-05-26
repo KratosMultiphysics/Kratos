@@ -23,12 +23,14 @@ if test_helper.want_test_plots():
 csv_fieldname_node = "node"
 csv_fieldname_bending_moment = "bending_moment_in_Nm_per_m"
 csv_fieldname_shear_force = "shear_force_in_N_per_m"
+csv_fieldname_normal_force = "normal_force_in_N_per_m"
 csv_fieldname_horizontal_total_displacement = "horizontal_total_displacement_in_m"
 
 csv_fieldnames = [
     csv_fieldname_node,  # this one must come first
     csv_fieldname_bending_moment,
     csv_fieldname_shear_force,
+    csv_fieldname_normal_force,
     csv_fieldname_horizontal_total_displacement,
 ]
 
@@ -671,6 +673,9 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             shear_forces = reader.nodal_values_at_time(
                 "SHEAR_FORCE", end_time, output_data, node_ids=node_ids
             )
+            normal_forces = reader.nodal_values_at_time(
+                "AXIAL_FORCE", end_time, output_data, node_ids=node_ids
+            )
             horizontal_total_displacements = [
                 total_displacement_vector[0]
                 for total_displacement_vector in reader.nodal_values_at_time(
@@ -690,15 +695,17 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
                     node_id,
                     bending_moment,
                     shear_force,
+                    normal_force,
                     horizontal_total_displacement,
                 ) in zip(
-                    node_ids, bending_moments, shear_forces, horizontal_total_displacements
+                    node_ids, bending_moments, shear_forces, normal_forces, horizontal_total_displacements
                 ):
                     writer.writerow(
                         {
                             csv_fieldname_node: node_id,
                             csv_fieldname_bending_moment: bending_moment,
                             csv_fieldname_shear_force: shear_force,
+                            csv_fieldname_normal_force: normal_force,
                             csv_fieldname_horizontal_total_displacement: horizontal_total_displacement,
                         }
                     )
