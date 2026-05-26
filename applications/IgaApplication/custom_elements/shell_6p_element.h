@@ -342,18 +342,18 @@ private:
     
     void CalculateBOperator(
         const IndexType IntegrationPointIndex,
-        Matrix& rB,
+        Matrix& rBOperator,
         double zeta,
-        Matrix& J_inv,
-        Matrix& dn,
+        Matrix& rJacobianInv,
+        Matrix& rNormalVectorDerivatives,
         const KinematicVariables& rActualKinematic) const;
 
     void CalculateBGeometric(
         const IndexType IntegrationPointIndex,
-        Matrix& rB,
+        Matrix& rBGeometric,
         double zeta,
-        Matrix& J_inv,
-        Matrix& dn,
+        Matrix& rJacobianInv,
+        Matrix& rNormalVectorDerivatives,
         const KinematicVariables& rActualKinematic) const;
 
     void CalculateNormalVectorDerivatives(
@@ -363,8 +363,8 @@ private:
 
     void CalculateBDrilling(
         const IndexType IntegrationPointIndex,
-        Matrix& rBd,
-        Matrix& J_inv,
+        Matrix& rBDrilling,
+        Matrix& rJacobianInv,
         const KinematicVariables& rActualKinematic) const;
 
     void CalculateStressMatrix(
