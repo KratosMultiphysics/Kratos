@@ -118,14 +118,10 @@ void PrintDebugVector(
     const std::string& rName,
     const TVectorType& rVector)
 {
-    std::cout << "[BeamSplineMapper DEBUG] " << rName << " = [";
-    for (IndexType i = 0; i < rVector.size(); ++i) {
-        std::cout << rVector[i];
-        if (i + 1 < rVector.size()) {
-            std::cout << ", ";
-        }
-    }
-    std::cout << "]" << std::endl;
+    (void)rName;
+    (void)rVector;
+    // Debug output intentionally disabled. Keep this helper as a no-op so
+    // temporary diagnostic call sites do not affect the mapper calculation.
 }
 
 // TEMP DEBUG OUTPUT - REMOVE AFTER VERIFICATION
@@ -134,18 +130,10 @@ void PrintDebugMatrix(
     const std::string& rName,
     const TMatrixType& rMatrix)
 {
-    std::cout << "[BeamSplineMapper DEBUG] " << rName
-              << " (" << rMatrix.size1() << " x " << rMatrix.size2() << ")" << std::endl;
-    for (IndexType i = 0; i < rMatrix.size1(); ++i) {
-        std::cout << "  [";
-        for (IndexType j = 0; j < rMatrix.size2(); ++j) {
-            std::cout << rMatrix(i, j);
-            if (j + 1 < rMatrix.size2()) {
-                std::cout << ", ";
-            }
-        }
-        std::cout << "]" << std::endl;
-    }
+    (void)rName;
+    (void)rMatrix;
+    // Debug output intentionally disabled. Keep this helper as a no-op so
+    // temporary diagnostic call sites do not affect the mapper calculation.
 }
 }
 
@@ -725,9 +713,9 @@ void BeamSplineMapper<TSparseSpace, TDenseSpace>::InitializeInformationBeams(
             initial_destination_displacement(i) =
                 projection_data.pNode->FastGetSolutionStepValue(GetComponentVariable(rDestinationVariableDisplacement, i));
         }
-        // TEMP DEBUG OUTPUT - REMOVE AFTER VERIFICATION
-        std::cout << "[BeamSplineMapper DEBUG] MapDisplacements::destination_node_id = "
-                  << projection_data.pNode->Id() << std::endl;
+        // TEMP DEBUG OUTPUT DISABLED - REMOVE AFTER VERIFICATION
+        // std::cout << "[BeamSplineMapper DEBUG] MapDisplacements::destination_node_id = "
+        //           << projection_data.pNode->Id() << std::endl;
         // TEMP DEBUG OUTPUT - REMOVE AFTER VERIFICATION
         PrintDebugVector("MapDisplacements::initial_destination_displacement_global", initial_destination_displacement);
         // TEMP DEBUG OUTPUT - REMOVE AFTER VERIFICATION
