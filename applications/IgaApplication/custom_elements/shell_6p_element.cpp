@@ -427,7 +427,7 @@ namespace Kratos
         }
     }
 
-     void Shell6pElement::EquationIdVector(
+    void Shell6pElement::EquationIdVector(
         EquationIdVectorType& rResult,
         const ProcessInfo& rCurrentProcessInfo
     ) const
@@ -549,17 +549,15 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        // Retrieve geometry and integration points
+        // 0. Retrieve geometry, integration points and definition of problem size
         const GeometryType& r_geometry = GetGeometry();
         const auto& r_integration_points = r_geometry.IntegrationPoints();
 
-        // Definition of problem size
         const std::size_t number_of_nodes = r_geometry.size();
         const std::size_t mat_size = number_of_nodes * 6;
-
         double thickness = this->GetProperties().GetValue(THICKNESS); 
 
-        // Loop over integration points
+        //// Loop over integration points
         for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
 
             // 1. Compute Kinematics and Metric components
@@ -581,13 +579,13 @@ namespace Kratos
             constitutive_variables.ConstitutiveMatrix = prod(m_T_vector[point_number], 
                 Matrix(prod(constitutive_variables.ConstitutiveMatrix, trans(m_T_vector[point_number]))));
                 
-            // 3. Loop for zeta
+            //// Loop for zeta (thickness integration points)
             for (IndexType Gauss_index = 0; Gauss_index < mGaussIntegrationThickness.num_GP_thickness; Gauss_index++)
             {
-                // Retrieve zeta for the current Gauss point in thickness direction
+                // 3.1. Retrieve zeta for the current Gauss point in thickness direction
                 mZeta = mGaussIntegrationThickness.zeta(Gauss_index);
 
-                // Compute the Jacobian matrix at the current Gauss point in thickness direction
+                // 3.2. Compute the Jacobian matrix at the current Gauss point in thickness direction
                 Matrix jacobian = ZeroMatrix(3,3);
                 Matrix jacobian_inv = ZeroMatrix(3,3);
                 double jacobian_det = 0.0;
@@ -597,24 +595,17 @@ namespace Kratos
                     jacobian(1, i) = kinematic_variables.BaseVector2[i] + (thickness/2) * mZeta * normal_vector_derivatives(1, i) ; 
                     jacobian(2, i) = kinematic_variables.NormalVector[i] * (thickness/2) ;
                 }
-
                 MathUtils<double>::InvertMatrix(jacobian, jacobian_inv, jacobian_det);
 
-                // Initialization
+                // 3.3. Material stiffness part
                 Matrix b_operator = ZeroMatrix(6, mat_size);
-                Matrix b_drilling = ZeroMatrix(1, mat_size);
-                Matrix b_geometric = ZeroMatrix(9, mat_size);
-
-                // Material stiffness part
                 CalculateBOperator(point_number, b_operator, mZeta, jacobian_inv, normal_vector_derivatives, kinematic_variables);
 
-                // Drilling stiffness part
+                // 3.4. Drilling stiffness part
+                Matrix b_drilling = ZeroMatrix(1, mat_size);
                 CalculateBDrilling(point_number, b_drilling, jacobian_inv, kinematic_variables);
 
-                // Geometric stiffness part
-                CalculateBGeometric(point_number, b_geometric, mZeta, jacobian_inv, normal_vector_derivatives, kinematic_variables);
-
-                // Initialize strain and stress
+                // 3.5. Geometric stiffness part
                 std::vector<array_1d<double, 6>> strain_cau_cart(mGaussIntegrationThickness.num_GP_thickness);
                 std::vector<array_1d<double, 6>> stress_cau_cart(mGaussIntegrationThickness.num_GP_thickness);
                 Vector current_displacement = ZeroVector(6*number_of_nodes);
@@ -622,34 +613,34 @@ namespace Kratos
 
                 strain_cau_cart[Gauss_index] = prod(b_operator, current_displacement);
                 stress_cau_cart[Gauss_index] = prod(constitutive_variables.ConstitutiveMatrix,strain_cau_cart[Gauss_index]);
-
                 Matrix stress_matrix = ZeroMatrix(9,9);
                 CalculateStressMatrix(stress_cau_cart[Gauss_index],stress_matrix);
+
+                Matrix b_geometric = ZeroMatrix(9, mat_size);
+                CalculateBGeometric(point_number, b_geometric, mZeta, jacobian_inv, normal_vector_derivatives, kinematic_variables);
                 
-                double integration_weight = r_integration_points[point_number].Weight() * jacobian_det; 
+                // 3.6. Compute the integration weight 
+                double integration_weight = r_integration_points[point_number].Weight() * jacobian_det
+                                          * mGaussIntegrationThickness.integration_weight_thickness(Gauss_index); 
 
-                Matrix rKm = ZeroMatrix(mat_size, mat_size);
-                Matrix rKd = ZeroMatrix(mat_size, mat_size);
-
+                // 3.7. Assembly
                 if (CalculateStiffnessMatrixFlag == true)
                 {
-                    CalculateAndAddKm(rKm, b_operator, constitutive_variables.ConstitutiveMatrix);
+                    // Add the linear stiffness matrix contribution to the element stiffness matrix
+                    noalias(rLeftHandSideMatrix) += integration_weight *prod(trans(b_operator), Matrix(prod(constitutive_variables.ConstitutiveMatrix, b_operator)));
 
-                    CalculateAndAddKmBd(rKd, b_drilling);
-
-                    CalculateAndAddK(rLeftHandSideMatrix, rKm, rKd, integration_weight,
-                        mGaussIntegrationThickness.integration_weight_thickness(Gauss_index));
-
-                    CalculateAndAddNonlinearKm(rLeftHandSideMatrix, b_geometric,stress_matrix,
-                       integration_weight, mGaussIntegrationThickness.integration_weight_thickness(Gauss_index));
+                    // Add the drilling stiffness matrix contribution to the element stiffness matrix
+                    double E = this->GetProperties().GetValue(YOUNG_MODULUS);
+                    double drilling_factor = 0.05; 
+                    noalias(rLeftHandSideMatrix) += drilling_factor * E  * integration_weight * prod(trans(b_drilling), Matrix((b_drilling))); 
+                    
+                    // Add the geometric stiffness matrix contribution to the element stiffness matrix
+                    noalias(rLeftHandSideMatrix) += integration_weight *prod(trans(b_geometric), Matrix(prod(stress_matrix, b_geometric)));
                 }
-                
-                if (CalculateResidualVectorFlag == true) //calculation of the matrix is required
+                if (CalculateResidualVectorFlag == true)
                 {
-                    // operation performed: rRightHandSideVector -= Weight*IntForce
                     noalias(rRightHandSideVector) -= integration_weight * prod(trans(b_operator), stress_cau_cart[Gauss_index]);
                 }
-
             } 
         }
         KRATOS_CATCH("");
@@ -1167,50 +1158,6 @@ namespace Kratos
             }
         }
     }
-
-    ///@}
-    ///@name Stiffness matrix assembly
-    ///@{
-
-    inline void Shell6pElement::CalculateAndAddK(
-        MatrixType& rLeftHandSideMatrix,
-        const Matrix& rKm,
-        const Matrix& rKd,                                                                                                               
-        const double IntegrationWeight,
-        const double IntegrationWeight_zeta 
-    ) const
-    {
-        noalias(rLeftHandSideMatrix) +=  IntegrationWeight * IntegrationWeight_zeta * (rKm + rKd );                            
-    }
-
-    inline void Shell6pElement::CalculateAndAddKm(
-        MatrixType& rKm,
-        const Matrix& rB,
-        const Matrix& rD                                                                                                              
-    ) const
-    {  
-        noalias(rKm) += prod(trans(rB), Matrix(prod(rD, rB)));                                              
-    }
-
-    inline void Shell6pElement::CalculateAndAddKmBd(                                                              
-        MatrixType& rKd,
-        const Matrix& rBd                                                                                                              
-    ) const
-    {
-        double E = this->GetProperties().GetValue(YOUNG_MODULUS);
-        noalias(rKd) += 0.05 * E  * prod(trans(rBd), Matrix((rBd)));                  
-    }
-
-    inline void Shell6pElement::CalculateAndAddNonlinearKm(
-        Matrix& rLeftHandSideMatrix,
-        const Matrix& rB,
-        const Matrix& rD,
-        const double IntegrationWeight,
-        const double IntegrationWeight_zeta) const
-    {
-        noalias(rLeftHandSideMatrix) +=  IntegrationWeight * IntegrationWeight_zeta * prod(trans(rB), Matrix(prod(rD, rB))); 
-    }
-
     ///@}
 
 } // Namespace Kratos

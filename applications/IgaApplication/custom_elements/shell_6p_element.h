@@ -399,29 +399,6 @@ private:
         const ConstitutiveLaw::StressMeasure ThisStressMeasure
     ) const;
 
-     void CalculateAndAddK(
-        MatrixType& rLeftHandSideMatrix,
-        const Matrix& rKm,
-        const Matrix& rKd,                                                                                                               
-        const double IntegrationWeight,
-        const double IntegrationWeight_zeta) const;
-
-     void CalculateAndAddKm(
-        MatrixType& rKm,
-        const Matrix& rB,
-        const Matrix& rD) const;
-    
-     void CalculateAndAddKmBd(                                             
-        MatrixType& rKd,
-        const MatrixType& rBd) const;
-
-     void CalculateAndAddNonlinearKm(
-        Matrix& rLeftHandSideMatrix,
-        const Matrix& rB,
-        const Matrix& rD,
-        const double IntegrationWeight,
-        const double IntegrationWeight_zeta) const;
-
     /**
      * @brief This method gets a value directly from the CL
      * @details Avoids code repetition
