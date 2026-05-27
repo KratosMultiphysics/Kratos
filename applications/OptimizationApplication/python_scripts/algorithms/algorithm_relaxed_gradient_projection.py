@@ -101,8 +101,8 @@ class AlgorithmRelaxedGradientProjection(AlgorithmGradientProjection):
         number_of_active_constraints = len(active_constraints_list)
 
         search_direction = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(obj_grad, perform_collect_data_recursively=False, perform_store_data_recursively=False)
-        correction = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(search_direction)
-        projected_direction = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(search_direction)
+        correction = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(search_direction, perform_collect_data_recursively=False, perform_store_data_recursively=False)
+        projected_direction = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(search_direction, perform_collect_data_recursively=False, perform_store_data_recursively=False)
 
         if not number_of_active_constraints:
             search_direction.data[:] = obj_grad.data * -1.0
@@ -154,6 +154,10 @@ class AlgorithmRelaxedGradientProjection(AlgorithmGradientProjection):
             projected_direction.data[:] = - (scaled_obj_grad.data - self._CollectiveListVectorProduct(scaled_constr_grad, lagrangian_multiplier).data)
             correction.data[:] = - self._CollectiveListVectorProduct(scaled_constr_grad, w_c).data
             search_direction.data[:] = projected_direction.data + correction.data
+
+        search_direction.StoreData()
+        correction.StoreData()
+        projected_direction.StoreData()
         self.algorithm_data_manager.SetValue("search_direction", search_direction, overwrite=True)
         self.algorithm_data_manager.SetValue("correction", correction, overwrite=True)
         self.algorithm_data_manager.SetValue("projected_direction", projected_direction, overwrite=True)
@@ -213,10 +217,10 @@ class AlgorithmRelaxedGradientProjection(AlgorithmGradientProjection):
 
                 self._obj_val = self._objective.CalculateStandardizedValue(self._control_field)
                 obj_info = self._objective.GetInfo()
-                self.algorithm_data_manager.SetValue("std_obj_value", = obj_info["std_value"])
-                self.algorithm_data_manager.SetValue("rel_change[%]", = obj_info["rel_change [%]"])
+                self.algorithm_data_manager.SetValue("std_obj_value", obj_info["std_value"])
+                self.algorithm_data_manager.SetValue("rel_change[%]", obj_info["rel_change [%]"])
                 if "abs_change [%]" in obj_info:
-                    self.algorithm_data_manager.SetValue("abs_change[%]", = obj_info["abs_change [%]"])
+                    self.algorithm_data_manager.SetValue("abs_change[%]", obj_info["abs_change [%]"])
 
                 obj_grad = self._objective.CalculateStandardizedGradient()
 
