@@ -280,14 +280,14 @@ the ones in `MetisApplication/tests/`) and pre-generated benchmark plots:
 
 `cube.mdpa` is the default input for the quality comparison script.
 
-### Benchmark highlights (cube.mdpa, 4 partitions)
+### Benchmark highlights (cube.mdpa, 8 partitions)
 
 | Strategy | Edge cut | Imbalance | Time (s) |
 |---|---|---|---|
-| fast | 423 | 1.0266 | 0.035 |
-| eco | 421 | 1.0266 | 0.078 |
-| strong | 439 | 1.0266 | 0.414 |
-| **metis** | **379** | **1.0266** | **0.018** |
+| fast | 646 | 1.0266 | 0.057 |
+| eco | 642 | 1.0266 | 0.148 |
+| **strong** | **627** | **1.0266** | 0.808 |
+| metis | 653 | 1.0460 | 0.024 |
 
 See [`test_examples/README.md`](test_examples/README.md) for the full tables
 and [`doc/quality_comparison.md`](doc/quality_comparison.md) for the tool

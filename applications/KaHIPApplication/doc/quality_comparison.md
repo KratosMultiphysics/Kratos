@@ -75,26 +75,26 @@ It also prints a table to stdout:
   KaHIP Partition Quality Comparison
 ============================================================
   Mesh       : .../test_examples/cube.mdpa
-  Partitions : 4
+  Partitions : 8
   Nodal edges: 1991
 
 Strategy        Edge cut     Imbalance     Time (s)
 ------------------------------------------------------
-fast                 423        1.0266        0.035
-eco                  421        1.0266        0.078
-strong               439        1.0266        0.414
-fastsocial           479        1.0266        0.035
-ecosocial            432        1.0266        0.047
-strongsocial         450        1.0266        0.297
-metis                379        1.0266        0.018
+fast                 646        1.0266        0.057
+eco                  642        1.0266        0.148
+strong               627        1.0266        0.808
+fastsocial           714        1.0266        0.057
+ecosocial            718        1.0073        0.092
+strongsocial         664        1.0266        0.368
+metis                653        1.0460        0.024
 ------------------------------------------------------
-  Best edge cut  : KaHIP eco   (421 cut edges)
-  Best balance   : all strategies tied (imbalance = 1.0266)
-  Fastest        : METIS (0.018 s)
+  Best edge cut  : KaHIP Strong (627 cut edges)
+  Best balance   : KaHIP EcoSocial (imbalance = 1.0073)
+  Fastest        : METIS (0.024 s)
 ```
 
 > **Note:** The results above were produced on the bundled `cube.mdpa` mesh
-> (413 nodes, 1191 tetrahedra, 4 partitions, 3 trials per KaHIP strategy).
+> (413 nodes, 1191 tetrahedra, 8 partitions, 3 trials per KaHIP strategy).
 > Pre-generated plots are saved alongside the mesh in `test_examples/`.
 
 ---

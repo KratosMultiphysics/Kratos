@@ -13,33 +13,33 @@ Example meshes for testing and benchmarking the KaHIPApplication.
 
 ## Pre-generated benchmark results
 
-### `cube.mdpa` — 4 partitions, 3 trials per KaHIP strategy, 1991 nodal edges
+### `cube.mdpa` — 8 partitions, 3 trials per KaHIP strategy, 1991 nodal edges
 
 | Strategy | Edge cut | Imbalance | Time (s) |
 |---|---|---|---|
-| fast | 423 | 1.0266 | 0.035 |
-| eco | 421 | 1.0266 | 0.078 |
-| strong | 439 | 1.0266 | 0.414 |
-| fastsocial | 479 | 1.0266 | 0.035 |
-| ecosocial | 432 | 1.0266 | 0.047 |
-| strongsocial | 450 | 1.0266 | 0.297 |
-| **metis** | **379** | **1.0266** | **0.018** |
+| fast | 646 | 1.0266 | 0.057 |
+| eco | 642 | 1.0266 | 0.148 |
+| **strong** | **627** | **1.0266** | 0.808 |
+| fastsocial | 714 | 1.0266 | 0.057 |
+| ecosocial | 718 | 1.0073 | 0.092 |
+| strongsocial | 664 | 1.0266 | 0.368 |
+| metis | 653 | 1.0460 | 0.024 |
 
-Best edge cut: **METIS** (379).  Best KaHIP strategy: **eco** (421).  Fastest: **METIS** (0.018 s).
+Best edge cut: **KaHIP Strong** (627).  Best balance: **KaHIP EcoSocial** (1.0073).  Fastest: **METIS** (0.024 s).
 
-### `quads.mdpa` — 3 partitions, 3 trials per KaHIP strategy, 72 nodal edges
+### `quads.mdpa` — 8 partitions, 3 trials per KaHIP strategy, 72 nodal edges
 
 | Strategy | Edge cut | Imbalance | Time (s) |
 |---|---|---|---|
-| fast | 22 | 1.0800 | 0.002 |
-| eco | 22 | 1.0800 | 0.004 |
-| strong | 22 | 1.0800 | 0.033 |
-| fastsocial | 22 | 1.0800 | 0.005 |
-| ecosocial | 22 | 1.0800 | 0.004 |
-| strongsocial | 23 | 1.0800 | 0.036 |
-| **metis** | 34 | 1.0800 | 0.001 |
+| fast | 44 | 1.2800 | 0.003 |
+| **eco** | **43** | **1.2800** | 0.008 |
+| **strong** | **43** | **1.2800** | 0.032 |
+| fastsocial | 44 | 1.2800 | 0.008 |
+| **ecosocial** | **43** | **1.2800** | 0.009 |
+| **strongsocial** | **43** | **1.2800** | 0.032 |
+| metis | 44 | 1.9200 | 0.001 |
 
-Best edge cut: **KaHIP fast/eco/strong/fastsocial/ecosocial** (22).  Fastest: **METIS** (0.001 s).
+Best edge cut: **KaHIP eco/strong/ecosocial/strongsocial** (43).  Best balance: **KaHIP** strategies (1.2800 vs METIS 1.9200).  Fastest: **METIS** (0.001 s).
 
 > Results produced on the bundled meshes with all 6 KaHIP preconfigurations
 > and MetisApplication as a baseline.  See `cube_partition_quality.png` and
