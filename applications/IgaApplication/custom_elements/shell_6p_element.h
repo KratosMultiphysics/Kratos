@@ -254,18 +254,14 @@ private:
     ///@name Member Variables
     ///@{
 
-    // Components of the metric coefficient tensor on the contravariant basis
-    std::vector<array_1d<double, 3>> m_A_ab_covariant_vector;
-    // Components of the curvature coefficient tensor on the contravariant basis
-    std::vector<array_1d<double, 3>> m_B_ab_covariant_vector;
+    // The differential area determined by determinant of the geometrical Jacobian.
+    Vector mDifferentialAreaVector;
 
-    // Determinant of the geometrical Jacobian.
-    Vector m_dA_vector;
+    // The thickness Jacobian determinant for each thickness gauss point.
+    std::vector<Vector> mJacobianThicknessDeterminant;
 
-    /* Transformation the strain tensor from the curvilinear system
-    *  to the local cartesian in voigt notation including a 2 in the
-    *  shear part. */
-    std::vector<Matrix> m_T_vector;
+    // Transformation matrix from local to global cartesian coordinates
+    std::vector<Matrix> mTransformationMatrix;
 
     /// The vector containing the constitutive laws for all integration points.
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
@@ -300,7 +296,7 @@ private:
             {
                 integration_weight_thickness(0) = 5.0 / 9.0;
                 zeta(0) = -sqrt(3.0 / 5.0);
-                integration_weight_thickness(1) = 8.0/9.0;
+                integration_weight_thickness(1) = 8.0/ 9.0;
                 zeta(1) = 0.0;
                 integration_weight_thickness(2) = 5.0 / 9.0;
                 zeta(2) = sqrt(3.0 / 5.0);
@@ -319,16 +315,13 @@ private:
     ///@name Operations
     ///@{
 
-    /// Calculates LHS and RHS dependent on flags
     void CalculateAll(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         const ProcessInfo& rCurrentProcessInfo,
         const bool CalculateStiffnessMatrixFlag,
-        const bool CalculateResidualVectorFlag
-    );
+        const bool CalculateResidualVectorFlag);
 
-    /// Initialize Operations
     void InitializeMaterial();
 
     void CalculateKinematics(
@@ -340,7 +333,6 @@ private:
         KinematicVariables& rKinematicVariables,
         Matrix& DerivativeNormalMatrix) const;
 
-    // Compute the transformation matrix from local to global cartesian coordinates
     void CalculateTransformationFromLocalToGlobalCartesian(
         const KinematicVariables& rKinematicVariables,
         Matrix& rTransformationMatrix) const; 
@@ -368,9 +360,8 @@ private:
         const KinematicVariables& rActualKinematic) const;
 
     void CalculateStressMatrix(
-        array_1d<double, 6> stress_vector,
-        Matrix& stress_matrix
-    ) const;
+        const array_1d<double, 6>& rStressVector,
+        Matrix& rStressMatrix) const;
 
     /**
     * This functions updates the constitutive variables
@@ -420,20 +411,18 @@ private:
     void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
-        rSerializer.save("A_ab_covariant_vector", m_A_ab_covariant_vector);
-        rSerializer.save("B_ab_covariant_vector", m_B_ab_covariant_vector);
-        rSerializer.save("dA_vector", m_dA_vector);
-        rSerializer.save("T_vector", m_T_vector);
+        rSerializer.save("dA_vector", mDifferentialAreaVector);
+        rSerializer.save("dV_vector", mJacobianThicknessDeterminant);
+        rSerializer.save("T_vector", mTransformationMatrix);
         rSerializer.save("constitutive_law_vector", mConstitutiveLawVector);
     }
 
     void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
-        rSerializer.load("A_ab_covariant_vector", m_A_ab_covariant_vector);
-        rSerializer.load("B_ab_covariant_vector", m_B_ab_covariant_vector);
-        rSerializer.load("dA_vector", m_dA_vector);
-        rSerializer.load("T_vector", m_T_vector);
+        rSerializer.load("dA_vector", mDifferentialAreaVector);
+        rSerializer.load("dV_vector", mJacobianThicknessDeterminant);
+        rSerializer.load("T_vector", mTransformationMatrix);
         rSerializer.load("constitutive_law_vector", mConstitutiveLawVector);
     }
 

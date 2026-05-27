@@ -88,38 +88,52 @@ namespace Kratos
         KRATOS_TRY
 
         const GeometryType& r_geometry = GetGeometry();
-
-        const std::size_t r_number_of_integration_points = r_geometry.IntegrationPointsNumber();
+        const std::size_t number_of_integration_points = r_geometry.IntegrationPointsNumber();
 
         // Prepare memory
-        if (m_A_ab_covariant_vector.size() != r_number_of_integration_points)
-            m_A_ab_covariant_vector.resize(r_number_of_integration_points);
-        if (m_B_ab_covariant_vector.size() != r_number_of_integration_points)
-            m_B_ab_covariant_vector.resize(r_number_of_integration_points);
-        if (m_dA_vector.size() != r_number_of_integration_points)
-            m_dA_vector.resize(r_number_of_integration_points);
-        if (m_T_vector.size() != r_number_of_integration_points)
-            m_T_vector.resize(r_number_of_integration_points);
+        if (mDifferentialAreaVector.size() != number_of_integration_points)
+            mDifferentialAreaVector.resize(number_of_integration_points);
+        if (mJacobianThicknessDeterminant.size() != number_of_integration_points)
+            mJacobianThicknessDeterminant.resize(number_of_integration_points);
+        if (mTransformationMatrix.size() != number_of_integration_points)
+            mTransformationMatrix.resize(number_of_integration_points);
 
-        KinematicVariables kinematic_variables(
-            GetGeometry().WorkingSpaceDimension());
+        KinematicVariables kinematic_variables(GetGeometry().WorkingSpaceDimension());
 
-        for (IndexType point_number = 0; point_number < r_number_of_integration_points; ++point_number)
+        const double thickness = this->GetProperties().GetValue(THICKNESS);
+
+        for (IndexType point_number = 0; point_number < number_of_integration_points; ++point_number)
         {
-            CalculateKinematics(
-                point_number,
-                kinematic_variables);
+            CalculateKinematics(point_number, kinematic_variables);
 
-            m_A_ab_covariant_vector[point_number] = kinematic_variables.MetricCovariant;
-            m_B_ab_covariant_vector[point_number] = kinematic_variables.CurvatureCovariant;
+            mDifferentialAreaVector[point_number] = kinematic_variables.DifferentialArea;
+            CalculateTransformationFromLocalToGlobalCartesian(kinematic_variables, mTransformationMatrix[point_number]);
 
-            m_dA_vector[point_number] = kinematic_variables.DifferentialArea;
+            mJacobianThicknessDeterminant[point_number] = ZeroVector(mGaussIntegrationThickness.num_GP_thickness);
+            Matrix normal_vector_derivatives = ZeroMatrix(3, 3);
+            CalculateNormalVectorDerivatives(point_number, kinematic_variables, normal_vector_derivatives);
+            
+            for (IndexType Gauss_index = 0; Gauss_index < mGaussIntegrationThickness.num_GP_thickness; Gauss_index++)
+            {
+                mZeta = mGaussIntegrationThickness.zeta(Gauss_index);
 
-            CalculateTransformationFromLocalToGlobalCartesian(kinematic_variables, m_T_vector[point_number]);
+                // Compute the Jacobian matrix at the initial Gauss point in thickness direction
+                Matrix jacobian = ZeroMatrix(3,3);
+                Matrix jacobian_inv = ZeroMatrix(3,3);
+                double jacobian_det = 0.0;
+
+                for (int i = 0; i < 3; i++) {
+                    jacobian(0, i) = kinematic_variables.BaseVector1[i] + (thickness/2) * mZeta * normal_vector_derivatives(0, i); 
+                    jacobian(1, i) = kinematic_variables.BaseVector2[i] + (thickness/2) * mZeta * normal_vector_derivatives(1, i) ; 
+                    jacobian(2, i) = kinematic_variables.NormalVector[i] * (thickness/2) ;
+                }
+
+                MathUtils<double>::InvertMatrix(jacobian, jacobian_inv, jacobian_det);
+                mJacobianThicknessDeterminant[point_number][Gauss_index] = jacobian_det;
+            }
         }
 
         InitializeMaterial();
-        mZeta = 0.0;
 
         KRATOS_CATCH("")
     }
@@ -132,13 +146,13 @@ namespace Kratos
         const Properties& r_properties = GetProperties();
         const auto& r_N = r_geometry.ShapeFunctionsValues();
 
-        const std::size_t r_number_of_integration_points = r_geometry.IntegrationPointsNumber();
+        const std::size_t number_of_integration_points = r_geometry.IntegrationPointsNumber();
 
         //Constitutive Law initialisation
-        if (mConstitutiveLawVector.size() != r_number_of_integration_points)
-            mConstitutiveLawVector.resize(r_number_of_integration_points);
+        if (mConstitutiveLawVector.size() != number_of_integration_points)
+            mConstitutiveLawVector.resize(number_of_integration_points);
 
-        for (IndexType point_number = 0; point_number < r_number_of_integration_points; ++point_number) {
+        for (IndexType point_number = 0; point_number < number_of_integration_points; ++point_number) {
             mConstitutiveLawVector[point_number] = GetProperties()[CONSTITUTIVE_LAW]->Clone();
             mConstitutiveLawVector[point_number]->InitializeMaterial(r_properties, r_geometry, row(r_N, point_number));
         }
@@ -221,7 +235,7 @@ namespace Kratos
 
             const double thickness = this->GetProperties().GetValue(THICKNESS);
             double density = this->GetProperties().GetValue(DENSITY);
-            double mass = thickness * density * m_dA_vector[point_number] * integration_weight;
+            double mass = thickness * density * mDifferentialAreaVector[point_number] * integration_weight;
 
             if (rMassMatrix.size1() != mat_size)
                 rMassMatrix.resize(mat_size, mat_size, false);
@@ -343,8 +357,8 @@ namespace Kratos
                 constitutive_law_parameters, ConstitutiveLaw::StressMeasure_PK2);
             
             // Transform the constitutive matrix to global cartesian coordinates
-            constitutive_variables.ConstitutiveMatrix = prod(m_T_vector[point_number], 
-                Matrix(prod(constitutive_variables.ConstitutiveMatrix, trans(m_T_vector[point_number]))));
+            constitutive_variables.ConstitutiveMatrix = prod(mTransformationMatrix[point_number], 
+                Matrix(prod(constitutive_variables.ConstitutiveMatrix, trans(mTransformationMatrix[point_number]))));
               
             //// Loop for zeta (thickness integration points)
             for (IndexType Gauss_index = 0; Gauss_index < mGaussIntegrationThickness.num_GP_thickness; Gauss_index++)
@@ -564,8 +578,8 @@ namespace Kratos
                 constitutive_law_parameters, ConstitutiveLaw::StressMeasure_PK2);
 
             // 2b. Transform the constitutive matrix to global cartesian coordinates
-            constitutive_variables.ConstitutiveMatrix = prod(m_T_vector[point_number], 
-                Matrix(prod(constitutive_variables.ConstitutiveMatrix, trans(m_T_vector[point_number]))));
+            constitutive_variables.ConstitutiveMatrix = prod(mTransformationMatrix[point_number], 
+                Matrix(prod(constitutive_variables.ConstitutiveMatrix, trans(mTransformationMatrix[point_number]))));
                 
             //// Loop for zeta (thickness integration points)
             for (IndexType Gauss_index = 0; Gauss_index < mGaussIntegrationThickness.num_GP_thickness; Gauss_index++)
@@ -603,7 +617,7 @@ namespace Kratos
                 CalculateBGeometric(point_number, b_geometric, mZeta, jacobian_inv, normal_vector_derivatives, kinematic_variables);
                 
                 // 3.6. Compute the integration weight 
-                double integration_weight = r_integration_points[point_number].Weight() * jacobian_det
+                double integration_weight = r_integration_points[point_number].Weight() * mJacobianThicknessDeterminant[point_number][Gauss_index]
                                           * mGaussIntegrationThickness.integration_weight_thickness(Gauss_index); 
 
                 // 3.7. Assembly
@@ -707,25 +721,26 @@ namespace Kratos
 
         array_1d<double, 6> strain_vector(6, 0.0);
         //To do: compute strain vector
-        noalias(rThisConstitutiveVariables.StrainVector) = prod(m_T_vector[IntegrationPointIndex], strain_vector);
+        noalias(rThisConstitutiveVariables.StrainVector) = prod(mTransformationMatrix[IntegrationPointIndex], strain_vector);
 
         // Constitive Matrices D
         rValues.SetStrainVector(rThisConstitutiveVariables.StrainVector); //this is the input parameter
         rValues.SetStressVector(rThisConstitutiveVariables.StressVector); //this is an ouput parameter
         rValues.SetConstitutiveMatrix(rThisConstitutiveVariables.ConstitutiveMatrix); //this is an ouput parameter
 
-        const double nu = this->GetProperties()[POISSON_RATIO];
-        const double Emodul = this->GetProperties()[YOUNG_MODULUS];
-        double lambda = Emodul / (1.0 - nu * nu);
-        double Gmodul = Emodul / (2.0 * (1.0 + nu));
+        const double poisson_ratio = this->GetProperties()[POISSON_RATIO];
+        const double youngs_modulus = this->GetProperties()[YOUNG_MODULUS];
+        const double lame_lambda = youngs_modulus / (1.0 - poisson_ratio * poisson_ratio);
+        const double shear_modulus = youngs_modulus / (2.0 * (1.0 + poisson_ratio));
+        const double shear_correction_factor = 5.0 / 6.0;
         
-        rThisConstitutiveVariables.ConstitutiveMatrix(0, 0) = lambda;
-        rThisConstitutiveVariables.ConstitutiveMatrix(0, 1) = lambda * nu;
-        rThisConstitutiveVariables.ConstitutiveMatrix(1, 0) = lambda * nu;
-        rThisConstitutiveVariables.ConstitutiveMatrix(1, 1) = lambda;
-        rThisConstitutiveVariables.ConstitutiveMatrix(3, 3) = lambda * (1 - nu) / 2;
-        rThisConstitutiveVariables.ConstitutiveMatrix(4, 4) = Gmodul * 5.0 / 6.0;
-        rThisConstitutiveVariables.ConstitutiveMatrix(5, 5) = Gmodul * 5.0 / 6.0;
+        rThisConstitutiveVariables.ConstitutiveMatrix(0, 0) = lame_lambda;
+        rThisConstitutiveVariables.ConstitutiveMatrix(0, 1) = lame_lambda * poisson_ratio;
+        rThisConstitutiveVariables.ConstitutiveMatrix(1, 0) = lame_lambda * poisson_ratio;
+        rThisConstitutiveVariables.ConstitutiveMatrix(1, 1) = lame_lambda;
+        rThisConstitutiveVariables.ConstitutiveMatrix(3, 3) = lame_lambda * (1.0 - poisson_ratio) / 2.0;
+        rThisConstitutiveVariables.ConstitutiveMatrix(4, 4) = shear_modulus * shear_correction_factor;
+        rThisConstitutiveVariables.ConstitutiveMatrix(5, 5) = shear_modulus * shear_correction_factor;
 
         //Local Cartesian Stresses
         noalias(rThisConstitutiveVariables.StressVector) = prod(
@@ -1005,29 +1020,30 @@ namespace Kratos
     }
 
     void Shell6pElement::CalculateStressMatrix(
-        array_1d<double, 6> stress_vector,
-        Matrix& stress_matrix
+        const array_1d<double, 6>& rStressVector,
+        Matrix& rStressMatrix
     ) const
     {
-        Matrix stress_mat = ZeroMatrix(3,3);
-        
-        stress_mat(0,0) = stress_vector(0);
-        stress_mat(0,1) = stress_vector(3);
-        stress_mat(0,2) = stress_vector(4);
-        
-        stress_mat(1,0) = stress_mat(0,1);
-        stress_mat(1,1) = stress_vector(1);
-        stress_mat(1,2) = stress_vector(5);
-        
-        stress_mat(2,0) = stress_mat(0,2);
-        stress_mat(2,1) = stress_mat(1,2);
-        stress_mat(2,2) = stress_vector(2);
+        if (rStressMatrix.size1() != 9 || rStressMatrix.size2() != 9)
+            rStressMatrix.resize(9, 9);
+        noalias(rStressMatrix) = ZeroMatrix(9, 9);
 
-        for (int i = 0; i < 3; ++i) {
-            for (int j = 0; j < 3; ++j) {
-                stress_matrix(i,j) = stress_mat(i,j);
-                stress_matrix(i + 3,j + 3) = stress_mat(i,j);
-                stress_matrix(i + 6,j + 6) = stress_mat(i,j);
+        // Fill the 3x3 symmetric stress block
+        rStressMatrix(0, 0) = rStressVector(0);
+        rStressMatrix(0, 1) = rStressVector(3);
+        rStressMatrix(0, 2) = rStressVector(4);
+        rStressMatrix(1, 0) = rStressVector(3);
+        rStressMatrix(1, 1) = rStressVector(1);
+        rStressMatrix(1, 2) = rStressVector(5);
+        rStressMatrix(2, 0) = rStressVector(4);
+        rStressMatrix(2, 1) = rStressVector(5);
+        rStressMatrix(2, 2) = rStressVector(2);
+
+        // Repeat the same block on the diagonal (blocks at [3,3] and [6,6])
+        for (IndexType i = 0; i < 3; ++i) {
+            for (IndexType j = 0; j < 3; ++j) {
+                rStressMatrix(i + 3, j + 3) = rStressMatrix(i, j);
+                rStressMatrix(i + 6, j + 6) = rStressMatrix(i, j);
             }
         }
     }
