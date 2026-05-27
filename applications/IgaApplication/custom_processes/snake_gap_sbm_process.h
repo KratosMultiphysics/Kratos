@@ -542,6 +542,7 @@ private:
                              // "interpolation" (interpolates the points on the curve -- no assumption on their order)
                              // "sbm" (uses SBM on top of the "interpolation" approach to further optimize the gap geometry)
     bool mUseForMultipatch = false;
+    bool mUseForLocalRefinement = false;
 
     /**
      * @brief Creates the gap SBM geometries for the configured model part.
@@ -614,7 +615,8 @@ private:
     void SetSurrogateToSkinProjections(
         const ModelPart& rSurrogateSubModelPart,
         const ModelPart& rSkinSubModelPart,
-        const KnotSpanNodeBinsCSR& rSkinNodesPerSpan);
+        const KnotSpanNodeBinsCSR& rSkinNodesPerSpan,
+        const KnotSpanConditionBinsCSR& rSkinConditionsPerSpan);
 
     /**
      * @brief Checks that surrogate boundary vertices lie on the same skin layer.
@@ -692,6 +694,7 @@ private:
         const IndexType LeftProjectionId,
         const IndexType RightProjectionId,
         const std::string& rCommonLayerName,
+        const std::string& rCommonConditionName,
         const array_1d<double,3>& rNormalCond,
         const IntegrationParameters& rIntegrationParameters,
         const KnotSpanConditionBinsCSR& rSkinConditionsPerKnotSpan) const;
@@ -862,6 +865,24 @@ private:
         const array_1d<double,3>& rSkinPoint1,
         const array_1d<double,3>& rSkinPoint2) const;
 
+    /**
+     * @brief Reconstructs the ordered node path between two skin nodes by traversing skin conditions.
+     * @param rSkinSubModelPart Skin model part containing the loop conditions.
+     * @param StartNodeId Identifier of the starting node.
+     * @param EndNodeId Identifier of the ending node.
+     * @param ReverseConditionOrientation When true, traverses conditions against their stored orientation.
+     * @param rLayerName Optional layer filter used to restrict the traversed conditions.
+     * @param rConditionName Optional condition-name filter used to restrict the traversed conditions.
+     * @return Ordered node ids from StartNodeId to EndNodeId, both included.
+     */
+    std::vector<IndexType> CollectOrderedSkinNodePath(
+        const ModelPart& rSkinSubModelPart,
+        IndexType StartNodeId,
+        IndexType EndNodeId,
+        bool ReverseConditionOrientation,
+        const std::string& rLayerName = "",
+        const std::string& rConditionName = "") const;
+
 
 /**
  * @brief Collects skin nodes between two indices and projects them to the UV space.
@@ -877,35 +898,25 @@ std::vector<array_1d<double,3>> CollectSkinUVBetween(
     const ModelPart& rSkinSubModelPart,
     const NurbsSurfaceType& rSurface,
     IndexType id_node_1,
-    IndexType id_node_2) const
+    IndexType id_node_2,
+    const std::string& rLayerName = "",
+    const std::string& rConditionName = "") const
 {
     std::vector<array_1d<double,3>> uv_pts;
     uv_pts.reserve(rSkinSubModelPart.NumberOfConditions());
 
-    const IndexType first_id = rSkinSubModelPart.NodesBegin()->Id();
-    const IndexType last_id  = first_id + rSkinSubModelPart.NumberOfNodes() - 1;
-    auto next_id = [&](IndexType id){ return (id < last_id) ? (id + 1) : first_id; };
-    auto previous_id = [&](IndexType id){ return (id > first_id) ? (id - 1) : last_id; };
+    const auto ordered_node_ids = CollectOrderedSkinNodePath( //FIXME: go back to previous version
+        rSkinSubModelPart,
+        id_node_1,
+        id_node_2,
+        TIsInnerLoop,
+        rLayerName,
+        rConditionName);
 
-    IndexType id = id_node_1;
-
-    ModelPart::SizeType iter = 0;
-    while (true) {
+    for (const auto id : ordered_node_ids) {
         const auto& p_node = rSkinSubModelPart.pGetNode(id);
         array_1d<double,3> uv = p_node->Coordinates();
         uv_pts.push_back(uv);
-        if (id == id_node_2) break;
-
-        if constexpr (TIsInnerLoop)  
-        { // inner loop: go against the condition orientation
-            id = previous_id(id);
-        } else { // outer loop: follow the condition orientation
-            id = next_id(id);
-        }
-        iter++;
-        KRATOS_ERROR_IF(iter > rSkinSubModelPart.NumberOfConditions())
-            << "CollectSkinUVBetween: infinite loop detected between IDs "
-            << id_node_1 << " and " << id_node_2 << ".\n";
     }
     return uv_pts;
 }
@@ -1189,10 +1200,17 @@ typename NurbsCurveGeometryType::Pointer FitUV_BetweenSkinNodes_Generic(
     IndexType id_node_1,
     IndexType id_node_2,
     const int p,
-    const double ridge = 1e-12) const
+    const double ridge = 1e-12,
+    const std::string& rLayerName = "",
+    const std::string& rConditionName = "") const
 {
-    // Reuse your robust UV collector (ordered with wrap-around).
-    auto UV = CollectSkinUVBetween<TIsInnerLoop>(rSkinSubModelPart, rSurface, id_node_1, id_node_2);
+    auto UV = CollectSkinUVBetween<TIsInnerLoop>(
+        rSkinSubModelPart,
+        rSurface,
+        id_node_1,
+        id_node_2,
+        rLayerName,
+        rConditionName);
     KRATOS_ERROR_IF(UV.size() < (std::size_t)(p+1))
         << "FitUV_BetweenSkinConditions_Generic: not enough samples for degree p=" << p << ".\n";
 
@@ -1337,6 +1355,7 @@ IndexType FindClosestNodeInLayerWithDirection(
     const std::string& rLayer,
     const ModelPart& rSkinSubModelPart,
     const Vector& rKnotSpanSizes,
+    const KnotSpanNodeBinsCSR& rSkinNodesPerSpan,
     const KnotSpanConditionBinsCSR& rSkinConditionsPerSpan,
     const Vector& rDirection) const;
 
@@ -1359,6 +1378,7 @@ std::pair<SnakeGapSbmProcess::IndexType, SnakeGapSbmProcess::IndexType> FindClos
     const std::string& rLayer,
     const ModelPart& rSkinSubModelPart,
     const Vector& rKnotSpanSizes,
+    const KnotSpanNodeBinsCSR& rSkinNodesPerSpan,
     const KnotSpanConditionBinsCSR& rSkinConditionsPerSpan,
     const Vector& rDirection) const;
     
@@ -1390,6 +1410,11 @@ void SynchronizeEndSkinNodeNeighbourGeometries(const ModelPart& rSkinSubModelPar
     * @param pNurbsSurface Pointer to the NURBS surface hosting the SBM geometry.
     */
 void CreateInnerSkinMultipatchCouplingConditions(
+    const ModelPart& rSkinSubModelPart,
+    const Vector& rKnotSpanSizes,
+    NurbsSurfaceType::Pointer& pNurbsSurface);
+
+void CreateInnerSkinLocalRefinementCouplingConditions(
     const ModelPart& rSkinSubModelPart,
     const Vector& rKnotSpanSizes,
     NurbsSurfaceType::Pointer& pNurbsSurface);

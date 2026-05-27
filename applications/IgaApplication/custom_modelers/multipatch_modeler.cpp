@@ -1433,7 +1433,7 @@ ModelPart& MultipatchModeler::CreateOrResetModelPart_(const std::string& rName) 
     r_mp.Elements().clear();
     r_mp.Conditions().clear();
     r_mp.Geometries().clear();
-    if (!r_mp.HasProperties(0)) {
+    if (!r_mp.RecursivelyHasProperties(0)) {
         r_mp.CreateNewProperties(0);
     }
     return r_mp;
@@ -1566,7 +1566,11 @@ ModelPart& MultipatchModeler::CreateSkinInnerInitialFromRefinementSurrogateOuter
     }
 
     // Collect all segments from surrogate conditions, carrying also the BREP_ID
-    struct Segment { double x0, y0, x1, y1; int brep_id; };
+    struct Segment {
+        double x0, y0, x1, y1;
+        int brep_id;
+        std::string brep_model_part_full_name;
+    };
     std::vector<Segment> segments;
     segments.reserve(r_surrogate_outer.NumberOfConditions());
     for (const auto& r_cond : r_surrogate_outer.Conditions()) {
@@ -1574,7 +1578,10 @@ ModelPart& MultipatchModeler::CreateSkinInnerInitialFromRefinementSurrogateOuter
         if (g.size() != 2) continue;
         const int brep_id = r_cond.GetValue(BREP_ID);
 
-        segments.push_back({g[0].X(), g[0].Y(), g[1].X(), g[1].Y(), brep_id});
+        const std::string brep_model_part_full_name = r_cond.Has(BREP_MODEL_PART_FULL_NAME)
+            ? r_cond.GetValue(BREP_MODEL_PART_FULL_NAME)
+            : r_surrogate_outer.GetParentModelPart().FullName();
+        segments.push_back({g[0].X(), g[0].Y(), g[1].X(), g[1].Y(), brep_id, brep_model_part_full_name});
     }
 
     KRATOS_INFO_IF("MultipatchModeler", mEchoLevel > 2)
@@ -1668,6 +1675,7 @@ ModelPart& MultipatchModeler::CreateSkinInnerInitialFromRefinementSurrogateOuter
         CurveType::Pointer p_curve(new CurveType(control_points, degree, kv, weights));
         // propagate Brep id from the originating surrogate condition
         p_curve->SetValue(BREP_ID, s.brep_id);
+        p_curve->SetValue(BREP_MODEL_PART_FULL_NAME, s.brep_model_part_full_name);
         p_curve->SetValue(IDENTIFIER, "Layer1");
         // const std::string layer_name = std::string("Layer") + std::to_string(layer_id++);
         if (!cond_name.empty()) {
@@ -1740,7 +1748,12 @@ ModelPart& MultipatchModeler::CreateSkinOuterInitialFromRefinementSurrogateInner
         cond_name = mParameters["coupling_conditions_name"].GetString();
     }
 
-    struct Segment { double x0, y0, x1, y1; int brep_id; bool has_brep_id; };
+    struct Segment {
+        double x0, y0, x1, y1;
+        int brep_id;
+        bool has_brep_id;
+        std::string brep_model_part_full_name;
+    };
     std::vector<Segment> segments;
     segments.reserve(r_surrogate_inner.NumberOfConditions());
     for (const auto& r_cond : r_surrogate_inner.Conditions()) {
@@ -1748,7 +1761,11 @@ ModelPart& MultipatchModeler::CreateSkinOuterInitialFromRefinementSurrogateInner
         if (g.size() != 2) continue;
         const bool has_brep_id = r_cond.Has(BREP_ID);
         const int brep_id = has_brep_id ? r_cond.GetValue(BREP_ID) : 0;
-        segments.push_back({g[0].X(), g[0].Y(), g[1].X(), g[1].Y(), brep_id, has_brep_id});
+        const std::string brep_model_part_full_name = r_cond.Has(BREP_MODEL_PART_FULL_NAME)
+            ? r_cond.GetValue(BREP_MODEL_PART_FULL_NAME)
+            : r_surrogate_inner.GetParentModelPart().FullName();
+        segments.push_back({
+            g[0].X(), g[0].Y(), g[1].X(), g[1].Y(), brep_id, has_brep_id, brep_model_part_full_name});
     }
 
     KRATOS_INFO_IF("MultipatchModeler", mEchoLevel > 2)
@@ -1834,6 +1851,7 @@ ModelPart& MultipatchModeler::CreateSkinOuterInitialFromRefinementSurrogateInner
         CurveType::Pointer p_curve(new CurveType(control_points, degree, kv, weights));
         if (s.has_brep_id) {
             p_curve->SetValue(BREP_ID, s.brep_id);
+            p_curve->SetValue(BREP_MODEL_PART_FULL_NAME, s.brep_model_part_full_name);
         }
         p_curve->SetValue(IDENTIFIER, "Layer1");
         if (!cond_name.empty()) {

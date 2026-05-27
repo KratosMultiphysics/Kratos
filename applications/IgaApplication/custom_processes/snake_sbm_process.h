@@ -88,6 +88,7 @@ public:
             "skin_model_part_name" : "SkinModelPart",
             "create_surr_outer_from_surr_inner": false,
             "create_surr_inner_from_surr_outer": false,
+            "use_for_local_refinement": false,
             "echo_level" : 0,
             "lambda_inner" : 0.5,
             "lambda_outer" : 0.5,
@@ -141,6 +142,7 @@ protected:
     int mNumberInitialPointsIfImportingNurbs;
     bool mCreateSurrOuterFromSurrInner;
     bool mCreateSurrInnerFromSurrOuter;
+    bool mUseForLocalRefinement = false;
     ModelPart* mpIgaModelPart = nullptr; 
     ModelPart* mpSkinModelPartInnerInitial = nullptr; 
     ModelPart* mpSkinModelPartOuterInitial = nullptr; 
@@ -356,6 +358,13 @@ private:
         const Vector& rStartingPositionUV,
         std::vector<std::vector<std::vector<int>>>& rKnotSpansAvailable,
         ModelPart& rSurrogateModelPartOuter
+        );
+
+    /**
+     * @brief Recomputes surrogate nodal normals from the orientation of 2-node conditions.
+     */
+    static void SetSurrogateNormals(
+        ModelPart& rSurrogateModelPart
         );
 
     /**

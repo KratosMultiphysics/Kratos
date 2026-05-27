@@ -27,17 +27,28 @@ void SolidCouplingCondition::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     InitializeMaterial();
     InitializeMemberVariables();
-    const GeometryType::IntegrationPointsArrayType& r_integration_points = GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
+    InitializeShiftVectors();
+    const GeometryType::IntegrationPointsArrayType& r_integration_points = GetTrueGeometry().IntegrationPoints(this->GetIntegrationMethod());
     
     const double thickness = GetProperties().Has(THICKNESS) ? GetProperties()[THICKNESS] : 1.0;
     const double integration_weight = r_integration_points[0].Weight()*thickness;
 
     SetValue(INTEGRATION_WEIGHT, integration_weight);
 
-    if (mIsGapSbmCoupling) {
-        const auto& r_true = GetGeometry();
-        const auto& r_surrogate_B = GetGeometryMirror();
+}
 
+void SolidCouplingCondition::InitializeShiftVectors()
+{
+    const auto& r_true = GetTrueGeometry();
+
+    if (ShiftGeometryA()) {
+        const auto& r_surrogate_A = GetGeometryA();
+        mDistanceVectorA.resize(3);
+        noalias(mDistanceVectorA) = r_true.Center().Coordinates() - r_surrogate_A.Center().Coordinates();
+    }
+
+    if (ShiftGeometryB()) {
+        const auto& r_surrogate_B = GetGeometryB();
         mDistanceVectorB.resize(3);
         noalias(mDistanceVectorB) = r_true.Center().Coordinates() - r_surrogate_B.Center().Coordinates();
     }
@@ -47,7 +58,7 @@ void SolidCouplingCondition::InitializeMaterial()
 {
     KRATOS_TRY
     if (GetProperties().Has(CONSTITUTIVE_LAW) && GetProperties()[CONSTITUTIVE_LAW] != nullptr) {
-        const GeometryType& r_geometry = GetGeometry();
+        const GeometryType& r_geometry = GetTrueGeometry();
         const Properties& r_properties = GetProperties();
         const auto& N_values = r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod());
         mpConstitutiveLaw = GetProperties()[CONSTITUTIVE_LAW]->Clone();
@@ -61,7 +72,7 @@ void SolidCouplingCondition::InitializeMaterial()
 void SolidCouplingCondition::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     ConstitutiveLaw::Parameters constitutive_law_parameters(
-        GetGeometry(), GetProperties(), rCurrentProcessInfo);
+        GetTrueGeometry(), GetProperties(), rCurrentProcessInfo);
 
     mpConstitutiveLaw->InitializeMaterialResponse(
         constitutive_law_parameters, ConstitutiveLaw::StressMeasure_Cauchy);
@@ -70,7 +81,7 @@ void SolidCouplingCondition::InitializeSolutionStep(const ProcessInfo& rCurrentP
 void SolidCouplingCondition::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     ConstitutiveLaw::Parameters constitutive_law_parameters(
-        GetGeometry(), GetProperties(), rCurrentProcessInfo);
+        GetTrueGeometry(), GetProperties(), rCurrentProcessInfo);
 
     mpConstitutiveLaw->FinalizeMaterialResponse(
         constitutive_law_parameters, ConstitutiveLaw::StressMeasure_Cauchy);
@@ -78,8 +89,9 @@ void SolidCouplingCondition::FinalizeSolutionStep(const ProcessInfo& rCurrentPro
 
 void SolidCouplingCondition::InitializeMemberVariables()
 {
-    const auto& r_geometry_patchA = GetGeometry();
-    const auto& r_geometry_patchB = GetGeometryMirror();
+    const auto& r_true_geometry = GetTrueGeometry();
+    const auto& r_geometry_patchA = GetGeometryA();
+    const auto& r_geometry_patchB = GetGeometryB();
 
     // Basis function order of the Taylor expansion is decided by the r_geometry_patchB
     const auto& r_DN_De_B = r_geometry_patchB.ShapeFunctionsLocalGradients(r_geometry_patchB.GetDefaultIntegrationMethod());
@@ -107,7 +119,7 @@ void SolidCouplingCondition::InitializeMemberVariables()
     // if (norm_2(r_geometry_patchA.Center()-r_geometry_patchB.Center()) > 1e-12)
         mIsGapSbmCoupling = true;
 
-    mNormalParameterSpaceA = -r_geometry_patchA.Normal(0, GetIntegrationMethod());
+    mNormalParameterSpaceA = -r_true_geometry.Normal(0, GetIntegrationMethod());
     mNormalParameterSpaceA /= MathUtils<double>::Norm(mNormalParameterSpaceA);
     mNormalPhysicalSpaceA = mNormalParameterSpaceA;
 
@@ -127,8 +139,8 @@ void SolidCouplingCondition::CalculateLocalSystem(
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
 {   
-    const auto& r_patch_A = GetGeometry();
-    const auto& r_patch_B = GetGeometryMirror();
+    const auto& r_patch_A = GetGeometryA();
+    const auto& r_patch_B = GetGeometryB();
     const std::size_t n_patch_A = r_patch_A.PointsNumber();
     const std::size_t n_patch_B = r_patch_B.PointsNumber();
     const auto& rDN_De_A = r_patch_A.ShapeFunctionsLocalGradients(r_patch_A.GetDefaultIntegrationMethod());
@@ -157,8 +169,9 @@ void SolidCouplingCondition::CalculateLeftHandSide(
 {
     KRATOS_TRY
 
-    const auto& r_patch_A = GetGeometry();
-    const auto& r_patch_B = GetGeometryMirror();
+    const auto& r_true = GetTrueGeometry();
+    const auto& r_patch_A = GetGeometryA();
+    const auto& r_patch_B = GetGeometryB();
     const std::size_t n_patch_A = r_patch_A.PointsNumber();
     const std::size_t n_patch_B = r_patch_B.PointsNumber();
     const auto& rDN_De_A_dim = r_patch_A.ShapeFunctionsLocalGradients(r_patch_A.GetDefaultIntegrationMethod());
@@ -179,7 +192,7 @@ void SolidCouplingCondition::CalculateLeftHandSide(
     }
     noalias(rLeftHandSideMatrix) = ZeroMatrix(total_size, total_size);
 
-    const auto& integration_points_patch_A = r_patch_A.IntegrationPoints();
+    const auto& integration_points_patch_A = r_true.IntegrationPoints();
     const auto& integration_points_patch_B = r_patch_B.IntegrationPoints();
 
     KRATOS_ERROR_IF(integration_points_patch_A.empty() || integration_points_patch_B.empty())
@@ -200,10 +213,18 @@ void SolidCouplingCondition::CalculateLeftHandSide(
         << "SolidCouplingCondition: gradient matrix rows mismatch for patch B. Expected "
         << n_patch_B << ", obtained " << rDN_De_B[0].size1() << "." << std::endl;
 
-    const Matrix& N_patch_A = r_patch_A.ShapeFunctionsValues();
+    Matrix N_patch_A = r_patch_A.ShapeFunctionsValues();
     Matrix N_patch_B = r_patch_B.ShapeFunctionsValues();
 
-    if (mIsGapSbmCoupling) {
+    if (ShiftGeometryA()) {
+        Vector N_sum_A_vector(n_patch_A);
+        ComputeTaylorExpansionContribution(r_patch_A, mDistanceVectorA, N_sum_A_vector);
+        for (IndexType j = 0; j < n_patch_A; ++j) {
+            N_patch_A(0, j) = N_sum_A_vector[j];
+        }
+    }
+
+    if (ShiftGeometryB()) {
         Vector N_sum_B_vector(n_patch_B);
         ComputeTaylorExpansionContribution(r_patch_B, mDistanceVectorB, N_sum_B_vector);
         for (IndexType j = 0; j < n_patch_B; ++j) {
@@ -226,7 +247,7 @@ void SolidCouplingCondition::CalculateLeftHandSide(
 
     // Jacobians to compute the interface measure
     GeometryType::JacobiansType J_patch_A;
-    r_patch_A.Jacobian(J_patch_A, r_patch_A.GetDefaultIntegrationMethod());
+    r_true.Jacobian(J_patch_A, r_true.GetDefaultIntegrationMethod());
     Matrix jacobian_patch_A = ZeroMatrix(3, 3);
     jacobian_patch_A(0, 0) = J_patch_A[0](0, 0);
     jacobian_patch_A(0, 1) = J_patch_A[0](0, 1);
@@ -234,14 +255,14 @@ void SolidCouplingCondition::CalculateLeftHandSide(
     jacobian_patch_A(1, 1) = J_patch_A[0](1, 1);
     jacobian_patch_A(2, 2) = 1.0;
     array_1d<double, 3> tangent_patch_A;
-    r_patch_A.Calculate(LOCAL_TANGENT, tangent_patch_A);
+    r_true.Calculate(LOCAL_TANGENT, tangent_patch_A);
     Vector determinant_factor_patch_A = prod(jacobian_patch_A, tangent_patch_A);
     determinant_factor_patch_A[2] = 0.0;
     const double detJ_patch_A = norm_2(determinant_factor_patch_A);
     KRATOS_ERROR_IF(detJ_patch_A <= std::numeric_limits<double>::epsilon())
         << "SolidCouplingCondition: degenerate Jacobian for patch A (determinant ~ 0)." << std::endl;
 
-    const double integration_weight = GetValue(INTEGRATION_WEIGHT)* detJ_patch_A; //FIXME:
+    const double integration_weight = GetValue(INTEGRATION_WEIGHT); //FIXME:
 
     KRATOS_ERROR_IF(std::abs(integration_weight) <= std::numeric_limits<double>::epsilon())
         << "SolidCouplingCondition: zero integration integration_weight on patch A." << std::endl;
@@ -282,7 +303,16 @@ void SolidCouplingCondition::CalculateLeftHandSide(
     // compute Taylor expansion contribution: H_sum_vec (only for gap-sbm)
     Vector N_vec_A = row(N_patch_A, 0);
     Vector N_sum_vec_B = row(N_patch_B, 0);
-    if (mIsGapSbmCoupling) {
+    if (ShiftGeometryA()) {
+        N_vec_A = ZeroVector(n_patch_A);
+
+        // KRATOS_WATCH(r_true.Center())
+        // KRATOS_WATCH(mNormalPhysicalSpaceA)
+        // KRATOS_WATCH(integration_weight)
+        // KRATOS_WATCH(GetValue(INTEGRATION_WEIGHT))
+        ComputeTaylorExpansionContribution(r_patch_A, mDistanceVectorA, N_vec_A);
+    }
+    if (ShiftGeometryB()) {
         N_sum_vec_B = ZeroVector(n_patch_B);
         ComputeTaylorExpansionContribution(r_patch_B, mDistanceVectorB, N_sum_vec_B);
     }
@@ -290,7 +320,13 @@ void SolidCouplingCondition::CalculateLeftHandSide(
     // compute Taylor expansion contribution: grad_H_sum (only for gap-sbm)
     Matrix grad_N_A = DN_patch_A;
     Matrix grad_N_sum_B = DN_patch_B;
-    if (mIsGapSbmCoupling) {
+    if (ShiftGeometryA()) {
+        Matrix grad_N_sum_transposed_A = ZeroMatrix(3, n_patch_A);
+        ComputeGradientTaylorExpansionContribution(r_patch_A, mDistanceVectorA, grad_N_sum_transposed_A);
+        grad_N_A = trans(grad_N_sum_transposed_A);
+
+    }
+    if (ShiftGeometryB()) {
         Matrix grad_N_sum_transposed_B = ZeroMatrix(3, n_patch_B);
         ComputeGradientTaylorExpansionContribution(r_patch_B, mDistanceVectorB, grad_N_sum_transposed_B);
         grad_N_sum_B = trans(grad_N_sum_transposed_B);
@@ -305,7 +341,7 @@ void SolidCouplingCondition::CalculateLeftHandSide(
     CalculateB(r_patch_B, B_sum_B, grad_N_sum_B);
 
     // obtain the tangent constitutive matrix for the body fitted side
-    ConstitutiveLaw::Parameters values_A(r_patch_A, GetProperties(), rCurrentProcessInfo);
+    ConstitutiveLaw::Parameters values_A(GetConstitutiveGeometryA(), GetProperties(), rCurrentProcessInfo);
     Vector old_displacement_coefficient_vector_A(mat_size_A);
     GetSolutionCoefficientVectorA(old_displacement_coefficient_vector_A);
     Vector old_strain_A = prod(B_A, old_displacement_coefficient_vector_A);
@@ -316,7 +352,7 @@ void SolidCouplingCondition::CalculateLeftHandSide(
     const Matrix& r_D_A = values_A.GetConstitutiveMatrix();
 
     // obtain the tangent constitutive matrix at the true position for the minus side
-    ConstitutiveLaw::Parameters values_true_B(r_patch_B, GetProperties(), rCurrentProcessInfo);
+    ConstitutiveLaw::Parameters values_true_B(GetConstitutiveGeometryB(), GetProperties(), rCurrentProcessInfo);
     Vector old_displacement_coefficient_vector_B(mat_size_B);
     GetSolutionCoefficientVectorB(old_displacement_coefficient_vector_B);
     Vector old_strain_on_true_B = prod(B_sum_B, old_displacement_coefficient_vector_B);
@@ -540,8 +576,8 @@ void SolidCouplingCondition::EquationIdVector(
     EquationIdVectorType& rResult,
     const ProcessInfo& rCurrentProcessInfo) const
 {
-    const auto& r_geometryA = GetGeometry();
-    const auto& r_geometryB = GetGeometryMirror();
+    const auto& r_geometryA = GetGeometryA();
+    const auto& r_geometryB = GetGeometryB();
 
     const std::size_t number_of_control_points_A = r_geometryA.size();
     const std::size_t number_of_control_points_B = r_geometryB.size();
@@ -574,8 +610,8 @@ void SolidCouplingCondition::GetDofList(
     DofsVectorType& rElementalDofList,
     const ProcessInfo& rCurrentProcessInfo) const
 {
-    const auto& r_patch_A = GetGeometry();
-    const auto& r_patch_B = GetGeometryMirror();
+    const auto& r_patch_A = GetGeometryA();
+    const auto& r_patch_B = GetGeometryB();
 
     const std::size_t number_of_control_points_A = r_patch_A.size();
     const std::size_t number_of_control_points_B = r_patch_B.size();
@@ -608,7 +644,7 @@ int SolidCouplingCondition::Check(const ProcessInfo& rCurrentProcessInfo) const
 void SolidCouplingCondition::GetSolutionCoefficientVectorA(
     Vector& rValues) const
 {
-    const auto& r_patch_A = GetGeometry();
+    const auto& r_patch_A = GetGeometryA();
     const std::size_t n_patch_A = r_patch_A.size();
     const auto& rDN_De_A = r_patch_A.ShapeFunctionsLocalGradients(r_patch_A.GetDefaultIntegrationMethod());
     const std::size_t dim = rDN_De_A.empty() ? 2 : rDN_De_A[0].size2();
@@ -628,7 +664,7 @@ void SolidCouplingCondition::GetSolutionCoefficientVectorA(
 void SolidCouplingCondition::GetSolutionCoefficientVectorB(
     Vector& rValues) const
 {
-    const auto& r_patch_B = GetGeometryMirror();
+    const auto& r_patch_B = GetGeometryB();
     const std::size_t n_patch_B = r_patch_B.size();
     const auto& rDN_De_B = r_patch_B.ShapeFunctionsLocalGradients(r_patch_B.GetDefaultIntegrationMethod());
     const std::size_t dim = rDN_De_B.empty() ? 2 : rDN_De_B[0].size2();

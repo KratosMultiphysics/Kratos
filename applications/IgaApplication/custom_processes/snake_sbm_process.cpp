@@ -39,6 +39,7 @@ SnakeSbmProcess::SnakeSbmProcess(
     mNumberInitialPointsIfImportingNurbs = mThisParameters["number_initial_points_if_importing_nurbs"].GetInt();
     mCreateSurrOuterFromSurrInner = mThisParameters["create_surr_outer_from_surr_inner"].GetBool();
     mCreateSurrInnerFromSurrOuter = mThisParameters["create_surr_inner_from_surr_outer"].GetBool();
+    mUseForLocalRefinement = mThisParameters["use_for_local_refinement"].GetBool();
 
     std::string iga_model_part_name = mThisParameters["model_part_name"].GetString();
     std::string skin_model_part_inner_initial_name = mThisParameters["skin_model_part_inner_initial_name"].GetString();
@@ -69,8 +70,12 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates(bool RemoveIslands)
     // skin model part may have nodes if imported from an stl file or geometries if imported from a nurbs file
     if (mpSkinModelPartInnerInitial->NumberOfNodes()>0 || mpSkinModelPartInnerInitial->NumberOfGeometries()>0) 
     {
-        if (!mpSkinModelPartInnerInitial->HasProperties(0)) mpSkinModelPartInnerInitial->CreateNewProperties(0);
-        if (!mpSkinModelPart->HasProperties(0)) mpSkinModelPart->CreateNewProperties(0);
+        if (!mpSkinModelPartInnerInitial->RecursivelyHasProperties(0)) {
+            mpSkinModelPartInnerInitial->CreateNewProperties(0);
+        }
+        if (!mpSkinModelPart->RecursivelyHasProperties(0)) {
+            mpSkinModelPart->CreateNewProperties(0);
+        }
         // template argument IsInnerLoop set true
         CreateTheSnakeCoordinates<true>(*mpSkinModelPartInnerInitial, mNumberOfInnerLoops, mLambdaInner, mEchoLevel, *mpIgaModelPart, *mpSkinModelPart, mNumberInitialPointsIfImportingNurbs, 
                                          RemoveIslands, mCreateSurrOuterFromSurrInner, false);            
@@ -81,8 +86,12 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates(bool RemoveIslands)
     // } else {
         // Normal case sbm from imported skin
         if (mpSkinModelPartOuterInitial->NumberOfNodes()>0 || mpSkinModelPartOuterInitial->NumberOfGeometries()>0) {
-            if (!mpSkinModelPartOuterInitial->HasProperties(0)) mpSkinModelPartOuterInitial->CreateNewProperties(0);
-            if (!mpSkinModelPart->HasProperties(0)) mpSkinModelPart->CreateNewProperties(0);
+            if (!mpSkinModelPartOuterInitial->RecursivelyHasProperties(0)) {
+                mpSkinModelPartOuterInitial->CreateNewProperties(0);
+            }
+            if (!mpSkinModelPart->RecursivelyHasProperties(0)) {
+                mpSkinModelPart->CreateNewProperties(0);
+            }
             // template argument IsInnerLoop set false
             CreateTheSnakeCoordinates<false>(*mpSkinModelPartOuterInitial, 1, mLambdaOuter, mEchoLevel, *mpIgaModelPart, *mpSkinModelPart, mNumberInitialPointsIfImportingNurbs, false, false, mCreateSurrInnerFromSurrOuter);
         }
@@ -213,7 +222,7 @@ void SnakeSbmProcess::GenerateOuterInitialFromSurrogateInner()
     auto& r_out = *pSkinModelPartOuterInitialFromOuter;
 
     r_out.Clear();
-    if (!r_out.HasProperties(0)) r_out.CreateNewProperties(0);
+    if (!r_out.RecursivelyHasProperties(0)) r_out.CreateNewProperties(0);
     auto p_props = r_out.pGetProperties(0);
 
     double cx = 0.0, cy = 0.0; std::size_t n_nodes = 0;
@@ -388,8 +397,8 @@ void SnakeSbmProcess::GenerateOuterInitialFromSurrogateInner()
     }
 
     if (pSkinModelPartOuterInitialFromOuter->NumberOfNodes()>0 || pSkinModelPartOuterInitialFromOuter->NumberOfGeometries()>0) {
-        if (!pSkinModelPartOuterInitialFromOuter->HasProperties(0)) pSkinModelPartOuterInitialFromOuter->CreateNewProperties(0);
-        if (!mpSkinModelPart->HasProperties(0)) mpSkinModelPart->CreateNewProperties(0);
+        if (!pSkinModelPartOuterInitialFromOuter->RecursivelyHasProperties(0)) pSkinModelPartOuterInitialFromOuter->CreateNewProperties(0);
+        if (!mpSkinModelPart->RecursivelyHasProperties(0)) mpSkinModelPart->CreateNewProperties(0);
         CreateTheSnakeCoordinates<false>(*pSkinModelPartOuterInitialFromOuter, 1, mLambdaOuter, mEchoLevel, *mpIgaModelPart, *mpSkinModelPart, mNumberInitialPointsIfImportingNurbs, false, false, false);
     }
 }
@@ -765,6 +774,11 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates(
         const int number_initial_points_if_importing_nurbs = NumberInitialPointsIfImportingNurbs; 
         int first_node_id = r_skin_sub_model_part.GetRootModelPart().NumberOfNodes()+1;
         const std::size_t n_boundary_curves = rSkinModelPartInitial.NumberOfGeometries();
+        std::vector<ModelPart::IndexType> boundary_curve_ids;
+        boundary_curve_ids.reserve(n_boundary_curves);
+        for (const auto& r_geometry : rSkinModelPartInitial.Geometries()) {
+            boundary_curve_ids.push_back(r_geometry.Id());
+        }
 
         // Reorder curves to form a single closed loop: each curve's start must match previous curve's end (within tol)
         const double tol = 1e-7;
@@ -775,9 +789,12 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates(
         // Precompute start/end coordinates for each curve (local t=0 and t=1)
         std::vector<CoordinatesArrayType> starts(n_boundary_curves), ends(n_boundary_curves);
         for (IndexType i = 0; i < n_boundary_curves; ++i) {
-            auto p_geom = rSkinModelPartInitial.pGetGeometry(i);
+            const auto boundary_curve_id = boundary_curve_ids[i];
+            auto p_geom = rSkinModelPartInitial.pGetGeometry(boundary_curve_id);
             NurbsCurveGeometryPointerType p_curve_i = std::dynamic_pointer_cast<Kratos::NurbsCurveGeometry<2, Kratos::PointerVector<Kratos::Node>>>(p_geom);
-            KRATOS_ERROR_IF_NOT(p_curve_i) << "NURBS curve " << i << " not defined in the initial Model Part. Check the importNurbsSbmModeler." << std::endl;
+            KRATOS_ERROR_IF_NOT(p_curve_i)
+                << "NURBS curve " << boundary_curve_id
+                << " not defined in the initial Model Part. Check the importNurbsSbmModeler." << std::endl;
             CoordinatesArrayType local0 = ZeroVector(3);
             CoordinatesArrayType local1 = ZeroVector(3); local1[0] = 1.0;
             starts[i].resize(3,false); ends[i].resize(3,false);
@@ -818,10 +835,10 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates(
                                                          
         for (IndexType i_ordered = 0; i_ordered < n_boundary_curves; i_ordered++) 
         {
-            const IndexType i_boundary_curve = ordered_indices[i_ordered];
-            NurbsCurveGeometryPointerType p_curve = std::dynamic_pointer_cast<Kratos::NurbsCurveGeometry<2, Kratos::PointerVector<Kratos::Node>>>(rSkinModelPartInitial.pGetGeometry(i_boundary_curve));
+            const auto boundary_curve_id = boundary_curve_ids[ordered_indices[i_ordered]];
+            NurbsCurveGeometryPointerType p_curve = std::dynamic_pointer_cast<Kratos::NurbsCurveGeometry<2, Kratos::PointerVector<Kratos::Node>>>(rSkinModelPartInitial.pGetGeometry(boundary_curve_id));
             if (!p_curve) 
-                KRATOS_ERROR << "NURBS curve " << i_boundary_curve << " not defined in the initial Model Part. Check the importNurbsSbmModeler." << std::endl;
+                KRATOS_ERROR << "NURBS curve " << boundary_curve_id << " not defined in the initial Model Part. Check the importNurbsSbmModeler." << std::endl;
 
             // first point
             CoordinatesArrayType first_point_coords(3);
@@ -961,7 +978,7 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates(
                 first_point_coords = second_point_coords;
             }
             // check the last point of the curve
-            if (norm_2(second_point_coords - r_skin_sub_model_part.GetNode(first_node_id)) < 1e-15)
+            if (norm_2(second_point_coords - r_skin_sub_model_part.GetNode(first_node_id)) < 1e-12)
             {
                 const int last_node_id = r_skin_sub_model_part.GetRootModelPart().NumberOfNodes();
                 Condition* p_closing_condition = nullptr;
@@ -1368,6 +1385,9 @@ void SnakeSbmProcess::SnakeStepNurbs(
         if (rpCurve) {
             if (rpCurve->Has(BREP_ID)) {
                 p_cond->SetValue(BREP_ID, rpCurve->GetValue(BREP_ID));
+            }
+            if (rpCurve->Has(BREP_MODEL_PART_FULL_NAME)) {
+                p_cond->SetValue(BREP_MODEL_PART_FULL_NAME, rpCurve->GetValue(BREP_MODEL_PART_FULL_NAME));
             }
         }
         rSkinModelPart.AddCondition(p_cond);
@@ -1834,6 +1854,8 @@ void SnakeSbmProcess::CreateSurrogateBuondaryFromSnakeInner(
     ensure_dummy_node(id_surrogate_last_condition, 1.0, 0.0, 0.0);
     std::vector<ModelPart::IndexType> elem_nodes{id_surrogate_first_condition, id_surrogate_last_condition};
     rSurrogateModelPartInner.CreateNewElement("Element2D2N", elem_id, elem_nodes, p_cond_prop);
+
+    SetSurrogateNormals(rSurrogateModelPartInner);
 }
 
 
@@ -2095,6 +2117,53 @@ void SnakeSbmProcess::CreateSurrogateBuondaryFromSnakeOuter(
             }
         }
     }
+
+    SetSurrogateNormals(rSurrogateModelPartOuter);
+}
+
+void SnakeSbmProcess::SetSurrogateNormals(
+    ModelPart& rSurrogateModelPart)
+{
+    for (auto& r_node : rSurrogateModelPart.Nodes()) {
+        r_node.SetValue(NORMAL, ZeroVector(3));
+    }
+
+    std::unordered_set<IndexType> initialized_node_ids;
+    initialized_node_ids.reserve(rSurrogateModelPart.NumberOfNodes());
+
+    for (auto& r_condition : rSurrogateModelPart.Conditions()) {
+        auto& r_geometry = r_condition.GetGeometry();
+        if (r_geometry.PointsNumber() != 2) {
+            continue;
+        }
+
+        array_1d<double, 3> normal = ZeroVector(3);
+        normal[0] = r_geometry[1].Y() - r_geometry[0].Y();
+        normal[1] = r_geometry[0].X() - r_geometry[1].X();
+
+        const double normal_norm = norm_2(normal);
+        if (normal_norm <= std::numeric_limits<double>::epsilon()) {
+            continue;
+        }
+
+        normal /= normal_norm;
+
+        if (r_condition.Is(BOUNDARY)) {
+            normal *= -1.0;
+        }
+
+        for (IndexType i_node = 0; i_node < 2; ++i_node) {
+            auto& r_node = r_geometry[i_node];
+            if (initialized_node_ids.insert(r_node.Id()).second) {
+                r_node.SetValue(NORMAL, normal);
+            } else {
+                array_1d<double, 3> averaged_normal = r_node.GetValue(NORMAL);
+                averaged_normal += normal;
+                averaged_normal /= 2.0;
+                r_node.SetValue(NORMAL, averaged_normal);
+            }
+        }
+    }
 }
 
 std::vector<std::vector<int>> SnakeSbmProcess::GenerateOuterSurrogateFromInnerKnotSpansAvailable(
@@ -2242,7 +2311,7 @@ std::vector<std::vector<int>> SnakeSbmProcess::GenerateInnerSurrogateFromOuterKn
         << " cols=" << column_count << std::endl;
     std::vector<std::vector<int>> merged_outer = rOuterKnotSpansAvailable.front();
 
-    constexpr int refinement_patch_size = 3; //FIXME:
+    constexpr int refinement_patch_size = 3 ; //FIXME:
     std::vector<std::vector<int>> inner_knot_spans(row_count, std::vector<int>(column_count, 0));
 
     auto in_bounds = [row_count, column_count](const int row, const int column) {
@@ -2799,15 +2868,15 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates3D()
 {   
     // Initilize the property of skin_model_part_in and out
     if (mpSkinModelPartInnerInitial->NumberOfNodes()>0) {
-        if (!mpSkinModelPartInnerInitial->HasProperties(0)) mpSkinModelPartInnerInitial->CreateNewProperties(0);
-        if (!mpSkinModelPart->HasProperties(0)) mpSkinModelPart->CreateNewProperties(0);
+        if (!mpSkinModelPartInnerInitial->RecursivelyHasProperties(0)) mpSkinModelPartInnerInitial->CreateNewProperties(0);
+        if (!mpSkinModelPart->RecursivelyHasProperties(0)) mpSkinModelPart->CreateNewProperties(0);
         // template argument IsInnerLoop set true
         CreateTheSnakeCoordinates3D<true>(*mpSkinModelPartInnerInitial, mNumberOfInnerLoops, mLambdaInner, mEchoLevel, *mpIgaModelPart, *mpSkinModelPart);
             
     }
     if (mpSkinModelPartOuterInitial->NumberOfNodes()>0) {
-        if (!mpSkinModelPartOuterInitial->HasProperties(0)) mpSkinModelPartOuterInitial->CreateNewProperties(0);
-        if (!mpSkinModelPart->HasProperties(0)) mpSkinModelPart->CreateNewProperties(0);
+        if (!mpSkinModelPartOuterInitial->RecursivelyHasProperties(0)) mpSkinModelPartOuterInitial->CreateNewProperties(0);
+        if (!mpSkinModelPart->RecursivelyHasProperties(0)) mpSkinModelPart->CreateNewProperties(0);
         // template argument IsInnerLoop set false
         CreateTheSnakeCoordinates3D<false>(*mpSkinModelPartOuterInitial, 1, mLambdaOuter, mEchoLevel, *mpIgaModelPart, *mpSkinModelPart);
     }

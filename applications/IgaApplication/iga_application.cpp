@@ -60,6 +60,8 @@ KratosIgaApplication::KratosIgaApplication()
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
     , mSolidCouplingCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
+    , mGapSbmSolidCouplingCondition(0, Condition::GeometryType::Pointer(
+        new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
     , mFluidCouplingCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
     , mSupportPenaltyCondition(0, Condition::GeometryType::Pointer(
@@ -142,6 +144,7 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_CONDITION("CouplingNitscheCondition", mCouplingNitscheCondition)
     KRATOS_REGISTER_CONDITION("LaplacianCouplingCondition", mLaplacianCouplingCondition)
     KRATOS_REGISTER_CONDITION("SolidCouplingCondition", mSolidCouplingCondition)
+    KRATOS_REGISTER_CONDITION("GapSbmSolidCouplingCondition", mGapSbmSolidCouplingCondition)
     KRATOS_REGISTER_CONDITION("FluidCouplingCondition", mFluidCouplingCondition)
     KRATOS_REGISTER_CONDITION("SupportPenaltyCondition", mSupportPenaltyCondition)
     KRATOS_REGISTER_CONDITION("SupportLagrangeCondition", mSupportLagrangeCondition)
@@ -177,6 +180,7 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_MODELER("ImportNurbsSbmModeler", mImportNurbsSbmModeler);
     KRATOS_REGISTER_MODELER("PatchSubdivisionModeler", mPatchSubdivisionModeler);
     KRATOS_REGISTER_MODELER("MultipatchModeler", mMultipatchModeler);
+    KRATOS_REGISTER_MODELER("LocalRefinementModeler", mLocalRefinementModeler);
 
     // VARIABLES
     KRATOS_REGISTER_VARIABLE(CROSS_AREA)
@@ -275,6 +279,7 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_VARIABLE(INTEGRATION_POINTS_NORMAL)
     KRATOS_REGISTER_VARIABLE(INTEGRATION_WEIGHTS)
     KRATOS_REGISTER_VARIABLE(BREP_ID)
+    KRATOS_REGISTER_VARIABLE(BREP_MODEL_PART_FULL_NAME)
 
     KRATOS_REGISTER_VARIABLE(RESULTS_ON_TRUE_BOUNDARY)
     KRATOS_REGISTER_VARIABLE(PROJECTION_NODE_COORDINATES)

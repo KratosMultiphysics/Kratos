@@ -394,8 +394,11 @@ void AssignIgaExternalConditionsProcess::ExpandElementConditionList()
             for (auto& rPatch : r_root.SubModelParts()) {
                 const std::string& patch_name = rPatch.Name();                 // <-- define it
                 if (patch_name.rfind(patch_prefix, 0) != 0)                    // starts-with check
+                {                   
+                    KRATOS_ERROR << "AssignIgaExternalConditionsProcess: Target model part '" << patch_name << "' does not exist." << std::endl;
                     continue;
-
+                }
+                
                 const std::string full_target = rPatch.FullName() + "." + suffix;
                 if (!mpModel->HasModelPart(full_target))
                     continue; // skip missing children

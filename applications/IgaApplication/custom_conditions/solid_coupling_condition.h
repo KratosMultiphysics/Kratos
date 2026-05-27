@@ -121,7 +121,7 @@ public:
         return GeometryData::IntegrationMethod::GI_GAUSS_1;
     }
 
-private:
+protected:
     friend class Serializer;
 
     void save(Serializer& rSerializer) const override
@@ -142,6 +142,43 @@ private:
     void GetSolutionCoefficientVectorA(Vector& rValues) const;
 
     void GetSolutionCoefficientVectorB(Vector& rValues) const;
+
+    virtual const GeometryType& GetTrueGeometry() const
+    {
+        return GetGeometry();
+    }
+
+    virtual const GeometryType& GetGeometryA() const
+    {
+        return GetGeometry();
+    }
+
+    virtual const GeometryType& GetGeometryB() const
+    {
+        return GetGeometryMirror();
+    }
+
+    virtual const GeometryType& GetConstitutiveGeometryA() const
+    {
+        return GetGeometryA();
+    }
+
+    virtual const GeometryType& GetConstitutiveGeometryB() const
+    {
+        return GetGeometryB();
+    }
+
+    virtual bool ShiftGeometryA() const
+    {
+        return false;
+    }
+
+    virtual bool ShiftGeometryB() const
+    {
+        return mIsGapSbmCoupling;
+    }
+
+    void InitializeShiftVectors();
 
     const GeometryType& GetGeometryMirror() const
     {
@@ -189,6 +226,7 @@ private:
     unsigned int mDim = 0;
     IndexType mBasisFunctionsOrder = 0;
     bool mIsGapSbmCoupling = false;
+    Vector mDistanceVectorA;
     Vector mDistanceVectorB;
     double mPenalty = 0.0;
     double mNitschePenalty = 1.0;

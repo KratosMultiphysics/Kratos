@@ -44,6 +44,7 @@
 #include "custom_conditions/coupling_nitsche_condition.h"
 #include "custom_conditions/laplacian_coupling_condition.h"
 #include "custom_conditions/solid_coupling_condition.h"
+#include "custom_conditions/gap_sbm_solid_coupling_condition.h"
 #include "custom_conditions/fluid_coupling_condition.h"
 #include "custom_conditions/support_penalty_condition.h"
 #include "custom_conditions/support_lagrange_condition.h"
@@ -85,6 +86,7 @@
 #include "custom_modelers/import_nurbs_sbm_modeler.h"
 #include "custom_modelers/patch_subdivision_modeler.h"
 #include "custom_modelers/multipatch_modeler.h"
+#include "custom_modelers/local_refinement_modeler.h"
 
 namespace Kratos {
 
@@ -182,6 +184,7 @@ private:
     const CouplingNitscheCondition mCouplingNitscheCondition;
     const LaplacianCouplingCondition mLaplacianCouplingCondition;
     const SolidCouplingCondition mSolidCouplingCondition;
+    const GapSbmSolidCouplingCondition mGapSbmSolidCouplingCondition;
     const FluidCouplingCondition mFluidCouplingCondition;
     const SupportPenaltyCondition mSupportPenaltyCondition;
     const SupportLagrangeCondition mSupportLagrangeCondition;
@@ -216,6 +219,7 @@ private:
     const ImportNurbsSbmModeler mImportNurbsSbmModeler;
     const PatchSubdivisionModeler mPatchSubdivisionModeler;
     const MultipatchModeler mMultipatchModeler;
+    const LocalRefinementModeler mLocalRefinementModeler;
 
     ///@}
     ///@name Private methods
