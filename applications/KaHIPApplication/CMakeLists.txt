@@ -173,6 +173,10 @@ kratos_python_install(
     ${CMAKE_CURRENT_SOURCE_DIR}/KaHIPApplication.py
     KratosMultiphysics/KaHIPApplication/__init__.py)
 
+kratos_python_install_directory(${INSTALL_PYTHON_USING_LINKS}
+    "${CMAKE_CURRENT_SOURCE_DIR}/python_scripts/"
+    KratosMultiphysics/KaHIPApplication)
+
 # ── Test data install ─────────────────────────────────────────────────────────
 if(${INSTALL_TESTING_FILES} MATCHES ON)
     get_filename_component(CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
