@@ -64,6 +64,10 @@ std::vector<int> KaHIPPartitioner::PartitionGraph(
         << "KaHIPPartitioner: xadj size " << rXAdj.size()
         << " != n+1 = " << (NGraphVertices + 1) << std::endl;
 
+    // kaffpa takes non-const pointers; make local copies of the const parameters
+    int n_vertices   = NGraphVertices;
+    int n_parts      = NumPartitions;
+
     // Pointers for optional weight arrays (nullptr triggers KaHIP uniform weighting)
     int*        p_vwgt    = rVWgt.empty()    ? nullptr : rVWgt.data();
     kahip_idx*  p_adjcwgt = rAdjcWgt.empty() ? nullptr : rAdjcWgt.data();
@@ -80,12 +84,12 @@ std::vector<int> KaHIPPartitioner::PartitionGraph(
         kahip_idx edgecut = 0;
 
         kaffpa(
-            &NGraphVertices,
+            &n_vertices,
             p_vwgt,
             rXAdj.data(),
             p_adjcwgt,
             rAdjncy.data(),
-            &NumPartitions,
+            &n_parts,
             &imbalance,
             mSuppressOutput,
             seed,
@@ -104,7 +108,7 @@ std::vector<int> KaHIPPartitioner::PartitionGraph(
     }
 
     KRATOS_INFO("KaHIPPartitioner")
-        << "Partitioned graph (" << n << " nodes, " << NumPartitions
+        << "Partitioned graph (" << NGraphVertices << " nodes, " << NumPartitions
         << " parts): best edge cut = " << best_cut
         << " (over " << mNumTrials << " trial(s))" << std::endl;
 
