@@ -74,6 +74,7 @@ from test_mpm_write_energy_output_process   import TestMPMWriteEnergyOutputProce
 from test_static_loading_conditions_point   import TestStaticLoadingConditionsPoint   as TTestStaticLoadingConditionsPoint
 from test_static_loading_conditions_line    import TestStaticLoadingConditionsLine    as TTestStaticLoadingConditionsLine
 from test_static_loading_conditions_surface import TestStaticLoadingConditionsSurface as TTestStaticLoadingConditionsSurface
+from test_nodal_cauchy_stress               import TestCauchyStressProjectionMPM      as TTestNodalCauchyStress
 from test_interpolate_body_force            import TestBodyForceInterpolationMPM      as TTestBodyForceInterpolation
 
 
@@ -105,6 +106,8 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestSearchMPElement]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestSearchMPCondition]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestMPMVtkOutputProcess]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestNodalCauchyStress]))
+
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestMPMWriteEnergyOutputProcess]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestBodyForceInterpolation]))
     
