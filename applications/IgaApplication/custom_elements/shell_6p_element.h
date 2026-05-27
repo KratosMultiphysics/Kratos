@@ -264,9 +264,6 @@ private:
     /// The vector containing the constitutive laws for all integration points.
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
 
-    // curvilinear coordinate zeta (theta3)
-    double mZeta;
-
     /// @brief Informations regarding the Gauss-quadrature in thickness direction
     struct GaussQuadratureThickness
     {

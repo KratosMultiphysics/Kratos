@@ -107,7 +107,7 @@ namespace Kratos
             
             for (IndexType Gauss_index = 0; Gauss_index < mGaussIntegrationThickness.num_GP_thickness; Gauss_index++)
             {
-                mZeta = mGaussIntegrationThickness.zeta(Gauss_index);
+                const double zeta = mGaussIntegrationThickness.zeta(Gauss_index);
 
                 // Compute the Jacobian matrix at the initial Gauss point in thickness direction
                 Matrix jacobian = ZeroMatrix(3,3);
@@ -115,8 +115,8 @@ namespace Kratos
                 double jacobian_det = 0.0;
 
                 for (int i = 0; i < 3; i++) {
-                    jacobian(0, i) = kinematic_variables.BaseVector1[i] + (thickness/2) * mZeta * normal_vector_derivatives(0, i); 
-                    jacobian(1, i) = kinematic_variables.BaseVector2[i] + (thickness/2) * mZeta * normal_vector_derivatives(1, i) ; 
+                    jacobian(0, i) = kinematic_variables.BaseVector1[i] + (thickness/2) * zeta * normal_vector_derivatives(0, i); 
+                    jacobian(1, i) = kinematic_variables.BaseVector2[i] + (thickness/2) * zeta * normal_vector_derivatives(1, i) ; 
                     jacobian(2, i) = kinematic_variables.NormalVector[i] * (thickness/2) ;
                 }
 
@@ -361,7 +361,7 @@ namespace Kratos
             for (IndexType Gauss_index = 0; Gauss_index < mGaussIntegrationThickness.num_GP_thickness; Gauss_index++)
             {
                 // Retrieve zeta for the current Gauss point in thickness direction
-                mZeta = mGaussIntegrationThickness.zeta(Gauss_index);
+                const double zeta = mGaussIntegrationThickness.zeta(Gauss_index);
 
                 // Compute the Jacobian matrix at the current Gauss point in thickness direction
                 Matrix jacobian = ZeroMatrix(3,3);
@@ -369,8 +369,8 @@ namespace Kratos
                 double jacobian_det = 0.0;
 
                 for (int i = 0; i < 3; i++) {
-                    jacobian(0, i) = kinematic_variables.BaseVector1[i] + (thickness/2) * mZeta * normal_vector_derivatives(0, i); 
-                    jacobian(1, i) = kinematic_variables.BaseVector2[i] + (thickness/2) * mZeta * normal_vector_derivatives(1, i) ; 
+                    jacobian(0, i) = kinematic_variables.BaseVector1[i] + (thickness/2) * zeta * normal_vector_derivatives(0, i); 
+                    jacobian(1, i) = kinematic_variables.BaseVector2[i] + (thickness/2) * zeta * normal_vector_derivatives(1, i) ; 
                     jacobian(2, i) = kinematic_variables.NormalVector[i] * (thickness/2) ;
                 }
 
@@ -378,7 +378,7 @@ namespace Kratos
 
                 // Compute the b-operator at the current Gauss point in thickness direction
                 Matrix b_operator = ZeroMatrix(6, mat_size);
-                CalculateBOperator(point_number, b_operator, mZeta, jacobian_inv, normal_vector_derivatives, kinematic_variables);
+                CalculateBOperator(point_number, b_operator, zeta, jacobian_inv, normal_vector_derivatives, kinematic_variables);
 
                 strain_cauchy_cartesian[Gauss_index] = prod(b_operator, current_displacement);
                 stress_cauchy_cartesian[Gauss_index] = prod(constitutive_variables.ConstitutiveMatrix,strain_cauchy_cartesian[Gauss_index]);
@@ -580,7 +580,7 @@ namespace Kratos
             for (IndexType Gauss_index = 0; Gauss_index < mGaussIntegrationThickness.num_GP_thickness; Gauss_index++)
             {
                 // 3.1. Retrieve zeta for the current Gauss point in thickness direction
-                mZeta = mGaussIntegrationThickness.zeta(Gauss_index);
+                const double zeta = mGaussIntegrationThickness.zeta(Gauss_index);
 
                 // 3.2. Compute the Jacobian matrix at the current Gauss point in thickness direction
                 Matrix jacobian = ZeroMatrix(3,3);
@@ -588,15 +588,15 @@ namespace Kratos
                 double jacobian_det = 0.0;
 
                 for (int i = 0; i < 3; i++) {
-                    jacobian(0, i) = kinematic_variables.BaseVector1[i] + (thickness/2) * mZeta * normal_vector_derivatives(0, i); 
-                    jacobian(1, i) = kinematic_variables.BaseVector2[i] + (thickness/2) * mZeta * normal_vector_derivatives(1, i) ; 
+                    jacobian(0, i) = kinematic_variables.BaseVector1[i] + (thickness/2) * zeta * normal_vector_derivatives(0, i); 
+                    jacobian(1, i) = kinematic_variables.BaseVector2[i] + (thickness/2) * zeta * normal_vector_derivatives(1, i) ; 
                     jacobian(2, i) = kinematic_variables.NormalVector[i] * (thickness/2) ;
                 }
                 MathUtils<double>::InvertMatrix(jacobian, jacobian_inv, jacobian_det);
 
                 // 3.3. Material stiffness part
                 Matrix b_operator = ZeroMatrix(6, mat_size);
-                CalculateBOperator(point_number, b_operator, mZeta, jacobian_inv, normal_vector_derivatives, kinematic_variables);
+                CalculateBOperator(point_number, b_operator, zeta, jacobian_inv, normal_vector_derivatives, kinematic_variables);
 
                 // 3.4. Drilling stiffness part
                 Matrix b_drilling = ZeroMatrix(1, mat_size);
@@ -609,7 +609,7 @@ namespace Kratos
                 CalculateStressMatrix(constitutive_variables.StressVector,stress_matrix);
 
                 Matrix b_geometric = ZeroMatrix(9, mat_size);
-                CalculateBGeometric(point_number, b_geometric, mZeta, jacobian_inv, normal_vector_derivatives, kinematic_variables);
+                CalculateBGeometric(point_number, b_geometric, zeta, jacobian_inv, normal_vector_derivatives, kinematic_variables);
                 
                 // 3.6. Compute the integration weight 
                 double integration_weight = r_integration_points[point_number].Weight() * mJacobianThicknessDeterminant[point_number][Gauss_index]
@@ -740,8 +740,8 @@ namespace Kratos
         const Matrix& r_DDN_DDe = GetGeometry().ShapeFunctionDerivatives(2, IntegrationPointIndex, GetGeometry().GetDefaultIntegrationMethod());
 
         // Get the area of the element
-        double inv_differential_area = 1 / rKinematicVariables.DifferentialArea;
-        double inv_differential_area_cube = 1 / std::pow(rKinematicVariables.DifferentialArea, 3);
+        double inv_differential_area = 1 / mDifferentialAreaVector[IntegrationPointIndex];
+        double inv_differential_area_cube = 1 / std::pow(mDifferentialAreaVector[IntegrationPointIndex], 3);
 
         // Compute base vector derivatives
         array_1d<double, 3> base_vector1_derivative_11;
