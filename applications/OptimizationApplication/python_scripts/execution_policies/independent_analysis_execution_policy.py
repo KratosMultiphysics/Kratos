@@ -49,7 +49,7 @@ class IndependentAnalysisExecutionPolicy(ExecutionPolicy):
             }
         }""")
 
-        parameters.RecursivelyValidateAndAssignDefaults(default_settings)
+        parameters.ValidateAndAssignDefaults(default_settings)
 
         self.analysis_module = parameters["analysis_module"].GetString()
         self.analysis_type = parameters["analysis_type"].GetString()
@@ -137,7 +137,7 @@ class IndependentAnalysisExecutionPolicy(ExecutionPolicy):
 
             self.current_analysis.Run()
 
-    def GetPath(self) -> str:
+    def GetPath(self) -> Path:
         return self.analysis_path
 
     def GetAnalysisModelPart(self):

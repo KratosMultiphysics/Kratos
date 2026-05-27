@@ -1,4 +1,5 @@
 from importlib import import_module
+from pathlib import Path
 
 import KratosMultiphysics as Kratos
 from KratosMultiphysics.analysis_stage import AnalysisStage
@@ -84,5 +85,6 @@ class SteppingAnalysisExecutionPolicy(ExecutionPolicy):
             model_part.ProcessInfo.SetValue(Kratos.TIME, time_before_analysis[index])
             model_part.ProcessInfo.SetValue(Kratos.DELTA_TIME, delta_time_before_analysis[index])
 
-
+    def GetPath(self) -> str:
+        return Path(".").absolute()
 
