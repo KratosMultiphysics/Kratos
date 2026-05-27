@@ -74,7 +74,9 @@ void AddCustomProcessesToPython(pybind11::module& m)
         .def(py::init<IO&, ModelPartIO&, const DataCommunicator&>())
         .def(py::init<IO&, ModelPartIO&, const DataCommunicator&, int>())
         .def(py::init<IO&, ModelPartIO&, const DataCommunicator&, int, int>())
-        .def(py::init<IO&, ModelPartIO&, const DataCommunicator&, int, int, bool>())
+        .def(py::init<IO&, ModelPartIO&, const DataCommunicator&, int, int, bool>(),
+             py::arg("io"), py::arg("serial_io"), py::arg("data_communicator"),
+             py::arg("dimension"), py::arg("verbosity"), py::arg("synchronize_conditions"))
         ;
 }
 
