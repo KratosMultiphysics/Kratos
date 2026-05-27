@@ -43,8 +43,14 @@ serving as a drop-in alternative to `MetisApplication`. It:
 # Enable the application (add to configure.sh or cmake command line)
 add_app ${KRATOS_APP_DIR}/KaHIPApplication
 
-# Optional: point to a system or custom KaHIP installation
+# Optional: point to a system or custom KaHIP installation.
+# When not set, KaHIP is automatically cloned from GitHub into
+# external_libraries/KaHIP/ and built using the configure.sh script
+# bundled in custom_external_libraries/KaHIP/.
 -DKAHIP_ROOT=/path/to/kahip/build
+
+# Optional: disable the auto-download (error out if KaHIP is not found)
+-DKAHIP_DOWNLOAD_IF_NOT_FOUND=OFF
 
 # Optional: enable 64-bit edge indices (for meshes with > 2^31 edge entries)
 -DKAHIP_64BIT=ON
@@ -52,6 +58,18 @@ add_app ${KRATOS_APP_DIR}/KaHIPApplication
 # Optional: disable ParHIP (MPI-parallel partitioning)
 -DKAHIP_USE_PARHIP=OFF
 ```
+
+### Auto-download behaviour
+
+If `KAHIP_ROOT` is not set and no system KaHIP is found, CMake automatically:
+
+1. Clones the KaHIP repository into `external_libraries/KaHIP/`.
+2. Copies `custom_external_libraries/KaHIP/configure.sh` into the build
+   directory and invokes it (`--no-native`; `--no-mpi` unless `USE_MPI=ON`).
+3. Points `KAHIP_ROOT` at the resulting `external_libraries/KaHIP/deploy/`
+   directory for subsequent builds (no re-download once the source is present).
+
+Disable with `-DKAHIP_DOWNLOAD_IF_NOT_FOUND=OFF`.
 
 ---
 
@@ -218,3 +236,45 @@ python kratos_run_tests.py --level mpi_small      # MPI (requires mpirun)
 # C++ unit tests (requires KRATOS_BUILD_TESTING=ON)
 ctest -R KaHIPApplication --verbose
 ```
+
+---
+
+## Partition quality comparison
+
+`python_scripts/compute_partition_quality.py` benchmarks all KaHIP
+preconfigurations — and METIS if `MetisApplication` is available — on any
+`.mdpa` mesh.  Three metrics are measured: edge cut, load imbalance, and
+partition time.  Results are printed as a table and saved as a multi-panel
+matplotlib figure.
+
+```bash
+# Default: test_examples/cube.mdpa, 4 partitions
+python applications/KaHIPApplication/python_scripts/compute_partition_quality.py
+
+# Custom mesh and partition count
+python .../compute_partition_quality.py --mesh path/to/mesh.mdpa --partitions 8
+
+# Include social-graph preconfigurations and run 3 trials per strategy
+python .../compute_partition_quality.py --include-social --num-trials 3
+
+# Save figure to a custom path
+python .../compute_partition_quality.py --output results/quality.png
+```
+
+See [`doc/quality_comparison.md`](doc/quality_comparison.md) for the full
+option reference and an explanation of the output format.
+
+---
+
+## Test examples
+
+The `test_examples/` directory contains example `.mdpa` meshes for
+local testing and benchmarking (identical to the ones in
+`MetisApplication/tests/`):
+
+| File | Nodes | Elements | Conditions |
+|---|---|---|---|
+| `cube.mdpa` | 413 | 1 191 | 780 |
+| `quads.mdpa` | small 2-D quad mesh | — | — |
+
+These are the default inputs for the quality comparison script.
