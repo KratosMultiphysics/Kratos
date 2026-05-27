@@ -9,17 +9,18 @@ This documentation covers the KaHIP graph partitioning framework in depth: its a
 
 ## Document Index
 
-| Document                                 | Description                                                  |
-|------------------------------------------|--------------------------------------------------------------|
-| [architecture.md](architecture.md)       | Library architecture, module layout, data flow               |
-| [build.md](build.md)                     | Building from source: CMake options, dependencies, platforms |
-| [api_serial.md](api_serial.md)           | Serial C/C++ API reference (kaHIP_interface.h)               |
-| [api_parallel.md](api_parallel.md)       | Parallel API reference (parhip_interface.h, kaffpaE)         |
-| [algorithms.md](algorithms.md)           | Algorithm descriptions: KaFFPa, ParHIP, KaBaPE, etc.         |
-| [graph_format.md](graph_format.md)       | Input/output graph file formats (METIS, BGF)                 |
-| [configuration.md](configuration.md)     | All configuration parameters and preconfigurations           |
-| [python_bindings.md](python_bindings.md) | Python interface and usage                                   |
-| [examples.md](examples.md)               | Complete usage examples for all major features               |
+| Document                                           | Description                                                  |
+|----------------------------------------------------|--------------------------------------------------------------|
+| [architecture.md](architecture.md)                 | Library architecture, module layout, data flow               |
+| [build.md](build.md)                               | Building from source: CMake options, dependencies, platforms |
+| [api_serial.md](api_serial.md)                     | Serial C/C++ API reference (kaHIP_interface.h)               |
+| [api_parallel.md](api_parallel.md)                 | Parallel API reference (parhip_interface.h, kaffpaE)         |
+| [algorithms.md](algorithms.md)                     | Algorithm descriptions: KaFFPa, ParHIP, KaBaPE, etc.         |
+| [graph_format.md](graph_format.md)                 | Input/output graph file formats (METIS, BGF)                 |
+| [configuration.md](configuration.md)               | All configuration parameters and preconfigurations           |
+| [python_bindings.md](python_bindings.md)           | Python interface and usage                                   |
+| [examples.md](examples.md)                         | Complete usage examples for all major features               |
+| [quality_comparison.md](quality_comparison.md)     | Partition quality comparison tool — usage and output format  |
 
 ---
 
