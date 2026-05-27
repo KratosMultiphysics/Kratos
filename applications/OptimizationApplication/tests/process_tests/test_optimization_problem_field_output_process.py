@@ -70,6 +70,8 @@ class TestOptimizationProblemFieldOutputProcess(kratos_unittest.TestCase):
             return None
         def Execute(self) -> None:
             pass
+        def GetPath(self):
+            return "."
 
     @classmethod
     def setUpClass(cls) -> None:
