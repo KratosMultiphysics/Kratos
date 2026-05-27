@@ -268,13 +268,27 @@ option reference and an explanation of the output format.
 
 ## Test examples
 
-The `test_examples/` directory contains example `.mdpa` meshes for
-local testing and benchmarking (identical to the ones in
-`MetisApplication/tests/`):
+The `test_examples/` directory contains example `.mdpa` meshes (identical to
+the ones in `MetisApplication/tests/`) and pre-generated benchmark plots:
 
 | File | Nodes | Elements | Conditions |
 |---|---|---|---|
 | `cube.mdpa` | 413 | 1 191 | 780 |
-| `quads.mdpa` | small 2-D quad mesh | — | — |
+| `quads.mdpa` | 25 | 16 | — |
+| `cube_partition_quality.png` | — | — | — |
+| `quads_partition_quality.png` | — | — | — |
 
-These are the default inputs for the quality comparison script.
+`cube.mdpa` is the default input for the quality comparison script.
+
+### Benchmark highlights (cube.mdpa, 4 partitions)
+
+| Strategy | Edge cut | Imbalance | Time (s) |
+|---|---|---|---|
+| fast | 423 | 1.0266 | 0.035 |
+| eco | 421 | 1.0266 | 0.078 |
+| strong | 439 | 1.0266 | 0.414 |
+| **metis** | **379** | **1.0266** | **0.018** |
+
+See [`test_examples/README.md`](test_examples/README.md) for the full tables
+and [`doc/quality_comparison.md`](doc/quality_comparison.md) for the tool
+reference.
