@@ -5,16 +5,79 @@ message("**** configuring KratosKaHIPApplication ****")
 include(pybind11Tools)
 
 # ── Locate KaHIP ──────────────────────────────────────────────────────────────
-# Extend the CMake module search path to find our bundled FindKaHIP.cmake first.
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+# FindKaHIP.cmake lives in cmake_modules/ (already on CMAKE_MODULE_PATH).
+# Search order: KAHIP_ROOT cache/env → external_libraries/KaHIP/deploy (auto-built)
+# → external_libraries/KaHIP/build → system paths → pkg-config.
 
-# Default: prefer the in-tree KaHIP build shipped under external_libraries/KaHIP
-if(NOT DEFINED KAHIP_ROOT AND NOT DEFINED ENV{KAHIP_ROOT})
-    set(KAHIP_ROOT "${KRATOS_SOURCE_DIR}/external_libraries/KaHIP/build"
-        CACHE PATH "KaHIP installation or build directory")
+option(KAHIP_DOWNLOAD_IF_NOT_FOUND
+    "Automatically clone and build KaHIP into external_libraries/KaHIP if not found" ON)
+
+find_package(KaHIP QUIET)
+
+if(NOT KAHIP_FOUND)
+    if(NOT KAHIP_DOWNLOAD_IF_NOT_FOUND)
+        message(FATAL_ERROR
+            "KaHIP not found and KAHIP_DOWNLOAD_IF_NOT_FOUND is OFF.\n"
+            "Set KAHIP_ROOT to a KaHIP build/install directory, or enable "
+            "KAHIP_DOWNLOAD_IF_NOT_FOUND to auto-build it.")
+    endif()
+
+    # ── Auto-download and build KaHIP ─────────────────────────────────────────
+    set(_kahip_src_dir   "${KRATOS_SOURCE_DIR}/external_libraries/KaHIP")
+    set(_kahip_build_dir "${_kahip_src_dir}/build")
+    set(_kahip_deploy_dir "${_kahip_src_dir}/deploy")
+
+    # Clone KaHIP source if not already present
+    if(NOT EXISTS "${_kahip_src_dir}/CMakeLists.txt")
+        message(STATUS "KaHIP not found – cloning from GitHub into ${_kahip_src_dir} ...")
+        execute_process(
+            COMMAND git clone --depth 1
+                    https://github.com/KaHIP/KaHIP.git "${_kahip_src_dir}"
+            RESULT_VARIABLE _kahip_clone_rc
+            ERROR_VARIABLE  _kahip_clone_err)
+        if(NOT _kahip_clone_rc EQUAL 0)
+            message(FATAL_ERROR "Failed to clone KaHIP:\n${_kahip_clone_err}")
+        endif()
+        message(STATUS "KaHIP cloned successfully.")
+    else()
+        message(STATUS "KaHIP source already present at ${_kahip_src_dir}.")
+    endif()
+
+    # Copy the provided configure.sh into the KaHIP build directory so that
+    # SOURCE_DIR (parent of SCRIPT_DIR) resolves to the KaHIP source root.
+    file(MAKE_DIRECTORY "${_kahip_build_dir}")
+    configure_file(
+        "${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/KaHIP/configure.sh"
+        "${_kahip_build_dir}/configure.sh"
+        COPYONLY)
+
+    # Forward MPI availability to the KaHIP build
+    if(USE_MPI MATCHES ON AND MPI_FOUND)
+        set(_kahip_mpi_args "")
+    else()
+        set(_kahip_mpi_args "--no-mpi")
+    endif()
+
+    # Build KaHIP at CMake configure time (synchronous)
+    message(STATUS "Building KaHIP – this may take a few minutes ...")
+    execute_process(
+        COMMAND bash configure.sh --no-native ${_kahip_mpi_args}
+        WORKING_DIRECTORY "${_kahip_build_dir}"
+        RESULT_VARIABLE _kahip_build_rc
+        OUTPUT_VARIABLE _kahip_build_out
+        ERROR_VARIABLE  _kahip_build_err)
+    if(NOT _kahip_build_rc EQUAL 0)
+        message(FATAL_ERROR
+            "KaHIP build failed (exit code ${_kahip_build_rc}):\n${_kahip_build_err}")
+    endif()
+    message(STATUS "KaHIP built successfully. Artifacts in ${_kahip_deploy_dir}")
+
+    # configure.sh deploys to <source>/deploy by default; point KAHIP_ROOT there
+    set(KAHIP_ROOT "${_kahip_deploy_dir}" CACHE PATH "KaHIP deploy directory" FORCE)
+
+    # Re-run find now that the library is in place
+    find_package(KaHIP REQUIRED)
 endif()
-
-find_package(KaHIP REQUIRED)
 
 message(STATUS "KaHIP include dir : ${KAHIP_INCLUDE_DIRS}")
 message(STATUS "KaHIP libraries   : ${KAHIP_LIBRARIES}")
