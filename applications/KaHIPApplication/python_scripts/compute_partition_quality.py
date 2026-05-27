@@ -21,7 +21,7 @@ Usage
 python compute_partition_quality.py \\
     [--mesh PATH_TO_MDPA]   (default: test_examples/cube.mdpa)
     [--partitions K]        (default: 4)
-    [--output FILE.png]     (default: partition_quality.png)
+    [--output FILE.png]     (default: <mesh_dir>/<mesh_stem>_partition_quality.png)
     [--imbalance FLOAT]     (default: 0.03)
     [--seed INT]            (default: 0)
     [--num-trials INT]      (default: 1)
@@ -37,6 +37,9 @@ import tempfile
 import time
 
 import KratosMultiphysics as KM
+
+# Suppress Kratos banner and INFO messages so the comparison table is readable
+KM.Logger.GetDefaultOutput().SetSeverity(KM.Logger.Severity.WARNING)
 
 # ── optional dependencies ─────────────────────────────────────────────────────
 try:
@@ -311,9 +314,9 @@ def _parse_args() -> argparse.Namespace:
     p.add_argument("--partitions", type=int, default=4, metavar="K",
                    help="Number of partitions")
     p.add_argument("--output", type=pathlib.Path,
-                   default=pathlib.Path("partition_quality.png"),
+                   default=None,
                    metavar="FILE",
-                   help="Output PNG filename")
+                   help="Output PNG filename (default: <mesh_dir>/<mesh_stem>_partition_quality.png)")
     p.add_argument("--imbalance", type=float, default=0.03,
                    help="Allowed imbalance fraction passed to KaHIP (e.g. 0.03 = 3%%)")
     p.add_argument("--seed", type=int, default=0,
@@ -334,6 +337,10 @@ def main() -> None:
     mdpa_path = args.mesh.resolve()
     if not mdpa_path.exists():
         raise FileNotFoundError(f"Mesh file not found: {mdpa_path}")
+
+    # Default output: alongside the mesh file
+    output_path = (args.output.resolve() if args.output is not None
+                   else mdpa_path.parent / f"{mdpa_path.stem}_partition_quality.png")
 
     n_parts = args.partitions
     if n_parts < 2:
@@ -427,7 +434,7 @@ def main() -> None:
 
     # ── plot ──────────────────────────────────────────────────────────────────
     if HAS_PLOT:
-        _plot(results, n_parts, mdpa_path.name, args.output)
+        _plot(results, n_parts, mdpa_path.name, output_path)
     else:
         print("[INFO] Install matplotlib + numpy to generate the comparison plot.")
         print("       pip install matplotlib numpy")
