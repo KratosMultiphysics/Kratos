@@ -72,10 +72,6 @@ namespace Kratos
         mMPMUpdatedLagrangianUP2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node >( Element::GeometryType::PointsArrayType( 4 ) ) ) ),
         mMPMUpdatedLagrangian2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node >( Element::GeometryType::PointsArrayType( 4 ) ) ) ),
         mMPMUpdatedLagrangian3D8N( 0, Element::GeometryType::Pointer( new Hexahedra3D8 <Node >( Element::GeometryType::PointsArrayType( 8 ) ) ) ),
-<<<<<<< HEAD
-        mMPMUpdatedLagrangianUP2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node >( Element::GeometryType::PointsArrayType( 4 ) ) ) ),
-=======
->>>>>>> master
         //mTotalLagrangian2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node >( Element::GeometryType::PointsArrayType( 3, Node() ) ) ) ),
         //mTotalLagrangian3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node >( Element::GeometryType::PointsArrayType( 4, Node() ) ) ) )
         mMPMUpdatedLagrangianAxisymmetry2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
@@ -132,10 +128,6 @@ namespace Kratos
         //KRATOS_REGISTER_ELEMENT( "MPMUpdatedLagrangianUP3D4N", mMPMUpdatedLagrangianUP3D4N )
         KRATOS_REGISTER_ELEMENT( "MPMUpdatedLagrangian2D4N", mMPMUpdatedLagrangian2D4N )
         KRATOS_REGISTER_ELEMENT( "MPMUpdatedLagrangian3D8N", mMPMUpdatedLagrangian3D8N )
-<<<<<<< HEAD
-        KRATOS_REGISTER_ELEMENT( "MPMUpdatedLagrangianUP2D4N", mMPMUpdatedLagrangianUP2D4N ) //#UP2D4N
-=======
->>>>>>> master
         KRATOS_REGISTER_ELEMENT( "MPMUpdatedLagrangianAxisymmetry2D3N", mMPMUpdatedLagrangianAxisymmetry2D3N )
         KRATOS_REGISTER_ELEMENT( "MPMUpdatedLagrangianAxisymmetry2D4N", mMPMUpdatedLagrangianAxisymmetry2D4N )
 
