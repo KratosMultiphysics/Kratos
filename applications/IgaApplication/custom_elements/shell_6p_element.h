@@ -94,10 +94,6 @@ public:
     /// Default constructor necessary for serialization
     Shell6pElement() = default;
 
-    ///@}
-    ///@name Life Cycle
-    ///@{
-
     /// Create with Id, pointer to geometry and pointer to property
     Element::Pointer Create(
         IndexType NewId,
@@ -267,14 +263,14 @@ private:
     /// @brief Informations regarding the Gauss-quadrature in thickness direction
     struct GaussQuadratureThickness
     {
-        unsigned int num_GP_thickness;
+        IndexType num_GP_thickness;
         Vector integration_weight_thickness;
         Vector zeta;
 
         // The default constructor
         GaussQuadratureThickness(){}
         // constructor
-        GaussQuadratureThickness(const unsigned int& rNumGPThickness)
+        GaussQuadratureThickness(const IndexType& rNumGPThickness)
         {
             num_GP_thickness = rNumGPThickness;
             integration_weight_thickness = ZeroVector(rNumGPThickness);
@@ -406,19 +402,19 @@ private:
     void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
-        rSerializer.save("dA_vector", mDifferentialAreaVector);
-        rSerializer.save("dV_vector", mJacobianThicknessDeterminant);
-        rSerializer.save("T_vector", mTransformationMatrix);
-        rSerializer.save("constitutive_law_vector", mConstitutiveLawVector);
+        rSerializer.save("DifferentialAreaVector", mDifferentialAreaVector);
+        rSerializer.save("JacobianThicknessDeterminant", mJacobianThicknessDeterminant);
+        rSerializer.save("TransformationMatrix", mTransformationMatrix);
+        rSerializer.save("ConstitutiveLawVector", mConstitutiveLawVector);
     }
 
     void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
-        rSerializer.load("dA_vector", mDifferentialAreaVector);
-        rSerializer.load("dV_vector", mJacobianThicknessDeterminant);
-        rSerializer.load("T_vector", mTransformationMatrix);
-        rSerializer.load("constitutive_law_vector", mConstitutiveLawVector);
+        rSerializer.load("DifferentialAreaVector", mDifferentialAreaVector);
+        rSerializer.load("JacobianThicknessDeterminant", mJacobianThicknessDeterminant);
+        rSerializer.load("TransformationMatrix", mTransformationMatrix);
+        rSerializer.load("ConstitutiveLawVector", mConstitutiveLawVector);
     }
 
     ///@}
