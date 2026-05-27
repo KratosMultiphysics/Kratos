@@ -616,7 +616,7 @@ class TestPressureSensor(UnitTest.TestCase):
                 "type"         : "pressure_sensor",
                 "name"         : "pres_1",
                 "value"        : 0,
-                "location"     : [0.3333333333333333, 0.3333333333333333, 0.0],
+                "location"     : [0.33333333333333333, 0.33333333333333333, 0.0],
                 "weight"       : 1.0,
                 "variable_data": {}
             }"""),
@@ -625,14 +625,14 @@ class TestPressureSensor(UnitTest.TestCase):
                 "type"         : "pressure_sensor",
                 "name"         : "pres_2",
                 "value"        : 0,
-                "location"     : [0.6666666666666667, 0.6666666666666667, 0.0],
+                "location"     : [0.66666666666666667, 0.66666666666666667, 0.0],
                 "weight"       : 1.0,
                 "variable_data": {}
             }""")
         ]
 
         cls.sensors = CreateSensors(cls.sensor_model_part, cls.model_part, parameters)
-        cls.ref_values = [7/3, 3]
+        cls.ref_values = [7/3, 3.0]
 
     def test_SensorsOnNodes(self):
         parameters = [
@@ -744,7 +744,7 @@ class TestPressureSensor(UnitTest.TestCase):
             delta = 1e-5
 
             element: Kratos.Element = self.model_part.GetElement(sensor.GetNode().GetValue(KratosSI.SENSOR_ELEMENT_ID))
-            sensor.CalculateGradient(element, residual_matrix, response_sensitivities, self.model_part.ProcessInfo)
+            sensor.CalculateFirstDerivativesGradient(element, residual_matrix, response_sensitivities, self.model_part.ProcessInfo)
             for j, node in enumerate(element.GetGeometry()):
                 node.SetSolutionStepValue(Kratos.PRESSURE, node.GetSolutionStepValue(Kratos.PRESSURE) + delta)
                 perturbed_value = sensor.CalculateValue(self.model_part)
@@ -960,7 +960,7 @@ class TestVelocitySensor(UnitTest.TestCase):
             delta = 1e-5
 
             element: Kratos.Element = self.model_part.GetElement(sensor.GetNode().GetValue(KratosSI.SENSOR_ELEMENT_ID))
-            sensor.CalculateGradient(element, residual_matrix, response_sensitivities, self.model_part.ProcessInfo)
+            sensor.CalculateFirstDerivativesGradient(element, residual_matrix, response_sensitivities, self.model_part.ProcessInfo)
             for j, node in enumerate(element.GetGeometry()):
                 node.SetSolutionStepValue(Kratos.VELOCITY_X, node.GetSolutionStepValue(Kratos.VELOCITY_X) + delta)
                 perturbed_value = sensor.CalculateValue(self.model_part)
