@@ -4,9 +4,11 @@
 #
 # Search order
 # 1. KAHIP_ROOT / KAHIP_DIR environment variables (or CMake cache variables)
-# 2. ${KRATOS_SOURCE_DIR}/external_libraries/KaHIP  (in-tree build)
-# 3. Standard system paths
-# 4. pkg-config  (kahip)
+# 2. ${KRATOS_SOURCE_DIR}/external_libraries/KaHIP/deploy  (auto-built in-tree)
+# 3. ${KRATOS_SOURCE_DIR}/external_libraries/KaHIP/build   (in-tree build)
+# 4. ${KRATOS_SOURCE_DIR}/external_libraries/KaHIP         (in-tree source)
+# 5. Standard system paths
+# 6. pkg-config  (kahip)
 #
 # Result variables
 # ----------------
@@ -38,9 +40,10 @@ if(DEFINED KAHIP_DIR)
     list(APPEND _kahip_search_hints "${KAHIP_DIR}")
 endif()
 
-# In-tree: the KaHIP source tree shipped under external_libraries/KaHIP
+# In-tree: search deploy/ (auto-built), build/, and source root
 if(DEFINED KRATOS_SOURCE_DIR)
     set(_kahip_intree "${KRATOS_SOURCE_DIR}/external_libraries/KaHIP")
+    list(APPEND _kahip_search_hints "${_kahip_intree}/deploy")
     list(APPEND _kahip_search_hints "${_kahip_intree}/build")
     list(APPEND _kahip_search_hints "${_kahip_intree}")
 endif()
@@ -97,7 +100,7 @@ endif()
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(KaHIP
     REQUIRED_VARS KAHIP_LIBRARY KAHIP_INCLUDE_DIR
-    FAIL_MESSAGE "Could NOT find KaHIP. Set KAHIP_ROOT to the KaHIP build directory.")
+    FAIL_MESSAGE "Could NOT find KaHIP. Set KAHIP_ROOT to the KaHIP build/deploy directory.")
 
 # ── Populate result variables ─────────────────────────────────────────────────
 if(KAHIP_FOUND)
