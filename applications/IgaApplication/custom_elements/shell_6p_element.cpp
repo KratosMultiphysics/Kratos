@@ -219,7 +219,7 @@ namespace Kratos
 
             double integration_weight = r_integration_points[point_number].Weight();
 
-            double thickness = this->GetProperties().GetValue(THICKNESS);
+            const double thickness = this->GetProperties().GetValue(THICKNESS);
             double density = this->GetProperties().GetValue(DENSITY);
             double mass = thickness * density * m_dA_vector[point_number] * integration_weight;
 
@@ -311,7 +311,7 @@ namespace Kratos
 
         const std::size_t number_of_nodes = r_geometry.size();
         const std::size_t mat_size = number_of_nodes * 6;
-        double thickness = this->GetProperties().GetValue(THICKNESS);
+        const double thickness = this->GetProperties().GetValue(THICKNESS);
 
         std::vector<array_1d<double, 6>> strain_cau_cart(mGaussIntegrationThickness.num_GP_thickness);
         std::vector<array_1d<double, 6>> stress_cau_cart(mGaussIntegrationThickness.num_GP_thickness);
@@ -538,7 +538,7 @@ namespace Kratos
 
         const std::size_t number_of_nodes = r_geometry.size();
         const std::size_t mat_size = number_of_nodes * 6;
-        double thickness = this->GetProperties().GetValue(THICKNESS); 
+        const double thickness = this->GetProperties().GetValue(THICKNESS); 
 
         std::vector<array_1d<double, 6>> strain_cau_cart(mGaussIntegrationThickness.num_GP_thickness);
         std::vector<array_1d<double, 6>> stress_cau_cart(mGaussIntegrationThickness.num_GP_thickness);
@@ -798,27 +798,39 @@ namespace Kratos
     {
         const std::size_t number_of_control_points = GetGeometry().size();
         const std::size_t mat_size = number_of_control_points * 6;
+        
         const auto& r_N = GetGeometry().ShapeFunctionsValues();
         const Matrix& r_DN_De = GetGeometry().ShapeFunctionLocalGradient(IntegrationPointIndex);
-        double thickness = this->GetProperties().GetValue(THICKNESS);
+        const double thickness = this->GetProperties().GetValue(THICKNESS);
         
-        // Membrane part
-        Matrix DN_De_Jn = ZeroMatrix(number_of_control_points,3);
-        Matrix new_DN_De = ZeroMatrix(number_of_control_points,3);
-        for (IndexType i = 0; i < number_of_control_points; ++i) {
-            new_DN_De(i, 0) = r_DN_De(i, 0);  
-            new_DN_De(i, 1) = r_DN_De(i, 1); 
-            new_DN_De(i, 2) = 0.0;            
-        }
-        DN_De_Jn = trans(prod(rJacobianInv, trans(new_DN_De)));
+        // Define shape function derivatives in global coordinates system
+        Matrix shape_functions_derivatives_global = ZeroMatrix(number_of_control_points,3);
+        Matrix shape_functions_derivatives_local = ZeroMatrix(number_of_control_points,3);
+        column(shape_functions_derivatives_local, 0) = column(r_DN_De, 0);
+        column(shape_functions_derivatives_local, 1) = column(r_DN_De, 1);
+        shape_functions_derivatives_global = trans(prod(rJacobianInv, trans(shape_functions_derivatives_local)));
                                                 
-        // y hat 
-        const double y1= rActualKinematic.NormalVector[0];
-        const double y2= rActualKinematic.NormalVector[1];
-        const double y3= rActualKinematic.NormalVector[2];
+        // Normal vector components in global coordinates
+        const double normal_x = rActualKinematic.NormalVector[0];
+        const double normal_y = rActualKinematic.NormalVector[1];
+        const double normal_z = rActualKinematic.NormalVector[2];
 
-        Matrix Dn = ZeroMatrix(3, 3);
-        Dn = prod(rJacobianInv, rNormalVectorDerivatives);
+        // Normal vector derivatives in global coordinates
+        const Matrix normal_vector_derivatives_global = prod(rJacobianInv, rNormalVectorDerivatives);
+        const double d_normal_x_dx = normal_vector_derivatives_global(0,0);
+        const double d_normal_y_dx = normal_vector_derivatives_global(0,1);
+        const double d_normal_z_dx = normal_vector_derivatives_global(0,2);
+        const double d_normal_x_dy = normal_vector_derivatives_global(1,0);
+        const double d_normal_y_dy = normal_vector_derivatives_global(1,1);
+        const double d_normal_z_dy = normal_vector_derivatives_global(1,2);
+        const double d_normal_x_dz = normal_vector_derivatives_global(2,0);
+        const double d_normal_y_dz = normal_vector_derivatives_global(2,1);
+        const double d_normal_z_dz = normal_vector_derivatives_global(2,2);
+
+        // Zeta derivatives in global coordinates  
+        const double d_zeta_dx = rJacobianInv(0,2);
+        const double d_zeta_dy = rJacobianInv(1,2);
+        const double d_zeta_dz = rJacobianInv(2,2);
 
         if (rBOperator.size1() != 6 || rBOperator.size2() != mat_size)
             rBOperator.resize(6, mat_size);
@@ -826,64 +838,43 @@ namespace Kratos
 
         for (IndexType i = 0; i < number_of_control_points; ++i)
         {
-            // zeta  Derivatives 
-            const double dzetadx= rJacobianInv(0,2);
-            const double dzetady= rJacobianInv(1,2);
-            const double dzetadz= rJacobianInv(2,2); 
-
-            // y hat Derivative w.r.t x
-            const double dy1x= Dn(0,0);
-            const double dy2x= Dn(0,1);
-            const double dy3x= Dn(0,2);
-
-            // y hat Derivative w.r.t y
-            const double dy1y= Dn(1,0);
-            const double dy2y= Dn(1,1);
-            const double dy3y= Dn(1,2);
-
-            // y hat Derivative w.r.t z
-            const double dy1z= Dn(2,0);
-            const double dy2z= Dn(2,1);
-            const double dy3z= Dn(2,2);
-
-            // Compute rBOperator
-            IndexType index = i * 6;
+            const IndexType index = i * 6;
             
             //// Displacement DOFs contributions
-            rBOperator(0, index)     = DN_De_Jn(i, 0);
-            rBOperator(1, index + 1) = DN_De_Jn(i, 1);
-            rBOperator(2, index + 2) = DN_De_Jn(i, 2);
-            rBOperator(3, index)     = DN_De_Jn(i, 1);                    
-            rBOperator(3, index + 1) = DN_De_Jn(i, 0);  
-            rBOperator(4, index + 1) = DN_De_Jn(i, 2);
-            rBOperator(4, index + 2) = DN_De_Jn(i, 1);
-            rBOperator(5, index)     = DN_De_Jn(i, 2);                    
-            rBOperator(5, index + 2) = DN_De_Jn(i, 0);
+            rBOperator(0, index)     = shape_functions_derivatives_global(i, 0);
+            rBOperator(1, index + 1) = shape_functions_derivatives_global(i, 1);
+            rBOperator(2, index + 2) = shape_functions_derivatives_global(i, 2);
+            rBOperator(3, index)     = shape_functions_derivatives_global(i, 1);                    
+            rBOperator(3, index + 1) = shape_functions_derivatives_global(i, 0);  
+            rBOperator(4, index + 1) = shape_functions_derivatives_global(i, 2);
+            rBOperator(4, index + 2) = shape_functions_derivatives_global(i, 1);
+            rBOperator(5, index)     = shape_functions_derivatives_global(i, 2);                    
+            rBOperator(5, index + 2) = shape_functions_derivatives_global(i, 0);
 
             // Rotation DOFs contributions
-            rBOperator(0, index + 4) =  ((DN_De_Jn(i, 0) * zeta * y3) + (r_N(i) * (zeta * dy3x + y3 * dzetadx))) * (thickness/2);
-            rBOperator(0, index + 5) = -((DN_De_Jn(i, 0) * zeta * y2) + (r_N(i) * (zeta * dy2x + dzetadx * y2))) * (thickness/2);
+            rBOperator(0, index + 4) =  ((shape_functions_derivatives_global(i, 0) * zeta * normal_z) + (r_N(i) * (zeta * d_normal_z_dx + d_zeta_dx * normal_z))) * (thickness/2);
+            rBOperator(0, index + 5) = -((shape_functions_derivatives_global(i, 0) * zeta * normal_y) + (r_N(i) * (zeta * d_normal_y_dx + d_zeta_dx * normal_y))) * (thickness/2);
 
-            rBOperator(1, index + 3) = -((DN_De_Jn(i, 1) * zeta * y3) + (r_N(i) * (zeta * dy3y + dzetady * y3))) * (thickness/2);
-            rBOperator(1, index + 5) =  ((DN_De_Jn(i, 1) * zeta * y1) + (r_N(i) * (zeta * dy1y + dzetady * y1))) * (thickness/2);
+            rBOperator(1, index + 3) = -((shape_functions_derivatives_global(i, 1) * zeta * normal_z) + (r_N(i) * (zeta * d_normal_z_dy + d_zeta_dy * normal_z))) * (thickness/2);
+            rBOperator(1, index + 5) =  ((shape_functions_derivatives_global(i, 1) * zeta * normal_x) + (r_N(i) * (zeta * d_normal_x_dy + d_zeta_dy * normal_x))) * (thickness/2);
 
-            rBOperator(2, index + 3) =  ((DN_De_Jn(i, 2) * zeta * y2) + (r_N(i) * (zeta * dy2z + dzetadz * y2))) * (thickness/2);
-            rBOperator(2, index + 4) = -((DN_De_Jn(i, 2) * zeta * y1) + (r_N(i) * (zeta * dy1z + dzetadz * y1))) * (thickness/2);
+            rBOperator(2, index + 3) =  ((shape_functions_derivatives_global(i, 2) * zeta * normal_y) + (r_N(i) * (zeta * d_normal_y_dz + d_zeta_dz * normal_y))) * (thickness/2);
+            rBOperator(2, index + 4) = -((shape_functions_derivatives_global(i, 2) * zeta * normal_x) + (r_N(i) * (zeta * d_normal_x_dz + d_zeta_dz * normal_x))) * (thickness/2);
 
-            rBOperator(3, index + 3) = -((DN_De_Jn(i, 0) * zeta * y3) + (r_N(i) * (zeta * dy3x + dzetadx * y3))) * (thickness/2);
-            rBOperator(3, index + 4) =  ((DN_De_Jn(i, 1) * zeta * y3) + (r_N(i) * (zeta * dy3y + dzetady * y3))) * (thickness/2);
-            rBOperator(3, index + 5) =  (((DN_De_Jn(i, 0) * zeta * y1) + (r_N(i) * (zeta * dy1x + dzetadx * y1))) 
-                                       -((DN_De_Jn(i, 1) * zeta * y2)+ (r_N(i) *  (zeta * dy2y + dzetady * y2)))) * (thickness/2);
+            rBOperator(3, index + 3) = -((shape_functions_derivatives_global(i, 0) * zeta * normal_z) + (r_N(i) * (zeta * d_normal_z_dx + d_zeta_dx * normal_z))) * (thickness/2);
+            rBOperator(3, index + 4) =  ((shape_functions_derivatives_global(i, 1) * zeta * normal_z) + (r_N(i) * (zeta * d_normal_z_dy + d_zeta_dy * normal_z))) * (thickness/2);
+            rBOperator(3, index + 5) = (((shape_functions_derivatives_global(i, 0) * zeta * normal_x) + (r_N(i) * (zeta * d_normal_x_dx + d_zeta_dx * normal_x))) 
+                                       -((shape_functions_derivatives_global(i, 1) * zeta * normal_y) + (r_N(i) * (zeta * d_normal_y_dy + d_zeta_dy * normal_y)))) * (thickness/2);
 
-            rBOperator(4, index + 3) =  (((DN_De_Jn(i, 1) * zeta * y2) + (r_N(i) * (zeta * dy2y + dzetady * y2)))  
-                                       -((DN_De_Jn(i, 2) * zeta * y3) + (r_N(i) * (zeta * dy3z + dzetadz * y3)))) * (thickness/2);
-            rBOperator(4, index + 4) = -((DN_De_Jn(i, 1) * zeta * y1) + (r_N(i) * (zeta * dy1y + dzetady * y1))) * (thickness/2);
-            rBOperator(4, index + 5) =  ((DN_De_Jn(i, 2) * zeta * y1) + (r_N(i) * (zeta * dy1z + dzetadz * y1))) * (thickness/2);
+            rBOperator(4, index + 3) = (((shape_functions_derivatives_global(i, 1) * zeta * normal_y) + (r_N(i) * (zeta * d_normal_y_dy + d_zeta_dy * normal_y)))  
+                                       -((shape_functions_derivatives_global(i, 2) * zeta * normal_z) + (r_N(i) * (zeta * d_normal_z_dz + d_zeta_dz * normal_z)))) * (thickness/2);
+            rBOperator(4, index + 4) = -((shape_functions_derivatives_global(i, 1) * zeta * normal_x) + (r_N(i) * (zeta * d_normal_x_dy + d_zeta_dy * normal_x))) * (thickness/2);
+            rBOperator(4, index + 5) =  ((shape_functions_derivatives_global(i, 2) * zeta * normal_x) + (r_N(i) * (zeta * d_normal_x_dz + d_zeta_dz * normal_x))) * (thickness/2);
 
-            rBOperator(5, index + 3) =  ((DN_De_Jn(i, 0) * zeta * y2) + (r_N(i) * (zeta * dy2x + dzetadx * y2))) * (thickness/2);
-            rBOperator(5, index + 4) =  (((DN_De_Jn(i, 2) * zeta * y3) + (r_N(i) * (zeta * dy3z + dzetadz * y3))) 
-                                       -((DN_De_Jn(i, 0) * zeta * y1) + (r_N(i) * (zeta * dy1x + dzetadx * y1)))) * (thickness/2);
-            rBOperator(5, index + 5) = -((DN_De_Jn(i, 2) * zeta * y2) + (r_N(i) * (zeta * dy2z + dzetadz * y2))) * (thickness/2);
+            rBOperator(5, index + 3) =  ((shape_functions_derivatives_global(i, 0) * zeta * normal_y) + (r_N(i) * (zeta * d_normal_y_dx + d_zeta_dx * normal_y))) * (thickness/2);
+            rBOperator(5, index + 4) = (((shape_functions_derivatives_global(i, 2) * zeta * normal_z) + (r_N(i) * (zeta * d_normal_z_dz + d_zeta_dz * normal_z))) 
+                                       -((shape_functions_derivatives_global(i, 0) * zeta * normal_x) + (r_N(i) * (zeta * d_normal_x_dx + d_zeta_dx * normal_x)))) * (thickness/2);
+            rBOperator(5, index + 5) = -((shape_functions_derivatives_global(i, 2) * zeta * normal_y) + (r_N(i) * (zeta * d_normal_y_dz + d_zeta_dz * normal_y))) * (thickness/2);
         }
     }
 
@@ -899,15 +890,12 @@ namespace Kratos
         const auto& r_N = GetGeometry().ShapeFunctionsValues();
         const Matrix& r_DN_De = GetGeometry().ShapeFunctionLocalGradient(IntegrationPointIndex);
 
-        // Membrane part
-        Matrix DN_De_Jn = ZeroMatrix(number_of_control_points,3);
-        Matrix new_DN_De = ZeroMatrix(number_of_control_points,3);
-        for (IndexType i = 0; i < number_of_control_points; ++i) {
-            new_DN_De(i, 0) = r_DN_De(i, 0);  
-            new_DN_De(i, 1) = r_DN_De(i, 1);  
-            new_DN_De(i, 2) = 0.0;   
-        }
-        DN_De_Jn = trans(prod(rJacobianInv, trans(new_DN_De)));
+        // Define shape function derivatives in global coordinates system
+        Matrix shape_functions_derivatives_global = ZeroMatrix(number_of_control_points,3);
+        Matrix shape_functions_derivatives_local = ZeroMatrix(number_of_control_points,3);
+        column(shape_functions_derivatives_local, 0) = column(r_DN_De, 0);
+        column(shape_functions_derivatives_local, 1) = column(r_DN_De, 1);
+        shape_functions_derivatives_global = trans(prod(rJacobianInv, trans(shape_functions_derivatives_local)));
 
         if (rBDrilling.size1() != 1|| rBDrilling.size2() != mat_size)                                 
             rBDrilling.resize(1, mat_size);                                                     
@@ -917,8 +905,8 @@ namespace Kratos
         {
             IndexType index = i * 6;
 
-            rBDrilling(0, index)     = -0.5 * DN_De_Jn(i, 1);
-            rBDrilling(0, index + 1) = 0.5 * DN_De_Jn(i, 0);
+            rBDrilling(0, index)     = -0.5 * shape_functions_derivatives_global(i, 1);
+            rBDrilling(0, index + 1) = 0.5 * shape_functions_derivatives_global(i, 0);
             rBDrilling(0, index + 5) = - r_N(i);
         }
     }
@@ -933,27 +921,39 @@ namespace Kratos
     {
         const std::size_t number_of_control_points = GetGeometry().size();
         const std::size_t mat_size = number_of_control_points * 6;
+
         const auto& r_N = GetGeometry().ShapeFunctionsValues();
         const Matrix& r_DN_De = GetGeometry().ShapeFunctionLocalGradient(IntegrationPointIndex);
-        double thickness = this->GetProperties().GetValue(THICKNESS); 
+        const double thickness = this->GetProperties().GetValue(THICKNESS); 
         
-        // Membrane part
-        Matrix DN_De_Jn = ZeroMatrix(number_of_control_points,3);
-        Matrix new_DN_De = ZeroMatrix(number_of_control_points,3);
-        for (IndexType i = 0; i < number_of_control_points; ++i) {
-            new_DN_De(i, 0) = r_DN_De(i, 0);  // Copy first column
-            new_DN_De(i, 1) = r_DN_De(i, 1);  // Copy second column
-            new_DN_De(i, 2) = 0.0;            // Set third column to zero
-        }
-        DN_De_Jn = trans(prod(rJacobianInv, trans(new_DN_De)));
+        // Define shape function derivatives in global coordinates 
+        Matrix shape_functions_derivatives_global = ZeroMatrix(number_of_control_points,3);
+        Matrix shape_functions_derivatives_local = ZeroMatrix(number_of_control_points,3);
+        column(shape_functions_derivatives_local, 0) = column(r_DN_De, 0);
+        column(shape_functions_derivatives_local, 1) = column(r_DN_De, 1);
+        shape_functions_derivatives_global = trans(prod(rJacobianInv, trans(shape_functions_derivatives_local)));
                                          
-        // y hat 
-        const double y1= rActualKinematic.NormalVector[0];
-        const double y2= rActualKinematic.NormalVector[1];
-        const double y3= rActualKinematic.NormalVector[2];
+        // Normal vector components in global coordinates
+        const double normal_x = rActualKinematic.NormalVector[0];
+        const double normal_y = rActualKinematic.NormalVector[1];
+        const double normal_z = rActualKinematic.NormalVector[2];
 
-        Matrix Dn = ZeroMatrix(3, 3);
-        Dn = prod(rJacobianInv, rNormalVectorDerivatives);
+        // Normal vector derivatives in global coordinates
+        const Matrix normal_vector_derivatives_global = prod(rJacobianInv, rNormalVectorDerivatives);
+        const double d_normal_x_dx = normal_vector_derivatives_global(0,0);
+        const double d_normal_y_dx = normal_vector_derivatives_global(0,1);
+        const double d_normal_z_dx = normal_vector_derivatives_global(0,2);
+        const double d_normal_x_dy = normal_vector_derivatives_global(1,0);
+        const double d_normal_y_dy = normal_vector_derivatives_global(1,1);
+        const double d_normal_z_dy = normal_vector_derivatives_global(1,2);
+        const double d_normal_x_dz = normal_vector_derivatives_global(2,0);
+        const double d_normal_y_dz = normal_vector_derivatives_global(2,1);
+        const double d_normal_z_dz = normal_vector_derivatives_global(2,2);
+
+        // Zeta derivatives in global coordinates  
+        const double d_zeta_dx = rJacobianInv(0,2);
+        const double d_zeta_dy = rJacobianInv(1,2);
+        const double d_zeta_dz = rJacobianInv(2,2);
 
         if (rBGeometric.size1() != 9 || rBGeometric.size2() != mat_size)
             rBGeometric.resize(9, mat_size);
@@ -961,67 +961,46 @@ namespace Kratos
 
         for (IndexType i = 0; i < number_of_control_points; ++i)
         {
-            // zeta  Derivatives 
-            const double dzetadx= rJacobianInv(0,2);
-            const double dzetady= rJacobianInv(1,2);
-            const double dzetadz= rJacobianInv(2,2); 
-          
-            // y hat Derivative w.r.t x
-            const double dy1x= Dn(0,0);
-            const double dy2x= Dn(0,1);
-            const double dy3x= Dn(0,2);
-
-            // y hat Derivative w.r.t y
-            const double dy1y= Dn(1,0);
-            const double dy2y= Dn(1,1);
-            const double dy3y= Dn(1,2);
-
-            // y hat Derivative w.r.t z
-            const double dy1z= Dn(2,0);
-            const double dy2z= Dn(2,1);
-            const double dy3z= Dn(2,2);
-
-            // Compute rBGeometric
-            IndexType index = i * 6;
+            const IndexType index = i * 6;
 
             //// Displacement DOFs contributions
-            rBGeometric(0, index)     = DN_De_Jn(i, 0);
-            rBGeometric(1, index)     = DN_De_Jn(i, 1);
-            rBGeometric(2, index)     = DN_De_Jn(i, 2);
-            rBGeometric(3, index + 1) = DN_De_Jn(i, 0);
-            rBGeometric(4, index + 1) = DN_De_Jn(i, 1);
-            rBGeometric(5, index + 1) = DN_De_Jn(i, 2);
-            rBGeometric(6, index + 2) = DN_De_Jn(i, 0);
-            rBGeometric(7, index + 2) = DN_De_Jn(i, 1);
-            rBGeometric(8, index + 2) = DN_De_Jn(i, 2);
+            rBGeometric(0, index)     = shape_functions_derivatives_global(i, 0);
+            rBGeometric(1, index)     = shape_functions_derivatives_global(i, 1);
+            rBGeometric(2, index)     = shape_functions_derivatives_global(i, 2);
+            rBGeometric(3, index + 1) = shape_functions_derivatives_global(i, 0);
+            rBGeometric(4, index + 1) = shape_functions_derivatives_global(i, 1);
+            rBGeometric(5, index + 1) = shape_functions_derivatives_global(i, 2);
+            rBGeometric(6, index + 2) = shape_functions_derivatives_global(i, 0);
+            rBGeometric(7, index + 2) = shape_functions_derivatives_global(i, 1);
+            rBGeometric(8, index + 2) = shape_functions_derivatives_global(i, 2);
 
             // Rotation DOFs contributions
-            rBGeometric(0, index + 4) =  ((DN_De_Jn(i, 0) * zeta * y3) + (r_N(i) * (zeta * dy3x + y3 * dzetadx))) * (thickness/2);
-            rBGeometric(0, index + 5) = -((DN_De_Jn(i, 0) * zeta * y2) + (r_N(i) * (zeta * dy2x + dzetadx * y2))) * (thickness/2);
+            rBGeometric(0, index + 4) =  ((shape_functions_derivatives_global(i, 0) * zeta * normal_z) + (r_N(i) * (zeta * d_normal_z_dx + normal_z * d_zeta_dx))) * (thickness/2);
+            rBGeometric(0, index + 5) = -((shape_functions_derivatives_global(i, 0) * zeta * normal_y) + (r_N(i) * (zeta * d_normal_y_dx + d_zeta_dx * normal_y))) * (thickness/2);
 
-            rBGeometric(1, index + 4) =  ((DN_De_Jn(i, 1) * zeta * y3) + (r_N(i) * (zeta * dy3y + y3 * dzetady))) * (thickness/2);
-            rBGeometric(1, index + 5) = -((DN_De_Jn(i, 1) * zeta * y2) + (r_N(i) * (zeta * dy2y + dzetady * y2))) * (thickness/2);
+            rBGeometric(1, index + 4) =  ((shape_functions_derivatives_global(i, 1) * zeta * normal_z) + (r_N(i) * (zeta * d_normal_z_dy + normal_z * d_zeta_dy))) * (thickness/2);
+            rBGeometric(1, index + 5) = -((shape_functions_derivatives_global(i, 1) * zeta * normal_y) + (r_N(i) * (zeta * d_normal_y_dy + d_zeta_dy * normal_y))) * (thickness/2);
 
-            rBGeometric(2, index + 4) =  ((DN_De_Jn(i, 2) * zeta * y3) + (r_N(i) * (zeta * dy3z + y3 * dzetadz))) * (thickness/2);
-            rBGeometric(2, index + 5) = -((DN_De_Jn(i, 2) * zeta * y2) + (r_N(i) * (zeta * dy2z + dzetadz * y2))) * (thickness/2);
+            rBGeometric(2, index + 4) =  ((shape_functions_derivatives_global(i, 2) * zeta * normal_z) + (r_N(i) * (zeta * d_normal_z_dz + normal_z * d_zeta_dz))) * (thickness/2);
+            rBGeometric(2, index + 5) = -((shape_functions_derivatives_global(i, 2) * zeta * normal_y) + (r_N(i) * (zeta * d_normal_y_dz + d_zeta_dz * normal_y))) * (thickness/2);
 
-            rBGeometric(3, index + 3) = -((DN_De_Jn(i, 0) * zeta * y3) + (r_N(i) * (zeta * dy3x + dzetadx * y3))) * (thickness/2); 
-            rBGeometric(3, index + 5) =  ((DN_De_Jn(i, 0) * zeta * y1) + (r_N(i) * (zeta * dy1x + dzetadx * y1))) * (thickness/2); 
+            rBGeometric(3, index + 3) = -((shape_functions_derivatives_global(i, 0) * zeta * normal_z) + (r_N(i) * (zeta * d_normal_z_dx + d_zeta_dx * normal_z))) * (thickness/2); 
+            rBGeometric(3, index + 5) =  ((shape_functions_derivatives_global(i, 0) * zeta * normal_x) + (r_N(i) * (zeta * d_normal_x_dx + d_zeta_dx * normal_x))) * (thickness/2); 
 
-            rBGeometric(4, index + 3) = -((DN_De_Jn(i, 1) * zeta * y3) + (r_N(i) * (zeta * dy3y + dzetady * y3))) * (thickness/2); 
-            rBGeometric(4, index + 5) =  ((DN_De_Jn(i, 1) * zeta * y1) + (r_N(i) * (zeta * dy1y + dzetady * y1))) * (thickness/2); 
+            rBGeometric(4, index + 3) = -((shape_functions_derivatives_global(i, 1) * zeta * normal_z) + (r_N(i) * (zeta * d_normal_z_dy + d_zeta_dy * normal_z))) * (thickness/2); 
+            rBGeometric(4, index + 5) =  ((shape_functions_derivatives_global(i, 1) * zeta * normal_x) + (r_N(i) * (zeta * d_normal_x_dy + d_zeta_dy * normal_x))) * (thickness/2); 
 
-            rBGeometric(5, index + 3) = -((DN_De_Jn(i, 2) * zeta * y3) + (r_N(i) * (zeta * dy3z + dzetadz * y3))) * (thickness/2); 
-            rBGeometric(5, index + 5) =  ((DN_De_Jn(i, 2) * zeta * y1) + (r_N(i) * (zeta * dy1z + dzetadz * y1))) * (thickness/2); 
+            rBGeometric(5, index + 3) = -((shape_functions_derivatives_global(i, 2) * zeta * normal_z) + (r_N(i) * (zeta * d_normal_z_dz + d_zeta_dz * normal_z))) * (thickness/2); 
+            rBGeometric(5, index + 5) =  ((shape_functions_derivatives_global(i, 2) * zeta * normal_x) + (r_N(i) * (zeta * d_normal_x_dz + d_zeta_dz * normal_x))) * (thickness/2); 
 
-            rBGeometric(6, index + 3) =  ((DN_De_Jn(i, 0) * zeta * y2) + (r_N(i) * (zeta * dy2x + dzetadx * y2))) * (thickness/2);  
-            rBGeometric(6, index + 4) = -((DN_De_Jn(i, 0) * zeta * y1) + (r_N(i) * (zeta  * dy1x + dzetadx *y1))) * (thickness/2); 
+            rBGeometric(6, index + 3) =  ((shape_functions_derivatives_global(i, 0) * zeta * normal_y) + (r_N(i) * (zeta * d_normal_y_dx + d_zeta_dx * normal_y))) * (thickness/2);  
+            rBGeometric(6, index + 4) = -((shape_functions_derivatives_global(i, 0) * zeta * normal_x) + (r_N(i) * (zeta  * d_normal_x_dx + d_zeta_dx *normal_x))) * (thickness/2); 
 
-            rBGeometric(7, index + 3) =  ((DN_De_Jn(i, 1) * zeta * y2) + (r_N(i) * (zeta * dy2y + dzetady * y2))) * (thickness/2);  
-            rBGeometric(7, index + 4) = -((DN_De_Jn(i, 1) * zeta * y1) + (r_N(i) * (zeta  * dy1y + dzetady *y1))) * (thickness/2); 
+            rBGeometric(7, index + 3) =  ((shape_functions_derivatives_global(i, 1) * zeta * normal_y) + (r_N(i) * (zeta * d_normal_y_dy + d_zeta_dy * normal_y))) * (thickness/2);  
+            rBGeometric(7, index + 4) = -((shape_functions_derivatives_global(i, 1) * zeta * normal_x) + (r_N(i) * (zeta  * d_normal_x_dy + d_zeta_dy *normal_x))) * (thickness/2); 
 
-            rBGeometric(8, index + 3) =  ((DN_De_Jn(i, 2) * zeta * y2) + (r_N(i) * (zeta * dy2z + dzetadz * y2))) * (thickness/2);  
-            rBGeometric(8, index + 4) = -((DN_De_Jn(i, 2) * zeta * y1) + (r_N(i) * (zeta  * dy1z + dzetadz *y1))) * (thickness/2); 
+            rBGeometric(8, index + 3) =  ((shape_functions_derivatives_global(i, 2) * zeta * normal_y) + (r_N(i) * (zeta * d_normal_y_dz + d_zeta_dz * normal_y))) * (thickness/2);  
+            rBGeometric(8, index + 4) = -((shape_functions_derivatives_global(i, 2) * zeta * normal_x) + (r_N(i) * (zeta  * d_normal_x_dz + d_zeta_dz *normal_x))) * (thickness/2); 
         }
     }
 
