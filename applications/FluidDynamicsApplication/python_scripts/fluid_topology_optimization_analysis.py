@@ -625,7 +625,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         self._PrintOnlyPhysics()
         if (self.first_iteration):
             self._SetFunctionalWeights()
-            self._ResetFunctionalOutput()
+            self._InitializePrintToFileOutput()
         self._UpdateRelevantAdjointVariables()
         self._SolveAdjointProblem() # ADJOINT NAVIER-STOKES PROBLEM SOLUTION
 
@@ -1763,15 +1763,38 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         if (abs(self.functional_weights[2]) > 1e-10):
             self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Vorticity Functional (" + str(self.functional_weights[2]) + "): " + str(self.weighted_functionals[2]), min_echo=0)
     
+    def _PrintToFiles(self):
+        self._PrintFunctionalsToFile()
+        self._PrintConstraintsToFile()
+        self._PrintParametersToFile()
+    
     def _PrintFunctionalsToFile(self):
         if self.MpiRunOnlyRank(0):
-                destination_path = self.optimization_parameters["optimization_settings"]["solution_output_settings"]["output_path"].GetString()
-                destination_path += "/files"
-                with open(destination_path+"/functional_history.txt", "a") as file:
-                    file.write(str(self.functional) + " ")
-                    for ifunc in range(self.n_functionals): 
-                        file.write(str(self.weighted_functionals[ifunc]) + " ")
-                    file.write("\n")
+            destination_path = self.optimization_parameters["optimization_settings"]["solution_output_settings"]["output_path"].GetString()
+            destination_path += "/files"
+            with open(destination_path+"/functional_history.txt", "a") as file:
+                file.write(str(self.functional) + " ")
+                for ifunc in range(self.n_functionals): 
+                    file.write(str(self.weighted_functionals[ifunc]) + " ")
+                file.write("\n")
+
+    def _PrintConstraintsToFile(self):
+        if self.MpiRunOnlyRank(0):
+            destination_path = self.optimization_parameters["optimization_settings"]["solution_output_settings"]["output_path"].GetString()
+            destination_path += "/files"
+            with open(destination_path+"/constraint_history.txt", "a") as file:
+                file.write(str(self.volume_constraint))
+                if (self.use_wss_constraint):
+                    file.write(" " + str(self.wss_constraint))
+                file.write("\n")
+
+    def _PrintParametersToFile(self):
+        if self.MpiRunOnlyRank(0):
+            destination_path = self.optimization_parameters["optimization_settings"]["solution_output_settings"]["output_path"].GetString()
+            destination_path += "/files"
+            with open(destination_path+"/parameters_history.txt", "a") as file:
+                file.write(str(self.design_parameter_change))
+                file.write("\n")
 
     def _EvaluateDesignParameterChange(self):
             design_parameter_converged = False
@@ -1796,9 +1819,14 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
             design_parameter_converged = self.data_communicator.Broadcast(design_parameter_converged, source_rank=0)
             self.design_parameter_change = self.data_communicator.Broadcast(self.design_parameter_change, source_rank=0)
             self.MpiPrint("--|" + self.topology_optimization_stage_str + "| DESIGN PARAMETER CHANGE: " + str(self.design_parameter_change), min_echo=0)
-            return design_parameter_converged       
+            return design_parameter_converged 
 
-    def _ResetFunctionalOutput(self):
+    def _InitializePrintToFileOutput(self):
+        self._InitializePrintFunctionalsToFile()  
+        self._InitializePrintConstraintsToFile()    
+        self._InitializePrintParametersToFile()    
+
+    def _InitializePrintFunctionalsToFile(self):
         if self.MpiRunOnlyRank(0):
             dest_dir = Path(self.optimization_parameters["optimization_settings"]["solution_output_settings"]["output_path"].GetString()) / "files"
             dest_dir.mkdir(parents=True, exist_ok=True)
@@ -1810,6 +1838,27 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
                 for ifunc in range(self.n_functionals):
                     file.write(str(self.functional_weights[ifunc]) + " ")
                 file.write("\n")
+
+    def _InitializePrintConstraintsToFile(self):
+        if self.MpiRunOnlyRank(0):
+            dest_dir = Path(self.optimization_parameters["optimization_settings"]["solution_output_settings"]["output_path"].GetString()) / "files"
+            dest_dir.mkdir(parents=True, exist_ok=True)
+            destination_path = self.optimization_parameters["optimization_settings"]["solution_output_settings"]["output_path"].GetString()
+            destination_path += "/files"
+            with open(destination_path+"/constraint_history.txt", "w") as file:
+                header_str = "VOLUME"
+                if (self.use_wss_constraint):
+                    header_str += " | WSS" 
+                file.write(header_str + "\n")
+
+    def _InitializePrintParametersToFile(self):
+        if self.MpiRunOnlyRank(0):
+            dest_dir = Path(self.optimization_parameters["optimization_settings"]["solution_output_settings"]["output_path"].GetString()) / "files"
+            dest_dir.mkdir(parents=True, exist_ok=True)
+            destination_path = self.optimization_parameters["optimization_settings"]["solution_output_settings"]["output_path"].GetString()
+            destination_path += "/files"
+            with open(destination_path+"/parameters_history.txt", "w") as file:
+                file.write("DESIGN CHANGE" + "\n")
 
     def _PrintConstraints(self):
         self._PrintVolumeConstraint()
@@ -2140,7 +2189,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         if (self.end_solution):
             self.TimeOutputSolutionStep()
             self._CorrectPvtuFilesInTimeVtuOutput()
-        self._PrintFunctionalsToFile()
+        self._PrintToFiles()
         if self.first_iteration:
             self._CopyInputFiles()
         
