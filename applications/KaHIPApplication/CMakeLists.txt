@@ -193,12 +193,17 @@ endif()
 install(TARGETS KratosKaHIPCore DESTINATION libs)
 install(TARGETS KratosKaHIPApplication DESTINATION libs)
 
-# Install the KaHIP shared library so it can be found at runtime
+# Install KaHIP shared libraries into the Kratos libs folder so the runtime
+# linker finds them without any LD_LIBRARY_PATH extension beyond the Kratos one.
 get_filename_component(KAHIP_LIB_DIR "${KAHIP_LIBRARIES}" DIRECTORY)
 file(GLOB KAHIP_SHARED_LIBS "${KAHIP_LIB_DIR}/libkahip*.so*")
 foreach(LIB_FILE ${KAHIP_SHARED_LIBS})
     install(FILES "${LIB_FILE}" DESTINATION libs)
 endforeach()
+
+if(_KAHIP_HAS_PARHIP)
+    install(FILES "${KAHIP_PARHIP_LIBRARIES}" DESTINATION libs)
+endif()
 
 # ── Register with Kratos build system ────────────────────────────────────────
 set(KRATOS_KERNEL
