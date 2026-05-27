@@ -21,6 +21,7 @@ from KratosMultiphysics import (
     PARTITION_INDEX,
     TEMPERATURE,
 )
+import KratosMultiphysics.mpi as KratosMPI
 import KratosMultiphysics.KaHIPApplication  # ensure application is registered
 from KratosMultiphysics.KaHIPApplication import (
     KaHIPDivideHeterogeneousInputProcess,
@@ -94,6 +95,7 @@ class TestKaHIPMPIPartitioner(KratosUnittest.TestCase):
         model_part.AddNodalSolutionStepVariable(TEMPERATURE)
         model_part.AddNodalSolutionStepVariable(PARTITION_INDEX)
         serial_io.ReadModelPart(model_part)
+        KratosMPI.ParallelFillCommunicator(model_part.GetRootModelPart(), self.comm).Execute()
 
         # cube.mdpa has 413 nodes, 1191 elements, 780 conditions
         total_nodes = model_part.GetCommunicator().GlobalNumberOfNodes()
@@ -138,6 +140,7 @@ class TestKaHIPMPIPartitioner(KratosUnittest.TestCase):
 
         modeler = KaHIPPartitioningModeler(model, settings)
         modeler.SetupModelPart()
+        KratosMPI.ParallelFillCommunicator(model_part.GetRootModelPart(), self.comm).Execute()
 
         local_nodes = model_part.GetCommunicator().LocalMesh().NumberOfNodes()
         if self.size <= 10:
@@ -185,6 +188,7 @@ class TestKaHIPMPIPartitioner(KratosUnittest.TestCase):
 
         modeler = KaHIPPartitioningModeler(model, settings)
         modeler.SetupModelPart()
+        KratosMPI.ParallelFillCommunicator(model_part.GetRootModelPart(), self.comm).Execute()
 
         local_nodes = model_part.GetCommunicator().LocalMesh().NumberOfNodes()
         if self.size <= 10:
