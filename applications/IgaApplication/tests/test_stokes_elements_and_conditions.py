@@ -565,6 +565,67 @@ class FluidTests(KratosUnittest.TestCase):
         for i, expected_value in enumerate(expected_rhs):
             self.assertAlmostEqual(rhs[i], expected_value, delta=tolerance)
 
+    def test_SupportPressureCondition2DReadsNormalStress(self):
+        model = KM.Model()
+        model_part = model.CreateModelPart("ModelPart")
+        model_part.SetBufferSize(2)
+        model_part.AddNodalSolutionStepVariable(KM.VELOCITY)
+        model_part.AddNodalSolutionStepVariable(KM.PRESSURE)
+
+        integration_point = [0.333333333333333, 0.05, 0.0, 0.086963711284364]
+        condition = self.create_condition(model_part, integration_point, "SupportPressureCondition")
+        condition.SetValue(KM.PRESSURE, 2.5)
+        condition.SetValue(IGA.KNOT_SPAN_SIZES, [0.1, 0.1])
+
+        geometry = condition.GetGeometry()
+        for i in range(geometry.PointsNumber()):
+            node = geometry[i]
+            node.AddDof(KM.VELOCITY_X)
+            node.AddDof(KM.VELOCITY_Y)
+            node.AddDof(KM.PRESSURE)
+
+        process_info = model_part.ProcessInfo
+        condition.Initialize(process_info)
+
+        rhs_without_normal_stress = KM.Vector()
+        condition.CalculateRightHandSide(rhs_without_normal_stress, process_info)
+
+        normal_stress = KM.Vector(2)
+        normal_stress[0] = 0.35
+        normal_stress[1] = -0.2
+        condition.SetValue(KM.NORMAL_STRESS, normal_stress)
+
+        stored_normal_stress = condition.GetValue(KM.NORMAL_STRESS)
+        for i in range(2):
+            self.assertAlmostEqual(stored_normal_stress[i], normal_stress[i], delta=1e-12)
+
+        rhs_with_normal_stress = KM.Vector()
+        condition.CalculateRightHandSide(rhs_with_normal_stress, process_info)
+
+        shape_functions = geometry.ShapeFunctionsValues()
+        tolerance = 1e-10
+        total_increment_per_component = [0.0, 0.0]
+        for j in range(geometry.PointsNumber()):
+            for idim in range(2):
+                equation_index = 3 * j + idim
+                total_increment_per_component[idim] += (
+                    rhs_with_normal_stress[equation_index] - rhs_without_normal_stress[equation_index]
+                )
+
+        for j in range(geometry.PointsNumber()):
+            for idim in range(2):
+                equation_index = 3 * j + idim
+                expected_increment = shape_functions[0, j] * total_increment_per_component[idim]
+                actual_increment = rhs_with_normal_stress[equation_index] - rhs_without_normal_stress[equation_index]
+                self.assertAlmostEqual(actual_increment, expected_increment, delta=tolerance)
+
+            pressure_equation_index = 3 * j + 2
+            self.assertAlmostEqual(
+                rhs_with_normal_stress[pressure_equation_index] - rhs_without_normal_stress[pressure_equation_index],
+                0.0,
+                delta=tolerance,
+            )
+
     def test_NavierStokesElement3DRectangularP2(self):
         model = KM.Model()
         model_part = model.CreateModelPart("ModelPart")
