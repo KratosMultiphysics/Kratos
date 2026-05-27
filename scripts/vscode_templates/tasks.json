@@ -1,16 +1,24 @@
 {
     // See https://go.microsoft.com/fwlink/?LinkId=733558
     // for the documentation about the tasks.json format
+    //
+    // SETUP: Copy this file to your .vscode/ folder.
+    // Then create a personalized build script (e.g. build/configure.sh on Linux or
+    // build\configure.bat on Windows) based on scripts/standard_configure.* and
+    // update the "Build" and "MPI Build" commands below to point to your copy.
+    //
+    // All tasks use ${input:BuildType} — you will be prompted to pick a build type
+    // the first time you run each task.
     "version": "2.0.0",
     "windows": {
-
         "options": {
             "shell": {
                 "executable": "C:\\Windows\\System32\\cmd.exe",
                 "args": [
                     "/d", "/c",
-                    "C:\\Program^ Files^ ^(x86^)\\Microsoft^ Visual^ Studio\\2019\\Professional\\Common7\\Tools\\VsDevCmd.bat -arch=amd64", "", "&&" //This is for compiling in VS
-                    //,"C:\\Program^ Files^ ^(x86^)\\IntelSWTools\\compilers_and_libraries_2019.2.190\\windows\\bin\\ipsxe-comp-vars.bat intel64 vs2017","","&&" //This is for compiling in IC
+                    // Adjust the Visual Studio version/edition path for your installation:
+                    "C:\\Program^ Files\\Microsoft^ Visual^ Studio\\2022\\Community\\Common7\\Tools\\VsDevCmd.bat -arch=amd64",
+                    "", "&&"
                 ]
             }
         }
@@ -18,136 +26,388 @@
     "tasks": [
 //-------------------------------------------------- Build
         {
-            "label" : "Build",
-            "type" : "shell",
-            "windows" : {
-                "command": "${workspaceFolder}/scripts/ninja_configure.bat",
-                "problemMatcher":[
-                    {
-                        "owner": "cpp",
-                        "fileLocation": "absolute",
-                        "pattern":
-                        {
-                            "regexp": "^(.*)\\(([0-9]*)\\):(.*warning.*|.*error.*)$",
-                            "file": 1,
-                            "line": 2,
-                            "severity": 3,
-                            "message": 3
-                        }
-                    },
+            "label": "Build",
+            "type": "shell",
+            "windows": {
+                // Replace with your personalized copy, e.g. build\configure.bat
+                "command": "${workspaceFolder}/scripts/standard_configure.bat",
+                "problemMatcher": [
+                    { "base": "$msCompile", "fileLocation": ["relative"] },
+                    { "base": "$gcc",       "fileLocation": ["relative"] },
                     {
                         "owner": "cmake",
                         "fileLocation": "relative",
                         "pattern": {
-                            "regexp": "^CMake (.*) at(.*):([0-9]*) \\(file\\):",
-                            "file": 2,
-                            "line": 3,
-                            "severity": 1,
+                            "regexp": "^CMake (.*) at (.*):([0-9]*):",
+                            "severity": 1, "file": 2, "line": 3
                         }
                     }
                 ]
             },
-            "linux" : {
+            "linux": {
+                // Replace with your personalized copy, e.g. ./build/configure.sh
                 "command": "sh",
-                "args":["${workspaceFolder}/scripts/standard_configure.sh"],
-                "problemMatcher":[
-                    {
-                        "owner": "cpp",
-                        "fileLocation": "absolute",
-                        "pattern": {
-                            "regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$",
-                            "file": 1,
-                            "line": 2,
-                            "column": 3,
-                            "severity": 4,
-                            "message": 5
-                        }
-                    },
+                "args": ["${workspaceFolder}/scripts/standard_configure.sh"],
+                "problemMatcher": [
+                    "$gcc",
                     {
                         "owner": "cmake",
                         "fileLocation": "relative",
                         "pattern": {
-                            "regexp": "^CMake (.*) at(.*):([0-9]*) \\(file\\):",
-                            "file": 2,
-                            "line": 3,
-                            "severity": 1,
+                            "regexp": "^CMake (.*) at (.*):([0-9]*):",
+                            "severity": 1, "file": 2, "line": 3
                         }
                     }
                 ]
             },
-
-            "options":{
-                "env":{
-                    "KRATOS_INSTALL_PYTHON_USING_LINKS":"ON",
-                    "BOOST_ROOT":"C:/workspaces/Poesis/external_libraries/boost",
-                    "KRATOS_BUILD_TYPE":"${input:BuildType}"
+            "options": {
+                "env": {
+                    "KRATOS_INSTALL_PYTHON_USING_LINKS": "ON",
+                    "KRATOS_BUILD_TYPE": "${input:BuildType}",
+                    "CMAKE_GENERATOR": "${input:CmakeGenerator}"
                 }
             },
             "group": {
-                "kind":"build",
+                "kind": "build",
                 "isDefault": true
             },
             "presentation": {
-                // Reveal the output only if unrecognized errors occur.
-                "reveal": "always"//"silent"
+                "reveal": "always"
             }
         },
-//-----------------------------------------------------------------------------------------
+//-------------------------------------------------- MPI Build
+        {
+            "label": "MPI Build",
+            "type": "shell",
+            "windows": {
+                "command": "${workspaceFolder}/scripts/standard_configure.bat",
+                "problemMatcher": [
+                    { "base": "$msCompile", "fileLocation": ["relative"] },
+                    { "base": "$gcc",       "fileLocation": ["relative"] },
+                    {
+                        "owner": "cmake",
+                        "fileLocation": "relative",
+                        "pattern": {
+                            "regexp": "^CMake (.*) at (.*):([0-9]*):",
+                            "severity": 1, "file": 2, "line": 3
+                        }
+                    }
+                ]
+            },
+            "linux": {
+                "command": "sh",
+                "args": ["${workspaceFolder}/scripts/standard_configure.sh"],
+                "problemMatcher": [
+                    "$gcc",
+                    {
+                        "owner": "cmake",
+                        "fileLocation": "relative",
+                        "pattern": {
+                            "regexp": "^CMake (.*) at (.*):([0-9]*):",
+                            "severity": 1, "file": 2, "line": 3
+                        }
+                    }
+                ]
+            },
+            "options": {
+                "env": {
+                    "KRATOS_INSTALL_PYTHON_USING_LINKS": "ON",
+                    "KRATOS_MPI_BUILD": "ON",
+                    "KRATOS_BUILD_TYPE": "${input:BuildType}",
+                    "CMAKE_GENERATOR": "${input:CmakeGenerator}"
+                }
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "presentation": {
+                "reveal": "always"
+            }
+        },
+//-------------------------------------------------- Run Benchmark
+        {
+            "label": "Run Current Benchmark file to JSON",
+            "type": "shell",
+            "windows": {
+                "command": "${workspaceFolder}/bin/${input:BuildType}/benchmark/${fileBasenameNoExtension}.exe",
+                "options": {
+                    "env": {
+                        "PATH": "${workspaceFolder}/bin/${input:BuildType}/libs"
+                    }
+                }
+            },
+            "linux": {
+                "command": "${workspaceFolder}/bin/${input:BuildType}/benchmark/${fileBasenameNoExtension}",
+                "options": {
+                    "env": {
+                        "LD_LIBRARY_PATH": "${workspaceFolder}/bin/${input:BuildType}/libs"
+                        // Uncomment to pin thread count:
+                        // "OMP_NUM_THREADS": "1"
+                    }
+                }
+            },
+            "args": [
+                "--benchmark_format=json",
+                "--benchmark_out=output.json"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}/bin/${input:BuildType}/benchmark"
+            },
+            "group": "test",
+            "presentation": {
+                "reveal": "always"
+            }
+        },
+//-------------------------------------------------- Python Tests
         {
             "label": "Run Tests",
             "type": "shell",
-            "windows":{
-                "command": "python.exe"
-            },
-            "linux":{
-                "command": "python3"
-            },
-            "args": ["${workspaceFolder}/bin/${input:BuildType}/KratosMultiphysics/run_tests.py"],
-            "options":{
+            "windows": { "command": "python.exe" },
+            "linux":   { "command": "python3" },
+            "args": ["${workspaceFolder}/bin/${input:BuildType}/KratosMultiphysics/testing/run_python_tests.py"],
+            "options": {
                 "cwd": "${workspaceFolder}/bin/${input:BuildType}/KratosMultiphysics",
-                "env":{
-                    "OMP_NUM_THREADS":"1",
-                    "LD_LIBRARY_PATH":"${workspaceFolder}/bin/${input:BuildType}/libs",
-                    "PYTHONPATH":"${workspaceFolder}/bin/${input:BuildType}"
+                "env": {
+                    "OMP_NUM_THREADS": "1",
+                    "LD_LIBRARY_PATH": "${env:LD_LIBRARY_PATH}:${workspaceFolder}/bin/${input:BuildType}/libs",
+                    "PYTHONPATH":      "${env:PYTHONPATH}:${workspaceFolder}/bin/${input:BuildType}"
                 }
             },
             "group": "test",
             "presentation": {
-                "reveal": "always"//"silent"
+                "reveal": "always"
             }
         },
-//-----------------------------------------------------------------------------------------
+//-------------------------------------------------- Python Tests MPI
+        {
+            "label": "Run Tests MPI",
+            "type": "shell",
+            "command": "python3",
+            "args": [
+                "${workspaceFolder}/bin/${input:BuildType}/KratosMultiphysics/testing/run_python_mpi_tests.py",
+                "-n", "${input:NumberOfCores}",
+                "-m", "mpiexec",
+                "-l", "mpi_small",
+                "-v", "2"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}/bin/${input:BuildType}/KratosMultiphysics",
+                "env": {
+                    "OMP_NUM_THREADS": "1",
+                    "OMPI_MCA_rmaps_base_oversubscribe": "1",
+                    "OMPI_MCA_btl_vader_single_copy_mechanism": "none",
+                    "LD_LIBRARY_PATH": "${env:LD_LIBRARY_PATH}:${workspaceFolder}/bin/${input:BuildType}/libs",
+                    "PYTHONPATH":      "${env:PYTHONPATH}:${workspaceFolder}/bin/${input:BuildType}"
+                }
+            },
+            "group": "test",
+            "presentation": {
+                "reveal": "always"
+            }
+        },
+//-------------------------------------------------- C++ Tests
+        {
+            "label": "Run CPP Tests",
+            "type": "shell",
+            "windows": { "command": "python.exe" },
+            "linux":   { "command": "python3" },
+            "args": ["${workspaceFolder}/bin/${input:BuildType}/KratosMultiphysics/testing/run_cpp_tests.py"],
+            "options": {
+                "cwd": "${workspaceFolder}/bin/${input:BuildType}/KratosMultiphysics",
+                "env": {
+                    "OMP_NUM_THREADS": "1",
+                    "LD_LIBRARY_PATH": "${env:LD_LIBRARY_PATH}:${workspaceFolder}/bin/${input:BuildType}/libs",
+                    "PYTHONPATH":      "${env:PYTHONPATH}:${workspaceFolder}/bin/${input:BuildType}"
+                }
+            },
+            "group": "test",
+            "presentation": {
+                "reveal": "always"
+            }
+        },
+//-------------------------------------------------- C++ Tests MPI
+        {
+            "label": "Run CPP Tests MPI",
+            "type": "shell",
+            "command": "python3",
+            "args": [
+                "${workspaceFolder}/bin/${input:BuildType}/KratosMultiphysics/testing/run_cpp_mpi_tests.py",
+                "-n", "${input:NumberOfCores}",
+                "-m", "mpiexec",
+                "-f=--allow-run-as-root",
+                "-v", "2"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}/bin/${input:BuildType}/KratosMultiphysics",
+                "env": {
+                    "OMP_NUM_THREADS": "1",
+                    "OMPI_MCA_rmaps_base_oversubscribe": "1",
+                    "OMPI_MCA_btl_vader_single_copy_mechanism": "none",
+                    "LD_LIBRARY_PATH": "${env:LD_LIBRARY_PATH}:${workspaceFolder}/bin/${input:BuildType}/libs",
+                    "PYTHONPATH":      "${env:PYTHONPATH}:${workspaceFolder}/bin/${input:BuildType}"
+                }
+            },
+            "group": "test",
+            "presentation": {
+                "reveal": "always"
+            }
+        },
+//-------------------------------------------------- Run CurrentFile
         {
             "label": "Run CurrentFile",
             "type": "shell",
-            "windows":{
-                "command": "python.exe"
-            },
-            "linux":{
-                "command": "python3"
-            },
+            "windows": { "command": "python.exe" },
+            "linux":   { "command": "python3" },
             "args": ["${file}"],
-            "options":{
+            "options": {
                 "cwd": "${fileDirname}",
-                "env":{
-                    "LD_LIBRARY_PATH":"${workspaceFolder}/bin/${input:BuildType}/libs",
-                    "PYTHONPATH":"${workspaceFolder}/bin/${input:BuildType}"
+                "env": {
+                    "OMP_NUM_THREADS": "1",
+                    "LD_LIBRARY_PATH": "${env:LD_LIBRARY_PATH}:${workspaceFolder}/bin/${input:BuildType}/libs",
+                    "PYTHONPATH":      "${env:PYTHONPATH}:${workspaceFolder}/bin/${input:BuildType}"
                 }
             },
             "group": "test",
             "presentation": {
-                "reveal": "always"//"silent"
+                "reveal": "always"
+            }
+        },
+//-------------------------------------------------- Run CurrentFile MPI
+        {
+            "label": "Run CurrentFile MPI",
+            "type": "shell",
+            "command": "mpirun",
+            "args": ["--oversubscribe", "-np", "${input:NumberOfCores}", "python3", "${file}"],
+            "options": {
+                "cwd": "${fileDirname}",
+                "env": {
+                    "OMP_NUM_THREADS": "1",
+                    "OMPI_MCA_rmaps_base_oversubscribe": "1",
+                    "OMPI_MCA_btl_vader_single_copy_mechanism": "none",
+                    "OMPI_ALLOW_RUN_AS_ROOT": "1",
+                    "OMPI_ALLOW_RUN_AS_ROOT_CONFIRM": "1",
+                    "LD_LIBRARY_PATH": "${env:LD_LIBRARY_PATH}:${workspaceFolder}/bin/${input:BuildType}/libs",
+                    "PYTHONPATH":      "${env:PYTHONPATH}:${workspaceFolder}/bin/${input:BuildType}"
+                }
+            },
+            "group": "test",
+            "presentation": {
+                "reveal": "always"
+            }
+        },
+//-------------------------------------------------- Run CurrentFile Valgrind
+        {
+            "label": "Run CurrentFile Valgrind",
+            "type": "shell",
+            "command": "valgrind",
+            "args": [
+                "--leak-check=full",
+                "--track-origins=yes",
+                "python3",
+                "${file}"
+            ],
+            "options": {
+                "cwd": "${fileDirname}",
+                "env": {
+                    "LD_LIBRARY_PATH": "${env:LD_LIBRARY_PATH}:${workspaceFolder}/bin/${input:BuildType}/libs",
+                    "PYTHONPATH":      "${env:PYTHONPATH}:${workspaceFolder}/bin/${input:BuildType}"
+                }
+            },
+            "group": "test",
+            "presentation": {
+                "reveal": "always"
+            }
+        },
+//-------------------------------------------------- Run CurrentFile MPI Valgrind
+        {
+            "label": "Run CurrentFile MPI Valgrind",
+            "type": "shell",
+            "command": "mpirun",
+            "args": [
+                "--oversubscribe", "-np", "${input:NumberOfCores}",
+                "valgrind", "--log-file=valgrind_output_%p.log", "--leak-check=full",
+                "python3", "${file}"
+            ],
+            "options": {
+                "cwd": "${fileDirname}",
+                "env": {
+                    "OMP_NUM_THREADS": "1",
+                    "LD_LIBRARY_PATH": "${env:LD_LIBRARY_PATH}:${workspaceFolder}/bin/${input:BuildType}/libs",
+                    "PYTHONPATH":      "${env:PYTHONPATH}:${workspaceFolder}/bin/${input:BuildType}"
+                }
+            },
+            "group": "test",
+            "presentation": {
+                "reveal": "always"
+            }
+        },
+//-------------------------------------------------- Run CurrentFile VTune
+        {
+            "label": "Run CurrentFile VTune",
+            "type": "shell",
+            "windows": {
+                "command": "C:\\PROGRA~2\\Intel\\oneAPI\\vtune\\latest\\bin64\\vtune.exe",
+                "args": ["-collect", "hotspots", "-result-dir", "results", "--", "py.exe", "${file}"]
+            },
+            "linux": {
+                "command": "/opt/intel/oneapi/vtune/latest/bin64/vtune",
+                "args": ["-collect", "hotspots", "-result-dir", "results", "--", "python3", "${file}"]
+            },
+            "options": {
+                "cwd": "${fileDirname}",
+                "env": {
+                    "LD_LIBRARY_PATH": "${env:LD_LIBRARY_PATH}:${workspaceFolder}/bin/${input:BuildType}/libs",
+                    "PYTHONPATH":      "${env:PYTHONPATH}:${workspaceFolder}/bin/${input:BuildType}"
+                    // Add any license env vars required for your VTune installation here
+                }
+            },
+            "group": "test",
+            "presentation": {
+                "reveal": "always"
+            }
+        },
+//-------------------------------------------------- Run CurrentFile cProfile
+        {
+            "label": "Run CurrentFile cProfile",
+            "type": "shell",
+            "windows": { "command": "py.exe" },
+            "linux":   { "command": "python3" },
+            "args": ["-m", "cProfile", "-o", "program.prof", "${file}"],
+            "options": {
+                "cwd": "${fileDirname}",
+                "env": {
+                    "LD_LIBRARY_PATH": "${env:LD_LIBRARY_PATH}:${workspaceFolder}/bin/${input:BuildType}/libs",
+                    "PYTHONPATH":      "${env:PYTHONPATH}:${workspaceFolder}/bin/${input:BuildType}"
+                }
+            },
+            "group": "test",
+            "presentation": {
+                "reveal": "always"
             }
         }
     ],
-    //-----------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------
     "inputs": [
         {
             "id": "BuildType",
-            "description": "BuildType to be done/used",
-            "default": "RelWithDebInfo",
-            "options":["RelWithDebInfo","Release","FullDebug"],
+            "description": "Build type",
+            "default": "Release",
+            "options": ["Release", "RelWithDebInfo", "FullDebug"],
             "type": "pickString"
+        },
+        {
+            "id": "CmakeGenerator",
+            "description": "CMake generator",
+            "default": "Unix Makefiles",
+            "options": ["Unix Makefiles", "Ninja"],
+            "type": "pickString"
+        },
+        {
+            "id": "NumberOfCores",
+            "description": "Number of MPI processes",
+            "default": "4",
+            "type": "promptString"
         }
     ]
 }
