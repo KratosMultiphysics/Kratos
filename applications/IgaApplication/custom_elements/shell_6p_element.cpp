@@ -25,19 +25,11 @@ namespace Kratos
   /// Internal variables used for metric transformation
    Shell6pElement::KinematicVariables::KinematicVariables(std::size_t Dimension)
     {
-        // covariant metric
-        noalias(MetricCovariant) = ZeroVector(Dimension);
-        noalias(CurvatureCovariant) = ZeroVector(Dimension);
-        //base vector 1
-        noalias(BaseVector1) = ZeroVector(Dimension);
-        //base vector 2
-        noalias(BaseVector2) = ZeroVector(Dimension);
-        //base vector 3 normalized
-        noalias(NormalVector) = ZeroVector(Dimension);
-        //not-normalized base vector 3
-        noalias(NormalVectorTilde) = ZeroVector(Dimension);
-        //differential area
-        DifferentialArea = 1.0;
+        noalias(BaseVector1) = ZeroVector(Dimension); // base vector 1
+        noalias(BaseVector2) = ZeroVector(Dimension); // base vector 2
+        noalias(NormalVector) = ZeroVector(Dimension);  //base vector 3 normalized
+        noalias(NormalVectorTilde) = ZeroVector(Dimension); // not-normalized base vector 3
+        DifferentialArea = 1.0; // differential area
     }
 
     Shell6pElement::ConstitutiveVariables::ConstitutiveVariables(std::size_t StrainSize)
@@ -218,40 +210,46 @@ namespace Kratos
     {
         KRATOS_TRY;
 
+        // Retrieve geometry, integration points and definition of problem size
         const auto& r_geometry = GetGeometry();
-
-        // definition of problem size
-        const std::size_t number_of_nodes = r_geometry.size();
-        const std::size_t mat_size = number_of_nodes * 6;
-
         const auto& r_integration_points = r_geometry.IntegrationPoints();
-
-        // Shape function values for all integration points
         const Matrix& r_N = r_geometry.ShapeFunctionsValues();
 
+        const std::size_t number_of_nodes = r_geometry.size();
+        const std::size_t mat_size = number_of_nodes * 6;
+        const double thickness = this->GetProperties().GetValue(THICKNESS);
+        const double density = this->GetProperties().GetValue(DENSITY);
+        const double rotational_inertia_factor = thickness * thickness / 12.0;
+
+        if (rMassMatrix.size1() != mat_size)
+            rMassMatrix.resize(mat_size, mat_size, false);
+        noalias(rMassMatrix) = ZeroMatrix(mat_size, mat_size);
+
+        //// Loop over integration points
         for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
 
-            double integration_weight = r_integration_points[point_number].Weight();
+            const double integration_weight = r_integration_points[point_number].Weight();
 
-            const double thickness = this->GetProperties().GetValue(THICKNESS);
-            double density = this->GetProperties().GetValue(DENSITY);
-            double mass = thickness * density * mDifferentialAreaVector[point_number] * integration_weight;
-
-            if (rMassMatrix.size1() != mat_size)
-                rMassMatrix.resize(mat_size, mat_size, false);
-
-            rMassMatrix = ZeroMatrix(mat_size, mat_size);
-
-            for (unsigned int r = 0; r<number_of_nodes; r++)
+            //// Loop for zeta (thickness integration points)
+            for (IndexType Gauss_index = 0; Gauss_index < mGaussIntegrationThickness.num_GP_thickness; Gauss_index++)
             {
-                for (unsigned int s = 0; s<number_of_nodes; s++)
+                const double thickness_weight = mGaussIntegrationThickness.integration_weight_thickness(Gauss_index);
+                const double jacobian_thickness_det = mJacobianThicknessDeterminant[point_number][Gauss_index];
+                const double mass = density * jacobian_thickness_det * thickness_weight * integration_weight;
+                
+                for (IndexType r = 0; r < number_of_nodes; ++r)
                 {
-                    rMassMatrix(6 * s, 6 * r) = r_N(point_number, s)*r_N(point_number, r) * mass;
-                    rMassMatrix(6 * s + 1, 6 * r + 1) = rMassMatrix(6 * s, 6 * r);
-                    rMassMatrix(6 * s + 2, 6 * r + 2) = rMassMatrix(6 * s, 6 * r);
-                    rMassMatrix(6 * s + 3, 6 * r + 3) = rMassMatrix(6 * s, 6 * r) * thickness * thickness / 12.0;
-                    rMassMatrix(6 * s + 4, 6 * r + 4) = rMassMatrix(6 * s, 6 * r) * thickness * thickness / 12.0;
-                    rMassMatrix(6 * s + 5, 6 * r + 5) = rMassMatrix(6 * s, 6 * r) * thickness * thickness / 12.0;
+                    for (IndexType s = 0; s < number_of_nodes; ++s)
+                    {
+                        const double Nrs = r_N(point_number, s) * r_N(point_number, r) * mass;
+
+                        rMassMatrix(6 * s, 6 * r) += Nrs;
+                        rMassMatrix(6 * s + 1, 6 * r + 1) += Nrs;
+                        rMassMatrix(6 * s + 2, 6 * r + 2) += Nrs;
+                        rMassMatrix(6 * s + 3, 6 * r + 3) += Nrs * rotational_inertia_factor;
+                        rMassMatrix(6 * s + 4, 6 * r + 4) += Nrs * rotational_inertia_factor;
+                        rMassMatrix(6 * s + 5, 6 * r + 5) += Nrs * rotational_inertia_factor;
+                    }
                 }
             }
         }
@@ -327,16 +325,15 @@ namespace Kratos
         const std::size_t mat_size = number_of_nodes * 6;
         const double thickness = this->GetProperties().GetValue(THICKNESS);
 
-        std::vector<array_1d<double, 6>> strain_cau_cart(mGaussIntegrationThickness.num_GP_thickness);
-        std::vector<array_1d<double, 6>> stress_cau_cart(mGaussIntegrationThickness.num_GP_thickness);
         Vector current_displacement = ZeroVector(6*number_of_nodes);
         GetValuesVector(current_displacement,0);
 
         // Provide a default empty implementation: resize and set zeros
         if (rOutput.size() != r_integration_points.size())
-        {
             rOutput.resize(r_integration_points.size());
-        }
+
+        std::vector<array_1d<double, 6>> strain_cauchy_cartesian(mGaussIntegrationThickness.num_GP_thickness);
+        std::vector<array_1d<double, 6>> stress_cauchy_cartesian(mGaussIntegrationThickness.num_GP_thickness);
 
         //// Loop over integration points
         for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
@@ -383,39 +380,39 @@ namespace Kratos
                 Matrix b_operator = ZeroMatrix(6, mat_size);
                 CalculateBOperator(point_number, b_operator, mZeta, jacobian_inv, normal_vector_derivatives, kinematic_variables);
 
-                strain_cau_cart[Gauss_index] = prod(b_operator, current_displacement);
-                stress_cau_cart[Gauss_index] = prod(constitutive_variables.ConstitutiveMatrix,strain_cau_cart[Gauss_index]);
+                strain_cauchy_cartesian[Gauss_index] = prod(b_operator, current_displacement);
+                stress_cauchy_cartesian[Gauss_index] = prod(constitutive_variables.ConstitutiveMatrix,strain_cauchy_cartesian[Gauss_index]);
             }
         }
  
-        // Cauchy stress at midspan
-        array_1d<double, 6> stress_cau_cart_mid;
-        stress_cau_cart_mid = (stress_cau_cart[mGaussIntegrationThickness.num_GP_thickness-1] + stress_cau_cart[0]) / 2.0;
+        // Extrapolate stress to top/bottom surface using midplane interpolation
+        array_1d<double, 6> stress_cauchy_cartesian_midplane;
+        stress_cauchy_cartesian_midplane = (stress_cauchy_cartesian[mGaussIntegrationThickness.num_GP_thickness-1] + stress_cauchy_cartesian[0]) / 2.0;
 
         for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number)
         {
             if (rVariable == CAUCHY_STRESS_TOP_XX) {
-                rOutput[point_number] = stress_cau_cart_mid[0] + (stress_cau_cart[mGaussIntegrationThickness.num_GP_thickness - 1][0]
-                    - stress_cau_cart_mid[0]) / mGaussIntegrationThickness.integration_weight_thickness(mGaussIntegrationThickness.num_GP_thickness - 1);
+                rOutput[point_number] = stress_cauchy_cartesian_midplane[0] + (stress_cauchy_cartesian[mGaussIntegrationThickness.num_GP_thickness - 1][0]
+                    - stress_cauchy_cartesian_midplane[0]) / mGaussIntegrationThickness.integration_weight_thickness(mGaussIntegrationThickness.num_GP_thickness - 1);
             }
             else if (rVariable == CAUCHY_STRESS_TOP_YY) {
-                rOutput[point_number] = stress_cau_cart_mid[1] + (stress_cau_cart[mGaussIntegrationThickness.num_GP_thickness - 1][1]
-                    - stress_cau_cart_mid[1]) / mGaussIntegrationThickness.integration_weight_thickness(mGaussIntegrationThickness.num_GP_thickness - 1);
+                rOutput[point_number] = stress_cauchy_cartesian_midplane[1] + (stress_cauchy_cartesian[mGaussIntegrationThickness.num_GP_thickness - 1][1]
+                    - stress_cauchy_cartesian_midplane[1]) / mGaussIntegrationThickness.integration_weight_thickness(mGaussIntegrationThickness.num_GP_thickness - 1);
             }
             else if (rVariable == CAUCHY_STRESS_TOP_XY) {
-                rOutput[point_number] = stress_cau_cart_mid[3] + (stress_cau_cart[mGaussIntegrationThickness.num_GP_thickness - 1][3]
-                    - stress_cau_cart_mid[3]) / mGaussIntegrationThickness.integration_weight_thickness(mGaussIntegrationThickness.num_GP_thickness - 1);
+                rOutput[point_number] = stress_cauchy_cartesian_midplane[3] + (stress_cauchy_cartesian[mGaussIntegrationThickness.num_GP_thickness - 1][3]
+                    - stress_cauchy_cartesian_midplane[3]) / mGaussIntegrationThickness.integration_weight_thickness(mGaussIntegrationThickness.num_GP_thickness - 1);
             }
             else if (rVariable == CAUCHY_STRESS_BOTTOM_XX) {
-                rOutput[point_number] = stress_cau_cart_mid[0] + (stress_cau_cart[0][0] - stress_cau_cart_mid[0]) /
+                rOutput[point_number] = stress_cauchy_cartesian_midplane[0] + (stress_cauchy_cartesian[0][0] - stress_cauchy_cartesian_midplane[0]) /
                     mGaussIntegrationThickness.integration_weight_thickness(0);
             }
             else if (rVariable == CAUCHY_STRESS_BOTTOM_YY) {
-                rOutput[point_number] = stress_cau_cart_mid[1] + (stress_cau_cart[0][1] - stress_cau_cart_mid[1]) /
+                rOutput[point_number] = stress_cauchy_cartesian_midplane[1] + (stress_cauchy_cartesian[0][1] - stress_cauchy_cartesian_midplane[1]) /
                     mGaussIntegrationThickness.integration_weight_thickness(0);
             }
             else if (rVariable == CAUCHY_STRESS_BOTTOM_XY) {
-                rOutput[point_number] = stress_cau_cart_mid[3] + (stress_cau_cart[0][3] - stress_cau_cart_mid[3]) /
+                rOutput[point_number] = stress_cauchy_cartesian_midplane[3] + (stress_cauchy_cartesian[0][3] - stress_cauchy_cartesian_midplane[3]) /
                     mGaussIntegrationThickness.integration_weight_thickness(0);
             }
             else {
@@ -554,8 +551,6 @@ namespace Kratos
         const std::size_t mat_size = number_of_nodes * 6;
         const double thickness = this->GetProperties().GetValue(THICKNESS); 
 
-        std::vector<array_1d<double, 6>> strain_cau_cart(mGaussIntegrationThickness.num_GP_thickness);
-        std::vector<array_1d<double, 6>> stress_cau_cart(mGaussIntegrationThickness.num_GP_thickness);
         Vector current_displacement = ZeroVector(6*number_of_nodes);
         GetValuesVector(current_displacement,0);
 
@@ -608,10 +603,10 @@ namespace Kratos
                 CalculateBDrilling(point_number, b_drilling, jacobian_inv, kinematic_variables);
 
                 // 3.5. Geometric stiffness part
-                strain_cau_cart[Gauss_index] = prod(b_operator, current_displacement);
-                stress_cau_cart[Gauss_index] = prod(constitutive_variables.ConstitutiveMatrix,strain_cau_cart[Gauss_index]);
+                constitutive_variables.StrainVector = prod(b_operator, current_displacement);
+                constitutive_variables.StressVector = prod(constitutive_variables.ConstitutiveMatrix, constitutive_variables.StrainVector);
                 Matrix stress_matrix = ZeroMatrix(9,9);
-                CalculateStressMatrix(stress_cau_cart[Gauss_index],stress_matrix);
+                CalculateStressMatrix(constitutive_variables.StressVector,stress_matrix);
 
                 Matrix b_geometric = ZeroMatrix(9, mat_size);
                 CalculateBGeometric(point_number, b_geometric, mZeta, jacobian_inv, normal_vector_derivatives, kinematic_variables);
@@ -627,16 +622,15 @@ namespace Kratos
                     noalias(rLeftHandSideMatrix) += integration_weight *prod(trans(b_operator), Matrix(prod(constitutive_variables.ConstitutiveMatrix, b_operator)));
 
                     // Add the drilling stiffness matrix contribution to the element stiffness matrix
-                    double E = this->GetProperties().GetValue(YOUNG_MODULUS);
-                    double drilling_factor = 0.05; 
-                    noalias(rLeftHandSideMatrix) += drilling_factor * E  * integration_weight * prod(trans(b_drilling), Matrix((b_drilling))); 
+                    double drilling_factor = 0.05; //TO DO: user definerd factor to adjust the drilling stiffness contribution
+                    noalias(rLeftHandSideMatrix) += drilling_factor * this->GetProperties().GetValue(YOUNG_MODULUS) * integration_weight * prod(trans(b_drilling), Matrix((b_drilling))); 
                     
                     // Add the geometric stiffness matrix contribution to the element stiffness matrix
                     noalias(rLeftHandSideMatrix) += integration_weight *prod(trans(b_geometric), Matrix(prod(stress_matrix, b_geometric)));
                 }
                 if (CalculateResidualVectorFlag == true)
                 {
-                    noalias(rRightHandSideVector) -= integration_weight * prod(trans(b_operator), stress_cau_cart[Gauss_index]);
+                    noalias(rRightHandSideVector) -= integration_weight * prod(trans(b_operator), constitutive_variables.StressVector);
                 }
             } 
         }
@@ -654,19 +648,14 @@ namespace Kratos
         rKinematicVariables.BaseVector1 = column(J, 0);
         rKinematicVariables.BaseVector2 = column(J, 1);
 
-        //not-normalized base vector 3
+        // not-normalized base vector 3
         MathUtils<double>::CrossProduct(rKinematicVariables.NormalVectorTilde, rKinematicVariables.BaseVector1, rKinematicVariables.BaseVector2);
 
-        //differential area DifferentialArea
+        // differential area DifferentialArea
         rKinematicVariables.DifferentialArea = norm_2(rKinematicVariables.NormalVectorTilde);
 
         //base vector 3 normalized
         noalias(rKinematicVariables.NormalVector) = rKinematicVariables.NormalVectorTilde / rKinematicVariables.DifferentialArea;
-
-        //GetCovariantMetric
-        rKinematicVariables.MetricCovariant[0] = pow(rKinematicVariables.BaseVector1[0], 2) + pow(rKinematicVariables.BaseVector1[1], 2) + pow(rKinematicVariables.BaseVector1[2], 2);
-        rKinematicVariables.MetricCovariant[1] = pow(rKinematicVariables.BaseVector2[0], 2) + pow(rKinematicVariables.BaseVector2[1], 2) + pow(rKinematicVariables.BaseVector2[2], 2);
-        rKinematicVariables.MetricCovariant[2] = rKinematicVariables.BaseVector1[0] * rKinematicVariables.BaseVector2[0] + rKinematicVariables.BaseVector1[1] * rKinematicVariables.BaseVector2[1] + rKinematicVariables.BaseVector1[2] * rKinematicVariables.BaseVector2[2];
     }
 
     // Computes transformation matrix from local to global cartesian coordinates
@@ -675,14 +664,14 @@ namespace Kratos
         Matrix& rTransformationMatrix
     ) const
     {
-        //Local cartesian coordinates
+        // Local cartesian coordinates
         double l_a1 = norm_2(rKinematicVariables.BaseVector1);
         array_1d<double, 3> local_base_1 = rKinematicVariables.BaseVector1 / l_a1;
         array_1d<double, 3> local_base_3 =  rKinematicVariables.NormalVector;
         array_1d<double, 3> local_base_2;
         MathUtils<double>::CrossProduct(local_base_2, local_base_3, local_base_1);
         
-        //Transformation matrix 
+        // Transformation matrix 
         if (rTransformationMatrix.size1() != 6 && rTransformationMatrix.size2() != 6)                                                                 
             rTransformationMatrix.resize(6, 6);
         noalias(rTransformationMatrix) = ZeroMatrix(6, 6);
@@ -719,14 +708,13 @@ namespace Kratos
         rValues.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS);
         rValues.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
 
-        array_1d<double, 6> strain_vector(6, 0.0);
-        //To do: compute strain vector
-        noalias(rThisConstitutiveVariables.StrainVector) = prod(mTransformationMatrix[IntegrationPointIndex], strain_vector);
-
         // Constitive Matrices D
         rValues.SetStrainVector(rThisConstitutiveVariables.StrainVector); //this is the input parameter
         rValues.SetStressVector(rThisConstitutiveVariables.StressVector); //this is an ouput parameter
         rValues.SetConstitutiveMatrix(rThisConstitutiveVariables.ConstitutiveMatrix); //this is an ouput parameter
+
+        // TO DO: for now we support only isotropic linear elastic materials, in the future, this should be computed in the constitutive law.
+        // mConstitutiveLawVector[IntegrationPointIndex]->CalculateMaterialResponse(rValues, ThisStressMeasure);
 
         const double poisson_ratio = this->GetProperties()[POISSON_RATIO];
         const double youngs_modulus = this->GetProperties()[YOUNG_MODULUS];
@@ -741,10 +729,6 @@ namespace Kratos
         rThisConstitutiveVariables.ConstitutiveMatrix(3, 3) = lame_lambda * (1.0 - poisson_ratio) / 2.0;
         rThisConstitutiveVariables.ConstitutiveMatrix(4, 4) = shear_modulus * shear_correction_factor;
         rThisConstitutiveVariables.ConstitutiveMatrix(5, 5) = shear_modulus * shear_correction_factor;
-
-        //Local Cartesian Stresses
-        noalias(rThisConstitutiveVariables.StressVector) = prod(
-            trans(rThisConstitutiveVariables.ConstitutiveMatrix), rThisConstitutiveVariables.StrainVector);
     }
 
     void Shell6pElement::CalculateNormalVectorDerivatives(

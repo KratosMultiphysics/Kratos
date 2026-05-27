@@ -50,8 +50,6 @@ protected:
     /// @brief Internal structs
     struct KinematicVariables
     {
-        array_1d<double, 3> MetricCovariant;
-        array_1d<double, 3> CurvatureCovariant;
         array_1d<double, 3> BaseVector1;
         array_1d<double, 3> BaseVector2;
         array_1d<double, 3> NormalVector;
