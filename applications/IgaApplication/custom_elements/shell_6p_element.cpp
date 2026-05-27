@@ -791,9 +791,9 @@ namespace Kratos
     void Shell6pElement::CalculateBOperator(
         const IndexType IntegrationPointIndex,
         Matrix& rBOperator,
-        double zeta,
-        Matrix& rJacobianInv,
-        Matrix& rNormalVectorDerivatives,
+        const double zeta,
+        const Matrix& rJacobianInv,
+        const Matrix& rNormalVectorDerivatives,
         const KinematicVariables& rActualKinematic) const
     {
         const std::size_t number_of_control_points = GetGeometry().size();
@@ -817,9 +817,8 @@ namespace Kratos
         const double y2= rActualKinematic.NormalVector[1];
         const double y3= rActualKinematic.NormalVector[2];
 
-        Matrix da3 = ZeroMatrix(3, 3);
         Matrix Dn = ZeroMatrix(3, 3);
-        Matrix b = ZeroMatrix(3, mat_size);
+        Dn = prod(rJacobianInv, rNormalVectorDerivatives);
 
         if (rBOperator.size1() != 6 || rBOperator.size2() != mat_size)
             rBOperator.resize(6, mat_size);
@@ -831,8 +830,6 @@ namespace Kratos
             const double dzetadx= rJacobianInv(0,2);
             const double dzetady= rJacobianInv(1,2);
             const double dzetadz= rJacobianInv(2,2); 
-          
-            Dn = prod(rJacobianInv, rNormalVectorDerivatives);
 
             // y hat Derivative w.r.t x
             const double dy1x= Dn(0,0);
@@ -864,36 +861,36 @@ namespace Kratos
             rBOperator(5, index + 2) = DN_De_Jn(i, 0);
 
             // Rotation DOFs contributions
-            rBOperator(0, index + 4) = (DN_De_Jn(i, 0) * (thickness/2) * zeta * y3) + (r_N(i) * (thickness/2) * (zeta * dy3x + y3 * dzetadx));
-            rBOperator(0, index + 5) = - ((DN_De_Jn(i, 0) * (thickness/2) * zeta * y2) + (r_N(i) * (thickness/2) * (zeta * dy2x + dzetadx * y2)));
+            rBOperator(0, index + 4) =  ((DN_De_Jn(i, 0) * zeta * y3) + (r_N(i) * (zeta * dy3x + y3 * dzetadx))) * (thickness/2);
+            rBOperator(0, index + 5) = -((DN_De_Jn(i, 0) * zeta * y2) + (r_N(i) * (zeta * dy2x + dzetadx * y2))) * (thickness/2);
 
-            rBOperator(1, index + 3) = - ((DN_De_Jn(i, 1) * (thickness/2) * zeta* y3) + (r_N(i) * (thickness/2) * (zeta * dy3y + dzetady * y3))); 
-            rBOperator(1, index + 5) = (DN_De_Jn(i, 1) * (thickness/2) * zeta * y1) + (r_N(i) * (thickness/2) * (zeta * dy1y + dzetady * y1)); 
+            rBOperator(1, index + 3) = -((DN_De_Jn(i, 1) * zeta * y3) + (r_N(i) * (zeta * dy3y + dzetady * y3))) * (thickness/2);
+            rBOperator(1, index + 5) =  ((DN_De_Jn(i, 1) * zeta * y1) + (r_N(i) * (zeta * dy1y + dzetady * y1))) * (thickness/2);
 
-            rBOperator(2, index + 3) = (DN_De_Jn(i, 2) * (thickness/2) * zeta   * y2) + (r_N(i)  * (thickness/2) * (zeta * dy2z + dzetadz * y2));  
-            rBOperator(2, index + 4) = - ((DN_De_Jn(i, 2) * (thickness/2) * zeta * y1)  + (r_N(i) * (thickness/2) * (zeta  * dy1z + dzetadz *y1))); 
+            rBOperator(2, index + 3) =  ((DN_De_Jn(i, 2) * zeta * y2) + (r_N(i) * (zeta * dy2z + dzetadz * y2))) * (thickness/2);
+            rBOperator(2, index + 4) = -((DN_De_Jn(i, 2) * zeta * y1) + (r_N(i) * (zeta * dy1z + dzetadz * y1))) * (thickness/2);
 
-            rBOperator(3, index + 3) = - ((DN_De_Jn(i, 0) * (thickness/2) * zeta * y3) +(r_N(i) * (thickness/2) * (zeta * dy3x + dzetadx * y3)));
-            rBOperator(3, index + 4) = (DN_De_Jn(i, 1) * (thickness/2) * zeta * y3) +(r_N(i) * (thickness/2) * (zeta * dy3y + dzetady * y3));
-            rBOperator(3, index + 5) = ((DN_De_Jn(i, 0) * (thickness/2) * zeta * y1) + (r_N(i) * (thickness/2) * (zeta * dy1x + dzetadx * y1))) 
-                                     - ((DN_De_Jn(i, 1) * (thickness/2) * zeta * y2)+ (r_N(i) * (thickness/2) *  (zeta * dy2y + dzetady * y2))); 
+            rBOperator(3, index + 3) = -((DN_De_Jn(i, 0) * zeta * y3) + (r_N(i) * (zeta * dy3x + dzetadx * y3))) * (thickness/2);
+            rBOperator(3, index + 4) =  ((DN_De_Jn(i, 1) * zeta * y3) + (r_N(i) * (zeta * dy3y + dzetady * y3))) * (thickness/2);
+            rBOperator(3, index + 5) =  (((DN_De_Jn(i, 0) * zeta * y1) + (r_N(i) * (zeta * dy1x + dzetadx * y1))) 
+                                       -((DN_De_Jn(i, 1) * zeta * y2)+ (r_N(i) *  (zeta * dy2y + dzetady * y2)))) * (thickness/2);
 
-            rBOperator(4, index + 3) = ((DN_De_Jn(i, 1) * (thickness/2) * zeta * y2) + (r_N(i) * (thickness/2) * (zeta * dy2y + dzetady * y2)))  
-                                     - ((DN_De_Jn(i, 2) * (thickness/2) * zeta * y3)+ (r_N (i)  * (thickness/2) * (zeta *dy3z + dzetadz * y3))); 
-            rBOperator(4, index + 4) = - ((DN_De_Jn(i, 1) * (thickness/2) * zeta * y1) + (r_N(i) * (thickness/2) * (zeta * dy1y + dzetady * y1))); 
-            rBOperator(4, index + 5) = (DN_De_Jn(i, 2) * (thickness/2) * zeta * y1 ) + (r_N (i) * (thickness/2) * (zeta * dy1z + dzetadz * y1)); 
+            rBOperator(4, index + 3) =  (((DN_De_Jn(i, 1) * zeta * y2) + (r_N(i) * (zeta * dy2y + dzetady * y2)))  
+                                       -((DN_De_Jn(i, 2) * zeta * y3) + (r_N(i) * (zeta * dy3z + dzetadz * y3)))) * (thickness/2);
+            rBOperator(4, index + 4) = -((DN_De_Jn(i, 1) * zeta * y1) + (r_N(i) * (zeta * dy1y + dzetady * y1))) * (thickness/2);
+            rBOperator(4, index + 5) =  ((DN_De_Jn(i, 2) * zeta * y1) + (r_N(i) * (zeta * dy1z + dzetadz * y1))) * (thickness/2);
 
-            rBOperator(5, index + 3) = ((DN_De_Jn(i, 0) * (thickness/2) * zeta * y2) + (r_N(i) * (thickness/2) * ( zeta * dy2x +  dzetadx * y2)) ); 
-            rBOperator(5, index + 4) = ((DN_De_Jn (i,2) * (thickness/2) * zeta * y3) + (r_N (i)   * (thickness/2) * ( zeta * dy3z + dzetadz * y3 ))) 
-                                     - ((DN_De_Jn(i, 0) * (thickness/2) * zeta * y1) + (r_N(i) * (thickness/2) * (zeta  * dy1x + dzetadx * y1) )); 
-            rBOperator(5, index + 5) = - ((DN_De_Jn (i,2) * (thickness/2) * zeta * y2 )+(r_N (i) * (thickness/2) * (zeta * dy2z + dzetadz * y2)));  
+            rBOperator(5, index + 3) =  ((DN_De_Jn(i, 0) * zeta * y2) + (r_N(i) * (zeta * dy2x + dzetadx * y2))) * (thickness/2);
+            rBOperator(5, index + 4) =  (((DN_De_Jn(i, 2) * zeta * y3) + (r_N(i) * (zeta * dy3z + dzetadz * y3))) 
+                                       -((DN_De_Jn(i, 0) * zeta * y1) + (r_N(i) * (zeta * dy1x + dzetadx * y1)))) * (thickness/2);
+            rBOperator(5, index + 5) = -((DN_De_Jn(i, 2) * zeta * y2) + (r_N(i) * (zeta * dy2z + dzetadz * y2))) * (thickness/2);
         }
     }
 
     void Shell6pElement::CalculateBDrilling(                                                                                         
         const IndexType IntegrationPointIndex,
         Matrix& rBDrilling,
-        Matrix& rJacobianInv,
+        const Matrix& rJacobianInv,
         const KinematicVariables& rActualKinematic) const
     {
         const std::size_t number_of_control_points = GetGeometry().size();
@@ -906,9 +903,9 @@ namespace Kratos
         Matrix DN_De_Jn = ZeroMatrix(number_of_control_points,3);
         Matrix new_DN_De = ZeroMatrix(number_of_control_points,3);
         for (IndexType i = 0; i < number_of_control_points; ++i) {
-            new_DN_De(i, 0) = r_DN_De(i, 0);  // Copy first column
-            new_DN_De(i, 1) = r_DN_De(i, 1);  // Copy second column
-            new_DN_De(i, 2) = 0.0;            // Set third column to zero
+            new_DN_De(i, 0) = r_DN_De(i, 0);  
+            new_DN_De(i, 1) = r_DN_De(i, 1);  
+            new_DN_De(i, 2) = 0.0;   
         }
         DN_De_Jn = trans(prod(rJacobianInv, trans(new_DN_De)));
 
@@ -929,9 +926,9 @@ namespace Kratos
     void Shell6pElement::CalculateBGeometric(
         const IndexType IntegrationPointIndex,
         Matrix& rBGeometric,
-        double zeta,
-        Matrix& rJacobianInv,
-        Matrix& rNormalVectorDerivatives,
+        const double zeta,
+        const Matrix& rJacobianInv,
+        const Matrix& rNormalVectorDerivatives,
         const KinematicVariables& rActualKinematic) const
     {
         const std::size_t number_of_control_points = GetGeometry().size();
@@ -955,9 +952,8 @@ namespace Kratos
         const double y2= rActualKinematic.NormalVector[1];
         const double y3= rActualKinematic.NormalVector[2];
 
-        Matrix da3 = ZeroMatrix(3, 3);
         Matrix Dn = ZeroMatrix(3, 3);
-        Matrix b = ZeroMatrix(3, mat_size);
+        Dn = prod(rJacobianInv, rNormalVectorDerivatives);
 
         if (rBGeometric.size1() != 9 || rBGeometric.size2() != mat_size)
             rBGeometric.resize(9, mat_size);
@@ -970,8 +966,6 @@ namespace Kratos
             const double dzetady= rJacobianInv(1,2);
             const double dzetadz= rJacobianInv(2,2); 
           
-            Dn = prod(rJacobianInv, rNormalVectorDerivatives);
-
             // y hat Derivative w.r.t x
             const double dy1x= Dn(0,0);
             const double dy2x= Dn(0,1);
@@ -1002,32 +996,32 @@ namespace Kratos
             rBGeometric(8, index + 2) = DN_De_Jn(i, 2);
 
             // Rotation DOFs contributions
-            rBGeometric(0, index + 4) = (DN_De_Jn(i, 0) * (thickness/2) * zeta * y3) + (r_N(i) * (thickness/2) * (zeta * dy3x + y3 * dzetadx));
-            rBGeometric(0, index + 5) = - ((DN_De_Jn(i, 0) * (thickness/2) * zeta * y2) + (r_N(i) * (thickness/2) * (zeta * dy2x + dzetadx * y2)));
+            rBGeometric(0, index + 4) =  ((DN_De_Jn(i, 0) * zeta * y3) + (r_N(i) * (zeta * dy3x + y3 * dzetadx))) * (thickness/2);
+            rBGeometric(0, index + 5) = -((DN_De_Jn(i, 0) * zeta * y2) + (r_N(i) * (zeta * dy2x + dzetadx * y2))) * (thickness/2);
 
-            rBGeometric(1, index + 4) = (DN_De_Jn(i, 1) * (thickness/2) * zeta * y3) + (r_N(i) * (thickness/2) * (zeta * dy3y + y3 * dzetady));
-            rBGeometric(1, index + 5) = - ((DN_De_Jn(i, 1) * (thickness/2) * zeta * y2) + (r_N(i) * (thickness/2) * (zeta * dy2y + dzetady * y2)));
+            rBGeometric(1, index + 4) =  ((DN_De_Jn(i, 1) * zeta * y3) + (r_N(i) * (zeta * dy3y + y3 * dzetady))) * (thickness/2);
+            rBGeometric(1, index + 5) = -((DN_De_Jn(i, 1) * zeta * y2) + (r_N(i) * (zeta * dy2y + dzetady * y2))) * (thickness/2);
 
-            rBGeometric(2, index + 4) = (DN_De_Jn(i, 2) * (thickness/2) * zeta * y3) + (r_N(i) * (thickness/2) * (zeta * dy3z + y3 * dzetadz));
-            rBGeometric(2, index + 5) = - ((DN_De_Jn(i, 2) * (thickness/2) * zeta * y2) + (r_N(i) * (thickness/2) * (zeta * dy2z + dzetadz * y2)));
+            rBGeometric(2, index + 4) =  ((DN_De_Jn(i, 2) * zeta * y3) + (r_N(i) * (zeta * dy3z + y3 * dzetadz))) * (thickness/2);
+            rBGeometric(2, index + 5) = -((DN_De_Jn(i, 2) * zeta * y2) + (r_N(i) * (zeta * dy2z + dzetadz * y2))) * (thickness/2);
 
-            rBGeometric(3, index + 3) = - ((DN_De_Jn(i, 0) * (thickness/2) * zeta * y3) + (r_N(i) * (thickness/2) * (zeta * dy3x + dzetadx * y3))); 
-            rBGeometric(3, index + 5) = (DN_De_Jn(i, 0) * (thickness/2) * zeta * y1) + (r_N(i) * (thickness/2) * (zeta * dy1x + dzetadx * y1)); 
+            rBGeometric(3, index + 3) = -((DN_De_Jn(i, 0) * zeta * y3) + (r_N(i) * (zeta * dy3x + dzetadx * y3))) * (thickness/2); 
+            rBGeometric(3, index + 5) =  ((DN_De_Jn(i, 0) * zeta * y1) + (r_N(i) * (zeta * dy1x + dzetadx * y1))) * (thickness/2); 
 
-            rBGeometric(4, index + 3) = - ((DN_De_Jn(i, 1) * (thickness/2) * zeta * y3) + (r_N(i) * (thickness/2) * (zeta * dy3y + dzetady * y3))); 
-            rBGeometric(4, index + 5) = (DN_De_Jn(i, 1) * (thickness/2) * zeta * y1) + (r_N(i) * (thickness/2) * (zeta * dy1y + dzetady * y1)); 
+            rBGeometric(4, index + 3) = -((DN_De_Jn(i, 1) * zeta * y3) + (r_N(i) * (zeta * dy3y + dzetady * y3))) * (thickness/2); 
+            rBGeometric(4, index + 5) =  ((DN_De_Jn(i, 1) * zeta * y1) + (r_N(i) * (zeta * dy1y + dzetady * y1))) * (thickness/2); 
 
-            rBGeometric(5, index + 3) = - ((DN_De_Jn(i, 2) * (thickness/2) * zeta * y3) + (r_N(i) * (thickness/2) * (zeta * dy3z + dzetadz * y3))); 
-            rBGeometric(5, index + 5) = (DN_De_Jn(i, 2) * (thickness/2) * zeta * y1) + (r_N(i) * (thickness/2) * (zeta * dy1z + dzetadz * y1)); 
+            rBGeometric(5, index + 3) = -((DN_De_Jn(i, 2) * zeta * y3) + (r_N(i) * (zeta * dy3z + dzetadz * y3))) * (thickness/2); 
+            rBGeometric(5, index + 5) =  ((DN_De_Jn(i, 2) * zeta * y1) + (r_N(i) * (zeta * dy1z + dzetadz * y1))) * (thickness/2); 
 
-            rBGeometric(6, index + 3) = (DN_De_Jn(i, 0) * (thickness/2) * zeta * y2) + (r_N(i) * (thickness/2) * (zeta * dy2x + dzetadx * y2));  
-            rBGeometric(6, index + 4) = - ((DN_De_Jn(i, 0) * (thickness/2) * zeta * y1)  + (r_N(i) * (thickness/2) * (zeta  * dy1x + dzetadx *y1))); 
+            rBGeometric(6, index + 3) =  ((DN_De_Jn(i, 0) * zeta * y2) + (r_N(i) * (zeta * dy2x + dzetadx * y2))) * (thickness/2);  
+            rBGeometric(6, index + 4) = -((DN_De_Jn(i, 0) * zeta * y1) + (r_N(i) * (zeta  * dy1x + dzetadx *y1))) * (thickness/2); 
 
-            rBGeometric(7, index + 3) = (DN_De_Jn(i, 1) * (thickness/2) * zeta * y2) + (r_N(i)  * (thickness/2) * (zeta * dy2y + dzetady * y2));  
-            rBGeometric(7, index + 4) = - ((DN_De_Jn(i, 1) * (thickness/2) * zeta * y1)  + (r_N(i) * (thickness/2) * (zeta  * dy1y + dzetady *y1))); 
+            rBGeometric(7, index + 3) =  ((DN_De_Jn(i, 1) * zeta * y2) + (r_N(i) * (zeta * dy2y + dzetady * y2))) * (thickness/2);  
+            rBGeometric(7, index + 4) = -((DN_De_Jn(i, 1) * zeta * y1) + (r_N(i) * (zeta  * dy1y + dzetady *y1))) * (thickness/2); 
 
-            rBGeometric(8, index + 3) = (DN_De_Jn(i, 2) * (thickness/2) * zeta * y2) + (r_N(i)  * (thickness/2) * (zeta * dy2z + dzetadz * y2));  
-            rBGeometric(8, index + 4) = - ((DN_De_Jn(i, 2) * (thickness/2) * zeta * y1)  + (r_N(i) * (thickness/2) * (zeta  * dy1z + dzetadz *y1))); 
+            rBGeometric(8, index + 3) =  ((DN_De_Jn(i, 2) * zeta * y2) + (r_N(i) * (zeta * dy2z + dzetadz * y2))) * (thickness/2);  
+            rBGeometric(8, index + 4) = -((DN_De_Jn(i, 2) * zeta * y1) + (r_N(i) * (zeta  * dy1z + dzetadz *y1))) * (thickness/2); 
         }
     }
 

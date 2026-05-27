@@ -334,6 +334,11 @@ private:
     void CalculateKinematics(
         const IndexType IntegrationPointIndex,
         KinematicVariables& rKinematicVariables) const;
+    
+    void CalculateNormalVectorDerivatives(
+        const IndexType IntegrationPointIndex,
+        KinematicVariables& rKinematicVariables,
+        Matrix& DerivativeNormalMatrix) const;
 
     // Compute the transformation matrix from local to global cartesian coordinates
     void CalculateTransformationFromLocalToGlobalCartesian(
@@ -343,28 +348,23 @@ private:
     void CalculateBOperator(
         const IndexType IntegrationPointIndex,
         Matrix& rBOperator,
-        double zeta,
-        Matrix& rJacobianInv,
-        Matrix& rNormalVectorDerivatives,
+        const double zeta,
+        const Matrix& rJacobianInv,
+        const Matrix& rNormalVectorDerivatives,
+        const KinematicVariables& rActualKinematic) const;
+    
+    void CalculateBDrilling(
+        const IndexType IntegrationPointIndex,
+        Matrix& rBDrilling,
+        const Matrix& rJacobianInv,
         const KinematicVariables& rActualKinematic) const;
 
     void CalculateBGeometric(
         const IndexType IntegrationPointIndex,
         Matrix& rBGeometric,
-        double zeta,
-        Matrix& rJacobianInv,
-        Matrix& rNormalVectorDerivatives,
-        const KinematicVariables& rActualKinematic) const;
-
-    void CalculateNormalVectorDerivatives(
-        const IndexType IntegrationPointIndex,
-        KinematicVariables& rKinematicVariables,
-        Matrix& DerivativeNormalMatrix) const;
-
-    void CalculateBDrilling(
-        const IndexType IntegrationPointIndex,
-        Matrix& rBDrilling,
-        Matrix& rJacobianInv,
+        const double zeta,
+        const Matrix& rJacobianInv,
+        const Matrix& rNormalVectorDerivatives,
         const KinematicVariables& rActualKinematic) const;
 
     void CalculateStressMatrix(
