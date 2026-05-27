@@ -28,7 +28,7 @@ class CustomMeta(MetadataHookInterface):
         metadata["version"] = version
 
         # Add [Extras] info
-        if metadata.name["name"] == "KratosMultiphysics":
+        if metadata["name"] == "KratosMultiphysics":
             metadata["optional-dependencies"] = {
                 "FluidDynamicsApplication": [f"KratosFluidDynamicsApplication >= {version}"],
                 "StructuralMechanicsApplication" : [f"KratosStructuralMechanicsApplication >= {version}"],
