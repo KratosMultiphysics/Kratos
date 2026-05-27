@@ -33,6 +33,8 @@ void AddCustomModelerToPython(pybind11::module& m)
         .def(py::init<Model&, Parameters>(),
              py::arg("model"), py::arg("parameters"))
         .def("SetupModelPart", &KaHIPPartitioningModeler::SetupModelPart)
+        .def("GetDefaultParameters", &KaHIPPartitioningModeler::GetDefaultParameters)
+        .def("Info", &KaHIPPartitioningModeler::Info)
         .def("__str__", [](const KaHIPPartitioningModeler& self) {
             return self.Info();
         })
