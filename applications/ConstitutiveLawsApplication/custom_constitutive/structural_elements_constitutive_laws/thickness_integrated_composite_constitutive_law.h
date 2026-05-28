@@ -470,7 +470,7 @@ public:
      * This implementation is based on E. Oñate Vol 2: Beams plates and shells. Page 399 of the document
      * Eq. (7.48a) from section 7.3  "computation of transverse shear correction parameters".
      */
-    void InitializeShearReductionFactors(
+    virtual void InitializeShearReductionFactors(
         const Properties &rMaterialProperties);
 
     std::vector<ConstitutiveLaw::Pointer>& GetConstitutiveLaws()
@@ -605,6 +605,12 @@ protected:
     ///@name Protected member Variables
     ///@{
 
+    //exposed to IGAs Stenberg-free variant
+    std::vector<ConstitutiveLaw::Pointer> mConstitutiveLaws; 
+    std::vector<double> mZCoordinates;
+    std::vector<double> mEulerAngles; 
+    std::vector<double> mThicknesses; 
+    std::vector<double> mShearReductionFactors = std::vector<double>(2, 1.0); 
     ///@}
     ///@name Protected Operators
     ///@{
@@ -619,16 +625,6 @@ private:
 
     ///@name Static Member Variables
     ///@{
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-    std::vector<ConstitutiveLaw::Pointer> mConstitutiveLaws; /// The vector containing the constitutive laws (must be cloned, the ones contained on the properties can conflict between them)
-    std::vector<double> mZCoordinates; /// The vector containing the z-coordinate of the centroid of each layer in the thickness of the shell
-    std::vector<double> mEulerAngles; /// The Euler angle of rotation of each layer w.r.t the local axes of the shell
-    std::vector<double> mThicknesses; /// The thickness of each layer
-    std::vector<double> mShearReductionFactors = std::vector<double>(2, 1.0); /// The shear reduction factors for the shear components of the constitutive matrix, initialized to 1.0 (no reduction)
 
     ///@}
     ///@name Private Operators

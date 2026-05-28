@@ -14,6 +14,7 @@
 // External includes
 
 // Project includes
+#include "includes/mat_variables.h"
 
 // Application includes
 #include "custom_elements/shell_3p_element.h"
@@ -92,6 +93,13 @@ namespace Kratos
         ConstitutiveLaw::Parameters constitutive_law_parameters(
             GetGeometry(), GetProperties(), rCurrentProcessInfo);
 
+        const SizeType strain_size = mConstitutiveLawVector.empty()
+            ? 0 : mConstitutiveLawVector[0]->GetStrainSize();
+
+        if (strain_size == 8) {
+            return;
+        }
+
         for (IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number) {
             mConstitutiveLawVector[point_number]->FinalizeMaterialResponse(
                 constitutive_law_parameters, ConstitutiveLaw::StressMeasure_PK2);
@@ -156,10 +164,28 @@ namespace Kratos
                 }
             }
         }
-        else if(rVariable==CAUCHY_STRESS_XX || rVariable==CAUCHY_STRESS_YY || rVariable==CAUCHY_STRESS_XY 
-            || rVariable==CAUCHY_STRESS_TOP_XX || rVariable==CAUCHY_STRESS_TOP_YY || rVariable==CAUCHY_STRESS_TOP_XY  
+        else if ((rVariable==MEMBRANE_FORCE_XX || rVariable==MEMBRANE_FORCE_YY || rVariable==MEMBRANE_FORCE_XY
+                  || rVariable==INTERNAL_MOMENT_XX || rVariable==INTERNAL_MOMENT_YY || rVariable==INTERNAL_MOMENT_XY)
+                 && !mConstitutiveLawVector.empty()
+                 && mConstitutiveLawVector[0]->GetStrainSize() == 8)
+        {
+            for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
+                array_1d<double, 3> membrane_force;
+                array_1d<double, 3> bending_moment;
+                CalculateStressResultants(point_number, rCurrentProcessInfo, membrane_force, bending_moment);
+
+                if (rVariable==MEMBRANE_FORCE_XX)      rOutput[point_number] = membrane_force[0];
+                else if (rVariable==MEMBRANE_FORCE_YY) rOutput[point_number] = membrane_force[1];
+                else if (rVariable==MEMBRANE_FORCE_XY) rOutput[point_number] = membrane_force[2];
+                else if (rVariable==INTERNAL_MOMENT_XX) rOutput[point_number] = bending_moment[0];
+                else if (rVariable==INTERNAL_MOMENT_YY) rOutput[point_number] = bending_moment[1];
+                else if (rVariable==INTERNAL_MOMENT_XY) rOutput[point_number] = bending_moment[2];
+            }
+        }
+        else if(rVariable==CAUCHY_STRESS_XX || rVariable==CAUCHY_STRESS_YY || rVariable==CAUCHY_STRESS_XY
+            || rVariable==CAUCHY_STRESS_TOP_XX || rVariable==CAUCHY_STRESS_TOP_YY || rVariable==CAUCHY_STRESS_TOP_XY
             || rVariable==CAUCHY_STRESS_BOTTOM_XX || rVariable==CAUCHY_STRESS_BOTTOM_YY || rVariable==CAUCHY_STRESS_BOTTOM_XY
-            || rVariable==MEMBRANE_FORCE_XX || rVariable==MEMBRANE_FORCE_YY || rVariable==MEMBRANE_FORCE_XY 
+            || rVariable==MEMBRANE_FORCE_XX || rVariable==MEMBRANE_FORCE_YY || rVariable==MEMBRANE_FORCE_XY
             || rVariable==INTERNAL_MOMENT_XX || rVariable==INTERNAL_MOMENT_YY || rVariable==INTERNAL_MOMENT_XY)
         {
             for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
@@ -222,7 +248,7 @@ namespace Kratos
                 {
                     rOutput[point_number] = bending_stress_cau_car[0] * pow(thickness, 3) / 12;
                 }
-                else if (rVariable==INTERNAL_MOMENT_XX)
+                else if (rVariable==INTERNAL_MOMENT_YY)
                 {
                     rOutput[point_number] = bending_stress_cau_car[1] * pow(thickness, 3) / 12;
                 }
@@ -231,6 +257,13 @@ namespace Kratos
                     rOutput[point_number] = bending_stress_cau_car[2] * pow(thickness, 3) / 12;
                 }
             } 
+        }
+        else if (rVariable == NODAL_MASS) {
+            for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
+                double detJ = GetGeometry().DeterminantOfJacobian(point_number);
+                double mass = r_integration_points[point_number].Weight() * detJ * GetProperties()[THICKNESS] * GetProperties()[DENSITY];
+                rOutput[point_number] = mass;
+            }
         }
         else if (mConstitutiveLawVector[0]->Has(rVariable)) {
             GetValueOnConstitutiveLaw(rVariable, rOutput);
@@ -247,11 +280,26 @@ namespace Kratos
         const auto& r_integration_points = r_geometry.IntegrationPoints();
 
         if (rOutput.size() != r_integration_points.size())
-        {
+        { 
             rOutput.resize(r_integration_points.size());
         }
 
-        if (rVariable==PK2_STRESS)
+        if (rVariable == INTEGRATION_COORDINATES)
+        {
+            for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
+                rOutput[point_number] = r_integration_points[point_number].Coordinates();
+            }
+        }
+        else if (rVariable == NORMAL)
+        {
+            for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number)
+            {
+                KinematicVariables kinematic_variables(GetGeometry().WorkingSpaceDimension());
+                CalculateKinematics(point_number, kinematic_variables);
+                rOutput[point_number] = kinematic_variables.a3;
+            }
+        }
+        else if (rVariable==PK2_STRESS)
         {
             for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
 
@@ -262,7 +310,18 @@ namespace Kratos
                 rOutput[point_number] = membrane_stress_pk2_car;
             }
         }
-        else if(rVariable==CAUCHY_STRESS || rVariable==CAUCHY_STRESS_TOP || rVariable==CAUCHY_STRESS_BOTTOM 
+        else if ((rVariable==MEMBRANE_FORCE || rVariable==INTERNAL_MOMENT)
+                 && !mConstitutiveLawVector.empty()
+                 && mConstitutiveLawVector[0]->GetStrainSize() == 8)
+        {
+            for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
+                array_1d<double, 3> membrane_force;
+                array_1d<double, 3> bending_moment;
+                CalculateStressResultants(point_number, rCurrentProcessInfo, membrane_force, bending_moment);
+                rOutput[point_number] = (rVariable==MEMBRANE_FORCE) ? membrane_force : bending_moment;
+            }
+        }
+        else if(rVariable==CAUCHY_STRESS || rVariable==CAUCHY_STRESS_TOP || rVariable==CAUCHY_STRESS_BOTTOM
                 || rVariable==MEMBRANE_FORCE ||  rVariable==INTERNAL_MOMENT)
         {
             for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
@@ -297,6 +356,43 @@ namespace Kratos
         }
     }
 
+    void Shell3pElement::CalculateOnIntegrationPoints(
+        const Variable<Vector>& rVariable,
+        std::vector<Vector>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo
+    )
+    {
+        const auto& r_geometry = GetGeometry();
+        const auto& r_integration_points = r_geometry.IntegrationPoints();
+
+        if (rOutput.size() != r_integration_points.size())
+            rOutput.resize(r_integration_points.size());
+
+        if (rVariable == GREEN_LAGRANGE_STRAIN_VECTOR)
+        {
+            for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
+                KinematicVariables kinematic_variables(GetGeometry().WorkingSpaceDimension());
+                CalculateKinematics(point_number, kinematic_variables);
+
+                array_1d<double, 3> membrane_curvilinear =
+                    0.5 * (kinematic_variables.a_ab_covariant - m_A_ab_covariant_vector[point_number]);
+                array_1d<double, 3> curvature_curvilinear =
+                    kinematic_variables.b_ab_covariant - m_B_ab_covariant_vector[point_number];
+
+                array_1d<double, 3> membrane = prod(m_T_vector[point_number], membrane_curvilinear);
+                array_1d<double, 3> curvature = prod(m_T_vector[point_number], curvature_curvilinear);
+
+                Vector generalized_strain(6);
+                generalized_strain[0] = membrane[0];
+                generalized_strain[1] = membrane[1];
+                generalized_strain[2] = membrane[2];
+                generalized_strain[3] = curvature[0];
+                generalized_strain[4] = curvature[1];
+                generalized_strain[5] = curvature[2];
+                rOutput[point_number] = generalized_strain;
+            }
+        }
+    }
 
     ///@}
     ///@name Assembly
@@ -334,11 +430,13 @@ namespace Kratos
 
             ConstitutiveVariables constitutive_variables_membrane(3);
             ConstitutiveVariables constitutive_variables_curvature(3);
+            Matrix coupling_matrix = ZeroMatrix(3, 3);
             CalculateConstitutiveVariables(
                 point_number,
                 kinematic_variables,
                 constitutive_variables_membrane,
                 constitutive_variables_curvature,
+                coupling_matrix,
                 constitutive_law_parameters,
                 ConstitutiveLaw::StressMeasure_PK2);
 
@@ -363,38 +461,53 @@ namespace Kratos
                 second_variations_curvature,
                 kinematic_variables);
 
+            const bool is_composite =
+                (mConstitutiveLawVector[point_number]->GetStrainSize() == 8);
             double integration_weight =
                 r_integration_points[point_number].Weight()
-                * m_dA_vector[point_number]
-                * GetProperties()[THICKNESS];
+                * m_dA_vector[point_number];
+            if (!is_composite)
+                integration_weight *= GetProperties()[THICKNESS];
 
-            // LEFT HAND SIDE MATRIX
             if (CalculateStiffnessMatrixFlag == true)
             {
-                //adding membrane contributions to the stiffness matrix
-                CalculateAndAddKm(
-                    rLeftHandSideMatrix,
-                    BMembrane,
-                    constitutive_variables_membrane.ConstitutiveMatrix,
-                    integration_weight);
-                //adding curvature contributions to the stiffness matrix
-                CalculateAndAddKm(
-                    rLeftHandSideMatrix,
-                    BCurvature,
-                    constitutive_variables_curvature.ConstitutiveMatrix,
-                    integration_weight);
 
-                // adding  non-linear-contribution to Stiffness-Matrix
-                CalculateAndAddNonlinearKm(
-                    rLeftHandSideMatrix,
-                    second_variations_strain,
-                    constitutive_variables_membrane.StressVector,
-                    integration_weight);
+                // BUILD_LEVEL = 0  Standard , BUILD_LEVEL = 1 only elastic stiffness, BUILD_LEVEL = 2 only geometric stiffness
+                int build_level = 0;
+                if (rCurrentProcessInfo.Has(BUILD_LEVEL))
+                    build_level = rCurrentProcessInfo[BUILD_LEVEL];
 
-                CalculateAndAddNonlinearKm(rLeftHandSideMatrix,
-                    second_variations_curvature,
-                    constitutive_variables_curvature.StressVector,
-                    integration_weight);
+                if (build_level == 0 || build_level == 1) {
+                    CalculateAndAddKm(
+                        rLeftHandSideMatrix,
+                        BMembrane,
+                        constitutive_variables_membrane.ConstitutiveMatrix,
+                        integration_weight);
+                    CalculateAndAddKm(
+                        rLeftHandSideMatrix,
+                        BCurvature,
+                        constitutive_variables_curvature.ConstitutiveMatrix,
+                        integration_weight);
+                    CalculateAndAddKmCoupling(
+                        rLeftHandSideMatrix,
+                        BMembrane,
+                        BCurvature,
+                        coupling_matrix,
+                        integration_weight);
+                }
+
+                if (build_level == 0 || build_level == 2) {
+                    CalculateAndAddNonlinearKm(
+                        rLeftHandSideMatrix,
+                        second_variations_strain,
+                        constitutive_variables_membrane.StressVector,
+                        integration_weight);
+
+                    CalculateAndAddNonlinearKm(rLeftHandSideMatrix,
+                        second_variations_curvature,
+                        constitutive_variables_curvature.StressVector,
+                        integration_weight);
+                }
             }
             // RIGHT HAND SIDE VECTOR
             if (CalculateResidualVectorFlag == true) //calculation of the matrix is required
@@ -649,6 +762,7 @@ namespace Kratos
         KinematicVariables& rActualKinematic,
         ConstitutiveVariables& rThisConstitutiveVariablesMembrane,
         ConstitutiveVariables& rThisConstitutiveVariablesCurvature,
+        Matrix& rCouplingMatrix,
         ConstitutiveLaw::Parameters& rValues,
         const ConstitutiveLaw::StressMeasure ThisStressMeasure
     ) const
@@ -663,21 +777,99 @@ namespace Kratos
         array_1d<double, 3> curvature_vector = rActualKinematic.b_ab_covariant - m_B_ab_covariant_vector[IntegrationPointIndex];
         noalias(rThisConstitutiveVariablesCurvature.StrainVector) = prod(m_T_vector[IntegrationPointIndex], curvature_vector);
 
-        // Constitive Matrices DMembrane and DCurvature
-        rValues.SetStrainVector(rThisConstitutiveVariablesMembrane.StrainVector); //this is the input parameter
-        rValues.SetStressVector(rThisConstitutiveVariablesMembrane.StressVector); //this is an ouput parameter
-        rValues.SetConstitutiveMatrix(rThisConstitutiveVariablesMembrane.ConstitutiveMatrix); //this is an ouput parameter
+        if (rCouplingMatrix.size1() != 3 || rCouplingMatrix.size2() != 3)
+            rCouplingMatrix.resize(3, 3, false);
+        noalias(rCouplingMatrix) = ZeroMatrix(3, 3);
 
-        mConstitutiveLawVector[IntegrationPointIndex]->CalculateMaterialResponse(rValues, ThisStressMeasure);
+        const SizeType strain_size = mConstitutiveLawVector[IntegrationPointIndex]->GetStrainSize();
 
-        double thickness = this->GetProperties().GetValue(THICKNESS);
-        noalias(rThisConstitutiveVariablesCurvature.ConstitutiveMatrix) = rThisConstitutiveVariablesMembrane.ConstitutiveMatrix * (pow(thickness, 2) / 12);
+        if (strain_size == 8) {
+            CalculateCompositeStiffness(
+                IntegrationPointIndex, rValues,
+                rThisConstitutiveVariablesMembrane.ConstitutiveMatrix,
+                rCouplingMatrix,
+                rThisConstitutiveVariablesCurvature.ConstitutiveMatrix);
+        }
+        else {
+            rValues.SetStrainVector(rThisConstitutiveVariablesMembrane.StrainVector);
+            rValues.SetStressVector(rThisConstitutiveVariablesMembrane.StressVector);
+            rValues.SetConstitutiveMatrix(rThisConstitutiveVariablesMembrane.ConstitutiveMatrix);
 
-        //Local Cartesian Forces and Moments
-        noalias(rThisConstitutiveVariablesMembrane.StressVector) = prod(
-            trans(rThisConstitutiveVariablesMembrane.ConstitutiveMatrix), rThisConstitutiveVariablesMembrane.StrainVector);
-        noalias(rThisConstitutiveVariablesCurvature.StressVector) = prod(
-            trans(rThisConstitutiveVariablesCurvature.ConstitutiveMatrix), rThisConstitutiveVariablesCurvature.StrainVector);
+            mConstitutiveLawVector[IntegrationPointIndex]->CalculateMaterialResponse(rValues, ThisStressMeasure);
+
+            const double thickness = this->GetProperties().GetValue(THICKNESS);
+            noalias(rThisConstitutiveVariablesCurvature.ConstitutiveMatrix) = rThisConstitutiveVariablesMembrane.ConstitutiveMatrix * (pow(thickness, 2) / 12);
+        }
+
+        noalias(rThisConstitutiveVariablesMembrane.StressVector) =
+            prod(rThisConstitutiveVariablesMembrane.ConstitutiveMatrix, rThisConstitutiveVariablesMembrane.StrainVector)
+            + prod(rCouplingMatrix, rThisConstitutiveVariablesCurvature.StrainVector);
+        noalias(rThisConstitutiveVariablesCurvature.StressVector) =
+            prod(trans(rCouplingMatrix), rThisConstitutiveVariablesMembrane.StrainVector)
+            + prod(rThisConstitutiveVariablesCurvature.ConstitutiveMatrix, rThisConstitutiveVariablesCurvature.StrainVector);
+    }
+
+    void Shell3pElement::CalculateCompositeStiffness(
+        const IndexType IntegrationPointIndex,
+        ConstitutiveLaw::Parameters& rValues,
+        Matrix& rA,
+        Matrix& rB,
+        Matrix& rD) const
+    {
+        auto& r_law = *mConstitutiveLawVector[IntegrationPointIndex];
+
+        ConstitutiveLaw::Parameters params(GetGeometry(), GetProperties(), rValues.GetProcessInfo());
+        params.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+        params.GetOptions().Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+
+        Vector strain_in = ZeroVector(8);
+        Vector stress_out = ZeroVector(8);
+        Matrix C8 = ZeroMatrix(8, 8);
+        params.SetStrainVector(strain_in);
+        params.SetStressVector(stress_out);
+        params.SetConstitutiveMatrix(C8);
+        r_law.CalculateMaterialResponsePK2(params);
+
+        if (rA.size1() != 3 || rA.size2() != 3) rA.resize(3, 3, false);
+        if (rB.size1() != 3 || rB.size2() != 3) rB.resize(3, 3, false);
+        if (rD.size1() != 3 || rD.size2() != 3) rD.resize(3, 3, false);
+        for (IndexType i = 0; i < 3; ++i) {
+            for (IndexType j = 0; j < 3; ++j) {
+                rA(i, j) = C8(i,     j    );
+                rB(i, j) = C8(i,     j + 3);
+                rD(i, j) = C8(i + 3, j + 3);
+            }
+        }
+    }
+
+    void Shell3pElement::CalculateStressResultants(
+        const IndexType IntegrationPointIndex,
+        const ProcessInfo& rCurrentProcessInfo,
+        array_1d<double, 3>& rMembraneForce,
+        array_1d<double, 3>& rBendingMoment) const
+    {
+        KinematicVariables kinematic_variables(GetGeometry().WorkingSpaceDimension());
+        CalculateKinematics(IntegrationPointIndex, kinematic_variables);
+
+        ConstitutiveLaw::Parameters constitutive_law_parameters(
+            GetGeometry(), GetProperties(), rCurrentProcessInfo);
+
+        ConstitutiveVariables constitutive_variables_membrane(3);
+        ConstitutiveVariables constitutive_variables_curvature(3);
+        Matrix coupling_matrix = ZeroMatrix(3, 3);
+        CalculateConstitutiveVariables(
+            IntegrationPointIndex,
+            kinematic_variables,
+            constitutive_variables_membrane,
+            constitutive_variables_curvature,
+            coupling_matrix,
+            constitutive_law_parameters,
+            ConstitutiveLaw::StressMeasure_PK2);
+
+        for (IndexType i = 0; i < 3; ++i) {
+            rMembraneForce[i] = constitutive_variables_membrane.StressVector[i];
+            rBendingMoment[i] = constitutive_variables_curvature.StressVector[i];
+        }
     }
 
     void Shell3pElement::CalculateBMembrane(
@@ -917,6 +1109,20 @@ namespace Kratos
         noalias(rLeftHandSideMatrix) += IntegrationWeight * prod(trans(rB), Matrix(prod(rD, rB)));
     }
 
+    inline void Shell3pElement::CalculateAndAddKmCoupling(
+        MatrixType& rLeftHandSideMatrix,
+        const Matrix& rBMembrane,
+        const Matrix& rBCurvature,
+        const Matrix& rCoupling,
+        const double IntegrationWeight
+    ) const
+    {
+        noalias(rLeftHandSideMatrix) += IntegrationWeight
+            * prod(trans(rBMembrane), Matrix(prod(rCoupling, rBCurvature)));
+        noalias(rLeftHandSideMatrix) += IntegrationWeight
+            * prod(trans(rBCurvature), Matrix(prod(trans(rCoupling), rBMembrane)));
+    }
+
     inline void Shell3pElement::CalculateAndAddNonlinearKm(
         Matrix& rLeftHandSideMatrix,
         const SecondVariations& rSecondVariationsStrain,
@@ -964,11 +1170,13 @@ namespace Kratos
 
         ConstitutiveVariables constitutive_variables_membrane(3);
         ConstitutiveVariables constitutive_variables_curvature(3);
+        Matrix coupling_matrix = ZeroMatrix(3, 3);
         CalculateConstitutiveVariables(
             IntegrationPointIndex,
             kinematic_variables,
             constitutive_variables_membrane,
             constitutive_variables_curvature,
+            coupling_matrix,
             constitutive_law_parameters,
             ConstitutiveLaw::StressMeasure_PK2);
         
@@ -1042,11 +1250,13 @@ namespace Kratos
 
         ConstitutiveVariables constitutive_variables_membrane(3);
         ConstitutiveVariables constitutive_variables_curvature(3);
+        Matrix coupling_matrix = ZeroMatrix(3, 3);
         CalculateConstitutiveVariables(
             IntegrationPointIndex,
             kinematic_variables,
             constitutive_variables_membrane,
             constitutive_variables_curvature,
+            coupling_matrix,
             constitutive_law_parameters,
             ConstitutiveLaw::StressMeasure_PK2);
         
@@ -1570,10 +1780,13 @@ namespace Kratos
             KRATOS_ERROR_IF_NOT(this->GetProperties().Has(THICKNESS))
                 << "THICKNESS not provided for element " << this->Id() << std::endl;
 
-            // Check strain size
-            KRATOS_ERROR_IF_NOT(this->GetProperties().GetValue(CONSTITUTIVE_LAW)->GetStrainSize() == 3)
-                << "Wrong constitutive law used. This is a 2D element! Expected strain size is 3 (el id = ) "
-                << this->Id() << std::endl;
+            // strain size 3 -> single-ply plane stress (Voigt membrane), 8 -> thickness-integrated composite 
+            const SizeType strain_size =
+                this->GetProperties().GetValue(CONSTITUTIVE_LAW)->GetStrainSize();
+            KRATOS_ERROR_IF_NOT(strain_size == 3 || strain_size == 8)
+                << "Wrong constitutive law used. Shell3pElement expects strain size 3 "
+                   "(single-ply plane stress) or 8 (thickness-integrated composite), got "
+                << strain_size << " (el id = " << this->Id() << ")." << std::endl;
         }
 
         return 0;

@@ -259,15 +259,40 @@ namespace Kratos
 		const GeometryType& rElementGeometry,
 		const ProcessInfo& rCurrentProcessInfo) const
 	{
-        if(!rMaterialProperties.Has(SHELL_ORTHOTROPIC_LAYERS)) {
+        double youngs_modulus_x, youngs_modulus_y, poisson_ratio_xy, shear_modulus_xy;
+
+        if (rMaterialProperties.Has(SHELL_ORTHOTROPIC_LAYERS)) {
+            youngs_modulus_x = rMaterialProperties[SHELL_ORTHOTROPIC_LAYERS](0, 1);
+            youngs_modulus_y = rMaterialProperties[SHELL_ORTHOTROPIC_LAYERS](0, 2);
+            poisson_ratio_xy = rMaterialProperties[SHELL_ORTHOTROPIC_LAYERS](0, 3);
+            shear_modulus_xy = rMaterialProperties[SHELL_ORTHOTROPIC_LAYERS](0, 4);
+        } else {
             KRATOS_CHECK(rMaterialProperties.Has(YOUNG_MODULUS_X));
-
             KRATOS_CHECK(rMaterialProperties.Has(YOUNG_MODULUS_Y));
-
             KRATOS_CHECK(rMaterialProperties.Has(POISSON_RATIO_XY));
-
+            KRATOS_CHECK(rMaterialProperties.Has(SHEAR_MODULUS_XY));
             KRATOS_CHECK(rMaterialProperties.Has(DENSITY));
+
+            youngs_modulus_x = rMaterialProperties[YOUNG_MODULUS_X];
+            youngs_modulus_y = rMaterialProperties[YOUNG_MODULUS_Y];
+            poisson_ratio_xy = rMaterialProperties[POISSON_RATIO_XY];
+            shear_modulus_xy = rMaterialProperties[SHEAR_MODULUS_XY];
         }
+
+        KRATOS_ERROR_IF(youngs_modulus_x <= 0.0)
+            << "LinearElasticOrthotropic2DLaw: YOUNG_MODULUS_X must be positive, got " << youngs_modulus_x << "." << std::endl;
+        KRATOS_ERROR_IF(youngs_modulus_y <= 0.0)
+            << "LinearElasticOrthotropic2DLaw: YOUNG_MODULUS_Y must be positive, got " << youngs_modulus_y << "." << std::endl;
+        KRATOS_ERROR_IF(shear_modulus_xy <= 0.0)
+            << "LinearElasticOrthotropic2DLaw: SHEAR_MODULUS_XY (G12) must be positive, got " << shear_modulus_xy << "." << std::endl;
+
+        const double poisson_ratio_yx = poisson_ratio_xy * youngs_modulus_y / youngs_modulus_x;
+        const double stability = 1.0 - poisson_ratio_xy * poisson_ratio_yx; // 1 - v12^2 * Ey/Ex
+        KRATOS_ERROR_IF(stability <= 0.0)
+            << "LinearElasticOrthotropic2DLaw: thermodynamically unstable ply, requires "
+               "1 - v12*v21 > 0 (i.e. v12^2 < Ex/Ey). Got v12 = " << poisson_ratio_xy
+            << ", Ex/Ey = " << youngs_modulus_x / youngs_modulus_y
+            << ", 1 - v12*v21 = " << stability << "." << std::endl;
 
 		return 0;
 	}

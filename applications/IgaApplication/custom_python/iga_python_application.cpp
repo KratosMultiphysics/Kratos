@@ -23,6 +23,7 @@
 #include "custom_python/add_custom_processes_to_python.h"
 #include "custom_python/add_custom_strategies_to_python.h"
 #include "custom_python/add_custom_solvers_to_python.h"
+#include "custom_python/add_custom_constitutive_laws_to_python.h"
 
 namespace Kratos {
 namespace Python {
@@ -104,6 +105,7 @@ PYBIND11_MODULE(KratosIgaApplication, m)
     AddCustomProcessesToPython(m);
     AddCustomStrategiesToPython(m);
     AddCustomSolversToPython(m);
+    AddCustomConstitutiveLawsToPython(m);
 }
 
 } // namespace Python

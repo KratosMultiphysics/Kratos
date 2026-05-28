@@ -4,9 +4,10 @@ message("**** configuring KratosIgaApplication ****")
 
 ################### PYBIND11
 include(pybind11Tools)
-
 include_directories(
     ${KRATOS_SOURCE_DIR}/kratos
+    ${KRATOS_SOURCE_DIR}/applications/StructuralMechanicsApplication
+    ${KRATOS_SOURCE_DIR}/applications/ConstitutiveLawsApplication
 )
 
 # Define application core sources (pure C++ parts)
@@ -14,6 +15,7 @@ file(GLOB_RECURSE KRATOS_IGA_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/iga_application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/iga_application_variables.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_modelers/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/*.cpp
@@ -31,7 +33,7 @@ if(${KRATOS_BUILD_TESTING} MATCHES ON)
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 add_library(KratosIgaCore SHARED ${KRATOS_IGA_APPLICATION_CORE})
-target_link_libraries(KratosIgaCore PUBLIC KratosCore)
+target_link_libraries(KratosIgaCore PUBLIC KratosCore KratosStructuralMechanicsCore KratosConstitutiveLawsCore)
 set_target_properties(KratosIgaCore PROPERTIES COMPILE_DEFINITIONS "IGA_APPLICATION=EXPORT,API")
 
 # Define library Kratos which defines the basic python interface

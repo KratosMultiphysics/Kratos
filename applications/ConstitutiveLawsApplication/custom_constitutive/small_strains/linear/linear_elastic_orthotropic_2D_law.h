@@ -86,6 +86,11 @@ namespace Kratos
 			return 3;
 		};
 
+		SizeType WorkingSpaceDimension() override
+		{
+			return 2;
+		};
+
 		/**
 		* This function is designed to be called once to check compatibility with element
 		* @param rFeatures

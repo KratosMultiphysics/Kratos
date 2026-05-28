@@ -89,3 +89,17 @@ remote_*.md
 
 # External downloaded libs (TPL downloaded libs, etc...)
 external_libraries/tetgen/*
+scripts/standard_configure.sh
+scripts/standard_configure.sh
+build_allcheck.log
+.gitignore
+build_deadcode.log
+build_deadcode2.log
+build_thesis_constitutive.log
+nohup.out
+build_composite_shells.log
+build_iga_6p.log
+build_gl244.log
+build_stripcheck.log
+build.log
+scripts/standard_configure.sh

@@ -25,6 +25,8 @@
 #include "custom_elements/shell_3p_element.h"
 #include "custom_elements/shell_5p_hierarchic_element.h"
 #include "custom_elements/shell_5p_element.h"
+#include "custom_elements/shell_6p_element_sommerwerk.h"
+#include "custom_elements/shell_6p_element.h"
 #include "custom_elements/laplacian_element.h"
 #include "custom_elements/solid_element.h"
 #include "custom_elements/stokes_element.h"
@@ -38,6 +40,7 @@
 #include "custom_conditions/coupling_lagrange_condition.h"
 #include "custom_conditions/coupling_nitsche_condition.h"
 #include "custom_conditions/support_penalty_condition.h"
+#include "custom_conditions/support_penalty_rotation_condition.h"
 #include "custom_conditions/support_lagrange_condition.h"
 #include "custom_conditions/support_nitsche_condition.h"
 #include "custom_conditions/support_laplacian_condition.h"
@@ -60,6 +63,9 @@
 #include "custom_modelers/nurbs_geometry_modeler_sbm.h"
 #include "custom_modelers/nurbs_geometry_modeler_gap_sbm.h"
 #include "custom_modelers/import_nurbs_sbm_modeler.h"
+
+//constitutive
+#include "custom_constitutive/iga_thickness_integrated_composite_law.h"
 
 namespace Kratos {
 
@@ -141,6 +147,8 @@ private:
     const Shell3pElement mShell3pElement;
     const Shell5pHierarchicElement mShell5pHierarchicElement;
     const Shell5pElement mShell5pElement;
+    const Shell6pElement_Sommerwerk mShell6pElement_Sommerwerk;
+    const Shell6pElement mShell6pElement;
     const LaplacianElement mLaplacianElement;
     const SolidElement mSolidElement;
     const StokesElement mStokesElement;
@@ -154,6 +162,7 @@ private:
     const CouplingLagrangeCondition mCouplingLagrangeCondition;
     const CouplingNitscheCondition mCouplingNitscheCondition;
     const SupportPenaltyCondition mSupportPenaltyCondition;
+    const SupportPenaltyRotationCondition mSupportPenaltyRotationCondition;
     const SupportLagrangeCondition mSupportLagrangeCondition;
     const SupportNitscheCondition mSupportNitscheCondition;
     const SupportLaplacianCondition mSupportLaplacianCondition;
@@ -176,6 +185,9 @@ private:
     const NurbsGeometryModelerSbm mNurbsGeometryModelerSbm;
     const NurbsGeometryModelerGapSbm mNurbsGeometryModelerGapSbm;
     const ImportNurbsSbmModeler mImportNurbsSbmModeler;
+
+    // Constitutive Laws
+    const IgaThicknessIntegratedCompositeLaw mIgaThicknessIntegratedCompositeLaw;
 
     ///@}
     ///@name Private methods
