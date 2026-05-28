@@ -24,7 +24,7 @@ from KratosMultiphysics.kratos_utilities import DeleteDirectoryIfExisting
 from KratosMultiphysics.KaHIPApplication import KaHIPDivideHeterogeneousInputProcess
 
 
-WORK_DIR = pathlib.Path(__file__).parent.absolute()
+WORK_DIR = pathlib.Path(__file__).parent.parent.absolute() / "test_examples"
 
 
 class TestKaHIPPartitioner(KratosUnittest.TestCase):

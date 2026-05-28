@@ -29,7 +29,7 @@ from KratosMultiphysics.KaHIPApplication import (
     KaHIPPartitioningModeler,
 )
 
-WORK_DIR = pathlib.Path(__file__).parent.absolute()
+WORK_DIR = pathlib.Path(__file__).parent.parent.absolute() / "test_examples"
 
 
 class TestKaHIPMPIPartitioner(KratosUnittest.TestCase):
