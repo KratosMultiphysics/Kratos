@@ -180,7 +180,7 @@ namespace Kratos
       const IntegrationMethod& ThisMethod, 
       ConstitutiveLaw::Parameters& rValues);
 
-    void ResponseFunction_Least_Square(
+    void ResponseFunctionLeastSquare(
       double& rResponseLS, 
       const IntegrationMethod& ThisMethod, 
       ConstitutiveLaw::Parameters& rValues);

@@ -114,7 +114,7 @@ namespace Kratos
     
     this->InternalForcesLeastSquare(rRightHandSideVector, integration_method, rValues);
 
-    this->ResponseFunction_Least_Square(rResponse, integration_method, rValues);
+    this->ResponseFunctionLeastSquare(rResponse, integration_method, rValues);
 
     KRATOS_CATCH("");
   }
@@ -263,7 +263,7 @@ namespace Kratos
   }
 
 
-  void MembraneCuttingPatternElement::ResponseFunction_Least_Square(double& rResponseLS, const IntegrationMethod& ThisMethod, ConstitutiveLaw::Parameters& rValues) {
+  void MembraneCuttingPatternElement::ResponseFunctionLeastSquare(double& rResponseLS, const IntegrationMethod& ThisMethod, ConstitutiveLaw::Parameters& rValues) {
 
      const auto& r_geom = GetGeometry();
      const SizeType dimension = r_geom.WorkingSpaceDimension();
