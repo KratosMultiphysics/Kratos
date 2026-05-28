@@ -187,6 +187,7 @@ if(${INSTALL_TESTING_FILES} MATCHES ON)
         PATTERN "*.h"    EXCLUDE
         PATTERN "*.cpp"  EXCLUDE
         PATTERN "*.hpp"  EXCLUDE)
+    install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test_examples DESTINATION applications/${CURRENT_DIR_NAME})
 endif()
 
 # ── Library install ───────────────────────────────────────────────────────────
