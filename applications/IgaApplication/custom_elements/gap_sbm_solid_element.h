@@ -46,46 +46,16 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
-class KRATOS_API(IGA_APPLICATION) SolidElement : public Element
+class KRATOS_API(IGA_APPLICATION) GapSbmSolidElement : public Element
 {
-protected:
-    /**
-     * Internal variables used in the kinematic calculations
-     */
-    struct ConstitutiveVariables
-    {
-        ConstitutiveLaw::StrainVectorType StrainVector;
-        ConstitutiveLaw::StressVectorType StressVector;
-        ConstitutiveLaw::VoigtSizeMatrixType D;
-
-        /**
-         * The default constructor
-         * @param StrainSize The size of the strain vector in Voigt notation
-         */
-        ConstitutiveVariables(const SizeType StrainSize)
-        {
-            if (StrainVector.size() != StrainSize)
-                StrainVector.resize(StrainSize);
-
-            if (StressVector.size() != StrainSize)
-                StressVector.resize(StrainSize);
-
-            if (D.size1() != StrainSize || D.size2() != StrainSize)
-                D.resize(StrainSize, StrainSize);
-
-            noalias(StrainVector) = ZeroVector(StrainSize);
-            noalias(StressVector) = ZeroVector(StrainSize);
-            noalias(D)            = ZeroMatrix(StrainSize, StrainSize);
-        }
-    };
 
 public:
 
     ///@name Type Definitions
     ///@{
 
-    /// Counted pointer of SolidElement
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SolidElement);
+    /// Counted pointer of GapSbmSolidElement
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(GapSbmSolidElement);
 
     // static constexpr std::size_t NumNodes = TDim + 1;
 
@@ -96,17 +66,17 @@ public:
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
     /// Default constructor.
-    SolidElement(
+    GapSbmSolidElement(
         IndexType NewId,
         GeometryType::Pointer pGeometry);
 
-    SolidElement(
+    GapSbmSolidElement(
         IndexType NewId,
         GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties);
 
     /// Destructor.
-    virtual ~SolidElement();
+    virtual ~GapSbmSolidElement();
 
     ///@}
     ///@name Operators
@@ -175,7 +145,20 @@ public:
 
     void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
-    SolidElement() : Element()
+    /**
+     * @brief 
+     * 
+     */
+    void InitializeMemberVariables();
+
+    /**
+     * @brief 
+     * 
+     */
+    void InitializeSbmMemberVariables();
+
+
+    GapSbmSolidElement() : Element()
     {
     }
 
@@ -201,12 +184,12 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "SolidElement #" << Id();
+        buffer << "GapSbmSolidElement #" << Id();
         return buffer.str();
     }
 
     ///@}
-/**
+    /**
     * @brief Calculate a double Variable on the Element Constitutive Law
     * @param rVariable The variable we want to get
     * @param rValues The values obtained int the integration points
@@ -248,13 +231,36 @@ public:
     void GetSolutionCoefficientVector(
         Vector& rValues) const;
 
-    
-    // The dimension of the problem
-    int mDim;
-
 protected:
     ///@name Protected static Member Variables
     ///@{
+
+    struct ConstitutiveVariables
+    {
+        ConstitutiveLaw::StrainVectorType StrainVector;
+        ConstitutiveLaw::StressVectorType StressVector;
+        ConstitutiveLaw::VoigtSizeMatrixType D;
+
+        /**
+         * The default constructor
+         * @param StrainSize The size of the strain vector in Voigt notation
+         */
+        ConstitutiveVariables(const std::size_t StrainSize)
+        {
+            if (StrainVector.size() != StrainSize)
+                StrainVector.resize(StrainSize);
+
+            if (StressVector.size() != StrainSize)
+                StressVector.resize(StrainSize);
+
+            if (D.size1() != StrainSize || D.size2() != StrainSize)
+                D.resize(StrainSize, StrainSize);
+
+            noalias(StrainVector) = ZeroVector(StrainSize);
+            noalias(StressVector) = ZeroVector(StrainSize);
+            noalias(D)            = ZeroMatrix(StrainSize, StrainSize);
+        }
+    };
 
     void InitializeMaterial();
 
@@ -267,63 +273,68 @@ protected:
      * @param rConstitutiVariables 
      */
     void ApplyConstitutiveLaw(
-        SizeType matSize, 
+        std::size_t matSize, 
         Vector& rStrain, 
         ConstitutiveLaw::Parameters& rValues,
         ConstitutiveVariables& rConstitutiveVariables);
+    
+    /**
+     * @brief 
+     * 
+     * @param H_sum_vec 
+     */
+    void ComputeTaylorExpansionContribution(Vector& H_sum_vec);
 
+    /**
+     * @brief 
+     * 
+     * @param grad_H_sum 
+     */
+    void ComputeGradientTaylorExpansionContribution(Matrix& grad_H_sum);
+
+    /**
+     * @brief compute the Taylor expansion for apply the Shifted Boundary Method in 2D
+     * @param derivative 
+     * @param dx 
+     * @param k 
+     * @param dy 
+     * @param n_k 
+     * @return double 
+     */
+    double ComputeTaylorTerm(
+        double derivative, 
+        double dx, IndexType k, 
+        double dy, IndexType n_k);
+    
+    /**
+     * @brief compute the Taylor expansion for apply the Shifted Boundary Method in 3D
+     * @param derivative 
+     * @param dx 
+     * @param k 
+     * @param dy 
+     * @param n_k 
+     * @return double 
+     */
+    double ComputeTaylorTerm3D(
+        double derivative, 
+        double dx, IndexType k_x, 
+        double dy, IndexType k_y, 
+        double dz, IndexType k_z);
 
     ///@}
     ///@name Protected member Variables
     ///@{
 
     ConstitutiveLaw::Pointer mpConstitutiveLaw; /// The pointer containing the constitutive laws
+    std::size_t mDim; /// The dimension of the element (2D or 3D)
+    // sbm variables
+    Vector mDistanceVector;
+    IndexType mBasisFunctionsOrder;
 
 
     ///@}
     ///@name Protected Operators
     ///@{
-    
-    /**
-     * @brief Calculate the initial Jacobian matrix for the element.
-     * 
-     * @param rGeometry 
-     * @param rJacobian 
-     */
-    void CalculateInitialJacobian(
-        const GeometryType& rGeometry, Matrix& rJacobian) const
-    {
-        GeometryType::JacobiansType J0;
-        rGeometry.Jacobian(J0,this->GetIntegrationMethod());
-        
-        switch (mDim) {
-            case 2:
-            {
-                rJacobian.resize(2,2);
-                rJacobian(0,0) = J0[0](0,0);
-                rJacobian(0,1) = J0[0](0,1);
-                rJacobian(1,0) = J0[0](1,0);
-                rJacobian(1,1) = J0[0](1,1);
-                return;
-            }
-            case 3:
-            {
-                rJacobian.resize(3,3);
-                rJacobian(0,0) = J0[0](0,0);
-                rJacobian(0,1) = J0[0](0,1);
-                rJacobian(0,2) = J0[0](0,2);
-                rJacobian(1,0) = J0[0](1,0);
-                rJacobian(1,1) = J0[0](1,1);
-                rJacobian(1,2) = J0[0](1,2);
-                rJacobian(2,0) = J0[0](2,0);
-                rJacobian(2,1) = J0[0](2,1);
-                rJacobian(2,2) = J0[0](2,2);
-                return;
-            }   
-            default:
-                KRATOS_ERROR << "Dimension not supported: " << mDim << std::endl;
-        }
-    }
 
 
     ///@}
@@ -350,6 +361,13 @@ protected:
     ///@}
 
 private:
+    ///@name Operations
+    ///@{
+    const GeometryType& GetSurrogateGeometry() const
+    {
+        return *this->GetValue(NEIGHBOUR_GEOMETRIES)[0];
+    }
+    ///@}
     ///@name Static Member Variables
     ///@{
 
@@ -401,7 +419,7 @@ private:
 
     ///@}
 
-}; // Class SolidElement
+}; // Class GapSbmSolidElement
 
 ///@}
 

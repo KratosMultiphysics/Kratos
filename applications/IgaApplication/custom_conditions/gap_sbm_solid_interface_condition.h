@@ -26,35 +26,34 @@
 namespace Kratos
 {
 /// Condition for penalty support condition
-class KRATOS_API(IGA_APPLICATION) SbmSolidCondition
+class KRATOS_API(IGA_APPLICATION) GapSbmSolidInterfaceCondition
     : public Condition
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Counted pointer definition of SbmSolidCondition
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SbmSolidCondition);
+    /// Counted pointer definition of GapSbmSolidInterfaceCondition
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(GapSbmSolidInterfaceCondition);
 
     /// Size types
-    using SizeType = std::size_t;
     using IndexType = std::size_t;
 
     ///@}
     ///@name Life Cycle
     ///@{
-
+    
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
     /// Constructor with Id and geometry
-    SbmSolidCondition(
+    GapSbmSolidInterfaceCondition(
         IndexType NewId,
         GeometryType::Pointer pGeometry)
         : Condition(NewId, pGeometry)
     {};
 
     /// Constructor with Id, geometry and property
-    SbmSolidCondition(
+    GapSbmSolidInterfaceCondition(
         IndexType NewId,
         GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties)
@@ -62,11 +61,11 @@ public:
     {};
 
     /// Default constructor
-    SbmSolidCondition() : Condition()
+    GapSbmSolidInterfaceCondition() : Condition()
     {};
 
     /// Destructor
-    virtual ~SbmSolidCondition() override
+    virtual ~GapSbmSolidInterfaceCondition() override
     {};
 
     ///@}
@@ -80,7 +79,7 @@ public:
         PropertiesType::Pointer pProperties
     ) const override
     {
-        return Kratos::make_intrusive<SbmSolidCondition>(
+        return Kratos::make_intrusive<GapSbmSolidInterfaceCondition>(
             NewId, pGeom, pProperties);
     };
 
@@ -91,7 +90,7 @@ public:
         PropertiesType::Pointer pProperties
     ) const override
     {
-        return Kratos::make_intrusive<SbmSolidCondition>(
+        return Kratos::make_intrusive<GapSbmSolidInterfaceCondition>(
             NewId, GetGeometry().Create(ThisNodes), pProperties);
     };
 
@@ -154,21 +153,23 @@ public:
 
     /**
      * @brief Get the solution coefficient at the previous time step in the two-dimensional case.
-     *
+     * 
      * @param rValues solution coefficients at the previous time step
      */
-    void GetSolutionCoefficientVector(
+    void GetSolutionCoefficientVectorPlus(
+        Vector& rValues) const;
+    
+    /**
+     * @brief Get the solution coefficient at the previous time step in the two-dimensional case.
+     * 
+     * @param rValues solution coefficients at the previous time step
+     */
+    void GetSolutionCoefficientVectorMinus(
         Vector& rValues) const;
 
 
     ///@}
-    ///@name Check
-    ///@{
 
-    /// Performs check if Penalty factor is provided.
-    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
-
-    ///@}
     ///@name Input and output
     ///@{
 
@@ -176,14 +177,14 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "\"SbmSolidCondition\" #" << Id();
+        buffer << "\"GapSbmSolidInterfaceCondition\" #" << Id();
         return buffer.str();
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "\"SbmSolidCondition\" #" << Id();
+        rOStream << "\"GapSbmSolidInterfaceCondition\" #" << Id();
     }
 
     /// Print object's data.
@@ -209,7 +210,7 @@ struct ConstitutiveVariables
      * The default constructor
      * @param StrainSize The size of the strain vector in Voigt notation
      */
-    ConstitutiveVariables(const SizeType StrainSize)
+    ConstitutiveVariables(const std::size_t StrainSize)
     {
         if (StrainVector.size() != StrainSize)
             StrainVector.resize(StrainSize);
@@ -236,131 +237,95 @@ void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
 //@}
 /**
- * @brief
- *
+ * @brief 
+ * 
  */
 void InitializeMemberVariables();
 
 /**
- * @brief
- *
+ * @brief 
+ * 
  */
 void InitializeSbmMemberVariables();
 
 
 /**
- * @brief Calculate the B matrix for the element case.
- *
+ * @brief Calculate the B matrix for the element in the two-dimensional case.
+ * 
  * @param rB B matrix to be calculated
  * @param r_DN_DX The shape function derivatives in the global coordinate system
  */
 void CalculateB(
+    const GeometryType& rGeometry,
     Matrix& rB,
     Matrix& r_DN_DX) const;
 
 /**
- * @brief Calculate the traction vector for the condition
- *
- * @param rStressVector
- * @param rNormal
- * @param rTraction
- */
-void CalculateTraction(
-    const Vector& rStressVector,
-    const array_1d<double, 3>& rNormal,
-    Vector& rTraction) const;
-
-/**
  * @brief Compute the constitutive law response for the given strain vector.
- *
- * @param matSize
- * @param rStrain
- * @param rValues
- * @param rConstitutiVariables
+ * 
+ * @param matSize 
+ * @param rStrain 
+ * @param rValues 
+ * @param rConstitutiVariables 
  */
 void ApplyConstitutiveLaw(
-        SizeType matSize,
-        Vector& rStrain,
+        std::size_t matSize, 
+        Vector& rStrain, 
         ConstitutiveLaw::Parameters& rValues,
         ConstitutiveVariables& rConstitutiVariables);
 
 /**
- * @brief
- *
- * @param H_sum_vec
+ * @brief 
+ * 
+ * @param rGeometry 
+ * @param rDistanceVector 
+ * @param H_sum_vec 
  */
-void ComputeTaylorExpansionContribution(Vector& H_sum_vec);
+void ComputeTaylorExpansionContribution(
+    const GeometryType& rGeometry,
+    const Vector& rDistanceVector, 
+    Vector& H_sum_vec);
+
+/**
+ * @brief 
+ * 
+ * @param rGeometry 
+ * @param rDistanceVector 
+ * @param grad_H_sum 
+ */
+void ComputeGradientTaylorExpansionContribution(
+    const GeometryType& rGeometry,
+    const Vector& rDistanceVector, 
+    Matrix& grad_H_sum);
 
 /**
  * @brief compute the Taylor expansion for apply the Shifted Boundary Method in 2D
- * @param derivative
- * @param dx
- * @param k
- * @param dy
- * @param n_k
- * @return double
+ * @param derivative 
+ * @param dx 
+ * @param k 
+ * @param dy 
+ * @param n_k 
+ * @return double 
  */
 double ComputeTaylorTerm(
-    double derivative,
-    double dx, IndexType k,
+    double derivative, 
+    double dx, IndexType k, 
     double dy, IndexType n_k);
 
 /**
  * @brief compute the Taylor expansion for apply the Shifted Boundary Method in 3D
- * @param derivative
- * @param dx
- * @param k
- * @param dy
- * @param n_k
- * @return double
+ * @param derivative 
+ * @param dx 
+ * @param k 
+ * @param dy 
+ * @param n_k 
+ * @return double 
  */
 double ComputeTaylorTerm3D(
-    double derivative,
-    double dx, IndexType k_x,
-    double dy, IndexType k_y,
+    double derivative, 
+    double dx, IndexType k_x, 
+    double dy, IndexType k_y, 
     double dz, IndexType k_z);
-
-
-/**
- * @brief Calculate the initial Jacobian matrix for the condition.
- *
- * @param rGeometry
- * @param rJacobian
- */
-void CalculateInitialJacobian(
-    const GeometryType& rGeometry, Matrix& rJacobian) const
-{
-    GeometryType::JacobiansType J0;
-    rGeometry.Jacobian(J0,this->GetIntegrationMethod());
-
-    switch (mDim) {
-        case 2:
-        {
-            rJacobian.resize(2,2);
-            rJacobian(0,0) = J0[0](0,0);
-            rJacobian(0,1) = J0[0](0,1);
-            rJacobian(1,0) = J0[0](1,0);
-            rJacobian(1,1) = J0[0](1,1);
-            return;
-        }
-        case 3:
-        {
-            rJacobian.resize(3,3);
-            rJacobian(0,0) = J0[0](0,0);
-            rJacobian(0,1) = J0[0](0,1);
-            rJacobian(0,2) = J0[0](0,2);
-            rJacobian(1,0) = J0[0](1,0);
-            rJacobian(1,1) = J0[0](1,1);
-            rJacobian(1,2) = J0[0](1,2);
-            rJacobian(2,0) = J0[0](2,0);
-            rJacobian(2,1) = J0[0](2,1);
-            rJacobian(2,2) = J0[0](2,2);
-            return;
-        }
-        default:
-            KRATOS_ERROR << "Dimension not supported: " << mDim << std::endl;
-    }
-}
 
 ///@name Protected member Variables
 ///@{
@@ -368,16 +333,31 @@ void CalculateInitialJacobian(
     // sbm variables
     array_1d<double, 3> mNormalParameterSpace;
     array_1d<double, 3> mNormalPhysicalSpace;
-    Vector mDistanceVector;
-    unsigned int mDim;
+    Vector mDistanceVectorPlus; // referenced woth the normal
+    Vector mDistanceVectorMinus;
     double mPenalty;
     double mNitschePenalty;
+    unsigned int mDim;
     IndexType mBasisFunctionsOrder;
-    NodeType* mpProjectionNode;
 
 ///@}
 
 private:
+
+    ///@name Operations
+    ///@{
+    const GeometryType& GetGeometryPlus() const
+    {
+        return *this->GetValue(NEIGHBOUR_GEOMETRIES)[0];
+    }
+
+    const GeometryType& GetGeometryMinus() const
+    {
+        return *this->GetValue(NEIGHBOUR_GEOMETRIES)[1];
+    }
+
+    /// @}
+
     ///@name Serialization
     ///@{
 

@@ -377,6 +377,13 @@ private:
         std::vector<std::vector<std::vector<int>>>& rKnotSpansAvailable,
         ModelPart& rSurrogateModelPartOuter
         );
+
+    /**
+     * @brief Recomputes surrogate nodal normals from the orientation of 2-node conditions.
+     */
+    static void SetSurrogateNormals(
+        ModelPart& rSurrogateModelPart
+        );
     
     /**
      * @brief Checks if the knot span is at the border of the parameter sapce

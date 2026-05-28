@@ -16,6 +16,7 @@
 #include "iga_modeler_sbm.h"
 #include "integration/integration_point_utilities.h"
 #include "iga_application_variables.h"
+#include "utilities/variable_utils.h"
 
 
 namespace Kratos
@@ -478,7 +479,7 @@ void IgaModelerSbm::CreateQuadraturePointGeometriesSbmByProjectionLayer(
             double minimum_distance = 1e14;
 
             // Find the nearest node
-            IndexType nearest_node_id;
+            IndexType nearest_node_id = 0;
             for (IndexType k = 0; k < obtained_results; k++) {
                 double current_distance = list_of_distances[k];   
                 if (current_distance < minimum_distance) { 
@@ -673,7 +674,7 @@ void IgaModelerSbm::CreateQuadraturePointGeometriesSbmByFixedConditionName(
             double minimum_distance = 1e14;
 
             // Find the nearest node
-            IndexType nearest_node_id;
+            IndexType nearest_node_id = 0;
             for (IndexType k = 0; k < obtained_results; k++) {
                 double current_distance = list_of_distances[k];   
                 if (current_distance < minimum_distance) { 
@@ -1013,9 +1014,9 @@ void IgaModelerSbm::CreateConditions(
 
 void IgaModelerSbm::ActivateNodesInElementsAndCleanRoot(ModelPart& rAnalysisModelPart) const
 {
-    for (auto& r_node : rAnalysisModelPart.Nodes()) {
-        r_node.Set(ACTIVE, false);
-    }
+    auto& r_analysis_nodes = rAnalysisModelPart.Nodes();
+    VariableUtils().SetFlag(ACTIVE, false, r_analysis_nodes);
+    VariableUtils().SetFlag(TO_ERASE, false, r_analysis_nodes);
 
     for (auto& r_elem : rAnalysisModelPart.Elements()) {
         auto& r_geom = r_elem.GetGeometry();
@@ -1024,19 +1025,13 @@ void IgaModelerSbm::ActivateNodesInElementsAndCleanRoot(ModelPart& rAnalysisMode
         }
     }
 
-    ModelPart& r_root = rAnalysisModelPart.GetRootModelPart();
-    std::vector<ModelPart::IndexType> node_ids_to_remove;
-    node_ids_to_remove.reserve(r_root.NumberOfNodes());
-
-    for (auto& r_node : r_root.Nodes()) {
-        if (r_node.IsDefined(ACTIVE) && r_node.IsNot(ACTIVE)) {
-            node_ids_to_remove.push_back(r_node.Id());
+    block_for_each(r_analysis_nodes, [](NodeType& rNode) {
+        if (rNode.IsNot(ACTIVE)) {
+            rNode.Set(TO_ERASE, true);
         }
-    }
+    });
 
-    for (const auto node_id : node_ids_to_remove) {
-        r_root.RemoveNode(node_id);
-    }
+    rAnalysisModelPart.RemoveNodesFromAllLevels(TO_ERASE);
 }
 
 ///@}

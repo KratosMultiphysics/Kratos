@@ -14,6 +14,8 @@
 # pragma once
 
 // System includes
+#include <algorithm>
+#include <limits>
 
 // External includes
 
@@ -721,8 +723,18 @@ private:
         const SizeType EchoLevel = 0) 
     {
 
-        // OUTER 
+        // OUTER
         IndexType id_brep_surface_on_volume = 2; // because id 1 is the brep surface
+        const Vector& r_knot_span_sizes = rModelPart.GetValue(KNOT_SPAN_SIZES);
+        KRATOS_ERROR_IF(r_knot_span_sizes.size() == 0)
+            << "KNOT_SPAN_SIZES not found for SBM brep orientation tolerance." << std::endl;
+        double minimum_knot_span_size = std::numeric_limits<double>::max();
+        double maximum_knot_span_size = 0.0;
+        for (IndexType i = 0; i < r_knot_span_sizes.size(); ++i) {
+            minimum_knot_span_size = std::min(minimum_knot_span_size, std::abs(r_knot_span_sizes[i]));
+            maximum_knot_span_size = std::max(maximum_knot_span_size, std::abs(r_knot_span_sizes[i]));
+        }
+        const double orientation_tolerance = 1.0e-12 * std::max(maximum_knot_span_size, minimum_knot_span_size);
 
         if (rSurrogateModelPartOuter.NumberOfConditions() > 0)
         {
@@ -750,21 +762,21 @@ private:
                 array_1d<double, 3> y_unit({0.0, 1.0, 0.0});
                 array_1d<double, 3> z_unit({0.0, 0.0, 1.0});
                 int perpendicular_direction = -1;
-                if (std::abs(inner_prod(diagonalAB, x_unit)) < 1e-13 ) {
+                if (std::abs(inner_prod(diagonalAB, x_unit)) < orientation_tolerance ) {
                     // the normal is parallel to x
                     knot_vector_u[1] = std::abs(A_uvw_sbm[1]-B_uvw_sbm[1]);
                     knot_vector_v[1] = std::abs(A_uvw_sbm[2]-B_uvw_sbm[2]);
                     perpendicular_direction = 0;
-                    normal[0] = 1; 
+                    normal[0] = 1;
                 }
-                else if (std::abs(inner_prod(diagonalAB, y_unit)) < 1e-13 ){
+                else if (std::abs(inner_prod(diagonalAB, y_unit)) < orientation_tolerance ){
                     // the normal is parallel to y
                     knot_vector_u[1] = std::abs(A_uvw_sbm[0]-B_uvw_sbm[0]);
                     knot_vector_v[1] = std::abs(A_uvw_sbm[2]-B_uvw_sbm[2]);
                     perpendicular_direction = 1;
-                    normal[1] = 1; 
+                    normal[1] = 1;
                 }
-                else if (std::abs(inner_prod(diagonalAB, z_unit)) < 1e-13 ){
+                else if (std::abs(inner_prod(diagonalAB, z_unit)) < orientation_tolerance ){
                     // the normal is parallel to z
                     knot_vector_u[1] = std::abs(A_uvw_sbm[0]-B_uvw_sbm[0]);
                     knot_vector_v[1] = std::abs(A_uvw_sbm[1]-B_uvw_sbm[1]);
@@ -846,21 +858,21 @@ private:
                 array_1d<double, 3> y_unit({0.0, 1.0, 0.0});
                 array_1d<double, 3> z_unit({0.0, 0.0, 1.0});
                 int perpendicular_direction = -1;
-                if (std::abs(inner_prod(diagonalAB, x_unit)) < 1e-13 ) {
+                if (std::abs(inner_prod(diagonalAB, x_unit)) < orientation_tolerance ) {
                     // the normal is parallel to x
                     knot_vector_u[1] = std::abs(A_uvw_sbm[1]-B_uvw_sbm[1]);
                     knot_vector_v[1] = std::abs(A_uvw_sbm[2]-B_uvw_sbm[2]);
                     perpendicular_direction = 0;
-                    normal[0] = 1; 
+                    normal[0] = 1;
                 }
-                else if (std::abs(inner_prod(diagonalAB, y_unit)) < 1e-13 ){
+                else if (std::abs(inner_prod(diagonalAB, y_unit)) < orientation_tolerance ){
                     // the normal is parallel to y
                     knot_vector_u[1] = std::abs(A_uvw_sbm[0]-B_uvw_sbm[0]);
                     knot_vector_v[1] = std::abs(A_uvw_sbm[2]-B_uvw_sbm[2]);
                     perpendicular_direction = 1;
-                    normal[1] = 1; 
+                    normal[1] = 1;
                 }
-                else if (std::abs(inner_prod(diagonalAB, z_unit)) < 1e-13 ){
+                else if (std::abs(inner_prod(diagonalAB, z_unit)) < orientation_tolerance ){
                     // the normal is parallel to z
                     knot_vector_u[1] = std::abs(A_uvw_sbm[0]-B_uvw_sbm[0]);
                     knot_vector_v[1] = std::abs(A_uvw_sbm[1]-B_uvw_sbm[1]);

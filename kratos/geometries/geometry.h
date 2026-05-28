@@ -2040,6 +2040,16 @@ public:
             << *this << std::endl;
     }
 
+    /* @brief Provides Domain interval of Nurbs/curves
+     */
+    virtual void DomainInterval(
+        Vector& interval) const
+    {
+        KRATOS_ERROR <<
+            "Calling DomainInterval of geometry base class. Please check derived definitions. "
+            << *this << std::endl;
+    }
+
     ///@}
     ///@name Inquiry
     ///@{
@@ -2141,15 +2151,8 @@ public:
     ///@{
 
     /**
-     * @brief This method gives you the number of all edges of this geometry.
-     * @details The returned number of edges depends on the shape of the geometry only:
-     * - Any line: 1
-     * - Any triangle: 3
-     * - Any quadrilateral: 4
-     * - Any tetrahedron: 6
-     * - Any hexahedron: 12
-     * - Any wedge: 9
-     * - Any pyramid: 8
+     * @brief This method gives you number of all edges of this geometry.
+     * @details For example, for a hexahedron, this would be 12
      * @return SizeType contains number of this geometry edges.
      * @see EdgesNumber()
      * @see Edges()
@@ -2179,9 +2182,8 @@ public:
 
     /**
      * @brief This method gives you all edges of this geometry.
-     * @details Each returned edge will be a line geometry. The number of points of each edge must match the number of
-     * points of the geometry's boundary. In the special case of inquiring the edges of a line, it will return the
-     * line itself.
+     * @details This method will gives you all the edges with one dimension less than this geometry.
+     * For example a triangle would return three lines as its edges or a tetrahedral would return four triangle as its edges but won't return its six edge lines by this method.
      * @return GeometriesArrayType contains this geometry edges.
      * @see EdgesNumber()
      * @see Edge()

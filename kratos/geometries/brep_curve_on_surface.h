@@ -48,7 +48,7 @@ public:
     ///@name Type Definitions
     ///@{
 
-    /** Pointer definition of BrepCurveOnSurface */
+    /** Pointer definition of BrepCurveOnSurface */ 
     KRATOS_CLASS_POINTER_DEFINITION( BrepCurveOnSurface );
 
     typedef typename TContainerPointType::value_type PointType;
@@ -285,6 +285,20 @@ public:
         return mCurveNurbsInterval;
     }
 
+    /**
+     * @brief Provides the domain interval of the NURBS/B-Spline curve as a Vector.
+     * 
+     * @param domainInterval Vector to store the minimum and maximum parameter values.
+     */
+    void DomainInterval(Vector& domainInterval) const override
+    {
+        
+        if (domainInterval.size() != 2) domainInterval.resize(2);
+        domainInterval[0] = mCurveNurbsInterval.MinParameter();
+        domainInterval[1] = mCurveNurbsInterval.MaxParameter();
+
+    }
+
     /*
     * @brief Indicates if the NURBS-curve is pointing in the same direction
     *        as the B-Rep curve.
@@ -464,6 +478,21 @@ public:
         return mpCurveOnSurface->GlobalCoordinates(rResult, rLocalCoordinates);
     }
 
+    /*
+    * @brief This method maps from dimension space to parameter space.
+    * @param rResult array_1d<double, 3> with the coordinates in parameter space
+    * @param LocalCoordinates The local coordinates in dimension space
+    * @return array_1d<double, 3> with the coordinates in parameter space
+    * @see PointLocalCoordinates
+    */
+    CoordinatesArrayType& LocalCoordinates(
+        CoordinatesArrayType& rResult,
+        const CoordinatesArrayType& rLocalCoordinates
+    ) const
+     {
+        return mpCurveOnSurface->LocalCoordinates(rResult, rLocalCoordinates);
+    }
+
     /**
     * @brief This method maps from local space to global/working space and computes the
     *        number of derivatives at the underlying nurbs curve on surface
@@ -483,6 +512,27 @@ public:
         const SizeType DerivativeOrder) const override
     {
         return mpCurveOnSurface->GlobalSpaceDerivatives(rGlobalSpaceDerivatives, rLocalCoordinates, DerivativeOrder);
+    }
+
+    /**
+    * @brief This method maps from local space to local/parameter space and computes the
+    *        number of derivatives at the underlying nurbs curve on surface
+    *        at the parameter rLocalCoordinates[0].
+    *
+    * @param LocalCoordinates The local coordinates in curve-paramater space
+    * @param Derivative Number of computed derivatives
+    *        0 -> Location = PointLocalCoordinates
+    *        1 -> Tangent
+    *        2 -> Curvature
+    *        ...
+    * @return std::vector<array_1d<double, 3>> with the parameter space derivatives
+    */
+    void LocalSpaceDerivatives(
+        std::vector<CoordinatesArrayType>& rGlobalSpaceDerivatives,
+        const CoordinatesArrayType& rLocalCoordinates,
+        const SizeType DerivativeOrder) const
+    {
+        return mpCurveOnSurface->LocalSpaceDerivatives(rGlobalSpaceDerivatives, rLocalCoordinates, DerivativeOrder);
     }
 
     /**
@@ -583,6 +633,55 @@ public:
         for (IndexType i = 0; i < rResultGeometries.size(); ++i) {
             rResultGeometries(i)->SetGeometryParent(this);
         }
+
+        mQuadraturePointGeometries = rResultGeometries;
+    }
+
+    /**
+     * @brief Create a Quadrature Point Geometries object
+     * 
+     * @param rResultGeometries 
+     * @param NumberOfShapeFunctionDerivatives 
+     * @param rIntegrationPoints 
+     * @param rIntegrationInfo
+     * @param SaveResultGeometries 
+     */
+    void CreateQuadraturePointGeometries(
+        GeometriesArrayType& rResultGeometries,
+        IndexType NumberOfShapeFunctionDerivatives,
+        const IntegrationPointsArrayType& rIntegrationPoints,
+        IntegrationInfo& rIntegrationInfo,
+        bool SaveResultGeometries)
+    {
+        // If `TShiftedBoundary` is true, the method `CreateQuadraturePointGeometriesSBM` is called.
+        // Otherwise, the method `CreateQuadraturePointGeometries` is used for standard processing.
+        if constexpr (TShiftedBoundary) {
+            mpCurveOnSurface->CreateQuadraturePointGeometriesSBM(
+                rResultGeometries, NumberOfShapeFunctionDerivatives, rIntegrationPoints, rIntegrationInfo);
+        } else {
+            mpCurveOnSurface->CreateQuadraturePointGeometries(
+                rResultGeometries, NumberOfShapeFunctionDerivatives, rIntegrationPoints, rIntegrationInfo);
+        }
+        
+        for (IndexType i = 0; i < rResultGeometries.size(); ++i) {
+            rResultGeometries(i)->SetGeometryParent(this);
+        }
+
+        if (SaveResultGeometries)
+            mQuadraturePointGeometries = rResultGeometries;
+    }
+
+    /**
+     * @brief Get the Quadrature Point Geometries object
+     * 
+     * @param rResultGeometries 
+     */
+    void GetQuadraturePointGeometries(
+        GeometriesArrayType& rResultGeometries)
+    {
+        KRATOS_ERROR_IF(mQuadraturePointGeometries.size()==0) << ":::[BrepCurveOnSurface]::: Error, calling the GetQuadraturePointGeometries method before the" 
+                                                              <<  "CreateQuadraturePointGeometries. The size is 0" << std::endl;
+        rResultGeometries = mQuadraturePointGeometries;
     }
 
     ///@}
@@ -672,6 +771,8 @@ private:
     /** true-> brep curve and nurbs curve point in same direction.
     *  false-> brep curve and nurbs curve point in opposite directions. */
     bool mSameCurveDirection;
+
+    GeometriesArrayType mQuadraturePointGeometries;
 
     ///@}
     ///@name Serialization

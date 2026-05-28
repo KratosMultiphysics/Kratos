@@ -224,9 +224,10 @@ namespace Kratos
                 WeightsRefined);
         }
 
+        ModelPart& r_root_model_part = r_model_part.GetRootModelPart();
         IndexType node_id = 1;
-        if( r_model_part.NumberOfNodes() > 0 ){
-            node_id = (r_model_part.NodesEnd() - 1)->Id() + 1;
+        if (r_root_model_part.NumberOfNodes() > 0) {
+            node_id = (r_root_model_part.NodesEnd() - 1)->Id() + 1;
         }
 
         for (IndexType i = 0; i < PointsRefined.size(); ++i) {
@@ -370,6 +371,8 @@ namespace Kratos
             p_volume_geometry->SetInternals(PointsRefined,
                 p_volume_geometry->PolynomialDegreeU(), p_volume_geometry->PolynomialDegreeV(), p_volume_geometry->PolynomialDegreeW(),
                 KnotsURefined, p_volume_geometry->KnotsV(), p_volume_geometry->KnotsW());
+
+                KRATOS_WATCH(KnotsURefined)
         }
         if( NumKnotSpansV > 1) {
             Vector KnotsVRefined;
@@ -381,6 +384,8 @@ namespace Kratos
             p_volume_geometry->SetInternals(PointsRefined,
                 p_volume_geometry->PolynomialDegreeU(), p_volume_geometry->PolynomialDegreeV(), p_volume_geometry->PolynomialDegreeW(),
                 p_volume_geometry->KnotsU(), KnotsVRefined, p_volume_geometry->KnotsW());
+
+                KRATOS_WATCH(KnotsVRefined)
         }
         if( NumKnotSpansW > 1) {
             Vector KnotsWRefined;
@@ -392,12 +397,15 @@ namespace Kratos
             p_volume_geometry->SetInternals(PointsRefined,
                 p_volume_geometry->PolynomialDegreeU(), p_volume_geometry->PolynomialDegreeV(), p_volume_geometry->PolynomialDegreeW(),
                 p_volume_geometry->KnotsU(), p_volume_geometry->KnotsV(), KnotsWRefined);
+
+                KRATOS_WATCH(KnotsWRefined)
         }
 
         // Add nodes to model part
+        ModelPart& r_root_model_part = r_model_part.GetRootModelPart();
         IndexType node_id = 1;
-        if( r_model_part.NumberOfNodes() > 0 ){
-            node_id = (r_model_part.NodesEnd() - 1)->Id() + 1;
+        if (r_root_model_part.NumberOfNodes() > 0) {
+            node_id = (r_root_model_part.NodesEnd() - 1)->Id() + 1;
         }
         for (IndexType i = 0; i < PointsRefined.size(); ++i) {
             if (PointsRefined(i)->Id() == 0) {

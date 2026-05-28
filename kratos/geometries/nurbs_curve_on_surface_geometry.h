@@ -351,13 +351,16 @@ public:
             (physical_coord_2[1] - physical_coord_1[1] < 0 )) {
             reverse_order = true;
         }
-        std::vector<double> tempSpans;
-        const double tolerance_orientation = 1e-10;
-        const double tolerance_intersection = 1e-15;
-        
         // Scale factor between surface coordinate and curve one
         double physical_length_segment = norm_2(physical_coord_1-physical_coord_2);
         double parameter_length_segment = norm_2(local_coord_1-local_coord_2);
+        const double range_u = surface_spans_u.empty() ? 0.0 : (surface_spans_u.back() - surface_spans_u.front());
+        const double range_v = surface_spans_v.empty() ? 0.0 : (surface_spans_v.back() - surface_spans_v.front());
+        const double length_scale = std::max(1.0, std::max(physical_length_segment, std::max(range_u, range_v)));
+        std::vector<double> tempSpans;
+        const double tolerance_orientation = 1e-10 * length_scale;
+        const double tolerance_intersection = 1e-15 * length_scale;
+        
         double scale_factor = parameter_length_segment/physical_length_segment;
 
         std::vector<double> knot_interval(2);
@@ -379,7 +382,7 @@ public:
                 if (curr_knot_value > knot_interval[1]) {break;}
                 if (std::abs(curr_knot_value - knot_interval[1]) < tolerance_intersection*10) knot_interval[1] = curr_knot_value;
                 double knot_value_in_curve_parameter = Start + (curr_knot_value-knot_interval[0]) * scale_factor;
-
+                
                 tempSpans.push_back(knot_value_in_curve_parameter);
             }
             
@@ -709,8 +712,39 @@ public:
         // SBM -> check to which axis the brep is aligned
         std::vector<CoordinatesArrayType> first_integration_point(2); // first integration point of the brep in the parameter space
         std::vector<CoordinatesArrayType> last_integration_point(2); // last integration point of the brep in the parameter space
-        mpNurbsCurve->GlobalSpaceDerivatives(first_integration_point,rIntegrationPoints[0],1); 
-        mpNurbsCurve->GlobalSpaceDerivatives(last_integration_point,rIntegrationPoints[rIntegrationPoints.size()-1],1); 
+
+        if (rIntegrationPoints.size() > 3) 
+        {
+            mpNurbsCurve->GlobalSpaceDerivatives(first_integration_point,rIntegrationPoints[1],1); 
+            mpNurbsCurve->GlobalSpaceDerivatives(last_integration_point,rIntegrationPoints[rIntegrationPoints.size()-2],1); 
+        } 
+        else if (rIntegrationPoints.size() == 1)
+        {
+            const auto interval = mpNurbsCurve->DomainInterval();
+            const double t0 = interval.GetT0();
+            const double t1 = interval.GetT1();
+            const double span = t1 - t0;
+            double offset = 1.0e-6 * span;
+            if (span <= 0.0) {
+                KRATOS_ERROR << "::[NurbsCurveOnSurfaceGeometry]::Invalid span detected in CreateQuadraturePointGeometriesSbm.";
+            } else if (2.0 * offset >= span) {
+                offset = 0.25 * span;
+            }
+
+            const double t_first = t0 + offset;
+            const double t_last = t1 - offset;
+
+            const IntegrationPoint<1> first_local_point(t_first);
+            const IntegrationPoint<1> last_local_point(t_last);
+
+            mpNurbsCurve->GlobalSpaceDerivatives(first_integration_point, first_local_point, 1);
+            mpNurbsCurve->GlobalSpaceDerivatives(last_integration_point, last_local_point, 1);
+        }
+        else 
+        {
+            mpNurbsCurve->GlobalSpaceDerivatives(first_integration_point,rIntegrationPoints[0],1); 
+            mpNurbsCurve->GlobalSpaceDerivatives(last_integration_point,rIntegrationPoints[rIntegrationPoints.size()-1],1); 
+        }
 
         // check if the brep is internal (external breps do not need to be computed in a different knot span) 
         is_brep_internal = true; 
@@ -840,15 +874,32 @@ public:
         return mpNurbsSurface->GlobalCoordinates(rResult, result_local);
     }
 
-    /**
-    * @brief This method maps from dimension space to working space and computes the
-    *        number of derivatives at the dimension parameter.
-    * From ANurbs library (https://github.com/oberbichler/ANurbs)
-    * @param LocalCoordinates The local coordinates in dimension space
-    * @param Derivative Number of computed derivatives
-    * @return std::vector<array_1d<double, 3>> with the coordinates in working space
-    * @see PointLocalCoordinates
-    */
+    // /*
+    // * @brief This method maps from dimension space to parameter space.
+    // * @param rResult array_1d<double, 3> with the coordinates in parameter space
+    // * @param LocalCoordinates The local coordinates in dimension space
+    // * @return array_1d<double, 3> with the coordinates in parameter space
+    // * @see PointLocalCoordinates
+    // */
+    CoordinatesArrayType& LocalCoordinates(
+        CoordinatesArrayType& rResult,
+        const CoordinatesArrayType& rLocalCoordinates
+    ) const
+    {
+        // Compute the coordinates of the embedded curve in the parametric space of the surface
+        return mpNurbsCurve->GlobalCoordinates(rResult, rLocalCoordinates);
+
+    }
+
+    // /**
+    // * @brief This method maps from dimension space to working space and computes the
+    // *        number of derivatives at the dimension parameter.
+    // * From ANurbs library (https://github.com/oberbichler/ANurbs)
+    // * @param LocalCoordinates The local coordinates in dimension space
+    // * @param Derivative Number of computed derivatives
+    // * @return std::vector<array_1d<double, 3>> with the coordinates in working space
+    // * @see PointLocalCoordinates
+    // */
     void GlobalSpaceDerivatives(
         std::vector<CoordinatesArrayType>& rGlobalSpaceDerivatives,
         const CoordinatesArrayType& rCoordinates,
@@ -892,6 +943,29 @@ public:
         for (SizeType i = 0; i <= DerivativeOrder; i++) {
             rGlobalSpaceDerivatives[i] = c(i, 0, 0);
         }
+    }
+
+    // /**
+    // * @brief This method maps from dimension space to parameter space and computes the
+    // *        number of derivatives at the dimension parameter.
+    // * @param LocalCoordinates The local coordinates in dimension space
+    // * @param Derivative Number of computed derivatives
+    // * @return std::vector<array_1d<double, 3>> with the coordinates in parameter space
+    // * @see PointLocalCoordinates
+    // */
+    void LocalSpaceDerivatives(
+        std::vector<CoordinatesArrayType>& rGlobalSpaceDerivatives,
+        const CoordinatesArrayType& rCoordinates,
+        const SizeType DerivativeOrder) const 
+    {
+        // Check size of output
+        if (rGlobalSpaceDerivatives.size() != DerivativeOrder + 1) {
+            rGlobalSpaceDerivatives.resize(DerivativeOrder + 1);
+        }
+
+        // Compute the gradients of the embedded curve in the parametric space of the surface
+        mpNurbsCurve->GlobalSpaceDerivatives(rGlobalSpaceDerivatives, rCoordinates, DerivativeOrder);
+
     }
 
     ///@}

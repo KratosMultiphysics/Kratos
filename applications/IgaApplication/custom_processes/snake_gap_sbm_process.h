@@ -14,10 +14,14 @@
 #pragma once
 
 // System includes
+#include <cmath>
+#include <limits>
+#include <memory>
 
 // Project includes
 #include "includes/model_part.h"
 #include "spatial_containers/bins_dynamic.h"
+#include "spatial_containers/bins_dynamic_objects.h"
 #include "snake_sbm_process.h"
 #include "custom_utilities/create_breps_sbm_utilities.h"
 #include "spaces/ublas_space.h"
@@ -55,6 +59,11 @@ public:
     using NurbsCurveGeometryType = NurbsCurveGeometry<3, PointerVector<Node>>;
     using NurbsSurfaceType = NurbsSurfaceGeometry<3, PointerVector<NodeType>>;
     using NodePointerVector = GlobalPointersVector<NodeType>;
+    using ConditionType = Condition;
+    using ConditionPointerType = ConditionType::Pointer;
+    using ConditionPointerContainerType = std::vector<ConditionPointerType>;
+    using NodePointerContainerType = std::vector<NodeType::Pointer>;
+    using NodeBinsType = BinsDynamic<3, NodeType, NodePointerContainerType>;
 
     using SparseSpaceType  = UblasSpace<double, CompressedMatrix, Vector>;
     using SparseMatrixType = SparseSpaceType::MatrixType;
@@ -78,6 +87,204 @@ public:
         std::vector<std::size_t> nnz_off;       // offsets into pool, size = nnz
         std::vector<std::size_t> nnz_len;       // lengths per nnz,  size = nnz
         std::vector<IndexType> pool;         // flat contiguous storage of node ids
+    };
+
+    /**
+     * @brief CSR container storing per-knot-span node bins.
+     */
+    struct KnotSpanNodeBinsCSR
+    {
+        // Metadata (mirrors KnotSpanIdsCSR)
+        std::size_t NumberOfSpansX = 0;
+        std::size_t NumberOfSpansY = 0;
+        double MinU = 0.0, MaxU = 0.0;
+        double MinV = 0.0, MaxV = 0.0;
+        double SpanSizeX = 0.0, SpanSizeY = 0.0;
+
+        SparseMatrixType Occupancy; // CSR, (i,j) value = count of nodes in that cell
+
+        struct CellBins
+        {
+            NodePointerContainerType Nodes;
+            std::unique_ptr<NodeBinsType> pBins;
+            bool HasBins = false;
+        };
+
+        std::vector<CellBins> CellBinsByNnz;
+    };
+
+    /**
+     * @brief Configure for condition-based bins (AABB per condition geometry).
+     */
+    struct ConditionConfigure
+    {
+        static constexpr auto Epsilon = std::numeric_limits<double>::epsilon();
+        static constexpr auto Dimension = 3;
+
+        using PointType = Point;
+        using ObjectType = ConditionType;
+        using PointerType = ConditionPointerType;
+
+        using ObjectContainerType = ConditionPointerContainerType;
+        using ContainerType = ObjectContainerType;
+        using ResultContainerType = ObjectContainerType;
+        using IteratorType = ContainerType::iterator;
+        using ResultIteratorType = ResultContainerType::iterator;
+        using DistanceIteratorType = std::vector<double>::iterator;
+
+        using CoordinateType = double;
+        using CoordinateArray = Tvector<CoordinateType, Dimension>;
+
+        static inline void CalculateBoundingBox(
+            const PointerType& rObject,
+            PointType& rLowPoint,
+            PointType& rHighPoint)
+        {
+            const auto& r_geometry = rObject->GetGeometry();
+            if (r_geometry.size() == 0) {
+                rLowPoint = PointType(0.0, 0.0, 0.0);
+                rHighPoint = rLowPoint;
+                return;
+            }
+            rLowPoint = r_geometry[0];
+            rHighPoint = r_geometry[0];
+            for (IndexType i = 1; i < r_geometry.size(); ++i) {
+                const auto& r_point = r_geometry[i];
+                for (std::size_t d = 0; d < Dimension; ++d) {
+                    rLowPoint[d] = std::min(rLowPoint[d], r_point[d]);
+                    rHighPoint[d] = std::max(rHighPoint[d], r_point[d]);
+                }
+            }
+        }
+
+        static inline void CalculateBoundingBox(
+            const PointerType& rObject,
+            PointType& rLowPoint,
+            PointType& rHighPoint,
+            const double Radius)
+        {
+            CalculateBoundingBox(rObject, rLowPoint, rHighPoint);
+            for (std::size_t d = 0; d < Dimension; ++d) {
+                rLowPoint[d] -= Radius;
+                rHighPoint[d] += Radius;
+            }
+        }
+
+        static inline void CalculateCenter(
+            const PointerType& rObject,
+            PointType& rCentralPoint)
+        {
+            rCentralPoint = rObject->GetGeometry().Center();
+        }
+
+        static inline bool Intersection(
+            const PointerType& rObj_1,
+            const PointerType& rObj_2)
+        {
+            PointType low_1, high_1, low_2, high_2;
+            CalculateBoundingBox(rObj_1, low_1, high_1);
+            CalculateBoundingBox(rObj_2, low_2, high_2);
+            for (std::size_t d = 0; d < Dimension; ++d) {
+                if (high_1[d] < low_2[d] - Epsilon || low_1[d] > high_2[d] + Epsilon) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        static inline bool Intersection(
+            const PointerType& rObj_1,
+            const PointerType& rObj_2,
+            const double Radius)
+        {
+            PointType low_1, high_1, low_2, high_2;
+            CalculateBoundingBox(rObj_1, low_1, high_1, Radius);
+            CalculateBoundingBox(rObj_2, low_2, high_2, Radius);
+            for (std::size_t d = 0; d < Dimension; ++d) {
+                if (high_1[d] < low_2[d] - Epsilon || low_1[d] > high_2[d] + Epsilon) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        static inline bool IntersectionBox(
+            const PointerType& rObject,
+            const PointType& rLowPoint,
+            const PointType& rHighPoint)
+        {
+            PointType low, high;
+            CalculateBoundingBox(rObject, low, high);
+            for (std::size_t d = 0; d < Dimension; ++d) {
+                if (high[d] < rLowPoint[d] - Epsilon || low[d] > rHighPoint[d] + Epsilon) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        static inline bool IntersectionBox(
+            const PointerType& rObject,
+            const PointType& rLowPoint,
+            const PointType& rHighPoint,
+            const double Radius)
+        {
+            PointType low, high;
+            CalculateBoundingBox(rObject, low, high, Radius);
+            for (std::size_t d = 0; d < Dimension; ++d) {
+                if (high[d] < rLowPoint[d] - Epsilon || low[d] > rHighPoint[d] + Epsilon) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        static inline void Distance(
+            const PointerType& rObj_1,
+            const PointerType& rObj_2,
+            double& distance)
+        {
+            PointType c1, c2;
+            CalculateCenter(rObj_1, c1);
+            CalculateCenter(rObj_2, c2);
+            double pwdDistance = 0.0;
+            for (std::size_t d = 0; d < Dimension; ++d) {
+                const double delta = c1[d] - c2[d];
+                pwdDistance += delta * delta;
+            }
+            distance = std::sqrt(pwdDistance);
+        }
+
+        static inline double GetObjectRadius(
+            const PointerType&,
+            const double)
+        {
+            return 0.0;
+        }
+    };
+
+    /**
+     * @brief CSR container storing per-knot-span condition bins.
+     */
+    struct KnotSpanConditionBinsCSR
+    {
+        // Metadata (mirrors KnotSpanIdsCSR)
+        std::size_t NumberOfSpansX = 0;
+        std::size_t NumberOfSpansY = 0;
+        double MinU = 0.0, MaxU = 0.0;
+        double MinV = 0.0, MaxV = 0.0;
+        double SpanSizeX = 0.0, SpanSizeY = 0.0;
+
+        SparseMatrixType Occupancy; // CSR, (i,j) value = count of conditions in that cell
+
+        struct CellBins
+        {
+            ConditionPointerContainerType Conditions;
+            BinsObjectDynamic<ConditionConfigure> Bins;
+            bool HasBins = false;
+        };
+
+        std::vector<CellBins> CellBinsByNnz;
     };
 
     /**
@@ -268,19 +475,19 @@ public:
      * @param rSurrogateSubModelPart Reference to the surrogate model part used for binning.
      * @return CSR structure collecting the node identifiers per knot span.
      */
-    KnotSpanIdsCSR CreateSkinNodesPerKnotSpanMatrix(
+    KnotSpanNodeBinsCSR CreateSkinNodesPerKnotSpanMatrix(
         const ModelPart& rSkinSubModelPart,
         const ModelPart& rSurrogateSubModelPart) const;
 
     /**
-     * @brief Builds a CSR matrix linking skin conditions to knot span bins.
+     * @brief Builds a CSR matrix linking skin conditions to knot span bins, storing per-cell bins.
      * @param rSkinSubModelPart Reference to the skin model part containing the conditions.
      * @param rReferenceMatrix Reference to the node-based CSR used as topology template.
-     * @return CSR structure collecting the condition identifiers per knot span.
+     * @return CSR structure collecting the condition bins per knot span.
      */
-    KnotSpanIdsCSR CreateSkinConditionsPerKnotSpanMatrix(
+    KnotSpanConditionBinsCSR CreateSkinConditionsPerKnotSpanMatrix(
         const ModelPart& rSkinSubModelPart,
-        const SnakeGapSbmProcess::KnotSpanIdsCSR& rReferenceMatrix) const;
+        const SnakeGapSbmProcess::KnotSpanNodeBinsCSR& rReferenceMatrix) const;
 
 
 /**
@@ -291,8 +498,8 @@ struct IntegrationParameters
     std::size_t  NumberOfShapeFunctionsDerivatives;
     IntegrationInfo CurveIntegrationInfo;
     const Vector&           rKnotSpanSizes;
-    const KnotSpanIdsCSR* pSkinNodesPerSpan = nullptr;
-    const KnotSpanIdsCSR* pSkinConditionsPerSpan = nullptr;
+    const KnotSpanNodeBinsCSR* pSkinNodesPerSpan = nullptr;
+    const KnotSpanConditionBinsCSR* pSkinConditionsPerSpan = nullptr;
     /**
      * @brief Initializes the integration parameters container.
      * @param NumberOfDerivatives Number of shape function derivatives required.
@@ -335,6 +542,7 @@ private:
                              // "interpolation" (interpolates the points on the curve -- no assumption on their order)
                              // "sbm" (uses SBM on top of the "interpolation" approach to further optimize the gap geometry)
     bool mUseForMultipatch = false;
+    bool mUseForLocalRefinement = false;
 
     /**
      * @brief Creates the gap SBM geometries for the configured model part.
@@ -349,7 +557,7 @@ private:
      */
     template <bool TIsInnerLoop>
     void CreateSbmExtendedGeometries(
-        const ModelPart& rSkinSubModelPart,
+        ModelPart& rSkinSubModelPart,
         const ModelPart& rSurrogateSubModelPart);
 
     /**
@@ -371,7 +579,7 @@ private:
         const Node::Pointer& pSurrogateNode2, 
         const GeometryType::Pointer& rSurrogateBrepMiddleGeometry,
         ModelPart& rIgaModelPart,
-        const ModelPart& rSkinSubModelPart);
+        ModelPart& rSkinSubModelPart);
 
     /**
      * @brief Adds extra gap elements for curve intersections between surrogate1-skin1 and skin1-skin2.
@@ -407,8 +615,8 @@ private:
     void SetSurrogateToSkinProjections(
         const ModelPart& rSurrogateSubModelPart,
         const ModelPart& rSkinSubModelPart,
-        const KnotSpanIdsCSR& rSkinNodesPerSpan,
-        const KnotSpanIdsCSR& rSkinConditionsPerSpan);
+        const KnotSpanNodeBinsCSR& rSkinNodesPerSpan,
+        const KnotSpanConditionBinsCSR& rSkinConditionsPerSpan);
 
     /**
      * @brief Checks that surrogate boundary vertices lie on the same skin layer.
@@ -486,9 +694,10 @@ private:
         const IndexType LeftProjectionId,
         const IndexType RightProjectionId,
         const std::string& rCommonLayerName,
+        const std::string& rCommonConditionName,
         const array_1d<double,3>& rNormalCond,
         const IntegrationParameters& rIntegrationParameters,
-        const KnotSpanIdsCSR& rSkinConditionsPerKnotSpan) const;
+        const KnotSpanConditionBinsCSR& rSkinConditionsPerKnotSpan) const;
     
     /**
      * @brief Creates a Brep curve for the active knot range.
@@ -656,6 +865,24 @@ private:
         const array_1d<double,3>& rSkinPoint1,
         const array_1d<double,3>& rSkinPoint2) const;
 
+    /**
+     * @brief Reconstructs the ordered node path between two skin nodes by traversing skin conditions.
+     * @param rSkinSubModelPart Skin model part containing the loop conditions.
+     * @param StartNodeId Identifier of the starting node.
+     * @param EndNodeId Identifier of the ending node.
+     * @param ReverseConditionOrientation When true, traverses conditions against their stored orientation.
+     * @param rLayerName Optional layer filter used to restrict the traversed conditions.
+     * @param rConditionName Optional condition-name filter used to restrict the traversed conditions.
+     * @return Ordered node ids from StartNodeId to EndNodeId, both included.
+     */
+    std::vector<IndexType> CollectOrderedSkinNodePath(
+        const ModelPart& rSkinSubModelPart,
+        IndexType StartNodeId,
+        IndexType EndNodeId,
+        bool ReverseConditionOrientation,
+        const std::string& rLayerName = "",
+        const std::string& rConditionName = "") const;
+
 
 /**
  * @brief Collects skin nodes between two indices and projects them to the UV space.
@@ -671,35 +898,25 @@ std::vector<array_1d<double,3>> CollectSkinUVBetween(
     const ModelPart& rSkinSubModelPart,
     const NurbsSurfaceType& rSurface,
     IndexType id_node_1,
-    IndexType id_node_2) const
+    IndexType id_node_2,
+    const std::string& rLayerName = "",
+    const std::string& rConditionName = "") const
 {
     std::vector<array_1d<double,3>> uv_pts;
     uv_pts.reserve(rSkinSubModelPart.NumberOfConditions());
 
-    const IndexType first_id = rSkinSubModelPart.NodesBegin()->Id();
-    const IndexType last_id  = first_id + rSkinSubModelPart.NumberOfNodes() - 1;
-    auto next_id = [&](IndexType id){ return (id < last_id) ? (id + 1) : first_id; };
-    auto previous_id = [&](IndexType id){ return (id > first_id) ? (id - 1) : last_id; };
+    const auto ordered_node_ids = CollectOrderedSkinNodePath( //FIXME: go back to previous version
+        rSkinSubModelPart,
+        id_node_1,
+        id_node_2,
+        TIsInnerLoop,
+        rLayerName,
+        rConditionName);
 
-    IndexType id = id_node_1;
-
-    ModelPart::SizeType iter = 0;
-    while (true) {
+    for (const auto id : ordered_node_ids) {
         const auto& p_node = rSkinSubModelPart.pGetNode(id);
         array_1d<double,3> uv = p_node->Coordinates();
         uv_pts.push_back(uv);
-        if (id == id_node_2) break;
-
-        if constexpr (TIsInnerLoop)  
-        { // inner loop: go against the condition orientation
-            id = previous_id(id);
-        } else { // outer loop: follow the condition orientation
-            id = next_id(id);
-        }
-        iter++;
-        KRATOS_ERROR_IF(iter > rSkinSubModelPart.NumberOfConditions())
-            << "CollectSkinUVBetween: infinite loop detected between IDs "
-            << id_node_1 << " and " << id_node_2 << ".\n";
     }
     return uv_pts;
 }
@@ -983,10 +1200,17 @@ typename NurbsCurveGeometryType::Pointer FitUV_BetweenSkinNodes_Generic(
     IndexType id_node_1,
     IndexType id_node_2,
     const int p,
-    const double ridge = 1e-12) const
+    const double ridge = 1e-12,
+    const std::string& rLayerName = "",
+    const std::string& rConditionName = "") const
 {
-    // Reuse your robust UV collector (ordered with wrap-around).
-    auto UV = CollectSkinUVBetween<TIsInnerLoop>(rSkinSubModelPart, rSurface, id_node_1, id_node_2);
+    auto UV = CollectSkinUVBetween<TIsInnerLoop>(
+        rSkinSubModelPart,
+        rSurface,
+        id_node_1,
+        id_node_2,
+        rLayerName,
+        rConditionName);
     KRATOS_ERROR_IF(UV.size() < (std::size_t)(p+1))
         << "FitUV_BetweenSkinConditions_Generic: not enough samples for degree p=" << p << ".\n";
 
@@ -1131,7 +1355,8 @@ IndexType FindClosestNodeInLayerWithDirection(
     const std::string& rLayer,
     const ModelPart& rSkinSubModelPart,
     const Vector& rKnotSpanSizes,
-    const KnotSpanIdsCSR& rSkinConditionsPerSpan,
+    const KnotSpanNodeBinsCSR& rSkinNodesPerSpan,
+    const KnotSpanConditionBinsCSR& rSkinConditionsPerSpan,
     const Vector& rDirection) const;
 
 
@@ -1153,7 +1378,8 @@ std::pair<SnakeGapSbmProcess::IndexType, SnakeGapSbmProcess::IndexType> FindClos
     const std::string& rLayer,
     const ModelPart& rSkinSubModelPart,
     const Vector& rKnotSpanSizes,
-    const KnotSpanIdsCSR& rSkinConditionsPerSpan,
+    const KnotSpanNodeBinsCSR& rSkinNodesPerSpan,
+    const KnotSpanConditionBinsCSR& rSkinConditionsPerSpan,
     const Vector& rDirection) const;
     
 /**
@@ -1184,6 +1410,11 @@ void SynchronizeEndSkinNodeNeighbourGeometries(const ModelPart& rSkinSubModelPar
     * @param pNurbsSurface Pointer to the NURBS surface hosting the SBM geometry.
     */
 void CreateInnerSkinMultipatchCouplingConditions(
+    const ModelPart& rSkinSubModelPart,
+    const Vector& rKnotSpanSizes,
+    NurbsSurfaceType::Pointer& pNurbsSurface);
+
+void CreateInnerSkinLocalRefinementCouplingConditions(
     const ModelPart& rSkinSubModelPart,
     const Vector& rKnotSpanSizes,
     NurbsSurfaceType::Pointer& pNurbsSurface);

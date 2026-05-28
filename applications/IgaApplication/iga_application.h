@@ -30,6 +30,10 @@
 #include "custom_elements/stokes_element.h"
 #include "custom_elements/navier_stokes_element.h"
 
+// Gap-SBM solid element
+#include "custom_elements/gap_sbm_solid_element.h"
+
+
 //conditions
 #include "custom_conditions/output_condition.h"
 #include "custom_conditions/load_condition.h"
@@ -44,12 +48,22 @@
 #include "custom_conditions/sbm_laplacian_condition_neumann.h"
 #include "custom_conditions/sbm_laplacian_condition_dirichlet.h"
 #include "custom_conditions/support_fluid_condition.h"
+#include "custom_conditions/support_pressure_condition.h"
 #include "custom_conditions/sbm_fluid_condition_dirichlet.h"
 #include "custom_conditions/support_pressure_condition.h"
 #include "custom_conditions/support_solid_condition.h"
 #include "custom_conditions/load_solid_condition.h"
 #include "custom_conditions/sbm_solid_condition.h"
 #include "custom_conditions/sbm_load_solid_condition.h"
+#include "custom_conditions/gap_sbm_solid_condition.h"
+#include "custom_conditions/gap_sbm_load_solid_condition.h"
+// SBM contact condition
+// Gap-SBM solid condition
+#include "custom_conditions/gap_sbm_solid_condition.h"
+// Gap-SBM load solid condition
+#include "custom_conditions/gap_sbm_load_solid_condition.h"
+// Gap-SBM solid interface condition
+#include "custom_conditions/gap_sbm_solid_interface_condition.h"
 
 
 //modelers
@@ -145,6 +159,7 @@ private:
     const SolidElement mSolidElement;
     const StokesElement mStokesElement;
     const NavierStokesElement mNavierStokesElement;
+    const GapSbmSolidElement mGapSbmSolidElement;
 
     //Conditions
     const OutputCondition mOutputCondition;
@@ -166,6 +181,9 @@ private:
     const LoadSolidCondition mLoadSolidCondition;
     const SbmSolidCondition mSbmSolidCondition;
     const SbmLoadSolidCondition mSbmLoadSolidCondition;
+    const GapSbmSolidCondition mGapSbmSolidCondition;
+    const GapSbmLoadSolidCondition mGapSbmLoadSolidCondition;
+    const GapSbmSolidInterfaceCondition mGapSbmSolidInterfaceCondition;
 
 
     // Modelers

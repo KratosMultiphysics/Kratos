@@ -21,6 +21,263 @@ namespace Kratos
 {
 namespace
 {
+struct ParameterSpaceBounds
+{
+    double MinU = 0.0;
+    double MaxU = 0.0;
+    double MinV = 0.0;
+    double MaxV = 0.0;
+};
+
+ParameterSpaceBounds ReadParameterSpaceBounds(
+    const ModelPart& rModelPart,
+    const char* pCaller)
+{
+    ParameterSpaceBounds bounds;
+
+    if (rModelPart.Has(PATCH_PARAMETER_SPACE_CORNERS)) {
+        const Matrix& r_patch_corners = rModelPart.GetValue(PATCH_PARAMETER_SPACE_CORNERS);
+        KRATOS_ERROR_IF(r_patch_corners.size1() < 2 || r_patch_corners.size2() < 2)
+            << "[" << pCaller << "] PATCH_PARAMETER_SPACE_CORNERS must be at least 2x2.\n";
+
+        bounds.MinU = r_patch_corners(0, 0);
+        bounds.MaxU = r_patch_corners(0, 1);
+        bounds.MinV = r_patch_corners(1, 0);
+        bounds.MaxV = r_patch_corners(1, 1);
+        return bounds;
+    }
+
+    const auto& r_parameter_space_corners = rModelPart.GetValue(PARAMETER_SPACE_CORNERS);
+    KRATOS_ERROR_IF(r_parameter_space_corners.size() < 2)
+        << "[" << pCaller << "] PARAMETER_SPACE_CORNERS must contain at least two vectors.\n";
+    KRATOS_ERROR_IF(r_parameter_space_corners[0].size() < 2 || r_parameter_space_corners[1].size() < 2)
+        << "[" << pCaller << "] PARAMETER_SPACE_CORNERS entries must contain [min, max] values."
+        << " If the model part stores a multipatch rectangle list, use PATCH_PARAMETER_SPACE_CORNERS on the patch model part instead.\n";
+
+    bounds.MinU = r_parameter_space_corners[0][0];
+    bounds.MaxU = r_parameter_space_corners[0][1];
+    bounds.MinV = r_parameter_space_corners[1][0];
+    bounds.MaxV = r_parameter_space_corners[1][1];
+    return bounds;
+}
+
+std::size_t ComputeSpanCount(
+    const double domain_length,
+    const double span_size,
+    const char* pDirection,
+    const char* pCaller)
+{
+    const double spans_real = domain_length / span_size;
+    const double rounded_spans = std::round(spans_real);
+    constexpr double absolute_tolerance = 1.0e-10;
+    constexpr double relative_tolerance = 1.0e-9;
+    const double tolerance = std::max(
+        absolute_tolerance,
+        relative_tolerance * std::max(1.0, std::abs(rounded_spans)));
+
+    KRATOS_ERROR_IF(rounded_spans <= 0.0)
+        << "[" << pCaller << "] Non-positive number of knot spans in " << pDirection << ".\n";
+    KRATOS_ERROR_IF(std::abs(spans_real - rounded_spans) > tolerance)
+        << "[" << pCaller << "] Non-integer number of knot spans in " << pDirection
+        << " (" << std::setprecision(17) << spans_real << ")"
+        << " computed from domain length " << domain_length
+        << " and span size " << span_size << ".\n";
+
+    return static_cast<std::size_t>(rounded_spans);
+}
+
+void AddLayerConditionMetadata(
+    Node& rNode,
+    const std::string& rLayerName,
+    const std::string& rConditionName)
+{
+    auto connected_layers = rNode.GetValue(CONNECTED_LAYERS);
+    auto connected_conditions = rNode.GetValue(CONNECTED_CONDITIONS);
+    if (connected_conditions.size() < connected_layers.size()) {
+        connected_conditions.resize(connected_layers.size());
+    }
+
+    const auto layer_it = std::find(connected_layers.begin(), connected_layers.end(), rLayerName);
+    if (layer_it == connected_layers.end()) {
+        connected_layers.push_back(rLayerName);
+        connected_conditions.push_back(rConditionName);
+    } else {
+        const std::size_t layer_index = static_cast<std::size_t>(std::distance(connected_layers.begin(), layer_it));
+        if (connected_conditions.size() <= layer_index) {
+            connected_conditions.resize(connected_layers.size());
+        }
+        if (connected_conditions[layer_index].empty() && !rConditionName.empty()) {
+            connected_conditions[layer_index] = rConditionName;
+        }
+    }
+
+    rNode.SetValue(CONNECTED_LAYERS, connected_layers);
+    rNode.SetValue(CONNECTED_CONDITIONS, connected_conditions);
+}
+
+std::string GetConditionNameForLayer(
+    const Node& rNode,
+    const std::string& rLayerName)
+{
+    const auto& connected_layers = rNode.GetValue(CONNECTED_LAYERS);
+    const auto& connected_conditions = rNode.GetValue(CONNECTED_CONDITIONS);
+    const auto layer_it = std::find(connected_layers.begin(), connected_layers.end(), rLayerName);
+    if (layer_it == connected_layers.end()) {
+        return "";
+    }
+
+    const std::size_t layer_index = static_cast<std::size_t>(std::distance(connected_layers.begin(), layer_it));
+    if (layer_index >= connected_conditions.size()) {
+        return "";
+    }
+
+    return connected_conditions[layer_index];
+}
+
+struct CommonLayerInfo
+{
+    std::string LayerName;
+    std::string ConditionName;
+    bool Found = false;
+};
+
+CommonLayerInfo FindCommonLayerInfo(
+    const Node& rFirstNode,
+    const Node& rSecondNode)
+{
+    const auto& connected_layers_1 = rFirstNode.GetValue(CONNECTED_LAYERS);
+    const auto& connected_layers_2 = rSecondNode.GetValue(CONNECTED_LAYERS);
+    std::unordered_set<std::string> layer_lookup(connected_layers_2.begin(), connected_layers_2.end());
+
+    CommonLayerInfo layer_info;
+    layer_info.Found = false;
+
+    for (const auto& r_layer_name : connected_layers_1) {
+        if (layer_lookup.find(r_layer_name) == layer_lookup.end()) {
+            continue;
+        }
+
+        // CommonLayerInfo layer_info;
+        layer_info.LayerName = r_layer_name;
+        layer_info.ConditionName = GetConditionNameForLayer(rFirstNode, r_layer_name);
+        if (layer_info.ConditionName.empty()) {
+            layer_info.ConditionName = GetConditionNameForLayer(rSecondNode, r_layer_name);
+        }
+        layer_info.Found = true;
+    }
+    if (layer_info.Found) {
+        return layer_info;
+    }
+
+    return {};
+}
+
+int ResolveBrepIdFromConditionOrNodes(const Condition& rCondition)
+{
+    if (rCondition.Has(BREP_ID)) {
+        return rCondition.GetValue(BREP_ID);
+    }
+
+    const auto& r_geometry = rCondition.GetGeometry();
+    if (r_geometry.Has(BREP_ID)) {
+        return r_geometry.GetValue(BREP_ID);
+    }
+
+    int resolved_brep_id = 0; // FIXME: necessary??
+    for (IndexType i = 0; i < r_geometry.PointsNumber(); ++i) {
+        const auto& r_node = r_geometry[i];
+        if (!r_node.Has(BREP_ID)) {
+            continue;
+        }
+
+        const int node_brep_id = r_node.GetValue(BREP_ID);
+        if (resolved_brep_id == 0) {
+            resolved_brep_id = node_brep_id;
+        } else {
+            KRATOS_ERROR_IF(resolved_brep_id != node_brep_id)
+                << "::[SnakeGapSbmProcess]:: Conflicting node BREP_ID values on condition #"
+                << rCondition.Id() << ": " << resolved_brep_id << " vs " << node_brep_id << std::endl;
+        }
+    }
+
+    return resolved_brep_id;
+}
+
+std::string ResolveBrepModelPartFullNameFromConditionOrNodes(const Condition& rCondition)
+{
+    if (rCondition.Has(BREP_MODEL_PART_FULL_NAME)) {
+        const auto& r_model_part_full_name = rCondition.GetValue(BREP_MODEL_PART_FULL_NAME);
+        if (!r_model_part_full_name.empty()) {
+            return r_model_part_full_name;
+        }
+    }
+
+    const auto& r_geometry = rCondition.GetGeometry();
+    if (r_geometry.Has(BREP_MODEL_PART_FULL_NAME)) {
+        const auto& r_model_part_full_name = r_geometry.GetValue(BREP_MODEL_PART_FULL_NAME);
+        if (!r_model_part_full_name.empty()) {
+            return r_model_part_full_name;
+        }
+    }
+
+    std::string resolved_model_part_full_name;
+    for (IndexType i = 0; i < r_geometry.PointsNumber(); ++i) {
+        const auto& r_node = r_geometry[i];
+        if (!r_node.Has(BREP_MODEL_PART_FULL_NAME)) {
+            continue;
+        }
+
+        const std::string& r_node_model_part_full_name = r_node.GetValue(BREP_MODEL_PART_FULL_NAME);
+        if (r_node_model_part_full_name.empty()) {
+            continue;
+        }
+
+        if (resolved_model_part_full_name.empty()) {
+            resolved_model_part_full_name = r_node_model_part_full_name;
+        } else {
+            KRATOS_ERROR_IF(resolved_model_part_full_name != r_node_model_part_full_name)
+                << "::[SnakeGapSbmProcess]:: Conflicting node BREP_MODEL_PART_FULL_NAME values on condition #"
+                << rCondition.Id() << ": " << resolved_model_part_full_name
+                << " vs " << r_node_model_part_full_name << std::endl;
+        }
+    }
+
+    return resolved_model_part_full_name;
+}
+
+ModelPart& ResolveBrepModelPartFromConditionOrDefault(
+    Model& rModel,
+    const Condition& rCondition,
+    ModelPart& rDefaultModelPart)
+{
+    const std::string brep_model_part_full_name =
+        ResolveBrepModelPartFullNameFromConditionOrNodes(rCondition);
+    if (brep_model_part_full_name.empty()) {
+        return rDefaultModelPart;
+    }
+
+    KRATOS_ERROR_IF_NOT(rModel.HasModelPart(brep_model_part_full_name))
+        << "::[SnakeGapSbmProcess]:: BREP model part '" << brep_model_part_full_name
+        << "' stored on condition #" << rCondition.Id() << " was not found." << std::endl;
+
+    return rModel.GetModelPart(brep_model_part_full_name);
+}
+
+ModelPart::IndexType NextRegularGeometryId(const ModelPart& rModelPart)
+{
+    ModelPart::IndexType next_id = 0;
+    for (const auto& r_geometry : rModelPart.Geometries()) {
+        const auto id = r_geometry.Id();
+        constexpr auto id_bits = sizeof(ModelPart::IndexType) * 8;
+        const bool id_generated_from_string = id & (ModelPart::IndexType(1) << (id_bits - 1));
+        const bool id_self_assigned = id & (ModelPart::IndexType(1) << (id_bits - 2));
+        if (id_generated_from_string || id_self_assigned) {
+            continue;
+        }
+        next_id = std::max(next_id, static_cast<ModelPart::IndexType>(id));
+    }
+    return next_id + 1;
+}
 } // unnamed namespace
 
 template <bool TIsInnerLoop>
@@ -30,9 +287,10 @@ SnakeGapSbmProcess::ProjectionResult SnakeGapSbmProcess::ComputeSingleProjection
     const IndexType LeftProjectionId,
     const IndexType RightProjectionId,
     const std::string& rCommonLayerName,
+    const std::string& rCommonConditionName,
     const array_1d<double,3>& rNormalCond,
     const IntegrationParameters& rIntegrationParameters,
-    const KnotSpanIdsCSR& rSkinConditionsPerKnotSpan) const
+    const KnotSpanConditionBinsCSR& rSkinConditionsPerKnotSpan) const
 {
     ProjectionResult projection_result;
 
@@ -69,17 +327,20 @@ SnakeGapSbmProcess::ProjectionResult SnakeGapSbmProcess::ComputeSingleProjection
             rCommonLayerName,
             rSkinSubModelPart,
             rIntegrationParameters.rKnotSpanSizes,
+            *rIntegrationParameters.pSkinNodesPerSpan,
             rSkinConditionsPerKnotSpan,
             normal_direction);
 
         auto candidate_surrogate_to_skin_node = rSkinSubModelPart.GetNode(id_skin_node).Coordinates() - rSurrogateMidPoint;
         const double dot_product = inner_prod(candidate_surrogate_to_skin_node, rNormalCond);
-        if (dot_product < -1e-12) {
+
+        if (dot_product < -1e-12 && !(mUseForMultipatch || mUseForLocalRefinement)) {
             const auto split_pair = FindClosestPairInLayerWithNormalDirection<TIsInnerLoop>(
                 skin_mid_point_coords,
                 rCommonLayerName,
                 rSkinSubModelPart,
                 rIntegrationParameters.rKnotSpanSizes,
+                *rIntegrationParameters.pSkinNodesPerSpan,
                 rSkinConditionsPerKnotSpan,
                 normal_direction);
 
@@ -104,11 +365,7 @@ SnakeGapSbmProcess::ProjectionResult SnakeGapSbmProcess::ComputeSingleProjection
 
     projection_result.ProjectionId = id_skin_node;
     auto p_skin_node = rSkinSubModelPart.pGetNode(id_skin_node);
-    auto connected_layers = p_skin_node->GetValue(CONNECTED_LAYERS);
-    if (std::find(connected_layers.begin(), connected_layers.end(), rCommonLayerName) == connected_layers.end()) {
-        connected_layers.push_back(rCommonLayerName);
-        p_skin_node->SetValue(CONNECTED_LAYERS, connected_layers);
-    }
+    AddLayerConditionMetadata(*p_skin_node, rCommonLayerName, rCommonConditionName);
     projection_result.ProjectionPoint = rSkinSubModelPart.GetNode(id_skin_node).Coordinates();
 
     return projection_result;
@@ -118,7 +375,7 @@ SnakeGapSbmProcess::SnakeGapSbmProcess(
     Model& rModel, Parameters ThisParameters) : 
     SnakeSbmProcess(rModel, ThisParameters)
 {
-    
+
     KRATOS_ERROR_IF_NOT(ThisParameters.Has("gap_element_name")) << "::[SnakeGapSbmProcess]::" 
                     << "Missing \"gap_element_name\" section." << std::endl;
     KRATOS_ERROR_IF_NOT(ThisParameters.Has("gap_interface_condition_name")) << "::[SnakeGapSbmProcess]::" 
@@ -146,6 +403,8 @@ SnakeGapSbmProcess::SnakeGapSbmProcess(
         mNumberOfInterpolationLevels = ThisParameters["number_of_interpolation_levels"].GetInt();
     if (ThisParameters.Has("use_for_multipatch")) 
         mUseForMultipatch = ThisParameters["use_for_multipatch"].GetBool();
+    if (ThisParameters.Has("use_for_local_refinement"))
+        mUseForLocalRefinement = ThisParameters["use_for_local_refinement"].GetBool();
     if (ThisParameters.Has("polynomial_order"))
         mGapInterpolationOrder = ThisParameters["polynomial_order"].GetVector()[0];
 
@@ -153,15 +412,19 @@ SnakeGapSbmProcess::SnakeGapSbmProcess(
     mLambdaOuter = 1.0;
     mInternalDivisions = ThisParameters["number_internal_divisions"].GetInt();
 
-    if (mUseForMultipatch) mLambdaInner = 0.001;
+    // if (mUseForMultipatch || mUseForLocalRefinement)
+    // { 
+        mLambdaInner = 0.001;
+        mLambdaOuter = 0.999;
+    // }
 }
 
-SnakeGapSbmProcess::KnotSpanIdsCSR
+SnakeGapSbmProcess::KnotSpanNodeBinsCSR
 SnakeGapSbmProcess::CreateSkinNodesPerKnotSpanMatrix(
     const ModelPart& rSkinSubModelPart,
     const ModelPart& rSurrogateSubModelPart) const
 {
-    KnotSpanIdsCSR knot_span_data;
+    KnotSpanNodeBinsCSR knot_span_data;
 
     // --- Read parameters from parent model part (as in your code) ---
     const auto& r_parent_model_part = rSurrogateSubModelPart.GetParentModelPart();
@@ -169,43 +432,35 @@ SnakeGapSbmProcess::CreateSkinNodesPerKnotSpanMatrix(
     const Vector& knot_span_sizes = r_parent_model_part.GetValue(KNOT_SPAN_SIZES);
     KRATOS_ERROR_IF(knot_span_sizes.size() < 2)
         << "[SnakeGapSbmProcess::CreateSkinNodesPerKnotSpanMatrix] KNOT_SPAN_SIZES must have at least two entries.\n";
-
-    const auto& parameter_space_corners = r_parent_model_part.GetValue(PARAMETER_SPACE_CORNERS);
-    KRATOS_ERROR_IF(parameter_space_corners.size() < 2)
-        << "[SnakeGapSbmProcess::CreateSkinNodesPerKnotSpanMatrix] PARAMETER_SPACE_CORNERS must have at least two vectors.\n";
-    KRATOS_ERROR_IF(parameter_space_corners[0].size() < 2 || parameter_space_corners[1].size() < 2)
-        << "[SnakeGapSbmProcess::CreateSkinNodesPerKnotSpanMatrix] PARAMETER_SPACE_CORNERS vectors must contain min and max values.\n";
+    const auto bounds = ReadParameterSpaceBounds(
+        r_parent_model_part,
+        "SnakeGapSbmProcess::CreateSkinNodesPerKnotSpanMatrix");
 
     const double span_size_x = knot_span_sizes[0];
     const double span_size_y = knot_span_sizes[1];
     KRATOS_ERROR_IF(span_size_x <= 0.0 || span_size_y <= 0.0)
         << "[SnakeGapSbmProcess::CreateSkinNodesPerKnotSpanMatrix] Knot span sizes must be positive.\n";
 
-    const double min_u = parameter_space_corners[0][0];
-    const double max_u = parameter_space_corners[0][1];
-    const double min_v = parameter_space_corners[1][0];
-    const double max_v = parameter_space_corners[1][1];
+    const double min_u = bounds.MinU;
+    const double max_u = bounds.MaxU;
+    const double min_v = bounds.MinV;
+    const double max_v = bounds.MaxV;
 
     const double domain_length_u = max_u - min_u;
     const double domain_length_v = max_v - min_v;
     KRATOS_ERROR_IF(domain_length_u <= 0.0 || domain_length_v <= 0.0)
         << "[SnakeGapSbmProcess::CreateSkinNodesPerKnotSpanMatrix] Invalid parameter space extents.\n";
 
-    const double number_of_spans_x_real = domain_length_u / span_size_x;
-    const double number_of_spans_y_real = domain_length_v / span_size_y;
-
-    const auto compute_span_count = [](double spans_real) -> std::size_t {
-        constexpr double tolerance = 1.0e-10;
-        std::size_t span_count = static_cast<std::size_t>(std::round(spans_real));
-        KRATOS_ERROR_IF(span_count <= 0)
-            << "[SnakeGapSbmProcess::CreateSkinNodesPerKnotSpanMatrix] Non-positive number of knot spans.\n";
-        KRATOS_ERROR_IF(std::abs(spans_real - static_cast<double>(span_count)) > tolerance)
-            << "[SnakeGapSbmProcess::CreateSkinNodesPerKnotSpanMatrix] Non-integer number of knot spans (" << spans_real << ").\n";
-        return span_count;
-    };
-
-    const std::size_t number_of_spans_x = compute_span_count(number_of_spans_x_real);
-    const std::size_t number_of_spans_y = compute_span_count(number_of_spans_y_real);
+    const std::size_t number_of_spans_x = ComputeSpanCount(
+        domain_length_u,
+        span_size_x,
+        "u",
+        "SnakeGapSbmProcess::CreateSkinNodesPerKnotSpanMatrix");
+    const std::size_t number_of_spans_y = ComputeSpanCount(
+        domain_length_v,
+        span_size_y,
+        "v",
+        "SnakeGapSbmProcess::CreateSkinNodesPerKnotSpanMatrix");
 
     // --- Fill metadata ---
     knot_span_data.NumberOfSpansX = number_of_spans_x;
@@ -223,7 +478,7 @@ SnakeGapSbmProcess::CreateSkinNodesPerKnotSpanMatrix(
         return knot_span_data;
     }
 
-    const double tolerance = 1.0e-12;
+    const double tolerance = 1.0e-10;
     const double max_u_with_tolerance = max_u + tolerance;
     const double max_v_with_tolerance = max_v + tolerance;
     const double min_u_with_tolerance = min_u - tolerance;
@@ -288,8 +543,8 @@ SnakeGapSbmProcess::CreateSkinNodesPerKnotSpanMatrix(
         }
     }
 
-    // Temporary per-nnz buckets for node ids
-    std::vector<std::vector<IndexType>> node_ids_per_non_zero(number_of_non_zero_entries);
+    // Temporary per-nnz buckets for node pointers
+    std::vector<NodePointerContainerType> nodes_per_non_zero(number_of_non_zero_entries);
 
     // --- Pass 2: fill tmp lists and counts in A.value_data() ---
     for (const auto& r_node : rSkinSubModelPart.Nodes()) {
@@ -300,23 +555,44 @@ SnakeGapSbmProcess::CreateSkinNodesPerKnotSpanMatrix(
         KRATOS_DEBUG_ERROR_IF(non_zero_index == static_cast<std::size_t>(-1))
             << "[SnakeGapSbmProcess::CreateSkinNodesPerKnotSpanMatrix] nonzero (ix,iy) not found in CSR pattern.\n";
 
-        node_ids_per_non_zero[non_zero_index].push_back(r_node.Id());
+        nodes_per_non_zero[non_zero_index].push_back(rSkinSubModelPart.pGetNode(r_node.Id()));
         r_occupancy_matrix.value_data()[non_zero_index] += 1.0;  // optional: store count per cell
     }
 
-    // --- Pack payload to compact pool ---
-    CommitPayload(node_ids_per_non_zero, knot_span_data);
+    knot_span_data.CellBinsByNnz.resize(number_of_non_zero_entries);
+    for (std::size_t k = 0; k < number_of_non_zero_entries; ++k) {
+        auto& r_cell_bins = knot_span_data.CellBinsByNnz[k];
+        auto& r_nodes = nodes_per_non_zero[k];
+        if (r_nodes.empty()) {
+            r_cell_bins.HasBins = false;
+            continue;
+        }
+
+        std::sort(r_nodes.begin(), r_nodes.end(),
+                  [](const Node::Pointer& a, const Node::Pointer& b) {
+                      return a->Id() < b->Id();
+                  });
+        r_nodes.erase(std::unique(r_nodes.begin(), r_nodes.end(),
+                                  [](const Node::Pointer& a, const Node::Pointer& b) {
+                                      return a->Id() == b->Id();
+                                  }),
+                      r_nodes.end());
+
+        r_cell_bins.Nodes = std::move(r_nodes);
+        r_cell_bins.pBins = std::make_unique<NodeBinsType>(r_cell_bins.Nodes.begin(), r_cell_bins.Nodes.end());
+        r_cell_bins.HasBins = true;
+    }
 
     return knot_span_data;
 }
 
-// === Builder: conditions -> KnotSpanIdsCSR ===
-SnakeGapSbmProcess::KnotSpanIdsCSR
+// === Builder: conditions -> KnotSpanConditionBinsCSR ===
+SnakeGapSbmProcess::KnotSpanConditionBinsCSR
 SnakeGapSbmProcess::CreateSkinConditionsPerKnotSpanMatrix(
     const ModelPart& rSkinSubModelPart,
-    const SnakeGapSbmProcess::KnotSpanIdsCSR& rReferenceMatrix) const
+    const SnakeGapSbmProcess::KnotSpanNodeBinsCSR& rReferenceMatrix) const
 {
-    KnotSpanIdsCSR knot_span_data;
+    KnotSpanConditionBinsCSR knot_span_data;
 
     // Copy metadata from reference
     knot_span_data.NumberOfSpansX = rReferenceMatrix.NumberOfSpansX;
@@ -345,7 +621,7 @@ SnakeGapSbmProcess::CreateSkinConditionsPerKnotSpanMatrix(
     const double max_v = knot_span_data.MaxV;
     const double span_size_u = knot_span_data.SpanSizeX;
     const double span_size_v = knot_span_data.SpanSizeY;
-    const double tolerance = 1e-12;
+    const double tolerance = 1e-10;
 
     const auto compute_span_index = [tolerance](
         double coordinate,
@@ -409,7 +685,7 @@ SnakeGapSbmProcess::CreateSkinConditionsPerKnotSpanMatrix(
     }
 
     // Fill
-    std::vector<std::vector<IndexType>> condition_ids_per_non_zero(number_of_non_zero_entries);
+    std::vector<ConditionPointerContainerType> conditions_per_non_zero(number_of_non_zero_entries);
     for (const auto& r_condition : rSkinSubModelPart.Conditions()) {
         const auto& r_geometry = r_condition.GetGeometry();
         if (r_geometry.size() == 0) {
@@ -425,12 +701,205 @@ SnakeGapSbmProcess::CreateSkinConditionsPerKnotSpanMatrix(
         const auto nnz_it = occupancy_index_lookup[span_index_x].find(span_index_y);
         const std::size_t non_zero_index = nnz_it != occupancy_index_lookup[span_index_x].end() ? nnz_it->second : static_cast<std::size_t>(-1);
         KRATOS_DEBUG_ERROR_IF(non_zero_index == static_cast<std::size_t>(-1)) << "pattern miss\n";
-        condition_ids_per_non_zero[non_zero_index].push_back(r_condition.Id());
+        conditions_per_non_zero[non_zero_index].push_back(rSkinSubModelPart.pGetCondition(r_condition.Id()));
         r_occupancy_matrix.value_data()[non_zero_index] += 1.0;
     }
 
-    CommitPayload(condition_ids_per_non_zero, knot_span_data);
+    knot_span_data.CellBinsByNnz.resize(number_of_non_zero_entries);
+    for (std::size_t k = 0; k < number_of_non_zero_entries; ++k) {
+        auto& r_cell_bins = knot_span_data.CellBinsByNnz[k];
+        auto& r_conditions = conditions_per_non_zero[k];
+        if (r_conditions.empty()) {
+            r_cell_bins.HasBins = false;
+            continue;
+        }
+
+        std::sort(r_conditions.begin(), r_conditions.end(),
+                  [](const ConditionPointerType& a, const ConditionPointerType& b) {
+                      return a->Id() < b->Id();
+                  });
+        r_conditions.erase(std::unique(r_conditions.begin(), r_conditions.end(),
+                                       [](const ConditionPointerType& a, const ConditionPointerType& b) {
+                                           return a->Id() == b->Id();
+                                       }),
+                           r_conditions.end());
+
+        r_cell_bins.Conditions = std::move(r_conditions);
+        r_cell_bins.Bins = BinsObjectDynamic<ConditionConfigure>(
+            r_cell_bins.Conditions.begin(), r_cell_bins.Conditions.end());
+        r_cell_bins.HasBins = true;
+    }
+
     return knot_span_data;
+}
+
+std::vector<SnakeGapSbmProcess::IndexType> SnakeGapSbmProcess::CollectOrderedSkinNodePath(
+    const ModelPart& rSkinSubModelPart,
+    IndexType StartNodeId,
+    IndexType EndNodeId,
+    bool ReverseConditionOrientation,
+    const std::string& rLayerName,
+    const std::string& rConditionName) const
+{
+    if (StartNodeId == EndNodeId) {
+        return {StartNodeId};
+    }
+
+    struct PathEdge
+    {
+        IndexType NeighborId = 0;
+        int OrientationScore = 0;
+    };
+
+    auto add_or_update_edge = [](
+        std::unordered_map<IndexType, std::vector<PathEdge>>& rAdjacency,
+        const IndexType FromId,
+        const IndexType ToId,
+        const int ScoreDelta) {
+        auto& r_edges = rAdjacency[FromId];
+        for (auto& r_edge : r_edges) {
+            if (r_edge.NeighborId == ToId) {
+                r_edge.OrientationScore += ScoreDelta;
+                return;
+            }
+        }
+        r_edges.push_back(PathEdge{ToId, ScoreDelta});
+    };
+
+    std::unordered_map<IndexType, std::vector<PathEdge>> adjacency;
+    std::unordered_set<IndexType> matched_node_ids;
+    std::size_t matched_condition_count = 0;
+
+    for (const auto& r_condition : rSkinSubModelPart.Conditions()) {
+        if (!rLayerName.empty()) {
+            if (!r_condition.Has(LAYER_NAME) || r_condition.GetValue(LAYER_NAME) != rLayerName) {
+                continue;
+            }
+        }
+        if (!rConditionName.empty()) {
+            if (!r_condition.Has(CONDITION_NAME) || r_condition.GetValue(CONDITION_NAME) != rConditionName) {
+                continue;
+            }
+        }
+
+        const auto& r_geometry = r_condition.GetGeometry();
+        if (r_geometry.PointsNumber() < 2) {
+            continue;
+        }
+
+        const IndexType node_id_0 = r_geometry[0].Id();
+        const IndexType node_id_1 = r_geometry[r_geometry.PointsNumber() - 1].Id();
+
+        matched_node_ids.insert(node_id_0);
+        matched_node_ids.insert(node_id_1);
+
+        const int forward_score = ReverseConditionOrientation ? -1 : 1;
+        const int backward_score = -forward_score;
+        add_or_update_edge(adjacency, node_id_0, node_id_1, forward_score);
+        add_or_update_edge(adjacency, node_id_1, node_id_0, backward_score);
+        ++matched_condition_count;
+    }
+
+    KRATOS_ERROR_IF(matched_condition_count == 0)
+        << "::[SnakeGapSbmProcess]::CollectOrderedSkinNodePath: no skin conditions matched layer='"
+        << rLayerName << "' condition='" << rConditionName << "' in '"
+        << rSkinSubModelPart.FullName() << "'." << std::endl;
+
+    KRATOS_ERROR_IF(matched_node_ids.find(StartNodeId) == matched_node_ids.end())
+        << "::[SnakeGapSbmProcess]::CollectOrderedSkinNodePath: start node #"
+        << StartNodeId << " does not belong to the filtered skin conditions." << std::endl;
+    KRATOS_ERROR_IF(matched_node_ids.find(EndNodeId) == matched_node_ids.end())
+        << "::[SnakeGapSbmProcess]::CollectOrderedSkinNodePath: end node #"
+        << EndNodeId << " does not belong to the filtered skin conditions." << std::endl;
+
+    const auto& r_end_coords = rSkinSubModelPart.GetNode(EndNodeId).Coordinates();
+    auto compare_neighbors = [&](IndexType IdA, IndexType IdB) {
+        const auto& r_coords_a = rSkinSubModelPart.GetNode(IdA).Coordinates();
+        const auto& r_coords_b = rSkinSubModelPart.GetNode(IdB).Coordinates();
+
+        const double dist_a = norm_2(r_coords_a - r_end_coords);
+        const double dist_b = norm_2(r_coords_b - r_end_coords);
+        if (std::abs(dist_a - dist_b) > 1.0e-15) {
+            return dist_a < dist_b;
+        }
+        if (std::abs(r_coords_a[0] - r_coords_b[0]) > 1.0e-15) {
+            return r_coords_a[0] < r_coords_b[0];
+        }
+        if (std::abs(r_coords_a[1] - r_coords_b[1]) > 1.0e-15) {
+            return r_coords_a[1] < r_coords_b[1];
+        }
+        return r_coords_a[2] < r_coords_b[2];
+    };
+
+    for (auto& r_entry : adjacency) {
+        std::stable_sort(
+            r_entry.second.begin(),
+            r_entry.second.end(),
+            [&](const PathEdge& rEdgeA, const PathEdge& rEdgeB) {
+                if (rEdgeA.OrientationScore != rEdgeB.OrientationScore) {
+                    return rEdgeA.OrientationScore > rEdgeB.OrientationScore;
+                }
+                return compare_neighbors(rEdgeA.NeighborId, rEdgeB.NeighborId);
+            });
+    }
+
+    std::unordered_set<IndexType> visited_ids;
+    visited_ids.reserve(matched_node_ids.size());
+    visited_ids.insert(StartNodeId);
+
+    std::vector<IndexType> current_path{StartNodeId};
+    std::vector<IndexType> best_path;
+    int best_orientation_score = std::numeric_limits<int>::min();
+
+    auto is_better_candidate = [&](const int CandidateScore, const std::vector<IndexType>& rCandidatePath) {
+        if (best_path.empty()) {
+            return true;
+        }
+        if (CandidateScore != best_orientation_score) {
+            return CandidateScore > best_orientation_score;
+        }
+        if (rCandidatePath.size() != best_path.size()) {
+            return rCandidatePath.size() < best_path.size();
+        }
+        return false;
+    };
+
+    auto explore_paths = [&](auto&& rSelf, const IndexType CurrentId, const int CurrentScore) -> void {
+        if (CurrentId == EndNodeId) {
+            if (is_better_candidate(CurrentScore, current_path)) {
+                best_orientation_score = CurrentScore;
+                best_path = current_path;
+            }
+            return;
+        }
+
+        const auto adjacency_it = adjacency.find(CurrentId);
+        if (adjacency_it == adjacency.end()) {
+            return;
+        }
+
+        for (const auto& r_edge : adjacency_it->second) {
+            const IndexType neighbor_id = r_edge.NeighborId;
+            if (!visited_ids.insert(neighbor_id).second) {
+                continue;
+            }
+
+            current_path.push_back(neighbor_id);
+            rSelf(rSelf, neighbor_id, CurrentScore + r_edge.OrientationScore);
+            current_path.pop_back();
+            visited_ids.erase(neighbor_id);
+        }
+    };
+
+    explore_paths(explore_paths, StartNodeId, 0);
+
+    KRATOS_ERROR_IF(best_path.empty())
+        << "::[SnakeGapSbmProcess]::CollectOrderedSkinNodePath: no topological path was found from node #"
+        << StartNodeId << " to node #" << EndNodeId
+        << " for layer='" << rLayerName << "' condition='" << rConditionName << "'."
+        << std::endl;
+
+    return best_path;
 }
 
 void SnakeGapSbmProcess::CreateSbmExtendedGeometries()
@@ -446,7 +915,7 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries()
     if (mpSkinModelPartInnerInitial->NumberOfNodes()>0 || mpSkinModelPartInnerInitial->NumberOfGeometries()>0) 
     {
         const auto& r_surrogate_sub_model_part_inner = mpIgaModelPart->GetSubModelPart("surrogate_inner");
-        const auto& r_skin_sub_model_part_inner = mpSkinModelPart->GetSubModelPart("inner");
+        auto& r_skin_sub_model_part_inner = mpSkinModelPart->GetSubModelPart("inner");
 
         KRATOS_INFO_IF("CreateSbmExtendedGeometries", mEchoLevel > 0)
             << "Creating the extended SBM geometries for the inner skin." << std::endl;
@@ -461,7 +930,7 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries()
     if (mpSkinModelPartOuterInitial->NumberOfNodes()>0 || mpSkinModelPartOuterInitial->NumberOfGeometries()>0) 
     {
         const auto& r_surrogate_sub_model_part_outer = mpIgaModelPart->GetSubModelPart("surrogate_outer");
-        const auto& r_skin_sub_model_part_outer = mpSkinModelPart->GetSubModelPart("outer");
+        auto& r_skin_sub_model_part_outer = mpSkinModelPart->GetSubModelPart("outer");
         KRATOS_INFO_IF("CreateSbmExtendedGeometries", mEchoLevel > 0)
             << "Creating the extended SBM geometries for the outer skin." << std::endl;
         KRATOS_INFO_IF("CreateSbmExtendedGeometries", mEchoLevel > 2)
@@ -476,7 +945,7 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries()
 
 template <bool TIsInnerLoop>
 void SnakeGapSbmProcess::CreateSbmExtendedGeometries(
-    const ModelPart& rSkinSubModelPart,
+    ModelPart& rSkinSubModelPart,
     const ModelPart& rSurrogateSubModelPart)
 {
     // Get the mesh sizes from the surrogate model part
@@ -494,9 +963,14 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries(
         }
     }
 
-    auto p_surface = mpIgaModelPart->pGetGeometry(1);    
+    auto p_surface = mpIgaModelPart->pGetGeometry(1);
+    KRATOS_ERROR_IF_NOT(p_surface)
+        << "::[SnakeGapSbmProcess]::CreateSbmExtendedGeometries: geometry with id 1 was not found." << std::endl;
+
     auto p_nurbs_surface = std::dynamic_pointer_cast<NurbsSurfaceType>(
-                            p_surface->pGetGeometryPart(Geometry<typename PointerVector<NodeType>::value_type>::BACKGROUND_GEOMETRY_INDEX));
+        p_surface->pGetGeometryPart(Geometry<typename PointerVector<NodeType>::value_type>::BACKGROUND_GEOMETRY_INDEX));
+    KRATOS_ERROR_IF_NOT(p_nurbs_surface)
+        << "::[SnakeGapSbmProcess]::CreateSbmExtendedGeometries: geometry with id 1 does not expose a NurbsSurfaceType background geometry." << std::endl;
     IntegrationInfo surface_integration_info = p_nurbs_surface->GetDefaultIntegrationInfo();
 
     // Build knot-span lookups and set projections from surrogate to skin
@@ -523,7 +997,7 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries(
         first_condition_id = rSurrogateSubModelPart.pGetElement(element_id)->GetGeometry()[0].Id();
         last_condition_id = rSurrogateSubModelPart.pGetElement(element_id)->GetGeometry()[1].Id();
         size_surrogate_loop = last_condition_id - first_condition_id + 1;
-        if (mpSkinModelPartOuterInitial->NumberOfNodes() > 0 || mpSkinModelPartOuterInitial->NumberOfGeometries() > 0) 
+        if (mpIgaModelPart->GetSubModelPart("surrogate_outer").NumberOfConditions() > 0) //TODO: check 
         {
             starting_brep_id = 2 + mpIgaModelPart->GetSubModelPart("surrogate_outer").NumberOfConditions(); //1 surface + outer surrogate loop
         }
@@ -577,10 +1051,15 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries(
 
     for (std::size_t j = 0; j < size_surrogate_loop; ++j) {
         auto p_brep_geometry = mpIgaModelPart->pGetGeometry(starting_brep_id + j);
+        KRATOS_ERROR_IF_NOT(p_brep_geometry)
+            << "::[SnakeGapSbmProcess]::CreateSbmExtendedGeometries: geometry with id "
+            << (starting_brep_id + j) << " was not found." << std::endl;
+
         auto p_brep_curve_on_surface_surrogate1_surrogate2 = std::dynamic_pointer_cast<BrepCurveOnSurfaceType>(p_brep_geometry);
 
-        KRATOS_ERROR_IF(!p_brep_curve_on_surface_surrogate1_surrogate2) <<  ":::[SnakeGapSbmProcess]::: the geometry with id " << p_brep_curve_on_surface_surrogate1_surrogate2->Id() 
-                                            << " is not a BrepCurveOnSurfaceType." << std::endl;
+        KRATOS_ERROR_IF_NOT(p_brep_curve_on_surface_surrogate1_surrogate2)
+            << "::[SnakeGapSbmProcess]::CreateSbmExtendedGeometries: geometry with id "
+            << p_brep_geometry->Id() << " is not a BrepCurveOnSurfaceType." << std::endl;
 
         NurbsInterval brep_domain_interval = p_brep_curve_on_surface_surrogate1_surrogate2->DomainInterval();
         CoordinatesArrayType surrogate_vertex_1 = ZeroVector(3); 
@@ -622,6 +1101,10 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries(
         p_brep_curve_on_surface_surrogate1_surrogate2->CreateQuadraturePointGeometries(quadrature_point_list, number_of_shape_functions_derivatives, 
                                                             surrogate_integration_points_list, integration_info);
 
+        KRATOS_ERROR_IF(quadrature_point_list.size() == 0)
+            << "::[SnakeGapSbmProcess]::CreateSbmExtendedGeometries: no quadrature geometries were created for BREP geometry #"
+            << p_brep_geometry->Id() << std::endl;
+
         GeometryType::Pointer surrogate_brep_middle_geometry = quadrature_point_list(0);
 
         // Store the surrogate middle geometry for the lateral Breps
@@ -635,12 +1118,12 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries(
         auto it_surrogate_node_1 = surrogate_node_lookup.find(key_vertex_1);
         auto it_surrogate_node_2 = surrogate_node_lookup.find(key_vertex_2);
 
-        {
+        if (it_surrogate_node_1 != surrogate_node_lookup.end()) {
             p_surrogate_node_1 = it_surrogate_node_1->second;
             auto& r_neighbour_geometries = p_surrogate_node_1->GetValue(NEIGHBOUR_GEOMETRIES);
             r_neighbour_geometries.push_back(surrogate_brep_middle_geometry);
         }
-        {
+        if (it_surrogate_node_2 != surrogate_node_lookup.end()) {
             p_surrogate_node_2 = it_surrogate_node_2->second;
             auto& r_neighbour_geometries = p_surrogate_node_2->GetValue(NEIGHBOUR_GEOMETRIES);
             r_neighbour_geometries.push_back(surrogate_brep_middle_geometry);
@@ -675,11 +1158,27 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries(
             }
         }
 
+        KRATOS_ERROR_IF(!p_surrogate_node_1 || !p_surrogate_node_2)
+            << "::[SnakeGapSbmProcess]::CreateSbmExtendedGeometries: failed to match surrogate end nodes "
+            << "for BREP geometry #" << p_brep_curve_on_surface_surrogate1_surrogate2->Id()
+            << ". Vertex 1: " << surrogate_vertex_1
+            << " | Vertex 2: " << surrogate_vertex_2
+            << " | quantized hits: "
+            << (it_surrogate_node_1 != surrogate_node_lookup.end() ? "yes" : "no") << ", "
+            << (it_surrogate_node_2 != surrogate_node_lookup.end() ? "yes" : "no")
+            << std::endl;
+
         //------------------------------------------------------------------
         // check layer projection compatibility and build projection chain if necessary
 
         const IndexType projection_id_1_base = p_surrogate_node_1->GetValue(PROJECTION_NODE_ID);
         const IndexType projection_id_2_base = p_surrogate_node_2->GetValue(PROJECTION_NODE_ID);
+
+        KRATOS_ERROR_IF(projection_id_1_base == 0 || projection_id_2_base == 0)
+            << "::[SnakeGapSbmProcess]::SetSurrogateToSkinProjections: PROJECTION_NODE_ID not set for surrogate nodes "
+            << p_surrogate_node_1->Id() << " and/or " << p_surrogate_node_2->Id()
+            << p_surrogate_node_1->Coordinates() << " and/or " << p_surrogate_node_2->Coordinates()
+            << " | ids=" << projection_id_1_base << "," << projection_id_2_base << std::endl;
 
         auto have_common_layer = [](const NodeType& rFirstProjection, const NodeType& rSecondProjection) {
             const auto& layers_1 = rFirstProjection.GetValue(CONNECTED_LAYERS);
@@ -696,6 +1195,10 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries(
         // creates intermediate skin nodes to jump continously between non connected layers
         auto create_projected_clone = [&](const Node::Pointer& rBaseNode, const IndexType projection_id) {
             Node::Pointer p_clone = Node::Pointer(new Node(0, rBaseNode->Coordinates()));
+            KRATOS_ERROR_IF(projection_id == 0 || !rSkinSubModelPart.HasNode(projection_id))
+                << "::[SnakeGapSbmProcess]::SetSurrogateToSkinProjections: invalid PROJECTION_NODE_ID="
+                << projection_id << " for surrogate node " << rBaseNode->Id()
+                << " | coords=" << rBaseNode->Coordinates() << std::endl;
             const auto& r_projection_node = rSkinSubModelPart.GetNode(projection_id);
             p_clone->SetValue(PROJECTION_NODE_ID, projection_id);
             p_clone->SetValue(CONNECTED_LAYERS, r_projection_node.GetValue(CONNECTED_LAYERS));
@@ -703,70 +1206,19 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries(
             return p_clone;
         };
 
-        std::vector<IndexType> projection_chain{projection_id_1_base, projection_id_2_base};
-        const auto& r_projection_node_1_base = rSkinSubModelPart.GetNode(projection_id_1_base);
-        const auto& r_projection_node_2_base = rSkinSubModelPart.GetNode(projection_id_2_base);
-
-        if (!have_common_layer(r_projection_node_1_base, r_projection_node_2_base)) {
-            projection_chain = AssestProjectionsFeasibility(rSkinSubModelPart, p_surrogate_node_1, p_surrogate_node_2);
-        }
-        KRATOS_ERROR_IF(projection_chain.empty())
-            << "::[SnakeGapSbmProcess]:: Empty projection chain detected for surrogate nodes "
-            << p_surrogate_node_1->Id() << " and " << p_surrogate_node_2->Id() << std::endl;
-
-        struct SurrogatePair
-        {
-            Node::Pointer pFirst;
-            Node::Pointer pSecond;
-        };
-
-        std::vector<SurrogatePair> projection_pairs;
-        const std::size_t pair_count = projection_chain.size() > 0 ? projection_chain.size() - 1 : 0;
-        projection_pairs.reserve(pair_count > 0 ? pair_count : 0);
-
-        if (pair_count > 0) {
-            // Distribute surrogate attachment points evenly between the two surrogates
-            const double division_count = static_cast<double>(projection_chain.size() - 1);
-            std::vector<Node::Pointer> surrogate_assignment;
-            surrogate_assignment.reserve(projection_chain.size());
-
-            surrogate_assignment.push_back(p_surrogate_node_1);
-            for (std::size_t idx = 1; idx + 1 < projection_chain.size(); ++idx) {
-                const double t = static_cast<double>(idx) / division_count;
-                array_1d<double,3> interpolated_coordinates = (1.0 - t) * p_surrogate_node_1->Coordinates()
-                                                            + t * p_surrogate_node_2->Coordinates();
-                surrogate_assignment.push_back(Node::Pointer(new Node(0, interpolated_coordinates)));
-            }
-            surrogate_assignment.push_back(p_surrogate_node_2);
-
-            for (std::size_t idx = 0; idx < pair_count; ++idx) {
-                projection_pairs.push_back({
-                    create_projected_clone(surrogate_assignment[idx], projection_chain[idx]),
-                    create_projected_clone(surrogate_assignment[idx + 1], projection_chain[idx + 1])});
-            }
-        }
-
-        
         auto process_pair = [&](const Node::Pointer& rp_surrogate_node_1, const Node::Pointer& rp_surrogate_node_2) {
-            auto connected_layers_1 = rp_surrogate_node_1->GetValue(CONNECTED_LAYERS);
-            auto connected_layers_2 = rp_surrogate_node_2->GetValue(CONNECTED_LAYERS);
+            const auto common_layer_info = FindCommonLayerInfo(*rp_surrogate_node_1, *rp_surrogate_node_2);
+            const std::string common_layer_name = common_layer_info.LayerName;
+            const std::string common_condition_name = common_layer_info.ConditionName;
+            KRATOS_ERROR_IF(common_layer_info.Found && common_condition_name.empty())
+                << ":::[SnakeGapSbmProcess]::: Missing condition metadata for common layer '"
+                << common_layer_name << "' between surrogate nodes "
+                << rp_surrogate_node_1->Id() << " and " << rp_surrogate_node_2->Id() << "." << std::endl;
+
             const auto projection_id_1 = rp_surrogate_node_1->GetValue(PROJECTION_NODE_ID);
             const auto projection_id_2 = rp_surrogate_node_2->GetValue(PROJECTION_NODE_ID);
             const auto projection_node_1 = rSkinSubModelPart.pGetNode(projection_id_1);
             const auto projection_node_2 = rSkinSubModelPart.pGetNode(projection_id_2);
-            std::string common_layer_name = "";
-            std::string common_condition_name = "";
-            IndexType condition_count = 0;
-            for (auto& layer : connected_layers_1) {
-                for (auto& layer_2 : connected_layers_2) {
-                    if (layer == layer_2) {
-                        common_layer_name = layer;
-                        common_condition_name = rp_surrogate_node_1->GetValue(CONNECTED_CONDITIONS)[condition_count];
-                        break;                  
-                    }
-                }
-                condition_count++;
-            }
 
             Node::Pointer p_first_for_fallback = rp_surrogate_node_1;
             Node::Pointer p_second_for_fallback = rp_surrogate_node_2;
@@ -777,8 +1229,15 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries(
             array_1d<double,3> v_proj_1_base = rSkinSubModelPart.GetNode(proj_id_first_base).Coordinates() - p_first_for_fallback->Coordinates();
             array_1d<double,3> v_proj_2_base = rSkinSubModelPart.GetNode(proj_id_second_base).Coordinates() - p_second_for_fallback->Coordinates();
             
+            // Check whether the current skin projections lie on the expected side.
             double dot1_base = v_proj_1_base[0]*normal_cond[0] + v_proj_1_base[1]*normal_cond[1];
             double dot2_base = v_proj_2_base[0]*normal_cond[0] + v_proj_2_base[1]*normal_cond[1]; 
+
+            // if (mUseForMultipatch || (mUseForLocalRefinement && common_layer_info.Found && common_layer_name == "COUPLING_SIDE")) // just when layer = COUPLING_SIDE
+            // {
+                dot1_base = 1;
+                dot2_base = 1;
+            // }
 
             std::vector<Node::Pointer> surrogate_segment_nodes{p_first_for_fallback};
 
@@ -798,9 +1257,10 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries(
                 direction = direction / direction_norm;
                 const auto split_pair = FindClosestPairInLayerWithNormalDirection<TIsInnerLoop>(
                     p_first_for_fallback->Coordinates(),
-                    common_layer_name,
+                    "",
                     rSkinSubModelPart,
                     integration_parameters.rKnotSpanSizes,
+                    skin_nodes_per_knot_span,
                     skin_conditions_per_knot_span,
                     direction);
                                     
@@ -821,14 +1281,8 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries(
                     KRATOS_WARNING("Neither candidate split nodes satisfy the inner product condition.\n");
                 }
                 
-                auto split_connected_layers = p_split_node->GetValue(CONNECTED_LAYERS);
-                auto split_connected_conditions = p_split_node->GetValue(CONNECTED_CONDITIONS);
-                if (std::find(split_connected_layers.begin(), split_connected_layers.end(), common_layer_name) == split_connected_layers.end()) {
-                    split_connected_layers.push_back(common_layer_name);
-                    split_connected_conditions.push_back(common_condition_name);
-
-                    p_split_node->SetValue(CONNECTED_LAYERS, split_connected_layers);
-                    p_split_node->SetValue(CONNECTED_CONDITIONS, split_connected_conditions);
+                if (common_layer_info.Found) {
+                    AddLayerConditionMetadata(*p_split_node, common_layer_name, common_condition_name);
                 }
 
                 auto p_fake_surrogate_node = Node::Pointer(new Node(0, p_first_for_fallback->Coordinates()));
@@ -840,6 +1294,11 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries(
                 p_fake_surrogate_node->SetValue(CONNECTED_CONDITIONS, connected_conditions);
 
                 surrogate_segment_nodes.push_back(p_fake_surrogate_node);
+
+
+                // KRATOS_WATCH(p_fake_surrogate_node->Coordinates())
+                // KRATOS_WATCH(rSkinSubModelPart.GetNode(p_fake_surrogate_node->GetValue(PROJECTION_NODE_ID)).Coordinates())
+                // KRATOS_WATCH("****************************************")
             }
             if (dot2_base < -1.0e-12) {
                 Vector direction(3);
@@ -857,16 +1316,17 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries(
 
                 const auto split_pair = FindClosestPairInLayerWithNormalDirection<TIsInnerLoop>(
                     p_second_for_fallback->Coordinates(),
-                    common_layer_name,
+                    "",
                     rSkinSubModelPart,
                     integration_parameters.rKnotSpanSizes,
+                    skin_nodes_per_knot_span,
                     skin_conditions_per_knot_span,
                     direction);                
 
                 // Only one satisfy inner product condition
                 array_1d<double,3> v_pair_1 = rSkinSubModelPart.GetNode(split_pair.first).Coordinates() - p_first_for_fallback->Coordinates();
                 array_1d<double,3> v_pair_2 = rSkinSubModelPart.GetNode(split_pair.second).Coordinates() - p_second_for_fallback->Coordinates();
-
+                
                 const double dot_pair1 = v_pair_1[0]*normal_cond[0] + v_pair_1[1]*normal_cond[1];
                 const double dot_pair2 = v_pair_2[0]*normal_cond[0] + v_pair_2[1]*normal_cond[1]; 
                 
@@ -882,14 +1342,8 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries(
                     KRATOS_WARNING("Neither candidate split nodes satisfy the inner product condition.\n");
                 }
                 
-                auto split_connected_layers = p_split_node->GetValue(CONNECTED_LAYERS);
-                auto split_connected_conditions = p_split_node->GetValue(CONNECTED_CONDITIONS);
-                if (std::find(split_connected_layers.begin(), split_connected_layers.end(), common_layer_name) == split_connected_layers.end()) {
-                    split_connected_layers.push_back(common_layer_name);
-                    split_connected_conditions.push_back(common_condition_name);
-
-                    p_split_node->SetValue(CONNECTED_LAYERS, split_connected_layers);
-                    p_split_node->SetValue(CONNECTED_CONDITIONS, split_connected_conditions);
+                if (common_layer_info.Found) {
+                    AddLayerConditionMetadata(*p_split_node, common_layer_name, common_condition_name);
                 }
 
                 auto p_fake_surrogate_node = Node::Pointer(new Node(0, p_second_for_fallback->Coordinates()));
@@ -901,9 +1355,59 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries(
                 p_fake_surrogate_node->SetValue(CONNECTED_CONDITIONS, connected_conditions);
 
                 surrogate_segment_nodes.push_back(p_fake_surrogate_node);
+
+                // KRATOS_WATCH(p_fake_surrogate_node->Coordinates())
+                // KRATOS_WATCH(direction)
+                // KRATOS_WATCH(rSkinSubModelPart.GetNode(p_fake_surrogate_node->GetValue(PROJECTION_NODE_ID)).Coordinates())
+                // KRATOS_WATCH("****************************************")
             } 
 
             surrogate_segment_nodes.push_back(p_second_for_fallback);
+
+            // Apply layer-compatibility chaining after the dot-product corrections, so
+            // split projection nodes can define the natural continuation across layers.
+            std::vector<Node::Pointer> chained_segment_nodes;
+            chained_segment_nodes.push_back(surrogate_segment_nodes.front());
+            for (std::size_t i = 0; i + 1 < surrogate_segment_nodes.size(); ++i) {
+                const auto& p_first_chain_node = surrogate_segment_nodes[i];
+                const auto& p_second_chain_node = surrogate_segment_nodes[i + 1];
+                const IndexType first_projection_id = p_first_chain_node->GetValue(PROJECTION_NODE_ID);
+                const IndexType second_projection_id = p_second_chain_node->GetValue(PROJECTION_NODE_ID);
+
+                KRATOS_ERROR_IF(first_projection_id == 0 || second_projection_id == 0)
+                    << "::[SnakeGapSbmProcess]:: Missing PROJECTION_NODE_ID while building corrected projection chain."
+                    << std::endl;
+
+                const auto& r_first_projection = rSkinSubModelPart.GetNode(first_projection_id);
+                const auto& r_second_projection = rSkinSubModelPart.GetNode(second_projection_id);
+                if (have_common_layer(r_first_projection, r_second_projection)) {
+                    chained_segment_nodes.push_back(p_second_chain_node);
+                    continue;
+                }
+
+                const auto projection_chain = AssestProjectionsFeasibility(
+                    rSkinSubModelPart,
+                    p_first_chain_node,
+                    p_second_chain_node);
+
+                KRATOS_ERROR_IF(projection_chain.size() < 2)
+                    << "::[SnakeGapSbmProcess]:: Empty projection chain detected for corrected surrogate nodes "
+                    << p_first_chain_node->Id() << " and " << p_second_chain_node->Id() << std::endl;
+
+                const double division_count = static_cast<double>(projection_chain.size() - 1);
+                for (std::size_t chain_index = 1; chain_index + 1 < projection_chain.size(); ++chain_index) {
+                    const double t = static_cast<double>(chain_index) / division_count;
+                    array_1d<double,3> interpolated_coordinates =
+                        (1.0 - t) * p_first_chain_node->Coordinates()
+                        + t * p_second_chain_node->Coordinates();
+                    auto p_intermediate_surrogate = Node::Pointer(new Node(0, interpolated_coordinates));
+                    chained_segment_nodes.push_back(
+                        create_projected_clone(p_intermediate_surrogate, projection_chain[chain_index]));
+                }
+                chained_segment_nodes.push_back(p_second_chain_node);
+            }
+            surrogate_segment_nodes.swap(chained_segment_nodes);
+
             const std::size_t segment_count =
                 surrogate_segment_nodes.size() > 0 ? surrogate_segment_nodes.size() - 1 : 0;
             KRATOS_ERROR_IF(segment_count == 0)
@@ -915,6 +1419,13 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries(
                 const auto& p_first = surrogate_segment_nodes[segment];
                 const auto& p_second = surrogate_segment_nodes[segment + 1];
 
+                // KRATOS_WATCH("elemento gap:")
+                // KRATOS_WATCH(*p_first)
+                // KRATOS_WATCH(*p_second)
+                // KRATOS_WATCH(rSkinSubModelPart.GetNode(p_first->GetValue(PROJECTION_NODE_ID)))
+                // KRATOS_WATCH(rSkinSubModelPart.GetNode(p_second->GetValue(PROJECTION_NODE_ID)))
+
+                // KRATOS_WATCH("------------------------------------------")
                 CreateGapAndSkinQuadraturePoints<TIsInnerLoop>(
                     integration_parameters,
                     p_nurbs_surface,
@@ -925,7 +1436,11 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries(
                     rSkinSubModelPart);
             }
 
-            if (mUseForMultipatch) {
+            if (mUseForMultipatch || mUseForLocalRefinement) { // just when layer = coupling_side
+
+                if (mUseForLocalRefinement && common_layer_name != "COUPLING_SIDE") {
+                    return;
+                }
                 multipatch_segment_nodes = surrogate_segment_nodes;
                 std::vector<IndexType> segment_projection_ids;
                 segment_projection_ids.reserve(multipatch_segment_nodes.size());
@@ -942,16 +1457,8 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries(
             }
         };
 
-        for (const auto& projection_pair : projection_pairs) {
-            process_pair(projection_pair.pFirst, projection_pair.pSecond);
-        }
+        process_pair(p_surrogate_node_1, p_surrogate_node_2);
     }
-
-    if (mUseForMultipatch) {
-        // Ensure first and last skin nodes share the same neighbour geometries
-        SynchronizeEndSkinNodeNeighbourGeometries(rSkinSubModelPart);
-    }
-
     //---------------------------------------------------------------------------
     bool is_entering = false;
     for (IndexType i_cond_id = first_condition_id; i_cond_id <= last_condition_id; ++i_cond_id)
@@ -991,7 +1498,9 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries(
             Node::Pointer p_second_point = Node::Pointer(new Node(2, skin_1));
 
             // check if the interface length is zero -> not necessary to create quadrature points there
-            if (norm_2(surrogate_1-skin_1) < 1e-13) continue;
+            // if (norm_2(surrogate_1-skin_1) < 1e-13) continue;
+            double min_span_size = std::min(knot_span_sizes[0], knot_span_sizes[1]);
+            if (norm_2(surrogate_1-skin_1) < 1e-10*min_span_size) continue;
 
             if (is_entering) {
                 // change the order to preserve the anticlockwise orientation
@@ -1065,7 +1574,8 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries(
             Node::Pointer p_second_point = Node::Pointer(new Node(2, skin_2));
 
             // check if the interface length is zero -> not necessary to create quadrature points there
-            if (norm_2(surrogate_2-skin_2) < 1e-13) continue;
+            double min_span_size = std::min(knot_span_sizes[0], knot_span_sizes[1]);
+            if (norm_2(surrogate_2-skin_2) < 1e-10*min_span_size) continue;
 
             if (!is_entering) {
                 // change the order to preserve the anticlockwise orientation
@@ -1125,13 +1635,17 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries(
     }
     
     // For the inner loop, create multipatch coupling conditions on the skin
-    if constexpr (TIsInnerLoop) {
-        if (mUseForMultipatch) {
-            CreateInnerSkinMultipatchCouplingConditions(
-                rSkinSubModelPart,
-                knot_span_sizes,
-                p_nurbs_surface);
-        }
+    if (mUseForMultipatch) {
+        CreateInnerSkinMultipatchCouplingConditions(
+            rSkinSubModelPart,
+            knot_span_sizes,
+            p_nurbs_surface);
+    }
+    if (mUseForLocalRefinement) {
+        CreateInnerSkinLocalRefinementCouplingConditions(
+            rSkinSubModelPart,
+            knot_span_sizes,
+            p_nurbs_surface);
     }
 }
 
@@ -1143,7 +1657,7 @@ void SnakeGapSbmProcess::CreateGapAndSkinQuadraturePoints(
     const Node::Pointer& pSurrogateNode2, 
     const GeometryType::Pointer& rSurrogateBrepMiddleGeometry,
     ModelPart& rIgaModelPart,
-    const ModelPart& rSkinSubModelPart)
+    ModelPart& rSkinSubModelPart)
 {
     const IndexType id_closest_true_node = pSurrogateNode1->GetValue(PROJECTION_NODE_ID);
 
@@ -1154,30 +1668,19 @@ void SnakeGapSbmProcess::CreateGapAndSkinQuadraturePoints(
 
     const auto& p_skin_node_2 = rSkinSubModelPart.pGetNode(id_closest_true_node_2);
 
-    // retrieve condition name for the skin condition
-    auto connected_layers_1 = pSurrogateNode1->GetValue(CONNECTED_LAYERS);
-    auto connected_layers_2 = pSurrogateNode2->GetValue(CONNECTED_LAYERS);
-    std::string layer_name = "";   
-    std::string condition_name = "";
-    IndexType condition_count = 0;
-    bool layer_found = false;
-    // Find the common layer between the two surrogate nodes
-    for (auto& layer : connected_layers_1) {
-        for (auto& layer_2 : connected_layers_2) {
-            if (layer == layer_2) {
-                layer_name = layer;
-                condition_name = pSurrogateNode1->GetValue(CONNECTED_CONDITIONS)[condition_count];
-                layer_found = true;
-                break;                  
-            }
-        }
-        condition_count++;
-    }
-
-    KRATOS_ERROR_IF(!layer_found) << ":::[SnakeGapSbmProcess]::: No common layer found between the two surrogate nodes "
+    const auto common_layer_info = FindCommonLayerInfo(*pSurrogateNode1, *pSurrogateNode2);
+    KRATOS_ERROR_IF(!common_layer_info.Found) << ":::[SnakeGapSbmProcess]::: No common layer found between the two surrogate nodes "
                                     << pSurrogateNode1->Id() << " and " << pSurrogateNode2->Id() <<  "\n"
                                     << pSurrogateNode1->Coordinates() << pSurrogateNode2->Coordinates() << "\n"
-                                    << connected_layers_1 << connected_layers_2 << std::endl;
+                                    << pSurrogateNode1->GetValue(CONNECTED_LAYERS)
+                                    << pSurrogateNode2->GetValue(CONNECTED_LAYERS) << std::endl;
+
+    const std::string& layer_name = common_layer_info.LayerName;
+    const std::string& condition_name = common_layer_info.ConditionName;
+    KRATOS_ERROR_IF(condition_name.empty())
+        << ":::[SnakeGapSbmProcess]::: Missing condition metadata for common layer '"
+        << layer_name << "' between surrogate nodes "
+        << pSurrogateNode1->Id() << " and " << pSurrogateNode2->Id() << "." << std::endl;
 
     KRATOS_ERROR_IF(!rIntegrationParameters.pSkinConditionsPerSpan)
         << "::[SnakeGapSbmProcess]::CreateGapAndSkinQuadraturePoints: skin condition span matrix is not initialized." << std::endl;
@@ -1206,27 +1709,36 @@ void SnakeGapSbmProcess::CreateGapAndSkinQuadraturePoints(
     std::vector<Geometry<Node>::Pointer> neighbour_geometries_skin1_skin2;
     neighbour_geometries_skin1_skin2.push_back(rSurrogateBrepMiddleGeometry);
 
-    // check for void elements/true coincident with surrogate boundary
-    if (
-        (std::abs(pSurrogateNode1->X() - p_skin_node_1->X()) < 1e-14 &&
-         std::abs(pSurrogateNode1->X() - p_skin_node_2->X()) < 1e-14 &&
-         std::abs(pSurrogateNode1->X() - pSurrogateNode2->X()) < 1e-14)  ||
-        (std::abs(pSurrogateNode1->Y() - p_skin_node_1->Y()) < 1e-14 &&
-         std::abs(pSurrogateNode1->Y() - p_skin_node_2->Y()) < 1e-14 &&
-         std::abs(pSurrogateNode1->Y() - pSurrogateNode2->Y()) < 1e-14)) {
-        return;
-    }
-
     const double subdivision_threshold = rIntegrationParameters.rKnotSpanSizes[0] * mGapRelativeToleranceForSubdivisions;
     const double subdivision_threshold_sq = subdivision_threshold * subdivision_threshold;
-    const std::size_t max_internal_divisions = mInternalDivisions > 0 ? static_cast<std::size_t>(mInternalDivisions) : 0;
+    std::size_t max_internal_divisions = mInternalDivisions > 0 ? static_cast<std::size_t>(mInternalDivisions) : 0;
 
+    if (mUseForLocalRefinement) {
+        auto connected_layers_1 = p_skin_node_1->GetValue(CONNECTED_LAYERS);
+        if (std::find(connected_layers_1.begin(), connected_layers_1.end(), "COUPLING_SIDE") != connected_layers_1.end()) {
+            max_internal_divisions = 20;
+        }
+    }
+    Vector cut_span_sizes = rIntegrationParameters.rKnotSpanSizes;
+    if ((mUseForMultipatch|| mUseForLocalRefinement) && mpSkinModelPart->Has(KNOT_SPAN_SIZES) ) {
+        cut_span_sizes = mpSkinModelPart->GetValue(KNOT_SPAN_SIZES);
+    }
+    const double cut_span_x = cut_span_sizes.size() > 0 ? cut_span_sizes[0] : 1.0;
+    const double cut_span_y = cut_span_sizes.size() > 1 ? cut_span_sizes[1] : cut_span_x;
     auto build_skin_curve = [&](IndexType left_id,
                                 IndexType right_id,
                                 std::vector<IndexType>& rInterpolationNodes) {
         rInterpolationNodes.clear();
         const auto& r_skin_left = rSkinSubModelPart.GetNode(left_id);
         const auto& r_skin_right = rSkinSubModelPart.GetNode(right_id);
+        // const auto skin_segment_ids = CollectOrderedSkinNodePath(
+        //     rSkinSubModelPart,
+        //     left_id,
+        //     right_id,
+        //     TIsInnerLoop,
+        //     layer_name,
+        //     condition_name);
+        // rInterpolationNodes = skin_segment_ids;
 
         auto p_left_point = Node::Pointer(new Node(2, r_skin_left.Coordinates()));
         auto p_right_point = Node::Pointer(new Node(2, r_skin_right.Coordinates()));
@@ -1236,6 +1748,11 @@ void SnakeGapSbmProcess::CreateGapAndSkinQuadraturePoints(
         int p = mGapApproximationOrder;
         bool linear_interpolation_is_enough = false;
         std::vector<array_1d<double,3>> interpolation_points;
+        // std::unordered_map<IndexType, std::size_t> skin_order;
+        // skin_order.reserve(skin_segment_ids.size());
+        // for (std::size_t idx = 0; idx < skin_segment_ids.size(); ++idx) {
+        //     skin_order.emplace(skin_segment_ids[idx], idx);
+        // }
 
         if (mGapSbmType != "default")
         {
@@ -1304,6 +1821,7 @@ void SnakeGapSbmProcess::CreateGapAndSkinQuadraturePoints(
                         layer_name,
                         rSkinSubModelPart,
                         rIntegrationParameters.rKnotSpanSizes,
+                        *rIntegrationParameters.pSkinNodesPerSpan,
                         r_skin_conditions_per_span,
                         normal_direction);
 
@@ -1370,82 +1888,47 @@ void SnakeGapSbmProcess::CreateGapAndSkinQuadraturePoints(
             
             interpolation_projection_ids.erase(new_end, interpolation_projection_ids.end());
 
-            const IndexType first_id = rSkinSubModelPart.NodesBegin()->Id();
-            const IndexType last_id  = first_id + rSkinSubModelPart.NumberOfNodes() - 1;
+            // // std::vector<IndexType> filtered_projection_ids;
+            // filtered_projection_ids.reserve(interpolation_projection_ids.size() + 2);
+            // std::size_t filtered_out_count = 0;
+            // for (const auto projection_id : interpolation_projection_ids) {
+            //     if (skin_order.find(projection_id) != skin_order.end()) {
+            //         filtered_projection_ids.push_back(projection_id);
+            //     } else {
+            //         ++filtered_out_count;
+            //     }
+            // }
+            // if (std::find(filtered_projection_ids.begin(), filtered_projection_ids.end(), left_id) == filtered_projection_ids.end()) {
+            //     filtered_projection_ids.push_back(left_id);
+            // }
+            // if (std::find(filtered_projection_ids.begin(), filtered_projection_ids.end(), right_id) == filtered_projection_ids.end()) {
+            //     filtered_projection_ids.push_back(right_id);
+            // }
 
-            auto next_id = [&](IndexType id){ return (id < last_id) ? (id + 1) : first_id; };
-            auto previous_id = [&](IndexType id){ return (id > first_id) ? (id - 1) : last_id; };
+            // std::stable_sort(
+            //     filtered_projection_ids.begin(),
+            //     filtered_projection_ids.end(),
+            //     [&](IndexType a, IndexType b) {
+            //         return skin_order[a] < skin_order[b];
+            //     });
 
-            auto advance_to_next_skin_id = [&](IndexType current_id) {
-                if constexpr (TIsInnerLoop) {
-                    return previous_id(current_id);
-                } else {
-                    return next_id(current_id);
-                }
-            };
+            // filtered_projection_ids.erase(
+            //     std::unique(filtered_projection_ids.begin(), filtered_projection_ids.end()),
+            //     filtered_projection_ids.end());
 
-            std::vector<IndexType> skin_segment_ids;
-            skin_segment_ids.reserve(rSkinSubModelPart.NumberOfNodes());
-            IndexType current_id = left_id;
-            ModelPart::SizeType iter = 0;
-            const ModelPart::SizeType max_iterations = rSkinSubModelPart.NumberOfNodes();
-            skin_segment_ids.push_back(current_id);
-            while (current_id != right_id) {
-                current_id = advance_to_next_skin_id(current_id);
-                skin_segment_ids.push_back(current_id);
-                ++iter;
-                KRATOS_ERROR_IF(iter > max_iterations)
-                    << "::[SnakeGapSbmProcess]:: interpolation segment loop between node IDs "
-                    << left_id << " and " << right_id
-                    << " exceeded the number of skin nodes (" << max_iterations << ").\n";
-            }
+            // if (filtered_out_count > 0) {
+            //     KRATOS_WARNING("SnakeGapSbmProcess")
+            //         << "Removed " << filtered_out_count
+            //         << " interpolation nodes outside the skin segment between "
+            //         << left_id << " and " << right_id << "." << std::endl;
+            // }
 
-            std::unordered_map<IndexType, std::size_t> skin_order;
-            skin_order.reserve(skin_segment_ids.size());
-            for (std::size_t idx = 0; idx < skin_segment_ids.size(); ++idx) {
-                skin_order.emplace(skin_segment_ids[idx], idx);
-            }
-
-            std::vector<IndexType> filtered_projection_ids;
-            filtered_projection_ids.reserve(interpolation_projection_ids.size() + 2);
-            std::size_t filtered_out_count = 0;
-            for (const auto projection_id : interpolation_projection_ids) {
-                if (skin_order.find(projection_id) != skin_order.end()) {
-                    filtered_projection_ids.push_back(projection_id);
-                } else {
-                    ++filtered_out_count;
-                }
-            }
-            if (std::find(filtered_projection_ids.begin(), filtered_projection_ids.end(), left_id) == filtered_projection_ids.end()) {
-                filtered_projection_ids.push_back(left_id);
-            }
-            if (std::find(filtered_projection_ids.begin(), filtered_projection_ids.end(), right_id) == filtered_projection_ids.end()) {
-                filtered_projection_ids.push_back(right_id);
-            }
-
-            std::stable_sort(
-                filtered_projection_ids.begin(),
-                filtered_projection_ids.end(),
-                [&](IndexType a, IndexType b) {
-                    return skin_order[a] < skin_order[b];
-                });
-
-            filtered_projection_ids.erase(
-                std::unique(filtered_projection_ids.begin(), filtered_projection_ids.end()),
-                filtered_projection_ids.end());
-
-            if (filtered_out_count > 0) {
-                KRATOS_WARNING("SnakeGapSbmProcess")
-                    << "Removed " << filtered_out_count
-                    << " interpolation nodes outside the skin segment between "
-                    << left_id << " and " << right_id << "." << std::endl;
-            }
-
-            interpolation_projection_ids = std::move(filtered_projection_ids);
+            // interpolation_projection_ids = std::move(filtered_projection_ids);
 
             segment_count = interpolation_projection_ids.size();
-            rInterpolationNodes.reserve(segment_count);
             interpolation_points.reserve(segment_count);
+
+            rInterpolationNodes = interpolation_projection_ids;
 
             for (std::size_t i = 0; i < segment_count; ++i) {
                 const IndexType projection_id = interpolation_projection_ids[i];
@@ -1453,7 +1936,6 @@ void SnakeGapSbmProcess::CreateGapAndSkinQuadraturePoints(
                     << "::[SnakeGapSbmProcess]:: Missing interpolation projection id at subdivision index " << i << std::endl;
 
                 const auto& r_skin_node = rSkinSubModelPart.GetNode(projection_id);
-                rInterpolationNodes.push_back(projection_id);
                 interpolation_points.push_back(r_skin_node.Coordinates());
             }
 
@@ -1491,6 +1973,12 @@ void SnakeGapSbmProcess::CreateGapAndSkinQuadraturePoints(
             const ModelPart::SizeType max_iterations = rSkinSubModelPart.NumberOfNodes();
             while (current_id != right_id) {
                 current_id = advance_to_next_skin_id(current_id);
+
+
+                if (mUseForMultipatch)
+                {
+                    rInterpolationNodes.push_back(current_id);
+                }
                 ++id_distance;
                 ++iter;
                 KRATOS_ERROR_IF(iter > max_iterations)
@@ -1519,7 +2007,11 @@ void SnakeGapSbmProcess::CreateGapAndSkinQuadraturePoints(
                                       const Node::Pointer& p_right_skin) {
         IntegrationPointsArrayType brep_integration_points_list_skin;
         GeometriesArrayType brep_quadrature_point_list_skin;
-        rIntegrationParameters.CurveIntegrationInfo.SetNumberOfIntegrationPointsPerSpan(0, ((mGapInterpolationOrder+1)*(mGapInterpolationOrder+1)));
+
+        //FIXME:
+        // const int number_of_integration_points = 20;
+        const int number_of_integration_points = ((2*mGapInterpolationOrder+1));
+        rIntegrationParameters.CurveIntegrationInfo.SetNumberOfIntegrationPointsPerSpan(0, number_of_integration_points);
 
         p_brep_curve_skin->CreateIntegrationPoints(brep_integration_points_list_skin, rIntegrationParameters.CurveIntegrationInfo);
 
@@ -1533,6 +2025,10 @@ void SnakeGapSbmProcess::CreateGapAndSkinQuadraturePoints(
         if (norm_2(p_right_skin->Coordinates() - p_left_skin->Coordinates()) > 1e-12) {
             p_brep_curve_skin->CreateQuadraturePointGeometries(brep_quadrature_point_list_skin, rIntegrationParameters.NumberOfShapeFunctionsDerivatives, 
                                                                brep_integration_points_list_skin, rIntegrationParameters.CurveIntegrationInfo);
+        }
+
+        for (auto& quad_geom : brep_quadrature_point_list_skin) {
+            quad_geom.SetValue(NEIGHBOUR_GEOMETRIES, neighbour_geometries_skin1_skin2);
         }
         
         if (mGapSbmType == "sbm")
@@ -1549,6 +2045,7 @@ void SnakeGapSbmProcess::CreateGapAndSkinQuadraturePoints(
                     layer_name,
                     rSkinSubModelPart,
                     rIntegrationParameters.rKnotSpanSizes,
+                    *rIntegrationParameters.pSkinNodesPerSpan,
                     r_skin_conditions_per_span,
                     normal);
 
@@ -1586,11 +2083,7 @@ void SnakeGapSbmProcess::CreateGapAndSkinQuadraturePoints(
                 avg_normal_pair = avg_normal_pair/norm_2(avg_normal_pair);
                 p_skin_node->SetValue(NORMAL, avg_normal_pair);
 
-                auto connected_layers = p_skin_node->GetValue(CONNECTED_LAYERS);
-                if (std::find(connected_layers.begin(), connected_layers.end(), layer_name) == connected_layers.end()) {
-                    connected_layers.push_back(layer_name);
-                    p_skin_node->SetValue(CONNECTED_LAYERS, connected_layers);
-                }
+                AddLayerConditionMetadata(*p_skin_node, layer_name, condition_name);
                 NodePointerVector empty_vector;
 
                 if constexpr(TIsInnerLoop)
@@ -1609,16 +2102,63 @@ void SnakeGapSbmProcess::CreateGapAndSkinQuadraturePoints(
         const double characteristic_condition_length = CalculateGapElementCharacteristicLength(
             pSurrogateNode1->Coordinates(), pSurrogateNode2->Coordinates(),
             p_left_skin->Coordinates(), p_right_skin->Coordinates());
+
+        if (mUseForLocalRefinement && layer_name == "COUPLING_SIDE") {
+            return;
+        }
         
-        if (!mUseForMultipatch) {
+        if (!mUseForMultipatch && layer_name != "COUPLING_SIDE_OUTER" && layer_name != "COUPLING_SIDE_INNER") {
             std::size_t id = 1;
             if (mpIgaModelPart->GetRootModelPart().Conditions().size() > 0)
                 id = mpIgaModelPart->GetRootModelPart().Conditions().back().Id() + 1;
 
-            this->CreateConditions(
-                brep_quadrature_point_list_skin.ptr_begin(), brep_quadrature_point_list_skin.ptr_end(),
-                r_layer_model_part, condition_name, id, PropertiesPointerType(), rIntegrationParameters.rKnotSpanSizes,
-                neighbour_geometries_skin1_skin2, characteristic_condition_length);
+            if (condition_name != "GapSbmContactCondition" &&
+                condition_name != "GapSbmALMContactCondition")
+                this->CreateConditions(
+                    brep_quadrature_point_list_skin.ptr_begin(), brep_quadrature_point_list_skin.ptr_end(),
+                    r_layer_model_part, condition_name, id, PropertiesPointerType(), rIntegrationParameters.rKnotSpanSizes,
+                    neighbour_geometries_skin1_skin2, characteristic_condition_length);
+
+            
+            if (condition_name == "GapSbmContactCondition" ||
+                condition_name == "GapSbmALMContactCondition") {
+
+                ModelPart& r_contact_sub_model_part = r_layer_model_part.HasSubModelPart("contact") ?
+                                                        r_layer_model_part.GetSubModelPart("contact") :
+                                                        r_layer_model_part.CreateSubModelPart("contact");
+                auto& r_root_model_part = r_layer_model_part.GetRootModelPart();
+                p_brep_curve_skin->SetValue(NEIGHBOUR_GEOMETRIES, neighbour_geometries_skin1_skin2);
+                if (p_brep_curve_skin->Id() == 0 || r_root_model_part.HasGeometry(p_brep_curve_skin->Id())) {
+                    const IndexType new_geom_id = NextRegularGeometryId(r_root_model_part);
+                    p_brep_curve_skin->SetId(new_geom_id);
+                }
+                r_contact_sub_model_part.AddGeometry(p_brep_curve_skin);
+            }
+        }
+    };
+
+    auto attach_surrogate_geometry_to_skin_nodes = [&](const std::vector<IndexType>& rSkinNodeIds) {
+        if (!(mUseForMultipatch || (mUseForLocalRefinement && layer_name == "COUPLING_SIDE"))) {
+            return;
+        }
+
+        for (const auto skin_node_id : rSkinNodeIds) {
+            if (!rSkinSubModelPart.HasNode(skin_node_id)) {
+                continue;
+            }
+
+            auto p_skin_node = rSkinSubModelPart.pGetNode(skin_node_id);
+            auto& r_neigh = p_skin_node->GetValue(NEIGHBOUR_GEOMETRIES);
+            bool already_present = false;
+            for (const auto& p_g : r_neigh) {
+                if (p_g.get() == rSurrogateBrepMiddleGeometry.get()) {
+                    already_present = true;
+                    break;
+                }
+            }
+            if (!already_present) {
+                r_neigh.push_back(rSurrogateBrepMiddleGeometry);
+            }
         }
     };
 
@@ -1632,7 +2172,7 @@ void SnakeGapSbmProcess::CreateGapAndSkinQuadraturePoints(
                                     const array_1d<double,3>& rP11,
                                     const double contribution_sign) {
         IntegrationPointsArrayType surface_integration_points = CreateCoonsPatchGaussPoints(
-            2*(mGapInterpolationOrder+1), /*Order*/
+            (mGapInterpolationOrder+1), /*Order*/
             rB0,
             rL0,
             rL1,
@@ -1646,6 +2186,13 @@ void SnakeGapSbmProcess::CreateGapAndSkinQuadraturePoints(
             integration_point.SetWeight(integration_point.Weight() * contribution_sign);
         }
 
+        double surface_integration_weight_sum = 0.0;
+        for (const auto& r_integration_point : surface_integration_points) {
+            surface_integration_weight_sum += r_integration_point.Weight();
+        }
+        
+        if (surface_integration_weight_sum < 1e-14) return; 
+
         GeometriesArrayType surface_quadrature_point_list;
         IntegrationInfo surface_integration_info = pNurbsSurface->GetDefaultIntegrationInfo();
         pNurbsSurface->CreateQuadraturePointGeometries(surface_quadrature_point_list, rIntegrationParameters.NumberOfShapeFunctionsDerivatives, 
@@ -1654,7 +2201,7 @@ void SnakeGapSbmProcess::CreateGapAndSkinQuadraturePoints(
         double characteristic_length = CalculateGapElementCharacteristicLength(rP00, rP10, rP01, rP11);
         KRATOS_ERROR_IF(characteristic_length <= 0.0)
             << "Characteristic length for the gap element must be positive." << std::endl;
-
+        
         IndexType id_element = 1;
         if (mpGapElementsSubModelPart->GetRootModelPart().Elements().size() > 0)
             id_element = mpGapElementsSubModelPart->GetRootModelPart().Elements().back().Id() + 1;
@@ -1684,6 +2231,7 @@ void SnakeGapSbmProcess::CreateGapAndSkinQuadraturePoints(
         p_skin_node_1->Id(),
         p_skin_node_2->Id(),
         layer_name,
+        condition_name,
         initial_normal_skin_segment,
         rIntegrationParameters,
         r_skin_conditions_per_span);
@@ -1692,13 +2240,14 @@ void SnakeGapSbmProcess::CreateGapAndSkinQuadraturePoints(
     const double initial_distance_to_projection_sq = inner_prod(initial_projection_delta, initial_projection_delta);
     const bool initial_reached_max_divisions = (max_internal_divisions == 0) ? true : (0 >= max_internal_divisions);
     const bool initial_degenerate_split = initial_projection_info.ProjectionId == p_skin_node_1->Id() || initial_projection_info.ProjectionId == p_skin_node_2->Id();
-
-    if (initial_distance_to_projection_sq <= subdivision_threshold_sq || initial_reached_max_divisions || initial_degenerate_split) {
+    
+    if ((initial_distance_to_projection_sq <= subdivision_threshold_sq || initial_reached_max_divisions || initial_degenerate_split)) {
         std::vector<IndexType> interpolation_nodes_id;
         auto p_nurbs_curve_skin = build_skin_curve(p_skin_node_1->Id(), p_skin_node_2->Id(), interpolation_nodes_id);
         auto p_brep_curve_skin = Kratos::make_shared<BrepCurveType>(p_nurbs_curve_skin);
 
         create_skin_conditions(p_brep_curve_skin, interpolation_nodes_id, p_skin_node_1, p_skin_node_2);
+        attach_surrogate_geometry_to_skin_nodes(interpolation_nodes_id);
 
         if constexpr (TIsInnerLoop) {
             create_area_elements(
@@ -1767,6 +2316,13 @@ void SnakeGapSbmProcess::CreateGapAndSkinQuadraturePoints(
                              std::size_t positive_count,
                              std::size_t negative_count) -> void
     {
+        KRATOS_INFO_IF("SnakeGapSbmProcess", mEchoLevel > 3)
+            << "process_piece: div=" << division_level
+            << " left_id=" << p_left_skin->Id()
+            << " right_id=" << p_right_skin->Id()
+            << " pos=" << positive_count
+            << " neg=" << negative_count << std::endl;
+
         const array_1d<double,3> skin_segment = p_right_skin->Coordinates() - p_left_skin->Coordinates();
         array_1d<double,3> normal_skin_segment;
         normal_skin_segment[0] = skin_segment[1];
@@ -1781,9 +2337,11 @@ void SnakeGapSbmProcess::CreateGapAndSkinQuadraturePoints(
             p_left_skin->Id(),
             p_right_skin->Id(),
             layer_name,
+            condition_name,
             normal_skin_segment,
             rIntegrationParameters,
             r_skin_conditions_per_span);
+
 
         const array_1d<double,3> projection_delta = projection_info.ProjectionPoint - skin_mid_point;
         const double distance_to_projection_sq = inner_prod(projection_delta, projection_delta);
@@ -1794,12 +2352,69 @@ void SnakeGapSbmProcess::CreateGapAndSkinQuadraturePoints(
         const double dot_product = inner_prod(projection_delta, normal_skin_segment);
         const double new_piece_contribution_sign = (dot_product >= 0.0) ? 1.0 : -1.0;
 
-        if (distance_to_projection_sq <= subdivision_threshold_sq || reached_max_divisions || degenerate_split) {
+        KRATOS_INFO_IF("SnakeGapSbmProcess", mEchoLevel > 3)
+            << "process_piece: proj_id=" << projection_info.ProjectionId
+            << " dist2=" << distance_to_projection_sq
+            << " dot=" << dot_product
+            << " sign=" << new_piece_contribution_sign << std::endl;
+
+        bool cut_for_multipatch = false;
+        if (mUseForMultipatch || (mUseForLocalRefinement && layer_name == "COUPLING_SIDE")) //TODO: just when layer_name == "COUPLING_SIDE"?
+        {
+            const double toll_x = cut_span_x * 1e-12;
+            const double toll_y = cut_span_y * 1e-12;
+
+            bool left_cond = false;
+            bool right_cond = false;
+
+            auto new_point = projection_info.ProjectionPoint;
+            // understand if skin segment is horizontal or vertical 
+            bool vertical = std::abs(p_left_skin->Coordinates()[0] - new_point[0]) <  toll_x;    
+            bool horizontal = std::abs(p_left_skin->Coordinates()[1] - new_point[1]) <  toll_y;
+            const double approximated_skin_length_left = norm_2(p_left_skin->Coordinates()-projection_info.ProjectionPoint);
+            if (horizontal && approximated_skin_length_left < cut_span_x) {
+                left_cond = false;
+            } else if (vertical && approximated_skin_length_left < cut_span_y) {
+                left_cond = false;
+            }
+            else {
+                left_cond = true;
+            }
+
+            // same check for the right skin node
+            vertical = std::abs(p_right_skin->Coordinates()[0] - new_point[0]) <  toll_x;    
+            horizontal = std::abs(p_right_skin->Coordinates()[1] - new_point[1]) <  toll_y;
+            const double approximated_skin_length_right = norm_2(p_right_skin->Coordinates()-projection_info.ProjectionPoint);
+            if (horizontal && approximated_skin_length_right < cut_span_x) {
+                right_cond = false;
+            } else if (vertical && approximated_skin_length_right < cut_span_y) {
+            }
+            else {
+                right_cond = true;
+            }
+
+            cut_for_multipatch = true;
+        }
+
+        if (reached_max_divisions || degenerate_split) {
+            // Avoid infinite recursion when projection collapses to an endpoint or max divisions reached.
+            cut_for_multipatch = false;
+        }
+
+        if ((distance_to_projection_sq <= subdivision_threshold_sq || reached_max_divisions || degenerate_split) &&
+             !cut_for_multipatch) {
+            KRATOS_INFO_IF("SnakeGapSbmProcess", mEchoLevel > 3)
+                << "process_piece: finalize_piece"
+                << " reached_max=" << reached_max_divisions
+                << " degenerate=" << degenerate_split
+                << " cut_for_multipatch=" << cut_for_multipatch << std::endl;
+
             std::vector<IndexType> interpolation_nodes_id;
             auto p_nurbs_curve_skin = build_skin_curve(p_left_skin->Id(), p_right_skin->Id(), interpolation_nodes_id);
             auto p_brep_curve_skin = Kratos::make_shared<BrepCurveType>(p_nurbs_curve_skin);
 
             create_skin_conditions(p_brep_curve_skin, interpolation_nodes_id, p_left_skin, p_right_skin);
+            attach_surrogate_geometry_to_skin_nodes(interpolation_nodes_id);
 
             const auto p_new_skin_node = rSkinSubModelPart.pGetNode(projection_info.ProjectionId);
 
@@ -1838,30 +2453,35 @@ void SnakeGapSbmProcess::CreateGapAndSkinQuadraturePoints(
                 new_piece_contribution_sign);
             return;
         } else {
+            KRATOS_INFO_IF("SnakeGapSbmProcess", mEchoLevel > 3)
+                << "process_piece: subdivide"
+                << " reached_max=" << reached_max_divisions
+                << " cut_for_multipatch=" << cut_for_multipatch << std::endl;
+
             const auto p_new_skin_node = rSkinSubModelPart.pGetNode(projection_info.ProjectionId);
 
             std::size_t next_positive_count = positive_count + (new_piece_contribution_sign > 0.0 ? 1 : 0);
             std::size_t next_negative_count = negative_count + (new_piece_contribution_sign < 0.0 ? 1 : 0);
 
-        auto p_nurbs_curve_l0 = this->CreateBrepCurve(p_left_skin, p_new_skin_node, active_range_knot_vector);
-        auto p_nurbs_curve_l1 = this->CreateBrepCurve(p_right_skin, p_new_skin_node, active_range_knot_vector);
-        auto p_nurbs_curve_b1 = this->CreateBrepCurve(p_new_skin_node, p_new_skin_node, active_range_knot_vector);
+            auto p_nurbs_curve_l0 = this->CreateBrepCurve(p_left_skin, p_new_skin_node, active_range_knot_vector);
+            auto p_nurbs_curve_l1 = this->CreateBrepCurve(p_right_skin, p_new_skin_node, active_range_knot_vector);
+            auto p_nurbs_curve_b1 = this->CreateBrepCurve(p_new_skin_node, p_new_skin_node, active_range_knot_vector);
 
-        auto p_brep_curve_l0 = Kratos::make_shared<BrepCurveType>(p_nurbs_curve_l0);
-        auto p_brep_curve_l1 = Kratos::make_shared<BrepCurveType>(p_nurbs_curve_l1);
-        auto p_brep_curve_b1 = Kratos::make_shared<BrepCurveType>(p_nurbs_curve_b1);
+            auto p_brep_curve_l0 = Kratos::make_shared<BrepCurveType>(p_nurbs_curve_l0);
+            auto p_brep_curve_l1 = Kratos::make_shared<BrepCurveType>(p_nurbs_curve_l1);
+            auto p_brep_curve_b1 = Kratos::make_shared<BrepCurveType>(p_nurbs_curve_b1);
 
-        auto p_brep_curve_b0 = p_brep_curve_linear;
-        if constexpr (!TIsInnerLoop) {
-            auto p_b0_background = std::dynamic_pointer_cast<NurbsCurveGeometryType>(
-                p_brep_curve_b0->pGetGeometryPart(GeometryType::BACKGROUND_GEOMETRY_INDEX));
-            auto p_b0_reversed = ReverseBezierUV_Generic(p_b0_background);
-            p_brep_curve_b0 = Kratos::make_shared<BrepCurveType>(p_b0_reversed);
-        }
+            auto p_brep_curve_b0 = p_brep_curve_linear;
+            if constexpr (!TIsInnerLoop) {
+                auto p_b0_background = std::dynamic_pointer_cast<NurbsCurveGeometryType>(
+                    p_brep_curve_b0->pGetGeometryPart(GeometryType::BACKGROUND_GEOMETRY_INDEX));
+                auto p_b0_reversed = ReverseBezierUV_Generic(p_b0_background);
+                p_brep_curve_b0 = Kratos::make_shared<BrepCurveType>(p_b0_reversed);
+            }
 
-        const auto& skin_left_coords = p_left_skin->Coordinates();
-        const auto& skin_right_coords = p_right_skin->Coordinates();
-        const auto& skin_new_coords = p_new_skin_node->Coordinates();
+            const auto& skin_left_coords = p_left_skin->Coordinates();
+            const auto& skin_right_coords = p_right_skin->Coordinates();
+            const auto& skin_new_coords = p_new_skin_node->Coordinates();
 
             create_area_elements(
                 *p_brep_curve_b0,
@@ -1874,6 +2494,12 @@ void SnakeGapSbmProcess::CreateGapAndSkinQuadraturePoints(
                 skin_new_coords,
                 new_piece_contribution_sign);
 
+            KRATOS_INFO_IF("SnakeGapSbmProcess", mEchoLevel > 3)
+                << "process_piece: recurse"
+                << " next_div=" << (division_level + 1)
+                << " next_pos=" << next_positive_count
+                << " next_neg=" << next_negative_count << std::endl;
+
             auto p_nurbs_left_linear = this->CreateBrepCurve(p_left_skin, p_new_skin_node, active_range_knot_vector);
             auto p_nurbs_right_linear = this->CreateBrepCurve(p_new_skin_node, p_right_skin, active_range_knot_vector);
             auto p_brep_left_linear = Kratos::make_shared<BrepCurveType>(p_nurbs_left_linear);
@@ -1884,8 +2510,30 @@ void SnakeGapSbmProcess::CreateGapAndSkinQuadraturePoints(
         }
     };
 
-    if (!(initial_distance_to_projection_sq <= subdivision_threshold_sq || initial_reached_max_divisions || initial_degenerate_split)) {
-        process_piece(process_piece, p_skin_node_1, p_skin_node_2, p_brep_curve_skin1_skin2_linear, 0, 0, 0);
+    bool cut_for_multipatch = false;
+    if (mUseForMultipatch || (mUseForLocalRefinement && layer_name == "COUPLING_SIDE")) //TODO: (just if layer = COUPLING_SIDE)
+    {
+        const double toll_x = cut_span_x * 1e-12;
+        const double toll_y = cut_span_y * 1e-12;
+        // understand if skin segment is horizontal or vertical 
+        bool vertical = std::abs(p_skin_node_1->Coordinates()[0] - p_skin_node_2->Coordinates()[0]) <  toll_x;    
+        bool horizontal = std::abs(p_skin_node_1->Coordinates()[1] - p_skin_node_2->Coordinates()[1]) <  toll_y;
+        const double approximated_skin_length = norm_2(p_skin_node_1->Coordinates()-p_skin_node_2->Coordinates());
+
+        if (horizontal && approximated_skin_length < (cut_span_x + toll_x)) {
+            cut_for_multipatch = false;
+        } else if (vertical && approximated_skin_length < (cut_span_y + toll_y)) {
+            cut_for_multipatch = false;
+        }
+        else {
+            cut_for_multipatch = true;
+        }
+    }
+
+
+    if (!(initial_distance_to_projection_sq <= subdivision_threshold_sq || initial_reached_max_divisions || initial_degenerate_split)
+        || cut_for_multipatch) {
+            process_piece(process_piece, p_skin_node_1, p_skin_node_2, p_brep_curve_skin1_skin2_linear, 0, 0, 0);
     }
 }
 
@@ -1900,6 +2548,51 @@ void SnakeGapSbmProcess::CreateConditions(
     const std::vector<Geometry<Node>::Pointer> &pSurrogateReferenceGeometries,
     const double CharacteristicLength) const
 {
+    KRATOS_ERROR_IF(CharacteristicLength <= 0.0)
+        << "Characteristic length for gap conditions must be positive." << std::endl;
+
+    const std::string and_token = "_AND_";
+    std::vector<std::string> condition_names;
+    const bool has_and_token = rConditionName.find(and_token) != std::string::npos;
+    if (has_and_token)
+    {
+        size_t start_pos = 0;
+        while (true)
+        {
+            const size_t end_pos = rConditionName.find(and_token, start_pos);
+            const std::string name = rConditionName.substr(start_pos, end_pos - start_pos);
+            KRATOS_ERROR_IF(name.empty()) << "Empty condition name token in " << rConditionName << std::endl;
+            condition_names.push_back(name);
+            if (end_pos == std::string::npos)
+            {
+                break;
+            }
+            start_pos = end_pos + and_token.size();
+        }
+    }
+    else
+    {
+        condition_names.push_back(rConditionName);
+    }
+
+    if (has_and_token)
+    {
+        for (const auto& condition_name : condition_names)
+        {
+            CreateConditions(
+                rGeometriesBegin,
+                rGeometriesEnd,
+                rModelPart,
+                condition_name,
+                rIdCounter,
+                pProperties,
+                KnotSpanSizes,
+                pSurrogateReferenceGeometries,
+                CharacteristicLength);
+        }
+        return;
+    }
+
     const Condition& reference_condition = KratosComponents<Condition>::Get(rConditionName);
 
     ModelPart::ConditionsContainerType new_condition_list;
@@ -1907,9 +2600,6 @@ void SnakeGapSbmProcess::CreateConditions(
     KRATOS_INFO_IF("CreateConditions", mEchoLevel > 2)
         << "Creating conditions of type " << rConditionName
         << " in " << rModelPart.Name() << "-SubModelPart." << std::endl;
-
-    KRATOS_ERROR_IF(CharacteristicLength <= 0.0)
-        << "Characteristic length for gap conditions must be positive." << std::endl;
 
     IndexType geometry_count = 0;
     array_1d<double,3> characteristic_length_vector = ZeroVector(3);
@@ -1919,12 +2609,25 @@ void SnakeGapSbmProcess::CreateConditions(
     {
         new_condition_list.push_back(
             reference_condition.Create(rIdCounter, (*it), pProperties));
+
+        if ((*it)->Has(BREP_ID)) {
+            new_condition_list.GetContainer()[geometry_count]->SetValue(BREP_ID, (*it)->GetValue(BREP_ID));
+        }
+        if ((*it)->Has(BREP_MODEL_PART_FULL_NAME)) {
+            new_condition_list.GetContainer()[geometry_count]->SetValue(
+                BREP_MODEL_PART_FULL_NAME,
+                (*it)->GetValue(BREP_MODEL_PART_FULL_NAME));
+        }
         
         // Set knot span sizes to the condition
         new_condition_list.GetContainer()[geometry_count]->SetValue(KNOT_SPAN_SIZES, KnotSpanSizes);
 
         new_condition_list.GetContainer()[geometry_count]->SetValue(NEIGHBOUR_GEOMETRIES, pSurrogateReferenceGeometries);
         new_condition_list.GetContainer()[geometry_count]->SetValue(CHARACTERISTIC_GEOMETRY_LENGTH, characteristic_length_vector);
+        if (rConditionName == "GapSbmContactCondition" ||
+            rConditionName == "GapSbmALMContactCondition") {
+            new_condition_list.GetContainer()[geometry_count]->SetValue(IDENTIFIER, "INACTIVE");
+        }
 
         rIdCounter++;
         geometry_count++;
@@ -2227,29 +2930,35 @@ template <bool TIsInnerLoop>
 void SnakeGapSbmProcess::SetSurrogateToSkinProjections(
     const ModelPart& rSurrogateSubModelPart,
     const ModelPart& rSkinSubModelPart,
-    const KnotSpanIdsCSR& rSkinNodesPerSpan,
-    const KnotSpanIdsCSR& rSkinConditionsPerSpan)
+    const KnotSpanNodeBinsCSR& rSkinNodesPerSpan,
+    const KnotSpanConditionBinsCSR& rSkinConditionsPerSpan)
 {
     const auto& r_parent_model_part = rSurrogateSubModelPart.GetParentModelPart();
     const Vector& knot_span_sizes = r_parent_model_part.GetValue(KNOT_SPAN_SIZES);
-    const auto& parameter_space_corners = r_parent_model_part.GetValue(PARAMETER_SPACE_CORNERS);
 
     KRATOS_ERROR_IF(knot_span_sizes.size() < 2)
         << "::[SnakeGapSbmProcess]::SetSurrogateToSkinProjections: KNOT_SPAN_SIZES must contain at least two entries." << std::endl;
-    KRATOS_ERROR_IF(parameter_space_corners.size() < 2)
-        << "::[SnakeGapSbmProcess]::SetSurrogateToSkinProjections: PARAMETER_SPACE_CORNERS must contain two vectors." << std::endl;
-    KRATOS_ERROR_IF(parameter_space_corners[0].size() < 2 || parameter_space_corners[1].size() < 2)
-        << "::[SnakeGapSbmProcess]::SetSurrogateToSkinProjections: PARAMETER_SPACE_CORNERS entries must contain min and max values." << std::endl;
 
-    const double span_size_x = knot_span_sizes[0];
-    const double span_size_y = knot_span_sizes[1];
-    const double min_u = parameter_space_corners[0][0];
-    const double max_u = parameter_space_corners[0][1];
-    const double min_v = parameter_space_corners[1][0];
-    const double max_v = parameter_space_corners[1][1];
+    (void)rSkinConditionsPerSpan;
 
+    KRATOS_ERROR_IF(rSkinNodesPerSpan.NumberOfSpansX == 0 ||
+                    rSkinNodesPerSpan.NumberOfSpansY == 0)
+        << "::[SnakeGapSbmProcess]::SetSurrogateToSkinProjections: node span matrix is empty." << std::endl;
+
+    const double span_size_x = (rSkinNodesPerSpan.SpanSizeX > 0.0) ? rSkinNodesPerSpan.SpanSizeX : knot_span_sizes[0];
+    const double span_size_y = (rSkinNodesPerSpan.SpanSizeY > 0.0) ? rSkinNodesPerSpan.SpanSizeY : knot_span_sizes[1];
+    KRATOS_ERROR_IF(span_size_x <= 0.0 || span_size_y <= 0.0)
+        << "::[SnakeGapSbmProcess]::SetSurrogateToSkinProjections: invalid knot span sizes."
+        << " span_size_x=" << span_size_x << ", span_size_y=" << span_size_y << std::endl;
+
+    const double min_u = rSkinNodesPerSpan.MinU;
+    const double max_u = rSkinNodesPerSpan.MaxU;
+    const double min_v = rSkinNodesPerSpan.MinV;
+    const double max_v = rSkinNodesPerSpan.MaxV;
     const std::size_t span_count_x = rSkinNodesPerSpan.NumberOfSpansX;
     const std::size_t span_count_y = rSkinNodesPerSpan.NumberOfSpansY;
+    const double min_knot_span_size = std::min(span_size_x, span_size_y);
+    const double span_probe_length = 1.0e-2 * min_knot_span_size;
 
     auto clamp_coordinate = [](double coordinate, double min_value, double max_value) {
         if (coordinate < min_value) {
@@ -2261,114 +2970,39 @@ void SnakeGapSbmProcess::SetSurrogateToSkinProjections(
         return coordinate;
     };
 
-    constexpr double tol = 1.0e-8;
-    auto compute_candidate_indices = [&](double coordinate,
-                                         double min_value,
-                                         double max_value,
-                                         double span_size,
-                                         std::size_t span_count) -> std::vector<std::size_t>
-    {
-        std::vector<std::size_t> indices;
+    auto compute_span_index = [&](double coordinate,
+                                  double min_value,
+                                  double max_value,
+                                  double span_size,
+                                  std::size_t span_count) {
         if (span_count == 0) {
-            return indices;
+            return std::size_t(0);
         }
 
         const double clamped = clamp_coordinate(coordinate, min_value, max_value);
         const double relative = (clamped - min_value) / span_size;
-
-        const double relative_minus = std::max(0.0, relative - tol);
-        const double relative_plus = std::min(static_cast<double>(span_count), relative + tol);
-
-        std::size_t index_min = static_cast<std::size_t>(std::floor(relative_minus));
-        if (index_min >= span_count) {
-            index_min = span_count - 1;
+        std::size_t index = static_cast<std::size_t>(std::floor(relative + 1.0e-12));
+        if (index >= span_count) {
+            index = span_count - 1;
         }
-
-        std::size_t index_max = static_cast<std::size_t>(std::floor(relative_plus));
-        if (index_max >= span_count) {
-            index_max = span_count - 1;
-        }
-
-        indices.push_back(index_min);
-        if (index_max != index_min) {
-            indices.push_back(index_max);
-        }
-
-        return indices;
+        return index;
     };
 
-    auto gather_candidate_node_ids = [&](const Node& rSurrogateNode) {
-        auto merge_indices = [](std::vector<std::size_t>& rTarget, const std::vector<std::size_t>& rSource) {
-            rTarget.insert(rTarget.end(), rSource.begin(), rSource.end());
-        };
-
-        auto gather_indices_with_tolerance = [&](double coordinate,
-                                                 double coordinate_tol,
-                                                 double min_value,
-                                                 double max_value,
-                                                 double span_size,
-                                                 std::size_t span_count) {
-            std::vector<std::size_t> indices;
-            merge_indices(indices, compute_candidate_indices(coordinate, min_value, max_value, span_size, span_count));
-            merge_indices(indices, compute_candidate_indices(coordinate - coordinate_tol, min_value, max_value, span_size, span_count));
-            merge_indices(indices, compute_candidate_indices(coordinate + coordinate_tol, min_value, max_value, span_size, span_count));
-            std::sort(indices.begin(), indices.end());
-            indices.erase(std::unique(indices.begin(), indices.end()), indices.end());
-            return indices;
-        };
-
-        std::vector<IndexType> candidate_ids;
-        const double tol_x = 1e-5 * span_size_x;
-        const double tol_y = 1e-5 * span_size_y;
-        const auto x_indices = gather_indices_with_tolerance(rSurrogateNode.X(), tol_x, min_u, max_u, span_size_x, span_count_x);
-        const auto y_indices = gather_indices_with_tolerance(rSurrogateNode.Y(), tol_y, min_v, max_v, span_size_y, span_count_y);
-
-        // Helper to append ids of nonzero k
-        auto append_ids_by_k = [&](const KnotSpanIdsCSR& S, std::size_t k) {
-            const auto view = CellIdsByK(S, k);
-            if (view.size == 0) {
-                return;
-            }
-
-            const IndexType* const pool_begin = S.pool.data();
-            const IndexType* const pool_end = pool_begin + S.pool.size();
-            const IndexType* const first = view.data;
-            const IndexType* const last = view.data + view.size;
-
-            KRATOS_DEBUG_ERROR_IF(first < pool_begin || last > pool_end)
-                << "::[SnakeGapSbmProcess]::SetSurrogateToSkinProjections detected an invalid "
-                << "pointer range for CSR entry k = " << k
-                << " (pool bounds [" << static_cast<const void*>(pool_begin) << ", "
-                << static_cast<const void*>(pool_end) << "), "
-                << "requested [" << static_cast<const void*>(first) << ", "
-                << static_cast<const void*>(last) << "))." << std::endl;
-
-            candidate_ids.insert(candidate_ids.end(), first, last);
-        };
-
-        const auto& S = rSkinNodesPerSpan;                 // KnotSpanIdsCSR
-        const auto& A = S.Occupancy;
-
-        // Query only cells (ix,iy)
-        for (const std::size_t ix : x_indices) {
-            if (ix >= S.NumberOfSpansX) continue;
-            for (const std::size_t iy : y_indices) {
-                if (iy >= S.NumberOfSpansY) continue;
-
-                const std::size_t k = FindNnzIndex(A, ix, iy);
-                if (k != static_cast<std::size_t>(-1)) {
-                    append_ids_by_k(S, k);
-                }
-            }
+    auto add_span_id = [](std::vector<std::pair<std::size_t, std::size_t>>& rSpanIds,
+                          const std::size_t SpanIndexX,
+                          const std::size_t SpanIndexY) {
+        const auto span_id = std::make_pair(SpanIndexX, SpanIndexY);
+        if (std::find(rSpanIds.begin(), rSpanIds.end(), span_id) == rSpanIds.end()) {
+            rSpanIds.push_back(span_id);
         }
-        if (candidate_ids.empty()) {
-            KRATOS_ERROR << "GapSBMProcess:: Empty point list in normal span search.\n";
-        }
+    };
 
-        std::sort(candidate_ids.begin(), candidate_ids.end());
-        candidate_ids.erase(std::unique(candidate_ids.begin(), candidate_ids.end()), candidate_ids.end());
-
-        return candidate_ids;
+    auto add_span_id_at_point = [&](std::vector<std::pair<std::size_t, std::size_t>>& rSpanIds,
+                                    const array_1d<double, 3>& rPoint) {
+        add_span_id(
+            rSpanIds,
+            compute_span_index(rPoint[0], min_u, max_u, span_size_x, span_count_x),
+            compute_span_index(rPoint[1], min_v, max_v, span_size_y, span_count_y));
     };
 
     struct CandidateSelectionResult
@@ -2381,66 +3015,154 @@ void SnakeGapSbmProcess::SetSurrogateToSkinProjections(
     auto select_candidate = [&](Node::Pointer pSurrogateNode,
                                 const std::vector<std::string>& forced_layers) {
         CandidateSelectionResult result;
+        KRATOS_ERROR_IF_NOT(pSurrogateNode->Has(NORMAL))
+            << "::[SnakeGapSbmProcess]::SetSurrogateToSkinProjections: surrogate node "
+            << pSurrogateNode->Id() << " has no NORMAL value." << std::endl;
 
-        const auto candidate_ids = gather_candidate_node_ids(*pSurrogateNode);
+        array_1d<double, 3> normal_direction = pSurrogateNode->GetValue(NORMAL);
+        const double normal_norm = norm_2(normal_direction);
+        KRATOS_ERROR_IF(normal_norm <= 1.0e-16)
+            << "::[SnakeGapSbmProcess]::SetSurrogateToSkinProjections: surrogate node "
+            << pSurrogateNode->Id() << " has a zero NORMAL value." << std::endl;
+        normal_direction /= normal_norm;
 
-        IndexType fallback_id = std::numeric_limits<IndexType>::max();
-        double fallback_distance = std::numeric_limits<double>::max();
+        // if constexpr (TIsInnerLoop) {
+        //     normal_direction *= -1.0;
+        // }
 
-        auto evaluate_candidate = [&](const Node& r_candidate_node) {
-            const IndexType candidate_id = r_candidate_node.Id();
+        array_1d<double, 3> tangent_direction = ZeroVector(3);
+        tangent_direction[0] = -normal_direction[1];
+        tangent_direction[1] =  normal_direction[0];
+        const double tangent_norm = norm_2(tangent_direction);
+        KRATOS_ERROR_IF(tangent_norm <= 1.0e-16)
+            << "::[SnakeGapSbmProcess]::SetSurrogateToSkinProjections: surrogate node "
+            << pSurrogateNode->Id() << " has a degenerate tangent from NORMAL " << normal_direction << std::endl;
+        tangent_direction /= tangent_norm;
+
+        std::vector<std::pair<std::size_t, std::size_t>> span_ids;
+        span_ids.reserve(3);
+        const array_1d<double, 3> normal_probe = pSurrogateNode->Coordinates() + span_probe_length * normal_direction;
+        add_span_id_at_point(span_ids, normal_probe);
+        add_span_id_at_point(span_ids, normal_probe + span_probe_length * tangent_direction);
+        add_span_id_at_point(span_ids, normal_probe - span_probe_length * tangent_direction);
+
+        IndexType best_any_id = std::numeric_limits<IndexType>::max();
+        double best_any_distance = std::numeric_limits<double>::max();
+        IndexType best_forced_id = std::numeric_limits<IndexType>::max();
+        double best_forced_distance = std::numeric_limits<double>::max();
+
+        auto matches_forced = [&](const Node& r_candidate_node) {
+            if (forced_layers.empty()) {
+                return true;
+            }
             const auto& candidate_layers = r_candidate_node.GetValue(CONNECTED_LAYERS);
-
-            bool matches_forced = false;
             for (const auto& forced_layer : forced_layers) {
                 if (std::find(candidate_layers.begin(), candidate_layers.end(), forced_layer) != candidate_layers.end()) {
-                    matches_forced = true;
-                    break;
+                    return true;
                 }
             }
+            return false;
+        };
 
-            array_1d<double, 3> difference = r_candidate_node.Coordinates();
-            difference -= pSurrogateNode->Coordinates();
-            const double distance = norm_2(difference);
-
-            if (distance < fallback_distance) {
-                fallback_distance = distance;
-                fallback_id = candidate_id;
+        auto consider_candidate = [&](const Node& r_candidate_node, const double MaxDistanceSq) {
+            const array_1d<double, 3> diff = r_candidate_node.Coordinates() - pSurrogateNode->Coordinates();
+            const double distance_sq = inner_prod(diff, diff);
+            if (distance_sq >= MaxDistanceSq) {
+                return;
             }
 
-            if (distance < result.Distance) {
-                result.Id = r_candidate_node.Id();
-                result.Distance = distance;
-                result.MatchesForcedLayers = matches_forced;
+            if (distance_sq < best_any_distance) {
+                best_any_distance = distance_sq;
+                best_any_id = r_candidate_node.Id();
+            }
+            if (matches_forced(r_candidate_node) && distance_sq < best_forced_distance) {
+                best_forced_distance = distance_sq;
+                best_forced_id = r_candidate_node.Id();
             }
         };
 
-        for (const IndexType candidate_id : candidate_ids) {
-            evaluate_candidate(rSkinSubModelPart.GetNode(candidate_id));
-        }
+        std::unordered_set<IndexType> visited_candidate_ids;
+        visited_candidate_ids.reserve(16);
 
-        auto process_fallback_nodes = [&]() {
-            const ModelPart::NodesContainerType* p_nodes = nullptr;
-            if (rSkinSubModelPart.HasSubModelPart("interface_vertices")) {
-                p_nodes = &rSkinSubModelPart.GetSubModelPart("interface_vertices").Nodes();
-            } else {
-                p_nodes = &rSkinSubModelPart.Nodes();
+        for (const auto& r_span_id : span_ids) {
+            const std::size_t ix = r_span_id.first;
+            const std::size_t iy = r_span_id.second;
+            if (ix >= rSkinNodesPerSpan.NumberOfSpansX || iy >= rSkinNodesPerSpan.NumberOfSpansY) {
+                continue;
             }
 
-            for (const auto& r_node : *p_nodes) {
-                evaluate_candidate(r_node);
+            const std::size_t k = FindNnzIndex(rSkinNodesPerSpan.Occupancy, ix, iy);
+            if (k == static_cast<std::size_t>(-1)) {
+                continue;
             }
-        };
+            if (k >= rSkinNodesPerSpan.CellBinsByNnz.size()) {
+                continue;
+            }
 
-        if (candidate_ids.empty() || result.Id == std::numeric_limits<IndexType>::max()) {
-            process_fallback_nodes();
+            const auto& r_cell_bins = rSkinNodesPerSpan.CellBinsByNnz[k];
+            if (!r_cell_bins.HasBins) {
+                continue;
+            }
+
+            for (const auto& p_candidate_node : r_cell_bins.Nodes) {
+                if (!p_candidate_node) {
+                    continue;
+                }
+                if (!visited_candidate_ids.insert(p_candidate_node->Id()).second) {
+                    continue;
+                }
+                consider_candidate(*p_candidate_node, std::numeric_limits<double>::max());
+            }
         }
 
-        if (result.Id == std::numeric_limits<IndexType>::max() && fallback_id != std::numeric_limits<IndexType>::max()) {
-            result.Id = fallback_id;
-            result.Distance = fallback_distance;
+        std::vector<std::pair<std::size_t, std::size_t>> opposite_normal_span_ids;
+        opposite_normal_span_ids.reserve(1);
+        add_span_id_at_point(
+            opposite_normal_span_ids,
+            pSurrogateNode->Coordinates() - span_probe_length * normal_direction);
+
+        const double min_knot_span_size_sq = min_knot_span_size * min_knot_span_size;
+        for (const auto& r_span_id : opposite_normal_span_ids) {
+            const std::size_t ix = r_span_id.first;
+            const std::size_t iy = r_span_id.second;
+            if (ix >= rSkinNodesPerSpan.NumberOfSpansX || iy >= rSkinNodesPerSpan.NumberOfSpansY) {
+                continue;
+            }
+
+            const std::size_t k = FindNnzIndex(rSkinNodesPerSpan.Occupancy, ix, iy);
+            if (k == static_cast<std::size_t>(-1)) {
+                continue;
+            }
+            if (k >= rSkinNodesPerSpan.CellBinsByNnz.size()) {
+                continue;
+            }
+
+            const auto& r_cell_bins = rSkinNodesPerSpan.CellBinsByNnz[k];
+            if (!r_cell_bins.HasBins) {
+                continue;
+            }
+
+            for (const auto& p_candidate_node : r_cell_bins.Nodes) {
+                if (!p_candidate_node) {
+                    continue;
+                }
+                if (!visited_candidate_ids.insert(p_candidate_node->Id()).second) {
+                    continue;
+                }
+                consider_candidate(*p_candidate_node, min_knot_span_size_sq/2);
+            }
+        }
+
+        if (best_forced_id != std::numeric_limits<IndexType>::max()) {
+            result.Id = best_forced_id;
+            result.Distance = best_forced_distance;
+            result.MatchesForcedLayers = true;
+        } else if (best_any_id != std::numeric_limits<IndexType>::max()) {
+            result.Id = best_any_id;
+            result.Distance = best_any_distance;
             result.MatchesForcedLayers = forced_layers.empty();
         }
+
         return result;
     };
 
@@ -2490,12 +3212,6 @@ void SnakeGapSbmProcess::SetSurrogateToSkinProjections(
 
         std::vector<std::string> forced_layers;
 
-        if (has_proj_1 && !has_proj_2) {
-            forced_layers = p_surrogate_node_1->GetValue(CONNECTED_LAYERS);
-        } else if (!has_proj_1 && has_proj_2) {
-            forced_layers = p_surrogate_node_2->GetValue(CONNECTED_LAYERS);
-        }
-
         if (!has_proj_1) {
             const auto selection = select_candidate(p_surrogate_node_1, forced_layers);
             KRATOS_ERROR_IF(selection.Id == std::numeric_limits<IndexType>::max())
@@ -2510,8 +3226,6 @@ void SnakeGapSbmProcess::SetSurrogateToSkinProjections(
             p_surrogate_node_1->SetValue(PROJECTION_NODE_ID, skin_node_id_1);
             p_surrogate_node_1->SetValue(CONNECTED_LAYERS, connected_layers);
             p_surrogate_node_1->SetValue(CONNECTED_CONDITIONS, connected_conditions);
-
-            forced_layers = connected_layers;
         }
 
         if (!has_proj_2) {
@@ -2564,7 +3278,7 @@ void SnakeGapSbmProcess::SetSurrogateToSkinProjections(
         }
     }
 
-    KRATOS_ERROR_IF(iter_check == max_iter_check) << "::[SnakeSbmProcess]:: Maximum iteration reached when checking intersections between projections. Please check the input data." << std::endl;
+    KRATOS_ERROR_IF(iter_check == max_iter_check) << "::[SnakeGapSbmProcess]:: Maximum iteration reached when checking intersections between projections. Please check the input data." << std::endl;
 
 }
 
@@ -2646,7 +3360,7 @@ std::vector<IndexType> SnakeGapSbmProcess::AssestProjectionsFeasibility(
             if (distance < best_distance) {
                 best_distance = distance;
                 best_candidate_id = candidate_id;
-            }
+            } 
         }
 
         KRATOS_ERROR_IF(best_candidate_id == std::numeric_limits<IndexType>::max())
@@ -2706,7 +3420,8 @@ IndexType SnakeGapSbmProcess::FindClosestNodeInLayerWithDirection(
     const std::string& rLayer,
     const ModelPart& rSkinSubModelPart,
     const Vector& rKnotSpanSizes,
-    const KnotSpanIdsCSR& rSkinConditionsPerSpan,
+    const KnotSpanNodeBinsCSR& rSkinNodesPerSpan,
+    const KnotSpanConditionBinsCSR& rSkinConditionsPerSpan,
     const Vector& rDirection) const
 {
     KRATOS_ERROR_IF(rSkinConditionsPerSpan.NumberOfSpansX == 0 ||
@@ -2768,121 +3483,232 @@ IndexType SnakeGapSbmProcess::FindClosestNodeInLayerWithDirection(
         return index;
     };
 
-    IndexType best_node_id = std::numeric_limits<IndexType>::max();
-    double best_intersection_distance = std::numeric_limits<double>::max();
-    double best_intersection_node_distance = std::numeric_limits<double>::max();
-
-    auto update_candidate = [&](Node::Pointer p_candidate_node, const CoordinatesArrayType& rIntersectionPoint){
-        const auto& candidate_layers = p_candidate_node->GetValue(CONNECTED_LAYERS);
-        if (std::find(candidate_layers.begin(), candidate_layers.end(), rLayer) == candidate_layers.end()) {
-            return;
-        }
-        array_1d<double,3> diff_intersection = rIntersectionPoint;
-        diff_intersection -= rStartPoint;
-        const double distance_intersection = norm_2(diff_intersection);
-
-        if (distance_intersection <= best_intersection_distance) {
-            best_intersection_distance = distance_intersection;
-
-            array_1d<double,3> diff_intersection_node = p_candidate_node->Coordinates();
-            diff_intersection_node -= rIntersectionPoint;
-            const double distance_intersection_node = norm_2(diff_intersection_node);
-            if (distance_intersection_node < best_intersection_node_distance)
-            {
-                best_intersection_node_distance = distance_intersection_node;
-                best_node_id = p_candidate_node->Id();
-            }
-            
-        }
-    };
-
     const std::size_t number_spans_x = rSkinConditionsPerSpan.NumberOfSpansX;
     const std::size_t number_spans_y = rSkinConditionsPerSpan.NumberOfSpansY;
     const std::size_t base_ix = compute_index(rStartPoint[0], min_u, max_u, span_size_x, number_spans_x);
     const std::size_t base_iy = compute_index(rStartPoint[1], min_v, max_v, span_size_y, number_spans_y);
 
-    const int max_search_level = static_cast<int>(std::max(number_spans_x, number_spans_y));
+    int max_search_level = static_cast<int>(std::max(number_spans_x, number_spans_y)); //FIXME:
+    if (rLayer == "COUPLING_SIDE" || rLayer == "COUPLING_SIDE_OUTER" || rLayer == "COUPLING_SIDE_INNER")
+    {
+        max_search_level = 2;
+    }
 
-    std::vector<IndexType> candidate_conditions;
-    candidate_conditions.reserve(32);
 
-    bool found_intersection = false;
-    for (int level = 0; level < max_search_level && !found_intersection; ++level) {
+    ConditionPointerContainerType candidate_conditions;
+    candidate_conditions.reserve(2000);
+    const bool filter_by_layer = !rLayer.empty();
+    auto node_has_requested_layer = [&](Node::Pointer p_candidate_node) {
+        if (!filter_by_layer) {
+            return true;
+        }
+        const auto& candidate_layers = p_candidate_node->GetValue(CONNECTED_LAYERS);
+        return std::find(candidate_layers.begin(), candidate_layers.end(), rLayer) != candidate_layers.end();
+    };
+    auto search_with_direction = [&](const array_1d<double,3>& rSearchDirection) -> IndexType {
+        IndexType best_node_id = std::numeric_limits<IndexType>::max();
+        double best_intersection_distance = std::numeric_limits<double>::max();
+        double best_intersection_node_distance = std::numeric_limits<double>::max();
 
-        const std::size_t extension = static_cast<std::size_t>(level+1);
-        const double current_length = reference_span_size * static_cast<double>(extension);
+        auto update_candidate = [&](Node::Pointer p_candidate_node,
+                                    const CoordinatesArrayType& rIntersectionPoint,
+                                    const bool ConditionMatchesLayer){
+            if (!ConditionMatchesLayer && !node_has_requested_layer(p_candidate_node)) {
+                return;
+            } 
+            array_1d<double,3> diff_intersection = rIntersectionPoint;
+            diff_intersection -= rStartPoint;
+            const double distance_intersection = norm_2(diff_intersection);
 
-        array_1d<double,3> segment_start = rStartPoint - direction * reference_span_size/2;
-        array_1d<double,3> segment_end = rStartPoint;
-        segment_end += direction * current_length;
+            if (distance_intersection <= best_intersection_distance) {
+                best_intersection_distance = distance_intersection;
 
-        const std::size_t min_ix = (base_ix > extension) ? base_ix - extension : 0;
-        const std::size_t max_ix = std::min<std::size_t>(base_ix + extension, number_spans_x > 0 ? number_spans_x - 1 : 0);
-        const std::size_t min_iy = (base_iy > extension) ? base_iy - extension : 0;
-        const std::size_t max_iy = std::min<std::size_t>(base_iy + extension, number_spans_y > 0 ? number_spans_y - 1 : 0);
-
-        candidate_conditions.clear();
-        // Collect unique condition ids from CSR cells in [min_ix..max_ix] × [min_iy..max_iy]
-        const auto& S = rSkinConditionsPerSpan;
-        std::unordered_set<IndexType> seen;
-        seen.reserve(256); // optional
-
-        for (std::size_t ix = min_ix; ix <= max_ix; ++ix) {
-            if (ix >= S.NumberOfSpansX) continue;
-            for (std::size_t iy = min_iy; iy <= max_iy; ++iy) {
-                if (iy >= S.NumberOfSpansY) continue;
-
-                const std::size_t k = FindNnzIndex(S.Occupancy, ix, iy);
-                if (k == static_cast<std::size_t>(-1)) continue;
-
-                const auto ids = CellIdsByK(S, k);
-                for (std::size_t t = 0; t < ids.size; ++t) {
-                    const IndexType cid = ids.data[t];
-                    if (seen.insert(cid).second) {
-                        candidate_conditions.push_back(cid);
-                    }
+                array_1d<double,3> diff_intersection_node = p_candidate_node->Coordinates();
+                diff_intersection_node -= rIntersectionPoint;
+                const double distance_intersection_node = norm_2(diff_intersection_node);
+                if (distance_intersection_node < best_intersection_node_distance)
+                {
+                    best_intersection_node_distance = distance_intersection_node;
+                    best_node_id = p_candidate_node->Id();
                 }
             }
-        }
+        };
 
+        bool found_intersection = false;
+        for (int level = 0; level < max_search_level && !found_intersection; ++level) {
+            const std::size_t extension = static_cast<std::size_t>(level+1);
+            const double current_length = reference_span_size * static_cast<double>(extension);
 
-        if (candidate_conditions.empty()) {
-            continue;
-        }
+            array_1d<double,3> segment_start = rStartPoint - rSearchDirection * reference_span_size*0.5;
+            array_1d<double,3> segment_end = rStartPoint;
+            segment_end += rSearchDirection * current_length;
 
-        // Example: framework factory
-        Node::Pointer start_node = Node::Pointer(new Node(0, segment_start[0], segment_start[1], segment_start[2]));
-        Node::Pointer end_node   = Node::Pointer(new Node(0, segment_end[0],   segment_end[1],   segment_end[2]));
+            const std::size_t min_ix = (base_ix > extension) ? base_ix - extension : 0;
+            const std::size_t max_ix = std::min<std::size_t>(base_ix + extension, number_spans_x > 0 ? number_spans_x - 1 : 0);
+            const std::size_t min_iy = (base_iy > extension) ? base_iy - extension : 0;
+            const std::size_t max_iy = std::min<std::size_t>(base_iy + extension, number_spans_y > 0 ? number_spans_y - 1 : 0);
 
-        for (const IndexType condition_id : candidate_conditions) {
-            const auto r_condition = rSkinSubModelPart.pGetCondition(condition_id);
-            const auto p_geometry = r_condition->pGetGeometry();
-            if (p_geometry->size() < 2) {
+            candidate_conditions.clear();
+
+            Node::Pointer start_node = Node::Pointer(new Node(0, segment_start[0], segment_start[1], segment_start[2]));
+            Node::Pointer end_node   = Node::Pointer(new Node(0, segment_end[0],   segment_end[1],   segment_end[2]));
+
+            Condition::NodesArrayType ray_nodes;
+            ray_nodes.reserve(2);
+            ray_nodes.push_back(start_node);
+            ray_nodes.push_back(end_node);
+            ConditionPointerType p_ray_condition(new Condition(0, ray_nodes));
+
+            for (std::size_t ix = min_ix; ix <= max_ix; ++ix) {
+                if (ix >= rSkinConditionsPerSpan.NumberOfSpansX) continue;
+                for (std::size_t iy = min_iy; iy <= max_iy; ++iy) {
+                    if (iy >= rSkinConditionsPerSpan.NumberOfSpansY) continue;
+                    const std::size_t k = FindNnzIndex(rSkinConditionsPerSpan.Occupancy, ix, iy);
+                    if (k == static_cast<std::size_t>(-1)) continue;
+                    if (k >= rSkinConditionsPerSpan.CellBinsByNnz.size()) continue;
+                    const auto& r_cell_bins = rSkinConditionsPerSpan.CellBinsByNnz[k];
+                    if (!r_cell_bins.HasBins) continue;
+                    auto& r_bins = const_cast<BinsObjectDynamic<ConditionConfigure>&>(r_cell_bins.Bins);
+                    r_bins.SearchObjects(p_ray_condition, candidate_conditions);
+                }
+            }
+
+            if (candidate_conditions.empty()) {
                 continue;
             }
 
-            const auto& node_a = p_geometry->pGetPoint(0);
-            const auto& node_b = p_geometry->pGetPoint(1);
+            for (const auto& p_condition : candidate_conditions) {
+                const auto p_geometry = p_condition->pGetGeometry();
+                if (p_geometry->size() < 2) {
+                    continue;
+                }
 
-            CoordinatesArrayType intersection_point;
-        
-            const bool intersects = SegmentsIntersect(start_node, end_node, node_a, node_b, intersection_point);
+                const auto& node_a = p_geometry->pGetPoint(0);
+                const auto& node_b = p_geometry->pGetPoint(1);
+                const bool condition_matches_layer =
+                    !filter_by_layer || (p_condition->Has(LAYER_NAME) && p_condition->GetValue(LAYER_NAME) == rLayer);
+                if (!condition_matches_layer && !node_has_requested_layer(node_a) && !node_has_requested_layer(node_b)) {
+                    continue;
+                }
 
-            if (intersects) {
-                best_intersection_node_distance = std::numeric_limits<double>::max();
-                update_candidate(node_a, intersection_point);
-                update_candidate(node_b, intersection_point);
-                found_intersection = true;
+                // const bool condition_matches_layer = true; //FIXME: 
+
+                CoordinatesArrayType intersection_point;
+                const bool intersects = SegmentsIntersect(start_node, end_node, node_a, node_b, intersection_point);
+
+                Vector normal_a = node_a->GetValue(NORMAL);
+                Vector normal_b = node_b->GetValue(NORMAL);
+                if (inner_prod(normal_a, rSearchDirection) < 0.0 && inner_prod(normal_a, rSearchDirection) < 0.0) {
+                    continue;
+                }
+
+                if (intersects) {
+                    best_intersection_node_distance = std::numeric_limits<double>::max();
+                    update_candidate(node_a, intersection_point, condition_matches_layer);
+                    update_candidate(node_b, intersection_point, condition_matches_layer);
+                    found_intersection = true;
+                }
+            }
+
+            if (best_node_id != std::numeric_limits<IndexType>::max()) {
+                if (rLayer == "COUPLING_SIDE" && best_intersection_distance > reference_span_size / 2.0) {
+                    KRATOS_WARNING("SnakeGapSbmProcess")
+                        << "::[SnakeGapSbmProcess]::FindClosestNodeInLayerWithDirection: projection on COUPLING_SIDE farther than reference_span_size/2."
+                        << " distance=" << best_intersection_distance
+                        << ", threshold=" << (reference_span_size / 2.0)
+                        << ", start_point=" << rStartPoint
+                        << ", selected_node=" << best_node_id
+                        << std::endl;
+                }
+                return best_node_id;
             }
         }
 
-        if (best_node_id != std::numeric_limits<IndexType>::max()) {
-            return best_node_id;
-        }
+        return best_node_id;
+    };
+
+    IndexType best_node_id = search_with_direction(direction);
+    if (best_node_id != std::numeric_limits<IndexType>::max()) {
+        return best_node_id;
     }
 
+    const array_1d<double,3> opposite_direction = -direction;
+    best_node_id = search_with_direction(opposite_direction);
+    if (best_node_id != std::numeric_limits<IndexType>::max()) {
+        return best_node_id;
+    }
+
+    // auto fallback_closest_node = [&]() {
+    //     const std::size_t number_node_spans_x = rSkinNodesPerSpan.NumberOfSpansX;
+    //     const std::size_t number_node_spans_y = rSkinNodesPerSpan.NumberOfSpansY;
+    //     if (number_node_spans_x == 0 || number_node_spans_y == 0) {
+    //         return std::numeric_limits<IndexType>::max();
+    //     }
+
+    //     Node::Pointer p_probe_node = Node::Pointer(new Node(0, rStartPoint[0], rStartPoint[1], rStartPoint[2]));
+    //     NodePointerContainerType cell_results;
+    //     cell_results.reserve(64);
+
+    //     const std::size_t extension_x = std::max<std::size_t>(1, static_cast<std::size_t>(std::ceil(reference_span_size / span_size_x)));
+    //     const std::size_t extension_y = std::max<std::size_t>(1, static_cast<std::size_t>(std::ceil(reference_span_size / span_size_y)));
+
+    //     const std::size_t min_ix = (base_ix > extension_x) ? base_ix - extension_x : 0;
+    //     const std::size_t max_ix = std::min<std::size_t>(base_ix + extension_x, number_node_spans_x > 0 ? number_node_spans_x - 1 : 0);
+    //     const std::size_t min_iy = (base_iy > extension_y) ? base_iy - extension_y : 0;
+    //     const std::size_t max_iy = std::min<std::size_t>(base_iy + extension_y, number_node_spans_y > 0 ? number_node_spans_y - 1 : 0);
+
+    //     IndexType fallback_node_id = std::numeric_limits<IndexType>::max();
+    //     double best_node_distance = std::numeric_limits<double>::max();
+
+    //     for (std::size_t ix = min_ix; ix <= max_ix; ++ix) {
+    //         if (ix >= rSkinNodesPerSpan.NumberOfSpansX) continue;
+    //         for (std::size_t iy = min_iy; iy <= max_iy; ++iy) {
+    //             if (iy >= rSkinNodesPerSpan.NumberOfSpansY) continue;
+    //             const std::size_t k = FindNnzIndex(rSkinNodesPerSpan.Occupancy, ix, iy);
+    //             if (k == static_cast<std::size_t>(-1)) continue;
+    //             if (k >= rSkinNodesPerSpan.CellBinsByNnz.size()) continue;
+    //             const auto& r_cell_bins = rSkinNodesPerSpan.CellBinsByNnz[k];
+    //             if (!r_cell_bins.HasBins || !r_cell_bins.pBins) continue;
+
+    //             const std::size_t max_results = r_cell_bins.Nodes.size();
+    //             if (max_results == 0) continue;
+    //             if (cell_results.size() < max_results) {
+    //                 cell_results.resize(max_results);
+    //             }
+
+    //             auto result_it = cell_results.begin();
+    //             const auto n_found = r_cell_bins.pBins->SearchInRadius(
+    //                 *p_probe_node,
+    //                 reference_span_size * 2,
+    //                 result_it,
+    //                 max_results);
+
+    //             for (std::size_t i = 0; i < n_found; ++i) {
+    //                 const auto& p_candidate_node = cell_results[i];
+    //                 if (!p_candidate_node || !node_has_requested_layer(p_candidate_node)) {
+    //                     continue;
+    //                 }
+
+    //                 array_1d<double,3> delta = p_candidate_node->Coordinates() - rStartPoint;
+    //                 const double distance = norm_2(delta);
+    //                 if (distance < best_node_distance) {
+    //                     best_node_distance = distance;
+    //                     fallback_node_id = p_candidate_node->Id();
+    //                 }
+    //             }
+    //         }
+    //     }
+
+    //     return fallback_node_id;
+    // };
+
+    // best_node_id = fallback_closest_node();
+    // if (best_node_id != std::numeric_limits<IndexType>::max()) {
+    //     return best_node_id;
+    // }
+
     KRATOS_ERROR << "::[SnakeGapSbmProcess]::FindClosestNodeInLayerWithDirection: no node found for layer "
-                 << rLayer << " starting from point " << rStartPoint
+                 << (rLayer.empty() ? std::string("<any>") : rLayer) << " starting from point " << rStartPoint
                  << ". Skin sub model part '" << rSkinSubModelPart.Name() << "' has "
                  << rSkinSubModelPart.NumberOfNodes() << " nodes and "
                  << rSkinSubModelPart.NumberOfConditions() << " conditions."
@@ -2899,9 +3725,11 @@ std::pair<SnakeGapSbmProcess::IndexType, SnakeGapSbmProcess::IndexType> SnakeGap
     const std::string& rLayer,
     const ModelPart& rSkinSubModelPart,
     const Vector& rKnotSpanSizes,
-    const KnotSpanIdsCSR& rSkinConditionsPerSpan,
+    const KnotSpanNodeBinsCSR& rSkinNodesPerSpan,
+    const KnotSpanConditionBinsCSR& rSkinConditionsPerSpan,
     const Vector& rDirection) const
 {
+
     KRATOS_ERROR_IF(rSkinConditionsPerSpan.NumberOfSpansX == 0 ||
                     rSkinConditionsPerSpan.NumberOfSpansY == 0)
         << "::[SnakeGapSbmProcess]::FindClosestPairInLayerWithNormalDirection: condition span matrix is empty." << std::endl;
@@ -2979,19 +3807,48 @@ std::pair<SnakeGapSbmProcess::IndexType, SnakeGapSbmProcess::IndexType> SnakeGap
     const std::size_t base_ix = compute_index(rStartPoint[0], min_u, max_u, span_size_x, number_spans_x);
     const std::size_t base_iy = compute_index(rStartPoint[1], min_v, max_v, span_size_y, number_spans_y);
 
-    const int max_search_level = static_cast<int>(std::max(number_spans_x, number_spans_y));
+    int max_search_level =  static_cast<int>(std::max(number_spans_x, number_spans_y)); //FIXME:
+    if (rLayer == "COUPLING_SIDE" || rLayer == "COUPLING_SIDE_OUTER" || rLayer == "COUPLING_SIDE_INNER")
+    {
+        max_search_level = 2;
+    }
 
-    std::vector<IndexType> candidate_conditions;
-    candidate_conditions.reserve(32);
+    ConditionPointerContainerType candidate_conditions;
+    candidate_conditions.reserve(2000);
+
+    const bool filter_by_layer = !rLayer.empty();
+    auto node_has_requested_layer = [&](Node::Pointer p_candidate_node) {
+        if (!filter_by_layer) {
+            return true;
+        }
+        const auto& candidate_layers = p_candidate_node->GetValue(CONNECTED_LAYERS);
+        return std::find(candidate_layers.begin(), candidate_layers.end(), rLayer) != candidate_layers.end();
+    };
+
+    auto condition_matches_requested_layer = [&](const ConditionPointerType& p_condition) {
+        if (!filter_by_layer) {
+            return true;
+        }
+        const bool condition_matches =
+            p_condition->Has(LAYER_NAME) && p_condition->GetValue(LAYER_NAME) == rLayer;
+        if (condition_matches) {
+            return true;
+        }
+
+        const auto p_geometry = p_condition->pGetGeometry();
+        if (p_geometry->size() < 2) {
+            return false;
+        }
+
+        return node_has_requested_layer(p_geometry->pGetPoint(0)) || node_has_requested_layer(p_geometry->pGetPoint(1));
+    };
 
     auto search_with_direction = [&](const array_1d<double,3>& rSearchDirection) {
         bool found_intersection = false;
         for (int level = 0; level < max_search_level && !found_intersection; ++level) {
             const std::size_t extension = static_cast<std::size_t>(level+1);
             const double current_length = reference_span_size * static_cast<double>(extension);
-
-            // Cast a forward segment (ray-like) starting at rStartPoint along rSearchDirection
-            array_1d<double,3> segment_start = rStartPoint - rSearchDirection * reference_span_size/2;
+            array_1d<double,3> segment_start = rStartPoint - rSearchDirection * reference_span_size*0.5;
             array_1d<double,3> segment_end = rStartPoint;
             segment_end += rSearchDirection * current_length;
 
@@ -3001,26 +3858,26 @@ std::pair<SnakeGapSbmProcess::IndexType, SnakeGapSbmProcess::IndexType> SnakeGap
             const std::size_t max_iy = std::min<std::size_t>(base_iy + extension, number_spans_y > 0 ? number_spans_y - 1 : 0);
 
             candidate_conditions.clear();
-            // Collect unique condition ids from CSR cells in [min_ix..max_ix] × [min_iy..max_iy]
-            const auto& S = rSkinConditionsPerSpan;
-            std::unordered_set<IndexType> seen;
-            seen.reserve(256); // optional
+
+            Node::Pointer start_node = Node::Pointer(new Node(0, segment_start[0], segment_start[1], segment_start[2]));
+            Node::Pointer end_node   = Node::Pointer(new Node(0, segment_end[0],   segment_end[1],   segment_end[2]));
+            Condition::NodesArrayType ray_nodes;
+            ray_nodes.reserve(2);
+            ray_nodes.push_back(start_node);
+            ray_nodes.push_back(end_node);
+            ConditionPointerType p_ray_condition(new Condition(0, ray_nodes));
 
             for (std::size_t ix = min_ix; ix <= max_ix; ++ix) {
-                if (ix >= S.NumberOfSpansX) continue;
+                if (ix >= rSkinConditionsPerSpan.NumberOfSpansX) continue;
                 for (std::size_t iy = min_iy; iy <= max_iy; ++iy) {
-                    if (iy >= S.NumberOfSpansY) continue;
-
-                    const std::size_t k = FindNnzIndex(S.Occupancy, ix, iy);
+                    if (iy >= rSkinConditionsPerSpan.NumberOfSpansY) continue;
+                    const std::size_t k = FindNnzIndex(rSkinConditionsPerSpan.Occupancy, ix, iy);
                     if (k == static_cast<std::size_t>(-1)) continue;
-
-                    const auto ids = CellIdsByK(S, k);
-                    for (std::size_t t = 0; t < ids.size; ++t) {
-                        const IndexType cid = ids.data[t];
-                        if (seen.insert(cid).second) {
-                            candidate_conditions.push_back(cid);
-                        }
-                    }
+                    if (k >= rSkinConditionsPerSpan.CellBinsByNnz.size()) continue;
+                    const auto& r_cell_bins = rSkinConditionsPerSpan.CellBinsByNnz[k];
+                    if (!r_cell_bins.HasBins) continue;
+                    auto& r_bins = const_cast<BinsObjectDynamic<ConditionConfigure>&>(r_cell_bins.Bins);
+                    r_bins.SearchObjects(p_ray_condition, candidate_conditions);
                 }
             }
 
@@ -3028,13 +3885,12 @@ std::pair<SnakeGapSbmProcess::IndexType, SnakeGapSbmProcess::IndexType> SnakeGap
                 continue;
             }
 
-            // Example: framework factory
-            Node::Pointer start_node = Node::Pointer(new Node(0, segment_start[0], segment_start[1], segment_start[2]));
-            Node::Pointer end_node   = Node::Pointer(new Node(0, segment_end[0],   segment_end[1],   segment_end[2]));
+            for (const auto& p_condition : candidate_conditions) {
+                if (!condition_matches_requested_layer(p_condition)) {
+                    continue;
+                }
 
-            for (const IndexType condition_id : candidate_conditions) {
-                const auto r_condition = rSkinSubModelPart.pGetCondition(condition_id);
-                const auto p_geometry = r_condition->pGetGeometry();
+                const auto p_geometry = p_condition->pGetGeometry();
                 if (p_geometry->size() < 2) {
                     continue;
                 }
@@ -3045,6 +3901,12 @@ std::pair<SnakeGapSbmProcess::IndexType, SnakeGapSbmProcess::IndexType> SnakeGap
                 CoordinatesArrayType intersection_point;
                 // bool intersects = SegmentsIntersectRay(start_node, end_node, node_a, node_b, intersection_point);
                 bool intersects = SegmentsIntersect(start_node, end_node, node_a, node_b, intersection_point);
+
+                Vector normal_a = node_a->GetValue(NORMAL);
+                Vector normal_b = node_b->GetValue(NORMAL);
+                if (inner_prod(normal_a, rSearchDirection) < 0.0 && inner_prod(normal_a, rSearchDirection) < 0.0) {
+                    continue;
+                }
 
                 if (intersects) {
                     update_candidate(node_a, node_b, intersection_point);
@@ -3067,11 +3929,35 @@ std::pair<SnakeGapSbmProcess::IndexType, SnakeGapSbmProcess::IndexType> SnakeGap
     }
 
     if (best_pair.first != std::numeric_limits<IndexType>::max()) {
+        if (rLayer == "COUPLING_SIDE" && best_intersection_distance > reference_span_size / 2.0) {
+            KRATOS_WARNING("SnakeGapSbmProcess")
+                << "::[SnakeGapSbmProcess]::FindClosestPairInLayerWithNormalDirection: projection on COUPLING_SIDE farther than reference_span_size/2."
+                << " distance=" << best_intersection_distance
+                << ", threshold=" << (reference_span_size / 2.0)
+                << ", start_point=" << rStartPoint
+                << ", selected_pair=(" << best_pair.first << ", " << best_pair.second << ")"
+                << std::endl;
+        }
         return best_pair;
     }
 
+    // for (const auto& r_condition : rSkinSubModelPart.Conditions()) { //TODO: REMOVE
+    //     if (!r_condition.Has(LAYER_NAME) || r_condition.GetValue(LAYER_NAME) != "COUPLING_SIDE") {
+    //         continue;
+    //     }
+
+    //     const auto& r_geometry = r_condition.GetGeometry();
+    //     if (r_geometry.PointsNumber() < 2) {
+    //         continue;
+    //     }
+
+    //     KRATOS_WATCH(r_condition.Id());
+    //     KRATOS_WATCH(r_geometry[0].Coordinates());
+    //     KRATOS_WATCH(r_geometry[1].Coordinates());
+    // }
+
     KRATOS_ERROR << "::[SnakeGapSbmProcess]::FindClosestPairInLayerWithNormalDirection: no intersection found for layer "
-                 << rLayer << " starting from point " << rStartPoint
+                 << (rLayer.empty() ? std::string("<any>") : rLayer) << " starting from point " << rStartPoint
                  << ". Skin sub model part '" << rSkinSubModelPart.Name() << "' has "
                  << rSkinSubModelPart.NumberOfNodes() << " nodes and "
                  << rSkinSubModelPart.NumberOfConditions() << " conditions."
@@ -3111,13 +3997,6 @@ void SnakeGapSbmProcess::AttachSurrogateMiddleGeometryToSkinNodes(
             r_neigh.push_back(pSurrogateMiddleGeometry);
         }
     }
-
-    // Attach the surrogate middle geometry to the two projection (skin) nodes
-    auto& r_neighbour_geometries_1 = pProjectionNode1->GetValue(NEIGHBOUR_GEOMETRIES);
-    r_neighbour_geometries_1.push_back(pSurrogateMiddleGeometry);
-
-    auto& r_neighbour_geometries_2 = pProjectionNode2->GetValue(NEIGHBOUR_GEOMETRIES);
-    r_neighbour_geometries_2.push_back(pSurrogateMiddleGeometry);
 }
 
 void SnakeGapSbmProcess::SynchronizeEndSkinNodeNeighbourGeometries(
@@ -3194,10 +4073,20 @@ void SnakeGapSbmProcess::CreateInnerSkinMultipatchCouplingConditions(
 
         // If either node has no neighbour geometries, this typically indicates
         // the skin coincides with the surrogate (no unique projection target).
+        // //FIXME: remove if 
+        // if (neigh_0.empty() || neigh_1.empty()) {
+        //     KRATOS_WARNING("SnakeGapSbmProcess")
+        //         << "::[SnakeGapSbmProcess]:: Empty NEIGHBOUR_GEOMETRIES detected on skin condition #"
+        //         << r_condition.Id() << ". Node #" << r_node_0.Id() << " neigh_size=" << neigh_0.size()
+        //         << ", Node #" << r_node_1.Id() << " neigh_size=" << neigh_1.size()
+        //         << ". This usually happens when skin and surrogate coincide; adjust layers or skip coupling for this condition."
+        //         << std::endl;
+        //     continue; // skip this condition
+        // }
         KRATOS_ERROR_IF(neigh_0.empty() || neigh_1.empty())
             << "::[SnakeGapSbmProcess]:: Empty NEIGHBOUR_GEOMETRIES detected on skin condition #" << r_condition.Id()
-            << ". Node #" << r_node_0.Id() << " neigh_size=" << neigh_0.size()
-            << ", Node #" << r_node_1.Id() << " neigh_size=" << neigh_1.size()
+            << ". Node #" << r_node_0.Id() << " neigh_size=" << neigh_0.size() << "Coords: " << r_node_0.Coordinates()
+            << ", Node #" << r_node_1.Id() << " neigh_size=" << neigh_1.size() << "Coords: " << r_node_1.Coordinates()
             << ". This usually happens when skin and surrogate coincide; adjust layers or skip coupling for this condition." << std::endl;
 
         bool has_common = false;
@@ -3227,15 +4116,10 @@ void SnakeGapSbmProcess::CreateInnerSkinMultipatchCouplingConditions(
             << "::[SnakeGapSbmProcess]:: No common NEIGHBOUR_GEOMETRIES between nodes of skin condition #"
             << r_condition.Id() << std::endl;
 
-        int brep_id = 0;
-        // Retrieve BREP_ID of the skin condition identifying the curve on surface
-        if (r_condition.Has(BREP_ID)) {
-            brep_id = r_condition.GetValue(BREP_ID);
-        } else {
-            KRATOS_ERROR << "SnakeGapSbmProcess :: "
-                << "Skin condition #" << r_condition.Id()
-                << " has no BREP_ID set" << std::endl;
-        }
+        const int brep_id = ResolveBrepIdFromConditionOrNodes(r_condition);
+        KRATOS_ERROR_IF(brep_id == 0)
+            << "SnakeGapSbmProcess :: Skin condition #" << r_condition.Id()
+            << " has no recoverable BREP_ID on the condition or its end nodes." << std::endl;
 
         // Determine condition type from the NURBS curve CONDITION_NAME set in MultipatchModeler
         std::string condition_type_name = "";
@@ -3248,9 +4132,14 @@ void SnakeGapSbmProcess::CreateInnerSkinMultipatchCouplingConditions(
         }
 
         // Create conditions on the skin from the BREP curve with id = brep_id
-        auto& r_brep_model_part = mpIgaModelPart->GetParentModelPart();
+        auto& r_brep_model_part = ResolveBrepModelPartFromConditionOrDefault(
+            *mpModel,
+            r_condition,
+            mpIgaModelPart->GetParentModelPart());
         auto p_brep_geometry = r_brep_model_part.pGetGeometry(static_cast<IndexType>(brep_id));
         auto p_brep_curve_on_surface = std::dynamic_pointer_cast<BrepCurveOnSurfaceType>(p_brep_geometry);
+        // auto p_brep_curve_on_surface = std::dynamic_pointer_cast< BrepCurveOnSurface<ContainerNodeType, false, ContainerEmbeddedNodeType>>(p_brep_geometry);
+
         KRATOS_ERROR_IF(!p_brep_curve_on_surface)
             << "SnakeGapSbmProcess :: Geometry #" << brep_id << " is not a BrepCurveOnSurfaceType." << std::endl;
 
@@ -3282,7 +4171,7 @@ void SnakeGapSbmProcess::CreateInnerSkinMultipatchCouplingConditions(
 
         p_brep_curve_on_surface->CreateIntegrationPoints(
             brep_integration_points_list, brep_integration_info);
-
+        
         p_brep_curve_on_surface->CreateQuadraturePointGeometries(
             brep_quadrature_point_list,
             /*num shape derivs*/ points_per_span,
@@ -3305,6 +4194,190 @@ void SnakeGapSbmProcess::CreateInnerSkinMultipatchCouplingConditions(
     }
 }
 
+void SnakeGapSbmProcess::CreateInnerSkinLocalRefinementCouplingConditions(
+    const ModelPart& rSkinSubModelPart,
+    const Vector& rKnotSpanSizes,
+    NurbsSurfaceType::Pointer& pNurbsSurface)
+{
+    ModelPart& r_local_refinement_coupling = mpIgaModelPart->HasSubModelPart("LocalRefinementCouplingConditions")
+        ? mpIgaModelPart->GetSubModelPart("LocalRefinementCouplingConditions")
+        : mpIgaModelPart->CreateSubModelPart("LocalRefinementCouplingConditions");
+
+    for (const auto& r_condition : rSkinSubModelPart.Conditions()) {
+        KRATOS_ERROR_IF_NOT(r_condition.Has(LAYER_NAME))
+            << "::[SnakeGapSbmProcess]:: Skin condition #" << r_condition.Id()
+            << " has no LAYER_NAME set." << std::endl;
+
+        if (r_condition.GetValue(LAYER_NAME) != "COUPLING_SIDE") {
+            continue;
+        }
+
+        const auto& r_geom = r_condition.GetGeometry();
+        KRATOS_ERROR_IF(r_geom.PointsNumber() < 2)
+            << "::[SnakeGapSbmProcess]:: Skin condition #" << r_condition.Id()
+            << " has less than 2 nodes." << std::endl;
+
+        auto p_node_0 = rSkinSubModelPart.pGetNode(r_geom[0].Id());
+        auto p_node_1 = rSkinSubModelPart.pGetNode(r_geom[1].Id());
+
+        const double characteristich_length = norm_2(p_node_0->Coordinates()-p_node_1->Coordinates())/2;
+
+        auto& neigh_0 = p_node_0->GetValue(NEIGHBOUR_GEOMETRIES);
+        auto& neigh_1 = p_node_1->GetValue(NEIGHBOUR_GEOMETRIES);
+
+        if (neigh_0.empty() && !neigh_1.empty()) {
+            neigh_0 = neigh_1;
+        }
+        if (neigh_1.empty() && !neigh_0.empty()) {
+            neigh_1 = neigh_0;
+        }
+        KRATOS_ERROR_IF(neigh_0.empty() || neigh_1.empty())
+            << "::[SnakeGapSbmProcess]:: Empty NEIGHBOUR_GEOMETRIES detected on local-refinement skin condition #"
+            << r_condition.Id()
+            << ". Node #" << p_node_0->Id() << " neigh_size=" << neigh_0.size()
+            << ", Node #" << p_node_1->Id() << " neigh_size=" << neigh_1.size() 
+            << ". Node #" << p_node_0->Coordinates()
+            << ", Node #" << p_node_1->Coordinates() << std::endl;
+
+        bool has_common = false;
+        Geometry<Node>::Pointer p_common_geometry;
+        const auto skin_center = r_geom.Center();
+        double best_dist = std::numeric_limits<double>::max();
+        std::unordered_set<const void*> visited;
+        for (const auto& p_g0 : neigh_0) {
+            const void* key = p_g0.get();
+            if (!visited.insert(key).second) {
+                continue;
+            }
+
+            bool is_common = false;
+            for (const auto& p_g1 : neigh_1) {
+                if (p_g1.get() == key) {
+                    is_common = true;
+                    break;
+                }
+            }
+            if (!is_common) {
+                continue;
+            }
+
+            const double dist = norm_2(skin_center - p_g0->Center());
+            if (dist < best_dist) {
+                best_dist = dist;
+                has_common = true;
+                p_common_geometry = p_g0;
+            }
+        }
+
+        KRATOS_ERROR_IF_NOT(has_common)
+            << "::[SnakeGapSbmProcess]:: No common NEIGHBOUR_GEOMETRIES between nodes of local-refinement skin condition #"
+            << *p_node_0 << " and " << *p_node_1 << " of condition #"
+            << neigh_0 << " vs " << neigh_1 << ". Condition ID: "
+            << r_condition.Id() << std::endl;
+
+        KRATOS_ERROR_IF_NOT(r_condition.Has(CONDITION_NAME))
+            << "SnakeGapSbmProcess :: local-refinement skin condition #" << r_condition.Id()
+            << " has no CONDITION_NAME set" << std::endl;
+        std::string condition_type_name = r_condition.GetValue(CONDITION_NAME);
+
+        const int brep_id = ResolveBrepIdFromConditionOrNodes(r_condition);
+        KRATOS_ERROR_IF(brep_id == 0)
+            << "SnakeGapSbmProcess :: local-refinement skin condition #" << r_condition.Id()
+            << " has no recoverable BREP_ID on the condition or its end nodes." << std::endl;
+
+        auto& r_brep_model_part = ResolveBrepModelPartFromConditionOrDefault(
+            *mpModel,
+            r_condition,
+            mpIgaModelPart->GetRootModelPart());
+        GeometryType::Pointer p_brep_geometry = r_brep_model_part.pGetGeometry(static_cast<IndexType>(brep_id));
+
+        KRATOS_ERROR_IF_NOT(p_brep_geometry)
+            << "SnakeGapSbmProcess :: failed to construct local-refinement coupling geometry for skin condition #"
+            << r_condition.Id() << std::endl;
+
+        auto p_brep_curve_on_surface = std::dynamic_pointer_cast<BrepCurveOnSurfaceType>(p_brep_geometry);
+        IntegrationInfo brep_integration_info = p_brep_geometry->GetDefaultIntegrationInfo();
+        std::size_t surface_deg_u = 1, surface_deg_v = 1;
+        if (pNurbsSurface) {
+            surface_deg_u = pNurbsSurface->PolynomialDegree(0);
+            surface_deg_v = pNurbsSurface->PolynomialDegree(1);
+        }
+        std::size_t host_deg_u = 0, host_deg_v = 0;
+        if (p_brep_curve_on_surface) {
+            if (auto p_curve_on_surface = p_brep_curve_on_surface->pGetCurveOnSurface()) {
+                auto p_host_surface_geom = p_curve_on_surface->pGetGeometryPart(GeometryType::BACKGROUND_GEOMETRY_INDEX);
+                if (p_host_surface_geom) {
+                    if (auto p_host_surface = std::dynamic_pointer_cast<NurbsSurfaceType>(p_host_surface_geom)) {
+                        host_deg_u = p_host_surface->PolynomialDegree(0);
+                        host_deg_v = p_host_surface->PolynomialDegree(1);
+                    }
+                }
+            }
+        }
+        const std::size_t max_deg = std::max({surface_deg_u, surface_deg_v, host_deg_u, host_deg_v});
+        const int points_per_span = static_cast<int>(2 * max_deg + 1);
+        brep_integration_info.SetNumberOfIntegrationPointsPerSpan(0, points_per_span);
+
+        IntegrationPointsArrayType brep_integration_points_list;
+        GeometriesArrayType brep_quadrature_point_list;
+
+        p_brep_geometry->CreateIntegrationPoints(
+            brep_integration_points_list, brep_integration_info);
+
+        if (r_condition.GetValue(NEIGHBOUR_GEOMETRIES).size() > 0) {
+            const double brep_curve_length = norm_2(p_node_0->Coordinates() - p_node_1->Coordinates());
+            
+            for (auto& integration_point : brep_integration_points_list) {
+                integration_point.SetWeight(integration_point.Weight() * brep_curve_length);
+                // KRATOS_WATCH(integration_point.Weight())
+            }
+
+            // KRATOS_WATCH(brep_curve_length)
+        }
+        
+        p_brep_geometry->CreateQuadraturePointGeometries(
+            brep_quadrature_point_list,
+            points_per_span,
+            brep_integration_points_list,
+            brep_integration_info);
+
+        std::vector<Geometry<Node>::Pointer> surrogate_refs;
+        if (p_common_geometry) {
+            surrogate_refs.push_back(p_common_geometry);
+        }
+
+        std::size_t id = 1;
+        if (mpIgaModelPart->GetRootModelPart().Conditions().size() > 0) {
+            id = mpIgaModelPart->GetRootModelPart().Conditions().back().Id() + 1;
+        }
+
+        if (r_condition.GetValue(NEIGHBOUR_GEOMETRIES).size() > 0) {
+            // immersed coupling on both sides
+            condition_type_name = "GapSbm" + condition_type_name; 
+
+            std::vector<Geometry<Node>::Pointer> center_ref_patch_center_base_patch_geometries;
+
+            auto refinement_patch_neighbour_geometries = r_condition.GetValue(NEIGHBOUR_GEOMETRIES);
+            center_ref_patch_center_base_patch_geometries.push_back(refinement_patch_neighbour_geometries[1]);
+            center_ref_patch_center_base_patch_geometries.push_back(surrogate_refs[0]);
+
+            this->CreateConditions(
+                brep_quadrature_point_list.ptr_begin(), brep_quadrature_point_list.ptr_end(),
+                r_local_refinement_coupling, condition_type_name, id, PropertiesPointerType(),
+                rKnotSpanSizes, center_ref_patch_center_base_patch_geometries, characteristich_length);
+        }
+        else
+        {
+            // coupling immersed only on the base patch side 
+            this->CreateConditions(
+                brep_quadrature_point_list.ptr_begin(), brep_quadrature_point_list.ptr_end(),
+                r_local_refinement_coupling, condition_type_name, id, PropertiesPointerType(),
+                rKnotSpanSizes, surrogate_refs, characteristich_length);
+        }
+        
+    }
+}
+
 
 const Parameters SnakeGapSbmProcess::GetDefaultParameters() const
 {
@@ -3320,6 +4393,7 @@ const Parameters SnakeGapSbmProcess::GetDefaultParameters() const
         "number_of_knot_spans" : [10, 10],
         "gap_relative_tolerance_for_subdivisions": 0.1,
         "number_of_interpolation_levels": 3
+        ,"use_for_local_refinement": false
     })");
 }
 
@@ -3340,6 +4414,7 @@ const Parameters SnakeGapSbmProcess::GetValidParameters() const
         "gap_relative_tolerance_for_subdivisions": 0.1,
         "number_of_interpolation_levels": 3,
         "gap_sbm_type": "default",
+        "use_for_local_refinement": false,
         "lambda_inner" : 0.0,
         "lambda_outer" : 1.0,
         "skin_model_part_outer_initial_name": "initial_skin_model_part_out",    
