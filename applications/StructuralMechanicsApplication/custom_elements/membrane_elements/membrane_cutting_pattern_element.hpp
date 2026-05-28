@@ -59,11 +59,11 @@ namespace Kratos
      * @param pProperties The pointer to property
      * @return The pointer to the created element
      */
-    /*Element::Pointer Create(
+    Element::Pointer Create(
         IndexType NewId,
         GeometryType::Pointer pGeom,
         PropertiesType::Pointer pProperties
-        ) const override;*/
+        ) const override;
 
     /**
      * @brief Creates a new element
@@ -72,11 +72,11 @@ namespace Kratos
      * @param pProperties The pointer to property
      * @return The pointer to the created element
      */
-    /*Element::Pointer Create(
+    Element::Pointer Create(
         IndexType NewId,
         NodesArrayType const& ThisNodes,
         PropertiesType::Pointer pProperties
-        ) const override;*/
+        ) const override;
 
     /*void EquationIdVector(
       EquationIdVectorType& rResult,
@@ -248,11 +248,6 @@ namespace Kratos
     void PreStress(
       Matrix& rPreStress/*,
       const array_1d<Vector, 2>& rTransformedBaseVectors*/);
-
-    /*void TensorTransformationMatrix(
-      Matrix& rTransMat,
-      const array_1d<Vector, 2>& rTransformedBaseVectors,
-      const T& rCurvilinearBaseVectors);*/
 
 
   private:

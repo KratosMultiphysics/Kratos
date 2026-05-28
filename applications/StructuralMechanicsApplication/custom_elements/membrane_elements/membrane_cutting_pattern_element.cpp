@@ -42,6 +42,26 @@ namespace Kratos
   }
 
 
+  Element::Pointer MembraneCuttingPatternElement::Create(
+    IndexType NewId,
+    NodesArrayType const& rThisNodes,
+    PropertiesType::Pointer pProperties) const
+
+  {
+    return Kratos::make_intrusive< MembraneCuttingPatternElement >(NewId, GetGeometry().Create(rThisNodes), pProperties);
+  }
+
+
+  Element::Pointer MembraneCuttingPatternElement::Create(
+    IndexType NewId,
+    GeometryType::Pointer pGeom,
+    PropertiesType::Pointer pProperties) const
+
+  {
+    return Kratos::make_intrusive< MembraneCuttingPatternElement >(NewId, pGeom, pProperties);
+  }
+
+
 
   void MembraneCuttingPatternElement::Relaxation(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) {
 
@@ -1412,16 +1432,6 @@ namespace Kratos
        }*/
      }
   }
-
-
-  /*void MembraneCuttingPatternElement::TensorTransformationMatrix(Matrix& rTransMat, const array_1d<Vector, 2>& rTransformedBaseVectors, const T& rCurvilinearBaseVectors)
-  {
-     rTransMat = ZeroMatrix(2);
-     rTransMat(0, 0) = inner_prod(rTransformedBaseVectors[0], rCurvilinearBaseVectors[0]);
-     rTransMat(0, 1) = inner_prod(rTransformedBaseVectors[0], rCurvilinearBaseVectors[1]);
-     rTransMat(1, 0) = inner_prod(rTransformedBaseVectors[1], rCurvilinearBaseVectors[0]);
-     rTransMat(1, 1) = inner_prod(rTransformedBaseVectors[1], rCurvilinearBaseVectors[1]);
-  }*/
 
 
   void MembraneCuttingPatternElement::save(Serializer& rSerializer) const
