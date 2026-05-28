@@ -23,6 +23,7 @@
 namespace
 {
 using namespace Kratos;
+using namespace std::string_literals;
 
 PointerVector<Node> CreateThreeNodesForTransientPwElementTest()
 {
@@ -656,7 +657,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement2D3N_CalculateLocalSystem, KratosGeo
     p_element->GetProperties().SetValue(BULK_MODULUS_FLUID, 1.0E6);
     p_element->GetProperties().SetValue(BULK_MODULUS_SOLID, 1.0E6);
     p_element->GetProperties().SetValue(POROSITY, 0.1);
-    p_element->GetProperties().SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
+    p_element->GetProperties().SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED"s);
     const auto dummy_process_info = ProcessInfo{};
     p_element->Initialize(dummy_process_info);
     p_element->InitializeSolutionStep(dummy_process_info);
@@ -688,7 +689,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement3D4N_CalculateLocalSystem, KratosGeo
     p_element->GetProperties().SetValue(BULK_MODULUS_FLUID, 1.0E6);
     p_element->GetProperties().SetValue(BULK_MODULUS_SOLID, 1.0E6);
     p_element->GetProperties().SetValue(POROSITY, 0.1);
-    p_element->GetProperties().SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
+    p_element->GetProperties().SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED"s);
     const auto dummy_process_info = ProcessInfo{};
     p_element->Initialize(dummy_process_info);
     p_element->InitializeSolutionStep(dummy_process_info);

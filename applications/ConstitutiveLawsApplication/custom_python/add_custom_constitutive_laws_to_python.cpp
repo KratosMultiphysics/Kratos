@@ -125,6 +125,7 @@
 
 // Structural elements CL
 #include "custom_constitutive/structural_elements_constitutive_laws/thickness_integrated_isotropic_constitutive_law.h"
+#include "custom_constitutive/structural_elements_constitutive_laws/thickness_integrated_composite_constitutive_law.h"
 
 namespace Kratos::Python {
 
@@ -1519,6 +1520,10 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m)
     // Structural elements CLs
     py::class_< ThicknessIntegratedIsotropicConstitutiveLaw, typename ThicknessIntegratedIsotropicConstitutiveLaw::Pointer,  ConstitutiveLaw  >
     (m,"ThicknessIntegratedIsotropicConstitutiveLaw").def(py::init<>())
+    ;
+
+    py::class_< ThicknessIntegratedCompositeConstitutiveLaw, typename ThicknessIntegratedCompositeConstitutiveLaw::Pointer,  ConstitutiveLaw  >
+    (m,"ThicknessIntegratedCompositeConstitutiveLaw").def(py::init<>())
     ;
 
 
