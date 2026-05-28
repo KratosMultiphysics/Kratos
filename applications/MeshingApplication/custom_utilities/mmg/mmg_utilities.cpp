@@ -1876,7 +1876,8 @@ void MmgUtilities<MMGLibrary::MMG2D>::SetDispSizeVector(const SizeType NumNodes)
 {
     KRATOS_TRY;
 
-    KRATOS_ERROR_IF( MMG2D_Set_iparameter(mMmgMesh,mMmgMet,MMG2D_IPARAM_lag, 1) != 1 ) << "Unable to set lagrangian movement" << std::endl;
+    // TODO: Reactivate when dependency problem is solved
+//     KRATOS_ERROR_IF( MMG2D_Set_iparameter(mMmgMesh,mMmgDisp,MMG2D_IPARAM_lag, 1) != 1 ) << "Unable to set lagrangian movement" << std::endl;
     KRATOS_ERROR_IF( MMG2D_Set_solSize(mMmgMesh,mMmgDisp,MMG5_Vertex,NumNodes,MMG5_Vector) != 1 ) << "Unable to set displacement size" << std::endl;
 
     KRATOS_CATCH("");
@@ -1890,7 +1891,8 @@ void MmgUtilities<MMGLibrary::MMG3D>::SetDispSizeVector(const SizeType NumNodes)
 {
     KRATOS_TRY;
 
-    KRATOS_ERROR_IF( MMG3D_Set_iparameter(mMmgMesh,mMmgMet,MMG3D_IPARAM_lag, 1) != 1 ) << "Unable to set lagrangian movement" << std::endl;
+    // TODO: Reactivate when dependency problem is solved
+//     KRATOS_ERROR_IF( MMG3D_Set_iparameter(mMmgMesh,mMmgDisp,MMG3D_IPARAM_lag, 1) != 1 ) << "Unable to set lagrangian movement" << std::endl;
     KRATOS_ERROR_IF( MMG3D_Set_solSize(mMmgMesh,mMmgDisp,MMG5_Vertex,NumNodes,MMG5_Vector) != 1 ) << "Unable to set displacement size" << std::endl;
 
     KRATOS_CATCH("");
@@ -2572,9 +2574,13 @@ void MmgUtilities<MMGLibrary::MMG2D>::MMGLibCallMetric(Parameters ConfigurationP
     }
 
     // Actually computing remesh
-    const int ier = (mDiscretization == DiscretizationOption::LAGRANGIAN)
-        ? MMG2D_mmg2dmov(mMmgMesh, mMmgMet, mMmgDisp)
-        : MMG2D_mmg2dlib(mMmgMesh, mMmgMet);
+    int ier;
+    if (mDiscretization == DiscretizationOption::LAGRANGIAN) {
+//         ier = MMG2D_mmg2dmov(mMmgMesh, mMmgMet, mMmgDisp); // TODO: Reactivate when dependency problem is solved
+        ier = MMG2D_mmg2dlib(mMmgMesh, mMmgMet);
+    } else {
+        ier = MMG2D_mmg2dlib(mMmgMesh, mMmgMet);
+    }
 
     if ( ier == MMG5_STRONGFAILURE )
         KRATOS_ERROR << "ERROR: BAD ENDING OF MMG2DLIB: UNABLE TO SAVE MESH. ier: " << ier << std::endl;
@@ -2754,9 +2760,13 @@ void MmgUtilities<MMGLibrary::MMG3D>::MMGLibCallMetric(Parameters ConfigurationP
     }
 
     // Actually computing remesh
-    const int ier = (mDiscretization == DiscretizationOption::LAGRANGIAN)
-        ? MMG3D_mmg3dmov(mMmgMesh, mMmgMet, mMmgDisp)
-        : MMG3D_mmg3dlib(mMmgMesh, mMmgMet);
+    int ier;
+    if (mDiscretization == DiscretizationOption::LAGRANGIAN) {
+//         ier = MMG3D_mmg3dmov(mMmgMesh, mMmgMet, mMmgDisp); // TODO: Reactivate when dependency problem is solved
+        ier = MMG3D_mmg3dlib(mMmgMesh, mMmgMet);
+    } else {
+        ier = MMG3D_mmg3dlib(mMmgMesh, mMmgMet);
+    }
 
     if ( ier == MMG5_STRONGFAILURE )
         KRATOS_ERROR << "ERROR: BAD ENDING OF MMG3DLIB: UNABLE TO SAVE MESH. ier: " << ier << std::endl;
