@@ -376,7 +376,7 @@ void IgaModelerSbm::CreateQuadraturePointGeometriesSbmByProjectionLayer(
         << " in " << rModelPart.Name() << "-SubModelPart." << std::endl;
 
     // Check if the sbm projection operation is needed (there is no need for background domain and for body-fitted boundary conditions)
-    PointVector points;   
+    SearchPointVector points;   
     const std::string skin_model_part_name = mParameters.Has("skin_model_part_name")
             ? mParameters["skin_model_part_name"].GetString()
             : "skin_model_part";
@@ -401,12 +401,20 @@ void IgaModelerSbm::CreateQuadraturePointGeometriesSbmByProjectionLayer(
 
     if (is_inner) { // INNER
         for (auto &i_cond : skin_sub_model_part_in.Conditions()) {
-            points.push_back(PointTypePointer(new PointType(i_cond.Id(), i_cond.GetGeometry().Center().X(), i_cond.GetGeometry().Center().Y(), i_cond.GetGeometry().Center().Z())));
+            points.push_back(Kratos::make_shared<SearchPointType>(
+                skin_sub_model_part_in.pGetCondition(i_cond.Id()),
+                i_cond.GetGeometry().Center().X(),
+                i_cond.GetGeometry().Center().Y(),
+                i_cond.GetGeometry().Center().Z()));
         }
     } 
     else { // OUTER
         for (auto &i_cond : skin_sub_model_part_out.Conditions()) {
-            points.push_back(PointTypePointer(new PointType(i_cond.Id(), i_cond.GetGeometry().Center().X(), i_cond.GetGeometry().Center().Y(), i_cond.GetGeometry().Center().Z())));
+            points.push_back(Kratos::make_shared<SearchPointType>(
+                skin_sub_model_part_out.pGetCondition(i_cond.Id()),
+                i_cond.GetGeometry().Center().X(),
+                i_cond.GetGeometry().Center().Y(),
+                i_cond.GetGeometry().Center().Z()));
         }
     }
     
@@ -430,7 +438,7 @@ void IgaModelerSbm::CreateQuadraturePointGeometriesSbmByProjectionLayer(
     // Maximum number of results to be found in the search in radius
     const int number_of_results = 1e6; 
 
-    ModelPart::NodesContainerType::ContainerType results(number_of_results);
+    SearchPointVector results(number_of_results);
     std::vector<double> list_of_distances(number_of_results);
     for (SizeType i = 0; i < rGeometryList.size(); ++i)
     {
@@ -470,15 +478,15 @@ void IgaModelerSbm::CreateQuadraturePointGeometriesSbmByProjectionLayer(
         for (SizeType j= 0; j < geometries.size() ; j++) {  
 
             const Point integration_point = geometries[j].Center(); 
-            PointerType p_integration_point = PointerType(new PointType(1, integration_point.X(), integration_point.Y(), integration_point.Z()));
+            const SearchPointType integration_search_point(integration_point.X(), integration_point.Y(), integration_point.Z());
 
             // Use the search in radius to find the closest point
-            SizeType obtained_results = testBins.SearchInRadius(*p_integration_point, search_radius, results.begin(), list_of_distances.begin(), number_of_results);
+            SizeType obtained_results = testBins.SearchInRadius(integration_search_point, search_radius, results.begin(), list_of_distances.begin(), number_of_results);
 
             double minimum_distance = 1e14;
 
             // Find the nearest node
-            IndexType nearest_node_id;
+            IndexType nearest_node_id = 0;
             for (IndexType k = 0; k < obtained_results; k++) {
                 double current_distance = list_of_distances[k];   
                 if (current_distance < minimum_distance) { 
@@ -572,7 +580,7 @@ void IgaModelerSbm::CreateQuadraturePointGeometriesSbmByFixedConditionName(
         << " in " << rModelPart.Name() << "-SubModelPart." << std::endl;
 
     // Check if the sbm projection operation is needed (there is no need for background domain and for body-fitted boundary conditions)
-    PointVector points;   
+    SearchPointVector points;   
     const std::string skin_model_part_name = mParameters.Has("skin_model_part_name")
             ? mParameters["skin_model_part_name"].GetString()
             : "skin_model_part";
@@ -597,12 +605,20 @@ void IgaModelerSbm::CreateQuadraturePointGeometriesSbmByFixedConditionName(
 
     if (is_inner) { // INNER
         for (auto &i_cond : skin_sub_model_part_in.Conditions()) {
-            points.push_back(PointTypePointer(new PointType(i_cond.Id(), i_cond.GetGeometry().Center().X(), i_cond.GetGeometry().Center().Y(), i_cond.GetGeometry().Center().Z())));
+            points.push_back(Kratos::make_shared<SearchPointType>(
+                skin_sub_model_part_in.pGetCondition(i_cond.Id()),
+                i_cond.GetGeometry().Center().X(),
+                i_cond.GetGeometry().Center().Y(),
+                i_cond.GetGeometry().Center().Z()));
         }
     } 
     else { // OUTER
         for (auto &i_cond : skin_sub_model_part_out.Conditions()) {
-            points.push_back(PointTypePointer(new PointType(i_cond.Id(), i_cond.GetGeometry().Center().X(), i_cond.GetGeometry().Center().Y(), i_cond.GetGeometry().Center().Z())));
+            points.push_back(Kratos::make_shared<SearchPointType>(
+                skin_sub_model_part_out.pGetCondition(i_cond.Id()),
+                i_cond.GetGeometry().Center().X(),
+                i_cond.GetGeometry().Center().Y(),
+                i_cond.GetGeometry().Center().Z()));
         }
     }
     
@@ -626,7 +642,7 @@ void IgaModelerSbm::CreateQuadraturePointGeometriesSbmByFixedConditionName(
     // Maximum number of results to be found in the search in radius
     const int number_of_results = 1e6; 
 
-    ModelPart::NodesContainerType::ContainerType results(number_of_results);
+    SearchPointVector results(number_of_results);
     std::vector<double> list_of_distances(number_of_results);
     for (SizeType i = 0; i < rGeometryList.size(); ++i)
     {
@@ -665,15 +681,15 @@ void IgaModelerSbm::CreateQuadraturePointGeometriesSbmByFixedConditionName(
         for (SizeType j= 0; j < geometries.size() ; j++) {  
 
             const Point integration_point = geometries[j].Center(); 
-            PointerType p_integration_point = PointerType(new PointType(1, integration_point.X(), integration_point.Y(), integration_point.Z()));
+            const SearchPointType integration_search_point(integration_point.X(), integration_point.Y(), integration_point.Z());
 
             // Use the search in radius to find the closest point
-            SizeType obtained_results = testBins.SearchInRadius(*p_integration_point, search_radius, results.begin(), list_of_distances.begin(), number_of_results);
+            SizeType obtained_results = testBins.SearchInRadius(integration_search_point, search_radius, results.begin(), list_of_distances.begin(), number_of_results);
 
             double minimum_distance = 1e14;
 
             // Find the nearest node
-            IndexType nearest_node_id;
+            IndexType nearest_node_id = 0;
             for (IndexType k = 0; k < obtained_results; k++) {
                 double current_distance = list_of_distances[k];   
                 if (current_distance < minimum_distance) { 
@@ -985,7 +1001,7 @@ void IgaModelerSbm::CreateConditions(
 
             // Add closest projection node
             NodePointerVector empty_vector;
-            PointTypePointer projection_node = cond1->GetGeometry()(0);
+            NodeType::Pointer projection_node = cond1->GetGeometry()(0);
             if (norm_2(projection_node->GetValue(NORMAL)) > 1e-13)
             {
                 empty_vector.push_back(cond1->GetGeometry()(0)); // Just it_node-plane neighbours

@@ -20,11 +20,7 @@
 #include "processes/process.h"
 #include "geometries/nurbs_curve_geometry.h"
 
-#include <algorithm>
-#include <cmath>
-
 #include <queue>
-#include <utility>
 
 
 namespace Kratos
@@ -48,6 +44,381 @@ public:
 
     /// Pointer definition of SnakeSbmProcess
     KRATOS_CLASS_POINTER_DEFINITION(SnakeSbmProcess);
+
+    class SearchPointType : public Point
+    {
+    public:
+        using BaseType = Point;
+        using ObjectType = Condition;
+
+        KRATOS_CLASS_POINTER_DEFINITION(SearchPointType);
+
+        SearchPointType() = default;
+
+        SearchPointType(
+            const double X,
+            const double Y,
+            const double Z)
+            : BaseType(X, Y, Z)
+        {
+        }
+
+        SearchPointType(
+            Condition::Pointer pCondition,
+            const double X,
+            const double Y,
+            const double Z)
+            : BaseType(X, Y, Z)
+            , mpCondition(std::move(pCondition))
+        {
+        }
+
+        Condition::Pointer pGetObject() const
+        {
+            return mpCondition;
+        }
+
+        std::size_t Id() const
+        {
+            KRATOS_DEBUG_ERROR_IF(mpCondition.get() == nullptr)
+                << "SearchPointType does not hold a condition." << std::endl;
+            return mpCondition->Id();
+        }
+
+    private:
+        Condition::Pointer mpCondition = nullptr;
+    };
+
+    class KnotSpanGrid2D
+    {
+    public:
+        using StateType = std::int8_t;
+
+        class RowProxy
+        {
+        public:
+            RowProxy(StateType* pData, const int NumberOfColumns)
+                : mpData(pData)
+                , mNumberOfColumns(NumberOfColumns)
+            {
+            }
+
+            StateType& operator[](const int Column)
+            {
+                return mpData[Column];
+            }
+
+            StateType operator[](const int Column) const
+            {
+                return mpData[Column];
+            }
+
+            std::size_t size() const
+            {
+                return static_cast<std::size_t>(mNumberOfColumns);
+            }
+
+        private:
+            StateType* mpData = nullptr;
+            int mNumberOfColumns = 0;
+        };
+
+        class ConstRowProxy
+        {
+        public:
+            ConstRowProxy(const StateType* pData, const int NumberOfColumns)
+                : mpData(pData)
+                , mNumberOfColumns(NumberOfColumns)
+            {
+            }
+
+            StateType operator[](const int Column) const
+            {
+                return mpData[Column];
+            }
+
+            std::size_t size() const
+            {
+                return static_cast<std::size_t>(mNumberOfColumns);
+            }
+
+        private:
+            const StateType* mpData = nullptr;
+            int mNumberOfColumns = 0;
+        };
+
+        KnotSpanGrid2D() = default;
+
+        KnotSpanGrid2D(
+            const int NumberOfRows,
+            const int NumberOfColumns,
+            const StateType InitialValue = 0)
+            : mNumberOfRows(NumberOfRows)
+            , mNumberOfColumns(NumberOfColumns)
+            , mData(static_cast<std::size_t>(NumberOfRows) * static_cast<std::size_t>(NumberOfColumns), InitialValue)
+        {
+        }
+
+        StateType& operator()(const int Row, const int Column)
+        {
+            return mData[FlattenIndex(Row, Column)];
+        }
+
+        StateType operator()(const int Row, const int Column) const
+        {
+            return mData[FlattenIndex(Row, Column)];
+        }
+
+        RowProxy operator[](const int Row)
+        {
+            return RowProxy(mData.data() + FlattenIndex(Row, 0), mNumberOfColumns);
+        }
+
+        ConstRowProxy operator[](const int Row) const
+        {
+            return ConstRowProxy(mData.data() + FlattenIndex(Row, 0), mNumberOfColumns);
+        }
+
+        int Rows() const
+        {
+            return mNumberOfRows;
+        }
+
+        int Columns() const
+        {
+            return mNumberOfColumns;
+        }
+
+        std::size_t Size() const
+        {
+            return mData.size();
+        }
+
+        std::size_t size() const
+        {
+            return static_cast<std::size_t>(mNumberOfRows);
+        }
+
+        std::size_t MemoryUsageInBytes() const
+        {
+            return mData.size() * sizeof(StateType);
+        }
+
+    private:
+        std::size_t FlattenIndex(const int Row, const int Column) const
+        {
+            return static_cast<std::size_t>(Row) * static_cast<std::size_t>(mNumberOfColumns)
+                + static_cast<std::size_t>(Column);
+        }
+
+        int mNumberOfRows = 0;
+        int mNumberOfColumns = 0;
+        std::vector<StateType> mData;
+    };
+
+    class KnotSpanGrid3D
+    {
+    public:
+        using StateType = std::int8_t;
+
+        class RowProxy
+        {
+        public:
+            RowProxy(StateType* pData, const int NumberOfColumns)
+                : mpData(pData)
+                , mNumberOfColumns(NumberOfColumns)
+            {
+            }
+
+            StateType& operator[](const int Column)
+            {
+                return mpData[Column];
+            }
+
+            StateType operator[](const int Column) const
+            {
+                return mpData[Column];
+            }
+
+            std::size_t size() const
+            {
+                return static_cast<std::size_t>(mNumberOfColumns);
+            }
+
+        private:
+            StateType* mpData = nullptr;
+            int mNumberOfColumns = 0;
+        };
+
+        class ConstRowProxy
+        {
+        public:
+            ConstRowProxy(const StateType* pData, const int NumberOfColumns)
+                : mpData(pData)
+                , mNumberOfColumns(NumberOfColumns)
+            {
+            }
+
+            StateType operator[](const int Column) const
+            {
+                return mpData[Column];
+            }
+
+            std::size_t size() const
+            {
+                return static_cast<std::size_t>(mNumberOfColumns);
+            }
+
+        private:
+            const StateType* mpData = nullptr;
+            int mNumberOfColumns = 0;
+        };
+
+        class LayerProxy
+        {
+        public:
+            LayerProxy(StateType* pData, const int NumberOfRows, const int NumberOfColumns)
+                : mpData(pData)
+                , mNumberOfRows(NumberOfRows)
+                , mNumberOfColumns(NumberOfColumns)
+            {
+            }
+
+            RowProxy operator[](const int Row)
+            {
+                return RowProxy(mpData + static_cast<std::size_t>(Row) * static_cast<std::size_t>(mNumberOfColumns), mNumberOfColumns);
+            }
+
+            ConstRowProxy operator[](const int Row) const
+            {
+                return ConstRowProxy(mpData + static_cast<std::size_t>(Row) * static_cast<std::size_t>(mNumberOfColumns), mNumberOfColumns);
+            }
+
+            std::size_t size() const
+            {
+                return static_cast<std::size_t>(mNumberOfRows);
+            }
+
+        private:
+            StateType* mpData = nullptr;
+            int mNumberOfRows = 0;
+            int mNumberOfColumns = 0;
+        };
+
+        class ConstLayerProxy
+        {
+        public:
+            ConstLayerProxy(const StateType* pData, const int NumberOfRows, const int NumberOfColumns)
+                : mpData(pData)
+                , mNumberOfRows(NumberOfRows)
+                , mNumberOfColumns(NumberOfColumns)
+            {
+            }
+
+            ConstRowProxy operator[](const int Row) const
+            {
+                return ConstRowProxy(mpData + static_cast<std::size_t>(Row) * static_cast<std::size_t>(mNumberOfColumns), mNumberOfColumns);
+            }
+
+            std::size_t size() const
+            {
+                return static_cast<std::size_t>(mNumberOfRows);
+            }
+
+        private:
+            const StateType* mpData = nullptr;
+            int mNumberOfRows = 0;
+            int mNumberOfColumns = 0;
+        };
+
+        KnotSpanGrid3D() = default;
+
+        KnotSpanGrid3D(
+            const int NumberOfLayers,
+            const int NumberOfRows,
+            const int NumberOfColumns,
+            const StateType InitialValue = 0)
+            : mNumberOfLayers(NumberOfLayers)
+            , mNumberOfRows(NumberOfRows)
+            , mNumberOfColumns(NumberOfColumns)
+            , mData(
+                static_cast<std::size_t>(NumberOfLayers)
+                    * static_cast<std::size_t>(NumberOfRows)
+                    * static_cast<std::size_t>(NumberOfColumns),
+                InitialValue)
+        {
+        }
+
+        StateType& operator()(const int Layer, const int Row, const int Column)
+        {
+            return mData[FlattenIndex(Layer, Row, Column)];
+        }
+
+        StateType operator()(const int Layer, const int Row, const int Column) const
+        {
+            return mData[FlattenIndex(Layer, Row, Column)];
+        }
+
+        LayerProxy operator[](const int Layer)
+        {
+            return LayerProxy(
+                mData.data() + FlattenIndex(Layer, 0, 0),
+                mNumberOfRows,
+                mNumberOfColumns);
+        }
+
+        ConstLayerProxy operator[](const int Layer) const
+        {
+            return ConstLayerProxy(
+                mData.data() + FlattenIndex(Layer, 0, 0),
+                mNumberOfRows,
+                mNumberOfColumns);
+        }
+
+        int Layers() const
+        {
+            return mNumberOfLayers;
+        }
+
+        int Rows() const
+        {
+            return mNumberOfRows;
+        }
+
+        int Columns() const
+        {
+            return mNumberOfColumns;
+        }
+
+        std::size_t Size() const
+        {
+            return mData.size();
+        }
+
+        std::size_t size() const
+        {
+            return static_cast<std::size_t>(mNumberOfLayers);
+        }
+
+        std::size_t MemoryUsageInBytes() const
+        {
+            return mData.size() * sizeof(StateType);
+        }
+
+    private:
+        std::size_t FlattenIndex(const int Layer, const int Row, const int Column) const
+        {
+            return (static_cast<std::size_t>(Layer) * static_cast<std::size_t>(mNumberOfRows)
+                    + static_cast<std::size_t>(Row))
+                    * static_cast<std::size_t>(mNumberOfColumns)
+                + static_cast<std::size_t>(Column);
+        }
+
+        int mNumberOfLayers = 0;
+        int mNumberOfRows = 0;
+        int mNumberOfColumns = 0;
+        std::vector<StateType> mData;
+    };
 
     ///@name Life Cycle
     ///@{
@@ -142,16 +513,16 @@ protected:
     ModelPart* mpSkinModelPartOuterInitial = nullptr; 
     ModelPart* mpSkinModelPart = nullptr; 
 
-    using PointType = Node;
-    using PointTypePointer = Node::Pointer;
-    using PointVector = std::vector<PointType::Pointer>;
-    using PointIterator = std::vector<PointType::Pointer>::iterator;
+    using PointType = SearchPointType;
+    using PointTypePointer = PointType::Pointer;
+    using PointVector = std::vector<PointTypePointer>;
+    using PointIterator = PointVector::iterator;
     using DistanceVector = std::vector<double>;
     using DistanceIterator = std::vector<double>::iterator;
     using DynamicBins = BinsDynamic<3, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator>;
     using DynamicBinsPointerType = DynamicBins::PointerType;
     using NurbsCurveGeometryPointerType = NurbsCurveGeometry<2, PointerVector<Node>>::Pointer;
-    using CoordinatesArrayType = Geometry<PointType>::CoordinatesArrayType;
+    using CoordinatesArrayType = Geometry<Node>::CoordinatesArrayType;
 
     /**
      * @brief Create a The Snake Coordinates 2 D object
@@ -245,6 +616,28 @@ protected:
         const Vector& rKnotVectorU,
         const Vector& rKnotVectorV);
 
+    /**
+     * @brief Retrieves or creates a 3D node in the specified model part.
+     *
+     * @param rModelPart The model part to search in.
+     * @param NodeId The ID of the node to retrieve or create.
+     * @param NodeI The I coordinate of the node.
+     * @param NodeJ The J coordinate of the node.
+     * @param NodeK The K coordinate of the node.
+     * @param rKnotVectorU The U knot vector.
+     * @param rKnotVectorV The V knot vector.
+     * @param rKnotVectorW The W knot vector.
+     */
+    static void RetrieveOrCreateNodeInModelPart(
+        ModelPart& rModelPart,
+        const IndexType NodeId,
+        const int NodeI,
+        const int NodeJ,
+        const int NodeK,
+        const Vector& rKnotVectorU,
+        const Vector& rKnotVectorV,
+        const Vector& rKnotVectorW);
+
 private:
 
     /**
@@ -265,7 +658,7 @@ private:
         const array_1d<double, 2>& rKnotStepUV, 
         const array_1d<double, 2>& rStartingPositionUV,
         ModelPart& rSkinModelPart, 
-        std::vector<std::vector<std::vector<int>>>& rKnotSpansAvailable
+        std::vector<KnotSpanGrid2D>& rKnotSpansAvailable
         );
     
     /**
@@ -290,7 +683,7 @@ private:
             const std::vector<double>& rLocalCoords,
             const NurbsCurveGeometryPointerType& rpCurve,
             ModelPart& rSkinModelPart, 
-            std::vector<std::vector<std::vector<int>>>& rKnotSpansAvailable
+            std::vector<KnotSpanGrid2D>& rKnotSpansAvailable
             );
 
     /**
@@ -325,7 +718,7 @@ private:
         const std::vector<int>& rNumberKnotSpansUV, 
         const array_1d<double, 2>& rKnotStepUV, 
         const Vector& rStartingPositionUV,
-        std::vector<std::vector<std::vector<int>>> & rKnotSpansAvailable
+        std::vector<KnotSpanGrid2D>& rKnotSpansAvailable
         );
 
     /**
@@ -349,7 +742,7 @@ private:
         const Vector& rKnotVectorU,
         const Vector& rKnotVectorV,
         const Vector& rStartingPositionUV,
-        std::vector<std::vector<std::vector<int>>>& rKnotSpansAvailable,
+        std::vector<KnotSpanGrid2D>& rKnotSpansAvailable,
         ModelPart& rSurrogateModelPartInner
         );
 
@@ -374,7 +767,7 @@ private:
         const Vector& rKnotVectorU,
         const Vector& rKnotVectorV,
         const Vector& rStartingPositionUV,
-        std::vector<std::vector<std::vector<int>>>& rKnotSpansAvailable,
+        std::vector<KnotSpanGrid2D>& rKnotSpansAvailable,
         ModelPart& rSurrogateModelPartOuter
         );
     
@@ -399,7 +792,7 @@ private:
      * @param grid 
      */
     template <bool TIsInnerLoop>
-    static void KeepLargestZeroIsland(std::vector<std::vector<int>>& rGrid);
+    static void KeepLargestZeroIsland(KnotSpanGrid2D& rGrid);
 
     /**
      * @brief Create a The Snake Coordinates 3 D object
@@ -446,7 +839,7 @@ private:
      * @param rKnotSpansAvailable 3D knot-span availability matrices for all loops.
      */
     static void RemoveIslands3D(
-        std::vector<std::vector<std::vector<std::vector<int>>>>& rKnotSpansAvailable
+        std::vector<KnotSpanGrid3D>& rKnotSpansAvailable
         );
 
     
@@ -468,7 +861,7 @@ private:
         const Vector KnotStepUV, 
         const Vector StartingPositionUV,
         ModelPart& rSkinModelPart, 
-        std::vector<std::vector<std::vector<std::vector<int>>>> & rKnotSpansAvailable,
+        std::vector<KnotSpanGrid3D>& rKnotSpansAvailable,
         array_1d<IndexType, 3>& ordered_ids
         );
 
@@ -491,7 +884,7 @@ private:
         const std::vector<int>& rNumberKnotSpansUVW, 
         const array_1d<double, 3>& rKnotStepUVW, 
         const Vector& rStartingPositionUV,
-        std::vector<std::vector<std::vector<std::vector<int>>>> & rKnotSpansAvailable
+        std::vector<KnotSpanGrid3D>& rKnotSpansAvailable
         );
 
     /**
@@ -530,7 +923,7 @@ private:
         const Vector& rKnotVectorV,
         const Vector& rKnotVectorW,
         const Vector& rStartingPositionUVW,
-        std::vector<std::vector<std::vector<std::vector<int>>>> & rKnotSpansAvailable,
+        std::vector<KnotSpanGrid3D>& rKnotSpansAvailable,
         ModelPart& rSurrogateModelPartInner
         );
 
@@ -557,7 +950,7 @@ private:
         const Vector& rKnotVectorV,
         const Vector& rKnotVectorW,
         const Vector& rStartingPositionUVW,
-        std::vector<std::vector<std::vector<std::vector<int>>>> & rKnotSpansAvailable,
+        std::vector<KnotSpanGrid3D>& rKnotSpansAvailable,
         ModelPart& rSurrogateModelPartOuter
         );
 

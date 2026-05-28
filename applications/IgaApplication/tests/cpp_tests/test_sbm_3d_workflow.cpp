@@ -130,6 +130,39 @@ double ExpectedOuterOrientationSign(const Point& rCenter, const double Tolerance
 
 } // namespace
 
+KRATOS_TEST_CASE_IN_SUITE(SbmCompactKnotSpanGridsUseByteStateStorage, KratosIgaFastSuite)
+{
+    using Grid2D = SnakeSbmProcess::KnotSpanGrid2D;
+    using Grid3D = SnakeSbmProcess::KnotSpanGrid3D;
+
+    Grid2D grid_2d(9, 7, 0);
+    Grid3D grid_3d(6, 5, 4, 0);
+
+    KRATOS_EXPECT_EQ(sizeof(Grid2D::StateType), 1);
+    KRATOS_EXPECT_EQ(sizeof(Grid3D::StateType), 1);
+
+    KRATOS_EXPECT_EQ(grid_2d.Size(), 63);
+    KRATOS_EXPECT_EQ(grid_2d.MemoryUsageInBytes(), 63);
+    KRATOS_EXPECT_LT(grid_2d.MemoryUsageInBytes(), grid_2d.Size() * sizeof(int));
+
+    KRATOS_EXPECT_EQ(grid_3d.Size(), 120);
+    KRATOS_EXPECT_EQ(grid_3d.MemoryUsageInBytes(), 120);
+    KRATOS_EXPECT_LT(grid_3d.MemoryUsageInBytes(), grid_3d.Size() * sizeof(int));
+
+    grid_2d[3][4] = 1;
+    grid_3d[2][1][3] = -1;
+
+    KRATOS_EXPECT_EQ(grid_2d(3, 4), 1);
+    KRATOS_EXPECT_EQ(grid_3d(2, 1, 3), -1);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(SbmConditionSearchPointIsSmallerThanNode, KratosIgaFastSuite)
+{
+    using SearchPointType = SnakeSbmProcess::SearchPointType;
+
+    KRATOS_EXPECT_LT(sizeof(SearchPointType), sizeof(Node));
+}
+
 KRATOS_TEST_CASE_IN_SUITE(SnakeSbmProcessCubeOuter3D, KratosIgaFastSuite)
 {
     Model model;
@@ -167,7 +200,7 @@ KRATOS_TEST_CASE_IN_SUITE(SnakeSbmProcessCubeOuter3D, KratosIgaFastSuite)
 
     const double tolerance = 1.0e-10;
     KRATOS_EXPECT_EQ(r_surrogate_outer.NumberOfConditions(), 12);
-    KRATOS_EXPECT_EQ(r_surrogate_outer.NumberOfNodes(), 27);
+    KRATOS_EXPECT_EQ(r_surrogate_outer.NumberOfNodes(), 19);
 
     for (const auto& r_condition : r_surrogate_outer.Conditions()) {
         KRATOS_EXPECT_EQ(r_condition.GetGeometry().PointsNumber(), 4);
@@ -212,7 +245,7 @@ KRATOS_TEST_CASE_IN_SUITE(SnakeSbmProcessOctahedronInner3D, KratosIgaFastSuite)
 
     const double tolerance = 1.0e-10;
     KRATOS_EXPECT_EQ(r_surrogate_inner.NumberOfConditions(), 48);
-    KRATOS_EXPECT_EQ(r_surrogate_inner.NumberOfNodes(), 125);
+    KRATOS_EXPECT_EQ(r_surrogate_inner.NumberOfNodes(), 62);
     KRATOS_EXPECT_EQ(r_surrogate_inner.NumberOfElements(), 1);
 
     IndexType boundary_true_count = 0;
@@ -436,7 +469,7 @@ KRATOS_TEST_CASE_IN_SUITE(IgaModelerSbmSupportInner3D, KratosIgaFastSuite)
     auto& r_support_model_part = model.GetModelPart("IgaModelPart.SBM_Support_inner");
 
     KRATOS_EXPECT_EQ(r_surrogate_inner.NumberOfConditions(), 48);
-    KRATOS_EXPECT_EQ(r_surrogate_inner.NumberOfNodes(), 0);
+    KRATOS_EXPECT_EQ(r_surrogate_inner.NumberOfNodes(), 2);
     KRATOS_EXPECT_EQ(r_surrogate_inner.NumberOfElements(), 1);
     KRATOS_EXPECT_EQ(r_support_model_part.NumberOfConditions(), 192);
     KRATOS_EXPECT_EQ(r_support_model_part.NumberOfNodes(), 0);

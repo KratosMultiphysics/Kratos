@@ -271,6 +271,7 @@ void SbmFluidConditionDirichlet::InitializeSbmMemberVariables()
         }
     }
     mpProjectionNode = &candidate_closest_skin_segment_1.GetGeometry()[closestNodeId] ;
+    this->SetValue(PROJECTION_NODE, mpProjectionNode);
 
     mDistanceVector.resize(mDim);
     noalias(mDistanceVector) = mpProjectionNode->Coordinates() - r_geometry.Center().Coordinates();

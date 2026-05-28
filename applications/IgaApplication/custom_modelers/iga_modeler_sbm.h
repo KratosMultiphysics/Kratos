@@ -25,6 +25,7 @@
 #include "integration/integration_info.h"
 #include "spatial_containers/bins_dynamic.h"
 #include "includes/global_pointer_variables.h"
+#include "geometries/point.h"
 
 namespace Kratos
 {
@@ -56,15 +57,55 @@ public:
     typedef typename ModelPart::ElementsContainerType ElementsContainerType;
     typedef typename ModelPart::ConditionsContainerType ConditionsContainerType;
 
+    class SearchPointType : public Point
+    {
+    public:
+        using BaseType = Point;
+        using ObjectType = Condition;
 
-    using PointType = Node;
-    using PointTypePointer = Node::Pointer;
-    using PointVector = std::vector<PointType::Pointer>;
-    using PointIterator = std::vector<PointType::Pointer>::iterator;
+        KRATOS_CLASS_POINTER_DEFINITION(SearchPointType);
+
+        SearchPointType() = default;
+
+        SearchPointType(
+            const double X,
+            const double Y,
+            const double Z)
+            : BaseType(X, Y, Z)
+        {
+        }
+
+        SearchPointType(
+            Condition::Pointer pCondition,
+            const double X,
+            const double Y,
+            const double Z)
+            : BaseType(X, Y, Z)
+            , mpCondition(std::move(pCondition))
+        {
+        }
+
+        Condition::Pointer pGetObject() const
+        {
+            return mpCondition;
+        }
+
+        std::size_t Id() const
+        {
+            KRATOS_DEBUG_ERROR_IF(mpCondition.get() == nullptr)
+                << "SearchPointType does not hold a condition." << std::endl;
+            return mpCondition->Id();
+        }
+
+    private:
+        Condition::Pointer mpCondition = nullptr;
+    };
+    using SearchPointPointerType = SearchPointType::Pointer;
+    using SearchPointVector = std::vector<SearchPointPointerType>;
+    using SearchPointIterator = SearchPointVector::iterator;
     using DistanceVector = std::vector<double>;
     using DistanceIterator = std::vector<double>::iterator;
-    using DynamicBins = BinsDynamic<3, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator>;
-    using PointerType = DynamicBins::PointerType;
+    using DynamicBins = BinsDynamic<3, SearchPointType, SearchPointVector, SearchPointPointerType, SearchPointIterator, DistanceIterator>;
     using NodePointerVector = GlobalPointersVector<NodeType>;
 
     ///@}

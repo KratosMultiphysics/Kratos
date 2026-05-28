@@ -364,17 +364,11 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates(
     n_knot_spans_uv[0] = knot_vector_u.size()-1; 
     n_knot_spans_uv[1] = knot_vector_v.size()-1;
 
-    std::vector<std::vector<std::vector<int>>> knot_spans_available;
+    std::vector<SnakeSbmProcess::KnotSpanGrid2D> knot_spans_available;
     knot_spans_available.reserve(NumberOfLoops);
 
     for (IndexType i = 0; i < NumberOfLoops; ++i) {
-        std::vector<std::vector<int>> matrix; 
-        matrix.reserve(n_knot_spans_uv[1]);
-        for (int j = 0; j <= n_knot_spans_uv[1]-1; ++j) {
-            std::vector<int> row(n_knot_spans_uv[0]); 
-            matrix.push_back(row); 
-        }
-        knot_spans_available.push_back(matrix);
+        knot_spans_available.emplace_back(n_knot_spans_uv[1], n_knot_spans_uv[0], 0);
 
         // create one Skin subModelPart for each loop
         r_skin_sub_model_part.CreateSubModelPart(std::to_string(i)); 
@@ -705,8 +699,8 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates(
 
     PointVector points;
     for (auto &i_cond : r_skin_sub_model_part.Conditions()) {
-        points.push_back(Kratos::make_intrusive<PointType>(
-            i_cond.Id(),
+        points.push_back(Kratos::make_shared<PointType>(
+            r_skin_sub_model_part.pGetCondition(i_cond.Id()),
             i_cond.GetGeometry()[0].X(),
             i_cond.GetGeometry()[0].Y(),
             i_cond.GetGeometry()[0].Z()
@@ -783,7 +777,7 @@ void SnakeSbmProcess::SnakeStep(
     const array_1d<double, 2>& rKnotStepUV, 
     const array_1d<double, 2>& rStartingPosition,
     ModelPart& rSkinModelPart, 
-    std::vector<std::vector<std::vector<int>>>& rKnotSpansAvailable)
+    std::vector<SnakeSbmProcess::KnotSpanGrid2D>& rKnotSpansAvailable)
 {
     bool is_splitted = false;
 
@@ -883,7 +877,7 @@ void SnakeSbmProcess::SnakeStepNurbs(
             const std::vector<double>& rLocalCoords,
             const NurbsCurveGeometryPointerType& rpCurve,
             ModelPart& rSkinModelPart, 
-            std::vector<std::vector<std::vector<int>>>& rKnotSpansAvailable)
+            std::vector<SnakeSbmProcess::KnotSpanGrid2D>& rKnotSpansAvailable)
 {
     bool is_splitted = false;
 
@@ -1058,8 +1052,8 @@ bool SnakeSbmProcess::IsPointInsideSkinBoundary(
     const ModelPart& rSkinModelPart)
 {
     // Get the nearest point of the true boundary
-    DynamicBinsPointerType p_point_to_search = DynamicBinsPointerType(new PointType(1, rPoint1.X(), rPoint1.Y(), 0.0));
-    DynamicBinsPointerType p_nearest_point = rPointsBin.SearchNearestPoint(*p_point_to_search);
+    const PointType point_to_search(rPoint1.X(), rPoint1.Y(), 0.0);
+    DynamicBinsPointerType p_nearest_point = rPointsBin.SearchNearestPoint(point_to_search);
     
     // Get the closest Condition the initial_skin_model_part_in.Conditions
     IndexType id_1 = p_nearest_point->Id();
@@ -1143,7 +1137,7 @@ void SnakeSbmProcess::MarkKnotSpansAvailable(
     const std::vector<int>& rNumberKnotSpans, 
     const array_1d<double, 2>& rKnotStepUV,
     const Vector& rStartingPosition,
-    std::vector<std::vector<std::vector<int>>> & rKnotSpansAvailable) 
+    std::vector<SnakeSbmProcess::KnotSpanGrid2D>& rKnotSpansAvailable) 
 {
     for (int i = 0; i < rNumberKnotSpans[1]; i++) {
         for (int j = 0; j < rNumberKnotSpans[0]; j++) {
@@ -1265,6 +1259,39 @@ void SnakeSbmProcess::RetrieveOrCreateNodeInModelPart(
     }
 }
 
+void SnakeSbmProcess::RetrieveOrCreateNodeInModelPart(
+    ModelPart& rModelPart,
+    const IndexType NodeId,
+    const int NodeI,
+    const int NodeJ,
+    const int NodeK,
+    const Vector& rKnotVectorU,
+    const Vector& rKnotVectorV,
+    const Vector& rKnotVectorW)
+{
+    if (!rModelPart.HasNode(NodeId)) {
+        rModelPart.CreateNewNode(
+            NodeId,
+            rKnotVectorU[NodeI],
+            rKnotVectorV[NodeJ],
+            rKnotVectorW[NodeK]);
+        return;
+    }
+
+    const auto& r_node = rModelPart.GetNode(NodeId);
+    const double expected_x = rKnotVectorU[NodeI];
+    const double expected_y = rKnotVectorV[NodeJ];
+    const double expected_z = rKnotVectorW[NodeK];
+    if (std::abs(r_node.X() - expected_x) > 1e-8 ||
+        std::abs(r_node.Y() - expected_y) > 1e-8 ||
+        std::abs(r_node.Z() - expected_z) > 1e-8) {
+        KRATOS_ERROR << "Existing surrogate node has unexpected coordinates. "
+                     << "NodeId: " << NodeId
+                     << " Expected: (" << expected_x << ", " << expected_y << ", " << expected_z << ")"
+                     << " Actual: (" << r_node.X() << ", " << r_node.Y() << ", " << r_node.Z() << ")";
+    }
+}
+
 /**
     * summary of knot_spans_available:
         " 1"  -> interior knot spans                                  
@@ -1280,7 +1307,7 @@ void SnakeSbmProcess::RetrieveOrCreateNodeInModelPart(
     const Vector& rKnotVectorU, 
     const Vector& rKnotVectorV,
     const Vector& rStartingPositionUV,
-    std::vector<std::vector<std::vector<int>>>& rKnotSpansAvailable,
+    std::vector<SnakeSbmProcess::KnotSpanGrid2D>& rKnotSpansAvailable,
     ModelPart& rSurrogateModelPartInner
     ) 
 {
@@ -1460,7 +1487,7 @@ void SnakeSbmProcess::CreateSurrogateBuondaryFromSnakeOuter(
     const Vector& rKnotVectorU, 
     const Vector& rKnotVectorV, 
     const Vector& rStartingPositionUV,
-    std::vector<std::vector<std::vector<int>>> & rKnotSpansAvailable,
+    std::vector<SnakeSbmProcess::KnotSpanGrid2D>& rKnotSpansAvailable,
     ModelPart& rSurrogateModelPartOuter)
 {
     // CHECK ALL THE EXTERNAL KNOT SPANS
@@ -1700,7 +1727,7 @@ bool SnakeSbmProcess::IsInside(
 }
 
 template <bool TIsInnerLoop>
-void SnakeSbmProcess::KeepLargestZeroIsland(std::vector<std::vector<int>>& rGrid) 
+void SnakeSbmProcess::KeepLargestZeroIsland(KnotSpanGrid2D& rGrid) 
 {
     const int row_count = static_cast<int>(rGrid.size());
     if (row_count == 0) {
@@ -1918,17 +1945,15 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates3D(
     n_knot_spans_uvw[1] = knot_vector_v.size()-1;
     n_knot_spans_uvw[2] = knot_vector_w.size()-1;
 
-    std::vector<std::vector<std::vector<std::vector<int>>>> knot_spans_available;
+    std::vector<SnakeSbmProcess::KnotSpanGrid3D> knot_spans_available;
     knot_spans_available.resize(NumberOfLoops);
 
     for (IndexType i = 0; i < NumberOfLoops; ++i) {
-        knot_spans_available[i].resize(n_knot_spans_uvw[2]); // W
-        for (int j = 0; j < n_knot_spans_uvw[2]; ++j) {
-            knot_spans_available[i][j].resize(n_knot_spans_uvw[1]); // V
-            for (int k = 0; k < n_knot_spans_uvw[1]; ++k) {
-                knot_spans_available[i][j][k].resize(n_knot_spans_uvw[0], 0); // U
-            }
-        }
+        knot_spans_available[i] = SnakeSbmProcess::KnotSpanGrid3D(
+            n_knot_spans_uvw[2],
+            n_knot_spans_uvw[1],
+            n_knot_spans_uvw[0],
+            0);
     }
     
     int id_matrix_knot_spans_available = 0;
@@ -2033,8 +2058,8 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates3D(
 
     PointVector points;
     for (auto &i_cond : r_skin_sub_model_part.Conditions()) {
-        points.push_back(Kratos::make_intrusive<PointType>(
-            i_cond.Id(),
+        points.push_back(Kratos::make_shared<PointType>(
+            r_skin_sub_model_part.pGetCondition(i_cond.Id()),
             i_cond.GetGeometry().Center().X(),
             i_cond.GetGeometry().Center().Y(),
             i_cond.GetGeometry().Center().Z()
@@ -2105,7 +2130,7 @@ bool SnakeSbmProcess::IsInside3D(
 }
 
 void SnakeSbmProcess::RemoveIslands3D(
-    std::vector<std::vector<std::vector<std::vector<int>>>>& rKnotSpansAvailable)
+    std::vector<SnakeSbmProcess::KnotSpanGrid3D>& rKnotSpansAvailable)
 {
     const std::array<std::array<int, 3>, 6> directions{{
         {{1, 0, 0}},
@@ -2161,7 +2186,7 @@ void SnakeSbmProcess::SnakeStep3D(
     const Vector rKnotStepUVW, 
     const Vector rStartingPosition,
     ModelPart& rSkinModelPart, 
-    std::vector<std::vector<std::vector<std::vector<int>>>>& rKnotSpansAvailable,
+    std::vector<SnakeSbmProcess::KnotSpanGrid3D>& rKnotSpansAvailable,
     array_1d<IndexType, 3>& ordered_ids)
 {
     bool isSplitted = false;
@@ -2374,7 +2399,7 @@ void SnakeSbmProcess::MarkKnotSpansAvailable3D(
     const std::vector<int>& rNumberKnotSpans, 
     const array_1d<double, 3>& rKnotStepUVW,
     const Vector& rStartingPosition,
-    std::vector<std::vector<std::vector<std::vector<int>>>> & rKnotSpansAvailable) 
+    std::vector<SnakeSbmProcess::KnotSpanGrid3D>& rKnotSpansAvailable) 
 {
     for (int k = 0; k < rNumberKnotSpans[2]; ++k) {
         for (int i = 0; i < rNumberKnotSpans[1]; ++i) {
@@ -2464,8 +2489,8 @@ bool SnakeSbmProcess::IsPointInsideSkinBoundary3D(
     const ModelPart& rSkinModelPart)
 {    
     // Get the nearest point of the true boundary
-    DynamicBinsPointerType p_point_to_search = DynamicBinsPointerType(new PointType(1, rPoint1.X(), rPoint1.Y(), rPoint1.Z()));
-    DynamicBinsPointerType p_nearest_point = rPointsBin.SearchNearestPoint(*p_point_to_search);
+    const PointType point_to_search(rPoint1.X(), rPoint1.Y(), rPoint1.Z());
+    DynamicBinsPointerType p_nearest_point = rPointsBin.SearchNearestPoint(point_to_search);
     
     // Get the closest Condition
     IndexType id_1 = p_nearest_point->Id();
@@ -2512,7 +2537,7 @@ void SnakeSbmProcess::CreateSurrogateBuondaryFromSnakeInner3D(
     const Vector& rKnotVectorV,
     const Vector& rKnotVectorW,
     const Vector& rStartingPositionUVW,
-    std::vector<std::vector<std::vector<std::vector<int>>>>& rKnotSpansAvailable,
+    std::vector<SnakeSbmProcess::KnotSpanGrid3D>& rKnotSpansAvailable,
     ModelPart& rSurrogateModelPartInner
     ) 
 {
@@ -2521,18 +2546,6 @@ void SnakeSbmProcess::CreateSurrogateBuondaryFromSnakeInner3D(
     const double knot_step_w = rKnotVectorW[1] - rKnotVectorW[0];
 
     IndexType id_surrogate_first_node = rSurrogateModelPartInner.GetParentModelPart().NumberOfNodes() + 1;
-    IndexType id_node = id_surrogate_first_node;
-
-    // Create nodes for each knot span position
-    for (int k = 0; k < rNumberKnotSpans[2]+1; ++k) {
-        for (int j = 0; j < rNumberKnotSpans[1]+1; ++j) {
-            for (int i = 0; i < rNumberKnotSpans[0]+1; ++i) {
-                rSurrogateModelPartInner.CreateNewNode(id_node, rKnotVectorU[i], rKnotVectorV[j], rKnotVectorW[k]);
-                ++id_node;
-            }
-        }
-    }
-
     auto p_cond_prop = rSurrogateModelPartInner.pGetProperties(0);
     IndexType id_surrogate_condition = rSurrogateModelPartInner.NumberOfConditions() + 1;
     IndexType id_surrogate_first_condition = id_surrogate_condition;
@@ -2575,6 +2588,11 @@ void SnakeSbmProcess::CreateSurrogateBuondaryFromSnakeInner3D(
                         IndexType id_node_3 = id_surrogate_first_node + node3_i + node3_j*(rNumberKnotSpans[0]+1) + node3_k*(rNumberKnotSpans[1]+1)*(rNumberKnotSpans[0]+1);
                         IndexType id_node_4 = id_surrogate_first_node + node4_i + node4_j*(rNumberKnotSpans[0]+1) + node4_k*(rNumberKnotSpans[1]+1)*(rNumberKnotSpans[0]+1);
 
+                        RetrieveOrCreateNodeInModelPart(rSurrogateModelPartInner, id_node_1, node1_i, node1_j, node1_k, rKnotVectorU, rKnotVectorV, rKnotVectorW);
+                        RetrieveOrCreateNodeInModelPart(rSurrogateModelPartInner, id_node_2, node2_i, node2_j, node2_k, rKnotVectorU, rKnotVectorV, rKnotVectorW);
+                        RetrieveOrCreateNodeInModelPart(rSurrogateModelPartInner, id_node_3, node3_i, node3_j, node3_k, rKnotVectorU, rKnotVectorV, rKnotVectorW);
+                        RetrieveOrCreateNodeInModelPart(rSurrogateModelPartInner, id_node_4, node4_i, node4_j, node4_k, rKnotVectorU, rKnotVectorV, rKnotVectorW);
+
                         auto pcond = rSurrogateModelPartInner.CreateNewCondition("SurfaceCondition3D4N", id_surrogate_condition++, {{id_node_1, id_node_2, id_node_3, id_node_4}}, p_cond_prop);
                         pcond->Set(BOUNDARY, false);
                         check_next_point = false;
@@ -2589,6 +2607,11 @@ void SnakeSbmProcess::CreateSurrogateBuondaryFromSnakeInner3D(
                     IndexType id_node_2 = id_surrogate_first_node + node2_i + node2_j*(rNumberKnotSpans[0]+1) + node2_k*(rNumberKnotSpans[1]+1)*(rNumberKnotSpans[0]+1);
                     IndexType id_node_3 = id_surrogate_first_node + node3_i + node3_j*(rNumberKnotSpans[0]+1) + node3_k*(rNumberKnotSpans[1]+1)*(rNumberKnotSpans[0]+1);
                     IndexType id_node_4 = id_surrogate_first_node + node4_i + node4_j*(rNumberKnotSpans[0]+1) + node4_k*(rNumberKnotSpans[1]+1)*(rNumberKnotSpans[0]+1);
+
+                    RetrieveOrCreateNodeInModelPart(rSurrogateModelPartInner, id_node_1, node1_i, node1_j, node1_k, rKnotVectorU, rKnotVectorV, rKnotVectorW);
+                    RetrieveOrCreateNodeInModelPart(rSurrogateModelPartInner, id_node_2, node2_i, node2_j, node2_k, rKnotVectorU, rKnotVectorV, rKnotVectorW);
+                    RetrieveOrCreateNodeInModelPart(rSurrogateModelPartInner, id_node_3, node3_i, node3_j, node3_k, rKnotVectorU, rKnotVectorV, rKnotVectorW);
+                    RetrieveOrCreateNodeInModelPart(rSurrogateModelPartInner, id_node_4, node4_i, node4_j, node4_k, rKnotVectorU, rKnotVectorV, rKnotVectorW);
 
                     auto pcond = rSurrogateModelPartInner.CreateNewCondition("SurfaceCondition3D4N", id_surrogate_condition++, {{id_node_1, id_node_2, id_node_3, id_node_4}}, p_cond_prop);
                     pcond->Set(BOUNDARY, true);
@@ -2620,6 +2643,11 @@ void SnakeSbmProcess::CreateSurrogateBuondaryFromSnakeInner3D(
                     IndexType id_node_3 = id_surrogate_first_node + node3_i + node3_j*(rNumberKnotSpans[0]+1) + node3_k*(rNumberKnotSpans[1]+1)*(rNumberKnotSpans[0]+1);
                     IndexType id_node_4 = id_surrogate_first_node + node4_i + node4_j*(rNumberKnotSpans[0]+1) + node4_k*(rNumberKnotSpans[1]+1)*(rNumberKnotSpans[0]+1);
 
+                    RetrieveOrCreateNodeInModelPart(rSurrogateModelPartInner, id_node_1, node1_i, node1_j, node1_k, rKnotVectorU, rKnotVectorV, rKnotVectorW);
+                    RetrieveOrCreateNodeInModelPart(rSurrogateModelPartInner, id_node_2, node2_i, node2_j, node2_k, rKnotVectorU, rKnotVectorV, rKnotVectorW);
+                    RetrieveOrCreateNodeInModelPart(rSurrogateModelPartInner, id_node_3, node3_i, node3_j, node3_k, rKnotVectorU, rKnotVectorV, rKnotVectorW);
+                    RetrieveOrCreateNodeInModelPart(rSurrogateModelPartInner, id_node_4, node4_i, node4_j, node4_k, rKnotVectorU, rKnotVectorV, rKnotVectorW);
+
                     auto pcond = rSurrogateModelPartInner.CreateNewCondition(
                         "SurfaceCondition3D4N", id_surrogate_condition++, 
                         {{id_node_1, id_node_2, id_node_3, id_node_4}}, p_cond_prop);
@@ -2637,6 +2665,11 @@ void SnakeSbmProcess::CreateSurrogateBuondaryFromSnakeInner3D(
                     IndexType id_node_2 = id_surrogate_first_node + node2_i + node2_j*(rNumberKnotSpans[0]+1) + node2_k*(rNumberKnotSpans[1]+1)*(rNumberKnotSpans[0]+1);
                     IndexType id_node_3 = id_surrogate_first_node + node3_i + node3_j*(rNumberKnotSpans[0]+1) + node3_k*(rNumberKnotSpans[1]+1)*(rNumberKnotSpans[0]+1);
                     IndexType id_node_4 = id_surrogate_first_node + node4_i + node4_j*(rNumberKnotSpans[0]+1) + node4_k*(rNumberKnotSpans[1]+1)*(rNumberKnotSpans[0]+1);
+
+                    RetrieveOrCreateNodeInModelPart(rSurrogateModelPartInner, id_node_1, node1_i, node1_j, node1_k, rKnotVectorU, rKnotVectorV, rKnotVectorW);
+                    RetrieveOrCreateNodeInModelPart(rSurrogateModelPartInner, id_node_2, node2_i, node2_j, node2_k, rKnotVectorU, rKnotVectorV, rKnotVectorW);
+                    RetrieveOrCreateNodeInModelPart(rSurrogateModelPartInner, id_node_3, node3_i, node3_j, node3_k, rKnotVectorU, rKnotVectorV, rKnotVectorW);
+                    RetrieveOrCreateNodeInModelPart(rSurrogateModelPartInner, id_node_4, node4_i, node4_j, node4_k, rKnotVectorU, rKnotVectorV, rKnotVectorW);
 
                     auto pcond = rSurrogateModelPartInner.CreateNewCondition(
                         "SurfaceCondition3D4N", id_surrogate_condition++, 
@@ -2673,6 +2706,11 @@ void SnakeSbmProcess::CreateSurrogateBuondaryFromSnakeInner3D(
                     IndexType id_node_3 = id_surrogate_first_node + node3_i + node3_j*(rNumberKnotSpans[0]+1) + node3_k*(rNumberKnotSpans[1]+1)*(rNumberKnotSpans[0]+1);
                     IndexType id_node_4 = id_surrogate_first_node + node4_i + node4_j*(rNumberKnotSpans[0]+1) + node4_k*(rNumberKnotSpans[1]+1)*(rNumberKnotSpans[0]+1);
 
+                    RetrieveOrCreateNodeInModelPart(rSurrogateModelPartInner, id_node_1, node1_i, node1_j, node1_k, rKnotVectorU, rKnotVectorV, rKnotVectorW);
+                    RetrieveOrCreateNodeInModelPart(rSurrogateModelPartInner, id_node_2, node2_i, node2_j, node2_k, rKnotVectorU, rKnotVectorV, rKnotVectorW);
+                    RetrieveOrCreateNodeInModelPart(rSurrogateModelPartInner, id_node_3, node3_i, node3_j, node3_k, rKnotVectorU, rKnotVectorV, rKnotVectorW);
+                    RetrieveOrCreateNodeInModelPart(rSurrogateModelPartInner, id_node_4, node4_i, node4_j, node4_k, rKnotVectorU, rKnotVectorV, rKnotVectorW);
+
                     auto pcond = rSurrogateModelPartInner.CreateNewCondition(
                         "SurfaceCondition3D4N", id_surrogate_condition++, 
                         {{id_node_1, id_node_2, id_node_3, id_node_4}}, p_cond_prop);
@@ -2691,6 +2729,11 @@ void SnakeSbmProcess::CreateSurrogateBuondaryFromSnakeInner3D(
                     IndexType id_node_3 = id_surrogate_first_node + node3_i + node3_j*(rNumberKnotSpans[0]+1) + node3_k*(rNumberKnotSpans[1]+1)*(rNumberKnotSpans[0]+1);
                     IndexType id_node_4 = id_surrogate_first_node + node4_i + node4_j*(rNumberKnotSpans[0]+1) + node4_k*(rNumberKnotSpans[1]+1)*(rNumberKnotSpans[0]+1);
 
+                    RetrieveOrCreateNodeInModelPart(rSurrogateModelPartInner, id_node_1, node1_i, node1_j, node1_k, rKnotVectorU, rKnotVectorV, rKnotVectorW);
+                    RetrieveOrCreateNodeInModelPart(rSurrogateModelPartInner, id_node_2, node2_i, node2_j, node2_k, rKnotVectorU, rKnotVectorV, rKnotVectorW);
+                    RetrieveOrCreateNodeInModelPart(rSurrogateModelPartInner, id_node_3, node3_i, node3_j, node3_k, rKnotVectorU, rKnotVectorV, rKnotVectorW);
+                    RetrieveOrCreateNodeInModelPart(rSurrogateModelPartInner, id_node_4, node4_i, node4_j, node4_k, rKnotVectorU, rKnotVectorV, rKnotVectorW);
+
                     auto pcond = rSurrogateModelPartInner.CreateNewCondition(
                         "SurfaceCondition3D4N", id_surrogate_condition++, 
                         {{id_node_1, id_node_2, id_node_3, id_node_4}}, p_cond_prop);
@@ -2706,6 +2749,22 @@ void SnakeSbmProcess::CreateSurrogateBuondaryFromSnakeInner3D(
     // Create dummy element to keep track of first and last surrogate condition
     IndexType id_surrogate_last_condition = id_surrogate_condition - 1;
     IndexType id_surrogate_elem = rSurrogateModelPartInner.NumberOfElements() + 1;
+
+    auto ensure_dummy_node = [&](IndexType node_id, const double x, const double y, const double z) {
+        if (rSurrogateModelPartInner.HasNode(node_id)) {
+            return rSurrogateModelPartInner.pGetNode(node_id);
+        }
+        auto& r_root = rSurrogateModelPartInner.GetRootModelPart();
+        if (r_root.HasNode(node_id)) {
+            auto p_node = r_root.pGetNode(node_id);
+            rSurrogateModelPartInner.AddNode(p_node);
+            return p_node;
+        }
+        return rSurrogateModelPartInner.CreateNewNode(node_id, x, y, z);
+    };
+    ensure_dummy_node(id_surrogate_first_condition, 0.0, 0.0, 0.0);
+    ensure_dummy_node(id_surrogate_last_condition, 1.0, 0.0, 0.0);
+
     std::vector<ModelPart::IndexType> elem_nodes{id_surrogate_first_condition, id_surrogate_last_condition};
     rSurrogateModelPartInner.CreateNewElement("Element3D2N", id_surrogate_elem, elem_nodes, p_cond_prop);
 }
@@ -2727,7 +2786,7 @@ void SnakeSbmProcess::CreateSurrogateBuondaryFromSnakeOuter3D(
     const Vector& rKnotVectorV,
     const Vector& rKnotVectorW,
     const Vector& rStartingPositionUVW,
-    std::vector<std::vector<std::vector<std::vector<int>>>>& rKnotSpansAvailable,
+    std::vector<SnakeSbmProcess::KnotSpanGrid3D>& rKnotSpansAvailable,
     ModelPart& rSurrogateModelPartOuter
     ) 
 {
@@ -2737,18 +2796,6 @@ void SnakeSbmProcess::CreateSurrogateBuondaryFromSnakeOuter3D(
     const double knot_step_w = rKnotVectorW[1] - rKnotVectorW[0];
 
     IndexType id_surrogate_first_node = rSurrogateModelPartOuter.GetParentModelPart().NumberOfNodes() + 1;
-    IndexType id_node = id_surrogate_first_node;
-
-    // Create nodes for each knot span position
-    for (int k = 0; k < rNumberKnotSpans[2]+1; ++k) {
-        for (int j = 0; j < rNumberKnotSpans[1]+1; ++j) {
-            for (int i = 0; i < rNumberKnotSpans[0]+1; ++i) {
-                rSurrogateModelPartOuter.CreateNewNode(id_node, rKnotVectorU[i], rKnotVectorV[j], rKnotVectorW[k]);
-                ++id_node;
-            }
-        }
-    }
-
     auto p_cond_prop = rSurrogateModelPartOuter.pGetProperties(0);
     IndexType id_surrogate_condition = rSurrogateModelPartOuter.GetRootModelPart().NumberOfConditions() + 1;
 
@@ -2766,7 +2813,7 @@ void SnakeSbmProcess::CreateSurrogateBuondaryFromSnakeOuter3D(
 
                 if (check_next_point) {
                     bool is_exiting = false;
-                    int& current_value = rKnotSpansAvailable[IdMatrix][k][j][i];
+                    auto& current_value = rKnotSpansAvailable[IdMatrix][k][j][i];
 
                     if (current_value == 1) {
                         // Already active, OK
@@ -2798,6 +2845,11 @@ void SnakeSbmProcess::CreateSurrogateBuondaryFromSnakeOuter3D(
                         IndexType id_node_3 = id_surrogate_first_node + node3_i + node3_j*(rNumberKnotSpans[0]+1) + node3_k*(rNumberKnotSpans[1]+1)*(rNumberKnotSpans[0]+1);
                         IndexType id_node_4 = id_surrogate_first_node + node4_i + node4_j*(rNumberKnotSpans[0]+1) + node4_k*(rNumberKnotSpans[1]+1)*(rNumberKnotSpans[0]+1);
 
+                        RetrieveOrCreateNodeInModelPart(rSurrogateModelPartOuter, id_node_1, node1_i, node1_j, node1_k, rKnotVectorU, rKnotVectorV, rKnotVectorW);
+                        RetrieveOrCreateNodeInModelPart(rSurrogateModelPartOuter, id_node_2, node2_i, node2_j, node2_k, rKnotVectorU, rKnotVectorV, rKnotVectorW);
+                        RetrieveOrCreateNodeInModelPart(rSurrogateModelPartOuter, id_node_3, node3_i, node3_j, node3_k, rKnotVectorU, rKnotVectorV, rKnotVectorW);
+                        RetrieveOrCreateNodeInModelPart(rSurrogateModelPartOuter, id_node_4, node4_i, node4_j, node4_k, rKnotVectorU, rKnotVectorV, rKnotVectorW);
+
                         auto pcond = rSurrogateModelPartOuter.CreateNewCondition("SurfaceCondition3D4N", id_surrogate_condition++, {{id_node_1, id_node_2, id_node_3, id_node_4}}, p_cond_prop);
                         pcond->Set(BOUNDARY, false);
                         check_next_point = false; // Exit surface
@@ -2812,6 +2864,11 @@ void SnakeSbmProcess::CreateSurrogateBuondaryFromSnakeOuter3D(
                     IndexType id_node_2 = id_surrogate_first_node + node2_i + node2_j*(rNumberKnotSpans[0]+1) + node2_k*(rNumberKnotSpans[1]+1)*(rNumberKnotSpans[0]+1);
                     IndexType id_node_3 = id_surrogate_first_node + node3_i + node3_j*(rNumberKnotSpans[0]+1) + node3_k*(rNumberKnotSpans[1]+1)*(rNumberKnotSpans[0]+1);
                     IndexType id_node_4 = id_surrogate_first_node + node4_i + node4_j*(rNumberKnotSpans[0]+1) + node4_k*(rNumberKnotSpans[1]+1)*(rNumberKnotSpans[0]+1);
+
+                    RetrieveOrCreateNodeInModelPart(rSurrogateModelPartOuter, id_node_1, node1_i, node1_j, node1_k, rKnotVectorU, rKnotVectorV, rKnotVectorW);
+                    RetrieveOrCreateNodeInModelPart(rSurrogateModelPartOuter, id_node_2, node2_i, node2_j, node2_k, rKnotVectorU, rKnotVectorV, rKnotVectorW);
+                    RetrieveOrCreateNodeInModelPart(rSurrogateModelPartOuter, id_node_3, node3_i, node3_j, node3_k, rKnotVectorU, rKnotVectorV, rKnotVectorW);
+                    RetrieveOrCreateNodeInModelPart(rSurrogateModelPartOuter, id_node_4, node4_i, node4_j, node4_k, rKnotVectorU, rKnotVectorV, rKnotVectorW);
 
                     auto pcond = rSurrogateModelPartOuter.CreateNewCondition("SurfaceCondition3D4N", id_surrogate_condition++, {{id_node_1, id_node_2, id_node_3, id_node_4}}, p_cond_prop);
                     pcond->Set(BOUNDARY, true);
@@ -2843,6 +2900,11 @@ void SnakeSbmProcess::CreateSurrogateBuondaryFromSnakeOuter3D(
                     IndexType id_node_3 = id_surrogate_first_node + node3_i + node3_j*(rNumberKnotSpans[0]+1) + node3_k*(rNumberKnotSpans[1]+1)*(rNumberKnotSpans[0]+1);
                     IndexType id_node_4 = id_surrogate_first_node + node4_i + node4_j*(rNumberKnotSpans[0]+1) + node4_k*(rNumberKnotSpans[1]+1)*(rNumberKnotSpans[0]+1);
 
+                    RetrieveOrCreateNodeInModelPart(rSurrogateModelPartOuter, id_node_1, node1_i, node1_j, node1_k, rKnotVectorU, rKnotVectorV, rKnotVectorW);
+                    RetrieveOrCreateNodeInModelPart(rSurrogateModelPartOuter, id_node_2, node2_i, node2_j, node2_k, rKnotVectorU, rKnotVectorV, rKnotVectorW);
+                    RetrieveOrCreateNodeInModelPart(rSurrogateModelPartOuter, id_node_3, node3_i, node3_j, node3_k, rKnotVectorU, rKnotVectorV, rKnotVectorW);
+                    RetrieveOrCreateNodeInModelPart(rSurrogateModelPartOuter, id_node_4, node4_i, node4_j, node4_k, rKnotVectorU, rKnotVectorV, rKnotVectorW);
+
                     auto pcond = rSurrogateModelPartOuter.CreateNewCondition(
                         "SurfaceCondition3D4N", id_surrogate_condition++, 
                         {{id_node_1, id_node_2, id_node_3, id_node_4}}, p_cond_prop);
@@ -2860,6 +2922,11 @@ void SnakeSbmProcess::CreateSurrogateBuondaryFromSnakeOuter3D(
                     IndexType id_node_2 = id_surrogate_first_node + node2_i + node2_j*(rNumberKnotSpans[0]+1) + node2_k*(rNumberKnotSpans[1]+1)*(rNumberKnotSpans[0]+1);
                     IndexType id_node_3 = id_surrogate_first_node + node3_i + node3_j*(rNumberKnotSpans[0]+1) + node3_k*(rNumberKnotSpans[1]+1)*(rNumberKnotSpans[0]+1);
                     IndexType id_node_4 = id_surrogate_first_node + node4_i + node4_j*(rNumberKnotSpans[0]+1) + node4_k*(rNumberKnotSpans[1]+1)*(rNumberKnotSpans[0]+1);
+
+                    RetrieveOrCreateNodeInModelPart(rSurrogateModelPartOuter, id_node_1, node1_i, node1_j, node1_k, rKnotVectorU, rKnotVectorV, rKnotVectorW);
+                    RetrieveOrCreateNodeInModelPart(rSurrogateModelPartOuter, id_node_2, node2_i, node2_j, node2_k, rKnotVectorU, rKnotVectorV, rKnotVectorW);
+                    RetrieveOrCreateNodeInModelPart(rSurrogateModelPartOuter, id_node_3, node3_i, node3_j, node3_k, rKnotVectorU, rKnotVectorV, rKnotVectorW);
+                    RetrieveOrCreateNodeInModelPart(rSurrogateModelPartOuter, id_node_4, node4_i, node4_j, node4_k, rKnotVectorU, rKnotVectorV, rKnotVectorW);
 
                     auto pcond = rSurrogateModelPartOuter.CreateNewCondition(
                         "SurfaceCondition3D4N", id_surrogate_condition++, 
@@ -2896,6 +2963,11 @@ void SnakeSbmProcess::CreateSurrogateBuondaryFromSnakeOuter3D(
                     IndexType id_node_3 = id_surrogate_first_node + node3_i + node3_j*(rNumberKnotSpans[0]+1) + node3_k*(rNumberKnotSpans[1]+1)*(rNumberKnotSpans[0]+1);
                     IndexType id_node_4 = id_surrogate_first_node + node4_i + node4_j*(rNumberKnotSpans[0]+1) + node4_k*(rNumberKnotSpans[1]+1)*(rNumberKnotSpans[0]+1);
 
+                    RetrieveOrCreateNodeInModelPart(rSurrogateModelPartOuter, id_node_1, node1_i, node1_j, node1_k, rKnotVectorU, rKnotVectorV, rKnotVectorW);
+                    RetrieveOrCreateNodeInModelPart(rSurrogateModelPartOuter, id_node_2, node2_i, node2_j, node2_k, rKnotVectorU, rKnotVectorV, rKnotVectorW);
+                    RetrieveOrCreateNodeInModelPart(rSurrogateModelPartOuter, id_node_3, node3_i, node3_j, node3_k, rKnotVectorU, rKnotVectorV, rKnotVectorW);
+                    RetrieveOrCreateNodeInModelPart(rSurrogateModelPartOuter, id_node_4, node4_i, node4_j, node4_k, rKnotVectorU, rKnotVectorV, rKnotVectorW);
+
                     auto pcond = rSurrogateModelPartOuter.CreateNewCondition(
                         "SurfaceCondition3D4N", id_surrogate_condition++, 
                         {{id_node_1, id_node_2, id_node_3, id_node_4}}, p_cond_prop);
@@ -2913,6 +2985,11 @@ void SnakeSbmProcess::CreateSurrogateBuondaryFromSnakeOuter3D(
                     IndexType id_node_2 = id_surrogate_first_node + node2_i + node2_j*(rNumberKnotSpans[0]+1) + node2_k*(rNumberKnotSpans[1]+1)*(rNumberKnotSpans[0]+1);
                     IndexType id_node_3 = id_surrogate_first_node + node3_i + node3_j*(rNumberKnotSpans[0]+1) + node3_k*(rNumberKnotSpans[1]+1)*(rNumberKnotSpans[0]+1);
                     IndexType id_node_4 = id_surrogate_first_node + node4_i + node4_j*(rNumberKnotSpans[0]+1) + node4_k*(rNumberKnotSpans[1]+1)*(rNumberKnotSpans[0]+1);
+
+                    RetrieveOrCreateNodeInModelPart(rSurrogateModelPartOuter, id_node_1, node1_i, node1_j, node1_k, rKnotVectorU, rKnotVectorV, rKnotVectorW);
+                    RetrieveOrCreateNodeInModelPart(rSurrogateModelPartOuter, id_node_2, node2_i, node2_j, node2_k, rKnotVectorU, rKnotVectorV, rKnotVectorW);
+                    RetrieveOrCreateNodeInModelPart(rSurrogateModelPartOuter, id_node_3, node3_i, node3_j, node3_k, rKnotVectorU, rKnotVectorV, rKnotVectorW);
+                    RetrieveOrCreateNodeInModelPart(rSurrogateModelPartOuter, id_node_4, node4_i, node4_j, node4_k, rKnotVectorU, rKnotVectorV, rKnotVectorW);
 
                     auto pcond = rSurrogateModelPartOuter.CreateNewCondition(
                         "SurfaceCondition3D4N", id_surrogate_condition++, 
