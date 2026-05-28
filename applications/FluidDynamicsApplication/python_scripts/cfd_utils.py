@@ -4,6 +4,7 @@ import numpy as np
 import scipy.sparse as sp
 import KratosMultiphysics as KM
 import KratosMultiphysics.FluidDynamicsApplication as CFDApp
+import warnings
 
 # Einsum optimization configuration
 opt_type = True
@@ -1063,3 +1064,183 @@ class CFDUtils:
         else:
             return None
 
+
+    def robust_cg(
+        self,
+        A,
+        b,
+        x0=None,
+        atol=0.0,
+        rtol=1e-6,
+        maxiter=200,
+        M=None,
+        callback=None,
+        mixed_precision=True,
+        ref_interval=20,  # Continues to explicitly recalculate true residual every step
+        fallback_to_minres=True,
+        verbose=False,
+    ):
+        """
+        Robust preconditioned Conjugate Gradient solver.
+        
+        Features:
+            - ref_interval=20 reduces accumulation errors in single precision.
+            - Fallback catches CG breakdown and runs native CuPy/SciPy MINRES
+            initialized from all zeros (x0=None) AND drops the preconditioner (M=None).
+        """
+
+        try:
+            import cupy as cp
+            xp = cp.get_array_module(b)
+            is_cupy = (xp is cp)
+        except ImportError:
+            import numpy as xp
+            is_cupy = False
+
+        orig_dtype = xp.asarray(b).dtype
+
+        def _as_host_bool(value):
+            return bool(value.item()) if hasattr(value, "item") else bool(value)
+
+        def _is_nonfinite(value):
+            return _as_host_bool(~xp.isfinite(value))
+
+        def _matvec(op, v):
+            if hasattr(op, "matvec"):
+                return op.matvec(v)
+            if callable(op):
+                return op(v)
+            return op @ v
+
+        def _psolve(precond, v):
+            if precond is None:
+                return v
+            if hasattr(precond, "matvec"):
+                return precond.matvec(v)
+            if callable(precond):
+                return precond(v)
+            return precond @ v
+
+        def _zero_like_b(dtype):
+            return xp.zeros_like(b, dtype=dtype)
+
+        if atol < 0.0 or rtol < 0.0:
+            raise ValueError("Tolerances must be non-negative")
+
+        b = xp.asarray(b)
+        if maxiter is None:
+            maxiter = 2 * b.size
+
+        if mixed_precision and orig_dtype == xp.float32:
+            acc_dtype = xp.float64
+        else:
+            acc_dtype = orig_dtype
+
+        b_acc = b.astype(acc_dtype, copy=False)
+        b_norm = xp.linalg.norm(b_acc)
+        b_norm_value = float(b_norm.item()) if hasattr(b_norm, "item") else float(b_norm)
+
+        if _as_host_bool(b_norm == 0):
+            return _zero_like_b(orig_dtype), 0
+
+        threshold = max(atol, rtol * b_norm_value)
+
+        # Native MINRES Fallback Execution (Preconditioner Stripped)
+        def _run_native_minres_fallback():
+            if verbose:
+                print("CG breakdown detected. Re-solving from zero using native MINRES WITHOUT preconditioning.")
+            
+            if is_cupy:
+                from cupyx.scipy.sparse.linalg import minres
+            else:
+                from scipy.sparse.linalg import minres
+
+            effective_tol = max(rtol, atol / b_norm_value if b_norm_value > 0 else rtol)
+
+            try:
+                # We explicitly pass x0=None and M=None to isolate the raw matrix system
+                x_min, info_min = minres(
+                    A, 
+                    b, 
+                    x0=None, 
+                    tol=effective_tol, 
+                    maxiter=maxiter, 
+                    M=None,  # Preconditioner is dropped here
+                    callback=callback
+                )
+                return xp.asarray(x_min, dtype=acc_dtype), info_min
+            except Exception as e:
+                if verbose:
+                    print(f"MINRES fallback encountered an execution error: {e}")
+                return _zero_like_b(acc_dtype), -2
+
+        # Standard CG Engine Loop
+        def _run_cg_loop(current_x0, iterations_allocated):
+            if current_x0 is None:
+                raise ValueError("x0 should be a vector")
+            else:
+                x = xp.asarray(current_x0, dtype=acc_dtype)
+                if _as_host_bool(xp.any(x)):
+                    Ax = xp.asarray(_matvec(A, x.astype(orig_dtype, copy=False)), dtype=acc_dtype)
+                    r = b_acc - Ax
+                else:
+                    r = b_acc.copy()
+
+            rho_prev = None
+            p = None
+
+            for iteration in range(iterations_allocated):
+                if ref_interval is not None and ref_interval > 0 and iteration > 0 and iteration % ref_interval == 0:
+                    Ax = xp.asarray(_matvec(A, x.astype(orig_dtype, copy=False)), dtype=acc_dtype)
+                    r = b_acc - Ax
+
+                r_norm = xp.linalg.norm(r)
+                if _as_host_bool(r_norm < threshold):
+                    return x, 0
+
+                z = xp.asarray(_psolve(M, r.astype(orig_dtype, copy=False)), dtype=acc_dtype)
+                rho_cur = xp.dot(r, z)
+
+                if _as_host_bool(rho_cur == 0) or _is_nonfinite(rho_cur):
+                    print("CG breakdown detected. rho_cur =", rho_cur)
+                    return x, -2  # Breakdown signal
+
+                if iteration > 0:
+                    beta = rho_cur / rho_prev
+                    p = z + beta * p
+                else:
+                    p = z.copy()
+
+                p_orig = p.astype(orig_dtype, copy=False)
+                Ap = xp.asarray(_matvec(A, p_orig), dtype=acc_dtype)
+                p_Ap = xp.dot(p, Ap)
+
+                if _as_host_bool(p_Ap <= 0) or _is_nonfinite(p_Ap):
+                    print("CG breakdown detected. p_Ap =", p_Ap)
+                    return x, -3  # Breakdown signal
+
+                alpha = rho_cur / p_Ap
+                x += alpha * p
+                r -= alpha * Ap
+                rho_prev = rho_cur
+
+                if callback is not None:
+                    callback(x.astype(orig_dtype, copy=False))
+
+            r_norm = xp.linalg.norm(r)
+            if _as_host_bool(r_norm < threshold):
+                return x, 0
+
+            return x, iterations_allocated
+
+        # --- Execution Pipeline ---
+        
+        # Step 1: Run standard CG tracking from user-provided x0 and M
+        x_res, info = _run_cg_loop(x0, maxiter)
+
+        # Step 2: Handle breakdown by pivoting to MINRES with clean slates (x0=None, M=None)
+        if info < -1 and fallback_to_minres:
+            print("falling back to minres")
+            x_res, info = _run_native_minres_fallback()
+
+        return x_res.astype(orig_dtype, copy=False), info
