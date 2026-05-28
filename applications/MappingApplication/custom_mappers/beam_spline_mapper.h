@@ -358,10 +358,6 @@ private:
         const std::vector<double>& rSourceCoordinates,
         const double ProjectionCoordinate) const;
 
-    VectorType BuildEvaluationDerivativeRow(
-        const std::vector<double>& rSourceCoordinates,
-        const double ProjectionCoordinate) const;
-
     VectorType BuildRightHandSide(
         const std::vector<double>& rDisplacements,
         const std::vector<double>& rRotations) const;
@@ -442,7 +438,6 @@ private:
 
     VectorType EvaluatePointDisplacementLocal(
         const VectorType& rEvaluationRow,
-        const VectorType& rEvaluationDerivativeRow,
         const VectorType& rSplineCoefficientsY,
         const VectorType& rSplineCoefficientsZ,
         const double AxialDisplacement,

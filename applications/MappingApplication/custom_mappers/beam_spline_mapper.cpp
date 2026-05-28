@@ -252,6 +252,7 @@ void BeamSplineMapperInterfaceInfo::SaveSearchResult(
         *p_geom,
         point_to_proj,
         mLocalCoordTol,
+        //here get the linear shape function values, which are needed for the approximation if the projection fails, to avoid recomputing them
         linear_shape_function_values,
         eq_ids,
         proj_dist,
@@ -679,9 +680,6 @@ void BeamSplineMapper<TSparseSpace, TDenseSpace>::InitializeInformationBeams(
         const VectorType evaluation_row = BuildEvaluationRow(
             r_beam_chain_cache_data.LocalXCoordinates,
             projection_coordinate);
-        const VectorType evaluation_derivative_row = BuildEvaluationDerivativeRow(
-            r_beam_chain_cache_data.LocalXCoordinates,
-            projection_coordinate);
 
         const double axial_displacement =
             projection_data.LinearShapeValues(0) * r_source_state_data.LocalDisplacements[0][first_segment_node_index] +
@@ -700,7 +698,6 @@ void BeamSplineMapper<TSparseSpace, TDenseSpace>::InitializeInformationBeams(
 
         const VectorType local_displacement = EvaluatePointDisplacementLocal(
             evaluation_row,
-            evaluation_derivative_row,
             r_source_state_data.SplineCoefficientsY,
             r_source_state_data.SplineCoefficientsZ,
             axial_displacement,
@@ -839,30 +836,6 @@ BeamSplineMapper<TSparseSpace, TDenseSpace>::BuildEvaluationRow(
     */
 
     return evaluation_row;
-}
-
-template<class TSparseSpace, class TDenseSpace>
-typename BeamSplineMapper<TSparseSpace, TDenseSpace>::VectorType
-BeamSplineMapper<TSparseSpace, TDenseSpace>::BuildEvaluationDerivativeRow(
-    const std::vector<double>& rSourceCoordinates,
-    const double ProjectionCoordinate) const
-{
-    const IndexType number_of_source_nodes = rSourceCoordinates.size();
-    KRATOS_ERROR_IF(number_of_source_nodes < 2)
-        << "BeamSplineMapper requires at least two source coordinates to build an evaluation derivative row." << std::endl;
-
-    VectorType evaluation_derivative_row(2 * number_of_source_nodes + 2, 0.0);
-
-    for (IndexType j = 0; j < number_of_source_nodes; ++j) {
-        const double distance = ProjectionCoordinate - rSourceCoordinates[j];
-        evaluation_derivative_row(j) = EvaluateKernelFirstDerivative(distance);
-        evaluation_derivative_row(number_of_source_nodes + j) = EvaluateKernelSecondDerivative(distance);
-    }
-
-    evaluation_derivative_row(2 * number_of_source_nodes) = 0.0;
-    evaluation_derivative_row(2 * number_of_source_nodes + 1) = 1.0;
-
-    return evaluation_derivative_row;
 }
 
 template<class TSparseSpace, class TDenseSpace>
@@ -1512,7 +1485,6 @@ template<class TSparseSpace, class TDenseSpace>
 typename BeamSplineMapper<TSparseSpace, TDenseSpace>::VectorType
 BeamSplineMapper<TSparseSpace, TDenseSpace>::EvaluatePointDisplacementLocal(
     const VectorType& rEvaluationRow,
-    const VectorType& rEvaluationDerivativeRow,
     const VectorType& rSplineCoefficientsY,
     const VectorType& rSplineCoefficientsZ,
     const double AxialDisplacement,
@@ -1521,58 +1493,26 @@ BeamSplineMapper<TSparseSpace, TDenseSpace>::EvaluatePointDisplacementLocal(
 {
     const double transverse_displacement_y = inner_prod(rEvaluationRow, rSplineCoefficientsY);
     const double transverse_displacement_z = inner_prod(rEvaluationRow, rSplineCoefficientsZ);
-    const double transverse_slope_y = inner_prod(rEvaluationDerivativeRow, rSplineCoefficientsY);
-    const double transverse_slope_z = inner_prod(rEvaluationDerivativeRow, rSplineCoefficientsZ);
 
     VectorType centerline_displacement(3);
     centerline_displacement(0) = AxialDisplacement;
     centerline_displacement(1) = transverse_displacement_y;
     centerline_displacement(2) = transverse_displacement_z;
 
-    const double theta_x = TorsionalRotation;
-    const double theta_y = -transverse_slope_z;
-    const double theta_z = transverse_slope_y;
+    VectorType torsion_rotation_vector(3);
+    torsion_rotation_vector(0) = TorsionalRotation;
+    torsion_rotation_vector(1) = 0.0;
+    torsion_rotation_vector(2) = 0.0;
 
-    const double cos_x = std::cos(theta_x);
-    const double sin_x = std::sin(theta_x);
-    const double cos_y = std::cos(theta_y);
-    const double sin_y = std::sin(theta_y);
-    const double cos_z = std::cos(theta_z);
-    const double sin_z = std::sin(theta_z);
-
-    MatrixType rotation_x(3, 3, 0.0);
-    rotation_x(0, 0) = 1.0;
-    rotation_x(1, 1) = cos_x;
-    rotation_x(1, 2) = -sin_x;
-    rotation_x(2, 1) = sin_x;
-    rotation_x(2, 2) = cos_x;
-
-    MatrixType rotation_y(3, 3, 0.0);
-    rotation_y(0, 0) = cos_y;
-    rotation_y(0, 2) = sin_y;
-    rotation_y(1, 1) = 1.0;
-    rotation_y(2, 0) = -sin_y;
-    rotation_y(2, 2) = cos_y;
-
-    MatrixType rotation_z(3, 3, 0.0);
-    rotation_z(0, 0) = cos_z;
-    rotation_z(0, 1) = -sin_z;
-    rotation_z(1, 0) = sin_z;
-    rotation_z(1, 1) = cos_z;
-    rotation_z(2, 2) = 1.0;
-
-    MatrixType rotation_matrix(3, 3);
-    MatrixType tmp_rotation(3, 3);
-    tmp_rotation = prod(rotation_x, rotation_z);
-    rotation_matrix = prod(tmp_rotation, rotation_y);
-
-    VectorType rotated_offset(3, 0.0);
-    TDenseSpace::Mult(rotation_matrix, rOffsetVectorLocal, rotated_offset);
+    VectorType torsional_offset(3);
+    torsional_offset(0) = torsion_rotation_vector(1) * rOffsetVectorLocal(2) - torsion_rotation_vector(2) * rOffsetVectorLocal(1);
+    torsional_offset(1) = torsion_rotation_vector(2) * rOffsetVectorLocal(0) - torsion_rotation_vector(0) * rOffsetVectorLocal(2);
+    torsional_offset(2) = torsion_rotation_vector(0) * rOffsetVectorLocal(1) - torsion_rotation_vector(1) * rOffsetVectorLocal(0);
 
     VectorType local_displacement(3);
-    local_displacement(0) = centerline_displacement(0) + rotated_offset(0) - rOffsetVectorLocal(0);
-    local_displacement(1) = centerline_displacement(1) + rotated_offset(1) - rOffsetVectorLocal(1);
-    local_displacement(2) = centerline_displacement(2) + rotated_offset(2) - rOffsetVectorLocal(2);
+    local_displacement(0) = centerline_displacement(0) + torsional_offset(0);
+    local_displacement(1) = centerline_displacement(1) + torsional_offset(1);
+    local_displacement(2) = centerline_displacement(2) + torsional_offset(2);
 
     return local_displacement;
 }
