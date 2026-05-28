@@ -55,7 +55,7 @@ protected:
         array_1d<double, 3> NormalVector;
         array_1d<double, 3> NormalVectorTilde;
         double DifferentialArea;
-        KinematicVariables(std::size_t Dimension);
+        KinematicVariables(IndexType Dimension);
     };
 
     struct ConstitutiveVariables
@@ -63,7 +63,7 @@ protected:
         Vector StrainVector;
         Vector StressVector;
         Matrix ConstitutiveMatrix;
-        ConstitutiveVariables(std::size_t StrainSize);
+        ConstitutiveVariables(IndexType StrainSize);
     };
 
 public:
@@ -252,7 +252,7 @@ private:
     Vector mDifferentialAreaVector;
 
     // The thickness Jacobian determinant for each thickness gauss point.
-    std::vector<Vector> mJacobianThicknessDeterminant;
+    std::vector<array_1d<double, 2>> mJacobianThicknessDeterminant;
 
     // Transformation matrix from local to global cartesian coordinates
     std::vector<Matrix> mTransformationMatrix;
@@ -299,7 +299,7 @@ private:
         }
     };
 
-    // Specified the number of Gauss-Points over the thickness 
+    // TO DO: for now we support two Gauss points in thickness direction, and later to be defined dynamically based on the user input
     GaussQuadratureThickness mGaussIntegrationThickness = GaussQuadratureThickness(2);
 
     ///@}
