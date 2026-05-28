@@ -70,6 +70,11 @@ private:
     bool                                      mIsModelInitialized = false;
 
     [[nodiscard]] Vector CalculateTrialStressVector(const Vector& rStrainVector, const Properties& rProperties) const;
+    [[nodiscard]] Vector CalculateStressVector(const Vector&                rStrainVector,
+                                               const Properties&            rProperties,
+                                               CoulombWithTensionCutOffImpl& rCoulombWithTensionCutOffImpl) const;
+    [[nodiscard]] Matrix CalculateNumericalTangentMatrix(const Vector&     rStrainVector,
+                                                         const Properties& rProperties) const;
 
     friend class Serializer;
     void save(Serializer& rSerializer) const override;

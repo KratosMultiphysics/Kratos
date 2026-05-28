@@ -44,6 +44,7 @@ private:
     double                                         mReductionFactor         = 1.0;
     double                                         mPreviousReductionFactor = 1.0;
     double                                         mReductionIncrement      = 0.1;
+    bool                                           mIsFirstSolutionStep     = true;
 
     [[nodiscard]] static double GetAndCheckPhi(const Properties& rModelPartProperties, IndexType ElementPropertyId);
 

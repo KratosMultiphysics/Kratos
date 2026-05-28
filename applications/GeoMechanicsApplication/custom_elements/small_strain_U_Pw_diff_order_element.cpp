@@ -38,6 +38,7 @@
 #include "custom_utilities/stress_strain_utilities.h"
 #include "custom_utilities/transport_equation_utilities.hpp"
 #include "geo_mechanics_application_constants.h"
+#include "geo_mechanics_application_variables.h"
 #include "stress_state_policy.h"
 
 #include <numeric>
@@ -575,6 +576,13 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
         OutputUtilities::CalculateShearCapacityValues(mStressVector, rOutput.begin(), GetProperties());
     } else if (rVariable == MOHR_COULOMB_YIELD_INDICATOR) {
         OutputUtilities::CalculateMohrCoulombYieldFunctionValues(mStressVector, rOutput.begin(), GetProperties());
+    } else if (rVariable == GEO_MOHR_COULOMB_PLASTIC_FLAG) {
+        for (auto integration_point = SizeType{0}; integration_point < number_of_integration_points; ++integration_point) {
+            auto plasticity_status = 0;
+            mConstitutiveLawVector[integration_point]->GetValue(GEO_PLASTICITY_STATUS, plasticity_status);
+            rOutput[integration_point] =
+                plasticity_status == static_cast<int>(PlasticityStatus::MOHR_COULOMB_FAILURE) ? 1.0 : 0.0;
+        }
     } else {
         for (unsigned int integration_point = 0; integration_point < number_of_integration_points;
              ++integration_point) {

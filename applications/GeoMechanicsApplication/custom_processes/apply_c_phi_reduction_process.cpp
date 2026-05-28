@@ -51,6 +51,7 @@ bool UsesInternalMohrCoulombModel(const Element& rElement)
 } // namespace
 
 ApplyCPhiReductionProcess::ApplyCPhiReductionProcess(Model& rModel, const Parameters& rProcessSettings)
+    : mIsFirstSolutionStep(true)
 {
     mrModelParts = ProcessUtilities::GetModelPartsFromSettings(rModel, rProcessSettings,
                                                                ApplyCPhiReductionProcess::Info());
@@ -60,8 +61,13 @@ void ApplyCPhiReductionProcess::ExecuteInitializeSolutionStep()
 {
     KRATOS_TRY
 
-    if (IsStepRestarted()) mReductionIncrement *= 0.5;
-    mReductionFactor = mPreviousReductionFactor - mReductionIncrement;
+    if (mIsFirstSolutionStep) {
+        mReductionFactor     = mPreviousReductionFactor;
+        mIsFirstSolutionStep = false;
+    } else {
+        if (IsStepRestarted()) mReductionIncrement *= 0.5;
+        mReductionFactor = mPreviousReductionFactor - mReductionIncrement;
+    }
     KRATOS_ERROR_IF(mReductionFactor <= 0.01)
         << "Reduction factor should not drop below 0.01, calculation stopped." << std::endl;
     KRATOS_ERROR_IF(mReductionIncrement <= 0.001)

@@ -13,17 +13,17 @@
 #pragma once
 
 // System includes
+#include <exception>
 #include <iostream>
-// #include <exception>
-// #include <string>
+#include <string>
 
 // External includes
 
 // Project includes
 #include "includes/define.h"
-// #include "includes/gid_io.h"
-// #include "includes/kratos_components.h"
-// #include "includes/variables.h"
+#include "includes/gid_io.h"
+#include "includes/kratos_components.h"
+#include "includes/variables.h"
 #include "solving_strategies/strategies/implicit_solving_strategy.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 #include "utilities/builtin_timer.h"
@@ -940,91 +940,111 @@ class ResidualBasedNewtonRaphsonStrategy
         TSystemVectorType& rDx = *mpDx;
         TSystemVectorType& rb  = *mpb;
 
-        // const auto& r_process_info = r_model_part.GetProcessInfo();
-        //
-        // double reduced_c = 0.0;
-        // double reduced_phi = 0.0;
-        //
-        // if (r_model_part.NumberOfElements() > 0) {
-        //     const auto& r_properties = r_model_part.ElementsBegin()->GetProperties();
-        //
-        //     const auto& r_umat_parameters_variable = KratosComponents<Variable<Vector>>::Get("UMAT_PARAMETERS");
-        //     const auto& r_c_index_variable = KratosComponents<Variable<int>>::Get("INDEX_OF_UMAT_C_PARAMETER");
-        //     const auto& r_phi_index_variable = KratosComponents<Variable<int>>::Get("INDEX_OF_UMAT_PHI_PARAMETER");
-        //
-        //     if (r_properties.Has(r_umat_parameters_variable) &&
-        //         r_properties.Has(r_c_index_variable) &&
-        //         r_properties.Has(r_phi_index_variable)) {
-        //         const auto& r_umat_parameters = r_properties[r_umat_parameters_variable];
-        //
-        //         const int c_index = r_properties[r_c_index_variable] - 1;
-        //         const int phi_index = r_properties[r_phi_index_variable] - 1;
-        //
-        //         if (c_index >= 0 && c_index < static_cast<int>(r_umat_parameters.size())) {
-        //             reduced_c = r_umat_parameters[c_index];
-        //         }
-        //
-        //         if (phi_index >= 0 && phi_index < static_cast<int>(r_umat_parameters.size())) {
-        //             reduced_phi = r_umat_parameters[phi_index];
-        //         }
-        //     }
-        // }
-        //
-        // const std::string non_linear_iterations_output_name =
-        //     "newton_iterations_step_" + std::to_string(r_process_info[STEP]) +
-        //     "_cycle_" + std::to_string(r_process_info[NUMBER_OF_CYCLES]) +
-        //     "_time_" + std::to_string(r_process_info[TIME]) +
-        //     "_c_" + std::to_string(reduced_c) +
-        //     "_phi_" + std::to_string(reduced_phi);
-        //
-        // GidIO<> non_linear_iterations_gid_io(
-        //     non_linear_iterations_output_name,
-        //     GiD_PostAscii,
-        //     SingleFile,
-        //     WriteDeformed,
-        //     WriteElementsOnly);
-        //
-        // non_linear_iterations_gid_io.InitializeMesh(0.0);
-        // non_linear_iterations_gid_io.WriteMesh(r_model_part.GetMesh());
-        // non_linear_iterations_gid_io.FinalizeMesh();
-        // non_linear_iterations_gid_io.InitializeResults(0.0, r_model_part.GetMesh());
-        //
-        // auto write_non_linear_iteration_output = [&]() {
-        //     const double label = r_model_part.GetProcessInfo()[NL_ITERATION_NUMBER];
-        //
-        //     if (r_model_part.HasNodalSolutionStepVariable(DISPLACEMENT)) {
-        //         non_linear_iterations_gid_io.WriteNodalResults(DISPLACEMENT, r_model_part.Nodes(), label, 0);
-        //     }
-        //
-        //     if (r_model_part.HasNodalSolutionStepVariable(WATER_PRESSURE)) {
-        //         non_linear_iterations_gid_io.WriteNodalResults(WATER_PRESSURE, r_model_part.Nodes(), label, 0);
-        //     }
-        //
-        //     try {
-        //         non_linear_iterations_gid_io.PrintOnGaussPoints(GREEN_LAGRANGE_STRAIN_TENSOR, r_model_part, label, 0);
-        //     } catch (const std::exception& r_error) {
-        //         KRATOS_WARNING("ResidualBasedNewtonRaphsonStrategy")
-        //             << "Could not write GREEN_LAGRANGE_STRAIN_TENSOR for non-linear iteration output: "
-        //             << r_error.what() << std::endl;
-        //     }
-        //     try {
-        //         non_linear_iterations_gid_io.PrintOnGaussPoints(CAUCHY_STRESS_TENSOR, r_model_part, label, 0);
-        //     } catch (const std::exception& r_error) {
-        //         KRATOS_WARNING("ResidualBasedNewtonRaphsonStrategy")
-        //             << "Could not write CAUCHY_STRESS_TENSOR for non-linear iteration output: "
-        //             << r_error.what() << std::endl;
-        //     }
-        //     try {
-        //         const auto& r_mohr_coulomb_yield_indicator_variable =
-        //             KratosComponents<Variable<double>>::Get("MOHR_COULOMB_YIELD_INDICATOR");
-        //         non_linear_iterations_gid_io.PrintOnGaussPoints(
-        //             r_mohr_coulomb_yield_indicator_variable, r_model_part, label, 0);
-        //     } catch (const std::exception& r_error) {
-        //         KRATOS_WARNING("ResidualBasedNewtonRaphsonStrategy")
-        //             << "Could not write MOHR_COULOMB_YIELD_INDICATOR for non-linear iteration output: "
-        //             << r_error.what() << std::endl;
-        //     }
-        // };
+        const auto& r_process_info = r_model_part.GetProcessInfo();
+
+        double reduced_c = 0.0;
+        double reduced_phi = 0.0;
+
+        if (r_model_part.NumberOfElements() > 0) {
+            const auto& r_properties = r_model_part.ElementsBegin()->GetProperties();
+
+            const auto& r_umat_parameters_variable = KratosComponents<Variable<Vector>>::Get("UMAT_PARAMETERS");
+            const auto& r_c_index_variable = KratosComponents<Variable<int>>::Get("INDEX_OF_UMAT_C_PARAMETER");
+            const auto& r_phi_index_variable = KratosComponents<Variable<int>>::Get("INDEX_OF_UMAT_PHI_PARAMETER");
+
+            if (r_properties.Has(r_umat_parameters_variable) &&
+                r_properties.Has(r_c_index_variable) &&
+                r_properties.Has(r_phi_index_variable)) {
+                const auto& r_umat_parameters = r_properties[r_umat_parameters_variable];
+
+                const int c_index = r_properties[r_c_index_variable] - 1;
+                const int phi_index = r_properties[r_phi_index_variable] - 1;
+
+                if (c_index >= 0 && c_index < static_cast<int>(r_umat_parameters.size())) {
+                    reduced_c = r_umat_parameters[c_index];
+                }
+
+                if (phi_index >= 0 && phi_index < static_cast<int>(r_umat_parameters.size())) {
+                    reduced_phi = r_umat_parameters[phi_index];
+                }
+            }
+        }
+
+        const std::string non_linear_iterations_output_name =
+            "newton_iterations_step_" + std::to_string(r_process_info[STEP]) +
+            "_cycle_" + std::to_string(r_process_info[NUMBER_OF_CYCLES]) +
+            "_time_" + std::to_string(r_process_info[TIME]) +
+            "_c_" + std::to_string(reduced_c) +
+            "_phi_" + std::to_string(reduced_phi);
+
+        GidIO<> non_linear_iterations_gid_io(
+            non_linear_iterations_output_name,
+            GiD_PostAscii,
+            SingleFile,
+            WriteDeformed,
+            WriteElementsOnly);
+
+        non_linear_iterations_gid_io.InitializeMesh(0.0);
+        non_linear_iterations_gid_io.WriteMesh(r_model_part.GetMesh());
+        non_linear_iterations_gid_io.FinalizeMesh();
+        non_linear_iterations_gid_io.InitializeResults(0.0, r_model_part.GetMesh());
+
+        auto write_non_linear_iteration_output = [&]() {
+            const double label = r_model_part.GetProcessInfo()[NL_ITERATION_NUMBER];
+
+            if (r_model_part.HasNodalSolutionStepVariable(DISPLACEMENT)) {
+                non_linear_iterations_gid_io.WriteNodalResults(DISPLACEMENT, r_model_part.Nodes(), label, 0);
+            }
+
+            if (r_model_part.HasNodalSolutionStepVariable(WATER_PRESSURE)) {
+                non_linear_iterations_gid_io.WriteNodalResults(WATER_PRESSURE, r_model_part.Nodes(), label, 0);
+            }
+
+            try {
+                non_linear_iterations_gid_io.PrintOnGaussPoints(GREEN_LAGRANGE_STRAIN_TENSOR, r_model_part, label, 0);
+            } catch (const std::exception& r_error) {
+                KRATOS_WARNING("ResidualBasedNewtonRaphsonStrategy")
+                    << "Could not write GREEN_LAGRANGE_STRAIN_TENSOR for non-linear iteration output: "
+                    << r_error.what() << std::endl;
+            }
+            try {
+                non_linear_iterations_gid_io.PrintOnGaussPoints(CAUCHY_STRESS_TENSOR, r_model_part, label, 0);
+            } catch (const std::exception& r_error) {
+                KRATOS_WARNING("ResidualBasedNewtonRaphsonStrategy")
+                    << "Could not write CAUCHY_STRESS_TENSOR for non-linear iteration output: "
+                    << r_error.what() << std::endl;
+            }
+            try {
+                const auto& r_mohr_coulomb_yield_indicator_variable =
+                    KratosComponents<Variable<double>>::Get("MOHR_COULOMB_YIELD_INDICATOR");
+                non_linear_iterations_gid_io.PrintOnGaussPoints(
+                    r_mohr_coulomb_yield_indicator_variable, r_model_part, label, 0);
+            } catch (const std::exception& r_error) {
+                KRATOS_WARNING("ResidualBasedNewtonRaphsonStrategy")
+                    << "Could not write MOHR_COULOMB_YIELD_INDICATOR for non-linear iteration output: "
+                    << r_error.what() << std::endl;
+            }
+            try {
+                const auto& r_geo_plasticity_status_variable =
+                    KratosComponents<Variable<int>>::Get("GEO_PLASTICITY_STATUS");
+                non_linear_iterations_gid_io.PrintOnGaussPoints(
+                    r_geo_plasticity_status_variable, r_model_part, label, 0);
+            } catch (const std::exception& r_error) {
+                KRATOS_WARNING("ResidualBasedNewtonRaphsonStrategy")
+                    << "Could not write GEO_PLASTICITY_STATUS for non-linear iteration output: "
+                    << r_error.what() << std::endl;
+            }
+            try {
+                const auto& r_mohr_coulomb_plastic_flag_variable =
+                    KratosComponents<Variable<double>>::Get("GEO_MOHR_COULOMB_PLASTIC_FLAG");
+                non_linear_iterations_gid_io.PrintOnGaussPoints(
+                    r_mohr_coulomb_plastic_flag_variable, r_model_part, label, 0);
+            } catch (const std::exception& r_error) {
+                KRATOS_WARNING("ResidualBasedNewtonRaphsonStrategy")
+                    << "Could not write GEO_MOHR_COULOMB_PLASTIC_FLAG for non-linear iteration output: "
+                    << r_error.what() << std::endl;
+            }
+        };
 
         //initializing the parameters of the Newton-Raphson cycle
         unsigned int iteration_number = 1;
@@ -1057,7 +1077,7 @@ class ResidualBasedNewtonRaphsonStrategy
 
         // Updating the results stored in the database
         UpdateDatabase(rA, rDx, rb, BaseType::MoveMeshFlag());
-        // write_non_linear_iteration_output();
+        write_non_linear_iteration_output();
 
         p_scheme->FinalizeNonLinIteration(r_model_part, rA, rDx, rb);
         mpConvergenceCriteria->FinalizeNonLinearIteration(r_model_part, r_dof_set, rA, rDx, rb);
@@ -1131,7 +1151,7 @@ class ResidualBasedNewtonRaphsonStrategy
 
             // Updating the results stored in the database
             UpdateDatabase(rA, rDx, rb, BaseType::MoveMeshFlag());
-            // write_non_linear_iteration_output();
+            write_non_linear_iteration_output();
 
             p_scheme->FinalizeNonLinIteration(r_model_part, rA, rDx, rb);
             mpConvergenceCriteria->FinalizeNonLinearIteration(r_model_part, r_dof_set, rA, rDx, rb);
@@ -1194,7 +1214,7 @@ class ResidualBasedNewtonRaphsonStrategy
             }
         }
 
-        // non_linear_iterations_gid_io.FinalizeResults();
+        non_linear_iterations_gid_io.FinalizeResults();
 
         return is_converged;
     }

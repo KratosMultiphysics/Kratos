@@ -22,7 +22,9 @@
 #include "custom_utilities/stress_strain_utilities.h"
 #include "geo_mechanics_application_variables.h"
 
+#include <algorithm>
 #include <cmath>
+#include <limits>
 
 namespace
 {
@@ -199,42 +201,22 @@ void MohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(ConstitutiveL
 {
     const auto& r_properties = rParameters.GetMaterialProperties();
 
-    if (rParameters.GetOptions().Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
+    const auto calculate_tangent = rParameters.GetOptions().Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+    const auto calculate_stress  = rParameters.GetOptions().Is(ConstitutiveLaw::COMPUTE_STRESS);
+
+    if (calculate_tangent && calculate_stress) {
+        rParameters.GetConstitutiveMatrix() =
+            CalculateNumericalTangentMatrix(rParameters.GetStrainVector(), r_properties);
+    } else if (calculate_tangent) {
         rParameters.GetConstitutiveMatrix() =
             mpConstitutiveDimension->CalculateElasticConstitutiveTensor(r_properties);
     }
-    if (!rParameters.GetOptions().Is(ConstitutiveLaw::COMPUTE_STRESS)) {
+    if (!calculate_stress) {
         return;
     }
 
-    const auto trial_stress_vector = CalculateTrialStressVector(rParameters.GetStrainVector(), r_properties);
-    const auto& [trial_principal_stresses, rotation_matrix] =
-        StressStrainUtilities::CalculatePrincipalStressesAndRotationMatrix(trial_stress_vector);
-
-    if (mCoulombWithTensionCutOffImpl.IsAdmissibleStressState(trial_principal_stresses)) {
-        mStressVector = trial_stress_vector;
-    } else {
-        mCoulombWithTensionCutOffImpl.SaveKappaOfCoulombYieldSurface();
-        auto mapped_principal_stresses = mCoulombWithTensionCutOffImpl.DoReturnMapping(
-            trial_principal_stresses, mpConstitutiveDimension->CalculateElasticConstitutiveTensor(r_properties),
-            Geo::PrincipalStresses::AveragingType::NO_AVERAGING);
-
-        // For interchanging principal stresses, retry mapping with averaged principal stresses.
-        if (const auto averaging_type = FindAveragingType(mapped_principal_stresses);
-            averaging_type != Geo::PrincipalStresses::AveragingType::NO_AVERAGING) {
-            const auto averaged_principal_trial_stress_vector =
-                AveragePrincipalStressComponents(trial_principal_stresses, averaging_type);
-            mCoulombWithTensionCutOffImpl.RestoreKappaOfCoulombYieldSurface();
-            mapped_principal_stresses = mCoulombWithTensionCutOffImpl.DoReturnMapping(
-                averaged_principal_trial_stress_vector,
-                mpConstitutiveDimension->CalculateElasticConstitutiveTensor(r_properties), averaging_type);
-            mapped_principal_stresses.Values()[1] =
-                mapped_principal_stresses.Values()[AveragingTypeToArrayIndex(averaging_type)];
-        }
-        mStressVector = StressStrainUtilities::RotatePrincipalStresses(
-            mapped_principal_stresses.CopyTo<Vector>(), rotation_matrix,
-            mpConstitutiveDimension->GetStrainSize());
-    }
+    mStressVector =
+        CalculateStressVector(rParameters.GetStrainVector(), r_properties, mCoulombWithTensionCutOffImpl);
     rParameters.GetStressVector() = mStressVector;
 }
 
@@ -243,6 +225,84 @@ Vector MohrCoulombWithTensionCutOff::CalculateTrialStressVector(const Vector&   
 {
     return mStressVectorFinalized + prod(mpConstitutiveDimension->CalculateElasticConstitutiveTensor(rProperties),
                                          rStrainVector - mStrainVectorFinalized);
+}
+
+Vector MohrCoulombWithTensionCutOff::CalculateStressVector(
+    const Vector&                rStrainVector,
+    const Properties&            rProperties,
+    CoulombWithTensionCutOffImpl& rCoulombWithTensionCutOffImpl) const
+{
+    const auto elastic_constitutive_tensor = mpConstitutiveDimension->CalculateElasticConstitutiveTensor(rProperties);
+    const auto trial_stress_vector         = CalculateTrialStressVector(rStrainVector, rProperties);
+    const auto& [trial_principal_stresses, rotation_matrix] =
+        StressStrainUtilities::CalculatePrincipalStressesAndRotationMatrix(trial_stress_vector);
+
+    if (rCoulombWithTensionCutOffImpl.IsAdmissibleStressState(trial_principal_stresses)) {
+        return trial_stress_vector;
+    } else {
+        rCoulombWithTensionCutOffImpl.SaveKappaOfCoulombYieldSurface();
+        auto mapped_principal_stresses = rCoulombWithTensionCutOffImpl.DoReturnMapping(
+            trial_principal_stresses, elastic_constitutive_tensor,
+            Geo::PrincipalStresses::AveragingType::NO_AVERAGING);
+
+        // For interchanging principal stresses, retry mapping with averaged principal stresses.
+        if (const auto averaging_type = FindAveragingType(mapped_principal_stresses);
+            averaging_type != Geo::PrincipalStresses::AveragingType::NO_AVERAGING) {
+            const auto averaged_principal_trial_stress_vector =
+                AveragePrincipalStressComponents(trial_principal_stresses, averaging_type);
+            rCoulombWithTensionCutOffImpl.RestoreKappaOfCoulombYieldSurface();
+            mapped_principal_stresses = rCoulombWithTensionCutOffImpl.DoReturnMapping(
+                averaged_principal_trial_stress_vector, elastic_constitutive_tensor, averaging_type);
+            mapped_principal_stresses.Values()[1] =
+                mapped_principal_stresses.Values()[AveragingTypeToArrayIndex(averaging_type)];
+        }
+        return StressStrainUtilities::RotatePrincipalStresses(
+            mapped_principal_stresses.CopyTo<Vector>(), rotation_matrix,
+            mpConstitutiveDimension->GetStrainSize());
+    }
+}
+
+Matrix MohrCoulombWithTensionCutOff::CalculateNumericalTangentMatrix(const Vector&     rStrainVector,
+                                                                     const Properties& rProperties) const
+{
+    constexpr auto perturbation_coefficient_1 = 1.0e-5;
+    constexpr auto perturbation_coefficient_2 = 1.0e-10;
+    constexpr auto perturbation_threshold     = 1.0e-8;
+
+    const auto strain_size = rStrainVector.size();
+    Matrix     result      = ZeroMatrix(strain_size, strain_size);
+    const auto minmax_strain =
+        std::minmax_element(rStrainVector.begin(), rStrainVector.end(), [](double Left, double Right) {
+            return std::abs(Left) < std::abs(Right);
+        });
+    const auto min_abs_strain = std::abs(*minmax_strain.first);
+    const auto max_abs_strain = std::abs(*minmax_strain.second);
+
+    for (auto i = SizeType{0}; i < strain_size; ++i) {
+        const auto strain_based_perturbation =
+            perturbation_coefficient_1 *
+            (std::abs(rStrainVector[i]) > std::numeric_limits<double>::epsilon()
+                 ? std::abs(rStrainVector[i])
+                 : min_abs_strain);
+        const auto perturbation = std::max({perturbation_threshold, strain_based_perturbation,
+                                            perturbation_coefficient_2 * max_abs_strain});
+
+        auto strain_plus  = rStrainVector;
+        auto strain_minus = rStrainVector;
+        strain_plus[i] += perturbation;
+        strain_minus[i] -= perturbation;
+
+        auto coulomb_with_tension_cut_off_impl_plus  = mCoulombWithTensionCutOffImpl;
+        auto coulomb_with_tension_cut_off_impl_minus = mCoulombWithTensionCutOffImpl;
+        const auto stress_plus =
+            CalculateStressVector(strain_plus, rProperties, coulomb_with_tension_cut_off_impl_plus);
+        const auto stress_minus =
+            CalculateStressVector(strain_minus, rProperties, coulomb_with_tension_cut_off_impl_minus);
+
+        column(result, i) = (stress_plus - stress_minus) / (2.0 * perturbation);
+    }
+
+    return result;
 }
 
 void MohrCoulombWithTensionCutOff::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
