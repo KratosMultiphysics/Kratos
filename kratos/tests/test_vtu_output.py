@@ -544,7 +544,7 @@ class TestVtuOutput(kratos_unittest.TestCase):
             dataset = datasets[0]
 
             relative_path = Path(vtu_file_name_list[i]).absolute().relative_to(Path(vtm_file_name).absolute().parent)
-            test_class.assertEqual(dataset.get("file"), str(relative_path))
+            test_class.assertEqual(dataset.get("file"), relative_path.as_posix())
             test_class.assertEqual(dataset.get("name"), relative_path.name[:relative_path.name.rfind("_") + 1] + "0")
         kratos_utils.DeleteFileIfExisting(vtm_file_name)
 
