@@ -20,7 +20,7 @@
 #include "modeler/modeler.h"
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
-#include "custom_utilities/mmg/mmg_utilities.h"
+#include "meshing_application.h"
 
 // NOTE: The following contains the license of the MMG library
 /* =============================================================================
