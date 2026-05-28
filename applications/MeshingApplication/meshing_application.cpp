@@ -56,6 +56,12 @@ void KratosMeshingApplication::Register() {
 
     KRATOS_REGISTER_ELEMENT("TestElement2D", mTestElement2D);
     KRATOS_REGISTER_ELEMENT("TestElement3D", mTestElement3D);
+
+#ifdef INCLUDE_MMG
+    KRATOS_REGISTER_MODELER("MmgModeler2D",      mMmgModeler2D);
+    KRATOS_REGISTER_MODELER("MmgModeler3D",      mMmgModeler3D);
+    KRATOS_REGISTER_MODELER("MmgModelerSurface", mMmgModelerSurface);
+#endif
 }
 
 }  // namespace Kratos.

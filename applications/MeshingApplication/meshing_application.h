@@ -26,6 +26,11 @@
 #include "includes/define.h"
 #include "includes/kratos_application.h"
 #include "includes/element.h"
+#include "modeler/modeler.h"
+
+#ifdef INCLUDE_MMG
+#include "custom_modelers/mmg/mmg_modeler.h"
+#endif
 
 namespace Kratos
 {
@@ -212,6 +217,12 @@ private:
 
     const Element mTestElement2D;
     const Element mTestElement3D;
+
+#ifdef INCLUDE_MMG
+    const MmgModeler<MMGLibrary::MMG2D> mMmgModeler2D;
+    const MmgModeler<MMGLibrary::MMG3D> mMmgModeler3D;
+    const MmgModeler<MMGLibrary::MMGS>  mMmgModelerSurface;
+#endif
 
     ///@}
     ///@name Private Operators
