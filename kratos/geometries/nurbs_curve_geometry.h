@@ -707,6 +707,18 @@ public:
         return rResult;
     }
 
+    void SetInternals(
+        const PointsArrayType& rThisPoints,
+        const SizeType PolynomialDegree,
+        const Vector& rKnots,
+        const Vector& rWeights)
+    {
+        this->Points() = rThisPoints;
+        mPolynomialDegree = PolynomialDegree;
+        mKnots = rKnots;
+        mWeights = rWeights;
+    }
+
     ///@}
     ///@name Geometry Family
     ///@{
