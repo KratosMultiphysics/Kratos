@@ -94,6 +94,17 @@ class CadJsonInput : public IO
         mCadJsonParameters = ReadParamatersFile(rDataFileName, EchoLevel);
     }
 
+    /// Constructor with path to input file and local refinement file.
+    CadJsonInput(
+        const std::string& rDataFileName,
+        const std::string& rLocalRefFileName,
+        SizeType EchoLevel = 0)
+        : mEchoLevel(EchoLevel)
+    {
+        mCadJsonParameters = ReadParamatersFile(rDataFileName, EchoLevel);
+        mLocalRefParameters = ReadLocalRefFile(rLocalRefFileName, EchoLevel);
+    }
+
     /// Constructor with KratosParameters.
     CadJsonInput(
         Parameters CadJsonParameters,
@@ -113,7 +124,7 @@ class CadJsonInput : public IO
     /// Adds all CAD geometries to the herin provided model_part.
     void ReadModelPart(ModelPart& rModelPart) override
     {
-        ReadGeometryModelPart(mCadJsonParameters, rModelPart, mEchoLevel);
+        ReadGeometryModelPart(mCadJsonParameters, rModelPart, mLocalRefParameters, mEchoLevel);
     }
 
     ///@}
@@ -126,12 +137,13 @@ private:
     static void ReadGeometryModelPart(
         const Parameters rCadJsonParameters,
         ModelPart& rModelPart,
+        const Parameters rLocalRefParameters,
         SizeType EchoLevel = 0)
     {
         KRATOS_ERROR_IF_NOT(rCadJsonParameters.Has("breps"))
             << "Missing \"breps\" section" << std::endl;
 
-        ReadBreps(rCadJsonParameters["breps"], rModelPart, EchoLevel);
+        ReadBreps(rCadJsonParameters["breps"], rModelPart, rLocalRefParameters, EchoLevel);
     }
 
     ///@}
@@ -141,6 +153,7 @@ private:
     static void ReadBreps(
         const Parameters rParameters,
         ModelPart& rModelPart,
+        const Parameters rLocalRefParameters,
         SizeType EchoLevel = 0)
     {
         for (IndexType brep_index = 0; brep_index < rParameters.size(); brep_index++)
@@ -151,7 +164,7 @@ private:
 
             if (rParameters[brep_index].Has("faces"))
             {
-                ReadBrepSurfaces(rParameters[brep_index]["faces"], rModelPart, EchoLevel);
+                ReadBrepSurfaces(rParameters[brep_index]["faces"], rModelPart, rLocalRefParameters, EchoLevel);
             }
         }
 
@@ -199,6 +212,7 @@ private:
     static void ReadBrepSurfaces(
         const Parameters rParameters,
         ModelPart& rModelPart,
+        const Parameters rLocalRefParameters,
         SizeType EchoLevel = 0)
     {
         KRATOS_ERROR_IF_NOT(rParameters.IsArray())
@@ -209,13 +223,14 @@ private:
 
         for (IndexType brep_surface_i = 0; brep_surface_i < rParameters.size(); ++brep_surface_i)
         {
-            ReadBrepSurface(rParameters[brep_surface_i], rModelPart, EchoLevel);
+            ReadBrepSurface(rParameters[brep_surface_i], rModelPart, rLocalRefParameters, EchoLevel);
         }
     }
 
     static void ReadBrepSurface(
         const Parameters rParameters,
         ModelPart& rModelPart,
+        const Parameters rLocalRefParameters,
         SizeType EchoLevel = 0)
     {
         KRATOS_INFO_IF("ReadBrepSurface", (EchoLevel > 3))
@@ -257,6 +272,7 @@ private:
             SetIdOrName<BrepSurfaceType>(rParameters, p_brep_surface);
 
             ReadAndAddEmbeddedEdges(p_brep_surface, rParameters, p_surface, rModelPart, EchoLevel);
+            ReadAndApplyLocalRefinement(p_brep_surface, rParameters, rLocalRefParameters, EchoLevel);
 
             rModelPart.AddGeometry(p_brep_surface);
         }
@@ -274,6 +290,7 @@ private:
             SetIdOrName<BrepSurfaceType>(rParameters, p_brep_surface);
 
             ReadAndAddEmbeddedEdges(p_brep_surface, rParameters, p_surface, rModelPart, EchoLevel);
+            ReadAndApplyLocalRefinement(p_brep_surface, rParameters, rLocalRefParameters, EchoLevel);
 
             rModelPart.AddGeometry(p_brep_surface);
         }
@@ -396,6 +413,15 @@ private:
                 pBrepSurface->AddEmbeddedEdges(embedded_edges);
             }
         }
+    }
+
+    static void ReadAndApplyLocalRefinement(
+        typename BrepSurfaceType::Pointer pBrepSurface,
+        const Parameters rFaceParameters,
+        const Parameters rLocalRefParameters,
+        SizeType EchoLevel = 0)
+    {
+        return; //todo: core functionality to read local_ref.json
     }
 
     ///@}
@@ -965,6 +991,17 @@ private:
         }
     }
 
+    /// Reads a local refinement JSON file and returns its KratosParameters instance.
+    static Parameters ReadLocalRefFile(
+        const std::string& rLocalRefFileName,
+        SizeType EchoLevel = 0)
+    {
+        std::ifstream infile(rLocalRefFileName);
+        std::stringstream buffer;
+        buffer << infile.rdbuf();
+        return Parameters(buffer.str());
+    }
+
     /// Reads in a json formatted file and returns its KratosParameters instance.
     static Parameters ReadParamatersFile(
         const std::string& rDataFileName,
@@ -992,6 +1029,7 @@ private:
     ///@{
 
     Parameters mCadJsonParameters;
+    Parameters mLocalRefParameters = Parameters("{}");
     int mEchoLevel;
 
     ///@}
