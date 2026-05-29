@@ -44,7 +44,8 @@ namespace Kratos
 {
 
 CoulombWithTensionCutOffImpl::CoulombWithTensionCutOffImpl(const Properties& rMaterialProperties)
-    : mCoulombYieldSurface{rMaterialProperties}, mTensionCutOff{rMaterialProperties[GEO_TENSILE_STRENGTH]}
+    : mCoulombYieldSurface{rMaterialProperties},
+      mTensionCutOff{std::make_optional<TensionCutoff>(rMaterialProperties[GEO_TENSILE_STRENGTH])}
 {
     if (rMaterialProperties.Has(GEO_ABS_YIELD_FUNCTION_TOLERANCE)) {
         mAbsoluteYieldFunctionValueTolerance = rMaterialProperties[GEO_ABS_YIELD_FUNCTION_TOLERANCE];
@@ -98,7 +99,7 @@ template <typename StressStateType>
 bool CoulombWithTensionCutOffImpl::IsAdmissibleStressState(const StressStateType& rTrialStressState)
 {
     const auto coulomb_yield_function_value = mCoulombYieldSurface.YieldFunctionValue(rTrialStressState);
-    const auto tension_yield_function_value = mTensionCutOff.YieldFunctionValue(rTrialStressState);
+    const auto tension_yield_function_value = mTensionCutOff->YieldFunctionValue(rTrialStressState);
     constexpr auto tolerance                = 1.0e-10;
     const auto     coulomb_tolerance = tolerance * (1.0 + std::abs(coulomb_yield_function_value));
     const auto     tension_tolerance = tolerance * (1.0 + std::abs(tension_yield_function_value));
@@ -154,7 +155,7 @@ StressStateType CoulombWithTensionCutOffImpl::DoReturnMapping(const StressStateT
 
 Geo::SigmaTau CoulombWithTensionCutOffImpl::CalculateCornerPoint() const
 {
-    const auto tensile_strength = mTensionCutOff.GetTensileStrength();
+    const auto tensile_strength = mTensionCutOff->GetTensileStrength();
     if (const auto apex = mCoulombYieldSurface.CalculateApex(); tensile_strength > apex.Sigma())
         return apex;
 
@@ -167,7 +168,7 @@ Geo::SigmaTau CoulombWithTensionCutOffImpl::CalculateCornerPoint() const
 
 bool CoulombWithTensionCutOffImpl::IsStressAtTensionApexReturnZone(const Geo::SigmaTau& rTrialTraction) const
 {
-    const auto tensile_strength = mTensionCutOff.GetTensileStrength();
+    const auto tensile_strength = mTensionCutOff->GetTensileStrength();
     return tensile_strength < mCoulombYieldSurface.CalculateApex().Sigma() &&
            rTrialTraction.Sigma() - rTrialTraction.Tau() - tensile_strength > 0.0;
 }
@@ -175,7 +176,7 @@ bool CoulombWithTensionCutOffImpl::IsStressAtTensionApexReturnZone(const Geo::Si
 bool CoulombWithTensionCutOffImpl::IsStressAtTensionCutoffReturnZone(const Geo::SigmaTau& rTrialTraction) const
 {
     const auto corner_point = CalculateCornerPoint();
-    return mTensionCutOff.GetTensileStrength() < mCoulombYieldSurface.CalculateApex().Sigma() &&
+    return mTensionCutOff->GetTensileStrength() < mCoulombYieldSurface.CalculateApex().Sigma() &&
            corner_point.Tau() - rTrialTraction.Tau() - corner_point.Sigma() + rTrialTraction.Sigma() > 0.0;
 }
 
@@ -192,7 +193,7 @@ bool CoulombWithTensionCutOffImpl::IsStressAtCornerReturnZone(const Geo::SigmaTa
 
 Geo::SigmaTau CoulombWithTensionCutOffImpl::ReturnStressAtTensionApexReturnZone(const Geo::SigmaTau&) const
 {
-    return Geo::SigmaTau{mTensionCutOff.GetTensileStrength(), 0.0};
+    return Geo::SigmaTau{mTensionCutOff->GetTensileStrength(), 0.0};
 }
 
 Geo::PrincipalStresses CoulombWithTensionCutOffImpl::ReturnStressAtTensionApexReturnZone(
@@ -210,8 +211,8 @@ Geo::SigmaTau CoulombWithTensionCutOffImpl::ReturnStressAtTensionCutoffReturnZon
     Geo::PrincipalStresses::AveragingType AveragingType) const
 {
     const auto derivative_of_flow_function =
-        mTensionCutOff.DerivativeOfFlowFunction(rTrialTraction, AveragingType);
-    const auto lambda = mTensionCutOff.CalculatePlasticMultiplier(
+        mTensionCutOff->DerivativeOfFlowFunction(rTrialTraction, AveragingType);
+    const auto lambda = mTensionCutOff->CalculatePlasticMultiplier(
         rTrialTraction, derivative_of_flow_function, rElasticConstitutiveTensor);
     return rTrialTraction +
            Geo::SigmaTau{lambda * prod(rElasticConstitutiveTensor, derivative_of_flow_function)};
@@ -223,8 +224,8 @@ Geo::PrincipalStresses CoulombWithTensionCutOffImpl::ReturnStressAtTensionCutoff
     Geo::PrincipalStresses::AveragingType AveragingType) const
 {
     const auto derivative_of_flow_function =
-        mTensionCutOff.DerivativeOfFlowFunction(rTrialPrincipalStresses, AveragingType);
-    const auto lambda = mTensionCutOff.CalculatePlasticMultiplier(
+        mTensionCutOff->DerivativeOfFlowFunction(rTrialPrincipalStresses, AveragingType);
+    const auto lambda = mTensionCutOff->CalculatePlasticMultiplier(
         rTrialPrincipalStresses, derivative_of_flow_function, rElasticConstitutiveTensor);
     return rTrialPrincipalStresses +
            Geo::PrincipalStresses{lambda * prod(subrange(rElasticConstitutiveTensor, 0, 3, 0, 3),
@@ -264,7 +265,7 @@ Geo::PrincipalStresses CoulombWithTensionCutOffImpl::ReturnStressAtCornerPoint(
     Geo::PrincipalStresses::AveragingType AveragingType) const
 {
     if (const auto apex = mCoulombYieldSurface.CalculateApex();
-        mTensionCutOff.GetTensileStrength() > apex.Sigma())
+        mTensionCutOff->GetTensileStrength() > apex.Sigma())
         return StressStrainUtilities::TransformSigmaTauToPrincipalStresses(apex, rTrialPrincipalStresses);
 
     const auto principal_stress_correction_Coulomb = CalculatePrincipalStressCorrection(
@@ -273,7 +274,7 @@ Geo::PrincipalStresses CoulombWithTensionCutOffImpl::ReturnStressAtCornerPoint(
         StressStrainUtilities::TransformPrincipalStressesToSigmaTau(principal_stress_correction_Coulomb);
 
     const auto principal_stress_correction_tension_cut_off = CalculatePrincipalStressCorrection(
-        rTrialPrincipalStresses, AveragingType, rElasticConstitutiveTensor, mTensionCutOff);
+        rTrialPrincipalStresses, AveragingType, rElasticConstitutiveTensor, *mTensionCutOff);
     const auto traction_correction_tension_cut_off =
         StressStrainUtilities::TransformPrincipalStressesToSigmaTau(principal_stress_correction_tension_cut_off);
 
@@ -290,7 +291,7 @@ Geo::PrincipalStresses CoulombWithTensionCutOffImpl::ReturnStressAtCornerPoint(
 
     const auto b = UblasUtilities::CreateVector(
         {-1.0 * mCoulombYieldSurface.YieldFunctionValue(rTrialPrincipalStresses),
-         -1.0 * mTensionCutOff.YieldFunctionValue(rTrialPrincipalStresses)});
+         -1.0 * mTensionCutOff->YieldFunctionValue(rTrialPrincipalStresses)});
     const auto plastic_multipliers = Vector{prod(A_inverse, b)};
 
     return rTrialPrincipalStresses +
@@ -315,14 +316,14 @@ PlasticityStatus CoulombWithTensionCutOffImpl::GetPlasticityStatus() const
 void CoulombWithTensionCutOffImpl::save(Serializer& rSerializer) const
 {
     rSerializer.save("CoulombYieldSurface", mCoulombYieldSurface);
-    rSerializer.save("TensionCutOff", mTensionCutOff);
+    rSerializer.save("TensionCutOff", *mTensionCutOff);
     rSerializer.save("PlasticityStatus", static_cast<int>(mPlasticityStatus));
 }
 
 void CoulombWithTensionCutOffImpl::load(Serializer& rSerializer)
 {
     rSerializer.load("CoulombYieldSurface", mCoulombYieldSurface);
-    rSerializer.load("TensionCutOff", mTensionCutOff);
+    rSerializer.load("TensionCutOff", *mTensionCutOff);
     int plasticity_status;
     rSerializer.load("PlasticityStatus", plasticity_status);
     mPlasticityStatus = static_cast<PlasticityStatus>(plasticity_status);

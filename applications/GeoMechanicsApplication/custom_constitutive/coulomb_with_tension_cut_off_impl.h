@@ -15,6 +15,8 @@
 
 #pragma once
 
+#include <optional>
+
 #include "coulomb_yield_surface.h"
 #include "custom_constitutive/principal_stresses.hpp"
 #include "geo_mechanics_application_constants.h"
@@ -52,12 +54,12 @@ public:
     [[nodiscard]] PlasticityStatus GetPlasticityStatus() const;
 
 private:
-    CoulombYieldSurface mCoulombYieldSurface;
-    TensionCutoff       mTensionCutOff;
-    double              mSavedKappaOfCoulombYieldSurface{0.0};
-    double              mAbsoluteYieldFunctionValueTolerance{1.0e-8};
-    std::size_t         mMaxNumberOfPlasticIterations{100};
-    PlasticityStatus    mPlasticityStatus{PlasticityStatus::ELASTIC};
+    CoulombYieldSurface          mCoulombYieldSurface;
+    std::optional<TensionCutoff> mTensionCutOff;
+    double                       mSavedKappaOfCoulombYieldSurface{0.0};
+    double                       mAbsoluteYieldFunctionValueTolerance{1.0e-8};
+    std::size_t                  mMaxNumberOfPlasticIterations{100};
+    PlasticityStatus             mPlasticityStatus{PlasticityStatus::ELASTIC};
 
     template <typename StressStateType>
     [[nodiscard]] bool IsAdmissibleStressState(const StressStateType& rTrialStressState);
