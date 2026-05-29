@@ -124,9 +124,8 @@ class TestVtuOutputBase:
             CompareTwoFilesCheckProcess(params).Execute()
 
         for file_path in Path(reference_prefix).iterdir():
-            if file_path.is_file():
-                self.assertTrue((Path(output_prefix) / file_path.name).is_file(), msg=f"\"{(Path(output_prefix) / file_path.name)}\" is not a file.")
-                check_file(f"{output_prefix}/{file_path.name}", str(file_path))
+            self.assertTrue((Path(output_prefix) / file_path.name).is_file(), msg=f"\"{(Path(output_prefix) / file_path.name)}\" is not a file.")
+            check_file(f"{output_prefix}/{file_path.name}", str(file_path))
         check_file(f"{output_prefix}.vtm.series", f"{reference_prefix}.vtm.series")
         check_file(f"{output_prefix}_0.vtm", f"{reference_prefix}_0.vtm")
 

@@ -1180,7 +1180,7 @@ std::pair<std::string, std::string> VtuOutput::WriteUnstructuredGridData(
     // write the vtu file.
     std::ofstream output_file;
     output_file.open(output_vtu_file_name.str(), std::ios::out | std::ios::trunc | std::ios::binary);
-    output_file << "<?xml version=\"1.0\"?>" << "\n";
+    output_file << "<?xml version=\"1.0\"?>" << std::endl;
     vtk_file_element.Write(output_file);
     output_file.close();
 
@@ -1351,8 +1351,8 @@ std::pair<std::string, std::string> VtuOutput::WriteIntegrationPointData(
             << ".vtu";
 
         std::ofstream output_file;
-        output_file.open(output_vtu_file_name.str(), std::ios::out | std::ios::trunc | std::ios::binary);
-        output_file << "<?xml version=\"1.0\"?>" << "\n";
+        output_file.open(output_vtu_file_name.str(), std::ios::out | std::ios::trunc);
+        output_file << "<?xml version=\"1.0\"?>" << std::endl;
         vtk_file_element.Write(output_file);
         output_file.close();
 
@@ -1493,8 +1493,8 @@ void VtuOutput::PrintOutput(
         }
 
         std::fstream output_file;
-        output_file.open(rOutputFileNamePrefix + "_" + std::to_string(Step) + ".vtm", std::ios::out | std::ios::trunc | std::ios::binary);
-        output_file << "<?xml version=\"1.0\"?>" << "\n";
+        output_file.open(rOutputFileNamePrefix + "_" + std::to_string(Step) + ".vtm", std::ios::out | std::ios::trunc);
+        output_file << "<?xml version=\"1.0\"?>" << std::endl;
         vtm_file_element.Write(output_file);
         output_file.close();
 
@@ -1506,16 +1506,16 @@ void VtuOutput::PrintOutput(
 
         // now write the series file having the time
         if (!mIsSeriesFileHeaderWritten) {
-            output_file.open(rOutputFileNamePrefix + ".vtm.series", std::ios::out | std::ios::trunc | std::ios::binary);
-            output_file << "{" << "\n";
-            output_file << "    \"file-series-version\" : \"1.0\"," << "\n";
-            output_file << "    \"files\" : [" << "\n";
-            output_file << "        { \"name\" : \"" + relative_vtm_file_name + "\", \"time\" : " + str_time.str() << " }" << "\n";
-            output_file << "    ]" << "\n";
+            output_file.open(rOutputFileNamePrefix + ".vtm.series", std::ios::out | std::ios::trunc);
+            output_file << "{" << std::endl;
+            output_file << "    \"file-series-version\" : \"1.0\"," << std::endl;
+            output_file << "    \"files\" : [" << std::endl;
+            output_file << "        { \"name\" : \"" + relative_vtm_file_name + "\", \"time\" : " + str_time.str() << " }" << std::endl;
+            output_file << "    ]" << std::endl;
             output_file << "}";
             output_file.close();
         } else {
-            output_file.open(rOutputFileNamePrefix + ".vtm.series", std::ios::in | std::ios::out | std::ios::binary);
+            output_file.open(rOutputFileNamePrefix + ".vtm.series", std::ios::in | std::ios::out);
             output_file.seekg(0, std::ios::end);
             const auto file_size = output_file.tellg();
 
@@ -1535,9 +1535,9 @@ void VtuOutput::PrintOutput(
 
             output_file.clear();
             output_file.seekp(last_object_end_pos, std::ios::beg);
-            output_file << "," << "\n";
-            output_file << "        { \"name\" : \"" + relative_vtm_file_name + "\", \"time\" : " + str_time.str() << " }" << "\n";
-            output_file << "    ]" << "\n";
+            output_file << "," << std::endl;
+            output_file << "        { \"name\" : \"" + relative_vtm_file_name + "\", \"time\" : " + str_time.str() << " }" << std::endl;
+            output_file << "    ]" << std::endl;
             output_file << "}";
             output_file.close();
         }

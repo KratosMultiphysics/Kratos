@@ -128,7 +128,7 @@ void XmlAppendedDataElementWrapper::Write(
 
         rOStream.write(mData.data(), mData.size());
 
-        rOStream << "\n";
+        rOStream << std::endl;
 
         this->WriteElementTagEnd(rOStream, Level);
     }

@@ -63,7 +63,7 @@ void XmlBase64BinaryNDDataElement<TDataType>::Write(
             base64_encoder.WriteData(span.begin(), span.size());
         }
 
-        rOStream << "\n";
+        rOStream << std::endl;
 
         this->WriteElementTagEnd(rOStream, Level);
     }
