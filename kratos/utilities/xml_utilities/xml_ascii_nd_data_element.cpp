@@ -65,7 +65,7 @@ void XmlAsciiNDDataElement<TDataType>::Write(
             }
         }
 
-        rOStream << std::endl;
+        rOStream << "\n";
 
         this->WriteElementTagEnd(rOStream, Level);
     }
