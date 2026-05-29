@@ -1014,12 +1014,12 @@ namespace Kratos
         // Fill the 3x3 symmetric stress block
         rStressMatrix(0, 0) = rStressVector(0);
         rStressMatrix(0, 1) = rStressVector(3);
-        rStressMatrix(0, 2) = rStressVector(4);
+        rStressMatrix(0, 2) = rStressVector(5);
         rStressMatrix(1, 0) = rStressVector(3);
         rStressMatrix(1, 1) = rStressVector(1);
-        rStressMatrix(1, 2) = rStressVector(5);
-        rStressMatrix(2, 0) = rStressVector(4);
-        rStressMatrix(2, 1) = rStressVector(5);
+        rStressMatrix(1, 2) = rStressVector(4);
+        rStressMatrix(2, 0) = rStressVector(5);
+        rStressMatrix(2, 1) = rStressVector(4);
         rStressMatrix(2, 2) = rStressVector(2);
 
         // Repeat the same block on the diagonal (blocks at [3,3] and [6,6])
