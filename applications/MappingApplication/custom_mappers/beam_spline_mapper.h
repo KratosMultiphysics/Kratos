@@ -441,7 +441,9 @@ private:
         const VectorType& rSplineCoefficientsY,
         const VectorType& rSplineCoefficientsZ,
         const double AxialDisplacement,
-        const double TorsionalRotation,
+        const double rotation_x,
+        const double rotation_y,
+        const double rotation_z,
         const VectorType& rOffsetVectorLocal) const;
 
     MapperInterfaceInfoUniquePointerType GetMapperInterfaceInfo() const;

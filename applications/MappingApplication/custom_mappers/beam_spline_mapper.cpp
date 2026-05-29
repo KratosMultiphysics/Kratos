@@ -685,9 +685,17 @@ void BeamSplineMapper<TSparseSpace, TDenseSpace>::InitializeInformationBeams(
             projection_data.LinearShapeValues(0) * r_source_state_data.LocalDisplacements[0][first_segment_node_index] +
             projection_data.LinearShapeValues(1) * r_source_state_data.LocalDisplacements[0][second_segment_node_index];
 
-        const double torsional_rotation =
+        const double rotation_x =
             projection_data.LinearShapeValues(0) * r_source_state_data.LocalRotations[0][first_segment_node_index] +
             projection_data.LinearShapeValues(1) * r_source_state_data.LocalRotations[0][second_segment_node_index];
+
+        const double rotation_y =
+            projection_data.LinearShapeValues(0) * r_source_state_data.LocalRotations[1][first_segment_node_index] +
+            projection_data.LinearShapeValues(1) * r_source_state_data.LocalRotations[1][second_segment_node_index];
+        
+        const double rotation_z =
+            projection_data.LinearShapeValues(0) * r_source_state_data.LocalRotations[2][first_segment_node_index] +
+            projection_data.LinearShapeValues(1) * r_source_state_data.LocalRotations[2][second_segment_node_index];
 
         const array_1d<double, 3> projection_point_reference = MakeArrayFromVector(projection_data.ProjectionPoint);
         const array_1d<double, 3> destination_point_reference = GetReferenceCoordinates(*projection_data.pNode);
@@ -701,7 +709,9 @@ void BeamSplineMapper<TSparseSpace, TDenseSpace>::InitializeInformationBeams(
             r_source_state_data.SplineCoefficientsY,
             r_source_state_data.SplineCoefficientsZ,
             axial_displacement,
-            torsional_rotation,
+            rotation_x,
+            rotation_y,
+            rotation_z,
             offset_vector_local);
 
         const VectorType global_displacement = TransformVectorToGlobal(
@@ -1488,31 +1498,73 @@ BeamSplineMapper<TSparseSpace, TDenseSpace>::EvaluatePointDisplacementLocal(
     const VectorType& rSplineCoefficientsY,
     const VectorType& rSplineCoefficientsZ,
     const double AxialDisplacement,
-    const double TorsionalRotation,
+    const double RotationX,
+    const double RotationY,
+    const double RotationZ,
     const VectorType& rOffsetVectorLocal) const
 {
-    const double transverse_displacement_y = inner_prod(rEvaluationRow, rSplineCoefficientsY);
-    const double transverse_displacement_z = inner_prod(rEvaluationRow, rSplineCoefficientsZ);
+    const double transverse_displacement_y =
+        inner_prod(rEvaluationRow, rSplineCoefficientsY);
+
+    const double transverse_displacement_z =
+        inner_prod(rEvaluationRow, rSplineCoefficientsZ);
 
     VectorType centerline_displacement(3);
     centerline_displacement(0) = AxialDisplacement;
     centerline_displacement(1) = transverse_displacement_y;
     centerline_displacement(2) = transverse_displacement_z;
 
-    VectorType torsion_rotation_vector(3);
-    torsion_rotation_vector(0) = TorsionalRotation;
-    torsion_rotation_vector(1) = 0.0;
-    torsion_rotation_vector(2) = 0.0;
+    const double cx = std::cos(RotationX);
+    const double sx = std::sin(RotationX);
 
-    VectorType torsional_offset(3);
-    torsional_offset(0) = torsion_rotation_vector(1) * rOffsetVectorLocal(2) - torsion_rotation_vector(2) * rOffsetVectorLocal(1);
-    torsional_offset(1) = torsion_rotation_vector(2) * rOffsetVectorLocal(0) - torsion_rotation_vector(0) * rOffsetVectorLocal(2);
-    torsional_offset(2) = torsion_rotation_vector(0) * rOffsetVectorLocal(1) - torsion_rotation_vector(1) * rOffsetVectorLocal(0);
+    const double cy = std::cos(RotationY);
+    const double sy = std::sin(RotationY);
+
+    const double cz = std::cos(RotationZ);
+    const double sz = std::sin(RotationZ);
+
+    MatrixType rotation_x(3, 3, 0.0);
+    rotation_x(0, 0) = 1.0;
+    rotation_x(1, 1) = cx;
+    rotation_x(1, 2) = -sx;
+    rotation_x(2, 1) = sx;
+    rotation_x(2, 2) = cx;
+
+    MatrixType rotation_y(3, 3, 0.0);
+    rotation_y(0, 0) = cy;
+    rotation_y(0, 2) = sy;
+    rotation_y(1, 1) = 1.0;
+    rotation_y(2, 0) = -sy;
+    rotation_y(2, 2) = cy;
+
+    MatrixType rotation_z(3, 3, 0.0);
+    rotation_z(0, 0) = cz;
+    rotation_z(0, 1) = -sz;
+    rotation_z(1, 0) = sz;
+    rotation_z(1, 1) = cz;
+    rotation_z(2, 2) = 1.0;
+
+    MatrixType tmp_rotation(3, 3, 0.0);
+    MatrixType rotation_matrix(3, 3, 0.0);
+
+    tmp_rotation = prod(rotation_x, rotation_z);
+    rotation_matrix = prod(tmp_rotation, rotation_y);
+
+    VectorType rotated_offset_local(3, 0.0);
+    TDenseSpace::Mult(
+        rotation_matrix,
+        rOffsetVectorLocal,
+        rotated_offset_local);
+
+    VectorType rotational_offset(3);
+    rotational_offset(0) = rotated_offset_local(0) - rOffsetVectorLocal(0);
+    rotational_offset(1) = rotated_offset_local(1) - rOffsetVectorLocal(1);
+    rotational_offset(2) = rotated_offset_local(2) - rOffsetVectorLocal(2);
 
     VectorType local_displacement(3);
-    local_displacement(0) = centerline_displacement(0) + torsional_offset(0);
-    local_displacement(1) = centerline_displacement(1) + torsional_offset(1);
-    local_displacement(2) = centerline_displacement(2) + torsional_offset(2);
+    local_displacement(0) = centerline_displacement(0) + rotational_offset(0);
+    local_displacement(1) = centerline_displacement(1) + rotational_offset(1);
+    local_displacement(2) = centerline_displacement(2) + rotational_offset(2);
 
     return local_displacement;
 }
