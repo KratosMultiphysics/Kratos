@@ -1,6 +1,4 @@
 # Constant Rate of Strain (CRS) test
-The CRS test is essential for simulating one-dimensional consolidation behavior under controlled strain conditions.
-
 This test simulates a CRS test with 5 phases, precribing a constant rate of strain to alter loading and unloading phases. This is a regression test.
 
 The test covers the **drained** model (CONSTANT_PW_FIELD) for:
