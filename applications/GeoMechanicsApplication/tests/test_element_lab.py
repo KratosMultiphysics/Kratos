@@ -5,6 +5,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.GeoMechanicsApplication.gid_output_file_reader import GiDOutputFileReader
 import KratosMultiphysics.GeoMechanicsApplication.run_multiple_stages as run_multiple_stages
 import test_helper
+from pathlib import Path
 
 class KratosGeoMechanicsLabElementTests(KratosUnittest.TestCase):
     """
@@ -84,11 +85,11 @@ class KratosGeoMechanicsLabElementTests(KratosUnittest.TestCase):
     def test_dss_drained(self):
         """Regression test for the direct simple shear experiment with constant pore water pressure."""
         stage_name = 'drained'
-        expected_stress = [[-100000, -100000, -100000, 800000, 0, 0]] * 6
+        expected_stress = [[-1.0e+05, -1.0e+05, -1.0e+05, 8.0e+05, 0.0, 0.0]] * 6
         expected_strain = [[0.0, 0.0, 0.0, 0.1, 0.0, 0.0]] * 6
         self._run_dss_regression_test(stage_name, "linear_elastic", "test_dss_output.post.res", expected_stress, 3, expected_strain, 6, time = 1.0)
 
-        expected_stress = [[-205490, -205490, -152745, 88656.5, 0, 0]] * 6
+        expected_stress = [[-205490, -205490, -152745, 88656.5, 0.0, 0.0]] * 6
         expected_strain = [[0.0, 0.0, 0.0, 0.1, 0.0, 0.0]] * 6
         self._run_dss_regression_test(stage_name, "mohr_coulomb", "test_dss_output.post.res", expected_stress, 3, expected_strain, 6, time = 1.0)
     
@@ -106,6 +107,61 @@ class KratosGeoMechanicsLabElementTests(KratosUnittest.TestCase):
                                               places_stress, time)
         self._assert_integration_point_tensors(reader, result, "ENGINEERING_STRAIN_TENSOR", expected_strain,
                                               places_strain, time)
+        
+    def test_crs_drained(self):
+        """Regression test for the CRS experiment with constant pore water pressure."""
+        stage_name = 'drained'
+        nr_of_phases = 5
+        nr_of_elements = 2
+        nr_of_integration_points_per_element = 3
+        total_integration_points = nr_of_elements * nr_of_integration_points_per_element
+
+        expected_strains = [
+            self._repeat_tensor([0.0, -0.1, 0.0, 0.0, 0.0, 0.0], total_integration_points),
+            self._repeat_tensor([0.0, -0.05, 0.0, 0.0, 0.0, 0.0], total_integration_points),
+            self._repeat_tensor([0.0, -0.25, 0.0, 0.0, 0.0, 0.0], total_integration_points),
+            self._repeat_tensor([0.0, -0.25, 0.0, 0.0, 0.0, 0.0], total_integration_points),
+            self._repeat_tensor([0.0, -0.40, 0.0, 0.0, 0.0, 0.0], total_integration_points),
+        ]
+        expected_water_pressures = [[0.0] * 9 for _ in range(nr_of_phases)]
+
+        expected_stresses = [
+            self._repeat_tensor([-4e+05, -12e+05, -4e+05, 0.0, 0.0, 0.0], total_integration_points),
+            self._repeat_tensor([-2e+05, -6e+05, -2e+05, 0.0, 0.0, 0.0], total_integration_points),
+            self._repeat_tensor([-1e+06, -3e+06, -1e+06, 0.0, 0.0, 0.0], total_integration_points),
+            self._repeat_tensor([-1e+06, -3e+06, -1e+06, 0.0, 0.0, 0.0], total_integration_points),
+            self._repeat_tensor([-1.6e+06, -4.8e+06, -1.6e+06, 0.0, 0.0, 0.0], total_integration_points),
+        ]
+
+        self._run_crs_test_for_model(stage_name, "linear_elastic")
+        self._check_crs_results(stage_name, "linear_elastic", nr_of_phases, expected_stresses, expected_strains, expected_water_pressures, delta_stress=1.0)
+
+        # mohr coulomb expectations per phase
+        expected_stresses = [
+            self._repeat_tensor([-9.01878e+05, -2.22843e+06, -9.01878e+05, 0.0, 0.0, 0.0], total_integration_points),
+            self._repeat_tensor([-5.01878e+05, -1.02843e+06, -5.01878e+05, 0.0, 0.0, 0.0], total_integration_points),
+            self._repeat_tensor([-2.25697e+06, -5.56725e+06, -2.25697e+06, 0.0, 0.0, 0.0], total_integration_points),
+            self._repeat_tensor([-2.25697e+06, -5.56725e+06, -2.25697e+06, 0.0, 0.0, 0.0], total_integration_points),
+            self._repeat_tensor([-3.61205e+06, -8.90607e+06, -3.61205e+06, 0.0, 0.0, 0.0], total_integration_points)
+            ]
+
+        self._run_crs_test_for_model(stage_name, "mohr_coulomb")
+        self._check_crs_results(stage_name, "mohr_coulomb", nr_of_phases, expected_stresses, expected_strains, expected_water_pressures, delta_stress=1.0)
+
+    def _run_crs_test_for_model(self, stage_name, model_name):
+        test_name =  "test_crs"
+        common_file_path = test_helper.get_file_path(os.path.join('test_element_lab', test_name, "common"))
+        material_file_path = test_helper.get_file_path(os.path.join('test_element_lab', test_name, stage_name, model_name))
+        run_multiple_stages.run_stages(material_file_path, 1, filename_pattern="ProjectParameters.json", input_path=common_file_path)
+    
+    def _check_crs_results(self, stage_name, model_name, nr_of_phases, expected_stresses, expected_strains, expected_water_pressures, times = [3600.0, 7200.0, 10800.0, 14400.0, 18000.0], places_stress=None, places_strain=4, places_water_pressure=2, delta_stress = None):
+        reader = GiDOutputFileReader()
+        file_path = test_helper.get_file_path(Path('test_element_lab') / "test_crs" / stage_name / model_name)
+        result = reader.read_output_from(Path(file_path) / "test_crs_output.post.res")
+        for i in range(nr_of_phases):
+            self._assert_integration_point_tensors(reader, result, "CAUCHY_STRESS_TENSOR", expected_stresses[i], places_stress, time=times[i], delta=delta_stress)
+            self._assert_integration_point_tensors(reader, result, "ENGINEERING_STRAIN_TENSOR", expected_strains[i], places_strain, time=times[i])
+            self._assert_node_values_at_time(reader, result, "WATER_PRESSURE", expected_water_pressures[i], places_water_pressure, time=times[i])
 
     def test_triaxial_comp_6n(self):
         """
@@ -175,16 +231,24 @@ class KratosGeoMechanicsLabElementTests(KratosUnittest.TestCase):
         for displacement in displacements:
             self.assertAlmostEqual(expected_y, displacement[1], places)
 
-    def _assert_integration_point_tensor_results(self, integration_point_tensors, expected_integration_point_tensor, places, result_name):
-        for idx, ip_tensor in enumerate(integration_point_tensors):
-            self.assertVectorAlmostEqual(expected_integration_point_tensor, ip_tensor, places, msg = f"{result_name} components at integration point {idx}")
+    def _assert_node_values_at_time(self, reader, result, variable_name, expected_values, places, time=1.0):
+            for node_id, expected_node_values in enumerate(expected_values, start=1):
+                result_values = reader.nodal_values_at_time(variable_name, time, result, [node_id])[0]
+                self.assertAlmostEqual(result_values, expected_node_values, places)
 
-    def _assert_integration_point_tensors(self, reader, result, variable_name, expected_tensors, places, time):
+    def _assert_integration_point_tensor_results(self, integration_point_tensors, expected_integration_point_tensor, places, result_name, delta = None):
+        for idx, ip_tensor in enumerate(integration_point_tensors):
+            self.assertVectorAlmostEqual(expected_integration_point_tensor, ip_tensor, places, delta = delta, msg = f"{result_name} components at integration point {idx}")
+
+    def _repeat_tensor(self, tensor, count):
+        return [list(tensor) for _ in range(count)]
+
+    def _assert_integration_point_tensors(self, reader, result, variable_name, expected_tensors, places=None, time=1.0, delta=None):
         """Assert tensor values for all integration points across both elements."""
         for flat_index, expected_tensor in enumerate(expected_tensors):
             element_id, ip_index = self._get_element_id_and_ip_index(flat_index)
             tensor = reader.element_integration_point_values_at_time(variable_name, time, result, [element_id], [ip_index])[0]
-            self._assert_integration_point_tensor_results(tensor, expected_tensor, places, variable_name)
+            self._assert_integration_point_tensor_results(tensor, expected_tensor, places, variable_name, delta)
 
     def _get_element_id_and_ip_index(self, flat_index):
         """Map a flat integration-point index to the corresponding element and local integration point index."""
