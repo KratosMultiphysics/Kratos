@@ -306,11 +306,11 @@ private:
     const MITCThickShellElement3D4N<ShellKinematics::LINEAR> mMITCThickShellElement3D4N;
     const MITCThickShellElement3D4N<ShellKinematics::NONLINEAR_COROTATIONAL> mMITCThickShellCorotationalElement3D4N;
 
-    // Deprecated names, to be removed by Jan 2026
+    // Deprecated names, to be removed by Dec 2026
     const MITCThickShellElement3D4N<ShellKinematics::LINEAR> mShellThickElement3D4N;
     const MITCThickShellElement3D4N<ShellKinematics::NONLINEAR_COROTATIONAL> mShellThickCorotationalElement3D4N;
 
-    // Deprecated elements, to be removed by Jan 2026
+    // Deprecated elements, to be removed by Dec 2026
     const ShellThickElement3D4N<ShellKinematics::LINEAR> mLegacyThickShellElement3D4N;
     const ShellThickElement3D4N<ShellKinematics::NONLINEAR_COROTATIONAL> mLegacyThickShellCorotationalElement3D4N;
 
