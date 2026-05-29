@@ -905,7 +905,7 @@ namespace Kratos
 
             rBDrilling(0, index)     = -0.5 * shape_functions_derivatives_global(i, 1);
             rBDrilling(0, index + 1) = 0.5 * shape_functions_derivatives_global(i, 0);
-            rBDrilling(0, index + 5) = - r_N(i);
+            rBDrilling(0, index + 5) = - r_N(IntegrationPointIndex, i);
         }
     }
 
