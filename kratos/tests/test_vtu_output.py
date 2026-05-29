@@ -1,6 +1,7 @@
 import math, typing
 from pathlib import Path
 import json
+import filecmp
 import xml.etree.ElementTree as ET
 
 import KratosMultiphysics as Kratos
@@ -113,19 +114,34 @@ class TestVtuOutputBase:
 
     def Check(self, output_prefix, reference_prefix):
         def check_file(output_file_name: str, reference_file_name: str):
+            if reference_file_name.endswith(".vtm.series"):
+                with open(reference_file_name, "r") as reference_file:
+                    reference_data = json.load(reference_file)
+                with open(output_file_name, "r") as output_file:
+                    output_data = json.load(output_file)
+                self.assertEqual(output_data, reference_data)
+                return
+
+            if reference_file_name.endswith(".vtu"):
+                with open(reference_file_name, "rb") as reference_file:
+                    if b'<AppendedData encoding="raw">' in reference_file.read():
+                        self.assertTrue(filecmp.cmp(reference_file_name, output_file_name, shallow=False))
+                        return
+
             ## Settings string in json format
             params = Kratos.Parameters("""{
                 "reference_file_name" : "",
                 "output_file_name"    : "",
-                "comparison_type"     : "deterministic"
+                "comparison_type"     : "xml"
             }""")
             params["reference_file_name"].SetString(reference_file_name)
             params["output_file_name"].SetString(output_file_name)
             CompareTwoFilesCheckProcess(params).Execute()
 
         for file_path in Path(reference_prefix).iterdir():
-            self.assertTrue((Path(output_prefix) / file_path.name).is_file(), msg=f"\"{(Path(output_prefix) / file_path.name)}\" is not a file.")
-            check_file(f"{output_prefix}/{file_path.name}", str(file_path))
+            if file_path.is_file():
+                self.assertTrue((Path(output_prefix) / file_path.name).is_file(), msg=f"\"{(Path(output_prefix) / file_path.name)}\" is not a file.")
+                check_file(f"{output_prefix}/{file_path.name}", str(file_path))
         check_file(f"{output_prefix}.vtm.series", f"{reference_prefix}.vtm.series")
         check_file(f"{output_prefix}_0.vtm", f"{reference_prefix}_0.vtm")
 
