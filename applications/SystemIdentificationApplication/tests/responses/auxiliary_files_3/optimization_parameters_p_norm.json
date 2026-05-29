@@ -81,12 +81,7 @@
             "type": "data_values_control",
             "module": "KratosMultiphysics.SystemIdentificationApplication.controls",
             "settings": {
-                "model_part_names": [
-                    {
-                        "primal_model_part_name": "Structure",
-                        "adjoint_model_part_name": "AdjointStructure"
-                    }
-                ],
+                "model_part_names": ["AdjointStructure"],
                 "control_variable_name": "TEMPERATURE",
                 "container_type": "nodal_historical",
                 "control_variable_bounds": [

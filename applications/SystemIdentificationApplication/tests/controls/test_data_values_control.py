@@ -29,12 +29,7 @@ class TestDataValuesControl_nodal_historical(kratos_unittest.TestCase):
                         "filter_radius": 1e-10
                     }
             },
-            "model_part_names": [
-                {
-                    "primal_model_part_name" : "Structure",
-                    "adjoint_model_part_name": "Structure"
-                }
-            ]
+            "model_part_names": ["Structure"]
         }""")
 
         cls.optimization_problem = OptimizationProblem()
@@ -150,12 +145,7 @@ class TestDataValuesControl_condition(kratos_unittest.TestCase):
                         "filter_radius": 1e-10
                     }
             },
-            "model_part_names": [
-                {
-                    "primal_model_part_name" : "Structure",
-                    "adjoint_model_part_name": "Structure"
-                }
-            ]
+            "model_part_names": ["Structure"]
         }""")
 
         cls.optimization_problem = OptimizationProblem()
