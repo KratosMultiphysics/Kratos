@@ -6,7 +6,12 @@ from abc import ABC, abstractmethod
 
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
+
+#TODO: Move the clamper to OptApp
+import KratosMultiphysics.SystemIdentificationApplication as KratosSI
+
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
+from KratosMultiphysics.SystemIdentificationApplication.utilities.tensor_adaptor_utils import TensorAdaptorBoundingManager
 
 class DesignVariableProjection(ABC):
     """Design variable projection methods to convert given x space values to given y space values
@@ -172,6 +177,34 @@ class AdaptiveSigmoidalDesignVariableProjection(DesignVariableProjection):
             self.beta = min(self.beta * self.increase_fac, self.max_beta)
             Kratos.Logger.PrintInfo(self.__class__.__name__, f"Increased beta to {self.beta}.")
 
+class ClampingProjection(DesignVariableProjection):
+    def __init__(self, parameters: Kratos.Parameters, _):
+        default_parameters = Kratos.Parameters("""{
+            "type"           : "clamping_projection"
+        }""")
+        parameters.ValidateAndAssignDefaults(default_parameters)
+
+    def SetProjectionSpaces(self, x_space_values, y_space_values):
+        self.interval_bounder = TensorAdaptorBoundingManager(y_space_values)
+        if len(x_space_values) == 2:
+            self.clamper = KratosSI.SmoothClamper(x_space_values[0], x_space_values[1])
+        else:
+            raise RuntimeError(f"clamping_projection can only have two values in x_space [ x_space_values = {x_space_values} ].")
+
+    def ProjectForward(self, x_values: Kratos.TensorAdaptors.DoubleTensorAdaptor) -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
+        return self.interval_bounder.GetUnboundedTensorAdaptor(self.clamper.ProjectForward(x_values))
+
+    def ProjectBackward(self, y_values: Kratos.TensorAdaptors.DoubleTensorAdaptor) -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
+        return self.clamper.ProjectBackward(self.interval_bounder.GetBoundedTensorAdaptor(y_values))
+
+    def ForwardProjectionGradient(self, x_values: Kratos.TensorAdaptors.DoubleTensorAdaptor) -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
+        temp_ta = self.clamper.CalculateForwardProjectionGradient(x_values)
+        temp_ta.data[:] *= self.interval_bounder.GetBoundGap()
+        return temp_ta
+
+    def Update(self) -> None:
+        pass
+
 
 def CreateProjection(parameters: Kratos.Parameters, optimization_problem: OptimizationProblem) -> DesignVariableProjection:
     if not parameters.Has("type"):
@@ -182,7 +215,8 @@ def CreateProjection(parameters: Kratos.Parameters, optimization_problem: Optimi
     projection_types_map: 'dict[str, type[DesignVariableProjection]]' = {
         "identity_projection"          : IdentityDesignVariableProjection,
         "sigmoidal_projection"         : SigmoidalDesignVariableProjection,
-        "adaptive_sigmoidal_projection": AdaptiveSigmoidalDesignVariableProjection
+        "adaptive_sigmoidal_projection": AdaptiveSigmoidalDesignVariableProjection,
+        "clamping_projection"          : ClampingProjection
     }
 
     if projection_type in projection_types_map.keys():

@@ -2,15 +2,15 @@ import math, numpy
 from typing import Optional
 
 import KratosMultiphysics as Kratos
-import KratosMultiphysics.SystemIdentificationApplication as KratosSI
 from KratosMultiphysics.OptimizationApplication.controls.control import Control
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
 from KratosMultiphysics.OptimizationApplication.utilities.model_part_utilities import ModelPartOperation
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import TimeLogger
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
-from KratosMultiphysics.SystemIdentificationApplication.utilities.tensor_adaptor_utils import TensorAdaptorBoundingManager, GetTensorAdaptor
+from KratosMultiphysics.SystemIdentificationApplication.utilities.tensor_adaptor_utils import GetTensorAdaptor
 from KratosMultiphysics.OptimizationApplication.filtering.filter import Factory as FilterFactory
+from KratosMultiphysics.OptimizationApplication.utilities.opt_projection import CreateProjection
 
 def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem) -> Control:
     if not parameters.Has("name"):
@@ -37,6 +37,7 @@ class DataValuesControl(Control):
             "container_type"         : "",
             "output_all_fields"      : false,
             "filter_settings"        : {},
+            "projection_settings"    : {},
             "model_part_names"       : []
         }""")
 
@@ -87,9 +88,10 @@ class DataValuesControl(Control):
 
         control_variable_bounds = parameters["control_variable_bounds"].GetVector()
 
-        # use the clamper in the unit interval
-        self.interval_bounder = TensorAdaptorBoundingManager(control_variable_bounds)
-        self.clamper = KratosSI.SmoothClamper(0, 1)
+        self.projection = CreateProjection(parameters["projection_settings"], self.optimization_problem)
+
+        # initialize the projections
+        self.projection.SetProjectionSpaces([0, 1], control_variable_bounds)
 
     def Initialize(self) -> None:
         self.model_part = self.model_part_operation.GetModelPart()
@@ -101,13 +103,11 @@ class DataValuesControl(Control):
         physical_field = self.GetPhysicalField()
 
         # get the phi field which is in [0, 1] range
-        self.physical_phi_field = self.clamper.ProjectBackward(self.interval_bounder.GetBoundedTensorAdaptor(physical_field))
+        # project backward the uniform physical control field and assign it to the control field
+        self.physical_phi_field = self.projection.ProjectBackward(physical_field)
 
         # compute the control phi field
         self.control_phi_field = self.filter.UnfilterField(self.physical_phi_field)
-
-        self.physical_phi_derivative_field = self.clamper.CalculateForwardProjectionGradient(self.physical_phi_field)
-        self.physical_phi_derivative_field.data[:] *= self.interval_bounder.GetBoundGap()
 
         self._UpdateAndOutputFields(self.GetEmptyField())
 
@@ -163,7 +163,10 @@ class DataValuesControl(Control):
                 self.control_phi_field.data[:] = new_control_field.data
                 # now update the physical field
                 self._UpdateAndOutputFields(update)
+                self.projection.Update()
                 return True
+
+        self.projection.Update()
         return False
 
     def _UpdateAndOutputFields(self, update: Kratos.TensorAdaptors.DoubleTensorAdaptor) -> None:
@@ -172,7 +175,7 @@ class DataValuesControl(Control):
         self.physical_phi_field.data[:] += filtered_phi_field_update.data
 
         # project forward the filtered thickness field to get clamped physical field
-        physical_field = self.interval_bounder.GetUnboundedTensorAdaptor(self.clamper.ProjectForward(self.physical_phi_field))
+        physical_field = self.projection.ProjectForward(self.physical_phi_field)
 
         # now update physical field
         ta = GetTensorAdaptor(self.model_part, self.container_type, self.controlled_physical_variable)
@@ -181,8 +184,7 @@ class DataValuesControl(Control):
 
         # compute and store projection derivatives for consistent filtering of the sensitivities
         # this is dphi/dphysical -> physical_phi_derivative_field
-        self.physical_phi_derivative_field = self.clamper.CalculateForwardProjectionGradient(self.physical_phi_field)
-        self.physical_phi_derivative_field.data[:] *= self.interval_bounder.GetBoundGap()
+        self.physical_phi_derivative_field = self.projection.ForwardProjectionGradient(self.physical_phi_field)
 
         # now output the fields
         un_buffered_data = ComponentDataView(self, self.optimization_problem).GetUnBufferedData()

@@ -87,6 +87,9 @@
                     -1.0,
                     5.0
                 ],
+                "projection_settings": {
+                    "type": "clamping_projection"
+                },
                 "container_type": "condition",
                 "filter_settings": {
                     "filter_type": "explicit_filter",
