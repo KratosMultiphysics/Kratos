@@ -850,29 +850,29 @@ namespace Kratos
             rBOperator(5, index + 2) = shape_functions_derivatives_global(i, 0);
 
             // Rotation DOFs contributions
-            rBOperator(0, index + 4) =  ((shape_functions_derivatives_global(i, 0) * zeta * normal_z) + (r_N(i) * (zeta * d_normal_z_dx + d_zeta_dx * normal_z))) * (thickness/2);
-            rBOperator(0, index + 5) = -((shape_functions_derivatives_global(i, 0) * zeta * normal_y) + (r_N(i) * (zeta * d_normal_y_dx + d_zeta_dx * normal_y))) * (thickness/2);
+            rBOperator(0, index + 4) =  ((shape_functions_derivatives_global(i, 0) * zeta * normal_z) + (r_N(IntegrationPointIndex, i) * (zeta * d_normal_z_dx + d_zeta_dx * normal_z))) * (thickness/2);
+            rBOperator(0, index + 5) = -((shape_functions_derivatives_global(i, 0) * zeta * normal_y) + (r_N(IntegrationPointIndex, i) * (zeta * d_normal_y_dx + d_zeta_dx * normal_y))) * (thickness/2);
 
-            rBOperator(1, index + 3) = -((shape_functions_derivatives_global(i, 1) * zeta * normal_z) + (r_N(i) * (zeta * d_normal_z_dy + d_zeta_dy * normal_z))) * (thickness/2);
-            rBOperator(1, index + 5) =  ((shape_functions_derivatives_global(i, 1) * zeta * normal_x) + (r_N(i) * (zeta * d_normal_x_dy + d_zeta_dy * normal_x))) * (thickness/2);
+            rBOperator(1, index + 3) = -((shape_functions_derivatives_global(i, 1) * zeta * normal_z) + (r_N(IntegrationPointIndex, i) * (zeta * d_normal_z_dy + d_zeta_dy * normal_z))) * (thickness/2);
+            rBOperator(1, index + 5) =  ((shape_functions_derivatives_global(i, 1) * zeta * normal_x) + (r_N(IntegrationPointIndex, i) * (zeta * d_normal_x_dy + d_zeta_dy * normal_x))) * (thickness/2);
 
-            rBOperator(2, index + 3) =  ((shape_functions_derivatives_global(i, 2) * zeta * normal_y) + (r_N(i) * (zeta * d_normal_y_dz + d_zeta_dz * normal_y))) * (thickness/2);
-            rBOperator(2, index + 4) = -((shape_functions_derivatives_global(i, 2) * zeta * normal_x) + (r_N(i) * (zeta * d_normal_x_dz + d_zeta_dz * normal_x))) * (thickness/2);
+            rBOperator(2, index + 3) =  ((shape_functions_derivatives_global(i, 2) * zeta * normal_y) + (r_N(IntegrationPointIndex, i) * (zeta * d_normal_y_dz + d_zeta_dz * normal_y))) * (thickness/2);
+            rBOperator(2, index + 4) = -((shape_functions_derivatives_global(i, 2) * zeta * normal_x) + (r_N(IntegrationPointIndex, i) * (zeta * d_normal_x_dz + d_zeta_dz * normal_x))) * (thickness/2);
 
-            rBOperator(3, index + 3) = -((shape_functions_derivatives_global(i, 0) * zeta * normal_z) + (r_N(i) * (zeta * d_normal_z_dx + d_zeta_dx * normal_z))) * (thickness/2);
-            rBOperator(3, index + 4) =  ((shape_functions_derivatives_global(i, 1) * zeta * normal_z) + (r_N(i) * (zeta * d_normal_z_dy + d_zeta_dy * normal_z))) * (thickness/2);
-            rBOperator(3, index + 5) = (((shape_functions_derivatives_global(i, 0) * zeta * normal_x) + (r_N(i) * (zeta * d_normal_x_dx + d_zeta_dx * normal_x))) 
-                                       -((shape_functions_derivatives_global(i, 1) * zeta * normal_y) + (r_N(i) * (zeta * d_normal_y_dy + d_zeta_dy * normal_y)))) * (thickness/2);
+            rBOperator(3, index + 3) = -((shape_functions_derivatives_global(i, 0) * zeta * normal_z) + (r_N(IntegrationPointIndex, i) * (zeta * d_normal_z_dx + d_zeta_dx * normal_z))) * (thickness/2);
+            rBOperator(3, index + 4) =  ((shape_functions_derivatives_global(i, 1) * zeta * normal_z) + (r_N(IntegrationPointIndex, i) * (zeta * d_normal_z_dy + d_zeta_dy * normal_z))) * (thickness/2);
+            rBOperator(3, index + 5) = (((shape_functions_derivatives_global(i, 0) * zeta * normal_x) + (r_N(IntegrationPointIndex, i) * (zeta * d_normal_x_dx + d_zeta_dx * normal_x))) 
+                                       -((shape_functions_derivatives_global(i, 1) * zeta * normal_y) + (r_N(IntegrationPointIndex, i) * (zeta * d_normal_y_dy + d_zeta_dy * normal_y)))) * (thickness/2);
 
-            rBOperator(4, index + 3) = (((shape_functions_derivatives_global(i, 1) * zeta * normal_y) + (r_N(i) * (zeta * d_normal_y_dy + d_zeta_dy * normal_y)))  
-                                       -((shape_functions_derivatives_global(i, 2) * zeta * normal_z) + (r_N(i) * (zeta * d_normal_z_dz + d_zeta_dz * normal_z)))) * (thickness/2);
-            rBOperator(4, index + 4) = -((shape_functions_derivatives_global(i, 1) * zeta * normal_x) + (r_N(i) * (zeta * d_normal_x_dy + d_zeta_dy * normal_x))) * (thickness/2);
-            rBOperator(4, index + 5) =  ((shape_functions_derivatives_global(i, 2) * zeta * normal_x) + (r_N(i) * (zeta * d_normal_x_dz + d_zeta_dz * normal_x))) * (thickness/2);
+            rBOperator(4, index + 3) = (((shape_functions_derivatives_global(i, 1) * zeta * normal_y) + (r_N(IntegrationPointIndex, i) * (zeta * d_normal_y_dy + d_zeta_dy * normal_y)))  
+                                       -((shape_functions_derivatives_global(i, 2) * zeta * normal_z) + (r_N(IntegrationPointIndex, i) * (zeta * d_normal_z_dz + d_zeta_dz * normal_z)))) * (thickness/2);
+            rBOperator(4, index + 4) = -((shape_functions_derivatives_global(i, 1) * zeta * normal_x) + (r_N(IntegrationPointIndex, i) * (zeta * d_normal_x_dy + d_zeta_dy * normal_x))) * (thickness/2);
+            rBOperator(4, index + 5) =  ((shape_functions_derivatives_global(i, 2) * zeta * normal_x) + (r_N(IntegrationPointIndex, i) * (zeta * d_normal_x_dz + d_zeta_dz * normal_x))) * (thickness/2);
 
-            rBOperator(5, index + 3) =  ((shape_functions_derivatives_global(i, 0) * zeta * normal_y) + (r_N(i) * (zeta * d_normal_y_dx + d_zeta_dx * normal_y))) * (thickness/2);
-            rBOperator(5, index + 4) = (((shape_functions_derivatives_global(i, 2) * zeta * normal_z) + (r_N(i) * (zeta * d_normal_z_dz + d_zeta_dz * normal_z))) 
-                                       -((shape_functions_derivatives_global(i, 0) * zeta * normal_x) + (r_N(i) * (zeta * d_normal_x_dx + d_zeta_dx * normal_x)))) * (thickness/2);
-            rBOperator(5, index + 5) = -((shape_functions_derivatives_global(i, 2) * zeta * normal_y) + (r_N(i) * (zeta * d_normal_y_dz + d_zeta_dz * normal_y))) * (thickness/2);
+            rBOperator(5, index + 3) =  ((shape_functions_derivatives_global(i, 0) * zeta * normal_y) + (r_N(IntegrationPointIndex, i) * (zeta * d_normal_y_dx + d_zeta_dx * normal_y))) * (thickness/2);
+            rBOperator(5, index + 4) = (((shape_functions_derivatives_global(i, 2) * zeta * normal_z) + (r_N(IntegrationPointIndex, i) * (zeta * d_normal_z_dz + d_zeta_dz * normal_z))) 
+                                       -((shape_functions_derivatives_global(i, 0) * zeta * normal_x) + (r_N(IntegrationPointIndex, i) * (zeta * d_normal_x_dx + d_zeta_dx * normal_x)))) * (thickness/2);
+            rBOperator(5, index + 5) = -((shape_functions_derivatives_global(i, 2) * zeta * normal_y) + (r_N(IntegrationPointIndex, i) * (zeta * d_normal_y_dz + d_zeta_dz * normal_y))) * (thickness/2);
         }
     }
 
@@ -973,32 +973,32 @@ namespace Kratos
             rBGeometric(8, index + 2) = shape_functions_derivatives_global(i, 2);
 
             // Rotation DOFs contributions
-            rBGeometric(0, index + 4) =  ((shape_functions_derivatives_global(i, 0) * zeta * normal_z) + (r_N(i) * (zeta * d_normal_z_dx + normal_z * d_zeta_dx))) * (thickness/2);
-            rBGeometric(0, index + 5) = -((shape_functions_derivatives_global(i, 0) * zeta * normal_y) + (r_N(i) * (zeta * d_normal_y_dx + d_zeta_dx * normal_y))) * (thickness/2);
+            rBGeometric(0, index + 4) =  ((shape_functions_derivatives_global(i, 0) * zeta * normal_z) + (r_N(IntegrationPointIndex, i) * (zeta * d_normal_z_dx + d_zeta_dx * normal_z))) * (thickness/2);
+            rBGeometric(0, index + 5) = -((shape_functions_derivatives_global(i, 0) * zeta * normal_y) + (r_N(IntegrationPointIndex, i) * (zeta * d_normal_y_dx + d_zeta_dx * normal_y))) * (thickness/2);
 
-            rBGeometric(1, index + 4) =  ((shape_functions_derivatives_global(i, 1) * zeta * normal_z) + (r_N(i) * (zeta * d_normal_z_dy + normal_z * d_zeta_dy))) * (thickness/2);
-            rBGeometric(1, index + 5) = -((shape_functions_derivatives_global(i, 1) * zeta * normal_y) + (r_N(i) * (zeta * d_normal_y_dy + d_zeta_dy * normal_y))) * (thickness/2);
+            rBGeometric(1, index + 4) =  ((shape_functions_derivatives_global(i, 1) * zeta * normal_z) + (r_N(IntegrationPointIndex, i) * (zeta * d_normal_z_dy + d_zeta_dy * normal_z))) * (thickness/2);
+            rBGeometric(1, index + 5) = -((shape_functions_derivatives_global(i, 1) * zeta * normal_y) + (r_N(IntegrationPointIndex, i) * (zeta * d_normal_y_dy + d_zeta_dy * normal_y))) * (thickness/2);
 
-            rBGeometric(2, index + 4) =  ((shape_functions_derivatives_global(i, 2) * zeta * normal_z) + (r_N(i) * (zeta * d_normal_z_dz + normal_z * d_zeta_dz))) * (thickness/2);
-            rBGeometric(2, index + 5) = -((shape_functions_derivatives_global(i, 2) * zeta * normal_y) + (r_N(i) * (zeta * d_normal_y_dz + d_zeta_dz * normal_y))) * (thickness/2);
+            rBGeometric(2, index + 4) =  ((shape_functions_derivatives_global(i, 2) * zeta * normal_z) + (r_N(IntegrationPointIndex, i) * (zeta * d_normal_z_dz + d_zeta_dz * normal_z))) * (thickness/2);
+            rBGeometric(2, index + 5) = -((shape_functions_derivatives_global(i, 2) * zeta * normal_y) + (r_N(IntegrationPointIndex, i) * (zeta * d_normal_y_dz + d_zeta_dz * normal_y))) * (thickness/2);
 
-            rBGeometric(3, index + 3) = -((shape_functions_derivatives_global(i, 0) * zeta * normal_z) + (r_N(i) * (zeta * d_normal_z_dx + d_zeta_dx * normal_z))) * (thickness/2); 
-            rBGeometric(3, index + 5) =  ((shape_functions_derivatives_global(i, 0) * zeta * normal_x) + (r_N(i) * (zeta * d_normal_x_dx + d_zeta_dx * normal_x))) * (thickness/2); 
+            rBGeometric(3, index + 3) = -((shape_functions_derivatives_global(i, 0) * zeta * normal_z) + (r_N(IntegrationPointIndex, i) * (zeta * d_normal_z_dx + d_zeta_dx * normal_z))) * (thickness/2); 
+            rBGeometric(3, index + 5) =  ((shape_functions_derivatives_global(i, 0) * zeta * normal_x) + (r_N(IntegrationPointIndex, i) * (zeta * d_normal_x_dx + d_zeta_dx * normal_x))) * (thickness/2); 
 
-            rBGeometric(4, index + 3) = -((shape_functions_derivatives_global(i, 1) * zeta * normal_z) + (r_N(i) * (zeta * d_normal_z_dy + d_zeta_dy * normal_z))) * (thickness/2); 
-            rBGeometric(4, index + 5) =  ((shape_functions_derivatives_global(i, 1) * zeta * normal_x) + (r_N(i) * (zeta * d_normal_x_dy + d_zeta_dy * normal_x))) * (thickness/2); 
+            rBGeometric(4, index + 3) = -((shape_functions_derivatives_global(i, 1) * zeta * normal_z) + (r_N(IntegrationPointIndex, i) * (zeta * d_normal_z_dy + d_zeta_dy * normal_z))) * (thickness/2); 
+            rBGeometric(4, index + 5) =  ((shape_functions_derivatives_global(i, 1) * zeta * normal_x) + (r_N(IntegrationPointIndex, i) * (zeta * d_normal_x_dy + d_zeta_dy * normal_x))) * (thickness/2); 
 
-            rBGeometric(5, index + 3) = -((shape_functions_derivatives_global(i, 2) * zeta * normal_z) + (r_N(i) * (zeta * d_normal_z_dz + d_zeta_dz * normal_z))) * (thickness/2); 
-            rBGeometric(5, index + 5) =  ((shape_functions_derivatives_global(i, 2) * zeta * normal_x) + (r_N(i) * (zeta * d_normal_x_dz + d_zeta_dz * normal_x))) * (thickness/2); 
+            rBGeometric(5, index + 3) = -((shape_functions_derivatives_global(i, 2) * zeta * normal_z) + (r_N(IntegrationPointIndex, i) * (zeta * d_normal_z_dz + d_zeta_dz * normal_z))) * (thickness/2); 
+            rBGeometric(5, index + 5) =  ((shape_functions_derivatives_global(i, 2) * zeta * normal_x) + (r_N(IntegrationPointIndex, i) * (zeta * d_normal_x_dz + d_zeta_dz * normal_x))) * (thickness/2); 
 
-            rBGeometric(6, index + 3) =  ((shape_functions_derivatives_global(i, 0) * zeta * normal_y) + (r_N(i) * (zeta * d_normal_y_dx + d_zeta_dx * normal_y))) * (thickness/2);  
-            rBGeometric(6, index + 4) = -((shape_functions_derivatives_global(i, 0) * zeta * normal_x) + (r_N(i) * (zeta  * d_normal_x_dx + d_zeta_dx *normal_x))) * (thickness/2); 
+            rBGeometric(6, index + 3) =  ((shape_functions_derivatives_global(i, 0) * zeta * normal_y) + (r_N(IntegrationPointIndex, i) * (zeta * d_normal_y_dx + d_zeta_dx * normal_y))) * (thickness/2);  
+            rBGeometric(6, index + 4) = -((shape_functions_derivatives_global(i, 0) * zeta * normal_x) + (r_N(IntegrationPointIndex, i) * (zeta * d_normal_x_dx + d_zeta_dx * normal_x))) * (thickness/2); 
 
-            rBGeometric(7, index + 3) =  ((shape_functions_derivatives_global(i, 1) * zeta * normal_y) + (r_N(i) * (zeta * d_normal_y_dy + d_zeta_dy * normal_y))) * (thickness/2);  
-            rBGeometric(7, index + 4) = -((shape_functions_derivatives_global(i, 1) * zeta * normal_x) + (r_N(i) * (zeta  * d_normal_x_dy + d_zeta_dy *normal_x))) * (thickness/2); 
+            rBGeometric(7, index + 3) =  ((shape_functions_derivatives_global(i, 1) * zeta * normal_y) + (r_N(IntegrationPointIndex, i) * (zeta * d_normal_y_dy + d_zeta_dy * normal_y))) * (thickness/2);  
+            rBGeometric(7, index + 4) = -((shape_functions_derivatives_global(i, 1) * zeta * normal_x) + (r_N(IntegrationPointIndex, i) * (zeta * d_normal_x_dy + d_zeta_dy * normal_x))) * (thickness/2); 
 
-            rBGeometric(8, index + 3) =  ((shape_functions_derivatives_global(i, 2) * zeta * normal_y) + (r_N(i) * (zeta * d_normal_y_dz + d_zeta_dz * normal_y))) * (thickness/2);  
-            rBGeometric(8, index + 4) = -((shape_functions_derivatives_global(i, 2) * zeta * normal_x) + (r_N(i) * (zeta  * d_normal_x_dz + d_zeta_dz *normal_x))) * (thickness/2); 
+            rBGeometric(8, index + 3) =  ((shape_functions_derivatives_global(i, 2) * zeta * normal_y) + (r_N(IntegrationPointIndex, i) * (zeta * d_normal_y_dz + d_zeta_dz * normal_y))) * (thickness/2);  
+            rBGeometric(8, index + 4) = -((shape_functions_derivatives_global(i, 2) * zeta * normal_x) + (r_N(IntegrationPointIndex, i) * (zeta * d_normal_x_dz + d_zeta_dz * normal_x))) * (thickness/2); 
         }
     }
 
