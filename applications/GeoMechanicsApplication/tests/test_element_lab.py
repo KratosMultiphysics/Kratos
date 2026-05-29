@@ -126,27 +126,27 @@ class KratosGeoMechanicsLabElementTests(KratosUnittest.TestCase):
         expected_water_pressures = [[0.0] * 9 for _ in range(nr_of_phases)]
 
         expected_stresses = [
-            self._repeat_tensor([-4e5, -12e5, -4e5, 0.0, 0.0, 0.0], total_integration_points),
-            self._repeat_tensor([-2e5, -6e5, -2e5, 0.0, 0.0, 0.0], total_integration_points),
-            self._repeat_tensor([-1e6, -3e6, -1e6, 0.0, 0.0, 0.0], total_integration_points),
-            self._repeat_tensor([-1e6, -3e6, -1e6, 0.0, 0.0, 0.0], total_integration_points),
-            self._repeat_tensor([-1.6e6, -4.8e6, -1.6e6, 0.0, 0.0, 0.0], total_integration_points),
+            self._repeat_tensor([-4e+05, -12e+05, -4e+05, 0.0, 0.0, 0.0], total_integration_points),
+            self._repeat_tensor([-2e+05, -6e+05, -2e+05, 0.0, 0.0, 0.0], total_integration_points),
+            self._repeat_tensor([-1e+06, -3e+06, -1e+06, 0.0, 0.0, 0.0], total_integration_points),
+            self._repeat_tensor([-1e+06, -3e+06, -1e+06, 0.0, 0.0, 0.0], total_integration_points),
+            self._repeat_tensor([-1.6e+06, -4.8e+06, -1.6e+06, 0.0, 0.0, 0.0], total_integration_points),
         ]
 
         self._run_crs_test_for_model(stage_name, "linear_elastic")
-        self._check_crs_results(stage_name, "linear_elastic", nr_of_phases, expected_stresses, expected_strains, expected_water_pressures, delta_stress=1.0e+02)
+        self._check_crs_results(stage_name, "linear_elastic", nr_of_phases, expected_stresses, expected_strains, expected_water_pressures, delta_stress=1.0)
 
         # mohr coulomb expectations per phase
         expected_stresses = [
-            [[-901.9e+03, -2228.4e+03, -901.9e+03, 0.0, 0.0, 0.0], [-901.9e+03, -2228.4e+03, -901.9e+03, 0.0, 0.0, 0.0], [-901.9e+03, -2228.4e+03, -901.9e+03, 0.0, 0.0, 0.0], [-901.9e+03, -2228.4e+03, -901.9e+03, 0.0, 0.0, 0.0], [-901.9e+03, -2228.4e+03, -901.9e+03, 0.0, 0.0, 0.0], [-901.9e+03, -2228.4e+03, -901.9e+03, 0.0, 0.0, 0.0]],
-            [[-501.9e+03, -1028.4e+03, -501.9e+03, 0.0, 0.0, 0.0], [-501.9e+03, -1028.4e+03, -501.9e+03, 0.0, 0.0, 0.0], [-501.9e+03, -1028.4e+03, -501.9e+03, 0.0, 0.0, 0.0], [-501.9e+03, -1028.4e+03, -501.9e+03, 0.0, 0.0, 0.0], [-501.9e+03, -1028.4e+03, -501.9e+03, 0.0, 0.0, 0.0], [-501.9e+03, -1028.4e+03, -501.9e+03, 0.0, 0.0, 0.0]],
-            [[-2257.0e+03, -5567.2e+03, -2257.0e+03, 0.0, 0.0, 0.0], [-2257.0e+03, -5567.2e+03, -2257.0e+03, 0.0, 0.0, 0.0], [-2257.0e+03, -5567.3e+03, -2257.0e+03, 0.0, 0.0, 0.0], [-2257.0e+03, -5567.3e+03, -2257.0e+03, 0.0, 0.0, 0.0], [-2257.0e+03, -5567.3e+03, -2257.0e+03, 0.0, 0.0, 0.0], [-2257.0e+03, -5567.3e+03, -2257.0e+03, 0.0, 0.0, 0.0]],
-            [[-2257.0e+03, -5567.2e+03, -2257.0e+03, 0.0, 0.0, 0.0], [-2257.0e+03, -5567.2e+03, -2257.0e+03, 0.0, 0.0, 0.0], [-2257.0e+03, -5567.3e+03, -2257.0e+03, 0.0, 0.0, 0.0], [-2257.0e+03, -5567.3e+03, -2257.0e+03, 0.0, 0.0, 0.0], [-2257.0e+03, -5567.2e+03, -2257.0e+03, 0.0, 0.0, 0.0], [-2257.0e+03, -5567.3e+03, -2257.0e+03, 0.0, 0.0, 0.0]],
-            [[-3612.1e+03, -8906.1e+03, -3612.1e+03, 0.0, 0.0, 0.0], [-3612.1e+03, -8906.1e+03, -3612.1e+03, 0.0, 0.0, 0.0], [-3612.1e+03, -8906.1e+03, -3612.1e+03, 0.0, 0.0, 0.0], [-3612.1e+03, -8906.1e+03, -3612.1e+03, 0.0, 0.0, 0.0], [-3612.1e+03, -8906.1e+03, -3612.1e+03, 0.0, 0.0, 0.0], [-3612.1e+03, -8906.1e+03, -3612.1e+03, 0.0, 0.0, 0.0]],
-        ]
+            self._repeat_tensor([-9.01878e+05, -2.22843e+06, -9.01878e+05, 0.0, 0.0, 0.0], total_integration_points),
+            self._repeat_tensor([-5.01878e+05, -1.02843e+06, -5.01878e+05, 0.0, 0.0, 0.0], total_integration_points),
+            self._repeat_tensor([-2.25697e+06, -5.56725e+06, -2.25697e+06, 0.0, 0.0, 0.0], total_integration_points),
+            self._repeat_tensor([-2.25697e+06, -5.56725e+06, -2.25697e+06, 0.0, 0.0, 0.0], total_integration_points),
+            self._repeat_tensor([-3.61205e+06, -8.90607e+06, -3.61205e+06, 0.0, 0.0, 0.0], total_integration_points)
+            ]
 
         self._run_crs_test_for_model(stage_name, "mohr_coulomb")
-        self._check_crs_results(stage_name, "mohr_coulomb", nr_of_phases, expected_stresses, expected_strains, expected_water_pressures, delta_stress=1.0e+02)
+        self._check_crs_results(stage_name, "mohr_coulomb", nr_of_phases, expected_stresses, expected_strains, expected_water_pressures, delta_stress=1.0)
 
     def _run_crs_test_for_model(self, stage_name, model_name):
         test_name =  "test_crs"
