@@ -18,7 +18,10 @@ class NavierStokesMonolithicIgaSolver(NavierStokesMonolithicSolver):
     def GetDefaultParameters(cls):
         default_settings = KratosMultiphysics.Parameters("""
         {
-            "skip_entities_replace_and_check": false
+            "skip_entities_replace_and_check": false,
+            "time_scheme_settings": {
+                "weak_dof_scaling_threshold_ratio": 1e-6
+            }
         }""")
         default_settings.AddMissingParameters(super().GetDefaultParameters())
         return default_settings
@@ -26,6 +29,14 @@ class NavierStokesMonolithicIgaSolver(NavierStokesMonolithicSolver):
     def __init__(self, model, custom_settings):
         super().__init__(model, custom_settings)
         self._skip_entities_replace_and_check = self.settings["skip_entities_replace_and_check"].GetBool()
+
+        time_scheme_settings = self.settings["time_scheme_settings"]
+        if time_scheme_settings.Has("weak_dof_scaling_threshold_ratio"):
+            KratosMultiphysics.Logger.PrintWarning(
+                self.__class__.__name__,
+                "\"time_scheme_settings.weak_dof_scaling_threshold_ratio\" is currently unused. "
+                "Set the weak DOF scaling under \"linear_solver_settings.threshold_ratio\"."
+            )
 
     def PrepareModelPart(self):
         if not self.is_restarted():
