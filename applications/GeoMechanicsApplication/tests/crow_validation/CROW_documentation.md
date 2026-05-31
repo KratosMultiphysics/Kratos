@@ -251,14 +251,11 @@ k_{\mathrm{n, sand}} = 10 \cdot 2.8571 \times 10^6\ \mathrm{N} / \mathrm{m}^3 = 
 
 The following table lists the adopted properties for the two types of interfaces. The values of the friction angle have been taken from the D-Sheet Piling input, where they are listed under "Delta friction angle".  Just like for the adjacent soil, the dilatancy angle has been assumed to be equal to $`0.0^{\circ}`$
 
-| Property                            | Kratos input parameter       | Clay-side interface     | Sand-side interface    | Unit                          |
-|:------------------------------------|:-----------------------------|:------------------------|:-----------------------|:------------------------------|
-| Normal stiffness $`k_{\mathrm{n}}`$ | `INTERFACE_NORMAL_STIFFNESS` | $`3.75 \times 10^6`$    | $`2.8571 \times 10^7`$ | $`\mathrm{N} / \mathrm{m}^3`$ |
-| Shear stiffness $`k_{\mathrm{s}}`$  | `INTERFACE_SHEAR_STIFFNESS`  | $`3.75 \times 10^5`$    | $`2.8571 \times 10^6`$ | $`\mathrm{N} / \mathrm{m}^3`$ |
-| Cohesion $`c`$                      | `GEO_COHESION`               | $`1.44065 \times 10^3`$ | 0.0                    | $`\mathrm{Pa}`$               |
-| Friction angle $`\phi`$             | `GEO_FRICTION_ANGLE`         | 11.25                   | 20.0                   | $`^{\circ}`$                  |
-| Dilatancy angle $`\psi`$            | `GEO_DILATANCY_ANGLE`        | 0.0                     | 0.0                    | $`^{\circ}`$                  |
-| Tensile strength $`f_{\mathrm{t}}`$ | `GEO_TENSILE_STRENGTH`       | $`7.24263 \times 10^3`$ | 0.0                    | $`\mathrm{Pa}`$               |
+| Property                             | Kratos input parameter       | Clay-side interface  | Sand-side interface    | Unit                          |
+|:-------------------------------------|:-----------------------------|:---------------------|:-----------------------|:------------------------------|
+| Normal stiffness $`k_{\mathrm{n}}`$  | `INTERFACE_NORMAL_STIFFNESS` | $`3.75 \times 10^6`$ | $`2.8571 \times 10^7`$ | $`\mathrm{N} / \mathrm{m}^3`$ |
+| Shear stiffness $`k_{\mathrm{s}}`$   | `INTERFACE_SHEAR_STIFFNESS`  | $`3.75 \times 10^5`$ | $`2.8571 \times 10^6`$ | $`\mathrm{N} / \mathrm{m}^3`$ |
+
 
 
 ## Sheet pile parameters
