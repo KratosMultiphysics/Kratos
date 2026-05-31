@@ -36,7 +36,7 @@ Since D-Sheet Piling does not work with Young's modulus $`E`$ directly, we will 
 E = k \cdot b \cdot \frac{(1 + \nu) (1 - 2 \nu)}{1 - \nu}
 ```
 
-For clay, the Young's modulus then becomes $`E_{\mathrm{clay}} = 1.0 \times 10^6\ \mathrm{N} / \mathrm{m}^3 \cdot 1.0\ \mathrm{m} \cdot \frac{(1 + 0.2) (1 - 2 \cdot 0.2)}{1 - 0.2} = 9.0 \times 10^5\ \mathrm{N} / \mathrm{m}^2`$.  And for sand, the Young's modulus becomes $`E_{\mathrm{sand}} = 1.0 \times 10^7\ \mathrm{N} / \mathrm{m}^3 \cdot 1.0\ \mathrm{m} \cdot \frac{(1 + 0.3) (1 - 2 \cdot 0.3)}{1 - 0.3} = 7.4286 \times 10^6\ \mathrm{N} / \mathrm{m}^2`$. 
+For clay, the Young's modulus then becomes $`E_{\mathrm{clay}} = 1.0 \times 10^6\ \mathrm{N} / \mathrm{m}^3 \cdot 1.0\ \mathrm{m} \cdot \frac{(1 + 0.2) (1 - 2 \cdot 0.2)}{1 - 0.2} = 9.0 \times 10^5\ \mathrm{N} / \mathrm{m}^2`$.  And for sand, the Young's modulus becomes $`E_{\mathrm{sand}} = 1.0 \times 10^7\ \mathrm{N} / \mathrm{m}^3 \cdot 1.0\ \mathrm{m} \cdot \frac{(1 + 0.3) (1 - 2 \cdot 0.3)}{1 - 0.3} = 7.4286 \times 10^6\ \mathrm{N} / \mathrm{m}^2`$.
 
 
 ### Conversion to intrinsic permeability
@@ -113,7 +113,7 @@ Because the Kratos model requires additional parameters, the table below summari
 | Dilatancy angle              | `GEO_DILATANCY_ANGLE`  | 0.0                      | 0.0                      | $`^{\circ}`$                 |
 | Tensile strength             | `GEO_TENSILE_STRENGTH` | 7242.64                  | 0.0                      | $`\mathrm{Pa}`$              |
 
-In the above table, the value of the tensile strength $`f_{\mathrm{t}}`$ (which fixes the tension cut-off) has been chosen such that it passes through the apex of the Coulomb yield surface.  In other words, it has been calculated as follows: $`f_{\mathrm{t}} = \frac{c}{\mathrm{tan}(\phi)}`$, with $`c`$ the cohesion and $`\phi`$ the friction angle.  Note that this choice effectively disables the tension cut-off. 
+In the above table, the value of the tensile strength $`f_{\mathrm{t}}`$ (which fixes the tension cut-off) has been chosen such that it passes through the apex of the Coulomb yield surface.  In other words, it has been calculated as follows: $`f_{\mathrm{t}} = \frac{c}{\mathrm{tan}(\phi)}`$, with $`c`$ the cohesion and $`\phi`$ the friction angle.  Note that this choice effectively disables the tension cut-off.
 
 
 ## Interface parameters
@@ -255,7 +255,7 @@ The following table lists the adopted properties for the two types of interfaces
 |:------------------------------------|:-----------------------------|:------------------------|:-----------------------|:------------------------------|
 | Normal stiffness $`k_{\mathrm{n}}`$ | `INTERFACE_NORMAL_STIFFNESS` | $`3.75 \times 10^6`$    | $`2.8571 \times 10^7`$ | $`\mathrm{N} / \mathrm{m}^3`$ |
 | Shear stiffness $`k_{\mathrm{s}}`$  | `INTERFACE_SHEAR_STIFFNESS`  | $`3.75 \times 10^5`$    | $`2.8571 \times 10^6`$ | $`\mathrm{N} / \mathrm{m}^3`$ |
-| Cohesion $`c`$                      | `GEO_COHESION`               | $`1.44065 \times 10^3`$ | 0.0                    | $`\mathrm{Pa}`$               | 
+| Cohesion $`c`$                      | `GEO_COHESION`               | $`1.44065 \times 10^3`$ | 0.0                    | $`\mathrm{Pa}`$               |
 | Friction angle $`\phi`$             | `GEO_FRICTION_ANGLE`         | 11.25                   | 20.0                   | $`^{\circ}`$                  |
 | Dilatancy angle $`\psi`$            | `GEO_DILATANCY_ANGLE`        | 0.0                     | 0.0                    | $`^{\circ}`$                  |
 | Tensile strength $`f_{\mathrm{t}}`$ | `GEO_TENSILE_STRENGTH`       | $`7.24263 \times 10^3`$ | 0.0                    | $`\mathrm{Pa}`$               |
@@ -286,7 +286,7 @@ The Young’s modulus of steel sheet piles is generally considered to be $`210\ 
 In the current Kratos model, the sheet pile is modeled using a Timoshenko beam with a rectangular cross-section.  To ensure an equivalent bending stiffness $`(EI)_{\mathrm{beam}}`$ and an equivalent extensional stiffness $`(EA)_{\mathrm{beam}}`$, the Young's modulus and the thickness of the cross-section have been calculated such that these stiffness values match the ones taken from D-Sheet Piling.  The equivalent bending stiffness is calculated as follows:
 
 ```math
-(EI)_{\mathrm{beam}} = E_{\mathrm{beam}} \cdot \frac{1}{12} \cdot b \cdot t^3 = EI 
+(EI)_{\mathrm{beam}} = E_{\mathrm{beam}} \cdot \frac{1}{12} \cdot b \cdot t^3 = EI
 ```
 
 The extensional stiffness is calculated as follows:

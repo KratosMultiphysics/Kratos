@@ -24,6 +24,7 @@
 #include "linear_solvers/linear_solver.h"
 #include "custom_utilities/material_point_search_utility.h"
 #include "custom_utilities/material_point_generator_utility.cpp"
+#include "custom_utilities/brute_force_material_point_locator.h"
 #include "custom_utilities/mpm_energy_calculation_utility.h"
 #include "custom_utilities/mapping_utilities/mpm_base_particle_mapping_utility.hpp"
 #include "custom_utilities/mapping_utilities/mpm_flip_particle_mapping_utility.hpp"
@@ -113,7 +114,6 @@ namespace Kratos::Python{
 
     void  AddCustomUtilitiesToPython(pybind11::module& m)
     {
-
         namespace py = pybind11;
 
         m.def("SearchElement", SearchElementAccordingToDimension);
@@ -152,6 +152,13 @@ namespace Kratos::Python{
             .def("Initialize", &MPMTpicParticleMappingUtility::Initialize)
             .def("RunP2GMapping", &MPMTpicParticleMappingUtility::RunP2GMapping)
             .def("RunG2PMapping", &MPMTpicParticleMappingUtility::RunG2PMapping)
+            ;
+
+        // Brute force material point (element/condition) locator
+        py::class_<BruteForceMaterialPointLocator> (m, "BruteForceMaterialPointLocator")
+            .def(py::init<ModelPart& >())
+            .def("FindElement", &BruteForceMaterialPointLocator::FindElement, py::arg("point"), py::arg("abs_tolerance"))
+            .def("FindCondition", &BruteForceMaterialPointLocator::FindCondition, py::arg("point"), py::arg("tolerance"))
             ;
 
         // Calculate energy utility
