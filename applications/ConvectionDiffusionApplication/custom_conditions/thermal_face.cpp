@@ -13,6 +13,7 @@
 
 
 #include "thermal_face.h"
+#include "convection_diffusion_application_variables.h"
 #include "utilities/integration_utilities.h"
 #include "includes/convection_diffusion_settings.h"
 
@@ -341,12 +342,19 @@ void ThermalFace::AddIntegrationPointLHSContribution(
 {
     const unsigned int n_nodes = (this->GetGeometry()).PointsNumber();
     const double aux_rad_lhs = rData.Emissivity * StefanBoltzmann * 4.0 * std::pow(rData.GaussPointUnknown(), 3);
-    for (unsigned int i = 0; i < n_nodes; ++i) {
-        for (unsigned int j = 0; j < n_nodes; ++j) {
-            // Add ambient radiation contribution
-            rLeftHandSideMatrix(i,j) += rData.N(i) * aux_rad_lhs * rData.N(j) * rData.Weight;
-            // Ambient temperature convection contribution
-            rLeftHandSideMatrix(i,j) += rData.N(i) * rData.ConvectionCoefficient * rData.N(j) * rData.Weight;
+    if (rData.UseLumpedMatrix) {
+        for (unsigned int i = 0; i < n_nodes; ++i) {
+            rLeftHandSideMatrix(i,i) += rData.N(i) * aux_rad_lhs * rData.Weight;
+            rLeftHandSideMatrix(i,i) += rData.N(i) * rData.ConvectionCoefficient * rData.Weight;
+        }
+    } else {
+        for (unsigned int i = 0; i < n_nodes; ++i) {
+            for (unsigned int j = 0; j < n_nodes; ++j) {
+                // Add ambient radiation contribution
+                rLeftHandSideMatrix(i,j) += rData.N(i) * aux_rad_lhs * rData.N(j) * rData.Weight;
+                // Ambient temperature convection contribution
+                rLeftHandSideMatrix(i,j) += rData.N(i) * rData.ConvectionCoefficient * rData.N(j) * rData.Weight;
+            }
         }
     }
 }
@@ -383,6 +391,7 @@ void ThermalFace::FillConditionDataStructure(
     rData.Emissivity = r_prop[EMISSIVITY];
     rData.AmbientTemperature = r_prop[AMBIENT_TEMPERATURE];
     rData.ConvectionCoefficient = r_prop[CONVECTION_COEFFICIENT];
+    rData.UseLumpedMatrix = r_prop[THERMAL_FACE_LUMPED_MATRIX];
 }
 
 // Serialization //////////////////////////////////////////////////////////////

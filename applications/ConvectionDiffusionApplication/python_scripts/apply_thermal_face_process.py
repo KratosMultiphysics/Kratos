@@ -19,6 +19,7 @@ class ApplyThermalFaceProcess(KratosMultiphysics.Process):
             "emissivity": 0.0,
             "add_ambient_convection": false,
             "convection_coefficient": 0.0,
+            "thermal_face_lumped_matrix": true,
             "interval": [0.0,1e30]
         }''')
 
@@ -47,9 +48,11 @@ class ApplyThermalFaceProcess(KratosMultiphysics.Process):
         emissivity = settings["emissivity"].GetDouble() if settings["add_ambient_radiation"].GetBool() else 0.0
         convection_coefficient = settings["convection_coefficient"].GetDouble() if settings["add_ambient_convection"].GetBool() else 0.0
         ambient_temperature = settings["ambient_temperature"].GetDouble() if (settings["add_ambient_convection"].GetBool() or settings["add_ambient_radiation"]) else 0.0
+        thermal_face_lumped_matrix = settings["thermal_face_lumped_matrix"].GetBool()
         thermal_interface_prop.SetValue(KratosMultiphysics.EMISSIVITY, emissivity)
         thermal_interface_prop.SetValue(KratosMultiphysics.CONVECTION_COEFFICIENT, convection_coefficient)
         thermal_interface_prop.SetValue(KratosMultiphysics.AMBIENT_TEMPERATURE, ambient_temperature)
+        thermal_interface_prop.SetValue(KratosMultiphysics.ConvectionDiffusionApplication.THERMAL_FACE_LUMPED_MATRIX, thermal_face_lumped_matrix)
 
         # Set the new property in the thermal face model part
         model_part.AddProperties(thermal_interface_prop)
