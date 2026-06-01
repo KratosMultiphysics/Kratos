@@ -1071,7 +1071,7 @@ class CFDUtils:
         b,
         x0=None,
         atol=0.0,
-        rtol=1e-6,
+        rtol=1e-3,
         maxiter=200,
         M=None,
         callback=None,
