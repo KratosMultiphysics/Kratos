@@ -106,13 +106,17 @@ template <typename StressStateType>
 bool CoulombWithTensionCutOffImpl::IsAdmissibleStressState(const StressStateType& rTrialStressState)
 {
     const auto coulomb_yield_function_value = mCoulombYieldSurface.YieldFunctionValue(rTrialStressState);
-    const auto tension_yield_function_value = mTensionCutOff->YieldFunctionValue(rTrialStressState);
-    constexpr auto tolerance                = 1.0e-10;
+    constexpr auto tolerance         = 1.0e-10;
     const auto     coulomb_tolerance = tolerance * (1.0 + std::abs(coulomb_yield_function_value));
-    const auto     tension_tolerance = tolerance * (1.0 + std::abs(tension_yield_function_value));
 
-    const auto admissible_state = coulomb_yield_function_value < coulomb_tolerance &&
-                                  tension_yield_function_value < tension_tolerance;
+    auto tension_admissable = true;
+    if (mTensionCutOff) {
+        const auto tension_yield_function_value = mTensionCutOff->YieldFunctionValue(rTrialStressState);
+        const auto tension_tolerance = tolerance * (1.0 + std::abs(tension_yield_function_value));
+        tension_admissable           = tension_yield_function_value < tension_tolerance;
+    }
+
+    const auto admissible_state = coulomb_yield_function_value < coulomb_tolerance && tension_admissable;
     if (admissible_state) mPlasticityStatus = PlasticityStatus::ELASTIC;
     return admissible_state;
 }
@@ -129,12 +133,12 @@ StressStateType CoulombWithTensionCutOffImpl::DoReturnMapping(const StressStateT
 
     auto kappa_start = mCoulombYieldSurface.GetKappa();
     for (auto counter = std::size_t{0}; counter < mMaxNumberOfPlasticIterations; ++counter) {
-        if (IsStressAtTensionApexReturnZone(trial_traction)) {
+        if (mTensionCutOff && IsStressAtTensionApexReturnZone(trial_traction)) {
             mPlasticityStatus = PlasticityStatus::TENSION_APEX;
             return ReturnStressAtTensionApexReturnZone(rTrialStressState);
         }
 
-        if (IsStressAtTensionCutoffReturnZone(trial_traction)) {
+        if (mTensionCutOff && IsStressAtTensionCutoffReturnZone(trial_traction)) {
             mPlasticityStatus = PlasticityStatus::TENSION_CUT_OFF;
             return ReturnStressAtTensionCutoffReturnZone(rTrialStressState,
                                                          rElasticConstitutiveTensor, AveragingType);
@@ -162,6 +166,7 @@ StressStateType CoulombWithTensionCutOffImpl::DoReturnMapping(const StressStateT
 
 Geo::SigmaTau CoulombWithTensionCutOffImpl::CalculateCornerPoint() const
 {
+    if (const auto apex = mCoulombYieldSurface.CalculateApex(); !mTensionCutOff) return apex;
     const auto tensile_strength = mTensionCutOff->GetTensileStrength();
     if (const auto apex = mCoulombYieldSurface.CalculateApex(); tensile_strength > apex.Sigma())
         return apex;
@@ -272,7 +277,7 @@ Geo::PrincipalStresses CoulombWithTensionCutOffImpl::ReturnStressAtCornerPoint(
     Geo::PrincipalStresses::AveragingType AveragingType) const
 {
     if (const auto apex = mCoulombYieldSurface.CalculateApex();
-        mTensionCutOff->GetTensileStrength() > apex.Sigma())
+        !mTensionCutOff || mTensionCutOff->GetTensileStrength() > apex.Sigma())
         return StressStrainUtilities::TransformSigmaTauToPrincipalStresses(apex, rTrialPrincipalStresses);
 
     const auto principal_stress_correction_Coulomb = CalculatePrincipalStressCorrection(

@@ -664,7 +664,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_TrialStressInDegeneratedT
     properties.SetValue(GEO_DILATANCY_ANGLE, 20.0);
     const auto tensile_strength = cohesion / std::tan(MathUtils<>::DegreesToRadians(phi_in_degrees));
     properties.SetValue(GEO_TENSILE_STRENGTH, tensile_strength);
-    properties.SetValue(GEO_ENABLE_TENSION_CUT_OFF, true);
+    properties.SetValue(GEO_ENABLE_TENSION_CUT_OFF, false);
     properties.SetValue(YOUNG_MODULUS, 1.0e6);
     properties.SetValue(POISSON_RATIO, 0.15);
     ConstitutiveLaw::Parameters parameters;
