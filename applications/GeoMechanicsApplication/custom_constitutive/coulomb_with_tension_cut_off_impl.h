@@ -37,6 +37,7 @@ class CoulombWithTensionCutOffImpl
 {
 public:
     CoulombWithTensionCutOffImpl() = default;
+    std::optional<TensionCutoff> CreateOptionalTensionCutOff(const Properties& rMaterialProperties);
     explicit CoulombWithTensionCutOffImpl(const Properties& rMaterialProperties);
 
     [[nodiscard]] bool IsAdmissibleStressState(const Geo::SigmaTau& rTrialTraction);

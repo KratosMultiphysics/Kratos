@@ -24,6 +24,7 @@
                     "GEO_COHESION": 3.0e+03,
                     "GEO_FRICTION_ANGLE": 22.5,
                     "GEO_TENSILE_STRENGTH": 7.24263e+03,
+                    "GEO_ENABLE_TENSION_CUT_OFF": true,
                     "GEO_DILATANCY_ANGLE": 0.0
                 }
             }
@@ -52,6 +53,7 @@
                     "GEO_COHESION": 3.0e+03,
                     "GEO_FRICTION_ANGLE": 22.5,
                     "GEO_TENSILE_STRENGTH": 7.24263e+03,
+                    "GEO_ENABLE_TENSION_CUT_OFF": true,
                     "GEO_DILATANCY_ANGLE": 0.0
                 }
             }
@@ -80,6 +82,7 @@
                     "GEO_COHESION": 3.0e+03,
                     "GEO_FRICTION_ANGLE": 22.5,
                     "GEO_TENSILE_STRENGTH": 7.24263e+03,
+                    "GEO_ENABLE_TENSION_CUT_OFF": true,
                     "GEO_DILATANCY_ANGLE": 0.0
                 }
             }
@@ -108,6 +111,7 @@
                     "GEO_COHESION": 3.0e+03,
                     "GEO_FRICTION_ANGLE": 22.5,
                     "GEO_TENSILE_STRENGTH": 7.24263e+03,
+                    "GEO_ENABLE_TENSION_CUT_OFF": true,
                     "GEO_DILATANCY_ANGLE": 0.0
                 }
             }
@@ -136,6 +140,7 @@
                     "GEO_COHESION": 0.0,
                     "GEO_FRICTION_ANGLE": 32.5,
                     "GEO_TENSILE_STRENGTH": 0.0,
+                    "GEO_ENABLE_TENSION_CUT_OFF": true,
                     "GEO_DILATANCY_ANGLE": 0.0
                 }
             }
@@ -164,6 +169,7 @@
                     "GEO_COHESION": 0.0,
                     "GEO_FRICTION_ANGLE": 32.5,
                     "GEO_TENSILE_STRENGTH": 0.0,
+                    "GEO_ENABLE_TENSION_CUT_OFF": true,
                     "GEO_DILATANCY_ANGLE": 0.0
                 }
             }
@@ -192,6 +198,7 @@
                     "GEO_COHESION": 3.0e+03,
                     "GEO_FRICTION_ANGLE": 22.5,
                     "GEO_TENSILE_STRENGTH": 7.24263e+03,
+                    "GEO_ENABLE_TENSION_CUT_OFF": true,
                     "GEO_DILATANCY_ANGLE": 0.0
                 }
             }
@@ -220,6 +227,7 @@
                     "GEO_COHESION": 3.0e+03,
                     "GEO_FRICTION_ANGLE": 22.5,
                     "GEO_TENSILE_STRENGTH": 7.24263e+03,
+                    "GEO_ENABLE_TENSION_CUT_OFF": true,
                     "GEO_DILATANCY_ANGLE": 0.0
                 }
             }
@@ -239,6 +247,7 @@
                     "GEO_FRICTION_ANGLE": 11.25,
                     "GEO_DILATANCY_ANGLE": 0.0,
                     "GEO_TENSILE_STRENGTH": 7.24263e+03,
+                    "GEO_ENABLE_TENSION_CUT_OFF": true,
                     "BIOT_COEFFICIENT": 1.0,
                     "RETENTION_LAW": "SaturatedBelowPhreaticLevelLaw",
                     "SATURATED_SATURATION": 1.0,
@@ -262,6 +271,7 @@
                     "GEO_FRICTION_ANGLE": 11.25,
                     "GEO_DILATANCY_ANGLE": 0.0,
                     "GEO_TENSILE_STRENGTH": 7.24263e+03,
+                    "GEO_ENABLE_TENSION_CUT_OFF": true,
                     "BIOT_COEFFICIENT": 1.0,
                     "RETENTION_LAW": "SaturatedBelowPhreaticLevelLaw",
                     "SATURATED_SATURATION": 1.0,
@@ -285,6 +295,7 @@
                     "GEO_FRICTION_ANGLE": 20.0,
                     "GEO_DILATANCY_ANGLE": 0.0,
                     "GEO_TENSILE_STRENGTH": 0.0,
+                    "GEO_ENABLE_TENSION_CUT_OFF": true,
                     "BIOT_COEFFICIENT": 1.0,
                     "RETENTION_LAW": "SaturatedBelowPhreaticLevelLaw",
                     "SATURATED_SATURATION": 1.0,
@@ -308,6 +319,7 @@
                     "GEO_FRICTION_ANGLE": 11.25,
                     "GEO_DILATANCY_ANGLE": 0.0,
                     "GEO_TENSILE_STRENGTH": 7.24263e+03,
+                    "GEO_ENABLE_TENSION_CUT_OFF": true,
                     "BIOT_COEFFICIENT": 1.0,
                     "RETENTION_LAW": "SaturatedBelowPhreaticLevelLaw",
                     "SATURATED_SATURATION": 1.0,
@@ -331,6 +343,7 @@
                     "GEO_FRICTION_ANGLE": 11.25,
                     "GEO_DILATANCY_ANGLE": 0.0,
                     "GEO_TENSILE_STRENGTH": 7.24263e+03,
+                    "GEO_ENABLE_TENSION_CUT_OFF": true,
                     "BIOT_COEFFICIENT": 1.0,
                     "RETENTION_LAW": "SaturatedBelowPhreaticLevelLaw",
                     "SATURATED_SATURATION": 1.0,
@@ -354,6 +367,7 @@
                     "GEO_FRICTION_ANGLE": 11.25,
                     "GEO_DILATANCY_ANGLE": 0.0,
                     "GEO_TENSILE_STRENGTH": 7.24263e+03,
+                    "GEO_ENABLE_TENSION_CUT_OFF": true,
                     "BIOT_COEFFICIENT": 1.0,
                     "RETENTION_LAW": "SaturatedBelowPhreaticLevelLaw",
                     "SATURATED_SATURATION": 1.0,
@@ -377,6 +391,7 @@
                     "GEO_FRICTION_ANGLE": 11.25,
                     "GEO_DILATANCY_ANGLE": 0.0,
                     "GEO_TENSILE_STRENGTH": 7.24263e+03,
+                    "GEO_ENABLE_TENSION_CUT_OFF": true,
                     "BIOT_COEFFICIENT": 1.0,
                     "RETENTION_LAW": "SaturatedBelowPhreaticLevelLaw",
                     "SATURATED_SATURATION": 1.0,
@@ -400,6 +415,7 @@
                     "GEO_FRICTION_ANGLE": 20.0,
                     "GEO_DILATANCY_ANGLE": 0.0,
                     "GEO_TENSILE_STRENGTH": 0.0,
+                    "GEO_ENABLE_TENSION_CUT_OFF": true,
                     "BIOT_COEFFICIENT": 1.0,
                     "RETENTION_LAW": "SaturatedBelowPhreaticLevelLaw",
                     "SATURATED_SATURATION": 1.0,

@@ -18,6 +18,7 @@
                     "GEO_COHESION": 2.0,
                     "GEO_FRICTION_ANGLE": 25.0,
                     "GEO_TENSILE_STRENGTH": 0.0,
+                    "GEO_ENABLE_TENSION_CUT_OFF": true,
                     "GEO_DILATANCY_ANGLE": 2.0
                 }
             }

@@ -42,10 +42,17 @@ auto CalculatePrincipalStressCorrection(const Geo::PrincipalStresses& rTrialPrin
 
 namespace Kratos
 {
+std::optional<TensionCutoff> CoulombWithTensionCutOffImpl::CreateOptionalTensionCutOff(const Properties& rMaterialProperties)
+{
+    if (rMaterialProperties.Has(GEO_ENABLE_TENSION_CUT_OFF) && rMaterialProperties[GEO_ENABLE_TENSION_CUT_OFF]) {
+        return std::make_optional<TensionCutoff>(rMaterialProperties[GEO_TENSILE_STRENGTH]);
+    }
+    return std::nullopt;
+}
 
 CoulombWithTensionCutOffImpl::CoulombWithTensionCutOffImpl(const Properties& rMaterialProperties)
     : mCoulombYieldSurface{rMaterialProperties},
-      mTensionCutOff{std::make_optional<TensionCutoff>(rMaterialProperties[GEO_TENSILE_STRENGTH])}
+      mTensionCutOff{(CreateOptionalTensionCutOff(rMaterialProperties))}
 {
     if (rMaterialProperties.Has(GEO_ABS_YIELD_FUNCTION_TOLERANCE)) {
         mAbsoluteYieldFunctionValueTolerance = rMaterialProperties[GEO_ABS_YIELD_FUNCTION_TOLERANCE];
