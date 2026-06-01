@@ -52,7 +52,7 @@ std::optional<TensionCutoff> CoulombWithTensionCutOffImpl::CreateOptionalTension
 
 CoulombWithTensionCutOffImpl::CoulombWithTensionCutOffImpl(const Properties& rMaterialProperties)
     : mCoulombYieldSurface{rMaterialProperties},
-      mTensionCutOff{(CreateOptionalTensionCutOff(rMaterialProperties))}
+      mTensionCutOff{CreateOptionalTensionCutOff(rMaterialProperties)}
 {
     if (rMaterialProperties.Has(GEO_ABS_YIELD_FUNCTION_TOLERANCE)) {
         mAbsoluteYieldFunctionValueTolerance = rMaterialProperties[GEO_ABS_YIELD_FUNCTION_TOLERANCE];
