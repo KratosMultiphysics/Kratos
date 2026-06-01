@@ -108,6 +108,9 @@ class CoupledFluidThermalSolver(PythonSolver):
     def Initialize(self):
         self.fluid_solver.Initialize()
         self.thermal_solver.Initialize()
+        
+        self.fluid_solve_frequency = 5
+        self.step = 0
 
     def Clear(self):
         (self.fluid_solver).Clear()
@@ -127,22 +130,39 @@ class CoupledFluidThermalSolver(PythonSolver):
         return new_time
 
     def InitializeSolutionStep(self):
-        self.fluid_solver.InitializeSolutionStep()
+
+        if self.step % self.fluid_solve_frequency == 0:
+            self.fluid_solver.InitializeSolutionStep()
+
         self.thermal_solver.InitializeSolutionStep()
 
     def Predict(self):
-        self.fluid_solver.Predict()
+
+        if self.step % self.fluid_solve_frequency == 0:
+            self.fluid_solver.Predict()
+
         self.thermal_solver.Predict()
 
     def SolveSolutionStep(self):
-        fluid_is_converged = self.fluid_solver.SolveSolutionStep()
+
+        if self.step % self.fluid_solve_frequency == 0:
+            fluid_is_converged = self.fluid_solver.SolveSolutionStep()
+        else:
+            fluid_is_converged = True
+
         thermal_is_converged = self.thermal_solver.SolveSolutionStep()
 
-        return (fluid_is_converged and thermal_is_converged)
+        return fluid_is_converged and thermal_is_converged
+
 
     def FinalizeSolutionStep(self):
-        self.fluid_solver.FinalizeSolutionStep()
+
+        if self.step % self.fluid_solve_frequency == 0:
+            self.fluid_solver.FinalizeSolutionStep()
+
         self.thermal_solver.FinalizeSolutionStep()
+
+        self.step += 1
 
     def __GetElementAndConditionNames(self):
         ''' Auxiliary function to get the element and condition names for the connectivity preserve modeler call
