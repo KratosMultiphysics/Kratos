@@ -132,7 +132,7 @@ To incorporate the Mohr-Coulomb model with tension cutoff in numerical simulatio
 ```
   where $`\psi`$ is the dilatancy angle.
 
-5. If after mapping, the condidition $`\sigma_1 \ge \sigma_2 \ge \sigma_3`$ is not valid, average the principal stresses of stage 2 and the direction of the mapping and map the principal stresses again.
+5. If after mapping, the condition $`\sigma_1 \ge \sigma_2 \ge \sigma_3`$ is not valid, average the principal stresses of stage 2 and the direction of the mapping and map the principal stresses again.
 
 - If $`\sigma_1 \le \sigma_2`$ set:
 ```math
