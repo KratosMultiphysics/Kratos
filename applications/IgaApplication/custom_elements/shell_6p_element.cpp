@@ -601,43 +601,66 @@ namespace Kratos
                 }
                 MathUtils<double>::InvertMatrix(jacobian, jacobian_inv, jacobian_det);
 
-                // 3.3. Material stiffness part
-                Matrix b_operator = ZeroMatrix(6, mat_size);
-                CalculateBOperator(point_number, b_operator, zeta, jacobian_inv, normal_vector_derivatives, kinematic_variables);
+                // 3.3. Material stiffness (linear) part (constant for every nonlinear iteration)
+                Matrix b_linear_operator = ZeroMatrix(6, mat_size);
+                CalculateBOperator(point_number, b_linear_operator, zeta, mJacobianInv[point_number][Gauss_index], mNormalVectorDerivatives[point_number], kinematic_variables);
 
                 // 3.4. Drilling stiffness part
                 Matrix b_drilling = ZeroMatrix(1, mat_size);
-                CalculateBDrilling(point_number, b_drilling, jacobian_inv, kinematic_variables);
+                CalculateBDrilling(point_number, b_drilling, mJacobianInv[point_number][Gauss_index], kinematic_variables);
+                double drilling_factor = 0.05 * this->GetProperties().GetValue(YOUNG_MODULUS); //TO DO: user definerd factor to adjust the drilling stiffness contribution
 
                 // 3.5. Geometric stiffness part
-                constitutive_variables.StrainVector = prod(b_operator, current_displacement);
+                Matrix b_geometric = ZeroMatrix(9, mat_size);
+                CalculateBGeometric(point_number, b_geometric, zeta, mJacobianInv[point_number][Gauss_index], normal_vector_derivatives, kinematic_variables);
+
+                // 3.6. Update stresses and strains for this nonlinear step
+                Vector linear_strain = prod(b_linear_operator, current_displacement);
+                constitutive_variables.StrainVector = linear_strain;
+
+                Vector geometric_strain = prod(b_geometric, current_displacement);
+                constitutive_variables.StrainVector[0] += 0.5*(geometric_strain[0]* geometric_strain[0] + geometric_strain[3]*geometric_strain[3] + geometric_strain[6]*geometric_strain[6]);
+                constitutive_variables.StrainVector[1] += 0.5*(geometric_strain[1]* geometric_strain[1] + geometric_strain[4]*geometric_strain[4] + geometric_strain[7]*geometric_strain[7]);
+                constitutive_variables.StrainVector[2] += 0.5*(geometric_strain[2]* geometric_strain[2] + geometric_strain[5]*geometric_strain[5] + geometric_strain[8]*geometric_strain[8]);
+                constitutive_variables.StrainVector[3] += (geometric_strain[0]* geometric_strain[1] + geometric_strain[3]*geometric_strain[4] + geometric_strain[6]*geometric_strain[7]);
+                constitutive_variables.StrainVector[4] += (geometric_strain[1]* geometric_strain[2] + geometric_strain[4]*geometric_strain[5] + geometric_strain[7]*geometric_strain[8]);
+                constitutive_variables.StrainVector[5] += (geometric_strain[0]* geometric_strain[2] + geometric_strain[3]*geometric_strain[5] + geometric_strain[6]*geometric_strain[8]);
+
                 constitutive_variables.StressVector = prod(constitutive_variables.ConstitutiveMatrix, constitutive_variables.StrainVector);
                 Matrix stress_matrix = ZeroMatrix(9,9);
                 CalculateStressMatrix(constitutive_variables.StressVector,stress_matrix);
 
-                Matrix b_geometric = ZeroMatrix(9, mat_size);
-                CalculateBGeometric(point_number, b_geometric, zeta, jacobian_inv, normal_vector_derivatives, kinematic_variables);
-                
-                // 3.6. Compute the integration weight 
+                // 3.7. Material stiffness (nonlinear) part
+                Matrix b_nonlinear_operator = ZeroMatrix(6, mat_size);
+                CalculateBNonlinearOperator(b_geometric, geometric_strain, b_nonlinear_operator);
+
+                Matrix b_operator = b_linear_operator + b_nonlinear_operator;
+
+                // 3.8. Compute the integration weight 
                 double integration_weight = r_integration_points[point_number].Weight() * mJacobianThicknessDeterminant[point_number][Gauss_index]
                                           * mGaussIntegrationThickness.integration_weight_thickness(Gauss_index); 
 
-                // 3.7. Assembly
+                // 3.9. Assembly
                 if (CalculateStiffnessMatrixFlag == true)
                 {
                     // Add the linear stiffness matrix contribution to the element stiffness matrix
                     noalias(rLeftHandSideMatrix) += integration_weight *prod(trans(b_operator), Matrix(prod(constitutive_variables.ConstitutiveMatrix, b_operator)));
 
                     // Add the drilling stiffness matrix contribution to the element stiffness matrix
-                    double drilling_factor = 0.05; //TO DO: user definerd factor to adjust the drilling stiffness contribution
-                    noalias(rLeftHandSideMatrix) += drilling_factor * this->GetProperties().GetValue(YOUNG_MODULUS) * integration_weight * prod(trans(b_drilling), Matrix((b_drilling))); 
+                    noalias(rLeftHandSideMatrix) += drilling_factor * integration_weight * prod(trans(b_drilling), Matrix((b_drilling))); 
                     
                     // Add the geometric stiffness matrix contribution to the element stiffness matrix
                     noalias(rLeftHandSideMatrix) += integration_weight *prod(trans(b_geometric), Matrix(prod(stress_matrix, b_geometric)));
                 }
                 if (CalculateResidualVectorFlag == true)
                 {
+                    // Material stiffness RHS
                     noalias(rRightHandSideVector) -= integration_weight * prod(trans(b_operator), constitutive_variables.StressVector);
+
+                    // Drilling stiffness RHS
+                    double drill_strain = inner_prod(row(b_drilling, 0), current_displacement);
+                    double drill_stress = drill_strain * drilling_factor;
+                    noalias(rRightHandSideVector) -= integration_weight * drill_stress * row(b_drilling, 0);
                 }
             } 
         }
@@ -747,8 +770,8 @@ namespace Kratos
         const Matrix& r_DDN_DDe = GetGeometry().ShapeFunctionDerivatives(2, IntegrationPointIndex, GetGeometry().GetDefaultIntegrationMethod());
 
         // Get the area of the element
-        double inv_differential_area = 1 / mDifferentialAreaVector[IntegrationPointIndex];
-        double inv_differential_area_cube = 1 / std::pow(mDifferentialAreaVector[IntegrationPointIndex], 3);
+        double inv_differential_area = 1 / rKinematicVariables.DifferentialArea;
+        double inv_differential_area_cube = 1 / std::pow(rKinematicVariables.DifferentialArea, 3);
 
         // Compute base vector derivatives
         array_1d<double, 3> base_vector1_derivative_11;
@@ -757,17 +780,17 @@ namespace Kratos
 
         for (IndexType i = 0; i < GetGeometry().size(); ++i)
         {
-            base_vector1_derivative_11[0] += (GetGeometry().GetPoint( i ).X0()) * r_DDN_DDe(i, 0);
-            base_vector1_derivative_11[1] += (GetGeometry().GetPoint( i ).Y0()) * r_DDN_DDe(i, 0);
-            base_vector1_derivative_11[2] += (GetGeometry().GetPoint( i ).Z0()) * r_DDN_DDe(i, 0);
+            base_vector1_derivative_11[0] += (GetGeometry()[i].Coordinates()[0]) * r_DDN_DDe(i, 0);
+            base_vector1_derivative_11[1] += (GetGeometry()[i].Coordinates()[1]) * r_DDN_DDe(i, 0);
+            base_vector1_derivative_11[2] += (GetGeometry()[i].Coordinates()[2]) * r_DDN_DDe(i, 0);
 
-            base_vector1_derivative_12[0] += (GetGeometry().GetPoint( i ).X0()) * r_DDN_DDe(i, 1);
-            base_vector1_derivative_12[1] += (GetGeometry().GetPoint( i ).Y0()) * r_DDN_DDe(i, 1);
-            base_vector1_derivative_12[2] += (GetGeometry().GetPoint( i ).Z0()) * r_DDN_DDe(i, 1);
+            base_vector1_derivative_12[0] += (GetGeometry()[i].Coordinates()[0]) * r_DDN_DDe(i, 1);
+            base_vector1_derivative_12[1] += (GetGeometry()[i].Coordinates()[1]) * r_DDN_DDe(i, 1);
+            base_vector1_derivative_12[2] += (GetGeometry()[i].Coordinates()[2]) * r_DDN_DDe(i, 1);
 
-            base_vector2_derivative_22[0] += (GetGeometry().GetPoint( i ).X0()) * r_DDN_DDe(i, 2);
-            base_vector2_derivative_22[1] += (GetGeometry().GetPoint( i ).Y0()) * r_DDN_DDe(i, 2);
-            base_vector2_derivative_22[2] += (GetGeometry().GetPoint( i ).Z0()) * r_DDN_DDe(i, 2);
+            base_vector2_derivative_22[0] += (GetGeometry()[i].Coordinates()[0]) * r_DDN_DDe(i, 2);
+            base_vector2_derivative_22[1] += (GetGeometry()[i].Coordinates()[1]) * r_DDN_DDe(i, 2);
+            base_vector2_derivative_22[2] += (GetGeometry()[i].Coordinates()[2]) * r_DDN_DDe(i, 2);
         }
 
         // Compute normal vector derivatives
@@ -817,9 +840,9 @@ namespace Kratos
         shape_functions_derivatives_global = trans(prod(rJacobianInv, trans(shape_functions_derivatives_local)));
                                                 
         // Normal vector components in global coordinates
-        const double normal_x = rActualKinematic.NormalVector[0];
-        const double normal_y = rActualKinematic.NormalVector[1];
-        const double normal_z = rActualKinematic.NormalVector[2];
+        const double normal_x = mNormalVector[IntegrationPointIndex][0];
+        const double normal_y = mNormalVector[IntegrationPointIndex][1];
+        const double normal_z = mNormalVector[IntegrationPointIndex][2];
 
         // Normal vector derivatives in global coordinates
         const Matrix normal_vector_derivatives_global = prod(rJacobianInv, rNormalVectorDerivatives);
