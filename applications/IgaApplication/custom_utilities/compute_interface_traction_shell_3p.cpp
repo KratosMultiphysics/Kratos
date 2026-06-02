@@ -118,31 +118,6 @@ void ComputeInterfaceTractionShell3pUtility::ComputeAndSetInterfaceTraction(
                 current_kinematics,
                 constitutive_variables);
 
-            array_1d<double, 3> prestress = ZeroVector(3);
-
-            if (r_condition.GetProperties().Has(PRESTRESS)) {
-                prestress =
-                    r_condition.GetProperties()[PRESTRESS] *
-                    r_condition.GetProperties()[THICKNESS];
-            }
-
-            array_1d<double, 3> transformed_prestress = ZeroVector(3);
-
-            if (r_condition.Has(LOCAL_PRESTRESS_AXIS_1)) {
-                Matrix T_pre = ZeroMatrix(3, 3);
-
-                CalculateTransformationPrestress(
-                    r_condition,
-                    T_pre,
-                    current_kinematics);
-
-                transformed_prestress = prod(T_pre, prestress);
-            } else {
-                transformed_prestress = prestress;
-            }
-
-            constitutive_variables.StressVector += transformed_prestress;
-
             array_1d<double, 3> traction = ZeroVector(3);
 
             CalculateTraction(
@@ -411,86 +386,6 @@ void ComputeInterfaceTractionShell3pUtility::CalculateConstitutiveVariables(
             rConstitutiveVariables.StrainVector);
 }
 
-void ComputeInterfaceTractionShell3pUtility::CalculateTransformationPrestress(
-    const Condition& rCondition,
-    Matrix& rTransformationPrestress,
-    const KinematicVariables& rActualKinematic)
-{
-    array_1d<double, 3> t1 = ZeroVector(3);
-    array_1d<double, 3> t2 = ZeroVector(3);
-
-    if (rCondition.Has(LOCAL_PRESTRESS_AXIS_1) &&
-        rCondition.Has(LOCAL_PRESTRESS_AXIS_2)) {
-        t1 = rCondition.GetValue(LOCAL_PRESTRESS_AXIS_1);
-        t2 = rCondition.GetValue(LOCAL_PRESTRESS_AXIS_2);
-    } else if (rCondition.Has(LOCAL_PRESTRESS_AXIS_1)) {
-        t1 = rCondition.GetValue(LOCAL_PRESTRESS_AXIS_1);
-        MathUtils<double>::CrossProduct(t2, rActualKinematic.a3, t1);
-    }
-
-    array_1d<double, 3> t1_n = t1 / norm_2(t1);
-    array_1d<double, 3> t2_n = t2 / norm_2(t2);
-
-    const double inv_det_g_ab =
-        1.0 /
-        (
-            rActualKinematic.a_ab_covariant[0] *
-            rActualKinematic.a_ab_covariant[1]
-            -
-            rActualKinematic.a_ab_covariant[2] *
-            rActualKinematic.a_ab_covariant[2]
-        );
-
-    array_1d<double, 3> a_ab_contravariant = ZeroVector(3);
-
-    a_ab_contravariant[0] =
-        inv_det_g_ab * rActualKinematic.a_ab_covariant[1];
-
-    a_ab_contravariant[1] =
-        inv_det_g_ab * rActualKinematic.a_ab_covariant[0];
-
-    a_ab_contravariant[2] =
-        -inv_det_g_ab * rActualKinematic.a_ab_covariant[2];
-
-    array_1d<double, 3> a_contravariant_2 =
-        rActualKinematic.a1 * a_ab_contravariant[2] +
-        rActualKinematic.a2 * a_ab_contravariant[1];
-
-    const double l_a1 = norm_2(rActualKinematic.a1);
-
-    array_1d<double, 3> e1 =
-        rActualKinematic.a1 / l_a1;
-
-    const double l_a_contravariant_2 =
-        norm_2(a_contravariant_2);
-
-    array_1d<double, 3> e2 =
-        a_contravariant_2 / l_a_contravariant_2;
-
-    const double eG11 = inner_prod(e1, t1_n);
-    const double eG12 = inner_prod(e1, t2_n);
-    const double eG21 = inner_prod(e2, t1_n);
-    const double eG22 = inner_prod(e2, t2_n);
-
-    if (rTransformationPrestress.size1() != 3 ||
-        rTransformationPrestress.size2() != 3) {
-        rTransformationPrestress.resize(3, 3, false);
-    }
-
-    noalias(rTransformationPrestress) = ZeroMatrix(3, 3);
-
-    rTransformationPrestress(0, 0) = eG11 * eG11;
-    rTransformationPrestress(0, 1) = eG12 * eG12;
-    rTransformationPrestress(0, 2) = 2.0 * eG11 * eG12;
-
-    rTransformationPrestress(1, 0) = eG21 * eG21;
-    rTransformationPrestress(1, 1) = eG22 * eG22;
-    rTransformationPrestress(1, 2) = 2.0 * eG21 * eG22;
-
-    rTransformationPrestress(2, 0) = eG11 * eG21;
-    rTransformationPrestress(2, 1) = eG12 * eG22;
-    rTransformationPrestress(2, 2) = eG11 * eG22 + eG12 * eG21;
-}
 
 void ComputeInterfaceTractionShell3pUtility::CalculateTraction(
     array_1d<double, 3>& rTraction,

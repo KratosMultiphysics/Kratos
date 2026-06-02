@@ -81,11 +81,6 @@ private:
         const KinematicVariables& rActualKinematic,
         ConstitutiveVariables& rConstitutiveVariables);
 
-    static void CalculateTransformationPrestress(
-        const Condition& rCondition,
-        Matrix& rTransformationPrestress,
-        const KinematicVariables& rActualKinematic);
-
     static void CalculateTraction(
         array_1d<double,3>& rTraction,
         const Matrix& rT_hat,
