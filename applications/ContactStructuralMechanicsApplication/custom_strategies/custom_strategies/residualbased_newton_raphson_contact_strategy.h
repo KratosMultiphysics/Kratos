@@ -366,8 +366,8 @@ public:
     double Solve() override
     {
         this->Initialize();
-        this->InitializeSolutionStep();
         this->Predict();
+        this->InitializeSolutionStep();
         this->SolveSolutionStep();
         this->FinalizeSolutionStep();
 
