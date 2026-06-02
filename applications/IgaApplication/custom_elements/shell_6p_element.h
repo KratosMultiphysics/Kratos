@@ -344,6 +344,11 @@ private:
         const Matrix& rJacobianInv,
         const Matrix& rNormalVectorDerivatives,
         const KinematicVariables& rActualKinematic) const;
+
+    void CalculateBNonlinearOperator(
+        const Matrix& rBGeometric,
+        const Vector& rGeometricStrain,  
+        Matrix& rBNonlinearOperator) const;
     
     void CalculateBDrilling(
         const IndexType IntegrationPointIndex,

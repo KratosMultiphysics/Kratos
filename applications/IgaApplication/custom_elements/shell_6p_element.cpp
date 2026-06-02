@@ -884,6 +884,49 @@ namespace Kratos
         }
     }
 
+    void Shell6pElement::CalculateBNonlinearOperator(
+        const Matrix& rBGeometric,
+        const Vector& rGeometricStrain,  
+        Matrix& rBNonlinearOperator) const
+    {
+        Matrix nonlinear_coefficient_matrix = ZeroMatrix(6, 9);
+
+        nonlinear_coefficient_matrix(0, 0) = rGeometricStrain[0];  
+        nonlinear_coefficient_matrix(0, 3) = rGeometricStrain[3];  
+        nonlinear_coefficient_matrix(0, 6) = rGeometricStrain[6];
+    
+        nonlinear_coefficient_matrix(1, 1) = rGeometricStrain[1];  
+        nonlinear_coefficient_matrix(1, 4) = rGeometricStrain[4];  
+        nonlinear_coefficient_matrix(1, 7) = rGeometricStrain[7];
+    
+        nonlinear_coefficient_matrix(2, 2) = rGeometricStrain[2];  
+        nonlinear_coefficient_matrix(2, 5) = rGeometricStrain[5];  
+        nonlinear_coefficient_matrix(2, 8) = rGeometricStrain[8];
+        
+        nonlinear_coefficient_matrix(3, 0) = rGeometricStrain[1];  
+        nonlinear_coefficient_matrix(3, 1) = rGeometricStrain[0];
+        nonlinear_coefficient_matrix(3, 3) = rGeometricStrain[4];  
+        nonlinear_coefficient_matrix(3, 4) = rGeometricStrain[3];
+        nonlinear_coefficient_matrix(3, 6) = rGeometricStrain[7];  
+        nonlinear_coefficient_matrix(3, 7) = rGeometricStrain[6];
+    
+        nonlinear_coefficient_matrix(4, 1) = rGeometricStrain[2];  
+        nonlinear_coefficient_matrix(4, 2) = rGeometricStrain[1];
+        nonlinear_coefficient_matrix(4, 4) = rGeometricStrain[5];  
+        nonlinear_coefficient_matrix(4, 5) = rGeometricStrain[4];
+        nonlinear_coefficient_matrix(4, 7) = rGeometricStrain[8];  
+        nonlinear_coefficient_matrix(4, 8) = rGeometricStrain[7];
+        
+        nonlinear_coefficient_matrix(5, 0) = rGeometricStrain[2];  
+        nonlinear_coefficient_matrix(5, 2) = rGeometricStrain[0];
+        nonlinear_coefficient_matrix(5, 3) = rGeometricStrain[5];  
+        nonlinear_coefficient_matrix(5, 5) = rGeometricStrain[3];
+        nonlinear_coefficient_matrix(5, 6) = rGeometricStrain[8];  
+        nonlinear_coefficient_matrix(5, 8) = rGeometricStrain[6];
+
+        noalias(rBNonlinearOperator) = prod(nonlinear_coefficient_matrix, rBGeometric);
+    }
+
     void Shell6pElement::CalculateBDrilling(                                                                                         
         const IndexType IntegrationPointIndex,
         Matrix& rBDrilling,
