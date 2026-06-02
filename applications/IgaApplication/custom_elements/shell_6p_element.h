@@ -251,8 +251,17 @@ private:
     // The differential area determined by determinant of the geometrical Jacobian.
     Vector mDifferentialAreaVector;
 
+    // The derivatives of the normal vector with respect to the local coordinates
+    std::vector<Matrix> mNormalVectorDerivatives;
+
+    // The normal vector at each integration point
+    std::vector<Vector> mNormalVector;
+
     // The thickness Jacobian determinant for each thickness gauss point.
     std::vector<array_1d<double, 2>> mJacobianThicknessDeterminant;
+
+    // The inverse of the Jacobian matrix at each integration point and for each thickness gauss point
+    std::vector<array_1d<Matrix, 2>> mJacobianInv;
 
     // Transformation matrix from local to global cartesian coordinates
     std::vector<Matrix> mTransformationMatrix;
@@ -403,6 +412,9 @@ private:
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
         rSerializer.save("DifferentialAreaVector", mDifferentialAreaVector);
+        rSerializer.save("NormalVectorDerivatives", mNormalVectorDerivatives);
+        rSerializer.save("NormalVector", mNormalVector);
+        rSerializer.save("JacobianInv", mJacobianInv);
         rSerializer.save("JacobianThicknessDeterminant", mJacobianThicknessDeterminant);
         rSerializer.save("TransformationMatrix", mTransformationMatrix);
         rSerializer.save("ConstitutiveLawVector", mConstitutiveLawVector);
@@ -412,6 +424,9 @@ private:
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
         rSerializer.load("DifferentialAreaVector", mDifferentialAreaVector);
+        rSerializer.load("NormalVectorDerivatives", mNormalVectorDerivatives);
+        rSerializer.load("NormalVector", mNormalVector);
+        rSerializer.load("JacobianInv", mJacobianInv);
         rSerializer.load("JacobianThicknessDeterminant", mJacobianThicknessDeterminant);
         rSerializer.load("TransformationMatrix", mTransformationMatrix);
         rSerializer.load("ConstitutiveLawVector", mConstitutiveLawVector);

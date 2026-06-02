@@ -85,6 +85,12 @@ namespace Kratos
         // Prepare memory
         if (mDifferentialAreaVector.size() != number_of_integration_points)
             mDifferentialAreaVector.resize(number_of_integration_points);
+        if (mNormalVectorDerivatives.size() != number_of_integration_points)
+            mNormalVectorDerivatives.resize(number_of_integration_points);
+        if (mNormalVector.size() != number_of_integration_points)
+            mNormalVector.resize(number_of_integration_points);
+        if (mJacobianInv.size() != number_of_integration_points)
+            mJacobianInv.resize(number_of_integration_points);
         if (mJacobianThicknessDeterminant.size() != number_of_integration_points)
             mJacobianThicknessDeterminant.resize(number_of_integration_points);
         if (mTransformationMatrix.size() != number_of_integration_points)
@@ -97,13 +103,14 @@ namespace Kratos
         for (IndexType point_number = 0; point_number < number_of_integration_points; ++point_number)
         {
             CalculateKinematics(point_number, kinematic_variables);
+            mNormalVector[point_number] = kinematic_variables.NormalVector;
 
             mDifferentialAreaVector[point_number] = kinematic_variables.DifferentialArea;
             CalculateTransformationFromLocalToGlobalCartesian(kinematic_variables, mTransformationMatrix[point_number]);
 
             mJacobianThicknessDeterminant[point_number] = ZeroVector(mGaussIntegrationThickness.num_GP_thickness);
-            Matrix normal_vector_derivatives = ZeroMatrix(3, 3);
-            CalculateNormalVectorDerivatives(point_number, kinematic_variables, normal_vector_derivatives);
+            mNormalVectorDerivatives[point_number] = ZeroMatrix(3, 3);
+            CalculateNormalVectorDerivatives(point_number, kinematic_variables, mNormalVectorDerivatives[point_number]);
             
             for (IndexType Gauss_index = 0; Gauss_index < mGaussIntegrationThickness.num_GP_thickness; Gauss_index++)
             {
@@ -111,15 +118,16 @@ namespace Kratos
 
                 // Compute the Jacobian matrix at the initial Gauss point in thickness direction
                 Matrix jacobian = ZeroMatrix(3,3);
+                mJacobianInv[point_number][Gauss_index] = ZeroMatrix(3,3);
                 double jacobian_det = 0.0;
 
                 for (int i = 0; i < 3; i++) {
-                    jacobian(0, i) = kinematic_variables.BaseVector1[i] + (thickness/2) * zeta * normal_vector_derivatives(0, i); 
-                    jacobian(1, i) = kinematic_variables.BaseVector2[i] + (thickness/2) * zeta * normal_vector_derivatives(1, i) ; 
+                    jacobian(0, i) = kinematic_variables.BaseVector1[i] + (thickness/2) * zeta * mNormalVectorDerivatives[point_number](0, i); 
+                    jacobian(1, i) = kinematic_variables.BaseVector2[i] + (thickness/2) * zeta * mNormalVectorDerivatives[point_number](1, i) ; 
                     jacobian(2, i) = kinematic_variables.NormalVector[i] * (thickness/2) ;
                 }
 
-                jacobian_det = MathUtils<double>::Det(jacobian);
+                MathUtils<double>::InvertMatrix(jacobian, mJacobianInv[point_number][Gauss_index], jacobian_det);
                 mJacobianThicknessDeterminant[point_number][Gauss_index] = jacobian_det;
             }
         }
