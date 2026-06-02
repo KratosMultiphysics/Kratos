@@ -6,7 +6,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis
 
 
-class ComputeInterfaceTractionShell3pInputTest(KratosUnittest.TestCase):
+class ComputeInterfaceTractionShell3pTest(KratosUnittest.TestCase):
 
     def test_compute_interface_traction_from_input(self):
         model = KM.Model()
