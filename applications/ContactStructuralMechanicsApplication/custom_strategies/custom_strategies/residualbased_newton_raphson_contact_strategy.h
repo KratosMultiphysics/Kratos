@@ -314,6 +314,8 @@ public:
     {
         KRATOS_TRY
 
+        BaseType::Predict();
+
         // Auxiliary zero array
         const array_1d<double, 3> zero_array = ZeroVector(3);
 
@@ -331,56 +333,7 @@ public:
 
             // Compute the current gap
             ContactUtilities::ComputeExplicitContributionConditions(r_model_part.GetSubModelPart("ComputingContact"));
-
-            // We predict a contact pressure
-            ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
-            const std::size_t step = r_process_info[STEP];
-
-            if (step == 1) {
-                block_for_each(r_nodes_array, [&](Node& rNode) {
-                    noalias(rNode.Coordinates()) += rNode.FastGetSolutionStepValue(DISPLACEMENT);
-                });
-            } else {
-                block_for_each(r_nodes_array, [&](Node& rNode) {
-                    noalias(rNode.Coordinates()) += (rNode.FastGetSolutionStepValue(DISPLACEMENT) - rNode.FastGetSolutionStepValue(DISPLACEMENT, 1));
-                });
-            }
         }
-
-//         BaseType::Predict();  // NOTE: May cause problems in dynamics!!!
-//
-//         // Set to zero the weighted gap // NOTE: This can be done during the search if the predict is deactivated
-//         ModelPart& r_model_part = StrategyBaseType::GetModelPart();
-//         NodesArrayType& nodes_array = r_model_part.GetSubModelPart("Contact").Nodes();
-//
-//         // We predict contact pressure in case of contact problem
-//         if (nodes_array.begin()->SolutionStepsDataHas(WEIGHTED_GAP)) {
-//             VariableUtils().SetVariable(WEIGHTED_GAP, 0.0, nodes_array);
-//
-//             // Compute the current gap
-//             ContactUtilities::ComputeExplicitContributionConditions(r_model_part.GetSubModelPart("ComputingContact"));
-//
-//             // We predict a contact pressure
-//             ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
-//             const double initial_penalty_parameter = r_process_info[INITIAL_PENALTY];
-//
-//             // We iterate over the nodes
-//             const bool is_components = nodes_array.begin()->SolutionStepsDataHas(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE) ? false : true;
-//
-//             block_for_each(r_nodes_array, [&initial_penalty_parameter, &is_components](Node& rNode) {
-//                 const double current_gap = rNode.FastGetSolutionStepValue(WEIGHTED_GAP);
-//                 const double penalty = rNode.Has(INITIAL_PENALTY) ? rNode.GetValue(INITIAL_PENALTY) : initial_penalty_parameter;
-//                 if (current_gap < 0.0) {
-//                     rNode.Set(ACTIVE, true);
-//                     if (is_components) {
-//                         rNode.FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE) = penalty * current_gap;
-//                     } else {
-//                         const array_1d<double, 3>& normal = rNode.FastGetSolutionStepValue(NORMAL);
-//                         rNode.FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER) = penalty * current_gap * normal;
-//                     }
-//                 }
-//             });
-//         }
 
         KRATOS_CATCH("")
     }
