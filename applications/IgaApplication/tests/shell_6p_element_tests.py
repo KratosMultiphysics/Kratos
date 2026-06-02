@@ -18,7 +18,7 @@ def GetFilePath(fileName):
 @KratosUnittest.skipIfApplicationsNotAvailable("LinearSolversApplication")
 class Shell6pElementTests(KratosUnittest.TestCase):
 
-    def solve_cantilever(create_geometry):
+    def solve_cantilever(create_geometry, iterations):
         model = KM.Model()
         model_part = model.CreateModelPart('Model')
 
@@ -107,8 +107,7 @@ class Shell6pElementTests(KratosUnittest.TestCase):
         conv_criteria = KM.ResidualCriteria(relative_tolerance, absolute_tolerance)
         conv_criteria.SetEchoLevel(0)
 
-        # TO DO: more than 1 iteration
-        maximum_iterations = 1 
+        maximum_iterations = iterations 
         compute_reactions = False
         reform_dofs_at_each_iteration = False
         move_mesh_flag = True
@@ -172,7 +171,8 @@ class Shell6pElementTests(KratosUnittest.TestCase):
 
             return surface
 
-        surface = Shell6pElementTests.solve_cantilever(create_geometry)
+        # linear analysis
+        surface = Shell6pElementTests.solve_cantilever(create_geometry, 1)
 
         for node in surface:
             self.assertAlmostEqual(node.GetValue(KM.DISPLACEMENT_X), 0)
@@ -190,7 +190,7 @@ class Shell6pElementTests(KratosUnittest.TestCase):
         self.assertAlmostEqual(surface[5].Z, -0.375832346880606)
         self.assertAlmostEqual(surface[8].Z, -0.375659527565938)
 
-    # test same geometry but with different knot  vector parameters.
+    # test same geometry but with different knot vector parameters.
     def testCantileverOneQuadraticSpanWithParameterDistortion(self):
         def create_geometry(model_part):
             node1 = model_part.CreateNewNode(1, 0.0, 0.0, 0)
@@ -233,7 +233,8 @@ class Shell6pElementTests(KratosUnittest.TestCase):
 
             return surface
 
-        surface = Shell6pElementTests.solve_cantilever(create_geometry)
+        # linear analysis
+        surface = Shell6pElementTests.solve_cantilever(create_geometry, 1)
 
         for node in surface:
             self.assertAlmostEqual(node.GetValue(KM.DISPLACEMENT_X), 0)
@@ -250,3 +251,65 @@ class Shell6pElementTests(KratosUnittest.TestCase):
         self.assertAlmostEqual(surface[2].Z, -0.375659527565157)
         self.assertAlmostEqual(surface[5].Z, -0.375832346879848)
         self.assertAlmostEqual(surface[8].Z, -0.375659527565172)
+
+    # test same geometry with nonlinear analysis
+    def testCantileverOneQuadraticSpanNonlinearAnalysis(self):
+        def create_geometry(model_part):
+            node1 = model_part.CreateNewNode(1, 0.0, 0.0, 0)
+            node2 = model_part.CreateNewNode(2, 2.5, 0.0, 0)
+            node3 = model_part.CreateNewNode(3, 5.0, 0.0, 0)
+
+            node4 = model_part.CreateNewNode(4, 0.0, 0.5, 0)
+            node5 = model_part.CreateNewNode(5, 2.5, 0.5, 0)
+            node6 = model_part.CreateNewNode(6, 5.0, 0.5, 0)
+
+            node7 = model_part.CreateNewNode(7, 0.0, 1.0, 0)
+            node8 = model_part.CreateNewNode(8, 2.5, 1.0, 0)
+            node9 = model_part.CreateNewNode(9, 5.0, 1.0, 0)
+
+            nodes = KM.NodesVector()
+            nodes.append(node1)
+            nodes.append(node2)
+            nodes.append(node3)
+            nodes.append(node4)
+            nodes.append(node5)
+            nodes.append(node6)
+            nodes.append(node7)
+            nodes.append(node8)
+            nodes.append(node9)
+
+            knots_u = KM.Vector(4)
+            knots_u[0] = 0.0
+            knots_u[1] = 0.0
+            knots_u[2] = 5.0
+            knots_u[3] = 5.0
+
+            knots_v = KM.Vector(4)
+            knots_v[0] = 0.0
+            knots_v[1] = 0.0
+            knots_v[2] = 1.0
+            knots_v[3] = 1.0
+
+            surface = KM.NurbsSurfaceGeometry3D(
+                nodes, 2, 2, knots_u, knots_v)
+
+            return surface
+
+        # nonlinear analysis
+        surface = Shell6pElementTests.solve_cantilever(create_geometry, 100)
+
+        for node in surface:
+            self.assertAlmostEqual(node.GetValue(KM.DISPLACEMENT_X), 0)
+            self.assertAlmostEqual(node.GetValue(KM.DISPLACEMENT_Y), 0)
+
+        self.assertAlmostEqual(surface[0].Z, 0.0)
+        self.assertAlmostEqual(surface[3].Z, 0.0)
+        self.assertAlmostEqual(surface[6].Z, 0.0)
+
+        self.assertAlmostEqual(surface[1].Z, -0.000555264278525)
+        self.assertAlmostEqual(surface[4].Z, -0.000447785804707)
+        self.assertAlmostEqual(surface[7].Z, -0.000555264278525)
+
+        self.assertAlmostEqual(surface[2].Z, -0.224868627203197)
+        self.assertAlmostEqual(surface[5].Z, -0.225040621609457)
+        self.assertAlmostEqual(surface[8].Z, -0.224868627203197)
