@@ -118,6 +118,7 @@ namespace Kratos
         KRATOS_REGISTER_ELEMENT("MPMUpdatedLagrangian", mMPMUpdatedLagrangian)
         KRATOS_REGISTER_ELEMENT("MPMUpdatedLagrangianUP", mMPMUpdatedLagrangianUP)
         KRATOS_REGISTER_ELEMENT("MPMUpdatedLagrangianPQ", mMPMUpdatedLagrangianPQ)
+        KRATOS_REGISTER_ELEMENT("MPMUpdatedLagrangianUPVMS", mMPMUpdatedLagrangianUPVMS)
 
         // Deprecated elements
         KRATOS_REGISTER_ELEMENT( "MPMUpdatedLagrangian2D3N", mMPMUpdatedLagrangian2D3N )
@@ -254,6 +255,12 @@ namespace Kratos
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( NODAL_INERTIA )
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( NODAL_INTERNAL_FORCE )
 
+        // Registering node variable for OSGS stabilization
+        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( RESPROJ_DISPL )
+        KRATOS_REGISTER_VARIABLE( RESPROJ_PRESS )
+        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( NODAL_CAUCHY_STRESS_VECTOR )
+
+
         // Registering Constitutive Laws
         // CL: Linear Elastic laws
         KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElasticIsotropic3DLaw", mLinearElastic3DLaw);
@@ -284,9 +291,11 @@ namespace Kratos
         KRATOS_REGISTER_CONSTITUTIVE_LAW("JohnsonCookThermalPlastic3DLaw", mJohnsonCookThermalPlastic3DLaw);
         KRATOS_REGISTER_CONSTITUTIVE_LAW("JohnsonCookThermalPlastic2DPlaneStrainLaw", mJohnsonCookThermalPlastic2DPlaneStrainLaw);
         KRATOS_REGISTER_CONSTITUTIVE_LAW("JohnsonCookThermalPlastic2DAxisymLaw", mJohnsonCookThermalPlastic2DAxisymLaw);
-        // CL: Newtonian fluid
+        // CL: Displacement-based Newtonian Fluid
         KRATOS_REGISTER_CONSTITUTIVE_LAW("DispNewtonianFluid3DLaw", mDispNewtonianFluid3DLaw);
         KRATOS_REGISTER_CONSTITUTIVE_LAW("DispNewtonianFluidPlaneStrain2DLaw", mDispNewtonianFluidPlaneStrain2DLaw);
+        KRATOS_REGISTER_CONSTITUTIVE_LAW("DispNewtonianFluidUP3DLaw", mDispNewtonianFluidUP3DLaw);
+        KRATOS_REGISTER_CONSTITUTIVE_LAW("DispNewtonianFluidPlaneStrainUP2DLaw", mDispNewtonianFluidPlaneStrainUP2DLaw);
 
         //Register Flow Rules
         Serializer::Register("MCPlasticFlowRule", mMCPlasticFlowRule);
@@ -322,6 +331,7 @@ namespace Kratos
         // Stabilization variables
         KRATOS_REGISTER_VARIABLE(STABILIZATION_TYPE)
 
+        KRATOS_REGISTER_VARIABLE(IS_DYNAMIC)
         // For friction
         KRATOS_REGISTER_VARIABLE(STICK_FORCE)
         KRATOS_REGISTER_VARIABLE(FRICTION_STATE)
@@ -330,6 +340,7 @@ namespace Kratos
         KRATOS_REGISTER_VARIABLE(FRICTION_ASSIGNED)
         KRATOS_REGISTER_VARIABLE(HAS_INITIAL_MOMENTUM)
         KRATOS_REGISTER_VARIABLE(INITIAL_LOOP_COMPLETE)
+
     }
 
 }  // namespace Kratos.

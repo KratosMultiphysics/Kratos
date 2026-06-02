@@ -121,7 +121,7 @@ public:
         typename TLinearSolver::Pointer pNewLinearSolver,
         typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
         int MaxIterations = 30,
-        bool CalculateReactions = false,
+        bool CalculateReactions = true,
         bool ReformDofSetAtEachStep = false,
         bool MoveMeshFlag = false
     ) : ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(
@@ -136,7 +136,7 @@ public:
         typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
         typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver,
         int MaxIterations = 30,
-        bool CalculateReactions = false,
+        bool CalculateReactions = true,
         bool ReformDofSetAtEachStep = false,
         bool MoveMeshFlag = false
     ) : ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(
@@ -266,6 +266,7 @@ public:
         const bool friction_active = BaseType::GetModelPart().GetProcessInfo()[FRICTION_ACTIVE];
         const bool is_initial_loop = (BaseType::GetModelPart().GetProcessInfo()[STEP] ==  1);
 
+        bool mCalculateReactionsFlag = true;
         //calculate reactions if required
         if (this->mCalculateReactionsFlag == true){
             // due to the assembly procedure the friction related values need to be reset
@@ -375,6 +376,17 @@ private:
                 KRATOS_INFO_IF("MPMNewtonRaphsonStrategy", this->GetEchoLevel() >= 3) << "Build RHS and Solve" << std::endl;
                 p_builder_and_solver->BuildRHSAndSolve(p_scheme, BaseType::GetModelPart(), rA, rDx, rb);
             }
+        }
+
+        std::cout<<"Number of non-linear iterations: "<<iteration_number<<"\n";
+
+        // Plot a warning if the maximum number of iterations is exceeded
+        if (iteration_number >= this->mMaxIterationNumber && BaseType::GetModelPart().GetCommunicator().MyPID() == 0)
+        {
+            if (this->GetEchoLevel() > 1) this->MaxIterationsExceeded();
+
+
+            std::cout<<"MAX ITERATIONS EXCEEDED!!!!!!!!!!!!!!! "<<"\n";
         }
         else
         {

@@ -226,6 +226,7 @@ class MPMSolver(PythonSolver):
     def _GenerateMaterialPoint(self):
         pressure_dofs          = self.settings["pressure_dofs"].GetBool()
         axis_symmetric_flag    = self.settings["axis_symmetric_flag"].GetBool()
+        stabilization_type     = self.settings["stabilization"].GetString()
         if axis_symmetric_flag:
             self.grid_model_part.ProcessInfo.SetValue(KratosMPM.IS_AXISYMMETRIC, True)
         else:
@@ -237,6 +238,10 @@ class MPMSolver(PythonSolver):
                 KratosMultiphysics.Logger.PrintInfo("::[MPMSolver]:: ","WARNING: No stabilization considered for a mixed formulation.")
             elif (stabilization =="ppp"): #Polynomial Pressure Projection stabilization
                 stabilization_type = 1
+            elif (stabilization =="asgs"):
+                stabilization_type = 2
+            elif (stabilization =="osgs"):
+                stabilization_type = 3
             self.grid_model_part.ProcessInfo.SetValue(KratosMPM.STABILIZATION_TYPE, stabilization_type)
 
         # Assigning extra information to the main model part
@@ -311,6 +316,12 @@ class MPMSolver(PythonSolver):
         model_part.AddNodalSolutionStepVariable(KratosMPM.NODAL_MOMENTUM)
         model_part.AddNodalSolutionStepVariable(KratosMPM.NODAL_INERTIA)
 
+        # Nodal variable for the OSGS stabilization
+        model_part.AddNodalSolutionStepVariable(KratosMPM.RESPROJ_DISPL)
+        model_part.AddNodalSolutionStepVariable(KratosMPM.RESPROJ_PRESS)
+        model_part.AddNodalSolutionStepVariable(KratosMPM.NODAL_AREA)
+        model_part.AddNodalSolutionStepVariable(KratosMPM.NODAL_CAUCHY_STRESS_VECTOR)
+
         # Add variables that the user defined in the ProjectParameters
         auxiliary_solver_utilities.AddVariables(model_part, self.settings["auxiliary_variables_list"])
 
@@ -342,6 +353,10 @@ class MPMSolver(PythonSolver):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X, model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y, model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z, model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMPM.NODAL_CAUCHY_STRESS_VECTOR_X, model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMPM.NODAL_CAUCHY_STRESS_VECTOR_Y, model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMPM.NODAL_CAUCHY_STRESS_VECTOR_Z,  model_part)
+    
 
         if self.settings["pressure_dofs"].GetBool():
             KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.PRESSURE, KratosMPM.PRESSURE_REACTION, model_part)

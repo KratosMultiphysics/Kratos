@@ -21,6 +21,9 @@ from mpm_test_factory import CooksMembraneCompressibleTest as TCooksMembraneComp
 from mpm_test_factory import CooksMembraneUPCompressibleTest as TCooksMembraneUPCompressibleTest
 from mpm_test_factory import CooksMembraneUPCompressibleQuadsTest as TCooksMembraneUPCompressibleQuadsTest
 from mpm_test_factory import CooksMembraneUPIncompressibleTest as TCooksMembraneUPIncompressibleTest
+from mpm_test_factory import CooksMembraneUPCompressibleASGSTest as TCooksMembraneUPCompressibleASGSTest
+from mpm_test_factory import CooksMembraneUPIncompressibleASGSTest as TCooksMembraneUPIncompressibleASGSTest
+from mpm_test_factory import CooksMembraneUPIncompressibleOSGSTest as TCooksMembraneUPIncompressibleOSGSTest
 
 from mpm_test_factory import CLLinearElastic3DQuadTest as TCLLinearElastic3DQuadTest
 from mpm_test_factory import CLDispNewtonianFluidTest as TCLDispNewtonianFluidTest
@@ -55,6 +58,7 @@ from mpm_test_factory import PQMPMExplicitTriTest as TPQMPMExplicitTriTest
 from mpm_test_factory import PQMPMExplicitHexTest as TPQMPMExplicitHexTest
 
 
+from manufactured_solution_test_mpm import ManufacturedSolutionTestMPM
 from mpm_test_factory import InitialConditionPrescribedVelocityTest as TInitialConditionPrescribedVelocityTest
 
 ##### RESTART TESTS #####
@@ -79,6 +83,9 @@ from test_static_loading_conditions_surface import TestStaticLoadingConditionsSu
 from test_interpolate_body_force            import TestBodyForceInterpolationMPM      as TTestBodyForceInterpolation
 from test_material_point_locator            import TestMaterialPointLocator           as TTestMaterialPointLocator
 from test_mpm_point_output_process          import TestMPMPointOutputProcess          as TTestMPMPointOutputProcess
+from test_assign_body_acceleration_to_material_point_process import (
+    TestAssignBodyAccelerationToMaterialPointProcess as TTestAssignBodyAccelerationToMPProcess
+)
 
 
 def AssembleTestSuites():
@@ -111,6 +118,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestMPMVtkOutputProcess]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestMPMWriteEnergyOutputProcess]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestBodyForceInterpolation]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestAssignBodyAccelerationToMPProcess]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestMaterialPointLocator]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestMPMPointOutputProcess]))
 
@@ -146,6 +154,9 @@ def AssembleTestSuites():
     nightSuite.addTest(TCooksMembraneUPCompressibleTest('test_execution'))
     nightSuite.addTest(TCooksMembraneUPCompressibleQuadsTest('test_execution'))
     nightSuite.addTest(TCooksMembraneUPIncompressibleTest('test_execution'))
+    nightSuite.addTest(TCooksMembraneUPCompressibleASGSTest('test_execution'))
+    nightSuite.addTest(TCooksMembraneUPIncompressibleASGSTest('test_execution'))
+    nightSuite.addTest(TCooksMembraneUPIncompressibleOSGSTest('test_execution'))
     nightSuite.addTest(TPenaltyImpositionBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest('test_execution'))
     nightSuite.addTest(TLagrangeImpositionBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest('test_execution'))
     nightSuite.addTest(TLagrangeCenterImpositionBeamCantileverQuasiStaticHyperelasticSelfWeightLoad2DQuadTest('test_execution'))
@@ -178,6 +189,7 @@ def AssembleTestSuites():
     ### Adding Validation Tests
     ## For very long tests that should not be in nightly and you can use to validate
     validationSuite = suites['validation']
+    validationSuite.addTest(ManufacturedSolutionTestMPM('testManufacturedSolutionMPM'))
 
     ### Create a test suit that contains all the tests:
     allSuite = suites['all']
