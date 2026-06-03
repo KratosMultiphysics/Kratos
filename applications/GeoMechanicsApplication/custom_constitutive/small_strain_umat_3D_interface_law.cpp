@@ -33,9 +33,9 @@ void SmallStrainUMAT3DInterfaceLaw::UpdateInternalDeltaStrainVector(Constitutive
 {
     const Vector& rStrainVector = rValues.GetStrainVector();
 
-    mDeltaStrainVector[2] = rStrainVector(2) - mStrainVectorFinalized[2];
-    mDeltaStrainVector[4] = rStrainVector(1) - mStrainVectorFinalized[4];
-    mDeltaStrainVector[5] = rStrainVector(0) - mStrainVectorFinalized[5];
+    mDeltaStrainVector[2] = rStrainVector[2] - mStrainVectorFinalized[2];
+    mDeltaStrainVector[4] = rStrainVector[1] - mStrainVectorFinalized[4];
+    mDeltaStrainVector[5] = rStrainVector[0] - mStrainVectorFinalized[5];
 }
 
 void SmallStrainUMAT3DInterfaceLaw::SetExternalStressVector(Vector& rStressVector)
@@ -60,9 +60,9 @@ void SmallStrainUMAT3DInterfaceLaw::SetInternalStrainVector(const Vector& rStrai
 {
     std::fill(mStrainVectorFinalized.begin(), mStrainVectorFinalized.end(), 0.0);
 
-    mStrainVectorFinalized[2] = rStrainVector(2);
-    mStrainVectorFinalized[4] = rStrainVector(1);
-    mStrainVectorFinalized[5] = rStrainVector(0);
+    mStrainVectorFinalized[2] = rStrainVector[2];
+    mStrainVectorFinalized[4] = rStrainVector[1];
+    mStrainVectorFinalized[5] = rStrainVector[0];
 }
 
 void SmallStrainUMAT3DInterfaceLaw::CopyConstitutiveMatrix(ConstitutiveLaw::Parameters& rValues, Matrix& rConstitutiveMatrix)
