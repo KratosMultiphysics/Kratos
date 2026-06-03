@@ -2,90 +2,73 @@
 import KratosMultiphysics
 from KratosMultiphysics import _ImportApplication, python_registry_utilities
 import KratosMultiphysics.StructuralMechanicsApplication
-import KratosGeoMechanicsApplication as _KratosGeoMechanicsApplication
+import KratosGeoMechanicsApplication as KratosGeo
 
-# Explicitly export required bindings by name.
-_required_bindings = (
-    "KratosGeoMechanicsApplication",
-    "KratosExecuteCallBackFunctions",
-    "KratosExecuteCriticalHeadInfo",
+KratosGeoMechanicsApplication = KratosGeo.KratosGeoMechanicsApplication
 
-    "BackwardEulerQuasistaticPwScheme",
-    "GeneralizedNewmarkTScheme",
-    "GeoLoadSteppingScheme",
-    "GeoStaticScheme",
-    "GeoMechanicsNewtonRaphsonStrategy",
-    "GeoMechanicsNewtonRaphsonErosionProcessStrategy",
-    "NewmarkDynamicUPwScheme",
-    "NewmarkQuasistaticDampedUPwScheme",
-    "NewmarkQuasistaticPwScheme",
-    "NewmarkQuasistaticUPwScheme",
-    "CustomWorkflowFactory",
-    "DeactivateConditionsOnInactiveElements",
-    "ProcessUtilities",
-    "ResidualBasedBlockBuilderAndSolverWithMassAndDamping",
-    "NodeUtilities",
+# Re-export specific items from KratosGeoMechanicsApplication
+ProcessUtilities = KratosGeo.ProcessUtilities
+CustomWorkflowFactory = KratosGeo.CustomWorkflowFactory
+NodeUtilities = KratosGeo.NodeUtilities
+DeactivateConditionsOnInactiveElements = KratosGeo.DeactivateConditionsOnInactiveElements
+ResidualBasedBlockBuilderAndSolverWithMassAndDamping = KratosGeo.ResidualBasedBlockBuilderAndSolverWithMassAndDamping
+FindNeighbourElementsOfConditionsProcess = KratosGeo.FindNeighbourElementsOfConditionsProcess
 
-    "ApplyCPhiReductionProcess",
-    "ApplyFinalStressesOfPreviousStageToInitialState",
-    "ApplyExcavationProcess",
-    "ApplyInitialUniformStressField",
-    "ApplyK0ProcedureProcess",
-    "ApplyNormalLoadTableProcess",
-    "ApplyScalarConstraintTableProcess",
-    "ApplyVectorConstraintTableProcess",
-    "BackwardEulerQuasistaticUPwScheme",
-    "BackwardEulerTScheme",
-    "CalculateIncrementalMotionProcess",
-    "CalculateTotalMotionProcess",
-    "FindNeighbourElementsOfConditionsProcess",
-    "FindNeighboursOfInterfacesProcess",
-    "GeoExtrapolateIntegrationPointValuesToNodesProcess",
-    "SetAbsorbingBoundaryParametersProcess",
-    "SetMultipleMovingLoadsProcess",
-    "SetParameterFieldProcess",
+# Schemes
+BackwardEulerQuasistaticPwScheme = KratosGeo.BackwardEulerQuasistaticPwScheme
+BackwardEulerQuasistaticUPwScheme = KratosGeo.BackwardEulerQuasistaticUPwScheme
+BackwardEulerTScheme = KratosGeo.BackwardEulerTScheme
+GeneralizedNewmarkTScheme = KratosGeo.GeneralizedNewmarkTScheme
+GeoLoadSteppingScheme = KratosGeo.GeoLoadSteppingScheme
+GeoStaticScheme = KratosGeo.GeoStaticScheme
+NewmarkDynamicUPwScheme = KratosGeo.NewmarkDynamicUPwScheme
+NewmarkQuasistaticDampedUPwScheme = KratosGeo.NewmarkQuasistaticDampedUPwScheme
+NewmarkQuasistaticPwScheme = KratosGeo.NewmarkQuasistaticPwScheme
+NewmarkQuasistaticUPwScheme = KratosGeo.NewmarkQuasistaticUPwScheme
 
-    "AIR_HUMIDITY",
-    "AIR_TEMPERATURE",
-    "DT_PRESSURE_COEFFICIENT",
-    "DT_TEMPERATURE",
-    "DT_TEMPERATURE_COEFFICIENT",
-    "DT_WATER_PRESSURE",
-    "FLUID_FLUX_VECTOR",
-    "GEO_PLASTICITY_STATUS",
-    "GEO_RELATIVE_DISPLACEMENT_VECTOR",
-    "GEO_EFFECTIVE_TRACTION_VECTOR",
-    "HYDRAULIC_DISCHARGE",
-    "HYDRAULIC_HEAD",
-    "INCREMENTAL_DISPLACEMENT",
-    "INCREMENTAL_ROTATION",
-    "IS_CONVERGED",
-    "LOCAL_STRESS_VECTOR",
-    "NORMAL_HEAT_FLUX",
-    "NORMAL_FLUID_FLUX",
-    "PIPE_ACTIVE",
-    "PIPE_ELEMENT_LENGTH",
-    "PRECIPITATION",
-    "SOLAR_RADIATION",
-    "TIME_UNIT_CONVERTER",
-    "TOTAL_DISPLACEMENT",
-    "TOTAL_DISPLACEMENT_X",
-    "TOTAL_DISPLACEMENT_Y",
-    "TOTAL_DISPLACEMENT_Z",
-    "TOTAL_ROTATION",
-    "TOTAL_ROTATION_X",
-    "TOTAL_ROTATION_Y",
-    "TOTAL_ROTATION_Z",
-    "TOTAL_STRESS_TENSOR",
-    "VELOCITY_COEFFICIENT",
-    "WIND_SPEED",
+# Strategies
+GeoMechanicsNewtonRaphsonStrategy = KratosGeo.GeoMechanicsNewtonRaphsonStrategy
+GeoMechanicsNewtonRaphsonErosionProcessStrategy = KratosGeo.GeoMechanicsNewtonRaphsonErosionProcessStrategy
 
-    "UMAT_PARAMETERS",
-)
-for _name in _required_bindings:
-    globals()[_name] = getattr(_KratosGeoMechanicsApplication, _name)
+# Processes
+ApplyCPhiReductionProcess = KratosGeo.ApplyCPhiReductionProcess
+ApplyExcavationProcess = KratosGeo.ApplyExcavationProcess
+ApplyFinalStressesOfPreviousStageToInitialState = KratosGeo.ApplyFinalStressesOfPreviousStageToInitialState
+ApplyInitialUniformStressField = KratosGeo.ApplyInitialUniformStressField
+ApplyK0ProcedureProcess = KratosGeo.ApplyK0ProcedureProcess
+ApplyNormalLoadTableProcess = KratosGeo.ApplyNormalLoadTableProcess
+ApplyScalarConstraintTableProcess = KratosGeo.ApplyScalarConstraintTableProcess
+ApplyVectorConstraintTableProcess = KratosGeo.ApplyVectorConstraintTableProcess
+CalculateIncrementalMotionProcess = KratosGeo.CalculateIncrementalMotionProcess
+CalculateTotalMotionProcess = KratosGeo.CalculateTotalMotionProcess
+FindNeighboursOfInterfacesProcess = KratosGeo.FindNeighboursOfInterfacesProcess
+GeoExtrapolateIntegrationPointValuesToNodesProcess = KratosGeo.GeoExtrapolateIntegrationPointValuesToNodesProcess
+SetAbsorbingBoundaryParametersProcess = KratosGeo.SetAbsorbingBoundaryParametersProcess
+SetMultipleMovingLoadsProcess = KratosGeo.SetMultipleMovingLoadsProcess
+SetParameterFieldProcess = KratosGeo.SetParameterFieldProcess
 
-KratosGeoMechanicsApplication = _KratosGeoMechanicsApplication.KratosGeoMechanicsApplication
+# Callback functions
+KratosExecuteCallBackFunctions = KratosGeo.KratosExecuteCallBackFunctions
+KratosExecuteCriticalHeadInfo = KratosGeo.KratosExecuteCriticalHeadInfo
+
+# Constants - Variables
+TOTAL_DISPLACEMENT = KratosGeo.TOTAL_DISPLACEMENT
+INCREMENTAL_DISPLACEMENT = KratosGeo.INCREMENTAL_DISPLACEMENT
+GEO_RELATIVE_DISPLACEMENT_VECTOR = KratosGeo.GEO_RELATIVE_DISPLACEMENT_VECTOR
+GEO_EFFECTIVE_TRACTION_VECTOR = KratosGeo.GEO_EFFECTIVE_TRACTION_VECTOR
+TIME_UNIT_CONVERTER = KratosGeo.TIME_UNIT_CONVERTER
+AIR_HUMIDITY = KratosGeo.AIR_HUMIDITY
+AIR_TEMPERATURE = KratosGeo.AIR_TEMPERATURE
+DT_PRESSURE_COEFFICIENT = KratosGeo.DT_PRESSURE_COEFFICIENT
+DT_TEMPERATURE = KratosGeo.DT_TEMPERATURE
+DT_TEMPERATURE_COEFFICIENT = KratosGeo.DT_TEMPERATURE_COEFFICIENT
+DT_WATER_PRESSURE = KratosGeo.DT_WATER_PRESSURE
+FLUID_FLUX_VECTOR = KratosGeo.FLUID_FLUX_VECTOR
+GEO_PLASTICITY_STATUS = KratosGeo.GEO_PLASTICITY_STATUS
+HYDRAULIC_DISCHARGE = KratosGeo.HYDRAULIC_DISCHARGE
+HYDRAULIC_HEAD = KratosGeo.HYDRAULIC_HEAD
+NORMAL_FLUID_FLUX = KratosGeo.NORMAL_FLUID_FLUX
+PERMEABILITY_MATRIX = KratosGeo.PERMEABILITY_MATRIX
 
 application = KratosGeoMechanicsApplication()
 application_name = "KratosGeoMechanicsApplication"
