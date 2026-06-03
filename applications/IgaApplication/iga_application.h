@@ -36,9 +36,11 @@
 #include "custom_conditions/load_condition.h"
 #include "custom_conditions/load_moment_director_5p_condition.h"
 #include "custom_conditions/coupling_penalty_condition.h"
+#include "custom_conditions/coupling_penalty_6p_condition.h"
 #include "custom_conditions/coupling_lagrange_condition.h"
 #include "custom_conditions/coupling_nitsche_condition.h"
 #include "custom_conditions/support_penalty_condition.h"
+#include "custom_conditions/support_penalty_6p_condition.h"
 #include "custom_conditions/support_lagrange_condition.h"
 #include "custom_conditions/support_nitsche_condition.h"
 #include "custom_conditions/support_laplacian_condition.h"
@@ -153,9 +155,11 @@ private:
     const LoadCondition mLoadCondition;
     const LoadMomentDirector5pCondition mLoadMomentDirector5pCondition;
     const CouplingPenaltyCondition mCouplingPenaltyCondition;
+    const CouplingPenalty6pCondition mCouplingPenalty6pCondition;
     const CouplingLagrangeCondition mCouplingLagrangeCondition;
     const CouplingNitscheCondition mCouplingNitscheCondition;
     const SupportPenaltyCondition mSupportPenaltyCondition;
+    const SupportPenalty6pCondition mSupportPenalty6pCondition;
     const SupportLagrangeCondition mSupportLagrangeCondition;
     const SupportNitscheCondition mSupportNitscheCondition;
     const SupportLaplacianCondition mSupportLaplacianCondition;
