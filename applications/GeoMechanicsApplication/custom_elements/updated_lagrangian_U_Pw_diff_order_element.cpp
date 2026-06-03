@@ -178,18 +178,9 @@ void UpdatedLagrangianUPwDiffOrderElement::save(Serializer& rSerializer) const
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, SmallStrainUPwDiffOrderElement)
 }
 
-void UpdatedLagrangianUPwDiffOrderElement::load(Serializer& rSerializer){
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, SmallStrainUPwDiffOrderElement)}
-
-std::string UpdatedLagrangianUPwDiffOrderElement::Info() const
+void UpdatedLagrangianUPwDiffOrderElement::load(Serializer& rSerializer)
 {
-    const std::string constitutive_info =
-        !mConstitutiveLawVector.empty() ? mConstitutiveLawVector[0]->Info() : "not defined";
-    std::ostringstream oss;
-    oss << "Updated Lagrangian U-Pw different order Element #" << this->Id()
-        << "\nConstitutive law: " << constitutive_info;
-
-    return oss.str();
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, SmallStrainUPwDiffOrderElement)
 }
 
 void UpdatedLagrangianUPwDiffOrderElement::PrintInfo(std::ostream& rOStream) const

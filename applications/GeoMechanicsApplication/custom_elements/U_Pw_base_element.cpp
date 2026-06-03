@@ -486,17 +486,6 @@ std::unique_ptr<IntegrationCoefficientModifier> UPwBaseElement::CloneIntegration
     return mIntegrationCoefficientsCalculator.CloneModifier();
 }
 
-std::string UPwBaseElement::Info() const
-{
-    const std::string constitutive_info =
-        !mConstitutiveLawVector.empty() ? mConstitutiveLawVector[0]->Info() : "not defined";
-
-    std::ostringstream oss;
-    oss << "U-Pw Base class Element #" << Id() << "\nConstitutive law: " << constitutive_info;
-
-    return oss.str();
-}
-
 void UPwBaseElement::PrintInfo(std::ostream& rOStream) const { rOStream << Info(); }
 
 } // Namespace Kratos

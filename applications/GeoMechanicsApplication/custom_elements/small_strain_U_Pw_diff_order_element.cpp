@@ -1687,16 +1687,6 @@ void SmallStrainUPwDiffOrderElement::CalculateAnyOfMaterialResponse(
     }
 }
 
-std::string SmallStrainUPwDiffOrderElement::Info() const
-{
-    const std::string constitutive_info =
-        !mConstitutiveLawVector.empty() ? mConstitutiveLawVector[0]->Info() : "not defined";
-    std::ostringstream oss;
-    oss << "U-Pw small strain different order Element #" << Id() << "\nConstitutive law: " << constitutive_info;
-
-    return oss.str();
-}
-
 void SmallStrainUPwDiffOrderElement::PrintInfo(std::ostream& rOStream) const { rOStream << Info(); }
 
 } // Namespace Kratos
