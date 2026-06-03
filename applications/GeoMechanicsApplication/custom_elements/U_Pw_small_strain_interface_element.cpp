@@ -512,11 +512,7 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateOnIntegrationPoin
         std::vector<array_1d<double, 3>> GPValues(nLobottoGPoints);
         this->CalculateOnLobattoIntegrationPoints(rVariable, GPValues, rCurrentProcessInfo);
 
-        // Printed on standard GiD Gauss points
-        if (const unsigned int nOutputGPoints = r_geometry.IntegrationPointsNumber(this->GetIntegrationMethod());
-            rValues.size() != nOutputGPoints)
-            rValues.resize(nOutputGPoints);
-
+        rValues.resize(r_geometry.IntegrationPointsNumber(this->GetIntegrationMethod()));
         this->InterpolateOutputValues<array_1d<double, 3>>(rValues, GPValues);
     } else {
         // Variables computed on Lobatto points

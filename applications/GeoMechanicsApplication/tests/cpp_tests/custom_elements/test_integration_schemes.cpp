@@ -201,8 +201,7 @@ KRATOS_TEST_CASE_IN_SUITE(AttemptingToMakeALumpedSchemeWithAnUnsupportedNumberOf
     for (auto number : some_unsupported_numbers_of_points) {
         std::ostringstream oss;
         oss << "Can't construct Lumped integration scheme: no support for " << number << " point(s)";
-        const std::string expected_error_message = oss.str();
-        KRATOS_EXPECT_EXCEPTION_IS_THROWN(LumpedIntegrationScheme{number}, expected_error_message)
+        KRATOS_EXPECT_EXCEPTION_IS_THROWN(LumpedIntegrationScheme{number}, oss.str())
     }
 }
 

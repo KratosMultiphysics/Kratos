@@ -1,7 +1,4 @@
 
-JSON_EXTENSION = ".json"
-
-
 class SubModelPart():
     def __init__(self):
         self.name =''
@@ -191,9 +188,9 @@ def read_all_projects(all_project_names):
     all_mdpa_data = []
 
     for stage ,project_name in enumerate(all_project_names):
-        with open(os.path.join(main_folder, project_name, 'ProjectParameters' + JSON_EXTENSION), 'r') as f:
+        with open(os.path.join(main_folder, project_name, 'ProjectParameters.json'), 'r') as f:
             project_parameters = json.load(f)
-        with open(os.path.join(main_folder, project_name, 'MaterialParameters' + JSON_EXTENSION), 'r') as f:
+        with open(os.path.join(main_folder, project_name, 'MaterialParameters.json'), 'r') as f:
             material_parameters = json.load(f)
         with open(os.path.join(main_folder, project_name, project_name.replace(".gid", ".mdpa")), 'r') as f:
             mdpa_data = f.readlines()
@@ -242,7 +239,7 @@ def update_project_parameters_files(all_project_parameters):
     previous_end_time = 0
     for project_nr, project_parameters in enumerate(all_project_parameters):
         project_parameters["solver_settings"]["material_import_settings"][
-            "materials_filename"] = 'MaterialParameters_stage' + str(project_nr + 1) + JSON_EXTENSION
+            "materials_filename"] = f'MaterialParameters_stage{project_nr + 1}.json'
         if project_parameters["problem_data"]["start_time"] < previous_end_time:
             dt = project_parameters["problem_data"]["end_time"] - project_parameters["problem_data"]["start_time"]
             project_parameters["problem_data"]["start_time"] = previous_end_time
@@ -262,8 +259,8 @@ def write_all_files_in_project_dir(main_folder,new_project_name,all_project_name
 
     for stage, project_name in enumerate(all_project_names):
 
-        new_project_parameters_file = os.path.join(new_dir_name,'ProjectParameters_stage' + str(stage+1) + JSON_EXTENSION)
-        new_material_parameters_file = os.path.join(new_dir_name,'MaterialParameters_stage' + str(stage+1) + JSON_EXTENSION)
+        new_project_parameters_file = os.path.join(new_dir_name,f'ProjectParameters_stage{stage+1}.json')
+        new_material_parameters_file = os.path.join(new_dir_name,f'MaterialParameters_stage{stage+1}.json')
         new_mdpa_file = os.path.join(new_dir_name, project_name.replace(".gid", ".mdpa"))
 
         with open(new_project_parameters_file,'w') as f:

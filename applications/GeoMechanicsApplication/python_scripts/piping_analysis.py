@@ -32,7 +32,6 @@ class PipingAnalysis(GeoMechanicsAnalysis):
 
     def __increase_time_step(self):
         KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Up-scaling with factor: ", self.increase_factor)
-        # converged
         self.new_delta_time *= self.increase_factor
         t = self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME]
         new_time = t + self.new_delta_time

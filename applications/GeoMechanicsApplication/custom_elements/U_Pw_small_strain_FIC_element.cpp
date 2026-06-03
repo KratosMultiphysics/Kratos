@@ -780,9 +780,8 @@ void UPwSmallStrainFICElement<2, 4>::CalculateShapeFunctionsSecondOrderGradients
 
     noalias(rVariables.UVoigtMatrix) = prod(trans(rVariables.B), rFICVariables.VoigtMatrix);
     constexpr auto number_of_nodes   = std::size_t{4};
-    unsigned int   index;
     for (unsigned int i = 0; i < number_of_nodes; ++i) {
-        index = 2 * i;
+        const auto index = 2 * i;
 
         noalias(rFICVariables.ShapeFunctionsSecondOrderGradients[i]) =
             prod(trans(rVariables.UVoigtMatrix), rFICVariables.NodalShapeFunctionsGradients[i]);
@@ -820,9 +819,8 @@ void UPwSmallStrainFICElement<3, 8>::CalculateShapeFunctionsSecondOrderGradients
 
     noalias(rVariables.UVoigtMatrix) = prod(trans(rVariables.B), rFICVariables.VoigtMatrix);
     constexpr auto number_of_nodes   = std::size_t{8};
-    unsigned int   index;
     for (unsigned int i = 0; i < number_of_nodes; ++i) {
-        index = 3 * i;
+        const auto index = 3 * i;
 
         noalias(rFICVariables.ShapeFunctionsSecondOrderGradients[i]) =
             prod(trans(rVariables.UVoigtMatrix), rFICVariables.NodalShapeFunctionsGradients[i]);
@@ -984,7 +982,7 @@ void UPwSmallStrainFICElement<2, 4>::CalculateConstitutiveTensorGradients(FICEle
 {
     KRATOS_TRY
 
-    constexpr auto dimension       = SizeType{2};
+    constexpr auto dimension       = 2u;
     constexpr auto number_of_nodes = SizeType{4};
 
     for (unsigned int i = 0; i < dimension; ++i) {
@@ -1008,10 +1006,9 @@ void UPwSmallStrainFICElement<2, 4>::CalculateConstitutiveTensorGradients(FICEle
     noalias(rFICVariables.DimUMatrix) = prod(rFICVariables.DimVoigtMatrix, Variables.B);
 
     // Adding ShapeFunctionsSecondOrderGradients terms
-    unsigned int index;
 
     for (unsigned int i = 0; i < number_of_nodes; ++i) {
-        index = dimension * i;
+        const auto index = dimension * i;
 
         rFICVariables.DimUMatrix(0, index) +=
             rFICVariables.ShapeFunctionsSecondOrderGradients[i][0] *
@@ -1076,7 +1073,7 @@ void UPwSmallStrainFICElement<3, 8>::CalculateConstitutiveTensorGradients(FICEle
 {
     KRATOS_TRY
 
-    constexpr auto dimension       = SizeType{3};
+    constexpr auto dimension       = 3u;
     constexpr auto number_of_nodes = SizeType{8};
 
     for (unsigned int i = 0; i < dimension; ++i) {
@@ -1100,10 +1097,9 @@ void UPwSmallStrainFICElement<3, 8>::CalculateConstitutiveTensorGradients(FICEle
     noalias(rFICVariables.DimUMatrix) = prod(rFICVariables.DimVoigtMatrix, Variables.B);
 
     // Adding ShapeFunctionsSecondOrderGradients terms
-    unsigned int index;
 
     for (unsigned int i = 0; i < number_of_nodes; ++i) {
-        index = dimension * i;
+        const auto index = dimension * i;
 
         rFICVariables.DimUMatrix(0, index) +=
             rFICVariables.ShapeFunctionsSecondOrderGradients[i][0] *

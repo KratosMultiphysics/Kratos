@@ -64,9 +64,9 @@ void SmallStrainUDSM2DInterfaceLaw::UpdateInternalDeltaStrainVector(Parameters& 
 
 void SmallStrainUDSM2DInterfaceLaw::SetExternalStressVector(Vector& rStressVector)
 {
-    rStressVector(static_cast<std::size_t>(INDEX_2D_INTERFACE_ZZ)) =
+    rStressVector[static_cast<std::size_t>(INDEX_2D_INTERFACE_ZZ)] =
         mStressVector[static_cast<std::size_t>(INDEX_3D_ZZ)];
-    rStressVector(static_cast<std::size_t>(INDEX_2D_INTERFACE_XZ)) =
+    rStressVector[static_cast<std::size_t>(INDEX_2D_INTERFACE_XZ)] =
         mStressVector[static_cast<std::size_t>(INDEX_3D_XZ)];
 }
 
