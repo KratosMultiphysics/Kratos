@@ -93,10 +93,13 @@ int InterfaceCoulombWithTensionCutOff::Check(const Properties&   rMaterialProper
     constexpr auto max_value_angle = 90.0;
     check_properties.SingleUseBounds(CheckProperties::Bounds::AllExclusive).Check(GEO_FRICTION_ANGLE, 0.0, max_value_angle);
     check_properties.Check(GEO_DILATANCY_ANGLE, rMaterialProperties[GEO_FRICTION_ANGLE]);
-    check_properties.Check(
-        GEO_TENSILE_STRENGTH,
-        rMaterialProperties[GEO_COHESION] /
-            std::tan(MathUtils<>::DegreesToRadians(rMaterialProperties[GEO_FRICTION_ANGLE])));
+    if (rMaterialProperties.Has(GEO_ENABLE_TENSION_CUT_OFF) && rMaterialProperties[GEO_ENABLE_TENSION_CUT_OFF])
+    {
+        check_properties.Check(
+            GEO_TENSILE_STRENGTH,
+            rMaterialProperties[GEO_COHESION] /
+                std::tan(MathUtils<>::DegreesToRadians(rMaterialProperties[GEO_FRICTION_ANGLE])));
+    }
     check_properties.Check(INTERFACE_NORMAL_STIFFNESS);
     check_properties.Check(INTERFACE_SHEAR_STIFFNESS);
     return result;

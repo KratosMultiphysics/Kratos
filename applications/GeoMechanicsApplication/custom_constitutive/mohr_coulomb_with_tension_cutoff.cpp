@@ -137,10 +137,13 @@ int MohrCoulombWithTensionCutOff::Check(const Properties&   rMaterialProperties,
     const auto result = ConstitutiveLaw::Check(rMaterialProperties, rElementGeometry, rCurrentProcessInfo);
 
     const CheckProperties check_properties(rMaterialProperties, "property", CheckProperties::Bounds::AllInclusive);
-    check_properties.Check(
-        GEO_TENSILE_STRENGTH,
-        rMaterialProperties[GEO_COHESION] /
-            std::tan(MathUtils<>::DegreesToRadians(rMaterialProperties[GEO_FRICTION_ANGLE])));
+    if (rMaterialProperties.Has(GEO_ENABLE_TENSION_CUT_OFF) && rMaterialProperties[GEO_ENABLE_TENSION_CUT_OFF])
+    {
+        check_properties.Check(
+            GEO_TENSILE_STRENGTH,
+            rMaterialProperties[GEO_COHESION] /
+                std::tan(MathUtils<>::DegreesToRadians(rMaterialProperties[GEO_FRICTION_ANGLE])));
+    }
     check_properties.Check(YOUNG_MODULUS);
     constexpr auto max_value_poisson_ratio = 0.5;
     check_properties.Check(POISSON_RATIO, max_value_poisson_ratio);
