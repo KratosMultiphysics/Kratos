@@ -42,11 +42,7 @@
                                 "PorousDomain.Interface_Middle_Left",
                                 "PorousDomain.Interface_Bottom_Left",
                                 "PorousDomain.Sheet_Pile_Wall",
-                                "PorousDomain.Anchor",
-                                "PorousDomain.Load",
-                                "PorousDomain.Normal_Load_After_First_Excavation",
-                                "PorousDomain.Normal_Load_After_Second_Excavation",
-                                "PorousDomain.Normal_Load_After_Third_Excavation"
+                                "PorousDomain.Anchor"
                             ]
                         }
                     }
@@ -474,8 +470,7 @@
                                 "PorousDomain.Interface_Excavated_Soil_3",
                                 "PorousDomain.Interface_Middle_Left",
                                 "PorousDomain.Interface_Bottom_Left",
-                                "PorousDomain.Sheet_Pile_Wall",
-                                "PorousDomain.Load"
+                                "PorousDomain.Sheet_Pile_Wall"
                             ]
                         }
                     }
@@ -766,14 +761,6 @@
                             "model_part_name_list": [
                                 "PorousDomain.Excavated_Soil_1",
                                 "PorousDomain.Interface_Excavated_Soil_1"
-                            ]
-                        }
-                    },
-                    {
-                        "name": "Operations.KratosMultiphysics.GeoMechanicsApplication.ActivateModelPartOperation",
-                        "Parameters": {
-                            "model_part_name_list": [
-                                "PorousDomain.Normal_Load_After_First_Excavation"
                             ]
                         }
                     }
@@ -1124,7 +1111,6 @@
                     "newmark_gamma": 0.5,
                     "newmark_theta": 0.5,
                     "problem_domain_sub_model_part_list": [
-                        "Excavated_Soil_1",
                         "Excavated_Soil_2",
                         "Excavated_Soil_3",
                         "Soil_Below_Pit",
@@ -1135,7 +1121,6 @@
                         "Interface_Top_Right",
                         "Interface_Middle_Right",
                         "Interface_Bottom_Right",
-                        "Interface_Excavated_Soil_1",
                         "Interface_Excavated_Soil_2",
                         "Interface_Excavated_Soil_3",
                         "Interface_Middle_Left",
@@ -1144,7 +1129,6 @@
                         "Anchor"
                     ],
                     "body_domain_sub_model_part_list": [
-                        "Excavated_Soil_1",
                         "Excavated_Soil_2",
                         "Excavated_Soil_3",
                         "Soil_Below_Pit",
@@ -1155,7 +1139,6 @@
                         "Interface_Top_Right",
                         "Interface_Middle_Right",
                         "Interface_Bottom_Right",
-                        "Interface_Excavated_Soil_1",
                         "Interface_Excavated_Soil_2",
                         "Interface_Excavated_Soil_3",
                         "Interface_Middle_Left",
@@ -1379,15 +1362,8 @@
                         "Parameters": {
                             "model_part_name_list": [
                                 "PorousDomain.Excavated_Soil_2",
-                                "PorousDomain.Interface_Excavated_Soil_2",
-                                "PorousDomain.Normal_Load_After_First_Excavation"
+                                "PorousDomain.Interface_Excavated_Soil_2"
                             ]
-                        }
-                    },
-                    {
-                        "name": "Operations.KratosMultiphysics.GeoMechanicsApplication.ActivateModelPartOperation",
-                        "Parameters": {
-                            "model_part_name": "PorousDomain.Normal_Load_After_Second_Excavation"
                         }
                     }
                 ]
@@ -1686,15 +1662,8 @@
                         "Parameters": {
                             "model_part_name_list": [
                                 "PorousDomain.Excavated_Soil_3",
-                                "PorousDomain.Interface_Excavated_Soil_3",
-                                "PorousDomain.Normal_Load_After_Second_Excavation"
+                                "PorousDomain.Interface_Excavated_Soil_3"
                             ]
-                        }
-                    },
-                    {
-                        "name": "Operations.KratosMultiphysics.GeoMechanicsApplication.ActivateModelPartOperation",
-                        "Parameters": {
-                            "model_part_name": "PorousDomain.Normal_Load_After_Third_Excavation"
                         }
                     }
                 ]
