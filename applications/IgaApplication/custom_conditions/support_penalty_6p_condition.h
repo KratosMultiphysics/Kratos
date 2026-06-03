@@ -102,7 +102,7 @@ namespace Kratos
             VectorType& rRightHandSideVector,
             const ProcessInfo& rCurrentProcessInfo) override
         {
-            const IndexType mat_size = GetGeometry().size() * 3;
+            const IndexType mat_size = GetGeometry().size() * 6;
 
             if (rRightHandSideVector.size() != mat_size)
                 rRightHandSideVector.resize(mat_size);
@@ -124,7 +124,7 @@ namespace Kratos
             MatrixType& rLeftHandSideMatrix,
             const ProcessInfo& rCurrentProcessInfo) override
         {
-            const IndexType mat_size = GetGeometry().size() * 3;
+            const IndexType mat_size = GetGeometry().size() * 6;
 
             VectorType right_hand_side_vector;
 
@@ -149,7 +149,7 @@ namespace Kratos
             VectorType& rRightHandSideVector,
             const ProcessInfo& rCurrentProcessInfo) override
         {
-            const IndexType mat_size = GetGeometry().size() * 3;
+            const IndexType mat_size = GetGeometry().size() * 6;
 
             if (rRightHandSideVector.size() != mat_size)
                 rRightHandSideVector.resize(mat_size);
