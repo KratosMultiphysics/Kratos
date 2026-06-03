@@ -45,16 +45,6 @@ constexpr SizeType VOIGT_SIZE_2D_AXISYMMETRIC = 4;
 constexpr SizeType VOIGT_SIZE_2D_INTERFACE    = 2;
 constexpr SizeType VOIGT_SIZE_3D_INTERFACE    = 3;
 
-// stress/strain vector indices (3D):
-enum class indexStress3D : int {
-    INDEX_3D_XX,
-    INDEX_3D_YY,
-    INDEX_3D_ZZ,
-    INDEX_3D_XY,
-    INDEX_3D_YZ,
-    INDEX_3D_XZ
-};
-
 // stress/strain vector indices (2D plane strain):
 enum class indexStress2DPlaneStrain : int {
     INDEX_2D_PLANE_STRAIN_XX,
@@ -87,15 +77,6 @@ enum class indexStress3DInterface : int {
     INDEX_3D_INTERFACE_YZ,
     INDEX_3D_INTERFACE_ZZ
 };
-
-// stress/strain vector indices 2D beam:
-enum class indexStress2DBeam : int { INDEX_2D_BEAM_XX, INDEX_2D_BEAM_YY, INDEX_2D_BEAM_XY };
-
-// DOF indices 2D beam:
-enum class indexDOF2DBeam : int { INDEX_2D_BEAM_X, INDEX_2D_BEAM_Y, INDEX_2D_BEAM_T };
-
-// Heat vector indices:
-enum class indexThermalFlux : int { X, Y, Z };
 
 enum class IsDiffOrderElement : int { Yes, No };
 

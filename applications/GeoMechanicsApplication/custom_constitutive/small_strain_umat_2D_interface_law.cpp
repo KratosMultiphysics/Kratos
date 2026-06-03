@@ -16,7 +16,6 @@
 namespace Kratos
 {
 using namespace std::string_literals;
-using enum indexStress3D;
 using enum indexStress2DInterface;
 
 SmallStrainUMAT2DInterfaceLaw::SmallStrainUMAT2DInterfaceLaw(std::unique_ptr<ConstitutiveLawDimension> pConstitutiveDimension)
@@ -37,38 +36,30 @@ void SmallStrainUMAT2DInterfaceLaw::UpdateInternalDeltaStrainVector(Constitutive
 {
     const Vector& rStrainVector = rValues.GetStrainVector();
 
-    mDeltaStrainVector[static_cast<std::size_t>(INDEX_3D_ZZ)] =
-        rStrainVector(static_cast<std::size_t>(INDEX_2D_INTERFACE_ZZ)) -
-        mStrainVectorFinalized[static_cast<std::size_t>(INDEX_3D_ZZ)];
-    mDeltaStrainVector[static_cast<std::size_t>(INDEX_3D_XZ)] =
-        rStrainVector(static_cast<std::size_t>(INDEX_2D_INTERFACE_XZ)) -
-        mStrainVectorFinalized[static_cast<std::size_t>(INDEX_3D_XZ)];
+    mDeltaStrainVector[2] =
+        rStrainVector(static_cast<std::size_t>(INDEX_2D_INTERFACE_ZZ)) - mStrainVectorFinalized[2];
+    mDeltaStrainVector[5] =
+        rStrainVector(static_cast<std::size_t>(INDEX_2D_INTERFACE_XZ)) - mStrainVectorFinalized[5];
 }
 
 void SmallStrainUMAT2DInterfaceLaw::SetExternalStressVector(Vector& rStressVector)
 {
-    rStressVector[static_cast<std::size_t>(INDEX_2D_INTERFACE_ZZ)] =
-        mStressVector[static_cast<std::size_t>(INDEX_3D_ZZ)];
-    rStressVector[static_cast<std::size_t>(INDEX_2D_INTERFACE_XZ)] =
-        mStressVector[static_cast<std::size_t>(INDEX_3D_XZ)];
+    rStressVector[static_cast<std::size_t>(INDEX_2D_INTERFACE_ZZ)] = mStressVector[2];
+    rStressVector[static_cast<std::size_t>(INDEX_2D_INTERFACE_XZ)] = mStressVector[5];
 }
 
 void SmallStrainUMAT2DInterfaceLaw::SetInternalStressVector(const Vector& rStressVector)
 {
     KRATOS_TRY
-    mStressVectorFinalized[static_cast<std::size_t>(INDEX_3D_ZZ)] =
-        rStressVector[static_cast<std::size_t>(INDEX_2D_INTERFACE_ZZ)];
-    mStressVectorFinalized[static_cast<std::size_t>(INDEX_3D_XZ)] =
-        rStressVector[static_cast<std::size_t>(INDEX_2D_INTERFACE_XZ)];
+    mStressVectorFinalized[2] = rStressVector[static_cast<std::size_t>(INDEX_2D_INTERFACE_ZZ)];
+    mStressVectorFinalized[5] = rStressVector[static_cast<std::size_t>(INDEX_2D_INTERFACE_XZ)];
     KRATOS_CATCH("")
 }
 
 void SmallStrainUMAT2DInterfaceLaw::SetInternalStrainVector(const Vector& rStrainVector)
 {
-    mStrainVectorFinalized[static_cast<std::size_t>(INDEX_3D_ZZ)] =
-        rStrainVector(static_cast<std::size_t>(INDEX_2D_INTERFACE_ZZ));
-    mStrainVectorFinalized[static_cast<std::size_t>(INDEX_3D_XZ)] =
-        rStrainVector(static_cast<std::size_t>(INDEX_2D_INTERFACE_XZ));
+    mStrainVectorFinalized[2] = rStrainVector(static_cast<std::size_t>(INDEX_2D_INTERFACE_ZZ));
+    mStrainVectorFinalized[5] = rStrainVector(static_cast<std::size_t>(INDEX_2D_INTERFACE_XZ));
 }
 
 void SmallStrainUMAT2DInterfaceLaw::CopyConstitutiveMatrix(ConstitutiveLaw::Parameters& rValues, Matrix& rConstitutiveMatrix)
@@ -97,9 +88,9 @@ std::size_t SmallStrainUMAT2DInterfaceLaw::getIndex3D(indexStress2DInterface ind
 {
     switch (index2D) {
     case INDEX_2D_INTERFACE_ZZ:
-        return static_cast<std::size_t>(INDEX_3D_ZZ);
+        return 2;
     case INDEX_2D_INTERFACE_XZ:
-        return static_cast<std::size_t>(INDEX_3D_XZ);
+        return 5;
     default:
         KRATOS_ERROR << "invalid index: " << static_cast<int>(index2D) << std::endl;
     }
@@ -120,10 +111,8 @@ Vector& SmallStrainUMAT2DInterfaceLaw::GetValue(const Variable<Vector>& rThisVar
     } else if (rThisVariable == CAUCHY_STRESS_VECTOR || rThisVariable == GEO_EFFECTIVE_TRACTION_VECTOR) {
         if (rValue.size() != VoigtSize) rValue.resize(VoigtSize);
 
-        rValue[static_cast<std::size_t>(INDEX_2D_INTERFACE_ZZ)] =
-            mStressVectorFinalized[static_cast<std::size_t>(INDEX_3D_ZZ)];
-        rValue[static_cast<std::size_t>(INDEX_2D_INTERFACE_XZ)] =
-            mStressVectorFinalized[static_cast<std::size_t>(INDEX_3D_XZ)];
+        rValue[static_cast<std::size_t>(INDEX_2D_INTERFACE_ZZ)] = mStressVectorFinalized[2];
+        rValue[static_cast<std::size_t>(INDEX_2D_INTERFACE_XZ)] = mStressVectorFinalized[5];
     }
     return rValue;
 }

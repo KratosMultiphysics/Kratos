@@ -24,13 +24,12 @@ using namespace std::string_literals;
 std::size_t GetIndex3D(const indexStress2DInterface Index2D)
 {
     using enum indexStress2DInterface;
-    using enum indexStress3D;
 
     switch (Index2D) {
     case INDEX_2D_INTERFACE_ZZ:
-        return static_cast<std::size_t>(INDEX_3D_ZZ);
+        return 2;
     case INDEX_2D_INTERFACE_XZ:
-        return static_cast<std::size_t>(INDEX_3D_XZ);
+        return 5;
     default:
         KRATOS_ERROR << "invalid index: " << static_cast<int>(Index2D) << std::endl;
     }
@@ -40,7 +39,6 @@ std::size_t GetIndex3D(const indexStress2DInterface Index2D)
 
 namespace Kratos
 {
-using enum indexStress3D;
 using enum indexStress2DInterface;
 
 ConstitutiveLaw::Pointer SmallStrainUDSM2DInterfaceLaw::Clone() const
@@ -54,20 +52,16 @@ void SmallStrainUDSM2DInterfaceLaw::UpdateInternalDeltaStrainVector(Parameters& 
 {
     const auto& r_strain_vector = rValues.GetStrainVector();
 
-    mDeltaStrainVector[static_cast<std::size_t>(INDEX_3D_ZZ)] =
-        r_strain_vector[static_cast<std::size_t>(INDEX_2D_INTERFACE_ZZ)] -
-        mStrainVectorFinalized[static_cast<std::size_t>(INDEX_3D_ZZ)];
-    mDeltaStrainVector[static_cast<std::size_t>(INDEX_3D_XZ)] =
-        r_strain_vector[static_cast<std::size_t>(INDEX_2D_INTERFACE_XZ)] -
-        mStrainVectorFinalized[static_cast<std::size_t>(INDEX_3D_XZ)];
+    mDeltaStrainVector[2] =
+        r_strain_vector[static_cast<std::size_t>(INDEX_2D_INTERFACE_ZZ)] - mStrainVectorFinalized[2];
+    mDeltaStrainVector[5] =
+        r_strain_vector[static_cast<std::size_t>(INDEX_2D_INTERFACE_XZ)] - mStrainVectorFinalized[5];
 }
 
 void SmallStrainUDSM2DInterfaceLaw::SetExternalStressVector(Vector& rStressVector)
 {
-    rStressVector[static_cast<std::size_t>(INDEX_2D_INTERFACE_ZZ)] =
-        mStressVector[static_cast<std::size_t>(INDEX_3D_ZZ)];
-    rStressVector[static_cast<std::size_t>(INDEX_2D_INTERFACE_XZ)] =
-        mStressVector[static_cast<std::size_t>(INDEX_3D_XZ)];
+    rStressVector[static_cast<std::size_t>(INDEX_2D_INTERFACE_ZZ)] = mStressVector[2];
+    rStressVector[static_cast<std::size_t>(INDEX_2D_INTERFACE_XZ)] = mStressVector[5];
 }
 
 void SmallStrainUDSM2DInterfaceLaw::SetInternalStressVector(const Vector& rStressVector)
@@ -76,20 +70,16 @@ void SmallStrainUDSM2DInterfaceLaw::SetInternalStressVector(const Vector& rStres
 
     std::fill_n(r_sig0.begin(), StressVectorSize, 0.0);
 
-    r_sig0[static_cast<std::size_t>(INDEX_3D_ZZ)] =
-        rStressVector[static_cast<std::size_t>(INDEX_2D_INTERFACE_ZZ)];
-    r_sig0[static_cast<std::size_t>(INDEX_3D_XZ)] =
-        rStressVector[static_cast<std::size_t>(INDEX_2D_INTERFACE_XZ)];
+    r_sig0[2] = rStressVector[static_cast<std::size_t>(INDEX_2D_INTERFACE_ZZ)];
+    r_sig0[5] = rStressVector[static_cast<std::size_t>(INDEX_2D_INTERFACE_XZ)];
 }
 
 void SmallStrainUDSM2DInterfaceLaw::SetInternalStrainVector(const Vector& rStrainVector)
 {
     std::fill(mStrainVectorFinalized.begin(), mStrainVectorFinalized.end(), 0.0);
 
-    mStrainVectorFinalized[static_cast<std::size_t>(INDEX_3D_ZZ)] =
-        rStrainVector[static_cast<std::size_t>(INDEX_2D_INTERFACE_ZZ)];
-    mStrainVectorFinalized[static_cast<std::size_t>(INDEX_3D_XZ)] =
-        rStrainVector[static_cast<std::size_t>(INDEX_2D_INTERFACE_XZ)];
+    mStrainVectorFinalized[2] = rStrainVector[static_cast<std::size_t>(INDEX_2D_INTERFACE_ZZ)];
+    mStrainVectorFinalized[5] = rStrainVector[static_cast<std::size_t>(INDEX_2D_INTERFACE_XZ)];
 }
 
 void SmallStrainUDSM2DInterfaceLaw::CopyConstitutiveMatrix(Parameters& rValues, Matrix& rConstitutiveMatrix)
@@ -129,11 +119,9 @@ Vector& SmallStrainUDSM2DInterfaceLaw::GetValue(const Variable<Vector>& rVariabl
     } else if (rVariable == CAUCHY_STRESS_VECTOR || rVariable == GEO_EFFECTIVE_TRACTION_VECTOR) {
         rValue.resize(GetStrainSize());
 
-        auto& r_sig0 = GetSig0();
-        rValue[static_cast<std::size_t>(INDEX_2D_INTERFACE_ZZ)] =
-            r_sig0[static_cast<std::size_t>(INDEX_3D_ZZ)];
-        rValue[static_cast<std::size_t>(INDEX_2D_INTERFACE_XZ)] =
-            r_sig0[static_cast<std::size_t>(INDEX_3D_XZ)];
+        auto& r_sig0                                            = GetSig0();
+        rValue[static_cast<std::size_t>(INDEX_2D_INTERFACE_ZZ)] = r_sig0[2];
+        rValue[static_cast<std::size_t>(INDEX_2D_INTERFACE_XZ)] = r_sig0[5];
     }
     return rValue;
 }

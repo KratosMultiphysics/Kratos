@@ -378,14 +378,13 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const 
         }
     } else if (rVariable == CONFINED_STIFFNESS || rVariable == SHEAR_STIFFNESS) {
         using enum indexStress2DPlaneStrain;
-        using enum indexStress3D;
 
         size_t variable_index = 0;
         if (rVariable == CONFINED_STIFFNESS) {
             if (TDim == 2) {
                 variable_index = static_cast<std::size_t>(INDEX_2D_PLANE_STRAIN_XX);
             } else if (TDim == 3) {
-                variable_index = static_cast<std::size_t>(INDEX_3D_XX);
+                variable_index = 0;
             } else {
                 KRATOS_ERROR << "CONFINED_STIFFNESS can not be retrieved for dim " << TDim
                              << " in element: " << this->Id() << std::endl;
@@ -394,7 +393,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const 
             if (TDim == 2) {
                 variable_index = static_cast<std::size_t>(INDEX_2D_PLANE_STRAIN_XY);
             } else if (TDim == 3) {
-                variable_index = static_cast<std::size_t>(INDEX_3D_XZ);
+                variable_index = 5;
             } else {
                 KRATOS_ERROR << "SHEAR_STIFFNESS can not be retrieved for dim " << TDim
                              << " in element: " << this->Id() << std::endl;

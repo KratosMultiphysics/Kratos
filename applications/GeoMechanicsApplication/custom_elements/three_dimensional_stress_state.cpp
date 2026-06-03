@@ -20,8 +20,6 @@ Matrix ThreeDimensionalStressState::CalculateBMatrix(const Matrix& rDN_DX,
                                                      const Vector&,
                                                      const Geometry<Node>& rGeometry) const
 {
-    using enum indexStress3D;
-
     const auto dimension       = rGeometry.WorkingSpaceDimension();
     const auto number_of_nodes = rGeometry.size();
     Matrix     result          = ZeroMatrix(VOIGT_SIZE_3D, dimension * number_of_nodes);
@@ -29,15 +27,15 @@ Matrix ThreeDimensionalStressState::CalculateBMatrix(const Matrix& rDN_DX,
     for (unsigned int i = 0; i < number_of_nodes; ++i) {
         const auto offset = dimension * i;
 
-        result(static_cast<std::size_t>(INDEX_3D_XX), offset + 0) = rDN_DX(i, 0);
-        result(static_cast<std::size_t>(INDEX_3D_YY), offset + 1) = rDN_DX(i, 1);
-        result(static_cast<std::size_t>(INDEX_3D_ZZ), offset + 2) = rDN_DX(i, 2);
-        result(static_cast<std::size_t>(INDEX_3D_XY), offset + 0) = rDN_DX(i, 1);
-        result(static_cast<std::size_t>(INDEX_3D_XY), offset + 1) = rDN_DX(i, 0);
-        result(static_cast<std::size_t>(INDEX_3D_YZ), offset + 1) = rDN_DX(i, 2);
-        result(static_cast<std::size_t>(INDEX_3D_YZ), offset + 2) = rDN_DX(i, 1);
-        result(static_cast<std::size_t>(INDEX_3D_XZ), offset + 0) = rDN_DX(i, 2);
-        result(static_cast<std::size_t>(INDEX_3D_XZ), offset + 2) = rDN_DX(i, 0);
+        result(0, offset + 0) = rDN_DX(i, 0);
+        result(1, offset + 1) = rDN_DX(i, 1);
+        result(2, offset + 2) = rDN_DX(i, 2);
+        result(3, offset + 0) = rDN_DX(i, 1);
+        result(3, offset + 1) = rDN_DX(i, 0);
+        result(4, offset + 1) = rDN_DX(i, 2);
+        result(4, offset + 2) = rDN_DX(i, 1);
+        result(5, offset + 0) = rDN_DX(i, 2);
+        result(5, offset + 2) = rDN_DX(i, 0);
     }
 
     return result;

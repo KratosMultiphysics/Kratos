@@ -292,21 +292,15 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::ModifyInactiveElementStres
 template <unsigned int TDim, unsigned int TNumNodes>
 Vector UPwSmallStrainInterfaceElement<TDim, TNumNodes>::SetFullStressVector(const Vector& rStressVector) const
 {
-    using enum indexStress3D;
     Vector full_stress_vector(6, 0);
 
     if constexpr (TDim == 2) {
-        full_stress_vector[static_cast<std::size_t>(INDEX_3D_ZZ)] =
-            rStressVector[static_cast<std::size_t>(INDEX_2D_INTERFACE_ZZ)];
-        full_stress_vector[static_cast<std::size_t>(INDEX_3D_XZ)] =
-            rStressVector[static_cast<std::size_t>(INDEX_2D_INTERFACE_XZ)];
+        full_stress_vector[2] = rStressVector[static_cast<std::size_t>(INDEX_2D_INTERFACE_ZZ)];
+        full_stress_vector[5] = rStressVector[static_cast<std::size_t>(INDEX_2D_INTERFACE_XZ)];
     } else if constexpr (TDim == 3) {
-        full_stress_vector[static_cast<std::size_t>(INDEX_3D_ZZ)] =
-            rStressVector[static_cast<std::size_t>(INDEX_3D_INTERFACE_ZZ)];
-        full_stress_vector[static_cast<std::size_t>(INDEX_3D_YZ)] =
-            rStressVector[static_cast<std::size_t>(INDEX_3D_INTERFACE_YZ)];
-        full_stress_vector[static_cast<std::size_t>(INDEX_3D_XZ)] =
-            rStressVector[static_cast<std::size_t>(INDEX_3D_INTERFACE_XZ)];
+        full_stress_vector[2] = rStressVector[static_cast<std::size_t>(INDEX_3D_INTERFACE_ZZ)];
+        full_stress_vector[4] = rStressVector[static_cast<std::size_t>(INDEX_3D_INTERFACE_YZ)];
+        full_stress_vector[5] = rStressVector[static_cast<std::size_t>(INDEX_3D_INTERFACE_XZ)];
     }
     return full_stress_vector;
 }
