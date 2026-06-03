@@ -342,8 +342,7 @@ private:
         Matrix& rBOperator,
         const double zeta,
         const Matrix& rJacobianInv,
-        const Matrix& rNormalVectorDerivatives,
-        const KinematicVariables& rActualKinematic) const;
+        const Matrix& rNormalVectorDerivatives) const;
 
     void CalculateBNonlinearOperator(
         const Matrix& rBGeometric,
@@ -353,8 +352,7 @@ private:
     void CalculateBDrilling(
         const IndexType IntegrationPointIndex,
         Matrix& rBDrilling,
-        const Matrix& rJacobianInv,
-        const KinematicVariables& rActualKinematic) const;
+        const Matrix& rJacobianInv) const;
 
     void CalculateBGeometric(
         const IndexType IntegrationPointIndex,

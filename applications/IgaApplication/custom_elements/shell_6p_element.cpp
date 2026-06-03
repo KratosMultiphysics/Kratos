@@ -370,30 +370,31 @@ namespace Kratos
                 // Retrieve zeta for the current Gauss point in thickness direction
                 const double zeta = mGaussIntegrationThickness.zeta(Gauss_index);
 
-                // Compute the Jacobian matrix at the current Gauss point in thickness direction
-                Matrix jacobian = ZeroMatrix(3,3);
-                Matrix jacobian_inv = ZeroMatrix(3,3);
-                double jacobian_det = 0.0;
-
-                for (int i = 0; i < 3; i++) {
-                    jacobian(0, i) = kinematic_variables.BaseVector1[i] + (thickness/2) * zeta * normal_vector_derivatives(0, i); 
-                    jacobian(1, i) = kinematic_variables.BaseVector2[i] + (thickness/2) * zeta * normal_vector_derivatives(1, i) ; 
-                    jacobian(2, i) = kinematic_variables.NormalVector[i] * (thickness/2) ;
-                }
-
-                MathUtils<double>::InvertMatrix(jacobian, jacobian_inv, jacobian_det);
-
                 // Compute the b-operator at the current Gauss point in thickness direction
-                Matrix b_operator = ZeroMatrix(6, mat_size);
-                CalculateBOperator(point_number, b_operator, zeta, jacobian_inv, normal_vector_derivatives, kinematic_variables);
+                Matrix b_linear_operator = ZeroMatrix(6, mat_size);
+                CalculateBOperator(point_number, b_linear_operator, zeta, mJacobianInv[point_number][Gauss_index], normal_vector_derivatives);
 
-                strain_cauchy_cartesian[Gauss_index] = prod(b_operator, current_displacement);
+                Matrix b_geometric = ZeroMatrix(9, mat_size);
+                CalculateBGeometric(point_number, b_geometric, zeta, mJacobianInv[point_number][Gauss_index], normal_vector_derivatives, kinematic_variables);
+
+                // update strains for this nonlinear step
+                Vector linear_strain = prod(b_linear_operator, current_displacement);
+                strain_cauchy_cartesian[Gauss_index] = linear_strain;
+
+                Vector geometric_strain = prod(b_geometric, current_displacement);
+                strain_cauchy_cartesian[Gauss_index][0] += 0.5*(geometric_strain[0]* geometric_strain[0] + geometric_strain[3]*geometric_strain[3] + geometric_strain[6]*geometric_strain[6]);
+                strain_cauchy_cartesian[Gauss_index][1] += 0.5*(geometric_strain[1]* geometric_strain[1] + geometric_strain[4]*geometric_strain[4] + geometric_strain[7]*geometric_strain[7]);
+                strain_cauchy_cartesian[Gauss_index][2] += 0.5*(geometric_strain[2]* geometric_strain[2] + geometric_strain[5]*geometric_strain[5] + geometric_strain[8]*geometric_strain[8]);
+                strain_cauchy_cartesian[Gauss_index][3] += (geometric_strain[0]* geometric_strain[1] + geometric_strain[3]*geometric_strain[4] + geometric_strain[6]*geometric_strain[7]);
+                strain_cauchy_cartesian[Gauss_index][4] += (geometric_strain[1]* geometric_strain[2] + geometric_strain[4]*geometric_strain[5] + geometric_strain[7]*geometric_strain[8]);
+                strain_cauchy_cartesian[Gauss_index][5] += (geometric_strain[0]* geometric_strain[2] + geometric_strain[3]*geometric_strain[5] + geometric_strain[6]*geometric_strain[8]);
+
                 stress_cauchy_cartesian[Gauss_index] = prod(constitutive_variables.ConstitutiveMatrix,strain_cauchy_cartesian[Gauss_index]);
             }
         }
  
         // Extrapolate stress to top/bottom surface using midplane interpolation
-        array_1d<double, 6> stress_cauchy_cartesian_midplane;
+        array_1d<double, 6> stress_cauchy_cartesian_midplane = ZeroVector(6);
         stress_cauchy_cartesian_midplane = (stress_cauchy_cartesian[mGaussIntegrationThickness.num_GP_thickness-1] + stress_cauchy_cartesian[0]) / 2.0;
 
         for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number)
@@ -557,6 +558,8 @@ namespace Kratos
         const IndexType number_of_nodes = r_geometry.size();
         const IndexType mat_size = number_of_nodes * 6;
         const double thickness = this->GetProperties().GetValue(THICKNESS); 
+        //TO DO: user definerd factor to adjust the drilling stiffness contribution
+        const double drilling_factor = 0.05 * this->GetProperties().GetValue(YOUNG_MODULUS); 
 
         Vector current_displacement = ZeroVector(6*number_of_nodes);
         GetValuesVector(current_displacement,0);
@@ -589,32 +592,19 @@ namespace Kratos
                 // 3.1. Retrieve zeta for the current Gauss point in thickness direction
                 const double zeta = mGaussIntegrationThickness.zeta(Gauss_index);
 
-                // 3.2. Compute the Jacobian matrix at the current Gauss point in thickness direction
-                Matrix jacobian = ZeroMatrix(3,3);
-                Matrix jacobian_inv = ZeroMatrix(3,3);
-                double jacobian_det = 0.0;
-
-                for (int i = 0; i < 3; i++) {
-                    jacobian(0, i) = kinematic_variables.BaseVector1[i] + (thickness/2) * zeta * normal_vector_derivatives(0, i); 
-                    jacobian(1, i) = kinematic_variables.BaseVector2[i] + (thickness/2) * zeta * normal_vector_derivatives(1, i) ; 
-                    jacobian(2, i) = kinematic_variables.NormalVector[i] * (thickness/2) ;
-                }
-                MathUtils<double>::InvertMatrix(jacobian, jacobian_inv, jacobian_det);
-
-                // 3.3. Material stiffness (linear) part (constant for every nonlinear iteration)
+                // 3.2. Material stiffness (linear) part (constant for every nonlinear iteration)
                 Matrix b_linear_operator = ZeroMatrix(6, mat_size);
-                CalculateBOperator(point_number, b_linear_operator, zeta, mJacobianInv[point_number][Gauss_index], mNormalVectorDerivatives[point_number], kinematic_variables);
+                CalculateBOperator(point_number, b_linear_operator, zeta, mJacobianInv[point_number][Gauss_index], mNormalVectorDerivatives[point_number]);
 
-                // 3.4. Drilling stiffness part
+                // 3.3. Drilling stiffness part
                 Matrix b_drilling = ZeroMatrix(1, mat_size);
-                CalculateBDrilling(point_number, b_drilling, mJacobianInv[point_number][Gauss_index], kinematic_variables);
-                double drilling_factor = 0.05 * this->GetProperties().GetValue(YOUNG_MODULUS); //TO DO: user definerd factor to adjust the drilling stiffness contribution
+                CalculateBDrilling(point_number, b_drilling, mJacobianInv[point_number][Gauss_index]);
 
-                // 3.5. Geometric stiffness part
+                // 3.4. Geometric stiffness part
                 Matrix b_geometric = ZeroMatrix(9, mat_size);
                 CalculateBGeometric(point_number, b_geometric, zeta, mJacobianInv[point_number][Gauss_index], normal_vector_derivatives, kinematic_variables);
 
-                // 3.6. Update stresses and strains for this nonlinear step
+                // 3.5. Update stresses and strains for this nonlinear step
                 Vector linear_strain = prod(b_linear_operator, current_displacement);
                 constitutive_variables.StrainVector = linear_strain;
 
@@ -630,17 +620,17 @@ namespace Kratos
                 Matrix stress_matrix = ZeroMatrix(9,9);
                 CalculateStressMatrix(constitutive_variables.StressVector,stress_matrix);
 
-                // 3.7. Material stiffness (nonlinear) part
+                // 3.6. Material stiffness (nonlinear) part
                 Matrix b_nonlinear_operator = ZeroMatrix(6, mat_size);
                 CalculateBNonlinearOperator(b_geometric, geometric_strain, b_nonlinear_operator);
 
                 Matrix b_operator = b_linear_operator + b_nonlinear_operator;
 
-                // 3.8. Compute the integration weight 
+                // 3.7. Compute the integration weight 
                 double integration_weight = r_integration_points[point_number].Weight() * mJacobianThicknessDeterminant[point_number][Gauss_index]
                                           * mGaussIntegrationThickness.integration_weight_thickness(Gauss_index); 
 
-                // 3.9. Assembly
+                // 3.8. Assembly
                 if (CalculateStiffnessMatrixFlag == true)
                 {
                     // Add the linear stiffness matrix contribution to the element stiffness matrix
@@ -697,8 +687,8 @@ namespace Kratos
         // Local cartesian coordinates
         double l_a1 = norm_2(rKinematicVariables.BaseVector1);
         array_1d<double, 3> local_base_1 = rKinematicVariables.BaseVector1 / l_a1;
-        array_1d<double, 3> local_base_3 =  rKinematicVariables.NormalVector;
-        array_1d<double, 3> local_base_2;
+        array_1d<double, 3> local_base_3 = rKinematicVariables.NormalVector;
+        array_1d<double, 3> local_base_2 = ZeroVector(3);
         MathUtils<double>::CrossProduct(local_base_2, local_base_3, local_base_1);
         
         // Transformation matrix 
@@ -774,9 +764,9 @@ namespace Kratos
         double inv_differential_area_cube = 1 / std::pow(rKinematicVariables.DifferentialArea, 3);
 
         // Compute base vector derivatives
-        array_1d<double, 3> base_vector1_derivative_11;
-        array_1d<double, 3> base_vector1_derivative_12; 
-        array_1d<double, 3> base_vector2_derivative_22;
+        array_1d<double, 3> base_vector1_derivative_11 = ZeroVector(3);
+        array_1d<double, 3> base_vector1_derivative_12 = ZeroVector(3);
+        array_1d<double, 3> base_vector2_derivative_22 = ZeroVector(3);
 
         for (IndexType i = 0; i < GetGeometry().size(); ++i)
         {
@@ -794,12 +784,12 @@ namespace Kratos
         }
 
         // Compute normal vector derivatives
-        array_1d<double, 3> normal_tilde_derivative_1;
-        array_1d<double, 3> normal_tilde_derivative_1_term1;
-        array_1d<double, 3> normal_tilde_derivative_1_term2;
-        array_1d<double, 3> normal_tilde_derivative_2;
-        array_1d<double, 3> normal_tilde_derivative_2_term1;
-        array_1d<double, 3> normal_tilde_derivative_2_term2;
+        array_1d<double, 3> normal_tilde_derivative_1 = ZeroVector(3);
+        array_1d<double, 3> normal_tilde_derivative_1_term1 = ZeroVector(3);
+        array_1d<double, 3> normal_tilde_derivative_1_term2 = ZeroVector(3);
+        array_1d<double, 3> normal_tilde_derivative_2 = ZeroVector(3);
+        array_1d<double, 3> normal_tilde_derivative_2_term1 = ZeroVector(3);
+        array_1d<double, 3> normal_tilde_derivative_2_term2 = ZeroVector(3);
 
         MathUtils<double>::CrossProduct(normal_tilde_derivative_1_term1, base_vector1_derivative_11, rKinematicVariables.BaseVector2);
         MathUtils<double>::CrossProduct(normal_tilde_derivative_1_term2, rKinematicVariables.BaseVector1, base_vector1_derivative_12);
@@ -822,8 +812,7 @@ namespace Kratos
         Matrix& rBOperator,
         const double zeta,
         const Matrix& rJacobianInv,
-        const Matrix& rNormalVectorDerivatives,
-        const KinematicVariables& rActualKinematic) const
+        const Matrix& rNormalVectorDerivatives) const
     {
         const IndexType number_of_control_points = GetGeometry().size();
         const IndexType mat_size = number_of_control_points * 6;
@@ -953,8 +942,7 @@ namespace Kratos
     void Shell6pElement::CalculateBDrilling(                                                                                         
         const IndexType IntegrationPointIndex,
         Matrix& rBDrilling,
-        const Matrix& rJacobianInv,
-        const KinematicVariables& rActualKinematic) const
+        const Matrix& rJacobianInv) const
     {
         const IndexType number_of_control_points = GetGeometry().size();
         const IndexType mat_size = number_of_control_points * 6;
