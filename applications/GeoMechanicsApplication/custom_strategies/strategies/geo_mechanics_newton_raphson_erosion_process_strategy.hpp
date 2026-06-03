@@ -69,9 +69,9 @@ public:
               CalculateReactions,
               ReformDofSetAtEachStep,
               MoveMeshFlag),
+          mPipingIterations(rParameters["max_piping_iterations"].GetInt()),
           rank(model_part.GetCommunicator().MyPID())
     {
-        mPipingIterations = rParameters["max_piping_iterations"].GetInt();
     }
 
     template <typename PipingElementType>
