@@ -65,7 +65,7 @@ SetMultipleMovingLoadsProcess::SetMultipleMovingLoadsProcess(ModelPart& rModelPa
         count++;
         std::ostringstream buffer;
         buffer << mrModelPart.Name() << "_cloned_" << count;
-        auto&      new_cloned_model_part = CloneMovingConditionInComputeModelPart(buffer.str());
+        auto& new_cloned_model_part = CloneMovingConditionInComputeModelPart(buffer.str());
 
         parameters_moving_load.RemoveValue("configuration");
         parameters_moving_load.RemoveValue("compute_model_part_name");

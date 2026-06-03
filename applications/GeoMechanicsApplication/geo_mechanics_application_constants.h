@@ -45,9 +45,6 @@ constexpr SizeType VOIGT_SIZE_2D_AXISYMMETRIC = 4;
 constexpr SizeType VOIGT_SIZE_2D_INTERFACE    = 2;
 constexpr SizeType VOIGT_SIZE_3D_INTERFACE    = 3;
 
-// DOF indices (3D):
-enum class indexDOF3D : int { INDEX_X, INDEX_Y, INDEX_Z };
-
 // stress/strain vector indices (3D):
 enum class indexStress3D : int {
     INDEX_3D_XX,

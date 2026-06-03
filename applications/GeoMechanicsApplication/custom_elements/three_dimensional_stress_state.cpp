@@ -20,7 +20,6 @@ Matrix ThreeDimensionalStressState::CalculateBMatrix(const Matrix& rDN_DX,
                                                      const Vector&,
                                                      const Geometry<Node>& rGeometry) const
 {
-    using enum indexDOF3D;
     using enum indexStress3D;
 
     const auto dimension       = rGeometry.WorkingSpaceDimension();
@@ -30,24 +29,15 @@ Matrix ThreeDimensionalStressState::CalculateBMatrix(const Matrix& rDN_DX,
     for (unsigned int i = 0; i < number_of_nodes; ++i) {
         const auto offset = dimension * i;
 
-        result(static_cast<std::size_t>(INDEX_3D_XX), offset + static_cast<std::size_t>(INDEX_X)) =
-            rDN_DX(i, static_cast<std::size_t>(INDEX_X));
-        result(static_cast<std::size_t>(INDEX_3D_YY), offset + static_cast<std::size_t>(INDEX_Y)) =
-            rDN_DX(i, static_cast<std::size_t>(INDEX_Y));
-        result(static_cast<std::size_t>(INDEX_3D_ZZ), offset + static_cast<std::size_t>(INDEX_Z)) =
-            rDN_DX(i, static_cast<std::size_t>(INDEX_Z));
-        result(static_cast<std::size_t>(INDEX_3D_XY), offset + static_cast<std::size_t>(INDEX_X)) =
-            rDN_DX(i, static_cast<std::size_t>(INDEX_Y));
-        result(static_cast<std::size_t>(INDEX_3D_XY), offset + static_cast<std::size_t>(INDEX_Y)) =
-            rDN_DX(i, static_cast<std::size_t>(INDEX_X));
-        result(static_cast<std::size_t>(INDEX_3D_YZ), offset + static_cast<std::size_t>(INDEX_Y)) =
-            rDN_DX(i, static_cast<std::size_t>(INDEX_Z));
-        result(static_cast<std::size_t>(INDEX_3D_YZ), offset + static_cast<std::size_t>(INDEX_Z)) =
-            rDN_DX(i, static_cast<std::size_t>(INDEX_Y));
-        result(static_cast<std::size_t>(INDEX_3D_XZ), offset + static_cast<std::size_t>(INDEX_X)) =
-            rDN_DX(i, static_cast<std::size_t>(INDEX_Z));
-        result(static_cast<std::size_t>(INDEX_3D_XZ), offset + static_cast<std::size_t>(INDEX_Z)) =
-            rDN_DX(i, static_cast<std::size_t>(INDEX_X));
+        result(static_cast<std::size_t>(INDEX_3D_XX), offset + 0) = rDN_DX(i, 0);
+        result(static_cast<std::size_t>(INDEX_3D_YY), offset + 1) = rDN_DX(i, 1);
+        result(static_cast<std::size_t>(INDEX_3D_ZZ), offset + 2) = rDN_DX(i, 2);
+        result(static_cast<std::size_t>(INDEX_3D_XY), offset + 0) = rDN_DX(i, 1);
+        result(static_cast<std::size_t>(INDEX_3D_XY), offset + 1) = rDN_DX(i, 0);
+        result(static_cast<std::size_t>(INDEX_3D_YZ), offset + 1) = rDN_DX(i, 2);
+        result(static_cast<std::size_t>(INDEX_3D_YZ), offset + 2) = rDN_DX(i, 1);
+        result(static_cast<std::size_t>(INDEX_3D_XZ), offset + 0) = rDN_DX(i, 2);
+        result(static_cast<std::size_t>(INDEX_3D_XZ), offset + 2) = rDN_DX(i, 0);
     }
 
     return result;

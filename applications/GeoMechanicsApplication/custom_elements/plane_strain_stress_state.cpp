@@ -18,7 +18,6 @@ namespace Kratos
 
 Matrix PlaneStrainStressState::CalculateBMatrix(const Matrix& rDN_DX, const Vector&, const Geometry<Node>& rGeometry) const
 {
-    using enum indexDOF3D;
     using enum indexStress2DPlaneStrain;
 
     const auto dimension       = rGeometry.WorkingSpaceDimension();
@@ -28,14 +27,10 @@ Matrix PlaneStrainStressState::CalculateBMatrix(const Matrix& rDN_DX, const Vect
     for (unsigned int i = 0; i < number_of_nodes; ++i) {
         const auto offset = dimension * i;
 
-        result(static_cast<std::size_t>(INDEX_2D_PLANE_STRAIN_XX),
-               offset + static_cast<std::size_t>(INDEX_X)) = rDN_DX(i, static_cast<std::size_t>(INDEX_X));
-        result(static_cast<std::size_t>(INDEX_2D_PLANE_STRAIN_YY),
-               offset + static_cast<std::size_t>(INDEX_Y)) = rDN_DX(i, static_cast<std::size_t>(INDEX_Y));
-        result(static_cast<std::size_t>(INDEX_2D_PLANE_STRAIN_XY),
-               offset + static_cast<std::size_t>(INDEX_X)) = rDN_DX(i, static_cast<std::size_t>(INDEX_Y));
-        result(static_cast<std::size_t>(INDEX_2D_PLANE_STRAIN_XY),
-               offset + static_cast<std::size_t>(INDEX_Y)) = rDN_DX(i, static_cast<std::size_t>(INDEX_X));
+        result(static_cast<std::size_t>(INDEX_2D_PLANE_STRAIN_XX), offset + 0) = rDN_DX(i, 0);
+        result(static_cast<std::size_t>(INDEX_2D_PLANE_STRAIN_YY), offset + 1) = rDN_DX(i, 1);
+        result(static_cast<std::size_t>(INDEX_2D_PLANE_STRAIN_XY), offset + 0) = rDN_DX(i, 1);
+        result(static_cast<std::size_t>(INDEX_2D_PLANE_STRAIN_XY), offset + 1) = rDN_DX(i, 0);
     }
 
     return result;
@@ -53,7 +48,6 @@ std::unique_ptr<StressStatePolicy> PlaneStrainStressState::Clone() const
 
 Vector PlaneStrainStressState::ConvertStrainTensorToVector(const Matrix& rStrainTensor)
 {
-    using enum indexDOF3D;
     using enum indexStress2DPlaneStrain;
 
     const auto strain_vector = MathUtils<double>::StrainTensorToVector(rStrainTensor);
