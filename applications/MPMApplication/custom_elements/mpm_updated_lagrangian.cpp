@@ -872,11 +872,7 @@ void MPMUpdatedLagrangian::AddExplicitContribution(const ProcessInfo& rCurrentPr
     const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
     array_1d<double,3> nodal_momentum = ZeroVector(3);
     array_1d<double,3> nodal_inertia  = ZeroVector(3);
-    array_1d<double,3> nodal_cauchy_stress_vector = ZeroVector(3);
 
-    if (dimension==2) voigt_dimension=3;
-    if (dimension==3) voigt_dimension=6;
-    
 
     // Here MP contribution in terms of momentum, inertia and mass are added
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
@@ -886,9 +882,6 @@ void MPMUpdatedLagrangian::AddExplicitContribution(const ProcessInfo& rCurrentPr
             nodal_inertia[j] = r_N(0, i) * mMP.acceleration[j] * mMP.mass;    
         }
 
-        for (unsigned int j = 0; j < std::min<unsigned int>(voigt_dimension, 3); j++){
-            nodal_cauchy_stress_vector[j] = r_N(0, i) * mMP.cauchy_stress_vector [j] * mMP.mass;
-        }
 
         // Add in the predictor velocity increment for central difference explicit
         // This is the 'previous grid acceleration', which is actually
@@ -900,9 +893,6 @@ void MPMUpdatedLagrangian::AddExplicitContribution(const ProcessInfo& rCurrentPr
             }
         }
 
-        r_geometry[i].SetLock();
-        r_geometry[i].FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_VECTOR, 0) += nodal_cauchy_stress_vector;
-        r_geometry[i].UnSetLock();
 
         AtomicAdd(r_geometry[i].FastGetSolutionStepValue(NODAL_MOMENTUM, 0), nodal_momentum);
         AtomicAdd(r_geometry[i].FastGetSolutionStepValue(NODAL_INERTIA, 0), nodal_inertia);

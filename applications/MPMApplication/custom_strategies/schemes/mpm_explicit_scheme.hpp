@@ -25,6 +25,7 @@
 #include "solving_strategies/schemes/scheme.h"
 #include "custom_utilities/mpm_boundary_rotation_utility.h"
 #include "custom_utilities/mpm_explicit_utilities.h"
+#include "custom_utilities/mpm_nodal_cauchy_stress_utility.h"
 
 namespace Kratos {
     /**
@@ -368,6 +369,9 @@ namespace Kratos {
 
                 ElementsArrayType& rElements = rModelPart.Elements();
                 const ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
+                const bool compute_nodal_cauchy_stress = (rCurrentProcessInfo.Has(COMPUTE_NODAL_CAUCHY_STRESS))
+                    ? rCurrentProcessInfo.GetValue(COMPUTE_NODAL_CAUCHY_STRESS)
+                    : false;
                 const auto it_elem_begin = rModelPart.ElementsBegin();
 
 
@@ -392,6 +396,10 @@ namespace Kratos {
                         std::vector<bool> dummy;
                         it_elem->CalculateOnIntegrationPoints(CALCULATE_EXPLICIT_MP_STRESS, dummy, rCurrentProcessInfo);
                     }
+                }
+
+                if (compute_nodal_cauchy_stress) {
+                    MPMNodalCauchyStressUtility::CalculateNodalCauchyStress(rModelPart, mr_grid_model_part);
                 }
 
                 // Finalizes solution step for all of the conditions

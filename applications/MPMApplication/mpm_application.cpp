@@ -256,7 +256,6 @@ namespace Kratos
         // Registering node variable for OSGS stabilization
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( RESPROJ_DISPL )
         KRATOS_REGISTER_VARIABLE( RESPROJ_PRESS )
-        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( NODAL_CAUCHY_STRESS_VECTOR )
 
 
         // Registering Constitutive Laws
@@ -310,6 +309,7 @@ namespace Kratos
 
         // Solver related variables
         KRATOS_REGISTER_VARIABLE(IGNORE_GEOMETRIC_STIFFNESS);
+        KRATOS_REGISTER_VARIABLE(COMPUTE_NODAL_CAUCHY_STRESS);
         KRATOS_REGISTER_VARIABLE(IS_AXISYMMETRIC);
 
         // Explicit time integration variables
@@ -342,4 +342,3 @@ namespace Kratos
     }
 
 }  // namespace Kratos.
-

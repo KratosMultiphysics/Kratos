@@ -29,6 +29,7 @@
 #include "solving_strategies/schemes/residual_based_implicit_time_scheme.h"
 #include "solving_strategies/schemes/residual_based_bossak_displacement_scheme.hpp"
 #include "custom_utilities/mpm_boundary_rotation_utility.h"
+#include "custom_utilities/mpm_nodal_cauchy_stress_utility.h"
 #include "custom_conditions/particle_based_conditions/mpm_particle_base_condition.h"
 #include "utilities/parallel_utilities.h"
 
@@ -521,6 +522,10 @@ public:
         TSystemVectorType& rb) override
     {
         BossakBaseType::FinalizeSolutionStep(rModelPart, rA, rDx, rb);
+        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+        const bool compute_nodal_cauchy_stress = (r_current_process_info.Has(COMPUTE_NODAL_CAUCHY_STRESS))
+            ? r_current_process_info.GetValue(COMPUTE_NODAL_CAUCHY_STRESS)
+            : false;
         
         if(mFrictionIsActive) {
             block_for_each(mGridModelPart.Nodes(), [&](Node& rNode)
@@ -541,6 +546,10 @@ public:
                 mRotationTool.RotateVector(rNode.FastGetSolutionStepValue(REACTION), rConstNode, true);
             }
         });
+
+        if (compute_nodal_cauchy_stress) {
+            MPMNodalCauchyStressUtility::CalculateNodalCauchyStress(rModelPart, mGridModelPart);
+        }
         
     }
 

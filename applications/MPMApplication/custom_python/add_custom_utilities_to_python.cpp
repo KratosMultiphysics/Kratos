@@ -24,6 +24,7 @@
 #include "linear_solvers/linear_solver.h"
 #include "custom_utilities/material_point_search_utility.h"
 #include "custom_utilities/material_point_generator_utility.cpp"
+#include "custom_utilities/mpm_nodal_cauchy_stress_utility.h"
 #include "custom_utilities/mpm_energy_calculation_utility.h"
 
 
@@ -74,6 +75,7 @@ namespace Kratos::Python{
         m.def("GenerateMaterialPointElement", GenerateMaterialPointElementAccordingToDimension);
         m.def("GenerateMaterialPointCondition", GenerateMaterialPointConditionAccordingToDimension);
         m.def("GenerateLagrangeNodes", MaterialPointGeneratorUtility::GenerateLagrangeNodes);
+        m.def("CalculateNodalCauchyStress", MPMNodalCauchyStressUtility::CalculateNodalCauchyStress);
 
         // Calculate energy utility
         py::class_< MPMEnergyCalculationUtility> (m,"EnergyCalculationUtility")
@@ -88,5 +90,6 @@ namespace Kratos::Python{
             .def_static("CalculateAllEnergies", py::overload_cast<ModelPart&>(&MPMEnergyCalculationUtility::CalculateAllEnergies), py::arg("mpm_model_part"))
             ;
     }
+
 
 }  // namespace Kratos::Python.

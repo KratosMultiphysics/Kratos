@@ -49,6 +49,7 @@ class MPMSolver(PythonSolver):
                 "materials_filename" : ""
             },
             "compute_reactions"                  : false,
+            "compute_nodal_cauchy_stress"        : false,
             "convergence_criterion"              : "Residual_criteria",
             "displacement_relative_tolerance"    : 1.0E-4,
             "displacement_absolute_tolerance"    : 1.0E-9,
@@ -112,8 +113,15 @@ class MPMSolver(PythonSolver):
         # Set buffer size
         self._SetAndFillBuffer()
 
+        compute_nodal_cauchy_stress = self.settings["compute_nodal_cauchy_stress"].GetBool()
+        self.grid_model_part.ProcessInfo.SetValue(KratosMPM.COMPUTE_NODAL_CAUCHY_STRESS, compute_nodal_cauchy_stress)
+        self.material_point_model_part.ProcessInfo.SetValue(KratosMPM.COMPUTE_NODAL_CAUCHY_STRESS, compute_nodal_cauchy_stress)
+
         # Executes the check and prepare model process
         self.__ExecuteCheckAndPrepare()
+
+        if compute_nodal_cauchy_stress:
+            self._InitializeNodalCauchyStressVector()
 
         KratosMultiphysics.Logger.PrintInfo("::[MPMSolver]:: ", "ModelPart prepared for Solver.")
 
@@ -302,11 +310,15 @@ class MPMSolver(PythonSolver):
         model_part.AddNodalSolutionStepVariable(KratosMPM.NODAL_MOMENTUM)
         model_part.AddNodalSolutionStepVariable(KratosMPM.NODAL_INERTIA)
 
+
         # Nodal variable for the OSGS stabilization
         model_part.AddNodalSolutionStepVariable(KratosMPM.RESPROJ_DISPL)
         model_part.AddNodalSolutionStepVariable(KratosMPM.RESPROJ_PRESS)
         model_part.AddNodalSolutionStepVariable(KratosMPM.NODAL_AREA)
-        model_part.AddNodalSolutionStepVariable(KratosMPM.NODAL_CAUCHY_STRESS_VECTOR)
+
+        if self.settings["compute_nodal_cauchy_stress"].GetBool():
+            model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CAUCHY_STRESS_VECTOR)
+
 
         # Add variables that the user defined in the ProjectParameters
         auxiliary_solver_utilities.AddVariables(model_part, self.settings["auxiliary_variables_list"])
@@ -339,9 +351,6 @@ class MPMSolver(PythonSolver):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X, model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y, model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z, model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMPM.NODAL_CAUCHY_STRESS_VECTOR_X, model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMPM.NODAL_CAUCHY_STRESS_VECTOR_Y, model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMPM.NODAL_CAUCHY_STRESS_VECTOR_Z,  model_part)
     
 
         if self.settings["pressure_dofs"].GetBool():
@@ -349,6 +358,21 @@ class MPMSolver(PythonSolver):
 
         # Add dofs that the user defined in the ProjectParameters
         auxiliary_solver_utilities.AddDofs(model_part, self.settings["auxiliary_dofs_list"], self.settings["auxiliary_reaction_list"])
+
+    def _InitializeNodalCauchyStressVector(self):
+        if self._GetDomainSize() == 3:
+            stress_size = 6
+        elif self.settings["axis_symmetric_flag"].GetBool():
+            stress_size = 4
+        else:
+            stress_size = 3
+
+        zero_stress_vector = KratosMultiphysics.Vector(stress_size)
+        for i in range(stress_size):
+            zero_stress_vector[i] = 0.0
+
+        for node in self.grid_model_part.Nodes:
+            node.SetSolutionStepValue(KratosMultiphysics.CAUCHY_STRESS_VECTOR, 0, zero_stress_vector)
 
     def _GetDomainSize(self):
         if not hasattr(self, '_domain_size'):

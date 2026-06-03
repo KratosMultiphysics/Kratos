@@ -342,7 +342,6 @@ void MPMUpdatedLagrangianUP::AddExplicitContribution(const ProcessInfo& rCurrent
     unsigned int dimension = r_geometry.WorkingSpaceDimension();
     const unsigned int number_of_nodes = r_geometry.PointsNumber();
     GeneralVariables Variables;
-    int voigt_dimension = 0;
 
     // Calculating shape function
     const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
@@ -350,11 +349,6 @@ void MPMUpdatedLagrangianUP::AddExplicitContribution(const ProcessInfo& rCurrent
     array_1d<double,3> nodal_momentum = ZeroVector(3);
     array_1d<double,3> nodal_inertia = ZeroVector(3);
 
-    if (dimension==2)  voigt_dimension=3;
-    if (dimension==3)  voigt_dimension=6;
-
-
-    Vector nodal_cauchy_stress_vector = ZeroVector(voigt_dimension);
 
     // Here MP contribution in terms of momentum, inertia, mass-pressure and mass are added
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
@@ -366,14 +360,6 @@ void MPMUpdatedLagrangianUP::AddExplicitContribution(const ProcessInfo& rCurrent
             nodal_momentum[j] = r_N(0, i) * mMP.velocity[j] * mMP.mass;
             nodal_inertia[j]  = r_N(0, i) * mMP.acceleration[j] * mMP.mass;
         }
-
-        for (unsigned int j = 0; j < std::min<unsigned int>(voigt_dimension, 3); j++){
-            nodal_cauchy_stress_vector[j] = r_N(0, i) * mMP.cauchy_stress_vector [j] * mMP.mass;
-        }
-
-        r_geometry[i].SetLock();
-        r_geometry[i].FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_VECTOR, 0) += nodal_cauchy_stress_vector;
-        r_geometry[i].UnSetLock();
 
         AtomicAdd(r_geometry[i].FastGetSolutionStepValue(NODAL_MOMENTUM, 0), nodal_momentum);
         AtomicAdd(r_geometry[i].FastGetSolutionStepValue(NODAL_INERTIA, 0), nodal_inertia);
