@@ -328,14 +328,23 @@ PlasticityStatus CoulombWithTensionCutOffImpl::GetPlasticityStatus() const
 void CoulombWithTensionCutOffImpl::save(Serializer& rSerializer) const
 {
     rSerializer.save("CoulombYieldSurface", mCoulombYieldSurface);
-    rSerializer.save("TensionCutOff", *mTensionCutOff);
+    rSerializer.save("HasTensionCutOff", mTensionCutOff.has_value());
+    if (mTensionCutOff.has_value())
+        rSerializer.save("TensionCutOff", *mTensionCutOff);
     rSerializer.save("PlasticityStatus", static_cast<int>(mPlasticityStatus));
 }
 
 void CoulombWithTensionCutOffImpl::load(Serializer& rSerializer)
 {
     rSerializer.load("CoulombYieldSurface", mCoulombYieldSurface);
-    rSerializer.load("TensionCutOff", *mTensionCutOff);
+    bool HasTensionCutOff;
+    rSerializer.load("HasTensionCutOff", HasTensionCutOff);
+    if (HasTensionCutOff)
+    {
+        TensionCutoff tension_cutoff;
+        rSerializer.load("TensionCutoff", tension_cutoff);
+        mTensionCutOff = std::make_optional(tension_cutoff);
+    }
     int plasticity_status;
     rSerializer.load("PlasticityStatus", plasticity_status);
     mPlasticityStatus = static_cast<PlasticityStatus>(plasticity_status);
