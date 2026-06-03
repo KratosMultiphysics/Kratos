@@ -61,7 +61,6 @@ SizeType LinearElastic3DInterfaceLaw::GetStrainSize() const { return VOIGT_SIZE_
 void LinearElastic3DInterfaceLaw::CalculateElasticMatrix(Matrix& C, ConstitutiveLaw::Parameters& rValues)
 {
     KRATOS_TRY
-    using enum indexStress3DInterface;
 
     const Properties& r_material_properties = rValues.GetMaterialProperties();
     const double      E                     = r_material_properties[YOUNG_MODULUS];
@@ -71,12 +70,9 @@ void LinearElastic3DInterfaceLaw::CalculateElasticMatrix(Matrix& C, Constitutive
 
     const double c0 = E / ((1.0 + NU) * (1.0 - 2.0 * NU));
 
-    C(static_cast<std::size_t>(INDEX_3D_INTERFACE_XZ), static_cast<std::size_t>(INDEX_3D_INTERFACE_XZ)) =
-        (0.5 - NU) * c0;
-    C(static_cast<std::size_t>(INDEX_3D_INTERFACE_YZ), static_cast<std::size_t>(INDEX_3D_INTERFACE_YZ)) =
-        (0.5 - NU) * c0;
-    C(static_cast<std::size_t>(INDEX_3D_INTERFACE_ZZ), static_cast<std::size_t>(INDEX_3D_INTERFACE_ZZ)) =
-        (1.0 - NU) * c0;
+    C(0, 0) = (0.5 - NU) * c0;
+    C(1, 1) = (0.5 - NU) * c0;
+    C(2, 2) = (1.0 - NU) * c0;
 
     KRATOS_CATCH("")
 }

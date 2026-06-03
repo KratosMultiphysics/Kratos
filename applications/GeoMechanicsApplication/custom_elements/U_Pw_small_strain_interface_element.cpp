@@ -23,8 +23,6 @@
 
 namespace Kratos
 {
-using enum indexStress3DInterface;
-
 void SetConstitutiveParameters(ConstitutiveLaw::Parameters& rConstitutiveParameters,
                                Matrix&                      rConstitutiveMatrix,
                                Vector&                      rStrainVector,
@@ -297,9 +295,9 @@ Vector UPwSmallStrainInterfaceElement<TDim, TNumNodes>::SetFullStressVector(cons
         full_stress_vector[2] = rStressVector[1];
         full_stress_vector[5] = rStressVector[0];
     } else if constexpr (TDim == 3) {
-        full_stress_vector[2] = rStressVector[static_cast<std::size_t>(INDEX_3D_INTERFACE_ZZ)];
-        full_stress_vector[4] = rStressVector[static_cast<std::size_t>(INDEX_3D_INTERFACE_YZ)];
-        full_stress_vector[5] = rStressVector[static_cast<std::size_t>(INDEX_3D_INTERFACE_XZ)];
+        full_stress_vector[2] = rStressVector[2];
+        full_stress_vector[4] = rStressVector[1];
+        full_stress_vector[5] = rStressVector[0];
     }
     return full_stress_vector;
 }
@@ -410,7 +408,7 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateOnIntegrationPoin
             if (TDim == 2) {
                 variable_index = 1;
             } else if (TDim == 3) {
-                variable_index = static_cast<std::size_t>(INDEX_3D_INTERFACE_ZZ);
+                variable_index = 2;
             } else {
                 KRATOS_ERROR << "CONFINED_STIFFNESS can not be retrieved for dim " << TDim
                              << " in element: " << this->Id() << std::endl;
@@ -419,7 +417,7 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateOnIntegrationPoin
             if (TDim == 2) {
                 variable_index = 0;
             } else if (TDim == 3) {
-                variable_index = static_cast<std::size_t>(INDEX_3D_INTERFACE_XZ);
+                variable_index = 0;
             } else {
                 KRATOS_ERROR << "SHEAR_STIFFNESS can not be retrieved for dim " << TDim
                              << " in element: " << this->Id() << std::endl;

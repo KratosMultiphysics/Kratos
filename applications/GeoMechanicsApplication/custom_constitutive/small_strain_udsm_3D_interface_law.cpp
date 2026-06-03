@@ -21,19 +21,17 @@ namespace
 using namespace Kratos;
 using namespace std::string_literals;
 
-std::size_t GetIndex3D(const indexStress3DInterface Index3D)
+std::size_t GetIndex3D(const std::size_t Index3D)
 {
-    using enum indexStress3DInterface;
-
     switch (Index3D) {
-    case INDEX_3D_INTERFACE_ZZ:
+    case 2:
         return 2;
-    case INDEX_3D_INTERFACE_YZ:
+    case 1:
         return 4;
-    case INDEX_3D_INTERFACE_XZ:
+    case 0:
         return 5;
     default:
-        KRATOS_ERROR << "invalid index: " << static_cast<int>(Index3D) << std::endl;
+        KRATOS_ERROR << "invalid index: " << Index3D << std::endl;
     }
 }
 
@@ -41,8 +39,6 @@ std::size_t GetIndex3D(const indexStress3DInterface Index3D)
 
 namespace Kratos
 {
-using enum indexStress3DInterface;
-
 ConstitutiveLaw::Pointer SmallStrainUDSM3DInterfaceLaw::Clone() const
 {
     auto pResult = std::make_shared<SmallStrainUDSM3DInterfaceLaw>();
@@ -54,19 +50,16 @@ void SmallStrainUDSM3DInterfaceLaw::UpdateInternalDeltaStrainVector(Parameters& 
 {
     const auto& r_strain_vector = rValues.GetStrainVector();
 
-    mDeltaStrainVector[2] =
-        r_strain_vector[static_cast<std::size_t>(INDEX_3D_INTERFACE_ZZ)] - mStrainVectorFinalized[2];
-    mDeltaStrainVector[4] =
-        r_strain_vector[static_cast<std::size_t>(INDEX_3D_INTERFACE_YZ)] - mStrainVectorFinalized[4];
-    mDeltaStrainVector[5] =
-        r_strain_vector[static_cast<std::size_t>(INDEX_3D_INTERFACE_XZ)] - mStrainVectorFinalized[5];
+    mDeltaStrainVector[2] = r_strain_vector[2] - mStrainVectorFinalized[2];
+    mDeltaStrainVector[4] = r_strain_vector[1] - mStrainVectorFinalized[4];
+    mDeltaStrainVector[5] = r_strain_vector[0] - mStrainVectorFinalized[5];
 }
 
 void SmallStrainUDSM3DInterfaceLaw::SetExternalStressVector(Vector& rStressVector)
 {
-    rStressVector[static_cast<std::size_t>(INDEX_3D_INTERFACE_ZZ)] = mStressVector[2];
-    rStressVector[static_cast<std::size_t>(INDEX_3D_INTERFACE_YZ)] = mStressVector[4];
-    rStressVector[static_cast<std::size_t>(INDEX_3D_INTERFACE_XZ)] = mStressVector[5];
+    rStressVector[2] = mStressVector[2];
+    rStressVector[1] = mStressVector[4];
+    rStressVector[0] = mStressVector[5];
 }
 
 void SmallStrainUDSM3DInterfaceLaw::SetInternalStressVector(const Vector& rStressVector)
@@ -75,18 +68,18 @@ void SmallStrainUDSM3DInterfaceLaw::SetInternalStressVector(const Vector& rStres
 
     std::fill_n(r_sig0.begin(), StressVectorSize, 0.0);
 
-    r_sig0[2] = rStressVector[static_cast<std::size_t>(INDEX_3D_INTERFACE_ZZ)];
-    r_sig0[4] = rStressVector[static_cast<std::size_t>(INDEX_3D_INTERFACE_YZ)];
-    r_sig0[5] = rStressVector[static_cast<std::size_t>(INDEX_3D_INTERFACE_XZ)];
+    r_sig0[2] = rStressVector[2];
+    r_sig0[4] = rStressVector[1];
+    r_sig0[5] = rStressVector[0];
 }
 
 void SmallStrainUDSM3DInterfaceLaw::SetInternalStrainVector(const Vector& rStrainVector)
 {
     std::fill(mStrainVectorFinalized.begin(), mStrainVectorFinalized.end(), 0.0);
 
-    mStrainVectorFinalized[2] = rStrainVector[static_cast<std::size_t>(INDEX_3D_INTERFACE_ZZ)];
-    mStrainVectorFinalized[4] = rStrainVector[static_cast<std::size_t>(INDEX_3D_INTERFACE_YZ)];
-    mStrainVectorFinalized[5] = rStrainVector[static_cast<std::size_t>(INDEX_3D_INTERFACE_XZ)];
+    mStrainVectorFinalized[2] = rStrainVector[2];
+    mStrainVectorFinalized[4] = rStrainVector[1];
+    mStrainVectorFinalized[5] = rStrainVector[0];
 }
 
 void SmallStrainUDSM3DInterfaceLaw::CopyConstitutiveMatrix(Parameters& rValues, Matrix& rConstitutiveMatrix)
@@ -95,17 +88,13 @@ void SmallStrainUDSM3DInterfaceLaw::CopyConstitutiveMatrix(Parameters& rValues, 
         // transfer fortran style matrix to C++ style
         for (unsigned int i = 0; i < GetStrainSize(); i++) {
             for (unsigned int j = 0; j < GetStrainSize(); j++) {
-                rConstitutiveMatrix(i, j) =
-                    mMatrixD[GetIndex3D(static_cast<indexStress3DInterface>(j))]
-                            [GetIndex3D(static_cast<indexStress3DInterface>(i))];
+                rConstitutiveMatrix(i, j) = mMatrixD[GetIndex3D(j)][GetIndex3D(i)];
             }
         }
     } else {
         for (unsigned int i = 0; i < GetStrainSize(); i++) {
             for (unsigned int j = 0; j < GetStrainSize(); j++) {
-                rConstitutiveMatrix(i, j) =
-                    mMatrixD[GetIndex3D(static_cast<indexStress3DInterface>(i))]
-                            [GetIndex3D(static_cast<indexStress3DInterface>(j))];
+                rConstitutiveMatrix(i, j) = mMatrixD[GetIndex3D(i)][GetIndex3D(j)];
             }
         }
     }
@@ -126,10 +115,10 @@ Vector& SmallStrainUDSM3DInterfaceLaw::GetValue(const Variable<Vector>& rVariabl
     } else if (rVariable == CAUCHY_STRESS_VECTOR || rVariable == GEO_EFFECTIVE_TRACTION_VECTOR) {
         rValue.resize(GetStrainSize());
 
-        auto& r_sig0                                            = GetSig0();
-        rValue[static_cast<std::size_t>(INDEX_3D_INTERFACE_ZZ)] = r_sig0[2];
-        rValue[static_cast<std::size_t>(INDEX_3D_INTERFACE_YZ)] = r_sig0[4];
-        rValue[static_cast<std::size_t>(INDEX_3D_INTERFACE_XZ)] = r_sig0[5];
+        auto& r_sig0 = GetSig0();
+        rValue[2]    = r_sig0[2];
+        rValue[1]    = r_sig0[4];
+        rValue[0]    = r_sig0[5];
     }
     return rValue;
 }

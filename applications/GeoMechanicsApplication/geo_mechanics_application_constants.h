@@ -45,13 +45,6 @@ constexpr SizeType VOIGT_SIZE_2D_AXISYMMETRIC = 4;
 constexpr SizeType VOIGT_SIZE_2D_INTERFACE    = 2;
 constexpr SizeType VOIGT_SIZE_3D_INTERFACE    = 3;
 
-// stress/strain vector indices (3D interface):
-enum class indexStress3DInterface : int {
-    INDEX_3D_INTERFACE_XZ,
-    INDEX_3D_INTERFACE_YZ,
-    INDEX_3D_INTERFACE_ZZ
-};
-
 enum class IsDiffOrderElement : int { Yes, No };
 
 enum class PlasticityStatus : int {
