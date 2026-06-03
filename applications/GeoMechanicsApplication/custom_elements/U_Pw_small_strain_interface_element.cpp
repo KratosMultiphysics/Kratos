@@ -23,7 +23,6 @@
 
 namespace Kratos
 {
-using enum indexStress2DInterface;
 using enum indexStress3DInterface;
 
 void SetConstitutiveParameters(ConstitutiveLaw::Parameters& rConstitutiveParameters,
@@ -295,8 +294,8 @@ Vector UPwSmallStrainInterfaceElement<TDim, TNumNodes>::SetFullStressVector(cons
     Vector full_stress_vector(6, 0);
 
     if constexpr (TDim == 2) {
-        full_stress_vector[2] = rStressVector[static_cast<std::size_t>(INDEX_2D_INTERFACE_ZZ)];
-        full_stress_vector[5] = rStressVector[static_cast<std::size_t>(INDEX_2D_INTERFACE_XZ)];
+        full_stress_vector[2] = rStressVector[1];
+        full_stress_vector[5] = rStressVector[0];
     } else if constexpr (TDim == 3) {
         full_stress_vector[2] = rStressVector[static_cast<std::size_t>(INDEX_3D_INTERFACE_ZZ)];
         full_stress_vector[4] = rStressVector[static_cast<std::size_t>(INDEX_3D_INTERFACE_YZ)];
@@ -409,7 +408,7 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateOnIntegrationPoin
         size_t variable_index;
         if (rVariable == CONFINED_STIFFNESS) {
             if (TDim == 2) {
-                variable_index = static_cast<std::size_t>(INDEX_2D_INTERFACE_ZZ);
+                variable_index = 1;
             } else if (TDim == 3) {
                 variable_index = static_cast<std::size_t>(INDEX_3D_INTERFACE_ZZ);
             } else {
@@ -418,7 +417,7 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateOnIntegrationPoin
             }
         } else if (rVariable == SHEAR_STIFFNESS) {
             if (TDim == 2) {
-                variable_index = static_cast<std::size_t>(INDEX_2D_INTERFACE_XZ);
+                variable_index = 0;
             } else if (TDim == 3) {
                 variable_index = static_cast<std::size_t>(INDEX_3D_INTERFACE_XZ);
             } else {

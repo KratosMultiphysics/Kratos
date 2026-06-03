@@ -45,24 +45,6 @@ constexpr SizeType VOIGT_SIZE_2D_AXISYMMETRIC = 4;
 constexpr SizeType VOIGT_SIZE_2D_INTERFACE    = 2;
 constexpr SizeType VOIGT_SIZE_3D_INTERFACE    = 3;
 
-// stress/strain vector indices (2D plane stress):
-enum class indexStress2DPlaneStress : int {
-    INDEX_2D_PLANE_STRESS_XX,
-    INDEX_2D_PLANE_STRESS_YY,
-    INDEX_2D_PLANE_STRESS_XY
-};
-
-// stress/strain vector indices (2D axisymmetric):
-enum class indexStress2DAxisymmetric : int {
-    INDEX_2D_AXI_SYMMETRIC_XX,
-    INDEX_2D_AXI_SYMMETRIC_YY,
-    INDEX_2D_AXI_SYMMETRIC_RR,
-    INDEX_2D_AXI_SYMMETRIC_XY
-};
-
-// stress/strain vector indices (2D interface):
-enum class indexStress2DInterface : int { INDEX_2D_INTERFACE_XZ, INDEX_2D_INTERFACE_ZZ };
-
 // stress/strain vector indices (3D interface):
 enum class indexStress3DInterface : int {
     INDEX_3D_INTERFACE_XZ,

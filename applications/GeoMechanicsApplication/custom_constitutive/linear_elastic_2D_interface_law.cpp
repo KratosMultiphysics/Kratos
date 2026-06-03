@@ -67,12 +67,9 @@ void LinearElastic2DInterfaceLaw::CalculateElasticMatrix(Matrix& C, Constitutive
 
     C = ZeroMatrix(GetStrainSize(), GetStrainSize());
 
-    using enum indexStress2DInterface;
     const double c0 = E / ((1.0 + NU) * (1.0 - 2.0 * NU));
-    C(static_cast<std::size_t>(INDEX_2D_INTERFACE_XZ), static_cast<std::size_t>(INDEX_2D_INTERFACE_XZ)) =
-        (0.5 - NU) * c0;
-    C(static_cast<std::size_t>(INDEX_2D_INTERFACE_ZZ), static_cast<std::size_t>(INDEX_2D_INTERFACE_ZZ)) =
-        (1.0 - NU) * c0;
+    C(0, 0)         = (0.5 - NU) * c0;
+    C(1, 1)         = (1.0 - NU) * c0;
 
     KRATOS_CATCH("")
 }
