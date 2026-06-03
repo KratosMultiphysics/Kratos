@@ -505,71 +505,39 @@ inline void InterfacePreprocessCondition::GenerateFaceCondition(
                 rInterfacePart.AddConditions(condition_ids);
             } else {
                 // We initialize a vector for the IDs
-                std::vector<std::size_t> condition_ids(4);
+                // std::vector<std::size_t> condition_ids(4);
 
-                std::vector<std::vector<std::size_t>> edges_nodes = {{0, 3, 5}, {3, 1, 4}, {4, 2, 5}, {3, 4, 5}};
+                // std::vector<std::vector<std::size_t>> edges_nodes = {{0, 3, 5}, {3, 1, 4}, {4, 2, 5}, {3, 4, 5}};
 
-                Triangle3D3< Node > tri_1(rFaceGeometry(edges_nodes[0][0]), rFaceGeometry(edges_nodes[0][1]), rFaceGeometry(edges_nodes[0][2]));
-                CreateNewCondition(pThisProperties, tri_1, rConditionId, r_condition);
-                condition_ids[0] = rConditionId;
-                ++rCondCounter;
-                ++rConditionId;
-                Triangle3D3< Node > tri_2(rFaceGeometry(edges_nodes[1][0]), rFaceGeometry(edges_nodes[1][1]), rFaceGeometry(edges_nodes[1][2]));
-                CreateNewCondition(pThisProperties, tri_2, rConditionId, r_condition);
-                condition_ids[1] = rConditionId;
-                ++rCondCounter;
-                ++rConditionId;
-                Triangle3D3< Node > tri_3(rFaceGeometry(edges_nodes[2][0]), rFaceGeometry(edges_nodes[2][1]), rFaceGeometry(edges_nodes[2][2]));
-                CreateNewCondition(pThisProperties, tri_3, rConditionId, r_condition);
-                condition_ids[2] = rConditionId;
-                ++rCondCounter;
-                ++rConditionId;
-                Triangle3D3< Node > tri_4(rFaceGeometry(edges_nodes[3][0]), rFaceGeometry(edges_nodes[3][1]), rFaceGeometry(edges_nodes[3][2]));
+                // Triangle3D3< Node > tri_1(rFaceGeometry(edges_nodes[0][0]), rFaceGeometry(edges_nodes[0][1]), rFaceGeometry(edges_nodes[0][2]));
+                // CreateNewCondition(pThisProperties, tri_1, rConditionId, r_condition);
+                // condition_ids[0] = rConditionId;
+                // ++rCondCounter;
+                // ++rConditionId;
+                // Triangle3D3< Node > tri_2(rFaceGeometry(edges_nodes[1][0]), rFaceGeometry(edges_nodes[1][1]), rFaceGeometry(edges_nodes[1][2]));
+                // CreateNewCondition(pThisProperties, tri_2, rConditionId, r_condition);
+                // condition_ids[1] = rConditionId;
+                // ++rCondCounter;
+                // ++rConditionId;
+                // Triangle3D3< Node > tri_3(rFaceGeometry(edges_nodes[2][0]), rFaceGeometry(edges_nodes[2][1]), rFaceGeometry(edges_nodes[2][2]));
+                // CreateNewCondition(pThisProperties, tri_3, rConditionId, r_condition);
+                // condition_ids[2] = rConditionId;
+                // ++rCondCounter;
+                // ++rConditionId;
+                // Triangle3D3< Node > tri_4(rFaceGeometry(edges_nodes[3][0]), rFaceGeometry(edges_nodes[3][1]), rFaceGeometry(edges_nodes[3][2]));
+                // CreateNewCondition(pThisProperties, tri_4, rConditionId, r_condition);
+                // condition_ids[3] = rConditionId;
+                // ++rConditionId;
+                // ++rCondCounter;
+
+                std::vector<std::size_t> condition_ids(1);
+                Triangle3D3< Node > tri_4(rFaceGeometry(0), rFaceGeometry(1), rFaceGeometry(2));
                 CreateNewCondition(pThisProperties, tri_4, rConditionId, r_condition);
-                condition_ids[3] = rConditionId;
+                condition_ids[0] = rConditionId;
                 ++rConditionId;
                 ++rCondCounter;
 
                 rInterfacePart.AddConditions(condition_ids);
-
-                // Now the linear constraints, slave = 0.5*corner1 + 0.5*corner2
-                // MasterSlaveConstraint::DofPointerVectorType master_dofs(2);
-                // MasterSlaveConstraint::DofPointerVectorType slave_dofs(1);
-
-                // Matrix relation_matrix(1, 2);
-                // relation_matrix(0, 0) = 0.5;
-                // relation_matrix(0, 1) = 0.5;
-                // Vector constant_vector(2);
-                // constant_vector.clear();
-
-                // std::vector<std::vector<std::size_t>> master_slave_nodes_ids = {{0, 1, 3}, {1, 2, 4}, {2, 0, 5}};
-
-                // for (IndexType edge = 0; edge < 3; ++edge) {
-                //     master_dofs[0] = rFaceGeometry[master_slave_nodes_ids[edge][0]].pGetDof(DISPLACEMENT_X);
-                //     master_dofs[1] = rFaceGeometry[master_slave_nodes_ids[edge][1]].pGetDof(DISPLACEMENT_X);
-                //     slave_dofs[0]  = rFaceGeometry[master_slave_nodes_ids[edge][2]].pGetDof(DISPLACEMENT_X);
-                    
-                //     rInterfacePart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", rConditionId, master_dofs,
-                //         slave_dofs, relation_matrix, constant_vector);
-                //     ++rCondCounter;
-                //     ++rConditionId;
-
-                //     master_dofs[0] = rFaceGeometry[master_slave_nodes_ids[edge][0]].pGetDof(DISPLACEMENT_Y);
-                //     master_dofs[1] = rFaceGeometry[master_slave_nodes_ids[edge][1]].pGetDof(DISPLACEMENT_Y);
-                //     slave_dofs[0]  = rFaceGeometry[master_slave_nodes_ids[edge][2]].pGetDof(DISPLACEMENT_Y);
-                //     rInterfacePart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", rConditionId, master_dofs,
-                //         slave_dofs, relation_matrix, constant_vector);
-                //     ++rCondCounter;
-                //     ++rConditionId;
-
-                //     master_dofs[0] = rFaceGeometry[master_slave_nodes_ids[edge][0]].pGetDof(DISPLACEMENT_Z);
-                //     master_dofs[1] = rFaceGeometry[master_slave_nodes_ids[edge][1]].pGetDof(DISPLACEMENT_Z);
-                //     slave_dofs[0] = rFaceGeometry[master_slave_nodes_ids[edge][2]].pGetDof(DISPLACEMENT_Z);
-                //     rInterfacePart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", rConditionId, master_dofs,
-                //         slave_dofs, relation_matrix, constant_vector);
-                //     ++rCondCounter;
-                //     ++rConditionId;
-                // }
 
             }
         } else if (number_of_points == 8) {
