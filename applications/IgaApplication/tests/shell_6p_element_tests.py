@@ -6,6 +6,7 @@
 
 import KratosMultiphysics as KM
 import KratosMultiphysics.StructuralMechanicsApplication as SMA
+import KratosMultiphysics.LinearSolversApplication as LinearSolversApplication
 import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -128,6 +129,101 @@ class Shell6pElementTests(KratosUnittest.TestCase):
         solver.Solve()
 
         return surface
+    
+    def solve_cantilever_modal_analysis(create_geometry):
+        model = KM.Model()
+        model_part = model.CreateModelPart('Model')
+
+        model_part.AddNodalSolutionStepVariable(KM.DISPLACEMENT)
+        model_part.AddNodalSolutionStepVariable(KM.ROTATION)
+        model_part.AddNodalSolutionStepVariable(KM.REACTION)
+        model_part.AddNodalSolutionStepVariable(KM.REACTION_MOMENT)
+        model_part.AddNodalSolutionStepVariable(SMA.POINT_LOAD)
+
+        # create property for shell elements
+
+        shell_properties = model_part.GetProperties()[1]
+        shell_properties.SetValue(KM.THICKNESS, 0.1)
+        shell_properties.SetValue(KM.YOUNG_MODULUS, 200000000)
+        shell_properties.SetValue(KM.POISSON_RATIO, 0)
+        shell_properties.SetValue(KM.DENSITY, 7850)
+        shell_properties.SetValue(KM.CONSTITUTIVE_LAW, SMA.LinearElastic3DLaw())
+
+        # create a nurbs surface
+        surface = create_geometry(model_part)
+
+        # create quadrature_point_geometries
+        quadrature_point_geometries = KM.GeometriesVector()
+
+        surface.CreateQuadraturePointGeometries(quadrature_point_geometries, 3)
+
+        element_id = 1
+        for i in range(0, len(quadrature_point_geometries)):
+            model_part.CreateNewElement('Shell6pElement', element_id, quadrature_point_geometries[i], shell_properties)
+            element_id += 1
+
+        # add dofs
+        KM.VariableUtils().AddDof(KM.DISPLACEMENT_X, KM.REACTION_X, model_part)
+        KM.VariableUtils().AddDof(KM.DISPLACEMENT_Y, KM.REACTION_Y, model_part)
+        KM.VariableUtils().AddDof(KM.DISPLACEMENT_Z, KM.REACTION_Z, model_part)
+        KM.VariableUtils().AddDof(KM.ROTATION_X, KM.REACTION_MOMENT_X, model_part)
+        KM.VariableUtils().AddDof(KM.ROTATION_Y, KM.REACTION_MOMENT_Y, model_part)
+        KM.VariableUtils().AddDof(KM.ROTATION_Z, KM.REACTION_MOMENT_Z, model_part)
+
+        # apply dirichlet conditions
+        surface[0].Fix(KM.DISPLACEMENT_X)
+        surface[0].Fix(KM.DISPLACEMENT_Y)
+        surface[0].Fix(KM.DISPLACEMENT_Z)
+
+        surface[3].Fix(KM.DISPLACEMENT_X)
+        surface[3].Fix(KM.DISPLACEMENT_Y)
+        surface[3].Fix(KM.DISPLACEMENT_Z)
+
+        surface[6].Fix(KM.DISPLACEMENT_X)
+        surface[6].Fix(KM.DISPLACEMENT_Y)
+        surface[6].Fix(KM.DISPLACEMENT_Z)
+
+        # clamp bending
+        surface[0].Fix(KM.ROTATION_X)
+        surface[0].Fix(KM.ROTATION_Y)
+        surface[0].Fix(KM.ROTATION_Z)
+
+        surface[3].Fix(KM.ROTATION_X)
+        surface[3].Fix(KM.ROTATION_Y)
+        surface[3].Fix(KM.ROTATION_Z)
+
+        surface[6].Fix(KM.ROTATION_X)
+        surface[6].Fix(KM.ROTATION_Y)
+        surface[6].Fix(KM.ROTATION_Z)
+
+        # setup solver
+        model_part.SetBufferSize(1)
+        eigensolver_settings = KM.Parameters("""
+        {
+            "max_iteration"         : 1000,
+            "tolerance"             : 1e-6,
+            "number_of_eigenvalues" : 10,
+            "echo_level"            : 0,
+            "normalize_eigenvectors": true
+        }
+        """)
+        
+        eigen_solver = LinearSolversApplication.EigensystemSolver(eigensolver_settings)
+        builder_and_solver = KM.ResidualBasedBlockBuilderAndSolver(eigen_solver)
+        eigen_scheme = SMA.EigensolverDynamicScheme()
+        mass_matrix_diagonal_value = 0.0
+        stiffness_matrix_diagonal_value = 1.0
+
+        eigen_solver = SMA.EigensolverStrategy(model_part, eigen_scheme, builder_and_solver,
+            mass_matrix_diagonal_value,
+            stiffness_matrix_diagonal_value)
+
+        eigen_solver.SetEchoLevel(0)
+        eigen_solver.Solve()
+
+        eigenvalues = model_part.ProcessInfo[SMA.EIGENVALUE_VECTOR]
+
+        return surface, eigenvalues
 
     def testCantileverOneQuadraticSpanWithoutParameterDistortion(self):
         def create_geometry(model_part):
@@ -313,3 +409,54 @@ class Shell6pElementTests(KratosUnittest.TestCase):
         self.assertAlmostEqual(surface[2].Z, -0.224868627203197)
         self.assertAlmostEqual(surface[5].Z, -0.225040621609457)
         self.assertAlmostEqual(surface[8].Z, -0.224868627203197)
+
+    # test same geometry with modal analysis
+    def testCantileverOneQuadraticSpanModalAnalysis(self):
+        def create_geometry(model_part):
+            node1 = model_part.CreateNewNode(1, 0.0, 0.0, 0)
+            node2 = model_part.CreateNewNode(2, 2.5, 0.0, 0)
+            node3 = model_part.CreateNewNode(3, 5.0, 0.0, 0)
+
+            node4 = model_part.CreateNewNode(4, 0.0, 0.5, 0)
+            node5 = model_part.CreateNewNode(5, 2.5, 0.5, 0)
+            node6 = model_part.CreateNewNode(6, 5.0, 0.5, 0)
+
+            node7 = model_part.CreateNewNode(7, 0.0, 1.0, 0)
+            node8 = model_part.CreateNewNode(8, 2.5, 1.0, 0)
+            node9 = model_part.CreateNewNode(9, 5.0, 1.0, 0)
+
+            nodes = KM.NodesVector()
+            nodes.append(node1)
+            nodes.append(node2)
+            nodes.append(node3)
+            nodes.append(node4)
+            nodes.append(node5)
+            nodes.append(node6)
+            nodes.append(node7)
+            nodes.append(node8)
+            nodes.append(node9)
+
+            knots_u = KM.Vector(4)
+            knots_u[0] = 0.0
+            knots_u[1] = 0.0
+            knots_u[2] = 5.0
+            knots_u[3] = 5.0
+
+            knots_v = KM.Vector(4)
+            knots_v[0] = 0.0
+            knots_v[1] = 0.0
+            knots_v[2] = 1.0
+            knots_v[3] = 1.0
+
+            surface = KM.NurbsSurfaceGeometry3D(
+                nodes, 2, 2, knots_u, knots_v)
+
+            return surface
+
+        # modal analysis
+        surface, eigenvalues = Shell6pElementTests.solve_cantilever_modal_analysis(create_geometry)
+
+        self.assertAlmostEqual(eigenvalues[0], 0.677190440290159)
+        self.assertAlmostEqual(eigenvalues[1], 55.81155501418916)
+        self.assertAlmostEqual(eigenvalues[2], 116.9743177874331)
+        self.assertAlmostEqual(eigenvalues[3], 2274.463699330766)
