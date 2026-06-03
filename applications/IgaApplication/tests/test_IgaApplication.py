@@ -63,7 +63,8 @@ from test_stokes_elements_and_conditions import FluidTests as TTestFluid
 from test_stokes_sbm_conditions_3d import SbmStokes3DTests as TTestSbmStokes
 # Iga geometries python bindings tests
 from test_python_bindings_iga_geometries import TestPythonBindingsIGAGeometries
-
+# Calculate tractions on interface test 
+from test_compute_interface_traction_shell_3p import ComputeInterfaceTractionShell3pTest as TestComputeInterfaceTractionsShell3p
 has_linear_solvers_application = kratos_utilities.CheckIfApplicationsAvailable("LinearSolversApplication")
 
 def AssembleTestSuites():
@@ -123,7 +124,9 @@ def AssembleTestSuites():
         TTestFluid,
         TTestSbmStokes,
         # Iga geometries python bindings
-        TestPythonBindingsIGAGeometries
+        TestPythonBindingsIGAGeometries,
+        # Calculate tractions on interface test 
+        TestComputeInterfaceTractionsShell3p
     ]))
 
     if has_linear_solvers_application:
