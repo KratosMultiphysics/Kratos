@@ -330,7 +330,6 @@ namespace Kratos
 
         const IndexType number_of_nodes = r_geometry.size();
         const IndexType mat_size = number_of_nodes * 6;
-        const double thickness = this->GetProperties().GetValue(THICKNESS);
 
         Vector current_displacement = ZeroVector(6*number_of_nodes);
         GetValuesVector(current_displacement,0);
@@ -557,7 +556,6 @@ namespace Kratos
 
         const IndexType number_of_nodes = r_geometry.size();
         const IndexType mat_size = number_of_nodes * 6;
-        const double thickness = this->GetProperties().GetValue(THICKNESS); 
         //TO DO: user definerd factor to adjust the drilling stiffness contribution
         const double drilling_factor = 0.05 * this->GetProperties().GetValue(YOUNG_MODULUS); 
 
