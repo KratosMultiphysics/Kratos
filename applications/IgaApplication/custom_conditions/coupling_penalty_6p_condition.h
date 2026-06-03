@@ -50,8 +50,7 @@ public:
     /// Counted pointer of CouplingPenalty6pCondition
     KRATOS_CLASS_POINTER_DEFINITION(CouplingPenalty6pCondition);
 
-    /// Size types
-    typedef std::size_t SizeType;
+    /// Index type
     typedef std::size_t IndexType;
 
     ///@}

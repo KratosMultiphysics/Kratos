@@ -8,7 +8,6 @@
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Ricky Aristio
-//                   Tobias Teschemacher
 //
 
 // System includes
@@ -33,8 +32,9 @@ namespace Kratos
         const double penalty_rotation = GetProperties()[PENALTY_ROTATION_FACTOR];
 
         const auto& r_geometry = GetGeometry();
-        const SizeType number_of_nodes = r_geometry.size();
-        const SizeType mat_size = r_geometry.WorkingSpaceDimension() * number_of_nodes;
+        const IndexType number_of_nodes = r_geometry.size();
+        const IndexType mat_size = r_geometry.WorkingSpaceDimension() * number_of_nodes;
+        const IndexType disp_size = 3 * number_of_nodes;
 
         // Integration
         const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints();
@@ -54,53 +54,80 @@ namespace Kratos
         {
             const Matrix& N = r_geometry.ShapeFunctionsValues();
 
-            //FOR DISPLACEMENTS
-            Matrix H = ZeroMatrix(6, mat_size);
+            // Shape function matrix for displacements and rotations
+            Matrix H_disp = ZeroMatrix(3, disp_size);
+            Matrix H_rot = ZeroMatrix(3, disp_size);
+
             for (IndexType i = 0; i < number_of_nodes; ++i)
             {
-                IndexType index = 6 * i;
-                H(0, index)     = N(point_number, i);
-                H(1, index + 1) = N(point_number, i);
-                H(2, index + 2) = N(point_number, i);
-                H(3, index + 3) = N(point_number, i);
-                H(4, index + 4) = N(point_number, i);
-                H(5, index + 5) = N(point_number, i);
+                IndexType index = 3 * i;
+
+                H_disp(0, index)     = N(point_number, i);
+                H_disp(1, index + 1) = N(point_number, i);
+                H_disp(2, index + 2) = N(point_number, i);
+
+                H_rot(0, index)     = N(point_number, i);
+                H_rot(1, index + 1) = N(point_number, i);
+                H_rot(2, index + 2) = N(point_number, i);
             }
 
             // Differential area
             const double penalty_integration = penalty * integration_points[point_number].Weight() * determinant_jacobian_vector[point_number];
             const double penalty_rotation_integration = penalty_rotation * integration_points[point_number].Weight() * determinant_jacobian_vector[point_number];
 
+            // Matrix multiplication blocks
+            const Matrix HtH_disp = prod(trans(H_disp), H_disp);
+            const Matrix HtH_rot  = prod(trans(H_rot),  H_rot);
+
             // Assembly
             if (CalculateStiffnessMatrixFlag) {
-                noalias(rLeftHandSideMatrix) += prod(trans(H), H) * penalty_integration;
+                for (IndexType i = 0; i < number_of_nodes; ++i) {
+                    for (IndexType j = 0; j < number_of_nodes; ++j) {
+                        for (IndexType ii = 0; ii < 3; ++ii) {
+                            for (IndexType jj = 0; jj < 3; ++jj) {
+                                rLeftHandSideMatrix(6 * i + ii, 6 * j + jj) += HtH_disp(3 * i + ii, 3 * j + jj) * penalty_integration;
+                                rLeftHandSideMatrix(6 * i + 3 + ii, 6 * j + 3 + jj) += HtH_rot(3 * i + ii, 3 * j + jj) * penalty_rotation_integration;
+                            }
+                        }
+                    }
+                }
             }
             if (CalculateResidualVectorFlag) {
 
                 const array_1d<double, 3>& displacement = Has(DISPLACEMENT)
                     ? this->GetValue(DISPLACEMENT)
                     : ZeroVector(3);
-
                 const array_1d<double, 3>& rotation = Has(ROTATION)
                     ? this->GetValue(ROTATION)
                     : ZeroVector(3);
 
-                Vector u(mat_size);
+                Vector u_disp(disp_size);
+                Vector u_rot(disp_size);
+
                 for (IndexType i = 0; i < number_of_nodes; ++i)
                 {
                     const array_1d<double, 3> disp = r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT);
                     const array_1d<double, 3> rot = r_geometry[i].FastGetSolutionStepValue(ROTATION);
 
-                    IndexType index = 6 * i;
-                    u[index] = (disp[0] - displacement[0]);
-                    u[index + 1] = (disp[1] - displacement[1]);
-                    u[index + 2] = (disp[2] - displacement[2]);
-                    u[index + 3] = (rot[0] - rotation[0]);
-                    u[index + 4] = (rot[1] - rotation[1]);
-                    u[index + 5] = (rot[2] - rotation[2]);
+                    IndexType index = 3 * i;
+                    u_disp[index] = (disp[0] - displacement[0]);
+                    u_disp[index + 1] = (disp[1] - displacement[1]);
+                    u_disp[index + 2] = (disp[2] - displacement[2]);
+                    
+                    u_rot[index] = (rot[0] - rotation[0]);
+                    u_rot[index + 1] = (rot[1] - rotation[1]);
+                    u_rot[index + 2] = (rot[2] - rotation[2]);
                 }
 
-                noalias(rRightHandSideVector) -= prod(prod(trans(H), H), u) * penalty_integration;
+                const Vector rhs_disp = prod(HtH_disp, u_disp) * penalty_integration;
+                const Vector rhs_rot  = prod(HtH_rot,  u_rot)  * penalty_rotation_integration;
+
+                for (IndexType i = 0; i < number_of_nodes; ++i) {
+                    for (IndexType ii = 0; ii < 3; ++ii) {
+                        rRightHandSideVector(6 * i + ii) -= rhs_disp(3 * i + ii);
+                        rRightHandSideVector(6 * i + 3 + ii) -= rhs_rot(3 * i + ii);
+                    }
+                }
             }
         }
         KRATOS_CATCH("")
@@ -115,9 +142,9 @@ namespace Kratos
             rDeterminantOfJacobian.resize(nb_integration_points, false);
         }
 
-        const SizeType working_space_dimension = rGeometry.WorkingSpaceDimension();
-        const SizeType local_space_dimension = rGeometry.LocalSpaceDimension();
-        const SizeType number_of_nodes = rGeometry.PointsNumber();
+        const IndexType working_space_dimension = rGeometry.WorkingSpaceDimension();
+        const IndexType local_space_dimension = rGeometry.LocalSpaceDimension();
+        const IndexType number_of_nodes = rGeometry.PointsNumber();
 
         Matrix J = ZeroMatrix(working_space_dimension, local_space_dimension);
         for (IndexType point_number = 0; point_number < nb_integration_points; ++point_number)
@@ -157,7 +184,7 @@ namespace Kratos
     ) const
     {
         const auto& r_geometry = GetGeometry();
-        const SizeType number_of_nodes = r_geometry.size();
+        const IndexType number_of_nodes = r_geometry.size();
 
         if (rResult.size() != 6 * number_of_nodes)
             rResult.resize(6 * number_of_nodes, false);
@@ -180,7 +207,7 @@ namespace Kratos
     ) const
     {
         const auto& r_geometry = GetGeometry();
-        const SizeType number_of_nodes = r_geometry.size();
+        const IndexType number_of_nodes = r_geometry.size();
 
         rElementalDofList.resize(0);
         rElementalDofList.reserve(6 * number_of_nodes);

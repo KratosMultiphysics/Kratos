@@ -34,10 +34,12 @@ namespace Kratos
         const auto& r_geometry_slave = GetGeometry().GetGeometryPart(1);
 
         // Size definitions
-        const SizeType number_of_nodes_master = r_geometry_master.size();
-        const SizeType number_of_nodes_slave = r_geometry_slave.size();
+        const IndexType number_of_nodes_master = r_geometry_master.size();
+        const IndexType number_of_nodes_slave = r_geometry_slave.size();
+        const IndexType number_of_nodes_total  = number_of_nodes_master + number_of_nodes_slave;
 
-        const SizeType mat_size = 6 * (number_of_nodes_master + number_of_nodes_slave);
+        const IndexType mat_size = 6 * number_of_nodes_total;
+        const IndexType disp_size = 3 * number_of_nodes_total;
 
         // Memory allocation
         if (CalculateStiffnessMatrixFlag) {
@@ -73,81 +75,110 @@ namespace Kratos
             Matrix N_master = r_geometry_master.ShapeFunctionsValues();
             Matrix N_slave = r_geometry_slave.ShapeFunctionsValues();
 
-            //FOR DISPLACEMENTS
-            Matrix H = ZeroMatrix(6, mat_size);
+            // Shape function matrix for displacements and rotations
+            Matrix H_disp = ZeroMatrix(3, disp_size);
+            Matrix H_rot  = ZeroMatrix(3, disp_size);
+
             for (IndexType i = 0; i < number_of_nodes_master; ++i)
             {
-                IndexType index = 6 * i;
+                IndexType index = 3 * i;
                 if (Is(IgaFlags::FIX_DISPLACEMENT_X))
-                    H(0, index) = N_master(point_number, i);
+                    H_disp(0, index) = N_master(point_number, i);
                 if (Is(IgaFlags::FIX_DISPLACEMENT_Y))
-                    H(1, index + 1) = N_master(point_number, i);
+                    H_disp(1, index + 1) = N_master(point_number, i);
                 if (Is(IgaFlags::FIX_DISPLACEMENT_Z))
-                    H(2, index + 2) = N_master(point_number, i);
+                    H_disp(2, index + 2) = N_master(point_number, i);
+
                 if (Is(IgaFlags::FIX_ROTATION_X))
-                    H(3, index + 3) = N_master(point_number, i);
+                    H_rot(0, index + 3) = N_master(point_number, i);
                 if (Is(IgaFlags::FIX_ROTATION_Y))
-                    H(4, index + 4) = N_master(point_number, i);
+                    H_rot(1, index + 4) = N_master(point_number, i);
                 if (Is(IgaFlags::FIX_ROTATION_Z))
-                    H(5, index + 5) = N_master(point_number, i);
+                    H_rot(2, index + 5) = N_master(point_number, i);
             }
 
             for (IndexType i = 0; i < number_of_nodes_slave; ++i)
             {
-                IndexType index = 6 * (i + number_of_nodes_master);
+                IndexType index = 3 * (i + number_of_nodes_master);
                 if (Is(IgaFlags::FIX_DISPLACEMENT_X))
-                    H(0, index) = -N_slave(point_number, i);
+                    H_disp(0, index) = -N_slave(point_number, i);
                 if (Is(IgaFlags::FIX_DISPLACEMENT_Y))
-                    H(1, index + 1) = -N_slave(point_number, i);
+                    H_disp(1, index + 1) = -N_slave(point_number, i);
                 if (Is(IgaFlags::FIX_DISPLACEMENT_Z))
-                    H(2, index + 2) = -N_slave(point_number, i);
+                    H_disp(2, index + 2) = -N_slave(point_number, i);
+
                 if (Is(IgaFlags::FIX_ROTATION_X))
-                    H(3, index  + 3) = -N_slave(point_number, i);
+                    H_rot(0, index + 3) = -N_slave(point_number, i);
                 if (Is(IgaFlags::FIX_ROTATION_Y))
-                    H(4, index + 4) = -N_slave(point_number, i);
+                    H_rot(1, index + 4) = -N_slave(point_number, i);
                 if (Is(IgaFlags::FIX_ROTATION_Z))
-                    H(5, index + 5) = -N_slave(point_number, i);
+                    H_rot(2, index + 5) = -N_slave(point_number, i);
             }
 
             // Differential area
             const double penalty_integration = penalty * integration_points[point_number].Weight() * determinant_jacobian_vector[point_number];
             const double penalty_rotation_integration = penalty_rotation * integration_points[point_number].Weight() * determinant_jacobian_vector[point_number];
 
+            // Matrix multiplication blocks
+            const Matrix HtH_disp = prod(trans(H_disp), H_disp);
+            const Matrix HtH_rot  = prod(trans(H_rot),  H_rot);
+
             // Assembly
             if (CalculateStiffnessMatrixFlag) {
-                noalias(rLeftHandSideMatrix) += prod(trans(H), H) * penalty_integration;
+                for (IndexType i = 0; i < number_of_nodes_total; ++i) {
+                    for (IndexType j = 0; j < number_of_nodes_total; ++j) {
+                        for (IndexType ii = 0; ii < 3; ++ii) {
+                            for (IndexType jj = 0; jj < 3; ++jj) {
+                                rLeftHandSideMatrix(6 * i + ii, 6 * j + jj) += HtH_disp(3 * i + ii, 3 * j + jj) * penalty_integration;
+                                rLeftHandSideMatrix(6 * i + 3 + ii, 6 * j + 3 + jj) += HtH_rot(3 * i + ii, 3 * j + jj) * penalty_rotation_integration;
+                            }
+                        }
+                    }
+                }
             }
             if (CalculateResidualVectorFlag) {
 
-                Vector u(mat_size);
+                Vector u_disp(disp_size);
+                Vector u_rot(disp_size);
+                
                 for (IndexType i = 0; i < number_of_nodes_master; ++i)
                 {
                     const array_1d<double, 3> disp = r_geometry_master[i].FastGetSolutionStepValue(DISPLACEMENT);
-                    IndexType index = 6 * i;
-                    u[index]     = disp[0];
-                    u[index + 1] = disp[1];
-                    u[index + 2] = disp[2];
-
                     const array_1d<double, 3> rot = r_geometry_master[i].FastGetSolutionStepValue(ROTATION);
-                    u[index + 3] = rot[0];
-                    u[index + 4] = rot[1];
-                    u[index + 5] = rot[2];
+
+                    IndexType index = 3 * i;
+                    u_disp[index]     = disp[0];
+                    u_disp[index + 1] = disp[1];
+                    u_disp[index + 2] = disp[2];
+                    
+                    u_rot[index] = rot[0];
+                    u_rot[index + 1] = rot[1];
+                    u_rot[index + 2] = rot[2];
                 }
                 for (IndexType i = 0; i < number_of_nodes_slave; ++i)
                 {
                     const array_1d<double, 3> disp = r_geometry_slave[i].FastGetSolutionStepValue(DISPLACEMENT);
-                    IndexType index = 6 * (i + number_of_nodes_master);
-                    u[index]     = disp[0];
-                    u[index + 1] = disp[1];
-                    u[index + 2] = disp[2];
-
                     const array_1d<double, 3> rot = r_geometry_slave[i].FastGetSolutionStepValue(ROTATION);
-                    u[index + 3] = rot[0];
-                    u[index + 4] = rot[1];
-                    u[index + 5] = rot[2];
+
+                    IndexType index = 3 * (i + number_of_nodes_master);
+                    u_disp[index]     = disp[0];
+                    u_disp[index + 1] = disp[1];
+                    u_disp[index + 2] = disp[2];
+
+                    u_rot[index] = rot[0];
+                    u_rot[index + 1] = rot[1];
+                    u_rot[index + 2] = rot[2];
                 }
 
-                noalias(rRightHandSideVector) -= prod(prod(trans(H), H), u) * penalty_integration;
+                const Vector rhs_disp = prod(HtH_disp, u_disp) * penalty_integration;
+                const Vector rhs_rot = prod(HtH_rot,  u_rot)  * penalty_rotation_integration;
+
+                for (IndexType i = 0; i < number_of_nodes_total; ++i) {
+                    for (IndexType ii = 0; ii < 3; ++ii) {
+                        rRightHandSideVector(6 * i + ii)     -= rhs_disp(3 * i + ii);
+                        rRightHandSideVector(6 * i + 3 + ii) -= rhs_rot(3 * i + ii);
+                    }
+                }
             }
         }
 
@@ -163,9 +194,9 @@ namespace Kratos
             rDeterminantOfJacobian.resize(nb_integration_points, false);
         }
 
-        const SizeType working_space_dimension = rGeometry.WorkingSpaceDimension();
-        const SizeType local_space_dimension = rGeometry.LocalSpaceDimension();
-        const SizeType nb_nodes = rGeometry.PointsNumber();
+        const IndexType working_space_dimension = rGeometry.WorkingSpaceDimension();
+        const IndexType local_space_dimension = rGeometry.LocalSpaceDimension();
+        const IndexType nb_nodes = rGeometry.PointsNumber();
 
         Matrix J = ZeroMatrix(working_space_dimension, local_space_dimension);
         for (IndexType pnt = 0; pnt < nb_integration_points; pnt++)
@@ -209,8 +240,8 @@ namespace Kratos
         const auto& r_geometry_master = GetGeometry().GetGeometryPart(0);
         const auto& r_geometry_slave = GetGeometry().GetGeometryPart(1);
 
-        const SizeType number_of_nodes_master = r_geometry_master.size();
-        const SizeType number_of_nodes_slave = r_geometry_slave.size();
+        const IndexType number_of_nodes_master = r_geometry_master.size();
+        const IndexType number_of_nodes_slave = r_geometry_slave.size();
 
         if (rResult.size() != 6 * (number_of_nodes_master + number_of_nodes_slave))
             rResult.resize(6 * (number_of_nodes_master + number_of_nodes_slave), false);
@@ -249,8 +280,8 @@ namespace Kratos
         const auto r_geometry_master = GetGeometry().GetGeometryPart(0);
         const auto r_geometry_slave = GetGeometry().GetGeometryPart(1);
 
-        const SizeType number_of_nodes_master = r_geometry_master.size();
-        const SizeType number_of_nodes_slave = r_geometry_slave.size();
+        const IndexType number_of_nodes_master = r_geometry_master.size();
+        const IndexType number_of_nodes_slave = r_geometry_slave.size();
 
         rElementalDofList.resize(0);
         rElementalDofList.reserve(6 * (number_of_nodes_master + number_of_nodes_slave));
