@@ -355,10 +355,10 @@ void KratosGeoMechanicsApplication::Register()
     KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoIncrementalLinearElasticInterface3DSurfaceLaw",
                                      mIncrementalLinearElasticInterface3DSurfaceLaw)
 
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoMohrCoulombWithTensionCutOff2D", mMohrCoulombWithTensionCutOff2D)
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoMohrCoulombWithTensionCutOff3D", mMohrCoulombWithTensionCutOff3D)
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoMohrCoulombWithTensionCutOff2D", mMohrCoulomb2D)
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoMohrCoulombWithTensionCutOff3D", mMohrCoulomb3D)
 
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoInterfaceCoulombWithTensionCutOff", mInterfaceCoulombWithTensionCutOff)
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoInterfaceCoulombWithTensionCutOff", mInterfaceCoulomb)
 
     // Register Variables
     KRATOS_REGISTER_VARIABLE(VELOCITY_COEFFICIENT)

@@ -33,12 +33,12 @@ namespace Geo
 class SigmaTau;
 } // namespace Geo
 
-class CoulombWithTensionCutOffImpl
+class CoulombImpl
 {
 public:
-    CoulombWithTensionCutOffImpl() = default;
+    CoulombImpl() = default;
     std::optional<TensionCutoff> CreateOptionalTensionCutOff(const Properties& rMaterialProperties);
-    explicit CoulombWithTensionCutOffImpl(const Properties& rMaterialProperties);
+    explicit CoulombImpl(const Properties& rMaterialProperties);
 
     [[nodiscard]] bool IsAdmissibleStressState(const Geo::SigmaTau& rTrialTraction);
     [[nodiscard]] bool IsAdmissibleStressState(const Geo::PrincipalStresses& rTrialPrincipalStresses);
