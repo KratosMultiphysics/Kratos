@@ -80,7 +80,7 @@ class KratosGeoMechanicsLabElementTests(KratosUnittest.TestCase):
                                               precision_places_stress, time=1.0)
 
         for time, expected_y in zip(displacement_times, expected_y_displacements):
-            self._assert_y_displacements_at_time(reader, result, top_nodes, expected_y, precision_places_displacement, time)
+            test_helper.assert_y_displacements_at_time(self, result, top_nodes, expected_y, precision_places_displacement, time)
 
     def test_dss_drained(self):
         """Regression test for the direct simple shear experiment with constant pore water pressure."""
@@ -199,9 +199,9 @@ class KratosGeoMechanicsLabElementTests(KratosUnittest.TestCase):
         reader = GiDOutputFileReader()
         result = reader.read_output_from(output_file)
 
-        self._assert_y_displacements_at_time(reader, result, top_node_nbrs, -0.0099, 4, 0.1)
-        self._assert_y_displacements_at_time(reader, result, top_node_nbrs, -0.0654, 4, 0.7)
-        self._assert_y_displacements_at_time(reader, result, top_node_nbrs, -0.0909, 4, 1.0)
+        test_helper.assert_y_displacements_at_time(self, result, top_node_nbrs, -0.0099, 4, 0.1)
+        test_helper.assert_y_displacements_at_time(self, result, top_node_nbrs, -0.0654, 4, 0.7)
+        test_helper.assert_y_displacements_at_time(self, result, top_node_nbrs, -0.0909, 4, 1.0)
 
     def test_oedometer_ULFEM_diff_order(self):
         """
@@ -217,7 +217,7 @@ class KratosGeoMechanicsLabElementTests(KratosUnittest.TestCase):
         reader = GiDOutputFileReader()
         result = reader.read_output_from(output_file)
         top_node_nbrs = [1]
-        self._assert_y_displacements_at_time(reader, result, top_node_nbrs, -1e-4, 6, time=1.0)
+        test_helper.assert_y_displacements_at_time(self, result, top_node_nbrs, -1e-4, 6, time=1.0)
 
     def _assert_oedometer_effective_stresses(self, effective_stresses, expected_yy, places_yy):
         for element in effective_stresses:
@@ -225,11 +225,6 @@ class KratosGeoMechanicsLabElementTests(KratosUnittest.TestCase):
                 self.assertAlmostEqual(0.0, integration_point[0,0], 3)
                 self.assertAlmostEqual(expected_yy, integration_point[1,1], places_yy)
                 self.assertAlmostEqual(0.0, integration_point[2,2], 3)
-
-    def _assert_y_displacements_at_time(self, reader, result, node_ids, expected_y, places, time=1.0):
-        displacements = reader.nodal_values_at_time("DISPLACEMENT", time, result, node_ids=node_ids)
-        for displacement in displacements:
-            self.assertAlmostEqual(expected_y, displacement[1], places)
 
     def _assert_node_values_at_time(self, reader, result, variable_name, expected_values, places, time=1.0):
             for node_id, expected_node_values in enumerate(expected_values, start=1):

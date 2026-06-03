@@ -7,6 +7,7 @@ sys.path.append(os.path.join('..','..','..'))
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.StructuralMechanicsApplication as KratosStructural
 import KratosMultiphysics.GeoMechanicsApplication as KratosGeo
+from KratosMultiphysics.GeoMechanicsApplication.gid_output_file_reader import GiDOutputFileReader
 
 sys.path.append(os.path.join('..', 'python_scripts'))
 import KratosMultiphysics.GeoMechanicsApplication.geomechanics_analysis as analysis
@@ -310,6 +311,10 @@ def find_closest_index_greater_than_value(input_list, value):
             return index
     return None
 
+def assert_y_displacements_at_time(self, result, node_ids, expected_y, places, time=1.0):
+    displacements = GiDOutputFileReader.nodal_values_at_time("DISPLACEMENT", time, result, node_ids=node_ids)
+    for displacement in displacements:
+        self.assertAlmostEqual(expected_y, displacement[1], places)
 
 def are_values_almost_equal(expected: Any, actual: Any, abs_tolerance: float = 1e-7) -> bool:
     """
