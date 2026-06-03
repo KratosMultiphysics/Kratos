@@ -114,8 +114,8 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     properties.SetValue(GEO_FRICTION_ANGLE, 35.0);
     properties.SetValue(GEO_COHESION, 10.0);
     properties.SetValue(GEO_DILATANCY_ANGLE, 20.0);
-    properties.SetValue(GEO_TENSILE_STRENGTH, 10.0);
     properties.SetValue(GEO_ENABLE_TENSION_CUT_OFF, true);
+    properties.SetValue(GEO_TENSILE_STRENGTH, 10.0);
     properties.SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
     ConstitutiveLaw::Parameters parameters;
     parameters.SetMaterialProperties(properties);
@@ -152,8 +152,8 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     properties.SetValue(GEO_FRICTION_ANGLE, 35.0);
     properties.SetValue(GEO_COHESION, 10.0);
     properties.SetValue(GEO_DILATANCY_ANGLE, 0.0);
-    properties.SetValue(GEO_TENSILE_STRENGTH, 10.0);
     properties.SetValue(GEO_ENABLE_TENSION_CUT_OFF, true);
+    properties.SetValue(GEO_TENSILE_STRENGTH, 10.0);
     properties.SetValue(YOUNG_MODULUS, 1.0e6);
     properties.SetValue(POISSON_RATIO, 0.25);
     properties.SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
@@ -220,8 +220,8 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     properties.SetValue(GEO_FRICTION_ANGLE, 35.0);
     properties.SetValue(GEO_COHESION, 10.0);
     properties.SetValue(GEO_DILATANCY_ANGLE, 20.0);
-    properties.SetValue(GEO_TENSILE_STRENGTH, 10.0);
     properties.SetValue(GEO_ENABLE_TENSION_CUT_OFF, true);
+    properties.SetValue(GEO_TENSILE_STRENGTH, 10.0);
     properties.SetValue(YOUNG_MODULUS, 1.0e6);
     properties.SetValue(POISSON_RATIO, 0.25);
     properties.SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
@@ -276,8 +276,8 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     properties.SetValue(GEO_FRICTION_ANGLE, 35.0);
     properties.SetValue(GEO_COHESION, 10.0);
     properties.SetValue(GEO_DILATANCY_ANGLE, 20.0);
-    properties.SetValue(GEO_TENSILE_STRENGTH, 10.0);
     properties.SetValue(GEO_ENABLE_TENSION_CUT_OFF, true);
+    properties.SetValue(GEO_TENSILE_STRENGTH, 10.0);
     properties.SetValue(YOUNG_MODULUS, 1.0e6);
     properties.SetValue(POISSON_RATIO, 0.0);
     properties.SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
@@ -328,8 +328,8 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     properties.SetValue(GEO_FRICTION_ANGLE, 35.0);
     properties.SetValue(GEO_COHESION, 10.0);
     properties.SetValue(GEO_DILATANCY_ANGLE, 20.0);
-    properties.SetValue(GEO_TENSILE_STRENGTH, 10.0);
     properties.SetValue(GEO_ENABLE_TENSION_CUT_OFF, true);
+    properties.SetValue(GEO_TENSILE_STRENGTH, 10.0);
     properties.SetValue(YOUNG_MODULUS, 1.0e6);
     properties.SetValue(POISSON_RATIO, 0.0);
     properties.SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
@@ -372,8 +372,8 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     properties.SetValue(GEO_FRICTION_ANGLE, 35.0);
     properties.SetValue(GEO_COHESION, 10.0);
     properties.SetValue(GEO_DILATANCY_ANGLE, 20.0);
-    properties.SetValue(GEO_TENSILE_STRENGTH, 20.0);
     properties.SetValue(GEO_ENABLE_TENSION_CUT_OFF, true);
+    properties.SetValue(GEO_TENSILE_STRENGTH, 20.0);
     ConstitutiveLaw::Parameters parameters;
     parameters.SetMaterialProperties(properties);
     const auto dummy_element_geometry      = Geometry<Node>{};
@@ -399,8 +399,8 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_Serialization, KratosGeoM
     properties.SetValue(GEO_FRICTION_ANGLE, 35.0);
     properties.SetValue(GEO_COHESION, 10.0);
     properties.SetValue(GEO_DILATANCY_ANGLE, 20.0);
-    properties.SetValue(GEO_TENSILE_STRENGTH, 10.0);
     properties.SetValue(GEO_ENABLE_TENSION_CUT_OFF, true);
+    properties.SetValue(GEO_TENSILE_STRENGTH, 10.0);
     ConstitutiveLaw::Parameters parameters;
     parameters.SetMaterialProperties(properties);
     const auto dummy_element_geometry      = Geometry<Node>{};
@@ -456,8 +456,8 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateConstitutiveMatr
     properties.SetValue(GEO_FRICTION_ANGLE, 35.0);
     properties.SetValue(GEO_COHESION, 10.0);
     properties.SetValue(GEO_DILATANCY_ANGLE, 20.0);
-    properties.SetValue(GEO_TENSILE_STRENGTH, 10.0);
     properties.SetValue(GEO_ENABLE_TENSION_CUT_OFF, true);
+    properties.SetValue(GEO_TENSILE_STRENGTH, 10.0);
     ConstitutiveLaw::Parameters parameters;
     parameters.SetMaterialProperties(properties);
     parameters.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
@@ -568,8 +568,8 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     properties.SetValue(GEO_FRICTION_ANGLE, 35.0);
     properties.SetValue(GEO_COHESION, 10.0);
     properties.SetValue(GEO_DILATANCY_ANGLE, 20.0);
-    properties.SetValue(GEO_TENSILE_STRENGTH, 10.0);
     properties.SetValue(GEO_ENABLE_TENSION_CUT_OFF, true);
+    properties.SetValue(GEO_TENSILE_STRENGTH, 10.0);
     ConstitutiveLaw::Parameters parameters;
     parameters.SetMaterialProperties(properties);
     const auto dummy_element_geometry      = Geometry<Node>{};
@@ -601,8 +601,8 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     properties.SetValue(GEO_FRICTION_ANGLE, 35.0);
     properties.SetValue(GEO_COHESION, 10.0);
     properties.SetValue(GEO_DILATANCY_ANGLE, 0.0);
-    properties.SetValue(GEO_TENSILE_STRENGTH, 10.0);
     properties.SetValue(GEO_ENABLE_TENSION_CUT_OFF, true);
+    properties.SetValue(GEO_TENSILE_STRENGTH, 10.0);
     properties.SetValue(YOUNG_MODULUS, 1.0e6);
     properties.SetValue(POISSON_RATIO, 0.0);
     ConstitutiveLaw::Parameters parameters;
@@ -630,8 +630,8 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     properties.SetValue(GEO_FRICTION_ANGLE, 35.0);
     properties.SetValue(GEO_COHESION, 10.0);
     properties.SetValue(GEO_DILATANCY_ANGLE, 20.0);
-    properties.SetValue(GEO_TENSILE_STRENGTH, 10.0);
     properties.SetValue(GEO_ENABLE_TENSION_CUT_OFF, true);
+    properties.SetValue(GEO_TENSILE_STRENGTH, 10.0);
     properties.SetValue(YOUNG_MODULUS, 1.0e6);
     properties.SetValue(POISSON_RATIO, 0.0);
     ConstitutiveLaw::Parameters parameters;
@@ -698,8 +698,8 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     properties.SetValue(GEO_FRICTION_ANGLE, 35.0);
     properties.SetValue(GEO_COHESION, 10.0);
     properties.SetValue(GEO_DILATANCY_ANGLE, 20.0);
-    properties.SetValue(GEO_TENSILE_STRENGTH, 10.0);
     properties.SetValue(GEO_ENABLE_TENSION_CUT_OFF, true);
+    properties.SetValue(GEO_TENSILE_STRENGTH, 10.0);
     ConstitutiveLaw::Parameters parameters;
     parameters.SetMaterialProperties(properties);
     const auto dummy_element_geometry      = Geometry<Node>{};
@@ -733,8 +733,8 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_DoesNotCalculateStressWhe
     properties.SetValue(GEO_FRICTION_ANGLE, 35.0);
     properties.SetValue(GEO_COHESION, 10.0);
     properties.SetValue(GEO_DILATANCY_ANGLE, 20.0);
-    properties.SetValue(GEO_TENSILE_STRENGTH, 10.0);
     properties.SetValue(GEO_ENABLE_TENSION_CUT_OFF, true);
+    properties.SetValue(GEO_TENSILE_STRENGTH, 10.0);
     ConstitutiveLaw::Parameters parameters;
     parameters.SetMaterialProperties(properties);
     const auto dummy_element_geometry      = Geometry<Node>{};
@@ -768,8 +768,8 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     properties.SetValue(GEO_FRICTION_ANGLE, 35.0);
     properties.SetValue(GEO_COHESION, 10.0);
     properties.SetValue(GEO_DILATANCY_ANGLE, 20.0);
-    properties.SetValue(GEO_TENSILE_STRENGTH, -1.0);
     properties.SetValue(GEO_ENABLE_TENSION_CUT_OFF, true);
+    properties.SetValue(GEO_TENSILE_STRENGTH, -1.0);
     ConstitutiveLaw::Parameters parameters;
     parameters.SetMaterialProperties(properties);
     const auto dummy_element_geometry      = Geometry<Node>{};
@@ -795,8 +795,8 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     properties.SetValue(GEO_FRICTION_ANGLE, 30.0);
     properties.SetValue(GEO_COHESION, 10.0);
     properties.SetValue(GEO_DILATANCY_ANGLE, 0.0);
-    properties.SetValue(GEO_TENSILE_STRENGTH, 10.0);
     properties.SetValue(GEO_ENABLE_TENSION_CUT_OFF, true);
+    properties.SetValue(GEO_TENSILE_STRENGTH, 10.0);
     properties.SetValue(YOUNG_MODULUS, 1.0e6);
     properties.SetValue(POISSON_RATIO, 0.0);
     properties.SetValue(GEO_MAX_PLASTIC_ITERATIONS, 100);
@@ -856,8 +856,8 @@ Vector ComputeStressVectorUsingCPhiReductionTestData(double  Cohesion,
     properties.SetValue(GEO_COHESION, Cohesion);
     properties.SetValue(GEO_FRICTION_ANGLE, FrictionAngle);
     properties.SetValue(GEO_DILATANCY_ANGLE, 0.0);
-    properties.SetValue(GEO_TENSILE_STRENGTH, 1000.0);
     properties.SetValue(GEO_ENABLE_TENSION_CUT_OFF, true);
+    properties.SetValue(GEO_TENSILE_STRENGTH, 1000.0);
     properties.SetValue(YOUNG_MODULUS, 30.0e6);
     properties.SetValue(POISSON_RATIO, 0.2);
 
@@ -978,8 +978,8 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutoff_InitialPlasticityStatusEq
     properties.SetValue(GEO_COHESION, 10.0);
     properties.SetValue(GEO_FRICTION_ANGLE, 30.0);
     properties.SetValue(GEO_DILATANCY_ANGLE, 0.0);
-    properties.SetValue(GEO_TENSILE_STRENGTH, 1000.0);
     properties.SetValue(GEO_ENABLE_TENSION_CUT_OFF, true);
+    properties.SetValue(GEO_TENSILE_STRENGTH, 1000.0);
     properties.SetValue(YOUNG_MODULUS, 30.0e6);
     properties.SetValue(POISSON_RATIO, 0.2);
 
