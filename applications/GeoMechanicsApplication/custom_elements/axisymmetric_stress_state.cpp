@@ -22,8 +22,6 @@ Matrix AxisymmetricStressState::CalculateBMatrix(const Matrix&         rDN_DX,
                                                  const Vector&         rN,
                                                  const Geometry<Node>& rGeometry) const
 {
-    using enum indexStress2DPlaneStrain;
-
     const auto radius = GeoElementUtilities::CalculateRadius(rN, rGeometry);
 
     const auto dimension       = rGeometry.WorkingSpaceDimension();
@@ -33,11 +31,11 @@ Matrix AxisymmetricStressState::CalculateBMatrix(const Matrix&         rDN_DX,
     for (IndexType i = 0; i < number_of_nodes; ++i) {
         const IndexType index = dimension * i;
 
-        result(static_cast<IndexType>(INDEX_2D_PLANE_STRAIN_XX), index + 0) = rDN_DX(i, 0);
-        result(static_cast<IndexType>(INDEX_2D_PLANE_STRAIN_YY), index + 1) = rDN_DX(i, 1);
-        result(static_cast<IndexType>(INDEX_2D_PLANE_STRAIN_ZZ), index + 0) = rN[i] / radius;
-        result(static_cast<IndexType>(INDEX_2D_PLANE_STRAIN_XY), index + 0) = rDN_DX(i, 1);
-        result(static_cast<IndexType>(INDEX_2D_PLANE_STRAIN_XY), index + 1) = rDN_DX(i, 0);
+        result(0, index + 0) = rDN_DX(i, 0);
+        result(1, index + 1) = rDN_DX(i, 1);
+        result(2, index + 0) = rN[i] / radius;
+        result(3, index + 0) = rDN_DX(i, 1);
+        result(3, index + 1) = rDN_DX(i, 0);
     }
 
     return result;

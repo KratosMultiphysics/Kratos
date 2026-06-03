@@ -18,8 +18,6 @@ namespace Kratos
 
 Matrix PlaneStrainStressState::CalculateBMatrix(const Matrix& rDN_DX, const Vector&, const Geometry<Node>& rGeometry) const
 {
-    using enum indexStress2DPlaneStrain;
-
     const auto dimension       = rGeometry.WorkingSpaceDimension();
     const auto number_of_nodes = rGeometry.size();
     Matrix     result = ZeroMatrix(VOIGT_SIZE_2D_PLANE_STRAIN, dimension * number_of_nodes);
@@ -27,10 +25,10 @@ Matrix PlaneStrainStressState::CalculateBMatrix(const Matrix& rDN_DX, const Vect
     for (unsigned int i = 0; i < number_of_nodes; ++i) {
         const auto offset = dimension * i;
 
-        result(static_cast<std::size_t>(INDEX_2D_PLANE_STRAIN_XX), offset + 0) = rDN_DX(i, 0);
-        result(static_cast<std::size_t>(INDEX_2D_PLANE_STRAIN_YY), offset + 1) = rDN_DX(i, 1);
-        result(static_cast<std::size_t>(INDEX_2D_PLANE_STRAIN_XY), offset + 0) = rDN_DX(i, 1);
-        result(static_cast<std::size_t>(INDEX_2D_PLANE_STRAIN_XY), offset + 1) = rDN_DX(i, 0);
+        result(0, offset + 0) = rDN_DX(i, 0);
+        result(1, offset + 1) = rDN_DX(i, 1);
+        result(3, offset + 0) = rDN_DX(i, 1);
+        result(3, offset + 1) = rDN_DX(i, 0);
     }
 
     return result;
@@ -48,14 +46,12 @@ std::unique_ptr<StressStatePolicy> PlaneStrainStressState::Clone() const
 
 Vector PlaneStrainStressState::ConvertStrainTensorToVector(const Matrix& rStrainTensor)
 {
-    using enum indexStress2DPlaneStrain;
-
     const auto strain_vector = MathUtils<double>::StrainTensorToVector(rStrainTensor);
     Vector     result        = ZeroVector(VOIGT_SIZE_2D_PLANE_STRAIN);
-    result[static_cast<std::size_t>(INDEX_2D_PLANE_STRAIN_XX)] = strain_vector[0];
-    result[static_cast<std::size_t>(INDEX_2D_PLANE_STRAIN_YY)] = strain_vector[1];
-    result[static_cast<std::size_t>(INDEX_2D_PLANE_STRAIN_ZZ)] = 0.0;
-    result[static_cast<std::size_t>(INDEX_2D_PLANE_STRAIN_XY)] = strain_vector[2];
+    result[0]                = strain_vector[0];
+    result[1]                = strain_vector[1];
+    result[2]                = 0.0;
+    result[3]                = strain_vector[2];
     return result;
 }
 

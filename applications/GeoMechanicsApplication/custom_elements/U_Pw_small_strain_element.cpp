@@ -377,12 +377,10 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const 
                                    nodal_hydraulic_head.begin(), 0.0);
         }
     } else if (rVariable == CONFINED_STIFFNESS || rVariable == SHEAR_STIFFNESS) {
-        using enum indexStress2DPlaneStrain;
-
         size_t variable_index = 0;
         if (rVariable == CONFINED_STIFFNESS) {
             if (TDim == 2) {
-                variable_index = static_cast<std::size_t>(INDEX_2D_PLANE_STRAIN_XX);
+                variable_index = 0;
             } else if (TDim == 3) {
                 variable_index = 0;
             } else {
@@ -391,7 +389,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const 
             }
         } else if (rVariable == SHEAR_STIFFNESS) {
             if (TDim == 2) {
-                variable_index = static_cast<std::size_t>(INDEX_2D_PLANE_STRAIN_XY);
+                variable_index = 3;
             } else if (TDim == 3) {
                 variable_index = 5;
             } else {

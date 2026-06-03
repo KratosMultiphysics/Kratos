@@ -538,12 +538,11 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
             << rVariable.Name() << " can not be retrieved for dim "
             << r_geom.WorkingSpaceDimension() << " in element: " << this->Id() << std::endl;
         size_t variable_index = 0;
-        using enum indexStress2DPlaneStrain;
         if (rVariable == CONFINED_STIFFNESS) {
-            variable_index = r_geom.WorkingSpaceDimension() == 2 ? static_cast<size_t>(INDEX_2D_PLANE_STRAIN_XX)
+            variable_index = r_geom.WorkingSpaceDimension() == 2 ? static_cast<size_t>(0)
                                                                  : static_cast<size_t>(0);
         } else {
-            variable_index = r_geom.WorkingSpaceDimension() == 2 ? static_cast<size_t>(INDEX_2D_PLANE_STRAIN_XY)
+            variable_index = r_geom.WorkingSpaceDimension() == 2 ? static_cast<size_t>(3)
                                                                  : static_cast<size_t>(5);
         }
 
