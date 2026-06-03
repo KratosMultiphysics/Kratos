@@ -90,11 +90,11 @@ namespace Kratos
                     H_disp(2, index + 2) = N_master(point_number, i);
 
                 if (Is(IgaFlags::FIX_ROTATION_X))
-                    H_rot(0, index + 3) = N_master(point_number, i);
+                    H_rot(0, index) = N_master(point_number, i);
                 if (Is(IgaFlags::FIX_ROTATION_Y))
-                    H_rot(1, index + 4) = N_master(point_number, i);
+                    H_rot(1, index + 2) = N_master(point_number, i);
                 if (Is(IgaFlags::FIX_ROTATION_Z))
-                    H_rot(2, index + 5) = N_master(point_number, i);
+                    H_rot(2, index + 3) = N_master(point_number, i);
             }
 
             for (IndexType i = 0; i < number_of_nodes_slave; ++i)
@@ -108,11 +108,11 @@ namespace Kratos
                     H_disp(2, index + 2) = -N_slave(point_number, i);
 
                 if (Is(IgaFlags::FIX_ROTATION_X))
-                    H_rot(0, index + 3) = -N_slave(point_number, i);
+                    H_rot(0, index) = -N_slave(point_number, i);
                 if (Is(IgaFlags::FIX_ROTATION_Y))
-                    H_rot(1, index + 4) = -N_slave(point_number, i);
+                    H_rot(1, index + 2) = -N_slave(point_number, i);
                 if (Is(IgaFlags::FIX_ROTATION_Z))
-                    H_rot(2, index + 5) = -N_slave(point_number, i);
+                    H_rot(2, index + 3) = -N_slave(point_number, i);
             }
 
             // Differential area
