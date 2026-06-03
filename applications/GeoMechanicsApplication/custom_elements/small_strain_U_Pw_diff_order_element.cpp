@@ -537,13 +537,9 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
         KRATOS_ERROR_IF(r_geom.WorkingSpaceDimension() != 2 && r_geom.WorkingSpaceDimension() != 3)
             << rVariable.Name() << " can not be retrieved for dim "
             << r_geom.WorkingSpaceDimension() << " in element: " << this->Id() << std::endl;
-        size_t variable_index = 0;
-        if (rVariable == CONFINED_STIFFNESS) {
-            variable_index = r_geom.WorkingSpaceDimension() == 2 ? static_cast<size_t>(0)
-                                                                 : static_cast<size_t>(0);
-        } else {
-            variable_index = r_geom.WorkingSpaceDimension() == 2 ? static_cast<size_t>(3)
-                                                                 : static_cast<size_t>(5);
+        auto variable_index = std::size_t{0};
+        if (rVariable != CONFINED_STIFFNESS) {
+            variable_index = r_geom.WorkingSpaceDimension() == 2 ? std::size_t{3} : std::size_t{5};
         }
 
         ElementVariables Variables;

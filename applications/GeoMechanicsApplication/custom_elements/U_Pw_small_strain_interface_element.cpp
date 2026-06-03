@@ -403,21 +403,19 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::CalculateOnIntegrationPoin
         this->InterpolateOutputDoubles(rValues, GPValues);
     } else if (rVariable == CONFINED_STIFFNESS || rVariable == SHEAR_STIFFNESS) {
         // set the correct index of the variable in the constitutive matrix
-        size_t variable_index;
+        std::size_t variable_index;
         if (rVariable == CONFINED_STIFFNESS) {
             if (TDim == 2) {
-                variable_index = 1;
+                variable_index = std::size_t{1};
             } else if (TDim == 3) {
-                variable_index = 2;
+                variable_index = std::size_t{2};
             } else {
                 KRATOS_ERROR << "CONFINED_STIFFNESS can not be retrieved for dim " << TDim
                              << " in element: " << this->Id() << std::endl;
             }
         } else if (rVariable == SHEAR_STIFFNESS) {
-            if (TDim == 2) {
-                variable_index = 0;
-            } else if (TDim == 3) {
-                variable_index = 0;
+            if (TDim == 2 || TDim == 3) {
+                variable_index = std::size_t{0};
             } else {
                 KRATOS_ERROR << "SHEAR_STIFFNESS can not be retrieved for dim " << TDim
                              << " in element: " << this->Id() << std::endl;

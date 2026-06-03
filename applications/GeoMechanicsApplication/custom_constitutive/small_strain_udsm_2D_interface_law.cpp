@@ -21,13 +21,13 @@ namespace
 using namespace Kratos;
 using namespace std::string_literals;
 
-std::size_t GetIndex3D(std::size_t Index2D)
+std::size_t GetIndex3DFor2DInterface(std::size_t Index2D)
 {
     switch (Index2D) {
-    case 1:
-        return 2;
     case 0:
         return 5;
+    case 1:
+        return 2;
     default:
         KRATOS_ERROR << "invalid index: " << Index2D << std::endl;
     }
@@ -82,13 +82,15 @@ void SmallStrainUDSM2DInterfaceLaw::CopyConstitutiveMatrix(Parameters& rValues, 
         // transfer fortran style matrix to C++ style
         for (unsigned int i = 0; i < GetStrainSize(); i++) {
             for (unsigned int j = 0; j < GetStrainSize(); j++) {
-                rConstitutiveMatrix(i, j) = mMatrixD[GetIndex3D(j)][GetIndex3D(i)];
+                rConstitutiveMatrix(i, j) =
+                    mMatrixD[GetIndex3DFor2DInterface(j)][GetIndex3DFor2DInterface(i)];
             }
         }
     } else {
         for (unsigned int i = 0; i < GetStrainSize(); i++) {
             for (unsigned int j = 0; j < GetStrainSize(); j++) {
-                rConstitutiveMatrix(i, j) = mMatrixD[GetIndex3D(i)][GetIndex3D(j)];
+                rConstitutiveMatrix(i, j) =
+                    mMatrixD[GetIndex3DFor2DInterface(i)][GetIndex3DFor2DInterface(j)];
             }
         }
     }

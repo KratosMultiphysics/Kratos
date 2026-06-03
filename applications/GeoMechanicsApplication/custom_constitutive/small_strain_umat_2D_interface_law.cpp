@@ -80,10 +80,10 @@ void SmallStrainUMAT2DInterfaceLaw::CopyConstitutiveMatrix(ConstitutiveLaw::Para
 std::size_t SmallStrainUMAT2DInterfaceLaw::getIndex3D(std::size_t index2D)
 {
     switch (index2D) {
-    case 1:
-        return 2;
     case 0:
         return 5;
+    case 1:
+        return 2;
     default:
         KRATOS_ERROR << "invalid index: " << index2D << std::endl;
     }
@@ -104,8 +104,8 @@ Vector& SmallStrainUMAT2DInterfaceLaw::GetValue(const Variable<Vector>& rThisVar
     } else if (rThisVariable == CAUCHY_STRESS_VECTOR || rThisVariable == GEO_EFFECTIVE_TRACTION_VECTOR) {
         if (rValue.size() != VoigtSize) rValue.resize(VoigtSize);
 
-        rValue[static_cast<std::size_t>(1)] = mStressVectorFinalized[2];
-        rValue[static_cast<std::size_t>(0)] = mStressVectorFinalized[5];
+        rValue[1] = mStressVectorFinalized[2];
+        rValue[0] = mStressVectorFinalized[5];
     }
     return rValue;
 }

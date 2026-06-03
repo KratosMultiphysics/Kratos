@@ -38,18 +38,18 @@ Matrix GeoThermalDispersionLaw::CalculateThermalDispersionMatrix(const Propertie
     const double             water_fraction = rProp[POROSITY] * saturation;
     const double             solid_fraction = 1.0 - rProp[POROSITY];
 
-    constexpr auto x = 0;
+    constexpr auto x = std::size_t{0};
     result(x, x)     = solid_fraction * rProp[THERMAL_CONDUCTIVITY_SOLID_XX] +
                    water_fraction * rProp[THERMAL_CONDUCTIVITY_WATER];
 
     if (mNumberOfDimensions >= 2) {
-        constexpr auto y = 1;
+        constexpr auto y = std::size_t{1};
         result(x, y)     = solid_fraction * rProp[THERMAL_CONDUCTIVITY_SOLID_XY];
         result(y, y)     = solid_fraction * rProp[THERMAL_CONDUCTIVITY_SOLID_YY] +
                        water_fraction * rProp[THERMAL_CONDUCTIVITY_WATER];
         result(y, x) = result(x, y);
         if (mNumberOfDimensions == 3) {
-            constexpr auto z = 2;
+            constexpr auto z = std::size_t{2};
             result(y, z)     = solid_fraction * rProp[THERMAL_CONDUCTIVITY_SOLID_YZ];
             result(z, x)     = solid_fraction * rProp[THERMAL_CONDUCTIVITY_SOLID_XZ];
             result(z, z)     = solid_fraction * rProp[THERMAL_CONDUCTIVITY_SOLID_ZZ] +

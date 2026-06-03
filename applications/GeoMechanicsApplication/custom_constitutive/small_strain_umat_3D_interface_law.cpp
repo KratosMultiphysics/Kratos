@@ -86,12 +86,12 @@ void SmallStrainUMAT3DInterfaceLaw::CopyConstitutiveMatrix(ConstitutiveLaw::Para
 std::size_t SmallStrainUMAT3DInterfaceLaw::getIndex3D(std::size_t index3D)
 {
     switch (index3D) {
-    case 2:
-        return 2;
-    case 1:
-        return 4;
     case 0:
         return 5;
+    case 1:
+        return 4;
+    case 2:
+        return 2;
     default:
         KRATOS_ERROR << "invalid index: " << index3D << std::endl;
     }

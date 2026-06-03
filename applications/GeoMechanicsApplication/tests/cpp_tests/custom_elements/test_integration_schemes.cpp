@@ -162,8 +162,7 @@ KRATOS_TEST_CASE_IN_SUITE(AttemptingToMakeALobattoSchemeWithAnUnsupportedNumberO
     for (auto number : some_unsupported_numbers_of_points) {
         std::ostringstream oss;
         oss << "Can't construct Lobatto integration scheme: no support for " << number << " point(s)";
-        const std::string expected_error_message = oss.str();
-        KRATOS_EXPECT_EXCEPTION_IS_THROWN(LobattoIntegrationScheme{number}, expected_error_message)
+        KRATOS_EXPECT_EXCEPTION_IS_THROWN(LobattoIntegrationScheme{number}, oss.str())
     }
 }
 

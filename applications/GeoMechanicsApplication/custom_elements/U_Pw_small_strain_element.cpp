@@ -377,21 +377,17 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const 
                                    nodal_hydraulic_head.begin(), 0.0);
         }
     } else if (rVariable == CONFINED_STIFFNESS || rVariable == SHEAR_STIFFNESS) {
-        size_t variable_index = 0;
+        auto variable_index = std::size_t{0};
         if (rVariable == CONFINED_STIFFNESS) {
-            if (TDim == 2) {
-                variable_index = 0;
-            } else if (TDim == 3) {
-                variable_index = 0;
-            } else {
+            if constexpr (!(TDim == 2 || TDim == 3)) {
                 KRATOS_ERROR << "CONFINED_STIFFNESS can not be retrieved for dim " << TDim
                              << " in element: " << this->Id() << std::endl;
             }
         } else if (rVariable == SHEAR_STIFFNESS) {
             if (TDim == 2) {
-                variable_index = 3;
+                variable_index = std::size_t{3};
             } else if (TDim == 3) {
-                variable_index = 5;
+                variable_index = std::size_t{5};
             } else {
                 KRATOS_ERROR << "SHEAR_STIFFNESS can not be retrieved for dim " << TDim
                              << " in element: " << this->Id() << std::endl;
