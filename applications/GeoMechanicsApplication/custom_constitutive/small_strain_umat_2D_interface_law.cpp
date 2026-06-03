@@ -35,8 +35,8 @@ void SmallStrainUMAT2DInterfaceLaw::UpdateInternalDeltaStrainVector(Constitutive
 {
     const Vector& rStrainVector = rValues.GetStrainVector();
 
-    mDeltaStrainVector[2] = rStrainVector(1) - mStrainVectorFinalized[2];
-    mDeltaStrainVector[5] = rStrainVector(0) - mStrainVectorFinalized[5];
+    mDeltaStrainVector[2] = rStrainVector[1] - mStrainVectorFinalized[2];
+    mDeltaStrainVector[5] = rStrainVector[0] - mStrainVectorFinalized[5];
 }
 
 void SmallStrainUMAT2DInterfaceLaw::SetExternalStressVector(Vector& rStressVector)
@@ -55,8 +55,8 @@ void SmallStrainUMAT2DInterfaceLaw::SetInternalStressVector(const Vector& rStres
 
 void SmallStrainUMAT2DInterfaceLaw::SetInternalStrainVector(const Vector& rStrainVector)
 {
-    mStrainVectorFinalized[2] = rStrainVector(1);
-    mStrainVectorFinalized[5] = rStrainVector(0);
+    mStrainVectorFinalized[2] = rStrainVector[1];
+    mStrainVectorFinalized[5] = rStrainVector[0];
 }
 
 void SmallStrainUMAT2DInterfaceLaw::CopyConstitutiveMatrix(ConstitutiveLaw::Parameters& rValues, Matrix& rConstitutiveMatrix)
