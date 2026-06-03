@@ -4,12 +4,12 @@ USER root
 
 ENV HOME /root
 
-# Install devtools 11
-RUN dnf -y install gcc-toolset-11
+# Install devtools 13
+RUN dnf -y install gcc-toolset-13
 
-# Enable devtools 11 every time a shell is started
+# Enable devtools 13 every time a shell is started
 # TODO: /etc/bashrc is never executed so this line does not fulfill its purpose => fix it.
-RUN echo "source /opt/rh/gcc-toolset-11/enable" >> /etc/bashrc
+RUN echo "source /opt/rh/gcc-toolset-13/enable" >> /etc/bashrc
 
 # Install python3.10.18
 RUN dnf update -y && \

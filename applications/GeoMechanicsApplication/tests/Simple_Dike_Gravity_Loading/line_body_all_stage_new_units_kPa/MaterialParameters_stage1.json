@@ -8,7 +8,7 @@
                     "name": "SmallStrainUDSM2DPlaneStrainLaw"
                 },
                 "Variables": {
-                    "IGNORE_UNDRAINED" :  true,
+                    "GEO_DRAINAGE_TYPE"        :  "CONSTANT_PW_FIELD",
                     "DENSITY_SOLID": 2650.0,
                     "DENSITY_WATER": 1000.0,
                     "POROSITY": 0.395,
@@ -29,8 +29,7 @@
                                         1.0e3,
                                         1,
                                         0.0]
-                },
-                "Tables": {}
+                }
             }
         },
         {
@@ -41,7 +40,7 @@
               "name"             :  "GeoLinearElasticPlaneStrain2DLaw" 
           },
           "Variables": {
-              "IGNORE_UNDRAINED"         :  true,
+              "GEO_DRAINAGE_TYPE"        :  "CONSTANT_PW_FIELD",
               "YOUNG_MODULUS"            :  10e12,
               "POISSON_RATIO"            :  0.0,
               "DENSITY_SOLID"            :  50.0,
@@ -53,13 +52,11 @@
               "PERMEABILITY_YY"          :  4.5e-30,
               "PERMEABILITY_XY"          :  0.0,
               "DYNAMIC_VISCOSITY"        :  1.0e-3,
-              "THICKNESS"                :  1.0,
               "K0_MAIN_DIRECTION"        :  1,
               "K0_VALUE_XX"              :  0.5,
               "K0_VALUE_YY"              :  0.5,
               "K0_VALUE_ZZ"              :  0.5
-         },
-         "Tables": {}
+         }
       }
    }]
 }

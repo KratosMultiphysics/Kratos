@@ -10,11 +10,12 @@
 //  Main authors:    Vahid Galavi
 //
 
-#include "custom_constitutive/small_strain_umat_2D_interface_law.hpp"
+#include "custom_constitutive/small_strain_umat_2D_interface_law.h"
 #include "constitutive_law_dimension.h"
 
 namespace Kratos
 {
+using namespace std::string_literals;
 
 SmallStrainUMAT2DInterfaceLaw::SmallStrainUMAT2DInterfaceLaw(std::unique_ptr<ConstitutiveLawDimension> pConstitutiveDimension)
     : SmallStrainUMATLaw<VOIGT_SIZE_3D>(std::move(pConstitutiveDimension))
@@ -100,8 +101,6 @@ void SmallStrainUMAT2DInterfaceLaw::save(Serializer& rSerializer) const
 void SmallStrainUMAT2DInterfaceLaw::load(Serializer& rSerializer){
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, SmallStrainUMATLaw)}
 
-SmallStrainUMAT2DInterfaceLaw::SmallStrainUMAT2DInterfaceLaw() = default;
-
 Vector& SmallStrainUMAT2DInterfaceLaw::GetValue(const Variable<Vector>& rThisVariable, Vector& rValue)
 {
     if (rThisVariable == STATE_VARIABLES) {
@@ -127,4 +126,26 @@ void SmallStrainUMAT2DInterfaceLaw::SetValue(const Variable<Vector>& rVariable,
     }
 }
 
+SizeType SmallStrainUMAT2DInterfaceLaw::WorkingSpaceDimension() { return Dimension; }
+
+SizeType SmallStrainUMAT2DInterfaceLaw::GetStrainSize() const { return VoigtSize; }
+
+ConstitutiveLaw::StrainMeasure SmallStrainUMAT2DInterfaceLaw::GetStrainMeasure()
+{
+    return StrainMeasure_Infinitesimal;
+}
+
+ConstitutiveLaw::StressMeasure SmallStrainUMAT2DInterfaceLaw::GetStressMeasure()
+{
+    return StressMeasure_Cauchy;
+}
+
+std::string SmallStrainUMAT2DInterfaceLaw::Info() const { return "SmallStrainUMAT2DInterfaceLaw"s; }
+
+void SmallStrainUMAT2DInterfaceLaw::PrintInfo(std::ostream& rOStream) const { rOStream << Info(); }
+
+void SmallStrainUMAT2DInterfaceLaw::PrintData(std::ostream& rOStream) const
+{
+    rOStream << "SmallStrainUMAT2DInterfaceLaw Data";
+}
 } // namespace Kratos

@@ -14,12 +14,14 @@
 #include "find_neighbour_elements_of_conditions_process.h"
 #include "custom_utilities/neighbouring_element_finder.hpp"
 #include "geometries/geometry.h"
+#include "includes/model_part.h"
 
 #include <algorithm>
 #include <iterator>
 
 namespace Kratos
 {
+using namespace std::string_literals;
 
 FindNeighbourElementsOfConditionsProcess::FindNeighbourElementsOfConditionsProcess(ModelPart& rModelPart)
     : mrModelPart(rModelPart)
@@ -83,7 +85,7 @@ std::ostream& operator<<(std::ostream& rOStream, const FindNeighbourElementsOfCo
 
 std::string FindNeighbourElementsOfConditionsProcess::Info() const
 {
-    return "FindNeighbourElementsOfConditionsProcess";
+    return "FindNeighbourElementsOfConditionsProcess"s;
 }
 
 void FindNeighbourElementsOfConditionsProcess::PrintData(std::ostream& rOStream) const

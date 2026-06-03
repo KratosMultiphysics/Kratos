@@ -10,7 +10,6 @@ set( KRATOS_HDF5_APPLICATION_CORE
   ${CMAKE_CURRENT_SOURCE_DIR}/hdf5_application_variables.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_file.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_nd_data_io.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_points_data.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_connectivities_data.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_data_value_container_io.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_container_component_io.cpp
@@ -55,7 +54,7 @@ endif()
 set(KRATOS_HDF5_APPLICATION_EXTRA_LIBS "")
 
 if(USE_MPI)
-  if(HDF5_IS_PARALLEL)
+  if (HDF5_IS_PARALLEL OR HDF5_ENABLE_PARALLEL OR HDF5_PROVIDES_PARALLEL)
     message(STATUS "Using parallel HDF5 libraries.")
     if (   (HDF5_INCLUDE_DIRS MATCHES ".*openmpi.*")
         OR (HDF5_LIBRARY_DIRS MATCHES ".*openmpi.*"))
@@ -159,9 +158,12 @@ if(${INSTALL_TPL_LIBRARIES} MATCHES ON)
       install(DIRECTORY "${HDF5_ROOT_DEP_BIN}/" DESTINATION libs FILES_MATCHING PATTERN "*.dylib")
   endif()
   if(UNIX AND NOT APPLE)
-      file(GLOB_RECURSE LIB_FILES "${HDF5_ROOT_DEP_LIB}/*.so*")
-      file(GLOB_RECURSE LIB_FILES APPEND "${HDF5_ROOT_DEP_BIN}/*.so*")
-      install(FILES ${LIB_FILES} DESTINATION libs)
+      file(GLOB_RECURSE HDF5_LIB_FILES "${HDF5_ROOT_DEP_LIB}/*.so*")
+      file(GLOB_RECURSE HDF5_BIN_FILES "${HDF5_ROOT_DEP_BIN}/*.so*")
+        
+      set(ALL_LIB_FILES ${HDF5_LIB_FILES} ${HDF5_BIN_FILES})
+        
+      install(FILES ${ALL_LIB_FILES} DESTINATION libs)
   endif()
 endif()
 

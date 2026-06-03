@@ -11,16 +11,17 @@
 //
 #include "model_setup_utilities.h"
 #include "containers/model.h"
-#include "includes/model_part.h"
-
 #include "custom_elements/plane_strain_stress_state.h"
-#include "custom_elements/small_strain_U_Pw_diff_order_element.hpp"
+#include "custom_elements/small_strain_U_Pw_diff_order_element.h"
 #include "custom_elements/three_dimensional_stress_state.h"
-#include "element_setup_utilities.h"
+#include "element_setup_utilities.hpp"
 #include "geometries/tetrahedra_3d_10.h"
 #include "geometries/tetrahedra_3d_4.h"
 #include "geometries/triangle_2d_3.h"
 #include "geometries/triangle_2d_6.h"
+#include "includes/model_part.h"
+
+#include <iterator>
 
 namespace
 {
@@ -46,8 +47,8 @@ PointerVector<Node> CreateNewNodes(ModelPart& rModelPart, const std::vector<Poin
     return nodes;
 }
 
-template <typename InputIt>
-void AddDofsToNodes(InputIt NodeRangeBegin, InputIt NodeRangeEnd, const Geo::ConstVariableRefs& rNodalVariables)
+template <std::input_iterator InputIt>
+void AddDofsToNodes(const InputIt& NodeRangeBegin, const InputIt& NodeRangeEnd, const Geo::ConstVariableRefs& rNodalVariables)
 {
     for (const auto& r_variable : rNodalVariables) {
         for (auto it = NodeRangeBegin; it != NodeRangeEnd; ++it) {
@@ -66,6 +67,30 @@ void AddDofsToNodes(const NodeRange& rNodeRange, const Geo::ConstVariableRefs& r
 
 namespace Kratos::Testing
 {
+
+PointerVector<Node> ModelSetupUtilities::CreateNodes(const NodeDefinitionVector& rNodeDefinitions)
+{
+    auto result = PointerVector<Node>{};
+    result.reserve(rNodeDefinitions.size());
+    for (const auto& r_node_definition : rNodeDefinitions) {
+        result.push_back(make_intrusive<Node>(r_node_definition.id, r_node_definition.position.X(),
+                                              r_node_definition.position.Y(),
+                                              r_node_definition.position.Z()));
+    }
+    return result;
+}
+
+PointerVector<Node> ModelSetupUtilities::CreateNodes(ModelPart& rModelPart, const NodeDefinitionVector& rNodeDefinitions)
+{
+    auto result = PointerVector<Node>{};
+    result.reserve(rNodeDefinitions.size());
+    for (const auto& r_node_definition : rNodeDefinitions) {
+        result.push_back(rModelPart.CreateNewNode(r_node_definition.id, r_node_definition.position.X(),
+                                                  r_node_definition.position.Y(),
+                                                  r_node_definition.position.Z()));
+    }
+    return result;
+}
 
 ModelPart& ModelSetupUtilities::CreateModelPartWithASingle2D3NElement(Model& rModel,
                                                                       const Geo::ConstVariableRefs& rNodalVariables)

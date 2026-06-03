@@ -18,10 +18,10 @@
 
 // Project includes
 #include "includes/node.h"
+#include "includes/kratos_parameters.h"
 #include "geometries/geometry.h"
 
 // Application includes
-#include "custom_sensors/sensor_view.h"
 
 namespace Kratos {
 ///@name Kratos Classes
@@ -30,27 +30,12 @@ namespace Kratos {
 class KRATOS_API(SYSTEM_IDENTIFICATION_APPLICATION) SensorUtils
 {
 public:
-    ///@name Type definitions
-    ///@{
-
-    using SensorViewType = std::variant<
-                                    SensorView<ModelPart::NodesContainerType>::Pointer,
-                                    SensorView<ModelPart::ConditionsContainerType>::Pointer,
-                                    SensorView<ModelPart::ElementsContainerType>::Pointer
-                                >;
-
-
-    ///@}
     ///@name Public static operations
     ///@{
 
     static bool IsPointInGeometry(
         const Point& rPoint,
         const Geometry<Node>& rGeometry);
-
-    static SensorViewType CreateSensorView(
-        Sensor::Pointer pSensor,
-        const std::string& rExpressionName);
 
     static void ReadVariableData(
         DataValueContainer& rDataValueContainer,

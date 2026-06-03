@@ -10,7 +10,7 @@
 //  Main authors:    Anne van de Graaf
 //
 
-#include "dof_utilities.h"
+#include "dof_utilities.hpp"
 #include "includes/variables.h"
 
 using namespace Kratos;
