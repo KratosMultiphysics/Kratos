@@ -147,7 +147,6 @@ Vector StressStrainUtilities::CalculateHenckyStrain(const Matrix& rDeformationGr
         // Plane strain
         const auto StrainVector2D = MathUtils<double>::StrainTensorToVector(ETensor, 3);
         return UblasUtilities::CreateVector({StrainVector2D[0], StrainVector2D[1], 0.0, StrainVector2D[2]});
-        ;
     }
     return MathUtils<double>::StrainTensorToVector(ETensor, VoigtSize);
 }
