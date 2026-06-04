@@ -34,6 +34,9 @@ from iga_test_factory import Shell5pHierarchicLinearScordelisTest as TShell5pHie
 from iga_test_factory import Shell5pHierarchicNonLinearThickBeamTest as TShell5pHierarchicNonLinearThickBeamTest
 # 5p Shell
 from iga_test_factory import ScordelisRoofShell5pTest as ScordelisRoofShell5pTest
+# 6p Shell RM - python based
+from shell_6p_element_tests import Shell6pElementTests as TShell6pElementTests
+
 # Weak support tests
 from iga_test_factory import SinglePatchRefinedSupportPenaltyTest as SinglePatchRefinedSupportPenaltyTest
 from iga_test_factory import SinglePatchRefinedSupportLagrangeTest as SinglePatchRefinedSupportLagrangeTest
@@ -63,7 +66,8 @@ from test_stokes_elements_and_conditions import FluidTests as TTestFluid
 from test_stokes_sbm_conditions_3d import SbmStokes3DTests as TTestSbmStokes
 # Iga geometries python bindings tests
 from test_python_bindings_iga_geometries import TestPythonBindingsIGAGeometries
-
+# Calculate tractions on interface test 
+from test_compute_interface_traction_shell_3p import ComputeInterfaceTractionShell3pTest as TestComputeInterfaceTractionsShell3p
 has_linear_solvers_application = kratos_utilities.CheckIfApplicationsAvailable("LinearSolversApplication")
 
 def AssembleTestSuites():
@@ -100,6 +104,8 @@ def AssembleTestSuites():
         LinearBeamShell3pAdditiveSchwarzTest,
         # 5p Shell Director
         ScordelisRoofShell5pTest,
+        # 6p Shell
+        TShell6pElementTests,
         # Weak support tests
         SinglePatchRefinedSupportPenaltyTest,
         SinglePatchRefinedSupportLagrangeTest,
@@ -123,7 +129,9 @@ def AssembleTestSuites():
         TTestFluid,
         TTestSbmStokes,
         # Iga geometries python bindings
-        TestPythonBindingsIGAGeometries
+        TestPythonBindingsIGAGeometries,
+        # Calculate tractions on interface test 
+        TestComputeInterfaceTractionsShell3p
     ]))
 
     if has_linear_solvers_application:
