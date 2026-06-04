@@ -21,7 +21,7 @@
             "stage_preprocess": {
                 "modelers": [
                     {
-                        "name": "KratosMultiphysics.modelers.import_mdpa_modeler.ImportMDPAModeler",
+                        "name": "Modelers.KratosMultiphysics.ImportMDPAModeler",
                         "Parameters": {
                             "input_filename": "../../common/model",
                             "model_part_name": "PorousDomain"
