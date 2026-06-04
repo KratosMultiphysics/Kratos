@@ -46,19 +46,19 @@ class KratosGeoMechanicsLabElementTests(KratosGeoUnittest.TestCase):
             self.assertVectorAlmostEqual(node_displacement, expected_node_displacement, precision_places)
 
         if assert_all_integration_points:
-            self.assert_integration_point_tensors(
-                result, "CAUCHY_STRESS_TENSOR",
+            self.assert_integration_point_tensors(result, "CAUCHY_STRESS_TENSOR",
                 self._make_integration_point_tensor_entries(expected_stress, num_elements=2, num_integration_points_per_element=3),
                 precision_places, time)
-            self.assert_integration_point_tensors(
-                result, "ENGINEERING_STRAIN_TENSOR",
+            self.assert_integration_point_tensors(result, "ENGINEERING_STRAIN_TENSOR",
                 self._make_integration_point_tensor_entries(expected_strain, num_elements=2, num_integration_points_per_element=3),
                 precision_places, time)
         else:
-            self._assert_first_ip_tensor(result, "CAUCHY_STRESS_TENSOR", expected_stress,
-                                         precision_places, time)
-            self._assert_first_ip_tensor(result, "ENGINEERING_STRAIN_TENSOR", expected_strain,
-                                         precision_places, time)
+            self.assert_integration_point_tensors(result, "CAUCHY_STRESS_TENSOR", 
+                self._make_integration_point_tensor_entries(expected_stress, num_elements=2, num_integration_points_per_element=1),
+                precision_places, time)
+            self.assert_integration_point_tensors(result, "ENGINEERING_STRAIN_TENSOR", 
+                self._make_integration_point_tensor_entries(expected_strain, num_elements=2, num_integration_points_per_element=1),
+                precision_places, time)
             
     def test_oedometer_drained(self):
         """Regression test for the oedometer experiment on a linear elastic model with constant pore water pressure."""
@@ -259,11 +259,6 @@ class KratosGeoMechanicsLabElementTests(KratosGeoUnittest.TestCase):
                 result[(element_id, ip_index)] = expected_tensors[idx]
                 idx += 1
         return result 
-
-    def _assert_first_ip_tensor(self, result, variable_name, expected_values, precision_places, time=1.0):
-        for element_id, expected_tensor in enumerate(expected_values, start=1):
-            tensor = GiDOutputFileReader.element_integration_point_values_at_time(variable_name, time, result, [element_id], [0])[0]
-            self.assert_integration_point_tensor_results(tensor, expected_tensor, precision_places, variable_name)
 
 if __name__ == '__main__':
     KratosUnittest.main()
