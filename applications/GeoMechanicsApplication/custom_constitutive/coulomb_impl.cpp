@@ -42,6 +42,20 @@ auto CalculatePrincipalStressCorrection(const Geo::PrincipalStresses& rTrialPrin
 
 namespace Kratos
 {
+
+CoulombImpl::CoulombImpl(const Properties& rMaterialProperties)
+    : mCoulombYieldSurface{rMaterialProperties},
+      mTensionCutOff{CreateOptionalTensionCutOff(rMaterialProperties)}
+{
+    if (rMaterialProperties.Has(GEO_ABS_YIELD_FUNCTION_TOLERANCE)) {
+        mAbsoluteYieldFunctionValueTolerance = rMaterialProperties[GEO_ABS_YIELD_FUNCTION_TOLERANCE];
+    }
+
+    if (rMaterialProperties.Has(GEO_MAX_PLASTIC_ITERATIONS)) {
+        mMaxNumberOfPlasticIterations = rMaterialProperties[GEO_MAX_PLASTIC_ITERATIONS];
+    }
+}
+
 std::optional<TensionCutoff> CoulombImpl::CreateOptionalTensionCutOff(const Properties& rMaterialProperties)
 {
     if (rMaterialProperties.Has(GEO_ENABLE_TENSION_CUT_OFF) && rMaterialProperties[GEO_ENABLE_TENSION_CUT_OFF]) {
@@ -62,19 +76,6 @@ std::optional<TensionCutoff> CoulombImpl::CreateOptionalTensionCutOff(const Prop
         << GEO_ENABLE_TENSION_CUT_OFF << " to true to enable the tension cut-off behavior.\n";
 
     return std::nullopt;
-}
-
-CoulombImpl::CoulombImpl(const Properties& rMaterialProperties)
-    : mCoulombYieldSurface{rMaterialProperties},
-      mTensionCutOff{CreateOptionalTensionCutOff(rMaterialProperties)}
-{
-    if (rMaterialProperties.Has(GEO_ABS_YIELD_FUNCTION_TOLERANCE)) {
-        mAbsoluteYieldFunctionValueTolerance = rMaterialProperties[GEO_ABS_YIELD_FUNCTION_TOLERANCE];
-    }
-
-    if (rMaterialProperties.Has(GEO_MAX_PLASTIC_ITERATIONS)) {
-        mMaxNumberOfPlasticIterations = rMaterialProperties[GEO_MAX_PLASTIC_ITERATIONS];
-    }
 }
 
 bool CoulombImpl::IsAdmissibleStressState(const Geo::SigmaTau& rTrialTraction)
