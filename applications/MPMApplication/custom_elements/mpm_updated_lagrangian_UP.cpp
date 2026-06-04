@@ -462,13 +462,11 @@ double MPMUpdatedLagrangianUP::CalculateVolumetricStrainFunction(GeneralVariable
 //************************************************************************************
 
 
-double& MPMUpdatedLagrangianUP::CalculateFunctionFromLinearizationOfVolumetricStrain(double &rFunction, GeneralVariables & rVariables)
+double MPMUpdatedLagrangianUP::CalculateFunctionFromLinearizationOfVolumetricStrain(GeneralVariables & rVariables)
 {
     KRATOS_TRY
 
-    rFunction = 1.0;
-
-    return rFunction;
+    return 1.0;
 
     KRATOS_CATCH( "" )
 
@@ -735,6 +733,8 @@ void MPMUpdatedLagrangianUP::CalculateAndAddKpu (MatrixType& rLeftHandSideMatrix
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
+    const double volumetric_strain_linearization_factor =
+        this->CalculateFunctionFromLinearizationOfVolumetricStrain(rVariables);
 
     // Assemble components considering added DOF matrix system
     unsigned int index_p = dimension;
@@ -745,7 +745,8 @@ void MPMUpdatedLagrangianUP::CalculateAndAddKpu (MatrixType& rLeftHandSideMatrix
             unsigned int index_up = dimension*j + j;
             for ( unsigned int k = 0; k < dimension; k++ )
             {
-                rLeftHandSideMatrix(index_p,index_up+k) += r_N(0, i) * rVariables.DN_DX ( j, k ) * rIntegrationWeight;
+                rLeftHandSideMatrix(index_p,index_up+k) +=
+                    volumetric_strain_linearization_factor * r_N(0, i) * rVariables.DN_DX(j, k) * rIntegrationWeight;
             }
         }
         index_p += (dimension + 1);
