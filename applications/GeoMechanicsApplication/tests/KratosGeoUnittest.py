@@ -17,9 +17,6 @@ class TestCase(KratosUnittest.TestCase):
 			self.assertVectorAlmostEqual(expected_integration_point_tensor, ip_tensor, places, delta = delta, msg = f"{result_name} components at integration point {ip_index}")
 
 	def assert_integration_point_tensors(self, result, variable_name, expected_tensors, places=None, time=1.0, delta=None):
-		"""Assert tensor values for integration points identified by explicit entries."""
 		for (element_id, ip_index), expected_tensor in expected_tensors.items():
 			tensor = GiDOutputFileReader.element_integration_point_values_at_time(variable_name, time, result, [element_id], [ip_index])[0]
 			self.assert_integration_point_tensor_results(tensor, expected_tensor, places, variable_name, delta)
-
-

@@ -252,14 +252,6 @@ class KratosGeoMechanicsLabElementTests(KratosGeoUnittest.TestCase):
         return [list(tensor) for _ in range(count)]
 
     def _make_integration_point_tensor_entries(self, expected_tensors, num_elements, num_integration_points_per_element):
-        # entries = []
-        # idx = 0
-        # for element_id in range(1, num_elements + 1):
-        #     for ip_index in range(num_integration_points_per_element):
-        #         entries.append((element_id, ip_index, expected_tensors[idx]))
-        #         idx += 1
-        # return entries
-    
         result = {}
         idx = 0
         for element_id in range(1, num_elements + 1):
