@@ -7,7 +7,6 @@ sys.path.append(os.path.join('..','..','..'))
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.StructuralMechanicsApplication as KratosStructural
 import KratosMultiphysics.GeoMechanicsApplication as KratosGeo
-from KratosMultiphysics.GeoMechanicsApplication.gid_output_file_reader import GiDOutputFileReader
 
 sys.path.append(os.path.join('..', 'python_scripts'))
 import KratosMultiphysics.GeoMechanicsApplication.geomechanics_analysis as analysis
