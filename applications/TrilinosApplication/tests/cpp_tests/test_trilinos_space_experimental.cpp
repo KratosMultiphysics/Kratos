@@ -11,8 +11,10 @@
 //
 
 // System includes
+#include <vector>
 
 // External includes
+#include <mpi.h>
 
 // Project includes
 #include "trilinos_space_experimental.h"
@@ -1574,6 +1576,92 @@ KRATOS_TEST_CASE_IN_SUITE(TrilinosExperimentalGetOrCreateMap, KratosTrilinosAppl
     auto node_elements = p_map->getNodeElementList();
     KRATOS_EXPECT_EQ(static_cast<int>(node_elements[0]), first_my_id);
     KRATOS_EXPECT_EQ(static_cast<int>(node_elements[1]), first_my_id + 1);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Tests for new space methods (GetMpiComm, CreateSerialMap, GatherToBuffer,
+// ScatterFromBuffer, GetNumLocalRows, GetLocalCOO)
+// ─────────────────────────────────────────────────────────────────────────────
+
+KRATOS_TEST_CASE_IN_SUITE(TrilinosExperimentalGetMpiComm, KratosTrilinosApplicationMPITestSuite)
+{
+    const auto& r_comm = Testing::GetDefaultDataCommunicator();
+    auto raw_mpi_comm = MPIDataCommunicator::GetMPICommunicator(r_comm);
+    TrilinosSparseSpaceType::CommunicatorType tpetra_comm(raw_mpi_comm);
+
+    MPI_Comm extracted = TrilinosSparseSpaceType::GetMpiComm(tpetra_comm);
+
+    int mpi_rank;
+    MPI_Comm_rank(extracted, &mpi_rank);
+    KRATOS_EXPECT_EQ(mpi_rank, tpetra_comm.getRank());
+}
+
+KRATOS_TEST_CASE_IN_SUITE(TrilinosExperimentalCreateSerialMap, KratosTrilinosApplicationMPITestSuite)
+{
+    using GO = TrilinosSparseSpaceType::GO;
+    const auto& r_comm = Testing::GetDefaultDataCommunicator();
+    auto raw_mpi_comm = MPIDataCommunicator::GetMPICommunicator(r_comm);
+    TrilinosSparseSpaceType::CommunicatorType tpetra_comm(raw_mpi_comm);
+
+    auto p_map = TrilinosSparseSpaceType::CreateSerialMap(tpetra_comm, 8);
+
+    const bool is_root = (tpetra_comm.getRank() == 0);
+    KRATOS_EXPECT_EQ(static_cast<int>(p_map->getNodeNumElements()), is_root ? 8 : 0);
+    KRATOS_EXPECT_EQ(static_cast<GO>(p_map->getGlobalNumElements()), static_cast<GO>(8));
+}
+
+KRATOS_TEST_CASE_IN_SUITE(TrilinosExperimentalGatherToBufferScatterFromBuffer,
+                           KratosTrilinosApplicationMPITestSuite)
+{
+    using LO = TrilinosSparseSpaceType::LO;
+    const auto& r_comm = Testing::GetDefaultDataCommunicator();
+    auto raw_mpi_comm = MPIDataCommunicator::GetMPICommunicator(r_comm);
+    TrilinosSparseSpaceType::CommunicatorType tpetra_comm(raw_mpi_comm);
+
+    const int size = 4 * r_comm.Size();
+    auto p_b = TrilinosCPPTestExperimentalUtilities::GenerateDummySparseVector(r_comm, size, 1.0);
+    auto p_x = TrilinosCPPTestExperimentalUtilities::GenerateDummySparseVector(r_comm, size, 0.0);
+
+    std::vector<double> buf;
+    TrilinosSparseSpaceType::GatherToBuffer(*p_b, tpetra_comm, buf);
+    TrilinosSparseSpaceType::ScatterFromBuffer(tpetra_comm, buf, *p_x);
+
+    // x must equal b
+    const auto local_view_x = p_x->getLocalViewHost(Tpetra::Access::ReadOnly);
+    const auto local_view_b = p_b->getLocalViewHost(Tpetra::Access::ReadOnly);
+    const LO n_local = static_cast<LO>(p_x->getLocalLength());
+    for (LO i = 0; i < n_local; ++i) {
+        KRATOS_EXPECT_NEAR(static_cast<double>(local_view_x(i, 0)),
+                           static_cast<double>(local_view_b(i, 0)), 1e-15);
+    }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(TrilinosExperimentalGetNumLocalRows, KratosTrilinosApplicationMPITestSuite)
+{
+    const auto& r_comm = Testing::GetDefaultDataCommunicator();
+    const int size = 4 * r_comm.Size();
+    auto p_A = TrilinosCPPTestExperimentalUtilities::GenerateDummySparseMatrix(r_comm, size, 1.0);
+
+    const auto n_local = TrilinosSparseSpaceType::GetNumLocalRows(*p_A);
+    KRATOS_EXPECT_EQ(n_local, static_cast<std::size_t>(4));
+}
+
+KRATOS_TEST_CASE_IN_SUITE(TrilinosExperimentalGetLocalCOO, KratosTrilinosApplicationMPITestSuite)
+{
+    const auto& r_comm = Testing::GetDefaultDataCommunicator();
+    const int size = 4 * r_comm.Size();
+    auto p_A = TrilinosCPPTestExperimentalUtilities::GenerateDummySparseMatrix(r_comm, size, 1.0);
+
+    std::vector<std::size_t> rows, cols;
+    std::vector<double> vals;
+    TrilinosSparseSpaceType::GetLocalCOO(*p_A, rows, cols, vals);
+
+    // Diagonal matrix: one entry per local row
+    KRATOS_EXPECT_EQ(rows.size(), static_cast<std::size_t>(4));
+    for (std::size_t k = 0; k < rows.size(); ++k) {
+        KRATOS_EXPECT_EQ(rows[k], cols[k]); // diagonal
+        KRATOS_EXPECT_NEAR(vals[k], static_cast<double>(rows[k]) + 1.0, 1e-15);
+    }
 }
 
 } // namespace Kratos::Testing

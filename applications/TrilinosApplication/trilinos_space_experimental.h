@@ -13,9 +13,12 @@
 #pragma once
 
 // System includes
+#include <algorithm>
 #include <mutex>
+#include <vector>
 
 // External includes
+#include <mpi.h>
 
 /* Trilinos includes */
 #include <Tpetra_Core.hpp>
@@ -2041,6 +2044,188 @@ public:
         pComm->barrier();
 
         KRATOS_CATCH("")
+    }
+
+    /**
+     * @brief Returns the raw MPI communicator handle from a Teuchos MPI communicator.
+     * @param rComm The Teuchos MpiComm wrapper.
+     * @return The underlying MPI_Comm handle.
+     */
+    static MPI_Comm GetMpiComm(const CommunicatorType& rComm)
+    {
+        return (*rComm.getRawMpiComm())();
+    }
+
+    /**
+     * @brief Creates a map that places all @p GlobalSize elements on rank 0 and
+     *        assigns zero elements to every other rank.
+     * @param rComm      The Teuchos communicator.
+     * @param GlobalSize Total number of global elements.
+     * @return RCP to the newly created serial map.
+     */
+    static MapPointerType CreateSerialMap(const CommunicatorType& rComm, IndexType GlobalSize)
+    {
+        const GO n_local = (rComm.getRank() == 0) ? static_cast<GO>(GlobalSize) : 0;
+        return Teuchos::rcp(new MapType(
+            static_cast<GO>(GlobalSize), n_local,
+            static_cast<GO>(0),
+            Teuchos::rcpFromRef(const_cast<CommunicatorType&>(rComm))));
+    }
+
+    /**
+     * @brief Creates a new vector by importing @p rSource into the layout
+     *        described by @p pTargetMap.
+     * @param rSource    The source vector (arbitrary distributed map).
+     * @param pTargetMap The target map for the new vector.
+     * @return RCP to the newly created vector.
+     */
+    static VectorPointerType ImportVector(const VectorType& rSource, const MapPointerType& pTargetMap)
+    {
+        auto p_result = CreateVector(pTargetMap);
+        Tpetra::Import<LO, GO, NT> importer(rSource.getMap(), pTargetMap);
+        p_result->doImport(rSource, importer, Tpetra::INSERT);
+        return p_result;
+    }
+
+    /**
+     * @brief Gathers the full distributed vector @p rSource to rank 0.
+     * @details Non-root ranks receive an empty (zero-row) but valid vector.
+     *          The call is collective on all participating ranks.
+     * @param rSource The distributed source vector.
+     * @param rComm   The Teuchos communicator.
+     * @return RCP to the gathered serial vector (non-empty only on rank 0).
+     */
+    static VectorPointerType GatherToRank0(const VectorType& rSource, const CommunicatorType& rComm)
+    {
+        return ImportVector(rSource, CreateSerialMap(rComm, Size(rSource)));
+    }
+
+    /**
+     * @brief Scatters values from the serial vector @p pSerial (on rank 0) back to
+     *        the distributed vector @p rDest.
+     * @param pSerial RCP to the serial (root-only) source vector.
+     * @param rDest   The distributed destination vector (overwritten).
+     */
+    static void ScatterFromRank0(const VectorPointerType& pSerial, VectorType& rDest)
+    {
+        Tpetra::Import<LO, GO, NT> importer(pSerial->getMap(), rDest.getMap());
+        rDest.doImport(*pSerial, importer, Tpetra::INSERT);
+    }
+
+    /**
+     * @brief Gathers all global values of @p rSource into a flat buffer on rank 0.
+     * @param rSource The distributed source vector.
+     * @param rComm   The Teuchos communicator.
+     * @param rBuffer Output buffer filled on rank 0; cleared on other ranks.
+     */
+    static void GatherToBuffer(
+        const VectorType& rSource,
+        const CommunicatorType& rComm,
+        std::vector<double>& rBuffer)
+    {
+        auto p_serial = GatherToRank0(rSource, rComm); // collective
+        if (rComm.getRank() == 0) {
+            const IndexType n_global = Size(rSource);
+            rBuffer.resize(n_global);
+            auto local_view = p_serial->getLocalViewHost(Tpetra::Access::ReadOnly);
+            for (std::size_t i = 0; i < n_global; ++i) {
+                rBuffer[i] = static_cast<double>(local_view(i, 0));
+            }
+        } else {
+            rBuffer.clear();
+        }
+    }
+
+    /**
+     * @brief Scatters values from the rank-0 buffer back to the distributed @p rDest.
+     * @param rComm   The Teuchos communicator.
+     * @param rBuffer Source buffer (non-empty only on rank 0).
+     * @param rDest   Distributed destination vector (overwritten).
+     */
+    static void ScatterFromBuffer(
+        const CommunicatorType& rComm,
+        const std::vector<double>& rBuffer,
+        VectorType& rDest)
+    {
+        const IndexType n_global = Size(rDest);
+        auto p_serial_map = CreateSerialMap(rComm, n_global);
+        auto p_serial = CreateVector(p_serial_map);
+        if (rComm.getRank() == 0) {
+            KRATOS_ERROR_IF(rBuffer.size() != n_global)
+                << "ScatterFromBuffer: buffer size " << rBuffer.size()
+                << " ≠ global vector size " << n_global << std::endl;
+            auto local_view = p_serial->getLocalViewHost(Tpetra::Access::ReadWrite);
+            for (std::size_t i = 0; i < n_global; ++i) {
+                local_view(i, 0) = static_cast<ST>(rBuffer[i]);
+            }
+        }
+        ScatterFromRank0(p_serial, rDest);
+    }
+
+    /**
+     * @brief Returns a raw pointer to the contiguous local data of the vector.
+     * @details For a Tpetra FEMultiVector the pointer is obtained from the
+     *          host-view column 0.  The pointer remains valid as long as @p rV is
+     *          alive and the view is not invalidated by a subsequent device sync.
+     * @param rV The vector whose local data pointer is requested.
+     * @return Pointer to the first local element of column 0.
+     */
+    static double* GetRawValuesPtr(VectorType& rV)
+    {
+        auto local_view = rV.getLocalViewHost(Tpetra::Access::ReadWrite);
+        return reinterpret_cast<double*>(local_view.data());
+    }
+
+    /**
+     * @brief Returns the number of locally owned rows of @p rA.
+     * @param rA The distributed sparse matrix.
+     * @return Number of rows owned by the calling rank.
+     */
+    static IndexType GetNumLocalRows(const MatrixType& rA)
+    {
+        return static_cast<IndexType>(rA.getNodeNumRows());
+    }
+
+    /**
+     * @brief Extracts locally owned non-zeros of @p rA as COO triplets using
+     *        0-based global indices.
+     * @details When @p LowerTriangularOnly is set, only entries with
+     *          global_row ≥ global_col are emitted (for symmetric matrices).
+     * @param rA                The distributed sparse matrix.
+     * @param rIRowIndices      Output: 0-based global row indices.
+     * @param rIColIndices      Output: 0-based global column indices.
+     * @param rValues           Output: corresponding non-zero values.
+     * @param LowerTriangularOnly When @c true, restrict to the lower triangle.
+     */
+    static void GetLocalCOO(
+        const MatrixType& rA,
+        std::vector<IndexType>& rIRowIndices,
+        std::vector<IndexType>& rIColIndices,
+        std::vector<double>& rValues,
+        const bool LowerTriangularOnly = false)
+    {
+        const LO n_local_rows = static_cast<LO>(rA.getNodeNumRows());
+        const auto& row_map = *(rA.getRowMap());
+        const auto& col_map = *(rA.getColMap());
+
+        rIRowIndices.clear();
+        rIColIndices.clear();
+        rValues.clear();
+
+        for (LO i_local = 0; i_local < n_local_rows; ++i_local) {
+            const IndexType global_row = static_cast<IndexType>(row_map.getGlobalElement(i_local));
+            Teuchos::ArrayView<const LO> local_col_inds;
+            Teuchos::ArrayView<const ST> local_vals;
+            rA.getLocalRowView(i_local, local_col_inds, local_vals);
+            for (LO k = 0; k < static_cast<LO>(local_col_inds.size()); ++k) {
+                const IndexType global_col = static_cast<IndexType>(col_map.getGlobalElement(local_col_inds[k]));
+                if (!LowerTriangularOnly || global_row >= global_col) {
+                    rIRowIndices.push_back(global_row);
+                    rIColIndices.push_back(global_col);
+                    rValues.push_back(static_cast<double>(local_vals[k]));
+                }
+            }
+        }
     }
 
     /**
