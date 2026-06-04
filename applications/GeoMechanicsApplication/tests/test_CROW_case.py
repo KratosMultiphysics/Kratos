@@ -93,64 +93,6 @@ def get_sheetpile_node_ids():
     ]
 
 
-def get_soil_side_node_ids_of_right_interfaces():
-    return [
-        4757,
-        4761,
-        4762,
-        4763,
-        4764,
-        4765,
-        4766,
-        4767,
-        4768,
-        4769,
-        4770,
-        4771,
-        4772,
-        4773,
-        4774,
-        4775,
-        4776,
-        4777,
-        4778,
-        4779,
-        4780,
-        4781,
-        4782,
-        4783,
-        4784,
-        4785,
-        4786,
-        4787,
-        4788,
-        4789,
-        4790,
-        4791,
-        4792,
-        4793,
-        4794,
-        4795,
-        4796,
-        4797,
-        4798,
-        4799,
-        4800,
-        4801,
-        4802,
-        4803,
-        4804,
-        4805,
-        4806,
-        4807,
-        4808,
-        4809,
-        4811,
-        4812,
-        4813,
-    ]
-
-
 def _extract_x_and_y_from_line(line, index_of_x=0, index_of_y=1, x_transform=None):
     line = line.strip().lstrip("\ufeff").replace("ï»¿", "")
     words = [
@@ -267,7 +209,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
 
         if test_helper.want_test_plots():
             self.create_wall_plots(project_path)
-            self.create_interface_plots(project_path)
+            self.create_interface_plots(project.GetModel().GetModelPart("PorousDomain.Right_Side_Of_Right_Interfaces").Nodes, project_path)
 
         # Check the obtained results
         reader = GiDOutputFileReader()
@@ -333,14 +275,11 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
         variable_plot_label,
         project_path,
         structural_stages,
+        nodes,
         data_extractor,
     ):
-        node_ids = get_soil_side_node_ids_of_right_interfaces()
-
-        # Since the coordinates do not change between stages, we base them on the first stage
-        y_coords = self.get_y_coords(
-            project_path, structural_stages[0]["base_name"], node_ids
-        )
+        node_ids = [node.Id for node in nodes]
+        y_coords = [node.Y for node in nodes]
 
         variable_data_collections = []
         for stage in structural_stages:
@@ -384,7 +323,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
 
         return variable_data_collections
 
-    def create_interface_plots(self, project_path):
+    def create_interface_plots(self, interface_nodes, project_path):
         structural_stages = self.get_plot_stages()
 
         normal_traction_kratos_label = "GEO_EFFECTIVE_TRACTION_VECTOR"
@@ -394,6 +333,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             normal_traction_plot_label,
             project_path,
             structural_stages,
+            interface_nodes,
             extract_normal_traction_and_y_from_line,
         )
 
@@ -413,6 +353,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             shear_traction_plot_label,
             project_path,
             structural_stages,
+            interface_nodes,
             extract_shear_traction_and_y_from_line,
         )
 
