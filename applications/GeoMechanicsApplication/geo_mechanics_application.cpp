@@ -364,7 +364,6 @@ void KratosGeoMechanicsApplication::Register()
     KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoMohrCoulomb3D", mMohrCoulomb3D)
     KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoInterfaceCoulomb", mInterfaceCoulomb)
 
-
     // Register Variables
     KRATOS_REGISTER_VARIABLE(VELOCITY_COEFFICIENT)
     KRATOS_REGISTER_VARIABLE(DT_PRESSURE_COEFFICIENT)
