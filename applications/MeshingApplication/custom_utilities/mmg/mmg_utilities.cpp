@@ -2499,21 +2499,31 @@ void MmgUtilities<MMGLibrary::MMG2D>::MMGLibCallMetric(Parameters ConfigurationP
     if ( MMG2D_Set_iparameter(mMmgMesh,mMmgMet,MMG2D_IPARAM_nreg, static_cast<int>(r_adv["normal_regularization_mesh"].GetBool())) != 1 )
         KRATOS_ERROR << "Unable to set normal regularization" << std::endl;
 
-    // Boundary regularization by moving vertices
+    // Boundary regularization by moving vertices (requires MMG >= 5.7)
+#if MMG_VERSION_GE(5,7)
     if ( MMG2D_Set_iparameter(mMmgMesh,mMmgMet,MMG2D_IPARAM_xreg, static_cast<int>(r_adv["boundary_regularization"].GetBool())) != 1 )
         KRATOS_ERROR << "Unable to set boundary regularization" << std::endl;
+#if MMG_VERSION_GE(5,8)
     if (r_adv["boundary_regularization"].GetBool() && r_adv["force_boundary_regularization_relaxation"].GetBool()) {
         if ( MMG2D_Set_dparameter(mMmgMesh,mMmgMet,MMG2D_DPARAM_xreg, r_adv["boundary_regularization_relaxation_value"].GetDouble()) != 1 )
             KRATOS_ERROR << "Unable to set boundary regularization relaxation parameter" << std::endl;
     }
+#endif
+#else
+    KRATOS_WARNING_IF("MmgUtilities", r_adv["boundary_regularization"].GetBool()) << "boundary_regularization requires MMG >= 5.7; parameter ignored." << std::endl;
+#endif
 
     // Preserve edges at the interface of 2 domains with same reference
     if ( MMG2D_Set_iparameter(mMmgMesh,mMmgMet,MMG2D_IPARAM_opnbdy, static_cast<int>(r_adv["preserve_subdomain_boundaries"].GetBool())) != 1 )
         KRATOS_ERROR << "Unable to set preserve subdomain boundaries" << std::endl;
 
-    // Do not make mesh FEM-compatible
+    // Do not make mesh FEM-compatible (requires MMG >= 5.6)
+#if MMG_VERSION_GE(5,6)
     if ( MMG2D_Set_iparameter(mMmgMesh,mMmgMet,MMG2D_IPARAM_nofem, static_cast<int>(r_adv["no_fem"].GetBool())) != 1 )
         KRATOS_ERROR << "Unable to set nofem parameter" << std::endl;
+#else
+    KRATOS_WARNING_IF("MmgUtilities", r_adv["no_fem"].GetBool()) << "no_fem requires MMG >= 5.6; parameter ignored." << std::endl;
+#endif
 
     // Anisotropic metric creation when no metric is provided
     if ( MMG2D_Set_iparameter(mMmgMesh,mMmgMet,MMG2D_IPARAM_anisosize, static_cast<int>(r_adv["anisotropic_metric_creation"].GetBool())) != 1 )
@@ -2604,11 +2614,15 @@ void MmgUtilities<MMGLibrary::MMG2D>::MMGLibCallIsoSurface(Parameters Configurat
     /**------------------- Level set discretization option ---------------------*/
     KRATOS_ERROR_IF( MMG2D_Set_iparameter(mMmgMesh,p_sol,MMG2D_IPARAM_iso, 1) != 1 ) << "Unable to ask for level set discretization" << std::endl;
 
-    // Isosurface boundary material reference
+    // Isosurface boundary material reference (requires MMG >= 5.7)
+#if MMG_VERSION_GE(5,7)
     if (r_iso_params["isoref"].GetInt() != 0) {
         if ( MMG2D_Set_iparameter(mMmgMesh,p_sol,MMG2D_IPARAM_isoref, r_iso_params["isoref"].GetInt()) != 1 )
             KRATOS_ERROR << "Unable to set isosurface boundary reference" << std::endl;
     }
+#else
+    KRATOS_WARNING_IF("MmgUtilities", r_iso_params["isoref"].GetInt() != 0) << "isoref requires MMG >= 5.7; parameter ignored." << std::endl;
+#endif
 
     // Function value where the level set is discretized (default = 0)
     if (r_iso_params["force_level_set_value"].GetBool()) {
@@ -2676,13 +2690,19 @@ void MmgUtilities<MMGLibrary::MMG3D>::MMGLibCallMetric(Parameters ConfigurationP
     if ( MMG3D_Set_iparameter(mMmgMesh,mMmgMet,MMG3D_IPARAM_nreg, static_cast<int>(r_adv["normal_regularization_mesh"].GetBool())) != 1 )
         KRATOS_ERROR << "Unable to set normal regularization" << std::endl;
 
-    // Boundary regularization by moving vertices
+    // Boundary regularization by moving vertices (requires MMG >= 5.7)
+#if MMG_VERSION_GE(5,7)
     if ( MMG3D_Set_iparameter(mMmgMesh,mMmgMet,MMG3D_IPARAM_xreg, static_cast<int>(r_adv["boundary_regularization"].GetBool())) != 1 )
         KRATOS_ERROR << "Unable to set boundary regularization" << std::endl;
+#if MMG_VERSION_GE(5,8)
     if (r_adv["boundary_regularization"].GetBool() && r_adv["force_boundary_regularization_relaxation"].GetBool()) {
         if ( MMG3D_Set_dparameter(mMmgMesh,mMmgMet,MMG3D_DPARAM_xreg, r_adv["boundary_regularization_relaxation_value"].GetDouble()) != 1 )
             KRATOS_ERROR << "Unable to set boundary regularization relaxation parameter" << std::endl;
     }
+#endif
+#else
+    KRATOS_WARNING_IF("MmgUtilities", r_adv["boundary_regularization"].GetBool()) << "boundary_regularization requires MMG >= 5.7; parameter ignored." << std::endl;
+#endif
 
     // Preserve triangles at interface of 2 domains with same reference
     if ( MMG3D_Set_iparameter(mMmgMesh,mMmgMet,MMG3D_IPARAM_opnbdy, static_cast<int>(r_adv["preserve_subdomain_boundaries"].GetBool())) != 1 )
@@ -2791,11 +2811,15 @@ void MmgUtilities<MMGLibrary::MMG3D>::MMGLibCallIsoSurface(Parameters Configurat
     /**------------------- Level set discretization option ---------------------*/
     KRATOS_ERROR_IF( MMG3D_Set_iparameter(mMmgMesh,p_sol,MMG3D_IPARAM_iso, 1) != 1 ) << "Unable to ask for level set discretization" << std::endl;
 
-    // Isosurface boundary material reference
+    // Isosurface boundary material reference (requires MMG >= 5.7)
+#if MMG_VERSION_GE(5,7)
     if (r_iso_params["isoref"].GetInt() != 0) {
         if ( MMG3D_Set_iparameter(mMmgMesh,p_sol,MMG3D_IPARAM_isoref, r_iso_params["isoref"].GetInt()) != 1 )
             KRATOS_ERROR << "Unable to set isosurface boundary reference" << std::endl;
     }
+#else
+    KRATOS_WARNING_IF("MmgUtilities", r_iso_params["isoref"].GetInt() != 0) << "isoref requires MMG >= 5.7; parameter ignored." << std::endl;
+#endif
 
     // Function value where the level set is discretized (default = 0)
     if (r_iso_params["force_level_set_value"].GetBool()) {
@@ -2890,13 +2914,19 @@ void MmgUtilities<MMGLibrary::MMGS>::MMGLibCallMetric(Parameters ConfigurationPa
     if ( MMGS_Set_iparameter(mMmgMesh,mMmgMet,MMGS_IPARAM_nreg, static_cast<int>(r_adv["normal_regularization_mesh"].GetBool())) != 1 )
         KRATOS_ERROR << "Unable to set normal regularization" << std::endl;
 
-    // Boundary regularization by moving vertices
+    // Boundary regularization by moving vertices (requires MMG >= 5.7)
+#if MMG_VERSION_GE(5,7)
     if ( MMGS_Set_iparameter(mMmgMesh,mMmgMet,MMGS_IPARAM_xreg, static_cast<int>(r_adv["boundary_regularization"].GetBool())) != 1 )
         KRATOS_ERROR << "Unable to set boundary regularization" << std::endl;
+#if MMG_VERSION_GE(5,8)
     if (r_adv["boundary_regularization"].GetBool() && r_adv["force_boundary_regularization_relaxation"].GetBool()) {
         if ( MMGS_Set_dparameter(mMmgMesh,mMmgMet,MMGS_DPARAM_xreg, r_adv["boundary_regularization_relaxation_value"].GetDouble()) != 1 )
             KRATOS_ERROR << "Unable to set boundary regularization relaxation parameter" << std::endl;
     }
+#endif
+#else
+    KRATOS_WARNING_IF("MmgUtilities", r_adv["boundary_regularization"].GetBool()) << "boundary_regularization requires MMG >= 5.7; parameter ignored." << std::endl;
+#endif
 
     // Anisotropic metric creation when no metric is provided
     if ( MMGS_Set_iparameter(mMmgMesh,mMmgMet,MMGS_IPARAM_anisosize, static_cast<int>(r_adv["anisotropic_metric_creation"].GetBool())) != 1 )
@@ -2987,11 +3017,15 @@ void MmgUtilities<MMGLibrary::MMGS>::MMGLibCallIsoSurface(Parameters Configurati
     /**------------------- Level set discretization option ---------------------*/
     KRATOS_ERROR_IF( MMGS_Set_iparameter(mMmgMesh,p_sol,MMGS_IPARAM_iso, 1) != 1 ) << "Unable to ask for level set discretization" << std::endl;
 
-    // Isosurface boundary material reference
+    // Isosurface boundary material reference (requires MMG >= 5.7)
+#if MMG_VERSION_GE(5,7)
     if (r_iso_params["isoref"].GetInt() != 0) {
         if ( MMGS_Set_iparameter(mMmgMesh,p_sol,MMGS_IPARAM_isoref, r_iso_params["isoref"].GetInt()) != 1 )
             KRATOS_ERROR << "Unable to set isosurface boundary reference" << std::endl;
     }
+#else
+    KRATOS_WARNING_IF("MmgUtilities", r_iso_params["isoref"].GetInt() != 0) << "isoref requires MMG >= 5.7; parameter ignored." << std::endl;
+#endif
 
     // Function value where the level set is discretized (default = 0)
     if (r_iso_params["force_level_set_value"].GetBool()) {
@@ -2999,11 +3033,15 @@ void MmgUtilities<MMGLibrary::MMGS>::MMGLibCallIsoSurface(Parameters Configurati
             KRATOS_ERROR << "Unable to set the level-set value" << std::endl;
     }
 
-    // Remove small disconnected components
+    // Remove small disconnected components (requires MMG >= 5.7)
+#if MMG_VERSION_GE(5,7)
     if (r_iso_params["force_rmc"].GetBool()) {
         if ( MMGS_Set_dparameter(mMmgMesh,p_sol,MMGS_DPARAM_rmc, r_iso_params["rmc_value"].GetDouble()) != 1 )
             KRATOS_ERROR << "Unable to set the rmc parameter" << std::endl;
     }
+#else
+    KRATOS_WARNING_IF("MmgUtilities", r_iso_params["force_rmc"].GetBool()) << "rmc requires MMG >= 5.7; parameter ignored." << std::endl;
+#endif
 
     // Global hausdorff value
     if (r_adv["force_hausdorff_value"].GetBool()) {
