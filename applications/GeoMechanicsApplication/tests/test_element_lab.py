@@ -161,7 +161,7 @@ class KratosGeoMechanicsLabElementTests(KratosUnittest.TestCase):
         for i in range(nr_of_phases):
             self._assert_integration_point_tensors(result, "CAUCHY_STRESS_TENSOR", expected_stresses[i], places_stress, time=times[i], delta=delta_stress)
             self._assert_integration_point_tensors(result, "ENGINEERING_STRAIN_TENSOR", expected_strains[i], places_strain, time=times[i])
-            self._assert_node_values_at_time(result, "WATER_PRESSURE", expected_water_pressures[i], places_water_pressure, time=times[i])
+            test_helper.assert_nodal_values_at_time(self, result, "WATER_PRESSURE", expected_water_pressures[i], places_water_pressure, time=times[i])
 
     def test_triaxial_comp_6n(self):
         """
@@ -225,11 +225,6 @@ class KratosGeoMechanicsLabElementTests(KratosUnittest.TestCase):
                 self.assertAlmostEqual(0.0, integration_point[0,0], 3)
                 self.assertAlmostEqual(expected_yy, integration_point[1,1], places_yy)
                 self.assertAlmostEqual(0.0, integration_point[2,2], 3)
-
-    def _assert_node_values_at_time(self, result, variable_name, expected_values, places, time=1.0):
-            for node_id, expected_node_values in enumerate(expected_values, start=1):
-                result_values = GiDOutputFileReader.nodal_values_at_time(variable_name, time, result, [node_id])[0]
-                self.assertAlmostEqual(result_values, expected_node_values, places)
 
     def _assert_integration_point_tensor_results(self, integration_point_tensors, expected_integration_point_tensor, places, result_name, delta = None):
         for idx, ip_tensor in enumerate(integration_point_tensors):

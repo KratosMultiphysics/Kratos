@@ -316,6 +316,11 @@ def assert_y_displacements_at_time(self, result, node_ids, expected_y, places, t
     for displacement in displacements:
         self.assertAlmostEqual(expected_y, displacement[1], places)
 
+def assert_nodal_values_at_time(self, result, variable_name, expected_values, places, time=1.0):
+    for node_id, expected_node_values in enumerate(expected_values, start=1):
+        result_values = GiDOutputFileReader.nodal_values_at_time(variable_name, time, result, [node_id])[0]
+        self.assertAlmostEqual(result_values, expected_node_values, places)
+
 def are_values_almost_equal(expected: Any, actual: Any, abs_tolerance: float = 1e-7) -> bool:
     """
     Checks whether two values are almost equal.
