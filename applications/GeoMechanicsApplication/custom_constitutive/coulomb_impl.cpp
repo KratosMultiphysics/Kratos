@@ -49,8 +49,7 @@ std::optional<TensionCutoff> CoulombImpl::CreateOptionalTensionCutOff(const Prop
     }
 
     // The following statement is to support backward compatibility
-    if (rMaterialProperties.Has(GEO_TENSILE_STRENGTH) && !rMaterialProperties.Has(GEO_ENABLE_TENSION_CUT_OFF))
-    {
+    if (rMaterialProperties.Has(GEO_TENSILE_STRENGTH) && !rMaterialProperties.Has(GEO_ENABLE_TENSION_CUT_OFF)) {
         return std::make_optional<TensionCutoff>(rMaterialProperties[GEO_TENSILE_STRENGTH]);
     }
     return std::nullopt;
