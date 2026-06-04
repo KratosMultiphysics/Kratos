@@ -11,7 +11,6 @@
 //
 
 #pragma once
-#define  KRATOS_LOCAL_REFINED_SURFACE_GEOMETRY_H_INCLUDED
 
 // System includes
 
