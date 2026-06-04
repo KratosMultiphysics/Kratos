@@ -449,12 +449,11 @@ void MPMUpdatedLagrangianUP::CalculateAndAddInternalForces(VectorType& rRightHan
 //******************************************************************************************************************
 
 
-double& MPMUpdatedLagrangianUP::CalculateVolumetricStrainFunction(double& rVolumetricStrainFunction, GeneralVariables & rVariables)
+double MPMUpdatedLagrangianUP::CalculateVolumetricStrainFunction(GeneralVariables & rVariables)
 {
     KRATOS_TRY
 
-    rVolumetricStrainFunction = 1.0 - (1.0 / rVariables.detFT);
-    return rVolumetricStrainFunction;
+    return 1.0 - (1.0 / rVariables.detFT);
 
     KRATOS_CATCH( "" )
 }
@@ -498,8 +497,7 @@ void MPMUpdatedLagrangianUP::CalculateAndAddPressureForces(VectorType& rRightHan
     if (bulk_modulus != bulk_modulus)
         bulk_modulus = 1.e16;
 
-    double volumetric_strain_function = 0.0;
-    volumetric_strain_function = this->CalculateVolumetricStrainFunction( volumetric_strain_function, rVariables );
+    const double volumetric_strain_function = this->CalculateVolumetricStrainFunction(rVariables);
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {

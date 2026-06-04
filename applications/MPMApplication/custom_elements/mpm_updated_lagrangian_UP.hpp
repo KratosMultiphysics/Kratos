@@ -371,7 +371,7 @@ protected:
     /**
      * Calculation of the volumetric strain function for the pressure equation
      */
-    virtual double& CalculateVolumetricStrainFunction(double& rCoefficient, GeneralVariables & rVariables);
+    virtual double CalculateVolumetricStrainFunction(GeneralVariables & rVariables);
 
     /**
      * Calculation of the linearization factor of the volumetric strain function
