@@ -13,6 +13,8 @@
 #include "includes/kratos_parameters.h"
 #include "includes/model_part.h"
 
+#include <format>
+
 namespace Kratos
 {
 using namespace std::string_literals;
@@ -63,8 +65,8 @@ SetMultipleMovingLoadsProcess::SetMultipleMovingLoadsProcess(ModelPart& rModelPa
         auto parameters_moving_load = mParameters.Clone();
 
         count++;
-        const std::string& newModelPartName = mrModelPart.Name() + "_cloned_" + std::to_string(count);
-        auto& new_cloned_model_part = CloneMovingConditionInComputeModelPart(newModelPartName);
+        const auto newModelPartName      = std::format("{}_cloned_{}", mrModelPart.Name(), count);
+        auto&      new_cloned_model_part = CloneMovingConditionInComputeModelPart(newModelPartName);
 
         parameters_moving_load.RemoveValue("configuration");
         parameters_moving_load.RemoveValue("compute_model_part_name");
