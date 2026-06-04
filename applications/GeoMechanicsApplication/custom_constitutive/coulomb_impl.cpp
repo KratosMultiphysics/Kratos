@@ -52,6 +52,14 @@ std::optional<TensionCutoff> CoulombImpl::CreateOptionalTensionCutOff(const Prop
     if (rMaterialProperties.Has(GEO_TENSILE_STRENGTH) && !rMaterialProperties.Has(GEO_ENABLE_TENSION_CUT_OFF)) {
         return std::make_optional<TensionCutoff>(rMaterialProperties[GEO_TENSILE_STRENGTH]);
     }
+
+    KRATOS_WARNING_IF("CoulombImpl", rMaterialProperties.Has(GEO_TENSILE_STRENGTH) &&
+                                         rMaterialProperties.Has(GEO_ENABLE_TENSION_CUT_OFF) &&
+                                         !rMaterialProperties[GEO_ENABLE_TENSION_CUT_OFF])
+        << "Material property " << GEO_TENSILE_STRENGTH << " is provided but " << GEO_ENABLE_TENSION_CUT_OFF
+        << " is false. The provided " << GEO_TENSILE_STRENGTH << " value will be ignored. Please set "
+        << GEO_ENABLE_TENSION_CUT_OFF << " to true to enable the tension cut-off behavior.\n";
+
     return std::nullopt;
 }
 
