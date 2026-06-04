@@ -335,9 +335,9 @@ void CoulombImpl::save(Serializer& rSerializer) const
 void CoulombImpl::load(Serializer& rSerializer)
 {
     rSerializer.load("CoulombYieldSurface", mCoulombYieldSurface);
-    bool HasTensionCutOff;
-    rSerializer.load("HasTensionCutOff", HasTensionCutOff);
-    if (HasTensionCutOff) {
+    bool has_tension_cutoff;
+    rSerializer.load("HasTensionCutOff", has_tension_cutoff);
+    if (has_tension_cutoff) {
         TensionCutoff tension_cutoff;
         rSerializer.load("TensionCutoff", tension_cutoff);
         mTensionCutOff = std::make_optional(tension_cutoff);
