@@ -46,14 +46,14 @@ class KratosGeoMechanicsLabElementTests(KratosUnittest.TestCase):
             self.assertVectorAlmostEqual(node_displacement, expected_node_displacement, precision_places)
 
         if assert_all_integration_points:
-            self._assert_integration_point_tensors(reader, result, "CAUCHY_STRESS_TENSOR", expected_stress,
+            self._assert_integration_point_tensors(result, "CAUCHY_STRESS_TENSOR", expected_stress,
                                                   precision_places, time)
-            self._assert_integration_point_tensors(reader, result, "ENGINEERING_STRAIN_TENSOR", expected_strain,
+            self._assert_integration_point_tensors(result, "ENGINEERING_STRAIN_TENSOR", expected_strain,
                                                   precision_places, time)
         else:
-            self._assert_first_ip_tensor(reader, result, "CAUCHY_STRESS_TENSOR", expected_stress,
+            self._assert_first_ip_tensor(result, "CAUCHY_STRESS_TENSOR", expected_stress,
                                          precision_places, time)
-            self._assert_first_ip_tensor(reader, result, "ENGINEERING_STRAIN_TENSOR", expected_strain,
+            self._assert_first_ip_tensor(result, "ENGINEERING_STRAIN_TENSOR", expected_strain,
                                          precision_places, time)
             
     def test_oedometer_drained(self):
@@ -76,7 +76,7 @@ class KratosGeoMechanicsLabElementTests(KratosUnittest.TestCase):
         reader = GiDOutputFileReader()
         result = reader.read_output_from(os.path.join(file_path, output_file_name))
 
-        self._assert_integration_point_tensors(reader, result, "CAUCHY_STRESS_TENSOR", expected_stress,
+        self._assert_integration_point_tensors(result, "CAUCHY_STRESS_TENSOR", expected_stress,
                                               precision_places_stress, time=1.0)
 
         for time, expected_y in zip(displacement_times, expected_y_displacements):
@@ -103,9 +103,9 @@ class KratosGeoMechanicsLabElementTests(KratosUnittest.TestCase):
         reader = GiDOutputFileReader()
         result = reader.read_output_from(os.path.join(material_file_path, output_file_name))
 
-        self._assert_integration_point_tensors(reader, result, "CAUCHY_STRESS_TENSOR", expected_stress,
+        self._assert_integration_point_tensors(result, "CAUCHY_STRESS_TENSOR", expected_stress,
                                               places_stress, time)
-        self._assert_integration_point_tensors(reader, result, "ENGINEERING_STRAIN_TENSOR", expected_strain,
+        self._assert_integration_point_tensors(result, "ENGINEERING_STRAIN_TENSOR", expected_strain,
                                               places_strain, time)
         
     def test_crs_drained(self):
@@ -159,9 +159,9 @@ class KratosGeoMechanicsLabElementTests(KratosUnittest.TestCase):
         file_path = test_helper.get_file_path(Path('test_element_lab') / "test_crs" / stage_name / model_name)
         result = reader.read_output_from(Path(file_path) / "test_crs_output.post.res")
         for i in range(nr_of_phases):
-            self._assert_integration_point_tensors(reader, result, "CAUCHY_STRESS_TENSOR", expected_stresses[i], places_stress, time=times[i], delta=delta_stress)
-            self._assert_integration_point_tensors(reader, result, "ENGINEERING_STRAIN_TENSOR", expected_strains[i], places_strain, time=times[i])
-            self._assert_node_values_at_time(reader, result, "WATER_PRESSURE", expected_water_pressures[i], places_water_pressure, time=times[i])
+            self._assert_integration_point_tensors(result, "CAUCHY_STRESS_TENSOR", expected_stresses[i], places_stress, time=times[i], delta=delta_stress)
+            self._assert_integration_point_tensors(result, "ENGINEERING_STRAIN_TENSOR", expected_strains[i], places_strain, time=times[i])
+            self._assert_node_values_at_time(result, "WATER_PRESSURE", expected_water_pressures[i], places_water_pressure, time=times[i])
 
     def test_triaxial_comp_6n(self):
         """
@@ -178,11 +178,11 @@ class KratosGeoMechanicsLabElementTests(KratosUnittest.TestCase):
 
         result = reader.read_output_from(os.path.join(project_path, "triaxial_comp_6n_stage1.post.res"))
         expected_stress = [[-100.0, -100.0, -100.0, 0.0, 0.0, 0.0]] * 6
-        self._assert_integration_point_tensors(reader, result, "CAUCHY_STRESS_TENSOR", expected_stress, 3, time=1.0)
+        self._assert_integration_point_tensors(result, "CAUCHY_STRESS_TENSOR", expected_stress, 3, time=1.0)
 
         result = reader.read_output_from(os.path.join(project_path, "triaxial_comp_6n_stage2.post.res"))
         expected_stress = [[-100.0, -300.0, -100.0, 0.0, 0.0, 0.0]] * 6
-        self._assert_integration_point_tensors(reader, result, "CAUCHY_STRESS_TENSOR", expected_stress, 2, time=1.25)
+        self._assert_integration_point_tensors(result, "CAUCHY_STRESS_TENSOR", expected_stress, 2, time=1.25)
 
     def test_oedometer_ULFEM(self):
         """
@@ -226,9 +226,9 @@ class KratosGeoMechanicsLabElementTests(KratosUnittest.TestCase):
                 self.assertAlmostEqual(expected_yy, integration_point[1,1], places_yy)
                 self.assertAlmostEqual(0.0, integration_point[2,2], 3)
 
-    def _assert_node_values_at_time(self, reader, result, variable_name, expected_values, places, time=1.0):
+    def _assert_node_values_at_time(self, result, variable_name, expected_values, places, time=1.0):
             for node_id, expected_node_values in enumerate(expected_values, start=1):
-                result_values = reader.nodal_values_at_time(variable_name, time, result, [node_id])[0]
+                result_values = GiDOutputFileReader.nodal_values_at_time(variable_name, time, result, [node_id])[0]
                 self.assertAlmostEqual(result_values, expected_node_values, places)
 
     def _assert_integration_point_tensor_results(self, integration_point_tensors, expected_integration_point_tensor, places, result_name, delta = None):
@@ -238,11 +238,11 @@ class KratosGeoMechanicsLabElementTests(KratosUnittest.TestCase):
     def _repeat_tensor(self, tensor, count):
         return [list(tensor) for _ in range(count)]
 
-    def _assert_integration_point_tensors(self, reader, result, variable_name, expected_tensors, places=None, time=1.0, delta=None):
+    def _assert_integration_point_tensors(self, result, variable_name, expected_tensors, places=None, time=1.0, delta=None):
         """Assert tensor values for all integration points across both elements."""
         for flat_index, expected_tensor in enumerate(expected_tensors):
             element_id, ip_index = self._get_element_id_and_ip_index(flat_index)
-            tensor = reader.element_integration_point_values_at_time(variable_name, time, result, [element_id], [ip_index])[0]
+            tensor = GiDOutputFileReader.element_integration_point_values_at_time(variable_name, time, result, [element_id], [ip_index])[0]
             self._assert_integration_point_tensor_results(tensor, expected_tensor, places, variable_name, delta)
 
     def _get_element_id_and_ip_index(self, flat_index):
@@ -251,9 +251,9 @@ class KratosGeoMechanicsLabElementTests(KratosUnittest.TestCase):
             return 1, flat_index
         return 2, flat_index - 3
 
-    def _assert_first_ip_tensor(self, reader, result, variable_name, expected_values, precision_places, time=1.0):
+    def _assert_first_ip_tensor(self, result, variable_name, expected_values, precision_places, time=1.0):
         for element_id, expected_tensor in enumerate(expected_values, start=1):
-            tensor = reader.element_integration_point_values_at_time(variable_name, time, result, [element_id], [0])[0]
+            tensor = GiDOutputFileReader.element_integration_point_values_at_time(variable_name, time, result, [element_id], [0])[0]
             self._assert_integration_point_tensor_results(tensor, expected_tensor, precision_places, variable_name)
 
 if __name__ == '__main__':
