@@ -8,12 +8,12 @@
 //  License:         geo_mechanics_application/license.txt
 //
 //  Main authors:    Richard Faasse
+//                   Gennady Markelov
 //
 
 #include "element_utilities.hpp"
 #include "custom_elements/U_Pw_interface_element.h"
-
-#include <cstddef>
+#include "custom_utilities/constitutive_law_utilities.h"
 
 namespace Kratos
 {
@@ -215,4 +215,47 @@ Vector GeoElementUtilities::GetNodalVariableVector(const Element::GeometryType& 
     return result;
 }
 
+void GeoElementUtilities::AssembleExcessPorePressureForces(Vector&           rResultVector,
+                                                           const Properties& rProperties,
+                                                           const std::vector<Vector>& rStrainVectors,
+                                                           const std::vector<Matrix>& rBMatrices,
+                                                           const Vector&              rVoigtVector,
+                                                           const std::vector<double>& rIntegrationCoefficients,
+                                                           const Vector& rVolumetricStrainPrevious)
+{
+    KRATOS_TRY
+
+    KRATOS_ERROR_IF(rStrainVectors.size() != rBMatrices.size())
+        << "Mismatch in number of strain vectors (" << rStrainVectors.size() << ") and B matrices ("
+        << rBMatrices.size() << ")." << std::endl;
+
+    KRATOS_ERROR_IF(rIntegrationCoefficients.size() != rStrainVectors.size())
+        << "Mismatch in number of integration coefficients (" << rIntegrationCoefficients.size()
+        << ") and strain vectors (" << rStrainVectors.size() << ")." << std::endl;
+
+    for (auto integration_point = std::size_t{0};
+         integration_point < rIntegrationCoefficients.size(); ++integration_point) {
+        const auto excess_force = ConstitutiveLawUtilities::CalculateExcessPorePressureForceAtIntegrationPoint(
+            rProperties, rStrainVectors[integration_point], rBMatrices[integration_point], rVoigtVector,
+            rIntegrationCoefficients[integration_point], integration_point, rVolumetricStrainPrevious);
+        GeoElementUtilities::AssembleUBlockVector(rResultVector, excess_force);
+    }
+
+    KRATOS_CATCH("GeoElementUtilities::AssembleExcessPorePressureForces")
+}
+
+Matrix GeoElementUtilities::CalculateExcessPorePressureBulkStiffnessAtIntegrationPoint(
+    const Properties& rProperties, const Matrix& rB, const Vector& rVoigtVector, double IntegrationCoefficient)
+{
+    KRATOS_TRY
+
+    constexpr auto volumetric_strain_increment = 1.0;
+    const auto     excess_pore_pressure_coefficient =
+        ConstitutiveLawUtilities::CalculateExcessPorePressureIncrement(rProperties, volumetric_strain_increment);
+    const Vector nodal_volumetric_projection = prod(trans(rB), rVoigtVector);
+    return IntegrationCoefficient * excess_pore_pressure_coefficient *
+           outer_prod(nodal_volumetric_projection, nodal_volumetric_projection);
+
+    KRATOS_CATCH("GeoElementUtilities::CalculateExcessPorePressureBulkStiffnessAtIntegrationPoint")
+}
 } // namespace Kratos

@@ -12,10 +12,18 @@
 //
 
 #include "custom_utilities/constitutive_law_utilities.h"
+#include "custom_constitutive/interface_plane_strain.h"
+#include "custom_constitutive/interface_three_dimensional_surface.h"
+#include "custom_constitutive/plane_strain.h"
+#include "custom_constitutive/three_dimensional.h"
+#include "custom_utilities/element_utilities.hpp"
 #include "custom_utilities/string_utilities.h"
 #include "geo_mechanics_application_variables.h"
 #include "utilities/math_utils.h"
 #include <algorithm>
+#include <numeric>
+
+#include "stress_strain_utilities.h"
 
 using namespace std::string_literals;
 
@@ -341,5 +349,29 @@ double ConstitutiveLawUtilities::CalculateExcessPorePressureIncrement(const Prop
         << "Non-physical values: denominator < epsilon for property Id of " << rProperties.Id()
         << "." << std::endl;
     return biot_coefficient * VolumetricStrainIncrement / denominator;
+}
+
+Vector ConstitutiveLawUtilities::CalculateExcessPorePressureForceAtIntegrationPoint(
+    const Properties& rProperties,
+    const Vector&     rStrainVector,
+    const Matrix&     rB,
+    const Vector&     rVoigtVector,
+    double            IntegrationCoefficient,
+    std::size_t       IntegrationPoint,
+    const Vector&     rVolumetricStrainPrevious)
+{
+    KRATOS_TRY
+
+    KRATOS_ERROR_IF(IntegrationPoint >= rVolumetricStrainPrevious.size())
+        << "Integration point index (" << IntegrationPoint << ") exceeds cached previous volumetric strain size ("
+        << rVolumetricStrainPrevious.size() << ")." << std::endl;
+
+    const auto volumetric_strain_increment = StressStrainUtilities::CalculateTrace(rStrainVector) -
+                                             rVolumetricStrainPrevious[IntegrationPoint];
+    const auto excess_pore_pressure_increment =
+        CalculateExcessPorePressureIncrement(rProperties, volumetric_strain_increment);
+    return prod(trans(rB), rVoigtVector * excess_pore_pressure_increment) * IntegrationCoefficient;
+
+    KRATOS_CATCH("ConstitutiveLawUtilities::CalculateExcessPorePressureForceAtIntegrationPoint")
 }
 } // namespace Kratos

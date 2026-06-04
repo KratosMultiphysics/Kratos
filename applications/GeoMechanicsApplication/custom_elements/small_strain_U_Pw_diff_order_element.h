@@ -175,7 +175,7 @@ protected:
 
     void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, const ElementVariables& rVariables) const;
 
-    static void CalculateAndAddStiffnessMatrix(MatrixType& rLeftHandSideMatrix, const ElementVariables& rVariables);
+    void CalculateAndAddStiffnessMatrix(MatrixType& rLeftHandSideMatrix, const ElementVariables& rVariables) const;
 
     void CalculateAndAddCouplingMatrix(MatrixType& rLeftHandSideMatrix, const ElementVariables& rVariables) const;
 
@@ -255,6 +255,7 @@ private:
 
     Vector CalculateInternalForces(ElementVariables&          rVariables,
                                    const std::vector<Matrix>& rBMatrices,
+                                   const std::vector<Vector>& rStrainVectors,
                                    const std::vector<double>& rIntegrationCoefficients,
                                    const std::vector<double>& rBiotCoefficients,
                                    const std::vector<double>& rDegreesOfSaturation,

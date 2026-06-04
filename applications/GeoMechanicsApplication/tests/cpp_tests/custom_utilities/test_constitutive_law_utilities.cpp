@@ -665,4 +665,88 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_ReplaceIgnoreUndrainedByDrain
         "Both IGNORE_UNDRAINED and GEO_DRAINAGE_TYPE are used. Choose the latter only.");
 }
 
+KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_CalculateExcessPorePressureForceAtIntegrationPoint_ReturnsExpectedValue,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    auto properties = Properties{};
+    auto p_law      = Kratos::make_shared<MockConstitutiveLaw>();
+    p_law->SetPlaneStrainLaw(true);
+    p_law->SetStrainSize(4);
+    properties.SetValue(CONSTITUTIVE_LAW, p_law);
+
+    properties.SetValue(BIOT_COEFFICIENT, 1.0);
+    properties.SetValue(BULK_MODULUS_FLUID, 1.0e3);
+    properties.SetValue(BULK_MODULUS_SOLID, 2.0e3);
+    properties.SetValue(POROSITY, 0.5);
+
+    const auto strain_vector = UblasUtilities::CreateVector({0.3, 0.1, 0.1, 99.0});
+    const auto voigt_vector  = UblasUtilities::CreateVector({1.0, 1.0, 1.0, 0.0});
+    const auto B =
+        UblasUtilities::CreateMatrix({{1.0, 0.0, 0.0}, {0.0, 2.0, 0.0}, {0.0, 0.0, 3.0}, {0.0, 0.0, 0.0}});
+    const auto     volumetric_strain_previous = UblasUtilities::CreateVector({0.05});
+    constexpr auto integration_coefficient    = 2.0;
+
+    const auto force = ConstitutiveLawUtilities::CalculateExcessPorePressureForceAtIntegrationPoint(
+        properties, strain_vector, B, voigt_vector, integration_coefficient, 0, volumetric_strain_previous);
+
+    const auto expected_force = UblasUtilities::CreateVector({1200.0, 2400.0, 3600.0});
+    KRATOS_EXPECT_VECTOR_NEAR(force, expected_force, Defaults::absolute_tolerance);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_CalculateExcessPorePressureForceAtIntegrationPoint_ThrowsForInvalidIntegrationPoint,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    auto properties = Properties{};
+    auto p_law      = Kratos::make_shared<MockConstitutiveLaw>();
+    p_law->SetPlaneStrainLaw(true);
+    p_law->SetStrainSize(4);
+    properties.SetValue(CONSTITUTIVE_LAW, p_law);
+
+    properties.SetValue(BIOT_COEFFICIENT, 1.0);
+    properties.SetValue(BULK_MODULUS_FLUID, 1.0e3);
+    properties.SetValue(BULK_MODULUS_SOLID, 2.0e3);
+    properties.SetValue(POROSITY, 0.5);
+
+    const auto strain_vector = UblasUtilities::CreateVector({0.3, 0.1, 0.1, 0.0});
+    const auto voigt_vector  = UblasUtilities::CreateVector({1.0, 1.0, 1.0, 0.0});
+    const auto B =
+        UblasUtilities::CreateMatrix({{1.0, 0.0, 0.0}, {0.0, 2.0, 0.0}, {0.0, 0.0, 3.0}, {0.0, 0.0, 0.0}});
+    const auto volumetric_strain_previous = UblasUtilities::CreateVector({0.05});
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        (void)ConstitutiveLawUtilities::CalculateExcessPorePressureForceAtIntegrationPoint(
+            properties, strain_vector, B, voigt_vector, 1.0, 1, volumetric_strain_previous),
+        "Integration point index (1) exceeds cached previous volumetric strain size (1).");
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_StringToDrainageType_IsCaseInsensitive,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    KRATOS_EXPECT_EQ(ConstitutiveLawUtilities::StringToDrainageType("Undrained"), DrainageType::UNDRAINED);
+    KRATOS_EXPECT_EQ(ConstitutiveLawUtilities::StringToDrainageType("FULLY_COUPLED"), DrainageType::FULLY_COUPLED);
+    KRATOS_EXPECT_EQ(ConstitutiveLawUtilities::StringToDrainageType("constant_pw_field"),
+                     DrainageType::CONSTANT_WATER_PRESSURE);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_DrainageTypeChecks, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    auto properties = Properties{};
+    properties.SetValue(GEO_DRAINAGE_TYPE, "Undrained");
+    KRATOS_EXPECT_EQ(ConstitutiveLawUtilities::IsUndrained(properties), true);
+    KRATOS_EXPECT_EQ(ConstitutiveLawUtilities::IsConstantWaterPressure(properties), false);
+
+    properties.SetValue(GEO_DRAINAGE_TYPE, "constant_pw_field");
+    KRATOS_EXPECT_EQ(ConstitutiveLawUtilities::IsUndrained(properties), false);
+    KRATOS_EXPECT_EQ(ConstitutiveLawUtilities::IsConstantWaterPressure(properties), true);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_GetFrictionAngleInRadians, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    auto properties = Properties{};
+    properties.SetValue(GEO_FRICTION_ANGLE, 30.0);
+
+    KRATOS_EXPECT_NEAR(ConstitutiveLawUtilities::GetFrictionAngleInRadians(properties),
+                       std::numbers::pi / 6.0, Defaults::absolute_tolerance);
+}
+
 } // namespace Kratos::Testing

@@ -217,6 +217,7 @@ private:
     IntegrationCoefficientsCalculator     mIntegrationCoefficientsCalculator;
     Geo::GeometryUniquePtr                mpOptionalPressureGeometry;
     std::vector<CalculationContribution>  mContributions;
+    bool                                  mIsUndrained = false;
 
     friend class Serializer;
 };

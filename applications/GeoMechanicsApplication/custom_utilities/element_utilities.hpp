@@ -289,6 +289,17 @@ public:
         }
     }
 
+    static void AssembleExcessPorePressureForces(Vector&                    rResultVector,
+                                                 const Properties&          rProperties,
+                                                 const std::vector<Vector>& rStrainVectors,
+                                                 const std::vector<Matrix>& rBMatrices,
+                                                 const Vector&              rVoigtVector,
+                                                 const std::vector<double>& rIntegrationCoefficients,
+                                                 const Vector& rVolumetricStrainPrevious);
+
+    [[nodiscard]] static Matrix CalculateExcessPorePressureBulkStiffnessAtIntegrationPoint(
+        const Properties& rProperties, const Matrix& rB, const Vector& rVoigtVector, double IntegrationCoefficient);
+
 private:
     template <typename VectorType1, typename VectorType2>
     static void AddVectorAtPosition(const VectorType1& rSourceVector, VectorType2& rDestinationVector, std::size_t Offset)

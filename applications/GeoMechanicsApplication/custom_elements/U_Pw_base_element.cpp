@@ -121,6 +121,11 @@ void UPwBaseElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
             std::fill(r_stress_vector.begin(), r_stress_vector.end(), 0.0);
         }
     }
+
+    mIsUndrained = ConstitutiveLawUtilities::IsUndrained(r_properties);
+    mVolumetricStrainPrevious.resize(number_of_integration_points, false);
+    std::fill(mVolumetricStrainPrevious.begin(), mVolumetricStrainPrevious.end(), 0.0);
+
     std::vector<Vector> strain_vectors(number_of_integration_points,
                                        ZeroVector(GetStressStatePolicy().GetVoigtSize()));
 
@@ -152,6 +157,8 @@ void UPwBaseElement::ResetConstitutiveLaw()
         r_state_variables.clear();
     }
     mStateVariablesFinalized.clear();
+
+    mVolumetricStrainPrevious.clear();
 
     KRATOS_CATCH("")
 }
@@ -454,6 +461,8 @@ void UPwBaseElement::save(Serializer& rSerializer) const
     rSerializer.save("StressVector", mStressVector);
     rSerializer.save("ThisIntegrationMethod", static_cast<int>(mThisIntegrationMethod));
     rSerializer.save("IntegrationCoefficientsCalculator", mIntegrationCoefficientsCalculator);
+    rSerializer.save("VolumetricStrainPrevious", mVolumetricStrainPrevious);
+    rSerializer.save("IsUndrained", mIsUndrained);
 }
 
 void UPwBaseElement::load(Serializer& rSerializer)
@@ -468,6 +477,8 @@ void UPwBaseElement::load(Serializer& rSerializer)
     rSerializer.load("ThisIntegrationMethod", integration_method);
     mThisIntegrationMethod = static_cast<IntegrationMethod>(integration_method);
     rSerializer.load("IntegrationCoefficientsCalculator", mIntegrationCoefficientsCalculator);
+    rSerializer.load("VolumetricStrainPrevious", mVolumetricStrainPrevious);
+    rSerializer.load("IsUndrained", mIsUndrained);
 }
 
 StressStatePolicy& UPwBaseElement::GetStressStatePolicy() const { return *mpStressStatePolicy; }

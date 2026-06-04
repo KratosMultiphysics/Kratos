@@ -76,7 +76,7 @@ Element::Pointer SmallStrainUPwDiffOrderElement::Create(IndexType               
                                                         PropertiesType::Pointer pProperties) const
 {
     return make_intrusive<SmallStrainUPwDiffOrderElement>(NewId, pGeom, pProperties,
-                                                          this->GetStressStatePolicy().Clone(),
+                                                          GetStressStatePolicy().Clone(),
                                                           this->CloneIntegrationCoefficientModifier());
 }
 
@@ -98,12 +98,15 @@ int SmallStrainUPwDiffOrderElement::Check(const ProcessInfo& rCurrentProcessInfo
     const CheckProperties check_properties(r_prop, "parameter list", element_Id,
                                            CheckProperties::Bounds::AllExclusive);
 
-    if (!ConstitutiveLawUtilities::IsConstantWaterPressure(r_prop))
+    if (!ConstitutiveLawUtilities::IsConstantWaterPressure(r_prop)) {
+        check_properties.SingleUseBounds(CheckProperties::Bounds::AllExclusive).Check(BULK_MODULUS_FLUID);
+        check_properties.SingleUseBounds(CheckProperties::Bounds::AllExclusive).Check(DYNAMIC_VISCOSITY);
         check_properties.CheckPermeabilityProperties(r_geom.WorkingSpaceDimension());
+    }
 
     check_properties.CheckAvailabilityAndSpecified(CONSTITUTIVE_LAW);
     r_prop[CONSTITUTIVE_LAW]->Check(r_prop, r_geom, rCurrentProcessInfo);
-    const auto expected_size = this->GetStressStatePolicy().GetVoigtSize();
+    const auto expected_size = GetStressStatePolicy().GetVoigtSize();
     ConstitutiveLawUtilities::CheckStrainSize(r_prop, expected_size, element_Id);
     ConstitutiveLawUtilities::CheckHasStrainMeasure_Infinitesimal(r_prop, element_Id);
 
@@ -162,7 +165,6 @@ void SmallStrainUPwDiffOrderElement::FinalizeSolutionStep(const ProcessInfo& rCu
     const auto strain_vectors = StressStrainUtilities::CalculateStrains(
         deformation_gradients, b_matrices, Variables.DisplacementVector, Variables.UseHenckyStrain,
         GetStressStatePolicy().GetVoigtSize());
-
     const auto number_of_integration_points = GetGeometry().IntegrationPointsNumber(GetIntegrationMethod());
     for (unsigned int GPoint = 0; GPoint < number_of_integration_points; ++GPoint) {
         this->ExtractShapeFunctionDataAtIntegrationPoint(Variables, GPoint);
@@ -180,6 +182,10 @@ void SmallStrainUPwDiffOrderElement::FinalizeSolutionStep(const ProcessInfo& rCu
         mConstitutiveLawVector[GPoint]->FinalizeMaterialResponseCauchy(ConstitutiveParameters);
         mStateVariablesFinalized[GPoint] =
             mConstitutiveLawVector[GPoint]->GetValue(STATE_VARIABLES, mStateVariablesFinalized[GPoint]);
+
+        if (mIsUndrained) {
+            mVolumetricStrainPrevious[GPoint] = StressStrainUtilities::CalculateTrace(strain_vectors[GPoint]);
+        }
     }
 
     // Assign pressure values to the intermediate nodes for post-processing
@@ -553,7 +559,7 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable
         const auto deformation_gradients = CalculateDeformationGradients();
         auto       strain_vectors        = StressStrainUtilities::CalculateStrains(
             deformation_gradients, b_matrices, Variables.DisplacementVector,
-            Variables.UseHenckyStrain, this->GetStressStatePolicy().GetVoigtSize());
+            Variables.UseHenckyStrain, GetStressStatePolicy().GetVoigtSize());
 
         ConstitutiveLaw::Parameters ConstitutiveParameters(r_geom, r_properties, rCurrentProcessInfo);
         ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
@@ -836,7 +842,7 @@ void SmallStrainUPwDiffOrderElement::Calculate(const Variable<Vector>& rVariable
             constitutive_matrices, this->GetProperties());
         const auto biot_moduli_inverse = GeoTransportEquationUtilities::CalculateInverseBiotModuli(
             biot_coefficients, degrees_of_saturation, derivatives_of_saturation, r_prop);
-        rOutput = CalculateInternalForces(Variables, b_matrices, integration_coefficients,
+        rOutput = CalculateInternalForces(Variables, b_matrices, strain_vectors, integration_coefficients,
                                           biot_coefficients, degrees_of_saturation, biot_moduli_inverse,
                                           relative_permeability_values, bishop_coefficients);
     } else if (rVariable == EXTERNAL_FORCES_VECTOR) {
@@ -848,20 +854,25 @@ void SmallStrainUPwDiffOrderElement::Calculate(const Variable<Vector>& rVariable
     }
 }
 
-Vector SmallStrainUPwDiffOrderElement::CalculateInternalForces(ElementVariables& rVariables,
-                                                               const std::vector<Matrix>& rBMatrices,
-                                                               const std::vector<double>& rIntegrationCoefficients,
-                                                               const std::vector<double>& rBiotCoefficients,
-                                                               const std::vector<double>& rDegreesOfSaturation,
-                                                               const std::vector<double>& rBiotModuliInverse,
-                                                               const std::vector<double>& rRelativePermeabilityValues,
-                                                               const std::vector<double>& rBishopCoefficients) const
+Vector SmallStrainUPwDiffOrderElement::CalculateInternalForces(
+    ElementVariables&          rVariables,
+    const std::vector<Matrix>& rBMatrices,
+    const std::vector<Vector>& rStrainVectors,
+    const std::vector<double>& rIntegrationCoefficients,
+    const std::vector<double>& rBiotCoefficients,
+    const std::vector<double>& rDegreesOfSaturation,
+    const std::vector<double>& rBiotModuliInverse,
+    const std::vector<double>& rRelativePermeabilityValues,
+    const std::vector<double>& rBishopCoefficients) const
 {
+    KRATOS_ERROR_IF(rBMatrices.size() != rStrainVectors.size())
+        << "Mismatched integration-point data sizes in CalculateInternalForces for element "
+        << this->Id() << "." << std::endl;
+
     Vector result(this->GetNumberOfDOF(), 0.0);
     for (unsigned int integration_point = 0; integration_point < rIntegrationCoefficients.size(); ++integration_point) {
         rVariables.B                      = rBMatrices[integration_point];
         rVariables.IntegrationCoefficient = rIntegrationCoefficients[integration_point];
-
         this->CalculateAndAddStiffnessForce(result, rVariables, integration_point);
     }
 
@@ -875,6 +886,10 @@ Vector SmallStrainUPwDiffOrderElement::CalculateInternalForces(ElementVariables&
 
         this->CalculateAndAddCouplingTerms(result, rVariables);
     }
+    if (mIsUndrained)
+        GeoElementUtilities::AssembleExcessPorePressureForces(
+            result, this->GetProperties(), rStrainVectors, rBMatrices,
+            GetStressStatePolicy().GetVoigtVector(), rIntegrationCoefficients, mVolumetricStrainPrevious);
     if (!rVariables.IsConstantWaterPressure) {
         for (unsigned int integration_point = 0;
              integration_point < rIntegrationCoefficients.size(); ++integration_point) {
@@ -1010,8 +1025,8 @@ void SmallStrainUPwDiffOrderElement::CalculateAll(MatrixType&        rLeftHandSi
 
     if (CalculateResidualVectorFlag) {
         const auto internal_forces = CalculateInternalForces(
-            Variables, b_matrices, integration_coefficients, biot_coefficients, degrees_of_saturation,
-            biot_moduli_inverse, relative_permeability_values, bishop_coefficients);
+            Variables, b_matrices, strain_vectors, integration_coefficients, biot_coefficients,
+            degrees_of_saturation, biot_moduli_inverse, relative_permeability_values, bishop_coefficients);
 
         const auto external_forces = CalculateExternalForces(
             Variables, integration_coefficients, integration_coefficients_on_initial_configuration,
@@ -1084,7 +1099,7 @@ void SmallStrainUPwDiffOrderElement::CalculateMaterialStiffnessMatrix(MatrixType
     const auto deformation_gradients = CalculateDeformationGradients();
     auto       strain_vectors        = StressStrainUtilities::CalculateStrains(
         deformation_gradients, b_matrices, Variables.DisplacementVector, Variables.UseHenckyStrain,
-        this->GetStressStatePolicy().GetVoigtSize());
+        GetStressStatePolicy().GetVoigtSize());
     std::vector<Matrix> constitutive_matrices;
     this->CalculateAnyOfMaterialResponse(deformation_gradients, ConstitutiveParameters,
                                          Variables.NuContainer, Variables.DNu_DXContainer,
@@ -1164,15 +1179,15 @@ void SmallStrainUPwDiffOrderElement::InitializeElementVariables(ElementVariables
     }
 
     // Variables computed at each integration point
-    const SizeType VoigtSize = this->GetStressStatePolicy().GetVoigtSize();
+    const auto voigt_size = GetStressStatePolicy().GetVoigtSize();
 
-    rVariables.B.resize(VoigtSize, num_u_nodes * n_dim, false);
-    noalias(rVariables.B) = ZeroMatrix(VoigtSize, num_u_nodes * n_dim);
+    rVariables.B.resize(voigt_size, num_u_nodes * n_dim, false);
+    noalias(rVariables.B) = ZeroMatrix(voigt_size, num_u_nodes * n_dim);
 
-    rVariables.StrainVector.resize(VoigtSize, false);
-    rVariables.ConstitutiveMatrix.resize(VoigtSize, VoigtSize, false);
+    rVariables.StrainVector.resize(voigt_size, false);
+    rVariables.ConstitutiveMatrix.resize(voigt_size, voigt_size, false);
 
-    rVariables.StressVector.resize(VoigtSize, false);
+    rVariables.StressVector.resize(voigt_size, false);
 
     // Needed parameters for consistency with the general constitutive law
     rVariables.F.resize(n_dim, n_dim, false);
@@ -1281,7 +1296,7 @@ void SmallStrainUPwDiffOrderElement::ExtractShapeFunctionDataAtIntegrationPoint(
 
 Matrix SmallStrainUPwDiffOrderElement::CalculateBMatrix(const Matrix& rDN_DX, const Vector& rN) const
 {
-    return this->GetStressStatePolicy().CalculateBMatrix(rDN_DX, rN, this->GetGeometry());
+    return GetStressStatePolicy().CalculateBMatrix(rDN_DX, rN, this->GetGeometry());
 }
 
 std::vector<Matrix> SmallStrainUPwDiffOrderElement::CalculateBMatrices(
@@ -1318,7 +1333,7 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddLHS(MatrixType&             
 }
 
 void SmallStrainUPwDiffOrderElement::CalculateAndAddStiffnessMatrix(MatrixType& rLeftHandSideMatrix,
-                                                                    const ElementVariables& rVariables)
+                                                                    const ElementVariables& rVariables) const
 {
     KRATOS_TRY
 
@@ -1327,6 +1342,12 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddStiffnessMatrix(MatrixType& 
 
     GeoEquationOfMotionUtilities::CalculateStiffnessMatrixGPoint(
         stiffness_matrix, rVariables.B, rVariables.ConstitutiveMatrix, rVariables.IntegrationCoefficient);
+
+    if (mIsUndrained) {
+        stiffness_matrix += GeoElementUtilities::CalculateExcessPorePressureBulkStiffnessAtIntegrationPoint(
+            this->GetProperties(), rVariables.B, GetStressStatePolicy().GetVoigtVector(),
+            rVariables.IntegrationCoefficient);
+    }
 
     GeoElementUtilities::AssembleUUBlockMatrix(rLeftHandSideMatrix, stiffness_matrix);
 
@@ -1517,7 +1538,7 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddFluidBodyFlow(VectorType& rR
 
 Vector SmallStrainUPwDiffOrderElement::CalculateGreenLagrangeStrain(const Matrix& rDeformationGradient) const
 {
-    return this->GetStressStatePolicy().CalculateGreenLagrangeStrain(rDeformationGradient);
+    return GetStressStatePolicy().CalculateGreenLagrangeStrain(rDeformationGradient);
 }
 
 Matrix SmallStrainUPwDiffOrderElement::CalculateDeformationGradient(unsigned int GPoint) const
