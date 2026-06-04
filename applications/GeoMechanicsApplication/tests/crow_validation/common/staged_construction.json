@@ -23,7 +23,7 @@
                     {
                         "name": "KratosMultiphysics.modelers.import_mdpa_modeler.ImportMDPAModeler",
                         "Parameters": {
-                            "input_filename": "../../common/crow_validation_gid",
+                            "input_filename": "../../common/model",
                             "model_part_name": "PorousDomain"
                         }
                     }
