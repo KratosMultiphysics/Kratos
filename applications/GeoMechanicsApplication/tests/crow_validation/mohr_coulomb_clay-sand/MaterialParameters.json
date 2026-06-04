@@ -5,7 +5,7 @@
             "properties_id": 1,
             "Material": {
                 "constitutive_law": {
-                    "name": "GeoMohrCoulombWithTensionCutOff2D"
+                    "name": "GeoMohrCoulomb2D"
                 },
                 "Variables": {
                     "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
@@ -33,7 +33,7 @@
             "properties_id": 2,
             "Material": {
                 "constitutive_law": {
-                    "name": "GeoMohrCoulombWithTensionCutOff2D"
+                    "name": "GeoMohrCoulomb2D"
                 },
                 "Variables": {
                     "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
@@ -61,7 +61,7 @@
             "properties_id": 3,
             "Material": {
                 "constitutive_law": {
-                    "name": "GeoMohrCoulombWithTensionCutOff2D"
+                    "name": "GeoMohrCoulomb2D"
                 },
                 "Variables": {
                     "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
@@ -89,7 +89,7 @@
             "properties_id": 4,
             "Material": {
                 "constitutive_law": {
-                    "name": "GeoMohrCoulombWithTensionCutOff2D"
+                    "name": "GeoMohrCoulomb2D"
                 },
                 "Variables": {
                     "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
@@ -117,7 +117,7 @@
             "properties_id": 5,
             "Material": {
                 "constitutive_law": {
-                    "name": "GeoMohrCoulombWithTensionCutOff2D"
+                    "name": "GeoMohrCoulomb2D"
                 },
                 "Variables": {
                     "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
@@ -145,7 +145,7 @@
             "properties_id": 6,
             "Material": {
                 "constitutive_law": {
-                    "name": "GeoMohrCoulombWithTensionCutOff2D"
+                    "name": "GeoMohrCoulomb2D"
                 },
                 "Variables": {
                     "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
@@ -173,7 +173,7 @@
             "properties_id": 7,
             "Material": {
                 "constitutive_law": {
-                    "name": "GeoMohrCoulombWithTensionCutOff2D"
+                    "name": "GeoMohrCoulomb2D"
                 },
                 "Variables": {
                     "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
@@ -201,7 +201,7 @@
             "properties_id": 8,
             "Material": {
                 "constitutive_law": {
-                    "name": "GeoMohrCoulombWithTensionCutOff2D"
+                    "name": "GeoMohrCoulomb2D"
                 },
                 "Variables": {
                     "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
@@ -229,7 +229,7 @@
             "properties_id": 9,
             "Material": {
                 "constitutive_law": {
-                    "name": "GeoInterfaceCoulombWithTensionCutOff"
+                    "name": "GeoInterfaceCoulomb"
                 },
                 "Variables": {
                     "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
@@ -252,7 +252,7 @@
             "properties_id": 10,
             "Material": {
                 "constitutive_law": {
-                    "name": "GeoInterfaceCoulombWithTensionCutOff"
+                    "name": "GeoInterfaceCoulomb"
                 },
                 "Variables": {
                     "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
@@ -275,7 +275,7 @@
             "properties_id": 11,
             "Material": {
                 "constitutive_law": {
-                    "name": "GeoInterfaceCoulombWithTensionCutOff"
+                    "name": "GeoInterfaceCoulomb"
                 },
                 "Variables": {
                     "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
@@ -298,7 +298,7 @@
             "properties_id": 12,
             "Material": {
                 "constitutive_law": {
-                    "name": "GeoInterfaceCoulombWithTensionCutOff"
+                    "name": "GeoInterfaceCoulomb"
                 },
                 "Variables": {
                     "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
@@ -321,7 +321,7 @@
             "properties_id": 13,
             "Material": {
                 "constitutive_law": {
-                    "name": "GeoInterfaceCoulombWithTensionCutOff"
+                    "name": "GeoInterfaceCoulomb"
                 },
                 "Variables": {
                     "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
@@ -344,7 +344,7 @@
             "properties_id": 14,
             "Material": {
                 "constitutive_law": {
-                    "name": "GeoInterfaceCoulombWithTensionCutOff"
+                    "name": "GeoInterfaceCoulomb"
                 },
                 "Variables": {
                     "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
@@ -367,7 +367,7 @@
             "properties_id": 15,
             "Material": {
                 "constitutive_law": {
-                    "name": "GeoInterfaceCoulombWithTensionCutOff"
+                    "name": "GeoInterfaceCoulomb"
                 },
                 "Variables": {
                     "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
@@ -390,7 +390,7 @@
             "properties_id": 16,
             "Material": {
                 "constitutive_law": {
-                    "name": "GeoInterfaceCoulombWithTensionCutOff"
+                    "name": "GeoInterfaceCoulomb"
                 },
                 "Variables": {
                     "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
