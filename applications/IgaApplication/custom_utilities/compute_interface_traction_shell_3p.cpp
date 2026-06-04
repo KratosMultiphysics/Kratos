@@ -129,7 +129,6 @@ void ComputeInterfaceTractionShell3pUtility::ComputeAndSetInterfaceTraction(
 
             traction_values[point_number] = traction;
             
-            KRATOS_WATCH(traction)
             r_condition.SetValue(rTractionVariable, traction);
         }
     }
