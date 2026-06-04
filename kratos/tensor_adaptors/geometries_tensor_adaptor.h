@@ -65,6 +65,7 @@ public:
     {
         ShapeFunctions,
         ShapeFunctionDerivatives,
+        Normals,
         Jacobians,
         IntegrationWeights
     };
@@ -176,6 +177,13 @@ private:
 
     template <class TContainerType>
     static void CollectJacobians(
+        double* pData,
+        const TContainerType& rContainer,
+        GeometryData::IntegrationMethod Method,
+        const DenseVector<unsigned int>& Shape);
+
+    template <class TContainerType>
+    static void CollectNormals(
         double* pData,
         const TContainerType& rContainer,
         GeometryData::IntegrationMethod Method,
