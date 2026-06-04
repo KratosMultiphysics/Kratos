@@ -380,7 +380,6 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
     def get_wall_variable_collections_per_stage(
         self,
         kratos_variable_label,
-        variable_plot_label,
         project_path,
         plot_stages,
         nodes,
@@ -453,7 +452,6 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
 
     def get_bending_moments_data_series_per_stage(self, nodes, project_path):
         return self.get_wall_variable_collections_per_stage("BENDING_MOMENT",
-                                                            "Bending moment",
                                                             project_path,
                                                             self.get_plot_stages(),
                                                             nodes,
@@ -539,7 +537,6 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
 
         shear_force_collections = self.get_wall_variable_collections_per_stage(
             "SHEAR_FORCE",
-            "Shear force",
             project_path,
             plot_stages,
             nodes,
@@ -556,7 +553,6 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
 
         normal_force_collections = self.get_wall_variable_collections_per_stage(
             "AXIAL_FORCE",
-            "Normal force",
             project_path,
             plot_stages,
             nodes,
