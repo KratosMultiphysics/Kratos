@@ -207,13 +207,16 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
                 orchestrator_instance = orchestrator_class(project)
                 orchestrator_instance.Run()
 
+        model = project.GetModel()
+        sheet_pile_wall = model.GetModelPart("PorousDomain.Sheet_Pile_Wall")
+
         if test_helper.want_test_plots():
-            self.create_wall_plots(project_path)
-            self.create_interface_plots(project.GetModel().GetModelPart("PorousDomain.Right_Side_Of_Right_Interfaces").Nodes, project_path)
+            self.create_wall_plots(sheet_pile_wall.Nodes, project_path)
+            self.create_interface_plots(model.GetModelPart("PorousDomain.Right_Side_Of_Right_Interfaces").Nodes, project_path)
 
         # Check the obtained results
         reader = GiDOutputFileReader()
-        node_ids = get_sheetpile_node_ids()
+        node_ids = [node.Id for node in sheet_pile_wall.Nodes]
 
         for stage_name in [
             "wall_installation",
@@ -374,27 +377,18 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             self.stages_info["third_excavation"],
         ]
 
-    def get_y_coords(self, project_path, stage_base_name, node_ids):
-        coordinates = test_helper.read_coordinates_from_post_msh_file(
-            Path(project_path) / "gid_output" / f"{stage_base_name}.post.msh",
-            node_ids=node_ids,
-        )
-        return [coord[1] for coord in coordinates]
-
     def get_wall_variable_collections_per_stage(
         self,
         kratos_variable_label,
         variable_plot_label,
         project_path,
         plot_stages,
+        nodes,
         data_extractor_fem_comparison,
         data_extractor_dsheetpiling=None,
     ):
-        node_ids = get_sheetpile_node_ids()
-
-        y_coords = self.get_y_coords(
-            project_path, plot_stages[0]["base_name"], node_ids
-        )
+        node_ids = [node.Id for node in nodes]
+        y_coords = [node.Y for node in nodes]
 
         variable_data_collections = []
         reader = GiDOutputFileReader()
@@ -457,22 +451,20 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
         return variable_data_collections
 
 
-    def get_bending_moments_data_series_per_stage(self, project_path):
+    def get_bending_moments_data_series_per_stage(self, nodes, project_path):
         return self.get_wall_variable_collections_per_stage("BENDING_MOMENT",
                                                             "Bending moment",
                                                             project_path,
                                                             self.get_plot_stages(),
+                                                            nodes,
                                                             extract_bending_moment_and_y_from_line,
                                                             data_extractor_dsheetpiling=extract_bending_moment_and_y_from_line)
 
     def get_wall_horizontal_total_displacement_collections_per_stage(
-        self, project_path, plot_stages, data_extractor_fem_comparison, data_extractor_dsheetpiling=None
+        self, project_path, plot_stages, nodes, data_extractor_fem_comparison, data_extractor_dsheetpiling=None
     ):
-        node_ids = get_sheetpile_node_ids()
-
-        y_coords = self.get_y_coords(
-            project_path, plot_stages[0]["base_name"], node_ids
-        )
+        node_ids = [node.Id for node in nodes]
+        y_coords = [node.Y for node in nodes]
 
         variable_data_collections = []
         reader = GiDOutputFileReader()
@@ -532,11 +524,11 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
 
         return variable_data_collections
 
-    def create_wall_plots(self, project_path):
+    def create_wall_plots(self, nodes, project_path):
         plot_stages = self.get_plot_stages()
         plot_titles = [stage["base_name"] for stage in plot_stages]
 
-        bending_moment_collections = self.get_bending_moments_data_series_per_stage(project_path)
+        bending_moment_collections = self.get_bending_moments_data_series_per_stage(nodes, project_path)
         plot_utils.make_sub_plots(
             bending_moment_collections,
             Path(project_path) / "bending_moments.svg",
@@ -550,6 +542,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             "Shear force",
             project_path,
             plot_stages,
+            nodes,
             extract_shear_force_and_y_from_line,
             data_extractor_dsheetpiling=extract_shear_force_and_y_from_line,
         )
@@ -566,6 +559,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             "Normal force",
             project_path,
             plot_stages,
+            nodes,
             extract_normal_force_and_y_from_line)
         plot_utils.make_sub_plots(
             normal_force_collections,
@@ -576,7 +570,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
 
         horizontal_total_displacement_collections = (
             self.get_wall_horizontal_total_displacement_collections_per_stage(
-                project_path, plot_stages, extract_horizontal_displacements_from_line, data_extractor_dsheetpiling=extract_horizontal_displacements_from_dsheetpiling_line
+                project_path, plot_stages, nodes, extract_horizontal_displacements_from_line, data_extractor_dsheetpiling=extract_horizontal_displacements_from_dsheetpiling_line
             )
         )
         plot_utils.make_sub_plots(
