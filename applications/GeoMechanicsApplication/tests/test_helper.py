@@ -423,7 +423,7 @@ def read_coordinates_from_post_msh_file(file_path, node_ids=None):
 
             if reading_coordinates:
                 numbers = line.split()  # [node ID, x, y, z]
-                node_map[int(numbers[0])] = tuple([float(number) for number in numbers[1:]])
+                node_map[int(numbers[0])] = tuple(float(number) for number in numbers[1:])
 
     if node_ids is None:
         return list(node_map.values())
