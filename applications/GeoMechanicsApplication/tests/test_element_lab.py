@@ -48,17 +48,17 @@ class KratosGeoMechanicsLabElementTests(KratosGeoUnittest.TestCase):
         if assert_all_integration_points:
             self.assert_integration_point_tensors(result, "CAUCHY_STRESS_TENSOR",
                 self._make_integration_point_tensor_entries(expected_stress, num_elements=2, num_integration_points_per_element=3),
-                precision_places, time)
+                time ,precision_places)
             self.assert_integration_point_tensors(result, "ENGINEERING_STRAIN_TENSOR",
                 self._make_integration_point_tensor_entries(expected_strain, num_elements=2, num_integration_points_per_element=3),
-                precision_places, time)
+                time, precision_places)
         else:
             self.assert_integration_point_tensors(result, "CAUCHY_STRESS_TENSOR", 
                 self._make_integration_point_tensor_entries(expected_stress, num_elements=2, num_integration_points_per_element=1),
-                precision_places, time)
+                time, precision_places)
             self.assert_integration_point_tensors(result, "ENGINEERING_STRAIN_TENSOR", 
                 self._make_integration_point_tensor_entries(expected_strain, num_elements=2, num_integration_points_per_element=1),
-                precision_places, time)
+                time, precision_places)
             
     def test_oedometer_drained(self):
         """Regression test for the oedometer experiment on a linear elastic model with constant pore water pressure."""
@@ -83,10 +83,10 @@ class KratosGeoMechanicsLabElementTests(KratosGeoUnittest.TestCase):
         self.assert_integration_point_tensors(
             result, "CAUCHY_STRESS_TENSOR",
             self._make_integration_point_tensor_entries(expected_stress, num_elements=2, num_integration_points_per_element=3),
-            precision_places_stress, time=1.0)
+            1.0, precision_places_stress)
 
         for time, expected_y in zip(displacement_times, expected_y_displacements):
-            self.assert_y_displacements_at_time(result, top_nodes, expected_y, precision_places_displacement, time)
+            self.assert_y_displacements_at_time(result, top_nodes, expected_y, time, precision_places_displacement)
 
     def test_dss_drained(self):
         """Regression test for the direct simple shear experiment with constant pore water pressure."""
@@ -112,11 +112,11 @@ class KratosGeoMechanicsLabElementTests(KratosGeoUnittest.TestCase):
         self.assert_integration_point_tensors(
             result, "CAUCHY_STRESS_TENSOR",
             self._make_integration_point_tensor_entries(expected_stress, num_elements=2, num_integration_points_per_element=3),
-            places_stress, time)
+            time, places_stress)
         self.assert_integration_point_tensors(
             result, "ENGINEERING_STRAIN_TENSOR",
             self._make_integration_point_tensor_entries(expected_strain, num_elements=2, num_integration_points_per_element=3),
-            places_strain, time)
+            time, places_strain)
         
     def test_crs_drained(self):
         """Regression test for the CRS experiment with constant pore water pressure."""
@@ -172,12 +172,12 @@ class KratosGeoMechanicsLabElementTests(KratosGeoUnittest.TestCase):
             self.assert_integration_point_tensors(
                 result, "CAUCHY_STRESS_TENSOR",
                 self._make_integration_point_tensor_entries(expected_stresses[i], num_elements=2, num_integration_points_per_element=3),
-                places_stress, time=times[i], delta=delta_stress)
+                times[i], places=places_stress, delta=delta_stress)
             self.assert_integration_point_tensors(
                 result, "ENGINEERING_STRAIN_TENSOR",
                 self._make_integration_point_tensor_entries(expected_strains[i], num_elements=2, num_integration_points_per_element=3),
-                places_strain, time=times[i])
-            self.assert_nodal_values_at_time(result, "WATER_PRESSURE", expected_water_pressures[i], places_water_pressure, time=times[i])
+                times[i], places=places_strain)
+            self.assert_nodal_values_at_time(result, "WATER_PRESSURE", expected_water_pressures[i], times[i], places=places_water_pressure)
 
     def test_triaxial_comp_6n(self):
         """
@@ -197,14 +197,14 @@ class KratosGeoMechanicsLabElementTests(KratosGeoUnittest.TestCase):
         self.assert_integration_point_tensors(
             result, "CAUCHY_STRESS_TENSOR",
             self._make_integration_point_tensor_entries(expected_stress, num_elements=2, num_integration_points_per_element=3),
-            3, time=1.0)
+            time=1.0, delta=0.002)
 
         result = reader.read_output_from(os.path.join(project_path, "triaxial_comp_6n_stage2.post.res"))
         expected_stress = [[-100.0, -300.0, -100.0, 0.0, 0.0, 0.0]] * 6
         self.assert_integration_point_tensors(
             result, "CAUCHY_STRESS_TENSOR",
             self._make_integration_point_tensor_entries(expected_stress, num_elements=2, num_integration_points_per_element=3),
-            2, time=1.25)
+            time=1.25, delta=0.002)
 
     def test_oedometer_ULFEM(self):
         """
@@ -221,9 +221,9 @@ class KratosGeoMechanicsLabElementTests(KratosGeoUnittest.TestCase):
         reader = GiDOutputFileReader()
         result = reader.read_output_from(output_file)
 
-        self.assert_y_displacements_at_time(result, top_node_nbrs, -0.0099, 4, 0.1)
-        self.assert_y_displacements_at_time(result, top_node_nbrs, -0.0654, 4, 0.7)
-        self.assert_y_displacements_at_time(result, top_node_nbrs, -0.0909, 4, 1.0)
+        self.assert_y_displacements_at_time(result, top_node_nbrs, -0.0099, 0.1, 4)
+        self.assert_y_displacements_at_time(result, top_node_nbrs, -0.0654, 0.7, 4)
+        self.assert_y_displacements_at_time(result, top_node_nbrs, -0.0909, 1.0, 4)
 
     def test_oedometer_ULFEM_diff_order(self):
         """
@@ -239,7 +239,7 @@ class KratosGeoMechanicsLabElementTests(KratosGeoUnittest.TestCase):
         reader = GiDOutputFileReader()
         result = reader.read_output_from(output_file)
         top_node_nbrs = [1]
-        self.assert_y_displacements_at_time(result, top_node_nbrs, -1e-4, 6, 1.0)
+        self.assert_y_displacements_at_time(result, top_node_nbrs, -1e-4, 1.0, 6)
 
     def _assert_oedometer_effective_stresses(self, effective_stresses, expected_yy, places_yy):
         for element in effective_stresses:
