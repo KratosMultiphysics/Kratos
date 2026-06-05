@@ -380,75 +380,6 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
                                                             extract_bending_moment_and_y_from_line,
                                                             data_extractor_dsheetpiling=extract_bending_moment_and_y_from_line)
 
-    def get_wall_horizontal_total_displacement_collections_per_stage(
-        self,
-        kratos_variable_label,
-        plot_stages,
-        nodes,
-        transform_output,
-        data_extractor_fem_comparison,
-        data_extractor_dsheetpiling=None,
-    ):
-        node_ids = [node.Id for node in nodes]
-        y_coords = [node.Y for node in nodes]
-
-        variable_data_collections = []
-        reader = GiDOutputFileReader()
-
-        for stage in plot_stages:
-            output_data = reader.read_output_from(
-                self.test_path / "gid_output" / f"{stage['base_name']}.post.res"
-            )
-
-            variable_kratos_data = reader.nodal_values_at_time(
-                kratos_variable_label,
-                stage["end_time"],
-                output_data,
-                node_ids=node_ids,
-            )
-
-            variable_kratos_data = [transform_output(value) for value in variable_kratos_data]
-
-            data_series_collection = [
-                plot_utils.DataSeries(
-                    zip(variable_kratos_data, y_coords),
-                    "Kratos",
-                    line_style="-",
-                    marker=".",
-                )
-            ]
-
-            fem_comparison_csv = (
-                self.test_path / f"{stage['base_name']}__FE_comparison_wall.csv"
-            )
-            if fem_comparison_csv.exists():
-                data_points = test_helper.get_data_points_from_file(
-                    fem_comparison_csv, data_extractor_fem_comparison
-                )
-                data_series_collection.append(
-                    plot_utils.DataSeries(
-                        data_points,
-                        label="Commercial FE package",
-                        marker="3",
-                    )
-                )
-
-            if (self.test_path / f"{stage['base_name']}__DSheetPiling_results.csv").exists() and data_extractor_dsheetpiling:
-                data_points = test_helper.get_data_points_from_file(
-                    self.test_path / f"{stage['base_name']}__DSheetPiling_results.csv",
-                    data_extractor_dsheetpiling,
-                )
-                data_series_collection.append(
-                    plot_utils.DataSeries(
-                        data_points,
-                        "D-Sheet Piling",
-                        marker="1",
-                    )
-                )
-
-            variable_data_collections.append(data_series_collection)
-
-        return variable_data_collections
 
     def create_wall_plots(self, nodes):
         plot_stages = self.get_plot_stages()
@@ -494,7 +425,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
 
         get_x_component = lambda vector: vector[0]
         horizontal_total_displacement_collections = (
-            self.get_wall_horizontal_total_displacement_collections_per_stage(
+            self.get_wall_variable_collections_per_stage(
                 "TOTAL_DISPLACEMENT", plot_stages, nodes, get_x_component, extract_horizontal_displacements_from_line, data_extractor_dsheetpiling=extract_horizontal_displacements_from_dsheetpiling_line
             )
         )
