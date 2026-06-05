@@ -37,6 +37,8 @@ public:
     CoulombWithTensionCutOffImpl() = default;
     explicit CoulombWithTensionCutOffImpl(const Properties& rMaterialProperties);
 
+    std::unique_ptr<CoulombWithTensionCutOffImpl> Clone();
+
     [[nodiscard]] bool IsAdmissibleStressState(const Geo::SigmaTau& rTrialTraction);
     [[nodiscard]] bool IsAdmissibleStressState(const Geo::PrincipalStresses& rTrialPrincipalStresses);
 
@@ -52,8 +54,8 @@ public:
     [[nodiscard]] PlasticityStatus GetPlasticityStatus() const;
 
 private:
-    CoulombYieldSurface mCoulombYieldSurface;
     TensionCutoff       mTensionCutOff;
+    CoulombYieldSurface mCoulombYieldSurface;
     double              mSavedKappaOfCoulombYieldSurface{0.0};
     double              mAbsoluteYieldFunctionValueTolerance{1.0e-8};
     std::size_t         mMaxNumberOfPlasticIterations{100};

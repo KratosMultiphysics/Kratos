@@ -14,20 +14,22 @@
 
 #pragma once
 
-#include "custom_constitutive/coulomb_with_tension_cut_off_impl.h"
 #include "includes/constitutive_law.h"
+#include <memory>
 
 namespace Kratos
 {
 
 class ConstitutiveLawDimension;
+class CoulombWithTensionCutOffImpl;
 
 class KRATOS_API(GEO_MECHANICS_APPLICATION) MohrCoulombWithTensionCutOff : public ConstitutiveLaw
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(MohrCoulombWithTensionCutOff);
 
-    MohrCoulombWithTensionCutOff() = default;
+    MohrCoulombWithTensionCutOff();
+    ~MohrCoulombWithTensionCutOff() override;
     explicit MohrCoulombWithTensionCutOff(std::unique_ptr<ConstitutiveLawDimension> pConstitutiveDimension);
 
     // Copying is not allowed. Use member `Clone` instead.
@@ -35,8 +37,8 @@ public:
     MohrCoulombWithTensionCutOff& operator=(const MohrCoulombWithTensionCutOff&) = delete;
 
     // Moving is supported
-    MohrCoulombWithTensionCutOff(MohrCoulombWithTensionCutOff&&) noexcept            = default;
-    MohrCoulombWithTensionCutOff& operator=(MohrCoulombWithTensionCutOff&&) noexcept = default;
+    MohrCoulombWithTensionCutOff(MohrCoulombWithTensionCutOff&&) noexcept;
+    MohrCoulombWithTensionCutOff& operator=(MohrCoulombWithTensionCutOff&&) noexcept;
 
     [[nodiscard]] ConstitutiveLaw::Pointer Clone() const override;
     SizeType                               WorkingSpaceDimension() override;
@@ -66,7 +68,7 @@ private:
     Vector                                    mStressVector;
     Vector                                    mStressVectorFinalized;
     Vector                                    mStrainVectorFinalized;
-    CoulombWithTensionCutOffImpl              mCoulombWithTensionCutOffImpl;
+    std::unique_ptr<CoulombWithTensionCutOffImpl> mCoulombWithTensionCutOffImpl;
     bool                                      mIsModelInitialized = false;
 
     [[nodiscard]] Vector CalculateTrialStressVector(const Vector& rStrainVector, const Properties& rProperties) const;

@@ -55,6 +55,18 @@ CoulombWithTensionCutOffImpl::CoulombWithTensionCutOffImpl(const Properties& rMa
     }
 }
 
+std::unique_ptr<CoulombWithTensionCutOffImpl> CoulombWithTensionCutOffImpl::Clone()
+{
+    CoulombWithTensionCutOffImpl clone;
+    clone.mCoulombYieldSurface = mCoulombYieldSurface;
+    clone.mTensionCutOff = mTensionCutOff;
+    clone.mSavedKappaOfCoulombYieldSurface=mSavedKappaOfCoulombYieldSurface;
+    clone.mAbsoluteYieldFunctionValueTolerance=mAbsoluteYieldFunctionValueTolerance;
+    clone.mMaxNumberOfPlasticIterations = mMaxNumberOfPlasticIterations;
+    clone.mPlasticityStatus = mPlasticityStatus;
+    return std::make_unique<CoulombWithTensionCutOffImpl>(clone);
+}
+
 bool CoulombWithTensionCutOffImpl::IsAdmissibleStressState(const Geo::SigmaTau& rTrialTraction)
 {
     return IsAdmissibleStressState<>(rTrialTraction);
