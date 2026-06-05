@@ -39,12 +39,12 @@ namespace Kratos
 
         KRATOS_INFO_IF("::[CadIoModeler]::", mEchoLevel > 0) << "Importing Cad Model from: " << DataFileName << std::endl;
 
-        if (!LocalRefFileName.empty()) {
-            CadJsonInput<Node, Point>(
-                DataFileName, LocalRefFileName, mEchoLevel).ReadModelPart(cad_model_part);
-        } else {
+        if (LocalRefFileName.empty()) {
             CadJsonInput<Node, Point>(
                 DataFileName, mEchoLevel).ReadModelPart(cad_model_part);
+        } else {
+            CadJsonInput<Node, Point>(
+                DataFileName, LocalRefFileName, mEchoLevel).ReadModelPart(cad_model_part);
         }
     }
 
