@@ -134,8 +134,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             with open(
                 Path("..") / ".." / "common" / analysis_filename, "r"
             ) as parameter_file:
-                project_parameters = Kratos.Parameters(parameter_file.read())
-                run_orchestrator(project_parameters)
+                project = run_orchestrator(Kratos.Parameters(parameter_file.read()))
 
         model = project.GetModel()
         sheet_pile_wall = model.GetModelPart("PorousDomain.Sheet_Pile_Wall")
