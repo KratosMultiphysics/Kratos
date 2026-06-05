@@ -287,7 +287,8 @@ KRATOS_TEST_CASE_IN_SUITE(NeighbouringElementFinder_FindsNeighbourElementOfPoint
 
     NeighbouringElementFinder::BoundaryGeneratorByLocalDim boundary_generators;
     boundary_generators[std::size_t{0}] = std::make_unique<PointsGenerator>();
-    NeighbouringElementFinder finder(true);
+    constexpr auto enable_reverse_search = true;
+    NeighbouringElementFinder finder(enable_reverse_search);
 
     // Act
     finder.FindEntityNeighbours(r_model_part.Conditions(), r_model_part.Elements(), boundary_generators);
