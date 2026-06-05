@@ -177,7 +177,8 @@ class KratosGeoMechanicsLabElementTests(KratosGeoUnittest.TestCase):
                 result, "ENGINEERING_STRAIN_TENSOR",
                 self._make_integration_point_tensor_entries(expected_strains[i], num_elements=2, num_integration_points_per_element=3),
                 times[i], places=places_strain)
-            self.assert_nodal_values_at_time(result, "WATER_PRESSURE", expected_water_pressures[i], times[i], places=places_water_pressure)
+            node_ids = [1,2,3,4,5,6,7,8,9]
+            self.assert_nodal_values_at_time(result, "WATER_PRESSURE", node_ids, expected_water_pressures[i], times[i], places=places_water_pressure)
 
     def test_triaxial_comp_6n(self):
         """

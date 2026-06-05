@@ -7,10 +7,10 @@ class TestCase(KratosUnittest.TestCase):
 		for displacement in displacements:
 			self.assertAlmostEqual(expected_y, displacement[1], places, delta = delta)
 
-	def assert_nodal_values_at_time(self, result, variable_name, expected_values, time, places=None, delta=None):
-		for node_id, expected_node_values in enumerate(expected_values, start=1):
+	def assert_nodal_values_at_time(self, result, variable_name, node_ids, expected_values, time, places=None, delta=None):
+		for node_id, expected_node_values in zip(node_ids, expected_values):
 			result_values = GiDOutputFileReader.nodal_values_at_time(variable_name, time, result, [node_id])[0]
-			self.assertAlmostEqual(result_values, expected_node_values, places, delta = delta,
+			self.assertAlmostEqual(expected_node_values, result_values, places, delta = delta,
 						  	msg = f"There is a difference in the {variable_name} components for node {node_id}")
 
 	def assert_integration_point_tensors(self, result, variable_name, expected_tensors, time, places=None, delta=None):
