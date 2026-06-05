@@ -54,8 +54,8 @@ public:
     [[nodiscard]] PlasticityStatus GetPlasticityStatus() const;
 
 private:
-    TensionCutoff       mTensionCutOff;
     CoulombYieldSurface mCoulombYieldSurface;
+    TensionCutoff       mTensionCutOff;
     double              mSavedKappaOfCoulombYieldSurface{0.0};
     double              mAbsoluteYieldFunctionValueTolerance{1.0e-8};
     std::size_t         mMaxNumberOfPlasticIterations{100};

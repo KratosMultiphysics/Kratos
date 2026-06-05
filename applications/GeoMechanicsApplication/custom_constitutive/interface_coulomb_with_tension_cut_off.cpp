@@ -22,19 +22,29 @@
 #include "custom_utilities/stress_strain_utilities.h"
 #include "geo_mechanics_application_constants.h"
 #include "geo_mechanics_application_variables.h"
-
+#include "custom_constitutive/coulomb_with_tension_cut_off_impl.h"
 #include <cmath>
 
 namespace Kratos
 {
+    InterfaceCoulombWithTensionCutOff::InterfaceCoulombWithTensionCutOff() = default;
 
-InterfaceCoulombWithTensionCutOff::InterfaceCoulombWithTensionCutOff(std::unique_ptr<ConstitutiveLawDimension> pConstitutiveDimension)
+    InterfaceCoulombWithTensionCutOff::~InterfaceCoulombWithTensionCutOff() = default;
+
+    InterfaceCoulombWithTensionCutOff::InterfaceCoulombWithTensionCutOff(std::unique_ptr<ConstitutiveLawDimension> pConstitutiveDimension)
     : mpConstitutiveDimension(std::move(pConstitutiveDimension)),
       mTractionVector(ZeroVector(mpConstitutiveDimension->GetStrainSize())),
       mTractionVectorFinalized(ZeroVector(mpConstitutiveDimension->GetStrainSize())),
-      mRelativeDisplacementVectorFinalized(ZeroVector(mpConstitutiveDimension->GetStrainSize()))
+      mRelativeDisplacementVectorFinalized(ZeroVector(mpConstitutiveDimension->GetStrainSize())),
+      mCoulombWithTensionCutOffImpl(std::make_unique<CoulombWithTensionCutOffImpl>())
 {
 }
+
+InterfaceCoulombWithTensionCutOff::InterfaceCoulombWithTensionCutOff(InterfaceCoulombWithTensionCutOff&&) noexcept = default;
+
+InterfaceCoulombWithTensionCutOff& InterfaceCoulombWithTensionCutOff::operator=(
+    InterfaceCoulombWithTensionCutOff&&) noexcept = default;
+
 
 ConstitutiveLaw::Pointer InterfaceCoulombWithTensionCutOff::Clone() const
 {
@@ -42,7 +52,7 @@ ConstitutiveLaw::Pointer InterfaceCoulombWithTensionCutOff::Clone() const
     p_result->mTractionVector                      = mTractionVector;
     p_result->mTractionVectorFinalized             = mTractionVectorFinalized;
     p_result->mRelativeDisplacementVectorFinalized = mRelativeDisplacementVectorFinalized;
-    p_result->mCoulombWithTensionCutOffImpl        = mCoulombWithTensionCutOffImpl;
+    p_result->mCoulombWithTensionCutOffImpl        = mCoulombWithTensionCutOffImpl->Clone();
     p_result->mIsModelInitialized                  = mIsModelInitialized;
     return p_result;
 }
@@ -60,7 +70,7 @@ Vector& InterfaceCoulombWithTensionCutOff::GetValue(const Variable<Vector>& rVar
 int& InterfaceCoulombWithTensionCutOff::GetValue(const Variable<int>& rVariable, int& rValue)
 {
     if (rVariable == GEO_PLASTICITY_STATUS) {
-        rValue = static_cast<int>(mCoulombWithTensionCutOffImpl.GetPlasticityStatus());
+        rValue = static_cast<int>(mCoulombWithTensionCutOffImpl->GetPlasticityStatus());
     }
     return rValue;
 }
@@ -126,7 +136,7 @@ void InterfaceCoulombWithTensionCutOff::InitializeMaterial(const Properties& rMa
                                                            const Geometry<Node>&,
                                                            const Vector&)
 {
-    mCoulombWithTensionCutOffImpl = CoulombWithTensionCutOffImpl{rMaterialProperties};
+    mCoulombWithTensionCutOffImpl = std::make_unique<CoulombWithTensionCutOffImpl>(rMaterialProperties);
 
     mRelativeDisplacementVectorFinalized =
         HasInitialState() ? GetInitialState().GetInitialStrainVector() : ZeroVector{GetStrainSize()};
@@ -159,8 +169,8 @@ void InterfaceCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(Paramete
     const auto negative   = std::signbit(trial_sigma_tau.Tau());
     trial_sigma_tau.Tau() = std::abs(trial_sigma_tau.Tau());
 
-    if (!mCoulombWithTensionCutOffImpl.IsAdmissibleStressState(trial_sigma_tau)) {
-        mapped_sigma_tau = mCoulombWithTensionCutOffImpl.DoReturnMapping(
+    if (!mCoulombWithTensionCutOffImpl->IsAdmissibleStressState(trial_sigma_tau)) {
+        mapped_sigma_tau = mCoulombWithTensionCutOffImpl->DoReturnMapping(
             trial_sigma_tau, mpConstitutiveDimension->CalculateElasticConstitutiveTensor(r_properties),
             Geo::PrincipalStresses::AveragingType::NO_AVERAGING);
         if (negative) mapped_sigma_tau.Tau() *= -1.0;

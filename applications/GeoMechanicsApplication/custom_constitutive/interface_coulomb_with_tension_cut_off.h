@@ -14,20 +14,23 @@
 
 #pragma once
 
-#include "custom_constitutive/coulomb_with_tension_cut_off_impl.h"
 #include "includes/constitutive_law.h"
+#include <memory>
+#include "sigma_tau.hpp"
 
 namespace Kratos
 {
 
 class ConstitutiveLawDimension;
+class CoulombWithTensionCutOffImpl;
 
 class KRATOS_API(GEO_MECHANICS_APPLICATION) InterfaceCoulombWithTensionCutOff : public ConstitutiveLaw
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(InterfaceCoulombWithTensionCutOff);
 
-    InterfaceCoulombWithTensionCutOff() = default;
+    InterfaceCoulombWithTensionCutOff();
+    ~InterfaceCoulombWithTensionCutOff() override;
     explicit InterfaceCoulombWithTensionCutOff(std::unique_ptr<ConstitutiveLawDimension> pConstitutiveDimension);
 
     // Copying is not allowed. Use member `Clone` instead.
@@ -35,8 +38,8 @@ public:
     InterfaceCoulombWithTensionCutOff& operator=(const InterfaceCoulombWithTensionCutOff&) = delete;
 
     // Moving is supported
-    InterfaceCoulombWithTensionCutOff(InterfaceCoulombWithTensionCutOff&&) noexcept = default;
-    InterfaceCoulombWithTensionCutOff& operator=(InterfaceCoulombWithTensionCutOff&&) noexcept = default;
+    InterfaceCoulombWithTensionCutOff(InterfaceCoulombWithTensionCutOff&&) noexcept;
+    InterfaceCoulombWithTensionCutOff& operator=(InterfaceCoulombWithTensionCutOff&&) noexcept;
 
     [[nodiscard]] ConstitutiveLaw::Pointer Clone() const override;
     SizeType                               WorkingSpaceDimension() override;
@@ -69,7 +72,7 @@ private:
     Vector                                    mTractionVector;
     Vector                                    mTractionVectorFinalized;
     Vector                                    mRelativeDisplacementVectorFinalized;
-    CoulombWithTensionCutOffImpl              mCoulombWithTensionCutOffImpl;
+    std::unique_ptr<CoulombWithTensionCutOffImpl>              mCoulombWithTensionCutOffImpl;
     bool                                      mIsModelInitialized = false;
 
     [[nodiscard]] Geo::SigmaTau CalculateTrialTractionVector(const Vector& rRelativeDisplacementVector,
