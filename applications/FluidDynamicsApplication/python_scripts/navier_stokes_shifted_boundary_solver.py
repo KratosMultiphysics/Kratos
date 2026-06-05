@@ -6,10 +6,9 @@ import KratosMultiphysics.FluidDynamicsApplication as KM_CFD
 
 # Import base class file
 from KratosMultiphysics.FluidDynamicsApplication.fluid_solver import FluidSolver
-
+from KratosMultiphysics.FluidDynamicsApplication import check_and_prepare_model_process_fluid
 
 import datetime
-
 
 class ShiftedBoundaryFormulation(object):
     """Helper class to define shifted boundary dependent parameters."""
@@ -57,7 +56,7 @@ class ShiftedBoundaryFormulation(object):
         self.boundary_sub_model_part_name = "ShiftedBoundaryConditions"
         self.level_set_type = formulation_settings["level_set_type"].GetString()
         if self.level_set_type != "point-based":
-            err_msg = 'Provided level set type is unknown. Available type for MLS-based SBM is \'point-based\'.'
+            err_msg = 'Provided level set type is unknown. Only available type for Navier-Stokes SBM is \'point-based\'.'
             raise Exception(err_msg)
         self.element_integrates_in_time = True
         self.element_has_nodal_properties = True
@@ -81,7 +80,6 @@ class ShiftedBoundaryFormulation(object):
                 raise Exception(err_msg)
             else:
                 for area in self.enclosed_areas:
-                    print(area)
                     if area not in ["none", "negative", "positive"]:
                         err_msg = 'Provided enclosed area designation is unknown. Available designations are \'none\', \'negative\' and \'positive\'.'
                         raise Exception(err_msg)
@@ -171,16 +169,15 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
         self.postprocess_skin_nodes = self.shifted_boundary_formulation.postprocess_skin_nodes
         self.boundary_sub_model_part_name = self.shifted_boundary_formulation.boundary_sub_model_part_name
 
-        # Create a skin model part
-        #TODO instead of advancing skin model parts in time manually, add Process Info to model parts as pointer to process info of the computing model part??
+        # Create a skin model part and skin points model part
+        #TODO create sub model parts for discretization and points?
         for skin_mp_name in self.skin_model_part_names:
-            self.model.CreateModelPart(skin_mp_name)
-            #const auto p_process_info = r_origin_model_part.pGetProcessInfo();
-            #r_visualization_model_part.SetProcessInfo(p_process_info);
-
-        # Create a model part for skin integration points
-        for skin_mp_name in self.skin_model_part_names:
-            self.model.CreateModelPart(skin_mp_name + "Points")
+            if not self.model.HasModelPart(skin_mp_name):
+                skin_mp = self.model.CreateModelPart(skin_mp_name)
+                # skin_mp.CreateSubModelPart("Disc")
+                # skin_mp.CreateSubModelPart("Points")
+            if not self.model.HasModelPart(skin_mp_name + "Points"):
+                self.model.CreateModelPart(skin_mp_name + "Points")
 
         KM.Logger.PrintInfo(self.__class__.__name__, "Construction of NavierStokesShiftedBoundaryMonolithicSolver finished.")
 
@@ -213,7 +210,7 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
             skin_mp.AddNodalSolutionStepVariable(KM.NEGATIVE_FACE_PRESSURE)
             skin_mp.AddNodalSolutionStepVariable(KM.POSITIVE_FACE_FLUID_VELOCITY)
             skin_mp.AddNodalSolutionStepVariable(KM.NEGATIVE_FACE_FLUID_VELOCITY)
-            skin_mp_points = self.model.GetModelPart(skin_mp_name+"Points")
+            skin_mp_points = self.model.GetModelPart(skin_mp_name + "Points")
             skin_mp_points.AddNodalSolutionStepVariable(KM.POSITIVE_FACE_PRESSURE)
             skin_mp_points.AddNodalSolutionStepVariable(KM.NEGATIVE_FACE_PRESSURE)
             skin_mp_points.AddNodalSolutionStepVariable(KM.POSITIVE_FACE_FLUID_VELOCITY)
@@ -229,18 +226,28 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
 
     def PrepareModelPart(self):
         if self.main_model_part.ProcessInfo[KM.IS_RESTARTED]:
-            # Delete conditions related to interface utility - the interface utility and conditions will be recreated
+            # Delete SBM conditions related to interface utility - the interface utility and conditions will be recreated
             boundary_sub_model_part = self.GetComputingModelPart().GetSubModelPart(self.boundary_sub_model_part_name)
-            KM.VariableUtils().SetFlag(KM.TO_ERASE, True, boundary_sub_model_part.Conditions)
-            boundary_sub_model_part.RemoveConditions(KM.TO_ERASE)
+            for cond in boundary_sub_model_part.Conditions:
+                self.main_model_part.GetCondition(cond.Id).Set(KM.TO_ERASE, True)
+            self.main_model_part.RemoveConditions(KM.TO_ERASE)
 
         # Call the fluid solver PrepareModelPart()
+        #NOTE this creates the computational fluid model part (if not restarted)
         super(NavierStokesShiftedBoundaryMonolithicSolver, self).PrepareModelPart()
 
         # Set the extra requirements of the shifted-boundary formulation
         if not self.main_model_part.ProcessInfo[KM.IS_RESTARTED]:
+            # Create sub model part for SBM conditions
+            if not self.GetComputingModelPart().HasSubModelPart(self.boundary_sub_model_part_name):
+                self.GetComputingModelPart().CreateSubModelPart(self.boundary_sub_model_part_name)
+
             # Set the shifted-boundary formulation configuration
             self.__SetShiftedBoundaryFormulation()
+
+        # Create shifted-boundary utility and flag BOUNDARY elements for calculating metric for initial remeshing (MMG)
+        self.__CreateBoundaryUtility()
+        self.__FlagBoundaryElements()
 
         # Clone the solution step data for skin and skin points model parts
         t =  self.GetComputingModelPart().ProcessInfo[KM.TIME]
@@ -254,22 +261,44 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
             skin_mp_points.ProcessInfo[KM.STEP] = step
 
     def Initialize(self):
+        #TODO remove all conditions of main model part that MMG created without being used in any sub model part
+        # bf_boundary_sub_model_part_names = ["AutomaticInlet2D_inlet","NoSlip2D_wall","Outlet2D_outlet"]
+        # cond_ids_used = []
+        # for bf_boundary_name in bf_boundary_sub_model_part_names:
+        #     bf_boundary_sub_model_part = self.main_model_part.GetSubModelPart(bf_boundary_name)
+        #     for cond in bf_boundary_sub_model_part.Conditions:
+        #         cond_ids_used.append(cond.Id)
+        # for cond in self.main_model_part.Conditions:
+        #     if cond.Id not in cond_ids_used:
+        #         cond.Set(KM.TO_ERASE, True)
+        # self.main_model_part.RemoveConditions(KM.TO_ERASE)
+
+        # Run check and prepare process again
+        #NOTE that this is necessary after 'initial_remeshing' of a MMG process to get correct parent elements for wall boundary conditions
+        prepare_model_part_settings = KM.Parameters("{}")
+        prepare_model_part_settings.AddValue("volume_model_part_name",self.settings["volume_model_part_name"])
+        prepare_model_part_settings.AddValue("skin_parts",self.settings["skin_parts"])
+        prepare_model_part_settings.AddValue("assign_neighbour_elements_to_conditions",self.settings["assign_neighbour_elements_to_conditions"])
+        check_and_prepare_model_process_fluid.CheckAndPrepareModelProcessFluid(self.main_model_part, prepare_model_part_settings).Execute()
+
         # If the solver requires an instance of the stabilized shifted boundary formulation class, set the process info variables
-        if hasattr(self, 'shifted_boundary_formulation'):
-            self.shifted_boundary_formulation.SetProcessInfo(self.GetComputingModelPart())
+        #TODO not necessary?
+        # if hasattr(self, 'shifted_boundary_formulation'):
+        #    self.shifted_boundary_formulation.SetProcessInfo(self.GetComputingModelPart())
 
         # Construct and initialize the solution strategy
-        # NOTE "Error: Constitutive Law not initialized for Element ShiftedBoundaryFluidElement #105033"
-        # if strategy is initialized after set up of interface utility (deactivation of elements?)
+        # NOTE There is an error that "Constitutive Law not initialized for Element .."
+        # if strategy is initialized after set up of interface utility (b/c of deactivation of elements?)
         solution_strategy = self._GetSolutionStrategy()
         solution_strategy.SetEchoLevel(self.settings["echo_level"].GetInt())
         solution_strategy.Initialize()
 
-        # Deactivate darcy term  #TODO necessary?
+        #TODO would this be useful?
+        # Deactivate darcy term
         # for ele in self.GetComputingModelPart().Elements:
         #     ele.SetValue(KM_CFD.RESISTANCE, 0.0)
 
-        # Create shifted-boundary meshless interface utility and calculate extension operator requiring nodal and elemental neighbors
+        # Set up shifted-boundary utility and calculate extension operator requiring nodal and elemental neighbors
         self.__SetUpBoundaryUtility()
 
         KM.Logger.PrintInfo(self.__class__.__name__, "Solver initialization finished.")
@@ -294,6 +323,7 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
         (self.time_discretization).ComputeAndSaveBDFCoefficients(self.GetComputingModelPart().ProcessInfo)
 
         #TODO deactivate unstable regions here because fixed dofs are only found after applying boundary conditions
+        # separate process for deactivating unstable regions?!
 
         # Call the base solver InitializeSolutionStep()
         super(NavierStokesShiftedBoundaryMonolithicSolver, self).InitializeSolutionStep()
@@ -348,20 +378,16 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
         # Save the formulation settings in the ProcessInfo
         self.shifted_boundary_formulation.SetProcessInfo(self.main_model_part)
 
-    def __SetUpBoundaryUtility(self):
-        # Create the boundary elements and MLS basis
+    def __CreateBoundaryUtility(self):
+        # Create the boundary elements and MLS parameter basis
         settings = KM.Parameters("""{}""")
-        settings.AddEmptyValue("model_part_name").SetString(self.main_model_part.Name + "." + self.GetComputingModelPart().Name)
-        settings.AddEmptyValue("boundary_sub_model_part_name").SetString(self.boundary_sub_model_part_name)
+        settings.AddEmptyValue("model_part_name").SetString(self.main_model_part.Name)  #TODO + "." + self.GetComputingModelPart().Name)
+        settings.AddEmptyValue("boundary_sub_model_part_name").SetString(self.main_model_part.Name + "." + self.GetComputingModelPart().Name + "." + self.boundary_sub_model_part_name)
         settings.AddEmptyValue("boundary_wall_condition_name").SetString(self.sbm_wall_condition_name)
         settings.AddEmptyValue("extension_operator_type").SetString(self.settings["formulation"]["extension_operator_type"].GetString())
         settings.AddEmptyValue("mls_extension_operator_order").SetInt(self.settings["formulation"]["mls_extension_operator_order"].GetInt())
 
-        # Calculate the required neighbors
-        elemental_neighbors_process = KM.GenericFindElementalNeighboursProcess(self.main_model_part)
-        elemental_neighbors_process.Execute()
-
-        # Create an interface utility for all skin model part names
+        # Create a boundary utility for all skin model part names
         time_prev = datetime.datetime.now().replace(microsecond=0)
         self.sbm_utilities = []
         for skin_model_part_name, enclosed_area in zip(self.skin_model_part_names, self.enclosed_areas):
@@ -369,11 +395,27 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
             settings.AddEmptyValue("skin_model_part_name").SetString(skin_model_part_name)
             settings.AddEmptyValue("enclosed_area").SetString(enclosed_area)
 
-            # Create interface utility
+            # Create boundary utility
             sbm_utility = KM.ShiftedBoundaryPointBasedUtility(self.model, settings)
             self.sbm_utilities.append(sbm_utility)
-            KM.Logger.PrintInfo(self.__class__.__name__, "New shifted-boundary point-based interface utility created for skin model part '" + skin_model_part_name + "'.")
-        time_prev = self.__PrintAndResetTimer(time_prev, "create the shifted-boundary interface utilities")
+            KM.Logger.PrintInfo(self.__class__.__name__, "New shifted-boundary point-based utility created for skin model part '" + skin_model_part_name + "'.")
+        self.__PrintAndResetTimer(time_prev, "create the shifted-boundary utilities")
+
+    def __FlagBoundaryElements(self):
+        # Flag elements as BOUNDARY if they are intersected by the skin model parts
+        time_prev = datetime.datetime.now().replace(microsecond=0)
+        for sbm_utility in self.sbm_utilities:
+            #TODO create separate function in sbm utility
+            #sbm_utility.FlagBoundaryElements()
+            sbm_utility.SetTessellatedBoundaryFlagsAndRelocateSmallDistanceNodes()
+        self.__PrintAndResetTimer(time_prev, "flag boundary elements")
+
+    def __SetUpBoundaryUtility(self):
+        # Calculate the required neighbors
+        elemental_neighbors_process = KM.GenericFindElementalNeighboursProcess(self.main_model_part)
+        elemental_neighbors_process.Execute()
+
+        time_prev = datetime.datetime.now().replace(microsecond=0)
 
         if len(self.sbm_utilities) == 1:
             self.sbm_utilities[0].CalculateAndAddPointBasedInterface(self.deactivate_unstable_clusters)
@@ -413,10 +455,12 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
         else:
             KM.Logger.PrintWarning('Shifted-boundary interface utility was not set up because no boundary model part was given.')
 
+        KM.Logger.PrintInfo(self.__class__.__name__, self.main_model_part)
+
     def __PrintAndResetTimer(self, time_prev, process_description):
         time_curr = datetime.datetime.now().replace(microsecond=0)
         delta = time_curr - time_prev
         hours, remainder = divmod(delta.seconds, 3600)
         minutes, seconds = divmod(remainder, 60)
-        KM.Logger.PrintInfo(self.__class__.__name__, "NavierStokesShiftedBoundaryMonolithicSolver", "Time required to " + process_description + ": " + str(int(hours)) + " h, " + str(int(minutes)) + " min, " + str(int(seconds)) + " sec")
+        KM.Logger.PrintInfo(self.__class__.__name__, "Time required to " + process_description + ": " + str(int(hours)) + " h, " + str(int(minutes)) + " min, " + str(int(seconds)) + " sec")
         return time_curr
