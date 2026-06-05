@@ -260,7 +260,7 @@ private:
             SetIdOrName<BrepSurfaceType>(rParameters, p_brep_surface);
 
             ReadAndAddEmbeddedEdges(p_brep_surface, rParameters, p_surface, rModelPart, EchoLevel);
-            ReadAndApplyLocalRefinement(p_brep_surface, rParameters, rLocalRefParameters, EchoLevel);
+            ReadLocalRefinement(p_brep_surface, rParameters, rLocalRefParameters, EchoLevel);
 
             rModelPart.AddGeometry(p_brep_surface);
         }
@@ -278,7 +278,7 @@ private:
             SetIdOrName<BrepSurfaceType>(rParameters, p_brep_surface);
 
             ReadAndAddEmbeddedEdges(p_brep_surface, rParameters, p_surface, rModelPart, EchoLevel);
-            ReadAndApplyLocalRefinement(p_brep_surface, rParameters, rLocalRefParameters, EchoLevel);
+            ReadLocalRefinement(p_brep_surface, rParameters, rLocalRefParameters, EchoLevel);
 
             rModelPart.AddGeometry(p_brep_surface);
         }
@@ -403,7 +403,7 @@ private:
         }
     }
 
-    static void ReadAndApplyLocalRefinement(
+    static void ReadLocalRefinement(
         typename BrepSurfaceType::Pointer pBrepSurface,
         const Parameters rFaceParameters,
         const Parameters rLocalRefParameters,
