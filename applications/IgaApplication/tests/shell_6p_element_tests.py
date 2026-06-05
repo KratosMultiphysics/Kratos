@@ -5,6 +5,7 @@
 #       /___/\____/_/  |_| Application
 
 import KratosMultiphysics as KM
+import KratosMultiphysics.IgaApplication as IGA
 import KratosMultiphysics.StructuralMechanicsApplication as SMA
 import KratosMultiphysics.LinearSolversApplication as LinearSolversApplication
 import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
