@@ -168,6 +168,7 @@ class KratosGeoMechanicsLabElementTests(KratosGeoUnittest.TestCase):
         reader = GiDOutputFileReader()
         file_path = test_helper.get_file_path(Path('test_element_lab') / "test_crs" / stage_name / model_name)
         result = reader.read_output_from(Path(file_path) / "test_crs_output.post.res")
+        node_ids = list(range(1, 10))
         for i in range(nr_of_phases):
             self.assert_integration_point_tensors(
                 result, "CAUCHY_STRESS_TENSOR",
@@ -177,7 +178,6 @@ class KratosGeoMechanicsLabElementTests(KratosGeoUnittest.TestCase):
                 result, "ENGINEERING_STRAIN_TENSOR",
                 self._make_integration_point_tensor_entries(expected_strains[i], num_elements=2, num_integration_points_per_element=3),
                 times[i], places=places_strain)
-            node_ids = [1,2,3,4,5,6,7,8,9]
             self.assert_nodal_values_at_time(result, "WATER_PRESSURE", node_ids, expected_water_pressures[i], times[i], places=places_water_pressure)
 
     def test_triaxial_comp_6n(self):
