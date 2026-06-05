@@ -137,6 +137,8 @@ void CartesianMeshGeneratorModeler::GenerateMesh(
         ModelPart::NodesContainerType::ContainerType& r_nodes_array = rModelPart.NodesArray();
         r_nodes_array.resize(total_nodes);
 
+        auto p_variables_list = rModelPart.pGetNodalSolutionStepVariablesList();
+        const SizeType buffer_size = rModelPart.GetBufferSize();
         for (unsigned int k = 0; k < nz; k++) {
             for (unsigned int j = 0; j < ny; j++) {
                 for (unsigned int i = 0; i < nx; i++) {
@@ -145,6 +147,8 @@ void CartesianMeshGeneratorModeler::GenerateMesh(
                         x0 + i * mElementSize,
                         y0 + j * mElementSize,
                         z0 + k * mElementSize));
+                    p_node->SetSolutionStepVariablesList(p_variables_list);
+                    p_node->SetBufferSize(buffer_size);
                     node_ptrs[NodeIdx3D(i,j,k)] = p_node;
                     r_nodes_array[NodeIdx3D(i,j,k)] = p_node;
                 }
@@ -226,14 +230,20 @@ void CartesianMeshGeneratorModeler::GenerateMesh(
 
     ModelPart::ElementsContainerType::ContainerType& r_elements_array = rModelPart.ElementsArray();
 
+    auto p_variables_list = rModelPart.pGetNodalSolutionStepVariablesList();
+    const SizeType buffer_size = rModelPart.GetBufferSize();
     for (unsigned int k = 0; k < mDivisionsNumber[2]; k++)
         for (unsigned int j = 0; j < mDivisionsNumber[1]; j++)
-            for (unsigned int i = 0; i < mDivisionsNumber[0]; i++)
-                temp_nodes_array[NodeIndex(i,j,k)] = Node::Pointer(new Node(
+            for (unsigned int i = 0; i < mDivisionsNumber[0]; i++) {
+                auto p_node = Node::Pointer(new Node(
                     start_node_id++,
                     x0 + i * mElementSize,
                     y0 + j * mElementSize,
                     z0 + k * mElementSize));
+                p_node->SetSolutionStepVariablesList(p_variables_list);
+                p_node->SetBufferSize(buffer_size);
+                temp_nodes_array[NodeIndex(i,j,k)] = p_node;
+            }
 
     unsigned int number_of_active_nodes = 0;
     for (unsigned int i = 0; i < number_of_nodes; i++)
