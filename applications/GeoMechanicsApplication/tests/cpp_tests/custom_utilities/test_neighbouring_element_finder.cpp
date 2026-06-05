@@ -272,4 +272,28 @@ KRATOS_TEST_CASE_IN_SUITE(NeighbouringElementFinder_FindsNeighbourElementOfCondi
     EXPECT_EQ(r_model_part.GetCondition(1).GetValue(NEIGHBOUR_ELEMENTS).size(), 1);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(NeighbouringElementFinder_FindsNeighbourElementOfPointConditionWhenReverseSearchIsActive,
+                      KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    Model model;
+    auto& r_model_part = model.CreateModelPart("main");
+    auto  nodes        = Testing::ModelSetupUtilities::CreateNodes(
+        r_model_part, {{1, {0.0, 0.0, 0.0}}});
+    auto geometry = Kratos::make_shared<Point2D<Node>>(nodes);
+
+    r_model_part.AddElement(Kratos::make_intrusive<Element>(1, geometry));
+    r_model_part.AddCondition(Kratos::make_intrusive<Condition>(1, geometry));
+
+    NeighbouringElementFinder::BoundaryGeneratorByLocalDim boundary_generators;
+    boundary_generators[std::size_t{0}] = std::make_unique<PointsGenerator>();
+    NeighbouringElementFinder finder(true);
+
+    // Act
+    finder.FindEntityNeighbours(r_model_part.Conditions(), r_model_part.Elements(), boundary_generators);
+
+    // Assert
+    EXPECT_EQ(r_model_part.GetCondition(1).GetValue(NEIGHBOUR_ELEMENTS).size(), 1);
+}
+
 } // namespace Kratos::Testing
