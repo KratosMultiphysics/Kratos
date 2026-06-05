@@ -306,6 +306,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
         kratos_variable_label,
         plot_stages,
         nodes,
+        transform_output,
         data_extractor_fem_comparison,
         data_extractor_dsheetpiling=None,
     ):
@@ -327,9 +328,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
                 node_ids=node_ids,
             )
 
-            variable_kratos_data = [
-                unit_to_k_unit(value) for value in variable_kratos_data
-            ]
+            variable_kratos_data = [transform_output(value) for value in variable_kratos_data]
 
             data_series_collection = [
                 plot_utils.DataSeries(
@@ -356,13 +355,13 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
                 )
 
             if (self.test_path / f"{stage['base_name']}__DSheetPiling_results.csv").exists() and data_extractor_dsheetpiling:
-                comparison_variable = test_helper.get_data_points_from_file(
+                data_points = test_helper.get_data_points_from_file(
                     self.test_path / f"{stage['base_name']}__DSheetPiling_results.csv",
                     data_extractor_dsheetpiling,
                 )
                 data_series_collection.append(
                     plot_utils.DataSeries(
-                        comparison_variable,
+                        data_points,
                         "D-Sheet Piling",
                         marker="1",
                     )
@@ -377,11 +376,18 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
         return self.get_wall_variable_collections_per_stage("BENDING_MOMENT",
                                                             self.get_plot_stages(),
                                                             nodes,
+                                                            unit_to_k_unit,
                                                             extract_bending_moment_and_y_from_line,
                                                             data_extractor_dsheetpiling=extract_bending_moment_and_y_from_line)
 
     def get_wall_horizontal_total_displacement_collections_per_stage(
-        self, plot_stages, nodes, data_extractor_fem_comparison, data_extractor_dsheetpiling=None
+        self,
+        kratos_variable_label,
+        plot_stages,
+        nodes,
+        transform_output,
+        data_extractor_fem_comparison,
+        data_extractor_dsheetpiling=None,
     ):
         node_ids = [node.Id for node in nodes]
         y_coords = [node.Y for node in nodes]
@@ -394,47 +400,47 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
                 self.test_path / "gid_output" / f"{stage['base_name']}.post.res"
             )
 
-            total_displacement_vectors = reader.nodal_values_at_time(
-                "TOTAL_DISPLACEMENT",
+            variable_kratos_data = reader.nodal_values_at_time(
+                kratos_variable_label,
                 stage["end_time"],
                 output_data,
                 node_ids=node_ids,
             )
 
-            horizontal_total_displacements = [value[0] for value in total_displacement_vectors]
+            variable_kratos_data = [transform_output(value) for value in variable_kratos_data]
 
             data_series_collection = [
                 plot_utils.DataSeries(
-                    zip(horizontal_total_displacements, y_coords),
+                    zip(variable_kratos_data, y_coords),
                     "Kratos",
                     line_style="-",
                     marker=".",
                 )
             ]
 
-            if (
+            fem_comparison_csv = (
                 self.test_path / f"{stage['base_name']}__FE_comparison_wall.csv"
-            ).exists():
-                comparison_variable = test_helper.get_data_points_from_file(
-                    self.test_path / f"{stage['base_name']}__FE_comparison_wall.csv",
-                    data_extractor_fem_comparison,
+            )
+            if fem_comparison_csv.exists():
+                data_points = test_helper.get_data_points_from_file(
+                    fem_comparison_csv, data_extractor_fem_comparison
                 )
                 data_series_collection.append(
                     plot_utils.DataSeries(
-                        comparison_variable,
-                        "Commercial FE package",
-                        marker="2",
+                        data_points,
+                        label="Commercial FE package",
+                        marker="3",
                     )
                 )
 
             if (self.test_path / f"{stage['base_name']}__DSheetPiling_results.csv").exists() and data_extractor_dsheetpiling:
-                comparison_variable = test_helper.get_data_points_from_file(
+                data_points = test_helper.get_data_points_from_file(
                     self.test_path / f"{stage['base_name']}__DSheetPiling_results.csv",
                     data_extractor_dsheetpiling,
                 )
                 data_series_collection.append(
                     plot_utils.DataSeries(
-                        comparison_variable,
+                        data_points,
                         "D-Sheet Piling",
                         marker="1",
                     )
@@ -461,6 +467,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             "SHEAR_FORCE",
             plot_stages,
             nodes,
+            unit_to_k_unit,
             extract_shear_force_and_y_from_line,
             data_extractor_dsheetpiling=extract_shear_force_and_y_from_line,
         )
@@ -476,6 +483,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             "AXIAL_FORCE",
             plot_stages,
             nodes,
+            unit_to_k_unit,
             extract_normal_force_and_y_from_line)
         plot_utils.make_sub_plots(
             normal_force_collections,
@@ -484,9 +492,10 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             xlabel="Normal force [kN/m]",
             ylabel=r"$y$ [m]")
 
+        get_x_component = lambda vector: vector[0]
         horizontal_total_displacement_collections = (
             self.get_wall_horizontal_total_displacement_collections_per_stage(
-                plot_stages, nodes, extract_horizontal_displacements_from_line, data_extractor_dsheetpiling=extract_horizontal_displacements_from_dsheetpiling_line
+                "TOTAL_DISPLACEMENT", plot_stages, nodes, get_x_component, extract_horizontal_displacements_from_line, data_extractor_dsheetpiling=extract_horizontal_displacements_from_dsheetpiling_line
             )
         )
         plot_utils.make_sub_plots(
