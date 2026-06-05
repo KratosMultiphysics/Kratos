@@ -35,64 +35,6 @@ csv_fieldnames = [
 ]
 
 
-def get_sheetpile_node_ids():
-    return [
-        3968,
-        3982,
-        3996,
-        4010,
-        4026,
-        4036,
-        4051,
-        4066,
-        4075,
-        4090,
-        4102,
-        4120,
-        4135,
-        4148,
-        4161,
-        4172,
-        4188,
-        4204,
-        4218,
-        4231,
-        4241,
-        4256,
-        4271,
-        4280,
-        4297,
-        4308,
-        4322,
-        4338,
-        4352,
-        4361,
-        4375,
-        4390,
-        4403,
-        4415,
-        4430,
-        4444,
-        4457,
-        4470,
-        4483,
-        4497,
-        4509,
-        4522,
-        4536,
-        4547,
-        4560,
-        4571,
-        4582,
-        4595,
-        4604,
-        4614,
-        4624,
-        4633,
-        4639,
-    ]
-
-
 def _extract_x_and_y_from_line(line, index_of_x=0, index_of_y=1, x_transform=None):
     line = line.strip().lstrip("\ufeff").replace("ï»¿", "")
     words = [
@@ -604,7 +546,12 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
         )
 
         reader = GiDOutputFileReader()
-        node_ids = get_sheetpile_node_ids()
+
+        mdpa_file_path_without_file_extension = test_helper.get_file_path(Path("crow_validation") / "common" / "model")
+        model = Kratos.Model()
+        main_model_part = model.CreateModelPart("PorousDomain")
+        Kratos.ModelPartIO(mdpa_file_path_without_file_extension).ReadModelPart(main_model_part)
+        node_ids = [node.Id for node in model.GetModelPart("PorousDomain.Sheet_Pile_Wall").Nodes]
 
         for stage_name in [
             "wall_installation",
