@@ -181,9 +181,13 @@ class ResidualBasedNewtonRaphsonStrategyPython():
                 is_converged = self.convergence_criteria.PostCriteria(self.main_model_part,dof_set,self.A,self.Dx,self.b)
 
         if (iteration_number >= max_iterations):
-            print('NOT CONVERGENCE!!!!!')
+            KratosMultiphysics.Logger.PrintInfo(
+                "::[ResidualBasedNewtonRaphsonStrategyPython]::",
+                "NOT CONVERGENCE")
         else:
-            print("Convergence achieved after " + str(iteration_number) + " / " + str(max_iterations) + " iterations")
+            KratosMultiphysics.Logger.PrintInfo(
+                "::[ResidualBasedNewtonRaphsonStrategyPython]::",
+                "Convergence achieved after " + str(iteration_number) + " / " + str(max_iterations) + " iterations")
 
         return is_converged
 

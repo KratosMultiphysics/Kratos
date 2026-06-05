@@ -447,10 +447,16 @@ class CoupledFluidThermalSolverBoussinesq(CoupledFluidThermalSolver):
             self._boussinesq_process.Execute()
 
             # --- Step 2: solve Navier-Stokes → v^k -------------------------
+            KratosMultiphysics.Logger.PrintInfo(
+                "::[CoupledFluidThermalSolverBoussinesq]:: ",
+                "Solving fluid...")
             fluid_converged = self._NormalizeConvergenceFlag(self.fluid_solver.SolveSolutionStep())
 
             # --- Step 3: solve Convection-Diffusion → φ^k ------------------
             # The C-D solver reads VELOCITY from the now-updated fluid model part.
+            KratosMultiphysics.Logger.PrintInfo(
+                "::[CoupledFluidThermalSolverBoussinesq]::",
+                "Solving CD...")
             thermal_converged = self._NormalizeConvergenceFlag(self.thermal_solver.SolveSolutionStep())
 
             # --- Step 4/5: Relaxation/Quasi-Newton and residual --------
