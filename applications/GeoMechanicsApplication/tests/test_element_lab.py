@@ -13,52 +13,51 @@ class KratosGeoMechanicsLabElementTests(KratosGeoUnittest.TestCase):
     """
     def test_triaxial_drained(self):
         """Regression test for the triaxial experiment on a mohr coulomb model with a constant pore water pressure."""
-        expected_disp = [[0.0, -0.2, 0.0], [0.0527776, -0.2, 0.0], [0.0, -0.100033, 0.0], [0.0524025, -0.0996931, 0.0], [0.0, 0.0, 0.0], [0.105197, -0.2, 0.0], [0.105114, -0.100049, 0.0], [0.0524406, 0.0, 0.0], [0.104632, 0.0, 0.0]]
-        expected_stress = [[-99.9808, -252.622, -99.9806, 0.193199, 0.0, 0.0], [-99.8828, -252.381, -99.8827, 0.0448209, 0, 0], [-100.045, -252.78, -100.045, 0.0314238, 0, 0], [-99.9991, -252.668, -99.9991, 0.00846584, 0, 0], [-99.967, -252.589, -99.967, -0.0103576, 0, 0], [-100.064, -252.827, -100.064, 0.137162, 0, 0]]
-        expected_strain = [[0.104863, -0.19973, 0.104946, 0.000440186, 0.0, 0.0], [0.104939, -0.199861, 0.105022, 0.000100528, 0, 0], [0.10444, -0.199182, 0.104773, 6.24562e-05, 0, 0], [0.1055, -0.200303, 0.104922, 3.84218e-05, 0, 0], [0.104915, -0.200106, 0.105298, -4.97694e-06, 0, 0], [0.105631, -0.200818, 0.105335, 0.000287088, 0, 0]]
-        self._run_triaxial_regression_test('drained', 'triaxial_test_output.post.res', expected_disp, expected_stress,
-                                           expected_strain, 4, assert_all_integration_points=True)
+        file_path = test_helper.get_file_path(os.path.join('test_element_lab', 'test_triaxial', 'drained'))
+        expected_disp = test_helper.get_values_from_csv_as_vectors(
+            Path(file_path) / "expected_disp.csv",
+            ["node_id"],
+            ["disp_x", "disp_y", "disp_z"])
+        expected_stress = test_helper.get_values_from_csv_as_vectors(
+            Path(file_path) / "expected_stress.csv",
+            ["element_id", "ip_index"],
+            ["stress_xx", "stress_yy", "stress_zz", "stress_xy", "stress_yz", "stress_xz"])
+        expected_strain = test_helper.get_values_from_csv_as_vectors(
+            Path(file_path) / "expected_strain.csv",
+            ["element_id", "ip_index"],
+            ["strain_xx", "strain_yy", "strain_zz", "strain_xy", "strain_yz", "strain_xz"])
+        self._run_triaxial_regression_test(file_path, 'triaxial_test_output.post.res', expected_disp, expected_stress,
+                                           expected_strain, 4)
 
     def test_triaxial_undrained(self):
         """
         Regression test for the undrained triaxial experiment.
         """
-        expected_disp = [[0.0, -0.2, 0.0], [0.045, -0.2, 0.0], [0.0, -0.1, 0.0], [ 0.045, -0.1, 0.0],[0.0, 0.0, 0.0], [0.09, -0.2, 0.0], [0.09, -0.1, 0.0], [0.045, 0.0, 0.0], [0.09, 0.0, 0.0]]
-        expected_stress = [[-100.0, -4740.0, -100.0, 0.0, 0.0, 0.0], [-100.0, -4740.0, -100.0, 0.0, 0.0, 0.0]]
-        expected_strain = [[0.09, -0.2, 0.09, 0.0, 0.0, 0.0], [0.09, -0.2, 0.09, 0.0, 0.0, 0.0]]
-        self._run_triaxial_regression_test('undrained', 'triaxial_undrained_test_output.post.res', expected_disp,
+        file_path = test_helper.get_file_path(os.path.join('test_element_lab', 'test_triaxial', 'undrained'))
+        expected_disp = test_helper.get_values_from_csv_as_vectors(
+            Path(file_path) / "expected_disp.csv",
+            ["node_id"],
+            ["disp_x", "disp_y", "disp_z"])
+        expected_stress = test_helper.get_values_from_csv_as_vectors(
+            Path(file_path) / "expected_stress.csv",
+            ["element_id", "ip_index"],
+            ["stress_xx", "stress_yy", "stress_zz", "stress_xy", "stress_yz", "stress_xz"])
+        expected_strain = test_helper.get_values_from_csv_as_vectors(
+            Path(file_path) / "expected_strain.csv",
+            ["element_id", "ip_index"],
+            ["strain_xx", "strain_yy", "strain_zz", "strain_xy", "strain_yz", "strain_xz"])
+        self._run_triaxial_regression_test(file_path, 'triaxial_undrained_test_output.post.res', expected_disp,
                                            expected_stress, expected_strain, 4)
 
-    def _run_triaxial_regression_test(self, stage_name, output_file_name, expected_displacement, expected_stress,
-                                      expected_strain, precision_places, assert_all_integration_points=False):
-        test_name = 'test_triaxial'
-        file_path = test_helper.get_file_path(os.path.join('test_element_lab', test_name, stage_name))
+    def _run_triaxial_regression_test(self, file_path, output_file_name, expected_displacement, expected_stress, expected_strain, precision_places):
         test_helper.run_kratos(file_path)
-
-        # Read the output files from the simulation for comparison.
-        reader = GiDOutputFileReader()
-        result = reader.read_output_from(os.path.join(file_path, output_file_name))
+        result = GiDOutputFileReader.read_output_from(os.path.join(file_path, output_file_name))
         time = 1.0
-
-        # Assert the displacement in all nodes in all directions.
-        for node_id, expected_node_displacement in enumerate(expected_displacement, start=1):
-            node_displacement = reader.nodal_values_at_time("DISPLACEMENT", time, result, [node_id])[0]
-            self.assertVectorAlmostEqual(node_displacement, expected_node_displacement, precision_places)
-
-        if assert_all_integration_points:
-            self.assert_integration_point_tensors(result, "CAUCHY_STRESS_TENSOR",
-                self._make_integration_point_tensor_entries(expected_stress, num_elements=2, num_integration_points_per_element=3),
-                time ,precision_places)
-            self.assert_integration_point_tensors(result, "ENGINEERING_STRAIN_TENSOR",
-                self._make_integration_point_tensor_entries(expected_strain, num_elements=2, num_integration_points_per_element=3),
-                time, precision_places)
-        else:
-            self.assert_integration_point_tensors(result, "CAUCHY_STRESS_TENSOR", 
-                self._make_integration_point_tensor_entries(expected_stress, num_elements=2, num_integration_points_per_element=1),
-                time, precision_places)
-            self.assert_integration_point_tensors(result, "ENGINEERING_STRAIN_TENSOR", 
-                self._make_integration_point_tensor_entries(expected_strain, num_elements=2, num_integration_points_per_element=1),
-                time, precision_places)
+        node_ids = sorted(expected_displacement)
+        expected_disp = [expected_displacement[node_id] for node_id in node_ids]
+        self.assert_nodal_values_at_time(result, "DISPLACEMENT", node_ids, expected_disp, time, precision_places)
+        self.assert_integration_point_tensors(result, "CAUCHY_STRESS_TENSOR", expected_stress, time, precision_places)
+        self.assert_integration_point_tensors(result, "ENGINEERING_STRAIN_TENSOR", expected_strain, time, precision_places)
             
     def test_oedometer_drained(self):
         """Regression test for the oedometer experiment on a linear elastic model with constant pore water pressure."""
