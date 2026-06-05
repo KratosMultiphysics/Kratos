@@ -61,10 +61,15 @@ void FindNeighboursOfInterfacesProcess::RemoveNeighboursWithoutHigherLocalDimens
                 [interface_element_local_dimension](const Element& rNeighbourElement) {
                 return rNeighbourElement.GetGeometry().LocalSpaceDimension() <= interface_element_local_dimension;
             };
-            r_neighbour_elements.erase(
-                std::remove_if(r_neighbour_elements.begin(), r_neighbour_elements.end(),
-                               is_neighbour_without_higher_local_dimension),
-                r_neighbour_elements.end());
+            // WORKAROUND: std::erase-remove on GlobalPointersVector corrupts adjacent memory.
+            // Instead of erasing in-place, build a new container with elements to keep.
+            GlobalPointersVector<Element> temp_neighbours;
+            for (auto it = r_neighbour_elements.ptr_begin(); it != r_neighbour_elements.ptr_end(); ++it) {
+                if (!is_neighbour_without_higher_local_dimension(**it)) {
+                    temp_neighbours.push_back(*it);
+                }
+            }
+            r_neighbour_elements = temp_neighbours;
         }
     }
 }
