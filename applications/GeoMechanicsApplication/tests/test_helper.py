@@ -51,8 +51,11 @@ def get_values_from_csv(csv_filepath, keys, values):
     result = {}
     with open(csv_filepath, newline = "") as csv_file:
         reader = csv.DictReader(csv_file)
-        for row in reader:
-            key = tuple(int(row[key]) for key in keys)
+        for row in reader:           
+            if len(keys) == 1:
+                key = int(row[keys[0]])
+            else:
+                key = tuple(int(row[key]) for key in keys)
             expected_values = {value: float(row[value]) for value in values}
             result[key] = expected_values
     return result
