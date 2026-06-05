@@ -33,7 +33,6 @@ namespace Kratos
 
         const auto& r_geometry = GetGeometry();
         const IndexType number_of_nodes = r_geometry.size();
-        const IndexType mat_size = r_geometry.WorkingSpaceDimension() * number_of_nodes * 2;
         const IndexType disp_size = 3 * number_of_nodes;
 
         // Integration
