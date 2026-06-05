@@ -310,7 +310,6 @@ def find_closest_index_greater_than_value(input_list, value):
             return index
     return None
 
-
 def are_values_almost_equal(expected: Any, actual: Any, abs_tolerance: float = 1e-7) -> bool:
     """
     Checks whether two values are almost equal.
@@ -337,7 +336,7 @@ def are_values_almost_equal(expected: Any, actual: Any, abs_tolerance: float = 1
         raise TypeError(f"Unsupported type {type(expected)}")
 
 
-def are_iterables_almost_equal(expected: (list, tuple, set), actual: (list, tuple, set),
+def are_iterables_almost_equal(expected, actual,
                                abs_tolerance: float = 1e-7) -> bool:
     """
     Checks whether two iterables are almost equal.
