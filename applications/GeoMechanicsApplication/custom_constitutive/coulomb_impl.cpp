@@ -124,14 +124,12 @@ bool CoulombImpl::IsAdmissibleStressState(const StressStateType& rTrialStressSta
     constexpr auto tolerance         = 1.0e-10;
     const auto     coulomb_tolerance = tolerance * (1.0 + std::abs(coulomb_yield_function_value));
 
-    auto tension_admissable = true;
-    if (mTensionCutOff) {
+    auto admissible_state = coulomb_yield_function_value < coulomb_tolerance;
+    if (admissible_state  && mTensionCutOff) {
         const auto tension_yield_function_value = mTensionCutOff->YieldFunctionValue(rTrialStressState);
         const auto tension_tolerance = tolerance * (1.0 + std::abs(tension_yield_function_value));
-        tension_admissable           = tension_yield_function_value < tension_tolerance;
+        admissible_state  = tension_yield_function_value < tension_tolerance;
     }
-
-    const auto admissible_state = coulomb_yield_function_value < coulomb_tolerance && tension_admissable;
     if (admissible_state) mPlasticityStatus = PlasticityStatus::ELASTIC;
     return admissible_state;
 }
