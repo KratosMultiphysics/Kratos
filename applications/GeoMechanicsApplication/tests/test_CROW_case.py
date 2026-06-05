@@ -319,82 +319,16 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             self.stages_info["third_excavation"],
         ]
 
-    def get_wall_variable_collections_per_stage(
-        self,
-        kratos_variable_label,
-        plot_stages,
-        nodes,
-        postfix_json_output,
-        transform_output,
-        postfix_fem_comparison_csv,
-        data_extractor_fem_comparison,
-        data_extractor_dsheetpiling=None,
-    ):
-        node_ids = [node.Id for node in nodes]
-        y_coords = [node.Y for node in nodes]
-
-        variable_data_collections = []
-        for stage in plot_stages:
-            json_data = self.read_json_output(stage, postfix_json_output)
-            variable_kratos_data = []
-            for node_label in [f"NODE_{node_id}" for node_id in node_ids]:
-                variable_kratos_data.append(
-                    json_data[node_label][kratos_variable_label][0]
-                )
-
-            variable_kratos_data = [transform_output(value) for value in variable_kratos_data]
-            sorted_y, sorted_data = zip(*sorted(zip(y_coords, variable_kratos_data)))
-            data_series_collection = [
-                plot_utils.DataSeries(
-                    zip(sorted_data, sorted_y),
-                    "Kratos",
-                    line_style="-",
-                    marker=".",
-                )
-            ]
-
-            fem_comparison_csv = (
-                self.test_path / f"{stage['base_name']}__{postfix_fem_comparison_csv}.csv"
-            )
-            if fem_comparison_csv.exists():
-                data_points = test_helper.get_data_points_from_file(
-                    fem_comparison_csv, data_extractor_fem_comparison
-                )
-                data_series_collection.append(
-                    plot_utils.DataSeries(
-                        data_points,
-                        label="Commercial FE package",
-                        marker="3",
-                    )
-                )
-
-            if (self.test_path / f"{stage['base_name']}__DSheetPiling_results.csv").exists() and data_extractor_dsheetpiling:
-                data_points = test_helper.get_data_points_from_file(
-                    self.test_path / f"{stage['base_name']}__DSheetPiling_results.csv",
-                    data_extractor_dsheetpiling,
-                )
-                data_series_collection.append(
-                    plot_utils.DataSeries(
-                        data_points,
-                        "D-Sheet Piling",
-                        marker="1",
-                    )
-                )
-
-            variable_data_collections.append(data_series_collection)
-
-        return variable_data_collections
-
 
     def get_bending_moments_data_series_per_stage(self, nodes):
-        return self.get_wall_variable_collections_per_stage("BENDING_MOMENT",
-                                                            self.get_plot_stages(),
-                                                            nodes,
-                                                            "output_wall",
-                                                            unit_to_k_unit,
-                                                            "FE_comparison_wall",
-                                                            extract_bending_moment_and_y_from_line,
-                                                            data_extractor_dsheetpiling=extract_bending_moment_and_y_from_line)
+        return self.get_variable_collections_per_stage("BENDING_MOMENT",
+                                                       self.get_plot_stages(),
+                                                       nodes,
+                                                       "output_wall",
+                                                       unit_to_k_unit,
+                                                       "FE_comparison_wall",
+                                                       extract_bending_moment_and_y_from_line,
+                                                       data_extractor_dsheetpiling=extract_bending_moment_and_y_from_line)
 
 
     def create_wall_plots(self, nodes):
@@ -412,7 +346,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
 
         postfix_fem_comparison_csv = "FE_comparison_wall"
         postfix_json_output = "output_wall"
-        shear_force_collections = self.get_wall_variable_collections_per_stage(
+        shear_force_collections = self.get_variable_collections_per_stage(
             "SHEAR_FORCE",
             plot_stages,
             nodes,
@@ -430,7 +364,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             ylabel=r"$y$ [m]",
         )
 
-        normal_force_collections = self.get_wall_variable_collections_per_stage(
+        normal_force_collections = self.get_variable_collections_per_stage(
             "AXIAL_FORCE",
             plot_stages,
             nodes,
@@ -447,7 +381,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
 
         no_transformation = lambda value: value
         horizontal_total_displacement_collections = (
-            self.get_wall_variable_collections_per_stage(
+            self.get_variable_collections_per_stage(
                 "TOTAL_DISPLACEMENT_X",
                 plot_stages,
                 nodes,
