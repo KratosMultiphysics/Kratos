@@ -51,6 +51,7 @@ from iga_test_factory import TwoPatchRefinedCouplingNitscheMembraneTest as TwoPa
 # Rotation/G_1 coupling tests
 from iga_test_factory import TwoPatchCantileverCouplingPenaltyTest as TwoPatchCantileverCouplingPenaltyTest
 from iga_test_factory import TwoPatchCantileverRefinedCouplingPenaltyTest as TwoPatchCantileverRefinedCouplingPenaltyTest
+from iga_test_factory import TwoPatchCantileverRefinedCouplingPenalty6pTest as TwoPatchCantileverRefinedCouplingPenalty6pTest
 # Nurbs Volume tests
 from test_nurbs_volume_element import TestNurbsVolumeElement as TTestNurbsVolumeElements
 # Modelers tests
@@ -117,6 +118,7 @@ def AssembleTestSuites():
         # Rotation/G_1 coupling tests
         TwoPatchCantileverCouplingPenaltyTest,
         TwoPatchCantileverRefinedCouplingPenaltyTest,
+        TwoPatchCantileverRefinedCouplingPenalty6pTest,
         # Volumes
         TTestNurbsVolumeElements,
         # Modelers

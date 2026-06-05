@@ -555,6 +555,10 @@ class Shell6pElementTests(KratosUnittest.TestCase):
         # modal analysis
         surface, eigenvalues = Shell6pElementTests.solve_cantilever_modal_analysis(create_geometry)
 
+        self.assertAlmostEqual(eigenvalues[0], 0.677190440290159)
+        self.assertAlmostEqual(eigenvalues[1], 55.81155501418916)
+        self.assertAlmostEqual(eigenvalues[2], 116.9743177874331)
+        self.assertAlmostEqual(eigenvalues[3], 2274.463699330766)
 
     # test nonlinear analysis with the same geometry and weak penalty support
     def testCantileverOneQuadraticSpanWithWeakPenaltySupport(self):
