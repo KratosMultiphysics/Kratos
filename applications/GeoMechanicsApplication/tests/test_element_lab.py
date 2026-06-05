@@ -239,7 +239,7 @@ class KratosGeoMechanicsLabElementTests(KratosGeoUnittest.TestCase):
         reader = GiDOutputFileReader()
         result = reader.read_output_from(output_file)
         top_node_nbrs = [1]
-        self.assert_y_displacements_at_time(result, top_node_nbrs, -1e-4, 6, time=1.0)
+        self.assert_y_displacements_at_time(result, top_node_nbrs, -1e-4, 6, 1.0)
 
     def _assert_oedometer_effective_stresses(self, effective_stresses, expected_yy, places_yy):
         for element in effective_stresses:

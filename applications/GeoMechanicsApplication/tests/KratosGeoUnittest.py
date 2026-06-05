@@ -2,12 +2,12 @@ from KratosMultiphysics.GeoMechanicsApplication.gid_output_file_reader import Gi
 from KratosMultiphysics import KratosUnittest
 
 class TestCase(KratosUnittest.TestCase):
-	def assert_y_displacements_at_time(self, result, node_ids, expected_y, places, time=1.0):
+	def assert_y_displacements_at_time(self, result, node_ids, expected_y, places, time):
 		displacements = GiDOutputFileReader.nodal_values_at_time("DISPLACEMENT", time, result, node_ids=node_ids)
 		for displacement in displacements:
 			self.assertAlmostEqual(expected_y, displacement[1], places)
 
-	def assert_nodal_values_at_time(self, result, variable_name, expected_values, places, time=1.0):
+	def assert_nodal_values_at_time(self, result, variable_name, expected_values, places, time):
 		for node_id, expected_node_values in enumerate(expected_values, start=1):
 			result_values = GiDOutputFileReader.nodal_values_at_time(variable_name, time, result, [node_id])[0]
 			self.assertAlmostEqual(result_values, expected_node_values, places, msg = f"There is a difference in the {variable_name} components for node {node_id}")
