@@ -591,7 +591,7 @@
                             "process_name": "JsonOutputProcess",
                             "Parameters": {
                                 "model_part_name": "PorousDomain.Right_Side_Of_Right_Interfaces",
-                                "output_file_name": "3_Wall_installation_interface_output.json",
+                                "output_file_name": "3_Wall_installation__output_interface.json",
                                 "output_variables": ["GEO_EFFECTIVE_TRACTION_VECTOR"],
                                 "gauss_points_output_variables": [],
                                 "time_frequency": 0.9999999999
@@ -894,7 +894,7 @@
                             "process_name": "JsonOutputProcess",
                             "Parameters": {
                                 "model_part_name": "PorousDomain.Right_Side_Of_Right_Interfaces",
-                                "output_file_name": "4_First_excavation_interface_output.json",
+                                "output_file_name": "4_First_excavation__output_interface.json",
                                 "output_variables": ["GEO_EFFECTIVE_TRACTION_VECTOR"],
                                 "gauss_points_output_variables": [],
                                 "time_frequency": 0.9999999999
@@ -1210,7 +1210,7 @@
                             "process_name": "JsonOutputProcess",
                             "Parameters": {
                                 "model_part_name": "PorousDomain.Right_Side_Of_Right_Interfaces",
-                                "output_file_name": "5_Anchor_installation_interface_output.json",
+                                "output_file_name": "5_Anchor_installation__output_interface.json",
                                 "output_variables": ["GEO_EFFECTIVE_TRACTION_VECTOR"],
                                 "gauss_points_output_variables": [],
                                 "time_frequency": 0.9999999999
@@ -1528,7 +1528,7 @@
                             "process_name": "JsonOutputProcess",
                             "Parameters": {
                                 "model_part_name": "PorousDomain.Right_Side_Of_Right_Interfaces",
-                                "output_file_name": "6_Second_excavation_interface_output.json",
+                                "output_file_name": "6_Second_excavation__output_interface.json",
                                 "output_variables": ["GEO_EFFECTIVE_TRACTION_VECTOR"],
                                 "gauss_points_output_variables": [],
                                 "time_frequency": 0.9999999999
@@ -1841,7 +1841,7 @@
                             "process_name": "JsonOutputProcess",
                             "Parameters": {
                                 "model_part_name": "PorousDomain.Right_Side_Of_Right_Interfaces",
-                                "output_file_name": "7_Third_excavation_interface_output.json",
+                                "output_file_name": "7_Third_excavation__output_interface.json",
                                 "output_variables": ["GEO_EFFECTIVE_TRACTION_VECTOR"],
                                 "gauss_points_output_variables": [],
                                 "time_frequency": 0.9999999999

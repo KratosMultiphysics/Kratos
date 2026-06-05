@@ -194,7 +194,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
 
     def read_json_output(self, stage):
         with open(
-            os.path.join(self.test_path, f"{stage['base_name']}_interface_output.json"),
+            os.path.join(self.test_path, f"{stage['base_name']}__output_interface.json"),
             "r",
         ) as output_file:
             return json.load(output_file)
