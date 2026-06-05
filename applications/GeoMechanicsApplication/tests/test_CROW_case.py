@@ -131,8 +131,8 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
         with context_managers.set_cwd_to(self.test_path):
             with open(
                 Path("..") / ".." / "common" / f"{self.analysis_type}.json", "r"
-            ) as parameter_file:
-                project = run_orchestrator(Kratos.Parameters(parameter_file.read()))
+            ) as analysis_file:
+                project = run_orchestrator(Kratos.Parameters(analysis_file.read()))
 
         model = project.GetModel()
         sheet_pile_wall = model.GetModelPart("PorousDomain.Sheet_Pile_Wall")
