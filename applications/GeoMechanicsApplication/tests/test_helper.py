@@ -60,6 +60,10 @@ def get_values_from_csv(csv_filepath, keys, values):
             result[key] = expected_values
     return result
 
+def get_values_from_csv_as_vectors(csv_filepath, keys, values):
+    return {key: [row[value] for value in values]
+            for key, row in get_values_from_csv(csv_filepath, keys, values).items()}
+
 def get_displacement(simulation):
     """
     Gets displacements from kratos simulation
