@@ -192,9 +192,9 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
                     msg=f"Horizontal total displacement at node {node_id} in stage '{stage_name}'",
                 )
 
-    def read_json_output(self, stage):
+    def read_json_output(self, stage, postfix):
         with open(
-            os.path.join(self.test_path, f"{stage['base_name']}__output_interface.json"),
+            os.path.join(self.test_path, f"{stage['base_name']}__{postfix}.json"),
             "r",
         ) as output_file:
             return json.load(output_file)
@@ -202,52 +202,65 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
     def get_variable_collections_per_stage(
         self,
         kratos_variable_label,
-        variable_plot_label,
-        structural_stages,
+        plot_stages,
         nodes,
-        data_extractor,
+        postfix_json_output,
+        transform_output,
+        postfix_fem_comparison_csv,
+        data_extractor_fem_comparison,
+        data_extractor_dsheetpiling=None,
     ):
         node_ids = [node.Id for node in nodes]
         y_coords = [node.Y for node in nodes]
 
         variable_data_collections = []
-        for stage in structural_stages:
-            json_data = self.read_json_output(stage)
+        for stage in plot_stages:
+            json_data = self.read_json_output(stage, postfix_json_output)
             variable_kratos_data = []
-            index = 0 if variable_plot_label == "Normal traction" else 1
             for node_label in [f"NODE_{node_id}" for node_id in node_ids]:
                 variable_kratos_data.append(
-                    json_data[node_label][kratos_variable_label][0][index]
+                    json_data[node_label][kratos_variable_label][0]
                 )
 
-            variable_kratos_data = [
-                unit_to_k_unit(value) for value in variable_kratos_data
-            ]
+            variable_kratos_data = [transform_output(value) for value in variable_kratos_data]
             sorted_y, sorted_data = zip(*sorted(zip(y_coords, variable_kratos_data)))
-            data_series_collection = []
-            data_series_collection.append(
+            data_series_collection = [
                 plot_utils.DataSeries(
                     zip(sorted_data, sorted_y),
                     "Kratos",
                     line_style="-",
                     marker=".",
                 )
-            )
+            ]
+
             fem_comparison_csv = (
-                self.test_path / f"{stage['base_name']}__FE_comparison_interface.csv"
+                self.test_path / f"{stage['base_name']}__{postfix_fem_comparison_csv}.csv"
             )
             if fem_comparison_csv.exists():
-                fem_comparison_variable = test_helper.get_data_points_from_file(
-                    fem_comparison_csv, data_extractor
+                data_points = test_helper.get_data_points_from_file(
+                    fem_comparison_csv, data_extractor_fem_comparison
                 )
-
                 data_series_collection.append(
                     plot_utils.DataSeries(
-                        fem_comparison_variable,
-                        "Commercial FE package",
+                        data_points,
+                        label="Commercial FE package",
                         marker="3",
                     )
                 )
+
+            if (self.test_path / f"{stage['base_name']}__DSheetPiling_results.csv").exists() and data_extractor_dsheetpiling:
+                data_points = test_helper.get_data_points_from_file(
+                    self.test_path / f"{stage['base_name']}__DSheetPiling_results.csv",
+                    data_extractor_dsheetpiling,
+                )
+                data_series_collection.append(
+                    plot_utils.DataSeries(
+                        data_points,
+                        "D-Sheet Piling",
+                        marker="1",
+                    )
+                )
+
             variable_data_collections.append(data_series_collection)
 
         return variable_data_collections
@@ -255,13 +268,17 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
     def create_interface_plots(self, interface_nodes):
         structural_stages = self.get_plot_stages()
 
-        normal_traction_kratos_label = "GEO_EFFECTIVE_TRACTION_VECTOR"
-        normal_traction_plot_label = "Normal traction"
+        effective_traction_vector_label = "GEO_EFFECTIVE_TRACTION_VECTOR"
+        postfix_fem_comparison_csv = "FE_comparison_interface"
+        postfix_json_output = "output_interface"
+        to_normal_traction_in_kPa = lambda traction_vector: unit_to_k_unit(traction_vector[0])
         normal_traction_collections = self.get_variable_collections_per_stage(
-            normal_traction_kratos_label,
-            normal_traction_plot_label,
+            effective_traction_vector_label,
             structural_stages,
             interface_nodes,
+            postfix_json_output,
+            to_normal_traction_in_kPa,
+            postfix_fem_comparison_csv,
             extract_normal_traction_and_y_from_line,
         )
 
@@ -274,13 +291,14 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             ylabel=r"$y$ [m]",
         )
 
-        shear_traction_plot_label = "Shear traction"
-        shear_traction_kratos_label = "GEO_EFFECTIVE_TRACTION_VECTOR"
+        to_shear_traction_in_kPa = lambda traction_vector: unit_to_k_unit(traction_vector[1])
         shear_traction_collections = self.get_variable_collections_per_stage(
-            shear_traction_kratos_label,
-            shear_traction_plot_label,
+            effective_traction_vector_label,
             structural_stages,
             interface_nodes,
+            postfix_json_output,
+            to_shear_traction_in_kPa,
+            postfix_fem_comparison_csv,
             extract_shear_traction_and_y_from_line,
         )
 
@@ -306,7 +324,9 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
         kratos_variable_label,
         plot_stages,
         nodes,
+        postfix_json_output,
         transform_output,
+        postfix_fem_comparison_csv,
         data_extractor_fem_comparison,
         data_extractor_dsheetpiling=None,
     ):
@@ -314,25 +334,19 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
         y_coords = [node.Y for node in nodes]
 
         variable_data_collections = []
-        reader = GiDOutputFileReader()
-
         for stage in plot_stages:
-            output_data = reader.read_output_from(
-                self.test_path / "gid_output" / f"{stage['base_name']}.post.res"
-            )
-
-            variable_kratos_data = reader.nodal_values_at_time(
-                kratos_variable_label,
-                stage["end_time"],
-                output_data,
-                node_ids=node_ids,
-            )
+            json_data = self.read_json_output(stage, postfix_json_output)
+            variable_kratos_data = []
+            for node_label in [f"NODE_{node_id}" for node_id in node_ids]:
+                variable_kratos_data.append(
+                    json_data[node_label][kratos_variable_label][0]
+                )
 
             variable_kratos_data = [transform_output(value) for value in variable_kratos_data]
-
+            sorted_y, sorted_data = zip(*sorted(zip(y_coords, variable_kratos_data)))
             data_series_collection = [
                 plot_utils.DataSeries(
-                    zip(variable_kratos_data, y_coords),
+                    zip(sorted_data, sorted_y),
                     "Kratos",
                     line_style="-",
                     marker=".",
@@ -340,7 +354,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             ]
 
             fem_comparison_csv = (
-                self.test_path / f"{stage['base_name']}__FE_comparison_wall.csv"
+                self.test_path / f"{stage['base_name']}__{postfix_fem_comparison_csv}.csv"
             )
             if fem_comparison_csv.exists():
                 data_points = test_helper.get_data_points_from_file(
@@ -376,7 +390,9 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
         return self.get_wall_variable_collections_per_stage("BENDING_MOMENT",
                                                             self.get_plot_stages(),
                                                             nodes,
+                                                            "output_wall",
                                                             unit_to_k_unit,
+                                                            "FE_comparison_wall",
                                                             extract_bending_moment_and_y_from_line,
                                                             data_extractor_dsheetpiling=extract_bending_moment_and_y_from_line)
 
@@ -394,11 +410,15 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             ylabel=r"$y$ [m]",
         )
 
+        postfix_fem_comparison_csv = "FE_comparison_wall"
+        postfix_json_output = "output_wall"
         shear_force_collections = self.get_wall_variable_collections_per_stage(
             "SHEAR_FORCE",
             plot_stages,
             nodes,
+            postfix_json_output,
             unit_to_k_unit,
+            postfix_fem_comparison_csv,
             extract_shear_force_and_y_from_line,
             data_extractor_dsheetpiling=extract_shear_force_and_y_from_line,
         )
@@ -414,7 +434,9 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             "AXIAL_FORCE",
             plot_stages,
             nodes,
+            postfix_json_output,
             unit_to_k_unit,
+            postfix_fem_comparison_csv,
             extract_normal_force_and_y_from_line)
         plot_utils.make_sub_plots(
             normal_force_collections,
@@ -423,10 +445,17 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             xlabel="Normal force [kN/m]",
             ylabel=r"$y$ [m]")
 
-        get_x_component = lambda vector: vector[0]
+        no_transformation = lambda value: value
         horizontal_total_displacement_collections = (
             self.get_wall_variable_collections_per_stage(
-                "TOTAL_DISPLACEMENT", plot_stages, nodes, get_x_component, extract_horizontal_displacements_from_line, data_extractor_dsheetpiling=extract_horizontal_displacements_from_dsheetpiling_line
+                "TOTAL_DISPLACEMENT_X",
+                plot_stages,
+                nodes,
+                postfix_json_output,
+                no_transformation,
+                postfix_fem_comparison_csv,
+                extract_horizontal_displacements_from_line,
+                data_extractor_dsheetpiling=extract_horizontal_displacements_from_dsheetpiling_line
             )
         )
         plot_utils.make_sub_plots(
