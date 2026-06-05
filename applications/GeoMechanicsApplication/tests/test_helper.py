@@ -1,6 +1,7 @@
 from typing import Dict, Any
 import sys,os
 import math
+import csv
 
 sys.path.append(os.path.join('..','..','..'))
 
@@ -46,6 +47,15 @@ def run_kratos(file_path, model=None):
     os.chdir(cwd)
     return simulation
 
+def get_values_from_csv(csv_filepath, keys, values):
+    result = {}
+    with open(csv_filepath, newline = "") as csv_file:
+        reader = csv.DictReader(csv_file)
+        for row in reader:
+            key = tuple(int(row[key]) for key in keys)
+            expected_values = {value: float(row[value]) for value in values}
+            result[key] = expected_values
+    return result
 
 def get_displacement(simulation):
     """
