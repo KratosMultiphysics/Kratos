@@ -60,8 +60,8 @@ TrilinosCPPTestExperimentalUtilities::MatrixPointerType TrilinosCPPTestExperimen
     // Begin graph assembly
     graph->resumeFill();
 
-    const int NumMyElements = map->getNodeNumElements();
-    auto MyGlobalElements = map->getNodeElementList();
+    const int NumMyElements = map->getLocalNumElements();
+    auto MyGlobalElements = map->getLocalElementList();
     std::vector<GO> nonDiagonalIndices(2); // Define based on your Tpetra types
 
     for (int i = 0; i < NumMyElements; ++i) {
@@ -156,10 +156,10 @@ TrilinosCPPTestExperimentalUtilities::VectorPointerType TrilinosCPPTestExperimen
     Teuchos::RCP<const MapType> map = Teuchos::rcp(new MapType(NumGlobalElements, 0, tpetra_comm));
 
     // Local number of rows
-    const std::size_t NumMyElements = map->getNodeNumElements();
+    const std::size_t NumMyElements = map->getLocalNumElements();
 
     // Get update list
-    auto MyGlobalElements = map->getNodeElementList();
+    auto MyGlobalElements = map->getLocalElementList();
 
     // Create a Tpetra_Vector
     Teuchos::RCP<Tpetra::FEMultiVector<>> b = Teuchos::rcp(new Tpetra::FEMultiVector<>(map, Teuchos::null, 1));
@@ -346,7 +346,7 @@ void TrilinosCPPTestExperimentalUtilities::GenerateSparseMatrixIndexAndValuesVec
     }
 
     std::vector<double> values;
-    for (std::size_t i = 0; i < rA.getNodeNumRows(); i++) {
+    for (std::size_t i = 0; i < rA.getLocalNumRows(); i++) {
         typename TrilinosSparseSpaceType::MatrixType::values_host_view_type vals;   // Row non-zero values
         typename TrilinosSparseSpaceType::MatrixType::local_inds_host_view_type cols;      // Column indices of row non-zero values
         rA.getLocalRowView(i, cols, vals);
@@ -413,10 +413,10 @@ TrilinosCPPTestExperimentalUtilities::MatrixPointerType TrilinosCPPTestExperimen
     }
 
     // Local number of rows
-    const int NumMyElements = map->getNodeNumElements();
+    const int NumMyElements = map->getLocalNumElements();
 
     // Get update list
-    auto MyGlobalElements = map->getNodeElementList();
+    auto MyGlobalElements = map->getLocalElementList();
 
     // Create an integer vector NumNz that is used to build the Tpetra Matrix.
     const int size_global_vector = rRowIndexes.size();
