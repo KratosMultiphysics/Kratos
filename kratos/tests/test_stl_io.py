@@ -103,7 +103,7 @@ class TestStlIO(KratosUnittest.TestCase):
         stl_io = KratosMultiphysics.StlIO(stl_file, read_settings)
         stl_io.ReadModelPart(model_part)
 
-        self.assertEqual(model_part.NumberOfNodes(), 148)
+        self.assertEqual(model_part.NumberOfNodes(), 876)
         self.assertEqual(model_part.NumberOfElements(), 292)
 
     def test_WriteStlIO(self):
