@@ -175,6 +175,23 @@ class CFDUtils:
 
         return M_e
 
+    def GetWallMassMatrix(self, dim):
+        if dim == 2:
+            M_e = xp.array([
+                [1.0/3.0, 1.0/6.0],
+                [1.0/6.0, 1.0/3.0]
+            ], dtype=PRECISION)
+        elif dim == 3:
+            M_e = xp.array([
+                [2.0/12.0, 1.0/12.0, 1.0/12.0],
+                [1.0/12.0, 2.0/12.0, 1.0/12.0],
+                [1.0/12.0, 1.0/12.0, 2.0/12.0]
+            ], dtype=PRECISION)
+        else:
+            raise Exception(f"Dimension {dim} not supported.")
+
+        return M_e
+
     def GetGaussIntegrationWeights(self, dim: int, integration_order: int):
         if integration_order == 1:
             if dim == 2:
@@ -823,7 +840,7 @@ class CFDUtils:
         # so no zeroing is needed when reusing pre-allocated arrays.
 
         M_e = self.GetElementalMassMatrix(n_dim)
-        
+
         # Original computation (commented for reference):
         # S = xp.zeros((n_elem, n_dim, n_dim), dtype=beta.dtype)
         # for j in range(n_node):
@@ -831,24 +848,24 @@ class CFDUtils:
         #         w = M_e[j, m]
         #         S += w * (a_elemental[:, j, :, None] * beta[:, m, None, :])
         # out = xp.matmul(DN, S, out=out)
-        
+
         # Vectorized computation (no loops, no 4th-order tensor):
         # out[e,i,l] = sum_{j,m,k} DN[e,i,k] * M[j,m] * a[e,j,k] * beta[e,m,l]
         # Factor as: S[e,k,l] = sum_{j,m} M[j,m] * a[e,j,k] * beta[e,m,l]
         # Then: out[e,i,l] = sum_k DN[e,i,k] * S[e,k,l]
-        
+
         self._ensure_temporaries(n_elem, n_node, n_dim)
-        
+
         # Step 1: Compute temp[e,j,l] = sum_m M[j,m] * beta[e,m,l]
         # Batched matmul: M @ beta[e] for all elements at once
         # Use _tmp_eik as temp buffer (shape: nelem, n_node, n_dim)
         xp.matmul(M_e[None, :, :], beta, out=self._tmp_eik)
-        
+
         # Step 2: Compute S[e,k,l] = sum_j a[e,j,k] * temp[e,j,l]
         # Transpose a to (n_elem, n_dim, n_node) then matmul with temp
         # Use _tmp_edd as S buffer (shape: nelem, dim, dim)
         xp.matmul(a_elemental.swapaxes(1, 2), self._tmp_eik, out=self._tmp_edd)
-        
+
         # Step 3: Compute out[e,i,l] = sum_k DN[e,i,k] * S[e,k,l]
         # Use out parameter to avoid implicit temporary from matmul
         xp.matmul(DN, self._tmp_edd, out=out)
@@ -942,6 +959,47 @@ class CFDUtils:
         # Use _tmp_eik as intermediate buffer for DN * temp, then sum over k
         xp.multiply(DN, self._tmp_ed[:, None, :], out=self._tmp_eik)
         xp.sum(self._tmp_eik, axis=2, out=out)
+
+        return out
+
+    def ComputeNavierSlipWallContribution(self, v_elemental_wall, elemental_tang_proj, viscosity, slip_length, out=None):
+        """
+        Compute the contribution of Navier slip wall boundary conditions to the residual.
+
+        The Navier slip condition can be expressed as:
+
+            u_t = L_s * (∂u_t/∂n)
+        where u_t is the tangential velocity at the wall, L_s is the slip length, and ∂u_t/∂n is the normal derivative of the tangential velocity.
+        The weak form contribution for a test function w is:
+            R = ∫_Γ w · (u_t - L_s * (∂u_t/∂n)) dΓ
+        This implementation computes the contribution to the residual vector R for nodes on the slip boundary.
+        Parameters
+        ----------
+        v_elemental_wall : (n_node, dim)
+            Wall velocity at the boundary nodes.
+        elemental_tang_proj : (n_node, dim, dim)
+            Tangential projector for the wall elements.
+        viscosity : float
+            Dynamic viscosity for the Navier slip condition.
+        slip_length : float
+            Slip length L_s for the Navier slip condition.
+        out : ndarray, optional
+            Pre-allocated output array of shape (n_node, dim) to store the contribution.
+        Returns
+        -------
+        (n_node, dim)
+            Contribution to the residual vector for the slip boundary condition.
+        """
+
+        if out is None:
+            out = xp.empty((v_elemental_wall.shape), dtype=v_elemental_wall.dtype)
+
+        dim = v_elemental_wall.shape[1]
+        M_w = self.GetWallMassMatrix(dim)  # (n_node, n_node)
+
+        v_tang_elem = xp.einsum("eij,enj->eni", elemental_tang_proj, v_elemental_wall, optimize=opt_type)
+        out = xp.matmul(M_w, v_tang_elem, out=out)
+        out *= -viscosity / (slip_length + 1e-12) # Avoid division by zero in the no-slip limit
 
         return out
 
@@ -1052,7 +1110,7 @@ class CFDUtils:
         xp.put(RHS, fixed_values, 0.0)
 
         return LHS, RHS
-    
+
     def ConstructPreconditioner(self, A):
         """
         Constructs an algebraic preconditioner for the given matrix A.
