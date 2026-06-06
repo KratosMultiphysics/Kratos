@@ -1,7 +1,5 @@
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-from KratosMultiphysics.project import Project
-import importlib
 import KratosMultiphysics.GeoMechanicsApplication.context_managers as context_managers
 from KratosMultiphysics.GeoMechanicsApplication.gid_output_file_reader import (
     GiDOutputFileReader,
@@ -15,6 +13,7 @@ import os
 import json
 from pathlib import Path
 import sys
+from helper_utilities import run_orchestrator
 
 if test_helper.want_test_plots():
     import KratosMultiphysics.GeoMechanicsApplication.geo_plot_utilities as plot_utils
@@ -239,18 +238,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
                 Path("..") / ".." / "common" / analysis_filename, "r"
             ) as parameter_file:
                 project_parameters = Kratos.Parameters(parameter_file.read())
-                project = Project(project_parameters)
-                orchestrator_reg_entry = Kratos.Registry[
-                    project.GetSettings()["orchestrator"]["name"].GetString()
-                ]
-                orchestrator_module = importlib.import_module(
-                    orchestrator_reg_entry["ModuleName"]
-                )
-                orchestrator_class = getattr(
-                    orchestrator_module, orchestrator_reg_entry["ClassName"]
-                )
-                orchestrator_instance = orchestrator_class(project)
-                orchestrator_instance.Run()
+                run_orchestrator(project_parameters)
 
         if test_helper.want_test_plots():
             self.create_wall_plots(project_path)
