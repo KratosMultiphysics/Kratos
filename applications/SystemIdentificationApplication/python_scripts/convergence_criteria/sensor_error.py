@@ -1,4 +1,4 @@
-import os
+import os, numpy
 import typing
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.SystemIdentificationApplication as KratosSI
@@ -8,10 +8,10 @@ from KratosMultiphysics.OptimizationApplication.convergence_criteria.convergence
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import time_decorator
 from KratosMultiphysics.SystemIdentificationApplication.utilities.sensor_utils import GetSensors
 
-def Factory(_: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem) -> ConvergenceCriterion:
+def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem) -> ConvergenceCriterion:
     if not parameters.Has("settings"):
         raise RuntimeError(f"MaxSensorErrorCriterion instantiation requires a \"settings\" in parameters [ parameters = {parameters}].")
-    return MaxSensorErrorCriterion(parameters["settings"], optimization_problem)
+    return MaxSensorErrorCriterion(model, parameters["settings"], optimization_problem)
 
 class MaxSensorErrorCriterion(ConvergenceCriterion):
     """
@@ -29,18 +29,19 @@ class MaxSensorErrorCriterion(ConvergenceCriterion):
             "sensor_error_output_file_name" : "max_sensor_error.csv"
         }""")
 
-    def __init__(self, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
+    def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
         parameters.ValidateAndAssignDefaults(self.GetDefaultParameters())
         self.__sensor_group_name = parameters["sensor_group_name"].GetString()
         self.__tolerance = parameters["tolerance"].GetDouble()
         self.__optimization_problem = optimization_problem
         self.__output_to_file = parameters["output_to_file"].GetBool()
         self.__sensor_error_output_file_name = parameters["sensor_error_output_file_name"].GetString()
+        self.__model = model
 
     def Initialize(self):
         if self.__output_to_file:
             with open(self.__sensor_error_output_file_name, "w") as file_output:
-                file_output.write("iteration,max_sensor_error\n")
+                file_output.write("iteration,sensor_name,max_sensor_error\n")
 
     @time_decorator()
     def IsConverged(self) -> bool:
@@ -55,17 +56,16 @@ class MaxSensorErrorCriterion(ConvergenceCriterion):
         4. Compares the maximum error against the tolerance threshold
         5. Writes the maximum sensor error to a file for monitoring
         Returns:
-            bool: True if the maximum sensor error is less than or equal to the 
+            bool: True if the maximum sensor error is less than or equal to the
                   tolerance threshold, False otherwise.
         """
         sensor_group_data = ComponentDataView(self.__sensor_group_name, self.__optimization_problem)
         self.list_of_sensors = GetSensors(sensor_group_data)
-        
-        max_sensor_error = 0.0
-        for sensor in self.list_of_sensors:
-            max_sensor_error = max(max_sensor_error, abs(sensor.GetNode().GetValue(KratosSI.SENSOR_ERROR)))
-        
-        self.__max_sensor_error = max_sensor_error
+
+        ta = Kratos.TensorAdaptors.VariableTensorAdaptor(self.__model[self.__sensor_group_name].Nodes, KratosSI.SENSOR_ERROR)
+        ta.CollectData()
+        self.__max_sensor_index = numpy.argmax(ta.data)
+        self.__max_sensor_error = ta.data[self.__max_sensor_index]
         self.__conv = self.__max_sensor_error <= self.__tolerance
         self.WriteMaxSensorErrorToFile()
         return self.__conv
@@ -89,5 +89,5 @@ class MaxSensorErrorCriterion(ConvergenceCriterion):
             file_exists = os.path.isfile(self.__sensor_error_output_file_name)
             with open(self.__sensor_error_output_file_name, "a") as file_output:
                 if not file_exists:
-                    file_output.write("iteration,max_sensor_error\n")
-                file_output.write(f"{iteration},{self.__max_sensor_error}\n")
+                    file_output.write("iteration,sensor_name,max_sensor_error\n")
+                file_output.write(f"{iteration},{self.list_of_sensors[self.__max_sensor_index].GetName()},{self.__max_sensor_error}\n")

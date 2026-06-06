@@ -149,15 +149,18 @@ double MeasurementResidualResponseFunction::CalculateValue(ModelPart& rModelPart
     double sum = 0.0;
 
     for (auto& p_sensor : mpSensorsList) {
-        const double sensor_value = p_sensor->CalculateValue(rModelPart);
-        const double current_sensor_error = sensor_value - p_sensor->GetNode()->GetValue(SENSOR_MEASURED_VALUE);
-
-        p_sensor->SetSensorValue(sensor_value);
-        p_sensor->GetNode()->SetValue(SENSOR_ERROR, current_sensor_error);
-        p_sensor->GetNode()->SetValue(SENSOR_RELATIVE_ERROR, current_sensor_error / p_sensor->GetNode()->GetValue(SENSOR_MEASURED_VALUE));
-
         if (p_sensor->IsActive()) {
+            const double sensor_value = p_sensor->CalculateValue(rModelPart);
+            const double current_sensor_error = sensor_value - p_sensor->GetNode()->GetValue(SENSOR_MEASURED_VALUE);
+
+            p_sensor->SetSensorValue(sensor_value);
+            p_sensor->GetNode()->SetValue(SENSOR_ERROR, current_sensor_error);
+            p_sensor->GetNode()->SetValue(SENSOR_RELATIVE_ERROR, current_sensor_error / p_sensor->GetNode()->GetValue(SENSOR_MEASURED_VALUE));
+
             sum += ( std::pow( 0.5 * pow(current_sensor_error, 2) * p_sensor->GetWeight(), mPCoefficient ) );
+        } else {
+            p_sensor->GetNode()->SetValue(SENSOR_ERROR, 0.0);
+            p_sensor->GetNode()->SetValue(SENSOR_RELATIVE_ERROR, 0.0);
         }
     }
 
