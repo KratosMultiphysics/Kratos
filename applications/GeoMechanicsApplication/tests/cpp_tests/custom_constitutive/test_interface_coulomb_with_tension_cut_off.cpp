@@ -470,6 +470,10 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_Check, KratosGeoMech
     properties.SetValue(INTERFACE_SHEAR_STIFFNESS, 1.0);
 
     KRATOS_EXPECT_EQ(law.Check(properties, element_geometry, process_info), 0);
+
+    properties.SetValue(GEO_ENABLE_COMPRESSION_CAP, true);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        [[maybe_unused]] const auto unused = law.Check(properties, element_geometry, process_info), "GEO_ENABLE_COMPRESSION_CAP must not be set to True in the property with Id 3. Constitutive law 'InterfaceCoulombWithTensionCutOff' does not support a compression cap.")
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_CalculateConstitutiveMatrix,

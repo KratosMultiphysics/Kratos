@@ -13,6 +13,7 @@
 //
 
 #include "custom_constitutive/coulomb_yield_surface.h"
+#include "custom_constitutive/p_q.hpp"
 #include "custom_constitutive/sigma_tau.hpp"
 #include "custom_utilities/check_utilities.hpp"
 #include "custom_utilities/constitutive_law_utilities.h"
@@ -140,6 +141,13 @@ double CoulombYieldSurface::YieldFunctionValue(const Geo::PrincipalStresses& rPr
     return YieldFunctionValue(StressStrainUtilities::TransformPrincipalStressesToSigmaTau(rPrincipalStresses));
 }
 
+double CoulombYieldSurface::YieldFunctionValue(const Geo::PQ& rPQ) const
+{
+    const auto sin_phi = std::sin(GetFrictionAngleInRadians());
+    const auto cos_phi = std::cos(GetFrictionAngleInRadians());
+    return rPQ.Q() + 6.0 / (3.0 - sin_phi) * (rPQ.P() * sin_phi - GetCohesion() * cos_phi);
+}
+
 Vector CoulombYieldSurface::DerivativeOfFlowFunction(const Geo::SigmaTau&,
                                                      Geo::PrincipalStresses::AveragingType AveragingType) const
 {
@@ -174,6 +182,12 @@ Vector CoulombYieldSurface::DerivativeOfFlowFunction(const Geo::PrincipalStresse
     default:
         KRATOS_ERROR << "Unsupported Averaging Type: " << static_cast<std::size_t>(AveragingType) << "\n";
     }
+}
+
+Vector CoulombYieldSurface::DerivativeOfFlowFunction(const Geo::PQ&, Geo::PrincipalStresses::AveragingType AveragingType) const
+{
+    const auto sin_psi = std::sin(GetDilatancyAngleInRadians());
+    return UblasUtilities::CreateVector({6.0 * sin_psi / (3.0 - sin_psi), 1.0});
 }
 
 Geo::SigmaTau CoulombYieldSurface::CalculateApex() const
