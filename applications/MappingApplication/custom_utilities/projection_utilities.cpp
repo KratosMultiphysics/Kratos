@@ -69,73 +69,23 @@ void FillEquationIdVectorIBRA(const GeometryType::Pointer pGeometry,
     // Downcast the geometry to a nurbs surface
     auto p_nurbs_surface = dynamic_cast<NurbsSurfaceGeometryType*>(pGeometry.get());
 
-    KRATOS_ERROR_IF_NOT(p_nurbs_surface)
-        << "Geometry is not a NurbsSurfaceGeometryType!" << std::endl;
+    KRATOS_ERROR_IF_NOT(p_nurbs_surface) << "Geometry is not a NurbsSurfaceGeometryType!" << std::endl;
 
     // Number of CPs in the u and v directions
     const SizeType num_cp_u = pGeometry->PointsNumberInDirection(0);
     const SizeType num_cp_v = pGeometry->PointsNumberInDirection(1);
 
-    // Expected size of the knot vectors in the u and v directions
-    const SizeType expected_size_u = num_cp_u + polynomial_degree_u + 1;
-    const SizeType expected_size_v = num_cp_v + polynomial_degree_v + 1;
-
-    const Vector raw_knots_u = p_nurbs_surface->KnotsU();
-    const Vector raw_knots_v = p_nurbs_surface->KnotsV();
-
-    auto ExtendEndKnotsIfNeeded = [](const Vector& rRawKnots,
-                                     const SizeType ExpectedSize)
-    {
-        if (rRawKnots.size() == ExpectedSize) {
-            return rRawKnots;
-        }
-
-        if (rRawKnots.size() + 2 == ExpectedSize) {
-            Vector extended_knots(ExpectedSize);
-
-            extended_knots[0] = rRawKnots[0];
-
-            for (IndexType i = 0; i < rRawKnots.size(); ++i) {
-                extended_knots[i + 1] = rRawKnots[i];
-            }
-
-            extended_knots[ExpectedSize - 1] =
-                rRawKnots[rRawKnots.size() - 1];
-
-            return extended_knots;
-        }
-
-        return Vector();
-    };
-
-    // Extend the knot vectors if they dont have the correct size
-    const Vector vector_knot_vector_u = ExtendEndKnotsIfNeeded(raw_knots_u, expected_size_u);
-    const Vector vector_knot_vector_v = ExtendEndKnotsIfNeeded(raw_knots_v, expected_size_v);
+    // Knot vectors in the u and v directions with multiplicity of p at the beginning and end
+    const Vector knots_u = p_nurbs_surface->KnotsU();
+    const Vector knots_v = p_nurbs_surface->KnotsV();
 
     NurbsSurfaceShapeFunction shape_function_container(polynomial_degree_u, polynomial_degree_v, 0);
 
-    const IndexType lower_span_u = NurbsUtilities::GetLowerSpan(polynomial_degree_u, vector_knot_vector_u, rCoordinates[0]);
-    const IndexType lower_span_v = NurbsUtilities::GetLowerSpan(polynomial_degree_v, vector_knot_vector_v, rCoordinates[1]);
+    shape_function_container.ComputeBSplineShapeFunctionValues(knots_u, knots_v, rCoordinates[0], rCoordinates[1]);
 
-    KRATOS_ERROR_IF(lower_span_u == 0 || lower_span_v == 0)
-        << "Invalid span for shifted convention." << std::endl;
-
-    const IndexType span_u_for_container = lower_span_u - 1;
-    const IndexType span_v_for_container = lower_span_v - 1;
-
-    shape_function_container.ComputeBSplineShapeFunctionValuesAtSpan(vector_knot_vector_u, vector_knot_vector_v, span_u_for_container,
-                                                                    span_v_for_container, rCoordinates[0], rCoordinates[1]);
-
+    // Get the indices of the non-zero shape functions (i.e. the control points influencing the point defined by rCoordinates)
     const IndexType num_nonzero_cps = shape_function_container.NumberOfNonzeroControlPoints();
-
     const std::vector<int> cp_indices = shape_function_container.ControlPointIndices(num_cp_u, num_cp_v);
-
-    KRATOS_ERROR_IF(cp_indices.size() != num_nonzero_cps)
-        << "Mismatch between number of active control points ("
-        << num_nonzero_cps
-        << ") and returned indices ("
-        << cp_indices.size()
-        << ")." << std::endl;
 
     rEquationIds.clear();
     rEquationIds.resize(num_nonzero_cps);
@@ -143,12 +93,12 @@ void FillEquationIdVectorIBRA(const GeometryType::Pointer pGeometry,
     for (IndexType j = 0; j < num_nonzero_cps; ++j) {
         const int cp_index = cp_indices[j];
 
-        auto p_point = pGeometry->pGetPoint(cp_index);
+        KRATOS_ERROR_IF(cp_index < 0 || cp_index >= static_cast<int>(pGeometry->PointsNumber()))
+            << "Invalid control point index " << cp_index
+            << " for geometry with " << pGeometry->PointsNumber()
+            << " control points." << std::endl;
 
-        KRATOS_DEBUG_ERROR_IF_NOT(p_point->Has(INTERFACE_EQUATION_ID))
-            << *p_point
-            << " does not have an INTERFACE_EQUATION_ID"
-            << std::endl;
+        auto p_point = pGeometry->pGetPoint(cp_index);
 
         rEquationIds[j] = p_point->GetValue(INTERFACE_EQUATION_ID);
     }
