@@ -12,6 +12,11 @@
 
 #pragma once
 
+// System includes
+#include <algorithm>
+#include <cmath>
+#include <vector>
+
 // Project includes
 #include "geometries/local_refined_surface_geometry.h"
 #include "geometries/nurbs_shape_function_utilities/nurbs_surface_shape_functions.h"
@@ -103,12 +108,16 @@ public:
     ///@{
 
     /**
-     * @brief Registers the knot data for a new refinement level.
+     * @brief Adds a refinement level and computes its control points via knot insertion.
+     *
+     * The new level's control points are derived from the previous level's control points
+     * using the tensor-product B-spline refinement operator (Oslo algorithm / iterative
+     * single-knot insertion). The computed nodes are appended to this->Points().
      *
      * Call once per level, in order (level 1, then 2, ...).
      * Polynomial degree is inherited from level 0.
-     * The caller is responsible for updating this->Points() with the
-     * newly active control points.
+     * rKnotsU/rKnotsV must be a refinement of the previous level's knot vectors
+     * (i.e., the previous knots must be a subset of the new ones).
      */
     void AddLevel(
         const Vector& rKnotsU,
@@ -118,8 +127,47 @@ public:
         KRATOS_ERROR_IF(mLevels.empty())
             << "THBSurfaceGeometry::AddLevel: no base level defined." << std::endl;
 
-        const THBLevel& base = mLevels[0];
-        mLevels.push_back(THBLevel{base.DegreeU, base.DegreeV, rKnotsU, rKnotsV, rWeights});
+        const SizeType l = mLevels.size() - 1;
+        const THBLevel& prev = mLevels[l];
+        const SizeType p = prev.DegreeU;
+        const SizeType q = prev.DegreeV;
+        const SizeType n_u_old = prev.KnotsU.size() - p + 1;
+        const SizeType n_v_old = prev.KnotsV.size() - q + 1;
+
+        const Matrix M_U = ComputeRefinementMatrix1D(prev.KnotsU, rKnotsU, p);
+        const Matrix M_V = ComputeRefinementMatrix1D(prev.KnotsV, rKnotsV, q);
+        const SizeType n_u_new = M_U.size1();
+        const SizeType n_v_new = M_V.size1();
+
+        const SizeType offset = ControlPointOffset(l);
+
+        // Assign IDs beyond any existing node in this geometry
+        IndexType new_id = 1;
+        for (SizeType i = 0; i < this->PointsNumber(); ++i)
+            new_id = std::max(new_id, this->GetPoint(i).Id() + IndexType(1));
+
+        // P'_{j_v, j_u} = sum_{i_v, i_u} M_V[j_v, i_v] * M_U[j_u, i_u] * P_{i_v, i_u}
+        for (SizeType j_v = 0; j_v < n_v_new; ++j_v) {
+            for (SizeType j_u = 0; j_u < n_u_new; ++j_u) {
+                double x = 0.0, y = 0.0, z = 0.0;
+                for (SizeType i_v = 0; i_v < n_v_old; ++i_v) {
+                    const double cv = M_V(j_v, i_v);
+                    if (std::abs(cv) < 1e-15) continue;
+                    for (SizeType i_u = 0; i_u < n_u_old; ++i_u) {
+                        const double coeff = cv * M_U(j_u, i_u);
+                        if (std::abs(coeff) < 1e-15) continue;
+                        const auto& pt = this->GetPoint(offset + i_v * n_u_old + i_u);
+                        x += coeff * pt.X();
+                        y += coeff * pt.Y();
+                        z += coeff * pt.Z();
+                    }
+                }
+                this->Points().push_back(
+                    Kratos::make_intrusive<NodeType>(new_id++, x, y, z));
+            }
+        }
+
+        mLevels.push_back(THBLevel{prev.DegreeU, prev.DegreeV, rKnotsU, rKnotsV, rWeights});
     }
 
     /**
@@ -196,8 +244,8 @@ public:
         IntegrationPointsArrayType span_ips(points_u * points_v);
 
         for (SizeType l = 0; l < mLevels.size(); ++l) {
-            auto spans_u = KnotSpanIntervals(mLevels[l].KnotsU, p);
-            auto spans_v = KnotSpanIntervals(mLevels[l].KnotsV, q);
+            auto spans_u = KnotSpanIntervals(mLevels[l].KnotsU);
+            auto spans_v = KnotSpanIntervals(mLevels[l].KnotsV);
 
             for (const auto& su : spans_u) {
                 for (const auto& sv : spans_v) {
@@ -251,8 +299,9 @@ public:
 
             const SizeType l = ActiveLevelAtPoint(u, v);
             const THBLevel& level = mLevels[l];
-            const SizeType nU_l = level.KnotsU.size() - p - 1;
-            const SizeType nV_l = level.KnotsV.size() - q - 1;
+            // Internal knot format: size = n + p - 1  →  n = size - p + 1
+            const SizeType nU_l = level.KnotsU.size() - p + 1;
+            const SizeType nV_l = level.KnotsV.size() - q + 1;
             const SizeType offset = ControlPointOffset(l);
 
             NurbsSurfaceShapeFunction sf(p, q, NumberOfShapeFunctionDerivatives);
@@ -355,15 +404,96 @@ private:
     ///@name Private Helpers
     ///@{
 
-    /// Returns unique non-zero knot span intervals from a knot vector.
-    static std::vector<NurbsInterval> KnotSpanIntervals(const Vector& rKnots, SizeType Degree)
+    /**
+     * @brief Computes the 1-D B-spline refinement matrix M (size n_fine × n_coarse).
+     *
+     * Given internal-format knot vectors for a coarse and a fine level (fine must be
+     * a refinement of coarse), returns the matrix M such that:
+     *   P_fine[j] = sum_i  M[j, i] * P_coarse[i]
+     *
+     * Algorithm: iterative single-knot insertion.
+     * Works in external (clamped) format internally; inputs/outputs use Kratos
+     * internal format (n + p - 1 knots).
+     */
+    static Matrix ComputeRefinementMatrix1D(
+        const Vector& rCoarseKnots,
+        const Vector& rFineKnots,
+        const SizeType p)
     {
-        const SizeType first = Degree - 1;
-        const SizeType last  = rKnots.size() - Degree - 1;
+        const SizeType n_c = rCoarseKnots.size() - p + 1;
 
+        // Convert internal → external format: prepend/append first/last knot
+        auto to_ext = [](const Vector& k) {
+            std::vector<double> ext;
+            ext.reserve(k.size() + 2);
+            ext.push_back(k[0]);
+            for (SizeType i = 0; i < k.size(); ++i) ext.push_back(k[i]);
+            ext.push_back(k[k.size() - 1]);
+            return ext;
+        };
+
+        const std::vector<double> ext_c = to_ext(rCoarseKnots);
+        const std::vector<double> ext_f = to_ext(rFineKnots);
+
+        // New knots = ext_f multiset minus ext_c multiset (both sorted)
+        std::vector<double> new_knots;
+        {
+            SizeType ci = 0;
+            for (SizeType fi = 0; fi < ext_f.size(); ++fi) {
+                if (ci < ext_c.size() && std::abs(ext_f[fi] - ext_c[ci]) < 1e-10) {
+                    ++ci;
+                } else {
+                    new_knots.push_back(ext_f[fi]);
+                }
+            }
+        }
+
+        // Start with the n_c × n_c identity; grow to n_f × n_c by inserting knots one by one.
+        Matrix M(n_c, n_c, 0.0);
+        for (SizeType i = 0; i < n_c; ++i) M(i, i) = 1.0;
+
+        std::vector<double> cur = ext_c;
+        SizeType n_cur = n_c;
+
+        for (const double t : new_knots) {
+            // Span k: last index with cur[k] <= t
+            SizeType k = 0;
+            for (SizeType i = 0; i + 1 < cur.size(); ++i)
+                if (cur[i] <= t + 1e-10) k = i;
+
+            // Single-insertion matrix T: (n_cur+1) × n_cur
+            Matrix T(n_cur + 1, n_cur, 0.0);
+            const int ik = static_cast<int>(k);
+            const int ip = static_cast<int>(p);
+            for (int i = 0; i <= static_cast<int>(n_cur); ++i) {
+                if (i <= ik - ip) {
+                    T(i, i) = 1.0;
+                } else if (i > ik) {
+                    T(i, i - 1) = 1.0;
+                } else {
+                    // Blend: alpha * P_i + (1-alpha) * P_{i-1}
+                    const double denom = cur[i + p] - cur[i];
+                    const double alpha = (std::abs(denom) < 1e-15) ? 1.0 : (t - cur[i]) / denom;
+                    if (i < static_cast<int>(n_cur)) T(i, i) = alpha;
+                    if (i > 0) T(i, i - 1) = 1.0 - alpha;
+                }
+            }
+
+            M = prod(T, M);
+            cur.insert(cur.begin() + k + 1, t);
+            ++n_cur;
+        }
+
+        return M;  // size n_f × n_c
+    }
+
+    /// Returns unique non-zero knot span intervals from an internal-format knot vector.
+    /// Kratos convention: n + p - 1 knots (one repeated knot dropped from each end
+    /// of the full clamped vector). Iterates the full stored vector for transitions.
+    static std::vector<NurbsInterval> KnotSpanIntervals(const Vector& rKnots)
+    {
         std::vector<NurbsInterval> result;
-        result.reserve(last - first + 1);
-        for (SizeType i = first; i < last; ++i) {
+        for (SizeType i = 0; i + 1 < rKnots.size(); ++i) {
             if (rKnots[i + 1] - rKnots[i] > 1e-10)
                 result.emplace_back(rKnots[i], rKnots[i + 1]);
         }
@@ -394,17 +524,18 @@ private:
     }
 
     /// Returns the number of control points in u for a given level.
+    /// Internal knot format: size = n + p - 1  →  n = size - p + 1
     SizeType NumberOfControlPointsU(SizeType Level) const
     {
         const SizeType p = mLevels[0].DegreeU;
-        return mLevels[Level].KnotsU.size() - p - 1;
+        return mLevels[Level].KnotsU.size() - p + 1;
     }
 
     /// Returns the number of control points in v for a given level.
     SizeType NumberOfControlPointsV(SizeType Level) const
     {
         const SizeType q = mLevels[0].DegreeV;
-        return mLevels[Level].KnotsV.size() - q - 1;
+        return mLevels[Level].KnotsV.size() - q + 1;
     }
 
     /// Returns the index offset into this->Points() where level Level's control points begin.
