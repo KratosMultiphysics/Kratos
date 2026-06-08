@@ -46,8 +46,7 @@ void FindNeighbourElementsOfConditionsProcess::FindNeighbouringElementsForAllBou
     boundary_generator_map[std::size_t{1}] = std::make_unique<EdgesGenerator>();
     boundary_generator_map[std::size_t{2}] = std::make_unique<FacesGenerator>();
 
-    constexpr auto            enable_reverse_search = true;
-    NeighbouringElementFinder finder(enable_reverse_search);
+    NeighbouringElementFinder finder;
     finder.FindEntityNeighbours(mrModelPart.Conditions(), mrModelPart.Elements(), boundary_generator_map);
 }
 
