@@ -290,10 +290,12 @@ KRATOS_TEST_CASE_IN_SUITE(NeighbouringElementFinder_FindsNeighbourElementOfPoint
     NeighbouringElementFinder finder(enable_reverse_search);
 
     // Act
-    finder.FindEntityNeighbours(r_model_part.Conditions(), r_model_part.Elements(), boundary_generators);
+    EXPECT_NO_THROW(finder.FindEntityNeighbours(r_model_part.Conditions(), r_model_part.Elements(),
+                                                boundary_generators));
 
     // Assert
-    EXPECT_EQ(r_model_part.GetCondition(1).GetValue(NEIGHBOUR_ELEMENTS).size(), 1);
+    const auto& r_neighbours = r_model_part.GetCondition(1).GetValue(NEIGHBOUR_ELEMENTS);
+    ASSERT_EQ(r_neighbours.size(), 1);
 }
 
 } // namespace Kratos::Testing
