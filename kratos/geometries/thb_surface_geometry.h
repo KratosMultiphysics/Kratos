@@ -18,6 +18,7 @@
 #include <vector>
 
 // Project includes
+#include "includes/model_part.h"
 #include "geometries/local_refined_surface_geometry.h"
 #include "geometries/nurbs_shape_function_utilities/nurbs_surface_shape_functions.h"
 #include "geometries/nurbs_shape_function_utilities/nurbs_interval.h"
@@ -107,84 +108,53 @@ public:
     ///@name Refinement
     ///@{
 
-    /**
-     * @brief Adds a refinement level and computes its control points via knot insertion.
-     *
-     * The new level's control points are derived from the previous level's control points
-     * using the tensor-product B-spline refinement operator (Oslo algorithm / iterative
-     * single-knot insertion). The computed nodes are appended to this->Points().
-     *
-     * Call once per level, in order (level 1, then 2, ...).
-     * Polynomial degree is inherited from level 0.
-     * rKnotsU/rKnotsV must be a refinement of the previous level's knot vectors
-     * (i.e., the previous knots must be a subset of the new ones).
-     */
+    /// Adds one level with explicit knot vectors. CPs computed via knot insertion;
+    /// new nodes are orphan (not registered in any ModelPart).
     void AddLevel(
         const Vector& rKnotsU,
         const Vector& rKnotsV,
         const Vector& rWeights = Vector())
     {
-        KRATOS_ERROR_IF(mLevels.empty())
-            << "THBSurfaceGeometry::AddLevel: no base level defined." << std::endl;
-
-        const SizeType l = mLevels.size() - 1;
-        const THBLevel& prev = mLevels[l];
-        const SizeType p = prev.DegreeU;
-        const SizeType q = prev.DegreeV;
-        const SizeType n_u_old = prev.KnotsU.size() - p + 1;
-        const SizeType n_v_old = prev.KnotsV.size() - q + 1;
-
-        const Matrix M_U = ComputeRefinementMatrix1D(prev.KnotsU, rKnotsU, p);
-        const Matrix M_V = ComputeRefinementMatrix1D(prev.KnotsV, rKnotsV, q);
-        const SizeType n_u_new = M_U.size1();
-        const SizeType n_v_new = M_V.size1();
-
-        const SizeType offset = ControlPointOffset(l);
-
-        // Assign IDs beyond any existing node in this geometry
-        IndexType new_id = 1;
-        for (SizeType i = 0; i < this->PointsNumber(); ++i)
-            new_id = std::max(new_id, this->GetPoint(i).Id() + IndexType(1));
-
-        // P'_{j_v, j_u} = sum_{i_v, i_u} M_V[j_v, i_v] * M_U[j_u, i_u] * P_{i_v, i_u}
-        for (SizeType j_v = 0; j_v < n_v_new; ++j_v) {
-            for (SizeType j_u = 0; j_u < n_u_new; ++j_u) {
-                double x = 0.0, y = 0.0, z = 0.0;
-                for (SizeType i_v = 0; i_v < n_v_old; ++i_v) {
-                    const double cv = M_V(j_v, i_v);
-                    if (std::abs(cv) < 1e-15) continue;
-                    for (SizeType i_u = 0; i_u < n_u_old; ++i_u) {
-                        const double coeff = cv * M_U(j_u, i_u);
-                        if (std::abs(coeff) < 1e-15) continue;
-                        const auto& pt = this->GetPoint(offset + i_v * n_u_old + i_u);
-                        x += coeff * pt.X();
-                        y += coeff * pt.Y();
-                        z += coeff * pt.Z();
-                    }
-                }
-                this->Points().push_back(
-                    Kratos::make_intrusive<NodeType>(new_id++, x, y, z));
-            }
-        }
-
-        mLevels.push_back(THBLevel{prev.DegreeU, prev.DegreeV, rKnotsU, rKnotsV, rWeights});
+        AddLevelImpl(rKnotsU, rKnotsV, rWeights,
+            [](IndexType id, double x, double y, double z) {
+                return Kratos::make_intrusive<NodeType>(id, x, y, z);
+            });
     }
 
-    /**
-     * @brief Adds NLevels refinement levels via uniform bisection.
-     *
-     * Each new level is obtained by inserting the midpoint of every unique knot
-     * span of the previous level (halving all spans). Equivalent to calling
-     * AddLevel(knots_u, knots_v) NLevels times with auto-generated knot vectors.
-     */
+    /// Adds one level with explicit knot vectors. CPs computed via knot insertion;
+    /// new nodes are created via rModelPart.CreateNewNode and registered there.
+    void AddLevel(
+        const Vector& rKnotsU,
+        const Vector& rKnotsV,
+        ModelPart& rModelPart,
+        const Vector& rWeights = Vector())
+    {
+        AddLevelImpl(rKnotsU, rKnotsV, rWeights,
+            [&rModelPart](IndexType id, double x, double y, double z)
+                -> typename NodeType::Pointer {
+                return rModelPart.CreateNewNode(id, x, y, z);
+            });
+    }
+
+    /// Adds NLevels via uniform bisection; new nodes are orphan.
     void AddLevel(const SizeType NLevels)
     {
         KRATOS_ERROR_IF(mLevels.empty())
             << "THBSurfaceGeometry::AddLevel: no base level defined." << std::endl;
-
         for (SizeType n = 0; n < NLevels; ++n) {
             const THBLevel& prev = mLevels.back();
             AddLevel(BisectKnots(prev.KnotsU), BisectKnots(prev.KnotsV));
+        }
+    }
+
+    /// Adds NLevels via uniform bisection; new nodes are registered in rModelPart.
+    void AddLevel(const SizeType NLevels, ModelPart& rModelPart)
+    {
+        KRATOS_ERROR_IF(mLevels.empty())
+            << "THBSurfaceGeometry::AddLevel: no base level defined." << std::endl;
+        for (SizeType n = 0; n < NLevels; ++n) {
+            const THBLevel& prev = mLevels.back();
+            AddLevel(BisectKnots(prev.KnotsU), BisectKnots(prev.KnotsV), rModelPart);
         }
     }
 
@@ -421,6 +391,59 @@ private:
     ///@}
     ///@name Private Helpers
     ///@{
+
+    /// Shared implementation for all AddLevel overloads.
+    /// TNodeFactory: callable (IndexType id, double x, double y, double z) -> NodeType::Pointer
+    template<typename TNodeFactory>
+    void AddLevelImpl(
+        const Vector& rKnotsU,
+        const Vector& rKnotsV,
+        const Vector& rWeights,
+        TNodeFactory CreateNode)
+    {
+        KRATOS_ERROR_IF(mLevels.empty())
+            << "THBSurfaceGeometry::AddLevel: no base level defined." << std::endl;
+
+        const SizeType l = mLevels.size() - 1;
+        const THBLevel& prev = mLevels[l];
+        const SizeType p = prev.DegreeU;
+        const SizeType q = prev.DegreeV;
+        const SizeType n_u_old = prev.KnotsU.size() - p + 1;
+        const SizeType n_v_old = prev.KnotsV.size() - q + 1;
+
+        const Matrix M_U = ComputeRefinementMatrix1D(prev.KnotsU, rKnotsU, p);
+        const Matrix M_V = ComputeRefinementMatrix1D(prev.KnotsV, rKnotsV, q);
+        const SizeType n_u_new = M_U.size1();
+        const SizeType n_v_new = M_V.size1();
+
+        const SizeType offset = ControlPointOffset(l);
+
+        IndexType new_id = 1;
+        for (SizeType i = 0; i < this->PointsNumber(); ++i)
+            new_id = std::max(new_id, this->GetPoint(i).Id() + IndexType(1));
+
+        // P'_{j_v, j_u} = sum_{i_v, i_u} M_V[j_v, i_v] * M_U[j_u, i_u] * P_{i_v, i_u}
+        for (SizeType j_v = 0; j_v < n_v_new; ++j_v) {
+            for (SizeType j_u = 0; j_u < n_u_new; ++j_u) {
+                double x = 0.0, y = 0.0, z = 0.0;
+                for (SizeType i_v = 0; i_v < n_v_old; ++i_v) {
+                    const double cv = M_V(j_v, i_v);
+                    if (std::abs(cv) < 1e-15) continue;
+                    for (SizeType i_u = 0; i_u < n_u_old; ++i_u) {
+                        const double coeff = cv * M_U(j_u, i_u);
+                        if (std::abs(coeff) < 1e-15) continue;
+                        const auto& pt = this->GetPoint(offset + i_v * n_u_old + i_u);
+                        x += coeff * pt.X();
+                        y += coeff * pt.Y();
+                        z += coeff * pt.Z();
+                    }
+                }
+                this->Points().push_back(CreateNode(new_id++, x, y, z));
+            }
+        }
+
+        mLevels.push_back(THBLevel{prev.DegreeU, prev.DegreeV, rKnotsU, rKnotsV, rWeights});
+    }
 
     /// Returns a new internal-format knot vector with the midpoint of every unique
     /// span inserted (uniform bisection / h-refinement by factor 2).
