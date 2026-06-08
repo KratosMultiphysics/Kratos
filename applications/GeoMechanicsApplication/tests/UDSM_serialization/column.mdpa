@@ -95,7 +95,7 @@ End SubModelPart
 Begin SubModelPart Top
   Begin SubModelPartTables
     1
-	2
+    2
   End SubModelPartTables
   Begin SubModelPartNodes
     5
