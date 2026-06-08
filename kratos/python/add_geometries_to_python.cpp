@@ -50,7 +50,9 @@
 #include "geometries/nurbs_curve_geometry.h"
 #include "geometries/nurbs_curve_on_surface_geometry.h"
 #include "geometries/surface_in_nurbs_volume_geometry.h"
-#include "geometries/brep_surface.h" 
+#include "geometries/brep_surface.h"
+// Locally refined geometries
+#include "geometries/thb_surface_geometry.h"
 
 namespace Kratos::Python
 {
@@ -503,6 +505,54 @@ void  AddGeometriesToPython(pybind11::module& m)
 
     py::class_<SurfaceInNurbsVolumeGeometry<3, NodeContainerType>, SurfaceInNurbsVolumeGeometry<3, NodeContainerType>::Pointer, GeometryType>(m, "SurfaceInNurbsVolumeGeometry")
         .def(py::init<NurbsVolumeGeometry<NodeContainerType>::Pointer, GeometryType::Pointer>())
+        ;
+
+    // THB-Spline geometry
+    using THBSurfaceGeometry3DType = THBSurfaceGeometry<3, NodeContainerType>;
+
+    py::class_<THBSurfaceGeometry3DType::THBLevel>(m, "THBLevel")
+        .def_readonly("DegreeU", &THBSurfaceGeometry3DType::THBLevel::DegreeU)
+        .def_readonly("DegreeV", &THBSurfaceGeometry3DType::THBLevel::DegreeV)
+        .def_readonly("KnotsU",  &THBSurfaceGeometry3DType::THBLevel::KnotsU)
+        .def_readonly("KnotsV",  &THBSurfaceGeometry3DType::THBLevel::KnotsV)
+        .def_readonly("Weights", &THBSurfaceGeometry3DType::THBLevel::Weights)
+        ;
+
+    py::class_<THBSurfaceGeometry3DType::THBRefinementDomain>(m, "THBRefinementDomain")
+        .def_readonly("Level", &THBSurfaceGeometry3DType::THBRefinementDomain::Level)
+        .def_readonly("MinU",  &THBSurfaceGeometry3DType::THBRefinementDomain::MinU)
+        .def_readonly("MaxU",  &THBSurfaceGeometry3DType::THBRefinementDomain::MaxU)
+        .def_readonly("MinV",  &THBSurfaceGeometry3DType::THBRefinementDomain::MinV)
+        .def_readonly("MaxV",  &THBSurfaceGeometry3DType::THBRefinementDomain::MaxV)
+        ;
+
+    py::class_<THBSurfaceGeometry3DType, THBSurfaceGeometry3DType::Pointer, GeometryType>(m, "THBSurfaceGeometry3D")
+        .def(py::init<const PointsArrayType&, const SizeType, const SizeType, const Vector&, const Vector&>())
+        .def(py::init<const PointsArrayType&, const SizeType, const SizeType, const Vector&, const Vector&, const Vector&>())
+        .def("AddLevel",
+             py::overload_cast<const Vector&, const Vector&, const Vector&>(&THBSurfaceGeometry3DType::AddLevel),
+             py::arg("knots_u"), py::arg("knots_v"), py::arg("weights") = Vector())
+        .def("AddLevel",
+             py::overload_cast<const Vector&, const Vector&, ModelPart&, const Vector&>(&THBSurfaceGeometry3DType::AddLevel),
+             py::arg("knots_u"), py::arg("knots_v"), py::arg("model_part"), py::arg("weights") = Vector())
+        .def("AddLevel",
+             py::overload_cast<const SizeType>(&THBSurfaceGeometry3DType::AddLevel),
+             py::arg("n_levels"))
+        .def("AddLevel",
+             py::overload_cast<const SizeType, ModelPart&>(&THBSurfaceGeometry3DType::AddLevel),
+             py::arg("n_levels"), py::arg("model_part"))
+        .def("AddRefinementDomain", &THBSurfaceGeometry3DType::AddRefinementDomain,
+             py::arg("level"),
+             py::arg("omega_min_u"), py::arg("omega_max_u"),
+             py::arg("omega_min_v"), py::arg("omega_max_v"))
+        .def("NumberOfLevels",      &THBSurfaceGeometry3DType::NumberOfLevels)
+        .def("PolynomialDegree",    &THBSurfaceGeometry3DType::PolynomialDegree)
+        .def("Levels", [](const THBSurfaceGeometry3DType& self) {
+            return self.Levels();   // returns std::vector<THBLevel> by value → Python list
+        })
+        .def("RefinementDomains", [](const THBSurfaceGeometry3DType& self) {
+            return self.RefinementDomains();
+        })
         ;
 
 }
