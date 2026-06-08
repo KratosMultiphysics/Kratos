@@ -42,18 +42,18 @@ KRATOS_TEST_CASE_IN_SUITE(ThreeDimensionalStressState_CalculateBMatrixReturnsCor
     const auto calculated_matrix = p_stress_state_policy->CalculateBMatrix(
         GradNpT, Np, ModelSetupUtilities::Create3D4NTetrahedraGeometry());
 
-    const auto expected_matrix = // This row (INDEX_3D_XX) contains the first column of GradNpT as INDEX_X
+    const auto expected_matrix = // This row (0) contains the first column of GradNpT as INDEX_X
         UblasUtilities::CreateMatrix(
             {{1, 0, 0, 4, 0, 0, 7, 0, 0, 10, 0, 0},
-             // This row (INDEX_3D_YY) contains the second column of GradNpT as INDEX_Y
+             // This row (1) contains the second column of GradNpT as INDEX_Y
              {0, 2, 0, 0, 5, 0, 0, 8, 0, 0, 11, 0},
-             // This row (INDEX_3D_ZZ) contains the third column of GradNpT as INDEX_Z
+             // This row (2) contains the third column of GradNpT as INDEX_Z
              {0, 0, 3, 0, 0, 6, 0, 0, 9, 0, 0, 12},
-             // This row (INDEX_3D_XY) contains the first and second columns of GradNpT as INDEX_Y and INDEX_X respectively
+             // This row (3) contains the first and second columns of GradNpT as INDEX_Y and INDEX_X respectively
              {2, 1, 0, 5, 4, 0, 8, 7, 0, 11, 10, 0},
-             // This row (INDEX_3D_YZ) contains the second and third column of GradNpT as INDEX_Z and INDEX_Y respectively
+             // This row (4) contains the second and third column of GradNpT as INDEX_Z and INDEX_Y respectively
              {0, 3, 2, 0, 6, 5, 0, 9, 8, 0, 12, 11},
-             // This row (INDEX_3D_XZ) contains the first and third column of GradNpT as INDEX_Z and INDEX_X respectively
+             // This row (5) contains the first and third column of GradNpT as INDEX_Z and INDEX_X respectively
              {3, 0, 1, 6, 0, 4, 9, 0, 7, 12, 0, 10}});
 
     KRATOS_CHECK_MATRIX_NEAR(calculated_matrix, expected_matrix, 1e-12)
