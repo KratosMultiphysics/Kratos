@@ -12,7 +12,7 @@
 
 #include "utilities/variable_utils.h"
 
-#include "dgeosettlement.h"
+#include "dgeosettlement.hpp"
 #include "geo_mechanics_application.h"
 #include "input_output/logger.h"
 #include "linear_solvers_application.h"
@@ -28,10 +28,10 @@
 #include "custom_processes/set_parameter_field_process.hpp"
 
 #include "adaptive_time_incrementor.h"
-#include "custom_processes/deactivate_conditions_on_inactive_elements_process.hpp"
+#include "custom_processes/deactivate_conditions_on_inactive_elements_process.h"
 #include "custom_processes/find_neighbour_elements_of_conditions_process.h"
-#include "custom_processes/geo_extrapolate_integration_point_values_to_nodes_process.h"
-#include "custom_utilities/generic_utilities.h"
+#include "custom_processes/geo_extrapolate_integration_point_values_to_nodes_process.hpp"
+#include "custom_utilities/generic_utilities.hpp"
 #include "custom_utilities/input_utility.h"
 #include "custom_utilities/process_info_parser.h"
 #include "custom_utilities/process_utilities.h"
@@ -155,12 +155,12 @@ void KratosGeoSettlement::InitializeProcessFactory()
                                 MakeCreatorFor<ApplyScalarConstraintTableProcess>());
     mProcessFactory->AddCreator("ApplyNormalLoadTableProcess", MakeCreatorFor<ApplyNormalLoadTableProcess>());
     mProcessFactory->AddCreator("ApplyVectorConstraintTableProcess",
-                                MakeCreatorFor<ApplyVectorConstraintTableProcess>());
+                                MakeCreatorWithModelFor<ApplyVectorConstraintTableProcess>());
     mProcessFactory->AddCreator("SetParameterFieldProcess", MakeCreatorFor<SetParameterFieldProcess>());
     mProcessFactory->AddCreator("ApplyExcavationProcess", MakeCreatorWithModelFor<ApplyExcavationProcess>());
     mProcessFactory->AddCreator("ApplyK0ProcedureProcess", MakeCreatorWithModelFor<ApplyK0ProcedureProcess>());
     mProcessFactory->AddCreator("GeoExtrapolateIntegrationPointValuesToNodesProcess",
-                                MakeCreatorFor<GeoExtrapolateIntegrationPointValuesToNodesProcess>());
+                                MakeCreatorWithModelFor<GeoExtrapolateIntegrationPointValuesToNodesProcess>());
     mProcessFactory->AddCreator("FixWaterPressuresAbovePhreaticLineProcess",
                                 MakeCreatorFor<FixWaterPressuresAbovePhreaticLineProcess>());
     mProcessFactory->SetCallBackWhenProcessIsUnknown([](const std::string& rProcessName) {

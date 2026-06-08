@@ -23,6 +23,7 @@
 
 namespace Kratos
 {
+using namespace std::string_literals;
 
 ApplyExcavationProcess::ApplyExcavationProcess(Model& rModel, const Parameters& rProcessSettings)
     : mDeactivateSoilPart{rProcessSettings["deactivate_soil_part"].GetBool()}
@@ -43,20 +44,11 @@ void ApplyExcavationProcess::ExecuteInitialize()
             block_for_each(r_model_part.get().Elements(),
                            [](Element& rElement) { rElement.ResetConstitutiveLaw(); });
         }
-    } else {
-        for (const auto& r_model_part : mrModelParts) {
-            VariableUtils{}.SetFlag(ACTIVE, true, r_model_part.get().Nodes());
-        }
     }
 
-    for (const auto& r_model_part : mrModelParts) {
-        VariableUtils{}.SetFlag(ACTIVE, !mDeactivateSoilPart, r_model_part.get().Conditions());
-    }
     KRATOS_CATCH("")
 }
 
-std::string ApplyExcavationProcess::Info() const { return "ApplyExcavationProcess"; }
-
-ApplyExcavationProcess::~ApplyExcavationProcess() = default;
+std::string ApplyExcavationProcess::Info() const { return "ApplyExcavationProcess"s; }
 
 } // namespace Kratos

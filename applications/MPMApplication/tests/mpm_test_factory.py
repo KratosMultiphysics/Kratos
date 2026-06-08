@@ -78,6 +78,9 @@ class CooksMembraneCompressibleTest(MPMTestFactory):
 class CooksMembraneUPCompressibleTest(MPMTestFactory):
     file_name = "cooks_membrane_tests/UP_compressible_cook_membrane_2D_test"
 
+class CooksMembraneUPCompressibleQuadsTest(MPMTestFactory):
+    file_name = "cooks_membrane_tests/UP_compressible_cook_membrane_2D_quads_test"
+
 class CooksMembraneUPIncompressibleTest(MPMTestFactory):
     file_name = "cooks_membrane_tests/UP_incompressible_cook_membrane_2D_test"
 
@@ -110,7 +113,7 @@ class PenaltyImpositionBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest(
 class LagrangeImpositionBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest(MPMTestFactory):
     file_name = "beam_tests/hyperelastic_cantilever_beam/lagrange_self_weight_load_2D_quad_test"
 
-class LagrangeCenterImpositionBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest(MPMTestFactory):
+class LagrangeCenterImpositionBeamCantileverQuasiStaticHyperelasticSelfWeightLoad2DQuadTest(MPMTestFactory):
     file_name = "beam_tests/hyperelastic_cantilever_beam/lagrange_center_self_weight_load_2D_quad_test"
 
 ### Perturbed Lagrange Imposition Tests
@@ -167,3 +170,7 @@ class PQMPMExplicitTriTest(MPMTestFactory):
 
 class PQMPMExplicitHexTest(MPMTestFactory):
     file_name = "pqmpm_tests/pqmpm_explicit_hex_test"
+    
+### Initial condition tests
+class InitialConditionPrescribedVelocityTest(MPMTestFactory):
+    file_name = "initial_condition_tests/prescribed_initial_velocity_test"

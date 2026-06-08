@@ -12,22 +12,53 @@
 //
 
 // Application includes
-#include "custom_elements/U_Pw_small_strain_element.hpp"
-#include "custom_utilities/check_utilities.h"
+#include "custom_elements/U_Pw_small_strain_element.h"
+#include "custom_utilities/check_utilities.hpp"
 #include "custom_utilities/constitutive_law_utilities.h"
-#include "custom_utilities/equation_of_motion_utilities.h"
+#include "custom_utilities/element_utilities.hpp"
+#include "custom_utilities/equation_of_motion_utilities.hpp"
 #include "custom_utilities/hydraulic_discharge.h"
-#include "custom_utilities/math_utilities.h"
+#include "custom_utilities/math_utilities.hpp"
 #include "custom_utilities/node_utilities.h"
 #include "custom_utilities/output_utilities.hpp"
+#include "custom_utilities/stress_strain_utilities.h"
 #include "custom_utilities/transport_equation_utilities.hpp"
 #include "custom_utilities/variables_utilities.hpp"
+#include "geo_mechanics_application_constants.h"
+#include "geo_mechanics_application_variables.h"
 #include "includes/cfd_variables.h"
 
 #include <numeric>
 
 namespace Kratos
 {
+template <unsigned int TDim, unsigned int TNumNodes>
+UPwSmallStrainElement<TDim, TNumNodes>::UPwSmallStrainElement(IndexType             NewId,
+                                                              const NodesArrayType& ThisNodes,
+                                                              std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                                                              std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier)
+    : UPwBaseElement(NewId, ThisNodes, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
+{
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+UPwSmallStrainElement<TDim, TNumNodes>::UPwSmallStrainElement(IndexType             NewId,
+                                                              GeometryType::Pointer pGeometry,
+                                                              std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                                                              std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier)
+    : UPwBaseElement(NewId, pGeometry, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
+{
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+UPwSmallStrainElement<TDim, TNumNodes>::UPwSmallStrainElement(IndexType               NewId,
+                                                              GeometryType::Pointer   pGeometry,
+                                                              PropertiesType::Pointer pProperties,
+                                                              std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                                                              std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier)
+    : UPwBaseElement(NewId, pGeometry, pProperties, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
+{
+}
 
 template <unsigned int TDim, unsigned int TNumNodes>
 Element::Pointer UPwSmallStrainElement<TDim, TNumNodes>::Create(IndexType             NewId,
@@ -65,8 +96,7 @@ int UPwSmallStrainElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentPro
 
     const CheckProperties check_properties(r_properties, "property", this->Id(),
                                            CheckProperties::Bounds::AllInclusive);
-    check_properties.CheckAvailability(IGNORE_UNDRAINED);
-    if (!r_properties[IGNORE_UNDRAINED]) {
+    if (!ConstitutiveLawUtilities::IsConstantWaterPressure(r_properties)) {
         check_properties.SingleUseBounds(CheckProperties::Bounds::AllExclusive).Check(BULK_MODULUS_FLUID);
         check_properties.SingleUseBounds(CheckProperties::Bounds::AllExclusive).Check(DYNAMIC_VISCOSITY);
         check_properties.CheckPermeabilityProperties(r_geometry.WorkingSpaceDimension());
@@ -227,7 +257,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::SetValuesOnIntegrationPoints(const 
                "UPwSmallStrainElement::SetValuesOnIntegrationPoints"
             << std::endl;
         mStressVector.resize(rValues.size());
-        std::copy(rValues.begin(), rValues.end(), mStressVector.begin());
+        std::ranges::copy(rValues, mStressVector.begin());
     } else {
         KRATOS_ERROR_IF(rValues.size() < mConstitutiveLawVector.size())
             << "Insufficient number of values for "
@@ -347,21 +377,17 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const 
                                    nodal_hydraulic_head.begin(), 0.0);
         }
     } else if (rVariable == CONFINED_STIFFNESS || rVariable == SHEAR_STIFFNESS) {
-        size_t variable_index = 0;
+        auto variable_index = std::size_t{0};
         if (rVariable == CONFINED_STIFFNESS) {
-            if (TDim == 2) {
-                variable_index = INDEX_2D_PLANE_STRAIN_XX;
-            } else if (TDim == 3) {
-                variable_index = INDEX_3D_XX;
-            } else {
+            if constexpr (!(TDim == 2 || TDim == 3)) {
                 KRATOS_ERROR << "CONFINED_STIFFNESS can not be retrieved for dim " << TDim
                              << " in element: " << this->Id() << std::endl;
             }
         } else if (rVariable == SHEAR_STIFFNESS) {
             if (TDim == 2) {
-                variable_index = INDEX_2D_PLANE_STRAIN_XY;
+                variable_index = std::size_t{3};
             } else if (TDim == 3) {
-                variable_index = INDEX_3D_XZ;
+                variable_index = std::size_t{5};
             } else {
                 KRATOS_ERROR << "SHEAR_STIFFNESS can not be retrieved for dim " << TDim
                              << " in element: " << this->Id() << std::endl;
@@ -599,6 +625,20 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const 
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
+void UPwSmallStrainElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const Variable<int>& rVariable,
+                                                                          std::vector<int>& rValues,
+                                                                          const ProcessInfo&)
+{
+    const auto number_of_integration_points =
+        GetGeometry().IntegrationPointsNumber(this->GetIntegrationMethod());
+
+    rValues.resize(number_of_integration_points);
+    for (auto i = SizeType{0}; i < number_of_integration_points; ++i) {
+        rValues[i] = mConstitutiveLawVector[i]->GetValue(rVariable, rValues[i]);
+    }
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
 void UPwSmallStrainElement<TDim, TNumNodes>::CalculateMaterialStiffnessMatrix(MatrixType& rStiffnessMatrix,
                                                                               const ProcessInfo& rCurrentProcessInfo)
 {
@@ -719,8 +759,6 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAll(MatrixType&        rLe
 
     ElementVariables Variables;
     this->InitializeElementVariables(Variables, rCurrentProcessInfo);
-
-    RetentionLaw::Parameters RetentionParameters(r_properties);
 
     const auto b_matrices = CalculateBMatrices(Variables.DN_DXContainer, Variables.NContainer);
     const auto integration_coefficients =
@@ -917,7 +955,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddLHS(MatrixType& rLef
 
     this->CalculateAndAddCouplingMatrix(rLeftHandSideMatrix, rVariables);
 
-    if (!rVariables.IgnoreUndrained) {
+    if (!rVariables.IsConstantWaterPressure) {
         const auto permeability_matrix =
             GeoTransportEquationUtilities::CalculatePermeabilityMatrix<TDim, TNumNodes>(
                 rVariables.GradNpT, rVariables.DynamicViscosityInverse, rVariables.PermeabilityMatrix,
@@ -932,7 +970,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddLHS(MatrixType& rLef
 
 template <unsigned int TDim, unsigned int TNumNodes>
 void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddStiffnessMatrix(MatrixType& rLeftHandSideMatrix,
-                                                                            const ElementVariables& rVariables)
+                                                                            const ElementVariables& rVariables) const
 {
     KRATOS_TRY
 
@@ -955,7 +993,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddCouplingMatrix(Matri
         rVariables.BiotCoefficient, rVariables.BishopCoefficient, rVariables.IntegrationCoefficient);
     GeoElementUtilities::AssembleUPBlockMatrix(rLeftHandSideMatrix, coupling_matrix);
 
-    if (!rVariables.IgnoreUndrained) {
+    if (!rVariables.IsConstantWaterPressure) {
         const auto p_coupling_matrix = GeoTransportEquationUtilities::CalculateCouplingMatrix<TDim, TNumNodes>(
             rVariables.B, GetStressStatePolicy().GetVoigtVector(), rVariables.Np,
             rVariables.BiotCoefficient, rVariables.DegreeOfSaturation, rVariables.IntegrationCoefficient);
@@ -996,7 +1034,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddRHS(VectorType& rRig
 
     this->CalculateAndAddCouplingTerms(rRightHandSideVector, rVariables);
 
-    if (!rVariables.IgnoreUndrained) {
+    if (!rVariables.IsConstantWaterPressure) {
         this->CalculateAndAddCompressibilityFlow(rRightHandSideVector, rVariables);
 
         this->CalculateAndAddPermeabilityFlow(rRightHandSideVector, rVariables);
@@ -1062,13 +1100,13 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddCouplingTerms(Vector
     const array_1d<double, TNumNodes * TDim> coupling_force = prod(coupling_matrix, rVariables.PressureVector);
     GeoElementUtilities::AssembleUBlockVector(rRightHandSideVector, (-1.0) * coupling_force);
 
-    if (!rVariables.IgnoreUndrained) {
+    if (!rVariables.IsConstantWaterPressure) {
         const auto p_coupling_matrix = GeoTransportEquationUtilities::CalculateCouplingMatrix<TDim, TNumNodes>(
             rVariables.B, GetStressStatePolicy().GetVoigtVector(), rVariables.Np,
             rVariables.BiotCoefficient, rVariables.DegreeOfSaturation, rVariables.IntegrationCoefficient);
         const array_1d<double, TNumNodes> coupling_flow =
             PORE_PRESSURE_SIGN_FACTOR * prod(trans(p_coupling_matrix), rVariables.VelocityVector);
-        GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector, (-1.0) * coupling_flow);
+        GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector, -1.0 * coupling_flow);
     }
 
     KRATOS_CATCH("")
@@ -1226,7 +1264,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::InitializeNodalPorePressureVariable
 {
     KRATOS_TRY
 
-    const GeometryType& r_geometry = this->GetGeometry();
+    const auto& r_geometry = this->GetGeometry();
     VariablesUtilities::GetNodalValues(r_geometry, WATER_PRESSURE, rVariables.PressureVector.begin());
     VariablesUtilities::GetNodalValues(r_geometry, DT_WATER_PRESSURE, rVariables.DtPressureVector.begin());
 
@@ -1238,7 +1276,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::InitializeNodalDisplacementVariable
 {
     KRATOS_TRY
 
-    const GeometryType& r_geometry = this->GetGeometry();
+    const auto& r_geometry = this->GetGeometry();
 
     // Nodal variables
     GeoElementUtilities::GetNodalVariableVector<TDim, TNumNodes>(rVariables.DisplacementVector,
@@ -1266,7 +1304,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::InitializeProperties(ElementVariabl
 
     const auto& r_properties = this->GetProperties();
 
-    rVariables.IgnoreUndrained = r_properties[IGNORE_UNDRAINED];
+    rVariables.IsConstantWaterPressure = ConstitutiveLawUtilities::IsConstantWaterPressure(r_properties);
     rVariables.UseHenckyStrain = r_properties.Has(USE_HENCKY_STRAIN) ? r_properties[USE_HENCKY_STRAIN] : false;
 
     rVariables.ConsiderGeometricStiffness =
@@ -1290,7 +1328,8 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateKinematics(ElementVariable
 
     rVariables.detJ = rVariables.detJContainer[IntegrationPointIndex];
 
-    Matrix J0, InvJ0;
+    Matrix J0;
+    Matrix InvJ0;
     this->CalculateDerivativesOnInitialConfiguration(rVariables.detJInitialConfiguration, J0, InvJ0,
                                                      rVariables.GradNpTInitialConfiguration,
                                                      IntegrationPointIndex);
@@ -1320,19 +1359,16 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAnyOfMaterialResponse(
 {
     if (rStrainVectors.size() != rDeformationGradients.size()) {
         rStrainVectors.resize(rDeformationGradients.size());
-        std::fill(rStrainVectors.begin(), rStrainVectors.end(),
-                  ZeroVector(this->GetStressStatePolicy().GetVoigtSize()));
+        std::ranges::fill(rStrainVectors, ZeroVector(this->GetStressStatePolicy().GetVoigtSize()));
     }
     if (rStressVectors.size() != rDeformationGradients.size()) {
         rStressVectors.resize(rDeformationGradients.size());
-        std::fill(rStressVectors.begin(), rStressVectors.end(),
-                  ZeroVector(this->GetStressStatePolicy().GetVoigtSize()));
+        std::ranges::fill(rStressVectors, ZeroVector(this->GetStressStatePolicy().GetVoigtSize()));
     }
     if (rConstitutiveMatrices.size() != rDeformationGradients.size()) {
         rConstitutiveMatrices.resize(rDeformationGradients.size());
-        std::fill(rConstitutiveMatrices.begin(), rConstitutiveMatrices.end(),
-                  ZeroMatrix(this->GetStressStatePolicy().GetVoigtSize(),
-                             this->GetStressStatePolicy().GetVoigtSize()));
+        std::ranges::fill(rConstitutiveMatrices, ZeroMatrix(this->GetStressStatePolicy().GetVoigtSize(),
+                                                            this->GetStressStatePolicy().GetVoigtSize()));
     }
 
     const auto determinants_of_deformation_gradients =
@@ -1351,6 +1387,32 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAnyOfMaterialResponse(
 
         mConstitutiveLawVector[integration_point]->CalculateMaterialResponseCauchy(rConstitutiveParameters);
     }
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+std::string UPwSmallStrainElement<TDim, TNumNodes>::Info() const
+{
+    const std::string constitutive_info =
+        !mConstitutiveLawVector.empty() ? mConstitutiveLawVector[0]->Info() : "not defined";
+    return "U-Pw small strain Element #" + std::to_string(this->Id()) + "\nConstitutive law: " + constitutive_info;
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void UPwSmallStrainElement<TDim, TNumNodes>::PrintInfo(std::ostream& rOStream) const
+{
+    rOStream << Info();
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void UPwSmallStrainElement<TDim, TNumNodes>::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, UPwBaseElement)
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void UPwSmallStrainElement<TDim, TNumNodes>::load(Serializer& rSerializer)
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, UPwBaseElement)
 }
 
 template class UPwSmallStrainElement<2, 3>;

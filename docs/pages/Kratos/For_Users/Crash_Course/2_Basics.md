@@ -1,5 +1,5 @@
 ---
-title: 2 - Kraots Basics
+title: 2 - Kratos Basics
 keywords: 
 tags: [Kratos Crash Course Basics]
 sidebar: kratos_for_users
@@ -68,7 +68,7 @@ The project parameters file for Kratos is commonly named `ProjectParameters.json
 Try to change the end time of the structural case from to `5.0` seconds and run the analysis again.
 
 ## 3. The Model and ModePart files
-In KratosMultiphyscis, the information about your mesh is stored in a data structure named `Model`. The model is responsible of everything related with the geometrical part of Kratos. Only one can exist per simulation and will typically contain several `ModelParts`. The serialization of this modelparts. is what we call an `.mdpa`(**M**o**d**el**Pa**rt) and is your third input file.
+In KratosMultiphysics, the information about your mesh is stored in a data structure named `Model`. The model is responsible of everything related with the geometrical part of Kratos. Only one can exist per simulation and will typically contain several `ModelParts`. The serialization of this modelparts. is what we call an `.mdpa`(**M**o**d**el**Pa**rt) and is your third input file.
 
 It contains blocks for properties, nodes, elements, conditions and initial values. In addition the mesh entities can be grouped into sub model parts. A detailed description of the syntax is given [here](./Input_Output_and_Visualization/Input_Data.md).
 

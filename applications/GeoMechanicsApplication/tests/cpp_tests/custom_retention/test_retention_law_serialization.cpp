@@ -13,7 +13,7 @@
 #include "custom_retention/saturated_below_phreatic_level_law.h"
 #include "custom_retention/saturated_law.h"
 #include "custom_retention/van_genuchten_law.h"
-#include "custom_utilities/registration_utilities.h"
+#include "custom_utilities/registration_utilities.hpp"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 
 #include <string>

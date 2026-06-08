@@ -88,12 +88,19 @@ public:
         VariablePointerType pVariable,
         const bool Copy = true);
 
+    VariableTensorAdaptor(const VariableTensorAdaptor& rOther) = default;
+
     // Destructor
     ~VariableTensorAdaptor() override = default;
 
     ///@}
     ///@name Public operations
     ///@{
+
+    /**
+     * @brief Clones the existing tensor adaptor.
+     */
+    TensorAdaptor::Pointer Clone() const override;
 
     /**
      * @brief Execution of this check is only required if this VariableTensorAdaptor

@@ -10,39 +10,45 @@
 //  Main authors:    Vahid Galavi
 //
 
-#include "custom_processes/deactivate_conditions_on_inactive_elements_process.hpp"
+#include "custom_processes/deactivate_conditions_on_inactive_elements_process.h"
 #include "includes/kratos_flags.h"
+#include "includes/model_part.h"
 #include "utilities/parallel_utilities.h"
 
 namespace Kratos
 {
+using namespace std::string_literals;
+
+DeactivateConditionsOnInactiveElements::DeactivateConditionsOnInactiveElements(ModelPart& rModelPart)
+    : Process(), mrModelPart(rModelPart)
+{
+}
+
 void DeactivateConditionsOnInactiveElements::Execute()
 {
-    KRATOS_TRY
+    auto is_active = [](const auto& rpNeighbourElement) {
+        return rpNeighbourElement->IsDefined(ACTIVE) ? rpNeighbourElement->Is(ACTIVE) : true;
+    };
 
-    block_for_each(mrModelPart.Conditions(), [&](Condition& rCondition) {
-        const auto& VectorOfNeighbours = rCondition.GetValue(NEIGHBOUR_ELEMENTS);
-        KRATOS_ERROR_IF(VectorOfNeighbours.size() == 0)
+    block_for_each(mrModelPart.Conditions(), [&is_active](Condition& rCondition) {
+        const auto& vector_of_neighbours = rCondition.GetValue(NEIGHBOUR_ELEMENTS);
+        KRATOS_ERROR_IF(vector_of_neighbours.size() == 0)
             << "Condition without any corresponding element, ID " << rCondition.Id() << "\n"
             << "Call a process to find neighbour elements before calling this function." << std::endl;
 
-        bool IsElementActive = false;
-        for (unsigned int i = 0; i < VectorOfNeighbours.size(); ++i) {
-            if (VectorOfNeighbours[i].IsDefined(ACTIVE)) {
-                if (VectorOfNeighbours[i].Is(ACTIVE)) IsElementActive = true;
-            } else {
-                IsElementActive = true;
-            }
-        }
-        rCondition.Set(ACTIVE, IsElementActive);
+        rCondition.Set(ACTIVE, std::any_of(vector_of_neighbours.ptr_begin(),
+                                           vector_of_neighbours.ptr_end(), is_active));
     });
-
-    KRATOS_CATCH("")
 }
 
 std::string DeactivateConditionsOnInactiveElements::Info() const
 {
-    return "DeactivateConditionsOnInactiveElements";
+    return "DeactivateConditionsOnInactiveElements"s;
+}
+
+void DeactivateConditionsOnInactiveElements::PrintData(std::ostream& rOStream) const
+{
+    this->PrintInfo(rOStream);
 }
 
 } // namespace Kratos

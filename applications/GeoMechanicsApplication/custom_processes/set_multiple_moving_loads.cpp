@@ -10,12 +10,15 @@
 //  Main authors:    Jonathan Nuttall
 //
 #include "set_multiple_moving_loads.h"
-#include "includes/variables.h"
+#include "includes/kratos_parameters.h"
+#include "includes/model_part.h"
 
 namespace Kratos
 {
-SetMultipleMovingLoadsProcess::SetMultipleMovingLoadsProcess(ModelPart& rModelPart, const Parameters& rProcessSettings)
-    : mrModelPart(rModelPart), mParameters(rProcessSettings)
+using namespace std::string_literals;
+
+SetMultipleMovingLoadsProcess::SetMultipleMovingLoadsProcess(ModelPart& rModelPart, Parameters ProcessSettings)
+    : mrModelPart{rModelPart}, mParameters{std::move(ProcessSettings)}
 {
     Parameters default_parameters(R"(
         {
@@ -60,8 +63,9 @@ SetMultipleMovingLoadsProcess::SetMultipleMovingLoadsProcess(ModelPart& rModelPa
         auto parameters_moving_load = mParameters.Clone();
 
         count++;
-        const std::string& newModelPartName = mrModelPart.Name() + "_cloned_" + std::to_string(count);
-        auto& new_cloned_model_part = CloneMovingConditionInComputeModelPart(newModelPartName);
+        std::ostringstream buffer;
+        buffer << mrModelPart.Name() << "_cloned_" << count;
+        auto& new_cloned_model_part = CloneMovingConditionInComputeModelPart(buffer.str());
 
         parameters_moving_load.RemoveValue("configuration");
         parameters_moving_load.RemoveValue("compute_model_part_name");
@@ -136,5 +140,5 @@ void SetMultipleMovingLoadsProcess::ExecuteFinalizeSolutionStep()
     }
 }
 
-std::string SetMultipleMovingLoadsProcess::Info() const { return "SetMultipleMovingLoadsProcess"; }
+std::string SetMultipleMovingLoadsProcess::Info() const { return "SetMultipleMovingLoadsProcess"s; }
 } // namespace Kratos

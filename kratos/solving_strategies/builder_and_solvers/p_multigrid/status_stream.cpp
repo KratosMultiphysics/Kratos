@@ -56,7 +56,7 @@ std::unique_ptr<VtuOutput> MakeVtuOutput(ModelPart& rModelPart,
     for (const std::string& r_variable_name : variable_names){
         KRATOS_ERROR_IF_NOT(KratosComponents<Variable<double>>::Has(r_variable_name))
             << r_variable_name << " is not a registered variable name";
-        p_output->AddHistoricalVariable(KratosComponents<Variable<double>>::Get(r_variable_name));
+        p_output->AddVariable(KratosComponents<Variable<double>>::Get(r_variable_name), Globals::DataLocation::NodeHistorical);
     }
 
     KRATOS_CATCH("")

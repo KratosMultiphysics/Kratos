@@ -21,6 +21,7 @@
 
 namespace Kratos
 {
+using namespace std::string_literals;
 
 GeoApplyConstantScalarValueProcess::GeoApplyConstantScalarValueProcess(ModelPart& rModelPart,
                                                                        const Parameters& rParameters)
@@ -94,7 +95,7 @@ void GeoApplyConstantScalarValueProcess::ExecuteFinalize()
 
 std::string GeoApplyConstantScalarValueProcess::Info() const
 {
-    return "GeoApplyConstantScalarValueProcess";
+    return "GeoApplyConstantScalarValueProcess"s;
 }
 
 } // namespace Kratos

@@ -55,9 +55,11 @@ from test_nodal_damping import NodalDampingTests as TNodalDampingTests
 from test_rve_analytic import TestRVESimplestTest as TTestRVESimplestTest
 # Spring damper element test
 from test_spring_damper_element import SpringDamperElementTests as TSpringDamperElementTests
-# Harmonic analysis tests
-from test_harmonic_analysis import HarmonicAnalysisTests as THarmonicAnalysisTests
-from test_harmonic_analysis import HarmonicAnalysisTestsWithHDF5 as THarmonicAnalysisTestsWithHDF5
+# Harmonic analysis tests - Modal Superposition
+from test_modal_harmonic_analysis import HarmonicAnalysisTests as THarmonicAnalysisTests
+from test_modal_harmonic_analysis import HarmonicAnalysisTestsWithHDF5 as THarmonicAnalysisTestsWithHDF5
+# Harmonic analysis tests - Direct
+from test_direct_harmonic_analysis import DirectHarmonicAnalysisTests as TDirectHarmonicAnalysisTests
 # Dynamic eigenvalue test
 from test_dynamic_eigenvalue_analysis import TestDynamicEigenvalueAnalysis as TTestDynamicEigenvalueAnalysis
 # Dynamic basic tests
@@ -102,10 +104,13 @@ from structural_mechanics_test_factory import SimpleMeshMovingTest as TSimpleMes
 
 ##### NIGHTLY TESTS #####
 # Patch test Small Displacements
+from structural_mechanics_test_factory import CorotationalReissnerMindlinTest as TCorotationalReissnerMindlinTest
+from structural_mechanics_test_factory import LinearReissnerMindlinTest as TLinearReissnerMindlinTest
 from structural_mechanics_test_factory import MixedUEElementTest as TMixedUEElementTest
 from structural_mechanics_test_factory import LinearTruss2D2NTest as TLinearTruss2D2NTest
 from structural_mechanics_test_factory import LinearTruss2D3NTest as TLinearTruss2D3NTest
 from structural_mechanics_test_factory import LinearTruss3DTest as TLinearTruss3DTest
+from structural_mechanics_test_factory import TLTruss3DTest as TTLTruss3DTest
 from structural_mechanics_test_factory import TimoshenkoBeam3D2NTest as TTimoshenkoBeam3D2NTest
 from structural_mechanics_test_factory import TimoshenkoBeam2D2NTest as TTimoshenkoBeam2D2NTest
 from structural_mechanics_test_factory import TimoshenkoBeam2D3NTest as TTimoshenkoBeam2D3NTest
@@ -171,13 +176,13 @@ from structural_mechanics_test_factory import Simple3D2NBeamCrNonLinearTest as T
 from structural_mechanics_test_factory import Simple3D2NBeamCrLinearTest as T3D2NBeamCrLinearTest
 from structural_mechanics_test_factory import SimpleSemiRigid3D2NBeamCrLinearTest as T3D2NBeamCrLinearSemiRigidTest
 from structural_mechanics_test_factory import Simple3D2NBeamCrDynamicTest as T3D2NBeamCrDynamicTest
+from structural_mechanics_test_factory import Simple3D2NBeamCrDynamicPseudoStepTest as T3D2NBeamCrDynamicPseudoStepTest
 from structural_mechanics_test_factory import Simple2D2NBeamCrTest as T2D2NBeamCrTest
 from structural_mechanics_test_factory import Simple3D2NTrussNonLinearSnapthroughDisplacementControlTest as T3D2NNLDispCtrlTest
 # Shell tests
 ### OLD Tests Start, will be removed soon, Philipp Bucher, 31.01.2018 |---
 from structural_mechanics_test_factory import ShellQ4ThickBendingRollUpTests as TShellQ4ThickBendingRollUpTests
 from structural_mechanics_test_factory import ShellQ4ThickDrillingRollUpTests as TShellQ4ThickDrillingRollUpTests
-from structural_mechanics_test_factory import ShellQ4ThickOrthotropicLaminateLinearStaticTests as TShellQ4ThickOrthotropicLaminateLinearStaticTests
 from structural_mechanics_test_factory import ShellT3ThinBendingRollUpTests as TShellT3ThinBendingRollUpTests
 from structural_mechanics_test_factory import ShellT3ThinDrillingRollUpTests as TShellT3ThinDrillingRollUpTests
 from structural_mechanics_test_factory import ShellT3IsotropicScordelisTests as TShellT3IsotropicScordelisTests
@@ -205,7 +210,7 @@ from structural_mechanics_test_factory import ShellT3AndQ4NonLinearDynamicStruct
 from structural_mechanics_test_factory import ShellT3AndQ4NonLinearDynamicStructOscillatingPlateLumpedTests as TShellT3AndQ4NonLinearDynamicStructOscillatingPlateLumpedTests
 # CL tests
 from structural_mechanics_test_factory import InitialStateElasticityTest as TInitialStateElasticityTest
-from structural_mechanics_test_factory import InitialStrainShellQ4ThickTest as TInitialStrainShellQ4ThickTest
+# from structural_mechanics_test_factory import InitialStrainShellQ4ThickTest as TInitialStrainShellQ4ThickTest # TODO: A. Cornejo: this test will be activated again when the initial state capability is added to the new MITC thick shell.
 
 # Rigid test
 from structural_mechanics_test_factory import RigidFaceTestWithImposeRigidMovementProcess as TRigidFaceTestWithImposeRigidMovementProcess
@@ -244,6 +249,7 @@ from structural_mechanics_test_factory import ShellT3AndQ4NonLinearDynamicUnstru
 from restart_tests import TestSmallDisplacement2D4N  as TTestSmallDisplacement2D4N
 from restart_tests import TestTotalLagrangian2D3N    as TTestTotalLagrangian2D3N
 from restart_tests import TestUpdatedLagrangian3D8N  as TTestUpdatedLagrangian3D8N
+from test_step_controller import TestStepControllers as TTestStepControllers
 
 ##### RESPONSE_FUNCTION #####
 from structural_response_function_test_factory import TestAdjointStrainEnergyResponseFunction as TTestAdjointStrainEnergyResponseFunction
@@ -279,7 +285,8 @@ def AssembleTestSuites():
     # Constitutive Law tests
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestConstitutiveLaw]))
     nightSuite.addTest(TInitialStateElasticityTest('test_execution'))
-    nightSuite.addTest(TInitialStrainShellQ4ThickTest('test_execution'))
+    # nightSuite.addTest(TInitialStrainShellQ4ThickTest('test_execution'))
+
     # Constraint tests
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCase(TestLinkConstraint))
     # Mass calculation tests
@@ -361,16 +368,20 @@ def AssembleTestSuites():
 
     ### Adding Nightly Tests
     # Patch test Small Displacements
+    smallSuite.addTest(TLinearReissnerMindlinTest('test_execution'))
+    smallSuite.addTest(TCorotationalReissnerMindlinTest('test_execution'))
     smallSuite.addTest(TMixedUEElementTest('test_execution'))
     smallSuite.addTest(TLinearTruss2D2NTest('test_execution'))
     smallSuite.addTest(TLinearTruss2D3NTest('test_execution'))
     smallSuite.addTest(TLinearTruss3DTest('test_execution'))
+    smallSuite.addTest(TTLTruss3DTest('test_execution'))
     smallSuite.addTest(TTimoshenkoBeam3D2NTest('test_execution'))
     smallSuite.addTest(TTimoshenkoBeam2D2NTest('test_execution'))
     smallSuite.addTest(TTimoshenkoBeam2D3NTest('test_execution'))
     smallSuite.addTest(TTimoshenkoCurvedBeam2D3NTest('test_execution'))
     smallSuite.addTest(TTimoshenkoCurvedBeam3D3NTest('test_execution'))
     smallSuite.addTest(TAutomatedInitialVariableProcessTest('test_execution'))
+    smallSuite.addTest(T3D2NBeamCrDynamicPseudoStepTest('test_execution'))
     nightSuite.addTest(TSDTwoDShearQuaPatchTest('test_execution'))
     nightSuite.addTest(TSDTwoDShearTriPatchTest('test_execution'))
     nightSuite.addTest(TSDTwoDTensionQuaPatchTest('test_execution'))
@@ -453,6 +464,8 @@ def AssembleTestSuites():
             print("FEAST not available in LinearSolversApplication")
 
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([THarmonicAnalysisTestsWithHDF5]))
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TDirectHarmonicAnalysisTests]))
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestStepControllers]))
 
     nightSuite.addTest(TTestAdjointSensitivityAnalysisBeamStructureLocalStress('test_execution'))
     nightSuite.addTest(TTestAdjointSensitivityAnalysisBeamStructureNodalDisplacement('test_execution'))
@@ -517,8 +530,6 @@ def AssembleTestSuites():
     validationSuite.addTest(TShellT3ThinDrillingRollUpTests('test_execution'))
     validationSuite.addTest(TShellT3IsotropicScordelisTests('test_execution'))
     validationSuite.addTest(TShellQ4ThickBendingRollUpTests('test_execution'))
-    # validationSuite.addTest(TShellQ4ThickDrillingRollUpTests('test_execution'))
-    validationSuite.addTest(TShellQ4ThickOrthotropicLaminateLinearStaticTests('test_execution'))
     validationSuite.addTest(TShellT3ThinBendingRollUpTests('test_execution'))
     validationSuite.addTest(TShellT3ThinOrthotropicLaminateLinearStaticTests('test_execution'))
     validationSuite.addTest(TShellT3ThickLinearStaticTests('test_execution'))

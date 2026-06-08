@@ -60,10 +60,18 @@ public:
                                                     bool        ReformDofSetAtEachStep = false,
                                                     bool        MoveMeshFlag           = false)
         : GeoMechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(
-              model_part, pScheme, pNewConvergenceCriteria, pNewBuilderAndSolver, rParameters, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag)
+              model_part,
+              pScheme,
+              pNewConvergenceCriteria,
+              pNewBuilderAndSolver,
+              rParameters,
+              MaxIterations,
+              CalculateReactions,
+              ReformDofSetAtEachStep,
+              MoveMeshFlag),
+          mPipingIterations(rParameters["max_piping_iterations"].GetInt()),
+          rank(model_part.GetCommunicator().MyPID())
     {
-        rank              = model_part.GetCommunicator().MyPID();
-        mPipingIterations = rParameters["max_piping_iterations"].GetInt();
     }
 
     template <typename PipingElementType>
@@ -256,8 +264,8 @@ private:
         KRATOS_INFO_IF("ResidualBasedNewtonRaphsonStrategy", this->GetEchoLevel() > 0 && rank == 0)
             << "Recalculating" << std::endl;
 
-        GeoMechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::InitializeSolutionStep();
         GeoMechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::Predict();
+        GeoMechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::InitializeSolutionStep();
         return GeoMechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::SolveSolutionStep();
     }
 

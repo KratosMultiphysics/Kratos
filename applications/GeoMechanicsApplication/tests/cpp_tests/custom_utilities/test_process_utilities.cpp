@@ -16,6 +16,8 @@
 #include "custom_processes/apply_excavation_process.h"
 #include "custom_processes/apply_final_stresses_of_previous_stage_to_initial_state.h"
 #include "custom_processes/apply_k0_procedure_process.h"
+#include "custom_processes/apply_vector_constraint_table_process.h"
+#include "custom_processes/geo_extrapolate_integration_point_values_to_nodes_process.hpp"
 #include "custom_utilities/process_utilities.h"
 #include "testing/testing.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
@@ -61,6 +63,23 @@ KRATOS_TEST_CASE_IN_SUITE(GetModelPartsFromSettings_ListOfModelParts, KratosGeoM
     KRATOS_EXPECT_EQ(model_parts.size(), 2);
     KRATOS_EXPECT_EQ(model_parts[0].get().Name(), "Part1");
     KRATOS_EXPECT_EQ(model_parts[1].get().Name(), "Part2");
+}
+
+KRATOS_TEST_CASE_IN_SUITE(GetModelPartsFromSettings_CheckForDuplicatedNames, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    Model model;
+    model.CreateModelPart("Part1");
+    model.CreateModelPart("Part2");
+
+    Parameters settings(R"(
+        {
+            "model_part_name_list": ["Part1", "Part1"]
+        })");
+
+    // Act and Assert
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(ProcessUtilities::GetModelPartsFromSettings(model, settings, "TestProcess"),
+                                      "model_part_name_list has duplicated names for TestProcess.")
 }
 
 struct NamedFactory {
@@ -136,6 +155,14 @@ static const std::vector<NamedFactory> ProcessesAndOperations = {
     {"ApplyCPhiReductionProcess",
      [](Model& rModel, const Parameters& rSettings) {
     return std::make_unique<Kratos::ApplyCPhiReductionProcess>(rModel, rSettings);
+}},
+    {"ApplyVectorConstraintTableProcess",
+     [](Model& rModel, const Parameters& rSettings) {
+    return std::make_unique<Kratos::ApplyVectorConstraintTableProcess>(rModel, rSettings);
+}},
+    {"GeoExtrapolateIntegrationPointValuesToNodesProcess",
+     [](Model& rModel, const Parameters& rSettings) {
+    return std::make_unique<Kratos::GeoExtrapolateIntegrationPointValuesToNodesProcess>(rModel, rSettings);
 }},
     {"ActivateModelPartOperation",
      [](Model& rModel, const Parameters& rSettings) {
