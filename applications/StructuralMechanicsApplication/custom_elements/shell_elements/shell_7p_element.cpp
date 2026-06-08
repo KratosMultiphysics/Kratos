@@ -196,7 +196,22 @@ void Shell7pElement::CalculateLeftHandSide(
     Matrix covariant_metric_current = ZeroMatrix(3);        // BoundedMatrix<double, 3, 3> covariant_metric_current = ZeroMatrix(3, 3); // i cannot resize() it — size is fixed at compile-time
     Matrix amkovr = ZeroMatrix(3);
     Matrix amkonr = ZeroMatrix(3);
-    double detJ = 0.0;
+    Matrix gmkovr = ZeroMatrix(3);
+    Matrix gmkonr = ZeroMatrix(3);
+    double detJ_surface = 0.0;
+    double gpcoord3[2] = {1.0 / sqrt(3.0), -1.0 / sqrt(3.0)};
+    double gpweight[2] = {1.0, 1.0};
+    double amdet_body = 0.0;
+    double gmdet_body = 0.0;
+
+    // int ansq=0;   
+    // int nsansq=2; // activation flag of Q-mode of ANS
+    // double xr1[2]; 
+    // double xs1[2]; 
+    // double xr2[2]; 
+    // double xs2[2]; 
+    // double frq[2]; 
+    // double fsq[2]; 
 
     for (SizeType point_number = 0; point_number < r_integration_points.size(); ++point_number){
         // getting information for integration
@@ -210,18 +225,39 @@ void Shell7pElement::CalculateLeftHandSide(
 
         // CovariantMetric(covariant_metric_current,current_covariant_base_vectors);
         CovariantMetric(amkovr,akovr);
-        ContravariantMetric(amkonr,amkovr);
+        ContravariantMetric(amkonr,amkovr,amdet_body);
 
         ContraVariantBaseVectors(akonr,amkonr,akovr);
 
-        JacobiDeterminante(detJ,akovr);
+        JacobiDeterminante(detJ_surface,akovr);
 
         BoundedMatrix<double, 12, 12> Dmatrix=ZeroMatrix(12,12);
-        Matrix Bop = ZeroMatrix(12,number_dofs);             // DOFs vary by geometry type
-        CalculateMaterialLaw(Dmatrix,amkonr,thickness,ConstitutiveLawType::gStVenantKirchhoff);
+        Matrix Bop = ZeroMatrix(12,number_dofs);
         CalculatelinearBOperator(Bop,akovr,a3kvp,shape_functions_gradients_i,Nshape,number_of_nodes);
 
-        double weight = integration_weight_i * detJ * thickness*0.5; 
+        // loop over GP in thickness direction for preintegration of constitutive law
+        for (SizeType k=0; k<2; ++k){
+            double Theta3 = gpcoord3[k];
+            double tweight = gpweight[k];
+            CovariantBaseVectorsShellBody(gkovr,shape_functions_gradients_i,Nshape,ConfigurationType::Reference,Theta3,thickness);
+            CovariantMetric(gmkovr,gkovr);
+            ContravariantMetric(gmkonr,gmkovr,gmdet_body);
+            //ContraVariantBaseVectors(gkonr,gmkonr,gkovr);
+
+            double scalefactor= sqrt(gmdet_body)/detJ_surface * tweight;
+
+            CalculateMaterialLaw(Dmatrix,gmkonr,thickness,ConstitutiveLawType::gStVenantKirchhoff, Theta3, scalefactor);
+        }
+        Dmatrix(2,2) *= 5.0/6.0; 
+        Dmatrix(2,4) *= 5.0/6.0; 
+        Dmatrix(4,2) *= 5.0/6.0;
+        Dmatrix(4,4) *= 5.0/6.0;
+        Dmatrix(8,8) *= 0.7;     
+        Dmatrix(8,10) *= 0.7;
+        Dmatrix(10,8) *= 0.7;
+        Dmatrix(10,10) *= 0.7;
+
+        double weight = integration_weight_i * detJ_surface; // * thickness*0.5; 
         Matrix DB = ZeroMatrix(12,number_dofs); 
         noalias(DB) = prod(Dmatrix, Bop);
         rLeftHandSideMatrix += prod(trans(Bop), DB) * weight;
@@ -287,7 +323,7 @@ void Shell7pElement::DirectorDerivatives(array_1d<Vector,2>& a3kvp,const Matrix&
     a3kvp[0] = a31*thickness*0.5;
     a3kvp[1] = a32*thickness*0.5;
 }
-void Shell7pElement::CovariantMetric(Matrix& rMetric,const array_1d<Vector,3>& rBaseVectorCovariant)
+void Shell7pElement::CovariantMetric(Matrix& rMetric,const array_1d<Vector,3>& rBaseVectorCovariant) const
 {
     rMetric = ZeroMatrix(3);
     for (SizeType i=0;i<3;++i){
@@ -297,18 +333,20 @@ void Shell7pElement::CovariantMetric(Matrix& rMetric,const array_1d<Vector,3>& r
     }
 }
  
-void Shell7pElement::ContravariantMetric(Matrix& rMetric, const Matrix& rCovariantMetric)
+void Shell7pElement::ContravariantMetric(Matrix& rMetric, const Matrix& rCovariantMetric, double& detJ_body) const
 {
     rMetric = ZeroMatrix(3);
-    double det = 0.0;
-    MathUtils<double>::InvertMatrix3(rCovariantMetric, rMetric, det);         // 1.Uses the general 3×3 inversion 2.Checks determinant 3.Works even if orthogonality assumption fails   
-    if (std::abs(det) < 1e-14) {                                                     // check the determinant for singularity (near-zero = bad matrix condition) meaning large contravariant metric coeefs
-        KRATOS_ERROR << "Singular covariant metric detected. det = " << det << std::endl;
-    }
+    detJ_body = 0.0;
+    MathUtils<double>::InvertMatrix3(rCovariantMetric, rMetric, detJ_body);         // 1.Uses the general 3×3 inversion 2.Checks determinant 3.Works even if orthogonality assumption fails   
+    const double det_tol = 1.0e-14;
+
+    KRATOS_ERROR_IF(detJ_body <= -det_tol) << "Negative covariant metric determinant detected. det = " << detJ_body << " in element " << Id() << std::endl;
+    // check the determinant for singularity (near-zero = bad matrix condition) meaning large contravariant metric coeefs
+    KRATOS_ERROR_IF(std::abs(detJ_body) < det_tol) << "Singular covariant metric detected. det = " << detJ_body << " in element " << Id() << std::endl;  
 }
 
 void Shell7pElement::ContraVariantBaseVectors(array_1d<Vector,3>& rBaseVectors,const Matrix& rContraVariantMetric,
-    const array_1d<Vector,3> rCovariantBaseVectors)
+    const array_1d<Vector,3> rCovariantBaseVectors) const
 {
     rBaseVectors[0] = ZeroVector(3);
     rBaseVectors[1] = ZeroVector(3);
@@ -321,14 +359,50 @@ void Shell7pElement::ContraVariantBaseVectors(array_1d<Vector,3>& rBaseVectors,c
 
 void Shell7pElement::JacobiDeterminante(double& DetJ, const array_1d<Vector,3>& akovr) const
 {
-    array_1d<double, 3> g3;
-    MathUtils<double>::CrossProduct(g3, akovr[0], akovr[1]);
-    DetJ = MathUtils<double>::Norm(g3);
+    array_1d<double, 3> a3;
+    MathUtils<double>::CrossProduct(a3, akovr[0], akovr[1]);
+    DetJ = MathUtils<double>::Norm(a3);
     KRATOS_ERROR_IF(DetJ<std::numeric_limits<double>::epsilon()) << "det of Jacobi smaller 0 for element with id" << Id() << std::endl;
 }
 
-void Shell7pElement::CalculateMaterialLaw(BoundedMatrix<double, 12, 12>& CL, const Matrix& amkonr, const double& thickness,
-const ConstitutiveLawType& option)
+void Shell7pElement::CovariantBaseVectorsShellBody(array_1d<Vector,3>& gkovr,
+     const Matrix& rShapeFunctionGradientValues, const Vector& rNshape, const ConfigurationType& rConfiguration, const double& Theta3, const double& thickness) const
+{
+    // pass/call this ShapeFunctionsLocalGradients[pnt]
+    const auto& r_geom = GetGeometry();
+    const SizeType number_of_nodes = r_geom.size();
+    const SizeType dimension = r_geom.WorkingSpaceDimension();
+    Vector g1 = ZeroVector(dimension);
+    Vector g2 = ZeroVector(dimension);
+    Vector g3 = ZeroVector(dimension);
+    
+    // Vector current_displacement = ZeroVector(dimension*number_of_nodes);
+    //if (rConfiguration==ConfigurationType::Current) GetValuesVector(current_displacement);
+
+
+    for (SizeType i=0;i<number_of_nodes;++i){
+
+        const Vector& nodal_normal = r_geom[i].GetValue(NORMAL);        // node.GetValue(NORMAL)
+
+        g1[0] += (r_geom.GetPoint( i ).X0() + Theta3 * thickness*0.5 *nodal_normal[0]) * rShapeFunctionGradientValues(i, 0);
+        g1[1] += (r_geom.GetPoint( i ).Y0() + Theta3 * thickness*0.5 *nodal_normal[1]) * rShapeFunctionGradientValues(i, 0);
+        g1[2] += (r_geom.GetPoint( i ).Z0() + Theta3 * thickness*0.5 *nodal_normal[2]) * rShapeFunctionGradientValues(i, 0);
+
+        g2[0] += (r_geom.GetPoint( i ).X0() + Theta3 * thickness*0.5 *nodal_normal[0]) * rShapeFunctionGradientValues(i, 1);
+        g2[1] += (r_geom.GetPoint( i ).Y0() + Theta3 * thickness*0.5 *nodal_normal[1]) * rShapeFunctionGradientValues(i, 1);
+        g2[2] += (r_geom.GetPoint( i ).Z0() + Theta3 * thickness*0.5 *nodal_normal[2]) * rShapeFunctionGradientValues(i, 1);
+
+        g3[0] += nodal_normal[0] * rNshape[i];
+        g3[1] += nodal_normal[1] * rNshape[i];
+        g3[2] += nodal_normal[2] * rNshape[i];
+    }
+    gkovr[0] = g1;
+    gkovr[1] = g2;
+    gkovr[2] = g3*thickness*0.5;
+}
+
+void Shell7pElement::CalculateMaterialLaw(BoundedMatrix<double, 12, 12>& CL, const Matrix& gmkonr, const double& thickness,
+const ConstitutiveLawType& option, const double& Theta3, const double& fact) const
 {
     const auto& r_properties = GetProperties();
     const double E = r_properties[YOUNG_MODULUS];
@@ -336,19 +410,18 @@ const ConstitutiveLawType& option)
     const double G = E/(2.0*(1.0+nu));
     const double lambda = E*nu/((1.0+nu)*(1.0-2.0*nu));
     const double mu = G;
-    CL = ZeroMatrix(12);
 
     if (option == ConstitutiveLawType::gStVenantKirchhoff) {
         double C[3][3][3][3] = {};
-        double Theta3[2] = {1.0 / sqrt(3.0), -1.0 / sqrt(3.0)};
-        double gpweight[2] = {1.0, 1.0};
+        //double Theta3[2] = {1.0 / sqrt(3.0), -1.0 / sqrt(3.0)};
+        //double gpweight[2] = {1.0, 1.0};
         BoundedMatrix<double, 6, 6> CC = ZeroMatrix(6);
 
         for (SizeType i=0; i<3; ++i){
             for (SizeType j=0; j<3; ++j){
                 for (SizeType k=0; k<3; ++k){
                     for (SizeType l=0; l<3; ++l){
-                        C[i][j][k][l] = lambda*amkonr(i,j)*amkonr(k,l) + mu*( amkonr(i,k)*amkonr(j,l) + amkonr(i,l)*amkonr(k,j) );
+                        C[i][j][k][l] = lambda*gmkonr(i,j)*gmkonr(k,l) + mu*( gmkonr(i,k)*gmkonr(j,l) + gmkonr(i,l)*gmkonr(k,j) );
                     }
                 }
             }
@@ -395,28 +468,26 @@ const ConstitutiveLawType& option)
         CC(5,4) = C[2][2][2][1];
         CC(5,5) = C[2][2][2][2];
 
-        for (SizeType k=0; k<2; ++k){
-            for (SizeType i=0; i<6; ++i){
-                const SizeType i6 = i + 6;
-
-                for (SizeType j=0; j<6; ++j){
-                    const SizeType j6 = j + 6;
-
-                    CL(i,j) += CC(i,j)*gpweight[k];
-                    CL(i6,j) += CC(i,j)*Theta3[k]*gpweight[k];
-                    CL(j,i6) += CC(j,i)*Theta3[k]*gpweight[k]; 
-                    CL(i6,j6) += CC(i,j)*Theta3[k]*Theta3[k]*gpweight[k];
-                 }
-            }
+        
+        for (SizeType i=0; i<6; ++i){
+            const SizeType i6 = i + 6;
+            for (SizeType j=0; j<6; ++j){
+                const SizeType j6 = j + 6;
+                CL(i,j) += CC(i,j)*fact;
+                CL(i6,j) += CC(i,j)*Theta3*fact;
+                CL(j,i6) += CC(j,i)*Theta3*fact; 
+                CL(i6,j6) += CC(i,j)*Theta3*Theta3*fact;
+             }
         }
-       CL(2,2) *= 5.0/6.0;    // shear correction factor alpha=5/6 for n13,n23
-       CL(2,4) *= 5.0/6.0;    // schould i use thickness_q=alpha*thickness instead of just thickness for shear terms?
-       CL(4,2) *= 5.0/6.0;
-       CL(4,4) *= 5.0/6.0;
-       CL(8,8) *= 0.7;        // shear correction factor betta=0.7 for m13,m23
-       CL(8,10) *= 0.7;
-       CL(10,8) *= 0.7;
-       CL(10,10) *= 0.7;
+
+       //CL(2,2) *= 5.0/6.0;    // shear correction factor alpha=5/6 for n13,n23
+       //CL(2,4) *= 5.0/6.0;    // schould i use thickness_q=alpha*thickness instead of just thickness for shear terms?
+       //CL(4,2) *= 5.0/6.0;
+       //CL(4,4) *= 5.0/6.0;
+       //CL(8,8) *= 0.7;        // shear correction factor betta=0.7 for m13,m23
+       //CL(8,10) *= 0.7;
+       //CL(10,8) *= 0.7;
+       //CL(10,10) *= 0.7;
     }
  else {
     const double Ebar = E*(1.0-nu)/((1.0+nu)*(1.0-2.0*nu));
@@ -452,8 +523,8 @@ const ConstitutiveLawType& option)
 
 
 }
-                                                                                                           // [N_node][derivative direction]          // Nshape[i] = N_i evaluated at the current GP
-void Shell7pElement::CalculatelinearBOperator(Matrix& bop, const array_1d<Vector,3>& CovariantBaseVectors, const array_1d<Vector,2>& DirectorDerivatives, const Matrix& ShapeFunctionGradientValues, const Vector& Nshape, const SizeType& number_of_nodes)
+                                                                                                                                                                  // [N_node][derivative direction]   // Nshape[i] = N_i evaluated at the current GP
+void Shell7pElement::CalculatelinearBOperator(Matrix& bop, const array_1d<Vector,3>& CovariantBaseVectors, const array_1d<Vector,2>& DirectorDerivatives, const Matrix& ShapeFunctionGradientValues, const Vector& Nshape, const SizeType& number_of_nodes) const
 {
 const double a1x=CovariantBaseVectors[0][0];
 const double a1y=CovariantBaseVectors[0][1];
