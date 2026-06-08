@@ -27,8 +27,14 @@ The material at the first stage is described using:
 -  Young’s modulus 14.0 $MPa$,
 -  Poisson’s ratio 0.3,
 -  Unit weight 20 $kN/m^3$,
--  Cohesion 10 $kPa$,
 -  Friction angle 35.0 degrees.
+
+From the unit weight the "DENSITY_SOLID" in the material parameters is calculated. Given the porosity of 0.0, the density is calculated using the following formula:
+
+```math
+\rho = \frac{\text{Unit weight}}{\text{g}} = \frac{20000}{9.81} = 2.0387 \times 10^3 \ \text{kg/m}^3.
+```
+The friction angle is used to calculate the "K0_VALUE_XX" and "K0_VALUE_ZZ" using the formula for $K_0^{nc}$ as documented in the [$K_0$ procedure process](https://github.com/KratosMultiphysics/Kratos/blob/master/applications/GeoMechanicsApplication/custom_processes/README.md#K_0-procedure-process).
 
 For the second stage, two distinct implementations of the Mohr–Coulomb model are employed:
 - one provided by the MohrCoulomb64 library,
