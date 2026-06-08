@@ -10,7 +10,7 @@
                 "Variables": {
                     "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
                     "DENSITY_SOLID": 2.03873598e+03,
-                    "DENSITY_WATER": 0.0,
+                    "DENSITY_WATER": 1.01937e+03,
                     "POROSITY": 0.0,
                     "BULK_MODULUS_SOLID": 1.0e+10,
                     "BULK_MODULUS_FLUID": 2.2e+09,
