@@ -13,7 +13,7 @@
 
 // Project includes
 #include "custom_processes/compute_element_nodal_normals_process.h"      // include the header of the process
-#include "containers/model.h"                                            // include Model and ModelPart definitions to use them in the Create() method. needed for rModel.GetModelPart(...)
+#include "containers/model.h"                                            // include Model and ModelPart definitions to use them in the Create() method. needed for rModel.GetModelPart()
 #include "utilities/normal_calculation_utils.h"                          // include utility to compute normals
 #include "includes/variables.h"                                          // include core variable "NORMAL" 
 
@@ -21,7 +21,7 @@ namespace Kratos
 {
 
 Process::Pointer ComputeElementNodalNormalsProcess::Create(
-    Model& rModel,              // retrieve the ModelPart on which the process will operate, using the "model_part_name" from ThisParameters
+    Model& rModel,              // retrieve the ModelPart on which the process will operate
     Parameters ThisParameters
     )
 {

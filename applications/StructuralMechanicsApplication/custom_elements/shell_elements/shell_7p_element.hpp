@@ -86,10 +86,10 @@ private:
         Reference
     };
 
-    void CovariantBaseVectors(array_1d<Vector,3>& rBaseVectors, const Matrix& rShapeFunctionGradientValues, const Vector& rNshape, 
+    void CovariantBaseVectorsMidsurface(array_1d<Vector,3>& akovr, const Matrix& rShapeFunctionGradientValues, const Vector& rNshape, 
     const ConfigurationType& rConfiguration, const double& thickness) const;
 
-    void DirectorDerivatives(array_1d<Vector,2>& rDirectorDerivatives,const array_1d<Vector,3>& rBaseVectorCovariant,
+    void DirectorDerivatives(array_1d<Vector,2>& a3kvp,
     const Matrix& rShapeFunctionGradientValues, const double& thickness) const;
 
     void CovariantMetric(Matrix& rMetric,const array_1d<Vector,3>& rBaseVectorCovariant);
@@ -99,9 +99,9 @@ private:
 
     void ContravariantMetric(Matrix& rMetric,const Matrix& rCovariantMetric);
 
-    void JacobiDeterminante(double& rDetJacobi, const array_1d<Vector,3>& rReferenceBaseVectors) const;
+    void JacobiDeterminante(double& DetJ, const array_1d<Vector,3>& akovr) const;
 
-    void CalculateMaterialLaw(BoundedMatrix<double, 12, 12>& CL, const Matrix& Gmkon, const double& thickness,
+    void CalculateMaterialLaw(BoundedMatrix<double, 12, 12>& CL, const Matrix& amkonr, const double& thickness,
     const ConstitutiveLawType& option);
 
     void CalculatelinearBOperator(Matrix& bop, const array_1d<Vector,3>& CovariantBaseVectors, const array_1d<Vector,2>& DirectorDerivatives, 
