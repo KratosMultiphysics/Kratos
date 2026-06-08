@@ -125,11 +125,11 @@ class KratosGeoMechanicsLabElementTests(KratosGeoUnittest.TestCase):
         expected_water_pressures = [[0.0] * 9 for _ in range(nr_of_phases)]
 
         linear_elastic_file_path = test_helper.get_file_path(os.path.join('test_element_lab', 'test_crs', stage_name, 'linear_elastic'))
-        linear_elastic_stresses = test_helper.get_values_from_csv_grouped_by(
+        linear_elastic_stresses = test_helper.get_values_from_csv_grouped(
             Path(linear_elastic_file_path) / "expected_stress.csv",
             ['phase'], ['element_id', 'ip_index'],
             ["stress_xx", "stress_yy", "stress_zz", "stress_yz", "stress_xz", "stress_xy"])
-        linear_elastic_strains = test_helper.get_values_from_csv_grouped_by(
+        linear_elastic_strains = test_helper.get_values_from_csv_grouped(
             Path(linear_elastic_file_path) / "expected_strain.csv",
             ['phase'], ['element_id', 'ip_index'],
             ["strain_xx", "strain_yy", "strain_zz", "strain_yz", "strain_xz", "strain_xy"])
@@ -140,11 +140,11 @@ class KratosGeoMechanicsLabElementTests(KratosGeoUnittest.TestCase):
         self._check_crs_results(stage_name, "linear_elastic", nr_of_phases, expected_stresses, expected_strains, expected_water_pressures, delta_stress=1.0)
 
         mohr_coulomb_file_path = test_helper.get_file_path(os.path.join('test_element_lab', 'test_crs', stage_name, 'mohr_coulomb'))
-        mohr_coulomb_stresses = test_helper.get_values_from_csv_grouped_by(
+        mohr_coulomb_stresses = test_helper.get_values_from_csv_grouped(
             Path(mohr_coulomb_file_path) / "expected_stress.csv",
             ['phase'], ['element_id', 'ip_index'],
             ["stress_xx", "stress_yy", "stress_zz", "stress_yz", "stress_xz", "stress_xy"])
-        mohr_coulomb_strains = test_helper.get_values_from_csv_grouped_by(
+        mohr_coulomb_strains = test_helper.get_values_from_csv_grouped(
             Path(mohr_coulomb_file_path) / "expected_strain.csv",
             ['phase'], ['element_id', 'ip_index'],
             ["strain_xx", "strain_yy", "strain_zz", "strain_yz", "strain_xz", "strain_xy"])
