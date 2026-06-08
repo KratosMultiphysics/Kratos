@@ -64,6 +64,18 @@ def get_values_from_csv_as_vectors(csv_filepath, keys, values):
     return {key: [row[value] for value in values]
             for key, row in get_values_from_csv(csv_filepath, keys, values).items()}
 
+def get_values_from_csv_grouped(csv_filepath, grouping_keys, entry_keys, values):
+    grouped_results = {}
+    combined = get_values_from_csv(csv_filepath, grouping_keys + entry_keys, values)
+    for key, values_dict in combined.items():
+        if len(grouping_keys) == 1:
+            group_key = key[0] if isinstance(key, tuple) else key
+        else:
+            group_key = tuple(key[:len(grouping_keys)])
+        entry_key = key[len(grouping_keys):] if isinstance(key, tuple) else ()
+        grouped_results.setdefault(group_key, {})[entry_key] = [values_dict[v] for v in values]
+    return grouped_results
+
 def get_displacement(simulation):
     """
     Gets displacements from kratos simulation
