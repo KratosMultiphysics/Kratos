@@ -920,14 +920,14 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
                 ##check if velocity increased significantly after step 1, if so, reduce CFL and repeat step 1
                 if(self.clear_divergence_steps == 0): # if we are clearing divergence, we expect some velocity increase, so skip the check
                     vmax_after_step1 = xp.max(xp.linalg.norm(vfrac, axis=1))
-                    if(vmax_after_step1 > 1.5 * vmax):
+                    if(vmax_after_step1 > 1.25 * vmax):
                         print(f"----- Warning: local max velocity increased significantly after step 1: {vmax_after_step1} vs {vmax}")
                         repeat_step1 = True
                         self.cfl = self.cfl * 0.7 # reduce CFL and repeat step 1
                         current_time = backup_current_time # reset current time to before step 1 to repeat it with the new CFL
                     else:
                         repeat_step1 = False
-                        self.cfl = min(self.cfl*1.01, self.max_cfl) # increase CFL for next step if we are well below the limit
+                        self.cfl = min(self.cfl*1.005, self.max_cfl) # increase CFL for next step if we are well below the limit
                 else:
                     repeat_step1 = False
 
@@ -1129,24 +1129,27 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
     def _SolvePressure(self, rhs, previous_p):
         if USE_CUPY:
 
-            # precond = JacobiPreconditioner(self.L)
-            if self.update_precond:
+            #
+
+            #set a stricter tolerance during the clear divergence steps.
+            if(self.clear_divergence_steps > 0):
+                precond = JacobiPreconditioner(self.L)
+                factor = 1e-6
+                exact_res_recalculation=1
+                print("doing div cleareance step")
+                t0 = time.perf_counter()
+                #sol, status = cfd_utils.sparse_linalg.minres(self.L, rhs, x0=previous_p, tol=factor*self.pressure_tolerance, M=precond,maxiter=2000)
+                sol, status = self.cfd_utils.robust_cg(self.L, rhs, x0=previous_p, rtol=factor*self.pressure_tolerance, atol=1e-6, M=precond, ref_interval=exact_res_recalculation, maxiter=200)
+            else:
                 t0 = time.perf_counter()
                 self.preconditioner.update_matrix_values(self.L)
                 print(f"AMG graph update time: {time.perf_counter() - t0:.4f} seconds")
-                self.update_precond = True
-            precond = self.preconditioner.aspreconditioner()
+                precond = self.preconditioner.aspreconditioner()
 
-            #set a stricter tolerance during the clear divergence steps.
-            factor = 1.0
-            if(self.clear_divergence_steps > 0):
-                factor = 1e-6
-                print("doing div cleareance step")
-
-
-            # Solve and get convergence status
-            t0 = time.perf_counter()
-            sol, status = cfd_utils.sparse_linalg.cg(self.L, rhs, x0=previous_p, rtol=factor*self.pressure_tolerance, M=precond)
+                factor = 1.0
+                exact_res_recalculation=10
+                t0 = time.perf_counter()
+                sol, status = self.cfd_utils.robust_cg(self.L, rhs, x0=previous_p, rtol=factor*self.pressure_tolerance, atol=1e-6, M=precond, ref_interval=exact_res_recalculation, maxiter=self.pressure_max_iteration)
             print(f"CG solve time: {time.perf_counter() - t0:.4f} seconds")
             is_converged = status == 0 # Note that the status is 0 if the solver converged
             if not is_converged:
@@ -1160,7 +1163,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
                 xp.asarray(self.L.index1_data())),
                 shape=(self.L.Size1(), self.L.Size2()))
 
-            sol, status = cfd_utils.sparse_linalg.cg(A_np, rhs, rtol=self.pressure_tolerance)
+            sol, status = self.cfd_utils.robust_cg(A_np, rhs, rtol=self.pressure_tolerance)
             is_converged = status == 0 # Note that the status is 0 if the solver converged
 
             return sol, is_converged
