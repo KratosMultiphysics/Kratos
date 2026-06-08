@@ -28,7 +28,9 @@
 #include "geometries/nurbs_surface_geometry.h"
 #include "geometries/nurbs_curve_on_surface_geometry.h"
 
+#include "geometries/thb_surface_geometry.h"
 #include "geometries/brep_surface.h"
+#include "geometries/local_refined_brep_surface.h"
 #include "geometries/brep_curve_on_surface.h"
 #include "geometries/brep_curve.h"
 
@@ -72,6 +74,7 @@ class CadJsonInput : public IO
     typedef typename NurbsTrimmingCurveType::Pointer NurbsTrimmingCurvePointerType;
 
     typedef BrepSurface<ContainerNodeType, false, ContainerEmbeddedNodeType> BrepSurfaceType;
+    typedef LocalRefinedBrepSurface<ContainerNodeType, THBSurfaceGeometry<3, ContainerNodeType>, false, ContainerEmbeddedNodeType> LocalRefinedBrepSurfaceType;
     typedef BrepCurveOnSurface<ContainerNodeType, false, ContainerEmbeddedNodeType> BrepCurveOnSurfaceType;
     typedef BrepCurve<ContainerNodeType, ContainerEmbeddedNodeType> BrepCurveType;
     typedef PointOnGeometry<ContainerNodeType, 3, 2> PointOnGeometryOnSurfaceType;
@@ -254,15 +257,15 @@ private:
                     inner_loops,
                     is_trimmed);
 
-            /// Sets the brep as geometry parent of the nurbs surface.
-            p_surface->SetGeometryParent(p_brep_surface.get());
-
             SetIdOrName<BrepSurfaceType>(rParameters, p_brep_surface);
 
             ReadAndAddEmbeddedEdges(p_brep_surface, rParameters, p_surface, rModelPart, EchoLevel);
-            ReadLocalRefinement(p_brep_surface, rParameters, rLocalRefParameters, EchoLevel);
+            auto p_final_surface = ReadLocalRefinement(p_brep_surface, rParameters, rLocalRefParameters, rModelPart, EchoLevel);
 
-            rModelPart.AddGeometry(p_brep_surface);
+            /// Sets the brep as geometry parent of the nurbs surface.
+            p_surface->SetGeometryParent(p_final_surface.get());
+
+            rModelPart.AddGeometry(p_final_surface);
         }
         else
         {
@@ -278,9 +281,9 @@ private:
             SetIdOrName<BrepSurfaceType>(rParameters, p_brep_surface);
 
             ReadAndAddEmbeddedEdges(p_brep_surface, rParameters, p_surface, rModelPart, EchoLevel);
-            ReadLocalRefinement(p_brep_surface, rParameters, rLocalRefParameters, EchoLevel);
+            auto p_final_surface = ReadLocalRefinement(p_brep_surface, rParameters, rLocalRefParameters, rModelPart, EchoLevel);
 
-            rModelPart.AddGeometry(p_brep_surface);
+            rModelPart.AddGeometry(p_final_surface);
         }
     }
 
@@ -403,13 +406,97 @@ private:
         }
     }
 
-    static void ReadLocalRefinement(
+    /**
+     * @brief Reads local-refinement data from local_ref.json for a given BrepSurface.
+     *
+     * If a matching THB-refinement entry is found, builds a THBSurfaceGeometry,
+     * registers the finer-level nodes in rModelPart, and returns a
+     * LocalRefinedBrepSurface that wraps both the original BrepSurface topology
+     * and the THB integration domain.
+     *
+     * @return the original pBrepSurface if no local refinement applies, or a new
+     *         LocalRefinedBrepSurface sharing the same ID otherwise.
+     */
+    static typename BrepSurfaceType::Pointer ReadLocalRefinement(
         typename BrepSurfaceType::Pointer pBrepSurface,
         const Parameters rFaceParameters,
         const Parameters rLocalRefParameters,
+        ModelPart& rModelPart,
         SizeType EchoLevel = 0)
     {
-        return; //todo: core functionality to read local_ref.json
+        // local_ref.json may be empty or missing the "breps" section
+        if (!rLocalRefParameters.Has("breps")) return pBrepSurface;
+
+        // Find the entry in local_ref.json matching this face's brep_id
+        if (!rFaceParameters.Has("brep_id")) return pBrepSurface;
+        const IndexType brep_id = rFaceParameters["brep_id"].GetInt();
+
+        const Parameters breps = rLocalRefParameters["breps"];
+        IndexType match_index = breps.size();
+        for (IndexType i = 0; i < breps.size(); ++i) {
+            if (breps[i].Has("brep_id") && (IndexType)breps[i]["brep_id"].GetInt() == brep_id) {
+                match_index = i;
+                break;
+            }
+        }
+        if (match_index == breps.size()) return pBrepSurface;
+
+        const Parameters brep_entry = breps[match_index];
+        if (!brep_entry.Has("locally_refined") || !brep_entry["locally_refined"].GetBool())
+            return pBrepSurface;
+
+        KRATOS_INFO_IF("ReadLocalRefinement", EchoLevel > 2)
+            << "Applying THB local refinement to brep_id " << brep_id << std::endl;
+
+        // Extract the underlying NurbsSurface from the BrepSurface
+        auto p_nurbs = std::dynamic_pointer_cast<NurbsSurfaceType>(
+            pBrepSurface->pGetGeometryPart(GeometryType::BACKGROUND_GEOMETRY_INDEX));
+        KRATOS_ERROR_IF_NOT(p_nurbs)
+            << "ReadLocalRefinement: brep_id " << brep_id
+            << " inner surface is not a NurbsSurfaceGeometry<3>." << std::endl;
+
+        // Build level-0 THBSurfaceGeometry from the NurbsSurface
+        auto p_thb = Kratos::make_shared<
+            THBSurfaceGeometry<3, ContainerNodeType>>(
+                p_nurbs->Points(), p_nurbs->PolynomialDegree(0), p_nurbs->PolynomialDegree(1),
+                p_nurbs->KnotsU(), p_nurbs->KnotsV());
+
+        // Determine the total number of refinement levels needed
+        const Parameters local_ref = brep_entry["local_refinement"];
+        SizeType max_level = 0;
+        for (SizeType i = 0; i < local_ref.size(); ++i) {
+            max_level = std::max(max_level, (SizeType)local_ref[i]["refinement_level"].GetInt());
+        }
+
+        // Add levels via uniform bisection; new CPs are registered in rModelPart
+        p_thb->AddLevel(max_level, rModelPart);
+
+        // Register refinement domains
+        for (SizeType i = 0; i < local_ref.size(); ++i) {
+            const Parameters entry = local_ref[i];
+            if (entry["type"].GetString() != "THB") continue;
+
+            const SizeType level  = entry["refinement_level"].GetInt();
+            const double   min_u  = entry["refined_region"]["u_range"][0].GetDouble();
+            const double   max_u  = entry["refined_region"]["u_range"][1].GetDouble();
+            const double   min_v  = entry["refined_region"]["v_range"][0].GetDouble();
+            const double   max_v  = entry["refined_region"]["v_range"][1].GetDouble();
+
+            p_thb->AddRefinementDomain(level, min_u, max_u, min_v, max_v);
+        }
+
+        KRATOS_INFO_IF("ReadLocalRefinement", EchoLevel > 2)
+            << "THB surface for brep_id " << brep_id
+            << " has " << p_thb->NumberOfLevels() << " levels and "
+            << p_thb->Points().size() << " total control points." << std::endl;
+
+        // Wrap both the BrepSurface topology and the THB integration domain
+        // into a LocalRefinedBrepSurface under the same brep_id.
+        auto p_local_refined = Kratos::make_shared<LocalRefinedBrepSurfaceType>(
+            *pBrepSurface, p_thb);
+        p_local_refined->SetId(pBrepSurface->Id());
+
+        return p_local_refined;
     }
 
     ///@}
@@ -715,7 +802,7 @@ private:
     *     "degrees" : [int, int] ,
     *     "knot_vectors" : [
     *         [ double, ... ],
-    *             [double, ...]
+    *         [ double, ... ]
     *     ],
     *     "control_points" : [
     *         [ id:p, [0, 10, 0, 1] ],
