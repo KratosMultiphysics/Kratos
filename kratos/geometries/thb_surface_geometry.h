@@ -171,6 +171,24 @@ public:
     }
 
     /**
+     * @brief Adds NLevels refinement levels via uniform bisection.
+     *
+     * Each new level is obtained by inserting the midpoint of every unique knot
+     * span of the previous level (halving all spans). Equivalent to calling
+     * AddLevel(knots_u, knots_v) NLevels times with auto-generated knot vectors.
+     */
+    void AddLevel(const SizeType NLevels)
+    {
+        KRATOS_ERROR_IF(mLevels.empty())
+            << "THBSurfaceGeometry::AddLevel: no base level defined." << std::endl;
+
+        for (SizeType n = 0; n < NLevels; ++n) {
+            const THBLevel& prev = mLevels.back();
+            AddLevel(BisectKnots(prev.KnotsU), BisectKnots(prev.KnotsV));
+        }
+    }
+
+    /**
      * @brief Adds a refinement region on an existing level.
      *
      * Can be called multiple times for the same level to register
@@ -403,6 +421,23 @@ private:
     ///@}
     ///@name Private Helpers
     ///@{
+
+    /// Returns a new internal-format knot vector with the midpoint of every unique
+    /// span inserted (uniform bisection / h-refinement by factor 2).
+    static Vector BisectKnots(const Vector& rKnots)
+    {
+        std::vector<double> result;
+        result.reserve(rKnots.size() * 2);
+        for (SizeType i = 0; i + 1 < rKnots.size(); ++i) {
+            result.push_back(rKnots[i]);
+            if (rKnots[i + 1] - rKnots[i] > 1e-10)
+                result.push_back(0.5 * (rKnots[i] + rKnots[i + 1]));
+        }
+        result.push_back(rKnots[rKnots.size() - 1]);
+        Vector v(result.size());
+        for (SizeType i = 0; i < result.size(); ++i) v[i] = result[i];
+        return v;
+    }
 
     /**
      * @brief Computes the 1-D B-spline refinement matrix M (size n_fine × n_coarse).
