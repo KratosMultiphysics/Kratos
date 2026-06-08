@@ -54,37 +54,6 @@
         "body_domain_sub_model_part_list": ["Material_1"],
         "problem_domain_sub_model_part_list": ["Material_1"]
     },
-    "output_processes": {
-        "gid_output": [
-            {
-                "python_module": "gid_output_process",
-                "kratos_module": "KratosMultiphysics",
-                "process_name": "GiDOutputProcess",
-                "Parameters": {
-                    "model_part_name": "PorousDomain.porous_computational_model_part",
-                    "output_name": "stage2",
-                    "postprocess_parameters": {
-                        "result_file_configuration": {
-                            "gidpost_flags": {
-                                "WriteDeformedMeshFlag": "WriteUndeformed",
-                                "WriteConditionsFlag": "WriteElementsOnly",
-                                "GiDPostMode": "GiD_PostAscii",
-                                "MultiFileFlag": "SingleFile"
-                            },
-                            "file_label": "step",
-                            "output_control_type": "step",
-                            "output_interval": 1,
-                            "body_output": true,
-                            "node_output": false,
-                            "skin_output": false,
-                            "plane_output": [],
-                            "nodal_results": ["DISPLACEMENT"]
-                        }
-                    }
-                }
-            }
-        ]
-    },
     "processes": {
         "constraints_process_list": [
             {
@@ -114,22 +83,22 @@
                 }
             },
             {
+                "process_name": "ApplyScalarConstraintTableProcess",
+                "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+                "python_module": "apply_scalar_constraint_table_process",
                 "Parameters": {
+                    "model_part_name": "PorousDomain.All_Nodes",
+                    "variable_name": "WATER_PRESSURE",
                     "first_reference_coordinate": [0.0, -10.0, 0.0],
                     "fluid_pressure_type": "Phreatic_Line",
                     "gravity_direction": 1,
                     "is_fixed": true,
-                    "model_part_name": "PorousDomain.All_Nodes",
                     "out_of_plane_direction": 2,
                     "second_reference_coordinate": [40.0, -10.0, 0.0],
                     "specific_weight": 1.0e+04,
                     "table": [0, 0],
-                    "value": 0.0,
-                    "variable_name": "WATER_PRESSURE"
-                },
-                "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
-                "process_name": "ApplyScalarConstraintTableProcess",
-                "python_module": "apply_scalar_constraint_table_process"
+                    "value": 0.0
+                }
             },
             {
                 "python_module": "apply_c_phi_reduction_process",
@@ -151,6 +120,36 @@
                     "active": [false, true, false],
                     "value": [0.0, -9.81, 0.0],
                     "table": [0, 0, 0]
+                }
+            }
+        ]
+    },
+    "output_processes": {
+        "gid_output": [
+            {
+                "python_module": "gid_output_process",
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "GiDOutputProcess",
+                "Parameters": {
+                    "model_part_name": "PorousDomain.porous_computational_model_part",
+                    "output_name": "stage2",
+                    "postprocess_parameters": {
+                        "result_file_configuration": {
+                            "gidpost_flags": {
+                                "WriteDeformedMeshFlag": "WriteUndeformed",
+                                "WriteConditionsFlag": "WriteElementsOnly",
+                                "GiDPostMode": "GiD_PostAscii",
+                                "MultiFileFlag": "SingleFile"
+                            },
+                            "file_label": "step",
+                            "output_control_type": "step",
+                            "output_interval": 1,
+                            "body_output": true,
+                            "node_output": false,
+                            "skin_output": false,
+                            "nodal_results": ["DISPLACEMENT"]
+                        }
+                    }
                 }
             }
         ]
