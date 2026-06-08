@@ -401,7 +401,7 @@ public:
                 20, Tolerance);
         }
 
-        return ProjectionNurbsGeometryUtilities::NewtonRaphsonCurve(
+        return ProjectionNurbsGeometryUtilities::LevenbergMarquardtCurve(
             rProjectedPointLocalCoordinates,
             rPointGlobalCoordinates,
             point_global_coordinates,
