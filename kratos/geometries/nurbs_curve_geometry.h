@@ -64,10 +64,12 @@ public:
     NurbsCurveGeometry(
         const PointsArrayType& rThisPoints,
         const SizeType PolynomialDegree,
-        const Vector& rKnots)
+        const Vector& rKnots,
+        const ProjectionAlgorithm ProjectionAlgorithm = ProjectionAlgorithm::NewtonRaphson)
         : BaseType(rThisPoints, &msGeometryData)
         , mPolynomialDegree(PolynomialDegree)
         , mKnots(rKnots)
+        , mProjectionAlgorithm(ProjectionAlgorithm)
     {
         CheckAndFitKnotVectors();
     }
@@ -77,11 +79,13 @@ public:
         const PointsArrayType& rThisPoints,
         const SizeType PolynomialDegree,
         const Vector& rKnots,
-        const Vector& rWeights)
+        const Vector& rWeights,
+        const ProjectionAlgorithm ProjectionAlgorithm = ProjectionAlgorithm::NewtonRaphson)
         : BaseType(rThisPoints, &msGeometryData)
         , mPolynomialDegree(PolynomialDegree)
         , mKnots(rKnots)
         , mWeights(rWeights)
+        , mProjectionAlgorithm(ProjectionAlgorithm)
     {
         CheckAndFitKnotVectors();
 
@@ -388,12 +392,21 @@ public:
     {
         CoordinatesArrayType point_global_coordinates;
 
+        if (mProjectionAlgorithm == ProjectionAlgorithm::NewtonRaphson) {
+            return ProjectionNurbsGeometryUtilities::NewtonRaphsonCurve(
+                rProjectedPointLocalCoordinates,
+                rPointGlobalCoordinates,
+                point_global_coordinates,
+                *this,
+                20, Tolerance);
+        }
+
         return ProjectionNurbsGeometryUtilities::NewtonRaphsonCurve(
             rProjectedPointLocalCoordinates,
             rPointGlobalCoordinates,
             point_global_coordinates,
             *this,
-            20, Tolerance);
+            50, Tolerance);
     }
 
     ///@}
@@ -449,6 +462,16 @@ public:
             }
         }
         return rResult;
+    }
+
+    void SetProjectionAlgorithm(const ProjectionAlgorithm ProjectionAlgorithm)
+    {
+        mProjectionAlgorithm = ProjectionAlgorithm;
+    }
+
+    ProjectionAlgorithm GetProjectionAlgorithm() const
+    {
+        return mProjectionAlgorithm;
     }
 
     ///@}
@@ -780,6 +803,7 @@ private:
     SizeType mPolynomialDegree;
     Vector mKnots;
     Vector mWeights;
+    ProjectionAlgorithm mProjectionAlgorithm = ProjectionAlgorithm::NewtonRaphson;
 
     ///@}
     ///@name Private Operations
