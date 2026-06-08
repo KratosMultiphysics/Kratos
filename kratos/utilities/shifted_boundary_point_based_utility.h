@@ -110,13 +110,14 @@ public:
     using ElementsSetType = std::unordered_set<ElementType::Pointer, SharedPointerHasher<ElementType::Pointer>, SharedPointerComparator<ElementType::Pointer>>;
     using CloudDataVectorType = DenseVector<std::pair<NodeType::Pointer, double>>;
     using SkinPointsDataVectorType = DenseVector<std::tuple< array_1d<double,3>, array_1d<double,3>, std::size_t >>; // vector of position, area normal and ID of skin points
+    using EdgesVectorType = std::vector<std::pair<std::size_t, std::size_t>>;
 
     // map types
     using SkinPointsToElementsMapType = std::unordered_map<ElementType::Pointer, SkinPointsDataVectorType, SharedPointerHasher<ElementType::Pointer>, SharedPointerComparator<ElementType::Pointer>>;
     using SidesVectorToElementsMapType = std::unordered_map<ElementType::Pointer, Vector, SharedPointerHasher<ElementType::Pointer>, SharedPointerComparator<ElementType::Pointer>>;
     using AverageSkinToElementsMapType = std::unordered_map<ElementType::Pointer, std::pair<array_1d<double,3>, array_1d<double,3>>, SharedPointerHasher<ElementType::Pointer>, SharedPointerComparator<ElementType::Pointer>>;
     using NodesCloudMapType = std::unordered_map<NodeType::Pointer, CloudDataVectorType, SharedPointerHasher<NodeType::Pointer>, SharedPointerComparator<NodeType::Pointer>>;
-    using ClustersMapType = std::unordered_map<std::size_t, std::tuple<NodesSetType, ElementsSetType, std::unordered_set<std::size_t>>>;
+    //using ClustersMapType = std::unordered_map<std::size_t, std::tuple<NodesSetType, ElementsSetType, std::unordered_set<std::size_t>>>;
 
     ///@}
     ///@name Pointer Definitions
@@ -245,10 +246,10 @@ protected:
 
     ModelPart* mpModelPart = nullptr;
     //TODO needs to be discretized to be used for FindIntersectedGeometricalObjectsProcess.
-    // Also right now integration points of mpSkinModelPart (1 GP) are taken as skin points with area and normal.
-    ModelPart* mpSkinModelPart = nullptr;
+    // Also right now integration points of mpSkinDiskretSubModelPart (1 GP) are taken as skin points with area and normal for SkinPointsSubModelPart.
+    ModelPart* mpSkinDiscSubModelPart = nullptr;
     ModelPart* mpBoundarySubModelPart = nullptr;
-    ModelPart* mpSkinPointsModelPart = nullptr;
+    ModelPart* mpSkinPointsSubModelPart = nullptr;
 
     std::string mSkinModelPartName = "";
 
@@ -263,9 +264,6 @@ protected:
 
     const Condition* mpConditionPrototype;
 
-    bool mFindEnclosedVolumes = false;
-    bool mPositiveSideIsActive = true;
-    bool mNegativeSideIsActive = true;
     bool mPositiveSideIsEnclosed = false;
     bool mNegativeSideIsEnclosed = false;
 
@@ -305,7 +303,7 @@ protected:
         const double& ThresholdForSignedness);
 
     /**
-     * @brief TODO. This method requires the skin to be stored in mpSkinModelPart as a Kratos model part with elements, integration points and area normals.
+     * @brief TODO. This method requires the skin to be stored in mpSkinDiskretSubModelPart as a Kratos model part with elements, integration points and area normals.
      *
      * @tparam TDim Working space dimension
      * @param rSkinPointsMap
@@ -316,34 +314,12 @@ protected:
     //TODO
     void FindAndDeactivateUnstableClusters();
 
-    void AddNewCluster(
-        ClustersMapType& ClustersMap,
-        std::size_t& MaxClusterId,
-        NodeType::Pointer pNode);
-
-    //TODO can be used in parallel
-    // Boundary here is defined as elements that are already deactivated and which nodes have an ACTIVATION_LEVEL of 1 before being added to a cluster.
-    // It is expected that a starting node was already inserted into rBoundaryNodes
-    void AdvanceClusterAlongBoundary(
-        const std::size_t ClusterId,
-        NodesSetType& rBoundaryNodes,
-        std::unordered_set<std::size_t>& rFoundIds,
-        LockObject& Mutex);
-
+    //TODO - move to separate process?
+    std::vector<std::vector<ElementType::Pointer>> FindClusters();
     //TODO
-    void AdvanceClusterAlongBoundary(
-        const std::size_t ClusterId,
-        NodesSetType& rBoundaryNodes,
-        std::unordered_set<std::size_t>& rFoundIds);
-
-    //TODO
-    void MergeConnectedClusters(ClustersMapType& rClustersMap);
-
-    //TODO
-    bool FindClusterElementsUntilFixedDof(
-        const std::size_t ClusterId,
-        const NodesSetType& rBoundaryNodes,
-        ElementsSetType& rClusterElements);
+    EdgesVectorType GetActiveAdjacencyGraph();
+    //TODO - unused because clustering was slower with grid partitioning
+    std::unordered_map<std::size_t, std::size_t> PartitionGridByElementIds(std::size_t& rNumChunks);
 
     /**TODO*/
     void SetSidesVectorsAndSkinNormalsForSplitElements(
