@@ -1,0 +1,1809 @@
+{
+  "TIME": [
+    1.0
+  ],
+  "NODE_1": {
+    "DISPLACEMENT_X": [
+      -0.008116772037716194
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_2": {
+    "DISPLACEMENT_X": [
+      -0.0021428880999496964
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_3": {
+    "DISPLACEMENT_X": [
+      0.0011801133227186283
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_4": {
+    "DISPLACEMENT_X": [
+      0.001641242663353423
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_5": {
+    "DISPLACEMENT_X": [
+      0.0016412426633559184
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_6": {
+    "DISPLACEMENT_X": [
+      0.0011801133227174521
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_7": {
+    "DISPLACEMENT_X": [
+      -0.002142888099959927
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_8": {
+    "DISPLACEMENT_X": [
+      -0.008116772037714087
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_9": {
+    "DISPLACEMENT_X": [
+      -0.008085622804874666
+    ],
+    "DISPLACEMENT_Y": [
+      -0.008854017755427285
+    ],
+    "DISPLACEMENT_Z": [
+      -0.018240096608291092
+    ]
+  },
+  "NODE_10": {
+    "DISPLACEMENT_X": [
+      -0.0021646544784756547
+    ],
+    "DISPLACEMENT_Y": [
+      -0.005095505379183279
+    ],
+    "DISPLACEMENT_Z": [
+      -0.013702262287059072
+    ]
+  },
+  "NODE_11": {
+    "DISPLACEMENT_X": [
+      0.001185333242007246
+    ],
+    "DISPLACEMENT_Y": [
+      -0.0010335300061959348
+    ],
+    "DISPLACEMENT_Z": [
+      -0.005859974993741838
+    ]
+  },
+  "NODE_12": {
+    "DISPLACEMENT_X": [
+      0.001640532148351556
+    ],
+    "DISPLACEMENT_Y": [
+      6.118059031846483e-05
+    ],
+    "DISPLACEMENT_Z": [
+      -0.0011715548205127487
+    ]
+  },
+  "NODE_13": {
+    "DISPLACEMENT_X": [
+      0.0016405321483539898
+    ],
+    "DISPLACEMENT_Y": [
+      -6.118059031889394e-05
+    ],
+    "DISPLACEMENT_Z": [
+      -0.0011715548205213772
+    ]
+  },
+  "NODE_14": {
+    "DISPLACEMENT_X": [
+      0.0011853332420062245
+    ],
+    "DISPLACEMENT_Y": [
+      0.0010335300061949972
+    ],
+    "DISPLACEMENT_Z": [
+      -0.005859974993745694
+    ]
+  },
+  "NODE_15": {
+    "DISPLACEMENT_X": [
+      -0.00216465447848624
+    ],
+    "DISPLACEMENT_Y": [
+      0.005095505379164377
+    ],
+    "DISPLACEMENT_Z": [
+      -0.013702262287022106
+    ]
+  },
+  "NODE_16": {
+    "DISPLACEMENT_X": [
+      -0.008085622804872251
+    ],
+    "DISPLACEMENT_Y": [
+      0.008854017755378977
+    ],
+    "DISPLACEMENT_Z": [
+      -0.01824009660821716
+    ]
+  },
+  "NODE_17": {
+    "DISPLACEMENT_X": [
+      -0.00720268520909695
+    ],
+    "DISPLACEMENT_Y": [
+      -0.02237184254982237
+    ],
+    "DISPLACEMENT_Z": [
+      -0.047946005228742844
+    ]
+  },
+  "NODE_18": {
+    "DISPLACEMENT_X": [
+      -0.002208158529889477
+    ],
+    "DISPLACEMENT_Y": [
+      -0.012871807540322635
+    ],
+    "DISPLACEMENT_Z": [
+      -0.03641383306565895
+    ]
+  },
+  "NODE_19": {
+    "DISPLACEMENT_X": [
+      0.0010239444208608092
+    ],
+    "DISPLACEMENT_Y": [
+      -0.0025807864481494154
+    ],
+    "DISPLACEMENT_Z": [
+      -0.015950773405835308
+    ]
+  },
+  "NODE_20": {
+    "DISPLACEMENT_X": [
+      0.0015519393339176071
+    ],
+    "DISPLACEMENT_Y": [
+      0.0001988704988381371
+    ],
+    "DISPLACEMENT_Z": [
+      -0.0034211835121474394
+    ]
+  },
+  "NODE_21": {
+    "DISPLACEMENT_X": [
+      0.0015519393339202068
+    ],
+    "DISPLACEMENT_Y": [
+      -0.00019887049883827852
+    ],
+    "DISPLACEMENT_Z": [
+      -0.0034211835121822427
+    ]
+  },
+  "NODE_22": {
+    "DISPLACEMENT_X": [
+      0.001023944420861411
+    ],
+    "DISPLACEMENT_Y": [
+      0.002580786448151241
+    ],
+    "DISPLACEMENT_Z": [
+      -0.01595077340585867
+    ]
+  },
+  "NODE_23": {
+    "DISPLACEMENT_X": [
+      -0.00220815852990013
+    ],
+    "DISPLACEMENT_Y": [
+      0.012871807540246149
+    ],
+    "DISPLACEMENT_Z": [
+      -0.03641383306551688
+    ]
+  },
+  "NODE_24": {
+    "DISPLACEMENT_X": [
+      -0.007202685209096323
+    ],
+    "DISPLACEMENT_Y": [
+      0.022371842549641068
+    ],
+    "DISPLACEMENT_Z": [
+      -0.047946005228470985
+    ]
+  },
+  "NODE_25": {
+    "DISPLACEMENT_X": [
+      -0.005827536494513729
+    ],
+    "DISPLACEMENT_Y": [
+      -0.031497649890623834
+    ],
+    "DISPLACEMENT_Z": [
+      -0.06941452634450976
+    ]
+  },
+  "NODE_26": {
+    "DISPLACEMENT_X": [
+      -0.0021236185245310985
+    ],
+    "DISPLACEMENT_Y": [
+      -0.018200682222050103
+    ],
+    "DISPLACEMENT_Z": [
+      -0.05329299015630036
+    ]
+  },
+  "NODE_27": {
+    "DISPLACEMENT_X": [
+      0.0007329714399240684
+    ],
+    "DISPLACEMENT_Y": [
+      -0.0035999724435776454
+    ],
+    "DISPLACEMENT_Z": [
+      -0.024176001782220884
+    ]
+  },
+  "NODE_28": {
+    "DISPLACEMENT_X": [
+      0.0013554509318631435
+    ],
+    "DISPLACEMENT_Y": [
+      0.00032696222290179563
+    ],
+    "DISPLACEMENT_Z": [
+      -0.005971664950788215
+    ]
+  },
+  "NODE_29": {
+    "DISPLACEMENT_X": [
+      0.0013554509318655754
+    ],
+    "DISPLACEMENT_Y": [
+      -0.00032696222289968605
+    ],
+    "DISPLACEMENT_Z": [
+      -0.005971664950850127
+    ]
+  },
+  "NODE_30": {
+    "DISPLACEMENT_X": [
+      0.0007329714399264803
+    ],
+    "DISPLACEMENT_Y": [
+      0.0035999724435842625
+    ],
+    "DISPLACEMENT_Z": [
+      -0.024176001782271198
+    ]
+  },
+  "NODE_31": {
+    "DISPLACEMENT_X": [
+      -0.0021236185245383874
+    ],
+    "DISPLACEMENT_Y": [
+      0.01820068222192766
+    ],
+    "DISPLACEMENT_Z": [
+      -0.053292990156079176
+    ]
+  },
+  "NODE_32": {
+    "DISPLACEMENT_X": [
+      -0.005827536494519831
+    ],
+    "DISPLACEMENT_Y": [
+      0.031497649890310106
+    ],
+    "DISPLACEMENT_Z": [
+      -0.069414526344053
+    ]
+  },
+  "NODE_33": {
+    "DISPLACEMENT_X": [
+      -0.004230233508002531
+    ],
+    "DISPLACEMENT_Y": [
+      -0.03616486507353125
+    ],
+    "DISPLACEMENT_Z": [
+      -0.0821859313506309
+    ]
+  },
+  "NODE_34": {
+    "DISPLACEMENT_X": [
+      -0.001851859730108594
+    ],
+    "DISPLACEMENT_Y": [
+      -0.020866298004893515
+    ],
+    "DISPLACEMENT_Z": [
+      -0.06367279209436134
+    ]
+  },
+  "NODE_35": {
+    "DISPLACEMENT_X": [
+      0.0003761852026747771
+    ],
+    "DISPLACEMENT_Y": [
+      -0.004122745671559391
+    ],
+    "DISPLACEMENT_Z": [
+      -0.03018361189076381
+    ]
+  },
+  "NODE_36": {
+    "DISPLACEMENT_X": [
+      0.0010350519065680994
+    ],
+    "DISPLACEMENT_Y": [
+      0.00040585530755534935
+    ],
+    "DISPLACEMENT_Z": [
+      -0.009037461298063007
+    ]
+  },
+  "NODE_37": {
+    "DISPLACEMENT_X": [
+      0.0010350519065702233
+    ],
+    "DISPLACEMENT_Y": [
+      -0.00040585530754994525
+    ],
+    "DISPLACEMENT_Z": [
+      -0.009037461298138616
+    ]
+  },
+  "NODE_38": {
+    "DISPLACEMENT_X": [
+      0.000376185202677934
+    ],
+    "DISPLACEMENT_Y": [
+      0.0041227456715761815
+    ],
+    "DISPLACEMENT_Z": [
+      -0.030183611890849945
+    ]
+  },
+  "NODE_39": {
+    "DISPLACEMENT_X": [
+      -0.0018518597301092857
+    ],
+    "DISPLACEMENT_Y": [
+      0.020866298004777416
+    ],
+    "DISPLACEMENT_Z": [
+      -0.06367279209416704
+    ]
+  },
+  "NODE_40": {
+    "DISPLACEMENT_X": [
+      -0.0042302335080182515
+    ],
+    "DISPLACEMENT_Y": [
+      0.036164865073189716
+    ],
+    "DISPLACEMENT_Z": [
+      -0.0821859313501522
+    ]
+  },
+  "NODE_41": {
+    "DISPLACEMENT_X": [
+      -0.002569952919030571
+    ],
+    "DISPLACEMENT_Y": [
+      -0.0372667991946015
+    ],
+    "DISPLACEMENT_Z": [
+      -0.08752158168887031
+    ]
+  },
+  "NODE_42": {
+    "DISPLACEMENT_X": [
+      -0.0014286135177186538
+    ],
+    "DISPLACEMENT_Y": [
+      -0.021359480256260034
+    ],
+    "DISPLACEMENT_Z": [
+      -0.06814596048405247
+    ]
+  },
+  "NODE_43": {
+    "DISPLACEMENT_X": [
+      5.693246313566713e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -0.00417070857064339
+    ],
+    "DISPLACEMENT_Z": [
+      -0.033801780122692145
+    ]
+  },
+  "NODE_44": {
+    "DISPLACEMENT_X": [
+      0.0005621654544732462
+    ],
+    "DISPLACEMENT_Y": [
+      0.0003702823361215244
+    ],
+    "DISPLACEMENT_Z": [
+      -0.01258130568578747
+    ]
+  },
+  "NODE_45": {
+    "DISPLACEMENT_X": [
+      0.0005621654544761004
+    ],
+    "DISPLACEMENT_Y": [
+      -0.0003702823361122573
+    ],
+    "DISPLACEMENT_Z": [
+      -0.012581305685860817
+    ]
+  },
+  "NODE_46": {
+    "DISPLACEMENT_X": [
+      5.6932463137465075e-05
+    ],
+    "DISPLACEMENT_Y": [
+      0.004170708570675286
+    ],
+    "DISPLACEMENT_Z": [
+      -0.03380178012283121
+    ]
+  },
+  "NODE_47": {
+    "DISPLACEMENT_X": [
+      -0.001428613517715779
+    ],
+    "DISPLACEMENT_Y": [
+      0.02135948025620389
+    ],
+    "DISPLACEMENT_Z": [
+      -0.06814596048398425
+    ]
+  },
+  "NODE_48": {
+    "DISPLACEMENT_X": [
+      -0.0025699529190460076
+    ],
+    "DISPLACEMENT_Y": [
+      0.03726679919437205
+    ],
+    "DISPLACEMENT_Z": [
+      -0.08752158168859056
+    ]
+  },
+  "NODE_49": {
+    "DISPLACEMENT_X": [
+      -0.001218814352115321
+    ],
+    "DISPLACEMENT_Y": [
+      -0.03689288779182425
+    ],
+    "DISPLACEMENT_Z": [
+      -0.08846073411984402
+    ]
+  },
+  "NODE_50": {
+    "DISPLACEMENT_X": [
+      -0.0005935537505122679
+    ],
+    "DISPLACEMENT_Y": [
+      -0.02071341172030042
+    ],
+    "DISPLACEMENT_Z": [
+      -0.06905523650616088
+    ]
+  },
+  "NODE_51": {
+    "DISPLACEMENT_X": [
+      -0.00032655557741837285
+    ],
+    "DISPLACEMENT_Y": [
+      -0.004103559702589127
+    ],
+    "DISPLACEMENT_Z": [
+      -0.035378495366413694
+    ]
+  },
+  "NODE_52": {
+    "DISPLACEMENT_X": [
+      -1.4473167447475577e-05
+    ],
+    "DISPLACEMENT_Y": [
+      0.0002883993709171826
+    ],
+    "DISPLACEMENT_Z": [
+      -0.01571255665371407
+    ]
+  },
+  "NODE_53": {
+    "DISPLACEMENT_X": [
+      -1.4473167445211109e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -0.00028839937089975476
+    ],
+    "DISPLACEMENT_Z": [
+      -0.01571255665382775
+    ]
+  },
+  "NODE_54": {
+    "DISPLACEMENT_X": [
+      -0.00032655557741693997
+    ],
+    "DISPLACEMENT_Y": [
+      0.004103559702622363
+    ],
+    "DISPLACEMENT_Z": [
+      -0.03537849536656052
+    ]
+  },
+  "NODE_55": {
+    "DISPLACEMENT_X": [
+      -0.00059355375051768
+    ],
+    "DISPLACEMENT_Y": [
+      0.020713411720281554
+    ],
+    "DISPLACEMENT_Z": [
+      -0.06905523650617496
+    ]
+  },
+  "NODE_56": {
+    "DISPLACEMENT_X": [
+      -0.0012188143521117615
+    ],
+    "DISPLACEMENT_Y": [
+      0.03689288779164805
+    ],
+    "DISPLACEMENT_Z": [
+      -0.08846073411964829
+    ]
+  },
+  "NODE_57": {
+    "DISPLACEMENT_X": [
+      -0.0004854943968198135
+    ],
+    "DISPLACEMENT_Y": [
+      -0.036548922710051154
+    ],
+    "DISPLACEMENT_Z": [
+      -0.0892130253147277
+    ]
+  },
+  "NODE_58": {
+    "DISPLACEMENT_X": [
+      -0.0003334991859421141
+    ],
+    "DISPLACEMENT_Y": [
+      -0.021033908931736976
+    ],
+    "DISPLACEMENT_Z": [
+      -0.06888267510664144
+    ]
+  },
+  "NODE_59": {
+    "DISPLACEMENT_X": [
+      -0.00031985651756040933
+    ],
+    "DISPLACEMENT_Y": [
+      -0.004417581337323782
+    ],
+    "DISPLACEMENT_Z": [
+      -0.03555164488678266
+    ]
+  },
+  "NODE_60": {
+    "DISPLACEMENT_X": [
+      -0.00041363532500377127
+    ],
+    "DISPLACEMENT_Y": [
+      0.0009085279349960485
+    ],
+    "DISPLACEMENT_Z": [
+      -0.015887522198681267
+    ]
+  },
+  "NODE_61": {
+    "DISPLACEMENT_X": [
+      -0.00041363532500281837
+    ],
+    "DISPLACEMENT_Y": [
+      -0.0009085279349725742
+    ],
+    "DISPLACEMENT_Z": [
+      -0.01588752219881185
+    ]
+  },
+  "NODE_62": {
+    "DISPLACEMENT_X": [
+      -0.0003198565175620334
+    ],
+    "DISPLACEMENT_Y": [
+      0.004417581337348813
+    ],
+    "DISPLACEMENT_Z": [
+      -0.03555164488691727
+    ]
+  },
+  "NODE_63": {
+    "DISPLACEMENT_X": [
+      -0.0003334991859441039
+    ],
+    "DISPLACEMENT_Y": [
+      0.021033908931644266
+    ],
+    "DISPLACEMENT_Z": [
+      -0.06888267510652923
+    ]
+  },
+  "NODE_64": {
+    "DISPLACEMENT_X": [
+      -0.00048549439681403557
+    ],
+    "DISPLACEMENT_Y": [
+      0.03654892270978166
+    ],
+    "DISPLACEMENT_Z": [
+      -0.08921302531437882
+    ]
+  },
+  "NODE_65": {
+    "DISPLACEMENT_X": [
+      -0.0004823555319962405
+    ],
+    "DISPLACEMENT_Y": [
+      -0.03659061101189537
+    ],
+    "DISPLACEMENT_Z": [
+      -0.0891835694615852
+    ]
+  },
+  "NODE_66": {
+    "DISPLACEMENT_X": [
+      -0.0003681929870192589
+    ],
+    "DISPLACEMENT_Y": [
+      -0.02493750420102757
+    ],
+    "DISPLACEMENT_Z": [
+      -0.0741829722973834
+    ]
+  },
+  "NODE_67": {
+    "DISPLACEMENT_X": [
+      -0.00031115092234206216
+    ],
+    "DISPLACEMENT_Y": [
+      -0.009946325541871772
+    ],
+    "DISPLACEMENT_Z": [
+      -0.04763490357641317
+    ]
+  },
+  "NODE_68": {
+    "DISPLACEMENT_X": [
+      -0.0003556075296829162
+    ],
+    "DISPLACEMENT_Y": [
+      -0.0018487029198830415
+    ],
+    "DISPLACEMENT_Z": [
+      -0.02716215740745041
+    ]
+  },
+  "NODE_69": {
+    "DISPLACEMENT_X": [
+      -0.00041698533408145025
+    ],
+    "DISPLACEMENT_Y": [
+      0.0006037632281914193
+    ],
+    "DISPLACEMENT_Z": [
+      -0.015872185397511188
+    ]
+  },
+  "NODE_70": {
+    "DISPLACEMENT_X": [
+      -0.00041698533408069673
+    ],
+    "DISPLACEMENT_Y": [
+      -0.0006037632281686357
+    ],
+    "DISPLACEMENT_Z": [
+      -0.015872185397608894
+    ]
+  },
+  "NODE_71": {
+    "DISPLACEMENT_X": [
+      -0.0003556075296834513
+    ],
+    "DISPLACEMENT_Y": [
+      0.0018487029199106774
+    ],
+    "DISPLACEMENT_Z": [
+      -0.027162157407599846
+    ]
+  },
+  "NODE_72": {
+    "DISPLACEMENT_X": [
+      -0.0003111509223443279
+    ],
+    "DISPLACEMENT_Y": [
+      0.009946325541863347
+    ],
+    "DISPLACEMENT_Z": [
+      -0.04763490357646855
+    ]
+  },
+  "NODE_73": {
+    "DISPLACEMENT_X": [
+      -0.0003681929870195622
+    ],
+    "DISPLACEMENT_Y": [
+      0.02493750420089175
+    ],
+    "DISPLACEMENT_Z": [
+      -0.07418297229721052
+    ]
+  },
+  "NODE_74": {
+    "DISPLACEMENT_X": [
+      -0.0004823555319903019
+    ],
+    "DISPLACEMENT_Y": [
+      0.03659061101162481
+    ],
+    "DISPLACEMENT_Z": [
+      -0.08918356946123618
+    ]
+  },
+  "NODE_75": {
+    "DISPLACEMENT_X": [
+      6.45774088501195e-05
+    ],
+    "DISPLACEMENT_Y": [
+      -0.037253380187917844
+    ],
+    "DISPLACEMENT_Z": [
+      -0.0892826007435178
+    ]
+  },
+  "NODE_76": {
+    "DISPLACEMENT_X": [
+      -0.0001005705379135903
+    ],
+    "DISPLACEMENT_Y": [
+      -0.025099927037616848
+    ],
+    "DISPLACEMENT_Z": [
+      -0.07481802096467259
+    ]
+  },
+  "NODE_77": {
+    "DISPLACEMENT_X": [
+      -0.00023694489680404964
+    ],
+    "DISPLACEMENT_Y": [
+      -0.009782781533454913
+    ],
+    "DISPLACEMENT_Z": [
+      -0.04795349443115524
+    ]
+  },
+  "NODE_78": {
+    "DISPLACEMENT_X": [
+      -0.00044240261329474024
+    ],
+    "DISPLACEMENT_Y": [
+      -0.0019255078332263292
+    ],
+    "DISPLACEMENT_Z": [
+      -0.02703617437352415
+    ]
+  },
+  "NODE_79": {
+    "DISPLACEMENT_X": [
+      -0.0007363099533286849
+    ],
+    "DISPLACEMENT_Y": [
+      0.00012106843550697891
+    ],
+    "DISPLACEMENT_Z": [
+      -0.015732732521809987
+    ]
+  },
+  "NODE_80": {
+    "DISPLACEMENT_X": [
+      -0.0007363099533298651
+    ],
+    "DISPLACEMENT_Y": [
+      -0.00012106843548830652
+    ],
+    "DISPLACEMENT_Z": [
+      -0.015732732521911433
+    ]
+  },
+  "NODE_81": {
+    "DISPLACEMENT_X": [
+      -0.00044240261329701864
+    ],
+    "DISPLACEMENT_Y": [
+      0.001925507833256333
+    ],
+    "DISPLACEMENT_Z": [
+      -0.02703617437368092
+    ]
+  },
+  "NODE_82": {
+    "DISPLACEMENT_X": [
+      -0.00023694489680568356
+    ],
+    "DISPLACEMENT_Y": [
+      0.009782781533435843
+    ],
+    "DISPLACEMENT_Z": [
+      -0.04795349443118047
+    ]
+  },
+  "NODE_83": {
+    "DISPLACEMENT_X": [
+      -0.00010057053791226636
+    ],
+    "DISPLACEMENT_Y": [
+      0.02509992703743435
+    ],
+    "DISPLACEMENT_Z": [
+      -0.07481802096441242
+    ]
+  },
+  "NODE_84": {
+    "DISPLACEMENT_X": [
+      6.457740885659813e-05
+    ],
+    "DISPLACEMENT_Y": [
+      0.0372533801875721
+    ],
+    "DISPLACEMENT_Z": [
+      -0.08928260074306249
+    ]
+  },
+  "NODE_85": {
+    "DISPLACEMENT_X": [
+      0.0009828767575108233
+    ],
+    "DISPLACEMENT_Y": [
+      -0.03923729956120669
+    ],
+    "DISPLACEMENT_Z": [
+      -0.09168332045512873
+    ]
+  },
+  "NODE_86": {
+    "DISPLACEMENT_X": [
+      0.0007193466914709632
+    ],
+    "DISPLACEMENT_Y": [
+      -0.02701064614562444
+    ],
+    "DISPLACEMENT_Z": [
+      -0.0769429537267166
+    ]
+  },
+  "NODE_87": {
+    "DISPLACEMENT_X": [
+      -0.00021986772602733157
+    ],
+    "DISPLACEMENT_Y": [
+      -0.010398195043250508
+    ],
+    "DISPLACEMENT_Z": [
+      -0.04851144355062453
+    ]
+  },
+  "NODE_88": {
+    "DISPLACEMENT_X": [
+      -0.0008060737449922464
+    ],
+    "DISPLACEMENT_Y": [
+      -0.0019715402161442955
+    ],
+    "DISPLACEMENT_Z": [
+      -0.025420498207214263
+    ]
+  },
+  "NODE_89": {
+    "DISPLACEMENT_X": [
+      -0.0011865933431016108
+    ],
+    "DISPLACEMENT_Y": [
+      0.0001266572702399986
+    ],
+    "DISPLACEMENT_Z": [
+      -0.012752056911685844
+    ]
+  },
+  "NODE_90": {
+    "DISPLACEMENT_X": [
+      -0.0011865933431039436
+    ],
+    "DISPLACEMENT_Y": [
+      -0.0001266572702263008
+    ],
+    "DISPLACEMENT_Z": [
+      -0.012752056911763633
+    ]
+  },
+  "NODE_91": {
+    "DISPLACEMENT_X": [
+      -0.0008060737449955535
+    ],
+    "DISPLACEMENT_Y": [
+      0.0019715402161768814
+    ],
+    "DISPLACEMENT_Z": [
+      -0.025420498207374288
+    ]
+  },
+  "NODE_92": {
+    "DISPLACEMENT_X": [
+      -0.00021986772602715382
+    ],
+    "DISPLACEMENT_Y": [
+      0.010398195043250057
+    ],
+    "DISPLACEMENT_Z": [
+      -0.04851144355067707
+    ]
+  },
+  "NODE_93": {
+    "DISPLACEMENT_X": [
+      0.0007193466914764108
+    ],
+    "DISPLACEMENT_Y": [
+      0.027010646145469337
+    ],
+    "DISPLACEMENT_Z": [
+      -0.07694295372649712
+    ]
+  },
+  "NODE_94": {
+    "DISPLACEMENT_X": [
+      0.0009828767575121332
+    ],
+    "DISPLACEMENT_Y": [
+      0.039237299560867654
+    ],
+    "DISPLACEMENT_Z": [
+      -0.09168332045467985
+    ]
+  },
+  "NODE_95": {
+    "DISPLACEMENT_X": [
+      0.0022443622706479
+    ],
+    "DISPLACEMENT_Y": [
+      -0.04082855640295997
+    ],
+    "DISPLACEMENT_Z": [
+      -0.09236055629048387
+    ]
+  },
+  "NODE_96": {
+    "DISPLACEMENT_X": [
+      0.0012973390878004414
+    ],
+    "DISPLACEMENT_Y": [
+      -0.028246659541956896
+    ],
+    "DISPLACEMENT_Z": [
+      -0.07726842247336672
+    ]
+  },
+  "NODE_97": {
+    "DISPLACEMENT_X": [
+      -0.00025991755467178005
+    ],
+    "DISPLACEMENT_Y": [
+      -0.011027835960445407
+    ],
+    "DISPLACEMENT_Z": [
+      -0.047761436548873104
+    ]
+  },
+  "NODE_98": {
+    "DISPLACEMENT_X": [
+      -0.0011513629363123278
+    ],
+    "DISPLACEMENT_Y": [
+      -0.0020371669874400243
+    ],
+    "DISPLACEMENT_Z": [
+      -0.023264794325667398
+    ]
+  },
+  "NODE_99": {
+    "DISPLACEMENT_X": [
+      -0.001554082263243393
+    ],
+    "DISPLACEMENT_Y": [
+      0.00018087809204491586
+    ],
+    "DISPLACEMENT_Z": [
+      -0.009331460599411815
+    ]
+  },
+  "NODE_100": {
+    "DISPLACEMENT_X": [
+      -0.0015540822632457727
+    ],
+    "DISPLACEMENT_Y": [
+      -0.00018087809203410146
+    ],
+    "DISPLACEMENT_Z": [
+      -0.009331460599472843
+    ]
+  },
+  "NODE_101": {
+    "DISPLACEMENT_X": [
+      -0.0011513629363161864
+    ],
+    "DISPLACEMENT_Y": [
+      0.0020371669874662685
+    ],
+    "DISPLACEMENT_Z": [
+      -0.02326479432579623
+    ]
+  },
+  "NODE_102": {
+    "DISPLACEMENT_X": [
+      -0.00025991755467113473
+    ],
+    "DISPLACEMENT_Y": [
+      0.011027835960454199
+    ],
+    "DISPLACEMENT_Z": [
+      -0.047761436548938496
+    ]
+  },
+  "NODE_103": {
+    "DISPLACEMENT_X": [
+      0.0012973390878074627
+    ],
+    "DISPLACEMENT_Y": [
+      0.028246659541843397
+    ],
+    "DISPLACEMENT_Z": [
+      -0.07726842247321036
+    ]
+  },
+  "NODE_104": {
+    "DISPLACEMENT_X": [
+      0.0022443622706490836
+    ],
+    "DISPLACEMENT_Y": [
+      0.04082855640271015
+    ],
+    "DISPLACEMENT_Z": [
+      -0.092360556290163
+    ]
+  },
+  "NODE_105": {
+    "DISPLACEMENT_X": [
+      0.00360233936293459
+    ],
+    "DISPLACEMENT_Y": [
+      -0.040277087083103076
+    ],
+    "DISPLACEMENT_Z": [
+      -0.08856479078036833
+    ]
+  },
+  "NODE_106": {
+    "DISPLACEMENT_X": [
+      0.0017980722978526461
+    ],
+    "DISPLACEMENT_Y": [
+      -0.02795066678405187
+    ],
+    "DISPLACEMENT_Z": [
+      -0.0737549685874008
+    ]
+  },
+  "NODE_107": {
+    "DISPLACEMENT_X": [
+      -0.0004108120618114765
+    ],
+    "DISPLACEMENT_Y": [
+      -0.010968146231761927
+    ],
+    "DISPLACEMENT_Z": [
+      -0.04471088467232497
+    ]
+  },
+  "NODE_108": {
+    "DISPLACEMENT_X": [
+      -0.0014613355077872842
+    ],
+    "DISPLACEMENT_Y": [
+      -0.0020479517194150173
+    ],
+    "DISPLACEMENT_Z": [
+      -0.02044317288251172
+    ]
+  },
+  "NODE_109": {
+    "DISPLACEMENT_X": [
+      -0.0018316441219689958
+    ],
+    "DISPLACEMENT_Y": [
+      0.00018604849216430125
+    ],
+    "DISPLACEMENT_Z": [
+      -0.006529425530141734
+    ]
+  },
+  "NODE_110": {
+    "DISPLACEMENT_X": [
+      -0.0018316441219713158
+    ],
+    "DISPLACEMENT_Y": [
+      -0.00018604849215661182
+    ],
+    "DISPLACEMENT_Z": [
+      -0.006529425530186752
+    ]
+  },
+  "NODE_111": {
+    "DISPLACEMENT_X": [
+      -0.0014613355077910837
+    ],
+    "DISPLACEMENT_Y": [
+      0.002047951719433884
+    ],
+    "DISPLACEMENT_Z": [
+      -0.020443172882605904
+    ]
+  },
+  "NODE_112": {
+    "DISPLACEMENT_X": [
+      -0.0004108120618106516
+    ],
+    "DISPLACEMENT_Y": [
+      0.010968146231766307
+    ],
+    "DISPLACEMENT_Z": [
+      -0.044710884672370235
+    ]
+  },
+  "NODE_113": {
+    "DISPLACEMENT_X": [
+      0.0017980722978597837
+    ],
+    "DISPLACEMENT_Y": [
+      0.02795066678397601
+    ],
+    "DISPLACEMENT_Z": [
+      -0.0737549685873042
+    ]
+  },
+  "NODE_114": {
+    "DISPLACEMENT_X": [
+      0.0036023393629377597
+    ],
+    "DISPLACEMENT_Y": [
+      0.04027708708294993
+    ],
+    "DISPLACEMENT_Z": [
+      -0.08856479078017727
+    ]
+  },
+  "NODE_115": {
+    "DISPLACEMENT_X": [
+      0.004945541704605817
+    ],
+    "DISPLACEMENT_Y": [
+      -0.036748347298742684
+    ],
+    "DISPLACEMENT_Z": [
+      -0.07894003870553848
+    ]
+  },
+  "NODE_116": {
+    "DISPLACEMENT_X": [
+      0.002198591238685082
+    ],
+    "DISPLACEMENT_Y": [
+      -0.02551283358985804
+    ],
+    "DISPLACEMENT_Z": [
+      -0.06545035377933446
+    ]
+  },
+  "NODE_117": {
+    "DISPLACEMENT_X": [
+      -0.0006128423039718125
+    ],
+    "DISPLACEMENT_Y": [
+      -0.010007879548693581
+    ],
+    "DISPLACEMENT_Z": [
+      -0.038923011095897395
+    ]
+  },
+  "NODE_118": {
+    "DISPLACEMENT_X": [
+      -0.0017342624259731884
+    ],
+    "DISPLACEMENT_Y": [
+      -0.0018769137195942776
+    ],
+    "DISPLACEMENT_Z": [
+      -0.016851048784274864
+    ]
+  },
+  "NODE_119": {
+    "DISPLACEMENT_X": [
+      -0.0020297546922030917
+    ],
+    "DISPLACEMENT_Y": [
+      0.00015379521847464506
+    ],
+    "DISPLACEMENT_Z": [
+      -0.004320925500573621
+    ]
+  },
+  "NODE_120": {
+    "DISPLACEMENT_X": [
+      -0.0020297546922052167
+    ],
+    "DISPLACEMENT_Y": [
+      -0.00015379521846958333
+    ],
+    "DISPLACEMENT_Z": [
+      -0.004320925500605245
+    ]
+  },
+  "NODE_121": {
+    "DISPLACEMENT_X": [
+      -0.0017342624259766494
+    ],
+    "DISPLACEMENT_Y": [
+      0.0018769137196064049
+    ],
+    "DISPLACEMENT_Z": [
+      -0.01685104878433799
+    ]
+  },
+  "NODE_122": {
+    "DISPLACEMENT_X": [
+      -0.0006128423039708445
+    ],
+    "DISPLACEMENT_Y": [
+      0.010007879548694644
+    ],
+    "DISPLACEMENT_Z": [
+      -0.03892301109592696
+    ]
+  },
+  "NODE_123": {
+    "DISPLACEMENT_X": [
+      0.0021985912386919344
+    ],
+    "DISPLACEMENT_Y": [
+      0.025512833589812184
+    ],
+    "DISPLACEMENT_Z": [
+      -0.06545035377928154
+    ]
+  },
+  "NODE_124": {
+    "DISPLACEMENT_X": [
+      0.0049455417046107494
+    ],
+    "DISPLACEMENT_Y": [
+      0.036748347298650536
+    ],
+    "DISPLACEMENT_Z": [
+      -0.0789400387054294
+    ]
+  },
+  "NODE_125": {
+    "DISPLACEMENT_X": [
+      0.006145280851604458
+    ],
+    "DISPLACEMENT_Y": [
+      -0.029987034278762592
+    ],
+    "DISPLACEMENT_Z": [
+      -0.06317148315572249
+    ]
+  },
+  "NODE_126": {
+    "DISPLACEMENT_X": [
+      0.002503898951855521
+    ],
+    "DISPLACEMENT_Y": [
+      -0.020789288618385544
+    ],
+    "DISPLACEMENT_Z": [
+      -0.05212367432340285
+    ]
+  },
+  "NODE_127": {
+    "DISPLACEMENT_X": [
+      -0.0008289882901826383
+    ],
+    "DISPLACEMENT_Y": [
+      -0.008127629748569972
+    ],
+    "DISPLACEMENT_Z": [
+      -0.03047707876127639
+    ]
+  },
+  "NODE_128": {
+    "DISPLACEMENT_X": [
+      -0.0019558585351573798
+    ],
+    "DISPLACEMENT_Y": [
+      -0.0015367566443589536
+    ],
+    "DISPLACEMENT_Z": [
+      -0.012641717978498102
+    ]
+  },
+  "NODE_129": {
+    "DISPLACEMENT_X": [
+      -0.0021617296409131236
+    ],
+    "DISPLACEMENT_Y": [
+      0.00010928529228736657
+    ],
+    "DISPLACEMENT_Z": [
+      -0.002650154145303281
+    ]
+  },
+  "NODE_130": {
+    "DISPLACEMENT_X": [
+      -0.002161729640915036
+    ],
+    "DISPLACEMENT_Y": [
+      -0.00010928529228436821
+    ],
+    "DISPLACEMENT_Z": [
+      -0.0026501541453229907
+    ]
+  },
+  "NODE_131": {
+    "DISPLACEMENT_X": [
+      -0.001955858535160405
+    ],
+    "DISPLACEMENT_Y": [
+      0.001536756644366348
+    ],
+    "DISPLACEMENT_Z": [
+      -0.012641717978538409
+    ]
+  },
+  "NODE_132": {
+    "DISPLACEMENT_X": [
+      -0.0008289882901815646
+    ],
+    "DISPLACEMENT_Y": [
+      0.00812762974857193
+    ],
+    "DISPLACEMENT_Z": [
+      -0.030477078761299303
+    ]
+  },
+  "NODE_133": {
+    "DISPLACEMENT_X": [
+      0.002503898951861967
+    ],
+    "DISPLACEMENT_Y": [
+      0.020789288618358777
+    ],
+    "DISPLACEMENT_Z": [
+      -0.05212367432337524
+    ]
+  },
+  "NODE_134": {
+    "DISPLACEMENT_X": [
+      0.0061452808516107614
+    ],
+    "DISPLACEMENT_Y": [
+      0.029987034278707553
+    ],
+    "DISPLACEMENT_Z": [
+      -0.06317148315566048
+    ]
+  },
+  "NODE_135": {
+    "DISPLACEMENT_X": [
+      0.007097642102820181
+    ],
+    "DISPLACEMENT_Y": [
+      -0.020098889898041466
+    ],
+    "DISPLACEMENT_Z": [
+      -0.04160190579002582
+    ]
+  },
+  "NODE_136": {
+    "DISPLACEMENT_X": [
+      0.0026912910296609358
+    ],
+    "DISPLACEMENT_Y": [
+      -0.013913210937292284
+    ],
+    "DISPLACEMENT_Z": [
+      -0.03416565743458193
+    ]
+  },
+  "NODE_137": {
+    "DISPLACEMENT_X": [
+      -0.001012357842683538
+    ],
+    "DISPLACEMENT_Y": [
+      -0.005432874811099291
+    ],
+    "DISPLACEMENT_Z": [
+      -0.019714997195087326
+    ]
+  },
+  "NODE_138": {
+    "DISPLACEMENT_X": [
+      -0.0021130598319754807
+    ],
+    "DISPLACEMENT_Y": [
+      -0.0010495036888845187
+    ],
+    "DISPLACEMENT_Z": [
+      -0.007980526258859354
+    ]
+  },
+  "NODE_139": {
+    "DISPLACEMENT_X": [
+      -0.0022393002552472856
+    ],
+    "DISPLACEMENT_Y": [
+      5.3406317800048874e-05
+    ],
+    "DISPLACEMENT_Z": [
+      -0.001500014843291177
+    ]
+  },
+  "NODE_140": {
+    "DISPLACEMENT_X": [
+      -0.00223930025524899
+    ],
+    "DISPLACEMENT_Y": [
+      -5.340631779849761e-05
+    ],
+    "DISPLACEMENT_Z": [
+      -0.001500014843301839
+    ]
+  },
+  "NODE_141": {
+    "DISPLACEMENT_X": [
+      -0.002113059831978118
+    ],
+    "DISPLACEMENT_Y": [
+      0.001049503688888832
+    ],
+    "DISPLACEMENT_Z": [
+      -0.007980526258882894
+    ]
+  },
+  "NODE_142": {
+    "DISPLACEMENT_X": [
+      -0.0010123578426825147
+    ],
+    "DISPLACEMENT_Y": [
+      0.005432874811101227
+    ],
+    "DISPLACEMENT_Z": [
+      -0.019714997195102495
+    ]
+  },
+  "NODE_143": {
+    "DISPLACEMENT_X": [
+      0.0026912910296672567
+    ],
+    "DISPLACEMENT_Y": [
+      0.013913210937278599
+    ],
+    "DISPLACEMENT_Z": [
+      -0.03416565743456935
+    ]
+  },
+  "NODE_144": {
+    "DISPLACEMENT_X": [
+      0.007097642102827238
+    ],
+    "DISPLACEMENT_Y": [
+      0.020098889898012583
+    ],
+    "DISPLACEMENT_Z": [
+      -0.04160190578999486
+    ]
+  },
+  "NODE_145": {
+    "DISPLACEMENT_X": [
+      0.007671515202057538
+    ],
+    "DISPLACEMENT_Y": [
+      -0.0074866724398142325
+    ],
+    "DISPLACEMENT_Z": [
+      -0.015106913304797723
+    ]
+  },
+  "NODE_146": {
+    "DISPLACEMENT_X": [
+      0.002752861548917303
+    ],
+    "DISPLACEMENT_Y": [
+      -0.00518960525367837
+    ],
+    "DISPLACEMENT_Z": [
+      -0.012356457380181055
+    ]
+  },
+  "NODE_147": {
+    "DISPLACEMENT_X": [
+      -0.0011153834313549372
+    ],
+    "DISPLACEMENT_Y": [
+      -0.002024330734097124
+    ],
+    "DISPLACEMENT_Z": [
+      -0.007072769843467417
+    ]
+  },
+  "NODE_148": {
+    "DISPLACEMENT_X": [
+      -0.0021948103635887344
+    ],
+    "DISPLACEMENT_Y": [
+      -0.0004053052808978637
+    ],
+    "DISPLACEMENT_Z": [
+      -0.002854624213084006
+    ]
+  },
+  "NODE_149": {
+    "DISPLACEMENT_X": [
+      -0.0022737601845310047
+    ],
+    "DISPLACEMENT_Y": [
+      7.869739873405007e-06
+    ],
+    "DISPLACEMENT_Z": [
+      -0.0005668328486710144
+    ]
+  },
+  "NODE_150": {
+    "DISPLACEMENT_X": [
+      -0.002273760184532569
+    ],
+    "DISPLACEMENT_Y": [
+      -7.869739872896521e-06
+    ],
+    "DISPLACEMENT_Z": [
+      -0.0005668328486748065
+    ]
+  },
+  "NODE_151": {
+    "DISPLACEMENT_X": [
+      -0.002194810363591205
+    ],
+    "DISPLACEMENT_Y": [
+      0.00040530528089933326
+    ],
+    "DISPLACEMENT_Z": [
+      -0.002854624213091874
+    ]
+  },
+  "NODE_152": {
+    "DISPLACEMENT_X": [
+      -0.0011153834313539256
+    ],
+    "DISPLACEMENT_Y": [
+      0.002024330734097839
+    ],
+    "DISPLACEMENT_Z": [
+      -0.007072769843472577
+    ]
+  },
+  "NODE_153": {
+    "DISPLACEMENT_X": [
+      0.00275286154892349
+    ],
+    "DISPLACEMENT_Y": [
+      0.0051896052536745734
+    ],
+    "DISPLACEMENT_Z": [
+      -0.01235645738017814
+    ]
+  },
+  "NODE_154": {
+    "DISPLACEMENT_X": [
+      0.007671515202065031
+    ],
+    "DISPLACEMENT_Y": [
+      0.007486672439806044
+    ],
+    "DISPLACEMENT_Z": [
+      -0.015106913304789412
+    ]
+  },
+  "NODE_155": {
+    "DISPLACEMENT_X": [
+      0.0076869317894150595
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_156": {
+    "DISPLACEMENT_X": [
+      0.0027431174027037447
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_157": {
+    "DISPLACEMENT_X": [
+      -0.001113298080290252
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_158": {
+    "DISPLACEMENT_X": [
+      -0.0021957157039287937
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_159": {
+    "DISPLACEMENT_X": [
+      -0.0022733047907345224
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_160": {
+    "DISPLACEMENT_X": [
+      -0.0022733047907360963
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_161": {
+    "DISPLACEMENT_X": [
+      -0.0021957157039312527
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_162": {
+    "DISPLACEMENT_X": [
+      -0.0011132980802892407
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_163": {
+    "DISPLACEMENT_X": [
+      0.0027431174027099377
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ]
+  },
+  "NODE_164": {
+    "DISPLACEMENT_X": [
+      0.007686931789422528
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ]
+  }
+}
