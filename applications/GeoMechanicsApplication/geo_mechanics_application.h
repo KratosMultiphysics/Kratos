@@ -107,7 +107,7 @@
 // constitutive models
 #include "custom_constitutive/incremental_linear_elastic_interface_law.h"
 #include "custom_constitutive/incremental_linear_elastic_law.h"
-#include "custom_constitutive/interface_coulomb.h"
+#include "custom_constitutive/interface_coulomb_law.h"
 #include "custom_constitutive/interface_plane_strain.h"
 #include "custom_constitutive/interface_three_dimensional_surface.h"
 #include "custom_constitutive/linear_elastic_2D_interface_law.h"
@@ -964,7 +964,7 @@ private:
     const MohrCoulombLaw mMohrCoulomb2D{std::make_unique<PlaneStrain>()};
     const MohrCoulombLaw mMohrCoulomb3D{std::make_unique<ThreeDimensional>()};
 
-    const InterfaceCoulomb mInterfaceCoulomb{std::make_unique<InterfacePlaneStrain>()};
+    const InterfaceCoulombLaw mInterfaceCoulomb{std::make_unique<InterfacePlaneStrain>()};
 
     ///@}
 

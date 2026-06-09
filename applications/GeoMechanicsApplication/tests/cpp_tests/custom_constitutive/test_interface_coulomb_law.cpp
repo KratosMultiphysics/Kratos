@@ -11,7 +11,7 @@
 //                   Mohamed Nabi
 //
 
-#include "custom_constitutive/interface_coulomb.h"
+#include "custom_constitutive/interface_coulomb_law.h"
 #include "custom_constitutive/interface_plane_strain.h"
 #include "custom_utilities/registration_utilities.hpp"
 #include "custom_utilities/ublas_utilities.h"
@@ -40,10 +40,10 @@ void InitializeLawMaterial(ConstitutiveLaw& rLaw, const Properties& rProperties)
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_Clone, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulomb_Clone, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    const auto original_law = InterfaceCoulomb{std::make_unique<InterfacePlaneStrain>()};
+    const auto original_law = InterfaceCoulombLaw{std::make_unique<InterfacePlaneStrain>()};
 
     // Act
     auto p_cloned_law = original_law.Clone();
@@ -51,7 +51,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_Clone, KratosGeoMech
     // Assert
     KRATOS_EXPECT_NE(p_cloned_law.get(), nullptr);
     KRATOS_EXPECT_NE(p_cloned_law.get(), &original_law);
-    KRATOS_EXPECT_NE(dynamic_cast<const InterfaceCoulomb*>(p_cloned_law.get()), nullptr);
+    KRATOS_EXPECT_NE(dynamic_cast<const InterfaceCoulombLaw*>(p_cloned_law.get()), nullptr);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_CalculateMaterialResponseCauchyAtElasticZone,
@@ -78,7 +78,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_CalculateMaterialRes
     p_initial_state->SetInitialStressVector(initial_traction_vector);
     p_initial_state->SetInitialStrainVector(Vector{ZeroVector{2}});
 
-    auto law = InterfaceCoulomb{std::make_unique<InterfacePlaneStrain>()};
+    auto law = InterfaceCoulombLaw{std::make_unique<InterfacePlaneStrain>()};
     law.SetInitialState(p_initial_state);
     InitializeLawMaterial(law, properties);
 
@@ -145,7 +145,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_CalculateMaterialRes
     p_initial_state->SetInitialStressVector(initial_traction_vector);
     p_initial_state->SetInitialStrainVector(Vector{ZeroVector{2}});
 
-    auto law = InterfaceCoulomb{std::make_unique<InterfacePlaneStrain>()};
+    auto law = InterfaceCoulombLaw{std::make_unique<InterfacePlaneStrain>()};
     law.SetInitialState(p_initial_state);
     InitializeLawMaterial(law, properties);
 
@@ -187,7 +187,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_CalculateMaterialRes
     p_initial_state->SetInitialStressVector(initial_traction_vector);
     p_initial_state->SetInitialStrainVector(Vector{ZeroVector{2}});
 
-    auto law = InterfaceCoulomb{std::make_unique<InterfacePlaneStrain>()};
+    auto law = InterfaceCoulombLaw{std::make_unique<InterfacePlaneStrain>()};
     law.SetInitialState(p_initial_state);
     InitializeLawMaterial(law, properties);
 
@@ -227,7 +227,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_CalculateMaterialRes
     p_initial_state->SetInitialStressVector(initial_traction_vector);
     p_initial_state->SetInitialStrainVector(Vector{ZeroVector{2}});
 
-    auto law = InterfaceCoulomb{std::make_unique<InterfacePlaneStrain>()};
+    auto law = InterfaceCoulombLaw{std::make_unique<InterfacePlaneStrain>()};
     law.SetInitialState(p_initial_state);
     InitializeLawMaterial(law, properties);
 
@@ -269,7 +269,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_CalculateMaterialRes
     p_initial_state->SetInitialStressVector(initial_traction_vector);
     p_initial_state->SetInitialStrainVector(Vector{ZeroVector{2}});
 
-    auto law = InterfaceCoulomb{std::make_unique<InterfacePlaneStrain>()};
+    auto law = InterfaceCoulombLaw{std::make_unique<InterfacePlaneStrain>()};
     law.SetInitialState(p_initial_state);
     InitializeLawMaterial(law, properties);
 
@@ -305,7 +305,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_DoesNotCalculateStre
     auto relative_displacement_vector = Vector{2, 1.0};
     parameters.SetStrainVector(relative_displacement_vector);
 
-    auto law = InterfaceCoulomb{std::make_unique<InterfacePlaneStrain>()};
+    auto law = InterfaceCoulombLaw{std::make_unique<InterfacePlaneStrain>()};
     InitializeLawMaterial(law, properties);
 
     // Act
@@ -346,7 +346,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_Serialization, Krato
     p_initial_state->SetInitialStrainVector(Vector{ZeroVector{2}});
 
     auto p_law = std::unique_ptr<ConstitutiveLaw>{
-        std::make_unique<InterfaceCoulomb>(std::make_unique<InterfacePlaneStrain>())};
+        std::make_unique<InterfaceCoulombLaw>(std::make_unique<InterfacePlaneStrain>())};
     p_law->SetInitialState(p_initial_state);
     InitializeLawMaterial(*p_law, properties);
 
@@ -354,7 +354,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_Serialization, Krato
     const auto calculated_traction_vector = parameters.GetStressVector();
 
     const auto scoped_registration_law =
-        ScopedSerializerRegistration{std::make_pair("InterfaceCoulomb"s, InterfaceCoulomb{})};
+        ScopedSerializerRegistration{std::make_pair("InterfaceCoulombLaw"s, InterfaceCoulombLaw{})};
     auto serializer = StreamSerializer{};
 
     // Act
@@ -377,42 +377,42 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_Serialization, Krato
 KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_Has2DWorkingSpaceDimension,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    KRATOS_EXPECT_EQ(InterfaceCoulomb{std::make_unique<InterfacePlaneStrain>()}.WorkingSpaceDimension(), N_DIM_2D);
+    KRATOS_EXPECT_EQ(InterfaceCoulombLaw{std::make_unique<InterfacePlaneStrain>()}.WorkingSpaceDimension(), N_DIM_2D);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_HasCauchyStressMeasure, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    KRATOS_EXPECT_EQ(InterfaceCoulomb{std::make_unique<InterfacePlaneStrain>()}.GetStressMeasure(),
+    KRATOS_EXPECT_EQ(InterfaceCoulombLaw{std::make_unique<InterfacePlaneStrain>()}.GetStressMeasure(),
                      ConstitutiveLaw::StressMeasure_Cauchy);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_StrainSizeEqualsTwo, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    KRATOS_EXPECT_EQ(InterfaceCoulomb{std::make_unique<InterfacePlaneStrain>()}.GetStrainSize(), 2);
+    KRATOS_EXPECT_EQ(InterfaceCoulombLaw{std::make_unique<InterfacePlaneStrain>()}.GetStrainSize(), 2);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_HasInfinitesimalStrainMeasure,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    KRATOS_EXPECT_EQ(InterfaceCoulomb{std::make_unique<InterfacePlaneStrain>()}.GetStrainMeasure(),
+    KRATOS_EXPECT_EQ(InterfaceCoulombLaw{std::make_unique<InterfacePlaneStrain>()}.GetStrainMeasure(),
                      ConstitutiveLaw::StrainMeasure_Infinitesimal);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_HasIncrementalFormulation, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    EXPECT_TRUE(InterfaceCoulomb{std::make_unique<InterfacePlaneStrain>()}.IsIncremental());
+    EXPECT_TRUE(InterfaceCoulombLaw{std::make_unique<InterfacePlaneStrain>()}.IsIncremental());
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_RequiresInitializeMaterialResponse,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    EXPECT_TRUE(InterfaceCoulomb{std::make_unique<InterfacePlaneStrain>()}.RequiresInitializeMaterialResponse());
+    EXPECT_TRUE(InterfaceCoulombLaw{std::make_unique<InterfacePlaneStrain>()}.RequiresInitializeMaterialResponse());
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_Check, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    auto                        law = InterfaceCoulomb{std::make_unique<InterfacePlaneStrain>()};
+    auto                        law = InterfaceCoulombLaw{std::make_unique<InterfacePlaneStrain>()};
     ConstitutiveLaw::Parameters parameters;
     Properties                  properties(3);
     parameters.SetMaterialProperties(properties);
@@ -493,7 +493,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_CalculateConstitutiv
     auto parameters = ConstitutiveLaw::Parameters{};
     parameters.SetMaterialProperties(properties);
 
-    auto law = InterfaceCoulomb{std::make_unique<InterfacePlaneStrain>()};
+    auto law = InterfaceCoulombLaw{std::make_unique<InterfacePlaneStrain>()};
     InitializeLawMaterial(law, properties);
 
     // Act
