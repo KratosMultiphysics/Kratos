@@ -1,7 +1,5 @@
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-from KratosMultiphysics.project import Project
-import importlib
 import KratosMultiphysics.GeoMechanicsApplication.context_managers as context_managers
 from KratosMultiphysics.GeoMechanicsApplication.gid_output_file_reader import (
     GiDOutputFileReader,
@@ -15,6 +13,7 @@ import os
 import json
 from pathlib import Path
 import sys
+from helper_utilities import run_orchestrator
 
 if test_helper.want_test_plots():
     import KratosMultiphysics.GeoMechanicsApplication.geo_plot_utilities as plot_utils
@@ -239,18 +238,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
                 Path("..") / ".." / "common" / analysis_filename, "r"
             ) as parameter_file:
                 project_parameters = Kratos.Parameters(parameter_file.read())
-                project = Project(project_parameters)
-                orchestrator_reg_entry = Kratos.Registry[
-                    project.GetSettings()["orchestrator"]["name"].GetString()
-                ]
-                orchestrator_module = importlib.import_module(
-                    orchestrator_reg_entry["ModuleName"]
-                )
-                orchestrator_class = getattr(
-                    orchestrator_module, orchestrator_reg_entry["ClassName"]
-                )
-                orchestrator_instance = orchestrator_class(project)
-                orchestrator_instance.Run()
+                run_orchestrator(project_parameters)
 
         if test_helper.want_test_plots():
             self.create_wall_plots(project_path)
@@ -647,7 +635,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             ylabel="y [m]",
         )
 
-    def update_expected_results(self):
+    def update_all_expected_results(self):
         print("Updating the expected results...")
 
         # fmt: off
@@ -662,9 +650,14 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
         }
         # fmt: on
 
+        for case_name in ["linear_elastic", "mohr_coulomb_clay-sand"]:
+            self.update_expected_results(case_name)
+
+
+    def update_expected_results(self, case_name):
         target_dir = Path(
             test_helper.get_file_path(
-                Path("crow_validation") / "linear_elastic" / "staged_construction"
+                Path("crow_validation") / case_name / "staged_construction"
             )
         )
 
@@ -723,6 +716,9 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
     def test_staged_construction_with_linear_elastic_behavior(self):
         self.run_staged_construction_analysis_and_checks("linear_elastic")
 
+    def test_staged_construction_with_mohr_coulomb_clay_sand(self):
+        self.run_staged_construction_analysis_and_checks("mohr_coulomb_clay-sand")
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -730,7 +726,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if args.update_expected_results:
-        KratosGeoMechanicsCrowValidation().update_expected_results()
+        KratosGeoMechanicsCrowValidation().update_all_expected_results()
         sys.exit(0)
 
     KratosUnittest.main()

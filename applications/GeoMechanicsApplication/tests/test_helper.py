@@ -362,7 +362,6 @@ def find_closest_index_greater_than_value(input_list, value):
             return index
     return None
 
-
 def are_values_almost_equal(expected: Any, actual: Any, abs_tolerance: float = 1e-7) -> bool:
     """
     Checks whether two values are almost equal.
@@ -389,7 +388,7 @@ def are_values_almost_equal(expected: Any, actual: Any, abs_tolerance: float = 1
         raise TypeError(f"Unsupported type {type(expected)}")
 
 
-def are_iterables_almost_equal(expected: (list, tuple, set), actual: (list, tuple, set),
+def are_iterables_almost_equal(expected, actual,
                                abs_tolerance: float = 1e-7) -> bool:
     """
     Checks whether two iterables are almost equal.
@@ -475,7 +474,7 @@ def read_coordinates_from_post_msh_file(file_path, node_ids=None):
 
             if reading_coordinates:
                 numbers = line.split()  # [node ID, x, y, z]
-                node_map[int(numbers[0])] = tuple([float(number) for number in numbers[1:]])
+                node_map[int(numbers[0])] = tuple(float(number) for number in numbers[1:])
 
     if node_ids is None:
         return list(node_map.values())
