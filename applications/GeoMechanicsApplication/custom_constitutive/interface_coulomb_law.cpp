@@ -81,8 +81,8 @@ SizeType InterfaceCoulombLaw::WorkingSpaceDimension()
 }
 
 int InterfaceCoulombLaw::Check(const Properties&   rMaterialProperties,
-                            const GeometryType& rElementGeometry,
-                            const ProcessInfo&  rCurrentProcessInfo) const
+                               const GeometryType& rElementGeometry,
+                               const ProcessInfo&  rCurrentProcessInfo) const
 {
     const auto result = ConstitutiveLaw::Check(rMaterialProperties, rElementGeometry, rCurrentProcessInfo);
 
@@ -169,8 +169,8 @@ void InterfaceCoulombLaw::CalculateMaterialResponseCauchy(Parameters& rConstitut
 }
 
 Geo::SigmaTau InterfaceCoulombLaw::CalculateTrialTractionVector(const Vector& rRelativeDisplacementVector,
-                                                             double NormalStiffness,
-                                                             double ShearStiffness) const
+                                                                double NormalStiffness,
+                                                                double ShearStiffness) const
 {
     constexpr auto number_of_normal_components = std::size_t{1};
     return Geo::SigmaTau{mTractionVectorFinalized +
@@ -186,8 +186,8 @@ void InterfaceCoulombLaw::FinalizeMaterialResponseCauchy(Parameters& rConstituti
 }
 
 Matrix& InterfaceCoulombLaw::CalculateValue(Parameters&             rConstitutiveLawParameters,
-                                         const Variable<Matrix>& rVariable,
-                                         Matrix&                 rValue)
+                                            const Variable<Matrix>& rVariable,
+                                            Matrix&                 rValue)
 {
     if (rVariable == CONSTITUTIVE_MATRIX) {
         const auto&    r_properties = rConstitutiveLawParameters.GetMaterialProperties();

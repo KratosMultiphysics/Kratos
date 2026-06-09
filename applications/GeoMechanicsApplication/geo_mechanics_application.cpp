@@ -356,13 +356,13 @@ void KratosGeoMechanicsApplication::Register()
                                      mIncrementalLinearElasticInterface3DSurfaceLaw)
 
     // Deprecated! Keeping the old names for backward compatibility, but will be removed.
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoMohrCoulombWithTensionCutOff2D", mMohrCoulomb2D)
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoMohrCoulombWithTensionCutOff3D", mMohrCoulomb3D)
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoInterfaceCoulombWithTensionCutOff", mInterfaceCoulomb)
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoMohrCoulombWithTensionCutOff2D", mMohrCoulombLawPlaneStrain)
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoMohrCoulombWithTensionCutOff3D", mMohrCoulombLaw3D)
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoInterfaceCoulombWithTensionCutOff", mInterfaceCoulombLawPlaneStrain)
 
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoMohrCoulomb2D", mMohrCoulomb2D)
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoMohrCoulomb3D", mMohrCoulomb3D)
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoInterfaceCoulomb", mInterfaceCoulomb)
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoMohrCoulombLawPlaneStrain", mMohrCoulombLawPlaneStrain)
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoMohrCoulombLaw3D", mMohrCoulombLaw3D)
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoInterfaceCoulombLawPlaneStrain", mInterfaceCoulombLawPlaneStrain)
 
     // Register Variables
     KRATOS_REGISTER_VARIABLE(VELOCITY_COEFFICIENT)

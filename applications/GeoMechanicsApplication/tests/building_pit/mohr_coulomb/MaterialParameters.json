@@ -5,7 +5,7 @@
             "properties_id": 1,
             "Material": {
                 "constitutive_law": {
-                    "name": "GeoMohrCoulomb2D"
+                    "name": "GeoMohrCoulombLawPlaneStrain"
                 },
                 "Variables": {
                     "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
@@ -37,7 +37,7 @@
             "properties_id": 2,
             "Material": {
                 "constitutive_law": {
-                    "name": "GeoMohrCoulomb2D"
+                    "name": "GeoMohrCoulombLawPlaneStrain"
                 },
                 "Variables": {
                     "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
@@ -69,7 +69,7 @@
             "properties_id": 3,
             "Material": {
                 "constitutive_law": {
-                    "name": "GeoMohrCoulomb2D"
+                    "name": "GeoMohrCoulombLawPlaneStrain"
                 },
                 "Variables": {
                     "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
@@ -101,7 +101,7 @@
             "properties_id": 4,
             "Material": {
                 "constitutive_law": {
-                    "name": "GeoMohrCoulomb2D"
+                    "name": "GeoMohrCoulombLawPlaneStrain"
                 },
                 "Variables": {
                     "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
@@ -133,7 +133,7 @@
             "properties_id": 5,
             "Material": {
                 "constitutive_law": {
-                    "name": "GeoMohrCoulomb2D"
+                    "name": "GeoMohrCoulombLawPlaneStrain"
                 },
                 "Variables": {
                     "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
@@ -166,7 +166,7 @@
             "properties_id": 6,
             "Material": {
                 "constitutive_law": {
-                    "name": "GeoMohrCoulomb2D"
+                    "name": "GeoMohrCoulombLawPlaneStrain"
                 },
                 "Variables": {
                     "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
@@ -199,7 +199,7 @@
             "properties_id": 7,
             "Material": {
                 "constitutive_law": {
-                    "name": "GeoInterfaceCoulomb"
+                    "name": "GeoInterfaceCoulombLawPlaneStrain"
                 },
                 "Variables": {
                     "INTERFACE_NORMAL_STIFFNESS": 4.8e+07,
@@ -222,7 +222,7 @@
             "properties_id": 8,
             "Material": {
                 "constitutive_law": {
-                    "name": "GeoInterfaceCoulomb"
+                    "name": "GeoInterfaceCoulombLawPlaneStrain"
                 },
                 "Variables": {
                     "INTERFACE_NORMAL_STIFFNESS": 4.8e+07,
@@ -245,7 +245,7 @@
             "properties_id": 9,
             "Material": {
                 "constitutive_law": {
-                    "name": "GeoInterfaceCoulomb"
+                    "name": "GeoInterfaceCoulombLawPlaneStrain"
                 },
                 "Variables": {
                     "INTERFACE_NORMAL_STIFFNESS": 4.8e+07,
@@ -268,7 +268,7 @@
             "properties_id": 10,
             "Material": {
                 "constitutive_law": {
-                    "name": "GeoInterfaceCoulomb"
+                    "name": "GeoInterfaceCoulombLawPlaneStrain"
                 },
                 "Variables": {
                     "INTERFACE_NORMAL_STIFFNESS": 4.8e+07,
@@ -291,7 +291,7 @@
             "properties_id": 11,
             "Material": {
                 "constitutive_law": {
-                    "name": "GeoInterfaceCoulomb"
+                    "name": "GeoInterfaceCoulombLawPlaneStrain"
                 },
                 "Variables": {
                     "INTERFACE_NORMAL_STIFFNESS": 4.8e+08,
@@ -315,7 +315,7 @@
             "properties_id": 12,
             "Material": {
                 "constitutive_law": {
-                    "name": "GeoInterfaceCoulomb"
+                    "name": "GeoInterfaceCoulombLawPlaneStrain"
                 },
                 "Variables": {
                     "INTERFACE_NORMAL_STIFFNESS": 4.8e+08,

@@ -377,7 +377,8 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_Serialization, Krato
 KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_Has2DWorkingSpaceDimension,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    KRATOS_EXPECT_EQ(InterfaceCoulombLaw{std::make_unique<InterfacePlaneStrain>()}.WorkingSpaceDimension(), N_DIM_2D);
+    KRATOS_EXPECT_EQ(
+        InterfaceCoulombLaw{std::make_unique<InterfacePlaneStrain>()}.WorkingSpaceDimension(), N_DIM_2D);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_HasCauchyStressMeasure, KratosGeoMechanicsFastSuiteWithoutKernel)

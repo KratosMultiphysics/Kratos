@@ -126,8 +126,8 @@ void MohrCoulombLaw::SetValue(const Variable<Vector>& rVariable, const Vector& r
 SizeType MohrCoulombLaw::WorkingSpaceDimension() { return mpConstitutiveDimension->GetDimension(); }
 
 int MohrCoulombLaw::Check(const Properties&   rMaterialProperties,
-                       const GeometryType& rElementGeometry,
-                       const ProcessInfo&  rCurrentProcessInfo) const
+                          const GeometryType& rElementGeometry,
+                          const ProcessInfo&  rCurrentProcessInfo) const
 {
     const auto result = ConstitutiveLaw::Check(rMaterialProperties, rElementGeometry, rCurrentProcessInfo);
 

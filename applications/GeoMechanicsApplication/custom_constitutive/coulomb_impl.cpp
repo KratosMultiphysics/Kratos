@@ -16,10 +16,10 @@
 #include "custom_constitutive/coulomb_impl.h"
 #include "custom_constitutive/principal_stresses.hpp"
 #include "custom_constitutive/sigma_tau.hpp"
+#include "custom_utilities/constitutive_law_utilities.h"
 #include "custom_utilities/stress_strain_utilities.h"
 #include "custom_utilities/ublas_utilities.h"
 #include "geo_mechanics_application_variables.h"
-#include "custom_utilities/constitutive_law_utilities.h"
 #include "includes/properties.h"
 #include "includes/serializer.h"
 #include "utilities/math_utils.h"
@@ -120,10 +120,10 @@ bool CoulombImpl::IsAdmissibleStressState(const StressStateType& rTrialStressSta
     const auto     coulomb_tolerance = tolerance * (1.0 + std::abs(coulomb_yield_function_value));
 
     auto admissible_state = coulomb_yield_function_value < coulomb_tolerance;
-    if (admissible_state  && mTensionCutOff) {
+    if (admissible_state && mTensionCutOff) {
         const auto tension_yield_function_value = mTensionCutOff->YieldFunctionValue(rTrialStressState);
         const auto tension_tolerance = tolerance * (1.0 + std::abs(tension_yield_function_value));
-        admissible_state  = tension_yield_function_value < tension_tolerance;
+        admissible_state             = tension_yield_function_value < tension_tolerance;
     }
     if (admissible_state) mPlasticityStatus = PlasticityStatus::ELASTIC;
     return admissible_state;
@@ -141,8 +141,7 @@ StressStateType CoulombImpl::DoReturnMapping(const StressStateType& rTrialStress
 
     auto kappa_start = mCoulombYieldSurface.GetKappa();
     for (auto counter = std::size_t{0}; counter < mMaxNumberOfPlasticIterations; ++counter) {
-        if (mTensionCutOff)
-        {
+        if (mTensionCutOff) {
             if (IsStressAtTensionApexReturnZone(trial_traction)) {
                 mPlasticityStatus = PlasticityStatus::TENSION_APEX;
                 return ReturnStressAtTensionApexReturnZone(rTrialStressState);
@@ -150,8 +149,8 @@ StressStateType CoulombImpl::DoReturnMapping(const StressStateType& rTrialStress
 
             if (IsStressAtTensionCutoffReturnZone(trial_traction)) {
                 mPlasticityStatus = PlasticityStatus::TENSION_CUT_OFF;
-                return ReturnStressAtTensionCutoffReturnZone(rTrialStressState,
-                                                             rElasticConstitutiveTensor, AveragingType);
+                return ReturnStressAtTensionCutoffReturnZone(
+                    rTrialStressState, rElasticConstitutiveTensor, AveragingType);
             }
         }
 

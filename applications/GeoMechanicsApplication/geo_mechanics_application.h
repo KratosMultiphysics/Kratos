@@ -961,10 +961,10 @@ private:
     const GeoIncrementalLinearElasticInterfaceLaw mIncrementalLinearElasticInterface3DSurfaceLaw{
         std::make_unique<InterfaceThreeDimensionalSurface>()};
 
-    const MohrCoulombLaw mMohrCoulomb2D{std::make_unique<PlaneStrain>()};
-    const MohrCoulombLaw mMohrCoulomb3D{std::make_unique<ThreeDimensional>()};
+    const MohrCoulombLaw mMohrCoulombLawPlaneStrain{std::make_unique<PlaneStrain>()};
+    const MohrCoulombLaw mMohrCoulombLaw3D{std::make_unique<ThreeDimensional>()};
 
-    const InterfaceCoulombLaw mInterfaceCoulomb{std::make_unique<InterfacePlaneStrain>()};
+    const InterfaceCoulombLaw mInterfaceCoulombLawPlaneStrain{std::make_unique<InterfacePlaneStrain>()};
 
     ///@}
 

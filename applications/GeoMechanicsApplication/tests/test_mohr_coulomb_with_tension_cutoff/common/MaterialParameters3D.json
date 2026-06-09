@@ -4,7 +4,7 @@
       "properties_id":           1,
       "Material": {
           "constitutive_law": {
-              "name"             : "GeoMohrCoulomb3D"
+              "name"             : "GeoMohrCoulombLaw3D"
           },
           "Variables": {
               "GEO_DRAINAGE_TYPE"        :  "FULLY_COUPLED",

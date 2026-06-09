@@ -25,7 +25,9 @@ using namespace std::string_literals;
 
 namespace Kratos::Testing
 {
-Vector CalculateMappedStressVector(Vector& rCauchyStressVector, ConstitutiveLaw::Parameters& rParameters, MohrCoulombLaw& rLaw)
+Vector CalculateMappedStressVector(Vector&                      rCauchyStressVector,
+                                   ConstitutiveLaw::Parameters& rParameters,
+                                   MohrCoulombLaw&              rLaw)
 {
     Vector strain_vector = ZeroVector(4);
     rParameters.SetStrainVector(strain_vector);
@@ -671,17 +673,15 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombLawWithoutTensionCutoff_TrialStressInDegene
     law.InitializeMaterial(properties, dummy_element_geometry, dummy_shape_function_values);
 
     // Act
-    const auto apex = cohesion / std::tan(MathUtils<>::DegreesToRadians(phi_in_degrees));
-    auto       cauchy_stress_vector =
-        UblasUtilities::CreateVector({apex + 20.0, apex + 10.0, apex, 0.0});
+    const auto apex           = cohesion / std::tan(MathUtils<>::DegreesToRadians(phi_in_degrees));
+    auto cauchy_stress_vector = UblasUtilities::CreateVector({apex + 20.0, apex + 10.0, apex, 0.0});
     const auto resulting_cauchy_stress_vector =
         CalculateMappedStressVector(cauchy_stress_vector, parameters, law);
     auto plasticity_status = 0;
     law.GetValue(GEO_PLASTICITY_STATUS, plasticity_status);
 
     // Assert
-    const auto expected_cauchy_stress_vector =
-        UblasUtilities::CreateVector({apex, apex, apex, 0.0});
+    const auto expected_cauchy_stress_vector = UblasUtilities::CreateVector({apex, apex, apex, 0.0});
     KRATOS_EXPECT_VECTOR_NEAR(resulting_cauchy_stress_vector, expected_cauchy_stress_vector,
                               Defaults::absolute_tolerance);
     KRATOS_EXPECT_EQ(plasticity_status, static_cast<int>(PlasticityStatus::TENSION_MOHR_COULOMB_CORNER));
