@@ -55,6 +55,14 @@ std::optional<TensionCutoff> CreateOptionalTensionCutOff(const Properties& rMate
     return std::nullopt;
 }
 
+template <typename YieldSurfaceType, typename StressStateType>
+bool IsAdmissibleStressState(const YieldSurfaceType& rYieldSurface, const StressStateType& rTrialStressState)
+{
+    const auto yield_function_value = rYieldSurface.YieldFunctionValue(rTrialStressState);
+    const auto tolerance            = 1.0e-10 * (1.0 + std::abs(yield_function_value));
+    return yield_function_value < tolerance;
+}
+
 } // namespace
 
 namespace Kratos
@@ -115,18 +123,13 @@ void CoulombImpl::RestoreKappaOfCoulombYieldSurface()
 template <typename StressStateType>
 bool CoulombImpl::IsAdmissibleStressState(const StressStateType& rTrialStressState)
 {
-    const auto coulomb_yield_function_value = mCoulombYieldSurface.YieldFunctionValue(rTrialStressState);
-    constexpr auto tolerance         = 1.0e-10;
-    const auto     coulomb_tolerance = tolerance * (1.0 + std::abs(coulomb_yield_function_value));
+    if (!::IsAdmissibleStressState(mCoulombYieldSurface, rTrialStressState)) return false;
 
-    auto admissible_state = coulomb_yield_function_value < coulomb_tolerance;
-    if (admissible_state && mTensionCutOff) {
-        const auto tension_yield_function_value = mTensionCutOff->YieldFunctionValue(rTrialStressState);
-        const auto tension_tolerance = tolerance * (1.0 + std::abs(tension_yield_function_value));
-        admissible_state             = tension_yield_function_value < tension_tolerance;
-    }
-    if (admissible_state) mPlasticityStatus = PlasticityStatus::ELASTIC;
-    return admissible_state;
+    if (mTensionCutOff && !::IsAdmissibleStressState(*mTensionCutOff, rTrialStressState))
+        return false;
+
+    mPlasticityStatus = PlasticityStatus::ELASTIC;
+    return true;
 }
 
 template <typename StressStateType, typename StressStateToSigmaTauFunctionType>
