@@ -303,6 +303,10 @@ def get_shear_forces_from_json_output(json_output, node_ids):
     return get_nodal_values_from_json_output(json_output, "SHEAR_FORCE", node_ids)
 
 
+def get_normal_forces_from_json_output(json_output, node_ids):
+    return get_nodal_values_from_json_output(json_output, "AXIAL_FORCE", node_ids)
+
+
 def get_total_displacement_x_from_json_output(json_output, node_ids):
     return get_nodal_values_from_json_output(json_output, "TOTAL_DISPLACEMENT_X", node_ids)
 

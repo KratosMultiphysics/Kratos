@@ -1,9 +1,6 @@
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.GeoMechanicsApplication.context_managers as context_managers
-from KratosMultiphysics.GeoMechanicsApplication.gid_output_file_reader import (
-    GiDOutputFileReader,
-)
 from KratosMultiphysics.GeoMechanicsApplication.unit_conversions import unit_to_k_unit
 import test_helper
 
@@ -417,13 +414,8 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
 
 
     def update_expected_results(self, case_name):
-        target_dir = Path(
-            test_helper.get_file_path(
-                Path("crow_validation") / case_name / "staged_construction"
-            )
-        )
-
-        reader = GiDOutputFileReader()
+        self.analysis_type = "staged_construction"
+        self.test_path = Path(test_helper.get_file_path(Path("crow_validation") / case_name / self.analysis_type))
 
         mdpa_file_path_without_file_extension = test_helper.get_file_path(Path("crow_validation") / "common" / "model")
         model = Kratos.Model()
@@ -437,29 +429,11 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             "second_excavation",
             "third_excavation",
         ]:
-            base_name = self.stages_info[stage_name]["base_name"]
-            output_data = reader.read_output_from(
-                target_dir / "gid_output" / f"{base_name}.post.res"
-            )
-            end_time = self.stages_info[stage_name]["end_time"]
-            bending_moments = reader.nodal_values_at_time(
-                "BENDING_MOMENT", end_time, output_data, node_ids=node_ids
-            )
-            shear_forces = reader.nodal_values_at_time(
-                "SHEAR_FORCE", end_time, output_data, node_ids=node_ids
-            )
-            normal_forces = reader.nodal_values_at_time(
-                "AXIAL_FORCE", end_time, output_data, node_ids=node_ids
-            )
-            horizontal_total_displacements = [
-                total_displacement_vector[0]
-                for total_displacement_vector in reader.nodal_values_at_time(
-                    "TOTAL_DISPLACEMENT", end_time, output_data, node_ids=node_ids
-                )
-            ]
+            json_output = self.read_json_output(self.stages_info[stage_name], postfix="output_wall")
 
+            base_name = self.stages_info[stage_name]["base_name"]
             with open(
-                target_dir / f"{base_name}__expected_results_wall.csv",
+                self.test_path / f"{base_name}__expected_results_wall.csv",
                 "w",
                 newline="",
             ) as csv_file:
@@ -473,7 +447,11 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
                     normal_force,
                     horizontal_total_displacement,
                 ) in zip(
-                    node_ids, bending_moments, shear_forces, normal_forces, horizontal_total_displacements
+                    node_ids,
+                    test_helper.get_bending_moments_from_json_output(json_output, node_ids),
+                    test_helper.get_shear_forces_from_json_output(json_output, node_ids),
+                    test_helper.get_normal_forces_from_json_output(json_output, node_ids),
+                    test_helper.get_total_displacement_x_from_json_output(json_output, node_ids)
                 ):
                     writer.writerow(
                         {
