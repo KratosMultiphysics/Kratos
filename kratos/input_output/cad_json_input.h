@@ -91,18 +91,22 @@ class CadJsonInput : public IO
     /// Constructor with path to input file.
     CadJsonInput(
         const std::string& rDataFileName,
-        SizeType EchoLevel = 0)
+        SizeType EchoLevel = 0,
+        ProjectionAlgorithm ProjectionAlgorithmType = ProjectionAlgorithm::NewtonRaphson)
         : mEchoLevel(EchoLevel)
+        , mProjectionAlgorithm(ProjectionAlgorithmType)
     {
-        mCadJsonParameters = ReadParamatersFile(rDataFileName, EchoLevel);
+        mCadJsonParameters = ReadParametersFile(rDataFileName, EchoLevel);
     }
 
     /// Constructor with path to input file and local refinement file.
     CadJsonInput(
         const std::string& rDataFileName,
-        const std::string& rLocalRefFileName,
-        SizeType EchoLevel = 0)
+        SizeType EchoLevel = 0,
+        ProjectionAlgorithm ProjectionAlgorithmType = ProjectionAlgorithm::NewtonRaphson,
+        const std::string& rLocalRefFileName)
         : mEchoLevel(EchoLevel)
+        , mProjectionAlgorithm(ProjectionAlgorithmType)
     {
         mCadJsonParameters = ReadParamatersFile(rDataFileName, EchoLevel);
         mLocalRefParameters = ReadLocalRefFile(rLocalRefFileName, EchoLevel);
@@ -111,9 +115,11 @@ class CadJsonInput : public IO
     /// Constructor with KratosParameters.
     CadJsonInput(
         Parameters CadJsonParameters,
-        SizeType EchoLevel = 0)
+        SizeType EchoLevel = 0,
+        ProjectionAlgorithm ProjectionAlgorithmType = ProjectionAlgorithm::NewtonRaphson)
         : mCadJsonParameters(CadJsonParameters)
         , mEchoLevel(EchoLevel)
+        , mProjectionAlgorithm(ProjectionAlgorithmType)
     {
     }
 
@@ -127,7 +133,7 @@ class CadJsonInput : public IO
     /// Adds all CAD geometries to the herin provided model_part.
     void ReadModelPart(ModelPart& rModelPart) override
     {
-        ReadGeometryModelPart(mCadJsonParameters, rModelPart, mLocalRefParameters, mEchoLevel);
+        ReadGeometryModelPart(mCadJsonParameters, rModelPart, mProjectionAlgorithm, mLocalRefParameters, mEchoLevel);
     }
 
     ///@}
@@ -140,13 +146,14 @@ private:
     static void ReadGeometryModelPart(
         const Parameters rCadJsonParameters,
         ModelPart& rModelPart,
+        ProjectionAlgorithm ProjectionAlgorithmType,
         const Parameters rLocalRefParameters,
         SizeType EchoLevel = 0)
     {
         KRATOS_ERROR_IF_NOT(rCadJsonParameters.Has("breps"))
             << "Missing \"breps\" section" << std::endl;
 
-        ReadBreps(rCadJsonParameters["breps"], rModelPart, rLocalRefParameters, EchoLevel);
+        ReadBreps(rCadJsonParameters["breps"], rModelPart, ProjectionAlgorithmType, rLocalRefParameters, EchoLevel);
     }
 
     ///@}
@@ -156,41 +163,34 @@ private:
     static void ReadBreps(
         const Parameters rParameters,
         ModelPart& rModelPart,
+        ProjectionAlgorithm ProjectionAlgorithmType,
         const Parameters rLocalRefParameters,
         SizeType EchoLevel = 0)
     {
-        for (IndexType brep_index = 0; brep_index < rParameters.size(); brep_index++)
-        {
+        for (IndexType brep_index = 0; brep_index < rParameters.size(); brep_index++) {
             KRATOS_INFO_IF("ReadBreps", (EchoLevel > 0))
                 << "Reading Brep \"" << GetIdOrName(rParameters[brep_index])
                 << "\" - faces." << std::endl;
-
             if (rParameters[brep_index].Has("faces"))
             {
-                ReadBrepSurfaces(rParameters[brep_index]["faces"], rModelPart, rLocalRefParameters, EchoLevel);
+                ReadBrepSurfaces(rParameters[brep_index]["faces"], rModelPart, ProjectionAlgorithmType, rLocalRefParameters, EchoLevel);
             }
         }
 
-        for (IndexType brep_index = 0; brep_index < rParameters.size(); brep_index++)
-        {
+        for (IndexType brep_index = 0; brep_index < rParameters.size(); brep_index++) {
             KRATOS_INFO_IF("ReadBreps", (EchoLevel > 0))
                 << "Reading Brep \"" << GetIdOrName(rParameters[brep_index])
                 << "\" - edges." << std::endl;
-
-            if (rParameters[brep_index].Has("edges"))
-            {
-                ReadBrepCurveOnSurfaces(rParameters[brep_index]["edges"], rModelPart, EchoLevel);
+            if (rParameters[brep_index].Has("edges")) {
+                ReadBrepCurveOnSurfaces(rParameters[brep_index]["edges"], rModelPart, ProjectionAlgorithmType, EchoLevel);
             }
         }
 
-        for (IndexType brep_index = 0; brep_index < rParameters.size(); brep_index++)
-        {
+        for (IndexType brep_index = 0; brep_index < rParameters.size(); brep_index++) {
             KRATOS_INFO_IF("ReadBreps", (EchoLevel > 0))
                 << "Reading Brep \"" << GetIdOrName(rParameters[brep_index])
                 << "\" - points." << std::endl;
-
-            if (rParameters[brep_index].Has("vertices"))
-            {
+            if (rParameters[brep_index].Has("vertices")) {
                 ReadPointsOnGeometries(rParameters[brep_index]["vertices"], rModelPart, EchoLevel);
             }
         }
@@ -203,6 +203,7 @@ private:
     static void ReadBrepSurfaces(
         const Parameters rParameters,
         ModelPart& rModelPart,
+        ProjectionAlgorithm ProjectionAlgorithmType,
         const Parameters rLocalRefParameters,
         SizeType EchoLevel = 0)
     {
@@ -214,13 +215,14 @@ private:
 
         for (IndexType brep_surface_i = 0; brep_surface_i < rParameters.size(); ++brep_surface_i)
         {
-            ReadBrepSurface(rParameters[brep_surface_i], rModelPart, rLocalRefParameters, EchoLevel);
+            ReadBrepSurface(rParameters[brep_surface_i], rModelPart, ProjectionAlgorithmType, rLocalRefParameters, EchoLevel);
         }
     }
 
     static void ReadBrepSurface(
         const Parameters rParameters,
         ModelPart& rModelPart,
+        ProjectionAlgorithm ProjectionAlgorithmType,
         const Parameters rLocalRefParameters,
         SizeType EchoLevel = 0)
     {
@@ -234,7 +236,7 @@ private:
             << "Missing 'surface' in brep face." << std::endl;
 
         auto p_surface(ReadNurbsSurface<3, TNodeType>(
-            rParameters["surface"], rModelPart, EchoLevel));
+            rParameters["surface"], rModelPart, ProjectionAlgorithmType, EchoLevel));
 
         const bool is_trimmed = (rParameters["surface"].Has("is_trimmed"))
             ? rParameters["surface"]["is_trimmed"].GetBool()
@@ -248,7 +250,7 @@ private:
         {
             BrepCurveOnSurfaceLoopArrayType outer_loops, inner_loops;
             tie(outer_loops, inner_loops) =
-                ReadBoundaryLoops(rParameters["boundary_loops"], p_surface, rModelPart, EchoLevel);
+                ReadBoundaryLoops(rParameters["boundary_loops"], p_surface, rModelPart, ProjectionAlgorithmType, EchoLevel);
 
             auto p_brep_surface =
                 Kratos::make_shared<BrepSurfaceType>(
@@ -259,7 +261,7 @@ private:
 
             SetIdOrName<BrepSurfaceType>(rParameters, p_brep_surface);
 
-            ReadAndAddEmbeddedEdges(p_brep_surface, rParameters, p_surface, rModelPart, EchoLevel);
+            ReadAndAddEmbeddedEdges(p_brep_surface, rParameters, p_surface, rModelPart, ProjectionAlgorithmType, EchoLevel);
             auto p_final_surface = ReadLocalRefinement(p_brep_surface, rParameters, rLocalRefParameters, rModelPart, EchoLevel);
 
             /// Sets the brep as geometry parent of the nurbs surface.
@@ -280,7 +282,7 @@ private:
 
             SetIdOrName<BrepSurfaceType>(rParameters, p_brep_surface);
 
-            ReadAndAddEmbeddedEdges(p_brep_surface, rParameters, p_surface, rModelPart, EchoLevel);
+            ReadAndAddEmbeddedEdges(p_brep_surface, rParameters, p_surface, rModelPart, ProjectionAlgorithmType, EchoLevel);
             auto p_final_surface = ReadLocalRefinement(p_brep_surface, rParameters, rLocalRefParameters, rModelPart, EchoLevel);
 
             rModelPart.AddGeometry(p_final_surface);
@@ -291,12 +293,12 @@ private:
     ///@name Read in Surface Trimming
     ///@{
 
-    static BrepCurveOnSurfaceLoopType
-        ReadTrimmingCurveVector(
-            const Parameters rParameters,
-            typename NurbsSurfaceType::Pointer pNurbsSurface,
-            ModelPart& rModelPart,
-            SizeType EchoLevel = 0)
+    static BrepCurveOnSurfaceLoopType ReadTrimmingCurveVector(
+        const Parameters rParameters,
+        typename NurbsSurfaceType::Pointer pNurbsSurface,
+        ModelPart& rModelPart,
+        ProjectionAlgorithm ProjectionAlgorithmType,
+        SizeType EchoLevel = 0)
     {
         KRATOS_ERROR_IF(rParameters.size() < 1)
             << "Trimming curve list has no element." << std::endl;
@@ -307,18 +309,18 @@ private:
         for (IndexType tc_idx = 0; tc_idx < rParameters.size(); tc_idx++)
         {
             trimming_brep_curve_vector[tc_idx] = ReadTrimmingCurve(
-                rParameters[tc_idx], pNurbsSurface, rModelPart, EchoLevel);
+                rParameters[tc_idx], pNurbsSurface, rModelPart, ProjectionAlgorithmType, EchoLevel);
         }
 
         return trimming_brep_curve_vector;
     }
 
-    static typename BrepCurveOnSurfaceType::Pointer
-        ReadTrimmingCurve(
-            const Parameters rParameters,
-            typename NurbsSurfaceType::Pointer pNurbsSurface,
-            ModelPart& rModelPart,
-            SizeType EchoLevel = 0)
+    static typename BrepCurveOnSurfaceType::Pointer ReadTrimmingCurve(
+        const Parameters rParameters,
+        typename NurbsSurfaceType::Pointer pNurbsSurface,
+        ModelPart& rModelPart,
+        ProjectionAlgorithm ProjectionAlgorithmType,
+        SizeType EchoLevel = 0)
     {
         KRATOS_ERROR_IF_NOT(rParameters.Has("curve_direction"))
             << "Missing 'curve_direction' in nurbs curve" << std::endl;
@@ -328,7 +330,7 @@ private:
             << "Missing 'parameter_curve' in nurbs curve" << std::endl;
 
         auto p_trimming_curve(ReadNurbsCurve<2, TEmbeddedNodeType>(
-            rParameters["parameter_curve"], rModelPart, EchoLevel));
+            rParameters["parameter_curve"], rModelPart, ProjectionAlgorithmType, EchoLevel));
 
         KRATOS_ERROR_IF_NOT(rParameters["parameter_curve"].Has("active_range"))
             << "Missing 'active_range' in parameter_curve, in trimming curve." << std::endl;
@@ -351,6 +353,7 @@ private:
             const Parameters rParameters,
             typename NurbsSurfaceType::Pointer pNurbsSurface,
             ModelPart& rModelPart,
+            ProjectionAlgorithm ProjectionAlgorithmType,
             SizeType EchoLevel = 0)
     {
         BrepCurveOnSurfaceLoopArrayType outer_loops;
@@ -367,7 +370,7 @@ private:
                 << "Missing 'trimming_curves' in boundary loops"
                 << bl_idx << " loop." << std::endl;
             auto trimming_curves(ReadTrimmingCurveVector(
-                rParameters[bl_idx]["trimming_curves"], pNurbsSurface, rModelPart, EchoLevel));
+                rParameters[bl_idx]["trimming_curves"], pNurbsSurface, rModelPart, ProjectionAlgorithmType, EchoLevel));
 
             if (loop_type == "outer")
             {
@@ -394,12 +397,13 @@ private:
             const Parameters rParameters,
             typename NurbsSurfaceType::Pointer pNurbsSurface,
             ModelPart& rModelPart,
+            ProjectionAlgorithm ProjectionAlgorithmType,
             SizeType EchoLevel = 0)
     {
         if (rParameters.Has("embedded_edges")) {
             if (rParameters["embedded_edges"].size() > 0) {
                 BrepCurveOnSurfaceArrayType embedded_edges(ReadTrimmingCurveVector(
-                    rParameters["embedded_edges"], pNurbsSurface, rModelPart, EchoLevel));
+                    rParameters["embedded_edges"], pNurbsSurface, rModelPart, ProjectionAlgorithmType, EchoLevel));
 
                 pBrepSurface->AddEmbeddedEdges(embedded_edges);
             }
@@ -508,6 +512,7 @@ private:
     static void ReadBrepCurveOnSurfaces(
         const Parameters rParameters,
         ModelPart& rModelPart,
+        ProjectionAlgorithm ProjectionAlgorithmType,
         SizeType EchoLevel = 0)
     {
         KRATOS_ERROR_IF_NOT(rParameters.IsArray())
@@ -518,13 +523,14 @@ private:
 
         for (IndexType i = 0; i < rParameters.size(); i++)
         {
-            ReadBrepEdge(rParameters[i], rModelPart, EchoLevel);
+            ReadBrepEdge(rParameters[i], rModelPart, ProjectionAlgorithmType, EchoLevel);
         }
     }
 
     static void ReadBrepEdge(
         const Parameters rParameters,
         ModelPart& rModelPart,
+        ProjectionAlgorithm ProjectionAlgorithmType,
         SizeType EchoLevel = 0)
     {
         KRATOS_ERROR_IF_NOT(HasIdOrName(rParameters))
@@ -534,7 +540,7 @@ private:
         {
             if (rParameters["topology"].size() == 0)
             {
-                ReadBrepCurve(rParameters, rModelPart, EchoLevel);
+                ReadBrepCurve(rParameters, rModelPart, ProjectionAlgorithmType, EchoLevel);
             }
             else if (rParameters["topology"].size() == 1)
             {
@@ -549,6 +555,7 @@ private:
     static void ReadBrepCurve(
         const Parameters rParameters,
         ModelPart& rModelPart,
+        ProjectionAlgorithm ProjectionAlgorithmType,
         SizeType EchoLevel = 0)
     {
         KRATOS_ERROR_IF_NOT(HasIdOrName(rParameters))
@@ -561,7 +568,7 @@ private:
             << "Missing '3d_curve' in brep curve." << std::endl;
 
         auto p_curve = ReadNurbsCurve<3, TNodeType>(
-            rParameters["3d_curve"], rModelPart, EchoLevel);
+            rParameters["3d_curve"], rModelPart, ProjectionAlgorithmType, EchoLevel);
 
         auto p_brep_curve = Kratos::make_shared<BrepCurveType>(p_curve);
 
@@ -745,10 +752,11 @@ private:
     */
     template<int TWorkingSpaceDimension, class TThisNodeType>
     static typename NurbsCurveGeometry<TWorkingSpaceDimension, PointerVector<TThisNodeType>>::Pointer
-        ReadNurbsCurve(
-            const Parameters rParameters,
-            ModelPart& rModelPart,
-            SizeType EchoLevel = 0)
+    ReadNurbsCurve(
+        const Parameters rParameters,
+        ModelPart& rModelPart,
+        ProjectionAlgorithm ProjectionAlgorithmType = ProjectionAlgorithm::NewtonRaphson,
+        SizeType EchoLevel = 0)
     {
         bool is_rational = true;
         if (rParameters.Has("is_rational")) {
@@ -779,18 +787,20 @@ private:
             Vector control_point_weights = ReadControlPointWeightVector(
                 rParameters["control_points"]);
 
-            return Kratos::make_shared<NurbsCurveGeometry<TWorkingSpaceDimension, PointerVector<TThisNodeType>>>(
+           return Kratos::make_shared<NurbsCurveGeometry<TWorkingSpaceDimension, PointerVector<TThisNodeType>>>(
                 NurbsCurveGeometry<TWorkingSpaceDimension, PointerVector<TThisNodeType>>(
                     control_points,
                     polynomial_degree,
                     knot_vector,
-                    control_point_weights));
+                    control_point_weights,
+                    ProjectionAlgorithmType));
         }
         typename NurbsCurveGeometry<TWorkingSpaceDimension, PointerVector<TThisNodeType>>::Pointer p_nurbs_curve(
             new NurbsCurveGeometry<TWorkingSpaceDimension, PointerVector<TThisNodeType>>(
                 control_points,
                 polynomial_degree,
-                knot_vector));
+                knot_vector,
+                ProjectionAlgorithmType));
 
         return p_nurbs_curve;
     }
@@ -817,6 +827,7 @@ private:
         ReadNurbsSurface(
             const Parameters rParameters,
             ModelPart& rModelPart,
+            ProjectionAlgorithm ProjectionAlgorithmType = ProjectionAlgorithm::NewtonRaphson,
             SizeType EchoLevel = 0)
     {
         bool is_rational = true;
@@ -860,7 +871,8 @@ private:
                 q,
                 knot_vector_u,
                 knot_vector_v,
-                control_point_weights);
+                control_point_weights,
+                ProjectionAlgorithmType);
         }
         typename NurbsSurfaceGeometry<TWorkingSpaceDimension, PointerVector<TThisNodeType>>::Pointer p_nurbs_surface(
             new NurbsSurfaceGeometry<TWorkingSpaceDimension, PointerVector<TThisNodeType>>(
@@ -868,7 +880,8 @@ private:
                 p,
                 q,
                 knot_vector_u,
-                knot_vector_v));
+                knot_vector_v,
+                ProjectionAlgorithmType));
 
         return p_nurbs_surface;
     }
@@ -1058,7 +1071,7 @@ private:
     }
 
     /// Reads in a json formatted file and returns its KratosParameters instance.
-    static Parameters ReadParamatersFile(
+    static Parameters ReadParametersFile(
         const std::string& rDataFileName,
         SizeType EchoLevel = 0)
     {
@@ -1070,7 +1083,7 @@ private:
         std::ifstream infile(data_file_name);
         KRATOS_ERROR_IF_NOT(infile.good()) << "CAD geometry file: "
             << data_file_name << " cannot be found." << std::endl;
-        KRATOS_INFO_IF("ReadParamatersFile", EchoLevel > 3)
+        KRATOS_INFO_IF("ReadParametersFile", EchoLevel > 3)
             << "Reading file: \"" << data_file_name << "\"" << std::endl;
 
         std::stringstream buffer;
@@ -1086,6 +1099,7 @@ private:
     Parameters mCadJsonParameters;
     Parameters mLocalRefParameters = Parameters("{}");
     int mEchoLevel;
+    ProjectionAlgorithm mProjectionAlgorithm = ProjectionAlgorithm::NewtonRaphson;
 
     ///@}
 }; // Class CadJsonInput
