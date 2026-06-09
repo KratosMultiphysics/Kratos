@@ -681,60 +681,93 @@ private:
     }
 
     /**
-     * @brief Marks basis functions as active or inactive at each level.
+     * @brief Top-down propagation that assigns active/inactive flags to every CP.
      *
-     * A basis function B_{i_u, i_v}^l is INACTIVE (eliminated) if every
-     * non-zero knot cell in its support is covered by a refinement domain
-     * at level >= l+1.  Active functions are those that still contribute
-     * to the hierarchical basis — their support has at least one cell that
-     * is NOT refined further.
+     * Initialization:
+     *   mActiveFunctions[0]   = all true   (level 0 covers the full domain)
+     *   mActiveFunctions[l>0] = all false  (activated only by coarser propagation)
      *
-     * Called automatically by AddRefinementDomain so that mActiveFunctions
-     * always reflects the current set of refinement domains.
+     * Main loop  l = 0 .. L-2:
+     *   For each active CP (i_u, i_v) at level l:
+     *     1. Compute its support [cu_min, cu_max] x [cv_min, cv_max].
+     *     2. Check whether EVERY non-zero cell in the support has its midpoint
+     *        inside a refinement domain at level >= l+1.
+     *        If not → the coarse CP stays active; skip to the next CP.
+     *     3. If all cells are covered → mark the coarse CP INACTIVE and
+     *        activate its children at level l+1.
+     *        A fine CP j is a child of coarse CP i iff
+     *          supp(B_j^{l+1}) ⊆ supp(B_i^l)
+     *        i.e. fu_min >= cu_min AND fu_max <= cu_max (same in v).
+     *        Fine CPs whose support straddles the boundary of the coarse support
+     *        are NOT children and are left inactive; the still-active coarse CPs
+     *        at the boundary already represent that region.
+     *
+     * Cascade: if a newly activated child's support is fully inside Ω^{l+2}, the
+     * next loop iteration (l+1) finds that child's support fully covered, deactivates it,
+     * and activates its own children — no special handling needed.
+     *
+     * Called automatically by AddRefinementDomain.
      */
     void ComputeActiveFunctions()
     {
         const SizeType p = mLevels[0].DegreeU;
         const SizeType q = mLevels[0].DegreeV;
 
-        // Reset all levels to fully active, then deactivate where appropriate
-        for (SizeType l = 0; l < mLevels.size(); ++l)
-            std::fill(mActiveFunctions[l].begin(), mActiveFunctions[l].end(), true);
+        // Level 0: fully active. Finer levels: start inactive, activated by propagation.
+        std::fill(mActiveFunctions[0].begin(), mActiveFunctions[0].end(), true);
+        for (SizeType l = 1; l < mLevels.size(); ++l)
+            std::fill(mActiveFunctions[l].begin(), mActiveFunctions[l].end(), false);
 
-        // Finest level: all functions always active (nothing finer to be covered by)
         for (SizeType l = 0; l + 1 < mLevels.size(); ++l) {
-            const THBLevel& lev = mLevels[l];
-            const SizeType nU = lev.KnotsU.size() - p + 1;
-            const SizeType nV = lev.KnotsV.size() - q + 1;
+            const THBLevel& lev_c = mLevels[l];
+            const THBLevel& lev_f = mLevels[l + 1];
+            const SizeType  nU_c  = lev_c.KnotsU.size() - p + 1;
+            const SizeType  nV_c  = lev_c.KnotsV.size() - q + 1;
+            const SizeType  nU_f  = lev_f.KnotsU.size() - p + 1;
+            const SizeType  nV_f  = lev_f.KnotsV.size() - q + 1;
 
-            for (SizeType i_v = 0; i_v < nV; ++i_v) {
-                for (SizeType i_u = 0; i_u < nU; ++i_u) {
-                    // Support of B_{i_u, i_v}^l in parameter space.
-                    // Internal knot format: B_i has support [K[i-1], K[i+p]]
-                    // with K[i-1] clamped to K[0] for i=0.
-                    const double u_min = (i_u == 0) ? lev.KnotsU[0] : lev.KnotsU[i_u - 1];
-                    const double u_max = lev.KnotsU[std::min(i_u + p, lev.KnotsU.size() - 1)];
-                    const double v_min = (i_v == 0) ? lev.KnotsV[0] : lev.KnotsV[i_v - 1];
-                    const double v_max = lev.KnotsV[std::min(i_v + q, lev.KnotsV.size() - 1)];
+            for (SizeType i_v = 0; i_v < nV_c; ++i_v) {
+                for (SizeType i_u = 0; i_u < nU_c; ++i_u) {
+                    if (!mActiveFunctions[l][i_v * nU_c + i_u]) continue;
 
-                    // Check every non-zero cell within the support.
-                    // If even one cell is NOT inside Ω^{≥l+1} the function is active.
-                    bool all_cells_in_refined_region = true;
-                    for (SizeType k_u = 0; k_u + 1 < lev.KnotsU.size() && all_cells_in_refined_region; ++k_u) {
-                        if (lev.KnotsU[k_u + 1] - lev.KnotsU[k_u] < 1e-10) continue;
-                        if (lev.KnotsU[k_u] < u_min - 1e-10 || lev.KnotsU[k_u + 1] > u_max + 1e-10) continue;
-                        for (SizeType k_v = 0; k_v + 1 < lev.KnotsV.size() && all_cells_in_refined_region; ++k_v) {
-                            if (lev.KnotsV[k_v + 1] - lev.KnotsV[k_v] < 1e-10) continue;
-                            if (lev.KnotsV[k_v] < v_min - 1e-10 || lev.KnotsV[k_v + 1] > v_max + 1e-10) continue;
-                            const double mid_u = 0.5 * (lev.KnotsU[k_u] + lev.KnotsU[k_u + 1]);
-                            const double mid_v = 0.5 * (lev.KnotsV[k_v] + lev.KnotsV[k_v + 1]);
+                    // Support of coarse B_{i_u, i_v}^l
+                    const double cu_min = (i_u == 0) ? lev_c.KnotsU[0] : lev_c.KnotsU[i_u - 1];
+                    const double cu_max = lev_c.KnotsU[std::min(i_u + p, lev_c.KnotsU.size() - 1)];
+                    const double cv_min = (i_v == 0) ? lev_c.KnotsV[0] : lev_c.KnotsV[i_v - 1];
+                    const double cv_max = lev_c.KnotsV[std::min(i_v + q, lev_c.KnotsV.size() - 1)];
+
+                    // Is every cell of this support inside Ω^{≥l+1}?
+                    bool all_cells_covered = true;
+                    for (SizeType k_u = 0; k_u + 1 < lev_c.KnotsU.size() && all_cells_covered; ++k_u) {
+                        if (lev_c.KnotsU[k_u + 1] - lev_c.KnotsU[k_u] < 1e-10) continue;
+                        if (lev_c.KnotsU[k_u] < cu_min - 1e-10 || lev_c.KnotsU[k_u + 1] > cu_max + 1e-10) continue;
+                        for (SizeType k_v = 0; k_v + 1 < lev_c.KnotsV.size() && all_cells_covered; ++k_v) {
+                            if (lev_c.KnotsV[k_v + 1] - lev_c.KnotsV[k_v] < 1e-10) continue;
+                            if (lev_c.KnotsV[k_v] < cv_min - 1e-10 || lev_c.KnotsV[k_v + 1] > cv_max + 1e-10) continue;
+                            const double mid_u = 0.5 * (lev_c.KnotsU[k_u] + lev_c.KnotsU[k_u + 1]);
+                            const double mid_v = 0.5 * (lev_c.KnotsV[k_v] + lev_c.KnotsV[k_v + 1]);
                             if (!IsInsideRefinedRegion(mid_u, mid_v, l + 1))
-                                all_cells_in_refined_region = false;
+                                all_cells_covered = false;
                         }
                     }
+                    if (!all_cells_covered) continue; // coarse CP stays active, no propagation
 
-                    if (all_cells_in_refined_region)
-                        mActiveFunctions[l][i_v * nU + i_u] = false;
+                    // Mark coarse CP INACTIVE and activate its true children.
+                    mActiveFunctions[l][i_v * nU_c + i_u] = false;
+
+                    for (SizeType j_u = 0; j_u < nU_f; ++j_u) {
+                        const double fu_min = (j_u == 0) ? lev_f.KnotsU[0] : lev_f.KnotsU[j_u - 1];
+                        const double fu_max = lev_f.KnotsU[std::min(j_u + p, lev_f.KnotsU.size() - 1)];
+                        if (fu_min < cu_min - 1e-10 || fu_max > cu_max + 1e-10) continue;
+
+                        for (SizeType j_v = 0; j_v < nV_f; ++j_v) {
+                            const double fv_min = (j_v == 0) ? lev_f.KnotsV[0] : lev_f.KnotsV[j_v - 1];
+                            const double fv_max = lev_f.KnotsV[std::min(j_v + q, lev_f.KnotsV.size() - 1)];
+                            if (fv_min < cv_min - 1e-10 || fv_max > cv_max + 1e-10) continue;
+
+                            mActiveFunctions[l + 1][j_v * nU_f + j_u] = true;
+                        }
+                    }
                 }
             }
         }
