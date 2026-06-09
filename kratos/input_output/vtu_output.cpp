@@ -55,6 +55,36 @@ bool IsBigEndian()
     return bint.c[0] == 1;
 }
 
+std::string GetBaseName(
+    const std::string& rFileName,
+    const bool IsDistributed)
+{
+    if (IsDistributed) {
+        // removes the last partition index from the filename
+        return rFileName.substr(0, rFileName.rfind("_"));
+    } else {
+        return rFileName;
+    }
+}
+
+std::string GetFileName(
+    const std::string& rBaseName,
+    const std::string& rOutputFileNamePrefix,
+    const bool IsDistributed,
+    const int PartitionIndex)
+{
+
+    std::filesystem::path current_file;
+    if (IsDistributed) {
+        // adds the partition index information to the filename
+        current_file = std::filesystem::absolute(rBaseName + "_" + std::to_string(PartitionIndex) + ".vtu");
+    } else {
+        current_file = std::filesystem::absolute(rBaseName);
+    }
+
+    return std::filesystem::relative(current_file, std::filesystem::absolute(rOutputFileNamePrefix).parent_path()).generic_string();
+}
+
 std::string GetEndianness()
 {
     return IsBigEndian() ? "BigEndian" : "LittleEndian";
@@ -1449,15 +1479,11 @@ void VtuOutput::PrintOutput(
                 current_block->AddAttribute("index", std::to_string(local_index++));
                 current_block->AddAttribute("name", block_file_name_info[i].first);
 
-                const auto& r_base_name = (mrModelPart.GetCommunicator().IsDistributed()) ? block_file_name_info[i].second.substr(0, block_file_name_info[i].second.rfind("_")) : block_file_name_info[i].second;
+                const auto& r_base_name = GetBaseName(block_file_name_info[i].second, mrModelPart.GetCommunicator().IsDistributed());
                 for (int i_partition = 0; i_partition < mrModelPart.GetCommunicator().TotalProcesses(); ++i_partition) {
                     auto current_partition_element = Kratos::make_shared<XmlElementsArray>("DataSet");
                     current_partition_element->AddAttribute("index", std::to_string(i_partition));
-                    current_partition_element->AddAttribute("file", std::filesystem::relative(
-                                    std::filesystem::absolute(r_base_name + ((mrModelPart.GetCommunicator().IsDistributed()) ? "_" + std::to_string(i_partition) + ".vtu" : "")),
-                                    std::filesystem::absolute(rOutputFileNamePrefix).parent_path())
-                                    .generic_string());
-
+                    current_partition_element->AddAttribute("file", GetFileName(r_base_name, rOutputFileNamePrefix, mrModelPart.GetCommunicator().IsDistributed(), i_partition));
                     current_partition_element->AddAttribute("name", block_file_name_info[i].first + "_" + std::to_string(i_partition));
                     current_block->AddElement(current_partition_element);
                 }
@@ -1466,7 +1492,7 @@ void VtuOutput::PrintOutput(
             }
         }
 
-        std::ofstream output_file;
+        std::fstream output_file;
         output_file.open(rOutputFileNamePrefix + "_" + std::to_string(Step) + ".vtm", std::ios::out | std::ios::trunc);
         output_file << "<?xml version=\"1.0\"?>" << std::endl;
         vtm_file_element.Write(output_file);
@@ -1487,13 +1513,33 @@ void VtuOutput::PrintOutput(
             output_file << "        { \"name\" : \"" + relative_vtm_file_name + "\", \"time\" : " + str_time.str() << " }" << std::endl;
             output_file << "    ]" << std::endl;
             output_file << "}";
+            output_file.close();
         } else {
             output_file.open(rOutputFileNamePrefix + ".vtm.series", std::ios::in | std::ios::out);
-            output_file.seekp(-8, std::ios::end);
+            output_file.seekg(0, std::ios::end);
+            const auto file_size = output_file.tellg();
+
+            std::streamoff last_object_end_pos = -1;
+            char pattern_buffer[2];
+            for (std::streamoff i = static_cast<std::streamoff>(file_size) - 2; i >= 0; --i) {
+                output_file.seekg(i, std::ios::beg);
+                output_file.read(pattern_buffer, 2);
+                if (output_file.gcount() == 2 && pattern_buffer[0] == ' ' && pattern_buffer[1] == '}') {
+                    last_object_end_pos = i + 2;
+                    break;
+                }
+            }
+
+            KRATOS_ERROR_IF(last_object_end_pos < 0)
+                << "Unable to find the last file entry in '" << rOutputFileNamePrefix << ".vtm.series'.\n";
+
+            output_file.clear();
+            output_file.seekp(last_object_end_pos, std::ios::beg);
             output_file << "," << std::endl;
             output_file << "        { \"name\" : \"" + relative_vtm_file_name + "\", \"time\" : " + str_time.str() << " }" << std::endl;
             output_file << "    ]" << std::endl;
             output_file << "}";
+            output_file.close();
         }
    }
 
