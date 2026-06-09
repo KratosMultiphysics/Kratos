@@ -14,7 +14,7 @@
 
 #pragma once
 
-#include "custom_constitutive/coulomb_with_tension_cut_off_impl.h"
+#include "custom_constitutive/coulomb_impl.h"
 #include "includes/constitutive_law.h"
 
 namespace Kratos
@@ -22,21 +22,21 @@ namespace Kratos
 
 class ConstitutiveLawDimension;
 
-class KRATOS_API(GEO_MECHANICS_APPLICATION) InterfaceCoulombWithTensionCutOff : public ConstitutiveLaw
+class KRATOS_API(GEO_MECHANICS_APPLICATION) MohrCoulombLaw : public ConstitutiveLaw
 {
 public:
-    KRATOS_CLASS_POINTER_DEFINITION(InterfaceCoulombWithTensionCutOff);
+    KRATOS_CLASS_POINTER_DEFINITION(MohrCoulombLaw);
 
-    InterfaceCoulombWithTensionCutOff() = default;
-    explicit InterfaceCoulombWithTensionCutOff(std::unique_ptr<ConstitutiveLawDimension> pConstitutiveDimension);
+    MohrCoulombLaw() = default;
+    explicit MohrCoulombLaw(std::unique_ptr<ConstitutiveLawDimension> pConstitutiveDimension);
 
     // Copying is not allowed. Use member `Clone` instead.
-    InterfaceCoulombWithTensionCutOff(const InterfaceCoulombWithTensionCutOff&)            = delete;
-    InterfaceCoulombWithTensionCutOff& operator=(const InterfaceCoulombWithTensionCutOff&) = delete;
+    MohrCoulombLaw(const MohrCoulombLaw&)            = delete;
+    MohrCoulombLaw& operator=(const MohrCoulombLaw&) = delete;
 
     // Moving is supported
-    InterfaceCoulombWithTensionCutOff(InterfaceCoulombWithTensionCutOff&&) noexcept = default;
-    InterfaceCoulombWithTensionCutOff& operator=(InterfaceCoulombWithTensionCutOff&&) noexcept = default;
+    MohrCoulombLaw(MohrCoulombLaw&&) noexcept            = default;
+    MohrCoulombLaw& operator=(MohrCoulombLaw&&) noexcept = default;
 
     [[nodiscard]] ConstitutiveLaw::Pointer Clone() const override;
     SizeType                               WorkingSpaceDimension() override;
@@ -48,7 +48,8 @@ public:
     void                                   InitializeMaterial(const Properties&     rMaterialProperties,
                                                               const Geometry<Node>& rElementGeometry,
                                                               const Vector&         rShapeFunctionsValues) override;
-    void    InitializeMaterialResponseCauchy(Parameters& rConstitutiveLawParameters) override;
+    void    InitializeMaterialResponseCauchy(Parameters& rValues) override;
+    void    GetLawFeatures(Features& rFeatures) override;
     Vector& GetValue(const Variable<Vector>& rVariable, Vector& rValue) override;
     int&    GetValue(const Variable<int>& rVariable, int& rValue) override;
     using ConstitutiveLaw::GetValue;
@@ -57,28 +58,22 @@ public:
     [[nodiscard]] int Check(const Properties&   rMaterialProperties,
                             const GeometryType& rElementGeometry,
                             const ProcessInfo&  rCurrentProcessInfo) const override;
-    void    CalculateMaterialResponseCauchy(Parameters& rConstitutiveLawParameters) override;
-    void    FinalizeMaterialResponseCauchy(Parameters& rConstitutiveLawParameters) override;
-    Matrix& CalculateValue(Parameters&             rConstitutiveLawParameters,
-                           const Variable<Matrix>& rVariable,
-                           Matrix&                 rValue) override;
-    using ConstitutiveLaw::CalculateValue;
+    void CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rParameters) override;
+    void FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
 
 private:
     std::unique_ptr<ConstitutiveLawDimension> mpConstitutiveDimension;
-    Vector                                    mTractionVector;
-    Vector                                    mTractionVectorFinalized;
-    Vector                                    mRelativeDisplacementVectorFinalized;
-    CoulombWithTensionCutOffImpl              mCoulombWithTensionCutOffImpl;
+    Vector                                    mStressVector;
+    Vector                                    mStressVectorFinalized;
+    Vector                                    mStrainVectorFinalized;
+    CoulombImpl                               mCoulombImpl;
     bool                                      mIsModelInitialized = false;
 
-    [[nodiscard]] Geo::SigmaTau CalculateTrialTractionVector(const Vector& rRelativeDisplacementVector,
-                                                             double NormalStiffness,
-                                                             double ShearStiffness) const;
+    [[nodiscard]] Vector CalculateTrialStressVector(const Vector& rStrainVector, const Properties& rProperties) const;
 
     friend class Serializer;
     void save(Serializer& rSerializer) const override;
     void load(Serializer& rSerializer) override;
-}; // Class InterfaceMohrCoulombWithTensionCutOff
+}; // Class MohrCoulombLaw
 
 } // namespace Kratos
