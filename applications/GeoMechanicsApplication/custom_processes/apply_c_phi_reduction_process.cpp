@@ -16,7 +16,7 @@
 #include "custom_processes/apply_c_phi_reduction_process.h"
 #include "containers/model.h"
 #include "custom_constitutive/constitutive_law_dimension.h"
-#include "custom_constitutive/mohr_coulomb.h"
+#include "custom_constitutive/mohr_coulomb_law.h"
 #include "custom_utilities/check_utilities.hpp"
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "custom_utilities/process_utilities.h"
@@ -45,7 +45,7 @@ bool UsesInternalMohrCoulombModel(const Element& rElement)
     KRATOS_ERROR_IF_NOT(rElement.GetProperties().Has(CONSTITUTIVE_LAW))
         << "Properties do not have CONSTITUTIVE_LAW" << std::endl;
 
-    return dynamic_cast<const MohrCoulomb*>(rElement.GetProperties()[CONSTITUTIVE_LAW].get()) != nullptr;
+    return dynamic_cast<const MohrCoulombLaw*>(rElement.GetProperties()[CONSTITUTIVE_LAW].get()) != nullptr;
 }
 } // namespace
 
@@ -199,7 +199,7 @@ void ApplyCPhiReductionProcess::InitializeParametersForInternalMohrCoulombModel(
     const auto  dummy_geometry = Geometry<Node>{};
     const auto  dummy_vector   = Vector();
     for (const auto& p_law : constitutive_laws) {
-        if (const auto p_mohr_coulomb = dynamic_cast<MohrCoulomb*>(p_law.get())) {
+        if (const auto p_mohr_coulomb = dynamic_cast<MohrCoulombLaw*>(p_law.get())) {
             p_mohr_coulomb->InitializeMaterial(r_properties, dummy_geometry, dummy_vector);
         }
     }

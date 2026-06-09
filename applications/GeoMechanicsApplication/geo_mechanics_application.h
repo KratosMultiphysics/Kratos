@@ -112,7 +112,7 @@
 #include "custom_constitutive/interface_three_dimensional_surface.h"
 #include "custom_constitutive/linear_elastic_2D_interface_law.h"
 #include "custom_constitutive/linear_elastic_3D_interface_law.h"
-#include "custom_constitutive/mohr_coulomb.h"
+#include "custom_constitutive/mohr_coulomb_law.h"
 #include "custom_constitutive/plane_strain.h"
 #include "custom_constitutive/small_strain_udsm_2D_interface_law.h"
 #include "custom_constitutive/small_strain_udsm_3D_interface_law.h"
@@ -961,8 +961,8 @@ private:
     const GeoIncrementalLinearElasticInterfaceLaw mIncrementalLinearElasticInterface3DSurfaceLaw{
         std::make_unique<InterfaceThreeDimensionalSurface>()};
 
-    const MohrCoulomb mMohrCoulomb2D{std::make_unique<PlaneStrain>()};
-    const MohrCoulomb mMohrCoulomb3D{std::make_unique<ThreeDimensional>()};
+    const MohrCoulombLaw mMohrCoulomb2D{std::make_unique<PlaneStrain>()};
+    const MohrCoulombLaw mMohrCoulomb3D{std::make_unique<ThreeDimensional>()};
 
     const InterfaceCoulomb mInterfaceCoulomb{std::make_unique<InterfacePlaneStrain>()};
 

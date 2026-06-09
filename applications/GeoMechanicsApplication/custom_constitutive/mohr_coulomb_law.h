@@ -22,21 +22,21 @@ namespace Kratos
 
 class ConstitutiveLawDimension;
 
-class KRATOS_API(GEO_MECHANICS_APPLICATION) MohrCoulomb : public ConstitutiveLaw
+class KRATOS_API(GEO_MECHANICS_APPLICATION) MohrCoulombLaw : public ConstitutiveLaw
 {
 public:
-    KRATOS_CLASS_POINTER_DEFINITION(MohrCoulomb);
+    KRATOS_CLASS_POINTER_DEFINITION(MohrCoulombLaw);
 
-    MohrCoulomb() = default;
-    explicit MohrCoulomb(std::unique_ptr<ConstitutiveLawDimension> pConstitutiveDimension);
+    MohrCoulombLaw() = default;
+    explicit MohrCoulombLaw(std::unique_ptr<ConstitutiveLawDimension> pConstitutiveDimension);
 
     // Copying is not allowed. Use member `Clone` instead.
-    MohrCoulomb(const MohrCoulomb&)            = delete;
-    MohrCoulomb& operator=(const MohrCoulomb&) = delete;
+    MohrCoulombLaw(const MohrCoulombLaw&)            = delete;
+    MohrCoulombLaw& operator=(const MohrCoulombLaw&) = delete;
 
     // Moving is supported
-    MohrCoulomb(MohrCoulomb&&) noexcept            = default;
-    MohrCoulomb& operator=(MohrCoulomb&&) noexcept = default;
+    MohrCoulombLaw(MohrCoulombLaw&&) noexcept            = default;
+    MohrCoulombLaw& operator=(MohrCoulombLaw&&) noexcept = default;
 
     [[nodiscard]] ConstitutiveLaw::Pointer Clone() const override;
     SizeType                               WorkingSpaceDimension() override;
@@ -74,6 +74,6 @@ private:
     friend class Serializer;
     void save(Serializer& rSerializer) const override;
     void load(Serializer& rSerializer) override;
-}; // Class MohrCoulomb
+}; // Class MohrCoulombLaw
 
 } // namespace Kratos

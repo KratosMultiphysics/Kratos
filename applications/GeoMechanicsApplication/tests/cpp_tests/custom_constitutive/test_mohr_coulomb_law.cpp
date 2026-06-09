@@ -11,7 +11,7 @@
 //                   Mohamed Nabi
 //
 
-#include "custom_constitutive/mohr_coulomb.h"
+#include "custom_constitutive/mohr_coulomb_law.h"
 #include "custom_constitutive/plane_strain.h"
 #include "custom_constitutive/three_dimensional.h"
 #include "custom_utilities/registration_utilities.hpp"
@@ -25,7 +25,7 @@ using namespace std::string_literals;
 
 namespace Kratos::Testing
 {
-Vector CalculateMappedStressVector(Vector& rCauchyStressVector, ConstitutiveLaw::Parameters& rParameters, MohrCoulomb& rLaw)
+Vector CalculateMappedStressVector(Vector& rCauchyStressVector, ConstitutiveLaw::Parameters& rParameters, MohrCoulombLaw& rLaw)
 {
     Vector strain_vector = ZeroVector(4);
     rParameters.SetStrainVector(strain_vector);
@@ -42,10 +42,10 @@ Vector CalculateMappedStressVector(Vector& rCauchyStressVector, ConstitutiveLaw:
     return result;
 }
 
-KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_Clone, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(MohrCoulombLaw_Clone, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    const auto original_law = MohrCoulomb(std::make_unique<PlaneStrain>());
+    const auto original_law = MohrCoulombLaw(std::make_unique<PlaneStrain>());
 
     // Act
     auto p_cloned_law = original_law.Clone();
@@ -53,13 +53,13 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_Clone, KratosGeoMechanics
     // Assert
     KRATOS_EXPECT_NE(p_cloned_law.get(), nullptr);
     KRATOS_EXPECT_NE(p_cloned_law.get(), &original_law);
-    KRATOS_EXPECT_NE(dynamic_cast<const MohrCoulomb*>(p_cloned_law.get()), nullptr);
+    KRATOS_EXPECT_NE(dynamic_cast<const MohrCoulombLaw*>(p_cloned_law.get()), nullptr);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_Check, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(MohrCoulombLaw_Check, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    auto                        law = MohrCoulomb(std::make_unique<PlaneStrain>());
+    auto                        law = MohrCoulombLaw(std::make_unique<PlaneStrain>());
     ConstitutiveLaw::Parameters parameters;
     Properties                  properties(3);
     parameters.SetMaterialProperties(properties);
@@ -109,7 +109,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    auto       law = MohrCoulomb(std::make_unique<PlaneStrain>());
+    auto       law = MohrCoulombLaw(std::make_unique<PlaneStrain>());
     Properties properties;
     properties.SetValue(GEO_FRICTION_ANGLE, 35.0);
     properties.SetValue(GEO_COHESION, 10.0);
@@ -147,7 +147,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    auto       law = MohrCoulomb(std::make_unique<PlaneStrain>());
+    auto       law = MohrCoulombLaw(std::make_unique<PlaneStrain>());
     Properties properties;
     properties.SetValue(GEO_FRICTION_ANGLE, 35.0);
     properties.SetValue(GEO_COHESION, 10.0);
@@ -215,7 +215,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    auto       law = MohrCoulomb(std::make_unique<PlaneStrain>());
+    auto       law = MohrCoulombLaw(std::make_unique<PlaneStrain>());
     Properties properties;
     properties.SetValue(GEO_FRICTION_ANGLE, 35.0);
     properties.SetValue(GEO_COHESION, 10.0);
@@ -271,7 +271,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    auto       law = MohrCoulomb(std::make_unique<PlaneStrain>());
+    auto       law = MohrCoulombLaw(std::make_unique<PlaneStrain>());
     Properties properties;
     properties.SetValue(GEO_FRICTION_ANGLE, 35.0);
     properties.SetValue(GEO_COHESION, 10.0);
@@ -323,7 +323,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    auto       law = MohrCoulomb(std::make_unique<PlaneStrain>());
+    auto       law = MohrCoulombLaw(std::make_unique<PlaneStrain>());
     Properties properties;
     properties.SetValue(GEO_FRICTION_ANGLE, 35.0);
     properties.SetValue(GEO_COHESION, 10.0);
@@ -364,7 +364,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    auto       law = MohrCoulomb(std::make_unique<PlaneStrain>());
+    auto       law = MohrCoulombLaw(std::make_unique<PlaneStrain>());
     Properties properties;
     properties.SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
     properties.SetValue(YOUNG_MODULUS, 1.0e6);
@@ -393,7 +393,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_Serialization, KratosGeoM
 {
     // Arrange
     auto p_law =
-        std::unique_ptr<ConstitutiveLaw>{std::make_unique<MohrCoulomb>(std::make_unique<PlaneStrain>())};
+        std::unique_ptr<ConstitutiveLaw>{std::make_unique<MohrCoulombLaw>(std::make_unique<PlaneStrain>())};
     Properties properties;
     properties.SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED"s);
     properties.SetValue(GEO_FRICTION_ANGLE, 35.0);
@@ -420,7 +420,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_Serialization, KratosGeoM
     p_law->GetValue(CAUCHY_STRESS_VECTOR, calculated_cauchy_stress_vector);
 
     const auto scoped_registration = ScopedSerializerRegistration{
-        std::make_pair("PlaneStrain"s, PlaneStrain{}), std::make_pair("MohrCoulomb"s, MohrCoulomb{})};
+        std::make_pair("PlaneStrain"s, PlaneStrain{}), std::make_pair("MohrCoulombLaw"s, MohrCoulombLaw{})};
     auto serializer = StreamSerializer{};
 
     ConstitutiveLaw::Parameters parameters_to_be_ignored;
@@ -448,7 +448,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_Serialization, KratosGeoM
 KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateConstitutiveMatrix, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    auto       law = MohrCoulomb(std::make_unique<PlaneStrain>());
+    auto       law = MohrCoulombLaw(std::make_unique<PlaneStrain>());
     Properties properties;
     properties.SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
     properties.SetValue(YOUNG_MODULUS, 1.0e8);
@@ -487,52 +487,52 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateConstitutiveMatr
 KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_WorkingSpaceDimensionDependsOnConstitutiveLawDimension,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    KRATOS_EXPECT_EQ(MohrCoulomb{std::make_unique<PlaneStrain>()}.WorkingSpaceDimension(), 2);
-    KRATOS_EXPECT_EQ(MohrCoulomb{std::make_unique<ThreeDimensional>()}.WorkingSpaceDimension(), 3);
+    KRATOS_EXPECT_EQ(MohrCoulombLaw{std::make_unique<PlaneStrain>()}.WorkingSpaceDimension(), 2);
+    KRATOS_EXPECT_EQ(MohrCoulombLaw{std::make_unique<ThreeDimensional>()}.WorkingSpaceDimension(), 3);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_StressMeasureIsAlwaysCauchy, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    KRATOS_EXPECT_EQ(MohrCoulomb{std::make_unique<PlaneStrain>()}.GetStressMeasure(),
+    KRATOS_EXPECT_EQ(MohrCoulombLaw{std::make_unique<PlaneStrain>()}.GetStressMeasure(),
                      ConstitutiveLaw::StressMeasure_Cauchy);
-    KRATOS_EXPECT_EQ(MohrCoulomb{std::make_unique<ThreeDimensional>()}.GetStressMeasure(),
+    KRATOS_EXPECT_EQ(MohrCoulombLaw{std::make_unique<ThreeDimensional>()}.GetStressMeasure(),
                      ConstitutiveLaw::StressMeasure_Cauchy);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_StrainSizeDependsOnConstitutiveLawDimension,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    KRATOS_EXPECT_EQ(MohrCoulomb{std::make_unique<PlaneStrain>()}.GetStrainSize(), 4);
-    KRATOS_EXPECT_EQ(MohrCoulomb{std::make_unique<ThreeDimensional>()}.GetStrainSize(), 6);
+    KRATOS_EXPECT_EQ(MohrCoulombLaw{std::make_unique<PlaneStrain>()}.GetStrainSize(), 4);
+    KRATOS_EXPECT_EQ(MohrCoulombLaw{std::make_unique<ThreeDimensional>()}.GetStrainSize(), 6);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_StrainMeasureIsAlwaysInfinitesimal,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    KRATOS_EXPECT_EQ(MohrCoulomb{std::make_unique<PlaneStrain>()}.GetStrainMeasure(),
+    KRATOS_EXPECT_EQ(MohrCoulombLaw{std::make_unique<PlaneStrain>()}.GetStrainMeasure(),
                      ConstitutiveLaw::StrainMeasure_Infinitesimal);
-    KRATOS_EXPECT_EQ(MohrCoulomb{std::make_unique<ThreeDimensional>()}.GetStrainMeasure(),
+    KRATOS_EXPECT_EQ(MohrCoulombLaw{std::make_unique<ThreeDimensional>()}.GetStrainMeasure(),
                      ConstitutiveLaw::StrainMeasure_Infinitesimal);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_HasIncrementalFormulation, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    EXPECT_TRUE(MohrCoulomb{std::make_unique<PlaneStrain>()}.IsIncremental());
-    EXPECT_TRUE(MohrCoulomb{std::make_unique<ThreeDimensional>()}.IsIncremental());
+    EXPECT_TRUE(MohrCoulombLaw{std::make_unique<PlaneStrain>()}.IsIncremental());
+    EXPECT_TRUE(MohrCoulombLaw{std::make_unique<ThreeDimensional>()}.IsIncremental());
 }
 
 KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_RequiresInitializeMaterialResponse,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    EXPECT_TRUE(MohrCoulomb{std::make_unique<PlaneStrain>()}.RequiresInitializeMaterialResponse());
-    EXPECT_TRUE(MohrCoulomb{std::make_unique<ThreeDimensional>()}.RequiresInitializeMaterialResponse());
+    EXPECT_TRUE(MohrCoulombLaw{std::make_unique<PlaneStrain>()}.RequiresInitializeMaterialResponse());
+    EXPECT_TRUE(MohrCoulombLaw{std::make_unique<ThreeDimensional>()}.RequiresInitializeMaterialResponse());
 }
 
 KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_GetPlaneStrainLawFeatures, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange & act
     ConstitutiveLaw::Features features;
-    MohrCoulomb{std::make_unique<PlaneStrain>()}.GetLawFeatures(features);
+    MohrCoulombLaw{std::make_unique<PlaneStrain>()}.GetLawFeatures(features);
 
     // Assert
     KRATOS_EXPECT_TRUE(features.GetOptions().Is(ConstitutiveLaw::INFINITESIMAL_STRAINS))
@@ -547,7 +547,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_Get3DLawFeatures, KratosG
 {
     // Arrange & act
     ConstitutiveLaw::Features features;
-    MohrCoulomb{std::make_unique<ThreeDimensional>()}.GetLawFeatures(features);
+    MohrCoulombLaw{std::make_unique<ThreeDimensional>()}.GetLawFeatures(features);
 
     // Assert
     KRATOS_EXPECT_TRUE(features.GetOptions().Is(ConstitutiveLaw::INFINITESIMAL_STRAINS))
@@ -562,7 +562,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    auto       law = MohrCoulomb(std::make_unique<PlaneStrain>());
+    auto       law = MohrCoulombLaw(std::make_unique<PlaneStrain>());
     Properties properties;
     properties.SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
     properties.SetValue(GEO_FRICTION_ANGLE, 35.0);
@@ -595,7 +595,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    auto       law = MohrCoulomb(std::make_unique<PlaneStrain>());
+    auto       law = MohrCoulombLaw(std::make_unique<PlaneStrain>());
     Properties properties;
     properties.SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
     properties.SetValue(GEO_FRICTION_ANGLE, 35.0);
@@ -624,7 +624,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    auto       law = MohrCoulomb(std::make_unique<PlaneStrain>());
+    auto       law = MohrCoulombLaw(std::make_unique<PlaneStrain>());
     Properties properties;
     properties.SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
     properties.SetValue(GEO_FRICTION_ANGLE, 35.0);
@@ -649,11 +649,11 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
                               Defaults::absolute_tolerance);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_TrialStressInDegeneratedTensileApexReturnZoneIsReturnedToApex,
+KRATOS_TEST_CASE_IN_SUITE(MohrCoulombLawWithoutTensionCutoff_TrialStressInDegeneratedTensileApexReturnZoneIsReturnedToApex,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    auto       law = MohrCoulomb(std::make_unique<PlaneStrain>());
+    auto       law = MohrCoulombLaw(std::make_unique<PlaneStrain>());
     Properties properties;
     properties.SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
     constexpr auto phi_in_degrees = 30.0;
@@ -663,6 +663,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_TrialStressInDegeneratedT
     properties.SetValue(GEO_DILATANCY_ANGLE, 20.0);
     properties.SetValue(YOUNG_MODULUS, 1.0e6);
     properties.SetValue(POISSON_RATIO, 0.15);
+    properties.SetValue(GEO_ENABLE_TENSION_CUT_OFF, false);
     ConstitutiveLaw::Parameters parameters;
     parameters.SetMaterialProperties(properties);
     const auto dummy_element_geometry      = Geometry<Node>{};
@@ -670,9 +671,9 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_TrialStressInDegeneratedT
     law.InitializeMaterial(properties, dummy_element_geometry, dummy_shape_function_values);
 
     // Act
-    const auto sigma_corner = cohesion / std::tan(MathUtils<>::DegreesToRadians(phi_in_degrees));
+    const auto apex = cohesion / std::tan(MathUtils<>::DegreesToRadians(phi_in_degrees));
     auto       cauchy_stress_vector =
-        UblasUtilities::CreateVector({sigma_corner + 20.0, sigma_corner + 10.0, sigma_corner, 0.0});
+        UblasUtilities::CreateVector({apex + 20.0, apex + 10.0, apex, 0.0});
     const auto resulting_cauchy_stress_vector =
         CalculateMappedStressVector(cauchy_stress_vector, parameters, law);
     auto plasticity_status = 0;
@@ -680,7 +681,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_TrialStressInDegeneratedT
 
     // Assert
     const auto expected_cauchy_stress_vector =
-        UblasUtilities::CreateVector({sigma_corner, sigma_corner, sigma_corner, 0.0});
+        UblasUtilities::CreateVector({apex, apex, apex, 0.0});
     KRATOS_EXPECT_VECTOR_NEAR(resulting_cauchy_stress_vector, expected_cauchy_stress_vector,
                               Defaults::absolute_tolerance);
     KRATOS_EXPECT_EQ(plasticity_status, static_cast<int>(PlasticityStatus::TENSION_MOHR_COULOMB_CORNER));
@@ -690,7 +691,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    auto       law = MohrCoulomb(std::make_unique<PlaneStrain>());
+    auto       law = MohrCoulombLaw(std::make_unique<PlaneStrain>());
     Properties properties;
     properties.SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
     properties.SetValue(YOUNG_MODULUS, 1.0e6);
@@ -725,7 +726,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_DoesNotCalculateStressWhe
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    auto       law = MohrCoulomb(std::make_unique<PlaneStrain>());
+    auto       law = MohrCoulombLaw(std::make_unique<PlaneStrain>());
     Properties properties;
     properties.SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
     properties.SetValue(YOUNG_MODULUS, 1.0e6);
@@ -762,7 +763,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    auto       law = MohrCoulomb(std::make_unique<PlaneStrain>());
+    auto       law = MohrCoulombLaw(std::make_unique<PlaneStrain>());
     Properties properties;
     properties.SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
     properties.SetValue(GEO_FRICTION_ANGLE, 35.0);
@@ -788,7 +789,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    auto       law = MohrCoulomb(std::make_unique<PlaneStrain>());
+    auto       law = MohrCoulombLaw(std::make_unique<PlaneStrain>());
     Properties properties;
     properties.SetValue(GEO_DRAINAGE_TYPE, "FULLY_COUPLED");
     properties.SetValue(GEO_COULOMB_HARDENING_TYPE, "Linear");
@@ -861,7 +862,7 @@ Vector ComputeStressVectorUsingCPhiReductionTestData(double  Cohesion,
     properties.SetValue(YOUNG_MODULUS, 30.0e6);
     properties.SetValue(POISSON_RATIO, 0.2);
 
-    auto law = MohrCoulomb(std::make_unique<PlaneStrain>());
+    auto law = MohrCoulombLaw(std::make_unique<PlaneStrain>());
 
     const auto dummy_element_geometry      = Geometry<Node>{};
     const auto dummy_shape_function_values = Vector{};
@@ -983,7 +984,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutoff_InitialPlasticityStatusEq
     properties.SetValue(YOUNG_MODULUS, 30.0e6);
     properties.SetValue(POISSON_RATIO, 0.2);
 
-    auto law = MohrCoulomb(std::make_unique<PlaneStrain>());
+    auto law = MohrCoulombLaw(std::make_unique<PlaneStrain>());
 
     const auto dummy_element_geometry      = Geometry<Node>{};
     const auto dummy_shape_function_values = Vector{};
