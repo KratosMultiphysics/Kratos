@@ -65,13 +65,8 @@ namespace Kratos
             }
         }
 
-        if (LocalRefFileName.empty()) {
-            CadJsonInput<Node, Point>(
-                DataFileName, mEchoLevel, projection_algorithm).ReadModelPart(cad_model_part);
-        } else {
-            CadJsonInput<Node, Point>(
-                DataFileName, mEchoLevel, projection_algorithm, LocalRefFileName).ReadModelPart(cad_model_part);
-        }
+        CadJsonInput<Node, Point>(
+            DataFileName, mEchoLevel, projection_algorithm, LocalRefFileName).ReadModelPart(cad_model_part);
     }
 
     void CadIoModeler::SetupModelPart()

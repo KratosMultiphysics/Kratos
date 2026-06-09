@@ -88,28 +88,18 @@ class CadJsonInput : public IO
     ///@name Life Cycle
     ///@{
 
-    /// Constructor with path to input file.
-    CadJsonInput(
-        const std::string& rDataFileName,
-        SizeType EchoLevel = 0,
-        ProjectionAlgorithm ProjectionAlgorithmType = ProjectionAlgorithm::NewtonRaphson)
-        : mEchoLevel(EchoLevel)
-        , mProjectionAlgorithm(ProjectionAlgorithmType)
-    {
-        mCadJsonParameters = ReadParametersFile(rDataFileName, EchoLevel);
-    }
-
-    /// Constructor with path to input file and local refinement file.
+    /// Constructor with path to input file, and optionally a local refinement file.
     CadJsonInput(
         const std::string& rDataFileName,
         SizeType EchoLevel = 0,
         ProjectionAlgorithm ProjectionAlgorithmType = ProjectionAlgorithm::NewtonRaphson,
-        const std::string& rLocalRefFileName)
+        const std::string& rLocalRefFileName = "")
         : mEchoLevel(EchoLevel)
         , mProjectionAlgorithm(ProjectionAlgorithmType)
     {
-        mCadJsonParameters = ReadParamatersFile(rDataFileName, EchoLevel);
-        mLocalRefParameters = ReadLocalRefFile(rLocalRefFileName, EchoLevel);
+        mCadJsonParameters = ReadParametersFile(rDataFileName, EchoLevel);
+        if (!rLocalRefFileName.empty())
+            mLocalRefParameters = ReadLocalRefFile(rLocalRefFileName, EchoLevel);
     }
 
     /// Constructor with KratosParameters.
