@@ -29,6 +29,8 @@
 #include "custom_utilities/embedded_mls_constraint_process.h"
 #include "custom_utilities/surface_integral.h"
 #include "custom_utilities/blurriness_calculator.h"
+#include "custom_utilities/surface_L2_integration.h"
+#include "custom_utilities/surface_interpolator.h"
 #include "custom_utilities/boussinesq_coupling_utilities.h"
 #include "custom_utilities/compute_flux_vector.h"
 
@@ -181,6 +183,28 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     .def(py::init<ModelPart&, const std::vector<ModelPart*>&, const std::vector<double>&, const std::vector<double>&, const Variable<double>&, const double&, const double&>())
     .def("ComputeBlurriness", &BlurrinessCalculator::ComputeBlurriness)
     .def("GetBlurriness", &BlurrinessCalculator::GetBlurriness)
+    ;
+
+    py::class_<SurfaceL2Integration<double>>(m, "SurfaceL2Integration")
+    .def(py::init<ModelPart&, const std::vector<ModelPart*>&, const Variable<double>&>())
+    .def("ComputeL2Norm", &SurfaceL2Integration<double>::ComputeL2Norm)
+    .def("GetL2Norm", &SurfaceL2Integration<double>::GetL2Norm)
+    ;
+
+    py::class_<SurfaceL2Integration<array_1d<double,3>>>(m, "SurfaceL2IntegrationVector")
+    .def(py::init<ModelPart&, const std::vector<ModelPart*>&, const Variable<array_1d<double,3>>&>())
+    .def("ComputeL2Norm", &SurfaceL2Integration<array_1d<double,3>>::ComputeL2Norm)
+    .def("GetL2Norm", &SurfaceL2Integration<array_1d<double,3>>::GetL2Norm)
+    ;
+
+    py::class_<SurfaceInterpolator<double>>(m, "SurfaceInterpolator")
+    .def(py::init<ModelPart&, const std::vector<ModelPart*>&, const Variable<double>&>())
+    .def("Interpolate", &SurfaceInterpolator<double>::Interpolate)
+    ;
+
+    py::class_<SurfaceInterpolator<array_1d<double,3>>>(m, "SurfaceInterpolatorVector")
+    .def(py::init<ModelPart&, const std::vector<ModelPart*>&, const Variable<array_1d<double,3>>&>())
+    .def("Interpolate", &SurfaceInterpolator<array_1d<double,3>>::Interpolate)
     ;
 
     py::class_<BoussinesqCouplingUtilities>(m, "BoussinesqCouplingUtilities")
