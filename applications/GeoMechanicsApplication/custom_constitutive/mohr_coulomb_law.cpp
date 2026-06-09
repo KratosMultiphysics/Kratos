@@ -132,7 +132,7 @@ int MohrCoulombLaw::Check(const Properties&   rMaterialProperties,
     const auto result = ConstitutiveLaw::Check(rMaterialProperties, rElementGeometry, rCurrentProcessInfo);
 
     const CheckProperties check_properties(rMaterialProperties, "property", CheckProperties::Bounds::AllInclusive);
-    if (rMaterialProperties.Has(GEO_ENABLE_TENSION_CUT_OFF) && rMaterialProperties[GEO_ENABLE_TENSION_CUT_OFF]) {
+    if (ConstitutiveLawUtilities::WantTensionCutOff(rMaterialProperties)) {
         check_properties.Check(
             GEO_TENSILE_STRENGTH,
             rMaterialProperties[GEO_COHESION] /

@@ -19,6 +19,7 @@
 #include "custom_utilities/stress_strain_utilities.h"
 #include "custom_utilities/ublas_utilities.h"
 #include "geo_mechanics_application_variables.h"
+#include "custom_utilities/constitutive_law_utilities.h"
 #include "includes/properties.h"
 #include "includes/serializer.h"
 #include "utilities/math_utils.h"
@@ -38,6 +39,22 @@ auto CalculatePrincipalStressCorrection(const Geo::PrincipalStresses& rTrialPrin
     return Geo::PrincipalStresses{prod(subrange(rElasticConstitutiveTensor, 0, 3, 0, 3), dG_dSigma)};
 }
 
+std::optional<TensionCutoff> CreateOptionalTensionCutOff(const Properties& rMaterialProperties)
+{
+    if (ConstitutiveLawUtilities::WantTensionCutOff(rMaterialProperties)) {
+        return std::make_optional<TensionCutoff>(rMaterialProperties[GEO_TENSILE_STRENGTH]);
+    }
+
+    KRATOS_WARNING_IF("CoulombImpl", rMaterialProperties.Has(GEO_TENSILE_STRENGTH) &&
+                                         rMaterialProperties.Has(GEO_ENABLE_TENSION_CUT_OFF) &&
+                                         !rMaterialProperties[GEO_ENABLE_TENSION_CUT_OFF])
+        << "Material property " << GEO_TENSILE_STRENGTH << " is provided but " << GEO_ENABLE_TENSION_CUT_OFF
+        << " is false. The provided " << GEO_TENSILE_STRENGTH << " value will be ignored. Please set "
+        << GEO_ENABLE_TENSION_CUT_OFF << " to true to enable the tension cut-off behavior.\n";
+
+    return std::nullopt;
+}
+
 } // namespace
 
 namespace Kratos
@@ -54,28 +71,6 @@ CoulombImpl::CoulombImpl(const Properties& rMaterialProperties)
     if (rMaterialProperties.Has(GEO_MAX_PLASTIC_ITERATIONS)) {
         mMaxNumberOfPlasticIterations = rMaterialProperties[GEO_MAX_PLASTIC_ITERATIONS];
     }
-}
-
-std::optional<TensionCutoff> CoulombImpl::CreateOptionalTensionCutOff(const Properties& rMaterialProperties)
-{
-    if (rMaterialProperties.Has(GEO_ENABLE_TENSION_CUT_OFF) && rMaterialProperties[GEO_ENABLE_TENSION_CUT_OFF]) {
-        return std::make_optional<TensionCutoff>(rMaterialProperties[GEO_TENSILE_STRENGTH]);
-    }
-
-    // The following statement is to support backward compatibility (i.e. GEO_ENABLE_TENSION_CUT_OFF is not specified,
-    // but the GEO_TENSILE_STRENGTH is provided), which results in an enabled tension cutoff.
-    if (rMaterialProperties.Has(GEO_TENSILE_STRENGTH) && !rMaterialProperties.Has(GEO_ENABLE_TENSION_CUT_OFF)) {
-        return std::make_optional<TensionCutoff>(rMaterialProperties[GEO_TENSILE_STRENGTH]);
-    }
-
-    KRATOS_WARNING_IF("CoulombImpl", rMaterialProperties.Has(GEO_TENSILE_STRENGTH) &&
-                                         rMaterialProperties.Has(GEO_ENABLE_TENSION_CUT_OFF) &&
-                                         !rMaterialProperties[GEO_ENABLE_TENSION_CUT_OFF])
-        << "Material property " << GEO_TENSILE_STRENGTH << " is provided but " << GEO_ENABLE_TENSION_CUT_OFF
-        << " is false. The provided " << GEO_TENSILE_STRENGTH << " value will be ignored. Please set "
-        << GEO_ENABLE_TENSION_CUT_OFF << " to true to enable the tension cut-off behavior.\n";
-
-    return std::nullopt;
 }
 
 bool CoulombImpl::IsAdmissibleStressState(const Geo::SigmaTau& rTrialTraction)
@@ -146,15 +141,18 @@ StressStateType CoulombImpl::DoReturnMapping(const StressStateType& rTrialStress
 
     auto kappa_start = mCoulombYieldSurface.GetKappa();
     for (auto counter = std::size_t{0}; counter < mMaxNumberOfPlasticIterations; ++counter) {
-        if (mTensionCutOff && IsStressAtTensionApexReturnZone(trial_traction)) {
-            mPlasticityStatus = PlasticityStatus::TENSION_APEX;
-            return ReturnStressAtTensionApexReturnZone(rTrialStressState);
-        }
+        if (mTensionCutOff)
+        {
+            if (IsStressAtTensionApexReturnZone(trial_traction)) {
+                mPlasticityStatus = PlasticityStatus::TENSION_APEX;
+                return ReturnStressAtTensionApexReturnZone(rTrialStressState);
+            }
 
-        if (mTensionCutOff && IsStressAtTensionCutoffReturnZone(trial_traction)) {
-            mPlasticityStatus = PlasticityStatus::TENSION_CUT_OFF;
-            return ReturnStressAtTensionCutoffReturnZone(rTrialStressState,
-                                                         rElasticConstitutiveTensor, AveragingType);
+            if (IsStressAtTensionCutoffReturnZone(trial_traction)) {
+                mPlasticityStatus = PlasticityStatus::TENSION_CUT_OFF;
+                return ReturnStressAtTensionCutoffReturnZone(rTrialStressState,
+                                                             rElasticConstitutiveTensor, AveragingType);
+            }
         }
 
         if (IsStressAtCornerReturnZone(trial_traction, AveragingType)) {
@@ -179,7 +177,8 @@ StressStateType CoulombImpl::DoReturnMapping(const StressStateType& rTrialStress
 
 Geo::SigmaTau CoulombImpl::CalculateCornerPoint() const
 {
-    if (const auto apex = mCoulombYieldSurface.CalculateApex(); !mTensionCutOff) return apex;
+    if (!mTensionCutOff) return mCoulombYieldSurface.CalculateApex();
+
     const auto tensile_strength = mTensionCutOff->GetTensileStrength();
     if (const auto apex = mCoulombYieldSurface.CalculateApex(); tensile_strength > apex.Sigma())
         return apex;

@@ -97,7 +97,6 @@ private:
     [[nodiscard]] Geo::SigmaTau ReturnStressAtCornerPoint(const Geo::SigmaTau&,
                                                           const Matrix&,
                                                           Geo::PrincipalStresses::AveragingType AveragingType) const;
-    static std::optional<TensionCutoff> CreateOptionalTensionCutOff(const Properties& rMaterialProperties);
 
     friend class Serializer;
     void save(Serializer& rSerializer) const;
