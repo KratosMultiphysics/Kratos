@@ -84,6 +84,9 @@ public:
         : BaseType(rThisPoints)
     {
         mLevels.push_back(THBLevel{PolynomialDegreeU, PolynomialDegreeV, rKnotsU, rKnotsV, {}});
+        const SizeType nU = rKnotsU.size() - PolynomialDegreeU + 1;
+        const SizeType nV = rKnotsV.size() - PolynomialDegreeV + 1;
+        mActiveFunctions.push_back(std::vector<bool>(nU * nV, true));
     }
 
     /// Constructs the initial level-0 NURBS surface (with weights).
@@ -100,6 +103,9 @@ public:
             << "Number of control points and weights do not match!" << std::endl;
 
         mLevels.push_back(THBLevel{PolynomialDegreeU, PolynomialDegreeV, rKnotsU, rKnotsV, rWeights});
+        const SizeType nU = rKnotsU.size() - PolynomialDegreeU + 1;
+        const SizeType nV = rKnotsV.size() - PolynomialDegreeV + 1;
+        mActiveFunctions.push_back(std::vector<bool>(nU * nV, true));
     }
 
     ~THBSurfaceGeometry() override = default;
@@ -176,6 +182,64 @@ public:
             << " does not exist (call AddLevel first)." << std::endl;
 
         mRefinementDomains.push_back(THBRefinementDomain{Level, OmegaMinU, OmegaMaxU, OmegaMinV, OmegaMaxV});
+        ComputeActiveFunctions();
+    }
+
+    /**
+     * @brief Removes inactive control points from the ModelPart and compacts Points().
+     *
+     * After this call:
+     *   - Inactive nodes are removed from rModelPart (if they are registered there).
+     *   - this->Points() contains only active control points, ordered level-by-level.
+     *   - CreateQuadraturePointGeometries uses the compacted index layout automatically.
+     *
+     * Preconditions: AddRefinementDomain must have been called at least once.
+     * This method may only be called once; calling it again raises an error.
+     * AddLevel must not be called after this method.
+     */
+    void EliminateInactiveFunctions(ModelPart& rModelPart)
+    {
+        KRATOS_ERROR_IF(mIsEliminated)
+            << "THBSurfaceGeometry::EliminateInactiveFunctions: already eliminated." << std::endl;
+        KRATOS_ERROR_IF(mRefinementDomains.empty())
+            << "THBSurfaceGeometry::EliminateInactiveFunctions: no refinement domains defined — "
+               "call AddRefinementDomain first." << std::endl;
+
+        const SizeType p = mLevels[0].DegreeU;
+        const SizeType q = mLevels[0].DegreeV;
+        const SizeType nLevels = mLevels.size();
+
+        mActiveOffset.resize(nLevels);
+        mActiveLocalIndex.resize(nLevels);
+
+        PointsArrayType packed_points;
+        SizeType running_offset = 0;
+
+        for (SizeType l = 0; l < nLevels; ++l) {
+            const SizeType nU    = mLevels[l].KnotsU.size() - p + 1;
+            const SizeType nV    = mLevels[l].KnotsV.size() - q + 1;
+            const SizeType total = nU * nV;
+            const SizeType old_offset = ControlPointOffset(l);  // cumulative before compaction
+
+            mActiveOffset[l] = running_offset;
+            mActiveLocalIndex[l].assign(total, -1);
+
+            int packed = 0;
+            for (SizeType flat = 0; flat < total; ++flat) {
+                auto p_node = this->pGetPoint(old_offset + flat);
+                if (mActiveFunctions[l][flat]) {
+                    mActiveLocalIndex[l][flat] = packed++;
+                    packed_points.push_back(p_node);
+                } else {
+                    if (rModelPart.HasNode(p_node->Id()))
+                        rModelPart.RemoveNode(p_node->Id());
+                }
+            }
+            running_offset += static_cast<SizeType>(packed);
+        }
+
+        this->Points() = packed_points;
+        mIsEliminated = true;
     }
 
     ///@}
@@ -187,6 +251,35 @@ public:
     const RefinementDomainContainer& RefinementDomains() const { return mRefinementDomains; }
 
     SizeType NumberOfLevels() const { return mLevels.size(); }
+
+    /**
+     * @brief Returns the active-function flags for a given level.
+     *
+     * mActiveFunctions[l][i_v * nU + i_u] is true when basis function (i_u, i_v)
+     * at level l is active (its support is NOT fully covered by finer refinement
+     * domains) and false when it has been eliminated.
+     *
+     * Recomputed automatically every time AddRefinementDomain is called.
+     */
+    const std::vector<bool>& GetActiveFunctions(SizeType Level) const
+    {
+        KRATOS_DEBUG_ERROR_IF(Level >= mActiveFunctions.size())
+            << "THBSurfaceGeometry::GetActiveFunctions: level " << Level
+            << " out of range." << std::endl;
+        return mActiveFunctions[Level];
+    }
+
+    /// Returns the number of active basis functions at the given level.
+    SizeType NumberOfActiveFunctions(SizeType Level) const
+    {
+        KRATOS_DEBUG_ERROR_IF(Level >= mActiveFunctions.size())
+            << "THBSurfaceGeometry::NumberOfActiveFunctions: level " << Level
+            << " out of range." << std::endl;
+        SizeType count = 0;
+        for (bool active : mActiveFunctions[Level])
+            if (active) ++count;
+        return count;
+    }
 
     ///@}
     ///@name LocalRefinedSurfaceGeometry interface
@@ -304,8 +397,17 @@ public:
             auto local_cp_indices = sf.ControlPointIndices(nU_l, nV_l);
 
             PointsArrayType nonzero_control_points(num_nonzero);
-            for (IndexType j = 0; j < num_nonzero; ++j)
-                nonzero_control_points(j) = this->pGetPoint(offset + local_cp_indices[j]);
+            for (IndexType j = 0; j < num_nonzero; ++j) {
+                if (mIsEliminated) {
+                    const int packed = mActiveLocalIndex[l][local_cp_indices[j]];
+                    KRATOS_DEBUG_ERROR_IF(packed < 0)
+                        << "THBSurfaceGeometry::CreateQuadraturePointGeometries: "
+                           "inactive function encountered at integration point — logic error." << std::endl;
+                    nonzero_control_points(j) = this->pGetPoint(mActiveOffset[l] + static_cast<SizeType>(packed));
+                } else {
+                    nonzero_control_points(j) = this->pGetPoint(offset + local_cp_indices[j]);
+                }
+            }
 
             Matrix N(1, num_nonzero);
             for (IndexType j = 0; j < num_nonzero; ++j)
@@ -387,6 +489,11 @@ private:
     THBLevelContainer         mLevels;
     RefinementDomainContainer mRefinementDomains;
     TruncationRuleContainer   mTruncationRules; ///< @todo define once truncation metadata is specified
+    std::vector<std::vector<bool>> mActiveFunctions;
+
+    bool                           mIsEliminated = false;
+    std::vector<SizeType>          mActiveOffset;      // packed Points() start index for level l
+    std::vector<std::vector<int>>  mActiveLocalIndex;  // [l][flat_idx] → packed pos within l, -1 if inactive
 
     ///@}
     ///@name Private Helpers
@@ -403,6 +510,8 @@ private:
     {
         KRATOS_ERROR_IF(mLevels.empty())
             << "THBSurfaceGeometry::AddLevel: no base level defined." << std::endl;
+        KRATOS_ERROR_IF(mIsEliminated)
+            << "THBSurfaceGeometry::AddLevel: cannot add levels after EliminateInactiveFunctions." << std::endl;
 
         const SizeType l = mLevels.size() - 1;
         const THBLevel& prev = mLevels[l];
@@ -443,6 +552,7 @@ private:
         }
 
         mLevels.push_back(THBLevel{prev.DegreeU, prev.DegreeV, rKnotsU, rKnotsV, rWeights});
+        mActiveFunctions.push_back(std::vector<bool>(n_u_new * n_v_new, true));
     }
 
     /// Returns a new internal-format knot vector with the midpoint of every unique
@@ -556,6 +666,78 @@ private:
                 result.emplace_back(rKnots[i], rKnots[i + 1]);
         }
         return result;
+    }
+
+    /// Returns true if (u, v) is inside any refinement domain at level >= min_level.
+    /// Used to check whether a knot cell is covered by a finer hierarchy level.
+    bool IsInsideRefinedRegion(double u, double v, SizeType min_level) const
+    {
+        for (const auto& dom : mRefinementDomains)
+            if (dom.Level >= min_level &&
+                u >= dom.MinU && u <= dom.MaxU &&
+                v >= dom.MinV && v <= dom.MaxV)
+                return true;
+        return false;
+    }
+
+    /**
+     * @brief Marks basis functions as active or inactive at each level.
+     *
+     * A basis function B_{i_u, i_v}^l is INACTIVE (eliminated) if every
+     * non-zero knot cell in its support is covered by a refinement domain
+     * at level >= l+1.  Active functions are those that still contribute
+     * to the hierarchical basis — their support has at least one cell that
+     * is NOT refined further.
+     *
+     * Called automatically by AddRefinementDomain so that mActiveFunctions
+     * always reflects the current set of refinement domains.
+     */
+    void ComputeActiveFunctions()
+    {
+        const SizeType p = mLevels[0].DegreeU;
+        const SizeType q = mLevels[0].DegreeV;
+
+        // Reset all levels to fully active, then deactivate where appropriate
+        for (SizeType l = 0; l < mLevels.size(); ++l)
+            std::fill(mActiveFunctions[l].begin(), mActiveFunctions[l].end(), true);
+
+        // Finest level: all functions always active (nothing finer to be covered by)
+        for (SizeType l = 0; l + 1 < mLevels.size(); ++l) {
+            const THBLevel& lev = mLevels[l];
+            const SizeType nU = lev.KnotsU.size() - p + 1;
+            const SizeType nV = lev.KnotsV.size() - q + 1;
+
+            for (SizeType i_v = 0; i_v < nV; ++i_v) {
+                for (SizeType i_u = 0; i_u < nU; ++i_u) {
+                    // Support of B_{i_u, i_v}^l in parameter space.
+                    // Internal knot format: B_i has support [K[i-1], K[i+p]]
+                    // with K[i-1] clamped to K[0] for i=0.
+                    const double u_min = (i_u == 0) ? lev.KnotsU[0] : lev.KnotsU[i_u - 1];
+                    const double u_max = lev.KnotsU[std::min(i_u + p, lev.KnotsU.size() - 1)];
+                    const double v_min = (i_v == 0) ? lev.KnotsV[0] : lev.KnotsV[i_v - 1];
+                    const double v_max = lev.KnotsV[std::min(i_v + q, lev.KnotsV.size() - 1)];
+
+                    // Check every non-zero cell within the support.
+                    // If even one cell is NOT inside Ω^{≥l+1} the function is active.
+                    bool all_cells_in_refined_region = true;
+                    for (SizeType k_u = 0; k_u + 1 < lev.KnotsU.size() && all_cells_in_refined_region; ++k_u) {
+                        if (lev.KnotsU[k_u + 1] - lev.KnotsU[k_u] < 1e-10) continue;
+                        if (lev.KnotsU[k_u] < u_min - 1e-10 || lev.KnotsU[k_u + 1] > u_max + 1e-10) continue;
+                        for (SizeType k_v = 0; k_v + 1 < lev.KnotsV.size() && all_cells_in_refined_region; ++k_v) {
+                            if (lev.KnotsV[k_v + 1] - lev.KnotsV[k_v] < 1e-10) continue;
+                            if (lev.KnotsV[k_v] < v_min - 1e-10 || lev.KnotsV[k_v + 1] > v_max + 1e-10) continue;
+                            const double mid_u = 0.5 * (lev.KnotsU[k_u] + lev.KnotsU[k_u + 1]);
+                            const double mid_v = 0.5 * (lev.KnotsV[k_v] + lev.KnotsV[k_v + 1]);
+                            if (!IsInsideRefinedRegion(mid_u, mid_v, l + 1))
+                                all_cells_in_refined_region = false;
+                        }
+                    }
+
+                    if (all_cells_in_refined_region)
+                        mActiveFunctions[l][i_v * nU + i_u] = false;
+                }
+            }
+        }
     }
 
     /// Returns true if (u, v) is inside any refinement domain registered for the given level.
