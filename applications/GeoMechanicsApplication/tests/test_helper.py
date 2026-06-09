@@ -12,6 +12,15 @@ sys.path.append(os.path.join('..', 'python_scripts'))
 import KratosMultiphysics.GeoMechanicsApplication.geomechanics_analysis as analysis
 
 
+# The following default tolerance values for assertions are identical to the values defined in `test_utilities.h`
+default_absolute_tolerance_for_assertions = 1.0e-12
+default_relative_tolerance_for_assertions = 1.0e-06
+
+
+def calculate_delta(expected_value, absolute_tolerance=default_absolute_tolerance_for_assertions, relative_tolerance=default_relative_tolerance_for_assertions):
+    return max(absolute_tolerance, relative_tolerance * abs(expected_value))
+
+
 def get_file_path(filename):
     import os
     return os.path.join(os.path.dirname(__file__), filename)

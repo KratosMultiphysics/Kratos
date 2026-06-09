@@ -176,19 +176,31 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
                 node_ids, bending_moments, shear_forces, horizontal_total_displacements
             ):
                 expected_nodal_results = expected_results[node_id]
+
+                expected_bending_moment = expected_nodal_results[csv_fieldname_bending_moment]
                 self.assertAlmostEqual(
                     bending_moment,
-                    expected_nodal_results[csv_fieldname_bending_moment],
+                    expected_bending_moment,
+                    places=None,
+                    delta=test_helper.calculate_delta(expected_bending_moment),
                     msg=f"Bending moment at node {node_id} in stage '{stage_name}'",
                 )
+
+                expected_shear_force = expected_nodal_results[csv_fieldname_shear_force]
                 self.assertAlmostEqual(
                     shear_force,
-                    expected_nodal_results[csv_fieldname_shear_force],
+                    expected_shear_force,
+                    places=None,
+                    delta=test_helper.calculate_delta(expected_shear_force),
                     msg=f"Shear force at node {node_id} in stage '{stage_name}'",
                 )
+
+                expected_horizontal_total_displacement = expected_nodal_results[csv_fieldname_horizontal_total_displacement]
                 self.assertAlmostEqual(
                     horizontal_total_displacement,
-                    expected_nodal_results[csv_fieldname_horizontal_total_displacement],
+                    expected_horizontal_total_displacement,
+                    places=None,
+                    delta=test_helper.calculate_delta(expected_horizontal_total_displacement),
                     msg=f"Horizontal total displacement at node {node_id} in stage '{stage_name}'",
                 )
 
