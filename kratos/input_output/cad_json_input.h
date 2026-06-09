@@ -485,10 +485,12 @@ private:
             p_thb->AddRefinementDomain(level, min_u, max_u, min_v, max_v);
         }
 
+        p_thb->EliminateInactiveFunctions(rModelPart);
+
         KRATOS_INFO_IF("ReadLocalRefinement", EchoLevel > 2)
             << "THB surface for brep_id " << brep_id
             << " has " << p_thb->NumberOfLevels() << " levels and "
-            << p_thb->Points().size() << " total control points." << std::endl;
+            << p_thb->Points().size() << " active control points." << std::endl;
 
         // Wrap both the BrepSurface topology and the THB integration domain
         // into a LocalRefinedBrepSurface under the same brep_id.
