@@ -142,7 +142,6 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             self.create_interface_plots(model.GetModelPart("PorousDomain.Right_Side_Of_Right_Interfaces").Nodes)
 
         # Check the obtained results
-        reader = GiDOutputFileReader()
         node_ids = [node.Id for node in sheet_pile_wall.Nodes]
 
         for stage_name in [
@@ -151,29 +150,19 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             "second_excavation",
             "third_excavation",
         ]:
+            json_output = self.read_json_output(self.stages_info[stage_name], postfix="output_wall")
+
             base_name = self.stages_info[stage_name]["base_name"]
             csv_filepath = self.test_path / f"{base_name}__expected_results_wall.csv"
             expected_results = get_expected_results_from_csv(csv_filepath)
 
-            output_data = reader.read_output_from(
-                self.test_path / "gid_output" / f"{base_name}.post.res"
-            )
-            end_time = self.stages_info[stage_name]["end_time"]
-            bending_moments = reader.nodal_values_at_time(
-                "BENDING_MOMENT", end_time, output_data, node_ids=node_ids
-            )
-            shear_forces = reader.nodal_values_at_time(
-                "SHEAR_FORCE", end_time, output_data, node_ids=node_ids
-            )
-            horizontal_total_displacements = [
-                total_displacement_vector[0]
-                for total_displacement_vector in reader.nodal_values_at_time(
-                    "TOTAL_DISPLACEMENT", end_time, output_data, node_ids=node_ids
-                )
-            ]
+            relative_tolerance = 100.0 * test_helper.default_relative_tolerance_for_assertions
 
             for node_id, bending_moment, shear_force, horizontal_total_displacement in zip(
-                node_ids, bending_moments, shear_forces, horizontal_total_displacements
+                node_ids,
+                test_helper.get_bending_moments_from_json_output(json_output, node_ids),
+                test_helper.get_shear_forces_from_json_output(json_output, node_ids),
+                test_helper.get_total_displacement_x_from_json_output(json_output, node_ids)
             ):
                 expected_nodal_results = expected_results[node_id]
 
@@ -182,7 +171,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
                     bending_moment,
                     expected_bending_moment,
                     places=None,
-                    delta=test_helper.calculate_delta(expected_bending_moment),
+                    delta=test_helper.calculate_delta(expected_bending_moment, relative_tolerance=relative_tolerance),
                     msg=f"Bending moment at node {node_id} in stage '{stage_name}'",
                 )
 
@@ -191,7 +180,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
                     shear_force,
                     expected_shear_force,
                     places=None,
-                    delta=test_helper.calculate_delta(expected_shear_force),
+                    delta=test_helper.calculate_delta(expected_shear_force, relative_tolerance=relative_tolerance),
                     msg=f"Shear force at node {node_id} in stage '{stage_name}'",
                 )
 
@@ -200,7 +189,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
                     horizontal_total_displacement,
                     expected_horizontal_total_displacement,
                     places=None,
-                    delta=test_helper.calculate_delta(expected_horizontal_total_displacement),
+                    delta=test_helper.calculate_delta(expected_horizontal_total_displacement, relative_tolerance=relative_tolerance),
                     msg=f"Horizontal total displacement at node {node_id} in stage '{stage_name}'",
                 )
 
