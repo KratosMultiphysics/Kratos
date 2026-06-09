@@ -21,6 +21,22 @@ using namespace std::string_literals;
 
 namespace Kratos
 {
+namespace
+{
+GlobalPointersVector<Element> KeepNeighboursWithHigherLocalDimension(const GlobalPointersVector<Element>& rNeighbourElements,
+                                                                     const std::size_t InterfaceElementLocalDimension)
+{
+    GlobalPointersVector<Element> kept_neighbours;
+    for (auto it = rNeighbourElements.ptr_begin(); it != rNeighbourElements.ptr_end(); ++it) {
+        if ((**it).GetGeometry().LocalSpaceDimension() > InterfaceElementLocalDimension) {
+            kept_neighbours.push_back(*it);
+        }
+    }
+
+    return kept_neighbours;
+}
+} // namespace
+
 FindNeighboursOfInterfacesProcess::FindNeighboursOfInterfacesProcess(Model& rModel, const Parameters& rProcessSettings)
     : mrInterfaceModelParts{ProcessUtilities::GetModelPartsFromSettings(
           rModel, rProcessSettings, FindNeighboursOfInterfacesProcess::Info())},
@@ -57,19 +73,10 @@ void FindNeighboursOfInterfacesProcess::RemoveNeighboursWithoutHigherLocalDimens
             auto&      r_neighbour_elements = r_interface_element.GetValue(NEIGHBOUR_ELEMENTS);
             const auto interface_element_local_dimension =
                 r_interface_element.GetGeometry().LocalSpaceDimension();
-            auto is_neighbour_without_higher_local_dimension =
-                [interface_element_local_dimension](const Element& rNeighbourElement) {
-                return rNeighbourElement.GetGeometry().LocalSpaceDimension() <= interface_element_local_dimension;
-            };
             // WORKAROUND: std::erase-remove on GlobalPointersVector corrupts adjacent memory.
-            // Instead of erasing in-place, build a new container with elements to keep.
-            GlobalPointersVector<Element> temp_neighbours;
-            for (auto it = r_neighbour_elements.ptr_begin(); it != r_neighbour_elements.ptr_end(); ++it) {
-                if (!is_neighbour_without_higher_local_dimension(**it)) {
-                    temp_neighbours.push_back(*it);
-                }
-            }
-            r_neighbour_elements = temp_neighbours;
+            // Instead of erasing in-place, construct a filtered container and assign.
+            r_neighbour_elements = KeepNeighboursWithHigherLocalDimension(
+                r_neighbour_elements, interface_element_local_dimension);
         }
     }
 }
