@@ -217,7 +217,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
         variable_data_collections = []
         for stage in plot_stages:
             json_data = self.read_json_output(stage, postfix_json_output)
-            variable_kratos_data = test_helper.get_result_values_from_json_output(json_data, kratos_variable_label, node_ids)
+            variable_kratos_data = test_helper.get_nodal_values_from_json_output(json_data, kratos_variable_label, node_ids)
 
             variable_kratos_data = [transform_output(value) for value in variable_kratos_data]
             sorted_y, sorted_data = zip(*sorted(zip(y_coords, variable_kratos_data)))

@@ -291,20 +291,20 @@ def get_bending_moments(simulation):
     return get_on_integration_points(simulation, KratosStructural.BENDING_MOMENT)
 
 
-def get_result_values_from_json_output(json_output, result_item_label, node_ids, index=0):
+def get_nodal_values_from_json_output(json_output, result_item_label, node_ids, index=0):
     return [json_output[f"NODE_{node_id}"][result_item_label][index] for node_id in node_ids]
 
 
 def get_bending_moments_from_json_output(json_output, node_ids):
-    return get_result_values_from_json_output(json_output, "BENDING_MOMENT", node_ids)
+    return get_nodal_values_from_json_output(json_output, "BENDING_MOMENT", node_ids)
 
 
 def get_shear_forces_from_json_output(json_output, node_ids):
-    return get_result_values_from_json_output(json_output, "SHEAR_FORCE", node_ids)
+    return get_nodal_values_from_json_output(json_output, "SHEAR_FORCE", node_ids)
 
 
 def get_total_displacement_x_from_json_output(json_output, node_ids):
-    return get_result_values_from_json_output(json_output, "TOTAL_DISPLACEMENT_X", node_ids)
+    return get_nodal_values_from_json_output(json_output, "TOTAL_DISPLACEMENT_X", node_ids)
 
 
 def compute_distance(point1, point2):
