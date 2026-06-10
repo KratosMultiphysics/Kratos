@@ -103,6 +103,11 @@ namespace Kratos
         this-> GetNodalValues(Variables,rCurrentProcessInfo);
         double h = this->ComputeH(DN_DX);
 
+        // Fourier-based minimum conductivity to prevent pure-Neumann drift
+        // k_min = rho * cp * h^2 / dt ensures element Fourier number >= 1
+        const double k_fourier = Variables.density * Variables.specific_heat * h * h * Variables.dt_inv;
+        Variables.conductivity = std::max(Variables.conductivity, k_fourier);
+
         array_1d<double,TDim> grad_phi_halfstep = prod(trans(DN_DX), 0.5*(Variables.phi+Variables.phi_old));
         const double norm_grad = norm_2(grad_phi_halfstep);
 
