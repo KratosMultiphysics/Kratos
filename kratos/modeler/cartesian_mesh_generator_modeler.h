@@ -44,7 +44,7 @@ namespace Kratos
  *          The class is constructed with a reference source model part
  *          (from which the bounding box and boundary are taken) and a uniform
  *          element size.  The generated nodes and elements are placed in the
- *          destination model part passed to GenerateMesh().
+ *          destination model part passed to GenerateCartesianMesh().
  *
  * @author Jordi Cotela Dalmau
  */
@@ -61,9 +61,6 @@ public:
     /// The base class type
     using BaseType = Modeler;
 
-    /// The geometry type definition
-    using GeometryType = Geometry<Node>;
-
     /// The nodes vector type definition
     using NodesVectorType = PointerVector<Node>;
 
@@ -76,7 +73,7 @@ public:
 
     /**
      * @brief Default constructor (required for registry).
-     * @note  Do not call GenerateMesh() on a default-constructed instance.
+     * @note  Do not call GenerateCartesianMesh() on a default-constructed instance.
      */
     CartesianMeshGeneratorModeler();
 
@@ -140,7 +137,7 @@ public:
     /**
      * @brief Runs mesh generation when the modeler is used through the factory.
      * @details Reads the input/output model part names and element name from
-     *          the stored parameters and delegates to GenerateMesh().
+     *          the stored parameters and delegates to GenerateCartesianMesh().
      */
     void SetupModelPart() override;
 
@@ -156,7 +153,7 @@ public:
      *        selects the 2D or 3D code path and whose properties are
      *        reused for every created element.
      */
-    void GenerateMesh(ModelPart& rThisModelPart, Element const& rReferenceElement);
+    void GenerateCartesianMesh(ModelPart& rThisModelPart, Element const& rReferenceElement);
 
     /**
      * @brief Computes outward-pointing normals at every boundary node of
@@ -300,21 +297,6 @@ private:
 
     /// Accumulated boundary normals at each source-model-part node (2D only).
     std::vector<array_1d<double,3>> mNormals;
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-    /**
-     * @brief Creates equally-spaced intermediate nodes along a geometry edge.
-     * @param rThisModelPart Model part in which to create the nodes.
-     * @param rGeometry      Two-node edge geometry.
-     * @param NumberOfSegments Number of segments to divide the edge into;
-     *        (NumberOfSegments - 1) new nodes are created (endpoints excluded).
-     * @param StartNodeId    First node ID to assign; incremented for each new node.
-     */
-    void GenerateNodes(ModelPart& rThisModelPart, GeometryType& rGeometry,
-                       SizeType NumberOfSegments, SizeType StartNodeId);
 
     ///@}
     ///@name Inaccessible methods

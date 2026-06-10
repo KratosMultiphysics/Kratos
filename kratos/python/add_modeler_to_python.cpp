@@ -128,7 +128,7 @@ void  AddModelerToPython(pybind11::module& m)
         .def(py::init<ModelPart&, double>())
         .def(py::init<Model&, Parameters>())
         .def("GenerateMesh", [](CartesianMeshGeneratorModeler& self, ModelPart& rModelPart, const std::string& rElementName) {
-            self.GenerateMesh(rModelPart, KratosComponents<Element>::Get(rElementName));
+            self.GenerateCartesianMesh(rModelPart, KratosComponents<Element>::Get(rElementName));
         })
     ;
 }

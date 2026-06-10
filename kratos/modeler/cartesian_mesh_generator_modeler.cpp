@@ -86,7 +86,7 @@ void CartesianMeshGeneratorModeler::SetupModelPart()
         r_output.CreateNewProperties(0);
 
     const Element& r_ref_element = KratosComponents<Element>::Get(element_name);
-    GenerateMesh(r_output, r_ref_element);
+    GenerateCartesianMesh(r_output, r_ref_element);
 
     KRATOS_CATCH("")
 }
@@ -94,7 +94,7 @@ void CartesianMeshGeneratorModeler::SetupModelPart()
 /***********************************************************************************/
 /***********************************************************************************/
 
-void CartesianMeshGeneratorModeler::GenerateMesh(
+void CartesianMeshGeneratorModeler::GenerateCartesianMesh(
     ModelPart& rModelPart,
     Element const& rReferenceElement
     )
