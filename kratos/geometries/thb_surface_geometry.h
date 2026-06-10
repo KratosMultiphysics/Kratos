@@ -21,6 +21,7 @@
 #include "includes/model_part.h"
 #include "geometries/local_refined_surface_geometry.h"
 #include "geometries/nurbs_shape_function_utilities/nurbs_surface_shape_functions.h"
+#include "geometries/nurbs_shape_function_utilities/thb_surface_shape_functions.h"
 #include "geometries/nurbs_shape_function_utilities/nurbs_interval.h"
 #include "geometries/nurbs_shape_function_utilities/nurbs_utilities.h"
 #include "utilities/quadrature_points_utility.h"
@@ -281,6 +282,31 @@ public:
         return count;
     }
 
+    /// Returns the finest level whose refinement domain contains (u, v), or 0 if none.
+    SizeType ActiveLevelAtPoint(double u, double v) const
+    {
+        SizeType active = 0;
+        for (SizeType l = 1; l < mLevels.size(); ++l) {
+            if (IsInsideDomain(u, v, l))
+                active = l;
+        }
+        return active;
+    }
+
+    /// Maps (level, flat-index-within-level) to the index in the packed Points() array.
+    /// Works both before and after EliminateInactiveFunctions.
+    SizeType PackedControlPointIndex(SizeType Level, SizeType FlatIndex) const
+    {
+        if (mIsEliminated) {
+            KRATOS_DEBUG_ERROR_IF(mActiveLocalIndex[Level][FlatIndex] < 0)
+                << "THBSurfaceGeometry::PackedControlPointIndex: "
+                   "inactive function requested — logic error." << std::endl;
+            return mActiveOffset[Level] + static_cast<SizeType>(mActiveLocalIndex[Level][FlatIndex]);
+        } else {
+            return ControlPointOffset(Level) + FlatIndex;
+        }
+    }
+
     ///@}
     ///@name LocalRefinedSurfaceGeometry interface
     ///@{
@@ -354,12 +380,16 @@ public:
     }
 
     /**
-     * @brief Builds quadrature-point geometries using B-spline shape functions
-     *        at the locally active level for each integration point.
+     * @brief Builds quadrature-point geometries for all given integration points.
      *
-     * NOTE: Truncation is ignored — shape functions from coarser levels
-     * are fully deactivated inside refinement domains (not truncated).
-     * This violates partition of unity and is a temporary simplification.
+     * For each point (u, v), the finest active level is determined and
+     * THBSurfaceShapeFunction evaluates the B-spline shape functions at that
+     * level.  The resulting nonzero control points are looked up from the packed
+     * Points() array (works both before and after EliminateInactiveFunctions).
+     *
+     * @note Truncation is not yet applied — this computes HB shape functions.
+     *       Partition of unity is not guaranteed at coarse/fine boundaries until
+     *       ApplyTruncation is implemented in THBSurfaceShapeFunction.
      */
     void CreateQuadraturePointGeometries(
         GeometriesArrayType& rResultGeometries,
@@ -374,40 +404,20 @@ public:
         const SizeType p = PolynomialDegree(0);
         const SizeType q = PolynomialDegree(1);
 
+        THBSurfaceShapeFunction sf(p, q, NumberOfShapeFunctionDerivatives);
+
         for (IndexType i = 0; i < rIntegrationPoints.size(); ++i) {
             const double u = rIntegrationPoints[i][0];
             const double v = rIntegrationPoints[i][1];
 
-            const SizeType l = ActiveLevelAtPoint(u, v);
-            const THBLevel& level = mLevels[l];
-            // Internal knot format: size = n + p - 1  →  n = size - p + 1
-            const SizeType nU_l = level.KnotsU.size() - p + 1;
-            const SizeType nV_l = level.KnotsV.size() - q + 1;
-            const SizeType offset = ControlPointOffset(l);
-
-            NurbsSurfaceShapeFunction sf(p, q, NumberOfShapeFunctionDerivatives);
-            /// THBSurfaceShapeFunction sf(p, q, NumberOfShapeFunctionDerivatives);  ///todo
-            if (level.Weights.size() > 0) {
-                sf.ComputeNurbsShapeFunctionValues(level.KnotsU, level.KnotsV, level.Weights, u, v);
-            } else {
-                sf.ComputeBSplineShapeFunctionValues(level.KnotsU, level.KnotsV, u, v);
-            }
+            sf.ComputeShapeFunctionValues(*this, u, v);
 
             const SizeType num_nonzero = sf.NumberOfNonzeroControlPoints();
-            auto local_cp_indices = sf.ControlPointIndices(nU_l, nV_l);
+            const auto& cp_indices = sf.ControlPointIndices();
 
             PointsArrayType nonzero_control_points(num_nonzero);
-            for (IndexType j = 0; j < num_nonzero; ++j) {
-                if (mIsEliminated) {
-                    const int packed = mActiveLocalIndex[l][local_cp_indices[j]];
-                    KRATOS_DEBUG_ERROR_IF(packed < 0)
-                        << "THBSurfaceGeometry::CreateQuadraturePointGeometries: "
-                           "inactive function encountered at integration point — logic error." << std::endl;
-                    nonzero_control_points(j) = this->pGetPoint(mActiveOffset[l] + static_cast<SizeType>(packed));
-                } else {
-                    nonzero_control_points(j) = this->pGetPoint(offset + local_cp_indices[j]);
-                }
-            }
+            for (IndexType j = 0; j < num_nonzero; ++j)
+                nonzero_control_points(j) = this->pGetPoint(cp_indices[j]);
 
             Matrix N(1, num_nonzero);
             for (IndexType j = 0; j < num_nonzero; ++j)
@@ -783,17 +793,6 @@ private:
                 return true;
         }
         return false;
-    }
-
-    /// Returns the finest level whose refinement domain contains (u, v), or 0 if none.
-    SizeType ActiveLevelAtPoint(double u, double v) const
-    {
-        SizeType active = 0;
-        for (SizeType l = 1; l < mLevels.size(); ++l) {
-            if (IsInsideDomain(u, v, l))
-                active = l;
-        }
-        return active;
     }
 
     /// Returns the number of control points in u for a given level.
