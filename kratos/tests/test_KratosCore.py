@@ -107,6 +107,7 @@ import test_tensor_adaptors
 import test_geometries_tensor_adaptor
 import test_connectivity_ids_tensor_adaptor
 import test_constraint_restart
+import test_vtu_output
 import test_ensight_output_process
 import test_vtu_output
 
@@ -239,6 +240,9 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_geometries_tensor_adaptor.TestGeometriesTensorAdaptor]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_connectivity_ids_tensor_adaptor.TestConnectivityIdsTensorAdaptor]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_constraint_restart.TestConstraintRestart]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_vtu_output.TestVtuOutput]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_vtu_output.TestVtuOutput2D]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_vtu_output.TestVtuOutput3D]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_ensight_output_process.TestEnsightOutputProcess]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_vtu_output.TestVtuOutput]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_vtu_output.TestVtuOutput2D]))
