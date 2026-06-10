@@ -53,6 +53,7 @@
 #include "geometries/brep_surface.h"
 // Locally refined geometries
 #include "geometries/thb_surface_geometry.h"
+#include "geometries/local_refined_brep_surface.h"
 
 namespace Kratos::Python
 {
@@ -507,6 +508,16 @@ void  AddGeometriesToPython(pybind11::module& m)
         .def(py::init<NurbsVolumeGeometry<NodeContainerType>::Pointer, GeometryType::Pointer>())
         ;
 
+    // LocalRefinedBrepSurface (wraps BrepSurface + THBSurfaceGeometry)
+    using LocalRefinedBrepSurface3DType = LocalRefinedBrepSurface<NodeContainerType, THBSurfaceGeometry<3, NodeContainerType>, false, PointVectorType>;
+
+    py::class_<LocalRefinedBrepSurface3DType, LocalRefinedBrepSurface3DType::Pointer, BrepSurfaceType>(m, "LocalRefinedBrepSurface3D")
+        .def("GetLocalRefinedSurface", [](LocalRefinedBrepSurface3DType& self)
+                -> typename THBSurfaceGeometry<3, NodeContainerType>::Pointer {
+            return self.pGetLocalRefinedSurface();
+        })
+        ;
+
     // THB-Spline geometry
     using THBSurfaceGeometry3DType = THBSurfaceGeometry<3, NodeContainerType>;
 
@@ -553,6 +564,14 @@ void  AddGeometriesToPython(pybind11::module& m)
         .def("RefinementDomains", [](const THBSurfaceGeometry3DType& self) {
             return self.RefinementDomains();
         })
+        .def("GetActiveFunctions", [](const THBSurfaceGeometry3DType& self, SizeType level) {
+            const auto& flags = self.GetActiveFunctions(level);
+            return std::vector<bool>(flags.begin(), flags.end());
+        }, py::arg("level"))
+        .def("NumberOfActiveFunctions", &THBSurfaceGeometry3DType::NumberOfActiveFunctions,
+             py::arg("level"))
+        .def("EliminateInactiveFunctions", &THBSurfaceGeometry3DType::EliminateInactiveFunctions,
+             py::arg("model_part"))
         ;
 
 }
