@@ -18,7 +18,7 @@ The test is performed with the following conditions:
     - A gravitational force is applied in Y direction.
 
 The computation is done in two stages. The first stage is a settlement due to the gravitation and it uses K0 procedure.
-The second stage is the $c-\phi$ reduction process and it is done only for two time steps. The figure below shows the calculated deformation.
+The second stage is the $c-\phi$ reduction process and it is done for two steps. The figure below shows the calculated deformation.
 
 ![Deformation](deformation.svg)
 
@@ -39,8 +39,8 @@ From the unit weight the "DENSITY_SOLID" in the material parameters is calculate
 The friction angle is used to calculate the "K0_VALUE_XX" and "K0_VALUE_ZZ" using the formula for $K_0^{nc}$ as documented in the [$K_0$ procedure process](https://github.com/KratosMultiphysics/Kratos/blob/master/applications/GeoMechanicsApplication/custom_processes/README.md#K_0-procedure-process).
 
 For the second stage, two distinct implementations of the Mohr–Coulomb model are employed:
-- one provided by the MohrCoulomb64 library,
-- one implemented internally in Kratos.
+- the internal one implemented in Kratos GeoMechanicsApplication,
+- one provided by the MohrCoulomb64 library.
 
 The material parameters are as follows:
 - Young’s modulus: 30.0 $MPa$,
