@@ -120,7 +120,11 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
         }
         # fmt: on
         self.analysis_type = "staged_construction"
-        self.test_path = Path(test_helper.get_file_path(Path("crow_validation") / material_model_dir_name / self.analysis_type))
+        self.test_path = Path(
+            test_helper.get_file_path(
+                Path("crow_validation") / material_model_dir_name / self.analysis_type
+            )
+        )
 
         self.run_simulation_and_checks()
 
@@ -136,7 +140,9 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
 
         if test_helper.want_test_plots():
             self.create_wall_plots(sheet_pile_wall.Nodes)
-            self.create_interface_plots(model.GetModelPart("PorousDomain.Right_Side_Of_Right_Interfaces").Nodes)
+            self.create_interface_plots(
+                model.GetModelPart("PorousDomain.Right_Side_Of_Right_Interfaces").Nodes
+            )
 
         # Check the obtained results
         node_ids = [node.Id for node in sheet_pile_wall.Nodes]
@@ -147,28 +153,43 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             "second_excavation",
             "third_excavation",
         ]:
-            json_output = self.read_json_output(self.stages_info[stage_name], postfix="output_wall")
+            json_output = self.read_json_output(
+                self.stages_info[stage_name], postfix="output_wall"
+            )
 
             base_name = self.stages_info[stage_name]["base_name"]
             csv_filepath = self.test_path / f"{base_name}__expected_results_wall.csv"
             expected_results = get_expected_results_from_csv(csv_filepath)
 
-            relative_tolerance = 100.0 * test_helper.default_relative_tolerance_for_assertions
+            relative_tolerance = (
+                100.0 * test_helper.default_relative_tolerance_for_assertions
+            )
 
-            for node_id, bending_moment, shear_force, horizontal_total_displacement in zip(
+            for (
+                node_id,
+                bending_moment,
+                shear_force,
+                horizontal_total_displacement,
+            ) in zip(
                 node_ids,
                 test_helper.get_bending_moments_from_json_output(json_output, node_ids),
                 test_helper.get_shear_forces_from_json_output(json_output, node_ids),
-                test_helper.get_total_displacement_x_from_json_output(json_output, node_ids)
+                test_helper.get_total_displacement_x_from_json_output(
+                    json_output, node_ids
+                ),
             ):
                 expected_nodal_results = expected_results[node_id]
 
-                expected_bending_moment = expected_nodal_results[csv_fieldname_bending_moment]
+                expected_bending_moment = expected_nodal_results[
+                    csv_fieldname_bending_moment
+                ]
                 self.assertAlmostEqual(
                     bending_moment,
                     expected_bending_moment,
                     places=None,
-                    delta=test_helper.calculate_delta(expected_bending_moment, relative_tolerance=relative_tolerance),
+                    delta=test_helper.calculate_delta(
+                        expected_bending_moment, relative_tolerance=relative_tolerance
+                    ),
                     msg=f"Bending moment at node {node_id} in stage '{stage_name}'",
                 )
 
@@ -177,16 +198,23 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
                     shear_force,
                     expected_shear_force,
                     places=None,
-                    delta=test_helper.calculate_delta(expected_shear_force, relative_tolerance=relative_tolerance),
+                    delta=test_helper.calculate_delta(
+                        expected_shear_force, relative_tolerance=relative_tolerance
+                    ),
                     msg=f"Shear force at node {node_id} in stage '{stage_name}'",
                 )
 
-                expected_horizontal_total_displacement = expected_nodal_results[csv_fieldname_horizontal_total_displacement]
+                expected_horizontal_total_displacement = expected_nodal_results[
+                    csv_fieldname_horizontal_total_displacement
+                ]
                 self.assertAlmostEqual(
                     horizontal_total_displacement,
                     expected_horizontal_total_displacement,
                     places=None,
-                    delta=test_helper.calculate_delta(expected_horizontal_total_displacement, relative_tolerance=relative_tolerance),
+                    delta=test_helper.calculate_delta(
+                        expected_horizontal_total_displacement,
+                        relative_tolerance=relative_tolerance,
+                    ),
                     msg=f"Horizontal total displacement at node {node_id} in stage '{stage_name}'",
                 )
 
@@ -214,9 +242,13 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
         variable_data_collections = []
         for stage in plot_stages:
             json_data = self.read_json_output(stage, postfix_json_output)
-            variable_kratos_data = test_helper.get_nodal_values_from_json_output(json_data, kratos_variable_label, node_ids)
+            variable_kratos_data = test_helper.get_nodal_values_from_json_output(
+                json_data, kratos_variable_label, node_ids
+            )
 
-            variable_kratos_data = [transform_output(value) for value in variable_kratos_data]
+            variable_kratos_data = [
+                transform_output(value) for value in variable_kratos_data
+            ]
             sorted_y, sorted_data = zip(*sorted(zip(y_coords, variable_kratos_data)))
             data_series_collection = [
                 plot_utils.DataSeries(
@@ -228,7 +260,8 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             ]
 
             fem_comparison_csv = (
-                self.test_path / f"{stage['base_name']}__{postfix_fem_comparison_csv}.csv"
+                self.test_path
+                / f"{stage['base_name']}__{postfix_fem_comparison_csv}.csv"
             )
             if fem_comparison_csv.exists():
                 data_points = test_helper.get_data_points_from_file(
@@ -242,7 +275,9 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
                     )
                 )
 
-            if (self.test_path / f"{stage['base_name']}__DSheetPiling_results.csv").exists() and data_extractor_dsheetpiling:
+            if (
+                self.test_path / f"{stage['base_name']}__DSheetPiling_results.csv"
+            ).exists() and data_extractor_dsheetpiling:
                 data_points = test_helper.get_data_points_from_file(
                     self.test_path / f"{stage['base_name']}__DSheetPiling_results.csv",
                     data_extractor_dsheetpiling,
@@ -265,7 +300,9 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
         effective_traction_vector_label = "GEO_EFFECTIVE_TRACTION_VECTOR"
         postfix_fem_comparison_csv = "FE_comparison_interface"
         postfix_json_output = "output_interface"
-        to_normal_traction_in_kPa = lambda traction_vector: unit_to_k_unit(traction_vector[0])
+        to_normal_traction_in_kPa = lambda traction_vector: unit_to_k_unit(
+            traction_vector[0]
+        )
         normal_traction_collections = self.get_variable_collections_per_stage(
             effective_traction_vector_label,
             structural_stages,
@@ -285,7 +322,9 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             ylabel=r"$y$ [m]",
         )
 
-        to_shear_traction_in_kPa = lambda traction_vector: unit_to_k_unit(traction_vector[1])
+        to_shear_traction_in_kPa = lambda traction_vector: unit_to_k_unit(
+            traction_vector[1]
+        )
         shear_traction_collections = self.get_variable_collections_per_stage(
             effective_traction_vector_label,
             structural_stages,
@@ -313,23 +352,25 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             self.stages_info["third_excavation"],
         ]
 
-
     def get_bending_moments_data_series_per_stage(self, nodes):
-        return self.get_variable_collections_per_stage("BENDING_MOMENT",
-                                                       self.get_plot_stages(),
-                                                       nodes,
-                                                       "output_wall",
-                                                       unit_to_k_unit,
-                                                       "FE_comparison_wall",
-                                                       extract_bending_moment_and_y_from_line,
-                                                       data_extractor_dsheetpiling=extract_bending_moment_and_y_from_line)
-
+        return self.get_variable_collections_per_stage(
+            "BENDING_MOMENT",
+            self.get_plot_stages(),
+            nodes,
+            "output_wall",
+            unit_to_k_unit,
+            "FE_comparison_wall",
+            extract_bending_moment_and_y_from_line,
+            data_extractor_dsheetpiling=extract_bending_moment_and_y_from_line,
+        )
 
     def create_wall_plots(self, nodes):
         plot_stages = self.get_plot_stages()
         plot_titles = [stage["base_name"] for stage in plot_stages]
 
-        bending_moment_collections = self.get_bending_moments_data_series_per_stage(nodes)
+        bending_moment_collections = self.get_bending_moments_data_series_per_stage(
+            nodes
+        )
         plot_utils.make_sub_plots(
             bending_moment_collections,
             self.test_path / "bending_moments.svg",
@@ -365,26 +406,26 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             postfix_json_output,
             unit_to_k_unit,
             postfix_fem_comparison_csv,
-            extract_normal_force_and_y_from_line)
+            extract_normal_force_and_y_from_line,
+        )
         plot_utils.make_sub_plots(
             normal_force_collections,
             self.test_path / "normal_forces.svg",
             titles=plot_titles,
             xlabel="Normal force [kN/m]",
-            ylabel=r"$y$ [m]")
+            ylabel=r"$y$ [m]",
+        )
 
         no_transformation = lambda value: value
-        horizontal_total_displacement_collections = (
-            self.get_variable_collections_per_stage(
-                "TOTAL_DISPLACEMENT_X",
-                plot_stages,
-                nodes,
-                postfix_json_output,
-                no_transformation,
-                postfix_fem_comparison_csv,
-                extract_horizontal_displacements_from_line,
-                data_extractor_dsheetpiling=extract_horizontal_displacements_from_dsheetpiling_line
-            )
+        horizontal_total_displacement_collections = self.get_variable_collections_per_stage(
+            "TOTAL_DISPLACEMENT_X",
+            plot_stages,
+            nodes,
+            postfix_json_output,
+            no_transformation,
+            postfix_fem_comparison_csv,
+            extract_horizontal_displacements_from_line,
+            data_extractor_dsheetpiling=extract_horizontal_displacements_from_dsheetpiling_line,
         )
         plot_utils.make_sub_plots(
             horizontal_total_displacement_collections,
@@ -412,16 +453,25 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
         for case_name in ["linear_elastic", "mohr_coulomb_clay-sand"]:
             self.update_expected_results(case_name)
 
-
     def update_expected_results(self, case_name):
         self.analysis_type = "staged_construction"
-        self.test_path = Path(test_helper.get_file_path(Path("crow_validation") / case_name / self.analysis_type))
+        self.test_path = Path(
+            test_helper.get_file_path(
+                Path("crow_validation") / case_name / self.analysis_type
+            )
+        )
 
-        mdpa_file_path_without_file_extension = test_helper.get_file_path(Path("crow_validation") / "common" / "model")
+        mdpa_file_path_without_file_extension = test_helper.get_file_path(
+            Path("crow_validation") / "common" / "model"
+        )
         model = Kratos.Model()
         main_model_part = model.CreateModelPart("PorousDomain")
-        Kratos.ModelPartIO(mdpa_file_path_without_file_extension).ReadModelPart(main_model_part)
-        node_ids = [node.Id for node in model.GetModelPart("PorousDomain.Sheet_Pile_Wall").Nodes]
+        Kratos.ModelPartIO(mdpa_file_path_without_file_extension).ReadModelPart(
+            main_model_part
+        )
+        node_ids = [
+            node.Id for node in model.GetModelPart("PorousDomain.Sheet_Pile_Wall").Nodes
+        ]
 
         for stage_name in [
             "wall_installation",
@@ -429,7 +479,9 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             "second_excavation",
             "third_excavation",
         ]:
-            json_output = self.read_json_output(self.stages_info[stage_name], postfix="output_wall")
+            json_output = self.read_json_output(
+                self.stages_info[stage_name], postfix="output_wall"
+            )
 
             base_name = self.stages_info[stage_name]["base_name"]
             with open(
@@ -448,10 +500,18 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
                     horizontal_total_displacement,
                 ) in zip(
                     node_ids,
-                    test_helper.get_bending_moments_from_json_output(json_output, node_ids),
-                    test_helper.get_shear_forces_from_json_output(json_output, node_ids),
-                    test_helper.get_normal_forces_from_json_output(json_output, node_ids),
-                    test_helper.get_total_displacement_x_from_json_output(json_output, node_ids)
+                    test_helper.get_bending_moments_from_json_output(
+                        json_output, node_ids
+                    ),
+                    test_helper.get_shear_forces_from_json_output(
+                        json_output, node_ids
+                    ),
+                    test_helper.get_normal_forces_from_json_output(
+                        json_output, node_ids
+                    ),
+                    test_helper.get_total_displacement_x_from_json_output(
+                        json_output, node_ids
+                    ),
                 ):
                     writer.writerow(
                         {
