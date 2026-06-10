@@ -111,8 +111,7 @@
                     "out_of_plane_direction": 2,
                     "second_reference_coordinate": [40.0, -10.0, 0.0],
                     "specific_weight": 1.0e+04,
-                    "table": [0, 0],
-                    "value": 0.0
+                    "table": [0, 0]
                 }
             }
         ],
