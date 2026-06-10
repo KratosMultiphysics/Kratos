@@ -456,10 +456,10 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
                     writer.writerow(
                         {
                             csv_fieldname_node: node_id,
-                            csv_fieldname_bending_moment: bending_moment,
-                            csv_fieldname_shear_force: shear_force,
-                            csv_fieldname_normal_force: normal_force,
-                            csv_fieldname_horizontal_total_displacement: horizontal_total_displacement,
+                            csv_fieldname_bending_moment: f"{bending_moment:.6}",
+                            csv_fieldname_shear_force: f"{shear_force:.6}",
+                            csv_fieldname_normal_force: f"{normal_force:.6}",
+                            csv_fieldname_horizontal_total_displacement: f"{horizontal_total_displacement:.6}",
                         }
                     )
 
