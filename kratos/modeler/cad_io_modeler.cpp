@@ -66,7 +66,7 @@ namespace Kratos
         }
 
         CadJsonInput<Node, Point>(
-            DataFileName, mEchoLevel, projection_algorithm, LocalRefFileName).ReadModelPart(cad_model_part);
+            DataFileName, LocalRefFileName, mEchoLevel, projection_algorithm).ReadModelPart(cad_model_part);
     }
 
     void CadIoModeler::SetupModelPart()

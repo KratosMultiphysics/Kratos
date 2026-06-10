@@ -91,9 +91,9 @@ class CadJsonInput : public IO
     /// Constructor with path to input file, and optionally a local refinement file.
     CadJsonInput(
         const std::string& rDataFileName,
+        const std::string& rLocalRefFileName = "",
         SizeType EchoLevel = 0,
-        ProjectionAlgorithm ProjectionAlgorithmType = ProjectionAlgorithm::NewtonRaphson,
-        const std::string& rLocalRefFileName = "")
+        ProjectionAlgorithm ProjectionAlgorithmType = ProjectionAlgorithm::NewtonRaphson)
         : mEchoLevel(EchoLevel)
         , mProjectionAlgorithm(ProjectionAlgorithmType)
     {
