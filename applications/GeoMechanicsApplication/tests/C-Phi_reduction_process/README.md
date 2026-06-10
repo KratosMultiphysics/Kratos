@@ -9,11 +9,13 @@ This test consists of 553 6-noded elements (using the UPwSmallStrainElement2D6N 
 
 ![MeshStructure](mesh.svg)
 
-The following constraints are applied. 
-- The bottom nodes are fixed completely,
-- The nodes on left and right vertical boundaries are allowed to move in the vertical direction only. 
+The test is performed with the following conditions:
 
-The gravitation acts down in the vertical direction. 
+- Constraints:
+    - The bottom nodes are fixed in both the X and Y direction,
+    - The nodes on left and right vertical boundaries are fixed in the X direction. 
+- Conditions:
+    - A gravitational force is applied in Y direction.
 
 The computation is done in two stages. The first stage is a settlement due to the gravitation and it uses K0 procedure.
 The second stage is the $c-\phi$ reduction process and it is done only for two time steps. The figure below shows the calculated deformation.
@@ -24,10 +26,10 @@ Different material properties are used at the first and second stages.
 
 The material at the first stage is described using:
 
--  Young’s modulus 14.0 $MPa$,
--  Poisson’s ratio 0.3,
--  Unit weight 20 $kN/m^3$,
--  Friction angle 35.0 degrees.
+-  Young’s modulus: 14.0 $MPa$,
+-  Poisson’s ratio: 0.3,
+-  Unit weight: 20 $kN/m^3$,
+-  Friction angle: 35.0 $\degree$.
 
 From the unit weight the "DENSITY_SOLID" in the material parameters is calculated. Given the porosity of 0.0, the density is calculated using the following formula:
 
@@ -40,17 +42,17 @@ For the second stage, two distinct implementations of the Mohr–Coulomb model a
 - one provided by the MohrCoulomb64 library,
 - one implemented internally in Kratos.
 
-The materials parameters are the following:
-- Young’s modulus 30.0 $MPa$,
-- Poisson’s ratio 0.2,
-- Cohesion 1000.0 $Pa$,
-- Friction angle 30.0 degrees,
-- Tension cut-off 1000.0 $Pa$,
-- Dilatancy angle 0.0 degrees.
+The material parameters are as follows:
+- Young’s modulus: 30.0 $MPa$,
+- Poisson’s ratio: 0.2,
+- Cohesion: 1000.0 $Pa$,
+- Friction angle: 30.0 $\degree$,
+- Tension cut-off: 1000.0 $Pa$,
+- Dilatancy angle: 0.0 $\degree$.
 
 The Kratos model uses specific input keywords for these parameters, where the MohrCoulomb64 library uses an input in the form of an array of UMAT parameters. The meaning of the UMAT parameters in the array can be found [here](https://deltares.github.io/Kratos-GeoMechanicsApplication-Documentation/input_parameters/material_parameters/#mohr-coulomb-model-mohrcoulomb64dll).
 
 ## Assertions
 
-The test asserts movement in the horizontal direction at three nodes, which are chosen because their movement is larger than the movement for the majority of nodes. 
+The test asserts movement in the horizontal direction at three nodes, which are chosen because their movement is larger than the movement for most of the other nodes. 
 
