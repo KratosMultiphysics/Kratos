@@ -241,10 +241,9 @@ double ConstitutiveLawUtilities::GetOrCalculateSkemptonB(const Properties& rProp
     return std::clamp(result, 0.0, 1.0);
 }
 
-std::pair<double, double> ConstitutiveLawUtilities::GetOrCalculateElasticProperties(const Properties& rProperties,
-                                                                                    bool Undrained)
+std::pair<double, double> ConstitutiveLawUtilities::GetOrCalculateElasticProperties(const Properties& rProperties)
 {
-    if (Undrained) {
+    if (IsUndrained(rProperties)) {
         const auto nu = GetOrCalculateUndrainedPoissonsRatio(rProperties);
         const auto E  = CalculateUndrainedYoungsModulus(rProperties, nu);
         return {E, nu};
@@ -290,8 +289,12 @@ DrainageType ConstitutiveLawUtilities::StringToDrainageType(const std::string& r
 
 bool ConstitutiveLawUtilities::IsConstantWaterPressure(const Properties& rProperties)
 {
-    return ConstitutiveLawUtilities::StringToDrainageType(rProperties[GEO_DRAINAGE_TYPE]) ==
-           DrainageType::CONSTANT_WATER_PRESSURE;
+    return StringToDrainageType(rProperties[GEO_DRAINAGE_TYPE]) == DrainageType::CONSTANT_WATER_PRESSURE;
+}
+
+bool ConstitutiveLawUtilities::IsUndrained(const Properties& rProperties)
+{
+    return StringToDrainageType(rProperties[GEO_DRAINAGE_TYPE]) == DrainageType::UNDRAINED;
 }
 
 void ConstitutiveLawUtilities::ReplaceIgnoreUndrainedByDrainageType(Properties& rProperties)
@@ -338,5 +341,16 @@ double ConstitutiveLawUtilities::CalculateExcessPorePressureIncrement(const Prop
         << "Non-physical values: denominator < epsilon for property Id of " << rProperties.Id()
         << "." << std::endl;
     return biot_coefficient * VolumetricStrainIncrement / denominator;
+}
+
+bool ConstitutiveLawUtilities::WantTensionCutOff(const Properties& rMaterialProperties)
+{
+    if (rMaterialProperties.Has(GEO_ENABLE_TENSION_CUT_OFF) && rMaterialProperties[GEO_ENABLE_TENSION_CUT_OFF]) {
+        return true;
+    }
+
+    // The following statement is to support backward compatibility (i.e. GEO_ENABLE_TENSION_CUT_OFF is not specified,
+    // but the GEO_TENSILE_STRENGTH is provided), which results in an enabled tension cutoff.
+    return !rMaterialProperties.Has(GEO_ENABLE_TENSION_CUT_OFF) && rMaterialProperties.Has(GEO_TENSILE_STRENGTH);
 }
 } // namespace Kratos

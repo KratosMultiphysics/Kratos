@@ -25,8 +25,8 @@
                 "analysis_stage": "Stages.KratosMultiphysics.GeoMechanicsApplication.GeoMechanicsAnalysis",
                 "problem_data": {
                     "problem_name": "mesh",
-                    "start_time": -1,
-                    "end_time": 0,
+                    "start_time": -1.0,
+                    "end_time": 0.0,
                     "echo_level": 1,
                     "parallel_type": "OpenMP",
                     "number_of_threads": 1
@@ -179,7 +179,7 @@
                 "analysis_stage": "Stages.KratosMultiphysics.GeoMechanicsApplication.GeoMechanicsAnalysis",
                 "problem_data": {
                     "problem_name": "mesh",
-                    "start_time": 0,
+                    "start_time": 0.0,
                     "end_time": 0.1,
                     "echo_level": 1,
                     "parallel_type": "OpenMP",
@@ -296,8 +296,8 @@
                                 "variable_name": "DISPLACEMENT",
                                 "active": [false, true, false],
                                 "is_fixed": [false, true, false],
-                                "value": [0.0, -1.0e-03, 0.0],
-                                "table": [0, 0, 0]
+                                "value": [0.0, 0.0, 0.0],
+                                "table": [0, 1, 0]
                             }
                         },
                         {
@@ -310,7 +310,7 @@
                                 "is_fixed": true,
                                 "fluid_pressure_type": "Uniform",
                                 "value": 0.0,
-                                "table": 0
+                                "table": 2
                             }
                         }
                     ],
@@ -337,7 +337,7 @@
                 "problem_data": {
                     "problem_name": "mesh",
                     "start_time": 0.1,
-                    "end_time": 1,
+                    "end_time": 1.0,
                     "echo_level": 1,
                     "parallel_type": "OpenMP",
                     "number_of_threads": 1
@@ -453,8 +453,8 @@
                                 "variable_name": "DISPLACEMENT",
                                 "active": [false, true, false],
                                 "is_fixed": [false, true, false],
-                                "value": [0.0, -1.0e-03, 0.0],
-                                "table": [0, 0, 0]
+                                "value": [0.0, 0.0, 0.0],
+                                "table": [0, 1, 0]
                             }
                         },
                         {
@@ -467,7 +467,7 @@
                                 "is_fixed": true,
                                 "fluid_pressure_type": "Uniform",
                                 "value": 0.0,
-                                "table": 0
+                                "table": 2
                             }
                         }
                     ],

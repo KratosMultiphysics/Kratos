@@ -17,7 +17,7 @@ Compact 2D column benchmarks for verifying that a UDSM-based constitutive law se
  - Bottom: fixed in both directions.
  - Left and right edges: fixed in horizontal direction.
  - Stage 1: gravity loading and $K_0$ initialization.
- - Stages 2 & 3: UDSM constitutive law; top boundary uses a prescribed vertical displacement (table to $-0.001\ \mathrm{m}$) and top water pressure is prescribed to $10000\ \mathrm{Pa}$.
+ - Stages 2 & 3: UDSM constitutive law; top boundary uses a prescribed vertical displacement (table to $-0.001\ \mathrm{m}$) and top water pressure is prescribed to $10\ \mathrm{Pa}$.
 
 ## Material models
 
@@ -30,8 +30,8 @@ A K0 stage with a linear elastic model:
  - $n = 0.3$, $K_s = 1.0e12\ \mathrm{[Pa]}$, $K_w = 2.2e9\ \mathrm{[Pa]}$
  - $k_{xx}=k_{yy}=4.5e-10\ \mathrm{[m^2]}$, 
  - $\mu=1.0e-3\ \mathrm{[Pa\cdot s]}$
- - $\mathrm{K0\_MAIN\_DIRECTION}$: index of K0 main direction (1)
- - $\mathrm{K0\_VALUE\_XX},\;\mathrm{K0\_VALUE\_YY},\;\mathrm{K0\_VALUE\_ZZ}$: K0 values used by the K0 procedure (e.g. 0.5, 1.0, 0.5)
+ - `K0_MAIN_DIRECTION`: index of K0 main direction (1)
+ - `K0_VALUE_XX`, `K0_VALUE_YY`,`K0_VALUE_ZZ`: K0 values used by the K0 procedure (e.g. 0.5, 1.0, 0.5)
  - $k_{xy}$ (in-plane cross permeability): 0.0
  - $S_{\mathrm{sat}}$ (saturated saturation): 1.0
 
