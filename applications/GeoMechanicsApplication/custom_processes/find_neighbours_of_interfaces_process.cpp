@@ -23,17 +23,15 @@ namespace Kratos
 {
 namespace
 {
-GlobalPointersVector<Element> KeepNeighboursWithHigherLocalDimension(const GlobalPointersVector<Element>& rNeighbourElements,
-                                                                     const std::size_t InterfaceElementLocalDimension)
+GlobalPointersVector<Element> ExtractElementsWithHigherLocalDimension(const GlobalPointersVector<Element>& rElements,
+                                                                      std::size_t LocalSpaceDimension)
 {
-    GlobalPointersVector<Element> kept_neighbours;
-    for (auto it = rNeighbourElements.ptr_begin(); it != rNeighbourElements.ptr_end(); ++it) {
-        if ((**it).GetGeometry().LocalSpaceDimension() > InterfaceElementLocalDimension) {
-            kept_neighbours.push_back(*it);
-        }
-    }
-
-    return kept_neighbours;
+    GlobalPointersVector<Element> result;
+    std::copy_if(rElements.ptr_begin(), rElements.ptr_end(), std::back_inserter(result),
+                 [LocalSpaceDimension](auto pElement) {
+        return pElement->GetGeometry().LocalSpaceDimension() > LocalSpaceDimension;
+    });
+    return result;
 }
 } // namespace
 
@@ -70,13 +68,11 @@ void FindNeighboursOfInterfacesProcess::RemoveNeighboursWithoutHigherLocalDimens
 {
     for (const auto& r_interface_model_part : mrInterfaceModelParts) {
         for (auto& r_interface_element : r_interface_model_part.get().Elements()) {
-            auto&      r_neighbour_elements = r_interface_element.GetValue(NEIGHBOUR_ELEMENTS);
-            const auto interface_element_local_dimension =
-                r_interface_element.GetGeometry().LocalSpaceDimension();
+            auto& r_neighbour_elements = r_interface_element.GetValue(NEIGHBOUR_ELEMENTS);
             // WORKAROUND: std::erase-remove on GlobalPointersVector corrupts adjacent memory.
             // Instead of erasing in-place, construct a filtered container and assign.
-            r_neighbour_elements = KeepNeighboursWithHigherLocalDimension(
-                r_neighbour_elements, interface_element_local_dimension);
+            r_neighbour_elements = ExtractElementsWithHigherLocalDimension(
+                r_neighbour_elements, r_interface_element.GetGeometry().LocalSpaceDimension());
         }
     }
 }
