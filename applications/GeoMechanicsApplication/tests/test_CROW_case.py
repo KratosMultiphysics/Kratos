@@ -1,5 +1,6 @@
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+import KratosMultiphysics.json_utilities as json_utilities
 import KratosMultiphysics.GeoMechanicsApplication.context_managers as context_managers
 from KratosMultiphysics.GeoMechanicsApplication.unit_conversions import unit_to_k_unit
 import test_helper
@@ -7,7 +8,6 @@ import test_helper
 import argparse
 import csv
 import os
-import json
 from pathlib import Path
 import sys
 from helper_utilities import run_orchestrator
@@ -215,11 +215,9 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
                 )
 
     def read_json_output(self, base_name, postfix):
-        with open(
-            os.path.join(self.test_path, f"{base_name}__{postfix}.json"),
-            "r",
-        ) as output_file:
-            return json.load(output_file)
+        return json_utilities.read_external_json(
+            self.test_path / f"{base_name}__{postfix}.json"
+        )
 
     def get_variable_collections_per_stage(
         self,
