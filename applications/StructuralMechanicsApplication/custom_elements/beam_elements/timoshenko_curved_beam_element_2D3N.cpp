@@ -812,6 +812,39 @@ int LinearTimoshenkoCurvedBeamElement2D3N::Check(const ProcessInfo& rCurrentProc
 /***********************************************************************************/
 /***********************************************************************************/
 
+void LinearTimoshenkoCurvedBeamElement2D3N::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    if (mConstitutiveLawVector.empty()) return;
+
+    const auto& r_geometry = GetGeometry();
+    const auto& r_props    = GetProperties();
+    const auto& integration_points = IntegrationPoints(GetIntegrationMethod());
+    const auto  strain_size        = mConstitutiveLawVector[0]->GetStrainSize();
+
+    VectorType strain_vector(strain_size);
+    VectorType stress_vector(strain_size);
+    strain_vector.clear();
+    stress_vector.clear();
+
+    ConstitutiveLaw::Parameters cl_values(r_geometry, r_props, rCurrentProcessInfo);
+    cl_values.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+    cl_values.SetStrainVector(strain_vector);
+    cl_values.SetStressVector(stress_vector);
+
+    for (auto integration_point = std::size_t{0}; integration_point < integration_points.size(); ++integration_point) {
+        if (!mConstitutiveLawVector[integration_point]->RequiresFinalizeMaterialResponse()) continue;
+        noalias(strain_vector) = CalculateStrainVector(integration_points[integration_point].X());
+        mConstitutiveLawVector[integration_point]->FinalizeMaterialResponsePK2(cl_values);
+    }
+
+    KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void LinearTimoshenkoCurvedBeamElement2D3N::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
