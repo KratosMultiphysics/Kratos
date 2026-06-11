@@ -28,23 +28,23 @@ using namespace Kratos::Testing;
 
 ModelPart& CreateTestModelPart(Model& rModel)
 {
-    auto& result = rModel.CreateModelPart("TestPart");
-    result.AddNodalSolutionStepVariable(WATER_PRESSURE);
-    auto p_properties = result.CreateNewProperties(0);
+    auto& r_result = rModel.CreateModelPart("TestPart");
+    r_result.AddNodalSolutionStepVariable(WATER_PRESSURE);
+    auto p_properties = r_result.CreateNewProperties(0);
 
     // Create nodes directly in the model part
-    result.CreateNewNode(1, 0.0, 0.0, 0.0);
-    result.CreateNewNode(2, 1.0, 0.0, 0.0);
-    result.CreateNewNode(3, 1.0, 1.0, 0.0);
-    result.CreateNewNode(4, 0.0, 1.0, 0.0);
+    r_result.CreateNewNode(1, 0.0, 0.0, 0.0);
+    r_result.CreateNewNode(2, 1.0, 0.0, 0.0);
+    r_result.CreateNewNode(3, 1.0, 1.0, 0.0);
+    r_result.CreateNewNode(4, 0.0, 1.0, 0.0);
 
     // Create elements using the node IDs
     std::vector<ModelPart::IndexType> elem1_nodes = {1, 2, 3};
     std::vector<ModelPart::IndexType> elem2_nodes = {1, 3, 4};
-    result.CreateNewElement("Element2D3N", 1, elem1_nodes, p_properties);
-    result.CreateNewElement("Element2D3N", 2, elem2_nodes, p_properties);
+    r_result.CreateNewElement("Element2D3N", 1, elem1_nodes, p_properties);
+    r_result.CreateNewElement("Element2D3N", 2, elem2_nodes, p_properties);
 
-    return result;
+    return r_result;
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressureProcess_Construction, KratosGeoMechanicsFastSuite)
@@ -175,11 +175,6 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressureProcess_SeepageBra
         "pressure_tension_cut_off": -100.0,
         "table": 1
     })");
-
-    // Reset nodes to unfixed
-    for (auto& r_node : r_model_part.Nodes()) {
-        r_node.Free(WATER_PRESSURE);
-    }
 
     ApplyConstantInterpolateLinePressureProcess process_above(r_model_part, params_above);
     process_above.ExecuteInitializeSolutionStep();
@@ -402,7 +397,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressure_InterpolatesInter
                        Defaults::absolute_tolerance);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressure_NoBoundaryNodes, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressure_Throws_WhenNoBoundaryNodes, KratosGeoMechanicsFastSuite)
 {
     // Arrange
     Model      model;
