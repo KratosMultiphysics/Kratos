@@ -9,20 +9,20 @@ This test consists of 553 6-noded elements (using the UPwSmallStrainElement2D6N 
 
 ![MeshStructure](mesh.svg)
 
-The test is performed with the following conditions:
+The test is performed under the following conditions:
 
-- Constraints:
-    - The bottom nodes are fixed in both the X and Y direction,
-    - The nodes on left and right vertical boundaries are fixed in the X direction. 
-- Conditions:
-    - A gravitational force is applied in Y direction.
+- Boundary conditions:
+    - The bottom nodes are fixed in both the X- and Y-directions,
+    - The nodes on left and right boundaries are fixed in the X-direction only. 
+- Loading:
+    - A gravitational force is applied in the negative Y-direction.
 
 The computation is done in two stages. The first stage is a settlement due to the gravitation and it uses K0 procedure.
 The second stage is the $c-\phi$ reduction process and it is done for two steps. The figure below shows the calculated deformation.
 
 ![Deformation](deformation.svg)
 
-Different material properties are used at the first and second stages. 
+Different material properties are used in the first and second stages. 
 
 The material at the first stage is described using:
 
