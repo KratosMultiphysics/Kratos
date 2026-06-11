@@ -32,6 +32,13 @@ csv_fieldnames = [
     csv_fieldname_horizontal_total_displacement,
 ]
 
+stages_to_be_checked = [
+    "3_Wall_installation",
+    "4_First_excavation",
+    "6_Second_excavation",
+    "7_Third_excavation",
+]
+
 
 def _extract_x_and_y_from_line(line, index_of_x=0, index_of_y=1, x_transform=None):
     line = line.strip().lstrip("\ufeff").replace("ï»¿", "")
@@ -149,18 +156,10 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
         # Check the obtained results
         node_ids = [node.Id for node in sheet_pile_wall.Nodes]
 
-        for stage_name in [
-            "wall_installation",
-            "first_excavation",
-            "second_excavation",
-            "third_excavation",
-        ]:
-            json_output = self.read_json_output(
-                self.stages_info[stage_name]["base_name"], postfix=wall_output_postfix
-            )
+        for stage_name in stages_to_be_checked:
+            json_output = self.read_json_output(stage_name, postfix=wall_output_postfix)
 
-            base_name = self.stages_info[stage_name]["base_name"]
-            csv_filepath = self.test_path / f"{base_name}__expected_results_wall.csv"
+            csv_filepath = self.test_path / f"{stage_name}__expected_results_wall.csv"
             expected_results = get_expected_results_from_csv(csv_filepath)
 
             relative_tolerance = (
@@ -494,19 +493,11 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             node.Id for node in model.GetModelPart("PorousDomain.Sheet_Pile_Wall").Nodes
         ]
 
-        for stage_name in [
-            "wall_installation",
-            "first_excavation",
-            "second_excavation",
-            "third_excavation",
-        ]:
-            json_output = self.read_json_output(
-                self.stages_info[stage_name]["base_name"], postfix=wall_output_postfix
-            )
+        for stage_name in stages_to_be_checked:
+            json_output = self.read_json_output(stage_name, postfix=wall_output_postfix)
 
-            base_name = self.stages_info[stage_name]["base_name"]
             with open(
-                self.test_path / f"{base_name}__expected_results_wall.csv",
+                self.test_path / f"{stage_name}__expected_results_wall.csv",
                 "w",
                 newline="",
             ) as csv_file:
