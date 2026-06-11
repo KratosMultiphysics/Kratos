@@ -293,13 +293,21 @@ void ConsistentFluxBoundaryCondition::CalculateConditionSystem(
             r_diffusion_var,
             data);
 
+        // The Galerkin weak form keeps the (otherwise dropped) diffusive boundary
+        // integral  - \int_\Gamma N_i * D * (n . grad c) dGamma  with n the OUTWARD
+        // normal. Its bilinear (LHS) contribution is therefore the NEGATIVE of
+        // K_b(i,j) = \int_\Gamma N_i * D * (n . grad N_j). Accumulating with a minus
+        // sign here makes lhs_contribution = -K_b, so that the diffusion exactly
+        // cancels at the outflow node (the "do-nothing"/consistent-flux behaviour)
+        // instead of being doubled. The RHS below then follows the standard Kratos
+        // pattern RHS = -LHS*c = +K_b*c (the true outward diffusive flux).
         for (IndexType i = 0; i < parent_num_nodes; ++i) {
             for (IndexType j = 0; j < parent_num_nodes; ++j) {
                 double flux_projection = 0.0;
                 for (IndexType d = 0; d < r_parent_geometry.WorkingSpaceDimension(); ++d) {
                     flux_projection += data.UnitNormal[d] * data.ParentDNDX(j, d);
                 }
-                lhs_contribution(i, j) += data.Weight * data.Conductivity * data.ParentN[i] * flux_projection;
+                lhs_contribution(i, j) -= data.Weight * data.Conductivity * data.ParentN[i] * flux_projection;
             }
         }
     }
