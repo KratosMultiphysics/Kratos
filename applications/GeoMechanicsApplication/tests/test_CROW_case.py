@@ -378,6 +378,17 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             data_extractor_dsheetpiling=extract_shear_force_and_y_from_line,
         )
 
+    def get_normal_force_data_series_per_stage(self, nodes, postfix_fem_comparison_csv):
+        return self.get_variable_collections_per_stage(
+            "AXIAL_FORCE",
+            self.get_plot_stages(),
+            nodes,
+            wall_output_postfix,
+            unit_to_k_unit,
+            postfix_fem_comparison_csv,
+            extract_normal_force_and_y_from_line,
+        )
+
     def create_wall_plots(self, nodes):
         plot_stages = self.get_plot_stages()
         plot_titles = [stage["base_name"] for stage in plot_stages]
@@ -405,15 +416,8 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             ylabel=r"$y$ [m]",
         )
 
-        postfix_json_output = wall_output_postfix
-        normal_force_collections = self.get_variable_collections_per_stage(
-            "AXIAL_FORCE",
-            plot_stages,
-            nodes,
-            postfix_json_output,
-            unit_to_k_unit,
-            postfix_fem_comparison_csv,
-            extract_normal_force_and_y_from_line,
+        normal_force_collections = self.get_normal_force_data_series_per_stage(
+            nodes, postfix_fem_comparison_csv
         )
         plot_utils.make_sub_plots(
             normal_force_collections,
@@ -423,6 +427,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             ylabel=r"$y$ [m]",
         )
 
+        postfix_json_output = wall_output_postfix
         no_transformation = lambda value: value
         horizontal_total_displacement_collections = self.get_variable_collections_per_stage(
             "TOTAL_DISPLACEMENT_X",
