@@ -384,6 +384,11 @@ private:
         const KinematicVariables& rKinematicVariables,
         Matrix& rT, Matrix& rT_hat, array_1d<array_1d<double, 3>,2>& rReferenceContraVariantBase); 
 
+    void CalculateFirstVariationT2(
+        IndexType IntegrationPointIndex,
+        Matrix& rFirstVariationT2,
+        const array_1d<double, 3> rT2,   
+        const PatchType& rPatch);
     // Traction-related functions
     void CalculateTraction(
         IndexType IntegrationPointIndex,
@@ -444,6 +449,16 @@ private:
         IndexType IntegrationPointIndex,
         Matrix& rFirstVariationMoment,
         Matrix& rFirstVariationMomentCovariant,
+        const KinematicVariables& rActualKinematic,
+        ConstitutiveVariables& rThisConstitutiveVariablesCurvature, 
+        const PatchType& rPatch);
+
+    void CalculateFirstVariationMomentT2(
+        IndexType IntegrationPointIndex,
+        Vector& rFirstVariationMomentT2,
+        const Matrix& rFirstVariationMomentCovariant,
+        const Matrix& rFirstVariationT2,
+        const array_1d<double, 3>& rT2,
         const KinematicVariables& rActualKinematic,
         ConstitutiveVariables& rThisConstitutiveVariablesCurvature, 
         const PatchType& rPatch);
