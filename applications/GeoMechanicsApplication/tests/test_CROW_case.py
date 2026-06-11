@@ -16,6 +16,8 @@ if test_helper.want_test_plots():
     import KratosMultiphysics.GeoMechanicsApplication.geo_plot_utilities as plot_utils
 
 
+wall_output_postfix = "output_wall"
+
 csv_fieldname_node = "node"
 csv_fieldname_bending_moment = "bending_moment_in_Nm_per_m"
 csv_fieldname_shear_force = "shear_force_in_N_per_m"
@@ -154,7 +156,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             "third_excavation",
         ]:
             json_output = self.read_json_output(
-                self.stages_info[stage_name], postfix="output_wall"
+                self.stages_info[stage_name], postfix=wall_output_postfix
             )
 
             base_name = self.stages_info[stage_name]["base_name"]
@@ -357,7 +359,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             "BENDING_MOMENT",
             self.get_plot_stages(),
             nodes,
-            "output_wall",
+            wall_output_postfix,
             unit_to_k_unit,
             "FE_comparison_wall",
             extract_bending_moment_and_y_from_line,
@@ -380,7 +382,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
         )
 
         postfix_fem_comparison_csv = "FE_comparison_wall"
-        postfix_json_output = "output_wall"
+        postfix_json_output = wall_output_postfix
         shear_force_collections = self.get_variable_collections_per_stage(
             "SHEAR_FORCE",
             plot_stages,
@@ -480,7 +482,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             "third_excavation",
         ]:
             json_output = self.read_json_output(
-                self.stages_info[stage_name], postfix="output_wall"
+                self.stages_info[stage_name], postfix=wall_output_postfix
             )
 
             base_name = self.stages_info[stage_name]["base_name"]
