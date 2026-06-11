@@ -87,7 +87,7 @@ def make_sub_plots(
     lines_with_unique_labels = []
     unique_labels = set()
     for line in lines:
-        if not line.get_label() in unique_labels:
+        if line.get_label() not in unique_labels:
             lines_with_unique_labels.append(line)
             unique_labels.add(line.get_label())
 
