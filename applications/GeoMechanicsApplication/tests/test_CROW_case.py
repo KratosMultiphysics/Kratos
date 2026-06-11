@@ -156,7 +156,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             "third_excavation",
         ]:
             json_output = self.read_json_output(
-                self.stages_info[stage_name], postfix=wall_output_postfix
+                self.stages_info[stage_name]["base_name"], postfix=wall_output_postfix
             )
 
             base_name = self.stages_info[stage_name]["base_name"]
@@ -220,9 +220,9 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
                     msg=f"Horizontal total displacement at node {node_id} in stage '{stage_name}'",
                 )
 
-    def read_json_output(self, stage, postfix):
+    def read_json_output(self, base_name, postfix):
         with open(
-            os.path.join(self.test_path, f"{stage['base_name']}__{postfix}.json"),
+            os.path.join(self.test_path, f"{base_name}__{postfix}.json"),
             "r",
         ) as output_file:
             return json.load(output_file)
@@ -243,7 +243,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
 
         variable_data_collections = []
         for stage in plot_stages:
-            json_data = self.read_json_output(stage, postfix_json_output)
+            json_data = self.read_json_output(stage["base_name"], postfix_json_output)
             variable_kratos_data = test_helper.get_nodal_values_from_json_output(
                 json_data, kratos_variable_label, node_ids
             )
@@ -501,7 +501,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             "third_excavation",
         ]:
             json_output = self.read_json_output(
-                self.stages_info[stage_name], postfix=wall_output_postfix
+                self.stages_info[stage_name]["base_name"], postfix=wall_output_postfix
             )
 
             base_name = self.stages_info[stage_name]["base_name"]
