@@ -407,8 +407,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
         )
 
     def create_wall_plots(self, nodes):
-        plot_stages = self.get_plot_stages()
-        plot_titles = [stage["base_name"] for stage in plot_stages]
+        plot_titles = [stage["base_name"] for stage in self.get_plot_stages()]
         postfix_fem_comparison_csv = "FE_comparison_wall"
 
         bending_moment_collections = self.get_bending_moment_data_series_per_stage(
