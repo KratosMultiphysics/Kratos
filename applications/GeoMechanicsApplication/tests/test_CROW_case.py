@@ -119,22 +119,10 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
         super().setUp()
 
         # The following attributes will be populated by the specific simulation runs
-        self.stages_info = None
         self.analysis_type = None
         self.test_path = None
 
     def run_staged_construction_analysis_and_checks(self, material_model_dir_name):
-        # fmt: off
-        self.stages_info = {
-            "initial_stage":      {"base_name": "1_Initial_stage"},
-            "null_step":          {"base_name": "2_Null_step"},
-            "wall_installation":  {"base_name": "3_Wall_installation"},
-            "first_excavation":   {"base_name": "4_First_excavation"},
-            "strut_installation": {"base_name": "5_Anchor_installation"},
-            "second_excavation":  {"base_name": "6_Second_excavation"},
-            "third_excavation":   {"base_name": "7_Third_excavation"},
-        }
-        # fmt: on
         self.analysis_type = "staged_construction"
         self.test_path = Path(
             test_helper.get_file_path(
@@ -450,18 +438,6 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
 
     def update_all_expected_results(self):
         print("Updating the expected results...")
-
-        # fmt: off
-        self.stages_info = {
-            "initial_stage":      {"base_name": "1_Initial_stage"},
-            "null_step":          {"base_name": "2_Null_step"},
-            "wall_installation":  {"base_name": "3_Wall_installation"},
-            "first_excavation":   {"base_name": "4_First_excavation"},
-            "strut_installation": {"base_name": "5_Anchor_installation"},
-            "second_excavation":  {"base_name": "6_Second_excavation"},
-            "third_excavation":   {"base_name": "7_Third_excavation"},
-        }
-        # fmt: on
 
         for case_name in ["linear_elastic", "mohr_coulomb_clay-sand"]:
             self.update_expected_results(case_name)
