@@ -13,9 +13,10 @@
 #include "containers/model.h"
 #include "custom_processes/apply_constant_interpolate_line_pressure_process.h"
 #include "includes/model_part.h"
+#include "test_setup_utilities/element_setup_utilities.hpp"
 #include "test_setup_utilities/model_setup_utilities.h"
 #include "testing/testing.h"
-#include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include "tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h"
 #include "tests/cpp_tests/test_utilities.h"
 
 #include "includes/smart_pointers.h"
@@ -39,15 +40,17 @@ ModelPart& CreateTestModelPart(Model& rModel)
     r_result.CreateNewNode(4, 0.0, 1.0, 0.0);
 
     // Create elements using the node IDs
-    std::vector<ModelPart::IndexType> elem1_nodes = {1, 2, 3};
-    std::vector<ModelPart::IndexType> elem2_nodes = {1, 3, 4};
-    r_result.CreateNewElement("Element2D3N", 1, elem1_nodes, p_properties);
-    r_result.CreateNewElement("Element2D3N", 2, elem2_nodes, p_properties);
+    std::vector<std::size_t> elem1_nodes = {1, 2, 3};
+    std::vector<std::size_t> elem2_nodes = {1, 3, 4};
+    r_result.AddElement(ElementSetupUtilities::Create2D3NElement(
+        ModelSetupUtilities::GetNodesFromIds(r_result, elem1_nodes), p_properties, 1));
+    r_result.AddElement(ElementSetupUtilities::Create2D3NElement(
+        ModelSetupUtilities::GetNodesFromIds(r_result, elem2_nodes), p_properties, 2));
 
     return r_result;
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressureProcess_Construction, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressureProcess_Construction, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
     Model model;
@@ -68,7 +71,8 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressureProcess_Constructi
     EXPECT_NO_THROW(ApplyConstantInterpolateLinePressureProcess process(r_model_part, params));
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressureProcess_ThrowsOnInvalidDirections, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressureProcess_ThrowsOnInvalidDirections,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
     Model model;
@@ -92,7 +96,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressureProcess_ThrowsOnIn
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressureProcess_ExecuteInitializeSolutionStep,
-                          KratosGeoMechanicsFastSuite)
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
     Model model;
@@ -126,7 +130,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressureProcess_ExecuteIni
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressureProcess_SeepageBranch, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressureProcess_SeepageBranch, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
     Model model;
@@ -185,7 +189,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressureProcess_SeepageBra
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressureProcess_Info, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressureProcess_Info, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
     Model model;
@@ -209,7 +213,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressureProcess_Info, Krat
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressureProcess_DoesNotFreeWhenIsFixedIsNotProvided,
-                          KratosGeoMechanicsFastSuite)
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
     Model model;
@@ -243,7 +247,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressureProcess_DoesNotFre
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressureProcess_FreesWhenIsFixedIsExplicitlyFalse,
-                          KratosGeoMechanicsFastSuite)
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
     Model model;
@@ -278,7 +282,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressureProcess_FreesWhenI
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressureProcess_ExecuteInitializeSolutionStepRunsOnlyOnce,
-                          KratosGeoMechanicsFastSuite)
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange: boundary nodes on top (y=10) and bottom (y=0), plus an interior node (y=5).
     // CalculatePressure interpolates the interior node to 50.0, which is intentionally
@@ -302,8 +306,10 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressureProcess_ExecuteIni
     interior_node->FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
 
     auto p_props = r_model_part.CreateNewProperties(0);
-    r_model_part.CreateNewElement("Element2D2N", 1, std::vector<ModelPart::IndexType>{1, 2}, p_props);
-    r_model_part.CreateNewElement("Element2D2N", 2, std::vector<ModelPart::IndexType>{3, 4}, p_props);
+    r_model_part.AddElement(ElementSetupUtilities::Create2D2NElement(
+        ModelSetupUtilities::GetNodesFromIds(r_model_part, std::vector<std::size_t>{1, 2}), p_props, 1));
+    r_model_part.AddElement(ElementSetupUtilities::Create2D2NElement(
+        ModelSetupUtilities::GetNodesFromIds(r_model_part, std::vector<std::size_t>{3, 4}), p_props, 2));
 
     const auto params = Parameters(R"({
         "model_part_name": "Main",
@@ -338,7 +344,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressureProcess_ExecuteIni
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressure_InterpolatesInteriorFromTopAndBottomBoundaries,
-                          KratosGeoMechanicsFastSuite)
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
     Model      model;
@@ -368,10 +374,14 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressure_InterpolatesInter
 
     // Minimal elements to detect boundary nodes
     Properties::Pointer p_props = r_model_part.CreateNewProperties(0);
-    r_model_part.CreateNewElement("Element2D2N", 1, std::vector<ModelPart::IndexType>{1, 2}, p_props);
-    r_model_part.CreateNewElement("Element2D2N", 2, std::vector<ModelPart::IndexType>{2, 3}, p_props);
-    r_model_part.CreateNewElement("Element2D2N", 3, std::vector<ModelPart::IndexType>{4, 5}, p_props);
-    r_model_part.CreateNewElement("Element2D2N", 4, std::vector<ModelPart::IndexType>{5, 6}, p_props);
+    r_model_part.AddElement(ElementSetupUtilities::Create2D2NElement(
+        ModelSetupUtilities::GetNodesFromIds(r_model_part, std::vector<std::size_t>{1, 2}), p_props, 1));
+    r_model_part.AddElement(ElementSetupUtilities::Create2D2NElement(
+        ModelSetupUtilities::GetNodesFromIds(r_model_part, std::vector<std::size_t>{2, 3}), p_props, 2));
+    r_model_part.AddElement(ElementSetupUtilities::Create2D2NElement(
+        ModelSetupUtilities::GetNodesFromIds(r_model_part, std::vector<std::size_t>{4, 5}), p_props, 3));
+    r_model_part.AddElement(ElementSetupUtilities::Create2D2NElement(
+        ModelSetupUtilities::GetNodesFromIds(r_model_part, std::vector<std::size_t>{5, 6}), p_props, 4));
 
     const auto params = Parameters(R"(
     {
@@ -397,7 +407,8 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressure_InterpolatesInter
                        Defaults::absolute_tolerance);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressure_Throws_WhenNoBoundaryNodes, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressure_Throws_WhenNoBoundaryNodes,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
     Model      model;
@@ -420,7 +431,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressure_Throws_WhenNoBoun
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressure_ExtrapolatesWhenNodeIsRightOfAllBoundaryNodes,
-                          KratosGeoMechanicsFastSuite)
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange: boundary nodes only at x=[0,5]; interior node at x=10 lies beyond the right edge.
     // CalculateBoundaryPressure will take the "only-left" branch and call
@@ -445,8 +456,10 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressure_ExtrapolatesWhenN
     interior_node->FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
 
     auto p_props = r_model_part.CreateNewProperties(0);
-    r_model_part.CreateNewElement("Element2D2N", 1, std::vector<ModelPart::IndexType>{1, 2}, p_props);
-    r_model_part.CreateNewElement("Element2D2N", 2, std::vector<ModelPart::IndexType>{3, 4}, p_props);
+    r_model_part.AddElement(ElementSetupUtilities::Create2D2NElement(
+        ModelSetupUtilities::GetNodesFromIds(r_model_part, std::vector<std::size_t>{1, 2}), p_props, 1));
+    r_model_part.AddElement(ElementSetupUtilities::Create2D2NElement(
+        ModelSetupUtilities::GetNodesFromIds(r_model_part, std::vector<std::size_t>{3, 4}), p_props, 2));
 
     const auto params = Parameters(R"({
         "model_part_name": "Main",
@@ -469,7 +482,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressure_ExtrapolatesWhenN
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressure_ExtrapolatesWhenNodeIsLeftOfAllBoundaryNodes,
-                          KratosGeoMechanicsFastSuite)
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange: boundary nodes only at x=[5,10]; interior node at x=0 lies beyond the left edge.
     // CalculateBoundaryPressure will take the "only-right" branch and call
@@ -494,8 +507,10 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressure_ExtrapolatesWhenN
     interior_node->FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
 
     auto p_props = r_model_part.CreateNewProperties(0);
-    r_model_part.CreateNewElement("Element2D2N", 1, std::vector<ModelPart::IndexType>{1, 2}, p_props);
-    r_model_part.CreateNewElement("Element2D2N", 2, std::vector<ModelPart::IndexType>{3, 4}, p_props);
+    r_model_part.AddElement(ElementSetupUtilities::Create2D2NElement(
+        ModelSetupUtilities::GetNodesFromIds(r_model_part, std::vector<std::size_t>{1, 2}), p_props, 1));
+    r_model_part.AddElement(ElementSetupUtilities::Create2D2NElement(
+        ModelSetupUtilities::GetNodesFromIds(r_model_part, std::vector<std::size_t>{3, 4}), p_props, 2));
 
     const auto params = Parameters(R"({
         "model_part_name": "Main",
@@ -517,7 +532,8 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressure_ExtrapolatesWhenN
     KRATOS_EXPECT_NEAR(interior_node->FastGetSolutionStepValue(WATER_PRESSURE), expected_value, tolerance);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressure_NodeAtSameXAsBoundaryNode, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressure_NodeAtSameXAsBoundaryNode,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange: interior node shares the same x-coordinate as the leftmost boundary node.
     // FindClosestNodeOnBoundaryNodes returns the same node for both the "left" and "right"
@@ -544,8 +560,10 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressure_NodeAtSameXAsBoun
     interior_node->FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
 
     auto p_props = r_model_part.CreateNewProperties(0);
-    r_model_part.CreateNewElement("Element2D2N", 1, std::vector<ModelPart::IndexType>{1, 2}, p_props);
-    r_model_part.CreateNewElement("Element2D2N", 2, std::vector<ModelPart::IndexType>{3, 4}, p_props);
+    r_model_part.AddElement(ElementSetupUtilities::Create2D2NElement(
+        ModelSetupUtilities::GetNodesFromIds(r_model_part, std::vector<std::size_t>{1, 2}), p_props, 1));
+    r_model_part.AddElement(ElementSetupUtilities::Create2D2NElement(
+        ModelSetupUtilities::GetNodesFromIds(r_model_part, std::vector<std::size_t>{3, 4}), p_props, 2));
 
     const auto params = Parameters(R"({
         "model_part_name": "Main",
@@ -568,7 +586,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressure_NodeAtSameXAsBoun
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressure_OneContainerVerticalFallback_WhenHorizontalDifferenceIsTiny,
-                          KratosGeoMechanicsFastSuite)
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange: force one-container interpolation by placing the interior node to the right of all
     // boundary nodes with negative tiny x-values. This avoids cancellation in the closest-node
@@ -596,8 +614,10 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressure_OneContainerVerti
     interior_node->FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
 
     auto p_props = r_model_part.CreateNewProperties(0);
-    r_model_part.CreateNewElement("Element2D2N", 1, std::vector<ModelPart::IndexType>{1, 2}, p_props);
-    r_model_part.CreateNewElement("Element2D2N", 2, std::vector<ModelPart::IndexType>{3, 4}, p_props);
+    r_model_part.AddElement(ElementSetupUtilities::Create2D2NElement(
+        ModelSetupUtilities::GetNodesFromIds(r_model_part, std::vector<std::size_t>{1, 2}), p_props, 1));
+    r_model_part.AddElement(ElementSetupUtilities::Create2D2NElement(
+        ModelSetupUtilities::GetNodesFromIds(r_model_part, std::vector<std::size_t>{3, 4}), p_props, 2));
 
     const auto params = Parameters(R"({
         "model_part_name": "Main",
@@ -621,7 +641,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressure_OneContainerVerti
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressure_FlatBoundary_ReturnsBoundaryPressure,
-                          KratosGeoMechanicsFastSuite)
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange: all boundary nodes are on a single horizontal line (y=5).
     // Both FindTopBoundaryNodes and FindBottomBoundaryNodes return the same set, so
@@ -644,7 +664,8 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressure_FlatBoundary_Retu
     interior_node->FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
 
     auto p_props = r_model_part.CreateNewProperties(0);
-    r_model_part.CreateNewElement("Element2D2N", 1, std::vector<ModelPart::IndexType>{1, 2}, p_props);
+    r_model_part.AddElement(ElementSetupUtilities::Create2D2NElement(
+        ModelSetupUtilities::GetNodesFromIds(r_model_part, std::vector<std::size_t>{1, 2}), p_props));
 
     const auto params = Parameters(R"({
         "model_part_name": "Main",
@@ -667,7 +688,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressure_FlatBoundary_Retu
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressureProcess_FillListOfBoundaryNodesFast_DynamicAllocation,
-                          KratosGeoMechanicsFastSuite)
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange: Create a node shared by 11 elements to trigger dynamic push_back in FillListOfBoundaryNodesFast.
     Model      model;
@@ -681,11 +702,8 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressureProcess_FillListOf
     auto p_props = r_model_part.CreateNewProperties(0);
     // Create 11 elements, all sharing node 1
     for (std::size_t i = 2; i <= 12; ++i) {
-        r_model_part.CreateNewElement(
-            "Element2D2N", i - 1,
-            std::vector<ModelPart::IndexType>{static_cast<ModelPart::IndexType>(1),
-                                              static_cast<ModelPart::IndexType>(i)},
-            p_props);
+        r_model_part.AddElement(ElementSetupUtilities::Create2D2NElement(
+            ModelSetupUtilities::GetNodesFromIds(r_model_part, std::vector<std::size_t>{1, i}), p_props, i - 1));
     }
 
     const auto params = Parameters(R"({
@@ -702,7 +720,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressureProcess_FillListOf
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressureProcess_CalculateBoundaryPressure_ErrorBranch,
-                          KratosGeoMechanicsFastSuite)
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange: Build valid boundary nodes, plus one isolated node above them to make top boundary search empty.
     Model      model;
@@ -718,7 +736,8 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressureProcess_CalculateB
     p_node_3->FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
 
     auto p_props = r_model_part.CreateNewProperties(0);
-    r_model_part.CreateNewElement("Element2D2N", 1, std::vector<ModelPart::IndexType>{1, 2}, p_props);
+    r_model_part.AddElement(ElementSetupUtilities::Create2D2NElement(
+        ModelSetupUtilities::GetNodesFromIds(r_model_part, std::vector<std::size_t>{1, 2}), p_props));
 
     const auto params = Parameters(R"({
         "model_part_name": "Main",
