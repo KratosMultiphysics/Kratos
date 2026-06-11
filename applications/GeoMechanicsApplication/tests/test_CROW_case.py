@@ -38,6 +38,13 @@ stages_to_be_checked = [
     "6_Second_excavation",
     "7_Third_excavation",
 ]
+stages_to_be_plotted = [
+    "3_Wall_installation",
+    "4_First_excavation",
+    "5_Anchor_installation",
+    "6_Second_excavation",
+    "7_Third_excavation",
+]
 
 
 def _extract_x_and_y_from_line(line, index_of_x=0, index_of_y=1, x_transform=None):
@@ -229,7 +236,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
     def get_variable_collections_per_stage(
         self,
         kratos_variable_label,
-        plot_stages,
+        stage_names,
         nodes,
         postfix_json_output,
         transform_output,
@@ -241,8 +248,8 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
         y_coords = [node.Y for node in nodes]
 
         variable_data_collections = []
-        for stage in plot_stages:
-            json_data = self.read_json_output(stage["base_name"], postfix_json_output)
+        for stage_name in stage_names:
+            json_data = self.read_json_output(stage_name, postfix_json_output)
             variable_kratos_data = test_helper.get_nodal_values_from_json_output(
                 json_data, kratos_variable_label, node_ids
             )
@@ -261,8 +268,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             ]
 
             fem_comparison_csv = (
-                self.test_path
-                / f"{stage['base_name']}__{postfix_fem_comparison_csv}.csv"
+                self.test_path / f"{stage_name}__{postfix_fem_comparison_csv}.csv"
             )
             if fem_comparison_csv.exists():
                 data_points = test_helper.get_data_points_from_file(
@@ -277,10 +283,10 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
                 )
 
             if (
-                self.test_path / f"{stage['base_name']}__DSheetPiling_results.csv"
+                self.test_path / f"{stage_name}__DSheetPiling_results.csv"
             ).exists() and data_extractor_dsheetpiling:
                 data_points = test_helper.get_data_points_from_file(
-                    self.test_path / f"{stage['base_name']}__DSheetPiling_results.csv",
+                    self.test_path / f"{stage_name}__DSheetPiling_results.csv",
                     data_extractor_dsheetpiling,
                 )
                 data_series_collection.append(
@@ -296,8 +302,6 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
         return variable_data_collections
 
     def create_interface_plots(self, interface_nodes):
-        structural_stages = self.get_plot_stages()
-
         effective_traction_vector_label = "GEO_EFFECTIVE_TRACTION_VECTOR"
         postfix_fem_comparison_csv = "FE_comparison_interface"
         postfix_json_output = "output_interface"
@@ -306,7 +310,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
         )
         normal_traction_collections = self.get_variable_collections_per_stage(
             effective_traction_vector_label,
-            structural_stages,
+            stages_to_be_plotted,
             interface_nodes,
             postfix_json_output,
             to_normal_traction_in_kPa,
@@ -314,11 +318,10 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             extract_normal_traction_and_y_from_line,
         )
 
-        plot_titles = [stage["base_name"] for stage in structural_stages]
         plot_utils.make_sub_plots(
             normal_traction_collections,
             self.test_path / "normal_tractions_all_stages.svg",
-            titles=plot_titles,
+            titles=stages_to_be_plotted,
             xlabel=r"Normal Traction [$\mathrm{kN} / \mathrm{m}^2$]",
             ylabel=r"$y$ [m]",
         )
@@ -328,7 +331,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
         )
         shear_traction_collections = self.get_variable_collections_per_stage(
             effective_traction_vector_label,
-            structural_stages,
+            stages_to_be_plotted,
             interface_nodes,
             postfix_json_output,
             to_shear_traction_in_kPa,
@@ -339,26 +342,17 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
         plot_utils.make_sub_plots(
             shear_traction_collections,
             self.test_path / "shear_tractions_all_stages.svg",
-            titles=plot_titles,
+            titles=stages_to_be_plotted,
             xlabel=r"Shear Traction [$\mathrm{kN} / \mathrm{m}^2$]",
             ylabel=r"$y$ [m]",
         )
-
-    def get_plot_stages(self):
-        return [
-            self.stages_info["wall_installation"],
-            self.stages_info["first_excavation"],
-            self.stages_info["strut_installation"],
-            self.stages_info["second_excavation"],
-            self.stages_info["third_excavation"],
-        ]
 
     def get_bending_moment_data_series_per_stage(
         self, nodes, postfix_fem_comparison_csv
     ):
         return self.get_variable_collections_per_stage(
             "BENDING_MOMENT",
-            self.get_plot_stages(),
+            stages_to_be_plotted,
             nodes,
             wall_output_postfix,
             unit_to_k_unit,
@@ -370,7 +364,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
     def get_shear_force_data_series_per_stage(self, nodes, postfix_fem_comparison_csv):
         return self.get_variable_collections_per_stage(
             "SHEAR_FORCE",
-            self.get_plot_stages(),
+            stages_to_be_plotted,
             nodes,
             wall_output_postfix,
             unit_to_k_unit,
@@ -382,7 +376,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
     def get_normal_force_data_series_per_stage(self, nodes, postfix_fem_comparison_csv):
         return self.get_variable_collections_per_stage(
             "AXIAL_FORCE",
-            self.get_plot_stages(),
+            stages_to_be_plotted,
             nodes,
             wall_output_postfix,
             unit_to_k_unit,
@@ -396,7 +390,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
         no_transformation = lambda value: value
         return self.get_variable_collections_per_stage(
             "TOTAL_DISPLACEMENT_X",
-            self.get_plot_stages(),
+            stages_to_be_plotted,
             nodes,
             wall_output_postfix,
             no_transformation,
@@ -406,7 +400,6 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
         )
 
     def create_wall_plots(self, nodes):
-        plot_titles = [stage["base_name"] for stage in self.get_plot_stages()]
         postfix_fem_comparison_csv = "FE_comparison_wall"
 
         bending_moment_collections = self.get_bending_moment_data_series_per_stage(
@@ -415,7 +408,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
         plot_utils.make_sub_plots(
             bending_moment_collections,
             self.test_path / "bending_moments.svg",
-            titles=plot_titles,
+            titles=stages_to_be_plotted,
             xlabel="Bending moment [kNm/m]",
             ylabel=r"$y$ [m]",
         )
@@ -426,7 +419,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
         plot_utils.make_sub_plots(
             shear_force_collections,
             self.test_path / "shear_forces.svg",
-            titles=plot_titles,
+            titles=stages_to_be_plotted,
             xlabel="Shear force [kN/m]",
             ylabel=r"$y$ [m]",
         )
@@ -437,7 +430,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
         plot_utils.make_sub_plots(
             normal_force_collections,
             self.test_path / "normal_forces.svg",
-            titles=plot_titles,
+            titles=stages_to_be_plotted,
             xlabel="Normal force [kN/m]",
             ylabel=r"$y$ [m]",
         )
@@ -450,7 +443,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
         plot_utils.make_sub_plots(
             horizontal_total_displacement_collections,
             self.test_path / "horizontal_total_displacements.svg",
-            titles=plot_titles,
+            titles=stages_to_be_plotted,
             xlabel="Horizontal total displacement [m]",
             ylabel=r"$y$ [m]",
         )
