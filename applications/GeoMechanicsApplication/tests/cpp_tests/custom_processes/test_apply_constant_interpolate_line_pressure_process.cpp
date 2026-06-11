@@ -50,7 +50,7 @@ ModelPart& CreateTestModelPart(Model& rModel)
     return r_result;
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressureProcess_Construction, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, ApplyConstantInterpolateLinePressureProcess_Construction)
 {
     // Arrange
     Model model;
@@ -71,8 +71,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressureProcess_Constructi
     EXPECT_NO_THROW(ApplyConstantInterpolateLinePressureProcess process(r_model_part, params));
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressureProcess_ThrowsOnInvalidDirections,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, ApplyConstantInterpolateLinePressureProcess_ThrowsOnInvalidDirections)
 {
     // Arrange
     Model model;
@@ -95,8 +94,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressureProcess_ThrowsOnIn
         "Gravity direction cannot be the same as Out-of-Plane directions");
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressureProcess_ExecuteInitializeSolutionStep,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, ApplyConstantInterpolateLinePressureProcess_ExecuteInitializeSolutionStep)
 {
     // Arrange
     Model model;
@@ -130,7 +128,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressureProcess_ExecuteIni
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressureProcess_SeepageBranch, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, ApplyConstantInterpolateLinePressureProcess_SeepageBranch)
 {
     // Arrange
     Model model;
@@ -189,7 +187,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressureProcess_SeepageBra
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressureProcess_Info, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, ApplyConstantInterpolateLinePressureProcess_Info)
 {
     // Arrange
     Model model;
@@ -212,8 +210,8 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressureProcess_Info, Krat
     KRATOS_EXPECT_EQ(process.Info(), "ApplyConstantInterpolateLinePressureProcess");
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressureProcess_DoesNotFreeWhenIsFixedIsNotProvided,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
+       ApplyConstantInterpolateLinePressureProcess_DoesNotFreeWhenIsFixedIsNotProvided)
 {
     // Arrange
     Model model;
@@ -246,8 +244,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressureProcess_DoesNotFre
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressureProcess_FreesWhenIsFixedIsExplicitlyFalse,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, ApplyConstantInterpolateLinePressureProcess_FreesWhenIsFixedIsExplicitlyFalse)
 {
     // Arrange
     Model model;
@@ -281,8 +278,8 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressureProcess_FreesWhenI
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressureProcess_ExecuteInitializeSolutionStepRunsOnlyOnce,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
+       ApplyConstantInterpolateLinePressureProcess_ExecuteInitializeSolutionStepRunsOnlyOnce)
 {
     // Arrange: boundary nodes on top (y=10) and bottom (y=0), plus an interior node (y=5).
     // CalculatePressure interpolates the interior node to 50.0, which is intentionally
@@ -343,8 +340,8 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressureProcess_ExecuteIni
     KRATOS_EXPECT_NEAR(interior_node->FastGetSolutionStepValue(WATER_PRESSURE), sentinel, tolerance);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressure_InterpolatesInteriorFromTopAndBottomBoundaries,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
+       ApplyConstantInterpolateLinePressure_InterpolatesInteriorFromTopAndBottomBoundaries)
 {
     // Arrange
     Model      model;
@@ -407,8 +404,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressure_InterpolatesInter
                        Defaults::absolute_tolerance);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressure_Throws_WhenNoBoundaryNodes,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, ApplyConstantInterpolateLinePressure_Throws_WhenNoBoundaryNodes)
 {
     // Arrange
     Model      model;
@@ -430,8 +426,8 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressure_Throws_WhenNoBoun
                                       "No boundary node is found");
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressure_ExtrapolatesWhenNodeIsRightOfAllBoundaryNodes,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
+       ApplyConstantInterpolateLinePressure_ExtrapolatesWhenNodeIsRightOfAllBoundaryNodes)
 {
     // Arrange: boundary nodes only at x=[0,5]; interior node at x=10 lies beyond the right edge.
     // CalculateBoundaryPressure will take the "only-left" branch and call
@@ -481,8 +477,8 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressure_ExtrapolatesWhenN
     KRATOS_EXPECT_NEAR(interior_node->FastGetSolutionStepValue(WATER_PRESSURE), expected_value, tolerance);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressure_ExtrapolatesWhenNodeIsLeftOfAllBoundaryNodes,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
+       ApplyConstantInterpolateLinePressure_ExtrapolatesWhenNodeIsLeftOfAllBoundaryNodes)
 {
     // Arrange: boundary nodes only at x=[5,10]; interior node at x=0 lies beyond the left edge.
     // CalculateBoundaryPressure will take the "only-right" branch and call
@@ -532,8 +528,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressure_ExtrapolatesWhenN
     KRATOS_EXPECT_NEAR(interior_node->FastGetSolutionStepValue(WATER_PRESSURE), expected_value, tolerance);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressure_NodeAtSameXAsBoundaryNode,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, ApplyConstantInterpolateLinePressure_NodeAtSameXAsBoundaryNode)
 {
     // Arrange: interior node shares the same x-coordinate as the leftmost boundary node.
     // FindClosestNodeOnBoundaryNodes returns the same node for both the "left" and "right"
@@ -585,8 +580,8 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressure_NodeAtSameXAsBoun
     KRATOS_EXPECT_NEAR(interior_node->FastGetSolutionStepValue(WATER_PRESSURE), expected_value, tolerance);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressure_OneContainerVerticalFallback_WhenHorizontalDifferenceIsTiny,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
+       ApplyConstantInterpolateLinePressure_OneContainerVerticalFallback_WhenHorizontalDifferenceIsTiny)
 {
     // Arrange: force one-container interpolation by placing the interior node to the right of all
     // boundary nodes with negative tiny x-values. This avoids cancellation in the closest-node
@@ -640,8 +635,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressure_OneContainerVerti
     KRATOS_EXPECT_NEAR(interior_node->FastGetSolutionStepValue(WATER_PRESSURE), expected_value, tolerance);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressure_FlatBoundary_ReturnsBoundaryPressure,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, ApplyConstantInterpolateLinePressure_FlatBoundary_ReturnsBoundaryPressure)
 {
     // Arrange: all boundary nodes are on a single horizontal line (y=5).
     // Both FindTopBoundaryNodes and FindBottomBoundaryNodes return the same set, so
@@ -687,8 +681,8 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressure_FlatBoundary_Retu
     KRATOS_EXPECT_NEAR(interior_node->FastGetSolutionStepValue(WATER_PRESSURE), expected_value, tolerance);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressureProcess_FillListOfBoundaryNodesFast_DynamicAllocation,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
+       ApplyConstantInterpolateLinePressureProcess_FillListOfBoundaryNodesFast_DynamicAllocation)
 {
     // Arrange: Create a node shared by 11 elements to trigger dynamic push_back in FillListOfBoundaryNodesFast.
     Model      model;
@@ -719,8 +713,8 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressureProcess_FillListOf
     EXPECT_NO_THROW(ApplyConstantInterpolateLinePressureProcess process(r_model_part, params));
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressureProcess_CalculateBoundaryPressure_ErrorBranch,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
+       ApplyConstantInterpolateLinePressureProcess_CalculateBoundaryPressure_ErrorBranch)
 {
     // Arrange: Build valid boundary nodes, plus one isolated node above them to make top boundary search empty.
     Model      model;
