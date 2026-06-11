@@ -254,12 +254,13 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
                 )
             ]
 
-            fem_comparison_csv = (
+            # Get results of comparison FE analysis (if they exist)
+            csv_file_path = (
                 self.test_path / f"{stage_name}__{postfix_fem_comparison_csv}.csv"
             )
-            if fem_comparison_csv.exists():
+            if csv_file_path.exists():
                 data_points = test_helper.get_data_points_from_file(
-                    fem_comparison_csv, data_extractor_fem_comparison
+                    csv_file_path, data_extractor_fem_comparison
                 )
                 data_series_collection.append(
                     plot_utils.DataSeries(
@@ -269,11 +270,11 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
                     )
                 )
 
-            if (
-                self.test_path / f"{stage_name}__DSheetPiling_results.csv"
-            ).exists() and data_extractor_dsheetpiling:
+            # Get results of D-Sheet Piling analysis (if they exist)
+            csv_file_path = self.test_path / f"{stage_name}__DSheetPiling_results.csv"
+            if csv_file_path.exists() and data_extractor_dsheetpiling:
                 data_points = test_helper.get_data_points_from_file(
-                    self.test_path / f"{stage_name}__DSheetPiling_results.csv",
+                    csv_file_path,
                     data_extractor_dsheetpiling,
                 )
                 data_series_collection.append(
