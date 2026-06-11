@@ -17,6 +17,7 @@ if test_helper.want_test_plots():
 
 
 wall_output_postfix = "output_wall"
+interface_output_postfix = "output_interface"
 
 csv_fieldname_node = "node"
 csv_fieldname_bending_moment = "bending_moment_in_Nm_per_m"
@@ -290,7 +291,6 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
     def create_interface_plots(self, interface_nodes):
         effective_traction_vector_label = "GEO_EFFECTIVE_TRACTION_VECTOR"
         postfix_fem_comparison_csv = "FE_comparison_interface"
-        postfix_json_output = "output_interface"
         to_normal_traction_in_kPa = lambda traction_vector: unit_to_k_unit(
             traction_vector[0]
         )
@@ -298,7 +298,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             effective_traction_vector_label,
             stages_to_be_plotted,
             interface_nodes,
-            postfix_json_output,
+            interface_output_postfix,
             to_normal_traction_in_kPa,
             postfix_fem_comparison_csv,
             extract_normal_traction_and_y_from_line,
@@ -319,7 +319,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             effective_traction_vector_label,
             stages_to_be_plotted,
             interface_nodes,
-            postfix_json_output,
+            interface_output_postfix,
             to_shear_traction_in_kPa,
             postfix_fem_comparison_csv,
             extract_shear_traction_and_y_from_line,
