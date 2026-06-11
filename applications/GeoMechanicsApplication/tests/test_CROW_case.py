@@ -354,14 +354,16 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             self.stages_info["third_excavation"],
         ]
 
-    def get_bending_moment_data_series_per_stage(self, nodes):
+    def get_bending_moment_data_series_per_stage(
+        self, nodes, postfix_fem_comparison_csv
+    ):
         return self.get_variable_collections_per_stage(
             "BENDING_MOMENT",
             self.get_plot_stages(),
             nodes,
             wall_output_postfix,
             unit_to_k_unit,
-            "FE_comparison_wall",
+            postfix_fem_comparison_csv,
             extract_bending_moment_and_y_from_line,
             data_extractor_dsheetpiling=extract_bending_moment_and_y_from_line,
         )
@@ -407,9 +409,10 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
     def create_wall_plots(self, nodes):
         plot_stages = self.get_plot_stages()
         plot_titles = [stage["base_name"] for stage in plot_stages]
+        postfix_fem_comparison_csv = "FE_comparison_wall"
 
         bending_moment_collections = self.get_bending_moment_data_series_per_stage(
-            nodes
+            nodes, postfix_fem_comparison_csv
         )
         plot_utils.make_sub_plots(
             bending_moment_collections,
@@ -419,7 +422,6 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             ylabel=r"$y$ [m]",
         )
 
-        postfix_fem_comparison_csv = "FE_comparison_wall"
         shear_force_collections = self.get_shear_force_data_series_per_stage(
             nodes, postfix_fem_comparison_csv
         )
