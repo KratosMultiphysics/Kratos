@@ -389,6 +389,21 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             extract_normal_force_and_y_from_line,
         )
 
+    def get_horizontal_total_displacement_data_series_per_stage(
+        self, nodes, postfix_fem_comparison_csv
+    ):
+        no_transformation = lambda value: value
+        return self.get_variable_collections_per_stage(
+            "TOTAL_DISPLACEMENT_X",
+            self.get_plot_stages(),
+            nodes,
+            wall_output_postfix,
+            no_transformation,
+            postfix_fem_comparison_csv,
+            extract_horizontal_displacements_from_line,
+            data_extractor_dsheetpiling=extract_horizontal_displacements_from_dsheetpiling_line,
+        )
+
     def create_wall_plots(self, nodes):
         plot_stages = self.get_plot_stages()
         plot_titles = [stage["base_name"] for stage in plot_stages]
@@ -427,17 +442,10 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             ylabel=r"$y$ [m]",
         )
 
-        postfix_json_output = wall_output_postfix
-        no_transformation = lambda value: value
-        horizontal_total_displacement_collections = self.get_variable_collections_per_stage(
-            "TOTAL_DISPLACEMENT_X",
-            plot_stages,
-            nodes,
-            postfix_json_output,
-            no_transformation,
-            postfix_fem_comparison_csv,
-            extract_horizontal_displacements_from_line,
-            data_extractor_dsheetpiling=extract_horizontal_displacements_from_dsheetpiling_line,
+        horizontal_total_displacement_collections = (
+            self.get_horizontal_total_displacement_data_series_per_stage(
+                nodes, postfix_fem_comparison_csv
+            )
         )
         plot_utils.make_sub_plots(
             horizontal_total_displacement_collections,
