@@ -178,6 +178,11 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, ApplyConstantInterpolateLinePre
         "table": 1
     })");
 
+    // Reset nodes to unfixed
+    for (auto& r_node : r_model_part.Nodes()) {
+        r_node.Free(WATER_PRESSURE);
+    }
+
     ApplyConstantInterpolateLinePressureProcess process_above(r_model_part, params_above);
     process_above.ExecuteInitializeSolutionStep();
 
