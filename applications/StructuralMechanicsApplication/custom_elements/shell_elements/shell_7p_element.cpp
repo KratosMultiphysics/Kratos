@@ -199,19 +199,67 @@ void Shell7pElement::CalculateLeftHandSide(
     Matrix gmkovr = ZeroMatrix(3);
     Matrix gmkonr = ZeroMatrix(3);
     double detJ_surface = 0.0;
-    double gpcoord3[2] = {1.0 / sqrt(3.0), -1.0 / sqrt(3.0)};
-    double gpweight[2] = {1.0, 1.0};
+
+    array_1d<double,2> gpcoord3;
+    gpcoord3[0] =  1.0 / std::sqrt(3.0);
+    gpcoord3[1] = -1.0 / std::sqrt(3.0);
+    array_1d<double,2> gpweight;
+    gpweight[0] = 1.0;
+    gpweight[1] = 1.0;
+
     double amdet_body = 0.0;
     double gmdet_body = 0.0;
 
-    // int ansq=0;   
-    // int nsansq=2; // activation flag of Q-mode of ANS
-    // double xr1[2]; 
-    // double xs1[2]; 
-    // double xr2[2]; 
-    // double xs2[2]; 
-    // double frq[2]; 
-    // double fsq[2]; 
+    ////////////////////////////////////////////////////////////////BEGIN ANS STUFF////////////////////////////////////////////////////////////////
+    int ansq=1; // activation flag of Q-mode of ANS  
+    SizeType n_ans_points=4; 
+    // 4 ANS sampling points: (r, s)
+    array_1d<array_1d<double,2>,4> ans_points;
+    ans_points[0][0] =  0.0; ans_points[0][1] = -1.0; // (xr1[0], xs1[0])
+    ans_points[1][0] =  0.0; ans_points[1][1] =  1.0; // (xr1[1], xs1[1])
+    ans_points[2][0] = -1.0; ans_points[2][1] =  0.0; // (xr2[0], xs2[0])
+    ans_points[3][0] =  1.0; ans_points[3][1] =  0.0; // (xr2[1], xs2[1])
+    array_1d<double,2> frq;
+    array_1d<double,2> fsq;
+
+    //array_1d<Vector,4> funct_q;                        
+    //array_1d<Matrix,4> deriv_q;
+
+    Matrix N_ans = ZeroMatrix(n_ans_points, number_of_nodes);   // N_ans(p,i) = N_i at point p
+    array_1d<Matrix,4> DN_ans;                                  // DN_ansp=dNi/dxi (DN_ans[p](i, 0)), DN_ansp=dNi/deta (DN_ans[p](i, 1))
+    array_1d<array_1d<Vector,3>,4> akovr_ans;
+    Vector Np(number_of_nodes);
+
+    for (SizeType p = 0; p < n_ans_points; ++p) {
+        //funct_q[p].resize(number_of_nodes);
+        DN_ans[p].resize(number_of_nodes, 2, false);
+
+        array_1d<double,3> local_coords;
+        local_coords[0] = ans_points[p][0]; // xi
+        local_coords[1] = ans_points[p][1]; // eta
+        local_coords[2] = 0.0;
+
+        r_geom.ShapeFunctionsValues(Np, local_coords);
+        row(N_ans, p) = Np;
+
+        r_geom.ShapeFunctionsLocalGradients(DN_ans[p], local_coords);
+
+        CovariantBaseVectorsMidsurface(akovr_ans[p], DN_ans[p], row(N_ans, p), ConfigurationType::Reference, thickness);
+
+    }
+
+    ////////////////////////////////////////////////////////////////END ANS STUFF////////////////////////////////////////////////////////////////
+    //array_1d<Matrix,2> akovr_1q;
+    //array_1d<Matrix,2> akonr_1q;
+    //array_1d<Matrix,2> amkovr_1q;
+    //array_1d<Matrix,2> amkonr_1q;
+    //array_1d<Matrix,2> a3kvpr_1q;
+//
+    //array_1d<Matrix,2> akovr_2q;
+    //array_1d<Matrix,2> akonr_2q;
+    //array_1d<Matrix,2> amkovr_2q;
+    //array_1d<Matrix,2> amkonr_2q;
+    //array_1d<Matrix,2> a3kvpr_2q;
 
     for (SizeType point_number = 0; point_number < r_integration_points.size(); ++point_number){
         // getting information for integration
@@ -231,12 +279,25 @@ void Shell7pElement::CalculateLeftHandSide(
 
         JacobiDeterminante(detJ_surface,akovr);
 
+        ////////////////////////////////////////////////////////////////BEGIN ANS STUFF////////////////////////////////////////////////////////////////
+        const auto& r_gp = r_integration_points[point_number];
+
+        const double r  = r_gp.X();
+        const double s = r_gp.Y();
+
+        s8_ansqshapefunctions(frq, fsq, r, s);
+
+        ////////////////////////////////////////////////////////////////END ANS STUFF////////////////////////////////////////////////////////////////
+
         BoundedMatrix<double, 12, 12> Dmatrix=ZeroMatrix(12,12);
         Matrix Bop = ZeroMatrix(12,number_dofs);
         CalculatelinearBOperator(Bop,akovr,a3kvp,shape_functions_gradients_i,Nshape,number_of_nodes);
+        //-------------------------------------- modifications due to ans 
+        BOperatorANSmodification(Bop,frq,fsq,akovr_ans,a3kvp,DN_ans,N_ans,number_of_nodes);
 
-        // loop over GP in thickness direction for preintegration of constitutive law
-        for (SizeType k=0; k<2; ++k){
+
+        //-------------------------------------- loop over GP in thickness direction for preintegration of constitutive law
+        for (SizeType k=0; k<2; ++k){           // separate function PreintegrateThroughThicknessConstitutive() ?
             double Theta3 = gpcoord3[k];
             double tweight = gpweight[k];
             CovariantBaseVectorsShellBody(gkovr,shape_functions_gradients_i,Nshape,ConfigurationType::Reference,Theta3,thickness);
@@ -244,13 +305,13 @@ void Shell7pElement::CalculateLeftHandSide(
             ContravariantMetric(gmkonr,gmkovr,gmdet_body);
             //ContraVariantBaseVectors(gkonr,gmkonr,gkovr);
 
-            double scalefactor= sqrt(gmdet_body)/detJ_surface * tweight;
+            double scalefactor= std::sqrt(gmdet_body)/detJ_surface * tweight;
 
             CalculateMaterialLaw(Dmatrix,gmkonr,thickness,ConstitutiveLawType::gStVenantKirchhoff, Theta3, scalefactor);
         }
         Dmatrix(2,2) *= 5.0/6.0; 
         Dmatrix(2,4) *= 5.0/6.0; 
-        Dmatrix(4,2) *= 5.0/6.0;
+        Dmatrix(4,2) *= 5.0/6.0;        // separate function ApplyShearCorrections()?
         Dmatrix(4,4) *= 5.0/6.0;
         Dmatrix(8,8) *= 0.7;     
         Dmatrix(8,10) *= 0.7;
@@ -382,15 +443,15 @@ void Shell7pElement::CovariantBaseVectorsShellBody(array_1d<Vector,3>& gkovr,
 
     for (SizeType i=0;i<number_of_nodes;++i){
 
-        const Vector& nodal_normal = r_geom[i].GetValue(NORMAL);        // node.GetValue(NORMAL)
+        const Vector& nodal_normal = r_geom[i].GetValue(NORMAL) * thickness*0.5;        // node.GetValue(NORMAL)
 
-        g1[0] += (r_geom.GetPoint( i ).X0() + Theta3 * thickness*0.5 *nodal_normal[0]) * rShapeFunctionGradientValues(i, 0);
-        g1[1] += (r_geom.GetPoint( i ).Y0() + Theta3 * thickness*0.5 *nodal_normal[1]) * rShapeFunctionGradientValues(i, 0);
-        g1[2] += (r_geom.GetPoint( i ).Z0() + Theta3 * thickness*0.5 *nodal_normal[2]) * rShapeFunctionGradientValues(i, 0);
+        g1[0] += (r_geom.GetPoint( i ).X0() + Theta3 * nodal_normal[0]) * rShapeFunctionGradientValues(i, 0);
+        g1[1] += (r_geom.GetPoint( i ).Y0() + Theta3 * nodal_normal[1]) * rShapeFunctionGradientValues(i, 0);
+        g1[2] += (r_geom.GetPoint( i ).Z0() + Theta3 * nodal_normal[2]) * rShapeFunctionGradientValues(i, 0);
 
-        g2[0] += (r_geom.GetPoint( i ).X0() + Theta3 * thickness*0.5 *nodal_normal[0]) * rShapeFunctionGradientValues(i, 1);
-        g2[1] += (r_geom.GetPoint( i ).Y0() + Theta3 * thickness*0.5 *nodal_normal[1]) * rShapeFunctionGradientValues(i, 1);
-        g2[2] += (r_geom.GetPoint( i ).Z0() + Theta3 * thickness*0.5 *nodal_normal[2]) * rShapeFunctionGradientValues(i, 1);
+        g2[0] += (r_geom.GetPoint( i ).X0() + Theta3 * nodal_normal[0]) * rShapeFunctionGradientValues(i, 1);
+        g2[1] += (r_geom.GetPoint( i ).Y0() + Theta3 * nodal_normal[1]) * rShapeFunctionGradientValues(i, 1);
+        g2[2] += (r_geom.GetPoint( i ).Z0() + Theta3 * nodal_normal[2]) * rShapeFunctionGradientValues(i, 1);
 
         g3[0] += nodal_normal[0] * rNshape[i];
         g3[1] += nodal_normal[1] * rNshape[i];
@@ -398,7 +459,7 @@ void Shell7pElement::CovariantBaseVectorsShellBody(array_1d<Vector,3>& gkovr,
     }
     gkovr[0] = g1;
     gkovr[1] = g2;
-    gkovr[2] = g3*thickness*0.5;
+    gkovr[2] = g3;
 }
 
 void Shell7pElement::CalculateMaterialLaw(BoundedMatrix<double, 12, 12>& CL, const Matrix& gmkonr, const double& thickness,
@@ -413,7 +474,7 @@ const ConstitutiveLawType& option, const double& Theta3, const double& fact) con
 
     if (option == ConstitutiveLawType::gStVenantKirchhoff) {
         double C[3][3][3][3] = {};
-        //double Theta3[2] = {1.0 / sqrt(3.0), -1.0 / sqrt(3.0)};
+        //double Theta3[2] = {1.0 / std::sqrt(3.0), -1.0 / std::sqrt(3.0)};
         //double gpweight[2] = {1.0, 1.0};
         BoundedMatrix<double, 6, 6> CC = ZeroMatrix(6);
 
@@ -634,4 +695,87 @@ const double a32z=DirectorDerivatives[1][2];
     }
 }
 
-} // namespace Kratos
+void Shell7pElement::s8_ansqshapefunctions(array_1d<double,2>& frq, array_1d<double,2>& fsq,const double r, const double s) const
+{
+
+   frq[0] = 0.5 * (1.0 - s);
+   frq[1] = 0.5 * (1.0 + s);
+   fsq[0] = 0.5 * (1.0 - r);
+   fsq[1] = 0.5 * (1.0 + r);
+}
+
+void Shell7pElement::BOperatorANSmodification(Matrix& Bop, const array_1d<double,2>& frq, const array_1d<double,2>& fsq,
+    const array_1d<array_1d<Vector,3>,4>& akovr_ans,const array_1d<Vector,2>& a3kvp,const array_1d<Matrix,4>& DN_ans,
+    const Matrix& N_ans, const SizeType& number_of_nodes) const
+{
+    for (SizeType inode = 0; inode < number_of_nodes; ++inode)
+  {
+    const SizeType node_start = inode*6;
+
+    Bop(2,node_start+0)= 0.0;
+    Bop(2,node_start+1)= 0.0;
+    Bop(2,node_start+2)= 0.0;
+    Bop(2,node_start+3)= 0.0;
+    Bop(2,node_start+4)= 0.0;
+    Bop(2,node_start+5)= 0.0;
+
+    Bop(4,node_start+0)= 0.0;
+    Bop(4,node_start+1)= 0.0;
+    Bop(4,node_start+2)= 0.0;
+    Bop(4,node_start+3)= 0.0;
+    Bop(4,node_start+4)= 0.0;
+    Bop(4,node_start+5)= 0.0;
+
+    for (SizeType isamp = 0; isamp < 2; ++isamp)
+    {
+      const double a1x1 = akovr_ans[isamp][0][0];     // a1x
+      const double a1y1 = akovr_ans[isamp][0][1];     // a1y
+      const double a1z1 = akovr_ans[isamp][0][2];     // a1z
+      const double a3x1 = akovr_ans[isamp][2][0];     // a3x
+      const double a3y1 = akovr_ans[isamp][2][1];     // a3y
+      const double a3z1 = akovr_ans[isamp][2][2];     // a3z
+
+      const double a2x2 = akovr_ans[isamp+2][1][0];
+      const double a2y2 = akovr_ans[isamp+2][1][1];
+      const double a2z2 = akovr_ans[isamp+2][1][2];
+      const double a3x2 = akovr_ans[isamp+2][2][0];
+      const double a3y2 = akovr_ans[isamp+2][2][1];
+      const double a3z2 = akovr_ans[isamp+2][2][2];
+
+      //const double a31x1 = a3kvpc1q[isamp][0][0];
+      //const double a31y1 = a3kvpc1q[isamp][1][0];
+      //const double a31z1 = a3kvpc1q[isamp][2][0];
+
+      //const double a32x2 = a3kvpc2q[isamp][0][1];
+      //const double a32y2 = a3kvpc2q[isamp][1][1];
+      //const double a32z2 = a3kvpc2q[isamp][2][1];
+
+      const double N1 = N_ans(isamp, inode);
+      const double N2 = N_ans(isamp+2, inode);
+
+      const double dNd1 = DN_ans[isamp](inode, 0);
+      const double dNd2 = DN_ans[isamp+2](inode, 1);
+
+      const double N1_ans = frq[isamp];
+      const double N2_ans = fsq[isamp];
+/*--------------------------------------------------E13(CONST)-------- */
+      Bop(2,node_start+0)+= dNd1*a3x1*N1_ans;
+      Bop(2,node_start+1)+= dNd1*a3y1*N1_ans;
+      Bop(2,node_start+2)+= dNd1*a3z1*N1_ans;
+      Bop(2,node_start+3)+= N1*a1x1*N1_ans;
+      Bop(2,node_start+4)+= N1*a1y1*N1_ans;
+      Bop(2,node_start+5)+= N1*a1z1*N1_ans;
+/*-------------------------------------------------E23(CONST)-------- */
+      Bop(4,node_start+0)+= dNd2*a3x2*N2_ans;
+      Bop(4,node_start+1)+= dNd2*a3y2*N2_ans;
+      Bop(4,node_start+2)+= dNd2*a3z2*N2_ans;
+      Bop(4,node_start+3)+= N2*a2x2*N2_ans;  
+      Bop(4,node_start+4)+= N2*a2y2*N2_ans;
+      Bop(4,node_start+5)+= N2*a2z2*N2_ans;
+    }
+  }
+
+
+}
+
+}   // namespace Kratos

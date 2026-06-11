@@ -110,6 +110,12 @@ private:
     void CalculatelinearBOperator(Matrix& bop, const array_1d<Vector,3>& CovariantBaseVectors, const array_1d<Vector,2>& DirectorDerivatives, 
     const Matrix& ShapeFunctionGradientValues, const Vector& Nshape, const SizeType& number_of_nodes) const;
 
+    void s8_ansqshapefunctions(array_1d<double,2>& frq, array_1d<double,2>& fsq,const double xi, const double eta) const;
+
+    void BOperatorANSmodification(Matrix& Bop, const array_1d<double,2>& frq, const array_1d<double,2>& fsq,
+    const array_1d<array_1d<Vector,3>,4>& akovr_ans,const array_1d<Vector,2>& a3kvp,const array_1d<Matrix,4>& DN_ans,
+    const Matrix& N_ans, const SizeType& number_of_nodes) const;
+
     friend class Serializer;
 
     // A private default constructor necessary for serialization
