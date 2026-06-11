@@ -63,11 +63,14 @@ public:
         double MaxV;
     };
 
+    struct TruncationEntry {
+        SizeType FineFlatIndex;
+        double   Coefficient;
+    };
+
     using THBLevelContainer         = std::vector<THBLevel>;
     using RefinementDomainContainer = std::vector<THBRefinementDomain>;
-
-    /// Placeholder — truncation metadata structure is not yet defined.
-    using TruncationRuleContainer   = std::vector<int>;
+    using TruncationEntryContainer  = std::vector<TruncationEntry>;
 
     KRATOS_CLASS_POINTER_DEFINITION(THBSurfaceGeometry);
 
@@ -184,6 +187,7 @@ public:
 
         mRefinementDomains.push_back(THBRefinementDomain{Level, OmegaMinU, OmegaMaxU, OmegaMinV, OmegaMaxV});
         ComputeActiveFunctions();
+        ComputeTruncationData();
     }
 
     /**
@@ -241,6 +245,9 @@ public:
 
         this->Points() = packed_points;
         mIsEliminated = true;
+
+        // Refinement matrices are only needed during setup (AddLevel → AddRefinementDomain).
+        // Release them now to free memory.
     }
 
     ///@}
@@ -280,6 +287,16 @@ public:
         for (bool active : mActiveFunctions[Level])
             if (active) ++count;
         return count;
+    }
+
+    /// Returns the truncation entries for active coarse CP at (Level, FlatIndex).
+    /// Empty when the CP has no active children — no truncation needed.
+    const TruncationEntryContainer& GetTruncationData(SizeType Level, SizeType FlatIndex) const
+    {
+        static const TruncationEntryContainer empty;
+        if (Level >= mTruncationData.size()) return empty;
+        if (FlatIndex >= mTruncationData[Level].size()) return empty;
+        return mTruncationData[Level][FlatIndex];
     }
 
     /// Returns the finest level whose refinement domain contains (u, v), or 0 if none.
@@ -387,9 +404,9 @@ public:
      * level.  The resulting nonzero control points are looked up from the packed
      * Points() array (works both before and after EliminateInactiveFunctions).
      *
-     * @note Truncation is not yet applied — this computes HB shape functions.
-     *       Partition of unity is not guaranteed at coarse/fine boundaries until
-     *       ApplyTruncation is implemented in THBSurfaceShapeFunction.
+     * @note Truncation is applied via THBSurfaceShapeFunction::ApplyTruncation,
+     *       which subtracts the active fine-level contributions from straddling
+     *       coarse CPs, producing true THB shape functions.
      */
     void CreateQuadraturePointGeometries(
         GeometriesArrayType& rResultGeometries,
@@ -498,12 +515,14 @@ private:
 
     THBLevelContainer         mLevels;
     RefinementDomainContainer mRefinementDomains;
-    TruncationRuleContainer   mTruncationRules; ///< @todo define once truncation metadata is specified
     std::vector<std::vector<bool>> mActiveFunctions;
 
     bool                           mIsEliminated = false;
-    std::vector<SizeType>          mActiveOffset;      // packed Points() start index for level l
-    std::vector<std::vector<int>>  mActiveLocalIndex;  // [l][flat_idx] → packed pos within l, -1 if inactive
+    std::vector<SizeType>          mActiveOffset;
+    std::vector<std::vector<int>>  mActiveLocalIndex;
+
+    std::vector<std::vector<TruncationEntryContainer>> mTruncationData;
+
 
     ///@}
     ///@name Private Helpers
@@ -688,6 +707,65 @@ private:
                 v >= dom.MinV && v <= dom.MaxV)
                 return true;
         return false;
+    }
+
+    /**
+     * @brief Builds truncation coefficient lists for active coarse CPs.
+     *
+     * For each active CP i at level l, checks whether any fine CP j at level l+1
+     * has a nonzero refinement coefficient c_{ij} = M_U[j_u,i_u] * M_V[j_v,i_v]
+     * AND is active.  If so, stores {j_flat, c_{ij}} so that the shape function
+     * evaluator can subtract those contributions (truncation).
+     *
+     * A coarse CP that has no active children needs no truncation — its entry list
+     * stays empty.  Called automatically by AddRefinementDomain after
+     * ComputeActiveFunctions.
+     */
+    void ComputeTruncationData()
+    {
+        const SizeType p = mLevels[0].DegreeU;
+        const SizeType q = mLevels[0].DegreeV;
+        const SizeType nL = mLevels.size();
+
+        mTruncationData.resize(nL);
+
+        for (SizeType l = 0; l + 1 < nL; ++l) {
+            const THBLevel& lev_c = mLevels[l];
+            const THBLevel& lev_f = mLevels[l + 1];
+            const SizeType  nU_c  = lev_c.KnotsU.size() - p + 1;
+            const SizeType  nV_c  = lev_c.KnotsV.size() - q + 1;
+            const SizeType  nU_f  = lev_f.KnotsU.size() - p + 1;
+            const SizeType  nV_f  = lev_f.KnotsV.size() - q + 1;
+
+            const Matrix M_U = ComputeRefinementMatrix1D(lev_c.KnotsU, lev_f.KnotsU, p);
+            const Matrix M_V = ComputeRefinementMatrix1D(lev_c.KnotsV, lev_f.KnotsV, q);
+
+            mTruncationData[l].assign(nU_c * nV_c, TruncationEntryContainer{});
+
+            for (SizeType i_v = 0; i_v < nV_c; ++i_v) {
+                for (SizeType i_u = 0; i_u < nU_c; ++i_u) {
+                    const SizeType i_flat = i_v * nU_c + i_u;
+                    if (!mActiveFunctions[l][i_flat]) continue;
+
+                    auto& entries = mTruncationData[l][i_flat];
+                    for (SizeType j_v = 0; j_v < nV_f; ++j_v) {
+                        const double cv = M_V(j_v, i_v);
+                        if (std::abs(cv) < 1e-15) continue;
+                        for (SizeType j_u = 0; j_u < nU_f; ++j_u) {
+                            const double cu = M_U(j_u, i_u);
+                            if (std::abs(cu) < 1e-15) continue;
+                            const SizeType j_flat = j_v * nU_f + j_u;
+                            if (!mActiveFunctions[l + 1][j_flat]) continue;
+                            entries.push_back({j_flat, cu * cv});
+                        }
+                    }
+                }
+            }
+        }
+        // Finest level: no truncation (nothing finer to subtract).
+        const SizeType nU_last = mLevels[nL-1].KnotsU.size() - p + 1;
+        const SizeType nV_last = mLevels[nL-1].KnotsV.size() - q + 1;
+        mTruncationData[nL - 1].assign(nU_last * nV_last, TruncationEntryContainer{});
     }
 
     /**
