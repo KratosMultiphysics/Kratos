@@ -218,6 +218,23 @@ protected:
 
         // Variables including all integration points
         Matrix CurrentDisp;
+
+        // Stabilization parameters
+        double tau1;
+        double tau2;
+        double DynamicCoefficient;
+        double ShearModulus;
+        double BulkModulus;
+
+        // Pressure at gauss points and pressure gradient
+        double PressureGP;
+        Vector PressureGradient;
+        Vector PressureGradientVoigt;
+        Vector DynamicRHS;
+        Vector DiscreteAcceleration;
+        Matrix Identity;
+        Matrix TensorIdentityMatrix;
+
     };
 
 public:

@@ -84,6 +84,12 @@ class CooksMembraneUPCompressibleQuadsTest(MPMTestFactory):
 class CooksMembraneUPIncompressibleTest(MPMTestFactory):
     file_name = "cooks_membrane_tests/UP_incompressible_cook_membrane_2D_test"
 
+class CooksMembraneUPCompressibleASGSTest(MPMTestFactory):
+    file_name = "cooks_membrane_tests/UP_vms_stabilization/UP_compressible_cook_membrane_2D_asgs_test"
+
+class CooksMembraneUPIncompressibleASGSTest(MPMTestFactory):
+    file_name = "cooks_membrane_tests/UP_vms_stabilization/UP_incompressible_cook_membrane_2D_asgs_test"
+
 ### Constitutive Law Tests
 class CLLinearElastic3DQuadTest(MPMTestFactory):
     file_name = "cl_tests/solid_cl/linear_elastic_3D_hexa_test"
