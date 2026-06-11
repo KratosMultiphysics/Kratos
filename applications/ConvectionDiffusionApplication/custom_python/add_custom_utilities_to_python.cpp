@@ -29,7 +29,8 @@
 #include "custom_utilities/embedded_mls_constraint_process.h"
 #include "custom_utilities/surface_integral.h"
 #include "custom_utilities/blurriness_calculator.h"
-#include "custom_utilities/surface_L2_integration.h"
+#include "custom_utilities/surface_interpolated_l2_norm.h"
+#include "custom_utilities/surface_l2_norm.h"
 #include "custom_utilities/surface_interpolator.h"
 #include "custom_utilities/boussinesq_coupling_utilities.h"
 #include "custom_utilities/compute_flux_vector.h"
@@ -185,16 +186,28 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     .def("GetBlurriness", &BlurrinessCalculator::GetBlurriness)
     ;
 
-    py::class_<SurfaceL2Integration<double>>(m, "SurfaceL2Integration")
+    py::class_<SurfaceInterpolatedL2Norm<double>>(m, "SurfaceInterpolatedL2Norm")
     .def(py::init<ModelPart&, const std::vector<ModelPart*>&, const Variable<double>&>())
-    .def("ComputeL2Norm", &SurfaceL2Integration<double>::ComputeL2Norm)
-    .def("GetL2Norm", &SurfaceL2Integration<double>::GetL2Norm)
+    .def("ComputeL2Norm", &SurfaceInterpolatedL2Norm<double>::ComputeL2Norm)
+    .def("GetL2Norm", &SurfaceInterpolatedL2Norm<double>::GetL2Norm)
     ;
 
-    py::class_<SurfaceL2Integration<array_1d<double,3>>>(m, "SurfaceL2IntegrationVector")
+    py::class_<SurfaceInterpolatedL2Norm<array_1d<double,3>>>(m, "SurfaceInterpolatedL2NormVector")
     .def(py::init<ModelPart&, const std::vector<ModelPart*>&, const Variable<array_1d<double,3>>&>())
-    .def("ComputeL2Norm", &SurfaceL2Integration<array_1d<double,3>>::ComputeL2Norm)
-    .def("GetL2Norm", &SurfaceL2Integration<array_1d<double,3>>::GetL2Norm)
+    .def("ComputeL2Norm", &SurfaceInterpolatedL2Norm<array_1d<double,3>>::ComputeL2Norm)
+    .def("GetL2Norm", &SurfaceInterpolatedL2Norm<array_1d<double,3>>::GetL2Norm)
+    ;
+
+    py::class_<SurfaceL2Norm<double>>(m, "SurfaceL2Norm")
+    .def(py::init<const std::vector<ModelPart*>&, const Variable<double>&>())
+    .def("ComputeL2Norm", &SurfaceL2Norm<double>::ComputeL2Norm)
+    .def("GetL2Norm", &SurfaceL2Norm<double>::GetL2Norm)
+    ;
+
+    py::class_<SurfaceL2Norm<array_1d<double,3>>>(m, "SurfaceL2NormVector")
+    .def(py::init<const std::vector<ModelPart*>&, const Variable<array_1d<double,3>>&>())
+    .def("ComputeL2Norm", &SurfaceL2Norm<array_1d<double,3>>::ComputeL2Norm)
+    .def("GetL2Norm", &SurfaceL2Norm<array_1d<double,3>>::GetL2Norm)
     ;
 
     py::class_<SurfaceInterpolator<double>>(m, "SurfaceInterpolator")

@@ -11,8 +11,8 @@
 //
 //
 
-#ifndef KRATOS_SURFACE_L2_INTEGRATION
-#define KRATOS_SURFACE_L2_INTEGRATION
+#ifndef KRATOS_SURFACE_INTERPOLATED_L2_NORM
+#define KRATOS_SURFACE_INTERPOLATED_L2_NORM
 
 // System includes
 #include <string>
@@ -53,21 +53,21 @@ namespace Kratos
     /// @tparam TValueType Either `double` (scalar variable) or `array_1d<double,3>` (vector
     /// variable). For a vector, the magnitude is used: |var|^2 = var . var.
     template <class TValueType>
-    class SurfaceL2Integration
+    class SurfaceInterpolatedL2Norm
     {
     public:
         ///@name Type Definitions
         ///@{
 
-        /// Pointer definition of SurfaceL2Integration
-        KRATOS_CLASS_POINTER_DEFINITION(SurfaceL2Integration);
+        /// Pointer definition of SurfaceInterpolatedL2Norm
+        KRATOS_CLASS_POINTER_DEFINITION(SurfaceInterpolatedL2Norm);
 
         ///@}
         ///@name Life Cycle
         ///@{
 
         /// Constructor.
-        SurfaceL2Integration(
+        SurfaceInterpolatedL2Norm(
             ModelPart &model_part,
             std::vector<ModelPart *> model_part_vector,
             const Variable<TValueType> &integration_variable)
@@ -84,12 +84,12 @@ namespace Kratos
         std::string Info() const
         {
             std::stringstream buffer;
-            buffer << "SurfaceL2Integration";
+            buffer << "SurfaceInterpolatedL2Norm";
             return buffer.str();
         }
 
         /// Print information about this object.
-        void PrintInfo(std::ostream &rOStream) const { rOStream << "SurfaceL2Integration"; }
+        void PrintInfo(std::ostream &rOStream) const { rOStream << "SurfaceInterpolatedL2Norm"; }
 
         /// Print object's data.
         void PrintData(std::ostream &rOStream) const {}
@@ -154,7 +154,7 @@ namespace Kratos
                     }
                 }
 
-                mL2Norms[m] = std::sqrt(integral);
+                mL2Norms[m] = std::sqrt(integral / area);
 
                 // Print info
                 std::cout << "\nModel part " << m + 1 << " (" << r_model_part.Name() << "):" << std::endl;
@@ -192,13 +192,13 @@ namespace Kratos
         ///@{
 
         /// Default constructor.
-        SurfaceL2Integration() = delete;
+        SurfaceInterpolatedL2Norm() = delete;
 
         /// Assignment operator.
-        SurfaceL2Integration &operator=(SurfaceL2Integration const &rOther) = delete;
+        SurfaceInterpolatedL2Norm &operator=(SurfaceInterpolatedL2Norm const &rOther) = delete;
 
         /// Copy constructor.
-        SurfaceL2Integration(SurfaceL2Integration const &rOther) = delete;
+        SurfaceInterpolatedL2Norm(SurfaceInterpolatedL2Norm const &rOther) = delete;
 
         ///@}
         ///@name Private Operations
@@ -251,10 +251,10 @@ namespace Kratos
         }
 
         ///@}
-    }; // Class SurfaceL2Integration
+    }; // Class SurfaceInterpolatedL2Norm
 
     ///@}
 
 }; // namespace Kratos.
 
-#endif // KRATOS_SURFACE_L2_INTEGRATION
+#endif // KRATOS_SURFACE_INTERPOLATED_L2_NORM
