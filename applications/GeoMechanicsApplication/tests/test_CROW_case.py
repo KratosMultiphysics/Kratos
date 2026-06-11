@@ -354,7 +354,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
             self.stages_info["third_excavation"],
         ]
 
-    def get_bending_moments_data_series_per_stage(self, nodes):
+    def get_bending_moment_data_series_per_stage(self, nodes):
         return self.get_variable_collections_per_stage(
             "BENDING_MOMENT",
             self.get_plot_stages(),
@@ -370,7 +370,7 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
         plot_stages = self.get_plot_stages()
         plot_titles = [stage["base_name"] for stage in plot_stages]
 
-        bending_moment_collections = self.get_bending_moments_data_series_per_stage(
+        bending_moment_collections = self.get_bending_moment_data_series_per_stage(
             nodes
         )
         plot_utils.make_sub_plots(
