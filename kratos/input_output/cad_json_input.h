@@ -236,28 +236,26 @@ private:
             << "\", is_trimmed is not provided in the input."
             << " is_trimmed = true is considered." << std::endl;
 
+        typename BrepSurfaceType::Pointer p_brep_surface;
+
         if (rParameters.Has("boundary_loops"))
         {
             BrepCurveOnSurfaceLoopArrayType outer_loops, inner_loops;
             tie(outer_loops, inner_loops) =
                 ReadBoundaryLoops(rParameters["boundary_loops"], p_surface, rModelPart, ProjectionAlgorithmType, EchoLevel);
 
-            auto p_brep_surface =
-                Kratos::make_shared<BrepSurfaceType>(
-                    p_surface,
-                    outer_loops,
-                    inner_loops,
-                    is_trimmed);
-
-            SetIdOrName<BrepSurfaceType>(rParameters, p_brep_surface);
-
-            ReadAndAddEmbeddedEdges(p_brep_surface, rParameters, p_surface, rModelPart, ProjectionAlgorithmType, EchoLevel);
-            auto p_final_surface = ReadLocalRefinement(p_brep_surface, rParameters, rLocalRefParameters, rModelPart, EchoLevel);
-
-            /// Sets the brep as geometry parent of the nurbs surface.
-            p_surface->SetGeometryParent(p_final_surface.get());
-
-            rModelPart.AddGeometry(p_final_surface);
+            if (rLocalRefParameters.Has("breps"))
+            {
+                auto p_base_brep = Kratos::make_shared<BrepSurfaceType>(
+                    p_surface, outer_loops, inner_loops, is_trimmed);
+                p_brep_surface = ReadLocalRefinement(
+                    p_base_brep, rParameters, rLocalRefParameters, rModelPart, EchoLevel);
+            }
+            else
+            {
+                p_brep_surface = Kratos::make_shared<BrepSurfaceType>(
+                    p_surface, outer_loops, inner_loops, is_trimmed);
+            }
         }
         else
         {
@@ -266,17 +264,25 @@ private:
                 << "\", boundary_loops are not provided in the input."
                 << " It will be considered as untrimmed." << std::endl;
 
-            auto p_brep_surface =
-                Kratos::make_shared<BrepSurfaceType>(
-                    p_surface);
-
-            SetIdOrName<BrepSurfaceType>(rParameters, p_brep_surface);
-
-            ReadAndAddEmbeddedEdges(p_brep_surface, rParameters, p_surface, rModelPart, ProjectionAlgorithmType, EchoLevel);
-            auto p_final_surface = ReadLocalRefinement(p_brep_surface, rParameters, rLocalRefParameters, rModelPart, EchoLevel);
-
-            rModelPart.AddGeometry(p_final_surface);
+            if (rLocalRefParameters.Has("breps"))
+            {
+                auto p_base_brep = Kratos::make_shared<BrepSurfaceType>(p_surface);
+                p_brep_surface = ReadLocalRefinement(
+                    p_base_brep, rParameters, rLocalRefParameters, rModelPart, EchoLevel);
+            }
+            else
+            {
+                p_brep_surface = Kratos::make_shared<BrepSurfaceType>(p_surface);
+            }
         }
+
+        SetIdOrName<BrepSurfaceType>(rParameters, p_brep_surface);
+
+        ReadAndAddEmbeddedEdges(p_brep_surface, rParameters, p_surface, rModelPart, ProjectionAlgorithmType, EchoLevel);
+
+        p_surface->SetGeometryParent(p_brep_surface.get());
+
+        rModelPart.AddGeometry(p_brep_surface);
     }
 
     ///@}
