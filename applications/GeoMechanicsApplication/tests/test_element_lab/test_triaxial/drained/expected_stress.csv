@@ -1,4 +1,4 @@
-element_id,ip_index,stress_xx,stress_yy,stress_zz,stress_yz,stress_xz,stress_xy
+element_id,ip_index,stress_xx,stress_yy,stress_zz,stress_xy,stress_yz,stress_xz
 1,0,-99.9808,-252.622,-99.9806,0.193199,0.0,0.0
 1,1,-99.8828,-252.381,-99.8827,0.0448209,0.0,0.0
 1,2,-100.045,-252.78,-100.045,0.0314238,0.0,0.0

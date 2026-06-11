@@ -21,11 +21,11 @@ class KratosGeoMechanicsLabElementTests(KratosGeoUnittest.TestCase):
         expected_stress = test_helper.get_values_from_csv_as_vectors(
             Path(file_path) / "expected_stress.csv",
             ["element_id", "ip_index"],
-            ["stress_xx", "stress_yy", "stress_zz", "stress_yz", "stress_xz", "stress_xy"])
+            ["stress_xx", "stress_yy", "stress_zz", "stress_xy", "stress_yz", "stress_xz"])
         expected_strain = test_helper.get_values_from_csv_as_vectors(
             Path(file_path) / "expected_strain.csv",
             ["element_id", "ip_index"],
-            ["strain_xx", "strain_yy", "strain_zz", "strain_yz", "strain_xz", "strain_xy"])
+            ["strain_xx", "strain_yy", "strain_zz", "strain_xy", "strain_yz", "strain_xz"])
         self._run_triaxial_regression_test(file_path, 'triaxial_test_output.post.res', expected_disp, expected_stress,
                                            expected_strain, 4)
 
@@ -41,11 +41,11 @@ class KratosGeoMechanicsLabElementTests(KratosGeoUnittest.TestCase):
         expected_stress = test_helper.get_values_from_csv_as_vectors(
             Path(file_path) / "expected_stress.csv",
             ["element_id", "ip_index"],
-            ["stress_xx", "stress_yy", "stress_zz", "stress_yz", "stress_xz", "stress_xy"])
+            ["stress_xx", "stress_yy", "stress_zz", "stress_xy", "stress_yz", "stress_xz"])
         expected_strain = test_helper.get_values_from_csv_as_vectors(
             Path(file_path) / "expected_strain.csv",
             ["element_id", "ip_index"],
-            ["strain_xx", "strain_yy", "strain_zz", "strain_yz", "strain_xz", "strain_xy"])
+            ["strain_xx", "strain_yy", "strain_zz", "strain_xy", "strain_yz", "strain_xz"])
         self._run_triaxial_regression_test(file_path, 'triaxial_undrained_test_output.post.res', expected_disp,
                                            expected_stress, expected_strain, 4)
 
@@ -143,11 +143,11 @@ class KratosGeoMechanicsLabElementTests(KratosGeoUnittest.TestCase):
         mohr_coulomb_stresses = test_helper.get_values_from_csv_grouped(
             Path(mohr_coulomb_file_path) / "expected_stress.csv",
             ['phase'], ['element_id', 'ip_index'],
-            ["stress_xx", "stress_yy", "stress_zz", "stress_yz", "stress_xz", "stress_xy"])
+            ["stress_xx", "stress_yy", "stress_zz", "stress_xy", "stress_yz", "stress_xz"])
         mohr_coulomb_strains = test_helper.get_values_from_csv_grouped(
             Path(mohr_coulomb_file_path) / "expected_strain.csv",
             ['phase'], ['element_id', 'ip_index'],
-            ["strain_xx", "strain_yy", "strain_zz", "strain_yz", "strain_xz", "strain_xy"])
+            ["strain_xx", "strain_yy", "strain_zz", "strain_xy", "strain_yz", "strain_xz"])
         expected_stresses = [mohr_coulomb_stresses[phase] for phase in range(1, nr_of_phases + 1)]
         expected_strains = [mohr_coulomb_strains[phase] for phase in range(1, nr_of_phases + 1)]
 

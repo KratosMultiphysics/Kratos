@@ -1,4 +1,4 @@
-element_id,ip_index,strain_xx,strain_yy,strain_zz,strain_yz,strain_xz,strain_xy
+element_id,ip_index,strain_xx,strain_yy,strain_zz,strain_xy,strain_yz,strain_xz
 1,0,0.104863,-0.19973,0.104946,0.000440186,0.0,0.0
 1,1,0.104939,-0.199861,0.105022,0.000100528,0.0,0.0
 1,2,0.10444,-0.199182,0.104773,6.24562e-05,0.0,0.0

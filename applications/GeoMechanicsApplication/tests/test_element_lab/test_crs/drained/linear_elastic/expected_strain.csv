@@ -1,4 +1,4 @@
-phase,element_id,ip_index,strain_xx,strain_yy,strain_zz,strain_yz,strain_xz,strain_xy
+phase,element_id,ip_index,strain_xx,strain_yy,strain_zz,strain_xy,strain_yz,strain_xz
 1,1,0,0.0,-0.1,0.0,0.0,0.0,0.0
 1,1,1,0.0,-0.1,0.0,0.0,0.0,0.0
 1,1,2,0.0,-0.1,0.0,0.0,0.0,0.0
