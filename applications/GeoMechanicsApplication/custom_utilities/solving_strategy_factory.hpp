@@ -57,6 +57,10 @@ public:
         KRATOS_ERROR_IF_NOT(criteria) << "Failed to create convergence criteria" << std::endl;
         criteria->SetEchoLevel(echo_level);
 
+        KRATOS_WARNING_IF("DEPRECATION-Warning; GeoMechanicsApplication",
+                          rSolverSettings.Has("calculate_reactions"))
+            << "Use of calculate_reactions is deprecated, please change to compute_reactions" << std::endl;
+
         if (rSolverSettings[strategy_type].GetString() == "newton_raphson") {
             const auto max_iterations    = rSolverSettings["max_iterations"].GetInt();
             const auto compute_reactions = rSolverSettings["compute_reactions"].GetBool();
@@ -70,7 +74,9 @@ public:
                     max_iterations, compute_reactions, reform_dof_set_at_each_step, move_mesh_flag);
             result->SetEchoLevel(echo_level);
             return result;
-        } else if (rSolverSettings[strategy_type].GetString() == "line_search") {
+        }
+
+        if (rSolverSettings[strategy_type].GetString() == "line_search") {
             const std::vector<std::string> strategy_entries = {"compute_reactions",
                                                                "max_line_search_iterations",
                                                                "first_alpha_value",
