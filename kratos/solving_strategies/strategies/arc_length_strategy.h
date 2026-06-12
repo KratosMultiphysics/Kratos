@@ -408,7 +408,16 @@ class ArcLengthStrategy
             if ( arc_length_type == "Ramm" ) {
                 lambda_increment = -TSparseSpace::Dot(r_DxPred, r_Dxb) / TSparseSpace::Dot(r_DxPred, r_Dxf);
             } else if ( arc_length_type == "Crisfield" ) {
-                // this I would like to implement as it selects based on the direction of movement
+                // equation 32
+                auto a = TSparseSpace::Dot(r_Dxf, r_Dxf);
+                // misuse an existing ( but meant for ModifiedCrisfieldRamm ) systemvector for constructing v^i
+                TSparseSpace::Assign(r_Up_barpplus1, 1.0, r_Dxb);
+                TSparseSpace::UnaliasedAdd(r_Up_barpplus1, 1.0, r_DxStep);
+                auto b = 2.0 * TSparseSpace::Dot(r_Dxf, r_Up_barpplus1);
+                auto c = TSparseSpace::Dot(r_Up_barpplus1, r_Up_barpplus1) - mRadius * mRadius;
+                auto lamdas = RootsOfSecondOrderEquation(a, b, c);
+                // controleer aantal lambdas. bereken r_Up_barpplus1 = r_DxStep + r_Dxb + lambda * r_Dxf voor beide en
+                // kies die de kleinste TSparseSpace::Dot(r_DxStep, r_Up_barpplus1) /( TSparseSpace::TwoNorm(r_DxStep)*TSparseSpace::TwoNorm(r_Up_barpplus1)) oplevert
             } else if (arc_length_type == "ModifiedCrisfieldRamm") {
                 lambda_increment = -TSparseSpace::Dot(r_DxStep, r_Dxb) / TSparseSpace::Dot(r_DxStep, r_Dxf); // Formula 44
             };
@@ -730,6 +739,22 @@ class ArcLengthStrategy
      */
 
     ArcLengthStrategy(const ArcLengthStrategy &Other){};
+
+private:
+    Vector RootsOfSecondOrderEquation(double A, double B, double C)
+    {
+        KRATOS_ERROR_IF(A == 0.0) << "A == 0 does not define a second order equation." << std::endl;
+
+        const auto discriminant = B * B - 4.0 * A * C;
+        // no solution
+        if (discriminant < 0.0) return Vector{};
+        if (discriminant == 0.0) return Vector{1, -B / (2.0 * A)};
+        const auto root = std::sqrt(discriminant);
+        auto result = Vector{2, 0.0};
+        result[0] = (-B - root) / (2.0 * A);
+        result[1] = (-B + root) / (2.0 * A);
+        return result;
+    }
 
     ///@}
 
