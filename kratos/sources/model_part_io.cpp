@@ -2190,11 +2190,11 @@ void ModelPartIO::ReadGeometriesBlock(ModelPart& rModelPart)
         KRATOS_ERROR << buffer.str() << std::endl;
         return;
     }
+
     GeometryType const& r_clone_geometry = KratosComponents<GeometryType>::Get(geometry_name);
     SizeType number_of_nodes = r_clone_geometry.size();
     Element::NodesArrayType temp_geometry_nodes;
-    std::vector<GeometryType::Pointer> aux_geometries;
-    aux_geometries.reserve(1024);
+    ModelPart::GeometryContainerType aux_geometries;
 
     while(!mpStream->eof()) {
         ReadWord(word); // Reading the geometry id or End
@@ -2203,17 +2203,16 @@ void ModelPartIO::ReadGeometriesBlock(ModelPart& rModelPart)
 
         ExtractValue(word,id);
         temp_geometry_nodes.clear();
-        for(SizeType i = 0; i < number_of_nodes; ++i) {
+        for(SizeType i = 0 ; i < number_of_nodes ; i++) {
             ReadWord(word); // Reading the node id;
             ExtractValue(word, node_id);
-            temp_geometry_nodes.push_back(*(FindKey(rModelPart.Nodes(), ReorderedNodeId(node_id), "Node").base()));
+            temp_geometry_nodes.push_back( *(FindKey(rModelPart.Nodes(), ReorderedNodeId(node_id), "Node").base()));
         }
 
-        aux_geometries.push_back(r_clone_geometry.Create(ReorderedGeometryId(id), temp_geometry_nodes));
-        ++number_of_read_geometries;
+        rModelPart.AddGeometry(r_clone_geometry.Create(ReorderedGeometryId(id), temp_geometry_nodes));
+        number_of_read_geometries++;
+
     }
-    
-    rModelPart.AddGeometries(aux_geometries.begin(), aux_geometries.end());
     KRATOS_INFO("") << number_of_read_geometries << " geometries read] [Type: " <<geometry_name << "]" << std::endl;
 
     KRATOS_CATCH("")
@@ -4495,7 +4494,11 @@ void ModelPartIO::WriteSubModelPartBlock(
         const std::string sub_model_part_name = sub_model_part_names[i_sub];
         ModelPart& r_sub_model_part = rMainModelPart.GetSubModelPart(sub_model_part_name);
 
-        (*mpStream) << InitialTabulation << "Begin SubModelPart\t" << sub_model_part_name << std::endl;
+        // The name of the model part may contain spaces, so we write it in quotes and make break the reading, replace spaces with "_"
+        std::string formatted_name = sub_model_part_name;
+        std::replace(formatted_name.begin(), formatted_name.end(), ' ', '_');
+
+        (*mpStream) << InitialTabulation << "Begin SubModelPart\t" << formatted_name << std::endl;
 
         // Submodelpart data section
         (*mpStream) << InitialTabulation << "\tBegin SubModelPartData" << std::endl;
