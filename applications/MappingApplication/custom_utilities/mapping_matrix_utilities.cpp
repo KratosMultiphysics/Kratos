@@ -22,6 +22,8 @@
 #include "mapping_matrix_utilities.h"
 #include "mappers/mapper_define.h"
 #include "custom_utilities/mapper_utilities.h"
+#include "utilities/parallel_utilities.h"
+#include "utilities/openmp_utils.h"
 
 namespace Kratos {
 
@@ -57,20 +59,32 @@ void ConstructMatrixStructure(Kratos::unique_ptr<typename MappingSparseSpaceType
         indices[i].reserve(3);
     }
 
-    IndexPartition<std::size_t>(rMapperLocalSystems.size()).for_each(
-        [&](std::size_t i) {
-            EquationIdVectorType origin_ids;
-            EquationIdVectorType destination_ids;
+    std::vector<std::vector<std::unordered_set<IndexType>>> thread_indices(
+        ParallelUtilities::GetNumThreads(),
+        std::vector<std::unordered_set<IndexType>>(NumNodesDestination));
 
-            auto& r_local_sys = rMapperLocalSystems[i];
+    block_for_each(rMapperLocalSystems, [&](auto& rpLocalSys) {
+        const int thread_id = OpenMPUtils::ThisThread();
 
-            r_local_sys->EquationIdVectors(origin_ids, destination_ids);
+        EquationIdVectorType origin_ids;
+        EquationIdVectorType destination_ids;
 
-            for (const auto dest_idx : destination_ids) {
-                indices[dest_idx].insert(origin_ids.begin(), origin_ids.end());
-            }
+        rpLocalSys->EquationIdVectors(origin_ids, destination_ids);
+
+        for (const auto dest_idx : destination_ids) {
+            thread_indices[thread_id][dest_idx].insert(
+                origin_ids.begin(),
+                origin_ids.end());
         }
-    );
+    });
+
+    for (auto& r_thread_indices : thread_indices) {
+        for (IndexType i = 0; i < NumNodesDestination; ++i) {
+            indices[i].insert(
+                r_thread_indices[i].begin(),
+                r_thread_indices[i].end());
+        }
+    }
 
     // computing the number of non-zero entries
     SizeType num_non_zero_entries = 0;
