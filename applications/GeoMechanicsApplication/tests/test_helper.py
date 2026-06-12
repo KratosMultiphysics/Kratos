@@ -47,15 +47,17 @@ def run_kratos(file_path, model=None):
     os.chdir(cwd)
     return simulation
 
+def _make_key(row, key_field_names):
+    if len(key_field_names) == 1:
+        return int(row[key_field_names[0]])
+    return tuple(int(row[key]) for key in key_field_names)
+
 def get_values_from_csv(csv_filepath, key_field_names, value_field_names):
     result = {}
     with open(csv_filepath, newline = "") as csv_file:
         reader = csv.DictReader(csv_file)
         for row in reader:           
-            if len(key_field_names) == 1:
-                key = int(row[key_field_names[0]])
-            else:
-                key = tuple(int(row[key]) for key in key_field_names)
+            key = _make_key(row, key_field_names)
             expected_values = {value: float(row[value]) for value in value_field_names}
             result[key] = expected_values
     return result
