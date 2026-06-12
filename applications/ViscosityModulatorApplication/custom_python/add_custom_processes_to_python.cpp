@@ -21,7 +21,7 @@
 #include "includes/define_python.h"
 #include "processes/process.h"
 #include "custom_python/add_custom_processes_to_python.h"
-#include "custom_processes/boussinesq_modulator_field_process.h"
+#include "custom_processes/vm_boussinesq_concentration_field_process.h"
 
 namespace Kratos
 {
@@ -32,9 +32,9 @@ namespace Python
 void  AddCustomProcessesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
-    
-    py::class_<BoussinesqModulatorFieldProcess, BoussinesqModulatorFieldProcess::Pointer, Process>
-    (m, "BoussinesqModulatorFieldProcess")
+
+    py::class_<VmBoussinesqConcentrationFieldProcess, VmBoussinesqConcentrationFieldProcess::Pointer, Process>
+    (m, "BoussinesqConcentrationFieldProcess")
     .def(py::init< ModelPart& >())
     .def(py::init<ModelPart&, Parameters& >())
     ;

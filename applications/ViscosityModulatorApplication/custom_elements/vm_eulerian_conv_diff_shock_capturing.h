@@ -1,19 +1,16 @@
 // KRATOS ___ ___  _  ___   __   ___ ___ ___ ___
-// | | | (_)        |  \/  |         | |
-// | | | |_ ___  ___| .  . | ___   __| |
-// | | | | / __|/ __| |\/| |/ _ \ / _` |
-// \ \_/ / \__ \ (__| |  | | (_) | (_| |
-//  \___/|_|___/\___\_|  |_/\___/ \__,_|  APPLICATION
-//                                      
+//       / __/ _ \| \| \ \ / /__|   \_ _| __| __|
+//      | (_| (_) | .` |\ V /___| |) | || _|| _|
+//       \___\___/|_|\_| \_/    |___/___|_| |_|  APPLICATION
 //
 //  License: BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Aniol Sala
+//  Main authors:  Riccardo Rossi
 //
 
-#if !defined(KRATOS_VISCOSITY_MODULATOR_ELEMENT_INCLUDED )
-#define  KRATOS_VISCOSITY_MODULATOR_ELEMENT_INCLUDED
+#if !defined(KRATOS_VM_EULERIAN_CONVECTION_DIFFUSION_SHOCK_CAPTURING_ELEMENT_INCLUDED )
+#define  KRATOS_VM_EULERIAN_CONVECTION_DIFFUSION_SHOCK_CAPTURING_ELEMENT_INCLUDED
 
 
 // System includes
@@ -39,31 +36,31 @@ namespace Kratos
 
 ///formulation described in https://docs.google.com/document/d/13a_zGLj6xORDuLgoOG5LwHI6BwShvfO166opZ815zLY/edit?usp=sharing
 template< unsigned int TDim, unsigned int TNumNodes>
-class KRATOS_API(VISCOSITY_MODULATOR_APPLICATION) ViscosityModulatorElement
+class KRATOS_API(VISCOSITY_MODULATOR_APPLICATION) VmEulerianConvectionDiffusionShockCapturingElement
     : public Element
 {
 public:
     /// Counted pointer of
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(ViscosityModulatorElement);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(VmEulerianConvectionDiffusionShockCapturingElement);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Default constructor.
 
-    ViscosityModulatorElement() : Element()
+    VmEulerianConvectionDiffusionShockCapturingElement() : Element()
     {
     }
 
-    ViscosityModulatorElement(IndexType NewId, GeometryType::Pointer pGeometry)
+    VmEulerianConvectionDiffusionShockCapturingElement(IndexType NewId, GeometryType::Pointer pGeometry)
     : Element(NewId, pGeometry)
     {}
 
-    ViscosityModulatorElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
+    VmEulerianConvectionDiffusionShockCapturingElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
     : Element(NewId, pGeometry, pProperties)
     {}
 
     /// Destructor.
-    virtual ~ViscosityModulatorElement() {};
+    virtual ~VmEulerianConvectionDiffusionShockCapturingElement() {};
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -73,7 +70,7 @@ public:
         PropertiesType::Pointer pProperties
         ) const override
     {
-        return Kratos::make_intrusive<ViscosityModulatorElement>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+        return Kratos::make_intrusive<VmEulerianConvectionDiffusionShockCapturingElement>(NewId, GetGeometry().Create(ThisNodes), pProperties);
     }
 
     Element::Pointer Create(
@@ -82,7 +79,7 @@ public:
         PropertiesType::Pointer pProperties
         ) const override
     {
-        return Kratos::make_intrusive<ViscosityModulatorElement>(NewId, pGeom, pProperties);
+        return Kratos::make_intrusive<VmEulerianConvectionDiffusionShockCapturingElement>(NewId, pGeom, pProperties);
     }
 
     void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
@@ -97,7 +94,7 @@ public:
 
     std::string Info() const override
     {
-        return "ViscosityModulatorElement #";
+        return "VmEulerianConvectionDiffusionShockCapturingElement #";
     }
 
     /// Print information about this object.
@@ -173,8 +170,8 @@ private:
     }
 
 
-}; // Class ViscosityModulatorElement
+}; // Class VmEulerianConvectionDiffusionShockCapturingElement
 
 } // namespace Kratos.
 
-#endif // KRATOS_VISCOSITY_MODULATOR_ELEMENT_INCLUDED  defined
+#endif // KRATOS_VM_EULERIAN_CONVECTION_DIFFUSION_SHOCK_CAPTURING_ELEMENT_INCLUDED  defined

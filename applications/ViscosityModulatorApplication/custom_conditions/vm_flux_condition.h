@@ -3,22 +3,22 @@
 //      | (_| (_) | .` |\ V /___| |) | || _|| _|
 //       \___\___/|_|\_| \_/    |___/___|_| |_|  APPLICATION
 //
-//  License:         BSD License
-//                   Kratos default license: kratos/license.txt
+//  License: BSD License
+//					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Jordi Cotela
-//                   Riccardo Rossi
-//                   Ruben Zorrilla
 //
 
-#if !defined(KRATOS_THERMAL_FACE_H_INCLUDED )
-#define  KRATOS_THERMAL_FACE_H_INCLUDED
+#if !defined(KRATOS_VM_FLUX_CONDITION_H_INCLUDED )
+#define  KRATOS_VM_FLUX_CONDITION_H_INCLUDED
 
 // System includes
 #include <string>
 #include <iostream>
 
+
 // External includes
+
 
 // Project includes
 #include "includes/define.h"
@@ -32,80 +32,117 @@
 namespace Kratos
 {
 
-///@name Kratos Classes
-///@{
+namespace VmFluxConditionInternals
+{
+
+template< unsigned int TNodeNumber >
+class IntegrationData
+{
+public:
+
+    IntegrationData(
+        Geometry< Node >& rGeometry,
+        const Variable<double>& rFluxVar
+        ):
+        mGaussPoint(0),
+        mNodalFluxes(TNodeNumber,0.0)
+    {
+        NumGauss = rGeometry.IntegrationPointsNumber(GeometryData::IntegrationMethod::GI_GAUSS_2);
+        Vector DetJ = ZeroVector(NumGauss);
+        rGeometry.DeterminantOfJacobian(DetJ,GeometryData::IntegrationMethod::GI_GAUSS_2);
+
+        mShapeFunctionValues.resize(NumGauss,TNodeNumber);
+        mIntegrationWeights.resize(NumGauss);
+
+        noalias(mShapeFunctionValues) = rGeometry.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_2);
+
+        const auto& IntegrationPoints = rGeometry.IntegrationPoints(GeometryData::IntegrationMethod::GI_GAUSS_2);
+
+        for (unsigned int g = 0; g < NumGauss; g++)
+        {
+            mIntegrationWeights[g] = DetJ[g]*IntegrationPoints[g].Weight();
+        }
+
+        for (unsigned int i = 0; i < TNodeNumber; i++)
+        {
+            mNodalFluxes[i] = rGeometry[i].FastGetSolutionStepValue(rFluxVar);
+        }
+    }
+
+    void SetCurrentGaussPoint(unsigned int g)
+    {
+        mGaussPoint = g;
+    }
+
+    double N(unsigned int i) const
+    {
+        return mShapeFunctionValues(mGaussPoint,i);
+    }
+
+    double NodalFlux(unsigned int i) const
+    {
+        return mNodalFluxes[i];
+    }
+
+    double GaussPointFlux() const
+    {
+        double flux = mNodalFluxes[0]*mShapeFunctionValues(mGaussPoint,0);
+        for (unsigned int i = 1; i < TNodeNumber; i++)
+        {
+            flux += mNodalFluxes[i]*mShapeFunctionValues(mGaussPoint,i);
+        }
+        return flux;
+    }
+
+    double IntegrationWeight() const
+    {
+        return mIntegrationWeights[mGaussPoint];
+    }
+
+    unsigned int NumGauss;
+
+private:
+
+    unsigned int mGaussPoint;
+
+    array_1d<double,TNodeNumber> mNodalFluxes;
+
+    Matrix mShapeFunctionValues;
+
+    Vector mIntegrationWeights;
+};
+
+}
 
 /// A basic Neumann condition for convection-diffusion problems.
-/** It applies a flux condition based on the nodal values of the
- *  variable defined as SurfaceSourceVariable by the
- *  CONVECTION_DIFFUSION_SETTINGS variable in the given ProcessInfo.
- */
-class KRATOS_API(CONVECTION_DIFFUSION_APPLICATION) ThermalFace: public Condition
+template< unsigned int TNodeNumber >
+class VmFluxCondition: public Condition
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of ThermalFace
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(ThermalFace);
-
-    /**
-     * @brief Gauss pt. data structure
-     * Auxiliar data structure to pass the Gauss pt. data
-     */
-    struct ConditionDataStruct
-    {
-        double Weight;              // Gauss point weight
-        array_1d<double, 3> Normal; // Condition normal
-        Vector N;                   // Gauss point shape functions values
-
-        double Emissivity;            // Ambient emissivity value
-        double AmbientTemperature;    // Ambient temperature value
-        double ConvectionCoefficient; // Ambient convection coefficient
-        Vector UnknownValues;         // Previous iteration unknown values
-        Vector FaceHeatFluxValues;    // Nodal face heat flux values
-
-        double inline GaussPointUnknown() const
-        {
-            return InterpolateInGaussPoint(UnknownValues);
-        }
-
-        double inline GaussPointFaceHeatFlux() const
-        {
-            return InterpolateInGaussPoint(FaceHeatFluxValues);
-        }
-
-        double inline InterpolateInGaussPoint(const Vector &rNodalValues) const
-        {
-            double gauss_pt_val = 0.0;
-            for (unsigned int i = 0; i < N.size(); ++i) {
-                gauss_pt_val += N[i] * rNodalValues[i];
-            }
-            return gauss_pt_val;
-        }
-    };
+    /// Pointer definition of VmFluxCondition
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(VmFluxCondition);
 
     typedef Condition::MatrixType MatrixType;
     typedef Condition::VectorType VectorType;
-
-    /// Stefan Boltzmann constant for radiation in SI units: [W / (m^2 K^4)].
-    constexpr static double StefanBoltzmann = 5.67e-8;
 
     ///@}
     ///@name Life Cycle
     ///@{
 
-    ThermalFace(
+    VmFluxCondition(
         IndexType NewId,
         Geometry< Node >::Pointer pGeometry);
 
-    ThermalFace(
+    VmFluxCondition(
         IndexType NewId,
         Geometry< Node >::Pointer pGeometry,
         Properties::Pointer pProperties);
 
     /// Destructor.
-    ~ThermalFace() override;
+    ~VmFluxCondition() override;
 
     ///@}
     ///@name Operations
@@ -124,10 +161,6 @@ public:
     void CalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo) override;
-
-    void CalculateLeftHandSide(
-        MatrixType& rLeftHandSideMatrix,
         const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateRightHandSide(
@@ -186,41 +219,21 @@ public:
 
 protected:
 
-    ///@name Protected Life Cycle
+    ///@name Protected Life cycle
     ///@{
 
-    // Internal default constructor for serialization
-    ThermalFace();
+    // Default constructor necessary for serialization
+    VmFluxCondition();
 
     ///@}
     ///@name Protected Operations
     ///@{
 
-    /**
-     * @brief Calculates and sets the integration weight
-     * This function calculates the integration point weight and saves it in the provided condition data container
-     * @param IntegrationPointIndex Index of current integration point
-     * @param rIntegrationPoints Vector containing the integration points
-     * @param rJacobianDeterminantsVector Vector containing the determinants of the Jacobian
-     * @param rConditionData Condition data structure storing the integration weight
-     */
-    virtual void SetIntegrationWeight(
-        const IndexType IntegrationPointIndex,
-        const typename GeometryType::IntegrationPointsArrayType& rIntegrationPoints,
-        const Vector& rJacobianDeterminantsVector,
-        ConditionDataStruct& rData);
-
     void AddIntegrationPointRHSContribution(
         VectorType& rRightHandSideVector,
-        const ConditionDataStruct &rData);
+        const VmFluxConditionInternals::IntegrationData<TNodeNumber>& rData);
 
-    void AddIntegrationPointLHSContribution(
-        MatrixType& rLeftHandSideMatrix,
-        const ConditionDataStruct &rData);
-
-    void FillConditionDataStructure(
-        const ProcessInfo &rCurrentProcessInfo,
-        ConditionDataStruct &rData);
+    void CalculateNormal(array_1d<double,3>& An );
 
     ///@}
 
@@ -239,19 +252,15 @@ private:
     ///@{
 
     /// Assignment operator.
-    ThermalFace& operator=(ThermalFace const& rOther);
+    VmFluxCondition& operator=(VmFluxCondition const& rOther);
 
     /// Copy constructor.
-    ThermalFace(ThermalFace const& rOther);
+    VmFluxCondition(VmFluxCondition const& rOther);
 
     ///@}
 
-}; // Class ThermalFace
-
-///@}
-
-///@} addtogroup block
+}; // Class VmFluxCondition
 
 }  // namespace Kratos.
 
-#endif // KRATOS_THERMAL_FACE_H_INCLUDED  defined
+#endif // KRATOS_VM_FLUX_CONDITION_H_INCLUDED  defined

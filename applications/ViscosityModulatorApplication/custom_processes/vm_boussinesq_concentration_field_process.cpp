@@ -1,16 +1,15 @@
-#include "boussinesq_modulator_field_process.h"
+#include "vm_boussinesq_concentration_field_process.h"
 
-#include "viscosity_modulator_application.h"
 #include "includes/variables.h"
 
 namespace Kratos
 {
     /* Public functions *******************************************************/
-    BoussinesqModulatorFieldProcess::BoussinesqModulatorFieldProcess(
+    VmBoussinesqConcentrationFieldProcess::VmBoussinesqConcentrationFieldProcess(
        ModelPart& rModelPart) :mrModelPart(rModelPart)
     {}
 
-    BoussinesqModulatorFieldProcess::BoussinesqModulatorFieldProcess(
+    VmBoussinesqConcentrationFieldProcess::VmBoussinesqConcentrationFieldProcess(
         ModelPart& rModelPart,
         Parameters& rParameters):
     mrModelPart(rModelPart),
@@ -78,24 +77,24 @@ namespace Kratos
         }
     }
 
-    BoussinesqModulatorFieldProcess::~BoussinesqModulatorFieldProcess()
+    VmBoussinesqConcentrationFieldProcess::~VmBoussinesqConcentrationFieldProcess()
     {
     }
 
-    void BoussinesqModulatorFieldProcess::Execute()
+    void VmBoussinesqConcentrationFieldProcess::Execute()
     {
         this->AssignBoussinesqForce();
     }
 
-    void BoussinesqModulatorFieldProcess::ExecuteInitialize()
+    void VmBoussinesqConcentrationFieldProcess::ExecuteInitialize()
     {
         this->ValidateModelPart();
     }
 
-    void BoussinesqModulatorFieldProcess::ExecuteInitializeSolutionStep()
+    void VmBoussinesqConcentrationFieldProcess::ExecuteInitializeSolutionStep()
     {
         // Remove hydrostatic contribution
-        if(mModifyPressure) 
+        if(mModifyPressure)
         {
             int num_nodes = mrModelPart.NumberOfNodes();
             #pragma omp parallel for firstprivate(num_nodes)
@@ -113,13 +112,12 @@ namespace Kratos
                 iNode->FastGetSolutionStepValue(PRESSURE) -= gravity_field_potential;
             }
         }
-        // this->AssignBoussinesqForce();
     }
 
-    void BoussinesqModulatorFieldProcess::ExecuteFinalizeSolutionStep()
+    void VmBoussinesqConcentrationFieldProcess::ExecuteFinalizeSolutionStep()
     {
         // Add hydrostatic contribution
-        if(mModifyPressure) 
+        if(mModifyPressure)
         {
             int num_nodes = mrModelPart.NumberOfNodes();
             #pragma omp parallel for firstprivate(num_nodes)
@@ -138,42 +136,34 @@ namespace Kratos
                 iNode->FastGetSolutionStepValue(BODY_FORCE) += mrGravity;
             }
         }
-        // this->AssignBoussinesqForce();
     }
 
-    std::string BoussinesqModulatorFieldProcess::Info() const
+    std::string VmBoussinesqConcentrationFieldProcess::Info() const
     {
-        return "BoussinesqModulatorFieldProcess";
+        return "VmBoussinesqConcentrationFieldProcess";
     }
 
-    void BoussinesqModulatorFieldProcess::PrintInfo(std::ostream& rOStream) const
+    void VmBoussinesqConcentrationFieldProcess::PrintInfo(std::ostream& rOStream) const
     {
-        rOStream << "BoussinesqModulatorFieldProcess";
+        rOStream << "VmBoussinesqConcentrationFieldProcess";
     }
 
-    void BoussinesqModulatorFieldProcess::PrintData(std::ostream& rOStream) const
+    void VmBoussinesqConcentrationFieldProcess::PrintData(std::ostream& rOStream) const
     {
     }
 
     /* Protected functions ****************************************************/
 
-    void BoussinesqModulatorFieldProcess::ValidateModelPart()
+    void VmBoussinesqConcentrationFieldProcess::ValidateModelPart()
     {
-        ViscosityModulatorSettings::Pointer p_settings = mrModelPart.GetProcessInfo()[VISCOSITY_MODULATOR_SETTINGS];
-        const Variable<double>& CONCENTRATION_VAR = p_settings->GetUnknownVariable();
-
-        // Nodal variables
-        KRATOS_ERROR_IF_NOT( mrModelPart.GetNodalSolutionStepVariablesList().Has(CONCENTRATION_VAR) ) <<
-        CONCENTRATION_VAR.Name() << " variable is not added to the ModelPart nodal data." << std::endl;
-
         KRATOS_ERROR_IF_NOT( mrModelPart.GetNodalSolutionStepVariablesList().Has(BODY_FORCE) ) <<
         "\'BODY_FORCE\' variable is not added to the ModelPart nodal data." << std::endl;
     }
 
-    void BoussinesqModulatorFieldProcess::AssignBoussinesqForce()
+    void VmBoussinesqConcentrationFieldProcess::AssignBoussinesqForce()
     {
-        // Read the unkown variable
-        ViscosityModulatorSettings::Pointer p_settings = mrModelPart.GetProcessInfo()[VISCOSITY_MODULATOR_SETTINGS];
+        // Read the unknown variable
+        ConvectionDiffusionSettings::Pointer p_settings = mrModelPart.GetProcessInfo()[CONVECTION_DIFFUSION_SETTINGS];
         const Variable<double>& CONCENTRATION_VAR = p_settings->GetUnknownVariable();
         const Variable<double>& DENSITY_VAR = p_settings->GetDensityVariable();
 
@@ -187,19 +177,10 @@ namespace Kratos
             double phi = iNode->FastGetSolutionStepValue(CONCENTRATION_VAR);
             double delta_rho = mRhoMax - mRho0;
 
-            // double gravity_field_potential = 0.0;
-            // Vector node_coords = iNode->Coordinates();
-            // for(unsigned d = 0; d < node_coords.size(); d++)
-            // {
-            //     gravity_field_potential += (mrGravity[d] * (node_coords[d] - mrR0[d]));
-            // }
-
             array_1d<double,3> delta_rho_gravity_term = delta_rho / mRho0 * phi * mrGravity;
             if(mModifyPressure)
             {
                 iNode->FastGetSolutionStepValue(BODY_FORCE) = delta_rho_gravity_term;
-                // iNode->FastGetSolutionStepValue(PRESSURE) -= (1.0 * mRho0 / delta_rho) * gravity_field_potential;
-
             } else {
                 iNode->FastGetSolutionStepValue(BODY_FORCE) += mrGravity + delta_rho_gravity_term;
             }
@@ -212,10 +193,9 @@ namespace Kratos
 
     /* External functions *****************************************************/
 
-    /// output stream function
     inline std::ostream& operator << (
         std::ostream& rOStream,
-        const BoussinesqModulatorFieldProcess& rThis)
+        const VmBoussinesqConcentrationFieldProcess& rThis)
     {
         rThis.PrintData(rOStream);
         return rOStream;

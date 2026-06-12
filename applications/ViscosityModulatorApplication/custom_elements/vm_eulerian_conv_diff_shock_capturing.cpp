@@ -1,15 +1,12 @@
 // KRATOS ___ ___  _  ___   __   ___ ___ ___ ___
-// | | | (_)        |  \/  |         | |
-// | | | |_ ___  ___| .  . | ___   __| |
-// | | | | / __|/ __| |\/| |/ _ \ / _` |
-// \ \_/ / \__ \ (__| |  | | (_) | (_| |
-//  \___/|_|___/\___\_|  |_/\___/ \__,_|  APPLICATION
-//                                      
+//       / __/ _ \| \| \ \ / /__|   \_ _| __| __|
+//      | (_| (_) | .` |\ V /___| |) | || _|| _|
+//       \___\___/|_|\_| \_/    |___/___|_| |_|  APPLICATION
 //
 //  License: BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Aniol Sala
+//  Main authors:  Riccardo Rossi
 //
 
 // System includes
@@ -20,9 +17,9 @@
 
 // Project includes
 #include "includes/define.h"
-#include "custom_elements/viscosity_modulator_element.h"
-#include "viscosity_modulator_application.h"
-#include "includes/viscosity_modulator_settings.h"
+#include "custom_elements/vm_eulerian_conv_diff_shock_capturing.h"
+#include "convection_diffusion_application_variables.h"
+#include "includes/convection_diffusion_settings.h"
 #include "utilities/math_utils.h"
 #include "utilities/geometry_utilities.h"
 
@@ -32,11 +29,11 @@ namespace Kratos
 //----------------------------------------------------------------------------------------
 
     template< unsigned int TDim, unsigned int TNumNodes >
-    void ViscosityModulatorElement< TDim, TNumNodes >::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const
+    void VmEulerianConvectionDiffusionShockCapturingElement< TDim, TNumNodes >::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const
     {
         KRATOS_TRY
 
-        ViscosityModulatorSettings::Pointer my_settings = rCurrentProcessInfo.GetValue(VISCOSITY_MODULATOR_SETTINGS);
+        ConvectionDiffusionSettings::Pointer my_settings = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
         const Variable<double>& rUnknownVar = my_settings->GetUnknownVariable();
 
         if (rResult.size() != TNumNodes)
@@ -53,11 +50,11 @@ namespace Kratos
 //----------------------------------------------------------------------------------------
 
     template< unsigned int TDim, unsigned int TNumNodes >
-    void ViscosityModulatorElement< TDim, TNumNodes >::GetDofList(DofsVectorType& ElementalDofList, const ProcessInfo& rCurrentProcessInfo) const
+    void VmEulerianConvectionDiffusionShockCapturingElement< TDim, TNumNodes >::GetDofList(DofsVectorType& ElementalDofList, const ProcessInfo& rCurrentProcessInfo) const
     {
         KRATOS_TRY
 
-        ViscosityModulatorSettings::Pointer my_settings = rCurrentProcessInfo.GetValue(VISCOSITY_MODULATOR_SETTINGS);
+        ConvectionDiffusionSettings::Pointer my_settings = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
         const Variable<double>& rUnknownVar = my_settings->GetUnknownVariable();
 
         if (ElementalDofList.size() != TNumNodes)
@@ -74,7 +71,7 @@ namespace Kratos
 //----------------------------------------------------------------------------------------
 
     template< unsigned int TDim, unsigned int TNumNodes >
-    void ViscosityModulatorElement<TDim,TNumNodes>::CalculateLocalSystem(Matrix& rLeftHandSideMatrix,
+    void VmEulerianConvectionDiffusionShockCapturingElement<TDim,TNumNodes>::CalculateLocalSystem(Matrix& rLeftHandSideMatrix,
                         Vector& rRightHandSideVector,
                         const ProcessInfo& rCurrentProcessInfo)
     {
@@ -198,17 +195,17 @@ namespace Kratos
         rRightHandSideVector *= Volume/static_cast<double>(TNumNodes);
         rLeftHandSideMatrix *= Volume/static_cast<double>(TNumNodes);
 
-        KRATOS_CATCH("Error in Eulerian ConvDiff Element")
+        KRATOS_CATCH("Error in Vm Eulerian ConvDiff Element")
     }
 
 //----------------------------------------------------------------------------------------
 
     template< unsigned int TDim, unsigned int TNumNodes >
-    void ViscosityModulatorElement<TDim,TNumNodes>::InitializeEulerianElement(ElementVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
+    void VmEulerianConvectionDiffusionShockCapturingElement<TDim,TNumNodes>::InitializeEulerianElement(ElementVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
 
-        rVariables.theta = rCurrentProcessInfo[TIME_INTEGRATION_THETA]; //Variable defining the temporal scheme (0: Forward Euler, 1: Backward Euler, 0.5: Crank-Nicolson)
+        rVariables.theta = rCurrentProcessInfo[TIME_INTEGRATION_THETA];
         rVariables.dyn_st_beta = rCurrentProcessInfo[DYNAMIC_TAU];
         rVariables.stationary = rCurrentProcessInfo[STATIONARY];
         rVariables.discontinuity_capturing_constant = rCurrentProcessInfo[SHOCK_CAPTURING_INTENSITY];
@@ -235,7 +232,7 @@ namespace Kratos
 //----------------------------------------------------------------------------------------
 
     template< unsigned int TDim, unsigned int TNumNodes >
-    void ViscosityModulatorElement<TDim,TNumNodes>::CalculateGeometry(BoundedMatrix<double,TNumNodes,TDim>& rDN_DX, double& rVolume)
+    void VmEulerianConvectionDiffusionShockCapturingElement<TDim,TNumNodes>::CalculateGeometry(BoundedMatrix<double,TNumNodes,TDim>& rDN_DX, double& rVolume)
     {
 
         const GeometryType& Geom = this->GetGeometry();
@@ -254,7 +251,7 @@ namespace Kratos
 //----------------------------------------------------------------------------------------
 
     template< unsigned int TDim, unsigned int TNumNodes >
-    double ViscosityModulatorElement< TDim, TNumNodes >::ComputeH(BoundedMatrix<double,TNumNodes,TDim >& DN_DX)
+    double VmEulerianConvectionDiffusionShockCapturingElement< TDim, TNumNodes >::ComputeH(BoundedMatrix<double,TNumNodes,TDim >& DN_DX)
     {
         double h=0.0;
 
@@ -274,9 +271,9 @@ namespace Kratos
 //----------------------------------------------------------------------------------------
 
     template< unsigned int TDim, unsigned int TNumNodes >
-    void ViscosityModulatorElement<TDim,TNumNodes>::GetNodalValues(ElementVariables& rVariables, const ProcessInfo& rCurrentProcessInfo) const
+    void VmEulerianConvectionDiffusionShockCapturingElement<TDim,TNumNodes>::GetNodalValues(ElementVariables& rVariables, const ProcessInfo& rCurrentProcessInfo) const
     {
-        ViscosityModulatorSettings::Pointer my_settings = rCurrentProcessInfo.GetValue(VISCOSITY_MODULATOR_SETTINGS);
+        ConvectionDiffusionSettings::Pointer my_settings = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
 
         //////storing locally the flags to avoid repeated check in the nodal loops
         const bool IsDefinedVelocityVariable = my_settings->IsDefinedVelocityVariable();
@@ -292,7 +289,6 @@ namespace Kratos
         {
             rVariables.phi[i] = GetGeometry()[i].FastGetSolutionStepValue(rUnknownVar);
             rVariables.phi_old[i] = GetGeometry()[i].FastGetSolutionStepValue(rUnknownVar,1);
-            //dphi_dt[i] = dt_inv*(phi[i] - phi_old [i];
 
 			rVariables.v[i]=ZeroVector(3);
 			rVariables.vold[i]=ZeroVector(3);
@@ -302,7 +298,6 @@ namespace Kratos
 				  const Variable<array_1d<double, 3 > >& rVelocityVar = my_settings->GetVelocityVariable();
 				  rVariables.v[i] = GetGeometry()[i].FastGetSolutionStepValue(rVelocityVar);
 				  rVariables.vold[i] = GetGeometry()[i].FastGetSolutionStepValue(rVelocityVar,1);
-				  //active_convection=true;
 			}
 
 			if (IsDefinedMeshVelocityVariable)
@@ -310,7 +305,6 @@ namespace Kratos
 				  const Variable<array_1d<double, 3 > >& rMeshVelocityVar = my_settings->GetMeshVelocityVariable();
 				  rVariables.v[i] -= GetGeometry()[i].FastGetSolutionStepValue(rMeshVelocityVar);
 				  rVariables.vold[i] -= GetGeometry()[i].FastGetSolutionStepValue(rMeshVelocityVar,1);
-				  //active_convection=true;
 			}
 
 			if (IsDefinedDensityVariable)
@@ -343,16 +337,13 @@ namespace Kratos
             }
         }
 
-        //array_1d<double,TDim> grad_phi_halfstep = prod(trans(DN_DX), 0.5*(phi+phi_old));
-        //const double norm_grad = norm_2(grad_phi_halfstep);
-
         rVariables.conductivity *= rVariables.lumping_factor;
         rVariables.density *= rVariables.lumping_factor;
         rVariables.specific_heat *= rVariables.lumping_factor;
     }
 
     template< unsigned int TDim, unsigned int TNumNodes >
-    double ViscosityModulatorElement<TDim,TNumNodes>::CalculateTau(const ElementVariables& rVariables, double norm_vel, double h)
+    double VmEulerianConvectionDiffusionShockCapturingElement<TDim,TNumNodes>::CalculateTau(const ElementVariables& rVariables, double norm_vel, double h)
     {
         // Dynamic part
         double inv_tau = rVariables.dyn_st_beta * rVariables.dt_inv;
@@ -375,7 +366,7 @@ namespace Kratos
 //----------------------------------------------------------------------------------------
 
     template< unsigned int TDim, unsigned int TNumNodes >
-    void ViscosityModulatorElement< TDim, TNumNodes >::CalculateRightHandSide(
+    void VmEulerianConvectionDiffusionShockCapturingElement< TDim, TNumNodes >::CalculateRightHandSide(
         VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
     {
         Matrix LeftHandSide;
@@ -385,7 +376,7 @@ namespace Kratos
 //----------------------------------------------------------------------------------------
 
     template< unsigned int TDim, unsigned int TNumNodes >
-    void ViscosityModulatorElement< TDim, TNumNodes >::CalculateNonlinearDiffusionMatrix(const ElementVariables& rVariables,
+    void VmEulerianConvectionDiffusionShockCapturingElement< TDim, TNumNodes >::CalculateNonlinearDiffusionMatrix(const ElementVariables& rVariables,
                                                                                                   const double h,
                                                                                                   const array_1d<double, TDim >& velocity,
                                                                                                   BoundedMatrix<double, TDim, TDim>& diffusion_matrix)
@@ -421,9 +412,9 @@ namespace Kratos
     }
 
 
-template class ViscosityModulatorElement<2,3>;
-template class ViscosityModulatorElement<2,4>;
-template class ViscosityModulatorElement<3,4>;
-template class ViscosityModulatorElement<3,8>;
+template class VmEulerianConvectionDiffusionShockCapturingElement<2,3>;
+template class VmEulerianConvectionDiffusionShockCapturingElement<2,4>;
+template class VmEulerianConvectionDiffusionShockCapturingElement<3,4>;
+template class VmEulerianConvectionDiffusionShockCapturingElement<3,8>;
 
 }

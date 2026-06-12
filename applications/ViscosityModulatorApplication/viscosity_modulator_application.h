@@ -27,10 +27,13 @@
 #include "includes/kratos_application.h"
 #include "viscosity_modulator_application_variables.h"
 
-#include "custom_elements/viscosity_modulator_element.h"
-
 #include "includes/variables.h"
 #include "includes/condition.h"
+
+#include "convection_diffusion_application_variables.h"
+#include "custom_elements/vm_eulerian_conv_diff_shock_capturing.h"
+#include "custom_conditions/vm_flux_condition.h"
+#include "custom_conditions/vm_consistent_flux_boundary_condition.h"
 
 
 namespace Kratos
@@ -142,10 +145,18 @@ private:
     ///@name Member Variables
     ///@{
 
-    const ViscosityModulatorElement<2,3>  mViscosityModulatorElement2D3N;
-    const ViscosityModulatorElement<2,4>  mViscosityModulatorElement2D4N;
-    const ViscosityModulatorElement<3,4>  mViscosityModulatorElement3D4N;
-    const ViscosityModulatorElement<3,8>  mViscosityModulatorElement3D8N;
+    const VmEulerianConvectionDiffusionShockCapturingElement<2,3> mEulerianConvDiffShockCapturing2D3N;
+    const VmEulerianConvectionDiffusionShockCapturingElement<2,4> mEulerianConvDiffShockCapturing2D4N;
+    const VmEulerianConvectionDiffusionShockCapturingElement<3,4> mEulerianConvDiffShockCapturing3D4N;
+    const VmEulerianConvectionDiffusionShockCapturingElement<3,8> mEulerianConvDiffShockCapturing3D8N;
+
+    const VmFluxCondition<2> mFluxCondition2D2N;
+    const VmFluxCondition<3> mFluxCondition3D3N;
+    const VmFluxCondition<4> mFluxCondition3D4N;
+
+    const VmConsistentFluxBoundaryCondition mConsistentFluxBoundaryCondition2D2N;
+    const VmConsistentFluxBoundaryCondition mConsistentFluxBoundaryCondition3D3N;
+    const VmConsistentFluxBoundaryCondition mConsistentFluxBoundaryCondition3D4N;
 
     ///@}
     ///@name Un accessible methods

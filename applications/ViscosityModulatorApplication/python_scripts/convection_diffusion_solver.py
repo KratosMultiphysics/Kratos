@@ -36,10 +36,10 @@ else:
 
 
 def CreateSolver(model, custom_settings):
-    return ViscosityModulatorSolver(model, custom_settings)
+    return ConvectionDiffusionSolver(model, custom_settings)
 
 
-class ViscosityModulatorSolver(PythonSolver):
+class ConvectionDiffusionSolver(PythonSolver):
     """The base class for convection-diffusion solvers.
 
     This class provides functions for importing and exporting models,
@@ -55,7 +55,7 @@ class ViscosityModulatorSolver(PythonSolver):
     _CreateBuilderAndSolver
     _CreateSolutionStrategy
 
-    The viscosity_modulator_solution_strategy, builder_and_solver, etc. should alway be retrieved
+    The convection_diffusion_solution_strategy, builder_and_solver, etc. should alway be retrieved
     using the getter functions _GetSolutionStrategy, get_builder_and_solver,
     etc. from this base class.
 
@@ -70,7 +70,7 @@ class ViscosityModulatorSolver(PythonSolver):
         super().__init__(model, custom_settings)
 
         # Convection diffusion variables check
-        self._ViscosityModulatorVariablesCheck(custom_settings)
+        self._ConvectionDiffusionVariablesCheck(custom_settings)
 
         model_part_name = self.settings["model_part_name"].GetString()
 
@@ -92,17 +92,17 @@ class ViscosityModulatorSolver(PythonSolver):
             self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
             self.solver_imports_model_part = True
 
-        KratosMultiphysics.Logger.PrintInfo("::[ViscosityModulatorSolver]:: ", "Construction finished")
+        KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionSolver]:: ", "Construction finished")
 
     @classmethod
     def GetDefaultParameters(cls):
         default_settings = KratosMultiphysics.Parameters("""
         {
-            "model_part_name" : "ScalarModelPart",
+            "model_part_name" : "ThermalModelPart",
             "domain_size" : -1,
             "echo_level": 0,
             "analysis_type": "linear",
-            "solver_type": "viscosity_modulator_solver",
+            "solver_type": "convection_diffusion_solver",
             "model_import_settings": {
                 "input_type": "mdpa",
                 "input_filename": "unknown_name"
@@ -110,7 +110,7 @@ class ViscosityModulatorSolver(PythonSolver):
             "material_import_settings" :{
                 "materials_filename": ""
             },
-            "viscosity_modulator_variables" : {
+            "convection_diffusion_variables" : {
                 "density_variable"              : "DENSITY",
                 "diffusion_variable"            : "CONDUCTIVITY",
                 "unknown_variable"              : "TEMPERATURE",
@@ -158,8 +158,8 @@ class ViscosityModulatorSolver(PythonSolver):
                 "scaling": false
             },
             "element_replace_settings" : {
-                "element_name" : "ViscosityModulatorElement",
-                "condition_name" : "ScalarFace"
+                "element_name" : "EulerianConvDiff",
+                "condition_name" : "ThermalFace"
             },
             "problem_domain_sub_model_part_list": [""],
             "processes_sub_model_part_list": [""],
@@ -175,104 +175,110 @@ class ViscosityModulatorSolver(PythonSolver):
         if target_model_part == None:
             target_model_part = self.main_model_part
 
-        ''' Add nodal solution step variables based on provided VISCOSITY_MODULATOR_SETTINGS
+        ''' Add nodal solution step variables based on provided CONVECTION_DIFFUSION_SETTINGS
         '''
-        viscosity_modulator_settings = KratosMultiphysics.ViscosityModulatorSettings()
-        density_variable = self.settings["viscosity_modulator_variables"]["density_variable"].GetString()
+        convention_diffusion_settings = KratosMultiphysics.ConvectionDiffusionSettings()
+        density_variable = self.settings["convection_diffusion_variables"]["density_variable"].GetString()
         if (density_variable != ""):
-            viscosity_modulator_settings.SetDensityVariable(KratosMultiphysics.KratosGlobals.GetVariable(density_variable))
-        diffusion_variable = self.settings["viscosity_modulator_variables"]["diffusion_variable"].GetString()
+            convention_diffusion_settings.SetDensityVariable(KratosMultiphysics.KratosGlobals.GetVariable(density_variable))
+        diffusion_variable = self.settings["convection_diffusion_variables"]["diffusion_variable"].GetString()
         if (diffusion_variable != ""):
-            viscosity_modulator_settings.SetDiffusionVariable(KratosMultiphysics.KratosGlobals.GetVariable(diffusion_variable))
-        unknown_variable = self.settings["viscosity_modulator_variables"]["unknown_variable"].GetString()
+            convention_diffusion_settings.SetDiffusionVariable(KratosMultiphysics.KratosGlobals.GetVariable(diffusion_variable))
+        unknown_variable = self.settings["convection_diffusion_variables"]["unknown_variable"].GetString()
         if (unknown_variable != ""):
-            viscosity_modulator_settings.SetUnknownVariable(KratosMultiphysics.KratosGlobals.GetVariable(unknown_variable))
-        # volume_source_variable = self.settings["viscosity_modulator_variables"]["volume_source_variable"].GetString()
-        # if (volume_source_variable != ""):
-        #     viscosity_modulator_settings.SetVolumeSourceVariable(KratosMultiphysics.KratosGlobals.GetVariable(volume_source_variable))
-        # surface_source_variable = self.settings["viscosity_modulator_variables"]["surface_source_variable"].GetString()
-        # if (surface_source_variable != ""):
-        #     viscosity_modulator_settings.SetSurfaceSourceVariable(KratosMultiphysics.KratosGlobals.GetVariable(surface_source_variable))
-        # projection_variable = self.settings["viscosity_modulator_variables"]["projection_variable"].GetString()
-        # if (projection_variable != ""):
-        #     viscosity_modulator_settings.SetProjectionVariable(KratosMultiphysics.KratosGlobals.GetVariable(projection_variable))
-        # convection_variable = self.settings["viscosity_modulator_variables"]["convection_variable"].GetString()
-        # if (convection_variable != ""):
-        #     viscosity_modulator_settings.SetConvectionVariable(KratosMultiphysics.KratosGlobals.GetVariable(convection_variable))
-        gradient_variable = self.settings["viscosity_modulator_variables"]["gradient_variable"].GetString()
+            convention_diffusion_settings.SetUnknownVariable(KratosMultiphysics.KratosGlobals.GetVariable(unknown_variable))
+        volume_source_variable = self.settings["convection_diffusion_variables"]["volume_source_variable"].GetString()
+        if (volume_source_variable != ""):
+            convention_diffusion_settings.SetVolumeSourceVariable(KratosMultiphysics.KratosGlobals.GetVariable(volume_source_variable))
+        surface_source_variable = self.settings["convection_diffusion_variables"]["surface_source_variable"].GetString()
+        if (surface_source_variable != ""):
+            convention_diffusion_settings.SetSurfaceSourceVariable(KratosMultiphysics.KratosGlobals.GetVariable(surface_source_variable))
+        projection_variable = self.settings["convection_diffusion_variables"]["projection_variable"].GetString()
+        if (projection_variable != ""):
+            convention_diffusion_settings.SetProjectionVariable(KratosMultiphysics.KratosGlobals.GetVariable(projection_variable))
+        convection_variable = self.settings["convection_diffusion_variables"]["convection_variable"].GetString()
+        if (convection_variable != ""):
+            convention_diffusion_settings.SetConvectionVariable(KratosMultiphysics.KratosGlobals.GetVariable(convection_variable))
+        gradient_variable = self.settings["convection_diffusion_variables"]["gradient_variable"].GetString()
         if gradient_variable != "":
-            viscosity_modulator_settings.SetGradientVariable(KratosMultiphysics.KratosGlobals.GetVariable(gradient_variable))
-        # mesh_velocity_variable = self.settings["viscosity_modulator_variables"]["mesh_velocity_variable"].GetString()
-        # if (mesh_velocity_variable != ""):
-        #     viscosity_modulator_settings.SetMeshVelocityVariable(KratosMultiphysics.KratosGlobals.GetVariable(mesh_velocity_variable))
-        # transfer_coefficient_variable = self.settings["viscosity_modulator_variables"]["transfer_coefficient_variable"].GetString()
-        # if (transfer_coefficient_variable != ""):
-        #     viscosity_modulator_settings.SetTransferCoefficientVariable(KratosMultiphysics.KratosGlobals.GetVariable(transfer_coefficient_variable))
-        velocity_variable = self.settings["viscosity_modulator_variables"]["velocity_variable"].GetString()
+            convention_diffusion_settings.SetGradientVariable(KratosMultiphysics.KratosGlobals.GetVariable(gradient_variable))
+        mesh_velocity_variable = self.settings["convection_diffusion_variables"]["mesh_velocity_variable"].GetString()
+        if (mesh_velocity_variable != ""):
+            convention_diffusion_settings.SetMeshVelocityVariable(KratosMultiphysics.KratosGlobals.GetVariable(mesh_velocity_variable))
+        transfer_coefficient_variable = self.settings["convection_diffusion_variables"]["transfer_coefficient_variable"].GetString()
+        if (transfer_coefficient_variable != ""):
+            convention_diffusion_settings.SetTransferCoefficientVariable(KratosMultiphysics.KratosGlobals.GetVariable(transfer_coefficient_variable))
+        velocity_variable = self.settings["convection_diffusion_variables"]["velocity_variable"].GetString()
         if (velocity_variable != ""):
-            viscosity_modulator_settings.SetVelocityVariable(KratosMultiphysics.KratosGlobals.GetVariable(velocity_variable))
-        specific_heat_variable = self.settings["viscosity_modulator_variables"]["specific_heat_variable"].GetString()
+            convention_diffusion_settings.SetVelocityVariable(KratosMultiphysics.KratosGlobals.GetVariable(velocity_variable))
+        specific_heat_variable = self.settings["convection_diffusion_variables"]["specific_heat_variable"].GetString()
         if (specific_heat_variable != ""):
-            viscosity_modulator_settings.SetSpecificHeatVariable(KratosMultiphysics.KratosGlobals.GetVariable(specific_heat_variable))
-        # reaction_variable = self.settings["viscosity_modulator_variables"]["reaction_variable"].GetString()
-        # if (reaction_variable != ""):
-        #     viscosity_modulator_settings.SetReactionVariable(KratosMultiphysics.KratosGlobals.GetVariable(reaction_variable))
-        # reaction_gradient_variable = self.settings["viscosity_modulator_variables"]["reaction_gradient_variable"].GetString()
-        # if (reaction_gradient_variable != ""):
-        #     viscosity_modulator_settings.SetReactionGradientVariable(KratosMultiphysics.KratosGlobals.GetVariable(reaction_gradient_variable))
+            convention_diffusion_settings.SetSpecificHeatVariable(KratosMultiphysics.KratosGlobals.GetVariable(specific_heat_variable))
+        reaction_variable = self.settings["convection_diffusion_variables"]["reaction_variable"].GetString()
+        if (reaction_variable != ""):
+            convention_diffusion_settings.SetReactionVariable(KratosMultiphysics.KratosGlobals.GetVariable(reaction_variable))
+        reaction_gradient_variable = self.settings["convection_diffusion_variables"]["reaction_gradient_variable"].GetString()
+        if (reaction_gradient_variable != ""):
+            convention_diffusion_settings.SetReactionGradientVariable(KratosMultiphysics.KratosGlobals.GetVariable(reaction_gradient_variable))
 
 
-        target_model_part.ProcessInfo.SetValue(KratosMultiphysics.VISCOSITY_MODULATOR_SETTINGS, viscosity_modulator_settings)
+        target_model_part.ProcessInfo.SetValue(KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS, convention_diffusion_settings)
 
-        if target_model_part.ProcessInfo.Has(KratosMultiphysics.VISCOSITY_MODULATOR_SETTINGS):
-            if viscosity_modulator_settings.IsDefinedDensityVariable():
-                target_model_part.AddNodalSolutionStepVariable(viscosity_modulator_settings.GetDensityVariable())
-            if viscosity_modulator_settings.IsDefinedDiffusionVariable():
-                target_model_part.AddNodalSolutionStepVariable(viscosity_modulator_settings.GetDiffusionVariable())
-            if viscosity_modulator_settings.IsDefinedUnknownVariable():
-                target_model_part.AddNodalSolutionStepVariable(viscosity_modulator_settings.GetUnknownVariable())
-            if viscosity_modulator_settings.IsDefinedVolumeSourceVariable():
-                target_model_part.AddNodalSolutionStepVariable(viscosity_modulator_settings.GetVolumeSourceVariable())
-            if viscosity_modulator_settings.IsDefinedSurfaceSourceVariable():
-                target_model_part.AddNodalSolutionStepVariable(viscosity_modulator_settings.GetSurfaceSourceVariable())
-            if viscosity_modulator_settings.IsDefinedProjectionVariable():
-                target_model_part.AddNodalSolutionStepVariable(viscosity_modulator_settings.GetProjectionVariable())
-            if viscosity_modulator_settings.IsDefinedConvectionVariable():
-                target_model_part.AddNodalSolutionStepVariable(viscosity_modulator_settings.GetConvectionVariable())
-            if viscosity_modulator_settings.IsDefinedGradientVariable():
-                target_model_part.AddNodalSolutionStepVariable(viscosity_modulator_settings.GetGradientVariable())
-            if viscosity_modulator_settings.IsDefinedMeshVelocityVariable():
-                target_model_part.AddNodalSolutionStepVariable(viscosity_modulator_settings.GetMeshVelocityVariable())
-            if viscosity_modulator_settings.IsDefinedTransferCoefficientVariable():
-                target_model_part.AddNodalSolutionStepVariable(viscosity_modulator_settings.GetTransferCoefficientVariable())
-            if viscosity_modulator_settings.IsDefinedVelocityVariable():
-                target_model_part.AddNodalSolutionStepVariable(viscosity_modulator_settings.GetVelocityVariable())
-            if viscosity_modulator_settings.IsDefinedSpecificHeatVariable():
-                target_model_part.AddNodalSolutionStepVariable(viscosity_modulator_settings.GetSpecificHeatVariable())
-            if viscosity_modulator_settings.IsDefinedReactionVariable():
-                target_model_part.AddNodalSolutionStepVariable(viscosity_modulator_settings.GetReactionVariable())
-            if viscosity_modulator_settings.IsDefinedReactionGradientVariable():
-                target_model_part.AddNodalSolutionStepVariable(viscosity_modulator_settings.GetReactionGradientVariable())
+        if target_model_part.ProcessInfo.Has(KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS):
+            if convention_diffusion_settings.IsDefinedDensityVariable():
+                target_model_part.AddNodalSolutionStepVariable(convention_diffusion_settings.GetDensityVariable())
+            if convention_diffusion_settings.IsDefinedDiffusionVariable():
+                target_model_part.AddNodalSolutionStepVariable(convention_diffusion_settings.GetDiffusionVariable())
+            if convention_diffusion_settings.IsDefinedUnknownVariable():
+                target_model_part.AddNodalSolutionStepVariable(convention_diffusion_settings.GetUnknownVariable())
+            if convention_diffusion_settings.IsDefinedVolumeSourceVariable():
+                target_model_part.AddNodalSolutionStepVariable(convention_diffusion_settings.GetVolumeSourceVariable())
+            if convention_diffusion_settings.IsDefinedSurfaceSourceVariable():
+                target_model_part.AddNodalSolutionStepVariable(convention_diffusion_settings.GetSurfaceSourceVariable())
+            if convention_diffusion_settings.IsDefinedProjectionVariable():
+                target_model_part.AddNodalSolutionStepVariable(convention_diffusion_settings.GetProjectionVariable())
+            if convention_diffusion_settings.IsDefinedConvectionVariable():
+                target_model_part.AddNodalSolutionStepVariable(convention_diffusion_settings.GetConvectionVariable())
+            if convention_diffusion_settings.IsDefinedGradientVariable():
+                target_model_part.AddNodalSolutionStepVariable(convention_diffusion_settings.GetGradientVariable())
+            if convention_diffusion_settings.IsDefinedMeshVelocityVariable():
+                target_model_part.AddNodalSolutionStepVariable(convention_diffusion_settings.GetMeshVelocityVariable())
+            if convention_diffusion_settings.IsDefinedTransferCoefficientVariable():
+                target_model_part.AddNodalSolutionStepVariable(convention_diffusion_settings.GetTransferCoefficientVariable())
+            if convention_diffusion_settings.IsDefinedVelocityVariable():
+                target_model_part.AddNodalSolutionStepVariable(convention_diffusion_settings.GetVelocityVariable())
+            if convention_diffusion_settings.IsDefinedSpecificHeatVariable():
+                target_model_part.AddNodalSolutionStepVariable(convention_diffusion_settings.GetSpecificHeatVariable())
+            if convention_diffusion_settings.IsDefinedReactionVariable():
+                target_model_part.AddNodalSolutionStepVariable(convention_diffusion_settings.GetReactionVariable())
+            if convention_diffusion_settings.IsDefinedReactionGradientVariable():
+                target_model_part.AddNodalSolutionStepVariable(convention_diffusion_settings.GetReactionGradientVariable())
 
-            # step_solution_variable = self.settings["viscosity_modulator_variables"]["step_solution"].GetString()
+            # step_solution_variable = self.settings["convection_diffusion_variables"]["step_solution"].GetString()
             # if (step_solution_variable != ""):
             #     target_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ViscosityModulatorApplication.STEP_SOLUTION)
-            # trunc_solution_variable = self.settings["viscosity_modulator_variables"]["trunc_solution"].GetString()
-            # if (trunc_solution_variable != ""):
-            #     target_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ViscosityModulatorApplication.TRUNC_SOLUTION)
-            # step_solution_error_variable = self.settings["viscosity_modulator_variables"]["step_solution_error"].GetString()
+            trunc_solution_variable = self.settings["convection_diffusion_variables"]["trunc_solution"].GetString()
+            if (trunc_solution_variable != ""):
+                target_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ViscosityModulatorApplication.TRUNC_SOLUTION)
+            # step_solution_error_variable = self.settings["convection_diffusion_variables"]["step_solution_error"].GetString()
             # if (step_solution_error_variable != ""):
             #     target_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ViscosityModulatorApplication.STEP_SOLUTION_ERROR)
-            # trunc_solution_error_variable = self.settings["viscosity_modulator_variables"]["trunc_solution_error"].GetString()
-            # if (trunc_solution_error_variable != ""):
-            #     target_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ViscosityModulatorApplication.TRUNC_SOLUTION_ERROR)
-            # print(f"settigns:\n{self.settings['viscosity_modulator_variables']}")
-            # generic_variable_3D = self.settings["viscosity_modulator_variables"]["generic_3d_variable"].GetString()
+            trunc_solution_error_variable = self.settings["convection_diffusion_variables"]["trunc_solution_error"].GetString()
+            if (trunc_solution_error_variable != ""):
+                target_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ViscosityModulatorApplication.TRUNC_SOLUTION_ERROR)
+            # print(f"settigns:\n{self.settings['convection_diffusion_variables']}")
+            # generic_variable_3D = self.settings["convection_diffusion_variables"]["generic_3d_variable"].GetString()
             # if (generic_variable_3D != ""):
             #     target_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ViscosityModulatorApplication.GENERIC_3D_VARIABLE)
 
+            reference_velocity = self.settings["convection_diffusion_variables"]["reference_velocity"].GetString()
+            if (reference_velocity != ""):
+                target_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ViscosityModulatorApplication.REFERENCE_VELOCITY)
+            exact_pressure = self.settings["convection_diffusion_variables"]["exact_pressure"].GetString()
+            if (exact_pressure != ""):
+                target_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ViscosityModulatorApplication.EXACT_PRESSURE)
         else:
-            raise Exception("The provided target_model_part does not have VISCOSITY_MODULATOR_SETTINGS defined.")
+            raise Exception("The provided target_model_part does not have CONVECTION_DIFFUSION_SETTINGS defined.")
 
         # Adding nodal area variable (some solvers use it. TODO: Ask)
         # target_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
@@ -286,7 +292,7 @@ class ViscosityModulatorSolver(PythonSolver):
 
         auxiliary_solver_utilities.AddVariables(self.main_model_part, self.settings["auxiliary_variables_list"])
 
-        KratosMultiphysics.Logger.PrintInfo("::[ViscosityModulatorSolver]:: ", "Variables ADDED")
+        KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionSolver]:: ", "Variables ADDED")
 
     def GetMinimumBufferSize(self):
         return self.min_buffer_size
@@ -294,7 +300,7 @@ class ViscosityModulatorSolver(PythonSolver):
     def AddDofs(self):
         # Set DOFs and reaction variables list from Kratos parameters settings
         dofs_with_reactions_list = []
-        conv_diff_vars = self.settings["viscosity_modulator_variables"]
+        conv_diff_vars = self.settings["convection_diffusion_variables"]
         dof_var_name = conv_diff_vars["unknown_variable"].GetString()
         reaction_var_name = conv_diff_vars["reaction_variable"].GetString()
         dofs_with_reactions_list.append([dof_var_name, reaction_var_name])
@@ -308,7 +314,7 @@ class ViscosityModulatorSolver(PythonSolver):
         # Add the DOFs and reaction list to each node
         KratosMultiphysics.VariableUtils.AddDofsList(dofs_with_reactions_list, self.main_model_part)
 
-        KratosMultiphysics.Logger.PrintInfo("::[ViscosityModulatorSolver]:: ", "DOF's ADDED")
+        KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionSolver]:: ", "DOF's ADDED")
 
     def GetDofsList(self):
         """This function creates and returns a list with the DOFs defined in the Kratos parameters settings
@@ -316,7 +322,7 @@ class ViscosityModulatorSolver(PythonSolver):
         """
 
         dofs_list = []
-        conv_diff_vars = self.settings["viscosity_modulator_variables"]
+        conv_diff_vars = self.settings["convection_diffusion_variables"]
         dofs_list.append(conv_diff_vars["unknown_variable"].GetString())
         if self.settings["gradient_dofs"].GetBool():
             grad_dof_var_name = conv_diff_vars["gradient_variable"].GetString()
@@ -343,11 +349,15 @@ class ViscosityModulatorSolver(PythonSolver):
             # Import material properties
             materials_imported = self.import_materials()
             if materials_imported:
-                KratosMultiphysics.Logger.PrintInfo("::[ViscosityModulatorSolver]:: ", "Materials were successfully imported.")
+                KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionSolver]:: ", "Materials were successfully imported.")
             else:
-                KratosMultiphysics.Logger.PrintInfo("::[ViscosityModulatorSolver]:: ", "Materials were not imported.")
+                KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionSolver]:: ", "Materials were not imported.")
 
-            KratosMultiphysics.ReplaceElementsAndConditionsProcess(self.main_model_part, self._get_element_condition_replace_settings()).Execute()
+            replace_settings = self._get_element_condition_replace_settings()
+            self._ValidateNeighbourElementAssignmentForCondition(
+                replace_settings["condition_name"].GetString(),
+                "element_replace_settings.condition_name")
+            KratosMultiphysics.ReplaceElementsAndConditionsProcess(self.main_model_part, replace_settings).Execute()
 
             tmoc = KratosMultiphysics.TetrahedralMeshOrientationCheck
             throw_errors = False
@@ -367,27 +377,27 @@ class ViscosityModulatorSolver(PythonSolver):
         if (self.settings["echo_level"].GetInt() > 0):
             KratosMultiphysics.Logger.PrintInfo(self.model)
 
-        KratosMultiphysics.Logger.PrintInfo("::[ViscosityModulatorSolver]::", "ModelPart prepared for Solver.")
+        KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionSolver]::", "ModelPart prepared for Solver.")
 
     def Initialize(self):
         """Perform initialization after adding nodal variables and dofs to the main model part."""
-        KratosMultiphysics.Logger.PrintInfo("::[ViscosityModulatorSolver]:: ", "Initializing ...")
+        KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionSolver]:: ", "Initializing ...")
         # The convection_diffusion solution strategy is created here if it does not already exist.
         if self.settings["clear_storage"].GetBool():
             self.Clear()
-        viscosity_modulator_solution_strategy = self._GetSolutionStrategy()
-        viscosity_modulator_solution_strategy.SetEchoLevel(self.settings["echo_level"].GetInt())
+        convection_diffusion_solution_strategy = self._GetSolutionStrategy()
+        convection_diffusion_solution_strategy.SetEchoLevel(self.settings["echo_level"].GetInt())
         if not self.is_restarted():
-            viscosity_modulator_solution_strategy.Initialize()
+            convection_diffusion_solution_strategy.Initialize()
         else:
             # SetInitializePerformedFlag is not a member of ImplicitSolvingStrategy but
             # is used by ResidualBasedNewtonRaphsonStrategy.
             try:
-                viscosity_modulator_solution_strategy.SetInitializePerformedFlag(True)
+                convection_diffusion_solution_strategy.SetInitializePerformedFlag(True)
             except AttributeError:
                 pass
         self.Check()
-        KratosMultiphysics.Logger.PrintInfo("::[ViscosityModulatorSolver]:: ", "Finished initialization.")
+        KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionSolver]:: ", "Finished initialization.")
 
     def GetOutputVariables(self):
         pass
@@ -395,8 +405,8 @@ class ViscosityModulatorSolver(PythonSolver):
     def Solve(self):
         if self.settings["clear_storage"].GetBool():
             self.Clear()
-        viscosity_modulator_solution_strategy = self._GetSolutionStrategy()
-        viscosity_modulator_solution_strategy.Solve()
+        convection_diffusion_solution_strategy = self._GetSolutionStrategy()
+        convection_diffusion_solution_strategy.Solve()
 
     def InitializeSolutionStep(self):
         self._GetSolutionStrategy().InitializeSolutionStep()
@@ -463,9 +473,9 @@ class ViscosityModulatorSolver(PythonSolver):
         return self._builder_and_solver
 
     def _GetSolutionStrategy(self):
-        if not hasattr(self, '_viscosity_modulator_solution_strategy'):
-            self._viscosity_modulator_solution_strategy = self._CreateSolutionStrategy()
-        return self._viscosity_modulator_solution_strategy
+        if not hasattr(self, '_convection_diffusion_solution_strategy'):
+            self._convection_diffusion_solution_strategy = self._CreateSolutionStrategy()
+        return self._convection_diffusion_solution_strategy
 
     def import_materials(self):
         materials_filename = self.settings["material_import_settings"]["materials_filename"].GetString()
@@ -510,33 +520,33 @@ class ViscosityModulatorSolver(PythonSolver):
                         raise ValueError("Type of value is not available")
 
     def _check_variable_to_set(self, var):
-        scalar_settings = self.main_model_part.ProcessInfo[KratosMultiphysics.VISCOSITY_MODULATOR_SETTINGS]
-        if (scalar_settings.IsDefinedDensityVariable()):
-            if (scalar_settings.GetDensityVariable() == var):
+        thermal_settings = self.main_model_part.ProcessInfo[KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS]
+        if (thermal_settings.IsDefinedDensityVariable()):
+            if (thermal_settings.GetDensityVariable() == var):
                 return True
-        if (scalar_settings.IsDefinedDiffusionVariable()):
-            if (scalar_settings.GetDiffusionVariable() == var):
+        if (thermal_settings.IsDefinedDiffusionVariable()):
+            if (thermal_settings.GetDiffusionVariable() == var):
                 return True
-        if (scalar_settings.IsDefinedVolumeSourceVariable()):
-            if (scalar_settings.GetVolumeSourceVariable() == var):
+        if (thermal_settings.IsDefinedVolumeSourceVariable()):
+            if (thermal_settings.GetVolumeSourceVariable() == var):
                 return True
-        if (scalar_settings.IsDefinedSurfaceSourceVariable()):
-            if (scalar_settings.GetSurfaceSourceVariable() == var):
+        if (thermal_settings.IsDefinedSurfaceSourceVariable()):
+            if (thermal_settings.GetSurfaceSourceVariable() == var):
                 return True
-        if (scalar_settings.IsDefinedProjectionVariable()):
-            if (scalar_settings.GetProjectionVariable() == var):
+        if (thermal_settings.IsDefinedProjectionVariable()):
+            if (thermal_settings.GetProjectionVariable() == var):
                 return True
-        if (scalar_settings.IsDefinedConvectionVariable()):
-            if (scalar_settings.GetConvectionVariable() == var):
+        if (thermal_settings.IsDefinedConvectionVariable()):
+            if (thermal_settings.GetConvectionVariable() == var):
                 return True
-        if scalar_settings.IsDefinedGradientVariable():
-            if scalar_settings.GetGradientVariable() == var:
+        if thermal_settings.IsDefinedGradientVariable():
+            if thermal_settings.GetGradientVariable() == var:
                 return True
-        if (scalar_settings.IsDefinedTransferCoefficientVariable()):
-            if (scalar_settings.GetTransferCoefficientVariable() == var):
+        if (thermal_settings.IsDefinedTransferCoefficientVariable()):
+            if (thermal_settings.GetTransferCoefficientVariable() == var):
                 return True
-        if (scalar_settings.IsDefinedSpecificHeatVariable()):
-            if (scalar_settings.GetSpecificHeatVariable() == var):
+        if (thermal_settings.IsDefinedSpecificHeatVariable()):
+            if (thermal_settings.GetSpecificHeatVariable() == var):
                 return True
         else:
             return False
@@ -562,6 +572,19 @@ class ViscosityModulatorSolver(PythonSolver):
             self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.STEP, step)
             self.main_model_part.CloneTimeStep(time)
 
+    def _ConditionRequiresNeighbourElements(self, condition_name):
+        return condition_name.startswith("ConsistentFluxBoundaryCondition")
+
+    def _ValidateNeighbourElementAssignmentForCondition(self, condition_name, condition_origin):
+        assign_neighbour_elements = self.settings["assign_neighbour_elements_to_conditions"].GetBool()
+
+        if self._ConditionRequiresNeighbourElements(condition_name) and not assign_neighbour_elements:
+            raise Exception(
+                "The condition '{}' selected in '{}' requires "
+                "'assign_neighbour_elements_to_conditions' to be true.".format(
+                    condition_name,
+                    condition_origin))
+
     def _get_element_condition_replace_settings(self):
         # Get and check domain size
         domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
@@ -575,14 +598,14 @@ class ViscosityModulatorSolver(PythonSolver):
         # Elements
         # Note that we check for the elements that require substitution to allow for custom elements
         element_name = self.settings["element_replace_settings"]["element_name"].GetString()
-        element_list = ["ViscosityModulatorElement",
+        element_list = ["EulerianConvDiff",
                         "LaplacianElement",
                         "MixedLaplacianElement",
                         "AdjointHeatDiffusionElement",
-                        "QSViscosityModulatorExplicit",
-                        "DViscosityModulatorExplicit",
-                        "AxisymmetricEulerianViscosityModulator",
-                        "ViscosityModulatorElementShockCapturing"
+                        "QSConvectionDiffusionExplicit",
+                        "DConvectionDiffusionExplicit",
+                        "AxisymmetricEulerianConvectionDiffusion",
+                        "EulerianConvDiffShockCapturing"
                         ]
         if element_name in element_list:
             num_nodes_elements = 0
@@ -600,7 +623,7 @@ class ViscosityModulatorSolver(PythonSolver):
 
         # Conditions
         condition_name = self.settings["element_replace_settings"]["condition_name"].GetString()
-        condition_list = ["FluxCondition", "ScalarFace", "AxisymmetricScalarFace", "LineCondition", "SurfaceCondition"]
+        condition_list = ["FluxCondition", "ThermalFace", "AxisymmetricThermalFace", "LineCondition", "ConsistentFluxBoundaryCondition"]
         if condition_name in condition_list:
             num_nodes_conditions = 0
             if (len(self.main_model_part.Conditions) > 0):
@@ -682,26 +705,26 @@ class ViscosityModulatorSolver(PythonSolver):
     def _CreateSolutionStrategy(self):
         analysis_type = self.settings["analysis_type"].GetString()
         if analysis_type == "linear":
-            viscosity_modulator_solution_strategy = self._create_linear_strategy()
+            convection_diffusion_solution_strategy = self._create_linear_strategy()
         elif analysis_type == "non_linear":
             if (self.settings["line_search"].GetBool() == False):
-                viscosity_modulator_solution_strategy = self._create_newton_raphson_strategy()
+                convection_diffusion_solution_strategy = self._create_newton_raphson_strategy()
             else:
-                viscosity_modulator_solution_strategy = self._create_line_search_strategy()
+                convection_diffusion_solution_strategy = self._create_line_search_strategy()
         else:
             err_msg = "The requested analysis type \"" + analysis_type + "\" is not available!\n"
             err_msg += "Available options are: \"linear\", \"non_linear\""
             raise Exception(err_msg)
-        return viscosity_modulator_solution_strategy
+        return convection_diffusion_solution_strategy
 
     def _create_linear_strategy(self):
         computing_model_part = self.GetComputingModelPart()
-        viscosity_modulator_scheme = self._GetScheme()
+        convection_diffusion_scheme = self._GetScheme()
         builder_and_solver = self._GetBuilderAndSolver()
         if not computing_model_part.IsDistributed():
             return KratosMultiphysics.ResidualBasedLinearStrategy(
                 computing_model_part,
-                viscosity_modulator_scheme,
+                convection_diffusion_scheme,
                 builder_and_solver,
                 self.settings["compute_reactions"].GetBool(),
                 self.settings["reform_dofs_at_each_step"].GetBool(),
@@ -710,7 +733,7 @@ class ViscosityModulatorSolver(PythonSolver):
         else:
             return KratosTrilinos.TrilinosLinearStrategy(
                 computing_model_part,
-                viscosity_modulator_scheme,
+                convection_diffusion_scheme,
                 builder_and_solver,
                 self.settings["compute_reactions"].GetBool(),
                 self.settings["reform_dofs_at_each_step"].GetBool(),
@@ -719,14 +742,14 @@ class ViscosityModulatorSolver(PythonSolver):
 
     def _create_newton_raphson_strategy(self):
         computing_model_part = self.GetComputingModelPart()
-        viscosity_modulator_scheme = self._GetScheme()
-        viscosity_modulator_convergence_criterion = self._GetConvergenceCriterion()
+        convection_diffusion_scheme = self._GetScheme()
+        convection_diffusion_convergence_criterion = self._GetConvergenceCriterion()
         builder_and_solver = self._GetBuilderAndSolver()
         if not computing_model_part.IsDistributed():
             return KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(
                 computing_model_part,
-                viscosity_modulator_scheme,
-                viscosity_modulator_convergence_criterion,
+                convection_diffusion_scheme,
+                convection_diffusion_convergence_criterion,
                 builder_and_solver,
                 self.settings["max_iteration"].GetInt(),
                 self.settings["compute_reactions"].GetBool(),
@@ -735,8 +758,8 @@ class ViscosityModulatorSolver(PythonSolver):
         else:
             return KratosTrilinos.TrilinosNewtonRaphsonStrategy(
                 computing_model_part,
-                viscosity_modulator_scheme,
-                viscosity_modulator_convergence_criterion,
+                convection_diffusion_scheme,
+                convection_diffusion_convergence_criterion,
                 builder_and_solver,
                 self.settings["max_iteration"].GetInt(),
                 self.settings["compute_reactions"].GetBool(),
@@ -745,14 +768,14 @@ class ViscosityModulatorSolver(PythonSolver):
 
     def _create_line_search_strategy(self):
         computing_model_part = self.GetComputingModelPart()
-        viscosity_modulator_scheme = self._GetScheme()
-        viscosity_modulator_convergence_criterion = self._GetConvergenceCriterion()
+        convection_diffusion_scheme = self._GetScheme()
+        convection_diffusion_convergence_criterion = self._GetConvergenceCriterion()
         builder_and_solver = self._GetBuilderAndSolver()
         if not computing_model_part.IsDistributed():
             return KratosMultiphysics.LineSearchStrategy(
                 computing_model_part,
-                viscosity_modulator_scheme,
-                viscosity_modulator_convergence_criterion,
+                convection_diffusion_scheme,
+                convection_diffusion_convergence_criterion,
                 builder_and_solver,
                 self.settings["max_iteration"].GetInt(),
                 self.settings["compute_reactions"].GetBool(),
@@ -762,38 +785,38 @@ class ViscosityModulatorSolver(PythonSolver):
             err_msg = "\'line_search\' solution strategy is not MPI compatible."
             raise Exception(err_msg)
 
-    def _ViscosityModulatorVariablesCheck(self, custom_settings):
+    def _ConvectionDiffusionVariablesCheck(self, custom_settings):
         """This checks the user provided set of variables.
-        If there are no custom \'viscosity_modulator_variables\', the default ones are taken.
+        If there are no custom \'convection_diffusion_variables\', the default ones are taken.
         If these are defined by the user, it checks one by one the provided values. If one is missing, it is taken form the defaults.
-        Note that this ensures that all the historical nodal variables to be used are defined in \'viscosity_modulator_settings\' at construction time.
+        Note that this ensures that all the historical nodal variables to be used are defined in \'convection_diffusion_settings\' at construction time.
         """
 
         default_settings = self.GetDefaultParameters()
-        default_conv_diff_variables = default_settings["viscosity_modulator_variables"]
-        if not custom_settings.Has("viscosity_modulator_variables"):
-            KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "\'viscosity_modulator_variables\' not defined, taking default ", default_conv_diff_variables)
+        default_conv_diff_variables = default_settings["convection_diffusion_variables"]
+        if not custom_settings.Has("convection_diffusion_variables"):
+            KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "\'convection_diffusion_variables\' not defined, taking default ", default_conv_diff_variables)
         else:
-            custom_conv_diff_variables = custom_settings["viscosity_modulator_variables"]
-            self._ViscosityModulatorSingleVariableCheck(custom_conv_diff_variables, "density_variable", default_conv_diff_variables["density_variable"].GetString())
-            self._ViscosityModulatorSingleVariableCheck(custom_conv_diff_variables, "diffusion_variable", default_conv_diff_variables["diffusion_variable"].GetString())
-            self._ViscosityModulatorSingleVariableCheck(custom_conv_diff_variables, "unknown_variable", default_conv_diff_variables["unknown_variable"].GetString())
-            self._ViscosityModulatorSingleVariableCheck(custom_conv_diff_variables, "volume_source_variable", default_conv_diff_variables["volume_source_variable"].GetString())
-            self._ViscosityModulatorSingleVariableCheck(custom_conv_diff_variables, "surface_source_variable", default_conv_diff_variables["surface_source_variable"].GetString())
-            self._ViscosityModulatorSingleVariableCheck(custom_conv_diff_variables, "projection_variable", default_conv_diff_variables["projection_variable"].GetString())
-            self._ViscosityModulatorSingleVariableCheck(custom_conv_diff_variables, "convection_variable", default_conv_diff_variables["convection_variable"].GetString())
-            self._ViscosityModulatorSingleVariableCheck(custom_conv_diff_variables, "gradient_variable", default_conv_diff_variables["gradient_variable"].GetString())
-            self._ViscosityModulatorSingleVariableCheck(custom_conv_diff_variables, "mesh_velocity_variable", default_conv_diff_variables["mesh_velocity_variable"].GetString())
-            self._ViscosityModulatorSingleVariableCheck(custom_conv_diff_variables, "transfer_coefficient_variable", default_conv_diff_variables["transfer_coefficient_variable"].GetString())
-            self._ViscosityModulatorSingleVariableCheck(custom_conv_diff_variables, "velocity_variable", default_conv_diff_variables["velocity_variable"].GetString())
-            self._ViscosityModulatorSingleVariableCheck(custom_conv_diff_variables, "specific_heat_variable", default_conv_diff_variables["specific_heat_variable"].GetString())
-            self._ViscosityModulatorSingleVariableCheck(custom_conv_diff_variables, "reaction_variable", default_conv_diff_variables["reaction_variable"].GetString())
-            self._ViscosityModulatorSingleVariableCheck(custom_conv_diff_variables, "reaction_gradient_variable", default_conv_diff_variables["reaction_gradient_variable"].GetString())
+            custom_conv_diff_variables = custom_settings["convection_diffusion_variables"]
+            self._ConvectionDiffusionSingleVariableCheck(custom_conv_diff_variables, "density_variable", default_conv_diff_variables["density_variable"].GetString())
+            self._ConvectionDiffusionSingleVariableCheck(custom_conv_diff_variables, "diffusion_variable", default_conv_diff_variables["diffusion_variable"].GetString())
+            self._ConvectionDiffusionSingleVariableCheck(custom_conv_diff_variables, "unknown_variable", default_conv_diff_variables["unknown_variable"].GetString())
+            self._ConvectionDiffusionSingleVariableCheck(custom_conv_diff_variables, "volume_source_variable", default_conv_diff_variables["volume_source_variable"].GetString())
+            self._ConvectionDiffusionSingleVariableCheck(custom_conv_diff_variables, "surface_source_variable", default_conv_diff_variables["surface_source_variable"].GetString())
+            self._ConvectionDiffusionSingleVariableCheck(custom_conv_diff_variables, "projection_variable", default_conv_diff_variables["projection_variable"].GetString())
+            self._ConvectionDiffusionSingleVariableCheck(custom_conv_diff_variables, "convection_variable", default_conv_diff_variables["convection_variable"].GetString())
+            self._ConvectionDiffusionSingleVariableCheck(custom_conv_diff_variables, "gradient_variable", default_conv_diff_variables["gradient_variable"].GetString())
+            self._ConvectionDiffusionSingleVariableCheck(custom_conv_diff_variables, "mesh_velocity_variable", default_conv_diff_variables["mesh_velocity_variable"].GetString())
+            self._ConvectionDiffusionSingleVariableCheck(custom_conv_diff_variables, "transfer_coefficient_variable", default_conv_diff_variables["transfer_coefficient_variable"].GetString())
+            self._ConvectionDiffusionSingleVariableCheck(custom_conv_diff_variables, "velocity_variable", default_conv_diff_variables["velocity_variable"].GetString())
+            self._ConvectionDiffusionSingleVariableCheck(custom_conv_diff_variables, "specific_heat_variable", default_conv_diff_variables["specific_heat_variable"].GetString())
+            self._ConvectionDiffusionSingleVariableCheck(custom_conv_diff_variables, "reaction_variable", default_conv_diff_variables["reaction_variable"].GetString())
+            self._ConvectionDiffusionSingleVariableCheck(custom_conv_diff_variables, "reaction_gradient_variable", default_conv_diff_variables["reaction_gradient_variable"].GetString())
 
-    def _ViscosityModulatorSingleVariableCheck(self, custom_conv_diff_variables, variable_entry, variable_name):
+    def _ConvectionDiffusionSingleVariableCheck(self, custom_conv_diff_variables, variable_entry, variable_name):
         if not custom_conv_diff_variables.Has(variable_entry):
             custom_conv_diff_variables.AddEmptyValue(variable_entry).SetString(variable_name)
-            KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "\'{0}\' in \'viscosity_modulator_variables\' not defined, taking default \'{1}\'.".format(variable_entry, variable_name))
+            KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "\'{0}\' in \'convection_diffusion_variables\' not defined, taking default \'{1}\'.".format(variable_entry, variable_name))
 
     # TODO: THIS MUST BE IMPLEMENTED IN A base_convergence_criteria_factory_mpi.py
     # TODO: THEN WE CAN IMPORT IT AS convergence_criteria_factory TO AVOID DISTINGUISHING THE SERIAL AND THE PARALLEL FACTORIES

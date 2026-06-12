@@ -23,24 +23,42 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
             time_integration_method = solver_settings["time_integration_method"].GetString()
             # Check transient integration method
             if time_integration_method == "implicit":
-                solver_module_name = "viscosity_modulator_transient_solver"
+                solver_module_name = "convection_diffusion_transient_solver"
+            elif time_integration_method == "explicit":
+                solver_module_name = "convection_diffusion_explicit_solver"
+            elif time_integration_method == "semi_implicit":
+                solver_module_name = "convection_diffusion_semi_eulerian_solver"
             else:
                 err_msg =  "The requested time integration method {} is not in the Python solvers wrapper\n".format(time_integration_method)
-                err_msg += "Available options are: \"implicit\""
+                err_msg += "Available options are: \"explicit\", \"implicit\" and \"semi_implicit\""
                 raise Exception(err_msg)
         # Steady solver
         elif (solver_type == "stationary" or solver_type == "Stationary"):
-            solver_module_name = "viscosity_modulator_stationary_solver"
-        # Coupled CFD-scalar solvers (volume coupling by Boussinesq approximation)
-        elif (solver_type == "scalar_coupled" or solver_type == "ScalarCoupled"):
-            solver_module_name = "coupled_fluid_scalar_solver"
-        # Coupled CFD-scalar solver with fully implicit Boussinesq body-force coupling
-        elif (solver_type == "scalar_coupled_boussinesq" or solver_type == "ScalarCoupledBoussinesq"):
-            solver_module_name = "coupled_fluid_scalar_solver_boussinesq"
+            solver_module_name = "convection_diffusion_stationary_solver"
+        # Steady embedded (CutFEM) solver
+        elif solver_type == "stationary_embedded":
+            solver_module_name = "convection_diffusion_stationary_embedded_solver"
+        elif (solver_type == "stationary_matrix"):
+            solver_module_name = "convection_diffusion_stationary_matrix_solver"
+        # Coupled CFD-thermal solvers (volume coupling by Boussinesq approximation)
+        elif (solver_type == "thermally_coupled" or solver_type == "ThermallyCoupled"):
+            solver_module_name = "coupled_fluid_thermal_solver"
+        # Coupled CFD-thermal solver with fully implicit Boussinesq body-force coupling
+        elif (solver_type == "thermally_coupled_boussinesq" or solver_type == "ThermallyCoupledBoussinesq"):
+            solver_module_name = "coupled_fluid_thermal_solver_boussinesq"
+        # Coupled mechanical-thermal solver
+        elif (solver_type == "thermo_mechanically_coupled" or solver_type == "ThermoMechanicallyCoupled"):
+            solver_module_name = "coupled_structural_thermal_solver"
+        # Coupled CHT solver (space thermal - CFD-thermal coupling)
+        elif (solver_type == "conjugate_heat_transfer" or solver_type == "ConjugateHeatTransfer"):
+            solver_module_name = "conjugate_heat_transfer_solver"
+        # Steady adjoints solver
+        elif solver_type == "adjoint_stationary":
+            solver_module_name = "adjoint_diffusion_solver"
         # Wrong solver check
         else:
             err_msg =  "The requested solver type {} is not in the python solvers wrapper\n".format(solver_type)
-            err_msg += "Available options are: \"transient\", \"stationary\", \"scalar_coupled\", \"scalar_coupled_boussinesq\""
+            err_msg += "Available options are: \"transient\", \"stationary\", \"thermally_coupled\", \"thermo_mechanically_coupled\", \"conjugate_heat_transfer\" and \"adjoint_stationary\""
             raise Exception(err_msg)
 
     # Solvers for MPI parallelism
@@ -54,18 +72,18 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
             time_integration_method = solver_settings["time_integration_method"].GetString()
             # Check transient integration method
             if time_integration_method == "implicit":
-                solver_module_name = "viscosity_modulator_transient_solver"
+                solver_module_name = "convection_diffusion_transient_solver"
             else:
                 err_msg =  "The requested time integration method {} is not MPI available yet\n".format(time_integration_method)
                 err_msg += "Available option is \"implicit\""
                 raise Exception(err_msg)
         # Steady solver
         elif (solver_type == "stationary" or solver_type == "Stationary"):
-            solver_module_name = "viscosity_modulator_stationary_solver"
+            solver_module_name = "convection_diffusion_stationary_solver"
         # Wrong solver check
         else:
             err_msg =  "The requested solver type {} is not MPI available yet\n".format(solver_type)
-            err_msg += "Available options are: \"transient\", \"stationary\""
+            err_msg += "Available options are: \"transient\" and \"stationary\""
             raise Exception(err_msg)
     else:
         err_msg =  "The requested parallel type \"" + parallelism + "\" is not available!\n"

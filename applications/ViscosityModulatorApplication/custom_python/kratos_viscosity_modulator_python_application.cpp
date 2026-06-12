@@ -23,6 +23,7 @@
 #include "includes/define_python.h"
 #include "viscosity_modulator_application.h"
 #include "viscosity_modulator_application_variables.h"
+#include "convection_diffusion_application_variables.h"
 #include "custom_python/add_custom_processes_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 
@@ -47,10 +48,16 @@ PYBIND11_MODULE(KratosViscosityModulatorApplication,m)
     AddCustomProcessesToPython(m);
     AddCustomUtilitiesToPython(m);
 
-    //registering variables in python
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, AUX_SCALAR)
+    // CD variables re-exposed through VM module
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, AUX_TEMPERATURE)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, EXACT_PRESSURE)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PROJECTED_SCALAR1)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, SHOCK_CAPTURING_INTENSITY)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, USE_ANISOTROPIC_DISC_CAPTURING)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, STEP_SOLUTION)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, TRUNC_SOLUTION)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, TRUNC_SOLUTION_ERROR)
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, REFERENCE_VELOCITY)
 
 
 }

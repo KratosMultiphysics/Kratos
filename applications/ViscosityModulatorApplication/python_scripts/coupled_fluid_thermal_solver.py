@@ -1,25 +1,24 @@
 # Importing the Kratos Library
 import KratosMultiphysics
-import KratosMultiphysics.ViscosityModulatorApplication as KratosViscosityModulatorApplication
 
 # Import applications modules
 from KratosMultiphysics.FluidDynamicsApplication import python_solvers_wrapper_fluid
-from KratosMultiphysics.ViscosityModulatorApplication import python_solvers_wrapper_viscosity_modulator
+from KratosMultiphysics.ViscosityModulatorApplication import python_solvers_wrapper_convection_diffusion
 
 # Importing the base class
 from KratosMultiphysics.python_solver import PythonSolver
 
 def CreateSolver(main_model_part, custom_settings):
-    return CoupledFluidScalarSolver(main_model_part, custom_settings)
+    return CoupledFluidThermalSolver(main_model_part, custom_settings)
 
-class CoupledFluidScalarSolver(PythonSolver):
+class CoupledFluidThermalSolver(PythonSolver):
 
     @classmethod
     def GetDefaultParameters(cls):
 
         default_settings = KratosMultiphysics.Parameters("""
         {
-            "solver_type" : "ScalarCoupled",
+            "solver_type" : "ThermallyCoupled",
             "domain_size" : -1,
             "echo_level": 0,
             "fluid_solver_settings": {
@@ -29,14 +28,14 @@ class CoupledFluidScalarSolver(PythonSolver):
                     "input_filename": "unknown_name"
                 }
             },
-            "scalar_solver_settings": {
+            "thermal_solver_settings": {
                 "solver_type": "transient",
                 "analysis_type": "linear",
                 "model_import_settings": {
                     "input_type": "use_input_model_part"
                 },
                 "material_import_settings": {
-                    "materials_filename": "ScalarMaterials.json"
+                    "materials_filename": "ThermalMaterials.json"
                 }
             }
         }
@@ -54,40 +53,40 @@ class CoupledFluidScalarSolver(PythonSolver):
 
         ## Create subdomain solvers
         self.fluid_solver = python_solvers_wrapper_fluid.CreateSolverByParameters(self.model, self.settings["fluid_solver_settings"],"OpenMP")
-        self.scalar_solver = python_solvers_wrapper_viscosity_modulator.CreateSolverByParameters(self.model,self.settings["scalar_solver_settings"],"OpenMP")
+        self.thermal_solver = python_solvers_wrapper_convection_diffusion.CreateSolverByParameters(self.model,self.settings["thermal_solver_settings"],"OpenMP")
 
     def AddVariables(self):
         # Import the fluid and thermal solver variables. Then merge them to have them in both fluid and thermal solvers.
         self.fluid_solver.AddVariables()
-        self.scalar_solver.AddVariables()
-        KratosMultiphysics.MergeVariableListsUtility().Merge(self.fluid_solver.main_model_part, self.scalar_solver.main_model_part)
+        self.thermal_solver.AddVariables()
+        KratosMultiphysics.MergeVariableListsUtility().Merge(self.fluid_solver.main_model_part, self.thermal_solver.main_model_part)
 
     def ImportModelPart(self):
         # Call the fluid solver to import the model part from the mdpa
         self.fluid_solver.ImportModelPart()
 
         # Save the convection diffusion settings
-        viscosity_modulator_settings = self.scalar_solver.main_model_part.ProcessInfo.GetValue(KratosMultiphysics.VISCOSITY_MODULATOR_SETTINGS)
+        convection_diffusion_settings = self.thermal_solver.main_model_part.ProcessInfo.GetValue(KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS)
 
         # Here the fluid model part is cloned to be thermal model part so that the nodes are shared
         element_name, condition_name = self.__GetElementAndConditionNames()
         modeler = KratosMultiphysics.ConnectivityPreserveModeler()
         modeler.GenerateModelPart(
             self.fluid_solver.main_model_part,
-            self.scalar_solver.main_model_part,
+            self.thermal_solver.main_model_part,
             element_name,
             condition_name)
 
         # Set the saved convection diffusion settings to the new thermal model part
-        self.scalar_solver.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.VISCOSITY_MODULATOR_SETTINGS, viscosity_modulator_settings)
+        self.thermal_solver.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS, convection_diffusion_settings)
 
     def PrepareModelPart(self):
         self.fluid_solver.PrepareModelPart()
-        self.scalar_solver.PrepareModelPart()
+        self.thermal_solver.PrepareModelPart()
 
     def AddDofs(self):
         self.fluid_solver.AddDofs()
-        self.scalar_solver.AddDofs()
+        self.thermal_solver.AddDofs()
 
     def AdaptMesh(self):
         pass
@@ -103,24 +102,24 @@ class CoupledFluidScalarSolver(PythonSolver):
 
     def GetMinimumBufferSize(self):
         buffer_size_fluid = self.fluid_solver.GetMinimumBufferSize()
-        buffer_size_thermal = self.scalar_solver.GetMinimumBufferSize()
+        buffer_size_thermal = self.thermal_solver.GetMinimumBufferSize()
         return max(buffer_size_fluid, buffer_size_thermal)
 
     def Initialize(self):
         self.fluid_solver.Initialize()
-        self.scalar_solver.Initialize()
+        self.thermal_solver.Initialize()
 
     def Clear(self):
         (self.fluid_solver).Clear()
-        (self.scalar_solver).Clear()
+        (self.thermal_solver).Clear()
 
     def Check(self):
         (self.fluid_solver).Check()
-        (self.scalar_solver).Check()
+        (self.thermal_solver).Check()
 
     def SetEchoLevel(self, level):
         (self.fluid_solver).SetEchoLevel(level)
-        (self.scalar_solver).SetEchoLevel(level)
+        (self.thermal_solver).SetEchoLevel(level)
 
     def AdvanceInTime(self, current_time):
         #NOTE: the cloning is done ONLY ONCE since the nodes are shared
@@ -129,24 +128,24 @@ class CoupledFluidScalarSolver(PythonSolver):
 
     def InitializeSolutionStep(self):
         self.fluid_solver.InitializeSolutionStep()
-        self.scalar_solver.InitializeSolutionStep()
+        self.thermal_solver.InitializeSolutionStep()
 
     def Predict(self):
         self.fluid_solver.Predict()
-        self.scalar_solver.Predict()
+        self.thermal_solver.Predict()
 
     def SolveSolutionStep(self):
         fluid_is_converged = self.fluid_solver.SolveSolutionStep()
         # for node in self.fluid_solver.main_model_part.Nodes:
         #     node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, [1.0, -2., 0.])
         # fluid_is_converged = True
-        scalar_is_converged = self.scalar_solver.SolveSolutionStep()
+        thermal_is_converged = self.thermal_solver.SolveSolutionStep()
 
-        return (fluid_is_converged and scalar_is_converged)
+        return (fluid_is_converged and thermal_is_converged)
 
     def FinalizeSolutionStep(self):
         self.fluid_solver.FinalizeSolutionStep()
-        self.scalar_solver.FinalizeSolutionStep()
+        self.thermal_solver.FinalizeSolutionStep()
 
     def __GetElementAndConditionNames(self):
         ''' Auxiliary function to get the element and condition names for the connectivity preserve modeler call

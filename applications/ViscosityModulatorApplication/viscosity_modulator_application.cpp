@@ -21,15 +21,16 @@
 
 // Project includes
 #include "includes/define.h"
+#include "geometries/line_2d_2.h"
 #include "geometries/triangle_2d_3.h"
 #include "geometries/triangle_3d_3.h"
 #include "geometries/quadrilateral_2d_4.h"
+#include "geometries/quadrilateral_3d_4.h"
 #include "geometries/tetrahedra_3d_4.h"
 #include "geometries/hexahedra_3d_8.h"
 #include "geometries/hexahedra_3d_27.h"
 #include "viscosity_modulator_application.h"
 #include "includes/variables.h"
-#include "includes/viscosity_modulator_settings.h"
 
 namespace Kratos {
 
@@ -37,10 +38,20 @@ namespace Kratos {
 
 KratosViscosityModulatorApplication::KratosViscosityModulatorApplication()
     : KratosApplication("ViscosityModulatorApplication"),
-      mViscosityModulatorElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node >(Element::GeometryType::PointsArrayType(3)))),
-      mViscosityModulatorElement2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node >(Element::GeometryType::PointsArrayType(4)))),
-      mViscosityModulatorElement3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4)))),
-      mViscosityModulatorElement3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<Node >(Element::GeometryType::PointsArrayType(8)))) {}
+      // Shock-capturing convection-diffusion element
+      mEulerianConvDiffShockCapturing2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node>(Element::GeometryType::PointsArrayType(3)))),
+      mEulerianConvDiffShockCapturing2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node>(Element::GeometryType::PointsArrayType(4)))),
+      mEulerianConvDiffShockCapturing3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node>(Element::GeometryType::PointsArrayType(4)))),
+      mEulerianConvDiffShockCapturing3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<Node>(Element::GeometryType::PointsArrayType(8)))),
+      // FluxCondition
+      mFluxCondition2D2N(0, Condition::GeometryType::Pointer(new Line2D2<Node>(Condition::GeometryType::PointsArrayType(2)))),
+      mFluxCondition3D3N(0, Condition::GeometryType::Pointer(new Triangle3D3<Node>(Condition::GeometryType::PointsArrayType(3)))),
+      mFluxCondition3D4N(0, Condition::GeometryType::Pointer(new Quadrilateral3D4<Node>(Condition::GeometryType::PointsArrayType(4)))),
+      // ConsistentFluxBoundaryCondition
+      mConsistentFluxBoundaryCondition2D2N(0, Condition::GeometryType::Pointer(new Line2D2<Node>(Condition::GeometryType::PointsArrayType(2)))),
+      mConsistentFluxBoundaryCondition3D3N(0, Condition::GeometryType::Pointer(new Triangle3D3<Node>(Condition::GeometryType::PointsArrayType(3)))),
+      mConsistentFluxBoundaryCondition3D4N(0, Condition::GeometryType::Pointer(new Quadrilateral3D4<Node>(Condition::GeometryType::PointsArrayType(4))))
+{}
 
 void KratosViscosityModulatorApplication::Register() {
     KRATOS_INFO("") <<
@@ -52,17 +63,32 @@ void KratosViscosityModulatorApplication::Register() {
     "     \\ \\_/ / \\__ \\ (__| |  | | (_) | (_| |" << std::endl <<
     "      \\___/|_|___/\\___\\_|  |_/\\___/ \\__,_|" << "VISCOSITY MODULATOR APPLICATION\n" << std::endl;
 
-    // Registering variables
-    KRATOS_REGISTER_VARIABLE(AUX_SCALAR)
+    // Register CD variables (reuse CD's objects; no new variables defined)
+    KRATOS_REGISTER_VARIABLE(AUX_TEMPERATURE)
+    KRATOS_REGISTER_VARIABLE(EXACT_PRESSURE)
+    KRATOS_REGISTER_VARIABLE(PROJECTED_SCALAR1)
+    KRATOS_REGISTER_VARIABLE(TRANSFER_COEFFICIENT)
     KRATOS_REGISTER_VARIABLE(SHOCK_CAPTURING_INTENSITY)
     KRATOS_REGISTER_VARIABLE(USE_ANISOTROPIC_DISC_CAPTURING)
-    KRATOS_REGISTER_VARIABLE(VISCOSITY_MODULATOR_SETTINGS)
+    KRATOS_REGISTER_VARIABLE(STEP_SOLUTION)
+    KRATOS_REGISTER_VARIABLE(TRUNC_SOLUTION)
+    KRATOS_REGISTER_VARIABLE(TRUNC_SOLUTION_ERROR)
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(CONVECTION_VELOCITY)
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(REFERENCE_VELOCITY)
 
-    // Registering elements and conditions here
-    KRATOS_REGISTER_ELEMENT("ViscosityModulatorElement2D3N", mViscosityModulatorElement2D3N);
-    KRATOS_REGISTER_ELEMENT("ViscosityModulatorElement2D4N", mViscosityModulatorElement2D4N);
-    KRATOS_REGISTER_ELEMENT("ViscosityModulatorElement3D4N", mViscosityModulatorElement3D4N);
-    KRATOS_REGISTER_ELEMENT("ViscosityModulatorElement3D8N", mViscosityModulatorElement3D8N);
+    // Elements — registered under the same strings as ConvectionDiffusionApplication
+    KRATOS_REGISTER_ELEMENT("EulerianConvDiffShockCapturing2D3N", mEulerianConvDiffShockCapturing2D3N);
+    KRATOS_REGISTER_ELEMENT("EulerianConvDiffShockCapturing2D4N", mEulerianConvDiffShockCapturing2D4N);
+    KRATOS_REGISTER_ELEMENT("EulerianConvDiffShockCapturing3D4N", mEulerianConvDiffShockCapturing3D4N);
+    KRATOS_REGISTER_ELEMENT("EulerianConvDiffShockCapturing3D8N", mEulerianConvDiffShockCapturing3D8N);
+
+    // Conditions — registered under the same strings as ConvectionDiffusionApplication
+    KRATOS_REGISTER_CONDITION("FluxCondition2D2N", mFluxCondition2D2N);
+    KRATOS_REGISTER_CONDITION("FluxCondition3D3N", mFluxCondition3D3N);
+    KRATOS_REGISTER_CONDITION("FluxCondition3D4N", mFluxCondition3D4N);
+    KRATOS_REGISTER_CONDITION("ConsistentFluxBoundaryCondition2D2N", mConsistentFluxBoundaryCondition2D2N);
+    KRATOS_REGISTER_CONDITION("ConsistentFluxBoundaryCondition3D3N", mConsistentFluxBoundaryCondition3D3N);
+    KRATOS_REGISTER_CONDITION("ConsistentFluxBoundaryCondition3D4N", mConsistentFluxBoundaryCondition3D4N);
 
 }
 

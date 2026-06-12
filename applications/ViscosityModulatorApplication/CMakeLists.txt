@@ -2,7 +2,10 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 message("**** configuring KratosViscosityModulatorApplication ****")
 
+kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/ConvectionDiffusionApplication)
+
 include_directories( ${KRATOS_SOURCE_DIR}/kratos )
+include_directories( ${KRATOS_SOURCE_DIR}/applications/ConvectionDiffusionApplication )
 
 ## generate variables with the sources
 set( KRATOS_VISCOSITY_MODULATOR_APPLICATION_CORE_SOURCES
@@ -10,13 +13,17 @@ set( KRATOS_VISCOSITY_MODULATOR_APPLICATION_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/viscosity_modulator_application_variables.cpp
 
     # Elements
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/viscosity_modulator_element.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/vm_eulerian_conv_diff_shock_capturing.cpp
+
+    # Conditions
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/vm_flux_condition.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/vm_consistent_flux_boundary_condition.cpp
 
     # Utilities
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/viscosity_modulator_coupling_utilities.cpp
 
-    # Process
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/boussinesq_modulator_field_process.cpp
+    # Processes
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/vm_boussinesq_concentration_field_process.cpp
 )
 
 ## define python interface sources
@@ -36,7 +43,7 @@ endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 ###############################################################
 ## ViscosityModulatorApplication core library (C++ parts)
 add_library( KratosViscosityModulatorCore SHARED ${KRATOS_VISCOSITY_MODULATOR_APPLICATION_CORE_SOURCES} ${KRATOS_VISCOSITY_MODULATOR_TESTING_SOURCES} )
-target_link_libraries( KratosViscosityModulatorCore PUBLIC KratosCore)
+target_link_libraries( KratosViscosityModulatorCore PUBLIC KratosCore KratosConvectionDiffusionCore)
 set_target_properties( KratosViscosityModulatorCore PROPERTIES COMPILE_DEFINITIONS "VISCOSITY_MODULATOR_APPLICATION=EXPORT,API")
 
 ## ViscosityModulatorApplication python module

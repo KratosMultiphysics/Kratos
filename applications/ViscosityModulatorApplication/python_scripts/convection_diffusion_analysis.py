@@ -1,7 +1,7 @@
 
 # Importing Kratos
 import KratosMultiphysics
-from KratosMultiphysics.ViscosityModulatorApplication import python_solvers_wrapper_viscosity_modulator as solver_wrapper
+from KratosMultiphysics.ViscosityModulatorApplication import python_solvers_wrapper_convection_diffusion as solver_wrapper
 
 # Importing the base class
 from KratosMultiphysics.analysis_stage import AnalysisStage
@@ -9,9 +9,9 @@ from KratosMultiphysics.analysis_stage import AnalysisStage
 # Other imports
 import sys
 
-class ViscosityModulatorAnalysis(AnalysisStage):
+class ConvectionDiffusionAnalysis(AnalysisStage):
     """
-    This class is the main-script of the ViscosityModulatorApplication put in a class
+    This class is the main-script of the ConvectionDiffusionApplication put in a class
 
     It can be imported and used as "black-box"
     """
@@ -20,11 +20,11 @@ class ViscosityModulatorAnalysis(AnalysisStage):
         solver_settings = project_parameters["solver_settings"]
 
         if not solver_settings.Has("domain_size"):
-            KratosMultiphysics.Logger.PrintInfo("ViscosityModulatorAnalysis", "Using the old way to pass the domain_size, this will be removed!")
+            KratosMultiphysics.Logger.PrintInfo("ConvectionDiffusionAnalysis", "Using the old way to pass the domain_size, this will be removed!")
             solver_settings.AddEmptyValue("domain_size")
             solver_settings["domain_size"].SetInt(project_parameters["problem_data"]["domain_size"].GetInt())
 
-        super(ViscosityModulatorAnalysis, self).__init__(model, project_parameters)
+        super(ConvectionDiffusionAnalysis, self).__init__(model, project_parameters)
 
     #### Internal functions ####
     def _CreateSolver(self):
@@ -33,7 +33,7 @@ class ViscosityModulatorAnalysis(AnalysisStage):
         return solver_wrapper.CreateSolverByParameters(self.model, self.project_parameters["solver_settings"],self.project_parameters["problem_data"]["parallel_type"].GetString())
 
     def _GetSimulationName(self):
-        return "::[Viscosity-Modulator Simulation]:: "
+        return "::[Convection-Diffusion Simulation]:: "
 
 if __name__ == "__main__":
     from sys import argv
@@ -42,9 +42,9 @@ if __name__ == "__main__":
         err_msg =  'Too many input arguments!\n'
         err_msg += 'Use this script in the following way:\n'
         err_msg += '- With default ProjectParameters (read from "ProjectParameters.json"):\n'
-        err_msg += '    "python3 viscosity_modulator_analysis.py"\n'
+        err_msg += '    "python3 convection_diffusion_analysis.py"\n'
         err_msg += '- With custom ProjectParameters:\n'
-        err_msg += '    "python3 viscosity_modulator_analysis.py CustomProjectParameters.json"\n'
+        err_msg += '    "python3 convection_diffusion_analysis.py CustomProjectParameters.json"\n'
         raise Exception(err_msg)
 
     if len(argv) == 2: # ProjectParameters is being passed from outside
@@ -56,5 +56,5 @@ if __name__ == "__main__":
         parameters = KratosMultiphysics.Parameters(parameter_file.read())
 
     model = KratosMultiphysics.Model()
-    simulation = ViscosityModulatorAnalysis(model, parameters)
+    simulation = ConvectionDiffusionAnalysis(model, parameters)
     simulation.Run()
