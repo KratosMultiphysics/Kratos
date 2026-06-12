@@ -153,7 +153,9 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
         node_ids = [node.Id for node in sheet_pile_wall.Nodes]
 
         for stage_name in stages_to_be_checked:
-            json_output = self.read_json_output(stage_name, postfix=wall_output_postfix)
+            json_output = json_utilities.read_external_json(
+                self.file_path_to_json_output(stage_name, wall_output_postfix)
+            )
 
             csv_filepath = self.test_path / f"{stage_name}__expected_results_wall.csv"
             expected_results = get_expected_results_from_csv(csv_filepath)
@@ -215,10 +217,8 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
                     msg=f"Horizontal total displacement at node {node_id} in stage '{stage_name}'",
                 )
 
-    def read_json_output(self, base_name, postfix):
-        return json_utilities.read_external_json(
-            self.test_path / f"{base_name}__{postfix}.json"
-        )
+    def file_path_to_json_output(self, stage_name, postfix):
+        return self.test_path / f"{stage_name}__{postfix}.json"
 
     def get_variable_collections_per_stage(
         self,
@@ -236,7 +236,9 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
 
         variable_data_collections = []
         for stage_name in stage_names:
-            json_data = self.read_json_output(stage_name, postfix_json_output)
+            json_data = json_utilities.read_external_json(
+                self.file_path_to_json_output(stage_name, postfix_json_output)
+            )
             variable_kratos_data = test_helper.get_nodal_values_from_json_output(
                 json_data, kratos_variable_label, node_ids
             )
@@ -462,7 +464,9 @@ class KratosGeoMechanicsCrowValidation(KratosUnittest.TestCase):
         ]
 
         for stage_name in stages_to_be_checked:
-            json_output = self.read_json_output(stage_name, postfix=wall_output_postfix)
+            json_output = json_utilities.read_external_json(
+                self.file_path_to_json_output(stage_name, wall_output_postfix)
+            )
 
             with open(
                 self.test_path / f"{stage_name}__expected_results_wall.csv",
