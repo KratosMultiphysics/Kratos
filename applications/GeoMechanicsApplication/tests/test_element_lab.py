@@ -54,7 +54,7 @@ class KratosGeoMechanicsLabElementTests(KratosGeoUnittest.TestCase):
         reader = GiDOutputFileReader()
         result = reader.read_output_from(os.path.join(file_path, output_file_name))
         time = 1.0
-        node_ids = sorted(expected_displacement)
+        node_ids = list(expected_displacement.keys())
         expected_disp = [expected_displacement[node_id] for node_id in node_ids]
         self.assert_nodal_values_at_time(result, "DISPLACEMENT", node_ids, expected_disp, time, precision_places)
         self.assert_integration_point_tensors(result, "CAUCHY_STRESS_TENSOR", expected_stress, time, precision_places)
