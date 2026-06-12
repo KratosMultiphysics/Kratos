@@ -47,33 +47,33 @@ def run_kratos(file_path, model=None):
     os.chdir(cwd)
     return simulation
 
-def get_values_from_csv(csv_filepath, keys, values):
+def get_values_from_csv(csv_filepath, key_field_names, value_field_names):
     result = {}
     with open(csv_filepath, newline = "") as csv_file:
         reader = csv.DictReader(csv_file)
         for row in reader:           
-            if len(keys) == 1:
-                key = int(row[keys[0]])
+            if len(key_field_names) == 1:
+                key = int(row[key_field_names[0]])
             else:
-                key = tuple(int(row[key]) for key in keys)
-            expected_values = {value: float(row[value]) for value in values}
+                key = tuple(int(row[key]) for key in key_field_names)
+            expected_values = {value: float(row[value]) for value in value_field_names}
             result[key] = expected_values
     return result
 
-def get_values_from_csv_as_vectors(csv_filepath, keys, values):
-    return {key: [row[value] for value in values]
-            for key, row in get_values_from_csv(csv_filepath, keys, values).items()}
+def get_values_from_csv_as_vectors(csv_filepath, key_field_names, value_field_names):
+    return {key: [row[value] for value in value_field_names]
+            for key, row in get_values_from_csv(csv_filepath, key_field_names, value_field_names).items()}
 
-def get_values_from_csv_grouped(csv_filepath, grouping_keys, entry_keys, values):
+def get_values_from_csv_grouped(csv_filepath, grouping_key_field_names, entry_key_field_names, value_field_names):
     grouped_results = {}
-    combined = get_values_from_csv(csv_filepath, grouping_keys + entry_keys, values)
+    combined = get_values_from_csv(csv_filepath, grouping_key_field_names + entry_key_field_names, value_field_names)
     for key, values_dict in combined.items():
-        if len(grouping_keys) == 1:
+        if len(grouping_key_field_names) == 1:
             group_key = key[0] if isinstance(key, tuple) else key
         else:
-            group_key = tuple(key[:len(grouping_keys)])
-        entry_key = key[len(grouping_keys):] if isinstance(key, tuple) else ()
-        grouped_results.setdefault(group_key, {})[entry_key] = [values_dict[v] for v in values]
+            group_key = tuple(key[:len(grouping_key_field_names)])
+        entry_key = key[len(grouping_key_field_names):] if isinstance(key, tuple) else ()
+        grouped_results.setdefault(group_key, {})[entry_key] = [values_dict[v] for v in value_field_names]
     return grouped_results
 
 def get_displacement(simulation):
