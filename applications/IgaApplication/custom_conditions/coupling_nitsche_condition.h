@@ -501,6 +501,20 @@ private:
         array_1d<double, 3>& rSecondVariationMomentProductMasterSlave,
         const PatchType& rPatch);
     
+    void CalculateAdditionalSecondVariationMomentT2(
+        IndexType IntegrationPointIndex,
+        Matrix& rSecondVariationMoment,
+        const KinematicVariables& rActualKinematic,
+        Matrix& rFirstVariationMomentCovariant, 
+        const Matrix& rFirstVariationT2,
+        const std::vector<std::vector<array_1d<double, 3> > >& rSecondVariationT2,
+        array_1d<double, 3>& T2Master,
+        array_1d<double, 3>& T2Slave,
+        array_1d<double, 3>& rSecondVariationMomentProduct,
+        array_1d<double, 3>& rSecondVariationMomentProductMasterSlave,
+        ConstitutiveVariables& rThisConstitutiveVariablesCurvature,
+        const PatchType& rPatch);
+    
     /**
     * This functions updates the constitutive variables
     * @param rActualMetric: The actual metric
