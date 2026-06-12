@@ -57,17 +57,20 @@ void ConstructMatrixStructure(Kratos::unique_ptr<typename MappingSparseSpaceType
         indices[i].reserve(3);
     }
 
-    EquationIdVectorType origin_ids;
-    EquationIdVectorType destination_ids;
+    IndexPartition<std::size_t>(rMapperLocalSystems.size()).for_each(
+        [&](std::size_t i) {
+            EquationIdVectorType origin_ids;
+            EquationIdVectorType destination_ids;
 
-    // Looping the local-systems to get the entries for the matrix
-    // TODO omp
-    for (/*const*/auto& r_local_sys : rMapperLocalSystems) { // TODO I think this can be const bcs it is the ptr
-        r_local_sys->EquationIdVectors(origin_ids, destination_ids);
-        for (const auto dest_idx : destination_ids) {
-            indices[dest_idx].insert(origin_ids.begin(), origin_ids.end());
+            auto& r_local_sys = rMapperLocalSystems[i];
+
+            r_local_sys->EquationIdVectors(origin_ids, destination_ids);
+
+            for (const auto dest_idx : destination_ids) {
+                indices[dest_idx].insert(origin_ids.begin(), origin_ids.end());
+            }
         }
-    }
+    );
 
     // computing the number of non-zero entries
     SizeType num_non_zero_entries = 0;
@@ -89,21 +92,24 @@ void ConstructMatrixStructure(Kratos::unique_ptr<typename MappingSparseSpaceType
     for (IndexType i=0; i<NumNodesDestination; ++i) {
         p_matrix_row_indices[i+1] = p_matrix_row_indices[i] + indices[i].size();
     }
+    
+    IndexPartition<IndexType>(NumNodesDestination).for_each(
+        [&](IndexType i) {
+            const IndexType row_begin = p_matrix_row_indices[i];
+            const IndexType row_end = p_matrix_row_indices[i + 1];
 
-    for (IndexType i=0; i<NumNodesDestination; ++i) {
-        const IndexType row_begin = p_matrix_row_indices[i];
-        const IndexType row_end = p_matrix_row_indices[i+1];
-        IndexType j = row_begin;
-        for (const auto index : indices[i]) {
-            p_matrix_col_indices[j] = index;
-            p_matrix_values[j] = 0.0;
-            ++j;
+            IndexType j = row_begin;
+            for (const auto index : indices[i]) {
+                p_matrix_col_indices[j] = index;
+                p_matrix_values[j] = 0.0;
+                ++j;
+            }
+
+            indices[i].clear();
+
+            std::sort(&p_matrix_col_indices[row_begin], &p_matrix_col_indices[row_end]);
         }
-
-        indices[i].clear(); //deallocating the memory // TODO necessary?
-
-        std::sort(&p_matrix_col_indices[row_begin], &p_matrix_col_indices[row_end]);
-    }
+    );  
 
     p_Mdo->set_filled(indices.size()+1, num_non_zero_entries);
 
