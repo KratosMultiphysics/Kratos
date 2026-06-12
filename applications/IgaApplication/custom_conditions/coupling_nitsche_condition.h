@@ -389,6 +389,14 @@ private:
         Matrix& rFirstVariationT2,
         const array_1d<double, 3> rT2,   
         const PatchType& rPatch);
+
+    void CalculateSecondVariationT2(
+        IndexType IntegrationPointIndex,
+        std::vector<std::vector<array_1d<double, 3> > >& rSecondVariationT2,
+        const Matrix& rFirstVariationT2,
+        const array_1d<double, 3> rT2,   
+        const PatchType& rPatch);
+
     // Traction-related functions
     void CalculateTraction(
         IndexType IntegrationPointIndex,

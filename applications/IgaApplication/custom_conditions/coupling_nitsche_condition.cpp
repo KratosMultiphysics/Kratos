@@ -145,6 +145,71 @@ namespace Kratos
         }
     }
 
+    void CouplingNitscheCondition::CalculateSecondVariationT2( 
+        IndexType IntegrationPointIndex,
+        std::vector<std::vector<array_1d<double, 3> > >& rSecondVariationT2,
+        const Matrix& rFirstVariationT2,
+        const array_1d<double, 3> rT2,   
+        const PatchType& rPatch)
+    {
+        IndexType GeometryPart = (rPatch==PatchType::Master) ? 0 : 1;
+        const auto& r_geometry = GetGeometry().GetGeometryPart(GeometryPart);
+
+        const Matrix& r_DN_De   = r_geometry.ShapeFunctionLocalGradient(IntegrationPointIndex);
+        const Matrix& r_DDN_DDe = r_geometry.ShapeFunctionDerivatives(2, IntegrationPointIndex, r_geometry.GetDefaultIntegrationMethod());
+
+        array_1d<double, 3> local_tangent;
+        GetGeometry().GetGeometryPart(GeometryPart).Calculate(LOCAL_TANGENT, local_tangent);
+ 
+        const SizeType number_of_control_points = r_geometry.size();
+        const SizeType mat_size = number_of_control_points * 3;
+
+        std::vector<array_1d<double,3>> first_variation_tangent_tilde(mat_size);
+        std::vector<array_1d<double,3>> first_variation_tangent(mat_size);
+        std::vector<double> line_first_variation_tangent(mat_size);
+
+        for (IndexType r = 0; r < mat_size; r++)
+        {
+            IndexType kr = r / 3;
+            IndexType dirr = r % 3;
+
+            first_variation_tangent_tilde[r].clear();
+            first_variation_tangent_tilde[r][dirr] = local_tangent[0]*r_DN_De(kr,0) + local_tangent[1]*r_DN_De(kr,1);
+            line_first_variation_tangent[r] = inner_prod(rT2, first_variation_tangent_tilde[r]);
+
+            first_variation_tangent[r][0] = first_variation_tangent_tilde[r][0] / norm_2(rT2) 
+                                         - line_first_variation_tangent[r] * rT2[0] / pow(norm_2(rT2),3);
+            first_variation_tangent[r][1] = first_variation_tangent_tilde[r][1] / norm_2(rT2) 
+                                         - line_first_variation_tangent[r] * rT2[1] / pow(norm_2(rT2),3);
+            first_variation_tangent[r][2] = first_variation_tangent_tilde[r][2] / norm_2(rT2)
+                                         - line_first_variation_tangent[r] * rT2[2] / pow(norm_2(rT2),3); 
+        }
+
+        for (IndexType r = 0; r < mat_size; r++)
+        {
+            // local node number kr and dof direction dirr
+            IndexType kr = r / 3;
+            IndexType dirr = r % 3;
+
+            for (IndexType s = 0; s < mat_size; s++)
+            {
+                // local node number ks and dof direction dirs
+                IndexType ks = s / 3;
+                IndexType dirs = s % 3;
+
+                double line_t2_rs = inner_prod(first_variation_tangent[s], first_variation_tangent_tilde[r]);
+
+                for (IndexType d = 0; d < 3; d++)
+                {
+                     rSecondVariationT2[r][s][d] =
+                            (-line_first_variation_tangent[s]*first_variation_tangent_tilde[r][d]) / pow(norm_2(rT2), 2)
+                            - line_t2_rs * rT2[d] / norm_2(rT2) 
+                            - line_first_variation_tangent[r] * (first_variation_tangent[s][d] * norm_2(rT2) - line_first_variation_tangent[s]*rT2[d]) / pow(norm_2(rT2), 2);
+                }  
+            }
+        }
+    }
+
     /* Computes the transformation matrix T from the contravariant curvilinear basis to
     *  the local cartesian basis.
     *  ε_curvilinear is defined: [ε_11, ε_22, ε_12]
@@ -709,6 +774,27 @@ namespace Kratos
                 CalculateFirstVariationT2(point_number, first_variations_T2_master, kinematic_variables_master.t, PatchType::Master);
                 CalculateFirstVariationT2(point_number, first_variations_T2_slave, kinematic_variables_slave.t, PatchType::Slave);   
 
+                //compute second variation tangent
+                std::vector<std::vector<array_1d<double, 3>>> second_variations_T2_master;
+                std::vector<std::vector<array_1d<double, 3>>> second_variations_T2_slave;
+
+                second_variations_T2_master.resize(3 * number_of_nodes_master);
+                second_variations_T2_slave.resize(3 * number_of_nodes_slave);
+
+                for(SizeType i = 0; i < 3 * number_of_nodes_master; i++)
+                {
+                    second_variations_T2_master[i].resize(3 * number_of_nodes_master);
+                }
+
+                for(SizeType i = 0; i < 3 * number_of_nodes_slave; i++)
+                {
+                    second_variations_T2_slave[i].resize(3 * number_of_nodes_slave);
+                }
+
+                CalculateSecondVariationT2(point_number, second_variations_T2_master, first_variations_T2_master, kinematic_variables_master.t, PatchType::Master);
+                CalculateSecondVariationT2(point_number, second_variations_T2_slave, first_variations_T2_slave, kinematic_variables_slave.t, PatchType::Slave); 
+
+                // Compute the moment projection
                 double moment_T2;
                 double moment_T2_master = inner_prod(moment_vector_master, T2_master);
                 double moment_T2_slave = inner_prod(moment_vector_slave, T2_slave);
