@@ -53,14 +53,13 @@ def _make_key(row, key_field_names):
     return tuple(int(row[key]) for key in key_field_names)
 
 def get_values_from_csv(csv_filepath, key_field_names, value_field_names):
-    result = {}
     with open(csv_filepath, newline = "") as csv_file:
         reader = csv.DictReader(csv_file)
-        for row in reader:           
-            key = _make_key(row, key_field_names)
-            expected_values = {value: float(row[value]) for value in value_field_names}
-            result[key] = expected_values
-    return result
+        return {
+            _make_key(row, key_field_names):
+                {field_name: float(row[field_name]) for field_name in value_field_names}
+            for row in reader
+        }
 
 def get_values_from_csv_as_vectors(csv_filepath, key_field_names, value_field_names):
     return {key: [row[value] for value in value_field_names]
