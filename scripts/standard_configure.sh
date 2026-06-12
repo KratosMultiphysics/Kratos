@@ -27,7 +27,7 @@ export KRATOS_INSTALL_PYTHON_USING_LINKS=ON
 
 # Set basic configuration
 export KRATOS_BUILD_TYPE=${KRATOS_BUILD_TYPE:-"Release"}
-export PYTHON_EXECUTABLE=${PYTHON_EXECUTABLE:-"/usr/bin/python3.10"}
+export PYTHON_EXECUTABLE=${PYTHON_EXECUTABLE:-"python3"}
 
 # Set applications to compile
 export KRATOS_APPLICATIONS=
@@ -37,6 +37,7 @@ add_app ${KRATOS_APP_DIR}/FluidDynamicsApplication
 add_app ${KRATOS_APP_DIR}/SwimmingDEMApplication
 add_app ${KRATOS_APP_DIR}/FSIApplication
 add_app ${KRATOS_APP_DIR}/ConvectionDiffusionApplication
+add_app ${KRATOS_APP_DIR}/ViscosityModulatorApplication
 
 # Clean
 clear
@@ -51,4 +52,4 @@ cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" \
 -DKRATOS_GENERATE_PYTHON_STUBS=ON
 
 # Build
-cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j8
+cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j10
