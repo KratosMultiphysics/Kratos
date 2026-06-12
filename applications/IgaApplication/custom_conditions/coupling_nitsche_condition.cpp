@@ -810,9 +810,9 @@ namespace Kratos
                 // CalculateSecondVariationMoment(point_number, second_variations_moment_slave, kinematic_variables_slave, first_variations_moment_covariant_slave, rotation_vector_master, rotation_vector_slave, 
                 //                                second_variations_moment_product_vector_slave, second_variations_moment_product_vector_master_slave, PatchType::Slave);
 
-                CalculateSecondVariationMomentT2(point_number, second_variations_moment_master, kinematic_variables_master, first_variations_moment_covariant_master, T2_master, T2_slave, 
+                CalculateSecondVariationMomentT2(point_number, second_variations_moment_master, kinematic_variables_master, first_variations_moment_covariant_master, first_variations_T2_master, T2_master, T2_slave, 
                                                 second_variations_moment_product_vector_master, second_variations_moment_product_vector_slave_master, PatchType::Master);
-                CalculateSecondVariationMomentT2(point_number, second_variations_moment_slave, kinematic_variables_slave, first_variations_moment_covariant_slave, T2_slave, T2_master, 
+                CalculateSecondVariationMomentT2(point_number, second_variations_moment_slave, kinematic_variables_slave, first_variations_moment_covariant_slave, first_variations_T2_slave, T2_slave, T2_master, 
                                                 second_variations_moment_product_vector_slave, second_variations_moment_product_vector_master_slave, PatchType::Slave);
 
                 second_variations_moment_master *= diff_phi(0);
@@ -1464,6 +1464,10 @@ namespace Kratos
                 opposite_direction_of_trims = false;
             }
 
+            //compute first variation tangent
+            Matrix first_variations_T2_master = ZeroMatrix(3, 3 * number_of_nodes_master);
+            Matrix first_variations_T2_slave = ZeroMatrix(3, 3 * number_of_nodes_slave);
+
             double moment_T2;
             double moment_T2_master = inner_prod(moment_vector_master, T2_master);
             double moment_T2_slave = inner_prod(moment_vector_slave, T2_slave);
@@ -1562,9 +1566,9 @@ namespace Kratos
 
             if(norm_2(kinematic_variables_reference_master.a3_tilde) > tol_surface_normal && norm_2(kinematic_variables_reference_slave.a3_tilde) > tol_surface_normal)
             {
-                CalculateSecondVariationMomentT2(point_number, second_variations_moment_master, kinematic_variables_master, first_variations_moment_covariant_master, T2_master, T2_slave, 
+                CalculateSecondVariationMomentT2(point_number, second_variations_moment_master, kinematic_variables_master, first_variations_moment_covariant_master, first_variations_T2_master, T2_master, T2_slave, 
                                                     second_variations_moment_product_vector_master, second_variations_moment_product_vector_slave_master, PatchType::Master);
-                CalculateSecondVariationMomentT2(point_number, second_variations_moment_slave, kinematic_variables_slave, first_variations_moment_covariant_slave, T2_master, T2_slave, 
+                CalculateSecondVariationMomentT2(point_number, second_variations_moment_slave, kinematic_variables_slave, first_variations_moment_covariant_slave, first_variations_T2_slave, T2_master, T2_slave, 
                                                     second_variations_moment_product_vector_slave, second_variations_moment_product_vector_master_slave, PatchType::Slave);
                 
                 second_variations_moment_master *= moment_T2;
@@ -1940,6 +1944,10 @@ namespace Kratos
         rSecondVariationTraction += prod(trans(r_DN_Deta), r_DN_Deta)*rSecondVariationTractionProduct(1);
         rSecondVariationTraction += 0.5*(prod(trans(r_DN_Dxi), r_DN_Deta) + prod(trans(r_DN_Deta), r_DN_Dxi))*rSecondVariationTractionProduct(2);
 
+        rSecondVariationTraction -= prod(trans(r_DN_Dxi), r_DN_Dxi)*rSecondVariationTractionProductMasterSlave(0);
+        rSecondVariationTraction -= prod(trans(r_DN_Deta), r_DN_Deta)*rSecondVariationTractionProductMasterSlave(1);
+        rSecondVariationTraction -= 0.5*(prod(trans(r_DN_Dxi), r_DN_Deta) + prod(trans(r_DN_Deta), r_DN_Dxi))*rSecondVariationTractionProductMasterSlave(2);
+
         rSecondVariationTraction += prod(trans(r_DN_Dxi), displacement_dNCovariant1_master)*n_contravariant_vector(0);
         rSecondVariationTraction += prod(trans(r_DN_Deta), displacement_dNCovariant2_master)*n_contravariant_vector(1);
         rSecondVariationTraction += (prod(trans(r_DN_Dxi), displacement_dNCovariant3_master)*n_contravariant_vector(1) + prod(trans(r_DN_Deta), displacement_dNCovariant3_master)*n_contravariant_vector(0));
@@ -1947,10 +1955,6 @@ namespace Kratos
         rSecondVariationTraction += prod(trans(displacement_dNCovariant1_master), r_DN_Dxi)*n_contravariant_vector(0);
         rSecondVariationTraction += prod(trans(displacement_dNCovariant2_master), r_DN_Deta)*n_contravariant_vector(1);
         rSecondVariationTraction += (prod(trans(displacement_dNCovariant3_master), r_DN_Dxi)*n_contravariant_vector(1) + prod(trans(displacement_dNCovariant3_master), r_DN_Deta)*n_contravariant_vector(0));
-
-        rSecondVariationTraction -= prod(trans(r_DN_Dxi), r_DN_Dxi)*rSecondVariationTractionProductMasterSlave(0);
-        rSecondVariationTraction -= prod(trans(r_DN_Deta), r_DN_Deta)*rSecondVariationTractionProductMasterSlave(1);
-        rSecondVariationTraction -= 0.5*(prod(trans(r_DN_Dxi), r_DN_Deta) + prod(trans(r_DN_Deta), r_DN_Dxi))*rSecondVariationTractionProductMasterSlave(2);
 
         rSecondVariationTraction -= prod(trans(r_DN_Dxi), displacement_dNCovariant1_slave)*n_contravariant_vector(0);
         rSecondVariationTraction -= prod(trans(r_DN_Deta), displacement_dNCovariant2_slave)*n_contravariant_vector(1);
@@ -2553,6 +2557,7 @@ namespace Kratos
         Matrix& rSecondVariationMoment,
         const KinematicVariables& rActualKinematic,
         Matrix& rFirstVariationMomentCovariant, 
+        const Matrix& rFirstVariationT2,
         array_1d<double, 3>& T2Master,
         array_1d<double, 3>& T2Slave,
         array_1d<double, 3>& rSecondVariationMomentProduct,
@@ -2722,12 +2727,49 @@ namespace Kratos
 
         rSecondVariationMoment += prod(trans(r_DN_Dxi), rotation_dNCovariant1_master)*n_contravariant_vector(0);
         rSecondVariationMoment += prod(trans(r_DN_Deta), rotation_dNCovariant2_master)*n_contravariant_vector(1);
-        rSecondVariationMoment += (prod(trans(r_DN_Dxi), rotation_dNCovariant3_master)*n_contravariant_vector(1) + prod(trans(r_DN_Deta), rotation_dNCovariant3_master)*n_contravariant_vector(0));
+        rSecondVariationMoment += prod(trans(r_DN_Dxi), rotation_dNCovariant3_master)*n_contravariant_vector(1);
+        rSecondVariationMoment += prod(trans(r_DN_Deta), rotation_dNCovariant3_master)*n_contravariant_vector(0);
 
         rSecondVariationMoment += prod(trans(rotation_dNCovariant1_master), r_DN_Dxi)*n_contravariant_vector(0);
         rSecondVariationMoment += prod(trans(rotation_dNCovariant2_master), r_DN_Deta)*n_contravariant_vector(1);
-        rSecondVariationMoment += (prod(trans(rotation_dNCovariant3_master), r_DN_Dxi)*n_contravariant_vector(1) + prod(trans(rotation_dNCovariant3_master), r_DN_Deta)*n_contravariant_vector(0));
+        rSecondVariationMoment += prod(trans(rotation_dNCovariant3_master), r_DN_Dxi)*n_contravariant_vector(1);
+        rSecondVariationMoment += prod(trans(rotation_dNCovariant3_master), r_DN_Deta)*n_contravariant_vector(0);
 
+        //First variation of moment * first variation of traction
+        //base_vector * first variation stress covariant
+        Matrix base_vector_1_dNCovariant1_master = ZeroMatrix(3, mat_size); 
+        Matrix base_vector_1_dNCovariant2_master = ZeroMatrix(3, mat_size); 
+        Matrix base_vector_2_dNCovariant1_master = ZeroMatrix(3, mat_size); 
+        Matrix base_vector_2_dNCovariant2_master = ZeroMatrix(3, mat_size); 
+
+        for (IndexType r = 0; r < mat_size; r++)
+        {
+            base_vector_1_dNCovariant1_master(0, r) = rActualKinematic.a1[0]*first_variations_moment_covariant_1(r);
+            base_vector_1_dNCovariant1_master(1, r) = rActualKinematic.a1[1]*first_variations_moment_covariant_1(r);
+            base_vector_1_dNCovariant1_master(2, r) = rActualKinematic.a1[2]*first_variations_moment_covariant_1(r);
+
+            base_vector_1_dNCovariant2_master(0, r) = rActualKinematic.a1[0]*first_variations_moment_covariant_3(r);
+            base_vector_1_dNCovariant2_master(1, r) = rActualKinematic.a1[1]*first_variations_moment_covariant_3(r);
+            base_vector_1_dNCovariant2_master(2, r) = rActualKinematic.a1[2]*first_variations_moment_covariant_3(r);
+
+            base_vector_2_dNCovariant1_master(0, r) = rActualKinematic.a2[0]*first_variations_moment_covariant_3(r);
+            base_vector_2_dNCovariant1_master(1, r) = rActualKinematic.a2[1]*first_variations_moment_covariant_3(r);
+            base_vector_2_dNCovariant1_master(2, r) = rActualKinematic.a2[2]*first_variations_moment_covariant_3(r);
+
+            base_vector_2_dNCovariant2_master(0, r) = rActualKinematic.a2[0]*first_variations_moment_covariant_2(r);
+            base_vector_2_dNCovariant2_master(1, r) = rActualKinematic.a2[1]*first_variations_moment_covariant_2(r);
+            base_vector_2_dNCovariant2_master(2, r) = rActualKinematic.a2[2]*first_variations_moment_covariant_2(r);
+        }
+
+        rSecondVariationMoment += prod(trans(rFirstVariationT2), base_vector_1_dNCovariant1_master)*n_contravariant_vector(0);
+        rSecondVariationMoment += prod(trans(rFirstVariationT2), base_vector_1_dNCovariant2_master)*n_contravariant_vector(1);
+        rSecondVariationMoment += prod(trans(rFirstVariationT2), base_vector_2_dNCovariant1_master)*n_contravariant_vector(1);
+        rSecondVariationMoment += prod(trans(rFirstVariationT2), base_vector_2_dNCovariant2_master)*n_contravariant_vector(0);
+
+        rSecondVariationMoment += prod(trans(base_vector_1_dNCovariant1_master), rFirstVariationT2)*n_contravariant_vector(0);
+        rSecondVariationMoment += prod(trans(base_vector_1_dNCovariant2_master), rFirstVariationT2)*n_contravariant_vector(1);
+        rSecondVariationMoment += prod(trans(base_vector_2_dNCovariant1_master), rFirstVariationT2)*n_contravariant_vector(1);
+        rSecondVariationMoment += prod(trans(base_vector_2_dNCovariant2_master), rFirstVariationT2)*n_contravariant_vector(0);
     }
 
     void CouplingNitscheCondition::CalculateRotationalShapeFunctions(

@@ -486,6 +486,7 @@ private:
         Matrix& rSecondVariationMoment,
         const KinematicVariables& rActualKinematic,
         Matrix& rFirstVariationMomentCovariant, 
+        const Matrix& rFirstVariationT2,
         array_1d<double, 3>& T2Master,
         array_1d<double, 3>& T2Slave,
         array_1d<double, 3>& rSecondVariationMomentProduct,
