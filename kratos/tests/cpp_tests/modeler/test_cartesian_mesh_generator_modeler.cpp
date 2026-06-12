@@ -49,7 +49,7 @@ ModelPart& CreateBoxSourceModelPart(Model& rModel, const std::string& rName,
 /***********************************************************************************/
 /***********************************************************************************/
 
-/// Test that GenerateMesh (direct API) fills a 3D model part with the correct
+/// Test that GenerateCartesianMesh (direct API) fills a 3D model part with the correct
 /// node and element counts for a unit-cube source with a given element size.
 KRATOS_TEST_CASE_IN_SUITE(CartesianMeshGeneratorModeler3DNodeCount, KratosCoreFastSuite)
 {
@@ -60,7 +60,7 @@ KRATOS_TEST_CASE_IN_SUITE(CartesianMeshGeneratorModeler3DNodeCount, KratosCoreFa
     r_output.CreateNewProperties(0);
 
     CartesianMeshGeneratorModeler modeler(r_source, 0.5);
-    modeler.GenerateMesh(r_output, KratosComponents<Element>::Get("Element3D4N"));
+    modeler.GenerateCartesianMesh(r_output, KratosComponents<Element>::Get("Element3D4N"));
 
     // 3 nodes per direction → 27 total
     KRATOS_EXPECT_EQ(r_output.NumberOfNodes(), 27u);
@@ -80,7 +80,7 @@ KRATOS_TEST_CASE_IN_SUITE(CartesianMeshGeneratorModeler3DNodesInsideBB, KratosCo
     r_output.CreateNewProperties(0);
 
     CartesianMeshGeneratorModeler modeler(r_source, 0.5);
-    modeler.GenerateMesh(r_output, KratosComponents<Element>::Get("Element3D4N"));
+    modeler.GenerateCartesianMesh(r_output, KratosComponents<Element>::Get("Element3D4N"));
 
     for (const auto& r_node : r_output.Nodes()) {
         KRATOS_EXPECT_GE(r_node.X(), -1.0 - 1e-12);
@@ -105,7 +105,7 @@ KRATOS_TEST_CASE_IN_SUITE(CartesianMeshGeneratorModeler3DElementConnectivity, Kr
     r_output.CreateNewProperties(0);
 
     CartesianMeshGeneratorModeler modeler(r_source, 1.0);
-    modeler.GenerateMesh(r_output, KratosComponents<Element>::Get("Element3D4N"));
+    modeler.GenerateCartesianMesh(r_output, KratosComponents<Element>::Get("Element3D4N"));
 
     // 1 cell per direction, 6 tets
     KRATOS_EXPECT_EQ(r_output.NumberOfElements(), 6u);
@@ -181,7 +181,7 @@ KRATOS_TEST_CASE_IN_SUITE(CartesianMeshGeneratorModelerDivisionNumbers, KratosCo
     r_output.CreateNewProperties(0);
 
     CartesianMeshGeneratorModeler modeler(r_source, 0.5);
-    modeler.GenerateMesh(r_output, KratosComponents<Element>::Get("Element3D4N"));
+    modeler.GenerateCartesianMesh(r_output, KratosComponents<Element>::Get("Element3D4N"));
 
     // (6+1)*(4+1)*(2+1) = 7*5*3 = 105 nodes
     KRATOS_EXPECT_EQ(r_output.NumberOfNodes(), 105u);
