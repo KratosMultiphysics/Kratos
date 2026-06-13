@@ -453,6 +453,34 @@ namespace Testing {
         KRATOS_EXPECT_EQ(surface.GetGeometryType(), geometry_type);
     }
 
+    KRATOS_TEST_CASE_IN_SUITE(NurbsSurfaceArea, KratosCoreNurbsGeometriesFastSuite) {
+        PointerVector<Point> points;
+
+        points.push_back(Point::Pointer(new Point(0.0, 0.0, 0.0)));
+        points.push_back(Point::Pointer(new Point(2.0, 0.0, 0.0)));
+        points.push_back(Point::Pointer(new Point(0.0, 3.0, 0.0)));
+        points.push_back(Point::Pointer(new Point(2.0, 3.0, 0.0)));
+
+        Vector knot_u = ZeroVector(2);
+        knot_u[0] = 0.0;
+        knot_u[1] = 1.0;
+
+        Vector knot_v = ZeroVector(2);
+        knot_v[0] = 0.0;
+        knot_v[1] = 1.0;
+
+        NurbsSurfaceGeometry<3, PointerVector<Point>> surface(
+            points, 1, 1, knot_u, knot_v);
+
+        array_1d<double, 3> parameter(0.0);
+        parameter[0] = 0.25;
+        parameter[1] = 0.75;
+
+        KRATOS_EXPECT_NEAR(surface.DeterminantOfJacobian(parameter), 6.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(surface.Area(), 6.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(surface.DomainSize(), 6.0, TOLERANCE);
+    }
+
     /// Check creation of integration of nurbs surface.
     KRATOS_TEST_CASE_IN_SUITE(NurbsSurfaceCreateIntegrationPoints, KratosCoreNurbsGeometriesFastSuite) {
         auto surface = GenerateReferenceNodeSurface();

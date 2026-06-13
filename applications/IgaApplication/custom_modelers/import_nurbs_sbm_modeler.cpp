@@ -39,7 +39,7 @@ void ImportNurbsSbmModeler::SetupGeometryModel(){
     auto layer_condition_name = mParameters["link_layer_to_condition_name"];
 
     ModelPart& skin_model_part_initial = mpModel->CreateModelPart(model_part_name);
-    skin_model_part_initial.CreateNewProperties(0);
+    skin_model_part_initial.pGetProperties(0);
     const Parameters nurbs_skin_parameters = ReadParamatersFile(input_filename);
     
     // Get the number of boundary NURBS

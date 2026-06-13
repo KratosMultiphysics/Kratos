@@ -25,9 +25,15 @@
 #include "snake_sbm_process.h"
 #include "custom_utilities/create_breps_sbm_utilities.h"
 #include "spaces/ublas_space.h"
+#include "integration/integration_point_utilities.h"
+#include "iga_application_variables.h"
+#include "includes/global_pointer_variables.h"
 
 namespace Kratos
 {
+class SnakeGapSbm2DUtilities;
+class SnakeGapSbm3DUtilities;
+
 ///@name Kratos Classes
 ///@{
 
@@ -40,6 +46,8 @@ namespace Kratos
 class KRATOS_API(IGA_APPLICATION) SnakeGapSbmProcess
     : public SnakeSbmProcess
 {
+    friend class SnakeGapSbm2DUtilities;
+    friend class SnakeGapSbm3DUtilities;
 
 public:
 
@@ -47,6 +55,7 @@ public:
     using ContainerNodeType = PointerVector<Node>;
     using ContainerEmbeddedNodeType = PointerVector<Point>;
     using BrepCurveOnSurfaceType = BrepCurveOnSurface<ContainerNodeType, true, ContainerEmbeddedNodeType>;
+    using BrepSurfaceOnVolumeType = BrepSurfaceOnVolume<ContainerNodeType, true, ContainerNodeType>;
     using ElementsContainerType = ModelPart::ElementsContainerType;
 
     using GeometryType = Geometry<NodeType>;
@@ -58,6 +67,7 @@ public:
     
     using NurbsCurveGeometryType = NurbsCurveGeometry<3, PointerVector<Node>>;
     using NurbsSurfaceType = NurbsSurfaceGeometry<3, PointerVector<NodeType>>;
+    using NurbsVolumeType = NurbsVolumeGeometry<PointerVector<NodeType>>;
     using NodePointerVector = GlobalPointersVector<NodeType>;
     using ConditionType = Condition;
     using ConditionPointerType = ConditionType::Pointer;
@@ -87,30 +97,6 @@ public:
         std::vector<std::size_t> nnz_off;       // offsets into pool, size = nnz
         std::vector<std::size_t> nnz_len;       // lengths per nnz,  size = nnz
         std::vector<IndexType> pool;         // flat contiguous storage of node ids
-    };
-
-    /**
-     * @brief CSR container storing per-knot-span node bins.
-     */
-    struct KnotSpanNodeBinsCSR
-    {
-        // Metadata (mirrors KnotSpanIdsCSR)
-        std::size_t NumberOfSpansX = 0;
-        std::size_t NumberOfSpansY = 0;
-        double MinU = 0.0, MaxU = 0.0;
-        double MinV = 0.0, MaxV = 0.0;
-        double SpanSizeX = 0.0, SpanSizeY = 0.0;
-
-        SparseMatrixType Occupancy; // CSR, (i,j) value = count of nodes in that cell
-
-        struct CellBins
-        {
-            NodePointerContainerType Nodes;
-            std::unique_ptr<NodeBinsType> pBins;
-            bool HasBins = false;
-        };
-
-        std::vector<CellBins> CellBinsByNnz;
     };
 
     /**
@@ -264,24 +250,29 @@ public:
     };
 
     /**
-     * @brief CSR container storing per-knot-span condition bins.
+     * @brief CSR container storing skin node and condition bins per knot span.
      */
-    struct KnotSpanConditionBinsCSR
+    struct KnotSpanSkinBinsCSR
     {
-        // Metadata (mirrors KnotSpanIdsCSR)
         std::size_t NumberOfSpansX = 0;
         std::size_t NumberOfSpansY = 0;
+        std::size_t NumberOfSpansZ = 1;
         double MinU = 0.0, MaxU = 0.0;
         double MinV = 0.0, MaxV = 0.0;
-        double SpanSizeX = 0.0, SpanSizeY = 0.0;
+        double MinW = 0.0, MaxW = 0.0;
+        double SpanSizeX = 0.0, SpanSizeY = 0.0, SpanSizeZ = 0.0;
 
-        SparseMatrixType Occupancy; // CSR, (i,j) value = count of conditions in that cell
+        // In 3D the matrix column is the flattened (y,z) span index.
+        SparseMatrixType Occupancy;
 
         struct CellBins
         {
+            NodePointerContainerType Nodes;
             ConditionPointerContainerType Conditions;
-            BinsObjectDynamic<ConditionConfigure> Bins;
-            bool HasBins = false;
+            std::unique_ptr<NodeBinsType> pNodeBins;
+            BinsObjectDynamic<ConditionConfigure> ConditionBins;
+            bool HasNodeBins = false;
+            bool HasConditionBins = false;
         };
 
         std::vector<CellBins> CellBinsByNnz;
@@ -324,6 +315,26 @@ public:
         const auto it = std::lower_bound(first, last, j);
         if (it != last && *it == j) return static_cast<std::size_t>(it - ci.begin());
         return static_cast<std::size_t>(-1);
+    }
+
+    static std::size_t FlattenSpanColumnIndex(
+        const KnotSpanSkinBinsCSR& rSkinBinsPerSpan,
+        const std::size_t SpanIndexY,
+        const std::size_t SpanIndexZ = 0)
+    {
+        return SpanIndexY + rSkinBinsPerSpan.NumberOfSpansY * SpanIndexZ;
+    }
+
+    static std::size_t FindSpanNnzIndex(
+        const KnotSpanSkinBinsCSR& rSkinBinsPerSpan,
+        const std::size_t SpanIndexX,
+        const std::size_t SpanIndexY,
+        const std::size_t SpanIndexZ = 0)
+    {
+        return FindNnzIndex(
+            rSkinBinsPerSpan.Occupancy,
+            SpanIndexX,
+            FlattenSpanColumnIndex(rSkinBinsPerSpan, SpanIndexY, SpanIndexZ));
     }
 
 
@@ -470,24 +481,15 @@ public:
     {};
 
     /**
-     * @brief Builds a CSR matrix linking skin nodes to knot span bins.
+     * @brief Builds a 2D CSR matrix linking skin nodes and conditions to knot span bins.
      * @param rSkinSubModelPart Reference to the skin model part.
      * @param rSurrogateSubModelPart Reference to the surrogate model part used for binning.
-     * @return CSR structure collecting the node identifiers per knot span.
+     * @return CSR structure collecting node and condition bins per knot span.
      */
-    KnotSpanNodeBinsCSR CreateSkinNodesPerKnotSpanMatrix(
+    KnotSpanSkinBinsCSR CreateSkinBinsPerKnotSpanMatrix2D(
         const ModelPart& rSkinSubModelPart,
         const ModelPart& rSurrogateSubModelPart) const;
 
-    /**
-     * @brief Builds a CSR matrix linking skin conditions to knot span bins, storing per-cell bins.
-     * @param rSkinSubModelPart Reference to the skin model part containing the conditions.
-     * @param rReferenceMatrix Reference to the node-based CSR used as topology template.
-     * @return CSR structure collecting the condition bins per knot span.
-     */
-    KnotSpanConditionBinsCSR CreateSkinConditionsPerKnotSpanMatrix(
-        const ModelPart& rSkinSubModelPart,
-        const SnakeGapSbmProcess::KnotSpanNodeBinsCSR& rReferenceMatrix) const;
 
 
 /**
@@ -498,8 +500,7 @@ struct IntegrationParameters
     std::size_t  NumberOfShapeFunctionsDerivatives;
     IntegrationInfo CurveIntegrationInfo;
     const Vector&           rKnotSpanSizes;
-    const KnotSpanNodeBinsCSR* pSkinNodesPerSpan = nullptr;
-    const KnotSpanConditionBinsCSR* pSkinConditionsPerSpan = nullptr;
+    const KnotSpanSkinBinsCSR* pSkinBinsPerSpan = nullptr;
     /**
      * @brief Initializes the integration parameters container.
      * @param NumberOfDerivatives Number of shape function derivatives required.
@@ -529,9 +530,11 @@ struct ProjectionResult
     
 private:
 
-    ModelPart* mpGapElementsSubModelPart = nullptr; 
-    ModelPart* mpGapInterfaceSubModelPart = nullptr; 
+    ModelPart* mpGapElementsSubModelPart = nullptr;
+    ModelPart* mpGapConditionsSubModelPart = nullptr;
+    ModelPart* mpGapInterfaceSubModelPart = nullptr;
     std::string mGapElementName;
+    std::string mGapConditionName;
     std::string mGapInterfaceConditionName;
     std::size_t mInternalDivisions;
     double mGapRelativeToleranceForSubdivisions = 0.1;
@@ -550,15 +553,123 @@ private:
     void CreateSbmExtendedGeometries();
 
     /**
+     * @brief Creates the gap SBM geometries for the configured model part. 2D Case
+     */
+    void CreateSbmExtendedGeometries2D();
+
+    /**
+     * @brief Creates the gap SBM geometries for the configured model part. 3D Case
+     */
+    void CreateSbmExtendedGeometries3D();
+
+    /**
      * @brief Builds the gap SBM geometries for a given skin/surrogate pair.
      * @tparam TIsInnerLoop True when processing the inner loop orientation.
      * @param rSkinSubModelPart Reference to the target skin sub model part.
      * @param rSurrogateSubModelPart Reference to the surrogate sub model part.
      */
     template <bool TIsInnerLoop>
-    void CreateSbmExtendedGeometries(
+    void CreateSbmExtendedGeometries2D(
         ModelPart& rSkinSubModelPart,
         const ModelPart& rSurrogateSubModelPart);
+
+    /**
+     * @brief Builds the gap SBM geometries for a given skin/surrogate pair.
+     * @tparam TIsInnerLoop True when processing the inner loop orientation.
+     * @param rSkinSubModelPart Reference to the target skin sub model part.
+     * @param rSurrogateSubModelPart Reference to the surrogate sub model part.
+     */
+    template <bool TIsInnerLoop>
+    void CreateSbmExtendedGeometries3D(
+        ModelPart& rSkinSubModelPart,
+        const ModelPart& rSurrogateSubModelPart);
+
+    array_1d<double, 3> CalculateAxisAlignedBrepFaceNormal3D(
+        const CoordinatesArrayType& rVertex00,
+        const CoordinatesArrayType& rVertex01,
+        const CoordinatesArrayType& rVertex10,
+        const CoordinatesArrayType& rVertex11,
+        const NodeType& rFirstSurrogateNode,
+        const double MaxKnotSpanSize) const;
+
+    /**
+     * @brief Creates the projection surface between a surrogate edge and its projected skin edge.
+     * @param pSurrogateNode1 First surrogate edge node.
+     * @param pSurrogateNode2 Second surrogate edge node.
+     * @param rSkinSubModelPart Skin model part storing the projected nodes.
+     * @return Degree-one NURBS surface representing the current straight-edge Coons patch.
+     */
+    NurbsSurfaceType::Pointer CreateProjectionSurfaceFromSurrogateSegment(
+        const Node::Pointer& pSurrogateNode1,
+        const Node::Pointer& pSurrogateNode2,
+        const ModelPart& rSkinSubModelPart) const;
+
+    /**
+     * @brief Creates the skin-side Coons surface bounded by the top edges of the lateral projection surfaces.
+     * @param pProjectionSurface00_01 Lateral projection surface over edge pNode00-pNode01.
+     * @param pProjectionSurface00_10 Lateral projection surface over edge pNode00-pNode10.
+     * @param pProjectionSurface01_11 Lateral projection surface over edge pNode01-pNode11.
+     * @param pProjectionSurface10_11 Lateral projection surface over edge pNode10-pNode11.
+     * @param ReverseSurfaceNormal If true, swaps the surface parametric directions to reverse its normal.
+     * @return Degree-one NURBS surface representing the current skin-side Coons approximation.
+     */
+    NurbsSurfaceType::Pointer CreateGapCoonsSurface(
+        const NurbsSurfaceType::Pointer& pProjectionSurface00_01,
+        const NurbsSurfaceType::Pointer& pProjectionSurface00_10,
+        const NurbsSurfaceType::Pointer& pProjectionSurface01_11,
+        const NurbsSurfaceType::Pointer& pProjectionSurface10_11,
+        const bool ReverseSurfaceNormal = false) const;
+
+    /**
+     * @brief Creates the gap Coons volume bounded by the surrogate face, skin face, and lateral projection faces.
+     * @param pNode00 Surrogate face node at (u,v,w) = (0,0,0).
+     * @param pNode01 Surrogate face node at (u,v,w) = (0,1,0).
+     * @param pNode10 Surrogate face node at (u,v,w) = (1,0,0).
+     * @param pNode11 Surrogate face node at (u,v,w) = (1,1,0).
+     * @param pProjectionSurface00_01 Lateral projection surface over edge pNode00-pNode01.
+     * @param pProjectionSurface00_10 Lateral projection surface over edge pNode00-pNode10.
+     * @param pProjectionSurface01_11 Lateral projection surface over edge pNode01-pNode11.
+     * @param pProjectionSurface10_11 Lateral projection surface over edge pNode10-pNode11.
+     * @param pTopSkinFace Top skin-side Coons surface representing the gap closure surface.
+     * @return Degree-one NURBS volume representing the current Coons-volume approximation.
+     */
+    NurbsVolumeType::Pointer CreateGapCoonsVolume(
+        const Node::Pointer& pNode00,
+        const Node::Pointer& pNode01,
+        const Node::Pointer& pNode10,
+        const Node::Pointer& pNode11,
+        const NurbsSurfaceType::Pointer& pProjectionSurface00_01,
+        const NurbsSurfaceType::Pointer& pProjectionSurface00_10,
+        const NurbsSurfaceType::Pointer& pProjectionSurface01_11,
+        const NurbsSurfaceType::Pointer& pProjectionSurface10_11,
+        const NurbsSurfaceType::Pointer& pTopSkinFace) const;
+
+    /**
+     * @brief Creates the gap skin conditions on the Coons skin surface and the corresponding gap volume elements.
+     * @param pNode00 Surrogate face node at (u,v,w) = (0,0,0).
+     * @param pNode01 Surrogate face node at (u,v,w) = (0,1,0).
+     * @param pNode10 Surrogate face node at (u,v,w) = (1,0,0).
+     * @param pNode11 Surrogate face node at (u,v,w) = (1,1,0).
+     * @param pProjectionSurface00_01 Lateral projection surface over edge pNode00-pNode01.
+     * @param pProjectionSurface00_10 Lateral projection surface over edge pNode00-pNode10.
+     * @param pProjectionSurface01_11 Lateral projection surface over edge pNode01-pNode11.
+     * @param pProjectionSurface10_11 Lateral projection surface over edge pNode10-pNode11.
+     * @param rSurrogateBrepMiddleGeometry Surrogate reference geometry attached to the created entities.
+     * @param rIntegrationParameters Integration settings and knot span metadata.
+     * @param rSkinSubModelPart Skin model part containing the projected nodes.
+     */
+    void CreateGapElementsAndConditions(
+        const Node::Pointer& pNode00,
+        const Node::Pointer& pNode01,
+        const Node::Pointer& pNode10,
+        const Node::Pointer& pNode11,
+        const NurbsSurfaceType::Pointer& pProjectionSurface00_01,
+        const NurbsSurfaceType::Pointer& pProjectionSurface00_10,
+        const NurbsSurfaceType::Pointer& pProjectionSurface01_11,
+        const NurbsSurfaceType::Pointer& pProjectionSurface10_11,
+        const GeometryType::Pointer& rSurrogateBrepMiddleGeometry,
+        const IntegrationParameters& rIntegrationParameters,
+        ModelPart& rSkinSubModelPart) const;
 
     /**
      * @brief Creates gap and skin quadrature point data for the supplied entities.
@@ -609,14 +720,26 @@ private:
      * @tparam TIsInnerLoop True when working with the inner loop orientation.
      * @param rSurrogateSubModelPart Reference to the surrogate sub model part.
      * @param rSkinSubModelPart Reference to the skin sub model part.
-     * @param rSkinNodesPerSpan Reference to the skin node CSR structure.
+     * @param rSkinBinsPerSpan Reference to the skin CSR structure.
      */
     template <bool TIsInnerLoop>
-    void SetSurrogateToSkinProjections(
+    void SetSurrogateToSkinProjections2D(
         const ModelPart& rSurrogateSubModelPart,
         const ModelPart& rSkinSubModelPart,
-        const KnotSpanNodeBinsCSR& rSkinNodesPerSpan,
-        const KnotSpanConditionBinsCSR& rSkinConditionsPerSpan);
+        const KnotSpanSkinBinsCSR& rSkinBinsPerSpan);
+
+    /**
+     * @brief Populates the surrogate-to-skin projection mapping in 3D.
+     * @tparam TIsInnerLoop True when working with the inner loop orientation.
+     * @param rSurrogateSubModelPart Reference to the surrogate sub model part.
+     * @param rSkinSubModelPart Reference to the skin sub model part.
+     * @param rSkinBinsPerSpan Reference to the skin CSR structure.
+     */
+    template <bool TIsInnerLoop>
+    void SetSurrogateToSkinProjections3D(
+        const ModelPart& rSurrogateSubModelPart,
+        ModelPart& rSkinSubModelPart,
+        const KnotSpanSkinBinsCSR& rSkinBinsPerSpan);
 
     /**
      * @brief Checks that surrogate boundary vertices lie on the same skin layer.
@@ -697,7 +820,7 @@ private:
         const std::string& rCommonConditionName,
         const array_1d<double,3>& rNormalCond,
         const IntegrationParameters& rIntegrationParameters,
-        const KnotSpanConditionBinsCSR& rSkinConditionsPerKnotSpan) const;
+        const KnotSpanSkinBinsCSR& rSkinBinsPerKnotSpan) const;
     
     /**
      * @brief Creates a Brep curve for the active knot range.
@@ -754,6 +877,50 @@ private:
         const array_1d<double,3>&    rP01,
         const array_1d<double,3>&    rP10,
         const array_1d<double,3>&    rP11) const;
+
+    /**
+     * @brief Returns Gauss points mapped on the gap Coons volume.
+     * @param Order Quadrature order used in each parametric direction.
+     * @param rGapVolume NURBS volume representing the current gap Coons volume.
+     * @return Array of integration points with Jacobian-weighted volume weights.
+     */
+    IntegrationPointsArrayType CreateCoonsVolumeGaussPoints(
+        std::size_t Order,
+        const NurbsVolumeType& rGapVolume) const;
+
+    /**
+     * @brief Prints diagnostic information about the orientation of a 3D gap Coons volume.
+     * @return True if the determinant scan identifies a locally folded volume.
+     * @param rGapVolume Gap volume to inspect.
+     * @param rNode00 Surrogate face node at (u,v,w) = (0,0,0).
+     * @param rNode01 Surrogate face node at (u,v,w) = (0,1,0).
+     * @param rNode10 Surrogate face node at (u,v,w) = (1,0,0).
+     * @param rNode11 Surrogate face node at (u,v,w) = (1,1,0).
+     * @param rProjectedPoint00 Projected skin point at (u,v,w) = (0,0,1).
+     * @param rProjectedPoint01 Projected skin point at (u,v,w) = (0,1,1).
+     * @param rProjectedPoint10 Projected skin point at (u,v,w) = (1,0,1).
+     * @param rProjectedPoint11 Projected skin point at (u,v,w) = (1,1,1).
+     * @param pProjectionSurface00_01 Lateral projection surface over edge rNode00-rNode01.
+     * @param pProjectionSurface00_10 Lateral projection surface over edge rNode00-rNode10.
+     * @param pProjectionSurface01_11 Lateral projection surface over edge rNode01-rNode11.
+     * @param pProjectionSurface10_11 Lateral projection surface over edge rNode10-rNode11.
+     * @param rIntegrationPoints Integration points used for determinant scanning.
+     */
+    bool CheckGapVolumeOrientation(
+        const NurbsVolumeType& rGapVolume,
+        const NodeType& rNode00,
+        const NodeType& rNode01,
+        const NodeType& rNode10,
+        const NodeType& rNode11,
+        const array_1d<double,3>& rProjectedPoint00,
+        const array_1d<double,3>& rProjectedPoint01,
+        const array_1d<double,3>& rProjectedPoint10,
+        const array_1d<double,3>& rProjectedPoint11,
+        const NurbsSurfaceType::Pointer& pProjectionSurface00_01,
+        const NurbsSurfaceType::Pointer& pProjectionSurface00_10,
+        const NurbsSurfaceType::Pointer& pProjectionSurface01_11,
+        const NurbsSurfaceType::Pointer& pProjectionSurface10_11,
+        const IntegrationPointsArrayType& rIntegrationPoints) const;
 
     // --- static utility helpers ----------------------------------
 
@@ -864,6 +1031,28 @@ private:
         const array_1d<double,3>& rSurrogatePoint2,
         const array_1d<double,3>& rSkinPoint1,
         const array_1d<double,3>& rSkinPoint2) const;
+
+    /**
+     * @brief Computes a characteristic length for the 3D gap volume from its eight corner points.
+     * @param rNode00 Surrogate face node at (u,v) = (0,0).
+     * @param rNode01 Surrogate face node at (u,v) = (0,1).
+     * @param rNode10 Surrogate face node at (u,v) = (1,0).
+     * @param rNode11 Surrogate face node at (u,v) = (1,1).
+     * @param rProjectedPoint00 Projected skin point of rNode00.
+     * @param rProjectedPoint01 Projected skin point of rNode01.
+     * @param rProjectedPoint10 Projected skin point of rNode10.
+     * @param rProjectedPoint11 Projected skin point of rNode11.
+     * @return Radius from the centroid to the farthest volume corner.
+     */
+    double CalculateGapVolumeElementCharacteristicLength(
+        const NodeType& rNode00,
+        const NodeType& rNode01,
+        const NodeType& rNode10,
+        const NodeType& rNode11,
+        const array_1d<double,3>& rProjectedPoint00,
+        const array_1d<double,3>& rProjectedPoint01,
+        const array_1d<double,3>& rProjectedPoint10,
+        const array_1d<double,3>& rProjectedPoint11) const;
 
     /**
      * @brief Reconstructs the ordered node path between two skin nodes by traversing skin conditions.
@@ -1345,7 +1534,7 @@ typename NurbsCurveGeometryType::Pointer FitUV_BetweenSkinNodes_Generic(
  * @param rLayer Name of the skin layer to be matched.
  * @param rSkinSubModelPart Reference to the skin sub model part containing the candidate nodes.
  * @param rKnotSpanSizes Reference to the knot span sizes guiding the search.
- * @param rSkinConditionsPerSpan CSR matrix storing skin conditions per knot span.
+ * @param rSkinBinsPerSpan CSR matrix storing skin nodes and conditions per knot span.
  * @param rDirection Direction vector used for ray casting.
  * @return Identifier of the closest node fulfilling the criteria.
  */
@@ -1355,8 +1544,7 @@ IndexType FindClosestNodeInLayerWithDirection(
     const std::string& rLayer,
     const ModelPart& rSkinSubModelPart,
     const Vector& rKnotSpanSizes,
-    const KnotSpanNodeBinsCSR& rSkinNodesPerSpan,
-    const KnotSpanConditionBinsCSR& rSkinConditionsPerSpan,
+    const KnotSpanSkinBinsCSR& rSkinBinsPerSpan,
     const Vector& rDirection) const;
 
 
@@ -1368,7 +1556,7 @@ IndexType FindClosestNodeInLayerWithDirection(
  * @param rLayer 
  * @param rSkinSubModelPart 
  * @param rKnotSpanSizes 
- * @param rSkinConditionsPerSpan 
+ * @param rSkinBinsPerSpan
  * @param rDirection 
  * @return std::pair<SnakeGapSbmProcess::IndexType, SnakeGapSbmProcess::IndexType> 
  */
@@ -1378,8 +1566,7 @@ std::pair<SnakeGapSbmProcess::IndexType, SnakeGapSbmProcess::IndexType> FindClos
     const std::string& rLayer,
     const ModelPart& rSkinSubModelPart,
     const Vector& rKnotSpanSizes,
-    const KnotSpanNodeBinsCSR& rSkinNodesPerSpan,
-    const KnotSpanConditionBinsCSR& rSkinConditionsPerSpan,
+    const KnotSpanSkinBinsCSR& rSkinBinsPerSpan,
     const Vector& rDirection) const;
     
 /**

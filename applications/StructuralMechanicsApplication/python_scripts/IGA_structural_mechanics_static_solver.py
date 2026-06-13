@@ -50,7 +50,8 @@ class IgaStructuralMechanicsStaticSolver(MechanicalSolver):
     
     def InitializeSolutionStep(self):
         super().InitializeSolutionStep()
-        self.printDofsAndCPsPatch1()
+        # self.printDofsAndCPsPatch1()
+        self.printDofsAndCPs3D()
         
         
     def _GetScheme(self):
@@ -62,7 +63,79 @@ class IgaStructuralMechanicsStaticSolver(MechanicalSolver):
         return KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
     
 
+    def printDofsAndCPs3D(self):
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection='3d')
 
+        free_node_x = []
+        free_node_y = []
+        free_node_z = []
+        dof = []
+
+        condition_node_x = []
+        condition_node_y = []
+        condition_node_z = []
+        dof_condition = []
+
+        # Read active control points from volume/elements
+        if os.path.exists("txt_files/Id_active_control_points.txt"):
+            with open("txt_files/Id_active_control_points.txt", "r") as file:
+                lines = file.readlines()
+
+            for line in lines:
+                numbers = line.split()
+                node = self.main_model_part.GetNode(int(numbers[0]))
+
+                free_node_x.append(node.X)
+                free_node_y.append(node.Y)
+                free_node_z.append(node.Z)
+                dof.append(numbers[1])
+
+        # Read active control points from conditions
+        if os.path.exists("txt_files/Id_active_control_points_condition.txt"):
+            with open("txt_files/Id_active_control_points_condition.txt", "r") as file:
+                lines = file.readlines()
+
+            for line in lines:
+                numbers = line.split()
+                node = self.main_model_part.GetNode(int(numbers[0]))
+
+                condition_node_x.append(node.X)
+                condition_node_y.append(node.Y)
+                condition_node_z.append(node.Z)
+                dof_condition.append(numbers[1])
+
+        # Plot active control points from volume/elements
+        ax.scatter(
+            free_node_x,
+            free_node_y,
+            free_node_z,
+            marker='d',
+            color='red',
+            s=60,
+            label='Active CPs'
+        )
+
+        # Plot active control points from conditions
+        ax.scatter(
+            condition_node_x,
+            condition_node_y,
+            condition_node_z,
+            marker='x',
+            alpha=0.3,
+            color='green',
+            s=25,
+            label='Active condition CPs'
+        )
+
+        ax.set_xlabel("X")
+        ax.set_ylabel("Y")
+        ax.set_zlabel("Z")
+
+        ax.legend()
+        ax.set_title("Active control points and DOFs")
+
+        plt.show()
 
     def printDofsAndCPs(self) :
         fig, ax = plt.subplots()
@@ -112,6 +185,7 @@ class IgaStructuralMechanicsStaticSolver(MechanicalSolver):
         ax.scatter(free_node_x, free_node_y, marker='d', color='red',s=60, label='Free Nodes')
 
         ax.scatter(free_node_x2, free_node_y2, marker='x', alpha=0.3, color='green',s=25, label='Free Nodes')
+        plt.show()
 
     def printDofsAndCPsPatch1(self) :
         fig, ax = plt.subplots()

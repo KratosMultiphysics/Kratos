@@ -67,8 +67,10 @@ void SbmSolidCondition::InitializeMemberVariables()
     // Compute basis function order (Note: it is not allow to use different orders in different directions)
     if (mDim == 3) {
         mBasisFunctionsOrder = std::cbrt(r_DN_De[0].size1()) - 1;
+        mBasisFunctionsOrder*=3; //use complete Talor expansion
     } else {
         mBasisFunctionsOrder = std::sqrt(r_DN_De[0].size1()) - 1;
+        mBasisFunctionsOrder*=2; //use complete Talor expansion
     }
 
     double penalty = GetProperties()[PENALTY_FACTOR];
@@ -86,7 +88,6 @@ void SbmSolidCondition::InitializeMemberVariables()
         mPenalty = mBasisFunctionsOrder * mBasisFunctionsOrder * penalty / h;
     }
 
-    mBasisFunctionsOrder*=2; //use complete Talor expansion
     // Compute the normals
     mNormalParameterSpace = - r_geometry.Normal(0, GetIntegrationMethod());
     if (mDim == 3) {

@@ -72,8 +72,10 @@ void SbmLaplacianConditionDirichlet::InitializeMemberVariables()
     // Compute basis function order (Note: it is not allow to use different orders in different directions)
     if (mDim == 3) {
         mBasisFunctionsOrder = std::cbrt(r_DN_De[0].size1()) - 1;
+        mBasisFunctionsOrder *= 3;
     } else {
         mBasisFunctionsOrder = std::sqrt(r_DN_De[0].size1()) - 1;
+        mBasisFunctionsOrder *= 2;
     }
 
     double penalty = GetProperties()[PENALTY_FACTOR];

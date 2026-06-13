@@ -54,6 +54,7 @@ public:
 
     // using base class functionalities.
     using BaseType::CreateQuadraturePointGeometries;
+    using BaseType::DeterminantOfJacobian;
     using BaseType::pGetPoint;
     using BaseType::GetPoint;
 
@@ -209,6 +210,22 @@ public:
         }
         KRATOS_ERROR << "Possible direction index in NurbsSurfaceGeometry reaches from 0-1. Given direction index: "
             << LocalDirectionIndex << std::endl;
+    }
+
+    /// Computes the area of the NURBS/B-Spline surface.
+    double Area() const override
+    {
+        IntegrationPointsArrayType integration_points;
+        IntegrationInfo integration_info = this->GetDefaultIntegrationInfo();
+        CreateIntegrationPoints(integration_points, integration_info);
+
+        double area = 0.0;
+        for (IndexType i = 0; i < integration_points.size(); ++i) {
+            const double determinant_jacobian = DeterminantOfJacobian(integration_points[i]);
+            area += integration_points[i].Weight() * determinant_jacobian;
+        }
+
+        return area;
     }
 
     ///@}
@@ -887,6 +904,26 @@ public:
                 }
             }
         }
+    }
+
+    ///@}
+    ///@name Jacobian
+    ///@{
+
+    double DeterminantOfJacobian(
+        const CoordinatesArrayType& rPoint) const override
+    {
+        std::vector<CoordinatesArrayType> global_space_derivatives(3);
+        this->GlobalSpaceDerivatives(global_space_derivatives, rPoint, 1);
+
+        BoundedMatrix<double, TWorkingSpaceDimension, 2> global_tangents;
+
+        for (IndexType i_dimension = 0; i_dimension < TWorkingSpaceDimension; ++i_dimension) {
+            global_tangents(i_dimension, 0) = global_space_derivatives[1][i_dimension];
+            global_tangents(i_dimension, 1) = global_space_derivatives[2][i_dimension];
+        }
+
+        return MathUtils<double>::GeneralizedDet(global_tangents);
     }
 
     ///@}

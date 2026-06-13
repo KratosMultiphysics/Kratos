@@ -104,23 +104,31 @@ void GapSbmSolidElement::InitializeMemberVariables()
     // Initialize DN_DX
     mDim = r_DN_De[0].size2();
 
-    KRATOS_ERROR_IF(mDim != 2) << "GapSbmSolidElement momentarily only supports 2D conditions, but the current dimension is" << mDim << std::endl;
+    KRATOS_ERROR_IF(mDim != 2 && mDim != 3) << "GapSbmSolidElement momentarily only supports 2D and 3D elements, but the current dimension is" << mDim << std::endl;
     
     // Compute basis function order (Note: it is not allow to use different orders in different directions)
     if (mDim == 3) {
         mBasisFunctionsOrder = std::cbrt(r_DN_De[0].size1()) - 1;
+        mBasisFunctionsOrder *= 3; 
     } else {
         mBasisFunctionsOrder = std::sqrt(r_DN_De[0].size1()) - 1;
+        mBasisFunctionsOrder *= 2; 
     }
-    mBasisFunctionsOrder *= 2; 
 
     // calculate the integration weight
     const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geometry.IntegrationPoints(this->GetIntegrationMethod());
 
-    const double thickness = GetProperties().Has(THICKNESS) ? GetProperties()[THICKNESS] : 1.0;
-    const double integration_weight = r_integration_points[0].Weight()*thickness;
-
-    SetValue(INTEGRATION_WEIGHT, integration_weight);
+    if (mDim == 2)
+    {
+        const double thickness = GetProperties().Has(THICKNESS) ? GetProperties()[THICKNESS] : 1.0;
+        const double integration_weight = r_integration_points[0].Weight()*thickness;
+        SetValue(INTEGRATION_WEIGHT, integration_weight);
+    }
+    if (mDim == 3)
+    {
+        const double integration_weight = r_integration_points[0].Weight();
+        SetValue(INTEGRATION_WEIGHT, integration_weight);
+    }
 }
 
 void GapSbmSolidElement::InitializeSbmMemberVariables()
@@ -177,7 +185,8 @@ void GapSbmSolidElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
     ComputeGradientTaylorExpansionContribution(grad_N_sum_transposed);
     Matrix grad_N_sum = trans(grad_N_sum_transposed);
 
-    Matrix B_sum = ZeroMatrix(mDim,mat_size);
+    const std::size_t strain_size = mpConstitutiveLaw->GetStrainSize();
+    Matrix B_sum = ZeroMatrix(strain_size,mat_size);
     CalculateB(B_sum, grad_N_sum);
 
     // obtain the tangent constitutive matrix at the true position
@@ -222,7 +231,8 @@ void GapSbmSolidElement::CalculateRightHandSide(VectorType& rRightHandSideVector
     ComputeGradientTaylorExpansionContribution(grad_N_sum_transposed);
     Matrix grad_N_sum = trans(grad_N_sum_transposed);
 
-    Matrix B_sum = ZeroMatrix(mDim,mat_size);
+    const std::size_t strain_size = mpConstitutiveLaw->GetStrainSize();
+    Matrix B_sum = ZeroMatrix(strain_size,mat_size);
     CalculateB(B_sum, grad_N_sum);
 
     // obtain the tangent constitutive matrix at the true position
@@ -240,9 +250,9 @@ void GapSbmSolidElement::CalculateRightHandSide(VectorType& rRightHandSideVector
     Vector volume_force_local = this->GetValue(BODY_FORCE);
     // // Calculating the local RHS
     for ( IndexType i = 0; i < number_of_control_points; ++i ) {
-        const std::size_t index = 2* i;
+        const std::size_t index = mDim * i;
 
-        for ( IndexType j = 0; j < 2; ++j )
+        for ( IndexType j = 0; j < mDim; ++j )
             rRightHandSideVector[index + j] += integration_weight * N_sum_vec[i] * volume_force_local[j];
     }
 
@@ -250,6 +260,12 @@ void GapSbmSolidElement::CalculateRightHandSide(VectorType& rRightHandSideVector
     noalias(rRightHandSideVector) -= integration_weight * prod(trans(B_sum), r_stress_vector_on_true); 
 
     
+    for (unsigned int i = 0; i < GetSurrogateGeometry().size(); i++) {
+
+        std::ofstream outputFile("txt_files/Id_active_control_points.txt", std::ios::app);
+        outputFile << GetSurrogateGeometry()[i].GetId() << "  " <<GetSurrogateGeometry()[i].GetDof(DISPLACEMENT_Z).EquationId() <<"\n";
+        outputFile.close();
+    }
     KRATOS_CATCH("")
 }
 
@@ -269,6 +285,9 @@ void GapSbmSolidElement::EquationIdVector(
             const auto& r_node = r_geometry[i];
             rResult[index] = r_node.GetDof(DISPLACEMENT_X).EquationId();
             rResult[index + 1] = r_node.GetDof(DISPLACEMENT_Y).EquationId();
+            if (mDim == 3) {
+                rResult[index + 2] = r_node.GetDof(DISPLACEMENT_Z).EquationId();
+            }
         }
     }
 
@@ -287,6 +306,9 @@ void GapSbmSolidElement::GetDofList(
         const auto& r_node = r_geometry[i];
         rElementalDofList.push_back(r_node.pGetDof(DISPLACEMENT_X));
         rElementalDofList.push_back(r_node.pGetDof(DISPLACEMENT_Y));
+        if (mDim > 2) {
+            rElementalDofList.push_back(r_node.pGetDof(DISPLACEMENT_Z));
+        }
     }
 };
 
@@ -295,6 +317,14 @@ void GapSbmSolidElement::GetDofList(
 
 int GapSbmSolidElement::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
+    const auto& r_surrogate_geometry = GetSurrogateGeometry();
+    const auto& r_DN_De = r_surrogate_geometry.ShapeFunctionsLocalGradients(r_surrogate_geometry.GetDefaultIntegrationMethod());
+    const std::size_t dimension = r_DN_De[0].size2();
+
+    KRATOS_ERROR_IF(dimension != 2 && dimension != 3)
+        << "GapSbmSolidElement only supports 2D and 3D elements, but the current dimension is "
+        << dimension << std::endl;
+
     // Verify that the constitutive law exists
     if (this->GetProperties().Has(CONSTITUTIVE_LAW) == false)
     {
@@ -303,16 +333,23 @@ int GapSbmSolidElement::Check(const ProcessInfo& rCurrentProcessInfo) const
     else
     {
         // Verify that the constitutive law has the correct dimension
-        KRATOS_ERROR_IF_NOT(this->GetProperties().Has(THICKNESS))
-            << "THICKNESS not provided for element " << this->Id() << std::endl;
+        if (dimension == 2 && this->GetProperties()[CONSTITUTIVE_LAW]->GetStrainSize() != 3)
+        {
+            KRATOS_ERROR << "Wrong constitutive law used. This is a 2D element! Expected strain size is 3 (el id = ) "
+                         << this->Id() << std::endl;
+        }
+        else if (dimension == 3 && this->GetProperties()[CONSTITUTIVE_LAW]->GetStrainSize() != 6)
+        {
+            KRATOS_ERROR << "Wrong constitutive law used. This is a 3D element! Expected strain size is 6 (el id = ) "
+                         << this->Id() << std::endl;
+        }
 
-        // Check strain size
-        KRATOS_ERROR_IF_NOT(this->GetProperties().GetValue(CONSTITUTIVE_LAW)->GetStrainSize() == 3)
-            << "Wrong constitutive law used. This is a 2D element! Expected strain size is 3 (el id = ) "
-            << this->Id() << std::endl;
+        if (dimension == 2 && !this->GetProperties().Has(THICKNESS))
+        {
+            KRATOS_ERROR << "THICKNESS not provided for element " << this->Id() << std::endl;
+        }
     }
-
-    // Intentionally left blank: Cut-SBM element bypasses default geometry/size checks.
+    // Intentionally left blank: Gap-SBM element bypasses default geometry/size checks.
     return 0;
 }
 
@@ -336,7 +373,7 @@ void GapSbmSolidElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcess
         //--------------------------------------------------------------------------------------------
         const auto& r_surrogate_geometry = GetSurrogateGeometry();
         const std::size_t number_of_control_points = r_surrogate_geometry.size();
-        const std::size_t mat_size = number_of_control_points * 2;
+        const std::size_t mat_size = number_of_control_points * mDim;
 
         Vector old_displacement(mat_size);
         GetSolutionCoefficientVector(old_displacement);
@@ -346,7 +383,8 @@ void GapSbmSolidElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcess
         ComputeGradientTaylorExpansionContribution(grad_N_sum_transposed);
         Matrix grad_N_sum = trans(grad_N_sum_transposed);
 
-        Matrix B_sum = ZeroMatrix(mDim,mat_size);
+        const std::size_t strain_size = mpConstitutiveLaw->GetStrainSize();
+        Matrix B_sum = ZeroMatrix(strain_size, mat_size);
         CalculateB(B_sum, grad_N_sum);
 
         // obtain the tangent constitutive matrix at the true position
@@ -361,10 +399,16 @@ void GapSbmSolidElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcess
         ApplyConstitutiveLaw(mat_size, old_strain_on_true, values_true, this_constitutive_variables_true);
 
         const Vector sigma = values_true.GetStressVector();
-        
-        SetValue(CAUCHY_STRESS_XX, sigma[0]);
-        SetValue(CAUCHY_STRESS_YY, sigma[1]);
-        SetValue(CAUCHY_STRESS_XY, sigma[2]);
+    
+        if (mDim == 2) {
+            SetValue(CAUCHY_STRESS_XX, sigma[0]);
+            SetValue(CAUCHY_STRESS_YY, sigma[1]);
+            SetValue(CAUCHY_STRESS_XY, sigma[2]);
+        }
+        else if (mDim == 3) {
+            Matrix stress_tensor = MathUtils<double>::StressVectorToTensor(sigma);
+            SetValue(CAUCHY_STRESS_TENSOR, stress_tensor);
+        }
         // //---------------------
 
         Vector N_sum_vec = ZeroVector(number_of_control_points);
@@ -372,8 +416,10 @@ void GapSbmSolidElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcess
 
         array_1d<double, 3> current_displacement = ZeroVector(3);
         for (IndexType i = 0; i < number_of_control_points; ++i) {
-            current_displacement[0] += N_sum_vec[i] * old_displacement_coefficient_vector[2*i];
-            current_displacement[1] += N_sum_vec[i] * old_displacement_coefficient_vector[2*i + 1];
+            const IndexType index = i * mDim;
+            for (IndexType j = 0; j < mDim; ++j) {
+                current_displacement[j] += N_sum_vec[i] * old_displacement_coefficient_vector[index + j];
+            }
         }
         SetValue(DISPLACEMENT, current_displacement);
 }
@@ -432,35 +478,52 @@ void GapSbmSolidElement::CalculateOnIntegrationPoints(
 }
 
 void GapSbmSolidElement::CalculateB(
-        Matrix& rB, 
-        Matrix& r_DN_DX) const
-    {
-        const auto& r_surrogate_geometry = GetSurrogateGeometry();
-        const std::size_t number_of_control_points = r_surrogate_geometry.size();
-        const std::size_t mat_size = number_of_control_points * 2;
+    Matrix& rB, 
+    Matrix& r_DN_DX) const
+{
+    const auto& r_surrogate_geometry = GetSurrogateGeometry();
+    const SizeType number_of_control_points = r_surrogate_geometry.size();
+    const SizeType mat_size = number_of_control_points * mDim;
+    const SizeType strain_size = (mDim == 2) ? 3 : 6;
 
-        if (rB.size1() != 3 || rB.size2() != mat_size)
-            rB.resize(3, mat_size);
-        noalias(rB) = ZeroMatrix(3, mat_size);
+    if (rB.size1() != strain_size || rB.size2() != mat_size)
+        rB.resize(strain_size, mat_size, false);
 
-        for (IndexType r = 0; r < mat_size; r++)
-        {
-            // local node number kr and dof direction dirr
-            IndexType kr = r / 2;
-            IndexType dirr = r % 2;
+    noalias(rB) = ZeroMatrix(strain_size, mat_size);
 
-            rB(0, r) = r_DN_DX(kr,0) * (1-dirr);
-            rB(1, r) = r_DN_DX(kr,1) * dirr;
-            rB(2, r) = r_DN_DX(kr,0) * (dirr) + r_DN_DX(kr,1) * (1-dirr);
+    for (IndexType i = 0; i < number_of_control_points; ++i) {
+        const SizeType index = i * mDim;
+
+        if (mDim == 2) {
+            rB(0, index + 0) = r_DN_DX(i, 0); // exx
+            rB(1, index + 1) = r_DN_DX(i, 1); // eyy
+
+            rB(2, index + 0) = r_DN_DX(i, 1); // gamma_xy
+            rB(2, index + 1) = r_DN_DX(i, 0);
+        }
+        else if (mDim == 3) {
+            rB(0, index + 0) = r_DN_DX(i, 0); // exx
+            rB(1, index + 1) = r_DN_DX(i, 1); // eyy
+            rB(2, index + 2) = r_DN_DX(i, 2); // ezz
+
+            rB(3, index + 0) = r_DN_DX(i, 1); // gamma_xy
+            rB(3, index + 1) = r_DN_DX(i, 0);
+
+            rB(4, index + 1) = r_DN_DX(i, 2); // gamma_yz
+            rB(4, index + 2) = r_DN_DX(i, 1);
+
+            rB(5, index + 0) = r_DN_DX(i, 2); // gamma_xz
+            rB(5, index + 2) = r_DN_DX(i, 0);
         }
     }
+}
 
 void GapSbmSolidElement::GetSolutionCoefficientVector(
         Vector& rValues) const
     {
         const auto& r_surrogate_geometry = GetSurrogateGeometry();
         const std::size_t number_of_control_points = r_surrogate_geometry.size();
-        const std::size_t mat_size = number_of_control_points * 2;
+        const std::size_t mat_size = number_of_control_points * mDim;
 
         if (rValues.size() != mat_size)
             rValues.resize(mat_size, false);
@@ -468,10 +531,13 @@ void GapSbmSolidElement::GetSolutionCoefficientVector(
         for (IndexType i = 0; i < number_of_control_points; ++i)
         {
             const array_1d<double, 3>& displacement = r_surrogate_geometry[i].GetSolutionStepValue(DISPLACEMENT);
-            IndexType index = i * 2;
+            IndexType index = i * mDim;
 
             rValues[index] = displacement[0];
             rValues[index + 1] = displacement[1];
+            if (mDim == 3) {
+                rValues[index + 2] = displacement[2];
+            }
         }
     }
 
@@ -532,9 +598,9 @@ void GapSbmSolidElement::ComputeTaylorExpansionContribution(Vector& H_sum_vec)
                 
                 int countDerivativeId = 0;
                 // Loop over blocks of derivatives in x
-                for (IndexType k_x = n; k_x >= 0; k_x--) {
+                for (int k_x = static_cast<int>(n); k_x >= 0; --k_x) {
                     // Loop over the possible derivatives in y
-                    for (IndexType k_y = n - k_x; k_y >= 0; k_y--) {
+                    for (int k_y = static_cast<int>(n) - k_x; k_y >= 0; --k_y) {
                         
                         // derivatives in z
                         IndexType k_z = n - k_x - k_y;
@@ -599,12 +665,12 @@ void GapSbmSolidElement::ComputeGradientTaylorExpansionContribution(Matrix& grad
             
                 IndexType countDerivativeId = 0;
                 // Loop over blocks of derivatives in x
-                for (IndexType k_x = n; k_x >= 0; k_x--) {
+                for (int k_x = static_cast<int>(n); k_x >= 0; --k_x) {
                     // Loop over the possible derivatives in y
-                    for (IndexType k_y = n - k_x; k_y >= 0; k_y--) {
+                    for (int k_y = static_cast<int>(n) - k_x; k_y >= 0; --k_y) {
 
                         // derivatives in z
-                        IndexType k_z = n - k_x - k_y;
+                        IndexType k_z = n - static_cast<IndexType>(k_x) - static_cast<IndexType>(k_y);
                         double derivative = shapeFunctionDerivatives(i,countDerivativeId); 
                         
                         if (k_x >= 1) {

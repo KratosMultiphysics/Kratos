@@ -258,6 +258,18 @@ void CalculateB(
     Matrix& r_DN_DX) const;
 
 /**
+ * @brief Calculate the traction vector for the condition
+ *
+ * @param rStressVector
+ * @param rNormal
+ * @param rTraction
+ */
+void CalculateTraction(
+    const Vector& rStressVector,
+    const array_1d<double, 3>& rNormal,
+    Vector& rTraction) const;
+
+/**
  * @brief Compute the constitutive law response for the given strain vector.
  * 
  * @param matSize 
