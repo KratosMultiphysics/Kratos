@@ -511,7 +511,7 @@ void  AddGeometriesToPython(pybind11::module& m)
     // LocalRefinedBrepSurface (wraps BrepSurface + THBSurfaceGeometry)
     using LocalRefinedBrepSurface3DType = LocalRefinedBrepSurface<NodeContainerType, THBSurfaceGeometry<3, NodeContainerType>, false, PointVectorType>;
 
-    py::class_<LocalRefinedBrepSurface3DType, LocalRefinedBrepSurface3DType::Pointer, BrepSurfaceType>(m, "LocalRefinedBrepSurface3D")
+    py::class_<LocalRefinedBrepSurface3DType, LocalRefinedBrepSurface3DType::Pointer, GeometryType>(m, "LocalRefinedBrepSurface3D")
         .def("GetLocalRefinedSurface", [](LocalRefinedBrepSurface3DType& self)
                 -> typename THBSurfaceGeometry<3, NodeContainerType>::Pointer {
             return self.pGetLocalRefinedSurface();
