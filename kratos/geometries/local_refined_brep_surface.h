@@ -189,6 +189,11 @@ public:
         return false;
     }
 
+    typename LocalRefinedSurfaceType::Pointer pGetLocalRefinedSurface() const
+    {
+        return mpLocalRefinedSurface;
+    }
+
     const BrepCurveOnSurfaceLoopArrayType& GetOuterLoops() const { return mOuterLoopArray; }
     const BrepCurveOnSurfaceLoopArrayType& GetInnerLoops() const { return mInnerLoopArray; }
 
@@ -334,7 +339,7 @@ public:
 
     GeometryData::KratosGeometryType GetGeometryType() const override
     {
-        return GeometryData::KratosGeometryType::Kratos_Brep_Surface;
+        return GeometryData::KratosGeometryType::Kratos_Local_Refined_Brep_Surface;
     }
 
     ///@}
