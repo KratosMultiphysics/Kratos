@@ -23,17 +23,20 @@ namespace Kratos {
 /// Shape functions for a THB-spline surface.
 ///
 /// At each evaluation point (u, v):
-///   1. The finest active level l is determined via ActiveLevelAtPoint.
-///   2. B-spline / NURBS shape functions at level l are evaluated.
-///   3. Truncation is applied: for each nonzero coarse CP that has active
-///      children at level l+1, the fine-level B-spline values at (u,v) are
-///      evaluated and their refinement coefficients are subtracted.
-///      This produces true THB shape functions that satisfy partition of unity.
-///   4. CP indices are mapped to the packed Points() array of the geometry.
+///   1. The finest active level L is determined via ActiveLevelAtPoint.
+///   2. B-spline shape functions are evaluated at EVERY level l = 0 .. L.
+///   3. For each level l, only ACTIVE basis functions are kept.
+///      A function is active if its support is not fully covered by the next
+///      refinement domain (ComputeActiveFunctions convention).
+///   4. Each active function's truncated value is computed:
+///        trunc(B_i^l)(u,v) = B_i^l(u,v)
+///                           − sum_{j active at l+1} c_{ij} * B_j^{l+1}(u,v)
+///      where c_{ij} are the refinement coefficients (GetTruncationData).
+///   5. CP indices are mapped to the packed Points() array of the geometry.
 ///
-/// @note Truncation is single-level (level l → l+1 only).  For 3+ levels the
-///       recursive case (subtracting trunc(B^{l+1}) rather than B^{l+1}) is
-///       handled by iterating the correction from l up to L-2. @todo verify.
+/// This multi-level approach correctly handles evaluation points near refinement
+/// domain boundaries, where some level-L B-splines may be inactive (their parent
+/// straddles the boundary and is still represented by a coarser active function).
 class THBSurfaceShapeFunction
 {
 public:
@@ -104,127 +107,109 @@ public:
     ///@name Evaluation
     ///@{
 
-    /// Evaluate (truncated) shape functions at parameter (u, v).
-    ///
-    /// TTHBGeometry must expose:
-    ///   - PolynomialDegree(direction)
-    ///   - Levels()              → container of THBLevel (KnotsU, KnotsV, Weights)
-    ///   - ActiveLevelAtPoint(u, v)
-    ///   - PackedControlPointIndex(level, flat_index_within_level)
-    ///   - GetTruncationData(level, flat_index)
-    ///                           → const vector of TruncationEntry {FineFlatIndex, Coefficient}
     template<class TTHBGeometry>
     void ComputeShapeFunctionValues(
         const TTHBGeometry& rGeometry,
         double u,
         double v)
     {
-        const SizeType p = rGeometry.PolynomialDegree(0);
-        const SizeType q = rGeometry.PolynomialDegree(1);
-        const SizeType l = rGeometry.ActiveLevelAtPoint(u, v);
-        const auto& levels = rGeometry.Levels();
-        const auto& lev = levels[l];
+        const SizeType PolynomialDegreeU = rGeometry.PolynomialDegree(0);
+        const SizeType PolynomialDegreeV = rGeometry.PolynomialDegree(1);
+        const SizeType ActiveLevel = rGeometry.ActiveLevelAtPoint(u, v);
+        const auto& AllLevels = rGeometry.Levels();
+        const SizeType number_of_shape_function_rows = NumberOfShapeFunctionRows(mDerivativeOrder);
 
-        mNurbs.ResizeDataContainers(p, q, mDerivativeOrder);
-        if (lev.Weights.size() > 0)
-            mNurbs.ComputeNurbsShapeFunctionValues(lev.KnotsU, lev.KnotsV, lev.Weights, u, v);
-        else
-            mNurbs.ComputeBSplineShapeFunctionValues(lev.KnotsU, lev.KnotsV, u, v);
+        // evaluate B-splines at every level 0..ActiveLevel
+        // Store raw values and build a flat-index to local-position lookup per level.
+        struct LevelCache {
+            SizeType number_of_nonzero_control_points = 0;
+            std::vector<int> local_flat_indices;
+            std::vector<double> values;
+            std::unordered_map<SizeType, SizeType> flat_index_to_local_position;
+        };
 
-        const SizeType num_nonzero = mNurbs.NumberOfNonzeroControlPoints();
-        const SizeType nU_l = lev.KnotsU.size() - p + 1;
-        const SizeType nV_l = lev.KnotsV.size() - q + 1;
-        const auto local_flat = mNurbs.ControlPointIndices(nU_l, nV_l);
+        std::vector<LevelCache> level_caches(ActiveLevel + 1);
 
-        // Copy B-spline values into mValues so they can be modified by truncation.
-        const SizeType n_rows = NumberOfShapeFunctionRows(mDerivativeOrder);
-        mValues.resize(n_rows * num_nonzero);
-        for (SizeType row = 0; row < n_rows; ++row)
-            for (SizeType j = 0; j < num_nonzero; ++j)
-                mValues[row * num_nonzero + j] = mNurbs(j, row);
+        for (SizeType l = 0; l <= ActiveLevel; ++l) {
+            const auto& CurrentLevel = AllLevels[l];
+            mNurbs.ResizeDataContainers(PolynomialDegreeU, PolynomialDegreeV, mDerivativeOrder);
+            if (!CurrentLevel.Weights.empty())
+                mNurbs.ComputeNurbsShapeFunctionValues(
+                    CurrentLevel.KnotsU, CurrentLevel.KnotsV, CurrentLevel.Weights, u, v);
+            else
+                mNurbs.ComputeBSplineShapeFunctionValues(
+                    CurrentLevel.KnotsU, CurrentLevel.KnotsV, u, v);
 
-        // Map local flat indices to packed Points() indices.
-        mControlPointIndices.resize(num_nonzero);
-        for (SizeType j = 0; j < num_nonzero; ++j)
-            mControlPointIndices[j] = rGeometry.PackedControlPointIndex(l, local_flat[j]);
+            auto& CurrentLevelCache = level_caches[l];
+            CurrentLevelCache.number_of_nonzero_control_points = mNurbs.NumberOfNonzeroControlPoints();
+            const SizeType NumberOfControlPointsU = CurrentLevel.KnotsU.size() - PolynomialDegreeU + 1;
+            const SizeType NumberOfControlPointsV = CurrentLevel.KnotsV.size() - PolynomialDegreeV + 1;
+            CurrentLevelCache.local_flat_indices = mNurbs.ControlPointIndices(
+                                                        NumberOfControlPointsU, NumberOfControlPointsV);
+            CurrentLevelCache.values.resize(
+                number_of_shape_function_rows * CurrentLevelCache.number_of_nonzero_control_points);
+            for (SizeType row = 0; row < number_of_shape_function_rows; ++row)
+                for (SizeType k = 0; k < CurrentLevelCache.number_of_nonzero_control_points; ++k)
+                    CurrentLevelCache.values[row * CurrentLevelCache.number_of_nonzero_control_points + k]
+                        = mNurbs(k, row);
+            for (SizeType k = 0; k < CurrentLevelCache.number_of_nonzero_control_points; ++k)
+                CurrentLevelCache.flat_index_to_local_position[static_cast<SizeType>(CurrentLevelCache.local_flat_indices[k])] = k;
+        }
 
-        ApplyTruncation(rGeometry, u, v, l, local_flat, num_nonzero, p, q);
+        // collect active contributions with single-level truncation
+        // For each active CP at level l:
+        //   trunc(B_i^l) = B_i^l − sum_{j active at l+1} c_{ij} * B_j^{l+1}
+        mControlPointIndices.clear();
+        std::vector<std::vector<double>> truncated_value_per_control_point;
+
+        for (SizeType l = 0; l <= ActiveLevel; ++l) {
+            const auto& CurrentLevelCache = level_caches[l];
+            const auto& active_flags = rGeometry.GetActiveFunctions(l);
+
+            for (SizeType j = 0; j < CurrentLevelCache.number_of_nonzero_control_points; ++j) {
+                const SizeType flat_index = static_cast<SizeType>(CurrentLevelCache.local_flat_indices[j]);
+                if (flat_index >= active_flags.size() || !active_flags[flat_index]) continue;
+
+                std::vector<double> truncated_value(number_of_shape_function_rows);
+                for (SizeType row = 0; row < number_of_shape_function_rows; ++row)
+                    truncated_value[row] = CurrentLevelCache.values[row * CurrentLevelCache.number_of_nonzero_control_points + j];
+
+                // Subtract active level-(l+1) children (single-level truncation).
+                if (l < ActiveLevel) {
+                    const auto& TruncationEntries = rGeometry.GetTruncationData(l, flat_index);
+                    const auto& FinerLevelCache = level_caches[l + 1];
+                    for (const auto& TruncationEntry : TruncationEntries) {
+                        auto position_iterator = FinerLevelCache.flat_index_to_local_position.find(TruncationEntry.FineFlatIndex);
+                        if (position_iterator == FinerLevelCache.flat_index_to_local_position.end()) continue;
+                        const SizeType local_position = position_iterator->second;
+                        for (SizeType row = 0; row < number_of_shape_function_rows; ++row)
+                            truncated_value[row] -= TruncationEntry.Coefficient * FinerLevelCache.values[row * FinerLevelCache.number_of_nonzero_control_points + local_position];
+                    }
+                }
+
+                mControlPointIndices.push_back(rGeometry.PackedControlPointIndex(l, flat_index));
+                truncated_value_per_control_point.push_back(std::move(truncated_value));
+            }
+        }
+
+        // pack into [row * total + cp_idx] layout
+        const SizeType total = mControlPointIndices.size();
+        mValues.assign(number_of_shape_function_rows * total, 0.0);
+        for (SizeType j = 0; j < total; ++j)
+            for (SizeType row = 0; row < number_of_shape_function_rows; ++row)
+                mValues[row * total + j] = truncated_value_per_control_point[j][row];
     }
 
     ///@}
 
 private:
-    ///@name Private Methods
-    ///@{
-
-    /// Subtracts fine-level B-spline contributions from coarse CPs that straddle
-    /// the refinement boundary (those with non-empty truncation data).
-    ///
-    /// For each nonzero coarse CP i at level l:
-    ///   trunc(N_i^l)(u,v) = N_i^l(u,v) - sum_{j active at l+1} c_{ij} * N_j^{l+1}(u,v)
-    ///
-    /// This is iterated from l up to L-2 to handle multi-level hierarchies.
-    template<class TTHBGeometry, class TLocalFlat>
-    void ApplyTruncation(
-        const TTHBGeometry& rGeometry,
-        double u, double v,
-        SizeType l,
-        const TLocalFlat& rLocalFlat,
-        SizeType NumNonzero,
-        SizeType p, SizeType q)
-    {
-        const auto& levels = rGeometry.Levels();
-        if (l + 1 >= levels.size()) return;
-
-        // Check whether any nonzero CP at level l has truncation entries.
-        bool needs_truncation = false;
-        for (SizeType j = 0; j < NumNonzero && !needs_truncation; ++j)
-            if (!rGeometry.GetTruncationData(l, rLocalFlat[j]).empty())
-                needs_truncation = true;
-        if (!needs_truncation) return;
-
-        // Evaluate fine (level l+1) B-splines at (u, v).
-        // These can be nonzero at (u,v) even when (u,v) is outside Omega^{l+1}
-        // because the fine functions near the boundary straddle it.
-        const auto& lev_f = levels[l + 1];
-        NurbsSurfaceShapeFunction fine_sf(p, q, mDerivativeOrder);
-        if (lev_f.Weights.size() > 0)
-            fine_sf.ComputeNurbsShapeFunctionValues(lev_f.KnotsU, lev_f.KnotsV, lev_f.Weights, u, v);
-        else
-            fine_sf.ComputeBSplineShapeFunctionValues(lev_f.KnotsU, lev_f.KnotsV, u, v);
-
-        const SizeType nU_f = lev_f.KnotsU.size() - p + 1;
-        const SizeType nV_f = lev_f.KnotsV.size() - q + 1;
-        const auto fine_local = fine_sf.ControlPointIndices(nU_f, nV_f);
-
-        // Build a flat-index → local-index lookup for the nonzero fine functions.
-        std::unordered_map<SizeType, SizeType> fine_lookup;
-        fine_lookup.reserve(fine_local.size());
-        for (SizeType k = 0; k < fine_local.size(); ++k)
-            fine_lookup[static_cast<SizeType>(fine_local[k])] = k;
-
-        // Subtract: N_i^l -= sum_j c_{ij} * N_j^{l+1}
-        const SizeType n_rows = NumberOfShapeFunctionRows(mDerivativeOrder);
-        for (SizeType j = 0; j < NumNonzero; ++j) {
-            const auto& entries = rGeometry.GetTruncationData(l, rLocalFlat[j]);
-            for (const auto& e : entries) {
-                auto it = fine_lookup.find(e.FineFlatIndex);
-                if (it == fine_lookup.end()) continue;
-                const SizeType k = it->second;
-                for (SizeType row = 0; row < n_rows; ++row)
-                    mValues[row * NumNonzero + j] -= e.Coefficient * fine_sf(k, row);
-            }
-        }
-    }
-
-    ///@}
     ///@name Member Variables
     ///@{
 
     SizeType                  mDerivativeOrder = 0;
     NurbsSurfaceShapeFunction mNurbs;
     std::vector<IndexType>    mControlPointIndices;
-    /// Shape function values after truncation: layout [row * num_nonzero + cp_idx].
+    /// Shape function values: layout [row * num_nonzero + cp_idx].
     std::vector<double>       mValues;
 
     ///@}
