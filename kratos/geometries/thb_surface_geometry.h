@@ -315,9 +315,11 @@ public:
     SizeType PackedControlPointIndex(SizeType Level, SizeType FlatIndex) const
     {
         if (mIsEliminated) {
-            KRATOS_DEBUG_ERROR_IF(mActiveLocalIndex[Level][FlatIndex] < 0)
+            KRATOS_ERROR_IF(mActiveLocalIndex[Level][FlatIndex] < 0)
                 << "THBSurfaceGeometry::PackedControlPointIndex: "
-                   "inactive function requested — logic error." << std::endl;
+                   "inactive CP requested at level " << Level << " flat " << FlatIndex
+                << " -- the evaluation point used a level whose active CP set is incomplete. "
+                   "Ensure refinement domain boundaries align with knot span boundaries." << std::endl;
             return mActiveOffset[Level] + static_cast<SizeType>(mActiveLocalIndex[Level][FlatIndex]);
         } else {
             return ControlPointOffset(Level) + FlatIndex;
@@ -337,14 +339,24 @@ public:
         return (LocalDirectionIndex == 0) ? mLevels[0].DegreeU : mLevels[0].DegreeV;
     }
 
-    /// @todo Implement region-aware span decomposition.
-    ///       Blocked on CreateIntegrationPoints; a flat global union is not correct for THB.
     void SpansLocalSpace(
         std::vector<double>& rSpans,
         IndexType DirectionIndex) const override
     {
-        KRATOS_ERROR << "THBSurfaceGeometry::SpansLocalSpace: "
-            "not yet implemented — requires THB integration-cell algorithm." << std::endl;
+        KRATOS_ERROR_IF(mLevels.empty())
+            << "THBSurfaceGeometry::SpansLocalSpace: no levels defined." << std::endl;
+
+        // The finest level's knot vector covers the full domain and is a superset of
+        // all coarser levels' breakpoints (each level is a uniform bisection of the previous).
+        const Vector& knots = (DirectionIndex == 0)
+            ? mLevels.back().KnotsU
+            : mLevels.back().KnotsV;
+
+        rSpans.clear();
+        for (IndexType i = 0; i < static_cast<IndexType>(knots.size()); ++i) {
+            if (rSpans.empty() || std::abs(knots[i] - rSpans.back()) > 1e-10)
+                rSpans.push_back(knots[i]);
+        }
     }
 
     /**
@@ -462,12 +474,20 @@ public:
         }
     }
 
-    /// @todo Implement using THBSurfaceShapeFunction.
     CoordinatesArrayType& GlobalCoordinates(
         CoordinatesArrayType& rResult,
         const CoordinatesArrayType& rLocalCoordinates) const override
     {
-        KRATOS_ERROR << "THBSurfaceGeometry::GlobalCoordinates: not yet implemented." << std::endl;
+        THBSurfaceShapeFunction sf(PolynomialDegree(0), PolynomialDegree(1), 0);
+        sf.ComputeShapeFunctionValues(*this, rLocalCoordinates[0], rLocalCoordinates[1]);
+
+        noalias(rResult) = ZeroVector(3);
+        const auto& cp_indices = sf.ControlPointIndices();
+        for (SizeType j = 0; j < sf.NumberOfNonzeroControlPoints(); ++j) {
+            const CoordinatesArrayType& cp = this->GetPoint(cp_indices[j]);
+            for (SizeType d = 0; d < 3; ++d)
+                rResult[d] += sf(j, 0) * cp[d];
+        }
         return rResult;
     }
 
@@ -897,6 +917,14 @@ private:
             offset += NumberOfControlPointsU(l) * NumberOfControlPointsV(l);
         return offset;
     }
+
+    ///@}
+    ///@name Serialization
+    ///@{
+
+    friend class Serializer;
+
+    THBSurfaceGeometry() : BaseType(PointsArrayType()) {}
 
     ///@}
 
