@@ -197,29 +197,29 @@ protected:
      * Calculation of the Kuu Stabilization Term matrix
      */
 
-    virtual void CalculateAndAddKuuStab(MatrixType& rK,
-                                        GeneralVariables & rVariables,
-                                        const double& rIntegrationWeight
-                                       );
+    void CalculateAndAddKuuStab(MatrixType& rK,
+                                GeneralVariables & rVariables,
+                                const double& rIntegrationWeight
+                               );
 
     /**
      * Calculation of the Kup Stabilization Term matrix
      */
 
-    virtual void CalculateAndAddKupStab(MatrixType& rK,
-                                        GeneralVariables & rVariables,
-                                        const double& rIntegrationWeight
-                                       );
+    void CalculateAndAddKupStab(MatrixType& rK,
+                                GeneralVariables & rVariables,
+                                const double& rIntegrationWeight
+                               );
 
     /**
      * Calculation of the Kup Stabilization Term matrix
      */
 
 
-    virtual void CalculateAndAddKpuStab(MatrixType& rK,
-                                        GeneralVariables & rVariables,
-                                        const double& rIntegrationWeight
-                                       );
+    void CalculateAndAddKpuStab(MatrixType& rK,
+                                GeneralVariables & rVariables,
+                                const double& rIntegrationWeight
+                               );
 
     /**
      * Calculation of the Kpp Stabilization Term matrix
@@ -234,7 +234,7 @@ protected:
     /**
      * Calculation of stabilization terms for the continuity equation
      */
-    virtual void CalculateAndAddStabilizedPressure(VectorType& rRightHandSideVector,
+    void CalculateAndAddStabilizedPressure(VectorType& rRightHandSideVector,
             GeneralVariables & rVariables,
             Vector& rVolumeForce,
             const double& rIntegrationWeight);
@@ -242,7 +242,7 @@ protected:
     /**
      * Calculation stabilization terms for the momentum equation
      */
-    virtual void CalculateAndAddStabilizedDisplacement(VectorType& rRightHandSideVector,
+    void CalculateAndAddStabilizedDisplacement(VectorType& rRightHandSideVector,
             GeneralVariables & rVariables,
             Vector& rVolumeForce,
             const double& rIntegrationWeight);
