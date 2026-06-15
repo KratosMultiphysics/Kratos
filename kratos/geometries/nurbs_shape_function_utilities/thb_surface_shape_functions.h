@@ -183,7 +183,8 @@ public:
                         if (position_iterator == FinerLevelCache.flat_index_to_local_position.end()) continue;
                         const SizeType local_position = position_iterator->second;
                         for (SizeType row = 0; row < number_of_shape_function_rows; ++row)
-                            truncated_value[row] -= TruncationEntry.Coefficient * FinerLevelCache.values[row * FinerLevelCache.number_of_nonzero_control_points + local_position];
+                            truncated_value[row] -= TruncationEntry.Coefficient * 
+                                FinerLevelCache.values[row * FinerLevelCache.number_of_nonzero_control_points + local_position];
                     }
                 }
 
