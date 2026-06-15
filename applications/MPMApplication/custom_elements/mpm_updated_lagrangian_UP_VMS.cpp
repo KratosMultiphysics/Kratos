@@ -555,14 +555,27 @@ void MPMUpdatedLagrangianUPVMS::CalculateAndAddStabilizedPressure(VectorType& rR
     const double volumetric_strain = this->CalculateVolumetricStrainFunction(rVariables);
     const double volumetric_strain_linearization = this->CalculateFunctionFromLinearizationOfVolumetricStrain(rVariables);
     const double bulk_modulus = CalculateBulkModulus();
+    const double volumetric_residual = rVariables.PressureGP / bulk_modulus - volumetric_strain;
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
-         for ( unsigned int idime = 0; idime < dimension; idime++ ) {
-            rRightHandSideVector[index_p] -= rVariables.tau1  * volumetric_strain_linearization * rVariables.DN_DX(i,idime)*(-rVariables.PressureGradient[idime] - rVolumeForce[idime]/rIntegrationWeight) * rIntegrationWeight;
-         }
+        for ( unsigned int idime = 0; idime < dimension; idime++ )
+        {
+            const double momentum_residual = -rVariables.PressureGradient[idime]
+                - rVolumeForce[idime] / rIntegrationWeight;
 
-        rRightHandSideVector[index_p] -= rVariables.tau2  * ((rVariables.PressureGP/bulk_modulus) - volumetric_strain ) * r_N(0, i) * (1/bulk_modulus) * rIntegrationWeight;
+            rRightHandSideVector[index_p] -= rVariables.tau1
+                * volumetric_strain_linearization
+                * rVariables.DN_DX(i, idime)
+                * momentum_residual
+                * rIntegrationWeight;
+        }
+
+        rRightHandSideVector[index_p] -= rVariables.tau2
+            * volumetric_residual
+            * r_N(0, i)
+            * (1.0 / bulk_modulus)
+            * rIntegrationWeight;
 
         index_p += (dimension + 1);
     }
