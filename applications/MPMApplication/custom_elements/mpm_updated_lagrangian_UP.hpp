@@ -408,16 +408,17 @@ protected:
     ///@{
     ///@}
 
-private:
-
-    ///@name Static Member Variables
-    ///@{
-    ///@}
     ///@name Member Variables
     ///@{
 
     double m_mp_pressure;
 
+    ///@}
+
+private:
+
+    ///@name Static Member Variables
+    ///@{
     ///@}
     ///@name Private Operators
     ///@{

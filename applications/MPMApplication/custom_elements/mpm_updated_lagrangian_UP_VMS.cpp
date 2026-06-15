@@ -762,13 +762,11 @@ void MPMUpdatedLagrangianUPVMS::CalculateAndAddKppStab (MatrixType& rLeftHandSid
 
 void MPMUpdatedLagrangianUPVMS::save( Serializer& rSerializer ) const
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, MPMUpdatedLagrangian )
-    rSerializer.save("Pressure",m_mp_pressure);
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, MPMUpdatedLagrangianUP )
 }
 
 void MPMUpdatedLagrangianUPVMS::load( Serializer& rSerializer )
 {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, MPMUpdatedLagrangian )
-    rSerializer.load("Pressure",m_mp_pressure);
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, MPMUpdatedLagrangianUP )
 }
 } // Namespace Kratos

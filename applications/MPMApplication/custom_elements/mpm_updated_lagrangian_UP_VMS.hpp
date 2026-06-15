@@ -271,9 +271,6 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-
-    double m_mp_pressure;
-
     ///@}
     ///@name Private Operators
     ///@{
