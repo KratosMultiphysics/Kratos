@@ -152,10 +152,7 @@ protected:
         Matrix& Output,
         const ProcessInfo& rCurrentProcessInfo) override;
 
-    /*
-        Compute Element Size
-    */
-    void ComputeElementSize(double& ElementSize);
+    double CalculateElementSize() const;
 
        /**
      * Calculates the elemental contributions
@@ -181,7 +178,7 @@ protected:
 
     double CalculateBulkModulus() const;
 
-     // To compute identity tensor
+    // To compute identity tensor
     void CalculateTensorIdentityMatrix(Matrix& rTensorIdentityMatrix);
 
     double CalculateTensorIdentityComponent(
@@ -191,7 +188,6 @@ protected:
         const unsigned int d) const;
 
     // To compute vector in voigt notation to multiply
-
     void ConvertPressureGradientInVoigt(Vector& PressureGradient, Vector& PressureGradientVoigt);
 
     /*

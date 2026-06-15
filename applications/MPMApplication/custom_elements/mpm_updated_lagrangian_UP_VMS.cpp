@@ -20,6 +20,7 @@
 #include "custom_elements/mpm_updated_lagrangian_UP_VMS.hpp"
 #include "includes/constitutive_law.h"
 #include "mpm_application_variables.h"
+#include "utilities/element_size_calculator.h"
 
 namespace Kratos
 {
@@ -233,7 +234,7 @@ void MPMUpdatedLagrangianUPVMS::CalculateElementalSystem(
 
         // Compute other variables needed for stabilization
         SetSpecificVariables(Variables,rCurrentProcessInfo);
-
+        
         // Compute stabilization parameters
         CalculateTaus(Variables);
 
@@ -302,26 +303,33 @@ void MPMUpdatedLagrangianUPVMS::SetSpecificVariables(GeneralVariables& rVariable
 //************************************************************************************
 //************************************************************************************
 
-// Calulate element size depending on the dimension of worspace
-
-void MPMUpdatedLagrangianUPVMS::ComputeElementSize(double& ElemSize){
+double MPMUpdatedLagrangianUPVMS::CalculateElementSize() const
+{
 
     KRATOS_TRY
 
-    GeometryType& r_geometry = GetGeometry();
+    const GeometryType& r_geometry = GetGeometry().GetGeometryParent(0);
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
-    double Area = r_geometry.GetGeometryParent(0).Area();
+    const unsigned int number_of_nodes = r_geometry.PointsNumber();
 
-    if (dimension == 2)
-    {
-        ElemSize = 1.128379167 * sqrt(Area);
-    }
-    else if (dimension== 3)
-    {
-        ElemSize = 0.60046878 * pow(Area,0.333333333333333333333);
+    if (dimension == 2) {
+        if (number_of_nodes == 3) {
+            return ElementSizeCalculator<2, 3>::AverageElementSize(r_geometry);
+        } else if (number_of_nodes == 4) {
+            return ElementSizeCalculator<2, 4>::AverageElementSize(r_geometry);
+        }
+    } else if (dimension == 3) {
+        if (number_of_nodes == 4) {
+            return ElementSizeCalculator<3, 4>::AverageElementSize(r_geometry);
+        } else if (number_of_nodes == 8) {
+            return ElementSizeCalculator<3, 8>::AverageElementSize(r_geometry);
+        }
     }
 
-        KRATOS_CATCH("")
+    KRATOS_ERROR << "Unsupported geometry in MPMUpdatedLagrangianUPVMS element size calculation. Dimension: "
+                 << dimension << ", number of nodes: " << number_of_nodes << std::endl;
+
+    KRATOS_CATCH("")
 }
 
 // Calculate stabilization parameters
@@ -333,8 +341,7 @@ void MPMUpdatedLagrangianUPVMS::CalculateTaus(GeneralVariables& rVariables)
     const double constant1=1.0;
     const double constant2=1.0;
     const double shear_modulus = CalculateShearModulus();
-    double characteristic_element_size;
-    ComputeElementSize(characteristic_element_size);
+    const double characteristic_element_size = CalculateElementSize();
 
     rVariables.tau1 = constant1 *  pow(characteristic_element_size,2) / (2 * shear_modulus);
     rVariables.tau2 = 2 * constant2 * shear_modulus;
