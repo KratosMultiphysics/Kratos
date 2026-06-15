@@ -140,8 +140,10 @@ protected:
     // To compute vector in voigt notation to multiply
     void ConvertPressureGradientInVoigt(const Vector& rPressureGradient, Vector& rPressureGradientVoigt);
 
-    // Calculation of specific variables: pressure and pressure gradient
-    void SetSpecificVariables(GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo);
+    // Calculation of ASGS stabilization variables
+    void CalculateStabilizationVariables(GeneralVariables& rVariables);
+
+    void CalculatePressureVariables(GeneralVariables& rVariables);
 
     /**
      * Calculation and addition of the matrices of the LHS

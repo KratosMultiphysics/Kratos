@@ -191,11 +191,8 @@ void MPMUpdatedLagrangianUPVMS::CalculateElementalSystem(
         mMP.density = GetProperties()[DENSITY] / Variables.detFT;
 
 
-        // Compute other variables needed for stabilization
-        SetSpecificVariables(Variables, rCurrentProcessInfo);
-
-        // Compute stabilization parameters
-        CalculateTaus(Variables);
+        // Compute ASGS stabilization variables
+        CalculateStabilizationVariables(Variables);
 
     }
 
@@ -231,9 +228,23 @@ void MPMUpdatedLagrangianUPVMS::CalculateElementalSystem(
 //************************************************************************************
 //************************************************************************************
 
-void MPMUpdatedLagrangianUPVMS::SetSpecificVariables(GeneralVariables& rVariables,const ProcessInfo& rCurrentProcessInfo)
+void MPMUpdatedLagrangianUPVMS::CalculateStabilizationVariables(GeneralVariables& rVariables)
 {
+    KRATOS_TRY
 
+    CalculatePressureVariables(rVariables);
+    ConvertPressureGradientInVoigt(rVariables.PressureGradient, rVariables.PressureGradientVoigt);
+    CalculateTensorIdentityMatrix(rVariables.TensorIdentityMatrix);
+    CalculateTaus(rVariables);
+
+    KRATOS_CATCH("")
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void MPMUpdatedLagrangianUPVMS::CalculatePressureVariables(GeneralVariables& rVariables)
+{
     KRATOS_TRY
 
     GeometryType& r_geometry = GetGeometry();
@@ -241,19 +252,16 @@ void MPMUpdatedLagrangianUPVMS::SetSpecificVariables(GeneralVariables& rVariable
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
     const Matrix& r_N = r_geometry.ShapeFunctionsValues();
 
-    // Set Pressure and Pressure Gradient in gauss points
     for ( unsigned int j = 0; j < number_of_nodes; j++ )
     {
-        rVariables.PressureGP += r_N(0,j) * r_geometry[j].FastGetSolutionStepValue(PRESSURE);
+        const double nodal_pressure = r_geometry[j].FastGetSolutionStepValue(PRESSURE);
+        rVariables.PressureGP += r_N(0, j) * nodal_pressure;
+
         for ( unsigned int i = 0; i < dimension; i++ )
         {
-            rVariables.PressureGradient[i] += rVariables.DN_DX(j,i) * r_geometry[j].FastGetSolutionStepValue(PRESSURE);
+            rVariables.PressureGradient[i] += rVariables.DN_DX(j, i) * nodal_pressure;
         }
     }
-    ConvertPressureGradientInVoigt(rVariables.PressureGradient, rVariables.PressureGradientVoigt);
-
-    // Set the identity matrix tensor
-    CalculateTensorIdentityMatrix(rVariables.TensorIdentityMatrix);
 
     KRATOS_CATCH("")
 }
