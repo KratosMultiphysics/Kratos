@@ -50,39 +50,43 @@ void ConstructMatrixStructure(Kratos::unique_ptr<typename MappingSparseSpaceType
                               const SizeType NumNodesDestination)
 {
     // one set for each row storing the corresponding col-IDs
-    std::vector<std::unordered_set<IndexType> > indices(NumNodesDestination);
+    using indices_type = std::vector<std::unordered_set<IndexType>>;
+    indices_type indices(NumNodesDestination);
 
     // preallocate memory for the column indices
-    for (IndexType i=0; i<NumNodesDestination; ++i) {
-        // TODO I guess this can be optimized...
-        // this highly depends on the used mapper => same goes for the Graph in Trilinos
-        indices[i].reserve(3);
+    for (auto& r_indices : indices) {
+        r_indices.reserve(3);
     }
 
-    std::vector<std::vector<std::unordered_set<IndexType>>> thread_indices(
-        ParallelUtilities::GetNumThreads(),
-        std::vector<std::unordered_set<IndexType>>(NumNodesDestination));
+    const auto result = block_for_each<AccumReduction<indices_type>>(
+        rMapperLocalSystems,
+        [NumNodesDestination](auto& rpLocalSys) -> indices_type
+        {
+            indices_type local_indices(NumNodesDestination);
 
-    block_for_each(rMapperLocalSystems, [&](auto& rpLocalSys) {
-        const int thread_id = OpenMPUtils::ThisThread();
+            EquationIdVectorType origin_ids;
+            EquationIdVectorType destination_ids;
 
-        EquationIdVectorType origin_ids;
-        EquationIdVectorType destination_ids;
+            rpLocalSys->EquationIdVectors(origin_ids, destination_ids);
 
-        rpLocalSys->EquationIdVectors(origin_ids, destination_ids);
+            for (const auto id_dest : destination_ids) {
+                auto& r_indices = local_indices[id_dest];
 
-        for (const auto dest_idx : destination_ids) {
-            thread_indices[thread_id][dest_idx].insert(
-                origin_ids.begin(),
-                origin_ids.end());
+                for (const auto id_origin : origin_ids) {
+                    r_indices.insert(id_origin);
+                }
+            }
+
+            return local_indices;
         }
-    });
+    );
 
-    for (auto& r_thread_indices : thread_indices) {
+    for (const auto& r_local_indices : result) {
         for (IndexType i = 0; i < NumNodesDestination; ++i) {
             indices[i].insert(
-                r_thread_indices[i].begin(),
-                r_thread_indices[i].end());
+                r_local_indices[i].begin(),
+                r_local_indices[i].end()
+            );
         }
     }
 
