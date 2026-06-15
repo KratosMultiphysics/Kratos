@@ -708,8 +708,10 @@ void MPMUpdatedLagrangianUPVMS::CalculateAndAddKupStab (MatrixType& rLeftHandSid
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
-    Vector Stab1 = prod(rVariables.DN_DX, rVariables.PressureGradient);
-    Vector Stab2 = prod(Matrix(trans(prod(rVariables.TensorIdentityMatrix,rVariables.B))),rVariables.PressureGradientVoigt);
+    Vector pressure_gradient_shape_function = prod(rVariables.DN_DX, rVariables.PressureGradient);
+    Vector deviatoric_pressure_gradient_shape_function = prod(
+        Matrix(trans(prod(rVariables.TensorIdentityMatrix, rVariables.B))),
+        rVariables.PressureGradientVoigt);
     const double volumetric_strain_linearization = this->CalculateFunctionFromLinearizationOfVolumetricStrain(rVariables);
     const double bulk_modulus = CalculateBulkModulus();
 
@@ -722,11 +724,27 @@ void MPMUpdatedLagrangianUPVMS::CalculateAndAddKupStab (MatrixType& rLeftHandSid
         unsigned int indexj = 0;
         for ( unsigned int j = 0; j < number_of_nodes; j++ )
         {
+            const double pressure_compressibility_shape_function = r_N(0, j) / bulk_modulus;
+
             for ( unsigned int k = 0; k < dimension; k++ )
             {
-                rLeftHandSideMatrix(index_up + k, index_p) -= rVariables.tau1 * Stab1(j) * volumetric_strain_linearization * rVariables.DN_DX(i, k) * rIntegrationWeight;
-                rLeftHandSideMatrix(index_up + k, index_p) -= rVariables.tau1 * Stab2(indexj) * volumetric_strain_linearization * rVariables.DN_DX(i, k) * rIntegrationWeight;
-                rLeftHandSideMatrix(index_up + k, index_p) -= rVariables.tau2 * volumetric_strain_linearization * (1 / bulk_modulus)* rVariables.DN_DX(i, k) * r_N(0, j) * rIntegrationWeight;
+                rLeftHandSideMatrix(index_up + k, index_p) -= rVariables.tau1
+                    * pressure_gradient_shape_function(j)
+                    * volumetric_strain_linearization
+                    * rVariables.DN_DX(i, k)
+                    * rIntegrationWeight;
+
+                rLeftHandSideMatrix(index_up + k, index_p) -= rVariables.tau1
+                    * deviatoric_pressure_gradient_shape_function(indexj)
+                    * volumetric_strain_linearization
+                    * rVariables.DN_DX(i, k)
+                    * rIntegrationWeight;
+
+                rLeftHandSideMatrix(index_up + k, index_p) -= rVariables.tau2
+                    * volumetric_strain_linearization
+                    * pressure_compressibility_shape_function
+                    * rVariables.DN_DX(i, k)
+                    * rIntegrationWeight;
                 indexj++;
             }
             index_p += (dimension + 1);
