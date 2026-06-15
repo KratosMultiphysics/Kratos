@@ -48,30 +48,34 @@ void ConstructMatrixStructure(Kratos::unique_ptr<typename MappingSparseSpaceType
                               const SizeType NumNodesOrigin,
                               const SizeType NumNodesDestination)
 {
-    // one set for each row storing the corresponding col-IDs
+   // one set for each row storing the corresponding col-IDs
     using indices_type = std::vector<std::unordered_set<IndexType>>;
-    indices_type indices(NumNodesDestination);
 
-    // preallocate memory for the column indices
-    for (auto& r_indices : indices) {
-        r_indices.reserve(3);
-    }
+    struct TLSData
+    {
+        EquationIdVectorType OriginIds;
+        EquationIdVectorType DestinationIds;
+    };
 
     const auto result = block_for_each<AccumReduction<indices_type>>(
-        rMapperLocalSystems,
-        [NumNodesDestination](auto& rpLocalSys) -> indices_type
+        rMapperLocalSystems.begin(),
+        rMapperLocalSystems.end(),
+        TLSData(),
+        [NumNodesDestination](auto& rpLocalSys, TLSData& rTLS) -> indices_type
         {
             indices_type local_indices(NumNodesDestination);
 
-            EquationIdVectorType origin_ids;
-            EquationIdVectorType destination_ids;
+            rTLS.OriginIds.clear();
+            rTLS.DestinationIds.clear();
 
-            rpLocalSys->EquationIdVectors(origin_ids, destination_ids);
+            rpLocalSys->EquationIdVectors(
+                rTLS.OriginIds,
+                rTLS.DestinationIds);
 
-            for (const auto id_dest : destination_ids) {
+            for (const auto id_dest : rTLS.DestinationIds) {
                 auto& r_indices = local_indices[id_dest];
 
-                for (const auto id_origin : origin_ids) {
+                for (const auto id_origin : rTLS.OriginIds) {
                     r_indices.insert(id_origin);
                 }
             }
@@ -80,12 +84,17 @@ void ConstructMatrixStructure(Kratos::unique_ptr<typename MappingSparseSpaceType
         }
     );
 
+    indices_type indices(NumNodesDestination);
+
+    for (auto& r_indices : indices) {
+        r_indices.reserve(3);
+    }
+
     for (const auto& r_local_indices : result) {
         for (IndexType i = 0; i < NumNodesDestination; ++i) {
             indices[i].insert(
                 r_local_indices[i].begin(),
-                r_local_indices[i].end()
-            );
+                r_local_indices[i].end());
         }
     }
 
