@@ -7,7 +7,7 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-// Main authors:
+// Main authors:    Qinfei Ran - Initial development
 // Contributor:
 
 // This mapper is created with RBF technique with Cubic Kernel
@@ -25,6 +25,7 @@
 
 // Project includes
 #include "mappers/mapper.h"
+#include "linear_solvers/linear_solver.h"
 #include "custom_searching/interface_communicator.h"
 #include "custom_utilities/interface_vector_container.h"
 #include "custom_utilities/mapper_local_system.h"
@@ -165,7 +166,11 @@ public:
         NodePointerType pNode;
     };
 
-    explicit BeamSplineMapperLocalSystem(NodePointerType pNode) : mpNode(pNode) {}
+    explicit BeamSplineMapperLocalSystem(NodePointerType pNode)
+        : mpNode(pNode),
+          mCachedEvaluationRotationVector(3, 0.0)
+    {
+    }
 
     ~BeamSplineMapperLocalSystem() override = default;
 
@@ -185,6 +190,21 @@ public:
 
     ProjectionData CalculateProjectionData();
 
+    void SaveEvaluationRotationVector(const VectorType& rEvaluationRotationVector)
+    {
+        KRATOS_ERROR_IF(rEvaluationRotationVector.size() != 3)
+            << "Expected a 3D evaluation rotation vector." << std::endl;
+        mCachedEvaluationRotationVector = rEvaluationRotationVector;
+    }
+
+    void GetEvaluationRotationVector(VectorType& rEvaluationRotationVector) const
+    {
+        rEvaluationRotationVector.resize(3, false);
+        for (IndexType i = 0; i < 3; ++i) {
+            rEvaluationRotationVector(i) = mCachedEvaluationRotationVector(i);
+        }
+    }
+
     MapperLocalSystemUniquePointer Create(NodePointerType pNode) const override
     {
         return Kratos::make_unique<BeamSplineMapperLocalSystem>(pNode);
@@ -194,6 +214,7 @@ public:
 
 private:
     NodePointerType mpNode;
+    VectorType mCachedEvaluationRotationVector;
 };
 
 template<class TSparseSpace, class TDenseSpace>
@@ -212,6 +233,9 @@ public:
     using MapperUniquePointerType = typename BaseType::MapperUniquePointerType;
     using MatrixType = typename TDenseSpace::MatrixType;
     using VectorType = typename TDenseSpace::VectorType;
+    using SparseMatrixType = typename TSparseSpace::MatrixType;
+    using LinearSolverType = LinearSolver<TSparseSpace, TDenseSpace>;
+    using LinearSolverSharedPointerType = Kratos::shared_ptr<LinearSolverType>;
     using ComponentVariableType = Variable<double>;
     using GeometryType = Geometry<Node>;
     using NodePointerType = InterfaceObject::NodePointerType;
@@ -290,6 +314,7 @@ private:
         std::vector<MatrixType> SupportFramesLocalToGlobal;
         std::vector<array_1d<double, 3>> SupportReferenceCoordinates;
         MatrixType SplineSystemMatrix;
+        MatrixType InverseTransposedSplineSystemMatrix;
     };
 
     struct BeamChainSourceStateData
@@ -308,6 +333,7 @@ private:
     double mLocalCoordTol = 0.0;
     InterfaceVectorContainerPointerType mpInterfaceVectorContainerOrigin;
     InterfaceVectorContainerPointerType mpInterfaceVectorContainerDestination;
+    LinearSolverSharedPointerType mpLinearSolver = nullptr;
     std::unordered_map<std::string, BeamChainCacheData> mBeamChainCache;
     std::unordered_map<IndexType, std::string> mNodeIdToBeamChainKey;
 
@@ -316,6 +342,8 @@ private:
     void Initialize();
 
     void InitializeInterfaceCommunicator();
+
+    void CreateLinearSolver();
 
     void InitializeInterface(Kratos::Flags MappingOptions = Kratos::Flags());
 
@@ -358,6 +386,10 @@ private:
         const std::vector<double>& rSourceCoordinates,
         const double ProjectionCoordinate) const;
 
+    VectorType BuildEvaluationDerivativeRow(
+        const std::vector<double>& rSourceCoordinates,
+        const double ProjectionCoordinate) const;
+
     VectorType BuildRightHandSide(
         const std::vector<double>& rDisplacements,
         const std::vector<double>& rRotations) const;
@@ -383,6 +415,12 @@ private:
 
     MatrixType BuildSplineSystemMatrix(
         const std::vector<double>& rSourceCoordinates) const;
+
+    MatrixType BuildInverseTransposedMatrix(
+        const MatrixType& rMatrix) const;
+
+    SparseMatrixType BuildSparseMatrix(
+        const MatrixType& rDenseMatrix) const;
 
     void ComputeBeamChainSupport(
         const GeometryType& rBeamGeometry,
@@ -438,12 +476,11 @@ private:
 
     VectorType EvaluatePointDisplacementLocal(
         const VectorType& rEvaluationRow,
+        const VectorType& rEvaluationDerivativeRow,
         const VectorType& rSplineCoefficientsY,
         const VectorType& rSplineCoefficientsZ,
         const double AxialDisplacement,
-        const double rotation_x,
-        const double rotation_y,
-        const double rotation_z,
+        const double TorsionalRotation,
         const VectorType& rOffsetVectorLocal) const;
 
     MapperInterfaceInfoUniquePointerType GetMapperInterfaceInfo() const;
