@@ -138,7 +138,7 @@ protected:
         const unsigned int d) const;
 
     // To compute vector in voigt notation to multiply
-    void ConvertPressureGradientInVoigt(Vector& rPressureGradient, Vector& rPressureGradientVoigt);
+    void ConvertPressureGradientInVoigt(const Vector& rPressureGradient, Vector& rPressureGradientVoigt);
 
     // Calculation of specific variables: pressure and pressure gradient
     void SetSpecificVariables(GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo);

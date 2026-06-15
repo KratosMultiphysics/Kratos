@@ -422,32 +422,30 @@ double MPMUpdatedLagrangianUPVMS::CalculateTensorIdentityComponent(
 //************************************************************************************
 //************************************************************************************
 
-void MPMUpdatedLagrangianUPVMS::ConvertPressureGradientInVoigt(Vector& PressureGradient,Vector& PressureGradientVoigt)
+void MPMUpdatedLagrangianUPVMS::ConvertPressureGradientInVoigt(
+    const Vector& rPressureGradient,
+    Vector& rPressureGradientVoigt)
 {
     KRATOS_TRY
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    const unsigned int voigt_dimension=(dimension-1)*(dimension-1)+2;
-    PressureGradientVoigt=ZeroVector(voigt_dimension);
+    const unsigned int voigt_dimension = (dimension - 1) * (dimension - 1) + 2;
+    rPressureGradientVoigt = ZeroVector(voigt_dimension);
 
-   if( dimension == 2 )
+    if (dimension == 2)
     {
-        PressureGradientVoigt(0) = PressureGradient(0);
-        PressureGradientVoigt(1) = PressureGradient(1);
-        PressureGradientVoigt(2) = 0.5*(PressureGradient(0) + PressureGradient(1));
-
+        rPressureGradientVoigt(0) = rPressureGradient(0);
+        rPressureGradientVoigt(1) = rPressureGradient(1);
+        rPressureGradientVoigt(2) = 0.5 * (rPressureGradient(0) + rPressureGradient(1));
     }
-    else if( dimension == 3 )
+    else if (dimension == 3)
     {
-
-        PressureGradientVoigt(0) = PressureGradient(0);
-        PressureGradientVoigt(1) = PressureGradient(1);
-        PressureGradientVoigt(2) = PressureGradient(2);
-        PressureGradientVoigt(3) = 0.5*(PressureGradient(0) + PressureGradient(1));
-        PressureGradientVoigt(4) = 0.5*(PressureGradient(2) + PressureGradient(1));
-        PressureGradientVoigt(5) = 0.5*(PressureGradient(2) + PressureGradient(0));
-
+        rPressureGradientVoigt(0) = rPressureGradient(0);
+        rPressureGradientVoigt(1) = rPressureGradient(1);
+        rPressureGradientVoigt(2) = rPressureGradient(2);
+        rPressureGradientVoigt(3) = 0.5 * (rPressureGradient(0) + rPressureGradient(1));
+        rPressureGradientVoigt(4) = 0.5 * (rPressureGradient(2) + rPressureGradient(1));
+        rPressureGradientVoigt(5) = 0.5 * (rPressureGradient(2) + rPressureGradient(0));
     }
-
 
     KRATOS_CATCH( "" )
 }
