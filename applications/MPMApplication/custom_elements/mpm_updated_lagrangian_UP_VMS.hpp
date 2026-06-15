@@ -130,28 +130,6 @@ protected:
     static const unsigned int msIndexVoigt2D3C [3][2];
 
 
-    void Calculate(
-        const Variable<double>& rVariable,
-        double& rOutput,
-        const ProcessInfo& rCurrentProcessInfo) override;
-
-
-    void Calculate(
-        const Variable<array_1d<double, 3 > >& rVariable,
-        array_1d<double, 3 > & rOutput,
-        const ProcessInfo& rCurrentProcessInfo) override;
-
-
-    void Calculate(
-        const Variable<Vector >& rVariable,
-        Vector& Output,
-        const ProcessInfo& rCurrentProcessInfo) override;
-
-    void Calculate(
-        const Variable<Matrix >& rVariable,
-        Matrix& Output,
-        const ProcessInfo& rCurrentProcessInfo) override;
-
     double CalculateElementSize() const;
 
        /**

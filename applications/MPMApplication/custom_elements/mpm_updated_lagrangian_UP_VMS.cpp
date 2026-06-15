@@ -113,45 +113,6 @@ MPMUpdatedLagrangianUPVMS::~MPMUpdatedLagrangianUPVMS()
 //************************************************************************************
 //************************************************************************************
 
-// template <class TElementData>
-void MPMUpdatedLagrangianUPVMS::Calculate(
-    const Variable<double>& rVariable,
-    double& rOutput,
-    const ProcessInfo& rCurrentProcessInfo)
-{
-    BaseType::Calculate(rVariable, rOutput, rCurrentProcessInfo);
-}
-
-
-void MPMUpdatedLagrangianUPVMS::Calculate(
-    const Variable<array_1d<double, 3>>& rVariable,
-    array_1d<double, 3>& rOutput, const ProcessInfo& rCurrentProcessInfo) {
-    // Lumped projection terms
-  
-        BaseType::Calculate(rVariable, rOutput, rCurrentProcessInfo);
-    
-}
-
-// template <class TElementData>
-void MPMUpdatedLagrangianUPVMS::Calculate(
-    const Variable<Vector>& rVariable,
-    Vector& rOutput,
-    const ProcessInfo& rCurrentProcessInfo)
-{
-    BaseType::Calculate(rVariable, rOutput, rCurrentProcessInfo);
-}
-
-// template <class TElementData>
-void MPMUpdatedLagrangianUPVMS::Calculate(
-    const Variable<Matrix>& rVariable,
-    Matrix& rOutput,
-    const ProcessInfo& rCurrentProcessInfo)
-{
-    BaseType::Calculate(rVariable, rOutput, rCurrentProcessInfo);
-}
-
-
-
 void MPMUpdatedLagrangianUPVMS::InitializeGeneralVariables (GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -234,7 +195,7 @@ void MPMUpdatedLagrangianUPVMS::CalculateElementalSystem(
 
         // Compute other variables needed for stabilization
         SetSpecificVariables(Variables,rCurrentProcessInfo);
-        
+
         // Compute stabilization parameters
         CalculateTaus(Variables);
 
@@ -256,7 +217,6 @@ void MPMUpdatedLagrangianUPVMS::CalculateElementalSystem(
     if (CalculateResidualVectorFlag) // if calculation of the vector is required
     {
         // Contribution to forces (in residual term) are calculated
-        //#BODYFORCE
         Vector volume_force = (mMP.volume_acceleration * mMP.mass) + (mMP.body_force * mMP.mass);
         this->CalculateAndAddRHS(
             rRightHandSideVector,
