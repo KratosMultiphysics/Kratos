@@ -268,6 +268,25 @@ public:
         return mTruncationData[Level][FlatIndex];
     }
 
+    /// Evaluates THB shape functions at each parameter value in rTValues.
+    /// Returns a (number_of_evaluation_points × n_active_cps) matrix; result(i,j) is the value of
+    /// the j-th active CP's basis function at rTValues[i], zero if not in support.
+    Matrix EvaluateShapeFunctions(const Vector& rTValues) const
+    {
+        const SizeType number_of_evaluation_points = rTValues.size();
+        const SizeType number_of_control_points = this->PointsNumber();
+        Matrix result(number_of_evaluation_points, number_of_control_points, 0.0);
+
+        THBCurveShapeFunction shape_function_container(PolynomialDegree(0), 0);
+        for (SizeType i = 0; i < number_of_evaluation_points; ++i) {
+            shape_function_container.ComputeShapeFunctionValues(*this, rTValues[i]);
+            const auto& cp_indices = shape_function_container.ControlPointIndices();
+            for (SizeType j = 0; j < shape_function_container.NumberOfNonzeroControlPoints(); ++j)
+                result(i, cp_indices[j]) = shape_function_container(j, 0);
+        }
+        return result;
+    }
+
     /// Returns the finest level whose refinement domain contains t, or 0 if none.
     SizeType ActiveLevelAtPoint(double t) const
     {
@@ -374,7 +393,7 @@ public:
         auto default_method = this->GetDefaultIntegrationMethod();
         const SizeType p = PolynomialDegree(0);
 
-        THBCurveShapeFunction sf(p, NumberOfShapeFunctionDerivatives);
+        THBCurveShapeFunction shape_function_container(p, NumberOfShapeFunctionDerivatives);
 
         for (IndexType i = 0; i < rIntegrationPoints.size(); ++i) {
             const double t = rIntegrationPoints[i][0];
@@ -382,10 +401,10 @@ public:
             std::vector<CoordinatesArrayType> global_space_derivatives(2);
             this->GlobalSpaceDerivatives(global_space_derivatives, rIntegrationPoints[i], 1);
 
-            sf.ComputeShapeFunctionValues(*this, t);
+            shape_function_container.ComputeShapeFunctionValues(*this, t);
 
-            const SizeType num_nonzero = sf.NumberOfNonzeroControlPoints();
-            const auto& cp_indices     = sf.ControlPointIndices();
+            const SizeType num_nonzero = shape_function_container.NumberOfNonzeroControlPoints();
+            const auto& cp_indices     = shape_function_container.ControlPointIndices();
 
             PointsArrayType nonzero_control_points(num_nonzero);
             for (IndexType j = 0; j < num_nonzero; ++j)
@@ -393,20 +412,20 @@ public:
 
             Matrix N(1, num_nonzero);
             for (IndexType j = 0; j < num_nonzero; ++j)
-                N(0, j) = sf(j, 0);
+                N(0, j) = shape_function_container(j, 0);
 
-            DenseVector<Matrix> sf_derivatives(NumberOfShapeFunctionDerivatives - 1);
+            DenseVector<Matrix> shape_function_container_derivatives(NumberOfShapeFunctionDerivatives - 1);
             for (IndexType n = 0; n < NumberOfShapeFunctionDerivatives - 1; ++n)
-                sf_derivatives[n].resize(num_nonzero, 1);
+                shape_function_container_derivatives[n].resize(num_nonzero, 1);
 
             if (NumberOfShapeFunctionDerivatives > 0) {
                 for (IndexType n = 0; n < NumberOfShapeFunctionDerivatives - 1; ++n)
                     for (IndexType j = 0; j < num_nonzero; ++j)
-                        sf_derivatives[n](j, 0) = sf(j, n + 1);
+                        shape_function_container_derivatives[n](j, 0) = shape_function_container(j, n + 1);
             }
 
             GeometryShapeFunctionContainer<GeometryData::IntegrationMethod> data_container(
-                default_method, rIntegrationPoints[i], N, sf_derivatives);
+                default_method, rIntegrationPoints[i], N, shape_function_container_derivatives);
 
             rResultGeometries(i) = CreateQuadraturePointsUtility<NodeType>::CreateQuadraturePointCurve(
                 this->WorkingSpaceDimension(), 1, data_container, nonzero_control_points,
@@ -418,15 +437,15 @@ public:
         CoordinatesArrayType& rResult,
         const CoordinatesArrayType& rLocalCoordinates) const override
     {
-        THBCurveShapeFunction sf(PolynomialDegree(0), 0);
-        sf.ComputeShapeFunctionValues(*this, rLocalCoordinates[0]);
+        THBCurveShapeFunction shape_function_container(PolynomialDegree(0), 0);
+        shape_function_container.ComputeShapeFunctionValues(*this, rLocalCoordinates[0]);
 
         noalias(rResult) = ZeroVector(3);
-        const auto& cp_indices = sf.ControlPointIndices();
-        for (SizeType j = 0; j < sf.NumberOfNonzeroControlPoints(); ++j) {
+        const auto& cp_indices = shape_function_container.ControlPointIndices();
+        for (SizeType j = 0; j < shape_function_container.NumberOfNonzeroControlPoints(); ++j) {
             const CoordinatesArrayType& cp = this->GetPoint(cp_indices[j]);
             for (SizeType d = 0; d < 3; ++d)
-                rResult[d] += sf(j, 0) * cp[d];
+                rResult[d] += shape_function_container(j, 0) * cp[d];
         }
         return rResult;
     }
@@ -436,19 +455,19 @@ public:
         const CoordinatesArrayType& rLocalCoordinates,
         const SizeType DerivativeOrder) const override
     {
-        THBCurveShapeFunction sf(PolynomialDegree(0), DerivativeOrder);
-        sf.ComputeShapeFunctionValues(*this, rLocalCoordinates[0]);
+        THBCurveShapeFunction shape_function_container(PolynomialDegree(0), DerivativeOrder);
+        shape_function_container.ComputeShapeFunctionValues(*this, rLocalCoordinates[0]);
 
         rGlobalSpaceDerivatives.resize(DerivativeOrder + 1);
         for (SizeType order = 0; order <= DerivativeOrder; ++order)
             noalias(rGlobalSpaceDerivatives[order]) = ZeroVector(3);
 
-        const auto& cp_indices = sf.ControlPointIndices();
-        for (SizeType j = 0; j < sf.NumberOfNonzeroControlPoints(); ++j) {
+        const auto& cp_indices = shape_function_container.ControlPointIndices();
+        for (SizeType j = 0; j < shape_function_container.NumberOfNonzeroControlPoints(); ++j) {
             const CoordinatesArrayType& cp = this->GetPoint(cp_indices[j]);
             for (SizeType order = 0; order <= DerivativeOrder; ++order)
                 for (SizeType d = 0; d < 3; ++d)
-                    rGlobalSpaceDerivatives[order][d] += sf(j, order) * cp[d];
+                    rGlobalSpaceDerivatives[order][d] += shape_function_container(j, order) * cp[d];
         }
     }
 
