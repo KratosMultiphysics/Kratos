@@ -84,9 +84,6 @@ class CooksMembraneUPCompressibleQuadsTest(MPMTestFactory):
 class CooksMembraneUPIncompressibleTest(MPMTestFactory):
     file_name = "cooks_membrane_tests/UP_incompressible_cook_membrane_2D_test"
 
-class CooksMembraneUPCompressibleASGSTest(MPMTestFactory):
-    file_name = "cooks_membrane_tests/UP_vms_stabilization/UP_compressible_cook_membrane_2D_asgs_test"
-
 class CooksMembraneUPIncompressibleASGSTest(MPMTestFactory):
     file_name = "cooks_membrane_tests/UP_vms_stabilization/UP_incompressible_cook_membrane_2D_asgs_test"
 

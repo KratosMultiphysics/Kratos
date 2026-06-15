@@ -12,29 +12,20 @@
 
 
 // System includes
-#include <omp.h>
-#include <sstream>
-
-// External includes
+#include <cmath>
 
 // Project includes
 #include "includes/define.h"
 #include "custom_elements/mpm_updated_lagrangian.hpp"
 #include "custom_elements/mpm_updated_lagrangian_UP_VMS.hpp"
-#include "utilities/math_utils.h"
 #include "includes/constitutive_law.h"
 #include "mpm_application_variables.h"
-#include "includes/checks.h"
-#include "includes/cfd_variables.h"
-#include "utilities/geometry_utilities.h"
-#include "custom_utilities/material_point_generator_utility.h"
 
 namespace Kratos
 {
 
 
     const unsigned int MPMUpdatedLagrangianUPVMS::msIndexVoigt3D6C [6][2] = { {0, 0}, {1, 1}, {2, 2}, {0, 1}, {1, 2}, {0, 2} };
-    const unsigned int MPMUpdatedLagrangianUPVMS::msIndexVoigt2D4C [4][2] = { {0, 0}, {1, 1}, {2, 2}, {0, 1} };
     const unsigned int MPMUpdatedLagrangianUPVMS::msIndexVoigt2D3C [3][2] = { {0, 0}, {1, 1}, {0, 1} };
 
 
@@ -178,11 +169,6 @@ void MPMUpdatedLagrangianUPVMS::InitializeGeneralVariables (GeneralVariables& rV
     rVariables.PressureGP = 0;
     rVariables.PressureGradient = ZeroVector(dimension);
 
-    // Set dynamic coefficients for stabilization
-    rVariables.DynamicCoefficient = 0;
-    rVariables.DynamicRHS = ZeroVector(dimension);
-    rVariables.DiscreteAcceleration=ZeroVector(dimension);
-
     // Set Identity matrices
     rVariables.Identity = IdentityMatrix(dimension);
     rVariables.TensorIdentityMatrix = ZeroMatrix(voigt_dimension,voigt_dimension);
@@ -311,24 +297,6 @@ void MPMUpdatedLagrangianUPVMS::SetSpecificVariables(GeneralVariables& rVariable
     // Set the identity matrix tensor
     CalculateTensorIdentityMatrix(rVariables,rVariables.TensorIdentityMatrix);
 
-    rVariables.DiscreteAcceleration =ZeroVector(3);
-
-
-    // Compute Shear modulus and Bulk Modulus
-    if (GetProperties().Has(YOUNG_MODULUS) && GetProperties().Has(POISSON_RATIO))
-    {
-        const double& young_modulus = GetProperties()[YOUNG_MODULUS];
-        const double& poisson_ratio = GetProperties()[POISSON_RATIO];
-        rVariables.ShearModulus = young_modulus / (2.0 * (1.0 + poisson_ratio));
-        rVariables.BulkModulus  = young_modulus / (3.0 * (1.0 - 2.0 * poisson_ratio));
-
-        const double tolerance = 10.e-7;
-        const bool check = bool( (poisson_ratio > 0.5-tolerance ) || (poisson_ratio < (-1.0 + tolerance)) );
-        if (POISSON_RATIO.Key() == 0 || check==true)  rVariables.BulkModulus= 1e16;
-
-        if (rVariables.BulkModulus!=rVariables.BulkModulus)
-            rVariables.BulkModulus= 1e16;
-    }
     KRATOS_CATCH("")
 }
 
@@ -363,55 +331,64 @@ void MPMUpdatedLagrangianUPVMS::CalculateTaus(GeneralVariables& rVariables)
 {
     KRATOS_TRY
 
-    GeometryType& r_geometry = GetGeometry();
-    // Add computations for the tau stabilization
-
     const double constant1=1.0;
     const double constant2=1.0;
+    const double shear_modulus = CalculateShearModulus();
     double characteristic_element_size;
     ComputeElementSize(characteristic_element_size);
 
-    //double characteristic_element_size = r_geometry.GetGeometryParent(0).MinEdgeLength();
-
-    rVariables.tau1 = constant1 *  pow(characteristic_element_size,2) / (2 * rVariables.ShearModulus);
-    rVariables.tau2 = 2 * constant2 * rVariables.ShearModulus;
-
-
-     if (GetProperties().Has(DYNAMIC_VISCOSITY)){
-        const double constant1=8000.0;
-        const double constant2=4000.0;
-        const double& viscosity=GetProperties()[DYNAMIC_VISCOSITY];
-        const unsigned int dimension = r_geometry.WorkingSpaceDimension();
-        const Matrix& r_N = r_geometry.ShapeFunctionsValues();
-        const unsigned int number_of_nodes = r_geometry.PointsNumber();
-        VectorType veloc_mp=ZeroVector(3);
-        double norm_veloc=0.0;
-        array_1d<double, 3 > nodal_veloc = ZeroVector(3);
-        for ( unsigned int j = 0; j < number_of_nodes; j++ ){
-            nodal_veloc = r_geometry[j].FastGetSolutionStepValue(VELOCITY,0);
-            for (unsigned int k = 0; k < dimension; k++)
-            {
-               veloc_mp[k] += r_N(0, j) * nodal_veloc[k];
-            }
-        }
-        for (unsigned int k = 0; k < dimension; k++)
-        {
-            norm_veloc+=pow(veloc_mp[k],2);
-        }
-        norm_veloc=std::sqrt(norm_veloc);
-        //std::cout<<norm_veloc<<"\n";
-        //rVariables.ShearModulus = pow(viscosity,2)/ (mMP.density * pow(characteristic_element_size,2));
-        rVariables.tau1 = constant1*viscosity/pow(characteristic_element_size,2) + constant2*((mMP.density*norm_veloc)/characteristic_element_size);
-        rVariables.tau1 = pow(rVariables.tau1,-1);
-        rVariables.tau2 = pow(characteristic_element_size,2)/(rVariables.tau1);
-        //rVariables.tau1 = constant1 * (mMP.density* pow(characteristic_element_size,4)) / (2 * pow(rVariables.ShearModulus,2));
-        //rVariables.tau2 = 2 * constant2 * pow(rVariables.ShearModulus,2)/(mMP.density*pow(characteristic_element_size,2));
-         }
-
-
-    //std::cout<< "viscosity" << rVariables.ShearModulus << "\n";
+    rVariables.tau1 = constant1 *  pow(characteristic_element_size,2) / (2 * shear_modulus);
+    rVariables.tau2 = 2 * constant2 * shear_modulus;
 
     KRATOS_CATCH( "" )
+}
+
+//************************************************************************************
+//************************************************************************************
+
+double MPMUpdatedLagrangianUPVMS::CalculateShearModulus() const
+{
+    KRATOS_TRY
+
+    KRATOS_ERROR_IF_NOT(GetProperties().Has(YOUNG_MODULUS))
+        << "YOUNG_MODULUS is required to calculate ASGS stabilization parameters." << std::endl;
+    KRATOS_ERROR_IF_NOT(GetProperties().Has(POISSON_RATIO))
+        << "POISSON_RATIO is required to calculate ASGS stabilization parameters." << std::endl;
+
+    const double& young_modulus = GetProperties()[YOUNG_MODULUS];
+    const double& poisson_ratio = GetProperties()[POISSON_RATIO];
+
+    return young_modulus / (2.0 * (1.0 + poisson_ratio));
+
+    KRATOS_CATCH("")
+}
+
+//************************************************************************************
+//************************************************************************************
+
+double MPMUpdatedLagrangianUPVMS::CalculateBulkModulus() const
+{
+    KRATOS_TRY
+
+    KRATOS_ERROR_IF_NOT(GetProperties().Has(YOUNG_MODULUS))
+        << "YOUNG_MODULUS is required to calculate ASGS stabilization parameters." << std::endl;
+    KRATOS_ERROR_IF_NOT(GetProperties().Has(POISSON_RATIO))
+        << "POISSON_RATIO is required to calculate ASGS stabilization parameters." << std::endl;
+
+    const double& young_modulus = GetProperties()[YOUNG_MODULUS];
+    const double& poisson_ratio = GetProperties()[POISSON_RATIO];
+    const double tolerance = 10.e-7;
+    const double denominator = 3.0 * (1.0 - 2.0 * poisson_ratio);
+
+    if (std::abs(denominator) < tolerance) {
+        return 1.0e16;
+    }
+
+    const double bulk_modulus = young_modulus / denominator;
+
+    return std::isfinite(bulk_modulus) ? bulk_modulus : 1.0e16;
+
+    KRATOS_CATCH("")
 }
 
 //************************************************************************************
@@ -507,83 +484,6 @@ void MPMUpdatedLagrangianUPVMS::ConvertPressureGradientInVoigt(Vector& PressureG
 //************************************************************************************
 //************************************************************************************
 
-void MPMUpdatedLagrangianUPVMS::ComputeDynamicTerms(GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
-{
-    // ONLY FOR NEWMARK APPROACH
-
-    KRATOS_TRY
-    GeometryType& r_geometry = GetGeometry();
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    const Matrix& r_N = r_geometry.ShapeFunctionsValues();
-    const double delta_time = rCurrentProcessInfo[DELTA_TIME];
-    const double beta = 0.25; // Should be read from the general scheme mpm_residual_based_bossak_scheme
-
-    array_1d<double,3> aux_MP_velocity = ZeroVector(3);
-    array_1d<double,3> aux_MP_acceleration = ZeroVector(3);
-    array_1d<double,3> aux_MP_displacement = ZeroVector(3);
-    array_1d<double,3> current_MP_displacement = ZeroVector(3);
-    
-    array_1d<double, 3 > previous_displacement = ZeroVector(3);
-    array_1d<double, 3 > previous_velocity = ZeroVector(3);
-    array_1d<double, 3 > previous_displacement_it = ZeroVector(3);
-    array_1d<double, 3 > previous_acceleration = ZeroVector(3);
-
-
-    for (unsigned int j=0; j<number_of_nodes; j++)
-    {
-        // These are the values of nodal velocity and nodal acceleration evaluated in the initialize solution step
-        previous_acceleration = r_geometry[j].FastGetSolutionStepValue(ACCELERATION,1);
-        previous_velocity = r_geometry[j].FastGetSolutionStepValue(VELOCITY,1);
-        previous_displacement_it = r_geometry[j].FastGetSolutionStepValue(DISPLACEMENT,0);
-        previous_displacement = r_geometry[j].FastGetSolutionStepValue(DISPLACEMENT,1);
-
-        for (unsigned int k = 0; k < dimension; k++)
-        {
-            aux_MP_velocity[k] += r_N(0, j) * previous_velocity[k];
-            aux_MP_acceleration[k] += r_N(0, j) * previous_acceleration[k];
-            aux_MP_displacement[k] += r_N(0, j) * previous_displacement[k];
-            current_MP_displacement[k] += r_N(0, j) * previous_displacement_it[k];
-        }
-    }
-
-    const double density_mp=(GetProperties()[DENSITY]) / rVariables.detFT;
-    rVariables.DynamicCoefficient = density_mp / (beta * delta_time * delta_time);
-    const double coeff1 = 1 / (delta_time * 0.25);
-    const double coeff2 = (0.5 - beta) / beta;
-
-    rVariables.DynamicRHS =ZeroVector(3);
-    rVariables.DiscreteAcceleration =ZeroVector(3);
-
-    for (unsigned int idime = 0; idime < dimension; idime++)
-    {
-           //rVariables.DynamicRHS[idime] -= rVariables.DynamicCoefficient * current_MP_displacement[idime];
-           //rVariables.DynamicRHS[idime] += rVariables.DynamicCoefficient * aux_MP_displacement[idime];
-           //rVariables.DiscreteAcceleration[idime]=rVariables.DynamicCoefficient * aux_MP_displacement[idime];
-           rVariables.DynamicRHS[idime] += coeff1 * density_mp * aux_MP_velocity[idime] + coeff2 * density_mp * aux_MP_acceleration[idime];
-
-    }
-
-    //std::cout<<"dynamicRHS "<<rVariables.DynamicRHS[1]<<"\n";
-    //std::cout<<"dynamicCoefficinet "<<rVariables.DynamicCoefficient <<"\n";
-   
-
-    //rVariables.DynamicRHS=mMP.density*rVariables.DynamicRHS;
-    //rVariables.DynamicCoefficient=mMP.density*rVariables.DynamicRHS;
-
-    //rVariables.DynamicRHS =ZeroVector(3);
-   // rVariables.DynamicCoefficient=0;
-
-    
-
-    KRATOS_CATCH( "" )
-}
-
-
-
-//************************************************************************************
-//************************************************************************************
-
 void MPMUpdatedLagrangianUPVMS::CalculateAndAddRHS(
     VectorType& rRightHandSideVector,
     GeneralVariables& rVariables,
@@ -628,6 +528,7 @@ void MPMUpdatedLagrangianUPVMS::CalculateAndAddStabilizedDisplacement(VectorType
     Vector Testf1 = prod(rVariables.DN_DX, rVariables.PressureGradient);
     Vector Testf2   = prod(prod(trans(rVariables.B),rVariables.TensorIdentityMatrix),rVariables.PressureGradientVoigt);
     const double volumetric_strain_function = this->CalculateVolumetricStrainFunction(rVariables);
+    const double bulk_modulus = CalculateBulkModulus();
 
     unsigned int indexi  = 0;
 
@@ -636,10 +537,10 @@ void MPMUpdatedLagrangianUPVMS::CalculateAndAddStabilizedDisplacement(VectorType
         unsigned int index_up = dimension * i + i;
         for ( unsigned int jdim = 0; jdim < dimension; jdim ++ )
         {
-            rRightHandSideVector[index_up + jdim] -= rVariables.tau1 * (-rVolumeForce[jdim]/rIntegrationWeight - rVariables.PressureGradient[jdim] - rVariables.DynamicRHS[jdim] ) * Testf1(i) * rIntegrationWeight;
-            rRightHandSideVector[index_up + jdim] -= rVariables.tau1 * (-rVolumeForce[jdim]/rIntegrationWeight - rVariables.PressureGradient[jdim] - rVariables.DynamicRHS[jdim] ) * Testf2(indexi)  * rIntegrationWeight;
+            rRightHandSideVector[index_up + jdim] -= rVariables.tau1 * (-rVolumeForce[jdim]/rIntegrationWeight - rVariables.PressureGradient[jdim]) * Testf1(i) * rIntegrationWeight;
+            rRightHandSideVector[index_up + jdim] -= rVariables.tau1 * (-rVolumeForce[jdim]/rIntegrationWeight - rVariables.PressureGradient[jdim]) * Testf2(indexi)  * rIntegrationWeight;
 
-            rRightHandSideVector[index_up + jdim] += rVariables.tau2  * ((rVariables.PressureGP/rVariables.BulkModulus)- volumetric_strain_function ) * rVariables.DN_DX(i,jdim) *rIntegrationWeight;
+            rRightHandSideVector[index_up + jdim] += rVariables.tau2  * ((rVariables.PressureGP/bulk_modulus)- volumetric_strain_function ) * rVariables.DN_DX(i,jdim) *rIntegrationWeight;
             indexi++; //
         }
     }
@@ -666,20 +567,18 @@ void MPMUpdatedLagrangianUPVMS::CalculateAndAddStabilizedPressure(VectorType& rR
     unsigned int index_p = dimension;
     const double volumetric_strain_function = this->CalculateVolumetricStrainFunction(rVariables);
     const double functionJ = this->CalculateFunctionFromLinearizationOfVolumetricStrain(rVariables);
+    const double bulk_modulus = CalculateBulkModulus();
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
          for ( unsigned int idime = 0; idime < dimension; idime++ ) {
-            rRightHandSideVector[index_p] -= rVariables.tau1  * functionJ * rVariables.DN_DX(i,idime)*(-rVariables.PressureGradient[idime] - rVolumeForce[idime]/rIntegrationWeight- rVariables.DynamicRHS[idime] ) * rIntegrationWeight;
+            rRightHandSideVector[index_p] -= rVariables.tau1  * functionJ * rVariables.DN_DX(i,idime)*(-rVariables.PressureGradient[idime] - rVolumeForce[idime]/rIntegrationWeight) * rIntegrationWeight;
          }
 
-        rRightHandSideVector[index_p] -= rVariables.tau2  * ((rVariables.PressureGP/rVariables.BulkModulus) - volumetric_strain_function ) * r_N(0, i) * (1/rVariables.BulkModulus) * rIntegrationWeight;
+        rRightHandSideVector[index_p] -= rVariables.tau2  * ((rVariables.PressureGP/bulk_modulus) - volumetric_strain_function ) * r_N(0, i) * (1/bulk_modulus) * rIntegrationWeight;
 
         index_p += (dimension + 1);
     }
-
-
-    //std::cout<<"material point id: "<< this->Id() <<" volumetric_strains "<<volumetric_strain_function<<"\n";
 
     KRATOS_CATCH( "" )
 }
@@ -758,8 +657,6 @@ void MPMUpdatedLagrangianUPVMS::CalculateAndAddKuuStab (MatrixType& rLeftHandSid
             {
                 for ( unsigned int jdim = 0; jdim < dimension ; jdim ++)
                 {
-                    rLeftHandSideMatrix(indexi+i,indexj+j)+= rVariables.tau1 *  rVariables.DynamicCoefficient * r_N( 0 , i ) * rIntegrationWeight * testf1(j);
-                    rLeftHandSideMatrix(indexi+i,indexj+j)+= rVariables.tau1 *  rVariables.DynamicCoefficient * r_N( 0 , i ) * rIntegrationWeight * testf2(indexj);
                     rLeftHandSideMatrix(indexi+i,indexj+j)-= rVariables.tau1 * Kuustab1(i) * rIntegrationWeight * testf1(j);
                     rLeftHandSideMatrix(indexi+i,indexj+j)-= rVariables.tau1 * Kuustab2(indexi) * rIntegrationWeight * testf1(j);
                     rLeftHandSideMatrix(indexi+i,indexj+j)-= rVariables.tau1 * Kuustab1(i) * rIntegrationWeight * testf2(indexj);
@@ -791,6 +688,7 @@ void MPMUpdatedLagrangianUPVMS::CalculateAndAddKupStab (MatrixType& rLeftHandSid
     Vector Stab1 = prod(rVariables.DN_DX, rVariables.PressureGradient);
     Vector Stab2 = prod(Matrix(trans(prod(rVariables.TensorIdentityMatrix,rVariables.B))),rVariables.PressureGradientVoigt);
     const double functionJ = this->CalculateFunctionFromLinearizationOfVolumetricStrain(rVariables);
+    const double bulk_modulus = CalculateBulkModulus();
 
     // Assemble components considering added DOF matrix system
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
@@ -803,10 +701,9 @@ void MPMUpdatedLagrangianUPVMS::CalculateAndAddKupStab (MatrixType& rLeftHandSid
         {
             for ( unsigned int k = 0; k < dimension; k++ )
             {
-                rLeftHandSideMatrix(index_up + k, index_p) += rVariables.tau1 *  rVariables.DynamicCoefficient * r_N(0 , j) * rVariables.DN_DX(i, k) * rIntegrationWeight;
                 rLeftHandSideMatrix(index_up + k, index_p) -= rVariables.tau1 * Stab1(j) * functionJ * rVariables.DN_DX(i, k) * rIntegrationWeight;
                 rLeftHandSideMatrix(index_up + k, index_p) -= rVariables.tau1 * Stab2(indexj) * functionJ * rVariables.DN_DX(i, k) * rIntegrationWeight;
-                rLeftHandSideMatrix(index_up + k, index_p) -= rVariables.tau2 * functionJ * (1 / rVariables.BulkModulus)* rVariables.DN_DX(i, k) * r_N(0, j) * rIntegrationWeight;
+                rLeftHandSideMatrix(index_up + k, index_p) -= rVariables.tau2 * functionJ * (1 / bulk_modulus)* rVariables.DN_DX(i, k) * r_N(0, j) * rIntegrationWeight;
                 indexj++;
             }
             index_p += (dimension + 1);
@@ -833,6 +730,7 @@ void MPMUpdatedLagrangianUPVMS::CalculateAndAddKpuStab (MatrixType& rLeftHandSid
     const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
     Vector Testf1 = prod(rVariables.DN_DX, rVariables.PressureGradient);
     Vector Testf2   = prod(Matrix(prod(trans(rVariables.B),rVariables.TensorIdentityMatrix)),rVariables.PressureGradientVoigt);
+    const double bulk_modulus = CalculateBulkModulus();
 
     // Assemble components considering added DOF matrix system
     unsigned int index_p = dimension;
@@ -848,7 +746,7 @@ void MPMUpdatedLagrangianUPVMS::CalculateAndAddKpuStab (MatrixType& rLeftHandSid
                 rLeftHandSideMatrix(index_p, index_up + k) -= rVariables.tau1 * rVariables.DN_DX(i, k) * Testf2(indexj) * rIntegrationWeight;
 
                 indexj++;
-                rLeftHandSideMatrix(index_p, index_up + k) -= rVariables.tau2 * (1.0 / rVariables.BulkModulus) * r_N(0, i) * rVariables.DN_DX(j, k) * rIntegrationWeight;
+                rLeftHandSideMatrix(index_p, index_up + k) -= rVariables.tau2 * (1.0 / bulk_modulus) * r_N(0, i) * rVariables.DN_DX(j, k) * rIntegrationWeight;
             }
         }
         index_p += (dimension + 1);
@@ -871,6 +769,7 @@ void MPMUpdatedLagrangianUPVMS::CalculateAndAddKppStab (MatrixType& rLeftHandSid
     unsigned int indexpi = dimension;
     Matrix Stab1 = prod(rVariables.DN_DX, trans(rVariables.DN_DX));
     const double functionJ = this->CalculateFunctionFromLinearizationOfVolumetricStrain(rVariables);
+    const double bulk_modulus = CalculateBulkModulus();
 
     for (unsigned int i = 0; i < number_of_nodes; i++)
     {
@@ -878,7 +777,7 @@ void MPMUpdatedLagrangianUPVMS::CalculateAndAddKppStab (MatrixType& rLeftHandSid
         for (unsigned int j = 0; j < number_of_nodes; j++)
         {
             rLeftHandSideMatrix(indexpi, indexpj) -= rVariables.tau1 * functionJ * Stab1(i,j)  * rIntegrationWeight;
-            rLeftHandSideMatrix(indexpi, indexpj) += rVariables.tau2 * (1.0 / pow(rVariables.BulkModulus,2)) *r_N(0, i) * r_N(0, j) * rIntegrationWeight;
+            rLeftHandSideMatrix(indexpi, indexpj) += rVariables.tau2 * (1.0 / pow(bulk_modulus,2)) *r_N(0, i) * r_N(0, j) * rIntegrationWeight;
 
             indexpj += (dimension + 1);
         }

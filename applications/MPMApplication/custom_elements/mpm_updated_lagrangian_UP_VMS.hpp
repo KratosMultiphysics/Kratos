@@ -127,7 +127,6 @@ protected:
     ///@{
 
     static const unsigned int msIndexVoigt3D6C [6][2];
-    static const unsigned int msIndexVoigt2D4C [4][2];
     static const unsigned int msIndexVoigt2D3C [3][2];
 
 
@@ -178,6 +177,9 @@ protected:
     // Calculation of stabilization parameters
     void CalculateTaus(GeneralVariables& rVariables);
 
+    double CalculateShearModulus() const;
+
+    double CalculateBulkModulus() const;
 
      // To compute identity tensor
     void CalculateTensorIdentityMatrix (GeneralVariables& rVariables, Matrix& rTensorIdentityMatrix);
@@ -194,12 +196,6 @@ protected:
      */
 
     void SetSpecificVariables(GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo);
-
-     /*
-     * Compute coefficients for dynamic terms (only for stabilization and for Newmark scheme integration)
-     */
-
-    void ComputeDynamicTerms(GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo);
 
     /**
      * Calculation and addition of the matrices of the LHS
