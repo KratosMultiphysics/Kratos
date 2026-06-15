@@ -89,11 +89,11 @@ namespace Kratos
         GetGeometry().GetGeometryPart(GeometryPart).Calculate(LOCAL_TANGENT, local_tangent);
 
         rKinematicVariables.t = local_tangent[0]*g1 + local_tangent[1]*g2;
-        MathUtils<double>::CrossProduct(rKinematicVariables.n, rKinematicVariables.t/norm_2(rKinematicVariables.t), rKinematicVariables.a3);
+        MathUtils<double>::CrossProduct(rKinematicVariables.n, rKinematicVariables.t, rKinematicVariables.a3_tilde);
 
         // transform the normal into the contavariant basis
-        rKinematicVariables.n_contravariant[0] = rKinematicVariables.a1[0]*rKinematicVariables.n[0] + rKinematicVariables.a1[1]*rKinematicVariables.n[1] + rKinematicVariables.a1[2]*rKinematicVariables.n[2];
-        rKinematicVariables.n_contravariant[1] = rKinematicVariables.a2[0]*rKinematicVariables.n[0] + rKinematicVariables.a2[1]*rKinematicVariables.n[1] + rKinematicVariables.a2[2]*rKinematicVariables.n[2];
+        rKinematicVariables.n_contravariant[0] = rKinematicVariables.a1[0]*rKinematicVariables.n[0]/norm_2(rKinematicVariables.n) + rKinematicVariables.a1[1]*rKinematicVariables.n[1]/norm_2(rKinematicVariables.n) + rKinematicVariables.a1[2]*rKinematicVariables.n[2]/norm_2(rKinematicVariables.n);
+        rKinematicVariables.n_contravariant[1] = rKinematicVariables.a2[0]*rKinematicVariables.n[0]/norm_2(rKinematicVariables.n) + rKinematicVariables.a2[1]*rKinematicVariables.n[1]/norm_2(rKinematicVariables.n) + rKinematicVariables.a2[2]*rKinematicVariables.n[2]/norm_2(rKinematicVariables.n);
 
         if (Is(IgaFlags::FIX_ROTATION_X))
         {
@@ -122,6 +122,10 @@ namespace Kratos
 
         array_1d<double, 3> local_tangent;
         GetGeometry().GetGeometryPart(GeometryPart).Calculate(LOCAL_TANGENT, local_tangent); //CHECK THIS nonlinear
+
+        array_1d<double, 3> tangent_tilde = rT2;
+        double line_tangent  = norm_2(rT2);
+        array_1d<double, 3> tangent = rT2 / line_tangent;
         
         for (IndexType r = 0; r < mat_size; r++)
         {
@@ -134,14 +138,57 @@ namespace Kratos
             double line_first_variation_tangent;
             
             first_variation_tangent_tilde[dirr] = local_tangent[0]*r_DN_De(kr, 0) + local_tangent[1]*r_DN_De(kr, 1); 
-            line_first_variation_tangent = inner_prod(first_variation_tangent_tilde, rT2);
+            line_first_variation_tangent = inner_prod(first_variation_tangent_tilde, tangent);
 
-            rFirstVariationT2(0, r) = first_variation_tangent_tilde[0] / norm_2(rT2) 
-                                         - line_first_variation_tangent * rT2[0] / pow(norm_2(rT2),3);
-            rFirstVariationT2(1, r) = first_variation_tangent_tilde[1] / norm_2(rT2) 
-                                         - line_first_variation_tangent * rT2[1] / pow(norm_2(rT2),3);
-            rFirstVariationT2(2, r) = first_variation_tangent_tilde[2] / norm_2(rT2)
-                                         - line_first_variation_tangent * rT2[2] / pow(norm_2(rT2),3);                             
+            rFirstVariationT2(0, r) = first_variation_tangent_tilde[0] / line_tangent
+                                         - line_first_variation_tangent * tangent[0] / line_tangent;
+            rFirstVariationT2(1, r) = first_variation_tangent_tilde[1] / line_tangent 
+                                         - line_first_variation_tangent * tangent[1] / line_tangent;
+            rFirstVariationT2(2, r) = first_variation_tangent_tilde[2] / line_tangent
+                                         - line_first_variation_tangent * tangent[2] / line_tangent;                    
+        }
+    }
+
+    void CouplingNitscheCondition::CalculateFirstVariationT1(
+        IndexType IntegrationPointIndex,
+        Matrix& rFirstVariationT1,
+        const array_1d<double, 3> rT1,   
+        const PatchType& rPatch)
+    {
+        IndexType GeometryPart = (rPatch==PatchType::Master) ? 0 : 1;
+        const auto& r_geometry = GetGeometry().GetGeometryPart(GeometryPart);
+        
+        const SizeType number_of_control_points = r_geometry.size();
+        const SizeType mat_size = number_of_control_points * 3;
+        
+        const Matrix& r_DN_De = r_geometry.ShapeFunctionLocalGradient(IntegrationPointIndex);
+
+        array_1d<double, 3> local_tangent;
+        GetGeometry().GetGeometryPart(GeometryPart).Calculate(LOCAL_TANGENT, local_tangent); //CHECK THIS nonlinear
+
+        array_1d<double, 3> tangent_tilde = rT1;
+        double line_tangent  = norm_2(rT1);
+        array_1d<double, 3> tangent = rT1 / line_tangent;
+        
+        for (IndexType r = 0; r < mat_size; r++)
+        {
+            // local node number kr and dof direction dirr
+            IndexType kr = r / 3;
+            IndexType dirr = r % 3;
+
+            array_1d<double, 3> first_variation_tangent_tilde;
+            first_variation_tangent_tilde.clear();
+            double line_first_variation_tangent;
+            
+            first_variation_tangent_tilde[dirr] = local_tangent[0]*r_DN_De(kr, 0) + local_tangent[1]*r_DN_De(kr, 1); 
+            line_first_variation_tangent = inner_prod(first_variation_tangent_tilde, tangent);
+
+            rFirstVariationT1(0, r) = first_variation_tangent_tilde[0] / line_tangent
+                                         - line_first_variation_tangent * tangent[0] / line_tangent;
+            rFirstVariationT1(1, r) = first_variation_tangent_tilde[1] / line_tangent 
+                                         - line_first_variation_tangent * tangent[1] / line_tangent;
+            rFirstVariationT1(2, r) = first_variation_tangent_tilde[2] / line_tangent
+                                         - line_first_variation_tangent * tangent[2] / line_tangent;                    
         }
     }
 
@@ -183,9 +230,9 @@ namespace Kratos
 
             first_variation_tangent[r][0] = first_variation_tangent_tilde[r][0] / line_tangent
                                          - line_first_variation_tangent[r] * tangent[0] / line_tangent;
-            first_variation_tangent[r][1] = first_variation_tangent_tilde[r][1] / norm_2(rT2) 
+            first_variation_tangent[r][1] = first_variation_tangent_tilde[r][1] / line_tangent 
                                          - line_first_variation_tangent[r] * tangent[1] / line_tangent;
-            first_variation_tangent[r][2] = first_variation_tangent_tilde[r][2] / norm_2(rT2)
+            first_variation_tangent[r][2] = first_variation_tangent_tilde[r][2] / line_tangent
                                          - line_first_variation_tangent[r] * tangent[2] / line_tangent; 
         }
 

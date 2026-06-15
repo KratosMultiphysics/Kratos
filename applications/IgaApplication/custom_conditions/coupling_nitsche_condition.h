@@ -390,6 +390,12 @@ private:
         const array_1d<double, 3> rT2,   
         const PatchType& rPatch);
 
+    void CalculateFirstVariationT1(
+        IndexType IntegrationPointIndex,
+        Matrix& rFirstVariationT1,
+        const array_1d<double, 3> rT1,   
+        const PatchType& rPatch);
+
     void CalculateSecondVariationT2(
         IndexType IntegrationPointIndex,
         std::vector<std::vector<array_1d<double, 3> > >& rSecondVariationT2,
