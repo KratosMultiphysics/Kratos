@@ -113,30 +113,29 @@ MPMUpdatedLagrangianUPVMS::~MPMUpdatedLagrangianUPVMS()
 //************************************************************************************
 //************************************************************************************
 
-void MPMUpdatedLagrangianUPVMS::InitializeGeneralVariables (GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
+void MPMUpdatedLagrangianUPVMS::InitializeGeneralVariables(
+    GeneralVariables& rVariables,
+    const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
-    MPMUpdatedLagrangian::InitializeGeneralVariables(rVariables,rCurrentProcessInfo);
+    MPMUpdatedLagrangian::InitializeGeneralVariables(rVariables, rCurrentProcessInfo);
     GeometryType& r_geometry = GetGeometry();
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
-    const unsigned int voigt_dimension = (dimension-1)*(dimension-1)+2;
-
+    const unsigned int voigt_dimension = (dimension - 1) * (dimension - 1) + 2;
 
     // Initialize stabilization parameters
-    rVariables.tau1  = 0;
-    rVariables.tau2  = 0;
+    rVariables.tau1 = 0;
+    rVariables.tau2 = 0;
 
     // Set Pressure and Pressure Gradient in gauss points
     rVariables.PressureGP = 0;
     rVariables.PressureGradient = ZeroVector(dimension);
 
     // Set identity tensor matrix
-    rVariables.TensorIdentityMatrix = ZeroMatrix(voigt_dimension,voigt_dimension);
+    rVariables.TensorIdentityMatrix = ZeroMatrix(voigt_dimension, voigt_dimension);
 
- 
     KRATOS_CATCH( "" )
-
 }
 
 
@@ -155,7 +154,7 @@ void MPMUpdatedLagrangianUPVMS::CalculateElementalSystem(
 
     // Create and initialize element variables:
     GeneralVariables Variables;
-    this->InitializeGeneralVariables(Variables,rCurrentProcessInfo);
+    this->InitializeGeneralVariables(Variables, rCurrentProcessInfo);
 
     const Vector& r_N = row(GetGeometry().ShapeFunctionsValues(), 0);
     const bool is_explicit = (rCurrentProcessInfo.Has(IS_EXPLICIT))
@@ -163,16 +162,16 @@ void MPMUpdatedLagrangianUPVMS::CalculateElementalSystem(
         : false;
 
     // Create constitutive law parameters:
-    ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+    ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
 
     // Set constitutive law flags:
-    Flags &ConstitutiveLawOptions=Values.GetOptions();
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+    Flags& r_constitutive_law_options = Values.GetOptions();
+    r_constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
 
     if (!is_explicit)
     {
-        ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
-        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
+        r_constitutive_law_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+        r_constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_STRESS);
 
         // Compute element kinematics B, F, DN_DX ...
         this->CalculateKinematics(Variables, rCurrentProcessInfo);
@@ -186,15 +185,14 @@ void MPMUpdatedLagrangianUPVMS::CalculateElementalSystem(
         call CalculateMaterialResponseKirchhoff() in the constitutive_law.*/
         mConstitutiveLawVector->CalculateMaterialResponse(Values, Variables.StressMeasure);
 
-        /* NOTE:SetSpecificVariables
-        The material points will have constant mass as defined at the beginning.
-        However, the density and volume (integration weight) are changing every time step.*/
+        // The material points have constant mass, while density and volume
+        // are updated every time step.
         // Update MP_Density
-        mMP.density = (GetProperties()[DENSITY])/ Variables.detFT;
+        mMP.density = GetProperties()[DENSITY] / Variables.detFT;
 
 
         // Compute other variables needed for stabilization
-        SetSpecificVariables(Variables,rCurrentProcessInfo);
+        SetSpecificVariables(Variables, rCurrentProcessInfo);
 
         // Compute stabilization parameters
         CalculateTaus(Variables);
@@ -252,7 +250,7 @@ void MPMUpdatedLagrangianUPVMS::SetSpecificVariables(GeneralVariables& rVariable
             rVariables.PressureGradient[i] += rVariables.DN_DX(j,i) * r_geometry[j].FastGetSolutionStepValue(PRESSURE);
         }
     }
-    ConvertPressureGradientInVoigt(rVariables.PressureGradient,rVariables.PressureGradientVoigt);
+    ConvertPressureGradientInVoigt(rVariables.PressureGradient, rVariables.PressureGradientVoigt);
 
     // Set the identity matrix tensor
     CalculateTensorIdentityMatrix(rVariables.TensorIdentityMatrix);
@@ -298,12 +296,12 @@ void MPMUpdatedLagrangianUPVMS::CalculateTaus(GeneralVariables& rVariables)
 {
     KRATOS_TRY
 
-    const double constant1=1.0;
-    const double constant2=1.0;
+    const double constant1 = 1.0;
+    const double constant2 = 1.0;
     const double shear_modulus = CalculateShearModulus();
     const double characteristic_element_size = CalculateElementSize();
 
-    rVariables.tau1 = constant1 *  pow(characteristic_element_size,2) / (2 * shear_modulus);
+    rVariables.tau1 = constant1 * characteristic_element_size * characteristic_element_size / (2.0 * shear_modulus);
     rVariables.tau2 = 2 * constant2 * shear_modulus;
 
     KRATOS_CATCH( "" )
@@ -366,34 +364,32 @@ void MPMUpdatedLagrangianUPVMS::CalculateTensorIdentityMatrix(Matrix& rTensorIde
 
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
-    double voigt_dimension = (dimension - 1)*(dimension - 1)+2;
-    rTensorIdentityMatrix=ZeroMatrix(voigt_dimension,voigt_dimension);
+    const unsigned int voigt_dimension = (dimension - 1) * (dimension - 1) + 2;
+    rTensorIdentityMatrix = ZeroMatrix(voigt_dimension, voigt_dimension);
 
     if (dimension == 2)
     {
-        for(unsigned int i=0; i<voigt_dimension; i++)
+        for (unsigned int i = 0; i < voigt_dimension; i++)
         {
-            for(unsigned int j=0; j<voigt_dimension; j++)
+            for (unsigned int j = 0; j < voigt_dimension; j++)
             {
-            rTensorIdentityMatrix( i, j ) = CalculateTensorIdentityComponent(
-                this->msIndexVoigt2D3C[i][0], this->msIndexVoigt2D3C[i][1],
-                this->msIndexVoigt2D3C[j][0], this->msIndexVoigt2D3C[j][1]);
+                rTensorIdentityMatrix(i, j) = CalculateTensorIdentityComponent(
+                    this->msIndexVoigt2D3C[i][0], this->msIndexVoigt2D3C[i][1],
+                    this->msIndexVoigt2D3C[j][0], this->msIndexVoigt2D3C[j][1]);
             }
         }
-
     }
     else
     {
-        for(unsigned int i=0; i<voigt_dimension; i++)
+        for (unsigned int i = 0; i < voigt_dimension; i++)
         {
-            for(unsigned int j=0; j<voigt_dimension; j++)
+            for (unsigned int j = 0; j < voigt_dimension; j++)
             {
-            rTensorIdentityMatrix( i, j ) = CalculateTensorIdentityComponent(
-                msIndexVoigt3D6C[i][0], msIndexVoigt3D6C[i][1],
-                msIndexVoigt3D6C[j][0], msIndexVoigt3D6C[j][1]);
+                rTensorIdentityMatrix(i, j) = CalculateTensorIdentityComponent(
+                    msIndexVoigt3D6C[i][0], msIndexVoigt3D6C[i][1],
+                    msIndexVoigt3D6C[j][0], msIndexVoigt3D6C[j][1]);
             }
         }
-
     }
 
 }
@@ -485,7 +481,7 @@ void MPMUpdatedLagrangianUPVMS::CalculateAndAddRHS(
 
 
 void MPMUpdatedLagrangianUPVMS::CalculateAndAddStabilizedDisplacement(VectorType& rRightHandSideVector,
-        GeneralVariables & rVariables,
+        GeneralVariables& rVariables,
         Vector& rVolumeForce,
         const double& rIntegrationWeight)
 {
@@ -502,7 +498,7 @@ void MPMUpdatedLagrangianUPVMS::CalculateAndAddStabilizedDisplacement(VectorType
     const double bulk_modulus = CalculateBulkModulus();
     const double volumetric_residual = rVariables.PressureGP / bulk_modulus - volumetric_strain;
 
-    unsigned int indexi  = 0;
+    unsigned int indexi = 0;
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
@@ -526,7 +522,7 @@ void MPMUpdatedLagrangianUPVMS::CalculateAndAddStabilizedDisplacement(VectorType
                 * volumetric_residual
                 * rVariables.DN_DX(i, jdim)
                 * rIntegrationWeight;
-            indexi++; //
+            indexi++;
         }
     }
 
@@ -539,7 +535,7 @@ void MPMUpdatedLagrangianUPVMS::CalculateAndAddStabilizedDisplacement(VectorType
 //************************************************************************************
 
 void MPMUpdatedLagrangianUPVMS::CalculateAndAddStabilizedPressure(VectorType& rRightHandSideVector,
-        GeneralVariables & rVariables,
+        GeneralVariables& rVariables,
         Vector& rVolumeForce,
         const double& rIntegrationWeight)
 {
@@ -658,27 +654,27 @@ void MPMUpdatedLagrangianUPVMS::CalculateAndAddKuuStab (MatrixType& rLeftHandSid
             {
                 for ( unsigned int jdim = 0; jdim < dimension ; jdim ++)
                 {
-                    rLeftHandSideMatrix(indexi+i,indexj+j) -= rVariables.tau1
+                    rLeftHandSideMatrix(indexi + i, indexj + j) -= rVariables.tau1
                         * pressure_gradient_shape_function(i)
                         * pressure_gradient_test_function(j)
                         * rIntegrationWeight;
 
-                    rLeftHandSideMatrix(indexi+i,indexj+j) -= rVariables.tau1
+                    rLeftHandSideMatrix(indexi + i, indexj + j) -= rVariables.tau1
                         * deviatoric_pressure_gradient_shape_function(indexi)
                         * pressure_gradient_test_function(j)
                         * rIntegrationWeight;
 
-                    rLeftHandSideMatrix(indexi+i,indexj+j) -= rVariables.tau1
+                    rLeftHandSideMatrix(indexi + i, indexj + j) -= rVariables.tau1
                         * pressure_gradient_shape_function(i)
                         * deviatoric_pressure_gradient_test_function(indexj)
                         * rIntegrationWeight;
 
-                    rLeftHandSideMatrix(indexi+i,indexj+j) -= rVariables.tau1
+                    rLeftHandSideMatrix(indexi + i, indexj + j) -= rVariables.tau1
                         * deviatoric_pressure_gradient_shape_function(indexi)
                         * deviatoric_pressure_gradient_test_function(indexj)
                         * rIntegrationWeight;
 
-                    rLeftHandSideMatrix(indexi+i,indexj+j) += rVariables.tau2
+                    rLeftHandSideMatrix(indexi + i, indexj + j) += rVariables.tau2
                         * volumetric_strain_linearization
                         * rVariables.DN_DX(i, idim)
                         * rVariables.DN_DX(j, jdim)
@@ -781,7 +777,7 @@ void MPMUpdatedLagrangianUPVMS::CalculateAndAddKpuStab (MatrixType& rLeftHandSid
         unsigned int indexj = 0;
         for ( unsigned int j = 0; j < number_of_nodes; j++ )
         {
-            unsigned int index_up = dimension*j + j;
+            unsigned int index_up = dimension * j + j;
             for ( unsigned int k = 0; k < dimension; k++ )
             {
                 rLeftHandSideMatrix(index_p, index_up + k) -= rVariables.tau1
@@ -815,7 +811,7 @@ void MPMUpdatedLagrangianUPVMS::CalculateAndAddKppStab (MatrixType& rLeftHandSid
         GeneralVariables& rVariables,
         const double& rIntegrationWeight)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
