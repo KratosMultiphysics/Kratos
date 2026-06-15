@@ -553,7 +553,7 @@ void MPMUpdatedLagrangianUPVMS::CalculateAndAddStabilizedPressure(VectorType& rR
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
     unsigned int index_p = dimension;
     const double volumetric_strain = this->CalculateVolumetricStrainFunction(rVariables);
-    const double volumetric_strain_linearization = this->CalculateFunctionFromLinearizationOfVolumetricStrain(rVariables);
+    const double volumetric_strain_linearization = this->CalculateVolumetricStrainLinearization(rVariables);
     const double bulk_modulus = CalculateBulkModulus();
     const double volumetric_residual = rVariables.PressureGP / bulk_modulus - volumetric_strain;
 
@@ -644,7 +644,7 @@ void MPMUpdatedLagrangianUPVMS::CalculateAndAddKuuStab (MatrixType& rLeftHandSid
     Vector deviatoric_pressure_gradient_test_function = prod(
         Matrix(prod(trans(rVariables.B), rVariables.TensorIdentityMatrix)),
         rVariables.PressureGradientVoigt);
-    const double volumetric_strain_linearization = this->CalculateFunctionFromLinearizationOfVolumetricStrain(rVariables);
+    const double volumetric_strain_linearization = this->CalculateVolumetricStrainLinearization(rVariables);
 
 
     unsigned int indexi = 0;
@@ -712,7 +712,7 @@ void MPMUpdatedLagrangianUPVMS::CalculateAndAddKupStab (MatrixType& rLeftHandSid
     Vector deviatoric_pressure_gradient_shape_function = prod(
         Matrix(trans(prod(rVariables.TensorIdentityMatrix, rVariables.B))),
         rVariables.PressureGradientVoigt);
-    const double volumetric_strain_linearization = this->CalculateFunctionFromLinearizationOfVolumetricStrain(rVariables);
+    const double volumetric_strain_linearization = this->CalculateVolumetricStrainLinearization(rVariables);
     const double bulk_modulus = CalculateBulkModulus();
 
     // Assemble components considering added DOF matrix system
@@ -823,7 +823,7 @@ void MPMUpdatedLagrangianUPVMS::CalculateAndAddKppStab (MatrixType& rLeftHandSid
     const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
     unsigned int indexpi = dimension;
     Matrix pressure_gradient_matrix = prod(rVariables.DN_DX, trans(rVariables.DN_DX));
-    const double volumetric_strain_linearization = this->CalculateFunctionFromLinearizationOfVolumetricStrain(rVariables);
+    const double volumetric_strain_linearization = this->CalculateVolumetricStrainLinearization(rVariables);
     const double bulk_modulus = CalculateBulkModulus();
     const double inverse_bulk_modulus = 1.0 / bulk_modulus;
 

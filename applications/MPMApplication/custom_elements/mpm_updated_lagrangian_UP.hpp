@@ -376,7 +376,7 @@ protected:
     /**
      * Calculation of the linearization factor of the volumetric strain function
      */
-    virtual double CalculateFunctionFromLinearizationOfVolumetricStrain(GeneralVariables & rVariables);
+    virtual double CalculateVolumetricStrainLinearization(GeneralVariables & rVariables);
 
 
     /**
