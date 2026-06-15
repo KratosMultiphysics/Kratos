@@ -169,8 +169,7 @@ void MPMUpdatedLagrangianUPVMS::InitializeGeneralVariables (GeneralVariables& rV
     rVariables.PressureGP = 0;
     rVariables.PressureGradient = ZeroVector(dimension);
 
-    // Set Identity matrices
-    rVariables.Identity = IdentityMatrix(dimension);
+    // Set identity tensor matrix
     rVariables.TensorIdentityMatrix = ZeroMatrix(voigt_dimension,voigt_dimension);
 
  
@@ -295,7 +294,7 @@ void MPMUpdatedLagrangianUPVMS::SetSpecificVariables(GeneralVariables& rVariable
     ConvertPressureGradientInVoigt(rVariables.PressureGradient,rVariables.PressureGradientVoigt);
 
     // Set the identity matrix tensor
-    CalculateTensorIdentityMatrix(rVariables,rVariables.TensorIdentityMatrix);
+    CalculateTensorIdentityMatrix(rVariables.TensorIdentityMatrix);
 
     KRATOS_CATCH("")
 }
@@ -395,7 +394,7 @@ double MPMUpdatedLagrangianUPVMS::CalculateBulkModulus() const
 //************************************************************************************
 
 
-void MPMUpdatedLagrangianUPVMS::CalculateTensorIdentityMatrix (GeneralVariables& rVariables, Matrix& rTensorIdentityMatrix)
+void MPMUpdatedLagrangianUPVMS::CalculateTensorIdentityMatrix(Matrix& rTensorIdentityMatrix)
 {
 
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
@@ -409,8 +408,9 @@ void MPMUpdatedLagrangianUPVMS::CalculateTensorIdentityMatrix (GeneralVariables&
         {
             for(unsigned int j=0; j<voigt_dimension; j++)
             {
-            rTensorIdentityMatrix( i, j ) = TensorIdentityComponent(rTensorIdentityMatrix( i, j ), rVariables,
-                                          this->msIndexVoigt2D3C[i][0],this-> msIndexVoigt2D3C[i][1], this->msIndexVoigt2D3C[j][0], this->msIndexVoigt2D3C[j][1]);
+            rTensorIdentityMatrix( i, j ) = CalculateTensorIdentityComponent(
+                this->msIndexVoigt2D3C[i][0], this->msIndexVoigt2D3C[i][1],
+                this->msIndexVoigt2D3C[j][0], this->msIndexVoigt2D3C[j][1]);
             }
         }
 
@@ -421,8 +421,9 @@ void MPMUpdatedLagrangianUPVMS::CalculateTensorIdentityMatrix (GeneralVariables&
         {
             for(unsigned int j=0; j<voigt_dimension; j++)
             {
-            rTensorIdentityMatrix( i, j ) = TensorIdentityComponent(rTensorIdentityMatrix( i, j ), rVariables,
-                                          msIndexVoigt3D6C[i][0], msIndexVoigt3D6C[i][1], msIndexVoigt3D6C[j][0], msIndexVoigt3D6C[j][1]);
+            rTensorIdentityMatrix( i, j ) = CalculateTensorIdentityComponent(
+                msIndexVoigt3D6C[i][0], msIndexVoigt3D6C[i][1],
+                msIndexVoigt3D6C[j][0], msIndexVoigt3D6C[j][1]);
             }
         }
 
@@ -433,18 +434,21 @@ void MPMUpdatedLagrangianUPVMS::CalculateTensorIdentityMatrix (GeneralVariables&
 //************************************************************************************
 //************************************************************************************
 
-double& MPMUpdatedLagrangianUPVMS::TensorIdentityComponent (double& rCabcd, GeneralVariables& rVariables,
-    const unsigned int& a, const unsigned int& b, const unsigned int& c, const unsigned int& d)
+double MPMUpdatedLagrangianUPVMS::CalculateTensorIdentityComponent(
+    const unsigned int a,
+    const unsigned int b,
+    const unsigned int c,
+    const unsigned int d) const
 {
 
-    double IdotI = rVariables.Identity(a, b) * rVariables.Identity(c, d);
-    double Isym = (rVariables.Identity(a, c) * rVariables.Identity(b, d) +
-        rVariables.Identity(a, d) * rVariables.Identity(b, c)) / 2.0;
+    const auto delta = [](const unsigned int i, const unsigned int j) {
+        return i == j ? 1.0 : 0.0;
+    };
 
-    rCabcd += IdotI;
-    rCabcd -= 2 * Isym;
+    const double identity_product = delta(a, b) * delta(c, d);
+    const double symmetric_identity = 0.5 * (delta(a, c) * delta(b, d) + delta(a, d) * delta(b, c));
 
-    return rCabcd;
+    return identity_product - 2.0 * symmetric_identity;
 }
 
 
@@ -635,7 +639,6 @@ void MPMUpdatedLagrangianUPVMS::CalculateAndAddKuuStab (MatrixType& rLeftHandSid
     KRATOS_TRY
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
 
     Vector Kuustab1 = prod(rVariables.DN_DX, rVariables.PressureGradient);
     Vector Kuustab2 = prod( Matrix(trans(prod(rVariables.TensorIdentityMatrix,rVariables.B))),rVariables.PressureGradientVoigt);

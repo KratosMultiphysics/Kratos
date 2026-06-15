@@ -227,7 +227,6 @@ protected:
         double PressureGP;
         Vector PressureGradient;
         Vector PressureGradientVoigt;
-        Matrix Identity;
         Matrix TensorIdentityMatrix;
 
     };

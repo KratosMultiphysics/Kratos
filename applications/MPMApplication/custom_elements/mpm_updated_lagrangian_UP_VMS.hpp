@@ -182,10 +182,13 @@ protected:
     double CalculateBulkModulus() const;
 
      // To compute identity tensor
-    void CalculateTensorIdentityMatrix (GeneralVariables& rVariables, Matrix& rTensorIdentityMatrix);
+    void CalculateTensorIdentityMatrix(Matrix& rTensorIdentityMatrix);
 
-    double& TensorIdentityComponent (double& rCabcd, GeneralVariables& rVariables,
-    const unsigned int& a, const unsigned int& b, const unsigned int& c, const unsigned int& d);
+    double CalculateTensorIdentityComponent(
+        const unsigned int a,
+        const unsigned int b,
+        const unsigned int c,
+        const unsigned int d) const;
 
     // To compute vector in voigt notation to multiply
 
