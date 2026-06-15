@@ -770,24 +770,38 @@ void MPMUpdatedLagrangianUPVMS::CalculateAndAddKpuStab (MatrixType& rLeftHandSid
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
     Vector pressure_gradient_test_function = prod(rVariables.DN_DX, rVariables.PressureGradient);
-    Vector deviatoric_pressure_gradient_test_function   = prod(Matrix(prod(trans(rVariables.B),rVariables.TensorIdentityMatrix)),rVariables.PressureGradientVoigt);
+    Vector deviatoric_pressure_gradient_test_function = prod(
+        Matrix(prod(trans(rVariables.B), rVariables.TensorIdentityMatrix)),
+        rVariables.PressureGradientVoigt);
     const double bulk_modulus = CalculateBulkModulus();
 
     // Assemble components considering added DOF matrix system
     unsigned int index_p = dimension;
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
+        const double pressure_compressibility_shape_function = r_N(0, i) / bulk_modulus;
         unsigned int indexj = 0;
         for ( unsigned int j = 0; j < number_of_nodes; j++ )
         {
             unsigned int index_up = dimension*j + j;
             for ( unsigned int k = 0; k < dimension; k++ )
             {
-                rLeftHandSideMatrix(index_p, index_up + k) -= rVariables.tau1 * rVariables.DN_DX(i, k) * pressure_gradient_test_function(j) * rIntegrationWeight;
-                rLeftHandSideMatrix(index_p, index_up + k) -= rVariables.tau1 * rVariables.DN_DX(i, k) * deviatoric_pressure_gradient_test_function(indexj) * rIntegrationWeight;
+                rLeftHandSideMatrix(index_p, index_up + k) -= rVariables.tau1
+                    * rVariables.DN_DX(i, k)
+                    * pressure_gradient_test_function(j)
+                    * rIntegrationWeight;
+
+                rLeftHandSideMatrix(index_p, index_up + k) -= rVariables.tau1
+                    * rVariables.DN_DX(i, k)
+                    * deviatoric_pressure_gradient_test_function(indexj)
+                    * rIntegrationWeight;
+
+                rLeftHandSideMatrix(index_p, index_up + k) -= rVariables.tau2
+                    * pressure_compressibility_shape_function
+                    * rVariables.DN_DX(j, k)
+                    * rIntegrationWeight;
 
                 indexj++;
-                rLeftHandSideMatrix(index_p, index_up + k) -= rVariables.tau2 * (1.0 / bulk_modulus) * r_N(0, i) * rVariables.DN_DX(j, k) * rIntegrationWeight;
             }
         }
         index_p += (dimension + 1);
@@ -808,17 +822,27 @@ void MPMUpdatedLagrangianUPVMS::CalculateAndAddKppStab (MatrixType& rLeftHandSid
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
     unsigned int indexpi = dimension;
-    Matrix Stab1 = prod(rVariables.DN_DX, trans(rVariables.DN_DX));
+    Matrix pressure_gradient_matrix = prod(rVariables.DN_DX, trans(rVariables.DN_DX));
     const double volumetric_strain_linearization = this->CalculateFunctionFromLinearizationOfVolumetricStrain(rVariables);
     const double bulk_modulus = CalculateBulkModulus();
+    const double inverse_bulk_modulus = 1.0 / bulk_modulus;
 
     for (unsigned int i = 0; i < number_of_nodes; i++)
     {
         unsigned int indexpj = dimension;
         for (unsigned int j = 0; j < number_of_nodes; j++)
         {
-            rLeftHandSideMatrix(indexpi, indexpj) -= rVariables.tau1 * volumetric_strain_linearization * Stab1(i,j)  * rIntegrationWeight;
-            rLeftHandSideMatrix(indexpi, indexpj) += rVariables.tau2 * (1.0 / pow(bulk_modulus,2)) *r_N(0, i) * r_N(0, j) * rIntegrationWeight;
+            rLeftHandSideMatrix(indexpi, indexpj) -= rVariables.tau1
+                * volumetric_strain_linearization
+                * pressure_gradient_matrix(i, j)
+                * rIntegrationWeight;
+
+            rLeftHandSideMatrix(indexpi, indexpj) += rVariables.tau2
+                * inverse_bulk_modulus
+                * inverse_bulk_modulus
+                * r_N(0, i)
+                * r_N(0, j)
+                * rIntegrationWeight;
 
             indexpj += (dimension + 1);
         }
