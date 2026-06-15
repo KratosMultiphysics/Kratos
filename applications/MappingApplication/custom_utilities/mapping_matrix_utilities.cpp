@@ -23,7 +23,6 @@
 #include "mappers/mapper_define.h"
 #include "custom_utilities/mapper_utilities.h"
 #include "utilities/parallel_utilities.h"
-#include "utilities/openmp_utils.h"
 
 namespace Kratos {
 
