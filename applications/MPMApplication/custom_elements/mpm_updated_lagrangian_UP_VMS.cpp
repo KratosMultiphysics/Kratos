@@ -636,10 +636,14 @@ void MPMUpdatedLagrangianUPVMS::CalculateAndAddKuuStab (MatrixType& rLeftHandSid
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
-    Vector Kuustab1 = prod(rVariables.DN_DX, rVariables.PressureGradient);
-    Vector Kuustab2 = prod( Matrix(trans(prod(rVariables.TensorIdentityMatrix,rVariables.B))),rVariables.PressureGradientVoigt);
-    Vector pressure_gradient_test_function   = Kuustab1;
-    Vector deviatoric_pressure_gradient_test_function   = prod( Matrix(prod(trans(rVariables.B),rVariables.TensorIdentityMatrix)),rVariables.PressureGradientVoigt);
+    Vector pressure_gradient_shape_function = prod(rVariables.DN_DX, rVariables.PressureGradient);
+    Vector deviatoric_pressure_gradient_shape_function = prod(
+        Matrix(trans(prod(rVariables.TensorIdentityMatrix, rVariables.B))),
+        rVariables.PressureGradientVoigt);
+    Vector pressure_gradient_test_function = pressure_gradient_shape_function;
+    Vector deviatoric_pressure_gradient_test_function = prod(
+        Matrix(prod(trans(rVariables.B), rVariables.TensorIdentityMatrix)),
+        rVariables.PressureGradientVoigt);
     const double volumetric_strain_linearization = this->CalculateFunctionFromLinearizationOfVolumetricStrain(rVariables);
 
 
@@ -656,11 +660,31 @@ void MPMUpdatedLagrangianUPVMS::CalculateAndAddKuuStab (MatrixType& rLeftHandSid
             {
                 for ( unsigned int jdim = 0; jdim < dimension ; jdim ++)
                 {
-                    rLeftHandSideMatrix(indexi+i,indexj+j)-= rVariables.tau1 * Kuustab1(i) * rIntegrationWeight * pressure_gradient_test_function(j);
-                    rLeftHandSideMatrix(indexi+i,indexj+j)-= rVariables.tau1 * Kuustab2(indexi) * rIntegrationWeight * pressure_gradient_test_function(j);
-                    rLeftHandSideMatrix(indexi+i,indexj+j)-= rVariables.tau1 * Kuustab1(i) * rIntegrationWeight * deviatoric_pressure_gradient_test_function(indexj);
-                    rLeftHandSideMatrix(indexi+i,indexj+j)-= rVariables.tau1 * Kuustab2(indexi) * rIntegrationWeight * deviatoric_pressure_gradient_test_function(indexj);
-                    rLeftHandSideMatrix(indexi+i,indexj+j)+= rVariables.tau2 * volumetric_strain_linearization *rVariables.DN_DX(i,idim) * rIntegrationWeight * rVariables.DN_DX(j,jdim);
+                    rLeftHandSideMatrix(indexi+i,indexj+j) -= rVariables.tau1
+                        * pressure_gradient_shape_function(i)
+                        * pressure_gradient_test_function(j)
+                        * rIntegrationWeight;
+
+                    rLeftHandSideMatrix(indexi+i,indexj+j) -= rVariables.tau1
+                        * deviatoric_pressure_gradient_shape_function(indexi)
+                        * pressure_gradient_test_function(j)
+                        * rIntegrationWeight;
+
+                    rLeftHandSideMatrix(indexi+i,indexj+j) -= rVariables.tau1
+                        * pressure_gradient_shape_function(i)
+                        * deviatoric_pressure_gradient_test_function(indexj)
+                        * rIntegrationWeight;
+
+                    rLeftHandSideMatrix(indexi+i,indexj+j) -= rVariables.tau1
+                        * deviatoric_pressure_gradient_shape_function(indexi)
+                        * deviatoric_pressure_gradient_test_function(indexj)
+                        * rIntegrationWeight;
+
+                    rLeftHandSideMatrix(indexi+i,indexj+j) += rVariables.tau2
+                        * volumetric_strain_linearization
+                        * rVariables.DN_DX(i, idim)
+                        * rVariables.DN_DX(j, jdim)
+                        * rIntegrationWeight;
                     indexj++;
                 }
             }
