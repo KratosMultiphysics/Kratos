@@ -193,41 +193,36 @@ void ShiftedBoundaryWallCondition<TDim>::AddNitscheImposition(
     const std::size_t local_size = rLHS.size1();
     const std::size_t n_nodes = local_size / BlockSize;
 
-    // Get meshless geometry data (for the integration point)
-    const double parent_size = this->GetValue(ELEMENT_H);               // parent element size
-    const double weight = GetValue(INTEGRATION_WEIGHT);                 // integration weight for the integration point
-    const auto& r_N = GetValue(SHAPE_FUNCTIONS_VECTOR);                 // shape function values for all cloud points (VectorType)
-    const auto& r_DN_DX = GetValue(SHAPE_FUNCTIONS_GRADIENT_MATRIX);    // shape function spacial derivatives for all cloud points (MatrixType)
-    array_1d<double,3> normal = GetValue(NORMAL);                       // boundary normal at the integration point
+    // Get geometry data for the integration point based on support cloud nodes
+    const double parent_size    = this->GetValue(ELEMENT_H);                    // parent element size
+    const double weight         = GetValue(INTEGRATION_WEIGHT);                 // integration weight for the integration point
+    const auto& r_N             = GetValue(SHAPE_FUNCTIONS_VECTOR);             // shape function values for all cloud nodes (VectorType)
+    const auto& r_DN_DX         = GetValue(SHAPE_FUNCTIONS_GRADIENT_MATRIX);    // shape function spacial derivatives for all cloud nodes (MatrixType)
+    array_1d<double,3> normal   = GetValue(NORMAL);                             // boundary normal at the integration point
     normal /= norm_2(normal);
 
     // Set whether the shear stress term is adjoint consistent (1.0) or adjoint inconsistent (-1.0) for Nitsche imposition
     // NOTE that adjoint inconsistent formulation enjoys improved inf-sup stability for any value of the penalty constant (gamma) according to Winter et al. (2018)
-    const double adjoint_consistency = -1.0;
+    constexpr double adjoint_consistency = -1.0;
 
     // Get process data
-    const double slip_length = rCurrentProcessInfo.GetValue(SLIP_LENGTH);
-    const double gamma_penalty = 1.0 / rCurrentProcessInfo.GetValue(PENALTY_COEFFICIENT);
-    const double gamma_penalty_shear = 1.0 / rCurrentProcessInfo.GetValue(PENALTY_COEFFICIENT_TANGENTIAL);
-    const double delta_time = rCurrentProcessInfo.GetValue(DELTA_TIME);
-    const double charact_length = rCurrentProcessInfo.GetValue(EMBEDDED_CHARACT_LENGTH);
+    const double slip_length            = rCurrentProcessInfo.GetValue(SLIP_LENGTH);
+    const double gamma_penalty          = 1.0 / rCurrentProcessInfo.GetValue(PENALTY_COEFFICIENT);
+    const double gamma_penalty_shear    = 1.0 / rCurrentProcessInfo.GetValue(PENALTY_COEFFICIENT_TANGENTIAL);
+    const double delta_time             = rCurrentProcessInfo.GetValue(DELTA_TIME);
+    const double charact_length         = rCurrentProcessInfo.GetValue(EMBEDDED_CHARACT_LENGTH);
 
     // Obtain the previous iteration velocity and pressure solution (and subtract the embedded nodal velocity EMBEDDED_VELOCITY for FM-ALE) for all cloud nodes
     Vector unknown_values(local_size);
     for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
         const auto& r_velocity= r_geometry[i_node].FastGetSolutionStepValue(VELOCITY);
         //const auto& r_embedded_velocity = r_geometry[i_node].GetValue(EMBEDDED_VELOCITY);
+        const std::size_t base = i_node * BlockSize;
         for (std::size_t d = 0; d < TDim; ++d) {
-            unknown_values[i_node*BlockSize + d] = r_velocity[d];  // - r_embedded_velocity[d];  TODO
+            unknown_values[base + d] = r_velocity[d];  // - r_embedded_velocity[d];  TODO
         }
-        unknown_values[i_node*BlockSize + TDim] = r_geometry[i_node].FastGetSolutionStepValue(PRESSURE);
+        unknown_values[base + TDim] = r_geometry[i_node].FastGetSolutionStepValue(PRESSURE);
     }
-
-    // Get material data, calculated by the constitutive law
-    double effective_viscosity = 0.0;
-
-    /////////////////////////////////////////////////////////////////////////////////
-    // Get B matrix, C matrix, Voigt normal projection matrix and some auxilary matrices
 
     // Set the current integration point's strain matrix (SF derivatives at all cloud points)
     Matrix B_matrix = ZeroMatrix(VoigtSize, local_size);
@@ -249,17 +244,15 @@ void ShiftedBoundaryWallCondition<TDim>::AddNitscheImposition(
     constitutive_law_values.SetShapeFunctionsValues(r_N);
     constitutive_law_values.SetShapeFunctionsDerivatives(r_DN_DX);
     constitutive_law_values.SetStrainVector(strain_rate);
-    constitutive_law_values.SetStressVector(shear_stress);    //this is an ouput parameter
-    constitutive_law_values.SetConstitutiveMatrix(C_matrix);  //this is an ouput parameter
+    constitutive_law_values.SetStressVector(shear_stress);    //this is an output parameter
+    constitutive_law_values.SetConstitutiveMatrix(C_matrix);  //this is an output parameter
 
     // Calculate material response and effective viscosity
     //NOTE that here we assume that only one constitutive law is employed for all of the integration points.
     //this is ok under the hypothesis that no history dependent behaviour is employed
+    double effective_viscosity = 0.0;
     p_constitutive_law->CalculateMaterialResponseCauchy(constitutive_law_values);
     p_constitutive_law->CalculateValue(constitutive_law_values, EFFECTIVE_VISCOSITY, effective_viscosity);
-
-    // Auxiliary matrix C*B
-    const Matrix aux_matrix_CB = prod(C_matrix, B_matrix);
 
     // Set the shape functions auxiliary matrix
     Matrix N_matrix = ZeroMatrix(TDim, local_size);
@@ -270,16 +263,37 @@ void ShiftedBoundaryWallCondition<TDim>::AddNitscheImposition(
     }
     const Matrix N_matrix_trans = trans(N_matrix);
 
-    // Get the normal projection matrix in Voigt notation (A_matrix)
+    // Precompute projection matrices
+    // Normal projection in Voigt notation (A matrix)
     BoundedMatrix<double, TDim, VoigtSize> voigt_normal_proj_matrix;
     FluidElementUtilities<3>::VoigtTransformForProduct(normal, voigt_normal_proj_matrix);
+    // Normal projection matrix: n x n
+    BoundedMatrix<double, TDim, TDim> Pnorm;
+    FluidElementUtilities<3>::SetNormalProjectionMatrix(normal, Pnorm);
+    // Tangential projection matrix: I - n x n
+    BoundedMatrix<double, TDim, TDim> Ptang;
+    FluidElementUtilities<3>::SetTangentialProjectionMatrix(normal, Ptang);
 
-    // Auxilary matrix for adding contributions
+    // Precompute frequently used products
+    // C * B  (VoigtSize x local_size)
+    const Matrix CB = prod(C_matrix, B_matrix);
+    // A * C * B  (TDim x local_size)
+    const Matrix ACB  = prod(voigt_normal_proj_matrix, CB);
+    // B^T * A^T  (local_size x TDim)
+    const Matrix BtAt = prod(trans(B_matrix), trans(voigt_normal_proj_matrix));
+
+    // ---------------------------------------------------------------
+    // Build aux_LHS by accumulating contributions directly
+    // ---------------------------------------------------------------
     MatrixType aux_LHS = ZeroMatrix(local_size, local_size);
 
     /////////////////////////////////////////////////////////////////////////////////
+    // 1. Normal penalty: pen * w * (N_i n_di) (N_j n_dj)
+
     // Compute the Nitsche normal imposition penalty coefficient
-    const double pen_coeff_normal = this->ComputeSlipNormalPenaltyCoefficient(r_N, delta_time, gamma_penalty, parent_size, effective_viscosity);
+    const double pen_coeff_normal = this->ComputeSlipNormalPenaltyCoefficient(
+        r_N, delta_time, gamma_penalty, parent_size, effective_viscosity);
+    const double pen_normal_w = pen_coeff_normal * weight;
 
     // Add normal velocity penalty contribution of the integration point
     for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
@@ -288,14 +302,14 @@ void ShiftedBoundaryWallCondition<TDim>::AddNitscheImposition(
                 const std::size_t row = i_node * BlockSize + di;
                 for (std::size_t dj = 0; dj < TDim; ++dj){
                     const std::size_t col = j_node * BlockSize + dj;
-                    aux_LHS(row, col) += pen_coeff_normal * weight * r_N(i_node) * normal(di) * normal(dj) * r_N(j_node);
+                    aux_LHS(row, col) += pen_normal_w * r_N(i_node) * normal(di) * normal(dj) * r_N(j_node);
                 }
             }
         }
     }
 
     /////////////////////////////////////////////////////////////////////////////////
-    // Compute the Nitsche normal symmetric counterpart stabilization
+    // 2. Nitsche normal symmetric counterpart stabilization (shear stress + pressure)
 
     // Fill the pressure to Voigt notation operator normal projected matrix
     Matrix trans_pres_to_voigt_matrix_normal_op = ZeroMatrix(local_size, TDim);
@@ -305,56 +319,65 @@ void ShiftedBoundaryWallCondition<TDim>::AddNitscheImposition(
         }
     }
 
-    // Set the normal projection matrix (n x n)
-    BoundedMatrix<double, TDim, TDim> normal_proj_matrix;
-    FluidElementUtilities<3>::SetNormalProjectionMatrix(normal, normal_proj_matrix);
-
     // Compute some integration point auxiliary matrices
-    const Matrix aux_matrix_APnorm = prod(trans(voigt_normal_proj_matrix), normal_proj_matrix);
-    const Matrix aux_matrix_BCAPnorm = prod(trans(aux_matrix_CB), aux_matrix_APnorm);
+    const Matrix AtPnorm = prod(trans(voigt_normal_proj_matrix), Pnorm);
+    const Matrix BtCtAtPnorm = prod(trans(CB), AtPnorm);
 
     // Contribution coming from the shear stress operator (traction vector normal component)
-    noalias(aux_LHS) -= adjoint_consistency * weight * prod(aux_matrix_BCAPnorm, N_matrix);
+    noalias(aux_LHS) -= adjoint_consistency * weight * prod(BtCtAtPnorm, N_matrix);
 
     // Contribution coming from the pressure terms
-    const Matrix aux_matrix_VPnorm = prod(trans_pres_to_voigt_matrix_normal_op, normal_proj_matrix);
+    const Matrix aux_matrix_VPnorm = prod(trans_pres_to_voigt_matrix_normal_op, Pnorm);
     noalias(aux_LHS) -= weight * prod(aux_matrix_VPnorm, N_matrix);
 
     /////////////////////////////////////////////////////////////////////////////////
+    // 3. Tangential penalty
+
     // Compute the Nitsche slip tangential penalty coefficients
-    std::pair<const double, const double> pen_coeffs_tang = this->ComputeSlipTangentialPenaltyCoefficients(slip_length, gamma_penalty, gamma_penalty_shear, parent_size, effective_viscosity);
+    auto [pen_coeff_tang_1, pen_coeff_tang_2] = this->ComputeSlipTangentialPenaltyCoefficients(
+        slip_length, gamma_penalty, gamma_penalty_shear, parent_size, effective_viscosity);
+    const double pen_tang_w_1 = pen_coeff_tang_1 * weight;
+    const double pen_tang_w_2 = pen_coeff_tang_1 * weight;
 
-    // Set the tangential projection matrix (I - n x n)
-    BoundedMatrix<double, TDim, TDim> tang_proj_matrix;
-    FluidElementUtilities<3>::SetTangentialProjectionMatrix(normal, tang_proj_matrix);
-
-    // Compute some integration point auxiliary matrices
-    const Matrix aux_matrix_N_trans_tang = prod(N_matrix_trans, tang_proj_matrix);
-    const Matrix aux_matrix_ACB = prod(voigt_normal_proj_matrix, aux_matrix_CB);
+    const Matrix Nt_Ptang = prod(trans(N_matrix), Ptang);
 
     // Contribution coming from the traction vector tangential component (no contribution for no slip)
-    noalias(aux_LHS) += pen_coeffs_tang.first  * weight * prod(aux_matrix_N_trans_tang, aux_matrix_ACB);
+    // pen * w * N^T * P_tang * A*C*B
+    noalias(aux_LHS) += pen_tang_w_1 * prod(Nt_Ptang, ACB);
 
     // Contribution coming from the tangential velocity (towards zero for slip)
-    noalias(aux_LHS) += pen_coeffs_tang.second * weight * prod(aux_matrix_N_trans_tang, N_matrix);
+    // pen * w * N^T * P_tang * N
+    noalias(aux_LHS) += pen_tang_w_2 * prod(Nt_Ptang, N_matrix);
 
     /////////////////////////////////////////////////////////////////////////////////
-    // Compute the Nitsche slip tangential symmetric counterpart stabilization
-    std::pair<const double, const double> nitsche_coeffs_tang = this->ComputeSlipTangentialNitscheCoefficients(slip_length, gamma_penalty_shear, charact_length, effective_viscosity);
+    // 4. Tangential Nitsche symmetric counterpart stabilization
 
-    // Compute some integration point auxiliary matrices
-    const Matrix aux_matrix_BtransAtrans = prod(trans(B_matrix), trans(voigt_normal_proj_matrix));
-    const Matrix aux_matrix_BtransAtransPtan = prod(aux_matrix_BtransAtrans, tang_proj_matrix);
+    // Compute the stabilization coefficients
+    auto [nitsche_coeff_tang_1, nitsche_coeff_tang_2] = this->ComputeSlipTangentialNitscheCoefficients(
+        slip_length, gamma_penalty_shear, charact_length, effective_viscosity);
+    const double nitsche_tang_w_1 = nitsche_coeff_tang_1 * weight * adjoint_consistency * 2.0;
+    const double nitsche_tang_w_2 = nitsche_coeff_tang_2 * weight * adjoint_consistency * 2.0;
+
+    // BtAtPtang = BtAt * Ptang  (local_size x TDim)
+    const Matrix BtAtPtang = prod(BtAt, Ptang);
 
     // Contribution coming from the traction vector tangential component (no contribution for no slip)
-    noalias(aux_LHS) -= adjoint_consistency * nitsche_coeffs_tang.first  * weight * 2 * prod(aux_matrix_BtransAtransPtan, aux_matrix_ACB);
+    // (-1) * pen * w * 2 * B^T*A^T*P_tang * A*C*B
+    noalias(aux_LHS) -= nitsche_tang_w_1 * prod(BtAtPtang, ACB);
 
     // Contribution coming from the tangential velocity (towards zero for slip)
-    noalias(aux_LHS) -= adjoint_consistency * nitsche_coeffs_tang.second * weight * 2 * prod(aux_matrix_BtransAtransPtan, N_matrix);
+    // (-1) * pen * w * 2 * B^T*A^T*P_tang * N (exploit sparsity)
+    for (std::size_t i = 0; i < local_size; ++i) {
+        for (std::size_t j_node = 0; j_node < n_nodes; ++j_node) {
+            const double Nj = r_N(j_node);
+            const std::size_t base_j = j_node * BlockSize;
+            for (std::size_t d = 0; d < TDim; ++d) {
+                aux_LHS(i, base_j + d) -= nitsche_tang_w_2 * BtAtPtang(i, d) * Nj;
+            }
+        }
+    }
 
     /////////////////////////////////////////////////////////////////////////////////
-    //KRATOS_WATCH(aux_LHS);
-
     // Add Nitsche Navier-slip contributions of the integration point to the local system (residual-based formulation with RHS=f_gamma-LHS*previous_solution)
     // NOTE for mesh movement (FM-ALE) the level set velocity contribution needs to be added here as well! TODO
     noalias(rLHS) += aux_LHS;

@@ -1,16 +1,9 @@
 // Project includes
-#include "fluid_dynamics_application_variables.h"
-#include "includes/cfd_variables.h"
 #include "includes/define.h"
 #include "includes/kratos_flags.h"
-#include "includes/variables.h"
 #include "includes/ublas_interface.h"
 #include "input_output/logger.h"
 #include "utilities/geometry_utilities.h"
-#include "utilities/element_size_calculator.h"
-
-#include "modified_shape_functions/triangle_2d_3_modified_shape_functions.h"
-#include "modified_shape_functions/tetrahedra_3d_4_modified_shape_functions.h"
 
 // Application includes
 #include "custom_elements/shifted_boundary_fluid_element.h"
@@ -94,9 +87,11 @@ void ShiftedBoundaryFluidElement<TBaseElement>::CalculateLocalSystem(
     TBaseElement::CalculateLocalSystem(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
 
     // Check if the element belongs to the surrogate interface.
-    // Note that the SBM_INTERFACE flag is assumed to be set in the 1st layer of elements attached to the surrogate boundary (BOUNDARY elements) e.g. by the ShiftedBoundaryMeshlessInterfaceUtility.
+    // Note that the SBM_INTERFACE flag is assumed to be set in the 1st layer of elements attached to the surrogate boundary (BOUNDARY elements) e.g. by the ShiftedBoundaryUtility.
     // One or multiple faces of these SBM_INTERFACE elements are attached to SBM_BOUNDARY elements.
     // These faces are therefore a part of the surrogate interface gamma_tilde, so the boundary flux contributions is added.
+    // Integration is done over the boundary using the faces' geometry and its GI_GAUSS_2 integration points.
+    // NOTE that this is the safer alternative because integration points are used directly and do not need to be found inside the element.
     if (this->Is(SBM_INTERFACE)) {
         // Initialize the element data
         ShiftedBoundaryElementData data;
@@ -109,191 +104,107 @@ void ShiftedBoundaryFluidElement<TBaseElement>::CalculateLocalSystem(
         // NOTE that second order is required here
         const GeometryData::IntegrationMethod integration_method = GeometryData::IntegrationMethod::GI_GAUSS_2;
 
-        // Integrate over the boundary using the element's "AddBoundaryTraction" method
-        // NOTE that this requires the location of the integration points of the boundary in global coordinates, for which then the local coordinates of the element are calculated
-        /*if (sur_bd_ids_vect.size() != 0) {
+        // Get the parent geometry data. It is calculated at the element midpoint.
+        const auto& r_geom = this->GetGeometry();
+        double size_parent;
+        array_1d<double, NumNodes> N_parent;
+        BoundedMatrix<double, NumNodes, Dim> DN_DX_parent;
+        GeometryUtils::CalculateGeometryData(r_geom, DN_DX_parent, N_parent, size_parent);
 
-            // Get the parent geometry data
-            double size_parent;
-            const auto& r_parent_geom = this->GetGeometry();
-            array_1d<double, NumNodes> N_parent;
-            BoundedMatrix<double, NumNodes, Dim> DN_DX_parent;  // each node's shape function derivatives at the respective node
-            GeometryUtils::CalculateGeometryData(r_parent_geom, DN_DX_parent, N_parent, size_parent);
-            const auto& r_boundaries = r_parent_geom.GenerateBoundariesEntities();
-            DenseMatrix<unsigned int> nodes_in_faces;
-            r_parent_geom.NodesInFaces(nodes_in_faces);
+        // Calculate material response in order to update C matrix (constant)
+        this->CalculateMaterialResponse(data);
 
-            // Initialize counter for the integration point index of "UpdateIntegrationPointData"
-            VectorType volume_weights;
-            MatrixType shape_functions;
-            GeometryData::ShapeFunctionsGradientsType shape_derivatives;
-            this->CalculateGeometryData(volume_weights, shape_functions, shape_derivatives);
-            std::size_t surrogate_pt_index = volume_weights.size();
+        // Get strain matrix
+        // NOTE that here we are assuming constant strain kinematics (which is correct for the linear shape functions of simplex elements)
+        BoundedMatrix<double, StrainSize, LocalSize> B_matrix;
+        FluidElementUtilities<NumNodes>::GetStrainMatrix(DN_DX_parent, B_matrix);
 
-            // Loop the surrogate faces of the element
-            // NOTE that the element might have multiple faces attached to the boundary
-            for (std::size_t sur_bd_id : sur_bd_ids_vect) {
-                // Get the current surrogate face's geometry information
-                const auto& r_bd_geom = r_boundaries[sur_bd_id];
-                // Get local node IDs of the face
-                // NOTE that the column gives the local node IDs for a face and it's first entry is the local ID of the node opposite of the face (for tri and tetra)
-                const DenseVector<std::size_t> bd_local_ids = column(nodes_in_faces, sur_bd_id);
-                const auto& r_integration_points = r_bd_geom.IntegrationPoints(integration_method);
+        // Generate boundary topology
+        const auto &r_boundaries = r_geom.GenerateBoundariesEntities();
+        DenseMatrix<unsigned int> nodes_in_faces;
+        r_geom.NodesInFaces(nodes_in_faces);
 
-                // Get the gradient of the node opposite of the surrogate face to calculate the normal
-                // NOTE this works because DN_DX of a node is calculated as the normal of the opposite face (cross product for Tetrahedra3D4N)
-                const BoundedVector<double,Dim> DN_DX_opposite_node = row(DN_DX_parent, bd_local_ids[0]);
-                const double h_sur_bd = 1.0 / norm_2(DN_DX_opposite_node);
-                BoundedVector<double,3> normal_sur_bd = ZeroVector(3);
-                for (std::size_t d = 0; d < Dim; ++d) {
-                    normal_sur_bd(d) = - DN_DX_opposite_node(d) * h_sur_bd;
-                }
+        // Auxilary LHS matrix for summation over the element's surrogate boundaries
+        BoundedMatrix<double, LocalSize, LocalSize> aux_LHS = ZeroMatrix(LocalSize, LocalSize);
 
-                // Get detJ for all integration points of the surrogate boundary face
-                VectorType int_pt_detJs;
-                r_bd_geom.DeterminantOfJacobian(int_pt_detJs, integration_method);
+        // Loop the surrogate faces
+        // NOTE that more than one face of the element might be part of the surrogate boundary
+        for (std::size_t sur_bd_id : sur_bd_ids_vect) {
 
-                // Loop over the integration points of the surrogate boundary face for the numerical integration of the surrogate boundary flux
-                // Therefore the local coordinates of the element are calculated from integration point position at the surrogate boundary
-                // and shape function values and gradients calculated correspondingly, in order to use the elements "AddBoundaryTraction" method.
-                for (std::size_t i_int_pt = 0; i_int_pt < r_integration_points.size(); ++i_int_pt) {
-                    // Calculate integration point weight by multiplying its detJ with its gauss weight
-                    const double int_pt_weight = int_pt_detJs[i_int_pt] * r_integration_points[i_int_pt].Weight();
+            const auto& r_sur_bd_geom = r_boundaries[sur_bd_id];
+            const std::size_t n_bd_points = r_sur_bd_geom.PointsNumber();  // number of nodes of the surrogate face
+            const DenseVector<std::size_t> sur_bd_local_ids = column(nodes_in_faces, sur_bd_id);
 
-                    // Compute the local coordinates of the integration point in the parent element's geometry
-                    Geometry<NodeType>::CoordinatesArrayType aux_global_coords = ZeroVector(3);
-                    r_bd_geom.GlobalCoordinates(aux_global_coords, r_integration_points[i_int_pt].Coordinates());
-                    Geometry<NodeType>::CoordinatesArrayType int_pt_local_coords_parent = ZeroVector(3);
-                    r_parent_geom.PointLocalCoordinates(int_pt_local_coords_parent, aux_global_coords);
+            // Get integration points and their global shape function values of the surrogate boundary face
+            const auto& r_sur_bd_N = r_sur_bd_geom.ShapeFunctionsValues(integration_method);  // matrix of SF values F_{ij}, where i is integration pt index and j is SF index
+            const std::vector<IntegrationPoint<3>> & r_integration_points = r_sur_bd_geom.IntegrationPoints(integration_method);
 
-                    // Get N of the element at the integration point
-                    MatrixType int_pt_N_parent = ZeroMatrix(1, NumNodes);
-                    VectorType aux_N_parent;
-                    r_parent_geom.ShapeFunctionsValues(aux_N_parent, int_pt_local_coords_parent);
-                    for (std::size_t i_node = 0; i_node < NumNodes; i_node++) {
-                        int_pt_N_parent(0, i_node) = aux_N_parent(i_node);
-                    }
+            // Get values of determinant of Jacobian for all integration points of the surrogate boundary face
+            VectorType sur_bd_detJ;
+            r_sur_bd_geom.DeterminantOfJacobian(sur_bd_detJ, integration_method);
 
-                    // Get DN_DX of the element at the integration point
-                    MatrixType int_pt_DN_DX_parent = ZeroMatrix(NumNodes, Dim), aux_DN_DXi_parent, aux_J_parent, aux_J_inv_parent;
-                    double aux_detJ_parent;
-                    r_parent_geom.ShapeFunctionsLocalGradients(aux_DN_DXi_parent, int_pt_local_coords_parent);
-                    r_parent_geom.Jacobian(aux_J_parent, int_pt_local_coords_parent);
-                    MathUtils<double>::InvertMatrix(aux_J_parent, aux_J_inv_parent, aux_detJ_parent);
-                    int_pt_DN_DX_parent = prod(aux_DN_DXi_parent, aux_J_inv_parent);
-
-                    // Update the element's data
-                    this->UpdateIntegrationPointData(data, surrogate_pt_index++, int_pt_weight, row(int_pt_N_parent,0), int_pt_DN_DX_parent);
-
-                    // Calculate the surrogate boundary traction as t_i = (tau_ij - p_h * I_ij) * n_j with tau_ij = C:delta^s u_h, taking N, DN_DX and Weight from the element's data
-                    this->AddBoundaryTraction(data, normal_sur_bd, rLeftHandSideMatrix, rRightHandSideVector);
-                }
+            // Get the gradient of the node opposite of the surrogate face
+            // NOTE that the gradient is used to calculate the normal as n = - DN_DX_opposite_node / norm_2(DN_DX_opposite_node)
+            const BoundedVector<double,Dim> DN_DX_opposite_node = row(DN_DX_parent, sur_bd_local_ids[0]);
+            const double h_sur_bd = 1.0 / norm_2(DN_DX_opposite_node);
+            BoundedVector<double,3> normal_sur_bd = ZeroVector(3);
+            for (std::size_t d = 0; d < Dim; ++d) {
+                normal_sur_bd(d) = - DN_DX_opposite_node(d) * h_sur_bd;
             }
-        }*/
 
-        // Integrate over the boundary using the faces' geometry
-        // NOTE that this is the safer alternative because integration points are used directly and do not need to be found inside the element
-        //TODO SPEED UP
-        if (sur_bd_ids_vect.size() != 0) {
+            // Compute the required projections using the boundary's normal,
+            BoundedMatrix<double, Dim, StrainSize> voigt_normal_projection_matrix = ZeroMatrix(Dim, StrainSize);
+            FluidElementUtilities<NumNodes>::VoigtTransformForProduct(normal_sur_bd, voigt_normal_projection_matrix);
 
-            // Get the parent geometry data. It is calculated at the element midpoint.
-            double size_parent;
-            const auto& r_geom = this->GetGeometry();
-            array_1d<double, NumNodes> N_parent;
-            BoundedMatrix<double, NumNodes, Dim> DN_DX_parent;
-            GeometryUtils::CalculateGeometryData(r_geom, DN_DX_parent, N_parent, size_parent);
+            // Compute auxilary matrices for the shear stress with the elements constitutive matrix (C) and the strain matrix (B)
+            const BoundedMatrix<double, Dim, StrainSize> AC = prod(voigt_normal_projection_matrix, data.C);
+            const BoundedMatrix<double, Dim, LocalSize> ACB = prod(AC, B_matrix);
 
-            // Calculate material response in order to update C matrix (constant)
-            this->CalculateMaterialResponse(data);
+            // Precompute node global DOF row bases for boundary nodes once per face
+            // sur_bd_local_ids[0] is the opposite node; [1..n_bd_points] are the nodes of the face
+            std::array<std::size_t, NumNodes-1> bd_node_base;  // max face nodes = NumNodes-1
+            for (std::size_t i_bd_node = 0; i_bd_node < n_bd_points; ++i_bd_node) {
+                bd_node_base[i_bd_node] = sur_bd_local_ids[i_bd_node + 1] * BlockSize;
+            }
 
-            // Auxilary LHS matrix for summation over the element's surrogate boundaries
-            BoundedMatrix<double, LocalSize, LocalSize> aux_LHS = ZeroMatrix(LocalSize, LocalSize);
+            // Loop over the integration points of the surrogate boundary face for the numerical integration of the surrogate boundary flux
+            for (std::size_t i_int_pt = 0; i_int_pt < r_integration_points.size(); ++i_int_pt) {
 
-            // Get strain matrix
-            // NOTE that here we are assuming constant strain kinematics (which is correct for the linear shape functions of simplex elements)
-            BoundedMatrix<double, StrainSize, LocalSize> B_matrix;
-            FluidElementUtilities<NumNodes>::GetStrainMatrix(DN_DX_parent, B_matrix);
+                // Calculate integration point weight by multiplying its detJ with its gauss weight
+                const double int_pt_weight = sur_bd_detJ[i_int_pt] * r_integration_points[i_int_pt].Weight();
 
-            const auto &r_boundaries = r_geom.GenerateBoundariesEntities();
-            DenseMatrix<unsigned int> nodes_in_faces;
-            r_geom.NodesInFaces(nodes_in_faces);
+                for (std::size_t i_bd_node = 0; i_bd_node < n_bd_points; ++i_bd_node) {
+                    const double w_Ni = int_pt_weight * r_sur_bd_N(i_int_pt, i_bd_node);
+                    const std::size_t base_i = bd_node_base[i_bd_node];
 
-            // Loop the surrogate faces
-            // NOTE that more than one face of the element might be part of the surrogate boundary
-            for (std::size_t sur_bd_id : sur_bd_ids_vect) {
-                // Get the surrogate face's geometry information
-                const auto& r_sur_bd_geom = r_boundaries[sur_bd_id];
-                const std::size_t n_bd_points = r_sur_bd_geom.PointsNumber();  // number of nodes of the surrogate face
-                const DenseVector<std::size_t> sur_bd_local_ids = column(nodes_in_faces, sur_bd_id);
-
-                // Get integration points and their global shape function values of the surrogate boundary face
-                const auto& r_sur_bd_N = r_sur_bd_geom.ShapeFunctionsValues(integration_method);  // matrix of SF values F_{ij}, where i is integration pt index and j is SF index
-                const std::vector<IntegrationPoint<3>> & r_integration_points = r_sur_bd_geom.IntegrationPoints(integration_method);
-
-                // Get values of determinant of Jacobian for all integration points of the surrogate boundary face
-                VectorType sur_bd_detJ;
-                r_sur_bd_geom.DeterminantOfJacobian(sur_bd_detJ, integration_method);
-
-                // Get the gradient of the node opposite of the surrogate face
-                // NOTE that the gradient is used to calculate the normal as n = - DN_DX_opposite_node / norm_2(DN_DX_opposite_node)
-                const BoundedVector<double,Dim> DN_DX_opposite_node = row(DN_DX_parent, sur_bd_local_ids[0]);
-                const double h_sur_bd = 1.0 / norm_2(DN_DX_opposite_node);
-                BoundedVector<double,3> normal_sur_bd = ZeroVector(3);
-                for (std::size_t d = 0; d < Dim; ++d) {
-                    normal_sur_bd(d) = - DN_DX_opposite_node(d) * h_sur_bd;
-                }
-
-                // Compute the required projections using the boundary's normal, the elements constitutive matrix (C) and the strain matrix (B)
-                BoundedMatrix<double, Dim, StrainSize> voigt_normal_projection_matrix = ZeroMatrix(Dim, StrainSize);
-                FluidElementUtilities<NumNodes>::VoigtTransformForProduct(normal_sur_bd, voigt_normal_projection_matrix);
-
-                // Compute auxilary matrices for the shear stress
-                const BoundedMatrix<double, Dim, StrainSize> aux_matrix_AC = prod(voigt_normal_projection_matrix, data.C);
-                const BoundedMatrix<double, Dim, LocalSize> aux_matrix_ACB = prod(aux_matrix_AC, B_matrix);
-
-                BoundedMatrix<double, Dim, Dim> normal_proj_matrix = ZeroMatrix(Dim, Dim);
-                for (std::size_t d = 0; d < Dim; ++d) {
-                   normal_proj_matrix(d, d) = normal_sur_bd(d);
-                }
-
-                // Loop over the integration points of the surrogate boundary face for the numerical integration of the surrogate boundary flux
-                for (std::size_t i_int_pt = 0; i_int_pt < r_integration_points.size(); ++i_int_pt) {
-                    // Fill the shape functions auxiliary transpose matrix and the pressure to Voigt notation operator matrix for the surrogate boundary integration point
-                    // NOTE that the local face IDs are already taken into account in the assembly
-                    BoundedMatrix<double, LocalSize, Dim> N_aux_u_trans = ZeroMatrix(LocalSize, Dim);
-                    //BoundedMatrix<double, StrainSize, LocalSize> pres_to_voigt_matrix_op = ZeroMatrix(StrainSize, LocalSize);
-                    BoundedMatrix<double, LocalSize, Dim> N_aux_p = ZeroMatrix(Dim, LocalSize);
-                    std::size_t node_id_in_element;
-                    for (std::size_t i_bd_node = 0; i_bd_node < n_bd_points; ++i_bd_node) {
-                        node_id_in_element = sur_bd_local_ids[i_bd_node+1];
-                        for (std::size_t d = 0; d < Dim; ++d) {
-                            N_aux_u_trans(node_id_in_element*BlockSize+d, d)             = r_sur_bd_N(i_int_pt, i_bd_node);
-                            //pres_to_voigt_matrix_op(d, node_id_in_element*BlockSize+Dim) = r_sur_bd_N(i_int_pt, i_bd_node);
-                            N_aux_p(d, node_id_in_element*BlockSize+Dim)                 = r_sur_bd_N(i_int_pt, i_bd_node);
+                    // --- Shear stress contribution ---
+                    // aux_LHS -= w * N_u^T * ACB
+                    for (std::size_t di = 0; di < Dim; ++di) {
+                        const std::size_t row = base_i + di;
+                        for (std::size_t col = 0; col < LocalSize; ++col) {
+                            aux_LHS(row, col) -= w_Ni * ACB(di, col);
                         }
                     }
 
-                    // Calculate integration point weight by multiplying its detJ with its gauss weight
-                    const double int_pt_weight = sur_bd_detJ[i_int_pt] * r_integration_points[i_int_pt].Weight();
-
-                    // Contribution coming from the shear stress operator
-                    aux_LHS -= int_pt_weight * prod(N_aux_u_trans, aux_matrix_ACB);
-
-                    // Contribution coming from the pressure term
-                    //const BoundedMatrix<double, LocalSize, StrainSize> N_voigt_proj_matrix = prod(N_aux_u_trans, voigt_normal_projection_matrix);
-                    //aux_LHS += int_pt_weight * prod(N_voigt_proj_matrix, pres_to_voigt_matrix_op);
-                    // Alternative normal projection
-                    const BoundedMatrix<double, LocalSize, Dim> N_normal_proj_matrix = prod(N_aux_u_trans, normal_proj_matrix);
-                    aux_LHS += int_pt_weight * prod(N_normal_proj_matrix, N_aux_p);
+                    // --- Pressure contribution ---
+                    // aux_LHS += w * N_u^T * n_d * N_p
+                    for (std::size_t di = 0; di < Dim; ++di) {
+                        const std::size_t row = base_i + di;
+                        const double w_Ni_nd = w_Ni * normal_sur_bd(di);
+                        for (std::size_t j_bd_node = 0; j_bd_node < n_bd_points; ++j_bd_node) {
+                            const std::size_t pres_col = bd_node_base[j_bd_node] + Dim;
+                            aux_LHS(row, pres_col) += w_Ni_nd * r_sur_bd_N(i_int_pt, j_bd_node);
+                        }
+                    }
                 }
             }
-
-            // Add boundary traction of the element's surrogate boundaries to the system
-            array_1d<double,LocalSize> values;
-            this->GetCurrentValuesVector(data, values);
-            rLeftHandSideMatrix  += aux_LHS;
-            rRightHandSideVector -= prod(aux_LHS, values);
         }
+
+        // Add boundary traction of the element's surrogate boundaries to the system
+        array_1d<double,LocalSize> values;
+        this->GetCurrentValuesVector(data, values);
+        rLeftHandSideMatrix  += aux_LHS;
+        rRightHandSideVector -= prod(aux_LHS, values);
     }
 
     KRATOS_CATCH("")
