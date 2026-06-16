@@ -499,8 +499,8 @@ void MPMUpdatedLagrangianUPVMS::CalculateAndAddStabilizedDisplacement(VectorType
     GeometryType& r_geometry = GetGeometry();
     const unsigned int number_of_nodes = r_geometry.PointsNumber();
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
-    Vector pressure_gradient_test_function = prod(rVariables.DN_DX, rVariables.PressureGradient);
-    Vector deviatoric_pressure_gradient_test_function = prod(
+    Vector displacement_test_pressure_gradient_projection = prod(rVariables.DN_DX, rVariables.PressureGradient);
+    Vector displacement_test_deviatoric_pressure_gradient_projection = prod(
         prod(trans(rVariables.B), rVariables.TensorIdentityMatrix),
         rVariables.PressureGradientVoigt);
     const double volumetric_strain = this->CalculateVolumetricStrainFunction(rVariables);
@@ -518,12 +518,12 @@ void MPMUpdatedLagrangianUPVMS::CalculateAndAddStabilizedDisplacement(VectorType
 
             rRightHandSideVector[index_up + jdim] -= rVariables.tau1
                 * momentum_residual
-                * pressure_gradient_test_function(i)
+                * displacement_test_pressure_gradient_projection(i)
                 * rIntegrationWeight;
 
             rRightHandSideVector[index_up + jdim] -= rVariables.tau1
                 * momentum_residual
-                * deviatoric_pressure_gradient_test_function(indexi)
+                * displacement_test_deviatoric_pressure_gradient_projection(indexi)
                 * rIntegrationWeight;
 
             rRightHandSideVector[index_up + jdim] += rVariables.tau2
@@ -637,12 +637,12 @@ void MPMUpdatedLagrangianUPVMS::CalculateAndAddKuuStab (MatrixType& rLeftHandSid
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
-    Vector pressure_gradient_shape_function = prod(rVariables.DN_DX, rVariables.PressureGradient);
-    Vector deviatoric_pressure_gradient_shape_function = prod(
+    Vector row_displacement_pressure_gradient_projection = prod(rVariables.DN_DX, rVariables.PressureGradient);
+    Vector row_displacement_deviatoric_pressure_gradient_projection = prod(
         Matrix(trans(prod(rVariables.TensorIdentityMatrix, rVariables.B))),
         rVariables.PressureGradientVoigt);
-    Vector pressure_gradient_test_function = pressure_gradient_shape_function;
-    Vector deviatoric_pressure_gradient_test_function = prod(
+    Vector column_displacement_pressure_gradient_projection = row_displacement_pressure_gradient_projection;
+    Vector column_displacement_deviatoric_pressure_gradient_projection = prod(
         Matrix(prod(trans(rVariables.B), rVariables.TensorIdentityMatrix)),
         rVariables.PressureGradientVoigt);
     const double volumetric_strain_linearization = this->CalculateVolumetricStrainLinearization(rVariables);
@@ -662,23 +662,23 @@ void MPMUpdatedLagrangianUPVMS::CalculateAndAddKuuStab (MatrixType& rLeftHandSid
                 for ( unsigned int jdim = 0; jdim < dimension ; jdim ++)
                 {
                     rLeftHandSideMatrix(indexi + i, indexj + j) -= rVariables.tau1
-                        * pressure_gradient_shape_function(i)
-                        * pressure_gradient_test_function(j)
+                        * row_displacement_pressure_gradient_projection(i)
+                        * column_displacement_pressure_gradient_projection(j)
                         * rIntegrationWeight;
 
                     rLeftHandSideMatrix(indexi + i, indexj + j) -= rVariables.tau1
-                        * deviatoric_pressure_gradient_shape_function(indexi)
-                        * pressure_gradient_test_function(j)
+                        * row_displacement_deviatoric_pressure_gradient_projection(indexi)
+                        * column_displacement_pressure_gradient_projection(j)
                         * rIntegrationWeight;
 
                     rLeftHandSideMatrix(indexi + i, indexj + j) -= rVariables.tau1
-                        * pressure_gradient_shape_function(i)
-                        * deviatoric_pressure_gradient_test_function(indexj)
+                        * row_displacement_pressure_gradient_projection(i)
+                        * column_displacement_deviatoric_pressure_gradient_projection(indexj)
                         * rIntegrationWeight;
 
                     rLeftHandSideMatrix(indexi + i, indexj + j) -= rVariables.tau1
-                        * deviatoric_pressure_gradient_shape_function(indexi)
-                        * deviatoric_pressure_gradient_test_function(indexj)
+                        * row_displacement_deviatoric_pressure_gradient_projection(indexi)
+                        * column_displacement_deviatoric_pressure_gradient_projection(indexj)
                         * rIntegrationWeight;
 
                     rLeftHandSideMatrix(indexi + i, indexj + j) += rVariables.tau2
@@ -709,8 +709,8 @@ void MPMUpdatedLagrangianUPVMS::CalculateAndAddKupStab (MatrixType& rLeftHandSid
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
-    Vector pressure_gradient_shape_function = prod(rVariables.DN_DX, rVariables.PressureGradient);
-    Vector deviatoric_pressure_gradient_shape_function = prod(
+    Vector row_displacement_pressure_gradient_projection = prod(rVariables.DN_DX, rVariables.PressureGradient);
+    Vector column_pressure_deviatoric_pressure_gradient_projection = prod(
         Matrix(trans(prod(rVariables.TensorIdentityMatrix, rVariables.B))),
         rVariables.PressureGradientVoigt);
     const double volumetric_strain_linearization = this->CalculateVolumetricStrainLinearization(rVariables);
@@ -729,13 +729,13 @@ void MPMUpdatedLagrangianUPVMS::CalculateAndAddKupStab (MatrixType& rLeftHandSid
             for ( unsigned int k = 0; k < dimension; k++ )
             {
                 rLeftHandSideMatrix(index_up + k, index_p) -= rVariables.tau1
-                    * pressure_gradient_shape_function(j)
+                    * row_displacement_pressure_gradient_projection(i)
                     * volumetric_strain_linearization
-                    * rVariables.DN_DX(i, k)
+                    * rVariables.DN_DX(j, k)
                     * rIntegrationWeight;
 
                 rLeftHandSideMatrix(index_up + k, index_p) -= rVariables.tau1
-                    * deviatoric_pressure_gradient_shape_function(indexj)
+                    * column_pressure_deviatoric_pressure_gradient_projection(indexj)
                     * volumetric_strain_linearization
                     * rVariables.DN_DX(i, k)
                     * rIntegrationWeight;
@@ -769,8 +769,8 @@ void MPMUpdatedLagrangianUPVMS::CalculateAndAddKpuStab (MatrixType& rLeftHandSid
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
-    Vector pressure_gradient_test_function = prod(rVariables.DN_DX, rVariables.PressureGradient);
-    Vector deviatoric_pressure_gradient_test_function = prod(
+    Vector column_displacement_pressure_gradient_projection = prod(rVariables.DN_DX, rVariables.PressureGradient);
+    Vector column_displacement_deviatoric_pressure_gradient_projection = prod(
         Matrix(prod(trans(rVariables.B), rVariables.TensorIdentityMatrix)),
         rVariables.PressureGradientVoigt);
 
@@ -787,12 +787,12 @@ void MPMUpdatedLagrangianUPVMS::CalculateAndAddKpuStab (MatrixType& rLeftHandSid
             {
                 rLeftHandSideMatrix(index_p, index_up + k) -= rVariables.tau1
                     * rVariables.DN_DX(i, k)
-                    * pressure_gradient_test_function(j)
+                    * column_displacement_pressure_gradient_projection(j)
                     * rIntegrationWeight;
 
                 rLeftHandSideMatrix(index_p, index_up + k) -= rVariables.tau1
                     * rVariables.DN_DX(i, k)
-                    * deviatoric_pressure_gradient_test_function(indexj)
+                    * column_displacement_deviatoric_pressure_gradient_projection(indexj)
                     * rIntegrationWeight;
 
                 rLeftHandSideMatrix(index_p, index_up + k) -= rVariables.tau2
