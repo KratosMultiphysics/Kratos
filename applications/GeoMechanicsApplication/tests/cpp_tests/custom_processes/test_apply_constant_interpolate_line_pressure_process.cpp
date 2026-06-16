@@ -47,6 +47,11 @@ ModelPart& CreateTestModelPart(Model& rModel)
     r_result.CreateNewNode(4, 0.0, 1.0, 0.0);
     AddWaterPressureDofToAllNodes(r_result);
 
+    // Initialize WATER_PRESSURE to prevent undefined behavior
+    for (auto& r_node : r_result.Nodes()) {
+        r_node.FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
+    }
+
     // Create elements using the node IDs
     std::vector<std::size_t> elem1_nodes = {1, 2, 3};
     std::vector<std::size_t> elem2_nodes = {1, 3, 4};
@@ -367,22 +372,24 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
     auto top_node_2 = r_model_part.CreateNewNode(2, 5.0, 10.0, 0.0);
     auto top_node_3 = r_model_part.CreateNewNode(3, 10.0, 10.0, 0.0);
 
-    top_node_1->FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
-    top_node_2->FastGetSolutionStepValue(WATER_PRESSURE) = -50.0;
-    top_node_3->FastGetSolutionStepValue(WATER_PRESSURE) = -100.0;
-
     // BOTTOM boundary (y = 0)
     auto bottom_node_1 = r_model_part.CreateNewNode(4, 0.0, 0.0, 0.0);
     auto bottom_node_2 = r_model_part.CreateNewNode(5, 5.0, 0.0, 0.0);
     auto bottom_node_3 = r_model_part.CreateNewNode(6, 10.0, 0.0, 0.0);
 
+    auto interior_node = r_model_part.CreateNewNode(7, 7.5, 5.0, 0.0);
+
+    AddWaterPressureDofToAllNodes(r_model_part);
+
+    top_node_1->FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
+    top_node_2->FastGetSolutionStepValue(WATER_PRESSURE) = -50.0;
+    top_node_3->FastGetSolutionStepValue(WATER_PRESSURE) = -100.0;
+
     bottom_node_1->FastGetSolutionStepValue(WATER_PRESSURE) = -100.0;
     bottom_node_2->FastGetSolutionStepValue(WATER_PRESSURE) = -150.0;
     bottom_node_3->FastGetSolutionStepValue(WATER_PRESSURE) = -200.0;
 
-    auto interior_node = r_model_part.CreateNewNode(7, 7.5, 5.0, 0.0);
-
-    AddWaterPressureDofToAllNodes(r_model_part);
+    interior_node->FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
 
     // Minimal elements to detect boundary nodes
     Properties::Pointer p_props = r_model_part.CreateNewProperties(0);
@@ -432,6 +439,11 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, ApplyConstantInterpolateLinePre
 
     AddWaterPressureDofToAllNodes(mp);
 
+    // Initialize WATER_PRESSURE to prevent undefined behavior
+    for (auto& r_node : mp.Nodes()) {
+        r_node.FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
+    }
+
     const auto params = Parameters(R"(
     {
         "model_part_name" : "Main",
@@ -460,15 +472,20 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
     ModelPart& r_model_part = model.CreateModelPart("Main");
     r_model_part.AddNodalSolutionStepVariable(WATER_PRESSURE);
 
-    r_model_part.CreateNewNode(1, 0.0, 10.0, 0.0)->FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
-    r_model_part.CreateNewNode(2, 5.0, 10.0, 0.0)->FastGetSolutionStepValue(WATER_PRESSURE) = -50.0;
-    r_model_part.CreateNewNode(3, 0.0, 0.0, 0.0)->FastGetSolutionStepValue(WATER_PRESSURE) = -100.0;
-    r_model_part.CreateNewNode(4, 5.0, 0.0, 0.0)->FastGetSolutionStepValue(WATER_PRESSURE) = -150.0;
+    r_model_part.CreateNewNode(1, 0.0, 10.0, 0.0);
+    r_model_part.CreateNewNode(2, 5.0, 10.0, 0.0);
+    r_model_part.CreateNewNode(3, 0.0, 0.0, 0.0);
+    r_model_part.CreateNewNode(4, 5.0, 0.0, 0.0);
 
     auto interior_node = r_model_part.CreateNewNode(5, 10.0, 5.0, 0.0);
-    interior_node->FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
 
     AddWaterPressureDofToAllNodes(r_model_part);
+
+    r_model_part.GetNode(1).FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
+    r_model_part.GetNode(2).FastGetSolutionStepValue(WATER_PRESSURE) = -50.0;
+    r_model_part.GetNode(3).FastGetSolutionStepValue(WATER_PRESSURE) = -100.0;
+    r_model_part.GetNode(4).FastGetSolutionStepValue(WATER_PRESSURE) = -150.0;
+    interior_node->FastGetSolutionStepValue(WATER_PRESSURE)          = 0.0;
 
     auto p_props = r_model_part.CreateNewProperties(0);
     r_model_part.AddElement(ElementSetupUtilities::Create2D2NElement(
@@ -513,15 +530,20 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
     ModelPart& r_model_part = model.CreateModelPart("Main");
     r_model_part.AddNodalSolutionStepVariable(WATER_PRESSURE);
 
-    r_model_part.CreateNewNode(1, 5.0, 10.0, 0.0)->FastGetSolutionStepValue(WATER_PRESSURE) = -50.0;
-    r_model_part.CreateNewNode(2, 10.0, 10.0, 0.0)->FastGetSolutionStepValue(WATER_PRESSURE) = -100.0;
-    r_model_part.CreateNewNode(3, 5.0, 0.0, 0.0)->FastGetSolutionStepValue(WATER_PRESSURE) = -150.0;
-    r_model_part.CreateNewNode(4, 10.0, 0.0, 0.0)->FastGetSolutionStepValue(WATER_PRESSURE) = -200.0;
+    r_model_part.CreateNewNode(1, 5.0, 10.0, 0.0);
+    r_model_part.CreateNewNode(2, 10.0, 10.0, 0.0);
+    r_model_part.CreateNewNode(3, 5.0, 0.0, 0.0);
+    r_model_part.CreateNewNode(4, 10.0, 0.0, 0.0);
 
     auto interior_node = r_model_part.CreateNewNode(5, 0.0, 5.0, 0.0);
-    interior_node->FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
 
     AddWaterPressureDofToAllNodes(r_model_part);
+
+    r_model_part.GetNode(1).FastGetSolutionStepValue(WATER_PRESSURE) = -50.0;
+    r_model_part.GetNode(2).FastGetSolutionStepValue(WATER_PRESSURE) = -100.0;
+    r_model_part.GetNode(3).FastGetSolutionStepValue(WATER_PRESSURE) = -150.0;
+    r_model_part.GetNode(4).FastGetSolutionStepValue(WATER_PRESSURE) = -200.0;
+    interior_node->FastGetSolutionStepValue(WATER_PRESSURE)          = 0.0;
 
     auto p_props = r_model_part.CreateNewProperties(0);
     r_model_part.AddElement(ElementSetupUtilities::Create2D2NElement(
@@ -566,16 +588,21 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, ApplyConstantInterpolateLinePre
     ModelPart& r_model_part = model.CreateModelPart("Main");
     r_model_part.AddNodalSolutionStepVariable(WATER_PRESSURE);
 
-    r_model_part.CreateNewNode(1, 0.0, 10.0, 0.0)->FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
-    r_model_part.CreateNewNode(2, 5.0, 10.0, 0.0)->FastGetSolutionStepValue(WATER_PRESSURE) = -50.0;
-    r_model_part.CreateNewNode(3, 0.0, 0.0, 0.0)->FastGetSolutionStepValue(WATER_PRESSURE) = -100.0;
-    r_model_part.CreateNewNode(4, 5.0, 0.0, 0.0)->FastGetSolutionStepValue(WATER_PRESSURE) = -150.0;
+    r_model_part.CreateNewNode(1, 0.0, 10.0, 0.0);
+    r_model_part.CreateNewNode(2, 5.0, 10.0, 0.0);
+    r_model_part.CreateNewNode(3, 0.0, 0.0, 0.0);
+    r_model_part.CreateNewNode(4, 5.0, 0.0, 0.0);
 
     // Interior node at x=0: same horizontal coordinate as node1 and node3.
     auto interior_node = r_model_part.CreateNewNode(5, 0.0, 5.0, 0.0);
-    interior_node->FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
 
     AddWaterPressureDofToAllNodes(r_model_part);
+
+    r_model_part.GetNode(1).FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
+    r_model_part.GetNode(2).FastGetSolutionStepValue(WATER_PRESSURE) = -50.0;
+    r_model_part.GetNode(3).FastGetSolutionStepValue(WATER_PRESSURE) = -100.0;
+    r_model_part.GetNode(4).FastGetSolutionStepValue(WATER_PRESSURE) = -150.0;
+    interior_node->FastGetSolutionStepValue(WATER_PRESSURE)          = 0.0;
 
     auto p_props = r_model_part.CreateNewProperties(0);
     r_model_part.AddElement(ElementSetupUtilities::Create2D2NElement(
@@ -621,17 +648,22 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
 
     // Top boundary (y=10): both nodes have equal pressure, making the expected value
     // independent of FoundNodes ordering inside the fallback branch.
-    r_model_part.CreateNewNode(1, -2.0 * dx, 10.0, 0.0)->FastGetSolutionStepValue(WATER_PRESSURE) = -120.0;
-    r_model_part.CreateNewNode(2, -dx, 10.0, 0.0)->FastGetSolutionStepValue(WATER_PRESSURE) = -120.0;
+    r_model_part.CreateNewNode(1, -2.0 * dx, 10.0, 0.0);
+    r_model_part.CreateNewNode(2, -dx, 10.0, 0.0);
 
     // Bottom boundary (y=0): same rationale as top boundary.
-    r_model_part.CreateNewNode(3, -2.0 * dx, 0.0, 0.0)->FastGetSolutionStepValue(WATER_PRESSURE) = -220.0;
-    r_model_part.CreateNewNode(4, -dx, 0.0, 0.0)->FastGetSolutionStepValue(WATER_PRESSURE) = -220.0;
+    r_model_part.CreateNewNode(3, -2.0 * dx, 0.0, 0.0);
+    r_model_part.CreateNewNode(4, -dx, 0.0, 0.0);
 
     auto interior_node = r_model_part.CreateNewNode(5, 0.0, 5.0, 0.0);
-    interior_node->FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
 
     AddWaterPressureDofToAllNodes(r_model_part);
+
+    r_model_part.GetNode(1).FastGetSolutionStepValue(WATER_PRESSURE) = -120.0;
+    r_model_part.GetNode(2).FastGetSolutionStepValue(WATER_PRESSURE) = -120.0;
+    r_model_part.GetNode(3).FastGetSolutionStepValue(WATER_PRESSURE) = -220.0;
+    r_model_part.GetNode(4).FastGetSolutionStepValue(WATER_PRESSURE) = -220.0;
+    interior_node->FastGetSolutionStepValue(WATER_PRESSURE)          = 0.0;
 
     auto p_props = r_model_part.CreateNewProperties(0);
     r_model_part.AddElement(ElementSetupUtilities::Create2D2NElement(
@@ -675,14 +707,17 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, ApplyConstantInterpolateLinePre
     ModelPart& r_model_part = model.CreateModelPart("Main");
     r_model_part.AddNodalSolutionStepVariable(WATER_PRESSURE);
 
-    r_model_part.CreateNewNode(1, 0.0, 5.0, 0.0)->FastGetSolutionStepValue(WATER_PRESSURE) = -100.0;
-    r_model_part.CreateNewNode(2, 10.0, 5.0, 0.0)->FastGetSolutionStepValue(WATER_PRESSURE) = -200.0;
+    r_model_part.CreateNewNode(1, 0.0, 5.0, 0.0);
+    r_model_part.CreateNewNode(2, 10.0, 5.0, 0.0);
 
     // Interior node on the same horizontal level as the boundary.
     auto interior_node = r_model_part.CreateNewNode(3, 5.0, 5.0, 0.0);
-    interior_node->FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
 
     AddWaterPressureDofToAllNodes(r_model_part);
+
+    r_model_part.GetNode(1).FastGetSolutionStepValue(WATER_PRESSURE) = -100.0;
+    r_model_part.GetNode(2).FastGetSolutionStepValue(WATER_PRESSURE) = -200.0;
+    interior_node->FastGetSolutionStepValue(WATER_PRESSURE)          = 0.0;
 
     auto p_props = r_model_part.CreateNewProperties(0);
     r_model_part.AddElement(ElementSetupUtilities::Create2D2NElement(
@@ -722,6 +757,11 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
     }
 
     AddWaterPressureDofToAllNodes(r_model_part);
+
+    // Initialize WATER_PRESSURE for all nodes
+    for (auto& r_node : r_model_part.Nodes()) {
+        r_node.FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
+    }
 
     auto p_props = r_model_part.CreateNewProperties(0);
     // Create 11 elements, all sharing node 1
