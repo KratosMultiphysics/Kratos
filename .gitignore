@@ -29,6 +29,7 @@ kratos/scripts/wheels/README.md
 
 # Times files
 *.time
+*.series
 
 # Prerequisites
 *.d
@@ -64,6 +65,7 @@ kratos/scripts/wheels/README.md
 # VTK post files
 *.vtk
 *.vtu
+*.vtm
 *.pvd
 *.pvtu
 

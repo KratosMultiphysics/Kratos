@@ -23,7 +23,6 @@
 
 namespace Kratos
 {
-
 double StressStrainUtilities::CalculateVonMisesStress(const Vector& rStressVector)
 {
     const auto LocalStressTensor =
@@ -146,17 +145,10 @@ Vector StressStrainUtilities::CalculateHenckyStrain(const Matrix& rDeformationGr
     // From tensor to vector
     if (rDeformationGradient.size1() == 2 && VoigtSize == 4) {
         // Plane strain
-        Vector StrainVector2D;
-        StrainVector2D = MathUtils<double>::StrainTensorToVector(ETensor, 3);
-        Vector StrainVector(4);
-        StrainVector[INDEX_2D_PLANE_STRAIN_XX] = StrainVector2D[0];
-        StrainVector[INDEX_2D_PLANE_STRAIN_YY] = StrainVector2D[1];
-        StrainVector[INDEX_2D_PLANE_STRAIN_ZZ] = 0.0;
-        StrainVector[INDEX_2D_PLANE_STRAIN_XY] = StrainVector2D[2];
-        return StrainVector;
-    } else {
-        return MathUtils<double>::StrainTensorToVector(ETensor, VoigtSize);
+        const auto StrainVector2D = MathUtils<double>::StrainTensorToVector(ETensor, 3);
+        return UblasUtilities::CreateVector({StrainVector2D[0], StrainVector2D[1], 0.0, StrainVector2D[2]});
     }
+    return MathUtils<double>::StrainTensorToVector(ETensor, VoigtSize);
 }
 
 Matrix StressStrainUtilities::CalculateGreenLagrangeStrainTensor(const Matrix& rDeformationGradient)

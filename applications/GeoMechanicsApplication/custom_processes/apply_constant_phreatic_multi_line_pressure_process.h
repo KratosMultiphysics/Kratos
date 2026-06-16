@@ -64,10 +64,10 @@ private:
     bool         mIsFixed;
     bool         mIsFixedProvided;
     bool         mIsSeepage;
-    unsigned int mGravityDirection;
+    unsigned int mGravityDirection = 0;
     double       mSpecificWeight;
     unsigned int mOutOfPlaneDirection;
-    unsigned int mHorizontalDirection;
+    unsigned int mHorizontalDirection = 0;
     Vector       mHorizontalDirectionCoordinates;
     Vector       mGravityDirectionCoordinates;
     Vector       mXCoordinates;
