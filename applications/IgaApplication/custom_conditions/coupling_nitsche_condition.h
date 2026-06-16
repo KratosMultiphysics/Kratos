@@ -393,7 +393,8 @@ private:
     void CalculateFirstVariationT1(
         IndexType IntegrationPointIndex,
         Matrix& rFirstVariationT1,
-        const array_1d<double, 3> rT1,   
+        const array_1d<double, 3> rT1, 
+        const KinematicVariables& rKinematicVariables,  
         const PatchType& rPatch);
 
     void CalculateSecondVariationT2(
