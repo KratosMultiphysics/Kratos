@@ -24,8 +24,8 @@ namespace Kratos
 {
 using namespace std::string_literals;
 
-SetParameterFieldProcess::SetParameterFieldProcess(ModelPart& rModelPart, const Parameters& rSettings)
-    : Process(), mrModelPart(rModelPart), mParameters(rSettings)
+SetParameterFieldProcess::SetParameterFieldProcess(ModelPart& rModelPart, Parameters Settings)
+    : Process(), mrModelPart{rModelPart}, mParameters{std::move(Settings)}
 {
     // function type: python, cpp, input
     const Parameters default_parameters(R"(

@@ -22,6 +22,7 @@
 #include "mapping_matrix_utilities.h"
 #include "mappers/mapper_define.h"
 #include "custom_utilities/mapper_utilities.h"
+#include "utilities/parallel_utilities.h"
 
 namespace Kratos {
 
@@ -47,25 +48,53 @@ void ConstructMatrixStructure(Kratos::unique_ptr<typename MappingSparseSpaceType
                               const SizeType NumNodesOrigin,
                               const SizeType NumNodesDestination)
 {
-    // one set for each row storing the corresponding col-IDs
-    std::vector<std::unordered_set<IndexType> > indices(NumNodesDestination);
+   // one set for each row storing the corresponding col-IDs
+    using indices_type = std::vector<std::unordered_set<IndexType>>;
 
-    // preallocate memory for the column indices
-    for (IndexType i=0; i<NumNodesDestination; ++i) {
-        // TODO I guess this can be optimized...
-        // this highly depends on the used mapper => same goes for the Graph in Trilinos
-        indices[i].reserve(3);
+    struct TLSData
+    {
+        EquationIdVectorType OriginIds;
+        EquationIdVectorType DestinationIds;
+    };
+
+    const auto result = block_for_each<AccumReduction<indices_type>>(
+        rMapperLocalSystems.begin(),
+        rMapperLocalSystems.end(),
+        TLSData(),
+        [NumNodesDestination](auto& rpLocalSys, TLSData& rTLS) -> indices_type
+        {
+            indices_type local_indices(NumNodesDestination);
+
+            rTLS.OriginIds.clear();
+            rTLS.DestinationIds.clear();
+
+            rpLocalSys->EquationIdVectors(
+                rTLS.OriginIds,
+                rTLS.DestinationIds);
+
+            for (const auto id_dest : rTLS.DestinationIds) {
+                auto& r_indices = local_indices[id_dest];
+
+                for (const auto id_origin : rTLS.OriginIds) {
+                    r_indices.insert(id_origin);
+                }
+            }
+
+            return local_indices;
+        }
+    );
+
+    indices_type indices(NumNodesDestination);
+
+    for (auto& r_indices : indices) {
+        r_indices.reserve(3);
     }
 
-    EquationIdVectorType origin_ids;
-    EquationIdVectorType destination_ids;
-
-    // Looping the local-systems to get the entries for the matrix
-    // TODO omp
-    for (/*const*/auto& r_local_sys : rMapperLocalSystems) { // TODO I think this can be const bcs it is the ptr
-        r_local_sys->EquationIdVectors(origin_ids, destination_ids);
-        for (const auto dest_idx : destination_ids) {
-            indices[dest_idx].insert(origin_ids.begin(), origin_ids.end());
+    for (const auto& r_local_indices : result) {
+        for (IndexType i = 0; i < NumNodesDestination; ++i) {
+            indices[i].insert(
+                r_local_indices[i].begin(),
+                r_local_indices[i].end());
         }
     }
 
@@ -89,21 +118,24 @@ void ConstructMatrixStructure(Kratos::unique_ptr<typename MappingSparseSpaceType
     for (IndexType i=0; i<NumNodesDestination; ++i) {
         p_matrix_row_indices[i+1] = p_matrix_row_indices[i] + indices[i].size();
     }
+    
+    IndexPartition<IndexType>(NumNodesDestination).for_each(
+        [&](IndexType i) {
+            const IndexType row_begin = p_matrix_row_indices[i];
+            const IndexType row_end = p_matrix_row_indices[i + 1];
 
-    for (IndexType i=0; i<NumNodesDestination; ++i) {
-        const IndexType row_begin = p_matrix_row_indices[i];
-        const IndexType row_end = p_matrix_row_indices[i+1];
-        IndexType j = row_begin;
-        for (const auto index : indices[i]) {
-            p_matrix_col_indices[j] = index;
-            p_matrix_values[j] = 0.0;
-            ++j;
+            IndexType j = row_begin;
+            for (const auto index : indices[i]) {
+                p_matrix_col_indices[j] = index;
+                p_matrix_values[j] = 0.0;
+                ++j;
+            }
+
+            indices[i].clear();
+
+            std::sort(&p_matrix_col_indices[row_begin], &p_matrix_col_indices[row_end]);
         }
-
-        indices[i].clear(); //deallocating the memory // TODO necessary?
-
-        std::sort(&p_matrix_col_indices[row_begin], &p_matrix_col_indices[row_end]);
-    }
+    );  
 
     p_Mdo->set_filled(indices.size()+1, num_non_zero_entries);
 
@@ -113,27 +145,29 @@ void ConstructMatrixStructure(Kratos::unique_ptr<typename MappingSparseSpaceType
 void BuildMatrix(Kratos::unique_ptr<typename MappingSparseSpaceType::MatrixType>& rpMdo,
                  std::vector<Kratos::unique_ptr<MapperLocalSystem>>& rMapperLocalSystems)
 {
-    MatrixType local_mapping_matrix;
-    EquationIdVectorType origin_ids;
-    EquationIdVectorType destination_ids;
+    struct TLS {
+        MatrixType local_mapping_matrix;
+        EquationIdVectorType origin_ids;
+        EquationIdVectorType destination_ids;
+    };
 
-    for (auto& r_local_sys : rMapperLocalSystems) { // TODO omp
+    block_for_each(rMapperLocalSystems, TLS(), [&rpMdo] (auto& r_local_sys, TLS& rTls){
 
-        r_local_sys->CalculateLocalSystem(local_mapping_matrix, origin_ids, destination_ids);
+        r_local_sys->CalculateLocalSystem(rTls.local_mapping_matrix, rTls.origin_ids, rTls.destination_ids);
 
-        KRATOS_DEBUG_ERROR_IF(local_mapping_matrix.size1() != destination_ids.size()) << "MappingMatrixAssembly: DestinationID vector size mismatch: LocalMappingMatrix-Size1: " << local_mapping_matrix.size1() << " | DestinationIDs-size: " << destination_ids.size() << std::endl;
-        KRATOS_DEBUG_ERROR_IF(local_mapping_matrix.size2() != origin_ids.size()) << "MappingMatrixAssembly: OriginID vector size mismatch: LocalMappingMatrix-Size2: " << local_mapping_matrix.size2() << " | OriginIDs-size: " << origin_ids.size() << std::endl;
+        KRATOS_DEBUG_ERROR_IF(rTls.local_mapping_matrix.size1() != rTls.destination_ids.size()) << "MappingMatrixAssembly: DestinationID vector size mismatch: LocalMappingMatrix-Size1: " << rTls.local_mapping_matrix.size1() << " | DestinationIDs-size: " << rTls.destination_ids.size() << std::endl;
+        KRATOS_DEBUG_ERROR_IF(rTls.local_mapping_matrix.size2() != rTls.origin_ids.size()) << "MappingMatrixAssembly: OriginID vector size mismatch: LocalMappingMatrix-Size2: " << rTls.local_mapping_matrix.size2() << " | OriginIDs-size: " << rTls.origin_ids.size() << std::endl;
 
-        for (IndexType i=0; i<destination_ids.size(); ++i) {
-            for (IndexType j=0; j<origin_ids.size(); ++j) {
-                // #pragma omp atomic
-                (*rpMdo)(destination_ids[i], origin_ids[j]) += local_mapping_matrix(i,j);
+        for (IndexType i = 0; i < rTls.destination_ids.size(); ++i) {
+            for (IndexType j = 0; j < rTls.origin_ids.size(); ++j) {
+                AtomicAdd((*rpMdo)(rTls.destination_ids[i], rTls.origin_ids[j]).ref(), rTls.local_mapping_matrix(i,j));
             }
         }
 
         r_local_sys->Clear();
-    }
-}
+    });
+
+} 
 
 } // anonymous namespace
 

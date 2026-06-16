@@ -14,7 +14,13 @@
 
 // Application includes
 #include "geo_mechanics_application.h"
+
+#include "custom_constitutive/coulomb_yield_surface.h"
+#include "custom_constitutive/tension_cutoff.h"
+#include "custom_constitutive/thermal_filter_law.h"
 #include "custom_retention/saturated_below_phreatic_level_law.h"
+#include "custom_retention/saturated_law.h"
+#include "custom_retention/van_genuchten_law.h"
 
 namespace Kratos
 {
@@ -140,6 +146,8 @@ void KratosGeoMechanicsApplication::Register()
     KRATOS_REGISTER_ELEMENT("Geo_USurfaceInterfaceElement4Plus4N", mUPwSurfaceInterfaceElement4Plus4N)
     KRATOS_REGISTER_ELEMENT("Geo_USurfaceInterfaceElement6Plus6N", mUPwSurfaceInterfaceElement6Plus6N)
     KRATOS_REGISTER_ELEMENT("Geo_USurfaceInterfaceElement8Plus8N", mUPwSurfaceInterfaceElement8Plus8N)
+    KRATOS_REGISTER_ELEMENT("Geo_UPwLineInterfacePlaneStrainDiffOrderElement3Plus3N",
+                            mUPwLineInterfacePlaneStrainDiffOrderElement3Plus3N)
 
     // Updated-Lagrangian elements
     KRATOS_REGISTER_ELEMENT("UPwUpdatedLagrangianElement2D3N", mUPwUpdatedLagrangianElement2D3N)
@@ -192,9 +200,6 @@ void KratosGeoMechanicsApplication::Register()
 
     KRATOS_REGISTER_ELEMENT("UPwUpdatedLagrangianAxisymmetricFICElement2D3N", mUPwUpdatedLagrangianAxisymmetricFICElement2D3N)
     KRATOS_REGISTER_ELEMENT("UPwUpdatedLagrangianAxisymmetricFICElement2D4N", mUPwUpdatedLagrangianAxisymmetricFICElement2D4N)
-
-    // Register geo structural elements
-    KRATOS_REGISTER_ELEMENT("GeoCrBeamElementLinear2D2N", mGeoCrBeamElementLinear2D2N)
 
     // Register thermal elements
     KRATOS_REGISTER_ELEMENT("GeoTransientThermalElement2D3N", mTransientThermalElement2D3N)
@@ -329,8 +334,6 @@ void KratosGeoMechanicsApplication::Register()
     KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoLinearElasticPlaneStrain2DLaw", mLinearElasticPlaneStrain2DLaw)
     KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoIncrementalLinearElastic3DLaw", mLinearElastic3DLaw)
 
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoLinearElasticPlaneStress2DLaw", mLinearElasticPlaneStress2DLaw)
-
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainUDSM3DLaw", mSmallStrainUDSM3DLaw)
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainUDSM2DPlaneStrainLaw", mSmallStrainUDSM2DPlaneStrainLaw)
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainUDSM2DInterfaceLaw", mSmallStrainUDSM2DInterfaceLaw)
@@ -346,17 +349,20 @@ void KratosGeoMechanicsApplication::Register()
     KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElastic2DInterfaceLaw", mLinearElastic2DInterfaceLaw)
     KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElastic3DInterfaceLaw", mLinearElastic3DInterfaceLaw)
 
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElastic2DBeamLaw", mLinearElastic2DBeamLaw)
     KRATOS_REGISTER_CONSTITUTIVE_LAW("TrussBackboneConstitutiveLaw", mTrussBackboneConstitutiveLaw)
 
     KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoIncrementalLinearElasticInterfaceLaw", mIncrementalLinearElasticInterfaceLaw)
     KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoIncrementalLinearElasticInterface3DSurfaceLaw",
                                      mIncrementalLinearElasticInterface3DSurfaceLaw)
 
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoMohrCoulombWithTensionCutOff2D", mMohrCoulombWithTensionCutOff2D)
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoMohrCoulombWithTensionCutOff3D", mMohrCoulombWithTensionCutOff3D)
+    // Deprecated! Keeping the old names for backward compatibility, but will be removed.
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoMohrCoulombWithTensionCutOff2D", mMohrCoulombLawPlaneStrain)
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoMohrCoulombWithTensionCutOff3D", mMohrCoulombLaw3D)
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoInterfaceCoulombWithTensionCutOff", mInterfaceCoulombLawPlaneStrain)
 
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoInterfaceCoulombWithTensionCutOff", mInterfaceCoulombWithTensionCutOff)
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoMohrCoulombLawPlaneStrain", mMohrCoulombLawPlaneStrain)
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoMohrCoulombLaw3D", mMohrCoulombLaw3D)
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoInterfaceCoulombLawPlaneStrain", mInterfaceCoulombLawPlaneStrain)
 
     // Register Variables
     KRATOS_REGISTER_VARIABLE(VELOCITY_COEFFICIENT)
@@ -377,6 +383,7 @@ void KratosGeoMechanicsApplication::Register()
     KRATOS_REGISTER_VARIABLE(GEO_COHESION)
     KRATOS_REGISTER_VARIABLE(GEO_FRICTION_ANGLE)
     KRATOS_REGISTER_VARIABLE(GEO_DILATANCY_ANGLE)
+    KRATOS_REGISTER_VARIABLE(GEO_ENABLE_TENSION_CUT_OFF)
     KRATOS_REGISTER_VARIABLE(GEO_TENSILE_STRENGTH)
     KRATOS_REGISTER_VARIABLE(GEO_COULOMB_HARDENING_TYPE)
     KRATOS_REGISTER_VARIABLE(GEO_COHESION_FUNCTION_COEFFICIENTS)
@@ -420,6 +427,10 @@ void KratosGeoMechanicsApplication::Register()
     KRATOS_REGISTER_VARIABLE(OCR)
     KRATOS_REGISTER_VARIABLE(POISSON_UNLOADING_RELOADING)
     KRATOS_REGISTER_VARIABLE(POP)
+    KRATOS_REGISTER_VARIABLE(GEO_POISSON_UNDRAINED)
+    KRATOS_REGISTER_VARIABLE(GEO_SKEMPTON_B)
+
+    KRATOS_REGISTER_VARIABLE(GEO_DRAINAGE_TYPE)
 
     KRATOS_REGISTER_VARIABLE(ACCUMULATED_STRAIN)
 
@@ -473,7 +484,6 @@ void KratosGeoMechanicsApplication::Register()
     KRATOS_REGISTER_VARIABLE(BIOT_COEFFICIENT)
     KRATOS_REGISTER_VARIABLE(PLATE_SHAPE_CORRECTION_FACTOR)
 
-    KRATOS_REGISTER_VARIABLE(RESET_DISPLACEMENTS)
     KRATOS_REGISTER_VARIABLE(CONSIDER_GEOMETRIC_STIFFNESS)
 
     KRATOS_REGISTER_VARIABLE(CONSIDER_GAP_CLOSURE)
@@ -601,9 +611,22 @@ void KratosGeoMechanicsApplication::Register()
     KRATOS_REGISTER_VARIABLE(INTERFACE_SHEAR_STIFFNESS)
 
     KRATOS_REGISTER_VARIABLE(GEO_SHEAR_CAPACITY)
+    KRATOS_REGISTER_VARIABLE(GEO_PLASTICITY_STATUS)
 
     Serializer::Register("PlaneStrain", PlaneStrain{});
-    Serializer::Register("PlaneStrainStressState", PlaneStrainStressState{});
+    Serializer::Register("ThreeDimensional", ThreeDimensional{});
     Serializer::Register("SaturatedBelowPhreaticLevelLaw", SaturatedBelowPhreaticLevelLaw{});
+    Serializer::Register("SaturatedLaw", SaturatedLaw{});
+    Serializer::Register("VanGenuchtenLaw", VanGenuchtenLaw{});
+    Serializer::Register("PlaneStrainStressState", PlaneStrainStressState{});
+    Serializer::Register("ThreeDimensionalStressState", ThreeDimensionalStressState{});
+    Serializer::Register("AxisymmetricStressState", AxisymmetricStressState{});
+    Serializer::Register("Line2DInterfaceStressState", Line2DInterfaceStressState{});
+    Serializer::Register("SurfaceInterfaceStressState", SurfaceInterfaceStressState{});
+    Serializer::Register("InterfacePlaneStrain", InterfacePlaneStrain{});
+    Serializer::Register("InterfaceThreeDimensionalSurface", InterfaceThreeDimensionalSurface{});
+    Serializer::Register("CoulombYieldSurface", CoulombYieldSurface{});
+    Serializer::Register("TensionCutoff", TensionCutoff{});
+    Serializer::Register("GeoThermalFilterLaw", GeoThermalFilterLaw{});
 }
 } // namespace Kratos.

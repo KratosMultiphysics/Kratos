@@ -106,6 +106,10 @@ public:
                                       std::vector<Matrix>&    rOutput,
                                       const ProcessInfo&      rCurrentProcessInfo) override;
 
+    void CalculateOnIntegrationPoints(const Variable<int>& rVariable,
+                                      std::vector<int>&    rValues,
+                                      const ProcessInfo&) override;
+
     using UPwBaseElement::CalculateOnIntegrationPoints;
 
     std::string Info() const override;
@@ -115,7 +119,7 @@ public:
 protected:
     struct ElementVariables {
         /// Properties variables
-        bool   IgnoreUndrained;
+        bool   IsConstantWaterPressure;
         bool   UseHenckyStrain;
         bool   ConsiderGeometricStiffness;
         double DynamicViscosityInverse;
@@ -190,7 +194,7 @@ protected:
 
     virtual void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
 
-    void CalculateAndAddStiffnessMatrix(MatrixType& rLeftHandSideMatrix, const ElementVariables& rVariables);
+    void CalculateAndAddStiffnessMatrix(MatrixType& rLeftHandSideMatrix, const ElementVariables& rVariables) const;
 
     void CalculateAndAddCouplingMatrix(MatrixType& rLeftHandSideMatrix, const ElementVariables& rVariables);
 
@@ -230,7 +234,7 @@ protected:
     void InitializeNodalPorePressureVariables(ElementVariables& rVariables);
     void InitializeNodalVolumeAccelerationVariables(ElementVariables& rVariables);
 
-    void InitializeProperties(ElementVariables& rVariables);
+    virtual void InitializeProperties(ElementVariables& rVariables);
 
     [[nodiscard]] std::vector<double> CalculateDegreesOfSaturation(const std::vector<double>& rFluidPressures) const;
     [[nodiscard]] std::vector<double> CalculateDerivativesOfSaturation(const std::vector<double>& rFluidPressures) const;

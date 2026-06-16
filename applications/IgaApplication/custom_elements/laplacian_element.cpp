@@ -107,17 +107,17 @@ void LaplacianElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, co
     const GeometryType::ShapeFunctionsGradientsType& r_DN_De = r_geometry.ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
     const Matrix& N_gausspoint = r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod());
 
-    const unsigned int number_of_points = r_geometry.size();
+    const unsigned int number_of_control_points = r_geometry.size();
     const unsigned int dim = r_DN_De[0].size2();
     
     //resizing as needed the LHS
-    if(rLeftHandSideMatrix.size1() != number_of_points)
-        rLeftHandSideMatrix.resize(number_of_points,number_of_points,false);
-    noalias(rLeftHandSideMatrix) = ZeroMatrix(number_of_points,number_of_points); //resetting LHS
+    if(rLeftHandSideMatrix.size1() != number_of_control_points)
+        rLeftHandSideMatrix.resize(number_of_control_points,number_of_control_points,false);
+    noalias(rLeftHandSideMatrix) = ZeroMatrix(number_of_control_points,number_of_control_points); //resetting LHS
 
     // Initialize DN_DX
-    Matrix DN_DX(number_of_points,dim);
-    Vector temp(number_of_points);
+    Matrix DN_DX(number_of_control_points,dim);
+    Vector temp(number_of_control_points);
 
     const double conductivity = this->GetProperties().GetValue(r_diffusivity_var);
 
@@ -135,6 +135,37 @@ void LaplacianElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, co
 
 }
 
+// From modification of lefthandside
+void LaplacianElement::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
+{   
+    KRATOS_TRY
+    ConvectionDiffusionSettings::Pointer p_settings = rCurrentProcessInfo[CONVECTION_DIFFUSION_SETTINGS];
+    auto& r_settings = *p_settings;
+
+    const Variable<double>& r_diffusivity_var = r_settings.GetDiffusionVariable(); // Conductivity
+
+    // reading integration points and local gradients
+    const auto& r_geometry = GetGeometry();
+    const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geometry.IntegrationPoints(this->GetIntegrationMethod());
+    const Matrix& N_gausspoint = r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod());
+
+    const unsigned int number_of_control_points = r_geometry.size();
+    //resizing as needed the LHS
+    if(rMassMatrix.size1() != number_of_control_points)
+        rMassMatrix.resize(number_of_control_points,number_of_control_points,false);
+    noalias(rMassMatrix) = ZeroMatrix(number_of_control_points,number_of_control_points); //resetting M
+
+    const double conductivity = this->GetProperties().GetValue(r_diffusivity_var);
+
+    for(IndexType i_point = 0; i_point < r_integration_points.size(); ++i_point)
+    {
+        auto N = row(N_gausspoint,i_point);
+        const double int_to_reference_weight = r_integration_points[i_point].Weight(); // * std::abs(DetJ0);
+
+        noalias(rMassMatrix) += int_to_reference_weight * conductivity * outer_prod(N, N);
+    }
+    KRATOS_CATCH("")
+}
 
 // From classical Laplacian
 void LaplacianElement::CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
@@ -155,21 +186,21 @@ void LaplacianElement::CalculateRightHandSide(VectorType& rRightHandSideVector, 
     const GeometryType::ShapeFunctionsGradientsType& r_DN_De = r_geometry.ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
     const Matrix& N_gausspoint = r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod());
 
-    const unsigned int number_of_points = r_geometry.size();
+    const unsigned int number_of_control_points = r_geometry.size();
     const unsigned int dim = r_DN_De[0].size2();
     
     // resizing as needed the RHS
-    if(rRightHandSideVector.size() != number_of_points)
-        rRightHandSideVector.resize(number_of_points,false);
-    noalias(rRightHandSideVector) = ZeroVector(number_of_points); //resetting RHS
+    if(rRightHandSideVector.size() != number_of_control_points)
+        rRightHandSideVector.resize(number_of_control_points,false);
+    noalias(rRightHandSideVector) = ZeroVector(number_of_control_points); //resetting RHS
 
     // Initialize DN_DX
-    Matrix DN_DX(number_of_points,dim);
+    Matrix DN_DX(number_of_control_points,dim);
 
     const double heat_flux = this->GetValue(r_volume_source_var);
 
-    Vector temperature_old_iteration(number_of_points);
-    for (IndexType i = 0; i < number_of_points; i++) {
+    Vector temperature_old_iteration(number_of_control_points);
+    for (IndexType i = 0; i < number_of_control_points; i++) {
         temperature_old_iteration[i] = r_geometry[i].GetSolutionStepValue(r_unknown_var);
     }
 
@@ -181,8 +212,37 @@ void LaplacianElement::CalculateRightHandSide(VectorType& rRightHandSideVector, 
         const double int_to_reference_weight = r_integration_points[i_point].Weight(); // * std::abs(DetJ0);
 
         noalias(rRightHandSideVector) -= int_to_reference_weight * conductivity * prod(prod(DN_DX, trans(DN_DX)),temperature_old_iteration);
-        noalias(rRightHandSideVector) += int_to_reference_weight * heat_flux * N;
+        noalias(rRightHandSideVector) += int_to_reference_weight * heat_flux * N;    
     }
+
+    KRATOS_CATCH("")
+}
+
+void LaplacianElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    ConvectionDiffusionSettings::Pointer p_settings = rCurrentProcessInfo[CONVECTION_DIFFUSION_SETTINGS];
+    auto& r_settings = *p_settings;
+
+    const Variable<double>& r_unknown_var = r_settings.GetUnknownVariable();
+    const auto& r_gradient_var = r_settings.GetGradientVariable();
+
+    auto& r_geometry = const_cast<GeometryType&>(GetGeometry());
+    const auto& r_DN_De = r_geometry.ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
+
+    const unsigned int number_of_control_points = r_geometry.size();
+    const unsigned int dim = r_DN_De[0].size2();
+
+    array_1d<double,3> grad_unknown = ZeroVector(3);
+    for (IndexType i = 0; i < number_of_control_points; ++i) {
+        const double value = r_geometry[i].FastGetSolutionStepValue(r_unknown_var);
+        for (unsigned int d = 0; d < dim; ++d) {
+            grad_unknown[d] += r_DN_De[0](i, d) * value;
+        }
+    }
+
+    r_geometry.SetValue(r_gradient_var, grad_unknown);
 
     KRATOS_CATCH("")
 }
