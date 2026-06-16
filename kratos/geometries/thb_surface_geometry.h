@@ -88,9 +88,9 @@ public:
         : BaseType(rThisPoints)
     {
         mLevels.push_back(THBLevel{PolynomialDegreeU, PolynomialDegreeV, rKnotsU, rKnotsV, {}});
-        const SizeType nU = rKnotsU.size() - PolynomialDegreeU + 1;
-        const SizeType nV = rKnotsV.size() - PolynomialDegreeV + 1;
-        mActiveFunctions.push_back(std::vector<bool>(nU * nV, true));
+        const SizeType num_cps_u = rKnotsU.size() - PolynomialDegreeU + 1;
+        const SizeType num_cps_v = rKnotsV.size() - PolynomialDegreeV + 1;
+        mActiveFunctions.push_back(std::vector<bool>(num_cps_u * num_cps_v, true));
     }
 
     /// Constructs the initial level-0 NURBS surface (with weights).
@@ -107,9 +107,9 @@ public:
             << "Number of control points and weights do not match!" << std::endl;
 
         mLevels.push_back(THBLevel{PolynomialDegreeU, PolynomialDegreeV, rKnotsU, rKnotsV, rWeights});
-        const SizeType nU = rKnotsU.size() - PolynomialDegreeU + 1;
-        const SizeType nV = rKnotsV.size() - PolynomialDegreeV + 1;
-        mActiveFunctions.push_back(std::vector<bool>(nU * nV, true));
+        const SizeType num_cps_u = rKnotsU.size() - PolynomialDegreeU + 1;
+        const SizeType num_cps_v = rKnotsV.size() - PolynomialDegreeV + 1;
+        mActiveFunctions.push_back(std::vector<bool>(num_cps_u * num_cps_v, true));
     }
 
     ~THBSurfaceGeometry() override = default;
@@ -151,9 +151,9 @@ public:
     {
         KRATOS_ERROR_IF(mLevels.empty())
             << "THBSurfaceGeometry::AddLevel: no base level defined." << std::endl;
-        for (SizeType n = 0; n < NLevels; ++n) {
-            const THBLevel& prev = mLevels.back();
-            AddLevel(BisectKnots(prev.KnotsU), BisectKnots(prev.KnotsV));
+        for (SizeType i = 0; i < NLevels; ++i) {
+            const THBLevel& previous_level = mLevels.back();
+            AddLevel(BisectKnots(previous_level.KnotsU), BisectKnots(previous_level.KnotsV));
         }
     }
 
@@ -162,9 +162,9 @@ public:
     {
         KRATOS_ERROR_IF(mLevels.empty())
             << "THBSurfaceGeometry::AddLevel: no base level defined." << std::endl;
-        for (SizeType n = 0; n < NLevels; ++n) {
-            const THBLevel& prev = mLevels.back();
-            AddLevel(BisectKnots(prev.KnotsU), BisectKnots(prev.KnotsV), rModelPart);
+        for (SizeType i = 0; i < NLevels; ++i) {
+            const THBLevel& previous_level = mLevels.back();
+            AddLevel(BisectKnots(previous_level.KnotsU), BisectKnots(previous_level.KnotsV), rModelPart);
         }
     }
 
@@ -210,44 +210,43 @@ public:
             << "THBSurfaceGeometry::EliminateInactiveFunctions: no refinement domains defined — "
                "call AddRefinementDomain first." << std::endl;
 
-        const SizeType p = mLevels[0].DegreeU;
-        const SizeType q = mLevels[0].DegreeV;
-        const SizeType nLevels = mLevels.size();
+        const SizeType polynomial_degree_u = mLevels[0].DegreeU;
+        const SizeType polynomial_degree_v = mLevels[0].DegreeV;
+        const SizeType num_levels = mLevels.size();
 
-        mActiveOffset.resize(nLevels);
-        mActiveLocalIndex.resize(nLevels);
+        mActiveOffset.resize(num_levels);
+        mActiveLocalIndex.resize(num_levels);
 
         PointsArrayType packed_points;
         SizeType running_offset = 0;
 
-        for (SizeType l = 0; l < nLevels; ++l) {
-            const SizeType nU    = mLevels[l].KnotsU.size() - p + 1;
-            const SizeType nV    = mLevels[l].KnotsV.size() - q + 1;
-            const SizeType total = nU * nV;
-            const SizeType old_offset = ControlPointOffset(l);  // cumulative before compaction
+        for (SizeType l = 0; l < num_levels; ++l) {
+            const SizeType num_cps_u_at_level =
+                mLevels[l].KnotsU.size() - polynomial_degree_u + 1;
+            const SizeType num_cps_v_at_level =
+                mLevels[l].KnotsV.size() - polynomial_degree_v + 1;
+            const SizeType num_cps_at_level = num_cps_u_at_level * num_cps_v_at_level;
+            const SizeType level_offset = ControlPointOffset(l);
 
             mActiveOffset[l] = running_offset;
-            mActiveLocalIndex[l].assign(total, -1);
+            mActiveLocalIndex[l].assign(num_cps_at_level, -1);
 
-            int packed = 0;
-            for (SizeType flat = 0; flat < total; ++flat) {
-                auto p_node = this->pGetPoint(old_offset + flat);
+            int packed_count = 0;
+            for (SizeType flat = 0; flat < num_cps_at_level; ++flat) {
+                auto p_node = this->pGetPoint(level_offset + flat);
                 if (mActiveFunctions[l][flat]) {
-                    mActiveLocalIndex[l][flat] = packed++;
+                    mActiveLocalIndex[l][flat] = packed_count++;
                     packed_points.push_back(p_node);
                 } else {
                     if (rModelPart.HasNode(p_node->Id()))
                         rModelPart.RemoveNode(p_node->Id());
                 }
             }
-            running_offset += static_cast<SizeType>(packed);
+            running_offset += static_cast<SizeType>(packed_count);
         }
 
         this->Points() = packed_points;
         mIsEliminated = true;
-
-        // Refinement matrices are only needed during setup (AddLevel → AddRefinementDomain).
-        // Release them now to free memory.
     }
 
     ///@}
@@ -302,12 +301,12 @@ public:
     /// Returns the finest level whose refinement domain contains (u, v), or 0 if none.
     SizeType ActiveLevelAtPoint(double u, double v) const
     {
-        SizeType active = 0;
+        SizeType active_level = 0;
         for (SizeType l = 1; l < mLevels.size(); ++l) {
             if (IsInsideDomain(u, v, l))
-                active = l;
+                active_level = l;
         }
-        return active;
+        return active_level;
     }
 
     /// Maps (level, flat-index-within-level) to the index in the packed Points() array.
@@ -370,36 +369,39 @@ public:
         IntegrationPointsArrayType& rIntegrationPoints,
         IntegrationInfo& rIntegrationInfo) const override
     {
-        const SizeType p = PolynomialDegree(0);
-        const SizeType q = PolynomialDegree(1);
-        const SizeType points_u = p + 1;
-        const SizeType points_v = q + 1;
+        const SizeType points_in_u = PolynomialDegree(0) + 1;
+        const SizeType points_in_v = PolynomialDegree(1) + 1;
 
         rIntegrationPoints.clear();
 
-        IntegrationPointsArrayType span_ips(points_u * points_v);
+        IntegrationPointsArrayType span_ips(points_in_u * points_in_v);
 
         for (SizeType l = 0; l < mLevels.size(); ++l) {
-            auto spans_u = KnotSpanIntervals(mLevels[l].KnotsU);
-            auto spans_v = KnotSpanIntervals(mLevels[l].KnotsV);
+            const auto knot_span_intervals_u = KnotSpanIntervals(mLevels[l].KnotsU);
+            const auto knot_span_intervals_v = KnotSpanIntervals(mLevels[l].KnotsV);
 
-            for (const auto& su : spans_u) {
-                for (const auto& sv : spans_v) {
-                    const double mid_u = 0.5 * (su.GetT0() + su.GetT1());
-                    const double mid_v = 0.5 * (sv.GetT0() + sv.GetT1());
+            for (const auto& span_u : knot_span_intervals_u) {
+                for (const auto& span_v : knot_span_intervals_v) {
+                    const double span_mid_u = 0.5 * (span_u.GetT0() + span_u.GetT1());
+                    const double span_mid_v = 0.5 * (span_v.GetT0() + span_v.GetT1());
 
                     // Active at level l: inside Omega^l (or level 0), AND not refined further
-                    const bool in_this_level = (l == 0) || IsInsideDomain(mid_u, mid_v, l);
-                    const bool in_next_level = (l + 1 < mLevels.size()) && IsInsideDomain(mid_u, mid_v, l + 1);
+                    const bool in_this_level =
+                        (l == 0) || IsInsideDomain(span_mid_u, span_mid_v, l);
+                    const bool in_next_level =
+                        (l + 1 < mLevels.size()) &&
+                        IsInsideDomain(span_mid_u, span_mid_v, l + 1);
 
                     if (!in_this_level || in_next_level)
                         continue;
 
-                    auto it = span_ips.begin();
+                    typename IntegrationPointsArrayType::iterator integration_point_iterator =
+                        span_ips.begin();
                     IntegrationPointUtilities::IntegrationPoints2D(
-                        it, points_u, points_v,
-                        su.GetT0(), su.GetT1(),
-                        sv.GetT0(), sv.GetT1());
+                        integration_point_iterator,
+                        points_in_u, points_in_v,
+                        span_u.GetT0(), span_u.GetT1(),
+                        span_v.GetT0(), span_v.GetT1());
 
                     for (const auto& ip : span_ips)
                         rIntegrationPoints.push_back(ip);
@@ -415,10 +417,6 @@ public:
      * THBSurfaceShapeFunction evaluates the B-spline shape functions at that
      * level.  The resulting nonzero control points are looked up from the packed
      * Points() array (works both before and after EliminateInactiveFunctions).
-     *
-     * @note Truncation is applied via THBSurfaceShapeFunction::ApplyTruncation,
-     *       which subtracts the active fine-level contributions from straddling
-     *       coarse CPs, producing true THB shape functions.
      */
     void CreateQuadraturePointGeometries(
         GeometriesArrayType& rResultGeometries,
@@ -430,44 +428,44 @@ public:
             rResultGeometries.resize(rIntegrationPoints.size());
 
         auto default_method = this->GetDefaultIntegrationMethod();
-        const SizeType p = PolynomialDegree(0);
-        const SizeType q = PolynomialDegree(1);
 
-        THBSurfaceShapeFunction sf(p, q, NumberOfShapeFunctionDerivatives);
+        THBSurfaceShapeFunction shape_function_container(
+            PolynomialDegree(0), PolynomialDegree(1), NumberOfShapeFunctionDerivatives);
 
         for (IndexType i = 0; i < rIntegrationPoints.size(); ++i) {
             const double u = rIntegrationPoints[i][0];
             const double v = rIntegrationPoints[i][1];
 
-            sf.ComputeShapeFunctionValues(*this, u, v);
+            shape_function_container.ComputeShapeFunctionValues(*this, u, v);
 
-            const SizeType num_nonzero = sf.NumberOfNonzeroControlPoints();
-            const auto& cp_indices = sf.ControlPointIndices();
+            const SizeType num_nonzero_cps = shape_function_container.NumberOfNonzeroControlPoints();
+            const auto& cp_indices = shape_function_container.ControlPointIndices();
 
-            PointsArrayType nonzero_control_points(num_nonzero);
-            for (IndexType j = 0; j < num_nonzero; ++j)
+            PointsArrayType nonzero_control_points(num_nonzero_cps);
+            for (IndexType j = 0; j < num_nonzero_cps; ++j)
                 nonzero_control_points(j) = this->pGetPoint(cp_indices[j]);
 
-            Matrix N(1, num_nonzero);
-            for (IndexType j = 0; j < num_nonzero; ++j)
-                N(0, j) = sf(j, 0);
+            Matrix N(1, num_nonzero_cps);
+            for (IndexType j = 0; j < num_nonzero_cps; ++j)
+                N(0, j) = shape_function_container(j, 0);
 
-            DenseVector<Matrix> sf_derivatives(NumberOfShapeFunctionDerivatives - 1);
+            DenseVector<Matrix> shape_function_derivatives(NumberOfShapeFunctionDerivatives - 1);
             for (IndexType n = 0; n < NumberOfShapeFunctionDerivatives - 1; ++n)
-                sf_derivatives[n].resize(num_nonzero, n + 2);
+                shape_function_derivatives[n].resize(num_nonzero_cps, n + 2);
 
             if (NumberOfShapeFunctionDerivatives > 0) {
-                IndexType deriv_index = 1;
+                IndexType shape_derivative_index = 1;
                 for (IndexType n = 0; n < NumberOfShapeFunctionDerivatives - 1; ++n) {
                     for (IndexType k = 0; k < n + 2; ++k)
-                        for (IndexType j = 0; j < num_nonzero; ++j)
-                            sf_derivatives[n](j, k) = sf(j, deriv_index + k);
-                    deriv_index += n + 2;
+                        for (IndexType j = 0; j < num_nonzero_cps; ++j)
+                            shape_function_derivatives[n](j, k) =
+                                shape_function_container(j, shape_derivative_index + k);
+                    shape_derivative_index += n + 2;
                 }
             }
 
             GeometryShapeFunctionContainer<GeometryData::IntegrationMethod> data_container(
-                default_method, rIntegrationPoints[i], N, sf_derivatives);
+                default_method, rIntegrationPoints[i], N, shape_function_derivatives);
 
             rResultGeometries(i) = CreateQuadraturePointsUtility<NodeType>::CreateQuadraturePoint(
                 this->WorkingSpaceDimension(), 2, data_container, nonzero_control_points, this);
@@ -478,15 +476,17 @@ public:
         CoordinatesArrayType& rResult,
         const CoordinatesArrayType& rLocalCoordinates) const override
     {
-        THBSurfaceShapeFunction sf(PolynomialDegree(0), PolynomialDegree(1), 0);
-        sf.ComputeShapeFunctionValues(*this, rLocalCoordinates[0], rLocalCoordinates[1]);
+        THBSurfaceShapeFunction shape_function_container(
+            PolynomialDegree(0), PolynomialDegree(1), 0);
+        shape_function_container.ComputeShapeFunctionValues(
+            *this, rLocalCoordinates[0], rLocalCoordinates[1]);
 
         noalias(rResult) = ZeroVector(3);
-        const auto& cp_indices = sf.ControlPointIndices();
-        for (SizeType j = 0; j < sf.NumberOfNonzeroControlPoints(); ++j) {
+        const auto& cp_indices = shape_function_container.ControlPointIndices();
+        for (SizeType j = 0; j < shape_function_container.NumberOfNonzeroControlPoints(); ++j) {
             const CoordinatesArrayType& cp = this->GetPoint(cp_indices[j]);
             for (SizeType d = 0; d < 3; ++d)
-                rResult[d] += sf(j, 0) * cp[d];
+                rResult[d] += shape_function_container(j, 0) * cp[d];
         }
         return rResult;
     }
@@ -543,7 +543,6 @@ private:
 
     std::vector<std::vector<TruncationEntryContainer>> mTruncationData;
 
-
     ///@}
     ///@name Private Helpers
     ///@{
@@ -562,46 +561,49 @@ private:
         KRATOS_ERROR_IF(mIsEliminated)
             << "THBSurfaceGeometry::AddLevel: cannot add levels after EliminateInactiveFunctions." << std::endl;
 
-        const SizeType l = mLevels.size() - 1;
-        const THBLevel& prev = mLevels[l];
-        const SizeType p = prev.DegreeU;
-        const SizeType q = prev.DegreeV;
-        const SizeType n_u_old = prev.KnotsU.size() - p + 1;
-        const SizeType n_v_old = prev.KnotsV.size() - q + 1;
+        const SizeType last_level_index   = mLevels.size() - 1;
+        const THBLevel& previous_level    = mLevels[last_level_index];
+        const SizeType polynomial_degree_u = previous_level.DegreeU;
+        const SizeType polynomial_degree_v = previous_level.DegreeV;
+        const SizeType num_cps_u_coarse    = previous_level.KnotsU.size() - polynomial_degree_u + 1;
+        const SizeType num_cps_v_coarse    = previous_level.KnotsV.size() - polynomial_degree_v + 1;
 
-        const Matrix M_U = ComputeRefinementMatrix1D(prev.KnotsU, rKnotsU, p);
-        const Matrix M_V = ComputeRefinementMatrix1D(prev.KnotsV, rKnotsV, q);
-        const SizeType n_u_new = M_U.size1();
-        const SizeType n_v_new = M_V.size1();
+        const Matrix M_U = ComputeRefinementMatrix1D(previous_level.KnotsU, rKnotsU, polynomial_degree_u);
+        const Matrix M_V = ComputeRefinementMatrix1D(previous_level.KnotsV, rKnotsV, polynomial_degree_v);
+        const SizeType num_cps_u_fine = M_U.size1();
+        const SizeType num_cps_v_fine = M_V.size1();
 
-        const SizeType offset = ControlPointOffset(l);
+        const SizeType coarse_cp_offset = ControlPointOffset(last_level_index);
 
-        IndexType new_id = 1;
+        IndexType next_node_id = 1;
         for (SizeType i = 0; i < this->PointsNumber(); ++i)
-            new_id = std::max(new_id, this->GetPoint(i).Id() + IndexType(1));
+            next_node_id = std::max(next_node_id, this->GetPoint(i).Id() + IndexType(1));
 
         // P'_{j_v, j_u} = sum_{i_v, i_u} M_V[j_v, i_v] * M_U[j_u, i_u] * P_{i_v, i_u}
-        for (SizeType j_v = 0; j_v < n_v_new; ++j_v) {
-            for (SizeType j_u = 0; j_u < n_u_new; ++j_u) {
+        for (SizeType j_v = 0; j_v < num_cps_v_fine; ++j_v) {
+            for (SizeType j_u = 0; j_u < num_cps_u_fine; ++j_u) {
                 double x = 0.0, y = 0.0, z = 0.0;
-                for (SizeType i_v = 0; i_v < n_v_old; ++i_v) {
-                    const double cv = M_V(j_v, i_v);
-                    if (std::abs(cv) < 1e-15) continue;
-                    for (SizeType i_u = 0; i_u < n_u_old; ++i_u) {
-                        const double coeff = cv * M_U(j_u, i_u);
+                for (SizeType i_v = 0; i_v < num_cps_v_coarse; ++i_v) {
+                    const double coeff_v = M_V(j_v, i_v);
+                    if (std::abs(coeff_v) < 1e-15) continue;
+                    for (SizeType i_u = 0; i_u < num_cps_u_coarse; ++i_u) {
+                        const double coeff = coeff_v * M_U(j_u, i_u);
                         if (std::abs(coeff) < 1e-15) continue;
-                        const auto& pt = this->GetPoint(offset + i_v * n_u_old + i_u);
+                        const auto& pt = this->GetPoint(
+                            coarse_cp_offset + i_v * num_cps_u_coarse + i_u);
                         x += coeff * pt.X();
                         y += coeff * pt.Y();
                         z += coeff * pt.Z();
                     }
                 }
-                this->Points().push_back(CreateNode(new_id++, x, y, z));
+                this->Points().push_back(CreateNode(next_node_id++, x, y, z));
             }
         }
 
-        mLevels.push_back(THBLevel{prev.DegreeU, prev.DegreeV, rKnotsU, rKnotsV, rWeights});
-        mActiveFunctions.push_back(std::vector<bool>(n_u_new * n_v_new, true));
+        mLevels.push_back(THBLevel{
+            previous_level.DegreeU, previous_level.DegreeV, rKnotsU, rKnotsV, rWeights});
+        mActiveFunctions.push_back(
+            std::vector<bool>(num_cps_u_fine * num_cps_v_fine, true));
     }
 
     /// Returns a new internal-format knot vector with the midpoint of every unique
@@ -622,22 +624,20 @@ private:
     }
 
     /**
-     * @brief Computes the 1-D B-spline refinement matrix M (size n_fine × n_coarse).
+     * @brief Computes the 1-D B-spline refinement matrix M (n_fine × n_coarse).
      *
      * Given internal-format knot vectors for a coarse and a fine level (fine must be
      * a refinement of coarse), returns the matrix M such that:
      *   P_fine[j] = sum_i  M[j, i] * P_coarse[i]
      *
-     * Algorithm: iterative single-knot insertion.
-     * Works in external (clamped) format internally; inputs/outputs use Kratos
-     * internal format (n + p - 1 knots).
+     * Algorithm: iterative single-knot insertion (Boehm's algorithm).
      */
     static Matrix ComputeRefinementMatrix1D(
         const Vector& rCoarseKnots,
         const Vector& rFineKnots,
-        const SizeType p)
+        const SizeType polynomial_degree)
     {
-        const SizeType n_c = rCoarseKnots.size() - p + 1;
+        const SizeType num_cps_coarse = rCoarseKnots.size() - polynomial_degree + 1;
 
         // Convert internal → external format: prepend/append first/last knot
         auto to_ext = [](const Vector& k) {
@@ -649,64 +649,67 @@ private:
             return ext;
         };
 
-        const std::vector<double> ext_c = to_ext(rCoarseKnots);
-        const std::vector<double> ext_f = to_ext(rFineKnots);
+        const std::vector<double> ext_coarse = to_ext(rCoarseKnots);
+        const std::vector<double> ext_fine   = to_ext(rFineKnots);
 
-        // New knots = ext_f multiset minus ext_c multiset (both sorted)
+        // new_knots = ext_fine multiset minus ext_coarse multiset (both sorted)
         std::vector<double> new_knots;
         {
             SizeType ci = 0;
-            for (SizeType fi = 0; fi < ext_f.size(); ++fi) {
-                if (ci < ext_c.size() && std::abs(ext_f[fi] - ext_c[ci]) < 1e-10) {
+            for (SizeType fi = 0; fi < ext_fine.size(); ++fi) {
+                if (ci < ext_coarse.size() &&
+                    std::abs(ext_fine[fi] - ext_coarse[ci]) < 1e-10) {
                     ++ci;
                 } else {
-                    new_knots.push_back(ext_f[fi]);
+                    new_knots.push_back(ext_fine[fi]);
                 }
             }
         }
 
-        // Start with the n_c × n_c identity; grow to n_f × n_c by inserting knots one by one.
-        Matrix M(n_c, n_c, 0.0);
-        for (SizeType i = 0; i < n_c; ++i) M(i, i) = 1.0;
+        // Start with the num_cps_coarse × num_cps_coarse identity; grow by inserting knots.
+        Matrix M(num_cps_coarse, num_cps_coarse, 0.0);
+        for (SizeType i = 0; i < num_cps_coarse; ++i) M(i, i) = 1.0;
 
-        std::vector<double> cur = ext_c;
-        SizeType n_cur = n_c;
+        std::vector<double> current_knots = ext_coarse;
+        SizeType num_current_cps = num_cps_coarse;
 
         for (const double t : new_knots) {
-            // Span k: last index with cur[k] <= t
-            SizeType k = 0;
-            for (SizeType i = 0; i + 1 < cur.size(); ++i)
-                if (cur[i] <= t + 1e-10) k = i;
+            // knot_span_index: last index with current_knots[k] <= t
+            SizeType knot_span_index = 0;
+            for (SizeType i = 0; i + 1 < current_knots.size(); ++i)
+                if (current_knots[i] <= t + 1e-10) knot_span_index = i;
 
-            // Single-insertion matrix T: (n_cur+1) × n_cur
-            Matrix T(n_cur + 1, n_cur, 0.0);
-            const int ik = static_cast<int>(k);
-            const int ip = static_cast<int>(p);
-            for (int i = 0; i <= static_cast<int>(n_cur); ++i) {
-                if (i <= ik - ip) {
-                    T(i, i) = 1.0;
-                } else if (i > ik) {
-                    T(i, i - 1) = 1.0;
+            // insertion_matrix: (num_current_cps+1) × num_current_cps
+            Matrix insertion_matrix(num_current_cps + 1, num_current_cps, 0.0);
+            const int span_index = static_cast<int>(knot_span_index);
+            const int degree     = static_cast<int>(polynomial_degree);
+            for (int i = 0; i <= static_cast<int>(num_current_cps); ++i) {
+                if (i <= span_index - degree) {
+                    insertion_matrix(i, i) = 1.0;
+                } else if (i > span_index) {
+                    insertion_matrix(i, i - 1) = 1.0;
                 } else {
                     // Blend: alpha * P_i + (1-alpha) * P_{i-1}
-                    const double denom = cur[i + p] - cur[i];
-                    const double alpha = (std::abs(denom) < 1e-15) ? 1.0 : (t - cur[i]) / denom;
-                    if (i < static_cast<int>(n_cur)) T(i, i) = alpha;
-                    if (i > 0) T(i, i - 1) = 1.0 - alpha;
+                    const double knot_span_length =
+                        current_knots[i + polynomial_degree] - current_knots[i];
+                    const double alpha =
+                        (std::abs(knot_span_length) < 1e-15)
+                            ? 1.0
+                            : (t - current_knots[i]) / knot_span_length;
+                    if (i < static_cast<int>(num_current_cps)) insertion_matrix(i, i) = alpha;
+                    if (i > 0) insertion_matrix(i, i - 1) = 1.0 - alpha;
                 }
             }
 
-            M = prod(T, M);
-            cur.insert(cur.begin() + k + 1, t);
-            ++n_cur;
+            M = prod(insertion_matrix, M);
+            current_knots.insert(current_knots.begin() + knot_span_index + 1, t);
+            ++num_current_cps;
         }
 
-        return M;  // size n_f × n_c
+        return M;  // size n_fine × n_coarse
     }
 
     /// Returns unique non-zero knot span intervals from an internal-format knot vector.
-    /// Kratos convention: n + p - 1 knots (one repeated knot dropped from each end
-    /// of the full clamped vector). Iterates the full stored vector for transitions.
     static std::vector<NurbsInterval> KnotSpanIntervals(const Vector& rKnots)
     {
         std::vector<NurbsInterval> result;
@@ -718,7 +721,6 @@ private:
     }
 
     /// Returns true if (u, v) is inside any refinement domain at level >= min_level.
-    /// Used to check whether a knot cell is covered by a finer hierarchy level.
     bool IsInsideRefinedRegion(double u, double v, SizeType min_level) const
     {
         for (const auto& dom : mRefinementDomains)
@@ -732,60 +734,60 @@ private:
     /**
      * @brief Builds truncation coefficient lists for active coarse CPs.
      *
-     * For each active CP i at level l, checks whether any fine CP j at level l+1
-     * has a nonzero refinement coefficient c_{ij} = M_U[j_u,i_u] * M_V[j_v,i_v]
-     * AND is active.  If so, stores {j_flat, c_{ij}} so that the shape function
-     * evaluator can subtract those contributions (truncation).
-     *
-     * A coarse CP that has no active children needs no truncation — its entry list
-     * stays empty.  Called automatically by AddRefinementDomain after
-     * ComputeActiveFunctions.
+     * For each active CP i at level l, stores entries {j_flat, M_U[j_u,i_u]*M_V[j_v,i_v]}
+     * for every active fine CP j at level l+1 with nonzero refinement coefficient.
      */
     void ComputeTruncationData()
     {
-        const SizeType p = mLevels[0].DegreeU;
-        const SizeType q = mLevels[0].DegreeV;
-        const SizeType nL = mLevels.size();
+        const SizeType polynomial_degree_u = mLevels[0].DegreeU;
+        const SizeType polynomial_degree_v = mLevels[0].DegreeV;
+        const SizeType num_levels = mLevels.size();
 
-        mTruncationData.resize(nL);
+        mTruncationData.resize(num_levels);
 
-        for (SizeType l = 0; l + 1 < nL; ++l) {
-            const THBLevel& lev_c = mLevels[l];
-            const THBLevel& lev_f = mLevels[l + 1];
-            const SizeType  nU_c  = lev_c.KnotsU.size() - p + 1;
-            const SizeType  nV_c  = lev_c.KnotsV.size() - q + 1;
-            const SizeType  nU_f  = lev_f.KnotsU.size() - p + 1;
-            const SizeType  nV_f  = lev_f.KnotsV.size() - q + 1;
+        for (SizeType l = 0; l + 1 < num_levels; ++l) {
+            const THBLevel& coarse_level = mLevels[l];
+            const THBLevel& fine_level   = mLevels[l + 1];
+            const SizeType num_cps_u_coarse = coarse_level.KnotsU.size() - polynomial_degree_u + 1;
+            const SizeType num_cps_v_coarse = coarse_level.KnotsV.size() - polynomial_degree_v + 1;
+            const SizeType num_cps_u_fine   = fine_level.KnotsU.size()   - polynomial_degree_u + 1;
+            const SizeType num_cps_v_fine   = fine_level.KnotsV.size()   - polynomial_degree_v + 1;
 
-            const Matrix M_U = ComputeRefinementMatrix1D(lev_c.KnotsU, lev_f.KnotsU, p);
-            const Matrix M_V = ComputeRefinementMatrix1D(lev_c.KnotsV, lev_f.KnotsV, q);
+            const Matrix M_U = ComputeRefinementMatrix1D(
+                coarse_level.KnotsU, fine_level.KnotsU, polynomial_degree_u);
+            const Matrix M_V = ComputeRefinementMatrix1D(
+                coarse_level.KnotsV, fine_level.KnotsV, polynomial_degree_v);
 
-            mTruncationData[l].assign(nU_c * nV_c, TruncationEntryContainer{});
+            mTruncationData[l].assign(
+                num_cps_u_coarse * num_cps_v_coarse, TruncationEntryContainer{});
 
-            for (SizeType i_v = 0; i_v < nV_c; ++i_v) {
-                for (SizeType i_u = 0; i_u < nU_c; ++i_u) {
-                    const SizeType i_flat = i_v * nU_c + i_u;
+            for (SizeType i_v = 0; i_v < num_cps_v_coarse; ++i_v) {
+                for (SizeType i_u = 0; i_u < num_cps_u_coarse; ++i_u) {
+                    const SizeType i_flat = i_v * num_cps_u_coarse + i_u;
                     if (!mActiveFunctions[l][i_flat]) continue;
 
                     auto& entries = mTruncationData[l][i_flat];
-                    for (SizeType j_v = 0; j_v < nV_f; ++j_v) {
-                        const double cv = M_V(j_v, i_v);
-                        if (std::abs(cv) < 1e-15) continue;
-                        for (SizeType j_u = 0; j_u < nU_f; ++j_u) {
-                            const double cu = M_U(j_u, i_u);
-                            if (std::abs(cu) < 1e-15) continue;
-                            const SizeType j_flat = j_v * nU_f + j_u;
+                    for (SizeType j_v = 0; j_v < num_cps_v_fine; ++j_v) {
+                        const double coeff_v = M_V(j_v, i_v);
+                        if (std::abs(coeff_v) < 1e-15) continue;
+                        for (SizeType j_u = 0; j_u < num_cps_u_fine; ++j_u) {
+                            const double coeff_u = M_U(j_u, i_u);
+                            if (std::abs(coeff_u) < 1e-15) continue;
+                            const SizeType j_flat = j_v * num_cps_u_fine + j_u;
                             if (!mActiveFunctions[l + 1][j_flat]) continue;
-                            entries.push_back({j_flat, cu * cv});
+                            entries.push_back({j_flat, coeff_u * coeff_v});
                         }
                     }
                 }
             }
         }
         // Finest level: no truncation (nothing finer to subtract).
-        const SizeType nU_last = mLevels[nL-1].KnotsU.size() - p + 1;
-        const SizeType nV_last = mLevels[nL-1].KnotsV.size() - q + 1;
-        mTruncationData[nL - 1].assign(nU_last * nV_last, TruncationEntryContainer{});
+        const SizeType num_cps_u_finest =
+            mLevels[num_levels - 1].KnotsU.size() - polynomial_degree_u + 1;
+        const SizeType num_cps_v_finest =
+            mLevels[num_levels - 1].KnotsV.size() - polynomial_degree_v + 1;
+        mTruncationData[num_levels - 1].assign(
+            num_cps_u_finest * num_cps_v_finest, TruncationEntryContainer{});
     }
 
     /**
@@ -797,29 +799,18 @@ private:
      *
      * Main loop  l = 0 .. L-2:
      *   For each active CP (i_u, i_v) at level l:
-     *     1. Compute its support [cu_min, cu_max] x [cv_min, cv_max].
-     *     2. Check whether EVERY non-zero cell in the support has its midpoint
-     *        inside a refinement domain at level >= l+1.
-     *        If not → the coarse CP stays active; skip to the next CP.
-     *     3. If all cells are covered → mark the coarse CP INACTIVE and
-     *        activate its children at level l+1.
-     *        A fine CP j is a child of coarse CP i iff
-     *          supp(B_j^{l+1}) ⊆ supp(B_i^l)
-     *        i.e. fu_min >= cu_min AND fu_max <= cu_max (same in v).
-     *        Fine CPs whose support straddles the boundary of the coarse support
-     *        are NOT children and are left inactive; the still-active coarse CPs
-     *        at the boundary already represent that region.
-     *
-     * Cascade: if a newly activated child's support is fully inside Ω^{l+2}, the
-     * next loop iteration (l+1) finds that child's support fully covered, deactivates it,
-     * and activates its own children — no special handling needed.
+     *     1. Compute its support [support_min_u, support_max_u] x [support_min_v, support_max_v].
+     *     2. Check whether EVERY non-zero cell in the support has its midpoint inside
+     *        a refinement domain at level >= l+1.  If not → coarse CP stays active.
+     *     3. If all cells covered → mark coarse CP INACTIVE and activate true children.
+     *        A fine CP j is a child iff supp(B_j^{l+1}) ⊆ supp(B_i^l).
      *
      * Called automatically by AddRefinementDomain.
      */
     void ComputeActiveFunctions()
     {
-        const SizeType p = mLevels[0].DegreeU;
-        const SizeType q = mLevels[0].DegreeV;
+        const SizeType polynomial_degree_u = mLevels[0].DegreeU;
+        const SizeType polynomial_degree_v = mLevels[0].DegreeV;
 
         // Level 0: fully active. Finer levels: start inactive, activated by propagation.
         std::fill(mActiveFunctions[0].begin(), mActiveFunctions[0].end(), true);
@@ -827,53 +818,73 @@ private:
             std::fill(mActiveFunctions[l].begin(), mActiveFunctions[l].end(), false);
 
         for (SizeType l = 0; l + 1 < mLevels.size(); ++l) {
-            const THBLevel& lev_c = mLevels[l];
-            const THBLevel& lev_f = mLevels[l + 1];
-            const SizeType  nU_c  = lev_c.KnotsU.size() - p + 1;
-            const SizeType  nV_c  = lev_c.KnotsV.size() - q + 1;
-            const SizeType  nU_f  = lev_f.KnotsU.size() - p + 1;
-            const SizeType  nV_f  = lev_f.KnotsV.size() - q + 1;
+            const THBLevel& coarse_level = mLevels[l];
+            const THBLevel& fine_level   = mLevels[l + 1];
+            const SizeType num_cps_u_coarse = coarse_level.KnotsU.size() - polynomial_degree_u + 1;
+            const SizeType num_cps_v_coarse = coarse_level.KnotsV.size() - polynomial_degree_v + 1;
+            const SizeType num_cps_u_fine   = fine_level.KnotsU.size()   - polynomial_degree_u + 1;
+            const SizeType num_cps_v_fine   = fine_level.KnotsV.size()   - polynomial_degree_v + 1;
 
-            for (SizeType i_v = 0; i_v < nV_c; ++i_v) {
-                for (SizeType i_u = 0; i_u < nU_c; ++i_u) {
-                    if (!mActiveFunctions[l][i_v * nU_c + i_u]) continue;
+            for (SizeType i_v = 0; i_v < num_cps_v_coarse; ++i_v) {
+                for (SizeType i_u = 0; i_u < num_cps_u_coarse; ++i_u) {
+                    if (!mActiveFunctions[l][i_v * num_cps_u_coarse + i_u]) continue;
 
                     // Support of coarse B_{i_u, i_v}^l
-                    const double cu_min = (i_u == 0) ? lev_c.KnotsU[0] : lev_c.KnotsU[i_u - 1];
-                    const double cu_max = lev_c.KnotsU[std::min(i_u + p, lev_c.KnotsU.size() - 1)];
-                    const double cv_min = (i_v == 0) ? lev_c.KnotsV[0] : lev_c.KnotsV[i_v - 1];
-                    const double cv_max = lev_c.KnotsV[std::min(i_v + q, lev_c.KnotsV.size() - 1)];
+                    const double support_min_u =
+                        (i_u == 0) ? coarse_level.KnotsU[0] : coarse_level.KnotsU[i_u - 1];
+                    const double support_max_u =
+                        coarse_level.KnotsU[std::min(i_u + polynomial_degree_u,
+                                                     coarse_level.KnotsU.size() - 1)];
+                    const double support_min_v =
+                        (i_v == 0) ? coarse_level.KnotsV[0] : coarse_level.KnotsV[i_v - 1];
+                    const double support_max_v =
+                        coarse_level.KnotsV[std::min(i_v + polynomial_degree_v,
+                                                     coarse_level.KnotsV.size() - 1)];
 
                     // Is every cell of this support inside Ω^{≥l+1}?
                     bool all_cells_covered = true;
-                    for (SizeType k_u = 0; k_u + 1 < lev_c.KnotsU.size() && all_cells_covered; ++k_u) {
-                        if (lev_c.KnotsU[k_u + 1] - lev_c.KnotsU[k_u] < 1e-10) continue;
-                        if (lev_c.KnotsU[k_u] < cu_min - 1e-10 || lev_c.KnotsU[k_u + 1] > cu_max + 1e-10) continue;
-                        for (SizeType k_v = 0; k_v + 1 < lev_c.KnotsV.size() && all_cells_covered; ++k_v) {
-                            if (lev_c.KnotsV[k_v + 1] - lev_c.KnotsV[k_v] < 1e-10) continue;
-                            if (lev_c.KnotsV[k_v] < cv_min - 1e-10 || lev_c.KnotsV[k_v + 1] > cv_max + 1e-10) continue;
-                            const double mid_u = 0.5 * (lev_c.KnotsU[k_u] + lev_c.KnotsU[k_u + 1]);
-                            const double mid_v = 0.5 * (lev_c.KnotsV[k_v] + lev_c.KnotsV[k_v + 1]);
-                            if (!IsInsideRefinedRegion(mid_u, mid_v, l + 1))
+                    for (SizeType k_u = 0;
+                         k_u + 1 < coarse_level.KnotsU.size() && all_cells_covered; ++k_u) {
+                        if (coarse_level.KnotsU[k_u + 1] - coarse_level.KnotsU[k_u] < 1e-10) continue;
+                        if (coarse_level.KnotsU[k_u]     < support_min_u - 1e-10) continue;
+                        if (coarse_level.KnotsU[k_u + 1] > support_max_u + 1e-10) continue;
+                        for (SizeType k_v = 0;
+                             k_v + 1 < coarse_level.KnotsV.size() && all_cells_covered; ++k_v) {
+                            if (coarse_level.KnotsV[k_v + 1] - coarse_level.KnotsV[k_v] < 1e-10) continue;
+                            if (coarse_level.KnotsV[k_v]     < support_min_v - 1e-10) continue;
+                            if (coarse_level.KnotsV[k_v + 1] > support_max_v + 1e-10) continue;
+                            const double cell_mid_u =
+                                0.5 * (coarse_level.KnotsU[k_u] + coarse_level.KnotsU[k_u + 1]);
+                            const double cell_mid_v =
+                                0.5 * (coarse_level.KnotsV[k_v] + coarse_level.KnotsV[k_v + 1]);
+                            if (!IsInsideRefinedRegion(cell_mid_u, cell_mid_v, l + 1))
                                 all_cells_covered = false;
                         }
                     }
-                    if (!all_cells_covered) continue; // coarse CP stays active, no propagation
+                    if (!all_cells_covered) continue;
 
                     // Mark coarse CP INACTIVE and activate its true children.
-                    mActiveFunctions[l][i_v * nU_c + i_u] = false;
+                    mActiveFunctions[l][i_v * num_cps_u_coarse + i_u] = false;
 
-                    for (SizeType j_u = 0; j_u < nU_f; ++j_u) {
-                        const double fu_min = (j_u == 0) ? lev_f.KnotsU[0] : lev_f.KnotsU[j_u - 1];
-                        const double fu_max = lev_f.KnotsU[std::min(j_u + p, lev_f.KnotsU.size() - 1)];
-                        if (fu_min < cu_min - 1e-10 || fu_max > cu_max + 1e-10) continue;
+                    for (SizeType j_u = 0; j_u < num_cps_u_fine; ++j_u) {
+                        const double fine_supp_min_u =
+                            (j_u == 0) ? fine_level.KnotsU[0] : fine_level.KnotsU[j_u - 1];
+                        const double fine_supp_max_u =
+                            fine_level.KnotsU[std::min(j_u + polynomial_degree_u,
+                                                       fine_level.KnotsU.size() - 1)];
+                        if (fine_supp_min_u < support_min_u - 1e-10) continue;
+                        if (fine_supp_max_u > support_max_u + 1e-10) continue;
 
-                        for (SizeType j_v = 0; j_v < nV_f; ++j_v) {
-                            const double fv_min = (j_v == 0) ? lev_f.KnotsV[0] : lev_f.KnotsV[j_v - 1];
-                            const double fv_max = lev_f.KnotsV[std::min(j_v + q, lev_f.KnotsV.size() - 1)];
-                            if (fv_min < cv_min - 1e-10 || fv_max > cv_max + 1e-10) continue;
+                        for (SizeType j_v = 0; j_v < num_cps_v_fine; ++j_v) {
+                            const double fine_supp_min_v =
+                                (j_v == 0) ? fine_level.KnotsV[0] : fine_level.KnotsV[j_v - 1];
+                            const double fine_supp_max_v =
+                                fine_level.KnotsV[std::min(j_v + polynomial_degree_v,
+                                                           fine_level.KnotsV.size() - 1)];
+                            if (fine_supp_min_v < support_min_v - 1e-10) continue;
+                            if (fine_supp_max_v > support_max_v + 1e-10) continue;
 
-                            mActiveFunctions[l + 1][j_v * nU_f + j_u] = true;
+                            mActiveFunctions[l + 1][j_v * num_cps_u_fine + j_u] = true;
                         }
                     }
                 }
@@ -894,22 +905,18 @@ private:
     }
 
     /// Returns the number of control points in u for a given level.
-    /// Internal knot format: size = n + p - 1  →  n = size - p + 1
     SizeType NumberOfControlPointsU(SizeType Level) const
     {
-        const SizeType p = mLevels[0].DegreeU;
-        return mLevels[Level].KnotsU.size() - p + 1;
+        return mLevels[Level].KnotsU.size() - mLevels[0].DegreeU + 1;
     }
 
     /// Returns the number of control points in v for a given level.
     SizeType NumberOfControlPointsV(SizeType Level) const
     {
-        const SizeType q = mLevels[0].DegreeV;
-        return mLevels[Level].KnotsV.size() - q + 1;
+        return mLevels[Level].KnotsV.size() - mLevels[0].DegreeV + 1;
     }
 
     /// Returns the index offset into this->Points() where level Level's control points begin.
-    /// Assumes control points are stored level by level (level 0 first, then 1, ...).
     SizeType ControlPointOffset(SizeType Level) const
     {
         SizeType offset = 0;
