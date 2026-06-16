@@ -35,7 +35,7 @@
             "input_filename" : "cooks_membrane_tests/UP_vms_stabilization/cook_membrane_2D_test_Grid"
         },
         "pressure_dofs"                      : true,
-        "stabilization"			     : "asgs"	
+        "stabilization"                    : "asgs"
     },
     "processes"        : {
         "constraints_process_list" : [{
@@ -74,5 +74,5 @@
             }
         }]
    },
-    "analysis_stage"   : "KratosMultiphysics.MPMApplication.particle_mechanics_analysis"
+    "analysis_stage"   : "KratosMultiphysics.MPMApplication.mpm_analysis"
 }
