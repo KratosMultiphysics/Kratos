@@ -21,9 +21,9 @@
             "stage_preprocess": {
                 "modelers": [
                     {
-                        "name": "KratosMultiphysics.modelers.import_mdpa_modeler.ImportMDPAModeler",
+                        "name": "Modelers.KratosMultiphysics.ImportMDPAModeler",
                         "Parameters": {
-                            "input_filename": "../../common/crow_validation_gid",
+                            "input_filename": "../../common/model",
                             "model_part_name": "PorousDomain"
                         }
                     }
@@ -573,8 +573,25 @@
                             "kratos_module": "KratosMultiphysics",
                             "process_name": "JsonOutputProcess",
                             "Parameters": {
-                                "model_part_name": "PorousDomain.Slave_side",
-                                "output_file_name": "3_Wall_installation_interface_output.json",
+                                "model_part_name": "PorousDomain.Sheet_Pile_Wall",
+                                "output_file_name": "3_Wall_installation__output_wall.json",
+                                "output_variables": [
+                                    "BENDING_MOMENT",
+                                    "SHEAR_FORCE",
+                                    "AXIAL_FORCE",
+                                    "TOTAL_DISPLACEMENT"
+                                ],
+                                "gauss_points_output_variables": [],
+                                "time_frequency": 0.9999999999
+                            }
+                        },
+                        {
+                            "python_module": "json_output_process",
+                            "kratos_module": "KratosMultiphysics",
+                            "process_name": "JsonOutputProcess",
+                            "Parameters": {
+                                "model_part_name": "PorousDomain.Right_Side_Of_Right_Interfaces",
+                                "output_file_name": "3_Wall_installation__output_interface.json",
                                 "output_variables": ["GEO_EFFECTIVE_TRACTION_VECTOR"],
                                 "gauss_points_output_variables": [],
                                 "time_frequency": 0.9999999999
@@ -728,20 +745,13 @@
                                         "nodal_results": [
                                             "DISPLACEMENT",
                                             "TOTAL_DISPLACEMENT",
-                                            "ROTATION",
                                             "WATER_PRESSURE",
-                                            "REACTION",
-                                            "AXIAL_FORCE",
-                                            "BENDING_MOMENT",
-                                            "SHEAR_FORCE"
+                                            "REACTION"
                                         ],
                                         "gauss_point_results": [
                                             "CAUCHY_STRESS_TENSOR",
                                             "TOTAL_STRESS_TENSOR",
-                                            "ENGINEERING_STRAIN_TENSOR",
-                                            "AXIAL_FORCE",
-                                            "BENDING_MOMENT",
-                                            "SHEAR_FORCE"
+                                            "ENGINEERING_STRAIN_TENSOR"
                                         ]
                                     }
                                 },
@@ -859,8 +869,25 @@
                             "kratos_module": "KratosMultiphysics",
                             "process_name": "JsonOutputProcess",
                             "Parameters": {
-                                "model_part_name": "PorousDomain.Slave_side",
-                                "output_file_name": "4_First_excavation_interface_output.json",
+                                "model_part_name": "PorousDomain.Sheet_Pile_Wall",
+                                "output_file_name": "4_First_excavation__output_wall.json",
+                                "output_variables": [
+                                    "BENDING_MOMENT",
+                                    "SHEAR_FORCE",
+                                    "AXIAL_FORCE",
+                                    "TOTAL_DISPLACEMENT"
+                                ],
+                                "gauss_points_output_variables": [],
+                                "time_frequency": 0.9999999999
+                            }
+                        },
+                        {
+                            "python_module": "json_output_process",
+                            "kratos_module": "KratosMultiphysics",
+                            "process_name": "JsonOutputProcess",
+                            "Parameters": {
+                                "model_part_name": "PorousDomain.Right_Side_Of_Right_Interfaces",
+                                "output_file_name": "4_First_excavation__output_interface.json",
                                 "output_variables": ["GEO_EFFECTIVE_TRACTION_VECTOR"],
                                 "gauss_points_output_variables": [],
                                 "time_frequency": 0.9999999999
@@ -1028,20 +1055,13 @@
                                         "nodal_results": [
                                             "DISPLACEMENT",
                                             "TOTAL_DISPLACEMENT",
-                                            "ROTATION",
                                             "WATER_PRESSURE",
-                                            "REACTION",
-                                            "AXIAL_FORCE",
-                                            "BENDING_MOMENT",
-                                            "SHEAR_FORCE"
+                                            "REACTION"
                                         ],
                                         "gauss_point_results": [
                                             "CAUCHY_STRESS_TENSOR",
                                             "TOTAL_STRESS_TENSOR",
-                                            "ENGINEERING_STRAIN_TENSOR",
-                                            "AXIAL_FORCE",
-                                            "BENDING_MOMENT",
-                                            "SHEAR_FORCE"
+                                            "ENGINEERING_STRAIN_TENSOR"
                                         ]
                                     }
                                 },
@@ -1158,8 +1178,25 @@
                             "kratos_module": "KratosMultiphysics",
                             "process_name": "JsonOutputProcess",
                             "Parameters": {
-                                "model_part_name": "PorousDomain.Slave_side",
-                                "output_file_name": "5_Anchor_installation_interface_output.json",
+                                "model_part_name": "PorousDomain.Sheet_Pile_Wall",
+                                "output_file_name": "5_Anchor_installation__output_wall.json",
+                                "output_variables": [
+                                    "BENDING_MOMENT",
+                                    "SHEAR_FORCE",
+                                    "AXIAL_FORCE",
+                                    "TOTAL_DISPLACEMENT"
+                                ],
+                                "gauss_points_output_variables": [],
+                                "time_frequency": 0.9999999999
+                            }
+                        },
+                        {
+                            "python_module": "json_output_process",
+                            "kratos_module": "KratosMultiphysics",
+                            "process_name": "JsonOutputProcess",
+                            "Parameters": {
+                                "model_part_name": "PorousDomain.Right_Side_Of_Right_Interfaces",
+                                "output_file_name": "5_Anchor_installation__output_interface.json",
                                 "output_variables": ["GEO_EFFECTIVE_TRACTION_VECTOR"],
                                 "gauss_points_output_variables": [],
                                 "time_frequency": 0.9999999999
@@ -1330,20 +1367,13 @@
                                         "nodal_results": [
                                             "DISPLACEMENT",
                                             "TOTAL_DISPLACEMENT",
-                                            "ROTATION",
                                             "WATER_PRESSURE",
-                                            "REACTION",
-                                            "AXIAL_FORCE",
-                                            "BENDING_MOMENT",
-                                            "SHEAR_FORCE"
+                                            "REACTION"
                                         ],
                                         "gauss_point_results": [
                                             "CAUCHY_STRESS_TENSOR",
                                             "TOTAL_STRESS_TENSOR",
-                                            "ENGINEERING_STRAIN_TENSOR",
-                                            "AXIAL_FORCE",
-                                            "BENDING_MOMENT",
-                                            "SHEAR_FORCE"
+                                            "ENGINEERING_STRAIN_TENSOR"
                                         ]
                                     }
                                 },
@@ -1459,8 +1489,25 @@
                             "kratos_module": "KratosMultiphysics",
                             "process_name": "JsonOutputProcess",
                             "Parameters": {
-                                "model_part_name": "PorousDomain.Slave_side",
-                                "output_file_name": "6_Second_excavation_interface_output.json",
+                                "model_part_name": "PorousDomain.Sheet_Pile_Wall",
+                                "output_file_name": "6_Second_excavation__output_wall.json",
+                                "output_variables": [
+                                    "BENDING_MOMENT",
+                                    "SHEAR_FORCE",
+                                    "AXIAL_FORCE",
+                                    "TOTAL_DISPLACEMENT"
+                                ],
+                                "gauss_points_output_variables": [],
+                                "time_frequency": 0.9999999999
+                            }
+                        },
+                        {
+                            "python_module": "json_output_process",
+                            "kratos_module": "KratosMultiphysics",
+                            "process_name": "JsonOutputProcess",
+                            "Parameters": {
+                                "model_part_name": "PorousDomain.Right_Side_Of_Right_Interfaces",
+                                "output_file_name": "6_Second_excavation__output_interface.json",
                                 "output_variables": ["GEO_EFFECTIVE_TRACTION_VECTOR"],
                                 "gauss_points_output_variables": [],
                                 "time_frequency": 0.9999999999
@@ -1630,20 +1677,13 @@
                                         "nodal_results": [
                                             "DISPLACEMENT",
                                             "TOTAL_DISPLACEMENT",
-                                            "ROTATION",
                                             "WATER_PRESSURE",
-                                            "REACTION",
-                                            "AXIAL_FORCE",
-                                            "BENDING_MOMENT",
-                                            "SHEAR_FORCE"
+                                            "REACTION"
                                         ],
                                         "gauss_point_results": [
                                             "CAUCHY_STRESS_TENSOR",
                                             "TOTAL_STRESS_TENSOR",
-                                            "ENGINEERING_STRAIN_TENSOR",
-                                            "AXIAL_FORCE",
-                                            "BENDING_MOMENT",
-                                            "SHEAR_FORCE"
+                                            "ENGINEERING_STRAIN_TENSOR"
                                         ]
                                     }
                                 },
@@ -1755,8 +1795,25 @@
                             "kratos_module": "KratosMultiphysics",
                             "process_name": "JsonOutputProcess",
                             "Parameters": {
-                                "model_part_name": "PorousDomain.Slave_side",
-                                "output_file_name": "7_Third_excavation_interface_output.json",
+                                "model_part_name": "PorousDomain.Sheet_Pile_Wall",
+                                "output_file_name": "7_Third_excavation__output_wall.json",
+                                "output_variables": [
+                                    "BENDING_MOMENT",
+                                    "SHEAR_FORCE",
+                                    "AXIAL_FORCE",
+                                    "TOTAL_DISPLACEMENT"
+                                ],
+                                "gauss_points_output_variables": [],
+                                "time_frequency": 0.9999999999
+                            }
+                        },
+                        {
+                            "python_module": "json_output_process",
+                            "kratos_module": "KratosMultiphysics",
+                            "process_name": "JsonOutputProcess",
+                            "Parameters": {
+                                "model_part_name": "PorousDomain.Right_Side_Of_Right_Interfaces",
+                                "output_file_name": "7_Third_excavation__output_interface.json",
                                 "output_variables": ["GEO_EFFECTIVE_TRACTION_VECTOR"],
                                 "gauss_points_output_variables": [],
                                 "time_frequency": 0.9999999999
@@ -1924,20 +1981,13 @@
                                         "nodal_results": [
                                             "DISPLACEMENT",
                                             "TOTAL_DISPLACEMENT",
-                                            "ROTATION",
                                             "WATER_PRESSURE",
-                                            "REACTION",
-                                            "AXIAL_FORCE",
-                                            "BENDING_MOMENT",
-                                            "SHEAR_FORCE"
+                                            "REACTION"
                                         ],
                                         "gauss_point_results": [
                                             "CAUCHY_STRESS_TENSOR",
                                             "TOTAL_STRESS_TENSOR",
-                                            "ENGINEERING_STRAIN_TENSOR",
-                                            "AXIAL_FORCE",
-                                            "BENDING_MOMENT",
-                                            "SHEAR_FORCE"
+                                            "ENGINEERING_STRAIN_TENSOR"
                                         ]
                                     }
                                 },
