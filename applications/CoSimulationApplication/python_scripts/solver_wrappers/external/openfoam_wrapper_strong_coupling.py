@@ -25,8 +25,7 @@ class OpenFOAMWrapper(CoSimulationSolverWrapper):
             "time_step"                : 0.0,
             "end_time"                 : 0.0,
             "strong_coupling"          : true,
-            "first_solver_in_sequence" : false
-                                          
+            "first_solver_in_sequence" : false                      
         }""")
 
         self.settings["solver_wrapper_settings"].ValidateAndAssignDefaults(settings_defaults)
@@ -51,29 +50,45 @@ class OpenFOAMWrapper(CoSimulationSolverWrapper):
             interface_config = {"model_part_name" : model_part_name}
             self.ImportCouplingInterface(interface_config)
 
-        # Test output modelPart
-        # modelPart = self.model["interface"]
-        # vtu_output: KM.VtuOutput = KM.VtkOutput(modelPart)
-        # vtu_output.PrintOutput("test")
-
         super().Initialize()
         for data in self.data_dict.values():
             data.GetModelPart().GetRootModelPart().SetBufferSize(2)
 
-        self.sendControlSignal("isStrongCoupling", {"isStrongCoupling" : self.isStrongCoupling})
+        # Import initial coupling data from OpenFOAM
+        for data_name in self.settings["solver_wrapper_settings"]["import_data"].GetStringArray():
+            data_config = {
+                "type" : "coupling_interface_data",
+                "interface_data" : self.GetInterfaceData(data_name)
+            }
+            self.ImportData(data_config)
 
-        # Export time step settings
-        self.sendControlSignal("setEndOfStepWindow", {"end_time_of_step_window": self.time_step})
-        self.sendControlSignal("updateMaxTimeStepSize", {"maxTimeStepSize": self.time_step})
-        self.sendControlSignal("firstOneToGo", {"firstOneToGo": self.isFirstSolverInSequence})
+        self.sendControlSignal("isStrongCoupling", {
+            "isStrongCoupling": self.isStrongCoupling
+        })
 
-        print("\nKRATOS: Initialize Ende\n")
+        self.sendControlSignal(
+            "firstOneToGo",
+            {"firstOneToGo": self.isFirstSolverInSequence}
+        )
+
+        self.sendControlSignal(
+            "setEndOfStepWindow",
+            {"end_time_of_step_window": self.current_time + self.time_step}
+        )
+
+        # Export initial coupling data to OpenFOAM
+        for data_name in self.settings["solver_wrapper_settings"]["export_data"].GetStringArray():
+            data_config = {
+                "type" : "coupling_interface_data",
+                "interface_data" : self.GetInterfaceData(data_name)
+            }
+            print("    Export Data " + data_name)
+            print("             To " + self.settings["io_settings"]["co_sim_io_settings"]["my_name"].GetString())
+            self.ExportData(data_config)
 
     def AdvanceInTime(self, current_time):
-        print("AdvanceInTime!!!")
-
-        if not self.firstIteration:
-            self.current_time += self.time_step # adaptive time stepping might be different
+        self.current_time = current_time + self.time_step
+        print("AdvanceInTime!!! current_time =", self.current_time)
         return self.current_time
 
     def sendControlSignal(self, command: str, additionalInfo: dict = {}):
@@ -120,14 +135,14 @@ class OpenFOAMWrapper(CoSimulationSolverWrapper):
             return
         
         elif self.firstIteration and not self.isFirstSolverInSequence:
-            for data_name in self.settings["solver_wrapper_settings"]["export_data"].GetStringArray():
-                data_config = {
-                    "type" : "coupling_interface_data",
-                    "interface_data" : self.GetInterfaceData(data_name)
-                }
-                print("    Export Data " + data_name)
-                print("             To " + self.settings["io_settings"]["co_sim_io_settings"]["my_name"].GetString())
-                self.ExportData(data_config)
+            # for data_name in self.settings["solver_wrapper_settings"]["export_data"].GetStringArray():
+            #     data_config = {
+            #         "type" : "coupling_interface_data",
+            #         "interface_data" : self.GetInterfaceData(data_name)
+            #     }
+            #     print("    Export Data " + data_name)
+            #     print("             To " + self.settings["io_settings"]["co_sim_io_settings"]["my_name"].GetString())
+            #     self.ExportData(data_config)
                           
             for data_name in self.settings["solver_wrapper_settings"]["import_data"].GetStringArray():
                 data_config = {
@@ -140,17 +155,8 @@ class OpenFOAMWrapper(CoSimulationSolverWrapper):
 
             self.firstIteration = False
             return
-        
-        # Export the end time of the current time window
-        self.sendControlSignal("setEndOfStepWindow", {"end_time_of_step_window": self.current_time + self.time_step})
-        # print("Und updateMaxTimeStepSize()")
-        # self.sendControlSignal("updateMaxTimeStepSize", {"maxTimeStepSize": self.time_step})
 
 
-        # Export data to solver and solve
-        print("Export data to solver and solve!")
-
-        self.sendControlSignal("solve")
         for data_name in self.settings["solver_wrapper_settings"]["export_data"].GetStringArray():
             data_config = {
                 "type" : "coupling_interface_data",
@@ -160,7 +166,6 @@ class OpenFOAMWrapper(CoSimulationSolverWrapper):
             print("             To " + self.settings["io_settings"]["co_sim_io_settings"]["my_name"].GetString())
             self.ExportData(data_config)
 
-        print("Import Data")
         for data_name in self.settings["solver_wrapper_settings"]["import_data"].GetStringArray():
             data_config = {
                 "type" : "coupling_interface_data",
@@ -169,7 +174,8 @@ class OpenFOAMWrapper(CoSimulationSolverWrapper):
             print("    Importing Data " + data_name)
             print("       from solver " + self.settings["io_settings"]["co_sim_io_settings"]["my_name"].GetString())
             self.ImportData(data_config)
-        
+
+        # print("Import Data")
         print("\nKRATOS: SolveSolutionStep Ende\n")
 
     def Predict(self):
@@ -189,6 +195,22 @@ class OpenFOAMWrapper(CoSimulationSolverWrapper):
         self.sendControlSignal("finalize")
         super().Finalize()
 
-
     def _GetIOType(self):
         return self.settings["io_settings"]["type"].GetString()
+    
+    def ExportData(self, data_config):
+        if data_config["type"] == "repeat_time_step":
+            self._SendRepeatTimeStep(data_config["repeat_time_step"])
+            return
+
+        super().ExportData(data_config)
+
+    # This function communicates to the external solver whether the time step needs to be repeated or not
+    def _SendRepeatTimeStep(self, repeat_time_step):
+        settings = KM.Parameters("""{}""")
+        settings.AddEmptyValue("repeat_time_step").SetBool(repeat_time_step)
+
+        self.sendControlSignal(
+            "repeat_time_step",
+            {"repeat_time_step": repeat_time_step}
+        )
