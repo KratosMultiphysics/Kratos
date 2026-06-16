@@ -127,6 +127,7 @@ void MPMUpdatedLagrangianUPVMS::InitializeGeneralVariables(
     // Initialize stabilization parameters
     rVariables.tau1 = 0;
     rVariables.tau2 = 0;
+    rVariables.BulkModulus = CalculateBulkModulus();
 
     // Set Pressure and Pressure Gradient in gauss points
     rVariables.PressureGP = 0;
@@ -503,8 +504,7 @@ void MPMUpdatedLagrangianUPVMS::CalculateAndAddStabilizedDisplacement(VectorType
         prod(trans(rVariables.B), rVariables.TensorIdentityMatrix),
         rVariables.PressureGradientVoigt);
     const double volumetric_strain = this->CalculateVolumetricStrainFunction(rVariables);
-    const double bulk_modulus = CalculateBulkModulus();
-    const double volumetric_residual = rVariables.PressureGP / bulk_modulus - volumetric_strain;
+    const double volumetric_residual = rVariables.PressureGP / rVariables.BulkModulus - volumetric_strain;
 
     unsigned int indexi = 0;
 
@@ -556,8 +556,7 @@ void MPMUpdatedLagrangianUPVMS::CalculateAndAddStabilizedPressure(VectorType& rR
     unsigned int index_p = dimension;
     const double volumetric_strain = this->CalculateVolumetricStrainFunction(rVariables);
     const double volumetric_strain_linearization = this->CalculateVolumetricStrainLinearization(rVariables);
-    const double bulk_modulus = CalculateBulkModulus();
-    const double volumetric_residual = rVariables.PressureGP / bulk_modulus - volumetric_strain;
+    const double volumetric_residual = rVariables.PressureGP / rVariables.BulkModulus - volumetric_strain;
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
@@ -576,7 +575,7 @@ void MPMUpdatedLagrangianUPVMS::CalculateAndAddStabilizedPressure(VectorType& rR
         rRightHandSideVector[index_p] -= rVariables.tau2
             * volumetric_residual
             * r_N(0, i)
-            * (1.0 / bulk_modulus)
+            * (1.0 / rVariables.BulkModulus)
             * rIntegrationWeight;
 
         index_p += (dimension + 1);
@@ -715,7 +714,6 @@ void MPMUpdatedLagrangianUPVMS::CalculateAndAddKupStab (MatrixType& rLeftHandSid
         Matrix(trans(prod(rVariables.TensorIdentityMatrix, rVariables.B))),
         rVariables.PressureGradientVoigt);
     const double volumetric_strain_linearization = this->CalculateVolumetricStrainLinearization(rVariables);
-    const double bulk_modulus = CalculateBulkModulus();
 
     // Assemble components considering added DOF matrix system
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
@@ -726,7 +724,7 @@ void MPMUpdatedLagrangianUPVMS::CalculateAndAddKupStab (MatrixType& rLeftHandSid
         unsigned int indexj = 0;
         for ( unsigned int j = 0; j < number_of_nodes; j++ )
         {
-            const double pressure_compressibility_shape_function = r_N(0, j) / bulk_modulus;
+            const double pressure_compressibility_shape_function = r_N(0, j) / rVariables.BulkModulus;
 
             for ( unsigned int k = 0; k < dimension; k++ )
             {
@@ -775,13 +773,12 @@ void MPMUpdatedLagrangianUPVMS::CalculateAndAddKpuStab (MatrixType& rLeftHandSid
     Vector deviatoric_pressure_gradient_test_function = prod(
         Matrix(prod(trans(rVariables.B), rVariables.TensorIdentityMatrix)),
         rVariables.PressureGradientVoigt);
-    const double bulk_modulus = CalculateBulkModulus();
 
     // Assemble components considering added DOF matrix system
     unsigned int index_p = dimension;
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
-        const double pressure_compressibility_shape_function = r_N(0, i) / bulk_modulus;
+        const double pressure_compressibility_shape_function = r_N(0, i) / rVariables.BulkModulus;
         unsigned int indexj = 0;
         for ( unsigned int j = 0; j < number_of_nodes; j++ )
         {
@@ -826,8 +823,7 @@ void MPMUpdatedLagrangianUPVMS::CalculateAndAddKppStab (MatrixType& rLeftHandSid
     unsigned int indexpi = dimension;
     Matrix pressure_gradient_matrix = prod(rVariables.DN_DX, trans(rVariables.DN_DX));
     const double volumetric_strain_linearization = this->CalculateVolumetricStrainLinearization(rVariables);
-    const double bulk_modulus = CalculateBulkModulus();
-    const double inverse_bulk_modulus = 1.0 / bulk_modulus;
+    const double inverse_bulk_modulus = 1.0 / rVariables.BulkModulus;
 
     for (unsigned int i = 0; i < number_of_nodes; i++)
     {
