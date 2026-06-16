@@ -207,6 +207,29 @@ class KratosGeoMechanicsLabElementTests(KratosGeoUnittest.TestCase):
             self._make_integration_point_tensor_entries(expected_stress, num_elements=2, num_integration_points_per_element=3),
             time=1.25, delta=0.002)
 
+    def test_unloading_reloading(self):
+        """
+        Regression test for unloading and reloading with the pressure-dependent Eur stiffness law
+        on the axisymmetric 2D6N triaxial setup.
+        """
+        project_path = test_helper.get_file_path(os.path.join('test_element_lab', 'triaxial_comp_6n_unloading_reloading'))
+
+        run_multiple_stages.run_stages(project_path, 2)
+
+        reader = GiDOutputFileReader()
+
+        stage_1_output = reader.read_output_from(os.path.join(project_path, "triaxial_comp_6n_unloading_reloading_stage1.post.res"))
+        stage_2_output = reader.read_output_from(os.path.join(project_path, "triaxial_comp_6n_unloading_reloading_stage2.post.res"))
+
+        self._assert_average_stress_component(reader, stage_1_output, 1.0, 1, -46.661666666, 4)
+        self._assert_average_stress_component(reader, stage_2_output, 2.0, 1, -100.005266666, 4)
+
+        self._assert_stage_y_displacements(reader, stage_1_output, 1.0, [1, 2, 6],
+                           [ 5.81721e-06, 5.4499e-06, 3.85041e-06], 9)
+        self._assert_stage_y_displacements(reader, stage_2_output, 2.0, [1, 2, 6],
+                           [ -5.82193e-06, -5.4545e-06, -3.8529e-06], 9)
+
+
     def test_oedometer_ULFEM(self):
         """
         Oedometer test on a linear elastic model with 2D6N elements
@@ -241,6 +264,21 @@ class KratosGeoMechanicsLabElementTests(KratosGeoUnittest.TestCase):
         result = reader.read_output_from(output_file)
         top_node_nbrs = [1]
         self.assert_y_displacements_at_time(result, top_node_nbrs, -1e-4, 1.0, 6)
+
+    def _assert_average_stress_component(self, reader, output_data, time, component_index, expected_value, places):
+        stress_vectors_per_element = reader.element_integration_point_values_at_time("CAUCHY_STRESS_TENSOR", time, output_data)
+        component_values = [stress_vector[component_index]
+                            for element_stress_vectors in stress_vectors_per_element
+                            for stress_vector in element_stress_vectors]
+
+        average_value = sum(component_values) / len(component_values)
+        self.assertAlmostEqual(expected_value, average_value, places)
+
+    def _assert_stage_y_displacements(self, reader, output_data, time, node_ids, expected_y_displacements, places):
+        displacements = reader.nodal_values_at_time("DISPLACEMENT", time, output_data, node_ids)
+
+        for displacement, expected_y_displacement in zip(displacements, expected_y_displacements):
+            self.assertAlmostEqual(expected_y_displacement, displacement[1], places)
 
     def _assert_oedometer_effective_stresses(self, effective_stresses, expected_yy, places_yy):
         for element in effective_stresses:

@@ -66,6 +66,10 @@ public:
                                                                        std::size_t StrainSize,
                                                                        std::size_t NumberOfNormalComponents);
 
+    static void SetEntriesAboveDiagonalToZero(Matrix& rMatrix);
+    static void SetEntriesBelowDiagonalToZero(Matrix& rMatrix);
+    static void SetShearEntriesToZero(Matrix& rMatrix, std::size_t NumberOfNormalComponents);
+
     [[nodiscard]] static DrainageType StringToDrainageType(const std::string& rDrainageTypeName);
     [[nodiscard]] static bool         IsConstantWaterPressure(const Properties& rProperties);
     [[nodiscard]] static bool         IsUndrained(const Properties& rProperties);

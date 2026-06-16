@@ -63,13 +63,16 @@ KRATOS_TEST_CASE_IN_SUITE(IncrementalLinearElasticConstitutiveLawIsAvailableAfte
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     KratosGeoMechanicsApplication geo_app;
-    const auto constitutive_law_name = "GeoIncrementalLinearElasticInterfaceLaw"s;
+    const auto constitutive_law_name     = "GeoIncrementalLinearElasticInterfaceLaw"s;
+    const auto constitutive_law_eur_name = "GeoIncrementalLinearElasticEur3DLaw"s;
 
     KRATOS_EXPECT_FALSE(KratosComponents<ConstitutiveLaw>::Has(constitutive_law_name))
+    KRATOS_EXPECT_FALSE(KratosComponents<ConstitutiveLaw>::Has(constitutive_law_eur_name))
 
     geo_app.Register();
 
     KRATOS_EXPECT_TRUE(KratosComponents<ConstitutiveLaw>::Has(constitutive_law_name))
+    KRATOS_EXPECT_TRUE(KratosComponents<ConstitutiveLaw>::Has(constitutive_law_eur_name))
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceElementsAreAvailableAfterGeoAppRegistration, KratosGeoMechanicsFastSuiteWithoutKernel)

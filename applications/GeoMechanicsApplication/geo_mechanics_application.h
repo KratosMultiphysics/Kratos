@@ -105,6 +105,7 @@
 #include "custom_elements/three_dimensional_stress_state.h"
 
 // constitutive models
+#include "custom_constitutive/incremental_linear_elastic_eur_law.h"
 #include "custom_constitutive/incremental_linear_elastic_interface_law.h"
 #include "custom_constitutive/incremental_linear_elastic_law.h"
 #include "custom_constitutive/interface_coulomb_law.h"
@@ -928,6 +929,8 @@ private:
     // constitutive models
     const GeoIncrementalLinearElasticLaw mLinearElasticPlaneStrain2DLaw{std::make_unique<PlaneStrain>()};
     const GeoIncrementalLinearElasticLaw mLinearElastic3DLaw{std::make_unique<ThreeDimensional>()};
+    const GeoIncrementalLinearElasticEurLaw mLinearElasticEurPlaneStrain2DLaw{std::make_unique<PlaneStrain>()};
+    const GeoIncrementalLinearElasticEurLaw mLinearElasticEur3DLaw{std::make_unique<ThreeDimensional>()};
 
     const SmallStrainUDSMLaw mSmallStrainUDSM2DPlaneStrainLaw{std::make_unique<PlaneStrain>()};
     const SmallStrainUDSMLaw mSmallStrainUDSM3DLaw{std::make_unique<ThreeDimensional>()};

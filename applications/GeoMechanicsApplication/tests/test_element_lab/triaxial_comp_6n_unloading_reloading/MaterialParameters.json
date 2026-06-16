@@ -1,0 +1,26 @@
+{
+    "properties": [
+        {
+            "model_part_name": "PorousDomain.Soil",
+            "properties_id": 1,
+            "Material": {
+                "constitutive_law": {
+                    "name": "GeoIncrementalLinearElasticEurPlaneStrain2DLaw"
+                },
+                "Variables": {
+                    "GEO_DRAINAGE_TYPE": "CONSTANT_PW_FIELD",
+                    "YOUNG_MODULUS": 1.0e+07,
+                    "POISSON_RATIO": 0.0,
+                    "GEO_PRESSURE_REFERENCE": 50.0,
+                    "GEO_STRESS_DEPENDENCY_EXPONENT": 1.0,
+                    "GEO_COHESION": 1.0e+03,
+                    "GEO_FRICTION_ANGLE": 20.0,
+                    "DENSITY_SOLID": 2.0e+03,
+                    "DENSITY_WATER": 1.0e+03,
+                    "POROSITY": 0.3,
+                    "BULK_MODULUS_SOLID": 1.0e+12
+                }
+            }
+        }
+    ]
+}
