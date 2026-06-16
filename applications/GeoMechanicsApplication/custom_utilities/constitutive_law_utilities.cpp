@@ -342,4 +342,15 @@ double ConstitutiveLawUtilities::CalculateExcessPorePressureIncrement(const Prop
         << "." << std::endl;
     return biot_coefficient * VolumetricStrainIncrement / denominator;
 }
+
+bool ConstitutiveLawUtilities::WantTensionCutOff(const Properties& rMaterialProperties)
+{
+    if (rMaterialProperties.Has(GEO_ENABLE_TENSION_CUT_OFF) && rMaterialProperties[GEO_ENABLE_TENSION_CUT_OFF]) {
+        return true;
+    }
+
+    // The following statement is to support backward compatibility (i.e. GEO_ENABLE_TENSION_CUT_OFF is not specified,
+    // but the GEO_TENSILE_STRENGTH is provided), which results in an enabled tension cutoff.
+    return !rMaterialProperties.Has(GEO_ENABLE_TENSION_CUT_OFF) && rMaterialProperties.Has(GEO_TENSILE_STRENGTH);
+}
 } // namespace Kratos
