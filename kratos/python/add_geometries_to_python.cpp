@@ -53,6 +53,7 @@
 #include "geometries/brep_surface.h"
 // Locally refined geometries
 #include "geometries/thb_surface_geometry.h"
+#include "geometries/thb_curve_geometry.h"
 #include "geometries/local_refined_brep_surface.h"
 
 namespace Kratos::Python
@@ -572,6 +573,59 @@ void  AddGeometriesToPython(pybind11::module& m)
              py::arg("level"))
         .def("EliminateInactiveFunctions", &THBSurfaceGeometry3DType::EliminateInactiveFunctions,
              py::arg("model_part"))
+        ;
+
+    // THB-Spline curve geometry
+    using THBCurveGeometry3DType = THBCurveGeometry<3, NodeContainerType>;
+
+    py::class_<THBCurveGeometry3DType::THBLevel>(m, "THBCurveLevel")
+        .def_readonly("Degree",  &THBCurveGeometry3DType::THBLevel::Degree)
+        .def_readonly("Knots",   &THBCurveGeometry3DType::THBLevel::Knots)
+        .def_readonly("Weights", &THBCurveGeometry3DType::THBLevel::Weights)
+        ;
+
+    py::class_<THBCurveGeometry3DType::THBRefinementDomain>(m, "THBCurveRefinementDomain")
+        .def_readonly("Level", &THBCurveGeometry3DType::THBRefinementDomain::Level)
+        .def_readonly("MinT",  &THBCurveGeometry3DType::THBRefinementDomain::MinT)
+        .def_readonly("MaxT",  &THBCurveGeometry3DType::THBRefinementDomain::MaxT)
+        ;
+
+    py::class_<THBCurveGeometry3DType, THBCurveGeometry3DType::Pointer, GeometryType>(m, "THBCurveGeometry3D")
+        .def(py::init<const PointsArrayType&, const SizeType, const Vector&>())
+        .def(py::init<const PointsArrayType&, const SizeType, const Vector&, const Vector&>())
+        .def("AddLevel",
+             py::overload_cast<const Vector&, const Vector&>(&THBCurveGeometry3DType::AddLevel),
+             py::arg("knots"), py::arg("weights") = Vector())
+        .def("AddLevel",
+             py::overload_cast<const Vector&, ModelPart&, const Vector&>(&THBCurveGeometry3DType::AddLevel),
+             py::arg("knots"), py::arg("model_part"), py::arg("weights") = Vector())
+        .def("AddLevel",
+             py::overload_cast<const SizeType>(&THBCurveGeometry3DType::AddLevel),
+             py::arg("n_levels"))
+        .def("AddLevel",
+             py::overload_cast<const SizeType, ModelPart&>(&THBCurveGeometry3DType::AddLevel),
+             py::arg("n_levels"), py::arg("model_part"))
+        .def("AddRefinementDomain", &THBCurveGeometry3DType::AddRefinementDomain,
+             py::arg("level"), py::arg("min_t"), py::arg("max_t"))
+        .def("NumberOfLevels",      &THBCurveGeometry3DType::NumberOfLevels)
+        .def("PolynomialDegree",    &THBCurveGeometry3DType::PolynomialDegree)
+        .def("Levels", [](const THBCurveGeometry3DType& self) {
+            return self.Levels();
+        })
+        .def("RefinementDomains", [](const THBCurveGeometry3DType& self) {
+            return self.RefinementDomains();
+        })
+        .def("GetActiveFunctions", [](const THBCurveGeometry3DType& self, SizeType level) {
+            const auto& flags = self.GetActiveFunctions(level);
+            return std::vector<bool>(flags.begin(), flags.end());
+        }, py::arg("level"))
+        .def("NumberOfActiveFunctions", &THBCurveGeometry3DType::NumberOfActiveFunctions,
+             py::arg("level"))
+        .def("EliminateInactiveFunctions", &THBCurveGeometry3DType::EliminateInactiveFunctions,
+             py::arg("model_part"))
+        .def("GetDefaultIntegrationInfo", &THBCurveGeometry3DType::GetDefaultIntegrationInfo)
+        .def("EvaluateShapeFunctions", &THBCurveGeometry3DType::EvaluateShapeFunctions,
+             py::arg("t_values"))
         ;
 
 }
