@@ -125,31 +125,27 @@ class KratosGeoMechanicsLabElementTests(KratosGeoUnittest.TestCase):
         expected_water_pressures = [[0.0] * 9 for _ in range(nr_of_phases)]
 
         linear_elastic_file_path = test_helper.get_file_path(os.path.join('test_element_lab', 'test_crs', stage_name, 'linear_elastic'))
-        linear_elastic_stresses = test_helper.get_values_from_csv_grouped(
+        expected_stresses = test_helper.get_values_from_csv_grouped(
             Path(linear_elastic_file_path) / "expected_stress.csv",
-            ['phase'], ['element_id', 'ip_index'],
+            ["phase"], ["element_id", "ip_index"],
             ["stress_xx", "stress_yy", "stress_zz", "stress_yz", "stress_xz", "stress_xy"])
-        linear_elastic_strains = test_helper.get_values_from_csv_grouped(
+        expected_strains = test_helper.get_values_from_csv_grouped(
             Path(linear_elastic_file_path) / "expected_strain.csv",
-            ['phase'], ['element_id', 'ip_index'],
+            ["phase"], ["element_id", "ip_index"],
             ["strain_xx", "strain_yy", "strain_zz", "strain_yz", "strain_xz", "strain_xy"])
-        expected_stresses = [linear_elastic_stresses[phase] for phase in range(1, nr_of_phases + 1)]
-        expected_strains = [linear_elastic_strains[phase] for phase in range(1, nr_of_phases + 1)]
 
         self._run_crs_test_for_model(stage_name, "linear_elastic")
         self._check_crs_results(stage_name, "linear_elastic", nr_of_phases, expected_stresses, expected_strains, expected_water_pressures, delta_stress=1.0)
 
         mohr_coulomb_file_path = test_helper.get_file_path(os.path.join('test_element_lab', 'test_crs', stage_name, 'mohr_coulomb'))
-        mohr_coulomb_stresses = test_helper.get_values_from_csv_grouped(
+        expected_stresses = test_helper.get_values_from_csv_grouped(
             Path(mohr_coulomb_file_path) / "expected_stress.csv",
-            ['phase'], ['element_id', 'ip_index'],
+            ["phase"], ["element_id", "ip_index"],
             ["stress_xx", "stress_yy", "stress_zz", "stress_xy", "stress_yz", "stress_xz"])
-        mohr_coulomb_strains = test_helper.get_values_from_csv_grouped(
+        expected_strains = test_helper.get_values_from_csv_grouped(
             Path(mohr_coulomb_file_path) / "expected_strain.csv",
-            ['phase'], ['element_id', 'ip_index'],
+            ["phase"], ["element_id", "ip_index"],
             ["strain_xx", "strain_yy", "strain_zz", "strain_xy", "strain_yz", "strain_xz"])
-        expected_stresses = [mohr_coulomb_stresses[phase] for phase in range(1, nr_of_phases + 1)]
-        expected_strains = [mohr_coulomb_strains[phase] for phase in range(1, nr_of_phases + 1)]
 
         self._run_crs_test_for_model(stage_name, "mohr_coulomb")
         self._check_crs_results(stage_name, "mohr_coulomb", nr_of_phases, expected_stresses, expected_strains, expected_water_pressures, delta_stress=1.0)
@@ -167,9 +163,9 @@ class KratosGeoMechanicsLabElementTests(KratosGeoUnittest.TestCase):
         node_ids = list(range(1, 10))
         for i in range(nr_of_phases):
             self.assert_integration_point_tensors(
-                result, "CAUCHY_STRESS_TENSOR", expected_stresses[i], times[i], places=places_stress, delta=delta_stress)
+                result, "CAUCHY_STRESS_TENSOR", expected_stresses[i+1], times[i], places=places_stress, delta=delta_stress)
             self.assert_integration_point_tensors(
-                result, "ENGINEERING_STRAIN_TENSOR", expected_strains[i], times[i], places=places_strain)
+                result, "ENGINEERING_STRAIN_TENSOR", expected_strains[i+1], times[i], places=places_strain)
             self.assert_nodal_values_at_time(result, "WATER_PRESSURE", node_ids, expected_water_pressures[i], times[i], places=places_water_pressure)
 
     def test_triaxial_comp_6n(self):
