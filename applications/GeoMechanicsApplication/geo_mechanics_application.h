@@ -89,7 +89,7 @@
 #include "custom_elements/U_Pw_small_strain_interface_element.h"
 #include "custom_elements/U_Pw_updated_lagrangian_FIC_element.h"
 #include "custom_elements/U_Pw_updated_lagrangian_element.h"
-#include "custom_elements/calculation_contribution.h"
+#include "custom_elements/contribution_calculators/calculation_contribution.h"
 #include "custom_elements/geo_steady_state_Pw_piping_element.h"
 #include "custom_elements/small_strain_U_Pw_diff_order_element.h"
 #include "custom_elements/steady_state_Pw_element.h"
@@ -104,20 +104,15 @@
 #include "custom_elements/plane_strain_stress_state.h"
 #include "custom_elements/three_dimensional_stress_state.h"
 
-// geo structural element
-#include "custom_elements/geo_cr_beam_element_linear_2D2N.h"
-
 // constitutive models
 #include "custom_constitutive/incremental_linear_elastic_interface_law.h"
 #include "custom_constitutive/incremental_linear_elastic_law.h"
-#include "custom_constitutive/interface_coulomb_with_tension_cut_off.h"
+#include "custom_constitutive/interface_coulomb_law.h"
 #include "custom_constitutive/interface_plane_strain.h"
 #include "custom_constitutive/interface_three_dimensional_surface.h"
-#include "custom_constitutive/linear_elastic_2D_beam_law.h"
 #include "custom_constitutive/linear_elastic_2D_interface_law.h"
 #include "custom_constitutive/linear_elastic_3D_interface_law.h"
-#include "custom_constitutive/linear_elastic_plane_stress_2D_law.h"
-#include "custom_constitutive/mohr_coulomb_with_tension_cutoff.h"
+#include "custom_constitutive/mohr_coulomb_law.h"
 #include "custom_constitutive/plane_strain.h"
 #include "custom_constitutive/small_strain_udsm_2D_interface_law.h"
 #include "custom_constitutive/small_strain_udsm_3D_interface_law.h"
@@ -132,6 +127,11 @@
 
 namespace Kratos
 {
+
+static const auto UPwInterfaceElementContributions =
+    std::vector{CalculationContribution::Stiffness, CalculationContribution::UPCoupling,
+                CalculationContribution::PUCoupling, CalculationContribution::Permeability,
+                CalculationContribution::FluidBodyFlow};
 
 ///@name Kratos Globals
 ///@{
@@ -516,24 +516,32 @@ private:
         0, Kratos::make_shared<HexahedraInterface3D8<NodeType>>(Element::GeometryType::PointsArrayType(8)),
         std::make_unique<ThreeDimensionalStressState>()};
 
-    const UPwInterfaceElement mULineInterfacePlaneStrainElement2Plus2N{
+    const UPwInterfaceElement mUPwLineInterfacePlaneStrainElement2Plus2N{
         0, Kratos::make_shared<InterfaceGeometry<Line2D2<NodeType>>>(Element::GeometryType::PointsArrayType(4)),
-        std::make_unique<Line2DInterfaceStressState>()};
-    const UPwInterfaceElement mULineInterfacePlaneStrainElement3Plus3N{
+        std::make_unique<Line2DInterfaceStressState>(), IsDiffOrderElement::No, UPwInterfaceElementContributions};
+    const UPwInterfaceElement mUPwLineInterfacePlaneStrainElement3Plus3N{
         0, Kratos::make_shared<InterfaceGeometry<Line2D3<NodeType>>>(Element::GeometryType::PointsArrayType(6)),
-        std::make_unique<Line2DInterfaceStressState>()};
-    const UPwInterfaceElement mUSurfaceInterfaceElement3Plus3N{
+        std::make_unique<Line2DInterfaceStressState>(), IsDiffOrderElement::No, UPwInterfaceElementContributions};
+    const UPwInterfaceElement mUPwSurfaceInterfaceElement3Plus3N{
         0, Kratos::make_shared<InterfaceGeometry<Triangle3D3<NodeType>>>(Element::GeometryType::PointsArrayType(6)),
-        std::make_unique<SurfaceInterfaceStressState>()};
-    const UPwInterfaceElement mUSurfaceInterfaceElement4Plus4N{
+        std::make_unique<SurfaceInterfaceStressState>(), IsDiffOrderElement::No,
+        UPwInterfaceElementContributions};
+    const UPwInterfaceElement mUPwSurfaceInterfaceElement4Plus4N{
         0, Kratos::make_shared<InterfaceGeometry<Quadrilateral3D4<NodeType>>>(Element::GeometryType::PointsArrayType(8)),
-        std::make_unique<SurfaceInterfaceStressState>()};
-    const UPwInterfaceElement mUSurfaceInterfaceElement6Plus6N{
+        std::make_unique<SurfaceInterfaceStressState>(), IsDiffOrderElement::No,
+        UPwInterfaceElementContributions};
+    const UPwInterfaceElement mUPwSurfaceInterfaceElement6Plus6N{
         0, Kratos::make_shared<InterfaceGeometry<Triangle3D6<NodeType>>>(Element::GeometryType::PointsArrayType(12)),
-        std::make_unique<SurfaceInterfaceStressState>()};
-    const UPwInterfaceElement mUSurfaceInterfaceElement8Plus8N{
+        std::make_unique<SurfaceInterfaceStressState>(), IsDiffOrderElement::No,
+        UPwInterfaceElementContributions};
+    const UPwInterfaceElement mUPwSurfaceInterfaceElement8Plus8N{
         0, Kratos::make_shared<InterfaceGeometry<Quadrilateral3D8<NodeType>>>(Element::GeometryType::PointsArrayType(16)),
-        std::make_unique<SurfaceInterfaceStressState>()};
+        std::make_unique<SurfaceInterfaceStressState>(), IsDiffOrderElement::No,
+        UPwInterfaceElementContributions};
+    const UPwInterfaceElement mUPwLineInterfacePlaneStrainDiffOrderElement3Plus3N{
+        0, Kratos::make_shared<InterfaceGeometry<Line2D3<NodeType>>>(Element::GeometryType::PointsArrayType(6)),
+        std::make_unique<Line2DInterfaceStressState>(), IsDiffOrderElement::Yes,
+        UPwInterfaceElementContributions};
 
     // Updated-Lagrangian elements:
     const UPwUpdatedLagrangianElement<2, 3> mUPwUpdatedLagrangianElement2D3N{
@@ -670,10 +678,6 @@ private:
         0, Kratos::make_shared<Quadrilateral2D4<NodeType>>(Element::GeometryType::PointsArrayType(4)),
         std::make_unique<AxisymmetricStressState>(),
         std::make_unique<IntegrationCoefficientModifierForAxisymmetricElement>()};
-
-    // geo structural element
-    const GeoCrBeamElementLinear2D2N mGeoCrBeamElementLinear2D2N{
-        0, Kratos::make_shared<Line2D2<NodeType>>(Element::GeometryType::PointsArrayType(2))};
 
     // transient one-phase temperature elements:
     const TransientThermalElement<2, 3> mTransientThermalElement2D3N{
@@ -924,7 +928,6 @@ private:
     // constitutive models
     const GeoIncrementalLinearElasticLaw mLinearElasticPlaneStrain2DLaw{std::make_unique<PlaneStrain>()};
     const GeoIncrementalLinearElasticLaw mLinearElastic3DLaw{std::make_unique<ThreeDimensional>()};
-    const GeoLinearElasticPlaneStress2DLaw mLinearElasticPlaneStress2DLaw;
 
     const SmallStrainUDSMLaw mSmallStrainUDSM2DPlaneStrainLaw{std::make_unique<PlaneStrain>()};
     const SmallStrainUDSMLaw mSmallStrainUDSM3DLaw{std::make_unique<ThreeDimensional>()};
@@ -951,7 +954,6 @@ private:
     const LinearElastic2DInterfaceLaw mLinearElastic2DInterfaceLaw;
     const LinearElastic3DInterfaceLaw mLinearElastic3DInterfaceLaw;
 
-    const LinearElastic2DBeamLaw       mLinearElastic2DBeamLaw;
     const TrussBackboneConstitutiveLaw mTrussBackboneConstitutiveLaw;
 
     const GeoIncrementalLinearElasticInterfaceLaw mIncrementalLinearElasticInterfaceLaw{
@@ -959,10 +961,10 @@ private:
     const GeoIncrementalLinearElasticInterfaceLaw mIncrementalLinearElasticInterface3DSurfaceLaw{
         std::make_unique<InterfaceThreeDimensionalSurface>()};
 
-    const MohrCoulombWithTensionCutOff mMohrCoulombWithTensionCutOff2D{std::make_unique<PlaneStrain>()};
-    const MohrCoulombWithTensionCutOff mMohrCoulombWithTensionCutOff3D{std::make_unique<ThreeDimensional>()};
+    const MohrCoulombLaw mMohrCoulombLawPlaneStrain{std::make_unique<PlaneStrain>()};
+    const MohrCoulombLaw mMohrCoulombLaw3D{std::make_unique<ThreeDimensional>()};
 
-    const InterfaceCoulombWithTensionCutOff mInterfaceCoulombWithTensionCutOff;
+    const InterfaceCoulombLaw mInterfaceCoulombLawPlaneStrain{std::make_unique<InterfacePlaneStrain>()};
 
     ///@}
 

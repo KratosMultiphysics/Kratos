@@ -28,7 +28,7 @@ Matrix ExtrapolationUtilities::CalculateExtrapolationMatrix(const Element& rElem
 {
     auto        p_interface_element = dynamic_cast<const UPwInterfaceElement*>(&rElement);
     const auto& r_geometry_for_extrapolation =
-        p_interface_element ? p_interface_element->GetMidGeometry() : rElement.GetGeometry();
+        p_interface_element ? p_interface_element->GetDisplacementMidGeometry() : rElement.GetGeometry();
     const auto integration_points = GeoElementUtilities::GetIntegrationPointsOf(rElement);
 
     const auto extrapolator = LinearNodalExtrapolator{};

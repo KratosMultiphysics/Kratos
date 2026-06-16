@@ -20,15 +20,15 @@
 
 namespace Kratos::Testing {
 
-class TestClass {
+class TestClassGlobalPointer {
   private:
-    TestClass() {}
+    TestClassGlobalPointer() {}
 
   public:
-    explicit TestClass(int MagicNbr) { this->mMagicNbr = MagicNbr; }
-    TestClass(const TestClass & rOther) { this->mMagicNbr = rOther.mMagicNbr; }
+    explicit TestClassGlobalPointer(int MagicNbr) { this->mMagicNbr = MagicNbr; }
+    TestClassGlobalPointer(const TestClassGlobalPointer & rOther) { this->mMagicNbr = rOther.mMagicNbr; }
 
-    ~TestClass() {}
+    ~TestClassGlobalPointer() {}
 
     int getVar() const { return this->mMagicNbr; }
 
@@ -70,9 +70,9 @@ KRATOS_TEST_CASE_IN_SUITE(GlobalPointerModifyRaw, KratosCoreFastSuite)
 // Class
 KRATOS_TEST_CASE_IN_SUITE(GlobalPointerCreateClass, KratosCoreFastSuite)
 {
-    TestClass sample_var(1337);
+    TestClassGlobalPointer sample_var(1337);
 
-    auto from_raw = GlobalPointer<TestClass>(&sample_var);
+    auto from_raw = GlobalPointer<TestClassGlobalPointer>(&sample_var);
 
     KRATOS_EXPECT_EQ(from_raw->getVar(), sample_var.getVar());
     KRATOS_EXPECT_EQ((*from_raw).getVar(), sample_var.getVar());
@@ -80,9 +80,9 @@ KRATOS_TEST_CASE_IN_SUITE(GlobalPointerCreateClass, KratosCoreFastSuite)
 
 KRATOS_TEST_CASE_IN_SUITE(GlobalPointerCreateConstClass, KratosCoreFastSuite)
 {
-    const TestClass sample_var(1337);
+    const TestClassGlobalPointer sample_var(1337);
 
-	auto from_raw = GlobalPointer<const TestClass>(&sample_var);
+	auto from_raw = GlobalPointer<const TestClassGlobalPointer>(&sample_var);
 
     KRATOS_EXPECT_EQ(from_raw->getVar(), sample_var.getVar());
     KRATOS_EXPECT_EQ((*from_raw).getVar(), sample_var.getVar());
@@ -90,9 +90,9 @@ KRATOS_TEST_CASE_IN_SUITE(GlobalPointerCreateConstClass, KratosCoreFastSuite)
 
 KRATOS_TEST_CASE_IN_SUITE(GlobalPointerModifyClass, KratosCoreFastSuite)
 {
-    TestClass sample_var(1337);
+    TestClassGlobalPointer sample_var(1337);
 
-    auto from_raw = GlobalPointer<TestClass>(&sample_var);
+    auto from_raw = GlobalPointer<TestClassGlobalPointer>(&sample_var);
 
     from_raw->setVar(42);
     sample_var.setVar(42);
@@ -104,10 +104,10 @@ KRATOS_TEST_CASE_IN_SUITE(GlobalPointerModifyClass, KratosCoreFastSuite)
 // Kratos::shared_ptr
 KRATOS_TEST_CASE_IN_SUITE(GlobalPointerCreateSharedPtr, KratosCoreFastSuite)
 {
-    typedef Kratos::shared_ptr<TestClass> PtrType;
+    typedef Kratos::shared_ptr<TestClassGlobalPointer> PtrType;
 
-    auto sample_var = PtrType(new TestClass(1337));
-    auto from_shared_ptr = GlobalPointer<TestClass>(sample_var);
+    auto sample_var = PtrType(new TestClassGlobalPointer(1337));
+    auto from_shared_ptr = GlobalPointer<TestClassGlobalPointer>(sample_var);
 
     KRATOS_EXPECT_EQ(from_shared_ptr->getVar(), sample_var->getVar());
     KRATOS_EXPECT_EQ((*from_shared_ptr).getVar(), sample_var->getVar());
@@ -115,10 +115,10 @@ KRATOS_TEST_CASE_IN_SUITE(GlobalPointerCreateSharedPtr, KratosCoreFastSuite)
 
 KRATOS_TEST_CASE_IN_SUITE(GlobalPointerCreateConstSharedPtr, KratosCoreFastSuite)
 {
-    typedef Kratos::shared_ptr<TestClass> PtrType;
+    typedef Kratos::shared_ptr<TestClassGlobalPointer> PtrType;
 
-    const auto sample_var = PtrType(new TestClass(1337));
-    auto from_shared_ptr = GlobalPointer<TestClass>(sample_var);
+    const auto sample_var = PtrType(new TestClassGlobalPointer(1337));
+    auto from_shared_ptr = GlobalPointer<TestClassGlobalPointer>(sample_var);
 
     KRATOS_EXPECT_EQ(from_shared_ptr->getVar(), sample_var->getVar());
     KRATOS_EXPECT_EQ((*from_shared_ptr).getVar(), sample_var->getVar());
@@ -126,10 +126,10 @@ KRATOS_TEST_CASE_IN_SUITE(GlobalPointerCreateConstSharedPtr, KratosCoreFastSuite
 
 KRATOS_TEST_CASE_IN_SUITE(GlobalPointerModifySharedPtr, KratosCoreFastSuite)
 {
-    typedef Kratos::shared_ptr<TestClass> PtrType;
+    typedef Kratos::shared_ptr<TestClassGlobalPointer> PtrType;
 
-    auto sample_var = PtrType(new TestClass(1337));
-    auto from_shared_ptr = GlobalPointer<TestClass>(sample_var);
+    auto sample_var = PtrType(new TestClassGlobalPointer(1337));
+    auto from_shared_ptr = GlobalPointer<TestClassGlobalPointer>(sample_var);
 
     from_shared_ptr->setVar(42);
     sample_var->setVar(42);
@@ -141,13 +141,13 @@ KRATOS_TEST_CASE_IN_SUITE(GlobalPointerModifySharedPtr, KratosCoreFastSuite)
 // Kratos::weak_ptr
 KRATOS_TEST_CASE_IN_SUITE(GlobalPointerCreateWeakPtr, KratosCoreFastSuite)
 {
-    typedef Kratos::shared_ptr<TestClass> PtrType;
-    typedef Kratos::weak_ptr<TestClass> WeakPtrType;
+    typedef Kratos::shared_ptr<TestClassGlobalPointer> PtrType;
+    typedef Kratos::weak_ptr<TestClassGlobalPointer> WeakPtrType;
 
-    auto sample_var = PtrType(new TestClass(1337));
+    auto sample_var = PtrType(new TestClassGlobalPointer(1337));
     WeakPtrType weak_var = sample_var;
 
-    auto from_shared_ptr = GlobalPointer<TestClass>(sample_var);
+    auto from_shared_ptr = GlobalPointer<TestClassGlobalPointer>(sample_var);
 
     if(weak_var.lock()) {
         KRATOS_EXPECT_EQ(from_shared_ptr->getVar(), weak_var.lock()->getVar());
@@ -159,13 +159,13 @@ KRATOS_TEST_CASE_IN_SUITE(GlobalPointerCreateWeakPtr, KratosCoreFastSuite)
 
 KRATOS_TEST_CASE_IN_SUITE(GlobalPointerCreateConstWeakPtr, KratosCoreFastSuite)
 {
-    typedef Kratos::shared_ptr<TestClass> PtrType;
-    typedef Kratos::weak_ptr<TestClass> WeakPtrType;
+    typedef Kratos::shared_ptr<TestClassGlobalPointer> PtrType;
+    typedef Kratos::weak_ptr<TestClassGlobalPointer> WeakPtrType;
 
-    auto sample_var = PtrType(new TestClass(1337));
+    auto sample_var = PtrType(new TestClassGlobalPointer(1337));
     const WeakPtrType weak_var = sample_var;
 
-    auto from_shared_ptr = GlobalPointer<TestClass>(weak_var);
+    auto from_shared_ptr = GlobalPointer<TestClassGlobalPointer>(weak_var);
 
     if(weak_var.lock()) {
         KRATOS_EXPECT_EQ(from_shared_ptr->getVar(), weak_var.lock()->getVar());
@@ -177,13 +177,13 @@ KRATOS_TEST_CASE_IN_SUITE(GlobalPointerCreateConstWeakPtr, KratosCoreFastSuite)
 
 KRATOS_TEST_CASE_IN_SUITE(GlobalPointerModifyWeakPtr, KratosCoreFastSuite)
 {
-    typedef Kratos::shared_ptr<TestClass> PtrType;
-    typedef Kratos::weak_ptr<TestClass> WeakPtrType;
+    typedef Kratos::shared_ptr<TestClassGlobalPointer> PtrType;
+    typedef Kratos::weak_ptr<TestClassGlobalPointer> WeakPtrType;
 
-    auto sample_var = PtrType(new TestClass(1337));
+    auto sample_var = PtrType(new TestClassGlobalPointer(1337));
     WeakPtrType weak_var = sample_var;
 
-    auto from_shared_ptr = GlobalPointer<TestClass>(sample_var);
+    auto from_shared_ptr = GlobalPointer<TestClassGlobalPointer>(sample_var);
 
     if(weak_var.lock()) {
         from_shared_ptr->setVar(42);

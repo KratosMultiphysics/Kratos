@@ -5,12 +5,20 @@ import math
 sys.path.append(os.path.join('..','..','..'))
 
 import KratosMultiphysics as Kratos
+import KratosMultiphysics.StructuralMechanicsApplication as KratosStructural
 import KratosMultiphysics.GeoMechanicsApplication as KratosGeo
 
 sys.path.append(os.path.join('..', 'python_scripts'))
 import KratosMultiphysics.GeoMechanicsApplication.geomechanics_analysis as analysis
 
-from KratosMultiphysics.GeoMechanicsApplication import unit_conversions
+
+# The following default tolerance values for assertions are identical to the values defined in `test_utilities.h`
+default_absolute_tolerance_for_assertions = 1.0e-12
+default_relative_tolerance_for_assertions = 1.0e-06
+
+
+def calculate_delta(expected_value, absolute_tolerance=default_absolute_tolerance_for_assertions, relative_tolerance=default_relative_tolerance_for_assertions):
+    return max(absolute_tolerance, relative_tolerance * abs(expected_value))
 
 
 def get_file_path(filename):
@@ -54,7 +62,6 @@ def get_displacement(simulation):
     :param simulation:
     :return displacements:
     """
-
     return get_nodal_variable(simulation, Kratos.DISPLACEMENT)
 
 
@@ -64,7 +71,6 @@ def get_velocity(simulation):
     :param simulation:
     :return velocities:
     """
-
     return get_nodal_variable(simulation, Kratos.VELOCITY)
 
 def get_temperature(simulation):
@@ -92,7 +98,6 @@ def get_hydraulic_discharge(simulation):
     :param simulation:
     :return hydraulic discharge:
     """
-
     return get_nodal_variable(simulation, KratosGeo.HYDRAULIC_DISCHARGE)
 
 
@@ -102,7 +107,6 @@ def get_nodal_variable(simulation, variable, node_ids=None):
     :param simulation:
     :return values of a variable:
     """
-
     nodes = simulation._list_of_output_processes[0].model_part.Nodes
     if node_ids:
         nodes = [node for node in nodes if node.Id in node_ids]
@@ -185,9 +189,8 @@ def get_nodal_coordinates(simulation):
     :return:
     """
     nodes = simulation._list_of_output_processes[0].model_part.Nodes
-    coordinates = [[node.X0,node.Y0,node.Z0] for node in nodes]
+    return [[node.X0, node.Y0, node.Z0] for node in nodes]
 
-    return coordinates
 
 def get_green_lagrange_strain_tensor(simulation):
     """
@@ -195,12 +198,7 @@ def get_green_lagrange_strain_tensor(simulation):
     :param simulation:
     :return: green lagrange strain tensor
     """
-    model_part= simulation._list_of_output_processes[0].model_part
-    elements = model_part.Elements
-    green_lagrange_strain_tensors = [element.CalculateOnIntegrationPoints(
-        Kratos.GREEN_LAGRANGE_STRAIN_TENSOR, model_part.ProcessInfo) for element in elements]
-
-    return green_lagrange_strain_tensors
+    return get_on_integration_points(simulation, Kratos.GREEN_LAGRANGE_STRAIN_TENSOR)
 
 
 def get_cauchy_stress_tensor(simulation):
@@ -209,12 +207,8 @@ def get_cauchy_stress_tensor(simulation):
     :param simulation:
     :return: cauchy stress tensor
     """
-    model_part = simulation._list_of_output_processes[0].model_part
-    elements = model_part.Elements
-    cauchy_stress_tensors = [element.CalculateOnIntegrationPoints(
-        Kratos.CAUCHY_STRESS_TENSOR, model_part.ProcessInfo) for element in elements]
+    return get_on_integration_points(simulation, Kratos.CAUCHY_STRESS_TENSOR)
 
-    return cauchy_stress_tensors
 
 def get_total_stress_tensor(simulation):
     """
@@ -222,12 +216,7 @@ def get_total_stress_tensor(simulation):
     :param simulation:
     :return: total stress tensor
     """
-    model_part = simulation._list_of_output_processes[0].model_part
-    elements = model_part.Elements
-    total_stress_tensors = [element.CalculateOnIntegrationPoints(
-        KratosGeo.TOTAL_STRESS_TENSOR, model_part.ProcessInfo) for element in elements]
-
-    return total_stress_tensors
+    return get_on_integration_points(simulation, KratosGeo.TOTAL_STRESS_TENSOR)
 
 
 def get_on_integration_points(simulation, kratos_variable):
@@ -235,13 +224,12 @@ def get_on_integration_points(simulation, kratos_variable):
     Gets the values of a Kratos variables on all integration points within a model part
 
     :param simulation:
-    :return: local stress vector
+    :return: element integration point variable
     """
     model_part = simulation._list_of_output_processes[0].model_part
     elements = model_part.Elements
-    results = [element.CalculateOnIntegrationPoints(
+    return [element.CalculateOnIntegrationPoints(
         kratos_variable, model_part.ProcessInfo) for element in elements]
-    return results
 
 
 def get_local_stress_vector(simulation):
@@ -250,13 +238,7 @@ def get_local_stress_vector(simulation):
     :param simulation:
     :return: local stress vector
     """
-
-    model_part = simulation._list_of_output_processes[0].model_part
-    elements = model_part.Elements
-
-    local_stress_vector = [element.CalculateOnIntegrationPoints(
-        KratosGeo.LOCAL_STRESS_VECTOR, model_part.ProcessInfo) for element in elements]
-    return local_stress_vector
+    return get_on_integration_points(simulation, KratosGeo.LOCAL_STRESS_VECTOR)
 
 def get_hydraylic_head_with_intergration_points(simulation):
     """
@@ -299,32 +281,34 @@ def get_pipe_length(simulation):
     elements = model_part.Elements
     return sum([element.GetValue(KratosGeo.PIPE_ELEMENT_LENGTH) for element in elements if element.GetValue(KratosGeo.PIPE_ACTIVE)])
 
-def get_force(simulation):
-    """
-    Gets force on all integration points from Kratos simulation
-    :param simulation:
-    :return: force
-    """
 
-    model_part = simulation._list_of_output_processes[0].model_part
-    elements = model_part.Elements
-
-    return [element.CalculateOnIntegrationPoints(
-        Kratos.FORCE, model_part.ProcessInfo)[0] for element in elements]
-
-
-def get_moment(simulation):
+def get_bending_moments(simulation):
     """
     Gets bending moment on all integration points from Kratos simulation
     :param simulation:
     :return: bending moment
     """
-    model_part = simulation._list_of_output_processes[0].model_part
-    elements = model_part.Elements
+    return get_on_integration_points(simulation, KratosStructural.BENDING_MOMENT)
 
-    moment = [element.CalculateOnIntegrationPoints(
-        Kratos.MOMENT, model_part.ProcessInfo)[0] for element in elements]
-    return moment
+
+def get_nodal_values_from_json_output(json_output, result_item_label, node_ids, index=0):
+    return [json_output[f"NODE_{node_id}"][result_item_label][index] for node_id in node_ids]
+
+
+def get_bending_moments_from_json_output(json_output, node_ids):
+    return get_nodal_values_from_json_output(json_output, "BENDING_MOMENT", node_ids)
+
+
+def get_shear_forces_from_json_output(json_output, node_ids):
+    return get_nodal_values_from_json_output(json_output, "SHEAR_FORCE", node_ids)
+
+
+def get_normal_forces_from_json_output(json_output, node_ids):
+    return get_nodal_values_from_json_output(json_output, "AXIAL_FORCE", node_ids)
+
+
+def get_total_displacement_x_from_json_output(json_output, node_ids):
+    return get_nodal_values_from_json_output(json_output, "TOTAL_DISPLACEMENT_X", node_ids)
 
 
 def compute_distance(point1, point2):
@@ -349,14 +333,12 @@ def find_closest_index_greater_than_value(input_list, value):
     :param input_list: sorted list
     :param value: value to be checked
     :return:
-
     """
 
     for index, list_value in enumerate(input_list):
         if value < list_value:
             return index
     return None
-
 
 def are_values_almost_equal(expected: Any, actual: Any, abs_tolerance: float = 1e-7) -> bool:
     """
@@ -368,7 +350,6 @@ def are_values_almost_equal(expected: Any, actual: Any, abs_tolerance: float = 1
 
     Returns:
         - True if the values are almost equal, False otherwise.
-
     """
     # check if the value is a dictionary and check the dictionary
     if isinstance(expected, dict):
@@ -385,7 +366,7 @@ def are_values_almost_equal(expected: Any, actual: Any, abs_tolerance: float = 1
         raise TypeError(f"Unsupported type {type(expected)}")
 
 
-def are_iterables_almost_equal(expected: (list, tuple, set), actual: (list, tuple, set),
+def are_iterables_almost_equal(expected, actual,
                                abs_tolerance: float = 1e-7) -> bool:
     """
     Checks whether two iterables are almost equal.
@@ -396,7 +377,6 @@ def are_iterables_almost_equal(expected: (list, tuple, set), actual: (list, tupl
 
     Returns:
         - True if the iterables are almost equal, False otherwise.
-
     """
     # check if the value is a list, tuple or set and compare the values
     if len(expected) != len(actual):
@@ -421,7 +401,6 @@ def are_dictionaries_almost_equal(expected: Dict[Any, Any],
 
     Returns:
         - True if the dictionaries are equal, False otherwise.
-
     """
     if len(expected) != len(actual):
         return False
@@ -473,7 +452,7 @@ def read_coordinates_from_post_msh_file(file_path, node_ids=None):
 
             if reading_coordinates:
                 numbers = line.split()  # [node ID, x, y, z]
-                node_map[int(numbers[0])] = tuple([float(number) for number in numbers[1:]])
+                node_map[int(numbers[0])] = tuple(float(number) for number in numbers[1:])
 
     if node_ids is None:
         return list(node_map.values())

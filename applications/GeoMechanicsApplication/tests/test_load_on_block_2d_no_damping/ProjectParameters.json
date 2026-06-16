@@ -36,7 +36,6 @@
         "solution_type": "dynamic",
         "rayleigh_m": 0.0,
         "rayleigh_k": 0.0,
-        "calculate_reactions": true,
         "rotation_dofs": true,
         "reset_displacements": false,
         "scheme_type": "newmark",

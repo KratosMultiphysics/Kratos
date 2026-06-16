@@ -36,7 +36,6 @@
         "number_cycles":                      10,
         "reduction_factor":                   1.0,
         "increase_factor":                    1.0,
-        "calculate_reactions":                true,
         "linear_solver_settings":             {
               "solver_type"                    : "LinearSolversApplication.sparse_lu",
               "scaling": true
@@ -67,7 +66,7 @@
                         "node_output":         true,
                         "skin_output":         false,
                         "nodal_results":       ["DISPLACEMENT","REACTION"],
-                        "gauss_point_results": ["CAUCHY_STRESS_TENSOR", "ENGINEERING_STRAIN_TENSOR"]
+                        "gauss_point_results": ["CAUCHY_STRESS_TENSOR", "ENGINEERING_STRAIN_TENSOR","TOTAL_STRESS_TENSOR","GEO_PLASTICITY_STATUS"]
                     }
                 }
             }
