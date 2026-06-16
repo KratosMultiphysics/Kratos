@@ -134,6 +134,9 @@ class GeoMechanicalSolver(PythonSolver):
     def ValidateSettings(self):
         """This function validates the settings of the solver
         """
+
+        # Since `ValidateSettings` of the base class enforces that defaults must exist for all given input parameters,
+        # we first check for any deprecated input parameters, and if we find them, we'll remove them.
         if self.settings.Has("calculate_reactions"):
             from KratosMultiphysics import kratos_utilities
             kratos_utilities.IssueDeprecationWarning('GeoMechanicsApplication', 'Use of calculate_reactions is deprecated, please change to compute_reactions')
