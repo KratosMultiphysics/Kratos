@@ -12,6 +12,15 @@ sys.path.append(os.path.join('..', 'python_scripts'))
 import KratosMultiphysics.GeoMechanicsApplication.geomechanics_analysis as analysis
 
 
+# The following default tolerance values for assertions are identical to the values defined in `test_utilities.h`
+default_absolute_tolerance_for_assertions = 1.0e-12
+default_relative_tolerance_for_assertions = 1.0e-06
+
+
+def calculate_delta(expected_value, absolute_tolerance=default_absolute_tolerance_for_assertions, relative_tolerance=default_relative_tolerance_for_assertions):
+    return max(absolute_tolerance, relative_tolerance * abs(expected_value))
+
+
 def get_file_path(filename):
     import os
     return os.path.join(os.path.dirname(__file__), filename)
@@ -280,6 +289,27 @@ def get_bending_moments(simulation):
     :return: bending moment
     """
     return get_on_integration_points(simulation, KratosStructural.BENDING_MOMENT)
+
+
+def get_nodal_values_from_json_output(json_output, result_item_label, node_ids, index=0):
+    return [json_output[f"NODE_{node_id}"][result_item_label][index] for node_id in node_ids]
+
+
+def get_bending_moments_from_json_output(json_output, node_ids):
+    return get_nodal_values_from_json_output(json_output, "BENDING_MOMENT", node_ids)
+
+
+def get_shear_forces_from_json_output(json_output, node_ids):
+    return get_nodal_values_from_json_output(json_output, "SHEAR_FORCE", node_ids)
+
+
+def get_normal_forces_from_json_output(json_output, node_ids):
+    return get_nodal_values_from_json_output(json_output, "AXIAL_FORCE", node_ids)
+
+
+def get_total_displacement_x_from_json_output(json_output, node_ids):
+    return get_nodal_values_from_json_output(json_output, "TOTAL_DISPLACEMENT_X", node_ids)
+
 
 def compute_distance(point1, point2):
     """
