@@ -369,7 +369,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
     def _PrintFunctionalWeights(self):
         self._PrintFunctionalWeightsPhysicsInfo()
         self.MpiPrint("--|" + self.topology_optimization_stage_str + "| REAL FUNCTIONAL WEIGHTS: " + str(self.functional_weights))
-        self.MpiPrint(self.optimization_settings["optimization_problem_settings"]["functional_weights"].PrettyPrintJsonString())
+        self.MpiPrint(self.functional_settings["functional_weights"].PrettyPrintJsonString())
 
     def _PrintFunctionalWeightsPhysicsInfo(self):
         self.MpiPrint("--|" + self.topology_optimization_stage_str + "| INITIAL FUNCTIONAL: " + str(self.initial_fluid_functional))
@@ -408,7 +408,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
 
     def _ImportFluidFunctionalWeights(self):
         fluid_functional_weights = [0.0, 0.0, 0.0]
-        functional_weights_parameters = self.optimization_settings["optimization_problem_settings"]["functional_weights"]["fluid_functionals"]
+        functional_weights_parameters = self.functional_settings["functional_weights"]["fluid_functionals"]
         self.fluid_functional_normalization_strategy = functional_weights_parameters["normalization"]["type"].GetString()
         if self.fluid_functional_normalization_strategy == "custom":
             self.fluid_functional_normalization_value = functional_weights_parameters["normalization"]["value"].GetDouble()
@@ -438,7 +438,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         self._SetNormalizationFluidFunctionals()
 
     def _SetNormalizationFluidFunctionals(self):
-        if self.fluid_functional_normalization_strategy == "initial":
+        if (self.fluid_functional_normalization_strategy == "initial"):
             self.fluid_functional_normalization_value = self.initial_fluid_functional
         else: # custom value, already defined
             pass
@@ -448,8 +448,11 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
             fluid_functional_weights = np.zeros(self.normalized_fluid_functional_weights.size)
         else:
             fluid_functional_weights  = self.normalized_fluid_functional_weights.copy()
-            if (abs(self.initial_fluid_functional) > 1e-15):
+            if (self.fluid_functional_normalization_strategy == "custom"):
                 fluid_functional_weights /= abs(self.fluid_functional_normalization_value)
+            else:
+                if (abs(self.initial_fluid_functional) > 1e-15):
+                    fluid_functional_weights /= abs(self.fluid_functional_normalization_value)
         return fluid_functional_weights
         
     def _RescaleFunctionalWeightsByNormalizationValues(self):
@@ -664,7 +667,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         self.n_optimization_constraints = 0  
         self._InitializeOptimizerSettings()
         self._InitializeConstraints()
-        self._InitializeFunctionalEvaluation()
+        self._InitializeFunctional()
         self._InitializeRemeshing()
 
     def SetTimeSolutionStorage(self):
@@ -701,6 +704,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         self.constraints_settings = self.optimization_settings["optimization_problem_settings"]["constraints_settings"]
         self._InitializeVolumeConstraint()
         self._InitializeOtherConstraints()
+        self._InitializeConstraintsDerivativesEvaluation()
         self._ResetConstraints()
 
     def _InitializeVolumeConstraint(self):
@@ -713,13 +717,17 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
             self.is_fluid_volume_constraint = True
         self._SetMaxDomainVolumeFraction()
 
+    def _InitializeConstraintsDerivativesEvaluation(self):
+        self.constraints_derivatives_methodology = self.constraints_settings["constraints_derivatives_settings"]["evaluation_methodology"].GetString()
+
     def _InitializeOtherConstraints(self):
         # Set use the specific contraint to 'False' for all the custom implemented constraints
         self.use_wss_constraint = False
-
+        self.use_discretization_constraint = False
         self.use_other_constraints = self.constraints_settings["use_other_constraints"].GetBool()
         if (self.use_other_constraints):
             self._InitializeWSSConstraint()
+            self._InitializeDiscretizationConstraint()
 
     def _InitializeWSSConstraint(self):
         self.wss_constraint_settings = self.constraints_settings["other_constraints_list"]["WSS_constraint_settings"]
@@ -727,17 +735,34 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         if (self.use_wss_constraint):
             self.wss_constraint_id = self.n_optimization_constraints
             self.n_optimization_constraints += 1
-            self.min_wss = self.wss_constraint_settings["min_WSS"].GetDouble()
+            self.wss_constraint_min_wss = self.wss_constraint_settings["min_WSS"].GetDouble()
+
+    def _InitializeDiscretizationConstraint(self):
+        self.discretization_constraint_settings = self.constraints_settings["other_constraints_list"]["discretization_constraint_settings"]
+        self.use_discretization_constraint = self.discretization_constraint_settings["use_discretization_constraint"].GetBool()
+        if (self.use_discretization_constraint):
+            self.discretization_constraint_id = self.n_optimization_constraints
+            self.n_optimization_constraints += 1
+            self.min_max_discretization_constraint_tolerance = [self.discretization_constraint_settings["min_max_discretization_tolerance"][0].GetDouble(), self.discretization_constraint_settings["min_max_discretization_tolerance"][1].GetDouble()]
+            self.min_max_discretization_constraint_tolerance_iterations = [self.discretization_constraint_settings["min_max_discretization_tolerance_iterations"][0].GetInt(), self.discretization_constraint_settings["min_max_discretization_tolerance_iterations"][1].GetInt()]
 
     def _ResetConstraints(self):
         self.constraints = np.zeros((self.n_optimization_constraints,1))  
         self.constraints_derivatives_wrt_design = np.zeros((self.n_optimization_constraints, self.n_opt_design_parameters))
+
+    def _InitializeFunctional(self):
+        self.functional_settings = self.optimization_settings["optimization_problem_settings"]["functional_settings"]
+        self._InitializeFunctionalEvaluation()
+        self._InitializeFunctionalDerivativesEvaluation()
 
     def _InitializeFunctionalEvaluation(self):
         self.functional_weights_imported = False
         self._InitializeFunctionalsInTime()
         self._ImportFunctionalWeights()
         self._InitializePhysicsFunctionalValue()
+
+    def _InitializeFunctionalDerivativesEvaluation(self):
+        self.functional_derivatives_methodology = self.functional_settings["functional_derivatives_settings"]["evaluation_methodology"].GetString()
 
     def _InitializePhysicsFunctionalValue(self):
         self.fluid_functional = 0.0
@@ -830,8 +855,8 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         return functional_time_steps_integration_weights, times
 
     def _GetFunctionalEvaluationTimeInterval(self, functional_physics, functional_name):
-        physics_time_interval_list = self.optimization_settings["optimization_problem_settings"]["functional_weights"][functional_physics]["time_interval"]
-        functional_time_interval_list = self.optimization_settings["optimization_problem_settings"]["functional_weights"][functional_physics][functional_name]["time_interval"]
+        physics_time_interval_list = self.functional_settings["functional_weights"][functional_physics]["time_interval"]
+        functional_time_interval_list = self.functional_settings["functional_weights"][functional_physics][functional_name]["time_interval"]
         physics_start_time, physics_end_time = self._GetTimeIntervalFromSettingsList(physics_time_interval_list, functional_err_msg=functional_physics)
         functional_start_time, functional_end_time = self._GetTimeIntervalFromSettingsList(functional_time_interval_list, functional_err_msg=functional_physics+"->"+functional_name)
         if physics_start_time > functional_end_time:
@@ -1137,6 +1162,8 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
                 computed_parameter, computed_parameter_derivative_wrt_design_base = self._ComputeHyperbolicPhysicsParameter(subdomain_physics_parameters, design_parameter)
             elif (interpolation_method == "polynomial"):
                 computed_parameter, computed_parameter_derivative_wrt_design_base = self._ComputePolynomialPhysicsParameter(subdomain_physics_parameters, design_parameter)
+            elif (interpolation_method == "exponential"):
+                computed_parameter, computed_parameter_derivative_wrt_design_base = self._ComputeExponentialPhysicsParameter(subdomain_physics_parameters, design_parameter)
             else:
                 raise RuntimeError("WRONG PHYSICS PARAMETER INTERPOLATION METHOD", "Running '_ComputePhysicsParameter' with the wrong interpolation method.")
             parameter[nodes_ids] = computed_parameter[nodes_ids]
@@ -1176,7 +1203,29 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
             physics_parameter = value_full - (value_full-value_void)*((1.0-design_parameter)**eff_power)
             physics_parameter_derivative_wrt_design_base = eff_power*(value_full-value_void)*((1.0-design_parameter)**(eff_power-1))
         return physics_parameter, physics_parameter_derivative_wrt_design_base
-    
+
+    def _ComputeExponentialPhysicsParameter(self, physics_parameters, design_parameter):
+        value_void = physics_parameters["value_void"].GetDouble()
+        value_full = physics_parameters["value_full"].GetDouble()
+        exponent_value_void = max(0.0, np.log(value_void+1.0))
+        exponent_value_full = max(0.0, np.log(value_full+1.0))
+        slope_initial, slope_final, start_it, end_it = self._GetPhysicsParameterSlopeScaling(physics_parameters["interpolation_slope"])
+        if (slope_initial > 1.0):
+            slope_initial = 1.0
+        if (slope_final > slope_initial):
+            slope_final = slope_initial
+        eff_slope = self._LinearInterpolationOverIterations(slope_initial, slope_final, start_it, end_it)
+        if (exponent_value_void <= exponent_value_full): 
+            physics_parameter_exponent = exponent_value_full - (exponent_value_full-exponent_value_void)*(eff_slope*(1-design_parameter))/(eff_slope+design_parameter)
+            physics_parameter_exponent_derivative_wrt_design_base = (exponent_value_full-exponent_value_void)*(eff_slope*(eff_slope+1))/((eff_slope+design_parameter)**2)
+            
+        else:
+            physics_parameter_exponent = exponent_value_void + (exponent_value_full-exponent_value_void)*(eff_slope*design_parameter)/(eff_slope+1-design_parameter)
+            physics_parameter_exponent_derivative_wrt_design_base = (exponent_value_full-exponent_value_void)*(eff_slope*(eff_slope+1))/((eff_slope+1-design_parameter)**2)
+        physics_parameter = np.exp(physics_parameter_exponent) - 1.0
+        physics_parameter_derivative_wrt_design_base = (physics_parameter + 1.0) * physics_parameter_exponent_derivative_wrt_design_base
+        return physics_parameter, physics_parameter_derivative_wrt_design_base
+
     def _LinearInterpolationOverIterations(self, initial_value, final_value, start_it, end_it):
         if (self.opt_it < start_it):
             return initial_value
@@ -1432,6 +1481,8 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
     def _EvaluateOtherConstraintsAndDerivatives(self):
         if (self.use_wss_constraint):
             self._EvaluateWSSConstraintAndDerivative()
+        if (self.use_discretization_constraint):
+            self._EvaluateDiscretizationConstraintAndDerivative()
 
     def _EvaluateFunctionalAndDerivatives(self, print_functional=False):
         """
@@ -1532,6 +1583,8 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         temp_functional_derivatives_wrt_design = self._ComputeFunctionalDerivativesFunctionalContribution()
         temp_functional_derivatives_wrt_design += self._ComputeFunctionalDerivativesPhysicsContribution()
         temp_functional_derivatives_wrt_design_projected = temp_functional_derivatives_wrt_design * self.design_parameter_projected_derivatives
+        if (self.functional_derivatives_methodology == "continuous"):
+            temp_functional_derivatives_wrt_design_projected = temp_functional_derivatives_wrt_design_projected / self.nodal_optimization_domain_sizes
         self.MpiPrint("--|" + self.topology_optimization_stage_str + "| --> Apply Diffusive Filter for Derivatives: Functional")
         temp_functional_derivatives_wrt_design[mask] = self._ApplyDiffusiveFilterDerivative(temp_functional_derivatives_wrt_design_projected)
         return temp_functional_derivatives_wrt_design
@@ -1562,6 +1615,30 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
             fluid_physics_functional_derivatives_in_delta_time[:,istep] = self.resistance_derivative_wrt_design_base * np.sum(velocity*velocity_adjoint, axis=1) * self.nodal_domain_sizes
         return (np.einsum('ij,j->i', fluid_physics_functional_derivatives_in_delta_time, self.time_steps_integration_weights) / self.time_integral_normalization_factor)
 
+    def _EvaluateVolumeConstraintAndDerivative(self):
+        self.EvaluateDesignParameterIntegralInOptimizationDomain()
+        if (self.is_fluid_volume_constraint):
+            self.volume_fraction = 1.0 - self.design_parameter_integral/self.optimization_domain_size
+            volume_constraint_derivatives_wrt_design_base = -1.0 * self.nodal_optimization_domain_sizes / self.optimization_domain_size
+        else:
+            self.volume_fraction = self.design_parameter_integral/self.optimization_domain_size
+            volume_constraint_derivatives_wrt_design_base = self.nodal_optimization_domain_sizes / self.optimization_domain_size
+        self.volume_constraint = self.volume_fraction - self.max_volume_fraction
+        volume_constraint_derivatives_wrt_design_projected = volume_constraint_derivatives_wrt_design_base * self.design_parameter_projected_derivatives
+        if (self.constraints_derivatives_methodology == "continuous"):
+            volume_constraint_derivatives_wrt_design_projected = volume_constraint_derivatives_wrt_design_projected / self.nodal_optimization_domain_sizes
+        self.constraints[self.volume_constraint_id] = self.volume_constraint
+        self.MpiPrint("--|" + self.topology_optimization_stage_str + "| --> Apply Diffusive Filter for Derivatives: Volume Constraint")
+        self.constraints_derivatives_wrt_design[self.volume_constraint_id,:] = self._ApplyDiffusiveFilterDerivative(volume_constraint_derivatives_wrt_design_projected)
+
+    def EvaluateDesignParameterIntegralInOptimizationDomain(self):
+        if self.IsMpiParallelism():
+            local_design_parameter_integral = np.dot(self.design_parameter, self.nodal_optimization_domain_sizes)
+            total_design_parameter_integral = self.data_communicator.SumAll(local_design_parameter_integral)
+            self.design_parameter_integral  = total_design_parameter_integral
+        else:
+            self.design_parameter_integral  = np.dot(self.design_parameter, self.nodal_optimization_domain_sizes)
+    
     def _EvaluateWSSConstraintAndDerivative(self):
         """
         For simplicity of notation we refer to the design parameter gradient as g.
@@ -1581,14 +1658,39 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
             psi_vect =np.einsum('ijk,ik,ilj->il', v_grad, g, nodal_tangents_to_g)
             psi =  np.linalg.norm(psi_vect, axis=1)
             mu = self._GetViscosity()
-            self.wss_value = mu / gn_int * np.dot(psi, self.nodal_domain_sizes)
-            self.wss_constraint = self.min_wss - self.wss_value
+            self.wss_constraint_wss_value = mu / gn_int * np.dot(psi, self.nodal_domain_sizes)
+            self.wss_constraint = self.wss_constraint_min_wss - self.wss_constraint_wss_value
             self.constraints[self.wss_constraint_id] = self.wss_constraint
         else:
-            self.wss_value = -1
+            self.wss_constraint_wss_value = -1
             self.wss_constraint = -1
             self.constraints[self.wss_constraint_id] = self.wss_constraint
-    
+
+    def _EvaluateDiscretizationConstraintAndDerivative(self):
+        discretization_constraint_integral = 0.0
+        integrand = self.design_parameter * (1.0-self.design_parameter)
+        if self.IsMpiParallelism():
+            local_integral = np.dot(integrand, self.nodal_optimization_domain_sizes)
+            total_integral = self.data_communicator.SumAll(local_integral)
+            discretization_constraint_integral  = total_integral
+        else:
+            discretization_constraint_integral  = np.dot(integrand, self.nodal_optimization_domain_sizes)
+        discretization_constraint_derivatives_wrt_design_base = (1.0 - 2.0*self.design_parameter) * self.nodal_optimization_domain_sizes / self.optimization_domain_size
+        discretization_constraint_derivatives_wrt_design_projected = discretization_constraint_derivatives_wrt_design_base * self.design_parameter_projected_derivatives
+        if (self.constraints_derivatives_methodology == "continuous"):
+            discretization_constraint_derivatives_wrt_design_projected = discretization_constraint_derivatives_wrt_design_projected / self.nodal_optimization_domain_sizes
+        self.discretization_constraint_integral_value = discretization_constraint_integral / self.optimization_domain_size
+        if (self.opt_it < self.min_max_discretization_constraint_tolerance_iterations[0]):
+            self.discretization_constraint_tolerance = self.discretization_constraint_integral_value + 0.000001
+        elif (self.opt_it >= self.min_max_discretization_constraint_tolerance_iterations[1]):
+            self.discretization_constraint_tolerance = self.min_max_discretization_constraint_tolerance[0]
+        else:
+            self.discretization_constraint_tolerance = self.min_max_discretization_constraint_tolerance[1] + (self.min_max_discretization_constraint_tolerance[0]-self.min_max_discretization_constraint_tolerance[1])*float(self.opt_it-self.min_max_discretization_constraint_tolerance_iterations[0])/float(self.min_max_discretization_constraint_tolerance_iterations[1]-self.min_max_discretization_constraint_tolerance_iterations[0])
+        self.discretization_constraint = self.discretization_constraint_integral_value - self.discretization_constraint_tolerance
+        self.constraints[self.discretization_constraint_id] = self.discretization_constraint
+        self.MpiPrint("--|" + self.topology_optimization_stage_str + "| --> Apply Diffusive Filter for Derivatives: Discretization Constraint")
+        self.constraints_derivatives_wrt_design[self.discretization_constraint_id,:] = self._ApplyDiffusiveFilterDerivative(discretization_constraint_derivatives_wrt_design_projected)
+
     ## UTILS
     def _SetTopologyOptimizationStage(self, problem_stage):
         """
@@ -1786,6 +1888,8 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
                 file.write(str(self.volume_constraint))
                 if (self.use_wss_constraint):
                     file.write(" " + str(self.wss_constraint))
+                if (self.use_discretization_constraint):
+                    file.write(" " + str(self.discretization_constraint))
                 file.write("\n")
 
     def _PrintParametersToFile(self):
@@ -1833,7 +1937,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
             destination_path = self.optimization_parameters["optimization_settings"]["solution_output_settings"]["output_path"].GetString()
             destination_path += "/files"
             with open(destination_path+"/functional_history.txt", "w") as file:
-                file.write("TOTAL | RESISTANCE | STRAIN_RATE | 2*VORTICITY | OUTLET_CONCENTRATION | REGION_TEMPERATURE | DIFFUSIVE_TRANSPORT | CONVECTIVE_TRASNPORT | REACTIVE_TRASNPORT | SOURCE_TRANSPORT\n")
+                file.write("TOTAL | RESISTANCE | STRAIN_RATE | 2*VORTICITY | OUTLET_CONCENTRATION | REGION_TEMPERATURE | DIFFUSIVE_TRANSPORT | CONVECTIVE_TRASNPORT | REACTIVE_TRASNPORT | SOURCE_TRANSPORT | LINEAR_REACTIVE_TRANSPORT\n")
                 file.write("1 ")
                 for ifunc in range(self.n_functionals):
                     file.write(str(self.functional_weights[ifunc]) + " ")
@@ -1849,6 +1953,8 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
                 header_str = "VOLUME"
                 if (self.use_wss_constraint):
                     header_str += " | WSS" 
+                if (self.use_discretization_constraint):
+                    header_str += " | DISCRETIZATION" 
                 file.write(header_str + "\n")
 
     def _InitializePrintParametersToFile(self):
@@ -1868,15 +1974,22 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
     def _PrintOtherConstraints(self):
         if (self.use_wss_constraint):
             self._PrintWSSConstraint()
+        if (self.use_discretization_constraint):
+            self._PrintDiscretizationConstraint()
     
     def _PrintVolumeConstraint(self):
         self.MpiPrint("--|" + self.topology_optimization_stage_str + "| VOLUME FRACTION: " + str(self.volume_fraction), min_echo=0)
         self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Volume Constraint: " + str(self.volume_constraint), min_echo=0)
 
     def _PrintWSSConstraint(self):
-        self.MpiPrint("--|" + self.topology_optimization_stage_str + "| WSS VALUE: " + str(self.wss_value), min_echo=0)
+        self.MpiPrint("--|" + self.topology_optimization_stage_str + "| WSS VALUE: " + str(self.wss_constraint_wss_value), min_echo=0)
         # self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> WSS Resistance: " + str(self.resistance_parameters["value_full"].GetDouble()), min_echo=0)
         self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> WSS Constraint: " + str(self.wss_constraint), min_echo=0)
+
+    def _PrintDiscretizationConstraint(self):
+        self.MpiPrint("--|" + self.topology_optimization_stage_str + "| INTEGRAL VALUE: " + str(self.discretization_constraint_integral_value), min_echo=0)
+        self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Discretization Constraint: " + str(self.discretization_constraint), min_echo=0)
+
 
     def PrintAnalysisStageProgressInformation(self):
         self.PrintAnalysisStageTotalStepProgressInformation()
@@ -2497,69 +2610,74 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
                 }
             },
             "optimization_problem_settings": {
-                "functional_weights": {
-                    "fluid_functionals": {
-                        "time_interval": ["Start","End"],
-                        "normalization" : {
-                            "type" : "initial",
-                            "value": 0.0
+                "functional_settings": {
+                    "functional_weights": {
+                        "fluid_functionals": {
+                            "time_interval": ["Start","End"],
+                            "normalization" : {
+                                "type" : "initial",
+                                "value": 0.0
+                            },
+                            "resistance" : {
+                                "weight": 1.0,
+                                "time_interval": ["Start","End"]
+                            },
+                            "strain_rate" : {
+                                "weight": 1.0,
+                                "time_interval": ["Start","End"]
+                            },
+                            "vorticity" : {
+                                "weight": 0.0,
+                                "time_interval": ["Start","End"]
+                            }
                         },
-                        "resistance" : {
-                            "weight": 1.0,
-                            "time_interval": ["Start","End"]
+                        "transport_functionals": {
+                            "time_interval": ["Start","End"],
+                            "normalization" : {
+                                "type" : "initial",
+                                "value": 0.0
+                            },
+                            "outlet_transport_scalar" : {
+                                "weight"    : 0.0,
+                                "time_interval": ["Start","End"],
+                                "outlet_model_part": "Outlet",
+                                "target_value": 0.0
+                            },
+                            "focus_region_transport_scalar" : {
+                                "weight"    : 0.0,
+                                "time_interval": ["Start","End"],
+                                "focus_region_model_part": "FocusRegion",
+                                "target_value": 0.0
+                            },
+                            "conductivity_transfer" : {
+                                "weight": 1.0,
+                                "time_interval": ["Start","End"]
+                            },
+                            "convection_transfer" : {
+                                "weight": 0.0,
+                                "time_interval": ["Start","End"]
+                            },
+                            "decay_transfer" : {
+                                "weight": 0.0,
+                                "time_interval": ["Start","End"]
+                            },
+                            "source_transfer" : {
+                                "weight": 0.0,
+                                "time_interval": ["Start","End"]
+                            },
+                            "decay_1st_order_transport" : {
+                                "weight": 0.0,
+                                "time_interval": ["Start","End"]
+                            }
                         },
-                        "strain_rate" : {
-                            "weight": 1.0,
-                            "time_interval": ["Start","End"]
-                        },
-                        "vorticity" : {
-                            "weight": 0.0,
-                            "time_interval": ["Start","End"]
+                        "coupling" : {
+                            "fluid"    : 1.0,
+                            "transport": 1.0,
+                            "derivatives_weights_type": "constant"
                         }
                     },
-                    "transport_functionals": {
-                        "time_interval": ["Start","End"],
-                        "normalization" : {
-                            "type" : "initial",
-                            "value": 0.0
-                        },
-                        "outlet_transport_scalar" : {
-                            "weight"    : 0.0,
-                            "time_interval": ["Start","End"],
-                            "outlet_model_part": "Outlet",
-                            "target_value": 0.0
-                        },
-                        "focus_region_transport_scalar" : {
-                            "weight"    : 0.0,
-                            "time_interval": ["Start","End"],
-                            "focus_region_model_part": "FocusRegion",
-                            "target_value": 0.0
-                        },
-                        "conductivity_transfer" : {
-                            "weight": 1.0,
-                            "time_interval": ["Start","End"]
-                        },
-                        "convection_transfer" : {
-                            "weight": 0.0,
-                            "time_interval": ["Start","End"]
-                        },
-                        "decay_transfer" : {
-                            "weight": 0.0,
-                            "time_interval": ["Start","End"]
-                        },
-                        "source_transfer" : {
-                            "weight": 0.0,
-                            "time_interval": ["Start","End"]
-                        },
-                        "decay_1st_order_transport" : {
-                            "weight": 0.0,
-                            "time_interval": ["Start","End"]
-                        }
-                    },
-                    "coupling" : {
-                        "fluid"    : 1.0,
-                        "transport": 1.0,
-                        "derivatives_weights_type": "constant"
+                    "functional_derivatives_settings": {
+                        "evaluation_methodology": "discrete"
                     }
                 },
                 "constraints_settings": {
@@ -2572,7 +2690,15 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
                         "WSS_constraint_settings": {
                             "use_WSS_constraint" : false,
                             "min_WSS" : 0.5
+                        },
+                        "discretization_constraint_settings": {
+                            "use_discretization_constraint": false,
+                            "min_max_discretization_tolerance": [0.0001, 0.5],
+                            "min_max_discretization_tolerance_iterations": [1, 100]
                         }
+                    },
+                    "constraints_derivatives_settings": {
+                        "evaluation_methodology": "discrete"
                     }
                 }
             },
@@ -2716,28 +2842,6 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         self.MpiPrint("--|" + self.topology_optimization_stage_str + "| EVALUATE FUNCTIONAL VALUE")
         self.EvaluateFunctionals(print_functional)
         self.EvaluateTotalFunctional()
-
-    def _EvaluateVolumeConstraintAndDerivative(self):
-        self.EvaluateDesignParameterIntegralInOptimizationDomain()
-        if (self.is_fluid_volume_constraint):
-            self.volume_fraction = 1.0 - self.design_parameter_integral/self.optimization_domain_size
-            volume_constraint_derivatives_wrt_design_base = -1.0 * self.nodal_optimization_domain_sizes / self.optimization_domain_size
-        else:
-            self.volume_fraction = self.design_parameter_integral/self.optimization_domain_size
-            volume_constraint_derivatives_wrt_design_base = self.nodal_optimization_domain_sizes / self.optimization_domain_size
-        self.volume_constraint = self.volume_fraction - self.max_volume_fraction
-        volume_constraint_derivatives_wrt_design_projected = volume_constraint_derivatives_wrt_design_base * self.design_parameter_projected_derivatives
-        self.constraints[self.volume_constraint_id] = self.volume_constraint
-        self.MpiPrint("--|" + self.topology_optimization_stage_str + "| --> Apply Diffusive Filter for Derivatives: Volume Constraint")
-        self.constraints_derivatives_wrt_design[self.volume_constraint_id,:] = self._ApplyDiffusiveFilterDerivative(volume_constraint_derivatives_wrt_design_projected)
-
-    def EvaluateDesignParameterIntegralInOptimizationDomain(self):
-        if self.IsMpiParallelism():
-            local_design_parameter_integral = np.dot(self.design_parameter, self.nodal_optimization_domain_sizes)
-            total_design_parameter_integral = self.data_communicator.SumAll(local_design_parameter_integral)
-            self.design_parameter_integral  = total_design_parameter_integral
-        else:
-            self.design_parameter_integral  = np.dot(self.design_parameter, self.nodal_optimization_domain_sizes)
 
     def _ComputeDomainSize(self):
         self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Compute Domain Size")
@@ -2944,16 +3048,19 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
     def _EvaluateSlackVariablePenalizationForMMA(self, delta_it = 1, slack_variable_residual_toll = 1e-3, slack_penalty_adaptation_factor=2.0):
         self.old_slack_variable_residual = self.slack_variable_residual
         self.slack_variable_residual = max(self.volume_constraint, 0.0)
+        self.old_slack_variable_penalty = self.slack_variable_penalty
         if ((self.opt_it % delta_it) == 0):
             if (self.slack_variable_residual > slack_variable_residual_toll):
                 if (min(self.slack_variable_residual/self.old_slack_variable_residual, 1.0) > 0.95):
                     self.slack_variable_penalty *= slack_penalty_adaptation_factor
-                    self.MpiPrint("--|" + self.topology_optimization_stage_str + "|--> Increase Slack Varible Penalty. New value: " + str(self.slack_variable_penalty), min_echo=0)
                 elif (min(self.slack_variable_residual/self.old_slack_variable_residual, 1.0) < 0.05):
                     self.slack_variable_penalty /= slack_penalty_adaptation_factor
-                    self.MpiPrint("--|" + self.topology_optimization_stage_str + "|--> Decrease Slack Varible Penalty. New value: " + str(self.slack_variable_penalty), min_echo=0)
-        self.slack_variable_penalty = max(self.optimizer_min_slack_variable_penalty, min(self.slack_variable_penalty, self.optimizer_max_slack_variable_penalty))
-        
+        self.slack_variable_penalty = np.clip(self.slack_variable_penalty, self.optimizer_max_slack_variable_penalty, self.optimizer_max_slack_variable_penalty)
+        if (self.slack_variable_penalty > self.old_slack_variable_penalty):
+            self.MpiPrint("--|" + self.topology_optimization_stage_str + "|--> Increase Slack Varible Penalty. New value: " + str(self.slack_variable_penalty), min_echo=1)
+        elif (self.slack_variable_penalty < self.old_slack_variable_penalty):
+            self.MpiPrint("--|" + self.topology_optimization_stage_str + "|--> Decrease Slack Varible Penalty. New value: " + str(self.slack_variable_penalty), min_echo=1)
+
     def CreateFunctionalDerivativesCompleteArrays(self, local_value, n_ranks, n_opt_variables_in_rank):
         """
         Gathers and concatenates the objective function derivatives (df0/dx) from all MPI ranks

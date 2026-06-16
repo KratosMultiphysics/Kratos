@@ -126,7 +126,7 @@ class FluidTransportTopologyOptimizationAnalysis(TransportTopologyOptimizationAn
 
     def _ImportCouplingFunctionalWeights(self):
         coupling_weights = [0.0, 0.0]
-        functional_weights_parameters = self.optimization_settings["optimization_problem_settings"]["functional_weights"]["coupling"]
+        functional_weights_parameters = self.functional_settings["functional_weights"]["coupling"]
         coupling_weights[0] = functional_weights_parameters["fluid"].GetDouble()
         coupling_weights[1] = functional_weights_parameters["transport"].GetDouble()
         self.normalized_coupling_functional_weights = self._NormalizeFunctionalWeights(np.asarray(coupling_weights))

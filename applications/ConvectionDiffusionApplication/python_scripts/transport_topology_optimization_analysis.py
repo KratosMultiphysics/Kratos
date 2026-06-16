@@ -331,7 +331,7 @@ class TransportTopologyOptimizationAnalysis(FluidTopologyOptimizationAnalysis):
 
     def _ImportTransportFunctionalWeights(self):
         transport_functional_weights = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-        functional_weights_parameters = self.optimization_parameters["optimization_settings"]["optimization_problem_settings"]["functional_weights"]["transport_functionals"]
+        functional_weights_parameters = self.functional_settings["functional_weights"]["transport_functionals"]
         self.transport_functional_normalization_strategy = functional_weights_parameters["normalization"]["type"].GetString()
         if self.transport_functional_normalization_strategy == "custom":
             self.transport_functional_normalization_value = functional_weights_parameters["normalization"]["value"].GetDouble()
@@ -370,8 +370,11 @@ class TransportTopologyOptimizationAnalysis(FluidTopologyOptimizationAnalysis):
             transport_functional_weights = np.zeros(self.normalized_transport_functional_weights.size)
         else:
             transport_functional_weights  = self.normalized_transport_functional_weights.copy()
-            if (abs(self.initial_transport_functional) > 1e-15):
+            if (self.transport_functional_normalization_strategy == "custom"):
                 transport_functional_weights /= abs(self.transport_functional_normalization_value)
+            else:
+                if (abs(self.initial_transport_functional) > 1e-15):
+                    transport_functional_weights /= abs(self.transport_functional_normalization_value)
         return transport_functional_weights
     
     def _RescaleFunctionalWeightsByNormalizationValues(self):
@@ -678,12 +681,12 @@ class TransportTopologyOptimizationAnalysis(FluidTopologyOptimizationAnalysis):
         self.transport_scalar_1st_order_decay_functional_time_steps_integration_weights, self.transport_scalar_1st_order_decay_functional_time_info = self._InitializeFunctionalTimeIntegrationWeights(functional_physics="transport_functionals", functional_name="decay_1st_order_transport")
 
     def SetTargetOutletTransportScalar(self):
-        functional_settings = self.optimization_settings["optimization_problem_settings"]["functional_weights"]["transport_functionals"]["outlet_transport_scalar"]
+        functional_settings = self.functional_settings["functional_weights"]["transport_functionals"]["outlet_transport_scalar"]
         self.target_outlet_transport_scalar_model_part_name = functional_settings["outlet_model_part"].GetString()
         self.target_outlet_transport_scalar = functional_settings["target_value"].GetDouble()
 
     def SetTargetFocusRegionTransportScalar(self):
-        functional_settings = self.optimization_settings["optimization_problem_settings"]["functional_weights"]["transport_functionals"]["focus_region_transport_scalar"]
+        functional_settings = self.functional_settings["functional_weights"]["transport_functionals"]["focus_region_transport_scalar"]
         self.target_focus_region_transport_scalar_model_part_name = functional_settings["focus_region_model_part"].GetString()
         self.target_focus_region_transport_scalar = functional_settings["target_value"].GetDouble()
 
