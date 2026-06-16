@@ -27,6 +27,13 @@ namespace
 using namespace Kratos;
 using namespace Kratos::Testing;
 
+void AddWaterPressureDofToAllNodes(ModelPart& rModelPart)
+{
+    for (auto& r_node : rModelPart.Nodes()) {
+        r_node.AddDof(WATER_PRESSURE);
+    }
+}
+
 ModelPart& CreateTestModelPart(Model& rModel)
 {
     auto& r_result = rModel.CreateModelPart("TestPart");
@@ -38,6 +45,7 @@ ModelPart& CreateTestModelPart(Model& rModel)
     r_result.CreateNewNode(2, 1.0, 0.0, 0.0);
     r_result.CreateNewNode(3, 1.0, 1.0, 0.0);
     r_result.CreateNewNode(4, 0.0, 1.0, 0.0);
+    AddWaterPressureDofToAllNodes(r_result);
 
     // Create elements using the node IDs
     std::vector<std::size_t> elem1_nodes = {1, 2, 3};
@@ -50,7 +58,7 @@ ModelPart& CreateTestModelPart(Model& rModel)
     return r_result;
 }
 
-TEST_F(KratosGeoMechanicsFastSuite, ApplyConstantInterpolateLinePressureProcess_Construction)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, ApplyConstantInterpolateLinePressureProcess_Construction)
 {
     // Arrange
     Model model;
@@ -71,7 +79,7 @@ TEST_F(KratosGeoMechanicsFastSuite, ApplyConstantInterpolateLinePressureProcess_
     EXPECT_NO_THROW(ApplyConstantInterpolateLinePressureProcess process(r_model_part, params));
 }
 
-TEST_F(KratosGeoMechanicsFastSuite, ApplyConstantInterpolateLinePressureProcess_ThrowsOnInvalidDirections)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, ApplyConstantInterpolateLinePressureProcess_ThrowsOnInvalidDirections)
 {
     // Arrange
     Model model;
@@ -94,7 +102,7 @@ TEST_F(KratosGeoMechanicsFastSuite, ApplyConstantInterpolateLinePressureProcess_
         "Gravity direction cannot be the same as Out-of-Plane directions");
 }
 
-TEST_F(KratosGeoMechanicsFastSuite, ApplyConstantInterpolateLinePressureProcess_ExecuteInitializeSolutionStep)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, ApplyConstantInterpolateLinePressureProcess_ExecuteInitializeSolutionStep)
 {
     // Arrange
     Model model;
@@ -128,7 +136,7 @@ TEST_F(KratosGeoMechanicsFastSuite, ApplyConstantInterpolateLinePressureProcess_
     }
 }
 
-TEST_F(KratosGeoMechanicsFastSuite, ApplyConstantInterpolateLinePressureProcess_SeepageBranch)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, ApplyConstantInterpolateLinePressureProcess_SeepageBranch)
 {
     // Arrange
     Model model;
@@ -178,11 +186,6 @@ TEST_F(KratosGeoMechanicsFastSuite, ApplyConstantInterpolateLinePressureProcess_
         "table": 1
     })");
 
-    // Reset nodes to unfixed
-    for (auto& r_node : r_model_part.Nodes()) {
-        r_node.Free(WATER_PRESSURE);
-    }
-
     ApplyConstantInterpolateLinePressureProcess process_above(r_model_part, params_above);
     process_above.ExecuteInitializeSolutionStep();
 
@@ -192,7 +195,7 @@ TEST_F(KratosGeoMechanicsFastSuite, ApplyConstantInterpolateLinePressureProcess_
     }
 }
 
-TEST_F(KratosGeoMechanicsFastSuite, ApplyConstantInterpolateLinePressureProcess_Info)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, ApplyConstantInterpolateLinePressureProcess_Info)
 {
     // Arrange
     Model model;
@@ -215,14 +218,14 @@ TEST_F(KratosGeoMechanicsFastSuite, ApplyConstantInterpolateLinePressureProcess_
     KRATOS_EXPECT_EQ(process.Info(), "ApplyConstantInterpolateLinePressureProcess");
 }
 
-TEST_F(KratosGeoMechanicsFastSuite, ApplyConstantInterpolateLinePressureProcess_DoesNotFreeWhenIsFixedIsNotProvided)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
+       ApplyConstantInterpolateLinePressureProcess_DoesNotFreeWhenIsFixedIsNotProvided)
 {
     // Arrange
     Model model;
     auto& r_model_part = CreateTestModelPart(model);
 
     for (auto& r_node : r_model_part.Nodes()) {
-        r_node.AddDof(WATER_PRESSURE);
         r_node.Fix(WATER_PRESSURE);
         r_node.FastGetSolutionStepValue(WATER_PRESSURE) = -10.0 * static_cast<double>(r_node.Id());
     }
@@ -248,14 +251,13 @@ TEST_F(KratosGeoMechanicsFastSuite, ApplyConstantInterpolateLinePressureProcess_
     }
 }
 
-TEST_F(KratosGeoMechanicsFastSuite, ApplyConstantInterpolateLinePressureProcess_FreesWhenIsFixedIsExplicitlyFalse)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, ApplyConstantInterpolateLinePressureProcess_FreesWhenIsFixedIsExplicitlyFalse)
 {
     // Arrange
     Model model;
     auto& r_model_part = CreateTestModelPart(model);
 
     for (auto& r_node : r_model_part.Nodes()) {
-        r_node.AddDof(WATER_PRESSURE);
         r_node.Fix(WATER_PRESSURE);
         r_node.FastGetSolutionStepValue(WATER_PRESSURE) = -10.0 * static_cast<double>(r_node.Id());
     }
@@ -282,7 +284,8 @@ TEST_F(KratosGeoMechanicsFastSuite, ApplyConstantInterpolateLinePressureProcess_
     }
 }
 
-TEST_F(KratosGeoMechanicsFastSuite, ApplyConstantInterpolateLinePressureProcess_ExecuteInitializeSolutionStepRunsOnlyOnce)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
+       ApplyConstantInterpolateLinePressureProcess_ExecuteInitializeSolutionStepRunsOnlyOnce)
 {
     // Arrange: boundary nodes on top (y=10) and bottom (y=0), plus an interior node (y=5).
     // CalculatePressure interpolates the interior node to 50.0, which is intentionally
@@ -304,6 +307,8 @@ TEST_F(KratosGeoMechanicsFastSuite, ApplyConstantInterpolateLinePressureProcess_
     // CalculatePressure will interpolate it to 50.0.
     auto interior_node = r_model_part.CreateNewNode(5, 5.0, 5.0, 0.0);
     interior_node->FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
+
+    AddWaterPressureDofToAllNodes(r_model_part);
 
     auto p_props = r_model_part.CreateNewProperties(0);
     r_model_part.AddElement(ElementSetupUtilities::Create2D2NElement(
@@ -343,7 +348,8 @@ TEST_F(KratosGeoMechanicsFastSuite, ApplyConstantInterpolateLinePressureProcess_
     KRATOS_EXPECT_NEAR(interior_node->FastGetSolutionStepValue(WATER_PRESSURE), sentinel, tolerance);
 }
 
-TEST_F(KratosGeoMechanicsFastSuite, ApplyConstantInterpolateLinePressure_InterpolatesInteriorFromTopAndBottomBoundaries)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
+       ApplyConstantInterpolateLinePressure_InterpolatesInteriorFromTopAndBottomBoundaries)
 {
     // Arrange
     Model      model;
@@ -370,6 +376,8 @@ TEST_F(KratosGeoMechanicsFastSuite, ApplyConstantInterpolateLinePressure_Interpo
     bottom_node_3->FastGetSolutionStepValue(WATER_PRESSURE) = -200.0;
 
     auto interior_node = r_model_part.CreateNewNode(7, 7.5, 5.0, 0.0);
+
+    AddWaterPressureDofToAllNodes(r_model_part);
 
     // Minimal elements to detect boundary nodes
     Properties::Pointer p_props = r_model_part.CreateNewProperties(0);
@@ -406,7 +414,7 @@ TEST_F(KratosGeoMechanicsFastSuite, ApplyConstantInterpolateLinePressure_Interpo
                        Defaults::absolute_tolerance);
 }
 
-TEST_F(KratosGeoMechanicsFastSuite, ApplyConstantInterpolateLinePressure_Throws_WhenNoBoundaryNodes)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, ApplyConstantInterpolateLinePressure_Throws_WhenNoBoundaryNodes)
 {
     // Arrange
     Model      model;
@@ -416,6 +424,8 @@ TEST_F(KratosGeoMechanicsFastSuite, ApplyConstantInterpolateLinePressure_Throws_
     // Create nodes but NO elements → no boundary detection
     mp.CreateNewNode(1, 0.0, 0.0, 0.0);
     mp.CreateNewNode(2, 1.0, 0.0, 0.0);
+
+    AddWaterPressureDofToAllNodes(mp);
 
     const auto params = Parameters(R"(
     {
@@ -428,7 +438,8 @@ TEST_F(KratosGeoMechanicsFastSuite, ApplyConstantInterpolateLinePressure_Throws_
                                       "No boundary node is found");
 }
 
-TEST_F(KratosGeoMechanicsFastSuite, ApplyConstantInterpolateLinePressure_ExtrapolatesWhenNodeIsRightOfAllBoundaryNodes)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
+       ApplyConstantInterpolateLinePressure_ExtrapolatesWhenNodeIsRightOfAllBoundaryNodes)
 {
     // Arrange: boundary nodes only at x=[0,5]; interior node at x=10 lies beyond the right edge.
     // CalculateBoundaryPressure will take the "only-left" branch and call
@@ -451,6 +462,8 @@ TEST_F(KratosGeoMechanicsFastSuite, ApplyConstantInterpolateLinePressure_Extrapo
 
     auto interior_node = r_model_part.CreateNewNode(5, 10.0, 5.0, 0.0);
     interior_node->FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
+
+    AddWaterPressureDofToAllNodes(r_model_part);
 
     auto p_props = r_model_part.CreateNewProperties(0);
     r_model_part.AddElement(ElementSetupUtilities::Create2D2NElement(
@@ -478,7 +491,8 @@ TEST_F(KratosGeoMechanicsFastSuite, ApplyConstantInterpolateLinePressure_Extrapo
     KRATOS_EXPECT_NEAR(interior_node->FastGetSolutionStepValue(WATER_PRESSURE), expected_value, tolerance);
 }
 
-TEST_F(KratosGeoMechanicsFastSuite, ApplyConstantInterpolateLinePressure_ExtrapolatesWhenNodeIsLeftOfAllBoundaryNodes)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
+       ApplyConstantInterpolateLinePressure_ExtrapolatesWhenNodeIsLeftOfAllBoundaryNodes)
 {
     // Arrange: boundary nodes only at x=[5,10]; interior node at x=0 lies beyond the left edge.
     // CalculateBoundaryPressure will take the "only-right" branch and call
@@ -501,6 +515,8 @@ TEST_F(KratosGeoMechanicsFastSuite, ApplyConstantInterpolateLinePressure_Extrapo
 
     auto interior_node = r_model_part.CreateNewNode(5, 0.0, 5.0, 0.0);
     interior_node->FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
+
+    AddWaterPressureDofToAllNodes(r_model_part);
 
     auto p_props = r_model_part.CreateNewProperties(0);
     r_model_part.AddElement(ElementSetupUtilities::Create2D2NElement(
@@ -528,7 +544,7 @@ TEST_F(KratosGeoMechanicsFastSuite, ApplyConstantInterpolateLinePressure_Extrapo
     KRATOS_EXPECT_NEAR(interior_node->FastGetSolutionStepValue(WATER_PRESSURE), expected_value, tolerance);
 }
 
-TEST_F(KratosGeoMechanicsFastSuite, ApplyConstantInterpolateLinePressure_NodeAtSameXAsBoundaryNode)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, ApplyConstantInterpolateLinePressure_NodeAtSameXAsBoundaryNode)
 {
     // Arrange: interior node shares the same x-coordinate as the leftmost boundary node.
     // FindClosestNodeOnBoundaryNodes returns the same node for both the "left" and "right"
@@ -554,6 +570,8 @@ TEST_F(KratosGeoMechanicsFastSuite, ApplyConstantInterpolateLinePressure_NodeAtS
     auto interior_node = r_model_part.CreateNewNode(5, 0.0, 5.0, 0.0);
     interior_node->FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
 
+    AddWaterPressureDofToAllNodes(r_model_part);
+
     auto p_props = r_model_part.CreateNewProperties(0);
     r_model_part.AddElement(ElementSetupUtilities::Create2D2NElement(
         ModelSetupUtilities::GetNodesFromIds(r_model_part, std::vector<std::size_t>{1, 2}), p_props, 1));
@@ -580,7 +598,7 @@ TEST_F(KratosGeoMechanicsFastSuite, ApplyConstantInterpolateLinePressure_NodeAtS
     KRATOS_EXPECT_NEAR(interior_node->FastGetSolutionStepValue(WATER_PRESSURE), expected_value, tolerance);
 }
 
-TEST_F(KratosGeoMechanicsFastSuite,
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
        ApplyConstantInterpolateLinePressure_OneContainerVerticalFallback_WhenHorizontalDifferenceIsTiny)
 {
     // Arrange: force one-container interpolation by placing the interior node to the right of all
@@ -607,6 +625,8 @@ TEST_F(KratosGeoMechanicsFastSuite,
 
     auto interior_node = r_model_part.CreateNewNode(5, 0.0, 5.0, 0.0);
     interior_node->FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
+
+    AddWaterPressureDofToAllNodes(r_model_part);
 
     auto p_props = r_model_part.CreateNewProperties(0);
     r_model_part.AddElement(ElementSetupUtilities::Create2D2NElement(
@@ -635,7 +655,7 @@ TEST_F(KratosGeoMechanicsFastSuite,
     KRATOS_EXPECT_NEAR(interior_node->FastGetSolutionStepValue(WATER_PRESSURE), expected_value, tolerance);
 }
 
-TEST_F(KratosGeoMechanicsFastSuite, ApplyConstantInterpolateLinePressure_FlatBoundary_ReturnsBoundaryPressure)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, ApplyConstantInterpolateLinePressure_FlatBoundary_ReturnsBoundaryPressure)
 {
     // Arrange: all boundary nodes are on a single horizontal line (y=5).
     // Both FindTopBoundaryNodes and FindBottomBoundaryNodes return the same set, so
@@ -656,6 +676,8 @@ TEST_F(KratosGeoMechanicsFastSuite, ApplyConstantInterpolateLinePressure_FlatBou
     // Interior node on the same horizontal level as the boundary.
     auto interior_node = r_model_part.CreateNewNode(3, 5.0, 5.0, 0.0);
     interior_node->FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
+
+    AddWaterPressureDofToAllNodes(r_model_part);
 
     auto p_props = r_model_part.CreateNewProperties(0);
     r_model_part.AddElement(ElementSetupUtilities::Create2D2NElement(
@@ -681,7 +703,8 @@ TEST_F(KratosGeoMechanicsFastSuite, ApplyConstantInterpolateLinePressure_FlatBou
     KRATOS_EXPECT_NEAR(interior_node->FastGetSolutionStepValue(WATER_PRESSURE), expected_value, tolerance);
 }
 
-TEST_F(KratosGeoMechanicsFastSuite, ApplyConstantInterpolateLinePressureProcess_FillListOfBoundaryNodesFast_DynamicAllocation)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
+       ApplyConstantInterpolateLinePressureProcess_FillListOfBoundaryNodesFast_DynamicAllocation)
 {
     // Arrange: Create a node shared by 11 elements to trigger dynamic push_back in FillListOfBoundaryNodesFast.
     Model      model;
@@ -692,6 +715,9 @@ TEST_F(KratosGeoMechanicsFastSuite, ApplyConstantInterpolateLinePressureProcess_
     for (std::size_t i = 1; i <= 12; ++i) {
         r_model_part.CreateNewNode(i, static_cast<double>(i), 0.0, 0.0);
     }
+
+    AddWaterPressureDofToAllNodes(r_model_part);
+
     auto p_props = r_model_part.CreateNewProperties(0);
     // Create 11 elements, all sharing node 1
     for (std::size_t i = 2; i <= 12; ++i) {
@@ -712,7 +738,8 @@ TEST_F(KratosGeoMechanicsFastSuite, ApplyConstantInterpolateLinePressureProcess_
     EXPECT_NO_THROW(ApplyConstantInterpolateLinePressureProcess process(r_model_part, params));
 }
 
-TEST_F(KratosGeoMechanicsFastSuite, ApplyConstantInterpolateLinePressureProcess_CalculateBoundaryPressure_ErrorBranch)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
+       ApplyConstantInterpolateLinePressureProcess_CalculateBoundaryPressure_ErrorBranch)
 {
     // Arrange: Build valid boundary nodes, plus one isolated node above them to make top boundary search empty.
     Model      model;
@@ -722,6 +749,8 @@ TEST_F(KratosGeoMechanicsFastSuite, ApplyConstantInterpolateLinePressureProcess_
     auto p_node_1 = r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
     auto p_node_2 = r_model_part.CreateNewNode(2, 0.0, 1.0, 0.0);
     auto p_node_3 = r_model_part.CreateNewNode(3, 0.0, 2.0, 0.0); // isolated node
+
+    AddWaterPressureDofToAllNodes(r_model_part);
 
     p_node_1->FastGetSolutionStepValue(WATER_PRESSURE) = -100.0;
     p_node_2->FastGetSolutionStepValue(WATER_PRESSURE) = -50.0;
