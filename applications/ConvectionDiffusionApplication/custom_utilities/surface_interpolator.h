@@ -176,7 +176,7 @@ namespace Kratos
             {
                 ModelPart::ElementsContainerType::iterator it_elem = mMainModelPart.ElementsBegin() + e;
                 Geometry<Node> &r_geometry = it_elem->GetGeometry();
-                if (r_geometry.IsInside(point, p_pos_local, 1e-10))
+                if (r_geometry.IsInside(point, p_pos_local, 1e-6))
                 {
                     p_elem = mMainModelPart.pGetElement(it_elem->Id());
                     break;
