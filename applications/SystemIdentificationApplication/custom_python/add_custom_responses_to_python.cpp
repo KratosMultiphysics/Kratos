@@ -67,7 +67,7 @@ void AddCustomResponsesToPython(pybind11::module& m)
         ;
 
     py::class_<SensorResolutionMatrixResponseUtils, SensorResolutionMatrixResponseUtils::Pointer>(responses_module, "SensorResolutionMatrixResponseUtils")
-        .def(py::init<SensorMaskStatus::Pointer, const double, const double, const ModelPart&, const std::string&, const IndexType, const IndexType, const bool, const bool>(),
+        .def(py::init<SensorMaskStatus::Pointer, const double, const double, ModelPart&, const std::string&, const IndexType, const IndexType, const bool, const bool>(),
             py::arg("sensor_mask_status"),
             py::arg("step_size"),
             py::arg("filter_radius"),
@@ -79,6 +79,7 @@ void AddCustomResponsesToPython(pybind11::module& m)
             py::arg("store_filter_matrix") = true)
         .def("CalculateValue", &SensorResolutionMatrixResponseUtils::CalculateValue)
         .def("CalculateGradient", &SensorResolutionMatrixResponseUtils::CalculateGradient)
+        .def("GetFilter", &SensorResolutionMatrixResponseUtils::GetFilter)
         ;
 }
 
