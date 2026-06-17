@@ -15,8 +15,8 @@
 #pragma once
 
 #include "includes/constitutive_law.h"
-#include <memory>
 #include "sigma_tau.hpp"
+#include <memory>
 
 namespace Kratos
 {

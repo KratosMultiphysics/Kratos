@@ -15,6 +15,7 @@
 // Application includes
 #include "custom_constitutive/interface_coulomb_law.h"
 #include "custom_constitutive/constitutive_law_dimension.h"
+#include "custom_constitutive/coulomb_impl.h"
 #include "custom_constitutive/sigma_tau.hpp"
 #include "custom_utilities/check_utilities.hpp"
 #include "custom_utilities/constitutive_law_utilities.h"
@@ -22,13 +23,12 @@
 #include "custom_utilities/stress_strain_utilities.h"
 #include "geo_mechanics_application_constants.h"
 #include "geo_mechanics_application_variables.h"
-#include "custom_constitutive/coulomb_impl.h"
 
 namespace Kratos
 {
-    InterfaceCoulombLaw::InterfaceCoulombWithTensionCutOff() = default;
+InterfaceCoulombLaw::InterfaceCoulombWithTensionCutOff() = default;
 
-    InterfaceCoulombLaw::~InterfaceCoulombWithTensionCutOff() = default;
+InterfaceCoulombLaw::~InterfaceCoulombWithTensionCutOff() = default;
 
 InterfaceCoulombLaw::InterfaceCoulombLaw(std::unique_ptr<ConstitutiveLawDimension> pConstitutiveDimension)
     InterfaceCoulombWithTensionCutOff::InterfaceCoulombWithTensionCutOff(std::unique_ptr<ConstitutiveLawDimension> pConstitutiveDimension)
@@ -42,9 +42,7 @@ InterfaceCoulombLaw::InterfaceCoulombLaw(std::unique_ptr<ConstitutiveLawDimensio
 
 InterfaceCoulombLaw::InterfaceCoulombWithTensionCutOff(InterfaceCoulombWithTensionCutOff&&) noexcept = default;
 
-InterfaceCoulombLaw& InterfaceCoulombLaw::operator=(
-    InterfaceCoulombLaw&&) noexcept = default;
-
+InterfaceCoulombLaw& InterfaceCoulombLaw::operator=(InterfaceCoulombLaw&&) noexcept = default;
 
 ConstitutiveLaw::Pointer InterfaceCoulombLaw::Clone() const
 {
@@ -52,7 +50,7 @@ ConstitutiveLaw::Pointer InterfaceCoulombLaw::Clone() const
     p_result->mTractionVector                      = mTractionVector;
     p_result->mTractionVectorFinalized             = mTractionVectorFinalized;
     p_result->mRelativeDisplacementVectorFinalized = mRelativeDisplacementVectorFinalized;
-    p_result->mCoulombImpl        = mCoulombImpl->Clone();
+    p_result->mCoulombImpl                         = mCoulombImpl->Clone();
     p_result->mIsModelInitialized                  = mIsModelInitialized;
     return p_result;
 }

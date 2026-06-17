@@ -15,13 +15,13 @@
 // Application includes
 #include "custom_constitutive/mohr_coulomb_law.h"
 #include "custom_constitutive/constitutive_law_dimension.h"
+#include "custom_constitutive/coulomb_impl.h"
 #include "custom_constitutive/principal_stresses.hpp"
 #include "custom_utilities/check_utilities.hpp"
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "custom_utilities/math_utilities.hpp"
 #include "custom_utilities/stress_strain_utilities.h"
 #include "geo_mechanics_application_variables.h"
-#include "custom_constitutive/coulomb_impl.h"
 
 namespace
 {
@@ -76,10 +76,10 @@ Geo::PrincipalStresses::AveragingType FindAveragingType(const Geo::PrincipalStre
 
 namespace Kratos
 {
-MohrCoulombLaw::MohrCoulombWithTensionCutOff() = default;
-MohrCoulombLaw::~MohrCoulombWithTensionCutOff() = default;
+MohrCoulombLaw::MohrCoulombWithTensionCutOff()                          = default;
+MohrCoulombLaw::~MohrCoulombWithTensionCutOff()                         = default;
 MohrCoulombLaw::MohrCoulombWithTensionCutOff(MohrCoulombLaw&&) noexcept = default;
-MohrCoulombLaw& MohrCoulombLaw::operator=(MohrCoulombLaw&&) noexcept = default;
+MohrCoulombLaw& MohrCoulombLaw::operator=(MohrCoulombLaw&&) noexcept    = default;
 
 MohrCoulombLaw::MohrCoulombLaw(std::unique_ptr<ConstitutiveLawDimension> pConstitutiveDimension)
     : mpConstitutiveDimension(std::move(pConstitutiveDimension)),
@@ -92,11 +92,11 @@ MohrCoulombLaw::MohrCoulombLaw(std::unique_ptr<ConstitutiveLawDimension> pConsti
 
 ConstitutiveLaw::Pointer MohrCoulombLaw::Clone() const
 {
-    auto p_result = std::make_shared<MohrCoulombLaw>(mpConstitutiveDimension->Clone());
-    p_result->mStressVector                 = mStressVector;
-    p_result->mStressVectorFinalized        = mStressVectorFinalized;
-    p_result->mStrainVectorFinalized        = mStrainVectorFinalized;
-    p_result->mCoulombImpl = mCoulombImpl->Clone();
+    auto p_result           = std::make_shared<MohrCoulombLaw>(mpConstitutiveDimension->Clone());
+    p_result->mStressVector = mStressVector;
+    p_result->mStressVectorFinalized = mStressVectorFinalized;
+    p_result->mStrainVectorFinalized = mStrainVectorFinalized;
+    p_result->mCoulombImpl           = mCoulombImpl->Clone();
     return p_result;
 }
 

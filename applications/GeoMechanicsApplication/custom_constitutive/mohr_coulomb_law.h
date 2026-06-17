@@ -68,7 +68,7 @@ private:
     Vector                                    mStressVector;
     Vector                                    mStressVectorFinalized;
     Vector                                    mStrainVectorFinalized;
-    std::unique_ptr<CoulombImpl> mCoulombImpl;
+    std::unique_ptr<CoulombImpl>              mCoulombImpl;
     bool                                      mIsModelInitialized = false;
 
     [[nodiscard]] Vector CalculateTrialStressVector(const Vector& rStrainVector, const Properties& rProperties) const;
