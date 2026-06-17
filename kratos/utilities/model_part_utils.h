@@ -20,6 +20,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "containers/model.h"
 #include "includes/model_part.h"
 #include "includes/global_variables.h"
 #include "utilities/parallel_utilities.h"
@@ -99,7 +100,7 @@ public:
     }
 
     /**
-     * @brief Add nodes to ModelPart from an ordered container. 
+     * @brief Add nodes to ModelPart from an ordered container.
      * @details By assuming that the input is ordered (by increasing Id), the nodes can be added more efficiently. Note that the function makes no check of the ordering, it is the responsability of the caller to ensure that it is correct.
      * @tparam TIteratorType Iterator type for the nodes to add.
      * @param rTargetModelPart ModelPart the nodes will be added to.
@@ -300,6 +301,79 @@ public:
         GenerateEntitiesFromConnectivities(r_clone_entity, rEntitiesIds, rPropertiesIds, rEntitiesConnectivities, rThisNodes, rThisProperties, rThisEntities);
     }
 
+    /**
+     * @brief Get the Model Part or the sub-model part which contains the specified @p rContainer
+     * @details This method will return a pointer to:
+     *              - a model part which contains the @p rContainer in model part mesh, local mesh, interface mesh or ghost mesh.
+     *              - nullptr otherwise.
+     *
+     * @note If a matching model part is found, it will return it. Further checking is halted.
+     *
+     * @tparam TContainerType   Container type
+     * @param rModelPart        Model part in which the @p rContainer will be looked for.
+     * @param rContainer        The container to look for
+     * @return ModelPart*       The model part containing the @p rContainer
+     */
+    template<class TContainerType>
+    static ModelPart* GetModelPart(
+        ModelPart& rModelPart,
+        const TContainerType& rContainer)
+    {
+        auto p_model_part_container = &ModelPart::Container<TContainerType>::GetContainer(rModelPart.GetMesh());
+        auto p_model_part_local_mesh_container = &ModelPart::Container<TContainerType>::GetContainer(rModelPart.GetCommunicator().LocalMesh());
+        auto p_model_part_interface_mesh_container = &ModelPart::Container<TContainerType>::GetContainer(rModelPart.GetCommunicator().InterfaceMesh());
+        auto p_model_part_ghost_mesh_container = &ModelPart::Container<TContainerType>::GetContainer(rModelPart.GetCommunicator().GhostMesh());
+
+        if (
+            (&rContainer == p_model_part_container) ||
+            (&rContainer == p_model_part_local_mesh_container) ||
+            (&rContainer == p_model_part_interface_mesh_container) ||
+            (&rContainer == p_model_part_ghost_mesh_container)) {
+                return &rModelPart;
+        } else {
+            for (const auto& r_sub_model_part_name : rModelPart.GetSubModelPartNames()) {
+                auto p_model_part = GetModelPart(rModelPart.GetSubModelPart(r_sub_model_part_name), rContainer);
+                if (!p_model_part) {
+                    return p_model_part;
+                }
+            }
+        }
+
+        return nullptr;
+    }
+
+    /**
+     * @brief Get the Model Part or the sub-model part which contains the specified @p rContainer
+     * @details This method will return a pointer to:
+     *              - a model part which contains the @p rContainer in model part mesh, local mesh, interface mesh or ghost mesh.
+     *              - nullptr otherwise.
+     *
+     * @note If a matching model part is found, it will return it. Further checking is halted.
+     *
+     * @tparam TContainerType   Container type
+     * @param rModel            the model in which the @p rContainer will be looked for.
+     * @param rContainer        The container to look for
+     * @return ModelPart*       The model part containing the @p rContainer
+     */
+    template<class TContainerType>
+    static ModelPart* GetModelPart(
+        Model& rModel,
+        const TContainerType& rContainer)
+    {
+        KRATOS_TRY
+
+        for (const auto& r_model_part_name : rModel.GetModelPartNames()) {
+            auto p_model_part = GetModelPart(rModel.GetModelPart(r_model_part_name), rContainer);
+            if (p_model_part) {
+                return p_model_part;
+            }
+        }
+
+        return nullptr;
+
+        KRATOS_CATCH("");
+    }
+
 private:
 
   /**
@@ -315,9 +389,9 @@ private:
    */
     template<class TIteratorType >
     static typename ModelPart::NodesContainerType JoinOrderedNodesContainerType(
-        TIteratorType iC1Begin,  
-        TIteratorType iC1End, 
-        TIteratorType iC2Begin,  
+        TIteratorType iC1Begin,
+        TIteratorType iC1End,
+        TIteratorType iC2Begin,
         TIteratorType iC2End
         )
     {
@@ -361,14 +435,14 @@ private:
 
         return aux;
     }
-  
+
     /**
     * @brief Checks if an entity is registered in Kratos and returns a reference to it.
     * @details This function checks if a given entity (either an Element or a Condition) is registered in Kratos. If the entity is registered, it returns a constant reference to it. If the entity is not registered, it throws an error with a descriptive message. Template parameter `TEntity` can be either `Element` or `Condition`. The function utilizes compile-time checks to generate appropriate error messages based on the entity type.
     * @tparam TEntity The type of the entity to check. Must be either `Element` or `Condition`.
     * @param rEntityName The name of the entity to check.
     * @return const TEntity& A constant reference to the entity.
-    * @throw Kratos::Exception If the entity is not registered in Kratos. The exception message will specify 
+    * @throw Kratos::Exception If the entity is not registered in Kratos. The exception message will specify
     * whether the missing entity is an Element or a Condition and remind to check the spelling and registration of the application.
     */
     template<class TEntity>
