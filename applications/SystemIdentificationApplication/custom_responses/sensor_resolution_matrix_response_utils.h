@@ -43,7 +43,7 @@ public:
         SensorMaskStatus::Pointer pSensorMaskStatus,
         const double StepSize,
         const double FilterRadius,
-        const ModelPart& rModelPart,
+        ModelPart& rModelPart,
         const std::string& rKernelFunctionType,
         const IndexType MaxLeafSize = 10,
         const IndexType EchoLevel = 0,
@@ -57,6 +57,11 @@ public:
     double CalculateValue();
 
     TensorAdaptor<double>::Pointer CalculateGradient() const;
+
+    std::variant<
+        ExplicitFilterUtils<ModelPart::NodesContainerType>::Pointer,
+        ExplicitFilterUtils<ModelPart::ConditionsContainerType>::Pointer,
+        ExplicitFilterUtils<ModelPart::ElementsContainerType>::Pointer> GetFilter();
 
     ///@}
 

@@ -18,8 +18,10 @@
 #include "containers/nd_data.h"
 #include "tensor_adaptors/tensor_adaptor.h"
 #include "utilities/data_type_traits.h"
+#include "utilities/reduction_utilities.h"
 
 // Application includes
+#include "custom_utilities/filtering/neareset_entity_explicit_damping.h"
 #include "system_identification_application_variables.h"
 
 // Include base h
@@ -31,7 +33,7 @@ SensorResolutionMatrixResponseUtils::SensorResolutionMatrixResponseUtils(
     SensorMaskStatus::Pointer pSensorMaskStatus,
     const double StepSize,
     const double FilterRadius,
-    const ModelPart& rModelPart,
+    ModelPart& rModelPart,
     const std::string& rKernelFunctionType,
     const IndexType MaxLeafSize,
     const IndexType EchoLevel,
@@ -50,7 +52,14 @@ SensorResolutionMatrixResponseUtils::SensorResolutionMatrixResponseUtils(
             auto p_filter = Kratos::make_shared<ExplicitFilterUtils<container_type>>(
                 rModelPart, rKernelFunctionType, MaxLeafSize, EchoLevel,
                 NodeCloudMesh, StoreFilterMatrix);
-            p_filter->SetRadius(Kratos::make_shared<TensorAdaptor<double>>(pContainer, Kratos::make_shared<NDData<double>>(DenseVector<unsigned int>(1, pContainer->size()), FilterRadius), false));
+            auto p_damper = Kratos::make_shared<NearestEntityExplicitDamping<container_type>>(rModelPart.GetModel(), Parameters("""{}"""), 1);
+
+            auto p_radius_ta = Kratos::make_shared<TensorAdaptor<double>>(pContainer, Kratos::make_shared<NDData<double>>(DenseVector<unsigned int>(1, pContainer->size()), FilterRadius), false);
+            p_filter->SetRadius(p_radius_ta);
+            p_damper->SetRadius(p_radius_ta);
+            p_filter->SetDamping(p_damper);
+            p_damper->Update();
+            p_filter->Update();
             this->mpFilter = p_filter;
         } else {
             KRATOS_ERROR << "The SensorResolutionMatrixResponseUtils only supports nodal, condition or elemental masks.";
@@ -85,16 +94,16 @@ double SensorResolutionMatrixResponseUtils::CalculateValue()
                 auto p_filtered_tensor_adaptor = p_filter->ForwardFilterField(*p_filter->BackwardFilterField(tensor_adaptor));
                 const auto data_view = p_filtered_tensor_adaptor->ViewData();
 
-                IndexPartition<IndexType>(data_view.size()).for_each([&](const auto iRow){
+                frobenius_norm += IndexPartition<IndexType>(data_view.size()).for_each<SumReduction<double>>([&](const auto iRow){
                     const double value = data_view[iRow];
                     mResolutionMatrix(iRow, i_col) = value;
-                    frobenius_norm += value * value;
+                    return value * value;
                 });
                 const double value = data_view[i_col];
-                frobenius_norm = frobenius_norm - (value * value) + (value - coeff) * (value - coeff);
+                frobenius_norm += coeff * coeff - 2.0 * coeff * value;
             }
 
-            return frobenius_norm * mStepSize * mStepSize;
+            return frobenius_norm * mStepSize * mStepSize * 0.5;
         } else {
             KRATOS_ERROR << "The SensorResolutionMatrixResponseUtils only supports nodal, condition or elemental masks.";
             return 0.0;
@@ -130,20 +139,20 @@ TensorAdaptor<double>::Pointer SensorResolutionMatrixResponseUtils::CalculateGra
                 auto& value = result_data_view[i_sensor];
                 value = 0.0;
 
-                for (IndexType i_col = 0; i_col < mResolutionMatrix.size1(); ++i_col) {
+                for (IndexType i_col = 0; i_col < mResolutionMatrix.size2(); ++i_col) {
                     double* p_row_start = &auxiliary_mask_matrix(i_col, 0);
                     NDData<double>::Pointer p_nd_data = Kratos::make_shared<NDData<double>>(p_row_start, DenseVector<unsigned int>(1, r_masks.size1()), false);
                     TensorAdaptor<double> tensor_adaptor(pContainer, p_nd_data, false);
                     auto p_filtered_tensor_adaptor = p_filter->ForwardFilterField(*p_filter->BackwardFilterField(tensor_adaptor));
                     const auto data_view = p_filtered_tensor_adaptor->ViewData();
 
-                    IndexPartition<IndexType>(mResolutionMatrix.size2()).for_each([&](const auto Index) {
-                        value += mResolutionMatrix(i_col, Index) * data_view[Index];
+                    value += IndexPartition<IndexType>(mResolutionMatrix.size2()).for_each<SumReduction<double>>([&](const auto iRow) {
+                        return mResolutionMatrix(iRow, i_col) * data_view[iRow];
                     });
-
                     value -= data_view[i_col] * coeff;
-                    value *= 2.0 * mStepSize * mStepSize * (mpSensorMaskStatus->GetSensorModelPart().NodesBegin() + i_sensor)->GetValue(SENSOR_STATUS);
                 }
+
+                value *= 2.0 * mStepSize * mStepSize * (mpSensorMaskStatus->GetSensorModelPart().NodesBegin() + i_sensor)->GetValue(SENSOR_STATUS);
             }
         } else {
             KRATOS_ERROR << "The SensorResolutionMatrixResponseUtils only supports nodal, condition or elemental masks.";
@@ -153,6 +162,14 @@ TensorAdaptor<double>::Pointer SensorResolutionMatrixResponseUtils::CalculateGra
     return Kratos::make_shared<TensorAdaptor<double>>(p_sensor_nodes, result_nd_data, false);
 
     KRATOS_CATCH("");
+}
+
+std::variant<
+    ExplicitFilterUtils<ModelPart::NodesContainerType>::Pointer,
+    ExplicitFilterUtils<ModelPart::ConditionsContainerType>::Pointer,
+    ExplicitFilterUtils<ModelPart::ElementsContainerType>::Pointer> SensorResolutionMatrixResponseUtils::GetFilter()
+{
+    return mpFilter;
 }
 
 } /* namespace Kratos.*/
